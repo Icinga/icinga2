@@ -76,32 +76,39 @@ for example).
 
 Make sure to answer the first question with `n` (no).
 
-    # icinga2 node wizard
+    nbmif /etc/icinga2 # icinga2 node wizard
     Welcome to the Icinga 2 Setup Wizard!
 
     We'll guide you through all required configuration details.
 
     Please specify if this is a satellite setup ('n' installs a master setup) [Y/n]: n
     Starting the Master setup routine...
-    Please specifiy the common name (CN) [icinga2-node1.localdomain]:
+    Please specifiy the common name (CN) [icinga2-node1.localdomain]: 
+    Checking the 'api' feature...
+    'api' feature not enabled, running 'api setup' now.
+    information/cli: Generating new CA.
+
     information/base: Writing private key to '/var/lib/icinga2/ca/ca.key'.
     information/base: Writing X509 certificate to '/var/lib/icinga2/ca/ca.crt'.
     information/cli: Initializing serial file in '/var/lib/icinga2/ca/serial.txt'.
     information/cli: Generating new CSR in '/etc/icinga2/pki/icinga2-node1.localdomain.csr'.
+
     information/base: Writing private key to '/etc/icinga2/pki/icinga2-node1.localdomain.key'.
     information/base: Writing certificate signing request to '/etc/icinga2/pki/icinga2-node1.localdomain.csr'.
     information/cli: Signing CSR with CA and writing certificate to '/etc/icinga2/pki/icinga2-node1.localdomain.crt'.
+
     information/cli: Copying CA certificate to '/etc/icinga2/pki/ca.crt'.
-    information/cli: Dumping config items to file '/etc/icinga2/zones.conf'.
-    information/cli: Created backup file '/etc/icinga2/zones.conf.orig'.
-    Please specify the API bind host/port (optional):
-    Bind Host []:
-    Bind Port []:
-    information/cli: Enabling the APIlistener feature.
+
+    information/cli: Adding new ApiUser 'root' in '/etc/icinga2/conf.d/api-users.conf'.
+
+    information/cli: Enabling the ApiListener feature.
+
     Enabling feature api. Make sure to restart Icinga 2 for these changes to take effect.
-    information/cli: Created backup file '/etc/icinga2/features-available/api.conf.orig'.
+    information/cli: Dumping config items to file '/etc/icinga2/zones.conf'.
+    Please specify the API bind host/port (optional):
+    Bind Host []: 
+    Bind Port []: 
     information/cli: Updating constants.conf.
-    information/cli: Created backup file '/etc/icinga2/constants.conf.orig'.
     information/cli: Updating constants file '/etc/icinga2/constants.conf'.
     information/cli: Updating constants file '/etc/icinga2/constants.conf'.
     Done.
@@ -111,10 +118,11 @@ Make sure to answer the first question with `n` (no).
 
 The setup wizard will do the following:
 
-* Generate a local CA in `/var/lib/icinga2/ca` or use the existing one
-* Generate a new CSR, sign it with the local CA and copying it into `/etc/icinga2/pki`
+* Check if the `api` feature is already enabled, and if not:
+ * Generate a local CA in `/var/lib/icinga2/ca` or use the existing one
+ * Generate a new CSR, sign it with the local CA and copying it into `/etc/icinga2/pki`
+ * Enabling the API feature, and setting optional `bind_host` and `bind_port`
 * Generate a local zone and endpoint configuration for this master based on FQDN
-* Enabling the API feature, and setting optional `bind_host` and `bind_port`
 * Setting the `NodeName` and `TicketSalt` constants in [constants.conf](4-configuring-icinga-2.md#constants-conf)
 
 The setup wizard does not automatically restart Icinga 2.

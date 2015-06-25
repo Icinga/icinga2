@@ -158,7 +158,7 @@ int ApiSetupUtility::SetupMaster(const String& cn)
 	fp.open(apiuserspathtmp.CStr(), std::ofstream::out | std::ofstream::trunc);
 
 	fp << "/**\n"
-	    << " * The API users are used for authentication against the API.\n"
+	    << " * The APIUser objects are used for authentication against the API.\n"
 	    << " */\n"
 	    << "object ApiUser \"" << api_username << "\" {\n"
 	    << "  password = \"" << api_password << "\"\n"

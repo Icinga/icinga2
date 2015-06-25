@@ -9,7 +9,8 @@ description are explained as well.
 ## <a id="objecttype-apilistener"></a> ApiListener
 
 ApiListener objects are used for distributed monitoring setups
-specifying the certificate files used for ssl authorization.
+and API usage specifying the certificate files used for ssl
+authorization and additional restrictions.
 
 The `NodeName` constant must be defined in [constants.conf](4-configuring-icinga-2.md#constants-conf).
 
@@ -34,6 +35,24 @@ Configuration Attributes:
   bind\_port                |**Optional.** The port the api listener should be bound to. Defaults to `5665`.
   accept\_config            |**Optional.** Accept zone configuration. Defaults to `false`.
   accept\_commands          |**Optional.** Accept remote commands. Defaults to `false`.
+
+## <a id="objecttype-apiuser"></a> ApiUser
+
+ApiUser objects are used for authentication against the Icinga 2 API.
+
+Example:
+
+    object ApiUser "root" {
+      password = "mysecretapipassword"
+    }
+
+
+Configuration Attributes:
+
+  Name                      |Description
+  --------------------------|--------------------------
+  password                  |**Optional.** Password string.
+  client\_cn                |**Optional.** Client Common Name (CN).
 
 ## <a id="objecttype-checkcommand"></a> CheckCommand
 
