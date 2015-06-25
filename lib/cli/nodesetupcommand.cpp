@@ -21,6 +21,7 @@
 #include "cli/nodeutility.hpp"
 #include "cli/featureutility.hpp"
 #include "cli/pkiutility.hpp"
+#include "cli/apisetuputility.hpp"
 #include "base/logger.hpp"
 #include "base/console.hpp"
 #include "base/application.hpp"
@@ -122,94 +123,16 @@ int NodeSetupCommand::SetupMaster(const boost::program_options::variables_map& v
 	if (vm.count("accept-commands"))
 		Log(LogWarning, "cli", "Master for Node setup: Ignoring --accept-commands");
 
-	/* Generate a new CA, if not already existing */
+        String cn = Utility::GetFQDN();
 
-	Log(LogInformation, "cli", "Generating new CA.");
+        if (vm.count("cn"))
+                cn = vm["cn"].as<std::string>();
 
-	if (PkiUtility::NewCa() > 0) {
-		Log(LogWarning, "cli", "Found CA, skipping and using the existing one.");
-	}
-
-	/* Generate a self signed certificate */
-
-	Log(LogInformation, "cli", "Generating new self-signed certificate.");
-
-	String pki_path = PkiUtility::GetPkiPath();
-
-	if (!Utility::MkDirP(pki_path, 0700)) {
-		Log(LogCritical, "cli")
-		    << "Could not create local pki directory '" << pki_path << "'.";
-		return 1;
-	}
-
-	String user = ScriptGlobal::Get("RunAsUser");
-	String group = ScriptGlobal::Get("RunAsGroup");
-
-	if (!Utility::SetFileOwnership(pki_path, user, group)) {
-		Log(LogWarning, "cli")
-		    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << pki_path << "'. Verify it yourself!";
-	}
-
-	String cn = Utility::GetFQDN();
-
-	if (vm.count("cn"))
-		cn = vm["cn"].as<std::string>();
-
-	String key = pki_path + "/" + cn + ".key";
-	String csr = pki_path + "/" + cn + ".csr";
-
-	if (Utility::PathExists(key))
-		NodeUtility::CreateBackupFile(key, true);
-	if (Utility::PathExists(csr))
-		NodeUtility::CreateBackupFile(csr);
-
-	if (PkiUtility::NewCert(cn, key, csr, "") > 0) {
-		Log(LogCritical, "cli", "Failed to create self-signed certificate");
-		return 1;
-	}
-
-	/* Sign the CSR with the CA key */
-
-	String cert = pki_path + "/" + cn + ".crt";
-
-	if (Utility::PathExists(cert))
-		NodeUtility::CreateBackupFile(cert);
-
-	if (PkiUtility::SignCsr(csr, cert) != 0) {
-		Log(LogCritical, "cli", "Could not sign CSR.");
-		return 1;
-	}
-
-	/* Copy CA certificate to /etc/icinga2/pki */
-	String ca_path = PkiUtility::GetLocalCaPath();
-	String ca = ca_path + "/ca.crt";
-	String ca_key = ca_path + "/ca.key";
-	String serial = ca_path + "/serial.txt";
-	String target_ca = pki_path + "/ca.crt";
-
-	Log(LogInformation, "cli")
-	    << "Copying CA certificate to '" << target_ca << "'.";
-
-	/* does not overwrite existing files! */
-	Utility::CopyFile(ca, target_ca);
-
-	/* fix permissions: root -> icinga daemon user */
-	std::vector<String> files;
-	files.push_back(ca_path);
-	files.push_back(ca);
-	files.push_back(ca_key);
-	files.push_back(serial);
-	files.push_back(target_ca);
-	files.push_back(key);
-	files.push_back(csr);
-	files.push_back(cert);
-
-	BOOST_FOREACH(const String& file, files) {
-		if (!Utility::SetFileOwnership(file, user, group)) {
-			Log(LogWarning, "cli")
-			    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << file << "'. Verify it yourself!";
-		}
-	}
+	if (FeatureUtility::CheckFeatureDisabled("api")) {
+		Log(LogInformation, "cli", "'api' feature not enabled, running 'api setup' now.\n");
+		ApiSetupUtility::SetupMaster(cn);
+	} else
+		Log(LogInformation, "cli", "'api' feature already enabled.\n");
 
 	/* read zones.conf and update with zone + endpoint information */
 
@@ -217,13 +140,9 @@ int NodeSetupCommand::SetupMaster(const boost::program_options::variables_map& v
 
 	NodeUtility::GenerateNodeMasterIcingaConfig(cn);
 
-	/* enable the ApiListener config */
+	/* update the ApiListener config - SetupMaster() will always enable it */
 
 	Log(LogInformation, "cli", "Updating the APIListener feature.");
-
-	std::vector<std::string> enable;
-	enable.push_back("api");
-	FeatureUtility::EnableFeatures(enable);
 
 	String apipath = FeatureUtility::GetFeaturesAvailablePath() + "/api.conf";
 	NodeUtility::CreateBackupFile(apipath);
