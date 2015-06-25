@@ -21,6 +21,7 @@
 #include "cli/nodeutility.hpp"
 #include "cli/pkiutility.hpp"
 #include "cli/featureutility.hpp"
+#include "cli/apisetuputility.hpp"
 #include "base/logger.hpp"
 #include "base/console.hpp"
 #include "base/application.hpp"
@@ -441,102 +442,13 @@ wizard_ticket:
 	} else {
 		/* master setup */
 		std::cout << ConsoleColorTag(Console_Bold) << "Starting the Master setup routine...\n";
+		std::cout << ConsoleColorTag(Console_Bold) << "Checking the 'api' feature...\n";
 
-		/* CN */
-		std::cout << ConsoleColorTag(Console_Bold) << "Please specifiy the common name" << ConsoleColorTag(Console_Normal) << " (CN) [" << Utility::GetFQDN() << "]: ";
+		String cn = Utility::GetFQDN();
 
-		std::getline(std::cin, answer);
-		boost::algorithm::to_lower(answer);
-
-		if (answer.empty())
-			answer = Utility::GetFQDN();
-
-		String cn = answer;
-		cn.Trim();
-
-		if (PkiUtility::NewCa() > 0) {
-			Log(LogWarning, "cli", "Found CA, skipping and using the existing one.");
-		}
-
-		String pki_path = PkiUtility::GetPkiPath();
-
-		if (!Utility::MkDirP(pki_path, 0700)) {
-			Log(LogCritical, "cli")
-			    << "Could not create local pki directory '" << pki_path << "'.";
-			return 1;
-		}
-
-		String user = ScriptGlobal::Get("RunAsUser");
-		String group = ScriptGlobal::Get("RunAsGroup");
-
-		if (!Utility::SetFileOwnership(pki_path, user, group)) {
-			Log(LogWarning, "cli")
-			    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << pki_path << "'. Verify it yourself!";
-		}
-
-		String key = pki_path + "/" + cn + ".key";
-		String csr = pki_path + "/" + cn + ".csr";
-
-		Log(LogInformation, "cli")
-		    << "Generating new CSR in '" << csr << "'.";
-
-		if (Utility::PathExists(key))
-			NodeUtility::CreateBackupFile(key, true);
-		if (Utility::PathExists(csr))
-			NodeUtility::CreateBackupFile(csr);
-
-		if (PkiUtility::NewCert(cn, key, csr, "") > 0) {
-			Log(LogCritical, "cli", "Failed to create certificate signing request.");
-			return 1;
-		}
-
-		/* Sign the CSR with the CA key */
-		String cert = pki_path + "/" + cn + ".crt";
-
-		Log(LogInformation, "cli")
-		    << "Signing CSR with CA and writing certificate to '" << cert << "'.";
-
-		if (Utility::PathExists(cert))
-			NodeUtility::CreateBackupFile(cert);
-
-		if (PkiUtility::SignCsr(csr, cert) != 0) {
-			Log(LogCritical, "cli", "Could not sign CSR.");
-			return 1;
-		}
-
-		/* Copy CA certificate to /etc/icinga2/pki */
-
-		String ca_path = PkiUtility::GetLocalCaPath();
-		String ca = ca_path + "/ca.crt";
-		String ca_key = ca_path + "/ca.key";
-		String serial = ca_path + "/serial.txt";
-		String target_ca = pki_path + "/ca.crt";
-
-		Log(LogInformation, "cli")
-		    << "Copying CA certificate to '" << target_ca << "'.";
-
-		if (Utility::PathExists(target_ca))
-			NodeUtility::CreateBackupFile(target_ca);
-
-		/* does not overwrite existing files! */
-		Utility::CopyFile(ca, target_ca);
-
-		/* fix permissions: root -> icinga daemon user */
-		std::vector<String> files;
-		files.push_back(ca_path);
-		files.push_back(ca);
-		files.push_back(ca_key);
-		files.push_back(serial);
-		files.push_back(target_ca);
-		files.push_back(key);
-		files.push_back(csr);
-		files.push_back(cert);
-
-		BOOST_FOREACH(const String& file, files) {
-			if (!Utility::SetFileOwnership(file, user, group)) {
-				Log(LogWarning, "cli")
-				    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << file << "'. Verify it yourself!";
-			}
+		if (FeatureUtility::CheckFeatureDisabled("api")) {
+			std::cout << ConsoleColorTag(Console_Bold) << "'api' feature not enabled, running 'api setup' now.\n";
+			ApiSetupUtility::SetupMaster(cn);
 		}
 
 		NodeUtility::GenerateNodeMasterIcingaConfig(cn);
@@ -559,12 +471,7 @@ wizard_ticket:
 		String bind_port = answer;
 		bind_port.Trim();
 
-		Log(LogInformation, "cli", "Enabling the APIlistener feature.");
-
-		std::vector<std::string> enable;
-		enable.push_back("api");
-		FeatureUtility::EnableFeatures(enable);
-
+		/* api feature is always enabled, check above */
 		String apipath = FeatureUtility::GetFeaturesAvailablePath() + "/api.conf";
 		NodeUtility::CreateBackupFile(apipath);
 
