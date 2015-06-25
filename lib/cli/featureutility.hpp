@@ -45,10 +45,13 @@ public:
 	static int ListFeatures(std::ostream& os = std::cout);
 
 	static bool GetFeatures(std::vector<String>& features, bool enable);
+	static bool CheckFeatureEnabled(const String& feature);
+	static bool CheckFeatureDisabled(const String& feature);
 
 private:
 	FeatureUtility(void);
 	static void CollectFeatures(const String& feature_file, std::vector<String>& features);
+	static bool CheckFeatureInternal(const String& feature, bool check_disabled);
 };
 
 }

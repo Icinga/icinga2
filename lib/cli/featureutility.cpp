@@ -244,6 +244,31 @@ bool FeatureUtility::GetFeatures(std::vector<String>& features, bool get_disable
 	return true;
 }
 
+bool FeatureUtility::CheckFeatureEnabled(const String& feature)
+{
+	return CheckFeatureInternal(feature, false);
+}
+
+bool FeatureUtility::CheckFeatureDisabled(const String& feature)
+{
+	return CheckFeatureInternal(feature, true);
+}
+
+bool FeatureUtility::CheckFeatureInternal(const String& feature, bool check_disabled)
+{
+	std::vector<String> features;
+
+	if (!FeatureUtility::GetFeatures(features, check_disabled))
+		return false;
+
+	BOOST_FOREACH(const String& check_feature, features) {
+		if (check_feature == feature)
+			return true;
+	}
+
+	return false;
+}
+
 void FeatureUtility::CollectFeatures(const String& feature_file, std::vector<String>& features)
 {
 	String feature = Utility::BaseName(feature_file);
