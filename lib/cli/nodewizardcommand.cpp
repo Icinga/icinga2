@@ -442,9 +442,20 @@ wizard_ticket:
 	} else {
 		/* master setup */
 		std::cout << ConsoleColorTag(Console_Bold) << "Starting the Master setup routine...\n";
-		std::cout << ConsoleColorTag(Console_Bold) << "Checking the 'api' feature...\n";
 
-		String cn = Utility::GetFQDN();
+		/* CN */
+		std::cout << ConsoleColorTag(Console_Bold) << "Please specifiy the common name" << ConsoleColorTag(Console_Normal) << " (CN) [" << Utility::GetFQDN() << "]: ";
+
+		std::getline(std::cin, answer);
+		boost::algorithm::to_lower(answer);
+
+		if (answer.empty())
+			answer = Utility::GetFQDN();
+
+		String cn = answer;
+		cn.Trim();
+
+		std::cout << ConsoleColorTag(Console_Normal) << "Checking the 'api' feature...\n";
 
 		if (FeatureUtility::CheckFeatureDisabled("api")) {
 			std::cout << ConsoleColorTag(Console_Bold) << "'api' feature not enabled, running 'api setup' now.\n";
