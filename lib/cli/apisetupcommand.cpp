@@ -60,7 +60,7 @@ int ApiSetupCommand::Run(const boost::program_options::variables_map& vm, const 
 	 * - setup the api on a client?
 	 */
 
-	int result = ApiSetupUtility::SetupMaster();
+	int result = ApiSetupUtility::SetupMaster(Utility::GetFQDN());
 
 	if (result > 0) {
 		Log(LogCritical, "ApiSetup", "Error occured. Bailing out.");

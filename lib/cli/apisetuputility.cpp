@@ -43,7 +43,7 @@ String ApiSetupUtility::GetConfdPath(void)
         return Application::GetSysconfDir() + "/icinga2/conf.d";
 }
 
-int ApiSetupUtility::SetupMaster(void)
+int ApiSetupUtility::SetupMaster(const String& cn)
 {
 	/* if the 'api' feature is enabled we can safely assume
 	 * that either 'api setup' was run, or the user manually
@@ -57,8 +57,6 @@ int ApiSetupUtility::SetupMaster(void)
 
 	Log(LogInformation, "cli")
 	    << "Generating new CA.\n";
-
-	String cn = Utility::GetFQDN();
 
 	if (PkiUtility::NewCa() > 0) {
 		Log(LogWarning, "cli", "Found CA, skipping and using the existing one.");

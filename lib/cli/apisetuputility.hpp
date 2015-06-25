@@ -37,7 +37,7 @@ namespace icinga
 class I2_CLI_API ApiSetupUtility
 {
 public:
-	static int SetupMaster(void);
+	static int SetupMaster(const String& cn);
 	static String GetConfdPath(void);
 
 private:
