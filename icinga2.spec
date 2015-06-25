@@ -322,17 +322,25 @@ getent passwd %{icinga_user} >/dev/null || %{_sbindir}/useradd -c "icinga" -s /s
   %service_add_pre %{name}.service
 %endif
 %endif
-exit 0
 
 %if "%{_vendor}" == "suse"
 %verifyscript bin
 %verify_permissions -e %{_rundir}/%{name}/cmd
+%endif
+
+%post bin
+
+# install the api setup
+%{_sbindir}/%{name} api setup
+
+# suse
+%if "%{_vendor}" == "suse"
 
 %if 0%{?suse_version} >= 1310
-%post bin
 %set_permissions %{_rundir}/%{name}/cmd
 %endif
-%endif
+
+%endif #suse/rhel
 
 %post common
 # suse
