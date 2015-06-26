@@ -519,7 +519,7 @@ Dictionary::Ptr RepositoryUtility::GetObjectFromRepository(const String& filenam
 
 String RepositoryUtility::EscapeName(const String& name)
 {
-	return Utility::EscapeString(name, "<>:\"/\\|?*");
+	return Utility::EscapeString(name, "<>:\"/\\|?*", true);
 }
 
 String RepositoryUtility::UnescapeName(const String& name)

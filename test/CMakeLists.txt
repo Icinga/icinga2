@@ -22,8 +22,8 @@ set(base_test_SOURCES
   base-json.cpp base-match.cpp base-netstring.cpp base-object.cpp
   base-serialize.cpp base-shellescape.cpp base-stacktrace.cpp
   base-stream.cpp base-string.cpp base-timer.cpp base-type.cpp
-  base-value.cpp config-ops.cpp icinga-macros.cpp icinga-perfdata.cpp
-  remote-apiuser.cpp test.cpp
+  base-url.cpp base-value.cpp config-ops.cpp icinga-macros.cpp
+  icinga-perfdata.cpp remote-apiuser.cpp test.cpp
 )
 
 set(livestatus_test_SOURCES
@@ -79,7 +79,7 @@ add_boost_test(base
         base_string/clear
         base_string/append
         base_string/trim
-	base_string/contains
+        base_string/contains
         base_string/replace
         base_string/index
         base_string/find
@@ -87,27 +87,31 @@ add_boost_test(base
         base_timer/interval
         base_timer/invoke
         base_timer/scope
-	base_type/gettype
-	base_type/assign
-	base_type/byname
-	base_type/instantiate
+        base_type/gettype
+        base_type/assign
+        base_type/byname
+        base_type/instantiate
+        base_url/id_and_path
+        base_url/parameters
+        base_url/format
+        base_url/illegal_legal_strings
         base_value/scalar
         base_value/convert
         base_value/format
-	config_ops/simple
-	config_ops/advanced
-	icinga_macros/simple
-	icinga_perfdata/empty
-	icinga_perfdata/simple
-	icinga_perfdata/quotes
-	icinga_perfdata/multiple
-	icinga_perfdata/uom
-	icinga_perfdata/warncritminmax
-	icinga_perfdata/ignore_invalid_warn_crit_min_max
-	icinga_perfdata/invalid
-	icinga_perfdata/multi
-	remote_apiuser/get_password
-	remote_apiuser/check_password
+        config_ops/simple
+        config_ops/advanced
+        icinga_macros/simple
+        icinga_perfdata/empty
+        icinga_perfdata/simple
+        icinga_perfdata/quotes
+        icinga_perfdata/multiple
+        icinga_perfdata/uom
+        icinga_perfdata/warncritminmax
+        icinga_perfdata/ignore_invalid_warn_crit_min_max
+        icinga_perfdata/invalid
+        icinga_perfdata/multi
+        remote_apiuser/get_password
+        remote_apiuser/check_password
 )
 
 if(ICINGA2_WITH_LIVESTATUS)

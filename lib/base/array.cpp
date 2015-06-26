@@ -31,7 +31,7 @@ REGISTER_PRIMITIVE_TYPE(Array, Array::GetPrototype());
 /**
  * Restrieves a value from an array.
  *
- * @param index The index..
+ * @param index The index.
  * @returns The value.
  */
 Value Array::Get(unsigned int index) const

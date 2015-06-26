@@ -104,7 +104,7 @@ public:
 	static String EscapeShellCmd(const String& s);
 	static String EscapeShellArg(const String& s);
 
-	static String EscapeString(const String& s, const String& chars);
+	static String EscapeString(const String& s, const String& chars, const bool illegal);
 	static String UnescapeString(const String& s);
 
 	static void SetThreadName(const String& name, bool os = true);

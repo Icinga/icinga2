@@ -1147,16 +1147,25 @@ static int HexDecode(char hc)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid hex character."));
 }
 
-String Utility::EscapeString(const String& s, const String& chars)
+String Utility::EscapeString(const String& s, const String& chars, const bool illegal)
 {
 	std::ostringstream result;
-
-	BOOST_FOREACH(char ch, s) {
-		if (chars.FindFirstOf(ch) != String::NPos || ch == '%') {
-			result << '%';
-			HexEncode(ch, result);
-		} else
-			result << ch;
+	if (illegal) {
+		BOOST_FOREACH(char ch, s) {
+			if (chars.FindFirstOf(ch) != String::NPos || ch == '%') {
+				result << '%';
+				HexEncode(ch, result);
+			} else
+				result << ch;
+		}
+	} else {
+		BOOST_FOREACH(char ch, s) {
+			if (chars.FindFirstOf(ch) == String::NPos || ch == '%') {
+				result << '%';
+				HexEncode(ch, result);
+			} else
+				result << ch;
+		}
 	}
 
 	return result.str();

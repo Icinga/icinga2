@@ -31,7 +31,7 @@ set(base_SOURCES
   scriptutils.cpp serializer.cpp socket.cpp socketevents.cpp stacktrace.cpp
   statsfunction.cpp stdiostream.cpp stream.cpp streamlogger.cpp streamlogger.thpp string.cpp string-script.cpp
   sysloglogger.cpp sysloglogger.thpp tcpsocket.cpp thinmutex.cpp threadpool.cpp timer.cpp
-  tlsstream.cpp tlsutility.cpp type.cpp unixsocket.cpp utility.cpp value.cpp
+  tlsstream.cpp tlsutility.cpp type.cpp unixsocket.cpp url.cpp utility.cpp value.cpp
   value-operators.cpp workqueue.cpp
 )
 
