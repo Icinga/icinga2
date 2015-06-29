@@ -47,6 +47,12 @@ public:
 	typedef std::string::iterator iterator;
 	typedef std::string::const_iterator const_iterator;
 
+	typedef std::string::reverse_iterator ReverseIterator;
+	typedef std::string::const_reverse_iterator ConstReverseIterator;
+
+	typedef std::string::reverse_iterator reverse_iterator;
+	typedef std::string::const_reverse_iterator const_reverse_iterator;
+
 	typedef std::string::size_type SizeType;
 
 	inline String(void)
@@ -246,6 +252,26 @@ public:
 	inline ConstIterator End(void) const
 	{
 		return m_Data.end();
+	}
+
+	inline ReverseIterator RBegin(void)
+	{
+		return m_Data.rbegin();
+	}
+
+	inline ConstReverseIterator RBegin(void) const
+	{
+		return m_Data.rbegin();
+	}
+
+	inline ReverseIterator REnd(void)
+	{
+		return m_Data.rend();
+	}
+
+	inline ConstReverseIterator REnd(void) const
+	{
+		return m_Data.rend();
 	}
 
 	static const SizeType NPos;
