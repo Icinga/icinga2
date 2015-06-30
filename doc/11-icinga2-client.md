@@ -525,7 +525,7 @@ Using systemd:
 
 
 The `update-config` CLI command will fail, if there are uncommitted changes for the
-configuration repository.
+configuration repository or if your master is part of a HA setup (see https://dev.icinga.org/issues/8292 for details).
 Please review these changes manually, or clear the commit and try again. This is a
 safety hook to prevent unwanted manual changes to be committed by a updating the
 client discovered objects only.
