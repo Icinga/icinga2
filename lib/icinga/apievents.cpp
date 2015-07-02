@@ -1239,6 +1239,14 @@ void ApiEvents::VarsChangedHandler(const CustomVarObject::Ptr& object, const Dic
 
 	Dictionary::Ptr params = new Dictionary();
 	params->Set("object", object->GetName());
+
+	DynamicType::Ptr dtype = object->GetType();
+	ASSERT(dtype);
+
+	params->Set("object_type", dtype->GetName());
+	Log(LogDebug, "ApiEvents")
+	    << "Changed vars handler for object name: '" << object->GetName() << "' type: '" << dtype->GetName() << "'.";
+
 	params->Set("vars", Serialize(vars));
 
 	Dictionary::Ptr message = new Dictionary();
@@ -1263,26 +1271,42 @@ Value ApiEvents::VarsChangedAPIHandler(const MessageOrigin& origin, const Dictio
 		return Empty;
 
 	String objectName = params->Get("object");
+	String objectType = params->Get("object_type");
 
 	if (objectName.IsEmpty())
 		return Empty;
 
-	/* ugly, but there is no other way currently */
-	CustomVarObject::Ptr object = Host::GetByName(objectName);
-	if (!object)
-		object = Service::GetByName(objectName);
-	if (!object)
-		object = User::GetByName(objectName);
-	if (!object)
-		object = Service::GetByName(objectName);
-	if (!object)
-		object = EventCommand::GetByName(objectName);
-	if (!object)
-		object = CheckCommand::GetByName(objectName);
-	if (!object)
-		object = NotificationCommand::GetByName(objectName);
+	CustomVarObject::Ptr object;
+
+	if (objectType.IsEmpty()) {
+		/* keep the old broken way for compatibility reasons for <= v2.3.5 */
+		object = Host::GetByName(objectName);
+		if (!object)
+			object = Service::GetByName(objectName);
+		if (!object)
+			object = User::GetByName(objectName);
+		if (!object)
+			object = Service::GetByName(objectName);
+		if (!object)
+			object = EventCommand::GetByName(objectName);
+		if (!object)
+			object = CheckCommand::GetByName(objectName);
+		if (!object)
+			object = NotificationCommand::GetByName(objectName);
+	} else {
+		DynamicType::Ptr dtype = DynamicType::GetByName(objectType);
+
+		if (!dtype)
+			return Empty;
+
+		object = dynamic_pointer_cast<CustomVarObject>(dtype->GetObject(objectName));
+	}
+
 	if (!object)
 		return Empty;
+
+	Log(LogDebug, "ApiEvents")
+	    << "Processing 'vars changed' for object: '" << object->GetName() << "' type: '" << object->GetType()->GetName() << "'.";
 
 	if (origin.FromZone && !origin.FromZone->CanAccessObject(object)) {
 		Log(LogNotice, "ApiEvents")
