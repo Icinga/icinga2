@@ -143,8 +143,11 @@ Value ApiEvents::CheckResultAPIHandler(const MessageOrigin& origin, const Dictio
 {
 	Endpoint::Ptr endpoint = origin.FromClient->GetEndpoint();
 
-	if (!endpoint)
+	if (!endpoint) {
+		Log(LogNotice, "ApiEvents")
+		    << "Discarding 'check result' message from '" << origin.FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
 		return Empty;
+	}
 
 	if (!params)
 		return Empty;
@@ -190,8 +193,11 @@ Value ApiEvents::CheckResultAPIHandler(const MessageOrigin& origin, const Dictio
 	if (!checkable)
 		return Empty;
 
-	if (origin.FromZone && !origin.FromZone->CanAccessObject(checkable) && endpoint != checkable->GetCommandEndpoint())
+	if (origin.FromZone && !origin.FromZone->CanAccessObject(checkable) && endpoint != checkable->GetCommandEndpoint()) {
+		Log(LogNotice, "ApiEvents")
+		    << "Discarding 'check result' message from '" << origin.FromClient->GetIdentity() << "': Unauthorized access.";
 		return Empty;
+	}
 
 	if (endpoint == checkable->GetCommandEndpoint())
 		checkable->ProcessCheckResult(cr);
@@ -228,8 +234,13 @@ void ApiEvents::NextCheckChangedHandler(const Checkable::Ptr& checkable, double 
 
 Value ApiEvents::NextCheckChangedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
 {
-	if (!origin.FromClient->GetEndpoint())
+	Endpoint::Ptr endpoint = origin.FromClient->GetEndpoint();
+
+	if (!endpoint) {
+		Log(LogNotice, "ApiEvents")
+		    << "Discarding 'next check changed' message from '" << origin.FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
 		return Empty;
+	}
 
 	if (!params)
 		return Empty;
@@ -249,8 +260,11 @@ Value ApiEvents::NextCheckChangedAPIHandler(const MessageOrigin& origin, const D
 	if (!checkable)
 		return Empty;
 
-	if (origin.FromZone && !origin.FromZone->CanAccessObject(checkable))
+	if (origin.FromZone && !origin.FromZone->CanAccessObject(checkable)) {
+		Log(LogNotice, "ApiEvents")
+		    << "Discarding 'next check changed' message from '" << origin.FromClient->GetIdentity() << "': Unauthorized access.";
 		return Empty;
+	}
 
 	checkable->SetNextCheck(params->Get("next_check"), origin);
 
@@ -278,8 +292,13 @@ void ApiEvents::NextNotificationChangedHandler(const Notification::Ptr& notifica
 
 Value ApiEvents::NextNotificationChangedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
 {
-	if (!origin.FromClient->GetEndpoint())
+	Endpoint::Ptr endpoint = origin.FromClient->GetEndpoint();
+
+	if (!endpoint) {
+		Log(LogNotice, "ApiEvents")
+		    << "Discarding 'next notification changed' message from '" << origin.FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
 		return Empty;
+	}
 
 	if (!params)
 		return Empty;
@@ -289,8 +308,11 @@ Value ApiEvents::NextNotificationChangedAPIHandler(const MessageOrigin& origin, 
 	if (!notification)
 		return Empty;
 
-	if (origin.FromZone && !origin.FromZone->CanAccessObject(notification))
+	if (origin.FromZone && !origin.FromZone->CanAccessObject(notification)) {
+		Log(LogNotice, "ApiEvents")
+		    << "Discarding 'next notification changed' message from '" << origin.FromClient->GetIdentity() << "': Unauthorized access.";
 		return Empty;
+	}
 
 	notification->SetNextNotification(params->Get("next_notification"), origin);
 
@@ -324,8 +346,13 @@ void ApiEvents::ForceNextCheckChangedHandler(const Checkable::Ptr& checkable, bo
 
 Value ApiEvents::ForceNextCheckChangedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
 {
-	if (!origin.FromClient->GetEndpoint())
+	Endpoint::Ptr endpoint = origin.FromClient->GetEndpoint();
+
+	if (!endpoint) {
+		Log(LogNotice, "ApiEvents")
+		    << "Discarding 'force next check changed' message from '" << origin.FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
 		return Empty;
+	}
 
 	if (!params)
 		return Empty;
@@ -345,8 +372,11 @@ Value ApiEvents::ForceNextCheckChangedAPIHandler(const MessageOrigin& origin, co
 	if (!checkable)
 		return Empty;
 
-	if (origin.FromZone && !origin.FromZone->CanAccessObject(checkable))
+	if (origin.FromZone && !origin.FromZone->CanAccessObject(checkable)) {
+		Log(LogNotice, "ApiEvents")
+		    << "Discarding 'force next check' message from '" << origin.FromClient->GetIdentity() << "': Unauthorized access.";
 		return Empty;
+	}
 
 	checkable->SetForceNextCheck(params->Get("forced"), origin);
 
@@ -380,8 +410,13 @@ void ApiEvents::ForceNextNotificationChangedHandler(const Checkable::Ptr& checka
 
 Value ApiEvents::ForceNextNotificationChangedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
 {
-	if (!origin.FromClient->GetEndpoint())
+	Endpoint::Ptr endpoint = origin.FromClient->GetEndpoint();
+
+	if (!endpoint) {
+		Log(LogNotice, "ApiEvents")
+		    << "Discarding 'force next notification changed' message from '" << origin.FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
 		return Empty;
+	}
 
 	if (!params)
 		return Empty;
@@ -401,8 +436,11 @@ Value ApiEvents::ForceNextNotificationChangedAPIHandler(const MessageOrigin& ori
 	if (!checkable)
 		return Empty;
 
-	if (origin.FromZone && !origin.FromZone->CanAccessObject(checkable))
+	if (origin.FromZone && !origin.FromZone->CanAccessObject(checkable)) {
+		Log(LogNotice, "ApiEvents")
+		    << "Discarding 'force next notification' message from '" << origin.FromClient->GetIdentity() << "': Unauthorized access.";
 		return Empty;
+	}
 
 	checkable->SetForceNextNotification(params->Get("forced"), origin);
 
@@ -436,8 +474,13 @@ void ApiEvents::EnableActiveChecksChangedHandler(const Checkable::Ptr& checkable
 
 Value ApiEvents::EnableActiveChecksChangedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
 {
-	if (!origin.FromClient->GetEndpoint())
+	Endpoint::Ptr endpoint = origin.FromClient->GetEndpoint();
+
+	if (!endpoint) {
+		Log(LogNotice, "ApiEvents")
+		    << "Discarding 'enable active checks changed' message from '" << origin.FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
 		return Empty;
+	}
 
 	if (!params)
 		return Empty;
@@ -457,8 +500,11 @@ Value ApiEvents::EnableActiveChecksChangedAPIHandler(const MessageOrigin& origin
 	if (!checkable)
 		return Empty;
 
-	if (origin.FromZone && !origin.FromZone->CanAccessObject(checkable))
+	if (origin.FromZone && !origin.FromZone->CanAccessObject(checkable)) {
+		Log(LogNotice, "ApiEvents")
+		    << "Discarding 'enable active checks' changed message from '" << origin.FromClient->GetIdentity() << "': Unauthorized access.";
 		return Empty;
+	}
 
 	checkable->SetEnableActiveChecks(params->Get("enabled"), origin);
 
@@ -492,8 +538,13 @@ void ApiEvents::EnablePassiveChecksChangedHandler(const Checkable::Ptr& checkabl
 
 Value ApiEvents::EnablePassiveChecksChangedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
 {
-	if (!origin.FromClient->GetEndpoint())
+	Endpoint::Ptr endpoint = origin.FromClient->GetEndpoint();
+
+	if (!endpoint) {
+		Log(LogNotice, "ApiEvents")
+		    << "Discarding 'enable passive checks changed' message from '" << origin.FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
 		return Empty;
+	}
 
 	if (!params)
 		return Empty;
@@ -513,8 +564,11 @@ Value ApiEvents::EnablePassiveChecksChangedAPIHandler(const MessageOrigin& origi
 	if (!checkable)
 		return Empty;
 
-	if (origin.FromZone && !origin.FromZone->CanAccessObject(checkable))
+	if (origin.FromZone && !origin.FromZone->CanAccessObject(checkable)) {
+		Log(LogNotice, "ApiEvents")
+		    << "Discarding 'enable passive checks changed' message from '" << origin.FromClient->GetIdentity() << "': Unauthorized access.";
 		return Empty;
+	}
 
 	checkable->SetEnablePassiveChecks(params->Get("enabled"), origin);
 
@@ -548,8 +602,13 @@ void ApiEvents::EnableNotificationsChangedHandler(const Checkable::Ptr& checkabl
 
 Value ApiEvents::EnableNotificationsChangedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
 {
-	if (!origin.FromClient->GetEndpoint())
+	Endpoint::Ptr endpoint = origin.FromClient->GetEndpoint();
+
+	if (!endpoint) {
+		Log(LogNotice, "ApiEvents")
+		    << "Discarding 'enable notifications changed' message from '" << origin.FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
 		return Empty;
+	}
 
 	if (!params)
 		return Empty;
@@ -569,8 +628,11 @@ Value ApiEvents::EnableNotificationsChangedAPIHandler(const MessageOrigin& origi
 	if (!checkable)
 		return Empty;
 
-	if (origin.FromZone && !origin.FromZone->CanAccessObject(checkable))
+	if (origin.FromZone && !origin.FromZone->CanAccessObject(checkable)) {
+		Log(LogNotice, "ApiEvents")
+		    << "Discarding 'enable notifications changed' message from '" << origin.FromClient->GetIdentity() << "': Unauthorized access.";
 		return Empty;
+	}
 
 	checkable->SetEnableNotifications(params->Get("enabled"), origin);
 
@@ -604,8 +666,13 @@ void ApiEvents::EnableFlappingChangedHandler(const Checkable::Ptr& checkable, bo
 
 Value ApiEvents::EnableFlappingChangedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
 {
-	if (!origin.FromClient->GetEndpoint())
+	Endpoint::Ptr endpoint = origin.FromClient->GetEndpoint();
+
+	if (!endpoint) {
+		Log(LogNotice, "ApiEvents")
+		    << "Discarding 'enable flapping changed' message from '" << origin.FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
 		return Empty;
+	}
 
 	if (!params)
 		return Empty;
@@ -625,8 +692,11 @@ Value ApiEvents::EnableFlappingChangedAPIHandler(const MessageOrigin& origin, co
 	if (!checkable)
 		return Empty;
 
-	if (origin.FromZone && !origin.FromZone->CanAccessObject(checkable))
+	if (origin.FromZone && !origin.FromZone->CanAccessObject(checkable)) {
+		Log(LogNotice, "ApiEvents")
+		    << "Discarding 'enable flapping changed' message from '" << origin.FromClient->GetIdentity() << "': Unauthorized access.";
 		return Empty;
+	}
 
 	checkable->SetEnableFlapping(params->Get("enabled"), origin);
 
@@ -660,8 +730,13 @@ void ApiEvents::EnableEventHandlerChangedHandler(const Checkable::Ptr& checkable
 
 Value ApiEvents::EnableEventHandlerChangedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
 {
-	if (!origin.FromClient->GetEndpoint())
+	Endpoint::Ptr endpoint = origin.FromClient->GetEndpoint();
+
+	if (!endpoint) {
+		Log(LogNotice, "ApiEvents")
+		    << "Discarding 'enable event handler changed' message from '" << origin.FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
 		return Empty;
+	}
 
 	if (!params)
 		return Empty;
@@ -681,8 +756,11 @@ Value ApiEvents::EnableEventHandlerChangedAPIHandler(const MessageOrigin& origin
 	if (!checkable)
 		return Empty;
 
-	if (origin.FromZone && !origin.FromZone->CanAccessObject(checkable))
+	if (origin.FromZone && !origin.FromZone->CanAccessObject(checkable)) {
+		Log(LogNotice, "ApiEvents")
+		    << "Discarding 'enable event handler' message from '" << origin.FromClient->GetIdentity() << "': Unauthorized access.";
 		return Empty;
+	}
 
 	checkable->SetEnableEventHandler(params->Get("enabled"), origin);
 
@@ -716,8 +794,13 @@ void ApiEvents::EnablePerfdataChangedHandler(const Checkable::Ptr& checkable, bo
 
 Value ApiEvents::EnablePerfdataChangedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
 {
-	if (!origin.FromClient->GetEndpoint())
+	Endpoint::Ptr endpoint = origin.FromClient->GetEndpoint();
+
+	if (!endpoint) {
+		Log(LogNotice, "ApiEvents")
+		    << "Discarding 'enable perfdata changed' message from '" << origin.FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
 		return Empty;
+	}
 
 	if (!params)
 		return Empty;
@@ -737,8 +820,11 @@ Value ApiEvents::EnablePerfdataChangedAPIHandler(const MessageOrigin& origin, co
 	if (!checkable)
 		return Empty;
 
-	if (origin.FromZone && !origin.FromZone->CanAccessObject(checkable))
+	if (origin.FromZone && !origin.FromZone->CanAccessObject(checkable)) {
+		Log(LogNotice, "ApiEvents")
+		    << "Discarding 'enable perfdata changed' message from '" << origin.FromClient->GetIdentity() << "': Unauthorized access.";
 		return Empty;
+	}
 
 	checkable->SetEnablePerfdata(params->Get("enabled"), origin);
 
@@ -772,8 +858,13 @@ void ApiEvents::CheckIntervalChangedHandler(const Checkable::Ptr& checkable, dou
 
 Value ApiEvents::CheckIntervalChangedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
 {
-	if (!origin.FromClient->GetEndpoint())
+	Endpoint::Ptr endpoint = origin.FromClient->GetEndpoint();
+
+	if (!endpoint) {
+		Log(LogNotice, "ApiEvents")
+		    << "Discarding 'check interval changed' message from '" << origin.FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
 		return Empty;
+	}
 
 	if (!params)
 		return Empty;
@@ -793,8 +884,11 @@ Value ApiEvents::CheckIntervalChangedAPIHandler(const MessageOrigin& origin, con
 	if (!checkable)
 		return Empty;
 
-	if (origin.FromZone && !origin.FromZone->CanAccessObject(checkable))
+	if (origin.FromZone && !origin.FromZone->CanAccessObject(checkable)) {
+		Log(LogNotice, "ApiEvents")
+		    << "Discarding 'check interval' changed message from '" << origin.FromClient->GetIdentity() << "': Unauthorized access.";
 		return Empty;
+	}
 
 	checkable->SetCheckInterval(params->Get("interval"), origin);
 
@@ -828,8 +922,13 @@ void ApiEvents::RetryIntervalChangedHandler(const Checkable::Ptr& checkable, dou
 
 Value ApiEvents::RetryIntervalChangedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
 {
-	if (!origin.FromClient->GetEndpoint())
+	Endpoint::Ptr endpoint = origin.FromClient->GetEndpoint();
+
+	if (!endpoint) {
+		Log(LogNotice, "ApiEvents")
+		    << "Discarding 'retry interval changed' message from '" << origin.FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
 		return Empty;
+	}
 
 	if (!params)
 		return Empty;
@@ -849,8 +948,11 @@ Value ApiEvents::RetryIntervalChangedAPIHandler(const MessageOrigin& origin, con
 	if (!checkable)
 		return Empty;
 
-	if (origin.FromZone && !origin.FromZone->CanAccessObject(checkable))
+	if (origin.FromZone && !origin.FromZone->CanAccessObject(checkable)) {
+		Log(LogNotice, "ApiEvents")
+		    << "Discarding 'retry interval' changed message from '" << origin.FromClient->GetIdentity() << "': Unauthorized access.";
 		return Empty;
+	}
 
 	checkable->SetRetryInterval(params->Get("interval"), origin);
 
@@ -884,8 +986,13 @@ void ApiEvents::MaxCheckAttemptsChangedHandler(const Checkable::Ptr& checkable, 
 
 Value ApiEvents::MaxCheckAttemptsChangedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
 {
-	if (!origin.FromClient->GetEndpoint())
+	Endpoint::Ptr endpoint = origin.FromClient->GetEndpoint();
+
+	if (!endpoint) {
+		Log(LogNotice, "ApiEvents")
+		    << "Discarding 'max checkt attempts changed' message from '" << origin.FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
 		return Empty;
+	}
 
 	if (!params)
 		return Empty;
@@ -905,8 +1012,11 @@ Value ApiEvents::MaxCheckAttemptsChangedAPIHandler(const MessageOrigin& origin, 
 	if (!checkable)
 		return Empty;
 
-	if (origin.FromZone && !origin.FromZone->CanAccessObject(checkable))
+	if (origin.FromZone && !origin.FromZone->CanAccessObject(checkable)) {
+		Log(LogNotice, "ApiEvents")
+		    << "Discarding 'max check attempts changed' message from '" << origin.FromClient->GetIdentity() << "': Unauthorized access.";
 		return Empty;
+	}
 
 	checkable->SetMaxCheckAttempts(params->Get("attempts"), origin);
 
@@ -940,8 +1050,13 @@ void ApiEvents::EventCommandChangedHandler(const Checkable::Ptr& checkable, cons
 
 Value ApiEvents::EventCommandChangedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
 {
-	if (!origin.FromClient->GetEndpoint())
+	Endpoint::Ptr endpoint = origin.FromClient->GetEndpoint();
+
+	if (!endpoint) {
+		Log(LogNotice, "ApiEvents")
+		    << "Discarding 'event command changed' message from '" << origin.FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
 		return Empty;
+	}
 
 	if (!params)
 		return Empty;
@@ -966,8 +1081,11 @@ Value ApiEvents::EventCommandChangedAPIHandler(const MessageOrigin& origin, cons
 	if (!command)
 		return Empty;
 
-	if (origin.FromZone && !origin.FromZone->CanAccessObject(checkable))
+	if (origin.FromZone && !origin.FromZone->CanAccessObject(checkable)) {
+		Log(LogNotice, "ApiEvents")
+		    << "Discarding 'event command changed' message from '" << origin.FromClient->GetIdentity() << "': Unauthorized access.";
 		return Empty;
+	}
 
 	checkable->SetEventCommand(command, origin);
 
@@ -1001,8 +1119,13 @@ void ApiEvents::CheckCommandChangedHandler(const Checkable::Ptr& checkable, cons
 
 Value ApiEvents::CheckCommandChangedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
 {
-	if (!origin.FromClient->GetEndpoint())
+	Endpoint::Ptr endpoint = origin.FromClient->GetEndpoint();
+
+	if (!endpoint) {
+		Log(LogNotice, "ApiEvents")
+		    << "Discarding 'check command changed' message from '" << origin.FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
 		return Empty;
+	}
 
 	if (!params)
 		return Empty;
@@ -1022,8 +1145,11 @@ Value ApiEvents::CheckCommandChangedAPIHandler(const MessageOrigin& origin, cons
 	if (!checkable)
 		return Empty;
 
-	if (origin.FromZone && !origin.FromZone->CanAccessObject(checkable))
+	if (origin.FromZone && !origin.FromZone->CanAccessObject(checkable)) {
+		Log(LogNotice, "ApiEvents")
+		    << "Discarding 'check command changed' message from '" << origin.FromClient->GetIdentity() << "': Unauthorized access.";
 		return Empty;
+	}
 
 	CheckCommand::Ptr command = CheckCommand::GetByName(params->Get("command"));
 
@@ -1062,8 +1188,13 @@ void ApiEvents::CheckPeriodChangedHandler(const Checkable::Ptr& checkable, const
 
 Value ApiEvents::CheckPeriodChangedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
 {
-	if (!origin.FromClient->GetEndpoint())
+	Endpoint::Ptr endpoint = origin.FromClient->GetEndpoint();
+
+	if (!endpoint) {
+		Log(LogNotice, "ApiEvents")
+		    << "Discarding 'check period changed' message from '" << origin.FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
 		return Empty;
+	}
 
 	if (!params)
 		return Empty;
@@ -1083,8 +1214,11 @@ Value ApiEvents::CheckPeriodChangedAPIHandler(const MessageOrigin& origin, const
 	if (!checkable)
 		return Empty;
 
-	if (origin.FromZone && !origin.FromZone->CanAccessObject(checkable))
+	if (origin.FromZone && !origin.FromZone->CanAccessObject(checkable)) {
+		Log(LogNotice, "ApiEvents")
+		    << "Discarding 'check period changed' message from '" << origin.FromClient->GetIdentity() << "': Unauthorized access.";
 		return Empty;
+	}
 
 	TimePeriod::Ptr timeperiod = TimePeriod::GetByName(params->Get("timeperiod"));
 
@@ -1117,8 +1251,13 @@ void ApiEvents::VarsChangedHandler(const CustomVarObject::Ptr& object, const Dic
 
 Value ApiEvents::VarsChangedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
 {
-	if (!origin.FromClient->GetEndpoint())
+	Endpoint::Ptr endpoint = origin.FromClient->GetEndpoint();
+
+	if (!endpoint) {
+		Log(LogNotice, "ApiEvents")
+		    << "Discarding 'vars changed' message from '" << origin.FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
 		return Empty;
+	}
 
 	if (!params)
 		return Empty;
@@ -1145,8 +1284,11 @@ Value ApiEvents::VarsChangedAPIHandler(const MessageOrigin& origin, const Dictio
 	if (!object)
 		return Empty;
 
-	if (origin.FromZone && !origin.FromZone->CanAccessObject(object))
+	if (origin.FromZone && !origin.FromZone->CanAccessObject(object)) {
+		Log(LogNotice, "ApiEvents")
+		    << "Discarding 'vars changed' message from '" << origin.FromClient->GetIdentity() << "': Unauthorized access.";
 		return Empty;
+	}
 
 	Dictionary::Ptr vars = params->Get("vars");
 
@@ -1185,8 +1327,13 @@ void ApiEvents::CommentAddedHandler(const Checkable::Ptr& checkable, const Comme
 
 Value ApiEvents::CommentAddedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
 {
-	if (!origin.FromClient->GetEndpoint())
+	Endpoint::Ptr endpoint = origin.FromClient->GetEndpoint();
+
+	if (!endpoint) {
+		Log(LogNotice, "ApiEvents")
+		    << "Discarding 'comment added' message from '" << origin.FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
 		return Empty;
+	}
 
 	if (!params)
 		return Empty;
@@ -1206,8 +1353,11 @@ Value ApiEvents::CommentAddedAPIHandler(const MessageOrigin& origin, const Dicti
 	if (!checkable)
 		return Empty;
 
-	if (origin.FromZone && !origin.FromZone->CanAccessObject(checkable))
+	if (origin.FromZone && !origin.FromZone->CanAccessObject(checkable)) {
+		Log(LogNotice, "ApiEvents")
+		    << "Discarding 'comment added' message from '" << origin.FromClient->GetIdentity() << "': Unauthorized access.";
 		return Empty;
+	}
 
 	Comment::Ptr comment = new Comment();
 	Deserialize(comment, params->Get("comment"), true);
@@ -1245,8 +1395,13 @@ void ApiEvents::CommentRemovedHandler(const Checkable::Ptr& checkable, const Com
 
 Value ApiEvents::CommentRemovedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
 {
-	if (!origin.FromClient->GetEndpoint())
+	Endpoint::Ptr endpoint = origin.FromClient->GetEndpoint();
+
+	if (!endpoint) {
+		Log(LogNotice, "ApiEvents")
+		    << "Discarding 'comment removed' message from '" << origin.FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
 		return Empty;
+	}
 
 	if (!params)
 		return Empty;
@@ -1266,8 +1421,11 @@ Value ApiEvents::CommentRemovedAPIHandler(const MessageOrigin& origin, const Dic
 	if (!checkable)
 		return Empty;
 
-	if (origin.FromZone && !origin.FromZone->CanAccessObject(checkable))
+	if (origin.FromZone && !origin.FromZone->CanAccessObject(checkable)) {
+		Log(LogNotice, "ApiEvents")
+		    << "Discarding 'comment removed' message from '" << origin.FromClient->GetIdentity() << "': Unauthorized access.";
 		return Empty;
+	}
 
 	checkable->RemoveComment(params->Get("id"), origin);
 
@@ -1301,8 +1459,13 @@ void ApiEvents::DowntimeAddedHandler(const Checkable::Ptr& checkable, const Down
 
 Value ApiEvents::DowntimeAddedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
 {
-	if (!origin.FromClient->GetEndpoint())
+	Endpoint::Ptr endpoint = origin.FromClient->GetEndpoint();
+
+	if (!endpoint) {
+		Log(LogNotice, "ApiEvents")
+		    << "Discarding 'downtime added' message from '" << origin.FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
 		return Empty;
+	}
 
 	if (!params)
 		return Empty;
@@ -1322,8 +1485,11 @@ Value ApiEvents::DowntimeAddedAPIHandler(const MessageOrigin& origin, const Dict
 	if (!checkable)
 		return Empty;
 
-	if (origin.FromZone && !origin.FromZone->CanAccessObject(checkable))
+	if (origin.FromZone && !origin.FromZone->CanAccessObject(checkable)) {
+		Log(LogNotice, "ApiEvents")
+		    << "Discarding 'downtime added' message from '" << origin.FromClient->GetIdentity() << "': Unauthorized access.";
 		return Empty;
+	}
 
 	Downtime::Ptr downtime = new Downtime();
 	Deserialize(downtime, params->Get("downtime"), true);
@@ -1364,8 +1530,13 @@ void ApiEvents::DowntimeRemovedHandler(const Checkable::Ptr& checkable, const Do
 
 Value ApiEvents::DowntimeRemovedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
 {
-	if (!origin.FromClient->GetEndpoint())
+	Endpoint::Ptr endpoint = origin.FromClient->GetEndpoint();
+
+	if (!endpoint) {
+		Log(LogNotice, "ApiEvents")
+		    << "Discarding 'downtime removed' message from '" << origin.FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
 		return Empty;
+	}
 
 	if (!params)
 		return Empty;
@@ -1385,8 +1556,11 @@ Value ApiEvents::DowntimeRemovedAPIHandler(const MessageOrigin& origin, const Di
 	if (!checkable)
 		return Empty;
 
-	if (origin.FromZone && !origin.FromZone->CanAccessObject(checkable))
+	if (origin.FromZone && !origin.FromZone->CanAccessObject(checkable)) {
+		Log(LogNotice, "ApiEvents")
+		    << "Discarding 'downtime removed' message from '" << origin.FromClient->GetIdentity() << "': Unauthorized access.";
 		return Empty;
+	}
 
 	checkable->RemoveDowntime(params->Get("id"), false, origin);
 
@@ -1426,8 +1600,13 @@ void ApiEvents::AcknowledgementSetHandler(const Checkable::Ptr& checkable,
 
 Value ApiEvents::AcknowledgementSetAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
 {
-	if (!origin.FromClient->GetEndpoint())
+	Endpoint::Ptr endpoint = origin.FromClient->GetEndpoint();
+
+	if (!endpoint) {
+		Log(LogNotice, "ApiEvents")
+		    << "Discarding 'acknowledgement set' message from '" << origin.FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
 		return Empty;
+	}
 
 	if (!params)
 		return Empty;
@@ -1447,8 +1626,11 @@ Value ApiEvents::AcknowledgementSetAPIHandler(const MessageOrigin& origin, const
 	if (!checkable)
 		return Empty;
 
-	if (origin.FromZone && !origin.FromZone->CanAccessObject(checkable))
+	if (origin.FromZone && !origin.FromZone->CanAccessObject(checkable)) {
+		Log(LogNotice, "ApiEvents")
+		    << "Discarding 'acknowledgement set' message from '" << origin.FromClient->GetIdentity() << "': Unauthorized access.";
 		return Empty;
+	}
 
 	checkable->AcknowledgeProblem(params->Get("author"), params->Get("comment"),
 	    static_cast<AcknowledgementType>(static_cast<int>(params->Get("acktype"))),
@@ -1483,8 +1665,13 @@ void ApiEvents::AcknowledgementClearedHandler(const Checkable::Ptr& checkable, c
 
 Value ApiEvents::AcknowledgementClearedAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
 {
-	if (!origin.FromClient->GetEndpoint())
+	Endpoint::Ptr endpoint = origin.FromClient->GetEndpoint();
+
+	if (!endpoint) {
+		Log(LogNotice, "ApiEvents")
+		    << "Discarding 'acknowledgement cleared' message from '" << origin.FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
 		return Empty;
+	}
 
 	if (!params)
 		return Empty;
@@ -1504,8 +1691,11 @@ Value ApiEvents::AcknowledgementClearedAPIHandler(const MessageOrigin& origin, c
 	if (!checkable)
 		return Empty;
 
-	if (origin.FromZone && !origin.FromZone->CanAccessObject(checkable))
+	if (origin.FromZone && !origin.FromZone->CanAccessObject(checkable)) {
+		Log(LogNotice, "ApiEvents")
+		    << "Discarding 'acknowledgement cleared' message from '" << origin.FromClient->GetIdentity() << "': Unauthorized access.";
 		return Empty;
+	}
 
 	checkable->ClearAcknowledgement(origin);
 
@@ -1516,8 +1706,11 @@ Value ApiEvents::ExecuteCommandAPIHandler(const MessageOrigin& origin, const Dic
 {
 	Endpoint::Ptr sourceEndpoint = origin.FromClient->GetEndpoint();
 
-	if (!sourceEndpoint || (origin.FromZone && !Zone::GetLocalZone()->IsChildOf(origin.FromZone)))
+	if (!sourceEndpoint || (origin.FromZone && !Zone::GetLocalZone()->IsChildOf(origin.FromZone))) {
+		Log(LogNotice, "ApiEvents")
+		    << "Discarding 'execute command' message from '" << origin.FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
 		return Empty;
+	}
 
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 
