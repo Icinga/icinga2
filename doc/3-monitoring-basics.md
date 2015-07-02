@@ -529,6 +529,81 @@ In this example the `mail-noc` notification will be created as object for all se
 `notification.mail` custom attribute defined. The notification command is set to `mail-service-notification`
 and all members of the user group `noc` will get notified.
 
+It is also possible to generally apply a notification template and dynamically overwrite values from
+the template by checking for custom attributes. This can be achieved by using [conditional statements](19-language-reference.md#conditional-statements):
+
+    apply Notification "host-mail-noc" to Host {
+      import "mail-host-notification"
+
+      // replace interval inherited from `mail-host-notification` template with new notfication interval set by a host custom attribute
+      if (host.vars.notification_interval) {
+        interval = host.vars.notification_interval
+      }
+
+      // same with notification period
+      if (host.vars.notification_period) {
+        interval = host.vars.notification_period
+      }
+
+      // Send SMS instead of email if the host's custom attribute `notification_type` is set to `sms`
+      if (host.vars.notification_type == "sms") {
+        command = "sms-host-notification"
+      } else {
+        command = "mail-host-notification"
+      }
+
+      user_groups = [ "noc" ]
+
+      assign where host.address
+    }
+
+In the example above, the notification template `mail-host-notification`, which contains all relevant
+notification settings, is applied on all host objects where the `host.address` is defined.
+Each host object is then checked for custom attributes (`host.vars.notification_interval`,
+`host.vars.notification_period` and `host.vars.notification_type`). Depending if the custom
+attibute is set or which value it has, the value from the notification template is dynamically
+overwritten.
+
+The corresponding Host object could look like this:
+
+    object Host "host1" {
+      import "host-linux-prod"
+      display_name = "host1"
+      address = "192.168.1.50"
+      vars.notification_interval = 1h
+      vars.notification_period = "24x7"
+      vars.notification_type = "sms"
+    }
+
+### <a id="using-apply-dependencies"></a> Apply Dependencies to Hosts and Services
+
+Detailed examples can be found in the [dependencies](3-monitoring-basics.md#dependencies) chapter.
+
+### <a id="using-apply-scheduledowntimes"></a> Apply Recurring Downtimes to Hosts and Services
+
+The sample configuration includes an example in [downtimes.conf](4-configuring-icinga-2.md#downtimes-conf).
+
+Detailed examples can be found in the [recurring downtimes](5-advanced-topics.md#recurring-downtimes) chapter.
+
+
+### <a id="using-apply-for"></a> Using Apply For Rules
+
+Next to the standard way of using [apply rules](3-monitoring-basics.md#using-apply)
+there is the requirement of generating apply rules objects based on set (array or
+dictionary).
+
+The sample configuration already includes a detailed example in [hosts.conf](4-configuring-icinga-2.md#hosts-conf)
+and [services.conf](4-configuring-icinga-2.md#services-conf) for this use case.
+
+Take the following example: A host provides the snmp oids for different service check
+types. This could look like the following example:
+
+
+      user_groups = [ "noc" ]
+
+      assign where host.vars.notification.mail
+
+
 ### <a id="using-apply-dependencies"></a> Apply Dependencies to Hosts and Services
 
 Detailed examples can be found in the [dependencies](3-monitoring-basics.md#dependencies) chapter.

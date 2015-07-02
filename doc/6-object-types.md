@@ -836,12 +836,15 @@ Configuration Attributes:
   types                     | **Optional.** A list of type filters when this notification should be triggered. By default everything is matched.
   states                    | **Optional.** A list of state filters when this notification should be triggered. By default everything is matched.
 
-Available notification state filters:
+Available notification state filters for Service:
 
     OK
     Warning
     Critical
     Unknown
+
+Available notification state filters for Host:
+
     Up
     Down
 
