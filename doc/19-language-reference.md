@@ -85,7 +85,6 @@ Character                 | Escape sequence
 --------------------------|------------------------------------
 "                         | \\"
 \\                        | \\\\
-$                         | $$
 &lt;TAB&gt;               | \\t
 &lt;CARRIAGE-RETURN&gt;   | \\r
 &lt;LINE-FEED&gt;         | \\n
