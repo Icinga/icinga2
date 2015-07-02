@@ -529,6 +529,47 @@ In this example the `mail-noc` notification will be created as object for all se
 `notification.mail` custom attribute defined. The notification command is set to `mail-service-notification`
 and all members of the user group `noc` will get notified.
 
+It is also possible to generally apply a notification template and dynamically overwrite values from the template by checking for custom attributes:
+
+    apply Notification "host-default" to Host {
+      import "mail-host-notification"
+
+      # Replace interval from template with new notfication interval set by custom attribute
+      if (host.vars.notification_interval) {
+        interval = host.vars.notification_interval
+      }
+
+      # Do the same with notification period
+      if (host.vars.notification_period) {
+        interval = host.vars.notification_period
+      }
+
+      # Send SMS instead of e-mail
+      if (host.vars.notification_type == "sms") {
+        command = "notify-host-by-sms"
+      }
+
+      assign where host.address
+
+    }
+
+In the example above, the notification template `mail-host-notification`, which contains all relevant notification
+settings, is applied on all Host objects where the `host.address` is defined (generally on every Host object).
+Each Host object is then checked for custom attributes (`host.vars.notification_interval`, `host.vars.notification_period` and
+`host.vars.notification_type`). Depending if the custom attibute is set or which value it has,
+the value from the notification template is dynamically overwritten.
+
+The corresponding Host object could look like this:
+
+    object Host "host1" {
+      import "host-linux-prod"
+      display_name = "host1"
+      address = "192.168.1.50"
+      vars.notification_interval = 1h
+      vars.notification_period = "24x7"
+      vars.notification_type = "sms"
+    }
+
 ### <a id="using-apply-dependencies"></a> Apply Dependencies to Hosts and Services
 
 Detailed examples can be found in the [dependencies](3-monitoring-basics.md#dependencies) chapter.
