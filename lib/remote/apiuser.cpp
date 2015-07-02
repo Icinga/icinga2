@@ -34,7 +34,7 @@ void ApiUser::SetPassword(const String& password)
 	SetPasswordRaw(password);
 }
 
-bool ApiUser::CheckPassword(const String& password)
+bool ApiUser::CheckPassword(const String& password) const
 {
 	return password == GetPasswordRaw();
 }
