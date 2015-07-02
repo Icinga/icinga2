@@ -126,6 +126,7 @@ public:
 	std::stack<bool> m_Apply;
 	std::stack<bool> m_ObjectAssign;
 	std::stack<bool> m_SeenAssign;
+	std::stack<bool> m_SeenIgnore;
 	std::stack<Expression *> m_Assign;
 	std::stack<Expression *> m_Ignore;
 	std::stack<String> m_FKVar;

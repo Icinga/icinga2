@@ -338,6 +338,7 @@ object:
 	{
 		context->m_ObjectAssign.push(true);
 		context->m_SeenAssign.push(false);
+		context->m_SeenIgnore.push(false);
 		context->m_Assign.push(NULL);
 		context->m_Ignore.push(NULL);
 	}
@@ -354,6 +355,9 @@ object:
 
 		bool seen_assign = context->m_SeenAssign.top();
 		context->m_SeenAssign.pop();
+
+		bool seen_ignore = context->m_SeenIgnore.top();
+		context->m_SeenIgnore.pop();
 
 		Expression *ignore = context->m_Ignore.top();
 		context->m_Ignore.pop();
@@ -373,6 +377,9 @@ object:
 				filter = new LogicalAndExpression(assign, rex, DebugInfoRange(@2, @5));
 			} else
 				filter = assign;
+		} else if (seen_ignore) {
+			if (!ObjectRule::IsValidSourceType(type))
+				BOOST_THROW_EXCEPTION(ScriptError("object rule 'ignore' cannot be used for type '" + type + "'", DebugInfoRange(@2, @4)));
 		}
 
 		$$ = new ObjectExpression(abstract, type, $4, filter, context->GetZone(), $5, $6, DebugInfoRange(@2, @5));
@@ -477,6 +484,8 @@ lterm: library
 	{
 		if ((context->m_Apply.empty() || !context->m_Apply.top()) && (context->m_ObjectAssign.empty() || !context->m_ObjectAssign.top()))
 			BOOST_THROW_EXCEPTION(ScriptError("'ignore' keyword not valid in this context.", @$));
+
+		context->m_SeenIgnore.top() = true;
 
 		if (context->m_Ignore.top())
 			context->m_Ignore.top() = new LogicalOrExpression(context->m_Ignore.top(), $3, @$);
@@ -919,6 +928,7 @@ apply:
 	{
 		context->m_Apply.push(true);
 		context->m_SeenAssign.push(false);
+		context->m_SeenIgnore.push(false);
 		context->m_Assign.push(NULL);
 		context->m_Ignore.push(NULL);
 		context->m_FKVar.push("");
