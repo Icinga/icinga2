@@ -273,13 +273,17 @@ int NodeUtility::GenerateNodeIcingaConfig(const std::vector<std::string>& endpoi
 		if (tokens.size() > 1) {
 			String host = tokens[1];
 			host.Trim();
-			my_master_endpoint->Set("host", host);
+
+			if (!host.IsEmpty())
+				my_master_endpoint->Set("host", host);
 		}
 
 		if (tokens.size() > 2) {
 			String port = tokens[2];
 			port.Trim();
-			my_master_endpoint->Set("port", port);
+
+			if (!port.IsEmpty())
+				my_master_endpoint->Set("port", port);
 		}
 
 		String cn = tokens[0];
