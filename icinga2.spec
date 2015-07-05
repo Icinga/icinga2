@@ -91,7 +91,7 @@ BuildRequires: libyajl-devel
 %endif
 %endif
 BuildRequires: openssl-devel
-"%{_vendor}" == "suse" && 0%{?suse_version} < 1310
+%if "%{_vendor}" == "suse" && 0%{?suse_version} < 1310
 BuildRequires: gcc47-c++
 BuildRequires: libstdc++47-devel
 %else
