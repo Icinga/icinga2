@@ -151,8 +151,14 @@ Summary:      IDO MySQL database backend for Icinga 2
 Group:        Applications/System
 %if "%{_vendor}" == "suse"
 BuildRequires: libmysqlclient-devel
-%endif
+%if 0%{?suse_version} >= 1310
 BuildRequires: mysql-devel
+%endif
+
+%else
+BuildRequires: mysql-devel
+%endif #suse
+
 Requires: %{name} = %{version}-%{release}
 
 %description ido-mysql
