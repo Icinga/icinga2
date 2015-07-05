@@ -27,8 +27,8 @@ parentheses):
 * GNU flex (flex) >= 2.5.35
 * recommended: libexecinfo on FreeBSD (automatically used when Icinga 2 is
                installed via port or package)
-* optional: MySQL (mysql-devel on RHEL, libmysqlclient-dev on Debian); set CMake
-             variable `ICINGA2_WITH_MYSQL` to `OFF` to disable this module
+* optional: MySQL (mysql-devel on RHEL, libmysqlclient-devel on SUSE, libmysqlclient-dev on Debian);
+            set CMake variable `ICINGA2_WITH_MYSQL` to `OFF` to disable this module
 * optional: PostgreSQL (postgresql-devel on RHEL, libpq-dev on Debian); set CMake
             variable `ICINGA2_WITH_PGSQL` to `OFF` to disable this module
 * optional: YAJL (yajl-devel on RHEL, libyajl-dev on Debian)
