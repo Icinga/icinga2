@@ -93,8 +93,13 @@ BuildRequires: libyajl-devel
 BuildRequires: libedit-devel
 BuildRequires: ncurses-devel
 BuildRequires: openssl-devel
+"%{_vendor}" == "suse" && 0%{?suse_version} < 1310
+BuildRequires: gcc47-c++
+BuildRequires: libstdc++47-devel
+%else
 BuildRequires: gcc-c++
 BuildRequires: libstdc++-devel
+%endif
 BuildRequires: cmake
 BuildRequires: flex >= 2.5.35
 BuildRequires: bison

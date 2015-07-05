@@ -20,7 +20,7 @@ parentheses):
 
 * cmake
 * GNU make (make)
-* C++ compiler (gcc-c++ on RHEL, build-essential on Debian)
+* C++ compiler (gcc-c++ >= 4.7 on RHEL/SUSE, build-essential on Debian, alternatively clang++)
 * OpenSSL library and header files (openssl-devel on RHEL, libssl-dev on Debian)
 * Boost library and header files (boost-devel on RHEL, libboost-all-dev on Debian)
 * GNU bison (bison)
