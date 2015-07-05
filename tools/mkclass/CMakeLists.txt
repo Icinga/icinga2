@@ -22,7 +22,7 @@ bison_target(class_parser class_parser.yy ${CMAKE_CURRENT_BINARY_DIR}/class_pars
 flex_target(class_lexer class_lexer.ll ${CMAKE_CURRENT_BINARY_DIR}/class_lexer.cc)
 add_flex_bison_dependency(class_lexer class_parser)
 
-if(UNIX)
+if(APPLE)
   set_property(SOURCE ${CMAKE_CURRENT_BINARY_DIR}/class_parser.cc PROPERTY COMPILE_FLAGS "-Wno-deprecated-register")
   set_property(SOURCE ${CMAKE_CURRENT_BINARY_DIR}/class_lexer.cc PROPERTY COMPILE_FLAGS "-Wno-deprecated-register")
 endif()
