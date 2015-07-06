@@ -90,13 +90,16 @@ Recommends:    monitoring-plugins
 BuildRequires: libyajl-devel
 %endif
 %endif
-BuildRequires: openssl-devel
-%if "%{_vendor}" == "suse" && 0%{?suse_version} < 1310
+BuildRequires: libedit-devel
+BuildRequires: ncurses-devel
+%if "%{_vendor}" == "suse" && 0%{?suse_version} < 1210
 BuildRequires: gcc47-c++
 BuildRequires: libstdc++47-devel
+BuildRequires: libopenssl1-devel
 %else
 BuildRequires: gcc-c++
 BuildRequires: libstdc++-devel
+BuildRequires: openssl-devel
 %endif
 BuildRequires: cmake
 BuildRequires: flex >= 2.5.35
