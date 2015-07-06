@@ -534,6 +534,27 @@ Name            | Description
 ntp_address     | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
 
 
+## <a id="plugin-check-command-ntp-peer"></a> ntp_peer
+
+Check command object for the `check_ntp_peer` plugin.
+
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
+
+Name            | Description
+----------------|--------------
+ntp_address     | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
+ntp_port        | **Optional.** The port to use. Default to 123.
+ntp_warning     | **Optional.** Offset to result in warning status (seconds).
+ntp_critical    | **Optional.** Offset to result in critical status (seconds).
+ntp_wstratum    | **Optional.** Warning threshold for stratum of server's synchronization peer.
+ntp_cstratum    | **Optional.** Critical threshold for stratum of server's synchronization peer.
+ntp_wjitter     | **Optional.** Warning threshold for jitter.
+ntp_cjitter     | **Optional.** Critical threshold for jitter.
+ntp_wsource     | **Optional.** Warning threshold for number of usable time sources.
+ntp_csource     | **Optional.** Critical threshold for number of usable time sources.
+ntp_timeout     | **Optional.** Seconds before connection times out (default: 10).
+
+
 ## <a id="plugin-check-command-passive"></a> passive
 
 Specialised check command object for passive checks executing the `check_dummy` plugin with appropriate default values.
