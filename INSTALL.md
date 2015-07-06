@@ -21,7 +21,8 @@ parentheses):
 * cmake
 * GNU make (make)
 * C++ compiler (gcc-c++ >= 4.7 on RHEL/SUSE, build-essential on Debian, alternatively clang++)
-* OpenSSL library and header files (openssl-devel on RHEL, libssl-dev on Debian)
+* OpenSSL library and header files >= 0.9.8 (openssl-devel on RHEL, libopenssl1-devel on SLES11,
+libopenssl-devel on SLES11, libssl-dev on Debian)
 * Boost library and header files (boost-devel on RHEL, libboost-all-dev on Debian)
 * GNU bison (bison)
 * GNU flex (flex) >= 2.5.35
