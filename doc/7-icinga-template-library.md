@@ -462,7 +462,7 @@ Custom attributes passed as [command parameters](3-monitoring-basics.md#command-
 Name            | Description
 ----------------|--------------
 nrpe_address    | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
-nrpe_port       | **Optional.** The NRPE port. Defaults to 5668.
+nrpe_port       | **Optional.** The NRPE port. Defaults to 5666.
 nrpe_command    | **Optional.** The command that should be executed.
 nrpe_no_ssl     | **Optional.** Whether to disable SSL or not. Defaults to `false`.
 nrpe_timeout_unknown | **Optional.** Whether to set timeouts to unknown instead of critical state. Defaults to `false`.
