@@ -13,11 +13,11 @@ and inside the [documentation](doc/1-about.md).
 
 ## Installation
 
-Read the [INSTALL.md] file for more information about how to install it.
+Read the [INSTALL.md](INSTALL.md) file for more information about how to install it.
 
 ## Documentation
 
-The documentation is located in the [doc/] directory. The latest documentation
+The documentation is located in the [doc/](doc/) directory. The latest documentation
 is also available on https://docs.icinga.org
 
 ## Support
