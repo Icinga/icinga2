@@ -1486,8 +1486,9 @@ mongodb_sampletime               | **Optional.** Time used to sample number of p
 
 ### <a id="plugins-contrib-command-elasticsearch"></a> elasticsearch
 
-An ElasticSearch availability and performance monitoring plugin for Nagios provided by [Anchor](http://www.anchor.com.au) on [https://github.com](https://github.com/anchor/nagios-plugin-elasticsearch).
-It ulitizes the API so requires HTTP enabled for your elasticsearch node.
+An [ElasticSearch](https://www.elastic.co/products/elasticsearch) availability
+and performance monitoring plugin available for download at [GitHub](https://github.com/anchor/nagios-plugin-elasticsearch).
+The plugin requires the HTTP API enabled on your ElasticSearch node.
 
 Name                         | Description
 -----------------------------|-------------------------------------------------------------------------------------------------------
