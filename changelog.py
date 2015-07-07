@@ -27,7 +27,7 @@ ISSUE_URL= "https://dev.icinga.org/issues/"
 ISSUE_PROJECT="i2"
 
 arg_parser = ArgumentParser(description= "%s (Version: %s)" % (DESCRIPTION, VERSION))
-arg_parser.add_argument('-V', '--version', type=str, help="define version to query")
+arg_parser.add_argument('-V', '--version', required=True, type=str, help="define version to query")
 arg_parser.add_argument('-p', '--project', type=str, help="add urls to issues")
 arg_parser.add_argument('-l', '--links', action='store_true', help="add urls to issues")
 arg_parser.add_argument('-H', '--html', action='store_true', help="print html output (defaults to markdown)")
@@ -84,11 +84,11 @@ if "custom_fields" in version:
 
     changes = string.join(string.split(changes, "\r\n"), "\n")
 
-print format_header("What's New in Version %s" % (version_name), 2)
+print format_header("What's New in Version %s" % (version_name), 3)
 print ""
 
 if changes:
-    print format_header("Changes", 3)
+    print format_header("Changes", 4)
     print ""
     print changes
     print ""
