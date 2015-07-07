@@ -680,11 +680,24 @@ Check command object for the `check_smtp` plugin.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
-Name                 | Description
----------------------|--------------
-smtp_address         | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
-smtp_port            | **Optional.** The port that should be checked. Defaults to 25.
-smtp_mail_from       | **Optional.** Test a MAIL FROM command with the given email address.
+Name                  | Description
+----------------------|--------------
+smtp_address          | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
+smtp_port             | **Optional.** The port that should be checked. Defaults to 25.
+smtp_mail_from        | **Optional.** Test a MAIL FROM command with the given email address.
+smtp_expect           | **Optional.** String to expect in first line of server response (default: '220').
+smtp_command          | **Optional.** SMTP command (may be used repeatedly).
+smtp_response         | **Optional.** Expected response to command (may be used repeatedly).
+smtp_helo_fqdn        | **Optional.** FQDN used for HELO
+smtp_certificate_age  | **Optional.** Minimum number of days a certificate has to be valid.
+smtp_starttls         | **Optional.** Use STARTTLS for the connection.
+smtp_authtype         | **Optional.** SMTP AUTH type to check (default none, only LOGIN supported).
+smtp_authuser         | **Optional.** SMTP AUTH username.
+smtp_authpass         | **Optional.** SMTP AUTH password.
+smtp_ignore_quit      | **Optional.** Ignore failure when sending QUIT command to server.
+smtp_warning          | **Optional.** Response time to result in warning status (seconds).
+smtp_critical         | **Optional.** Response time to result in critical status (seconds).
+smtp_timeout          | **Optional.** Seconds before connection times out (default: 10).
 
 
 ## <a id="plugin-check-command-snmp"></a> snmp
