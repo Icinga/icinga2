@@ -161,13 +161,15 @@ database schema available on [http://docs.icinga.org/latest/en/db_model.html]
 
 Icinga 2 specific extensions are shown below:
 
-New tables: `endpoints`, `endpointstatus`
+New table: `endpointstatus`
 
   Table               | Column             | Type     | Default | Description
   --------------------|--------------------|----------|---------|-------------
   endpoints           | endpoint_object_id | bigint   | NULL    | FK: objects table
   endpoints           | identity           | TEXT     | NULL    | endpoint name
   endpoints           | node               | TEXT     | NULL    | local node name
+
+New table: `endpointstatus`
 
   Table               | Column             | Type     | Default | Description
   --------------------|--------------------|----------|---------|-------------
