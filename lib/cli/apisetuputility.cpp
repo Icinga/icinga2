@@ -55,6 +55,15 @@ int ApiSetupUtility::SetupMaster(const String& cn)
 		return 0;
 	}
 
+	SetupMasterCertificates(cn);
+	SetupMasterApiUser(cn);
+	SetupMasterEnableApi(cn);
+
+	return 0;
+}
+
+int ApiSetupUtility::SetupMasterCertificates(const String& cn)
+{
 	Log(LogInformation, "cli")
 	    << "Generating new CA.\n";
 
@@ -143,6 +152,11 @@ int ApiSetupUtility::SetupMaster(const String& cn)
 		}
 	}
 
+	return 0;
+}
+
+int ApiSetupUtility::SetupMasterApiUser(const String& cn)
+{
 	String api_username = "root"; //TODO make this available as cli parameter?
 	String api_password = RandomString(8);
 	String apiuserspath = GetConfdPath() + "/api-users.conf";
@@ -178,7 +192,11 @@ int ApiSetupUtility::SetupMaster(const String& cn)
 		    << boost::errinfo_file_name(apiuserspathtmp));
 	}
 
+	return 0;
+}
 
+int ApiSetupUtility::SetupMasterEnableApi(const String& cn)
+{
 	Log(LogInformation, "cli", "Enabling the ApiListener feature.\n");
 
 	std::vector<std::string> enable;

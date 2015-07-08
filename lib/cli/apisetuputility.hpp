@@ -38,6 +38,11 @@ class I2_CLI_API ApiSetupUtility
 {
 public:
 	static int SetupMaster(const String& cn);
+
+	static int SetupMasterCertificates(const String& cn);
+	static int SetupMasterApiUser(const String& cn);
+	static int SetupMasterEnableApi(const String& cn);
+
 	static String GetConfdPath(void);
 
 private:
