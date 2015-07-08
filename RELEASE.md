@@ -78,8 +78,11 @@ For major releases: Create a new "support" branch:
 Example for CentOS7:
 
     $ sudo docker run -ti centos:latest bash
+
     # yum -y install http://packages.icinga.org/epel/7/release/noarch/icinga-rpm-release-7-1.el7.centos.noarch.rpm
-    # yum -y install icinga
+    # yum -y install icinga2
+    # icinga2 daemon -C
+
     # systemctl start icinga2
     # tail -f /var/log/icinga2/icinga2.log
 
