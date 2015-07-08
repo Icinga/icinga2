@@ -48,7 +48,6 @@ Url::Url(const String& base_url)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid URL: '/' expected after scheme."));
 
 	if (url.GetLength() == 1) {
-		m_Path.push_back("/");
 		return;
 	}
 

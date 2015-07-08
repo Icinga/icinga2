@@ -64,6 +64,9 @@ BOOST_AUTO_TEST_CASE(format)
 
 	url = new Url("/foo/bar/index.php?blaka");
 	BOOST_CHECK(new Url(url->Format()));
+
+	url = new Url("/");
+	BOOST_CHECK(url->Format() == "/");
 }
 
 BOOST_AUTO_TEST_CASE(illegal_legal_strings)
@@ -72,6 +75,7 @@ BOOST_AUTO_TEST_CASE(illegal_legal_strings)
 	BOOST_CHECK_THROW(new Url("/?]=gar"), std::invalid_argument);
 	BOOST_CHECK(new Url("/?foo=baz??&\?\?=/?")); //Valid
 	BOOST_CHECK_THROW(new Url("/?foo=bar&foo=ba"), std::invalid_argument);
+	BOOST_CHECK(new Url("/"));
 	BOOST_CHECK_THROW(new Url("/?foo=bar&[]=d"), std::invalid_argument);
 	BOOST_CHECK_THROW(new Url("/?fo=&bar=garOA"), std::invalid_argument);
 }
