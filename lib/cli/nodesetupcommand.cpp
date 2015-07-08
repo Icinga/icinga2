@@ -128,11 +128,33 @@ int NodeSetupCommand::SetupMaster(const boost::program_options::variables_map& v
         if (vm.count("cn"))
                 cn = vm["cn"].as<std::string>();
 
-	if (FeatureUtility::CheckFeatureDisabled("api")) {
-		Log(LogInformation, "cli", "'api' feature not enabled, running 'api setup' now.\n");
-		ApiSetupUtility::SetupMaster(cn);
-	} else
-		Log(LogInformation, "cli", "'api' feature already enabled.\n");
+	/* check whether the user wants to generate a new certificate or not */
+	String existing_path = PkiUtility::GetPkiPath() + "/" + cn + ".crt";
+
+	Log(LogInformation, "cli")
+	    << "Checking for existing certificates for common name '" << cn << "'...";
+
+	if (Utility::PathExists(existing_path)) {
+		Log(LogWarning, "cli")
+		    << "Certificate '" << existing_path << "' for CN '" << cn << "' already existing. Skipping certificate generation.";
+	} else {
+		Log(LogInformation, "cli")
+		    << "Certificates not yet generated. Running 'api setup' now.";
+
+		ApiSetupUtility::SetupMasterCertificates(cn);
+	}
+
+	Log(LogInformation, "cli", "Generating master configuration for Icinga 2.");
+	ApiSetupUtility::SetupMasterApiUser(cn);
+
+	if (!FeatureUtility::CheckFeatureEnabled("api")) {
+		ApiSetupUtility::SetupMasterEnableApi(cn);
+	} else {
+		Log(LogInformation, "cli")
+		    << "'api' feature already enabled.\n";
+	}
+
+	NodeUtility::GenerateNodeMasterIcingaConfig(cn);
 
 	/* read zones.conf and update with zone + endpoint information */
 

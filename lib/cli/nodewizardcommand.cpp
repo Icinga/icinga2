@@ -455,12 +455,25 @@ wizard_ticket:
 		String cn = answer;
 		cn.Trim();
 
-		std::cout << ConsoleColorTag(Console_Normal) << "Checking the 'api' feature...\n";
+		/* check whether the user wants to generate a new certificate or not */
+		String existing_path = PkiUtility::GetPkiPath() + "/" + cn + ".crt";
 
-		if (FeatureUtility::CheckFeatureDisabled("api")) {
-			std::cout << ConsoleColorTag(Console_Bold) << "'api' feature not enabled, running 'api setup' now.\n";
-			ApiSetupUtility::SetupMaster(cn);
+		std::cout << ConsoleColorTag(Console_Normal) << "Checking for existing certificates for common name '" << cn << "'...\n";
+
+		if (Utility::PathExists(existing_path)) {
+			std::cout << "Certificate '" << existing_path << "' for CN '" << cn << "' already existing. Skipping certificate generation.\n";
+		} else {
+			std::cout << "Certificates not yet generated. Running 'api setup' now.\n";
+			ApiSetupUtility::SetupMasterCertificates(cn);
 		}
+
+		std::cout << ConsoleColorTag(Console_Bold) << "Generating master configuration for Icinga 2.\n" << ConsoleColorTag(Console_Normal);
+		ApiSetupUtility::SetupMasterApiUser(cn);
+
+		if (!FeatureUtility::CheckFeatureEnabled("api"))
+			ApiSetupUtility::SetupMasterEnableApi(cn);
+		else
+			std::cout << "'api' feature already enabled.\n";
 
 		NodeUtility::GenerateNodeMasterIcingaConfig(cn);
 
