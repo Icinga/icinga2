@@ -4,6 +4,48 @@ Please check [doc/1-about.md].
 
 ## What's New
 
+### What's New in Version 2.3.6
+
+#### Changes
+
+* Require openssl1 on sles11sp3 from Security Module repository
+  * Bug in SLES 11's OpenSSL version 0.9.8j preventing verification of generated certificates.
+  * Re-create these certificates with 2.3.6 linking against openssl1 (cli command or CSR auto-signing).
+* ITL: Add ldap, ntp_peer, mongodb and elasticsearch CheckCommand definitions
+* Bugfixes
+
+#### Features
+
+* Feature 6714: add pagerduty notification documentation
+* Feature 9172: Add "ldap" CheckCommand for "check_ldap" plugin
+* Feature 9191: Add "mongodb" CheckCommand definition
+* Feature 9415: Add elasticsearch checkcommand to itl
+* Feature 9416: snmpv3 CheckCommand: Add possibility to set securityLevel
+* Feature 9451: Merge documentation fixes from GitHub
+* Feature 9523: Add ntp_peer CheckCommand
+* Feature 9562: Add new options for ntp_time CheckCommand
+* Feature 9578: new options for smtp CheckCommand
+
+#### Bugfixes
+
+* Bug 9205: port empty when using icinga2 node wizard
+* Bug 9253: Incorrect variable name in the ITL
+* Bug 9303: Missing 'snmp_is_cisco' in Manubulon snmp-memory command definition
+* Bug 9436: Functions can't be specified as command arguments
+* Bug 9450: node setup: indent accept_config and accept_commands
+* Bug 9452: Wrong file reference in README.md
+* Bug 9456: Windows client w/ command_endpoint broken with $nscp_path$ and NscpPath detection
+* Bug 9463: Incorrect check_ping.exe parameter in the ITL
+* Bug 9476: Documentation for checks in an HA zone is wrong
+* Bug 9481: Fix stability issues in the TlsStream/Stream classes
+* Bug 9489: Add log message for discarded cluster events (e.g. from unauthenticated clients)
+* Bug 9490: Missing openssl verify in cluster troubleshooting docs
+* Bug 9513: itl/plugins-contrib.d/*.conf should point to PluginContribDir
+* Bug 9522: wrong default port documentated for nrpe
+* Bug 9549: Generated certificates cannot be verified w/ openssl 0.9.8j on SLES 11
+* Bug 9558: mysql-devel is not available in sles11sp3
+* Bug 9563: Update getting started for Debian Jessie
+
 ### What's New in Version 2.3.5
 
 #### Changes
