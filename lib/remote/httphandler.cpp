@@ -90,7 +90,7 @@ void HttpHandler::ProcessRequest(HttpRequest& request, HttpResponse& response)
 		response.SetStatus(404, "Not found");
 		String msg = "<h1>Not found</h1>";
 		response.WriteBody(msg.CStr(), msg.GetLength());
-		response.FinishBody();
+		response.Finish();
 		return;
 	}
 

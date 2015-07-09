@@ -91,7 +91,7 @@ bool HttpConnection::ProcessMessage(void)
 		response.SetStatus(400, "Bad request");
 		String msg = "<h1>Bad request</h1>";
 		response.WriteBody(msg.CStr(), msg.GetLength());
-		response.FinishBody();
+		response.Finish();
 
 		m_Stream->Shutdown();
 		return false;
