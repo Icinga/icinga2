@@ -54,7 +54,7 @@ public:
 	bool Complete;
 
 	String RequestMethod;
-	Url::Ptr Url;
+	Url::Ptr RequestUrl;
 	HttpVersion ProtocolVersion;
 
 	Dictionary::Ptr Headers;

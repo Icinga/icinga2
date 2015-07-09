@@ -59,7 +59,7 @@ void HttpHandler::ProcessRequest(const ApiUser::Ptr& user, HttpRequest& request,
 	HttpHandler::Ptr current_handler, handler;
 	bool exact_match = true;
 
-	BOOST_FOREACH(const String& elem, request.Url->GetPath()) {
+	BOOST_FOREACH(const String& elem, request.RequestUrl->GetPath()) {
 		current_handler = node->Get("handler");
 		if (current_handler)
 			handler = current_handler;
@@ -86,7 +86,7 @@ void HttpHandler::ProcessRequest(const ApiUser::Ptr& user, HttpRequest& request,
 			handler = current_handler;
 	}
 
-	if (!handler || (!exact_match && !handler->CanAlsoHandleUrl(request.Url))) {
+	if (!handler || (!exact_match && !handler->CanAlsoHandleUrl(request.RequestUrl))) {
 		response.SetStatus(404, "Not found");
 		String msg = "<h1>Not found</h1>";
 		response.WriteBody(msg.CStr(), msg.GetLength());

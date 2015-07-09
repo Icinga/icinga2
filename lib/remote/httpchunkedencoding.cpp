@@ -51,7 +51,7 @@ StreamReadStatus HttpChunkedEncoding::ReadChunkFromStream(const Stream::Ptr& str
 			scontext.MustRead = false;
 		}
 
-		if (scontext.Size < context.LengthIndicator) {
+		if (scontext.Size < (size_t)context.LengthIndicator) {
 			scontext.MustRead = true;
 			return StatusNeedData;
 		}

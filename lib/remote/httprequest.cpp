@@ -56,7 +56,7 @@ bool HttpRequest::Parse(const Stream::Ptr& stream, StreamReadContext& src, bool 
 			if (tokens.size() != 3)
 				BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid HTTP request"));
 			RequestMethod = tokens[0];
-			Url = new class Url(tokens[1]);
+			RequestUrl = new class Url(tokens[1]);
 
 			if (tokens[2] == "HTTP/1.0")
 				ProtocolVersion = HttpVersion10;
@@ -67,7 +67,7 @@ bool HttpRequest::Parse(const Stream::Ptr& stream, StreamReadContext& src, bool 
 
 			m_State = HttpRequestHeaders;
 			Log(LogWarning, "HttpRequest")
-			    << "Method: " << RequestMethod << ", Url: " << Url;
+			    << "Method: " << RequestMethod << ", Url: " << RequestUrl;
 		} else if (m_State == HttpRequestHeaders) {
 			if (line == "") {
 				m_State = HttpRequestBody;
