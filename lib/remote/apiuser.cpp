@@ -19,6 +19,7 @@
 
 #include "remote/apiuser.hpp"
 #include "remote/apiuser.tcpp"
+#include "base/dynamictype.hpp"
 
 using namespace icinga;
 
@@ -37,4 +38,14 @@ void ApiUser::SetPassword(const String& password)
 bool ApiUser::CheckPassword(const String& password) const
 {
 	return password == GetPasswordRaw();
+}
+
+ApiUser::Ptr ApiUser::GetByClientCN(const String& cn)
+{
+	BOOST_FOREACH(const ApiUser::Ptr& user, DynamicType::GetObjectsByType<ApiUser>()) {
+		if (user->GetClientCN() == cn)
+			return user;
+	}
+
+	return ApiUser::Ptr();
 }
