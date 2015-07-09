@@ -27,11 +27,12 @@
 using namespace icinga;
 
 HttpRequest::HttpRequest(StreamReadContext& src)
-    : m_State(HttpRequestStart), m_Context(src),
-      m_ChunkContext(m_Context),
+    : Complete(false),
       ProtocolVersion(HttpVersion10),
-      Complete(false),
-      Headers(new Dictionary())
+      Headers(new Dictionary()),
+      m_Context(src),
+      m_ChunkContext(m_Context),
+      m_State(HttpRequestStart)
 { }
 
 bool HttpRequest::Parse(const Stream::Ptr& stream, StreamReadContext& src, bool may_wait)

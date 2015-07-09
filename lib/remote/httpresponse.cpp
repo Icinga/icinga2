@@ -26,7 +26,7 @@
 using namespace icinga;
 
 HttpResponse::HttpResponse(const Stream::Ptr& stream, const HttpRequest& request)
-    : m_Stream(stream), m_Request(request), m_State(HttpResponseStart)
+    : m_State(HttpResponseStart), m_Request(request), m_Stream(stream)
 { }
 
 void HttpResponse::SetStatus(int code, const String& message)
