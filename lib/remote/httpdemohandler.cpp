@@ -23,10 +23,10 @@ using namespace icinga;
 
 REGISTER_URLHANDLER("/demo", HttpDemoHandler);
 
-void HttpDemoHandler::HandleRequest(HttpRequest& request, HttpResponse& response)
+void HttpDemoHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
 {
 	if (request.RequestMethod == "GET") {
-		String form = "<form action=\"/demo\" method=\"post\"><input type=\"text\" name=\"msg\"><input type=\"submit\"></form>";
+		String form = "<h1>Hallo " + user->GetName() + "</h1><form action=\"/demo\" method=\"post\"><input type=\"text\" name=\"msg\"><input type=\"submit\"></form>";
 		response.SetStatus(200, "OK");
 		response.AddHeader("Content-Type", "text/html");
 		response.WriteBody(form.CStr(), form.GetLength());

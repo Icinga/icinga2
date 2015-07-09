@@ -22,6 +22,7 @@
 #include "remote/apilistener.hpp"
 #include "remote/apifunction.hpp"
 #include "remote/jsonrpc.hpp"
+#include "remote/base64.hpp"
 #include "base/dynamictype.hpp"
 #include "base/objectlock.hpp"
 #include "base/utility.hpp"
@@ -42,7 +43,7 @@ HttpConnection::HttpConnection(const String& identity, bool authenticated, const
 	boost::call_once(l_HttpConnectionOnceFlag, &HttpConnection::StaticInitialize);
 
 	if (authenticated)
-		m_ApiUser = ApiUser::GetByName(identity);
+		m_ApiUser = ApiUser::GetByClientCN(identity);
 }
 
 void HttpConnection::StaticInitialize(void)
@@ -116,8 +117,45 @@ void HttpConnection::ProcessMessageAsync(HttpRequest& request)
 {
 	Log(LogInformation, "HttpConnection", "Processing Http message");
 
+	String auth_header = request.Headers->Get("authorization");
+
+	String::SizeType pos = auth_header.FindFirstOf(" ");
+	String username, password;
+
+	if (pos != String::NPos && auth_header.SubStr(0, pos) == "Basic") {
+		String credentials_base64 = auth_header.SubStr(pos + 1);
+		String credentials = Base64::Decode(credentials_base64);
+
+		String::SizeType cpos = credentials.FindFirstOf(":");
+
+		if (cpos != String::NPos) {
+			username = credentials.SubStr(0, cpos);
+			password = credentials.SubStr(cpos + 1);
+		}
+	}
+
+	ApiUser::Ptr user;
+
+	if (m_ApiUser)
+		user = m_ApiUser;
+	else {
+		user = ApiUser::GetByName(username);
+
+		if (!user || !user->CheckPassword(password))
+			user.reset();
+	}
+
 	HttpResponse response(m_Stream, request);
-	HttpHandler::ProcessRequest(request, response);
+
+	if (!user) {
+		response.SetStatus(401, "Unauthorized");
+		response.AddHeader("WWW-Authenticate", "Basic realm=\"Icinga 2\"");
+		String msg = "<h1>Unauthorized</h1>";
+		response.WriteBody(msg.CStr(), msg.GetLength());
+	} else {
+		HttpHandler::ProcessRequest(user, request, response);
+	}
+
 	response.Finish();
 
 	m_PendingRequests--;

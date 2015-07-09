@@ -53,7 +53,7 @@ bool HttpHandler::CanAlsoHandleUrl(const Url::Ptr& url) const
 	return false;
 }
 
-void HttpHandler::ProcessRequest(HttpRequest& request, HttpResponse& response)
+void HttpHandler::ProcessRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
 {
 	Dictionary::Ptr node = m_UrlTree;
 	HttpHandler::Ptr current_handler, handler;
@@ -94,5 +94,5 @@ void HttpHandler::ProcessRequest(HttpRequest& request, HttpResponse& response)
 		return;
 	}
 
-	handler->HandleRequest(request, response);
+	handler->HandleRequest(user, request, response);
 }

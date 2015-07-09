@@ -30,7 +30,7 @@ class I2_REMOTE_API HttpDemoHandler : public HttpHandler
 public:
 	DECLARE_PTR_TYPEDEFS(HttpDemoHandler);
 
-	virtual void HandleRequest(HttpRequest& request, HttpResponse& response);
+	virtual void HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response);
 };
 
 }

@@ -22,6 +22,7 @@
 
 #include "remote/i2-remote.hpp"
 #include "remote/httpresponse.hpp"
+#include "remote/apiuser.hpp"
 #include "base/registry.hpp"
 #include <vector>
 #include <boost/function.hpp>
@@ -40,10 +41,10 @@ public:
 	DECLARE_PTR_TYPEDEFS(HttpHandler);
 
 	virtual bool CanAlsoHandleUrl(const Url::Ptr& url) const;
-	virtual void HandleRequest(HttpRequest& request, HttpResponse& response) = 0;
+	virtual void HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response) = 0;
 
 	static void Register(const Url::Ptr& url, const HttpHandler::Ptr& handler);
-	static void ProcessRequest(HttpRequest& request, HttpResponse& response);
+	static void ProcessRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response);
 
 private:
 	static Dictionary::Ptr m_UrlTree;
