@@ -24,6 +24,9 @@
 
 using namespace icinga;
 
+#define VALID(X)   BOOST_CHECK(new Url(X))
+#define INVALID(X) BOOST_CHECK_THROW(new Url(X), std::invalid_argument)
+
 BOOST_AUTO_TEST_SUITE(base_url)
 
 BOOST_AUTO_TEST_CASE(id_and_path)
@@ -71,13 +74,12 @@ BOOST_AUTO_TEST_CASE(format)
 
 BOOST_AUTO_TEST_CASE(illegal_legal_strings)
 {
-	BOOST_CHECK_THROW(new Url("/?foo=barr&foo[]=bazz"), std::invalid_argument);
-	BOOST_CHECK_THROW(new Url("/?]=gar"), std::invalid_argument);
-	BOOST_CHECK(new Url("/?foo=baz??&\?\?=/?")); //Valid
-	BOOST_CHECK_THROW(new Url("/?foo=bar&foo=ba"), std::invalid_argument);
-	BOOST_CHECK(new Url("/"));
-	BOOST_CHECK_THROW(new Url("/?foo=bar&[]=d"), std::invalid_argument);
-	BOOST_CHECK_THROW(new Url("/?fo=&bar=garOA"), std::invalid_argument);
+	INVALID("/?foo=barr&foo[]=bazz"); 	VALID("/?foo=baz??&\?\?=/?");
+	INVALID("/?]=gar");					VALID("/");
+	INVALID("/#?[]");					VALID("///////");
+	INVALID("/?foo=bar&foo=ba");		VALID("/??[]=?#?=?");
+	INVALID("/?foo=bar&[]=d");			VALID("http://foo/#bar");
+	INVALID("/?fo=&bar=garOA");			VALID("//foo/");
 }
 
 BOOST_AUTO_TEST_SUITE_END()
