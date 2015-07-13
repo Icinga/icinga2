@@ -88,6 +88,7 @@ void HttpHandler::ProcessRequest(const ApiUser::Ptr& user, HttpRequest& request,
 
 	if (!handler || (!exact_match && !handler->CanAlsoHandleUrl(request.RequestUrl))) {
 		response.SetStatus(404, "Not found");
+		response.AddHeader("Content-Type", "text/html");
 		String msg = "<h1>Not found</h1>";
 		response.WriteBody(msg.CStr(), msg.GetLength());
 		response.Finish();

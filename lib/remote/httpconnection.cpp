@@ -149,6 +149,7 @@ void HttpConnection::ProcessMessageAsync(HttpRequest& request)
 
 	if (!user) {
 		response.SetStatus(401, "Unauthorized");
+		response.AddHeader("Content-Type", "text/html");
 		response.AddHeader("WWW-Authenticate", "Basic realm=\"Icinga 2\"");
 		String msg = "<h1>Unauthorized</h1>";
 		response.WriteBody(msg.CStr(), msg.GetLength());
