@@ -278,10 +278,11 @@ Value MacroProcessor::InternalResolveMacros(const String& str, const ResolverLis
 				}
 
 				resolved_macro = resolved_arr;
-			} else
+			} else if (resolved_macro.IsString()) {
 				resolved_macro = InternalResolveMacros(resolved_macro,
 					resolvers, cr, missingMacro, EscapeCallback(), Dictionary::Ptr(),
 					false, recursionLevel + 1);
+			}
 		}
 
 		if (!useResolvedMacros && found && resolvedMacros)
@@ -290,7 +291,12 @@ Value MacroProcessor::InternalResolveMacros(const String& str, const ResolverLis
 		if (escapeFn)
 			resolved_macro = escapeFn(resolved_macro);
 
-		/* we're done if the value is an array */
+		/* we're done if this is the only macro and there are no other non-macro parts in the string */
+		if (pos_first == 0 && pos_second == str.GetLength() - 1)
+			return resolved_macro;
+		else if (resolved_macro.IsObjectType<Array>())
+				BOOST_THROW_EXCEPTION(std::invalid_argument("Mixing both strings and non-strings in macros is not allowed."));
+
 		if (resolved_macro.IsObjectType<Array>()) {
 			/* don't allow mixing strings and arrays in macro strings */
 			if (pos_first != 0 || pos_second != str.GetLength() - 1)
