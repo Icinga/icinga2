@@ -118,7 +118,7 @@ if(APPLE)
   set(CMAKE_MACOSX_RPATH 0)
 endif(APPLE)
 
-if(CMAKE_C_COMPILER_ID STREQUAL "Clang")
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Qunused-arguments -g")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Qunused-arguments -g")
 endif()
