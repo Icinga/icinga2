@@ -22,6 +22,7 @@
 #include "icinga/service.hpp"
 #include "icinga/icingaapplication.hpp"
 #include "remote/endpoint.hpp"
+#include "remote/zone.hpp"
 #include "base/dynamictype.hpp"
 #include "base/objectlock.hpp"
 #include "base/convert.hpp"
@@ -46,6 +47,7 @@ void EndpointsTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "identity", Column(&EndpointsTable::IdentityAccessor, objectAccessor));
 	table->AddColumn(prefix + "node", Column(&EndpointsTable::NodeAccessor, objectAccessor));
 	table->AddColumn(prefix + "is_connected", Column(&EndpointsTable::IsConnectedAccessor, objectAccessor));
+	table->AddColumn(prefix + "zone", Column(&EndpointsTable::ZoneAccessor, objectAccessor));
 }
 
 String EndpointsTable::GetName(void) const
@@ -110,4 +112,19 @@ Value EndpointsTable::IsConnectedAccessor(const Value& row)
 		is_connected = 1;
 
 	return is_connected;
+}
+
+Value EndpointsTable::ZoneAccessor(const Value& row)
+{
+	Endpoint::Ptr endpoint = static_cast<Endpoint::Ptr>(row);
+
+	if (!endpoint)
+		return Empty;
+
+	Zone::Ptr zone = endpoint->GetZone();
+
+	if (!zone)
+		return Empty;
+
+	return zone->GetName();
 }

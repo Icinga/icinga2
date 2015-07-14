@@ -214,7 +214,7 @@ Additional global custom variables populated from 'Vars' constant (object_id is 
 
 Icinga 2 specific extensions are shown below:
 
-New table: `endpoints`
+New table: `endpoints`:
 
   Table     | Column
   ----------|--------------
@@ -222,6 +222,16 @@ New table: `endpoints`
   endpoints | identity
   endpoints | node
   endpoints | is_connected
+  endpoints | zone
+
+New table: `zones`:
+
+  Table     | Column
+  ----------|--------------
+  zone      | name
+  zone      | endpoints
+  zone      | parent
+  zone      | global
 
 New columns:
 

@@ -29,6 +29,7 @@
 #include "livestatus/commentstable.hpp"
 #include "livestatus/downtimestable.hpp"
 #include "livestatus/endpointstable.hpp"
+#include "livestatus/zonestable.hpp"
 #include "livestatus/timeperiodstable.hpp"
 #include "livestatus/logtable.hpp"
 #include "livestatus/statehisttable.hpp"
@@ -82,6 +83,8 @@ Table::Ptr Table::GetByName(const String& name, const String& compat_log_path, c
 		return new StateHistTable(compat_log_path, from, until);
 	else if (name == "endpoints")
 		return new EndpointsTable();
+	else if (name == "zones")
+		return new ZonesTable();
 
 	return Table::Ptr();
 }

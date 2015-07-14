@@ -17,8 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef ENDPOINTSTABLE_H
-#define ENDPOINTSTABLE_H
+#ifndef ZONESTABLE_H
+#define ZONESTABLE_H
 
 #include "livestatus/table.hpp"
 
@@ -30,12 +30,12 @@ namespace icinga
 /**
  * @ingroup livestatus
  */
-class I2_LIVESTATUS_API EndpointsTable : public Table
+class I2_LIVESTATUS_API ZonesTable : public Table
 {
 public:
-	DECLARE_PTR_TYPEDEFS(EndpointsTable);
+	DECLARE_PTR_TYPEDEFS(ZonesTable);
 
-	EndpointsTable(void);
+	ZonesTable(void);
 
 	static void AddColumns(Table *table, const String& prefix = String(),
 	    const Column::ObjectAccessor& objectAccessor = Column::ObjectAccessor());
@@ -47,12 +47,11 @@ protected:
 	virtual void FetchRows(const AddRowFunction& addRowFn);
 
 	static Value NameAccessor(const Value& row);
-	static Value IdentityAccessor(const Value& row);
-	static Value NodeAccessor(const Value& row);
-	static Value IsConnectedAccessor(const Value& row);
-	static Value ZoneAccessor(const Value& row);
+	static Value ParentAccessor(const Value& row);
+	static Value EndpointsAccessor(const Value& row);
+	static Value GlobalAccessor(const Value& row);
 };
 
 }
 
-#endif /* ENDPOINTSTABLE_H */
+#endif /* ZONESTABLE_H */

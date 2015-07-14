@@ -28,7 +28,7 @@ set(livestatus_SOURCES
   minaggregator.cpp negatefilter.cpp orfilter.cpp
   servicegroupstable.cpp servicestable.cpp statehisttable.cpp
   statustable.cpp stdaggregator.cpp sumaggregator.cpp table.cpp
-  timeperiodstable.cpp
+  timeperiodstable.cpp zonestable.cpp
 )
 
 if(ICINGA2_UNITY_BUILD)
