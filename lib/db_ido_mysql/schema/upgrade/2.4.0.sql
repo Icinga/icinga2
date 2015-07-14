@@ -7,6 +7,9 @@
 -- Please check http://docs.icinga.org for upgrading information!
 -- -----------------------------------------
 
+-- -----------------------------------------
+-- #9286 - zone tables
+-- -----------------------------------------
 
 ALTER TABLE icinga_endpoints ADD COLUMN zone_object_id bigint(20) unsigned DEFAULT '0';
 ALTER TABLE icinga_endpointstatus ADD COLUMN zone_object_id bigint(20) unsigned DEFAULT '0';
@@ -30,6 +33,13 @@ CREATE TABLE IF NOT EXISTS icinga_zonestatus (
   PRIMARY KEY  (zonestatus_id)
 ) ENGINE=InnoDB COMMENT='Zone status';
 
+
+-- -----------------------------------------
+-- #9576 - freshness_threshold
+-- -----------------------------------------
+
+ALTER TABLE icinga_services MODIFY freshness_threshold int;
+ALTER TABLE icinga_hosts MODIFY freshness_threshold int;
 
 -- -----------------------------------------
 -- update dbversion
