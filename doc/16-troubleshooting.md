@@ -17,20 +17,20 @@
 
 ## <a id="troubleshooting-enable-debug-output"></a> Enable Debug Output
 
-Run Icinga 2 in the foreground with debugging enabled. Specify the console
+Enable the `debuglog` feature:
+
+    # icinga2 feature enable debuglog
+    # service icinga2 restart
+
+You can find the debug log file in `/var/log/icinga2/debug.log`.
+
+Alternatively you may run Icinga 2 in the foreground with debugging enabled. Specify the console
 log severity as an additional parameter argument to `-x`.
 
     # /usr/sbin/icinga2 daemon -x notice
 
 The log level can be one of `critical`, `warning`, `information`, `notice`
 and `debug`.
-
-Alternatively you can enable the debug log:
-
-    # icinga2 feature enable debuglog
-    # service icinga2 restart
-
-You can find the debug log file in `/var/log/icinga2/debug.log`.
 
 ## <a id="list-configuration-objects"></a> List Configuration Objects
 
@@ -210,12 +210,12 @@ the following
   * Verify the `Subject` containing your endpoint's common name (CN)
   * Check the validity of the certificate itself
 
-Steps:
+Steps on the client `icinga2-node2.localdomain`:
 
     # ls -la /etc/icinga2/pki
 
     # cd /etc/icinga2/pki/
-    # openssl x509 -in icinga2a.crt -text
+    # openssl x509 -in icinga2-node2.localdomain.crt -text
     Certificate:
         Data:
             Version: 1 (0x0)
@@ -225,29 +225,55 @@ Steps:
             Validity
                 Not Before: Jan  7 13:17:38 2014 GMT
                 Not After : Jan  5 13:17:38 2024 GMT
-            Subject: C=DE, ST=Bavaria, L=Nuremberg, O=NETWAYS GmbH, OU=Monitoring, CN=icinga2a
+            Subject: C=DE, ST=Bavaria, L=Nuremberg, O=NETWAYS GmbH, OU=Monitoring, CN=icinga2-node2.localdomain
             Subject Public Key Info:
                 Public Key Algorithm: rsaEncryption
                     Public-Key: (4096 bit)
                     Modulus:
                     ...
 
-Try to manually connect to the cluster node:
+Try to manually connect from `icinga2-node2.localdomain` to the master node `icinga2-node1.localdomain`:
 
-    # openssl s_client -connect 192.168.33.10:5665
+    # openssl s_client -CAfile /etc/icinga2/pki/ca.crt -cert /etc/icinga2/pki/icinga2-node2.localdomain.crt -key /etc/icinga2/pki/icinga2-node2.localdomain..key -connect icinga2-node1.localdomain.crt:5665
 
+    CONNECTED(00000003)
+    ---
+    ...
+
+If the connection attempt fails or your CA does not match, [verify the master and client certificates](16-troubleshooting.md#troubleshooting-cluster-ssl-certificate-verification).
+
+#### <a id="troubleshooting-cluster-unauthenticated-clients"></a> Cluster Troubleshooting Unauthenticated Clients
 
 Unauthenticated nodes are able to connect required by the
 [CSR auto-signing](10-icinga2-client.md#csr-autosigning-requirements) functionality.
 
-    [2015-06-10 03:28:11 +0200] information/ApiListener: New client connection for identity 'icinga-client' (unauthenticated)
+Master:
 
-If this message does not go away, make sure to verify the client's certificate and
-its received `ca.crt` in `/etc/icinga2/pki` (both master and client).
+    [2015-07-13 18:29:25 +0200] information/ApiListener: New client connection for identity 'icinga-client' (unauthenticated)
 
-    # openssl verify -verbose -CAfile ca.crt nbmif.int.netways.de.crt
-    nbmif.int.netways.de.crt: OK
+Client as command execution bridge:
 
+    [2015-07-13 18:29:26 +1000] notice/ApiEvents: Discarding 'execute command' message from 'icinga-master': Invalid endpoint origin (client not allowed).
+
+If these messages do not go away, make sure to [verify the master and client certificates](16-troubleshooting.md#troubleshooting-cluster-ssl-certificate-verification).
+
+#### <a id="troubleshooting-cluster-ssl-certificate-verification"></a> Cluster Troubleshooting SSL Certificate Verification
+
+Make sure to verify the client's certificate and its received `ca.crt` in `/etc/icinga2/pki` and ensure that
+both instances are signed by the **same CA**.
+
+    # openssl verify -verbose -CAfile /etc/icinga2/pki/ca.crt /etc/icinga2/pki/icinga2-node1.localdomain.crt
+    icinga2-node1.localdomain.crt: OK
+
+    # openssl verify -verbose -CAfile /etc/icinga2/pki/ca.crt /etc/icinga2/pki/icinga2-node2.localdomain.crt
+    icinga2-node2.localdomain.crt: OK
+
+Fetch the `ca.crt` file from the client node and compare it to your master's `ca.crt` file:
+
+    # scp icinga2-node2:/etc/icinga2/pki/ca.crt test-client-ca.crt
+    # diff -ur /etc/icinga2/pki/ca.crt test-client-ca.crt
+
+On SLES11 you'll need to use the `openssl1` command instead of `openssl`.
 
 ### <a id="troubleshooting-cluster-message-errors"></a> Cluster Troubleshooting Message Errors
 
@@ -255,8 +281,8 @@ At some point, when the network connection is broken or gone, the Icinga 2 insta
 will be disconnected. If the connection can't be re-established between zones and endpoints,
 they remain in a Split-Brain-mode and history may differ.
 
-Although the Icinga 2 cluster protocol stores historical events in a replay log for later synchronisation,
-you should make sure to check why the network connection failed.
+Although the Icinga 2 cluster protocol stores historical events in a [replay log](16-troubleshooting.md#troubleshooting-cluster-replay-log)
+for later synchronisation, you should make sure to check why the network connection failed.
 
 ### <a id="troubleshooting-cluster-command-endpoint-errors"></a> Cluster Troubleshooting Command Endpoint Errors
 
@@ -266,18 +292,32 @@ as well as inside an [High-Availability cluster](12-distributed-monitoring-ha.md
 There is no cli command for manually executing the check, but you can verify
 the following (e.g. by invoking a forced check from the web interface):
 
-* `icinga2.log` contains connection and execution errors
- * `CheckCommand` definition not found on the remote client
- * Referenced check plugin not found on the remote client
- * Runtime warnings and errors, e.g. unresolved runtime macros or configuration problems
-* Specific error messages are also populated into `UNKNOWN` check results including a detailed error message in their output
-
+* `/var/log/icinga2/icinga2.log` contains connection and execution errors.
+ * The ApiListener is not enabled to [accept commands](10-icinga2-client.md#clients-as-command-execution-bridge).
+ * `CheckCommand` definition not found on the remote client.
+ * Referenced check plugin not found on the remote client.
+ * Runtime warnings and errors, e.g. unresolved runtime macros or configuration problems.
+* Specific error messages are also populated into `UNKNOWN` check results including a detailed error message in their output.
+* More verbose logs are found inside the [debug log](16-troubleshooting.md#troubleshooting-enable-debug-output).
 
 ### <a id="troubleshooting-cluster-config-sync"></a> Cluster Troubleshooting Config Sync
 
 If the cluster zones do not sync their configuration, make sure to check the following:
 
 * Within a config master zone, only one configuration master is allowed to have its config in `/etc/icinga2/zones.d`.
-** The master syncs the configuration to `/var/lib/icinga2/api/zones/` during startup and only syncs valid configuration to the other nodes
-** The other nodes receive the configuration into `/var/lib/icinga2/api/zones/`
-* The `icinga2.log` log file will indicate whether this ApiListener [accepts config](12-distributed-monitoring-ha.md#zone-config-sync-permissions), or not
+** The master syncs the configuration to `/var/lib/icinga2/api/zones/` during startup and only syncs valid configuration to the other nodes.
+** The other nodes receive the configuration into `/var/lib/icinga2/api/zones/`.
+* The `icinga2.log` log file in `/var/log/icinga2` will indicate whether this ApiListener
+[accepts config](12-distributed-monitoring-ha.md#zone-config-sync-permissions), or not.
+
+### <a id="troubleshooting-cluster-replay-log"></a> Cluster Troubleshooting Replay Log
+
+If your `/var/lib/icinga2/api/log` directory grows, it generally means that your cluster
+cannot replay the log on connection loss and re-establishment.
+
+Check the following:
+
+* All clients are connected? (e.g. [cluster health check](12-distributed-monitoring-ha.md#cluster-health-check)).
+* Check your [connection](16-troubleshooting.md#troubleshooting-cluster-connection-errors) in general.
+* Does the log replay work, e.g. are all events processed and the directory gets cleared up over time?
+* Decrease the `log_duration` attribute value for that specific [endpoint](6-object-types.md#objecttype-endpoint).
