@@ -62,8 +62,15 @@ Push the tag.
 For major releases: Create a new "support" branch:
 
     $ git checkout master
-    $ git checkout -b support/2.x
-    $ git push -u origin support/2.x
+    $ git checkout -b support/2.3
+    $ git push -u origin support/2.3
+
+For minor releases: Push the support branch and cherry-pick the release commit into master:
+
+    $ git push -u origin support/2.3
+    $ git checkout master
+    $ git cherry-pick support/2.3
+    $ git push origin master
 
 # External Dependencies
 
