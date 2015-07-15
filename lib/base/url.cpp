@@ -215,10 +215,10 @@ bool Url::ParsePath(const String& path)
 		if (token.IsEmpty())
 			continue;
 
-		String decodedToken = Utility::UnescapeString(token);
-
-		if (!ValidateToken(decodedToken, ACPATHSEGMENT))
+		if (!ValidateToken(token, ACPATHSEGMENT))
 			return false;
+
+		String decodedToken = Utility::UnescapeString(token);
 
 		m_Path.push_back(decodedToken);
 	}
