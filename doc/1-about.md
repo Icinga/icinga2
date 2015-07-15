@@ -54,6 +54,26 @@ More details in the [Icinga FAQ](https://www.icinga.org/icinga/faq/).
 
 ## <a id="whats-new"></a> What's New
 
+### What's New in Version 2.3.7
+
+#### Changes
+
+* Bugfixes
+
+#### Features
+
+* Feature [9610](https://dev.icinga.org/issues/9610 "Feature 9610"): Enhance troubleshooting ssl errors & cluster replay log
+
+#### Bugfixes
+
+* Bug [9406](https://dev.icinga.org/issues/9406 "Bug 9406"): Selective cluster reconnecting breaks client communication
+* Bug [9535](https://dev.icinga.org/issues/9535 "Bug 9535"): Config parser ignores "ignore" in template definition
+* Bug [9584](https://dev.icinga.org/issues/9584 "Bug 9584"): Incorrect return value for the macro() function
+* Bug [9585](https://dev.icinga.org/issues/9585 "Bug 9585"): Wrong formatting in DB IDO extensions docs
+* Bug [9586](https://dev.icinga.org/issues/9586 "Bug 9586"): DB IDO: endpoint* tables are cleared on reload causing constraint violations
+* Bug [9621](https://dev.icinga.org/issues/9621 "Bug 9621"): Assertion failed in icinga::ScriptUtils::Intersection
+* Bug [9622](https://dev.icinga.org/issues/9622 "Bug 9622"): Missing lock in ScriptUtils::Union
+
 ### What's New in Version 2.3.6
 
 #### Changes
