@@ -110,6 +110,7 @@ Array::Ptr ScriptUtils::Union(const std::vector<Value>& arguments)
 		Array::Ptr arr = varr;
 
 		if (arr) {
+			ObjectLock olock(arr);
 			BOOST_FOREACH(const Value& value, arr) {
 				values.insert(value);
 			}
