@@ -36,7 +36,7 @@ enum ConnectionRole
 	RoleServer
 };
 
-struct StreamReadContext
+struct I2_BASE_API StreamReadContext
 {
 	StreamReadContext(void)
 		: Buffer(NULL), Size(0), MustRead(true), Eof(false)
