@@ -138,7 +138,10 @@ Array::Ptr ScriptUtils::Intersection(const std::vector<Value>& arguments)
 	Array::Ptr arr1 = arg1->ShallowClone();
 
 	for (std::vector<Value>::size_type i = 1; i < arguments.size(); i++) {
-		std::sort(arr1->Begin(), arr1->End());
+		{
+			ObjectLock olock(arr1);
+			std::sort(arr1->Begin(), arr1->End());
+		}
 
 		Array::Ptr arg2 = arguments[i];
 
@@ -146,11 +149,19 @@ Array::Ptr ScriptUtils::Intersection(const std::vector<Value>& arguments)
 			return result;
 
 		Array::Ptr arr2 = arg2->ShallowClone();
-		std::sort(arr2->Begin(), arr2->End());
+		{
+			ObjectLock olock(arr2);
+			std::sort(arr2->Begin(), arr2->End());
+		}
 
 		result->Resize(std::max(arr1->GetLength(), arr2->GetLength()));
-		Array::Iterator it = std::set_intersection(arr1->Begin(), arr1->End(), arr2->Begin(), arr2->End(), result->Begin());
-		result->Resize(it - result->Begin());
+		Array::SizeType len;
+		{
+			ObjectLock olock(arr1), xlock(arr2), ylock(result);
+			Array::Iterator it = std::set_intersection(arr1->Begin(), arr1->End(), arr2->Begin(), arr2->End(), result->Begin());
+			len = it - result->Begin();
+		}
+		result->Resize(len);
 		arr1 = result;
 	}
 
