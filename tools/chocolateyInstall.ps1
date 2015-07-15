@@ -1,6 +1,6 @@
 ﻿$packageName = 'icinga2'
 $installerType = 'exe'
-$url = 'http://packages.icinga.org/windows/Icinga2-v2.3.6.exe'
+$url = 'http://packages.icinga.org/windows/Icinga2-v2.3.7.exe'
 $silentArgs = '/S'
 $validExitCodes = @(0)
 
