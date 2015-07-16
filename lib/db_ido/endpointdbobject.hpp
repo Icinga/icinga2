@@ -44,9 +44,6 @@ public:
 	virtual Dictionary::Ptr GetConfigFields(void) const;
 	virtual Dictionary::Ptr GetStatusFields(void) const;
 
-protected:
-	virtual void OnConfigUpdate(void);
-
 private:
 	static void UpdateConnectedStatus(const Endpoint::Ptr& endpoint);
 	static int EndpointIsConnected(const Endpoint::Ptr& endpoint);

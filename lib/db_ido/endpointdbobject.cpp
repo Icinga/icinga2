@@ -106,25 +106,3 @@ int EndpointDbObject::EndpointIsConnected(const Endpoint::Ptr& endpoint)
 
 	return is_connected;
 }
-
-void EndpointDbObject::OnConfigUpdate(void)
-{
-	/* update current status on config dump once */
-	Endpoint::Ptr endpoint = static_pointer_cast<Endpoint>(GetObject());
-
-	DbQuery query1;
-	query1.Table = "endpointstatus";
-	query1.Type = DbQueryInsert;
-	query1.Category = DbCatConfig;
-
-	Dictionary::Ptr fields1 = new Dictionary();
-	fields1->Set("identity", endpoint->GetName());
-	fields1->Set("node", IcingaApplication::GetInstance()->GetNodeName());
-	fields1->Set("is_connected", EndpointIsConnected(endpoint));
-	fields1->Set("status_update_time", DbValue::FromTimestamp(Utility::GetTime()));
-	fields1->Set("endpoint_object_id", endpoint);
-	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
-	query1.Fields = fields1;
-
-	OnQuery(query1);
-}
