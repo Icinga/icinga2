@@ -380,6 +380,8 @@ object:
 		} else if (seen_ignore) {
 			if (!ObjectRule::IsValidSourceType(type))
 				BOOST_THROW_EXCEPTION(ScriptError("object rule 'ignore' cannot be used for type '" + type + "'", DebugInfoRange(@2, @4)));
+			else
+				BOOST_THROW_EXCEPTION(ScriptError("object rule 'ignore' is missing 'assign' for type '" + type + "'", DebugInfoRange(@2, @4)));
 		}
 
 		$$ = new ObjectExpression(abstract, type, $4, filter, context->GetZone(), $5, $6, DebugInfoRange(@2, @5));
