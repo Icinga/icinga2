@@ -22,10 +22,10 @@
 
 #include "remote/i2-remote.hpp"
 #include "remote/httpchunkedencoding.hpp"
+#include "remote/url.hpp"
 #include "base/stream.hpp"
 #include "base/fifo.hpp"
 #include "base/dictionary.hpp"
-#include "base/url.hpp"
 
 namespace icinga
 {

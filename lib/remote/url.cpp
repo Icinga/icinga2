@@ -17,11 +17,11 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/url.hpp"
-#include "base/url-characters.hpp"
 #include "base/array.hpp"
 #include "base/utility.hpp"
 #include "base/objectlock.hpp"
+#include "remote/url.hpp"
+#include "remote/url-characters.hpp"
 #include <boost/tokenizer.hpp>
 #include <boost/foreach.hpp>
 

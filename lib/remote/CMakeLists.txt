@@ -26,6 +26,7 @@ set(remote_SOURCES
   httpchunkedencoding.cpp  httpconnection.cpp httpdemohandler.cpp httphandler.cpp httprequest.cpp httpresponse.cpp
   jsonrpc.cpp jsonrpcconnection.cpp jsonrpcconnection-heartbeat.cpp
   messageorigin.cpp zone.cpp zone.thpp
+  url.cpp
 )
 
 if(ICINGA2_UNITY_BUILD)
