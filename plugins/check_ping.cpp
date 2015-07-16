@@ -194,8 +194,8 @@ INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& p
 
 	if (vm.count("timeout"))
 		printInfo.timeout = vm["timeout"].as<INT>();
-	if (vm.count("count"))
-		printInfo.num = vm["count"].as<INT>();
+	if (vm.count("packets"))
+		printInfo.num = vm["packets"].as<INT>();
 	if (vm.count("-6"))
 		printInfo.ipv4 = FALSE;
 
