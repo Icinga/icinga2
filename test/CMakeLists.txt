@@ -22,8 +22,9 @@ set(base_test_SOURCES
   base-json.cpp base-match.cpp base-netstring.cpp base-object.cpp
   base-serialize.cpp base-shellescape.cpp base-stacktrace.cpp
   base-stream.cpp base-string.cpp base-timer.cpp base-type.cpp
-  base-url.cpp base-value.cpp config-ops.cpp icinga-macros.cpp
-  icinga-perfdata.cpp remote-apiuser.cpp test.cpp
+  base-value.cpp config-ops.cpp icinga-macros.cpp
+  icinga-perfdata.cpp test.cpp 
+  remote-url.cpp remote-apiuser.cpp
 )
 
 set(livestatus_test_SOURCES
@@ -91,10 +92,6 @@ add_boost_test(base
         base_type/assign
         base_type/byname
         base_type/instantiate
-        base_url/id_and_path
-        base_url/parameters
-        base_url/format
-        base_url/illegal_legal_strings
         base_value/scalar
         base_value/convert
         base_value/format
@@ -112,6 +109,10 @@ add_boost_test(base
         icinga_perfdata/multi
         remote_apiuser/get_password
         remote_apiuser/check_password
+        remote_url/id_and_path
+        remote_url/parameters
+        remote_url/format
+        remote_url/illegal_legal_strings
 )
 
 if(ICINGA2_WITH_LIVESTATUS)

@@ -24,7 +24,7 @@
 
 using namespace icinga;
 
-BOOST_AUTO_TEST_SUITE(base_url)
+BOOST_AUTO_TEST_SUITE(remote_url)
 
 BOOST_AUTO_TEST_CASE(id_and_path)
 {
