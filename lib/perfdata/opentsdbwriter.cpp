@@ -106,16 +106,16 @@ void OpenTsdbWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 	else
 		host = static_pointer_cast<Host>(checkable);
 
-	String hostName = host->GetName();
-
 	String metric;
 	std::map<String, String> tags;
-	tags["host"] = hostName;
+
+	String escaped_hostName = EscapeMetric(host->GetName());
+	tags["host"] = escaped_hostName;
 
 	if (service) {
 		String serviceName = service->GetShortName();
-		EscapeMetric(serviceName);
-		metric = "icinga.service." + serviceName;
+		String escaped_serviceName = EscapeMetric(serviceName);
+		metric = "icinga.service." + escaped_serviceName;
 
 		SendMetric(metric + ".state", tags, service->GetState());
 	} else {
@@ -134,8 +134,8 @@ void OpenTsdbWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 	if (service) {
 		tags["type"] = "service";
 		String serviceName = service->GetShortName();
-		EscapeTag(serviceName);
-		tags["service"] = serviceName;
+		String escaped_serviceName = EscapeTag(serviceName);
+		tags["service"] = escaped_serviceName;
 	} else {
 		tags["type"] = "host";
 	}
@@ -169,8 +169,7 @@ void OpenTsdbWriter::SendPerfdata(const String& metric, const std::map<String, S
 			}
 		}
 
-		String escaped_key = pdv->GetLabel();
-		EscapeMetric(escaped_key);
+		String escaped_key = EscapeMetric(pdv->GetLabel());
 		boost::algorithm::replace_all(escaped_key, "::", ".");
 
 		SendMetric(metric + "." + escaped_key, tags, pdv->GetValue());
