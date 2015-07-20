@@ -1510,6 +1510,33 @@ elasticsearch_port           | **Optional.** TCP port to probe.  The ElasticSear
 elasticsearch_prefix         | **Optional.** Optional prefix (e.g. 'es') for the ElasticSearch API. Defaults to ''.
 elasticsearch_yellowcritical | **Optional.** Instead of issuing a 'warning' for a yellow cluster state, issue a 'critical' alert. Defaults to false.
 
+### <a id="plugins-contrib-command-redis"></a> redis
+
+The plugin `redis` can measure response time, hitrate, memory utilization, check replication sync and more. It can also test data in a specified key (if necessary doing average or sum on range).
+It is provided by `William Leibzon` at [https://github.com](https://github.com/willixix/naglio-plugins/blob/master/check_redis.pl).
+
+Name                     | Description
+-------------------------|--------------------------------------------------------------------------------------------------------------
+redis_hostname           | **Required.** Hostname or IP Address to check. Defaults to "127.0.0.1".
+redis_port               | **Optional.** Port number to query. Default to "6379".
+redis_database           | **Optional.** Database name (usually a number) to query, needed for **redis_query**.
+redis_password           | **Optional.** Password for Redis authentication. Safer alternative is to put them in a file and use **redis_credentials**.
+redis_credentials        | **Optional.** Credentials file to read for Redis authentication.
+redis_timeout            | **Optional.** Allows to set timeout for execution of this plugin.
+redis_variables          | **Optional.** List of variables from info data to do threshold checks on.
+redis_warn               | **Optional.** This option can only be used if **redis_variables** is used and the number of values listed here must exactly match number of variables specified.
+redis_crit               | **Optional.** This option can only be used if **redis_variables** is used and the number of values listed here must exactly match number of variables specified.
+redis_perfparse          | **Optional.** This should only be used with variables and causes variable data not only to be printed as part of main status line but also as perfparse compatible output. Defaults to false.
+redis_perfvars           | **Optional.** This allows to list variables which values will go only into perfparse output (and not for threshold checking).
+redis_prev_perfdata      | **Optional.** If set to true previous performance data are used to calculate rate of change for counter statistics variables and for proper calculation of hitrate. Defaults to false.
+redis_rate_label         | **Optional.** Prefix or Suffix label used to create a new variable which has rate of change of another base variable. You can specify PREFIX or SUFFIX or both as one string separated by ",". Default if not specified is suffix "_rate".
+redis_query              | **Optional.** Option specifies key to query and optional variable name to assign the results to after. 
+redis_option             | **Optional.** Specifiers are separated by "," and must include NAME or PATTERN.
+redis_response_time      | **Optional.** If this is used plugin will measure and output connection response time in seconds. With **redis_perfparse** this would also be provided on perf variables.
+redis_hitrate            | **Optional.** Calculates Hitrate and specify values are interpreted as WARNING and CRITICAL thresholds.
+redis_memory_utilization | **Optional.** This calculates percent of total memory on system used by redis. Total_memory on server must be specified with **redis_total_memory**. If you specify by itself, the plugin will just output this info. Parameter values are interpreted as WARNING and CRITICAL thresholds.
+redis_total_memory       | **Optional.** Amount of memory on a system for memory utilization calculation. Use system memory or max_memory setting of redis.
+redis_replication_delay  | **Optional.** Allows to set threshold on replication delay info.
 
 ## <a id="plugins-contrib-ipmi"></a> IPMI Devices
 
