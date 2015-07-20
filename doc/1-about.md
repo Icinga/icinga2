@@ -54,6 +54,20 @@ More details in the [Icinga FAQ](https://www.icinga.org/icinga/faq/).
 
 ## <a id="whats-new"></a> What's New
 
+### What's New in Version 2.3.8
+
+#### Changes
+
+* Bugfixes
+
+#### Bugfixes
+
+* Bug [9554](https://dev.icinga.org/issues/9554 "Bug 9554"): Don't allow "ignore where" for groups when there's no "assign where"
+* Bug [9634](https://dev.icinga.org/issues/9634 "Bug 9634"): DB IDO: Do not update endpointstatus table on config updates
+* Bug [9637](https://dev.icinga.org/issues/9637 "Bug 9637"): Wrong parameter for CheckCommand "ping-common-windows"
+* Bug [9665](https://dev.icinga.org/issues/9665 "Bug 9665"): Escaping does not work for OpenTSDB perfdata plugin
+* Bug [9666](https://dev.icinga.org/issues/9666 "Bug 9666"): checkcommand disk does not check free inode - check_disk
+
 ### What's New in Version 2.3.7
 
 #### Changes
