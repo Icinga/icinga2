@@ -4,6 +4,20 @@ Please check [doc/1-about.md].
 
 ## What's New
 
+### What's New in Version 2.3.8
+
+#### Changes
+
+* Bugfixes
+
+#### Bugfixes
+
+* Bug 9554: Don't allow "ignore where" for groups when there's no "assign where"
+* Bug 9634: DB IDO: Do not update endpointstatus table on config updates
+* Bug 9637: Wrong parameter for CheckCommand "ping-common-windows"
+* Bug 9665: Escaping does not work for OpenTSDB perfdata plugin
+* Bug 9666: checkcommand disk does not check free inode - check_disk
+
 ### What's New in Version 2.3.7
 
 #### Changes
