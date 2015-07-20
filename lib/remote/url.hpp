@@ -20,7 +20,7 @@
 #ifndef URL_H
 #define URL_H
 
-#include "base/i2-base.hpp"
+#include "remote/i2-remote.hpp"
 #include "base/object.hpp"
 #include "base/string.hpp"
 #include "base/value.hpp"
