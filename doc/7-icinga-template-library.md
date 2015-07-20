@@ -1732,6 +1732,24 @@ mem_cache    | **Optional.** If set to true plugin will count cache as free memo
 mem_warning  | **Required.** Specifiy the warning threshold as number interpreted as percent.
 mem_critical | **Required.** Specifiy the critical threshold as number interpreted as percent.
 
+### <a id="plugin-contrib-command-yum"></a> yum
+
+The plugin `yum` is used to check the YUM package management system for package updates. To differentiate between security and normal updates it requires the YUM security plugin installed. It is provied by `Christoph Anton Mitterer` on [https://github.com](https://github.com/calestyo/check_yum).
+
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
+
+Name                    | Description
+------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+yum_all_updates         | **Optional.** Set to true to not distinguish between security and non-security updates, but returns critical for any available update. This may be used if the YUM security plugin is absent or you want to maintain every single package at the latest version. You may want to use **yum_warn_on_any_update** instead of this option. Defaults to false.
+yum_warn_on_any_update  | **Optional.** Set to true to warn if there are any (non-security) package updates available. Defaults to false.
+yum_cache_only          | **Optional.** If set to true plugin runs entirely from cache and does not update the cache when running YUM. Useful if you have `yum makecache` cronned. Defaults to false.
+yum_no_warn_on_lock     | **Optional.** If set to true returns OK instead of WARNING when YUM is locked and fails to check for updates due to another instance running. Defaults to false.
+yum_no_warn_on_updates  | **Optional.** If set to true returns OK instead of WARNING even when updates are available. The plugin output still shows the number of available updates. Defaults to false.
+yum_enablerepo          | **Optional.** Explicitly enables a reposity when calling YUM. Can take a comma separated list of repositories. Note that enabling repositories can lead to unexpected results, for example when protected repositories are enabled.
+yum_disablerepo         | **Optional.** Explicitly disables a reposity when calling YUM. Can take a comma separated list of repositories. Note that enabling repositories can lead to unexpected results, for example when protected repositories are enabled.
+yum_installroot         | **Optional.** Specifies another installation root directory (for example a chroot).
+yum_timeout             | **Optional.** Set a timeout in seconds after which the plugin will exit (defaults to 55 seconds).
+
 ## <a id="plugins-contrib-virtualization"></a> Virtualization
 
 This category includes all plugins for various virtualization technologies.
