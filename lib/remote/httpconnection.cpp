@@ -154,7 +154,14 @@ void HttpConnection::ProcessMessageAsync(HttpRequest& request)
 		String msg = "<h1>Unauthorized</h1>";
 		response.WriteBody(msg.CStr(), msg.GetLength());
 	} else {
-		HttpHandler::ProcessRequest(user, request, response);
+		try {
+			HttpHandler::ProcessRequest(user, request, response);
+		} catch (const std::exception& ex) {
+			response.SetStatus(503, "Unhandled exception");
+			response.AddHeader("Content-Type", "text/plain");
+			String errorInfo = DiagnosticInformation(ex);
+			response.WriteBody(errorInfo.CStr(), errorInfo.GetLength());
+		}
 	}
 
 	response.Finish();

@@ -136,16 +136,6 @@ and their generated configuration described in
 You can put your own configuration files in the [conf.d](4-configuring-icinga-2.md#conf-d) directory. This
 directive makes sure that all of your own configuration files are included.
 
-    /**
-     * The zones.d directory contains configuration files for satellite
-     * instances.
-     */
-    include_zones "etc", "zones.d"
-
-Configuration files for satellite instances are managed in 'zones'. This directive ensures
-that all configuration files in the `zones.d` directory are included and that the `zones`
-attribute for objects defined in this directory is set appropriately.
-
 ### <a id="constants-conf"></a> constants.conf
 
 The `constants.conf` configuration file can be used to define global constants.

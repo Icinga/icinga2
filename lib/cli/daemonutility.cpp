@@ -85,9 +85,28 @@ bool DaemonUtility::ValidateConfigFiles(const std::vector<std::string>& configs,
 	* unfortunately moving it there is somewhat non-trivial. */
 	success = true;
 
+	String zonesEtcDir = Application::GetZonesDir();
+	if (!zonesEtcDir.IsEmpty() && Utility::PathExists(zonesEtcDir))
+		Utility::Glob(zonesEtcDir + "/*", boost::bind(&IncludeZoneDirRecursive, _1, boost::ref(success)), GlobDirectory);
+
+	if (!success)
+		return false;
+
 	String zonesVarDir = Application::GetLocalStateDir() + "/lib/icinga2/api/zones";
 	if (Utility::PathExists(zonesVarDir))
 		Utility::Glob(zonesVarDir + "/*", boost::bind(&IncludeNonLocalZone, _1, boost::ref(success)), GlobDirectory);
+
+	if (!success)
+		return false;
+
+	String modulesVarDir = Application::GetLocalStateDir() + "/lib/icinga2/api/modules";
+	if (Utility::PathExists(modulesVarDir)) {
+		std::vector<Expression *> expressions;
+		Utility::Glob(modulesVarDir + "/*/include.conf", boost::bind(&ConfigCompiler::CollectIncludes, boost::ref(expressions), _1, ""), GlobFile);
+		DictExpression expr(expressions);
+		if (!ExecuteExpression(&expr))
+			success = false;
+	}
 
 	if (!success)
 		return false;

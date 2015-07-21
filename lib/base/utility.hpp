@@ -123,6 +123,7 @@ public:
 
 	static bool PathExists(const String& path);
 
+	static void RemoveDirRecursive(const String& path);
 	static void CopyFile(const String& source, const String& target);
 
 	static Value LoadJsonFile(const String& path);
@@ -130,10 +131,10 @@ public:
 
 private:
 	Utility(void);
+	static void CollectPaths(const String& path, std::vector<String>& paths);
 
 	static boost::thread_specific_ptr<String> m_ThreadName;
 	static boost::thread_specific_ptr<unsigned int> m_RandSeed;
-
 };
 
 }

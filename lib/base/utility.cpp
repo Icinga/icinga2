@@ -581,6 +581,39 @@ bool Utility::MkDirP(const String& path, int flags)
 	return ret;
 }
 
+void Utility::RemoveDirRecursive(const String& path)
+{
+	std::vector<String> paths;
+	Utility::GlobRecursive(path, "*", boost::bind(&Utility::CollectPaths, _1, boost::ref(paths)), GlobFile | GlobDirectory);
+
+	/* This relies on the fact that GlobRecursive lists the parent directory
+	   first before recursing into subdirectories. */
+	std::reverse(paths.begin(), paths.end());
+
+	BOOST_FOREACH(const String& path, paths) {
+		if (remove(path.CStr()) < 0)
+			BOOST_THROW_EXCEPTION(posix_error()
+			    << boost::errinfo_api_function("remove")
+			    << boost::errinfo_errno(errno)
+			    << boost::errinfo_file_name(path));
+	}
+
+#ifndef _WIN32
+	if (rmdir(path.CStr()) < 0)
+#else /* _WIN32 */
+	if (_rmdir(path.CStr()) < 0)
+#endif /* _WIN32 */
+		BOOST_THROW_EXCEPTION(posix_error()
+		    << boost::errinfo_api_function("rmdir")
+		    << boost::errinfo_errno(errno)
+		    << boost::errinfo_file_name(path));
+}
+
+void Utility::CollectPaths(const String& path, std::vector<String>& paths)
+{
+	paths.push_back(path);
+}
+
 void Utility::CopyFile(const String& source, const String& target)
 {
 	std::ifstream ifs(source.CStr(), std::ios::binary);
