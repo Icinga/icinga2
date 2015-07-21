@@ -128,7 +128,7 @@ void ApiListener::SyncZoneDir(const Zone::Ptr& zone) const
 
 		ObjectLock olock(newConfigPart);
 		BOOST_FOREACH(const Dictionary::Pair& kv, newConfigPart) {
-			newConfig->Set(zf.Tag + "/" + kv.first, kv.second);
+			newConfig->Set("/" + zf.Tag + kv.first, kv.second);
 		}
 	}
 
