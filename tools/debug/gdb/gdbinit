@@ -11,7 +11,10 @@ python
 import sys
 sys.path.insert(0, '/home/gbeutner/gdb_printers/python')
 from libstdcxx.v6.printers import register_libstdcxx_printers
-register_libstdcxx_printers(None)
+try:
+    register_libstdcxx_printers(None)
+except:
+    pass
 end
 
 python
