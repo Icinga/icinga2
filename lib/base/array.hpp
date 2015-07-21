@@ -21,6 +21,7 @@
 #define ARRAY_H
 
 #include "base/i2-base.hpp"
+#include "base/objectlock.hpp"
 #include "base/value.hpp"
 #include <boost/range/iterator.hpp>
 #include <vector>
@@ -99,6 +100,15 @@ public:
 	Array::Ptr ShallowClone(void) const;
 
 	static Object::Ptr GetPrototype(void);
+
+	template<typename T>
+	static Array::Ptr FromVector(const std::vector<T>& v)
+	{
+		Array::Ptr result = new Array();
+		ObjectLock olock(result);
+		std::copy(v.begin(), v.end(), std::back_inserter(result->m_Data));
+		return result;
+	}
 
 private:
 	std::vector<Value> m_Data; /**< The data for the array. */
