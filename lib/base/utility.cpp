@@ -559,8 +559,9 @@ bool Utility::MkDir(const String& path, int flags)
 #else /*_ WIN32 */
 	if (mkdir(path.CStr()) < 0 && errno != EEXIST) {
 #endif /* _WIN32 */
-		//TODO handle missing dirs properly
-		return false;
+		BOOST_THROW_EXCEPTION(posix_error()
+		    << boost::errinfo_api_function("mkdir")
+		    << boost::errinfo_errno(errno));
 	}
 
 	return true;
