@@ -149,6 +149,7 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %token T_TEMPLATE "template (T_TEMPLATE)"
 %token T_INCLUDE "include (T_INCLUDE)"
 %token T_INCLUDE_RECURSIVE "include_recursive (T_INCLUDE_RECURSIVE)"
+%token T_INCLUDE_ZONES "include_zones (T_INCLUDE_ZONES)"
 %token T_LIBRARY "library (T_LIBRARY)"
 %token T_INHERITS "inherits (T_INHERITS)"
 %token T_APPLY "apply (T_APPLY)"
@@ -197,7 +198,7 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %type <num> object_declaration
 
 %right T_FOLLOWS
-%right T_INCLUDE T_INCLUDE_RECURSIVE T_OBJECT T_TEMPLATE T_APPLY T_IMPORT T_ASSIGN T_IGNORE T_WHERE
+%right T_INCLUDE T_INCLUDE_RECURSIVE T_INCLUDE_ZONES T_OBJECT T_TEMPLATE T_APPLY T_IMPORT T_ASSIGN T_IGNORE T_WHERE
 %right T_FUNCTION T_FOR
 %left T_SET T_SET_ADD T_SET_SUBTRACT T_SET_MULTIPLY T_SET_DIVIDE T_SET_MODULO T_SET_XOR T_SET_BINARY_AND T_SET_BINARY_OR
 %left T_LOGICAL_OR
@@ -463,6 +464,14 @@ lterm: library
 		$$ = context->HandleIncludeRecursive($2, $4, @$);
 		free($2);
 		free($4);
+	}
+	| T_INCLUDE_ZONES T_STRING ',' T_STRING
+	{
+		$$ = context->HandleIncludeZones($2, $4, "*.conf", @$);
+	}
+	| T_INCLUDE_ZONES T_STRING ',' T_STRING ',' T_STRING
+	{
+		$$ = context->HandleIncludeZones($2, $4, $6, @$);
 	}
 	| T_IMPORT rterm
 	{

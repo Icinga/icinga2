@@ -64,6 +64,12 @@ struct EItemInfo
 	CompilerDebugInfo DebugInfo;
 };
 
+struct ZoneFragment
+{
+	String Tag;
+	String Path;
+};
+
 /**
  * The configuration compiler can be used to compile a configuration file
  * into a number of configuration items.
@@ -94,10 +100,13 @@ public:
 	/* internally used methods */
 	Expression *HandleInclude(const String& include, bool search, const DebugInfo& debuginfo = DebugInfo());
 	Expression *HandleIncludeRecursive(const String& path, const String& pattern, const DebugInfo& debuginfo = DebugInfo());
+	Expression *HandleIncludeZones(const String& tag, const String& path, const String& pattern, const DebugInfo& debuginfo = DebugInfo());
 	void HandleLibrary(const String& library);
 
 	size_t ReadInput(char *buffer, size_t max_bytes);
 	void *GetScanner(void) const;
+
+	static std::vector<ZoneFragment> GetZoneDirs(const String& zone);
 
 private:
 	boost::promise<boost::shared_ptr<Expression> > m_Promise;
@@ -109,11 +118,14 @@ private:
 	void *m_Scanner;
 
 	static std::vector<String> m_IncludeSearchDirs;
+	static std::map<String, std::vector<ZoneFragment> > m_ZoneDirs;
 
 	void InitializeScanner(void);
 	void DestroyScanner(void);
 
 	void CompileHelper(void);
+
+	void HandleIncludeZone(const String& tag, const String& path, const String& pattern, std::vector<Expression *>& expressions);
 
 public:
 	bool m_Eof;

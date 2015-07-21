@@ -30,6 +30,7 @@
 using namespace icinga;
 
 std::vector<String> ConfigCompiler::m_IncludeSearchDirs;
+std::map<String, std::vector<ZoneFragment> > ConfigCompiler::m_ZoneDirs;
 
 /**
  * Constructor for the ConfigCompiler class.
@@ -165,6 +166,47 @@ Expression *ConfigCompiler::HandleIncludeRecursive(const String& path, const Str
 	return new DictExpression(expressions);
 }
 
+void ConfigCompiler::HandleIncludeZone(const String& tag, const String& path, const String& pattern, std::vector<Expression *>& expressions)
+{
+	String zoneName = Utility::BaseName(path);
+
+	String ppath;
+
+	if (path.GetLength() > 0 && path[0] == '/')
+		ppath = path;
+	else
+		ppath = Utility::DirName(GetPath()) + "/" + path;
+
+	ZoneFragment zf;
+	zf.Tag = tag;
+	zf.Path = ppath;
+	m_ZoneDirs[zoneName].push_back(zf);
+
+	Utility::GlobRecursive(ppath, pattern, boost::bind(&ConfigCompiler::CollectIncludes, boost::ref(expressions), _1, zoneName), GlobFile);
+}
+
+/**
+ * Handles zone includes.
+ *
+ * @param tag The tag name.
+ * @param path The directory path.
+ * @param pattern The file pattern.
+ * @param debuginfo Debug information.
+ */
+Expression *ConfigCompiler::HandleIncludeZones(const String& tag, const String& path, const String& pattern, const DebugInfo&)
+{
+	String ppath;
+
+	if (path.GetLength() > 0 && path[0] == '/')
+		ppath = path;
+	else
+		ppath = Utility::DirName(GetPath()) + "/" + path;
+
+	std::vector<Expression *> expressions;
+	Utility::Glob(ppath + "/*", boost::bind(&ConfigCompiler::HandleIncludeZone, this, tag, _1, pattern, boost::ref(expressions)), GlobDirectory);
+	return new DictExpression(expressions);
+}
+
 /**
  * Handles the library directive.
  *
@@ -272,3 +314,12 @@ void ConfigCompiler::AddIncludeSearchDir(const String& dir)
 	m_IncludeSearchDirs.push_back(dir);
 }
 
+std::vector<ZoneFragment> ConfigCompiler::GetZoneDirs(const String& zone)
+{
+	std::map<String, std::vector<ZoneFragment> >::const_iterator it;
+	it = m_ZoneDirs.find(zone);
+	if (it == m_ZoneDirs.end())
+		return std::vector<ZoneFragment>();
+	else
+		return it->second; 
+}

@@ -517,6 +517,29 @@ recursively included.
 The file names need to match the pattern given in the second parameter.
 When no pattern is specified the default pattern "*.conf" is used.
 
+## <a id="zone-includes"></a> Zone Includes
+
+The `include_zones` recursively includes all subdirectories for the
+given path.
+
+In addition to that it sets the `zone` attribute for all objects created
+in these subdirectories to the name of the subdirectory.
+
+Example:
+
+    include_zones "etc", "zones.d", "*.conf"
+    include_zones "puppet", "puppet-zones"
+
+The first parameter specifies a tag name for this directive. Each `include_zones`
+invocation should use a unique tag name. When copying the zones' configuration
+files Icinga uses the tag name as the name for the destination directory in
+`/var/lib/icinga2/api/config`.
+
+The second parameter specifies the directory which contains the subdirectories.
+
+The file names need to match the pattern given in the third parameter.
+When no pattern is specified the default pattern "*.conf" is used.
+
 ## <a id="library"></a> Library directive
 
 The `library` directive can be used to manually load additional

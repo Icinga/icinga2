@@ -19,6 +19,7 @@
 
 #include "remote/apilistener.hpp"
 #include "remote/apifunction.hpp"
+#include "config/configcompiler.hpp"
 #include "base/dynamictype.hpp"
 #include "base/logger.hpp"
 #include "base/convert.hpp"
@@ -121,11 +122,20 @@ bool ApiListener::UpdateConfigDir(const Dictionary::Ptr& oldConfig, const Dictio
 
 void ApiListener::SyncZoneDir(const Zone::Ptr& zone) const
 {
-	String newDir = Application::GetZonesDir() + "/" + zone->GetName();
+	Dictionary::Ptr newConfig = new Dictionary();
+	BOOST_FOREACH(const ZoneFragment& zf, ConfigCompiler::GetZoneDirs(zone->GetName())) {
+		Dictionary::Ptr newConfigPart = LoadConfigDir(zf.Path);
+
+		ObjectLock olock(newConfigPart);
+		BOOST_FOREACH(const Dictionary::Pair& kv, newConfigPart) {
+			newConfig->Set(zf.Tag + "/" + kv.first, kv.second);
+		}
+	}
+
 	String oldDir = Application::GetLocalStateDir() + "/lib/icinga2/api/zones/" + zone->GetName();
 
 	Log(LogInformation, "ApiListener")
-	    << "Copying zone configuration files from '" << newDir << "' to  '" << oldDir << "'.";
+	    << "Copying zone configuration files for zone '" << zone->GetName() << "' to  '" << oldDir << "'.";
 
 	if (!Utility::MkDir(oldDir, 0700)) {
 		Log(LogCritical, "ApiListener")
@@ -137,7 +147,6 @@ void ApiListener::SyncZoneDir(const Zone::Ptr& zone) const
 			<< boost::errinfo_file_name(oldDir));
 	}
 
-	Dictionary::Ptr newConfig = LoadConfigDir(newDir);
 	Dictionary::Ptr oldConfig = LoadConfigDir(oldDir);
 
 	UpdateConfigDir(oldConfig, newConfig, oldDir, true);
