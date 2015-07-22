@@ -39,8 +39,11 @@ void HttpHandler::Register(const Url::Ptr& url, const HttpHandler::Ptr& handler)
 			node->Set("children", children);
 		}
 
-		Dictionary::Ptr sub_node = new Dictionary();
-		children->Set(elem, sub_node);
+		Dictionary::Ptr sub_node = children->Get(elem);
+		if (!sub_node) {
+			sub_node = new Dictionary();
+			children->Set(elem, sub_node);
+		}
 
 		node = sub_node;
 	}
