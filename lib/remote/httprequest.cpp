@@ -91,6 +91,9 @@ bool HttpRequest::Parse(const Stream::Ptr& stream, StreamReadContext& src, bool 
 				String value = line.SubStr(pos + 1);
 				value.Trim();
 				Headers->Set(key, value);
+
+				if (key == "x-http-method-override")
+					RequestMethod = value;
 			}
 		} else {
 			VERIFY(!"Invalid HTTP request state.");
