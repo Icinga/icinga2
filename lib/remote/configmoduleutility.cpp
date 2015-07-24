@@ -84,10 +84,13 @@ String ConfigModuleUtility::CreateStage(const String& moduleName, const Dictiona
 	Utility::MkDirP(path, 0700);
 	WriteStageConfig(moduleName, stageName);
 
+	bool foundDotDot = false;
 	ObjectLock olock(files);
 	BOOST_FOREACH(const Dictionary::Pair& kv, files) {
-		if (ContainsDotDot(kv.first))
-			BOOST_THROW_EXCEPTION(std::invalid_argument("Path must not contain '..'."));
+		if (ContainsDotDot(kv.first)) {
+			foundDotDot = true;
+			break;
+		}
 
 		String filePath = path + "/" + kv.first;
 
@@ -99,6 +102,11 @@ String ConfigModuleUtility::CreateStage(const String& moduleName, const Dictiona
 		std::ofstream fp(filePath.CStr(), std::ofstream::out | std::ostream::binary | std::ostream::trunc);
 		fp << kv.second;
 		fp.close();
+	}
+
+	if (foundDotDot) {
+		Utility::RemoveDirRecursive(path);
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Path must not contain '..'."));
 	}
 
 	return stageName;
