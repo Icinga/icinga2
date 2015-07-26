@@ -48,6 +48,9 @@ void IncludeZoneDirRecursive(const String& path, bool& success)
 {
 	String zoneName = Utility::BaseName(path);
 
+	/* register this zone path for cluster config sync */
+	ConfigCompiler::RegisterZoneDir("_etc", path, zoneName);
+
 	std::vector<Expression *> expressions;
 	Utility::GlobRecursive(path, "*.conf", boost::bind(&ConfigCompiler::CollectIncludes, boost::ref(expressions), _1, zoneName), GlobFile);
 	DictExpression expr(expressions);

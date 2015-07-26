@@ -177,10 +177,7 @@ void ConfigCompiler::HandleIncludeZone(const String& tag, const String& path, co
 	else
 		ppath = Utility::DirName(GetPath()) + "/" + path;
 
-	ZoneFragment zf;
-	zf.Tag = tag;
-	zf.Path = ppath;
-	m_ZoneDirs[zoneName].push_back(zf);
+	RegisterZoneDir(tag, ppath, zoneName);
 
 	Utility::GlobRecursive(ppath, pattern, boost::bind(&ConfigCompiler::CollectIncludes, boost::ref(expressions), _1, zoneName), GlobFile);
 }
@@ -321,5 +318,14 @@ std::vector<ZoneFragment> ConfigCompiler::GetZoneDirs(const String& zone)
 	if (it == m_ZoneDirs.end())
 		return std::vector<ZoneFragment>();
 	else
-		return it->second; 
+		return it->second;
 }
+
+void ConfigCompiler::RegisterZoneDir(const String& tag, const String& ppath, const String& zoneName)
+{
+	ZoneFragment zf;
+	zf.Tag = tag;
+	zf.Path = ppath;
+	m_ZoneDirs[zoneName].push_back(zf);
+}
+
