@@ -19,7 +19,20 @@
 
 #include "icinga/checkresult.hpp"
 #include "icinga/checkresult.tcpp"
+#include "base/scriptglobal.hpp"
 
 using namespace icinga;
 
 REGISTER_TYPE(CheckResult);
+INITIALIZE_ONCE(&CheckResult::StaticInitialize);
+
+void CheckResult::StaticInitialize(void)
+{
+	ScriptGlobal::Set("ServiceOK", ServiceOK);
+	ScriptGlobal::Set("ServiceWarning", ServiceWarning);
+	ScriptGlobal::Set("ServiceCritical", ServiceCritical);
+	ScriptGlobal::Set("ServiceUnknown", ServiceUnknown);
+
+	ScriptGlobal::Set("HostUp", HostUp);
+	ScriptGlobal::Set("HostDown", HostDown);
+}

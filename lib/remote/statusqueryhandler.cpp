@@ -22,6 +22,7 @@
 #include "remote/filterutility.hpp"
 #include "base/serializer.hpp"
 #include <boost/algorithm/string.hpp>
+#include <set>
 
 using namespace icinga;
 
@@ -40,6 +41,9 @@ bool StatusQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 	QueryDescription qd;
 	qd.Types.insert(type);
 
+	std::vector<String> joinTypes;
+	joinTypes.push_back(type->GetName());
+
 	Dictionary::Ptr params = HttpUtility::FetchRequestParameters(request);
 
 	params->Set("type", type->GetName());
@@ -56,9 +60,38 @@ bool StatusQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 
 	Array::Ptr results = new Array();
 
+	std::set<String> attrs;
+	Array::Ptr uattrs = params->Get("attrs");
+
+	if (uattrs) {
+		ObjectLock olock(uattrs);
+		BOOST_FOREACH(const String& uattr, uattrs) {
+			attrs.insert(uattr);
+		}
+	}
+
 	BOOST_FOREACH(const DynamicObject::Ptr& obj, objs) {
-		Value result1 = Serialize(obj, FAConfig | FAState);
-		results->Add(result1);
+		BOOST_FOREACH(const String& joinType, joinTypes) {
+			String prefix = joinType;
+			boost::algorithm::to_lower(prefix);
+
+			Dictionary::Ptr result1 = new Dictionary();
+			for (int fid = 0; fid < type->GetFieldCount(); fid++) {
+				Field field = type->GetFieldInfo(fid);
+
+				if ((field.Attributes & (FAConfig|FAState)) == 0)
+					continue;
+
+				String aname = prefix + "." + field.Name;
+				if (!attrs.empty() && attrs.find(aname) == attrs.end())
+					continue;
+
+				Value val = static_cast<Object::Ptr>(obj)->GetField(fid);
+				Value sval = Serialize(val, FAConfig | FAState);
+				result1->Set(aname, sval);
+			}
+			results->Add(result1);
+		}
 	}
 
 	Dictionary::Ptr result = new Dictionary();
