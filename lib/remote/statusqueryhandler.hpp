@@ -17,30 +17,22 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "remote/httpdemohandler.hpp"
+#ifndef STATUSQUERYHANDLER_H
+#define STATUSQUERYHANDLER_H
 
-using namespace icinga;
+#include "remote/httphandler.hpp"
 
-REGISTER_URLHANDLER("/demo", HttpDemoHandler);
-
-void HttpDemoHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
+namespace icinga
 {
-	if (request.RequestMethod == "GET") {
-		String form = "<h1>Hallo " + user->GetName() + "</h1><form action=\"/demo\" method=\"post\"><input type=\"text\" name=\"msg\"><input type=\"submit\"></form>";
-		response.SetStatus(200, "OK");
-		response.AddHeader("Content-Type", "text/html");
-		response.WriteBody(form.CStr(), form.GetLength());
-	} else if (request.RequestMethod == "POST") {
-		response.SetStatus(200, "OK");
-		String msg = "You sent: ";
 
-		char buffer[512];
-		size_t count;
-		while ((count = request.ReadBody(buffer, sizeof(buffer))) > 0)
-			msg += String(buffer, buffer + count);
-		response.WriteBody(msg.CStr(), msg.GetLength());
-	} else {
-		response.SetStatus(400, "Bad request");
-	}
+class I2_REMOTE_API StatusQueryHandler : public HttpHandler
+{
+public:
+	DECLARE_PTR_TYPEDEFS(StatusQueryHandler);
+
+	virtual bool HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response);
+};
+
 }
 
+#endif /* STATUSQUERYHANDLER_H */

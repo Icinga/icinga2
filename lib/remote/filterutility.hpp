@@ -17,28 +17,36 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef CONFIGSTAGESHANDLER_H
-#define CONFIGSTAGESHANDLER_H
+#ifndef FILTERUTILITY_H
+#define FILTERUTILITY_H
 
-#include "remote/httphandler.hpp"
+#include "remote/i2-remote.hpp"
+#include "base/dictionary.hpp"
+#include "base/dynamicobject.hpp"
+#include <set>
 
 namespace icinga
 {
 
-class I2_REMOTE_API ConfigStagesHandler : public HttpHandler
+struct QueryDescription
+{
+	std::set<Type::Ptr> Types;
+};
+
+/**
+ * Filter utilities.
+ *
+ * @ingroup remote
+ */
+class I2_REMOTE_API FilterUtility
 {
 public:
-	DECLARE_PTR_TYPEDEFS(ConfigStagesHandler);
-
-	virtual bool HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response);
-
-private:
-	void HandleGet(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response);
-	void HandlePost(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response);
-	void HandleDelete(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response);
-
+	static String GetPluralName(const Type::Ptr& type);
+	static Type::Ptr TypeFromPluralName(const String& pluralName);
+	static DynamicObject::Ptr GetObjectByTypeAndName(const String& type, const String& name);
+	static std::vector<DynamicObject::Ptr> GetFilterTargets(const QueryDescription& qd, const Dictionary::Ptr& query);
 };
 
 }
 
-#endif /* CONFIGSTAGESHANDLER_H */
+#endif /* FILTERUTILITY_H */

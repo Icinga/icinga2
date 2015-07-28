@@ -28,16 +28,13 @@ using namespace icinga;
 
 REGISTER_URLHANDLER("/v1/config/files", ConfigFilesHandler);
 
-void ConfigFilesHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
+bool ConfigFilesHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
 {
 	if (request.RequestMethod == "GET")
 		HandleGet(user, request, response);
 	else
 		response.SetStatus(400, "Bad request");
-}
 
-bool ConfigFilesHandler::CanAlsoHandleUrl(const Url::Ptr& url) const
-{
 	return true;
 }
 

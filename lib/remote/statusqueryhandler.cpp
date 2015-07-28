@@ -17,22 +17,52 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef HTTPDEMOHANDLER_H
-#define HTTPDEMOHANDLER_H
+#include "remote/statusqueryhandler.hpp"
+#include "remote/httputility.hpp"
+#include "remote/filterutility.hpp"
+#include "base/serializer.hpp"
+#include <boost/algorithm/string.hpp>
 
-#include "remote/httphandler.hpp"
+using namespace icinga;
 
-namespace icinga
+REGISTER_URLHANDLER("/", StatusQueryHandler);
+
+bool StatusQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
 {
+	if (request.RequestUrl->GetPath().empty())
+		return false;
 
-class I2_REMOTE_API HttpDemoHandler : public HttpHandler
-{
-public:
-	DECLARE_PTR_TYPEDEFS(HttpDemoHandler);
+	Type::Ptr type = FilterUtility::TypeFromPluralName(request.RequestUrl->GetPath()[0]);
 
-	virtual void HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response);
-};
+	if (!type)
+		return false;
 
+	QueryDescription qd;
+	qd.Types.insert(type);
+
+	Dictionary::Ptr params = HttpUtility::FetchRequestParameters(request);
+
+	if (request.RequestUrl->GetPath().size() > 1) {
+		String attr = type->GetName();
+		boost::algorithm::to_lower(attr);
+		params->Set(attr, request.RequestUrl->GetPath()[1]);
+	}
+
+	std::vector<DynamicObject::Ptr> objs = FilterUtility::GetFilterTargets(qd, params);
+
+	Array::Ptr results = new Array();
+
+	BOOST_FOREACH(const DynamicObject::Ptr& obj, objs) {
+		Value result1 = Serialize(obj, FAConfig | FAState);
+		results->Add(result1);
+	}
+
+	Dictionary::Ptr result = new Dictionary();
+	result->Set("results", results);
+
+	response.SetStatus(200, "OK");
+	HttpUtility::SendJsonBody(response, result);
+
+	return true;
 }
 
-#endif /* HTTPDEMOHANDLER_H */

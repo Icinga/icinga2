@@ -48,48 +48,54 @@ void HttpHandler::Register(const Url::Ptr& url, const HttpHandler::Ptr& handler)
 		node = sub_node;
 	}
 
-	node->Set("handler", handler);
-}
+	Array::Ptr handlers = node->Get("handlers");
 
-bool HttpHandler::CanAlsoHandleUrl(const Url::Ptr& url) const
-{
-	return false;
+	if (!handlers) {
+		handlers = new Array();
+		node->Set("handlers", handlers);
+	}
+
+	handlers->Add(handler);
 }
 
 void HttpHandler::ProcessRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
 {
 	Dictionary::Ptr node = m_UrlTree;
-	HttpHandler::Ptr current_handler, handler;
-	bool exact_match = true;
+	std::vector<HttpHandler::Ptr> handlers;
 
 	BOOST_FOREACH(const String& elem, request.RequestUrl->GetPath()) {
-		current_handler = node->Get("handler");
-		if (current_handler)
-			handler = current_handler;
+		Array::Ptr current_handlers = node->Get("handlers");
+
+		if (current_handlers) {
+			ObjectLock olock(current_handlers);
+			BOOST_FOREACH(const HttpHandler::Ptr current_handler, current_handlers) {
+				handlers.push_back(current_handler);
+			}
+		}
 
 		Dictionary::Ptr children = node->Get("children");
 
 		if (!children) {
-			exact_match = false;
 			node.reset();
 			break;
 		}
 
 		node = children->Get(elem);
 
-		if (!node) {
-			exact_match = false;
+		if (!node)
+			break;
+	}
+
+	std::reverse(handlers.begin(), handlers.end());
+
+	bool processed = false;
+	BOOST_FOREACH(const HttpHandler::Ptr& handler, handlers) {
+		if (handler->HandleRequest(user, request, response)) {
+			processed = true;
 			break;
 		}
 	}
-
-	if (node) {
-		current_handler = node->Get("handler");
-		if (current_handler)
-			handler = current_handler;
-	}
-
-	if (!handler || (!exact_match && !handler->CanAlsoHandleUrl(request.RequestUrl))) {
+	if (!processed) {
 		response.SetStatus(404, "Not found");
 		response.AddHeader("Content-Type", "text/html");
 		String msg = "<h1>Not found</h1>";
@@ -97,6 +103,4 @@ void HttpHandler::ProcessRequest(const ApiUser::Ptr& user, HttpRequest& request,
 		response.Finish();
 		return;
 	}
-
-	handler->HandleRequest(user, request, response);
 }

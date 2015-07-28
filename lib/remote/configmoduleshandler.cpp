@@ -26,8 +26,11 @@ using namespace icinga;
 
 REGISTER_URLHANDLER("/v1/config/modules", ConfigModulesHandler);
 
-void ConfigModulesHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
+bool ConfigModulesHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
 {
+	if (request.RequestUrl->GetPath().size() > 4)
+		return false;
+
 	if (request.RequestMethod == "GET")
 		HandleGet(user, request, response);
 	else if (request.RequestMethod == "POST")
@@ -36,14 +39,8 @@ void ConfigModulesHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& 
 		HandleDelete(user, request, response);
 	else
 		response.SetStatus(400, "Bad request");
-}
 
-bool ConfigModulesHandler::CanAlsoHandleUrl(const Url::Ptr& url) const
-{
-	if (url->GetPath().size() > 4)
-		return false;
-	else
-		return true;
+	return true;
 }
 
 void ConfigModulesHandler::HandleGet(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)

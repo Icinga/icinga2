@@ -30,8 +30,7 @@ class I2_REMOTE_API ConfigModulesHandler : public HttpHandler
 public:
 	DECLARE_PTR_TYPEDEFS(ConfigModulesHandler);
 
-	virtual bool CanAlsoHandleUrl(const Url::Ptr& url) const;
-	virtual void HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response);
+	virtual bool HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response);
 
 private:
 	void HandleGet(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response);

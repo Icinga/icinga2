@@ -28,8 +28,11 @@ using namespace icinga;
 
 REGISTER_URLHANDLER("/v1/config/stages", ConfigStagesHandler);
 
-void ConfigStagesHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
+bool ConfigStagesHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
 {
+	if (request.RequestUrl->GetPath().size() > 5)
+		return false;
+
 	if (request.RequestMethod == "GET")
 		HandleGet(user, request, response);
 	else if (request.RequestMethod == "POST")
@@ -38,14 +41,8 @@ void ConfigStagesHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 		HandleDelete(user, request, response);
 	else
 		response.SetStatus(400, "Bad request");
-}
 
-bool ConfigStagesHandler::CanAlsoHandleUrl(const Url::Ptr& url) const
-{
-	if (url->GetPath().size() > 5)
-		return false;
-	else
-		return true;
+	return true;
 }
 
 void ConfigStagesHandler::HandleGet(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
