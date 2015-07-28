@@ -25,14 +25,14 @@
 
 using namespace icinga;
 
-REGISTER_URLHANDLER("/", StatusQueryHandler);
+REGISTER_URLHANDLER("/v1", StatusQueryHandler);
 
 bool StatusQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
 {
-	if (request.RequestUrl->GetPath().empty())
+	if (request.RequestUrl->GetPath().size() < 2)
 		return false;
 
-	Type::Ptr type = FilterUtility::TypeFromPluralName(request.RequestUrl->GetPath()[0]);
+	Type::Ptr type = FilterUtility::TypeFromPluralName(request.RequestUrl->GetPath()[1]);
 
 	if (!type)
 		return false;
@@ -44,10 +44,10 @@ bool StatusQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 
 	params->Set("type", type->GetName());
 
-	if (request.RequestUrl->GetPath().size() > 1) {
+	if (request.RequestUrl->GetPath().size() >= 3) {
 		String attr = type->GetName();
 		boost::algorithm::to_lower(attr);
-		params->Set(attr, request.RequestUrl->GetPath()[1]);
+		params->Set(attr, request.RequestUrl->GetPath()[2]);
 	} else if (!params->Contains("filter")) {
 		params->Set("filter", "true");
 	}
