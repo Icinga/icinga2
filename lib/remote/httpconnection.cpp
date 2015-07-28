@@ -90,7 +90,7 @@ bool HttpConnection::ProcessMessage(void)
 	} catch (const std::exception& ex) {
 		HttpResponse response(m_Stream, m_CurrentRequest);
 		response.SetStatus(400, "Bad request");
-		String msg = "<h1>Bad request</h1><p>" + DiagnosticInformation(ex) + "</p>";
+		String msg = "<h1>Bad request</h1><p><pre>" + DiagnosticInformation(ex) + "</pre></p>";
 		response.WriteBody(msg.CStr(), msg.GetLength());
 		response.Finish();
 
