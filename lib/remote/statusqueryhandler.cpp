@@ -42,10 +42,14 @@ bool StatusQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 
 	Dictionary::Ptr params = HttpUtility::FetchRequestParameters(request);
 
+	params->Set("type", type->GetName());
+
 	if (request.RequestUrl->GetPath().size() > 1) {
 		String attr = type->GetName();
 		boost::algorithm::to_lower(attr);
 		params->Set(attr, request.RequestUrl->GetPath()[1]);
+	} else if (!params->Contains("filter")) {
+		params->Set("filter", "true");
 	}
 
 	std::vector<DynamicObject::Ptr> objs = FilterUtility::GetFilterTargets(qd, params);
