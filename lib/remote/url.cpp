@@ -36,9 +36,7 @@ Url::Url(const String& base_url)
 
 	size_t pHelper = url.Find(":");
 
-	if (pHelper == String::NPos) {
-		m_Scheme = "";
-	} else {
+	if (pHelper != String::NPos) {
 		if (!ParseScheme(url.SubStr(0, pHelper)))
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid URL Scheme."));
 		url = url.SubStr(pHelper + 1);
@@ -51,9 +49,7 @@ Url::Url(const String& base_url)
 		return;
 	}
 
-	if (*(url.Begin() + 1) != '/')
-		m_Authority = "";
-	else {
+	if (*(url.Begin() + 1) == '/') {
 		pHelper = url.Find("/", 2);
 
 		if (pHelper == String::NPos)
@@ -105,21 +101,32 @@ const std::vector<String>& Url::GetPath(void) const
 	return m_Path;
 }
 
-const std::map<String,Value>& Url::GetQuery(void) const
+const std::map<String, std::vector<String> >& Url::GetQuery(void) const
 {
 	return m_Query;
 }
 
-Value Url::GetQueryElement(const String& name) const
+String Url::GetQueryElement(const String& name) const
 {
-	std::map<String, Value>::const_iterator it = m_Query.find(name);
+	std::map<String, std::vector<String> >::const_iterator it = m_Query.find(name);
 
 	if (it == m_Query.end())
-		return Empty;
+		return String();
+
+	return it->second.back();
+}
+
+const std::vector<String>& Url::GetQueryElements(const String& name) const
+{
+	std::map<String, std::vector<String> >::const_iterator it = m_Query.find(name);
+
+	if (it == m_Query.end()) {
+		static std::vector<String> emptyVector;
+		return emptyVector;
+	}
 
 	return it->second;
 }
-
 
 String Url::GetFragment(void) const
 {
@@ -128,7 +135,7 @@ String Url::GetFragment(void) const
 
 String Url::Format(void) const
 {
-	String url = "";
+	String url;
 
 	if (!m_Scheme.IsEmpty())
 		url += m_Scheme + ":";
@@ -145,9 +152,9 @@ String Url::Format(void) const
 		}
 	}
 
-	String param = "";
+	String param;
 	if (!m_Query.empty()) {
-		typedef std::pair<String, Value> kv_pair;
+		typedef std::pair<String, std::vector<String> > kv_pair;
 
 		BOOST_FOREACH (const kv_pair& kv, m_Query) {
 			String key = Utility::EscapeString(kv.first, ACQUERY, false);
@@ -155,28 +162,15 @@ String Url::Format(void) const
 				param = "?";
 			else
 				param += "&";
+			
+			String temp;
+			BOOST_FOREACH (const String s, kv.second) {
+				if (!temp.IsEmpty())
+					temp += "&";
 
-			Value val = kv.second;
-
-			if (val.IsEmpty())
-				param += key;
-			else {
-				if (val.IsObjectType<Array>()) {
-					Array::Ptr arr = val;
-					String temp = "";
-
-					ObjectLock olock(arr);
-					BOOST_FOREACH (const String& sArrIn, arr) {
-						if (!temp.IsEmpty())
-							temp += "&";
-
-						temp += key + "[]=" + Utility::EscapeString(sArrIn, ACQUERY, false);
-					}
-
-					param += temp;
-				} else
-					param += key + "=" + Utility::EscapeString(kv.second, ACQUERY, false);
+				temp += key + "[]=" + Utility::EscapeString(s, ACQUERY, false);
 			}
+			param += temp;
 		}
 	}
 
@@ -200,9 +194,9 @@ bool Url::ParseScheme(const String& scheme)
 
 bool Url::ParseAuthority(const String& authority)
 {
-	//TODO parse all Authorities
 	m_Authority = authority.SubStr(2);
-	return (ValidateToken(m_Authority, ACHOST));
+	//Just safe the Authority and don't care about the details
+	return (ValidateToken(m_Authority, ACHOST GEN_DELIMS));
 }
 
 bool Url::ParsePath(const String& path)
@@ -236,56 +230,41 @@ bool Url::ParseQuery(const String& query)
 	BOOST_FOREACH(const String& token, tokens) {
 		size_t pHelper = token.Find("=");
 
+		if (pHelper == 0)
+			// /?foo=bar&=bar == invalid
+			return false;
+		
 		String key = token.SubStr(0, pHelper);
 		String value = Empty;
 
-		if (pHelper != String::NPos) {
-			if (pHelper == token.GetLength() - 1)
-				return false;
+		if (pHelper != token.GetLength()-1)
+			value = token.SubStr(pHelper+1);
 
-			value = token.SubStr(pHelper + 1);
-			if (!ValidateToken(value, ACQUERY))
-				return false;
-			else
-				value = Utility::UnescapeString(value);
-		} else
-			String key = token;
-
-		if (key.IsEmpty())
+		if (!ValidateToken(value, ACQUERY))
 			return false;
+		
+		value = Utility::UnescapeString(value);
 
 		pHelper = key.Find("[]");
 
-		if (pHelper != String::NPos) {
+		if (pHelper == 0 || (pHelper != String::NPos && pHelper != key.GetLength()-2))
+			return false;
 
-			if (key.GetLength() < 3)
-				return false;
+		key = key.SubStr(0, pHelper);
+		
+		if (!ValidateToken(key, ACQUERY))
+			return false;
 
-			key = key.SubStr(0, key.GetLength() - 2);
-			key = Utility::UnescapeString(key);
+		key = Utility::UnescapeString(key);
 
-			if (!ValidateToken(value, ACQUERY))
-				return false;
+		std::map<String, std::vector<String> >::iterator it = m_Query.find(key);
 
-			std::map<String, Value>::iterator it = m_Query.find(key);
-
-			if (it == m_Query.end()) {
-				Array::Ptr tmp = new Array();
-				tmp->Add(Utility::UnescapeString(value));
-				m_Query[key] = tmp;
-			} else if (m_Query[key].IsObjectType<Array>()){
-				Array::Ptr arr = it->second;
-				arr->Add(Utility::UnescapeString(value));
-			} else
-				return false;
-		} else {
-			key = Utility::UnescapeString(key);
-
-			if (m_Query.find(key) == m_Query.end() && ValidateToken(key, ACQUERY))
-				m_Query[key] = Utility::UnescapeString(value);
-			else
-				return false;
-		}
+		if (it == m_Query.end()) {
+			m_Query[key] = std::vector<String>();
+			m_Query[key].push_back(value);
+		} else
+			m_Query[key].push_back(value);
+		
 	}
 
 	return true;

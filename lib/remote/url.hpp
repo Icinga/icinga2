@@ -23,6 +23,7 @@
 #include "remote/i2-remote.hpp"
 #include "base/object.hpp"
 #include "base/string.hpp"
+#include "base/array.hpp"
 #include "base/value.hpp"
 #include <map>
 #include <vector>
@@ -47,15 +48,16 @@ public:
 	String GetScheme(void) const;
 	String GetAuthority(void) const;
 	const std::vector<String>& GetPath(void) const;
-	const std::map<String,Value>& GetQuery(void) const;
-	Value GetQueryElement(const String& name) const;
+	const std::map<String, std::vector<String> >& GetQuery(void) const;
+	String GetQueryElement(const String& name) const;
+	const std::vector<String>& GetQueryElements(const String& name) const;
 	String GetFragment(void) const;
 
 private:
 	String m_Scheme;
 	String m_Authority;
 	std::vector<String> m_Path;
-	std::map<String,Value> m_Query;
+	std::map<String, std::vector<String> > m_Query;
 	String m_Fragment;
 
 	bool ParseScheme(const String& scheme);

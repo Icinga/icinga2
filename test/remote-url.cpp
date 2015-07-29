@@ -48,10 +48,9 @@ BOOST_AUTO_TEST_CASE(parameters)
 
 	BOOST_CHECK(url->GetQueryElement("rair") == "robert");
 	BOOST_CHECK(url->GetQueryElement("rain") == "karl");
-	BOOST_CHECK(url->GetQueryElement("foo").IsObjectType<Array>());
-	Array::Ptr test = url->GetQueryElement("foo");
-	BOOST_CHECK(test->GetLength() == 1);
-	BOOST_CHECK(test->Get(0) == "bar");
+	std::vector<String> test = url->GetQueryElements("foo");
+	BOOST_CHECK(test.size() == 1);
+	BOOST_CHECK(test[0] == "bar");
 }
 
 BOOST_AUTO_TEST_CASE(format)
@@ -71,12 +70,13 @@ BOOST_AUTO_TEST_CASE(format)
 
 BOOST_AUTO_TEST_CASE(illegal_legal_strings)
 {
-	BOOST_CHECK_THROW(new Url("/?foo=barr&foo[]=bazz"), std::invalid_argument);
+	BOOST_CHECK(new Url("/?foo=barr&foo[]=bazz"));
 	BOOST_CHECK_THROW(new Url("/?]=gar"), std::invalid_argument);
 	BOOST_CHECK_THROW(new Url("/#?[]"), std::invalid_argument);
-	BOOST_CHECK_THROW(new Url("/?foo=bar&foo=ba"), std::invalid_argument);
+	BOOST_CHECK(new Url("/?foo=bar&foo=ba"));
 	BOOST_CHECK_THROW(new Url("/?foo=bar&[]=d"), std::invalid_argument);
-	BOOST_CHECK_THROW(new Url("/?fo=&bar=garOA"), std::invalid_argument);
+	BOOST_CHECK(new Url("/?fo=&bar=garOA"));
+	BOOST_CHECK(new Url("https://127.0.0.1:5665/demo?type=Service&filter=service.state%3E0"));
 	BOOST_CHECK(new Url("/?foo=baz??&\?\?=/?"));
 	BOOST_CHECK(new Url("/"));
 	BOOST_CHECK(new Url("///////"));

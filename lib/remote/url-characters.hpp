@@ -22,7 +22,7 @@
 #define ALPHA "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 #define NUMERIC "0123456789"
 
-#define UNRESERVED ALPHA NUMERIC "-._~"
+#define UNRESERVED ALPHA NUMERIC "-._~" "%"
 #define GEN_DELIMS ":/?#[]@"
 #define SUB_DELIMS "!$&'()*+,;="
 #define RESERVED GEN_DELIMS SUB-DELIMS

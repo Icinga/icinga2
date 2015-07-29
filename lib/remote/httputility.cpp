@@ -40,9 +40,9 @@ Dictionary::Ptr HttpUtility::FetchRequestParameters(HttpRequest& request)
 	if (!result)
 		result = new Dictionary();
 
-	typedef std::pair<String, Value> kv_pair;
+	typedef std::pair<String, std::vector<String> > kv_pair;
 	BOOST_FOREACH(const kv_pair& kv, request.RequestUrl->GetQuery()) {
-		result->Set(kv.first, kv.second);
+		result->Set(kv.first, Array::FromVector(kv.second));
 	}
 
 	return result;
