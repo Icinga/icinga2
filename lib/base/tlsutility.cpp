@@ -371,6 +371,7 @@ int MakeX509CSR(const String& cn, const String& keyfile, const String& csrfile, 
 boost::shared_ptr<X509> CreateCert(EVP_PKEY *pubkey, X509_NAME *subject, X509_NAME *issuer, EVP_PKEY *cakey, bool ca, const String& serialfile)
 {
 	X509 *cert = X509_new();
+	X509_set_version(cert, 2);
 	X509_gmtime_adj(X509_get_notBefore(cert), 0);
 	X509_gmtime_adj(X509_get_notAfter(cert), 365 * 24 * 60 * 60 * 30);
 	X509_set_pubkey(cert, pubkey);
