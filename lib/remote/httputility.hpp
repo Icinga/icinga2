@@ -38,6 +38,7 @@ class I2_REMOTE_API HttpUtility
 public:
 	static Dictionary::Ptr FetchRequestParameters(HttpRequest& request);
 	static void SendJsonBody(HttpResponse& response, const Value& val);
+	static String GetLastParameter(const Dictionary::Ptr& params, const String& key);
 };
 
 }

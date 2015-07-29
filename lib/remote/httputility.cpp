@@ -56,4 +56,17 @@ void HttpUtility::SendJsonBody(HttpResponse& response, const Value& val)
 	response.WriteBody(body.CStr(), body.GetLength());
 }
 
+String HttpUtility::GetLastParameter(const Dictionary::Ptr& params, const String& key)
+{
+	Value varr = params->Get(key);
 
+	if (!varr.IsObjectType<Array>())
+		return varr;
+
+	Array::Ptr arr = varr;
+
+	if (arr->GetLength() == 0)
+		return String();
+	else
+		return arr->Get(arr->GetLength() - 1);
+}

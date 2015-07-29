@@ -55,15 +55,15 @@ void ConfigFilesHandler::HandleGet(const ApiUser::Ptr& user, HttpRequest& reques
 		params->Set("path", boost::algorithm::join(tmpPath, "/"));
 	}
 
-	String moduleName = params->Get("module");
-	String stageName = params->Get("stage");
+	String moduleName = HttpUtility::GetLastParameter(params, "module");
+	String stageName = HttpUtility::GetLastParameter(params, "stage");
 
 	if (!ConfigModuleUtility::ValidateName(moduleName) || !ConfigModuleUtility::ValidateName(stageName)) {
 		response.SetStatus(403, "Forbidden");
 		return;
 	}
 
-	String relativePath = params->Get("path");
+	String relativePath = HttpUtility::GetLastParameter(params, "path");
 
 	if (ConfigModuleUtility::ContainsDotDot(relativePath)) {
 		response.SetStatus(403, "Forbidden");

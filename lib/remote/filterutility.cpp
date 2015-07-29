@@ -18,10 +18,12 @@
  ******************************************************************************/
 
 #include "remote/filterutility.hpp"
+#include "remote/httputility.hpp"
 #include "config/configcompiler.hpp"
 #include "config/expression.hpp"
 #include "base/json.hpp"
 #include "base/dynamictype.hpp"
+#include "base/logger.hpp"
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string.hpp>
 
@@ -99,8 +101,10 @@ std::vector<DynamicObject::Ptr> FilterUtility::GetFilterTargets(const QueryDescr
 		if (!query->Contains("type"))
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Type must be specified when using a filter."));
 
-		String filter = query->Get("filter");
-		String type = query->Get("type");
+		String filter = HttpUtility::GetLastParameter(query, "filter");
+		String type = HttpUtility::GetLastParameter(query, "type");
+
+		Log(LogInformation, "FilterUtility", filter);
 
 		Type::Ptr utype = Type::GetByName(type);
 

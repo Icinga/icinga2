@@ -55,8 +55,8 @@ void ConfigStagesHandler::HandleGet(const ApiUser::Ptr& user, HttpRequest& reque
 	if (request.RequestUrl->GetPath().size() >= 5)
 		params->Set("stage", request.RequestUrl->GetPath()[4]);
 
-	String moduleName = params->Get("module");
-	String stageName = params->Get("stage");
+	String moduleName = HttpUtility::GetLastParameter(params, "module");
+	String stageName = HttpUtility::GetLastParameter(params, "stage");
 
 	if (!ConfigModuleUtility::ValidateName(moduleName) || !ConfigModuleUtility::ValidateName(stageName)) {
 		response.SetStatus(403, "Forbidden");
@@ -91,7 +91,7 @@ void ConfigStagesHandler::HandlePost(const ApiUser::Ptr& user, HttpRequest& requ
 	if (request.RequestUrl->GetPath().size() >= 4)
 		params->Set("module", request.RequestUrl->GetPath()[3]);
 
-	String moduleName = params->Get("module");
+	String moduleName = HttpUtility::GetLastParameter(params, "module");
 
 	if (!ConfigModuleUtility::ValidateName(moduleName)) {
 		response.SetStatus(403, "Forbidden");
@@ -144,8 +144,8 @@ void ConfigStagesHandler::HandleDelete(const ApiUser::Ptr& user, HttpRequest& re
 	if (request.RequestUrl->GetPath().size() >= 5)
 		params->Set("stage", request.RequestUrl->GetPath()[4]);
 
-	String moduleName = params->Get("module");
-	String stageName = params->Get("stage");
+	String moduleName = HttpUtility::GetLastParameter(params, "module");
+	String stageName = HttpUtility::GetLastParameter(params, "stage");
 
 	if (!ConfigModuleUtility::ValidateName(moduleName) || !ConfigModuleUtility::ValidateName(stageName)) {
 		response.SetStatus(403, "Forbidden");

@@ -71,7 +71,7 @@ void ConfigModulesHandler::HandlePost(const ApiUser::Ptr& user, HttpRequest& req
 	if (request.RequestUrl->GetPath().size() >= 4)
 		params->Set("module", request.RequestUrl->GetPath()[3]);
 
-	String moduleName = params->Get("module");
+	String moduleName = HttpUtility::GetLastParameter(params, "module");
 
 	if (!ConfigModuleUtility::ValidateName(moduleName)) {
 		response.SetStatus(403, "Forbidden");
@@ -111,7 +111,7 @@ void ConfigModulesHandler::HandleDelete(const ApiUser::Ptr& user, HttpRequest& r
 	if (request.RequestUrl->GetPath().size() >= 4)
 		params->Set("module", request.RequestUrl->GetPath()[3]);
 
-	String moduleName = params->Get("module");
+	String moduleName = HttpUtility::GetLastParameter(params, "module");
 
 	if (!ConfigModuleUtility::ValidateName(moduleName)) {
 		response.SetStatus(403, "Forbidden");
