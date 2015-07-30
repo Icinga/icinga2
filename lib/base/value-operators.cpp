@@ -159,7 +159,7 @@ bool Value::operator==(const Value& rhs) const
 {
 	if (IsNumber() && rhs.IsNumber())
 		return Get<double>() == rhs.Get<double>();
-	else if ((IsBoolean() || IsNumber() || IsEmpty()) && (rhs.IsBoolean() || rhs.IsNumber() || rhs.IsEmpty()) && !(IsEmpty() && rhs.IsEmpty()))
+	else if ((IsBoolean() || IsNumber()) && (rhs.IsBoolean() || rhs.IsNumber()) && !(IsEmpty() && rhs.IsEmpty()))
 		return static_cast<double>(*this) == static_cast<double>(rhs);
 
 	if (IsString() && rhs.IsString())
