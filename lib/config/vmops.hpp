@@ -255,6 +255,9 @@ public:
 
 	static inline void SetField(const Object::Ptr& context, const String& field, const Value& value, const DebugInfo& debugInfo = DebugInfo())
 	{
+		if (!context)
+			BOOST_THROW_EXCEPTION(ScriptError("Cannot set field '" + field + "' on a value that is not an object.", debugInfo));
+
 		Dictionary::Ptr dict = dynamic_pointer_cast<Dictionary>(context);
 
 		if (dict) {
