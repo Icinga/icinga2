@@ -75,7 +75,7 @@ std::vector<DynamicObject::Ptr> FilterUtility::GetFilterTargets(const QueryDescr
 		boost::algorithm::to_lower(attr);
 
 		if (query->Contains(attr)) {
-			String name = query->Get(attr);
+			String name = HttpUtility::GetLastParameter(query, attr);
 			DynamicObject::Ptr obj = GetObjectByTypeAndName(type->GetName(), name);
 			if (!obj)
 				BOOST_THROW_EXCEPTION(std::invalid_argument("Object does not exist."));
@@ -87,21 +87,28 @@ std::vector<DynamicObject::Ptr> FilterUtility::GetFilterTargets(const QueryDescr
 
 		if (query->Contains(attr)) {
 			Array::Ptr names = query->Get(attr);
-			ObjectLock olock(names);
-			BOOST_FOREACH(const String& name, names) {
-				DynamicObject::Ptr obj = GetObjectByTypeAndName(type->GetName(), name);
-				if (!obj)
-					BOOST_THROW_EXCEPTION(std::invalid_argument("Object does not exist."));
-				result.push_back(obj);
+			if (names) {
+				ObjectLock olock(names);
+				BOOST_FOREACH(const String& name, names) {
+					DynamicObject::Ptr obj = GetObjectByTypeAndName(type->GetName(), name);
+					if (!obj)
+						BOOST_THROW_EXCEPTION(std::invalid_argument("Object does not exist."));
+					result.push_back(obj);
+				}
 			}
 		}
 	}
 
-	if (query->Contains("filter")) {
+	if (query->Contains("filter") || result.empty()) {
 		if (!query->Contains("type"))
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Type must be specified when using a filter."));
 
-		String filter = HttpUtility::GetLastParameter(query, "filter");
+		String filter;
+		if (!query->Contains("filter"))
+			filter = "true";
+		else
+			filter = HttpUtility::GetLastParameter(query, "filter");
+
 		String type = HttpUtility::GetLastParameter(query, "type");
 
 		Log(LogInformation, "FilterUtility", filter);

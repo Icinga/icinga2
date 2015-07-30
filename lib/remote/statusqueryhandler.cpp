@@ -52,8 +52,6 @@ bool StatusQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 		String attr = type->GetName();
 		boost::algorithm::to_lower(attr);
 		params->Set(attr, request.RequestUrl->GetPath()[2]);
-	} else if (!params->Contains("filter")) {
-		params->Set("filter", "true");
 	}
 
 	std::vector<DynamicObject::Ptr> objs = FilterUtility::GetFilterTargets(qd, params);
@@ -78,10 +76,6 @@ bool StatusQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 			Dictionary::Ptr result1 = new Dictionary();
 			for (int fid = 0; fid < type->GetFieldCount(); fid++) {
 				Field field = type->GetFieldInfo(fid);
-
-				if ((field.Attributes & (FAConfig|FAState)) == 0)
-					continue;
-
 				String aname = prefix + "." + field.Name;
 				if (!attrs.empty() && attrs.find(aname) == attrs.end())
 					continue;
