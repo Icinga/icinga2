@@ -41,7 +41,7 @@ mkclass_target(user.ti user.tcpp user.thpp)
 mkembedconfig_target(icinga-app.conf icinga-app.cpp)
 
 set(icinga_SOURCES
-  api.cpp apievents.cpp checkable.cpp checkable.thpp checkable-dependency.cpp checkable-downtime.cpp checkable-event.cpp
+  api.cpp apiactions.cpp apievents.cpp checkable.cpp checkable.thpp checkable-dependency.cpp checkable-downtime.cpp checkable-event.cpp
   checkable-flapping.cpp checkcommand.cpp checkcommand.thpp checkresult.cpp checkresult.thpp
   cib.cpp command.cpp command.thpp comment.cpp comment.thpp compatutility.cpp dependency.cpp dependency.thpp
   dependency-apply.cpp downtime.cpp downtime.thpp eventcommand.cpp eventcommand.thpp

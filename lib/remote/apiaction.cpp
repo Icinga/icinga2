@@ -17,65 +17,41 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef APIFUNCTION_H
-#define APIFUNCTION_H
+#include "remote/apiaction.hpp"
+#include "base/singleton.hpp"
 
-#include "remote/i2-remote.hpp"
-#include "remote/messageorigin.hpp"
-#include "base/registry.hpp"
-#include "base/value.hpp"
-#include "base/dictionary.hpp"
-#include <vector>
-#include <boost/function.hpp>
+using namespace icinga;
 
-namespace icinga
+ApiAction::ApiAction(const std::vector<String>& types, const Callback& action)
+: m_Types(types), m_Callback(action)
+{ }
+
+Value ApiAction::Invoke(const DynamicObject::Ptr& target, const Dictionary::Ptr& params)
 {
-
-/**
- * An API function.
- *
- * @ingroup base
- */
-class I2_REMOTE_API ApiFunction : public Object
-{
-public:
-	DECLARE_PTR_TYPEDEFS(ApiFunction);
-
-	typedef boost::function<Value(const MessageOrigin& origin, const Dictionary::Ptr&)> Callback;
-
-	ApiFunction(const Callback& function);
-
-	Value Invoke(const MessageOrigin& origin, const Dictionary::Ptr& arguments);
-
-	static ApiFunction::Ptr GetByName(const String& name);
-	static void Register(const String& name, const ApiFunction::Ptr& function);
-	static void Unregister(const String& name);
-
-private:
-	Callback m_Callback;
-};
-
-/**
- * A registry for API functions.
- *
- * @ingroup base
- */
-class I2_REMOTE_API ApiFunctionRegistry : public Registry<ApiFunctionRegistry, ApiFunction::Ptr>
-{
-public:
-	static ApiFunctionRegistry *GetInstance(void);
-};
-
-#define REGISTER_APIFUNCTION(name, ns, callback) \
-	namespace { namespace UNIQUE_NAME(apif) { namespace apif ## name { \
-		void RegisterFunction(void) \
-		{ \
-			ApiFunction::Ptr func = new ApiFunction(callback); \
-			ApiFunctionRegistry::GetInstance()->Register(#ns "::" #name, func); \
-		} \
-		INITIALIZE_ONCE(RegisterFunction); \
-	} } }
-
+	return m_Callback(target, params);
 }
 
-#endif /* APIFUNCTION_H */
+const std::vector<String>& ApiAction::GetTypes(void) const
+{
+	return m_Types;
+}
+
+ApiAction::Ptr ApiAction::GetByName(const String& name)
+{
+	return ApiActionRegistry::GetInstance()->GetItem(name);
+}
+
+void ApiAction::Register(const String& name, const ApiAction::Ptr& action)
+{
+	ApiActionRegistry::GetInstance()->Register(name, action);
+}
+
+void ApiAction::Unregister(const String& name)
+{
+	ApiActionRegistry::GetInstance()->Unregister(name);
+}
+
+ApiActionRegistry *ApiActionRegistry::GetInstance(void)
+{
+	return Singleton<ApiActionRegistry>::GetInstance();
+}

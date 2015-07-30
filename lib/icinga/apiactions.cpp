@@ -17,65 +17,32 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef APIFUNCTION_H
-#define APIFUNCTION_H
+#include "icinga/apiactions.hpp"
+#include "icinga/service.hpp"
+#include "remote/apiaction.hpp"
+#include "remote/httputility.hpp"
+#include "base/utility.hpp"
+#include "base/convert.hpp"
 
-#include "remote/i2-remote.hpp"
-#include "remote/messageorigin.hpp"
-#include "base/registry.hpp"
-#include "base/value.hpp"
-#include "base/dictionary.hpp"
-#include <vector>
-#include <boost/function.hpp>
+using namespace icinga;
 
-namespace icinga
+REGISTER_APIACTION(reschedule_check, "Service;Host", &ApiActions::RescheduleCheck);
+
+Dictionary::Ptr ApiActions::RescheduleCheck(const DynamicObject::Ptr& object, const Dictionary::Ptr& params)
 {
+	Checkable::Ptr checkable = static_pointer_cast<Checkable>(object);
+	if (Convert::ToBool(HttpUtility::GetLastParameter(params, "force")))
+		checkable->SetForceNextCheck(true);
 
-/**
- * An API function.
- *
- * @ingroup base
- */
-class I2_REMOTE_API ApiFunction : public Object
-{
-public:
-	DECLARE_PTR_TYPEDEFS(ApiFunction);
+	double nextCheck;
+	if (params->Contains("next_check"))
+		nextCheck = HttpUtility::GetLastParameter(params, "next_check");
+	else
+		nextCheck = Utility::GetTime();
 
-	typedef boost::function<Value(const MessageOrigin& origin, const Dictionary::Ptr&)> Callback;
-
-	ApiFunction(const Callback& function);
-
-	Value Invoke(const MessageOrigin& origin, const Dictionary::Ptr& arguments);
-
-	static ApiFunction::Ptr GetByName(const String& name);
-	static void Register(const String& name, const ApiFunction::Ptr& function);
-	static void Unregister(const String& name);
-
-private:
-	Callback m_Callback;
-};
-
-/**
- * A registry for API functions.
- *
- * @ingroup base
- */
-class I2_REMOTE_API ApiFunctionRegistry : public Registry<ApiFunctionRegistry, ApiFunction::Ptr>
-{
-public:
-	static ApiFunctionRegistry *GetInstance(void);
-};
-
-#define REGISTER_APIFUNCTION(name, ns, callback) \
-	namespace { namespace UNIQUE_NAME(apif) { namespace apif ## name { \
-		void RegisterFunction(void) \
-		{ \
-			ApiFunction::Ptr func = new ApiFunction(callback); \
-			ApiFunctionRegistry::GetInstance()->Register(#ns "::" #name, func); \
-		} \
-		INITIALIZE_ONCE(RegisterFunction); \
-	} } }
-
+	checkable->SetNextCheck(nextCheck);
+	Dictionary::Ptr result = new Dictionary();
+	result->Set("code", 200);
+	result->Set("status", "yay");
+	return result;
 }
-
-#endif /* APIFUNCTION_H */

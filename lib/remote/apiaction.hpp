@@ -17,65 +17,76 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef APIFUNCTION_H
-#define APIFUNCTION_H
+#ifndef APIACTION_H
+#define APIACTION_H
 
 #include "remote/i2-remote.hpp"
-#include "remote/messageorigin.hpp"
 #include "base/registry.hpp"
 #include "base/value.hpp"
 #include "base/dictionary.hpp"
+#include "base/dynamicobject.hpp"
 #include <vector>
 #include <boost/function.hpp>
+#include <boost/algorithm/string/replace.hpp>
+#include <boost/algorithm/string/classification.hpp>
+#include <boost/algorithm/string/split.hpp>
 
 namespace icinga
 {
 
 /**
- * An API function.
+ * An API action.
  *
- * @ingroup base
+ * @ingroup remote
  */
-class I2_REMOTE_API ApiFunction : public Object
+class I2_REMOTE_API ApiAction : public Object
 {
 public:
-	DECLARE_PTR_TYPEDEFS(ApiFunction);
+	DECLARE_PTR_TYPEDEFS(ApiAction);
 
-	typedef boost::function<Value(const MessageOrigin& origin, const Dictionary::Ptr&)> Callback;
+	typedef boost::function<Value(const DynamicObject::Ptr& target, const Dictionary::Ptr& params)> Callback;
 
-	ApiFunction(const Callback& function);
+	ApiAction(const std::vector<String>& registerTypes, const Callback& function);
 
-	Value Invoke(const MessageOrigin& origin, const Dictionary::Ptr& arguments);
+	Value Invoke(const DynamicObject::Ptr& target, const Dictionary::Ptr& params);
 
-	static ApiFunction::Ptr GetByName(const String& name);
-	static void Register(const String& name, const ApiFunction::Ptr& function);
+	const std::vector<String>& GetTypes(void) const;
+
+	static ApiAction::Ptr GetByName(const String& name);
+	static void Register(const String& name, const ApiAction::Ptr& action);
 	static void Unregister(const String& name);
 
 private:
+	std::vector<String> m_Types;
 	Callback m_Callback;
 };
 
 /**
- * A registry for API functions.
+ * A registry for API actions.
  *
- * @ingroup base
+ * @ingroup remote
  */
-class I2_REMOTE_API ApiFunctionRegistry : public Registry<ApiFunctionRegistry, ApiFunction::Ptr>
+class I2_REMOTE_API ApiActionRegistry : public Registry<ApiActionRegistry, ApiAction::Ptr>
 {
 public:
-	static ApiFunctionRegistry *GetInstance(void);
+	static ApiActionRegistry *GetInstance(void);
 };
 
-#define REGISTER_APIFUNCTION(name, ns, callback) \
-	namespace { namespace UNIQUE_NAME(apif) { namespace apif ## name { \
-		void RegisterFunction(void) \
+#define REGISTER_APIACTION(name, types, callback) \
+	namespace { namespace UNIQUE_NAME(apia) { namespace apia ## name { \
+		void RegisterAction(void) \
 		{ \
-			ApiFunction::Ptr func = new ApiFunction(callback); \
-			ApiFunctionRegistry::GetInstance()->Register(#ns "::" #name, func); \
+			String registerName = #name; \
+			boost::algorithm::replace_all(registerName, "_", "-"); \
+			std::vector<String> registerTypes; \
+			String typeNames = types; \
+			boost::algorithm::split(registerTypes, typeNames, boost::is_any_of(";")); \
+			ApiAction::Ptr action = new ApiAction(registerTypes, callback); \
+			ApiActionRegistry::GetInstance()->Register(registerName, action); \
 		} \
-		INITIALIZE_ONCE(RegisterFunction); \
+		INITIALIZE_ONCE(RegisterAction); \
 	} } }
 
 }
 
-#endif /* APIFUNCTION_H */
+#endif /* APIACTION_H */

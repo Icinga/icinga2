@@ -17,65 +17,22 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef APIFUNCTION_H
-#define APIFUNCTION_H
+#ifndef ACTIONSHANDLER_H
+#define ACTIONSHANDLER_H
 
-#include "remote/i2-remote.hpp"
-#include "remote/messageorigin.hpp"
-#include "base/registry.hpp"
-#include "base/value.hpp"
-#include "base/dictionary.hpp"
-#include <vector>
-#include <boost/function.hpp>
+#include "remote/httphandler.hpp"
 
 namespace icinga
 {
 
-/**
- * An API function.
- *
- * @ingroup base
- */
-class I2_REMOTE_API ApiFunction : public Object
+class I2_REMOTE_API ActionsHandler : public HttpHandler
 {
 public:
-	DECLARE_PTR_TYPEDEFS(ApiFunction);
+	DECLARE_PTR_TYPEDEFS(ActionsHandler);
 
-	typedef boost::function<Value(const MessageOrigin& origin, const Dictionary::Ptr&)> Callback;
-
-	ApiFunction(const Callback& function);
-
-	Value Invoke(const MessageOrigin& origin, const Dictionary::Ptr& arguments);
-
-	static ApiFunction::Ptr GetByName(const String& name);
-	static void Register(const String& name, const ApiFunction::Ptr& function);
-	static void Unregister(const String& name);
-
-private:
-	Callback m_Callback;
+	virtual bool HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response);
 };
-
-/**
- * A registry for API functions.
- *
- * @ingroup base
- */
-class I2_REMOTE_API ApiFunctionRegistry : public Registry<ApiFunctionRegistry, ApiFunction::Ptr>
-{
-public:
-	static ApiFunctionRegistry *GetInstance(void);
-};
-
-#define REGISTER_APIFUNCTION(name, ns, callback) \
-	namespace { namespace UNIQUE_NAME(apif) { namespace apif ## name { \
-		void RegisterFunction(void) \
-		{ \
-			ApiFunction::Ptr func = new ApiFunction(callback); \
-			ApiFunctionRegistry::GetInstance()->Register(#ns "::" #name, func); \
-		} \
-		INITIALIZE_ONCE(RegisterFunction); \
-	} } }
 
 }
 
-#endif /* APIFUNCTION_H */
+#endif /* ACTIONSHANDLER_H */
