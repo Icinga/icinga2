@@ -76,13 +76,19 @@ void Object::InflateMutex(void)
 	m_Mutex.Inflate();
 }
 
-void Object::SetField(int, const Value&)
+void Object::SetField(int id, const Value&)
 {
-	BOOST_THROW_EXCEPTION(std::runtime_error("Invalid field ID."));
+	if (id == 0)
+		BOOST_THROW_EXCEPTION(std::runtime_error("Prototype field cannot be set."));
+	else
+		BOOST_THROW_EXCEPTION(std::runtime_error("Invalid field ID."));
 }
 
-Value Object::GetField(int) const
+Value Object::GetField(int id) const
 {
-	BOOST_THROW_EXCEPTION(std::runtime_error("Invalid field ID."));
+	if (id == 0)
+		return Empty;
+	else
+		BOOST_THROW_EXCEPTION(std::runtime_error("Invalid field ID."));
 }
 
