@@ -38,6 +38,13 @@ static void DictionarySet(const String& key, const Value& value)
 	self->Set(key, value);
 }
 
+static Value DictionaryGet(const String& key)
+{
+	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
+	Dictionary::Ptr self = static_cast<Dictionary::Ptr>(vframe->Self);
+	return self->Get(key);
+}
+
 static void DictionaryRemove(const String& key)
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
@@ -67,6 +74,7 @@ Object::Ptr Dictionary::GetPrototype(void)
 		prototype = new Dictionary();
 		prototype->Set("len", new Function(WrapFunction(DictionaryLen)));
 		prototype->Set("set", new Function(WrapFunction(DictionarySet)));
+		prototype->Set("get", new Function(WrapFunction(DictionaryGet)));
 		prototype->Set("remove", new Function(WrapFunction(DictionaryRemove)));
 		prototype->Set("contains", new Function(WrapFunction(DictionaryContains)));
 		prototype->Set("clone", new Function(WrapFunction(DictionaryClone)));
