@@ -96,7 +96,9 @@ void *i2_new_frame(Tcl_Interp *interp)
 		Application::InitializeBase();
 	}
 
-	return new ScriptFrame();
+	ScriptFrame *frame = new ScriptFrame();
+	frame->Self = ScriptGlobal::GetGlobals();
+	return frame;
 }
 
 void i2_free_frame(void *frame, Tcl_Interp *interp)
