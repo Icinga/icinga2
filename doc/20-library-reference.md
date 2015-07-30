@@ -554,6 +554,14 @@ Signature:
 Sets the element at the zero-based index to the specified value. The `index` must refer to an element
 which already exists in the array.
 
+### <a id="array-get"></a> Array#get
+
+Signature:
+
+    function get(index);
+
+Retrieves the element at the specified zero-based index.
+
 ### <a id="array-sort"></a> Array#sort
 
 Signature:
@@ -615,6 +623,15 @@ Signature:
     function set(key, value);
 
 Creates or updates an item with the specified `key` and `value`.
+
+### <a id="dictionary-get"></a> Dictionary#get
+
+Signature:
+
+    function get(key);
+
+Retrieves the value for the specified `key`. Returns `null` if they `key` does not exist
+in the dictionary.
 
 ## <a id="scriptfunction-type"></a> Function type
 

@@ -40,6 +40,13 @@ static void ArraySet(int index, const Value& value)
 	self->Set(index, value);
 }
 
+static Value ArrayGet(int index)
+{
+	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
+	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
+	return self->Get(index);
+}
+
 static void ArrayAdd(const Value& value)
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
@@ -131,6 +138,7 @@ Object::Ptr Array::GetPrototype(void)
 		prototype = new Dictionary();
 		prototype->Set("len", new Function(WrapFunction(ArrayLen), true));
 		prototype->Set("set", new Function(WrapFunction(ArraySet)));
+		prototype->Set("get", new Function(WrapFunction(ArrayGet)));
 		prototype->Set("add", new Function(WrapFunction(ArrayAdd)));
 		prototype->Set("remove", new Function(WrapFunction(ArrayRemove)));
 		prototype->Set("contains", new Function(WrapFunction(ArrayContains), true));
