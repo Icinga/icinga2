@@ -275,7 +275,7 @@ Value icinga::operator+(int lhs, const Value& rhs)
 
 Value icinga::operator-(const Value& lhs, const Value& rhs)
 {
-	if ((lhs.IsNumber() || lhs.IsEmpty()) && (rhs.IsNumber() || rhs.IsEmpty()) && !(lhs.IsEmpty() && rhs.IsEmpty()))
+	if ((lhs.IsNumber() || lhs.IsEmpty()) && !lhs.IsString() && (rhs.IsNumber() || rhs.IsEmpty()) && !rhs.IsString() && !(lhs.IsEmpty() && rhs.IsEmpty()))
 		return static_cast<double>(lhs) - static_cast<double>(rhs);
 	else if ((lhs.IsObjectType<Array>() || lhs.IsEmpty()) && (rhs.IsObjectType<Array>() || rhs.IsEmpty()) && !(lhs.IsEmpty() && rhs.IsEmpty())) {
 		if (lhs.IsEmpty())
