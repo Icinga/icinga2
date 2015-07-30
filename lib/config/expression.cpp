@@ -460,7 +460,8 @@ ExpressionResult DictExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint
 			result = element.GetValue();
 		}
 	} catch (...) {
-		std::swap(self, frame.Self);
+		if (!m_Inline)
+			std::swap(self, frame.Self);
 		throw;
 	}
 
