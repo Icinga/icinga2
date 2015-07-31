@@ -215,6 +215,7 @@ void ExternalCommandProcessor::StaticInitialize(void)
 	RegisterCommand("DEL_SVC_DOWNTIME", &ExternalCommandProcessor::DelSvcDowntime, 1);
 	RegisterCommand("SCHEDULE_HOST_DOWNTIME", &ExternalCommandProcessor::ScheduleHostDowntime, 8);
 	RegisterCommand("DEL_HOST_DOWNTIME", &ExternalCommandProcessor::DelHostDowntime, 1);
+	RegisterCommand("DEL_DOWNTIME_BY_HOST_NAME", &ExternalCommandProcessor::DelDowntimeByHostName, 1);
 	RegisterCommand("SCHEDULE_HOST_SVC_DOWNTIME", &ExternalCommandProcessor::ScheduleHostSvcDowntime, 8);
 	RegisterCommand("SCHEDULE_HOSTGROUP_HOST_DOWNTIME", &ExternalCommandProcessor::ScheduleHostgroupHostDowntime, 8);
 	RegisterCommand("SCHEDULE_HOSTGROUP_SVC_DOWNTIME", &ExternalCommandProcessor::ScheduleHostgroupSvcDowntime, 8);
@@ -1075,6 +1076,67 @@ void ExternalCommandProcessor::DelHostDowntime(double, const std::vector<String>
 	    << "Removing downtime ID " << arguments[0];
 	String rid = Service::GetDowntimeIDFromLegacyID(id);
 	Service::RemoveDowntime(rid, true);
+}
+
+void ExternalCommandProcessor::DelDowntimeByHostName(double, const std::vector<String>& arguments)
+{
+	Host::Ptr host = Host::GetByName(arguments[0]);
+
+	if (!host)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot schedule host services downtime for non-existent host '" + arguments[0] + "'"));
+
+	String serviceName;
+	if (arguments.size() >= 2)
+		serviceName = arguments[1];
+
+	String startTime;
+	if (arguments.size() >= 3)
+		startTime = arguments[2];
+
+	String commentString;
+	if (arguments.size() >= 4)
+		commentString = arguments[3];
+
+	if (arguments.size() > 5)
+		Log(LogWarning, "ExternalCommandProcessor")
+		    << ("Ignoring additional parameters for host '" + arguments[0] + "' downtime deletion.");
+
+	std::vector<String> ids;
+
+	Dictionary::Ptr hostDowntimes = host->GetDowntimes();
+	{
+		ObjectLock dhlock(hostDowntimes);
+		BOOST_FOREACH(const Dictionary::Pair& kv, hostDowntimes) {
+			ids.push_back(kv.first);
+		}
+	}
+
+	BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
+		if (!serviceName.IsEmpty() && serviceName != service->GetName())
+			continue;
+
+		Dictionary::Ptr serviceDowntimes = service->GetDowntimes();
+		{
+			ObjectLock dslock(serviceDowntimes);
+			BOOST_FOREACH(const Dictionary::Pair& kv, serviceDowntimes) {
+				ids.push_back(kv.first);
+			}
+		}
+	}
+
+	BOOST_FOREACH(const String& id, ids) {
+		Downtime::Ptr downtime = Service::GetDowntimeByID(id);
+
+		if (!startTime.IsEmpty() && downtime->GetStartTime() != Convert::ToDouble(startTime))
+			continue;
+
+		if (!commentString.IsEmpty() && downtime->GetComment() != commentString)
+			continue;
+
+		Log(LogNotice, "ExternalCommandProcessor")
+		    << "Removing downtime ID " << id;
+		Service::RemoveDowntime(id, true);
+	}
 }
 
 void ExternalCommandProcessor::ScheduleHostSvcDowntime(double, const std::vector<String>& arguments)

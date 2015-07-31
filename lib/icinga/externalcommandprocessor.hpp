@@ -81,6 +81,7 @@ private:
 	static void DelSvcDowntime(double time, const std::vector<String>& arguments);
 	static void ScheduleHostDowntime(double time, const std::vector<String>& arguments);
 	static void DelHostDowntime(double time, const std::vector<String>& arguments);
+	static void DelDowntimeByHostName(double, const std::vector<String>& arguments);
 	static void ScheduleHostSvcDowntime(double time, const std::vector<String>& arguments);
 	static void ScheduleHostgroupHostDowntime(double time, const std::vector<String>& arguments);
 	static void ScheduleHostgroupSvcDowntime(double time, const std::vector<String>& arguments);
