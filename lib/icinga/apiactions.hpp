@@ -34,6 +34,10 @@ class I2_ICINGA_API ApiActions
 {
 public:
 	static Dictionary::Ptr RescheduleCheck(const DynamicObject::Ptr& object, const Dictionary::Ptr& params);
+	static Dictionary::Ptr ProcessCheckResult(const DynamicObject::Ptr& object, const Dictionary::Ptr& params);
+
+private:
+	static Dictionary::Ptr CreateResult(const int code, const String& status);
 };
 
 }
