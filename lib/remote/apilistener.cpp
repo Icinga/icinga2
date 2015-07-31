@@ -797,16 +797,27 @@ std::pair<Dictionary::Ptr, Dictionary::Ptr> ApiListener::GetStatus(void)
 	Array::Ptr not_connected_endpoints = new Array();
 	Array::Ptr connected_endpoints = new Array();
 
-	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjectsByType<Endpoint>()) {
-		if (endpoint->GetName() == GetIdentity())
+	Zone::Ptr my_zone = Zone::GetLocalZone();
+
+	BOOST_FOREACH(const Zone::Ptr& zone, DynamicType::GetObjectsByType<Zone>()) {
+		/* only check endpoints in a) the same zone b) our parent zone c) immediate child zones */
+		if (my_zone != zone && my_zone != zone->GetParent() && zone != my_zone->GetParent()) {
+			Log(LogDebug, "ApiListener")
+			    << "Not checking connection to Zone '" << zone->GetName() << "' because it's not in the same zone, a parent or a child zone.";
 			continue;
+		}
 
-		count_endpoints++;
+		BOOST_FOREACH(const Endpoint::Ptr& endpoint, zone->GetEndpoints()) {
+			if (endpoint->GetName() == GetIdentity())
+				continue;
 
-		if (!endpoint->IsConnected())
-			not_connected_endpoints->Add(endpoint->GetName());
-		else
-			connected_endpoints->Add(endpoint->GetName());
+			count_endpoints++;
+
+			if (!endpoint->IsConnected())
+				not_connected_endpoints->Add(endpoint->GetName());
+			else
+				connected_endpoints->Add(endpoint->GetName());
+		}
 	}
 
 	status->Set("num_endpoints", count_endpoints);
