@@ -1634,7 +1634,7 @@ iftraffic_max_counter	| **Optional.** Maximum counter value of net devices in ki
 
 This category includes all plugins for web-based checks.
 
-## <a id="plugin-check-command-webinject"></a> webinject
+### <a id="plugin-check-command-webinject"></a> webinject
 
 Check command object for the [check_webinject](http://http://www.webinject.org/manual.html) plugin.
 
@@ -1648,6 +1648,47 @@ webinject_no_output     | **Optional.** Suppresses all output to STDOUT except t
 webinject_timeout       | **Optional.** The value [given in seconds] will be compared to the global time elapsed to run all the tests. If the tests have all been successful, but have taken more time than the 'globaltimeout' value, a warning message is sent back to Icinga.
 webinject_report_type   | **Optional.** This setting is used to enable output formatting that is compatible for use with specific external programs. The available values you can set this to are: nagios, mrtg, external and standard.
 webinject_testcase_file | **Optional.** When you launch WebInject in console mode, you can optionally supply an argument for a testcase file to run. It will look for this file in the directory that webinject.pl resides in. If no filename is passed from the command line, it will look in config.xml for testcasefile declarations. If no files are specified, it will look for a default file named 'testcases.xml' in the current [webinject] directory. If none of these are found, the engine will stop and give you an error.
+
+### <a id="plugin-check-command-jmx4perl"></a> jmx4perl
+
+The plugin `jmx4perl` utilizes the api provided by the jolokia web application to query java message beans on an application server. It is part of the perl module provided by Roland Huß on [cpan](http://search.cpan.org/~roland/jmx4perl/) including a detailed [documentation](http://search.cpan.org/~roland/jmx4perl/scripts/check_jmx4perl) containing installation tutorial, security advices und usage examples.
+
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
+
+Name                         | Description
+-----------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------
+jmx4perl_url                 | **Required.** URL to agent web application. Defaults to "http://$address$:8080/jolokia".
+jmx4perl_product             | **Optional.** Name of app server product (e.g. jboss), by default is uses an autodetection facility.
+jmx4perl_alias               | **Optional.** Alias name for attribute (e.g. MEMORY_HEAP_USED). All availables aliases can be viewed by executing `jmx4perl aliases` on the command line.
+jmx4perl_mbean               | **Optional.** MBean name (e.g. java.lang:type=Memory).
+jmx4perl_attribute           | **Optional.** Attribute name (e.g. HeapMemoryUsage).
+jmx4perl_operation           | **Optional.** Operation to execute.
+jmx4perl_value               | **Optional.** Shortcut for specifying mbean/attribute/path. Slashes within names must be escaped with backslash.
+jmx4perl_delta               | **Optional.** Switches on incremental mode. Optional argument are seconds used for normalizing.
+jmx4perl_path                | **Optional.** Inner path for extracting a single value from a complex attribute or return value (e.g. used).
+jmx4perl_target              | **Optional.** JSR-160 Service URL specifing the target server.
+jmx4perl_target_user         | **Optional.** Username to use for JSR-160 connection.
+jmx4perl_target_password     | **Optional.** Password to use for JSR-160 connection.
+jmx4perl_proxy               | **Optional.** Proxy to use.
+jmx4perl_user                | **Optional.** User for HTTP authentication.
+jmx4perl_password            | **Optional.** Password for HTTP authentication.
+jmx4perl_name                | **Optional.** Name to use for output, by default a standard value based on the MBean and attribute will be used.
+jmx4perl_method              | **Optional.** HTTP method to use, either get or post. By default a method is determined automatically based on the request type.
+jmx4perl_base                | **Optional.** Base name, which when given, interprets critical and warning values as relative in the range 0 .. 100%. Must be given in the form mbean/attribute/path.
+jmx4perl_base_mbean          | **Optional.** Base MBean name, interprets critical and warning values as relative in the range 0 .. 100%. Requires "jmx4perl_base_attribute".
+jmx4perl_base_attribute      | **Optional.** Base attribute for a relative check. Requires "jmx4perl_base_mbean".
+jmx4perl_base_path           | **Optional.** Base path for relative checks, where this path is used on the base attribute's value.
+jmx4perl_unit                | **Optional.** Unit of measurement of the data retreived. Recognized values are [B|KB|MN|GB|TB] for memory values and [us|ms|s|m|h|d] for time values.
+jmx4perl_null                | **Optional.** Value which should be used in case of a null return value of an operation or attribute. Defaults to null.
+jmx4perl_string              | **Optional.** Force string comparison for critical and warning checks. Defaults to false.
+jmx4perl_numeric             | **Optional.** Force numeric comparison for critical and warning checks. Defaults to false.
+jmx4perl_critical            | **Optional.** Critical threshold for value.
+jmx4perl_warning             | **Optional.** Warning threshold for value.
+jmx4perl_label               | **Optional.** Label to be used for printing out the result of the check. For placeholders which can be used see the documentation.
+jmx4perl_perfdata            | **Optional.** Whether performance data should be omitted, which are included by default. Defaults to "on" for numeric values, to "off" for strings.
+jmx4perl_unknown_is_critical | **Optional.** Map UNKNOWN errors to errors with a CRITICAL status. Defaults to false.
+jmx4perl_timeout             | **Optional.** Seconds before plugin times out. Defaults to "15".
+
 
 ## <a id="plugins-contrib-operating-system"></a> Operating System
 
