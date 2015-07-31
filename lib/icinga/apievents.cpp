@@ -1792,8 +1792,11 @@ Value ApiEvents::ExecuteCommandAPIHandler(const MessageOrigin& origin, const Dic
 			return Empty;
 		}
 	} else if (command_type == "event_command") {
-		if (!EventCommand::GetByName(command))
+		if (!EventCommand::GetByName(command)) {
+			Log(LogWarning, "ApiEvents")
+			    << "Event command '" << command << "' does not exist.";
 			return Empty;
+		}
 	} else
 		return Empty;
 
