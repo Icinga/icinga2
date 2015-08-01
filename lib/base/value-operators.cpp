@@ -228,9 +228,9 @@ Value icinga::operator+(const String& lhs, const Value& rhs)
 
 Value icinga::operator+(const Value& lhs, const Value& rhs)
 {
-	if ((lhs.IsEmpty() || lhs.IsNumber()) && (rhs.IsEmpty() || rhs.IsNumber()) && !(lhs.IsEmpty() && rhs.IsEmpty()))
+	if ((lhs.IsEmpty() || lhs.IsNumber()) && !lhs.IsString() && (rhs.IsEmpty() || rhs.IsNumber()) && !rhs.IsString() && !(lhs.IsEmpty() && rhs.IsEmpty()))
 		return static_cast<double>(lhs) + static_cast<double>(rhs);
-	if ((lhs.IsString() || lhs.IsEmpty() || lhs.IsNumber()) && (rhs.IsString() || rhs.IsEmpty() || rhs.IsNumber()) && !(lhs.IsEmpty() && rhs.IsEmpty()))
+	if ((lhs.IsString() || lhs.IsEmpty() || lhs.IsNumber()) && (rhs.IsString() || rhs.IsEmpty() || rhs.IsNumber()))
 		return static_cast<String>(lhs) + static_cast<String>(rhs);
 	else if ((lhs.IsNumber() || lhs.IsEmpty()) && (rhs.IsNumber() || rhs.IsEmpty()) && !(lhs.IsEmpty() && rhs.IsEmpty()))
 		return static_cast<double>(lhs) + static_cast<double>(rhs);
