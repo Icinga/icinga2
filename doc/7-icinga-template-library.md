@@ -922,6 +922,22 @@ clamd_ctime          | **Optional.** Response time to result in critical status 
 clamd_timeout        | **Optional.** Seconds before connection times out. Defaults to 10.
 
 
+## <a id="plugin-check-command-mailq"></a> mailq
+
+Check command object for the `check_mailq` plugin.
+
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
+
+Name                    | Description
+------------------------|--------------
+mailq_warning		| **Required.** Min. number of messages in queue to generate warning.
+mailq_critical		| **Required.** Min. number of messages in queue to generate critical alert ( w < c ).
+mailq_domain_warning	| **Optional.** Min. number of messages for same domain in queue to generate warning
+mailq_domain_critical	| **Optional.** Min. number of messages for same domain in queue to generate critical alert ( W < C ).
+mailq_timeout		| **Optional.** Plugin timeout in seconds (default = 15).
+mailq_servertype	| **Optional.** [ sendmail | qmail | postfix | exim | nullmailer ] (default = autodetect).
+
+
 # <a id="windows-plugins"></a>Icinga 2 Windows plugins
 
 To allow a basic monitoring of Windows clients Icinga 2 comes with a set of Windows only plugins. While trying to mirror the functionalities of their linux cousins from the monitoring-plugins package, the differences between Windows and Linux are too big to be able use the same CheckCommands for both systems.
