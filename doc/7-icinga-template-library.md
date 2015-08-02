@@ -897,6 +897,34 @@ users_wgreater  | **Optional.** The user count warning threshold. Defaults to 20
 users_cgreater  | **Optional.** The user count critical threshold. Defaults to 50.
 
 
+## <a id="plugin-check-command-clamd"></a> clamd
+
+Check command object for the `check_clamd` plugin.
+
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
+
+Name               | Description
+-------------------|--------------
+clamd_address        | **Required.** The host's address or unix socket (must be an absolute path).
+clamd_port           | **Optional.** Port number (default: none).
+clamd_expect         | **Optional.** String to expect in server response (may be repeated).
+clamd_all            | **Optional.** All expect strings need to occur in server response. Defaults to false.
+clamd_escape_send    | **Optional.** Enable usage of \n, \r, \t or \\\\ in send string.
+clamd_send           | **Optional.** String to send to the server.
+clamd_escape_quit    | **Optional.** Enable usage of \n, \r, \t or \\\\ in quit string.
+clamd_quit           | **Optional.** String to send server to initiate a clean close of the connection.
+clamd_refuse         | **Optional.** Accept TCP refusals with states ok, warn, crit. Defaults to crit.
+clamd_mismatch       | **Optional.** Accept expected string mismatches with states ok, warn, crit. Defaults to warn.
+clamd_jail           | **Optional.** Hide output from TCP socket.
+clamd_maxbytes       | **Optional.** Close connection once more than this number of bytes are received.
+clamd_delay          | **Optional.** Seconds to wait between sending string and polling for response.
+clamd_certificate    | **Optional.** Minimum number of days a certificate has to be valid. 1st value is number of days for warning, 2nd is critical (if not specified: 0) - seperated by comma.
+clamd_ssl            | **Optional.** Use SSL for the connection. Defaults to false.
+clamd_wtime          | **Optional.** Response time to result in warning status (seconds).
+clamd_ctime          | **Optional.** Response time to result in critical status (seconds).
+clamd_timeout        | **Optional.** Seconds before connection times out. Defaults to 10.
+
+
 # <a id="windows-plugins"></a>Icinga 2 Windows plugins
 
 To allow a basic monitoring of Windows clients Icinga 2 comes with a set of Windows only plugins. While trying to mirror the functionalities of their linux cousins from the monitoring-plugins package, the differences between Windows and Linux are too big to be able use the same CheckCommands for both systems.
