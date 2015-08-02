@@ -34,7 +34,7 @@ struct GlobalConfigFixture {
 	GlobalConfigFixture()
 	    : TestConfig("test-config.conf")
 	{
-		BOOST_MESSAGE("setup global config fixture");
+		BOOST_TEST_MESSAGE("setup global config fixture");
 
 		String cfg_file_path = TestConfig;
 		String cfg_file_path_tmp = TestConfig + ".tmp";
@@ -72,7 +72,7 @@ struct GlobalConfigFixture {
 			    << boost::errinfo_file_name(cfg_file_path_tmp));
 		}
 
-		BOOST_MESSAGE( "Preparing config objects...");
+		BOOST_TEST_MESSAGE( "Preparing config objects...");
 
 		/* start the Icinga application and load the configuration */
 		Application::DeclareSysconfDir("etc");
@@ -92,13 +92,15 @@ struct GlobalConfigFixture {
 
 	~GlobalConfigFixture()
 	{
-		BOOST_MESSAGE("cleanup global config fixture");
+		BOOST_TEST_MESSAGE("cleanup global config fixture");
 
 		unlink(TestConfig.CStr());
 	}
 
 	String TestConfig;
 };
+
+BOOST_GLOBAL_FIXTURE(GlobalConfigFixture);
 
 struct LocalFixture {
 	LocalFixture() { }
@@ -133,20 +135,18 @@ String LivestatusQueryHelper(const std::vector<String>& lines)
 			break;
 	}
 
-	BOOST_MESSAGE("Query Result: " + output);
+	BOOST_TEST_MESSAGE("Query Result: " + output);
 
 	return output;
 }
 
 //____________________________________________________________________________//
 
-BOOST_GLOBAL_FIXTURE(GlobalConfigFixture)
-
 BOOST_FIXTURE_TEST_SUITE(livestatus, LocalFixture)
 
 BOOST_AUTO_TEST_CASE(hosts)
 {
-	BOOST_MESSAGE( "Querying Livestatus...");
+	BOOST_TEST_MESSAGE( "Querying Livestatus...");
 
 	std::vector<String> lines;
 	lines.push_back("GET hosts");
@@ -171,12 +171,12 @@ BOOST_AUTO_TEST_CASE(hosts)
 	BOOST_CHECK(res1->Contains("127.0.0.1") || res2->Contains("127.0.0.1"));
 	BOOST_CHECK(res1->Contains("127.0.0.2") || res2->Contains("127.0.0.2"));
 
-	BOOST_MESSAGE("Done with testing livestatus hosts...");
+	BOOST_TEST_MESSAGE("Done with testing livestatus hosts...");
 }
 
 BOOST_AUTO_TEST_CASE(services)
 {
-	BOOST_MESSAGE( "Querying Livestatus...");
+	BOOST_TEST_MESSAGE( "Querying Livestatus...");
 
 	std::vector<String> lines;
 	lines.push_back("GET services");
@@ -199,7 +199,7 @@ BOOST_AUTO_TEST_CASE(services)
 	BOOST_CHECK(res1->Contains("livestatus") || res2->Contains("livestatus")); //service_description
 	BOOST_CHECK(res1->Contains("test livestatus") || res2->Contains("test livestatus")); //notes
 
-	BOOST_MESSAGE("Done with testing livestatus services...");
+	BOOST_TEST_MESSAGE("Done with testing livestatus services...");
 }
 //____________________________________________________________________________//
 
