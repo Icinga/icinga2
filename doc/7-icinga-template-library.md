@@ -1698,6 +1698,38 @@ iftraffic_warn		| **Optional.** Percent of bandwidth usage necessary to result i
 iftraffic_crit		| **Optional.** Percent of bandwidth usage necessary to result in critical status (defaults to `98%`).
 iftraffic_max_counter	| **Optional.** Maximum counter value of net devices in kilo/mega/giga/bytes.
 
+### <a id="plugins-contrib-command-interfaces"></a> interfaces
+
+The plugin [check_interfaces](https://www.netways.org/projects/check-interfaces)
+Check interfaces and utilization.
+
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
+
+Name                      | Description
+--------------------------|---------------------------------------------------------
+interfaces_address        | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
+interfaces_regex          | **Optional.** Interface list regexp.
+interfaces_exclude_regex  | **Optional.** Interface list negative regexp.
+interfaces_errors         | **Optional.** Number of in errors (CRC errors for cisco) to consider a warning (default 50).
+interface_out_errors      | **Optional.** Number of out errors (collisions for cisco) to consider a warning (default same as in errors).
+interfaces_perfdata       | **Optional.** perfdata from last check result.
+interfaces_prefix         | **Optional.** Prefix interface names with this label.
+interfaces_lastcheck      | **Optional.** Last checktime (unixtime).
+interfaces_bandwidth      | **Optional.** Bandwidth warn level in percent.
+interfaces_speed          | **Optional.** Override speed detection with this value (bits per sec).
+interfaces_trim           | **Optional.** Cut this number of characters from the start of interface descriptions.
+interfaces_mode           | **Optional.** Special operating mode (default,cisco,nonbulk,bintec).
+interfaces_auth_proto     | **Optional.** SNMPv3 Auth Protocol (SHA|MD5)
+interfaces_auth_phrase    | **Optional.** SNMPv3 Auth Phrase
+interfaces_priv_proto     | **Optional.** SNMPv3 Privacy Protocol (AES|DES)
+interfaces_priv_phrase    | **Optional.** SNMPv3 Privacy Phrase
+interfaces_user           | **Optional.** SNMPv3 User
+interfaces_down_is_ok     | **Optional.** Disables critical alerts for down interfaces.
+interfaces_aliases        | **Optional.** Retrieves the interface description.
+interfaces_match_aliases  | **Optional.** Also match against aliases (Option --aliases automatically enabled).
+interfaces_timeout        | **Optional.** Sets the SNMP timeout (in ms).
+interfaces_sleep          | **Optional.** Sleep between every SNMP query (in ms).
+
 ## <a id="plugins-contrib-web"></a> Web
 
 This category includes all plugins for web-based checks.
