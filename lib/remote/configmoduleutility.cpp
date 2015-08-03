@@ -262,6 +262,8 @@ void ConfigModuleUtility::CollectPaths(const String& path, std::vector<std::pair
 		    << boost::errinfo_api_function("lstat")
 		    << boost::errinfo_errno(errno)
 		    << boost::errinfo_file_name(path));
+
+	paths.push_back(std::make_pair(path, S_ISDIR(statbuf.st_mode)));
 #else /* _WIN32 */
 	struct _stat statbuf;
 	int rc = _stat(path.CStr(), &statbuf);
@@ -270,9 +272,9 @@ void ConfigModuleUtility::CollectPaths(const String& path, std::vector<std::pair
 		    << boost::errinfo_api_function("_stat")
 		    << boost::errinfo_errno(errno)
 		    << boost::errinfo_file_name(path));
-#endif /* _WIN32 */
 
-	paths.push_back(std::make_pair(path, S_ISDIR(statbuf.st_mode)));
+	paths.push_back(std::make_pair(path, ((statbuf.st_mode & S_IFMT) == S_IFDIR)));
+#endif /* _WIN32 */
 }
 
 bool ConfigModuleUtility::ContainsDotDot(const String& path)
