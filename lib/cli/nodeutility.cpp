@@ -314,7 +314,7 @@ int NodeUtility::GenerateNodeIcingaConfig(const std::vector<std::string>& endpoi
 	Array::Ptr my_zone_members = new Array();
 	my_zone_members->Add(nodename);
 
-	my_zone->Set("__name", nodename);
+	my_zone->Set("__name", zonename);
 	my_zone->Set("__type", "Zone");
 	my_zone->Set("parent", master_zone_name); //set the master zone as parent
 	my_zone->Set("//this is the local node", nodename);
