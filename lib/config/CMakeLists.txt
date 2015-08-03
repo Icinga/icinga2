@@ -37,6 +37,7 @@ set(config_SOURCES
   applyrule.cpp
   configcompilercontext.cpp configcompiler.cpp configitembuilder.cpp
   configitem.cpp ${FLEX_config_lexer_OUTPUTS} ${BISON_config_parser_OUTPUTS}
+  configwriter.cpp
   expression.cpp objectrule.cpp
 )
 
