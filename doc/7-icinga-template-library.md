@@ -733,19 +733,24 @@ Check command object for the `check_snmp` plugin, using SNMPv3 authentication an
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
-Name              | Description
-------------------|--------------
-snmpv3_address    | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
-snmpv3_user       | **Required.** The username to log in with.
-snmpv3_auth_alg   | **Optional.** The authentication algorithm. Defaults to SHA.
-snmpv3_seclevel   | **Optional.** The security level. Defaults to authPriv.
-snmpv3_auth_key   | **Required,** The authentication key. Required if `snmpv3_seclevel` is set to `authPriv` otherwise optional.
-snmpv3_priv_alg   | **Optional.** The encryption algorithm. Defaults to AES.
-snmpv3_priv_key   | **Required.** The encryption key.
-snmpv3_oid        | **Required.** The SNMP OID.
-snmpv3_warn       | **Optional.** The warning threshold.
-snmpv3_crit       | **Optional.** The critical threshold.
-snmpv3_label      | **Optional.** Prefix label for output value.
+Name                 | Description
+---------------------|--------------
+snmpv3_address       | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
+snmpv3_getnext       | **Optional.** Use SNMP GETNEXT instead of SNMP GET.
+snmpv3_seclevel      | **Optional.** The security level. Defaults to authPriv.
+snmpv3_auth_alg      | **Optional.** The authentication algorithm. Defaults to SHA.
+snmpv3_user          | **Required.** The username to log in with.
+snmpv3_auth_key      | **Required,** The authentication key. Required if `snmpv3_seclevel` is set to `authPriv` otherwise optional.
+snmpv3_priv_key      | **Required.** The encryption key.
+snmpv3_oid           | **Required.** The SNMP OID.
+snmpv3_priv_alg      | **Optional.** The encryption algorithm. Defaults to AES.
+snmpv3_warn          | **Optional.** The warning threshold.
+snmpv3_crit          | **Optional.** The critical threshold.
+snmpv3_string        | **Optional.** Return OK state (for that OID) if STRING is an exact match.
+snmpv3_ereg          | **Optional.** Return OK state (for that OID) if extended regular expression REGEX matches.
+snmpv3_eregi         | **Optional.** Return OK state (for that OID) if case-insensitive extended REGEX matches.
+snmpv3_invert_search | **Optional.** Invert search result and return CRITICAL if found
+snmpv3_label         | **Optional.** Prefix label for output value.
 
 ## <a id="plugin-check-command-snmp-uptime"></a> snmp-uptime
 
