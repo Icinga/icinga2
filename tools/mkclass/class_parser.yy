@@ -60,6 +60,7 @@ using namespace icinga;
 %token T_CLASS "class (T_CLASS)"
 %token T_CODE "code (T_CODE)"
 %token T_LOAD_AFTER "load_after (T_LOAD_AFTER)"
+%token T_LIBRARY "library (T_LIBRARY)"
 %token T_NAMESPACE "namespace (T_NAMESPACE)"
 %token T_VALIDATOR "validator (T_VALIDATOR)"
 %token T_REQUIRED "required (T_REQUIRED)"
@@ -162,6 +163,7 @@ statement: include
 		context->HandleCode($1, yylloc);
 		std::free($1);
 	}
+	| library
 	;
 
 include: T_INCLUDE T_STRING
@@ -190,6 +192,13 @@ namespace: T_NAMESPACE identifier '{'
 code: T_CODE T_STRING
 	{
 		$$ = $2;
+	}
+	;
+
+library: T_LIBRARY T_IDENTIFIER ';'
+	{
+		context->HandleLibrary($2, yylloc);
+		free($2);
 	}
 	;
 

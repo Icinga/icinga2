@@ -19,6 +19,8 @@
 
 #include "base/dynamicobject.hpp"
 
+library perfdata;
+
 namespace icinga
 {
 

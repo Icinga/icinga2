@@ -20,6 +20,8 @@
 #include "icinga/customvarobject.hpp"
 #include "base/application.hpp"
 
+library icinga;
+
 namespace icinga
 {
 

@@ -63,10 +63,13 @@ void CompatLogger::Start(void)
 
 	Checkable::OnNewCheckResult.connect(bind(&CompatLogger::CheckResultHandler, this, _1, _2));
 	Checkable::OnNotificationSentToUser.connect(bind(&CompatLogger::NotificationSentHandler, this, _1, _2, _3, _4, _5, _6, _7, _8));
-	Checkable::OnFlappingChanged.connect(bind(&CompatLogger::FlappingHandler, this, _1, _2));
 	Checkable::OnDowntimeTriggered.connect(boost::bind(&CompatLogger::TriggerDowntimeHandler, this, _1, _2));
 	Checkable::OnDowntimeRemoved.connect(boost::bind(&CompatLogger::RemoveDowntimeHandler, this, _1, _2));
 	Checkable::OnEventCommandExecuted.connect(bind(&CompatLogger::EventCommandHandler, this, _1));
+	
+	Checkable::OnFlappingChanged.connect(boost::bind(&CompatLogger::FlappingChangedHandler, this, _1));
+	Checkable::OnEnableFlappingChanged.connect(boost::bind(&CompatLogger::EnableFlappingChangedHandler, this, _1));
+	
 	ExternalCommandProcessor::OnNewExternalCommand.connect(boost::bind(&CompatLogger::ExternalCommandHandler, this, _2, _3));
 
 	m_RotationTimer = new Timer();
@@ -294,7 +297,7 @@ void CompatLogger::NotificationSentHandler(const Notification::Ptr& notification
 /**
  * @threadsafety Always.
  */
-void CompatLogger::FlappingHandler(const Checkable::Ptr& checkable, FlappingState flapping_state)
+void CompatLogger::FlappingChangedHandler(const Checkable::Ptr& checkable)
 {
 	Host::Ptr host;
 	Service::Ptr service;
@@ -302,25 +305,50 @@ void CompatLogger::FlappingHandler(const Checkable::Ptr& checkable, FlappingStat
 
 	String flapping_state_str;
 	String flapping_output;
-
-	switch (flapping_state) {
-		case FlappingStarted:
-			flapping_output = "Checkable appears to have started flapping (" + Convert::ToString(checkable->GetFlappingCurrent()) + "% change >= " + Convert::ToString(checkable->GetFlappingThreshold()) + "% threshold)";
-			flapping_state_str = "STARTED";
-			break;
-		case FlappingStopped:
-			flapping_output = "Checkable appears to have stopped flapping (" + Convert::ToString(checkable->GetFlappingCurrent()) + "% change < " + Convert::ToString(checkable->GetFlappingThreshold()) + "% threshold)";
-			flapping_state_str = "STOPPED";
-			break;
-		case FlappingDisabled:
-			flapping_output = "Flap detection has been disabled";
-			flapping_state_str = "DISABLED";
-			break;
-		default:
-			Log(LogCritical, "CompatLogger")
-			    << "Unknown flapping state: " << flapping_state;
-			return;
+	
+	if (checkable->IsFlapping()) {
+		flapping_output = "Checkable appears to have started flapping (" + Convert::ToString(checkable->GetFlappingCurrent()) + "% change >= " + Convert::ToString(checkable->GetFlappingThreshold()) + "% threshold)";
+		flapping_state_str = "STARTED";
+	} else {
+		flapping_output = "Checkable appears to have stopped flapping (" + Convert::ToString(checkable->GetFlappingCurrent()) + "% change < " + Convert::ToString(checkable->GetFlappingThreshold()) + "% threshold)";
+		flapping_state_str = "STOPPED";
 	}
+
+	std::ostringstream msgbuf;
+
+	if (service) {
+		msgbuf << "SERVICE FLAPPING ALERT: "
+			<< host->GetName() << ";"
+			<< service->GetShortName() << ";"
+			<< flapping_state_str << "; "
+			<< flapping_output
+			<< "";
+	} else {
+		msgbuf << "HOST FLAPPING ALERT: "
+			<< host->GetName() << ";"
+			<< flapping_state_str << "; "
+			<< flapping_output
+			<< "";
+	}
+
+	{
+		ObjectLock oLock(this);
+		WriteLine(msgbuf.str());
+		Flush();
+	}
+}
+
+void CompatLogger::EnableFlappingChangedHandler(const Checkable::Ptr& checkable)
+{
+	Host::Ptr host;
+	Service::Ptr service;
+	tie(host, service) = GetHostService(checkable);
+
+	if (checkable->GetEnableFlapping())
+		return;
+		
+	String flapping_output = "Flap detection has been disabled";
+	String flapping_state_str = "DISABLED";
 
 	std::ostringstream msgbuf;
 

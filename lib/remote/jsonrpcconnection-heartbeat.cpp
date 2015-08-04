@@ -75,13 +75,13 @@ void JsonRpcConnection::HeartbeatTimerHandler(void)
 	}
 }
 
-Value JsonRpcConnection::HeartbeatAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
+Value JsonRpcConnection::HeartbeatAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
 {
 	Value vtimeout = params->Get("timeout");
 
 	if (!vtimeout.IsEmpty()) {
-		origin.FromClient->m_NextHeartbeat = Utility::GetTime() + vtimeout;
-		origin.FromClient->m_HeartbeatTimeout = vtimeout;
+		origin->FromClient->m_NextHeartbeat = Utility::GetTime() + vtimeout;
+		origin->FromClient->m_HeartbeatTimeout = vtimeout;
 	}
 
 	return Empty;

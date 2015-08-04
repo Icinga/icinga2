@@ -17,8 +17,11 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
+#include "remote/i2-remote.hpp"
 #include "base/dynamicobject.hpp"
 #include "base/application.hpp"
+
+library remote;
 
 namespace icinga
 {

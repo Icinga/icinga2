@@ -21,6 +21,8 @@
 #include "icinga/customvarobject.hpp"
 #include "base/array.hpp"
 
+library icinga;
+
 namespace icinga
 {
 
@@ -40,15 +42,15 @@ enum AcknowledgementType
 
 abstract class Checkable : CustomVarObject
 {
-	[config, protected, required] name(CheckCommand) check_command (CheckCommandRaw);
-	[config] int max_check_attempts (MaxCheckAttemptsRaw) {
+	[config, required] name(CheckCommand) check_command (CheckCommandRaw);
+	[config] int max_check_attempts {
 		default {{{ return 3; }}}
 	};
-	[config, protected] name(TimePeriod) check_period (CheckPeriodRaw);
-	[config] double check_interval (CheckIntervalRaw) {
+	[config] name(TimePeriod) check_period (CheckPeriodRaw);
+	[config] double check_interval {
 		default {{{ return 5 * 60; }}}
 	};
-	[config] double retry_interval (RetryIntervalRaw) {
+	[config] double retry_interval {
 		default {{{ return 60; }}}
 	};
 	[config] name(EventCommand) event_command (EventCommandRaw);
@@ -56,22 +58,22 @@ abstract class Checkable : CustomVarObject
 	[config] double flapping_threshold {
 		default {{{ return 30; }}}
 	};
-	[config] bool enable_active_checks (EnableActiveChecksRaw) {
+	[config] bool enable_active_checks {
 		default {{{ return true; }}}
 	};
-	[config] bool enable_passive_checks (EnablePassiveChecksRaw) {
+	[config] bool enable_passive_checks {
 		default {{{ return true; }}}
 	};
-	[config] bool enable_event_handler (EnableEventHandlerRaw) {
+	[config] bool enable_event_handler {
 		default {{{ return true; }}}
 	};
-	[config] bool enable_notifications (EnableNotificationsRaw) {
+	[config] bool enable_notifications {
 		default {{{ return true; }}}
 	};
-	[config] bool enable_flapping (EnableFlappingRaw) {
+	[config] bool enable_flapping {
 		default {{{ return false; }}}
 	};
-	[config] bool enable_perfdata (EnablePerfdataRaw) {
+	[config] bool enable_perfdata {
 		default {{{ return true; }}}
 	};
 
@@ -81,7 +83,7 @@ abstract class Checkable : CustomVarObject
 	[config] String icon_image;
 	[config] String icon_image_alt;
 
-	[state] double next_check (NextCheckRaw);
+	[state] double next_check;
 	[state] int check_attempt {
 		default {{{ return 1; }}}
 	};
@@ -116,7 +118,7 @@ abstract class Checkable : CustomVarObject
 	[state] double last_state_unknown;
 	[state] double last_state_unreachable;
 	[state] bool last_in_downtime;
-	[state] bool force_next_check (ForceNextCheckRaw);
+	[state] bool force_next_check;
 	[state] int acknowledgement (AcknowledgementRaw) {
 		default {{{ return AcknowledgementNone; }}}
 	};
@@ -127,22 +129,13 @@ abstract class Checkable : CustomVarObject
 	[state] Dictionary::Ptr downtimes {
 		default {{{ return new Dictionary(); }}}
 	};
-	[state] bool force_next_notification (ForceNextNotificationRaw);
+	[state] bool force_next_notification;
 	[state] int flapping_positive;
 	[state] int flapping_negative;
 	[state] double flapping_last_change;
-	[state] Value override_enable_notifications;
-	[state] Value override_enable_active_checks;
-	[state] Value override_enable_passive_checks;
-	[state] Value override_enable_flapping;
-	[state] Value override_enable_perfdata;
-	[state] Value override_check_interval;
-	[state] Value override_retry_interval;
-	[state] Value override_enable_event_handler;
-	[state] Value override_event_command;
-	[state] Value override_check_command;
-	[state] Value override_max_check_attempts;
-	[state] Value override_check_period;
+	[no_storage, protected] bool flapping {
+		get {{{ return false; }}}
+	};
 
 	[config] name(Endpoint) command_endpoint (CommandEndpointRaw);
 };

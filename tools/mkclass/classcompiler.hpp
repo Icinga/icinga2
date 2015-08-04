@@ -208,6 +208,7 @@ public:
 	void HandleNamespaceBegin(const std::string& name, const ClassDebugInfo& locp);
 	void HandleNamespaceEnd(const ClassDebugInfo& locp);
 	void HandleCode(const std::string& code, const ClassDebugInfo& locp);
+	void HandleLibrary(const std::string& library, const ClassDebugInfo& locp);
 	void HandleMissingValidators(void);
 
 	void CodeGenValidator(const std::string& name, const std::string& klass, const std::vector<Rule>& rules, const std::string& field, const FieldType& fieldType, ValidatorType validatorType);
@@ -226,6 +227,8 @@ private:
 	std::ostream& m_Impl;
 	std::ostream& m_Header;
 	void *m_Scanner;
+
+	std::string m_Library;
 
 	std::map<std::pair<std::string, std::string>, Field> m_MissingValidators;
 

@@ -24,6 +24,7 @@
 #include "base/string.hpp"
 #include "base/object.hpp"
 #include "base/initialize.hpp"
+#include <boost/function.hpp>
 #include <vector>
 
 namespace icinga
@@ -68,7 +69,7 @@ public:
 class I2_BASE_API Type : public Object
 {
 public:
-	DECLARE_PTR_TYPEDEFS(Type);
+	DECLARE_OBJECT(Type);
 
 	virtual String ToString(void) const;
 
@@ -95,6 +96,9 @@ public:
 	virtual Value GetField(int id) const;
 
 	virtual std::vector<String> GetLoadDependencies(void) const;
+	
+	typedef boost::function<void (const Object::Ptr&, const Value&)> AttributeHandler;
+	virtual void RegisterAttributeHandler(int fieldId, const AttributeHandler& callback);
 
 protected:
 	virtual ObjectFactory GetFactory(void) const = 0;
@@ -114,6 +118,8 @@ public:
 	virtual int GetFieldId(const String& name) const;
 	virtual Field GetFieldInfo(int id) const;
 	virtual int GetFieldCount(void) const;
+	
+	static Object::Ptr GetPrototype(void);
 
 protected:
 	virtual ObjectFactory GetFactory(void) const;
@@ -129,6 +135,20 @@ class TypeImpl
 		void RegisterType ## type(void) \
 		{ \
 			icinga::Type::Ptr t = new TypeImpl<type>(); \
+			type::TypeInstance = t; \
+			icinga::Type::Register(t); \
+		} \
+		\
+		INITIALIZE_ONCE_WITH_PRIORITY(RegisterType ## type, 10); \
+	} } \
+	DEFINE_TYPE_INSTANCE(type)
+
+#define REGISTER_TYPE_WITH_PROTOTYPE(type, prototype) \
+	namespace { namespace UNIQUE_NAME(rt) { \
+		void RegisterType ## type(void) \
+		{ \
+			icinga::Type::Ptr t = new TypeImpl<type>(); \
+			t->SetPrototype(prototype); \
 			type::TypeInstance = t; \
 			icinga::Type::Register(t); \
 		} \

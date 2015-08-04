@@ -34,8 +34,8 @@ static std::map<int, String> l_LegacyDowntimesCache;
 static std::map<String, Checkable::Ptr> l_DowntimesCache;
 static Timer::Ptr l_DowntimesExpireTimer;
 
-boost::signals2::signal<void (const Checkable::Ptr&, const Downtime::Ptr&, const MessageOrigin&)> Checkable::OnDowntimeAdded;
-boost::signals2::signal<void (const Checkable::Ptr&, const Downtime::Ptr&, const MessageOrigin&)> Checkable::OnDowntimeRemoved;
+boost::signals2::signal<void (const Checkable::Ptr&, const Downtime::Ptr&, const MessageOrigin::Ptr&)> Checkable::OnDowntimeAdded;
+boost::signals2::signal<void (const Checkable::Ptr&, const Downtime::Ptr&, const MessageOrigin::Ptr&)> Checkable::OnDowntimeRemoved;
 boost::signals2::signal<void (const Checkable::Ptr&, const Downtime::Ptr&)> Checkable::OnDowntimeTriggered;
 
 INITIALIZE_ONCE(&Checkable::StartDowntimesExpiredTimer);
@@ -50,7 +50,7 @@ int Checkable::GetNextDowntimeID(void)
 String Checkable::AddDowntime(const String& author, const String& comment,
     double startTime, double endTime, bool fixed,
     const String& triggeredBy, double duration, const String& scheduledBy,
-    const String& id, const MessageOrigin& origin)
+    const String& id, const MessageOrigin::Ptr& origin)
 {
 	String uid;
 
@@ -125,7 +125,7 @@ String Checkable::AddDowntime(const String& author, const String& comment,
 	return uid;
 }
 
-void Checkable::RemoveDowntime(const String& id, bool cancelled, const MessageOrigin& origin)
+void Checkable::RemoveDowntime(const String& id, bool cancelled, const MessageOrigin::Ptr& origin)
 {
 	Checkable::Ptr owner = GetOwnerByDowntimeID(id);
 

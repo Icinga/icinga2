@@ -51,15 +51,6 @@ enum LogEntryType
     LogEntryTypeServiceNotification = 1048576
 };
 
-enum EnableType
-{
-    EnableActiveChecks = 1,
-    EnablePassiveChecks = 2,
-    EnableNotifications = 3,
-    EnablePerfdata = 4,
-    EnableFlapping = 5
-};
-
 /**
  * IDO events
  *
@@ -81,15 +72,15 @@ public:
 	static void AddLogHistory(const Checkable::Ptr& checkable, String buffer, LogEntryType type);
 
 	/* Status */
-	static void NextCheckChangedHandler(const Checkable::Ptr& checkable, double nextCheck);
-	static void FlappingChangedHandler(const Checkable::Ptr& checkable, FlappingState state);
+	static void NextCheckChangedHandler(const Checkable::Ptr& checkable);
+	static void FlappingChangedHandler(const Checkable::Ptr& checkable);
 	static void LastNotificationChangedHandler(const Notification::Ptr& notification, const Checkable::Ptr& checkable);
 
-	static void EnableActiveChecksChangedHandler(const Checkable::Ptr& checkable, bool enabled);
-	static void EnablePassiveChecksChangedHandler(const Checkable::Ptr& checkable, bool enabled);
-	static void EnableNotificationsChangedHandler(const Checkable::Ptr& checkable, bool enabled);
-	static void EnablePerfdataChangedHandler(const Checkable::Ptr& checkable, bool enabled);
-	static void EnableFlappingChangedHandler(const Checkable::Ptr& checkable, bool enabled);
+	static void EnableActiveChecksChangedHandler(const Checkable::Ptr& checkable);
+	static void EnablePassiveChecksChangedHandler(const Checkable::Ptr& checkable);
+	static void EnableNotificationsChangedHandler(const Checkable::Ptr& checkable);
+	static void EnablePerfdataChangedHandler(const Checkable::Ptr& checkable);
+	static void EnableFlappingChangedHandler(const Checkable::Ptr& checkable);
 
 	static void AddComment(const Checkable::Ptr& checkable, const Comment::Ptr& comment);
 	static void RemoveComment(const Checkable::Ptr& checkable, const Comment::Ptr& comment);
@@ -125,10 +116,13 @@ public:
 	static void AddNotificationSentLogHistory(const Notification::Ptr& notification, const Checkable::Ptr& checkable,
 	    const User::Ptr& user, NotificationType notification_type, const CheckResult::Ptr& cr, const String& author,
 	    const String& comment_text);
-	static void AddFlappingLogHistory(const Checkable::Ptr& checkable, FlappingState flapping_state);
+
+	static void AddFlappingChangedLogHistory(const Checkable::Ptr& checkable);
+	static void AddEnableFlappingChangedLogHistory(const Checkable::Ptr& checkable);
 
 	/* other history */
-	static void AddFlappingHistory(const Checkable::Ptr& checkable, FlappingState flapping_state);
+	static void AddFlappingChangedHistory(const Checkable::Ptr& checkable);
+	static void AddEnableFlappingChangedHistory(const Checkable::Ptr& checkable);
 	static void AddCheckableCheckHistory(const Checkable::Ptr& checkable, const CheckResult::Ptr &cr);
 	static void AddEventHandlerHistory(const Checkable::Ptr& checkable);
 	static void AddExternalCommandHistory(double time, const String& command, const std::vector<String>& arguments);
@@ -138,7 +132,7 @@ private:
 
 	static void AddCommentInternal(const Checkable::Ptr& checkable, const Comment::Ptr& comment, bool historical);
 	static void AddDowntimeInternal(const Checkable::Ptr& checkable, const Downtime::Ptr& downtime, bool historical);
-	static void EnableChangedHandlerInternal(const Checkable::Ptr& checkable, bool enabled, EnableType type);
+	static void EnableChangedHandlerInternal(const Checkable::Ptr& checkable, const String& fieldName, bool enabled);
 };
 
 }

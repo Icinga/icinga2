@@ -19,6 +19,8 @@
 
 #include "icinga/command.hpp"
 
+library icinga;
+
 namespace icinga
 {
 

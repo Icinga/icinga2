@@ -54,7 +54,8 @@ private:
 	void NotificationSentHandler(const Notification::Ptr& notification, const Checkable::Ptr& service,
 	    const User::Ptr& user, NotificationType notification_type, CheckResult::Ptr const& cr,
 	    const String& author, const String& comment_text, const String& command_name);
-	void FlappingHandler(const Checkable::Ptr& service, FlappingState flapping_state);
+	void FlappingChangedHandler(const Checkable::Ptr& checkable);
+	void EnableFlappingChangedHandler(const Checkable::Ptr& checkable);
 	void TriggerDowntimeHandler(const Checkable::Ptr& service, const Downtime::Ptr& downtime);
 	void RemoveDowntimeHandler(const Checkable::Ptr& service, const Downtime::Ptr& downtime);
 	void ExternalCommandHandler(const String& command, const std::vector<String>& arguments);

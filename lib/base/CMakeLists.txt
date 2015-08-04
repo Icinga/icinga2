@@ -23,15 +23,19 @@ mkclass_target(streamlogger.ti streamlogger.tcpp streamlogger.thpp)
 mkclass_target(sysloglogger.ti sysloglogger.tcpp sysloglogger.thpp)
 
 set(base_SOURCES
-  application.cpp application.thpp application-version.cpp array.cpp array-script.cpp boolean.cpp boolean-script.cpp console.cpp context.cpp
-  convert.cpp debuginfo.cpp dictionary.cpp dictionary-script.cpp dynamicobject.cpp dynamicobject.thpp dynamictype.cpp
-  exception.cpp fifo.cpp filelogger.cpp filelogger.thpp initialize.cpp json.cpp json-script.cpp loader.cpp logger.cpp logger.thpp math-script.cpp
-  netstring.cpp networkstream.cpp number.cpp number-script.cpp object.cpp object-script.cpp primitivetype.cpp process.cpp
-  ringbuffer.cpp scriptframe.cpp function.cpp function-script.cpp functionwrapper.cpp scriptglobal.cpp
+  application.cpp application.thpp application-version.cpp array.cpp
+  array-script.cpp boolean.cpp boolean-script.cpp console.cpp context.cpp
+  convert.cpp debuginfo.cpp dictionary.cpp dictionary-script.cpp
+  dynamicobject.cpp dynamicobject.thpp dynamicobject-script.cpp dynamictype.cpp
+  exception.cpp fifo.cpp filelogger.cpp filelogger.thpp initialize.cpp json.cpp
+  json-script.cpp loader.cpp logger.cpp logger.thpp math-script.cpp
+  netstring.cpp networkstream.cpp number.cpp number-script.cpp object.cpp
+  object-script.cpp primitivetype.cpp process.cpp ringbuffer.cpp scriptframe.cpp
+  function.cpp function-script.cpp functionwrapper.cpp scriptglobal.cpp
   scriptutils.cpp serializer.cpp socket.cpp socketevents.cpp stacktrace.cpp
   statsfunction.cpp stdiostream.cpp stream.cpp streamlogger.cpp streamlogger.thpp string.cpp string-script.cpp
   sysloglogger.cpp sysloglogger.thpp tcpsocket.cpp thinmutex.cpp threadpool.cpp timer.cpp
-  tlsstream.cpp tlsutility.cpp type.cpp unixsocket.cpp utility.cpp value.cpp
+  tlsstream.cpp tlsutility.cpp type.cpp typetype-script.cpp unixsocket.cpp utility.cpp value.cpp
   value-operators.cpp workqueue.cpp
 )
 

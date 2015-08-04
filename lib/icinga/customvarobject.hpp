@@ -59,15 +59,10 @@ class I2_ICINGA_API CustomVarObject : public ObjectImpl<CustomVarObject>
 public:
 	DECLARE_OBJECT(CustomVarObject);
 
-	static boost::signals2::signal<void (const CustomVarObject::Ptr&, const Dictionary::Ptr& vars, const MessageOrigin&)> OnVarsChanged;
-
-	virtual void ValidateVarsRaw(const Dictionary::Ptr& value, const ValidationUtils& utils) override;
-
-	Dictionary::Ptr GetVars(void) const;
-	void SetVars(const Dictionary::Ptr& vars, const MessageOrigin& origin = MessageOrigin());
+	virtual void ValidateVars(const Dictionary::Ptr& value, const ValidationUtils& utils) override;
 
 	virtual int GetModifiedAttributes(void) const;
-	virtual void SetModifiedAttributes(int flags, const MessageOrigin& origin = MessageOrigin());
+	virtual void SetModifiedAttributes(int flags, const MessageOrigin::Ptr& origin = MessageOrigin::Ptr());
 
 	bool IsVarOverridden(const String& name) const;
 };

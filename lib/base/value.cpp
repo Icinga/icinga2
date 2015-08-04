@@ -24,7 +24,7 @@
 
 using namespace icinga;
 
-Value Empty;
+Value icinga::Empty;
 
 bool Value::ToBool(void) const
 {

@@ -32,6 +32,7 @@ target_link_libraries(checker ${Boost_LIBRARIES} base config icinga remote)
 set_target_properties (
   checker PROPERTIES
   INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR}/icinga2
+  DEFINE_SYMBOL I2_CHECKER_BUILD
   FOLDER Components
 )
 

@@ -99,30 +99,3 @@ void Checkable::RemoveNotification(const Notification::Ptr& notification)
 	boost::mutex::scoped_lock lock(m_NotificationMutex);
 	m_Notifications.erase(notification);
 }
-
-bool Checkable::GetEnableNotifications(void) const
-{
-	if (!GetOverrideEnableNotifications().IsEmpty())
-		return GetOverrideEnableNotifications();
-	else
-		return GetEnableNotificationsRaw();
-}
-
-void Checkable::SetEnableNotifications(bool enabled, const MessageOrigin& origin)
-{
-	SetOverrideEnableNotifications(enabled);
-
-	OnEnableNotificationsChanged(this, enabled, origin);
-}
-
-bool Checkable::GetForceNextNotification(void) const
-{
-	return GetForceNextNotificationRaw();
-}
-
-void Checkable::SetForceNextNotification(bool forced, const MessageOrigin& origin)
-{
-	SetForceNextNotificationRaw(forced);
-
-	OnForceNextNotificationChanged(this, forced, origin);
-}

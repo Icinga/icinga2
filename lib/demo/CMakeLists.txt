@@ -32,6 +32,7 @@ target_link_libraries(demo ${Boost_LIBRARIES} base config icinga remote)
 set_target_properties (
   demo PROPERTIES
   INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR}/icinga2
+  DEFINE_SYMBOL I2_DEMO_BUILD
   FOLDER Components
 )
 

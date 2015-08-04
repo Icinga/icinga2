@@ -28,41 +28,10 @@
 using namespace icinga;
 
 boost::signals2::signal<void (const Checkable::Ptr&)> Checkable::OnEventCommandExecuted;
-boost::signals2::signal<void (const Checkable::Ptr&, bool, const MessageOrigin&)> Checkable::OnEnableEventHandlerChanged;
-boost::signals2::signal<void (const Checkable::Ptr&, const EventCommand::Ptr&, const MessageOrigin&)> Checkable::OnEventCommandChanged;
-
-bool Checkable::GetEnableEventHandler(void) const
-{
-	if (!GetOverrideEnableEventHandler().IsEmpty())
-		return GetOverrideEnableEventHandler();
-	else
-		return GetEnableEventHandlerRaw();
-}
-
-void Checkable::SetEnableEventHandler(bool enabled, const MessageOrigin& origin)
-{
-	SetOverrideEnableEventHandler(enabled);
-
-	OnEnableEventHandlerChanged(this, enabled, origin);
-}
 
 EventCommand::Ptr Checkable::GetEventCommand(void) const
 {
-	String command;
-
-	if (!GetOverrideEventCommand().IsEmpty())
-		command = GetOverrideEventCommand();
-	else
-		command = GetEventCommandRaw();
-
-	return EventCommand::GetByName(command);
-}
-
-void Checkable::SetEventCommand(const EventCommand::Ptr& command, const MessageOrigin& origin)
-{
-	SetOverrideEventCommand(command->GetName());
-
-	OnEventCommandChanged(this, command, origin);
+	return EventCommand::GetByName(GetEventCommandRaw());
 }
 
 void Checkable::ExecuteEventHandler(const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)

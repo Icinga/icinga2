@@ -245,7 +245,7 @@ private:
 	}
 };
 
-static Value Empty;
+extern I2_BASE_API Value Empty;
 
 I2_BASE_API Value operator+(const Value& lhs, const char *rhs);
 I2_BASE_API Value operator+(const char *lhs, const Value& rhs);

@@ -23,6 +23,7 @@
 #include <boost/foreach.hpp>
 #include <boost/regex.hpp>
 #include <boost/algorithm/string/replace.hpp>
+#include <set>
 #include <iterator>
 
 using namespace icinga;

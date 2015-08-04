@@ -42,10 +42,6 @@ class I2_BASE_API DynamicObject : public ObjectImpl<DynamicObject>
 public:
 	DECLARE_OBJECT(DynamicObject);
 
-	static boost::signals2::signal<void (const DynamicObject::Ptr&)> OnStarted;
-	static boost::signals2::signal<void (const DynamicObject::Ptr&)> OnStopped;
-	static boost::signals2::signal<void (const DynamicObject::Ptr&)> OnPaused;
-	static boost::signals2::signal<void (const DynamicObject::Ptr&)> OnResumed;
 	static boost::signals2::signal<void (const DynamicObject::Ptr&)> OnStateChanged;
 
 	intrusive_ptr<DynamicType> GetType(void) const;
@@ -56,6 +52,10 @@ public:
 	void SetExtension(const String& key, const Value& value);
 	Value GetExtension(const String& key);
 	void ClearExtension(const String& key);
+
+	void ModifyAttribute(const String& attr, const Value& value);
+	void RestoreAttribute(const String& attr);
+	bool IsAttributeModified(const String& attr) const;
 
 	void Register(void);
 
@@ -85,6 +85,8 @@ public:
 	static void DumpObjects(const String& filename, int attributeTypes = FAState);
 	static void RestoreObjects(const String& filename, int attributeTypes = FAState);
 	static void StopObjects(void);
+
+	static Object::Ptr GetPrototype(void);
 
 protected:
 	explicit DynamicObject(void);

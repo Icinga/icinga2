@@ -214,9 +214,9 @@ void ApiListener::SendConfigUpdate(const JsonRpcConnection::Ptr& aclient)
 	aclient->SendMessage(message);
 }
 
-Value ApiListener::ConfigUpdateHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
+Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
 {
-	if (!origin.FromClient->GetEndpoint() || (origin.FromZone && !Zone::GetLocalZone()->IsChildOf(origin.FromZone)))
+	if (!origin->FromClient->GetEndpoint() || (origin->FromZone && !Zone::GetLocalZone()->IsChildOf(origin->FromZone)))
 		return Empty;
 
 	ApiListener::Ptr listener = ApiListener::GetInstance();

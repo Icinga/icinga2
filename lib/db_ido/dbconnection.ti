@@ -20,6 +20,8 @@
 #include "db_ido/dbquery.hpp"
 #include "base/dynamicobject.hpp"
 
+library db_ido;
+
 namespace icinga
 {
 

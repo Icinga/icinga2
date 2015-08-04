@@ -35,90 +35,19 @@
 
 using namespace icinga;
 
-boost::signals2::signal<void (const Checkable::Ptr&, const CheckResult::Ptr&, const MessageOrigin&)> Checkable::OnNewCheckResult;
-boost::signals2::signal<void (const Checkable::Ptr&, const CheckResult::Ptr&, StateType, const MessageOrigin&)> Checkable::OnStateChange;
-boost::signals2::signal<void (const Checkable::Ptr&, const CheckResult::Ptr&, std::set<Checkable::Ptr>, const MessageOrigin&)> Checkable::OnReachabilityChanged;
+boost::signals2::signal<void (const Checkable::Ptr&, const CheckResult::Ptr&, const MessageOrigin::Ptr&)> Checkable::OnNewCheckResult;
+boost::signals2::signal<void (const Checkable::Ptr&, const CheckResult::Ptr&, StateType, const MessageOrigin::Ptr&)> Checkable::OnStateChange;
+boost::signals2::signal<void (const Checkable::Ptr&, const CheckResult::Ptr&, std::set<Checkable::Ptr>, const MessageOrigin::Ptr&)> Checkable::OnReachabilityChanged;
 boost::signals2::signal<void (const Checkable::Ptr&, NotificationType, const CheckResult::Ptr&, const String&, const String&)> Checkable::OnNotificationsRequested;
-boost::signals2::signal<void (const Checkable::Ptr&, double, const MessageOrigin&)> Checkable::OnNextCheckChanged;
-boost::signals2::signal<void (const Checkable::Ptr&, bool, const MessageOrigin&)> Checkable::OnForceNextCheckChanged;
-boost::signals2::signal<void (const Checkable::Ptr&, bool, const MessageOrigin&)> Checkable::OnForceNextNotificationChanged;
-boost::signals2::signal<void (const Checkable::Ptr&, bool, const MessageOrigin&)> Checkable::OnEnableActiveChecksChanged;
-boost::signals2::signal<void (const Checkable::Ptr&, bool, const MessageOrigin&)> Checkable::OnEnablePassiveChecksChanged;
-boost::signals2::signal<void (const Checkable::Ptr&, bool, const MessageOrigin&)> Checkable::OnEnableNotificationsChanged;
-boost::signals2::signal<void (const Checkable::Ptr&, bool, const MessageOrigin&)> Checkable::OnEnableFlappingChanged;
-boost::signals2::signal<void (const Checkable::Ptr&, double, const MessageOrigin&)> Checkable::OnCheckIntervalChanged;
-boost::signals2::signal<void (const Checkable::Ptr&, double, const MessageOrigin&)> Checkable::OnRetryIntervalChanged;
-boost::signals2::signal<void (const Checkable::Ptr&, const CheckCommand::Ptr&, const MessageOrigin&)> Checkable::OnCheckCommandChanged;
-boost::signals2::signal<void (const Checkable::Ptr&, int, const MessageOrigin&)> Checkable::OnMaxCheckAttemptsChanged;
-boost::signals2::signal<void (const Checkable::Ptr&, const TimePeriod::Ptr&, const MessageOrigin&)> Checkable::OnCheckPeriodChanged;
-boost::signals2::signal<void (const Checkable::Ptr&, FlappingState)> Checkable::OnFlappingChanged;
 
 CheckCommand::Ptr Checkable::GetCheckCommand(void) const
 {
-	String command;
-
-	if (!GetOverrideCheckCommand().IsEmpty())
-		command = GetOverrideCheckCommand();
-	else
-		command = GetCheckCommandRaw();
-
-	return CheckCommand::GetByName(command);
-}
-
-void Checkable::SetCheckCommand(const CheckCommand::Ptr& command, const MessageOrigin& origin)
-{
-	SetOverrideCheckCommand(command->GetName());
-
-	OnCheckCommandChanged(this, command, origin);
+	return CheckCommand::GetByName(GetCheckCommandRaw());
 }
 
 TimePeriod::Ptr Checkable::GetCheckPeriod(void) const
 {
-	String tp;
-
-	if (!GetOverrideCheckPeriod().IsEmpty())
-		tp = GetOverrideCheckPeriod();
-	else
-		tp = GetCheckPeriodRaw();
-
-	return TimePeriod::GetByName(tp);
-}
-
-void Checkable::SetCheckPeriod(const TimePeriod::Ptr& tp, const MessageOrigin& origin)
-{
-	SetOverrideCheckPeriod(tp->GetName());
-
-	OnCheckPeriodChanged(this, tp, origin);
-}
-
-double Checkable::GetCheckInterval(void) const
-{
-	if (!GetOverrideCheckInterval().IsEmpty())
-		return GetOverrideCheckInterval();
-	else
-		return GetCheckIntervalRaw();
-}
-
-void Checkable::SetCheckInterval(double interval, const MessageOrigin& origin)
-{
-	SetOverrideCheckInterval(interval);
-
-	OnCheckIntervalChanged(this, interval, origin);
-}
-
-double Checkable::GetRetryInterval(void) const
-{
-	if (!GetOverrideRetryInterval().IsEmpty())
-		return GetOverrideRetryInterval();
-	else
-		return GetRetryIntervalRaw();
-}
-
-void Checkable::SetRetryInterval(double interval, const MessageOrigin& origin)
-{
-	SetOverrideRetryInterval(interval);
-
-	OnRetryIntervalChanged(this, interval, origin);
+	return TimePeriod::GetByName(GetCheckPeriodRaw());
 }
 
 void Checkable::SetSchedulingOffset(long offset)
@@ -129,18 +58,6 @@ void Checkable::SetSchedulingOffset(long offset)
 long Checkable::GetSchedulingOffset(void)
 {
 	return m_SchedulingOffset;
-}
-
-void Checkable::SetNextCheck(double nextCheck, const MessageOrigin& origin)
-{
-	SetNextCheckRaw(nextCheck);
-
-	OnNextCheckChanged(this, nextCheck, origin);
-}
-
-double Checkable::GetNextCheck(void)
-{
-	return GetNextCheckRaw();
 }
 
 void Checkable::UpdateNextCheck(void)
@@ -177,64 +94,7 @@ double Checkable::GetLastCheck(void) const
 	return schedule_end;
 }
 
-bool Checkable::GetEnableActiveChecks(void) const
-{
-	if (!GetOverrideEnableActiveChecks().IsEmpty())
-		return GetOverrideEnableActiveChecks();
-	else
-		return GetEnableActiveChecksRaw();
-}
-
-void Checkable::SetEnableActiveChecks(bool enabled, const MessageOrigin& origin)
-{
-	SetOverrideEnableActiveChecks(enabled);
-
-	OnEnableActiveChecksChanged(this, enabled, origin);
-}
-
-bool Checkable::GetEnablePassiveChecks(void) const
-{
-	if (!GetOverrideEnablePassiveChecks().IsEmpty())
-		return GetOverrideEnablePassiveChecks();
-	else
-		return GetEnablePassiveChecksRaw();
-}
-
-void Checkable::SetEnablePassiveChecks(bool enabled, const MessageOrigin& origin)
-{
-	SetOverrideEnablePassiveChecks(enabled);
-
-	OnEnablePassiveChecksChanged(this, enabled, origin);
-}
-
-bool Checkable::GetForceNextCheck(void) const
-{
-	return GetForceNextCheckRaw();
-}
-
-void Checkable::SetForceNextCheck(bool forced, const MessageOrigin& origin)
-{
-	SetForceNextCheckRaw(forced);
-
-	OnForceNextCheckChanged(this, forced, origin);
-}
-
-int Checkable::GetMaxCheckAttempts(void) const
-{
-	if (!GetOverrideMaxCheckAttempts().IsEmpty())
-		return GetOverrideMaxCheckAttempts();
-	else
-		return GetMaxCheckAttemptsRaw();
-}
-
-void Checkable::SetMaxCheckAttempts(int attempts, const MessageOrigin& origin)
-{
-	SetOverrideMaxCheckAttempts(attempts);
-
-	OnMaxCheckAttemptsChanged(this, attempts, origin);
-}
-
-void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrigin& origin)
+void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrigin::Ptr& origin)
 {
 	{
 		ObjectLock olock(this);
@@ -255,7 +115,7 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 	if (cr->GetExecutionEnd() == 0)
 		cr->SetExecutionEnd(now);
 
-	if (origin.IsLocal())
+	if (!origin || origin->IsLocal())
 		cr->SetCheckSource(IcingaApplication::GetInstance()->GetNodeName());
 
 	Endpoint::Ptr command_endpoint = GetCommandEndpoint();
@@ -487,13 +347,15 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 
 		Log(LogNotice, "Checkable")
 		    << "Flapping: Checkable " << GetName() << " started flapping (" << GetFlappingThreshold() << "% < " << GetFlappingCurrent() << "%).";
-		OnFlappingChanged(this, FlappingStarted);
+
+		NotifyFlapping(origin);
 	} else if (was_flapping && !is_flapping) {
 		OnNotificationsRequested(this, NotificationFlappingEnd, cr, "", "");
 
 		Log(LogNotice, "Checkable")
 		    << "Flapping: Checkable " << GetName() << " stopped flapping (" << GetFlappingThreshold() << "% >= " << GetFlappingCurrent() << "%).";
-		OnFlappingChanged(this, FlappingStopped);
+
+		NotifyFlapping(origin);
 	} else if (send_notification)
 		OnNotificationsRequested(this, recovery ? NotificationRecovery : NotificationProblem, cr, "", "");
 }

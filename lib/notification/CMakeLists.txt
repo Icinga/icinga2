@@ -32,6 +32,7 @@ target_link_libraries(notification ${Boost_LIBRARIES} base config icinga)
 set_target_properties (
   notification PROPERTIES
   INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR}/icinga2
+  DEFINE_SYMBOL I2_NOTIFICATION_BUILD
   FOLDER Components
 )
 

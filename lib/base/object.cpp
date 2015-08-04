@@ -76,7 +76,7 @@ void Object::InflateMutex(void)
 	m_Mutex.Inflate();
 }
 
-void Object::SetField(int id, const Value&)
+void Object::SetField(int id, const Value&, bool, const Value&)
 {
 	if (id == 0)
 		BOOST_THROW_EXCEPTION(std::runtime_error("Prototype field cannot be set."));
@@ -92,3 +92,7 @@ Value Object::GetField(int id) const
 		BOOST_THROW_EXCEPTION(std::runtime_error("Invalid field ID."));
 }
 
+void Object::NotifyField(int id, const Value& cookie)
+{
+	BOOST_THROW_EXCEPTION(std::runtime_error("Invalid field ID."));
+}

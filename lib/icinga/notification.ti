@@ -19,6 +19,8 @@
 
 #include "icinga/customvarobject.hpp"
 
+library icinga;
+
 namespace icinga
 {
 
@@ -55,7 +57,7 @@ class Notification : CustomVarObject < NotificationNameComposer
 	};
 
 	[state] double last_notification;
-	[state, set_protected] double next_notification (NextNotificationRaw);
+	[state] double next_notification;
 	[state, set_protected] Value notification_number;
 	[state] double last_problem_notification;
 

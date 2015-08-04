@@ -20,6 +20,8 @@
 #include "icinga/customvarobject.hpp"
 #include "icinga/checkable.hpp"
 
+library icinga;
+
 namespace icinga
 {
 

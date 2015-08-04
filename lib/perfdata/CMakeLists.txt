@@ -35,6 +35,7 @@ target_link_libraries(perfdata ${Boost_LIBRARIES} base config icinga)
 set_target_properties (
   perfdata PROPERTIES
   INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR}/icinga2
+  DEFINE_SYMBOL I2_PERFDATA_BUILD
   FOLDER Components
 )
 

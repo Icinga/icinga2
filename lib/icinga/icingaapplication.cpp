@@ -233,108 +233,60 @@ bool IcingaApplication::ResolveMacro(const String& macro, const CheckResult::Ptr
 
 bool IcingaApplication::GetEnableNotifications(void) const
 {
-	if (!GetOverrideEnableNotifications().IsEmpty())
-		return GetOverrideEnableNotifications();
-	else
-		return ScriptGlobal::Get("EnableNotifications");
+	return ScriptGlobal::Get("EnableNotifications");
 }
 
 void IcingaApplication::SetEnableNotifications(bool enabled)
 {
-	SetOverrideEnableNotifications(enabled);
-}
-
-void IcingaApplication::ClearEnableNotifications(void)
-{
-	SetOverrideEnableNotifications(Empty);
+	ScriptGlobal::Set("EnableNotifications", enabled);
 }
 
 bool IcingaApplication::GetEnableEventHandlers(void) const
 {
-	if (!GetOverrideEnableEventHandlers().IsEmpty())
-		return GetOverrideEnableEventHandlers();
-	else
-		return ScriptGlobal::Get("EnableEventHandlers");
+	return ScriptGlobal::Get("EnableEventHandlers");
 }
 
 void IcingaApplication::SetEnableEventHandlers(bool enabled)
 {
-	SetOverrideEnableEventHandlers(enabled);
-}
-
-void IcingaApplication::ClearEnableEventHandlers(void)
-{
-	SetOverrideEnableEventHandlers(Empty);
+	ScriptGlobal::Set("EnableEventHandlers", enabled);
 }
 
 bool IcingaApplication::GetEnableFlapping(void) const
 {
-	if (!GetOverrideEnableFlapping().IsEmpty())
-		return GetOverrideEnableFlapping();
-	else
-		return ScriptGlobal::Get("EnableFlapping");
+	return ScriptGlobal::Get("EnableFlapping");
 }
 
 void IcingaApplication::SetEnableFlapping(bool enabled)
 {
-	SetOverrideEnableFlapping(enabled);
-}
-
-void IcingaApplication::ClearEnableFlapping(void)
-{
-	SetOverrideEnableFlapping(Empty);
+	ScriptGlobal::Set("EnableFlapping", enabled);
 }
 
 bool IcingaApplication::GetEnableHostChecks(void) const
 {
-	if (!GetOverrideEnableHostChecks().IsEmpty())
-		return GetOverrideEnableHostChecks();
-	else
-		return ScriptGlobal::Get("EnableHostChecks");
+	return ScriptGlobal::Get("EnableHostChecks");
 }
 
 void IcingaApplication::SetEnableHostChecks(bool enabled)
 {
-	SetOverrideEnableHostChecks(enabled);
-}
-
-void IcingaApplication::ClearEnableHostChecks(void)
-{
-	SetOverrideEnableHostChecks(Empty);
+	ScriptGlobal::Set("EnableHostChecks", enabled);
 }
 
 bool IcingaApplication::GetEnableServiceChecks(void) const
 {
-	if (!GetOverrideEnableServiceChecks().IsEmpty())
-		return GetOverrideEnableServiceChecks();
-	else
-		return ScriptGlobal::Get("EnableServiceChecks");
+	return ScriptGlobal::Get("EnableServiceChecks");
 }
 
 void IcingaApplication::SetEnableServiceChecks(bool enabled)
 {
-	SetOverrideEnableServiceChecks(enabled);
-}
-
-void IcingaApplication::ClearEnableServiceChecks(void)
-{
-	SetOverrideEnableServiceChecks(Empty);
+	ScriptGlobal::Set("EnableServiceChecks", enabled);
 }
 
 bool IcingaApplication::GetEnablePerfdata(void) const
 {
-	if (!GetOverrideEnablePerfdata().IsEmpty())
-		return GetOverrideEnablePerfdata();
-	else
-		return ScriptGlobal::Get("EnablePerfdata");
+	return ScriptGlobal::Get("EnablePerfdata");
 }
 
 void IcingaApplication::SetEnablePerfdata(bool enabled)
 {
-	SetOverrideEnablePerfdata(enabled);
-}
-
-void IcingaApplication::ClearEnablePerfdata(void)
-{
-	SetOverrideEnablePerfdata(Empty);
+	ScriptGlobal::Set("EnablePerfdata", enabled);
 }

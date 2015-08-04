@@ -30,20 +30,13 @@ REGISTER_TYPE(Command);
 
 int Command::GetModifiedAttributes(void) const
 {
-	int attrs = 0;
-
-	if (GetOverrideVars())
-		attrs |= ModAttrCustomVariable;
-
-	return attrs;
+	//TODO-MA
+	return 0;
 }
 
-void Command::SetModifiedAttributes(int flags, const MessageOrigin& origin)
+void Command::SetModifiedAttributes(int flags, const MessageOrigin::Ptr& origin)
 {
-	if ((flags & ModAttrCustomVariable) == 0) {
-		SetOverrideVars(Empty);
-		OnVarsChanged(this, GetVars(), origin);
-	}
+	//TODO-MA
 }
 
 void Command::Validate(int types, const ValidationUtils& utils)

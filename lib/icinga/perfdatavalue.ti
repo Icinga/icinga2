@@ -19,6 +19,8 @@
 
 #include "icinga/customvarobject.hpp"
 
+library icinga;
+
 namespace icinga
 {
 

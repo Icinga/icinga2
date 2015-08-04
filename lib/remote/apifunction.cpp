@@ -26,7 +26,7 @@ ApiFunction::ApiFunction(const Callback& function)
 : m_Callback(function)
 { }
 
-Value ApiFunction::Invoke(const MessageOrigin& origin, const Dictionary::Ptr& arguments)
+Value ApiFunction::Invoke(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& arguments)
 {
 	return m_Callback(origin, arguments);
 }

@@ -30,45 +30,24 @@ using namespace icinga;
 
 REGISTER_TYPE(CustomVarObject);
 
-boost::signals2::signal<void (const CustomVarObject::Ptr&, const Dictionary::Ptr& vars, const MessageOrigin&)> CustomVarObject::OnVarsChanged;
-
-Dictionary::Ptr CustomVarObject::GetVars(void) const
-{
-	if (GetOverrideVars())
-		return GetOverrideVars();
-	else
-		return GetVarsRaw();
-}
-
-void CustomVarObject::SetVars(const Dictionary::Ptr& vars, const MessageOrigin& origin)
-{
-	SetOverrideVars(vars);
-
-	OnVarsChanged(this, vars, origin);
-}
-
 int CustomVarObject::GetModifiedAttributes(void) const
 {
-	/* does nothing by default */
+	//TODO-MA
 	return 0;
 }
 
-void CustomVarObject::SetModifiedAttributes(int, const MessageOrigin&)
+void CustomVarObject::SetModifiedAttributes(int, const MessageOrigin::Ptr&)
 {
-	/* does nothing by default */
+	//TODO-MA
 }
 
 bool CustomVarObject::IsVarOverridden(const String& name) const
 {
-	Dictionary::Ptr vars_override = GetOverrideVars();
-
-	if (!vars_override)
-		return false;
-
-	return vars_override->Contains(name);
+	//TODO: implement
+	return false;
 }
 
-void CustomVarObject::ValidateVarsRaw(const Dictionary::Ptr& value, const ValidationUtils& utils)
+void CustomVarObject::ValidateVars(const Dictionary::Ptr& value, const ValidationUtils& utils)
 {
 	if (!value)
 		return;

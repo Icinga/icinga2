@@ -66,10 +66,8 @@ CheckerComponent::CheckerComponent(void)
 
 void CheckerComponent::OnConfigLoaded(void)
 {
-	DynamicObject::OnStarted.connect(bind(&CheckerComponent::ObjectHandler, this, _1));
-	DynamicObject::OnStopped.connect(bind(&CheckerComponent::ObjectHandler, this, _1));
-	DynamicObject::OnPaused.connect(bind(&CheckerComponent::ObjectHandler, this, _1));
-	DynamicObject::OnResumed.connect(bind(&CheckerComponent::ObjectHandler, this, _1));
+	DynamicObject::OnActiveChanged.connect(bind(&CheckerComponent::ObjectHandler, this, _1));
+	DynamicObject::OnPausedChanged.connect(bind(&CheckerComponent::ObjectHandler, this, _1));
 
 	Checkable::OnNextCheckChanged.connect(bind(&CheckerComponent::NextCheckChangedHandler, this, _1));
 }

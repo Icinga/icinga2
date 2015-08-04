@@ -19,6 +19,8 @@
 
 #include "base/debuginfo.hpp"
 
+library base;
+
 namespace icinga
 {
 
@@ -75,14 +77,15 @@ abstract class DynamicObject : DynamicObjectBase
 	[get_protected] bool paused {
 		default {{{ return true; }}}
 	};
-	[get_protected] bool start_called;
-	[get_protected] bool stop_called;
-	[get_protected] bool pause_called;
-	[get_protected] bool resume_called;
+	[get_protected, internal] bool start_called;
+	[get_protected, internal] bool stop_called;
+	[get_protected, internal] bool pause_called;
+	[get_protected, internal] bool resume_called;
 	[enum] HAMode ha_mode (HAMode);
 	[protected] Dictionary::Ptr extensions;
 
 	[protected] bool state_loaded;
+	Dictionary::Ptr original_attributes;
 };
 
 }

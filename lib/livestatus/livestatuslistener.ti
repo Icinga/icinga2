@@ -20,6 +20,8 @@
 #include "base/dynamicobject.hpp"
 #include "base/application.hpp"
 
+library livestatus;
+
 namespace icinga
 {
 

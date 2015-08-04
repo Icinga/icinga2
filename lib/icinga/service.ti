@@ -22,6 +22,8 @@
 #include "icinga/icingaapplication.hpp"
 #include "icinga/customvarobject.hpp"
 
+library icinga;
+
 namespace icinga
 {
 

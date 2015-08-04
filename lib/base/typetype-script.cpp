@@ -17,15 +17,42 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/application.hpp"
+#include "base/type.hpp"
+#include "base/dictionary.hpp"
+#include "base/function.hpp"
+#include "base/functionwrapper.hpp"
+#include "base/scriptframe.hpp"
 
-library hello;
+using namespace icinga;
 
-namespace icinga
+static void InvokeAttributeHandlerHelper(const Function::Ptr& callback,
+    const Object::Ptr& object, const Value& cookie)
 {
-
-class Hello : Application
-{
-};
-
+	std::vector<Value> arguments;
+	arguments.push_back(object);
+	
+	ScriptFrame frame;
+	callback->Invoke(arguments);
 }
+
+static void TypeRegisterAttributeHandler(const String& fieldName, const Function::Ptr& callback)
+{
+	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
+	Type::Ptr self = static_cast<Type::Ptr>(vframe->Self);
+	
+	int fid = self->GetFieldId(fieldName);
+	self->RegisterAttributeHandler(fid, boost::bind(&InvokeAttributeHandlerHelper, callback, _1, _2));
+}
+
+Object::Ptr TypeType::GetPrototype(void)
+{
+	static Dictionary::Ptr prototype;
+
+	if (!prototype) {
+		prototype = new Dictionary();
+		prototype->Set("register_attribute_handler", new Function(WrapFunction(TypeRegisterAttributeHandler), false));
+	}
+
+	return prototype;
+}
+

@@ -33,8 +33,8 @@ static std::map<int, String> l_LegacyCommentsCache;
 static std::map<String, Checkable::Ptr> l_CommentsCache;
 static Timer::Ptr l_CommentsExpireTimer;
 
-boost::signals2::signal<void (const Checkable::Ptr&, const Comment::Ptr&, const MessageOrigin&)> Checkable::OnCommentAdded;
-boost::signals2::signal<void (const Checkable::Ptr&, const Comment::Ptr&, const MessageOrigin&)> Checkable::OnCommentRemoved;
+boost::signals2::signal<void (const Checkable::Ptr&, const Comment::Ptr&, const MessageOrigin::Ptr&)> Checkable::OnCommentAdded;
+boost::signals2::signal<void (const Checkable::Ptr&, const Comment::Ptr&, const MessageOrigin::Ptr&)> Checkable::OnCommentRemoved;
 
 int Checkable::GetNextCommentID(void)
 {
@@ -44,7 +44,7 @@ int Checkable::GetNextCommentID(void)
 }
 
 String Checkable::AddComment(CommentType entryType, const String& author,
-    const String& text, double expireTime, const String& id, const MessageOrigin& origin)
+    const String& text, double expireTime, const String& id, const MessageOrigin::Ptr& origin)
 {
 	String uid;
 
@@ -100,7 +100,7 @@ void Checkable::RemoveAllComments(void)
 	}
 }
 
-void Checkable::RemoveComment(const String& id, const MessageOrigin& origin)
+void Checkable::RemoveComment(const String& id, const MessageOrigin::Ptr& origin)
 {
 	Checkable::Ptr owner = GetOwnerByCommentID(id);
 

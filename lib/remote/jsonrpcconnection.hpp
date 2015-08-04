@@ -41,7 +41,7 @@ enum ClientType
 	ClientHttp
 };
 
-struct MessageOrigin;
+class MessageOrigin;
 
 /**
  * An API client connection.
@@ -68,7 +68,7 @@ public:
 	void SendMessage(const Dictionary::Ptr& request);
 
 	static void HeartbeatTimerHandler(void);
-	static Value HeartbeatAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params);
+	static Value HeartbeatAPIHandler(const intrusive_ptr<MessageOrigin>& origin, const Dictionary::Ptr& params);
 
 private:
 	String m_Identity;

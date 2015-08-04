@@ -35,7 +35,7 @@ using namespace icinga;
 REGISTER_TYPE(Notification);
 INITIALIZE_ONCE(&Notification::StaticInitialize);
 
-boost::signals2::signal<void (const Notification::Ptr&, double, const MessageOrigin&)> Notification::OnNextNotificationChanged;
+boost::signals2::signal<void (const Notification::Ptr&, const MessageOrigin::Ptr&)> Notification::OnNextNotificationChanged;
 
 String NotificationNameComposer::MakeName(const String& shortName, const Object::Ptr& context) const
 {
@@ -172,22 +172,6 @@ std::set<UserGroup::Ptr> Notification::GetUserGroups(void) const
 TimePeriod::Ptr Notification::GetPeriod(void) const
 {
 	return TimePeriod::GetByName(GetPeriodRaw());
-}
-
-double Notification::GetNextNotification(void) const
-{
-	return GetNextNotificationRaw();
-}
-
-/**
- * Sets the timestamp when the next periodical notification should be sent.
- * This does not affect notifications that are sent for state changes.
- */
-void Notification::SetNextNotification(double time, const MessageOrigin& origin)
-{
-	SetNextNotificationRaw(time);
-
-	OnNextNotificationChanged(this, time, origin);
 }
 
 void Notification::UpdateNotificationNumber(void)

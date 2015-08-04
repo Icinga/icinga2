@@ -42,7 +42,7 @@ public:
 	virtual void Validate(int types, const ValidationUtils& utils) override;
 
 	int GetModifiedAttributes(void) const;
-	void SetModifiedAttributes(int flags, const MessageOrigin& origin = MessageOrigin());
+	void SetModifiedAttributes(int flags, const MessageOrigin::Ptr& origin = MessageOrigin::Ptr());
 };
 
 }

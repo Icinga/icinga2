@@ -30,8 +30,6 @@ using namespace icinga;
 
 REGISTER_TYPE(User);
 
-boost::signals2::signal<void (const User::Ptr&, bool, const MessageOrigin&)> User::OnEnableNotificationsChanged;
-
 void User::OnConfigLoaded(void)
 {
 	DynamicObject::OnConfigLoaded();
@@ -124,34 +122,12 @@ void User::ValidateTypes(const Array::Ptr& value, const ValidationUtils& utils)
 
 int User::GetModifiedAttributes(void) const
 {
-	int attrs = 0;
-
-	if (GetOverrideVars())
-		attrs |= ModAttrCustomVariable;
-
-	return attrs;
+	//TODO-MA
+	return 0;
 }
 
-void User::SetModifiedAttributes(int flags, const MessageOrigin& origin)
+void User::SetModifiedAttributes(int flags, const MessageOrigin::Ptr& origin)
 {
-	if ((flags & ModAttrCustomVariable) == 0) {
-		SetOverrideVars(Empty);
-		OnVarsChanged(this, GetVars(), origin);
-	}
+	//TODO-MA
+	return;
 }
-
-bool User::GetEnableNotifications(void) const
-{
-	if (!GetOverrideEnableNotifications().IsEmpty())
-		return GetOverrideEnableNotifications();
-	else
-		return GetEnableNotificationsRaw();
-}
-
-void User::SetEnableNotifications(bool enabled, const MessageOrigin& origin)
-{
-	SetOverrideEnableNotifications(enabled);
-
-	OnEnableNotificationsChanged(this, enabled, origin);
-}
-

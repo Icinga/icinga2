@@ -36,6 +36,7 @@ if(MYSQL_FOUND)
   set_target_properties (
     db_ido_mysql PROPERTIES
     INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR}/icinga2
+    DEFINE_SYMBOL I2_DB_IDO_MYSQL_BUILD
     FOLDER Components
   )
 

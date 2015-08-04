@@ -91,9 +91,6 @@ public:
 	std::set<User::Ptr> GetUsers(void) const;
 	std::set<UserGroup::Ptr> GetUserGroups(void) const;
 
-	double GetNextNotification(void) const;
-	void SetNextNotification(double time, const MessageOrigin& origin = MessageOrigin());
-
 	void UpdateNotificationNumber(void);
 	void ResetNotificationNumber(void);
 
@@ -106,7 +103,7 @@ public:
 	static String NotificationTypeToString(NotificationType type);
 	static String NotificationFilterToString(int filter);
 
-	static boost::signals2::signal<void (const Notification::Ptr&, double, const MessageOrigin&)> OnNextNotificationChanged;
+	static boost::signals2::signal<void (const Notification::Ptr&, const MessageOrigin::Ptr&)> OnNextNotificationChanged;
 
 	static void RegisterApplyRuleHandler(void);
 

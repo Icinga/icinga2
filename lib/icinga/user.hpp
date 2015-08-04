@@ -47,13 +47,8 @@ public:
 	virtual void ValidateStates(const Array::Ptr& value, const ValidationUtils& utils) override;
 	virtual void ValidateTypes(const Array::Ptr& value, const ValidationUtils& utils) override;
 
-	bool GetEnableNotifications(void) const;
-	void SetEnableNotifications(bool enabled, const MessageOrigin& origin = MessageOrigin());
-
 	int GetModifiedAttributes(void) const;
-	void SetModifiedAttributes(int flags, const MessageOrigin& origin = MessageOrigin());
-
-	static boost::signals2::signal<void (const User::Ptr&, bool, const MessageOrigin&)> OnEnableNotificationsChanged;
+	void SetModifiedAttributes(int flags, const MessageOrigin::Ptr& origin = MessageOrigin::Ptr());
 
 protected:
 	virtual void Stop(void);

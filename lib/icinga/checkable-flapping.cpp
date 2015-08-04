@@ -34,22 +34,6 @@ double Checkable::GetFlappingCurrent(void) const
 	return 100 * GetFlappingPositive() / (GetFlappingPositive() + GetFlappingNegative());
 }
 
-bool Checkable::GetEnableFlapping(void) const
-{
-	if (!GetOverrideEnableFlapping().IsEmpty())
-		return GetOverrideEnableFlapping();
-	else
-		return GetEnableFlappingRaw();
-}
-
-void Checkable::SetEnableFlapping(bool enabled, const MessageOrigin& origin)
-{
-	SetOverrideEnableFlapping(enabled);
-
-	OnFlappingChanged(this, enabled ? FlappingEnabled : FlappingDisabled);
-	OnEnableFlappingChanged(this, enabled, origin);
-}
-
 void Checkable::UpdateFlappingStatus(bool stateChange)
 {
 	double ts, now;

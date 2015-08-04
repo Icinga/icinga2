@@ -22,9 +22,12 @@
 
 using namespace icinga;
 
+Type::Ptr Type::TypeInstance;
+
 static void RegisterTypeType(void)
 {
 	Type::Ptr type = new TypeType();
+	type->SetPrototype(TypeType::GetPrototype());
 	Type::TypeInstance = type;
 	Type::Register(type);
 }
@@ -109,6 +112,11 @@ Value Type::GetField(int id) const
 std::vector<String> Type::GetLoadDependencies(void) const
 {
 	return std::vector<String>();
+}
+
+void Type::RegisterAttributeHandler(int fieldId, const AttributeHandler& callback)
+{
+	throw std::runtime_error("Invalid field ID.");
 }
 
 String TypeType::GetName(void) const

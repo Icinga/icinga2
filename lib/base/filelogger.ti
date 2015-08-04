@@ -19,6 +19,8 @@
 
 #include "base/streamlogger.hpp"
 
+library base;
+
 namespace icinga
 {
 

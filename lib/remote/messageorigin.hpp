@@ -29,8 +29,11 @@ namespace icinga
 /**
  * @ingroup remote
  */
-struct I2_REMOTE_API MessageOrigin
+class I2_REMOTE_API MessageOrigin : public Object
 {
+public:
+	DECLARE_PTR_TYPEDEFS(MessageOrigin);
+
 	Zone::Ptr FromZone;
 	JsonRpcConnection::Ptr FromClient;
 

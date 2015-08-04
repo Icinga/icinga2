@@ -20,6 +20,8 @@
 #include "icinga/customvarobject.hpp"
 #include "base/array.hpp"
 
+library icinga;
+
 namespace icinga
 {
 
@@ -45,11 +47,10 @@ class User : CustomVarObject
 	[config] String email;
 	[config] String pager;
 
-	[config] bool enable_notifications (EnableNotificationsRaw) {
+	[config] bool enable_notifications {
 		default {{{ return true; }}}
 	};
 
-	[state] Value override_enable_notifications;
 	[state] double last_notification;
 };
 

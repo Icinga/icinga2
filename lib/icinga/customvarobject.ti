@@ -19,14 +19,14 @@
 
 #include "base/dynamicobject.hpp"
 
+library icinga;
+
 namespace icinga
 {
 
 abstract class CustomVarObject : DynamicObject
 {
-	[config] Dictionary::Ptr vars (VarsRaw);
-
-	[state] Dictionary::Ptr override_vars;
+	[config] Dictionary::Ptr vars;
 };
 
 }

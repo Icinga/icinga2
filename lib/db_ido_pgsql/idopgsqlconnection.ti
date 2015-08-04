@@ -19,6 +19,8 @@
 
 #include "db_ido/dbconnection.hpp"
 
+library db_ido_pgsql;
+
 namespace icinga
 {
 

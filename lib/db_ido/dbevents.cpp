@@ -51,15 +51,15 @@ void DbEvents::StaticInitialize(void)
 	Checkable::OnAcknowledgementSet.connect(boost::bind(&DbEvents::AddAcknowledgement, _1, _4));
 	Checkable::OnAcknowledgementCleared.connect(boost::bind(&DbEvents::RemoveAcknowledgement, _1));
 
-	Checkable::OnNextCheckChanged.connect(boost::bind(&DbEvents::NextCheckChangedHandler, _1, _2));
-	Checkable::OnFlappingChanged.connect(boost::bind(&DbEvents::FlappingChangedHandler, _1, _2));
+	Checkable::OnNextCheckChanged.connect(boost::bind(&DbEvents::NextCheckChangedHandler, _1));
+	Checkable::OnFlappingChanged.connect(boost::bind(&DbEvents::FlappingChangedHandler, _1));
 	Checkable::OnNotificationSentToAllUsers.connect(boost::bind(&DbEvents::LastNotificationChangedHandler, _1, _2));
 
-	Checkable::OnEnableActiveChecksChanged.connect(boost::bind(&DbEvents::EnableActiveChecksChangedHandler, _1, _2));
-	Checkable::OnEnablePassiveChecksChanged.connect(boost::bind(&DbEvents::EnablePassiveChecksChangedHandler, _1, _2));
-	Checkable::OnEnableNotificationsChanged.connect(boost::bind(&DbEvents::EnableNotificationsChangedHandler, _1, _2));
-	Checkable::OnEnablePerfdataChanged.connect(boost::bind(&DbEvents::EnablePerfdataChangedHandler, _1, _2));
-	Checkable::OnEnableFlappingChanged.connect(boost::bind(&DbEvents::EnableFlappingChangedHandler, _1, _2));
+	Checkable::OnEnableActiveChecksChanged.connect(boost::bind(&DbEvents::EnableActiveChecksChangedHandler, _1));
+	Checkable::OnEnablePassiveChecksChanged.connect(boost::bind(&DbEvents::EnablePassiveChecksChangedHandler, _1));
+	Checkable::OnEnableNotificationsChanged.connect(boost::bind(&DbEvents::EnableNotificationsChangedHandler, _1));
+	Checkable::OnEnablePerfdataChanged.connect(boost::bind(&DbEvents::EnablePerfdataChangedHandler, _1));
+	Checkable::OnEnableFlappingChanged.connect(boost::bind(&DbEvents::EnableFlappingChangedHandler, _1));
 
 	Checkable::OnReachabilityChanged.connect(boost::bind(&DbEvents::ReachabilityChangedHandler, _1, _2, _3));
 
@@ -74,11 +74,13 @@ void DbEvents::StaticInitialize(void)
 
 	Checkable::OnNewCheckResult.connect(boost::bind(&DbEvents::AddCheckResultLogHistory, _1, _2));
 	Checkable::OnNotificationSentToUser.connect(boost::bind(&DbEvents::AddNotificationSentLogHistory, _1, _2, _3, _4, _5, _6, _7));
-	Checkable::OnFlappingChanged.connect(boost::bind(&DbEvents::AddFlappingLogHistory, _1, _2));
+	Checkable::OnFlappingChanged.connect(boost::bind(&DbEvents::AddFlappingChangedLogHistory, _1));
+	Checkable::OnEnableFlappingChanged.connect(boost::bind(&DbEvents::AddEnableFlappingChangedLogHistory, _1));
 	Checkable::OnDowntimeTriggered.connect(boost::bind(&DbEvents::AddTriggerDowntimeLogHistory, _1, _2));
 	Checkable::OnDowntimeRemoved.connect(boost::bind(&DbEvents::AddRemoveDowntimeLogHistory, _1, _2));
 
-	Checkable::OnFlappingChanged.connect(boost::bind(&DbEvents::AddFlappingHistory, _1, _2));
+	Checkable::OnFlappingChanged.connect(boost::bind(&DbEvents::AddFlappingChangedHistory, _1));
+	Checkable::OnEnableFlappingChanged.connect(boost::bind(&DbEvents::AddEnableFlappingChangedHistory, _1));
 	Checkable::OnNewCheckResult.connect(boost::bind(&DbEvents::AddCheckableCheckHistory, _1, _2));
 
 	Checkable::OnEventCommandExecuted.connect(boost::bind(&DbEvents::AddEventHandlerHistory, _1));
@@ -87,7 +89,7 @@ void DbEvents::StaticInitialize(void)
 }
 
 /* check events */
-void DbEvents::NextCheckChangedHandler(const Checkable::Ptr& checkable, double nextCheck)
+void DbEvents::NextCheckChangedHandler(const Checkable::Ptr& checkable)
 {
 	Host::Ptr host;
 	Service::Ptr service;
@@ -105,7 +107,7 @@ void DbEvents::NextCheckChangedHandler(const Checkable::Ptr& checkable, double n
 	query1.Object = DbObject::GetOrCreateByObject(checkable);
 
 	Dictionary::Ptr fields1 = new Dictionary();
-	fields1->Set("next_check", DbValue::FromTimestamp(nextCheck));
+	fields1->Set("next_check", DbValue::FromTimestamp(checkable->GetNextCheck()));
 
 	query1.Fields = fields1;
 
@@ -120,7 +122,7 @@ void DbEvents::NextCheckChangedHandler(const Checkable::Ptr& checkable, double n
 	DbObject::OnQuery(query1);
 }
 
-void DbEvents::FlappingChangedHandler(const Checkable::Ptr& checkable, FlappingState state)
+void DbEvents::FlappingChangedHandler(const Checkable::Ptr& checkable)
 {
 	Host::Ptr host;
 	Service::Ptr service;
@@ -240,32 +242,32 @@ void DbEvents::ReachabilityChangedHandler(const Checkable::Ptr& checkable, const
 }
 
 /* enable changed events */
-void DbEvents::EnableActiveChecksChangedHandler(const Checkable::Ptr& checkable, bool enabled)
+void DbEvents::EnableActiveChecksChangedHandler(const Checkable::Ptr& checkable)
 {
-	EnableChangedHandlerInternal(checkable, enabled, EnableActiveChecks);
+	EnableChangedHandlerInternal(checkable, "active_checks_enabled", checkable->GetEnableActiveChecks());
 }
 
-void DbEvents::EnablePassiveChecksChangedHandler(const Checkable::Ptr& checkable, bool enabled)
+void DbEvents::EnablePassiveChecksChangedHandler(const Checkable::Ptr& checkable)
 {
-	EnableChangedHandlerInternal(checkable, enabled, EnablePassiveChecks);
+	EnableChangedHandlerInternal(checkable, "passive_checks_enabled", checkable->GetEnablePassiveChecks());
 }
 
-void DbEvents::EnableNotificationsChangedHandler(const Checkable::Ptr& checkable, bool enabled)
+void DbEvents::EnableNotificationsChangedHandler(const Checkable::Ptr& checkable)
 {
-	EnableChangedHandlerInternal(checkable, enabled, EnableNotifications);
+	EnableChangedHandlerInternal(checkable, "notifications_enabled", checkable->GetEnableNotifications());
 }
 
-void DbEvents::EnablePerfdataChangedHandler(const Checkable::Ptr& checkable, bool enabled)
+void DbEvents::EnablePerfdataChangedHandler(const Checkable::Ptr& checkable)
 {
-	EnableChangedHandlerInternal(checkable, enabled, EnablePerfdata);
+	EnableChangedHandlerInternal(checkable, "process_performance_data", checkable->GetEnablePerfdata());
 }
 
-void DbEvents::EnableFlappingChangedHandler(const Checkable::Ptr& checkable, bool enabled)
+void DbEvents::EnableFlappingChangedHandler(const Checkable::Ptr& checkable)
 {
-	EnableChangedHandlerInternal(checkable, enabled, EnableFlapping);
+	EnableChangedHandlerInternal(checkable, "flap_detection_enabled", checkable->GetEnableFlapping());
 }
 
-void DbEvents::EnableChangedHandlerInternal(const Checkable::Ptr& checkable, bool enabled, EnableType type)
+void DbEvents::EnableChangedHandlerInternal(const Checkable::Ptr& checkable, const String& fieldName, bool enabled)
 {
 	Host::Ptr host;
 	Service::Ptr service;
@@ -283,19 +285,7 @@ void DbEvents::EnableChangedHandlerInternal(const Checkable::Ptr& checkable, boo
 	query1.Object = DbObject::GetOrCreateByObject(checkable);
 
 	Dictionary::Ptr fields1 = new Dictionary();
-
-	if (type == EnableActiveChecks) {
-		fields1->Set("active_checks_enabled", enabled ? 1 : 0);
-	} else if (type == EnablePassiveChecks) {
-		fields1->Set("passive_checks_enabled", enabled ? 1 : 0);
-	} else if (type == EnableNotifications) {
-		fields1->Set("notifications_enabled", enabled ? 1 : 0);
-	} else if (type == EnablePerfdata) {
-		fields1->Set("process_performance_data", enabled ? 1 : 0);
-	} else if (type == EnableFlapping) {
-		fields1->Set("flap_detection_enabled", enabled ? 1 : 0);
-	}
-
+	fields1->Set(fieldName, enabled);
 	query1.Fields = fields1;
 
 	query1.WhereCriteria = new Dictionary();
@@ -308,6 +298,7 @@ void DbEvents::EnableChangedHandlerInternal(const Checkable::Ptr& checkable, boo
 
 	DbObject::OnQuery(query1);
 }
+
 
 /* comments */
 void DbEvents::AddComments(const Checkable::Ptr& checkable)
@@ -1174,29 +1165,50 @@ void DbEvents::AddNotificationSentLogHistory(const Notification::Ptr& notificati
 	AddLogHistory(checkable, msgbuf.str(), LogEntryTypeHostNotification);
 }
 
-void DbEvents::AddFlappingLogHistory(const Checkable::Ptr& checkable, FlappingState flapping_state)
+void DbEvents::AddFlappingChangedLogHistory(const Checkable::Ptr& checkable)
 {
 	String flapping_state_str;
 	String flapping_output;
-
-	switch (flapping_state) {
-		case FlappingStarted:
-			flapping_output = "Service appears to have started flapping (" + Convert::ToString(checkable->GetFlappingCurrent()) + "% change >= " + Convert::ToString(checkable->GetFlappingThreshold()) + "% threshold)";
-			flapping_state_str = "STARTED";
-			break;
-		case FlappingStopped:
-			flapping_output = "Service appears to have stopped flapping (" + Convert::ToString(checkable->GetFlappingCurrent()) + "% change < " + Convert::ToString(checkable->GetFlappingThreshold()) + "% threshold)";
-			flapping_state_str = "STOPPED";
-			break;
-		case FlappingDisabled:
-			flapping_output = "Flap detection has been disabled";
-			flapping_state_str = "DISABLED";
-			break;
-		default:
-			Log(LogCritical, "DbEvents")
-			    << "Unknown flapping state: " << flapping_state;
-			return;
+	
+	if (checkable->IsFlapping()) {
+		flapping_output = "Service appears to have started flapping (" + Convert::ToString(checkable->GetFlappingCurrent()) + "% change >= " + Convert::ToString(checkable->GetFlappingThreshold()) + "% threshold)";
+		flapping_state_str = "STARTED";
+	} else {
+		flapping_output = "Service appears to have stopped flapping (" + Convert::ToString(checkable->GetFlappingCurrent()) + "% change < " + Convert::ToString(checkable->GetFlappingThreshold()) + "% threshold)";
+		flapping_state_str = "STOPPED";
 	}
+
+	Host::Ptr host;
+	Service::Ptr service;
+	tie(host, service) = GetHostService(checkable);
+
+	std::ostringstream msgbuf;
+
+	if (service) {
+		msgbuf << "SERVICE FLAPPING ALERT: "
+		       << host->GetName() << ";"
+		       << service->GetShortName() << ";"
+		       << flapping_state_str << "; "
+		       << flapping_output
+		       << "";
+	} else {
+		msgbuf << "HOST FLAPPING ALERT: "
+		       << host->GetName() << ";"
+		       << flapping_state_str << "; "
+		       << flapping_output
+		       << "";
+	}
+
+	AddLogHistory(checkable, msgbuf.str(), LogEntryTypeInfoMessage);
+}
+
+void DbEvents::AddEnableFlappingChangedLogHistory(const Checkable::Ptr& checkable)
+{
+	if (!checkable->GetEnableFlapping())
+		return;
+		
+	String flapping_output = "Flap detection has been disabled";
+	String flapping_state_str = "DISABLED";
 
 	Host::Ptr host;
 	Service::Ptr service;
@@ -1256,7 +1268,7 @@ void DbEvents::AddLogHistory(const Checkable::Ptr& checkable, String buffer, Log
 }
 
 /* flappinghistory */
-void DbEvents::AddFlappingHistory(const Checkable::Ptr& checkable, FlappingState flapping_state)
+void DbEvents::AddFlappingChangedHistory(const Checkable::Ptr& checkable)
 {
 	Log(LogDebug, "DbEvents")
 	    << "add flapping history for '" << checkable->GetName() << "'";
@@ -1274,23 +1286,58 @@ void DbEvents::AddFlappingHistory(const Checkable::Ptr& checkable, FlappingState
 	fields1->Set("event_time", DbValue::FromTimestamp(time_bag.first));
 	fields1->Set("event_time_usec", time_bag.second);
 
-	switch (flapping_state) {
-		case FlappingStarted:
-			fields1->Set("event_type", 1000);
-			break;
-		case FlappingStopped:
-			fields1->Set("event_type", 1001);
-			fields1->Set("reason_type", 1);
-			break;
-		case FlappingDisabled:
-			fields1->Set("event_type", 1001);
-			fields1->Set("reason_type", 2);
-			break;
-		default:
-			Log(LogDebug, "DbEvents")
-			    << "Unhandled flapping state: " << flapping_state;
-			return;
+	if (checkable->IsFlapping())
+		fields1->Set("event_type", 1000);
+	else {
+		fields1->Set("event_type", 1001);
+		fields1->Set("reason_type", 1);
 	}
+
+	Host::Ptr host;
+	Service::Ptr service;
+	tie(host, service) = GetHostService(checkable);
+
+	fields1->Set("flapping_type", service ? 1 : 0);
+	fields1->Set("object_id", checkable);
+	fields1->Set("percent_state_change", checkable->GetFlappingCurrent());
+	fields1->Set("low_threshold", checkable->GetFlappingThreshold());
+	fields1->Set("high_threshold", checkable->GetFlappingThreshold());
+
+	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
+
+	String node = IcingaApplication::GetInstance()->GetNodeName();
+
+	Endpoint::Ptr endpoint = Endpoint::GetByName(node);
+	if (endpoint)
+		fields1->Set("endpoint_object_id", endpoint);
+
+	query1.Fields = fields1;
+	DbObject::OnQuery(query1);
+}
+
+void DbEvents::AddEnableFlappingChangedHistory(const Checkable::Ptr& checkable)
+{
+	Log(LogDebug, "DbEvents")
+	    << "add flapping history for '" << checkable->GetName() << "'";
+
+	double now = Utility::GetTime();
+	std::pair<unsigned long, unsigned long> time_bag = CompatUtility::ConvertTimestamp(now);
+
+	DbQuery query1;
+	query1.Table = "flappinghistory";
+	query1.Type = DbQueryInsert;
+	query1.Category = DbCatFlapping;
+
+	Dictionary::Ptr fields1 = new Dictionary();
+
+	fields1->Set("event_time", DbValue::FromTimestamp(time_bag.first));
+	fields1->Set("event_time_usec", time_bag.second);
+
+	if (!checkable->GetEnableFlapping())
+		return;
+		
+	fields1->Set("event_type", 1001);
+	fields1->Set("reason_type", 2);
 
 	Host::Ptr host;
 	Service::Ptr service;

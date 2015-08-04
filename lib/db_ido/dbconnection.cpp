@@ -61,6 +61,7 @@ void DbConnection::Start(void)
 	DynamicObject::Start();
 
 	DbObject::OnQuery.connect(boost::bind(&DbConnection::ExecuteQuery, this, _1));
+	DynamicObject::OnActiveChanged.connect(boost::bind(&DbConnection::UpdateObject, this, _1));
 }
 
 void DbConnection::Resume(void)
@@ -377,20 +378,32 @@ void DbConnection::ExecuteQuery(const DbQuery&)
 	/* Default handler does nothing. */
 }
 
+void DbConnection::UpdateObject(const DynamicObject::Ptr& object)
+{
+	if (!GetConnected())
+		return;
+
+	DbObject::Ptr dbobj = DbObject::GetOrCreateByObject(object);
+
+	if (dbobj) {
+		bool active = object->IsActive();
+
+		if (active) {
+			ActivateObject(dbobj);
+
+			dbobj->SendConfigUpdate();
+			dbobj->SendStatusUpdate();
+		} else
+			DeactivateObject(dbobj);
+	}
+}
+
 void DbConnection::UpdateAllObjects(void)
 {
 	DynamicType::Ptr type;
 	BOOST_FOREACH(const DynamicType::Ptr& dt, DynamicType::GetTypes()) {
 		BOOST_FOREACH(const DynamicObject::Ptr& object, dt->GetObjects()) {
-			DbObject::Ptr dbobj = DbObject::GetOrCreateByObject(object);
-
-			if (dbobj) {
-				if (!GetObjectActive(dbobj))
-					ActivateObject(dbobj);
-
-				dbobj->SendConfigUpdate();
-				dbobj->SendStatusUpdate();
-			}
+			UpdateObject(object);
 		}
 	}
 }

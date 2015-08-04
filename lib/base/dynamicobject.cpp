@@ -41,12 +41,8 @@
 
 using namespace icinga;
 
-REGISTER_TYPE(DynamicObject);
+REGISTER_TYPE_WITH_PROTOTYPE(DynamicObject, DynamicObject::GetPrototype());
 
-boost::signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnStarted;
-boost::signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnStopped;
-boost::signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnPaused;
-boost::signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnResumed;
 boost::signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnStateChanged;
 
 DynamicObject::DynamicObject(void)
@@ -99,6 +95,59 @@ void DynamicObject::ClearExtension(const String& key)
 	extensions->Remove(key);
 }
 
+void DynamicObject::ModifyAttribute(const String& attr, const Value& value)
+{
+	Dictionary::Ptr original_attributes = GetOriginalAttributes();
+	bool updated_original_attributes = false;
+
+	Type::Ptr type = GetReflectionType();
+	int fid = type->GetFieldId(attr);
+	Field field = type->GetFieldInfo(fid);
+
+	if (field.Attributes & FAConfig) {
+		if (!original_attributes) {
+			original_attributes = new Dictionary();
+			SetOriginalAttributes(original_attributes, true);
+		}
+
+		Value attrVal = GetField(fid);
+
+		if (!original_attributes->Contains(attr)) {
+			updated_original_attributes = true;
+			original_attributes->Set(attr, attrVal);
+		}
+	}
+
+	//TODO: validation, vars.os
+	SetField(fid, value);
+
+	if (updated_original_attributes)
+		NotifyOriginalAttributes();
+}
+
+void DynamicObject::RestoreAttribute(const String& attr)
+{
+	Dictionary::Ptr original_attributes = GetOriginalAttributes();
+
+	if (!original_attributes || !original_attributes->Contains(attr))
+		return;
+
+	Value attrVal = original_attributes->Get(attr);
+
+	SetField(GetReflectionType()->GetFieldId(attr), attrVal);
+	original_attributes->Remove(attr);
+}
+
+bool DynamicObject::IsAttributeModified(const String& attr) const
+{
+	Dictionary::Ptr original_attributes = GetOriginalAttributes();
+
+	if (!original_attributes)
+		return false;
+
+	return original_attributes->Contains(attr);
+}
+
 void DynamicObject::Register(void)
 {
 	ASSERT(!OwnsLock());
@@ -128,12 +177,12 @@ void DynamicObject::Activate(void)
 	{
 		ObjectLock olock(this);
 		ASSERT(!IsActive());
-		SetActive(true);
+		SetActive(true, true);
 	}
 
-	OnStarted(this);
-
 	SetAuthority(true);
+	
+	NotifyActive();
 }
 
 void DynamicObject::Stop(void)
@@ -158,14 +207,14 @@ void DynamicObject::Deactivate(void)
 		if (!IsActive())
 			return;
 
-		SetActive(false);
+		SetActive(false, true);
 	}
 
 	Stop();
 
 	ASSERT(GetStopCalled());
 
-	OnStopped(this);
+	NotifyActive();
 }
 
 void DynamicObject::OnConfigLoaded(void)
@@ -205,13 +254,11 @@ void DynamicObject::SetAuthority(bool authority)
 		Resume();
 		ASSERT(GetResumeCalled());
 		SetPaused(false);
-		OnResumed(this);
 	} else if (!authority && !GetPaused()) {
 		SetPauseCalled(false);
 		Pause();
 		ASSERT(GetPauseCalled());
 		SetPaused(true);
-		OnPaused(this);
 	}
 }
 

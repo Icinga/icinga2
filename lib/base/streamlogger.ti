@@ -19,6 +19,8 @@
 
 #include "base/logger.hpp"
 
+library base;
+
 namespace icinga
 {
 

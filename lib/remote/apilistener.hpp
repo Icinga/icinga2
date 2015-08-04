@@ -60,7 +60,7 @@ public:
 	static String GetApiDir(void);
 
 	void SyncSendMessage(const Endpoint::Ptr& endpoint, const Dictionary::Ptr& message);
-	void RelayMessage(const MessageOrigin& origin, const DynamicObject::Ptr& secobj, const Dictionary::Ptr& message, bool log);
+	void RelayMessage(const MessageOrigin::Ptr& origin, const DynamicObject::Ptr& secobj, const Dictionary::Ptr& message, bool log);
 
 	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 	std::pair<Dictionary::Ptr, Dictionary::Ptr> GetStatus(void);
@@ -73,9 +73,9 @@ public:
 	void RemoveHttpClient(const HttpConnection::Ptr& aclient);
 	std::set<HttpConnection::Ptr> GetHttpClients(void) const;
 
-	static Value ConfigUpdateHandler(const MessageOrigin& origin, const Dictionary::Ptr& params);
+	static Value ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
 
-	static Value HelloAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params);
+	static Value HelloAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
 protected:
 	virtual void OnConfigLoaded(void);
 	virtual void OnAllConfigLoaded(void);
@@ -103,7 +103,7 @@ private:
 	Stream::Ptr m_LogFile;
 	size_t m_LogMessageCount;
 
-	void SyncRelayMessage(const MessageOrigin& origin, const DynamicObject::Ptr& secobj, const Dictionary::Ptr& message, bool log);
+	void SyncRelayMessage(const MessageOrigin::Ptr& origin, const DynamicObject::Ptr& secobj, const Dictionary::Ptr& message, bool log);
 	void PersistMessage(const Dictionary::Ptr& message, const DynamicObject::Ptr& secobj);
 
 	void OpenLogFile(void);

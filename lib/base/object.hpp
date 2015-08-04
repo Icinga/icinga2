@@ -49,6 +49,8 @@ class Object;
 class Type;
 class String;
 
+extern I2_BASE_API Value Empty;
+
 #define DECLARE_PTR_TYPEDEFS(klass) \
 	typedef intrusive_ptr<klass> Ptr
 
@@ -96,8 +98,9 @@ public:
 
 	virtual String ToString(void) const;
 
-	virtual void SetField(int id, const Value& value);
+	virtual void SetField(int id, const Value& value, bool suppress_events = false, const Value& cookie = Empty);
 	virtual Value GetField(int id) const;
+	virtual void NotifyField(int id, const Value& cookie = Empty);
 
 #ifdef I2_DEBUG
 	bool OwnsLock(void) const;

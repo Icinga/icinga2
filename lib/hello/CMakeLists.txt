@@ -34,6 +34,7 @@ target_link_libraries(hello ${Boost_LIBRARIES} base config)
 set_target_properties (
   hello PROPERTIES
   INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR}/icinga2
+  DEFINE_SYMBOL I2_HELLO_BUILD
   FOLDER Lib
 )
 

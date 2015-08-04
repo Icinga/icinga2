@@ -30,9 +30,9 @@
 
 using namespace icinga;
 
-static Value SetLogPositionHandler(const MessageOrigin& origin, const Dictionary::Ptr& params);
+static Value SetLogPositionHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
 REGISTER_APIFUNCTION(SetLogPosition, log, &SetLogPositionHandler);
-static Value RequestCertificateHandler(const MessageOrigin& origin, const Dictionary::Ptr& params);
+static Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
 REGISTER_APIFUNCTION(RequestCertificate, pki, &RequestCertificateHandler);
 
 static boost::once_flag l_JsonRpcConnectionOnceFlag = BOOST_ONCE_INIT;
@@ -151,14 +151,14 @@ bool JsonRpcConnection::ProcessMessage(void)
 		m_Endpoint->SetRemoteLogPosition(ts);
 	}
 
-	MessageOrigin origin;
-	origin.FromClient = this;
+	MessageOrigin::Ptr origin = new MessageOrigin();
+	origin->FromClient = this;
 
 	if (m_Endpoint) {
 		if (m_Endpoint->GetZone() != Zone::GetLocalZone())
-			origin.FromZone = m_Endpoint->GetZone();
+			origin->FromZone = m_Endpoint->GetZone();
 		else
-			origin.FromZone = Zone::GetByName(message->Get("originZone"));
+			origin->FromZone = Zone::GetByName(message->Get("originZone"));
 	}
 
 	String method = message->Get("method");
@@ -210,13 +210,13 @@ void JsonRpcConnection::DataAvailableHandler(void)
 	}
 }
 
-Value SetLogPositionHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
+Value SetLogPositionHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
 {
 	if (!params)
 		return Empty;
 
 	double log_position = params->Get("log_position");
-	Endpoint::Ptr endpoint = origin.FromClient->GetEndpoint();
+	Endpoint::Ptr endpoint = origin->FromClient->GetEndpoint();
 
 	if (!endpoint)
 		return Empty;
@@ -227,14 +227,14 @@ Value SetLogPositionHandler(const MessageOrigin& origin, const Dictionary::Ptr& 
 	return Empty;
 }
 
-Value RequestCertificateHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
+Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
 {
 	if (!params)
 		return Empty;
 
 	Dictionary::Ptr result = new Dictionary();
 
-	if (!origin.FromClient->IsAuthenticated()) {
+	if (!origin->FromClient->IsAuthenticated()) {
 		ApiListener::Ptr listener = ApiListener::GetInstance();
 		String salt = listener->GetTicketSalt();
 
@@ -244,7 +244,7 @@ Value RequestCertificateHandler(const MessageOrigin& origin, const Dictionary::P
 		}
 
 		String ticket = params->Get("ticket");
-		String realTicket = PBKDF2_SHA1(origin.FromClient->GetIdentity(), salt, 50000);
+		String realTicket = PBKDF2_SHA1(origin->FromClient->GetIdentity(), salt, 50000);
 
 		if (ticket != realTicket) {
 			result->Set("error", "Invalid ticket.");
@@ -252,7 +252,7 @@ Value RequestCertificateHandler(const MessageOrigin& origin, const Dictionary::P
 		}
 	}
 
-	boost::shared_ptr<X509> cert = origin.FromClient->GetStream()->GetPeerCertificate();
+	boost::shared_ptr<X509> cert = origin->FromClient->GetStream()->GetPeerCertificate();
 
 	EVP_PKEY *pubkey = X509_get_pubkey(cert.get());
 	X509_NAME *subject = X509_get_subject_name(cert.get());
