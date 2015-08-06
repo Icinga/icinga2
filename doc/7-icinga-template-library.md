@@ -3903,3 +3903,34 @@ vmware_username         | **Optional.** The username to connect to Host or vCent
 vmware_password         | **Optional.** The username's password. No value defined as default.
 vmware_authfile         | **Optional.** Use auth file instead username/password to session connect. No effect if **vmware_username** and **vmware_password** are defined <br> **Autentication file content:** <br>  username=vmuser <br> password=p@ssw0rd
 vmware_multiline        | **Optional.** Multiline output in overview. This mean technically that a multiline output uses a HTML **\<br\>** for the GUI. No value defined as default.
+
+
+## <a id="plugins-contrib-hardware"></a> Hardware
+
+This category includes all plugins for various hardware checks.
+
+### <a id="plugins-contrib-command-hpasm"></a> hpasm
+
+The plugin [check_hpasm](https://labs.consol.de/de/nagios/check_hpasm/index.html) is a plugin to monitor HP hardware through the HP Insight Agent via SNMP.
+
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
+
+Name                    	| Description
+--------------------------------|-----------------------------------------------------------------------
+hpasm_hostname			| **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
+hpasm_community			| **Optional.** SNMP community of the server (SNMP v1/2 only).
+hpasm_protocol			| **Optional.** The SNMP protocol to use (default: 2c, other possibilities: 1,3).
+hpasm_port			| **Optional.** The SNMP port to use (default: 161).
+hpasm_blacklist			| **Optional.** Blacklist some (missing/failed) components.
+hpasm_ignore-dimms		| **Optional.** Ignore "N/A"-DIMM status on misc. servers (e.g. older DL320).
+hpasm_ignore-fan-redundancy	| **Optional.** Ignore missing redundancy partners.
+hpasm_customthresholds		| **Optional.** Use custom thresholds for certain temperatures.
+hpasm_eventrange		| **Optional.** Period of time before critical IML events respecively become warnings or vanish. A range is descibed as a number and a unit (s, m, h, d), e.g. --eventrange 1h/20m.
+hpasm_perfdata			| **Optional.** Output performance data. If your performance data string becomes too long and is truncated by Nagios, then you can use --perfdata=short instead. This will output temperature tags without location information.
+hpasm_username			| **Optional.** The securityName for the USM security model (SNMPv3 only).
+hpasm_authpassword		| **Optional.** The authentication password for SNMPv3.
+hpasm_authprotocol		| **Optional.** The authentication protocol for SNMPv3 (md5|sha).
+hpasm_privpassword		| **Optional.** The password for authPriv security level.
+hpasm_privprotocol		| **Optional.** The private protocol for SNMPv3 (des|aes|aes128|3des|3desde).
+hpasm_servertype		| **Optional.** The type of the server: proliant (default) or bladesystem.
+hpasm_eval-nics			| **Optional.** Check network interfaces (and groups). Try it and report me whyt you think about it. I need to build up some know how on this subject. If get an error and you think, it is not justified for your configuration, please tell me about it. (alwasy send the output of "snmpwalk -On .... 1.3.6.1.4.1.232" and a description how you setup your nics and why it is correct opposed to the plugins error message.
