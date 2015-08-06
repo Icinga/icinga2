@@ -502,6 +502,7 @@ Configuration Attributes:
   host            	|**Optional.** GELF receiver host address. Defaults to '127.0.0.1'.
   port            	|**Optional.** GELF receiver port. Defaults to `12201`.
   source		|**Optional.** Source name for this instance. Defaults to `icinga2`.
+  enable_send_perfdata  |**Optional.** Enable performance data for 'CHECK RESULT' events.
 
 
 ## <a id="objecttype-graphitewriter"></a> GraphiteWriter

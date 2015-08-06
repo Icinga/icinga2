@@ -35,6 +35,9 @@ class GelfWriter : ConfigObject
 	[config] String source {
 		default {{{ return "icinga2"; }}}
 	};
+	[config] bool enable_send_perfdata {
+		default {{{ return false; }}}
+	};
 };
 
 }
