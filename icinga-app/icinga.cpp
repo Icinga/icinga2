@@ -173,6 +173,8 @@ int Main(void)
 		ScriptGlobal::Set("UseVfork", true);
 #endif /* __APPLE__ */
 
+	ScriptGlobal::Set("AttachDebugger", false);
+
 	LogSeverity logLevel = Logger::GetConsoleLogSeverity();
 	Logger::SetConsoleLogSeverity(LogWarning);
 

@@ -375,6 +375,7 @@ EnableHostChecks    |**Read-write.** Whether active host checks are globally ena
 EnableServiceChecks |**Read-write.** Whether active service checks are globally enabled. Defaults to true.
 EnablePerfdata      |**Read-write.** Whether performance data processing is globally enabled. Defaults to true.
 UseVfork            |**Read-write.** Whether to use vfork(). Only available on *NIX. Defaults to true.
+AttachDebugger      |**Read-write.** Whether to attach a debugger when Icinga 2 crashes. Defaults to false.
 RunAsUser	        |**Read-write.** Defines the user the Icinga 2 daemon is running as. Used in the `init.conf` configuration file.
 RunAsGroup	        |**Read-write.** Defines the group the Icinga 2 daemon is running as. Used in the `init.conf` configuration file.
 

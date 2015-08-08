@@ -626,9 +626,9 @@ String Application::GetCrashReportFilename(void)
 }
 
 
-#ifndef _WIN32
-void Application::GetDebuggerBacktrace(const String& filename)
+void Application::AttachDebugger(const String& filename, bool interactive)
 {
+#ifndef _WIN32
 #ifdef __linux__
 	prctl(PR_SET_DUMPABLE, 1);
 #endif /* __linux __ */
@@ -644,42 +644,58 @@ void Application::GetDebuggerBacktrace(const String& filename)
 	}
 
 	if (pid == 0) {
-		int fd = open(filename.CStr(), O_CREAT | O_RDWR | O_APPEND, 0600);
+		if (!interactive) {
+			int fd = open(filename.CStr(), O_CREAT | O_RDWR | O_APPEND, 0600);
 
-		if (fd < 0) {
-			BOOST_THROW_EXCEPTION(posix_error()
-			    << boost::errinfo_api_function("open")
-			    << boost::errinfo_errno(errno)
-			    << boost::errinfo_file_name(filename));
+			if (fd < 0) {
+				BOOST_THROW_EXCEPTION(posix_error()
+				    << boost::errinfo_api_function("open")
+				    << boost::errinfo_errno(errno)
+				    << boost::errinfo_file_name(filename));
+			}
+
+			if (fd != 1) {
+				/* redirect stdout to the file */
+				dup2(fd, 1);
+				close(fd);
+			}
+
+			/* redirect stderr to stdout */
+			if (fd != 2)
+				close(2);
+
+			dup2(1, 2);
 		}
 
-		if (fd != 1) {
-			/* redirect stdout to the file */
-			dup2(fd, 1);
-			close(fd);
-		}
-
-		/* redirect stderr to stdout */
-		if (fd != 2)
-			close(2);
-
-		dup2(1, 2);
-
+		char **argv;
 		char *my_pid_str = strdup(my_pid.CStr());
-		const char *argv[] = {
-			"gdb",
-			"--batch",
-			"-p",
-			my_pid_str,
-			"-ex",
-			"thread apply all bt full",
-			"-ex",
-			"detach",
-			"-ex",
-			"quit",
-			NULL
-		};
-		(void)execvp(argv[0], const_cast<char **>(argv));
+
+		if (interactive) {
+			const char *uargv[] = {
+				"gdb",
+				"-p",
+				my_pid_str,
+				NULL
+			};
+			argv = const_cast<char **>(uargv);
+		} else {
+			const char *uargv[] = {
+				"gdb",
+				"--batch",
+				"-p",
+				my_pid_str,
+				"-ex",
+				"thread apply all bt full",
+				"-ex",
+				"detach",
+				"-ex",
+				"quit",
+				NULL
+			};
+			argv = const_cast<char **>(uargv);
+		}
+
+		(void)execvp(argv[0], argv);
 		perror("Failed to launch GDB");
 		free(my_pid_str);
 		_exit(0);
@@ -695,6 +711,9 @@ void Application::GetDebuggerBacktrace(const String& filename)
 #ifdef __linux__
 	prctl(PR_SET_DUMPABLE, 0);
 #endif /* __linux __ */
+#else /* _WIN32 */
+	DebugBreak();
+#endif /* _WIN32 */
 }
 
 /**
@@ -750,30 +769,33 @@ void Application::SigAbrtHandler(int)
 	String fname = GetCrashReportFilename();
 	Utility::MkDir(Utility::DirName(fname), 0750);
 
-	std::ofstream ofs;
-	ofs.open(fname.CStr());
+	bool interactive_debugger = Convert::ToBool(ScriptGlobal::Get("AttachDebugger"));
 
-	Log(LogCritical, "Application")
-	    << "Icinga 2 has terminated unexpectedly. Additional information can be found in '" << fname << "'" << "\n";
+	if (!interactive_debugger) {
+		std::ofstream ofs;
+		ofs.open(fname.CStr());
 
-	DisplayInfoMessage(ofs);
+		Log(LogCritical, "Application")
+		    << "Icinga 2 has terminated unexpectedly. Additional information can be found in '" << fname << "'" << "\n";
 
-	StackTrace trace;
-	ofs << "Stacktrace:" << "\n";
-	trace.Print(ofs, 1);
+		DisplayInfoMessage(ofs);
 
-	DisplayBugMessage(ofs);
+		StackTrace trace;
+		ofs << "Stacktrace:" << "\n";
+		trace.Print(ofs, 1);
 
-#ifndef _WIN32
-	ofs << "\n";
-	ofs.close();
+		DisplayBugMessage(ofs);
 
-	GetDebuggerBacktrace(fname);
-#else /* _WIN32 */
-	ofs.close();
-#endif /* _WIN32 */
+		ofs << "\n";
+		ofs.close();
+	} else {
+		Log(LogCritical, "Application", "Icinga 2 has terminated unexpeectedly. Attaching debugger...");
+	}
+
+	AttachDebugger(fname, interactive_debugger);
 }
-#else /* _WIN32 */
+
+#ifdef _WIN32
 /**
  * Console control handler. Prepares the application for cleanly
  * shutting down during the next execution of the event loop.
@@ -813,35 +835,37 @@ void Application::ExceptionHandler(void)
 	String fname = GetCrashReportFilename();
 	Utility::MkDir(Utility::DirName(fname), 0750);
 
-	std::ofstream ofs;
-	ofs.open(fname.CStr());
+	bool interactive_debugger = Convert::ToBool(ScriptGlobal::Get("AttachDebugger"));
 
-	ofs << "Caught unhandled exception." << "\n"
-	    << "Current time: " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", Utility::GetTime()) << "\n"
-	    << "\n";
+	if (interactive_debugger) {
+		std::ofstream ofs;
+		ofs.open(fname.CStr());
 
-	DisplayInfoMessage(ofs);
-
-	try {
-		RethrowUncaughtException();
-	} catch (const std::exception& ex) {
-		Log(LogCritical, "Application")
-		    << DiagnosticInformation(ex, false) << "\n"
-		    << "\n"
-		    << "Additional information is available in '" << fname << "'" << "\n";
-
-		ofs << "\n"
-		    << DiagnosticInformation(ex)
+		ofs << "Caught unhandled exception." << "\n"
+		    << "Current time: " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", Utility::GetTime()) << "\n"
 		    << "\n";
+
+		DisplayInfoMessage(ofs);
+
+		try {
+			RethrowUncaughtException();
+		} catch (const std::exception& ex) {
+			Log(LogCritical, "Application")
+			    << DiagnosticInformation(ex, false) << "\n"
+			    << "\n"
+			    << "Additional information is available in '" << fname << "'" << "\n";
+
+			ofs << "\n"
+			    << DiagnosticInformation(ex)
+			    << "\n";
+		}
+
+		DisplayBugMessage(ofs);
+
+		ofs.close();
 	}
 
-	DisplayBugMessage(ofs);
-
-	ofs.close();
-
-#ifndef _WIN32
-	GetDebuggerBacktrace(fname);
-#endif /* _WIN32 */
+	AttachDebugger(fname, interactive_debugger);
 
 	abort();
 }
