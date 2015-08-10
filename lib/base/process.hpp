@@ -68,6 +68,7 @@ public:
 	static const std::deque<Process::Ptr>::size_type MaxTasksPerThread = 512;
 
 	Process(const Arguments& arguments, const Dictionary::Ptr& extraEnvironment = Dictionary::Ptr());
+	~Process(void);
 
 	void SetTimeout(double timeout);
 	double GetTimeout(void) const;
@@ -92,6 +93,13 @@ private:
 	ProcessHandle m_Process;
 	pid_t m_PID;
 	ConsoleHandle m_FD;
+
+#ifdef _WIN32
+	bool m_ReadPending;
+	bool m_ReadFailed;
+	OVERLAPPED m_Overlapped;
+	char m_ReadBuffer[1024];
+#endif /* _WIN32 */
 
 	std::ostringstream m_OutputStream;
 	boost::function<void (const ProcessResult&)> m_Callback;
