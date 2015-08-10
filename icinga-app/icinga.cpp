@@ -46,8 +46,9 @@ using namespace icinga;
 namespace po = boost::program_options;
 
 #ifdef _WIN32
-SERVICE_STATUS l_SvcStatus;
-SERVICE_STATUS_HANDLE l_SvcStatusHandle;
+static SERVICE_STATUS l_SvcStatus;
+static SERVICE_STATUS_HANDLE l_SvcStatusHandle;
+static HANDLE l_Job;
 #endif /* _WIN32 */
 
 static std::vector<String> GetLogLevelCompletionSuggestions(const String& arg)
@@ -626,7 +627,7 @@ VOID WINAPI ServiceControlHandler(DWORD dwCtrl)
 {
 	if (dwCtrl == SERVICE_CONTROL_STOP) {
 		ReportSvcStatus(SERVICE_STOP_PENDING, NO_ERROR, 0);
-		Application::RequestShutdown();
+		TerminateJobObject(l_Job, 0);
 	}
 }
 
@@ -641,11 +642,58 @@ VOID WINAPI ServiceMain(DWORD argc, LPSTR *argv)
 
 	ReportSvcStatus(SERVICE_RUNNING, NO_ERROR, 0);
 
-	int rc = Main();
+	l_Job = CreateJobObject(NULL, NULL);
 
-	ReportSvcStatus(SERVICE_STOPPED, NO_ERROR, rc);
+	for (;;) {
+		LPSTR arg = argv[0];
+		String args;
+		int uargc = Application::GetArgC();
+		char **uargv = Application::GetArgV();
 
-	Application::Exit(rc);
+		args += Utility::EscapeShellArg(Application::GetExePath(uargv[0]));
+
+		for (int i = 2; i < uargc && uargv[i]; i++) {
+			if (args != "")
+				args += " ";
+
+			args += Utility::EscapeShellArg(uargv[i]);
+		}
+
+		STARTUPINFO si = { sizeof(si) };
+		PROCESS_INFORMATION pi;
+
+		char *uargs = strdup(args.CStr());
+
+		BOOL res = CreateProcess(NULL, uargs, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi);
+
+		free(uargs);
+
+		if (!res)
+			break;
+
+		CloseHandle(pi.hThread);
+
+		AssignProcessToJobObject(l_Job, pi.hProcess);
+
+		if (WaitForSingleObject(pi.hProcess, INFINITE) != WAIT_OBJECT_0)
+			break;
+
+		DWORD exitStatus;
+		
+		if (!GetExitCodeProcess(pi.hProcess, &exitStatus))
+			break;
+
+		if (exitStatus != 7)
+			break;
+	}
+
+	TerminateJobObject(l_Job, 0);
+
+	CloseHandle(l_Job);
+
+	ReportSvcStatus(SERVICE_STOPPED, NO_ERROR, 0);
+
+	Application::Exit(0);
 }
 #endif /* _WIN32 */
 
