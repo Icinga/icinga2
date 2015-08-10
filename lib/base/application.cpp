@@ -327,11 +327,22 @@ void Application::OnShutdown(void)
 	/* Nothing to do here. */
 }
 
-static void ReloadProcessCallback(const ProcessResult& pr)
+static void ReloadProcessCallbackInternal(const ProcessResult& pr)
 {
 	if (pr.ExitStatus != 0)
 		Log(LogCritical, "Application", "Found error in config: reloading aborted");
+#ifdef _WIN32
+	else
+		Application::Exit(7); /* keep this exit code in sync with icinga-app */
+#endif /* _WIN32 */
+}
+
+static void ReloadProcessCallback(const ProcessResult& pr)
+{
 	l_Restarting = false;
+
+	boost::thread t(boost::bind(&ReloadProcessCallbackInternal, pr));
+	t.detach();
 }
 
 pid_t Application::StartReloadProcess(void)
@@ -348,8 +359,13 @@ pid_t Application::StartReloadProcess(void)
 		else
 			i++;     // the next parameter after --reload-internal is the pid, remove that too
 	}
+
+#ifndef _WIN32
 	args->Add("--reload-internal");
 	args->Add(Convert::ToString(Utility::GetPid()));
+#else /* _WIN32 */
+	args->Add("--validate");
+#endif /* _WIN32 */
 
 	Process::Ptr process = new Process(Process::PrepareCommand(args));
 	process->SetTimeout(300);
