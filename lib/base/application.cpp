@@ -732,6 +732,7 @@ void Application::AttachDebugger(const String& filename, bool interactive)
 #endif /* _WIN32 */
 }
 
+#ifndef _WIN32
 /**
  * Signal handler for SIGINT and SIGTERM. Prepares the application for cleanly
  * shutting down during the next execution of the event loop.
@@ -752,6 +753,7 @@ void Application::SigIntTermHandler(int signum)
 
 	instance->RequestShutdown();
 }
+#endif /* _WIN32 */
 
 /**
  * Signal handler for SIGUSR1. This signal causes Icinga to re-open
