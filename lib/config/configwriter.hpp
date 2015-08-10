@@ -25,6 +25,7 @@
 #include "base/array.hpp"
 #include "base/dictionary.hpp"
 #include <fstream>
+#include <set>
 
 namespace icinga
 {
