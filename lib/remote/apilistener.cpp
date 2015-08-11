@@ -265,7 +265,7 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 void ApiListener::NewClientHandler(const Socket::Ptr& client, const String& hostname, ConnectionRole role)
 {
 	try {
-		NewClientHandler(client, hostname, role);
+		NewClientHandlerInternal(client, hostname, role);
 	} catch (const std::exception& ex) {
 		Log(LogCritical, "ApiListener")
 		    << "Exception while handling new API client connection: " << DiagnosticInformation(ex);
