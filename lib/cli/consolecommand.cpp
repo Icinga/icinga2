@@ -198,16 +198,12 @@ incomplete:
 		std::ostream& os = std::cout;
 #endif /* HAVE_EDITLINE */
 
-		os << ConsoleColorTag(Console_ForegroundCyan, console_type)
-		   << fileName
-		   << ConsoleColorTag(Console_ForegroundRed, console_type);
+		os << fileName;
 
 		if (!continuation)
 			os << " => ";
 		else
 			os << " .. ";
-
-		os << ConsoleColorTag(Console_Normal, console_type);
 
 #ifdef HAVE_EDITLINE
 		String prompt = promptbuf.str();
