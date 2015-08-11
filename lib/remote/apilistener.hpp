@@ -75,6 +75,7 @@ public:
 
 	static Value ConfigUpdateHandler(const MessageOrigin& origin, const Dictionary::Ptr& params);
 
+	static Value HelloAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params);
 protected:
 	virtual void OnConfigLoaded(void);
 	virtual void OnAllConfigLoaded(void);

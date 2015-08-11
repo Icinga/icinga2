@@ -22,6 +22,7 @@
 #include "remote/jsonrpcconnection.hpp"
 #include "remote/endpoint.hpp"
 #include "remote/jsonrpc.hpp"
+#include "remote/apifunction.hpp"
 #include "base/convert.hpp"
 #include "base/netstring.hpp"
 #include "base/json.hpp"
@@ -42,6 +43,8 @@ REGISTER_TYPE(ApiListener);
 boost::signals2::signal<void(bool)> ApiListener::OnMasterChanged;
 
 REGISTER_STATSFUNCTION(ApiListenerStats, &ApiListener::StatsFunc);
+
+REGISTER_APIFUNCTION(Hello, icinga, &ApiListener::HelloAPIHandler);
 
 ApiListener::ApiListener(void)
 	: m_LogMessageCount(0)
@@ -921,4 +924,9 @@ std::set<HttpConnection::Ptr> ApiListener::GetHttpClients(void) const
 {
 	ObjectLock olock(this);
 	return m_HttpClients;
+}
+
+Value ApiListener::HelloAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params)
+{
+	return Empty;
 }
