@@ -35,7 +35,7 @@
 using namespace icinga;
 namespace po = boost::program_options;
 
-static ScriptFrame l_ScriptFrame;
+static ScriptFrame *l_ScriptFrame;
 
 REGISTER_CLICOMMAND("console", ConsoleCommand);
 
@@ -85,8 +85,8 @@ static char *ConsoleCompleteHelper(const char *word, int state)
 		}
 
 		{
-			ObjectLock olock(l_ScriptFrame.Locals);
-			BOOST_FOREACH(const Dictionary::Pair& kv, l_ScriptFrame.Locals) {
+			ObjectLock olock(l_ScriptFrame->Locals);
+			BOOST_FOREACH(const Dictionary::Pair& kv, l_ScriptFrame->Locals) {
 				AddSuggestion(matches, word, kv.first);
 			}
 		}
@@ -109,7 +109,7 @@ static char *ConsoleCompleteHelper(const char *word, int state)
 				Expression *expr = ConfigCompiler::CompileText("temp", pword, false);
 
 				if (expr)
-					value = expr->Evaluate(l_ScriptFrame);
+					value = expr->Evaluate(*l_ScriptFrame);
 
 				if (value.IsObjectType<Dictionary>()) {
 					Dictionary::Ptr dict = value;
@@ -164,6 +164,9 @@ int ConsoleCommand::Run(const po::variables_map& vm, const std::vector<std::stri
 #endif /* HAVE_EDITLINE */
 
 	String addr, session;
+	ScriptFrame scriptFrame;
+
+	l_ScriptFrame = &scriptFrame;
 
 	if (vm.count("connect")) {
 		addr = vm["connect"].as<std::string>();
@@ -176,7 +179,7 @@ int ConsoleCommand::Run(const po::variables_map& vm, const std::vector<std::stri
 			return EXIT_FAILURE;
 		}
 
-		l_ScriptFrame.Sandboxed = true;
+		scriptFrame.Sandboxed = true;
 	}
 
 	std::cout << "Icinga (version: " << Application::GetVersion() << ")\n";
@@ -238,7 +241,7 @@ incomplete:
 				expr = ConfigCompiler::CompileText(fileName, command, false);
 
 				if (expr) {
-					Value result = expr->Evaluate(l_ScriptFrame);
+					Value result = expr->Evaluate(scriptFrame);
 					std::cout << ConsoleColorTag(Console_ForegroundCyan);
 					if (!result.IsObject() || result.IsObjectType<Array>() || result.IsObjectType<Dictionary>())
 						std::cout << JsonEncode(result);
