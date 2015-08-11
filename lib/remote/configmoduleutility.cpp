@@ -82,6 +82,8 @@ String ConfigModuleUtility::CreateStage(const String& moduleName, const Dictiona
 	path += "/" + stageName;
 
 	Utility::MkDirP(path, 0700);
+	Utility::MkDirP(path + "/conf.d", 0700);
+	Utility::MkDirP(path + "/zones.d", 0700);
 	WriteStageConfig(moduleName, stageName);
 
 	bool foundDotDot = false;
