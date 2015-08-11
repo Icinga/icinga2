@@ -62,8 +62,9 @@ void HttpHandler::ProcessRequest(const ApiUser::Ptr& user, HttpRequest& request,
 {
 	Dictionary::Ptr node = m_UrlTree;
 	std::vector<HttpHandler::Ptr> handlers;
+	const std::vector<String>& path = request.RequestUrl->GetPath();
 
-	BOOST_FOREACH(const String& elem, request.RequestUrl->GetPath()) {
+	for (int i = 0; i <= path.size(); i++) {
 		Array::Ptr current_handlers = node->Get("handlers");
 
 		if (current_handlers) {
@@ -80,7 +81,10 @@ void HttpHandler::ProcessRequest(const ApiUser::Ptr& user, HttpRequest& request,
 			break;
 		}
 
-		node = children->Get(elem);
+		if (i == path.size())
+			break;
+
+		node = children->Get(path[i]);
 
 		if (!node)
 			break;
