@@ -635,6 +635,7 @@ void LivestatusQuery::ExecuteScriptHelper(const Stream::Ptr& stream)
 	try {
 		ScriptFrame frame;
 		frame.Locals = lsf.Locals;
+		frame.Self = lsf.Locals;
 		result = expr->Evaluate(frame);
 	} catch (const ScriptError& ex) {
 		delete expr;
