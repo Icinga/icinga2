@@ -633,6 +633,14 @@ Signature:
 Retrieves the value for the specified `key`. Returns `null` if they `key` does not exist
 in the dictionary.
 
+### <a id="dictionary-keys"></a> Dictionary#keys
+
+Signature:
+
+    function keys();
+
+Returns a list of keys for all items that are currently in the dictionary.
+
 ## <a id="scriptfunction-type"></a> Function type
 
 ### <a id="scriptfunction-call"></a> Function#call
