@@ -80,34 +80,9 @@ static char *ConsoleCompleteHelper(const char *word, int state)
 	if (state == 0) {
 		matches.clear();
 
-		AddSuggestion(matches, word, "object");
-		AddSuggestion(matches, word, "template");
-		AddSuggestion(matches, word, "include");
-		AddSuggestion(matches, word, "include_recursive");
-		AddSuggestion(matches, word, "library");
-		AddSuggestion(matches, word, "null");
-		AddSuggestion(matches, word, "true");
-		AddSuggestion(matches, word, "false");
-		AddSuggestion(matches, word, "const");
-		AddSuggestion(matches, word, "var");
-		AddSuggestion(matches, word, "this");
-		AddSuggestion(matches, word, "globals");
-		AddSuggestion(matches, word, "locals");
-		AddSuggestion(matches, word, "use");
-		AddSuggestion(matches, word, "apply");
-		AddSuggestion(matches, word, "to");
-		AddSuggestion(matches, word, "where");
-		AddSuggestion(matches, word, "import");
-		AddSuggestion(matches, word, "assign");
-		AddSuggestion(matches, word, "ignore");
-		AddSuggestion(matches, word, "function");
-		AddSuggestion(matches, word, "return");
-		AddSuggestion(matches, word, "break");
-		AddSuggestion(matches, word, "continue");
-		AddSuggestion(matches, word, "for");
-		AddSuggestion(matches, word, "if");
-		AddSuggestion(matches, word, "else");
-		AddSuggestion(matches, word, "while");
+		BOOST_FOREACH(const String& keyword, ConfigCompiler::GetKeywords()) {
+			AddSuggestion(matches, word, keyword);
+		}
 
 		{
 			ObjectLock olock(l_ScriptFrame.Locals);

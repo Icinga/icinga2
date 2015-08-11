@@ -18,10 +18,12 @@
  ******************************************************************************/
 
 #include "config/configwriter.hpp"
+#include "config/configcompiler.hpp"
 #include "base/exception.hpp"
 #include <boost/foreach.hpp>
 #include <boost/regex.hpp>
 #include <boost/algorithm/string/replace.hpp>
+#include <iterator>
 
 using namespace icinga;
 
@@ -131,34 +133,8 @@ void ConfigWriter::EmitIdentifier(const String& identifier, bool inAssignment)
 {
 	static std::set<String> keywords;
 	if (keywords.empty()) {
-		keywords.insert("object");
-		keywords.insert("template");
-		keywords.insert("include");
-		keywords.insert("include_recursive");
-		keywords.insert("library");
-		keywords.insert("null");
-		keywords.insert("true");
-		keywords.insert("false");
-		keywords.insert("const");
-		keywords.insert("var");
-		keywords.insert("this");
-		keywords.insert("globals");
-		keywords.insert("locals");
-		keywords.insert("use");
-		keywords.insert("apply");
-		keywords.insert("to");
-		keywords.insert("where");
-		keywords.insert("import");
-		keywords.insert("assign");
-		keywords.insert("ignore");
-		keywords.insert("function");
-		keywords.insert("return");
-		keywords.insert("break");
-		keywords.insert("continue");
-		keywords.insert("for");
-		keywords.insert("if");
-		keywords.insert("else");
-		keywords.insert("while");
+		const std::vector<String>& vkeywords = ConfigCompiler::GetKeywords();
+		std::copy(vkeywords.begin(), vkeywords.end(), std::inserter(keywords, keywords.begin()));
 	}
 
 	if (keywords.find(identifier) != keywords.end()) {
