@@ -93,6 +93,7 @@ private:
 	void AddConnection(const Endpoint::Ptr& endpoint);
 
 	void NewClientHandler(const Socket::Ptr& client, const String& hostname, ConnectionRole role);
+	void NewClientHandlerInternal(const Socket::Ptr& client, const String& hostname, ConnectionRole role);
 	void ListenerThreadProc(const Socket::Ptr& server);
 
 	WorkQueue m_RelayQueue;

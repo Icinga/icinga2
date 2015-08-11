@@ -262,12 +262,22 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 	}
 }
 
+void ApiListener::NewClientHandler(const Socket::Ptr& client, const String& hostname, ConnectionRole role)
+{
+	try {
+		NewClientHandler(client, hostname, role);
+	} catch (const std::exception& ex) {
+		Log(LogCritical, "ApiListener")
+		    << "Exception while handling new API client connection: " << DiagnosticInformation(ex);
+	}
+}
+
 /**
  * Processes a new client connection.
  *
  * @param client The new client.
  */
-void ApiListener::NewClientHandler(const Socket::Ptr& client, const String& hostname, ConnectionRole role)
+void ApiListener::NewClientHandlerInternal(const Socket::Ptr& client, const String& hostname, ConnectionRole role)
 {
 	CONTEXT("Handling new API client connection");
 
