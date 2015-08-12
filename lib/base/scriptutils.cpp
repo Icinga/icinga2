@@ -251,12 +251,19 @@ Array::Ptr ScriptUtils::Keys(const Dictionary::Ptr& dict)
 	return result;
 }
 
-DynamicObject::Ptr ScriptUtils::GetObject(const Type::Ptr& type, const String& name)
+DynamicObject::Ptr ScriptUtils::GetObject(const Value& vtype, const String& name)
 {
-	DynamicType::Ptr dtype = DynamicType::GetByName(type->GetName());
+	String typeName;
+
+	if (vtype.IsObjectType<Type>())
+		typeName = static_cast<Type::Ptr>(vtype)->GetName();
+	else
+		typeName = vtype;
+
+	DynamicType::Ptr dtype = DynamicType::GetByName(typeName);
 
 	if (!dtype)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid type name"));
+		return DynamicObject::Ptr();
 
 	return dtype->GetObject(name);
 }

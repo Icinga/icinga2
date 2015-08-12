@@ -17,20 +17,22 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "remote/statusqueryhandler.hpp"
+#include "remote/modifyobjecthandler.hpp"
 #include "remote/httputility.hpp"
 #include "remote/filterutility.hpp"
+#include "remote/apiaction.hpp"
+#include "base/exception.hpp"
 #include "base/serializer.hpp"
 #include <boost/algorithm/string.hpp>
 #include <set>
 
 using namespace icinga;
 
-REGISTER_URLHANDLER("/v1", StatusQueryHandler);
+REGISTER_URLHANDLER("/v1", ModifyObjectHandler);
 
-bool StatusQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
+bool ModifyObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
 {
-	if (request.RequestMethod != "GET")
+	if (request.RequestMethod != "POST")
 		return false;
 
 	if (request.RequestUrl->GetPath().size() < 2)
@@ -44,9 +46,6 @@ bool StatusQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 	QueryDescription qd;
 	qd.Types.insert(type);
 
-	std::vector<String> joinTypes;
-	joinTypes.push_back(type->GetName());
-
 	Dictionary::Ptr params = HttpUtility::FetchRequestParameters(request);
 
 	params->Set("type", type->GetName());
@@ -59,34 +58,33 @@ bool StatusQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 
 	std::vector<DynamicObject::Ptr> objs = FilterUtility::GetFilterTargets(qd, params);
 
+	Dictionary::Ptr attrs = params->Get("attrs");
+
 	Array::Ptr results = new Array();
 
-	std::set<String> attrs;
-	Array::Ptr uattrs = params->Get("attrs");
-
-	if (uattrs) {
-		ObjectLock olock(uattrs);
-		BOOST_FOREACH(const String& uattr, uattrs) {
-			attrs.insert(uattr);
-		}
-	}
-
-	BOOST_FOREACH(const DynamicObject::Ptr& obj, objs) {
-		BOOST_FOREACH(const String& joinType, joinTypes) {
-			String prefix = joinType;
-			boost::algorithm::to_lower(prefix);
-
+	if (attrs) {
+		BOOST_FOREACH(const DynamicObject::Ptr& obj, objs) {
 			Dictionary::Ptr result1 = new Dictionary();
-			for (int fid = 0; fid < type->GetFieldCount(); fid++) {
-				Field field = type->GetFieldInfo(fid);
-				String aname = prefix + "." + field.Name;
-				if (!attrs.empty() && attrs.find(aname) == attrs.end())
-					continue;
 
-				Value val = static_cast<Object::Ptr>(obj)->GetField(fid);
-				Value sval = Serialize(val, FAConfig | FAState);
-				result1->Set(aname, sval);
+			result1->Set("type", obj->GetReflectionType()->GetName());
+			result1->Set("name", obj->GetName());
+
+			String key;
+
+			try {
+				ObjectLock olock(attrs);
+				BOOST_FOREACH(const Dictionary::Pair& kv, attrs) {
+					key = kv.first;
+					obj->ModifyAttribute(kv.first, kv.second);
+				}
+
+				result1->Set("code", 200);
+				result1->Set("status", "Attributes updated.");
+			} catch (const std::exception& ex) {
+				result1->Set("code", 500);
+				result1->Set("status", "Attribute '" + key + "' could not be set: " + DiagnosticInformation(ex));
 			}
+
 			results->Add(result1);
 		}
 	}

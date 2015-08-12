@@ -28,7 +28,7 @@ set(remote_SOURCES
   endpoint.cpp endpoint.thpp filterutility.cpp
   httpchunkedencoding.cpp  httpconnection.cpp httphandler.cpp httprequest.cpp httpresponse.cpp
   httputility.cpp jsonrpc.cpp jsonrpcconnection.cpp jsonrpcconnection-heartbeat.cpp
-  messageorigin.cpp statusqueryhandler.cpp url.cpp zone.cpp zone.thpp
+  messageorigin.cpp modifyobjecthandler.cpp statusqueryhandler.cpp url.cpp zone.cpp zone.thpp
 )
 
 if(ICINGA2_UNITY_BUILD)

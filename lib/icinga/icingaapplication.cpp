@@ -140,13 +140,14 @@ static void PersistModAttrHelper(const ConfigWriter::Ptr& cw, DynamicObject::Ptr
 		if (previousObject)
 			cw->EmitRaw("}\n\n");
 
-		cw->EmitRaw("var obj = get_object(");
-		cw->EmitIdentifier(object->GetReflectionType()->GetName(), 0);
-		cw->EmitRaw(", ");
-		cw->EmitString(object->GetName());
-		cw->EmitRaw(")\n");
+		cw->EmitRaw("var obj = ");
 
-		cw->EmitRaw("if (obj) {\n");
+		Array::Ptr args1 = new Array();
+		args1->Add(object->GetReflectionType()->GetName());
+		args1->Add(object->GetName());
+		cw->EmitFunctionCall("get_object", args1);
+
+		cw->EmitRaw("\nif (obj) {\n");
 	}
 
 	cw->EmitRaw("\tobj.");
