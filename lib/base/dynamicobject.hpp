@@ -86,6 +86,8 @@ public:
 	static void RestoreObjects(const String& filename, int attributeTypes = FAState);
 	static void StopObjects(void);
 
+	static void DumpModifiedAttributes(const boost::function<void(const DynamicObject::Ptr&, const String&, const Value&)>& callback);
+
 	static Object::Ptr GetPrototype(void);
 
 protected:

@@ -404,6 +404,27 @@ void DynamicObject::StopObjects(void)
 	}
 }
 
+void DynamicObject::DumpModifiedAttributes(const boost::function<void(const DynamicObject::Ptr&, const String&, const Value&)>& callback)
+{
+	BOOST_FOREACH(const DynamicType::Ptr& dt, DynamicType::GetTypes()) {
+		BOOST_FOREACH(const DynamicObject::Ptr& object, dt->GetObjects()) {
+			Dictionary::Ptr originalAttributes = object->GetOriginalAttributes();
+
+			if (!originalAttributes)
+				continue;
+
+			ObjectLock olock(originalAttributes);
+			BOOST_FOREACH(const Dictionary::Pair& kv, originalAttributes) {
+				// TODO-MA: vars.os
+				int fid = object->GetReflectionType()->GetFieldId(kv.first);
+				Value value = object->GetField(fid);
+				callback(object, kv.first, value);
+			}
+		}
+	}
+
+}
+
 DynamicObject::Ptr DynamicObject::GetObject(const String& type, const String& name)
 {
 	DynamicType::Ptr dtype = DynamicType::GetByName(type);

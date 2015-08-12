@@ -263,6 +263,7 @@ int Main(void)
 	}
 
 	Application::DeclareStatePath(Application::GetLocalStateDir() + "/lib/icinga2/icinga2.state");
+	Application::DeclareModAttrPath(Application::GetLocalStateDir() + "/lib/icinga2/modified-attributes.conf");
 	Application::DeclareObjectsPath(Application::GetLocalStateDir() + "/cache/icinga2/icinga2.debug");
 	Application::DeclareVarsPath(Application::GetLocalStateDir() + "/cache/icinga2/icinga2.vars");
 	Application::DeclarePidPath(Application::GetRunDir() + "/icinga2/icinga2.pid");

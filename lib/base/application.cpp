@@ -600,6 +600,7 @@ void Application::DisplayInfoMessage(std::ostream& os, bool skipVersion)
 	   << "  Local state directory: " << GetLocalStateDir() << "\n"
 	   << "  Package data directory: " << GetPkgDataDir() << "\n"
 	   << "  State path: " << GetStatePath() << "\n"
+	   << "  Modified attributes path: " << GetModAttrPath() << "\n"
 	   << "  Objects path: " << GetObjectsPath() << "\n"
 	   << "  Vars path: " << GetVarsPath() << "\n"
 	   << "  PID path: " << GetPidPath() << "\n";
@@ -1279,6 +1280,27 @@ void Application::DeclareStatePath(const String& path)
 {
 	if (!ScriptGlobal::Exists("StatePath"))
 		ScriptGlobal::Set("StatePath", path);
+}
+
+/**
+ * Retrieves the path for the modified attributes file.
+ *
+ * @returns The path.
+ */
+String Application::GetModAttrPath(void)
+{
+	return ScriptGlobal::Get("ModAttrPath", &Empty);
+}
+
+/**
+ * Sets the path for the modified attributes file.
+ *
+ * @param path The new path.
+ */
+void Application::DeclareModAttrPath(const String& path)
+{
+	if (!ScriptGlobal::Exists("ModAttrPath"))
+		ScriptGlobal::Set("ModAttrPath", path);
 }
 
 /**

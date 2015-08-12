@@ -20,6 +20,7 @@
 #include "icinga/icingaapplication.hpp"
 #include "icinga/icingaapplication.tcpp"
 #include "icinga/cib.hpp"
+#include "config/configwriter.cpp"
 #include "base/dynamictype.hpp"
 #include "base/logger.hpp"
 #include "base/objectlock.hpp"
@@ -102,6 +103,18 @@ int IcingaApplication::Main(void)
 	l_RetentionTimer->OnTimerExpired.connect(boost::bind(&IcingaApplication::DumpProgramState, this));
 	l_RetentionTimer->Start();
 
+	/* restore modified attributes */
+	Expression *expression = ConfigCompiler::CompileFile(GetModAttrPath());
+
+	if (expression) {
+		try {
+			ScriptFrame frame;
+			expression->Evaluate(frame);
+		} catch (const std::exception& ex) {
+			Log(LogCritical, "config", DiagnosticInformation(ex));
+		}
+	}
+
 	RunEventLoop();
 
 	Log(LogInformation, "IcingaApplication", "Icinga has shut down.");
@@ -121,9 +134,43 @@ void IcingaApplication::OnShutdown(void)
 	DumpProgramState();
 }
 
+static void PersistModAttrHelper(const ConfigWriter::Ptr& cw, DynamicObject::Ptr& previousObject, const DynamicObject::Ptr& object, const String& attr, const Value& value)
+{
+	if (object != previousObject) {
+		if (previousObject)
+			cw->EmitRaw("}\n\n");
+
+		cw->EmitRaw("var obj = get_object(");
+		cw->EmitIdentifier(object->GetReflectionType()->GetName(), 0);
+		cw->EmitRaw(", ");
+		cw->EmitString(object->GetName());
+		cw->EmitRaw(")\n");
+
+		cw->EmitRaw("if (obj) {\n");
+	}
+
+	cw->EmitRaw("\tobj.");
+
+	Array::Ptr args2 = new Array();
+	args2->Add(attr);
+	args2->Add(value);
+	cw->EmitFunctionCall("modify_attribute", args2);
+
+	cw->EmitRaw("\n");
+
+	previousObject = object;
+}
+
 void IcingaApplication::DumpProgramState(void)
 {
 	DynamicObject::DumpObjects(GetStatePath());
+
+	ConfigWriter::Ptr cw = new ConfigWriter(GetModAttrPath());
+	DynamicObject::Ptr previousObject;
+	DynamicObject::DumpModifiedAttributes(boost::bind(&PersistModAttrHelper, cw, boost::ref(previousObject), _1, _2, _3));
+
+	if (previousObject)
+		cw->EmitRaw("\n}\n");
 }
 
 IcingaApplication::Ptr IcingaApplication::GetInstance(void)
