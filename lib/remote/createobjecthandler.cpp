@@ -17,10 +17,12 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "remote/modifyobjecthandler.hpp"
+#include "remote/createobjecthandler.hpp"
 #include "remote/httputility.hpp"
 #include "remote/filterutility.hpp"
 #include "remote/apiaction.hpp"
+#include "config/configitembuilder.hpp"
+#include "config/configitem.hpp"
 #include "base/exception.hpp"
 #include "base/serializer.hpp"
 #include <boost/algorithm/string.hpp>
@@ -28,14 +30,14 @@
 
 using namespace icinga;
 
-REGISTER_URLHANDLER("/v1", ModifyObjectHandler);
+REGISTER_URLHANDLER("/v1", CreateObjectHandler);
 
-bool ModifyObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
+bool CreateObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
 {
-	if (request.RequestMethod != "POST")
+	if (request.RequestMethod != "PUT")
 		return false;
 
-	if (request.RequestUrl->GetPath().size() < 2)
+	if (request.RequestUrl->GetPath().size() < 3)
 		return false;
 
 	Type::Ptr type = FilterUtility::TypeFromPluralName(request.RequestUrl->GetPath()[1]);
@@ -43,51 +45,46 @@ bool ModifyObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 	if (!type)
 		return false;
 
-	QueryDescription qd;
-	qd.Types.insert(type);
+	String name = request.RequestUrl->GetPath()[2];
 
 	Dictionary::Ptr params = HttpUtility::FetchRequestParameters(request);
 
-	params->Set("type", type->GetName());
+	ConfigItemBuilder::Ptr builder = new ConfigItemBuilder();
+	builder->SetType(type->GetName());
+	builder->SetName(name);
+	builder->SetScope(ScriptGlobal::GetGlobals());
 
-	if (request.RequestUrl->GetPath().size() >= 3) {
-		String attr = type->GetName();
-		boost::algorithm::to_lower(attr);
-		params->Set(attr, request.RequestUrl->GetPath()[2]);
+	Array::Ptr templates = params->Get("templates");
+
+	if (templates) {
+		ObjectLock olock(templates);
+		BOOST_FOREACH(const String& tmpl, templates) {
+			ImportExpression *expr = new ImportExpression(MakeLiteral(tmpl));
+			builder->AddExpression(expr);
+		}
 	}
-
-	std::vector<DynamicObject::Ptr> objs = FilterUtility::GetFilterTargets(qd, params);
 
 	Dictionary::Ptr attrs = params->Get("attrs");
 
-	Array::Ptr results = new Array();
-
-	BOOST_FOREACH(const DynamicObject::Ptr& obj, objs) {
-		Dictionary::Ptr result1 = new Dictionary();
-
-		result1->Set("type", obj->GetReflectionType()->GetName());
-		result1->Set("name", obj->GetName());
-
-		String key;
-
-		try {
-			if (attrs) {
-				ObjectLock olock(attrs);
-				BOOST_FOREACH(const Dictionary::Pair& kv, attrs) {
-					key = kv.first;
-					obj->ModifyAttribute(kv.first, kv.second);
-				}
-			}
-
-			result1->Set("code", 200);
-			result1->Set("status", "Attributes updated.");
-		} catch (const std::exception& ex) {
-			result1->Set("code", 500);
-			result1->Set("status", "Attribute '" + key + "' could not be set: " + DiagnosticInformation(ex));
+	if (attrs) {
+		ObjectLock olock(attrs);
+		BOOST_FOREACH(const Dictionary::Pair& kv, attrs) {
+			SetExpression *expr = new SetExpression(MakeIndexer(ScopeThis, kv.first), OpSetLiteral, MakeLiteral(kv.second));
+			builder->AddExpression(expr);
 		}
-
-		results->Add(result1);
 	}
+
+	ConfigItem::Ptr item = builder->Compile();
+	item->Register();
+
+	ConfigItem::CommitAndActivate();
+
+	Dictionary::Ptr result1 = new Dictionary();
+	result1->Set("code", 200);
+	result1->Set("status", "Object created.");
+
+	Array::Ptr results = new Array();
+	results->Add(result1);
 
 	Dictionary::Ptr result = new Dictionary();
 	result->Set("results", results);

@@ -46,7 +46,7 @@ ConfigItem::TypeMap ConfigItem::m_Items;
 ConfigItem::ItemList ConfigItem::m_UnnamedItems;
 ConfigItem::ItemList ConfigItem::m_CommittedItems;
 
-REGISTER_SCRIPTFUNCTION(commit_objects, &ConfigItem::ScriptCommit);
+REGISTER_SCRIPTFUNCTION(commit_objects, &ConfigItem::CommitAndActivate);
 
 /**
  * Constructor for the ConfigItem class.
@@ -477,7 +477,7 @@ bool ConfigItem::ActivateItems(void)
 	return true;
 }
 
-bool ConfigItem::ScriptCommit(void)
+bool ConfigItem::CommitAndActivate(void)
 {
 	WorkQueue upq(25000, Application::GetConcurrency());
 
@@ -497,10 +497,10 @@ bool ConfigItem::ScriptCommit(void)
 				continue;
 
 #ifdef I2_DEBUG
-	Log(LogDebug, "ConfigItem")
-	    << "Activating object '" << object->GetName() << "' of type '" << object->GetType()->GetName() << "'";
+			Log(LogDebug, "ConfigItem")
+			    << "Activating object '" << object->GetName() << "' of type '" << object->GetType()->GetName() << "'";
 #endif /* I2_DEBUG */
-		upq.Enqueue(boost::bind(&DynamicObject::Activate, object));
+			upq.Enqueue(boost::bind(&DynamicObject::Activate, object));
 		}
 	}
 
