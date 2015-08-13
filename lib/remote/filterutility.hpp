@@ -41,7 +41,6 @@ struct QueryDescription
 class I2_REMOTE_API FilterUtility
 {
 public:
-	static String GetPluralName(const Type::Ptr& type);
 	static Type::Ptr TypeFromPluralName(const String& pluralName);
 	static DynamicObject::Ptr GetObjectByTypeAndName(const String& type, const String& name);
 	static std::vector<DynamicObject::Ptr> GetFilterTargets(const QueryDescription& qd, const Dictionary::Ptr& query);

@@ -17,53 +17,22 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "icinga/customvarobject.hpp"
-#include "icinga/checkable.hpp"
+#ifndef DELETEOBJECTHANDLER_H
+#define DELETEOBJECTHANDLER_H
 
-library icinga;
+#include "remote/httphandler.hpp"
 
 namespace icinga
 {
 
-code {{{
-class I2_ICINGA_API DependencyNameComposer : public NameComposer
+class I2_REMOTE_API DeleteObjectHandler : public HttpHandler
 {
 public:
-	virtual String MakeName(const String& shortName, const Object::Ptr& context) const;
-	virtual Dictionary::Ptr ParseName(const String& name) const;
-};
-}}}
+	DECLARE_PTR_TYPEDEFS(DeleteObjectHandler);
 
-class Dependency : CustomVarObject < DependencyNameComposer
-{
-	load_after Host;
-	load_after Service;
-
-	[config, required] name(Host) child_host_name;
-	[config] String child_service_name;
-
-	[config, required] name(Host) parent_host_name;
-	[config] String parent_service_name;
-
-	[config] name(TimePeriod) period (PeriodRaw);
-
-	[config] Array::Ptr states;
-	int state_filter_real (StateFilter);
-
-	[config] bool ignore_soft_states {
-		default {{{ return true; }}}
-	};
-
-	[config] bool disable_checks;
-	[config] bool disable_notifications {
-		default {{{ return true; }}}
-	};
-};
-
-validator Dependency {
-	Array states {
-		Number "*";
-	};
+	virtual bool HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response);
 };
 
 }
+
+#endif /* DELETEOBJECTHANDLER_H */

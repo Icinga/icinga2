@@ -80,6 +80,8 @@ public:
 	virtual Field GetFieldInfo(int id) const = 0;
 	virtual int GetFieldCount(void) const = 0;
 
+	String GetPluralName(void) const;
+
 	Object::Ptr Instantiate(void) const;
 
 	bool IsAssignableFrom(const Type::Ptr& other) const;

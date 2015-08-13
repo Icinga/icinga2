@@ -38,7 +38,7 @@ Type::Ptr FilterUtility::TypeFromPluralName(const String& pluralName)
 		Type::Ptr type = Type::GetByName(dtype->GetName());
 		ASSERT(type);
 
-		String pname = GetPluralName(type);
+		String pname = type->GetPluralName();
 		boost::algorithm::to_lower(pname);
 
 		if (uname == pname)
@@ -46,16 +46,6 @@ Type::Ptr FilterUtility::TypeFromPluralName(const String& pluralName)
 	}
 
 	return Type::Ptr();
-}
-
-String FilterUtility::GetPluralName(const Type::Ptr& type)
-{
-	String name = type->GetName();
-
-	if (name[name.GetLength() - 1] == 'y')
-		return name.SubStr(0, name.GetLength() - 1) + "ies";
-	else
-		return name + "s";
 }
 
 DynamicObject::Ptr FilterUtility::GetObjectByTypeAndName(const String& type, const String& name)
@@ -82,7 +72,7 @@ std::vector<DynamicObject::Ptr> FilterUtility::GetFilterTargets(const QueryDescr
 			result.push_back(obj);
 		}
 
-		attr = GetPluralName(type);
+		attr = type->GetPluralName();
 		boost::algorithm::to_lower(attr);
 
 		if (query->Contains(attr)) {

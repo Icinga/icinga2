@@ -31,6 +31,8 @@
 #include "base/logger.hpp"
 #include "base/exception.hpp"
 #include <boost/foreach.hpp>
+#include <boost/algorithm/string/split.hpp>
+#include <boost/algorithm/string/classification.hpp>
 
 using namespace icinga;
 
@@ -55,6 +57,27 @@ String ScheduledDowntimeNameComposer::MakeName(const String& shortName, const Ob
 	name += "!" + shortName;
 
 	return name;
+}
+
+Dictionary::Ptr ScheduledDowntimeNameComposer::ParseName(const String& name) const
+{
+	std::vector<String> tokens;
+	boost::algorithm::split(tokens, name, boost::is_any_of("!"));
+
+	if (tokens.size() < 2)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid ScheduledDowntime name."));
+
+	Dictionary::Ptr result = new Dictionary();
+	result->Set("host_name", tokens[0]);
+
+	if (tokens.size() > 2) {
+		result->Set("service_name", tokens[1]);
+		result->Set("name", tokens[2]);
+	} else {
+		result->Set("name", tokens[1]);
+	}
+
+	return result;
 }
 
 void ScheduledDowntime::StaticInitialize(void)

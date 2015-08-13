@@ -113,6 +113,18 @@ void DynamicType::RegisterObject(const DynamicObject::Ptr& object)
 	}
 }
 
+void DynamicType::UnregisterObject(const DynamicObject::Ptr& object)
+{
+	String name = object->GetName();
+
+	{
+		ObjectLock olock(this);
+
+		m_ObjectMap.erase(name);
+		m_ObjectVector.erase(std::remove(m_ObjectVector.begin(), m_ObjectVector.end(), object), m_ObjectVector.end());
+	}
+}
+
 DynamicObject::Ptr DynamicType::GetObject(const String& name) const
 {
 	ObjectLock olock(this);

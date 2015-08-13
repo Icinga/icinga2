@@ -23,8 +23,8 @@ mkclass_target(zone.ti zone.tcpp zone.thpp)
 set(remote_SOURCES
   actionshandler.cpp apiaction.cpp
   apifunction.cpp apilistener.cpp apilistener.thpp apilistener-sync.cpp
-  apiuser.cpp apiuser.thpp authority.cpp base64.cpp createobjecthandler.cpp configfileshandler.cpp
-  configmoduleshandler.cpp configmoduleutility.cpp configstageshandler.cpp
+  apiuser.cpp apiuser.thpp authority.cpp base64.cpp createobjecthandler.cpp deleteobjecthandler.cpp
+  configfileshandler.cpp configmoduleshandler.cpp configmoduleutility.cpp configstageshandler.cpp
   endpoint.cpp endpoint.thpp filterutility.cpp
   httpchunkedencoding.cpp  httpconnection.cpp httphandler.cpp httprequest.cpp httpresponse.cpp
   httputility.cpp jsonrpc.cpp jsonrpcconnection.cpp jsonrpcconnection-heartbeat.cpp

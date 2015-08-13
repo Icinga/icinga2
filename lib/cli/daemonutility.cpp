@@ -123,7 +123,8 @@ bool DaemonUtility::LoadConfigFiles(const std::vector<std::string>& configs,
 	if (!DaemonUtility::ValidateConfigFiles(configs, objectsFile))
 		return false;
 
-	bool result = ConfigItem::CommitItems();
+	WorkQueue upq(25000, Application::GetConcurrency());
+	bool result = ConfigItem::CommitItems(upq);
 
 	if (!result)
 		return false;

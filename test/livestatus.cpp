@@ -87,7 +87,8 @@ struct GlobalConfigFixture {
 		DaemonUtility::LoadConfigFiles(configs, "icinga2.debug", "icinga2.vars");
 
 		/* ignore config errors */
-		ConfigItem::ActivateItems();
+		WorkQueue upq;
+		ConfigItem::ActivateItems(upq, false);
 	}
 
 	~GlobalConfigFixture()

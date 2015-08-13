@@ -58,6 +58,7 @@ public:
 	bool IsAttributeModified(const String& attr) const;
 
 	void Register(void);
+	void Unregister(void);
 
 	void Activate(void);
 	void Deactivate(void);

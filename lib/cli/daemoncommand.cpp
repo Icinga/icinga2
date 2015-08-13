@@ -258,10 +258,14 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 		}
 	}
 
-	// activate config only after daemonization: it starts threads and that is not compatible with fork()
-	if (!ConfigItem::ActivateItems()) {
-		Log(LogCritical, "cli", "Error activating configuration.");
-		return EXIT_FAILURE;
+	{
+		WorkQueue upq(25000, Application::GetConcurrency());
+
+		// activate config only after daemonization: it starts threads and that is not compatible with fork()
+		if (!ConfigItem::ActivateItems(upq, true)) {
+			Log(LogCritical, "cli", "Error activating configuration.");
+			return EXIT_FAILURE;
+		}
 	}
 
 	if (vm.count("daemonize")) {

@@ -46,6 +46,7 @@ public:
 	DynamicObject::Ptr GetObject(const String& name) const;
 
 	void RegisterObject(const DynamicObject::Ptr& object);
+	void UnregisterObject(const DynamicObject::Ptr& object);
 
 	static std::vector<DynamicType::Ptr> GetTypes(void);
 	std::pair<DynamicTypeIterator<DynamicObject>, DynamicTypeIterator<DynamicObject> > GetObjects(void);

@@ -55,6 +55,7 @@ public:
 
 	DynamicObject::Ptr Commit(bool discard = true);
 	void Register(void);
+	void Unregister(void);
 
 	DebugInfo GetDebugInfo(void) const;
 	Dictionary::Ptr GetScope(void) const;
@@ -64,8 +65,8 @@ public:
 	static ConfigItem::Ptr GetObject(const String& type,
 	    const String& name);
 
-	static bool CommitItems(void);
-	static bool ActivateItems(void);
+	static bool CommitItems(WorkQueue& upq);
+	static bool ActivateItems(WorkQueue& upq, bool restoreState);
 
 	static bool CommitAndActivate(void);
 
@@ -97,7 +98,7 @@ private:
 	static ConfigItem::Ptr GetObjectUnlocked(const String& type,
 	    const String& name);
 
-	static bool CommitNewItems(WorkQueue& upq);
+	static bool CommitNewItems(WorkQueue& upq, std::vector<ConfigItem::Ptr>& newItems);
 };
 
 }

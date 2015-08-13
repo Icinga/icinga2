@@ -34,6 +34,7 @@ enum HAMode
 class NameComposer {
 public:
 	virtual String MakeName(const String& shortName, const Object::Ptr& context) const = 0;
+	virtual Dictionary::Ptr ParseName(const String& name) const = 0;
 };
 }}}
 

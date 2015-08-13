@@ -56,6 +56,16 @@ Type::Ptr Type::GetByName(const String& name)
 	return ptype;
 }
 
+String Type::GetPluralName(void) const
+{
+	String name = GetName();
+
+	if (name[name.GetLength() - 1] == 'y')
+		return name.SubStr(0, name.GetLength() - 1) + "ies";
+	else
+		return name + "s";
+}
+
 Object::Ptr Type::Instantiate(void) const
 {
 	ObjectFactory factory = GetFactory();

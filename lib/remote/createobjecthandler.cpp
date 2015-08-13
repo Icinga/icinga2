@@ -47,6 +47,14 @@ bool CreateObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 
 	String name = request.RequestUrl->GetPath()[2];
 
+	NameComposer *nc = dynamic_cast<NameComposer *>(type.get());
+	Dictionary::Ptr nameParts;
+
+	if (nc) {
+		nameParts = nc->ParseName(name);
+		name = nameParts->Get("name");
+	}
+
 	Dictionary::Ptr params = HttpUtility::FetchRequestParameters(request);
 
 	ConfigItemBuilder::Ptr builder = new ConfigItemBuilder();
@@ -64,6 +72,14 @@ bool CreateObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 		}
 	}
 
+	if (nameParts) {
+		ObjectLock olock(nameParts);
+		BOOST_FOREACH(const Dictionary::Pair& kv, nameParts) {
+			SetExpression *expr = new SetExpression(MakeIndexer(ScopeThis, kv.first), OpSetLiteral, MakeLiteral(kv.second));
+			builder->AddExpression(expr);
+		}
+	}
+
 	Dictionary::Ptr attrs = params->Get("attrs");
 
 	if (attrs) {
@@ -77,11 +93,28 @@ bool CreateObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 	ConfigItem::Ptr item = builder->Compile();
 	item->Register();
 
-	ConfigItem::CommitAndActivate();
+	WorkQueue upq;
 
 	Dictionary::Ptr result1 = new Dictionary();
-	result1->Set("code", 200);
-	result1->Set("status", "Object created.");
+	int code;
+	String status;
+
+	if (!ConfigItem::CommitItems(upq) || !ConfigItem::ActivateItems(upq, false)) {
+		code = 500;
+		status = "Object could not be created.";
+
+		Array::Ptr errors = new Array();
+		BOOST_FOREACH(const boost::exception_ptr& ex, upq.GetExceptions()) {
+			errors->Add(DiagnosticInformation(ex));
+		}
+		result1->Set("errors", errors);
+	} else {
+		code = 200;
+		status = "Object created";
+	}
+
+	result1->Set("code", code);
+	result1->Set("status", status);
 
 	Array::Ptr results = new Array();
 	results->Add(result1);
@@ -89,7 +122,7 @@ bool CreateObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 	Dictionary::Ptr result = new Dictionary();
 	result->Set("results", results);
 
-	response.SetStatus(200, "OK");
+	response.SetStatus(code, status);
 	HttpUtility::SendJsonBody(response, result);
 
 	return true;

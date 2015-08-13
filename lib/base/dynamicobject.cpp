@@ -177,6 +177,14 @@ void DynamicObject::Register(void)
 	dtype->RegisterObject(this);
 }
 
+void DynamicObject::Unregister(void)
+{
+	ASSERT(!OwnsLock());
+
+	DynamicType::Ptr dtype = GetType();
+	dtype->UnregisterObject(this);
+}
+
 void DynamicObject::Start(void)
 {
 	ASSERT(!OwnsLock());

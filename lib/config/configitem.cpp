@@ -269,6 +269,19 @@ void ConfigItem::Register(void)
 }
 
 /**
+ * Unregisters the configuration item.
+ */
+void ConfigItem::Unregister(void)
+{
+	if (m_Object)
+		m_Object->Unregister();
+
+	boost::mutex::scoped_lock lock(m_Mutex);
+	m_UnnamedItems.erase(std::remove(m_UnnamedItems.begin(), m_UnnamedItems.end(), this), m_UnnamedItems.end());
+	m_Items[m_Type].erase(m_Name);
+}
+
+/**
  * Retrieves a configuration item by type and name.
  *
  * @param type The type of the ConfigItem that is to be looked up.
@@ -292,7 +305,7 @@ ConfigItem::Ptr ConfigItem::GetObject(const String& type, const String& name)
 	return it2->second;
 }
 
-bool ConfigItem::CommitNewItems(WorkQueue& upq)
+bool ConfigItem::CommitNewItems(WorkQueue& upq, std::vector<ConfigItem::Ptr>& newItems)
 {
 	typedef std::pair<ConfigItem::Ptr, bool> ItemPair;
 	std::vector<ItemPair> items;
@@ -320,6 +333,7 @@ bool ConfigItem::CommitNewItems(WorkQueue& upq)
 		return true;
 
 	BOOST_FOREACH(const ItemPair& ip, items) {
+		newItems.push_back(ip.first);
 		upq.Enqueue(boost::bind(&ConfigItem::Commit, ip.first, ip.second));
 	}
 
@@ -398,7 +412,7 @@ bool ConfigItem::CommitNewItems(WorkQueue& upq)
 			if (upq.HasExceptions())
 				return false;
 
-			if (!CommitNewItems(upq))
+			if (!CommitNewItems(upq, newItems))
 				return false;
 		}
 	}
@@ -406,43 +420,52 @@ bool ConfigItem::CommitNewItems(WorkQueue& upq)
 	return true;
 }
 
-bool ConfigItem::CommitItems(void)
+bool ConfigItem::CommitItems(WorkQueue& upq)
 {
-	WorkQueue upq(25000, Application::GetConcurrency());
-
 	Log(LogInformation, "ConfigItem", "Committing config items");
 
-	if (!CommitNewItems(upq)) {
+	std::vector<ConfigItem::Ptr> newItems;
+
+	if (!CommitNewItems(upq, newItems)) {
 		upq.ReportExceptions("config");
+
+		BOOST_FOREACH(const ConfigItem::Ptr& item, newItems) {
+			item->Unregister();
+		}
+
 		return false;
 	}
 
 	ApplyRule::CheckMatches();
 
 	/* log stats for external parsers */
-	BOOST_FOREACH(const DynamicType::Ptr& type, DynamicType::GetTypes()) {
-		int count = std::distance(type->GetObjects().first, type->GetObjects().second);
-		if (count > 0)
-			Log(LogInformation, "ConfigItem")
-			    << "Checked " << count << " " << type->GetName() << "(s).";
+	typedef std::map<Type::Ptr, int> ItemCountMap;
+	ItemCountMap itemCounts;
+	BOOST_FOREACH(const ConfigItem::Ptr& item, newItems) {
+		itemCounts[item->m_Object->GetReflectionType()]++;
+	}
+
+	BOOST_FOREACH(const ItemCountMap::value_type& kv, itemCounts) {
+		Log(LogInformation, "ConfigItem")
+		    << "Instantiated " << kv.second << " " << kv.first->GetPluralName() << ".";
 	}
 
 	return true;
 }
 
-bool ConfigItem::ActivateItems(void)
+bool ConfigItem::ActivateItems(WorkQueue& upq, bool restoreState)
 {
-	/* restore the previous program state */
-	try {
-		DynamicObject::RestoreObjects(Application::GetStatePath());
-	} catch (const std::exception& ex) {
-		Log(LogCritical, "ConfigItem")
-		    << "Failed to restore state file: " << DiagnosticInformation(ex);
+	if (restoreState) {
+		/* restore the previous program state */
+		try {
+			DynamicObject::RestoreObjects(Application::GetStatePath());
+		} catch (const std::exception& ex) {
+			Log(LogCritical, "ConfigItem")
+			    << "Failed to restore state file: " << DiagnosticInformation(ex);
+		}
 	}
 
 	Log(LogInformation, "ConfigItem", "Triggering Start signal for config items");
-
-	WorkQueue upq(25000, Application::GetConcurrency());
 
 	BOOST_FOREACH(const DynamicType::Ptr& type, DynamicType::GetTypes()) {
 		BOOST_FOREACH(const DynamicObject::Ptr& object, type->GetObjects()) {
@@ -481,40 +504,11 @@ bool ConfigItem::CommitAndActivate(void)
 {
 	WorkQueue upq(25000, Application::GetConcurrency());
 
-	if (!CommitNewItems(upq)) {
-		upq.ReportExceptions("ConfigItem");
-
-		boost::mutex::scoped_lock lock(m_Mutex);
-		m_Items.clear();
-		m_UnnamedItems.clear();
-
+	if (!CommitItems(upq))
 		return false;
-	}
 
-	BOOST_FOREACH(const DynamicType::Ptr& type, DynamicType::GetTypes()) {
-		BOOST_FOREACH(const DynamicObject::Ptr& object, type->GetObjects()) {
-			if (object->IsActive())
-				continue;
-
-#ifdef I2_DEBUG
-			Log(LogDebug, "ConfigItem")
-			    << "Activating object '" << object->GetName() << "' of type '" << object->GetType()->GetName() << "'";
-#endif /* I2_DEBUG */
-			upq.Enqueue(boost::bind(&DynamicObject::Activate, object));
-		}
-	}
-
-	upq.Join();
-
-	if (upq.HasExceptions()) {
-		upq.ReportExceptions("ConfigItem");
-
-		boost::mutex::scoped_lock lock(m_Mutex);
-		m_Items.clear();
-		m_UnnamedItems.clear();
-
+	if (!ActivateItems(upq, false))
 		return false;
-	}
 
 	return true;
 }

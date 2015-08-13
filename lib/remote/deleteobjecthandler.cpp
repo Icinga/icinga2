@@ -17,10 +17,11 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "remote/modifyobjecthandler.hpp"
+#include "remote/deleteobjecthandler.hpp"
 #include "remote/httputility.hpp"
 #include "remote/filterutility.hpp"
 #include "remote/apiaction.hpp"
+#include "config/configitem.hpp"
 #include "base/exception.hpp"
 #include "base/serializer.hpp"
 #include <boost/algorithm/string.hpp>
@@ -28,11 +29,11 @@
 
 using namespace icinga;
 
-REGISTER_URLHANDLER("/v1", ModifyObjectHandler);
+REGISTER_URLHANDLER("/v1", DeleteObjectHandler);
 
-bool ModifyObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
+bool DeleteObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
 {
-	if (request.RequestMethod != "POST")
+	if (request.RequestMethod != "DELETE")
 		return false;
 
 	if (request.RequestUrl->GetPath().size() < 2)
@@ -58,32 +59,28 @@ bool ModifyObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 
 	std::vector<DynamicObject::Ptr> objs = FilterUtility::GetFilterTargets(qd, params);
 
-	Dictionary::Ptr attrs = params->Get("attrs");
-
 	Array::Ptr results = new Array();
 
 	BOOST_FOREACH(const DynamicObject::Ptr& obj, objs) {
 		Dictionary::Ptr result1 = new Dictionary();
-
 		result1->Set("type", type->GetName());
 		result1->Set("name", obj->GetName());
 
-		String key;
+		ConfigItem::Ptr item = ConfigItem::GetObject(type->GetName(), obj->GetName());
 
 		try {
-			if (attrs) {
-				ObjectLock olock(attrs);
-				BOOST_FOREACH(const Dictionary::Pair& kv, attrs) {
-					key = kv.first;
-					obj->ModifyAttribute(kv.first, kv.second);
-				}
-			}
+			obj->Deactivate();
+
+			if (item)
+				item->Unregister();
+			else
+				obj->Unregister();
 
 			result1->Set("code", 200);
-			result1->Set("status", "Attributes updated.");
+			result1->Set("status", "Object was deleted.");
 		} catch (const std::exception& ex) {
 			result1->Set("code", 500);
-			result1->Set("status", "Attribute '" + key + "' could not be set: " + DiagnosticInformation(ex));
+			result1->Set("status", "Object could not be deleted: " + DiagnosticInformation(ex));
 		}
 
 		results->Add(result1);
