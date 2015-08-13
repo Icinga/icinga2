@@ -48,6 +48,7 @@ class Value;
 class Object;
 class Type;
 class String;
+class ValidationUtils;
 
 extern I2_BASE_API Value Empty;
 
@@ -100,6 +101,7 @@ public:
 
 	virtual void SetField(int id, const Value& value, bool suppress_events = false, const Value& cookie = Empty);
 	virtual Value GetField(int id) const;
+	virtual void ValidateField(int id, const Value& value, const ValidationUtils& utils);
 	virtual void NotifyField(int id, const Value& cookie = Empty);
 
 #ifdef I2_DEBUG

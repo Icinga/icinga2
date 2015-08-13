@@ -33,6 +33,7 @@
 #include "base/workqueue.hpp"
 #include "base/context.hpp"
 #include "base/application.hpp"
+#include "config/configitem.hpp"
 #include <fstream>
 #include <boost/foreach.hpp>
 #include <boost/exception/errinfo_api_function.hpp>
@@ -95,6 +96,23 @@ void DynamicObject::ClearExtension(const String& key)
 	extensions->Remove(key);
 }
 
+class ModAttrValidationUtils : public ValidationUtils
+{
+public:
+	virtual bool ValidateName(const String& type, const String& name) const override
+	{
+		DynamicType::Ptr dtype = DynamicType::GetByName(type);
+
+		if (!dtype)
+			return false;
+
+		if (!dtype->GetObject(name))
+			return false;
+
+		return true;
+	}
+};
+
 void DynamicObject::ModifyAttribute(const String& attr, const Value& value)
 {
 	Dictionary::Ptr original_attributes = GetOriginalAttributes();
@@ -118,7 +136,10 @@ void DynamicObject::ModifyAttribute(const String& attr, const Value& value)
 		}
 	}
 
-	//TODO: validation, vars.os
+	ModAttrValidationUtils utils;
+	ValidateField(fid, value, utils);
+
+	//TODO: vars.os
 	SetField(fid, value);
 
 	if (updated_original_attributes)

@@ -92,6 +92,11 @@ Value Object::GetField(int id) const
 		BOOST_THROW_EXCEPTION(std::runtime_error("Invalid field ID."));
 }
 
+void Object::ValidateField(int id, const Value& value, const ValidationUtils& utils)
+{
+	/* Nothing to do here. */
+}
+
 void Object::NotifyField(int id, const Value& cookie)
 {
 	BOOST_THROW_EXCEPTION(std::runtime_error("Invalid field ID."));

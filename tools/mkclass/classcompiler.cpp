@@ -596,6 +596,50 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 
 		m_Impl << "}" << std::endl << std::endl;
 		
+		/* ValidateField */
+		m_Header << "protected:" << std::endl
+			 << "\t" << "virtual void ValidateField(int id, const Value& value, const ValidationUtils& utils);" << std::endl;
+
+		m_Impl << "void ObjectImpl<" << klass.Name << ">::ValidateField(int id, const Value& value, const ValidationUtils& utils)" << std::endl
+		       << "{" << std::endl;
+
+		if (!klass.Parent.empty())
+			m_Impl << "\t" << "int real_id = id - " << klass.Parent << "::TypeInstance->GetFieldCount(); " << std::endl
+			       << "\t" << "if (real_id < 0) { " << klass.Parent << "::ValidateField(id, value, utils); return; }" << std::endl;
+
+		m_Impl << "\t" << "switch (";
+
+		if (!klass.Parent.empty())
+			m_Impl << "real_id";
+		else
+			m_Impl << "id";
+
+		m_Impl << ") {" << std::endl;
+
+		num = 0;
+		for (it = klass.Fields.begin(); it != klass.Fields.end(); it++) {
+			m_Impl << "\t\t" << "case " << num << ":" << std::endl
+			       << "\t\t\t" << "Validate" << it->GetFriendlyName() << "(";
+			
+			if (it->Attributes & FAEnum)
+				m_Impl << "static_cast<" << it->Type.GetRealType() << ">(static_cast<int>(";
+
+			m_Impl << "value";
+			
+			if (it->Attributes & FAEnum)
+				m_Impl << "))";
+			
+			m_Impl << ", utils);" << std::endl
+			       << "\t\t\t" << "break;" << std::endl;
+			num++;
+		}
+
+		m_Impl << "\t\t" << "default:" << std::endl
+		       << "\t\t\t" << "throw std::runtime_error(\"Invalid field ID.\");" << std::endl
+		       << "\t" << "}" << std::endl;
+
+		m_Impl << "}" << std::endl << std::endl;
+
 		/* NotifyField */
 		m_Header << "protected:" << std::endl
 			 << "\t" << "virtual void NotifyField(int id, const Value& cookie = Empty);" << std::endl;

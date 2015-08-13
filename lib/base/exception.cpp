@@ -161,18 +161,20 @@ String icinga::DiagnosticInformation(const std::exception& ex, bool verbose, Sta
 		Dictionary::Ptr currentHint = vex->GetDebugHint();
 		Array::Ptr messages;
 
-		BOOST_FOREACH(const String& attr, vex->GetAttributePath()) {
-			Dictionary::Ptr props = currentHint->Get("properties");
+		if (currentHint) {
+			BOOST_FOREACH(const String& attr, vex->GetAttributePath()) {
+				Dictionary::Ptr props = currentHint->Get("properties");
 
-			if (!props)
-				break;
+				if (!props)
+					break;
 
-			currentHint = props->Get(attr);
+				currentHint = props->Get(attr);
 
-			if (!currentHint)
-				break;
+				if (!currentHint)
+					break;
 
-			messages = currentHint->Get("messages");
+				messages = currentHint->Get("messages");
+			}
 		}
 
 		if (messages && messages->GetLength() > 0) {
