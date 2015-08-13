@@ -488,8 +488,6 @@ The notification is ignored for services whose host name ends with `*internal`
       ignore where match("*internal", host.name) || (service.vars.priority < 2 && host.vars.is_clustered == true)
     }
 
-
-
 ### <a id="using-apply-services"></a> Apply Services to Hosts
 
 The sample configuration already includes a detailed example in [hosts.conf](4-configuring-icinga-2.md#hosts-conf)
@@ -574,35 +572,6 @@ The corresponding Host object could look like this:
       vars.notification_period = "24x7"
       vars.notification_type = "sms"
     }
-
-### <a id="using-apply-dependencies"></a> Apply Dependencies to Hosts and Services
-
-Detailed examples can be found in the [dependencies](3-monitoring-basics.md#dependencies) chapter.
-
-### <a id="using-apply-scheduledowntimes"></a> Apply Recurring Downtimes to Hosts and Services
-
-The sample configuration includes an example in [downtimes.conf](4-configuring-icinga-2.md#downtimes-conf).
-
-Detailed examples can be found in the [recurring downtimes](5-advanced-topics.md#recurring-downtimes) chapter.
-
-
-### <a id="using-apply-for"></a> Using Apply For Rules
-
-Next to the standard way of using [apply rules](3-monitoring-basics.md#using-apply)
-there is the requirement of generating apply rules objects based on set (array or
-dictionary).
-
-The sample configuration already includes a detailed example in [hosts.conf](4-configuring-icinga-2.md#hosts-conf)
-and [services.conf](4-configuring-icinga-2.md#services-conf) for this use case.
-
-Take the following example: A host provides the snmp oids for different service check
-types. This could look like the following example:
-
-
-      user_groups = [ "noc" ]
-
-      assign where host.vars.notification.mail
-
 
 ### <a id="using-apply-dependencies"></a> Apply Dependencies to Hosts and Services
 
