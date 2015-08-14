@@ -89,28 +89,38 @@ bool CreateObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 			builder->AddExpression(expr);
 		}
 	}
-
-	ConfigItem::Ptr item = builder->Compile();
-	item->Register();
-
-	WorkQueue upq;
-
+	
 	Dictionary::Ptr result1 = new Dictionary();
 	int code;
 	String status;
 
-	if (!ConfigItem::CommitItems(upq) || !ConfigItem::ActivateItems(upq, false)) {
+	try {
+		ConfigItem::Ptr item = builder->Compile();
+		item->Register();
+
+		WorkQueue upq;
+
+		if (!ConfigItem::CommitItems(upq) || !ConfigItem::ActivateItems(upq, false)) {
+			code = 500;
+			status = "Object could not be created.";
+
+			Array::Ptr errors = new Array();
+			BOOST_FOREACH(const boost::exception_ptr& ex, upq.GetExceptions())
+			{
+				errors->Add(DiagnosticInformation(ex));
+			}
+			result1->Set("errors", errors);
+		} else {
+			code = 200;
+			status = "Object created";
+		}
+	} catch (const std::exception& ex) {
 		code = 500;
 		status = "Object could not be created.";
 
 		Array::Ptr errors = new Array();
-		BOOST_FOREACH(const boost::exception_ptr& ex, upq.GetExceptions()) {
-			errors->Add(DiagnosticInformation(ex));
-		}
+		errors->Add(DiagnosticInformation(ex));
 		result1->Set("errors", errors);
-	} else {
-		code = 200;
-		status = "Object created";
 	}
 
 	result1->Set("code", code);

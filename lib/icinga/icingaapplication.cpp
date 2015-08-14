@@ -104,15 +104,19 @@ int IcingaApplication::Main(void)
 	l_RetentionTimer->Start();
 
 	/* restore modified attributes */
-	Expression *expression = ConfigCompiler::CompileFile(GetModAttrPath());
+	if (Utility::PathExists(GetModAttrPath())) {
+		Expression *expression = ConfigCompiler::CompileFile(GetModAttrPath());
 
-	if (expression) {
-		try {
-			ScriptFrame frame;
-			expression->Evaluate(frame);
-		} catch (const std::exception& ex) {
-			Log(LogCritical, "config", DiagnosticInformation(ex));
+		if (expression) {
+			try {
+				ScriptFrame frame;
+				expression->Evaluate(frame);
+			} catch (const std::exception& ex) {
+				Log(LogCritical, "config", DiagnosticInformation(ex));
+			}
 		}
+
+		delete expression;
 	}
 
 	RunEventLoop();

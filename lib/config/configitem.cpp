@@ -264,6 +264,17 @@ void ConfigItem::Register(void)
 		m_UnnamedItems.push_back(this);
 	} else {
 		boost::mutex::scoped_lock lock(m_Mutex);
+
+		ItemMap::const_iterator it = m_Items[m_Type].find(m_Name);
+
+		if (it != m_Items[m_Type].end()) {
+			std::ostringstream msgbuf;
+			msgbuf << "A configuration item of type '" << GetType()
+			       << "' and name '" << GetName() << "' already exists ("
+			       << it->second->GetDebugInfo() << "), new declaration: " << GetDebugInfo();
+			BOOST_THROW_EXCEPTION(ScriptError(msgbuf.str()));
+		}
+
 		m_Items[m_Type][m_Name] = this;
 	}
 }
@@ -447,7 +458,7 @@ bool ConfigItem::CommitItems(WorkQueue& upq)
 
 	BOOST_FOREACH(const ItemCountMap::value_type& kv, itemCounts) {
 		Log(LogInformation, "ConfigItem")
-		    << "Instantiated " << kv.second << " " << kv.first->GetPluralName() << ".";
+		    << "Instantiated " << kv.second << " " << (kv.second != 1 ? kv.first->GetPluralName() : kv.first->GetName()) << ".";
 	}
 
 	return true;
