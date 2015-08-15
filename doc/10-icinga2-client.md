@@ -481,7 +481,7 @@ List all discovered nodes (satellites, agents) and their hosts/services:
             * Service 'users'
 
 Listing the node and its host(s) and service(s) does not modify the master configuration yet. You
-meed to generate the configuration in the next step.
+need to generate the configuration in the next step.
 
 
 ### <a id="icinga2-client-master-discovery-generate-config"></a> Generate Configuration for Client Services on the Master
