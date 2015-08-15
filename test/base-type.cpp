@@ -40,7 +40,7 @@ BOOST_AUTO_TEST_CASE(gettype)
 BOOST_AUTO_TEST_CASE(assign)
 {
 	Type::Ptr t1 = Type::GetByName("Application");
-	Type::Ptr t2 = Type::GetByName("DynamicObject");
+	Type::Ptr t2 = Type::GetByName("ConfigObject");
 
 	BOOST_CHECK(t1->IsAssignableFrom(t1));
 	BOOST_CHECK(t2->IsAssignableFrom(t1));

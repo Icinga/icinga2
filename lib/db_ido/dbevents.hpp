@@ -21,7 +21,7 @@
 #define DBEVENTS_H
 
 #include "db_ido/dbobject.hpp"
-#include "base/dynamicobject.hpp"
+#include "base/configobject.hpp"
 #include "icinga/service.hpp"
 
 namespace icinga
@@ -61,7 +61,7 @@ class DbEvents
 public:
 	static void StaticInitialize(void);
 
-	static void AddCommentByType(const DynamicObject::Ptr& object, const Comment::Ptr& comment, bool historical);
+	static void AddCommentByType(const ConfigObject::Ptr& object, const Comment::Ptr& comment, bool historical);
 	static void AddComments(const Checkable::Ptr& checkable);
 	static void RemoveComments(const Checkable::Ptr& checkable);
 

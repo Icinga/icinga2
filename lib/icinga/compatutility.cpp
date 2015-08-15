@@ -23,7 +23,7 @@
 #include "icinga/pluginutility.hpp"
 #include "icinga/service.hpp"
 #include "base/utility.hpp"
-#include "base/dynamictype.hpp"
+#include "base/configtype.hpp"
 #include "base/objectlock.hpp"
 #include "base/convert.hpp"
 #include <boost/foreach.hpp>
@@ -62,11 +62,11 @@ String CompatUtility::GetCommandNamePrefix(const Command::Ptr command)
 		return Empty;
 
 	String prefix;
-	if (command->GetType() == DynamicType::GetByName("CheckCommand"))
+	if (command->GetType() == ConfigType::GetByName("CheckCommand"))
 		prefix = "check_";
-	else if (command->GetType() == DynamicType::GetByName("NotificationCommand"))
+	else if (command->GetType() == ConfigType::GetByName("NotificationCommand"))
 		prefix = "notification_";
-	else if (command->GetType() == DynamicType::GetByName("EventCommand"))
+	else if (command->GetType() == ConfigType::GetByName("EventCommand"))
 		prefix = "event_";
 
 	return prefix;
@@ -376,12 +376,12 @@ Array::Ptr CompatUtility::GetModifiedAttributesList(const CustomVarObject::Ptr& 
 {
 	Array::Ptr mod_attr_list = new Array();
 
-	if (object->GetType() != DynamicType::GetByName("Host") &&
-	    object->GetType() != DynamicType::GetByName("Service") &&
-	    object->GetType() != DynamicType::GetByName("User") &&
-	    object->GetType() != DynamicType::GetByName("CheckCommand") &&
-	    object->GetType() != DynamicType::GetByName("EventCommand") &&
-	    object->GetType() != DynamicType::GetByName("NotificationCommand"))
+	if (object->GetType() != ConfigType::GetByName("Host") &&
+	    object->GetType() != ConfigType::GetByName("Service") &&
+	    object->GetType() != ConfigType::GetByName("User") &&
+	    object->GetType() != ConfigType::GetByName("CheckCommand") &&
+	    object->GetType() != ConfigType::GetByName("EventCommand") &&
+	    object->GetType() != ConfigType::GetByName("NotificationCommand"))
 		return mod_attr_list;
 
 	int flags = object->GetModifiedAttributes();

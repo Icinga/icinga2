@@ -20,7 +20,7 @@
 #include "icinga/timeperiod.hpp"
 #include "icinga/timeperiod.tcpp"
 #include "icinga/legacytimeperiod.hpp"
-#include "base/dynamictype.hpp"
+#include "base/configtype.hpp"
 #include "base/objectlock.hpp"
 #include "base/exception.hpp"
 #include "base/logger.hpp"
@@ -46,7 +46,7 @@ void TimePeriod::StaticInitialize(void)
 
 void TimePeriod::Start(void)
 {
-	DynamicObject::Start();
+	ConfigObject::Start();
 
 	/* Pre-fill the time period for the next 24 hours. */
 	double now = Utility::GetTime();
@@ -268,7 +268,7 @@ void TimePeriod::UpdateTimerHandler(void)
 {
 	double now = Utility::GetTime();
 
-	BOOST_FOREACH(const TimePeriod::Ptr& tp, DynamicType::GetObjectsByType<TimePeriod>()) {
+	BOOST_FOREACH(const TimePeriod::Ptr& tp, ConfigType::GetObjectsByType<TimePeriod>()) {
 		double valid_end;
 
 		{

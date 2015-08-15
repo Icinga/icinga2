@@ -29,7 +29,7 @@
 #include "icinga/notificationcommand.hpp"
 #include "icinga/compatutility.hpp"
 #include "icinga/dependency.hpp"
-#include "base/dynamictype.hpp"
+#include "base/configtype.hpp"
 #include "base/objectlock.hpp"
 #include "base/json.hpp"
 #include "base/convert.hpp"
@@ -54,7 +54,7 @@ void StatusDataWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr
 {
 	Dictionary::Ptr nodes = new Dictionary();
 
-	BOOST_FOREACH(const StatusDataWriter::Ptr& statusdatawriter, DynamicType::GetObjectsByType<StatusDataWriter>()) {
+	BOOST_FOREACH(const StatusDataWriter::Ptr& statusdatawriter, ConfigType::GetObjectsByType<StatusDataWriter>()) {
 		nodes->Set(statusdatawriter->GetName(), 1); //add more stats
 	}
 
@@ -72,7 +72,7 @@ void StatusDataWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr
  */
 void StatusDataWriter::Start(void)
 {
-	DynamicObject::Start();
+	ConfigObject::Start();
 
 	m_StatusTimer = new Timer();
 	m_StatusTimer->SetInterval(GetUpdateInterval());
@@ -556,7 +556,7 @@ void StatusDataWriter::UpdateObjectsCache(void)
 		    "# This file is auto-generated. Do not modify this file." "\n"
 		    "\n";
 
-	BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjectsByType<Host>()) {
+	BOOST_FOREACH(const Host::Ptr& host, ConfigType::GetObjectsByType<Host>()) {
 		std::ostringstream tempobjectfp;
 		tempobjectfp << std::fixed;
 		DumpHostObject(tempobjectfp, host);
@@ -570,7 +570,7 @@ void StatusDataWriter::UpdateObjectsCache(void)
 		}
 	}
 
-	BOOST_FOREACH(const HostGroup::Ptr& hg, DynamicType::GetObjectsByType<HostGroup>()) {
+	BOOST_FOREACH(const HostGroup::Ptr& hg, ConfigType::GetObjectsByType<HostGroup>()) {
 		std::ostringstream tempobjectfp;
 		tempobjectfp << std::fixed;
 
@@ -601,7 +601,7 @@ void StatusDataWriter::UpdateObjectsCache(void)
 		objectfp << tempobjectfp.str();
 	}
 
-	BOOST_FOREACH(const ServiceGroup::Ptr& sg, DynamicType::GetObjectsByType<ServiceGroup>()) {
+	BOOST_FOREACH(const ServiceGroup::Ptr& sg, ConfigType::GetObjectsByType<ServiceGroup>()) {
 		std::ostringstream tempobjectfp;
 		tempobjectfp << std::fixed;
 
@@ -642,7 +642,7 @@ void StatusDataWriter::UpdateObjectsCache(void)
 		objectfp << tempobjectfp.str();
 	}
 
-	BOOST_FOREACH(const User::Ptr& user, DynamicType::GetObjectsByType<User>()) {
+	BOOST_FOREACH(const User::Ptr& user, ConfigType::GetObjectsByType<User>()) {
 		std::ostringstream tempobjectfp;
 		tempobjectfp << std::fixed;
 
@@ -670,7 +670,7 @@ void StatusDataWriter::UpdateObjectsCache(void)
 		objectfp << tempobjectfp.str();
 	}
 
-	BOOST_FOREACH(const UserGroup::Ptr& ug, DynamicType::GetObjectsByType<UserGroup>()) {
+	BOOST_FOREACH(const UserGroup::Ptr& ug, ConfigType::GetObjectsByType<UserGroup>()) {
 		std::ostringstream tempobjectfp;
 		tempobjectfp << std::fixed;
 
@@ -686,23 +686,23 @@ void StatusDataWriter::UpdateObjectsCache(void)
 		objectfp << tempobjectfp.str();
 	}
 
-	BOOST_FOREACH(const Command::Ptr& command, DynamicType::GetObjectsByType<CheckCommand>()) {
+	BOOST_FOREACH(const Command::Ptr& command, ConfigType::GetObjectsByType<CheckCommand>()) {
 		DumpCommand(objectfp, command);
 	}
 
-	BOOST_FOREACH(const Command::Ptr& command, DynamicType::GetObjectsByType<NotificationCommand>()) {
+	BOOST_FOREACH(const Command::Ptr& command, ConfigType::GetObjectsByType<NotificationCommand>()) {
 		DumpCommand(objectfp, command);
 	}
 
-	BOOST_FOREACH(const Command::Ptr& command, DynamicType::GetObjectsByType<EventCommand>()) {
+	BOOST_FOREACH(const Command::Ptr& command, ConfigType::GetObjectsByType<EventCommand>()) {
 		DumpCommand(objectfp, command);
 	}
 
-	BOOST_FOREACH(const TimePeriod::Ptr& tp, DynamicType::GetObjectsByType<TimePeriod>()) {
+	BOOST_FOREACH(const TimePeriod::Ptr& tp, ConfigType::GetObjectsByType<TimePeriod>()) {
 		DumpTimePeriod(objectfp, tp);
 	}
 
-	BOOST_FOREACH(const Dependency::Ptr& dep, DynamicType::GetObjectsByType<Dependency>()) {
+	BOOST_FOREACH(const Dependency::Ptr& dep, ConfigType::GetObjectsByType<Dependency>()) {
 		Checkable::Ptr parent = dep->GetParent();
 
 		if (!parent) {
@@ -829,7 +829,7 @@ void StatusDataWriter::StatusTimerHandler(void)
 	statusfp << "\t" "}" "\n"
 		    "\n";
 
-	BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjectsByType<Host>()) {
+	BOOST_FOREACH(const Host::Ptr& host, ConfigType::GetObjectsByType<Host>()) {
 		std::ostringstream tempstatusfp;
 		tempstatusfp << std::fixed;
 		DumpHostStatus(tempstatusfp, host);

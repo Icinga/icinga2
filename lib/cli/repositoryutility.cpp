@@ -236,7 +236,7 @@ bool RepositoryUtility::AddObject(const std::vector<String>& object_paths, const
 			Deserialize(object, attrs, false, FAConfig);
 
 			RepositoryValidationUtils utils;
-			static_pointer_cast<DynamicObject>(object)->Validate(FAConfig, utils);
+			static_pointer_cast<ConfigObject>(object)->Validate(FAConfig, utils);
 		} catch (const ScriptError& ex) {
 			Log(LogCritical, "config", DiagnosticInformation(ex));
 			return false;

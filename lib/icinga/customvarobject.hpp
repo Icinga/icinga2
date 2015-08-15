@@ -22,7 +22,7 @@
 
 #include "icinga/i2-icinga.hpp"
 #include "icinga/customvarobject.thpp"
-#include "base/dynamicobject.hpp"
+#include "base/configobject.hpp"
 #include "remote/messageorigin.hpp"
 
 namespace icinga

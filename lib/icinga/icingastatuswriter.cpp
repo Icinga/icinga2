@@ -20,7 +20,7 @@
 #include "icinga/icingastatuswriter.hpp"
 #include "icinga/icingastatuswriter.tcpp"
 #include "icinga/cib.hpp"
-#include "base/dynamictype.hpp"
+#include "base/configtype.hpp"
 #include "base/logger.hpp"
 #include "base/exception.hpp"
 #include "base/application.hpp"
@@ -40,7 +40,7 @@ void IcingaStatusWriter::StatsFunc(const Dictionary::Ptr& status, const Array::P
 {
 	Dictionary::Ptr nodes = new Dictionary();
 
-	BOOST_FOREACH(const IcingaStatusWriter::Ptr& icingastatuswriter, DynamicType::GetObjectsByType<IcingaStatusWriter>()) {
+	BOOST_FOREACH(const IcingaStatusWriter::Ptr& icingastatuswriter, ConfigType::GetObjectsByType<IcingaStatusWriter>()) {
 		nodes->Set(icingastatuswriter->GetName(), 1); //add more stats
 	}
 
@@ -58,7 +58,7 @@ void IcingaStatusWriter::StatsFunc(const Dictionary::Ptr& status, const Array::P
  */
 void IcingaStatusWriter::Start(void)
 {
-	DynamicObject::Start();
+	ConfigObject::Start();
 
 	m_StatusTimer = new Timer();
 	m_StatusTimer->SetInterval(GetUpdateInterval());

@@ -23,7 +23,7 @@
 #include "base/convert.hpp"
 #include "base/objectlock.hpp"
 #include "base/initialize.hpp"
-#include "base/dynamictype.hpp"
+#include "base/configtype.hpp"
 #include "base/utility.hpp"
 #include "base/logger.hpp"
 #include "remote/endpoint.hpp"
@@ -340,7 +340,7 @@ void DbEvents::AddCommentInternal(const Checkable::Ptr& checkable, const Comment
 	AddCommentByType(checkable, comment, historical);
 }
 
-void DbEvents::AddCommentByType(const DynamicObject::Ptr& object, const Comment::Ptr& comment, bool historical)
+void DbEvents::AddCommentByType(const ConfigObject::Ptr& object, const Comment::Ptr& comment, bool historical)
 {
 	unsigned long entry_time = static_cast<long>(comment->GetEntryTime());
 	unsigned long entry_time_usec = (comment->GetEntryTime() - entry_time) * 1000 * 1000;
@@ -351,11 +351,11 @@ void DbEvents::AddCommentByType(const DynamicObject::Ptr& object, const Comment:
 	fields1->Set("entry_type", comment->GetEntryType());
 	fields1->Set("object_id", object);
 
-	if (object->GetType() == DynamicType::GetByName("Host")) {
+	if (object->GetType() == ConfigType::GetByName("Host")) {
 		fields1->Set("comment_type", 2);
 		/* requires idoutils 1.10 schema fix */
 		fields1->Set("internal_comment_id", comment->GetLegacyId());
-	} else if (object->GetType() == DynamicType::GetByName("Service")) {
+	} else if (object->GetType() == ConfigType::GetByName("Service")) {
 		fields1->Set("comment_type", 1);
 		fields1->Set("internal_comment_id", comment->GetLegacyId());
 	} else {
@@ -500,11 +500,11 @@ void DbEvents::AddDowntimeByType(const Checkable::Ptr& checkable, const Downtime
 	fields1->Set("entry_time", DbValue::FromTimestamp(downtime->GetEntryTime()));
 	fields1->Set("object_id", checkable);
 
-	if (checkable->GetType() == DynamicType::GetByName("Host")) {
+	if (checkable->GetType() == ConfigType::GetByName("Host")) {
 		fields1->Set("downtime_type", 2);
 		/* requires idoutils 1.10 schema fix */
 		fields1->Set("internal_downtime_id", downtime->GetLegacyId());
-	} else if (checkable->GetType() == DynamicType::GetByName("Service")) {
+	} else if (checkable->GetType() == ConfigType::GetByName("Service")) {
 		fields1->Set("downtime_type", 1);
 		fields1->Set("internal_downtime_id", downtime->GetLegacyId());
 	} else {

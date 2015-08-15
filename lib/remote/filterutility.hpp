@@ -22,7 +22,7 @@
 
 #include "remote/i2-remote.hpp"
 #include "base/dictionary.hpp"
-#include "base/dynamicobject.hpp"
+#include "base/configobject.hpp"
 #include <set>
 
 namespace icinga
@@ -42,8 +42,8 @@ class I2_REMOTE_API FilterUtility
 {
 public:
 	static Type::Ptr TypeFromPluralName(const String& pluralName);
-	static DynamicObject::Ptr GetObjectByTypeAndName(const String& type, const String& name);
-	static std::vector<DynamicObject::Ptr> GetFilterTargets(const QueryDescription& qd, const Dictionary::Ptr& query);
+	static ConfigObject::Ptr GetObjectByTypeAndName(const String& type, const String& name);
+	static std::vector<ConfigObject::Ptr> GetFilterTargets(const QueryDescription& qd, const Dictionary::Ptr& query);
 };
 
 }

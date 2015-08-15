@@ -26,7 +26,7 @@
 #include "icinga/macroprocessor.hpp"
 #include "icinga/externalcommandprocessor.hpp"
 #include "icinga/compatutility.hpp"
-#include "base/dynamictype.hpp"
+#include "base/configtype.hpp"
 #include "base/objectlock.hpp"
 #include "base/logger.hpp"
 #include "base/exception.hpp"
@@ -47,7 +47,7 @@ void CompatLogger::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 {
 	Dictionary::Ptr nodes = new Dictionary();
 
-	BOOST_FOREACH(const CompatLogger::Ptr& compat_logger, DynamicType::GetObjectsByType<CompatLogger>()) {
+	BOOST_FOREACH(const CompatLogger::Ptr& compat_logger, ConfigType::GetObjectsByType<CompatLogger>()) {
 		nodes->Set(compat_logger->GetName(), 1); //add more stats
 	}
 
@@ -59,7 +59,7 @@ void CompatLogger::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
  */
 void CompatLogger::Start(void)
 {
-	DynamicObject::Start();
+	ConfigObject::Start();
 
 	Checkable::OnNewCheckResult.connect(bind(&CompatLogger::CheckResultHandler, this, _1, _2));
 	Checkable::OnNotificationSentToUser.connect(bind(&CompatLogger::NotificationSentHandler, this, _1, _2, _3, _4, _5, _6, _7, _8));
@@ -479,7 +479,7 @@ void CompatLogger::ReopenFile(bool rotate)
 	WriteLine("LOG ROTATION: " + GetRotationMethod());
 	WriteLine("LOG VERSION: 2.0");
 
-	BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjectsByType<Host>()) {
+	BOOST_FOREACH(const Host::Ptr& host, ConfigType::GetObjectsByType<Host>()) {
 		String output;
 		CheckResult::Ptr cr = host->GetLastCheckResult();
 
@@ -497,7 +497,7 @@ void CompatLogger::ReopenFile(bool rotate)
 		WriteLine(msgbuf.str());
 	}
 
-	BOOST_FOREACH(const Service::Ptr& service, DynamicType::GetObjectsByType<Service>()) {
+	BOOST_FOREACH(const Service::Ptr& service, ConfigType::GetObjectsByType<Service>()) {
 		Host::Ptr host = service->GetHost();
 
 		String output;

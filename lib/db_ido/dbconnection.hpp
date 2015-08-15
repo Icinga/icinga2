@@ -90,7 +90,7 @@ protected:
 	virtual void FillIDCache(const DbType::Ptr& type) = 0;
 	virtual void NewTransaction(void) = 0;
 
-	void UpdateObject(const DynamicObject::Ptr& object);
+	void UpdateObject(const ConfigObject::Ptr& object);
 	void UpdateAllObjects(void);
 
 	void PrepareDatabase(void);

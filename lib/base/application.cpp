@@ -102,7 +102,7 @@ void Application::Stop(void)
 	} else
 		ClosePidFile(true);
 
-	DynamicObject::Stop();
+	ConfigObject::Stop();
 }
 
 Application::~Application(void)
@@ -318,7 +318,7 @@ mainloop:
 
 	Log(LogInformation, "Application", "Shutting down...");
 
-	DynamicObject::StopObjects();
+	ConfigObject::StopObjects();
 	Application::GetInstance()->OnShutdown();
 
 	UninitializeBase();

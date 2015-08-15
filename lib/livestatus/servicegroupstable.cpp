@@ -19,7 +19,7 @@
 
 #include "livestatus/servicegroupstable.hpp"
 #include "icinga/servicegroup.hpp"
-#include "base/dynamictype.hpp"
+#include "base/configtype.hpp"
 #include <boost/foreach.hpp>
 
 using namespace icinga;
@@ -64,7 +64,7 @@ String ServiceGroupsTable::GetPrefix(void) const
 
 void ServiceGroupsTable::FetchRows(const AddRowFunction& addRowFn)
 {
-	BOOST_FOREACH(const ServiceGroup::Ptr& sg, DynamicType::GetObjectsByType<ServiceGroup>()) {
+	BOOST_FOREACH(const ServiceGroup::Ptr& sg, ConfigType::GetObjectsByType<ServiceGroup>()) {
 		if (!addRowFn(sg, LivestatusGroupByNone, Empty))
 			return;
 	}

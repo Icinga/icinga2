@@ -17,14 +17,14 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/dynamicobject.hpp"
+#include "base/configobject.hpp"
 
 library checker;
 
 namespace icinga
 {
 
-class CheckerComponent : DynamicObject
+class CheckerComponent : ConfigObject
 {
 };
 

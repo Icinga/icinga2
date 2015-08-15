@@ -82,7 +82,7 @@ void Dependency::OnConfigLoaded(void)
 
 void Dependency::OnAllConfigLoaded(void)
 {
-	DynamicObject::OnAllConfigLoaded();
+	ConfigObject::OnAllConfigLoaded();
 
 	Host::Ptr childHost = Host::GetByName(GetChildHostName());
 
@@ -125,7 +125,7 @@ void Dependency::OnAllConfigLoaded(void)
 
 void Dependency::Stop(void)
 {
-	DynamicObject::Stop();
+	ConfigObject::Stop();
 
 	GetChild()->RemoveDependency(this);
 	GetParent()->RemoveReverseDependency(this);

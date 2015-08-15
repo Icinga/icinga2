@@ -24,8 +24,8 @@
 #include "icinga/service.hpp"
 #include "icinga/compatutility.hpp"
 #include "remote/endpoint.hpp"
-#include "base/dynamicobject.hpp"
-#include "base/dynamictype.hpp"
+#include "base/configobject.hpp"
+#include "base/configtype.hpp"
 #include "base/json.hpp"
 #include "base/convert.hpp"
 #include "base/objectlock.hpp"
@@ -47,16 +47,16 @@ DbObject::DbObject(const intrusive_ptr<DbType>& type, const String& name1, const
 void DbObject::StaticInitialize(void)
 {
 	/* triggered in ProcessCheckResult(), requires UpdateNextCheck() to be called before */
-	DynamicObject::OnStateChanged.connect(boost::bind(&DbObject::StateChangedHandler, _1));
+	ConfigObject::OnStateChanged.connect(boost::bind(&DbObject::StateChangedHandler, _1));
 	CustomVarObject::OnVarsChanged.connect(boost::bind(&DbObject::VarsChangedHandler, _1));
 }
 
-void DbObject::SetObject(const DynamicObject::Ptr& object)
+void DbObject::SetObject(const ConfigObject::Ptr& object)
 {
 	m_Object = object;
 }
 
-DynamicObject::Ptr DbObject::GetObject(void) const
+ConfigObject::Ptr DbObject::GetObject(void) const
 {
 	return m_Object;
 }
@@ -150,7 +150,7 @@ void DbObject::SendStatusUpdate(void)
 
 void DbObject::SendVarsConfigUpdate(void)
 {
-	DynamicObject::Ptr obj = GetObject();
+	ConfigObject::Ptr obj = GetObject();
 
 	CustomVarObject::Ptr custom_var_object = dynamic_pointer_cast<CustomVarObject>(obj);
 
@@ -205,7 +205,7 @@ void DbObject::SendVarsConfigUpdate(void)
 
 void DbObject::SendVarsStatusUpdate(void)
 {
-	DynamicObject::Ptr obj = GetObject();
+	ConfigObject::Ptr obj = GetObject();
 
 	CustomVarObject::Ptr custom_var_object = dynamic_pointer_cast<CustomVarObject>(obj);
 
@@ -289,7 +289,7 @@ void DbObject::OnStatusUpdate(void)
 	/* Default handler does nothing. */
 }
 
-DbObject::Ptr DbObject::GetOrCreateByObject(const DynamicObject::Ptr& object)
+DbObject::Ptr DbObject::GetOrCreateByObject(const ConfigObject::Ptr& object)
 {
 	boost::mutex::scoped_lock lock(GetStaticMutex());
 
@@ -314,9 +314,9 @@ DbObject::Ptr DbObject::GetOrCreateByObject(const DynamicObject::Ptr& object)
 		name1 = service->GetHost()->GetName();
 		name2 = service->GetShortName();
 	} else {
-		if (object->GetType() == DynamicType::GetByName("CheckCommand") ||
-		    object->GetType() == DynamicType::GetByName("EventCommand") ||
-		    object->GetType() == DynamicType::GetByName("NotificationCommand")) {
+		if (object->GetType() == ConfigType::GetByName("CheckCommand") ||
+		    object->GetType() == ConfigType::GetByName("EventCommand") ||
+		    object->GetType() == ConfigType::GetByName("NotificationCommand")) {
 			Command::Ptr command = dynamic_pointer_cast<Command>(object);
 			name1 = CompatUtility::GetCommandName(command);
 		}
@@ -332,7 +332,7 @@ DbObject::Ptr DbObject::GetOrCreateByObject(const DynamicObject::Ptr& object)
 	return dbobj;
 }
 
-void DbObject::StateChangedHandler(const DynamicObject::Ptr& object)
+void DbObject::StateChangedHandler(const ConfigObject::Ptr& object)
 {
 	DbObject::Ptr dbobj = GetOrCreateByObject(object);
 

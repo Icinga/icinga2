@@ -21,7 +21,7 @@
 #define ENDPOINTDBOBJECT_H
 
 #include "db_ido/dbobject.hpp"
-#include "base/dynamicobject.hpp"
+#include "base/configobject.hpp"
 #include "remote/endpoint.hpp"
 
 namespace icinga

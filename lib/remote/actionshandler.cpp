@@ -57,11 +57,11 @@ bool ActionsHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& reques
 
 	Dictionary::Ptr params = HttpUtility::FetchRequestParameters(request);
 
-	std::vector<DynamicObject::Ptr> objs = FilterUtility::GetFilterTargets(qd, params);
+	std::vector<ConfigObject::Ptr> objs = FilterUtility::GetFilterTargets(qd, params);
 
 	Array::Ptr results = new Array();
 
-	BOOST_FOREACH(const DynamicObject::Ptr& obj, objs) {
+	BOOST_FOREACH(const ConfigObject::Ptr& obj, objs) {
 		try {
 			results->Add(action->Invoke(obj, params));
 		} catch (const std::exception& ex) {

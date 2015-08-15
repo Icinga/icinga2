@@ -22,7 +22,7 @@
 #include "icinga/service.hpp"
 #include "base/objectlock.hpp"
 #include "base/utility.hpp"
-#include "base/dynamictype.hpp"
+#include "base/configtype.hpp"
 #include "base/statsfunction.hpp"
 #include <boost/foreach.hpp>
 
@@ -80,7 +80,7 @@ CheckableCheckStatistics CIB::CalculateHostCheckStats(void)
 	double min_execution_time = -1, max_execution_time = 0, sum_execution_time = 0;
 	int count_execution_time = 0;
 
-	BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjectsByType<Host>()) {
+	BOOST_FOREACH(const Host::Ptr& host, ConfigType::GetObjectsByType<Host>()) {
 		ObjectLock olock(host);
 
 		CheckResult::Ptr cr = host->GetLastCheckResult();
@@ -129,7 +129,7 @@ CheckableCheckStatistics CIB::CalculateServiceCheckStats(void)
 	double min_execution_time = -1, max_execution_time = 0, sum_execution_time = 0;
 	int count_execution_time = 0;
 
-	BOOST_FOREACH(const Service::Ptr& service, DynamicType::GetObjectsByType<Service>()) {
+	BOOST_FOREACH(const Service::Ptr& service, ConfigType::GetObjectsByType<Service>()) {
 		ObjectLock olock(service);
 
 		CheckResult::Ptr cr = service->GetLastCheckResult();
@@ -175,7 +175,7 @@ ServiceStatistics CIB::CalculateServiceStats(void)
 {
 	ServiceStatistics ss = {0};
 
-	BOOST_FOREACH(const Service::Ptr& service, DynamicType::GetObjectsByType<Service>()) {
+	BOOST_FOREACH(const Service::Ptr& service, ConfigType::GetObjectsByType<Service>()) {
 		ObjectLock olock(service);
 
 		CheckResult::Ptr cr = service->GetLastCheckResult();
@@ -209,7 +209,7 @@ HostStatistics CIB::CalculateHostStats(void)
 {
 	HostStatistics hs = {0};
 
-	BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjectsByType<Host>()) {
+	BOOST_FOREACH(const Host::Ptr& host, ConfigType::GetObjectsByType<Host>()) {
 		ObjectLock olock(host);
 
 		if (host->IsReachable()) {

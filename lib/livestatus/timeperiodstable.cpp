@@ -20,7 +20,7 @@
 #include "livestatus/timeperiodstable.hpp"
 #include "icinga/icingaapplication.hpp"
 #include "icinga/timeperiod.hpp"
-#include "base/dynamictype.hpp"
+#include "base/configtype.hpp"
 #include "base/objectlock.hpp"
 #include "base/convert.hpp"
 #include "base/utility.hpp"
@@ -54,7 +54,7 @@ String TimePeriodsTable::GetPrefix(void) const
 
 void TimePeriodsTable::FetchRows(const AddRowFunction& addRowFn)
 {
-	BOOST_FOREACH(const TimePeriod::Ptr& tp, DynamicType::GetObjectsByType<TimePeriod>()) {
+	BOOST_FOREACH(const TimePeriod::Ptr& tp, ConfigType::GetObjectsByType<TimePeriod>()) {
 		if (!addRowFn(tp, LivestatusGroupByNone, Empty))
 			return;
 	}

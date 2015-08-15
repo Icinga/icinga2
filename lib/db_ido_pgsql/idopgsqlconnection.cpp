@@ -27,7 +27,7 @@
 #include "base/convert.hpp"
 #include "base/utility.hpp"
 #include "base/application.hpp"
-#include "base/dynamictype.hpp"
+#include "base/configtype.hpp"
 #include "base/exception.hpp"
 #include "base/context.hpp"
 #include "base/statsfunction.hpp"
@@ -48,7 +48,7 @@ void IdoPgsqlConnection::StatsFunc(const Dictionary::Ptr& status, const Array::P
 {
 	Dictionary::Ptr nodes = new Dictionary();
 
-	BOOST_FOREACH(const IdoPgsqlConnection::Ptr& idopgsqlconnection, DynamicType::GetObjectsByType<IdoPgsqlConnection>()) {
+	BOOST_FOREACH(const IdoPgsqlConnection::Ptr& idopgsqlconnection, ConfigType::GetObjectsByType<IdoPgsqlConnection>()) {
 		size_t items = idopgsqlconnection->m_QueryQueue.GetLength();
 
 		Dictionary::Ptr stats = new Dictionary();
@@ -545,7 +545,7 @@ bool IdoPgsqlConnection::FieldToEscapedString(const String& key, const Value& va
 
 	Value rawvalue = DbValue::ExtractValue(value);
 
-	if (rawvalue.IsObjectType<DynamicObject>()) {
+	if (rawvalue.IsObjectType<ConfigObject>()) {
 		DbObject::Ptr dbobjcol = DbObject::GetOrCreateByObject(rawvalue);
 
 		if (!dbobjcol) {

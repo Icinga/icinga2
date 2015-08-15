@@ -23,7 +23,7 @@
 #include "icinga/downtime.hpp"
 #include "icinga/service.hpp"
 #include "base/timer.hpp"
-#include "base/dynamictype.hpp"
+#include "base/configtype.hpp"
 #include "base/initialize.hpp"
 #include "base/utility.hpp"
 #include "base/objectlock.hpp"
@@ -98,14 +98,14 @@ void ScheduledDowntime::OnAllConfigLoaded(void)
 
 void ScheduledDowntime::Start(void)
 {
-	DynamicObject::Start();
+	ConfigObject::Start();
 
 	CreateNextDowntime();
 }
 
 void ScheduledDowntime::TimerProc(void)
 {
-	BOOST_FOREACH(const ScheduledDowntime::Ptr& sd, DynamicType::GetObjectsByType<ScheduledDowntime>()) {
+	BOOST_FOREACH(const ScheduledDowntime::Ptr& sd, ConfigType::GetObjectsByType<ScheduledDowntime>()) {
 		sd->CreateNextDowntime();
 	}
 }

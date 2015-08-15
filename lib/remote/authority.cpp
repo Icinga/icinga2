@@ -19,7 +19,7 @@
 
 #include "remote/zone.hpp"
 #include "remote/apilistener.hpp"
-#include "base/dynamictype.hpp"
+#include "base/configtype.hpp"
 #include "base/utility.hpp"
 #include "base/initialize.hpp"
 #include "base/timer.hpp"
@@ -29,7 +29,7 @@ using namespace icinga;
 
 static Timer::Ptr l_AuthorityTimer;
 
-static bool ObjectNameLessComparer(const DynamicObject::Ptr& a, const DynamicObject::Ptr& b)
+static bool ObjectNameLessComparer(const ConfigObject::Ptr& a, const ConfigObject::Ptr& b)
 {
 	return a->GetName() < b->GetName();
 }
@@ -57,8 +57,8 @@ static void AuthorityTimerHandler(void)
 
 	std::sort(endpoints.begin(), endpoints.end(), ObjectNameLessComparer);
 
-	BOOST_FOREACH(const DynamicType::Ptr& type, DynamicType::GetTypes()) {
-		BOOST_FOREACH(const DynamicObject::Ptr& object, type->GetObjects()) {
+	BOOST_FOREACH(const ConfigType::Ptr& type, ConfigType::GetTypes()) {
+		BOOST_FOREACH(const ConfigObject::Ptr& object, type->GetObjects()) {
 			Endpoint::Ptr endpoint = endpoints[Utility::SDBM(object->GetName()) % endpoints.size()];
 
 			if (object->GetHAMode() == HARunOnce)

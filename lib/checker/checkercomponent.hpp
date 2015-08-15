@@ -22,7 +22,7 @@
 
 #include "checker/checkercomponent.thpp"
 #include "icinga/service.hpp"
-#include "base/dynamicobject.hpp"
+#include "base/configobject.hpp"
 #include "base/timer.hpp"
 #include "base/utility.hpp"
 #include <boost/thread/thread.hpp>
@@ -96,7 +96,7 @@ private:
 
 	void AdjustCheckTimer(void);
 
-	void ObjectHandler(const DynamicObject::Ptr& object);
+	void ObjectHandler(const ConfigObject::Ptr& object);
 	void NextCheckChangedHandler(const Checkable::Ptr& checkable);
 
 	void RescheduleCheckTimer(void);

@@ -21,7 +21,7 @@
 #include "notification/notificationcomponent.tcpp"
 #include "icinga/service.hpp"
 #include "icinga/icingaapplication.hpp"
-#include "base/dynamictype.hpp"
+#include "base/configtype.hpp"
 #include "base/objectlock.hpp"
 #include "base/logger.hpp"
 #include "base/utility.hpp"
@@ -39,7 +39,7 @@ void NotificationComponent::StatsFunc(const Dictionary::Ptr& status, const Array
 {
 	Dictionary::Ptr nodes = new Dictionary();
 
-	BOOST_FOREACH(const NotificationComponent::Ptr& notification_component, DynamicType::GetObjectsByType<NotificationComponent>()) {
+	BOOST_FOREACH(const NotificationComponent::Ptr& notification_component, ConfigType::GetObjectsByType<NotificationComponent>()) {
 		nodes->Set(notification_component->GetName(), 1); //add more stats
 	}
 
@@ -51,7 +51,7 @@ void NotificationComponent::StatsFunc(const Dictionary::Ptr& status, const Array
  */
 void NotificationComponent::Start(void)
 {
-	DynamicObject::Start();
+	ConfigObject::Start();
 
 	Checkable::OnNotificationsRequested.connect(boost::bind(&NotificationComponent::SendNotificationsHandler, this, _1,
 	    _2, _3, _4, _5));
@@ -71,7 +71,7 @@ void NotificationComponent::NotificationTimerHandler(void)
 {
 	double now = Utility::GetTime();
 
-	BOOST_FOREACH(const Notification::Ptr& notification, DynamicType::GetObjectsByType<Notification>()) {
+	BOOST_FOREACH(const Notification::Ptr& notification, ConfigType::GetObjectsByType<Notification>()) {
 		Checkable::Ptr checkable = notification->GetCheckable();
 
 		if (checkable->IsPaused() && GetEnableHA())

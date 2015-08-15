@@ -19,7 +19,7 @@
 
 #include "livestatus/zonestable.hpp"
 #include "remote/zone.hpp"
-#include "base/dynamictype.hpp"
+#include "base/configtype.hpp"
 #include <boost/foreach.hpp>
 
 using namespace icinga;
@@ -50,7 +50,7 @@ String ZonesTable::GetPrefix(void) const
 
 void ZonesTable::FetchRows(const AddRowFunction& addRowFn)
 {
-	BOOST_FOREACH(const Zone::Ptr& zone, DynamicType::GetObjectsByType<Zone>()) {
+	BOOST_FOREACH(const Zone::Ptr& zone, ConfigType::GetObjectsByType<Zone>()) {
 		if (!addRowFn(zone, LivestatusGroupByNone, Empty))
 			return;
 	}

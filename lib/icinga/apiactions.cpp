@@ -37,7 +37,7 @@ Dictionary::Ptr ApiActions::CreateResult(const int code, const String& status) {
 REGISTER_APIACTION(reschedule_check, "Service;Host", &ApiActions::RescheduleCheck);
 REGISTER_APIACTION(process_check_result, "Service;Host", &ApiActions::ProcessCheckResult);
 
-Dictionary::Ptr ApiActions::RescheduleCheck(const DynamicObject::Ptr& object, const Dictionary::Ptr& params)
+Dictionary::Ptr ApiActions::RescheduleCheck(const ConfigObject::Ptr& object, const Dictionary::Ptr& params)
 {
 	Checkable::Ptr checkable = static_pointer_cast<Checkable>(object);
 
@@ -58,7 +58,7 @@ Dictionary::Ptr ApiActions::RescheduleCheck(const DynamicObject::Ptr& object, co
 	return ApiActions::CreateResult(200, "Successfully rescheduled check for " + checkable->GetName());
 }
 
-Dictionary::Ptr ApiActions::ProcessCheckResult(const DynamicObject::Ptr& object, const Dictionary::Ptr& params)
+Dictionary::Ptr ApiActions::ProcessCheckResult(const ConfigObject::Ptr& object, const Dictionary::Ptr& params)
 {
 	Checkable::Ptr checkable = static_pointer_cast<Checkable>(object);
 

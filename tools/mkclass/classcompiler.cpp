@@ -484,13 +484,13 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 				else
 					m_Impl << "\t" << "if (value.IsEmpty())" << std::endl;
 
-				m_Impl << "\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_cast<DynamicObject *>(this), boost::assign::list_of(\"" << field.Name << "\"), \"Attribute must not be empty.\"));" << std::endl << std::endl;
+				m_Impl << "\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_cast<ConfigObject *>(this), boost::assign::list_of(\"" << field.Name << "\"), \"Attribute must not be empty.\"));" << std::endl << std::endl;
 			}
 
 			if (field.Type.IsName) {
 				m_Impl << "\t" << "String ref = value;" << std::endl
 				       << "\t" << "if (!ref.IsEmpty() && !utils.ValidateName(\"" << field.Type.TypeName << "\", ref))" << std::endl
-				       << "\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_cast<DynamicObject *>(this), boost::assign::list_of(\"" << field.Name << "\"), \"Object '\" + ref + \"' of type '" << field.Type.TypeName
+				       << "\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_cast<ConfigObject *>(this), boost::assign::list_of(\"" << field.Name << "\"), \"Object '\" + ref + \"' of type '" << field.Type.TypeName
 				       << "' does not exist.\"));" << std::endl;
 			}
 		}
@@ -748,7 +748,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 
 			m_Impl << "void ObjectImpl<" << klass.Name << ">::Notify" << it->GetFriendlyName() << "(const Value& cookie)" << std::endl
 			       << "{" << std::endl
-			       << "\t" << "DynamicObject *dobj = dynamic_cast<DynamicObject *>(this);" << std::endl;
+			       << "\t" << "ConfigObject *dobj = dynamic_cast<ConfigObject *>(this);" << std::endl;
 
 			if (it->Name != "active") {
 				m_Impl << "\t" << "if (!dobj || dobj->IsActive())" << std::endl
@@ -800,7 +800,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		}
 	}
 
-	if (klass.Name == "DynamicObject")
+	if (klass.Name == "ConfigObject")
 		m_Header << "\t" << "friend class ConfigItem;" << std::endl;
 
 	if (!klass.TypeBase.empty())
@@ -842,7 +842,7 @@ void ClassCompiler::CodeGenValidator(const std::string& name, const std::string&
 				m_Impl << "\t" << "if (!value)" << std::endl;
 
 			if (required)
-				m_Impl << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_cast<DynamicObject *>(this), location, \"This attribute must not be empty.\"));" << std::endl;
+				m_Impl << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_cast<ConfigObject *>(this), location, \"This attribute must not be empty.\"));" << std::endl;
 			else
 				m_Impl << "\t\t" << "return;" << std::endl;
 
@@ -884,7 +884,7 @@ void ClassCompiler::CodeGenValidator(const std::string& name, const std::string&
 			       << "\t\t\t" << "if (utils.ValidateName(\"" << rule.Type << "\", value))" << std::endl
 			       << "\t\t\t\t" << "return;" << std::endl
 			       << "\t\t\t" << "else" << std::endl
-			       << "\t\t\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_pointer_cast<DynamicObject>(object), location, \"Object '\" + value + \"' of type '" << rule.Type << "' does not exist.\"));" << std::endl
+			       << "\t\t\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_pointer_cast<ConfigObject>(object), location, \"Object '\" + value + \"' of type '" << rule.Type << "' does not exist.\"));" << std::endl
 			       << "\t\t" << "}" << std::endl;
 		}
 
@@ -963,7 +963,7 @@ void ClassCompiler::CodeGenValidator(const std::string& name, const std::string&
 
 					if (rule.Type == "Dictionary") {
 						m_Impl << (type_check ? "\t" : "") << "\t\t" << "if (dict.Get(\"" << srule.Pattern << "\").IsEmpty())" << std::endl
-						       << (type_check ? "\t" : "") << "\t\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_cast<DynamicObject *>(this), location, \"Required dictionary item '" << srule.Pattern << "' is not set.\"));" << std::endl;
+						       << (type_check ? "\t" : "") << "\t\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_cast<ConfigObject *>(this), location, \"Required dictionary item '" << srule.Pattern << "' is not set.\"));" << std::endl;
 					} else if (rule.Type == "Array") {
 						int index = -1;
 						std::stringstream idxbuf;
@@ -976,7 +976,7 @@ void ClassCompiler::CodeGenValidator(const std::string& name, const std::string&
 						}
 
 						m_Impl << (type_check ? "\t" : "") << "\t\t" << "if (arr.GetLength() < " << (index + 1) << ")" << std::endl
-						       << (type_check ? "\t" : "") << "\t\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_cast<DynamicObject *>(this), location, \"Required index '" << index << "' is not set.\"));" << std::endl;
+						       << (type_check ? "\t" : "") << "\t\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_cast<ConfigObject *>(this), location, \"Required index '" << index << "' is not set.\"));" << std::endl;
 					}
 				}
 
@@ -995,11 +995,11 @@ void ClassCompiler::CodeGenValidator(const std::string& name, const std::string&
 	if (type_check || validatorType != ValidatorField) {
 		if (validatorType != ValidatorField) {
 			m_Impl << "\t" << "if (!known_attribute)" << std::endl
-			       << "\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_pointer_cast<DynamicObject>(object), location, \"Invalid attribute: \" + key));" << std::endl
+			       << "\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_pointer_cast<ConfigObject>(object), location, \"Invalid attribute: \" + key));" << std::endl
 			       << "\t" << "else" << std::endl;
 		}
 
-		m_Impl << (validatorType != ValidatorField ? "\t" : "") << "\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_pointer_cast<DynamicObject>(object), location, \"Invalid type.\"));" << std::endl;
+		m_Impl << (validatorType != ValidatorField ? "\t" : "") << "\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_pointer_cast<ConfigObject>(object), location, \"Invalid type.\"));" << std::endl;
 	}
 
 	m_Impl << "}" << std::endl << std::endl;

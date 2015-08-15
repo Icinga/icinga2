@@ -22,7 +22,7 @@
 #include "config/configcompiler.hpp"
 #include "config/expression.hpp"
 #include "base/json.hpp"
-#include "base/dynamictype.hpp"
+#include "base/configtype.hpp"
 #include "base/logger.hpp"
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string.hpp>
@@ -34,7 +34,7 @@ Type::Ptr FilterUtility::TypeFromPluralName(const String& pluralName)
 	String uname = pluralName;
 	boost::algorithm::to_lower(uname);
 
-	BOOST_FOREACH(const DynamicType::Ptr& dtype, DynamicType::GetTypes()) {
+	BOOST_FOREACH(const ConfigType::Ptr& dtype, ConfigType::GetTypes()) {
 		Type::Ptr type = Type::GetByName(dtype->GetName());
 		ASSERT(type);
 
@@ -48,17 +48,17 @@ Type::Ptr FilterUtility::TypeFromPluralName(const String& pluralName)
 	return Type::Ptr();
 }
 
-DynamicObject::Ptr FilterUtility::GetObjectByTypeAndName(const String& type, const String& name)
+ConfigObject::Ptr FilterUtility::GetObjectByTypeAndName(const String& type, const String& name)
 {
-	DynamicType::Ptr dtype = DynamicType::GetByName(type);
+	ConfigType::Ptr dtype = ConfigType::GetByName(type);
 	ASSERT(dtype);
 
 	return dtype->GetObject(name);
 }
 
-std::vector<DynamicObject::Ptr> FilterUtility::GetFilterTargets(const QueryDescription& qd, const Dictionary::Ptr& query)
+std::vector<ConfigObject::Ptr> FilterUtility::GetFilterTargets(const QueryDescription& qd, const Dictionary::Ptr& query)
 {
-	std::vector<DynamicObject::Ptr> result;
+	std::vector<ConfigObject::Ptr> result;
 
 	BOOST_FOREACH(const Type::Ptr& type, qd.Types) {
 		String attr = type->GetName();
@@ -66,7 +66,7 @@ std::vector<DynamicObject::Ptr> FilterUtility::GetFilterTargets(const QueryDescr
 
 		if (query->Contains(attr)) {
 			String name = HttpUtility::GetLastParameter(query, attr);
-			DynamicObject::Ptr obj = GetObjectByTypeAndName(type->GetName(), name);
+			ConfigObject::Ptr obj = GetObjectByTypeAndName(type->GetName(), name);
 			if (!obj)
 				BOOST_THROW_EXCEPTION(std::invalid_argument("Object does not exist."));
 			result.push_back(obj);
@@ -80,7 +80,7 @@ std::vector<DynamicObject::Ptr> FilterUtility::GetFilterTargets(const QueryDescr
 			if (names) {
 				ObjectLock olock(names);
 				BOOST_FOREACH(const String& name, names) {
-					DynamicObject::Ptr obj = GetObjectByTypeAndName(type->GetName(), name);
+					ConfigObject::Ptr obj = GetObjectByTypeAndName(type->GetName(), name);
 					if (!obj)
 						BOOST_THROW_EXCEPTION(std::invalid_argument("Object does not exist."));
 					result.push_back(obj);
@@ -111,7 +111,7 @@ std::vector<DynamicObject::Ptr> FilterUtility::GetFilterTargets(const QueryDescr
 		if (qd.Types.find(utype) == qd.Types.end())
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid type specified for this query."));
 
-		DynamicType::Ptr dtype = DynamicType::GetByName(type);
+		ConfigType::Ptr dtype = ConfigType::GetByName(type);
 		ASSERT(dtype);
 
 		Expression *ufilter = ConfigCompiler::CompileText("<API query>", filter, false);
@@ -122,7 +122,7 @@ std::vector<DynamicObject::Ptr> FilterUtility::GetFilterTargets(const QueryDescr
 		boost::algorithm::to_lower(varName);
 
 		try {
-			BOOST_FOREACH(const DynamicObject::Ptr& object, dtype->GetObjects()) {
+			BOOST_FOREACH(const ConfigObject::Ptr& object, dtype->GetObjects()) {
 				frame.Locals->Set(varName, object);
 
 				if (Convert::ToBool(ufilter->Evaluate(frame)))

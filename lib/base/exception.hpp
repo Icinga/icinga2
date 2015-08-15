@@ -27,7 +27,7 @@
 #include "base/utility.hpp"
 #include "base/debuginfo.hpp"
 #include "base/dictionary.hpp"
-#include "base/dynamicobject.hpp"
+#include "base/configobject.hpp"
 #include <sstream>
 #include <boost/exception/errinfo_api_function.hpp>
 #include <boost/exception/errinfo_errno.hpp>
@@ -72,12 +72,12 @@ private:
 class I2_BASE_API ValidationError : virtual public user_error
 {
 public:
-	ValidationError(const DynamicObject::Ptr& object, const std::vector<String>& attributePath, const String& message);
+	ValidationError(const ConfigObject::Ptr& object, const std::vector<String>& attributePath, const String& message);
 	~ValidationError(void) throw();
 
 	virtual const char *what(void) const throw();
 
-	DynamicObject::Ptr GetObject(void) const;
+	ConfigObject::Ptr GetObject(void) const;
 	std::vector<String> GetAttributePath(void) const;
 	String GetMessage(void) const;
 
@@ -85,7 +85,7 @@ public:
 	Dictionary::Ptr GetDebugHint(void) const;
 
 private:
-	DynamicObject::Ptr m_Object;
+	ConfigObject::Ptr m_Object;
 	std::vector<String> m_AttributePath;
 	String m_Message;
 	String m_What;

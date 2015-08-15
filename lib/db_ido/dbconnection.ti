@@ -18,14 +18,14 @@
  ******************************************************************************/
 
 #include "db_ido/dbquery.hpp"
-#include "base/dynamicobject.hpp"
+#include "base/configobject.hpp"
 
 library db_ido;
 
 namespace icinga
 {
 
-abstract class DbConnection : DynamicObject
+abstract class DbConnection : ConfigObject
 {
 	[config] String table_prefix {
 		default {{{ return "icinga_"; }}}

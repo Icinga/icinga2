@@ -25,7 +25,7 @@
 #include "icinga/compatutility.hpp"
 #include "icinga/perfdatavalue.hpp"
 #include "base/tcpsocket.hpp"
-#include "base/dynamictype.hpp"
+#include "base/configtype.hpp"
 #include "base/objectlock.hpp"
 #include "base/logger.hpp"
 #include "base/convert.hpp"
@@ -51,7 +51,7 @@ void OpenTsdbWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 {
 	Dictionary::Ptr nodes = new Dictionary();
 
-	BOOST_FOREACH(const OpenTsdbWriter::Ptr& opentsdbwriter, DynamicType::GetObjectsByType<OpenTsdbWriter>()) {
+	BOOST_FOREACH(const OpenTsdbWriter::Ptr& opentsdbwriter, ConfigType::GetObjectsByType<OpenTsdbWriter>()) {
 		nodes->Set(opentsdbwriter->GetName(), 1); //add more stats
 	}
 
@@ -60,7 +60,7 @@ void OpenTsdbWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 
 void OpenTsdbWriter::Start(void)
 {
-	DynamicObject::Start();
+	ConfigObject::Start();
 
 	m_ReconnectTimer = new Timer();
 	m_ReconnectTimer->SetInterval(10);

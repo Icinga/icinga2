@@ -26,7 +26,7 @@
 #include "remote/zone.hpp"
 #include "remote/apifunction.hpp"
 #include "base/application.hpp"
-#include "base/dynamictype.hpp"
+#include "base/configtype.hpp"
 #include "base/utility.hpp"
 #include "base/exception.hpp"
 #include "base/initialize.hpp"
@@ -1241,7 +1241,7 @@ void ApiEvents::VarsChangedHandler(const CustomVarObject::Ptr& object, const Mes
 	Dictionary::Ptr params = new Dictionary();
 	params->Set("object", object->GetName());
 
-	DynamicType::Ptr dtype = object->GetType();
+	ConfigType::Ptr dtype = object->GetType();
 	ASSERT(dtype);
 
 	params->Set("object_type", dtype->GetName());
@@ -1295,7 +1295,7 @@ Value ApiEvents::VarsChangedAPIHandler(const MessageOrigin::Ptr& origin, const D
 		if (!object)
 			object = NotificationCommand::GetByName(objectName);
 	} else {
-		DynamicType::Ptr dtype = DynamicType::GetByName(objectType);
+		ConfigType::Ptr dtype = ConfigType::GetByName(objectType);
 
 		if (!dtype)
 			return Empty;
@@ -1847,7 +1847,7 @@ void ApiEvents::RepositoryTimerHandler(void)
 
 	Dictionary::Ptr repository = new Dictionary();
 
-	BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjectsByType<Host>()) {
+	BOOST_FOREACH(const Host::Ptr& host, ConfigType::GetObjectsByType<Host>()) {
 		Array::Ptr services = new Array();
 
 		BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {

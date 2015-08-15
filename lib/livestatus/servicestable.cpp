@@ -31,7 +31,7 @@
 #include "icinga/macroprocessor.hpp"
 #include "icinga/icingaapplication.hpp"
 #include "icinga/compatutility.hpp"
-#include "base/dynamictype.hpp"
+#include "base/configtype.hpp"
 #include "base/objectlock.hpp"
 #include "base/json.hpp"
 #include "base/convert.hpp"
@@ -167,7 +167,7 @@ String ServicesTable::GetPrefix(void) const
 void ServicesTable::FetchRows(const AddRowFunction& addRowFn)
 {
 	if (GetGroupByType() == LivestatusGroupByServiceGroup) {
-		BOOST_FOREACH(const ServiceGroup::Ptr& sg, DynamicType::GetObjectsByType<ServiceGroup>()) {
+		BOOST_FOREACH(const ServiceGroup::Ptr& sg, ConfigType::GetObjectsByType<ServiceGroup>()) {
 			BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
 				/* the caller must know which groupby type and value are set for this row */
 				if (!addRowFn(service, LivestatusGroupByServiceGroup, sg))
@@ -175,7 +175,7 @@ void ServicesTable::FetchRows(const AddRowFunction& addRowFn)
 			}
 		}
 	} else if (GetGroupByType() == LivestatusGroupByHostGroup) {
-		BOOST_FOREACH(const HostGroup::Ptr& hg, DynamicType::GetObjectsByType<HostGroup>()) {
+		BOOST_FOREACH(const HostGroup::Ptr& hg, ConfigType::GetObjectsByType<HostGroup>()) {
 			ObjectLock ylock(hg);
 			BOOST_FOREACH(const Host::Ptr& host, hg->GetMembers()) {
 				ObjectLock ylock(host);
@@ -187,7 +187,7 @@ void ServicesTable::FetchRows(const AddRowFunction& addRowFn)
 			}
 		}
 	} else {
-		BOOST_FOREACH(const Service::Ptr& service, DynamicType::GetObjectsByType<Service>()) {
+		BOOST_FOREACH(const Service::Ptr& service, ConfigType::GetObjectsByType<Service>()) {
 			if (!addRowFn(service, LivestatusGroupByNone, Empty))
 				return;
 		}

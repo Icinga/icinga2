@@ -21,7 +21,7 @@
 #include "remote/messageorigin.hpp"
 #include "remote/apifunction.hpp"
 #include "base/initialize.hpp"
-#include "base/dynamictype.hpp"
+#include "base/configtype.hpp"
 #include "base/logger.hpp"
 #include "base/utility.hpp"
 #include <boost/foreach.hpp>
@@ -44,7 +44,7 @@ INITIALIZE_ONCE(StartHeartbeatTimer);
 
 void JsonRpcConnection::HeartbeatTimerHandler(void)
 {
-	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjectsByType<Endpoint>()) {
+	BOOST_FOREACH(const Endpoint::Ptr& endpoint, ConfigType::GetObjectsByType<Endpoint>()) {
 		BOOST_FOREACH(const JsonRpcConnection::Ptr& client, endpoint->GetClients()) {
 			if (endpoint->GetSyncing()) {
 				Log(LogInformation, "JsonRpcConnection")

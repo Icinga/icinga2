@@ -27,7 +27,7 @@
 #include "remote/zone.hpp"
 #include "base/function.hpp"
 #include "base/utility.hpp"
-#include "base/dynamictype.hpp"
+#include "base/configtype.hpp"
 #include "base/convert.hpp"
 #include <boost/foreach.hpp>
 
@@ -87,7 +87,7 @@ void IdoCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult
 		return;
 	}
 
-	DynamicType::Ptr dtype = DynamicType::GetByName(idoType);
+	ConfigType::Ptr dtype = ConfigType::GetByName(idoType);
 	VERIFY(dtype);
 
 	DbConnection::Ptr conn = static_pointer_cast<DbConnection>(dtype->GetObject(idoName));

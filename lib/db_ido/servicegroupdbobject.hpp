@@ -22,7 +22,7 @@
 
 #include "db_ido/dbobject.hpp"
 #include "icinga/servicegroup.hpp"
-#include "base/dynamicobject.hpp"
+#include "base/configobject.hpp"
 
 namespace icinga
 {

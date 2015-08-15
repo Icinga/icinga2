@@ -17,7 +17,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/dynamicobject.hpp"
+#include "base/configobject.hpp"
 #include "base/application.hpp"
 
 library compat;
@@ -25,7 +25,7 @@ library compat;
 namespace icinga
 {
 
-class CheckResultReader : DynamicObject
+class CheckResultReader : ConfigObject
 {
 	[config] String spool_dir {
 		default {{{ return Application::GetLocalStateDir() + "/lib/icinga2/spool/checkresults/"; }}}

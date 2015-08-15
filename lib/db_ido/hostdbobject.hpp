@@ -21,7 +21,7 @@
 #define HOSTDBOBJECT_H
 
 #include "db_ido/dbobject.hpp"
-#include "base/dynamicobject.hpp"
+#include "base/configobject.hpp"
 
 namespace icinga
 {

@@ -25,7 +25,7 @@
 #include "db_ido/dbquery.hpp"
 #include "db_ido/dbtype.hpp"
 #include "icinga/customvarobject.hpp"
-#include "base/dynamicobject.hpp"
+#include "base/configobject.hpp"
 
 namespace icinga
 {
@@ -66,8 +66,8 @@ public:
 
 	static void StaticInitialize(void);
 
-	void SetObject(const DynamicObject::Ptr& object);
-	DynamicObject::Ptr GetObject(void) const;
+	void SetObject(const ConfigObject::Ptr& object);
+	ConfigObject::Ptr GetObject(void) const;
 
 	String GetName1(void) const;
 	String GetName2(void) const;
@@ -76,7 +76,7 @@ public:
 	virtual Dictionary::Ptr GetConfigFields(void) const = 0;
 	virtual Dictionary::Ptr GetStatusFields(void) const = 0;
 
-	static DbObject::Ptr GetOrCreateByObject(const DynamicObject::Ptr& object);
+	static DbObject::Ptr GetOrCreateByObject(const ConfigObject::Ptr& object);
 
 	static boost::signals2::signal<void (const DbQuery&)> OnQuery;
 
@@ -100,11 +100,11 @@ private:
 	String m_Name1;
 	String m_Name2;
 	intrusive_ptr<DbType> m_Type;
-	DynamicObject::Ptr m_Object;
+	ConfigObject::Ptr m_Object;
 	double m_LastConfigUpdate;
 	double m_LastStatusUpdate;
 
-	static void StateChangedHandler(const DynamicObject::Ptr& object);
+	static void StateChangedHandler(const ConfigObject::Ptr& object);
 	static void VarsChangedHandler(const CustomVarObject::Ptr& object);
 	static boost::mutex& GetStaticMutex(void);
 

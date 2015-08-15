@@ -21,7 +21,7 @@
 #define DYNAMICTYPE_H
 
 #include "base/i2-base.hpp"
-#include "base/dynamicobject.hpp"
+#include "base/configobject.hpp"
 #include "base/objectlock.hpp"
 #include <map>
 # include <boost/iterator/iterator_facade.hpp>
@@ -30,50 +30,50 @@ namespace icinga
 {
 
 template<typename T>
-class DynamicTypeIterator;
+class ConfigTypeIterator;
 
-class I2_BASE_API DynamicType : public Object
+class I2_BASE_API ConfigType : public Object
 {
 public:
-	DECLARE_PTR_TYPEDEFS(DynamicType);
+	DECLARE_PTR_TYPEDEFS(ConfigType);
 
-	DynamicType(const String& name);
+	ConfigType(const String& name);
 
 	String GetName(void) const;
 
-	static DynamicType::Ptr GetByName(const String& name);
+	static ConfigType::Ptr GetByName(const String& name);
 
-	DynamicObject::Ptr GetObject(const String& name) const;
+	ConfigObject::Ptr GetObject(const String& name) const;
 
-	void RegisterObject(const DynamicObject::Ptr& object);
-	void UnregisterObject(const DynamicObject::Ptr& object);
+	void RegisterObject(const ConfigObject::Ptr& object);
+	void UnregisterObject(const ConfigObject::Ptr& object);
 
-	static std::vector<DynamicType::Ptr> GetTypes(void);
-	std::pair<DynamicTypeIterator<DynamicObject>, DynamicTypeIterator<DynamicObject> > GetObjects(void);
+	static std::vector<ConfigType::Ptr> GetTypes(void);
+	std::pair<ConfigTypeIterator<ConfigObject>, ConfigTypeIterator<ConfigObject> > GetObjects(void);
 
 	template<typename T>
-	static std::pair<DynamicTypeIterator<T>, DynamicTypeIterator<T> > GetObjectsByType(void)
+	static std::pair<ConfigTypeIterator<T>, ConfigTypeIterator<T> > GetObjectsByType(void)
 	{
-		DynamicType::Ptr type = GetByName(T::GetTypeName());
+		ConfigType::Ptr type = GetByName(T::GetTypeName());
 		return std::make_pair(
-		    DynamicTypeIterator<T>(type, 0),
-		    DynamicTypeIterator<T>(type, UINT_MAX)
+		    ConfigTypeIterator<T>(type, 0),
+		    ConfigTypeIterator<T>(type, UINT_MAX)
 		);
 	}
 
 private:
-	template<typename T> friend class DynamicTypeIterator;
+	template<typename T> friend class ConfigTypeIterator;
 
 	String m_Name;
 
-	typedef std::map<String, DynamicObject::Ptr> ObjectMap;
-	typedef std::vector<DynamicObject::Ptr> ObjectVector;
+	typedef std::map<String, ConfigObject::Ptr> ObjectMap;
+	typedef std::vector<ConfigObject::Ptr> ObjectVector;
 
 	ObjectMap m_ObjectMap;
 	ObjectVector m_ObjectVector;
 
-	typedef std::map<String, DynamicType::Ptr> TypeMap;
-	typedef std::vector<DynamicType::Ptr> TypeVector;
+	typedef std::map<String, ConfigType::Ptr> TypeMap;
+	typedef std::vector<ConfigType::Ptr> TypeVector;
 
 	static TypeMap& InternalGetTypeMap(void);
 	static TypeVector& InternalGetTypeVector(void);
@@ -81,18 +81,18 @@ private:
 };
 
 template<typename T>
-class DynamicTypeIterator : public boost::iterator_facade<DynamicTypeIterator<T>, const intrusive_ptr<T>, boost::forward_traversal_tag>
+class ConfigTypeIterator : public boost::iterator_facade<ConfigTypeIterator<T>, const intrusive_ptr<T>, boost::forward_traversal_tag>
 {
 public:
-	DynamicTypeIterator(const DynamicType::Ptr& type, int index)
+	ConfigTypeIterator(const ConfigType::Ptr& type, int index)
 		: m_Type(type), m_Index(index)
 	{ }
 
 private:
 	friend class boost::iterator_core_access;
 
-	DynamicType::Ptr m_Type;
-	DynamicType::ObjectVector::size_type m_Index;
+	ConfigType::Ptr m_Type;
+	ConfigType::ObjectVector::size_type m_Index;
 	mutable intrusive_ptr<T> m_Current;
 
 	void increment(void)
@@ -110,7 +110,7 @@ private:
 		m_Index += n;
 	}
 
-	bool equal(const DynamicTypeIterator<T>& other) const
+	bool equal(const ConfigTypeIterator<T>& other) const
 	{
 		ASSERT(other.m_Type == m_Type);
 

@@ -20,7 +20,7 @@
 #include "remote/apilistener.hpp"
 #include "remote/apifunction.hpp"
 #include "config/configcompiler.hpp"
-#include "base/dynamictype.hpp"
+#include "base/configtype.hpp"
 #include "base/logger.hpp"
 #include "base/convert.hpp"
 #include "base/exception.hpp"
@@ -154,7 +154,7 @@ void ApiListener::SyncZoneDir(const Zone::Ptr& zone) const
 
 void ApiListener::SyncZoneDirs(void) const
 {
-	BOOST_FOREACH(const Zone::Ptr& zone, DynamicType::GetObjectsByType<Zone>()) {
+	BOOST_FOREACH(const Zone::Ptr& zone, ConfigType::GetObjectsByType<Zone>()) {
 		if (!IsConfigMaster(zone))
 			continue;
 
@@ -182,7 +182,7 @@ void ApiListener::SendConfigUpdate(const JsonRpcConnection::Ptr& aclient)
 
 	String zonesDir = Application::GetLocalStateDir() + "/lib/icinga2/api/zones";
 
-	BOOST_FOREACH(const Zone::Ptr& zone, DynamicType::GetObjectsByType<Zone>()) {
+	BOOST_FOREACH(const Zone::Ptr& zone, ConfigType::GetObjectsByType<Zone>()) {
 		String zoneDir = zonesDir + "/" + zone->GetName();
 
 		if (!zone->IsChildOf(azone) && !zone->IsGlobal()) {

@@ -22,7 +22,7 @@
 
 #include "config/i2-config.hpp"
 #include "config/expression.hpp"
-#include "base/dynamicobject.hpp"
+#include "base/configobject.hpp"
 #include "base/workqueue.hpp"
 
 namespace icinga
@@ -53,7 +53,7 @@ public:
 	boost::shared_ptr<Expression> GetExpression(void) const;
 	boost::shared_ptr<Expression> GetFilter(void) const;
 
-	DynamicObject::Ptr Commit(bool discard = true);
+	ConfigObject::Ptr Commit(bool discard = true);
 	void Register(void);
 	void Unregister(void);
 
@@ -83,7 +83,7 @@ private:
 	Dictionary::Ptr m_Scope; /**< variable scope. */
 	String m_Zone; /**< The zone. */
 
-	DynamicObject::Ptr m_Object;
+	ConfigObject::Ptr m_Object;
 
 	static boost::mutex m_Mutex;
 

@@ -23,7 +23,7 @@
 #include "icinga/icingaapplication.hpp"
 #include "base/objectlock.hpp"
 #include "base/initialize.hpp"
-#include "base/dynamictype.hpp"
+#include "base/configtype.hpp"
 #include "base/utility.hpp"
 #include "base/convert.hpp"
 #include "base/logger.hpp"

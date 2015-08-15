@@ -23,7 +23,7 @@
 #include "icinga/eventcommand.hpp"
 #include "icinga/notificationcommand.hpp"
 #include "icinga/compatutility.hpp"
-#include "base/dynamictype.hpp"
+#include "base/configtype.hpp"
 #include "base/objectlock.hpp"
 #include "base/convert.hpp"
 #include <boost/foreach.hpp>
@@ -60,17 +60,17 @@ String CommandsTable::GetPrefix(void) const
 
 void CommandsTable::FetchRows(const AddRowFunction& addRowFn)
 {
-	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjectsByType<CheckCommand>()) {
+	BOOST_FOREACH(const ConfigObject::Ptr& object, ConfigType::GetObjectsByType<CheckCommand>()) {
 		if (!addRowFn(object, LivestatusGroupByNone, Empty))
 			return;
 	}
 
-	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjectsByType<EventCommand>()) {
+	BOOST_FOREACH(const ConfigObject::Ptr& object, ConfigType::GetObjectsByType<EventCommand>()) {
 		if (!addRowFn(object, LivestatusGroupByNone, Empty))
 			return;
 	}
 
-	BOOST_FOREACH(const DynamicObject::Ptr& object, DynamicType::GetObjectsByType<NotificationCommand>()) {
+	BOOST_FOREACH(const ConfigObject::Ptr& object, ConfigType::GetObjectsByType<NotificationCommand>()) {
 		if (!addRowFn(object, LivestatusGroupByNone, Empty))
 			return;
 	}

@@ -17,14 +17,14 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/dynamicobject.hpp"
+#include "base/configobject.hpp"
 
 library perfdata;
 
 namespace icinga
 {
 
-class GraphiteWriter : DynamicObject
+class GraphiteWriter : ConfigObject
 {
 	[config] String host {
 		default {{{ return "127.0.0.1"; }}}

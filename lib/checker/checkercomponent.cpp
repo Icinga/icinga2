@@ -23,7 +23,7 @@
 #include "icinga/cib.hpp"
 #include "icinga/perfdatavalue.hpp"
 #include "remote/apilistener.hpp"
-#include "base/dynamictype.hpp"
+#include "base/configtype.hpp"
 #include "base/objectlock.hpp"
 #include "base/utility.hpp"
 #include "base/logger.hpp"
@@ -42,7 +42,7 @@ void CheckerComponent::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr
 {
 	Dictionary::Ptr nodes = new Dictionary();
 
-	BOOST_FOREACH(const CheckerComponent::Ptr& checker, DynamicType::GetObjectsByType<CheckerComponent>()) {
+	BOOST_FOREACH(const CheckerComponent::Ptr& checker, ConfigType::GetObjectsByType<CheckerComponent>()) {
 		unsigned long idle = checker->GetIdleCheckables();
 		unsigned long pending = checker->GetPendingCheckables();
 
@@ -66,15 +66,15 @@ CheckerComponent::CheckerComponent(void)
 
 void CheckerComponent::OnConfigLoaded(void)
 {
-	DynamicObject::OnActiveChanged.connect(bind(&CheckerComponent::ObjectHandler, this, _1));
-	DynamicObject::OnPausedChanged.connect(bind(&CheckerComponent::ObjectHandler, this, _1));
+	ConfigObject::OnActiveChanged.connect(bind(&CheckerComponent::ObjectHandler, this, _1));
+	ConfigObject::OnPausedChanged.connect(bind(&CheckerComponent::ObjectHandler, this, _1));
 
 	Checkable::OnNextCheckChanged.connect(bind(&CheckerComponent::NextCheckChangedHandler, this, _1));
 }
 
 void CheckerComponent::Start(void)
 {
-	DynamicObject::Start();
+	ConfigObject::Start();
 
 	m_Thread = boost::thread(boost::bind(&CheckerComponent::CheckThreadProc, this));
 
@@ -97,7 +97,7 @@ void CheckerComponent::Stop(void)
 	m_ResultTimer->Stop();
 	m_Thread.join();
 
-	DynamicObject::Stop();
+	ConfigObject::Stop();
 }
 
 void CheckerComponent::CheckThreadProc(void)
@@ -252,7 +252,7 @@ void CheckerComponent::ResultTimerHandler(void)
 	Log(LogNotice, "CheckerComponent", msgbuf.str());
 }
 
-void CheckerComponent::ObjectHandler(const DynamicObject::Ptr& object)
+void CheckerComponent::ObjectHandler(const ConfigObject::Ptr& object)
 {
 	Checkable::Ptr checkable = dynamic_pointer_cast<Checkable>(object);
 

@@ -21,7 +21,7 @@
 #include "base/logger.tcpp"
 #include "base/application.hpp"
 #include "base/streamlogger.hpp"
-#include "base/dynamictype.hpp"
+#include "base/configtype.hpp"
 #include "base/utility.hpp"
 #include "base/objectlock.hpp"
 #include "base/context.hpp"
@@ -54,7 +54,7 @@ void Logger::StaticInitialize(void)
  */
 void Logger::Start(void)
 {
-	DynamicObject::Start();
+	ConfigObject::Start();
 
 	boost::mutex::scoped_lock lock(m_Mutex);
 	m_Loggers.insert(this);
@@ -67,7 +67,7 @@ void Logger::Stop(void)
 		m_Loggers.erase(this);
 	}
 
-	DynamicObject::Stop();
+	ConfigObject::Stop();
 }
 
 std::set<Logger::Ptr> Logger::GetLoggers(void)

@@ -17,14 +17,14 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/dynamicobject.hpp"
+#include "base/configobject.hpp"
 
 library demo;
 
 namespace icinga
 {
 
-class Demo : DynamicObject
+class Demo : ConfigObject
 {
 };
 

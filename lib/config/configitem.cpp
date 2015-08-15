@@ -22,7 +22,7 @@
 #include "config/applyrule.hpp"
 #include "config/objectrule.hpp"
 #include "base/application.hpp"
-#include "base/dynamictype.hpp"
+#include "base/configtype.hpp"
 #include "base/objectlock.hpp"
 #include "base/convert.hpp"
 #include "base/logger.hpp"
@@ -144,12 +144,12 @@ public:
 };
 
 /**
- * Commits the configuration item by creating a DynamicObject
+ * Commits the configuration item by creating a ConfigObject
  * object.
  *
- * @returns The DynamicObject that was created/updated.
+ * @returns The ConfigObject that was created/updated.
  */
-DynamicObject::Ptr ConfigItem::Commit(bool discard)
+ConfigObject::Ptr ConfigItem::Commit(bool discard)
 {
 	ASSERT(!OwnsLock());
 
@@ -160,12 +160,12 @@ DynamicObject::Ptr ConfigItem::Commit(bool discard)
 
 	/* Make sure the type is valid. */
 	Type::Ptr type = Type::GetByName(GetType());
-	ASSERT(type && DynamicObject::TypeInstance->IsAssignableFrom(type));
+	ASSERT(type && ConfigObject::TypeInstance->IsAssignableFrom(type));
 
 	if (IsAbstract())
-		return DynamicObject::Ptr();
+		return ConfigObject::Ptr();
 
-	DynamicObject::Ptr dobj = static_pointer_cast<DynamicObject>(type->Instantiate());
+	ConfigObject::Ptr dobj = static_pointer_cast<ConfigObject>(type->Instantiate());
 
 	dobj->SetDebugInfo(m_DebugInfo);
 	dobj->SetTypeNameV(m_Type);
@@ -374,7 +374,7 @@ bool ConfigItem::CommitNewItems(WorkQueue& upq, std::vector<ConfigItem::Ptr>& ne
 	}
 
 	BOOST_FOREACH(const Type::Ptr& type, all_types) {
-		if (DynamicObject::TypeInstance->IsAssignableFrom(type))
+		if (ConfigObject::TypeInstance->IsAssignableFrom(type))
 			types.insert(type->GetName());
 	}
 
@@ -401,7 +401,7 @@ bool ConfigItem::CommitNewItems(WorkQueue& upq, std::vector<ConfigItem::Ptr>& ne
 
 			BOOST_FOREACH(const ConfigItem::Ptr& item, new_items) {
 				if (item->m_Type == type)
-					upq.Enqueue(boost::bind(&DynamicObject::OnAllConfigLoaded, item->m_Object));
+					upq.Enqueue(boost::bind(&ConfigObject::OnAllConfigLoaded, item->m_Object));
 			}
 
 			completed_types.insert(type);
@@ -414,7 +414,7 @@ bool ConfigItem::CommitNewItems(WorkQueue& upq, std::vector<ConfigItem::Ptr>& ne
 			BOOST_FOREACH(const String& loadDep, ptype->GetLoadDependencies()) {
 				BOOST_FOREACH(const ConfigItem::Ptr& item, new_items) {
 					if (item->m_Type == loadDep)
-						upq.Enqueue(boost::bind(&DynamicObject::CreateChildObjects, item->m_Object, ptype));
+						upq.Enqueue(boost::bind(&ConfigObject::CreateChildObjects, item->m_Object, ptype));
 				}
 			}
 
@@ -469,7 +469,7 @@ bool ConfigItem::ActivateItems(WorkQueue& upq, bool restoreState)
 	if (restoreState) {
 		/* restore the previous program state */
 		try {
-			DynamicObject::RestoreObjects(Application::GetStatePath());
+			ConfigObject::RestoreObjects(Application::GetStatePath());
 		} catch (const std::exception& ex) {
 			Log(LogCritical, "ConfigItem")
 			    << "Failed to restore state file: " << DiagnosticInformation(ex);
@@ -478,8 +478,8 @@ bool ConfigItem::ActivateItems(WorkQueue& upq, bool restoreState)
 
 	Log(LogInformation, "ConfigItem", "Triggering Start signal for config items");
 
-	BOOST_FOREACH(const DynamicType::Ptr& type, DynamicType::GetTypes()) {
-		BOOST_FOREACH(const DynamicObject::Ptr& object, type->GetObjects()) {
+	BOOST_FOREACH(const ConfigType::Ptr& type, ConfigType::GetTypes()) {
+		BOOST_FOREACH(const ConfigObject::Ptr& object, type->GetObjects()) {
 			if (object->IsActive())
 				continue;
 
@@ -487,7 +487,7 @@ bool ConfigItem::ActivateItems(WorkQueue& upq, bool restoreState)
 			Log(LogDebug, "ConfigItem")
 			    << "Activating object '" << object->GetName() << "' of type '" << object->GetType()->GetName() << "'";
 #endif /* I2_DEBUG */
-			upq.Enqueue(boost::bind(&DynamicObject::Activate, object));
+			upq.Enqueue(boost::bind(&ConfigObject::Activate, object));
 		}
 	}
 
@@ -499,8 +499,8 @@ bool ConfigItem::ActivateItems(WorkQueue& upq, bool restoreState)
 	}
 
 #ifdef I2_DEBUG
-	BOOST_FOREACH(const DynamicType::Ptr& type, DynamicType::GetTypes()) {
-		BOOST_FOREACH(const DynamicObject::Ptr& object, type->GetObjects()) {
+	BOOST_FOREACH(const ConfigType::Ptr& type, ConfigType::GetTypes()) {
+		BOOST_FOREACH(const ConfigObject::Ptr& object, type->GetObjects()) {
 			ASSERT(object->IsActive());
 		}
 	}

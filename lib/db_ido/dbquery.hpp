@@ -23,7 +23,7 @@
 #include "db_ido/i2-db_ido.hpp"
 #include "icinga/customvarobject.hpp"
 #include "base/dictionary.hpp"
-#include "base/dynamicobject.hpp"
+#include "base/configobject.hpp"
 
 namespace icinga
 {

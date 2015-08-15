@@ -17,9 +17,9 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/dynamicobject.hpp"
-#include "base/dynamicobject.tcpp"
-#include "base/dynamictype.hpp"
+#include "base/configobject.hpp"
+#include "base/configobject.tcpp"
+#include "base/configtype.hpp"
 #include "base/serializer.hpp"
 #include "base/netstring.hpp"
 #include "base/json.hpp"
@@ -42,29 +42,29 @@
 
 using namespace icinga;
 
-REGISTER_TYPE_WITH_PROTOTYPE(DynamicObject, DynamicObject::GetPrototype());
+REGISTER_TYPE_WITH_PROTOTYPE(ConfigObject, ConfigObject::GetPrototype());
 
-boost::signals2::signal<void (const DynamicObject::Ptr&)> DynamicObject::OnStateChanged;
+boost::signals2::signal<void (const ConfigObject::Ptr&)> ConfigObject::OnStateChanged;
 
-DynamicObject::DynamicObject(void)
+ConfigObject::ConfigObject(void)
 { }
 
-DynamicType::Ptr DynamicObject::GetType(void) const
+ConfigType::Ptr ConfigObject::GetType(void) const
 {
-	return DynamicType::GetByName(GetTypeNameV());
+	return ConfigType::GetByName(GetTypeNameV());
 }
 
-bool DynamicObject::IsActive(void) const
+bool ConfigObject::IsActive(void) const
 {
 	return GetActive();
 }
 
-bool DynamicObject::IsPaused(void) const
+bool ConfigObject::IsPaused(void) const
 {
 	return GetPaused();
 }
 
-void DynamicObject::SetExtension(const String& key, const Value& value)
+void ConfigObject::SetExtension(const String& key, const Value& value)
 {
 	Dictionary::Ptr extensions = GetExtensions();
 
@@ -76,7 +76,7 @@ void DynamicObject::SetExtension(const String& key, const Value& value)
 	extensions->Set(key, value);
 }
 
-Value DynamicObject::GetExtension(const String& key)
+Value ConfigObject::GetExtension(const String& key)
 {
 	Dictionary::Ptr extensions = GetExtensions();
 
@@ -86,7 +86,7 @@ Value DynamicObject::GetExtension(const String& key)
 	return extensions->Get(key);
 }
 
-void DynamicObject::ClearExtension(const String& key)
+void ConfigObject::ClearExtension(const String& key)
 {
 	Dictionary::Ptr extensions = GetExtensions();
 
@@ -101,7 +101,7 @@ class ModAttrValidationUtils : public ValidationUtils
 public:
 	virtual bool ValidateName(const String& type, const String& name) const override
 	{
-		DynamicType::Ptr dtype = DynamicType::GetByName(type);
+		ConfigType::Ptr dtype = ConfigType::GetByName(type);
 
 		if (!dtype)
 			return false;
@@ -113,7 +113,7 @@ public:
 	}
 };
 
-void DynamicObject::ModifyAttribute(const String& attr, const Value& value)
+void ConfigObject::ModifyAttribute(const String& attr, const Value& value)
 {
 	Dictionary::Ptr original_attributes = GetOriginalAttributes();
 	bool updated_original_attributes = false;
@@ -146,7 +146,7 @@ void DynamicObject::ModifyAttribute(const String& attr, const Value& value)
 		NotifyOriginalAttributes();
 }
 
-void DynamicObject::RestoreAttribute(const String& attr)
+void ConfigObject::RestoreAttribute(const String& attr)
 {
 	Dictionary::Ptr original_attributes = GetOriginalAttributes();
 
@@ -159,7 +159,7 @@ void DynamicObject::RestoreAttribute(const String& attr)
 	original_attributes->Remove(attr);
 }
 
-bool DynamicObject::IsAttributeModified(const String& attr) const
+bool ConfigObject::IsAttributeModified(const String& attr) const
 {
 	Dictionary::Ptr original_attributes = GetOriginalAttributes();
 
@@ -169,23 +169,23 @@ bool DynamicObject::IsAttributeModified(const String& attr) const
 	return original_attributes->Contains(attr);
 }
 
-void DynamicObject::Register(void)
+void ConfigObject::Register(void)
 {
 	ASSERT(!OwnsLock());
 
-	DynamicType::Ptr dtype = GetType();
+	ConfigType::Ptr dtype = GetType();
 	dtype->RegisterObject(this);
 }
 
-void DynamicObject::Unregister(void)
+void ConfigObject::Unregister(void)
 {
 	ASSERT(!OwnsLock());
 
-	DynamicType::Ptr dtype = GetType();
+	ConfigType::Ptr dtype = GetType();
 	dtype->UnregisterObject(this);
 }
 
-void DynamicObject::Start(void)
+void ConfigObject::Start(void)
 {
 	ASSERT(!OwnsLock());
 	ObjectLock olock(this);
@@ -193,7 +193,7 @@ void DynamicObject::Start(void)
 	SetStartCalled(true);
 }
 
-void DynamicObject::Activate(void)
+void ConfigObject::Activate(void)
 {
 	CONTEXT("Activating object '" + GetName() + "' of type '" + GetType()->GetName() + "'");
 
@@ -214,7 +214,7 @@ void DynamicObject::Activate(void)
 	NotifyActive();
 }
 
-void DynamicObject::Stop(void)
+void ConfigObject::Stop(void)
 {
 	ASSERT(!OwnsLock());
 	ObjectLock olock(this);
@@ -222,7 +222,7 @@ void DynamicObject::Stop(void)
 	SetStopCalled(true);
 }
 
-void DynamicObject::Deactivate(void)
+void ConfigObject::Deactivate(void)
 {
 	CONTEXT("Deactivating object '" + GetName() + "' of type '" + GetType()->GetName() + "'");
 
@@ -246,37 +246,37 @@ void DynamicObject::Deactivate(void)
 	NotifyActive();
 }
 
-void DynamicObject::OnConfigLoaded(void)
+void ConfigObject::OnConfigLoaded(void)
 {
 	/* Nothing to do here. */
 }
 
-void DynamicObject::OnAllConfigLoaded(void)
+void ConfigObject::OnAllConfigLoaded(void)
 {
 	/* Nothing to do here. */
 }
 
-void DynamicObject::CreateChildObjects(const Type::Ptr& childType)
+void ConfigObject::CreateChildObjects(const Type::Ptr& childType)
 {
 	/* Nothing to do here. */
 }
 
-void DynamicObject::OnStateLoaded(void)
+void ConfigObject::OnStateLoaded(void)
 {
 	/* Nothing to do here. */
 }
 
-void DynamicObject::Pause(void)
+void ConfigObject::Pause(void)
 {
 	SetPauseCalled(true);
 }
 
-void DynamicObject::Resume(void)
+void ConfigObject::Resume(void)
 {
 	SetResumeCalled(true);
 }
 
-void DynamicObject::SetAuthority(bool authority)
+void ConfigObject::SetAuthority(bool authority)
 {
 	if (authority && GetPaused()) {
 		SetResumeCalled(false);
@@ -291,9 +291,9 @@ void DynamicObject::SetAuthority(bool authority)
 	}
 }
 
-void DynamicObject::DumpObjects(const String& filename, int attributeTypes)
+void ConfigObject::DumpObjects(const String& filename, int attributeTypes)
 {
-	Log(LogInformation, "DynamicObject")
+	Log(LogInformation, "ConfigObject")
 	    << "Dumping program state to file '" << filename << "'";
 
 	String tempFilename = filename + ".tmp";
@@ -306,8 +306,8 @@ void DynamicObject::DumpObjects(const String& filename, int attributeTypes)
 
 	StdioStream::Ptr sfp = new StdioStream(&fp, false);
 
-	BOOST_FOREACH(const DynamicType::Ptr& type, DynamicType::GetTypes()) {
-		BOOST_FOREACH(const DynamicObject::Ptr& object, type->GetObjects()) {
+	BOOST_FOREACH(const ConfigType::Ptr& type, ConfigType::GetTypes()) {
+		BOOST_FOREACH(const ConfigObject::Ptr& object, type->GetObjects()) {
 			Dictionary::Ptr persistentObject = new Dictionary();
 
 			persistentObject->Set("type", type->GetName());
@@ -342,27 +342,27 @@ void DynamicObject::DumpObjects(const String& filename, int attributeTypes)
 	}
 }
 
-void DynamicObject::RestoreObject(const String& message, int attributeTypes)
+void ConfigObject::RestoreObject(const String& message, int attributeTypes)
 {
 	Dictionary::Ptr persistentObject = JsonDecode(message);
 
 	String type = persistentObject->Get("type");
 
-	DynamicType::Ptr dt = DynamicType::GetByName(type);
+	ConfigType::Ptr dt = ConfigType::GetByName(type);
 
 	if (!dt)
 		return;
 
 	String name = persistentObject->Get("name");
 
-	DynamicObject::Ptr object = dt->GetObject(name);
+	ConfigObject::Ptr object = dt->GetObject(name);
 
 	if (!object)
 		return;
 
 	ASSERT(!object->IsActive());
 #ifdef I2_DEBUG
-	Log(LogDebug, "DynamicObject")
+	Log(LogDebug, "ConfigObject")
 	    << "Restoring object '" << name << "' of type '" << type << "'.";
 #endif /* I2_DEBUG */
 	Dictionary::Ptr update = persistentObject->Get("update");
@@ -371,12 +371,12 @@ void DynamicObject::RestoreObject(const String& message, int attributeTypes)
 	object->SetStateLoaded(true);
 }
 
-void DynamicObject::RestoreObjects(const String& filename, int attributeTypes)
+void ConfigObject::RestoreObjects(const String& filename, int attributeTypes)
 {
 	if (!Utility::PathExists(filename))
 		return;
 
-	Log(LogInformation, "DynamicObject")
+	Log(LogInformation, "ConfigObject")
 	    << "Restoring program state from file '" << filename << "'";
 
 	std::fstream fp;
@@ -399,7 +399,7 @@ void DynamicObject::RestoreObjects(const String& filename, int attributeTypes)
 		if (srs != StatusNewItem)
 			continue;
 
-		upq.Enqueue(boost::bind(&DynamicObject::RestoreObject, message, attributeTypes));
+		upq.Enqueue(boost::bind(&ConfigObject::RestoreObject, message, attributeTypes));
 		restored++;
 	}
 
@@ -409,8 +409,8 @@ void DynamicObject::RestoreObjects(const String& filename, int attributeTypes)
 
 	unsigned long no_state = 0;
 
-	BOOST_FOREACH(const DynamicType::Ptr& type, DynamicType::GetTypes()) {
-		BOOST_FOREACH(const DynamicObject::Ptr& object, type->GetObjects()) {
+	BOOST_FOREACH(const ConfigType::Ptr& type, ConfigType::GetTypes()) {
+		BOOST_FOREACH(const ConfigObject::Ptr& object, type->GetObjects()) {
 			if (!object->GetStateLoaded()) {
 				object->OnStateLoaded();
 				object->SetStateLoaded(true);
@@ -420,23 +420,23 @@ void DynamicObject::RestoreObjects(const String& filename, int attributeTypes)
 		}
 	}
 
-	Log(LogInformation, "DynamicObject")
+	Log(LogInformation, "ConfigObject")
 	    << "Restored " << restored << " objects. Loaded " << no_state << " new objects without state.";
 }
 
-void DynamicObject::StopObjects(void)
+void ConfigObject::StopObjects(void)
 {
-	BOOST_FOREACH(const DynamicType::Ptr& dt, DynamicType::GetTypes()) {
-		BOOST_FOREACH(const DynamicObject::Ptr& object, dt->GetObjects()) {
+	BOOST_FOREACH(const ConfigType::Ptr& dt, ConfigType::GetTypes()) {
+		BOOST_FOREACH(const ConfigObject::Ptr& object, dt->GetObjects()) {
 			object->Deactivate();
 		}
 	}
 }
 
-void DynamicObject::DumpModifiedAttributes(const boost::function<void(const DynamicObject::Ptr&, const String&, const Value&)>& callback)
+void ConfigObject::DumpModifiedAttributes(const boost::function<void(const ConfigObject::Ptr&, const String&, const Value&)>& callback)
 {
-	BOOST_FOREACH(const DynamicType::Ptr& dt, DynamicType::GetTypes()) {
-		BOOST_FOREACH(const DynamicObject::Ptr& object, dt->GetObjects()) {
+	BOOST_FOREACH(const ConfigType::Ptr& dt, ConfigType::GetTypes()) {
+		BOOST_FOREACH(const ConfigObject::Ptr& object, dt->GetObjects()) {
 			Dictionary::Ptr originalAttributes = object->GetOriginalAttributes();
 
 			if (!originalAttributes)
@@ -454,8 +454,8 @@ void DynamicObject::DumpModifiedAttributes(const boost::function<void(const Dyna
 
 }
 
-DynamicObject::Ptr DynamicObject::GetObject(const String& type, const String& name)
+ConfigObject::Ptr ConfigObject::GetObject(const String& type, const String& name)
 {
-	DynamicType::Ptr dtype = DynamicType::GetByName(type);
+	ConfigType::Ptr dtype = ConfigType::GetByName(type);
 	return dtype->GetObject(name);
 }

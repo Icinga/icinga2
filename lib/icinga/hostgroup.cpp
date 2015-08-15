@@ -21,7 +21,7 @@
 #include "icinga/hostgroup.tcpp"
 #include "config/objectrule.hpp"
 #include "config/configitem.hpp"
-#include "base/dynamictype.hpp"
+#include "base/configtype.hpp"
 #include "base/logger.hpp"
 #include "base/objectlock.hpp"
 #include "base/context.hpp"

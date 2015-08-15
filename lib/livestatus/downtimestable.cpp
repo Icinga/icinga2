@@ -21,7 +21,7 @@
 #include "livestatus/hoststable.hpp"
 #include "livestatus/servicestable.hpp"
 #include "icinga/service.hpp"
-#include "base/dynamictype.hpp"
+#include "base/configtype.hpp"
 #include "base/objectlock.hpp"
 #include <boost/tuple/tuple.hpp>
 #include <boost/foreach.hpp>
@@ -65,7 +65,7 @@ String DowntimesTable::GetPrefix(void) const
 
 void DowntimesTable::FetchRows(const AddRowFunction& addRowFn)
 {
-	BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjectsByType<Host>()) {
+	BOOST_FOREACH(const Host::Ptr& host, ConfigType::GetObjectsByType<Host>()) {
 		Dictionary::Ptr downtimes = host->GetDowntimes();
 
 		ObjectLock olock(downtimes);
@@ -80,7 +80,7 @@ void DowntimesTable::FetchRows(const AddRowFunction& addRowFn)
 		}
 	}
 
-	BOOST_FOREACH(const Service::Ptr& service, DynamicType::GetObjectsByType<Service>()) {
+	BOOST_FOREACH(const Service::Ptr& service, ConfigType::GetObjectsByType<Service>()) {
 		Dictionary::Ptr downtimes = service->GetDowntimes();
 
 		ObjectLock olock(downtimes);

@@ -19,7 +19,7 @@
 
 #include "base/filelogger.hpp"
 #include "base/filelogger.tcpp"
-#include "base/dynamictype.hpp"
+#include "base/configtype.hpp"
 #include "base/statsfunction.hpp"
 #include "base/application.hpp"
 #include <fstream>
@@ -34,7 +34,7 @@ void FileLogger::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 {
 	Dictionary::Ptr nodes = new Dictionary();
 
-	BOOST_FOREACH(const FileLogger::Ptr& filelogger, DynamicType::GetObjectsByType<FileLogger>()) {
+	BOOST_FOREACH(const FileLogger::Ptr& filelogger, ConfigType::GetObjectsByType<FileLogger>()) {
 		nodes->Set(filelogger->GetName(), 1); //add more stats
 	}
 

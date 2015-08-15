@@ -17,76 +17,38 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/debuginfo.hpp"
+#include "base/configobject.hpp"
+#include "base/dictionary.hpp"
+#include "base/function.hpp"
+#include "base/functionwrapper.hpp"
+#include "base/scriptframe.hpp"
 
-library base;
+using namespace icinga;
 
-namespace icinga
+static void ConfigObjectModifyAttribute(const String& attr, const Value& value)
 {
-
-code {{{
-enum HAMode
-{
-	HARunOnce,
-	HARunEverywhere
-};
-
-class NameComposer {
-public:
-	virtual String MakeName(const String& shortName, const Object::Ptr& context) const = 0;
-	virtual Dictionary::Ptr ParseName(const String& name) const = 0;
-};
-}}}
-
-abstract class DynamicObjectBase
-{ };
-
-code {{{
-class I2_BASE_API DynamicObjectBase : public ObjectImpl<DynamicObjectBase>
-{
-public:
-	inline DebugInfo GetDebugInfo(void) const
-	{
-		return m_DebugInfo;
-	}
-
-	void SetDebugInfo(const DebugInfo& di)
-	{
-		m_DebugInfo = di;
-	}
-
-private:
-	DebugInfo m_DebugInfo;
-};
-}}}
-
-abstract class DynamicObject : DynamicObjectBase
-{
-	[config, internal] String __name (Name);
-	[config] String "name" (ShortName) {
-		get {{{
-			if (m_ShortName.IsEmpty())
-				return GetName();
-			else
-				return m_ShortName;
-		}}}
-	};
-	[config, internal, get_protected] String type (TypeNameV);
-	[config] name(Zone) zone (ZoneName);
-	[config, internal, get_protected] Array::Ptr templates;
-	[get_protected] bool active;
-	[get_protected] bool paused {
-		default {{{ return true; }}}
-	};
-	[get_protected, internal] bool start_called;
-	[get_protected, internal] bool stop_called;
-	[get_protected, internal] bool pause_called;
-	[get_protected, internal] bool resume_called;
-	[enum] HAMode ha_mode (HAMode);
-	[protected] Dictionary::Ptr extensions;
-
-	[protected] bool state_loaded;
-	Dictionary::Ptr original_attributes;
-};
-
+	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
+	ConfigObject::Ptr self = vframe->Self;
+	return self->ModifyAttribute(attr, value);
 }
+
+static void ConfigObjectRestoreAttribute(const String& attr)
+{
+	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
+	ConfigObject::Ptr self = vframe->Self;
+	return self->RestoreAttribute(attr);
+}
+
+Object::Ptr ConfigObject::GetPrototype(void)
+{
+	static Dictionary::Ptr prototype;
+
+	if (!prototype) {
+		prototype = new Dictionary();
+		prototype->Set("modify_attribute", new Function(WrapFunction(ConfigObjectModifyAttribute), false));
+		prototype->Set("restore_attribute", new Function(WrapFunction(ConfigObjectRestoreAttribute), false));
+	}
+
+	return prototype;
+}
+

@@ -23,7 +23,7 @@
 #include "icinga/icingaapplication.hpp"
 #include "remote/endpoint.hpp"
 #include "remote/zone.hpp"
-#include "base/dynamictype.hpp"
+#include "base/configtype.hpp"
 #include "base/objectlock.hpp"
 #include "base/convert.hpp"
 #include "base/utility.hpp"
@@ -62,7 +62,7 @@ String EndpointsTable::GetPrefix(void) const
 
 void EndpointsTable::FetchRows(const AddRowFunction& addRowFn)
 {
-	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjectsByType<Endpoint>()) {
+	BOOST_FOREACH(const Endpoint::Ptr& endpoint, ConfigType::GetObjectsByType<Endpoint>()) {
 		if (!addRowFn(endpoint, LivestatusGroupByNone, Empty))
 			return;
 	}

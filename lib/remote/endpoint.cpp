@@ -22,7 +22,7 @@
 #include "remote/apilistener.hpp"
 #include "remote/jsonrpcconnection.hpp"
 #include "remote/zone.hpp"
-#include "base/dynamictype.hpp"
+#include "base/configtype.hpp"
 #include "base/utility.hpp"
 #include "base/exception.hpp"
 #include "base/convert.hpp"
@@ -37,9 +37,9 @@ boost::signals2::signal<void(const Endpoint::Ptr&, const JsonRpcConnection::Ptr&
 
 void Endpoint::OnAllConfigLoaded(void)
 {
-	DynamicObject::OnConfigLoaded();
+	ConfigObject::OnConfigLoaded();
 
-	BOOST_FOREACH(const Zone::Ptr& zone, DynamicType::GetObjectsByType<Zone>()) {
+	BOOST_FOREACH(const Zone::Ptr& zone, ConfigType::GetObjectsByType<Zone>()) {
 		const std::set<Endpoint::Ptr> members = zone->GetEndpoints();
 
 		if (members.empty())

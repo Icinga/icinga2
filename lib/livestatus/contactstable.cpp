@@ -21,7 +21,7 @@
 #include "icinga/user.hpp"
 #include "icinga/timeperiod.hpp"
 #include "icinga/compatutility.hpp"
-#include "base/dynamictype.hpp"
+#include "base/configtype.hpp"
 #include "base/objectlock.hpp"
 #include "base/json.hpp"
 #include "base/utility.hpp"
@@ -70,7 +70,7 @@ String ContactsTable::GetPrefix(void) const
 
 void ContactsTable::FetchRows(const AddRowFunction& addRowFn)
 {
-	BOOST_FOREACH(const User::Ptr& user, DynamicType::GetObjectsByType<User>()) {
+	BOOST_FOREACH(const User::Ptr& user, ConfigType::GetObjectsByType<User>()) {
 		if (!addRowFn(user, LivestatusGroupByNone, Empty))
 			return;
 	}

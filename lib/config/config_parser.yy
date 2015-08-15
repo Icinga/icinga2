@@ -28,7 +28,7 @@
 #include "base/value.hpp"
 #include "base/utility.hpp"
 #include "base/exception.hpp"
-#include "base/dynamictype.hpp"
+#include "base/configtype.hpp"
 #include "base/exception.hpp"
 #include <sstream>
 #include <stack>

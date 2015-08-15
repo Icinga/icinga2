@@ -24,7 +24,7 @@
 #include "base/json.hpp"
 #include "base/logger.hpp"
 #include "base/objectlock.hpp"
-#include "base/dynamictype.hpp"
+#include "base/configtype.hpp"
 #include "base/application.hpp"
 #include <boost/foreach.hpp>
 #include <boost/regex.hpp>
@@ -251,7 +251,7 @@ Array::Ptr ScriptUtils::Keys(const Dictionary::Ptr& dict)
 	return result;
 }
 
-DynamicObject::Ptr ScriptUtils::GetObject(const Value& vtype, const String& name)
+ConfigObject::Ptr ScriptUtils::GetObject(const Value& vtype, const String& name)
 {
 	String typeName;
 
@@ -260,24 +260,24 @@ DynamicObject::Ptr ScriptUtils::GetObject(const Value& vtype, const String& name
 	else
 		typeName = vtype;
 
-	DynamicType::Ptr dtype = DynamicType::GetByName(typeName);
+	ConfigType::Ptr dtype = ConfigType::GetByName(typeName);
 
 	if (!dtype)
-		return DynamicObject::Ptr();
+		return ConfigObject::Ptr();
 
 	return dtype->GetObject(name);
 }
 
 Array::Ptr ScriptUtils::GetObjects(const Type::Ptr& type)
 {
-	DynamicType::Ptr dtype = DynamicType::GetByName(type->GetName());
+	ConfigType::Ptr dtype = ConfigType::GetByName(type->GetName());
 
 	if (!dtype)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid type name"));
 
 	Array::Ptr result = new Array();
 
-	BOOST_FOREACH(const DynamicObject::Ptr& object, dtype->GetObjects())
+	BOOST_FOREACH(const ConfigObject::Ptr& object, dtype->GetObjects())
 		result->Add(object);
 
 	return result;

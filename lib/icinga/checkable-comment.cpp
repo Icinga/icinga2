@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "icinga/service.hpp"
-#include "base/dynamictype.hpp"
+#include "base/configtype.hpp"
 #include "base/objectlock.hpp"
 #include "base/timer.hpp"
 #include "base/utility.hpp"
@@ -234,11 +234,11 @@ void Checkable::RemoveExpiredComments(void)
 
 void Checkable::CommentsExpireTimerHandler(void)
 {
-	BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjectsByType<Host>()) {
+	BOOST_FOREACH(const Host::Ptr& host, ConfigType::GetObjectsByType<Host>()) {
 		host->RemoveExpiredComments();
 	}
 
-	BOOST_FOREACH(const Service::Ptr& service, DynamicType::GetObjectsByType<Service>()) {
+	BOOST_FOREACH(const Service::Ptr& service, ConfigType::GetObjectsByType<Service>()) {
 		service->RemoveExpiredComments();
 	}
 }

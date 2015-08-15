@@ -21,7 +21,7 @@
 #include "icinga/hostgroup.hpp"
 #include "icinga/host.hpp"
 #include "icinga/service.hpp"
-#include "base/dynamictype.hpp"
+#include "base/configtype.hpp"
 #include <boost/foreach.hpp>
 
 using namespace icinga;
@@ -73,7 +73,7 @@ String HostGroupsTable::GetPrefix(void) const
 
 void HostGroupsTable::FetchRows(const AddRowFunction& addRowFn)
 {
-	BOOST_FOREACH(const HostGroup::Ptr& hg, DynamicType::GetObjectsByType<HostGroup>()) {
+	BOOST_FOREACH(const HostGroup::Ptr& hg, ConfigType::GetObjectsByType<HostGroup>()) {
 		if (!addRowFn(hg, LivestatusGroupByNone, Empty))
 			return;
 	}

@@ -20,7 +20,7 @@
 #include "compat/externalcommandlistener.hpp"
 #include "compat/externalcommandlistener.tcpp"
 #include "icinga/externalcommandprocessor.hpp"
-#include "base/dynamictype.hpp"
+#include "base/configtype.hpp"
 #include "base/logger.hpp"
 #include "base/exception.hpp"
 #include "base/application.hpp"
@@ -36,7 +36,7 @@ void ExternalCommandListener::StatsFunc(const Dictionary::Ptr& status, const Arr
 {
 	Dictionary::Ptr nodes = new Dictionary();
 
-	BOOST_FOREACH(const ExternalCommandListener::Ptr& externalcommandlistener, DynamicType::GetObjectsByType<ExternalCommandListener>()) {
+	BOOST_FOREACH(const ExternalCommandListener::Ptr& externalcommandlistener, ConfigType::GetObjectsByType<ExternalCommandListener>()) {
 		nodes->Set(externalcommandlistener->GetName(), 1); //add more stats
 	}
 
@@ -48,7 +48,7 @@ void ExternalCommandListener::StatsFunc(const Dictionary::Ptr& status, const Arr
  */
 void ExternalCommandListener::Start(void)
 {
-	DynamicObject::Start();
+	ConfigObject::Start();
 
 #ifndef _WIN32
 	m_CommandThread = boost::thread(boost::bind(&ExternalCommandListener::CommandPipeThread, this, GetCommandPath()));

@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "config/configitembuilder.hpp"
-#include "base/dynamictype.hpp"
+#include "base/configtype.hpp"
 #include <sstream>
 #include <boost/foreach.hpp>
 #include <boost/smart_ptr/make_shared.hpp>
@@ -83,7 +83,7 @@ ConfigItem::Ptr ConfigItemBuilder::Compile(void)
 		BOOST_THROW_EXCEPTION(ScriptError(msgbuf.str(), m_DebugInfo));
 	}
 
-	if (!DynamicType::GetByName(m_Type)) {
+	if (!ConfigType::GetByName(m_Type)) {
 		std::ostringstream msgbuf;
 		msgbuf << "The type '" + m_Type + "' is unknown";
 		BOOST_THROW_EXCEPTION(ScriptError(msgbuf.str(), m_DebugInfo));

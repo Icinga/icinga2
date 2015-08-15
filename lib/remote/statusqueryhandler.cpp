@@ -57,7 +57,7 @@ bool StatusQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 		params->Set(attr, request.RequestUrl->GetPath()[2]);
 	}
 
-	std::vector<DynamicObject::Ptr> objs = FilterUtility::GetFilterTargets(qd, params);
+	std::vector<ConfigObject::Ptr> objs = FilterUtility::GetFilterTargets(qd, params);
 
 	Array::Ptr results = new Array();
 
@@ -71,7 +71,7 @@ bool StatusQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 		}
 	}
 
-	BOOST_FOREACH(const DynamicObject::Ptr& obj, objs) {
+	BOOST_FOREACH(const ConfigObject::Ptr& obj, objs) {
 		BOOST_FOREACH(const String& joinType, joinTypes) {
 			String prefix = joinType;
 			boost::algorithm::to_lower(prefix);

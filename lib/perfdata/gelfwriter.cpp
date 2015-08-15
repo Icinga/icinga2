@@ -25,7 +25,7 @@
 #include "icinga/compatutility.hpp"
 #include "icinga/perfdatavalue.hpp"
 #include "base/tcpsocket.hpp"
-#include "base/dynamictype.hpp"
+#include "base/configtype.hpp"
 #include "base/objectlock.hpp"
 #include "base/logger.hpp"
 #include "base/utility.hpp"
@@ -40,7 +40,7 @@ REGISTER_TYPE(GelfWriter);
 
 void GelfWriter::Start(void)
 {
-	DynamicObject::Start();
+	ConfigObject::Start();
 
 	m_ReconnectTimer = new Timer();
 	m_ReconnectTimer->SetInterval(10);

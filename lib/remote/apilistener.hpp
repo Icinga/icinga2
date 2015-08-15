@@ -25,7 +25,7 @@
 #include "remote/httpconnection.hpp"
 #include "remote/endpoint.hpp"
 #include "remote/messageorigin.hpp"
-#include "base/dynamicobject.hpp"
+#include "base/configobject.hpp"
 #include "base/timer.hpp"
 #include "base/workqueue.hpp"
 #include "base/tcpsocket.hpp"
@@ -60,7 +60,7 @@ public:
 	static String GetApiDir(void);
 
 	void SyncSendMessage(const Endpoint::Ptr& endpoint, const Dictionary::Ptr& message);
-	void RelayMessage(const MessageOrigin::Ptr& origin, const DynamicObject::Ptr& secobj, const Dictionary::Ptr& message, bool log);
+	void RelayMessage(const MessageOrigin::Ptr& origin, const ConfigObject::Ptr& secobj, const Dictionary::Ptr& message, bool log);
 
 	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 	std::pair<Dictionary::Ptr, Dictionary::Ptr> GetStatus(void);
@@ -103,8 +103,8 @@ private:
 	Stream::Ptr m_LogFile;
 	size_t m_LogMessageCount;
 
-	void SyncRelayMessage(const MessageOrigin::Ptr& origin, const DynamicObject::Ptr& secobj, const Dictionary::Ptr& message, bool log);
-	void PersistMessage(const Dictionary::Ptr& message, const DynamicObject::Ptr& secobj);
+	void SyncRelayMessage(const MessageOrigin::Ptr& origin, const ConfigObject::Ptr& secobj, const Dictionary::Ptr& message, bool log);
+	void PersistMessage(const Dictionary::Ptr& message, const ConfigObject::Ptr& secobj);
 
 	void OpenLogFile(void);
 	void RotateLogFile(void);

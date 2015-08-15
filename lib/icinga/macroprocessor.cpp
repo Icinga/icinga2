@@ -24,7 +24,7 @@
 #include "base/objectlock.hpp"
 #include "base/logger.hpp"
 #include "base/context.hpp"
-#include "base/dynamicobject.hpp"
+#include "base/configobject.hpp"
 #include "base/scriptframe.hpp"
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string/split.hpp>

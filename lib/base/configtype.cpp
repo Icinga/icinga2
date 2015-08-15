@@ -17,7 +17,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/dynamictype.hpp"
+#include "base/configtype.hpp"
 #include "base/serializer.hpp"
 #include "base/debug.hpp"
 #include "base/objectlock.hpp"
@@ -26,26 +26,26 @@
 
 using namespace icinga;
 
-DynamicType::DynamicType(const String& name)
+ConfigType::ConfigType(const String& name)
 	: m_Name(name)
 {
 	InflateMutex();
 }
 
-DynamicType::Ptr DynamicType::GetByName(const String& name)
+ConfigType::Ptr ConfigType::GetByName(const String& name)
 {
 	boost::mutex::scoped_lock lock(GetStaticMutex());
 
-	DynamicType::TypeMap::const_iterator tt = InternalGetTypeMap().find(name);
+	ConfigType::TypeMap::const_iterator tt = InternalGetTypeMap().find(name);
 
 	if (tt == InternalGetTypeMap().end()) {
 		Type::Ptr type = Type::GetByName(name);
 
-		if (!type || !DynamicObject::TypeInstance->IsAssignableFrom(type)
+		if (!type || !ConfigObject::TypeInstance->IsAssignableFrom(type)
 		    || type->IsAbstract())
-			return DynamicType::Ptr();
+			return ConfigType::Ptr();
 
-		DynamicType::Ptr dtype = new DynamicType(name);
+		ConfigType::Ptr dtype = new ConfigType(name);
 
 		InternalGetTypeMap()[type->GetName()] = dtype;
 		InternalGetTypeVector().push_back(dtype);
@@ -57,40 +57,40 @@ DynamicType::Ptr DynamicType::GetByName(const String& name)
 }
 
 /**
- * Note: Caller must hold DynamicType::GetStaticMutex() while using the map.
+ * Note: Caller must hold ConfigType::GetStaticMutex() while using the map.
  */
-DynamicType::TypeMap& DynamicType::InternalGetTypeMap(void)
+ConfigType::TypeMap& ConfigType::InternalGetTypeMap(void)
 {
-	static DynamicType::TypeMap typemap;
+	static ConfigType::TypeMap typemap;
 	return typemap;
 }
 
-DynamicType::TypeVector& DynamicType::InternalGetTypeVector(void)
+ConfigType::TypeVector& ConfigType::InternalGetTypeVector(void)
 {
-	static DynamicType::TypeVector typevector;
+	static ConfigType::TypeVector typevector;
 	return typevector;
 }
 
-DynamicType::TypeVector DynamicType::GetTypes(void)
+ConfigType::TypeVector ConfigType::GetTypes(void)
 {
 	boost::mutex::scoped_lock lock(GetStaticMutex());
 	return InternalGetTypeVector(); /* Making a copy of the vector here. */
 }
 
-std::pair<DynamicTypeIterator<DynamicObject>, DynamicTypeIterator<DynamicObject> > DynamicType::GetObjects(void)
+std::pair<ConfigTypeIterator<ConfigObject>, ConfigTypeIterator<ConfigObject> > ConfigType::GetObjects(void)
 {
 	return std::make_pair(
-	    DynamicTypeIterator<DynamicObject>(this, 0),
-	    DynamicTypeIterator<DynamicObject>(this, -1)
+	    ConfigTypeIterator<ConfigObject>(this, 0),
+	    ConfigTypeIterator<ConfigObject>(this, -1)
 	);
 }
 
-String DynamicType::GetName(void) const
+String ConfigType::GetName(void) const
 {
 	return m_Name;
 }
 
-void DynamicType::RegisterObject(const DynamicObject::Ptr& object)
+void ConfigType::RegisterObject(const ConfigObject::Ptr& object)
 {
 	String name = object->GetName();
 
@@ -113,7 +113,7 @@ void DynamicType::RegisterObject(const DynamicObject::Ptr& object)
 	}
 }
 
-void DynamicType::UnregisterObject(const DynamicObject::Ptr& object)
+void ConfigType::UnregisterObject(const ConfigObject::Ptr& object)
 {
 	String name = object->GetName();
 
@@ -125,19 +125,19 @@ void DynamicType::UnregisterObject(const DynamicObject::Ptr& object)
 	}
 }
 
-DynamicObject::Ptr DynamicType::GetObject(const String& name) const
+ConfigObject::Ptr ConfigType::GetObject(const String& name) const
 {
 	ObjectLock olock(this);
 
-	DynamicType::ObjectMap::const_iterator nt = m_ObjectMap.find(name);
+	ConfigType::ObjectMap::const_iterator nt = m_ObjectMap.find(name);
 
 	if (nt == m_ObjectMap.end())
-		return DynamicObject::Ptr();
+		return ConfigObject::Ptr();
 
 	return nt->second;
 }
 
-boost::mutex& DynamicType::GetStaticMutex(void)
+boost::mutex& ConfigType::GetStaticMutex(void)
 {
 	static boost::mutex mutex;
 	return mutex;

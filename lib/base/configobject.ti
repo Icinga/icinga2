@@ -17,38 +17,76 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/dynamicobject.hpp"
-#include "base/dictionary.hpp"
-#include "base/function.hpp"
-#include "base/functionwrapper.hpp"
-#include "base/scriptframe.hpp"
+#include "base/debuginfo.hpp"
 
-using namespace icinga;
+library base;
 
-static void DynamicObjectModifyAttribute(const String& attr, const Value& value)
+namespace icinga
 {
-	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
-	DynamicObject::Ptr self = vframe->Self;
-	return self->ModifyAttribute(attr, value);
-}
 
-static void DynamicObjectRestoreAttribute(const String& attr)
+code {{{
+enum HAMode
 {
-	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
-	DynamicObject::Ptr self = vframe->Self;
-	return self->RestoreAttribute(attr);
-}
+	HARunOnce,
+	HARunEverywhere
+};
 
-Object::Ptr DynamicObject::GetPrototype(void)
+class NameComposer {
+public:
+	virtual String MakeName(const String& shortName, const Object::Ptr& context) const = 0;
+	virtual Dictionary::Ptr ParseName(const String& name) const = 0;
+};
+}}}
+
+abstract class ConfigObjectBase
+{ };
+
+code {{{
+class I2_BASE_API ConfigObjectBase : public ObjectImpl<ConfigObjectBase>
 {
-	static Dictionary::Ptr prototype;
-
-	if (!prototype) {
-		prototype = new Dictionary();
-		prototype->Set("modify_attribute", new Function(WrapFunction(DynamicObjectModifyAttribute), false));
-		prototype->Set("restore_attribute", new Function(WrapFunction(DynamicObjectRestoreAttribute), false));
+public:
+	inline DebugInfo GetDebugInfo(void) const
+	{
+		return m_DebugInfo;
 	}
 
-	return prototype;
-}
+	void SetDebugInfo(const DebugInfo& di)
+	{
+		m_DebugInfo = di;
+	}
 
+private:
+	DebugInfo m_DebugInfo;
+};
+}}}
+
+abstract class ConfigObject : ConfigObjectBase
+{
+	[config, internal] String __name (Name);
+	[config] String "name" (ShortName) {
+		get {{{
+			if (m_ShortName.IsEmpty())
+				return GetName();
+			else
+				return m_ShortName;
+		}}}
+	};
+	[config, internal, get_protected] String type (TypeNameV);
+	[config] name(Zone) zone (ZoneName);
+	[config, internal, get_protected] Array::Ptr templates;
+	[get_protected] bool active;
+	[get_protected] bool paused {
+		default {{{ return true; }}}
+	};
+	[get_protected, internal] bool start_called;
+	[get_protected, internal] bool stop_called;
+	[get_protected, internal] bool pause_called;
+	[get_protected, internal] bool resume_called;
+	[enum] HAMode ha_mode (HAMode);
+	[protected] Dictionary::Ptr extensions;
+
+	[protected] bool state_loaded;
+	Dictionary::Ptr original_attributes;
+};
+
+}

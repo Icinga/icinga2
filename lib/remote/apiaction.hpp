@@ -24,7 +24,7 @@
 #include "base/registry.hpp"
 #include "base/value.hpp"
 #include "base/dictionary.hpp"
-#include "base/dynamicobject.hpp"
+#include "base/configobject.hpp"
 #include <vector>
 #include <boost/function.hpp>
 #include <boost/algorithm/string/replace.hpp>
@@ -44,11 +44,11 @@ class I2_REMOTE_API ApiAction : public Object
 public:
 	DECLARE_PTR_TYPEDEFS(ApiAction);
 
-	typedef boost::function<Value(const DynamicObject::Ptr& target, const Dictionary::Ptr& params)> Callback;
+	typedef boost::function<Value(const ConfigObject::Ptr& target, const Dictionary::Ptr& params)> Callback;
 
 	ApiAction(const std::vector<String>& registerTypes, const Callback& function);
 
-	Value Invoke(const DynamicObject::Ptr& target, const Dictionary::Ptr& params);
+	Value Invoke(const ConfigObject::Ptr& target, const Dictionary::Ptr& params);
 
 	const std::vector<String>& GetTypes(void) const;
 

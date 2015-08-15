@@ -54,7 +54,7 @@ std::set<Endpoint::Ptr> Zone::GetEndpoints(void) const
 	return result;
 }
 
-bool Zone::CanAccessObject(const DynamicObject::Ptr& object)
+bool Zone::CanAccessObject(const ConfigObject::Ptr& object)
 {
 	Zone::Ptr object_zone;
 

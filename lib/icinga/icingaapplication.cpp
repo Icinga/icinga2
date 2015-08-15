@@ -21,7 +21,7 @@
 #include "icinga/icingaapplication.tcpp"
 #include "icinga/cib.hpp"
 #include "config/configwriter.cpp"
-#include "base/dynamictype.hpp"
+#include "base/configtype.hpp"
 #include "base/logger.hpp"
 #include "base/objectlock.hpp"
 #include "base/convert.hpp"
@@ -69,7 +69,7 @@ void IcingaApplication::StatsFunc(const Dictionary::Ptr& status, const Array::Pt
 {
 	Dictionary::Ptr nodes = new Dictionary();
 
-	BOOST_FOREACH(const IcingaApplication::Ptr& icingaapplication, DynamicType::GetObjectsByType<IcingaApplication>()) {
+	BOOST_FOREACH(const IcingaApplication::Ptr& icingaapplication, ConfigType::GetObjectsByType<IcingaApplication>()) {
 		Dictionary::Ptr stats = new Dictionary();
 		stats->Set("node_name", icingaapplication->GetNodeName());
 		stats->Set("enable_notifications", icingaapplication->GetEnableNotifications());
@@ -138,7 +138,7 @@ void IcingaApplication::OnShutdown(void)
 	DumpProgramState();
 }
 
-static void PersistModAttrHelper(const ConfigWriter::Ptr& cw, DynamicObject::Ptr& previousObject, const DynamicObject::Ptr& object, const String& attr, const Value& value)
+static void PersistModAttrHelper(const ConfigWriter::Ptr& cw, ConfigObject::Ptr& previousObject, const ConfigObject::Ptr& object, const String& attr, const Value& value)
 {
 	if (object != previousObject) {
 		if (previousObject)
@@ -168,11 +168,11 @@ static void PersistModAttrHelper(const ConfigWriter::Ptr& cw, DynamicObject::Ptr
 
 void IcingaApplication::DumpProgramState(void)
 {
-	DynamicObject::DumpObjects(GetStatePath());
+	ConfigObject::DumpObjects(GetStatePath());
 
 	ConfigWriter::Ptr cw = new ConfigWriter(GetModAttrPath());
-	DynamicObject::Ptr previousObject;
-	DynamicObject::DumpModifiedAttributes(boost::bind(&PersistModAttrHelper, cw, boost::ref(previousObject), _1, _2, _3));
+	ConfigObject::Ptr previousObject;
+	ConfigObject::DumpModifiedAttributes(boost::bind(&PersistModAttrHelper, cw, boost::ref(previousObject), _1, _2, _3));
 
 	if (previousObject)
 		cw->EmitRaw("\n}\n");

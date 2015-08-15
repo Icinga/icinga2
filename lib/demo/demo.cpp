@@ -21,7 +21,7 @@
 #include "demo/demo.tcpp"
 #include "remote/apilistener.hpp"
 #include "remote/apifunction.hpp"
-#include "base/dynamictype.hpp"
+#include "base/configtype.hpp"
 #include "base/logger.hpp"
 
 using namespace icinga;
@@ -35,7 +35,7 @@ REGISTER_APIFUNCTION(HelloWorld, demo, &Demo::DemoMessageHandler);
  */
 void Demo::Start(void)
 {
-	DynamicObject::Start();
+	ConfigObject::Start();
 
 	m_DemoTimer = new Timer();
 	m_DemoTimer->SetInterval(5);
@@ -54,7 +54,7 @@ void Demo::DemoTimerHandler(void)
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 	if (listener) {
 		MessageOrigin::Ptr origin = new MessageOrigin();
-		listener->RelayMessage(origin, DynamicObject::Ptr(), message, true);
+		listener->RelayMessage(origin, ConfigObject::Ptr(), message, true);
 		Log(LogInformation, "Demo", "Sent demo::HelloWorld message");
 	}
 }

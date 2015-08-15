@@ -115,7 +115,7 @@ void Notification::OnAllConfigLoaded(void)
 
 void Notification::Start(void)
 {
-	DynamicObject::Start();
+	ConfigObject::Start();
 
 	Checkable::Ptr obj = GetCheckable();
 
@@ -125,7 +125,7 @@ void Notification::Start(void)
 
 void Notification::Stop(void)
 {
-	DynamicObject::Stop();
+	ConfigObject::Stop();
 
 	Checkable::Ptr obj = GetCheckable();
 

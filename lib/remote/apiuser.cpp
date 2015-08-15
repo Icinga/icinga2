@@ -19,7 +19,7 @@
 
 #include "remote/apiuser.hpp"
 #include "remote/apiuser.tcpp"
-#include "base/dynamictype.hpp"
+#include "base/configtype.hpp"
 
 using namespace icinga;
 
@@ -42,7 +42,7 @@ bool ApiUser::CheckPassword(const String& password) const
 
 ApiUser::Ptr ApiUser::GetByClientCN(const String& cn)
 {
-	BOOST_FOREACH(const ApiUser::Ptr& user, DynamicType::GetObjectsByType<ApiUser>()) {
+	BOOST_FOREACH(const ApiUser::Ptr& user, ConfigType::GetObjectsByType<ApiUser>()) {
 		if (user->GetClientCN() == cn)
 			return user;
 	}

@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "icinga/service.hpp"
-#include "base/dynamictype.hpp"
+#include "base/configtype.hpp"
 #include "base/objectlock.hpp"
 #include "base/logger.hpp"
 #include "base/timer.hpp"
@@ -321,11 +321,11 @@ void Checkable::RemoveExpiredDowntimes(void)
 
 void Checkable::DowntimesExpireTimerHandler(void)
 {
-	BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjectsByType<Host>()) {
+	BOOST_FOREACH(const Host::Ptr& host, ConfigType::GetObjectsByType<Host>()) {
 		host->RemoveExpiredDowntimes();
 	}
 
-	BOOST_FOREACH(const Service::Ptr& service, DynamicType::GetObjectsByType<Service>()) {
+	BOOST_FOREACH(const Service::Ptr& service, ConfigType::GetObjectsByType<Service>()) {
 		service->RemoveExpiredDowntimes();
 	}
 }

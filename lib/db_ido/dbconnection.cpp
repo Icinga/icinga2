@@ -23,7 +23,7 @@
 #include "icinga/icingaapplication.hpp"
 #include "icinga/host.hpp"
 #include "icinga/service.hpp"
-#include "base/dynamictype.hpp"
+#include "base/configtype.hpp"
 #include "base/convert.hpp"
 #include "base/objectlock.hpp"
 #include "base/utility.hpp"
@@ -44,7 +44,7 @@ DbConnection::DbConnection(void)
 
 void DbConnection::OnConfigLoaded(void)
 {
-	DynamicObject::OnConfigLoaded();
+	ConfigObject::OnConfigLoaded();
 
 	if (!GetEnableHa()) {
 		Log(LogDebug, "DbConnection")
@@ -58,15 +58,15 @@ void DbConnection::OnConfigLoaded(void)
 
 void DbConnection::Start(void)
 {
-	DynamicObject::Start();
+	ConfigObject::Start();
 
 	DbObject::OnQuery.connect(boost::bind(&DbConnection::ExecuteQuery, this, _1));
-	DynamicObject::OnActiveChanged.connect(boost::bind(&DbConnection::UpdateObject, this, _1));
+	ConfigObject::OnActiveChanged.connect(boost::bind(&DbConnection::UpdateObject, this, _1));
 }
 
 void DbConnection::Resume(void)
 {
-	DynamicObject::Resume();
+	ConfigObject::Resume();
 
 	Log(LogInformation, "DbConnection")
 	    << "Resuming IDO connection: " << GetName();
@@ -79,7 +79,7 @@ void DbConnection::Resume(void)
 
 void DbConnection::Pause(void)
 {
-	DynamicObject::Pause();
+	ConfigObject::Pause();
 
 	Log(LogInformation, "DbConnection")
 	     << "Pausing IDO connection: " << GetName();
@@ -167,10 +167,10 @@ void DbConnection::ProgramStatusHandler(void)
 	query3.WhereCriteria->Set("instance_id", 0);  /* DbConnection class fills in real ID */
 	DbObject::OnQuery(query3);
 
-	InsertRuntimeVariable("total_services", std::distance(DynamicType::GetObjectsByType<Service>().first, DynamicType::GetObjectsByType<Service>().second));
-	InsertRuntimeVariable("total_scheduled_services", std::distance(DynamicType::GetObjectsByType<Service>().first, DynamicType::GetObjectsByType<Service>().second));
-	InsertRuntimeVariable("total_hosts", std::distance(DynamicType::GetObjectsByType<Host>().first, DynamicType::GetObjectsByType<Host>().second));
-	InsertRuntimeVariable("total_scheduled_hosts", std::distance(DynamicType::GetObjectsByType<Host>().first, DynamicType::GetObjectsByType<Host>().second));
+	InsertRuntimeVariable("total_services", std::distance(ConfigType::GetObjectsByType<Service>().first, ConfigType::GetObjectsByType<Service>().second));
+	InsertRuntimeVariable("total_scheduled_services", std::distance(ConfigType::GetObjectsByType<Service>().first, ConfigType::GetObjectsByType<Service>().second));
+	InsertRuntimeVariable("total_hosts", std::distance(ConfigType::GetObjectsByType<Host>().first, ConfigType::GetObjectsByType<Host>().second));
+	InsertRuntimeVariable("total_scheduled_hosts", std::distance(ConfigType::GetObjectsByType<Host>().first, ConfigType::GetObjectsByType<Host>().second));
 
 	Dictionary::Ptr vars = IcingaApplication::GetInstance()->GetVars();
 
@@ -378,7 +378,7 @@ void DbConnection::ExecuteQuery(const DbQuery&)
 	/* Default handler does nothing. */
 }
 
-void DbConnection::UpdateObject(const DynamicObject::Ptr& object)
+void DbConnection::UpdateObject(const ConfigObject::Ptr& object)
 {
 	if (!GetConnected())
 		return;
@@ -400,9 +400,9 @@ void DbConnection::UpdateObject(const DynamicObject::Ptr& object)
 
 void DbConnection::UpdateAllObjects(void)
 {
-	DynamicType::Ptr type;
-	BOOST_FOREACH(const DynamicType::Ptr& dt, DynamicType::GetTypes()) {
-		BOOST_FOREACH(const DynamicObject::Ptr& object, dt->GetObjects()) {
+	ConfigType::Ptr type;
+	BOOST_FOREACH(const ConfigType::Ptr& dt, ConfigType::GetTypes()) {
+		BOOST_FOREACH(const ConfigObject::Ptr& object, dt->GetObjects()) {
 			UpdateObject(object);
 		}
 	}

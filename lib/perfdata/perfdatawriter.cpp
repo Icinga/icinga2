@@ -22,7 +22,7 @@
 #include "icinga/service.hpp"
 #include "icinga/macroprocessor.hpp"
 #include "icinga/icingaapplication.hpp"
-#include "base/dynamictype.hpp"
+#include "base/configtype.hpp"
 #include "base/objectlock.hpp"
 #include "base/logger.hpp"
 #include "base/convert.hpp"
@@ -42,7 +42,7 @@ void PerfdataWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 {
 	Dictionary::Ptr nodes = new Dictionary();
 
-	BOOST_FOREACH(const PerfdataWriter::Ptr& perfdatawriter, DynamicType::GetObjectsByType<PerfdataWriter>()) {
+	BOOST_FOREACH(const PerfdataWriter::Ptr& perfdatawriter, ConfigType::GetObjectsByType<PerfdataWriter>()) {
 		nodes->Set(perfdatawriter->GetName(), 1); //add more stats
 	}
 
@@ -51,7 +51,7 @@ void PerfdataWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 
 void PerfdataWriter::Start(void)
 {
-	DynamicObject::Start();
+	ConfigObject::Start();
 
 	Checkable::OnNewCheckResult.connect(boost::bind(&PerfdataWriter::CheckResultHandler, this, _1, _2));
 

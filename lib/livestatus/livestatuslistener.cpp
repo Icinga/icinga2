@@ -22,7 +22,7 @@
 #include "icinga/perfdatavalue.hpp"
 #include "base/utility.hpp"
 #include "base/objectlock.hpp"
-#include "base/dynamictype.hpp"
+#include "base/configtype.hpp"
 #include "base/logger.hpp"
 #include "base/exception.hpp"
 #include "base/tcpsocket.hpp"
@@ -47,7 +47,7 @@ void LivestatusListener::StatsFunc(const Dictionary::Ptr& status, const Array::P
 {
 	Dictionary::Ptr nodes = new Dictionary();
 
-	BOOST_FOREACH(const LivestatusListener::Ptr& livestatuslistener, DynamicType::GetObjectsByType<LivestatusListener>()) {
+	BOOST_FOREACH(const LivestatusListener::Ptr& livestatuslistener, ConfigType::GetObjectsByType<LivestatusListener>()) {
 		Dictionary::Ptr stats = new Dictionary();
 		stats->Set("connections", l_Connections);
 
@@ -64,7 +64,7 @@ void LivestatusListener::StatsFunc(const Dictionary::Ptr& status, const Array::P
  */
 void LivestatusListener::Start(void)
 {
-	DynamicObject::Start();
+	ConfigObject::Start();
 
 	if (GetSocketType() == "tcp") {
 		TcpSocket::Ptr socket = new TcpSocket();
@@ -121,7 +121,7 @@ void LivestatusListener::Start(void)
 
 void LivestatusListener::Stop(void)
 {
-	DynamicObject::Stop();
+	ConfigObject::Stop();
 
 	m_Listener->Close();
 

@@ -154,7 +154,7 @@ String icinga::DiagnosticInformation(const std::exception& ex, bool verbose, Sta
 	if (vex) {
 		DebugInfo di;
 
-		DynamicObject::Ptr dobj = vex->GetObject();
+		ConfigObject::Ptr dobj = vex->GetObject();
 		if (dobj)
 			di = dobj->GetDebugInfo();
 
@@ -315,7 +315,7 @@ const char *posix_error::what(void) const throw()
 	return m_Message;
 }
 
-ValidationError::ValidationError(const DynamicObject::Ptr& object, const std::vector<String>& attributePath, const String& message)
+ValidationError::ValidationError(const ConfigObject::Ptr& object, const std::vector<String>& attributePath, const String& message)
 	: m_Object(object), m_AttributePath(attributePath), m_Message(message)
 {
 	String path;
@@ -344,7 +344,7 @@ const char *ValidationError::what(void) const throw()
 	return m_What.CStr();
 }
 
-DynamicObject::Ptr ValidationError::GetObject(void) const
+ConfigObject::Ptr ValidationError::GetObject(void) const
 {
 	return m_Object;
 }

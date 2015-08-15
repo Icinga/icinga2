@@ -21,7 +21,7 @@
 #define APIACTIONS_H
 
 #include "icinga/i2-icinga.hpp"
-#include "base/dynamicobject.hpp"
+#include "base/configobject.hpp"
 #include "base/dictionary.hpp"
 
 namespace icinga
@@ -33,8 +33,8 @@ namespace icinga
 class I2_ICINGA_API ApiActions
 {
 public:
-	static Dictionary::Ptr RescheduleCheck(const DynamicObject::Ptr& object, const Dictionary::Ptr& params);
-	static Dictionary::Ptr ProcessCheckResult(const DynamicObject::Ptr& object, const Dictionary::Ptr& params);
+	static Dictionary::Ptr RescheduleCheck(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
+	static Dictionary::Ptr ProcessCheckResult(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
 
 private:
 	static Dictionary::Ptr CreateResult(const int code, const String& status);

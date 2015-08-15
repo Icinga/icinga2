@@ -21,7 +21,7 @@
 #define DYNAMICOBJECT_H
 
 #include "base/i2-base.hpp"
-#include "base/dynamicobject.thpp"
+#include "base/configobject.thpp"
 #include "base/object.hpp"
 #include "base/type.hpp"
 #include "base/dictionary.hpp"
@@ -30,21 +30,21 @@
 namespace icinga
 {
 
-class DynamicType;
+class ConfigType;
 
 /**
  * A dynamic object that can be instantiated from the configuration file.
  *
  * @ingroup base
  */
-class I2_BASE_API DynamicObject : public ObjectImpl<DynamicObject>
+class I2_BASE_API ConfigObject : public ObjectImpl<ConfigObject>
 {
 public:
-	DECLARE_OBJECT(DynamicObject);
+	DECLARE_OBJECT(ConfigObject);
 
-	static boost::signals2::signal<void (const DynamicObject::Ptr&)> OnStateChanged;
+	static boost::signals2::signal<void (const ConfigObject::Ptr&)> OnStateChanged;
 
-	intrusive_ptr<DynamicType> GetType(void) const;
+	intrusive_ptr<ConfigType> GetType(void) const;
 
 	bool IsActive(void) const;
 	bool IsPaused(void) const;
@@ -78,7 +78,7 @@ public:
 	template<typename T>
 	static intrusive_ptr<T> GetObject(const String& name)
 	{
-		DynamicObject::Ptr object = GetObject(T::GetTypeName(), name);
+		ConfigObject::Ptr object = GetObject(T::GetTypeName(), name);
 
 		return static_pointer_cast<T>(object);
 	}
@@ -87,15 +87,15 @@ public:
 	static void RestoreObjects(const String& filename, int attributeTypes = FAState);
 	static void StopObjects(void);
 
-	static void DumpModifiedAttributes(const boost::function<void(const DynamicObject::Ptr&, const String&, const Value&)>& callback);
+	static void DumpModifiedAttributes(const boost::function<void(const ConfigObject::Ptr&, const String&, const Value&)>& callback);
 
 	static Object::Ptr GetPrototype(void);
 
 protected:
-	explicit DynamicObject(void);
+	explicit ConfigObject(void);
 
 private:
-	static DynamicObject::Ptr GetObject(const String& type, const String& name);
+	static ConfigObject::Ptr GetObject(const String& type, const String& name);
 	static void RestoreObject(const String& message, int attributeTypes);
 };
 
@@ -107,7 +107,7 @@ private:
 										\
 	inline static intrusive_ptr<klass> GetByName(const String& name)	\
 	{									\
-		return DynamicObject::GetObject<klass>(name);			\
+		return ConfigObject::GetObject<klass>(name);			\
 	}
 
 }

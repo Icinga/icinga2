@@ -28,7 +28,7 @@
 #include "base/convert.hpp"
 #include "base/utility.hpp"
 #include "base/application.hpp"
-#include "base/dynamictype.hpp"
+#include "base/configtype.hpp"
 #include "base/exception.hpp"
 #include "base/statsfunction.hpp"
 #include <boost/tuple/tuple.hpp>
@@ -47,7 +47,7 @@ void IdoMysqlConnection::StatsFunc(const Dictionary::Ptr& status, const Array::P
 {
 	Dictionary::Ptr nodes = new Dictionary();
 
-	BOOST_FOREACH(const IdoMysqlConnection::Ptr& idomysqlconnection, DynamicType::GetObjectsByType<IdoMysqlConnection>()) {
+	BOOST_FOREACH(const IdoMysqlConnection::Ptr& idomysqlconnection, ConfigType::GetObjectsByType<IdoMysqlConnection>()) {
 		size_t items = idomysqlconnection->m_QueryQueue.GetLength();
 
 		Dictionary::Ptr stats = new Dictionary();
@@ -672,7 +672,7 @@ bool IdoMysqlConnection::FieldToEscapedString(const String& key, const Value& va
 
 	Value rawvalue = DbValue::ExtractValue(value);
 
-	if (rawvalue.IsObjectType<DynamicObject>()) {
+	if (rawvalue.IsObjectType<ConfigObject>()) {
 		DbObject::Ptr dbobjcol = DbObject::GetOrCreateByObject(rawvalue);
 
 		if (!dbobjcol) {

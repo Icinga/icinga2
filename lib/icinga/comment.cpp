@@ -20,7 +20,7 @@
 #include "icinga/comment.hpp"
 #include "icinga/comment.tcpp"
 #include "base/utility.hpp"
-#include "base/dynamictype.hpp"
+#include "base/configtype.hpp"
 
 using namespace icinga;
 

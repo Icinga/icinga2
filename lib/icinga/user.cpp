@@ -32,7 +32,7 @@ REGISTER_TYPE(User);
 
 void User::OnConfigLoaded(void)
 {
-	DynamicObject::OnConfigLoaded();
+	ConfigObject::OnConfigLoaded();
 
 	SetTypeFilter(FilterArrayToInt(GetTypes(), ~0));
 	SetStateFilter(FilterArrayToInt(GetStates(), ~0));
@@ -40,7 +40,7 @@ void User::OnConfigLoaded(void)
 
 void User::OnAllConfigLoaded(void)
 {
-	DynamicObject::OnAllConfigLoaded();
+	ConfigObject::OnAllConfigLoaded();
 
 	UserGroup::EvaluateObjectRules(this);
 
@@ -62,7 +62,7 @@ void User::OnAllConfigLoaded(void)
 
 void User::Stop(void)
 {
-	DynamicObject::Stop();
+	ConfigObject::Stop();
 
 	Array::Ptr groups = GetGroups();
 

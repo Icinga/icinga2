@@ -57,11 +57,11 @@ bool DeleteObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 		params->Set(attr, request.RequestUrl->GetPath()[2]);
 	}
 
-	std::vector<DynamicObject::Ptr> objs = FilterUtility::GetFilterTargets(qd, params);
+	std::vector<ConfigObject::Ptr> objs = FilterUtility::GetFilterTargets(qd, params);
 
 	Array::Ptr results = new Array();
 
-	BOOST_FOREACH(const DynamicObject::Ptr& obj, objs) {
+	BOOST_FOREACH(const ConfigObject::Ptr& obj, objs) {
 		Dictionary::Ptr result1 = new Dictionary();
 		result1->Set("type", type->GetName());
 		result1->Set("name", obj->GetName());

@@ -29,7 +29,7 @@
 #include "icinga/macroprocessor.hpp"
 #include "icinga/icingaapplication.hpp"
 #include "icinga/compatutility.hpp"
-#include "base/dynamictype.hpp"
+#include "base/configtype.hpp"
 #include "base/objectlock.hpp"
 #include "base/json.hpp"
 #include "base/convert.hpp"
@@ -187,7 +187,7 @@ String HostsTable::GetPrefix(void) const
 void HostsTable::FetchRows(const AddRowFunction& addRowFn)
 {
 	if (GetGroupByType() == LivestatusGroupByHostGroup) {
-		BOOST_FOREACH(const HostGroup::Ptr& hg, DynamicType::GetObjectsByType<HostGroup>()) {
+		BOOST_FOREACH(const HostGroup::Ptr& hg, ConfigType::GetObjectsByType<HostGroup>()) {
 			BOOST_FOREACH(const Host::Ptr& host, hg->GetMembers()) {
 				/* the caller must know which groupby type and value are set for this row */
 				if (!addRowFn(host, LivestatusGroupByHostGroup, hg))
@@ -195,7 +195,7 @@ void HostsTable::FetchRows(const AddRowFunction& addRowFn)
 			}
 		}
 	} else {
-		BOOST_FOREACH(const Host::Ptr& host, DynamicType::GetObjectsByType<Host>()) {
+		BOOST_FOREACH(const Host::Ptr& host, ConfigType::GetObjectsByType<Host>()) {
 			if (!addRowFn(host, LivestatusGroupByNone, Empty))
 				return;
 		}

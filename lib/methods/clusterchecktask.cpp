@@ -28,7 +28,7 @@
 #include "base/convert.hpp"
 #include "base/utility.hpp"
 #include "base/function.hpp"
-#include "base/dynamictype.hpp"
+#include "base/configtype.hpp"
 #include <boost/algorithm/string/join.hpp>
 #include <boost/foreach.hpp>
 

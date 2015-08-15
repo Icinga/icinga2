@@ -23,7 +23,7 @@
 #include "icinga/cib.hpp"
 #include "icinga/host.hpp"
 #include "icinga/service.hpp"
-#include "base/dynamictype.hpp"
+#include "base/configtype.hpp"
 #include "base/utility.hpp"
 #include "base/application.hpp"
 #include <boost/foreach.hpp>
@@ -207,12 +207,12 @@ Value StatusTable::ProgramStartAccessor(const Value&)
 
 Value StatusTable::NumHostsAccessor(const Value&)
 {
-	return std::distance(DynamicType::GetObjectsByType<Host>().first, DynamicType::GetObjectsByType<Host>().second);
+	return std::distance(ConfigType::GetObjectsByType<Host>().first, ConfigType::GetObjectsByType<Host>().second);
 }
 
 Value StatusTable::NumServicesAccessor(const Value&)
 {
-	return std::distance(DynamicType::GetObjectsByType<Service>().first, DynamicType::GetObjectsByType<Service>().second);
+	return std::distance(ConfigType::GetObjectsByType<Service>().first, ConfigType::GetObjectsByType<Service>().second);
 }
 
 Value StatusTable::ProgramVersionAccessor(const Value&)

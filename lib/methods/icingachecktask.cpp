@@ -26,7 +26,7 @@
 #include "base/objectlock.hpp"
 #include "base/utility.hpp"
 #include "base/function.hpp"
-#include "base/dynamictype.hpp"
+#include "base/configtype.hpp"
 
 using namespace icinga;
 

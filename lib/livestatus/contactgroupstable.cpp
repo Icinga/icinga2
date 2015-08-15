@@ -19,7 +19,7 @@
 
 #include "livestatus/contactgroupstable.hpp"
 #include "icinga/usergroup.hpp"
-#include "base/dynamictype.hpp"
+#include "base/configtype.hpp"
 #include <boost/foreach.hpp>
 
 using namespace icinga;
@@ -49,7 +49,7 @@ String ContactGroupsTable::GetPrefix(void) const
 
 void ContactGroupsTable::FetchRows(const AddRowFunction& addRowFn)
 {
-	BOOST_FOREACH(const UserGroup::Ptr& ug, DynamicType::GetObjectsByType<UserGroup>()) {
+	BOOST_FOREACH(const UserGroup::Ptr& ug, ConfigType::GetObjectsByType<UserGroup>()) {
 		if (!addRowFn(ug, LivestatusGroupByNone, Empty))
 			return;
 	}

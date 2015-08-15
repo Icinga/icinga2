@@ -22,7 +22,7 @@
 
 #include "perfdata/graphitewriter.thpp"
 #include "icinga/service.hpp"
-#include "base/dynamicobject.hpp"
+#include "base/configobject.hpp"
 #include "base/tcpsocket.hpp"
 #include "base/timer.hpp"
 #include <fstream>

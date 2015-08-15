@@ -23,7 +23,7 @@
 #include "icinga/service.hpp"
 #include "icinga/pluginutility.hpp"
 #include "icinga/icingaapplication.hpp"
-#include "base/dynamictype.hpp"
+#include "base/configtype.hpp"
 #include "base/objectlock.hpp"
 #include "base/logger.hpp"
 #include "base/convert.hpp"
@@ -44,7 +44,7 @@ void CheckResultReader::StatsFunc(const Dictionary::Ptr& status, const Array::Pt
 {
 	Dictionary::Ptr nodes = new Dictionary();
 
-	BOOST_FOREACH(const CheckResultReader::Ptr& checkresultreader, DynamicType::GetObjectsByType<CheckResultReader>()) {
+	BOOST_FOREACH(const CheckResultReader::Ptr& checkresultreader, ConfigType::GetObjectsByType<CheckResultReader>()) {
 		nodes->Set(checkresultreader->GetName(), 1); //add more stats
 	}
 

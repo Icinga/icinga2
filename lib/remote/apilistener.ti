@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "remote/i2-remote.hpp"
-#include "base/dynamicobject.hpp"
+#include "base/configobject.hpp"
 #include "base/application.hpp"
 
 library remote;
@@ -26,7 +26,7 @@ library remote;
 namespace icinga
 {
 
-class ApiListener : DynamicObject
+class ApiListener : ConfigObject
 {
 	[config, required] String cert_path;
 	[config, required] String key_path;

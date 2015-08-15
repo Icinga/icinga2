@@ -21,7 +21,7 @@
 #include "remote/apilistener.hpp"
 #include "remote/apifunction.hpp"
 #include "remote/jsonrpc.hpp"
-#include "base/dynamictype.hpp"
+#include "base/configtype.hpp"
 #include "base/objectlock.hpp"
 #include "base/utility.hpp"
 #include "base/logger.hpp"
@@ -284,7 +284,7 @@ void JsonRpcConnection::TimeoutTimerHandler(void)
 		client->CheckLiveness();
 	}
 
-	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjectsByType<Endpoint>()) {
+	BOOST_FOREACH(const Endpoint::Ptr& endpoint, ConfigType::GetObjectsByType<Endpoint>()) {
 		BOOST_FOREACH(const JsonRpcConnection::Ptr& client, endpoint->GetClients()) {
 			client->CheckLiveness();
 		}
