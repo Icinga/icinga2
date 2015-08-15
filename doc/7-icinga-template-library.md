@@ -1777,6 +1777,57 @@ interfaces_match_aliases  | **Optional.** Also match against aliases (Option --a
 interfaces_timeout        | **Optional.** Sets the SNMP timeout (in ms).
 interfaces_sleep          | **Optional.** Sleep between every SNMP query (in ms).
 
+### <a id="plugins-contrib-command-nwc_health"></a> nwc_health
+
+The plugin [check_nwc_health](https://labs.consol.de/de/nagios/check_nwc_health/index.html)
+Check switches, router, there interfaces and utilization.
+
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
+
+Name                      	| Description
+--------------------------------|---------------------------------------------------------
+nwc_health_timeout	  	| **Optional.** Seconds before plugin times out (default: 15)
+nwc_health_blacklist	  	| **Optional.** Blacklist some (missing/failed) components.
+nwc_health_hostname	  	| **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
+nwc_health_port		  	| **Optional.** The SNMP port to use (default: 161).
+nwc_health_domain	  	| **Optional.** The transport domain to use (default: udp/ipv4, other possible values: udp6, udp/ipv6, tcp, tcp4, tcp/ipv4, tcp6, tcp/ipv6).
+nwc_health_protocol	  	| **Optional.** The SNMP protocol to use (default: 2c, other possibilities: 1,3).
+nwc_health_community	  	| **Optional.** SNMP community of the server (SNMP v1/2 only).
+nwc_health_username	  	| **Optional.** The securityName for the USM security model (SNMPv3 only).
+nwc_health_authpassword	  	| **Optional.** The authentication password for SNMPv3.
+nwc_health_authprotocol	  	| **Optional.** The authentication protocol for SNMPv3 (md5|sha).
+nwc_health_privpassword   	| **Optional.** The password for authPriv security level.
+nwc_health_privprotocol		| **Optional.** The private protocol for SNMPv3 (des|aes|aes128|3des|3desde).
+nwc_health_contextengineid	| **Optional.** The context engine id for SNMPv3 (10 to 64 hex characters).
+nwc_health_contextname		| **Optional.** The context name for SNMPv3 (empty represents the default context).
+nwc_health_name			| **Optional.** The name of an interface (ifDescr).
+nwc_health_drecksptkdb		| **Optional.** This parameter must be used instead of --name, because Devel::ptkdb is stealing the latter from the command line.
+nwc_health_alias		| **Optional.** The alias name of a 64bit-interface (ifAlias)
+nwc_health_regexp		| **Optional.** A flag indicating that --name is a regular expression
+nwc_health_ifspeedin		| **Optional.** Override the ifspeed oid of an interface (only inbound)
+nwc_health_ifspeedout		| **Optional.** Override the ifspeed oid of an interface (only outbound)
+nwc_health_ifspeed		| **Optional.** Override the ifspeed oid of an interface
+nwc_health_units		| **Optional.** One of %, B, KB, MB, GB, Bit, KBi, MBi, GBi. (used for e.g. mode interface-usage)
+nwc_health_name2		| **Optional.** The secondary name of a component.
+nwc_health_role			| **Optional.** The role of this device in a hsrp group (active/standby/listen).
+nwc_health_report		| **Optional.** Can be used to shorten the output.
+nwc_health_lookback		| **Optional.** The amount of time you want to look back when calculating average rates. Use it for mode interface-errors or interface-usage. Without --lookback the time between two runs of check_nwc_health is the base for calculations. If you want your checkresult to be based for example on the past hour, use --lookback 3600.
+nwc_health_warning		| **Optional.** The warning threshold
+nwc_health_critical		| **Optional.** The critical threshold
+nwc_health_warningx		| **Optional.** The extended warning thresholds
+nwc_health_criticalx		| **Optional.** The extended critical thresholds
+nwc_health_mitigation		| **Optional.** The parameter allows you to change a critical error to a warning.
+nwc_health_selectedperfdata	| **Optional.** The parameter allows you to limit the list of performance data. It's a perl regexp. Only matching perfdata show up in the output.
+nwc_health_morphperfdata	| **Optional.** The parameter allows you to change performance data labels. It's a perl regexp and a substitution. --morphperfdata '(.*)ISATAP(.*)'='$1patasi$2'
+nwc_health_negate		| **Optional.** The parameter allows you to map exit levels, such as warning=critical.
+nwc_health_mymodules-dyn-dir	| **Optional.** A directory where own extensions can be found.
+nwc_health_servertype		| **Optional.** The type of the network device: cisco (default). Use it if auto-detection is not possible.
+nwc_health_statefilesdir	| **Optional.** An alternate directory where the plugin can save files.
+nwc_health_oids			| **Optional.** A list of oids which are downloaded and written to a cache file. Use it together with --mode oidcache.
+nwc_health_offline		| **Optional.** The maximum number of seconds since the last update of cache file before it is considered too old.
+nwc_health_multiline		| **Optional.** Multiline output
+
+
 ## <a id="plugins-contrib-web"></a> Web
 
 This category includes all plugins for web-based checks.
