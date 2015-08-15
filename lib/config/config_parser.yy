@@ -21,7 +21,6 @@
  ******************************************************************************/
 
 #include "config/i2-config.hpp"
-#include "config/configitembuilder.hpp"
 #include "config/configcompiler.hpp"
 #include "config/expression.hpp"
 #include "config/applyrule.hpp"

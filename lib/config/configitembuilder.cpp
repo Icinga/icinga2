@@ -79,14 +79,14 @@ ConfigItem::Ptr ConfigItemBuilder::Compile(void)
 {
 	if (m_Type.IsEmpty()) {
 		std::ostringstream msgbuf;
-		msgbuf << "The type name of an object may not be empty: " << m_DebugInfo;
-		BOOST_THROW_EXCEPTION(std::invalid_argument(msgbuf.str()));
+		msgbuf << "The type name of an object may not be empty";
+		BOOST_THROW_EXCEPTION(ScriptError(msgbuf.str(), m_DebugInfo));
 	}
 
 	if (!DynamicType::GetByName(m_Type)) {
 		std::ostringstream msgbuf;
-		msgbuf << "The type '" + m_Type + "' is unknown: " << m_DebugInfo;
-		BOOST_THROW_EXCEPTION(std::invalid_argument(msgbuf.str()));
+		msgbuf << "The type '" + m_Type + "' is unknown";
+		BOOST_THROW_EXCEPTION(ScriptError(msgbuf.str(), m_DebugInfo));
 	}
 
 	if (m_Name.FindFirstOf("!") != String::NPos) {

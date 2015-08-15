@@ -105,8 +105,7 @@ bool CreateObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 			status = "Object could not be created.";
 
 			Array::Ptr errors = new Array();
-			BOOST_FOREACH(const boost::exception_ptr& ex, upq.GetExceptions())
-			{
+			BOOST_FOREACH(const boost::exception_ptr& ex, upq.GetExceptions()) {
 				errors->Add(DiagnosticInformation(ex));
 			}
 			result1->Set("errors", errors);
