@@ -81,6 +81,8 @@ static INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoSt
 		("path,p", po::wvalue<std::vector<std::wstring>>()->multitoken(), "Declare explicitly which drives to check (default checks all)")
 		("exclude_device,x", po::wvalue<std::vector<std::wstring>>()->multitoken(), "Exclude these drives from check")
 		("exclude-type,X", po::wvalue<std::vector<std::wstring>>()->multitoken(), "Exclude partition types (ignored)")
+		("iwarning,W", po::wvalue<std::wstring>(), "Warning threshold for inodes (ignored)")
+		("icritical,K", po::wvalue<std::wstring>(), "Critical threshold for inodes (ignored)")
 		("unit,u", po::wvalue<std::wstring>(), "Assign unit possible are: B, kB, MB, GB, TB")\
 		("megabytes,m", "use megabytes, overridden by -unit")
 		;
