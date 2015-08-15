@@ -89,6 +89,12 @@ ConfigItem::Ptr ConfigItemBuilder::Compile(void)
 		BOOST_THROW_EXCEPTION(std::invalid_argument(msgbuf.str()));
 	}
 
+	if (m_Name.FindFirstOf("!") != String::NPos) {
+		std::ostringstream msgbuf;
+		msgbuf << "Name for object '" << m_Name << "' of type '" << m_Type << "' is invalid: Object names may not contain '!'";
+		BOOST_THROW_EXCEPTION(ScriptError(msgbuf.str(), m_DebugInfo));
+	}
+
 	std::vector<Expression *> exprs;
 
 	Array::Ptr templateArray = new Array();

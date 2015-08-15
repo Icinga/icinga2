@@ -141,13 +141,6 @@ public:
 		}
 
 		item->SetType(type);
-
-		if (name.FindFirstOf("!") != String::NPos) {
-			std::ostringstream msgbuf;
-			msgbuf << "Name for object '" << name << "' of type '" << type << "' is invalid: Object names may not contain '!'";
-			BOOST_THROW_EXCEPTION(ScriptError(msgbuf.str(), debugInfo));
-		}
-
 		item->SetName(name);
 
 		item->AddExpression(new OwnedExpression(expression));
