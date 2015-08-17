@@ -740,7 +740,7 @@ ExpressionResult ApplyExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhin
 	CHECK_RESULT(nameres);
 
 	return VMOps::NewApply(frame, m_Type, m_Target, nameres.GetValue(), m_Filter,
-	    m_FKVar, m_FVVar, m_FTerm, m_ClosedVars, m_Expression, m_DebugInfo);
+	    m_Module, m_FKVar, m_FVVar, m_FTerm, m_ClosedVars, m_Expression, m_DebugInfo);
 }
 
 ExpressionResult ObjectExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
@@ -758,7 +758,7 @@ ExpressionResult ObjectExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhi
 	}
 
 	return VMOps::NewObject(frame, m_Abstract, m_Type, name, m_Filter, m_Zone,
-	    m_ClosedVars, m_Expression, m_DebugInfo);
+	    m_Module, m_ClosedVars, m_Expression, m_DebugInfo);
 }
 
 ExpressionResult ForExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const

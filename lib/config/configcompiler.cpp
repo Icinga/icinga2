@@ -40,8 +40,10 @@ std::map<String, std::vector<ZoneFragment> > ConfigCompiler::m_ZoneDirs;
  * @param input Input stream for the configuration file.
  * @param zone The zone.
  */
-ConfigCompiler::ConfigCompiler(const String& path, std::istream *input, const String& zone)
-	: m_Path(path), m_Input(input), m_Zone(zone), m_Eof(false), m_OpenBraces(0), m_IgnoreNewlines(0)
+ConfigCompiler::ConfigCompiler(const String& path, std::istream *input,
+    const String& zone, const String& module)
+	: m_Path(path), m_Input(input), m_Zone(zone), m_Module(module),
+	  m_Eof(false), m_OpenBraces(0), m_IgnoreNewlines(0)
 {
 	InitializeScanner();
 }
@@ -98,9 +100,20 @@ String ConfigCompiler::GetZone(void) const
 	return m_Zone;
 }
 
-void ConfigCompiler::CollectIncludes(std::vector<Expression *>& expressions, const String& file, const String& zone)
+void ConfigCompiler::SetModule(const String& module)
 {
-	expressions.push_back(CompileFile(file, true, zone));
+	m_Module = module;
+}
+
+String ConfigCompiler::GetModule(void) const
+{
+	return m_Module;
+}
+
+void ConfigCompiler::CollectIncludes(std::vector<Expression *>& expressions,
+    const String& file, const String& zone, const String& module)
+{
+	expressions.push_back(CompileFile(file, true, zone, module));
 }
 
 /**
@@ -134,7 +147,7 @@ Expression *ConfigCompiler::HandleInclude(const String& include, bool search, co
 
 	std::vector<Expression *> expressions;
 
-	if (!Utility::Glob(includePath, boost::bind(&ConfigCompiler::CollectIncludes, boost::ref(expressions), _1, m_Zone), GlobFile) && includePath.FindFirstOf("*?") == String::NPos) {
+	if (!Utility::Glob(includePath, boost::bind(&ConfigCompiler::CollectIncludes, boost::ref(expressions), _1, m_Zone, m_Module), GlobFile) && includePath.FindFirstOf("*?") == String::NPos) {
 		std::ostringstream msgbuf;
 		msgbuf << "Include file '" + include + "' does not exist";
 		BOOST_THROW_EXCEPTION(ScriptError(msgbuf.str(), debuginfo));
@@ -162,7 +175,7 @@ Expression *ConfigCompiler::HandleIncludeRecursive(const String& path, const Str
 		ppath = Utility::DirName(GetPath()) + "/" + path;
 
 	std::vector<Expression *> expressions;
-	Utility::GlobRecursive(ppath, pattern, boost::bind(&ConfigCompiler::CollectIncludes, boost::ref(expressions), _1, m_Zone), GlobFile);
+	Utility::GlobRecursive(ppath, pattern, boost::bind(&ConfigCompiler::CollectIncludes, boost::ref(expressions), _1, m_Zone, m_Module), GlobFile);
 	return new DictExpression(expressions);
 }
 
@@ -179,7 +192,7 @@ void ConfigCompiler::HandleIncludeZone(const String& tag, const String& path, co
 
 	RegisterZoneDir(tag, ppath, zoneName);
 
-	Utility::GlobRecursive(ppath, pattern, boost::bind(&ConfigCompiler::CollectIncludes, boost::ref(expressions), _1, zoneName), GlobFile);
+	Utility::GlobRecursive(ppath, pattern, boost::bind(&ConfigCompiler::CollectIncludes, boost::ref(expressions), _1, zoneName, m_Module), GlobFile);
 }
 
 /**
@@ -232,13 +245,14 @@ void ConfigCompiler::CompileHelper(void)
  * @param stream The input stream.
  * @returns Configuration items.
  */
-Expression *ConfigCompiler::CompileStream(const String& path, std::istream *stream, bool async, const String& zone)
+Expression *ConfigCompiler::CompileStream(const String& path,
+    std::istream *stream, bool async, const String& zone, const String& module)
 {
 	CONTEXT("Compiling configuration stream with name '" + path + "'");
 
 	stream->exceptions(std::istream::badbit);
 
-	ConfigCompiler* ctx = new ConfigCompiler(path, stream, zone);
+	ConfigCompiler* ctx = new ConfigCompiler(path, stream, zone, module);
 
 	if (async) {
 		boost::shared_future<boost::shared_ptr<Expression> > ftr = boost::shared_future<boost::shared_ptr<Expression> >(ctx->m_Promise.get_future());
@@ -266,7 +280,8 @@ Expression *ConfigCompiler::CompileStream(const String& path, std::istream *stre
  * @param path The path.
  * @returns Configuration items.
  */
-Expression *ConfigCompiler::CompileFile(const String& path, bool async, const String& zone)
+Expression *ConfigCompiler::CompileFile(const String& path, bool async,
+    const String& zone, const String& module)
 {
 	CONTEXT("Compiling configuration file '" + path + "'");
 
@@ -282,7 +297,7 @@ Expression *ConfigCompiler::CompileFile(const String& path, bool async, const St
 	Log(LogInformation, "ConfigCompiler")
 	    << "Compiling config file: " << path;
 
-	return CompileStream(path, stream, async, zone);
+	return CompileStream(path, stream, async, zone, module);
 }
 
 /**
@@ -292,10 +307,11 @@ Expression *ConfigCompiler::CompileFile(const String& path, bool async, const St
  * @param text The text.
  * @returns Configuration items.
  */
-Expression *ConfigCompiler::CompileText(const String& path, const String& text, bool async, const String& zone)
+Expression *ConfigCompiler::CompileText(const String& path, const String& text,
+    bool async, const String& zone, const String& module)
 {
 	std::stringstream *stream = new std::stringstream(text);
-	return CompileStream(path, stream, async, zone);
+	return CompileStream(path, stream, async, zone, module);
 }
 
 /**

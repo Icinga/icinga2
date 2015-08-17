@@ -105,17 +105,17 @@ public:
 	}
 
 	static inline Value NewApply(ScriptFrame& frame, const String& type, const String& target, const String& name, const boost::shared_ptr<Expression>& filter,
-		const String& fkvar, const String& fvvar, const boost::shared_ptr<Expression>& fterm, std::map<String, Expression *> *closedVars,
+		const String& module, const String& fkvar, const String& fvvar, const boost::shared_ptr<Expression>& fterm, std::map<String, Expression *> *closedVars,
 		const boost::shared_ptr<Expression>& expression, const DebugInfo& debugInfo = DebugInfo())
 	{
-		ApplyRule::AddRule(type, target, name, expression, filter, fkvar,
+		ApplyRule::AddRule(type, target, name, expression, filter, module, fkvar,
 		    fvvar, fterm, debugInfo, EvaluateClosedVars(frame, closedVars));
 
 		return Empty;
 	}
 
 	static inline Value NewObject(ScriptFrame& frame, bool abstract, const String& type, const String& name, const boost::shared_ptr<Expression>& filter,
-		const String& zone, std::map<String, Expression *> *closedVars, const boost::shared_ptr<Expression>& expression, const DebugInfo& debugInfo = DebugInfo())
+		const String& zone, const String& module, std::map<String, Expression *> *closedVars, const boost::shared_ptr<Expression>& expression, const DebugInfo& debugInfo = DebugInfo())
 	{
 		ConfigItemBuilder::Ptr item = new ConfigItemBuilder(debugInfo);
 
@@ -147,6 +147,7 @@ public:
 		item->SetAbstract(abstract);
 		item->SetScope(EvaluateClosedVars(frame, closedVars));
 		item->SetZone(zone);
+		item->SetModule(module);
 		item->SetFilter(filter);
 		item->Compile()->Register();
 

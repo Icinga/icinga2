@@ -79,14 +79,18 @@ struct ZoneFragment
 class I2_CONFIG_API ConfigCompiler
 {
 public:
-	explicit ConfigCompiler(const String& path, std::istream *input, const String& zone = String());
+	explicit ConfigCompiler(const String& path, std::istream *input,
+	    const String& zone = String(), const String& module = String());
 	virtual ~ConfigCompiler(void);
 
 	Expression *Compile(void);
 
-	static Expression *CompileStream(const String& path, std::istream *stream, bool async = true, const String& zone = String());
-	static Expression *CompileFile(const String& path, bool async = true, const String& zone = String());
-	static Expression *CompileText(const String& path, const String& text, bool async = true, const String& zone = String());
+	static Expression *CompileStream(const String& path, std::istream *stream,
+	    bool async = true, const String& zone = String(), const String& module = String());
+	static Expression *CompileFile(const String& path, bool async = true,
+	    const String& zone = String(), const String& module = String());
+	static Expression *CompileText(const String& path, const String& text,
+	    bool async = true, const String& zone = String(), const String& module = String());
 
 	static void AddIncludeSearchDir(const String& dir);
 
@@ -94,8 +98,12 @@ public:
 
 	void SetZone(const String& zone);
 	String GetZone(void) const;
+	
+	void SetModule(const String& module);
+	String GetModule(void) const;
 
-	static void CollectIncludes(std::vector<Expression *>& expressions, const String& file, const String& zone);
+	static void CollectIncludes(std::vector<Expression *>& expressions,
+	    const String& file, const String& zone, const String& module);
 
 	/* internally used methods */
 	Expression *HandleInclude(const String& include, bool search, const DebugInfo& debuginfo = DebugInfo());
@@ -117,6 +125,7 @@ private:
 	String m_Path;
 	std::istream *m_Input;
 	String m_Zone;
+	String m_Module;
 
 	void *m_Scanner;
 

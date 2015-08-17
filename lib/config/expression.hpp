@@ -807,11 +807,11 @@ class I2_CONFIG_API ApplyExpression : public DebuggableExpression
 {
 public:
 	ApplyExpression(const String& type, const String& target, Expression *name,
-	    Expression *filter, const String& fkvar, const String& fvvar,
+	    Expression *filter, const String& module, const String& fkvar, const String& fvvar,
 	    Expression *fterm, std::map<String, Expression *> *closedVars,
 	    Expression *expression, const DebugInfo& debugInfo = DebugInfo())
 		: DebuggableExpression(debugInfo), m_Type(type), m_Target(target),
-		    m_Name(name), m_Filter(filter), m_FKVar(fkvar), m_FVVar(fvvar),
+		    m_Name(name), m_Filter(filter), m_Module(module), m_FKVar(fkvar), m_FVVar(fvvar),
 		    m_FTerm(fterm), m_ClosedVars(closedVars), m_Expression(expression)
 	{ }
 
@@ -828,6 +828,7 @@ private:
 	String m_Target;
 	Expression *m_Name;
 	boost::shared_ptr<Expression> m_Filter;
+	String m_Module;
 	String m_FKVar;
 	String m_FVVar;
 	boost::shared_ptr<Expression> m_FTerm;
@@ -839,10 +840,10 @@ class I2_CONFIG_API ObjectExpression : public DebuggableExpression
 {
 public:
 	ObjectExpression(bool abstract, const String& type, Expression *name, Expression *filter,
-	    const String& zone, std::map<String, Expression *> *closedVars,
+	    const String& zone, const String& module, std::map<String, Expression *> *closedVars,
 	    Expression *expression, const DebugInfo& debugInfo = DebugInfo())
 		: DebuggableExpression(debugInfo), m_Abstract(abstract), m_Type(type),
-		  m_Name(name), m_Filter(filter), m_Zone(zone), m_ClosedVars(closedVars), m_Expression(expression)
+		  m_Name(name), m_Filter(filter), m_Zone(zone), m_Module(module), m_ClosedVars(closedVars), m_Expression(expression)
 	{ }
 
 	~ObjectExpression(void)
@@ -859,6 +860,7 @@ private:
 	Expression *m_Name;
 	boost::shared_ptr<Expression> m_Filter;
 	String m_Zone;
+	String m_Module;
 	std::map<String, Expression *> *m_ClosedVars;
 	boost::shared_ptr<Expression> m_Expression;
 };

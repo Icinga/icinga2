@@ -42,7 +42,8 @@ public:
 	    const boost::shared_ptr<Expression>& exprl,
 	    const boost::shared_ptr<Expression>& filter,
 	    const DebugInfo& debuginfo,
-	    const Dictionary::Ptr& scope, const String& zone);
+	    const Dictionary::Ptr& scope, const String& zone,
+	    const String& module);
 
 	String GetType(void) const;
 	String GetName(void) const;
@@ -59,8 +60,6 @@ public:
 
 	DebugInfo GetDebugInfo(void) const;
 	Dictionary::Ptr GetScope(void) const;
-
-	String GetZone(void) const;
 
 	static ConfigItem::Ptr GetObject(const String& type,
 	    const String& name);
@@ -82,6 +81,7 @@ private:
 	DebugInfo m_DebugInfo; /**< Debug information. */
 	Dictionary::Ptr m_Scope; /**< variable scope. */
 	String m_Zone; /**< The zone. */
+	String m_Module;
 
 	ConfigObject::Ptr m_Object;
 

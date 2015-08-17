@@ -41,6 +41,7 @@ public:
 	String GetName(void) const;
 	boost::shared_ptr<Expression> GetExpression(void) const;
 	boost::shared_ptr<Expression> GetFilter(void) const;
+	String GetModule(void) const;
 	String GetFKVar(void) const;
 	String GetFVVar(void) const;
 	boost::shared_ptr<Expression> GetFTerm(void) const;
@@ -52,7 +53,7 @@ public:
 	bool EvaluateFilter(ScriptFrame& frame) const;
 
 	static void AddRule(const String& sourceType, const String& targetType, const String& name, const boost::shared_ptr<Expression>& expression,
-	    const boost::shared_ptr<Expression>& filter, const String& fkvar, const String& fvvar, const boost::shared_ptr<Expression>& fterm, const DebugInfo& di, const Dictionary::Ptr& scope);
+	    const boost::shared_ptr<Expression>& filter, const String& module, const String& fkvar, const String& fvvar, const boost::shared_ptr<Expression>& fterm, const DebugInfo& di, const Dictionary::Ptr& scope);
 	static std::vector<ApplyRule>& GetRules(const String& type);
 
 	static void RegisterType(const String& sourceType, const std::vector<String>& targetTypes);
@@ -68,6 +69,7 @@ private:
 	String m_Name;
 	boost::shared_ptr<Expression> m_Expression;
 	boost::shared_ptr<Expression> m_Filter;
+	String m_Module;
 	String m_FKVar;
 	String m_FVVar;
 	boost::shared_ptr<Expression> m_FTerm;
@@ -79,7 +81,7 @@ private:
 	static RuleMap m_Rules;
 
 	ApplyRule(const String& targetType, const String& name, const boost::shared_ptr<Expression>& expression,
-	    const boost::shared_ptr<Expression>& filter, const String& fkvar, const String& fvvar, const boost::shared_ptr<Expression>& fterm,
+	    const boost::shared_ptr<Expression>& filter, const String& module, const String& fkvar, const String& fvvar, const boost::shared_ptr<Expression>& fterm,
 	    const DebugInfo& di, const Dictionary::Ptr& scope);
 };
 

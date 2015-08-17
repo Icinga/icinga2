@@ -70,6 +70,8 @@ bool Notification::EvaluateApplyRuleInstance(const Checkable::Ptr& checkable, co
 	if (!zone.IsEmpty())
 		builder->AddExpression(new SetExpression(MakeIndexer(ScopeThis, "zone"), OpSetLiteral, MakeLiteral(zone), di));
 
+	builder->AddExpression(new SetExpression(MakeIndexer(ScopeThis, "module"), OpSetLiteral, MakeLiteral(rule.GetModule()), di));
+
 	builder->AddExpression(new OwnedExpression(rule.GetExpression()));
 
 	ConfigItem::Ptr notificationItem = builder->Compile();

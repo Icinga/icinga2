@@ -47,6 +47,7 @@ public:
 	void SetAbstract(bool abstract);
 	void SetScope(const Dictionary::Ptr& scope);
 	void SetZone(const String& zone);
+	void SetModule(const String& module);
 
 	void AddExpression(Expression *expr);
 	void SetFilter(const boost::shared_ptr<Expression>& filter);
@@ -62,6 +63,7 @@ private:
 	DebugInfo m_DebugInfo; /**< Debug information. */
 	Dictionary::Ptr m_Scope; /**< variable scope. */
 	String m_Zone; /**< The zone. */
+	String m_Module; /**< The module name. */
 };
 
 }

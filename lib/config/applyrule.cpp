@@ -28,9 +28,9 @@ ApplyRule::RuleMap ApplyRule::m_Rules;
 ApplyRule::TypeMap ApplyRule::m_Types;
 
 ApplyRule::ApplyRule(const String& targetType, const String& name, const boost::shared_ptr<Expression>& expression,
-    const boost::shared_ptr<Expression>& filter, const String& fkvar, const String& fvvar, const boost::shared_ptr<Expression>& fterm,
+    const boost::shared_ptr<Expression>& filter, const String& module, const String& fkvar, const String& fvvar, const boost::shared_ptr<Expression>& fterm,
     const DebugInfo& di, const Dictionary::Ptr& scope)
-	: m_TargetType(targetType), m_Name(name), m_Expression(expression), m_Filter(filter), m_FKVar(fkvar),
+	: m_TargetType(targetType), m_Name(name), m_Expression(expression), m_Filter(filter), m_Module(module), m_FKVar(fkvar),
 	  m_FVVar(fvvar), m_FTerm(fterm), m_DebugInfo(di), m_Scope(scope), m_HasMatches(false)
 { }
 
@@ -52,6 +52,11 @@ boost::shared_ptr<Expression> ApplyRule::GetExpression(void) const
 boost::shared_ptr<Expression> ApplyRule::GetFilter(void) const
 {
 	return m_Filter;
+}
+
+String ApplyRule::GetModule(void) const
+{
+	return m_Module;
 }
 
 String ApplyRule::GetFKVar(void) const
@@ -80,10 +85,10 @@ Dictionary::Ptr ApplyRule::GetScope(void) const
 }
 
 void ApplyRule::AddRule(const String& sourceType, const String& targetType, const String& name,
-    const boost::shared_ptr<Expression>& expression, const boost::shared_ptr<Expression>& filter, const String& fkvar,
+    const boost::shared_ptr<Expression>& expression, const boost::shared_ptr<Expression>& filter, const String& module, const String& fkvar,
     const String& fvvar, const boost::shared_ptr<Expression>& fterm, const DebugInfo& di, const Dictionary::Ptr& scope)
 {
-	m_Rules[sourceType].push_back(ApplyRule(targetType, name, expression, filter, fkvar, fvvar, fterm, di, scope));
+	m_Rules[sourceType].push_back(ApplyRule(targetType, name, expression, filter, module, fkvar, fvvar, fterm, di, scope));
 }
 
 bool ApplyRule::EvaluateFilter(ScriptFrame& frame) const

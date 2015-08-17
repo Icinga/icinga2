@@ -28,7 +28,7 @@
 
 using namespace icinga;
 
-bool ExecuteExpression(Expression *expression)
+static bool ExecuteExpression(Expression *expression)
 {
 	if (!expression)
 		return false;
@@ -44,7 +44,7 @@ bool ExecuteExpression(Expression *expression)
 	return true;
 }
 
-void IncludeZoneDirRecursive(const String& path, bool& success)
+static void IncludeZoneDirRecursive(const String& path, const String& module, bool& success)
 {
 	String zoneName = Utility::BaseName(path);
 
@@ -52,20 +52,35 @@ void IncludeZoneDirRecursive(const String& path, bool& success)
 	ConfigCompiler::RegisterZoneDir("_etc", path, zoneName);
 
 	std::vector<Expression *> expressions;
-	Utility::GlobRecursive(path, "*.conf", boost::bind(&ConfigCompiler::CollectIncludes, boost::ref(expressions), _1, zoneName), GlobFile);
+	Utility::GlobRecursive(path, "*.conf", boost::bind(&ConfigCompiler::CollectIncludes, boost::ref(expressions), _1, zoneName, module), GlobFile);
 	DictExpression expr(expressions);
 	if (!ExecuteExpression(&expr))
 		success = false;
 }
 
-void IncludeNonLocalZone(const String& zonePath, bool& success)
+static void IncludeNonLocalZone(const String& zonePath, const String& module, bool& success)
 {
 	String etcPath = Application::GetZonesDir() + "/" + Utility::BaseName(zonePath);
 
 	if (Utility::PathExists(etcPath) || Utility::PathExists(zonePath + "/.authoritative"))
 		return;
 
-	IncludeZoneDirRecursive(zonePath, success);
+	IncludeZoneDirRecursive(zonePath, module, success);
+}
+
+static void IncludeModule(const String& modulePath, bool& success)
+{
+	String moduleName = Utility::BaseName(modulePath);
+	
+	if (Utility::PathExists(modulePath + "/include.conf")) {
+		Expression *expr = ConfigCompiler::CompileFile(modulePath + "/include.conf",
+		    true, String(), moduleName);
+		
+		if (!ExecuteExpression(expr))
+			success = false;
+			
+		delete expr;
+	}
 }
 
 bool DaemonUtility::ValidateConfigFiles(const std::vector<std::string>& configs, const String& objectsFile)
@@ -76,7 +91,7 @@ bool DaemonUtility::ValidateConfigFiles(const std::vector<std::string>& configs,
 
 	if (!configs.empty()) {
 		BOOST_FOREACH(const String& configPath, configs) {
-			Expression *expression = ConfigCompiler::CompileFile(configPath);
+			Expression *expression = ConfigCompiler::CompileFile(configPath, true, String(), "_etc");
 			success = ExecuteExpression(expression);
 			delete expression;
 			if (!success)
@@ -90,26 +105,21 @@ bool DaemonUtility::ValidateConfigFiles(const std::vector<std::string>& configs,
 
 	String zonesEtcDir = Application::GetZonesDir();
 	if (!zonesEtcDir.IsEmpty() && Utility::PathExists(zonesEtcDir))
-		Utility::Glob(zonesEtcDir + "/*", boost::bind(&IncludeZoneDirRecursive, _1, boost::ref(success)), GlobDirectory);
+		Utility::Glob(zonesEtcDir + "/*", boost::bind(&IncludeZoneDirRecursive, _1, "_etc", boost::ref(success)), GlobDirectory);
 
 	if (!success)
 		return false;
 
 	String zonesVarDir = Application::GetLocalStateDir() + "/lib/icinga2/api/zones";
 	if (Utility::PathExists(zonesVarDir))
-		Utility::Glob(zonesVarDir + "/*", boost::bind(&IncludeNonLocalZone, _1, boost::ref(success)), GlobDirectory);
+		Utility::Glob(zonesVarDir + "/*", boost::bind(&IncludeNonLocalZone, _1, "_cluster", boost::ref(success)), GlobDirectory);
 
 	if (!success)
 		return false;
 
 	String modulesVarDir = Application::GetLocalStateDir() + "/lib/icinga2/api/modules";
-	if (Utility::PathExists(modulesVarDir)) {
-		std::vector<Expression *> expressions;
-		Utility::Glob(modulesVarDir + "/*/include.conf", boost::bind(&ConfigCompiler::CollectIncludes, boost::ref(expressions), _1, ""), GlobFile);
-		DictExpression expr(expressions);
-		if (!ExecuteExpression(&expr))
-			success = false;
-	}
+	if (Utility::PathExists(modulesVarDir))
+		Utility::Glob(modulesVarDir + "/*", boost::bind(&IncludeModule, _1, boost::ref(success)), GlobDirectory);
 
 	if (!success)
 		return false;

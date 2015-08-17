@@ -384,7 +384,7 @@ object:
 				BOOST_THROW_EXCEPTION(ScriptError("object rule 'ignore' is missing 'assign' for type '" + type + "'", DebugInfoRange(@2, @4)));
 		}
 
-		$$ = new ObjectExpression(abstract, type, $4, filter, context->GetZone(), $5, $6, DebugInfoRange(@2, @5));
+		$$ = new ObjectExpression(abstract, type, $4, filter, context->GetZone(), context->GetModule(), $5, $6, DebugInfoRange(@2, @5));
 	}
 	;
 
@@ -1017,7 +1017,7 @@ apply:
 		Expression *fterm = context->m_FTerm.top();
 		context->m_FTerm.pop();
 
-		$$ = new ApplyExpression(type, target, $4, filter, fkvar, fvvar, fterm, $7, $8, DebugInfoRange(@2, @7));
+		$$ = new ApplyExpression(type, target, $4, filter, context->GetModule(), fkvar, fvvar, fterm, $7, $8, DebugInfoRange(@2, @7));
 	}
 	;
 
