@@ -112,6 +112,8 @@ public:
 	std::vector<String> GetKeys(void) const;
 
 	static Object::Ptr GetPrototype(void);
+	
+	virtual Object::Ptr Clone(void) const;
 
 private:
 	std::map<String, Value> m_Data; /**< The data for the dictionary. */

@@ -109,6 +109,8 @@ public:
 		std::copy(v.begin(), v.end(), std::back_inserter(result->m_Data));
 		return result;
 	}
+	
+	virtual Object::Ptr Clone(void) const;
 
 private:
 	std::vector<Value> m_Data; /**< The data for the array. */

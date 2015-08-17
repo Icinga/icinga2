@@ -514,9 +514,9 @@ Signature:
 
 Removes all elements from the array.
 
-### <a id="array-clone"></a> Array#clone
+### <a id="array-shallow-clone"></a> Array#shallow_clone
 
-    function clone();
+    function shallow_clone();
 
 Returns a copy of the array. Note that for elements which are reference values (e.g. objects such
 as arrays and dictionaries) only the references are copied.
@@ -582,11 +582,11 @@ Joins all elements of the array using the specified separator.
 
 ## <a id="dictionary-type"></a> Dictionary type
 
-### <a id="dictionary-clone"></a> Dictionary#clone
+### <a id="dictionary-shallow-clone"></a> Dictionary#shallow_clone
 
 Signature:
 
-    function clone();
+    function shallow_clone();
 
 Returns a copy of the dictionary. Note that for elements which are reference values (e.g. objects such
 as arrays and dictionaries) only the references are copied.

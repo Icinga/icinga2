@@ -101,7 +101,7 @@ static Array::Ptr ArraySort(const std::vector<Value>& args)
 	return arr;
 }
 
-static Array::Ptr ArrayClone(void)
+static Array::Ptr ArrayShallowClone(void)
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
@@ -144,7 +144,7 @@ Object::Ptr Array::GetPrototype(void)
 		prototype->Set("contains", new Function(WrapFunction(ArrayContains), true));
 		prototype->Set("clear", new Function(WrapFunction(ArrayClear)));
 		prototype->Set("sort", new Function(WrapFunction(ArraySort), true));
-		prototype->Set("clone", new Function(WrapFunction(ArrayClone), true));
+		prototype->Set("shallow_clone", new Function(WrapFunction(ArrayShallowClone), true));
 		prototype->Set("join", new Function(WrapFunction(ArrayJoin), true));
 	}
 

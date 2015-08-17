@@ -39,6 +39,13 @@ static void ObjectNotifyAttribute(const String& attribute)
 	self->NotifyField(self->GetReflectionType()->GetFieldId(attribute));
 }
 
+static Object::Ptr ObjectClone(void)
+{
+	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
+	Object::Ptr self = static_cast<Object::Ptr>(vframe->Self);
+	return self->Clone();
+}
+
 Object::Ptr Object::GetPrototype(void)
 {
 	static Dictionary::Ptr prototype;
@@ -47,6 +54,7 @@ Object::Ptr Object::GetPrototype(void)
 		prototype = new Dictionary();
 		prototype->Set("to_string", new Function(WrapFunction(ObjectToString), true));
 		prototype->Set("notify_attribute", new Function(WrapFunction(ObjectNotifyAttribute), false));
+		prototype->Set("clone", new Function(WrapFunction(ObjectClone), true));
 	}
 
 	return prototype;

@@ -101,3 +101,8 @@ void Object::NotifyField(int id, const Value& cookie)
 {
 	BOOST_THROW_EXCEPTION(std::runtime_error("Invalid field ID."));
 }
+
+Object::Ptr Object::Clone(void) const
+{
+	BOOST_THROW_EXCEPTION(std::runtime_error("Object cannot be cloned."));
+}

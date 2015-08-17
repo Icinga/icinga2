@@ -111,6 +111,8 @@ public:
 	void InflateMutex(void);
 
 	static Object::Ptr GetPrototype(void);
+	
+	virtual Object::Ptr Clone(void) const;
 
 private:
 	Object(const Object& other);

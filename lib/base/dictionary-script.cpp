@@ -61,7 +61,7 @@ static bool DictionaryContains(const String& key)
 	return self->Contains(key);
 }
 
-static Dictionary::Ptr DictionaryClone(void)
+static Dictionary::Ptr DictionaryShallowClone(void)
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Dictionary::Ptr self = static_cast<Dictionary::Ptr>(vframe->Self);
@@ -91,7 +91,7 @@ Object::Ptr Dictionary::GetPrototype(void)
 		prototype->Set("get", new Function(WrapFunction(DictionaryGet)));
 		prototype->Set("remove", new Function(WrapFunction(DictionaryRemove)));
 		prototype->Set("contains", new Function(WrapFunction(DictionaryContains), true));
-		prototype->Set("clone", new Function(WrapFunction(DictionaryClone), true));
+		prototype->Set("shallow_clone", new Function(WrapFunction(DictionaryShallowClone), true));
 		prototype->Set("keys", new Function(WrapFunction(DictionaryKeys), true));
 	}
 

@@ -104,3 +104,11 @@ Type::Ptr Value::GetReflectionType(void) const
 	}
 }
 
+Value Value::Clone(void) const
+{
+	if (IsObject())
+		return static_cast<Object::Ptr>(*this)->Clone();
+	else
+		return *this;
+}
+
