@@ -26,7 +26,7 @@
 
 using namespace icinga;
 
-REGISTER_PRIMITIVE_TYPE(Array, Array::GetPrototype());
+REGISTER_PRIMITIVE_TYPE(Array, Object, Array::GetPrototype());
 
 /**
  * Restrieves a value from an array.

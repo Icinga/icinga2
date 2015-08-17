@@ -22,8 +22,8 @@
 
 using namespace icinga;
 
-PrimitiveType::PrimitiveType(const String& name, const ObjectFactory& factory)
-	: m_Name(name), m_Factory(factory)
+PrimitiveType::PrimitiveType(const String& name, const String& base, const ObjectFactory& factory)
+	: m_Name(name), m_Base(base), m_Factory(factory)
 { }
 
 String PrimitiveType::GetName(void) const
@@ -33,7 +33,10 @@ String PrimitiveType::GetName(void) const
 
 Type::Ptr PrimitiveType::GetBaseType(void) const
 {
-	return Type::Ptr();
+	if (m_Base == "None")
+		return Type::Ptr();
+	else
+		return Type::GetByName(m_Base);
 }
 
 int PrimitiveType::GetAttributes(void) const

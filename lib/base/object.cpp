@@ -25,7 +25,7 @@
 
 using namespace icinga;
 
-REGISTER_PRIMITIVE_TYPE(Object, Object::GetPrototype());
+REGISTER_PRIMITIVE_TYPE(Object, None, Object::GetPrototype());
 
 /**
  * Default constructor for the Object class.

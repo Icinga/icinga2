@@ -25,7 +25,7 @@
 
 using namespace icinga;
 
-REGISTER_PRIMITIVE_TYPE(Dictionary, Dictionary::GetPrototype());
+REGISTER_PRIMITIVE_TYPE(Dictionary, Object, Dictionary::GetPrototype());
 
 /**
  * Retrieves a value from a dictionary.

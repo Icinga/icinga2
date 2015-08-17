@@ -23,7 +23,7 @@
 
 using namespace icinga;
 
-REGISTER_PRIMITIVE_TYPE_NOINST(Function, Function::GetPrototype());
+REGISTER_PRIMITIVE_TYPE_NOINST(Function, Object, Function::GetPrototype());
 
 Function::Function(const Callback& function, bool side_effect_free)
 	: m_Callback(function), m_SideEffectFree(side_effect_free)
