@@ -333,6 +333,7 @@ Value icinga::JsonDecode(const String& data)
 #else /* YAJL_MAJOR */
 	handle = yajl_alloc(&callbacks, NULL, &context);
 	yajl_config(handle, yajl_dont_validate_strings, 1);
+	yajl_config(handle, yajl_allow_comments, 1);
 #endif /* YAJL_MAJOR */
 
 	yajl_parse(handle, reinterpret_cast<const unsigned char *>(data.CStr()), data.GetLength());
