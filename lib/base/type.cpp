@@ -71,7 +71,7 @@ Object::Ptr Type::Instantiate(void) const
 	ObjectFactory factory = GetFactory();
 
 	if (!factory)
-		return Object::Ptr();
+		BOOST_THROW_EXCEPTION(std::runtime_error("Type does not have a factory function."));
 
 	return factory();
 }
@@ -115,6 +115,8 @@ Value Type::GetField(int id) const
 {
 	if (id == 0)
 		return GetPrototype();
+	else if (id == 1)
+		return GetBaseType();
 
 	return Object::GetField(id);
 }
@@ -148,6 +150,8 @@ int TypeType::GetFieldId(const String& name) const
 {
 	if (name == "prototype")
 		return 0;
+	else if (name == "base")
+		return 1;
 
 	return -1;
 }
@@ -156,13 +160,15 @@ Field TypeType::GetFieldInfo(int id) const
 {
 	if (id == 0)
 		return Field(0, "Object", "prototype", NULL, 0);
+	else if (id == 1)
+		return Field(1, "Object", "base", NULL, 0);
 
 	throw std::runtime_error("Invalid field ID.");
 }
 
 int TypeType::GetFieldCount(void) const
 {
-	return 1;
+	return 2;
 }
 
 ObjectFactory TypeType::GetFactory(void) const
