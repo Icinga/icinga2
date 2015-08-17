@@ -106,6 +106,7 @@ void UserDbObject::OnConfigUpdate(void)
 			DbQuery query;
 			query.Type = DbQueryInsert;
 			query.Table = "contact_addresses";
+			query.Category = DbCatConfig;
 			query.Fields = fields;
 			OnQuery(query);
 		}
