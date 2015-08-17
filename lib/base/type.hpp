@@ -94,7 +94,7 @@ public:
 	static void Register(const Type::Ptr& type);
 	static Type::Ptr GetByName(const String& name);
 
-	virtual void SetField(int id, const Value& value);
+	virtual void SetField(int id, const Value& value, bool suppress_events = false, const Value& cookie = Empty);
 	virtual Value GetField(int id) const;
 
 	virtual std::vector<String> GetLoadDependencies(void) const;

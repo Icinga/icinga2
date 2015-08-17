@@ -99,16 +99,17 @@ Object::Ptr Type::GetPrototype(void) const
 void Type::SetPrototype(const Object::Ptr& object)
 {
 	m_Prototype = object;
+	NotifyField(0);
 }
 
-void Type::SetField(int id, const Value& value)
+void Type::SetField(int id, const Value& value, bool suppress_events, const Value& cookie)
 {
 	if (id == 0) {
 		SetPrototype(value);
 		return;
 	}
 
-	Object::SetField(id, value);
+	Object::SetField(id, value, suppress_events, cookie);
 }
 
 Value Type::GetField(int id) const
