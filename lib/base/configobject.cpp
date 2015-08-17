@@ -36,6 +36,8 @@
 #include "config/configitem.hpp"
 #include <fstream>
 #include <boost/foreach.hpp>
+#include <boost/algorithm/string/split.hpp>
+#include <boost/algorithm/string/classification.hpp>
 #include <boost/exception/errinfo_api_function.hpp>
 #include <boost/exception/errinfo_errno.hpp>
 #include <boost/exception/errinfo_file_name.hpp>
@@ -119,8 +121,16 @@ void ConfigObject::ModifyAttribute(const String& attr, const Value& value)
 	bool updated_original_attributes = false;
 
 	Type::Ptr type = GetReflectionType();
-	int fid = type->GetFieldId(attr);
+	
+	std::vector<String> tokens;
+	boost::algorithm::split(tokens, attr, boost::is_any_of("."));
+	
+	String fieldName = tokens[0];
+	
+	int fid = type->GetFieldId(fieldName);
 	Field field = type->GetFieldInfo(fid);
+	
+	Value oldValue = GetField(fid);
 
 	if (field.Attributes & FAConfig) {
 		if (!original_attributes) {
@@ -128,19 +138,52 @@ void ConfigObject::ModifyAttribute(const String& attr, const Value& value)
 			SetOriginalAttributes(original_attributes, true);
 		}
 
-		Value attrVal = GetField(fid);
-
 		if (!original_attributes->Contains(attr)) {
 			updated_original_attributes = true;
-			original_attributes->Set(attr, attrVal);
+			original_attributes->Set(attr, oldValue);
 		}
 	}
+	
+	Value newValue;
+	
+	if (tokens.size() > 1) {
+		newValue = oldValue.Clone();
+		Value current = newValue;
+		
+		if (current.IsEmpty()) {
+			current = new Dictionary();
+			newValue = current;
+		}
+	
+		for (std::vector<String>::size_type i = 1; i < tokens.size() - 1; i++) {
+			if (!current.IsObjectType<Dictionary>())
+				BOOST_THROW_EXCEPTION(std::invalid_argument("Value must be a dictionary."));
+
+			Dictionary::Ptr dict = current;
+			const String& key = tokens[i];
+			
+			if (!dict->Contains(key)) {
+				current = new Dictionary();
+				dict->Set(key, current);
+			} else {
+				current = dict->Get(key);
+			}
+		}
+		
+		if (!current.IsObjectType<Dictionary>())
+			BOOST_THROW_EXCEPTION(std::invalid_argument("Value must be a dictionary."));
+	
+		Dictionary::Ptr dict = current;
+		const String& key = tokens[tokens.size() - 1];
+		
+		dict->Set(key, value);
+	} else
+		newValue = value;
 
 	ModAttrValidationUtils utils;
-	ValidateField(fid, value, utils);
+	ValidateField(fid, newValue, utils);
 
-	//TODO: vars.os
-	SetField(fid, value);
+	SetField(fid, newValue);
 
 	if (updated_original_attributes)
 		NotifyOriginalAttributes();
@@ -148,6 +191,7 @@ void ConfigObject::ModifyAttribute(const String& attr, const Value& value)
 
 void ConfigObject::RestoreAttribute(const String& attr)
 {
+	//TODO-MA: vars.os
 	Dictionary::Ptr original_attributes = GetOriginalAttributes();
 
 	if (!original_attributes || !original_attributes->Contains(attr))
