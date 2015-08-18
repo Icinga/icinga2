@@ -132,7 +132,10 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 	
 	Dictionary::Ptr allAttrs = new Dictionary();
 	attrs->CopyTo(allAttrs);
-	nameParts->CopyTo(allAttrs);
+
+	if (nameParts)
+		nameParts->CopyTo(allAttrs);
+
 	allAttrs->Remove("name");
 
 	ConfigWriter::Ptr cw = new ConfigWriter(path);
