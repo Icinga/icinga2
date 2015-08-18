@@ -17,15 +17,14 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef CONFIGMODULEUTILITY_H
-#define CONFIGMODULEUTILITY_H
+#ifndef CONFIGOBJECTUTILITY_H
+#define CONFIGOBJECTUTILITY_H
 
 #include "remote/i2-remote.hpp"
-#include "base/application.hpp"
+#include "base/array.hpp"
+#include "base/configobject.hpp"
 #include "base/dictionary.hpp"
-#include "base/process.hpp"
-#include "base/string.hpp"
-#include <vector>
+#include "base/type.hpp"
 
 namespace icinga
 {
@@ -35,39 +34,22 @@ namespace icinga
  *
  * @ingroup remote
  */
-class I2_REMOTE_API ConfigModuleUtility
+class I2_REMOTE_API ConfigObjectUtility
 {
 
 public:
-	static String GetModuleDir(void);
-
-	static void CreateModule(const String& name);
-	static void DeleteModule(const String& name);
-	static std::vector<String> GetModules(void);
-	static bool ModuleExists(const String& name);
-
-	static String CreateStage(const String& moduleName, const Dictionary::Ptr& files = Dictionary::Ptr());
-	static void DeleteStage(const String& moduleName, const String& stageName);
-	static std::vector<String> GetStages(const String& moduleName);
-	static String GetActiveStage(const String& moduleName);
-	static void ActivateStage(const String& moduleName, const String& stageName);
-	static void AsyncTryActivateStage(const String& moduleName, const String& stageName);
-
-	static std::vector<std::pair<String, bool> > GetFiles(const String& moduleName, const String& stageName);
-
-	static bool ContainsDotDot(const String& path);
-	static bool ValidateName(const String& name);
-
+	static String GetConfigDir(void);
+	
+	static bool CreateObject(const Type::Ptr& type, const String& fullName,
+	    const Array::Ptr& templates, const Dictionary::Ptr& attrs,
+	    const Array::Ptr& errors);
+	    
+	static bool DeleteObject(const ConfigObject::Ptr& object, const Array::Ptr& errors);
+	
 private:
-	static void CollectDirNames(const String& path, std::vector<String>& dirs);
-	static void CollectPaths(const String& path, std::vector<std::pair<String, bool> >& paths);
-
-	static void WriteModuleConfig(const String& moduleName);
-	static void WriteStageConfig(const String& moduleName, const String& stageName);
-
-	static void TryActivateStageCallback(const ProcessResult& pr, const String& moduleName, const String& stageName);
+	static String EscapeName(const String& name);
 };
 
 }
 
-#endif /* CONFIGMODULEUTILITY_H */
+#endif /* CONFIGOBJECTUTILITY_H */

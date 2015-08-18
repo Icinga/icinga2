@@ -18,13 +18,10 @@
  ******************************************************************************/
 
 #include "remote/createobjecthandler.hpp"
+#include "remote/configobjectutility.hpp"
 #include "remote/httputility.hpp"
 #include "remote/filterutility.hpp"
 #include "remote/apiaction.hpp"
-#include "config/configitembuilder.hpp"
-#include "config/configitem.hpp"
-#include "base/exception.hpp"
-#include "base/serializer.hpp"
 #include <boost/algorithm/string.hpp>
 #include <set>
 
@@ -46,81 +43,22 @@ bool CreateObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 		return false;
 
 	String name = request.RequestUrl->GetPath()[2];
-
-	NameComposer *nc = dynamic_cast<NameComposer *>(type.get());
-	Dictionary::Ptr nameParts;
-
-	if (nc) {
-		nameParts = nc->ParseName(name);
-		name = nameParts->Get("name");
-	}
-
 	Dictionary::Ptr params = HttpUtility::FetchRequestParameters(request);
-
-	ConfigItemBuilder::Ptr builder = new ConfigItemBuilder();
-	builder->SetType(type->GetName());
-	builder->SetName(name);
-	builder->SetScope(ScriptGlobal::GetGlobals());
-	builder->SetModule("_api");
-
 	Array::Ptr templates = params->Get("templates");
-
-	if (templates) {
-		ObjectLock olock(templates);
-		BOOST_FOREACH(const String& tmpl, templates) {
-			ImportExpression *expr = new ImportExpression(MakeLiteral(tmpl));
-			builder->AddExpression(expr);
-		}
-	}
-
-	if (nameParts) {
-		ObjectLock olock(nameParts);
-		BOOST_FOREACH(const Dictionary::Pair& kv, nameParts) {
-			SetExpression *expr = new SetExpression(MakeIndexer(ScopeThis, kv.first), OpSetLiteral, MakeLiteral(kv.second));
-			builder->AddExpression(expr);
-		}
-	}
-
 	Dictionary::Ptr attrs = params->Get("attrs");
 
-	if (attrs) {
-		ObjectLock olock(attrs);
-		BOOST_FOREACH(const Dictionary::Pair& kv, attrs) {
-			SetExpression *expr = new SetExpression(MakeIndexer(ScopeThis, kv.first), OpSetLiteral, MakeLiteral(kv.second));
-			builder->AddExpression(expr);
-		}
-	}
-	
 	Dictionary::Ptr result1 = new Dictionary();
 	int code;
 	String status;
-
-	try {
-		ConfigItem::Ptr item = builder->Compile();
-		item->Register();
-
-		WorkQueue upq;
-
-		if (!ConfigItem::CommitItems(upq) || !ConfigItem::ActivateItems(upq, false)) {
-			code = 500;
-			status = "Object could not be created.";
-
-			Array::Ptr errors = new Array();
-			BOOST_FOREACH(const boost::exception_ptr& ex, upq.GetExceptions()) {
-				errors->Add(DiagnosticInformation(ex));
-			}
-			result1->Set("errors", errors);
-		} else {
-			code = 200;
-			status = "Object created";
-		}
-	} catch (const std::exception& ex) {
+	Array::Ptr errors = new Array();
+	
+	if (!ConfigObjectUtility::CreateObject(type, name, templates, attrs, errors)) {
+		result1->Set("errors", errors);
 		code = 500;
 		status = "Object could not be created.";
-
-		Array::Ptr errors = new Array();
-		errors->Add(DiagnosticInformation(ex));
-		result1->Set("errors", errors);
+	} else {
+		code = 200;
+		status = "Object was created.";
 	}
 
 	result1->Set("code", code);

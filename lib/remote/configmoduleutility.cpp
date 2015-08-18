@@ -70,6 +70,11 @@ void ConfigModuleUtility::CollectDirNames(const String& path, std::vector<String
 	dirs.push_back(name);
 }
 
+bool ConfigModuleUtility::ModuleExists(const String& name)
+{
+	return Utility::PathExists(GetModuleDir() + "/" + name);
+}
+
 String ConfigModuleUtility::CreateStage(const String& moduleName, const Dictionary::Ptr& files)
 {
 	String stageName = Utility::NewUniqueID();
@@ -87,23 +92,26 @@ String ConfigModuleUtility::CreateStage(const String& moduleName, const Dictiona
 	WriteStageConfig(moduleName, stageName);
 
 	bool foundDotDot = false;
-	ObjectLock olock(files);
-	BOOST_FOREACH(const Dictionary::Pair& kv, files) {
-		if (ContainsDotDot(kv.first)) {
-			foundDotDot = true;
-			break;
+	
+	if (files) {
+		ObjectLock olock(files);
+		BOOST_FOREACH(const Dictionary::Pair& kv, files) {
+			if (ContainsDotDot(kv.first)) {
+				foundDotDot = true;
+				break;
+			}
+	
+			String filePath = path + "/" + kv.first;
+	
+			Log(LogInformation, "ConfigModuleUtility")
+			    << "Updating configuration file: " << filePath;
+	
+			//pass the directory and generate a dir tree, if not existing already
+			Utility::MkDirP(Utility::DirName(filePath), 0750);
+			std::ofstream fp(filePath.CStr(), std::ofstream::out | std::ostream::binary | std::ostream::trunc);
+			fp << kv.second;
+			fp.close();
 		}
-
-		String filePath = path + "/" + kv.first;
-
-		Log(LogInformation, "ConfigModuleUtility")
-		    << "Updating configuration file: " << filePath;
-
-		//pass the directory and generate a dir tree, if not existing already
-		Utility::MkDirP(Utility::DirName(filePath), 0750);
-		std::ofstream fp(filePath.CStr(), std::ofstream::out | std::ostream::binary | std::ostream::trunc);
-		fp << kv.second;
-		fp.close();
 	}
 
 	if (foundDotDot) {

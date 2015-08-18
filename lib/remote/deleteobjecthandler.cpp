@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "remote/deleteobjecthandler.hpp"
+#include "remote/configobjectutility.hpp"
 #include "remote/httputility.hpp"
 #include "remote/filterutility.hpp"
 #include "remote/apiaction.hpp"
@@ -67,27 +68,14 @@ bool DeleteObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 		result1->Set("name", obj->GetName());
 		results->Add(result1);
 
-		if (obj->GetModule() != "_api") {
-			result1->Set("code", 500);
-			result1->Set("status", "Object cannot be deleted because it was not created using the API.");
-			continue;
-		}
-
-		ConfigItem::Ptr item = ConfigItem::GetObject(type->GetName(), obj->GetName());
-
-		try {
-			obj->Deactivate();
-
-			if (item)
-				item->Unregister();
-			else
-				obj->Unregister();
-
+		Array::Ptr errors = new Array();
+		
+		if (!ConfigObjectUtility::DeleteObject(obj, errors)) {
+			result1->Set("code", 500);	
+			result1->Set("status", "Object could not be deleted.");
+		} else {
 			result1->Set("code", 200);
 			result1->Set("status", "Object was deleted.");
-		} catch (const std::exception& ex) {
-			result1->Set("code", 500);
-			result1->Set("status", "Object could not be deleted: " + DiagnosticInformation(ex));
 		}
 	}
 
