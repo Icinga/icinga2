@@ -30,7 +30,7 @@ class I2_REMOTE_API DeleteObjectHandler : public HttpHandler
 public:
 	DECLARE_PTR_TYPEDEFS(DeleteObjectHandler);
 
-	virtual bool HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response);
+	virtual bool HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response) override;
 };
 
 }

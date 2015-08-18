@@ -35,9 +35,9 @@ class PKINewCACommand : public CLICommand
 public:
 	DECLARE_PTR_TYPEDEFS(PKINewCACommand);
 
-	virtual String GetDescription(void) const;
-	virtual String GetShortDescription(void) const;
-	virtual int Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const;
+	virtual String GetDescription(void) const override;
+	virtual String GetShortDescription(void) const override;
+	virtual int Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const override;
 
 };
 

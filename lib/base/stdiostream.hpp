@@ -34,13 +34,13 @@ public:
 	StdioStream(std::iostream *innerStream, bool ownsStream);
 	~StdioStream(void);
 
-	virtual size_t Read(void *buffer, size_t size, bool allow_partial = false);
-	virtual void Write(const void *buffer, size_t size);
+	virtual size_t Read(void *buffer, size_t size, bool allow_partial = false) override;
+	virtual void Write(const void *buffer, size_t size) override;
 
-	virtual void Close(void);
+	virtual void Close(void) override;
 
-	virtual bool IsDataAvailable(void) const;
-	virtual bool IsEof(void) const;
+	virtual bool IsDataAvailable(void) const override;
+	virtual bool IsEof(void) const override;
 
 private:
 	std::iostream *m_InnerStream;

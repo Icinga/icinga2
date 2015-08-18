@@ -35,12 +35,12 @@ class PKINewCertCommand : public CLICommand
 public:
 	DECLARE_PTR_TYPEDEFS(PKINewCertCommand);
 
-	virtual String GetDescription(void) const;
-	virtual String GetShortDescription(void) const;
+	virtual String GetDescription(void) const override;
+	virtual String GetShortDescription(void) const override;
 	virtual void InitParameters(boost::program_options::options_description& visibleDesc,
-	    boost::program_options::options_description& hiddenDesc) const;
-	virtual std::vector<String> GetArgumentSuggestions(const String& argument, const String& word) const;
-	virtual int Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const;
+	    boost::program_options::options_description& hiddenDesc) const override;
+	virtual std::vector<String> GetArgumentSuggestions(const String& argument, const String& word) const override;
+	virtual int Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const override;
 
 };
 

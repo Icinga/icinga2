@@ -56,17 +56,17 @@ public:
 
 	void Handshake(void);
 
-	virtual void Close(void);
-	virtual void Shutdown(void);
+	virtual void Close(void) override;
+	virtual void Shutdown(void) override;
 
-	virtual size_t Peek(void *buffer, size_t count, bool allow_partial = false);
-	virtual size_t Read(void *buffer, size_t count, bool allow_partial = false);
-	virtual void Write(const void *buffer, size_t count);
+	virtual size_t Peek(void *buffer, size_t count, bool allow_partial = false) override;
+	virtual size_t Read(void *buffer, size_t count, bool allow_partial = false) override;
+	virtual void Write(const void *buffer, size_t count) override;
 
-	virtual bool IsEof(void) const;
+	virtual bool IsEof(void) const override;
 
-	virtual bool SupportsWaiting(void) const;
-	virtual bool IsDataAvailable(void) const;
+	virtual bool SupportsWaiting(void) const override;
+	virtual bool IsDataAvailable(void) const override;
 
 	bool IsVerifyOK(void) const;
 
@@ -93,7 +93,7 @@ private:
 	static int m_SSLIndex;
 	static bool m_SSLIndexInitialized;
 
-	virtual void OnEvent(int revents);
+	virtual void OnEvent(int revents) override;
 
 	void HandleError(void) const;
 

@@ -38,12 +38,12 @@ class RepositoryCommitCommand : public CLICommand
 public:
 	DECLARE_PTR_TYPEDEFS(RepositoryCommitCommand);
 
-	virtual String GetDescription(void) const;
-	virtual String GetShortDescription(void) const;
+	virtual String GetDescription(void) const override;
+	virtual String GetShortDescription(void) const override;
 	virtual void InitParameters(boost::program_options::options_description& visibleDesc,
-	    boost::program_options::options_description& hiddenDesc) const;
-	virtual ImpersonationLevel GetImpersonationLevel(void) const;
-	virtual int Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const;
+	    boost::program_options::options_description& hiddenDesc) const override;
+	virtual ImpersonationLevel GetImpersonationLevel(void) const override;
+	virtual int Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const override;
 };
 
 }

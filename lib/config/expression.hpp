@@ -210,12 +210,12 @@ public:
 	{ }
 
 protected:
-	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
+	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override
 	{
 		return m_Expression->DoEvaluate(frame, dhint);
 	}
 
-	virtual const DebugInfo& GetDebugInfo(void) const
+	virtual const DebugInfo& GetDebugInfo(void) const override
 	{
 		return m_Expression->GetDebugInfo();
 	}
@@ -232,12 +232,12 @@ public:
 	{ }
 
 protected:
-	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
+	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override
 	{
 		return m_Future.get()->DoEvaluate(frame, dhint);
 	}
 
-	virtual const DebugInfo& GetDebugInfo(void) const
+	virtual const DebugInfo& GetDebugInfo(void) const override
 	{
 		return m_Future.get()->GetDebugInfo();
 	}
@@ -252,7 +252,7 @@ public:
 	LiteralExpression(const Value& value = Value());
 
 protected:
-	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const;
+	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 
 private:
 	Value m_Value;
@@ -271,7 +271,7 @@ public:
 	{ }
 
 protected:
-	virtual const DebugInfo& GetDebugInfo(void) const;
+	virtual const DebugInfo& GetDebugInfo(void) const override;
 
 	DebugInfo m_DebugInfo;
 };
@@ -324,8 +324,8 @@ public:
 	}
 
 protected:
-	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const;
-	virtual bool GetReference(ScriptFrame& frame, bool init_dict, Value *parent, String *index, DebugHint **dhint) const;
+	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
+	virtual bool GetReference(ScriptFrame& frame, bool init_dict, Value *parent, String *index, DebugHint **dhint) const override;
 
 private:
 	String m_Variable;
@@ -341,7 +341,7 @@ public:
 	{ }
 
 protected:
-	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const;
+	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 	
 class I2_CONFIG_API LogicalNegateExpression : public UnaryExpression
@@ -352,7 +352,7 @@ public:
 	{ }
 
 protected:
-	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const;
+	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
 class I2_CONFIG_API AddExpression : public BinaryExpression
@@ -363,7 +363,7 @@ public:
 	{ }
 
 protected:
-	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const;
+	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 	
 class I2_CONFIG_API SubtractExpression : public BinaryExpression
@@ -374,7 +374,7 @@ public:
 	{ }
 
 protected:
-	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const;
+	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 	
 class I2_CONFIG_API MultiplyExpression : public BinaryExpression
@@ -385,7 +385,7 @@ public:
 	{ }
 
 protected:
-	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const;
+	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 	
 class I2_CONFIG_API DivideExpression : public BinaryExpression
@@ -396,7 +396,7 @@ public:
 	{ }
 
 protected:
-	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const;
+	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
 class I2_CONFIG_API ModuloExpression : public BinaryExpression
@@ -407,7 +407,7 @@ public:
 	{ }
 
 protected:
-	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const;
+	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
 class I2_CONFIG_API XorExpression : public BinaryExpression
@@ -418,7 +418,7 @@ public:
 	{ }
 
 protected:
-	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const;
+	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
 class I2_CONFIG_API BinaryAndExpression : public BinaryExpression
@@ -429,7 +429,7 @@ public:
 	{ }
 
 protected:
-	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const;
+	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 	
 class I2_CONFIG_API BinaryOrExpression : public BinaryExpression
@@ -440,7 +440,7 @@ public:
 	{ }
 
 protected:
-	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const;
+	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 	
 class I2_CONFIG_API ShiftLeftExpression : public BinaryExpression
@@ -451,7 +451,7 @@ public:
 	{ }
 
 protected:
-	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const;
+	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 	
 class I2_CONFIG_API ShiftRightExpression : public BinaryExpression
@@ -462,7 +462,7 @@ public:
 	{ }
 
 protected:
-	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const;
+	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 	
 class I2_CONFIG_API EqualExpression : public BinaryExpression
@@ -473,7 +473,7 @@ public:
 	{ }
 
 protected:
-	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const;
+	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 	
 class I2_CONFIG_API NotEqualExpression : public BinaryExpression
@@ -484,7 +484,7 @@ public:
 	{ }
 
 protected:
-	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const;
+	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 	
 class I2_CONFIG_API LessThanExpression : public BinaryExpression
@@ -495,7 +495,7 @@ public:
 	{ }
 
 protected:
-	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const;
+	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 	
 class I2_CONFIG_API GreaterThanExpression : public BinaryExpression
@@ -506,7 +506,7 @@ public:
 	{ }
 
 protected:
-	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const;
+	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 	
 class I2_CONFIG_API LessThanOrEqualExpression : public BinaryExpression
@@ -517,7 +517,7 @@ public:
 	{ }
 
 protected:
-	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const;
+	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 	
 class I2_CONFIG_API GreaterThanOrEqualExpression : public BinaryExpression
@@ -528,7 +528,7 @@ public:
 	{ }
 
 protected:
-	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const;
+	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 	
 class I2_CONFIG_API InExpression : public BinaryExpression
@@ -539,7 +539,7 @@ public:
 	{ }
 
 protected:
-	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const;
+	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 	
 class I2_CONFIG_API NotInExpression : public BinaryExpression
@@ -550,7 +550,7 @@ public:
 	{ }
 
 protected:
-	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const;
+	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 	
 class I2_CONFIG_API LogicalAndExpression : public BinaryExpression
@@ -561,7 +561,7 @@ public:
 	{ }
 
 protected:
-	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const;
+	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 	
 class I2_CONFIG_API LogicalOrExpression : public BinaryExpression
@@ -572,7 +572,7 @@ public:
 	{ }
 
 protected:
-	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const;
+	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 	
 class I2_CONFIG_API FunctionCallExpression : public DebuggableExpression
@@ -591,7 +591,7 @@ public:
 	}
 
 protected:
-	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const;
+	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 
 public:
 	Expression *m_FName;
@@ -612,7 +612,7 @@ public:
 	}
 
 protected:
-	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const;
+	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 
 private:
 	std::vector<Expression *> m_Expressions;
@@ -634,7 +634,7 @@ public:
 	void MakeInline(void);
 
 protected:
-	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const;
+	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 
 private:
 	std::vector<Expression *> m_Expressions;
@@ -651,7 +651,7 @@ public:
 	{ }
 
 protected:
-	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const;
+	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 
 private:
 	CombinedSetOp m_Op;
@@ -674,7 +674,7 @@ public:
 	}
 
 protected:
-	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const;
+	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 
 private:
 	Expression *m_Condition;
@@ -696,7 +696,7 @@ public:
 	}
 
 protected:
-	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const;
+	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 
 private:
 	Expression *m_Condition;
@@ -712,7 +712,7 @@ public:
 	{ }
 
 protected:
-	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const;
+	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
 class I2_CONFIG_API BreakExpression : public DebuggableExpression
@@ -723,7 +723,7 @@ public:
 	{ }
 
 protected:
-	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const;
+	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
 class I2_CONFIG_API ContinueExpression : public DebuggableExpression
@@ -734,7 +734,7 @@ public:
 	{ }
 
 protected:
-	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const;
+	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
 class I2_CONFIG_API GetScopeExpression : public Expression
@@ -745,7 +745,7 @@ public:
 	{ }
 
 protected:
-	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const;
+	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 
 private:
 	ScopeSpecifier m_ScopeSpec;
@@ -759,8 +759,8 @@ public:
 	{ }
 
 protected:
-	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const;
-	virtual bool GetReference(ScriptFrame& frame, bool init_dict, Value *parent, String *index, DebugHint **dhint) const;
+	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
+	virtual bool GetReference(ScriptFrame& frame, bool init_dict, Value *parent, String *index, DebugHint **dhint) const override;
 
 	friend I2_CONFIG_API void BindToScope(Expression *& expr, ScopeSpecifier scopeSpec);
 };
@@ -780,7 +780,7 @@ public:
 	}
 
 protected:
-	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const;
+	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 
 private:
 	Expression *m_Name;
@@ -795,7 +795,7 @@ public:
 	{ }
 
 protected:
-	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const;
+	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 
 private:
 	std::vector<String> m_Args;
@@ -821,7 +821,7 @@ public:
 	}
 
 protected:
-	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const;
+	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 
 private:
 	String m_Type;
@@ -852,7 +852,7 @@ public:
 	}
 
 protected:
-	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const;
+	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 
 private:
 	bool m_Abstract;
@@ -879,7 +879,7 @@ public:
 	}
 
 protected:
-	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const;
+	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 
 private:
 	String m_FKVar;

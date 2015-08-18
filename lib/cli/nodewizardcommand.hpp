@@ -35,11 +35,11 @@ class NodeWizardCommand : public CLICommand
 public:
 	DECLARE_PTR_TYPEDEFS(NodeWizardCommand);
 
-	virtual String GetDescription(void) const;
-	virtual String GetShortDescription(void) const;
-	virtual int GetMaxArguments(void) const;
-	virtual int Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const;
-	virtual ImpersonationLevel GetImpersonationLevel(void) const;
+	virtual String GetDescription(void) const override;
+	virtual String GetShortDescription(void) const override;
+	virtual int GetMaxArguments(void) const override;
+	virtual int Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const override;
+	virtual ImpersonationLevel GetImpersonationLevel(void) const override;
 };
 
 }

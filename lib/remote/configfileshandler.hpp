@@ -30,7 +30,7 @@ class I2_REMOTE_API ConfigFilesHandler : public HttpHandler
 public:
 	DECLARE_PTR_TYPEDEFS(ConfigFilesHandler);
 
-	virtual bool HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response);
+	virtual bool HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response) override;
 
 private:
 	void HandleGet(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response);

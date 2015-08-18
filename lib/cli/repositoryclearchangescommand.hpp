@@ -38,10 +38,10 @@ class RepositoryClearChangesCommand : public CLICommand
 public:
 	DECLARE_PTR_TYPEDEFS(RepositoryClearChangesCommand);
 
-	virtual String GetDescription(void) const;
-	virtual String GetShortDescription(void) const;
-	virtual ImpersonationLevel GetImpersonationLevel(void) const;
-	virtual int Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const;
+	virtual String GetDescription(void) const override;
+	virtual String GetShortDescription(void) const override;
+	virtual ImpersonationLevel GetImpersonationLevel(void) const override;
+	virtual int Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const override;
 };
 
 }

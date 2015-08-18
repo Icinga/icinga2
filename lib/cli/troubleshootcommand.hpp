@@ -37,11 +37,11 @@ class TroubleshootCommand : public CLICommand
 public:
 	DECLARE_PTR_TYPEDEFS(TroubleshootCommand);
 
-	virtual String GetDescription(void) const;
-	virtual String GetShortDescription(void) const;
-	virtual int Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const;
+	virtual String GetDescription(void) const override;
+	virtual String GetShortDescription(void) const override;
+	virtual int Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const override;
 	virtual void InitParameters(boost::program_options::options_description& visibleDesc,
-	    boost::program_options::options_description& hiddenDesc) const;
+	    boost::program_options::options_description& hiddenDesc) const override;
 
 private:
 	class InfoLog;

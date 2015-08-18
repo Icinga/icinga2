@@ -114,17 +114,17 @@ class I2_BASE_API TypeType : public Type
 public:
 	DECLARE_PTR_TYPEDEFS(Type);
 
-	virtual String GetName(void) const;
-	virtual Type::Ptr GetBaseType(void) const;
-	virtual int GetAttributes(void) const;
-	virtual int GetFieldId(const String& name) const;
-	virtual Field GetFieldInfo(int id) const;
-	virtual int GetFieldCount(void) const;
+	virtual String GetName(void) const override;
+	virtual Type::Ptr GetBaseType(void) const override;
+	virtual int GetAttributes(void) const override;
+	virtual int GetFieldId(const String& name) const override;
+	virtual Field GetFieldInfo(int id) const override;
+	virtual int GetFieldCount(void) const override;
 	
 	static Object::Ptr GetPrototype(void);
 
 protected:
-	virtual ObjectFactory GetFactory(void) const;
+	virtual ObjectFactory GetFactory(void) const override;
 };
 
 template<typename T>

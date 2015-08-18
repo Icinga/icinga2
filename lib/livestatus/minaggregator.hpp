@@ -36,8 +36,8 @@ public:
 
 	MinAggregator(const String& attr);
 
-	virtual void Apply(const Table::Ptr& table, const Value& row);
-	virtual double GetResult(void) const;
+	virtual void Apply(const Table::Ptr& table, const Value& row) override;
+	virtual double GetResult(void) const override;
 
 private:
 	double m_Min;

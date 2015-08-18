@@ -41,13 +41,13 @@ public:
 	FIFO(void);
 	~FIFO(void);
 
-	virtual size_t Peek(void *buffer, size_t count, bool allow_partial = false);
-	virtual size_t Read(void *buffer, size_t count, bool allow_partial = false);
-	virtual void Write(const void *buffer, size_t count);
-	virtual void Close(void);
-	virtual bool IsEof(void) const;
-	virtual bool SupportsWaiting(void) const;
-	virtual bool IsDataAvailable(void) const;
+	virtual size_t Peek(void *buffer, size_t count, bool allow_partial = false) override;
+	virtual size_t Read(void *buffer, size_t count, bool allow_partial = false) override;
+	virtual void Write(const void *buffer, size_t count) override;
+	virtual void Close(void) override;
+	virtual bool IsEof(void) const override;
+	virtual bool SupportsWaiting(void) const override;
+	virtual bool IsDataAvailable(void) const override;
 
 	size_t GetAvailableBytes(void) const;
 
