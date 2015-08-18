@@ -59,23 +59,7 @@ int PkiUtility::NewCa(void)
 		return 1;
 	}
 
-	MakeX509CSR("Icinga CA", cadir + "/ca.key", String(), cadir + "/ca.crt", true);
-
-	String serialpath = cadir + "/serial.txt";
-
-	Log(LogInformation, "cli")
-	    << "Initializing serial file in '" << serialpath << "'.";
-
-	std::ofstream fp;
-	fp.open(serialpath.CStr());
-	fp << "01";
-	fp.close();
-
-	if (fp.fail()) {
-		Log(LogCritical, "cli")
-		    << "Could not create serial file '" << serialpath << "'";
-		return 1;
-	}
+	MakeX509CSR("Icinga CA", cadir + "/ca.key", String(), cadir + "/ca.crt", cadir + "/serial.txt", true);
 
 	return 0;
 }
