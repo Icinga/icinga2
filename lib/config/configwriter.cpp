@@ -23,6 +23,8 @@
 #include <boost/foreach.hpp>
 #include <boost/regex.hpp>
 #include <boost/algorithm/string/replace.hpp>
+#include <boost/algorithm/string/split.hpp>
+#include <boost/algorithm/string/classification.hpp>
 #include <set>
 #include <iterator>
 
@@ -93,7 +95,18 @@ void ConfigWriter::EmitScope(int indentLevel, const Dictionary::Ptr& val, const 
 	BOOST_FOREACH(const Dictionary::Pair& kv, val) {
 		m_FP << "\n";
 		EmitIndent(indentLevel);
-		EmitIdentifier(kv.first, true);
+		
+		std::vector<String> tokens;
+		boost::algorithm::split(tokens, kv.first, boost::is_any_of("."));
+		
+		EmitIdentifier(tokens[0], true);
+		
+		for (std::vector<String>::size_type i = 1; i < tokens.size(); i++) {
+			m_FP << "[";
+			EmitString(tokens[i]);
+			m_FP << "]";
+		}
+		
 		m_FP << " = ";
 		EmitValue(indentLevel + 1, kv.second);
 	}

@@ -24,6 +24,8 @@
 #include "config/configwriter.hpp"
 #include "base/exception.hpp"
 #include "base/serializer.hpp"
+#include <boost/algorithm/string/split.hpp>
+#include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/case_conv.hpp>
 
 using namespace icinga;
@@ -77,8 +79,17 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 	if (attrs) {
 		ObjectLock olock(attrs);
 		BOOST_FOREACH(const Dictionary::Pair& kv, attrs) {
-			SetExpression *expr = new SetExpression(MakeIndexer(ScopeThis, kv.first), OpSetLiteral, MakeLiteral(kv.second));
-			builder->AddExpression(expr);
+			std::vector<String> tokens;
+			boost::algorithm::split(tokens, kv.first, boost::is_any_of("."));
+			
+			Expression *expr = new GetScopeExpression(ScopeThis);
+			
+			BOOST_FOREACH(const String& val, tokens) {
+				expr = new IndexerExpression(expr, MakeLiteral(val));
+			}
+			
+			SetExpression *aexpr = new SetExpression(expr, OpSetLiteral, MakeLiteral(kv.second));
+			builder->AddExpression(aexpr);
 		}
 	}
 	
