@@ -106,3 +106,9 @@ Object::Ptr Object::Clone(void) const
 {
 	BOOST_THROW_EXCEPTION(std::runtime_error("Object cannot be cloned."));
 }
+
+Type::Ptr Object::GetReflectionType(void) const
+{
+	return Object::TypeInstance;
+}
+

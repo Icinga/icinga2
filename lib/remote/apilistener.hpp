@@ -77,9 +77,9 @@ public:
 
 	static Value HelloAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
 protected:
-	virtual void OnConfigLoaded(void);
-	virtual void OnAllConfigLoaded(void);
-	virtual void Start(void);
+	virtual void OnConfigLoaded(void) override;
+	virtual void OnAllConfigLoaded(void) override;
+	virtual void Start(void) override;
 
 private:
 	boost::shared_ptr<SSL_CTX> m_SSLContext;

@@ -55,11 +55,13 @@ extern I2_BASE_API Value Empty;
 #define DECLARE_PTR_TYPEDEFS(klass) \
 	typedef intrusive_ptr<klass> Ptr
 
-#define IMPL_TYPE_LOOKUP() 						\
-	static intrusive_ptr<Type> TypeInstance;			\
-	virtual intrusive_ptr<Type> GetReflectionType(void) const	\
-	{								\
-		return TypeInstance;					\
+#define IMPL_TYPE_LOOKUP_SUPER() 					\
+
+#define IMPL_TYPE_LOOKUP() 							\
+	static intrusive_ptr<Type> TypeInstance;				\
+	virtual intrusive_ptr<Type> GetReflectionType(void) const override	\
+	{									\
+		return TypeInstance;						\
 	}
 
 #define DECLARE_OBJECT(klass) \
@@ -92,12 +94,14 @@ struct TypeHelper
 class I2_BASE_API Object
 {
 public:
-	DECLARE_OBJECT(Object);
+	DECLARE_PTR_TYPEDEFS(Object);
 
 	Object(void);
 	virtual ~Object(void);
 
 	virtual String ToString(void) const;
+
+	virtual intrusive_ptr<Type> GetReflectionType(void) const;
 
 	virtual void SetField(int id, const Value& value, bool suppress_events = false, const Value& cookie = Empty);
 	virtual Value GetField(int id) const;
@@ -113,6 +117,8 @@ public:
 	static Object::Ptr GetPrototype(void);
 	
 	virtual Object::Ptr Clone(void) const;
+
+	static intrusive_ptr<Type> TypeInstance;
 
 private:
 	Object(const Object& other);

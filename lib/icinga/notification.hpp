@@ -116,10 +116,10 @@ public:
 	static void EvaluateApplyRules(const intrusive_ptr<Service>& service);
 
 protected:
-	virtual void OnConfigLoaded(void);
-	virtual void OnAllConfigLoaded(void);
-	virtual void Start(void);
-	virtual void Stop(void);
+	virtual void OnConfigLoaded(void) override;
+	virtual void OnAllConfigLoaded(void) override;
+	virtual void Start(void) override;
+	virtual void Stop(void) override;
 
 private:
 	void ExecuteNotificationHelper(NotificationType type, const User::Ptr& user, const CheckResult::Ptr& cr, bool force, const String& author = "", const String& text = "");

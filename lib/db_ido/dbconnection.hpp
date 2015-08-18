@@ -77,10 +77,10 @@ public:
 	virtual void ValidateFailoverTimeout(double value, const ValidationUtils& utils) override;
 
 protected:
-	virtual void OnConfigLoaded(void);
-	virtual void Start(void);
-	virtual void Resume(void);
-	virtual void Pause(void);
+	virtual void OnConfigLoaded(void) override;
+	virtual void Start(void) override;
+	virtual void Resume(void) override;
+	virtual void Pause(void) override;
 
 	virtual void ExecuteQuery(const DbQuery& query) = 0;
 	virtual void ActivateObject(const DbObject::Ptr& dbobj) = 0;

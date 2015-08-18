@@ -40,7 +40,7 @@ public:
 
 	static void StaticInitialize(void);
 
-	int Main(void);
+	virtual int Main(void) override;
 
 	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
@@ -50,7 +50,7 @@ public:
 	Dictionary::Ptr GetVars(void) const;
 	String GetNodeName(void) const;
 
-	virtual bool ResolveMacro(const String& macro, const CheckResult::Ptr& cr, Value *result) const;
+	virtual bool ResolveMacro(const String& macro, const CheckResult::Ptr& cr, Value *result) const override;
 
 	bool GetEnableNotifications(void) const;
 	void SetEnableNotifications(bool enabled);
@@ -78,7 +78,7 @@ public:
 private:
 	void DumpProgramState(void);
 
-	virtual void OnShutdown(void);
+	virtual void OnShutdown(void) override;
 };
 
 }

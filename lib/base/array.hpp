@@ -110,7 +110,7 @@ public:
 		return result;
 	}
 	
-	virtual Object::Ptr Clone(void) const;
+	virtual Object::Ptr Clone(void) const override;
 
 private:
 	std::vector<Value> m_Data; /**< The data for the array. */

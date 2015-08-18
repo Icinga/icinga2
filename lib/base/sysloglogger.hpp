@@ -41,8 +41,8 @@ public:
 	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
 protected:
-	virtual void ProcessLogEntry(const LogEntry& entry);
-	virtual void Flush(void);
+	virtual void ProcessLogEntry(const LogEntry& entry) override;
+	virtual void Flush(void) override;
 };
 
 }

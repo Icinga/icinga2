@@ -57,9 +57,9 @@ public:
 	static void EvaluateApplyRules(const intrusive_ptr<Service>& service);
 
 protected:
-	virtual void OnConfigLoaded(void);
-	virtual void OnAllConfigLoaded(void);
-	virtual void Stop(void);
+	virtual void OnConfigLoaded(void) override;
+	virtual void OnAllConfigLoaded(void) override;
+	virtual void Stop(void) override;
 
 private:
 	Checkable::Ptr m_Parent;

@@ -48,8 +48,8 @@ public:
 	virtual void ValidateSocketType(const String& value, const ValidationUtils& utils) override;
 
 protected:
-	virtual void Start(void);
-	virtual void Stop(void);
+	virtual void Start(void) override;
+	virtual void Stop(void) override;
 
 private:
 	void ServerThreadProc(void);

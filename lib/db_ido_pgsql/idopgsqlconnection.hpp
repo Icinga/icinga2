@@ -46,18 +46,18 @@ public:
 
 	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
-	virtual int GetPendingQueryCount(void) const;
+	virtual int GetPendingQueryCount(void) const override;
 
 protected:
-	virtual void Resume(void);
-	virtual void Pause(void);
+	virtual void Resume(void) override;
+	virtual void Pause(void) override;
 
-	virtual void ActivateObject(const DbObject::Ptr& dbobj);
-	virtual void DeactivateObject(const DbObject::Ptr& dbobj);
-	virtual void ExecuteQuery(const DbQuery& query);
-	virtual void CleanUpExecuteQuery(const String& table, const String& time_key, double time_value);
-	virtual void FillIDCache(const DbType::Ptr& type);
-	virtual void NewTransaction(void);
+	virtual void ActivateObject(const DbObject::Ptr& dbobj) override;
+	virtual void DeactivateObject(const DbObject::Ptr& dbobj) override;
+	virtual void ExecuteQuery(const DbQuery& query) override;
+	virtual void CleanUpExecuteQuery(const String& table, const String& time_key, double time_value) override;
+	virtual void FillIDCache(const DbType::Ptr& type) override;
+	virtual void NewTransaction(void) override;
 
 private:
 	DbReference m_InstanceID;
@@ -92,7 +92,7 @@ private:
 	void InternalExecuteQuery(const DbQuery& query, DbQueryType *typeOverride = NULL);
 	void InternalCleanUpExecuteQuery(const String& table, const String& time_key, double time_value);
 
-	virtual void ClearConfigTable(const String& table);
+	virtual void ClearConfigTable(const String& table) override;
 
 	void ExceptionHandler(boost::exception_ptr exp);
 };

@@ -41,7 +41,7 @@ public:
 	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
 protected:
-	virtual void Start(void);
+	virtual void Start(void) override;
 
 private:
 	Timer::Ptr m_ReadTimer;

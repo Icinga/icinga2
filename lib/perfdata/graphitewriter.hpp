@@ -47,7 +47,7 @@ public:
 	virtual void ValidateServiceNameTemplate(const String& value, const ValidationUtils& utils) override;
 
 protected:
-	virtual void Start(void);
+	virtual void Start(void) override;
 
 private:
 	Stream::Ptr m_Stream;

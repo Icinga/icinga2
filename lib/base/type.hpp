@@ -71,7 +71,7 @@ class I2_BASE_API Type : public Object
 public:
 	DECLARE_OBJECT(Type);
 
-	virtual String ToString(void) const;
+	virtual String ToString(void) const override;
 
 	virtual String GetName(void) const = 0;
 	virtual Type::Ptr GetBaseType(void) const = 0;
@@ -94,8 +94,8 @@ public:
 	static void Register(const Type::Ptr& type);
 	static Type::Ptr GetByName(const String& name);
 
-	virtual void SetField(int id, const Value& value, bool suppress_events = false, const Value& cookie = Empty);
-	virtual Value GetField(int id) const;
+	virtual void SetField(int id, const Value& value, bool suppress_events = false, const Value& cookie = Empty) override;
+	virtual Value GetField(int id) const override;
 
 	virtual std::vector<String> GetLoadDependencies(void) const;
 	

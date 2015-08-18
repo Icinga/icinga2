@@ -44,7 +44,7 @@ public:
 	virtual void ValidateRotationMethod(const String& value, const ValidationUtils& utils) override;
 
 protected:
-	virtual void Start(void);
+	virtual void Start(void) override;
 
 private:
 	void WriteLine(const String& line);

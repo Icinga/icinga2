@@ -47,14 +47,14 @@ public:
 	virtual void ValidateStates(const Array::Ptr& value, const ValidationUtils& utils) override;
 	virtual void ValidateTypes(const Array::Ptr& value, const ValidationUtils& utils) override;
 
-	int GetModifiedAttributes(void) const;
-	void SetModifiedAttributes(int flags, const MessageOrigin::Ptr& origin = MessageOrigin::Ptr());
+	virtual int GetModifiedAttributes(void) const override;
+	virtual void SetModifiedAttributes(int flags, const MessageOrigin::Ptr& origin = MessageOrigin::Ptr()) override;
 
 protected:
-	virtual void Stop(void);
+	virtual void Stop(void) override;
 
-	virtual void OnConfigLoaded(void);
-	virtual void OnAllConfigLoaded(void);
+	virtual void OnConfigLoaded(void) override;
+	virtual void OnAllConfigLoaded(void) override;
 private:
 	mutable boost::mutex m_UserMutex;
 };

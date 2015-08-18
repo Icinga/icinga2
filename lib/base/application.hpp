@@ -137,8 +137,8 @@ public:
 	static void DisplayInfoMessage(std::ostream& os, bool skipVersion = false);
 
 protected:
-	virtual void OnConfigLoaded(void);
-	virtual void Stop(void);
+	virtual void OnConfigLoaded(void) override;
+	virtual void Stop(void) override;
 
 	void RunEventLoop(void);
 

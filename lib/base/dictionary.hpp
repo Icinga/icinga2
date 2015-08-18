@@ -113,7 +113,7 @@ public:
 
 	static Object::Ptr GetPrototype(void);
 	
-	virtual Object::Ptr Clone(void) const;
+	virtual Object::Ptr Clone(void) const override;
 
 private:
 	std::map<String, Value> m_Data; /**< The data for the dictionary. */

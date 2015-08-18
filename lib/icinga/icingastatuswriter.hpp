@@ -39,7 +39,7 @@ public:
 	static Dictionary::Ptr GetStatusData(void);
 
 protected:
-	virtual void Start(void);
+	virtual void Start(void) override;
 
 private:
 	Timer::Ptr m_StatusTimer;

@@ -103,8 +103,8 @@ public:
 	void ExecuteCheck();
 	void ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrigin::Ptr& origin = MessageOrigin::Ptr());
 
-	int GetModifiedAttributes(void) const;
-	void SetModifiedAttributes(int flags, const MessageOrigin::Ptr& origin = MessageOrigin::Ptr());
+	virtual int GetModifiedAttributes(void) const override;
+	virtual void SetModifiedAttributes(int flags, const MessageOrigin::Ptr& origin = MessageOrigin::Ptr()) override;
 
 	Endpoint::Ptr GetCommandEndpoint(void) const;
 
@@ -209,9 +209,9 @@ public:
 	virtual void ValidateCheckInterval(double value, const ValidationUtils& utils) override;
 
 protected:
-	virtual void Start(void);
+	virtual void Start(void) override;
 
-	virtual void OnStateLoaded(void);
+	virtual void OnStateLoaded(void) override;
 
 private:
 	mutable boost::mutex m_CheckableMutex;

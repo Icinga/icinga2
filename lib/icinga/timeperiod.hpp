@@ -39,11 +39,11 @@ public:
 
 	static void StaticInitialize(void);
 
-	virtual void Start(void);
+	virtual void Start(void) override;
 
 	void UpdateRegion(double begin, double end, bool clearExisting);
 
-	virtual bool GetIsInside(void) const;
+	virtual bool GetIsInside(void) const override;
 
 	bool IsInside(double ts) const;
 	double FindNextTransition(double begin);

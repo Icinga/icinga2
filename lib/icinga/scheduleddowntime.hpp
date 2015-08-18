@@ -56,8 +56,8 @@ public:
 	virtual void ValidateRanges(const Dictionary::Ptr& value, const ValidationUtils& utils) override;
 
 protected:
-	virtual void OnAllConfigLoaded(void);
-	virtual void Start(void);
+	virtual void OnAllConfigLoaded(void) override;
+	virtual void Start(void) override;
 
 private:
 	static void TimerProc(void);
