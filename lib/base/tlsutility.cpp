@@ -21,6 +21,7 @@
 #include "base/convert.hpp"
 #include "base/logger.hpp"
 #include "base/context.hpp"
+#include "base/utility.hpp"
 #include "base/application.hpp"
 #include "base/exception.hpp"
 #include <fstream>
@@ -247,7 +248,7 @@ boost::shared_ptr<X509> GetX509Certificate(const String& pemfile)
 	return boost::shared_ptr<X509>(cert, X509_free);
 }
 
-int MakeX509CSR(const String& cn, const String& keyfile, const String& csrfile, const String& certfile, bool ca)
+int MakeX509CSR(const String& cn, const String& keyfile, const String& csrfile, const String& certfile, const String& serialfile, bool ca)
 {
 	char errbuf[120];
 
@@ -291,7 +292,7 @@ int MakeX509CSR(const String& cn, const String& keyfile, const String& csrfile, 
 		X509_NAME *subject = X509_NAME_new();
 		X509_NAME_add_entry_by_txt(subject, "CN", MBSTRING_ASC, (unsigned char *)cn.CStr(), -1, -1, 0);
 
-		boost::shared_ptr<X509> cert = CreateCert(key, subject, subject, key, ca);
+		boost::shared_ptr<X509> cert = CreateCert(key, subject, subject, key, ca, serialfile);
 
 		X509_NAME_free(subject);
 
@@ -379,16 +380,18 @@ boost::shared_ptr<X509> CreateCert(EVP_PKEY *pubkey, X509_NAME *subject, X509_NA
 	X509_set_subject_name(cert, subject);
 	X509_set_issuer_name(cert, issuer);
 
+	int serial = 1;
+
 	if (!serialfile.IsEmpty()) {
-		int serial = 0;
+		if (Utility::PathExists(serialfile)) {
+			std::ifstream ifp;
+			ifp.open(serialfile.CStr());
+			ifp >> std::hex >> serial;
+			ifp.close();
 
-		std::ifstream ifp;
-		ifp.open(serialfile.CStr());
-		ifp >> std::hex >> serial;
-		ifp.close();
-
-		if (ifp.fail())
-			BOOST_THROW_EXCEPTION(std::runtime_error("Could not read serial file."));
+			if (ifp.fail())
+				BOOST_THROW_EXCEPTION(std::runtime_error("Could not read serial file."));
+		}
 
 		std::ofstream ofp;
 		ofp.open(serialfile.CStr());
@@ -397,22 +400,28 @@ boost::shared_ptr<X509> CreateCert(EVP_PKEY *pubkey, X509_NAME *subject, X509_NA
 
 		if (ofp.fail())
 			BOOST_THROW_EXCEPTION(std::runtime_error("Could not update serial file."));
-
-		ASN1_INTEGER_set(X509_get_serialNumber(cert), serial);
 	}
 
-	if (ca) {
-		X509_EXTENSION *ext;
-		X509V3_CTX ctx;
-		X509V3_set_ctx_nodb(&ctx);
-		X509V3_set_ctx(&ctx, cert, cert, NULL, NULL, 0);
-		ext = X509V3_EXT_conf_nid(NULL, &ctx, NID_basic_constraints, const_cast<char *>("critical,CA:TRUE"));
+	ASN1_INTEGER_set(X509_get_serialNumber(cert), serial);
 
-		if (ext)
-			X509_add_ext(cert, ext, -1);
+	X509_EXTENSION *ext;
+	X509V3_CTX ctx;
+	X509V3_set_ctx_nodb(&ctx);
+	X509V3_set_ctx(&ctx, cert, cert, NULL, NULL, 0);
 
-		X509_EXTENSION_free(ext);
-	}
+	const char *attr;
+
+	if (ca)
+		attr = "critical,CA:TRUE";
+	else
+		attr = "critical,CA:FALSE";
+
+	ext = X509V3_EXT_conf_nid(NULL, &ctx, NID_basic_constraints, const_cast<char *>(attr));
+
+	if (ext)
+		X509_add_ext(cert, ext, -1);
+
+	X509_EXTENSION_free(ext);
 
 	X509_sign(cert, cakey, EVP_sha256());
 
