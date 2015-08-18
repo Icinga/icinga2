@@ -130,8 +130,13 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 
 	path += "/" + EscapeName(fullName) + ".conf";
 	
+	Dictionary::Ptr allAttrs = new Dictionary();
+	attrs->CopyTo(allAttrs);
+	nameParts->CopyTo(allAttrs);
+	allAttrs->Remove("name");
+
 	ConfigWriter::Ptr cw = new ConfigWriter(path);
-	cw->EmitConfigItem(type->GetName(), name, false, templates, attrs);
+	cw->EmitConfigItem(type->GetName(), name, false, templates, allAttrs);
 	cw->EmitRaw("\n");
 	
 	return true;
