@@ -118,6 +118,14 @@ std::vector<ConfigObject::Ptr> FilterUtility::GetFilterTargets(const QueryDescri
 		ScriptFrame frame;
 		frame.Sandboxed = true;
 
+		Dictionary::Ptr filter_vars = query->Get("filter_vars");
+		if (filter_vars) {
+			ObjectLock olock(filter_vars);
+			BOOST_FOREACH(const Dictionary::Pair& kv, filter_vars) {
+				frame.Locals->Set(kv.first, kv.second);
+			}
+		}
+
 		String varName = utype->GetName();
 		boost::algorithm::to_lower(varName);
 
