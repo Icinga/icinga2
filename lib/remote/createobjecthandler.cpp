@@ -61,6 +61,7 @@ bool CreateObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 	builder->SetType(type->GetName());
 	builder->SetName(name);
 	builder->SetScope(ScriptGlobal::GetGlobals());
+	builder->SetModule("_api");
 
 	Array::Ptr templates = params->Get("templates");
 

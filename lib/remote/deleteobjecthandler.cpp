@@ -65,6 +65,13 @@ bool DeleteObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 		Dictionary::Ptr result1 = new Dictionary();
 		result1->Set("type", type->GetName());
 		result1->Set("name", obj->GetName());
+		results->Add(result1);
+
+		if (obj->GetModule() != "_api") {
+			result1->Set("code", 500);
+			result1->Set("status", "Object cannot be deleted because it was not created using the API.");
+			continue;
+		}
 
 		ConfigItem::Ptr item = ConfigItem::GetObject(type->GetName(), obj->GetName());
 
@@ -82,8 +89,6 @@ bool DeleteObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 			result1->Set("code", 500);
 			result1->Set("status", "Object could not be deleted: " + DiagnosticInformation(ex));
 		}
-
-		results->Add(result1);
 	}
 
 	Dictionary::Ptr result = new Dictionary();
