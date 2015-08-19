@@ -387,18 +387,9 @@ String Utility::NewUniqueID(void)
 	return id;
 }
 
-/**
- * Calls the specified callback for each file matching the path specification.
- *
- * @param pathSpec The path specification.
- * @param callback The callback which is invoked for each matching file.
- * @param type The file type (a combination of GlobFile and GlobDirectory)
- */
-bool Utility::Glob(const String& pathSpec, const boost::function<void (const String&)>& callback, int type)
-{
-	std::vector<String> files, dirs;
-
 #ifdef _WIN32
+static bool GlobHelper(const String& pathSpec, int type, std::vector<String>& files, std::vector<String>& dirs)
+{
 	HANDLE handle;
 	WIN32_FIND_DATA wfd;
 
@@ -411,16 +402,16 @@ bool Utility::Glob(const String& pathSpec, const boost::function<void (const Str
 			return false;
 
 		BOOST_THROW_EXCEPTION(win32_error()
-		    << boost::errinfo_api_function("FindFirstFile")
+			<< boost::errinfo_api_function("FindFirstFile")
 			<< errinfo_win32_error(errorCode)
-		    << boost::errinfo_file_name(pathSpec));
+			<< boost::errinfo_file_name(pathSpec));
 	}
 
 	do {
 		if (strcmp(wfd.cFileName, ".") == 0 || strcmp(wfd.cFileName, "..") == 0)
 			continue;
 
-		String path = DirName(pathSpec) + "/" + wfd.cFileName;
+		String path = Utility::DirName(pathSpec) + "/" + wfd.cFileName;
 
 		if ((wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && (type & GlobDirectory))
 			dirs.push_back(path);
@@ -430,9 +421,65 @@ bool Utility::Glob(const String& pathSpec, const boost::function<void (const Str
 
 	if (!FindClose(handle)) {
 		BOOST_THROW_EXCEPTION(win32_error()
-		    << boost::errinfo_api_function("FindClose")
-		    << errinfo_win32_error(GetLastError()));
+			<< boost::errinfo_api_function("FindClose")
+			<< errinfo_win32_error(GetLastError()));
 	}
+
+	return true;
+}
+#endif /* _WIN32 */
+
+/**
+ * Calls the specified callback for each file matching the path specification.
+ *
+ * @param pathSpec The path specification.
+ * @param callback The callback which is invoked for each matching file.
+ * @param type The file type (a combination of GlobFile and GlobDirectory)
+ */
+bool Utility::Glob(const String& pathSpec, const boost::function<void (const String&)>& callback, int type)
+{
+	std::vector<String> files, dirs;
+
+#ifdef _WIN32
+	std::vector<String> tokens;
+	boost::algorithm::split(tokens, pathSpec, boost::is_any_of("\\/"));
+
+	String part1;
+
+	for (std::vector<String>::size_type i = 0; i < tokens.size() - 1; i++) {
+		const String& token = tokens[i];
+
+		if (!part1.IsEmpty())
+			part1 += "/";
+
+		part1 += token;
+
+		if (token.FindFirstOf("?*") != String::NPos) {
+			String part2;
+
+			for (std::vector<String>::size_type k = i + 1; k < tokens.size(); k++) {
+				if (!part2.IsEmpty())
+					part2 += "/";
+
+				part2 += tokens[k];
+			}
+
+			std::vector<String> files2, dirs2;
+
+			if (!GlobHelper(part1, GlobDirectory, files2, dirs2))
+				return false;
+
+			BOOST_FOREACH(const String& dir, dirs2) {
+				if (!Utility::Glob(dir + "/" + part2, callback, type))
+					return false;
+			}
+
+			return true;
+		}
+	}
+
+	if (!GlobHelper(part1 + "/" + tokens[tokens.size() - 1], type, files, dirs))
+		return false;
 #else /* _WIN32 */
 	glob_t gr;
 
