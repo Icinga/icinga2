@@ -40,10 +40,10 @@ public:
 	static Dictionary::Ptr AcknowledgeProblem(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
 	static Dictionary::Ptr RemoveAcknowledgement(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
 	static Dictionary::Ptr AddComment(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
-/*	static Dictionary::Ptr RemoveComment(const ConfigObject::Ptr& object, const Dictionary::Ptr& params); */
+	static Dictionary::Ptr RemoveComment(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
 	static Dictionary::Ptr RemoveAllComments(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
 	static Dictionary::Ptr ScheduleDowntime(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
-/*	static Dictionary::Ptr RemoveDowntime(const ConfigObject::Ptr& object, const Dictionary::Ptr& params); */
+	static Dictionary::Ptr RemoveDowntime(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
 
 	static Dictionary::Ptr EnablePassiveChecks(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
 	static Dictionary::Ptr DisablePassiveChecks(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
@@ -61,23 +61,22 @@ public:
 	static Dictionary::Ptr ChangeRetryInterval(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
 	static Dictionary::Ptr ChangeCheckPeriod(const ConfigObject::Ptr& object, const Dictionary::Ptr& params); */
 
-/*	static Dictionary::Ptr ApiActions::EnableNotifications(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
-	static Dictionary::Ptr ApiActions::DisableNotifications(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
-	static Dictionary::Ptr ApiActions::EnableFlapDetection(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
-	static Dictionary::Ptr ApiActions::DisableFlapDetection(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
-	static Dictionary::Ptr ApiActions::EnableEventHandlers(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
-	static Dictionary::Ptr ApiActions::DisableEventHandlers(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
-	static Dictionary::Ptr ApiActions::EnablePerformanceData(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
-	static Dictionary::Ptr ApiActions::DisablePerformanceData(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
-	static Dictionary::Ptr ApiActions::StartExecutingSvcChecks(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
-	static Dictionary::Ptr ApiActions::StopExecutingSvcChecks(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
-	static Dictionary::Ptr ApiActions::StartExecutingHostChecks(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
-	static Dictionary::Ptr ApiActions::StopExecutingHostChecks(const ConfigObject::Ptr& object, const Dictionary::Ptr& params); */
+	static Dictionary::Ptr EnableGlobalNotifications(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
+	static Dictionary::Ptr DisableGlobalNotifications(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
+	static Dictionary::Ptr EnableGlobalFlapDetection(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
+	static Dictionary::Ptr DisableGlobalFlapDetection(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
+	static Dictionary::Ptr EnableGlobalEventHandlers(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
+	static Dictionary::Ptr DisableGlobalEventHandlers(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
+	static Dictionary::Ptr EnableGlobalPerformanceData(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
+	static Dictionary::Ptr DisableGlobalPerformanceData(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
+	static Dictionary::Ptr StartGlobalExecutingSvcChecks(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
+	static Dictionary::Ptr StopGlobalExecutingSvcChecks(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
+	static Dictionary::Ptr StartGlobalExecutingHostChecks(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
+	static Dictionary::Ptr StopGlobalExecutingHostChecks(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
 
-/*
-	static Dictionary::Ptr ApiActions::ShutdownProcess(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
-	static Dictionary::Ptr ApiActions::RestartProcess(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
-	static Dictionary::Ptr ApiActions::ProcessFile(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
+/*	static Dictionary::Ptr ShutdownProcess(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
+	static Dictionary::Ptr RestartProcess(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
+	static Dictionary::Ptr ProcessFile(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
 	*/
 
 private:
