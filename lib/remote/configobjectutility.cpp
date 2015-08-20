@@ -19,7 +19,7 @@
 
 #include "remote/configobjectutility.hpp"
 #include "remote/configpackageutility.hpp"
-#include "config/configitembuilder.hpp"
+#include "config/configcompiler.hpp"
 #include "config/configitem.hpp"
 #include "config/configwriter.hpp"
 #include "base/exception.hpp"
@@ -37,13 +37,22 @@ String ConfigObjectUtility::GetConfigDir(void)
 	    ConfigPackageUtility::GetActiveStage("_api");
 }
 
+String ConfigObjectUtility::GetObjectConfigPath(const Type::Ptr& type, const String& fullName)
+{
+	String typeDir = type->GetPluralName();
+	boost::algorithm::to_lower(typeDir);
+
+	return GetConfigDir() + "/conf.d/" + typeDir +
+	    "/" + EscapeName(fullName) + ".conf";
+}
+
 String ConfigObjectUtility::EscapeName(const String& name)
 {
 	return Utility::EscapeString(name, "<>:\"/\\|?*", true);
 }
 
-bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& fullName,
-    const Array::Ptr& templates, const Dictionary::Ptr& attrs, const Array::Ptr& errors)
+String ConfigObjectUtility::CreateObjectConfig(const Type::Ptr& type, const String& fullName,
+    const Array::Ptr& templates, const Dictionary::Ptr& attrs)
 {
 	NameComposer *nc = dynamic_cast<NameComposer *>(type.get());
 	Dictionary::Ptr nameParts;
@@ -55,48 +64,47 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 	} else
 		name = fullName;
 
-	ConfigItemBuilder::Ptr builder = new ConfigItemBuilder();
-	builder->SetType(type->GetName());
-	builder->SetName(name);
-	builder->SetScope(ScriptGlobal::GetGlobals());
-	builder->SetPackage("_api");
+	Dictionary::Ptr allAttrs = new Dictionary();
 
-	if (templates) {
-		ObjectLock olock(templates);
-		BOOST_FOREACH(const String& tmpl, templates) {
-			ImportExpression *expr = new ImportExpression(MakeLiteral(tmpl));
-			builder->AddExpression(expr);
-		}
+	if (attrs)
+		attrs->CopyTo(allAttrs);
+
+	if (nameParts)
+		nameParts->CopyTo(allAttrs);
+
+	allAttrs->Remove("name");
+
+	std::ostringstream config;
+	ConfigWriter::EmitConfigItem(config, type->GetName(), name, false, templates, allAttrs);
+	ConfigWriter::EmitRaw(config, "\n");
+
+    	return config.str();
+}
+
+bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& fullName,
+    const String& config, const Array::Ptr& errors)
+{
+	if (!ConfigPackageUtility::PackageExists("_api")) {
+		ConfigPackageUtility::CreatePackage("_api");
+
+		String stage = ConfigPackageUtility::CreateStage("_api");
+		ConfigPackageUtility::ActivateStage("_api", stage);
 	}
 
-	if (nameParts) {
-		ObjectLock olock(nameParts);
-		BOOST_FOREACH(const Dictionary::Pair& kv, nameParts) {
-			SetExpression *expr = new SetExpression(MakeIndexer(ScopeThis, kv.first), OpSetLiteral, MakeLiteral(kv.second));
-			builder->AddExpression(expr);
-		}
-	}
+	String path = GetObjectConfigPath(type, fullName);
+	Utility::MkDirP(Utility::DirName(path), 0700);
 
-	if (attrs) {
-		ObjectLock olock(attrs);
-		BOOST_FOREACH(const Dictionary::Pair& kv, attrs) {
-			std::vector<String> tokens;
-			boost::algorithm::split(tokens, kv.first, boost::is_any_of("."));
-			
-			Expression *expr = new GetScopeExpression(ScopeThis);
-			
-			BOOST_FOREACH(const String& val, tokens) {
-				expr = new IndexerExpression(expr, MakeLiteral(val));
-			}
-			
-			SetExpression *aexpr = new SetExpression(expr, OpSetLiteral, MakeLiteral(kv.second));
-			builder->AddExpression(aexpr);
-		}
-	}
-	
+	std::ofstream fp(path.CStr(), std::ofstream::out | std::ostream::trunc);
+	fp << config;
+	fp.close();
+
+	Expression *expr = ConfigCompiler::CompileFile(path, String(), "_api");
+
 	try {
-		ConfigItem::Ptr item = builder->Compile();
-		item->Register();
+		ScriptFrame frame;
+		expr->Evaluate(frame);
+		delete expr;
+		expr = NULL;
 
 		WorkQueue upq;
 
@@ -106,43 +114,18 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 					errors->Add(DiagnosticInformation(ex));
 				}
 			}
-			
+
 			return false;
 		}
 	} catch (const std::exception& ex) {
+		delete expr;
+
 		if (errors)
 			errors->Add(DiagnosticInformation(ex));
-			
+
 		return false;
 	}
-	
-	if (!ConfigPackageUtility::PackageExists("_api")) {
-		ConfigPackageUtility::CreatePackage("_api");
-	
-		String stage = ConfigPackageUtility::CreateStage("_api");
-		ConfigPackageUtility::ActivateStage("_api", stage);
-	} 
-	
-	String typeDir = type->GetPluralName();
-	boost::algorithm::to_lower(typeDir);
-	
-	String path = GetConfigDir() + "/conf.d/" + typeDir;
-	Utility::MkDirP(path, 0700);
 
-	path += "/" + EscapeName(fullName) + ".conf";
-	
-	Dictionary::Ptr allAttrs = new Dictionary();
-	attrs->CopyTo(allAttrs);
-
-	if (nameParts)
-		nameParts->CopyTo(allAttrs);
-
-	allAttrs->Remove("name");
-
-	ConfigWriter::Ptr cw = new ConfigWriter(path);
-	cw->EmitConfigItem(type->GetName(), name, false, templates, allAttrs);
-	cw->EmitRaw("\n");
-	
 	return true;
 }
 
@@ -168,7 +151,7 @@ bool ConfigObjectUtility::DeleteObjectHelper(const ConfigObject::Ptr& object, bo
 
 	Type::Ptr type = object->GetReflectionType();
 
-	ConfigItem::Ptr item = ConfigItem::GetObject(type->GetName(), object->GetName());
+	ConfigItem::Ptr item = ConfigItem::GetByTypeAndName(type->GetName(), object->GetName());
 
 	try {
 		object->Deactivate();
@@ -181,16 +164,12 @@ bool ConfigObjectUtility::DeleteObjectHelper(const ConfigObject::Ptr& object, bo
 	} catch (const std::exception& ex) {
 		if (errors)
 			errors->Add(DiagnosticInformation(ex));
-			
+
 		return false;
 	}
 
-	String typeDir = type->GetPluralName();
-	boost::algorithm::to_lower(typeDir);
-	
-	String path = GetConfigDir() + "/conf.d/" + typeDir +
-	    "/" + EscapeName(object->GetName()) + ".conf";
-	
+	String path = GetObjectConfigPath(object->GetReflectionType(), object->GetName());
+
 	if (Utility::PathExists(path)) {
 		if (unlink(path.CStr()) < 0) {
 			BOOST_THROW_EXCEPTION(posix_error()

@@ -321,7 +321,7 @@ int Main(void)
 
 			std::cout << appName << " " << "- The Icinga 2 network monitoring daemon (version: "
 			    << ConsoleColorTag(vm.count("version") ? Console_ForegroundRed : Console_Normal)
-			    << Application::GetVersion()
+			    << Application::GetAppVersion()
 #ifdef I2_DEBUG
 			    << "; debug"
 #endif /* I2_DEBUG */
@@ -384,10 +384,10 @@ int Main(void)
 		Logger::DisableTimestamp(true);
 #ifndef _WIN32
 		if (command->GetImpersonationLevel() == ImpersonateRoot) {
-			if (getuid() != 0) {
+			/*if (getuid() != 0) {
 				Log(LogCritical, "cli", "This command must be run as root.");
 				return 0;
-			}
+			}*/
 		} else if (command && command->GetImpersonationLevel() == ImpersonateIcinga) {
 			String group = Application::GetRunAsGroup();
 			String user = Application::GetRunAsUser();

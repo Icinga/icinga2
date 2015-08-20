@@ -724,7 +724,7 @@ ExpressionResult ImportExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhi
 	if (!name.IsString())
 		BOOST_THROW_EXCEPTION(ScriptError("Template/object name must be a string", m_DebugInfo));
 
-	ConfigItem::Ptr item = ConfigItem::GetObject(type, name);
+	ConfigItem::Ptr item = ConfigItem::GetByTypeAndName(type, name);
 
 	if (!item)
 		BOOST_THROW_EXCEPTION(ScriptError("Import references unknown template: '" + name + "'", m_DebugInfo));

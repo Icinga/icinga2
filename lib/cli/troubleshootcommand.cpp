@@ -148,7 +148,7 @@ bool TroubleshootCommand::GeneralInfo(InfoLog& log, const boost::program_options
 
 	//Application::DisplayInfoMessage() but formatted
 	InfoLogLine(log)
-	    << "\tApplication version: " << Application::GetVersion() << '\n'
+	    << "\tApplication version: " << Application::GetAppVersion() << '\n'
 	    << "\tInstallation root: " << Application::GetPrefixDir() << '\n'
 	    << "\tSysconf directory: " << Application::GetSysconfDir() << '\n'
 	    << "\tRun directory: " << Application::GetRunDir() << '\n'

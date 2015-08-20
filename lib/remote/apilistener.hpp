@@ -46,6 +46,8 @@ public:
 	DECLARE_OBJECT(ApiListener);
 	DECLARE_OBJECTNAME(ApiListener);
 
+	static void StaticInitialize(void);
+	
 	static boost::signals2::signal<void(bool)> OnMasterChanged;
 
 	ApiListener(void);
@@ -73,8 +75,14 @@ public:
 	void RemoveHttpClient(const HttpServerConnection::Ptr& aclient);
 	std::set<HttpServerConnection::Ptr> GetHttpClients(void) const;
 
+	/* filesync */
 	static Value ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
-
+	
+	/* configsync */
+	static void ConfigUpdateObjectHandler(const ConfigObject::Ptr& object, const Value& cookie);
+	static Value ConfigUpdateObjectAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
+	static Value ConfigDeleteObjectAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
+	
 	static Value HelloAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
 protected:
 	virtual void OnConfigLoaded(void) override;
@@ -121,6 +129,9 @@ private:
 	static bool IsConfigMaster(const Zone::Ptr& zone);
 	static void ConfigGlobHandler(Dictionary::Ptr& config, const String& path, const String& file);
 	void SendConfigUpdate(const JsonRpcConnection::Ptr& aclient);
+	
+	void UpdateConfigObject(const ConfigObject::Ptr& object, const MessageOrigin::Ptr& origin,
+	    const JsonRpcConnection::Ptr& client = JsonRpcConnection::Ptr());
 };
 
 }

@@ -217,12 +217,12 @@ Value StatusTable::NumServicesAccessor(const Value&)
 
 Value StatusTable::ProgramVersionAccessor(const Value&)
 {
-	return Application::GetVersion();
+	return Application::GetAppVersion();
 }
 
 Value StatusTable::LivestatusVersionAccessor(const Value&)
 {
-	return Application::GetVersion();
+	return Application::GetAppVersion();
 }
 
 Value StatusTable::LivestatusActiveConnectionsAccessor(const Value&)

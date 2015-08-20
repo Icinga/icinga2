@@ -591,7 +591,7 @@ void Application::DisplayInfoMessage(std::ostream& os, bool skipVersion)
 	os << "Application information:" << "\n";
 
 	if (!skipVersion)
-		os << "  Application version: " << GetVersion() << "\n";
+		os << "  Application version: " << GetAppVersion() << "\n";
 
 	os << "  Installation root: " << GetPrefixDir() << "\n"
 	   << "  Sysconf directory: " << GetSysconfDir() << "\n"

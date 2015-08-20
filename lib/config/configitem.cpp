@@ -115,6 +115,11 @@ Dictionary::Ptr ConfigItem::GetScope(void) const
 	return m_Scope;
 }
 
+ConfigObject::Ptr ConfigItem::GetObject(void) const
+{
+	return m_Object;
+}
+
 /**
  * Retrieves the expression list for the configuration item.
  *
@@ -140,7 +145,7 @@ class DefaultValidationUtils : public ValidationUtils
 public:
 	virtual bool ValidateName(const String& type, const String& name) const override
 	{
-		return ConfigItem::GetObject(type, name) != ConfigItem::Ptr();
+		return ConfigItem::GetByTypeAndName(type, name) != ConfigItem::Ptr();
 	}
 };
 
@@ -302,7 +307,7 @@ void ConfigItem::Unregister(void)
  * @param name The name of the ConfigItem that is to be looked up.
  * @returns The configuration item.
  */
-ConfigItem::Ptr ConfigItem::GetObject(const String& type, const String& name)
+ConfigItem::Ptr ConfigItem::GetByTypeAndName(const String& type, const String& name)
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
 

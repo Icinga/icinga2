@@ -81,7 +81,7 @@ void IcingaApplication::StatsFunc(const Dictionary::Ptr& status, const Array::Pt
 		stats->Set("enable_perfdata", icingaapplication->GetEnablePerfdata());
 		stats->Set("pid", Utility::GetPid());
 		stats->Set("program_start", Application::GetStartTime());
-		stats->Set("version", Application::GetVersion());
+		stats->Set("version", Application::GetAppVersion());
 
 		nodes->Set(icingaapplication->GetName(), stats);
 	}
@@ -139,30 +139,33 @@ void IcingaApplication::OnShutdown(void)
 	DumpProgramState();
 }
 
-static void PersistModAttrHelper(const ConfigWriter::Ptr& cw, ConfigObject::Ptr& previousObject, const ConfigObject::Ptr& object, const String& attr, const Value& value)
+static void PersistModAttrHelper(std::ofstream& fp, ConfigObject::Ptr& previousObject, const ConfigObject::Ptr& object, const String& attr, const Value& value)
 {
 	if (object != previousObject) {
-		if (previousObject)
-			cw->EmitRaw("}\n\n");
+		if (previousObject) {
+			ConfigWriter::EmitRaw(fp, "\tobj.version = ");
+			ConfigWriter::EmitValue(fp, 0, previousObject->GetVersion());
+			ConfigWriter::EmitRaw(fp, "\n}\n\n");
+		}
 
-		cw->EmitRaw("var obj = ");
+		ConfigWriter::EmitRaw(fp, "var obj = ");
 
 		Array::Ptr args1 = new Array();
 		args1->Add(object->GetReflectionType()->GetName());
 		args1->Add(object->GetName());
-		cw->EmitFunctionCall("get_object", args1);
+		ConfigWriter::EmitFunctionCall(fp, "get_object", args1);
 
-		cw->EmitRaw("\nif (obj) {\n");
+		ConfigWriter::EmitRaw(fp, "\nif (obj) {\n");
 	}
 
-	cw->EmitRaw("\tobj.");
+	ConfigWriter::EmitRaw(fp, "\tobj.");
 
 	Array::Ptr args2 = new Array();
 	args2->Add(attr);
 	args2->Add(value);
-	cw->EmitFunctionCall("modify_attribute", args2);
+	ConfigWriter::EmitFunctionCall(fp, "modify_attribute", args2);
 
-	cw->EmitRaw("\n");
+	ConfigWriter::EmitRaw(fp, "\n");
 
 	previousObject = object;
 }
@@ -171,12 +174,16 @@ void IcingaApplication::DumpProgramState(void)
 {
 	ConfigObject::DumpObjects(GetStatePath());
 
-	ConfigWriter::Ptr cw = new ConfigWriter(GetModAttrPath());
+	String path = GetModAttrPath();
+	std::ofstream fp(path.CStr(), std::ofstream::out | std::ostream::trunc);
 	ConfigObject::Ptr previousObject;
-	ConfigObject::DumpModifiedAttributes(boost::bind(&PersistModAttrHelper, cw, boost::ref(previousObject), _1, _2, _3));
+	ConfigObject::DumpModifiedAttributes(boost::bind(&PersistModAttrHelper, boost::ref(fp), boost::ref(previousObject), _1, _2, _3));
 
-	if (previousObject)
-		cw->EmitRaw("\n}\n");
+	if (previousObject) {
+		ConfigWriter::EmitRaw(fp, "\tobj.version = ");
+		ConfigWriter::EmitValue(fp, 0, previousObject->GetVersion());
+		ConfigWriter::EmitRaw(fp, "\n}\n");
+	}
 }
 
 IcingaApplication::Ptr IcingaApplication::GetInstance(void)

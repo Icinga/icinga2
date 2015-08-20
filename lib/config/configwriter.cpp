@@ -30,38 +30,34 @@
 
 using namespace icinga;
 
-ConfigWriter::ConfigWriter(const String& fileName)
-    : m_FP(fileName.CStr(), std::ofstream::out | std::ostream::trunc)
-{ }
-
-void ConfigWriter::EmitBoolean(bool val)
+void ConfigWriter::EmitBoolean(std::ostream& fp, bool val)
 {
-	m_FP << (val ? "true" : "false");
+	fp << (val ? "true" : "false");
 }
 
-void ConfigWriter::EmitNumber(double val)
+void ConfigWriter::EmitNumber(std::ostream& fp, double val)
 {
-	m_FP << val;
+	fp << val;
 }
 
-void ConfigWriter::EmitString(const String& val)
+void ConfigWriter::EmitString(std::ostream& fp, const String& val)
 {
-	m_FP << "\"" << EscapeIcingaString(val) << "\"";
+	fp << "\"" << EscapeIcingaString(val) << "\"";
 }
 
-void ConfigWriter::EmitEmpty(void)
+void ConfigWriter::EmitEmpty(std::ostream& fp)
 {
-	m_FP << "null";
+	fp << "null";
 }
 
-void ConfigWriter::EmitArray(const Array::Ptr& val)
+void ConfigWriter::EmitArray(std::ostream& fp, const Array::Ptr& val)
 {
-	m_FP << "[ ";
-	EmitArrayItems(val);
-	m_FP << " ]";
+	fp << "[ ";
+	EmitArrayItems(fp, val);
+	fp << " ]";
 }
 
-void ConfigWriter::EmitArrayItems(const Array::Ptr& val)
+void ConfigWriter::EmitArrayItems(std::ostream& fp, const Array::Ptr& val)
 {
 	bool first = true;
 
@@ -70,80 +66,82 @@ void ConfigWriter::EmitArrayItems(const Array::Ptr& val)
 		if (first)
 			first = false;
 		else
-			m_FP << ", ";
+			fp << ", ";
 
-		EmitValue(0, item);
+		EmitValue(fp, 0, item);
 	}
 }
 
-void ConfigWriter::EmitScope(int indentLevel, const Dictionary::Ptr& val, const Array::Ptr& imports)
+void ConfigWriter::EmitScope(std::ostream& fp, int indentLevel, const Dictionary::Ptr& val, const Array::Ptr& imports)
 {
-	m_FP << "{";
+	fp << "{";
 
 	if (imports && imports->GetLength() > 0) {
 		ObjectLock xlock(imports);
 		BOOST_FOREACH(const Value& import, imports) {
-			m_FP << "\n";
-			EmitIndent(indentLevel);
-			m_FP << "import \"" << import << "\"";
+			fp << "\n";
+			EmitIndent(fp, indentLevel);
+			fp << "import \"" << import << "\"";
 		}
 
-		m_FP << "\n";
+		fp << "\n";
 	}
 
-	ObjectLock olock(val);
-	BOOST_FOREACH(const Dictionary::Pair& kv, val) {
-		m_FP << "\n";
-		EmitIndent(indentLevel);
-		
-		std::vector<String> tokens;
-		boost::algorithm::split(tokens, kv.first, boost::is_any_of("."));
-		
-		EmitIdentifier(tokens[0], true);
-		
-		for (std::vector<String>::size_type i = 1; i < tokens.size(); i++) {
-			m_FP << "[";
-			EmitString(tokens[i]);
-			m_FP << "]";
+	if (val) {
+		ObjectLock olock(val);
+		BOOST_FOREACH(const Dictionary::Pair& kv, val) {
+			fp << "\n";
+			EmitIndent(fp, indentLevel);
+			
+			std::vector<String> tokens;
+			boost::algorithm::split(tokens, kv.first, boost::is_any_of("."));
+			
+			EmitIdentifier(fp, tokens[0], true);
+			
+			for (std::vector<String>::size_type i = 1; i < tokens.size(); i++) {
+				fp << "[";
+				EmitString(fp, tokens[i]);
+				fp << "]";
+			}
+			
+			fp << " = ";
+			EmitValue(fp, indentLevel + 1, kv.second);
 		}
-		
-		m_FP << " = ";
-		EmitValue(indentLevel + 1, kv.second);
 	}
 
-	m_FP << "\n";
-	EmitIndent(indentLevel - 1);
-	m_FP << "}";
+	fp << "\n";
+	EmitIndent(fp, indentLevel - 1);
+	fp << "}";
 }
 
-void ConfigWriter::EmitValue(int indentLevel, const Value& val)
+void ConfigWriter::EmitValue(std::ostream& fp, int indentLevel, const Value& val)
 {
 	if (val.IsObjectType<Array>())
-		EmitArray(val);
+		EmitArray(fp, val);
 	else if (val.IsObjectType<Dictionary>())
-		EmitScope(indentLevel, val);
+		EmitScope(fp, indentLevel, val);
 	else if (val.IsString())
-		EmitString(val);
+		EmitString(fp, val);
 	else if (val.IsNumber())
-		EmitNumber(val);
+		EmitNumber(fp, val);
 	else if (val.IsBoolean())
-		EmitBoolean(val);
+		EmitBoolean(fp, val);
 	else if (val.IsEmpty())
-		EmitEmpty();
+		EmitEmpty(fp);
 }
 
-void ConfigWriter::EmitRaw(const String& val)
+void ConfigWriter::EmitRaw(std::ostream& fp, const String& val)
 {
-	m_FP << val;
+	fp << val;
 }
 
-void ConfigWriter::EmitIndent(int indentLevel)
+void ConfigWriter::EmitIndent(std::ostream& fp, int indentLevel)
 {
 	for (int i = 0; i < indentLevel; i++)
-		m_FP << "\t";
+		fp << "\t";
 }
 
-void ConfigWriter::EmitIdentifier(const String& identifier, bool inAssignment)
+void ConfigWriter::EmitIdentifier(std::ostream& fp, const String& identifier, bool inAssignment)
 {
 	static std::set<String> keywords;
 	if (keywords.empty()) {
@@ -152,46 +150,46 @@ void ConfigWriter::EmitIdentifier(const String& identifier, bool inAssignment)
 	}
 
 	if (keywords.find(identifier) != keywords.end()) {
-		m_FP << "@" << identifier;
+		fp << "@" << identifier;
 		return;
 	}
 
 	boost::regex expr("^[a-zA-Z_][a-zA-Z0-9\\_]*$");
 	boost::smatch what;
 	if (boost::regex_search(identifier.GetData(), what, expr))
-		m_FP << identifier;
+		fp << identifier;
 	else if (inAssignment)
-		EmitString(identifier);
+		EmitString(fp, identifier);
 	else
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid identifier"));
 }
 
-void ConfigWriter::EmitConfigItem(const String& type, const String& name, bool isTemplate,
+void ConfigWriter::EmitConfigItem(std::ostream& fp, const String& type, const String& name, bool isTemplate,
     const Array::Ptr& imports, const Dictionary::Ptr& attrs)
 {
 	if (isTemplate)
-		m_FP << "template ";
+		fp << "template ";
 	else
-		m_FP << "object ";
+		fp << "object ";
 
-	EmitIdentifier(type, false);
-	m_FP << " ";
-	EmitString(name);
-	m_FP << " ";
-	EmitScope(1, attrs, imports);
+	EmitIdentifier(fp, type, false);
+	fp << " ";
+	EmitString(fp, name);
+	fp << " ";
+	EmitScope(fp, 1, attrs, imports);
 }
 
-void ConfigWriter::EmitComment(const String& text)
+void ConfigWriter::EmitComment(std::ostream& fp, const String& text)
 {
-	m_FP << "/* " << text << " */\n";
+	fp << "/* " << text << " */\n";
 }
 
-void ConfigWriter::EmitFunctionCall(const String& name, const Array::Ptr& arguments)
+void ConfigWriter::EmitFunctionCall(std::ostream& fp, const String& name, const Array::Ptr& arguments)
 {
-	EmitIdentifier(name, false);
-	m_FP << "(";
-	EmitArrayItems(arguments);
-	m_FP << ")";
+	EmitIdentifier(fp, name, false);
+	fp << "(";
+	EmitArrayItems(fp, arguments);
+	fp << ")";
 }
 
 String ConfigWriter::EscapeIcingaString(const String& str)

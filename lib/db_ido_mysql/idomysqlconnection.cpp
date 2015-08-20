@@ -331,7 +331,7 @@ void IdoMysqlConnection::Reconnect(void)
 	/* record connection */
 	Query("INSERT INTO " + GetTablePrefix() + "conninfo " +
 	    "(instance_id, connect_time, last_checkin_time, agent_name, agent_version, connect_type, data_start_time) VALUES ("
-	    + Convert::ToString(static_cast<long>(m_InstanceID)) + ", NOW(), NOW(), 'icinga2 db_ido_mysql', '" + Escape(Application::GetVersion())
+	    + Convert::ToString(static_cast<long>(m_InstanceID)) + ", NOW(), NOW(), 'icinga2 db_ido_mysql', '" + Escape(Application::GetAppVersion())
 	    + "', '" + (reconnect ? "RECONNECT" : "INITIAL") + "', NOW())");
 
 	/* clear config tables for the initial config dump */

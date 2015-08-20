@@ -184,6 +184,7 @@ void ConfigObject::ModifyAttribute(const String& attr, const Value& value)
 	ValidateField(fid, newValue, utils);
 
 	SetField(fid, newValue);
+	SetVersion(GetVersion() + 1);
 
 	if (updated_original_attributes)
 		NotifyOriginalAttributes();

@@ -52,7 +52,9 @@ bool CreateObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 	String status;
 	Array::Ptr errors = new Array();
 	
-	if (!ConfigObjectUtility::CreateObject(type, name, templates, attrs, errors)) {
+	String config = ConfigObjectUtility::CreateObjectConfig(type, name, templates, attrs);
+	
+	if (!ConfigObjectUtility::CreateObject(type, name, config, errors)) {
 		result1->Set("errors", errors);
 		code = 500;
 		status = "Object could not be created.";

@@ -22,7 +22,7 @@
 
 using namespace icinga;
 
-String Application::GetVersion(void)
+String Application::GetAppVersion(void)
 {
 	return VERSION;
 }

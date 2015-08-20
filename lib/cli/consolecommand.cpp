@@ -186,7 +186,7 @@ int ConsoleCommand::Run(const po::variables_map& vm, const std::vector<std::stri
 		scriptFrame.Sandboxed = true;
 	}
 
-	std::cout << "Icinga (version: " << Application::GetVersion() << ")\n";
+	std::cout << "Icinga (version: " << Application::GetAppVersion() << ")\n";
 
 	while (std::cin.good()) {
 		String fileName = "<" + Convert::ToString(next_line) + ">";

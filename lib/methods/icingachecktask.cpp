@@ -97,7 +97,7 @@ void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& service, const CheckResul
 	perfdata->Add(new PerfdataValue("num_hosts_acknowledged", hs.hosts_acknowledged));
 
 	cr->SetOutput("Icinga 2 has been running for " + Utility::FormatDuration(uptime) +
-	    ". Version: " + Application::GetVersion());
+	    ". Version: " + Application::GetAppVersion());
 	cr->SetPerformanceData(perfdata);
 	cr->SetState(ServiceOK);
 

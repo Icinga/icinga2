@@ -34,34 +34,30 @@ namespace icinga
  *
  * @ingroup config
  */
-class I2_CONFIG_API ConfigWriter : public Object
+class I2_CONFIG_API ConfigWriter
 {
 public:
-	DECLARE_PTR_TYPEDEFS(ConfigWriter);
+	static void EmitBoolean(std::ostream& fp, bool val);
+	static void EmitNumber(std::ostream& fp, double val);
+	static void EmitString(std::ostream& fp, const String& val);
+	static void EmitEmpty(std::ostream& fp);
+	static void EmitArray(std::ostream& fp, const Array::Ptr& val);
+	static void EmitArrayItems(std::ostream& fp, const Array::Ptr& val);
+	static void EmitDictionary(std::ostream& fp, const Dictionary::Ptr& val);
+	static void EmitScope(std::ostream& fp, int indentLevel, const Dictionary::Ptr& val, const Array::Ptr& imports = Array::Ptr());
+	static void EmitValue(std::ostream& fp, int indentLevel, const Value& val);
+	static void EmitRaw(std::ostream& fp, const String& val);
+	static void EmitIndent(std::ostream& fp, int indentLevel);
 
-	ConfigWriter(const String& fileName);
-
-	void EmitBoolean(bool val);
-	void EmitNumber(double val);
-	void EmitString(const String& val);
-	void EmitEmpty(void);
-	void EmitArray(const Array::Ptr& val);
-	void EmitArrayItems(const Array::Ptr& val);
-	void EmitDictionary(const Dictionary::Ptr& val);
-	void EmitScope(int indentLevel, const Dictionary::Ptr& val, const Array::Ptr& imports = Array::Ptr());
-	void EmitValue(int indentLevel, const Value& val);
-	void EmitRaw(const String& val);
-	void EmitIndent(int indentLevel);
-
-	void EmitIdentifier(const String& identifier, bool inAssignment);
-	void EmitConfigItem(const String& type, const String& name, bool isTemplate,
+	static void EmitIdentifier(std::ostream& fp, const String& identifier, bool inAssignment);
+	static void EmitConfigItem(std::ostream& fp, const String& type, const String& name, bool isTemplate,
 	    const Array::Ptr& imports, const Dictionary::Ptr& attrs);
 
-	void EmitComment(const String& text);
-	void EmitFunctionCall(const String& name, const Array::Ptr& arguments);
+	static void EmitComment(std::ostream& fp, const String& text);
+	static void EmitFunctionCall(std::ostream& fp, const String& name, const Array::Ptr& arguments);
 
 private:
-	std::ofstream m_FP;
+	ConfigWriter(void);
 
 	static String EscapeIcingaString(const String& str);
 };

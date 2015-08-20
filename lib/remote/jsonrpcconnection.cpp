@@ -104,8 +104,6 @@ void JsonRpcConnection::SendMessageSync(const Dictionary::Ptr& message)
 		std::ostringstream info;
 		info << "Error while sending JSON-RPC message for identity '" << m_Identity << "'";
 		Log(LogWarning, "JsonRpcConnection")
-		    << info.str();
-		Log(LogDebug, "JsonRpcConnection")
 		    << info.str() << "\n" << DiagnosticInformation(ex);
 
 		Disconnect();
@@ -181,8 +179,6 @@ bool JsonRpcConnection::ProcessMessage(void)
 		std::ostringstream info;
 		info << "Error while processing message for identity '" << m_Identity << "'";
 		Log(LogWarning, "JsonRpcConnection")
-		    << info.str();
-		Log(LogDebug, "JsonRpcConnection")
 		    << info.str() << "\n" << DiagnosticInformation(ex);
 	}
 

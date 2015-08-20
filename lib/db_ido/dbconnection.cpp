@@ -141,7 +141,7 @@ void DbConnection::ProgramStatusHandler(void)
 
 	query2.Fields = new Dictionary();
 	query2.Fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
-	query2.Fields->Set("program_version", Application::GetVersion());
+	query2.Fields->Set("program_version", Application::GetAppVersion());
 	query2.Fields->Set("status_update_time", DbValue::FromTimestamp(Utility::GetTime()));
 	query2.Fields->Set("program_start_time", DbValue::FromTimestamp(Application::GetStartTime()));
 	query2.Fields->Set("is_currently_running", 1);

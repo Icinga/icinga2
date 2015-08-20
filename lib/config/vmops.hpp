@@ -131,7 +131,7 @@ public:
 		}
 
 		if (!checkName.IsEmpty()) {
-			ConfigItem::Ptr oldItem = ConfigItem::GetObject(type, checkName);
+			ConfigItem::Ptr oldItem = ConfigItem::GetByTypeAndName(type, checkName);
 
 			if (oldItem) {
 				std::ostringstream msgbuf;

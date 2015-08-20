@@ -209,7 +209,7 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 		Logger::DisableTimestamp(false);
 
 	Log(LogInformation, "cli")
-	    << "Icinga application loader (version: " << Application::GetVersion()
+	    << "Icinga application loader (version: " << Application::GetAppVersion()
 #ifdef I2_DEBUG
 	    << "; debug"
 #endif /* I2_DEBUG */

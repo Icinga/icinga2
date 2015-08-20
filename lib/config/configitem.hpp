@@ -61,7 +61,9 @@ public:
 	DebugInfo GetDebugInfo(void) const;
 	Dictionary::Ptr GetScope(void) const;
 
-	static ConfigItem::Ptr GetObject(const String& type,
+	ConfigObject::Ptr GetObject(void) const;
+	
+	static ConfigItem::Ptr GetByTypeAndName(const String& type,
 	    const String& name);
 
 	static bool CommitItems(WorkQueue& upq);

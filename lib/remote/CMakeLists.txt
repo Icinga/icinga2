@@ -22,8 +22,8 @@ mkclass_target(zone.ti zone.tcpp zone.thpp)
 
 set(remote_SOURCES
   actionshandler.cpp apiaction.cpp
-  apifunction.cpp apilistener.cpp apilistener.thpp apilistener-sync.cpp
-  apiuser.cpp apiuser.thpp authority.cpp base64.cpp 
+  apifunction.cpp apilistener.cpp apilistener.thpp apilistener-configsync.cpp 
+  apilistener-filesync.cpp apiuser.cpp apiuser.thpp authority.cpp base64.cpp 
   configfileshandler.cpp configpackageshandler.cpp configpackageutility.cpp configobjectutility.cpp
   configstageshandler.cpp createobjecthandler.cpp deleteobjecthandler.cpp
   endpoint.cpp endpoint.thpp filterutility.cpp
