@@ -66,7 +66,7 @@ public:
 	virtual bool ResolveMacro(const String& macro, const CheckResult::Ptr& cr, Value *result) const override;
 
 protected:
-	virtual void Stop(void) override;
+	virtual void Stop(bool runtimeRemoved) override;
 
 	virtual void OnAllConfigLoaded(void) override;
 	virtual void CreateChildObjects(const Type::Ptr& childType) override;

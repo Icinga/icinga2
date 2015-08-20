@@ -940,26 +940,16 @@ Value ServicesTable::DowntimesAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	Dictionary::Ptr downtimes = service->GetDowntimes();
+	Array::Ptr results = new Array();
 
-	Array::Ptr ids = new Array();
-
-	ObjectLock olock(downtimes);
-
-	String id;
-	Downtime::Ptr downtime;
-	BOOST_FOREACH(tie(id, downtime), downtimes) {
-
-		if (!downtime)
-			continue;
-
+	BOOST_FOREACH(const Downtime::Ptr& downtime, service->GetDowntimes()) {
 		if (downtime->IsExpired())
 			continue;
 
-		ids->Add(downtime->GetLegacyId());
+		results->Add(downtime->GetLegacyId());
 	}
 
-	return ids;
+	return results;
 }
 
 Value ServicesTable::DowntimesWithInfoAccessor(const Value& row)
@@ -969,19 +959,9 @@ Value ServicesTable::DowntimesWithInfoAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	Dictionary::Ptr downtimes = service->GetDowntimes();
+	Array::Ptr results = new Array();
 
-	Array::Ptr ids = new Array();
-
-	ObjectLock olock(downtimes);
-
-	String id;
-	Downtime::Ptr downtime;
-	BOOST_FOREACH(tie(id, downtime), downtimes) {
-
-		if (!downtime)
-			continue;
-
+	BOOST_FOREACH(const Downtime::Ptr& downtime, service->GetDowntimes()) {
 		if (downtime->IsExpired())
 			continue;
 
@@ -989,10 +969,10 @@ Value ServicesTable::DowntimesWithInfoAccessor(const Value& row)
 		downtime_info->Add(downtime->GetLegacyId());
 		downtime_info->Add(downtime->GetAuthor());
 		downtime_info->Add(downtime->GetComment());
-		ids->Add(downtime_info);
+		results->Add(downtime_info);
 	}
 
-	return ids;
+	return results;
 }
 
 Value ServicesTable::CommentsAccessor(const Value& row)
@@ -1002,26 +982,16 @@ Value ServicesTable::CommentsAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	Dictionary::Ptr comments = service->GetComments();
+	Array::Ptr results = new Array();
 
-	Array::Ptr ids = new Array();
-
-	ObjectLock olock(comments);
-
-	String id;
-	Comment::Ptr comment;
-	BOOST_FOREACH(tie(id, comment), comments) {
-
-		if (!comment)
-			continue;
-
+	BOOST_FOREACH(const Comment::Ptr& comment, service->GetComments()) {
 		if (comment->IsExpired())
 			continue;
 
-		ids->Add(comment->GetLegacyId());
+		results->Add(comment->GetLegacyId());
 	}
 
-	return ids;
+	return results;
 }
 
 Value ServicesTable::CommentsWithInfoAccessor(const Value& row)
@@ -1031,19 +1001,9 @@ Value ServicesTable::CommentsWithInfoAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	Dictionary::Ptr comments = service->GetComments();
+	Array::Ptr results = new Array();
 
-	Array::Ptr ids = new Array();
-
-	ObjectLock olock(comments);
-
-	String id;
-	Comment::Ptr comment;
-	BOOST_FOREACH(tie(id, comment), comments) {
-
-		if (!comment)
-			continue;
-
+	BOOST_FOREACH(const Comment::Ptr& comment, service->GetComments()) {
 		if (comment->IsExpired())
 			continue;
 
@@ -1051,10 +1011,10 @@ Value ServicesTable::CommentsWithInfoAccessor(const Value& row)
 		comment_info->Add(comment->GetLegacyId());
 		comment_info->Add(comment->GetAuthor());
 		comment_info->Add(comment->GetText());
-		ids->Add(comment_info);
+		results->Add(comment_info);
 	}
 
-	return ids;
+	return results;
 }
 
 Value ServicesTable::CommentsWithExtraInfoAccessor(const Value& row)
@@ -1064,19 +1024,9 @@ Value ServicesTable::CommentsWithExtraInfoAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	Dictionary::Ptr comments = service->GetComments();
+	Array::Ptr results = new Array();
 
-	Array::Ptr ids = new Array();
-
-	ObjectLock olock(comments);
-
-	String id;
-	Comment::Ptr comment;
-	BOOST_FOREACH(tie(id, comment), comments) {
-
-		if (!comment)
-			continue;
-
+	BOOST_FOREACH(const Comment::Ptr& comment, service->GetComments()) {
 		if (comment->IsExpired())
 			continue;
 
@@ -1086,10 +1036,10 @@ Value ServicesTable::CommentsWithExtraInfoAccessor(const Value& row)
 		comment_info->Add(comment->GetText());
 		comment_info->Add(comment->GetEntryType());
 		comment_info->Add(static_cast<int>(comment->GetEntryTime()));
-		ids->Add(comment_info);
+		results->Add(comment_info);
 	}
 
-	return ids;
+	return results;
 }
 
 Value ServicesTable::CustomVariableNamesAccessor(const Value& row)

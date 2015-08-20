@@ -39,7 +39,7 @@ public:
 
 	static void StaticInitialize(void);
 
-	virtual void Start(void) override;
+	virtual void Start(bool runtimeCreated) override;
 
 	void UpdateRegion(double begin, double end, bool clearExisting);
 

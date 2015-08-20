@@ -68,7 +68,7 @@ public:
 	    const String& name);
 
 	static bool CommitItems(WorkQueue& upq);
-	static bool ActivateItems(WorkQueue& upq, bool restoreState);
+	static bool ActivateItems(WorkQueue& upq, bool restoreState, bool runtimeCreated = false);
 
 	static bool CommitAndActivate(void);
 
@@ -103,6 +103,8 @@ private:
 	    const String& name);
 
 	static bool CommitNewItems(WorkQueue& upq, std::vector<ConfigItem::Ptr>& newItems);
+
+	void OnAllConfigLoadedWrapper(void);
 };
 
 }

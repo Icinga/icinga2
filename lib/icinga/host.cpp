@@ -71,9 +71,9 @@ void Host::CreateChildObjects(const Type::Ptr& childType)
 		Service::EvaluateApplyRules(this);
 }
 
-void Host::Stop(void)
+void Host::Stop(bool runtimeRemoved)
 {
-	ObjectImpl<Host>::Stop();
+	ObjectImpl<Host>::Stop(runtimeRemoved);
 
 	Array::Ptr groups = GetGroups();
 

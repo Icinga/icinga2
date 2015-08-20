@@ -56,9 +56,9 @@ void IcingaStatusWriter::StatsFunc(const Dictionary::Ptr& status, const Array::P
 /**
  * Starts the component.
  */
-void IcingaStatusWriter::Start(void)
+void IcingaStatusWriter::Start(bool runtimeCreated)
 {
-	ObjectImpl<IcingaStatusWriter>::Start();
+	ObjectImpl<IcingaStatusWriter>::Start(runtimeCreated);
 
 	/* TODO: remove in versions > 2.4 */
 	Log(LogWarning, "IcingaStatusWriter", "This feature was deprecated in 2.4 and will be removed in future Icinga 2 releases.");

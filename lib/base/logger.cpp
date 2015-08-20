@@ -52,22 +52,22 @@ void Logger::StaticInitialize(void)
 /**
  * Constructor for the Logger class.
  */
-void Logger::Start(void)
+void Logger::Start(bool runtimeCreated)
 {
-	ObjectImpl<Logger>::Start();
+	ObjectImpl<Logger>::Start(runtimeCreated);
 
 	boost::mutex::scoped_lock lock(m_Mutex);
 	m_Loggers.insert(this);
 }
 
-void Logger::Stop(void)
+void Logger::Stop(bool runtimeRemoved)
 {
 	{
 		boost::mutex::scoped_lock lock(m_Mutex);
 		m_Loggers.erase(this);
 	}
 
-	ObjectImpl<Logger>::Stop();
+	ObjectImpl<Logger>::Stop(runtimeRemoved);
 }
 
 std::set<Logger::Ptr> Logger::GetLoggers(void)

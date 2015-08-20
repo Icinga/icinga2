@@ -89,7 +89,7 @@ public:
 protected:
 	virtual void OnConfigLoaded(void) override;
 	virtual void OnAllConfigLoaded(void) override;
-	virtual void Start(void) override;
+	virtual void Start(bool runtimeCreated) override;
 
 private:
 	boost::shared_ptr<SSL_CTX> m_SSLContext;

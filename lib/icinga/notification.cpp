@@ -99,48 +99,52 @@ void Notification::StaticInitialize(void)
 
 void Notification::OnConfigLoaded(void)
 {
+	ObjectImpl<Notification>::OnConfigLoaded();
+
 	SetTypeFilter(FilterArrayToInt(GetTypes(), ~0));
 	SetStateFilter(FilterArrayToInt(GetStates(), ~0));
 }
 
 void Notification::OnAllConfigLoaded(void)
 {
-	Checkable::Ptr obj = GetCheckable();
+	ObjectImpl<Notification>::OnAllConfigLoaded();
 
-	if (!obj)
+	Host::Ptr host = Host::GetByName(GetHostName());
+
+	if (GetServiceName().IsEmpty())
+		m_Checkable = host;
+	else
+		m_Checkable = host->GetServiceByShortName(GetServiceName());
+
+	if (!m_Checkable)
 		BOOST_THROW_EXCEPTION(ScriptError("Notification object refers to a host/service which doesn't exist.", GetDebugInfo()));
 
-	obj->AddNotification(this);
+	m_Checkable->RegisterNotification(this);
 }
 
-void Notification::Start(void)
+void Notification::Start(bool runtimeCreated)
 {
-	ObjectImpl<Notification>::Start();
+	ObjectImpl<Notification>::Start(runtimeCreated);
 
 	Checkable::Ptr obj = GetCheckable();
 
 	if (obj)
-		obj->AddNotification(this);
+		obj->RegisterNotification(this);
 }
 
-void Notification::Stop(void)
+void Notification::Stop(bool runtimeRemoved)
 {
-	ObjectImpl<Notification>::Stop();
+	ObjectImpl<Notification>::Stop(runtimeRemoved);
 
 	Checkable::Ptr obj = GetCheckable();
 
 	if (obj)
-		obj->RemoveNotification(this);
+		obj->UnregisterNotification(this);
 }
 
 Checkable::Ptr Notification::GetCheckable(void) const
 {
-	Host::Ptr host = Host::GetByName(GetHostName());
-
-	if (GetServiceName().IsEmpty())
-		return host;
-	else
-		return host->GetServiceByShortName(GetServiceName());
+	return m_Checkable;
 }
 
 NotificationCommand::Ptr Notification::GetCommand(void) const

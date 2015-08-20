@@ -44,9 +44,9 @@ void TimePeriod::StaticInitialize(void)
 	l_UpdateTimer->Start();
 }
 
-void TimePeriod::Start(void)
+void TimePeriod::Start(bool runtimeCreated)
 {
-	ObjectImpl<TimePeriod>::Start();
+	ObjectImpl<TimePeriod>::Start(runtimeCreated);
 
 	/* Pre-fill the time period for the next 24 hours. */
 	double now = Utility::GetTime();

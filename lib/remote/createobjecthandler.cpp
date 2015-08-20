@@ -22,6 +22,7 @@
 #include "remote/httputility.hpp"
 #include "remote/filterutility.hpp"
 #include "remote/apiaction.hpp"
+#include "base/configtype.hpp"
 #include <boost/algorithm/string.hpp>
 #include <set>
 
@@ -56,7 +57,12 @@ bool CreateObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 	String status;
 	Array::Ptr errors = new Array();
 
-	String config = ConfigObjectUtility::CreateObjectConfig(type, name, templates, attrs);
+	bool ignoreOnError = false;
+
+	if (params->Contains("ignore_on_error"))
+		ignoreOnError = HttpUtility::GetLastParameter(params, "ignore_on_error");
+
+	String config = ConfigObjectUtility::CreateObjectConfig(type, name, ignoreOnError, templates, attrs);
 
 	if (!ConfigObjectUtility::CreateObject(type, name, config, errors)) {
 		result1->Set("errors", errors);
@@ -64,8 +70,16 @@ bool CreateObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 		return true;
 	}
 
+	ConfigType::Ptr dtype = ConfigType::GetByName(type->GetName());
+
+	ConfigObject::Ptr obj = dtype->GetObject(name);
+
 	result1->Set("code", 200);
-	result1->Set("status", "Object was created");
+
+	if (obj)
+		result1->Set("status", "Object was created");
+	else if (!obj && ignoreOnError)
+		result1->Set("status", "Object was not created but 'ignore_on_error' was set to true");
 
 	Array::Ptr results = new Array();
 	results->Add(result1);

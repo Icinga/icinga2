@@ -78,7 +78,7 @@ void Application::OnConfigLoaded(void)
 /**
  * Destructor for the application class.
  */
-void Application::Stop(void)
+void Application::Stop(bool runtimeRemoved)
 {
 	m_ShuttingDown = true;
 
@@ -102,7 +102,7 @@ void Application::Stop(void)
 	} else
 		ClosePidFile(true);
 
-	ObjectImpl<Application>::Stop();
+	ObjectImpl<Application>::Stop(runtimeRemoved);
 }
 
 Application::~Application(void)

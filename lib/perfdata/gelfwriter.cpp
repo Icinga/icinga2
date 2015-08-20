@@ -38,9 +38,9 @@ using namespace icinga;
 
 REGISTER_TYPE(GelfWriter);
 
-void GelfWriter::Start(void)
+void GelfWriter::Start(bool runtimeCreated)
 {
-	ObjectImpl<GelfWriter>::Start();
+	ObjectImpl<GelfWriter>::Start(runtimeCreated);
 
 	m_ReconnectTimer = new Timer();
 	m_ReconnectTimer->SetInterval(10);

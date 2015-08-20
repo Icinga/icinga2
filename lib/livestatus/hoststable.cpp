@@ -902,26 +902,16 @@ Value HostsTable::DowntimesAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	Dictionary::Ptr downtimes = host->GetDowntimes();
+	Array::Ptr results = new Array();
 
-	Array::Ptr ids = new Array();
-
-	ObjectLock olock(downtimes);
-
-	String id;
-	Downtime::Ptr downtime;
-	BOOST_FOREACH(tie(id, downtime), downtimes) {
-
-		if (!downtime)
-			continue;
-
+	BOOST_FOREACH(const Downtime::Ptr& downtime, host->GetDowntimes()) {
 		if (downtime->IsExpired())
 			continue;
 
-		ids->Add(downtime->GetLegacyId());
+		results->Add(downtime->GetLegacyId());
 	}
 
-	return ids;
+	return results;
 }
 
 Value HostsTable::DowntimesWithInfoAccessor(const Value& row)
@@ -931,19 +921,9 @@ Value HostsTable::DowntimesWithInfoAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	Dictionary::Ptr downtimes = host->GetDowntimes();
+	Array::Ptr results = new Array();
 
-	Array::Ptr ids = new Array();
-
-	ObjectLock olock(downtimes);
-
-	String id;
-	Downtime::Ptr downtime;
-	BOOST_FOREACH(tie(id, downtime), downtimes) {
-
-		if (!downtime)
-			continue;
-
+	BOOST_FOREACH(const Downtime::Ptr& downtime, host->GetDowntimes()) {
 		if (downtime->IsExpired())
 			continue;
 
@@ -951,10 +931,10 @@ Value HostsTable::DowntimesWithInfoAccessor(const Value& row)
 		downtime_info->Add(downtime->GetLegacyId());
 		downtime_info->Add(downtime->GetAuthor());
 		downtime_info->Add(downtime->GetComment());
-		ids->Add(downtime_info);
+		results->Add(downtime_info);
 	}
 
-	return ids;
+	return results;
 }
 
 Value HostsTable::CommentsAccessor(const Value& row)
@@ -964,26 +944,15 @@ Value HostsTable::CommentsAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	Dictionary::Ptr comments = host->GetComments();
-
-	Array::Ptr ids = new Array();
-
-	ObjectLock olock(comments);
-
-	String id;
-	Comment::Ptr comment;
-	BOOST_FOREACH(tie(id, comment), comments) {
-
-		if (!comment)
-			continue;
-
+	Array::Ptr results = new Array();
+	BOOST_FOREACH(const Comment::Ptr& comment, host->GetComments()) {
 		if (comment->IsExpired())
 			continue;
 
-		ids->Add(comment->GetLegacyId());
+		results->Add(comment->GetLegacyId());
 	}
 
-	return ids;
+	return results;
 }
 
 Value HostsTable::CommentsWithInfoAccessor(const Value& row)
@@ -993,19 +962,9 @@ Value HostsTable::CommentsWithInfoAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	Dictionary::Ptr comments = host->GetComments();
+	Array::Ptr results = new Array();
 
-	Array::Ptr ids = new Array();
-
-	ObjectLock olock(comments);
-
-	String id;
-	Comment::Ptr comment;
-	BOOST_FOREACH(tie(id, comment), comments) {
-
-		if (!comment)
-			continue;
-
+	BOOST_FOREACH(const Comment::Ptr& comment, host->GetComments()) {
 		if (comment->IsExpired())
 			continue;
 
@@ -1013,10 +972,10 @@ Value HostsTable::CommentsWithInfoAccessor(const Value& row)
 		comment_info->Add(comment->GetLegacyId());
 		comment_info->Add(comment->GetAuthor());
 		comment_info->Add(comment->GetText());
-		ids->Add(comment_info);
+		results->Add(comment_info);
 	}
 
-	return ids;
+	return results;
 }
 
 Value HostsTable::CommentsWithExtraInfoAccessor(const Value& row)
@@ -1026,19 +985,9 @@ Value HostsTable::CommentsWithExtraInfoAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	Dictionary::Ptr comments = host->GetComments();
+	Array::Ptr results = new Array();
 
-	Array::Ptr ids = new Array();
-
-	ObjectLock olock(comments);
-
-	String id;
-	Comment::Ptr comment;
-	BOOST_FOREACH(tie(id, comment), comments) {
-
-		if (!comment)
-			continue;
-
+	BOOST_FOREACH(const Comment::Ptr& comment, host->GetComments()) {
 		if (comment->IsExpired())
 			continue;
 
@@ -1048,10 +997,10 @@ Value HostsTable::CommentsWithExtraInfoAccessor(const Value& row)
 		comment_info->Add(comment->GetText());
 		comment_info->Add(comment->GetEntryType());
 		comment_info->Add(static_cast<int>(comment->GetEntryTime()));
-		ids->Add(comment_info);
+		results->Add(comment_info);
 	}
 
-	return ids;
+	return results;
 }
 
 Value HostsTable::CustomVariableNamesAccessor(const Value& row)

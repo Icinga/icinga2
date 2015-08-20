@@ -72,9 +72,9 @@ void CheckerComponent::OnConfigLoaded(void)
 	Checkable::OnNextCheckChanged.connect(bind(&CheckerComponent::NextCheckChangedHandler, this, _1));
 }
 
-void CheckerComponent::Start(void)
+void CheckerComponent::Start(bool runtimeCreated)
 {
-	ObjectImpl<CheckerComponent>::Start();
+	ObjectImpl<CheckerComponent>::Start(runtimeCreated);
 
 	m_Thread = boost::thread(boost::bind(&CheckerComponent::CheckThreadProc, this));
 
@@ -84,7 +84,7 @@ void CheckerComponent::Start(void)
 	m_ResultTimer->Start();
 }
 
-void CheckerComponent::Stop(void)
+void CheckerComponent::Stop(bool runtimeRemoved)
 {
 	Log(LogInformation, "CheckerComponent", "Checker stopped.");
 
@@ -97,7 +97,7 @@ void CheckerComponent::Stop(void)
 	m_ResultTimer->Stop();
 	m_Thread.join();
 
-	ObjectImpl<CheckerComponent>::Stop();
+	ObjectImpl<CheckerComponent>::Stop(runtimeRemoved);
 }
 
 void CheckerComponent::CheckThreadProc(void)

@@ -78,7 +78,7 @@ public:
 
 protected:
 	virtual void OnConfigLoaded(void) override;
-	virtual void Start(void) override;
+	virtual void Start(bool runtimeCreated) override;
 	virtual void Resume(void) override;
 	virtual void Pause(void) override;
 

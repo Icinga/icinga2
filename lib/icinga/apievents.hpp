@@ -49,12 +49,12 @@ public:
 	    bool notify, double expiry, const MessageOrigin::Ptr& origin);
 	static void AcknowledgementClearedHandler(const Checkable::Ptr& checkable, const MessageOrigin::Ptr& origin);
 
-	static void CommentAddedHandler(const Checkable::Ptr& checkable, const Comment::Ptr& comment, const MessageOrigin::Ptr& origin);
-	static void CommentRemovedHandler(const Checkable::Ptr& checkable, const Comment::Ptr& comment, const MessageOrigin::Ptr& origin);
+	static void CommentAddedHandler(const Comment::Ptr& comment);
+	static void CommentRemovedHandler(const Comment::Ptr& comment);
 
-	static void DowntimeAddedHandler(const Checkable::Ptr& checkable, const Downtime::Ptr& downtime, const MessageOrigin::Ptr& origin);
-	static void DowntimeRemovedHandler(const Checkable::Ptr& checkable, const Downtime::Ptr& downtime, const MessageOrigin::Ptr& origin);
-	static void DowntimeTriggeredHandler(const Checkable::Ptr& checkable, const Downtime::Ptr& downtime);
+	static void DowntimeAddedHandler(const Downtime::Ptr& downtime);
+	static void DowntimeRemovedHandler(const Downtime::Ptr& downtime);
+	static void DowntimeTriggeredHandler(const Downtime::Ptr& downtime);
 };
 
 }

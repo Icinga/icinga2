@@ -44,7 +44,7 @@ public:
 	virtual void ValidateRotationMethod(const String& value, const ValidationUtils& utils) override;
 
 protected:
-	virtual void Start(void) override;
+	virtual void Start(bool runtimeCreated) override;
 
 private:
 	void WriteLine(const String& line);
@@ -56,8 +56,8 @@ private:
 	    const String& author, const String& comment_text, const String& command_name);
 	void FlappingChangedHandler(const Checkable::Ptr& checkable);
 	void EnableFlappingChangedHandler(const Checkable::Ptr& checkable);
-	void TriggerDowntimeHandler(const Checkable::Ptr& service, const Downtime::Ptr& downtime);
-	void RemoveDowntimeHandler(const Checkable::Ptr& service, const Downtime::Ptr& downtime);
+	void TriggerDowntimeHandler(const Downtime::Ptr& downtime);
+	void RemoveDowntimeHandler(const Downtime::Ptr& downtime);
 	void ExternalCommandHandler(const String& command, const std::vector<String>& arguments);
 	void EventCommandHandler(const Checkable::Ptr& service);
 

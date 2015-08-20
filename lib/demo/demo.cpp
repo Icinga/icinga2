@@ -33,9 +33,9 @@ REGISTER_APIFUNCTION(HelloWorld, demo, &Demo::DemoMessageHandler);
 /**
  * Starts the component.
  */
-void Demo::Start(void)
+void Demo::Start(bool runtimeCreated)
 {
-	ObjectImpl<Demo>::Start();
+	ObjectImpl<Demo>::Start(runtimeCreated);
 
 	m_DemoTimer = new Timer();
 	m_DemoTimer->SetInterval(5);

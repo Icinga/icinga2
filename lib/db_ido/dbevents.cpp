@@ -43,11 +43,11 @@ INITIALIZE_ONCE(&DbEvents::StaticInitialize);
 void DbEvents::StaticInitialize(void)
 {
 	/* Status */
-	Checkable::OnCommentAdded.connect(boost::bind(&DbEvents::AddComment, _1, _2));
-	Checkable::OnCommentRemoved.connect(boost::bind(&DbEvents::RemoveComment, _1, _2));
-	Checkable::OnDowntimeAdded.connect(boost::bind(&DbEvents::AddDowntime, _1, _2, true));
-	Checkable::OnDowntimeRemoved.connect(boost::bind(&DbEvents::RemoveDowntime, _1, _2));
-	Checkable::OnDowntimeTriggered.connect(boost::bind(&DbEvents::TriggerDowntime, _1, _2));
+	Comment::OnCommentAdded.connect(boost::bind(&DbEvents::AddComment, _1));
+	Comment::OnCommentRemoved.connect(boost::bind(&DbEvents::RemoveComment, _1));
+	Downtime::OnDowntimeAdded.connect(boost::bind(&DbEvents::AddDowntime, _1, true));
+	Downtime::OnDowntimeRemoved.connect(boost::bind(&DbEvents::RemoveDowntime, _1));
+	Downtime::OnDowntimeTriggered.connect(boost::bind(&DbEvents::TriggerDowntime, _1));
 	Checkable::OnAcknowledgementSet.connect(boost::bind(&DbEvents::AddAcknowledgement, _1, _4));
 	Checkable::OnAcknowledgementCleared.connect(boost::bind(&DbEvents::RemoveAcknowledgement, _1));
 
@@ -64,8 +64,8 @@ void DbEvents::StaticInitialize(void)
 	Checkable::OnReachabilityChanged.connect(boost::bind(&DbEvents::ReachabilityChangedHandler, _1, _2, _3));
 
 	/* History */
-	Checkable::OnCommentAdded.connect(boost::bind(&DbEvents::AddCommentHistory, _1, _2));
-	Checkable::OnDowntimeAdded.connect(boost::bind(&DbEvents::AddDowntimeHistory, _1, _2));
+	Comment::OnCommentAdded.connect(boost::bind(&DbEvents::AddCommentHistory, _1));
+	Downtime::OnDowntimeAdded.connect(boost::bind(&DbEvents::AddDowntimeHistory, _1));
 	Checkable::OnAcknowledgementSet.connect(boost::bind(&DbEvents::AddAcknowledgementHistory, _1, _2, _3, _4, _5, _6));
 
 	Checkable::OnNotificationSentToAllUsers.connect(boost::bind(&DbEvents::AddNotificationHistory, _1, _2, _3, _4, _5, _6, _7));
@@ -76,8 +76,8 @@ void DbEvents::StaticInitialize(void)
 	Checkable::OnNotificationSentToUser.connect(boost::bind(&DbEvents::AddNotificationSentLogHistory, _1, _2, _3, _4, _5, _6, _7));
 	Checkable::OnFlappingChanged.connect(boost::bind(&DbEvents::AddFlappingChangedLogHistory, _1));
 	Checkable::OnEnableFlappingChanged.connect(boost::bind(&DbEvents::AddEnableFlappingChangedLogHistory, _1));
-	Checkable::OnDowntimeTriggered.connect(boost::bind(&DbEvents::AddTriggerDowntimeLogHistory, _1, _2));
-	Checkable::OnDowntimeRemoved.connect(boost::bind(&DbEvents::AddRemoveDowntimeLogHistory, _1, _2));
+	Downtime::OnDowntimeTriggered.connect(boost::bind(&DbEvents::AddTriggerDowntimeLogHistory, _1));
+	Downtime::OnDowntimeRemoved.connect(boost::bind(&DbEvents::AddRemoveDowntimeLogHistory, _1));
 
 	Checkable::OnFlappingChanged.connect(boost::bind(&DbEvents::AddFlappingChangedHistory, _1));
 	Checkable::OnEnableFlappingChanged.connect(boost::bind(&DbEvents::AddEnableFlappingChangedHistory, _1));
@@ -303,45 +303,30 @@ void DbEvents::EnableChangedHandlerInternal(const Checkable::Ptr& checkable, con
 /* comments */
 void DbEvents::AddComments(const Checkable::Ptr& checkable)
 {
-	/* dump all comments */
-	Dictionary::Ptr comments = checkable->GetComments();
-
-	if (comments->GetLength() > 0)
-		RemoveComments(checkable);
-
-	ObjectLock olock(comments);
-
-	BOOST_FOREACH(const Dictionary::Pair& kv, comments) {
-		AddComment(checkable, kv.second);
+	BOOST_FOREACH(const Comment::Ptr& comment, checkable->GetComments()) {
+		AddComment(comment);
 	}
 }
 
-void DbEvents::AddComment(const Checkable::Ptr& checkable, const Comment::Ptr& comment)
+void DbEvents::AddComment(const Comment::Ptr& comment)
 {
-	AddCommentInternal(checkable, comment, false);
+	AddCommentInternal(comment, false);
 }
 
-void DbEvents::AddCommentHistory(const Checkable::Ptr& checkable, const Comment::Ptr& comment)
+void DbEvents::AddCommentHistory(const Comment::Ptr& comment)
 {
-	AddCommentInternal(checkable, comment, true);
+	AddCommentInternal(comment, true);
 }
 
-void DbEvents::AddCommentInternal(const Checkable::Ptr& checkable, const Comment::Ptr& comment, bool historical)
+void DbEvents::AddCommentInternal(const Comment::Ptr& comment, bool historical)
 {
-	if (!comment) {
-		Log(LogWarning, "DbEvents", "comment does not exist. not adding it.");
-		return;
-	}
-
-	Log(LogDebug, "DbEvents")
-	    << "adding service comment (id = " << comment->GetLegacyId() << ") for '" << checkable->GetName() << "'";
-
-	/* add the service comment */
-	AddCommentByType(checkable, comment, historical);
+	AddCommentByType(comment, historical);
 }
 
-void DbEvents::AddCommentByType(const ConfigObject::Ptr& object, const Comment::Ptr& comment, bool historical)
+void DbEvents::AddCommentByType(const Comment::Ptr& comment, bool historical)
 {
+	Checkable::Ptr checkable = comment->GetCheckable();
+
 	unsigned long entry_time = static_cast<long>(comment->GetEntryTime());
 	unsigned long entry_time_usec = (comment->GetEntryTime() - entry_time) * 1000 * 1000;
 
@@ -349,13 +334,13 @@ void DbEvents::AddCommentByType(const ConfigObject::Ptr& object, const Comment::
 	fields1->Set("entry_time", DbValue::FromTimestamp(entry_time));
 	fields1->Set("entry_time_usec", entry_time_usec);
 	fields1->Set("entry_type", comment->GetEntryType());
-	fields1->Set("object_id", object);
+	fields1->Set("object_id", checkable);
 
-	if (object->GetType() == ConfigType::GetByName("Host")) {
+	if (checkable->GetType() == ConfigType::GetByName("Host")) {
 		fields1->Set("comment_type", 2);
 		/* requires idoutils 1.10 schema fix */
 		fields1->Set("internal_comment_id", comment->GetLegacyId());
-	} else if (object->GetType() == ConfigType::GetByName("Service")) {
+	} else if (checkable->GetType() == ConfigType::GetByName("Service")) {
 		fields1->Set("comment_type", 1);
 		fields1->Set("internal_comment_id", comment->GetLegacyId());
 	} else {
@@ -404,15 +389,9 @@ void DbEvents::RemoveComments(const Checkable::Ptr& checkable)
 	DbObject::OnQuery(query1);
 }
 
-void DbEvents::RemoveComment(const Checkable::Ptr& checkable, const Comment::Ptr& comment)
+void DbEvents::RemoveComment(const Comment::Ptr& comment)
 {
-	if (!comment) {
-		Log(LogWarning, "DbEvents", "comment does not exist. not deleting it.");
-		return;
-	}
-
-	Log(LogDebug, "DbEvents")
-	    << "removing service comment (id = " << comment->GetLegacyId() << ") for '" << checkable->GetName() << "'";
+	Checkable::Ptr checkable = comment->GetCheckable();
 
 	/* Status */
 	DbQuery query1;
@@ -451,51 +430,39 @@ void DbEvents::RemoveComment(const Checkable::Ptr& checkable, const Comment::Ptr
 /* downtimes */
 void DbEvents::AddDowntimes(const Checkable::Ptr& checkable)
 {
-	/* dump all downtimes */
-	Dictionary::Ptr downtimes = checkable->GetDowntimes();
+	RemoveDowntimes(checkable);
 
-	if (downtimes->GetLength() > 0)
-		RemoveDowntimes(checkable);
-
-	ObjectLock olock(downtimes);
-
-	BOOST_FOREACH(const Dictionary::Pair& kv, downtimes) {
-		AddDowntime(checkable, kv.second, false);
+	BOOST_FOREACH(const Downtime::Ptr& downtime, checkable->GetDowntimes()) {
+		AddDowntime(downtime, false);
 	}
 }
 
-void DbEvents::AddDowntime(const Checkable::Ptr& checkable, const Downtime::Ptr& downtime, bool remove_existing)
+void DbEvents::AddDowntime(const Downtime::Ptr& downtime, bool remove_existing)
 {
 	/*
 	 * make sure to delete any old downtime to avoid multiple inserts from
 	 * configured ScheduledDowntime dumps and CreateNextDowntime() calls
 	 */
 	if (remove_existing)
-		RemoveDowntime(checkable, downtime);
-	AddDowntimeInternal(checkable, downtime, false);
+		RemoveDowntime(downtime);
+
+	AddDowntimeInternal(downtime, false);
 }
 
-void DbEvents::AddDowntimeHistory(const Checkable::Ptr& checkable, const Downtime::Ptr& downtime)
+void DbEvents::AddDowntimeHistory(const Downtime::Ptr& downtime)
 {
-	AddDowntimeInternal(checkable, downtime, true);
+	AddDowntimeInternal(downtime, true);
 }
 
-void DbEvents::AddDowntimeInternal(const Checkable::Ptr& checkable, const Downtime::Ptr& downtime, bool historical)
+void DbEvents::AddDowntimeInternal(const Downtime::Ptr& downtime, bool historical)
 {
-	if (!downtime) {
-		Log(LogWarning, "DbEvents", "downtime does not exist. not adding it.");
-		return;
-	}
-
-	Log(LogDebug, "DbEvents")
-	    << "adding service downtime (id = " << downtime->GetLegacyId() << ") for '" << checkable->GetName() << "'";
-
-	/* add the downtime */
-	AddDowntimeByType(checkable, downtime, historical);
+	AddDowntimeByType(downtime, historical);
 }
 
-void DbEvents::AddDowntimeByType(const Checkable::Ptr& checkable, const Downtime::Ptr& downtime, bool historical)
+void DbEvents::AddDowntimeByType(const Downtime::Ptr& downtime, bool historical)
 {
+	Checkable::Ptr checkable = downtime->GetCheckable();
+
 	Dictionary::Ptr fields1 = new Dictionary();
 	fields1->Set("entry_time", DbValue::FromTimestamp(downtime->GetEntryTime()));
 	fields1->Set("object_id", checkable);
@@ -514,7 +481,7 @@ void DbEvents::AddDowntimeByType(const Checkable::Ptr& checkable, const Downtime
 
 	fields1->Set("author_name", downtime->GetAuthor());
 	fields1->Set("comment_data", downtime->GetComment());
-	fields1->Set("triggered_by_id", Service::GetDowntimeByID(downtime->GetTriggeredBy()));
+	fields1->Set("triggered_by_id", Downtime::GetByName(downtime->GetTriggeredBy()));
 	fields1->Set("is_fixed", downtime->GetFixed() ? 1 : 0);
 	fields1->Set("duration", downtime->GetDuration());
 	fields1->Set("scheduled_start_time", DbValue::FromTimestamp(downtime->GetStartTime()));
@@ -544,9 +511,6 @@ void DbEvents::AddDowntimeByType(const Checkable::Ptr& checkable, const Downtime
 
 void DbEvents::RemoveDowntimes(const Checkable::Ptr& checkable)
 {
-	Log(LogDebug, "DbEvents")
-	    << "removing service downtimes for '" << checkable->GetName() << "'";
-
 	DbQuery query1;
 	query1.Table = "scheduleddowntime";
 	query1.Type = DbQueryDelete;
@@ -556,15 +520,9 @@ void DbEvents::RemoveDowntimes(const Checkable::Ptr& checkable)
 	DbObject::OnQuery(query1);
 }
 
-void DbEvents::RemoveDowntime(const Checkable::Ptr& checkable, const Downtime::Ptr& downtime)
+void DbEvents::RemoveDowntime(const Downtime::Ptr& downtime)
 {
-	if (!downtime) {
-		Log(LogWarning, "DbEvents", "downtime does not exist. not adding it.");
-		return;
-	}
-
-	Log(LogDebug, "DbEvents")
-	    << "removing service downtime (id = " << downtime->GetLegacyId() << ") for '" << checkable->GetName() << "'";
+	Checkable::Ptr checkable = downtime->GetCheckable();
 
 	/* Status */
 	DbQuery query1;
@@ -632,15 +590,9 @@ void DbEvents::RemoveDowntime(const Checkable::Ptr& checkable, const Downtime::P
 	DbObject::OnQuery(query4);
 }
 
-void DbEvents::TriggerDowntime(const Checkable::Ptr& checkable, const Downtime::Ptr& downtime)
+void DbEvents::TriggerDowntime(const Downtime::Ptr& downtime)
 {
-	if (!downtime) {
-		Log(LogWarning, "DbEvents", "downtime does not exist. not updating it.");
-		return;
-	}
-
-	Log(LogDebug, "DbEvents")
-	    << "updating triggered service downtime (id = " << downtime->GetLegacyId() << ") for '" << checkable->GetName() << "'";
+	Checkable::Ptr checkable = downtime->GetCheckable();
 
 	double now = Utility::GetTime();
 	std::pair<unsigned long, unsigned long> time_bag = CompatUtility::ConvertTimestamp(now);
@@ -1036,10 +988,9 @@ void DbEvents::AddCheckResultLogHistory(const Checkable::Ptr& checkable, const C
 	AddLogHistory(checkable, msgbuf.str(), type);
 }
 
-void DbEvents::AddTriggerDowntimeLogHistory(const Checkable::Ptr& checkable, const Downtime::Ptr& downtime)
+void DbEvents::AddTriggerDowntimeLogHistory(const Downtime::Ptr& downtime)
 {
-	if (!downtime)
-		return;
+	Checkable::Ptr checkable = downtime->GetCheckable();
 
 	Host::Ptr host;
 	Service::Ptr service;
@@ -1065,10 +1016,9 @@ void DbEvents::AddTriggerDowntimeLogHistory(const Checkable::Ptr& checkable, con
 	AddLogHistory(checkable, msgbuf.str(), LogEntryTypeInfoMessage);
 }
 
-void DbEvents::AddRemoveDowntimeLogHistory(const Checkable::Ptr& checkable, const Downtime::Ptr& downtime)
+void DbEvents::AddRemoveDowntimeLogHistory(const Downtime::Ptr& downtime)
 {
-	if (!downtime)
-		return;
+	Checkable::Ptr checkable = downtime->GetCheckable();
 
 	String downtime_output;
 	String downtime_state_str;

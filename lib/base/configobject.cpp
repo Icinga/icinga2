@@ -374,9 +374,9 @@ void ConfigObject::Unregister(void)
 	dtype->UnregisterObject(this);
 }
 
-void ConfigObject::Start(void)
+void ConfigObject::Start(bool runtimeCreated)
 {
-	ObjectImpl<ConfigObject>::Start();
+	ObjectImpl<ConfigObject>::Start(runtimeCreated);
 
 	ASSERT(!OwnsLock());
 	ObjectLock olock(this);
@@ -384,13 +384,13 @@ void ConfigObject::Start(void)
 	SetStartCalled(true);
 }
 
-void ConfigObject::Activate(void)
+void ConfigObject::Activate(bool runtimeCreated)
 {
 	CONTEXT("Activating object '" + GetName() + "' of type '" + GetType()->GetName() + "'");
 
 	ASSERT(!OwnsLock());
 
-	Start();
+	Start(runtimeCreated);
 
 	ASSERT(GetStartCalled());
 
@@ -405,9 +405,9 @@ void ConfigObject::Activate(void)
 	NotifyActive();
 }
 
-void ConfigObject::Stop(void)
+void ConfigObject::Stop(bool runtimeRemoved)
 {
-	ObjectImpl<ConfigObject>::Stop();
+	ObjectImpl<ConfigObject>::Stop(runtimeRemoved);
 
 	ASSERT(!OwnsLock());
 	ObjectLock olock(this);
@@ -415,7 +415,7 @@ void ConfigObject::Stop(void)
 	SetStopCalled(true);
 }
 
-void ConfigObject::Deactivate(void)
+void ConfigObject::Deactivate(bool runtimeRemoved)
 {
 	CONTEXT("Deactivating object '" + GetName() + "' of type '" + GetType()->GetName() + "'");
 
@@ -432,7 +432,7 @@ void ConfigObject::Deactivate(void)
 		SetActive(false, true);
 	}
 
-	Stop();
+	Stop(runtimeRemoved);
 
 	ASSERT(GetStopCalled());
 

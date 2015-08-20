@@ -59,7 +59,7 @@ public:
 protected:
 	virtual void OnConfigLoaded(void) override;
 	virtual void OnAllConfigLoaded(void) override;
-	virtual void Stop(void) override;
+	virtual void Stop(bool runtimeRemoved) override;
 
 private:
 	Checkable::Ptr m_Parent;

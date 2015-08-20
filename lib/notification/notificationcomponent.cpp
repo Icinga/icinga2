@@ -49,9 +49,9 @@ void NotificationComponent::StatsFunc(const Dictionary::Ptr& status, const Array
 /**
  * Starts the component.
  */
-void NotificationComponent::Start(void)
+void NotificationComponent::Start(bool runtimeCreated)
 {
-	ObjectImpl<NotificationComponent>::Start();
+	ObjectImpl<NotificationComponent>::Start(runtimeCreated);
 
 	Checkable::OnNotificationsRequested.connect(boost::bind(&NotificationComponent::SendNotificationsHandler, this, _1,
 	    _2, _3, _4, _5));

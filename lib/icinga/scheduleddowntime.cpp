@@ -96,11 +96,11 @@ void ScheduledDowntime::OnAllConfigLoaded(void)
 		BOOST_THROW_EXCEPTION(ScriptError("ScheduledDowntime '" + GetName() + "' references a host/service which doesn't exist.", GetDebugInfo()));
 }
 
-void ScheduledDowntime::Start(void)
+void ScheduledDowntime::Start(bool runtimeCreated)
 {
-	ObjectImpl<ScheduledDowntime>::Start();
+	ObjectImpl<ScheduledDowntime>::Start(runtimeCreated);
 
-	CreateNextDowntime();
+	Utility::QueueAsyncCallback(boost::bind(&ScheduledDowntime::CreateNextDowntime, this));
 }
 
 void ScheduledDowntime::TimerProc(void)
@@ -168,20 +168,13 @@ std::pair<double, double> ScheduledDowntime::FindNextSegment(void)
 
 void ScheduledDowntime::CreateNextDowntime(void)
 {
-	Dictionary::Ptr downtimes = GetCheckable()->GetDowntimes();
+	BOOST_FOREACH(const Downtime::Ptr& downtime, GetCheckable()->GetDowntimes()) {
+		if (downtime->GetScheduledBy() != GetName() ||
+		    downtime->GetStartTime() < Utility::GetTime())
+			continue;
 
-	{
-		ObjectLock dlock(downtimes);
-		BOOST_FOREACH(const Dictionary::Pair& kv, downtimes) {
-			Downtime::Ptr downtime = kv.second;
-
-			if (downtime->GetScheduledBy() != GetName() ||
-			    downtime->GetStartTime() < Utility::GetTime())
-				continue;
-
-			/* We've found a downtime that is owned by us and that hasn't started yet - we're done. */
-			return;
-		}
+		/* We've found a downtime that is owned by us and that hasn't started yet - we're done. */
+		return;
 	}
 
 	std::pair<double, double> segment = FindNextSegment();
@@ -196,12 +189,9 @@ void ScheduledDowntime::CreateNextDowntime(void)
 		return;
 	}
 
-	String uid = GetCheckable()->AddDowntime(GetAuthor(), GetComment(),
+	Downtime::AddDowntime(GetCheckable(), GetAuthor(), GetComment(),
 	    segment.first, segment.second,
-	    GetFixed(), String(), GetDuration(), GetName());
-
-	Downtime::Ptr downtime = Checkable::GetDowntimeByID(uid);
-	downtime->SetConfigOwner(GetName());
+	    GetFixed(), String(), GetDuration(), GetName(), GetName());
 }
 
 void ScheduledDowntime::ValidateRanges(const Dictionary::Ptr& value, const ValidationUtils& utils)

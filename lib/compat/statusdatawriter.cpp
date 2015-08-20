@@ -70,9 +70,9 @@ void StatusDataWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr
 /**
  * Starts the component.
  */
-void StatusDataWriter::Start(void)
+void StatusDataWriter::Start(bool runtimeCreated)
 {
-	ObjectImpl<StatusDataWriter>::Start();
+	ObjectImpl<StatusDataWriter>::Start(runtimeCreated);
 
 	m_ObjectsCacheOutdated = true;
 
@@ -88,17 +88,11 @@ void StatusDataWriter::Start(void)
 
 void StatusDataWriter::DumpComments(std::ostream& fp, const Checkable::Ptr& checkable)
 {
-	Dictionary::Ptr comments = checkable->GetComments();
-
 	Host::Ptr host;
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
 
-	ObjectLock olock(comments);
-
-	BOOST_FOREACH(const Dictionary::Pair& kv, comments) {
-		Comment::Ptr comment = kv.second;
-
+	BOOST_FOREACH(const Comment::Ptr& comment, checkable->GetComments()) {
 		if (comment->IsExpired())
 			continue;
 
@@ -160,17 +154,11 @@ void StatusDataWriter::DumpCommand(std::ostream& fp, const Command::Ptr& command
 
 void StatusDataWriter::DumpDowntimes(std::ostream& fp, const Checkable::Ptr& checkable)
 {
-	Dictionary::Ptr downtimes = checkable->GetDowntimes();
-
 	Host::Ptr host;
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
 
-	ObjectLock olock(downtimes);
-
-	BOOST_FOREACH(const Dictionary::Pair& kv, downtimes) {
-		Downtime::Ptr downtime = kv.second;
-
+	BOOST_FOREACH(const Downtime::Ptr& downtime, checkable->GetDowntimes()) {
 		if (downtime->IsExpired())
 			continue;
 
@@ -180,7 +168,7 @@ void StatusDataWriter::DumpDowntimes(std::ostream& fp, const Checkable::Ptr& che
 		else
 			fp << "hostdowntime {" "\n";
 
-		Downtime::Ptr triggeredByObj = Service::GetDowntimeByID(downtime->GetTriggeredBy());
+		Downtime::Ptr triggeredByObj = Downtime::GetByName(downtime->GetTriggeredBy());
 		int triggeredByLegacy = 0;
 		if (triggeredByObj)
 			triggeredByLegacy = triggeredByObj->GetLegacyId();
@@ -830,8 +818,8 @@ void StatusDataWriter::StatusTimerHandler(void)
 		    "\t" "passive_host_check_stats=" << CIB::GetPassiveHostChecksStatistics(60) << "," << CIB::GetPassiveHostChecksStatistics(5 * 60) << "," << CIB::GetPassiveHostChecksStatistics(15 * 60) << "\n"
 		    "\t" "active_scheduled_service_check_stats=" << CIB::GetActiveServiceChecksStatistics(60) << "," << CIB::GetActiveServiceChecksStatistics(5 * 60) << "," << CIB::GetActiveServiceChecksStatistics(15 * 60) << "\n"
 		    "\t" "passive_service_check_stats=" << CIB::GetPassiveServiceChecksStatistics(60) << "," << CIB::GetPassiveServiceChecksStatistics(5 * 60) << "," << CIB::GetPassiveServiceChecksStatistics(15 * 60) << "\n"
-		    "\t" "next_downtime_id=" << Service::GetNextDowntimeID() << "\n"
-		    "\t" "next_comment_id=" << Service::GetNextCommentID() << "\n";
+		    "\t" "next_downtime_id=" << Downtime::GetNextDowntimeID() << "\n"
+		    "\t" "next_comment_id=" << Comment::GetNextCommentID() << "\n";
 
 	statusfp << "\t" "}" "\n"
 		    "\n";

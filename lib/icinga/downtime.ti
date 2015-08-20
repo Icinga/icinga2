@@ -17,31 +17,73 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
+#include "base/configobject.hpp"
+#include "base/utility.hpp"
+#impl_include "icinga/service.hpp"
+
 library icinga;
 
 namespace icinga
 {
 
-class Downtime
+code {{{
+class I2_ICINGA_API DowntimeNameComposer : public NameComposer
 {
-	[state] String id;
-	[state] double entry_time;
-	[state] String author;
-	[state] String comment;
-	[state] double start_time;
-	[state] double end_time;
-	[state] double trigger_time;
-	[state] bool fixed;
-	[state] double duration;
-	[state] int triggered_by_legacy_id;
-	[state] String triggered_by;
-	[state] String scheduled_by;
-	[state] Dictionary::Ptr triggers {
-		default {{{ return new Dictionary(); }}}
+public:
+	virtual String MakeName(const String& shortName, const Object::Ptr& context) const;
+	virtual Dictionary::Ptr ParseName(const String& name) const;
+};
+}}}
+
+class Downtime : ConfigObject < DowntimeNameComposer
+{
+	load_after Host;
+	load_after Service;
+
+	[config, protected, required, navigation(host)] name(Host) host_name {
+		navigate {{{
+			return Host::GetByName(GetHostName());
+		}}}
 	};
-	[state] int legacy_id;
+	[config, protected, navigation(service)] String service_name {
+		track {{{
+			if (!oldValue.IsEmpty()) {
+				Service::Ptr service = Service::GetByNamePair(GetHostName(), oldValue);
+				DependencyGraph::RemoveDependency(this, service.get());
+			}
+
+			if (!newValue.IsEmpty()) {
+				Service::Ptr service = Service::GetByNamePair(GetHostName(), newValue);
+				DependencyGraph::RemoveDependency(this, service.get());
+			}
+		}}}
+		navigate {{{
+			if (GetServiceName().IsEmpty())
+				return Service::Ptr();
+
+			Host::Ptr host = Host::GetByName(GetHostName());
+			return host->GetServiceByShortName(GetServiceName());
+		}}}
+	};
+
+	[state] double entry_time {
+		default {{{ return Utility::GetTime(); }}}
+	};
+	[config, required] String author;
+	[config, required] String comment;
+	[config] double start_time;
+	[config] double end_time;
+	[state] double trigger_time;
+	[config] bool fixed;
+	[config] double duration;
+	[state] name(Downtime) triggered_by;
+	[config] String scheduled_by;
+	[config] Array::Ptr triggers {
+		default {{{ return new Array(); }}}
+	};
+	int legacy_id;
 	[state] bool was_cancelled;
-	[state] String config_owner;
+	[config] String config_owner;
 };
 
 }

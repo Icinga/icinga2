@@ -42,7 +42,7 @@ public:
 	DECLARE_OBJECTNAME(GelfWriter);
 
 protected:
-	virtual void Start(void) override;
+	virtual void Start(bool runtimeCreated) override;
 
 private:
 	Stream::Ptr m_Stream;

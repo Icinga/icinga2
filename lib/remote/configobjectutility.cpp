@@ -52,7 +52,7 @@ String ConfigObjectUtility::EscapeName(const String& name)
 }
 
 String ConfigObjectUtility::CreateObjectConfig(const Type::Ptr& type, const String& fullName,
-    const Array::Ptr& templates, const Dictionary::Ptr& attrs)
+    bool ignoreOnError, const Array::Ptr& templates, const Dictionary::Ptr& attrs)
 {
 	NameComposer *nc = dynamic_cast<NameComposer *>(type.get());
 	Dictionary::Ptr nameParts;
@@ -78,7 +78,7 @@ String ConfigObjectUtility::CreateObjectConfig(const Type::Ptr& type, const Stri
 	allAttrs->Set("version", Utility::GetTime());
 
 	std::ostringstream config;
-	ConfigWriter::EmitConfigItem(config, type->GetName(), name, false, templates, allAttrs);
+	ConfigWriter::EmitConfigItem(config, type->GetName(), name, false, ignoreOnError, templates, allAttrs);
 	ConfigWriter::EmitRaw(config, "\n");
 
 	return config.str();
@@ -111,7 +111,7 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 
 		WorkQueue upq;
 
-		if (!ConfigItem::CommitItems(upq) || !ConfigItem::ActivateItems(upq, false)) {
+		if (!ConfigItem::CommitItems(upq) || !ConfigItem::ActivateItems(upq, false, true)) {
 			if (errors) {
 				BOOST_FOREACH(const boost::exception_ptr& ex, upq.GetExceptions()) {
 					errors->Add(DiagnosticInformation(ex));
@@ -161,7 +161,7 @@ bool ConfigObjectUtility::DeleteObjectHelper(const ConfigObject::Ptr& object, bo
 		/* mark this object for cluster delete event */
 		object->SetExtension("ConfigObjectDeleted", true);
 		/* triggers signal for DB IDO and other interfaces */
-		object->Deactivate();
+		object->Deactivate(true);
 
 		if (item)
 			item->Unregister();

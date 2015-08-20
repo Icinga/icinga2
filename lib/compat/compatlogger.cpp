@@ -57,14 +57,14 @@ void CompatLogger::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 /**
  * @threadsafety Always.
  */
-void CompatLogger::Start(void)
+void CompatLogger::Start(bool runtimeCreated)
 {
-	ObjectImpl<CompatLogger>::Start();
+	ObjectImpl<CompatLogger>::Start(runtimeCreated);
 
 	Checkable::OnNewCheckResult.connect(bind(&CompatLogger::CheckResultHandler, this, _1, _2));
 	Checkable::OnNotificationSentToUser.connect(bind(&CompatLogger::NotificationSentHandler, this, _1, _2, _3, _4, _5, _6, _7, _8));
-	Checkable::OnDowntimeTriggered.connect(boost::bind(&CompatLogger::TriggerDowntimeHandler, this, _1, _2));
-	Checkable::OnDowntimeRemoved.connect(boost::bind(&CompatLogger::RemoveDowntimeHandler, this, _1, _2));
+	Downtime::OnDowntimeTriggered.connect(boost::bind(&CompatLogger::TriggerDowntimeHandler, this, _1));
+	Downtime::OnDowntimeRemoved.connect(boost::bind(&CompatLogger::RemoveDowntimeHandler, this, _1));
 	Checkable::OnEventCommandExecuted.connect(bind(&CompatLogger::EventCommandHandler, this, _1));
 	
 	Checkable::OnFlappingChanged.connect(boost::bind(&CompatLogger::FlappingChangedHandler, this, _1));
@@ -147,11 +147,11 @@ void CompatLogger::CheckResultHandler(const Checkable::Ptr& checkable, const Che
 /**
  * @threadsafety Always.
  */
-void CompatLogger::TriggerDowntimeHandler(const Checkable::Ptr& checkable, const Downtime::Ptr& downtime)
+void CompatLogger::TriggerDowntimeHandler(const Downtime::Ptr& downtime)
 {
 	Host::Ptr host;
 	Service::Ptr service;
-	tie(host, service) = GetHostService(checkable);
+	tie(host, service) = GetHostService(downtime->GetCheckable());
 
 	if (!downtime)
 		return;
@@ -183,11 +183,11 @@ void CompatLogger::TriggerDowntimeHandler(const Checkable::Ptr& checkable, const
 /**
  * @threadsafety Always.
  */
-void CompatLogger::RemoveDowntimeHandler(const Checkable::Ptr& checkable, const Downtime::Ptr& downtime)
+void CompatLogger::RemoveDowntimeHandler(const Downtime::Ptr& downtime)
 {
 	Host::Ptr host;
 	Service::Ptr service;
-	tie(host, service) = GetHostService(checkable);
+	tie(host, service) = GetHostService(downtime->GetCheckable());
 
 	if (!downtime)
 		return;

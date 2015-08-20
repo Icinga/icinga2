@@ -224,7 +224,19 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 		dobj->SetShortName(item_name);
 
 	dobj->SetName(name);
-	dobj->OnConfigLoaded();
+
+	try {
+		dobj->OnConfigLoaded();
+	} catch (const std::exception& ex) {
+		if (m_IgnoreOnError) {
+			Log(LogWarning, "ConfigObject")
+			    << "Ignoring config object '" << m_Name << "' of type '" << m_Type << "' due to errors: " << DiagnosticInformation(ex);
+
+			return ConfigObject::Ptr();
+		}
+
+		throw;
+	}
 
 	{
 		boost::mutex::scoped_lock lock(m_Mutex);
@@ -342,6 +354,24 @@ ConfigItem::Ptr ConfigItem::GetByTypeAndName(const String& type, const String& n
 	return it2->second;
 }
 
+void ConfigItem::OnAllConfigLoadedWrapper(void)
+{
+	try {
+		m_Object->OnAllConfigLoaded();
+	} catch (const std::exception& ex) {
+		if (m_IgnoreOnError) {
+			Log(LogWarning, "ConfigObject")
+			    << "Ignoring config object '" << m_Name << "' of type '" << m_Type << "' due to errors: " << DiagnosticInformation(ex);
+
+			Unregister();
+
+			return;
+		}
+
+		throw;
+	}
+}
+
 bool ConfigItem::CommitNewItems(WorkQueue& upq, std::vector<ConfigItem::Ptr>& newItems)
 {
 	typedef std::pair<ConfigItem::Ptr, bool> ItemPair;
@@ -429,7 +459,7 @@ bool ConfigItem::CommitNewItems(WorkQueue& upq, std::vector<ConfigItem::Ptr>& ne
 					continue;
 
 				if (item->m_Type == type)
-					upq.Enqueue(boost::bind(&ConfigObject::OnAllConfigLoaded, item->m_Object));
+					upq.Enqueue(boost::bind(&ConfigItem::OnAllConfigLoadedWrapper, item));
 			}
 
 			completed_types.insert(type);
@@ -498,8 +528,11 @@ bool ConfigItem::CommitItems(WorkQueue& upq)
 	return true;
 }
 
-bool ConfigItem::ActivateItems(WorkQueue& upq, bool restoreState)
+bool ConfigItem::ActivateItems(WorkQueue& upq, bool restoreState, bool runtimeCreated)
 {
+	static boost::mutex mtx;
+	boost::mutex::scoped_lock lock(mtx);
+
 	if (restoreState) {
 		/* restore the previous program state */
 		try {
@@ -521,7 +554,7 @@ bool ConfigItem::ActivateItems(WorkQueue& upq, bool restoreState)
 			Log(LogDebug, "ConfigItem")
 			    << "Activating object '" << object->GetName() << "' of type '" << object->GetType()->GetName() << "'";
 #endif /* I2_DEBUG */
-			upq.Enqueue(boost::bind(&ConfigObject::Activate, object));
+			upq.Enqueue(boost::bind(&ConfigObject::Activate, object, runtimeCreated));
 		}
 	}
 

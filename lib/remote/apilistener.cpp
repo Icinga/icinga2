@@ -97,7 +97,7 @@ void ApiListener::OnAllConfigLoaded(void)
 /**
  * Starts the component.
  */
-void ApiListener::Start(void)
+void ApiListener::Start(bool runtimeCreated)
 {
 	SyncZoneDirs();
 
@@ -107,7 +107,7 @@ void ApiListener::Start(void)
 		return;
 	}
 
-	ObjectImpl<ApiListener>::Start();
+	ObjectImpl<ApiListener>::Start(runtimeCreated);
 
 	{
 		boost::mutex::scoped_lock(m_LogLock);

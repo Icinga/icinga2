@@ -65,34 +65,9 @@ String CommentsTable::GetPrefix(void) const
 
 void CommentsTable::FetchRows(const AddRowFunction& addRowFn)
 {
-	BOOST_FOREACH(const Host::Ptr& host, ConfigType::GetObjectsByType<Host>()) {
-		Dictionary::Ptr comments = host->GetComments();
-
-		ObjectLock olock(comments);
-
-		String id;
-		Comment::Ptr comment;
-		BOOST_FOREACH(tie(id, comment), comments) {
-			if (Host::GetOwnerByCommentID(id) == host) {
-				if (!addRowFn(comment, LivestatusGroupByNone, Empty))
-					return;
-			}
-		}
-	}
-
-	BOOST_FOREACH(const Service::Ptr& service, ConfigType::GetObjectsByType<Service>()) {
-		Dictionary::Ptr comments = service->GetComments();
-
-		ObjectLock olock(comments);
-
-		String id;
-		Comment::Ptr comment;
-		BOOST_FOREACH(tie(id, comment), comments) {
-			if (Service::GetOwnerByCommentID(id) == service) {
-				if (!addRowFn(comment, LivestatusGroupByNone, Empty))
-					return;
-			}
-		}
+	BOOST_FOREACH(const Comment::Ptr& comment, ConfigType::GetObjectsByType<Comment>()) {
+		if (!addRowFn(comment, LivestatusGroupByNone, Empty))
+			return;
 	}
 }
 
@@ -100,7 +75,7 @@ Object::Ptr CommentsTable::HostAccessor(const Value& row, const Column::ObjectAc
 {
 	Comment::Ptr comment = static_cast<Comment::Ptr>(row);
 
-	Checkable::Ptr checkable = Checkable::GetOwnerByCommentID(comment->GetId());
+	Checkable::Ptr checkable = comment->GetCheckable();
 
 	Host::Ptr host;
 	Service::Ptr service;
@@ -113,7 +88,7 @@ Object::Ptr CommentsTable::ServiceAccessor(const Value& row, const Column::Objec
 {
 	Comment::Ptr comment = static_cast<Comment::Ptr>(row);
 
-	Checkable::Ptr checkable = Checkable::GetOwnerByCommentID(comment->GetId());
+	Checkable::Ptr checkable = comment->GetCheckable();
 
 	Host::Ptr host;
 	Service::Ptr service;
@@ -165,7 +140,7 @@ Value CommentsTable::EntryTimeAccessor(const Value& row)
 Value CommentsTable::TypeAccessor(const Value& row)
 {
 	Comment::Ptr comment = static_cast<Comment::Ptr>(row);
-	Checkable::Ptr checkable = Checkable::GetOwnerByCommentID(comment->GetId());
+	Checkable::Ptr checkable = comment->GetCheckable();
 
 	if (!checkable)
 		return Empty;
@@ -179,7 +154,7 @@ Value CommentsTable::TypeAccessor(const Value& row)
 Value CommentsTable::IsServiceAccessor(const Value& row)
 {
 	Comment::Ptr comment = static_cast<Comment::Ptr>(row);
-	Checkable::Ptr checkable = Checkable::GetOwnerByCommentID(comment->GetId());
+	Checkable::Ptr checkable = comment->GetCheckable();
 
 	if (!checkable)
 		return Empty;

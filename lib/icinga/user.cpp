@@ -60,9 +60,9 @@ void User::OnAllConfigLoaded(void)
 	}
 }
 
-void User::Stop(void)
+void User::Stop(bool runtimeRemoved)
 {
-	ObjectImpl<User>::Stop();
+	ObjectImpl<User>::Stop(runtimeRemoved);
 
 	Array::Ptr groups = GetGroups();
 

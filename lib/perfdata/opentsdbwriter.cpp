@@ -58,9 +58,9 @@ void OpenTsdbWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 	status->Set("opentsdbwriter", nodes);
 }
 
-void OpenTsdbWriter::Start(void)
+void OpenTsdbWriter::Start(bool runtimeCreated)
 {
-	ObjectImpl<OpenTsdbWriter>::Start();
+	ObjectImpl<OpenTsdbWriter>::Start(runtimeCreated);
 
 	m_ReconnectTimer = new Timer();
 	m_ReconnectTimer->SetInterval(10);

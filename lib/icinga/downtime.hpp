@@ -22,12 +22,15 @@
 
 #include "icinga/i2-icinga.hpp"
 #include "icinga/downtime.thpp"
+#include "remote/messageorigin.hpp"
 
 namespace icinga
 {
 
+class Checkable;
+
 /**
- * A service downtime.
+ * A downtime.
  *
  * @ingroup icinga
  */
@@ -35,11 +38,46 @@ class I2_ICINGA_API Downtime : public ObjectImpl<Downtime>
 {
 public:
 	DECLARE_OBJECT(Downtime);
+	DECLARE_OBJECTNAME(Downtime);
+
+	static boost::signals2::signal<void (const Downtime::Ptr&)> OnDowntimeAdded;
+	static boost::signals2::signal<void (const Downtime::Ptr&)> OnDowntimeRemoved;
+	static boost::signals2::signal<void (const Downtime::Ptr&)> OnDowntimeTriggered;
+
+	intrusive_ptr<Checkable> GetCheckable(void) const;
 
 	bool IsActive(void) const;
 	bool IsTriggered(void) const;
 	bool IsExpired(void) const;
 
+	static int GetNextDowntimeID(void);
+
+	static String AddDowntime(const intrusive_ptr<Checkable>& checkable, const String& author,
+	    const String& comment, double startTime, double endTime, bool fixed,
+	    const String& triggeredBy, double duration, const String& scheduledDowntime = String(),
+	    const String& scheduledBy = String(), const String& id = String(),
+	    const MessageOrigin::Ptr& origin = MessageOrigin::Ptr());
+
+	static void RemoveDowntime(const String& id, bool cancelled, bool expired = false, const MessageOrigin::Ptr& origin = MessageOrigin::Ptr());
+
+	void TriggerDowntime(void);
+
+	static String GetDowntimeIDFromLegacyID(int id);
+
+	static void StaticInitialize(void);
+
+protected:
+	virtual void OnAllConfigLoaded(void) override;
+	virtual void Start(bool runtimeCreated) override;
+	virtual void Stop(bool runtimeRemoved) override;
+
+	virtual void ValidateStartTime(double value, const ValidationUtils& utils) override;
+	virtual void ValidateEndTime(double value, const ValidationUtils& utils) override;
+
+private:
+	intrusive_ptr<Checkable> m_Checkable;
+
+	static void DowntimesExpireTimerHandler(void);
 };
 
 }

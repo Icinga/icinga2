@@ -75,8 +75,6 @@ public:
 
 	void AddGroup(const String& name);
 
-	//bool IsHostCheck(void) const;
-
 	bool IsReachable(DependencyType dt = DependencyState, intrusive_ptr<Dependency> *failedDependency = NULL, int rstack = 0) const;
 
 	AcknowledgementType GetAcknowledgement(void);
@@ -124,62 +122,37 @@ public:
 	static boost::signals2::signal<void (const Notification::Ptr&, const Checkable::Ptr&, const std::set<User::Ptr>&,
 	    const NotificationType&, const CheckResult::Ptr&, const String&,
 	    const String&)> OnNotificationSentToAllUsers;
-	static boost::signals2::signal<void (const Checkable::Ptr&, const Comment::Ptr&, const MessageOrigin::Ptr&)> OnCommentAdded;
-	static boost::signals2::signal<void (const Checkable::Ptr&, const Comment::Ptr&, const MessageOrigin::Ptr&)> OnCommentRemoved;
-	static boost::signals2::signal<void (const Checkable::Ptr&, const Downtime::Ptr&, const MessageOrigin::Ptr&)> OnDowntimeAdded;
-	static boost::signals2::signal<void (const Checkable::Ptr&, const Downtime::Ptr&, const MessageOrigin::Ptr&)> OnDowntimeRemoved;
-	static boost::signals2::signal<void (const Checkable::Ptr&, const Downtime::Ptr&)> OnDowntimeTriggered;
 	static boost::signals2::signal<void (const Checkable::Ptr&, const String&, const String&, AcknowledgementType,
 					     bool, double, const MessageOrigin::Ptr&)> OnAcknowledgementSet;
 	static boost::signals2::signal<void (const Checkable::Ptr&, const MessageOrigin::Ptr&)> OnAcknowledgementCleared;
 	static boost::signals2::signal<void (const Checkable::Ptr&)> OnEventCommandExecuted;
 
 	/* Downtimes */
-	static int GetNextDowntimeID(void);
-
 	int GetDowntimeDepth(void) const;
 
-	String AddDowntime(const String& author, const String& comment,
-	    double startTime, double endTime, bool fixed,
-	    const String& triggeredBy, double duration,
-	    const String& scheduledBy = String(), const String& id = String(),
-	    const MessageOrigin::Ptr& origin = MessageOrigin::Ptr());
-
 	void RemoveAllDowntimes(void);
-	static void RemoveDowntime(const String& id, bool cancelled, const MessageOrigin::Ptr& origin = MessageOrigin::Ptr());
-
 	void TriggerDowntimes(void);
-	static void TriggerDowntime(const String& id);
-
-	static String GetDowntimeIDFromLegacyID(int id);
-	static Checkable::Ptr GetOwnerByDowntimeID(const String& id);
-	static Downtime::Ptr GetDowntimeByID(const String& id);
-
-	static void StartDowntimesExpiredTimer(void);
-
 	bool IsInDowntime(void) const;
 	bool IsAcknowledged(void);
 
+	std::set<Downtime::Ptr> GetDowntimes(void) const;
+	void RegisterDowntime(const Downtime::Ptr& downtime);
+	void UnregisterDowntime(const Downtime::Ptr& downtime);
+
 	/* Comments */
-	static int GetNextCommentID(void);
-
-	String AddComment(CommentType entryType, const String& author,
-	    const String& text, double expireTime, const String& id = String(), const MessageOrigin::Ptr& origin = MessageOrigin::Ptr());
-
 	void RemoveAllComments(void);
 	void RemoveCommentsByType(int type);
-	static void RemoveComment(const String& id, const MessageOrigin::Ptr& origin = MessageOrigin::Ptr());
 
-	static String GetCommentIDFromLegacyID(int id);
-	static Checkable::Ptr GetOwnerByCommentID(const String& id);
-	static Comment::Ptr GetCommentByID(const String& id);
+	std::set<Comment::Ptr> GetComments(void) const;
+	void RegisterComment(const Comment::Ptr& comment);
+	void UnregisterComment(const Comment::Ptr& comment);
 
 	/* Notifications */
 	void SendNotifications(NotificationType type, const CheckResult::Ptr& cr, const String& author = "", const String& text = "");
 
 	std::set<Notification::Ptr> GetNotifications(void) const;
-	void AddNotification(const Notification::Ptr& notification);
-	void RemoveNotification(const Notification::Ptr& notification);
+	void RegisterNotification(const Notification::Ptr& notification);
+	void UnregisterNotification(const Notification::Ptr& notification);
 
 	void ResetNotificationNumbers(void);
 
@@ -207,9 +180,7 @@ public:
 	virtual void ValidateCheckInterval(double value, const ValidationUtils& utils) override;
 
 protected:
-	virtual void Start(void) override;
-
-	virtual void OnStateLoaded(void) override;
+	virtual void Start(bool runtimeCreated) override;
 
 private:
 	mutable boost::mutex m_CheckableMutex;
@@ -217,14 +188,12 @@ private:
 	long m_SchedulingOffset;
 
 	/* Downtimes */
-	static void DowntimesExpireTimerHandler(void);
-	void RemoveExpiredDowntimes(void);
-	void AddDowntimesToCache(void);
+	std::set<Downtime::Ptr> m_Downtimes;
+	mutable boost::mutex m_DowntimeMutex;
 
 	/* Comments */
-	static void CommentsExpireTimerHandler(void);
-	void RemoveExpiredComments(void);
-	void AddCommentsToCache(void);
+	std::set<Comment::Ptr> m_Comments;
+	mutable boost::mutex m_CommentMutex;
 
 	/* Notifications */
 	std::set<Notification::Ptr> m_Notifications;

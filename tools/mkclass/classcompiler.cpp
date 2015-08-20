@@ -874,12 +874,12 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 
 		/* start/stop */
 		if (needs_tracking) {
-			m_Header << "virtual void Start(void) override;" << std::endl
-				 << "virtual void Stop(void) override;" << std::endl;
+			m_Header << "virtual void Start(bool runtimeCreated = false) override;" << std::endl
+				 << "virtual void Stop(bool runtimeRemoved = false) override;" << std::endl;
 
-			m_Impl << "void ObjectImpl<" << klass.Name << ">::Start(void)" << std::endl
+			m_Impl << "void ObjectImpl<" << klass.Name << ">::Start(bool runtimeCreated)" << std::endl
 			       << "{" << std::endl
-			       << "\t" << klass.Parent << "::Start();" << std::endl << std::endl;
+			       << "\t" << klass.Parent << "::Start(runtimeCreated);" << std::endl << std::endl;
 
 			for (it = klass.Fields.begin(); it != klass.Fields.end(); it++) {
 				if (!(it->Type.IsName))
@@ -889,9 +889,9 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 			}
 
 			m_Impl << "}" << std::endl << std::endl
-			       << "void ObjectImpl<" << klass.Name << ">::Stop(void)" << std::endl
+			       << "void ObjectImpl<" << klass.Name << ">::Stop(bool runtimeRemoved)" << std::endl
 			       << "{" << std::endl
-			       << "\t" << klass.Parent << "::Stop();" << std::endl << std::endl;
+			       << "\t" << klass.Parent << "::Stop(runtimeRemoved);" << std::endl << std::endl;
 
 			for (it = klass.Fields.begin(); it != klass.Fields.end(); it++) {
 				if (!(it->Type.IsName))

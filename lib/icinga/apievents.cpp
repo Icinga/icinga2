@@ -39,12 +39,12 @@ void ApiEvents::StaticInitialize(void)
 	Checkable::OnAcknowledgementSet.connect(&ApiEvents::AcknowledgementSetHandler);
 	Checkable::OnAcknowledgementCleared.connect(&ApiEvents::AcknowledgementClearedHandler);
 
-	Checkable::OnCommentAdded.connect(&ApiEvents::CommentAddedHandler);
-	Checkable::OnCommentRemoved.connect(&ApiEvents::CommentRemovedHandler);
+	Comment::OnCommentAdded.connect(&ApiEvents::CommentAddedHandler);
+	Comment::OnCommentRemoved.connect(&ApiEvents::CommentRemovedHandler);
 
-	Checkable::OnDowntimeAdded.connect(&ApiEvents::DowntimeAddedHandler);
-	Checkable::OnDowntimeRemoved.connect(&ApiEvents::DowntimeRemovedHandler);
-	Checkable::OnDowntimeTriggered.connect(&ApiEvents::DowntimeTriggeredHandler);
+	Downtime::OnDowntimeAdded.connect(&ApiEvents::DowntimeAddedHandler);
+	Downtime::OnDowntimeRemoved.connect(&ApiEvents::DowntimeRemovedHandler);
+	Downtime::OnDowntimeTriggered.connect(&ApiEvents::DowntimeTriggeredHandler);
 }
 
 void ApiEvents::CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, const MessageOrigin::Ptr& origin)
@@ -243,7 +243,7 @@ void ApiEvents::AcknowledgementClearedHandler(const Checkable::Ptr& checkable, c
 	result->Set("acknowledgement_type", AcknowledgementNone);
 }
 
-void ApiEvents::CommentAddedHandler(const Checkable::Ptr& checkable, const Comment::Ptr& comment, const MessageOrigin::Ptr& origin)
+void ApiEvents::CommentAddedHandler(const Comment::Ptr& comment)
 {
 	std::vector<EventQueue::Ptr> queues = EventQueue::GetQueuesForType("CommentAdded");
 
@@ -256,22 +256,14 @@ void ApiEvents::CommentAddedHandler(const Checkable::Ptr& checkable, const Comme
 	result->Set("type", "CommentAdded");
 	result->Set("timestamp", Utility::GetTime());
 
-	Host::Ptr host;
-	Service::Ptr service;
-	tie(host, service) = GetHostService(checkable);
-
-	result->Set("host", host->GetName());
-	if (service)
-		result->Set("service", service->GetShortName());
-
-	result->Set("comment", Serialize(comment));
+	result->Set("comment", Serialize(comment, FAConfig | FAState));
 
 	BOOST_FOREACH(const EventQueue::Ptr& queue, queues) {
 		queue->ProcessEvent(result);
 	}
 }
 
-void ApiEvents::CommentRemovedHandler(const Checkable::Ptr& checkable, const Comment::Ptr& comment, const MessageOrigin::Ptr& origin)
+void ApiEvents::CommentRemovedHandler(const Comment::Ptr& comment)
 {
 	std::vector<EventQueue::Ptr> queues = EventQueue::GetQueuesForType("CommentRemoved");
 
@@ -284,20 +276,14 @@ void ApiEvents::CommentRemovedHandler(const Checkable::Ptr& checkable, const Com
 	result->Set("type", "CommentRemoved");
 	result->Set("timestamp", Utility::GetTime());
 
-	Host::Ptr host;
-	Service::Ptr service;
-	tie(host, service) = GetHostService(checkable);
-
-	result->Set("host", host->GetName());
-	if (service)
-		result->Set("service", service->GetShortName());
+	result->Set("comment", Serialize(comment, FAConfig | FAState));
 
 	BOOST_FOREACH(const EventQueue::Ptr& queue, queues) {
 		queue->ProcessEvent(result);
 	}
 }
 
-void ApiEvents::DowntimeAddedHandler(const Checkable::Ptr& checkable, const Downtime::Ptr& downtime, const MessageOrigin::Ptr& origin)
+void ApiEvents::DowntimeAddedHandler(const Downtime::Ptr& downtime)
 {
 	std::vector<EventQueue::Ptr> queues = EventQueue::GetQueuesForType("DowntimeAdded");
 
@@ -310,22 +296,14 @@ void ApiEvents::DowntimeAddedHandler(const Checkable::Ptr& checkable, const Down
 	result->Set("type", "DowntimeAdded");
 	result->Set("timestamp", Utility::GetTime());
 
-	Host::Ptr host;
-	Service::Ptr service;
-	tie(host, service) = GetHostService(checkable);
-
-	result->Set("host", host->GetName());
-	if (service)
-		result->Set("service", service->GetShortName());
-
-	result->Set("downtime", Serialize(downtime));
+	result->Set("downtime", Serialize(downtime, FAConfig | FAState));
 
 	BOOST_FOREACH(const EventQueue::Ptr& queue, queues) {
 		queue->ProcessEvent(result);
 	}
 }
 
-void ApiEvents::DowntimeRemovedHandler(const Checkable::Ptr& checkable, const Downtime::Ptr& downtime, const MessageOrigin::Ptr& origin)
+void ApiEvents::DowntimeRemovedHandler(const Downtime::Ptr& downtime)
 {
 	std::vector<EventQueue::Ptr> queues = EventQueue::GetQueuesForType("DowntimeRemoved");
 
@@ -338,20 +316,14 @@ void ApiEvents::DowntimeRemovedHandler(const Checkable::Ptr& checkable, const Do
 	result->Set("type", "DowntimeRemoved");
 	result->Set("timestamp", Utility::GetTime());
 
-	Host::Ptr host;
-	Service::Ptr service;
-	tie(host, service) = GetHostService(checkable);
-
-	result->Set("host", host->GetName());
-	if (service)
-		result->Set("service", service->GetShortName());
+	result->Set("downtime", Serialize(downtime, FAConfig | FAState));
 
 	BOOST_FOREACH(const EventQueue::Ptr& queue, queues) {
 		queue->ProcessEvent(result);
 	}
 }
 
-void ApiEvents::DowntimeTriggeredHandler(const Checkable::Ptr& checkable, const Downtime::Ptr& downtime)
+void ApiEvents::DowntimeTriggeredHandler(const Downtime::Ptr& downtime)
 {
 	std::vector<EventQueue::Ptr> queues = EventQueue::GetQueuesForType("DowntimeTriggered");
 
@@ -363,14 +335,6 @@ void ApiEvents::DowntimeTriggeredHandler(const Checkable::Ptr& checkable, const 
 	Dictionary::Ptr result = new Dictionary();
 	result->Set("type", "DowntimeTriggered");
 	result->Set("timestamp", Utility::GetTime());
-
-	Host::Ptr host;
-	Service::Ptr service;
-	tie(host, service) = GetHostService(checkable);
-
-	result->Set("host", host->GetName());
-	if (service)
-		result->Set("service", service->GetShortName());
 
 	result->Set("downtime", Serialize(downtime));
 

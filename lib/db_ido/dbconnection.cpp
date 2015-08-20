@@ -56,9 +56,9 @@ void DbConnection::OnConfigLoaded(void)
 	boost::call_once(m_OnceFlag, InitializeDbTimer);
 }
 
-void DbConnection::Start(void)
+void DbConnection::Start(bool runtimeCreated)
 {
-	ObjectImpl<DbConnection>::Start();
+	ObjectImpl<DbConnection>::Start(runtimeCreated);
 
 	DbObject::OnQuery.connect(boost::bind(&DbConnection::ExecuteQuery, this, _1));
 	ConfigObject::OnActiveChanged.connect(boost::bind(&DbConnection::UpdateObject, this, _1));

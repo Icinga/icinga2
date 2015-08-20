@@ -123,9 +123,9 @@ void Dependency::OnAllConfigLoaded(void)
 	m_Parent->AddReverseDependency(this);
 }
 
-void Dependency::Stop(void)
+void Dependency::Stop(bool runtimeRemoved)
 {
-	ObjectImpl<Dependency>::Stop();
+	ObjectImpl<Dependency>::Stop(runtimeRemoved);
 
 	GetChild()->RemoveDependency(this);
 	GetParent()->RemoveReverseDependency(this);

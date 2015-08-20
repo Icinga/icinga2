@@ -57,7 +57,7 @@ public:
 
 protected:
 	virtual void OnAllConfigLoaded(void) override;
-	virtual void Start(void) override;
+	virtual void Start(bool runtimeCreated) override;
 
 private:
 	static void TimerProc(void);

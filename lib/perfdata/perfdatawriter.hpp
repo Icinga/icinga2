@@ -46,7 +46,7 @@ public:
 	virtual void ValidateServiceFormatTemplate(const String& value, const ValidationUtils& utils) override;
 
 protected:
-	virtual void Start(void) override;
+	virtual void Start(bool runtimeCreated) override;
 
 private:
 	void CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);

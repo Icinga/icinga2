@@ -62,9 +62,9 @@ void LivestatusListener::StatsFunc(const Dictionary::Ptr& status, const Array::P
 /**
  * Starts the component.
  */
-void LivestatusListener::Start(void)
+void LivestatusListener::Start(bool runtimeCreated)
 {
-	ObjectImpl<LivestatusListener>::Start();
+	ObjectImpl<LivestatusListener>::Start(runtimeCreated);
 
 	if (GetSocketType() == "tcp") {
 		TcpSocket::Ptr socket = new TcpSocket();
@@ -119,9 +119,9 @@ void LivestatusListener::Start(void)
 	}
 }
 
-void LivestatusListener::Stop(void)
+void LivestatusListener::Stop(bool runtimeRemoved)
 {
-	ObjectImpl<LivestatusListener>::Stop();
+	ObjectImpl<LivestatusListener>::Stop(runtimeRemoved);
 
 	m_Listener->Close();
 

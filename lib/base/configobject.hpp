@@ -60,12 +60,12 @@ public:
 	void Register(void);
 	void Unregister(void);
 
-	void Activate(void);
-	void Deactivate(void);
+	void Activate(bool runtimeCreated = false);
+	void Deactivate(bool runtimeRemoved = false);
 	void SetAuthority(bool authority);
 
-	virtual void Start(void) override;
-	virtual void Stop(void) override;
+	virtual void Start(bool runtimeCreated = false) override;
+	virtual void Stop(bool runtimeRemoved = false) override;
 
 	virtual void Pause(void);
 	virtual void Resume(void);

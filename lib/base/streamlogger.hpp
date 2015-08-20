@@ -40,7 +40,7 @@ public:
 
 	StreamLogger(void);
 
-	virtual void Stop(void) override;
+	virtual void Stop(bool runtimeRemoved) override;
 	~StreamLogger(void);
 
 	void BindStream(std::ostream *stream, bool ownsStream);

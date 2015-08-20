@@ -215,7 +215,7 @@ Dictionary::Ptr ApiActions::AcknowledgeProblem(const ConfigObject::Ptr& object,
 			return ApiActions::CreateResult(409, "Service " + checkable->GetName() + " is OK.");
 	}
 
-	checkable->AddComment(CommentAcknowledgement, HttpUtility::GetLastParameter(params, "author"),
+	Comment::AddComment(checkable, CommentAcknowledgement, HttpUtility::GetLastParameter(params, "author"),
 	    HttpUtility::GetLastParameter(params, "comment"), timestamp);
 	checkable->AcknowledgeProblem(HttpUtility::GetLastParameter(params, "author"),
 	    HttpUtility::GetLastParameter(params, "comment"), sticky, notify, timestamp);
@@ -250,11 +250,11 @@ Dictionary::Ptr ApiActions::AddComment(const ConfigObject::Ptr& object,
 	if (!params->Contains("author") || !params->Contains("comment"))
 		return ApiActions::CreateResult(403, "Comments require author and comment.");
 
-	String comment_id = checkable->AddComment(CommentUser,
+	String comment_id = Comment::AddComment(checkable, CommentUser,
 	    HttpUtility::GetLastParameter(params, "author"),
 	    HttpUtility::GetLastParameter(params, "comment"), 0);
 
-	Comment::Ptr comment = Checkable::GetCommentByID(comment_id);
+	Comment::Ptr comment = Comment::GetByName(comment_id);
 	int legacy_id = comment->GetLegacyId();
 
 	Dictionary::Ptr additional = new Dictionary();
@@ -287,7 +287,7 @@ Dictionary::Ptr ApiActions::RemoveCommentByID(const ConfigObject::Ptr& object,
 
 	String comment_id = HttpUtility::GetLastParameter(params, "comment_id");
 
-	Service::RemoveComment(comment_id);
+	Comment::RemoveComment(comment_id);
 
 	return ApiActions::CreateResult(200, "Successfully removed comment '" + comment_id + "'.");
 }
@@ -311,21 +311,15 @@ Dictionary::Ptr ApiActions::ScheduleDowntime(const ConfigObject::Ptr& object,
 	if (params->Contains("fixed"))
 		fixed = HttpUtility::GetLastParameter(params, "fixed");
 
-	int triggeredByLegacy = 0;
-
-	if (params->Contains("trigger_id"))
-		triggeredByLegacy = HttpUtility::GetLastParameter(params, "trigger_id");
-
-	String triggeredBy;
-	if (triggeredByLegacy)
-		triggeredBy = Service::GetDowntimeIDFromLegacyID(triggeredByLegacy);
-
-	String downtime_id = checkable->AddDowntime(HttpUtility::GetLastParameter(params, "author"),
-	    HttpUtility::GetLastParameter(params, "comment"), HttpUtility::GetLastParameter(params, "start_time"),
-	    HttpUtility::GetLastParameter(params, "end_time"), fixed, triggeredBy,
+	String downtime_id = Downtime::AddDowntime(checkable,
+	    HttpUtility::GetLastParameter(params, "author"),
+	    HttpUtility::GetLastParameter(params, "comment"),
+	    HttpUtility::GetLastParameter(params, "start_time"),
+	    HttpUtility::GetLastParameter(params, "end_time"), fixed,
+	    HttpUtility::GetLastParameter(params, "trigger_id"),
 	    HttpUtility::GetLastParameter(params, "duration"));
 
-	Downtime::Ptr downtime = Checkable::GetDowntimeByID(downtime_id);
+	Downtime::Ptr downtime = Downtime::GetByName(downtime_id);
 	int legacy_id = downtime->GetLegacyId();
 
 	Dictionary::Ptr additional = new Dictionary();
@@ -357,7 +351,7 @@ Dictionary::Ptr ApiActions::RemoveDowntimeByID(const ConfigObject::Ptr& object,
 
 	String downtime_id = HttpUtility::GetLastParameter(params, "downtime_id");
 
-	Service::RemoveDowntime(downtime_id, true);
+	Downtime::RemoveDowntime(downtime_id, true);
 
 	return ApiActions::CreateResult(200, "Successfully removed downtime '" + downtime_id + "'.");
 }

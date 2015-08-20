@@ -54,9 +54,9 @@ void CheckResultReader::StatsFunc(const Dictionary::Ptr& status, const Array::Pt
 /**
  * @threadsafety Always.
  */
-void CheckResultReader::Start(void)
+void CheckResultReader::Start(bool runtimeCreated)
 {
-	ObjectImpl<CheckResultReader>::Start();
+	ObjectImpl<CheckResultReader>::Start(runtimeCreated);
 
 	m_ReadTimer = new Timer();
 	m_ReadTimer->OnTimerExpired.connect(boost::bind(&CheckResultReader::ReadTimerHandler, this));

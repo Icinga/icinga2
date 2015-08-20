@@ -44,9 +44,9 @@ void FileLogger::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 /**
  * Constructor for the FileLogger class.
  */
-void FileLogger::Start(void)
+void FileLogger::Start(bool runtimeCreated)
 {
-	ObjectImpl<FileLogger>::Start();
+	ObjectImpl<FileLogger>::Start(runtimeCreated);
 
 	ReopenLogFile();
 

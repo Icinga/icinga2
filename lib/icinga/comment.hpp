@@ -22,12 +22,15 @@
 
 #include "icinga/i2-icinga.hpp"
 #include "icinga/comment.thpp"
+#include "remote/messageorigin.hpp"
 
 namespace icinga
 {
 
+class Checkable;
+
 /**
- * A service comment.
+ * A comment.
  *
  * @ingroup icinga
  */
@@ -35,8 +38,36 @@ class I2_ICINGA_API Comment : public ObjectImpl<Comment>
 {
 public:
 	DECLARE_OBJECT(Comment);
+	DECLARE_OBJECTNAME(Comment);
+
+	static boost::signals2::signal<void (const Comment::Ptr&)> OnCommentAdded;
+	static boost::signals2::signal<void (const Comment::Ptr&)> OnCommentRemoved;
+
+	intrusive_ptr<Checkable> GetCheckable(void) const;
 
 	bool IsExpired(void) const;
+
+	static int GetNextCommentID(void);
+
+	static String AddComment(const intrusive_ptr<Checkable>& checkable, CommentType entryType,
+	    const String& author, const String& text, double expireTime,
+	    const String& id = String(), const MessageOrigin::Ptr& origin = MessageOrigin::Ptr());
+
+	static void RemoveComment(const String& id, const MessageOrigin::Ptr& origin = MessageOrigin::Ptr());
+
+	static String GetCommentIDFromLegacyID(int id);
+
+	static void StaticInitialize(void);
+
+protected:
+	virtual void OnAllConfigLoaded(void) override;
+        virtual void Start(bool runtimeCreated) override;
+        virtual void Stop(bool runtimeRemoved) override;
+
+private:
+	intrusive_ptr<Checkable> m_Checkable;
+
+        static void CommentsExpireTimerHandler(void);
 };
 
 }

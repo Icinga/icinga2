@@ -40,42 +40,14 @@ Checkable::Checkable(void)
 	SetSchedulingOffset(Utility::Random());
 }
 
-void Checkable::Start(void)
+void Checkable::Start(bool runtimeCreated)
 {
 	double now = Utility::GetTime();
 
 	if (GetNextCheck() < now + 300)
 		UpdateNextCheck();
 
-	ObjectImpl<Checkable>::Start();
-}
-
-void Checkable::OnStateLoaded(void)
-{
-	AddDowntimesToCache();
-	AddCommentsToCache();
-
-	std::vector<String> ids;
-	Dictionary::Ptr downtimes = GetDowntimes();
-
-	{
-		ObjectLock dlock(downtimes);
-		BOOST_FOREACH(const Dictionary::Pair& kv, downtimes) {
-			Downtime::Ptr downtime = kv.second;
-
-			if (downtime->GetScheduledBy().IsEmpty())
-				continue;
-
-			ids.push_back(kv.first);
-		}
-	}
-
-	BOOST_FOREACH(const String& id, ids) {
-		/* override config owner to clear downtimes once */
-		Downtime::Ptr downtime = GetDowntimeByID(id);
-		downtime->SetConfigOwner(Empty);
-		RemoveDowntime(id, true);
-	}
+	ObjectImpl<Checkable>::Start(runtimeCreated);
 }
 
 void Checkable::AddGroup(const String& name)

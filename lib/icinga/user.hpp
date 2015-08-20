@@ -48,7 +48,7 @@ public:
 	virtual void ValidateTypes(const Array::Ptr& value, const ValidationUtils& utils) override;
 
 protected:
-	virtual void Stop(void) override;
+	virtual void Stop(bool runtimeRemoved) override;
 
 	virtual void OnConfigLoaded(void) override;
 	virtual void OnAllConfigLoaded(void) override;

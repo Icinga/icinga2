@@ -46,9 +46,9 @@ void ExternalCommandListener::StatsFunc(const Dictionary::Ptr& status, const Arr
 /**
  * Starts the component.
  */
-void ExternalCommandListener::Start(void)
+void ExternalCommandListener::Start(bool runtimeCreated)
 {
-	ObjectImpl<ExternalCommandListener>::Start();
+	ObjectImpl<ExternalCommandListener>::Start(runtimeCreated);
 
 #ifndef _WIN32
 	m_CommandThread = boost::thread(boost::bind(&ExternalCommandListener::CommandPipeThread, this, GetCommandPath()));

@@ -61,11 +61,11 @@ class DbEvents
 public:
 	static void StaticInitialize(void);
 
-	static void AddCommentByType(const ConfigObject::Ptr& object, const Comment::Ptr& comment, bool historical);
+	static void AddCommentByType(const Comment::Ptr& comment, bool historical);
 	static void AddComments(const Checkable::Ptr& checkable);
 	static void RemoveComments(const Checkable::Ptr& checkable);
 
-	static void AddDowntimeByType(const Checkable::Ptr& checkable, const Downtime::Ptr& downtime, bool historical);
+	static void AddDowntimeByType(const Downtime::Ptr& downtime, bool historical);
 	static void AddDowntimes(const Checkable::Ptr& checkable);
 	static void RemoveDowntimes(const Checkable::Ptr& checkable);
 
@@ -82,12 +82,12 @@ public:
 	static void EnablePerfdataChangedHandler(const Checkable::Ptr& checkable);
 	static void EnableFlappingChangedHandler(const Checkable::Ptr& checkable);
 
-	static void AddComment(const Checkable::Ptr& checkable, const Comment::Ptr& comment);
-	static void RemoveComment(const Checkable::Ptr& checkable, const Comment::Ptr& comment);
+	static void AddComment(const Comment::Ptr& comment);
+	static void RemoveComment(const Comment::Ptr& comment);
 
-	static void AddDowntime(const Checkable::Ptr& checkable, const Downtime::Ptr& downtime, bool remove_existing);
-	static void RemoveDowntime(const Checkable::Ptr& checkable, const Downtime::Ptr& downtime);
-	static void TriggerDowntime(const Checkable::Ptr& checkable, const Downtime::Ptr& downtime);
+	static void AddDowntime(const Downtime::Ptr& downtime, bool remove_existing);
+	static void RemoveDowntime(const Downtime::Ptr& downtime);
+	static void TriggerDowntime(const Downtime::Ptr& downtime);
 
 	static void AddAcknowledgement(const Checkable::Ptr& checkable, AcknowledgementType type);
 	static void RemoveAcknowledgement(const Checkable::Ptr& checkable);
@@ -96,8 +96,8 @@ public:
 	static void ReachabilityChangedHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, std::set<Checkable::Ptr> children);
 
 	/* comment, downtime, acknowledgement history */
-	static void AddCommentHistory(const Checkable::Ptr& checkable, const Comment::Ptr& comment);
-	static void AddDowntimeHistory(const Checkable::Ptr& checkable, const Downtime::Ptr& downtime);
+	static void AddCommentHistory(const Comment::Ptr& comment);
+	static void AddDowntimeHistory(const Downtime::Ptr& downtime);
 	static void AddAcknowledgementHistory(const Checkable::Ptr& checkable, const String& author, const String& comment,
 	    AcknowledgementType type, bool notify, double expiry);
 
@@ -111,8 +111,8 @@ public:
 
 	/* logentries */
 	static void AddCheckResultLogHistory(const Checkable::Ptr& checkable, const CheckResult::Ptr &cr);
-	static void AddTriggerDowntimeLogHistory(const Checkable::Ptr& checkable, const Downtime::Ptr& downtime);
-	static void AddRemoveDowntimeLogHistory(const Checkable::Ptr& checkable, const Downtime::Ptr& downtime);
+	static void AddTriggerDowntimeLogHistory(const Downtime::Ptr& downtime);
+	static void AddRemoveDowntimeLogHistory(const Downtime::Ptr& downtime);
 	static void AddNotificationSentLogHistory(const Notification::Ptr& notification, const Checkable::Ptr& checkable,
 	    const User::Ptr& user, NotificationType notification_type, const CheckResult::Ptr& cr, const String& author,
 	    const String& comment_text);
@@ -130,8 +130,8 @@ public:
 private:
 	DbEvents(void);
 
-	static void AddCommentInternal(const Checkable::Ptr& checkable, const Comment::Ptr& comment, bool historical);
-	static void AddDowntimeInternal(const Checkable::Ptr& checkable, const Downtime::Ptr& downtime, bool historical);
+	static void AddCommentInternal(const Comment::Ptr& comment, bool historical);
+	static void AddDowntimeInternal(const Downtime::Ptr& downtime, bool historical);
 	static void EnableChangedHandlerInternal(const Checkable::Ptr& checkable, const String& fieldName, bool enabled);
 };
 

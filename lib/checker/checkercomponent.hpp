@@ -71,8 +71,8 @@ public:
 	CheckerComponent(void);
 
 	virtual void OnConfigLoaded(void) override;
-	virtual void Start(void) override;
-	virtual void Stop(void) override;
+	virtual void Start(bool runtimeCreated) override;
+	virtual void Stop(bool runtimeRemoved) override;
 
 	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 	unsigned long GetIdleCheckables(void);

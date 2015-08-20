@@ -65,34 +65,9 @@ String DowntimesTable::GetPrefix(void) const
 
 void DowntimesTable::FetchRows(const AddRowFunction& addRowFn)
 {
-	BOOST_FOREACH(const Host::Ptr& host, ConfigType::GetObjectsByType<Host>()) {
-		Dictionary::Ptr downtimes = host->GetDowntimes();
-
-		ObjectLock olock(downtimes);
-
-		String id;
-		Downtime::Ptr downtime;
-		BOOST_FOREACH(boost::tie(id, downtime), downtimes) {
-			if (Host::GetOwnerByDowntimeID(id) == host) {
-				if (!addRowFn(downtime, LivestatusGroupByNone, Empty))
-					return;
-			}
-		}
-	}
-
-	BOOST_FOREACH(const Service::Ptr& service, ConfigType::GetObjectsByType<Service>()) {
-		Dictionary::Ptr downtimes = service->GetDowntimes();
-
-		ObjectLock olock(downtimes);
-
-		String id;
-		Downtime::Ptr downtime;
-		BOOST_FOREACH(boost::tie(id, downtime), downtimes) {
-			if (Service::GetOwnerByDowntimeID(id) == service) {
-				if (!addRowFn(downtime, LivestatusGroupByNone, Empty))
-					return;
-			}
-		}
+	BOOST_FOREACH(const Downtime::Ptr& downtime, ConfigType::GetObjectsByType<Downtime>()) {
+		if (!addRowFn(downtime, LivestatusGroupByNone, Empty))
+			return;
 	}
 }
 
@@ -100,7 +75,7 @@ Object::Ptr DowntimesTable::HostAccessor(const Value& row, const Column::ObjectA
 {
 	Downtime::Ptr downtime = static_cast<Downtime::Ptr>(row);
 
-	Checkable::Ptr checkable = Checkable::GetOwnerByDowntimeID(downtime->GetId());
+	Checkable::Ptr checkable = downtime->GetCheckable();
 
 	Host::Ptr host;
 	Service::Ptr service;
@@ -113,7 +88,7 @@ Object::Ptr DowntimesTable::ServiceAccessor(const Value& row, const Column::Obje
 {
 	Downtime::Ptr downtime = static_cast<Downtime::Ptr>(row);
 
-	Checkable::Ptr checkable = Checkable::GetOwnerByDowntimeID(downtime->GetId());
+	Checkable::Ptr checkable = downtime->GetCheckable();
 
 	Host::Ptr host;
 	Service::Ptr service;
@@ -160,7 +135,7 @@ Value DowntimesTable::TypeAccessor(const Value& row)
 Value DowntimesTable::IsServiceAccessor(const Value& row)
 {
 	Downtime::Ptr downtime = static_cast<Downtime::Ptr>(row);
-	Checkable::Ptr checkable = Checkable::GetOwnerByDowntimeID(downtime->GetId());
+	Checkable::Ptr checkable = downtime->GetCheckable();
 
 	return (dynamic_pointer_cast<Host>(checkable) ? 0 : 1);
 }
@@ -197,5 +172,12 @@ Value DowntimesTable::TriggeredByAccessor(const Value& row)
 {
 	Downtime::Ptr downtime = static_cast<Downtime::Ptr>(row);
 
-	return downtime->GetTriggeredByLegacyId();
+	String triggerDowntimeName = downtime->GetTriggeredBy();
+
+	Downtime::Ptr triggerDowntime = Downtime::GetByName(triggerDowntimeName);
+
+	if (triggerDowntime)
+		return triggerDowntime->GetLegacyId();
+
+	return Empty;
 }

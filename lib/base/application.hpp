@@ -138,7 +138,7 @@ public:
 
 protected:
 	virtual void OnConfigLoaded(void) override;
-	virtual void Stop(void) override;
+	virtual void Stop(bool runtimeRemoved) override;
 
 	void RunEventLoop(void);
 
