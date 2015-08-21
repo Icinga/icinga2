@@ -80,7 +80,7 @@ public:
 	*/
 
 private:
-	static Dictionary::Ptr CreateResult(int code, const String& status);
+	static Dictionary::Ptr CreateResult(int code, const String& status, const Dictionary::Ptr& additional = Dictionary::Ptr());
 };
 
 }

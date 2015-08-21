@@ -34,25 +34,26 @@ using namespace icinga;
 
 REGISTER_APIACTION(process_check_result, "Service;Host", &ApiActions::ProcessCheckResult);
 REGISTER_APIACTION(reschedule_check, "Service;Host", &ApiActions::RescheduleCheck);
-REGISTER_APIACTION(delay_notifications, "Service;Host", &ApiActions::DelayNotifications); //TODO groups
+REGISTER_APIACTION(delay_notifications, "Service;Host", &ApiActions::DelayNotifications);
 
 REGISTER_APIACTION(acknowledge_problem, "Service;Host", &ApiActions::AcknowledgeProblem);
 REGISTER_APIACTION(remove_acknowledgement, "Service;Host", &ApiActions::RemoveAcknowledgement);
 REGISTER_APIACTION(add_comment, "Service;Host", &ApiActions::AddComment);
 REGISTER_APIACTION(remove_comment, "", &ApiActions::RemoveComment);
 REGISTER_APIACTION(remove_all_comments, "Service;Host", &ApiActions::RemoveAllComments);
-REGISTER_APIACTION(schedule_downtime, "Service;Host", &ApiActions::ScheduleDowntime); //TODO groups
+REGISTER_APIACTION(schedule_downtime, "Service;Host", &ApiActions::ScheduleDowntime);
 REGISTER_APIACTION(remove_downtime, "", &ApiActions::RemoveDowntime);
 
-REGISTER_APIACTION(enable_passive_checks, "Service;Host", &ApiActions::EnablePassiveChecks); //TODO groups
-REGISTER_APIACTION(disable_passive_checks, "Service;Host", &ApiActions::DisablePassiveChecks); //TODO groups
-REGISTER_APIACTION(enable_active_checks, "Host", &ApiActions::EnableActiveChecks); //TODO groups
-REGISTER_APIACTION(disable_active_checks, "Host", &ApiActions::DisableActiveChecks); //TODO groups
+REGISTER_APIACTION(enable_passive_checks, "Service;Host", &ApiActions::EnablePassiveChecks);
+REGISTER_APIACTION(disable_passive_checks, "Service;Host", &ApiActions::DisablePassiveChecks);
+REGISTER_APIACTION(enable_active_checks, "Host", &ApiActions::EnableActiveChecks);
+REGISTER_APIACTION(disable_active_checks, "Host", &ApiActions::DisableActiveChecks);
 REGISTER_APIACTION(enable_notifications, "Service;Host", &ApiActions::EnableNotifications);
 REGISTER_APIACTION(disable_notifications, "Service;Host", &ApiActions::DisableNotifications);
 REGISTER_APIACTION(enable_flap_detection, "Service;Host", &ApiActions::EnableFlapDetection);
 REGISTER_APIACTION(disable_flap_detection, "Service;Host", &ApiActions::DisableFlapDetection);
 
+//TODO-MA. Figure out how to handle modified attributes as actions
 /*
 REGISTER_APIACTION(change_event_handler, "Service;Host", &ApiActions::ChangeEventHandler);
 REGISTER_APIACTION(change_check_command, "Service;Host", &ApiActions::ChangeCheckCommand);
@@ -75,17 +76,22 @@ REGISTER_APIACTION(stop_global_executing_svc_checks, "", &ApiActions::StopGlobal
 REGISTER_APIACTION(start_global_executing_host_checks, "", &ApiActions::StartGlobalExecutingHostChecks);
 REGISTER_APIACTION(stop_global_executing_host_checks, "", &ApiActions::StopGlobalExecutingHostChecks);
 
+//TODO: add process related actions
 /*
 REGISTER_APIACTION(shutdown_process, "", &ApiActions::ShutdownProcess);
 REGISTER_APIACTION(restart_process, "", &ApiActions::RestartProcess);
 REGISTER_APIACTION(process_file, "", &ApiActions::ProcessFile);
 */
 
-Dictionary::Ptr ApiActions::CreateResult(int code, const String& status)
+Dictionary::Ptr ApiActions::CreateResult(int code, const String& status, const Dictionary::Ptr& additional)
 {
 	Dictionary::Ptr result = new Dictionary();
 	result->Set("code", code);
 	result->Set("status", status);
+
+	if (additional)
+		additional->CopyTo(result);
+
 	return result;
 }
 
@@ -94,7 +100,7 @@ Dictionary::Ptr ApiActions::RescheduleCheck(const ConfigObject::Ptr& object, con
 	Checkable::Ptr checkable = static_pointer_cast<Checkable>(object);
 
 	if (!checkable)
-		return ApiActions::CreateResult(404, "Cannot reschedule check for non-existent object");
+		return ApiActions::CreateResult(404, "Cannot reschedule check for non-existent object.");
 
 	if (Convert::ToBool(HttpUtility::GetLastParameter(params, "force")))
 		checkable->SetForceNextCheck(true);
@@ -107,7 +113,7 @@ Dictionary::Ptr ApiActions::RescheduleCheck(const ConfigObject::Ptr& object, con
 
 	checkable->SetNextCheck(nextCheck);
 
-	return ApiActions::CreateResult(200, "Successfully rescheduled check for " + checkable->GetName());
+	return ApiActions::CreateResult(200, "Successfully rescheduled check for " + checkable->GetName() + ".");
 }
 
 Dictionary::Ptr ApiActions::ProcessCheckResult(const ConfigObject::Ptr& object, const Dictionary::Ptr& params)
@@ -115,7 +121,7 @@ Dictionary::Ptr ApiActions::ProcessCheckResult(const ConfigObject::Ptr& object, 
 	Checkable::Ptr checkable = static_pointer_cast<Checkable>(object);
 
 	if (!checkable)
-		return ApiActions::CreateResult(404, "Cannot process passive check result for non-existent object");
+		return ApiActions::CreateResult(404, "Cannot process passive check result for non-existent object.");
 
 	if (!checkable->GetEnablePassiveChecks())
 		return ApiActions::CreateResult(403, "Passive checks are disabled for " + checkable->GetName());
@@ -125,7 +131,7 @@ Dictionary::Ptr ApiActions::ProcessCheckResult(const ConfigObject::Ptr& object, 
 	tie(host, service) = GetHostService(checkable);
 
 	if (!params->Contains("exit_status"))
-		return ApiActions::CreateResult(403, "Parameter 'exit_status' is required");
+		return ApiActions::CreateResult(403, "Parameter 'exit_status' is required.");
 
 	int exitStatus = HttpUtility::GetLastParameter(params, "exit_status");
 
@@ -137,7 +143,7 @@ Dictionary::Ptr ApiActions::ProcessCheckResult(const ConfigObject::Ptr& object, 
 		else if (exitStatus == 1)
 			state = ServiceCritical;
 		else
-			return ApiActions::CreateResult(403, "Invalid 'exit_status' for Host " + checkable->GetName());
+			return ApiActions::CreateResult(403, "Invalid 'exit_status' for Host " + checkable->GetName() + ".");
 	} else {
 		state = PluginUtility::ExitStatusToState(exitStatus);
 	}
@@ -164,61 +170,55 @@ Dictionary::Ptr ApiActions::ProcessCheckResult(const ConfigObject::Ptr& object, 
 	 * active checks. */
 	checkable->SetNextCheck(Utility::GetTime() + checkable->GetCheckInterval());
 
-	return ApiActions::CreateResult(200, "Successfully processed check result for " + checkable->GetName());
+	return ApiActions::CreateResult(200, "Successfully processed check result for object " + checkable->GetName() + ".");
 }
 
 Dictionary::Ptr ApiActions::EnablePassiveChecks(const ConfigObject::Ptr& object, const Dictionary::Ptr& params)
 {
-	//TODO check if group undso
 	Checkable::Ptr checkable = static_pointer_cast<Checkable>(object);
 
 	if (!checkable)
-		return ApiActions::CreateResult(404, "Cannot enable passive checks for non-existent object");
+		return ApiActions::CreateResult(404, "Cannot enable passive checks for non-existent object.");
 
 	checkable->SetEnablePassiveChecks(true);
 
-	return ApiActions::CreateResult(200, "Successfully enabled passive checks for " + checkable->GetName());
+	return ApiActions::CreateResult(200, "Successfully enabled passive checks for object " + checkable->GetName() + ".");
 }
 
 Dictionary::Ptr ApiActions::DisablePassiveChecks(const ConfigObject::Ptr& object, const Dictionary::Ptr& params)
 {
-	//TODO check if group undso
 	Checkable::Ptr checkable = static_pointer_cast<Checkable>(object);
 
 	if (!checkable)
-		return ApiActions::CreateResult(404, "Cannot disable passive checks non-existent object");
+		return ApiActions::CreateResult(404, "Cannot disable passive checks non-existent object.");
 
 	checkable->SetEnablePassiveChecks(false);
 
-	return ApiActions::CreateResult(200, "Successfully disabled passive checks for " + checkable->GetName());
+	return ApiActions::CreateResult(200, "Successfully disabled passive checks for object " + checkable->GetName() + ".");
 }
 
 Dictionary::Ptr ApiActions::EnableActiveChecks(const ConfigObject::Ptr& object, const Dictionary::Ptr& params)
 {
-	Host::Ptr host = static_pointer_cast<Host>(object);
+	Checkable::Ptr checkable = static_pointer_cast<Checkable>(object);
 
-	if (!host)
-		return ApiActions::CreateResult(404, "Cannot enable checks for non-existent object");
+	if (!checkable)
+		return ApiActions::CreateResult(404, "Cannot enable passive checks for non-existent object.");
 
-	BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
-		service->SetEnableActiveChecks(true);
-	}
+	checkable->SetEnableActiveChecks(true);
 
-	return ApiActions::CreateResult(200, "Successfully enabled active checks for " + host->GetName());
+	return ApiActions::CreateResult(200, "Successfully enabled passive checks for object " + checkable->GetName() + ".");
 }
 
 Dictionary::Ptr ApiActions::DisableActiveChecks(const ConfigObject::Ptr& object, const Dictionary::Ptr& params)
 {
-	Host::Ptr host = static_pointer_cast<Host>(object);
+	Checkable::Ptr checkable = static_pointer_cast<Checkable>(object);
 
-	if (!host)
-		return ApiActions::CreateResult(404, "Cannot enable checks for non-existent object");
+	if (!checkable)
+		return ApiActions::CreateResult(404, "Cannot disable passive checks non-existent object.");
 
-	BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
-		service->SetEnableActiveChecks(false);
-	}
+	checkable->SetEnableActiveChecks(false);
 
-	return ApiActions::CreateResult(200, "Successfully disabled active checks for " + host->GetName());
+	return ApiActions::CreateResult(200, "Successfully disabled passive checks for object " + checkable->GetName() + ".");
 }
 
 Dictionary::Ptr ApiActions::AcknowledgeProblem(const ConfigObject::Ptr& object, const Dictionary::Ptr& params)
@@ -226,14 +226,14 @@ Dictionary::Ptr ApiActions::AcknowledgeProblem(const ConfigObject::Ptr& object, 
 	Checkable::Ptr checkable = static_pointer_cast<Checkable>(object);
 
 	if (!checkable)
-		return ApiActions::CreateResult(404, "Cannot acknowledge problem for non-existent object");
+		return ApiActions::CreateResult(404, "Cannot acknowledge problem for non-existent object.");
 
 	if (!params->Contains("author") || !params->Contains("comment"))
-		return ApiActions::CreateResult(403, "Acknowledgements require an author and a comment");
+		return ApiActions::CreateResult(403, "Acknowledgements require author and comment.");
 
 	AcknowledgementType sticky = AcknowledgementNormal;
 	bool notify = false;
-	double timestamp = 0;
+	double timestamp = 0.0;
 	if (params->Contains("sticky"))
 		sticky = AcknowledgementSticky;
 	if (params->Contains("notify"))
@@ -247,16 +247,17 @@ Dictionary::Ptr ApiActions::AcknowledgeProblem(const ConfigObject::Ptr& object, 
 
 	if (!service) {
 		if (host->GetState() == HostUp)
-			return ApiActions::CreateResult(409, "Host " + checkable->GetName() + " is up");
+			return ApiActions::CreateResult(409, "Host " + checkable->GetName() + " is UP.");
 	} else {
 		if (service->GetState() == ServiceOK)
-			return ApiActions::CreateResult(409, "Service " + checkable->GetName() + " is ok");
+			return ApiActions::CreateResult(409, "Service " + checkable->GetName() + " is OK.");
 	}
 
 	checkable->AddComment(CommentAcknowledgement, HttpUtility::GetLastParameter(params, "author"),
 	    HttpUtility::GetLastParameter(params, "comment"), timestamp);
 	checkable->AcknowledgeProblem(HttpUtility::GetLastParameter(params, "author"),
 	    HttpUtility::GetLastParameter(params, "comment"), sticky, notify, timestamp);
+
 	return ApiActions::CreateResult(200, "Successfully acknowledged problem for " +  checkable->GetName());
 }
 
@@ -265,12 +266,12 @@ Dictionary::Ptr ApiActions::RemoveAcknowledgement(const ConfigObject::Ptr& objec
 	Checkable::Ptr checkable = static_pointer_cast<Checkable>(object);
 
 	if (!checkable)
-		return ApiActions::CreateResult(404, "Cannot remove acknowlegement for non-existent object");
+		return ApiActions::CreateResult(404, "Cannot remove acknowlegement for non-existent checkable object " + object->GetName() + ".");
 
 	checkable->ClearAcknowledgement();
 	checkable->RemoveCommentsByType(CommentAcknowledgement);
 
-	return ApiActions::CreateResult(200, "Successfully removed acknowledgement for " + checkable->GetName());
+	return ApiActions::CreateResult(200, "Successfully removed acknowledgement for " + checkable->GetName() + ".");
 }
 
 Dictionary::Ptr ApiActions::AddComment(const ConfigObject::Ptr& object, const Dictionary::Ptr& params)
@@ -281,26 +282,33 @@ Dictionary::Ptr ApiActions::AddComment(const ConfigObject::Ptr& object, const Di
 		return ApiActions::CreateResult(404, "Cannot add comment for non-existent object");
 
 	if (!params->Contains("author") || !params->Contains("comment"))
-		return ApiActions::CreateResult(403, "Comments require an author and a comment");
+		return ApiActions::CreateResult(403, "Comments require author and comment.");
 
-	//TODO	Fragnen warum es (void) checkable->AddComment(..) war
-	checkable->AddComment(CommentUser, HttpUtility::GetLastParameter(params, "author"),
+	String comment_id = checkable->AddComment(CommentUser, HttpUtility::GetLastParameter(params, "author"),
 	    HttpUtility::GetLastParameter(params, "comment"), 0);
 
-	return ApiActions::CreateResult(200, "Successfully added comment for " + checkable->GetName());
+	Comment::Ptr comment = Checkable::GetCommentByID(comment_id);
+	int legacy_id = comment->GetLegacyId();
+
+	Dictionary::Ptr additional = new Dictionary();
+	additional->Set("comment_id", comment_id);
+	additional->Set("legacy_id", legacy_id);
+
+	return ApiActions::CreateResult(200, "Successfully added comment with id " +
+	    Convert::ToString(legacy_id) + " for object " + checkable->GetName() + ".", additional);
 }
 
 Dictionary::Ptr ApiActions::RemoveComment(const ConfigObject::Ptr& object, const Dictionary::Ptr& params)
 {
 	if (!params->Contains("comment_id"))
-		return ApiActions::CreateResult(403, "Comment removal requires an comment_id");
+		return ApiActions::CreateResult(403, "'comment_id' required.");
 
 	int comment_id = HttpUtility::GetLastParameter(params, "comment_id");
 
 	String rid = Service::GetCommentIDFromLegacyID(comment_id);
 	Service::RemoveComment(rid);
 
-	return ApiActions::CreateResult(200, "Successfully removed comment " + std::to_string(comment_id));
+	return ApiActions::CreateResult(200, "Successfully removed comment " + Convert::ToString(comment_id) + ".");
 }
 
 Dictionary::Ptr ApiActions::RemoveAllComments(const ConfigObject::Ptr& object, const Dictionary::Ptr& params)
@@ -311,6 +319,7 @@ Dictionary::Ptr ApiActions::RemoveAllComments(const ConfigObject::Ptr& object, c
 		return ApiActions::CreateResult(404, "Cannot remove comments from non-existent object");
 
 	checkable->RemoveAllComments();
+
 	return ApiActions::CreateResult(200, "Successfully removed all comments for " + checkable->GetName());
 }
 
@@ -322,6 +331,7 @@ Dictionary::Ptr ApiActions::EnableNotifications(const ConfigObject::Ptr& object,
 		return ApiActions::CreateResult(404, "Cannot enable notifications for non-existent object");
 
 	checkable->SetEnableNotifications(true);
+
 	return ApiActions::CreateResult(200, "Successfully enabled notifications for " + checkable->GetName());
 }
 
@@ -333,6 +343,7 @@ Dictionary::Ptr ApiActions::DisableNotifications(const ConfigObject::Ptr& object
 		return ApiActions::CreateResult(404, "Cannot disable notifications for non-existent object");
 
 	checkable->SetEnableNotifications(true);
+
 	return ApiActions::CreateResult(200, "Successfully disabled notifications for " + checkable->GetName());
 }
 
@@ -363,22 +374,29 @@ Dictionary::Ptr ApiActions::ScheduleDowntime(const ConfigObject::Ptr& object, co
 	if (!params->Contains("start_time") || !params->Contains("end_time") || !params->Contains("duration") ||
 		!params->Contains("author") || !params->Contains("comment"))
 		return ApiActions::CreateResult(404, "Options 'start_time', 'end_time', 'duration', 'author' and 'comment' are required");
-	//Duration from end_time - start_time ?
 
-	bool fixd = false;
+	bool fixed = false;
 	if (params->Contains("fixed"))
-		fixd = HttpUtility::GetLastParameter(params, "fixed");
+		fixed = HttpUtility::GetLastParameter(params, "fixed");
 
 	int triggeredByLegacy = params->Contains("trigger_id") ? (int) HttpUtility::GetLastParameter(params, "trigger_id") : 0;
 	String triggeredBy;
 	if (triggeredByLegacy)
 		triggeredBy = Service::GetDowntimeIDFromLegacyID(triggeredByLegacy);
 
-	checkable->AddDowntime(HttpUtility::GetLastParameter(params, "author"), HttpUtility::GetLastParameter(params, "comment"),
+	String downtime_id = checkable->AddDowntime(HttpUtility::GetLastParameter(params, "author"), HttpUtility::GetLastParameter(params, "comment"),
 	    HttpUtility::GetLastParameter(params, "start_time"), HttpUtility::GetLastParameter(params, "end_time"),
-	    fixd, triggeredBy, HttpUtility::GetLastParameter(params, "duration"));
+	    fixed, triggeredBy, HttpUtility::GetLastParameter(params, "duration"));
 
-	return ApiActions::CreateResult(200, "Successfully scheduled downtime for " + checkable->GetName());
+	Downtime::Ptr downtime = Checkable::GetDowntimeByID(downtime_id);
+	int legacy_id = downtime->GetLegacyId();
+
+	Dictionary::Ptr additional = new Dictionary();
+	additional->Set("downtime_id", downtime_id);
+	additional->Set("legacy_id", legacy_id);
+
+	return ApiActions::CreateResult(200, "Successfully scheduled downtime with id " +
+	     Convert::ToString(legacy_id) + " for object " + checkable->GetName() + ".", additional);
 }
 
 Dictionary::Ptr ApiActions::EnableFlapDetection(const ConfigObject::Ptr& object, const Dictionary::Ptr& params)
@@ -405,7 +423,6 @@ Dictionary::Ptr ApiActions::DisableFlapDetection(const ConfigObject::Ptr& object
 	return ApiActions::CreateResult(200, "Successfully disabled flap detection for " + checkable->GetName());
 }
 
-
 Dictionary::Ptr ApiActions::RemoveDowntime(const ConfigObject::Ptr& object, const Dictionary::Ptr& params)
 {
 	if (!params->Contains("downtime_id"))
@@ -416,7 +433,7 @@ Dictionary::Ptr ApiActions::RemoveDowntime(const ConfigObject::Ptr& object, cons
 	String rid = Service::GetDowntimeIDFromLegacyID(downtime_id);
 	Service::RemoveDowntime(rid, true);
 
-	return ApiActions::CreateResult(200, "Successfully removed downtime " + to_string(downtime_id));
+	return ApiActions::CreateResult(200, "Successfully removed downtime with id " + Convert::ToString(downtime_id) + ".");
 }
 
 Dictionary::Ptr ApiActions::EnableGlobalNotifications(const ConfigObject::Ptr& object, const Dictionary::Ptr& params)
@@ -503,6 +520,7 @@ Dictionary::Ptr ApiActions::StopGlobalExecutingHostChecks(const ConfigObject::Pt
 	return ApiActions::CreateResult(200, "Globally disabled host checks.");
 }
 
+//TODO-MA
 /*
 Dictionary::Ptr ApiActions::ChangeEventHandler(const ConfigObject::Ptr& object, const Dictionary::Ptr& params)
 {
@@ -614,6 +632,7 @@ Dictionary::Ptr ApiActions::ChangeRetryInterval(const ConfigObject::Ptr& object,
 }
 */
 
+//TODO: process actions
 /*
 Dictionary::Ptr ApiActions::RestartProcess(const ConfigObject::Ptr& object, const Dictionary::Ptr& params)
 {
