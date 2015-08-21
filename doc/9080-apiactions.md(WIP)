@@ -8,11 +8,12 @@ reschedule-check                       | {next_check}; {(force_check)} | Service
 acknowledge-problem                    | author; comment; {timestamp}; {(sticky)}; {(notify)} | Service; Host | -
 remove-acknowledgement                 | - | Service; Host | -
 add-comment                            | author; comment | Service; Host | -
-remove-comment                         | comment_id | - | -
-remove-all-comments                    | - | Service; Host | -
+remove-comment                         | - | Service;Host | -
+remove-comment-by-id                   | comment_id | - | -
 delay-notifications                    | timestamp | Service;Host | -
 add-downtime                           | start_time; end_time; duration; author; comment; {trigger_id}; {(fixed)} | Service; Host; ServiceGroup; HostGroup | Downtime for all services on host x?
-remove-downtime                        | downtime_id | - | remove by name?
+remove-downtime                        | - | Service; Host | -
+remove-downtime-by-id                  | downtime_id | - | -
 send-custom-notification               | options[]; author; comment | Service; Host | -
 
 enable-passive-checks                  | - | Service; Host; ServiceGroup; HostGroup | "System" as target?
@@ -35,18 +36,17 @@ change-check-interval                  | check_interval | Service; Host | -
 change-retry-interval                  | retry_interval | Service; Host | -
 change-check-period                    | time_period_name | Service; Host | -
 
-enable-all-notifications               | - | - | -
-disable-all-notifications              | - | - | -
-enable-all-flap-detection              | - | - | -
-disable-all-flap-detection             | - | - | -
-enable-all-event-handlers              | - | - | -
-disable-all-event-handlers             | - | - | -
-enable-all-performance-data            | - | - | -
-disable-all-performance-data           | - | - | -
-start-all-executing-svc-checks         | - | - | -
-stop-all-executing-svc-checks          | - | - | -
-start-all-executing-host-checks        | - | - | -
-stop-all-executing-host-checks         | - | - | -
+enable-global-notifications            | - | - | -
+disable-global-notifications           | - | - | -
+enable-global-flap-detection           | - | - | -
+disable-global-flap-detection          | - | - | -
+enable-global-event-handlers           | - | - | -
+disable-global-event-handlers          | - | - | -
+enable-global-performance-data         | - | - | -
+disable-global-performance-data        | - | - | -
+start-global-executing-svc-checks      | - | - | -
+stop-global-executing-svc-checks       | - | - | -
+start-global-executing-host-checks     | - | - | -
+stop-global-executing-host-checks      | - | - | -
 shutdown-process                       | - | - | -
 restart-process                        | - | - | -
-process-file                           | - | - | -

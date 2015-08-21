@@ -148,6 +148,7 @@ public:
 	    const String& scheduledBy = String(), const String& id = String(),
 	    const MessageOrigin::Ptr& origin = MessageOrigin::Ptr());
 
+	void RemoveAllDowntimes(void);
 	static void RemoveDowntime(const String& id, bool cancelled, const MessageOrigin::Ptr& origin = MessageOrigin::Ptr());
 
 	void TriggerDowntimes(void);

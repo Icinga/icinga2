@@ -165,6 +165,23 @@ void Checkable::RemoveDowntime(const String& id, bool cancelled, const MessageOr
 	OnDowntimeRemoved(owner, downtime, origin);
 }
 
+void Checkable::RemoveAllDowntimes(void)
+{
+	std::vector<String> ids;
+	Dictionary::Ptr downtimes = GetDowntimes();
+
+	{
+		ObjectLock olock(downtimes);
+		BOOST_FOREACH(const Dictionary::Pair& kv, downtimes) {
+			ids.push_back(kv.first);
+		}
+	}
+
+	BOOST_FOREACH(const String& id, ids) {
+		RemoveDowntime(id, true);
+	}
+}
+
 void Checkable::TriggerDowntimes(void)
 {
 	Dictionary::Ptr downtimes = GetDowntimes();

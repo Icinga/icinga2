@@ -29,6 +29,7 @@
 #include "remote/httputility.hpp"
 #include "base/utility.hpp"
 #include "base/convert.hpp"
+#include <fstream>
 
 using namespace icinga;
 
@@ -39,10 +40,11 @@ REGISTER_APIACTION(delay_notifications, "Service;Host", &ApiActions::DelayNotifi
 REGISTER_APIACTION(acknowledge_problem, "Service;Host", &ApiActions::AcknowledgeProblem);
 REGISTER_APIACTION(remove_acknowledgement, "Service;Host", &ApiActions::RemoveAcknowledgement);
 REGISTER_APIACTION(add_comment, "Service;Host", &ApiActions::AddComment);
-REGISTER_APIACTION(remove_comment, "", &ApiActions::RemoveComment);
-REGISTER_APIACTION(remove_all_comments, "Service;Host", &ApiActions::RemoveAllComments);
+REGISTER_APIACTION(remove_comment, "Service;Host", &ApiActions::RemoveComment);
+REGISTER_APIACTION(remove_comment_by_id, "", &ApiActions::RemoveCommentByID);
 REGISTER_APIACTION(schedule_downtime, "Service;Host", &ApiActions::ScheduleDowntime);
-REGISTER_APIACTION(remove_downtime, "", &ApiActions::RemoveDowntime);
+REGISTER_APIACTION(remove_downtime, "Service;Host", &ApiActions::RemoveDowntime);
+REGISTER_APIACTION(remove_downtime_by_id, "", &ApiActions::RemoveDowntimeByID);
 
 REGISTER_APIACTION(enable_passive_checks, "Service;Host", &ApiActions::EnablePassiveChecks);
 REGISTER_APIACTION(disable_passive_checks, "Service;Host", &ApiActions::DisablePassiveChecks);
@@ -76,12 +78,8 @@ REGISTER_APIACTION(stop_global_executing_svc_checks, "", &ApiActions::StopGlobal
 REGISTER_APIACTION(start_global_executing_host_checks, "", &ApiActions::StartGlobalExecutingHostChecks);
 REGISTER_APIACTION(stop_global_executing_host_checks, "", &ApiActions::StopGlobalExecutingHostChecks);
 
-//TODO: add process related actions
-/*
 REGISTER_APIACTION(shutdown_process, "", &ApiActions::ShutdownProcess);
 REGISTER_APIACTION(restart_process, "", &ApiActions::RestartProcess);
-REGISTER_APIACTION(process_file, "", &ApiActions::ProcessFile);
-*/
 
 Dictionary::Ptr ApiActions::CreateResult(int code, const String& status, const Dictionary::Ptr& additional)
 {
@@ -300,27 +298,31 @@ Dictionary::Ptr ApiActions::AddComment(const ConfigObject::Ptr& object, const Di
 
 Dictionary::Ptr ApiActions::RemoveComment(const ConfigObject::Ptr& object, const Dictionary::Ptr& params)
 {
+	Checkable::Ptr checkable = static_pointer_cast<Checkable>(object);
+
+	if (!checkable)
+		return ApiActions::CreateResult(404, "Cannot remove comment form non-existent object");
+
+	checkable->RemoveAllComments();
+
+	return ApiActions::CreateResult(200, "Successfully removed comments for " + checkable->GetName());
+}
+
+Dictionary::Ptr ApiActions::RemoveCommentByID(const ConfigObject::Ptr& object, const Dictionary::Ptr& params)
+{
 	if (!params->Contains("comment_id"))
-		return ApiActions::CreateResult(403, "'comment_id' required.");
+		return ApiActions::CreateResult(403, "Parameter 'comment_id' is required.");
 
 	int comment_id = HttpUtility::GetLastParameter(params, "comment_id");
 
 	String rid = Service::GetCommentIDFromLegacyID(comment_id);
+
+	if (rid.IsEmpty())
+		return ApiActions::CreateResult(404, "Comment '" + Convert::ToString(comment_id) + "' does not exist.");
+
 	Service::RemoveComment(rid);
 
 	return ApiActions::CreateResult(200, "Successfully removed comment " + Convert::ToString(comment_id) + ".");
-}
-
-Dictionary::Ptr ApiActions::RemoveAllComments(const ConfigObject::Ptr& object, const Dictionary::Ptr& params)
-{
-	Checkable::Ptr checkable = static_pointer_cast<Checkable>(object);
-
-	if (!checkable)
-		return ApiActions::CreateResult(404, "Cannot remove comments from non-existent object");
-
-	checkable->RemoveAllComments();
-
-	return ApiActions::CreateResult(200, "Successfully removed all comments for " + checkable->GetName());
 }
 
 Dictionary::Ptr ApiActions::EnableNotifications(const ConfigObject::Ptr& object, const Dictionary::Ptr& params)
@@ -425,15 +427,30 @@ Dictionary::Ptr ApiActions::DisableFlapDetection(const ConfigObject::Ptr& object
 
 Dictionary::Ptr ApiActions::RemoveDowntime(const ConfigObject::Ptr& object, const Dictionary::Ptr& params)
 {
+	Checkable::Ptr checkable = static_pointer_cast<Checkable>(object);
+
+	if (!checkable)
+		return ApiActions::CreateResult(404, "Cannot remove downtime for non-existent object");
+
+	checkable->RemoveAllDowntimes();
+
+	return ApiActions::CreateResult(200, "Successfully removed downtimes for " + checkable->GetName());
+}
+
+Dictionary::Ptr ApiActions::RemoveDowntimeByID(const ConfigObject::Ptr& object, const Dictionary::Ptr& params)
+{
 	if (!params->Contains("downtime_id"))
-		return ApiActions::CreateResult(403, "Downtime removal requires a downtime_id");
+		return ApiActions::CreateResult(403, "Parameter 'downtime_id' is required.");
 
 	int downtime_id = HttpUtility::GetLastParameter(params, "downtime_id");
 
 	String rid = Service::GetDowntimeIDFromLegacyID(downtime_id);
+	if (rid.IsEmpty())
+		return ApiActions::CreateResult(404, "Downtime '" + Convert::ToString(downtime_id) + "' does not exist.");
+
 	Service::RemoveDowntime(rid, true);
 
-	return ApiActions::CreateResult(200, "Successfully removed downtime with id " + Convert::ToString(downtime_id) + ".");
+	return ApiActions::CreateResult(200, "Successfully removed downtime " + Convert::ToString(downtime_id) + ".");
 }
 
 Dictionary::Ptr ApiActions::EnableGlobalNotifications(const ConfigObject::Ptr& object, const Dictionary::Ptr& params)
@@ -632,55 +649,17 @@ Dictionary::Ptr ApiActions::ChangeRetryInterval(const ConfigObject::Ptr& object,
 }
 */
 
-//TODO: process actions
-/*
-Dictionary::Ptr ApiActions::RestartProcess(const ConfigObject::Ptr& object, const Dictionary::Ptr& params)
+Dictionary::Ptr ApiActions::ShutdownProcess(const ConfigObject::Ptr& object, const Dictionary::Ptr& params)
 {
 	Application::RequestShutdown();
 
-	return ApiActions::CreateResult(200, "I don't exist!");
+	return ApiActions::CreateResult(200, "Shutting down Icinga2");
 }
 
 Dictionary::Ptr ApiActions::RestartProcess(const ConfigObject::Ptr& object, const Dictionary::Ptr& params)
 {
 	Application::RequestRestart();
 
-	return ApiActions::CreateResult(200, "That's not how this works");
+	return ApiActions::CreateResult(200, "Restarting Icinga");
 }
 
-Dictionary::Ptr ApiActions::ProcessFile(const ConfigObject::Ptr& object, const Dictionary::Ptr& params)
-{
-	if (!params->Contains("file_name")
-		return ApiActions::CreateResult(403, "Parameter 'file_name' is required");
-
-	String file = HttpUtility::GetLastParameter(params, "file_name")
-
-	bool del = true;
-	if (!params->Contains("delete") || !HttpUtility::GetLastParameter(params, "delete"))
-		del = false;
-
-	std::ifstream ifp;
-	ifp.exceptions(std::ifstream::badbit);
-
-	ifp.open(file.CStr(), std::ifstream::in);
-
-	while (ifp.good()) {
-		std::string line;
-		std::getline(ifp, line);
-
-		try {
-			Execute(line);
-		} catch (const std::exception& ex) {
-			ifp.close();
-			return ApiActions::CreateResult(500, "Command execution failed");
-		}
-	}
-
-	ifp.close();
-
-	if (del)
-		(void) unlink(file.CStr());
-
-	return ApiActions::CreateResult(200, "Successfully processed " + (del?"and deleted ":"") + "file " + file);
-}
-*/

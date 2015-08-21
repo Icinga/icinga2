@@ -23,6 +23,7 @@
 #include "remote/apiaction.hpp"
 #include "base/exception.hpp"
 #include "base/serializer.hpp"
+#include "base/logger.hpp"
 #include <boost/algorithm/string.hpp>
 #include <set>
 
@@ -62,6 +63,9 @@ bool ActionsHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& reques
 		objs.push_back(ConfigObject::Ptr());
 
 	Array::Ptr results = new Array();
+
+	Log(LogNotice, "ApiActionHandler")
+	    << "Running action " << actionName;
 
 	BOOST_FOREACH(const ConfigObject::Ptr& obj, objs) {
 		try {

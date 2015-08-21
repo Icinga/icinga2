@@ -41,9 +41,10 @@ public:
 	static Dictionary::Ptr RemoveAcknowledgement(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
 	static Dictionary::Ptr AddComment(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
 	static Dictionary::Ptr RemoveComment(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
-	static Dictionary::Ptr RemoveAllComments(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
+	static Dictionary::Ptr RemoveCommentByID(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
 	static Dictionary::Ptr ScheduleDowntime(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
 	static Dictionary::Ptr RemoveDowntime(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
+	static Dictionary::Ptr RemoveDowntimeByID(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
 
 	static Dictionary::Ptr EnablePassiveChecks(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
 	static Dictionary::Ptr DisablePassiveChecks(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
@@ -54,12 +55,14 @@ public:
 	static Dictionary::Ptr EnableFlapDetection(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
 	static Dictionary::Ptr DisableFlapDetection(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
 
-/*	static Dictionary::Ptr ChangeEventHandler(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
+/*
+	static Dictionary::Ptr ChangeEventHandler(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
 	static Dictionary::Ptr ChangeCheckCommand(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
 	static Dictionary::Ptr ChangeMaxCheckAttempts(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
 	static Dictionary::Ptr ChangeCheckInterval(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
 	static Dictionary::Ptr ChangeRetryInterval(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
-	static Dictionary::Ptr ChangeCheckPeriod(const ConfigObject::Ptr& object, const Dictionary::Ptr& params); */
+	static Dictionary::Ptr ChangeCheckPeriod(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
+*/
 
 	static Dictionary::Ptr EnableGlobalNotifications(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
 	static Dictionary::Ptr DisableGlobalNotifications(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
@@ -74,10 +77,8 @@ public:
 	static Dictionary::Ptr StartGlobalExecutingHostChecks(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
 	static Dictionary::Ptr StopGlobalExecutingHostChecks(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
 
-/*	static Dictionary::Ptr ShutdownProcess(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
+	static Dictionary::Ptr ShutdownProcess(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
 	static Dictionary::Ptr RestartProcess(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
-	static Dictionary::Ptr ProcessFile(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
-	*/
 
 private:
 	static Dictionary::Ptr CreateResult(int code, const String& status, const Dictionary::Ptr& additional = Dictionary::Ptr());
