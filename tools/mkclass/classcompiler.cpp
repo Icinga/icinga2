@@ -755,7 +755,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 				       << "\t";
 			}
 
-			m_Impl << "On" << it->GetFriendlyName() << "Changed(static_cast<" << klass.Name << " *>(this), cookie);" << std::endl
+			m_Impl << "\t" << "On" << it->GetFriendlyName() << "Changed(static_cast<" << klass.Name << " *>(this), cookie);" << std::endl
 			       << "}" << std::endl << std::endl;
 		}
 		
@@ -772,9 +772,9 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 			if (it->DefaultAccessor.empty())
 				m_Impl << "\t" << "return " << realType << "();" << std::endl;
 			else
-				m_Impl << it->DefaultAccessor << std::endl;
+				m_Impl << "\t" << it->DefaultAccessor << std::endl;
 
-			m_Impl << "}" << std::endl;
+			m_Impl << "}" << std::endl << std::endl;
 		}
 
 		/* validators */
