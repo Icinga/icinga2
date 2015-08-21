@@ -51,7 +51,7 @@ bool HttpRequest::Parse(const Stream::Ptr& stream, StreamReadContext& src, bool 
 
 			std::vector<String> tokens;
 			boost::algorithm::split(tokens, line, boost::is_any_of(" "));
-			Log(LogWarning, "HttpRequest")
+			Log(LogDebug, "HttpRequest")
 			    << "line: " << line << ", tokens: " << tokens.size();
 			if (tokens.size() != 3)
 				BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid HTTP request"));
@@ -66,8 +66,6 @@ bool HttpRequest::Parse(const Stream::Ptr& stream, StreamReadContext& src, bool 
 				BOOST_THROW_EXCEPTION(std::invalid_argument("Unsupported HTTP version"));
 
 			m_State = HttpRequestHeaders;
-			Log(LogWarning, "HttpRequest")
-			    << "Method: " << RequestMethod << ", Url: " << RequestUrl;
 		} else if (m_State == HttpRequestHeaders) {
 			if (line == "") {
 				m_State = HttpRequestBody;
@@ -78,7 +76,6 @@ bool HttpRequest::Parse(const Stream::Ptr& stream, StreamReadContext& src, bool 
 				else
 					m_Body = new FIFO();
 
-				Log(LogWarning, "HttpRequest", "Waiting for message body");
 				return true;
 
 			} else {
