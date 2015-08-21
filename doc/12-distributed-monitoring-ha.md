@@ -340,7 +340,7 @@ on your configuration master unique.
 > Only put templates, groups, etc into this zone. DO NOT add checkable objects such as
 > hosts or services here. If they are checked by all instances globally, this will lead
 > into duplicated check results and unclear state history. Not easy to troubleshoot too -
-> you've been warned.
+> you have been warned.
 
 That is not necessary by defining a global zone shipping all those templates. By setting
 `global = true` you ensure that this zone serving common configuration templates will be
@@ -365,12 +365,10 @@ your zone configuration visible to all nodes.
       global = true
     }
 
-> **Note**
->
-> If the remote node does not have this zone configured, it will ignore the configuration
-> update, if it accepts synchronized configuration.
+If the remote node does not have this zone configured, it will ignore the configuration
+update, if it accepts synchronized configuration.
 
-If you don't require any global configuration, skip this setting.
+If you do not require any global configuration, skip this setting.
 
 ### <a id="zone-config-sync-permissions"></a> Zone Configuration Synchronisation Permissions
 
