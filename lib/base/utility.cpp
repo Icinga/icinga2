@@ -599,7 +599,7 @@ bool Utility::GlobRecursive(const String& path, const String& pattern, const boo
 }
 
 
-bool Utility::MkDir(const String& path, int flags)
+void Utility::MkDir(const String& path, int flags)
 {
 #ifndef _WIN32
 	if (mkdir(path.CStr(), flags) < 0 && errno != EEXIST) {
@@ -610,22 +610,16 @@ bool Utility::MkDir(const String& path, int flags)
 		    << boost::errinfo_api_function("mkdir")
 		    << boost::errinfo_errno(errno));
 	}
-
-	return true;
 }
 
-bool Utility::MkDirP(const String& path, int flags)
+void Utility::MkDirP(const String& path, int flags)
 {
 	size_t pos = 0;
 
-	bool ret = true;
-
-	while (ret && pos != String::NPos) {
+	while (pos != String::NPos) {
 		pos = path.Find("/", pos + 1);
-		ret = MkDir(path.SubStr(0, pos), flags);
+		MkDir(path.SubStr(0, pos), flags);
 	}
-
-	return ret;
 }
 
 void Utility::RemoveDirRecursive(const String& path)

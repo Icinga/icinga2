@@ -81,8 +81,8 @@ public:
 
 	static bool Glob(const String& pathSpec, const boost::function<void (const String&)>& callback, int type = GlobFile | GlobDirectory);
 	static bool GlobRecursive(const String& path, const String& pattern, const boost::function<void (const String&)>& callback, int type = GlobFile | GlobDirectory);
-	static bool MkDir(const String& path, int flags);
-	static bool MkDirP(const String& path, int flags);
+	static void MkDir(const String& path, int flags);
+	static void MkDirP(const String& path, int flags);
 	static bool SetFileOwnership(const String& file, const String& user, const String& group);
 
 	static void QueueAsyncCallback(const boost::function<void (void)>& callback, SchedulerPolicy policy = DefaultScheduler);

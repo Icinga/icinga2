@@ -243,14 +243,7 @@ wizard_master_host:
 
 		/* workaround for fetching the master cert */
 		String pki_path = PkiUtility::GetPkiPath();
-		String node_cert = pki_path + "/" + cn + ".crt";
-		String node_key = pki_path + "/" + cn + ".key";
-
-		if (!Utility::MkDirP(pki_path, 0700)) {
-			Log(LogCritical, "cli")
-			    << "Could not create local pki directory '" << pki_path << "'.";
-			return 1;
-		}
+		Utility::MkDirP(pki_path, 0700);
 
 		String user = ScriptGlobal::Get("RunAsUser");
 		String group = ScriptGlobal::Get("RunAsGroup");
@@ -259,6 +252,9 @@ wizard_master_host:
 			Log(LogWarning, "cli")
 			    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << pki_path << "'. Verify it yourself!";
 		}
+
+		String node_cert = pki_path + "/" + cn + ".crt";
+		String node_key = pki_path + "/" + cn + ".key";
 
 		if (Utility::PathExists(node_key))
 			NodeUtility::CreateBackupFile(node_key, true);

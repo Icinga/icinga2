@@ -137,15 +137,7 @@ void ApiListener::SyncZoneDir(const Zone::Ptr& zone) const
 	Log(LogInformation, "ApiListener")
 	    << "Copying zone configuration files for zone '" << zone->GetName() << "' to  '" << oldDir << "'.";
 
-	if (!Utility::MkDir(oldDir, 0700)) {
-		Log(LogCritical, "ApiListener")
-		    << "mkdir() for path '" << oldDir << "' failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
-
-		BOOST_THROW_EXCEPTION(posix_error()
-			<< boost::errinfo_api_function("mkdir")
-			<< boost::errinfo_errno(errno)
-			<< boost::errinfo_file_name(oldDir));
-	}
+	Utility::MkDir(oldDir, 0700);
 
 	Dictionary::Ptr oldConfig = LoadConfigDir(oldDir);
 
@@ -254,15 +246,7 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 
 		String oldDir = Application::GetLocalStateDir() + "/lib/icinga2/api/zones/" + zone->GetName();
 
-		if (!Utility::MkDir(oldDir, 0700)) {
-			Log(LogCritical, "ApiListener")
-			    << "mkdir() for path '" << oldDir << "' failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
-
-			BOOST_THROW_EXCEPTION(posix_error()
-				<< boost::errinfo_api_function("mkdir")
-				<< boost::errinfo_errno(errno)
-				<< boost::errinfo_file_name(oldDir));
-		}
+		Utility::MkDir(oldDir, 0700);
 
 		Dictionary::Ptr newConfig = kv.second;
 		Dictionary::Ptr oldConfig = LoadConfigDir(oldDir);

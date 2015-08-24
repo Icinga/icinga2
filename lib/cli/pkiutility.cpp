@@ -53,11 +53,7 @@ int PkiUtility::NewCa(void)
 		return 1;
 	}
 
-	if (!Utility::MkDirP(cadir, 0700)) {
-		Log(LogCritical, "base")
-		    << "Could not create CA directory '" << cadir << "'.";
-		return 1;
-	}
+	Utility::MkDirP(cadir, 0700);
 
 	MakeX509CSR("Icinga CA", cadir + "/ca.key", String(), cadir + "/ca.crt", cadir + "/serial.txt", true);
 

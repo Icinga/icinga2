@@ -309,16 +309,7 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 	/* pki request a signed certificate from the master */
 
 	String pki_path = PkiUtility::GetPkiPath();
-
-	String key = pki_path + "/" + cn + ".key";
-	String cert = pki_path + "/" + cn + ".crt";
-	String ca = pki_path + "/ca.crt";
-
-	if (!Utility::MkDirP(pki_path, 0700)) {
-		Log(LogCritical, "cli")
-		    << "Could not create local pki directory '" << pki_path << "'.";
-		return 1;
-	}
+	Utility::MkDirP(pki_path, 0700);
 
 	String user = ScriptGlobal::Get("RunAsUser");
 	String group = ScriptGlobal::Get("RunAsGroup");
@@ -327,6 +318,10 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 		Log(LogWarning, "cli")
 		    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << pki_path << "'. Verify it yourself!";
 	}
+
+	String key = pki_path + "/" + cn + ".key";
+	String cert = pki_path + "/" + cn + ".crt";
+	String ca = pki_path + "/ca.crt";
 
 	if (Utility::PathExists(key))
 		NodeUtility::CreateBackupFile(key, true);

@@ -72,12 +72,7 @@ int ApiSetupUtility::SetupMasterCertificates(const String& cn)
 	}
 
 	String pki_path = PkiUtility::GetPkiPath();
-
-	if (!Utility::MkDirP(pki_path, 0700)) {
-		Log(LogCritical, "cli")
-		    << "Could not create local pki directory '" << pki_path << "'.";
-		return 1;
-	}
+	Utility::MkDirP(pki_path, 0700);
 
 	String user = ScriptGlobal::Get("RunAsUser");
 	String group = ScriptGlobal::Get("RunAsGroup");
