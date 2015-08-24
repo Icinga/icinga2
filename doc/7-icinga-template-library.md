@@ -1224,6 +1224,12 @@ Check command object for the `check_drivesize` NSClient++ plugin.
 
 This command has the same custom attributes like the `nscp-local` check command.
 
+## <a id="nscp-check-local-counter"></a> nscp-local-counter
+
+Check command object for the `check_pdh` NSClient++ plugin.
+
+This command has the same custom attributes like the `nscp-local` check command.
+
 # <a id="snmp-manubulon-plugin-check-commands"></a> SNMP Manubulon Plugin Check Commands
 
 The `SNMP Manubulon Plugin Check Commands` provide example configuration for plugin check
