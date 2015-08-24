@@ -674,6 +674,14 @@ void icinga::BindToScope(Expression *& expr, ScopeSpecifier scopeSpec)
 	}
 }
 
+ExpressionResult ThrowExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
+{
+	ExpressionResult messageres = m_Message->Evaluate(frame);
+	CHECK_RESULT(messageres);
+	Value message = messageres.GetValue();
+	BOOST_THROW_EXCEPTION(ScriptError(message, m_DebugInfo));
+}
+
 ExpressionResult ImportExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
 	String type = VMOps::GetField(frame.Self, "type", m_DebugInfo);

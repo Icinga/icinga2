@@ -50,7 +50,6 @@ ConfigCompiler::ConfigCompiler(const String& path, std::istream *input, const St
 ConfigCompiler::~ConfigCompiler(void)
 {
 	DestroyScanner();
-	delete m_Input;
 }
 
 /**
@@ -174,17 +173,6 @@ void ConfigCompiler::HandleLibrary(const String& library)
 	Utility::LoadExtensionLibrary(library);
 }
 
-void ConfigCompiler::CompileHelper(void)
-{
-	try {
-		m_Promise.set_value(boost::shared_ptr<Expression>(Compile()));
-	} catch (...) {
-		m_Promise.set_exception(boost::current_exception());
-	}
-
-	delete this;
-}
-
 /**
  * Compiles a stream.
  *
@@ -198,12 +186,15 @@ Expression *ConfigCompiler::CompileStream(const String& path, std::istream *stre
 
 	stream->exceptions(std::istream::badbit);
 
-	ConfigCompiler* ctx = new ConfigCompiler(path, stream, zone);
+	ConfigCompiler ctx(path, stream, zone);
 
-	boost::shared_future<boost::shared_ptr<Expression> > ftr = boost::shared_future<boost::shared_ptr<Expression> >(ctx->m_Promise.get_future());
-
-	Utility::QueueAsyncCallback(boost::bind(&ConfigCompiler::CompileHelper, ctx));
-	return new FutureExpression(ftr);
+	try {
+		return ctx.Compile();
+	} catch (const ScriptError& ex) {
+		return new ThrowExpression(MakeLiteral(ex.what()), ex.GetDebugInfo());
+	} catch (const std::exception& ex) {
+		return new ThrowExpression(MakeLiteral(DiagnosticInformation(ex)));
+	}
 }
 
 /**
@@ -216,10 +207,9 @@ Expression *ConfigCompiler::CompileFile(const String& path, const String& zone)
 {
 	CONTEXT("Compiling configuration file '" + path + "'");
 
-	std::ifstream *stream = new std::ifstream();
-	stream->open(path.CStr(), std::ifstream::in);
+	std::ifstream stream(path.CStr(), std::ifstream::in);
 
-	if (!*stream)
+	if (!stream)
 		BOOST_THROW_EXCEPTION(posix_error()
 			<< boost::errinfo_api_function("std::ifstream::open")
 			<< boost::errinfo_errno(errno)
@@ -228,7 +218,7 @@ Expression *ConfigCompiler::CompileFile(const String& path, const String& zone)
 	Log(LogInformation, "ConfigCompiler")
 	    << "Compiling config file: " << path;
 
-	return CompileStream(path, stream, zone);
+	return CompileStream(path, &stream, zone);
 }
 
 /**
@@ -240,8 +230,8 @@ Expression *ConfigCompiler::CompileFile(const String& path, const String& zone)
  */
 Expression *ConfigCompiler::CompileText(const String& path, const String& text, const String& zone)
 {
-	std::stringstream *stream = new std::stringstream(text);
-	return CompileStream(path, stream, zone);
+	std::stringstream stream(text);
+	return CompileStream(path, &stream, zone);
 }
 
 /**
