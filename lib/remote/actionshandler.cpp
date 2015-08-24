@@ -49,21 +49,22 @@ bool ActionsHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& reques
 
 	QueryDescription qd;
 
-	BOOST_FOREACH(const String& typeName, action->GetTypes()) {
-		if (typeName.IsEmpty())
-			break;
-		Type::Ptr type = Type::GetByName(typeName);
-		ASSERT(type);
-		qd.Types.insert(type);
-	}
-
 	Dictionary::Ptr params = HttpUtility::FetchRequestParameters(request);
+
+	const std::vector<String>& types = action->GetTypes();
 	std::vector<ConfigObject::Ptr> objs;
 
-	if (!qd.Types.empty())
+	if (!types.empty()) {
+		BOOST_FOREACH(const String& typeName, types) {
+			Type::Ptr type = Type::GetByName(typeName);
+			ASSERT(type);
+			qd.Types.insert(type);
+		}
+
+
 		objs = FilterUtility::GetFilterTargets(qd, params);
-	else
-		objs.push_back(NULL);
+	} else
+		objs.push_back(ConfigObject::Ptr());
 
 	Array::Ptr results = new Array();
 

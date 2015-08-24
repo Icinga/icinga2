@@ -80,7 +80,8 @@ public:
 			boost::algorithm::replace_all(registerName, "_", "-"); \
 			std::vector<String> registerTypes; \
 			String typeNames = types; \
-			boost::algorithm::split(registerTypes, typeNames, boost::is_any_of(";")); \
+			if (!typeNames.IsEmpty()) \
+				boost::algorithm::split(registerTypes, typeNames, boost::is_any_of(";")); \
 			ApiAction::Ptr action = new ApiAction(registerTypes, callback); \
 			ApiActionRegistry::GetInstance()->Register(registerName, action); \
 		} \
