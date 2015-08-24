@@ -224,28 +224,6 @@ private:
 	boost::shared_ptr<Expression> m_Expression;
 };
 
-class I2_CONFIG_API FutureExpression : public Expression
-{
-public:
-	FutureExpression(const boost::shared_future<boost::shared_ptr<Expression> >& future)
-		: m_Future(future)
-	{ }
-
-protected:
-	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override
-	{
-		return m_Future.get()->DoEvaluate(frame, dhint);
-	}
-
-	virtual const DebugInfo& GetDebugInfo(void) const override
-	{
-		return m_Future.get()->GetDebugInfo();
-	}
-
-private:
-	mutable boost::shared_future<boost::shared_ptr<Expression> > m_Future;
-};
-
 class I2_CONFIG_API LiteralExpression : public Expression
 {
 public:
@@ -766,6 +744,25 @@ protected:
 };
 
 I2_CONFIG_API void BindToScope(Expression *& expr, ScopeSpecifier scopeSpec);
+
+class I2_CONFIG_API ThrowExpression : public DebuggableExpression
+{
+public:
+	ThrowExpression(Expression *message, const DebugInfo& debugInfo = DebugInfo())
+		: DebuggableExpression(debugInfo), m_Message(message)
+	{ }
+
+	~ThrowExpression(void)
+	{
+		delete m_Message;
+	}
+
+protected:
+	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
+
+private:
+	Expression *m_Message;
+};
 
 class I2_CONFIG_API ImportExpression : public DebuggableExpression
 {

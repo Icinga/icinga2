@@ -135,8 +135,6 @@ private:
 	void InitializeScanner(void);
 	void DestroyScanner(void);
 
-	void CompileHelper(void);
-
 	void HandleIncludeZone(const String& tag, const String& path, const String& pattern, std::vector<Expression *>& expressions);
 
 public:

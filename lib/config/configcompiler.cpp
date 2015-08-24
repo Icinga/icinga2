@@ -54,7 +54,6 @@ ConfigCompiler::ConfigCompiler(const String& path, std::istream *input,
 ConfigCompiler::~ConfigCompiler(void)
 {
 	DestroyScanner();
-	delete m_Input;
 }
 
 /**
@@ -227,17 +226,6 @@ void ConfigCompiler::HandleLibrary(const String& library)
 	Loader::LoadExtensionLibrary(library);
 }
 
-void ConfigCompiler::CompileHelper(void)
-{
-	try {
-		m_Promise.set_value(boost::shared_ptr<Expression>(Compile()));
-	} catch (...) {
-		m_Promise.set_exception(boost::current_exception());
-	}
-
-	delete this;
-}
-
 /**
  * Compiles a stream.
  *
@@ -252,25 +240,14 @@ Expression *ConfigCompiler::CompileStream(const String& path,
 
 	stream->exceptions(std::istream::badbit);
 
-	ConfigCompiler* ctx = new ConfigCompiler(path, stream, zone, module);
+	ConfigCompiler ctx(path, stream, zone, module);
 
-	if (async) {
-		boost::shared_future<boost::shared_ptr<Expression> > ftr = boost::shared_future<boost::shared_ptr<Expression> >(ctx->m_Promise.get_future());
-
-		Utility::QueueAsyncCallback(boost::bind(&ConfigCompiler::CompileHelper, ctx));
-		return new FutureExpression(ftr);
-	} else {
-		Expression *expr;
-
-		try {
-			expr = ctx->Compile();
-		} catch (...) {
-			delete ctx;
-			throw;
-		}
-
-		delete ctx;
-		return expr;
+	try {
+		return ctx.Compile();
+	} catch (const ScriptError& ex) {
+		return new ThrowExpression(MakeLiteral(ex.what()), ex.GetDebugInfo());
+	} catch (const std::exception& ex) {
+		return new ThrowExpression(MakeLiteral(DiagnosticInformation(ex)));
 	}
 }
 
@@ -285,10 +262,9 @@ Expression *ConfigCompiler::CompileFile(const String& path, bool async,
 {
 	CONTEXT("Compiling configuration file '" + path + "'");
 
-	std::ifstream *stream = new std::ifstream();
-	stream->open(path.CStr(), std::ifstream::in);
+	std::ifstream stream(path.CStr(), std::ifstream::in);
 
-	if (!*stream)
+	if (!stream)
 		BOOST_THROW_EXCEPTION(posix_error()
 			<< boost::errinfo_api_function("std::ifstream::open")
 			<< boost::errinfo_errno(errno)
@@ -297,7 +273,7 @@ Expression *ConfigCompiler::CompileFile(const String& path, bool async,
 	Log(LogInformation, "ConfigCompiler")
 	    << "Compiling config file: " << path;
 
-	return CompileStream(path, stream, async, zone, module);
+	return CompileStream(path, &stream, async, zone, module);
 }
 
 /**
@@ -310,8 +286,8 @@ Expression *ConfigCompiler::CompileFile(const String& path, bool async,
 Expression *ConfigCompiler::CompileText(const String& path, const String& text,
     bool async, const String& zone, const String& module)
 {
-	std::stringstream *stream = new std::stringstream(text);
-	return CompileStream(path, stream, async, zone, module);
+	std::stringstream stream(text);
+	return CompileStream(path, &stream, async, zone, module);
 }
 
 /**
@@ -378,6 +354,7 @@ const std::vector<String>& ConfigCompiler::GetKeywords(void)
 		keywords.push_back("if");
 		keywords.push_back("else");
 		keywords.push_back("while");
+		keywords.push_back("throw");
 	}
 
 	return keywords;

@@ -783,6 +783,17 @@ The `continue` and `break` keywords can be used to control how the loop is execu
 skips over the remaining expressions for the loop body and begins the next loop evaluation. The `break` keyword
 breaks out of the loop.
 
+## <a id="throw"></a> Exceptions
+
+Built-in commands may throw exceptions to signal errors such as invalid arguments. User scripts can throw exceptions
+using the `throw` keyword.
+
+Example:
+
+    throw "An error occurred."
+
+There is currently no way for scripts to catch exceptions.
+
 ## <a id="types"></a> Types
 
 All values have a static type. The `typeof` function can be used to determine the type of a value:

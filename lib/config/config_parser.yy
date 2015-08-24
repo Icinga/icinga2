@@ -165,6 +165,7 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %token T_IF "if (T_IF)"
 %token T_ELSE "else (T_ELSE)"
 %token T_WHILE "while (T_WHILE)"
+%token T_THROW "throw (T_THROW)"
 %token T_FOLLOWS "=> (T_FOLLOWS)"
 %token T_NULLARY_LAMBDA_BEGIN "{{ (T_NULLARY_LAMBDA_BEGIN)"
 %token T_NULLARY_LAMBDA_END "}} (T_NULLARY_LAMBDA_END)"
@@ -565,6 +566,10 @@ lterm: library
 		$5->MakeInline();
 
 		$$ = new WhileExpression($3, $5, @$);
+	}
+	| T_THROW rterm
+	{
+		$$ = new ThrowExpression($2, @$);
 	}
 	| rterm_side_effect
 	;
