@@ -60,6 +60,8 @@ bool DeleteObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 
 	std::vector<ConfigObject::Ptr> objs = FilterUtility::GetFilterTargets(qd, params);
 
+	bool cascade = HttpUtility::GetLastParameter(params, "cascade");
+
 	Array::Ptr results = new Array();
 
 	BOOST_FOREACH(const ConfigObject::Ptr& obj, objs) {
@@ -70,9 +72,10 @@ bool DeleteObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 
 		Array::Ptr errors = new Array();
 		
-		if (!ConfigObjectUtility::DeleteObject(obj, errors)) {
+		if (!ConfigObjectUtility::DeleteObject(obj, cascade, errors)) {
 			result1->Set("code", 500);	
 			result1->Set("status", "Object could not be deleted.");
+			result1->Set("errors", errors);
 		} else {
 			result1->Set("code", 200);
 			result1->Set("status", "Object was deleted.");

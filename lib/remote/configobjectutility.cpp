@@ -24,6 +24,7 @@
 #include "config/configwriter.hpp"
 #include "base/exception.hpp"
 #include "base/serializer.hpp"
+#include "base/dependencygraph.hpp"
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/case_conv.hpp>
@@ -144,18 +145,29 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 	
 	return true;
 }
-	
-bool ConfigObjectUtility::DeleteObject(const ConfigObject::Ptr& object, const Array::Ptr& errors)
+
+bool ConfigObjectUtility::DeleteObjectHelper(const ConfigObject::Ptr& object, bool cascade, const Array::Ptr& errors)
 {
-	if (object->GetModule() != "_api") {
+	std::vector<Object::Ptr> parents = DependencyGraph::GetParents(object);
+
+	if (!parents.empty() && !cascade) {
 		if (errors)
-			errors->Add("Object cannot be deleted because it was not created using the API.");
-			
+			errors->Add("Object cannot be deleted because other objects depend on it. Use cascading delete to delete it anyway.");
+
 		return false;
 	}
 
+	BOOST_FOREACH(const Object::Ptr& pobj, parents) {
+		ConfigObject::Ptr parentObj = dynamic_pointer_cast<ConfigObject>(pobj);
+
+		if (!parentObj)
+			continue;
+
+		DeleteObjectHelper(parentObj, cascade, errors);
+	}
+
 	Type::Ptr type = object->GetReflectionType();
-	
+
 	ConfigItem::Ptr item = ConfigItem::GetObject(type->GetName(), object->GetName());
 
 	try {
@@ -172,7 +184,7 @@ bool ConfigObjectUtility::DeleteObject(const ConfigObject::Ptr& object, const Ar
 			
 		return false;
 	}
-	
+
 	String typeDir = type->GetPluralName();
 	boost::algorithm::to_lower(typeDir);
 	
@@ -190,4 +202,16 @@ bool ConfigObjectUtility::DeleteObject(const ConfigObject::Ptr& object, const Ar
 
 	return true;
 }
-	
+
+bool ConfigObjectUtility::DeleteObject(const ConfigObject::Ptr& object, bool cascade, const Array::Ptr& errors)
+{
+	if (object->GetModule() != "_api") {
+		if (errors)
+			errors->Add("Object cannot be deleted because it was not created using the API.");
+
+		return false;
+	}
+
+	return DeleteObjectHelper(object, cascade, errors);
+}
+

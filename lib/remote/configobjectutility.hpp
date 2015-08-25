@@ -44,10 +44,11 @@ public:
 	    const Array::Ptr& templates, const Dictionary::Ptr& attrs,
 	    const Array::Ptr& errors);
 	    
-	static bool DeleteObject(const ConfigObject::Ptr& object, const Array::Ptr& errors);
+	static bool DeleteObject(const ConfigObject::Ptr& object, bool cascade, const Array::Ptr& errors);
 	
 private:
 	static String EscapeName(const String& name);
+	static bool DeleteObjectHelper(const ConfigObject::Ptr& object, bool cascade, const Array::Ptr& errors);
 };
 
 }
