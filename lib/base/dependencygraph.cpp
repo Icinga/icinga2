@@ -17,42 +17,39 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "icinga/checkable.hpp"
-#include "icinga/customvarobject.hpp"
+#include "base/dependencygraph.hpp"
+#include <boost/foreach.hpp>
 
-library icinga;
+using namespace icinga;
 
-namespace icinga
+boost::mutex DependencyGraph::m_Mutex;
+std::map<Object *, std::map<Object *, int> > DependencyGraph::m_Dependencies;
+
+void DependencyGraph::AddDependency(Object *parent, Object *child)
 {
+	boost::mutex::scoped_lock lock(m_Mutex);
+	m_Dependencies[child][parent]++;
+}
 
-class Host : Checkable
+void DependencyGraph::RemoveDependency(Object *parent, Object *child)
 {
-	[config] array(name(HostGroup)) groups {
-		default {{{ return new Array(); }}}
-	};
+	boost::mutex::scoped_lock lock(m_Mutex);
+	m_Dependencies[child][parent]--;
+}
 
-	[config] String display_name {
-		get {{{
-			if (m_DisplayName.IsEmpty())
-				return GetName();
-			else
-				return m_DisplayName;
-		}}}
-	};
+std::vector<Object::Ptr> DependencyGraph::GetParents(const Object::Ptr& child)
+{
+	std::vector<Object::Ptr> objects;
 
-	[config] String address;
-	[config] String address6;
+	boost::mutex::scoped_lock lock(m_Mutex);
+	std::map<Object *, std::map<Object *, int> >::const_iterator it = m_Dependencies.find(child.get());
 
-	[enum, no_storage] HostState "state" {
-		get;
-	};
-	[enum, no_storage] HostState last_state {
-		get;
-	};
-	[enum, no_storage] HostState last_hard_state {
-		get;
-	};
+	if (it != m_Dependencies.end()) {
+		typedef std::pair<Object *, int> kv_pair;
+		BOOST_FOREACH(const kv_pair& kv, it->second) {
+			objects.push_back(kv.first);
+		}
+	}
 
-};
-
+	return objects;
 }

@@ -36,7 +36,7 @@ REGISTER_TYPE(Host);
 
 void Host::OnAllConfigLoaded(void)
 {
-	Checkable::OnAllConfigLoaded();
+	ObjectImpl<Host>::OnAllConfigLoaded();
 
 	HostGroup::EvaluateObjectRules(this);
 
@@ -73,7 +73,7 @@ void Host::CreateChildObjects(const Type::Ptr& childType)
 
 void Host::Stop(void)
 {
-	Checkable::Stop();
+	ObjectImpl<Host>::Stop();
 
 	Array::Ptr groups = GetGroups();
 

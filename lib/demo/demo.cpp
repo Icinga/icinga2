@@ -35,7 +35,7 @@ REGISTER_APIFUNCTION(HelloWorld, demo, &Demo::DemoMessageHandler);
  */
 void Demo::Start(void)
 {
-	ConfigObject::Start();
+	ObjectImpl<Demo>::Start();
 
 	m_DemoTimer = new Timer();
 	m_DemoTimer->SetInterval(5);

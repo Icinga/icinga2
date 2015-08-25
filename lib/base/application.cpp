@@ -102,7 +102,7 @@ void Application::Stop(void)
 	} else
 		ClosePidFile(true);
 
-	ConfigObject::Stop();
+	ObjectImpl<Application>::Stop();
 }
 
 Application::~Application(void)

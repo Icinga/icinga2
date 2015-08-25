@@ -42,7 +42,8 @@ enum FieldAccessorType
 {
 	FTGet,
 	FTSet,
-	FTDefault
+	FTDefault,
+	FTTrack
 };
 
 struct FieldAccessor
@@ -75,13 +76,21 @@ struct FieldType
 {
 	bool IsName;
 	std::string TypeName;
+	int ArrayRank;
+
+	FieldType(void)
+		: IsName(false), ArrayRank(0)
+	{ }
 
 	inline std::string GetRealType(void) const
 	{
+		if (ArrayRank > 0)
+			return "Array::Ptr";
+
 		if (IsName)
 			return "String";
-		else
-			return TypeName;
+
+		return TypeName;
 	}
 
 	inline std::string GetArgumentType(void) const
@@ -106,6 +115,7 @@ struct Field
 	std::string SetAccessor;
 	bool PureSetAccessor;
 	std::string DefaultAccessor;
+	std::string TrackAccessor;
 
 	Field(void)
 		: Attributes(0), PureGetAccessor(false), PureSetAccessor(false)
@@ -203,6 +213,8 @@ public:
 
 	void HandleInclude(const std::string& path, const ClassDebugInfo& locp);
 	void HandleAngleInclude(const std::string& path, const ClassDebugInfo& locp);
+	void HandleImplInclude(const std::string& path, const ClassDebugInfo& locp);
+	void HandleAngleImplInclude(const std::string& path, const ClassDebugInfo& locp);
 	void HandleClass(const Klass& klass, const ClassDebugInfo& locp);
 	void HandleValidator(const Validator& validator, const ClassDebugInfo& locp);
 	void HandleNamespaceBegin(const std::string& name, const ClassDebugInfo& locp);

@@ -231,6 +231,8 @@ void ConfigObject::Unregister(void)
 
 void ConfigObject::Start(void)
 {
+	ObjectImpl<ConfigObject>::Start();
+
 	ASSERT(!OwnsLock());
 	ObjectLock olock(this);
 
@@ -260,6 +262,8 @@ void ConfigObject::Activate(void)
 
 void ConfigObject::Stop(void)
 {
+	ObjectImpl<ConfigObject>::Stop();
+
 	ASSERT(!OwnsLock());
 	ObjectLock olock(this);
 
@@ -501,5 +505,7 @@ void ConfigObject::DumpModifiedAttributes(const boost::function<void(const Confi
 ConfigObject::Ptr ConfigObject::GetObject(const String& type, const String& name)
 {
 	ConfigType::Ptr dtype = ConfigType::GetByName(type);
+	if (!dtype)
+		return ConfigObject::Ptr();
 	return dtype->GetObject(name);
 }

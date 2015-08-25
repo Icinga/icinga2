@@ -51,7 +51,7 @@ void PerfdataWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 
 void PerfdataWriter::Start(void)
 {
-	ConfigObject::Start();
+	ObjectImpl<PerfdataWriter>::Start();
 
 	Checkable::OnNewCheckResult.connect(boost::bind(&PerfdataWriter::CheckResultHandler, this, _1, _2));
 

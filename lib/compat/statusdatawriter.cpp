@@ -72,7 +72,7 @@ void StatusDataWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr
  */
 void StatusDataWriter::Start(void)
 {
-	ConfigObject::Start();
+	ObjectImpl<StatusDataWriter>::Start();
 
 	m_StatusTimer = new Timer();
 	m_StatusTimer->SetInterval(GetUpdateInterval());

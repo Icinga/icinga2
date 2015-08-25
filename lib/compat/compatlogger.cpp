@@ -59,7 +59,7 @@ void CompatLogger::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
  */
 void CompatLogger::Start(void)
 {
-	ConfigObject::Start();
+	ObjectImpl<CompatLogger>::Start();
 
 	Checkable::OnNewCheckResult.connect(bind(&CompatLogger::CheckResultHandler, this, _1, _2));
 	Checkable::OnNotificationSentToUser.connect(bind(&CompatLogger::NotificationSentHandler, this, _1, _2, _3, _4, _5, _6, _7, _8));

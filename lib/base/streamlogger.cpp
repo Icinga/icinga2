@@ -39,7 +39,7 @@ StreamLogger::StreamLogger(void)
 
 void StreamLogger::Stop(void)
 {
-	Logger::Stop();
+	ObjectImpl<StreamLogger>::Stop();
 
 	// make sure we flush the log data on shutdown, even if we don't call the destructor
 	if (m_Stream)

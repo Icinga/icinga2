@@ -74,7 +74,7 @@ void CheckerComponent::OnConfigLoaded(void)
 
 void CheckerComponent::Start(void)
 {
-	ConfigObject::Start();
+	ObjectImpl<CheckerComponent>::Start();
 
 	m_Thread = boost::thread(boost::bind(&CheckerComponent::CheckThreadProc, this));
 
@@ -97,7 +97,7 @@ void CheckerComponent::Stop(void)
 	m_ResultTimer->Stop();
 	m_Thread.join();
 
-	ConfigObject::Stop();
+	ObjectImpl<CheckerComponent>::Stop();
 }
 
 void CheckerComponent::CheckThreadProc(void)

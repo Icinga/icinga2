@@ -40,7 +40,7 @@ class Service : Checkable < ServiceNameComposer
 {
 	load_after Host;
 
-	[config] Array::Ptr groups {
+	[config] array(name(ServiceGroup)) groups {
 		default {{{ return new Array(); }}}
 	};
 
@@ -67,12 +67,6 @@ class Service : Checkable < ServiceNameComposer
 		get {{{
 			return GetLastHardStateRaw();
 		}}}
-	};
-};
-
-validator Service {
-	Array groups {
-		name(ServiceGroup) "*";
 	};
 };
 

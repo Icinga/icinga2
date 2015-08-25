@@ -103,6 +103,8 @@ public:
 
 	virtual intrusive_ptr<Type> GetReflectionType(void) const;
 
+	virtual void Validate(int types, const ValidationUtils& utils);
+
 	virtual void SetField(int id, const Value& value, bool suppress_events = false, const Value& cookie = Empty);
 	virtual Value GetField(int id) const;
 	virtual void ValidateField(int id, const Value& value, const ValidationUtils& utils);

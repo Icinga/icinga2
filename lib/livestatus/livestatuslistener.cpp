@@ -64,7 +64,7 @@ void LivestatusListener::StatsFunc(const Dictionary::Ptr& status, const Array::P
  */
 void LivestatusListener::Start(void)
 {
-	ConfigObject::Start();
+	ObjectImpl<LivestatusListener>::Start();
 
 	if (GetSocketType() == "tcp") {
 		TcpSocket::Ptr socket = new TcpSocket();
@@ -121,7 +121,7 @@ void LivestatusListener::Start(void)
 
 void LivestatusListener::Stop(void)
 {
-	ConfigObject::Stop();
+	ObjectImpl<LivestatusListener>::Stop();
 
 	m_Listener->Close();
 

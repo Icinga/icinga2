@@ -49,9 +49,10 @@ struct Field
 	const char *Name;
 	const char *RefTypeName;
 	int Attributes;
+	int ArrayRank;
 
-	Field(int id, const char *type, const char *name, const char *reftype, int attributes)
-		: ID(id), TypeName(type), Name(name), RefTypeName(reftype), Attributes(attributes)
+	Field(int id, const char *type, const char *name, const char *reftype, int attributes, int arrayRank)
+		: ID(id), TypeName(type), Name(name), RefTypeName(reftype), Attributes(attributes), ArrayRank(arrayRank)
 	{ }
 };
 

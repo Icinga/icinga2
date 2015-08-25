@@ -58,7 +58,7 @@ void DbConnection::OnConfigLoaded(void)
 
 void DbConnection::Start(void)
 {
-	ConfigObject::Start();
+	ObjectImpl<DbConnection>::Start();
 
 	DbObject::OnQuery.connect(boost::bind(&DbConnection::ExecuteQuery, this, _1));
 	ConfigObject::OnActiveChanged.connect(boost::bind(&DbConnection::UpdateObject, this, _1));

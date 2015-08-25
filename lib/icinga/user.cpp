@@ -32,7 +32,7 @@ REGISTER_TYPE(User);
 
 void User::OnConfigLoaded(void)
 {
-	ConfigObject::OnConfigLoaded();
+	ObjectImpl<User>::OnConfigLoaded();
 
 	SetTypeFilter(FilterArrayToInt(GetTypes(), ~0));
 	SetStateFilter(FilterArrayToInt(GetStates(), ~0));
@@ -40,7 +40,7 @@ void User::OnConfigLoaded(void)
 
 void User::OnAllConfigLoaded(void)
 {
-	ConfigObject::OnAllConfigLoaded();
+	ObjectImpl<User>::OnAllConfigLoaded();
 
 	UserGroup::EvaluateObjectRules(this);
 
@@ -62,7 +62,7 @@ void User::OnAllConfigLoaded(void)
 
 void User::Stop(void)
 {
-	ConfigObject::Stop();
+	ObjectImpl<User>::Stop();
 
 	Array::Ptr groups = GetGroups();
 

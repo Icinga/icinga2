@@ -26,7 +26,7 @@ set(base_SOURCES
   application.cpp application.thpp application-version.cpp array.cpp
   array-script.cpp boolean.cpp boolean-script.cpp console.cpp context.cpp
   convert.cpp debuginfo.cpp dictionary.cpp dictionary-script.cpp
-  configobject.cpp configobject.thpp configobject-script.cpp configtype.cpp
+  configobject.cpp configobject.thpp configobject-script.cpp configtype.cpp dependencygraph.cpp
   exception.cpp fifo.cpp filelogger.cpp filelogger.thpp initialize.cpp json.cpp
   json-script.cpp loader.cpp logger.cpp logger.thpp math-script.cpp
   netstring.cpp networkstream.cpp number.cpp number-script.cpp object.cpp

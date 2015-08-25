@@ -46,7 +46,7 @@ void TimePeriod::StaticInitialize(void)
 
 void TimePeriod::Start(void)
 {
-	ConfigObject::Start();
+	ObjectImpl<TimePeriod>::Start();
 
 	/* Pre-fill the time period for the next 24 hours. */
 	double now = Utility::GetTime();

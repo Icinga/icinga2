@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "icinga/customvarobject.hpp"
+#impl_include "icinga/service.hpp"
 
 library icinga;
 
@@ -39,7 +40,19 @@ class ScheduledDowntime : CustomVarObject < ScheduledDowntimeNameComposer
 	load_after Service;
 
 	[config, protected, required] name(Host) host_name;
-	[config, protected] String service_name;
+	[config, protected] String service_name {
+		track {{{
+			if (!oldValue.IsEmpty()) {
+				Service::Ptr service = Service::GetByNamePair(GetHostName(), oldValue);
+				DependencyGraph::RemoveDependency(this, service.get());
+			}
+
+			if (!newValue.IsEmpty()) {
+				Service::Ptr service = Service::GetByNamePair(GetHostName(), newValue);
+				DependencyGraph::RemoveDependency(this, service.get());
+			}
+		}}}
+	};
 
 	[config, required] String author;
 	[config, required] String comment;

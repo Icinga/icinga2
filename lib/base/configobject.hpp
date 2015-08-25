@@ -64,8 +64,8 @@ public:
 	void Deactivate(void);
 	void SetAuthority(bool authority);
 
-	virtual void Start(void);
-	virtual void Stop(void);
+	virtual void Start(void) override;
+	virtual void Stop(void) override;
 
 	virtual void Pause(void);
 	virtual void Resume(void);
@@ -83,6 +83,8 @@ public:
 		return static_pointer_cast<T>(object);
 	}
 
+	static ConfigObject::Ptr GetObject(const String& type, const String& name);
+
 	static void DumpObjects(const String& filename, int attributeTypes = FAState);
 	static void RestoreObjects(const String& filename, int attributeTypes = FAState);
 	static void StopObjects(void);
@@ -95,7 +97,6 @@ protected:
 	explicit ConfigObject(void);
 
 private:
-	static ConfigObject::Ptr GetObject(const String& type, const String& name);
 	static void RestoreObject(const String& message, int attributeTypes);
 };
 

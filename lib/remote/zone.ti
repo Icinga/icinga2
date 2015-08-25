@@ -27,14 +27,8 @@ namespace icinga
 class Zone : ConfigObject
 {
 	[config] name(Zone) parent (ParentRaw);
-	[config] Array::Ptr endpoints (EndpointsRaw);
+	[config] array(name(Endpoint)) endpoints (EndpointsRaw);
 	[config] bool global;
-};
-
-validator Zone {
-	Array endpoints {
-		name(Endpoint) "*";
-	};
 };
 
 }

@@ -51,7 +51,7 @@ void NotificationComponent::StatsFunc(const Dictionary::Ptr& status, const Array
  */
 void NotificationComponent::Start(void)
 {
-	ConfigObject::Start();
+	ObjectImpl<NotificationComponent>::Start();
 
 	Checkable::OnNotificationsRequested.connect(boost::bind(&NotificationComponent::SendNotificationsHandler, this, _1,
 	    _2, _3, _4, _5));

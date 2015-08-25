@@ -82,7 +82,7 @@ void Dependency::OnConfigLoaded(void)
 
 void Dependency::OnAllConfigLoaded(void)
 {
-	ConfigObject::OnAllConfigLoaded();
+	ObjectImpl<Dependency>::OnAllConfigLoaded();
 
 	Host::Ptr childHost = Host::GetByName(GetChildHostName());
 
@@ -125,7 +125,7 @@ void Dependency::OnAllConfigLoaded(void)
 
 void Dependency::Stop(void)
 {
-	ConfigObject::Stop();
+	ObjectImpl<Dependency>::Stop();
 
 	GetChild()->RemoveDependency(this);
 	GetParent()->RemoveReverseDependency(this);
@@ -232,3 +232,4 @@ void Dependency::ValidateStates(const Array::Ptr& value, const ValidationUtils& 
 	if (!GetParentServiceName().IsEmpty() && (sfilter & ~(StateFilterOK | StateFilterWarning | StateFilterCritical | StateFilterUnknown)) != 0)
 		BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of("states"), "State filter is invalid for service dependency."));
 }
+

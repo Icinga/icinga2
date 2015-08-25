@@ -159,9 +159,9 @@ int TypeType::GetFieldId(const String& name) const
 Field TypeType::GetFieldInfo(int id) const
 {
 	if (id == 0)
-		return Field(0, "Object", "prototype", NULL, 0);
+		return Field(0, "Object", "prototype", NULL, 0, 0);
 	else if (id == 1)
-		return Field(1, "Object", "base", NULL, 0);
+		return Field(1, "Object", "base", NULL, 0, 0);
 
 	throw std::runtime_error("Invalid field ID.");
 }

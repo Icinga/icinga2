@@ -56,7 +56,8 @@ using namespace icinga;
 	Validator *validator;
 }
 
-%token T_INCLUDE "include (T_INCLUDE)"
+%token T_INCLUDE "#include (T_INCLUDE)"
+%token T_IMPL_INCLUDE "#impl_include (T_IMPL_INCLUDE)"
 %token T_CLASS "class (T_CLASS)"
 %token T_CODE "code (T_CODE)"
 %token T_LOAD_AFTER "load_after (T_LOAD_AFTER)"
@@ -65,6 +66,7 @@ using namespace icinga;
 %token T_VALIDATOR "validator (T_VALIDATOR)"
 %token T_REQUIRED "required (T_REQUIRED)"
 %token T_NAME "name (T_NAME)"
+%token T_ARRAY "array (T_ARRAY)"
 %token T_STRING "string (T_STRING)"
 %token T_ANGLE_STRING "angle_string (T_ANGLE_STRING)"
 %token T_FIELD_ATTRIBUTE "field_attribute (T_FIELD_ATTRIBUTE)"
@@ -83,6 +85,8 @@ using namespace icinga;
 %type <text> type_base_specifier
 %type <text> include
 %type <text> angle_include
+%type <text> impl_include
+%type <text> angle_impl_include
 %type <text> code
 %type <num> T_FIELD_ATTRIBUTE
 %type <num> field_attribute
@@ -147,6 +151,16 @@ statement: include
 		context->HandleAngleInclude($1, yylloc);
 		std::free($1);
 	}
+	| impl_include
+	{
+		context->HandleImplInclude($1, yylloc);
+		std::free($1);
+	}
+	| angle_impl_include
+	{
+		context->HandleAngleImplInclude($1, yylloc);
+		std::free($1);
+	}
 	| class
 	{
 		context->HandleClass(*$1, yylloc);
@@ -173,6 +187,18 @@ include: T_INCLUDE T_STRING
 	;
 
 angle_include: T_INCLUDE T_ANGLE_STRING
+	{
+		$$ = $2;
+	}
+	;
+
+impl_include: T_IMPL_INCLUDE T_STRING
+	{
+		$$ = $2;
+	}
+	;
+
+angle_impl_include: T_IMPL_INCLUDE T_ANGLE_STRING
 	{
 		$$ = $2;
 	}
@@ -290,7 +316,13 @@ field_type: identifier
 		$$ = new FieldType();
 		$$->IsName = true;
 		$$->TypeName = $3;
+		$$->ArrayRank = 0;
 		free($3);
+	}
+	| T_ARRAY '(' field_type ')'
+	{
+		$$ = $3;
+		$$->ArrayRank++;
 	}
 	;
 
@@ -328,7 +360,10 @@ class_field: field_attribute_list field_type identifier alternative_name_specifi
 				case FTDefault:
 					field->DefaultAccessor = it->Accessor;
 					break;
-				}
+				case FTTrack:
+					field->TrackAccessor = it->Accessor;
+					break;
+			}
 		}
 
 		delete $5;

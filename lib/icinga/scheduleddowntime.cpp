@@ -90,7 +90,7 @@ void ScheduledDowntime::StaticInitialize(void)
 
 void ScheduledDowntime::OnAllConfigLoaded(void)
 {
-	CustomVarObject::OnAllConfigLoaded();
+	ObjectImpl<ScheduledDowntime>::OnAllConfigLoaded();
 
 	if (!GetCheckable())
 		BOOST_THROW_EXCEPTION(ScriptError("ScheduledDowntime '" + GetName() + "' references a host/service which doesn't exist.", GetDebugInfo()));
@@ -98,7 +98,7 @@ void ScheduledDowntime::OnAllConfigLoaded(void)
 
 void ScheduledDowntime::Start(void)
 {
-	ConfigObject::Start();
+	ObjectImpl<ScheduledDowntime>::Start();
 
 	CreateNextDowntime();
 }
@@ -231,3 +231,4 @@ void ScheduledDowntime::ValidateRanges(const Dictionary::Ptr& value, const Valid
 		}
 	}
 }
+

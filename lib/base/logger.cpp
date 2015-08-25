@@ -54,7 +54,7 @@ void Logger::StaticInitialize(void)
  */
 void Logger::Start(void)
 {
-	ConfigObject::Start();
+	ObjectImpl<Logger>::Start();
 
 	boost::mutex::scoped_lock lock(m_Mutex);
 	m_Loggers.insert(this);
@@ -67,7 +67,7 @@ void Logger::Stop(void)
 		m_Loggers.erase(this);
 	}
 
-	ConfigObject::Stop();
+	ObjectImpl<Logger>::Stop();
 }
 
 std::set<Logger::Ptr> Logger::GetLoggers(void)

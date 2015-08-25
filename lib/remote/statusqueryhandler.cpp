@@ -21,6 +21,8 @@
 #include "remote/httputility.hpp"
 #include "remote/filterutility.hpp"
 #include "base/serializer.hpp"
+#include "base/dependencygraph.hpp"
+#include "base/configtype.hpp"
 #include <boost/algorithm/string.hpp>
 #include <set>
 
@@ -72,11 +74,16 @@ bool StatusQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 	}
 
 	BOOST_FOREACH(const ConfigObject::Ptr& obj, objs) {
+		Dictionary::Ptr result1 = new Dictionary();
+		results->Add(result1);
+
+		Dictionary::Ptr resultAttrs = new Dictionary();
+		result1->Set("attrs", resultAttrs);
+
 		BOOST_FOREACH(const String& joinType, joinTypes) {
 			String prefix = joinType;
 			boost::algorithm::to_lower(prefix);
 
-			Dictionary::Ptr result1 = new Dictionary();
 			for (int fid = 0; fid < type->GetFieldCount(); fid++) {
 				Field field = type->GetFieldInfo(fid);
 				String aname = prefix + "." + field.Name;
@@ -85,9 +92,23 @@ bool StatusQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 
 				Value val = static_cast<Object::Ptr>(obj)->GetField(fid);
 				Value sval = Serialize(val, FAConfig | FAState);
-				result1->Set(aname, sval);
+				resultAttrs->Set(aname, sval);
 			}
-			results->Add(result1);
+		}
+
+		Array::Ptr used_by = new Array();
+		result1->Set("used_by", used_by);
+
+		BOOST_FOREACH(const Object::Ptr& pobj, DependencyGraph::GetParents((obj))) {
+			ConfigObject::Ptr configObj = dynamic_pointer_cast<ConfigObject>(pobj);
+
+			if (!configObj)
+				continue;
+
+			Dictionary::Ptr refInfo = new Dictionary();
+			refInfo->Set("type", configObj->GetType()->GetName());
+			refInfo->Set("name", configObj->GetName());
+			used_by->Add(refInfo);
 		}
 	}
 

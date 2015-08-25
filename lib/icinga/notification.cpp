@@ -115,7 +115,7 @@ void Notification::OnAllConfigLoaded(void)
 
 void Notification::Start(void)
 {
-	ConfigObject::Start();
+	ObjectImpl<Notification>::Start();
 
 	Checkable::Ptr obj = GetCheckable();
 
@@ -125,7 +125,7 @@ void Notification::Start(void)
 
 void Notification::Stop(void)
 {
-	ConfigObject::Stop();
+	ObjectImpl<Notification>::Stop();
 
 	Checkable::Ptr obj = GetCheckable();
 
@@ -676,3 +676,4 @@ Endpoint::Ptr Notification::GetCommandEndpoint(void) const
 {
 	return Endpoint::GetByName(GetCommandEndpointRaw());
 }
+

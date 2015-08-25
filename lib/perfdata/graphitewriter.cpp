@@ -60,7 +60,7 @@ void GraphiteWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 
 void GraphiteWriter::Start(void)
 {
-	ConfigObject::Start();
+	ObjectImpl<GraphiteWriter>::Start();
 
 	m_ReconnectTimer = new Timer();
 	m_ReconnectTimer->SetInterval(10);

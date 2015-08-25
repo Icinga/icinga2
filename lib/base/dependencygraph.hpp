@@ -17,42 +17,34 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "icinga/checkable.hpp"
-#include "icinga/customvarobject.hpp"
+#ifndef DEPENDENCYGRAPH_H
+#define DEPENDENCYGRAPH_H
 
-library icinga;
+#include "base/i2-base.hpp"
+#include "base/object.hpp"
+#include <map>
 
-namespace icinga
+namespace icinga {
+
+/**
+ * A graph that tracks dependencies between objects.
+ *
+ * @ingroup base
+ */
+class I2_BASE_API DependencyGraph
 {
+public:
+	static void AddDependency(Object *parent, Object *child);
+	static void RemoveDependency(Object *parent, Object *child);
+	static std::vector<Object::Ptr> GetParents(const Object::Ptr& child);
 
-class Host : Checkable
-{
-	[config] array(name(HostGroup)) groups {
-		default {{{ return new Array(); }}}
-	};
+private:
+	DependencyGraph(void);
 
-	[config] String display_name {
-		get {{{
-			if (m_DisplayName.IsEmpty())
-				return GetName();
-			else
-				return m_DisplayName;
-		}}}
-	};
-
-	[config] String address;
-	[config] String address6;
-
-	[enum, no_storage] HostState "state" {
-		get;
-	};
-	[enum, no_storage] HostState last_state {
-		get;
-	};
-	[enum, no_storage] HostState last_hard_state {
-		get;
-	};
-
+	static boost::mutex m_Mutex;
+	static std::map<Object *, std::map<Object *, int> > m_Dependencies;
 };
 
 }
+
+#endif /* DEPENDENCYGRAPH_H */

@@ -61,7 +61,7 @@ Dictionary::Ptr ServiceNameComposer::ParseName(const String& name) const
 
 void Service::OnAllConfigLoaded(void)
 {
-	Checkable::OnAllConfigLoaded();
+	ObjectImpl<Service>::OnAllConfigLoaded();
 
 	m_Host = Host::GetByName(GetHostName());
 

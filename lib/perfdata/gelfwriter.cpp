@@ -40,7 +40,7 @@ REGISTER_TYPE(GelfWriter);
 
 void GelfWriter::Start(void)
 {
-	ConfigObject::Start();
+	ObjectImpl<GelfWriter>::Start();
 
 	m_ReconnectTimer = new Timer();
 	m_ReconnectTimer->SetInterval(10);

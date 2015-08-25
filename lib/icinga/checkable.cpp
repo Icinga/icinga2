@@ -47,7 +47,7 @@ void Checkable::Start(void)
 	if (GetNextCheck() < now + 300)
 		UpdateNextCheck();
 
-	ConfigObject::Start();
+	ObjectImpl<Checkable>::Start();
 }
 
 void Checkable::OnStateLoaded(void)

@@ -46,7 +46,7 @@ void FileLogger::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
  */
 void FileLogger::Start(void)
 {
-	StreamLogger::Start();
+	ObjectImpl<FileLogger>::Start();
 
 	ReopenLogFile();
 

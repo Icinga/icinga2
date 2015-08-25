@@ -26,6 +26,7 @@
 #include "base/objectlock.hpp"
 #include "base/configtype.hpp"
 #include "base/application.hpp"
+#include "base/dependencygraph.hpp"
 #include <boost/foreach.hpp>
 #include <boost/regex.hpp>
 #include <algorithm>
@@ -57,6 +58,7 @@ REGISTER_SAFE_SCRIPTFUNCTION(get_time, &Utility::GetTime);
 REGISTER_SAFE_SCRIPTFUNCTION(basename, &Utility::BaseName);
 REGISTER_SAFE_SCRIPTFUNCTION(dirname, &Utility::DirName);
 REGISTER_SAFE_SCRIPTFUNCTION(msi_get_component_path, &ScriptUtils::MsiGetComponentPathShim);
+REGISTER_SAFE_SCRIPTFUNCTION(track_parents, &ScriptUtils::TrackParents);
 
 String ScriptUtils::CastString(const Value& value)
 {
@@ -304,3 +306,9 @@ String ScriptUtils::MsiGetComponentPathShim(const String& component)
 	return String();
 #endif /* _WIN32 */
 }
+
+Array::Ptr ScriptUtils::TrackParents(const Object::Ptr& child)
+{
+	return Array::FromVector(DependencyGraph::GetParents(child));
+}
+

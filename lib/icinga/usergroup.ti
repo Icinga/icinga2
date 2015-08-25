@@ -35,13 +35,7 @@ class UserGroup : CustomVarObject
 		}}}
 	};
 
-	[config] Array::Ptr groups;
-};
-
-validator UserGroup {
-	Array groups {
-		name(UserGroup) "*";
-	};
+	[config] array(name(UserGroup)) groups;
 };
 
 }

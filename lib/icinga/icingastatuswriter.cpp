@@ -58,7 +58,7 @@ void IcingaStatusWriter::StatsFunc(const Dictionary::Ptr& status, const Array::P
  */
 void IcingaStatusWriter::Start(void)
 {
-	ConfigObject::Start();
+	ObjectImpl<IcingaStatusWriter>::Start();
 
 	m_StatusTimer = new Timer();
 	m_StatusTimer->SetInterval(GetUpdateInterval());

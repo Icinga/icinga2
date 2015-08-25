@@ -60,7 +60,7 @@ void OpenTsdbWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 
 void OpenTsdbWriter::Start(void)
 {
-	ConfigObject::Start();
+	ObjectImpl<OpenTsdbWriter>::Start();
 
 	m_ReconnectTimer = new Timer();
 	m_ReconnectTimer->SetInterval(10);

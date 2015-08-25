@@ -102,7 +102,7 @@ void ApiListener::Start(void)
 		return;
 	}
 
-	ConfigObject::Start();
+	ObjectImpl<ApiListener>::Start();
 
 	{
 		boost::mutex::scoped_lock(m_LogLock);

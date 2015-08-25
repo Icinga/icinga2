@@ -35,16 +35,10 @@ class ServiceGroup : CustomVarObject
 		}}}
 	};
 
-	[config] Array::Ptr groups;
+	[config] array(name(ServiceGroup)) groups;
 	[config] String notes;
 	[config] String notes_url;
 	[config] String action_url;
-};
-
-validator ServiceGroup {
-	Array groups {
-		name(ServiceGroup) "*";
-	};
 };
 
 }

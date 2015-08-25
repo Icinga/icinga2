@@ -55,6 +55,12 @@ public:
 		m_DebugInfo = di;
 	}
 
+	inline virtual void Start(void)
+	{ }
+
+	inline virtual void Stop(void)
+	{ }
+
 private:
 	DebugInfo m_DebugInfo;
 };
