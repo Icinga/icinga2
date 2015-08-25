@@ -25,7 +25,7 @@ namespace icinga
 class Endpoint : DynamicObject
 {
 	[config] String host;
-	[config] String port {
+	[config, required] String port {
 		default {{{ return "5665"; }}}
 	};
 	[config] double log_duration {

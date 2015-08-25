@@ -56,7 +56,6 @@ public:
 
 protected:
 	virtual void OnAllConfigLoaded(void);
-	virtual void ValidatePort(const String& value, const ValidationUtils& utils) override;
 
 private:
 	mutable boost::mutex m_ClientsLock;
