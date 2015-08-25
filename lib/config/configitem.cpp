@@ -292,6 +292,7 @@ void ConfigItem::Unregister(void)
 	boost::mutex::scoped_lock lock(m_Mutex);
 	m_UnnamedItems.erase(std::remove(m_UnnamedItems.begin(), m_UnnamedItems.end(), this), m_UnnamedItems.end());
 	m_Items[m_Type].erase(m_Name);
+	m_CommittedItems.erase(std::remove(m_CommittedItems.begin(), m_CommittedItems.end(), this), m_CommittedItems.end());
 }
 
 /**
