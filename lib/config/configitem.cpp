@@ -328,8 +328,7 @@ bool ConfigItem::CommitNewItems(WorkQueue& upq, std::vector<ConfigItem::Ptr>& ne
 		boost::mutex::scoped_lock lock(m_Mutex);
 
 		BOOST_FOREACH(const TypeMap::value_type& kv, m_Items) {
-			BOOST_FOREACH(const ItemMap::value_type& kv2, kv.second)
-			{
+			BOOST_FOREACH(const ItemMap::value_type& kv2, kv.second) {
 				if (!kv2.second->m_Abstract && !kv2.second->m_Object)
 					items.push_back(std::make_pair(kv2.second, false));
 			}
@@ -403,6 +402,8 @@ bool ConfigItem::CommitNewItems(WorkQueue& upq, std::vector<ConfigItem::Ptr>& ne
 				continue;
 
 			BOOST_FOREACH(const ConfigItem::Ptr& item, new_items) {
+				ASSERT(item->m_Object);
+
 				if (item->m_Type == type)
 					upq.Enqueue(boost::bind(&ConfigObject::OnAllConfigLoaded, item->m_Object));
 			}
@@ -416,6 +417,8 @@ bool ConfigItem::CommitNewItems(WorkQueue& upq, std::vector<ConfigItem::Ptr>& ne
 
 			BOOST_FOREACH(const String& loadDep, ptype->GetLoadDependencies()) {
 				BOOST_FOREACH(const ConfigItem::Ptr& item, new_items) {
+					ASSERT(item->m_Object);
+
 					if (item->m_Type == loadDep)
 						upq.Enqueue(boost::bind(&ConfigObject::CreateChildObjects, item->m_Object, ptype));
 				}
