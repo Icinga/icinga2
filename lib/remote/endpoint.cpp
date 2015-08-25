@@ -57,14 +57,6 @@ void Endpoint::OnAllConfigLoaded(void)
 		BOOST_THROW_EXCEPTION(ScriptError("Endpoint '" + GetName() + "' does not belong to a zone.", GetDebugInfo()));
 }
 
-void Endpoint::ValidatePort(const String& value, const ValidationUtils& utils)
-{
-	ObjectImpl<Endpoint>::ValidatePort(value, utils);
-
-	if (value.IsEmpty())
-		BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of("enpoint_port"), "Port may not be empty."));
-}
-
 void Endpoint::AddClient(const JsonRpcConnection::Ptr& client)
 {
 	bool was_master = ApiListener::GetInstance()->IsMaster();
