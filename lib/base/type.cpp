@@ -103,7 +103,7 @@ void Type::SetPrototype(const Object::Ptr& object)
 
 void Type::SetField(int id, const Value& value, bool suppress_events, const Value& cookie)
 {
-	if (id == 0) {
+	if (id == 1) {
 		SetPrototype(value);
 		return;
 	}
@@ -114,8 +114,10 @@ void Type::SetField(int id, const Value& value, bool suppress_events, const Valu
 Value Type::GetField(int id) const
 {
 	if (id == 0)
-		return GetPrototype();
+		return GetName();
 	else if (id == 1)
+		return GetPrototype();
+	else if (id == 2)
 		return GetBaseType();
 
 	return Object::GetField(id);
@@ -148,10 +150,14 @@ int TypeType::GetAttributes(void) const
 
 int TypeType::GetFieldId(const String& name) const
 {
-	if (name == "prototype")
-		return GetBaseType()->GetFieldCount() + 0;
+	int base_field_count = GetBaseType()->GetFieldCount();
+
+	if (name == "name")
+		return base_field_count + 0;
+	else if (name == "prototype")
+		return base_field_count + 1;
 	else if (name == "base")
-		return GetBaseType()->GetFieldCount() + 1;
+		return base_field_count + 2;
 
 	return GetBaseType()->GetFieldId(name);
 }
@@ -163,16 +169,18 @@ Field TypeType::GetFieldInfo(int id) const
 		return GetBaseType()->GetFieldInfo(id);
 
 	if (id == 0)
-		return Field(0, "Object", "prototype", NULL, 0, 0);
+		return Field(0, "String", "name", NULL, 0, 0);
 	else if (id == 1)
-		return Field(1, "Type", "base", NULL, 0, 0);
+		return Field(1, "Object", "prototype", NULL, 0, 0);
+	else if (id == 2)
+		return Field(2, "Type", "base", NULL, 0, 0);
 
 	throw std::runtime_error("Invalid field ID.");
 }
 
 int TypeType::GetFieldCount(void) const
 {
-	return GetBaseType()->GetFieldCount() + 2;
+	return GetBaseType()->GetFieldCount() + 3;
 }
 
 ObjectFactory TypeType::GetFactory(void) const
