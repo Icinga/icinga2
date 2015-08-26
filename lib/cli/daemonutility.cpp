@@ -74,7 +74,7 @@ static void IncludeModule(const String& modulePath, bool& success)
 	
 	if (Utility::PathExists(modulePath + "/include.conf")) {
 		Expression *expr = ConfigCompiler::CompileFile(modulePath + "/include.conf",
-		    true, String(), moduleName);
+		    String(), moduleName);
 		
 		if (!ExecuteExpression(expr))
 			success = false;
@@ -91,7 +91,7 @@ bool DaemonUtility::ValidateConfigFiles(const std::vector<std::string>& configs,
 
 	if (!configs.empty()) {
 		BOOST_FOREACH(const String& configPath, configs) {
-			Expression *expression = ConfigCompiler::CompileFile(configPath, true, String(), "_etc");
+			Expression *expression = ConfigCompiler::CompileFile(configPath, String(), "_etc");
 			success = ExecuteExpression(expression);
 			delete expression;
 			if (!success)

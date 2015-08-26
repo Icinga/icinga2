@@ -28,7 +28,7 @@
 	namespace { \
 		void RegisterConfigFragment(void) \
 		{ \
-			icinga::Expression *expression = icinga::ConfigCompiler::CompileText(name, fragment, false); \
+			icinga::Expression *expression = icinga::ConfigCompiler::CompileText(name, fragment); \
 			VERIFY(expression); \
 			icinga::ScriptFrame frame; \
 			expression->Evaluate(frame); \

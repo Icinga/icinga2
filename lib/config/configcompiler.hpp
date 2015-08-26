@@ -86,11 +86,11 @@ public:
 	Expression *Compile(void);
 
 	static Expression *CompileStream(const String& path, std::istream *stream,
-	    bool async = true, const String& zone = String(), const String& module = String());
-	static Expression *CompileFile(const String& path, bool async = true,
 	    const String& zone = String(), const String& module = String());
+	static Expression *CompileFile(const String& path, const String& zone = String(),
+	    const String& module = String());
 	static Expression *CompileText(const String& path, const String& text,
-	    bool async = true, const String& zone = String(), const String& module = String());
+	    const String& zone = String(), const String& module = String());
 
 	static void AddIncludeSearchDir(const String& dir);
 

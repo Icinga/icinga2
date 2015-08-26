@@ -113,7 +113,7 @@ String ConfigCompiler::GetModule(void) const
 void ConfigCompiler::CollectIncludes(std::vector<Expression *>& expressions,
     const String& file, const String& zone, const String& module)
 {
-	expressions.push_back(CompileFile(file, true, zone, module));
+	expressions.push_back(CompileFile(file, zone, module));
 }
 
 /**
@@ -235,7 +235,7 @@ void ConfigCompiler::HandleLibrary(const String& library)
  * @returns Configuration items.
  */
 Expression *ConfigCompiler::CompileStream(const String& path,
-    std::istream *stream, bool async, const String& zone, const String& module)
+    std::istream *stream, const String& zone, const String& module)
 {
 	CONTEXT("Compiling configuration stream with name '" + path + "'");
 
@@ -258,8 +258,8 @@ Expression *ConfigCompiler::CompileStream(const String& path,
  * @param path The path.
  * @returns Configuration items.
  */
-Expression *ConfigCompiler::CompileFile(const String& path, bool async,
-    const String& zone, const String& module)
+Expression *ConfigCompiler::CompileFile(const String& path, const String& zone,
+    const String& module)
 {
 	CONTEXT("Compiling configuration file '" + path + "'");
 
@@ -274,7 +274,7 @@ Expression *ConfigCompiler::CompileFile(const String& path, bool async,
 	Log(LogInformation, "ConfigCompiler")
 	    << "Compiling config file: " << path;
 
-	return CompileStream(path, &stream, async, zone, module);
+	return CompileStream(path, &stream, zone, module);
 }
 
 /**
@@ -285,10 +285,10 @@ Expression *ConfigCompiler::CompileFile(const String& path, bool async,
  * @returns Configuration items.
  */
 Expression *ConfigCompiler::CompileText(const String& path, const String& text,
-    bool async, const String& zone, const String& module)
+    const String& zone, const String& module)
 {
 	std::stringstream stream(text);
-	return CompileStream(path, &stream, async, zone, module);
+	return CompileStream(path, &stream, zone, module);
 }
 
 /**

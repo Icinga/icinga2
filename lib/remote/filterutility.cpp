@@ -114,7 +114,7 @@ std::vector<ConfigObject::Ptr> FilterUtility::GetFilterTargets(const QueryDescri
 		ConfigType::Ptr dtype = ConfigType::GetByName(type);
 		ASSERT(dtype);
 
-		Expression *ufilter = ConfigCompiler::CompileText("<API query>", filter, false);
+		Expression *ufilter = ConfigCompiler::CompileText("<API query>", filter);
 		ScriptFrame frame;
 		frame.Sandboxed = true;
 
