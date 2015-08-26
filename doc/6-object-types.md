@@ -1179,7 +1179,7 @@ Configuration Attributes:
 
   Name            |Description
   ----------------|----------------
-  severity        |**Optional.** The minimum severity for this log. Can be "debug", "notice", "information", "notice", "warning" or "critical". Defaults to "warning".
+  severity        |**Optional.** The minimum severity for this log. Can be "debug", "notice", "information", "warning" or "critical". Defaults to "warning".
 
 
 ## <a id="objecttype-timeperiod"></a> TimePeriod
