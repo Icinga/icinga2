@@ -4,6 +4,60 @@ Please check [doc/1-about.md].
 
 ## What's New
 
+### What's New in Version 2.3.9
+
+#### Changes
+
+* Fix that the first SOFT state is recognized as second SOFT state
+* Implemented reload functionality for Windows
+* New ITL check commands
+* Documentation updates
+* Various other bugfixes
+
+#### Features
+
+* Feature 9527: CheckCommand for check_interfaces
+* Feature 9671: Add check_yum to ITL
+* Feature 9675: Add check_redis to ITL
+* Feature 9686: Update gdb pretty printer docs w/ Python 3
+* Feature 9699: Adding "-r" parameter to the check_load command for dividing the load averages by the number of CPUs.
+* Feature 9747: check_command for plugin check_clamd
+* Feature 9796: Implement Dictionary#get and Array#get
+* Feature 9801: Add check_jmx4perl to ITL
+* Feature 9811: add check command for check_mailq
+* Feature 9827: snmpv3 CheckCommand section improved
+* Feature 9882: Implement the Dictionary#keys method
+* Feature 9883: Use an empty dictionary for the 'this' scope when executing commands with Livestatus
+* Feature 9985: add check command nscp-local-counter
+* Feature 9996: Add new arguments openvmtools for Open VM Tools
+
+#### Bugfixes
+
+* Bug 8979: Missing DEL_DOWNTIME_BY_HOST_NAME command required by Classic UI 1.x
+* Bug 9262: cluster check w/ immediate parent and child zone endpoints
+* Bug 9623: missing config warning on empty port in endpoints
+* Bug 9769: Set correct X509 version for certificates
+* Bug 9773: Add log for missing EventCommand for command_endpoints
+* Bug 9779: Trying to set a field for a non-object instance fails
+* Bug 9782: icinga2 node wizard don't take zone_name input
+* Bug 9806: Operator + is inconsistent when used with empty and non-empty strings
+* Bug 9814: Build fix for Boost 1.59
+* Bug 9835: Dict initializer incorrectly re-initializes field that is set to an empty string
+* Bug 9860: missing check_perfmon.exe
+* Bug 9867: Agent freezes when the check returns massive output
+* Bug 9884: Warning about invalid API function icinga::Hello
+* Bug 9897: First SOFT state is recognized as second SOFT state
+* Bug 9902: typo in docs
+* Bug 9912: check_command interfaces option match_aliases has to be boolean
+* Bug 9913: Default disk checks on Windows fail because check_disk doesn't support -K
+* Bug 9928: Add missing category for IDO query
+* Bug 9947: Serial number field is not properly initialized for CA certificates
+* Bug 9961: Don't re-download NSCP for every build
+* Bug 9962: Utility::Glob on Windows doesn't support wildcards in all but the last path component
+* Bug 9972: Icinga2 - too many open files - Exception
+* Bug 9984: fix check command nscp-local
+* Bug 9992: Duplicate severity type in the documentation for SyslogLogger
+
 ### What's New in Version 2.3.8
 
 #### Changes
