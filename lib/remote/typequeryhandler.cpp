@@ -144,6 +144,7 @@ bool TypeQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& requ
 
 			attributeInfo->Set("config", static_cast<bool>(field.Attributes & FAConfig));
 			attributeInfo->Set("state", static_cast<bool>(field.Attributes & FAState));
+			attributeInfo->Set("internal", static_cast<bool>(field.Attributes & FAInternal));
 			attributeInfo->Set("required", static_cast<bool>(field.Attributes & FARequired));
 
 		}
