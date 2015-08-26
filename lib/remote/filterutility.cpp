@@ -48,31 +48,66 @@ Type::Ptr FilterUtility::TypeFromPluralName(const String& pluralName)
 	return Type::Ptr();
 }
 
-ConfigObject::Ptr FilterUtility::GetObjectByTypeAndName(const String& type, const String& name)
+void ConfigObjectTargetProvider::FindTargets(const String& type, const boost::function<void (const Value&)>& addTarget) const
 {
 	ConfigType::Ptr dtype = ConfigType::GetByName(type);
 	ASSERT(dtype);
 
-	return dtype->GetObject(name);
+	BOOST_FOREACH(const ConfigObject::Ptr& object, dtype->GetObjects()) {
+		addTarget(object);
+	}
 }
 
-std::vector<ConfigObject::Ptr> FilterUtility::GetFilterTargets(const QueryDescription& qd, const Dictionary::Ptr& query)
+Value ConfigObjectTargetProvider::GetTargetByName(const String& type, const String& name) const
 {
-	std::vector<ConfigObject::Ptr> result;
+	ConfigObject::Ptr obj = ConfigObject::GetObject(type, name);
 
-	BOOST_FOREACH(const Type::Ptr& type, qd.Types) {
-		String attr = type->GetName();
+	if (!obj)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Object does not exist."));
+
+	return obj;
+}
+
+bool ConfigObjectTargetProvider::IsValidType(const String& type) const
+{
+	return ConfigType::GetByName(type) != ConfigType::Ptr();
+}
+
+String ConfigObjectTargetProvider::GetPluralName(const String& type) const
+{
+	return Type::GetByName(type)->GetPluralName();
+}
+
+static void FilteredAddTarget(ScriptFrame& frame, const String& varName, Expression *ufilter, std::vector<Value>& result, const Value& target)
+{
+	frame.Locals->Set(varName, target);
+
+	if (Convert::ToBool(ufilter->Evaluate(frame)))
+		result.push_back(target);
+}
+
+std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, const Dictionary::Ptr& query)
+{
+	std::vector<Value> result;
+
+	TargetProvider::Ptr provider;
+
+	if (qd.Provider)
+		provider = qd.Provider;
+	else
+		provider = new ConfigObjectTargetProvider();
+
+	BOOST_FOREACH(const String& type, qd.Types) {
+		String attr = type;
 		boost::algorithm::to_lower(attr);
 
-		if (query->Contains(attr)) {
-			String name = HttpUtility::GetLastParameter(query, attr);
-			ConfigObject::Ptr obj = GetObjectByTypeAndName(type->GetName(), name);
-			if (!obj)
-				BOOST_THROW_EXCEPTION(std::invalid_argument("Object does not exist."));
-			result.push_back(obj);
-		}
+		if (attr == "type")
+			attr = "name";
 
-		attr = type->GetPluralName();
+		if (query->Contains(attr))
+			result.push_back(provider->GetTargetByName(type, query->Get(attr)));
+
+		attr = provider->GetPluralName(type);
 		boost::algorithm::to_lower(attr);
 
 		if (query->Contains(attr)) {
@@ -80,10 +115,7 @@ std::vector<ConfigObject::Ptr> FilterUtility::GetFilterTargets(const QueryDescri
 			if (names) {
 				ObjectLock olock(names);
 				BOOST_FOREACH(const String& name, names) {
-					ConfigObject::Ptr obj = GetObjectByTypeAndName(type->GetName(), name);
-					if (!obj)
-						BOOST_THROW_EXCEPTION(std::invalid_argument("Object does not exist."));
-					result.push_back(obj);
+					result.push_back(provider->GetTargetByName(type, name));
 				}
 			}
 		}
@@ -103,16 +135,11 @@ std::vector<ConfigObject::Ptr> FilterUtility::GetFilterTargets(const QueryDescri
 
 		Log(LogInformation, "FilterUtility", filter);
 
-		Type::Ptr utype = Type::GetByName(type);
-
-		if (!utype)
+		if (!provider->IsValidType(type))
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid type specified."));
 
-		if (qd.Types.find(utype) == qd.Types.end())
+		if (qd.Types.find(type) == qd.Types.end())
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid type specified for this query."));
-
-		ConfigType::Ptr dtype = ConfigType::GetByName(type);
-		ASSERT(dtype);
 
 		Expression *ufilter = ConfigCompiler::CompileText("<API query>", filter);
 		ScriptFrame frame;
@@ -126,16 +153,11 @@ std::vector<ConfigObject::Ptr> FilterUtility::GetFilterTargets(const QueryDescri
 			}
 		}
 
-		String varName = utype->GetName();
+		String varName = type;
 		boost::algorithm::to_lower(varName);
 
 		try {
-			BOOST_FOREACH(const ConfigObject::Ptr& object, dtype->GetObjects()) {
-				frame.Locals->Set(varName, object);
-
-				if (Convert::ToBool(ufilter->Evaluate(frame)))
-					result.push_back(object);
-			}
+			provider->FindTargets(type, boost::bind(&FilteredAddTarget, boost::ref(frame), varName, ufilter, boost::ref(result), _1));
 		} catch (const std::exception& ex) {
 			delete ufilter;
 			throw;

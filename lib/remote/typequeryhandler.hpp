@@ -17,57 +17,22 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef FILTERUTILITY_H
-#define FILTERUTILITY_H
+#ifndef TYPEQUERYHANDLER_H
+#define TYPEQUERYHANDLER_H
 
-#include "remote/i2-remote.hpp"
-#include "base/dictionary.hpp"
-#include "base/configobject.hpp"
-#include <set>
+#include "remote/httphandler.hpp"
 
 namespace icinga
 {
 
-class TargetProvider : public Object
+class I2_REMOTE_API TypeQueryHandler : public HttpHandler
 {
 public:
-	DECLARE_PTR_TYPEDEFS(TargetProvider);
+	DECLARE_PTR_TYPEDEFS(TypeQueryHandler);
 
-	virtual void FindTargets(const String& type, const boost::function<void (const Value&)>& addTarget) const = 0;
-	virtual Value GetTargetByName(const String& type, const String& name) const = 0;
-	virtual bool IsValidType(const String& type) const = 0;
-	virtual String GetPluralName(const String& type) const = 0;
-};
-
-class ConfigObjectTargetProvider : public TargetProvider
-{
-public:
-	DECLARE_PTR_TYPEDEFS(ConfigObjectTargetProvider);
-
-	virtual void FindTargets(const String& type, const boost::function<void (const Value&)>& addTarget) const override;
-	virtual Value GetTargetByName(const String& type, const String& name) const override;
-	virtual bool IsValidType(const String& type) const override;
-	virtual String GetPluralName(const String& type) const override;
-};
-
-struct QueryDescription
-{
-	std::set<String> Types;
-	TargetProvider::Ptr Provider;
-};
-
-/**
- * Filter utilities.
- *
- * @ingroup remote
- */
-class I2_REMOTE_API FilterUtility
-{
-public:
-	static Type::Ptr TypeFromPluralName(const String& pluralName);
-	static std::vector<Value> GetFilterTargets(const QueryDescription& qd, const Dictionary::Ptr& query);
+	virtual bool HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response) override;
 };
 
 }
 
-#endif /* FILTERUTILITY_H */
+#endif /* TYPEQUERYHANDLER_H */

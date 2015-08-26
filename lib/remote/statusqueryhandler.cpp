@@ -44,7 +44,7 @@ bool StatusQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 		return false;
 
 	QueryDescription qd;
-	qd.Types.insert(type);
+	qd.Types.insert(type->GetName());
 
 	std::vector<String> joinTypes;
 	joinTypes.push_back(type->GetName());
@@ -59,7 +59,7 @@ bool StatusQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 		params->Set(attr, request.RequestUrl->GetPath()[2]);
 	}
 
-	std::vector<ConfigObject::Ptr> objs = FilterUtility::GetFilterTargets(qd, params);
+	std::vector<Value> objs = FilterUtility::GetFilterTargets(qd, params);
 
 	Array::Ptr results = new Array();
 

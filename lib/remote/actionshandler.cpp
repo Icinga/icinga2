@@ -52,15 +52,10 @@ bool ActionsHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& reques
 	Dictionary::Ptr params = HttpUtility::FetchRequestParameters(request);
 
 	const std::vector<String>& types = action->GetTypes();
-	std::vector<ConfigObject::Ptr> objs;
+	std::vector<Value> objs;
 
 	if (!types.empty()) {
-		BOOST_FOREACH(const String& typeName, types) {
-			Type::Ptr type = Type::GetByName(typeName);
-			ASSERT(type);
-			qd.Types.insert(type);
-		}
-
+		qd.Types = std::set<String>(types.begin(), types.end());
 
 		objs = FilterUtility::GetFilterTargets(qd, params);
 	} else

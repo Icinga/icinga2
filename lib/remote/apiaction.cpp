@@ -23,7 +23,7 @@
 using namespace icinga;
 
 ApiAction::ApiAction(const std::vector<String>& types, const Callback& action)
-: m_Types(types), m_Callback(action)
+    : m_Types(types), m_Callback(action)
 { }
 
 Value ApiAction::Invoke(const ConfigObject::Ptr& target, const Dictionary::Ptr& params)

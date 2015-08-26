@@ -44,7 +44,7 @@ bool ModifyObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 		return false;
 
 	QueryDescription qd;
-	qd.Types.insert(type);
+	qd.Types.insert(type->GetName());
 
 	Dictionary::Ptr params = HttpUtility::FetchRequestParameters(request);
 
@@ -56,7 +56,7 @@ bool ModifyObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 		params->Set(attr, request.RequestUrl->GetPath()[2]);
 	}
 
-	std::vector<ConfigObject::Ptr> objs = FilterUtility::GetFilterTargets(qd, params);
+	std::vector<Value> objs = FilterUtility::GetFilterTargets(qd, params);
 
 	Dictionary::Ptr attrs = params->Get("attrs");
 
