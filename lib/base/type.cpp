@@ -138,7 +138,7 @@ String TypeType::GetName(void) const
 
 Type::Ptr TypeType::GetBaseType(void) const
 {
-	return Type::Ptr();
+	return Object::TypeInstance;
 }
 
 int TypeType::GetAttributes(void) const
@@ -149,15 +149,19 @@ int TypeType::GetAttributes(void) const
 int TypeType::GetFieldId(const String& name) const
 {
 	if (name == "prototype")
-		return 0;
+		return GetBaseType()->GetFieldCount() + 0;
 	else if (name == "base")
-		return 1;
+		return GetBaseType()->GetFieldCount() + 1;
 
-	return -1;
+	return GetBaseType()->GetFieldId(name);
 }
 
 Field TypeType::GetFieldInfo(int id) const
 {
+	int real_id = id - GetBaseType()->GetFieldCount();
+	if (real_id < 0)
+		return GetBaseType()->GetFieldInfo(id);
+
 	if (id == 0)
 		return Field(0, "Object", "prototype", NULL, 0, 0);
 	else if (id == 1)
@@ -168,7 +172,7 @@ Field TypeType::GetFieldInfo(int id) const
 
 int TypeType::GetFieldCount(void) const
 {
-	return 2;
+	return GetBaseType()->GetFieldCount() + 2;
 }
 
 ObjectFactory TypeType::GetFactory(void) const
