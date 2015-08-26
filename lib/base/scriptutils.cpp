@@ -227,9 +227,8 @@ Array::Ptr ScriptUtils::Range(const std::vector<Value>& arguments)
 	    (start > end && increment >= 0))
 		return result;
 
-	for (double i = start; i < end; i += increment) {
+	for (double i = start; (increment > 0 ? i < end : i > end); i += increment)
 		result->Add(i);
-	}
 
 	return result;
 }
