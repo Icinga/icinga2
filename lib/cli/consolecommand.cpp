@@ -128,14 +128,18 @@ static char *ConsoleCompleteHelper(const char *word, int state)
 					AddSuggestion(matches, word, pword + "." + field.Name);
 				}
 
-				Object::Ptr prototype = type->GetPrototype();
-				Dictionary::Ptr dict = dynamic_pointer_cast<Dictionary>(prototype);
+				while (type) {
+					Object::Ptr prototype = type->GetPrototype();
+					Dictionary::Ptr dict = dynamic_pointer_cast<Dictionary>(prototype);
 
-				if (dict) {
-					ObjectLock olock(dict);
-					BOOST_FOREACH(const Dictionary::Pair& kv, dict) {
-						AddSuggestion(matches, word, pword + "." + kv.first);
+					if (dict) {
+						ObjectLock olock(dict);
+						BOOST_FOREACH(const Dictionary::Pair& kv, dict) {
+							AddSuggestion(matches, word, pword + "." + kv.first);
+						}
 					}
+
+					type = type->GetBaseType();
 				}
 			} catch (...) { /* Ignore the exception */ }
 		}
