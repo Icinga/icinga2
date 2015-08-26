@@ -26,15 +26,15 @@ the changelog.py script. Also generate HTML for the wordpress release announceme
 
 Changelog:
 
-    $ ./changelog.py --version 2.3.5 --project i2
+    $ ./changelog.py --version 2.3.9 --project i2
 
 Docs:
 
-    $ ./changelog.py --version 2.3.5 --project i2 --links
+    $ ./changelog.py --version 2.3.9 --project i2 --links
 
 Wordpress:
 
-    $ ./changelog.py --version 2.3.5 --project i2 --html --links
+    $ ./changelog.py --version 2.3.9 --project i2 --html --links
 
 ## Git Tag
 
