@@ -196,6 +196,29 @@ value of arbitrary macro expressions:
       return "Some text"
     }}
 
+The `resolve_arguments` can be used to resolve a command and its arguments much in
+the same fashion Icinga does this for the `command` and `arguments` attributes for
+commands. The `by_ssh` command uses this functionality to let users specify a
+command and arguments that should be executed via SSH:
+
+    arguments = {
+      "-C" = {{
+        var command = macro("$by_ssh_command$")
+        var arguments = macro("$by_ssh_arguments$")
+
+        if (typeof(command) == String && !arguments) {
+          return command
+        }
+
+        var escaped_args = []
+        for (arg in resolve_arguments(command, arguments)) {
+          escaped_args.add(escape_shell_arg(arg))
+        }
+        return escaped_args.join(" ")
+      }}
+      ...
+    }
+
 Acessing object attributes at runtime inside these functions is described in the
 [advanced topics](5-advanced-topics.md#access-object-attributes-at-runtime) chapter.
 

@@ -25,60 +25,13 @@
 #include "base/convert.hpp"
 #include "base/process.hpp"
 #include "base/objectlock.hpp"
+#include "base/exception.hpp"
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/foreach.hpp>
 
 using namespace icinga;
-
-struct CommandArgument
-{
-	int Order;
-	bool SkipKey;
-	bool RepeatKey;
-	bool SkipValue;
-	String Key;
-	Value AValue;
-
-	CommandArgument(void)
-		: Order(0), SkipKey(false), RepeatKey(true), SkipValue(false)
-	{ }
-
-	bool operator<(const CommandArgument& rhs) const
-	{
-		return Order < rhs.Order;
-	}
-};
-
-void PluginUtility::AddArgumentHelper(const Array::Ptr& args, const String& key, const String& value, bool add_key, bool add_value)
-{
-	if (add_key)
-		args->Add(key);
-
-	if (add_value)
-		args->Add(value);
-}
-
-Value PluginUtility::EscapeMacroShellArg(const Value& value)
-{
-	String result;
-
-	if (value.IsObjectType<Array>()) {
-		Array::Ptr arr = value;
-
-		ObjectLock olock(arr);
-		BOOST_FOREACH(const Value& arg, arr) {
-			if (result.GetLength() > 0)
-				result += " ";
-
-			result += Utility::EscapeShellArg(arg);
-		}	
-	} else
-		result = Utility::EscapeShellArg(value);
-
-	return result;
-}
 
 void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkable::Ptr& checkable,
     const CheckResult::Ptr& cr, const MacroProcessor::ResolverList& macroResolvers,
@@ -89,136 +42,26 @@ void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkab
 	Dictionary::Ptr raw_arguments = commandObj->GetArguments();
 
 	Value command;
-	if (!raw_arguments || raw_command.IsObjectType<Array>() || raw_command.IsObjectType<Function>())
-		command = MacroProcessor::ResolveMacros(raw_command, macroResolvers, cr, NULL,
-		    PluginUtility::EscapeMacroShellArg, resolvedMacros, useResolvedMacros);
-	else {
-		Array::Ptr arr = new Array();
-		arr->Add(raw_command);
-		command = arr;
-	}
 
-	if (raw_arguments) {
-		std::vector<CommandArgument> args;
+	try {
+		command = MacroProcessor::ResolveArguments(raw_command, raw_arguments,
+		    macroResolvers, cr, resolvedMacros, useResolvedMacros);
+	} catch (const std::exception& ex) {
+		String message = DiagnosticInformation(ex);
 
-		ObjectLock olock(raw_arguments);
-		BOOST_FOREACH(const Dictionary::Pair& kv, raw_arguments) {
-			const Value& arginfo = kv.second;
+		Log(LogWarning, "PluginUtility", message);
 
-			CommandArgument arg;
-			arg.Key = kv.first;
-
-			bool required = false;
-			Value argval;
-
-			if (arginfo.IsObjectType<Dictionary>()) {
-				Dictionary::Ptr argdict = arginfo;
-				if (argdict->Contains("key"))
-					arg.Key = argdict->Get("key");
-				argval = argdict->Get("value");
-				if (argdict->Contains("required"))
-					required = argdict->Get("required");
-				arg.SkipKey = argdict->Get("skip_key");
-				if (argdict->Contains("repeat_key"))
-					arg.RepeatKey = argdict->Get("repeat_key");
-				arg.Order = argdict->Get("order");
-
-				Value set_if = argdict->Get("set_if");
-
-				if (!set_if.IsEmpty()) {
-					String missingMacro;
-					Value set_if_resolved = MacroProcessor::ResolveMacros(set_if, macroResolvers,
-					    cr, &missingMacro, MacroProcessor::EscapeCallback(), resolvedMacros,
-					    useResolvedMacros);
-
-					if (!missingMacro.IsEmpty())
-						continue;
-
-					int value;
-
-					if (set_if_resolved == "true")
-						value = 1;
-					else if (set_if_resolved == "false")
-						value = 0;
-					else {
-						try {
-							value = Convert::ToLong(set_if_resolved);
-						} catch (const std::exception& ex) {
-							/* tried to convert a string */
-							Log(LogWarning, "PluginUtility")
-							    << "Error evaluating set_if value '" << set_if_resolved << "': " << ex.what();
-							continue;
-						}
-					}
-
-					if (!value)
-						continue;
-				}
-			}
-			else
-				argval = arginfo;
-
-			if (argval.IsEmpty())
-				arg.SkipValue = true;
-
-			String missingMacro;
-			arg.AValue = MacroProcessor::ResolveMacros(argval, macroResolvers,
-			    cr, &missingMacro, MacroProcessor::EscapeCallback(), resolvedMacros,
-			    useResolvedMacros);
-
-			if (!missingMacro.IsEmpty()) {
-				if (required) {
-					String message = "Non-optional macro '" + missingMacro + "' used in argument '" +
-					    arg.Key + "' is missing while executing command '" + commandObj->GetName() +
-					    "' for object '" + checkable->GetName() + "'";
-					Log(LogWarning, "PluginUtility", message);
-
-					if (callback) {
-						ProcessResult pr;
-						pr.PID = -1;
-						pr.ExecutionStart = Utility::GetTime();
-						pr.ExecutionEnd = pr.ExecutionStart;
-						pr.ExitStatus = 3; /* Unknown */
-						pr.Output = message;
-						callback(Empty, pr);
-					}
-
-					return;
-				}
-
-				continue;
-			}
-
-			args.push_back(arg);
+		if (callback) {
+			ProcessResult pr;
+			pr.PID = -1;
+			pr.ExecutionStart = Utility::GetTime();
+			pr.ExecutionEnd = pr.ExecutionStart;
+			pr.ExitStatus = 3; /* Unknown */
+			pr.Output = message;
+			callback(Empty, pr);
 		}
 
-		std::sort(args.begin(), args.end());
-
-		Array::Ptr command_arr = command;
-		BOOST_FOREACH(const CommandArgument& arg, args) {
-
-			if (arg.AValue.IsObjectType<Dictionary>()) {
-				Log(LogWarning, "PluginUtility", "Tried to use dictionary in argument");
-				continue;
-			} else if (arg.AValue.IsObjectType<Array>()) {
-				bool first = true;
-				Array::Ptr arr = static_cast<Array::Ptr>(arg.AValue);
-
-				ObjectLock olock(arr);
-				BOOST_FOREACH(const Value& value, arr) {
-					bool add_key;
-
-					if (first) {
-						first = false;
-						add_key = !arg.SkipKey;
-					} else
-						add_key = !arg.SkipKey && arg.RepeatKey;
-
-					AddArgumentHelper(command_arr, arg.Key, value, add_key, !arg.SkipValue);
-				}
-			} else
-				AddArgumentHelper(command_arr, arg.Key, arg.AValue, !arg.SkipKey, !arg.SkipValue);
-		}
+		return;
 	}
 
 	Dictionary::Ptr envMacros = new Dictionary();

@@ -45,7 +45,11 @@ public:
 	    const CheckResult::Ptr& cr = CheckResult::Ptr(), String *missingMacro = NULL,
 	    const EscapeCallback& escapeFn = EscapeCallback(),
 	    const Dictionary::Ptr& resolvedMacros = Dictionary::Ptr(),
-	    bool useResolvedMacros = false);
+	    bool useResolvedMacros = false, int recursionLevel = 0);
+
+	static Value ResolveArguments(const Value& command, const Dictionary::Ptr& arguments,
+	    const MacroProcessor::ResolverList& resolvers, const CheckResult::Ptr& cr,
+	    const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros, int recursionLevel = 0);
 
 	static bool ValidateMacroString(const String& macro);
 
@@ -62,9 +66,16 @@ private:
 	static Value InternalResolveMacrosShim(const std::vector<Value>& args, const ResolverList& resolvers,
 	    const CheckResult::Ptr& cr, const MacroProcessor::EscapeCallback& escapeFn,
             const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros, int recursionLevel);
+	static Value InternalResolveArgumentsShim(const std::vector<Value>& args, const ResolverList& resolvers,
+	    const CheckResult::Ptr& cr, const Dictionary::Ptr& resolvedMacros,
+	    bool useResolvedMacros, int recursionLevel);
 	static Value EvaluateFunction(const Function::Ptr& func, const ResolverList& resolvers,
 	    const CheckResult::Ptr& cr, const MacroProcessor::EscapeCallback& escapeFn,
 	    const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros, int recursionLevel);
+
+	static void AddArgumentHelper(const Array::Ptr& args, const String& key, const String& value,
+	    bool add_key, bool add_value);
+	static Value EscapeMacroShellArg(const Value& value);
 
 };
 

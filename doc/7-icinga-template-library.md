@@ -96,7 +96,8 @@ Name            | Description
 ----------------|--------------
 by_ssh_address  | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
 by_ssh_port     | **Optional.** The SSH port. Defaults to 22.
-by_ssh_command  | **Optional.** The command that should be executed.
+by_ssh_command  | **Required.** The command that should be executed. Can be an array if multiple arguments should be passed to `check_by_ssh`.
+by_ssh_arguments| **Optional.** A dictionary with arguments for the command. This works exactly like the 'arguments' dictionary for ordinary CheckCommands.
 by_ssh_logname  | **Optional.** The SSH username.
 by_ssh_identity | **Optional.** The SSH identity.
 by_ssh_quiet    | **Optional.** Whether to suppress SSH warnings. Defaults to false.
