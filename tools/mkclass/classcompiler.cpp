@@ -754,10 +754,9 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 					m_Impl << it->SetAccessor << std::endl << std::endl;
 
 				if (it->Type.IsName || !it->TrackAccessor.empty()) {
-					m_Impl << "\t" << "ConfigObject *dobj = dynamic_cast<ConfigObject *>(this);" << std::endl;
-
 					if (it->Name != "active") {
-						m_Impl << "\t" << "if (!dobj || dobj->IsActive())" << std::endl
+						m_Impl << "\t" << "ConfigObject *dobj = dynamic_cast<ConfigObject *>(this);" << std::endl
+						       << "\t" << "if (!dobj || dobj->IsActive())" << std::endl
 						       << "\t";
 					}
 
