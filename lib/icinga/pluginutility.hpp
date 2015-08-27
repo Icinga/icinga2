@@ -52,9 +52,6 @@ public:
 
 private:
 	PluginUtility(void);
-
-	static void AddArgumentHelper(const Array::Ptr& args, const String& key, const String& value, bool add_key, bool add_value);
-	static Value EscapeMacroShellArg(const Value& value);
 };
 
 }
