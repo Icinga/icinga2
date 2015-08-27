@@ -60,13 +60,11 @@ private:
 	    const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros,
 	    int recursionLevel = 0);
 	static Value InternalResolveMacrosShim(const std::vector<Value>& args, const ResolverList& resolvers,
-	    const CheckResult::Ptr& cr, String *missingMacro,
-	    const MacroProcessor::EscapeCallback& escapeFn, const Dictionary::Ptr& resolvedMacros,
-	    bool useResolvedMacros, int recursionLevel);
+	    const CheckResult::Ptr& cr, const MacroProcessor::EscapeCallback& escapeFn,
+            const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros, int recursionLevel);
 	static Value EvaluateFunction(const Function::Ptr& func, const ResolverList& resolvers,
-	    const CheckResult::Ptr& cr, String *missingMacro,
-	    const MacroProcessor::EscapeCallback& escapeFn, const Dictionary::Ptr& resolvedMacros,
-	    bool useResolvedMacros, int recursionLevel);
+	    const CheckResult::Ptr& cr, const MacroProcessor::EscapeCallback& escapeFn,
+	    const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros, int recursionLevel);
 
 };
 

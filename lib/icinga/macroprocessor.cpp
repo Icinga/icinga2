@@ -78,7 +78,7 @@ Value MacroProcessor::ResolveMacros(const Value& str, const ResolverList& resolv
 
 		result = resultDict;
 	} else if (str.IsObjectType<Function>()) {
-		result = EvaluateFunction(str, resolvers, cr, missingMacro, escapeFn, resolvedMacros, useResolvedMacros, 0);
+		result = EvaluateFunction(str, resolvers, cr, escapeFn, resolvedMacros, useResolvedMacros, 0);
 	} else {
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Macro is not a string or array."));
 	}
@@ -175,21 +175,21 @@ bool MacroProcessor::ResolveMacro(const String& macro, const ResolverList& resol
 }
 
 Value MacroProcessor::InternalResolveMacrosShim(const std::vector<Value>& args, const ResolverList& resolvers,
-    const CheckResult::Ptr& cr, String *missingMacro,
-    const MacroProcessor::EscapeCallback& escapeFn, const Dictionary::Ptr& resolvedMacros,
+    const CheckResult::Ptr& cr, const MacroProcessor::EscapeCallback& escapeFn, const Dictionary::Ptr& resolvedMacros,
     bool useResolvedMacros, int recursionLevel)
 {
 	if (args.size() < 1)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function"));
 
-	return MacroProcessor::InternalResolveMacros(args[0], resolvers, cr, missingMacro, escapeFn,
+	String missingMacro;
+
+	return MacroProcessor::InternalResolveMacros(args[0], resolvers, cr, &missingMacro, escapeFn,
 	    resolvedMacros, useResolvedMacros, recursionLevel);
 }
 
 Value MacroProcessor::EvaluateFunction(const Function::Ptr& func, const ResolverList& resolvers,
-    const CheckResult::Ptr& cr, String *missingMacro,
-    const MacroProcessor::EscapeCallback& escapeFn, const Dictionary::Ptr& resolvedMacros,
-    bool useResolvedMacros, int recursionLevel)
+    const CheckResult::Ptr& cr, const MacroProcessor::EscapeCallback& escapeFn,
+    const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros, int recursionLevel)
 {
 	Dictionary::Ptr resolvers_this = new Dictionary();
 
@@ -198,7 +198,7 @@ Value MacroProcessor::EvaluateFunction(const Function::Ptr& func, const Resolver
 	}
 
 	resolvers_this->Set("macro", new Function(boost::bind(&MacroProcessor::InternalResolveMacrosShim,
-	    _1, boost::cref(resolvers), cr, missingMacro, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros,
+	    _1, boost::cref(resolvers), cr, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros,
 	    recursionLevel + 1)));
 
 	ScriptFrame frame(resolvers_this);
@@ -249,7 +249,7 @@ Value MacroProcessor::InternalResolveMacros(const String& str, const ResolverLis
 		}
 
 		if (resolved_macro.IsObjectType<Function>()) {
-			resolved_macro = EvaluateFunction(resolved_macro, resolvers, cr, missingMacro, escapeFn,
+			resolved_macro = EvaluateFunction(resolved_macro, resolvers, cr, escapeFn,
 			    resolvedMacros, useResolvedMacros, recursionLevel);
 		}
 
