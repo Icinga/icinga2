@@ -269,8 +269,7 @@ void LegacyTimePeriod::ParseTimeRange(const String& timerange, tm *begin, tm *en
 	size_t pos = def.FindFirstOf('/');
 
 	if (pos != String::NPos) {
-		String strStride = def.SubStr(pos + 1);
-		strStride.Trim();
+		String strStride = def.SubStr(pos + 1).Trim();
 		*stride = Convert::ToLong(strStride);
 
 		/* Remove the stride parameter from the definition. */
@@ -283,11 +282,9 @@ void LegacyTimePeriod::ParseTimeRange(const String& timerange, tm *begin, tm *en
 	pos = def.Find("- ");
 
 	if (pos != String::NPos) {
-		String first = def.SubStr(0, pos);
-		first.Trim();
+		String first = def.SubStr(0, pos).Trim();
 
-		String second = def.SubStr(pos + 1);
-		second.Trim();
+		String second = def.SubStr(pos + 1).Trim();
 
 		ParseTimeSpec(first, begin, NULL, reference);
 

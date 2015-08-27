@@ -502,9 +502,8 @@ static String UnameHelper(char type)
 	pclose(fp);
 
 	String result = msgbuf.str();
-	result.Trim();
 
-	return result;
+	return result.Trim();
 }
 
 int ReleaseHelper(std::string &result)

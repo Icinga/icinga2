@@ -63,20 +63,16 @@ BOOST_AUTO_TEST_CASE(append)
 BOOST_AUTO_TEST_CASE(trim)
 {
 	String s1 = "hello";
-	s1.Trim();
-	BOOST_CHECK(s1 == "hello");
+	BOOST_CHECK(s1.Trim() == "hello");
 
 	String s2 = "  hello";
-	s2.Trim();
-	BOOST_CHECK(s2 == "hello");
+	BOOST_CHECK(s2.Trim() == "hello");
 
 	String s3 = "hello ";
-	s3.Trim();
-	BOOST_CHECK(s3 == "hello");
+	BOOST_CHECK(s3.Trim() == "hello");
 
 	String s4 = " hello ";
-	s4.Trim();
-	BOOST_CHECK(s4 == "hello");
+	BOOST_CHECK(s4.Trim() == "hello");
 }
 
 BOOST_AUTO_TEST_CASE(contains)

@@ -126,7 +126,7 @@ int NodeWizardCommand::Run(const boost::program_options::variables_map& vm, cons
 			answer = Utility::GetFQDN();
 
 		String cn = answer;
-		cn.Trim();
+		cn = cn.Trim();
 
 		std::cout << ConsoleColorTag(Console_Bold) << "Please specifiy the local zone name" << ConsoleColorTag(Console_Normal) << " [" << cn << "]: ";
 
@@ -137,7 +137,7 @@ int NodeWizardCommand::Run(const boost::program_options::variables_map& vm, cons
 			answer = cn;
 
 		String local_zone = answer;
-		local_zone.Trim();
+		local_zone = local_zone.Trim();
 
 		std::vector<std::string> endpoints;
 
@@ -159,7 +159,7 @@ wizard_endpoint_loop_start:
 		}
 
 		endpoint_buffer = answer;
-		endpoint_buffer.Trim();
+		endpoint_buffer = endpoint_buffer.Trim();
 
 		std::cout << "Do you want to establish a connection to the master " << ConsoleColorTag(Console_Bold) << "from this node?" << ConsoleColorTag(Console_Normal) << " [Y/n]: ";
 
@@ -183,7 +183,8 @@ wizard_endpoint_loop_start:
 			}
 
 			String tmp = answer;
-			tmp.Trim();
+			tmp = tmp.Trim();
+
 			endpoint_buffer += "," + tmp;
 			master_endpoint_name = tmp; //store the endpoint name for later
 
@@ -197,8 +198,7 @@ wizard_endpoint_loop_start:
 			else
 				tmp = "5665";
 
-			tmp.Trim();
-			endpoint_buffer += "," + tmp;
+			endpoint_buffer += "," + tmp.Trim();
 		}
 
 		endpoints.push_back(endpoint_buffer);
@@ -228,7 +228,7 @@ wizard_master_host:
 			goto wizard_master_host;
 
 		String master_host = answer;
-		master_host.Trim();
+		master_host = master_host.Trim();
 
 		std::cout << ConsoleColorTag(Console_Bold) << "Port" << ConsoleColorTag(Console_Normal) << " [5665]: ";
 
@@ -239,7 +239,7 @@ wizard_master_host:
 			answer = "5665";
 
 		String master_port = answer;
-		master_port.Trim();
+		master_port = master_port.Trim();
 
 		/* workaround for fetching the master cert */
 		String pki_path = PkiUtility::GetPkiPath();
@@ -306,7 +306,7 @@ wizard_ticket:
 			goto wizard_ticket;
 
 		String ticket = answer;
-		ticket.Trim();
+		ticket = ticket.Trim();
 
 		Log(LogInformation, "cli")
 		    << "Processing self-signed certificate request. Ticket '" << ticket << "'.\n";
@@ -339,7 +339,7 @@ wizard_ticket:
 		boost::algorithm::to_lower(answer);
 
 		String bind_host = answer;
-		bind_host.Trim();
+		bind_host = bind_host.Trim();
 
 		std::cout << "Bind Port []: ";
 
@@ -347,7 +347,7 @@ wizard_ticket:
 		boost::algorithm::to_lower(answer);
 
 		String bind_port = answer;
-		bind_port.Trim();
+		bind_port = bind_port.Trim();
 
 		std::cout << ConsoleColorTag(Console_Bold) << "Accept config from master?" << ConsoleColorTag(Console_Normal) << " [y/N]: ";
 		std::getline(std::cin, answer);
@@ -449,7 +449,7 @@ wizard_ticket:
 			answer = Utility::GetFQDN();
 
 		String cn = answer;
-		cn.Trim();
+		cn = cn.Trim();
 
 		/* check whether the user wants to generate a new certificate or not */
 		String existing_path = PkiUtility::GetPkiPath() + "/" + cn + ".crt";
@@ -481,7 +481,7 @@ wizard_ticket:
 		boost::algorithm::to_lower(answer);
 
 		String bind_host = answer;
-		bind_host.Trim();
+		bind_host = bind_host.Trim();
 
 		std::cout << ConsoleColorTag(Console_Bold) << "Bind Port" << ConsoleColorTag(Console_Normal) << " []: ";
 
@@ -489,7 +489,7 @@ wizard_ticket:
 		boost::algorithm::to_lower(answer);
 
 		String bind_port = answer;
-		bind_port.Trim();
+		bind_port = bind_port.Trim();
 
 		/* api feature is always enabled, check above */
 		String apipath = FeatureUtility::GetFeaturesAvailablePath() + "/api.conf";

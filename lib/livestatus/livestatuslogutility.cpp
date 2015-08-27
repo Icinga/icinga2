@@ -136,11 +136,8 @@ Dictionary::Ptr LivestatusLogUtility::GetAttributes(const String& text)
 	size_t colon = text.FindFirstOf(':');
 	size_t colon_offset = colon - 13;
 
-	String type = String(text.SubStr(13, colon_offset));
-	String options = String(text.SubStr(colon + 1));
-
-	type.Trim();
-	options.Trim();
+	String type = String(text.SubStr(13, colon_offset)).Trim();
+	String options = String(text.SubStr(colon + 1)).Trim();
 
 	bag->Set("type", type);
 	bag->Set("options", options);

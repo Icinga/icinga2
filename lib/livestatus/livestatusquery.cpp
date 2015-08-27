@@ -154,9 +154,7 @@ LivestatusQuery::LivestatusQuery(const std::vector<String>& lines, const String&
 
 		//OutputFormat:json or OutputFormat: json
 		if (line.GetLength() > col_index + 1)
-			params = line.SubStr(col_index + 1);
-
-		params.Trim();
+			params = line.SubStr(col_index + 1).Trim();
 
 		if (header == "ResponseHeader")
 			m_ResponseHeader = params;

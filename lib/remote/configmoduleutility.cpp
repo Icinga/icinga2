@@ -243,14 +243,13 @@ String ConfigModuleUtility::GetActiveStage(const String& moduleName)
 
 	String stage;
 	std::getline(fp, stage.GetData());
-	stage.Trim();
 
 	fp.close();
 
 	if (fp.fail())
 		return "";
 
-	return stage;
+	return stage.Trim();
 }
 
 

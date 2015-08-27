@@ -82,11 +82,9 @@ bool HttpRequest::Parse(const Stream::Ptr& stream, StreamReadContext& src, bool 
 				String::SizeType pos = line.FindFirstOf(":");
 				if (pos == String::NPos)
 					BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid HTTP request"));
-				String key = line.SubStr(0, pos);
-				boost::algorithm::to_lower(key);
-				key.Trim();
-				String value = line.SubStr(pos + 1);
-				value.Trim();
+				String key = line.SubStr(0, pos).ToLower().Trim();
+
+				String value = line.SubStr(pos + 1).Trim();
 				Headers->Set(key, value);
 
 				if (key == "x-http-method-override")

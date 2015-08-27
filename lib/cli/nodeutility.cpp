@@ -271,23 +271,20 @@ int NodeUtility::GenerateNodeIcingaConfig(const std::vector<std::string>& endpoi
 		Dictionary::Ptr my_master_endpoint = new Dictionary();
 
 		if (tokens.size() > 1) {
-			String host = tokens[1];
-			host.Trim();
+			String host = tokens[1].Trim();
 
 			if (!host.IsEmpty())
 				my_master_endpoint->Set("host", host);
 		}
 
 		if (tokens.size() > 2) {
-			String port = tokens[2];
-			port.Trim();
+			String port = tokens[2].Trim();
 
 			if (!port.IsEmpty())
 				my_master_endpoint->Set("port", port);
 		}
 
-		String cn = tokens[0];
-		cn.Trim();
+		String cn = tokens[0].Trim();
 		my_master_endpoint->Set("__name", cn);
 		my_master_endpoint->Set("__type", "Endpoint");
 
