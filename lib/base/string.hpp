@@ -22,6 +22,8 @@
 
 #include "base/i2-base.hpp"
 #include "base/object.hpp"
+#include <boost/algorithm/string/case_conv.hpp>
+#include <boost/algorithm/string/trim.hpp>
 #include <boost/range/iterator.hpp>
 #include <string.h>
 #include <functional>
@@ -211,7 +213,26 @@ public:
 		m_Data.replace(first, second, str);
 	}
 
-	void Trim(void);
+	inline String Trim(void) const
+	{
+		String t = m_Data;
+		boost::algorithm::trim(t);
+		return t;
+	}
+
+	inline String ToLower(void) const
+	{
+		String t = m_Data;
+		boost::algorithm::to_lower(t);
+		return t;
+	}
+
+	inline String ToUpper(void) const
+	{
+		String t = m_Data;
+		boost::algorithm::to_upper(t);
+		return t;
+	}
 
 	inline bool Contains(const String& str) const
 	{

@@ -21,7 +21,6 @@
 #include "base/value.hpp"
 #include "base/primitivetype.hpp"
 #include "base/dictionary.hpp"
-#include <boost/algorithm/string/trim.hpp>
 #include <ostream>
 
 using namespace icinga;
@@ -36,7 +35,3 @@ String& String::operator+=(const Value& rhs)
 	return *this;
 }
 
-void String::Trim(void)
-{
-	boost::algorithm::trim(m_Data);
-}
