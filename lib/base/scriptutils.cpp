@@ -59,6 +59,8 @@ REGISTER_SAFE_SCRIPTFUNCTION(basename, &Utility::BaseName);
 REGISTER_SAFE_SCRIPTFUNCTION(dirname, &Utility::DirName);
 REGISTER_SAFE_SCRIPTFUNCTION(msi_get_component_path, &ScriptUtils::MsiGetComponentPathShim);
 REGISTER_SAFE_SCRIPTFUNCTION(track_parents, &ScriptUtils::TrackParents);
+REGISTER_SAFE_SCRIPTFUNCTION(escape_shell_cmd, &Utility::EscapeShellCmd);
+REGISTER_SAFE_SCRIPTFUNCTION(escape_shell_arg, &Utility::EscapeShellArg);
 
 String ScriptUtils::CastString(const Value& value)
 {
