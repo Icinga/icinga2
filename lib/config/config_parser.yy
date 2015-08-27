@@ -324,13 +324,6 @@ lterm_items_inner: lterm %dprec 2
 	}
 	;
 
-library: T_LIBRARY T_STRING
-	{
-		context->HandleLibrary($2);
-		free($2);
-	}
-	;
-
 identifier: T_IDENTIFIER
 	| T_STRING
 	;
@@ -436,9 +429,9 @@ combined_set_op: T_SET
 	| T_SET_BINARY_OR
 	;
 
-lterm: library
+lterm: T_LIBRARY rterm
 	{
-		$$ = MakeLiteral(); // ASTify this
+		$$ = new LibraryExpression($2, @$);
 	}
 	| rterm combined_set_op rterm
 	{

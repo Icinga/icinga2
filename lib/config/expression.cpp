@@ -26,6 +26,7 @@
 #include "base/logger.hpp"
 #include "base/exception.hpp"
 #include "base/scriptglobal.hpp"
+#include "base/loader.hpp"
 #include <boost/foreach.hpp>
 #include <boost/exception_ptr.hpp>
 #include <boost/exception/errinfo_nested_exception.hpp>
@@ -778,5 +779,18 @@ ExpressionResult ForExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint)
 	CHECK_RESULT(valueres);
 
 	return VMOps::For(frame, m_FKVar, m_FVVar, valueres.GetValue(), m_Expression, m_DebugInfo);
+}
+
+ExpressionResult LibraryExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
+{
+	if (frame.Sandboxed)
+		BOOST_THROW_EXCEPTION(ScriptError("Loading libraries is not allowed in sandbox mode.", m_DebugInfo));
+
+	ExpressionResult libres = m_Operand->Evaluate(frame, dhint);
+	CHECK_RESULT(libres);
+
+	Loader::LoadExtensionLibrary(libres.GetValue());
+
+	return Empty;
 }
 

@@ -288,7 +288,6 @@ protected:
 	Expression *m_Operand2;
 };
 
-	
 class I2_CONFIG_API VariableExpression : public DebuggableExpression
 {
 public:
@@ -883,6 +882,17 @@ private:
 	String m_FVVar;
 	Expression *m_Value;
 	Expression *m_Expression;
+};
+
+class I2_CONFIG_API LibraryExpression : public UnaryExpression
+{
+public:
+	LibraryExpression(Expression *expression, const DebugInfo& debugInfo = DebugInfo())
+		: UnaryExpression(expression, debugInfo)
+	{ }
+
+protected:
+	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
 }

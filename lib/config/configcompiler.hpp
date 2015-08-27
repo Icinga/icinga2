@@ -109,7 +109,6 @@ public:
 	Expression *HandleInclude(const String& include, bool search, const DebugInfo& debuginfo = DebugInfo());
 	Expression *HandleIncludeRecursive(const String& path, const String& pattern, const DebugInfo& debuginfo = DebugInfo());
 	Expression *HandleIncludeZones(const String& tag, const String& path, const String& pattern, const DebugInfo& debuginfo = DebugInfo());
-	void HandleLibrary(const String& library);
 
 	size_t ReadInput(char *buffer, size_t max_bytes);
 	void *GetScanner(void) const;
