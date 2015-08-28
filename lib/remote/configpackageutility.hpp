@@ -35,25 +35,25 @@ namespace icinga
  *
  * @ingroup remote
  */
-class I2_REMOTE_API ConfigModuleUtility
+class I2_REMOTE_API ConfigPackageUtility
 {
 
 public:
-	static String GetModuleDir(void);
+	static String GetPackageDir(void);
 
-	static void CreateModule(const String& name);
-	static void DeleteModule(const String& name);
-	static std::vector<String> GetModules(void);
-	static bool ModuleExists(const String& name);
+	static void CreatePackage(const String& name);
+	static void DeletePackage(const String& name);
+	static std::vector<String> GetPackages(void);
+	static bool PackageExists(const String& name);
 
-	static String CreateStage(const String& moduleName, const Dictionary::Ptr& files = Dictionary::Ptr());
-	static void DeleteStage(const String& moduleName, const String& stageName);
-	static std::vector<String> GetStages(const String& moduleName);
-	static String GetActiveStage(const String& moduleName);
-	static void ActivateStage(const String& moduleName, const String& stageName);
-	static void AsyncTryActivateStage(const String& moduleName, const String& stageName);
+	static String CreateStage(const String& packageName, const Dictionary::Ptr& files = Dictionary::Ptr());
+	static void DeleteStage(const String& packageName, const String& stageName);
+	static std::vector<String> GetStages(const String& packageName);
+	static String GetActiveStage(const String& packageName);
+	static void ActivateStage(const String& packageName, const String& stageName);
+	static void AsyncTryActivateStage(const String& packageName, const String& stageName);
 
-	static std::vector<std::pair<String, bool> > GetFiles(const String& moduleName, const String& stageName);
+	static std::vector<std::pair<String, bool> > GetFiles(const String& packageName, const String& stageName);
 
 	static bool ContainsDotDot(const String& path);
 	static bool ValidateName(const String& name);
@@ -62,10 +62,10 @@ private:
 	static void CollectDirNames(const String& path, std::vector<String>& dirs);
 	static void CollectPaths(const String& path, std::vector<std::pair<String, bool> >& paths);
 
-	static void WriteModuleConfig(const String& moduleName);
-	static void WriteStageConfig(const String& moduleName, const String& stageName);
+	static void WritePackageConfig(const String& packageName);
+	static void WriteStageConfig(const String& packageName, const String& stageName);
 
-	static void TryActivateStageCallback(const ProcessResult& pr, const String& moduleName, const String& stageName);
+	static void TryActivateStageCallback(const ProcessResult& pr, const String& packageName, const String& stageName);
 };
 
 }

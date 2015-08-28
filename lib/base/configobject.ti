@@ -79,7 +79,7 @@ abstract class ConfigObject : ConfigObjectBase
 	};
 	[config, internal, get_protected] String type (TypeNameV);
 	[config] name(Zone) zone (ZoneName);
-	[config] String module;
+	[config] String package;
 	[config, internal, get_protected] Array::Ptr templates;
 	[get_protected] bool active;
 	[get_protected] bool paused {

@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "remote/configobjectutility.hpp"
-#include "remote/configmoduleutility.hpp"
+#include "remote/configpackageutility.hpp"
 #include "config/configitembuilder.hpp"
 #include "config/configitem.hpp"
 #include "config/configwriter.hpp"
@@ -33,8 +33,8 @@ using namespace icinga;
 
 String ConfigObjectUtility::GetConfigDir(void)
 {
-	return ConfigModuleUtility::GetModuleDir() + "/_api/" +
-	    ConfigModuleUtility::GetActiveStage("_api");
+	return ConfigPackageUtility::GetPackageDir() + "/_api/" +
+	    ConfigPackageUtility::GetActiveStage("_api");
 }
 
 String ConfigObjectUtility::EscapeName(const String& name)
@@ -59,7 +59,7 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 	builder->SetType(type->GetName());
 	builder->SetName(name);
 	builder->SetScope(ScriptGlobal::GetGlobals());
-	builder->SetModule("_api");
+	builder->SetPackage("_api");
 
 	if (templates) {
 		ObjectLock olock(templates);
@@ -116,11 +116,11 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 		return false;
 	}
 	
-	if (!ConfigModuleUtility::ModuleExists("_api")) {
-		ConfigModuleUtility::CreateModule("_api");
+	if (!ConfigPackageUtility::PackageExists("_api")) {
+		ConfigPackageUtility::CreatePackage("_api");
 	
-		String stage = ConfigModuleUtility::CreateStage("_api");
-		ConfigModuleUtility::ActivateStage("_api", stage);
+		String stage = ConfigPackageUtility::CreateStage("_api");
+		ConfigPackageUtility::ActivateStage("_api", stage);
 	} 
 	
 	String typeDir = type->GetPluralName();
@@ -205,7 +205,7 @@ bool ConfigObjectUtility::DeleteObjectHelper(const ConfigObject::Ptr& object, bo
 
 bool ConfigObjectUtility::DeleteObject(const ConfigObject::Ptr& object, bool cascade, const Array::Ptr& errors)
 {
-	if (object->GetModule() != "_api") {
+	if (object->GetPackage() != "_api") {
 		if (errors)
 			errors->Add("Object cannot be deleted because it was not created using the API.");
 

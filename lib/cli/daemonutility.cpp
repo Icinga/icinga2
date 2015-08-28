@@ -44,7 +44,7 @@ static bool ExecuteExpression(Expression *expression)
 	return true;
 }
 
-static void IncludeZoneDirRecursive(const String& path, const String& module, bool& success)
+static void IncludeZoneDirRecursive(const String& path, const String& package, bool& success)
 {
 	String zoneName = Utility::BaseName(path);
 
@@ -52,29 +52,29 @@ static void IncludeZoneDirRecursive(const String& path, const String& module, bo
 	ConfigCompiler::RegisterZoneDir("_etc", path, zoneName);
 
 	std::vector<Expression *> expressions;
-	Utility::GlobRecursive(path, "*.conf", boost::bind(&ConfigCompiler::CollectIncludes, boost::ref(expressions), _1, zoneName, module), GlobFile);
+	Utility::GlobRecursive(path, "*.conf", boost::bind(&ConfigCompiler::CollectIncludes, boost::ref(expressions), _1, zoneName, package), GlobFile);
 	DictExpression expr(expressions);
 	if (!ExecuteExpression(&expr))
 		success = false;
 }
 
-static void IncludeNonLocalZone(const String& zonePath, const String& module, bool& success)
+static void IncludeNonLocalZone(const String& zonePath, const String& package, bool& success)
 {
 	String etcPath = Application::GetZonesDir() + "/" + Utility::BaseName(zonePath);
 
 	if (Utility::PathExists(etcPath) || Utility::PathExists(zonePath + "/.authoritative"))
 		return;
 
-	IncludeZoneDirRecursive(zonePath, module, success);
+	IncludeZoneDirRecursive(zonePath, package, success);
 }
 
-static void IncludeModule(const String& modulePath, bool& success)
+static void IncludePackage(const String& packagePath, bool& success)
 {
-	String moduleName = Utility::BaseName(modulePath);
+	String packageName = Utility::BaseName(packagePath);
 	
-	if (Utility::PathExists(modulePath + "/include.conf")) {
-		Expression *expr = ConfigCompiler::CompileFile(modulePath + "/include.conf",
-		    String(), moduleName);
+	if (Utility::PathExists(packagePath + "/include.conf")) {
+		Expression *expr = ConfigCompiler::CompileFile(packagePath + "/include.conf",
+		    String(), packageName);
 		
 		if (!ExecuteExpression(expr))
 			success = false;
@@ -117,9 +117,9 @@ bool DaemonUtility::ValidateConfigFiles(const std::vector<std::string>& configs,
 	if (!success)
 		return false;
 
-	String modulesVarDir = Application::GetLocalStateDir() + "/lib/icinga2/api/modules";
-	if (Utility::PathExists(modulesVarDir))
-		Utility::Glob(modulesVarDir + "/*", boost::bind(&IncludeModule, _1, boost::ref(success)), GlobDirectory);
+	String packagesVarDir = Application::GetLocalStateDir() + "/lib/icinga2/api/packages";
+	if (Utility::PathExists(packagesVarDir))
+		Utility::Glob(packagesVarDir + "/*", boost::bind(&IncludePackage, _1, boost::ref(success)), GlobDirectory);
 
 	if (!success)
 		return false;

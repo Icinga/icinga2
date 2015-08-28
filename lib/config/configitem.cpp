@@ -62,11 +62,11 @@ ConfigItem::ConfigItem(const String& type, const String& name,
     bool abstract, const boost::shared_ptr<Expression>& exprl,
     const boost::shared_ptr<Expression>& filter,
     const DebugInfo& debuginfo, const Dictionary::Ptr& scope,
-    const String& zone, const String& module)
+    const String& zone, const String& package)
 	: m_Type(type), m_Name(name), m_Abstract(abstract),
 	  m_Expression(exprl), m_Filter(filter),
 	  m_DebugInfo(debuginfo), m_Scope(scope), m_Zone(zone),
-	  m_Module(module)
+	  m_Package(package)
 {
 }
 
@@ -171,7 +171,7 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 	dobj->SetDebugInfo(m_DebugInfo);
 	dobj->SetTypeNameV(m_Type);
 	dobj->SetZoneName(m_Zone);
-	dobj->SetModule(m_Module);
+	dobj->SetPackage(m_Package);
 	dobj->SetName(m_Name);
 
 	DebugHint debugHints;

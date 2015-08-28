@@ -24,7 +24,7 @@ set(remote_SOURCES
   actionshandler.cpp apiaction.cpp
   apifunction.cpp apilistener.cpp apilistener.thpp apilistener-sync.cpp
   apiuser.cpp apiuser.thpp authority.cpp base64.cpp 
-  configfileshandler.cpp configmoduleshandler.cpp configmoduleutility.cpp configobjectutility.cpp
+  configfileshandler.cpp configpackageshandler.cpp configpackageutility.cpp configobjectutility.cpp
   configstageshandler.cpp createobjecthandler.cpp deleteobjecthandler.cpp
   endpoint.cpp endpoint.thpp filterutility.cpp
   httpchunkedencoding.cpp httpclientconnection.cpp httpserverconnection.cpp httphandler.cpp httprequest.cpp httpresponse.cpp

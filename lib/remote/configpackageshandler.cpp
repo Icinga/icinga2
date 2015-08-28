@@ -17,16 +17,16 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "remote/configmoduleshandler.hpp"
-#include "remote/configmoduleutility.hpp"
+#include "remote/configpackageshandler.hpp"
+#include "remote/configpackageutility.hpp"
 #include "remote/httputility.hpp"
 #include "base/exception.hpp"
 
 using namespace icinga;
 
-REGISTER_URLHANDLER("/v1/config/modules", ConfigModulesHandler);
+REGISTER_URLHANDLER("/v1/config/packages", ConfigPackagesHandler);
 
-bool ConfigModulesHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
+bool ConfigPackagesHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
 {
 	if (request.RequestUrl->GetPath().size() > 4)
 		return false;
@@ -43,18 +43,18 @@ bool ConfigModulesHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& 
 	return true;
 }
 
-void ConfigModulesHandler::HandleGet(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
+void ConfigPackagesHandler::HandleGet(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
 {
-	std::vector<String> modules = ConfigModuleUtility::GetModules();
+	std::vector<String> packages = ConfigPackageUtility::GetPackages();
 
 	Array::Ptr results = new Array();
 
-	BOOST_FOREACH(const String& module, modules) {
-		Dictionary::Ptr moduleInfo = new Dictionary();
-		moduleInfo->Set("name", module);
-		moduleInfo->Set("stages", Array::FromVector(ConfigModuleUtility::GetStages(module)));
-		moduleInfo->Set("active-stage", ConfigModuleUtility::GetActiveStage(module));
-		results->Add(moduleInfo);
+	BOOST_FOREACH(const String& package, packages) {
+		Dictionary::Ptr packageInfo = new Dictionary();
+		packageInfo->Set("name", package);
+		packageInfo->Set("stages", Array::FromVector(ConfigPackageUtility::GetStages(package)));
+		packageInfo->Set("active-stage", ConfigPackageUtility::GetActiveStage(package));
+		results->Add(packageInfo);
 	}
 
 	Dictionary::Ptr result = new Dictionary();
@@ -64,25 +64,25 @@ void ConfigModulesHandler::HandleGet(const ApiUser::Ptr& user, HttpRequest& requ
 	HttpUtility::SendJsonBody(response, result);
 }
 
-void ConfigModulesHandler::HandlePost(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
+void ConfigPackagesHandler::HandlePost(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
 {
 	Dictionary::Ptr params = HttpUtility::FetchRequestParameters(request);
 
 	if (request.RequestUrl->GetPath().size() >= 4)
-		params->Set("module", request.RequestUrl->GetPath()[3]);
+		params->Set("package", request.RequestUrl->GetPath()[3]);
 
-	String moduleName = HttpUtility::GetLastParameter(params, "module");
+	String packageName = HttpUtility::GetLastParameter(params, "package");
 
-	if (!ConfigModuleUtility::ValidateName(moduleName)) {
+	if (!ConfigPackageUtility::ValidateName(packageName)) {
 		response.SetStatus(403, "Forbidden");
 		return;
 	}
 
 	int code = 200;
-	String status = "Created module.";
+	String status = "Created package.";
 
 	try {
-		ConfigModuleUtility::CreateModule(moduleName);
+		ConfigPackageUtility::CreatePackage(packageName);
 	} catch (const std::exception& ex) {
 		code = 501;
 		status = "Error: " + DiagnosticInformation(ex);
@@ -90,7 +90,7 @@ void ConfigModulesHandler::HandlePost(const ApiUser::Ptr& user, HttpRequest& req
 
 	Dictionary::Ptr result1 = new Dictionary();
 
-	result1->Set("module", moduleName);
+	result1->Set("package", packageName);
 	result1->Set("code", code);
 	result1->Set("status", status);
 
@@ -104,25 +104,25 @@ void ConfigModulesHandler::HandlePost(const ApiUser::Ptr& user, HttpRequest& req
 	HttpUtility::SendJsonBody(response, result);
 }
 
-void ConfigModulesHandler::HandleDelete(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
+void ConfigPackagesHandler::HandleDelete(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
 {
 	Dictionary::Ptr params = HttpUtility::FetchRequestParameters(request);
 
 	if (request.RequestUrl->GetPath().size() >= 4)
-		params->Set("module", request.RequestUrl->GetPath()[3]);
+		params->Set("package", request.RequestUrl->GetPath()[3]);
 
-	String moduleName = HttpUtility::GetLastParameter(params, "module");
+	String packageName = HttpUtility::GetLastParameter(params, "package");
 
-	if (!ConfigModuleUtility::ValidateName(moduleName)) {
+	if (!ConfigPackageUtility::ValidateName(packageName)) {
 		response.SetStatus(403, "Forbidden");
 		return;
 	}
 
 	int code = 200;
-	String status = "Deleted module.";
+	String status = "Deleted package.";
 
 	try {
-		ConfigModuleUtility::DeleteModule(moduleName);
+		ConfigPackageUtility::DeletePackage(packageName);
 	} catch (const std::exception& ex) {
 		code = 501;
 		status = "Error: " + DiagnosticInformation(ex);
@@ -130,7 +130,7 @@ void ConfigModulesHandler::HandleDelete(const ApiUser::Ptr& user, HttpRequest& r
 
 	Dictionary::Ptr result1 = new Dictionary();
 
-	result1->Set("module", moduleName);
+	result1->Set("package", packageName);
 	result1->Set("code", code);
 	result1->Set("status", status);
 

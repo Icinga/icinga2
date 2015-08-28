@@ -80,17 +80,17 @@ class I2_CONFIG_API ConfigCompiler
 {
 public:
 	explicit ConfigCompiler(const String& path, std::istream *input,
-	    const String& zone = String(), const String& module = String());
+	    const String& zone = String(), const String& package = String());
 	virtual ~ConfigCompiler(void);
 
 	Expression *Compile(void);
 
 	static Expression *CompileStream(const String& path, std::istream *stream,
-	    const String& zone = String(), const String& module = String());
+	    const String& zone = String(), const String& package = String());
 	static Expression *CompileFile(const String& path, const String& zone = String(),
-	    const String& module = String());
+	    const String& package = String());
 	static Expression *CompileText(const String& path, const String& text,
-	    const String& zone = String(), const String& module = String());
+	    const String& zone = String(), const String& package = String());
 
 	static void AddIncludeSearchDir(const String& dir);
 
@@ -99,11 +99,11 @@ public:
 	void SetZone(const String& zone);
 	String GetZone(void) const;
 	
-	void SetModule(const String& module);
-	String GetModule(void) const;
+	void SetPackage(const String& package);
+	String GetPackage(void) const;
 
 	static void CollectIncludes(std::vector<Expression *>& expressions,
-	    const String& file, const String& zone, const String& module);
+	    const String& file, const String& zone, const String& package);
 
 	/* internally used methods */
 	Expression *HandleInclude(const String& include, bool search, const DebugInfo& debuginfo = DebugInfo());
@@ -124,7 +124,7 @@ private:
 	String m_Path;
 	std::istream *m_Input;
 	String m_Zone;
-	String m_Module;
+	String m_Package;
 
 	void *m_Scanner;
 

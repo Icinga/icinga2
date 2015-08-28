@@ -69,7 +69,7 @@ bool ScheduledDowntime::EvaluateApplyRuleInstance(const Checkable::Ptr& checkabl
 	if (!zone.IsEmpty())
 		builder->AddExpression(new SetExpression(MakeIndexer(ScopeThis, "zone"), OpSetLiteral, MakeLiteral(zone), di));
 
-	builder->AddExpression(new SetExpression(MakeIndexer(ScopeThis, "module"), OpSetLiteral, MakeLiteral(rule.GetModule()), di));
+	builder->AddExpression(new SetExpression(MakeIndexer(ScopeThis, "package"), OpSetLiteral, MakeLiteral(rule.GetPackage()), di));
 
 	builder->AddExpression(new OwnedExpression(rule.GetExpression()));
 

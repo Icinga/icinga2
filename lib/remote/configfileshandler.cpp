@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "remote/configfileshandler.hpp"
-#include "remote/configmoduleutility.hpp"
+#include "remote/configpackageutility.hpp"
 #include "remote/httputility.hpp"
 #include "base/exception.hpp"
 #include <boost/algorithm/string/join.hpp>
@@ -45,7 +45,7 @@ void ConfigFilesHandler::HandleGet(const ApiUser::Ptr& user, HttpRequest& reques
 	const std::vector<String>& urlPath = request.RequestUrl->GetPath();
 
 	if (urlPath.size() >= 4)
-		params->Set("module", urlPath[3]);
+		params->Set("package", urlPath[3]);
 
 	if (urlPath.size() >= 5)
 		params->Set("stage", urlPath[4]);
@@ -55,22 +55,22 @@ void ConfigFilesHandler::HandleGet(const ApiUser::Ptr& user, HttpRequest& reques
 		params->Set("path", boost::algorithm::join(tmpPath, "/"));
 	}
 
-	String moduleName = HttpUtility::GetLastParameter(params, "module");
+	String packageName = HttpUtility::GetLastParameter(params, "package");
 	String stageName = HttpUtility::GetLastParameter(params, "stage");
 
-	if (!ConfigModuleUtility::ValidateName(moduleName) || !ConfigModuleUtility::ValidateName(stageName)) {
+	if (!ConfigPackageUtility::ValidateName(packageName) || !ConfigPackageUtility::ValidateName(stageName)) {
 		response.SetStatus(403, "Forbidden");
 		return;
 	}
 
 	String relativePath = HttpUtility::GetLastParameter(params, "path");
 
-	if (ConfigModuleUtility::ContainsDotDot(relativePath)) {
+	if (ConfigPackageUtility::ContainsDotDot(relativePath)) {
 		response.SetStatus(403, "Forbidden");
 		return;
 	}
 
-	String path = ConfigModuleUtility::GetModuleDir() + "/" + moduleName + "/" + stageName + "/" + relativePath;
+	String path = ConfigPackageUtility::GetPackageDir() + "/" + packageName + "/" + stageName + "/" + relativePath;
 
 	if (!Utility::PathExists(path)) {
 		response.SetStatus(404, "File not found");

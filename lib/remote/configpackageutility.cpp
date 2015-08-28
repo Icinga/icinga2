@@ -17,7 +17,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "remote/configmoduleutility.hpp"
+#include "remote/configpackageutility.hpp"
 #include "base/application.hpp"
 #include "base/exception.hpp"
 #include "base/scriptglobal.hpp"
@@ -30,66 +30,66 @@
 
 using namespace icinga;
 
-String ConfigModuleUtility::GetModuleDir(void)
+String ConfigPackageUtility::GetPackageDir(void)
 {
-	return Application::GetLocalStateDir() + "/lib/icinga2/api/modules";
+	return Application::GetLocalStateDir() + "/lib/icinga2/api/packages";
 }
 
-void ConfigModuleUtility::CreateModule(const String& name)
+void ConfigPackageUtility::CreatePackage(const String& name)
 {
-	String path = GetModuleDir() + "/" + name;
+	String path = GetPackageDir() + "/" + name;
 
 	if (Utility::PathExists(path))
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Module already exists."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Package already exists."));
 
 	Utility::MkDirP(path, 0700);
-	WriteModuleConfig(name);
+	WritePackageConfig(name);
 }
 
-void ConfigModuleUtility::DeleteModule(const String& name)
+void ConfigPackageUtility::DeletePackage(const String& name)
 {
-	String path = GetModuleDir() + "/" + name;
+	String path = GetPackageDir() + "/" + name;
 
 	if (!Utility::PathExists(path))
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Module does not exist."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Package does not exist."));
 
 	Utility::RemoveDirRecursive(path);
 	Application::RequestRestart();
 }
 
-std::vector<String> ConfigModuleUtility::GetModules(void)
+std::vector<String> ConfigPackageUtility::GetPackages(void)
 {
-	std::vector<String> modules;
-	Utility::Glob(GetModuleDir() + "/*", boost::bind(&ConfigModuleUtility::CollectDirNames, _1, boost::ref(modules)), GlobDirectory);
-	return modules;
+	std::vector<String> packages;
+	Utility::Glob(GetPackageDir() + "/*", boost::bind(&ConfigPackageUtility::CollectDirNames, _1, boost::ref(packages)), GlobDirectory);
+	return packages;
 }
 
-void ConfigModuleUtility::CollectDirNames(const String& path, std::vector<String>& dirs)
+void ConfigPackageUtility::CollectDirNames(const String& path, std::vector<String>& dirs)
 {
 	String name = Utility::BaseName(path);
 	dirs.push_back(name);
 }
 
-bool ConfigModuleUtility::ModuleExists(const String& name)
+bool ConfigPackageUtility::PackageExists(const String& name)
 {
-	return Utility::PathExists(GetModuleDir() + "/" + name);
+	return Utility::PathExists(GetPackageDir() + "/" + name);
 }
 
-String ConfigModuleUtility::CreateStage(const String& moduleName, const Dictionary::Ptr& files)
+String ConfigPackageUtility::CreateStage(const String& packageName, const Dictionary::Ptr& files)
 {
 	String stageName = Utility::NewUniqueID();
 
-	String path = GetModuleDir() + "/" + moduleName;
+	String path = GetPackageDir() + "/" + packageName;
 
 	if (!Utility::PathExists(path))
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Module does not exist."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Package does not exist."));
 
 	path += "/" + stageName;
 
 	Utility::MkDirP(path, 0700);
 	Utility::MkDirP(path + "/conf.d", 0700);
 	Utility::MkDirP(path + "/zones.d", 0700);
-	WriteStageConfig(moduleName, stageName);
+	WriteStageConfig(packageName, stageName);
 
 	bool foundDotDot = false;
 	
@@ -103,7 +103,7 @@ String ConfigModuleUtility::CreateStage(const String& moduleName, const Dictiona
 	
 			String filePath = path + "/" + kv.first;
 	
-			Log(LogInformation, "ConfigModuleUtility")
+			Log(LogInformation, "ConfigPackageUtility")
 			    << "Updating configuration file: " << filePath;
 	
 			//pass the directory and generate a dir tree, if not existing already
@@ -122,16 +122,16 @@ String ConfigModuleUtility::CreateStage(const String& moduleName, const Dictiona
 	return stageName;
 }
 
-void ConfigModuleUtility::WriteModuleConfig(const String& moduleName)
+void ConfigPackageUtility::WritePackageConfig(const String& packageName)
 {
-	String stageName = GetActiveStage(moduleName);
+	String stageName = GetActiveStage(packageName);
 
-	String includePath = GetModuleDir() + "/" + moduleName + "/include.conf";
+	String includePath = GetPackageDir() + "/" + packageName + "/include.conf";
 	std::ofstream fpInclude(includePath.CStr(), std::ofstream::out | std::ostream::binary | std::ostream::trunc);
 	fpInclude << "include \"*/include.conf\"\n";
 	fpInclude.close();
 
-	String activePath = GetModuleDir() + "/" + moduleName + "/active.conf";
+	String activePath = GetPackageDir() + "/" + packageName + "/active.conf";
 	std::ofstream fpActive(activePath.CStr(), std::ofstream::out | std::ostream::binary | std::ostream::trunc);
 	fpActive << "if (!globals.contains(\"ActiveStages\")) {\n"
 		 << "  globals.ActiveStages = {}\n"
@@ -139,67 +139,67 @@ void ConfigModuleUtility::WriteModuleConfig(const String& moduleName)
 		 << "\n"
 		 << "if (globals.contains(\"ActiveStageOverride\")) {\n"
 		 << "  var arr = ActiveStageOverride.split(\":\")\n"
-		 << "  if (arr[0] == \"" << moduleName << "\") {\n"
+		 << "  if (arr[0] == \"" << packageName << "\") {\n"
 		 << "    if (arr.len() < 2) {\n"
 		 << "      log(LogCritical, \"Config\", \"Invalid value for ActiveStageOverride\")\n"
 		 << "    } else {\n"
-		 << "      ActiveStages[\"" << moduleName << "\"] = arr[1]\n"
+		 << "      ActiveStages[\"" << packageName << "\"] = arr[1]\n"
 		 << "    }\n"
 		 << "  }\n"
 		 << "}\n"
 		 << "\n"
-		 << "if (!ActiveStages.contains(\"" << moduleName << "\")) {\n"
-		 << "  ActiveStages[\"" << moduleName << "\"] = \"" << stageName << "\"\n"
+		 << "if (!ActiveStages.contains(\"" << packageName << "\")) {\n"
+		 << "  ActiveStages[\"" << packageName << "\"] = \"" << stageName << "\"\n"
 		 << "}\n";
 	fpActive.close();
 }
 
-void ConfigModuleUtility::WriteStageConfig(const String& moduleName, const String& stageName)
+void ConfigPackageUtility::WriteStageConfig(const String& packageName, const String& stageName)
 {
-	String path = GetModuleDir() + "/" + moduleName + "/" + stageName + "/include.conf";
+	String path = GetPackageDir() + "/" + packageName + "/" + stageName + "/include.conf";
 	std::ofstream fp(path.CStr(), std::ofstream::out | std::ostream::binary | std::ostream::trunc);
 	fp << "include \"../active.conf\"\n"
-	   << "if (ActiveStages[\"" << moduleName << "\"] == \"" << stageName << "\") {\n"
+	   << "if (ActiveStages[\"" << packageName << "\"] == \"" << stageName << "\") {\n"
 	   << "  include_recursive \"conf.d\"\n"
-	   << "  include_zones \"" << moduleName << "\", \"zones.d\"\n"
+	   << "  include_zones \"" << packageName << "\", \"zones.d\"\n"
 	   << "}\n";
 	fp.close();
 }
 
-void ConfigModuleUtility::ActivateStage(const String& moduleName, const String& stageName)
+void ConfigPackageUtility::ActivateStage(const String& packageName, const String& stageName)
 {
-	String activeStagePath = GetModuleDir() + "/" + moduleName + "/active-stage";
+	String activeStagePath = GetPackageDir() + "/" + packageName + "/active-stage";
 	std::ofstream fpActiveStage(activeStagePath.CStr(), std::ofstream::out | std::ostream::binary | std::ostream::trunc);
 	fpActiveStage << stageName;
 	fpActiveStage.close();
 
-	WriteModuleConfig(moduleName);
+	WritePackageConfig(packageName);
 }
 
-void ConfigModuleUtility::TryActivateStageCallback(const ProcessResult& pr, const String& moduleName, const String& stageName)
+void ConfigPackageUtility::TryActivateStageCallback(const ProcessResult& pr, const String& packageName, const String& stageName)
 {
-	String logFile = GetModuleDir() + "/" + moduleName + "/" + stageName + "/startup.log";
+	String logFile = GetPackageDir() + "/" + packageName + "/" + stageName + "/startup.log";
 	std::ofstream fpLog(logFile.CStr(), std::ofstream::out | std::ostream::binary | std::ostream::trunc);
 	fpLog << pr.Output;
 	fpLog.close();
 
-	String statusFile = GetModuleDir() + "/" + moduleName + "/" + stageName + "/status";
+	String statusFile = GetPackageDir() + "/" + packageName + "/" + stageName + "/status";
 	std::ofstream fpStatus(statusFile.CStr(), std::ofstream::out | std::ostream::binary | std::ostream::trunc);
 	fpStatus << pr.ExitStatus;
 	fpStatus.close();
 
 	/* validation went fine, activate stage and reload */
 	if (pr.ExitStatus == 0) {
-		ActivateStage(moduleName, stageName);
+		ActivateStage(packageName, stageName);
 		Application::RequestRestart();
 	} else {
-		Log(LogCritical, "ConfigModuleUtility")
-		    << "Config validation failed for module '"
-		    << moduleName << "' and stage '" << stageName << "'.";
+		Log(LogCritical, "ConfigPackageUtility")
+		    << "Config validation failed for package '"
+		    << packageName << "' and stage '" << stageName << "'.";
 	}
 }
 
-void ConfigModuleUtility::AsyncTryActivateStage(const String& moduleName, const String& stageName)
+void ConfigPackageUtility::AsyncTryActivateStage(const String& packageName, const String& stageName)
 {
 	// prepare arguments
 	Array::Ptr args = new Array();
@@ -207,36 +207,36 @@ void ConfigModuleUtility::AsyncTryActivateStage(const String& moduleName, const 
 	args->Add("daemon");
 	args->Add("--validate");
 	args->Add("--define");
-	args->Add("ActiveStageOverride=" + moduleName + ":" + stageName);
+	args->Add("ActiveStageOverride=" + packageName + ":" + stageName);
 
 	Process::Ptr process = new Process(Process::PrepareCommand(args));
 	process->SetTimeout(300);
-	process->Run(boost::bind(&TryActivateStageCallback, _1, moduleName, stageName));
+	process->Run(boost::bind(&TryActivateStageCallback, _1, packageName, stageName));
 }
 
-void ConfigModuleUtility::DeleteStage(const String& moduleName, const String& stageName)
+void ConfigPackageUtility::DeleteStage(const String& packageName, const String& stageName)
 {
-	String path = GetModuleDir() + "/" + moduleName + "/" + stageName;
+	String path = GetPackageDir() + "/" + packageName + "/" + stageName;
 
 	if (!Utility::PathExists(path))
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Stage does not exist."));
 
-	if (GetActiveStage(moduleName) == stageName)
+	if (GetActiveStage(packageName) == stageName)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Active stage cannot be deleted."));
 
 	Utility::RemoveDirRecursive(path);
 }
 
-std::vector<String> ConfigModuleUtility::GetStages(const String& moduleName)
+std::vector<String> ConfigPackageUtility::GetStages(const String& packageName)
 {
 	std::vector<String> stages;
-	Utility::Glob(GetModuleDir() + "/" + moduleName + "/*", boost::bind(&ConfigModuleUtility::CollectDirNames, _1, boost::ref(stages)), GlobDirectory);
+	Utility::Glob(GetPackageDir() + "/" + packageName + "/*", boost::bind(&ConfigPackageUtility::CollectDirNames, _1, boost::ref(stages)), GlobDirectory);
 	return stages;
 }
 
-String ConfigModuleUtility::GetActiveStage(const String& moduleName)
+String ConfigPackageUtility::GetActiveStage(const String& packageName)
 {
-	String path = GetModuleDir() + "/" + moduleName + "/active-stage";
+	String path = GetPackageDir() + "/" + packageName + "/active-stage";
 
 	std::ifstream fp;
 	fp.open(path.CStr());
@@ -253,15 +253,15 @@ String ConfigModuleUtility::GetActiveStage(const String& moduleName)
 }
 
 
-std::vector<std::pair<String, bool> > ConfigModuleUtility::GetFiles(const String& moduleName, const String& stageName)
+std::vector<std::pair<String, bool> > ConfigPackageUtility::GetFiles(const String& packageName, const String& stageName)
 {
 	std::vector<std::pair<String, bool> > paths;
-	Utility::GlobRecursive(GetModuleDir() + "/" + moduleName + "/" + stageName, "*", boost::bind(&ConfigModuleUtility::CollectPaths, _1, boost::ref(paths)), GlobDirectory | GlobFile);
+	Utility::GlobRecursive(GetPackageDir() + "/" + packageName + "/" + stageName, "*", boost::bind(&ConfigPackageUtility::CollectPaths, _1, boost::ref(paths)), GlobDirectory | GlobFile);
 
 	return paths;
 }
 
-void ConfigModuleUtility::CollectPaths(const String& path, std::vector<std::pair<String, bool> >& paths)
+void ConfigPackageUtility::CollectPaths(const String& path, std::vector<std::pair<String, bool> >& paths)
 {
 #ifndef _WIN32
 	struct stat statbuf;
@@ -286,7 +286,7 @@ void ConfigModuleUtility::CollectPaths(const String& path, std::vector<std::pair
 #endif /* _WIN32 */
 }
 
-bool ConfigModuleUtility::ContainsDotDot(const String& path)
+bool ConfigPackageUtility::ContainsDotDot(const String& path)
 {
 	std::vector<String> tokens;
 	boost::algorithm::split(tokens, path, boost::is_any_of("/\\"));
@@ -299,7 +299,7 @@ bool ConfigModuleUtility::ContainsDotDot(const String& path)
 	return false;
 }
 
-bool ConfigModuleUtility::ValidateName(const String& name)
+bool ConfigPackageUtility::ValidateName(const String& name)
 {
 	if (name.IsEmpty())
 		return false;

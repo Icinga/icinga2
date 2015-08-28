@@ -65,9 +65,9 @@ void ConfigItemBuilder::SetZone(const String& zone)
 	m_Zone = zone;
 }
 
-void ConfigItemBuilder::SetModule(const String& module)
+void ConfigItemBuilder::SetPackage(const String& package)
 {
-	m_Module = module;
+	m_Package = package;
 }
 
 void ConfigItemBuilder::AddExpression(Expression *expr)
@@ -116,6 +116,6 @@ ConfigItem::Ptr ConfigItemBuilder::Compile(void)
 	exprl->MakeInline();
 
 	return new ConfigItem(m_Type, m_Name, m_Abstract, exprl, m_Filter,
-	    m_DebugInfo, m_Scope, m_Zone, m_Module);
+	    m_DebugInfo, m_Scope, m_Zone, m_Package);
 }
 

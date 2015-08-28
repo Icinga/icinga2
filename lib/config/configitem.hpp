@@ -43,7 +43,7 @@ public:
 	    const boost::shared_ptr<Expression>& filter,
 	    const DebugInfo& debuginfo,
 	    const Dictionary::Ptr& scope, const String& zone,
-	    const String& module);
+	    const String& package);
 
 	String GetType(void) const;
 	String GetName(void) const;
@@ -81,7 +81,7 @@ private:
 	DebugInfo m_DebugInfo; /**< Debug information. */
 	Dictionary::Ptr m_Scope; /**< variable scope. */
 	String m_Zone; /**< The zone. */
-	String m_Module;
+	String m_Package;
 
 	ConfigObject::Ptr m_Object;
 

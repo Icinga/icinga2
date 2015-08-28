@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "remote/configstageshandler.hpp"
-#include "remote/configmoduleutility.hpp"
+#include "remote/configpackageutility.hpp"
 #include "remote/httputility.hpp"
 #include "base/application.hpp"
 #include "base/exception.hpp"
@@ -50,24 +50,24 @@ void ConfigStagesHandler::HandleGet(const ApiUser::Ptr& user, HttpRequest& reque
 	Dictionary::Ptr params = HttpUtility::FetchRequestParameters(request);
 
 	if (request.RequestUrl->GetPath().size() >= 4)
-		params->Set("module", request.RequestUrl->GetPath()[3]);
+		params->Set("package", request.RequestUrl->GetPath()[3]);
 
 	if (request.RequestUrl->GetPath().size() >= 5)
 		params->Set("stage", request.RequestUrl->GetPath()[4]);
 
-	String moduleName = HttpUtility::GetLastParameter(params, "module");
+	String packageName = HttpUtility::GetLastParameter(params, "package");
 	String stageName = HttpUtility::GetLastParameter(params, "stage");
 
-	if (!ConfigModuleUtility::ValidateName(moduleName) || !ConfigModuleUtility::ValidateName(stageName)) {
+	if (!ConfigPackageUtility::ValidateName(packageName) || !ConfigPackageUtility::ValidateName(stageName)) {
 		response.SetStatus(403, "Forbidden");
 		return;
 	}
 
 	Array::Ptr results = new Array();
 
-	std::vector<std::pair<String, bool> > paths = ConfigModuleUtility::GetFiles(moduleName, stageName);
+	std::vector<std::pair<String, bool> > paths = ConfigPackageUtility::GetFiles(packageName, stageName);
 
-	String prefixPath = ConfigModuleUtility::GetModuleDir() + "/" + moduleName + "/" + stageName + "/";
+	String prefixPath = ConfigPackageUtility::GetPackageDir() + "/" + packageName + "/" + stageName + "/";
 
 	typedef std::pair<String, bool> kv_pair;
 	BOOST_FOREACH(const kv_pair& kv, paths) {
@@ -89,11 +89,11 @@ void ConfigStagesHandler::HandlePost(const ApiUser::Ptr& user, HttpRequest& requ
 	Dictionary::Ptr params = HttpUtility::FetchRequestParameters(request);
 
 	if (request.RequestUrl->GetPath().size() >= 4)
-		params->Set("module", request.RequestUrl->GetPath()[3]);
+		params->Set("package", request.RequestUrl->GetPath()[3]);
 
-	String moduleName = HttpUtility::GetLastParameter(params, "module");
+	String packageName = HttpUtility::GetLastParameter(params, "package");
 
-	if (!ConfigModuleUtility::ValidateName(moduleName)) {
+	if (!ConfigPackageUtility::ValidateName(packageName)) {
 		response.SetStatus(403, "Forbidden");
 		return;
 	}
@@ -108,10 +108,10 @@ void ConfigStagesHandler::HandlePost(const ApiUser::Ptr& user, HttpRequest& requ
 		if (!files)
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Parameter 'files' must be specified."));
 
-		stageName = ConfigModuleUtility::CreateStage(moduleName, files);
+		stageName = ConfigPackageUtility::CreateStage(packageName, files);
 
 		/* validate the config. on success, activate stage and reload */
-		ConfigModuleUtility::AsyncTryActivateStage(moduleName, stageName);
+		ConfigPackageUtility::AsyncTryActivateStage(packageName, stageName);
 	} catch (const std::exception& ex) {
 		code = 501;
 		status = "Error: " + DiagnosticInformation(ex);
@@ -119,7 +119,7 @@ void ConfigStagesHandler::HandlePost(const ApiUser::Ptr& user, HttpRequest& requ
 
 	Dictionary::Ptr result1 = new Dictionary();
 
-	result1->Set("module", moduleName);
+	result1->Set("package", packageName);
 	result1->Set("stage", stageName);
 	result1->Set("code", code);
 	result1->Set("status", status);
@@ -139,15 +139,15 @@ void ConfigStagesHandler::HandleDelete(const ApiUser::Ptr& user, HttpRequest& re
 	Dictionary::Ptr params = HttpUtility::FetchRequestParameters(request);
 
 	if (request.RequestUrl->GetPath().size() >= 4)
-		params->Set("module", request.RequestUrl->GetPath()[3]);
+		params->Set("package", request.RequestUrl->GetPath()[3]);
 
 	if (request.RequestUrl->GetPath().size() >= 5)
 		params->Set("stage", request.RequestUrl->GetPath()[4]);
 
-	String moduleName = HttpUtility::GetLastParameter(params, "module");
+	String packageName = HttpUtility::GetLastParameter(params, "package");
 	String stageName = HttpUtility::GetLastParameter(params, "stage");
 
-	if (!ConfigModuleUtility::ValidateName(moduleName) || !ConfigModuleUtility::ValidateName(stageName)) {
+	if (!ConfigPackageUtility::ValidateName(packageName) || !ConfigPackageUtility::ValidateName(stageName)) {
 		response.SetStatus(403, "Forbidden");
 		return;
 	}
@@ -156,7 +156,7 @@ void ConfigStagesHandler::HandleDelete(const ApiUser::Ptr& user, HttpRequest& re
 	String status = "Deleted stage.";
 
 	try {
-		ConfigModuleUtility::DeleteStage(moduleName, stageName);
+		ConfigPackageUtility::DeleteStage(packageName, stageName);
 	} catch (const std::exception& ex) {
 		code = 501;
 		status = "Error: " + DiagnosticInformation(ex);
@@ -164,7 +164,7 @@ void ConfigStagesHandler::HandleDelete(const ApiUser::Ptr& user, HttpRequest& re
 
 	Dictionary::Ptr result1 = new Dictionary();
 
-	result1->Set("module", moduleName);
+	result1->Set("package", packageName);
 	result1->Set("stage", stageName);
 	result1->Set("code", code);
 	result1->Set("status", status);

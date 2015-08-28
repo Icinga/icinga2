@@ -25,10 +25,10 @@
 namespace icinga
 {
 
-class I2_REMOTE_API ConfigModulesHandler : public HttpHandler
+class I2_REMOTE_API ConfigPackagesHandler : public HttpHandler
 {
 public:
-	DECLARE_PTR_TYPEDEFS(ConfigModulesHandler);
+	DECLARE_PTR_TYPEDEFS(ConfigPackagesHandler);
 
 	virtual bool HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response) override;
 
