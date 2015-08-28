@@ -87,7 +87,6 @@ void HttpResponse::WriteBody(const char *data, size_t count)
 void HttpResponse::Finish(void)
 {
 	ASSERT(m_State != HttpResponseEnd);
-	m_State = HttpResponseEnd;
 
 	if (m_Request.ProtocolVersion == HttpVersion10) {
 		if (m_Body)
@@ -104,6 +103,8 @@ void HttpResponse::Finish(void)
 		WriteBody(NULL, 0);
 		m_Stream->Write("\r\n", 2);
 	}
+
+	m_State = HttpResponseEnd;
 
 	if (m_Request.ProtocolVersion == HttpVersion10 || m_Request.Headers->Get("connection") == "close")
 		m_Stream->Shutdown();

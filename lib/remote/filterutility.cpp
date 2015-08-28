@@ -105,7 +105,7 @@ std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, c
 			attr = "name";
 
 		if (query->Contains(attr))
-			result.push_back(provider->GetTargetByName(type, query->Get(attr)));
+			result.push_back(provider->GetTargetByName(type, HttpUtility::GetLastParameter(query, attr)));
 
 		attr = provider->GetPluralName(type);
 		boost::algorithm::to_lower(attr);
