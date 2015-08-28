@@ -197,11 +197,9 @@ int ConsoleCommand::Run(const po::variables_map& vm, const std::vector<std::stri
 
 incomplete:
 #ifdef HAVE_EDITLINE
-		ConsoleType console_type = Console_VT100;
 		std::ostringstream promptbuf;
 		std::ostream& os = promptbuf;
 #else /* HAVE_EDITLINE */
-		ConsoleType console_type = Console_Autodetect;
 		std::ostream& os = std::cout;
 #endif /* HAVE_EDITLINE */
 
