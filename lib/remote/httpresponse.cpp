@@ -72,6 +72,9 @@ void HttpResponse::WriteBody(const char *data, size_t count)
 {
 	ASSERT(m_State == HttpResponseHeaders || m_State == HttpResponseBody);
 
+	if (count == 0)
+		return;
+
 	if (m_Request.ProtocolVersion == HttpVersion10) {
 		if (!m_Body)
 			m_Body = new FIFO();
@@ -86,6 +89,9 @@ void HttpResponse::WriteBody(const char *data, size_t count)
 
 void HttpResponse::Finish(void)
 {
+	ASSERT(m_State != HttpResponseEnd);
+	m_State = HttpResponseEnd;
+
 	if (m_Request.ProtocolVersion == HttpVersion10) {
 		if (m_Body)
 			AddHeader("Content-Length", Convert::ToString(m_Body->GetAvailableBytes()));

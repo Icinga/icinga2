@@ -31,7 +31,8 @@ enum HttpResponseState
 {
 	HttpResponseStart,
 	HttpResponseHeaders,
-	HttpResponseBody
+	HttpResponseBody,
+	HttpResponseEnd
 };
 
 /**

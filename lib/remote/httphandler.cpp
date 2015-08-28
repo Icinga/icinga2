@@ -104,7 +104,6 @@ void HttpHandler::ProcessRequest(const ApiUser::Ptr& user, HttpRequest& request,
 		response.AddHeader("Content-Type", "text/html");
 		String msg = "<h1>Not found</h1>";
 		response.WriteBody(msg.CStr(), msg.GetLength());
-		response.Finish();
 		return;
 	}
 }
