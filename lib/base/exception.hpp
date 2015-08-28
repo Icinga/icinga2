@@ -147,7 +147,15 @@ typedef boost::error_info<struct errinfo_getaddrinfo_error_, int> errinfo_getadd
 
 inline std::string to_string(const errinfo_getaddrinfo_error& e)
 {
-	return "[errinfo_getaddrinfo_error] = " + String(gai_strerror(e.value())) + "\n";
+	String msg;
+
+#ifdef _WIN32
+	msg = gai_strerrorA(e.value());
+#else /* _WIN32 */
+	msg = gai_strerror(e.value());
+#endif /* _WIN32 */
+
+	return "[errinfo_getaddrinfo_error] = " + String(msg) + "\n";
 }
 
 struct errinfo_message_;

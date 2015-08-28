@@ -16,6 +16,8 @@ addons:
     - libmysqlclient-dev
     - libedit-dev
     - libyajl-dev
+    - libwxbase3.0-dev
+    - libwxgtk3.0-dev
 
 before_script:
   - mkdir build

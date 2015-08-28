@@ -191,7 +191,7 @@ void TlsStream::OnEvent(int revents)
 
 		lock.unlock();
 
-		while (m_RecvQ->IsDataAvailable())
+		while (m_RecvQ->IsDataAvailable() && IsHandlingEvents())
 			SignalDataAvailable();
 
 		if (m_Shutdown && !m_SendQ->IsDataAvailable())
@@ -318,6 +318,8 @@ void TlsStream::Close(void)
 
 	boost::mutex::scoped_lock lock(m_Mutex);
 
+	m_Eof = true;
+
 	if (!m_SSL)
 		return;
 
@@ -326,8 +328,6 @@ void TlsStream::Close(void)
 
 	m_Socket->Close();
 	m_Socket.reset();
-
-	m_Eof = true;
 }
 
 bool TlsStream::IsEof(void) const

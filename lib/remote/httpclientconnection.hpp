@@ -17,35 +17,62 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef WIN32_H
-#define WIN32_H
+#ifndef HTTPCLIENTCONNECTION_H
+#define HTTPCLIENTCONNECTION_H
 
-#define WIN32_LEAN_AND_MEAN
-#ifndef _WIN32_WINNT
-#define _WIN32_WINNT _WIN32_WINNT_VISTA
-#endif /* _WIN32_WINNT */
-#define NOMINMAX
-#include <winsock2.h>
-#include <windows.h>
-#include <ws2tcpip.h>
-#include <imagehlp.h>
-#include <shlwapi.h>
+#include "remote/httprequest.hpp"
+#include "remote/httpresponse.hpp"
+#include "base/stream.hpp"
+#include "base/timer.hpp"
+#include <deque>
 
-#include <direct.h>
+namespace icinga
+{
 
-#ifdef __MINGW32__
-#	ifndef IPV6_V6ONLY
-#		define IPV6_V6ONLY 27
-#	endif /* IPV6_V6ONLY */
-#endif /* __MINGW32__ */
+/**
+ * An HTTP client connection.
+ *
+ * @ingroup remote
+ */
+class I2_REMOTE_API HttpClientConnection : public Object
+{
+public:
+	DECLARE_PTR_TYPEDEFS(HttpClientConnection);
 
-typedef int socklen_t;
+	HttpClientConnection(const String& host, const String& port, bool tls = true);
 
-#define MAXPATHLEN MAX_PATH
+	void Start(void);
 
-#ifdef _MSC_VER
-typedef DWORD pid_t;
-#define strcasecmp stricmp
-#endif /* _MSC_VER */
+	Stream::Ptr GetStream(void) const;
+	String GetHost(void) const;
+	String GetPort(void) const;
+	bool GetTls(void) const;
 
-#endif /* WIN32_H */
+	void Disconnect(void);
+
+	boost::shared_ptr<HttpRequest> NewRequest(void);
+
+	typedef boost::function<void(HttpRequest&, HttpResponse&)> HttpCompletionCallback;
+	void SubmitRequest(const boost::shared_ptr<HttpRequest>& request, const HttpCompletionCallback& callback);
+
+private:
+	String m_Host;
+	String m_Port;
+	bool m_Tls;
+	Stream::Ptr m_Stream;
+	std::deque<std::pair<boost::shared_ptr<HttpRequest>, HttpCompletionCallback> > m_Requests;
+	boost::shared_ptr<HttpResponse> m_CurrentResponse;
+	boost::mutex m_DataHandlerMutex;
+
+	StreamReadContext m_Context;
+
+	void Reconnect(void);
+	bool ProcessMessage(void);
+	void DataAvailableHandler(void);
+
+	void ProcessMessageAsync(HttpRequest& request);
+};
+
+}
+
+#endif /* HTTPCLIENTCONNECTION_H */

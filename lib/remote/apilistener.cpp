@@ -386,7 +386,7 @@ void ApiListener::NewClientHandlerInternal(const Socket::Ptr& client, const Stri
 	} else {
 		Log(LogInformation, "ApiListener", "New HTTP client");
 
-		HttpConnection::Ptr aclient = new HttpConnection(identity, verify_ok, tlsStream);
+		HttpServerConnection::Ptr aclient = new HttpServerConnection(identity, verify_ok, tlsStream);
 		aclient->Start();
 		AddHttpClient(aclient);
 	}
@@ -908,19 +908,19 @@ std::set<JsonRpcConnection::Ptr> ApiListener::GetAnonymousClients(void) const
 	return m_AnonymousClients;
 }
 
-void ApiListener::AddHttpClient(const HttpConnection::Ptr& aclient)
+void ApiListener::AddHttpClient(const HttpServerConnection::Ptr& aclient)
 {
 	ObjectLock olock(this);
 	m_HttpClients.insert(aclient);
 }
 
-void ApiListener::RemoveHttpClient(const HttpConnection::Ptr& aclient)
+void ApiListener::RemoveHttpClient(const HttpServerConnection::Ptr& aclient)
 {
 	ObjectLock olock(this);
 	m_HttpClients.erase(aclient);
 }
 
-std::set<HttpConnection::Ptr> ApiListener::GetHttpClients(void) const
+std::set<HttpServerConnection::Ptr> ApiListener::GetHttpClients(void) const
 {
 	ObjectLock olock(this);
 	return m_HttpClients;

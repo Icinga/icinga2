@@ -37,6 +37,7 @@ option(ICINGA2_WITH_HELLO "Build the hello module" OFF)
 option(ICINGA2_WITH_LIVESTATUS "Build the Livestatus module" ON)
 option(ICINGA2_WITH_NOTIFICATION "Build the notification module" ON)
 option(ICINGA2_WITH_PERFDATA "Build the perfdata module" ON)
+option(ICINGA2_WITH_STUDIO "Build the Icinga Studio application" OFF)
 
 file(STRINGS icinga2.spec VERSION_LINE REGEX "^Version: ")
 string(REPLACE "Version: " "" ICINGA2_VERSION ${VERSION_LINE})
@@ -243,6 +244,10 @@ add_subdirectory(doc)
 add_subdirectory(test)
 add_subdirectory(agent)
 add_subdirectory(plugins)
+
+if(ICINGA2_WITH_STUDIO)
+  add_subdirectory(icinga-studio)
+endif()
 
 set(CPACK_PACKAGE_NAME "Icinga2")
 set(CPACK_PACKAGE_VENDOR "Icinga Development Team")

@@ -43,7 +43,18 @@ enum HttpResponseState
 struct I2_REMOTE_API HttpResponse
 {
 public:
+	bool Complete;
+
+	HttpVersion ProtocolVersion;
+	int StatusCode;
+	String StatusMessage;
+
+	Dictionary::Ptr Headers;
+
 	HttpResponse(const Stream::Ptr& stream, const HttpRequest& request);
+
+	bool Parse(StreamReadContext& src, bool may_wait);
+	size_t ReadBody(char *data, size_t count);
 
 	void SetStatus(int code, const String& message);
 	void AddHeader(const String& key, const String& value);
@@ -52,6 +63,7 @@ public:
 
 private:
 	HttpResponseState m_State;
+	boost::shared_ptr<ChunkReadContext> m_ChunkContext;
 	const HttpRequest& m_Request;
 	Stream::Ptr m_Stream;
 	FIFO::Ptr m_Body;

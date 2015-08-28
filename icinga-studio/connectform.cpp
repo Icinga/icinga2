@@ -17,59 +17,47 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef HTTPCONNECTION_H
-#define HTTPCONNECTION_H
+#include "icinga-studio/connectform.hpp"
+#include <boost/algorithm/string/split.hpp>
+#include <boost/algorithm/string/classification.hpp>
 
-#include "remote/httprequest.hpp"
-#include "remote/apiuser.hpp"
-#include "base/tlsstream.hpp"
-#include "base/timer.hpp"
-#include "base/workqueue.hpp"
+using namespace icinga;
 
-namespace icinga
+ConnectForm::ConnectForm(wxWindow *parent, const Url::Ptr& url)
+	: ConnectFormBase(parent)
 {
+#ifdef _WIN32
+	SetIcon(wxICON(icinga));
+#endif /* _WIN32 */
 
-/**
- * An API client connection.
- *
- * @ingroup remote
- */
-class I2_REMOTE_API HttpConnection : public Object
-{
-public:
-	DECLARE_PTR_TYPEDEFS(HttpConnection);
+	std::string authority = url->GetAuthority();
 
-	HttpConnection(const String& identity, bool authenticated, const TlsStream::Ptr& stream);
+	std::vector<std::string> tokens;
+	boost::algorithm::split(tokens, authority, boost::is_any_of("@"));
 
-	void Start(void);
+	if (tokens.size() > 1) {
+		std::vector<std::string> userinfo;
+		boost::algorithm::split(userinfo, tokens[0], boost::is_any_of(":"));
 
-	ApiUser::Ptr GetApiUser(void) const;
-	bool IsAuthenticated(void) const;
-	TlsStream::Ptr GetStream(void) const;
+		m_UserText->SetValue(userinfo[0]);
+		m_PasswordText->SetValue(userinfo[1]);
+	}
 
-	void Disconnect(void);
+	std::vector<std::string> hostport;
+	boost::algorithm::split(hostport, tokens.size() > 1 ? tokens[1] : tokens[0], boost::is_any_of(":"));
 
-private:
-	ApiUser::Ptr m_ApiUser;
-	TlsStream::Ptr m_Stream;
-	double m_Seen;
-	HttpRequest m_CurrentRequest;
-	boost::mutex m_DataHandlerMutex;
-	WorkQueue m_RequestQueue;
-	int m_PendingRequests;
+	m_HostText->SetValue(hostport[0]);
 
-	StreamReadContext m_Context;
-
-	bool ProcessMessage(void);
-	void DataAvailableHandler(void);
-
-	static void StaticInitialize(void);
-	static void TimeoutTimerHandler(void);
-	void CheckLiveness(void);
-
-	void ProcessMessageAsync(HttpRequest& request);
-};
-
+	if (hostport.size() > 1)
+		m_PortText->SetValue(hostport[1]);
+	else
+		m_PortText->SetValue("5665");
 }
 
-#endif /* HTTPCONNECTION_H */
+Url::Ptr ConnectForm::GetUrl(void) const
+{
+	wxString url = "https://" + m_UserText->GetValue() + ":" + m_PasswordText->GetValue()
+	    + "@" + m_HostText->GetValue() + ":" + m_PortText->GetValue() + "/";
+
+	return new Url(url.ToStdString());
+}

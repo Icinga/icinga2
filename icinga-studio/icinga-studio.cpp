@@ -17,35 +17,50 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef WIN32_H
-#define WIN32_H
+#include "icinga-studio/connectform.hpp"
+#include "icinga-studio/mainform.hpp"
+#include "base/application.hpp"
+#include <wx/wx.h>
+#include <wx/app.h>
+#include <wx/config.h>
 
-#define WIN32_LEAN_AND_MEAN
-#ifndef _WIN32_WINNT
-#define _WIN32_WINNT _WIN32_WINNT_VISTA
-#endif /* _WIN32_WINNT */
-#define NOMINMAX
-#include <winsock2.h>
-#include <windows.h>
-#include <ws2tcpip.h>
-#include <imagehlp.h>
-#include <shlwapi.h>
+using namespace icinga;
 
-#include <direct.h>
+class IcingaStudio : public wxApp
+{
+public:
+	virtual bool OnInit(void) override
+	{
+		Application::InitializeBase();
 
-#ifdef __MINGW32__
-#	ifndef IPV6_V6ONLY
-#		define IPV6_V6ONLY 27
-#	endif /* IPV6_V6ONLY */
-#endif /* __MINGW32__ */
+		Url::Ptr pUrl;
 
-typedef int socklen_t;
+		if (argc < 2) {
+			wxConfig config("IcingaStudio");
+			wxString wUrl;
 
-#define MAXPATHLEN MAX_PATH
+			if (!config.Read("url", &wUrl))
+				wUrl = "https://localhost:5665/";
 
-#ifdef _MSC_VER
-typedef DWORD pid_t;
-#define strcasecmp stricmp
-#endif /* _MSC_VER */
+			std::string url = wUrl.ToStdString();
 
-#endif /* WIN32_H */
+			ConnectForm f(NULL, new Url(url));
+			if (f.ShowModal() != wxID_OK)
+				return false;
+
+			pUrl = f.GetUrl();
+			url = pUrl->Format();
+			wUrl = url;
+			config.Write("url", wUrl);
+		} else {
+			pUrl = new Url(argv[1].ToStdString());
+		}
+
+		MainForm *m = new MainForm(NULL, pUrl);
+		m->Show();
+
+		return true;
+	}
+};
+
+wxIMPLEMENT_APP(IcingaStudio);

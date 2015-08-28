@@ -27,7 +27,7 @@ set(remote_SOURCES
   configfileshandler.cpp configmoduleshandler.cpp configmoduleutility.cpp configobjectutility.cpp
   configstageshandler.cpp createobjecthandler.cpp deleteobjecthandler.cpp
   endpoint.cpp endpoint.thpp filterutility.cpp
-  httpchunkedencoding.cpp  httpconnection.cpp httphandler.cpp httprequest.cpp httpresponse.cpp
+  httpchunkedencoding.cpp httpclientconnection.cpp httpserverconnection.cpp httphandler.cpp httprequest.cpp httpresponse.cpp
   httputility.cpp jsonrpc.cpp jsonrpcconnection.cpp jsonrpcconnection-heartbeat.cpp
   messageorigin.cpp modifyobjecthandler.cpp statusqueryhandler.cpp typequeryhandler.cpp
   url.cpp zone.cpp zone.thpp
@@ -54,6 +54,13 @@ install(
   RUNTIME DESTINATION ${CMAKE_INSTALL_SBINDIR}
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/icinga2
 )
+
+if(APPLE)
+  install(
+    TARGETS remote
+    LIBRARY DESTINATION ${CMAKE_INSTALL_BINDIR}/icinga-studio.app/Contents
+  )
+endif()
 
 #install(CODE "file(MAKE_DIRECTORY \"\$ENV{DESTDIR}${CMAKE_INSTALL_FULL_LOCALSTATEDIR}/lib/icinga2/api\")")
 install(CODE "file(MAKE_DIRECTORY \"\$ENV{DESTDIR}${CMAKE_INSTALL_FULL_LOCALSTATEDIR}/lib/icinga2/api/log\")")

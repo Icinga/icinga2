@@ -40,7 +40,8 @@ enum HttpRequestState
 {
 	HttpRequestStart,
 	HttpRequestHeaders,
-	HttpRequestBody
+	HttpRequestBody,
+	HttpRequestEnd
 };
 
 /**
@@ -59,17 +60,22 @@ public:
 
 	Dictionary::Ptr Headers;
 
-	HttpRequest(StreamReadContext& ctx);
+	HttpRequest(const Stream::Ptr& stream);
 
-	bool Parse(const Stream::Ptr& stream, StreamReadContext& src, bool may_wait);
-
+	bool Parse(StreamReadContext& src, bool may_wait);
 	size_t ReadBody(char *data, size_t count);
 
+	void AddHeader(const String& key, const String& value);
+	void WriteBody(const char *data, size_t count);
+	void Finish(void);
+
 private:
-	StreamReadContext& m_Context;
-	ChunkReadContext m_ChunkContext;
+	Stream::Ptr m_Stream;
+	boost::shared_ptr<ChunkReadContext> m_ChunkContext;
 	HttpRequestState m_State;
 	FIFO::Ptr m_Body;
+
+	void FinishHeaders(void);
 };
 
 }

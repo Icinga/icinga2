@@ -17,35 +17,37 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef WIN32_H
-#define WIN32_H
+#ifndef MAINFORM_H
+#define MAINFORM_H
 
-#define WIN32_LEAN_AND_MEAN
-#ifndef _WIN32_WINNT
-#define _WIN32_WINNT _WIN32_WINNT_VISTA
-#endif /* _WIN32_WINNT */
-#define NOMINMAX
-#include <winsock2.h>
-#include <windows.h>
-#include <ws2tcpip.h>
-#include <imagehlp.h>
-#include <shlwapi.h>
+#include "icinga-studio/api.hpp"
+#include "remote/url.hpp"
+#include "icinga-studio/forms.h"
 
-#include <direct.h>
+namespace icinga
+{
 
-#ifdef __MINGW32__
-#	ifndef IPV6_V6ONLY
-#		define IPV6_V6ONLY 27
-#	endif /* IPV6_V6ONLY */
-#endif /* __MINGW32__ */
+class MainForm : public MainFormBase
+{
+public:
+	MainForm(wxWindow *parent, const Url::Ptr& url);
 
-typedef int socklen_t;
+	virtual void OnQuitClicked(wxCommandEvent& event) override;
+	virtual void OnAboutClicked(wxCommandEvent& event) override;
+	virtual void OnTypeSelected(wxTreeEvent& event) override;
+	virtual void OnObjectSelected(wxListEvent& event) override;
 
-#define MAXPATHLEN MAX_PATH
+private:
+	ApiClient::Ptr m_ApiClient;
+	std::map<String, ApiType::Ptr> m_Types;
 
-#ifdef _MSC_VER
-typedef DWORD pid_t;
-#define strcasecmp stricmp
-#endif /* _MSC_VER */
+	void TypesCompletionHandler(const std::vector<ApiType::Ptr>& types, bool forward);
+	void ObjectsCompletionHandler(const std::vector<ApiObject::Ptr>& objects, bool forward);
+	void ObjectDetailsCompletionHandler(const std::vector<ApiObject::Ptr>& objects, bool forward);
 
-#endif /* WIN32_H */
+	wxPGProperty *ValueToProperty(const String& name, const Value& value);
+};
+
+}
+
+#endif /* MAINFORM_H */

@@ -28,3 +28,10 @@ install(
   RUNTIME DESTINATION ${CMAKE_INSTALL_SBINDIR}
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/icinga2
 )
+
+if(APPLE)
+  install(
+    TARGETS mmatch
+    LIBRARY DESTINATION ${CMAKE_INSTALL_BINDIR}/icinga-studio.app/Contents
+  )
+endif()

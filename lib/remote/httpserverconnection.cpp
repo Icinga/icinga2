@@ -17,7 +17,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "remote/httpconnection.hpp"
+#include "remote/httpserverconnection.hpp"
 #include "remote/httphandler.hpp"
 #include "remote/apilistener.hpp"
 #include "remote/apifunction.hpp"
@@ -33,47 +33,46 @@
 
 using namespace icinga;
 
-static boost::once_flag l_HttpConnectionOnceFlag = BOOST_ONCE_INIT;
-static Timer::Ptr l_HttpConnectionTimeoutTimer;
+static boost::once_flag l_HttpServerConnectionOnceFlag = BOOST_ONCE_INIT;
+static Timer::Ptr l_HttpServerConnectionTimeoutTimer;
 
-HttpConnection::HttpConnection(const String& identity, bool authenticated, const TlsStream::Ptr& stream)
-	: m_Stream(stream), m_Seen(Utility::GetTime()),
-	  m_CurrentRequest(m_Context), m_PendingRequests(0)
+HttpServerConnection::HttpServerConnection(const String& identity, bool authenticated, const TlsStream::Ptr& stream)
+	: m_Stream(stream), m_CurrentRequest(stream), m_Seen(Utility::GetTime()), m_PendingRequests(0)
 {
-	boost::call_once(l_HttpConnectionOnceFlag, &HttpConnection::StaticInitialize);
+	boost::call_once(l_HttpServerConnectionOnceFlag, &HttpServerConnection::StaticInitialize);
 
 	if (authenticated)
 		m_ApiUser = ApiUser::GetByClientCN(identity);
 }
 
-void HttpConnection::StaticInitialize(void)
+void HttpServerConnection::StaticInitialize(void)
 {
-	l_HttpConnectionTimeoutTimer = new Timer();
-	l_HttpConnectionTimeoutTimer->OnTimerExpired.connect(boost::bind(&HttpConnection::TimeoutTimerHandler));
-	l_HttpConnectionTimeoutTimer->SetInterval(15);
-	l_HttpConnectionTimeoutTimer->Start();
+	l_HttpServerConnectionTimeoutTimer = new Timer();
+	l_HttpServerConnectionTimeoutTimer->OnTimerExpired.connect(boost::bind(&HttpServerConnection::TimeoutTimerHandler));
+	l_HttpServerConnectionTimeoutTimer->SetInterval(15);
+	l_HttpServerConnectionTimeoutTimer->Start();
 }
 
-void HttpConnection::Start(void)
+void HttpServerConnection::Start(void)
 {
-	m_Stream->RegisterDataHandler(boost::bind(&HttpConnection::DataAvailableHandler, this));
+	m_Stream->RegisterDataHandler(boost::bind(&HttpServerConnection::DataAvailableHandler, this));
 	if (m_Stream->IsDataAvailable())
 		DataAvailableHandler();
 }
 
-ApiUser::Ptr HttpConnection::GetApiUser(void) const
+ApiUser::Ptr HttpServerConnection::GetApiUser(void) const
 {
 	return m_ApiUser;
 }
 
-TlsStream::Ptr HttpConnection::GetStream(void) const
+TlsStream::Ptr HttpServerConnection::GetStream(void) const
 {
 	return m_Stream;
 }
 
-void HttpConnection::Disconnect(void)
+void HttpServerConnection::Disconnect(void)
 {
-	Log(LogDebug, "HttpConnection", "Http client disconnected");
+	Log(LogDebug, "HttpServerConnection", "Http client disconnected");
 
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 	listener->RemoveHttpClient(this);
@@ -81,12 +80,12 @@ void HttpConnection::Disconnect(void)
 	m_Stream->Shutdown();
 }
 
-bool HttpConnection::ProcessMessage(void)
+bool HttpServerConnection::ProcessMessage(void)
 {
 	bool res;
 
 	try {
-		res = m_CurrentRequest.Parse(m_Stream, m_Context, false);
+		res = m_CurrentRequest.Parse(m_Context, false);
 	} catch (const std::exception& ex) {
 		HttpResponse response(m_Stream, m_CurrentRequest);
 		response.SetStatus(400, "Bad request");
@@ -99,13 +98,13 @@ bool HttpConnection::ProcessMessage(void)
 	}
 
 	if (m_CurrentRequest.Complete) {
-		m_RequestQueue.Enqueue(boost::bind(&HttpConnection::ProcessMessageAsync, HttpConnection::Ptr(this), m_CurrentRequest));
+		m_RequestQueue.Enqueue(boost::bind(&HttpServerConnection::ProcessMessageAsync, HttpServerConnection::Ptr(this), m_CurrentRequest));
 
 		m_Seen = Utility::GetTime();
 		m_PendingRequests++;
 
 		m_CurrentRequest.~HttpRequest();
-		new (&m_CurrentRequest) HttpRequest(m_Context);
+		new (&m_CurrentRequest) HttpRequest(m_Stream);
 
 		return true;
 	}
@@ -113,9 +112,9 @@ bool HttpConnection::ProcessMessage(void)
 	return res;
 }
 
-void HttpConnection::ProcessMessageAsync(HttpRequest& request)
+void HttpServerConnection::ProcessMessageAsync(HttpRequest& request)
 {
-	Log(LogInformation, "HttpConnection", "Processing Http message");
+	Log(LogInformation, "HttpServerConnection", "Processing Http message");
 
 	String auth_header = request.Headers->Get("authorization");
 
@@ -169,7 +168,7 @@ void HttpConnection::ProcessMessageAsync(HttpRequest& request)
 	m_PendingRequests--;
 }
 
-void HttpConnection::DataAvailableHandler(void)
+void HttpServerConnection::DataAvailableHandler(void)
 {
 	boost::mutex::scoped_lock lock(m_DataHandlerMutex);
 
@@ -177,27 +176,27 @@ void HttpConnection::DataAvailableHandler(void)
 		while (ProcessMessage())
 			; /* empty loop body */
 	} catch (const std::exception& ex) {
-		Log(LogWarning, "HttpConnection")
+		Log(LogWarning, "HttpServerConnection")
 		    << "Error while reading Http request: " << DiagnosticInformation(ex);
 
 		Disconnect();
 	}
 }
 
-void HttpConnection::CheckLiveness(void)
+void HttpServerConnection::CheckLiveness(void)
 {
 	if (m_Seen < Utility::GetTime() - 10 && m_PendingRequests == 0) {
-		Log(LogInformation, "HttpConnection")
+		Log(LogInformation, "HttpServerConnection")
 		    <<  "No messages for Http connection have been received in the last 10 seconds.";
 		Disconnect();
 	}
 }
 
-void HttpConnection::TimeoutTimerHandler(void)
+void HttpServerConnection::TimeoutTimerHandler(void)
 {
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 
-	BOOST_FOREACH(const HttpConnection::Ptr& client, listener->GetHttpClients()) {
+	BOOST_FOREACH(const HttpServerConnection::Ptr& client, listener->GetHttpClients()) {
 		client->CheckLiveness();
 	}
 }

@@ -207,6 +207,8 @@ void SocketEvents::Register(Object *lifesupportObject)
 
 	l_SocketIOSockets[m_FD] = desc;
 
+	m_Events = true;
+
 	/* There's no need to wake up the I/O thread here. */
 }
 
@@ -220,6 +222,8 @@ void SocketEvents::Unregister(void)
 
 		l_SocketIOSockets.erase(m_FD);
 		m_FD = INVALID_SOCKET;
+
+		m_Events = false;
 	}
 
 	WakeUpThread(true);
@@ -242,6 +246,12 @@ void SocketEvents::ChangeEvents(int events)
 	}
 
 	WakeUpThread();
+}
+
+bool SocketEvents::IsHandlingEvents(void) const
+{
+	boost::mutex::scoped_lock lock(l_SocketIOMutex);
+	return m_Events;
 }
 
 void SocketEvents::OnEvent(int revents)

@@ -28,6 +28,7 @@ StreamReadStatus HttpChunkedEncoding::ReadChunkFromStream(const Stream::Ptr& str
 	if (context.LengthIndicator == -1) {
 		String line;
 		StreamReadStatus status = stream->ReadLine(&line, context.StreamContext, may_wait);
+		may_wait = false;
 
 		if (status != StatusNewItem)
 			return status;
@@ -36,35 +37,36 @@ StreamReadStatus HttpChunkedEncoding::ReadChunkFromStream(const Stream::Ptr& str
 		msgbuf << std::hex << line;
 		msgbuf >> context.LengthIndicator;
 
-		return StatusNeedData;
-	} else {
-		StreamReadContext& scontext = context.StreamContext;
-		if (scontext.Eof)
-			return StatusEof;
-
-		if (scontext.MustRead) {
-			if (!scontext.FillFromStream(stream, may_wait)) {
-				scontext.Eof = true;
-				return StatusEof;
-			}
-
-			scontext.MustRead = false;
-		}
-
-		if (scontext.Size < (size_t)context.LengthIndicator) {
-			scontext.MustRead = true;
-			return StatusNeedData;
-		}
-
-		*data = new char[context.LengthIndicator];
-		*size = context.LengthIndicator;
-		memcpy(data, scontext.Buffer, context.LengthIndicator);
-
-		scontext.DropData(context.LengthIndicator);
-		context.LengthIndicator = -1;
-
-		return StatusNewItem;
 	}
+
+	StreamReadContext& scontext = context.StreamContext;
+	if (scontext.Eof)
+		return StatusEof;
+
+	if (scontext.MustRead) {
+		if (!scontext.FillFromStream(stream, may_wait)) {
+			scontext.Eof = true;
+			return StatusEof;
+		}
+
+		scontext.MustRead = false;
+	}
+
+	size_t NewlineLength = context.LengthIndicator ? 2 : 0;
+
+	if (scontext.Size < (size_t)context.LengthIndicator + NewlineLength) {
+		scontext.MustRead = true;
+		return StatusNeedData;
+	}
+
+	*data = new char[context.LengthIndicator];
+	*size = context.LengthIndicator;
+	memcpy(*data, scontext.Buffer, context.LengthIndicator);
+
+	scontext.DropData(context.LengthIndicator + NewlineLength);
+	context.LengthIndicator = -1;
+
+	return StatusNewItem;
 }
 
 void HttpChunkedEncoding::WriteChunkToStream(const Stream::Ptr& stream, const char *data, size_t count)

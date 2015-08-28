@@ -17,35 +17,59 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef WIN32_H
-#define WIN32_H
+#ifndef HTTPSERVERCONNECTION_H
+#define HTTPSERVERCONNECTION_H
 
-#define WIN32_LEAN_AND_MEAN
-#ifndef _WIN32_WINNT
-#define _WIN32_WINNT _WIN32_WINNT_VISTA
-#endif /* _WIN32_WINNT */
-#define NOMINMAX
-#include <winsock2.h>
-#include <windows.h>
-#include <ws2tcpip.h>
-#include <imagehlp.h>
-#include <shlwapi.h>
+#include "remote/httprequest.hpp"
+#include "remote/apiuser.hpp"
+#include "base/tlsstream.hpp"
+#include "base/timer.hpp"
+#include "base/workqueue.hpp"
 
-#include <direct.h>
+namespace icinga
+{
 
-#ifdef __MINGW32__
-#	ifndef IPV6_V6ONLY
-#		define IPV6_V6ONLY 27
-#	endif /* IPV6_V6ONLY */
-#endif /* __MINGW32__ */
+/**
+ * An API client connection.
+ *
+ * @ingroup remote
+ */
+class I2_REMOTE_API HttpServerConnection : public Object
+{
+public:
+	DECLARE_PTR_TYPEDEFS(HttpServerConnection);
 
-typedef int socklen_t;
+	HttpServerConnection(const String& identity, bool authenticated, const TlsStream::Ptr& stream);
 
-#define MAXPATHLEN MAX_PATH
+	void Start(void);
 
-#ifdef _MSC_VER
-typedef DWORD pid_t;
-#define strcasecmp stricmp
-#endif /* _MSC_VER */
+	ApiUser::Ptr GetApiUser(void) const;
+	bool IsAuthenticated(void) const;
+	TlsStream::Ptr GetStream(void) const;
 
-#endif /* WIN32_H */
+	void Disconnect(void);
+
+private:
+	ApiUser::Ptr m_ApiUser;
+	TlsStream::Ptr m_Stream;
+	double m_Seen;
+	HttpRequest m_CurrentRequest;
+	boost::mutex m_DataHandlerMutex;
+	WorkQueue m_RequestQueue;
+	int m_PendingRequests;
+
+	StreamReadContext m_Context;
+
+	bool ProcessMessage(void);
+	void DataAvailableHandler(void);
+
+	static void StaticInitialize(void);
+	static void TimeoutTimerHandler(void);
+	void CheckLiveness(void);
+
+	void ProcessMessageAsync(HttpRequest& request);
+};
+
+}
+
+#endif /* HTTPSERVERCONNECTION_H */

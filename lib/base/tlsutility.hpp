@@ -38,7 +38,7 @@ namespace icinga
 {
 
 void I2_BASE_API InitializeOpenSSL(void);
-boost::shared_ptr<SSL_CTX> I2_BASE_API MakeSSLContext(const String& pubkey, const String& privkey, const String& cakey = String());
+boost::shared_ptr<SSL_CTX> I2_BASE_API MakeSSLContext(const String& pubkey = String(), const String& privkey = String(), const String& cakey = String());
 void I2_BASE_API AddCRLToSSLContext(const boost::shared_ptr<SSL_CTX>& context, const String& crlPath);
 String I2_BASE_API GetCertificateCN(const boost::shared_ptr<X509>& certificate);
 boost::shared_ptr<X509> I2_BASE_API GetX509Certificate(const String& pemfile);

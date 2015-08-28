@@ -88,30 +88,34 @@ boost::shared_ptr<SSL_CTX> MakeSSLContext(const String& pubkey, const String& pr
 	SSL_CTX_set_mode(sslContext.get(), SSL_MODE_ENABLE_PARTIAL_WRITE | SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER);
 	SSL_CTX_set_session_id_context(sslContext.get(), (const unsigned char *)"Icinga 2", 8);
 
-	if (!SSL_CTX_use_certificate_chain_file(sslContext.get(), pubkey.CStr())) {
-		Log(LogCritical, "SSL")
-		    << "Error with public key file '" << pubkey << "': " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
-		BOOST_THROW_EXCEPTION(openssl_error()
-		    << boost::errinfo_api_function("SSL_CTX_use_certificate_chain_file")
-		    << errinfo_openssl_error(ERR_peek_error())
-		    << boost::errinfo_file_name(pubkey));
+	if (!pubkey.IsEmpty()) {
+		if (!SSL_CTX_use_certificate_chain_file(sslContext.get(), pubkey.CStr())) {
+			Log(LogCritical, "SSL")
+			    << "Error with public key file '" << pubkey << "': " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
+			BOOST_THROW_EXCEPTION(openssl_error()
+			    << boost::errinfo_api_function("SSL_CTX_use_certificate_chain_file")
+			    << errinfo_openssl_error(ERR_peek_error())
+			    << boost::errinfo_file_name(pubkey));
+		}
 	}
 
-	if (!SSL_CTX_use_PrivateKey_file(sslContext.get(), privkey.CStr(), SSL_FILETYPE_PEM)) {
-		Log(LogCritical, "SSL")
-		    << "Error with private key file '" << privkey << "': " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
-		BOOST_THROW_EXCEPTION(openssl_error()
-		    << boost::errinfo_api_function("SSL_CTX_use_PrivateKey_file")
-		    << errinfo_openssl_error(ERR_peek_error())
-		    << boost::errinfo_file_name(privkey));
-	}
+	if (!privkey.IsEmpty()) {
+		if (!SSL_CTX_use_PrivateKey_file(sslContext.get(), privkey.CStr(), SSL_FILETYPE_PEM)) {
+			Log(LogCritical, "SSL")
+			    << "Error with private key file '" << privkey << "': " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
+			BOOST_THROW_EXCEPTION(openssl_error()
+			    << boost::errinfo_api_function("SSL_CTX_use_PrivateKey_file")
+			    << errinfo_openssl_error(ERR_peek_error())
+			    << boost::errinfo_file_name(privkey));
+		}
 
-	if (!SSL_CTX_check_private_key(sslContext.get())) {
-		Log(LogCritical, "SSL")
-		    << "Error checking private key '" << privkey << "': " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
-		BOOST_THROW_EXCEPTION(openssl_error()
-		    << boost::errinfo_api_function("SSL_CTX_check_private_key")
-		    << errinfo_openssl_error(ERR_peek_error()));
+		if (!SSL_CTX_check_private_key(sslContext.get())) {
+			Log(LogCritical, "SSL")
+			    << "Error checking private key '" << privkey << "': " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
+			BOOST_THROW_EXCEPTION(openssl_error()
+			    << boost::errinfo_api_function("SSL_CTX_check_private_key")
+			    << errinfo_openssl_error(ERR_peek_error()));
+		}
 	}
 
 	if (!cakey.IsEmpty()) {

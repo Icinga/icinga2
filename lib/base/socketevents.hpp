@@ -42,11 +42,14 @@ public:
 
 	void ChangeEvents(int events);
 
+	bool IsHandlingEvents(void) const;
+
 protected:
 	SocketEvents(const Socket::Ptr& socket, Object *lifesupportObject);
 
 private:
 	SOCKET m_FD;
+	bool m_Events;
 
 	static void InitializeThread(void);
 	static void ThreadProc(void);

@@ -48,7 +48,7 @@ class I2_BASE_API TlsStream : public Stream, private SocketEvents
 public:
 	DECLARE_PTR_TYPEDEFS(TlsStream);
 
-	TlsStream(const Socket::Ptr& socket, const String& hostname, ConnectionRole role, const boost::shared_ptr<SSL_CTX>& sslContext);
+	TlsStream(const Socket::Ptr& socket, const String& hostname, ConnectionRole role, const boost::shared_ptr<SSL_CTX>& sslContext = MakeSSLContext());
 	~TlsStream(void);
 
 	boost::shared_ptr<X509> GetClientCertificate(void) const;
