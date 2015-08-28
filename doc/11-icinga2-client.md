@@ -4,7 +4,7 @@
 
 Icinga 2 uses its own unique and secure communitication protol amongst instances.
 Be it an High-Availability cluster setup, distributed load-balanced setup or just a single
-agent [monitoring a remote client](10-icinga2-client.md#icinga2-client).
+agent [monitoring a remote client](11-icinga2-client.md#icinga2-client).
 
 All communication is secured by TLS with certificates, and fully supports IPv4 and IPv6.
 
@@ -21,9 +21,9 @@ monitoring and high-availability, please continue reading in
 
 ## <a id="icinga2-client-scenarios"></a> Client Scenarios
 
-* Clients with [local configuration](10-icinga2-client.md#icinga2-client-configuration-local), sending their inventory to the master
-* Clients as [command execution bridge](10-icinga2-client.md#icinga2-client-configuration-command-bridge) without local configuration
-* Clients receive their configuration from the master ([Cluster config sync](10-icinga2-client.md#icinga2-client-configuration-master-config-sync))
+* Clients with [local configuration](11-icinga2-client.md#icinga2-client-configuration-local), sending their inventory to the master
+* Clients as [command execution bridge](11-icinga2-client.md#icinga2-client-configuration-command-bridge) without local configuration
+* Clients receive their configuration from the master ([Cluster config sync](11-icinga2-client.md#icinga2-client-configuration-master-config-sync))
 
 ### <a id="icinga2-client-configuration-combined-scenarios"></a> Combined Client Scenarios
 
@@ -43,7 +43,7 @@ and simply use the cluster configuration sync.
 * `accept_config` and `accept_commands` are disabled by default in the `api` feature
 
 If you are planning to use the Icinga 2 client inside a distributed setup, refer to
-[this chapter](12-distributed-monitoring-ha.md#cluster-scenarios-master-satellite-clients) with detailed instructions.
+[this chapter](13-distributed-monitoring-ha.md#cluster-scenarios-master-satellite-clients) with detailed instructions.
 
 
 ## <a id="icinga2-client-installation"></a> Installation
@@ -60,7 +60,7 @@ you can close the port and use a different communication direction (master-to-cl
 
 ### <a id="icinga2-client-installation-master-setup"></a> Setup the Master for Remote Clients
 
-If you are planning to use the [remote Icinga 2 clients](10-icinga2-client.md#icinga2-client)
+If you are planning to use the [remote Icinga 2 clients](11-icinga2-client.md#icinga2-client)
 you'll first need to update your master setup.
 
 Your master setup requires the following
@@ -156,14 +156,14 @@ Validate the configuration and restart Icinga 2.
 ## <a id="icinga2-client-setup"></a> Client Setup for Remote Monitoring
 
 Icinga 2 can be installed on Linux/Unix and Windows. While
-[Linux/Unix](10-icinga2-client.md#icinga2-client-installation-client-setup-linux) will be using the [CLI command](8-cli-commands.md#cli-command-node)
+[Linux/Unix](11-icinga2-client.md#icinga2-client-installation-client-setup-linux) will be using the [CLI command](8-cli-commands.md#cli-command-node)
 `node wizard` for a guided setup, you will need to use the
 graphical installer for Windows based client setup.
 
 Your client setup requires the following
 
-* A ready configured and installed [master node](10-icinga2-client.md#icinga2-client-installation-master-setup)
-* SSL signed certificate for communication with the master (Use [CSR auto-signing](10-icinga2-client.md#csr-autosigning-requirements)).
+* A ready configured and installed [master node](11-icinga2-client.md#icinga2-client-installation-master-setup)
+* SSL signed certificate for communication with the master (Use [CSR auto-signing](11-icinga2-client.md#csr-autosigning-requirements)).
 * Enabled API feature, and a local Endpoint and Zone object configuration
 * Firewall ACLs for the communication port (default 5665)
 
@@ -175,7 +175,7 @@ If your remote clients are capable of connecting to the central master, Icinga 2
 supports CSR auto-signing.
 
 First you'll need to define a secure ticket salt in the [constants.conf](4-configuring-icinga-2.md#constants-conf).
-The [setup wizard for the master setup](10-icinga2-client.md#icinga2-client-installation-master-setup) will create
+The [setup wizard for the master setup](11-icinga2-client.md#icinga2-client-installation-master-setup) will create
 one for you already.
 
     # grep TicketSalt /etc/icinga2/constants.conf
@@ -200,11 +200,11 @@ Example for a client:
 
 ### <a id="certificates-manual-creation"></a> Manual SSL Certificate Generation
 
-This is described separately in the [cluster setup chapter](12-distributed-monitoring-ha.md#manual-certificate-generation).
+This is described separately in the [cluster setup chapter](13-distributed-monitoring-ha.md#manual-certificate-generation).
 
 > **Note**
 >
-> If you're using [CSR Auto-Signing](10-icinga2-client.md#csr-autosigning-requirements), skip this step.
+> If you're using [CSR Auto-Signing](11-icinga2-client.md#csr-autosigning-requirements), skip this step.
 
 
 ### <a id="icinga2-client-installation-client-setup-linux"></a> Setup the Client on Linux
@@ -212,8 +212,8 @@ This is described separately in the [cluster setup chapter](12-distributed-monit
 There is no extra client binary or package required. Install Icinga 2 from your distribution's package
 repository as described in the general [installation instructions](2-getting-started.md#setting-up-icinga2).
 
-Please make sure that either [CSR Auto-Signing](10-icinga2-client.md#csr-autosigning-requirements) requirements
-are fulfilled, or that you're using [manual SSL certificate generation](12-distributed-monitoring-ha.md#manual-certificate-generation).
+Please make sure that either [CSR Auto-Signing](11-icinga2-client.md#csr-autosigning-requirements) requirements
+are fulfilled, or that you're using [manual SSL certificate generation](13-distributed-monitoring-ha.md#manual-certificate-generation).
 
 > **Note**
 >
@@ -229,7 +229,7 @@ You'll need the following configuration details:
 * The client's local zone name. Defaults to FQDN.
 * The master endpoint name. Look into your master setup `zones.conf` file for the proper name.
 * The master endpoint connection information. Your master's IP address and port (port defaults to 5665)
-* The [request ticket number](10-icinga2-client.md#csr-autosigning-requirements) generated on your master
+* The [request ticket number](11-icinga2-client.md#csr-autosigning-requirements) generated on your master
 for CSR Auto-Signing
 * Bind host/port for the Api feature (optional)
 
@@ -417,7 +417,7 @@ You'll need the following configuration details:
 * The client's local zone name. Defaults to FQDN.
 * The master endpoint name. Look into your master setup `zones.conf` file for the proper name.
 * The master endpoint connection information. Your master's IP address and port (defaults to 5665)
-* The [request ticket number](10-icinga2-client.md#csr-autosigning-requirements) generated on your master
+* The [request ticket number](11-icinga2-client.md#csr-autosigning-requirements) generated on your master
 for CSR Auto-Signing
 * Bind host/port for the Api feature (optional)
 
@@ -435,9 +435,9 @@ Configuration validation is done similar to the linux pendant on the Windows she
 
 ## <a id="icinga2-client-configuration-modes"></a> Client Configuration Modes
 
-* Clients with [local configuration](10-icinga2-client.md#icinga2-client-configuration-local), sending their inventory to the master
-* Clients as [command execution bridge](10-icinga2-client.md#icinga2-client-configuration-command-bridge) without local configuration
-* Clients receive their configuration from the master ([Cluster config sync](10-icinga2-client.md#icinga2-client-configuration-master-config-sync))
+* Clients with [local configuration](11-icinga2-client.md#icinga2-client-configuration-local), sending their inventory to the master
+* Clients as [command execution bridge](11-icinga2-client.md#icinga2-client-configuration-command-bridge) without local configuration
+* Clients receive their configuration from the master ([Cluster config sync](11-icinga2-client.md#icinga2-client-configuration-master-config-sync))
 
 ### <a id="icinga2-client-configuration-local"></a> Clients with Local Configuration
 
@@ -531,7 +531,7 @@ objects configured, only the check command definitions must be configured.
 > **Note**
 >
 > Remote clients must explicitely accept commands in a similar
-> fashion as cluster nodes [accept configuration](12-distributed-monitoring-ha.md#cluster-zone-config-sync).
+> fashion as cluster nodes [accept configuration](13-distributed-monitoring-ha.md#cluster-zone-config-sync).
 > This is due to security reasons.
 
 Edit the `api` feature configuration in `/etc/icinga2/features-enabled/api.conf` on your client
@@ -581,8 +581,8 @@ in `/etc/icinga2/zones.conf` and define a trusted master zone as `parent`.
     }
 
 More details here:
-* [configure endpoints](12-distributed-monitoring-ha.md#configure-cluster-endpoints)
-* [configure zones](12-distributed-monitoring-ha.md#configure-cluster-zones)
+* [configure endpoints](13-distributed-monitoring-ha.md#configure-cluster-endpoints)
+* [configure zones](13-distributed-monitoring-ha.md#configure-cluster-zones)
 
 
 Once you have configured the required `Endpoint` and `Zone` object definition, you can start
@@ -666,9 +666,9 @@ This is an advanced configuration mode which requires knowledge about the Icinga
 cluster configuration and its object relation (Zones, Endpoints, etc) and the way you
 will be able to sync the configuration from the master to the remote satellite or client.
 
-Please continue reading in the [distributed monitoring chapter](12-distributed-monitoring-ha.md#distributed-monitoring-high-availability),
-especially the [configuration synchronisation](12-distributed-monitoring-ha.md#cluster-zone-config-sync)
-and [best practices](12-distributed-monitoring-ha.md#zone-config-sync-best-practice).
+Please continue reading in the [distributed monitoring chapter](13-distributed-monitoring-ha.md#distributed-monitoring-high-availability),
+especially the [configuration synchronisation](13-distributed-monitoring-ha.md#cluster-zone-config-sync)
+and [best practices](13-distributed-monitoring-ha.md#zone-config-sync-best-practice).
 
 
 
@@ -735,5 +735,5 @@ using the following CLI command:
 
 > **Note**
 >
-> Better use [blacklists and/or whitelists](10-icinga2-client.md#icinga2-remote-monitoring-master-discovery-blacklist-whitelist)
+> Better use [blacklists and/or whitelists](11-icinga2-client.md#icinga2-remote-monitoring-master-discovery-blacklist-whitelist)
 > to control which clients and hosts/services are integrated into your master configuration repository.

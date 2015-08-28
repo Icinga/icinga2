@@ -451,7 +451,7 @@ Configuration Attributes:
 
 Metric prefix names can be modified using [runtime macros](3-monitoring-basics.md#runtime-macros).
 
-Example with your custom [global constant](19-language-reference.md#constants) `GraphiteEnv`:
+Example with your custom [global constant](20-language-reference.md#constants) `GraphiteEnv`:
 
     const GraphiteEnv = "icinga.env1"
 
@@ -541,7 +541,7 @@ A group of hosts.
 
 > **Best Practice**
 >
-> Assign host group members using the [group assign](19-language-reference.md#group-assign) rules.
+> Assign host group members using the [group assign](20-language-reference.md#group-assign) rules.
 
 Example:
 
@@ -617,8 +617,8 @@ Configuration Attributes:
   table\_prefix   |**Optional.** MySQL database table prefix. Defaults to "icinga\_".
   instance\_name  |**Optional.** Unique identifier for the local Icinga 2 instance. Defaults to "default".
   instance\_description|**Optional.** Description for the Icinga 2 instance.
-  enable_ha       |**Optional.** Enable the high availability functionality. Only valid in a [cluster setup](12-distributed-monitoring-ha.md#high-availability-db-ido). Defaults to "true".
-  failover_timeout | **Optional.** Set the failover timeout in a [HA cluster](12-distributed-monitoring-ha.md#high-availability-db-ido). Must not be lower than 60s. Defaults to "60s".
+  enable_ha       |**Optional.** Enable the high availability functionality. Only valid in a [cluster setup](13-distributed-monitoring-ha.md#high-availability-db-ido). Defaults to "true".
+  failover_timeout | **Optional.** Set the failover timeout in a [HA cluster](13-distributed-monitoring-ha.md#high-availability-db-ido). Must not be lower than 60s. Defaults to "60s".
   cleanup         |**Optional.** Dictionary with items for historical table cleanup.
   categories      |**Optional.** The types of information that should be written to the database.
 
@@ -706,8 +706,8 @@ Configuration Attributes:
   table\_prefix   |**Optional.** PostgreSQL database table prefix. Defaults to "icinga\_".
   instance\_name  |**Optional.** Unique identifier for the local Icinga 2 instance. Defaults to "default".
   instance\_description|**Optional.** Description for the Icinga 2 instance.
-  enable_ha       |**Optional.** Enable the high availability functionality. Only valid in a [cluster setup](12-distributed-monitoring-ha.md#high-availability-db-ido). Defaults to "true".
-  failover_timeout | **Optional.** Set the failover timeout in a [HA cluster](12-distributed-monitoring-ha.md#high-availability-db-ido). Must not be lower than 60s. Defaults to "60s".
+  enable_ha       |**Optional.** Enable the high availability functionality. Only valid in a [cluster setup](13-distributed-monitoring-ha.md#high-availability-db-ido). Defaults to "true".
+  failover_timeout | **Optional.** Set the failover timeout in a [HA cluster](13-distributed-monitoring-ha.md#high-availability-db-ido). Must not be lower than 60s. Defaults to "60s".
   cleanup         |**Optional.** Dictionary with items for historical table cleanup.
   categories      |**Optional.** The types of information that should be written to the database.
 
@@ -927,7 +927,7 @@ Configuration Attributes:
 
   Name            |Description
   ----------------|----------------
-  enable\_ha      |**Optional.** Enable the high availability functionality. Only valid in a [cluster setup](12-distributed-monitoring-ha.md#high-availability-notifications). Defaults to "true".
+  enable\_ha      |**Optional.** Enable the high availability functionality. Only valid in a [cluster setup](13-distributed-monitoring-ha.md#high-availability-notifications). Defaults to "true".
 
 ## <a id="objecttype-opentsdbwriter"></a> OpenTsdbWriter
 
@@ -1126,7 +1126,7 @@ A group of services.
 
 > **Best Practice**
 >
-> Assign service group members using the [group assign](19-language-reference.md#group-assign) rules.
+> Assign service group members using the [group assign](20-language-reference.md#group-assign) rules.
 
 Example:
 
@@ -1290,7 +1290,7 @@ A user group.
 
 > **Best Practice**
 >
-> Assign user group members using the [group assign](19-language-reference.md#group-assign) rules.
+> Assign user group members using the [group assign](20-language-reference.md#group-assign) rules.
 
 Example:
 

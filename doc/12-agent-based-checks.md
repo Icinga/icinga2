@@ -8,7 +8,7 @@ become handy.
 
 The SNMP daemon runs on the remote system and answers SNMP queries by plugin
 binaries. The [Monitoring Plugins package](2-getting-started.md#setting-up-check-plugins) ships
-the `check_snmp` plugin binary, but there are plenty of [existing plugins](13-addons-plugins.md#plugins)
+the `check_snmp` plugin binary, but there are plenty of [existing plugins](14-addons-plugins.md#plugins)
 for specific use cases already around, for example monitoring Cisco routers.
 
 The following example uses the [SNMP ITL](7-icinga-template-library.md#plugin-check-command-snmp) `CheckCommand` and just
@@ -67,7 +67,7 @@ remote client.
 > The NRPE protocol is considered insecure and has multiple flaws in its
 > design. Upstream is not willing to fix these issues.
 >
-> In order to stay safe, please use the native [Icinga 2 client](10-icinga2-client.md#icinga2-client)
+> In order to stay safe, please use the native [Icinga 2 client](11-icinga2-client.md#icinga2-client)
 > instead.
 
 The NRPE daemon uses its own configuration format in nrpe.cfg while `check_nrpe`
@@ -133,7 +133,7 @@ executed by the NRPE daemon looks similar to that:
 
     /usr/local/icinga/libexec/check_disk -w 20% -c 10% -p /
 
-You can pass arguments in a similar manner to [NSClient++](11-agent-based-checks.md#agent-based-checks-nsclient)
+You can pass arguments in a similar manner to [NSClient++](12-agent-based-checks.md#agent-based-checks-nsclient)
 when using its NRPE supported check method.
 
 ## <a id="agent-based-checks-nsclient"></a> NSClient++
@@ -181,7 +181,7 @@ SNMP Traps can be received and filtered by using [SNMPTT](http://snmptt.sourcefo
 and specific trap handlers passing the check results to Icinga 2.
 
 Following the SNMPTT [Format](http://snmptt.sourceforge.net/docs/snmptt.shtml#SNMPTT.CONF-FORMAT)
-documentation and the Icinga external command syntax found [here](22-appendix.md#external-commands-list-detail)
+documentation and the Icinga external command syntax found [here](23-appendix.md#external-commands-list-detail)
 we can create generic services that can accommodate any number of hosts for a given scenario.
 
 ### <a id="simple-traps"></a> Simple SNMP Traps

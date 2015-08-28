@@ -3,9 +3,9 @@
 Building distributed environments with high availability included is fairly easy with Icinga 2.
 The cluster feature is built-in and allows you to build many scenarios based on your requirements:
 
-* [High Availability](12-distributed-monitoring-ha.md#cluster-scenarios-high-availability). All instances in the `Zone` run as Active/Active cluster.
-* [Distributed Zones](12-distributed-monitoring-ha.md#cluster-scenarios-distributed-zones). A master zone and one or more satellites in their zones.
-* [Load Distribution](12-distributed-monitoring-ha.md#cluster-scenarios-load-distribution). A configuration master and multiple checker satellites.
+* [High Availability](13-distributed-monitoring-ha.md#cluster-scenarios-high-availability). All instances in the `Zone` run as Active/Active cluster.
+* [Distributed Zones](13-distributed-monitoring-ha.md#cluster-scenarios-distributed-zones). A master zone and one or more satellites in their zones.
+* [Load Distribution](13-distributed-monitoring-ha.md#cluster-scenarios-load-distribution). A configuration master and multiple checker satellites.
 
 You can combine these scenarios into a global setup fitting your requirements.
 
@@ -19,19 +19,19 @@ is in effect - all alive instances continue to do their job, and history will be
 
 Before you start deploying, keep the following things in mind:
 
-* Your [SSL CA and certificates](12-distributed-monitoring-ha.md#manual-certificate-generation) are mandatory for secure communication
+* Your [SSL CA and certificates](13-distributed-monitoring-ha.md#manual-certificate-generation) are mandatory for secure communication
 * Get pen and paper or a drawing board and design your nodes and zones!
     * all nodes in a cluster zone are providing high availability functionality and trust each other
     * cluster zones can be built in a Top-Down-design where the child trusts the parent
     * communication between zones happens bi-directional which means that a DMZ-located node can still reach the master node, or vice versa
 * Update firewall rules and ACLs
-* Decide whether to use the built-in [configuration syncronization](12-distributed-monitoring-ha.md#cluster-zone-config-sync) or use an external tool (Puppet, Ansible, Chef, Salt, etc) to manage the configuration deployment
+* Decide whether to use the built-in [configuration syncronization](13-distributed-monitoring-ha.md#cluster-zone-config-sync) or use an external tool (Puppet, Ansible, Chef, Salt, etc) to manage the configuration deployment
 
 
 > **Tip**
 >
 > If you're looking for troubleshooting cluster problems, check the general
-> [troubleshooting](16-troubleshooting.md#troubleshooting-cluster) section.
+> [troubleshooting](17-troubleshooting.md#troubleshooting-cluster) section.
 
 ## <a id="manual-certificate-generation"></a> Manual SSL Certificate Generation
 
@@ -114,7 +114,7 @@ The [Endpoint](6-object-types.md#objecttype-endpoint) name is further referenced
       endpoints = [ "icinga2a", "icinga2b" ]
     }
 
-Specifying the local node name using the [NodeName](12-distributed-monitoring-ha.md#configure-nodename) variable requires
+Specifying the local node name using the [NodeName](13-distributed-monitoring-ha.md#configure-nodename) variable requires
 the same name as used for the endpoint name and common name above. If not set, the FQDN is used.
 
     const NodeName = "icinga2a"
@@ -125,19 +125,19 @@ the same name as used for the endpoint name and common name above. If not set, t
 The following section describe which configuration must be updated/created
 in order to get your cluster running with basic functionality.
 
-* [configure the node name](12-distributed-monitoring-ha.md#configure-nodename)
-* [configure the ApiListener object](12-distributed-monitoring-ha.md#configure-apilistener-object)
-* [configure cluster endpoints](12-distributed-monitoring-ha.md#configure-cluster-endpoints)
-* [configure cluster zones](12-distributed-monitoring-ha.md#configure-cluster-zones)
+* [configure the node name](13-distributed-monitoring-ha.md#configure-nodename)
+* [configure the ApiListener object](13-distributed-monitoring-ha.md#configure-apilistener-object)
+* [configure cluster endpoints](13-distributed-monitoring-ha.md#configure-cluster-endpoints)
+* [configure cluster zones](13-distributed-monitoring-ha.md#configure-cluster-zones)
 
 Once you're finished with the basic setup the following section will
-describe how to use [zone configuration synchronisation](12-distributed-monitoring-ha.md#cluster-zone-config-sync)
-and configure [cluster scenarios](12-distributed-monitoring-ha.md#cluster-scenarios).
+describe how to use [zone configuration synchronisation](13-distributed-monitoring-ha.md#cluster-zone-config-sync)
+and configure [cluster scenarios](13-distributed-monitoring-ha.md#cluster-scenarios).
 
 ### <a id="configure-nodename"></a> Configure the Icinga Node Name
 
 Instead of using the default FQDN as node name you can optionally set
-that value using the [NodeName](19-language-reference.md#constants) constant.
+that value using the [NodeName](20-language-reference.md#constants) constant.
 
 > ** Note **
 >
@@ -147,7 +147,7 @@ that value using the [NodeName](19-language-reference.md#constants) constant.
 This setting must be unique for each node, and must also match
 the name of the local [Endpoint](6-object-types.md#objecttype-endpoint) object and the
 SSL certificate common name as described in the
-[cluster naming convention](12-distributed-monitoring-ha.md#cluster-naming-convention).
+[cluster naming convention](13-distributed-monitoring-ha.md#cluster-naming-convention).
 
     vim /etc/icinga2/constants.conf
 
@@ -157,7 +157,7 @@ SSL certificate common name as described in the
     const NodeName = "icinga2a"
 
 
-Read further about additional [naming conventions](12-distributed-monitoring-ha.md#cluster-naming-convention).
+Read further about additional [naming conventions](13-distributed-monitoring-ha.md#cluster-naming-convention).
 
 Not specifying the node name will make Icinga 2 using the FQDN. Make sure that all
 configured endpoint names and common names are in sync.
@@ -184,7 +184,7 @@ You can simply enable the `api` feature using
 Edit `/etc/icinga2/features-enabled/api.conf` if you require the configuration
 synchronisation enabled for this node. Set the `accept_config` attribute to `true`.
 
-If you want to use this node as [remote client for command execution](10-icinga2-client.md#icinga2-client-configuration-command-bridge)
+If you want to use this node as [remote client for command execution](11-icinga2-client.md#icinga2-client-configuration-command-bridge)
 set the `accept_commands` attribute to `true`.
 
 > **Note**
@@ -221,10 +221,10 @@ all instances and point-of-view dependant.
 `Zone` objects specify the endpoints located in a zone. That way your distributed setup can be
 seen as zones connected together instead of multiple instances in that specific zone.
 
-Zones can be used for [high availability](12-distributed-monitoring-ha.md#cluster-scenarios-high-availability),
-[distributed setups](12-distributed-monitoring-ha.md#cluster-scenarios-distributed-zones) and
-[load distribution](12-distributed-monitoring-ha.md#cluster-scenarios-load-distribution).
-Furthermore zones are used for the [Icinga 2 remote client](10-icinga2-client.md#icinga2-client).
+Zones can be used for [high availability](13-distributed-monitoring-ha.md#cluster-scenarios-high-availability),
+[distributed setups](13-distributed-monitoring-ha.md#cluster-scenarios-distributed-zones) and
+[load distribution](13-distributed-monitoring-ha.md#cluster-scenarios-load-distribution).
+Furthermore zones are used for the [Icinga 2 remote client](11-icinga2-client.md#icinga2-client).
 
 Each Icinga 2 `Endpoint` must be put into its respective `Zone`. In this example, you will
 define the zone `config-ha-master` where the `icinga2a` and `icinga2b` endpoints
@@ -259,7 +259,7 @@ on the configuration master.
 Your child zones and endpoint members **must not** have their config copied to `zones.d`.
 The built-in configuration synchronisation takes care of that if your nodes accept
 configuration from the parent zone. You can define that in the
-[ApiListener](12-distributed-monitoring-ha.md#configure-apilistener-object) object by configuring the `accept_config`
+[ApiListener](13-distributed-monitoring-ha.md#configure-apilistener-object) object by configuring the `accept_config`
 attribute accordingly.
 
 You should remove the sample config included in `conf.d` by commenting the `recursive_include`
@@ -272,11 +272,11 @@ if not used).
 
 Better use a dedicated directory name for local configuration like `local` or similar, and
 include that one if your nodes require local configuration not being synced to other nodes. That's
-useful for local [health checks](12-distributed-monitoring-ha.md#cluster-health-check) for example.
+useful for local [health checks](13-distributed-monitoring-ha.md#cluster-health-check) for example.
 
 > **Note**
 >
-> In a [high availability](12-distributed-monitoring-ha.md#cluster-scenarios-high-availability)
+> In a [high availability](13-distributed-monitoring-ha.md#cluster-scenarios-high-availability)
 > setup only one assigned node can act as configuration master. All other zone
 > member nodes **must not** have the `/etc/icinga2/zones.d` directory populated.
 
@@ -286,7 +286,7 @@ to their respective target zone instances.
 
 Each configured zone must exist with the same directory name. The parent zone
 syncs the configuration to the child zones, if allowed using the `accept_config`
-attribute of the [ApiListener](12-distributed-monitoring-ha.md#configure-apilistener-object) object.
+attribute of the [ApiListener](13-distributed-monitoring-ha.md#configure-apilistener-object) object.
 
 Config on node `icinga2a`:
 
@@ -327,7 +327,7 @@ process.
 >
 > `zones.d` must not be included in [icinga2.conf](4-configuring-icinga-2.md#icinga2-conf). Icinga 2 automatically
 > determines the required include directory. This can be overridden using the
-> [global constant](19-language-reference.md#constants) `ZonesDir`.
+> [global constant](20-language-reference.md#constants) `ZonesDir`.
 
 ### <a id="zone-global-config-templates"></a> Global Configuration Zone for Templates
 
@@ -387,7 +387,7 @@ master instances anymore.
 
 > ** Tip **
 >
-> Look into the [troubleshooting guides](16-troubleshooting.md#troubleshooting-cluster-config-sync) for debugging
+> Look into the [troubleshooting guides](17-troubleshooting.md#troubleshooting-cluster-config-sync) for debugging
 > problems with the configuration synchronisation.
 
 
@@ -396,9 +396,9 @@ master instances anymore.
 The configuration synchronisation works with multiple hierarchies. The following example
 illustrate a quite common setup where the master is reponsible for configuration deployment:
 
-* [High-Availability master zone](12-distributed-monitoring-ha.md#distributed-monitoring-high-availability)
+* [High-Availability master zone](13-distributed-monitoring-ha.md#distributed-monitoring-high-availability)
 * [Distributed satellites](12-distributed-monitoring-ha.md#)
-* [Remote clients](10-icinga2-client.md#icinga2-client-scenarios) connected to the satellite
+* [Remote clients](11-icinga2-client.md#icinga2-client-scenarios) connected to the satellite
 
 While you could use the clients with local configuration and service discovery on the satellite/master
 **bottom up**, the configuration sync could be more reasonable working **top-down** in a cascaded scenario.
@@ -408,7 +408,7 @@ Once you've added them to your zones.conf as connection and permission configura
 the actual configuration organization:
 
 * Ensure that `command` object definitions are globally available. That way you can use the
-`command_endpoint` configuration more easily on clients as [command execution bridge](10-icinga2-client.md#icinga2-client-configuration-command-bridge)
+`command_endpoint` configuration more easily on clients as [command execution bridge](11-icinga2-client.md#icinga2-client-configuration-command-bridge)
 * Generic `Templates`, `timeperiods`, `downtimes` should be synchronized in a global zone as well.
 * [Apply rules](3-monitoring-basics.md#using-apply) can be synchronized globally. Keep in mind that they are evaluated on each instance,
 and might require additional filters (e.g. `match("icinga2*", NodeName) or similar based on the zone information.
@@ -455,7 +455,7 @@ are unsure about the best method, join the [support channels](1-about.md#support
 with the community.
 
 If you are planning to synchronize local service health checks inside a zone, look into the
-[command endpoint](12-distributed-monitoring-ha.md#cluster-health-check-command-endpoint)
+[command endpoint](13-distributed-monitoring-ha.md#cluster-health-check-command-endpoint)
 explainations.
 
 
@@ -507,14 +507,14 @@ If you are planning to sync the zone configuration inside a [High-Availability](
 cluster zone, you can also use the `command_endpoint` object attribute to
 pin host/service checks to a specific endpoint inside the same zone.
 
-This requires the `accept_commands` setting inside the [ApiListener](12-distributed-monitoring-ha.md#configure-apilistener-object)
-object set to `true` similar to the [remote client command execution bridge](10-icinga2-client.md#icinga2-client-configuration-command-bridge)
+This requires the `accept_commands` setting inside the [ApiListener](13-distributed-monitoring-ha.md#configure-apilistener-object)
+object set to `true` similar to the [remote client command execution bridge](11-icinga2-client.md#icinga2-client-configuration-command-bridge)
 setup.
 
 Make sure to set `command_endpoint` to the correct endpoint instance.
 The example below assumes that the endpoint name is the same as the
 host name configured for health checks. If it differs, define a host
-custom attribute providing [this information](10-icinga2-client.md#icinga2-client-configuration-command-bridge-master-config).
+custom attribute providing [this information](11-icinga2-client.md#icinga2-client-configuration-command-bridge-master-config).
 
     apply Service "cluster-ha" {
       check_command = "cluster"
@@ -566,11 +566,11 @@ While there are certain capabilities to ensure the safe communication between al
 nodes (firewalls, policies, software hardening, etc) the Icinga 2 cluster also provides
 additional security itself:
 
-* [SSL certificates](12-distributed-monitoring-ha.md#manual-certificate-generation) are mandatory for cluster communication.
+* [SSL certificates](13-distributed-monitoring-ha.md#manual-certificate-generation) are mandatory for cluster communication.
 * Child zones only receive event updates (check results, commands, etc) for their configured updates.
 * Zones cannot influence/interfere other zones. Each checked object is assigned to only one zone.
 * All nodes in a zone trust each other.
-* [Configuration sync](12-distributed-monitoring-ha.md#zone-config-sync-permissions) is disabled by default.
+* [Configuration sync](13-distributed-monitoring-ha.md#zone-config-sync-permissions) is disabled by default.
 
 ### <a id="cluster-scenarios-features"></a> Features in Cluster Zones
 
@@ -582,8 +582,8 @@ actual slave checker node.
 
 > **Note**
 >
-> All features must be same on all endpoints inside an [HA zone](12-distributed-monitoring-ha.md#cluster-scenarios-high-availability).
-> There are additional [High-Availability-enabled features](12-distributed-monitoring-ha.md#high-availability-features) available.
+> All features must be same on all endpoints inside an [HA zone](13-distributed-monitoring-ha.md#cluster-scenarios-high-availability).
+> There are additional [High-Availability-enabled features](13-distributed-monitoring-ha.md#high-availability-features) available.
 
 ### <a id="cluster-scenarios-distributed-zones"></a> Distributed Zones
 
@@ -598,7 +598,7 @@ graphing, etc. in their own specified zone.
 
 Imagine the following example with a master node in Nuremberg, and two remote DMZ
 based instances in Berlin and Vienna. Additonally you'll specify
-[global templates](12-distributed-monitoring-ha.md#zone-global-config-templates) available in all zones.
+[global templates](13-distributed-monitoring-ha.md#zone-global-config-templates) available in all zones.
 
 The configuration tree on the master instance `nuremberg` could look like this:
 
@@ -662,7 +662,7 @@ check results from the satellite nodes in the zones `berlin` and `vienna`.
 > The child zones `berlin` and `vienna` will get their configuration synchronised
 > from the configuration master 'nuremberg'. The endpoints in the child
 > zones **must not** have their `zones.d` directory populated if this endpoint
-> [accepts synced configuration](12-distributed-monitoring-ha.md#zone-config-sync-permissions).
+> [accepts synced configuration](13-distributed-monitoring-ha.md#zone-config-sync-permissions).
 
 ### <a id="cluster-scenarios-load-distribution"></a> Load Distribution
 
@@ -721,15 +721,15 @@ Zones:
 > The child zones `checker` will get its configuration synchronised
 > from the configuration master 'master'. The endpoints in the child
 > zone **must not** have their `zones.d` directory populated if this endpoint
-> [accepts synced configuration](12-distributed-monitoring-ha.md#zone-config-sync-permissions).
+> [accepts synced configuration](13-distributed-monitoring-ha.md#zone-config-sync-permissions).
 
 ### <a id="cluster-scenarios-high-availability"></a> Cluster High Availability
 
 High availability with Icinga 2 is possible by putting multiple nodes into
-a dedicated [zone](12-distributed-monitoring-ha.md#configure-cluster-zones). All nodes will elect one
+a dedicated [zone](13-distributed-monitoring-ha.md#configure-cluster-zones). All nodes will elect one
 active master, and retry an election once the current active master is down.
 
-Selected features provide advanced [HA functionality](12-distributed-monitoring-ha.md#high-availability-features).
+Selected features provide advanced [HA functionality](13-distributed-monitoring-ha.md#high-availability-features).
 Checks and notifications are load-balanced between nodes in the high availability
 zone.
 
@@ -741,15 +741,15 @@ commands, etc.
       endpoints = [ "icinga2a", "icinga2b", "icinga2c" ]
     }
 
-Two or more nodes in a high availability setup require an [initial cluster sync](12-distributed-monitoring-ha.md#initial-cluster-sync).
+Two or more nodes in a high availability setup require an [initial cluster sync](13-distributed-monitoring-ha.md#initial-cluster-sync).
 
 > **Note**
 >
 > Keep in mind that **only one node acts as configuration master** having the
 > configuration files in the `zones.d` directory. All other nodes **must not**
 > have that directory populated. Instead they are required to
-> [accept synced configuration](12-distributed-monitoring-ha.md#zone-config-sync-permissions).
-> Details in the [Configuration Sync Chapter](12-distributed-monitoring-ha.md#cluster-zone-config-sync).
+> [accept synced configuration](13-distributed-monitoring-ha.md#zone-config-sync-permissions).
+> Details in the [Configuration Sync Chapter](13-distributed-monitoring-ha.md#cluster-zone-config-sync).
 
 ### <a id="cluster-scenarios-multiple-hierarchies"></a> Multiple Hierarchies
 
@@ -783,9 +783,9 @@ amongst them.
 
 By default the following features provide advanced HA functionality:
 
-* [Checks](12-distributed-monitoring-ha.md#high-availability-checks) (load balanced, automated failover)
-* [Notifications](12-distributed-monitoring-ha.md#high-availability-notifications) (load balanced, automated failover)
-* [DB IDO](12-distributed-monitoring-ha.md#high-availability-db-ido) (Run-Once, automated failover)
+* [Checks](13-distributed-monitoring-ha.md#high-availability-checks) (load balanced, automated failover)
+* [Notifications](13-distributed-monitoring-ha.md#high-availability-notifications) (load balanced, automated failover)
+* [DB IDO](13-distributed-monitoring-ha.md#high-availability-db-ido) (Run-Once, automated failover)
 
 ### <a id="high-availability-checks"></a> High Availability with Checks
 
@@ -859,13 +859,13 @@ data duplication in split-brain-scenarios. The failover timeout can be set for t
 
 These steps are required for integrating a new cluster endpoint:
 
-* generate a new [SSL client certificate](12-distributed-monitoring-ha.md#manual-certificate-generation)
+* generate a new [SSL client certificate](13-distributed-monitoring-ha.md#manual-certificate-generation)
 * identify its location in the zones
-* update the `zones.conf` file on each involved node ([endpoint](12-distributed-monitoring-ha.md#configure-cluster-endpoints), [zones](12-distributed-monitoring-ha.md#configure-cluster-zones))
+* update the `zones.conf` file on each involved node ([endpoint](13-distributed-monitoring-ha.md#configure-cluster-endpoints), [zones](13-distributed-monitoring-ha.md#configure-cluster-zones))
     * a new slave zone node requires updates for the master and slave zones
-    * verify if this endpoints requires [configuration synchronisation](12-distributed-monitoring-ha.md#cluster-zone-config-sync) enabled
-* if the node requires the existing zone history: [initial cluster sync](12-distributed-monitoring-ha.md#initial-cluster-sync)
-* add a [cluster health check](12-distributed-monitoring-ha.md#cluster-health-check)
+    * verify if this endpoints requires [configuration synchronisation](13-distributed-monitoring-ha.md#cluster-zone-config-sync) enabled
+* if the node requires the existing zone history: [initial cluster sync](13-distributed-monitoring-ha.md#initial-cluster-sync)
+* add a [cluster health check](13-distributed-monitoring-ha.md#cluster-health-check)
 
 ### <a id="initial-cluster-sync"></a> Initial Cluster Sync
 

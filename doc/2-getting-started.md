@@ -161,7 +161,7 @@ update the global `PluginDir` constant in your [Icinga 2 configuration](4-config
 This constant is used by the check command definitions contained in the Icinga Template Library
 to determine where to find the plugin binaries.
 
-Please refer to the [plugins](13-addons-plugins.md#plugins) chapter for details about how to integrate
+Please refer to the [plugins](14-addons-plugins.md#plugins) chapter for details about how to integrate
 additional check plugins into your Icinga 2 setup.
 
 ## <a id="running-icinga2"></a> Running Icinga 2
@@ -284,7 +284,7 @@ Test it:
 
 Icinga 2 can be used with Icinga Web 2 and a number of other web interfaces.
 This chapter explains how to set up Icinga Web 2. The
-[Alternative Frontends](14-alternative-frontends.md#alternative-frontends)
+[Alternative Frontends](15-alternative-frontends.md#alternative-frontends)
 chapter can be used as a starting point for installing some of the other web
 interfaces which are also available.
 
@@ -595,4 +595,4 @@ for further instructions on how to install Icinga Web 2.
 
 A number of additional features are available in the form of addons. A list of
 popular addons is available in the
-[Addons and Plugins](13-addons-plugins.md#addons-plugins) chapter.
+[Addons and Plugins](14-addons-plugins.md#addons-plugins) chapter.

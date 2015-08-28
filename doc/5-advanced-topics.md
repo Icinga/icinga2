@@ -226,7 +226,7 @@ The other way around you can create objects dynamically using your own global fu
 
 Tips when implementing functions:
 
-* Use [log()](20-library-reference.md#global-functions) to dump variables. You can see the output
+* Use [log()](21-library-reference.md#global-functions) to dump variables. You can see the output
 inside the `icinga2.log` file depending in your log severity
 * Use the `icinga2 console` to test basic functionality (e.g. iterating over a dictionary)
 * Build them step-by-step. You can always refactor your code later on.
@@ -255,7 +255,7 @@ dictionary named `compellent` with the key `disks`. This was then used inside se
 The more significant problem was to only add the command parameter `--disk` to the plugin call
 when the dictionary `compellent` contains the key `disks`, and omit it if not found.
 
-By defining `set_if` as [abbreviated lambda function](19-language-reference.md#nullary-lambdas)
+By defining `set_if` as [abbreviated lambda function](20-language-reference.md#nullary-lambdas)
 and evaluating the host custom attribute `compellent` containing the `disks` this problem was
 solved like this:
 
@@ -275,9 +275,9 @@ solved like this:
       }
     }
 
-This implementation uses the dictionary type method [contains](20-library-reference.md#dictionary-contains)
+This implementation uses the dictionary type method [contains](21-library-reference.md#dictionary-contains)
 and will fail if `host.vars.compellent` is not of the type `Dictionary`.
-Therefore you can extend the checks using the [typeof](19-language-reference.md#types) function.
+Therefore you can extend the checks using the [typeof](20-language-reference.md#types) function.
 
 You can test the types using the `icinga2 console`:
 
@@ -370,7 +370,7 @@ You can omit the `log()` calls, they only help debugging.
 
 ## <a id="access-object-attributes-at-runtime"></a> Access Object Attributes at Runtime
 
-The [Object Accessor Functions](20-library-reference.md#object-accessor-functions)
+The [Object Accessor Functions](21-library-reference.md#object-accessor-functions)
 can be used to retrieve references to other objects by name.
 
 This allows you to access configuration and runtime object attributes. A detailed
@@ -535,7 +535,7 @@ a forced service check:
     Oct 17 15:01:25 icinga-server icinga2: Executing external command: [1382014885] SCHEDULE_FORCED_SVC_CHECK;localhost;ping4;1382014885
     Oct 17 15:01:25 icinga-server icinga2: Rescheduling next check for service 'ping4'
 
-A list of currently supported external commands can be found [here](22-appendix.md#external-commands-list-detail).
+A list of currently supported external commands can be found [here](23-appendix.md#external-commands-list-detail).
 
 Detailed information on the commands and their required parameters can be found
 on the [Icinga 1.x documentation](http://docs.icinga.org/latest/en/extcommands2.html).
@@ -621,7 +621,7 @@ You can customize the metric prefix name by using the `host_name_template` and
 `service_name_template` configuration attributes.
 
 The example below uses [runtime macros](3-monitoring-basics.md#runtime-macros) and a
-[global constant](19-language-reference.md#constants) named `GraphiteEnv`. The constant name
+[global constant](20-language-reference.md#constants) named `GraphiteEnv`. The constant name
 is freely definable and should be put in the [constants.conf](4-configuring-icinga-2.md#constants-conf) file.
 
     const GraphiteEnv = "icinga.env1"
@@ -778,7 +778,7 @@ in Icinga 2 provided with the `CompatLogger` object.
 These logs are not only used for informational representation in
 external web interfaces parsing the logs, but also to generate
 SLA reports and trends in Icinga 1.x Classic UI. Furthermore the
-[Livestatus](15-livestatus.md#setting-up-livestatus) feature uses these logs for answering queries to
+[Livestatus](16-livestatus.md#setting-up-livestatus) feature uses these logs for answering queries to
 historical tables.
 
 The `CompatLogger` object can be enabled with
@@ -830,7 +830,7 @@ chapter. Details on the configuration can be found in the
 [IdoMysqlConnection](6-object-types.md#objecttype-idomysqlconnection) and
 [IdoPgsqlConnection](6-object-types.md#objecttype-idopgsqlconnection)
 object configuration documentation.
-The DB IDO feature supports [High Availability](12-distributed-monitoring-ha.md#high-availability-db-ido) in
+The DB IDO feature supports [High Availability](13-distributed-monitoring-ha.md#high-availability-db-ido) in
 the Icinga 2 cluster.
 
 The following example query checks the health of the current Icinga 2 instance
@@ -841,7 +841,7 @@ the query returns an empty result.
 
 > **Tip**
 >
-> Use [check plugins](13-addons-plugins.md#plugins) to monitor the backend.
+> Use [check plugins](14-addons-plugins.md#plugins) to monitor the backend.
 
 Replace the `default` string with your instance name, if different.
 
@@ -872,7 +872,7 @@ Example for PostgreSQL:
     (1 Zeile)
 
 
-A detailed list on the available table attributes can be found in the [DB IDO Schema documentation](22-appendix.md#schema-db-ido).
+A detailed list on the available table attributes can be found in the [DB IDO Schema documentation](23-appendix.md#schema-db-ido).
 
 
 ## <a id="check-result-files"></a> Check Result Files

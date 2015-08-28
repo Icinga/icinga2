@@ -411,7 +411,7 @@ Signature:
     function contains(str);
 
 Returns `true` if the string `str` was found in the string. If the string
-was not found `false` is returned. Use [find](20-library-reference.md#string-find)
+was not found `false` is returned. Use [find](21-library-reference.md#string-find)
 for getting the index instead.
 
 Example:

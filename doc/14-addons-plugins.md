@@ -29,8 +29,8 @@ Set `perfdata_spool_dir = /var/spool/icinga2/perfdata` and restart the `npcd` da
 There's also an Icinga Web 2 module for direct PNP graph integration
 available at https://exchange.icinga.org/icinga/PNP4Nagios
 
-More information on [action_url as attribute](13-addons-plugins.md#addons-graphing-pnp-action-url)
-and [graph template names](13-addons-plugins.md#addons-graphing-pnp-custom-templates).
+More information on [action_url as attribute](14-addons-plugins.md#addons-graphing-pnp-action-url)
+and [graph template names](14-addons-plugins.md#addons-graphing-pnp-custom-templates).
 
 
 ### <a id="addons-graphing-graphite"></a> Graphite

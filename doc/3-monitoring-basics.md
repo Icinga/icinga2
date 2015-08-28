@@ -46,7 +46,7 @@ check command.
 The `address` attribute is used by check commands to determine which network
 address is associated with the host object.
 
-Details on troubleshooting check problems can be found [here](16-troubleshooting.md#troubleshooting).
+Details on troubleshooting check problems can be found [here](17-troubleshooting.md#troubleshooting).
 
 ### <a id="host-states"></a> Host States
 
@@ -152,13 +152,13 @@ In addition to built-in attributes you can define your own attributes:
 
 Valid values for custom attributes include:
 
-* [Strings](19-language-reference.md#string-literals), [numbers](19-language-reference.md#numeric-literals) and [booleans](19-language-reference.md#boolean-literals)
-* [Arrays](19-language-reference.md#array) and [dictionaries](19-language-reference.md#dictionary)
+* [Strings](20-language-reference.md#string-literals), [numbers](20-language-reference.md#numeric-literals) and [booleans](20-language-reference.md#boolean-literals)
+* [Arrays](20-language-reference.md#array) and [dictionaries](20-language-reference.md#dictionary)
 * [Functions](3-monitoring-basics.md#custom-attributes-functions)
 
 ### <a id="custom-attributes-functions"></a> Functions as Custom Attributes
 
-Icinga 2 lets you specify [functions](19-language-reference.md#functions) for custom attributes.
+Icinga 2 lets you specify [functions](20-language-reference.md#functions) for custom attributes.
 The special case here is that whenever Icinga 2 needs the value for such a custom attribute it runs
 the function and uses whatever value the function returns:
 
@@ -170,7 +170,7 @@ the function and uses whatever value the function returns:
       vars.text = {{ Math.random() * 100 }}
     }
 
-This example uses the [abbreviated lambda syntax](19-language-reference.md#nullary-lambdas).
+This example uses the [abbreviated lambda syntax](20-language-reference.md#nullary-lambdas).
 
 These functions have access to a number of variables:
 
@@ -425,15 +425,15 @@ The following macros provide global statistics:
 Instead of assigning each object ([Service](6-object-types.md#objecttype-service),
 [Notification](6-object-types.md#objecttype-notification), [Dependency](6-object-types.md#objecttype-dependency),
 [ScheduledDowntime](6-object-types.md#objecttype-scheduleddowntime))
-based on attribute identifiers for example `host_name` objects can be [applied](19-language-reference.md#apply).
+based on attribute identifiers for example `host_name` objects can be [applied](20-language-reference.md#apply).
 
 Before you start using the apply rules keep the following in mind:
 
 * Define the best match.
     * A set of unique [custom attributes](3-monitoring-basics.md#custom-attributes) for these hosts/services?
     * Or [group](3-monitoring-basics.md#groups) memberships, e.g. a host being a member of a hostgroup, applying services to it?
-    * A generic pattern [match](19-language-reference.md#function-calls) on the host/service name?
-    * [Multiple expressions combined](3-monitoring-basics.md#using-apply-expressions) with `&&` or `||` [operators](19-language-reference.md#expression-operators)
+    * A generic pattern [match](20-language-reference.md#function-calls) on the host/service name?
+    * [Multiple expressions combined](3-monitoring-basics.md#using-apply-expressions) with `&&` or `||` [operators](20-language-reference.md#expression-operators)
 * All expressions must return a boolean value (an empty string is equal to `false` e.g.)
 
 > **Note**
@@ -497,7 +497,7 @@ two condition passes: Either the `customer` host custom attribute is set to `cus
 `OR` the host custom attribute `always_notify` is set to `true`.
 
 The notification is ignored for services whose host name ends with `*internal`
-`OR` the `priority` custom attribute is [less than](19-language-reference.md#expression-operators) `2`.
+`OR` the `priority` custom attribute is [less than](20-language-reference.md#expression-operators) `2`.
 
     template Notification "cust-xy-notification" {
       users = [ "noc-xy", "mgmt-xy" ]
@@ -553,7 +553,7 @@ In this example the `mail-noc` notification will be created as object for all se
 and all members of the user group `noc` will get notified.
 
 It is also possible to generally apply a notification template and dynamically overwrite values from
-the template by checking for custom attributes. This can be achieved by using [conditional statements](19-language-reference.md#conditional-statements):
+the template by checking for custom attributes. This can be achieved by using [conditional statements](20-language-reference.md#conditional-statements):
 
     apply Notification "host-mail-noc" to Host {
       import "mail-host-notification"
@@ -758,10 +758,10 @@ After `vars` is fully populated, all object attributes can be set calculated fro
 provided host attributes. For strings, you can use string concatention with the `+` operator.
 
 You can also specifiy the display_name, check command, interval, notes, notes_url, action_url, etc.
-attributes that way. Attribute strings can be [concatenated](19-language-reference.md#expression-operators),
+attributes that way. Attribute strings can be [concatenated](20-language-reference.md#expression-operators),
 for example for adding a more detailed service `display_name`.
 
-This example also uses [if conditions](19-language-reference.md#conditional-statements)
+This example also uses [if conditions](20-language-reference.md#conditional-statements)
 if specific values are not set, adding a local default value.
 The other way around you can override specific custom attributes inherited from a service template,
 if set.
@@ -1000,7 +1000,7 @@ hosts or with the `test_server` attribute set to `true` are not added to this
 group.
 
 Details on the `assign where` syntax can be found in the
-[Language Reference](19-language-reference.md#apply)
+[Language Reference](20-language-reference.md#apply)
 
 ## <a id="notifications"></a> Notifications
 
@@ -1015,7 +1015,7 @@ refining the notifications being actually sent.
 There are many ways of sending notifications, e.g. by e-mail, XMPP,
 IRC, Twitter, etc. On its own Icinga 2 does not know how to send notifications.
 Instead it relies on external mechanisms such as shell scripts to notify users.
-More notification methods are listed in the [addons and plugins](13-addons-plugins.md#notification-scripts-interfaces)
+More notification methods are listed in the [addons and plugins](14-addons-plugins.md#notification-scripts-interfaces)
 chapter.
 
 A notification specification requires one or more users (and/or user groups)
@@ -1036,7 +1036,7 @@ The user `icingaadmin` in the example below will get notified only on `WARNING` 
 If you don't set the `states` and `types` configuration attributes for the `User`
 object, notifications for all states and types will be sent.
 
-Details on troubleshooting notification problems can be found [here](16-troubleshooting.md#troubleshooting).
+Details on troubleshooting notification problems can be found [here](17-troubleshooting.md#troubleshooting).
 
 > **Note**
 >
@@ -1291,7 +1291,7 @@ Next step is to understand how [command parameters](3-monitoring-basics.md#comma
 are being passed from a host or service object, and add a [CheckCommand](6-object-types.md#objecttype-checkcommand)
 definition based on these required parameters and/or default values.
 
-Please continue reading in the [plugins section](13-addons-plugins.md#plugins) for additional integration examples.
+Please continue reading in the [plugins section](14-addons-plugins.md#plugins) for additional integration examples.
 
 #### <a id="command-passing-parameters"></a> Passing Check Command Parameters from Host or Service
 
@@ -1800,7 +1800,7 @@ Rephrased: If the parent service object changes into the `Warning` state, this
 dependency will fail and render all child objects (hosts or services) unreachable.
 
 You can determine the child's reachability by querying the `is_reachable` attribute
-in for example [DB IDO](22-appendix.md#schema-db-ido-extensions).
+in for example [DB IDO](23-appendix.md#schema-db-ido-extensions).
 
 ### <a id="dependencies-implicit-host-service"></a> Implicit Dependencies for Services on Host
 

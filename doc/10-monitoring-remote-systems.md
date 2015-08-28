@@ -5,7 +5,7 @@
 There's a variety of possibilities to monitor remote servers and services. First off you should
 decide how your primary monitoring master is able to reach these hosts and services.
 
-* direct connection querying the service interface (for example `http`), so-called [agent-less checks](9-monitoring-remote-systems.md#agent-less-checks)
+* direct connection querying the service interface (for example `http`), so-called [agent-less checks](10-monitoring-remote-systems.md#agent-less-checks)
 * local checks requiring an additional daemon as communication device for your monitoring server
 
 ## <a id="agent-less-checks"></a> Agent-less Checks
