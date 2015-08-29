@@ -17,7 +17,7 @@ make calls to
 This chapter will start with a general overview followed by
 detailed information about specific endpoints.
 
-### <a id="icinga2-api-requests></a> Requests
+### <a id="icinga2-api-requests"></a> Requests
 
 Any tool capable of making HTTP requests can communicate with
 the API, for example [curl](http://curl.haxx.se).
@@ -40,7 +40,7 @@ Supported request methods:
   PUT		| Create a new object. The PUT request must include all attributes required to create a new object.
   DELETE	| Remove an object created by the API. The DELETE method is idempotent and does not require any check if the object actually exists.
 
-### <a id="icinga2-api-http-statuses></a> HTTP Statuses
+### <a id="icinga2-api-http-statuses"></a> HTTP Statuses
 
 The API will return standard [HTTP statuses](https://www.ietf.org/rfc/rfc2616.txt)
 including error codes.
@@ -63,7 +63,7 @@ Ask your Icinga 2 system administrator to check the `icinga2.log` file for furth
 troubleshooting.
 
 
-### <a id="icinga2-api-responses></a> Responses
+### <a id="icinga2-api-responses"></a> Responses
 
 Succesful requests will send back a response body containing a `results`
 list. Depending on the number of affected objects in your request, the
@@ -82,7 +82,7 @@ The [output](9-icinga2-api.md#icinga2-api-output) will be sent back as JSON obje
     }
 
 
-### <a id="icinga2-api-authentication></a> Authentication
+### <a id="icinga2-api-authentication"></a> Authentication
 
 There are two different ways for authenticating against the Icinga 2 API:
 
@@ -127,11 +127,11 @@ Now pass the basic auth information to curl and send a GET request to the API:
 
 In case you will get `Unauthorized` make sure to check the API user credentials.
 
-### <a id="icinga2-api-permissions></a> Permissions
+### <a id="icinga2-api-permissions"></a> Permissions
 
 **TODO** https://dev.icinga.org/issues/9088
 
-### <a id="icinga2-api-parameters></a> Parameters
+### <a id="icinga2-api-parameters"></a> Parameters
 
 Depending on the request method there are two ways of
 passing parameters to the request:
@@ -152,7 +152,7 @@ Example for JSON body:
 
 **TODO**
 
-#### <a id="icinga2-api-filters></a> Filters
+#### <a id="icinga2-api-filters"></a> Filters
 
 Use the same syntax as for apply rule expressions
 for filtering specific objects.
@@ -169,15 +169,15 @@ Example for matching all hosts by name (**Note**: `"` are url-encoded as `%22`):
 
 
 
-### <a id="icinga2-api-output-format></a>Output Format
+### <a id="icinga2-api-output-format"></a>Output Format
 
 The request and reponse body contain a JSON encoded string.
 
-### <a id="icinga2-api-version></a>Version
+### <a id="icinga2-api-version"></a>Version
 
 Each url contains the version string as prefix (currently "/v1").
 
-### <a id="icinga2-api-url-overview></a>Url Overview
+### <a id="icinga2-api-url-overview"></a>Url Overview
 
 
 The Icinga 2 API provides multiple url endpoints
@@ -212,7 +212,7 @@ Additionally there are endpoints for each [config object type](6-object-types.md
 
 
 
-## <a id="icinga2-api-actions></a> Actions
+## <a id="icinga2-api-actions"></a> Actions
 
 There are several actions available for Icinga 2 provided by the `actions` url endpoint.
 
@@ -290,17 +290,17 @@ Reschedule a service check for all services in NOT-OK state:
 
 
 
-## <a id="icinga2-api-config-management></a> Configuration Management
+## <a id="icinga2-api-config-management"></a> Configuration Management
 
 `/v1/config`
 
 **TODO** Depends on https://dev.icinga.org/issues/9953
 
-## <a id="icinga2-api-events></a> Events
+## <a id="icinga2-api-events"></a> Events
 
 **TODO**
 
-## <a id="icinga2-api-hosts></a> Hosts
+## <a id="icinga2-api-hosts"></a> Hosts
 
 All object attributes are prefixed with their respective object type.
 
@@ -310,7 +310,7 @@ Example:
 
 Output listing and url parameters use the same syntax.
 
-### <a id="icinga2-api-hosts-list></a> List All Hosts
+### <a id="icinga2-api-hosts-list"></a> List All Hosts
 
 Send a `GET` request to `/v1/hosts` to list all host objects and
 their attributes.
@@ -318,7 +318,7 @@ their attributes.
     $ curl -u root:icinga -k -s 'https://localhost:5665/v1/hosts' -X GET
 
 
-### <a id="icinga2-api-hosts-create></a> Create New Host Object
+### <a id="icinga2-api-hosts-create"></a> Create New Host Object
 
 New objects must be created by sending a PUT request. The following
 parameters need to be passed inside the JSON body:
@@ -371,7 +371,7 @@ contains a detailed error message. The following example omits the required `che
         ]
     }
 
-### <a id="icinga2-api-hosts-show></a> Show Host
+### <a id="icinga2-api-hosts-show"></a> Show Host
 
 Send a `GET` request including the host name inside the url:
 
@@ -392,7 +392,7 @@ attributes must be added one by one, e.g. `?attrs=host.address&attrs=host.name`.
         ]
     }
 
-### <a id="icinga2-api-hosts-modify></a> Modify Host
+### <a id="icinga2-api-hosts-modify"></a> Modify Host
 
 Existing objects must be modifed by sending a `POST` request. The following
 parameters need to be passed inside the JSON body:
@@ -426,7 +426,7 @@ Example for existing object `google.com`:
         ]
     }
 
-### <a id="icinga2-api-hosts-delete></a> Delete Host
+### <a id="icinga2-api-hosts-delete"></a> Delete Host
 
 You can delete objects created using the API by sending a `DELETE`
 request. Specify the object name inside the url.
