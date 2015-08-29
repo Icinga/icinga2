@@ -106,6 +106,7 @@ bool TypeQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& requ
 
 		Dictionary::Ptr resultAttrs = new Dictionary();
 		result1->Set("name", obj->GetName());
+		result1->Set("plural_name", obj->GetPluralName());
 		if (obj->GetBaseType())
 			result1->Set("base", obj->GetBaseType()->GetName());
 		result1->Set("abstract", obj->IsAbstract());
