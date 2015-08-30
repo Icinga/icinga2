@@ -38,7 +38,7 @@ public:
 
 	virtual void Start(void);
 
-	static Value DemoMessageHandler(const MessageOrigin& origin, const Dictionary::Ptr& params);
+	static Value DemoMessageHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
 
 
 private:
