@@ -261,7 +261,7 @@ set(CPACK_NSIS_INSTALLED_ICON_NAME "sbin\\\\icinga2.exe")
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_BINARY_DIR}/LICENSE.txt")
 
 set(CPACK_NSIS_EXECUTABLES_DIRECTORY "sbin")
-set(CPACK_PACKAGE_EXECUTABLES "Icinga2SetupAgent;Icinga 2 Agent Wizard")
+set(CPACK_PACKAGE_EXECUTABLES "Icinga2SetupAgent;Icinga 2 Agent Wizard;icinga-studio;Icinga Studio")
 set(CPACK_NSIS_MUI_FINISHPAGE_RUN "Icinga2SetupAgent")
 set(CPACK_NSIS_EXTRA_PREINSTALL_COMMANDS "nsExec::Exec 'net stop icinga2'")
 set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "${CPACK_NSIS_EXTRA_INSTALL_COMMANDS}\nnsExec::Exec 'icacls \\\"$INSTDIR\\\" /grant NetworkService:(oi)(ci)m'")
