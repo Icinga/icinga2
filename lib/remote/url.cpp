@@ -27,6 +27,8 @@
 
 using namespace icinga;
 
+Url::Url() {}
+
 Url::Url(const String& base_url)
 {
 	String url = base_url;
@@ -93,7 +95,43 @@ String Url::GetScheme(void) const
 
 String Url::GetAuthority(void) const
 {
-	return m_Authority;
+	if (m_Host.IsEmpty())
+		return "";
+
+	String auth;
+	if (!m_Username.IsEmpty()) {
+		auth = m_Username;
+		if (!m_Password.IsEmpty())
+			auth += ":" + m_Password;
+		auth += "@";
+	}
+
+	auth += m_Host;
+
+	if (!m_Port.IsEmpty())
+		auth += ":" + m_Port;
+
+	return auth;
+}
+
+String Url::GetUsername(void) const
+{
+	return m_Username;
+}
+
+String Url::GetPassword(void) const
+{
+	return m_Password;
+}
+
+String Url::GetHost(void) const
+{
+	return m_Host;
+}
+
+String Url::GetPort(void) const
+{
+	return m_Port;
 }
 
 const std::vector<String>& Url::GetPath(void) const
@@ -132,16 +170,59 @@ String Url::GetFragment(void) const
 {
 	return m_Fragment;
 }
+void Url::SetScheme(const String& scheme)
+{
+	m_Scheme = scheme;
+}
 
-String Url::Format(void) const
+void Url::SetAuthority(const String& username, const String& password, const String& host, const String& port)
+{
+	m_Username = username;
+	m_Password = password;
+	m_Host = host;
+	m_Port = port;
+}
+
+void Url::SetPath(const std::vector<String>& path)
+{
+	m_Path = path;
+}
+
+void Url::SetQuery(const std::map<String, std::vector<String> >& query)
+{
+	m_Query = query;
+}
+
+void Url::AddQueryElement(const String& name, const String& value)
+{
+	std::map<String, std::vector<String> >::iterator it = m_Query.find(name);
+	if (it == m_Query.end()) {
+		m_Query[name] = std::vector<String>();
+		m_Query[name].push_back(value);
+	} else
+		m_Query[name].push_back(value);
+}
+
+void Url::SetQueryElements(const String& name, const std::vector<String>& values)
+{
+	m_Query[name] = values;
+}
+
+void Url::SetFragment(const String& fragment) {
+	m_Fragment = fragment;
+}
+
+String Url::Format(bool print_credentials) const
 {
 	String url;
 
 	if (!m_Scheme.IsEmpty())
 		url += m_Scheme + ":";
 
-	if (!m_Authority.IsEmpty())
-		url += "//" + m_Authority;
+	if (print_credentials && !GetAuthority().IsEmpty())
+		url += "//" + GetAuthority();
+	else if (!GetHost().IsEmpty())
+		url += "//" + GetHost() + (!GetPort().IsEmpty() ? ":" + GetPort() : "");
 
 	if (m_Path.empty())
 		url += "/";
@@ -194,9 +275,49 @@ bool Url::ParseScheme(const String& scheme)
 
 bool Url::ParseAuthority(const String& authority)
 {
-	m_Authority = authority.SubStr(2);
-	//Just safe the Authority and don't care about the details
-	return (ValidateToken(m_Authority, ACHOST GEN_DELIMS));
+	String auth = authority.SubStr(2);
+	size_t pos = auth.Find("@");
+	if (pos != String::NPos && pos != 0) {
+		if (!Url::ParseUserinfo(auth.SubStr(0, pos)))
+			return false;
+		auth = auth.SubStr(pos+1);
+	}
+
+	pos = auth.Find(":");
+	if (pos != String::NPos) {
+		if (pos == 0 || pos == auth.GetLength() - 1 || !Url::ParsePort(auth.SubStr(pos+1)))
+			return false;
+	}
+
+	m_Host = auth.SubStr(0, pos-1);
+	return ValidateToken(m_Host, ACHOST);
+}
+
+bool Url::ParseUserinfo(const String& userinfo)
+{
+	size_t pos = userinfo.Find(":");
+	m_Username = userinfo.SubStr(0, pos-1);
+	if (!ValidateToken(m_Username, ACUSERINFO))
+		return false;
+	m_Username = Utility::UnescapeString(m_Username);
+	if (pos != String::NPos && pos != userinfo.GetLength() - 1) {
+		//Password
+		m_Password = userinfo.SubStr(pos+1);
+		if (!ValidateToken(m_Username, ACUSERINFO))
+			return false;
+		m_Password = Utility::UnescapeString(m_Password);
+	} else
+		m_Password = "";
+
+	return true;
+}
+
+bool Url::ParsePort(const String& port)
+{
+	m_Port = Utility::UnescapeString(m_Port);
+	if (!ValidateToken(m_Port, ACPORT))
+		return false;
+	return true;
 }
 
 bool Url::ParsePath(const String& path)

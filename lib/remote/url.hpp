@@ -41,27 +41,46 @@ class I2_REMOTE_API Url : public Object
 public:
 	DECLARE_PTR_TYPEDEFS(Url);
 
+	Url();
 	Url(const String& url);
 
-	String Format(void) const;
+	String Format(bool print_credentials = false) const;
 
 	String GetScheme(void) const;
 	String GetAuthority(void) const;
+	String GetUsername(void) const;
+	String GetPassword(void) const;
+	String GetHost(void) const;
+	String GetPort(void) const;
 	const std::vector<String>& GetPath(void) const;
 	const std::map<String, std::vector<String> >& GetQuery(void) const;
 	String GetQueryElement(const String& name) const;
 	const std::vector<String>& GetQueryElements(const String& name) const;
 	String GetFragment(void) const;
 
+	void SetScheme(const String& scheme);
+	void SetAuthority(const String& username, const String& password, 
+	    const String& host, const String& port);
+	void SetPath(const std::vector<String>& path);
+	void SetQuery(const std::map<String, std::vector<String> >& query);
+	void AddQueryElement(const String& name, const String& query);
+	void SetQueryElements(const String& name, const std::vector<String>& query);
+	void SetFragment(const String& fragment);
+
 private:
 	String m_Scheme;
-	String m_Authority;
+	String m_Username;
+	String m_Password;
+	String m_Host;
+	String m_Port;
 	std::vector<String> m_Path;
 	std::map<String, std::vector<String> > m_Query;
 	String m_Fragment;
 
 	bool ParseScheme(const String& scheme);
 	bool ParseAuthority(const String& authority);
+	bool ParseUserinfo(const String& userinfo);
+	bool ParsePort(const String& port);
 	bool ParsePath(const String& path);
 	bool ParseQuery(const String& query);
 	bool ParseFragment(const String& fragment);

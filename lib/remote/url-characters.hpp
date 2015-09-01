@@ -31,7 +31,7 @@
 #define ACSCHEME ALPHA NUMERIC ".-+"
 
 //authority = [ userinfo "@" ] host [ ":" port ]
-#define ACUSERINFO UNRESERVED SUB_DELIMS ":"
+#define ACUSERINFO UNRESERVED SUB_DELIMS 
 #define ACHOST UNRESERVED SUB_DELIMS
 #define ACPORT NUMERIC
 

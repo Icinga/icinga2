@@ -21,6 +21,7 @@
 #include "remote/url.hpp"
 #include <boost/test/unit_test.hpp>
 #include <boost/foreach.hpp>
+#include <boost/assign/list_of.hpp>
 
 using namespace icinga;
 
@@ -40,6 +41,31 @@ BOOST_AUTO_TEST_CASE(id_and_path)
 	PathCorrect.push_back("baz");
 
 	BOOST_CHECK(url->GetPath() == PathCorrect);
+}
+
+BOOST_AUTO_TEST_CASE(get_and_set)
+{
+	Url::Ptr url = new Url();
+	url->SetScheme("ftp");
+	url->SetAuthority("Horst", "Seehofer", "koenigreich.bayern", "1918");
+	std::vector<String> p = boost::assign::list_of("path")("to")("münchen");
+	url->SetPath(p);
+	BOOST_CHECK(url->Format(true) == "ftp://Horst:Seehofer@koenigreich.bayern:1918/path/to/m%C3%BCnchen");
+
+	std::map<String, std::vector<String> > m;
+	std::vector<String> v1 = boost::assign::list_of("hip")("hip")("hurra");
+	std::vector<String> v2 = boost::assign::list_of("äü^ä+#ül-");
+	std::vector<String> v3 = boost::assign::list_of("1")("2");
+	m.insert(std::pair<String, std::vector<String> >("shout", v1));
+	m.insert(std::pair<String, std::vector<String> >("sonderzeichen", v2));
+	url->SetQuery(m);
+	url->SetQueryElements("count", v3);
+	url->AddQueryElement("count", "3");
+
+	std::map<String, std::vector<String> > mn = url->GetQuery();
+	BOOST_CHECK(mn["shout"][0] == v1[0]);
+	BOOST_CHECK(mn["sonderzeichen"][0] == v2[0]);
+	BOOST_CHECK(mn["count"][2] == "3");
 }
 
 BOOST_AUTO_TEST_CASE(parameters)

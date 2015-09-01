@@ -111,6 +111,7 @@ add_boost_test(base
         remote_apiuser/check_password
         remote_url/id_and_path
         remote_url/parameters
+        remote_url/get_and_set
         remote_url/format
         remote_url/illegal_legal_strings
 )
