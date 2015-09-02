@@ -76,7 +76,7 @@ void WorkQueue::Enqueue(const Task& task, bool allowInterleaved)
 	}
 
 	if (!wq_thread) {
-		while (m_Tasks.size() >= m_MaxItems)
+		while (m_Tasks.size() >= m_MaxItems && m_MaxItems != 0)
 			m_CVFull.wait(lock);
 	}
 
@@ -198,7 +198,7 @@ void WorkQueue::WorkerThreadProc(void)
 		if (m_Stopped)
 			break;
 
-		if (m_Tasks.size() >= m_MaxItems)
+		if (m_Tasks.size() >= m_MaxItems && m_MaxItems != 0)
 			m_CVFull.notify_all();
 
 		Task task = m_Tasks.front();
