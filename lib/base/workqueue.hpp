@@ -44,7 +44,7 @@ class I2_BASE_API WorkQueue
 public:
 	typedef boost::function<void (boost::exception_ptr)> ExceptionCallback;
 
-	WorkQueue(size_t maxItems = 25000, int threadCount = 1);
+	WorkQueue(size_t maxItems = 0, int threadCount = 1);
 	~WorkQueue(void);
 
 	void Enqueue(const Task& task, bool allowInterleaved = false);
