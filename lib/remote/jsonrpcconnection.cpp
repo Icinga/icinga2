@@ -90,7 +90,7 @@ ConnectionRole JsonRpcConnection::GetRole(void) const
 
 void JsonRpcConnection::SendMessage(const Dictionary::Ptr& message)
 {
-	m_WriteQueue.Enqueue(boost::bind(&JsonRpcConnection::SendMessageSync, JsonRpcConnection::Ptr(this), message));
+	m_WriteQueue.Enqueue(boost::bind(&JsonRpcConnection::SendMessageSync, JsonRpcConnection::Ptr(this), message), true);
 }
 
 void JsonRpcConnection::SendMessageSync(const Dictionary::Ptr& message)
