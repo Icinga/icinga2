@@ -90,7 +90,7 @@ ConnectionRole ApiClient::GetRole(void) const
 
 void ApiClient::SendMessage(const Dictionary::Ptr& message)
 {
-	m_WriteQueue.Enqueue(boost::bind(&ApiClient::SendMessageSync, ApiClient::Ptr(this), message));
+	m_WriteQueue.Enqueue(boost::bind(&ApiClient::SendMessageSync, ApiClient::Ptr(this), message), true);
 }
 
 void ApiClient::SendMessageSync(const Dictionary::Ptr& message)
