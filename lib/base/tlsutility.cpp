@@ -399,7 +399,7 @@ boost::shared_ptr<X509> CreateCert(EVP_PKEY *pubkey, X509_NAME *subject, X509_NA
 
 		std::ofstream ofp;
 		ofp.open(serialfile.CStr());
-		ofp << std::hex << serial + 1;
+		ofp << std::hex << std::setw(2) << std::setfill('0') << serial + 1;
 		ofp.close();
 
 		if (ofp.fail())
