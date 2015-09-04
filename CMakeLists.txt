@@ -265,7 +265,7 @@ set(CPACK_PACKAGE_EXECUTABLES "Icinga2SetupAgent;Icinga 2 Agent Wizard;icinga-st
 set(CPACK_NSIS_MUI_FINISHPAGE_RUN "Icinga2SetupAgent")
 set(CPACK_NSIS_EXTRA_PREINSTALL_COMMANDS "nsExec::Exec 'net stop icinga2'")
 set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "${CPACK_NSIS_EXTRA_INSTALL_COMMANDS}\nnsExec::Exec 'icacls \\\"$INSTDIR\\\" /grant NetworkService:(oi)(ci)m'")
-set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "${CPACK_NSIS_EXTRA_INSTALL_COMMANDS}\nnsExec::Exec 'icacls \\\"$INSTDIR\\\\etc\\\" /inheritance:r /grant:r NetworkService:(oi)(ci)m /grant:r *S-1-5-32-544:(oi)(ci)f'")
+set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "${CPACK_NSIS_EXTRA_INSTALL_COMMANDS}\nnsExec::Exec 'icacls \\\"$INSTDIR\\\\etc\\\" /inheritance:r /grant:r *S-1-5-20:(oi)(ci)m /grant:r *S-1-5-32-544:(oi)(ci)f'")
 set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "${CPACK_NSIS_EXTRA_INSTALL_COMMANDS}\nCreateDirectory '$INSTDIR\\\\etc\\\\icinga2\\\\pki'")
 set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "${CPACK_NSIS_EXTRA_INSTALL_COMMANDS}\nCreateDirectory '$INSTDIR\\\\var\\\\cache\\\\icinga2'")
 set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "${CPACK_NSIS_EXTRA_INSTALL_COMMANDS}\nCreateDirectory '$INSTDIR\\\\var\\\\lib\\\\icinga2\\\\pki'")
