@@ -356,7 +356,7 @@ void StatusDataWriter::DumpCheckableStatusAttrs(std::ostream& fp, const Checkabl
 		fp << "\t" << "current_state=" << service->GetState() << "\n"
 		   << "\t" << "last_hard_state=" << service->GetLastHardState() << "\n";
 	} else {
-		fp << "\t" << "current_state=" << (host->IsReachable() ? host->GetState() : 2) << "\n"
+		fp << "\t" << "current_state=" << CompatUtility::GetHostCurrentState(host) << "\n"
 		   << "\t" << "last_hard_state=" << host->GetLastHardState() << "\n";
 	}
 

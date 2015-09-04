@@ -119,21 +119,18 @@ void CompatLogger::CheckResultHandler(const Checkable::Ptr& checkable, const Che
 		msgbuf << "SERVICE ALERT: "
 		       << host->GetName() << ";"
 		       << service->GetShortName() << ";"
-		       << Service::StateToString(static_cast<ServiceState>(state_after)) << ";"
-		       << Service::StateTypeToString(static_cast<StateType>(stateType_after)) << ";"
+		       << Service::StateToString(service->GetState()) << ";"
+		       << Service::StateTypeToString(service->GetStateType()) << ";"
 		       << attempt_after << ";"
 		       << output << ""
 		       << "";
 	} else {
 		String state = Host::StateToString(Host::CalculateState(static_cast<ServiceState>(state_after)));
 
-		if (!reachable_after)
-			state = "UNREACHABLE";
-
 		msgbuf << "HOST ALERT: "
 		       << host->GetName() << ";"
-		       << state << ";"
-		       << Host::StateTypeToString(static_cast<StateType>(stateType_after)) << ";"
+		       << CompatUtility::GetHostStateString(host) << ";"
+		       << Host::StateTypeToString(host->GetStateType()) << ";"
 		       << attempt_after << ";"
 		       << output << ""
 		       << "";
@@ -248,7 +245,7 @@ void CompatLogger::NotificationSentHandler(const Notification::Ptr& notification
 		if (service)
 			notification_type_str = Service::StateToString(service->GetState());
 		else
-			notification_type_str = host->IsReachable() ? Host::StateToString(host->GetState()) : "UNREACHABLE";
+			notification_type_str = CompatUtility::GetHostStateString(host);
 	}
 
 	String author_comment = "";
@@ -280,7 +277,7 @@ void CompatLogger::NotificationSentHandler(const Notification::Ptr& notification
 			<< user->GetName() << ";"
 			<< host->GetName() << ";"
 			<< notification_type_str << " "
-			<< "(" << (host->IsReachable() ? Host::StateToString(host->GetState()) : "UNREACHABLE") << ");"
+			<< "(" << CompatUtility::GetHostStateString(host) << ");"
 			<< command_name << ";"
 			<< output << ";"
 			<< author_comment
@@ -412,7 +409,7 @@ void CompatLogger::EventCommandHandler(const Checkable::Ptr& checkable)
 	} else {
 		msgbuf << "HOST EVENT HANDLER: "
 			<< host->GetName() << ";"
-			<< (host->IsReachable() ? Host::StateToString(host->GetState()) : "UNREACHABLE") << ";"
+			<< CompatUtility::GetHostStateString(host) << ";"
 			<< Host::StateTypeToString(host->GetStateType()) << ";"
 			<< current_attempt << ";"
 			<< event_command_name;
@@ -489,7 +486,7 @@ void CompatLogger::ReopenFile(bool rotate)
 		std::ostringstream msgbuf;
 		msgbuf << "CURRENT HOST STATE: "
 		       << host->GetName() << ";"
-		       << (host->IsReachable() ? Host::StateToString(host->GetState()) : "UNREACHABLE") << ";"
+		       << CompatUtility::GetHostStateString(host) << ";"
 		       << Host::StateTypeToString(host->GetStateType()) << ";"
 		       << host->GetCheckAttempt() << ";"
 		       << output << "";

@@ -983,8 +983,8 @@ void DbEvents::AddCheckResultLogHistory(const Checkable::Ptr& checkable, const C
 		msgbuf << "SERVICE ALERT: "
 		       << host->GetName() << ";"
 		       << service->GetShortName() << ";"
-		       << Service::StateToString(static_cast<ServiceState>(state_after)) << ";"
-		       << Service::StateTypeToString(static_cast<StateType>(stateType_after)) << ";"
+		       << Service::StateToString(service->GetState()) << ";"
+		       << Service::StateTypeToString(service->GetStateType()) << ";"
 		       << attempt_after << ";"
 		       << output << ""
 		       << "";
@@ -1008,15 +1008,10 @@ void DbEvents::AddCheckResultLogHistory(const Checkable::Ptr& checkable, const C
 				return;
 		}
 	} else {
-		String state = Host::StateToString(Host::CalculateState(static_cast<ServiceState>(state_after)));
-
-		if (!reachable_after)
-			state = "UNREACHABLE";
-
 		msgbuf << "HOST ALERT: "
 		       << host->GetName() << ";"
-		       << state << ";"
-		       << Service::StateTypeToString(static_cast<StateType>(stateType_after)) << ";"
+		       << CompatUtility::GetHostStateString(host) << ";"
+		       << Host::StateTypeToString(host->GetStateType()) << ";"
 		       << attempt_after << ";"
 		       << output << ""
 		       << "";

@@ -135,21 +135,21 @@ bool Dependency::IsAvailable(DependencyType dt) const
 {
 	Checkable::Ptr parent = GetParent();
 
-	Host::Ptr host;
-	Service::Ptr service;
-	tie(host, service) = GetHostService(parent);
+	Host::Ptr parentHost;
+	Service::Ptr parentService;
+	tie(parentHost, parentService) = GetHostService(parent);
 
 	/* ignore if it's the same checkable object */
 	if (parent == GetChild()) {
 		Log(LogNotice, "Dependency")
-		    << "Dependency '" << GetName() << "' passed: Parent and child " << (service ? "service" : "host") << " are identical.";
+		    << "Dependency '" << GetName() << "' passed: Parent and child " << (parentService ? "service" : "host") << " are identical.";
 		return true;
 	}
 
 	/* ignore pending  */
 	if (!parent->GetLastCheckResult()) {
 		Log(LogNotice, "Dependency")
-		    << "Dependency '" << GetName() << "' passed: " << (service ? "Service" : "Host") << " '" << parent->GetName() << "' hasn't been checked yet.";
+		    << "Dependency '" << GetName() << "' passed: Parent " << (parentService ? "service" : "host") << " '" << parent->GetName() << "' hasn't been checked yet.";
 		return true;
 	}
 
@@ -157,25 +157,25 @@ bool Dependency::IsAvailable(DependencyType dt) const
 		/* ignore soft states */
 		if (parent->GetStateType() == StateTypeSoft) {
 			Log(LogNotice, "Dependency")
-			    << "Dependency '" << GetName() << "' passed: " << (service ? "Service" : "Host") << " '" << parent->GetName() << "' is in a soft state.";
+			    << "Dependency '" << GetName() << "' passed: Parent " << (parentService ? "service" : "host") << " '" << parent->GetName() << "' is in a soft state.";
 			return true;
 		}
 	} else {
 		Log(LogNotice, "Dependency")
-		    << "Dependency '" << GetName() << "' failed: " << (service ? "Service" : "Host") << " '" << parent->GetName() << "' is in a soft state.";
+		    << "Dependency '" << GetName() << "' failed: Parent " << (parentService ? "service" : "host") << " '" << parent->GetName() << "' is in a soft state.";
 	}
 
 	int state;
 
-	if (service)
-		state = ServiceStateToFilter(service->GetState());
+	if (parentService)
+		state = ServiceStateToFilter(parentService->GetState());
 	else
-		state = HostStateToFilter(host->GetState());
+		state = HostStateToFilter(parentHost->GetState());
 
 	/* check state */
 	if (state & GetStateFilter()) {
 		Log(LogNotice, "Dependency")
-		    << "Dependency '" << GetName() << "' passed: " << (service ? "Service" : "Host") << " '" << parent->GetName() << "' matches state filter.";
+		    << "Dependency '" << GetName() << "' passed: Parent " << (parentService ? "service" : "host") << " '" << parent->GetName() << "' matches state filter.";
 		return true;
 	}
 
@@ -199,8 +199,8 @@ bool Dependency::IsAvailable(DependencyType dt) const
 
 	Log(LogNotice, "Dependency")
 	    << "Dependency '" << GetName() << "' failed. Parent "
-	    << (service ? "service" : "host") << " '" << parent->GetName() << "' is "
-	    << (service ? Service::StateToString(service->GetState()) : Host::StateToString(host->GetState()));
+	    << (parentService ? "service" : "host") << " '" << parent->GetName() << "' is "
+	    << (parentService ? Service::StateToString(parentService->GetState()) : Host::StateToString(parentHost->GetState()));
 
 	return false;
 }

@@ -69,8 +69,8 @@ bool Checkable::IsReachable(DependencyType dt, Dependency::Ptr *failedDependency
 		return false;
 	}
 
-	BOOST_FOREACH(const Checkable::Ptr& service, GetParents()) {
-		if (!service->IsReachable(dt, failedDependency, rstack + 1))
+	BOOST_FOREACH(const Checkable::Ptr& checkable, GetParents()) {
+		if (!checkable->IsReachable(dt, failedDependency, rstack + 1))
 			return false;
 	}
 
