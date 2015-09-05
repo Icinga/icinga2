@@ -115,13 +115,27 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 	if (cr->GetExecutionEnd() == 0)
 		cr->SetExecutionEnd(now);
 
-	if (!origin || origin->IsLocal())
+	if (!origin || origin->IsLocal()) {
+		Log(LogDebug, "Checkable")
+		    << "No origin or local origin for object '" << GetName()
+		    << "', setting " << IcingaApplication::GetInstance()->GetNodeName()
+		    << " as check_source.";
 		cr->SetCheckSource(IcingaApplication::GetInstance()->GetNodeName());
+	}
 
 	Endpoint::Ptr command_endpoint = GetCommandEndpoint();
 
+	/* override check source if command_endpoint was defined */
+	if (command_endpoint && !GetExtension("agent_check")) {
+		Log(LogDebug, "Checkable")
+		    << "command_endpoint found for object '" << GetName()
+		    << "', setting " << command_endpoint->GetName()
+		    << " as check_source.";
+		cr->SetCheckSource(command_endpoint->GetName());
+	}
+
+	/* agent checks go through the api */
 	if (command_endpoint && GetExtension("agent_check")) {
-		/* agent checks go through the api */
 		ApiListener::Ptr listener = ApiListener::GetInstance();
 
 		if (listener) {
