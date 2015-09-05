@@ -217,8 +217,16 @@ void IdoPgsqlConnection::Reconnect(void)
 			BOOST_THROW_EXCEPTION(std::runtime_error(message));
 		}
 
+		IdoPgsqlResult result;
+
+		/* explicitely require legacy mode for string escaping in PostgreSQL >= 9.1
+		 * changing standard_conforming_strings to on by default
+		 */
+		if (PQserverVersion(m_Connection) >= 90100)
+			result = Query("SET standard_conforming_strings TO off");
+
 		String dbVersionName = "idoutils";
-		IdoPgsqlResult result = Query("SELECT version FROM " + GetTablePrefix() + "dbversion WHERE name=E'" + Escape(dbVersionName) + "'");
+		result = Query("SELECT version FROM " + GetTablePrefix() + "dbversion WHERE name=E'" + Escape(dbVersionName) + "'");
 
 		Dictionary::Ptr row = FetchRow(result, 0);
 

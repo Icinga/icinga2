@@ -408,6 +408,7 @@ RHEL/CentOS 5/6:
 RHEL/CentOS 7:
 
     # yum install postgresql-server postgresql
+    # postgresql-setup --initdb
     # systemctl enable postgresql
     # systemctl start postgresql
 
@@ -471,7 +472,7 @@ authentication method and restart the postgresql server.
     # IPv6 local connections:
     host    all         all         ::1/128               ident
 
-    # /etc/init.d/postgresql restart
+    # service postgresql restart
 
 
 After creating the database and permissions you can import the Icinga 2 IDO
