@@ -54,6 +54,20 @@ More details in the [Icinga FAQ](https://www.icinga.org/icinga/faq/).
 
 ## <a id="whats-new"></a> What's New
 
+### What's New in Version 2.3.10
+
+#### Features
+
+* Feature [9218](https://dev.icinga.org/issues/9218 "Feature 9218"): Use the command_endpoint name as check_source value if defined
+
+#### Bugfixes
+
+* Bug [9244](https://dev.icinga.org/issues/9244 "Bug 9244"): String escape problem with PostgreSQL >= 9.1 and standard_conforming_strings=on
+* Bug [10003](https://dev.icinga.org/issues/10003 "Bug 10003"): Nested "outer" macro calls fails on (handled) missing "inner" values
+* Bug [10051](https://dev.icinga.org/issues/10051 "Bug 10051"): Missing fix for reload on Windows in 2.3.9
+* Bug [10058](https://dev.icinga.org/issues/10058 "Bug 10058"): Wrong calculation for host compat state "UNREACHABLE" in DB IDO
+* Bug [10074](https://dev.icinga.org/issues/10074 "Bug 10074"): Missing zero padding for generated CA serial.txt
+
 ### What's New in Version 2.3.9
 
 #### Changes
