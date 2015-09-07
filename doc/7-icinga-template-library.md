@@ -1805,6 +1805,25 @@ jmx4perl_unknown_is_critical | **Optional.** Map UNKNOWN errors to errors with a
 jmx4perl_timeout             | **Optional.** Seconds before plugin times out. Defaults to "15".
 
 
+### <a id="plugins-contrib-squid"></a> squid
+
+Plugin for monitoring [Squid](https://exchange.icinga.org/exchange/check_squid).
+
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
+
+Name                    | Description
+------------------------|----------------------------------------------------------------------------------
+squid_hostname		| **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
+squid_data		| **Optional.** Data to fetch (default: Connections) available data: Connections Cache Resources Memory FileDescriptors.
+squid_port		| **Optional.** Port number (default: 3128).
+squid_user		| **Optional.** WWW user
+squid_password		| **Optional.** WWW password
+squid_warning		| **Optional.** Warning threshold. See http://nagiosplug.sourceforge.net/developer-guidelines.html#THRESHOLDFORMAT for the threshold format.
+squid_critical		| **Optional.** Critical threshold. See http://nagiosplug.sourceforge.net/developer-guidelines.html#THRESHOLDFORMAT for the threshold format.
+squid_client		| **Optional.** Path of squidclient (default: /usr/bin/squidclient).
+squid_timeout		| **Optional.** Seconds before plugin times out (default: 15).
+
+
 ## <a id="plugins-contrib-operating-system"></a> Operating System
 
 In this category you can find plugins for gathering information about your operating system or the system beneath like memory usage.
