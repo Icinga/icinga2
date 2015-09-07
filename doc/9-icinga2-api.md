@@ -8,11 +8,11 @@ and resources in a simple, programmatic way using HTTP requests.
 The endpoints are logically separated allowing you to easily
 make calls to
 
-* retrieve information (status, config)
-* run actions (reschedule checks, etc.)
-* create/update/delete configuration objects
-* manage configuration modules
-* subscribe to event streams
+* [retrieve information](9-icinga2-api.md#icinga2-api-objects) (status, config)
+* run [actions](9-icinga2-api.md#icinga2-api-actions) (reschedule checks, etc.)
+* [create/update/delete configuration objects](9-icinga2-api.md#icinga2-api-objects)
+* [manage configuration packages](9-icinga2-api.md#icinga2-api-config-management)
+* subscribe to [event streams](9-icinga2-api.md#icinga2-api-event-streams)
 
 This chapter will start with a general overview followed by
 detailed information about specific endpoints.
@@ -290,17 +290,20 @@ Reschedule a service check for all services in NOT-OK state:
 
 
 
-## <a id="icinga2-api-config-management"></a> Configuration Management
 
-`/v1/config`
+## <a id="icinga2-api-event-streams"></a> Event Streams
 
-**TODO** Depends on https://dev.icinga.org/issues/9953
+**TODO** https://dev.icinga.org/issues/9078
 
-## <a id="icinga2-api-events"></a> Events
 
-**TODO**
 
-## <a id="icinga2-api-hosts"></a> Hosts
+## <a id="icinga2-api-objects"></a> API Objects
+
+Provides functionality for all configuration object url endpoints listed
+[here](9-icinga2-api.md#icinga2-api-url-overview).
+
+
+### <a id="icinga2-api-hosts"></a> Hosts
 
 All object attributes are prefixed with their respective object type.
 
@@ -310,7 +313,7 @@ Example:
 
 Output listing and url parameters use the same syntax.
 
-### <a id="icinga2-api-hosts-list"></a> List All Hosts
+#### <a id="icinga2-api-hosts-list"></a> List All Hosts
 
 Send a `GET` request to `/v1/hosts` to list all host objects and
 their attributes.
@@ -318,7 +321,7 @@ their attributes.
     $ curl -u root:icinga -k -s 'https://localhost:5665/v1/hosts' -X GET
 
 
-### <a id="icinga2-api-hosts-create"></a> Create New Host Object
+#### <a id="icinga2-api-hosts-create"></a> Create New Host Object
 
 New objects must be created by sending a PUT request. The following
 parameters need to be passed inside the JSON body:
@@ -371,7 +374,7 @@ contains a detailed error message. The following example omits the required `che
         ]
     }
 
-### <a id="icinga2-api-hosts-show"></a> Show Host
+#### <a id="icinga2-api-hosts-show"></a> Show Host
 
 Send a `GET` request including the host name inside the url:
 
@@ -392,7 +395,7 @@ attributes must be added one by one, e.g. `?attrs=host.address&attrs=host.name`.
         ]
     }
 
-### <a id="icinga2-api-hosts-modify"></a> Modify Host
+#### <a id="icinga2-api-hosts-modify"></a> Modify Host
 
 Existing objects must be modifed by sending a `POST` request. The following
 parameters need to be passed inside the JSON body:
@@ -426,7 +429,7 @@ Example for existing object `google.com`:
         ]
     }
 
-### <a id="icinga2-api-hosts-delete"></a> Delete Host
+#### <a id="icinga2-api-hosts-delete"></a> Delete Host
 
 You can delete objects created using the API by sending a `DELETE`
 request. Specify the object name inside the url.
@@ -452,3 +455,165 @@ Example:
 
 
 **TODO** Add more config objects
+
+
+
+## <a id="icinga2-api-config-management"></a> Configuration Management
+
+The main idea behind configuration management is to allow external applications
+creating configuration packages and stages based on configuration files and
+directory trees. This replaces any additional SSH connection and whatnot to
+dump configuration files to Icinga 2 directly.
+In case you’re pushing a new configuration stage to a package, Icinga 2 will
+validate the configuration asynchronously and populate a status log which
+can be fetched in a separated request.
+
+### <a id="icinga2-api-config-management-create-package"></a> Create Config Package
+
+Send a `POST` request to a new config package called `puppet` in this example. This
+will create a new empty configuration package.
+
+    $ curl -k -s -u root:icinga -X POST https://localhost:5665/v1/config/packages/puppet | python -m json.tool
+    {
+        "results": [
+            {
+                "code": 200.0,
+                "package": "puppet",
+                "status": "Created package."
+            }
+        ]
+    }
+
+### <a id="icinga2-api-config-management-create-config-stage"></a> Create Configuration to Package Stage
+
+Send a `POST` request to the url endpoint `/v1/config/stages` including an existing
+configuration package, e.g. `puppet`.
+The request body must contain the `files` attribute with the value being
+a dictionary of file targets and their content.
+
+The example below will create a new file called `test.conf` underneath the `conf.d`
+directory populated by the sent configuration.
+The Icinga 2 API returns the `package` name this stage was created for, and also
+generates a unique name for the `package` attribute you'll need for later requests.
+
+Note: This example contains an error (`chec_command`), do not blindly copy paste it.
+
+    $ curl -k -s -u root:icinga -X POST -d '{ "files": { "conf.d/test.conf": "object Host \"cfg-mgmt\" { chec_command = \"dummy\" }" } }' https://localhost:5665/v1/config/stages/puppet | python -m json.tool
+    {
+        "results": [
+            {
+                "code": 200.0,
+                "package": "puppet",
+                "stage": "nbmif-1441625839-0",
+                "status": "Created stage."
+            }
+        ]
+    }
+
+If the configuration fails, the old active stage will remain active.
+If everything is successful, the new config stage is activated and live.
+Older stages will still be available in order to have some sort of revision
+system in place.
+
+Icinga 2 automatically creates the following files in the main configuration package
+stage:
+
+  File		| Description
+  --------------|---------------------------
+  status	| Contains the [configuration validation](8-cli-commands.md#config-validation) exit code (everything else than 0 indicates an error).
+  startup.log	| Contains the [configuration validation](8-cli-commands.md#config-validation) output.
+
+You can [fetch these files](9-icinga2-api.md#icinga2-api-config-management-fetch-config-package-stage-files) via API call
+after creating a new stage.
+
+### <a id="icinga2-api-config-management-list-config-packages"></a> List Configuration Packages and their Stages
+
+List all config packages, their active stage and other stages.
+That way you may iterate of all of them programmatically for
+older revisions and their requests.
+
+The following example contains one configuration package `puppet`.
+The latter already has a stage created, but it is not active.
+
+    $ curl -k -s -u root:icinga -X GET https://localhost:5665/v1/config/packages | python -m json.tool
+    {
+        "results": [
+            {
+                "active-stage": "",
+                "name": "puppet",
+                "stages": [
+                    "nbmif-1441625839-0"
+                ]
+            }
+        ]
+    }
+
+### <a id="icinga2-api-config-management-list-config-package-stage-files"></a> List Configuration Packages and their Stages
+
+Sent a `GET` request to the url endpoint `/v1/config/stages` including the package
+(`puppet`) and stage (`nbmif-1441625839-0`) name.
+
+    $ curl -k -s -u root:icinga -X GET https://localhost:5665/v1/config/stages/puppet/nbmif-1441625839-0 | python -m json.tool
+    {
+        "results": [
+    ...
+            {
+                "name": "startup.log",
+                "type": "file"
+            },
+            {
+                "name": "status",
+                "type": "file"
+            },
+            {
+                "name": "conf.d",
+                "type": "directory"
+            },
+            {
+                "name": "zones.d",
+                "type": "directory"
+            },
+            {
+                "name": "conf.d/test.conf",
+                "type": "file"
+            }
+        ]
+    }
+
+
+### <a id="icinga2-api-config-management-fetch-config-package-stage-files"></a> Fetch Configuration Package Stage Files
+
+Send a `GET` request to the url endpoint `/v1/config/files` including
+the package name, the stage name and the relative path to the file.
+Note: You cannot use dots in paths.
+
+You can fetch a [list of existing files](9-icinga2-api.md#icinga2-api-config-management-list-config-package-stage-files)
+in a configuration stage and then specifically request their content.
+
+The following example fetches the faulty configuration inside `conf.d/test.conf`
+for further analysis.
+
+    $ curl -k -s -u root:icinga -X GET https://localhost:5665/v1/config/files/puppet/nbmif-1441625839-0/conf.d/test.conf 
+    object Host "cfg-mgmt" { chec_command = "dummy" }
+
+Note: The returned files are plain-text instead of JSON-encoded.
+
+### <a id="icinga2-api-config-management-config-package-stage-errors"></a> Configuration Package Stage Errors
+
+Now that we don’t have an active stage for `puppet` yet seen [here](9-icinga2-api.md#icinga2-api-config-management-list-config-packages),
+there must have been an error.
+
+Fetch the `startup.log` file and check the config validation errors:
+
+    $ curl -k -s -u root:icinga -X GET https://localhost:5665/v1/config/files/puppet/imagine-1441133065-1/startup.log
+    ...
+    
+    critical/config: Error: Attribute 'chec_command' does not exist.
+    Location:
+    /var/lib/icinga2/api/packages/puppet/imagine-1441133065-1/conf.d/test.conf(1): object Host "cfg-mgmt" { chec_command = "dummy" }
+                                                                                                           ^^^^^^^^^^^^^^^^^^^^^^
+    
+    critical/config: 1 error
+
+The output is similar to the manual [configuration validation](8-cli-commands.md#config-validation).
+
