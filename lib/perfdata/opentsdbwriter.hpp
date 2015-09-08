@@ -52,8 +52,8 @@ private:
 	Timer::Ptr m_ReconnectTimer;
 
 	void CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
-	void SendMetric(const String& metric, const std::map<String, String>& tags, double value);
-	void SendPerfdata(const String& metric, const std::map<String, String>& tags, const CheckResult::Ptr& cr);
+	void SendMetric(const String& metric, const std::map<String, String>& tags, double value, double ts);
+	void SendPerfdata(const String& metric, const std::map<String, String>& tags, const CheckResult::Ptr& cr, double ts);
 	static String EscapeTag(const String& str);
 	static String EscapeMetric(const String& str);
 
