@@ -112,22 +112,24 @@ void OpenTsdbWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 	String escaped_hostName = EscapeMetric(host->GetName());
 	tags["host"] = escaped_hostName;
 
+	double ts = cr->GetExecutionEnd();
+
 	if (service) {
 		String serviceName = service->GetShortName();
 		String escaped_serviceName = EscapeMetric(serviceName);
 		metric = "icinga.service." + escaped_serviceName;
 
-		SendMetric(metric + ".state", tags, service->GetState());
+		SendMetric(metric + ".state", tags, service->GetState(), ts);
 	} else {
 		metric = "icinga.host";
-		SendMetric(metric + ".state", tags, host->GetState());
+		SendMetric(metric + ".state", tags, host->GetState(), ts);
 	}
 
-	SendMetric(metric + ".state_type", tags, checkable->GetStateType());
-	SendMetric(metric + ".reachable", tags, checkable->IsReachable());
-	SendMetric(metric + ".downtime_depth", tags, checkable->GetDowntimeDepth());
+	SendMetric(metric + ".state_type", tags, checkable->GetStateType(), ts);
+	SendMetric(metric + ".reachable", tags, checkable->IsReachable(), ts);
+	SendMetric(metric + ".downtime_depth", tags, checkable->GetDowntimeDepth(), ts);
 
-	SendPerfdata(metric, tags, cr);
+	SendPerfdata(metric, tags, cr, ts);
 
 	metric = "icinga.check";
 
@@ -140,13 +142,13 @@ void OpenTsdbWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 		tags["type"] = "host";
 	}
 
-	SendMetric(metric + ".current_attempt", tags, checkable->GetCheckAttempt());
-	SendMetric(metric + ".max_check_attempts", tags, checkable->GetMaxCheckAttempts());
-	SendMetric(metric + ".latency", tags, Service::CalculateLatency(cr));
-	SendMetric(metric + ".execution_time", tags, Service::CalculateExecutionTime(cr));
+	SendMetric(metric + ".current_attempt", tags, checkable->GetCheckAttempt(), ts);
+	SendMetric(metric + ".max_check_attempts", tags, checkable->GetMaxCheckAttempts(), ts);
+	SendMetric(metric + ".latency", tags, Service::CalculateLatency(cr), ts);
+	SendMetric(metric + ".execution_time", tags, Service::CalculateExecutionTime(cr), ts);
 }
 
-void OpenTsdbWriter::SendPerfdata(const String& metric, const std::map<String, String>& tags, const CheckResult::Ptr& cr)
+void OpenTsdbWriter::SendPerfdata(const String& metric, const std::map<String, String>& tags, const CheckResult::Ptr& cr, double ts)
 {
 	Array::Ptr perfdata = cr->GetPerformanceData();
 
@@ -172,20 +174,20 @@ void OpenTsdbWriter::SendPerfdata(const String& metric, const std::map<String, S
 		String escaped_key = EscapeMetric(pdv->GetLabel());
 		boost::algorithm::replace_all(escaped_key, "::", ".");
 
-		SendMetric(metric + "." + escaped_key, tags, pdv->GetValue());
+		SendMetric(metric + "." + escaped_key, tags, pdv->GetValue(), ts);
 
 		if (pdv->GetCrit())
-			SendMetric(metric + "." + escaped_key + "_crit", tags, pdv->GetCrit());
+			SendMetric(metric + "." + escaped_key + "_crit", tags, pdv->GetCrit(), ts);
 		if (pdv->GetWarn())
-			SendMetric(metric + "." + escaped_key + "_warn", tags, pdv->GetWarn());
+			SendMetric(metric + "." + escaped_key + "_warn", tags, pdv->GetWarn(), ts);
 		if (pdv->GetMin())
-			SendMetric(metric + "." + escaped_key + "_min", tags, pdv->GetMin());
+			SendMetric(metric + "." + escaped_key + "_min", tags, pdv->GetMin(), ts);
 		if (pdv->GetMax())
-			SendMetric(metric + "." + escaped_key + "_max", tags, pdv->GetMax());
+			SendMetric(metric + "." + escaped_key + "_max", tags, pdv->GetMax(), ts);
 	}
 }
 
-void OpenTsdbWriter::SendMetric(const String& metric, const std::map<String, String>& tags, double value)
+void OpenTsdbWriter::SendMetric(const String& metric, const std::map<String, String>& tags, double value, double ts)
 {
 	String tags_string = "";
 	BOOST_FOREACH(const Dictionary::Pair& tag, tags) {
@@ -198,7 +200,7 @@ void OpenTsdbWriter::SendMetric(const String& metric, const std::map<String, Str
 	 * put <metric> <timestamp> <value> <tagk1=tagv1[ tagk2=tagv2 ...tagkN=tagvN]>
 	 * "tags" must include at least one tag, we use "host=HOSTNAME"
 	 */
-	msgbuf << "put " << metric << " " << static_cast<long>(Utility::GetTime()) << " " << Convert::ToString(value) << " " << tags_string;
+	msgbuf << "put " << metric << " " << static_cast<long>(ts) << " " << Convert::ToString(value) << " " << tags_string;
 
 	Log(LogDebug, "OpenTsdbWriter")
 		<< "Add to metric list:'" << msgbuf.str() << "'.";
