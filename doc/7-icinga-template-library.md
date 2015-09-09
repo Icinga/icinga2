@@ -492,6 +492,8 @@ nrpe_no_ssl     | **Optional.** Whether to disable SSL or not. Defaults to `fals
 nrpe_timeout_unknown | **Optional.** Whether to set timeouts to unknown instead of critical state. Defaults to `false`.
 nrpe_timeout    | **Optional.** The timeout in seconds.
 nrpe_arguments	| **Optional.** Arguments that should be passed to the command. Multiple arguments must be defined as array.
+nrpe_ipv4	| **Optional.** Use IPv4 only.
+nrpe_ipv6	| **Optional.** Use IPv6 only.
 
 
 ## <a id="plugin-check-command-nscp"></a> nscp
