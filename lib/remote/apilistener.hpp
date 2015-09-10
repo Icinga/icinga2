@@ -120,6 +120,7 @@ private:
 	static void LogGlobHandler(std::vector<int>& files, const String& file);
 	void ReplayLog(const JsonRpcConnection::Ptr& client);
 
+	/* filesync */
 	static Dictionary::Ptr LoadConfigDir(const String& dir);
 	static bool UpdateConfigDir(const Dictionary::Ptr& oldConfig, const Dictionary::Ptr& newConfig, const String& configDir, bool authoritative);
 
@@ -129,8 +130,11 @@ private:
 	static bool IsConfigMaster(const Zone::Ptr& zone);
 	static void ConfigGlobHandler(Dictionary::Ptr& config, const String& path, const String& file);
 	void SendConfigUpdate(const JsonRpcConnection::Ptr& aclient);
-	
+
+	/* configsync */
 	void UpdateConfigObject(const ConfigObject::Ptr& object, const MessageOrigin::Ptr& origin,
+	    const JsonRpcConnection::Ptr& client = JsonRpcConnection::Ptr());
+	void DeleteConfigObject(const ConfigObject::Ptr& object, const MessageOrigin::Ptr& origin,
 	    const JsonRpcConnection::Ptr& client = JsonRpcConnection::Ptr());
 };
 

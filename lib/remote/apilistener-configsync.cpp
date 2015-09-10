@@ -43,14 +43,17 @@ void ApiListener::ConfigUpdateObjectHandler(const ConfigObject::Ptr& object, con
 {
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 
-	if (!listener)
+	if (!listener) {
+		Log(LogCritical, "ApiListener", "No instance available.");
 		return;
+	}
 
 	if (object->IsActive()) {
 		/* Sync object config */
 		listener->UpdateConfigObject(object, cookie);
 	} else {
 		/* Delete object */
+		listener->DeleteConfigObject(object, cookie);
 	}
 }
 
@@ -136,6 +139,65 @@ Value ApiListener::ConfigUpdateObjectAPIHandler(const MessageOrigin::Ptr& origin
 
 Value ApiListener::ConfigDeleteObjectAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
 {
+	Log(LogWarning, "ApiListener")
+	    << "Received update for object: " << JsonEncode(params);
+
+	/* check permissions */
+	ApiListener::Ptr listener = ApiListener::GetInstance();
+
+	if (!listener) {
+		Log(LogCritical, "ApiListener", "No instance available.");
+		return Empty;
+	}
+
+	if (!listener->GetAcceptConfig()) {
+		Log(LogWarning, "ApiListener")
+		    << "Ignoring config update. '" << listener->GetName() << "' does not accept config.";
+		return Empty;
+	}
+
+	Endpoint::Ptr endpoint = origin->FromClient->GetEndpoint();
+
+	if (!endpoint) {
+		Log(LogNotice, "ApiListener")
+		    << "Discarding 'config update object' message from '" << origin->FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
+		return Empty;
+	}
+
+	/* delete the object */
+	ConfigType::Ptr dtype = ConfigType::GetByName(params->Get("type"));
+
+	if (!dtype) {
+		Log(LogCritical, "ApiListener")
+		    << "Config type '" << params->Get("type") << "' does not exist.";
+		return Empty;
+	}
+
+	ConfigObject::Ptr object = dtype->GetObject(params->Get("name"));
+
+	if (object) {
+
+		if (object->GetPackage() != "_api") {
+		    	Log(LogCritical, "ApiListener")
+			    << "Could not delete object '" << object->GetName() << "': Not created by the API.";
+			return Empty;
+		}
+
+		Array::Ptr errors = new Array();
+		bool cascade = true; //TODO pass that through the cluster
+		if (!ConfigObjectUtility::DeleteObject(object, cascade, errors)) {
+		    	Log(LogCritical, "ApiListener", "Could not delete object:");
+
+		    	ObjectLock olock(errors);
+		    	BOOST_FOREACH(const String& error, errors) {
+		    		Log(LogCritical, "ApiListener", error);
+		    	}
+		}
+	} else {
+		Log(LogWarning, "ApiListener")
+		    << "Could not delete non-existing object '" << params->Get("name") << "'.";
+	}
+
 	return Empty;
 }
 
@@ -182,6 +244,33 @@ void ApiListener::UpdateConfigObject(const ConfigObject::Ptr& object, const Mess
 
 	Log(LogWarning, "ApiListener")
 	    << "Sent update for object: " << JsonEncode(params);
+
+	if (client)
+		JsonRpc::SendMessage(client->GetStream(), message);
+	else
+		RelayMessage(origin, object, message, false);
+}
+
+
+void ApiListener::DeleteConfigObject(const ConfigObject::Ptr& object, const MessageOrigin::Ptr& origin,
+    const JsonRpcConnection::Ptr& client)
+{
+	if (object->GetPackage() != "_api")
+		return;
+
+	Dictionary::Ptr message = new Dictionary();
+	message->Set("jsonrpc", "2.0");
+	message->Set("method", "config::DeleteObject");
+
+	Dictionary::Ptr params = new Dictionary();
+	params->Set("name", object->GetName());
+	params->Set("type", object->GetType()->GetName());
+	params->Set("version", object->GetVersion());
+
+	message->Set("params", params);
+
+	Log(LogWarning, "ApiListener")
+	    << "Sent delete object: " << JsonEncode(params);
 
 	if (client)
 		JsonRpc::SendMessage(client->GetStream(), message);
