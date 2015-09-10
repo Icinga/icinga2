@@ -59,6 +59,29 @@ Value ApiListener::ConfigUpdateObjectAPIHandler(const MessageOrigin::Ptr& origin
 	Log(LogWarning, "ApiListener")
 	    << "Received update for object: " << JsonEncode(params);
 
+	/* check permissions */
+	ApiListener::Ptr listener = ApiListener::GetInstance();
+
+	if (!listener) {
+		Log(LogCritical, "ApiListener", "No instance available.");
+		return Empty;
+	}
+
+	if (!listener->GetAcceptConfig()) {
+		Log(LogWarning, "ApiListener")
+		    << "Ignoring config update. '" << listener->GetName() << "' does not accept config.";
+		return Empty;
+	}
+
+	Endpoint::Ptr endpoint = origin->FromClient->GetEndpoint();
+
+	if (!endpoint) {
+		Log(LogNotice, "ApiListener")
+		    << "Discarding 'config update object' message from '" << origin->FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
+		return Empty;
+	}
+
+	/* update the object */
 	ConfigType::Ptr dtype = ConfigType::GetByName(params->Get("type"));
 
 	if (!dtype) {
@@ -82,6 +105,30 @@ Value ApiListener::ConfigUpdateObjectAPIHandler(const MessageOrigin::Ptr& origin
 		}
 
 		//TODO-MA: modified attributes, same version
+	} else {
+		/* object exists, update its attributes if version was changed */
+		if (params->Get("version") > object->GetVersion()) {
+			Log(LogInformation, "ApiListener")
+			    << "Processing config update for object '" << object->GetName()
+			    << "': Object version '" << object->GetVersion()
+			    << "' is older than the received version '" << params->Get("version") << "'.";
+
+			Dictionary::Ptr modified_attributes = params->Get("modified_attributes");
+
+			if (modified_attributes) {
+				ObjectLock olock(modified_attributes);
+				BOOST_FOREACH(const Dictionary::Pair& kv, modified_attributes) {
+					int fid = object->GetReflectionType()->GetFieldId(kv.first);
+					static_cast<Object::Ptr>(object)->SetField(fid, kv.second, false, origin);
+				}
+			}
+		} else {
+			Log(LogWarning, "ApiListener")
+			    << "Skipping config update for object '" << object->GetName()
+			    << "': Object version '" << object->GetVersion()
+			    << "' is more recent than the received version '" << params->Get("version") << "'.";
+			return Empty;
+		}
 	}
 
 	return Empty;
