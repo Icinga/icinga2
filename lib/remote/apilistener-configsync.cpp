@@ -23,6 +23,7 @@
 #include "remote/jsonrpc.hpp"
 #include "base/configtype.hpp"
 #include "base/json.hpp"
+#include "base/convert.hpp"
 #include <fstream>
 
 using namespace icinga;
@@ -85,51 +86,66 @@ Value ApiListener::ConfigUpdateObjectAPIHandler(const MessageOrigin::Ptr& origin
 	}
 
 	/* update the object */
-	ConfigType::Ptr dtype = ConfigType::GetByName(params->Get("type"));
+	String objType = params->Get("type");
+	String objName = params->Get("name");
+	int objVersion = Convert::ToLong(params->Get("version"));
+
+	ConfigType::Ptr dtype = ConfigType::GetByName(objType);
 
 	if (!dtype) {
 		Log(LogCritical, "ApiListener")
-		    << "Config type '" << params->Get("type") << "' does not exist.";
+		    << "Config type '" << objType << "' does not exist.";
 		return Empty;
 	}
 
-	ConfigObject::Ptr object = dtype->GetObject(params->Get("name"));
+	ConfigObject::Ptr object = dtype->GetObject(objName);
 
 	if (!object) {
+		/* object does not exist, create it through the API */
 		Array::Ptr errors = new Array();
-		if (!ConfigObjectUtility::CreateObject(Type::GetByName(params->Get("type")),
-		    params->Get("name"), params->Get("config"), errors)) {
-		    	Log(LogCritical, "ApiListener", "Could not create object:");
+		if (!ConfigObjectUtility::CreateObject(Type::GetByName(objType),
+		    objName, params->Get("config"), errors)) {
+			Log(LogCritical, "ApiListener")
+			    << "Could not create object '" << objName << "':";
 
 		    	ObjectLock olock(errors);
 		    	BOOST_FOREACH(const String& error, errors) {
 		    		Log(LogCritical, "ApiListener", error);
 		    	}
+		} else {
+			/* object was created, update its version to its origin */
+			ConfigObject::Ptr newObj = dtype->GetObject(objName);
+			if (newObj)
+				newObj->SetVersion(objVersion);
 		}
-
-		//TODO-MA: modified attributes, same version
 	} else {
 		/* object exists, update its attributes if version was changed */
-		if (params->Get("version") > object->GetVersion()) {
+		if (objVersion > object->GetVersion()) {
 			Log(LogInformation, "ApiListener")
 			    << "Processing config update for object '" << object->GetName()
-			    << "': Object version '" << object->GetVersion()
-			    << "' is older than the received version '" << params->Get("version") << "'.";
+			    << "': Object version " << object->GetVersion()
+			    << " is older than the received version " << objVersion << ".";
 
 			Dictionary::Ptr modified_attributes = params->Get("modified_attributes");
 
 			if (modified_attributes) {
 				ObjectLock olock(modified_attributes);
 				BOOST_FOREACH(const Dictionary::Pair& kv, modified_attributes) {
-					int fid = object->GetReflectionType()->GetFieldId(kv.first);
-					static_cast<Object::Ptr>(object)->SetField(fid, kv.second, false, origin);
+					/* update all modified attributes
+					 * but do not update the object version yet.
+					 * This triggers cluster events otherwise.
+					 */
+					object->ModifyAttribute(kv.first, kv.second, false);
 				}
 			}
+
+			/* keep the object version in sync with the sender */
+			object->SetVersion(objVersion);
 		} else {
 			Log(LogWarning, "ApiListener")
-			    << "Skipping config update for object '" << object->GetName()
-			    << "': Object version '" << object->GetVersion()
-			    << "' is more recent than the received version '" << params->Get("version") << "'.";
+			    << "Discarding config update for object '" << object->GetName()
+			    << "': Object version " << object->GetVersion()
+			    << " is more recent than the received version " << objVersion << ".";
 			return Empty;
 		}
 	}

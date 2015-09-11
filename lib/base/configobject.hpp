@@ -53,7 +53,7 @@ public:
 	Value GetExtension(const String& key);
 	void ClearExtension(const String& key);
 
-	void ModifyAttribute(const String& attr, const Value& value);
+	void ModifyAttribute(const String& attr, const Value& value, bool updateVersion = true);
 	void RestoreAttribute(const String& attr);
 	bool IsAttributeModified(const String& attr) const;
 

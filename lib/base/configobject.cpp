@@ -115,7 +115,7 @@ public:
 	}
 };
 
-void ConfigObject::ModifyAttribute(const String& attr, const Value& value)
+void ConfigObject::ModifyAttribute(const String& attr, const Value& value, bool updateVersion)
 {
 	Dictionary::Ptr original_attributes = GetOriginalAttributes();
 	bool updated_original_attributes = false;
@@ -184,7 +184,9 @@ void ConfigObject::ModifyAttribute(const String& attr, const Value& value)
 	ValidateField(fid, newValue, utils);
 
 	SetField(fid, newValue);
-	SetVersion(GetVersion() + 1);
+
+	if (updateVersion)
+		SetVersion(GetVersion() + 1);
 
 	if (updated_original_attributes)
 		NotifyOriginalAttributes();

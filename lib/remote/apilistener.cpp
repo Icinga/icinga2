@@ -807,6 +807,11 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 			logStream->Close();
 		}
 
+		if (count > 0) {
+			Log(LogInformation, "ApiListener")
+			   << "Replayed " << count << " messages.";
+		}
+
 		Log(LogNotice, "ApiListener")
 		   << "Replayed " << count << " messages.";
 
