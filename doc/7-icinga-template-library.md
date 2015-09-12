@@ -945,6 +945,28 @@ mailq_timeout		| **Optional.** Plugin timeout in seconds (default = 15).
 mailq_servertype	| **Optional.** [ sendmail | qmail | postfix | exim | nullmailer ] (default = autodetect).
 
 
+## <a id="plugin-check-command-pgsql"></a> pgsql
+
+Check command object for the `check_pgsql` plugin.
+
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
+
+Name			| Description
+------------------------|---------------------------------------------------------------
+pgsql_hostname		| **Optional.** Host name, IP Address, or unix socket (must be an absolute path). 
+pgsql_port		| **Optional.** Port number (default: 5432).
+pgsql_database		| **Optional.** Database to check (default: template1).
+pgsql_username		| **Optional.** Login name of user.
+pgsql_password		| **Optional.** Password (BIG SECURITY ISSUE).
+pgsql_options		| **Optional.** Connection parameters (keyword = value), see below.
+pgsql_warning		| **Optional.** Response time to result in warning status (seconds).
+pgsql_critical		| **Optional.** Response time to result in critical status (seconds).
+pgsql_timeout		| **Optional.** Seconds before connection times out (default: 10).
+pgsql_query		| **Optional.** SQL query to run. Only first column in first row will be read.
+pgsql_query_warning	| **Optional.** SQL query value to result in warning status (double).
+pgsql_query_critical	| **Optional.** SQL query value to result in critical status (double).
+
+
 # <a id="windows-plugins"></a>Icinga 2 Windows plugins
 
 To allow a basic monitoring of Windows clients Icinga 2 comes with a set of Windows only plugins. While trying to mirror the functionalities of their linux cousins from the monitoring-plugins package, the differences between Windows and Linux are too big to be able use the same CheckCommands for both systems.
