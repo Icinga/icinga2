@@ -142,7 +142,15 @@ Custom attributes passed as [command parameters](3-monitoring-basics.md#command-
 Name                 | Description
 ---------------------|--------------
 dig_server           | **Optional.** The DNS server to query. Defaults to "127.0.0.1".
+dig_port	     | **Optional.** Port number (default: 53).
 dig_lookup           | **Optional.** The address that should be looked up.
+dig_record_type      | **Optional.** Record type to lookup (default: A).
+dig_expected_address | **Optional.** An address expected to be in the answer section. If not set, uses whatever was in -l.
+dig_arguments        | **Optional.** Pass STRING as argument(s) to dig.
+dig_retries	     | **Optional.** Number of retries passed to dig, timeout is divided by this value (Default: 3).
+dig_warning          | **Optional.** Response time to result in warning status (seconds).
+dig_critical         | **Optional.** Response time to result in critical status (seconds).
+dig_timeout          | **Optional.** Seconds before connection times out (default: 10).
 
 
 ## <a id="plugin-check-command-disk"></a> disk
