@@ -555,6 +555,10 @@ Configuration Attributes:
 
 ## <a id="objecttype-icingastatuswriter"></a> IcingaStatusWriter
 
+> **Note**
+>
+> This feature was deprecated in 2.4 and will be removed in future releases.
+
 The IcingaStatusWriter feature periodically dumps the current status
 and performance data from Icinga 2 and all registered features into
 a defined JSON file.

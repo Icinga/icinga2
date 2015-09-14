@@ -60,6 +60,9 @@ void IcingaStatusWriter::Start(void)
 {
 	ObjectImpl<IcingaStatusWriter>::Start();
 
+	/* TODO: remove in versions > 2.4 */
+	Log(LogWarning, "IcingaStatusWriter", "This feature was deprecated in 2.4 and will be removed in future Icinga 2 releases.");
+
 	m_StatusTimer = new Timer();
 	m_StatusTimer->SetInterval(GetUpdateInterval());
 	m_StatusTimer->OnTimerExpired.connect(boost::bind(&IcingaStatusWriter::StatusTimerHandler, this));
