@@ -53,7 +53,7 @@ void ApiListener::ConfigUpdateObjectHandler(const ConfigObject::Ptr& object, con
 	if (object->IsActive()) {
 		/* Sync object config */
 		listener->UpdateConfigObject(object, cookie);
-	} else {
+	} else if (!object->IsActive() && object->GetExtension("ConfigObjectDeleted")) {
 		/* Delete object */
 		listener->DeleteConfigObject(object, cookie);
 	}

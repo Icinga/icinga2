@@ -154,6 +154,9 @@ bool ConfigObjectUtility::DeleteObjectHelper(const ConfigObject::Ptr& object, bo
 	ConfigItem::Ptr item = ConfigItem::GetByTypeAndName(type->GetName(), object->GetName());
 
 	try {
+		/* mark this object for cluster delete event */
+		object->SetExtension("ConfigObjectDeleted", true);
+		/* triggers signal for DB IDO and other interfaces */
 		object->Deactivate();
 
 		if (item)
