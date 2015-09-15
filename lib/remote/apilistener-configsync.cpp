@@ -36,6 +36,7 @@ REGISTER_APIFUNCTION(DeleteObject, config, &ApiListener::ConfigDeleteObjectAPIHa
 
 void ApiListener::StaticInitialize(void)
 {
+	//TODO: Figure out how to delete objects during runtime, but not on shutdown (object inactive)
 	ConfigObject::OnActiveChanged.connect(&ApiListener::ConfigUpdateObjectHandler);
 	ConfigObject::OnVersionChanged.connect(&ApiListener::ConfigUpdateObjectHandler);
 }
@@ -292,4 +293,36 @@ void ApiListener::DeleteConfigObject(const ConfigObject::Ptr& object, const Mess
 		JsonRpc::SendMessage(client->GetStream(), message);
 	else
 		RelayMessage(origin, object, message, false);
+}
+
+void ApiListener::SendRuntimeConfigObjects(const JsonRpcConnection::Ptr& aclient)
+{
+	Endpoint::Ptr endpoint = aclient->GetEndpoint();
+	ASSERT(endpoint);
+
+	Zone::Ptr azone = endpoint->GetZone();
+	Zone::Ptr lzone = Zone::GetLocalZone();
+
+	/* only sync objects in the same zone for now */
+	if (azone->GetName() != lzone->GetName()) {
+		Log(LogWarning, "ApiListener")
+		    << "Skipping object sync to endpoint '" << endpoint->GetName()
+		    << "' in zone '" << azone->GetName() << "'. Not in the same zone '"
+		    << lzone->GetName() << "'.";
+		return;
+	}
+
+	Log(LogInformation, "ApiListener")
+	    << "Syncing runtime objects to endpoint '" << endpoint->GetName() << "'.";
+
+	//TODO get the active stage for "_api" and all objects instead of fetching all objects in memory?
+	BOOST_FOREACH(const ConfigType::Ptr& dt, ConfigType::GetTypes()) {
+		BOOST_FOREACH(const ConfigObject::Ptr& object, dt->GetObjects()) {
+			if (object->GetPackage() != "_api")
+				continue;
+
+			/* send the config object to the connected client */
+			UpdateConfigObject(object, MessageOrigin::Ptr(), aclient);
+		}
+	}
 }

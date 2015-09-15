@@ -136,6 +136,7 @@ private:
 	    const JsonRpcConnection::Ptr& client = JsonRpcConnection::Ptr());
 	void DeleteConfigObject(const ConfigObject::Ptr& object, const MessageOrigin::Ptr& origin,
 	    const JsonRpcConnection::Ptr& client = JsonRpcConnection::Ptr());
+	void SendRuntimeConfigObjects(const JsonRpcConnection::Ptr& aclient);
 };
 
 }

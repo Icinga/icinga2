@@ -380,7 +380,10 @@ void ApiListener::NewClientHandlerInternal(const Socket::Ptr& client, const Stri
 				ReplayLog(aclient);
 			}
 
+			/* sync zone file config */
 			SendConfigUpdate(aclient);
+			/* sync runtime config */
+			SendRuntimeConfigObjects(aclient);
 		} else
 			AddAnonymousClient(aclient);
 	} else {

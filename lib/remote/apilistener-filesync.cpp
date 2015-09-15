@@ -188,9 +188,9 @@ void ApiListener::SendConfigUpdate(const JsonRpcConnection::Ptr& aclient)
 			continue;
 		}
 
-		if (zone->IsGlobal())
-			Log(LogInformation, "ApiListener")
-			    << "Syncing global zone '" << zone->GetName() << "'.";
+		Log(LogInformation, "ApiListener")
+		    << "Syncing " << (zone->IsGlobal() ? "global " : "")
+		    << "zone '" << zone->GetName() << "' to endpoint '" << endpoint->GetName() << "'.";
 
 		configUpdate->Set(zone->GetName(), LoadConfigDir(zonesDir + "/" + zone->GetName()));
 	}
