@@ -106,6 +106,8 @@ private:
 
 	static void StateChangedHandler(const ConfigObject::Ptr& object);
 	static void VarsChangedHandler(const CustomVarObject::Ptr& object);
+	static void VersionChangedHandler(const ConfigObject::Ptr& object);
+
 	static boost::mutex& GetStaticMutex(void);
 
 	friend class DbType;

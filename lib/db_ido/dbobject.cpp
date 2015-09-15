@@ -49,6 +49,9 @@ void DbObject::StaticInitialize(void)
 	/* triggered in ProcessCheckResult(), requires UpdateNextCheck() to be called before */
 	ConfigObject::OnStateChanged.connect(boost::bind(&DbObject::StateChangedHandler, _1));
 	CustomVarObject::OnVarsChanged.connect(boost::bind(&DbObject::VarsChangedHandler, _1));
+
+	/* triggered on create, update and delete objects */
+	ConfigObject::OnVersionChanged.connect(boost::bind(&DbObject::VersionChangedHandler, _1));
 }
 
 void DbObject::SetObject(const ConfigObject::Ptr& object)
@@ -353,6 +356,16 @@ void DbObject::VarsChangedHandler(const CustomVarObject::Ptr& object)
 		return;
 
 	dbobj->SendVarsStatusUpdate();
+}
+
+void DbObject::VersionChangedHandler(const ConfigObject::Ptr& object)
+{
+	DbObject::Ptr dbobj = DbObject::GetOrCreateByObject(object);
+
+	if (dbobj) {
+		dbobj->SendConfigUpdate();
+		dbobj->SendStatusUpdate();
+	}
 }
 
 boost::mutex& DbObject::GetStaticMutex(void)
