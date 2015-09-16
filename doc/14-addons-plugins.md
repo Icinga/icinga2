@@ -52,30 +52,51 @@ for sending real-time metrics from Icinga 2 to Graphite.
 
 There are Graphite addons available for collecting the performance data files too (e.g. `Graphios`).
 
-### <a id="addons-graphing-ingraph"></a> inGraph
+A popular alternative frontend for Graphite is for example [Grafana](http://grafana.org).
 
-[inGraph](https://www.netways.org/projects/ingraph/wiki) requires the ingraph-collector addon
-to be configured to point at the perfdata files. Icinga 2's [PerfdataWriter](5-advanced-topics.md#performance-data) will
-write to the performance data spool directory.
+### <a id="addons-graphing-influxdb"></a> InfluxDB
+
+[InfluxDB](https://influxdb.com) is a time series, metrics, and analytics database.
+It’s written in Go and has no external dependencies.
+
+Use the [GraphiteWriter](5-advanced-topics.md#graphite-carbon-cache-writer) feature
+for sending real-time metrics from Icinga 2 to InfluxDB. Note: There are [API changes](https://github.com/influxdb/influxdb/issues/2102)
+in InfluxDB 0.9.x.
+
+    # icinga2 feature enable graphite
+
+A popular frontend for InfluxDB is for example [Grafana](http://grafana.org).
 
 ## <a id="addons-visualization"></a> Visualization
 
 ### <a id="addons-visualization-reporting"></a> Icinga Reporting
 
-By enabling the DB IDO feature you can use the Icinga Reporting package.
+By enabling the [DB IDO](5-advanced-topics.md#db-ido) feature you can use the
+[Icinga Reporting package](https://wiki.icinga.org/display/howtos/Setting+up+Icinga+with+Reporting).
 
 ### <a id="addons-visualization-nagvis"></a> NagVis
 
-By using either Livestatus or DB IDO as a backend you can create your own network maps
+By using either [Livestatus](16-livestatus.md#setting-up-livestatus) or
+[DB IDO](5-advanced-topics.md#db-ido) as a backend you can create your own network maps
 based on your monitoring configuration and status data using [NagVis](http://www.nagvis.org).
+
+The configuration in nagvis.ini.php should look like this for Livestatus for example:
+
+    [backend_live_1]
+    backendtype="mklivestatus"
+    socket="unix:/var/run/icinga2/cmd/livestatus"
+
+If you are planning an integration into Icinga Web 2, look at [this module](https://github.com/divetoh/icingaweb2-module-nagvis).
 
 ### <a id="addons-visualization-thruk"></a> Thruk
 
-[Thruk](http://www.thruk.org) is an alternative web interface which can be used with Icinga 2.
+[Thruk](http://www.thruk.org) is an alternative web interface which can be used with Icinga 2
+and the [Livestatus](16-livestatus.md#setting-up-livestatus) feature.
 
 ## <a id="log-monitoring"></a> Log Monitoring
 
-Using Logstash or Graylog in your infrastructure and correlate events with your monitoring
+Using [Logstash](https://www.elastic.co/guide/en/logstash/current/introduction.html) or
+[Graylog](https://www.graylog.org) in your infrastructure and correlate events with your monitoring
 is even simpler these days.
 
 * Use the `GelfWriter` feature to write Icinga 2's check and notification events to Graylog or Logstash.
@@ -96,9 +117,11 @@ There's a variety of resources available, be it different notification scripts s
 * Ticket systems
 * etc.
 
-Additionally external services can be integrated with Icinga 2:
+Additionally external services can be [integrated with Icinga 2](https://www.icinga.org/icinga/integration/):
 
-* [Pagerduty](https://www.pagerduty.com/docs/guides/icinga2-integration-guide/)
+* [Pagerduty](https://www.icinga.org/partners/pagerduty/)
+* [VictorOps](https://www.icinga.org/partners/victorops/)
+* [StackStorm](https://www.icinga.org/partners/stackstorm/)
 
 More information can be found on the [Icinga Website](https://www.icinga.org)
 and the [Icinga Wiki](https://wiki.icinga.org/display/howtos/Home).
@@ -110,14 +133,13 @@ touch with their developers. The Icinga project does not provide a configuration
 yet. Follow the [Icinga Blog](https://www.icinga.org/blog/) for updates on this topic.
 
 If you're looking for puppet manifests, chef cookbooks, ansible recipes, etc - we're happy
-to integrate them upstream, so please get in touch at [https://support.icinga.org](https://support.icinga.org).
+to integrate them upstream, so please get in touch with the [Icinga team](https://www.icinga.org/community/get-involved/).
 
 These tools are currently in development and require feedback and tests:
 
 * [Ansible Roles](https://github.com/Icinga/icinga2-ansible)
 * [Puppet Module](https://github.com/Icinga/puppet-icinga2)
 * [Chef Cookbook](https://github.com/Icinga/chef-icinga2)
-
 
 ## <a id="plugins"></a> Plugins
 
