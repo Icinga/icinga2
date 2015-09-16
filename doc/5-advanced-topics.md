@@ -572,17 +572,17 @@ The performance data can be passed to external applications which aggregate and
 store them in their backends. These tools usually generate graphs for historical
 reporting and trending.
 
-Well-known addons processing Icinga performance data are PNP4Nagios,
-inGraph and Graphite.
+Well-known addons processing Icinga performance data are [PNP4Nagios](14-addons-plugins.md#addons-graphing-pnp),
+[Graphite](14-addons-plugins.md#addons-graphing-graphite) or [OpenTSDB](5-advanced-topics.md#opentsdb-writer).
 
 ### <a id="writing-performance-data-files"></a> Writing Performance Data Files
 
-PNP4Nagios, inGraph and Graphios use performance data collector daemons to fetch
+PNP4Nagios and Graphios use performance data collector daemons to fetch
 the current performance files for their backend updates.
 
-Therefore the Icinga 2 `PerfdataWriter` object allows you to define
-the output template format for host and services backed with Icinga 2
-runtime vars.
+Therefore the Icinga 2 [PerfdataWriter](6-object-types.md#objecttype-perfdatawriter)
+feature allows you to define the output template format for host and services helped
+with Icinga 2 runtime vars.
 
     host_format_template = "DATATYPE::HOSTPERFDATA\tTIMET::$icinga.timet$\tHOSTNAME::$host.name$\tHOSTPERFDATA::$host.perfdata$\tHOSTCHECKCOMMAND::$host.check_command$\tHOSTSTATE::$host.state$\tHOSTSTATETYPE::$host.state_type$"
     service_format_template = "DATATYPE::SERVICEPERFDATA\tTIMET::$icinga.timet$\tHOSTNAME::$host.name$\tSERVICEDESC::$service.name$\tSERVICEPERFDATA::$service.perfdata$\tSERVICECHECKCOMMAND::$service.check_command$\tHOSTSTATE::$host.state$\tHOSTSTATETYPE::$host.state_type$\tSERVICESTATE::$service.state$\tSERVICESTATETYPE::$service.state_type$"
@@ -600,8 +600,9 @@ remove the processed files.
 
 ### <a id="graphite-carbon-cache-writer"></a> Graphite Carbon Cache Writer
 
-While there are some Graphite collector scripts and daemons like Graphios available for
-Icinga 1.x it's more reasonable to directly process the check and plugin performance
+While there are some [Graphite](14-addons-plugins.md#addons-graphing-graphite)
+collector scripts and daemons like Graphios available for Icinga 1.x it's more
+reasonable to directly process the check and plugin performance
 in memory in Icinga 2. Once there are new metrics available, Icinga 2 will directly
 write them to the defined Graphite Carbon daemon tcp socket.
 
@@ -609,8 +610,8 @@ You can enable the feature using
 
     # icinga2 feature enable graphite
 
-By default the `GraphiteWriter` object expects the Graphite Carbon Cache to listen at
-`127.0.0.1` on TCP port `2003`.
+By default the [GraphiteWriter](6-object-types.md#objecttype-graphitewriter) feature
+expects the Graphite Carbon Cache to listen at `127.0.0.1` on TCP port `2003`.
 
 The current naming schema is
 
