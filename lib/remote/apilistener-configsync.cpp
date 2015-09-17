@@ -36,7 +36,6 @@ REGISTER_APIFUNCTION(DeleteObject, config, &ApiListener::ConfigDeleteObjectAPIHa
 
 void ApiListener::StaticInitialize(void)
 {
-	//TODO: Figure out how to delete objects during runtime, but not on shutdown (object inactive)
 	ConfigObject::OnActiveChanged.connect(&ApiListener::ConfigUpdateObjectHandler);
 	ConfigObject::OnVersionChanged.connect(&ApiListener::ConfigUpdateObjectHandler);
 }
@@ -61,7 +60,7 @@ void ApiListener::ConfigUpdateObjectHandler(const ConfigObject::Ptr& object, con
 
 Value ApiListener::ConfigUpdateObjectAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
 {
-	Log(LogWarning, "ApiListener")
+	Log(LogNotice, "ApiListener")
 	    << "Received update for object: " << JsonEncode(params);
 
 	/* check permissions */
@@ -83,6 +82,19 @@ Value ApiListener::ConfigUpdateObjectAPIHandler(const MessageOrigin::Ptr& origin
 	if (!endpoint) {
 		Log(LogNotice, "ApiListener")
 		    << "Discarding 'config update object' message from '" << origin->FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
+		return Empty;
+	}
+
+	Zone::Ptr lzone = Zone::GetLocalZone();
+	String objZoneName = params->Get("zone");
+	Zone::Ptr objZone = Zone::GetByName(objZoneName);
+
+	/* discard messages if a) not the target zone and b) object zone is not a child of the local zone */
+	if (objZone && (lzone->GetName() != objZoneName && !objZone->IsChildOf(lzone))) {
+		Log(LogNotice, "ApiListener")
+		    << "Discarding 'config update object' message from '"
+		    << origin->FromClient->GetIdentity() << "': Object with zone '" << objZoneName << "' not allowed in zone '"
+		    << lzone->GetName() << "'.";
 		return Empty;
 	}
 
@@ -143,7 +155,7 @@ Value ApiListener::ConfigUpdateObjectAPIHandler(const MessageOrigin::Ptr& origin
 			/* keep the object version in sync with the sender */
 			object->SetVersion(objVersion);
 		} else {
-			Log(LogWarning, "ApiListener")
+			Log(LogNotice, "ApiListener")
 			    << "Discarding config update for object '" << object->GetName()
 			    << "': Object version " << object->GetVersion()
 			    << " is more recent than the received version " << objVersion << ".";
@@ -156,7 +168,7 @@ Value ApiListener::ConfigUpdateObjectAPIHandler(const MessageOrigin::Ptr& origin
 
 Value ApiListener::ConfigDeleteObjectAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
 {
-	Log(LogWarning, "ApiListener")
+	Log(LogNotice, "ApiListener")
 	    << "Received update for object: " << JsonEncode(params);
 
 	/* check permissions */
@@ -181,6 +193,19 @@ Value ApiListener::ConfigDeleteObjectAPIHandler(const MessageOrigin::Ptr& origin
 		return Empty;
 	}
 
+	Zone::Ptr lzone = Zone::GetLocalZone();
+	String objZoneName = params->Get("zone");
+	Zone::Ptr objZone = Zone::GetByName(objZoneName);
+
+	/* discard messages if a) not the target zone or b) object zone is not a child of the local zone */
+	if (objZone && (lzone->GetName() != objZoneName && !objZone->IsChildOf(lzone))) {
+		Log(LogNotice, "ApiListener")
+		    << "Discarding 'config update object' message from '"
+		    << origin->FromClient->GetIdentity() << "': Object with zone '" << objZoneName << "' not allowed in zone '"
+		    << lzone->GetName() << "'.";
+		return Empty;
+	}
+
 	/* delete the object */
 	ConfigType::Ptr dtype = ConfigType::GetByName(params->Get("type"));
 
@@ -193,7 +218,6 @@ Value ApiListener::ConfigDeleteObjectAPIHandler(const MessageOrigin::Ptr& origin
 	ConfigObject::Ptr object = dtype->GetObject(params->Get("name"));
 
 	if (object) {
-
 		if (object->GetPackage() != "_api") {
 		    	Log(LogCritical, "ApiListener")
 			    << "Could not delete object '" << object->GetName() << "': Not created by the API.";
@@ -211,7 +235,7 @@ Value ApiListener::ConfigDeleteObjectAPIHandler(const MessageOrigin::Ptr& origin
 		    	}
 		}
 	} else {
-		Log(LogWarning, "ApiListener")
+		Log(LogNotice, "ApiListener")
 		    << "Could not delete non-existing object '" << params->Get("name") << "'.";
 	}
 
@@ -232,6 +256,8 @@ void ApiListener::UpdateConfigObject(const ConfigObject::Ptr& object, const Mess
 	params->Set("name", object->GetName());
 	params->Set("type", object->GetType()->GetName());
 	params->Set("version", object->GetVersion());
+	/* required for acceptance criteria on the client */
+	params->Set("zone", object->GetZoneName());
 
 	String file = ConfigObjectUtility::GetObjectConfigPath(object->GetReflectionType(), object->GetName());
 
@@ -259,8 +285,10 @@ void ApiListener::UpdateConfigObject(const ConfigObject::Ptr& object, const Mess
 
 	message->Set("params", params);
 
-	Log(LogWarning, "ApiListener")
+#ifdef I2_DEBUG
+	Log(LogDebug, "ApiListener")
 	    << "Sent update for object: " << JsonEncode(params);
+#endif /* I2_DEBUG */
 
 	if (client)
 		JsonRpc::SendMessage(client->GetStream(), message);
@@ -283,11 +311,15 @@ void ApiListener::DeleteConfigObject(const ConfigObject::Ptr& object, const Mess
 	params->Set("name", object->GetName());
 	params->Set("type", object->GetType()->GetName());
 	params->Set("version", object->GetVersion());
+	/* required for acceptance criteria on the client */
+	params->Set("zone", object->GetZoneName());
 
 	message->Set("params", params);
 
-	Log(LogWarning, "ApiListener")
+#ifdef I2_DEBUG
+	Log(LogDebug, "ApiListener")
 	    << "Sent delete object: " << JsonEncode(params);
+#endif /* I2_DEBUG */
 
 	if (client)
 		JsonRpc::SendMessage(client->GetStream(), message);
@@ -295,6 +327,7 @@ void ApiListener::DeleteConfigObject(const ConfigObject::Ptr& object, const Mess
 		RelayMessage(origin, object, message, false);
 }
 
+/* Initial sync on connect for new endpoints */
 void ApiListener::SendRuntimeConfigObjects(const JsonRpcConnection::Ptr& aclient)
 {
 	Endpoint::Ptr endpoint = aclient->GetEndpoint();
@@ -303,23 +336,33 @@ void ApiListener::SendRuntimeConfigObjects(const JsonRpcConnection::Ptr& aclient
 	Zone::Ptr azone = endpoint->GetZone();
 	Zone::Ptr lzone = Zone::GetLocalZone();
 
-	/* only sync objects in the same zone for now */
-	if (azone->GetName() != lzone->GetName()) {
-		Log(LogWarning, "ApiListener")
-		    << "Skipping object sync to endpoint '" << endpoint->GetName()
-		    << "' in zone '" << azone->GetName() << "'. Not in the same zone '"
-		    << lzone->GetName() << "'.";
-		return;
-	}
-
 	Log(LogInformation, "ApiListener")
 	    << "Syncing runtime objects to endpoint '" << endpoint->GetName() << "'.";
 
-	//TODO get the active stage for "_api" and all objects instead of fetching all objects in memory?
 	BOOST_FOREACH(const ConfigType::Ptr& dt, ConfigType::GetTypes()) {
 		BOOST_FOREACH(const ConfigObject::Ptr& object, dt->GetObjects()) {
 			if (object->GetPackage() != "_api")
 				continue;
+
+			String objZone = object->GetZoneName();
+
+			/* only sync objects in the same zone if no zone attribute was set */
+			if (objZone.IsEmpty() && azone != lzone) {
+				Log(LogDebug, "ApiListener")
+				    << "Skipping sync: No object zone specified and client zone '"
+				    << azone->GetName() << "' does not match local zone '"
+				    << lzone->GetName() << "'.";
+				continue;
+			}
+
+			/* don't sync objects for non-matching parent-child zones */
+			if (!objZone.IsEmpty() && !azone->IsChildOf(lzone)) {
+				Log(LogDebug, "ApiListener")
+				    << "Skipping sync: object zone '" << objZone
+				    << "' defined but client zone '"  << azone->GetName()
+				    << "' is not a child of the local zone '" << lzone->GetName() << "'.";
+				continue;
+			}
 
 			/* send the config object to the connected client */
 			UpdateConfigObject(object, MessageOrigin::Ptr(), aclient);
