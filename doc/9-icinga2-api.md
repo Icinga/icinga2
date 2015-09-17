@@ -302,6 +302,18 @@ Reschedule a service check for all services in NOT-OK state:
 Provides functionality for all configuration object url endpoints listed
 [here](9-icinga2-api.md#icinga2-api-url-overview).
 
+### <a id="icinga2-api-objects"></a> API Objects and Cluster Config Sync
+
+Newly created or updated objects can be synced throughout your
+Icinga 2 cluster. Set the `zone` attribute to the zone this object
+belongs to and let the API and cluster handle the rest.
+
+If you add a new cluster instance, or boot an instance beeing offline
+for a while, Icinga 2 takes care of the initial object sync for all
+objects created by the API.
+
+More information about distributed monitoring, cluster and its
+configuration can be found [here](13-distributed-monitoring-ha.md#distributed-monitoring-high-availability).
 
 ### <a id="icinga2-api-hosts"></a> Hosts
 
