@@ -248,6 +248,10 @@ void ApiListener::UpdateConfigObject(const ConfigObject::Ptr& object, const Mess
 	if (object->GetPackage() != "_api")
 		return;
 
+	/* don't sync objects without a zone attribute */
+	if (object->GetZoneName().IsEmpty())
+		return;
+
 	Dictionary::Ptr message = new Dictionary();
 	message->Set("jsonrpc", "2.0");
 	message->Set("method", "config::UpdateObject");
@@ -303,6 +307,10 @@ void ApiListener::DeleteConfigObject(const ConfigObject::Ptr& object, const Mess
 	if (object->GetPackage() != "_api")
 		return;
 
+	/* don't sync objects without a zone attribute */
+	if (object->GetZoneName().IsEmpty())
+		return;
+
 	Dictionary::Ptr message = new Dictionary();
 	message->Set("jsonrpc", "2.0");
 	message->Set("method", "config::DeleteObject");
@@ -346,17 +354,12 @@ void ApiListener::SendRuntimeConfigObjects(const JsonRpcConnection::Ptr& aclient
 
 			String objZone = object->GetZoneName();
 
-			/* only sync objects in the same zone if no zone attribute was set */
-			if (objZone.IsEmpty() && azone != lzone) {
-				Log(LogDebug, "ApiListener")
-				    << "Skipping sync: No object zone specified and client zone '"
-				    << azone->GetName() << "' does not match local zone '"
-				    << lzone->GetName() << "'.";
+			/* don't sync objects without a zone attribute */
+			if (objZone.IsEmpty())
 				continue;
-			}
 
 			/* don't sync objects for non-matching parent-child zones */
-			if (!objZone.IsEmpty() && !azone->IsChildOf(lzone)) {
+			if (!azone->IsChildOf(lzone) && azone != lzone) {
 				Log(LogDebug, "ApiListener")
 				    << "Skipping sync: object zone '" << objZone
 				    << "' defined but client zone '"  << azone->GetName()
