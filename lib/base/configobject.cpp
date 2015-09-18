@@ -138,9 +138,9 @@ void ConfigObject::ModifyAttribute(const String& attr, const Value& value, bool 
 			SetOriginalAttributes(original_attributes, true);
 		}
 
-		if (!original_attributes->Contains(attr)) {
+		if (!original_attributes->Contains(fieldName)) {
 			updated_original_attributes = true;
-			original_attributes->Set(attr, oldValue);
+			original_attributes->Set(fieldName, oldValue);
 		}
 	}
 
@@ -194,16 +194,78 @@ void ConfigObject::ModifyAttribute(const String& attr, const Value& value, bool 
 
 void ConfigObject::RestoreAttribute(const String& attr)
 {
-	//TODO-MA: vars.os
+	Type::Ptr type = GetReflectionType();
+
+	std::vector<String> tokens;
+	boost::algorithm::split(tokens, attr, boost::is_any_of("."));
+
+	String fieldName = tokens[0];
+
+	int fid = type->GetFieldId(fieldName);
+	Field field = type->GetFieldInfo(fid);
+
+	Value currentValue = GetField(fid);
+
 	Dictionary::Ptr original_attributes = GetOriginalAttributes();
 
-	if (!original_attributes || !original_attributes->Contains(attr))
+	if (!original_attributes || !original_attributes->Contains(fieldName))
 		return;
 
-	Value attrVal = original_attributes->Get(attr);
+	Value newValue;
 
-	SetField(GetReflectionType()->GetFieldId(attr), attrVal);
-	original_attributes->Remove(attr);
+	if (tokens.size() > 1) {
+		newValue = currentValue.Clone();
+		Value current = newValue;
+
+		if (current.IsEmpty())
+			BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot restore non-existing object attribute"));
+
+		Value old = original_attributes->Get(fieldName);
+
+		for (std::vector<String>::size_type i = 1; i < tokens.size() - 1; i++) {
+			if (!current.IsObjectType<Dictionary>() || !old.IsObjectType<Dictionary>())
+				BOOST_THROW_EXCEPTION(std::invalid_argument("Value must be a dictionary."));
+
+			Dictionary::Ptr currentDict = current;
+			Dictionary::Ptr oldDict = old;
+
+			const String& key = tokens[i];
+
+			if (!currentDict->Contains(key))
+				BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot restore non-existing object attribute"));
+
+			/* silently ignore missing old values */
+			if (!oldDict->Contains(key))
+				return;
+
+			current = currentDict->Get(key);
+			old = oldDict->Get(key);
+		}
+
+		if (!current.IsObjectType<Dictionary>() || !old.IsObjectType<Dictionary>())
+			BOOST_THROW_EXCEPTION(std::invalid_argument("Value must be a dictionary."));
+
+		Dictionary::Ptr currentDict = current;
+		Dictionary::Ptr oldDict = old;
+
+		const String& key = tokens[tokens.size() - 1];
+
+		Value oldValue = oldDict->Get(key).Clone();
+		currentDict->Set(key, oldValue);
+
+		oldDict->Remove(key);
+	} else {
+		newValue = original_attributes->Get(fieldName);
+		original_attributes->Remove(fieldName);
+	}
+
+	SetField(fid, newValue);
+
+	/* increment the version. although restoring would mean
+	 * decrementing the version, but we cannot notify other
+	 * cluster nodes without increment.
+	 */
+	SetVersion(GetVersion() + 1);
 }
 
 bool ConfigObject::IsAttributeModified(const String& attr) const
