@@ -121,15 +121,15 @@ void ConfigObject::ModifyAttribute(const String& attr, const Value& value, bool 
 	bool updated_original_attributes = false;
 
 	Type::Ptr type = GetReflectionType();
-	
+
 	std::vector<String> tokens;
 	boost::algorithm::split(tokens, attr, boost::is_any_of("."));
-	
+
 	String fieldName = tokens[0];
-	
+
 	int fid = type->GetFieldId(fieldName);
 	Field field = type->GetFieldInfo(fid);
-	
+
 	Value oldValue = GetField(fid);
 
 	if (field.Attributes & FAConfig) {
@@ -143,25 +143,25 @@ void ConfigObject::ModifyAttribute(const String& attr, const Value& value, bool 
 			original_attributes->Set(attr, oldValue);
 		}
 	}
-	
+
 	Value newValue;
-	
+
 	if (tokens.size() > 1) {
 		newValue = oldValue.Clone();
 		Value current = newValue;
-		
+
 		if (current.IsEmpty()) {
 			current = new Dictionary();
 			newValue = current;
 		}
-	
+
 		for (std::vector<String>::size_type i = 1; i < tokens.size() - 1; i++) {
 			if (!current.IsObjectType<Dictionary>())
 				BOOST_THROW_EXCEPTION(std::invalid_argument("Value must be a dictionary."));
 
 			Dictionary::Ptr dict = current;
 			const String& key = tokens[i];
-			
+
 			if (!dict->Contains(key)) {
 				current = new Dictionary();
 				dict->Set(key, current);
@@ -169,13 +169,13 @@ void ConfigObject::ModifyAttribute(const String& attr, const Value& value, bool 
 				current = dict->Get(key);
 			}
 		}
-		
+
 		if (!current.IsObjectType<Dictionary>())
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Value must be a dictionary."));
-	
+
 		Dictionary::Ptr dict = current;
 		const String& key = tokens[tokens.size() - 1];
-		
+
 		dict->Set(key, value);
 	} else
 		newValue = value;
@@ -259,7 +259,7 @@ void ConfigObject::Activate(void)
 	}
 
 	SetAuthority(true);
-	
+
 	NotifyActive();
 }
 
