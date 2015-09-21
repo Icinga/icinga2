@@ -130,20 +130,14 @@ void ConfigObject::ModifyAttribute(const String& attr, const Value& value, bool 
 	int fid = type->GetFieldId(fieldName);
 	Field field = type->GetFieldInfo(fid);
 
-	Value oldValue = GetField(fid);
-
 	if (field.Attributes & FAConfig) {
 		if (!original_attributes) {
 			original_attributes = new Dictionary();
 			SetOriginalAttributes(original_attributes, true);
 		}
-
-		if (!original_attributes->Contains(fieldName)) {
-			updated_original_attributes = true;
-			original_attributes->Set(fieldName, oldValue);
-		}
 	}
 
+	Value oldValue = GetField(fid);
 	Value newValue;
 
 	if (tokens.size() > 1) {
@@ -155,12 +149,16 @@ void ConfigObject::ModifyAttribute(const String& attr, const Value& value, bool 
 			newValue = current;
 		}
 
+		String prefix = tokens[0];
+
 		for (std::vector<String>::size_type i = 1; i < tokens.size() - 1; i++) {
 			if (!current.IsObjectType<Dictionary>())
 				BOOST_THROW_EXCEPTION(std::invalid_argument("Value must be a dictionary."));
 
 			Dictionary::Ptr dict = current;
+
 			const String& key = tokens[i];
+			prefix += "." + key;
 
 			if (!dict->Contains(key)) {
 				current = new Dictionary();
@@ -174,11 +172,50 @@ void ConfigObject::ModifyAttribute(const String& attr, const Value& value, bool 
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Value must be a dictionary."));
 
 		Dictionary::Ptr dict = current;
+
 		const String& key = tokens[tokens.size() - 1];
+		prefix += "." + key;
+
+		/* clone it for original attributes */
+		oldValue = dict->Get(key).Clone();
+
+		if (field.Attributes & FAConfig) {
+			updated_original_attributes = true;
+
+			if (oldValue.IsObjectType<Dictionary>()) {
+				Dictionary::Ptr oldDict = oldValue;
+				ObjectLock olock(oldDict);
+				BOOST_FOREACH(const Dictionary::Pair& kv, oldDict) {
+					String key = prefix + "." + kv.first;
+					if (!original_attributes->Contains(key))
+						original_attributes->Set(key, kv.second);
+				}
+
+				/* store the new value as null */
+				if (value.IsObjectType<Dictionary>()) {
+					Dictionary::Ptr valueDict = value;
+					ObjectLock olock(valueDict);
+					BOOST_FOREACH(const Dictionary::Pair& kv, valueDict) {
+						String key = attr + "." + kv.first;
+						if (!original_attributes->Contains(key))
+							original_attributes->Set(key, Empty);
+					}
+				}
+			} else if (!original_attributes->Contains(attr))
+				original_attributes->Set(attr, oldValue);
+		}
 
 		dict->Set(key, value);
-	} else
+	} else {
 		newValue = value;
+
+		if (field.Attributes & FAConfig) {
+			if (!original_attributes->Contains(attr)) {
+				updated_original_attributes = true;
+				original_attributes->Set(attr, oldValue);
+			}
+		}
+	}
 
 	ModAttrValidationUtils utils;
 	ValidateField(fid, newValue, utils);
@@ -208,9 +245,10 @@ void ConfigObject::RestoreAttribute(const String& attr)
 
 	Dictionary::Ptr original_attributes = GetOriginalAttributes();
 
-	if (!original_attributes || !original_attributes->Contains(fieldName))
+	if (!original_attributes)
 		return;
 
+	Value oldValue = original_attributes->Get(attr);
 	Value newValue;
 
 	if (tokens.size() > 1) {
@@ -220,45 +258,87 @@ void ConfigObject::RestoreAttribute(const String& attr)
 		if (current.IsEmpty())
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot restore non-existing object attribute"));
 
-		Value old = original_attributes->Get(fieldName);
+		String prefix = tokens[0];
 
 		for (std::vector<String>::size_type i = 1; i < tokens.size() - 1; i++) {
-			if (!current.IsObjectType<Dictionary>() || !old.IsObjectType<Dictionary>())
+			if (!current.IsObjectType<Dictionary>())
 				BOOST_THROW_EXCEPTION(std::invalid_argument("Value must be a dictionary."));
 
-			Dictionary::Ptr currentDict = current;
-			Dictionary::Ptr oldDict = old;
+			Dictionary::Ptr dict = current;
 
 			const String& key = tokens[i];
+			prefix += "." + key;
 
-			if (!currentDict->Contains(key))
+			if (!dict->Contains(key))
 				BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot restore non-existing object attribute"));
 
-			/* silently ignore missing old values */
-			if (!oldDict->Contains(key))
-				return;
-
-			current = currentDict->Get(key);
-			old = oldDict->Get(key);
+			current = dict->Get(key);
 		}
 
-		if (!current.IsObjectType<Dictionary>() || !old.IsObjectType<Dictionary>())
+		if (!current.IsObjectType<Dictionary>())
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Value must be a dictionary."));
 
-		Dictionary::Ptr currentDict = current;
-		Dictionary::Ptr oldDict = old;
+		Dictionary::Ptr dict = current;
 
 		const String& key = tokens[tokens.size() - 1];
+		prefix += "." + key;
 
-		Value oldValue = oldDict->Get(key).Clone();
-		currentDict->Set(key, oldValue);
+		std::vector<String> restoredAttrs;
 
-		oldDict->Remove(key);
+		{
+			ObjectLock olock(original_attributes);
+			BOOST_FOREACH(const Dictionary::Pair& kv, original_attributes) {
+				std::vector<String> originalTokens;
+				boost::algorithm::split(originalTokens, kv.first, boost::is_any_of("."));
+
+				if (tokens.size() > originalTokens.size())
+					continue;
+
+				bool match = true;
+				for (std::vector<String>::size_type i = 0; i < tokens.size(); i++) {
+					if (tokens[i] != originalTokens[i]) {
+						match = false;
+						break;
+					}
+				}
+
+				if (!match)
+					continue;
+
+				Dictionary::Ptr dict;
+
+				if (tokens.size() == originalTokens.size())
+					dict = current;
+				else {
+					Value currentSub = current;
+
+					for (std::vector<String>::size_type i = tokens.size() - 1; i < originalTokens.size() - 1; i++) {
+						dict = currentSub;
+						currentSub = dict->Get(originalTokens[i]);
+
+						if (!currentSub.IsObjectType<Dictionary>()) {
+							currentSub = new Dictionary();
+							dict->Set(originalTokens[i], currentSub);
+						}
+					}
+
+					dict = currentSub;
+				}
+
+				dict->Set(originalTokens[originalTokens.size() - 1], kv.second);
+				restoredAttrs.push_back(kv.first);
+			}
+		}
+
+		BOOST_FOREACH(const String& attr, restoredAttrs)
+			original_attributes->Remove(attr);
+
+
 	} else {
-		newValue = original_attributes->Get(fieldName);
-		original_attributes->Remove(fieldName);
+		newValue = oldValue;
 	}
 
+	original_attributes->Remove(attr);
 	SetField(fid, newValue);
 
 	/* increment the version. although restoring would mean
@@ -557,10 +637,47 @@ void ConfigObject::DumpModifiedAttributes(const boost::function<void(const Confi
 
 			ObjectLock olock(originalAttributes);
 			BOOST_FOREACH(const Dictionary::Pair& kv, originalAttributes) {
+				String key = kv.first;
 				// TODO-MA: vars.os
-				int fid = object->GetReflectionType()->GetFieldId(kv.first);
-				Value value = object->GetField(fid);
-				callback(object, kv.first, value);
+
+				Type::Ptr type = object->GetReflectionType();
+
+				std::vector<String> tokens;
+				boost::algorithm::split(tokens, key, boost::is_any_of("."));
+
+				String fieldName = tokens[0];
+				int fid = type->GetFieldId(fieldName);
+
+				Value currentValue = object->GetField(fid);
+				Value modifiedValue;
+
+				if (tokens.size() > 1) {
+					Value current = currentValue;
+
+					for (std::vector<String>::size_type i = 1; i < tokens.size() - 1; i++) {
+						if (!current.IsObjectType<Dictionary>())
+							BOOST_THROW_EXCEPTION(std::invalid_argument("Value must be a dictionary."));
+
+						Dictionary::Ptr dict = current;
+						const String& key = tokens[i];
+
+						if (!dict->Contains(key))
+							break;
+
+						current = dict->Get(key);
+					}
+
+					if (!current.IsObjectType<Dictionary>())
+						BOOST_THROW_EXCEPTION(std::invalid_argument("Value must be a dictionary."));
+
+					Dictionary::Ptr dict = current;
+					const String& key = tokens[tokens.size() - 1];
+
+					modifiedValue = dict->Get(key);
+				} else
+					modifiedValue = currentValue;
+
+				callback(object, key, modifiedValue);
 			}
 		}
 	}
