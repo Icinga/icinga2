@@ -25,6 +25,6 @@ using namespace icinga;
 AboutForm::AboutForm(wxWindow *parent)
 	: AboutFormBase(parent)
 {
-	std::string version = "Version " + Application::GetVersion();
+	std::string version = "Version " + Application::GetAppVersion();
 	m_VersionLabel->SetLabelText(version);
 }
