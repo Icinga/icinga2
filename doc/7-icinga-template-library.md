@@ -1391,18 +1391,33 @@ nscp_load_all   | **Optional.** Whether to load all modules. Defaults to true.
 nscp_boot       | **Optional.** Whether to use the --boot option. Defaults to true.
 nscp_query      | **Required.** The NSClient++ query. Try `nscp client -q x` for a list.
 nscp_arguments  | **Optional.** An array of query arguments.
+nscp_showall	| **Optional.** Shows more details in plugin output, default to false.
 
 ### <a id="nscp-check-local-cpu"></a> nscp-local-cpu
 
 Check command object for the `check_cpu` NSClient++ plugin.
 
-This command has the same custom attributes like the `nscp-local` check command.
+Name                | Description
+--------------------|------------------
+nscp_cpu_time       | **Optional.** Calculate avarage usage for the given time intervals. Value has to be an array, default to [ "1m", "5m", "15m" ].
+nscp_cpu_warning    | **Optional.** Threshold for WARNING state in percent, default to 80.
+nscp_cpu_critical   | **Optional.** Threshold for CRITICAL state in percent, default to 90.
+nscp_cpu_arguments  | **Optional.** Additional arguments.
+nscp_cpu_showall    | **Optional.** Shows more details in plugin output, default to false.
 
 ### <a id="nscp-check-local-memory"></a> nscp-local-memory
 
 Check command object for the `check_memory` NSClient++ plugin.
 
-This command has the same custom attributes like the `nscp-local` check command.
+Name                  | Description
+----------------------|------------------
+nscp_memory_committed | **Optional.** Check for committed memory, default to false.
+nscp_memory_physical  | **Optional.** Check for physical memory, default to true.
+nscp_memory_free      | **Optional.** Switch between checking free (true) or used memory (false), default to false.
+nscp_memory_warning   | **Optional.** Threshold for WARNING state in percent or absolut (use MB, GB, ...), default to 80 (free=false) or 20 (free=true).
+nscp_memory_critical  | **Optional.** Threshold for CRITICAL state in percent or absolut (use MB, GB, ...), default to 90 (free=false) or 10 (free=true).
+nscp_memory_arguments | **Optional.** Additional arguments.
+nscp_memory_showall   | **Optional.** Shows more details in plugin output, default to false.
 
 ### <a id="nscp-check-local-os-version"></a> nscp-local-os-version
 
@@ -1426,7 +1441,18 @@ This command has the same custom attributes like the `nscp-local` check command.
 
 Check command object for the `check_service` NSClient++ plugin.
 
-This command has the same custom attributes like the `nscp-local` check command.
+Name                   | Description
+-----------------------|------------------
+nscp_service_name      | **Required.** Name of service to check.
+nscp_service_type      | **Optional.** Type to check, default to state.
+nscp_service_ok	       | **Optional.** State for return an OK, i.e. for type=state running, stopped, ...
+nscp_service_otype     | **Optional.** Dedicate type for nscp_service_ok, default to nscp_service_state.
+nscp_service_warning   | **Optional.** State for return an WARNING.
+nscp_service_wtype     | **Optional.** Dedicate type for nscp_service_warning, default to nscp_service_state.
+nscp_service_critical  | **Optional.** State for return an CRITICAL.
+nscp_service_ctype     | **Optional.** Dedicate type for nscp_service_critical, default to nscp_service_state.
+nscp_service_arguments | **Optional.** Additional arguments.
+nscp_service_showall   | **Optional.** Shows more details in plugin output, default to true.
 
 ### <a id="nscp-check-local-uptime"></a> nscp-local-uptime
 
@@ -1444,13 +1470,26 @@ This command has the same custom attributes like the `nscp-local` check command.
 
 Check command object for the `check_drivesize` NSClient++ plugin.
 
-This command has the same custom attributes like the `nscp-local` check command.
+Name                   | Description
+-----------------------|------------------
+nscp_disk_drive        | **Optional.** Drive character, default to all drives.
+nscp_disk_free         | **Optional.** Switch between checking free space (free=true) or used space (free=false), default to false.
+nscp_disk_warning      | **Optional.** Threshold for WARNING in percent or absolut (use MB, GB, ...), default to 80 (used) or 20 percent (free).
+nscp_disk_critical     | **Optional.** Threshold for CRITICAL in percent or absolut (use MB, GB, ...), default to 90 (used) or 10 percent (free).
+nscp_disk_arguments    | **Optional.** Additional arguments.
+nscp_disk_showall      | **Optional.** Shows more details in plugin output, default to true.
 
 ### <a id="nscp-check-local-counter"></a> nscp-local-counter
 
 Check command object for the `check_pdh` NSClient++ plugin.
 
-This command has the same custom attributes like the `nscp-local` check command.
+Name                   | Description
+-----------------------|------------------
+nscp_counter_name      | **Required.** Performance counter name.
+nscp_counter_warning   | **Optional.** WARNING Threshold.
+nscp_counter_critical  | **Optional.** CRITICAL Threshold.
+nscp_counter_arguments | **Optional.** Additional arguments.
+nscp_counter_showall   | **Optional.** Shows more details in plugin output, default to false.
 
 
 
