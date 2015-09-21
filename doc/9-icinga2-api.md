@@ -123,7 +123,7 @@ Once the API user is configured make sure to restart Icinga 2:
 
 Now pass the basic auth information to curl and send a GET request to the API:
 
-    $ curl -u root:icinga -k -s 'https://nbmif.int.netways.de:5665/v1' -X GET
+    $ curl -u root:icinga -k -s 'https://nbmif.int.netways.de:5665/v1'
 
 In case you will get `Unauthorized` make sure to check the API user credentials.
 
@@ -140,7 +140,7 @@ passing parameters to the request:
 * Query string (`GET`, `DELETE`)
 
 Reserved characters by the HTTP protocol must be passed url-encoded as query string, e.g. a
-whitespace becomes `%20`.
+space becomes `%20`.
 
 Example for query string:
 
@@ -330,7 +330,7 @@ Output listing and url parameters use the same syntax.
 Send a `GET` request to `/v1/hosts` to list all host objects and
 their attributes.
 
-    $ curl -u root:icinga -k -s 'https://localhost:5665/v1/hosts' -X GET
+    $ curl -u root:icinga -k -s 'https://localhost:5665/v1/hosts'
 
 
 #### <a id="icinga2-api-hosts-create"></a> Create New Host Object
@@ -390,12 +390,12 @@ contains a detailed error message. The following example omits the required `che
 
 Send a `GET` request including the host name inside the url:
 
-    $ curl -u root:icinga -k -s 'https://localhost:5665/v1/hosts/google.com' -X GET
+    $ curl -u root:icinga -k -s 'https://localhost:5665/v1/hosts/google.com'
 
 You can select specific attributes by adding them as url parameters using `?attrs=...`. Multiple
 attributes must be added one by one, e.g. `?attrs=host.address&attrs=host.name`.
 
-    $ curl -u root:icinga -k -s 'https://localhost:5665/v1/hosts/google.com?attrs=host.name&attrs=host.address' -X GET | python -m json.tool
+    $ curl -u root:icinga -k -s 'https://localhost:5665/v1/hosts/google.com?attrs=host.name&attrs=host.address' | python -m json.tool
     {
         "results": [
             {
@@ -547,7 +547,7 @@ older revisions and their requests.
 The following example contains one configuration package `puppet`.
 The latter already has a stage created, but it is not active.
 
-    $ curl -k -s -u root:icinga -X GET https://localhost:5665/v1/config/packages | python -m json.tool
+    $ curl -k -s -u root:icinga https://localhost:5665/v1/config/packages | python -m json.tool
     {
         "results": [
             {
@@ -565,7 +565,7 @@ The latter already has a stage created, but it is not active.
 Sent a `GET` request to the url endpoint `/v1/config/stages` including the package
 (`puppet`) and stage (`nbmif-1441625839-0`) name.
 
-    $ curl -k -s -u root:icinga -X GET https://localhost:5665/v1/config/stages/puppet/nbmif-1441625839-0 | python -m json.tool
+    $ curl -k -s -u root:icinga https://localhost:5665/v1/config/stages/puppet/nbmif-1441625839-0 | python -m json.tool
     {
         "results": [
     ...
@@ -605,7 +605,7 @@ in a configuration stage and then specifically request their content.
 The following example fetches the faulty configuration inside `conf.d/test.conf`
 for further analysis.
 
-    $ curl -k -s -u root:icinga -X GET https://localhost:5665/v1/config/files/puppet/nbmif-1441625839-0/conf.d/test.conf 
+    $ curl -k -s -u root:icinga https://localhost:5665/v1/config/files/puppet/nbmif-1441625839-0/conf.d/test.conf 
     object Host "cfg-mgmt" { chec_command = "dummy" }
 
 Note: The returned files are plain-text instead of JSON-encoded.
@@ -617,7 +617,7 @@ there must have been an error.
 
 Fetch the `startup.log` file and check the config validation errors:
 
-    $ curl -k -s -u root:icinga -X GET https://localhost:5665/v1/config/files/puppet/imagine-1441133065-1/startup.log
+    $ curl -k -s -u root:icinga https://localhost:5665/v1/config/files/puppet/imagine-1441133065-1/startup.log
     ...
     
     critical/config: Error: Attribute 'chec_command' does not exist.
