@@ -38,7 +38,7 @@ using namespace icinga;
 
 REGISTER_TYPE(CheckResultReader);
 
-REGISTER_STATSFUNCTION(CheckResultReaderStats, &CheckResultReader::StatsFunc);
+REGISTER_STATSFUNCTION(CheckResultReader, &CheckResultReader::StatsFunc);
 
 void CheckResultReader::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 {

@@ -41,7 +41,7 @@ static int l_ClientsConnected = 0;
 static int l_Connections = 0;
 static boost::mutex l_ComponentMutex;
 
-REGISTER_STATSFUNCTION(LivestatusListenerStats, &LivestatusListener::StatsFunc);
+REGISTER_STATSFUNCTION(LivestatusListener, &LivestatusListener::StatsFunc);
 
 void LivestatusListener::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
 {

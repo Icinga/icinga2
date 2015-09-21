@@ -28,7 +28,7 @@ using namespace icinga;
 
 REGISTER_TYPE(SyslogLogger);
 
-REGISTER_STATSFUNCTION(SyslogLoggerStats, &SyslogLogger::StatsFunc);
+REGISTER_STATSFUNCTION(SyslogLogger, &SyslogLogger::StatsFunc);
 
 void SyslogLogger::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 {

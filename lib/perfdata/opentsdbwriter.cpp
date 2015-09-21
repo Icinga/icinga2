@@ -45,7 +45,7 @@ using namespace icinga;
 
 REGISTER_TYPE(OpenTsdbWriter);
 
-REGISTER_STATSFUNCTION(OpenTsdbWriterStats, &OpenTsdbWriter::StatsFunc);
+REGISTER_STATSFUNCTION(OpenTsdbWriter, &OpenTsdbWriter::StatsFunc);
 
 void OpenTsdbWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 {

@@ -87,6 +87,8 @@ public:
 
 	static std::pair<Dictionary::Ptr, Array::Ptr> GetFeatureStats(void);
 
+	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
+
 private:
 	CIB(void);
 

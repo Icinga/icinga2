@@ -41,7 +41,7 @@ using namespace icinga;
 
 REGISTER_TYPE(CompatLogger);
 
-REGISTER_STATSFUNCTION(CompatLoggerStats, &CompatLogger::StatsFunc);
+REGISTER_STATSFUNCTION(CompatLogger, &CompatLogger::StatsFunc);
 
 void CompatLogger::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 {

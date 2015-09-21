@@ -38,7 +38,7 @@ using namespace icinga;
 
 REGISTER_TYPE(IdoPgsqlConnection);
 
-REGISTER_STATSFUNCTION(IdoPgsqlConnectionStats, &IdoPgsqlConnection::StatsFunc);
+REGISTER_STATSFUNCTION(IdoPgsqlConnection, &IdoPgsqlConnection::StatsFunc);
 
 IdoPgsqlConnection::IdoPgsqlConnection(void)
 	: m_QueryQueue(500000)

@@ -20,6 +20,7 @@
 #include "icinga/cib.hpp"
 #include "icinga/host.hpp"
 #include "icinga/service.hpp"
+#include "icinga/perfdatavalue.hpp"
 #include "base/objectlock.hpp"
 #include "base/utility.hpp"
 #include "base/configtype.hpp"
@@ -256,3 +257,62 @@ std::pair<Dictionary::Ptr, Array::Ptr> CIB::GetFeatureStats(void)
 	return std::make_pair(status, perfdata);
 }
 
+REGISTER_STATSFUNCTION(CIB, &CIB::StatsFunc);
+
+void CIB::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata) {
+	double interval = Utility::GetTime() - Application::GetStartTime();
+
+	if (interval > 60)
+		interval = 60;
+
+	status->Set("active_host_checks", GetActiveHostChecksStatistics(interval) / interval);
+	status->Set("passive_host_checks", GetPassiveHostChecksStatistics(interval) / interval);
+	status->Set("active_host_checks_1min", GetActiveHostChecksStatistics(60));
+	status->Set("passive_host_checks_1min", GetPassiveHostChecksStatistics(60));
+	status->Set("active_host_checks_5min", GetActiveHostChecksStatistics(60 * 5));
+	status->Set("passive_host_checks_5min", GetPassiveHostChecksStatistics(60 * 5));
+	status->Set("active_host_checks_15min", GetActiveHostChecksStatistics(60 * 15));
+	status->Set("passive_host_checks_15min", GetPassiveHostChecksStatistics(60 * 15));
+
+	status->Set("active_service_checks", GetActiveServiceChecksStatistics(interval) / interval);
+	status->Set("passive_service_checks", GetPassiveServiceChecksStatistics(interval) / interval);
+	status->Set("active_service_checks_1min", GetActiveServiceChecksStatistics(60));
+	status->Set("passive_service_checks_1min", GetPassiveServiceChecksStatistics(60));
+	status->Set("active_service_checks_5min", GetActiveServiceChecksStatistics(60 * 5));
+	status->Set("passive_service_checks_5min", GetPassiveServiceChecksStatistics(60 * 5));
+	status->Set("active_service_checks_15min", GetActiveServiceChecksStatistics(60 * 15));
+	status->Set("passive_service_checks_15min", GetPassiveServiceChecksStatistics(60 * 15));
+
+	CheckableCheckStatistics scs = CalculateServiceCheckStats();
+
+	status->Set("min_latency", scs.min_latency);
+	status->Set("max_latency", scs.max_latency);
+	status->Set("avg_latency", scs.avg_latency);
+	status->Set("min_execution_time", scs.min_latency);
+	status->Set("max_execution_time", scs.max_latency);
+	status->Set("avg_execution_time", scs.avg_execution_time);
+
+	ServiceStatistics ss = CalculateServiceStats();
+
+	status->Set("num_services_ok", ss.services_ok);
+	status->Set("num_services_warning", ss.services_warning);
+	status->Set("num_services_critical", ss.services_critical);
+	status->Set("num_services_unknown", ss.services_unknown);
+	status->Set("num_services_pending", ss.services_pending);
+	status->Set("num_services_unreachable", ss.services_unreachable);
+	status->Set("num_services_flapping", ss.services_flapping);
+	status->Set("num_services_in_downtime", ss.services_in_downtime);
+	status->Set("num_services_acknowledged", ss.services_acknowledged);
+
+	double uptime = Utility::GetTime() - Application::GetStartTime();
+	status->Set("uptime", uptime);
+
+	HostStatistics hs = CalculateHostStats();
+
+	status->Set("num_hosts_up", hs.hosts_up);
+	status->Set("num_hosts_down", hs.hosts_down);
+	status->Set("num_hosts_unreachable", hs.hosts_unreachable);
+	status->Set("num_hosts_flapping", hs.hosts_flapping);
+	status->Set("num_hosts_in_downtime", hs.hosts_in_downtime);
+	status->Set("num_hosts_acknowledged", hs.hosts_acknowledged);
+}

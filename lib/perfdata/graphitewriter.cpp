@@ -45,7 +45,7 @@ using namespace icinga;
 
 REGISTER_TYPE(GraphiteWriter);
 
-REGISTER_STATSFUNCTION(GraphiteWriterStats, &GraphiteWriter::StatsFunc);
+REGISTER_STATSFUNCTION(GraphiteWriter, &GraphiteWriter::StatsFunc);
 
 void GraphiteWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 {

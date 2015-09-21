@@ -17,57 +17,23 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/filelogger.hpp"
-#include "base/filelogger.tcpp"
-#include "base/configtype.hpp"
-#include "base/statsfunction.hpp"
-#include "base/application.hpp"
-#include <fstream>
+#ifndef STATUSHANDLER_H
+#define STATUSHANDLER_H
 
-using namespace icinga;
+#include "remote/httphandler.hpp"
 
-REGISTER_TYPE(FileLogger);
-
-REGISTER_STATSFUNCTION(FileLogger, &FileLogger::StatsFunc);
-
-void FileLogger::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
+namespace icinga
 {
-	Dictionary::Ptr nodes = new Dictionary();
 
-	BOOST_FOREACH(const FileLogger::Ptr& filelogger, ConfigType::GetObjectsByType<FileLogger>()) {
-		nodes->Set(filelogger->GetName(), 1); //add more stats
-	}
+class I2_REMOTE_API StatusHandler : public HttpHandler
+{
+public:
+	DECLARE_PTR_TYPEDEFS(StatusHandler);
 
-	status->Set("filelogger", nodes);
+	virtual bool HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response) override;
+	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
+};
+
 }
 
-/**
- * Constructor for the FileLogger class.
- */
-void FileLogger::Start(void)
-{
-	ObjectImpl<FileLogger>::Start();
-
-	ReopenLogFile();
-
-	Application::OnReopenLogs.connect(boost::bind(&FileLogger::ReopenLogFile, this));
-}
-
-void FileLogger::ReopenLogFile(void)
-{
-	std::ofstream *stream = new std::ofstream();
-
-	String path = GetPath();
-
-	try {
-		stream->open(path.CStr(), std::fstream::app | std::fstream::out);
-
-		if (!stream->good())
-			BOOST_THROW_EXCEPTION(std::runtime_error("Could not open logfile '" + path + "'"));
-	} catch (...) {
-		delete stream;
-		throw;
-	}
-
-	BindStream(stream, true);
-}
+#endif /* STATUSHANDLER_H */

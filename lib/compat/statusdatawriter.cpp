@@ -48,7 +48,7 @@ using namespace icinga;
 
 REGISTER_TYPE(StatusDataWriter);
 
-REGISTER_STATSFUNCTION(StatusDataWriterStats, &StatusDataWriter::StatsFunc);
+REGISTER_STATSFUNCTION(StatusDataWriter, &StatusDataWriter::StatsFunc);
 
 void StatusDataWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 {

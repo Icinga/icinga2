@@ -30,7 +30,7 @@ using namespace icinga;
 
 REGISTER_TYPE(ExternalCommandListener);
 
-REGISTER_STATSFUNCTION(ExternalCommandListenerStats, &ExternalCommandListener::StatsFunc);
+REGISTER_STATSFUNCTION(ExternalCommandListener, &ExternalCommandListener::StatsFunc);
 
 void ExternalCommandListener::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 {

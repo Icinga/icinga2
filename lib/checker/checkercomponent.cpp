@@ -36,7 +36,7 @@ using namespace icinga;
 
 REGISTER_TYPE(CheckerComponent);
 
-REGISTER_STATSFUNCTION(CheckerComponentStats, &CheckerComponent::StatsFunc);
+REGISTER_STATSFUNCTION(CheckerComponent, &CheckerComponent::StatsFunc);
 
 void CheckerComponent::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
 {

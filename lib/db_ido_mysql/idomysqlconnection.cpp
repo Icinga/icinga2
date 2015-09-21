@@ -36,7 +36,7 @@
 using namespace icinga;
 
 REGISTER_TYPE(IdoMysqlConnection);
-REGISTER_STATSFUNCTION(IdoMysqlConnectionStats, &IdoMysqlConnection::StatsFunc);
+REGISTER_STATSFUNCTION(IdoMysqlConnection, &IdoMysqlConnection::StatsFunc);
 
 IdoMysqlConnection::IdoMysqlConnection(void)
 	: m_QueryQueue(500000)

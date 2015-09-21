@@ -60,7 +60,7 @@ void IcingaApplication::StaticInitialize(void)
 	ScriptGlobal::Set("ApplicationType", "IcingaApplication");
 }
 
-REGISTER_STATSFUNCTION(IcingaApplicationStats, &IcingaApplication::StatsFunc);
+REGISTER_STATSFUNCTION(IcingaApplication, &IcingaApplication::StatsFunc);
 
 void IcingaApplication::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
 {

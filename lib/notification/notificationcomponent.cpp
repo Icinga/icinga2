@@ -33,7 +33,7 @@ using namespace icinga;
 
 REGISTER_TYPE(NotificationComponent);
 
-REGISTER_STATSFUNCTION(NotificationComponentStats, &NotificationComponent::StatsFunc);
+REGISTER_STATSFUNCTION(NotificationComponent, &NotificationComponent::StatsFunc);
 
 void NotificationComponent::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 {

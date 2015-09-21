@@ -123,9 +123,10 @@ Once the API user is configured make sure to restart Icinga 2:
 
 Now pass the basic auth information to curl and send a GET request to the API:
 
-    $ curl -u root:icinga -k -s 'https://nbmif.int.netways.de:5665/v1'
+    $ curl -u root:icinga -k -s 'https://localhost:5665/v1'
 
-In case you will get `Unauthorized` make sure to check the API user credentials.
+In case you will get an `Unauthorized` error message make sure to
+check the API user credentials.
 
 ### <a id="icinga2-api-permissions"></a> Permissions
 
@@ -187,26 +188,27 @@ The Icinga 2 API provides multiple url endpoints
   /v1/actions	| Endpoint for running specific [API actions](9-icinga2-api.md#icinga2-api-actions).
   /v1/config    | Endpoint for [managing configuration modules](9-icinga2-api.md#icinga2-api-config-management).
   /v1/events	| Endpoint for subscribing to [API events](9-icinga2-api.md#icinga2-api-actions).
-  /v1/types	| Endpoint for listing Icinga 2 configuration object types and their attributes.
+  /v1/status	| Endpoint for receiving icinga2 [status and statistics](9-icinga2-api.md#icinga2-api-status).
+  /v1/types 	| Endpoint for listing Icinga 2 configuration object types and their attributes.
 
 Additionally there are endpoints for each [config object type](6-object-types.md#object-types):
 
 **TODO** Update
 
   Url Endpoints		| Description
-  ----------------------|----------------------------------------------------
-  /v1/hosts		| Endpoint for retreiving and updating [Host](6-object-types.md#objecttype-host) objects.
+  ------------------|----------------------------------------------------
+  /v1/hosts			| Endpoint for retreiving and updating [Host](6-object-types.md#objecttype-host) objects.
   /v1/services		| Endpoint for retreiving and updating [Service](6-object-types.md#objecttype-service) objects.
   /v1/notifications	| Endpoint for retreiving and updating [Notification](6-object-types.md#objecttype-notification) objects.
   /v1/dependencies	| Endpoint for retreiving and updating [Dependency](6-object-types.md#objecttype-dependency) objects.
-  /v1/users		| Endpoint for retreiving and updating [User](6-object-types.md#objecttype-user) objects.
+  /v1/users			| Endpoint for retreiving and updating [User](6-object-types.md#objecttype-user) objects.
   /v1/checkcommands	| Endpoint for retreiving and updating [CheckCommand](6-object-types.md#objecttype-checkcommand) objects.
   /v1/eventcommands	| Endpoint for retreiving and updating [EventCommand](6-object-types.md#objecttype-eventcommand) objects.
   /v1/notificationcommands | Endpoint for retreiving and updating [NotificationCommand](6-object-types.md#objecttype-notificationcommand) objects.
   /v1/hostgroups	| Endpoint for retreiving and updating [HostGroup](6-object-types.md#objecttype-hostgroup) objects.
   /v1/servicegroups	| Endpoint for retreiving and updating [ServiceGroup](6-object-types.md#objecttype-servicegroup) objects.
   /v1/usergroups	| Endpoint for retreiving and updating [UserGroup](6-object-types.md#objecttype-usergroup) objects.
-  /v1/zones		| Endpoint for retreiving and updating [Zone](6-object-types.md#objecttype-zone) objects.
+  /v1/zones			| Endpoint for retreiving and updating [Zone](6-object-types.md#objecttype-zone) objects.
   /v1/endpoints		| Endpoint for retreiving and updating [Endpoint](6-object-types.md#objecttype-endpoint) objects.
   /v1/timeperiods	| Endpoint for retreiving and updating [TimePeriod](6-object-types.md#objecttype-timeperiod) objects.
 
@@ -295,6 +297,56 @@ Reschedule a service check for all services in NOT-OK state:
 
 **TODO** https://dev.icinga.org/issues/9078
 
+## <a id="icinga2-api-status"></a> Status and Statistics
+
+Contains a list of sub url endpoints which provide the status and statistics
+of available and enabled features. Any filters are ignored.
+
+Example for the main url endpoint `/v1/status`:
+
+    $ curl -k -s -u root:icinga 'https://localhost:5665/v1/status' | python -m json.tool
+    {
+        "results": [
+            {
+                "name": "ApiListener"
+            },
+            ...
+            {
+                "name": "Collection"
+            },
+            ...
+        ]
+    }
+
+`/v1/status/Collection` is always available as virtual status url endpoint.
+It provides all feature status information into a collected overview.
+
+Example for the icinga application url endpoint `/v1/status/IcingaApplication`:
+
+    $ curl -k -s -u root:icinga 'https://localhost:5665/v1/status/IcingaApplication' | python -m json.tool
+    {
+        "results": [
+            {
+                "perfdata": [],
+                "status": {
+                    "icingaapplication": {
+                        "app": {
+                            "enable_event_handlers": true,
+                            "enable_flapping": true,
+                            "enable_host_checks": true,
+                            "enable_notifications": true,
+                            "enable_perfdata": true,
+                            "enable_service_checks": true,
+                            "node_name": "mbmif.int.netways.de",
+                            "pid": 59819.0,
+                            "program_start": 1443019345.093372,
+                            "version": "v2.3.0-573-g380a131"
+                        }
+                    }
+                }
+            }
+        ]
+    }
 
 
 ## <a id="icinga2-api-objects"></a> API Objects

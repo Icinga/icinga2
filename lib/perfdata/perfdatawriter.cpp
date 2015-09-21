@@ -36,7 +36,7 @@ using namespace icinga;
 
 REGISTER_TYPE(PerfdataWriter);
 
-REGISTER_STATSFUNCTION(PerfdataWriterStats, &PerfdataWriter::StatsFunc);
+REGISTER_STATSFUNCTION(PerfdataWriter, &PerfdataWriter::StatsFunc);
 
 void PerfdataWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 {

@@ -29,7 +29,7 @@ set(remote_SOURCES
   endpoint.cpp endpoint.thpp filterutility.cpp
   httpchunkedencoding.cpp httpclientconnection.cpp httpserverconnection.cpp httphandler.cpp httprequest.cpp httpresponse.cpp
   httputility.cpp jsonrpc.cpp jsonrpcconnection.cpp jsonrpcconnection-heartbeat.cpp
-  messageorigin.cpp modifyobjecthandler.cpp statusqueryhandler.cpp typequeryhandler.cpp
+  messageorigin.cpp modifyobjecthandler.cpp statushandler.cpp statusqueryhandler.cpp typequeryhandler.cpp
   url.cpp zone.cpp zone.thpp
 )
 

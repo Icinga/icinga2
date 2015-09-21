@@ -34,7 +34,7 @@ using namespace icinga;
 
 REGISTER_TYPE(IcingaStatusWriter);
 
-REGISTER_STATSFUNCTION(IcingaStatusWriterStats, &IcingaStatusWriter::StatsFunc);
+REGISTER_STATSFUNCTION(IcingaStatusWriter, &IcingaStatusWriter::StatsFunc);
 
 void IcingaStatusWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
 {

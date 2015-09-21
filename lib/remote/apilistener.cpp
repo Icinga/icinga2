@@ -42,7 +42,7 @@ REGISTER_TYPE(ApiListener);
 
 boost::signals2::signal<void(bool)> ApiListener::OnMasterChanged;
 
-REGISTER_STATSFUNCTION(ApiListenerStats, &ApiListener::StatsFunc);
+REGISTER_STATSFUNCTION(ApiListener, &ApiListener::StatsFunc);
 
 REGISTER_APIFUNCTION(Hello, icinga, &ApiListener::HelloAPIHandler);
 
@@ -833,7 +833,6 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 
 void ApiListener::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
 {
-	Dictionary::Ptr nodes = new Dictionary();
 	std::pair<Dictionary::Ptr, Dictionary::Ptr> stats;
 
 	ApiListener::Ptr listener = ApiListener::GetInstance();
