@@ -1133,6 +1133,11 @@ swap\_win\_unit | **Optional**. The unit to display the received value in, thres
 Check command object for `check_update.exe` plugin.
 Querying Microsoft for Windows updates can take multiple seconds to minutes. An update is treated as important when it has the WSUS flag for SecurityUpdates or CriticalUpdates.
 
+> **Note**
+>
+> The Network Services Account which runs Icinga 2 by default does not have the required
+> permissions to run this check.
+
 Custom attributes:
 
 Name                | Description
