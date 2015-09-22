@@ -366,7 +366,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 				nameref = "NULL";
 
 			m_Impl << "\t\t" << "case " << num << ":" << std::endl
-				 << "\t\t\t" << "return Field(" << num << ", \"" << ftype << "\", \"" << it->Name << "\", " << nameref << ", " << it->Attributes << ", " << it->Type.ArrayRank << ");" << std::endl;
+				 << "\t\t\t" << "return Field(" << num << ", \"" << ftype << "\", \"" << it->Name << "\", \"" << (it->NavigationName.empty() ? it->Name : it->NavigationName) << "\", "  << nameref << ", " << it->Attributes << ", " << it->Type.ArrayRank << ");" << std::endl;
 			num++;
 		}
 
@@ -695,6 +695,42 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 
 		m_Impl << "}" << std::endl << std::endl;
 
+		/* NavigateField */
+		m_Header << "protected:" << std::endl
+			 << "\t" << "virtual Object::Ptr NavigateField(int id) const override;" << std::endl;
+
+		m_Impl << "Object::Ptr ObjectImpl<" << klass.Name << ">::NavigateField(int id) const" << std::endl
+		       << "{" << std::endl;
+
+		if (!klass.Parent.empty())
+			m_Impl << "\t" << "int real_id = id - " << klass.Parent << "::TypeInstance->GetFieldCount(); " << std::endl
+			       << "\t" << "if (real_id < 0) { return " << klass.Parent << "::NavigateField(id); }" << std::endl;
+
+		m_Impl << "\t" << "switch (";
+
+		if (!klass.Parent.empty())
+			m_Impl << "real_id";
+		else
+			m_Impl << "id";
+
+		m_Impl << ") {" << std::endl;
+
+		num = 0;
+		for (it = klass.Fields.begin(); it != klass.Fields.end(); it++) {
+			if (it->Attributes & FANavigation) {
+				m_Impl << "\t\t" << "case " << num << ":" << std::endl
+				       << "\t\t\t" << "return Navigate" << it->GetFriendlyName() << "();" << std::endl;
+			}
+
+			num++;
+		}
+
+		m_Impl << "\t\t" << "default:" << std::endl
+		       << "\t\t\t" << "throw std::runtime_error(\"Invalid field ID.\");" << std::endl
+		       << "\t" << "}" << std::endl;
+
+		m_Impl << "}" << std::endl << std::endl;
+
 		/* getters */
 		for (it = klass.Fields.begin(); it != klass.Fields.end(); it++) {
 			std::string prot;
@@ -809,6 +845,31 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 			}
 
 			m_Impl << "}" << std::endl << std::endl;
+		}
+
+		/* navigation */
+		for (it = klass.Fields.begin(); it != klass.Fields.end(); it++) {
+			if ((it->Attributes & FANavigation) == 0)
+				continue;
+
+			m_Header << "public:" << std::endl
+				 << "\t" << "virtual Object::Ptr Navigate" << it->GetFriendlyName() << "(void) const";
+
+			if (it->PureNavigateAccessor) {
+				m_Header << " = 0;" << std::endl;
+			} else {
+				m_Header << ";" << std::endl;
+
+				m_Impl << "Object::Ptr ObjectImpl<" << klass.Name << ">::Navigate" << it->GetFriendlyName() << "(void) const" << std::endl
+				       << "{" << std::endl;
+
+				if (it->NavigateAccessor.empty())
+					m_Impl << "\t" << "return Get" << it->GetFriendlyName() << "();" << std::endl;
+				else
+					m_Impl << "\t" << it->NavigateAccessor << std::endl;
+
+				m_Impl << "}" << std::endl << std::endl;
+			}
 		}
 
 		/* start/stop */

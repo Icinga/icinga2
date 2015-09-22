@@ -109,6 +109,7 @@ public:
 	virtual Value GetField(int id) const;
 	virtual void ValidateField(int id, const Value& value, const ValidationUtils& utils);
 	virtual void NotifyField(int id, const Value& cookie = Empty);
+	virtual Object::Ptr NavigateField(int id) const;
 
 #ifdef I2_DEBUG
 	bool OwnsLock(void) const;

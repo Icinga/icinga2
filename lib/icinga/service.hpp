@@ -41,7 +41,7 @@ public:
 
 	static Service::Ptr GetByNamePair(const String& hostName, const String& serviceName);
 
-	Host::Ptr GetHost(void) const;
+	virtual Host::Ptr GetHost(void) const override;
 
 	virtual bool ResolveMacro(const String& macro, const CheckResult::Ptr& cr, Value *result) const override;
 

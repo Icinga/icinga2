@@ -42,7 +42,7 @@ boost::signals2::signal<void (const Checkable::Ptr&, NotificationType, const Che
 
 CheckCommand::Ptr Checkable::GetCheckCommand(void) const
 {
-	return CheckCommand::GetByName(GetCheckCommandRaw());
+	return dynamic_pointer_cast<CheckCommand>(NavigateCheckCommandRaw());
 }
 
 TimePeriod::Ptr Checkable::GetCheckPeriod(void) const

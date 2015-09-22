@@ -20,6 +20,8 @@
 #include "icinga/icingaapplication.hpp"
 #include "icinga/customvarobject.hpp"
 #include "base/array.hpp"
+#impl_include "icinga/checkcommand.hpp"
+#impl_include "icinga/eventcommand.hpp"
 
 library icinga;
 
@@ -42,18 +44,30 @@ enum AcknowledgementType
 
 abstract class Checkable : CustomVarObject
 {
-	[config, required] name(CheckCommand) check_command (CheckCommandRaw);
+	[config, required, navigation] name(CheckCommand) check_command (CheckCommandRaw) {
+		navigate {{{
+			return CheckCommand::GetByName(GetCheckCommandRaw());
+		}}}
+	};
 	[config] int max_check_attempts {
 		default {{{ return 3; }}}
 	};
-	[config] name(TimePeriod) check_period (CheckPeriodRaw);
+	[config, navigation] name(TimePeriod) check_period (CheckPeriodRaw) {
+		navigate {{{
+			return TimePeriod::GetByName(GetCheckPeriodRaw());
+		}}}
+	};
 	[config] double check_interval {
 		default {{{ return 5 * 60; }}}
 	};
 	[config] double retry_interval {
 		default {{{ return 60; }}}
 	};
-	[config] name(EventCommand) event_command (EventCommandRaw);
+	[config, navigation] name(EventCommand) event_command (EventCommandRaw) {
+		navigate {{{
+			return EventCommand::GetByName(GetEventCommandRaw());
+		}}}
+	};
 	[config] bool volatile;
 	[config] double flapping_threshold {
 		default {{{ return 30; }}}
@@ -137,7 +151,11 @@ abstract class Checkable : CustomVarObject
 		get {{{ return false; }}}
 	};
 
-	[config] name(Endpoint) command_endpoint (CommandEndpointRaw);
+	[config, navigation] name(Endpoint) command_endpoint (CommandEndpointRaw) {
+		navigate {{{
+			return Endpoint::GetByName(GetCommandEndpointRaw());
+		}}}
+	};
 };
 
 }

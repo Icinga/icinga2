@@ -38,7 +38,12 @@ class User : CustomVarObject
 	[config] array(name(UserGroup)) groups {
 		default {{{ return new Array(); }}}
 	};
-	[config] name(TimePeriod) period (PeriodRaw);
+	[config, navigation] name(TimePeriod) period (PeriodRaw) {
+		navigate {{{
+			return TimePeriod::GetByName(GetPeriodRaw());
+		}}}
+	};
+
 	[config] array(double) types;
 	int type_filter_real (TypeFilter);
 	[config] array(double) states;

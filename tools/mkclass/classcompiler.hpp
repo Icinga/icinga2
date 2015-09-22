@@ -43,7 +43,8 @@ enum FieldAccessorType
 	FTGet,
 	FTSet,
 	FTDefault,
-	FTTrack
+	FTTrack,
+	FTNavigate
 };
 
 struct FieldAccessor
@@ -69,7 +70,8 @@ enum FieldAttribute
 	FAInternal = 64,
 	FANoStorage = 128,
 	FALoadDependency = 256,
-	FARequired = 512
+	FARequired = 512,
+	FANavigation = 1024
 };
 
 struct FieldType
@@ -116,9 +118,12 @@ struct Field
 	bool PureSetAccessor;
 	std::string DefaultAccessor;
 	std::string TrackAccessor;
+	std::string NavigationName;
+	std::string NavigateAccessor;
+	bool PureNavigateAccessor;
 
 	Field(void)
-		: Attributes(0), PureGetAccessor(false), PureSetAccessor(false)
+		: Attributes(0), PureGetAccessor(false), PureSetAccessor(false), PureNavigateAccessor(false)
 	{ }
 
 	inline std::string GetFriendlyName(void) const

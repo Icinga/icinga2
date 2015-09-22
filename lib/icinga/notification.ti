@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "icinga/customvarobject.hpp"
+#impl_include "icinga/notificationcommand.hpp"
 #impl_include "icinga/service.hpp"
 
 library icinga;
@@ -39,11 +40,19 @@ class Notification : CustomVarObject < NotificationNameComposer
 	load_after Host;
 	load_after Service;
 
-	[config, protected, required] name(NotificationCommand) command (CommandRaw);
+	[config, protected, required, navigation] name(NotificationCommand) command (CommandRaw) {
+		navigate {{{
+			return NotificationCommand::GetByName(GetCommandRaw());
+		}}}
+	};
 	[config] double interval {
 		default {{{ return 1800; }}}
 	};
-	[config] name(TimePeriod) period (PeriodRaw);
+	[config, navigation] name(TimePeriod) period (PeriodRaw) {
+		navigate {{{
+			return TimePeriod::GetByName(GetPeriodRaw());
+		}}}
+	};
 	[config, protected] array(name(User)) users (UsersRaw);
 	[config, protected] array(name(UserGroup)) user_groups (UserGroupsRaw);
 	[config] Dictionary::Ptr times;
@@ -51,8 +60,12 @@ class Notification : CustomVarObject < NotificationNameComposer
 	int type_filter_real (TypeFilter);
 	[config] array(double) states;
 	int state_filter_real (StateFilter);
-	[config, protected, required] name(Host) host_name;
-	[config, protected] String service_name {
+	[config, protected, required, navigation(host)] name(Host) host_name {
+		navigate {{{
+			return Host::GetByName(GetHostName());
+		}}}
+	};
+	[config, protected, navigation(service)] String service_name {
 		track {{{
 			if (!oldValue.IsEmpty()) {
 				Service::Ptr service = Service::GetByNamePair(GetHostName(), oldValue);
@@ -63,6 +76,13 @@ class Notification : CustomVarObject < NotificationNameComposer
 				Service::Ptr service = Service::GetByNamePair(GetHostName(), newValue);
 				DependencyGraph::RemoveDependency(this, service.get());
 			}
+		}}}
+		navigate {{{
+			if (GetServiceName().IsEmpty())
+				return Service::Ptr();
+
+			Host::Ptr host = Host::GetByName(GetHostName());
+			return host->GetServiceByShortName(GetServiceName());
 		}}}
 	};
 
@@ -75,7 +95,11 @@ class Notification : CustomVarObject < NotificationNameComposer
 	[state, set_protected] Value notification_number;
 	[state] double last_problem_notification;
 
-	[config] name(Endpoint) command_endpoint (CommandEndpointRaw);
+	[config, navigation] name(Endpoint) command_endpoint (CommandEndpointRaw) {
+		navigate {{{
+			return Endpoint::GetByName(GetCommandEndpointRaw());
+		}}}
+	};
 };
 
 validator Notification {

@@ -37,8 +37,9 @@ enum FieldAttribute
 	FAConfig = 2,
 	FAState = 4,
 	FAInternal = 64,
-	FARequired = 512
-}; 
+	FARequired = 512,
+	FANavigation = 1024
+};
 
 class Type;
 
@@ -47,12 +48,13 @@ struct Field
 	int ID;
 	const char *TypeName;
 	const char *Name;
+	const char *NavigationName;
 	const char *RefTypeName;
 	int Attributes;
 	int ArrayRank;
 
-	Field(int id, const char *type, const char *name, const char *reftype, int attributes, int arrayRank)
-		: ID(id), TypeName(type), Name(name), RefTypeName(reftype), Attributes(attributes), ArrayRank(arrayRank)
+	Field(int id, const char *type, const char *name, const char *navigationName, const char *reftype, int attributes, int arrayRank)
+		: ID(id), TypeName(type), Name(name), NavigationName(navigationName), RefTypeName(reftype), Attributes(attributes), ArrayRank(arrayRank)
 	{ }
 };
 

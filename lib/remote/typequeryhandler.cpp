@@ -138,6 +138,8 @@ bool TypeQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& requ
 			fieldInfo->Set("type", field.TypeName);
 			if (field.RefTypeName)
 				fieldInfo->Set("ref_type", field.RefTypeName);
+			if (field.Attributes & FANavigation)
+				fieldInfo->Set("navigation_name", field.NavigationName);
 			fieldInfo->Set("array_rank", field.ArrayRank);
 
 			Dictionary::Ptr attributeInfo = new Dictionary();
@@ -147,7 +149,7 @@ bool TypeQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& requ
 			attributeInfo->Set("state", static_cast<bool>(field.Attributes & FAState));
 			attributeInfo->Set("internal", static_cast<bool>(field.Attributes & FAInternal));
 			attributeInfo->Set("required", static_cast<bool>(field.Attributes & FARequired));
-
+			attributeInfo->Set("navigation", static_cast<bool>(field.Attributes & FANavigation));
 		}
 	}
 

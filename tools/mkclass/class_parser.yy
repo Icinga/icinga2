@@ -65,6 +65,7 @@ using namespace icinga;
 %token T_NAMESPACE "namespace (T_NAMESPACE)"
 %token T_VALIDATOR "validator (T_VALIDATOR)"
 %token T_REQUIRED "required (T_REQUIRED)"
+%token T_NAVIGATION "navigation (T_NAVIGATION)"
 %token T_NAME "name (T_NAME)"
 %token T_ARRAY "array (T_ARRAY)"
 %token T_STRING "string (T_STRING)"
@@ -89,9 +90,9 @@ using namespace icinga;
 %type <text> angle_impl_include
 %type <text> code
 %type <num> T_FIELD_ATTRIBUTE
-%type <num> field_attribute
-%type <num> field_attributes
-%type <num> field_attribute_list
+%type <field> field_attribute
+%type <field> field_attributes
+%type <field> field_attribute_list
 %type <num> T_FIELD_ACCESSOR_TYPE
 %type <num> T_CLASS_ATTRIBUTE
 %type <num> class_attribute_list
@@ -328,9 +329,7 @@ field_type: identifier
 
 class_field: field_attribute_list field_type identifier alternative_name_specifier field_accessor_list ';'
 	{
-		Field *field = new Field();
-
-		field->Attributes = $1;
+		Field *field = $1;
 
 		if ((field->Attributes & (FAConfig | FAState)) == 0)
 			field->Attributes |= FAEphemeral;
@@ -363,6 +362,10 @@ class_field: field_attribute_list field_type identifier alternative_name_specifi
 				case FTTrack:
 					field->TrackAccessor = it->Accessor;
 					break;
+				case FTNavigate:
+					field->NavigateAccessor = it->Accessor;
+					field->PureNavigateAccessor = it->Pure;
+					break;
 			}
 		}
 
@@ -392,7 +395,7 @@ alternative_name_specifier: /* empty */
 
 field_attribute_list: /* empty */
 	{
-		$$ = 0;
+		$$ = new Field();
 	}
 	| '[' field_attributes ']'
 	{
@@ -402,21 +405,39 @@ field_attribute_list: /* empty */
 
 field_attribute: T_FIELD_ATTRIBUTE
 	{
-		$$ = $1;
+		$$ = new Field();
+		$$->Attributes = $1;
 	}
 	| T_REQUIRED
 	{
-		$$ = FARequired;
+		$$ = new Field();
+		$$->Attributes = FARequired;
+	}
+	| T_NAVIGATION '(' identifier ')'
+	{
+		$$ = new Field();
+		$$->Attributes = FANavigation;
+		$$->NavigationName = $3;
+		std::free($3);
+	}
+	| T_NAVIGATION
+	{
+		$$ = new Field();
+		$$->Attributes = FANavigation;
 	}
 	;
 
 field_attributes: /* empty */
 	{
-		$$ = 0;
+		$$ = new Field();
 	}
 	| field_attributes ',' field_attribute
 	{
-		$$ = $1 | $3;
+		$$ = $1;
+		$$->Attributes |= $3->Attributes;
+		if (!$3->NavigationName.empty())
+			$$->NavigationName = $3->NavigationName;
+		delete $3;
 	}
 	| field_attribute
 	{

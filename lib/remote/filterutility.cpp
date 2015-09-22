@@ -78,9 +78,27 @@ String ConfigObjectTargetProvider::GetPluralName(const String& type) const
 	return Type::GetByName(type)->GetPluralName();
 }
 
-static void FilteredAddTarget(ScriptFrame& frame, const String& varName, Expression *ufilter, std::vector<Value>& result, const Value& target)
+static void FilteredAddTarget(ScriptFrame& frame, Expression *ufilter, std::vector<Value>& result, const Object::Ptr& target)
 {
+	Type::Ptr type = target->GetReflectionType();
+	String varName = type->GetName();
+	boost::algorithm::to_lower(varName);
+
 	frame.Locals->Set(varName, target);
+
+	for (int fid = 0; fid < type->GetFieldCount(); fid++) {
+		Field field = type->GetFieldInfo(fid);
+
+		if ((field.Attributes & FANavigation) == 0)
+			continue;
+
+		Object::Ptr joinedObj = target->NavigateField(fid);
+
+		varName = field.TypeName;
+		boost::algorithm::to_lower(varName);
+
+		frame.Locals->Set(varName, joinedObj);
+	}
 
 	if (Convert::ToBool(ufilter->Evaluate(frame)))
 		result.push_back(target);
@@ -153,11 +171,8 @@ std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, c
 			}
 		}
 
-		String varName = type;
-		boost::algorithm::to_lower(varName);
-
 		try {
-			provider->FindTargets(type, boost::bind(&FilteredAddTarget, boost::ref(frame), varName, ufilter, boost::ref(result), _1));
+			provider->FindTargets(type, boost::bind(&FilteredAddTarget, boost::ref(frame), ufilter, boost::ref(result), _1));
 		} catch (const std::exception& ex) {
 			delete ufilter;
 			throw;

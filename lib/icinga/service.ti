@@ -53,6 +53,12 @@ class Service : Checkable < ServiceNameComposer
 		}}}
 	};
 	[config, required] name(Host) host_name;
+	[no_storage, navigation] Host::Ptr host {
+		get;
+		navigate {{{
+			return GetHost();
+		}}}
+	};
 	[enum, no_storage] ServiceState "state" {
 		get {{{
 			return GetStateRaw();

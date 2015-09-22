@@ -46,8 +46,15 @@ bool StatusQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 	QueryDescription qd;
 	qd.Types.insert(type->GetName());
 
-	std::vector<String> joinTypes;
-	joinTypes.push_back(type->GetName());
+	std::vector<String> joinAttrs;
+	joinAttrs.push_back("");
+
+	for (int fid = 0; fid < type->GetFieldCount(); fid++) {
+		Field field = type->GetFieldInfo(fid);
+
+		if (field.Attributes & FANavigation)
+			joinAttrs.push_back(field.Name);
+	}
 
 	Dictionary::Ptr params = HttpUtility::FetchRequestParameters(request);
 
@@ -80,17 +87,44 @@ bool StatusQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 		Dictionary::Ptr resultAttrs = new Dictionary();
 		result1->Set("attrs", resultAttrs);
 
-		BOOST_FOREACH(const String& joinType, joinTypes) {
-			String prefix = joinType;
+		BOOST_FOREACH(const String& joinAttr, joinAttrs) {
+			Object::Ptr joinedObj;
+			String prefix;
+
+			if (joinAttr.IsEmpty()) {
+				joinedObj = obj;
+				prefix = type->GetName();
+			} else {
+				int fid = type->GetFieldId(joinAttr);
+				joinedObj = static_cast<Object::Ptr>(obj)->NavigateField(fid);
+
+				if (!joinedObj)
+					continue;
+
+				Field field = type->GetFieldInfo(fid);
+				prefix = field.NavigationName;
+			}
+
 			boost::algorithm::to_lower(prefix);
 
-			for (int fid = 0; fid < type->GetFieldCount(); fid++) {
-				Field field = type->GetFieldInfo(fid);
+			Type::Ptr joinedType = joinedObj->GetReflectionType();
+
+			for (int fid = 0; fid < joinedType->GetFieldCount(); fid++) {
+				Field field = joinedType->GetFieldInfo(fid);
 				String aname = prefix + "." + field.Name;
 				if (!attrs.empty() && attrs.find(aname) == attrs.end())
 					continue;
 
-				Value val = static_cast<Object::Ptr>(obj)->GetField(fid);
+				Value val = joinedObj->GetField(fid);
+
+				/* hide internal navigation fields */
+				if (field.Attributes & FANavigation) {
+					Value nval = joinedObj->NavigateField(fid);
+
+					if (val == nval)
+						continue;
+				}
+
 				Value sval = Serialize(val, FAConfig | FAState);
 				resultAttrs->Set(aname, sval);
 			}

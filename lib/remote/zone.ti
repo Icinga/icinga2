@@ -26,7 +26,12 @@ namespace icinga
 
 class Zone : ConfigObject
 {
-	[config] name(Zone) parent (ParentRaw);
+	[config, navigation] name(Zone) parent (ParentRaw) {
+		navigate {{{
+			return Zone::GetByName(GetParentRaw());
+		}}}
+	};
+
 	[config] array(name(Endpoint)) endpoints (EndpointsRaw);
 	[config] bool global;
 };
