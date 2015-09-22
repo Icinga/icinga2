@@ -146,6 +146,8 @@ protected:
 
 	virtual void OnShutdown(void);
 
+	virtual void ValidateName(const String& value, const ValidationUtils& utils) override;
+
 private:
 	static Application::Ptr m_Instance; /**< The application instance. */
 

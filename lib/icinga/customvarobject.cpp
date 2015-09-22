@@ -24,7 +24,6 @@
 #include "base/function.hpp"
 #include "base/exception.hpp"
 #include "base/objectlock.hpp"
-#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -49,47 +48,5 @@ bool CustomVarObject::IsVarOverridden(const String& name) const
 
 void CustomVarObject::ValidateVars(const Dictionary::Ptr& value, const ValidationUtils& utils)
 {
-	if (!value)
-		return;
-
-	/* string, array, dictionary */
-	ObjectLock olock(value);
-	BOOST_FOREACH(const Dictionary::Pair& kv, value) {
-		const Value& varval = kv.second;
-
-		if (varval.IsObjectType<Dictionary>()) {
-			/* only one dictonary level */
-			Dictionary::Ptr varval_dict = varval;
-
-			ObjectLock xlock(varval_dict);
-			BOOST_FOREACH(const Dictionary::Pair& kv_var, varval_dict) {
-				if (kv_var.second.IsEmpty())
-					continue;
-
-				if (!MacroProcessor::ValidateMacroString(kv_var.second))
-					BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of<String>("vars")(kv.first)(kv_var.first), "Closing $ not found in macro format string '" + kv_var.second + "'."));
-			}
-		} else if (varval.IsObjectType<Array>()) {
-			/* check all array entries */
-			Array::Ptr varval_arr = varval;
-
-			ObjectLock ylock (varval_arr);
-			BOOST_FOREACH(const Value& arrval, varval_arr) {
-				if (arrval.IsEmpty())
-					continue;
-
-				if (!MacroProcessor::ValidateMacroString(arrval)) {
-					BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of<String>("vars")(kv.first), "Closing $ not found in macro format string '" + arrval + "'."));
-				}
-			}
-		} else {
-			if (varval.IsEmpty())
-				continue;
-
-			String varstr = varval;
-
-			if (!MacroProcessor::ValidateMacroString(varstr))
-				BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of<String>("vars")(kv.first), "Closing $ not found in macro format string '" + varstr + "'."));
-		}
-	}
+	MacroProcessor::ValidateCustomVars(this, value);
 }

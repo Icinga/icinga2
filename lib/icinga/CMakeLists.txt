@@ -38,8 +38,6 @@ mkclass_target(timeperiod.ti timeperiod.tcpp timeperiod.thpp)
 mkclass_target(usergroup.ti usergroup.tcpp usergroup.thpp)
 mkclass_target(user.ti user.tcpp user.thpp)
 
-mkembedconfig_target(icinga-app.conf icinga-app.cpp)
-
 set(icinga_SOURCES
   api.cpp apiactions.cpp apievents.cpp checkable.cpp checkable.thpp checkable-dependency.cpp checkable-downtime.cpp checkable-event.cpp
   checkable-flapping.cpp checkcommand.cpp checkcommand.thpp checkresult.cpp checkresult.thpp
@@ -51,7 +49,7 @@ set(icinga_SOURCES
   notification-apply.cpp objectutils.cpp perfdatavalue.cpp perfdatavalue.thpp pluginutility.cpp scheduleddowntime.cpp scheduleddowntime.thpp
   scheduleddowntime-apply.cpp service-apply.cpp checkable-check.cpp checkable-comment.cpp
   service.cpp service.thpp servicegroup.cpp servicegroup.thpp checkable-notification.cpp timeperiod.cpp timeperiod.thpp
-  user.cpp user.thpp usergroup.cpp usergroup.thpp icinga-app.cpp
+  user.cpp user.thpp usergroup.cpp usergroup.thpp
 )
 
 if(ICINGA2_UNITY_BUILD)

@@ -17,15 +17,31 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/application.hpp"
+#include "hello/helloapplication.hpp"
+#include "hello/helloapplication.tcpp"
+#include "base/initialize.hpp"
+#include "base/logger.hpp"
+#include "base/scriptglobal.hpp"
 
-library hello;
+using namespace icinga;
 
-namespace icinga
+REGISTER_TYPE(HelloApplication);
+
+INITIALIZE_ONCE(&HelloApplication::StaticInitialize);
+
+void HelloApplication::StaticInitialize(void)
 {
+	ScriptGlobal::Set("ApplicationType", "HelloApplication");
+}
 
-class Hello : Application
+/**
+ * The entry point for the hello application.
+ *
+ * @returns An exit status.
+ */
+int HelloApplication::Main(void)
 {
-};
+	Log(LogInformation, "HelloApplication", "Hello World!");
 
+	return 0;
 }

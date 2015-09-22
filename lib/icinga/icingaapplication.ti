@@ -26,6 +26,25 @@ namespace icinga
 
 class IcingaApplication : Application
 {
+	[config] bool enable_notifications {
+		default {{{ return true; }}}
+	};
+	[config] bool enable_event_handlers {
+		default {{{ return true; }}}
+	};
+	[config] bool enable_flapping {
+		default {{{ return true; }}}
+	};
+	[config] bool enable_host_checks {
+		default {{{ return true; }}}
+	};
+	[config] bool enable_service_checks {
+		default {{{ return true; }}}
+	};
+	[config] bool enable_perfdata {
+		default {{{ return true; }}}
+	};
+	[config] Dictionary::Ptr vars;
 };
 
 }

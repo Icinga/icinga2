@@ -52,6 +52,7 @@ public:
 	    const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros, int recursionLevel = 0);
 
 	static bool ValidateMacroString(const String& macro);
+	static void ValidateCustomVars(const ConfigObject::Ptr& object, const Dictionary::Ptr& value);
 
 private:
 	MacroProcessor(void);

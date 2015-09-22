@@ -17,4 +17,30 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-object IcingaApplication "app" { }
+#ifndef HELLOAPPLICATION_H
+#define HELLOAPPLICATION_H
+
+#include "hello/helloapplication.thpp"
+
+namespace icinga
+{
+
+/**
+ * The hello application.
+ *
+ * @ingroup hello
+ */
+class HelloApplication : public ObjectImpl<HelloApplication>
+{
+public:
+	DECLARE_OBJECT(HelloApplication);
+	DECLARE_OBJECTNAME(HelloApplication);
+
+	static void StaticInitialize(void);
+
+	virtual int Main(void) override;
+};
+
+}
+
+#endif /* HELLOAPPLICATION_H */

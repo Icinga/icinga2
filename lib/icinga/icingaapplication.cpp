@@ -20,6 +20,7 @@
 #include "icinga/icingaapplication.hpp"
 #include "icinga/icingaapplication.tcpp"
 #include "icinga/cib.hpp"
+#include "icinga/macroprocessor.hpp"
 #include "config/configwriter.hpp"
 #include "config/configcompiler.hpp"
 #include "base/configtype.hpp"
@@ -42,13 +43,6 @@ INITIALIZE_ONCE(&IcingaApplication::StaticInitialize);
 
 void IcingaApplication::StaticInitialize(void)
 {
-	ScriptGlobal::Set("EnableNotifications", true);
-	ScriptGlobal::Set("EnableEventHandlers", true);
-	ScriptGlobal::Set("EnableFlapping", true);
-	ScriptGlobal::Set("EnableHostChecks", true);
-	ScriptGlobal::Set("EnableServiceChecks", true);
-	ScriptGlobal::Set("EnablePerfdata", true);
-
 	String node_name = Utility::GetFQDN();
 
 	if (node_name.IsEmpty()) {
@@ -62,6 +56,8 @@ void IcingaApplication::StaticInitialize(void)
 	}
 
 	ScriptGlobal::Set("NodeName", node_name);
+
+	ScriptGlobal::Set("ApplicationType", "IcingaApplication");
 }
 
 REGISTER_STATSFUNCTION(IcingaApplicationStats, &IcingaApplication::StatsFunc);
@@ -191,16 +187,6 @@ IcingaApplication::Ptr IcingaApplication::GetInstance(void)
 	return static_pointer_cast<IcingaApplication>(Application::GetInstance());
 }
 
-Dictionary::Ptr IcingaApplication::GetVars(void) const
-{
-	return ScriptGlobal::Get("Vars", &Empty);
-}
-
-String IcingaApplication::GetNodeName(void) const
-{
-	return ScriptGlobal::Get("NodeName");
-}
-
 bool IcingaApplication::ResolveMacro(const String& macro, const CheckResult::Ptr&, Value *result) const
 {
 	double now = Utility::GetTime();
@@ -291,62 +277,12 @@ bool IcingaApplication::ResolveMacro(const String& macro, const CheckResult::Ptr
 	return false;
 }
 
-bool IcingaApplication::GetEnableNotifications(void) const
+String IcingaApplication::GetNodeName(void) const
 {
-	return ScriptGlobal::Get("EnableNotifications");
+	return ScriptGlobal::Get("NodeName");
 }
 
-void IcingaApplication::SetEnableNotifications(bool enabled)
+void IcingaApplication::ValidateVars(const Dictionary::Ptr& value, const ValidationUtils& utils)
 {
-	ScriptGlobal::Set("EnableNotifications", enabled);
-}
-
-bool IcingaApplication::GetEnableEventHandlers(void) const
-{
-	return ScriptGlobal::Get("EnableEventHandlers");
-}
-
-void IcingaApplication::SetEnableEventHandlers(bool enabled)
-{
-	ScriptGlobal::Set("EnableEventHandlers", enabled);
-}
-
-bool IcingaApplication::GetEnableFlapping(void) const
-{
-	return ScriptGlobal::Get("EnableFlapping");
-}
-
-void IcingaApplication::SetEnableFlapping(bool enabled)
-{
-	ScriptGlobal::Set("EnableFlapping", enabled);
-}
-
-bool IcingaApplication::GetEnableHostChecks(void) const
-{
-	return ScriptGlobal::Get("EnableHostChecks");
-}
-
-void IcingaApplication::SetEnableHostChecks(bool enabled)
-{
-	ScriptGlobal::Set("EnableHostChecks", enabled);
-}
-
-bool IcingaApplication::GetEnableServiceChecks(void) const
-{
-	return ScriptGlobal::Get("EnableServiceChecks");
-}
-
-void IcingaApplication::SetEnableServiceChecks(bool enabled)
-{
-	ScriptGlobal::Set("EnableServiceChecks", enabled);
-}
-
-bool IcingaApplication::GetEnablePerfdata(void) const
-{
-	return ScriptGlobal::Get("EnablePerfdata");
-}
-
-void IcingaApplication::SetEnablePerfdata(bool enabled)
-{
-	ScriptGlobal::Set("EnablePerfdata", enabled);
+	MacroProcessor::ValidateCustomVars(this, value);
 }

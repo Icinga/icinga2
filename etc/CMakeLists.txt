@@ -37,6 +37,7 @@ else()
 endif()
 
 install_if_not_exists(icinga2/zones.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2)
+install_if_not_exists(icinga2/conf.d/app.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/conf.d)
 install_if_not_exists(icinga2/conf.d/commands.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/conf.d)
 install_if_not_exists(icinga2/conf.d/downtimes.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/conf.d)
 install_if_not_exists(icinga2/conf.d/groups.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/conf.d)

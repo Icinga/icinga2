@@ -552,6 +552,30 @@ Configuration Attributes:
   display_name    |**Optional.** A short description of the host group.
   groups          |**Optional.** An array of nested group names.
 
+## <a id="objecttype-icingaapplication"></a> IcingaApplication
+
+The IcingaApplication object is required to start Icinga 2.
+The object name must be `app`. If the object configuration
+is missing Icinga 2 will automatically create an IcingaApplication
+object.
+
+Example:
+
+    object IcingaApplication "app" {
+      enable_perfdata = false
+    }
+
+Configuration Attributes:
+
+  Name                  |Description
+  ----------------------|--------------------------
+  enable_notifications  |**Optional.** Whether notifications are globally enabled. Defaults to true.
+  enable_event_handlers |**Optional.** Whether event handlers are globally enabled. Defaults to true.
+  enable_flapping       |**Optional.** Whether flap detection is globally enabled. Defaults to true.
+  enable_host_checks    |**Optional.** Whether active host checks are globally enabled. Defaults to true.
+  enable_service_checks |**Optional.** Whether active service checks are globally enabled. Defaults to true.
+  enable_perfdata       |**Optional.** Whether performance data processing is globally enabled. Defaults to true.
+  vars                  |**Optional.** A dictionary containing custom attributes that are available globally.
 
 ## <a id="objecttype-icingastatuswriter"></a> IcingaStatusWriter
 
