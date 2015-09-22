@@ -98,7 +98,8 @@ bool HttpServerConnection::ProcessMessage(void)
 	}
 
 	if (m_CurrentRequest.Complete) {
-		m_RequestQueue.Enqueue(boost::bind(&HttpServerConnection::ProcessMessageAsync, HttpServerConnection::Ptr(this), m_CurrentRequest));
+		m_RequestQueue.Enqueue(boost::bind(&HttpServerConnection::ProcessMessageAsync,
+		    HttpServerConnection::Ptr(this), m_CurrentRequest));
 
 		m_Seen = Utility::GetTime();
 		m_PendingRequests++;
@@ -200,3 +201,4 @@ void HttpServerConnection::TimeoutTimerHandler(void)
 		client->CheckLiveness();
 	}
 }
+

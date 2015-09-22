@@ -60,7 +60,8 @@ void ConfigPackageUtility::DeletePackage(const String& name)
 std::vector<String> ConfigPackageUtility::GetPackages(void)
 {
 	std::vector<String> packages;
-	Utility::Glob(GetPackageDir() + "/*", boost::bind(&ConfigPackageUtility::CollectDirNames, _1, boost::ref(packages)), GlobDirectory);
+	Utility::Glob(GetPackageDir() + "/*", boost::bind(&ConfigPackageUtility::CollectDirNames,
+	    _1, boost::ref(packages)), GlobDirectory);
 	return packages;
 }
 
@@ -92,7 +93,7 @@ String ConfigPackageUtility::CreateStage(const String& packageName, const Dictio
 	WriteStageConfig(packageName, stageName);
 
 	bool foundDotDot = false;
-	
+
 	if (files) {
 		ObjectLock olock(files);
 		BOOST_FOREACH(const Dictionary::Pair& kv, files) {
@@ -100,12 +101,12 @@ String ConfigPackageUtility::CreateStage(const String& packageName, const Dictio
 				foundDotDot = true;
 				break;
 			}
-	
+
 			String filePath = path + "/" + kv.first;
-	
+
 			Log(LogInformation, "ConfigPackageUtility")
 			    << "Updating configuration file: " << filePath;
-	
+
 			//pass the directory and generate a dir tree, if not existing already
 			Utility::MkDirP(Utility::DirName(filePath), 0750);
 			std::ofstream fp(filePath.CStr(), std::ofstream::out | std::ostream::binary | std::ostream::trunc);
@@ -312,5 +313,4 @@ bool ConfigPackageUtility::ValidateName(const String& name)
 	boost::smatch what;
 	return (!boost::regex_search(name.GetData(), what, expr));
 }
-
 

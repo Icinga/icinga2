@@ -97,3 +97,4 @@ Zone::Ptr Zone::GetLocalZone(void)
 
 	return local->GetZone();
 }
+

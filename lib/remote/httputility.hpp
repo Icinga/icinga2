@@ -39,6 +39,12 @@ public:
 	static Dictionary::Ptr FetchRequestParameters(HttpRequest& request);
 	static void SendJsonBody(HttpResponse& response, const Value& val);
 	static Value GetLastParameter(const Dictionary::Ptr& params, const String& key);
+	static void SendJsonError(HttpResponse& response, const int code,
+		   	const String& verbose="", const String& diagnosticInformation="");
+
+private:
+	static String GetErrorNameByCode(int code);
+
 };
 
 }

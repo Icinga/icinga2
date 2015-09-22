@@ -47,14 +47,16 @@ void Endpoint::OnAllConfigLoaded(void)
 
 		if (members.find(this) != members.end()) {
 			if (m_Zone)
-				BOOST_THROW_EXCEPTION(ScriptError("Endpoint '" + GetName() + "' is in more than one zone.", GetDebugInfo()));
+				BOOST_THROW_EXCEPTION(ScriptError("Endpoint '" + GetName()
+				    + "' is in more than one zone.", GetDebugInfo()));
 
 			m_Zone = zone;
 		}
 	}
 
 	if (!m_Zone)
-		BOOST_THROW_EXCEPTION(ScriptError("Endpoint '" + GetName() + "' does not belong to a zone.", GetDebugInfo()));
+		BOOST_THROW_EXCEPTION(ScriptError("Endpoint '" + GetName() +
+		    "' does not belong to a zone.", GetDebugInfo()));
 }
 
 void Endpoint::AddClient(const JsonRpcConnection::Ptr& client)

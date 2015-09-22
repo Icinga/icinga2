@@ -227,12 +227,12 @@ Value ApiListener::ConfigDeleteObjectAPIHandler(const MessageOrigin::Ptr& origin
 		Array::Ptr errors = new Array();
 		bool cascade = true; //TODO pass that through the cluster
 		if (!ConfigObjectUtility::DeleteObject(object, cascade, errors)) {
-		    	Log(LogCritical, "ApiListener", "Could not delete object:");
+			Log(LogCritical, "ApiListener", "Could not delete object:");
 
-		    	ObjectLock olock(errors);
-		    	BOOST_FOREACH(const String& error, errors) {
-		    		Log(LogCritical, "ApiListener", error);
-		    	}
+			ObjectLock olock(errors);
+			BOOST_FOREACH(const String& error, errors) {
+				Log(LogCritical, "ApiListener", error);
+			}
 		}
 	} else {
 		Log(LogNotice, "ApiListener")

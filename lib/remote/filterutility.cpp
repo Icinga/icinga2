@@ -183,3 +183,4 @@ std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, c
 
 	return result;
 }
+

@@ -78,7 +78,7 @@ String ConfigObjectUtility::CreateObjectConfig(const Type::Ptr& type, const Stri
 	ConfigWriter::EmitConfigItem(config, type->GetName(), name, false, templates, allAttrs);
 	ConfigWriter::EmitRaw(config, "\n");
 
-    	return config.str();
+	return config.str();
 }
 
 bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& fullName,
@@ -135,7 +135,8 @@ bool ConfigObjectUtility::DeleteObjectHelper(const ConfigObject::Ptr& object, bo
 
 	if (!parents.empty() && !cascade) {
 		if (errors)
-			errors->Add("Object cannot be deleted because other objects depend on it. Use cascading delete to delete it anyway.");
+			errors->Add("Object cannot be deleted because other objects depend on it. "
+			    "Use cascading delete to delete it anyway.");
 
 		return false;
 	}

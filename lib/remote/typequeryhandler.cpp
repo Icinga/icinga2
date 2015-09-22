@@ -35,7 +35,8 @@ class TypeTargetProvider : public TargetProvider
 public:
 	DECLARE_PTR_TYPEDEFS(TypeTargetProvider);
 
-	virtual void FindTargets(const String& type, const boost::function<void (const Value&)>& addTarget) const override
+	virtual void FindTargets(const String& type,
+	    const boost::function<void (const Value&)>& addTarget) const override
 	{
 		std::vector<Type::Ptr> targets;
 

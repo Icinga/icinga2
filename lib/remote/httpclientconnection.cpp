@@ -56,7 +56,8 @@ void HttpClientConnection::Reconnect(void)
 		m_Stream = new TlsStream(socket, m_Host, RoleClient);
 	else
 		ASSERT(!"Non-TLS HTTP connections not supported.");
-		//m_Stream = new NetworkStream(socket); -- does not currently work because the NetworkStream class doesn't support async I/O
+		/* m_Stream = new NetworkStream(socket);
+		   -- does not currently work because the NetworkStream class doesn't support async I/O */
 
 	m_Stream->RegisterDataHandler(boost::bind(&HttpClientConnection::DataAvailableHandler, this));
 	if (m_Stream->IsDataAvailable())
@@ -149,8 +150,10 @@ boost::shared_ptr<HttpRequest> HttpClientConnection::NewRequest(void)
 	return boost::make_shared<HttpRequest>(m_Stream);
 }
 
-void HttpClientConnection::SubmitRequest(const boost::shared_ptr<HttpRequest>& request, const HttpCompletionCallback& callback)
+void HttpClientConnection::SubmitRequest(const boost::shared_ptr<HttpRequest>& request,
+    const HttpCompletionCallback& callback)
 {
 	m_Requests.push_back(std::make_pair(request, callback));
 	request->Finish();
 }
+

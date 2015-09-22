@@ -31,16 +31,22 @@ REGISTER_URLHANDLER("/v1", CreateObjectHandler);
 
 bool CreateObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
 {
-	if (request.RequestMethod != "PUT")
-		return false;
+	if (request.RequestMethod != "PUT") {
+		HttpUtility::SendJsonError(response, 400, "Invalid request type. Must be PUT.");
+		return true;
+	}
 
-	if (request.RequestUrl->GetPath().size() < 3)
-		return false;
+	if (request.RequestUrl->GetPath().size() < 3) {
+		HttpUtility::SendJsonError(response, 400, "Object name is missing.");
+		return true;
+	}
 
 	Type::Ptr type = FilterUtility::TypeFromPluralName(request.RequestUrl->GetPath()[1]);
 
-	if (!type)
-		return false;
+	if (!type) {
+		HttpUtility::SendJsonError(response, 403, "Erroneous type was supplied.");
+		return true;
+	}
 
 	String name = request.RequestUrl->GetPath()[2];
 	Dictionary::Ptr params = HttpUtility::FetchRequestParameters(request);
@@ -51,20 +57,17 @@ bool CreateObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 	int code;
 	String status;
 	Array::Ptr errors = new Array();
-	
+
 	String config = ConfigObjectUtility::CreateObjectConfig(type, name, templates, attrs);
-	
+
 	if (!ConfigObjectUtility::CreateObject(type, name, config, errors)) {
 		result1->Set("errors", errors);
-		code = 500;
-		status = "Object could not be created.";
-	} else {
-		code = 200;
-		status = "Object was created.";
+		HttpUtility::SendJsonError(response, 500, "Object could not be created.");
+		return true;
 	}
 
-	result1->Set("code", code);
-	result1->Set("status", status);
+	result1->Set("code", 200);
+	result1->Set("status", "Object was created");
 
 	Array::Ptr results = new Array();
 	results->Add(result1);
@@ -72,7 +75,7 @@ bool CreateObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 	Dictionary::Ptr result = new Dictionary();
 	result->Set("results", results);
 
-	response.SetStatus(code, status);
+	response.SetStatus(200, "OK");
 	HttpUtility::SendJsonBody(response, result);
 
 	return true;

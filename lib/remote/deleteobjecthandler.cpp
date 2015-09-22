@@ -34,16 +34,23 @@ REGISTER_URLHANDLER("/v1", DeleteObjectHandler);
 
 bool DeleteObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
 {
-	if (request.RequestMethod != "DELETE")
-		return false;
+	if (request.RequestMethod != "DELETE") {
+		HttpUtility::SendJsonError(response, 400, "Invalid request type. Must be DELETE.");
+		return true;
+	}
 
-	if (request.RequestUrl->GetPath().size() < 2)
-		return false;
+	if (request.RequestUrl->GetPath().size() < 2) {
+		String path = boost::algorithm::join(request.RequestUrl->GetPath(), "/");
+		HttpUtility::SendJsonError(response, 404, "The requested path is too long to match any config tag requests.");
+		return true;
+	}
 
 	Type::Ptr type = FilterUtility::TypeFromPluralName(request.RequestUrl->GetPath()[1]);
 
-	if (!type)
-		return false;
+	if (!type) {
+		HttpUtility::SendJsonError(response, 400, "Erroneous type was supplied.");
+		return true;
+	}
 
 	QueryDescription qd;
 	qd.Types.insert(type->GetName());
@@ -71,9 +78,9 @@ bool DeleteObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 		results->Add(result1);
 
 		Array::Ptr errors = new Array();
-		
+
 		if (!ConfigObjectUtility::DeleteObject(obj, cascade, errors)) {
-			result1->Set("code", 500);	
+			result1->Set("code", 500);
 			result1->Set("status", "Object could not be deleted.");
 			result1->Set("errors", errors);
 		} else {

@@ -243,7 +243,7 @@ String Url::Format(bool print_credentials) const
 				param = "?";
 			else
 				param += "&";
-			
+
 			String temp;
 			BOOST_FOREACH (const String s, kv.second) {
 				if (!temp.IsEmpty())
@@ -343,7 +343,7 @@ bool Url::ParsePath(const String& path)
 
 bool Url::ParseQuery(const String& query)
 {
-	//Tokenizer does not like String AT ALL
+	/* Tokenizer does not like String AT ALL */
 	std::string queryStr = query;
 	boost::char_separator<char> sep("&");
 	boost::tokenizer<boost::char_separator<char> > tokens(queryStr, sep);
@@ -354,7 +354,7 @@ bool Url::ParseQuery(const String& query)
 		if (pHelper == 0)
 			// /?foo=bar&=bar == invalid
 			return false;
-		
+
 		String key = token.SubStr(0, pHelper);
 		String value = Empty;
 
@@ -363,7 +363,7 @@ bool Url::ParseQuery(const String& query)
 
 		if (!ValidateToken(value, ACQUERY))
 			return false;
-		
+
 		value = Utility::UnescapeString(value);
 
 		pHelper = key.Find("[]");
@@ -372,7 +372,7 @@ bool Url::ParseQuery(const String& query)
 			return false;
 
 		key = key.SubStr(0, pHelper);
-		
+
 		if (!ValidateToken(key, ACQUERY))
 			return false;
 
@@ -385,7 +385,7 @@ bool Url::ParseQuery(const String& query)
 			m_Query[key].push_back(value);
 		} else
 			m_Query[key].push_back(value);
-		
+
 	}
 
 	return true;
@@ -407,3 +407,4 @@ bool Url::ValidateToken(const String& token, const String& symbols)
 
 	return true;
 }
+

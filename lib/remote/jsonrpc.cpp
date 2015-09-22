@@ -20,7 +20,6 @@
 #include "remote/jsonrpc.hpp"
 #include "base/netstring.hpp"
 #include "base/json.hpp"
-//#include <iostream>
 
 using namespace icinga;
 
@@ -32,7 +31,6 @@ using namespace icinga;
 void JsonRpc::SendMessage(const Stream::Ptr& stream, const Dictionary::Ptr& message)
 {
 	String json = JsonEncode(message);
-	//std::cerr << ">> " << json << std::endl;
 	NetString::WriteStringToStream(stream, json);
 }
 
@@ -44,7 +42,6 @@ StreamReadStatus JsonRpc::ReadMessage(const Stream::Ptr& stream, Dictionary::Ptr
 	if (srs != StatusNewItem)
 		return srs;
 
-	//std::cerr << "<< " << jsonString << std::endl;
 	Value value = JsonDecode(jsonString);
 
 	if (!value.IsObjectType<Dictionary>()) {
@@ -56,3 +53,4 @@ StreamReadStatus JsonRpc::ReadMessage(const Stream::Ptr& stream, Dictionary::Ptr
 
 	return StatusNewItem;
 }
+

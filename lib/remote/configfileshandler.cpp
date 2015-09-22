@@ -33,7 +33,7 @@ bool ConfigFilesHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 	if (request.RequestMethod == "GET")
 		HandleGet(user, request, response);
 	else
-		response.SetStatus(400, "Bad request");
+		HttpUtility::SendJsonError(response, 400, "Invalid request type. Must be GET.");
 
 	return true;
 }
@@ -58,24 +58,21 @@ void ConfigFilesHandler::HandleGet(const ApiUser::Ptr& user, HttpRequest& reques
 	String packageName = HttpUtility::GetLastParameter(params, "package");
 	String stageName = HttpUtility::GetLastParameter(params, "stage");
 
-	if (!ConfigPackageUtility::ValidateName(packageName) || !ConfigPackageUtility::ValidateName(stageName)) {
-		response.SetStatus(403, "Forbidden");
-		return;
-	}
+	if (!ConfigPackageUtility::ValidateName(packageName))
+		return HttpUtility::SendJsonError(response, 404, "Package is not valid or does not exist.");
+
+	if (!ConfigPackageUtility::ValidateName(stageName))
+		return HttpUtility::SendJsonError(response, 404, "Stage is not valid or does not exist.");
 
 	String relativePath = HttpUtility::GetLastParameter(params, "path");
 
-	if (ConfigPackageUtility::ContainsDotDot(relativePath)) {
-		response.SetStatus(403, "Forbidden");
-		return;
-	}
+	if (ConfigPackageUtility::ContainsDotDot(relativePath))
+		return HttpUtility::SendJsonError(response, 403, "Path contains '..' (not allowed).");
 
 	String path = ConfigPackageUtility::GetPackageDir() + "/" + packageName + "/" + stageName + "/" + relativePath;
 
-	if (!Utility::PathExists(path)) {
-		response.SetStatus(404, "File not found");
-		return;
-	}
+	if (!Utility::PathExists(path))
+		return HttpUtility::SendJsonError(response, 404, "Path not found.");
 
 	try {
 		std::ifstream fp(path.CStr(), std::ifstream::in | std::ifstream::binary);
@@ -86,7 +83,8 @@ void ConfigFilesHandler::HandleGet(const ApiUser::Ptr& user, HttpRequest& reques
 		response.AddHeader("Content-Type", "application/octet-stream");
 		response.WriteBody(content.CStr(), content.GetLength());
 	} catch (const std::exception& ex) {
-		response.SetStatus(503, "Could not read file");
+		return HttpUtility::SendJsonError(response, 500, "Could not read file.",
+		    request.GetVerboseErrors() ? DiagnosticInformation(ex) : "");
 	}
 }
 

@@ -64,7 +64,7 @@ void HttpResponse::FinishHeaders(void)
 	if (m_State == HttpResponseHeaders) {
 		if (m_Request.ProtocolVersion == HttpVersion11)
 			AddHeader("Transfer-Encoding", "chunked");
- 
+
 		AddHeader("Server", "Icinga/" + Application::GetAppVersion());
 		m_Stream->Write("\r\n", 2);
 		m_State = HttpResponseBody;
@@ -232,3 +232,4 @@ size_t HttpResponse::ReadBody(char *data, size_t count)
 	else
 		return m_Body->Read(data, count, true);
 }
+

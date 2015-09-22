@@ -18,7 +18,9 @@
  ******************************************************************************/
 
 #include "remote/httphandler.hpp"
+#include "remote/httputility.hpp"
 #include "base/singleton.hpp"
+#include <boost/algorithm/string/join.hpp>
 
 using namespace icinga;
 
@@ -100,10 +102,10 @@ void HttpHandler::ProcessRequest(const ApiUser::Ptr& user, HttpRequest& request,
 		}
 	}
 	if (!processed) {
-		response.SetStatus(404, "Not found");
-		response.AddHeader("Content-Type", "text/html");
-		String msg = "<h1>Not found</h1>";
-		response.WriteBody(msg.CStr(), msg.GetLength());
+		String path = boost::algorithm::join(request.RequestUrl->GetPath(), "/");
+		HttpUtility::SendJsonError(response, 404, "The requested API '" +  path +
+				"' could not be found. Please check it for common errors like spelling and consult the docs.");
 		return;
 	}
 }
+

@@ -23,6 +23,7 @@
 #include "base/application.hpp"
 #include "base/exception.hpp"
 #include <boost/foreach.hpp>
+#include <boost/algorithm/string/join.hpp>
 
 using namespace icinga;
 
@@ -30,8 +31,11 @@ REGISTER_URLHANDLER("/v1/config/stages", ConfigStagesHandler);
 
 bool ConfigStagesHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
 {
-	if (request.RequestUrl->GetPath().size() > 5)
-		return false;
+	if (request.RequestUrl->GetPath().size() > 5) {
+		String path = boost::algorithm::join(request.RequestUrl->GetPath(), "/");
+		HttpUtility::SendJsonError(response, 404, "The requested path is too long to match any config tag requests.");
+		return true;
+	}
 
 	if (request.RequestMethod == "GET")
 		HandleGet(user, request, response);
@@ -40,7 +44,7 @@ bool ConfigStagesHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 	else if (request.RequestMethod == "DELETE")
 		HandleDelete(user, request, response);
 	else
-		response.SetStatus(400, "Bad request");
+		HttpUtility::SendJsonError(response, 400, "Invalid request type. Must be GET, POST or DELETE.");
 
 	return true;
 }
@@ -58,10 +62,11 @@ void ConfigStagesHandler::HandleGet(const ApiUser::Ptr& user, HttpRequest& reque
 	String packageName = HttpUtility::GetLastParameter(params, "package");
 	String stageName = HttpUtility::GetLastParameter(params, "stage");
 
-	if (!ConfigPackageUtility::ValidateName(packageName) || !ConfigPackageUtility::ValidateName(stageName)) {
-		response.SetStatus(403, "Forbidden");
-		return;
-	}
+	if (!ConfigPackageUtility::ValidateName(packageName))
+		return HttpUtility::SendJsonError(response, 404, "Package is not valid or does not exist.");
+
+	if (!ConfigPackageUtility::ValidateName(stageName))
+		return HttpUtility::SendJsonError(response, 404, "Stage is not valid or does not exist.");
 
 	Array::Ptr results = new Array();
 
@@ -93,15 +98,11 @@ void ConfigStagesHandler::HandlePost(const ApiUser::Ptr& user, HttpRequest& requ
 
 	String packageName = HttpUtility::GetLastParameter(params, "package");
 
-	if (!ConfigPackageUtility::ValidateName(packageName)) {
-		response.SetStatus(403, "Forbidden");
-		return;
-	}
+	if (!ConfigPackageUtility::ValidateName(packageName))
+		return HttpUtility::SendJsonError(response, 404, "Package is not valid or does not exist.");
 
 	Dictionary::Ptr files = params->Get("files");
 
-	int code = 200;
-	String status = "Created stage.";
 	String stageName;
 
 	try {
@@ -113,16 +114,15 @@ void ConfigStagesHandler::HandlePost(const ApiUser::Ptr& user, HttpRequest& requ
 		/* validate the config. on success, activate stage and reload */
 		ConfigPackageUtility::AsyncTryActivateStage(packageName, stageName);
 	} catch (const std::exception& ex) {
-		code = 501;
-		status = "Error: " + DiagnosticInformation(ex);
+		return HttpUtility::SendJsonError(response, 500,
+				"Stage creation failed.",
+				request.GetVerboseErrors() ? DiagnosticInformation(ex) : "");
 	}
 
 	Dictionary::Ptr result1 = new Dictionary();
 
-	result1->Set("package", packageName);
-	result1->Set("stage", stageName);
-	result1->Set("code", code);
-	result1->Set("status", status);
+	result1->Set("code", 200);
+	result1->Set("status", "Created stage.");
 
 	Array::Ptr results = new Array();
 	results->Add(result1);
@@ -130,7 +130,7 @@ void ConfigStagesHandler::HandlePost(const ApiUser::Ptr& user, HttpRequest& requ
 	Dictionary::Ptr result = new Dictionary();
 	result->Set("results", results);
 
-	response.SetStatus(code, (code == 200) ? "OK" : "Error");
+	response.SetStatus(200, "OK");
 	HttpUtility::SendJsonBody(response, result);
 }
 
@@ -147,27 +147,24 @@ void ConfigStagesHandler::HandleDelete(const ApiUser::Ptr& user, HttpRequest& re
 	String packageName = HttpUtility::GetLastParameter(params, "package");
 	String stageName = HttpUtility::GetLastParameter(params, "stage");
 
-	if (!ConfigPackageUtility::ValidateName(packageName) || !ConfigPackageUtility::ValidateName(stageName)) {
-		response.SetStatus(403, "Forbidden");
-		return;
-	}
+	if (!ConfigPackageUtility::ValidateName(packageName))
+		return HttpUtility::SendJsonError(response, 404, "Package is not valid or does not exist.");
 
-	int code = 200;
-	String status = "Deleted stage.";
+	if (!ConfigPackageUtility::ValidateName(stageName))
+		return HttpUtility::SendJsonError(response, 404, "Stage is not valid or does not exist.");
 
 	try {
 		ConfigPackageUtility::DeleteStage(packageName, stageName);
 	} catch (const std::exception& ex) {
-		code = 501;
-		status = "Error: " + DiagnosticInformation(ex);
+		return HttpUtility::SendJsonError(response, 500,
+		    "Failed to delete stage.",
+		    request.GetVerboseErrors() ? DiagnosticInformation(ex) : "");
 	}
 
 	Dictionary::Ptr result1 = new Dictionary();
 
-	result1->Set("package", packageName);
-	result1->Set("stage", stageName);
-	result1->Set("code", code);
-	result1->Set("status", status);
+	result1->Set("code", 200);
+	result1->Set("status", "Stage deleted");
 
 	Array::Ptr results = new Array();
 	results->Add(result1);
@@ -175,7 +172,7 @@ void ConfigStagesHandler::HandleDelete(const ApiUser::Ptr& user, HttpRequest& re
 	Dictionary::Ptr result = new Dictionary();
 	result->Set("results", results);
 
-	response.SetStatus(code, (code == 200) ? "OK" : "Error");
+	response.SetStatus(200, "OK");
 	HttpUtility::SendJsonBody(response, result);
 }
 

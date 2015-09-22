@@ -34,7 +34,8 @@ HttpRequest::HttpRequest(const Stream::Ptr& stream)
       ProtocolVersion(HttpVersion11),
       Headers(new Dictionary()),
       m_Stream(stream),
-      m_State(HttpRequestStart)
+      m_State(HttpRequestStart),
+      verboseErrors(false)
 { }
 
 bool HttpRequest::Parse(StreamReadContext& src, bool may_wait)
@@ -57,8 +58,10 @@ bool HttpRequest::Parse(StreamReadContext& src, bool may_wait)
 			    << "line: " << line << ", tokens: " << tokens.size();
 			if (tokens.size() != 3)
 				BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid HTTP request"));
+
 			RequestMethod = tokens[0];
 			RequestUrl = new class Url(tokens[1]);
+			verboseErrors = (RequestUrl->GetQueryElement("verboseErrors") == "true");
 
 			if (tokens[2] == "HTTP/1.0")
 				ProtocolVersion = HttpVersion10;
@@ -84,8 +87,8 @@ bool HttpRequest::Parse(StreamReadContext& src, bool may_wait)
 				String::SizeType pos = line.FindFirstOf(":");
 				if (pos == String::NPos)
 					BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid HTTP request"));
-				String key = line.SubStr(0, pos).ToLower().Trim();
 
+				String key = line.SubStr(0, pos).ToLower().Trim();
 				String value = line.SubStr(pos + 1).Trim();
 				Headers->Set(key, value);
 
@@ -230,3 +233,4 @@ void HttpRequest::Finish(void)
 
 	m_State = HttpRequestEnd;
 }
+

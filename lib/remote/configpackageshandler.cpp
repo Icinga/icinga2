@@ -21,6 +21,7 @@
 #include "remote/configpackageutility.hpp"
 #include "remote/httputility.hpp"
 #include "base/exception.hpp"
+#include <boost/algorithm/string/join.hpp>
 
 using namespace icinga;
 
@@ -28,8 +29,11 @@ REGISTER_URLHANDLER("/v1/config/packages", ConfigPackagesHandler);
 
 bool ConfigPackagesHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
 {
-	if (request.RequestUrl->GetPath().size() > 4)
-		return false;
+	if (request.RequestUrl->GetPath().size() > 4) {
+		String path = boost::algorithm::join(request.RequestUrl->GetPath(), "/");
+		HttpUtility::SendJsonError(response, 404, "The requested path is too long to match any config package requests");
+		return true;
+	}
 
 	if (request.RequestMethod == "GET")
 		HandleGet(user, request, response);
@@ -38,7 +42,7 @@ bool ConfigPackagesHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest&
 	else if (request.RequestMethod == "DELETE")
 		HandleDelete(user, request, response);
 	else
-		response.SetStatus(400, "Bad request");
+		HttpUtility::SendJsonError(response, 400, "Invalid request type. Must be GET, POST or DELETE.");
 
 	return true;
 }
@@ -74,25 +78,21 @@ void ConfigPackagesHandler::HandlePost(const ApiUser::Ptr& user, HttpRequest& re
 	String packageName = HttpUtility::GetLastParameter(params, "package");
 
 	if (!ConfigPackageUtility::ValidateName(packageName)) {
-		response.SetStatus(403, "Forbidden");
+		HttpUtility::SendJsonError(response, 404, "Package is not valid or does not exist.");
 		return;
-	}
-
-	int code = 200;
-	String status = "Created package.";
-
-	try {
-		ConfigPackageUtility::CreatePackage(packageName);
-	} catch (const std::exception& ex) {
-		code = 501;
-		status = "Error: " + DiagnosticInformation(ex);
 	}
 
 	Dictionary::Ptr result1 = new Dictionary();
 
-	result1->Set("package", packageName);
-	result1->Set("code", code);
-	result1->Set("status", status);
+	try {
+		ConfigPackageUtility::CreatePackage(packageName);
+	} catch (const std::exception& ex) {
+		HttpUtility::SendJsonError(response, 500, "Could not create package.",
+			request.GetVerboseErrors() ? DiagnosticInformation(ex) : "");
+	}
+
+	result1->Set("code", 200);
+	result1->Set("status", "Created package.");
 
 	Array::Ptr results = new Array();
 	results->Add(result1);
@@ -100,7 +100,7 @@ void ConfigPackagesHandler::HandlePost(const ApiUser::Ptr& user, HttpRequest& re
 	Dictionary::Ptr result = new Dictionary();
 	result->Set("results", results);
 
-	response.SetStatus(code, (code == 200) ? "OK" : "Error");
+	response.SetStatus(200, "OK");
 	HttpUtility::SendJsonBody(response, result);
 }
 
@@ -114,21 +114,23 @@ void ConfigPackagesHandler::HandleDelete(const ApiUser::Ptr& user, HttpRequest& 
 	String packageName = HttpUtility::GetLastParameter(params, "package");
 
 	if (!ConfigPackageUtility::ValidateName(packageName)) {
-		response.SetStatus(403, "Forbidden");
+		HttpUtility::SendJsonError(response, 404, "Package is not valid or does not exist.");
 		return;
 	}
 
 	int code = 200;
 	String status = "Deleted package.";
+	Dictionary::Ptr result1 = new Dictionary();
 
 	try {
 		ConfigPackageUtility::DeletePackage(packageName);
 	} catch (const std::exception& ex) {
-		code = 501;
-		status = "Error: " + DiagnosticInformation(ex);
+		code = 500;
+		status = "Failed to delete package.";
+		if (request.GetVerboseErrors())
+			result1->Set("diagnostic information", DiagnosticInformation(ex));
 	}
 
-	Dictionary::Ptr result1 = new Dictionary();
 
 	result1->Set("package", packageName);
 	result1->Set("code", code);
@@ -140,7 +142,7 @@ void ConfigPackagesHandler::HandleDelete(const ApiUser::Ptr& user, HttpRequest& 
 	Dictionary::Ptr result = new Dictionary();
 	result->Set("results", results);
 
-	response.SetStatus(code, (code == 200) ? "OK" : "Error");
+	response.SetStatus(code, (code == 200) ? "OK" : "Internal Server Error");
 	HttpUtility::SendJsonBody(response, result);
 }
 

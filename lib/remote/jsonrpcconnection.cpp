@@ -38,8 +38,10 @@ REGISTER_APIFUNCTION(RequestCertificate, pki, &RequestCertificateHandler);
 static boost::once_flag l_JsonRpcConnectionOnceFlag = BOOST_ONCE_INIT;
 static Timer::Ptr l_JsonRpcConnectionTimeoutTimer;
 
-JsonRpcConnection::JsonRpcConnection(const String& identity, bool authenticated, const TlsStream::Ptr& stream, ConnectionRole role)
-	: m_Identity(identity), m_Authenticated(authenticated), m_Stream(stream), m_Role(role), m_Seen(Utility::GetTime()),
+JsonRpcConnection::JsonRpcConnection(const String& identity, bool authenticated,
+    const TlsStream::Ptr& stream, ConnectionRole role)
+	: m_Identity(identity), m_Authenticated(authenticated), m_Stream(stream),
+	  m_Role(role), m_Seen(Utility::GetTime()),
 	  m_NextHeartbeat(0), m_HeartbeatTimeout(0)
 {
 	boost::call_once(l_JsonRpcConnectionOnceFlag, &JsonRpcConnection::StaticInitialize);
@@ -174,7 +176,7 @@ bool JsonRpcConnection::ProcessMessage(void)
 
 		resultMessage->Set("result", afunc->Invoke(origin, message->Get("params")));
 	} catch (const std::exception& ex) {
-		//TODO: Add a user readable error message for the remote caller
+		/* TODO: Add a user readable error message for the remote caller */
 		resultMessage->Set("error", DiagnosticInformation(ex));
 		std::ostringstream info;
 		info << "Error while processing message for identity '" << m_Identity << "'";
@@ -200,7 +202,8 @@ void JsonRpcConnection::DataAvailableHandler(void)
 			; /* empty loop body */
 	} catch (const std::exception& ex) {
 		Log(LogWarning, "JsonRpcConnection")
-		    << "Error while reading JSON-RPC message for identity '" << m_Identity << "': " << DiagnosticInformation(ex);
+		    << "Error while reading JSON-RPC message for identity '" << m_Identity
+		    << "': " << DiagnosticInformation(ex);
 
 		Disconnect();
 	}
@@ -286,3 +289,4 @@ void JsonRpcConnection::TimeoutTimerHandler(void)
 		}
 	}
 }
+

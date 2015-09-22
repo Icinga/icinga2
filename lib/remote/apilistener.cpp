@@ -57,13 +57,15 @@ void ApiListener::OnConfigLoaded(void)
 	try {
 		cert = GetX509Certificate(GetCertPath());
 	} catch (const std::exception&) {
-		BOOST_THROW_EXCEPTION(ScriptError("Cannot get certificate from cert path: '" + GetCertPath() + "'.", GetDebugInfo()));
+		BOOST_THROW_EXCEPTION(ScriptError("Cannot get certificate from cert path: '"
+		    + GetCertPath() + "'.", GetDebugInfo()));
 	}
 
 	try {
 		SetIdentity(GetCertificateCN(cert));
 	} catch (const std::exception&) {
-		BOOST_THROW_EXCEPTION(ScriptError("Cannot get certificate common name from cert path: '" + GetCertPath() + "'.", GetDebugInfo()));
+		BOOST_THROW_EXCEPTION(ScriptError("Cannot get certificate common name from cert path: '"
+		    + GetCertPath() + "'.", GetDebugInfo()));
 	}
 
 	Log(LogInformation, "ApiListener")
@@ -72,14 +74,16 @@ void ApiListener::OnConfigLoaded(void)
 	try {
 		m_SSLContext = MakeSSLContext(GetCertPath(), GetKeyPath(), GetCaPath());
 	} catch (const std::exception&) {
-		BOOST_THROW_EXCEPTION(ScriptError("Cannot make SSL context for cert path: '" + GetCertPath() + "' key path: '" + GetKeyPath() + "' ca path: '" + GetCaPath() + "'.", GetDebugInfo()));
+		BOOST_THROW_EXCEPTION(ScriptError("Cannot make SSL context for cert path: '"
+		    + GetCertPath() + "' key path: '" + GetKeyPath() + "' ca path: '" + GetCaPath() + "'.", GetDebugInfo()));
 	}
 
 	if (!GetCrlPath().IsEmpty()) {
 		try {
 			AddCRLToSSLContext(m_SSLContext, GetCrlPath());
 		} catch (const std::exception&) {
-			BOOST_THROW_EXCEPTION(ScriptError("Cannot add certificate revocation list to SSL context for crl path: '" + GetCrlPath() + "'.", GetDebugInfo()));
+			BOOST_THROW_EXCEPTION(ScriptError("Cannot add certificate revocation list to SSL context for crl path: '"
+			    + GetCrlPath() + "'.", GetDebugInfo()));
 		}
 	}
 }
@@ -97,7 +101,8 @@ void ApiListener::Start(void)
 {
 	SyncZoneDirs();
 
-	if (std::distance(ConfigType::GetObjectsByType<ApiListener>().first, ConfigType::GetObjectsByType<ApiListener>().second) > 1) {
+	if (std::distance(ConfigType::GetObjectsByType<ApiListener>().first,
+	    ConfigType::GetObjectsByType<ApiListener>().second) > 1) {
 		Log(LogCritical, "ApiListener", "Only one ApiListener object is allowed.");
 		return;
 	}
@@ -433,7 +438,8 @@ void ApiListener::ApiTimerHandler(void)
 		/* only connect to endpoints in a) the same zone b) our parent zone c) immediate child zones */
 		if (my_zone != zone && my_zone != zone->GetParent() && zone != my_zone->GetParent()) {
 			Log(LogDebug, "ApiListener")
-			    << "Not connecting to Zone '" << zone->GetName() << "' because it's not in the same zone, a parent or a child zone.";
+			    << "Not connecting to Zone '" << zone->GetName()
+			    << "' because it's not in the same zone, a parent or a child zone.";
 			continue;
 		}
 
@@ -448,21 +454,24 @@ void ApiListener::ApiTimerHandler(void)
 			/* don't try to connect to endpoints which don't have a host and port */
 			if (endpoint->GetHost().IsEmpty() || endpoint->GetPort().IsEmpty()) {
 				Log(LogDebug, "ApiListener")
-				    << "Not connecting to Endpoint '" << endpoint->GetName() << "' because the host/port attributes are missing.";
+				    << "Not connecting to Endpoint '" << endpoint->GetName()
+				    << "' because the host/port attributes are missing.";
 				continue;
 			}
 
 			/* don't try to connect if there's already a connection attempt */
 			if (endpoint->GetConnecting()) {
 				Log(LogDebug, "ApiListener")
-				    << "Not connecting to Endpoint '" << endpoint->GetName() << "' because we're already trying to connect to it.";
+				    << "Not connecting to Endpoint '" << endpoint->GetName()
+				    << "' because we're already trying to connect to it.";
 				continue;
 			}
 
 			/* don't try to connect if we're already connected */
 			if (endpoint->IsConnected()) {
 				Log(LogDebug, "ApiListener")
-				    << "Not connecting to Endpoint '" << endpoint->GetName() << "' because we're already connected to it.";
+				    << "Not connecting to Endpoint '" << endpoint->GetName()
+				    << "' because we're already connected to it.";
 				continue;
 			}
 
@@ -511,7 +520,8 @@ void ApiListener::ApiTimerHandler(void)
 	    << "Connected endpoints: " << Utility::NaturalJoin(names);
 }
 
-void ApiListener::RelayMessage(const MessageOrigin::Ptr& origin, const ConfigObject::Ptr& secobj, const Dictionary::Ptr& message, bool log)
+void ApiListener::RelayMessage(const MessageOrigin::Ptr& origin,
+    const ConfigObject::Ptr& secobj, const Dictionary::Ptr& message, bool log)
 {
 	m_RelayQueue.Enqueue(boost::bind(&ApiListener::SyncRelayMessage, this, origin, secobj, message, log), true);
 }
@@ -526,7 +536,6 @@ void ApiListener::PersistMessage(const Dictionary::Ptr& message, const ConfigObj
 	pmessage->Set("timestamp", ts);
 
 	pmessage->Set("message", JsonEncode(message));
-	
 	Dictionary::Ptr secname = new Dictionary();
 	secname->Set("type", secobj->GetType()->GetName());
 	secname->Set("name", secobj->GetName());
@@ -560,7 +569,8 @@ void ApiListener::SyncSendMessage(const Endpoint::Ptr& endpoint, const Dictionar
 }
 
 
-void ApiListener::SyncRelayMessage(const MessageOrigin::Ptr& origin, const ConfigObject::Ptr& secobj, const Dictionary::Ptr& message, bool log)
+void ApiListener::SyncRelayMessage(const MessageOrigin::Ptr& origin,
+    const ConfigObject::Ptr& secobj, const Dictionary::Ptr& message, bool log)
 {
 	double ts = Utility::GetTime();
 	message->Set("ts", ts);
@@ -704,12 +714,12 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 	double peer_ts = endpoint->GetLocalLogPosition();
 	double logpos_ts = peer_ts;
 	bool last_sync = false;
-	
+
 	Endpoint::Ptr target_endpoint = client->GetEndpoint();
 	ASSERT(target_endpoint);
-	
+
 	Zone::Ptr target_zone = target_endpoint->GetZone();
-	
+
 	if (!target_zone)
 		return;
 
@@ -771,18 +781,18 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 					continue;
 
 				Dictionary::Ptr secname = pmessage->Get("secobj");
-				
+
 				if (secname) {
 					ConfigType::Ptr dtype = ConfigType::GetByName(secname->Get("type"));
-					
+
 					if (!dtype)
 						continue;
-					
+
 					ConfigObject::Ptr secobj = dtype->GetObject(secname->Get("name"));
-					
+
 					if (!secobj)
 						continue;
-					
+
 					if (!target_zone->CanAccessObject(secobj))
 						continue;
 				}
