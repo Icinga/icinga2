@@ -230,18 +230,18 @@ Value icinga::operator+(const Value& lhs, const Value& rhs)
 {
 	if ((lhs.IsEmpty() || lhs.IsNumber()) && !lhs.IsString() && (rhs.IsEmpty() || rhs.IsNumber()) && !rhs.IsString() && !(lhs.IsEmpty() && rhs.IsEmpty()))
 		return static_cast<double>(lhs) + static_cast<double>(rhs);
-	if ((lhs.IsString() || lhs.IsEmpty() || lhs.IsNumber()) && (rhs.IsString() || rhs.IsEmpty() || rhs.IsNumber()))
+	if ((lhs.IsString() || lhs.IsEmpty() || lhs.IsNumber()) && (rhs.IsString() || rhs.IsEmpty() || rhs.IsNumber()) && (!(lhs.IsEmpty() && rhs.IsEmpty()) || lhs.IsString() || rhs.IsString()))
 		return static_cast<String>(lhs) + static_cast<String>(rhs);
-	else if ((lhs.IsNumber() || lhs.IsEmpty()) && (rhs.IsNumber() || rhs.IsEmpty()) && !(lhs.IsEmpty() && rhs.IsEmpty()))
+	else if ((lhs.IsNumber() || lhs.IsEmpty()) && (rhs.IsNumber() || rhs.IsEmpty()) && !(lhs.IsEmpty() && rhs.IsEmpty()) && !(lhs.IsEmpty() && rhs.IsEmpty()))
 		return static_cast<double>(lhs) + static_cast<double>(rhs);
-	else if ((lhs.IsObjectType<Array>() || lhs.IsEmpty()) && (rhs.IsObjectType<Array>() || rhs.IsEmpty()) && !(lhs.IsEmpty() && rhs.IsEmpty())) {
+	else if ((lhs.IsObjectType<Array>() || lhs.IsEmpty()) && (rhs.IsObjectType<Array>() || rhs.IsEmpty()) && !(lhs.IsEmpty() && rhs.IsEmpty()) && !(lhs.IsEmpty() && rhs.IsEmpty())) {
 		Array::Ptr result = new Array();
 		if (!lhs.IsEmpty())
 			static_cast<Array::Ptr>(lhs)->CopyTo(result);
 		if (!rhs.IsEmpty())
 			static_cast<Array::Ptr>(rhs)->CopyTo(result);
 		return result;
-	} else if ((lhs.IsObjectType<Dictionary>() || lhs.IsEmpty()) && (rhs.IsObjectType<Dictionary>() || rhs.IsEmpty()) && !(lhs.IsEmpty() && rhs.IsEmpty())) {
+	} else if ((lhs.IsObjectType<Dictionary>() || lhs.IsEmpty()) && (rhs.IsObjectType<Dictionary>() || rhs.IsEmpty()) && !(lhs.IsEmpty() && rhs.IsEmpty()) && !(lhs.IsEmpty() && rhs.IsEmpty())) {
 		Dictionary::Ptr result = new Dictionary();
 		if (!lhs.IsEmpty())
 			static_cast<Dictionary::Ptr>(lhs)->CopyTo(result);
