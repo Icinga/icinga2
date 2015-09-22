@@ -100,7 +100,7 @@ private:
 
 	void UpdateObjectsCache(void);
 	void StatusTimerHandler(void);
-	void VersionChangedHandler(void);
+	void ObjectHandler(void);
 };
 
 }

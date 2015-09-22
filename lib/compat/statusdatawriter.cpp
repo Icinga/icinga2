@@ -82,7 +82,8 @@ void StatusDataWriter::Start(void)
 	m_StatusTimer->Start();
 	m_StatusTimer->Reschedule(0);
 
-	ConfigObject::OnVersionChanged.connect(boost::bind(&StatusDataWriter::VersionChangedHandler, this));
+	ConfigObject::OnVersionChanged.connect(boost::bind(&StatusDataWriter::ObjectHandler, this));
+	ConfigObject::OnActiveChanged.connect(boost::bind(&StatusDataWriter::ObjectHandler, this));
 }
 
 void StatusDataWriter::DumpComments(std::ostream& fp, const Checkable::Ptr& checkable)
@@ -867,7 +868,7 @@ void StatusDataWriter::StatusTimerHandler(void)
 	    << "Writing status.dat file took " << Utility::FormatDuration(Utility::GetTime() - start);
 }
 
-void StatusDataWriter::VersionChangedHandler(void)
+void StatusDataWriter::ObjectHandler(void)
 {
 	m_ObjectsCacheOutdated = true;
 }
