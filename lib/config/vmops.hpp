@@ -58,7 +58,7 @@ public:
 	{
 		boost::shared_ptr<ScriptFrame> vframe;
 
-		if (!self.IsEmpty())
+		if (!self.IsEmpty() || self.IsString())
 			vframe = boost::make_shared<ScriptFrame>(self); /* passes self to the callee using a TLS variable */
 		else
 			vframe = boost::make_shared<ScriptFrame>();
@@ -206,7 +206,7 @@ public:
 
 	static inline Value GetField(const Value& context, const String& field, const DebugInfo& debugInfo = DebugInfo())
 	{
-		if (context.IsEmpty())
+		if (context.IsEmpty() && !context.IsString())
 			return Empty;
 
 		if (!context.IsObject())
