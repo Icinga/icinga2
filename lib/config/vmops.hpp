@@ -91,7 +91,7 @@ public:
 	{
 		ScriptFrame vframe;
 		
-		if (!self.IsEmpty())
+		if (!self.IsEmpty() || self.IsString())
 			vframe.Self = self;
 
 		return func->Invoke(arguments);
@@ -231,7 +231,7 @@ public:
 
 	static inline Value GetField(const Value& context, const String& field, const DebugInfo& debugInfo = DebugInfo())
 	{
-		if (context.IsEmpty())
+		if (context.IsEmpty() && !context.IsString())
 			return Empty;
 
 		if (!context.IsObject())
