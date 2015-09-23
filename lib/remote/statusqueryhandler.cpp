@@ -96,7 +96,7 @@ bool StatusQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 				prefix = type->GetName();
 			} else {
 				int fid = type->GetFieldId(joinAttr);
-				joinedObj = static_cast<Object::Ptr>(obj)->NavigateField(fid);
+				joinedObj = obj->NavigateField(fid);
 
 				if (!joinedObj)
 					continue;

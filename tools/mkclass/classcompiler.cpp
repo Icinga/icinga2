@@ -541,7 +541,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		       << "{ }" << std::endl << std::endl;
 
 		/* SetField */
-		m_Header << "protected:" << std::endl
+		m_Header << "public:" << std::endl
 			 << "\t" << "virtual void SetField(int id, const Value& value, bool suppress_events = false, const Value& cookie = Empty) override;" << std::endl;
 
 		m_Impl << "void ObjectImpl<" << klass.Name << ">::SetField(int id, const Value& value, bool suppress_events, const Value& cookie)" << std::endl
@@ -585,7 +585,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		m_Impl << "}" << std::endl << std::endl;
 
 		/* GetField */
-		m_Header << "protected:" << std::endl
+		m_Header << "public:" << std::endl
 			 << "\t" << "virtual Value GetField(int id) const override;" << std::endl;
 
 		m_Impl << "Value ObjectImpl<" << klass.Name << ">::GetField(int id) const" << std::endl
@@ -618,7 +618,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		m_Impl << "}" << std::endl << std::endl;
 		
 		/* ValidateField */
-		m_Header << "protected:" << std::endl
+		m_Header << "public:" << std::endl
 			 << "\t" << "virtual void ValidateField(int id, const Value& value, const ValidationUtils& utils) override;" << std::endl;
 
 		m_Impl << "void ObjectImpl<" << klass.Name << ">::ValidateField(int id, const Value& value, const ValidationUtils& utils)" << std::endl
@@ -662,7 +662,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		m_Impl << "}" << std::endl << std::endl;
 
 		/* NotifyField */
-		m_Header << "protected:" << std::endl
+		m_Header << "public:" << std::endl
 			 << "\t" << "virtual void NotifyField(int id, const Value& cookie = Empty) override;" << std::endl;
 
 		m_Impl << "void ObjectImpl<" << klass.Name << ">::NotifyField(int id, const Value& cookie)" << std::endl
@@ -696,7 +696,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		m_Impl << "}" << std::endl << std::endl;
 
 		/* NavigateField */
-		m_Header << "protected:" << std::endl
+		m_Header << "public:" << std::endl
 			 << "\t" << "virtual Object::Ptr NavigateField(int id) const override;" << std::endl;
 
 		m_Impl << "Object::Ptr ObjectImpl<" << klass.Name << ">::NavigateField(int id) const" << std::endl
