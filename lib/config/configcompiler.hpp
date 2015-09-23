@@ -141,10 +141,10 @@ public:
 	bool m_Eof;
 	int m_OpenBraces;
 
-	int m_IgnoreNewlines;
 	std::ostringstream m_LexBuffer;
 	CompilerDebugInfo m_LocationBegin;
 
+	std::stack<bool> m_IgnoreNewlines;
 	std::stack<bool> m_Apply;
 	std::stack<bool> m_ObjectAssign;
 	std::stack<bool> m_SeenAssign;

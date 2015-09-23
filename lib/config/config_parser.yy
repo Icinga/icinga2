@@ -240,8 +240,12 @@ Expression *ConfigCompiler::Compile(void)
 
 	//yydebug = 1;
 
+	m_IgnoreNewlines.push(false);
+
 	if (yyparse(&llist, this) != 0)
 		return NULL;
+
+	m_IgnoreNewlines.pop();
 
 	std::vector<Expression *> dlist;
 	typedef std::pair<Expression *, EItemInfo> EListItem;
@@ -612,11 +616,13 @@ rterm_array: '['
 
 rterm_scope_require_side_effect: '{'
 	{
+		context->m_IgnoreNewlines.push(false);
 		context->m_OpenBraces++;
 	}
 	statements '}'
 	{
 		context->m_OpenBraces--;
+		context->m_IgnoreNewlines.pop();
 		std::vector<Expression *> dlist;
 		typedef std::pair<Expression *, EItemInfo> EListItem;
 		int num = 0;
@@ -633,11 +639,13 @@ rterm_scope_require_side_effect: '{'
 
 rterm_scope: '{'
 	{
+		context->m_IgnoreNewlines.push(false);
 		context->m_OpenBraces++;
 	}
 	statements '}'
 	{
 		context->m_OpenBraces--;
+		context->m_IgnoreNewlines.pop();
 		std::vector<Expression *> dlist;
 		typedef std::pair<Expression *, EItemInfo> EListItem;
 		int num = 0;

@@ -44,7 +44,7 @@ std::map<String, std::vector<ZoneFragment> > ConfigCompiler::m_ZoneDirs;
 ConfigCompiler::ConfigCompiler(const String& path, std::istream *input,
     const String& zone, const String& package)
 	: m_Path(path), m_Input(input), m_Zone(zone), m_Package(package),
-	  m_Eof(false), m_OpenBraces(0), m_IgnoreNewlines(0)
+	  m_Eof(false), m_OpenBraces(0)
 {
 	InitializeScanner();
 }
