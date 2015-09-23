@@ -133,32 +133,34 @@ char *i2_eval(void *uframe, const char *text, Tcl_Interp *interp)
 	} catch (const ScriptError& ex) {
 		DebugInfo di = ex.GetDebugInfo();
 
-		String text = l_Lines[di.Path];
+		if (di.FirstLine != 0) {
+			String text = l_Lines[di.Path];
 
-		std::vector<String> lines;
-		boost::algorithm::split(lines, text, boost::is_any_of("\n"));
+			std::vector<String> lines;
+			boost::algorithm::split(lines, text, boost::is_any_of("\n"));
 
-		for (int i = di.FirstLine; i <= di.LastLine; i++) {
-			int start, len;
+			for (int i = di.FirstLine; i <= di.LastLine; i++) {
+				int start, len;
 
-			if (i == di.FirstLine)
-				start = di.FirstColumn;
-			else
-				start = 0;
+				if (i == di.FirstLine)
+					start = di.FirstColumn;
+				else
+					start = 0;
 
-			if (i == di.LastLine)
-				len = di.LastColumn - di.FirstColumn + 1;
-			else
-				len = lines[i].GetLength();
+				if (i == di.LastLine)
+					len = di.LastColumn - di.FirstColumn + 1;
+				else
+					len = lines[i].GetLength();
 
-			String pathInfo = di.Path;
-			if (i != 1)
-				pathInfo += "(" + Convert::ToString(i) + ")";
-			pathInfo += ": ";
+				String pathInfo = di.Path;
+				if (i != 1)
+					pathInfo += "(" + Convert::ToString(i) + ")";
+				pathInfo += ": ";
 
-			msgbuf << pathInfo << lines[i - 1] << "\n";
-			msgbuf << String(pathInfo.GetLength(), ' ');
-			msgbuf << String(start, ' ') << String(len, '^') << "\n";
+				msgbuf << pathInfo << lines[i - 1] << "\n";
+				msgbuf << String(pathInfo.GetLength(), ' ');
+				msgbuf << String(start, ' ') << String(len, '^') << "\n";
+			}
 		}
 
 		msgbuf << ex.what();
