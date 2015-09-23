@@ -126,6 +126,12 @@ static Value StringReplace(const String& search, const String& replacement)
 	return self;
 }
 
+static String StringReverse(void)
+{
+	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
+	String self = vframe->Self;
+	return self.Reverse();
+}
 
 Object::Ptr String::GetPrototype(void)
 {
@@ -142,6 +148,7 @@ Object::Ptr String::GetPrototype(void)
 		prototype->Set("find", new Function(WrapFunction(StringFind)));
 		prototype->Set("contains", new Function(WrapFunction(StringContains)));
 		prototype->Set("replace", new Function(WrapFunction(StringReplace)));
+		prototype->Set("reverse", new Function(WrapFunction(StringReverse)));
 	}
 
 	return prototype;

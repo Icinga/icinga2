@@ -69,6 +69,8 @@ public:
 
 	static Object::Ptr GetPrototype(void);
 
+	Array::Ptr Reverse(void) const;
+
 private:
 	std::vector<Value> m_Data; /**< The data for the array. */
 };
