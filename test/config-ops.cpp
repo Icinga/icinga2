@@ -203,6 +203,10 @@ BOOST_AUTO_TEST_CASE(simple)
 	expr = ConfigCompiler::CompileText("<test>", "\"\\'test\"");
 	BOOST_CHECK_THROW(expr->Evaluate(frame).GetValue(), ScriptError);
 	delete expr;
+
+	expr = ConfigCompiler::CompileText("<test>", "({ a = 3\nb = 3 })");
+	BOOST_CHECK(expr->Evaluate(frame).GetValue().IsObjectType<Dictionary>());
+	delete expr;
 }
 
 BOOST_AUTO_TEST_CASE(advanced)
