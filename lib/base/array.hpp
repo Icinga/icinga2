@@ -112,6 +112,8 @@ public:
 	
 	virtual Object::Ptr Clone(void) const override;
 
+	Array::Ptr Reverse(void) const;
+
 private:
 	std::vector<Value> m_Data; /**< The data for the array. */
 };

@@ -498,6 +498,14 @@ Signature:
 
 Returns a copy of the string.
 
+### <a id="string-reverse"></a> String#reverse
+
+Signature:
+
+    function reverse();
+
+Returns a copy of the string in reverse order.
+
 ## <a id="array-type"></a> Array type
 
 ### <a id="array-add"></a> Array#add
@@ -582,7 +590,13 @@ Signature:
 
 Joins all elements of the array using the specified separator.
 
-## <a id="dictionary-type"></a> Dictionary type
+### <a id="array-reverse"></a> Array#reverse
+
+Signature:
+
+    function reverse();
+
+Returns a new array with all elements of the current array in reverse order.
 
 ### <a id="dictionary-shallow-clone"></a> Dictionary#shallow_clone
 

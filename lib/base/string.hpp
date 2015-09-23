@@ -234,6 +234,13 @@ public:
 		return t;
 	}
 
+	inline String Reverse(void) const
+	{
+		String t = m_Data;
+		std::reverse(t.m_Data.begin(), t.m_Data.end());
+		return t;
+	}
+
 	inline bool Contains(const String& str) const
 	{
 		return (m_Data.find(str) != std::string::npos);

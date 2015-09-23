@@ -130,6 +130,13 @@ static Value ArrayJoin(const Value& separator)
 	return result;
 }
 
+static Array::Ptr ArrayReverse(void)
+{
+	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
+	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
+	return self->Reverse();
+}
+
 Object::Ptr Array::GetPrototype(void)
 {
 	static Dictionary::Ptr prototype;
@@ -146,6 +153,7 @@ Object::Ptr Array::GetPrototype(void)
 		prototype->Set("sort", new Function(WrapFunction(ArraySort), true));
 		prototype->Set("shallow_clone", new Function(WrapFunction(ArrayShallowClone), true));
 		prototype->Set("join", new Function(WrapFunction(ArrayJoin), true));
+		prototype->Set("reverse", new Function(WrapFunction(ArrayReverse), true));
 	}
 
 	return prototype;

@@ -200,3 +200,14 @@ Object::Ptr Array::Clone(void) const
 	return arr;
 }
 
+Array::Ptr Array::Reverse(void) const
+{
+	Array::Ptr result = new Array();
+
+	ObjectLock olock(this);
+	ObjectLock xlock(result);
+
+	std::copy(m_Data.rbegin(), m_Data.rend(), std::back_inserter(result->m_Data));
+
+	return result;
+}
