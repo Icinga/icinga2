@@ -19,6 +19,7 @@
 
 #include "base/scriptframe.hpp"
 #include "base/scriptglobal.hpp"
+#include "base/exception.hpp"
 
 using namespace icinga;
 
@@ -70,6 +71,9 @@ void ScriptFrame::PushFrame(ScriptFrame *frame)
 		frames = new std::stack<ScriptFrame *>();
 		m_ScriptFrames.reset(frames);
 	}
+
+	if (frames->size() > 500)
+		BOOST_THROW_EXCEPTION(ScriptError("Recursion level too deep."));
 
 	frames->push(frame);
 }
