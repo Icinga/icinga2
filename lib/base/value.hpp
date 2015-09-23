@@ -209,7 +209,7 @@ public:
 	*/
 	inline bool IsObject(void) const
 	{
-		return !IsEmpty() && (GetType() == ValueObject);
+		return  (GetType() == ValueObject);
 	}
 
 	template<typename T>
