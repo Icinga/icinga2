@@ -505,41 +505,30 @@ ExpressionResult SetExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint)
 	if (m_Op != OpSetLiteral) {
 		Value object = VMOps::GetField(parent, index, m_DebugInfo);
 
-		Expression *lhs = MakeLiteral(object);
-		Expression *rhs = MakeLiteral(operand2);
-
 		switch (m_Op) {
 			case OpSetAdd:
-				operand2 = AddExpression(lhs, rhs, m_DebugInfo).Evaluate(frame, dhint);
-				CHECK_RESULT(operand2);
+				operand2 = object + operand2;
 				break;
 			case OpSetSubtract:
-				operand2 = SubtractExpression(lhs, rhs, m_DebugInfo).Evaluate(frame, dhint);
-				CHECK_RESULT(operand2);
+				operand2 = object - operand2;
 				break;
 			case OpSetMultiply:
-				operand2 = MultiplyExpression(lhs, rhs, m_DebugInfo).Evaluate(frame, dhint);
-				CHECK_RESULT(operand2);
+				operand2 = object * operand2;
 				break;
 			case OpSetDivide:
-				operand2 = DivideExpression(lhs, rhs, m_DebugInfo).Evaluate(frame, dhint);
-				CHECK_RESULT(operand2);
+				operand2 = object / operand2;
 				break;
 			case OpSetModulo:
-				operand2 = ModuloExpression(lhs, rhs, m_DebugInfo).Evaluate(frame, dhint);
-				CHECK_RESULT(operand2);
+				operand2 = object % operand2;
 				break;
 			case OpSetXor:
-				operand2 = XorExpression(lhs, rhs, m_DebugInfo).Evaluate(frame, dhint);
-				CHECK_RESULT(operand2);
+				operand2 = object ^ operand2;
 				break;
 			case OpSetBinaryAnd:
-				operand2 = BinaryAndExpression(lhs, rhs, m_DebugInfo).Evaluate(frame, dhint);
-				CHECK_RESULT(operand2);
+				operand2 = object & operand2;
 				break;
 			case OpSetBinaryOr:
-				operand2 = BinaryOrExpression(lhs, rhs, m_DebugInfo).Evaluate(frame, dhint);
-				CHECK_RESULT(operand2);
+				operand2 = object | operand2;
 				break;
 			default:
 				VERIFY(!"Invalid opcode.");
