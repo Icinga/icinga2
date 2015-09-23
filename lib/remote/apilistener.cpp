@@ -857,11 +857,13 @@ std::pair<Dictionary::Ptr, Dictionary::Ptr> ApiListener::GetStatus(void)
 	/* cluster stats */
 	status->Set("identity", GetIdentity());
 
-	double count_endpoints = 0;
-	Array::Ptr not_connected_endpoints = new Array();
-	Array::Ptr connected_endpoints = new Array();
+	double allEndpoints = 0;
+	Array::Ptr allNotConnectedEndpoints = new Array();
+	Array::Ptr allConnectedEndpoints = new Array();
 
 	Zone::Ptr my_zone = Zone::GetLocalZone();
+
+	Dictionary::Ptr connectedZones = new Dictionary();
 
 	BOOST_FOREACH(const Zone::Ptr& zone, ConfigType::GetObjectsByType<Zone>()) {
 		/* only check endpoints in a) the same zone b) our parent zone c) immediate child zones */
@@ -871,28 +873,64 @@ std::pair<Dictionary::Ptr, Dictionary::Ptr> ApiListener::GetStatus(void)
 			continue;
 		}
 
+		bool zoneConnected = false;
+		int countZoneEndpoints = 0;
+		double zoneLag = 0;
+
+		Array::Ptr zoneEndpoints = new Array();
+
 		BOOST_FOREACH(const Endpoint::Ptr& endpoint, zone->GetEndpoints()) {
+			zoneEndpoints->Add(endpoint->GetName());
+
 			if (endpoint->GetName() == GetIdentity())
 				continue;
 
-			count_endpoints++;
+			double eplag = Utility::GetTime() - endpoint->GetRemoteLogPosition();
 
-			if (!endpoint->IsConnected())
-				not_connected_endpoints->Add(endpoint->GetName());
-			else
-				connected_endpoints->Add(endpoint->GetName());
+			if ((endpoint->GetSyncing() || !endpoint->IsConnected()) && eplag > zoneLag)
+				zoneLag = eplag;
+
+			allEndpoints++;
+			countZoneEndpoints++;
+
+			if (!endpoint->IsConnected()) {
+				allNotConnectedEndpoints->Add(endpoint->GetName());
+			} else {
+				allConnectedEndpoints->Add(endpoint->GetName());
+				zoneConnected = true;
+			}
 		}
+
+		/* if there's only one endpoint inside the zone, we're not connected - that's us, fake it */
+		if (zone->GetEndpoints().size() == 1 && countZoneEndpoints == 0)
+			zoneConnected = true;
+
+		Dictionary::Ptr zoneStats = new Dictionary();
+		zoneStats->Set("connected", zoneConnected);
+		zoneStats->Set("client_log_lag", zoneLag);
+		zoneStats->Set("endpoints", zoneEndpoints);
+
+		String parentZoneName;
+		Zone::Ptr parentZone = zone->GetParent();
+		if (parentZone)
+			parentZoneName = parentZone->GetName();
+
+		zoneStats->Set("parent_zone", parentZoneName);
+
+		connectedZones->Set(zone->GetName(), zoneStats);
 	}
 
-	status->Set("num_endpoints", count_endpoints);
-	status->Set("num_conn_endpoints", connected_endpoints->GetLength());
-	status->Set("num_not_conn_endpoints", not_connected_endpoints->GetLength());
-	status->Set("conn_endpoints", connected_endpoints);
-	status->Set("not_conn_endpoints", not_connected_endpoints);
+	status->Set("num_endpoints", allEndpoints);
+	status->Set("num_conn_endpoints", allConnectedEndpoints->GetLength());
+	status->Set("num_not_conn_endpoints", allNotConnectedEndpoints->GetLength());
+	status->Set("conn_endpoints", allConnectedEndpoints);
+	status->Set("not_conn_endpoints", allNotConnectedEndpoints);
 
-	perfdata->Set("num_endpoints", count_endpoints);
-	perfdata->Set("num_conn_endpoints", Convert::ToDouble(connected_endpoints->GetLength()));
-	perfdata->Set("num_not_conn_endpoints", Convert::ToDouble(not_connected_endpoints->GetLength()));
+	status->Set("zones", connectedZones);
+
+	perfdata->Set("num_endpoints", allEndpoints);
+	perfdata->Set("num_conn_endpoints", Convert::ToDouble(allConnectedEndpoints->GetLength()));
+	perfdata->Set("num_not_conn_endpoints", Convert::ToDouble(allNotConnectedEndpoints->GetLength()));
 
 	return std::make_pair(status, perfdata);
 }
