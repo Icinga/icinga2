@@ -1033,8 +1033,9 @@ The memory collection is instant.
 
 > **Note**
 >
-> Percentage based thersholds can be used by adding a '%' to your threshold.
-> But keep in mind memory\_win\_unit is applied before the calculation.
+> Percentage based thresholds can be used by adding a '%' to the threshold
+> value. Keep in mind that memory\_win\_unit is applied before the
+> value is calculated.
 
 Custom attributes:
 
