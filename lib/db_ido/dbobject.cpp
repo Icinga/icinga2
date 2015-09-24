@@ -195,9 +195,15 @@ void DbObject::SendVarsConfigUpdate(void)
 
 			DbQuery query;
 			query.Table = "customvariables";
-			query.Type = DbQueryInsert;
+			query.Type = DbQueryInsert | DbQueryUpdate;
 			query.Category = DbCatConfig;
 			query.Fields = fields;
+
+			query.WhereCriteria = new Dictionary();
+			query.WhereCriteria->Set("object_id", obj);
+			query.WhereCriteria->Set("varname", kv.first);
+			query.Object = this;
+
 			OnQuery(query);
 		}
 	}
@@ -256,7 +262,7 @@ void DbObject::SendVarsStatusUpdate(void)
 
 			query.WhereCriteria = new Dictionary();
 			query.WhereCriteria->Set("object_id", obj);
-			query.WhereCriteria->Set("varname", Convert::ToString(kv.first));
+			query.WhereCriteria->Set("varname", kv.first);
 			query.Object = this;
 
 			OnQuery(query);
