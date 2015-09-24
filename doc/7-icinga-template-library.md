@@ -1031,6 +1031,11 @@ load\_win\_crit | **Optional**. The critical threshold.
 Check command object for the `check_memory.exe` plugin.
 The memory collection is instant.
 
+> **Note**
+>
+> Percentage based thersholds can be used by adding a '%' to your threshold.
+> But keep in mind memory\_win\_unit is applied before the calculation.
+
 Custom attributes:
 
 Name              | Description
@@ -1622,7 +1627,7 @@ redis_perfparse          | **Optional.** This should only be used with variables
 redis_perfvars           | **Optional.** This allows to list variables which values will go only into perfparse output (and not for threshold checking).
 redis_prev_perfdata      | **Optional.** If set to true previous performance data are used to calculate rate of change for counter statistics variables and for proper calculation of hitrate. Defaults to false.
 redis_rate_label         | **Optional.** Prefix or Suffix label used to create a new variable which has rate of change of another base variable. You can specify PREFIX or SUFFIX or both as one string separated by ",". Default if not specified is suffix "_rate".
-redis_query              | **Optional.** Option specifies key to query and optional variable name to assign the results to after. 
+redis_query              | **Optional.** Option specifies key to query and optional variable name to assign the results to after.
 redis_option             | **Optional.** Specifiers are separated by "," and must include NAME or PATTERN.
 redis_response_time      | **Optional.** If this is used plugin will measure and output connection response time in seconds. With **redis_perfparse** this would also be provided on perf variables.
 redis_hitrate            | **Optional.** Calculates Hitrate and specify values are interpreted as WARNING and CRITICAL thresholds.
