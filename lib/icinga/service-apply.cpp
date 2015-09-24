@@ -105,7 +105,7 @@ bool Service::EvaluateApplyRule(const Host::Ptr& host, const ApplyRule& rule)
 
 	if (vinstances.IsObjectType<Array>()) {
 		if (!rule.GetFVVar().IsEmpty())
-			BOOST_THROW_EXCEPTION(ScriptError("Array iterator requires value to be an array.", di));
+			BOOST_THROW_EXCEPTION(ScriptError("Dictionary iterator requires value to be a dictionary.", di));
 
 		Array::Ptr arr = vinstances;
 		Array::Ptr arrclone = arr->ShallowClone();
@@ -124,7 +124,7 @@ bool Service::EvaluateApplyRule(const Host::Ptr& host, const ApplyRule& rule)
 		}
 	} else if (vinstances.IsObjectType<Dictionary>()) {
 		if (rule.GetFVVar().IsEmpty())
-			BOOST_THROW_EXCEPTION(ScriptError("Dictionary iterator requires value to be a dictionary.", di));
+			BOOST_THROW_EXCEPTION(ScriptError("Array iterator requires value to be an array.", di));
 	
 		Dictionary::Ptr dict = vinstances;
 
