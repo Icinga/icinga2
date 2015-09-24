@@ -17,22 +17,22 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef STATUSQUERYHANDLER_H
-#define STATUSQUERYHANDLER_H
+#ifndef OBJECTQUERYHANDLER_H
+#define OBJECTQUERYHANDLER_H
 
 #include "remote/httphandler.hpp"
 
 namespace icinga
 {
 
-class I2_REMOTE_API StatusQueryHandler : public HttpHandler
+class I2_REMOTE_API ObjectQueryHandler : public HttpHandler
 {
 public:
-	DECLARE_PTR_TYPEDEFS(StatusQueryHandler);
+	DECLARE_PTR_TYPEDEFS(ObjectQueryHandler);
 
 	virtual bool HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response) override;
 };
 
 }
 
-#endif /* STATUSQUERYHANDLER_H */
+#endif /* OBJECTQUERYHANDLER_H */

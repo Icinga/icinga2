@@ -17,7 +17,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "remote/statusqueryhandler.hpp"
+#include "remote/objectqueryhandler.hpp"
 #include "remote/httputility.hpp"
 #include "remote/filterutility.hpp"
 #include "base/serializer.hpp"
@@ -28,9 +28,9 @@
 
 using namespace icinga;
 
-REGISTER_URLHANDLER("/v1", StatusQueryHandler);
+REGISTER_URLHANDLER("/v1", ObjectQueryHandler);
 
-bool StatusQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
+bool ObjectQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
 {
 	if (request.RequestMethod != "GET")
 		return false;
