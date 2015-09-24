@@ -171,36 +171,6 @@ void DbConnection::ProgramStatusHandler(void)
 	InsertRuntimeVariable("total_scheduled_services", std::distance(ConfigType::GetObjectsByType<Service>().first, ConfigType::GetObjectsByType<Service>().second));
 	InsertRuntimeVariable("total_hosts", std::distance(ConfigType::GetObjectsByType<Host>().first, ConfigType::GetObjectsByType<Host>().second));
 	InsertRuntimeVariable("total_scheduled_hosts", std::distance(ConfigType::GetObjectsByType<Host>().first, ConfigType::GetObjectsByType<Host>().second));
-
-	Dictionary::Ptr vars = IcingaApplication::GetInstance()->GetVars();
-
-	if (!vars)
-		return;
-
-	Log(LogDebug, "DbConnection", "Dumping global vars for icinga application");
-
-	ObjectLock olock(vars);
-
-	BOOST_FOREACH(const Dictionary::Pair& kv, vars) {
-		if (!kv.first.IsEmpty()) {
-			Log(LogDebug, "DbConnection")
-			    << "icinga application customvar key: '" << kv.first << "' value: '" << kv.second << "'";
-
-			Dictionary::Ptr fields4 = new Dictionary();
-			fields4->Set("varname", Convert::ToString(kv.first));
-			fields4->Set("varvalue", Convert::ToString(kv.second));
-			fields4->Set("config_type", 1);
-			fields4->Set("has_been_modified", 0);
-			fields4->Set("instance_id", 0); /* DbConnection class fills in real ID */
-
-			DbQuery query4;
-			query4.Table = "customvariables";
-			query4.Type = DbQueryInsert;
-			query4.Category = DbCatConfig;
-			query4.Fields = fields4;
-			DbObject::OnQuery(query4);
-		}
-	}
 }
 
 void DbConnection::CleanUpHandler(void)
