@@ -31,7 +31,6 @@ public:
 	DECLARE_PTR_TYPEDEFS(StatusHandler);
 
 	virtual bool HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response) override;
-	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 };
 
 }

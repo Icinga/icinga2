@@ -66,7 +66,14 @@ bool StatusHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request
 		typedef std::pair<String, StatsFunction::Ptr> kv_pair;
 		BOOST_FOREACH(const kv_pair& kv, StatsFunctionRegistry::GetInstance()->GetItems()) {
 			resultInner = new Dictionary();
+			Dictionary::Ptr funcStatus = new Dictionary();
+			Array::Ptr funcPData = new Array();
+			kv.second->Invoke(funcStatus, funcPData);
+
 			resultInner->Set("name", kv.first);
+			resultInner->Set("status", funcPData);
+			resultInner->Set("perfdata", funcPData);
+
 			results->Add(resultInner);
 		}
 	}
@@ -77,25 +84,5 @@ bool StatusHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request
 	HttpUtility::SendJsonBody(response, result);
 
 	return true;
-}
-
-REGISTER_STATSFUNCTION(Collection, &StatusHandler::StatsFunc);
-
-void StatusHandler::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
-{
-	typedef std::pair<String, StatsFunction::Ptr> kv_pair;
-	BOOST_FOREACH(const kv_pair& kv, StatsFunctionRegistry::GetInstance()->GetItems()) {
-		if (kv.first == "Collection") //TODO Find a better name
-			continue;
-
-		Dictionary::Ptr funcStatus = new Dictionary();
-		Array::Ptr funcPData = new Array();
-		kv.second->Invoke(funcStatus, funcPData);
-
-		Dictionary::Ptr result = new Dictionary();
-		result->Set("status", funcStatus);
-		result->Set("perfdata", funcPData);
-		status->Set(kv.first, result);
-	}
 }
 
