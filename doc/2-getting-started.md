@@ -1,8 +1,8 @@
 # <a id="getting-started"></a> Getting Started
 
-This tutorial is a step-by-step introduction to installing Icinga 2 and
-Icinga Web 2. It assumes that you are familiar with the operating system
-you're using to install Icinga 2.
+This tutorial is a step-by-step introduction to installing [Icinga 2](2-getting-started.md#setting-up-icinga2)
+and [Icinga Web 2](2-getting-started.md#setting-up-the-user-interface).
+It assumes that you are familiar with the operating system you're using to install Icinga 2.
 
 ## <a id="setting-up-icinga2"></a> Setting up Icinga 2
 

@@ -19,13 +19,25 @@ is in effect - all alive instances continue to do their job, and history will be
 
 Before you start deploying, keep the following things in mind:
 
-* Your [SSL CA and certificates](12-distributed-monitoring-ha.md#manual-certificate-generation) are mandatory for secure communication
-* Get pen and paper or a drawing board and design your nodes and zones!
-    * all nodes in a cluster zone are providing high availability functionality and trust each other
-    * cluster zones can be built in a Top-Down-design where the child trusts the parent
-    * communication between zones happens bi-directional which means that a DMZ-located node can still reach the master node, or vice versa
-* Update firewall rules and ACLs
-* Decide whether to use the built-in [configuration syncronization](12-distributed-monitoring-ha.md#cluster-zone-config-sync) or use an external tool (Puppet, Ansible, Chef, Salt, etc) to manage the configuration deployment
+Your [SSL CA and certificates](13-distributed-monitoring-ha.md#manual-certificate-generation) are mandatory for secure communication.
+
+Communication between zones requires one of these connection directions:
+
+* The parent zone nodes are able to connect to the child zone nodes (`parent => child`).
+* The child zone nodes are able to connect to the parent zone nodes (`parent <= child`).
+* Both connnection directions work.
+
+Update firewall rules and ACLs.
+
+* Icinga 2 master, satellite and client instances communicate using the default tcp port `5665`.
+
+Get pen and paper or a drawing board and design your nodes and zones!
+
+* Keep the [naming convention](13-distributed-monitoring-ha.md#cluster-naming-convention) for nodes in mind.
+* All nodes (endpoints) in a cluster zone provide high availability functionality and trust each other.
+* Cluster zones can be built in a Top-Down-design where the child trusts the parent.
+
+Decide whether to use the built-in [configuration syncronization](13-distributed-monitoring-ha.md#cluster-zone-config-sync) or use an external tool (Puppet, Ansible, Chef, Salt, etc) to manage the configuration deployment.
 
 
 > **Tip**
@@ -86,16 +98,18 @@ If you're planning to use your existing CA and certificates please note that you
 use wildcard certificates. The common name (CN) is mandatory for the cluster communication and
 therefore must be unique for each connecting instance.
 
-### <a id="cluster-naming-convention"></a> Cluster Naming Convention
+## <a id="cluster-naming-convention"></a> Cluster Naming Convention
 
 The SSL certificate common name (CN) will be used by the [ApiListener](6-object-types.md#objecttype-apilistener)
 object to determine the local authority. This name must match the local [Endpoint](6-object-types.md#objecttype-endpoint)
 object name.
 
-Example:
+Certificate generation for host with the FQDN `icinga2a`:
 
     # icinga2 pki new-cert --cn icinga2a --key icinga2a.key --csr icinga2a.csr
     # icinga2 pki sign-csr --csr icinga2a.csr --cert icinga2a.crt
+
+Add a new `Endpoint` object named `icinga2a`:
 
     # vim zones.conf
 
@@ -119,6 +133,8 @@ the same name as used for the endpoint name and common name above. If not set, t
 
     const NodeName = "icinga2a"
 
+If you're using the host's FQDN everywhere, you're on the safe side. The setup wizards
+will do the very same.
 
 ## <a id="cluster-configuration"></a> Cluster Configuration
 
@@ -556,8 +572,6 @@ You'll need to think about the following:
 * Deploy the entire configuration from the master to satellites and cascading remote clients? ("top down")
 * Use local client configuration instead and report the inventory to satellites and cascading to the master? ("bottom up")
 * Combine that with command execution brdiges on remote clients and also satellites
-
-
 
 
 ### <a id="cluster-scenarios-security"></a> Security in Cluster Scenarios

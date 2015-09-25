@@ -310,10 +310,41 @@ If the cluster zones do not sync their configuration, make sure to check the fol
 * The `icinga2.log` log file in `/var/log/icinga2` will indicate whether this ApiListener
 [accepts config](12-distributed-monitoring-ha.md#zone-config-sync-permissions), or not.
 
+### <a id="troubleshooting-cluster-replay-log"></a> Cluster Troubleshooting Overdue Check Results
+
+If your master does not receive check results (or any other events) from the child zones
+(satellite, clients, etc) make sure to check whether the client sending in events
+is allowed to do so.
+
+The [cluster naming convention](13-distributed-monitoring-ha.md#cluster-naming-convention)
+applies so if there's a mismatch between your client node's endpoint name and its provided
+certificate's CN, the master will deny all events.
+
+> **Tip**
+>
+> [Icinga Web 2](2-getting-started.md#setting-up-the-user-interface) provides a dashboard view
+> for overdue check results.
+
+Enable the [debug log](17-troubleshooting.md#troubleshooting-enable-debug-output) on the master
+for more verbose insights.
+
+If the client cannot authenticate, it's a more general [problem](17-troubleshooting.md#troubleshooting-cluster-unauthenticated-clients).
+
+The client's endpoint is not configured on nor trusted by the master node:
+
+    Discarding 'check result' message from 'icinga2b': Invalid endpoint origin (client not allowed).
+
+The check result message sent by the client does not belong to the zone the checkable object is
+in on the master:
+
+    Discarding 'check result' message from 'icinga2b': Unauthorized access.
+
+
 ### <a id="troubleshooting-cluster-replay-log"></a> Cluster Troubleshooting Replay Log
 
 If your `/var/lib/icinga2/api/log` directory grows, it generally means that your cluster
-cannot replay the log on connection loss and re-establishment.
+cannot replay the log on connection loss and re-establishment. A master node for example
+will store all events for not connected endpoints in the same and child zones.
 
 Check the following:
 
