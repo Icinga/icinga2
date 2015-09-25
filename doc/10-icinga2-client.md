@@ -608,7 +608,7 @@ defined endpoint. The check result is then received asynchronously through the c
       import "generic-service"
 
       check_command = "users"
-      command_endpoint = "remote-client1"
+      command_endpoint = "icinga2-node2.localdomain"
 
       vars.users_wgreater = 10
       vars.users_cgreater = 20
@@ -634,7 +634,7 @@ also easily inherit this from a host's custom attribute like shown in the exampl
 
       vars.os = "Linux"
 
-      vars.remote_client = "remote-client1"
+      vars.remote_client = "icinga2-node2.localdomain"
 
       /* host specific check arguments */
       vars.users_wgreater = 10
