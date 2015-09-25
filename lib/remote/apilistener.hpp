@@ -68,9 +68,12 @@ public:
 	void RemoveAnonymousClient(const ApiClient::Ptr& aclient);
 	std::set<ApiClient::Ptr> GetAnonymousClients(void) const;
 
+	static double CalculateZoneLag(const Endpoint::Ptr& endpoint);
+
 	static Value ConfigUpdateHandler(const MessageOrigin& origin, const Dictionary::Ptr& params);
 
 	static Value HelloAPIHandler(const MessageOrigin& origin, const Dictionary::Ptr& params);
+
 protected:
 	virtual void OnConfigLoaded(void);
 	virtual void OnAllConfigLoaded(void);

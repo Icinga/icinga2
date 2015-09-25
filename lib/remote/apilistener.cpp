@@ -836,6 +836,17 @@ std::pair<Dictionary::Ptr, Dictionary::Ptr> ApiListener::GetStatus(void)
 	return std::make_pair(status, perfdata);
 }
 
+double ApiListener::CalculateZoneLag(const Endpoint::Ptr& endpoint)
+{
+	double remoteLogPosition = endpoint->GetRemoteLogPosition();
+	double eplag = Utility::GetTime() - remoteLogPosition;
+
+	if ((endpoint->GetSyncing() || !endpoint->IsConnected()) && remoteLogPosition != 0)
+		return eplag;
+
+	return 0;
+}
+
 void ApiListener::AddAnonymousClient(const ApiClient::Ptr& aclient)
 {
 	ObjectLock olock(this);

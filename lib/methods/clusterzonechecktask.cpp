@@ -81,28 +81,28 @@ void ClusterZoneCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const Che
 	}
 
 	bool connected = false;
-	double lag = 0;
+	double zoneLag = 0;
 
 	BOOST_FOREACH(const Endpoint::Ptr& endpoint, zone->GetEndpoints()) {
-		double eplag = Utility::GetTime() - endpoint->GetRemoteLogPosition();
-
 		if (endpoint->IsConnected())
 			connected = true;
 
-		if ((endpoint->GetSyncing() || !endpoint->IsConnected()) && eplag > lag)
-			lag = eplag;
+		double eplag = ApiListener::CalculateZoneLag(endpoint);
+
+		if (eplag > 0 && eplag > zoneLag)
+			zoneLag = eplag;
 	}
 
 	if (!connected) {
 		cr->SetState(ServiceCritical);
-		cr->SetOutput("Zone '" + zoneName + "' is not connected. Log lag: " + Utility::FormatDuration(lag));
+		cr->SetOutput("Zone '" + zoneName + "' is not connected. Log lag: " + Utility::FormatDuration(zoneLag));
 	} else {
 		cr->SetState(ServiceOK);
-		cr->SetOutput("Zone '" + zoneName + "' is connected. Log lag: " + Utility::FormatDuration(lag));
+		cr->SetOutput("Zone '" + zoneName + "' is connected. Log lag: " + Utility::FormatDuration(zoneLag));
 	}
 
 	Array::Ptr perfdata = new Array();
-	perfdata->Add(new PerfdataValue("slave_lag", lag));
+	perfdata->Add(new PerfdataValue("slave_lag", zoneLag));
 	cr->SetPerformanceData(perfdata);
 
 	checkable->ProcessCheckResult(cr);
