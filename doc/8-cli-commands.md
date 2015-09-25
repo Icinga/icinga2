@@ -13,10 +13,10 @@ options.
 
     # icinga2
     icinga2 - The Icinga 2 network monitoring daemon (version: v2.1.1-299-gf695275)
-    
+
     Usage:
       icinga2 <command> [<arguments>]
-    
+
     Supported commands:
       * console (Icinga console)
       * daemon (starts Icinga 2)
@@ -60,7 +60,7 @@ options.
       * troubleshoot (collect information for troubleshooting)
       * variable get (gets a variable)
       * variable list (lists all variables)
-    
+
     Global options:
       -h [ --help ]          show this help message
       -V [ --version ]       show version information
@@ -71,10 +71,10 @@ options.
       -l [ --library ] arg   load a library
       -I [ --include ] arg   add include search directory
       -x [ --log-level ] arg specify the log level for the console log
-    
+
     Command options:
-    
-    Report bugs at <https://dev.icinga.org/>
+
+	Report bugs at <https://dev.icinga.org/>
     Icinga home page: <https://www.icinga.org/>
 
 
@@ -408,11 +408,11 @@ cleared after review.
 
 Collects basic information like version, paths, log files and crash reports for troubleshooting purposes and prints them to a file or the console. See [troubleshooting](17-troubleshooting.md#troubleshooting-information-required).
 
-Its output defaults to a file named `troubleshooting-[TIMESTAMP].log` so it won't overwrite older troubleshooting files.  
+Its output defaults to a file named `troubleshooting-[TIMESTAMP].log` so it won't overwrite older troubleshooting files.
 
-> **Note**  
+> **Note**
 > Keep in mind that this tool can not collect information from other icinga2 nodes, you will have to run it on
-> each of one of you instances.  
+> each of one of you instances.
 > This is only a tool to collect information to help others help you, it will not attempt to fix anything.
 
 
@@ -565,13 +565,13 @@ Find more on troubleshooting with `object list` in [this chapter](17-troubleshoo
 Example filtered by `Service` objects with the name `ping*`:
 
     # icinga2 object list --type Service --name *ping*
-    Object 'nbmif.int.netways.de!ping4' of type 'Service':
-      * __name = 'nbmif.int.netways.de!ping4'
+    Object 'icinga.org!ping4' of type 'Service':
+      * __name = 'icinga.org!ping4'
       * check_command = 'ping4'
         % = modified in '/etc/icinga2/conf.d/services.conf', lines 17:3-17:25
       * check_interval = 60
         % = modified in '/etc/icinga2/conf.d/templates.conf', lines 28:3-28:21
-      * host_name = 'nbmif.int.netways.de'
+      * host_name = 'icinga.org'
         % = modified in '/etc/icinga2/conf.d/services.conf', lines 14:1-14:21
       * max_check_attempts = 3
         % = modified in '/etc/icinga2/conf.d/templates.conf', lines 27:3-27:24

@@ -123,7 +123,7 @@ Once the API user is configured make sure to restart Icinga 2:
 
 Now pass the basic auth information to curl and send a GET request to the API:
 
-    $ curl -u root:icinga -k -s 'https://localhost:5665/v1'
+    $ curl -u root:icinga -k -s 'https://icinga.org:5665/v1'
 
 In case you will get an `Unauthorized` error message make sure to
 check the API user credentials.
@@ -160,11 +160,11 @@ for filtering specific objects.
 
 Example for all services in NOT-OK state:
 
-    https://localhost:5665/v1/services?filter=service.state!=0
+    https://icinga.org:5665/v1/services?filter=service.state!=0
 
 Example for matching all hosts by name (**Note**: `"` are url-encoded as `%22`):
 
-    https://localhost:5665/v1/hosts?filter=match(%22nbmif*%22,host.name)
+    https://icinga.org:5665/v1/hosts?filter=match(%22nbmif*%22,host.name)
 
 **TODO**
 
@@ -272,20 +272,20 @@ Examples:
 
 Reschedule a service check for all services in NOT-OK state:
 
-    $ curl -u root:icinga -k -s 'https://localhost:5665/v1/actions/reschedule-check?filter=service.state!=0&type=Service' -X POST | python -m json.tool
+    $ curl -u root:icinga -k -s 'https://icinga.org:5665/v1/actions/reschedule-check?filter=service.state!=0&type=Service' -X POST | python -m json.tool
     {
         "results": [
             {
                 "code": 200.0,
-                "status": "Successfully rescheduled check for nbmif.int.netways.de!http."
+                "status": "Successfully rescheduled check for icinga.org!http."
             },
             {
                 "code": 200.0,
-                "status": "Successfully rescheduled check for nbmif.int.netways.de!disk."
+                "status": "Successfully rescheduled check for icinga.org!disk."
             },
             {
                 "code": 200.0,
-                "status": "Successfully rescheduled check for nbmif.int.netways.de!disk /."
+                "status": "Successfully rescheduled check for icinga.org!disk /."
             }
         ]
     }
@@ -304,26 +304,30 @@ of available and enabled features. Any filters are ignored.
 
 Example for the main url endpoint `/v1/status`:
 
-    $ curl -k -s -u root:icinga 'https://localhost:5665/v1/status' | python -m json.tool
+    $ curl -k -s -u root:icinga 'https://icinga.org:5665/v1/status' | python -m json.tool
     {
         "results": [
             {
-                "name": "ApiListener"
+                "name": "ApiListener",
+				"perfdata": [ ... ],
+				"status": [ ... ]
             },
             ...
             {
-                "name": "Collection"
+                "name": "IcingaAplication",
+				"perfdata": [ ... ],
+				"status": [ ... ]
             },
             ...
         ]
     }
 
-`/v1/status/Collection` is always available as virtual status url endpoint.
+`/v1/status` is always available as virtual status url endpoint.
 It provides all feature status information into a collected overview.
 
 Example for the icinga application url endpoint `/v1/status/IcingaApplication`:
 
-    $ curl -k -s -u root:icinga 'https://localhost:5665/v1/status/IcingaApplication' | python -m json.tool
+    $ curl -k -s -u root:icinga 'https://icinga.org:5665/v1/status/IcingaApplication' | python -m json.tool
     {
         "results": [
             {
@@ -337,7 +341,7 @@ Example for the icinga application url endpoint `/v1/status/IcingaApplication`:
                             "enable_notifications": true,
                             "enable_perfdata": true,
                             "enable_service_checks": true,
-                            "node_name": "mbmif.int.netways.de",
+                            "node_name": "icinga.org",
                             "pid": 59819.0,
                             "program_start": 1443019345.093372,
                             "version": "v2.3.0-573-g380a131"
@@ -382,7 +386,7 @@ Output listing and url parameters use the same syntax.
 Send a `GET` request to `/v1/hosts` to list all host objects and
 their attributes.
 
-    $ curl -u root:icinga -k -s 'https://localhost:5665/v1/hosts'
+    $ curl -u root:icinga -k -s 'https://icinga.org:5665/v1/hosts'
 
 
 #### <a id="icinga2-api-hosts-create"></a> Create New Host Object
@@ -403,7 +407,7 @@ If attributes are of the Dictionary type, you can also use the indexer format:
 
 Example:
 
-    $ curl -u root:icinga -k -s 'https://localhost:5665/v1/hosts/google.com' \
+    $ curl -u root:icinga -k -s 'https://icinga.org:5665/v1/hosts/google.com' \
     -X PUT \
     -d '{ "templates": [ "generic-host" ], "attrs": { "address": "8.8.8.8", "vars.os" : "Linux" } }' \
     | python -m json.tool
@@ -422,7 +426,7 @@ template already provides such.
 If the configuration validation fails, the new object will not be created and the response body
 contains a detailed error message. The following example omits the required `check_command` attribute.
 
-    $ curl -u root:icinga -k -s 'https://localhost:5665/v1/hosts/google.com' \
+    $ curl -u root:icinga -k -s 'https://icinga.org:5665/v1/hosts/google.com' \
     -X PUT \
     -d '{ "attrs": { "address": "8.8.8.8", "vars.os" : "Linux" } }' \
     | python -m json.tool
@@ -442,12 +446,12 @@ contains a detailed error message. The following example omits the required `che
 
 Send a `GET` request including the host name inside the url:
 
-    $ curl -u root:icinga -k -s 'https://localhost:5665/v1/hosts/google.com'
+    $ curl -u root:icinga -k -s 'https://icinga.org:5665/v1/hosts/google.com'
 
 You can select specific attributes by adding them as url parameters using `?attrs=...`. Multiple
 attributes must be added one by one, e.g. `?attrs=host.address&attrs=host.name`.
 
-    $ curl -u root:icinga -k -s 'https://localhost:5665/v1/hosts/google.com?attrs=host.name&attrs=host.address' | python -m json.tool
+    $ curl -u root:icinga -k -s 'https://icinga.org:5665/v1/hosts/google.com?attrs=host.name&attrs=host.address' | python -m json.tool
     {
         "results": [
             {
@@ -478,7 +482,7 @@ If attributes are of the Dictionary type, you can also use the indexer format:
 
 Example for existing object `google.com`:
 
-    $ curl -u root:icinga -k -s 'https://localhost:5665/v1/hosts/google.com' \
+    $ curl -u root:icinga -k -s 'https://icinga.org:5665/v1/hosts/google.com' \
     -X POST \
     -d '{ "attrs": { "address": "8.8.4.4", "vars.os" : "Windows" } }' \
     | python -m json.tool
@@ -504,7 +508,7 @@ request. Specify the object name inside the url.
 
 Example:
 
-    $ curl -u root:icinga -k -s 'https://localhost:5665/v1/hosts/google.com?cascade=1' -X DELETE | python -m json.tool
+    $ curl -u root:icinga -k -s 'https://icinga.org:5665/v1/hosts/google.com?cascade=1' -X DELETE | python -m json.tool
     {
         "results": [
             {
@@ -537,7 +541,7 @@ can be fetched in a separated request.
 Send a `POST` request to a new config package called `puppet` in this example. This
 will create a new empty configuration package.
 
-    $ curl -k -s -u root:icinga -X POST https://localhost:5665/v1/config/packages/puppet | python -m json.tool
+    $ curl -k -s -u root:icinga -X POST https://icinga.org:5665/v1/config/packages/puppet | python -m json.tool
     {
         "results": [
             {
@@ -562,7 +566,7 @@ generates a unique name for the `package` attribute you'll need for later reques
 
 Note: This example contains an error (`chec_command`), do not blindly copy paste it.
 
-    $ curl -k -s -u root:icinga -X POST -d '{ "files": { "conf.d/test.conf": "object Host \"cfg-mgmt\" { chec_command = \"dummy\" }" } }' https://localhost:5665/v1/config/stages/puppet | python -m json.tool
+    $ curl -k -s -u root:icinga -X POST -d '{ "files": { "conf.d/test.conf": "object Host \"cfg-mgmt\" { chec_command = \"dummy\" }" } }' https://icinga.org:5665/v1/config/stages/puppet | python -m json.tool
     {
         "results": [
             {
@@ -599,7 +603,7 @@ older revisions and their requests.
 The following example contains one configuration package `puppet`.
 The latter already has a stage created, but it is not active.
 
-    $ curl -k -s -u root:icinga https://localhost:5665/v1/config/packages | python -m json.tool
+    $ curl -k -s -u root:icinga https://icinga.org:5665/v1/config/packages | python -m json.tool
     {
         "results": [
             {
@@ -617,7 +621,7 @@ The latter already has a stage created, but it is not active.
 Sent a `GET` request to the url endpoint `/v1/config/stages` including the package
 (`puppet`) and stage (`nbmif-1441625839-0`) name.
 
-    $ curl -k -s -u root:icinga https://localhost:5665/v1/config/stages/puppet/nbmif-1441625839-0 | python -m json.tool
+    $ curl -k -s -u root:icinga https://icinga.org:5665/v1/config/stages/puppet/nbmif-1441625839-0 | python -m json.tool
     {
         "results": [
     ...
@@ -657,7 +661,7 @@ in a configuration stage and then specifically request their content.
 The following example fetches the faulty configuration inside `conf.d/test.conf`
 for further analysis.
 
-    $ curl -k -s -u root:icinga https://localhost:5665/v1/config/files/puppet/nbmif-1441625839-0/conf.d/test.conf 
+    $ curl -k -s -u root:icinga https://icinga.org:5665/v1/config/files/puppet/nbmif-1441625839-0/conf.d/test.conf
     object Host "cfg-mgmt" { chec_command = "dummy" }
 
 Note: The returned files are plain-text instead of JSON-encoded.
@@ -669,7 +673,7 @@ there must have been an error.
 
 Fetch the `startup.log` file and check the config validation errors:
 
-    $ curl -k -s -u root:icinga https://localhost:5665/v1/config/files/puppet/imagine-1441133065-1/startup.log
+    $ curl -k -s -u root:icinga https://icinga.org:5665/v1/config/files/puppet/imagine-1441133065-1/startup.log
     ...
     
     critical/config: Error: Attribute 'chec_command' does not exist.
