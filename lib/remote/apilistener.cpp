@@ -895,9 +895,9 @@ std::pair<Dictionary::Ptr, Dictionary::Ptr> ApiListener::GetStatus(void)
 			if (endpoint->GetName() == GetIdentity())
 				continue;
 
-			double eplag = Utility::GetTime() - endpoint->GetRemoteLogPosition();
+			double eplag = CalculateZoneLag(endpoint);
 
-			if ((endpoint->GetSyncing() || !endpoint->IsConnected()) && eplag > zoneLag)
+			if (eplag > 0 && eplag > zoneLag)
 				zoneLag = eplag;
 
 			allEndpoints++;
@@ -943,6 +943,17 @@ std::pair<Dictionary::Ptr, Dictionary::Ptr> ApiListener::GetStatus(void)
 	perfdata->Set("num_not_conn_endpoints", Convert::ToDouble(allNotConnectedEndpoints->GetLength()));
 
 	return std::make_pair(status, perfdata);
+}
+
+double ApiListener::CalculateZoneLag(const Endpoint::Ptr& endpoint)
+{
+	double remoteLogPosition = endpoint->GetRemoteLogPosition();
+	double eplag = Utility::GetTime() - remoteLogPosition;
+
+	if ((endpoint->GetSyncing() || !endpoint->IsConnected()) && remoteLogPosition != 0)
+		return eplag;
+
+	return 0;
 }
 
 void ApiListener::AddAnonymousClient(const JsonRpcConnection::Ptr& aclient)

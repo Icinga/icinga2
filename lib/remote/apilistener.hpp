@@ -75,6 +75,8 @@ public:
 	void RemoveHttpClient(const HttpServerConnection::Ptr& aclient);
 	std::set<HttpServerConnection::Ptr> GetHttpClients(void) const;
 
+	static double CalculateZoneLag(const Endpoint::Ptr& endpoint);
+
 	/* filesync */
 	static Value ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
 	
