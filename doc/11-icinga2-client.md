@@ -25,6 +25,13 @@ monitoring and high-availability, please continue reading in
 * Clients as [command execution bridge](11-icinga2-client.md#icinga2-client-configuration-command-bridge) without local configuration
 * Clients receive their configuration from the master ([Cluster config sync](11-icinga2-client.md#icinga2-client-configuration-master-config-sync))
 
+Keep the [naming convention](13-distributed-monitoring-ha.md#cluster-naming-convention) for nodes in mind.
+
+> **Tip**
+>
+> If you're looking for troubleshooting clients problems, check the general
+> [cluster troubleshooting](17-troubleshooting.md#troubleshooting-cluster) section.
+
 ### <a id="icinga2-client-configuration-combined-scenarios"></a> Combined Client Scenarios
 
 If your setup consists of remote clients with local configuration but also command execution bridges
@@ -51,12 +58,21 @@ If you are planning to use the Icinga 2 client inside a distributed setup, refer
 ### <a id="icinga2-client-installation-firewall"></a> Configure the Firewall
 
 Icinga 2 master, satellite and client instances communicate using the default tcp
-port `5665`. The communication is bi-directional and the first node opening the
-connection "wins" if there are both connection ways enabled in your firewall policies.
+port `5665`.
+
+Communication between zones requires one of these connection directions:
+
+* The parent zone nodes are able to connect to the child zone nodes (`parent => child`).
+* The child zone nodes are able to connect to the parent zone nodes (`parent <= child`).
+* Both connnection directions work.
 
 If you are going to use CSR-Autosigning, you must (temporarly) allow the client
 connecting to the master instance and open the firewall port. Once the client install is done,
 you can close the port and use a different communication direction (master-to-client).
+
+In case of a [multiple hierarchy setup](13-distributed-monitoring-ha.md#cluster-scenarios-master-satellite-clients)
+(master, satellite, client) you will need to manually deploy your [client certificates](11-icinga2-client.md#certificates-manual-creation)
+and zone configuration.
 
 ### <a id="icinga2-client-installation-master-setup"></a> Setup the Master for Remote Clients
 
@@ -178,7 +194,10 @@ First you'll need to define a secure ticket salt in the [constants.conf](4-confi
 The [setup wizard for the master setup](11-icinga2-client.md#icinga2-client-installation-master-setup) will create
 one for you already.
 
-    # grep TicketSalt /etc/icinga2/constants.conf
+> **Note**
+> 
+> **Never** expose the ticket salt to your clients. This is the master's private key
+> and must remain on the master providing the CSR Auto-Signing functionality for security reasons.
 
 The client setup wizard will ask you to generate a valid ticket number using its CN.
 If you already know your remote client's Common Names (CNs) - usually the FQDN - you
@@ -191,12 +210,6 @@ Example for a client:
 
     # icinga2 pki ticket --cn icinga2-node2.localdomain
 
-
-> **Note**
->
-> You can omit the `--salt` parameter using the `TicketSalt` constant from
-> [constants.conf](4-configuring-icinga-2.md#constants-conf) if already defined and Icinga 2 was
-> reloaded after the master setup.
 
 ### <a id="certificates-manual-creation"></a> Manual SSL Certificate Generation
 
