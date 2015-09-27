@@ -32,8 +32,10 @@ REGISTER_URLHANDLER("/v1", ModifyObjectHandler);
 
 bool ModifyObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
 {
-	if (request.RequestMethod != "POST")
+	if (request.RequestMethod != "POST") {
+		/* there might be other request methods pending */
 		return false;
+	}
 
 	if (request.RequestUrl->GetPath().size() < 2)
 		return false;

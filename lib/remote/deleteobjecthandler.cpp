@@ -35,8 +35,8 @@ REGISTER_URLHANDLER("/v1", DeleteObjectHandler);
 bool DeleteObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
 {
 	if (request.RequestMethod != "DELETE") {
-		HttpUtility::SendJsonError(response, 400, "Invalid request type. Must be DELETE.");
-		return true;
+		/* there might be other request methods pending */
+		return false;
 	}
 
 	if (request.RequestUrl->GetPath().size() < 2) {

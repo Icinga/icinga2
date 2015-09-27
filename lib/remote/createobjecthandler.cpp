@@ -32,8 +32,8 @@ REGISTER_URLHANDLER("/v1", CreateObjectHandler);
 bool CreateObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
 {
 	if (request.RequestMethod != "PUT") {
-		HttpUtility::SendJsonError(response, 400, "Invalid request type. Must be PUT.");
-		return true;
+		/* there might be other request methods pending */
+		return false;
 	}
 
 	if (request.RequestUrl->GetPath().size() < 3) {
