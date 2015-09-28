@@ -52,45 +52,6 @@ public:
 	static void ForceNextNotificationChangedHandler(const Checkable::Ptr& checkable, const MessageOrigin::Ptr& origin);
 	static Value ForceNextNotificationChangedAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
 
-	static void EnableActiveChecksChangedHandler(const Checkable::Ptr& checkable, const MessageOrigin::Ptr& origin);
-	static Value EnableActiveChecksChangedAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
-
-	static void EnablePassiveChecksChangedHandler(const Checkable::Ptr& checkable, const MessageOrigin::Ptr& origin);
-	static Value EnablePassiveChecksChangedAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
-
-	static void EnableNotificationsChangedHandler(const Checkable::Ptr& checkable, const MessageOrigin::Ptr& origin);
-	static Value EnableNotificationsChangedAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
-
-	static void EnableFlappingChangedHandler(const Checkable::Ptr& checkable, const MessageOrigin::Ptr& origin);
-	static Value EnableFlappingChangedAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
-
-	static void EnableEventHandlerChangedHandler(const Checkable::Ptr& checkable, const MessageOrigin::Ptr& origin);
-	static Value EnableEventHandlerChangedAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
-
-	static void EnablePerfdataChangedHandler(const Checkable::Ptr& checkable, const MessageOrigin::Ptr& origin);
-	static Value EnablePerfdataChangedAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
-
-	static void CheckIntervalChangedHandler(const Checkable::Ptr& checkable, const MessageOrigin::Ptr& origin);
-	static Value CheckIntervalChangedAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
-
-	static void RetryIntervalChangedHandler(const Checkable::Ptr& checkable, const MessageOrigin::Ptr& origin);
-	static Value RetryIntervalChangedAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
-
-	static void MaxCheckAttemptsChangedHandler(const Checkable::Ptr& checkable, const MessageOrigin::Ptr& origin);
-	static Value MaxCheckAttemptsChangedAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
-
-	static void EventCommandChangedHandler(const Checkable::Ptr& checkable, const MessageOrigin::Ptr& origin);
-	static Value EventCommandChangedAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
-
-	static void CheckCommandChangedHandler(const Checkable::Ptr& checkable, const MessageOrigin::Ptr& origin);
-	static Value CheckCommandChangedAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
-
-	static void CheckPeriodChangedHandler(const Checkable::Ptr& checkable, const MessageOrigin::Ptr& origin);
-	static Value CheckPeriodChangedAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
-
-	static void VarsChangedHandler(const CustomVarObject::Ptr& object, const MessageOrigin::Ptr& origin);
-	static Value VarsChangedAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
-
 	static void CommentAddedHandler(const Checkable::Ptr& checkable, const Comment::Ptr& comment, const MessageOrigin::Ptr& origin);
 	static Value CommentAddedAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
 
