@@ -44,6 +44,7 @@ Example:
 
     object ApiUser "root" {
       password = "mysecretapipassword"
+      permissions = [ "*" ]
     }
 
 
@@ -53,6 +54,10 @@ Configuration Attributes:
   --------------------------|--------------------------
   password                  |**Optional.** Password string.
   client\_cn                |**Optional.** Client Common Name (CN).
+  permissions		    |**Required.** Array of permissions. Either as string or dictionary with the keys `permission` and `filter`. The latter must be specified as function.
+
+Available permissions are described in the [API permissions](9-icinga2-api.md#icinga2-api-permissions)
+chapter.
 
 ## <a id="objecttype-checkcommand"></a> CheckCommand
 

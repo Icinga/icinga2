@@ -8,9 +8,9 @@ and resources in a simple, programmatic way using HTTP requests.
 The endpoints are logically separated allowing you to easily
 make calls to
 
-* [retrieve information](9-icinga2-api.md#icinga2-api-objects) (status, config)
 * run [actions](9-icinga2-api.md#icinga2-api-actions) (reschedule checks, etc.)
-* [create/update/delete configuration objects](9-icinga2-api.md#icinga2-api-objects)
+* query, create, modify and delete [config objects](9-icinga2-api.md#icinga2-api-config-objects)
+* [create/update/delete configuration objects](9-icinga2-api.md#icinga2-api-config-objects)
 * [manage configuration packages](9-icinga2-api.md#icinga2-api-config-management)
 * subscribe to [event streams](9-icinga2-api.md#icinga2-api-event-streams)
 
@@ -123,14 +123,60 @@ Once the API user is configured make sure to restart Icinga 2:
 
 Now pass the basic auth information to curl and send a GET request to the API:
 
-    $ curl -u root:icinga -k -s 'https://localhost:5665/v1'
+    $ curl -u root:icinga -k -s 'https://localhost:5665/v1/status'
 
-In case you will get an `Unauthorized` error message make sure to
-check the API user credentials.
+In case you will get an error message make sure to check the API user credentials.
 
 ### <a id="icinga2-api-permissions"></a> Permissions
 
-**TODO** https://dev.icinga.org/issues/9088
+By default an api user does not have any permissions to perform
+actions on the [url endpoints](9-icinga2-api.md#icinga2-api-url-endpoints).
+
+Permissions for api users must be specified in the `permissions` attribute
+as array. The array items can be a list of permission strings with wildcard
+matches.
+
+Example for an api user with all permissions:
+
+    permissions = [ "*" ]
+
+A yet more sophisticated approach is to specify additional permissions
+and their filters. The latter must be defined as [lamdba function](20-language-reference.md#nullary-lambdas)
+returning a boolean expression.
+
+The `permission` attribute contains the action and the specific capitalized
+object type name. Instead of the type name it is also possible to use a wildcard
+match.
+
+The following example allows the api user to query all hosts and services with
+the custom host attribute `os` matching the regular expression `^Linux`.
+
+    permissions = [
+      {
+        permission = "objects/query/Host"
+        filter = {{ regex("^Linux", host.vars.os)  }}
+      },
+      {
+        permission = "objects/query/Service"
+        filter = {{ regex("^Linux", host.vars.os)  }}
+      },
+    ]
+
+
+Available permissions for specific url endpoints:
+
+  Permissions				| Url Endpoint
+  --------------------------------------|------------------------
+  actions/;&lt;action;&gt;		| /v1/actions
+  config/query				| /v1/config
+  config/modify				| /v1/config
+  objects/query/;&lt;type;&gt;		| /v1/objects
+  objects/create/;&lt;type;&gt;		| /v1/objects
+  objects/modify`/;&lt;type;&gt;	| /v1/objects
+  objects/delete/;&lt;type;&gt;		| /v1/objects
+  status/query				| /v1/status
+
+The required actions or types can be replaced by using a wildcard match ("*").
 
 ### <a id="icinga2-api-parameters"></a> Parameters
 
@@ -145,7 +191,7 @@ space becomes `%20`.
 
 Example for query string:
 
-    /v1/hosts?filter=match(%22nbmif*%22,host.name)&attrs=host.name&attrs=host.state
+    /v1/objects/hosts?filter=match(%22nbmif*%22,host.name)&attrs=host.name&attrs=host.state
 
 Example for JSON body:
 
@@ -160,11 +206,11 @@ for filtering specific objects.
 
 Example for all services in NOT-OK state:
 
-    https://localhost:5665/v1/services?filter=service.state!=0
+    https://localhost:5665/v1/objects/services?filter=service.state!=0
 
 Example for matching all hosts by name (**Note**: `"` are url-encoded as `%22`):
 
-    https://localhost:5665/v1/hosts?filter=match(%22nbmif*%22,host.name)
+    https://localhost:5665/v1/objects/hosts?filter=match(%22nbmif*%22,host.name)
 
 **TODO**
 
@@ -178,40 +224,20 @@ The request and reponse body contain a JSON encoded string.
 
 Each url contains the version string as prefix (currently "/v1").
 
-### <a id="icinga2-api-url-overview"></a>Url Overview
+### <a id="icinga2-api-url-endpoints"></a>Url Endpoints
 
-
-The Icinga 2 API provides multiple url endpoints
+The Icinga 2 API provides multiple url endpoints:
 
   Url Endpoints	| Description
   --------------|----------------------------------------------------
   /v1/actions	| Endpoint for running specific [API actions](9-icinga2-api.md#icinga2-api-actions).
   /v1/config    | Endpoint for [managing configuration modules](9-icinga2-api.md#icinga2-api-config-management).
   /v1/events	| Endpoint for subscribing to [API events](9-icinga2-api.md#icinga2-api-actions).
+  /v1/objects	| Endpoint for querying, creating, modifying and deleting [config objects](9-icinga2-api.md#icinga2-api-config-objects).
   /v1/status	| Endpoint for receiving icinga2 [status and statistics](9-icinga2-api.md#icinga2-api-status).
   /v1/types 	| Endpoint for listing Icinga 2 configuration object types and their attributes.
 
-Additionally there are endpoints for each [config object type](6-object-types.md#object-types):
-
-**TODO** Update
-
-  Url Endpoints		| Description
-  ------------------|----------------------------------------------------
-  /v1/hosts			| Endpoint for retreiving and updating [Host](6-object-types.md#objecttype-host) objects.
-  /v1/services		| Endpoint for retreiving and updating [Service](6-object-types.md#objecttype-service) objects.
-  /v1/notifications	| Endpoint for retreiving and updating [Notification](6-object-types.md#objecttype-notification) objects.
-  /v1/dependencies	| Endpoint for retreiving and updating [Dependency](6-object-types.md#objecttype-dependency) objects.
-  /v1/users			| Endpoint for retreiving and updating [User](6-object-types.md#objecttype-user) objects.
-  /v1/checkcommands	| Endpoint for retreiving and updating [CheckCommand](6-object-types.md#objecttype-checkcommand) objects.
-  /v1/eventcommands	| Endpoint for retreiving and updating [EventCommand](6-object-types.md#objecttype-eventcommand) objects.
-  /v1/notificationcommands | Endpoint for retreiving and updating [NotificationCommand](6-object-types.md#objecttype-notificationcommand) objects.
-  /v1/hostgroups	| Endpoint for retreiving and updating [HostGroup](6-object-types.md#objecttype-hostgroup) objects.
-  /v1/servicegroups	| Endpoint for retreiving and updating [ServiceGroup](6-object-types.md#objecttype-servicegroup) objects.
-  /v1/usergroups	| Endpoint for retreiving and updating [UserGroup](6-object-types.md#objecttype-usergroup) objects.
-  /v1/zones			| Endpoint for retreiving and updating [Zone](6-object-types.md#objecttype-zone) objects.
-  /v1/endpoints		| Endpoint for retreiving and updating [Endpoint](6-object-types.md#objecttype-endpoint) objects.
-  /v1/timeperiods	| Endpoint for retreiving and updating [TimePeriod](6-object-types.md#objecttype-timeperiod) objects.
-
+Please check the respective sections for detailed urls and parameters.
 
 
 ## <a id="icinga2-api-actions"></a> Actions
@@ -222,9 +248,9 @@ In case you have been using the [external commands](5-advanced-topics.md#externa
 in the past, the API actions provide a yet more powerful interface with
 filters and even more functionality.
 
-Actions require specific target types (e.g. `type=Host`) and a [filter](9-icinga2-api.md#)
+Actions require specific target types (e.g. `type=Host`) and a [filter expression](9-icinga2-api.md#icinga2-api-filters).
 
-**TODO**
+**TODO** Figure out the final names.
 
 Action name                            | Parameters                        | Target types             | Notes
 ---------------------------------------|-----------------------------------|--------------------------|-----------------------
@@ -353,12 +379,63 @@ Example for the icinga application url endpoint `/v1/status/IcingaApplication`:
     }
 
 
-## <a id="icinga2-api-objects"></a> API Objects
+## <a id="icinga2-api-config-objects"></a> Config Objects
 
-Provides functionality for all configuration object url endpoints listed
-[here](9-icinga2-api.md#icinga2-api-url-overview).
+Provides functionality for all configuration object url endpoints
+provided by [config object types](6-object-types.md#object-types):
 
-### <a id="icinga2-api-objects"></a> API Objects and Cluster Config Sync
+  Url Endpoints				| Description
+  --------------------------------------|----------------------------------------------------
+  /v1/objects/hosts			| Endpoint for retreiving and updating [Host](6-object-types.md#objecttype-host) objects.
+  /v1/objects/services			| Endpoint for retreiving and updating [Service](6-object-types.md#objecttype-service) objects.
+  /v1/objects/notifications		| Endpoint for retreiving and updating [Notification](6-object-types.md#objecttype-notification) objects.
+  /v1/objects/dependencies		| Endpoint for retreiving and updating [Dependency](6-object-types.md#objecttype-dependency) objects.
+  /v1/objects/users			| Endpoint for retreiving and updating [User](6-object-types.md#objecttype-user) objects.
+  /v1/objects/checkcommands		| Endpoint for retreiving and updating [CheckCommand](6-object-types.md#objecttype-checkcommand) objects.
+  /v1/objects/eventcommands		| Endpoint for retreiving and updating [EventCommand](6-object-types.md#objecttype-eventcommand) objects.
+  /v1/objects/notificationcommands	| Endpoint for retreiving and updating [NotificationCommand](6-object-types.md#objecttype-notificationcommand) objects.
+  /v1/objects/hostgroups		| Endpoint for retreiving and updating [HostGroup](6-object-types.md#objecttype-hostgroup) objects.
+  /v1/objects/servicegroups		| Endpoint for retreiving and updating [ServiceGroup](6-object-types.md#objecttype-servicegroup) objects.
+  /v1/objects/usergroups		| Endpoint for retreiving and updating [UserGroup](6-object-types.md#objecttype-usergroup) objects.
+  /v1/objects/zones			| Endpoint for retreiving and updating [Zone](6-object-types.md#objecttype-zone) objects.
+  /v1/objects/endpoints			| Endpoint for retreiving and updating [Endpoint](6-object-types.md#objecttype-endpoint) objects.
+  /v1/objects/timeperiods		| Endpoint for retreiving and updating [TimePeriod](6-object-types.md#objecttype-timeperiod) objects.
+
+All object attributes are prefixed with their respective object type.
+
+Example:
+
+    host.address
+
+Output listing and url parameters use the same syntax.
+
+### <a id="icinga2-api-config-objects-joins"></a> API Objects and Joins
+
+Icinga 2 knows about object relations, e.g. when querying a service object
+the query handler will automatically add the referenced host object and its
+attributes to the result set. If the object reference is null (e.g. no event_command
+defined), the joined results not added to the result set.
+
+**Note**: Select your required attributes beforehand by passing them to your
+request. The default result set might get huge.
+
+Each joined object will use its own attribute name as prefix for the attribute.
+There is an exception for multiple objects used in dependencies and zones.
+
+Objects with optional relations (e.g. a host notification does not have services)
+will not be joined.
+
+  Object Type	| Object Relations (prefix name)
+  --------------|---------------------------------
+  Service	| host, notification, check_command, event_command
+  Host		| notification, check_command, event_command
+  Notification  | host, service, command, period
+  Dependency 	| child_host, child_service, parent_host, parent_service, period
+  User		| period
+  Zones		| parent
+
+
+### <a id="icinga2-api-config-objects-cluster-sync"></a> API Objects and Cluster Config Sync
 
 Newly created or updated objects can be synced throughout your
 Icinga 2 cluster. Set the `zone` attribute to the zone this object
@@ -371,45 +448,38 @@ objects created by the API.
 More information about distributed monitoring, cluster and its
 configuration can be found [here](13-distributed-monitoring-ha.md#distributed-monitoring-high-availability).
 
-### <a id="icinga2-api-hosts"></a> Hosts
 
-All object attributes are prefixed with their respective object type.
+### <a id="icinga2-api-config-objects-list"></a> List All Objects
 
-Example:
-
-    host.address
-
-Output listing and url parameters use the same syntax.
-
-#### <a id="icinga2-api-hosts-list"></a> List All Hosts
-
-Send a `GET` request to `/v1/hosts` to list all host objects and
+Send a `GET` request to `/v1/objects/hosts` to list all host objects and
 their attributes.
 
-    $ curl -u root:icinga -k -s 'https://localhost:5665/v1/hosts'
+    $ curl -u root:icinga -k -s 'https://localhost:5665/v1/objects/hosts'
+
+This works in a similar fashion for other [config objects](9-icinga2-api.md#icinga2-api-config-objects).
 
 
-#### <a id="icinga2-api-hosts-create"></a> Create New Host Object
+#### <a id="icinga2-api-objects-create"></a> Create New Config Object
 
 New objects must be created by sending a PUT request. The following
 parameters need to be passed inside the JSON body:
 
   Parameters	| Description
   --------------|------------------------------------
-  name		| **Optional.** If not specified inside the url, this is **required**.
-  templates	| **Optional.** Import existing configuration templates, e.g. `generic-host`.
-  attrs		| **Required.** Set specific [Host](6-object-types.md#objecttype-host) object attributes.
+  name		| **Required.** Name of the newly created config object.
+  templates	| **Optional.** Import existing configuration templates for this object type.
+  attrs		| **Required.** Set specific object attributes for this [object type](6-object-types.md#object-types).
 
 
 If attributes are of the Dictionary type, you can also use the indexer format:
 
     "attrs": { "vars.os": "Linux" }
 
-Example:
+Example fo creating the new host object `google.com`:
 
-    $ curl -u root:icinga -k -s 'https://localhost:5665/v1/hosts/google.com' \
+    $ curl -u root:icinga -k -s 'https://localhost:5665/v1/objects/hosts/google.com' \
     -X PUT \
-    -d '{ "templates": [ "generic-host" ], "attrs": { "address": "8.8.8.8", "vars.os" : "Linux" } }' \
+    -d '{ "templates": [ "generic-host" ], "attrs": { "address": "8.8.8.8", "check_command": "hostalive", "vars.os" : "Linux" } }' \
     | python -m json.tool
     {
         "results": [
@@ -420,13 +490,13 @@ Example:
         ]
     }
 
-**Note**: Host objects require the `check_command` attribute. In the example above the `generic-host`
-template already provides such.
+**Note**: Host objects require the `check_command` attribute.
 
 If the configuration validation fails, the new object will not be created and the response body
-contains a detailed error message. The following example omits the required `check_command` attribute.
+contains a detailed error message. The following example omits the `check_command` attribute required
+by the host object.
 
-    $ curl -u root:icinga -k -s 'https://localhost:5665/v1/hosts/google.com' \
+    $ curl -u root:icinga -k -s 'https://localhost:5665/v1/objects/hosts/google.com' \
     -X PUT \
     -d '{ "attrs": { "address": "8.8.8.8", "vars.os" : "Linux" } }' \
     | python -m json.tool
@@ -442,16 +512,18 @@ contains a detailed error message. The following example omits the required `che
         ]
     }
 
-#### <a id="icinga2-api-hosts-show"></a> Show Host
+#### <a id="icinga2-api-object-query"></a> Query Object
 
-Send a `GET` request including the host name inside the url:
+Send a `GET` request including the object name inside the url.
 
-    $ curl -u root:icinga -k -s 'https://localhost:5665/v1/hosts/google.com'
+Example for the host `google.com`:
+
+    $ curl -u root:icinga -k -s 'https://localhost:5665/v1/objects/hosts/google.com'
 
 You can select specific attributes by adding them as url parameters using `?attrs=...`. Multiple
 attributes must be added one by one, e.g. `?attrs=host.address&attrs=host.name`.
 
-    $ curl -u root:icinga -k -s 'https://localhost:5665/v1/hosts/google.com?attrs=host.name&attrs=host.address' | python -m json.tool
+    $ curl -u root:icinga -k -s 'https://localhost:5665/v1/objects/hosts/google.com?attrs=host.name&attrs=host.address' | python -m json.tool
     {
         "results": [
             {
@@ -463,7 +535,7 @@ attributes must be added one by one, e.g. `?attrs=host.address&attrs=host.name`.
         ]
     }
 
-#### <a id="icinga2-api-hosts-modify"></a> Modify Host
+#### <a id="icinga2-api-objects-modify"></a> Modify Object
 
 Existing objects must be modifed by sending a `POST` request. The following
 parameters need to be passed inside the JSON body:
@@ -471,8 +543,8 @@ parameters need to be passed inside the JSON body:
   Parameters	| Description
   --------------|------------------------------------
   name		| **Optional.** If not specified inside the url, this is **required**.
-  templates	| **Optional.** Import existing configuration templates, e.g. `generic-host`.
-  attrs		| **Required.** Set specific [Host](6-object-types.md#objecttype-host) object attributes.
+  templates	| **Optional.** Import existing object configuration templates.
+  attrs		| **Required.** Set specific object attributes for this [object type](6-object-types.md#object-types).
 
 
 If attributes are of the Dictionary type, you can also use the indexer format:
@@ -482,7 +554,7 @@ If attributes are of the Dictionary type, you can also use the indexer format:
 
 Example for existing object `google.com`:
 
-    $ curl -u root:icinga -k -s 'https://localhost:5665/v1/hosts/google.com' \
+    $ curl -u root:icinga -k -s 'https://localhost:5665/v1/objects/hosts/google.com' \
     -X POST \
     -d '{ "attrs": { "address": "8.8.4.4", "vars.os" : "Windows" } }' \
     | python -m json.tool
@@ -506,9 +578,12 @@ request. Specify the object name inside the url.
   --------------|------------------------------------
   cascade	| **Optional.** Delete objects depending on the deleted objects (e.g. services on a host).
 
-Example:
+**Note**: Objects created by apply rules (services, notifications, etc) will implicitely require
+to pass the `cascade` parameter on host object deletion.
 
-    $ curl -u root:icinga -k -s 'https://localhost:5665/v1/hosts/google.com?cascade=1' -X DELETE | python -m json.tool
+Example for deleting the host object `google.com`:
+
+    $ curl -u root:icinga -k -s 'https://localhost:5665/v1/objects/hosts/google.com?cascade=1' -X DELETE | python -m json.tool
     {
         "results": [
             {
@@ -521,18 +596,13 @@ Example:
     }
 
 
-
-**TODO** Add more config objects
-
-
-
 ## <a id="icinga2-api-config-management"></a> Configuration Management
 
 The main idea behind configuration management is to allow external applications
 creating configuration packages and stages based on configuration files and
 directory trees. This replaces any additional SSH connection and whatnot to
 dump configuration files to Icinga 2 directly.
-In case you’re pushing a new configuration stage to a package, Icinga 2 will
+In case you are pushing a new configuration stage to a package, Icinga 2 will
 validate the configuration asynchronously and populate a status log which
 can be fetched in a separated request.
 
@@ -675,12 +745,12 @@ Fetch the `startup.log` file and check the config validation errors:
 
     $ curl -k -s -u root:icinga https://localhost:5665/v1/config/files/puppet/imagine-1441133065-1/startup.log
     ...
-    
+
     critical/config: Error: Attribute 'chec_command' does not exist.
     Location:
     /var/lib/icinga2/api/packages/puppet/imagine-1441133065-1/conf.d/test.conf(1): object Host "cfg-mgmt" { chec_command = "dummy" }
                                                                                                            ^^^^^^^^^^^^^^^^^^^^^^
-    
+
     critical/config: 1 error
 
 The output is similar to the manual [configuration validation](8-cli-commands.md#config-validation).
