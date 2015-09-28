@@ -51,8 +51,6 @@ protected:
 	static Value CustomVariableNamesAccessor(const Value& row);
 	static Value CustomVariableValuesAccessor(const Value& row);
 	static Value CustomVariablesAccessor(const Value& row);
-	static Value ModifiedAttributesAccessor(const Value& row);
-	static Value ModifiedAttributesListAccessor(const Value& row);
 };
 
 }

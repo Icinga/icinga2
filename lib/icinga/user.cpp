@@ -119,15 +119,3 @@ void User::ValidateTypes(const Array::Ptr& value, const ValidationUtils& utils)
 		BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of("types"), "Type filter is invalid."));
 	}
 }
-
-int User::GetModifiedAttributes(void) const
-{
-	//TODO-MA
-	return 0;
-}
-
-void User::SetModifiedAttributes(int flags, const MessageOrigin::Ptr& origin)
-{
-	//TODO-MA
-	return;
-}

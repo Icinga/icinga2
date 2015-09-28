@@ -47,9 +47,6 @@ public:
 	virtual void ValidateStates(const Array::Ptr& value, const ValidationUtils& utils) override;
 	virtual void ValidateTypes(const Array::Ptr& value, const ValidationUtils& utils) override;
 
-	virtual int GetModifiedAttributes(void) const override;
-	virtual void SetModifiedAttributes(int flags, const MessageOrigin::Ptr& origin = MessageOrigin::Ptr()) override;
-
 protected:
 	virtual void Stop(void) override;
 

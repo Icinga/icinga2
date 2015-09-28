@@ -71,9 +71,6 @@ Dictionary::Ptr UserDbObject::GetStatusFields(void) const
 	fields->Set("service_notifications_enabled", user->GetEnableNotifications());
 	fields->Set("last_host_notification", DbValue::FromTimestamp(user->GetLastNotification()));
 	fields->Set("last_service_notification", DbValue::FromTimestamp(user->GetLastNotification()));
-	fields->Set("modified_attributes", user->GetModifiedAttributes());
-	fields->Set("modified_host_attributes", Empty);
-	fields->Set("modified_service_attributes", Empty);
 
 	return fields;
 }

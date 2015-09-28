@@ -257,12 +257,6 @@ void ExternalCommandProcessor::StaticInitialize(void)
 	RegisterCommand("STOP_EXECUTING_SVC_CHECKS", &ExternalCommandProcessor::StopExecutingSvcChecks);
 	RegisterCommand("START_EXECUTING_HOST_CHECKS", &ExternalCommandProcessor::StartExecutingHostChecks);
 	RegisterCommand("STOP_EXECUTING_HOST_CHECKS", &ExternalCommandProcessor::StopExecutingHostChecks);
-	RegisterCommand("CHANGE_SVC_MODATTR", &ExternalCommandProcessor::ChangeSvcModattr, 3);
-	RegisterCommand("CHANGE_HOST_MODATTR", &ExternalCommandProcessor::ChangeHostModattr, 2);
-	RegisterCommand("CHANGE_USER_MODATTR", &ExternalCommandProcessor::ChangeUserModattr, 2);
-	RegisterCommand("CHANGE_CHECKCOMMAND_MODATTR", &ExternalCommandProcessor::ChangeCheckcommandModattr, 2);
-	RegisterCommand("CHANGE_EVENTCOMMAND_MODATTR", &ExternalCommandProcessor::ChangeEventcommandModattr, 2);
-	RegisterCommand("CHANGE_NOTIFICATIONCOMMAND_MODATTR", &ExternalCommandProcessor::ChangeNotificationcommandModattr, 2);
 	RegisterCommand("CHANGE_NORMAL_SVC_CHECK_INTERVAL", &ExternalCommandProcessor::ChangeNormalSvcCheckInterval, 3);
 	RegisterCommand("CHANGE_NORMAL_HOST_CHECK_INTERVAL", &ExternalCommandProcessor::ChangeNormalHostCheckInterval, 2);
 	RegisterCommand("CHANGE_RETRY_SVC_CHECK_INTERVAL", &ExternalCommandProcessor::ChangeRetrySvcCheckInterval, 3);
@@ -1665,89 +1659,6 @@ void ExternalCommandProcessor::StopExecutingHostChecks(double, const std::vector
 	Log(LogNotice, "ExternalCommandProcessor", "Globally disabling host checks.");
 
 	IcingaApplication::GetInstance()->SetEnableHostChecks(false);
-}
-
-void ExternalCommandProcessor::ChangeSvcModattr(double, const std::vector<String>& arguments)
-{
-	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
-
-	if (!service)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot update modified attributes for non-existent service '" + arguments[1] + "' on host '" + arguments[0] + "'"));
-
-	int modifiedAttributes = Convert::ToLong(arguments[2]);
-
-	Log(LogNotice, "ExternalCommandProcessor")
-	    << "Updating modified attributes for service '" << arguments[1] << "'";
-
-	service->SetModifiedAttributes(modifiedAttributes);
-}
-
-void ExternalCommandProcessor::ChangeHostModattr(double, const std::vector<String>& arguments)
-{
-	Host::Ptr host = Host::GetByName(arguments[0]);
-
-	if (!host)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot update modified attributes for non-existent host '" + arguments[0] + "'"));
-
-	Log(LogNotice, "ExternalCommandProcessor")
-	    << "Updating modified attributes for host '" << arguments[0] << "'";
-
-	int modifiedAttributes = Convert::ToLong(arguments[1]);
-
-	host->SetModifiedAttributes(modifiedAttributes);
-}
-
-void ExternalCommandProcessor::ChangeUserModattr(double, const std::vector<String>& arguments)
-{
-	User::Ptr user = User::GetByName(arguments[0]);
-
-	if (!user)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot update modified attributes for non-existent user '" + arguments[0] + "'"));
-
-	Log(LogNotice, "ExternalCommandProcessor")
-	    << "Updating modified attributes for user '" << arguments[0] << "'";
-
-	int modifiedAttributes = Convert::ToLong(arguments[1]);
-
-	user->SetModifiedAttributes(modifiedAttributes);
-}
-
-void ExternalCommandProcessor::ChangeCheckcommandModattr(double, const std::vector<String>& arguments)
-{
-	CheckCommand::Ptr command = CheckCommand::GetByName(arguments[0]);
-
-	if (!command)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot update modified attributes for non-existent command '" + arguments[0] + "'"));
-
-	ChangeCommandModattrInternal(command, Convert::ToLong(arguments[1]));
-}
-
-void ExternalCommandProcessor::ChangeEventcommandModattr(double, const std::vector<String>& arguments)
-{
-	EventCommand::Ptr command = EventCommand::GetByName(arguments[0]);
-
-	if (!command)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot update modified attributes for non-existent command '" + arguments[0] + "'"));
-
-	ChangeCommandModattrInternal(command, Convert::ToLong(arguments[1]));
-}
-
-void ExternalCommandProcessor::ChangeNotificationcommandModattr(double, const std::vector<String>& arguments)
-{
-	NotificationCommand::Ptr command = NotificationCommand::GetByName(arguments[0]);
-
-	if (!command)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot update modified attributes for non-existent command '" + arguments[0] + "'"));
-
-	ChangeCommandModattrInternal(command, Convert::ToLong(arguments[1]));
-}
-
-void ExternalCommandProcessor::ChangeCommandModattrInternal(const Command::Ptr& command, int mod_attr)
-{
-	Log(LogNotice, "ExternalCommandProcessor")
-	    << "Updating modified attributes for command '" << command->GetName() << "'";
-
-	command->SetModifiedAttributes(mod_attr);
 }
 
 void ExternalCommandProcessor::ChangeNormalSvcCheckInterval(double, const std::vector<String>& arguments)

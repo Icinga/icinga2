@@ -29,23 +29,6 @@ using namespace icinga;
 
 REGISTER_TYPE(CustomVarObject);
 
-int CustomVarObject::GetModifiedAttributes(void) const
-{
-	//TODO-MA
-	return 0;
-}
-
-void CustomVarObject::SetModifiedAttributes(int, const MessageOrigin::Ptr&)
-{
-	//TODO-MA
-}
-
-bool CustomVarObject::IsVarOverridden(const String& name) const
-{
-	//TODO: implement
-	return false;
-}
-
 void CustomVarObject::ValidateVars(const Dictionary::Ptr& value, const ValidationUtils& utils)
 {
 	MacroProcessor::ValidateCustomVars(this, value);

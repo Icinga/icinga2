@@ -28,27 +28,6 @@
 namespace icinga
 {
 
-enum ModifiedAttributeType
-{
-	ModAttrNotificationsEnabled = 1,
-	ModAttrActiveChecksEnabled = 2,
-	ModAttrPassiveChecksEnabled = 4,
-	ModAttrEventHandlerEnabled = 8,
-	ModAttrFlapDetectionEnabled = 16,
-	ModAttrFailurePredictionEnabled = 32,
-	ModAttrPerformanceDataEnabled = 64,
-	ModAttrObsessiveHandlerEnabled = 128,
-	ModAttrEventHandlerCommand = 256,
-	ModAttrCheckCommand = 512,
-	ModAttrNormalCheckInterval = 1024,
-	ModAttrRetryCheckInterval = 2048,
-	ModAttrMaxCheckAttempts = 4096,
-	ModAttrFreshnessChecksEnabled = 8192,
-	ModAttrCheckTimeperiod = 16384,
-	ModAttrCustomVariable = 32768,
-	ModAttrNotificationTimeperiod = 65536
-};
-
 /**
  * An object with custom variable attribute.
  *
@@ -60,11 +39,6 @@ public:
 	DECLARE_OBJECT(CustomVarObject);
 
 	virtual void ValidateVars(const Dictionary::Ptr& value, const ValidationUtils& utils) override;
-
-	virtual int GetModifiedAttributes(void) const;
-	virtual void SetModifiedAttributes(int flags, const MessageOrigin::Ptr& origin = MessageOrigin::Ptr());
-
-	bool IsVarOverridden(const String& name) const;
 };
 
 }

@@ -82,8 +82,6 @@ public:
 	static int GetCheckableInCheckPeriod(const Checkable::Ptr& checkable);
 	static int GetCheckableInNotificationPeriod(const Checkable::Ptr& checkable);
 
-	static Array::Ptr GetModifiedAttributesList(const CustomVarObject::Ptr& object);
-
 	/* notification */
 	static int GetCheckableNotificationsEnabled(const Checkable::Ptr& checkable);
 	static int GetCheckableNotificationLastNotification(const Checkable::Ptr& checkable);

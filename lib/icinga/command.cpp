@@ -28,17 +28,6 @@ using namespace icinga;
 
 REGISTER_TYPE(Command);
 
-int Command::GetModifiedAttributes(void) const
-{
-	//TODO-MA
-	return 0;
-}
-
-void Command::SetModifiedAttributes(int flags, const MessageOrigin::Ptr& origin)
-{
-	//TODO-MA
-}
-
 void Command::Validate(int types, const ValidationUtils& utils)
 {
 	ObjectImpl<Command>::Validate(types, utils);

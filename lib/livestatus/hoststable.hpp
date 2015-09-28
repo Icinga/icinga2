@@ -101,8 +101,6 @@ protected:
 	static Value ScheduledDowntimeDepthAccessor(const Value& row);
 	static Value ActiveChecksEnabledAccessor(const Value& row);
 	static Value CheckOptionsAccessor(const Value& row);
-	static Value ModifiedAttributesAccessor(const Value& row);
-	static Value ModifiedAttributesListAccessor(const Value& row);
 	static Value CheckIntervalAccessor(const Value& row);
 	static Value RetryIntervalAccessor(const Value& row);
 	static Value NotificationIntervalAccessor(const Value& row);

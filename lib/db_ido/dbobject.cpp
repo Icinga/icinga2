@@ -181,18 +181,11 @@ void DbObject::SendVarsConfigUpdate(void)
 			} else
 				value = kv.second;
 
-			int overridden = custom_var_object->IsVarOverridden(kv.first) ? 1 : 0;
-
-			Log(LogDebug, "DbObject")
-			    << "object customvar key: '" << kv.first << "' value: '" << kv.second
-			    << "' overridden: " << overridden;
-
 			Dictionary::Ptr fields = new Dictionary();
 			fields->Set("varname", kv.first);
 			fields->Set("varvalue", value);
 			fields->Set("is_json", is_json);
 			fields->Set("config_type", 1);
-			fields->Set("has_been_modified", overridden);
 			fields->Set("object_id", obj);
 			fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
@@ -242,17 +235,10 @@ void DbObject::SendVarsStatusUpdate(void)
 			} else
 				value = kv.second;
 
-			int overridden = custom_var_object->IsVarOverridden(kv.first) ? 1 : 0;
-
-			Log(LogDebug, "DbObject")
-			    << "object customvar key: '" << kv.first << "' value: '" << kv.second
-			    << "' overridden: " << overridden;
-
 			Dictionary::Ptr fields = new Dictionary();
 			fields->Set("varname", kv.first);
 			fields->Set("varvalue", value);
 			fields->Set("is_json", is_json);
-			fields->Set("has_been_modified", overridden);
 			fields->Set("status_update_time", DbValue::FromTimestamp(Utility::GetTime()));
 			fields->Set("object_id", obj);
 			fields->Set("instance_id", 0); /* DbConnection class fills in real ID */

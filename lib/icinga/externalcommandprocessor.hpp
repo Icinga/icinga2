@@ -127,13 +127,6 @@ private:
 	static void StopExecutingSvcChecks(double time, const std::vector<String>& arguments);
 	static void StartExecutingHostChecks(double time, const std::vector<String>& arguments);
 	static void StopExecutingHostChecks(double time, const std::vector<String>& arguments);
-	static void ChangeSvcModattr(double time, const std::vector<String>& arguments);
-	static void ChangeHostModattr(double time, const std::vector<String>& arguments);
-
-	static void ChangeUserModattr(double time, const std::vector<String>& arguments);
-	static void ChangeCheckcommandModattr(double time, const std::vector<String>& arguments);
-	static void ChangeEventcommandModattr(double time, const std::vector<String>& arguments);
-	static void ChangeNotificationcommandModattr(double time, const std::vector<String>& arguments);
 
 	static void ChangeNormalSvcCheckInterval(double time, const std::vector<String>& arguments);
 	static void ChangeNormalHostCheckInterval(double time, const std::vector<String>& arguments);
@@ -168,7 +161,6 @@ private:
 	static void DisableServicegroupSvcNotifications(double time, const std::vector<String>& arguments);
 
 private:
-	static void ChangeCommandModattrInternal(const Command::Ptr& command, int mod_attr);
 	static void ChangeCustomCommandVarInternal(const Command::Ptr& command, const String& name, const Value& value);
 };
 

@@ -163,7 +163,6 @@ Dictionary::Ptr HostDbObject::GetStatusFields(void) const
 	fields->Set("failure_prediction_enabled", Empty);
 	fields->Set("process_performance_data", CompatUtility::GetCheckableProcessPerformanceData(host));
 	fields->Set("obsess_over_host", Empty);
-	fields->Set("modified_host_attributes", host->GetModifiedAttributes());
 	fields->Set("event_handler", CompatUtility::GetCheckableEventHandler(host));
 	fields->Set("check_command", CompatUtility::GetCheckableCheckCommand(host));
 	fields->Set("normal_check_interval", CompatUtility::GetCheckableCheckInterval(host));

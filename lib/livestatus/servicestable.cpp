@@ -108,8 +108,8 @@ void ServicesTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "flap_detection_enabled", Column(&ServicesTable::FlapDetectionEnabledAccessor, objectAccessor));
 	table->AddColumn(prefix + "check_freshness", Column(&ServicesTable::CheckFreshnessAccessor, objectAccessor));
 	table->AddColumn(prefix + "obsess_over_service", Column(&Table::ZeroAccessor, objectAccessor));
-	table->AddColumn(prefix + "modified_attributes", Column(&ServicesTable::ModifiedAttributesAccessor, objectAccessor));
-	table->AddColumn(prefix + "modified_attributes_list", Column(&ServicesTable::ModifiedAttributesListAccessor, objectAccessor));
+	table->AddColumn(prefix + "modified_attributes", Column(&Table::ZeroAccessor, objectAccessor));
+	table->AddColumn(prefix + "modified_attributes_list", Column(&Table::ZeroAccessor, objectAccessor));
 	table->AddColumn(prefix + "pnpgraph_present", Column(&Table::ZeroAccessor, objectAccessor));
 	table->AddColumn(prefix + "staleness", Column(&ServicesTable::StalenessAccessor, objectAccessor));
 	table->AddColumn(prefix + "check_interval", Column(&ServicesTable::CheckIntervalAccessor, objectAccessor));
@@ -804,26 +804,6 @@ Value ServicesTable::CheckFreshnessAccessor(const Value& row)
 		return Empty;
 
 	return CompatUtility::GetCheckableFreshnessChecksEnabled(service);
-}
-
-Value ServicesTable::ModifiedAttributesAccessor(const Value& row)
-{
-	Service::Ptr service = static_cast<Service::Ptr>(row);
-
-	if (!service)
-		return Empty;
-
-	return service->GetModifiedAttributes();
-}
-
-Value ServicesTable::ModifiedAttributesListAccessor(const Value& row)
-{
-	Service::Ptr service = static_cast<Service::Ptr>(row);
-
-	if (!service)
-		return Empty;
-
-	return CompatUtility::GetModifiedAttributesList(service);
 }
 
 Value ServicesTable::StalenessAccessor(const Value& row)

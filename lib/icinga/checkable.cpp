@@ -139,18 +139,6 @@ void Checkable::ClearAcknowledgement(const MessageOrigin::Ptr& origin)
 	OnAcknowledgementCleared(this, origin);
 }
 
-int Checkable::GetModifiedAttributes(void) const
-{
-	//TODO-MA
-	return 0;
-}
-
-void Checkable::SetModifiedAttributes(int flags, const MessageOrigin::Ptr& origin)
-{
-	//TODO-MA
-	return;
-}
-
 Endpoint::Ptr Checkable::GetCommandEndpoint(void) const
 {
 	return Endpoint::GetByName(GetCommandEndpointRaw());

@@ -40,9 +40,6 @@ public:
 	//virtual Dictionary::Ptr Execute(const Object::Ptr& context) = 0;
 
 	virtual void Validate(int types, const ValidationUtils& utils) override;
-
-	int GetModifiedAttributes(void) const override;
-	void SetModifiedAttributes(int flags, const MessageOrigin::Ptr& origin = MessageOrigin::Ptr()) override;
 };
 
 }

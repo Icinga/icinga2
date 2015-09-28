@@ -103,9 +103,6 @@ public:
 	void ExecuteCheck();
 	void ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrigin::Ptr& origin = MessageOrigin::Ptr());
 
-	virtual int GetModifiedAttributes(void) const override;
-	virtual void SetModifiedAttributes(int flags, const MessageOrigin::Ptr& origin = MessageOrigin::Ptr()) override;
-
 	Endpoint::Ptr GetCommandEndpoint(void) const;
 
 	bool IsCheckPending(void) const;

@@ -44,8 +44,8 @@ void CommandsTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "custom_variable_names", Column(&CommandsTable::CustomVariableNamesAccessor, objectAccessor));
 	table->AddColumn(prefix + "custom_variable_values", Column(&CommandsTable::CustomVariableValuesAccessor, objectAccessor));
 	table->AddColumn(prefix + "custom_variables", Column(&CommandsTable::CustomVariablesAccessor, objectAccessor));
-	table->AddColumn(prefix + "modified_attributes", Column(&CommandsTable::ModifiedAttributesAccessor, objectAccessor));
-	table->AddColumn(prefix + "modified_attributes_list", Column(&CommandsTable::ModifiedAttributesListAccessor, objectAccessor));
+	table->AddColumn(prefix + "modified_attributes", Column(&Table::ZeroAccessor, objectAccessor));
+	table->AddColumn(prefix + "modified_attributes_list", Column(&Table::ZeroAccessor, objectAccessor));
 }
 
 String CommandsTable::GetName(void) const
@@ -184,25 +184,4 @@ Value CommandsTable::CustomVariablesAccessor(const Value& row)
 	}
 
 	return cv;
-}
-
-Value CommandsTable::ModifiedAttributesAccessor(const Value& row)
-{
-	Command::Ptr command = static_cast<Command::Ptr>(row);
-
-	if (!command)
-		return Empty;
-
-	/* not supported */
-	return command->GetModifiedAttributes();
-}
-
-Value CommandsTable::ModifiedAttributesListAccessor(const Value& row)
-{
-	Command::Ptr command = static_cast<Command::Ptr>(row);
-
-	if (!command)
-		return Empty;
-
-	return CompatUtility::GetModifiedAttributesList(command);
 }
