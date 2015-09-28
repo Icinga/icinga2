@@ -442,9 +442,9 @@ void IdoMysqlConnection::FinishAsyncQueries(bool force)
 		for (std::vector<IdoAsyncQuery>::size_type i = offset; i < offset + count; i++) {
 			const IdoAsyncQuery& aq = queries[i];
 
-			m_AffectedRows = mysql_affected_rows(&m_Connection);
+			MYSQL_RES *result = mysql_store_result(&m_Connection);
 
-			MYSQL_RES *result = mysql_use_result(&m_Connection);
+			m_AffectedRows = mysql_affected_rows(&m_Connection);
 
 			IdoMysqlResult iresult;
 
@@ -510,9 +510,9 @@ IdoMysqlResult IdoMysqlConnection::Query(const String& query)
 		);
 	}
 
-	m_AffectedRows = mysql_affected_rows(&m_Connection);
+	MYSQL_RES *result = mysql_store_result(&m_Connection);
 
-	MYSQL_RES *result = mysql_use_result(&m_Connection);
+	m_AffectedRows = mysql_affected_rows(&m_Connection);
 
 	if (!result) {
 		if (mysql_field_count(&m_Connection) > 0) {
