@@ -20,6 +20,7 @@
 #include "remote/configfileshandler.hpp"
 #include "remote/configpackageutility.hpp"
 #include "remote/httputility.hpp"
+#include "remote/filterutility.hpp"
 #include "base/exception.hpp"
 #include <boost/algorithm/string/join.hpp>
 #include <fstream>
@@ -54,6 +55,8 @@ void ConfigFilesHandler::HandleGet(const ApiUser::Ptr& user, HttpRequest& reques
 		std::vector<String> tmpPath(urlPath.begin() + 5, urlPath.end());
 		params->Set("path", boost::algorithm::join(tmpPath, "/"));
 	}
+
+	FilterUtility::CheckPermission(user, "config/query");
 
 	String packageName = HttpUtility::GetLastParameter(params, "package");
 	String stageName = HttpUtility::GetLastParameter(params, "stage");

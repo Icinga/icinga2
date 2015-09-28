@@ -48,6 +48,8 @@ bool CreateObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 		return true;
 	}
 
+	FilterUtility::CheckPermission(user, "objects/create/" + type->GetName());
+
 	String name = request.RequestUrl->GetPath()[3];
 	Dictionary::Ptr params = HttpUtility::FetchRequestParameters(request);
 	Array::Ptr templates = params->Get("templates");

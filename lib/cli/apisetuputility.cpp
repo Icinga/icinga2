@@ -172,6 +172,8 @@ int ApiSetupUtility::SetupMasterApiUser(const String& cn)
 	    << "object ApiUser \"" << api_username << "\" {\n"
 	    << "  password = \"" << api_password << "\"\n"
 	    << "  //client_cn = \"\"\n"
+	    << "\n"
+	    << "  permissions = [ \"*\" ]\n"
 	    << "}\n";
 
 	fp.close();

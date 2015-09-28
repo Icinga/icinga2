@@ -59,19 +59,24 @@ bool ActionsHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& reques
 	const std::vector<String>& types = action->GetTypes();
 	std::vector<Value> objs;
 
+	String permission = "actions/" + actionName;
+
 	if (!types.empty()) {
 		qd.Types = std::set<String>(types.begin(), types.end());
+		qd.Permission = permission;
 
 		try {
-			objs = FilterUtility::GetFilterTargets(qd, params);
+			objs = FilterUtility::GetFilterTargets(qd, params, user);
 		} catch (const std::exception& ex) {
 			HttpUtility::SendJsonError(response, 400,
 			    "Type/Filter was required but not provided or was invalid.",
 			    request.GetVerboseErrors() ? DiagnosticInformation(ex) : "");
 			return true;
 		}
-	} else
+	} else {
+		FilterUtility::CheckPermission(user, permission);
 		objs.push_back(ConfigObject::Ptr());
+	}
 
 	Array::Ptr results = new Array();
 

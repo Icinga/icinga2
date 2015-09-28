@@ -20,6 +20,7 @@
 #include "remote/configpackageshandler.hpp"
 #include "remote/configpackageutility.hpp"
 #include "remote/httputility.hpp"
+#include "remote/filterutility.hpp"
 #include "base/exception.hpp"
 #include <boost/algorithm/string/join.hpp>
 
@@ -49,6 +50,8 @@ bool ConfigPackagesHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest&
 
 void ConfigPackagesHandler::HandleGet(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
 {
+	FilterUtility::CheckPermission(user, "config/query");
+
 	std::vector<String> packages = ConfigPackageUtility::GetPackages();
 
 	Array::Ptr results = new Array();
@@ -70,6 +73,8 @@ void ConfigPackagesHandler::HandleGet(const ApiUser::Ptr& user, HttpRequest& req
 
 void ConfigPackagesHandler::HandlePost(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
 {
+	FilterUtility::CheckPermission(user, "config/modify");
+
 	Dictionary::Ptr params = HttpUtility::FetchRequestParameters(request);
 
 	if (request.RequestUrl->GetPath().size() >= 4)
@@ -106,6 +111,8 @@ void ConfigPackagesHandler::HandlePost(const ApiUser::Ptr& user, HttpRequest& re
 
 void ConfigPackagesHandler::HandleDelete(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
 {
+	FilterUtility::CheckPermission(user, "config/modify");
+
 	Dictionary::Ptr params = HttpUtility::FetchRequestParameters(request);
 
 	if (request.RequestUrl->GetPath().size() >= 4)

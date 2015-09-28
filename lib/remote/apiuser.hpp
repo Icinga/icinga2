@@ -35,10 +35,6 @@ public:
 	DECLARE_OBJECT(ApiUser);
 	DECLARE_OBJECTNAME(ApiUser);
 
-	String GetPassword(void) const;
-	void SetPassword(const String& password);
-	bool CheckPassword(const String& password) const;
-
 	static ApiUser::Ptr GetByClientCN(const String& cn);
 };
 

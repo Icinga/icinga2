@@ -77,11 +77,14 @@ public:
 
 bool TypeQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
 {
-	if (request.RequestMethod != "GET")
-		return false;
+	Dictionary::Ptr result = new Dictionary();
 
-	if (request.RequestUrl->GetPath().size() < 2)
-		return false;
+	if (request.RequestMethod != "GET") {
+		response.SetStatus(400, "Bad request");
+		result->Set("info", "Request must be type GET");
+		HttpUtility::SendJsonBody(response, result);
+		return true;
+	}
 
 	QueryDescription qd;
 	qd.Types.insert("Type");
@@ -97,7 +100,7 @@ bool TypeQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& requ
 	if (request.RequestUrl->GetPath().size() >= 3)
 		params->Set("name", request.RequestUrl->GetPath()[2]);
 
-	std::vector<Value> objs = FilterUtility::GetFilterTargets(qd, params);
+	std::vector<Value> objs = FilterUtility::GetFilterTargets(qd, params, user);
 
 	Array::Ptr results = new Array();
 
@@ -154,7 +157,6 @@ bool TypeQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& requ
 		}
 	}
 
-	Dictionary::Ptr result = new Dictionary();
 	result->Set("results", results);
 
 	response.SetStatus(200, "OK");

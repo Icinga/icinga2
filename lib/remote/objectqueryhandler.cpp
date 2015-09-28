@@ -45,6 +45,7 @@ bool ObjectQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 
 	QueryDescription qd;
 	qd.Types.insert(type->GetName());
+	qd.Permission = "objects/query/" + type->GetName();
 
 	std::vector<String> joinAttrs;
 	joinAttrs.push_back("");
@@ -66,7 +67,7 @@ bool ObjectQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 		params->Set(attr, request.RequestUrl->GetPath()[3]);
 	}
 
-	std::vector<Value> objs = FilterUtility::GetFilterTargets(qd, params);
+	std::vector<Value> objs = FilterUtility::GetFilterTargets(qd, params, user);
 
 	Array::Ptr results = new Array();
 

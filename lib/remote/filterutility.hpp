@@ -21,6 +21,8 @@
 #define FILTERUTILITY_H
 
 #include "remote/i2-remote.hpp"
+#include "remote/apiuser.hpp"
+#include "config/expression.hpp"
 #include "base/dictionary.hpp"
 #include "base/configobject.hpp"
 #include <set>
@@ -54,6 +56,7 @@ struct QueryDescription
 {
 	std::set<String> Types;
 	TargetProvider::Ptr Provider;
+	String Permission;
 };
 
 /**
@@ -65,7 +68,8 @@ class I2_REMOTE_API FilterUtility
 {
 public:
 	static Type::Ptr TypeFromPluralName(const String& pluralName);
-	static std::vector<Value> GetFilterTargets(const QueryDescription& qd, const Dictionary::Ptr& query);
+	static void CheckPermission(const ApiUser::Ptr& user, const String& permission, Expression **filter = NULL);
+	static std::vector<Value> GetFilterTargets(const QueryDescription& qd, const Dictionary::Ptr& query, const ApiUser::Ptr& user);
 };
 
 }

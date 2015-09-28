@@ -78,13 +78,23 @@ String ConfigObjectTargetProvider::GetPluralName(const String& type) const
 	return Type::GetByName(type)->GetPluralName();
 }
 
-static void FilteredAddTarget(ScriptFrame& frame, Expression *ufilter, std::vector<Value>& result, const Object::Ptr& target)
+static bool EvaluateFilter(ScriptFrame& frame, Expression *filter, const Object::Ptr& target)
 {
-	Type::Ptr type = target->GetReflectionType();
-	String varName = type->GetName();
-	boost::algorithm::to_lower(varName);
+	if (!filter)
+		return true;
 
-	frame.Locals->Set(varName, target);
+	Type::Ptr type = target->GetReflectionType();
+	String varName = type->GetName().ToLower();
+
+	Dictionary::Ptr vars;
+
+	if (frame.Self.IsEmpty()) {
+		vars = new Dictionary();
+		frame.Self = vars;
+	} else
+		vars = frame.Self;
+
+	vars->Set(varName, target);
 
 	for (int fid = 0; fid < type->GetFieldCount(); fid++) {
 		Field field = type->GetFieldInfo(fid);
@@ -97,14 +107,68 @@ static void FilteredAddTarget(ScriptFrame& frame, Expression *ufilter, std::vect
 		varName = field.TypeName;
 		boost::algorithm::to_lower(varName);
 
-		frame.Locals->Set(varName, joinedObj);
+		vars->Set(varName, joinedObj);
 	}
 
-	if (Convert::ToBool(ufilter->Evaluate(frame)))
+	return Convert::ToBool(filter->Evaluate(frame));
+}
+
+static void FilteredAddTarget(ScriptFrame& permissionFrame, Expression *permissionFilter,
+    ScriptFrame& frame, Expression *ufilter, std::vector<Value>& result, const Object::Ptr& target)
+{
+	if (EvaluateFilter(permissionFrame, permissionFilter, target) && EvaluateFilter(frame, ufilter, target))
 		result.push_back(target);
 }
 
-std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, const Dictionary::Ptr& query)
+void FilterUtility::CheckPermission(const ApiUser::Ptr& user, const String& permission, Expression **permissionFilter)
+{
+	if (permissionFilter)
+		*permissionFilter = NULL;
+
+	if (permission.IsEmpty())
+		return;
+
+	bool foundPermission = false;
+	String requiredPermission = permission.ToLower();
+
+	Array::Ptr permissions = user->GetPermissions();
+	if (permissions) {
+		ObjectLock olock(permissions);
+		BOOST_FOREACH(const Value& item, permissions) {
+			String permission;
+			Function::Ptr filter;
+			if (item.IsObjectType<Dictionary>()) {
+				Dictionary::Ptr dict = item;
+				permission = dict->Get("permission");
+				filter = dict->Get("filter");
+			} else
+				permission = item;
+
+			permission = permission.ToLower();
+
+			if (!Utility::Match(permission, requiredPermission))
+				continue;
+
+			foundPermission = true;
+
+			if (filter && permissionFilter) {
+				std::vector<Expression *> args;
+				args.push_back(new GetScopeExpression(ScopeLocal));
+				FunctionCallExpression *fexpr = new FunctionCallExpression(new IndexerExpression(MakeLiteral(filter), MakeLiteral("call")), args);
+
+				if (!*permissionFilter)
+					*permissionFilter = fexpr;
+				else
+					*permissionFilter = new LogicalOrExpression(*permissionFilter, fexpr);
+			}
+		}
+	}
+
+	if (!foundPermission)
+		BOOST_THROW_EXCEPTION(ScriptError("Missing permission: " + requiredPermission));
+}
+
+std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, const Dictionary::Ptr& query, const ApiUser::Ptr& user)
 {
 	std::vector<Value> result;
 
@@ -115,6 +179,11 @@ std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, c
 	else
 		provider = new ConfigObjectTargetProvider();
 
+	Expression *permissionFilter;
+	CheckPermission(user, qd.Permission, &permissionFilter);
+
+	ScriptFrame permissionFrame;
+
 	BOOST_FOREACH(const String& type, qd.Types) {
 		String attr = type;
 		boost::algorithm::to_lower(attr);
@@ -122,8 +191,12 @@ std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, c
 		if (attr == "type")
 			attr = "name";
 
-		if (query->Contains(attr))
-			result.push_back(provider->GetTargetByName(type, HttpUtility::GetLastParameter(query, attr)));
+		if (query->Contains(attr)) {
+			Object::Ptr target = provider->GetTargetByName(type, HttpUtility::GetLastParameter(query, attr));
+
+			if (EvaluateFilter(permissionFrame, permissionFilter, target))
+				result.push_back(target);
+		}
 
 		attr = provider->GetPluralName(type);
 		boost::algorithm::to_lower(attr);
@@ -133,7 +206,10 @@ std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, c
 			if (names) {
 				ObjectLock olock(names);
 				BOOST_FOREACH(const String& name, names) {
-					result.push_back(provider->GetTargetByName(type, name));
+					Object::Ptr target = provider->GetTargetByName(type, name);
+
+					if (EvaluateFilter(permissionFrame, permissionFilter, target))
+						result.push_back(target);
 				}
 			}
 		}
@@ -159,20 +235,26 @@ std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, c
 		if (qd.Types.find(type) == qd.Types.end())
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid type specified for this query."));
 
-		Expression *ufilter = ConfigCompiler::CompileText("<API query>", filter);
 		ScriptFrame frame;
 		frame.Sandboxed = true;
+		Dictionary::Ptr uvars = new Dictionary();
+
+		Expression *ufilter = ConfigCompiler::CompileText("<API query>", filter);
 
 		Dictionary::Ptr filter_vars = query->Get("filter_vars");
 		if (filter_vars) {
 			ObjectLock olock(filter_vars);
 			BOOST_FOREACH(const Dictionary::Pair& kv, filter_vars) {
-				frame.Locals->Set(kv.first, kv.second);
+				uvars->Set(kv.first, kv.second);
 			}
 		}
 
+		frame.Self = uvars;
+
 		try {
-			provider->FindTargets(type, boost::bind(&FilteredAddTarget, boost::ref(frame), ufilter, boost::ref(result), _1));
+			provider->FindTargets(type, boost::bind(&FilteredAddTarget,
+			    boost::ref(permissionFrame), permissionFilter,
+			    boost::ref(frame), ufilter, boost::ref(result), _1));
 		} catch (const std::exception& ex) {
 			delete ufilter;
 			throw;

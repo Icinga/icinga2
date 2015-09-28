@@ -20,6 +20,7 @@
 #include "remote/configstageshandler.hpp"
 #include "remote/configpackageutility.hpp"
 #include "remote/httputility.hpp"
+#include "remote/filterutility.hpp"
 #include "base/application.hpp"
 #include "base/exception.hpp"
 #include <boost/foreach.hpp>
@@ -51,6 +52,8 @@ bool ConfigStagesHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 
 void ConfigStagesHandler::HandleGet(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
 {
+	FilterUtility::CheckPermission(user, "config/query");
+
 	Dictionary::Ptr params = HttpUtility::FetchRequestParameters(request);
 
 	if (request.RequestUrl->GetPath().size() >= 4)
@@ -91,6 +94,8 @@ void ConfigStagesHandler::HandleGet(const ApiUser::Ptr& user, HttpRequest& reque
 
 void ConfigStagesHandler::HandlePost(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
 {
+	FilterUtility::CheckPermission(user, "config/modify");
+
 	Dictionary::Ptr params = HttpUtility::FetchRequestParameters(request);
 
 	if (request.RequestUrl->GetPath().size() >= 4)
@@ -136,6 +141,8 @@ void ConfigStagesHandler::HandlePost(const ApiUser::Ptr& user, HttpRequest& requ
 
 void ConfigStagesHandler::HandleDelete(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
 {
+	FilterUtility::CheckPermission(user, "config/modify");
+
 	Dictionary::Ptr params = HttpUtility::FetchRequestParameters(request);
 
 	if (request.RequestUrl->GetPath().size() >= 4)

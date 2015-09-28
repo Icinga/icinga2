@@ -25,21 +25,6 @@ using namespace icinga;
 
 REGISTER_TYPE(ApiUser);
 
-String ApiUser::GetPassword(void) const
-{
-	return "*****";
-}
-
-void ApiUser::SetPassword(const String& password)
-{
-	SetPasswordRaw(password);
-}
-
-bool ApiUser::CheckPassword(const String& password) const
-{
-	return password == GetPasswordRaw();
-}
-
 ApiUser::Ptr ApiUser::GetByClientCN(const String& cn)
 {
 	BOOST_FOREACH(const ApiUser::Ptr& user, ConfigType::GetObjectsByType<ApiUser>()) {

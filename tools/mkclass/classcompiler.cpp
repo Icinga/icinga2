@@ -1089,10 +1089,11 @@ void ClassCompiler::CodeGenValidator(const std::string& name, const std::string&
 					else
 						m_Impl << "\t\t" << "const Dictionary::Ptr& dict = value;" << std::endl;
 
-					m_Impl << (type_check ? "\t" : "") << "\t\t" << "ObjectLock olock(dict);" << std::endl
-					       << (type_check ? "\t" : "") << "\t\t" << "BOOST_FOREACH(const Dictionary::Pair& kv, dict) {" << std::endl
-					       << (type_check ? "\t" : "") << "\t\t\t" << "const String& akey = kv.first;" << std::endl
-					       << (type_check ? "\t" : "") << "\t\t\t" << "const Value& avalue = kv.second;" << std::endl;
+					m_Impl << (type_check ? "\t" : "") << "\t\t" << "{" << std::endl
+					       << (type_check ? "\t" : "") << "\t\t\t" << "ObjectLock olock(dict);" << std::endl
+					       << (type_check ? "\t" : "") << "\t\t\t" << "BOOST_FOREACH(const Dictionary::Pair& kv, dict) {" << std::endl
+					       << (type_check ? "\t" : "") << "\t\t\t\t" << "const String& akey = kv.first;" << std::endl
+					       << (type_check ? "\t" : "") << "\t\t\t\t" << "const Value& avalue = kv.second;" << std::endl;
 					indent = true;
 				} else if (rule.Type == "Array") {
 					if (type_check)
@@ -1101,9 +1102,10 @@ void ClassCompiler::CodeGenValidator(const std::string& name, const std::string&
 						m_Impl << "\t\t" << "const Array::Ptr& arr = value;" << std::endl;
 
 					m_Impl << (type_check ? "\t" : "") << "\t\t" << "Array::SizeType anum = 0;" << std::endl
-					       << (type_check ? "\t" : "") << "\t\t" << "ObjectLock olock(arr);" << std::endl
-					       << (type_check ? "\t" : "") << "\t\t" << "BOOST_FOREACH(const Value& avalue, arr) {" << std::endl
-					       << (type_check ? "\t" : "") << "\t\t\t" << "String akey = Convert::ToString(anum);" << std::endl;
+					       << (type_check ? "\t" : "") << "\t\t" << "{" << std::endl
+					       << (type_check ? "\t" : "") << "\t\t\t" << "ObjectLock olock(arr);" << std::endl
+					       << (type_check ? "\t" : "") << "\t\t\t" << "BOOST_FOREACH(const Value& avalue, arr) {" << std::endl
+					       << (type_check ? "\t" : "") << "\t\t\t\t" << "String akey = Convert::ToString(anum);" << std::endl;
 					indent = true;
 				} else {
 					m_Impl << (type_check ? "\t" : "") << "\t\t" << "String akey = \"\";" << std::endl
@@ -1117,15 +1119,17 @@ void ClassCompiler::CodeGenValidator(const std::string& name, const std::string&
 				else
 					subvalidator_prefix = name;
 
-				m_Impl << (type_check ? "\t" : "") << (indent ? "\t" : "") << "\t\t" << "location.push_back(akey);" << std::endl
-				       << (type_check ? "\t" : "") << (indent ? "\t" : "") << "\t\t" << "TIValidate" << subvalidator_prefix << "_" << i << "(object, akey, avalue, location, utils);" << std::endl
-				       << (type_check ? "\t" : "") << (indent ? "\t" : "") << "\t\t" << "location.pop_back();" << std::endl;
+				m_Impl << (type_check ? "\t" : "") << (indent ? "\t\t" : "") << "\t\t" << "location.push_back(akey);" << std::endl
+				       << (type_check ? "\t" : "") << (indent ? "\t\t" : "") << "\t\t" << "TIValidate" << subvalidator_prefix << "_" << i << "(object, akey, avalue, location, utils);" << std::endl
+				       << (type_check ? "\t" : "") << (indent ? "\t\t" : "") << "\t\t" << "location.pop_back();" << std::endl;
 
 				if (rule.Type == "Array")
-					m_Impl << (type_check ? "\t" : "") << "\t\t\t" << "anum++;" << std::endl;
+					m_Impl << (type_check ? "\t" : "") << "\t\t\t\t" << "anum++;" << std::endl;
 
-				if (rule.Type == "Dictionary" || rule.Type == "Array")
-					m_Impl << (type_check ? "\t" : "") << "\t\t" << "}" << std::endl;
+				if (rule.Type == "Dictionary" || rule.Type == "Array") {
+					m_Impl << (type_check ? "\t" : "") << "\t\t\t" << "}" << std::endl
+					       << (type_check ? "\t" : "") << "\t\t" << "}" << std::endl;
+				}
 
 				for (std::vector<Rule>::size_type i = 0; i < rule.Rules.size(); i++) {
 					const Rule& srule = rule.Rules[i];
@@ -1134,8 +1138,8 @@ void ClassCompiler::CodeGenValidator(const std::string& name, const std::string&
 						continue;
 
 					if (rule.Type == "Dictionary") {
-						m_Impl << (type_check ? "\t" : "") << "\t\t" << "if (dict.Get(\"" << srule.Pattern << "\").IsEmpty())" << std::endl
-						       << (type_check ? "\t" : "") << "\t\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_cast<ConfigObject *>(this), location, \"Required dictionary item '" << srule.Pattern << "' is not set.\"));" << std::endl;
+						m_Impl << (type_check ? "\t" : "") << "\t\t" << "if (dict->Get(\"" << srule.Pattern << "\").IsEmpty())" << std::endl
+						       << (type_check ? "\t" : "") << "\t\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_pointer_cast<ConfigObject>(object), location, \"Required dictionary item '" << srule.Pattern << "' is not set.\"));" << std::endl;
 					} else if (rule.Type == "Array") {
 						int index = -1;
 						std::stringstream idxbuf;

@@ -141,7 +141,7 @@ void HttpServerConnection::ProcessMessageAsync(HttpRequest& request)
 	else {
 		user = ApiUser::GetByName(username);
 
-		if (!user || !user->CheckPassword(password))
+		if (user && user->GetPassword() != password)
 			user.reset();
 	}
 

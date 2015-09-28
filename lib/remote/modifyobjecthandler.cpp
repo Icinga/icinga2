@@ -59,7 +59,7 @@ bool ModifyObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 		params->Set(attr, request.RequestUrl->GetPath()[3]);
 	}
 
-	std::vector<Value> objs = FilterUtility::GetFilterTargets(qd, params);
+	std::vector<Value> objs = FilterUtility::GetFilterTargets(qd, params, user);
 
 	Dictionary::Ptr attrs = params->Get("attrs");
 

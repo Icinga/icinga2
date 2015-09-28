@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "base/configobject.hpp"
+#include "base/function.hpp"
 
 library remote;
 
@@ -26,8 +27,20 @@ namespace icinga
 
 class ApiUser : ConfigObject
 {
-	[config, protected] String password (PasswordRaw);
+	[config] String password;
 	[config] String client_cn (ClientCN);
+	[config] array(Value) permissions;
+};
+
+validator ApiUser {
+	Array permissions {
+		String "*";
+		Dictionary "*" {
+			required permission;
+			String permission;
+			Function filter;
+		};
+	};
 };
 
 }

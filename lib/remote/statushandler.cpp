@@ -19,12 +19,55 @@
 
 #include "remote/statushandler.hpp"
 #include "remote/httputility.hpp"
+#include "remote/filterutility.hpp"
 #include "base/serializer.hpp"
 #include "base/statsfunction.hpp"
 
 using namespace icinga;
 
 REGISTER_URLHANDLER("/v1/status", StatusHandler);
+
+class StatusTargetProvider : public TargetProvider
+{
+public:
+	DECLARE_PTR_TYPEDEFS(StatusTargetProvider);
+
+	virtual void FindTargets(const String& type,
+	    const boost::function<void (const Value&)>& addTarget) const override
+	{
+		typedef std::pair<String, StatsFunction::Ptr> kv_pair;
+		BOOST_FOREACH(const kv_pair& kv, StatsFunctionRegistry::GetInstance()->GetItems()) {
+			addTarget(GetTargetByName("Status", kv.first));
+		}
+	}
+
+	virtual Value GetTargetByName(const String& type, const String& name) const override
+	{
+		StatsFunction::Ptr func = StatsFunctionRegistry::GetInstance()->GetItem(name);
+
+		Dictionary::Ptr result = new Dictionary();
+
+		Dictionary::Ptr status = new Dictionary();
+		Array::Ptr perfdata = new Array();
+		func->Invoke(status, perfdata);
+
+		result->Set("name", name);
+		result->Set("status", status);
+		result->Set("perfdata", perfdata);
+
+		return result;
+	}
+
+	virtual bool IsValidType(const String& type) const override
+	{
+		return type == "Status";
+	}
+
+	virtual String GetPluralName(const String& type) const override
+	{
+		return "statuses";
+	}
+};
 
 bool StatusHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
 {
@@ -37,46 +80,22 @@ bool StatusHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request
 		return true;
 	}
 
-	if (request.RequestUrl->GetPath().size() < 2) {
-		response.SetStatus(400, "Bad request");
-		HttpUtility::SendJsonBody(response, result);
-		return true;
-	}
 
-	Array::Ptr results = new Array();
-	Dictionary::Ptr resultInner = new Dictionary();
+	QueryDescription qd;
+	qd.Types.insert("Status");
+	qd.Provider = new StatusTargetProvider();
+	qd.Permission = "status/query";
 
-	if (request.RequestUrl->GetPath().size() > 2) {
+	Dictionary::Ptr params = HttpUtility::FetchRequestParameters(request);
 
-		StatsFunction::Ptr funcptr = StatsFunctionRegistry::GetInstance()->GetItem(request.RequestUrl->GetPath()[2]);
-		resultInner = new Dictionary();
+	params->Set("type", "Status");
 
-		if (!funcptr)
-			return false;
+	if (request.RequestUrl->GetPath().size() >= 3)
+		params->Set("name", request.RequestUrl->GetPath()[2]);
 
-		results->Add(resultInner);
+	std::vector<Value> objs = FilterUtility::GetFilterTargets(qd, params, user);
 
-		Dictionary::Ptr status = new Dictionary();
-		Array::Ptr perfdata = new Array();
-		funcptr->Invoke(status, perfdata);
-
-		resultInner->Set("status", status);
-		resultInner->Set("perfdata", perfdata);
-	} else {
-		typedef std::pair<String, StatsFunction::Ptr> kv_pair;
-		BOOST_FOREACH(const kv_pair& kv, StatsFunctionRegistry::GetInstance()->GetItems()) {
-			resultInner = new Dictionary();
-			Dictionary::Ptr funcStatus = new Dictionary();
-			Array::Ptr funcPData = new Array();
-			kv.second->Invoke(funcStatus, funcPData);
-
-			resultInner->Set("name", kv.first);
-			resultInner->Set("status", funcPData);
-			resultInner->Set("perfdata", funcPData);
-
-			results->Add(resultInner);
-		}
-	}
+	Array::Ptr results = Array::FromVector(objs);
 
 	result->Set("results", results);
 
