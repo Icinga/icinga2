@@ -91,7 +91,7 @@ bool StatusHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request
 	params->Set("type", "Status");
 
 	if (request.RequestUrl->GetPath().size() >= 3)
-		params->Set("name", request.RequestUrl->GetPath()[2]);
+		params->Set("status", request.RequestUrl->GetPath()[2]);
 
 	std::vector<Value> objs = FilterUtility::GetFilterTargets(qd, params, user);
 
