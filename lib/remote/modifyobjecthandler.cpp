@@ -32,18 +32,18 @@ REGISTER_URLHANDLER("/v1/objects", ModifyObjectHandler);
 
 bool ModifyObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
 {
-	if (request.RequestMethod != "POST") {
-		/* there might be other request methods pending */
+	if (request.RequestUrl->GetPath().size() < 3 || request.RequestUrl->GetPath().size() > 4)
 		return false;
-	}
 
-	if (request.RequestUrl->GetPath().size() < 3)
+	if (request.RequestMethod != "POST")
 		return false;
 
 	Type::Ptr type = FilterUtility::TypeFromPluralName(request.RequestUrl->GetPath()[1]);
 
-	if (!type)
-		return false;
+	if (!type) {
+		HttpUtility::SendJsonError(response, 400, "Invalid type specified.");
+		return true;
+	}
 
 	QueryDescription qd;
 	qd.Types.insert(type->GetName());
@@ -100,4 +100,3 @@ bool ModifyObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 
 	return true;
 }
-

@@ -32,11 +32,8 @@ REGISTER_URLHANDLER("/v1/config/stages", ConfigStagesHandler);
 
 bool ConfigStagesHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
 {
-	if (request.RequestUrl->GetPath().size() > 5) {
-		String path = boost::algorithm::join(request.RequestUrl->GetPath(), "/");
-		HttpUtility::SendJsonError(response, 404, "The requested path is too long to match any config tag requests.");
-		return true;
-	}
+	if (request.RequestUrl->GetPath().size() > 5)
+		return false;
 
 	if (request.RequestMethod == "GET")
 		HandleGet(user, request, response);
@@ -45,7 +42,7 @@ bool ConfigStagesHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 	else if (request.RequestMethod == "DELETE")
 		HandleDelete(user, request, response);
 	else
-		HttpUtility::SendJsonError(response, 400, "Invalid request type. Must be GET, POST or DELETE.");
+		return false;
 
 	return true;
 }
@@ -66,10 +63,10 @@ void ConfigStagesHandler::HandleGet(const ApiUser::Ptr& user, HttpRequest& reque
 	String stageName = HttpUtility::GetLastParameter(params, "stage");
 
 	if (!ConfigPackageUtility::ValidateName(packageName))
-		return HttpUtility::SendJsonError(response, 404, "Package is not valid or does not exist.");
+		return HttpUtility::SendJsonError(response, 400, "Invalid package name.");
 
 	if (!ConfigPackageUtility::ValidateName(stageName))
-		return HttpUtility::SendJsonError(response, 404, "Stage is not valid or does not exist.");
+		return HttpUtility::SendJsonError(response, 400, "Invalid stage name.");
 
 	Array::Ptr results = new Array();
 
@@ -104,7 +101,7 @@ void ConfigStagesHandler::HandlePost(const ApiUser::Ptr& user, HttpRequest& requ
 	String packageName = HttpUtility::GetLastParameter(params, "package");
 
 	if (!ConfigPackageUtility::ValidateName(packageName))
-		return HttpUtility::SendJsonError(response, 404, "Package is not valid or does not exist.");
+		return HttpUtility::SendJsonError(response, 400, "Invalid package name.");
 
 	Dictionary::Ptr files = params->Get("files");
 
@@ -155,10 +152,10 @@ void ConfigStagesHandler::HandleDelete(const ApiUser::Ptr& user, HttpRequest& re
 	String stageName = HttpUtility::GetLastParameter(params, "stage");
 
 	if (!ConfigPackageUtility::ValidateName(packageName))
-		return HttpUtility::SendJsonError(response, 404, "Package is not valid or does not exist.");
+		return HttpUtility::SendJsonError(response, 400, "Invalid package name.");
 
 	if (!ConfigPackageUtility::ValidateName(stageName))
-		return HttpUtility::SendJsonError(response, 404, "Stage is not valid or does not exist.");
+		return HttpUtility::SendJsonError(response, 400, "Invalid stage name.");
 
 	try {
 		ConfigPackageUtility::DeleteStage(packageName, stageName);
@@ -171,7 +168,7 @@ void ConfigStagesHandler::HandleDelete(const ApiUser::Ptr& user, HttpRequest& re
 	Dictionary::Ptr result1 = new Dictionary();
 
 	result1->Set("code", 200);
-	result1->Set("status", "Stage deleted");
+	result1->Set("status", "Stage deleted.");
 
 	Array::Ptr results = new Array();
 	results->Add(result1);

@@ -71,15 +71,11 @@ public:
 
 bool StatusHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
 {
-	Dictionary::Ptr result = new Dictionary();
+	if (request.RequestUrl->GetPath().size() > 3)
+		return false;
 
-	if (request.RequestMethod != "GET") {
-		response.SetStatus(400, "Bad request");
-		result->Set("info", "Request must be type GET");
-		HttpUtility::SendJsonBody(response, result);
-		return true;
-	}
-
+	if (request.RequestMethod != "GET")
+		return false;
 
 	QueryDescription qd;
 	qd.Types.insert("Status");
@@ -97,6 +93,7 @@ bool StatusHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request
 
 	Array::Ptr results = Array::FromVector(objs);
 
+	Dictionary::Ptr result = new Dictionary();
 	result->Set("results", results);
 
 	response.SetStatus(200, "OK");

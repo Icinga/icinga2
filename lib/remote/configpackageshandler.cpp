@@ -30,11 +30,8 @@ REGISTER_URLHANDLER("/v1/config/packages", ConfigPackagesHandler);
 
 bool ConfigPackagesHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
 {
-	if (request.RequestUrl->GetPath().size() > 4) {
-		String path = boost::algorithm::join(request.RequestUrl->GetPath(), "/");
-		HttpUtility::SendJsonError(response, 404, "The requested path is too long to match any config package requests");
-		return true;
-	}
+	if (request.RequestUrl->GetPath().size() > 4)
+		return false;
 
 	if (request.RequestMethod == "GET")
 		HandleGet(user, request, response);
@@ -43,7 +40,7 @@ bool ConfigPackagesHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest&
 	else if (request.RequestMethod == "DELETE")
 		HandleDelete(user, request, response);
 	else
-		HttpUtility::SendJsonError(response, 400, "Invalid request type. Must be GET, POST or DELETE.");
+		return false;
 
 	return true;
 }
@@ -83,7 +80,7 @@ void ConfigPackagesHandler::HandlePost(const ApiUser::Ptr& user, HttpRequest& re
 	String packageName = HttpUtility::GetLastParameter(params, "package");
 
 	if (!ConfigPackageUtility::ValidateName(packageName)) {
-		HttpUtility::SendJsonError(response, 404, "Package is not valid or does not exist.");
+		HttpUtility::SendJsonError(response, 400, "Invalid package name.");
 		return;
 	}
 
@@ -121,7 +118,7 @@ void ConfigPackagesHandler::HandleDelete(const ApiUser::Ptr& user, HttpRequest& 
 	String packageName = HttpUtility::GetLastParameter(params, "package");
 
 	if (!ConfigPackageUtility::ValidateName(packageName)) {
-		HttpUtility::SendJsonError(response, 404, "Package is not valid or does not exist.");
+		HttpUtility::SendJsonError(response, 400, "Invalid package name.");
 		return;
 	}
 

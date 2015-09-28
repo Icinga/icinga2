@@ -34,21 +34,16 @@ REGISTER_URLHANDLER("/v1/objects", DeleteObjectHandler);
 
 bool DeleteObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
 {
-	if (request.RequestMethod != "DELETE") {
-		/* there might be other request methods pending */
+	if (request.RequestUrl->GetPath().size() < 3 || request.RequestUrl->GetPath().size() > 4)
 		return false;
-	}
 
-	if (request.RequestUrl->GetPath().size() < 3) {
-		String path = boost::algorithm::join(request.RequestUrl->GetPath(), "/");
-		HttpUtility::SendJsonError(response, 404, "The requested path is too long to match any config tag requests.");
-		return true;
-	}
+	if (request.RequestMethod != "DELETE")
+		return false;
 
 	Type::Ptr type = FilterUtility::TypeFromPluralName(request.RequestUrl->GetPath()[2]);
 
 	if (!type) {
-		HttpUtility::SendJsonError(response, 400, "Erroneous type was supplied.");
+		HttpUtility::SendJsonError(response, 400, "Invalid type specified.");
 		return true;
 	}
 

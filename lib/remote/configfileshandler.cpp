@@ -31,16 +31,9 @@ REGISTER_URLHANDLER("/v1/config/files", ConfigFilesHandler);
 
 bool ConfigFilesHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
 {
-	if (request.RequestMethod == "GET")
-		HandleGet(user, request, response);
-	else
-		HttpUtility::SendJsonError(response, 400, "Invalid request type. Must be GET.");
+	if (request.RequestMethod != "GET")
+		return false;
 
-	return true;
-}
-
-void ConfigFilesHandler::HandleGet(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
-{
 	Dictionary::Ptr params = HttpUtility::FetchRequestParameters(request);
 
 	const std::vector<String>& urlPath = request.RequestUrl->GetPath();
@@ -61,21 +54,29 @@ void ConfigFilesHandler::HandleGet(const ApiUser::Ptr& user, HttpRequest& reques
 	String packageName = HttpUtility::GetLastParameter(params, "package");
 	String stageName = HttpUtility::GetLastParameter(params, "stage");
 
-	if (!ConfigPackageUtility::ValidateName(packageName))
-		return HttpUtility::SendJsonError(response, 404, "Package is not valid or does not exist.");
+	if (!ConfigPackageUtility::ValidateName(packageName)) {
+		HttpUtility::SendJsonError(response, 400, "Invalid package name.");
+		return true;
+	}
 
-	if (!ConfigPackageUtility::ValidateName(stageName))
-		return HttpUtility::SendJsonError(response, 404, "Stage is not valid or does not exist.");
+	if (!ConfigPackageUtility::ValidateName(stageName)) {
+		HttpUtility::SendJsonError(response, 400, "Invalid stage name.");
+		return true;
+	}
 
 	String relativePath = HttpUtility::GetLastParameter(params, "path");
 
-	if (ConfigPackageUtility::ContainsDotDot(relativePath))
-		return HttpUtility::SendJsonError(response, 403, "Path contains '..' (not allowed).");
+	if (ConfigPackageUtility::ContainsDotDot(relativePath)) {
+		HttpUtility::SendJsonError(response, 400, "Path contains '..' (not allowed).");
+		return true;
+	}
 
 	String path = ConfigPackageUtility::GetPackageDir() + "/" + packageName + "/" + stageName + "/" + relativePath;
 
-	if (!Utility::PathExists(path))
-		return HttpUtility::SendJsonError(response, 404, "Path not found.");
+	if (!Utility::PathExists(path)) {
+		HttpUtility::SendJsonError(response, 404, "Path not found.");
+		return true;
+	}
 
 	try {
 		std::ifstream fp(path.CStr(), std::ifstream::in | std::ifstream::binary);
@@ -86,9 +87,9 @@ void ConfigFilesHandler::HandleGet(const ApiUser::Ptr& user, HttpRequest& reques
 		response.AddHeader("Content-Type", "application/octet-stream");
 		response.WriteBody(content.CStr(), content.GetLength());
 	} catch (const std::exception& ex) {
-		return HttpUtility::SendJsonError(response, 500, "Could not read file.",
+		HttpUtility::SendJsonError(response, 500, "Could not read file.",
 		    request.GetVerboseErrors() ? DiagnosticInformation(ex) : "");
 	}
+
+	return true;
 }
-
-

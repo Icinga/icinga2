@@ -31,20 +31,16 @@ REGISTER_URLHANDLER("/v1/objects", CreateObjectHandler);
 
 bool CreateObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
 {
-	if (request.RequestMethod != "PUT") {
-		/* there might be other request methods pending */
+	if (request.RequestUrl->GetPath().size() != 4)
 		return false;
-	}
 
-	if (request.RequestUrl->GetPath().size() < 4) {
-		HttpUtility::SendJsonError(response, 400, "Object name is missing.");
-		return true;
-	}
+	if (request.RequestMethod != "PUT")
+		return false;
 
 	Type::Ptr type = FilterUtility::TypeFromPluralName(request.RequestUrl->GetPath()[2]);
 
 	if (!type) {
-		HttpUtility::SendJsonError(response, 403, "Erroneous type was supplied.");
+		HttpUtility::SendJsonError(response, 400, "Invalid type specified.");
 		return true;
 	}
 

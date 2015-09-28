@@ -32,16 +32,18 @@ REGISTER_URLHANDLER("/v1/objects", ObjectQueryHandler);
 
 bool ObjectQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
 {
-	if (request.RequestMethod != "GET")
+	if (request.RequestUrl->GetPath().size() < 3 || request.RequestUrl->GetPath().size() > 4)
 		return false;
 
-	if (request.RequestUrl->GetPath().size() < 3)
+	if (request.RequestMethod != "GET")
 		return false;
 
 	Type::Ptr type = FilterUtility::TypeFromPluralName(request.RequestUrl->GetPath()[2]);
 
-	if (!type)
-		return false;
+	if (!type) {
+		HttpUtility::SendJsonError(response, 400, "Invalid type specified.");
+		return true;
+	}
 
 	QueryDescription qd;
 	qd.Types.insert(type->GetName());

@@ -103,8 +103,8 @@ void HttpHandler::ProcessRequest(const ApiUser::Ptr& user, HttpRequest& request,
 	}
 	if (!processed) {
 		String path = boost::algorithm::join(request.RequestUrl->GetPath(), "/");
-		HttpUtility::SendJsonError(response, 404, "The requested API '" +  path +
-				"' could not be found. Please check it for common errors like spelling and consult the docs.");
+		HttpUtility::SendJsonError(response, 404, "The requested path '" + path +
+				"' could not be found.");
 		return;
 	}
 }

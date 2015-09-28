@@ -33,22 +33,18 @@ REGISTER_URLHANDLER("/v1/actions", ActionsHandler);
 
 bool ActionsHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
 {
-	if (request.RequestMethod != "POST") {
-		HttpUtility::SendJsonError(response, 400, "Invalid request type. Must be POST.");
-		return true;
-	}
+	if (request.RequestUrl->GetPath().size() != 3)
+		return false;
 
-	if (request.RequestUrl->GetPath().size() < 3) {
-		HttpUtility::SendJsonError(response, 400, "Action is missing.");
-		return true;
-	}
+	if (request.RequestMethod != "POST")
+		return false;
 
 	String actionName = request.RequestUrl->GetPath()[2];
 
 	ApiAction::Ptr action = ApiAction::GetByName(actionName);
 
 	if (!action) {
-		HttpUtility::SendJsonError(response, 404, "Action '" + actionName + "' could not be found.");
+		HttpUtility::SendJsonError(response, 404, "Action '" + actionName + "' does not exist.");
 		return true;
 	}
 

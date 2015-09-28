@@ -77,14 +77,11 @@ public:
 
 bool TypeQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
 {
-	Dictionary::Ptr result = new Dictionary();
+	if (request.RequestUrl->GetPath().size() > 3)
+		return false;
 
-	if (request.RequestMethod != "GET") {
-		response.SetStatus(400, "Bad request");
-		result->Set("info", "Request must be type GET");
-		HttpUtility::SendJsonBody(response, result);
-		return true;
-	}
+	if (request.RequestMethod != "GET")
+		return false;
 
 	QueryDescription qd;
 	qd.Types.insert("Type");
@@ -157,6 +154,7 @@ bool TypeQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& requ
 		}
 	}
 
+	Dictionary::Ptr result = new Dictionary();
 	result->Set("results", results);
 
 	response.SetStatus(200, "OK");

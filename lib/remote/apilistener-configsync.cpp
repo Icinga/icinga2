@@ -44,10 +44,8 @@ void ApiListener::ConfigUpdateObjectHandler(const ConfigObject::Ptr& object, con
 {
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 
-	if (!listener) {
-		Log(LogCritical, "ApiListener", "No instance available.");
+	if (!listener)
 		return;
-	}
 
 	if (object->IsActive()) {
 		/* Sync object config */
@@ -66,10 +64,8 @@ Value ApiListener::ConfigUpdateObjectAPIHandler(const MessageOrigin::Ptr& origin
 	/* check permissions */
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 
-	if (!listener) {
-		Log(LogCritical, "ApiListener", "No instance available.");
+	if (!listener)
 		return Empty;
-	}
 
 	if (!listener->GetAcceptConfig()) {
 		Log(LogWarning, "ApiListener")
@@ -174,10 +170,8 @@ Value ApiListener::ConfigDeleteObjectAPIHandler(const MessageOrigin::Ptr& origin
 	/* check permissions */
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 
-	if (!listener) {
-		Log(LogCritical, "ApiListener", "No instance available.");
+	if (!listener)
 		return Empty;
-	}
 
 	if (!listener->GetAcceptConfig()) {
 		Log(LogWarning, "ApiListener")
