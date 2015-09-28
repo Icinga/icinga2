@@ -1118,7 +1118,8 @@ void ClassCompiler::CodeGenValidator(const std::string& name, const std::string&
 					subvalidator_prefix = name;
 
 				m_Impl << (type_check ? "\t" : "") << (indent ? "\t" : "") << "\t\t" << "location.push_back(akey);" << std::endl
-				       << (type_check ? "\t" : "") << (indent ? "\t" : "") << "\t\t" << "TIValidate" << subvalidator_prefix << "_" << i << "(object, akey, avalue, location, utils);" << std::endl;
+				       << (type_check ? "\t" : "") << (indent ? "\t" : "") << "\t\t" << "TIValidate" << subvalidator_prefix << "_" << i << "(object, akey, avalue, location, utils);" << std::endl
+				       << (type_check ? "\t" : "") << (indent ? "\t" : "") << "\t\t" << "location.pop_back();" << std::endl;
 
 				if (rule.Type == "Array")
 					m_Impl << (type_check ? "\t" : "") << "\t\t\t" << "anum++;" << std::endl;
@@ -1150,8 +1151,6 @@ void ClassCompiler::CodeGenValidator(const std::string& name, const std::string&
 						       << (type_check ? "\t" : "") << "\t\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_cast<ConfigObject *>(this), location, \"Required index '" << index << "' is not set.\"));" << std::endl;
 					}
 				}
-
-				m_Impl << (type_check ? "\t" : "") << (indent ? "\t" : "") << "\t\t" << "location.pop_back();" << std::endl;
 			}
 
 			m_Impl << (type_check ? "\t" : "") << "\t\t" << "return;" << std::endl;
@@ -1223,6 +1222,7 @@ void ClassCompiler::HandleValidator(const Validator& validator, const ClassDebug
 		       << "\t" << "std::vector<String> location;" << std::endl
 		       << "\t" << "location.push_back(\"" << it->second.Name << "\");" << std::endl
 		       << "\t" << "TIValidate" << it->first.first << it->first.second << "(this, value, location, utils);" << std::endl
+		       << "\t" << "location.pop_back();" << std::endl
 		       << "}" << std::endl << std::endl;
 	}
 
