@@ -202,6 +202,8 @@ Available configuration files which are installed by default:
 * [downtimes.conf](4-configuring-icinga-2.md#downtimes-conf)
 * [timeperiods.conf](4-configuring-icinga-2.md#timeperiods-conf)
 * [satellite.conf](4-configuring-icinga-2.md#satellite-conf)
+* [api-users.conf](4-configuring-icinga-2.md#api-users-conf)
+* [app.conf](4-configuring-icinga-2.md#app-conf)
 
 #### <a id="hosts-conf"></a> hosts.conf
 
@@ -638,8 +640,19 @@ Includes default templates and dependencies for
 [monitoring remote clients](11-icinga2-client.md#icinga2-client)
 using service discovery and
 [config generation](11-icinga2-client.md#icinga2-remote-monitoring-master-discovery)
-on the master. Can be ignored/removed on setups not using this features.
+on the master. Can be ignored/removed on setups not using this feature.
 
 
 Further details on the monitoring configuration can be found in the
 [monitoring basics](3-monitoring-basics.md#monitoring-basics) chapter.
+
+#### <a id="api-users-conf"></a> api-users.conf
+
+Provides the default [ApiUser](6-object-types.md#objecttype-apiuser) object
+named "root" for the [API authentication](9-icinga2-api.md#icinga2-api-authentication).
+
+#### <a id="app-conf"></a> app.conf
+
+Provides the default [IcingaApplication](6-object-types.md#objecttype-icingaapplication)
+object named "app" for additional settings such as disabling notifications
+globally, etc.
