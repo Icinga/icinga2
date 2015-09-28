@@ -53,7 +53,7 @@ public:
 
 		result->Set("name", name);
 		result->Set("status", status);
-		result->Set("perfdata", perfdata);
+		result->Set("perfdata", Serialize(perfdata, FAState));
 
 		return result;
 	}
