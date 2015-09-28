@@ -27,7 +27,7 @@
 
 using namespace icinga;
 
-REGISTER_URLHANDLER("/v1", CreateObjectHandler);
+REGISTER_URLHANDLER("/v1/objects", CreateObjectHandler);
 
 bool CreateObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
 {
@@ -36,19 +36,19 @@ bool CreateObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 		return false;
 	}
 
-	if (request.RequestUrl->GetPath().size() < 3) {
+	if (request.RequestUrl->GetPath().size() < 4) {
 		HttpUtility::SendJsonError(response, 400, "Object name is missing.");
 		return true;
 	}
 
-	Type::Ptr type = FilterUtility::TypeFromPluralName(request.RequestUrl->GetPath()[1]);
+	Type::Ptr type = FilterUtility::TypeFromPluralName(request.RequestUrl->GetPath()[2]);
 
 	if (!type) {
 		HttpUtility::SendJsonError(response, 403, "Erroneous type was supplied.");
 		return true;
 	}
 
-	String name = request.RequestUrl->GetPath()[2];
+	String name = request.RequestUrl->GetPath()[3];
 	Dictionary::Ptr params = HttpUtility::FetchRequestParameters(request);
 	Array::Ptr templates = params->Get("templates");
 	Dictionary::Ptr attrs = params->Get("attrs");

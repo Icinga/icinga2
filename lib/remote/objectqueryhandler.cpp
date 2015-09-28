@@ -28,17 +28,17 @@
 
 using namespace icinga;
 
-REGISTER_URLHANDLER("/v1", ObjectQueryHandler);
+REGISTER_URLHANDLER("/v1/objects", ObjectQueryHandler);
 
 bool ObjectQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
 {
 	if (request.RequestMethod != "GET")
 		return false;
 
-	if (request.RequestUrl->GetPath().size() < 2)
+	if (request.RequestUrl->GetPath().size() < 3)
 		return false;
 
-	Type::Ptr type = FilterUtility::TypeFromPluralName(request.RequestUrl->GetPath()[1]);
+	Type::Ptr type = FilterUtility::TypeFromPluralName(request.RequestUrl->GetPath()[2]);
 
 	if (!type)
 		return false;
@@ -60,10 +60,10 @@ bool ObjectQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 
 	params->Set("type", type->GetName());
 
-	if (request.RequestUrl->GetPath().size() >= 3) {
+	if (request.RequestUrl->GetPath().size() >= 4) {
 		String attr = type->GetName();
 		boost::algorithm::to_lower(attr);
-		params->Set(attr, request.RequestUrl->GetPath()[2]);
+		params->Set(attr, request.RequestUrl->GetPath()[3]);
 	}
 
 	std::vector<Value> objs = FilterUtility::GetFilterTargets(qd, params);

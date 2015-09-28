@@ -28,7 +28,7 @@
 
 using namespace icinga;
 
-REGISTER_URLHANDLER("/v1", ModifyObjectHandler);
+REGISTER_URLHANDLER("/v1/objects", ModifyObjectHandler);
 
 bool ModifyObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
 {
@@ -37,7 +37,7 @@ bool ModifyObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 		return false;
 	}
 
-	if (request.RequestUrl->GetPath().size() < 2)
+	if (request.RequestUrl->GetPath().size() < 3)
 		return false;
 
 	Type::Ptr type = FilterUtility::TypeFromPluralName(request.RequestUrl->GetPath()[1]);
@@ -47,15 +47,16 @@ bool ModifyObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 
 	QueryDescription qd;
 	qd.Types.insert(type->GetName());
+	qd.Permission = "objects/modify/" + type->GetName();
 
 	Dictionary::Ptr params = HttpUtility::FetchRequestParameters(request);
 
 	params->Set("type", type->GetName());
 
-	if (request.RequestUrl->GetPath().size() >= 3) {
+	if (request.RequestUrl->GetPath().size() >= 4) {
 		String attr = type->GetName();
 		boost::algorithm::to_lower(attr);
-		params->Set(attr, request.RequestUrl->GetPath()[2]);
+		params->Set(attr, request.RequestUrl->GetPath()[3]);
 	}
 
 	std::vector<Value> objs = FilterUtility::GetFilterTargets(qd, params);
