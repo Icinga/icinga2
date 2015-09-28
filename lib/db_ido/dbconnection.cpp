@@ -378,8 +378,8 @@ void DbConnection::PrepareDatabase(void)
 	//ClearConfigTable("contactgroups");
 	//ClearConfigTable("contacts");
 	//ClearConfigTable("contactstatus");
-	ClearConfigTable("customvariables");
-	ClearConfigTable("customvariablestatus");
+	//ClearConfigTable("customvariables");
+	//ClearConfigTable("customvariablestatus");
 	//ClearConfigTable("endpoints");
 	//ClearConfigTable("endpointstatus");
 	ClearConfigTable("host_contactgroups");
