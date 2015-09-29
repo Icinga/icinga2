@@ -56,6 +56,7 @@ public:
 
 private:
 	void DumpProgramState(void);
+	void DumpModifiedAttributes(void);
 
 	virtual void OnShutdown(void) override;
 };

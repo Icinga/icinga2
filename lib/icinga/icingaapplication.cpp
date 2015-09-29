@@ -169,9 +169,17 @@ static void PersistModAttrHelper(std::ofstream& fp, ConfigObject::Ptr& previousO
 void IcingaApplication::DumpProgramState(void)
 {
 	ConfigObject::DumpObjects(GetStatePath());
+	DumpModifiedAttributes();
+}
 
+void IcingaApplication::DumpModifiedAttributes(void)
+{
 	String path = GetModAttrPath();
-	std::ofstream fp(path.CStr(), std::ofstream::out | std::ostream::trunc);
+	String pathtmp = path + ".tmp";
+
+	std::ofstream fp;
+	fp.open(pathtmp.CStr(), std::ofstream::out | std::ofstream::trunc);
+
 	ConfigObject::Ptr previousObject;
 	ConfigObject::DumpModifiedAttributes(boost::bind(&PersistModAttrHelper, boost::ref(fp), boost::ref(previousObject), _1, _2, _3));
 
@@ -179,6 +187,19 @@ void IcingaApplication::DumpProgramState(void)
 		ConfigWriter::EmitRaw(fp, "\tobj.version = ");
 		ConfigWriter::EmitValue(fp, 0, previousObject->GetVersion());
 		ConfigWriter::EmitRaw(fp, "\n}\n");
+	}
+
+	fp.close();
+
+#ifdef _WIN32
+	_unlink(path.CStr());
+#endif /* _WIN32 */
+
+	if (rename(pathtmp.CStr(), path.CStr()) < 0) {
+		BOOST_THROW_EXCEPTION(posix_error()
+		    << boost::errinfo_api_function("rename")
+		    << boost::errinfo_errno(errno)
+		    << boost::errinfo_file_name(pathtmp));
 	}
 }
 
