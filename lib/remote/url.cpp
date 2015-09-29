@@ -313,7 +313,7 @@ bool Url::ParseUserinfo(const String& userinfo)
 
 bool Url::ParsePort(const String& port)
 {
-	m_Port = Utility::UnescapeString(m_Port);
+	m_Port = Utility::UnescapeString(port);
 	if (!ValidateToken(m_Port, ACPORT))
 		return false;
 	return true;
