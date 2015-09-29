@@ -54,6 +54,12 @@ void ApiClient::TypesHttpCompletionCallback(HttpRequest& request, HttpResponse& 
 	while ((count = response.ReadBody(buffer, sizeof(buffer))) > 0)
 		body += String(buffer, buffer + count);
 
+	if (response.StatusCode < 200 || response.StatusCode > 299) {
+		Log(LogCritical, "ApiClient")
+		    <<  "Failed HTTP request; Code: " << response.StatusCode << "; Body: " << body;
+		return;
+	}
+
 	std::vector<ApiType::Ptr> types;
 
 	try {
@@ -83,7 +89,7 @@ void ApiClient::TypesHttpCompletionCallback(HttpRequest& request, HttpResponse& 
 void ApiClient::GetObjects(const String& pluralType, const ObjectsCompletionCallback& callback,
     const std::vector<String>& names, const std::vector<String>& attrs) const
 {
-	String url = "https://" + m_Connection->GetHost() + ":" + m_Connection->GetPort() + "/v1/" + pluralType;
+	String url = "https://" + m_Connection->GetHost() + ":" + m_Connection->GetPort() + "/v1/objects/" + pluralType;
 	String qp;
 
 	BOOST_FOREACH(const String& name, names) {
@@ -119,6 +125,12 @@ void ApiClient::ObjectsHttpCompletionCallback(HttpRequest& request,
 	while ((count = response.ReadBody(buffer, sizeof(buffer))) > 0)
 		body += String(buffer, buffer + count);
 
+	if (response.StatusCode < 200 || response.StatusCode > 299) {
+		Log(LogCritical, "ApiClient")
+		    <<  "Failed HTTP request; Code: " << response.StatusCode << "; Body: " << body;
+		return;
+	}
+
 	std::vector<ApiObject::Ptr> objects;
 
 	try {
@@ -126,35 +138,37 @@ void ApiClient::ObjectsHttpCompletionCallback(HttpRequest& request,
 
 		Array::Ptr results = result->Get("results");
 
-		ObjectLock olock(results);
-		BOOST_FOREACH(const Dictionary::Ptr objectInfo, results)
-		{
-			ApiObject::Ptr object = new ApiObject();
-
-			Dictionary::Ptr attrs = objectInfo->Get("attrs");
-
+		if (results) {
+			ObjectLock olock(results);
+			BOOST_FOREACH(const Dictionary::Ptr objectInfo, results)
 			{
-				ObjectLock olock(attrs);
-				BOOST_FOREACH(const Dictionary::Pair& kv, attrs)
+				ApiObject::Ptr object = new ApiObject();
+
+				Dictionary::Ptr attrs = objectInfo->Get("attrs");
+
 				{
-					object->Attrs[kv.first] = kv.second;
+					ObjectLock olock(attrs);
+					BOOST_FOREACH(const Dictionary::Pair& kv, attrs)
+					{
+						object->Attrs[kv.first] = kv.second;
+					}
 				}
-			}
 
-			Array::Ptr used_by = objectInfo->Get("used_by");
+				Array::Ptr used_by = objectInfo->Get("used_by");
 
-			{
-				ObjectLock olock(used_by);
-				BOOST_FOREACH(const Dictionary::Ptr& refInfo, used_by)
 				{
-					ApiObjectReference ref;
-					ref.Name = refInfo->Get("name");
-					ref.Type = refInfo->Get("type");
-					object->UsedBy.push_back(ref);
+					ObjectLock olock(used_by);
+					BOOST_FOREACH(const Dictionary::Ptr& refInfo, used_by)
+					{
+						ApiObjectReference ref;
+						ref.Name = refInfo->Get("name");
+						ref.Type = refInfo->Get("type");
+						object->UsedBy.push_back(ref);
+					}
 				}
-			}
 
-			objects.push_back(object);
+				objects.push_back(object);
+			}
 		}
 	} catch (const std::exception& ex) {
 		Log(LogCritical, "ApiClient")

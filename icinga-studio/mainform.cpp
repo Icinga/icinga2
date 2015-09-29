@@ -33,40 +33,15 @@ MainForm::MainForm(wxWindow *parent, const Url::Ptr& url)
 	SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
 #endif /* _WIN32 */
 
-	String host, port, user, pass;
+	String port = url->GetPort();
 
-	std::string authority = url->GetAuthority();
-
-	std::vector<std::string> tokens;
-	boost::algorithm::split(tokens, authority, boost::is_any_of("@"));
-
-	if (tokens.size() > 1) {
-		std::vector<std::string> userinfo;
-		boost::algorithm::split(userinfo, tokens[0], boost::is_any_of(":"));
-
-		user = userinfo[0];
-		pass = userinfo[1];
-	}
-
-	std::vector<std::string> hostport;
-	boost::algorithm::split(hostport, tokens.size() > 1 ? tokens[1] : tokens[0], boost::is_any_of(":"));
-
-	host = hostport[0];
-
-	if (hostport.size() > 1)
-		port = hostport[1];
-	else
+	if (port.IsEmpty())
 		port = "5665";
 
-	m_ApiClient = new ApiClient(host, port, user, pass);
+	m_ApiClient = new ApiClient(url->GetHost(), port, url->GetUsername(), url->GetPassword());
 	m_ApiClient->GetTypes(boost::bind(&MainForm::TypesCompletionHandler, this, _1, true));
 
-	std::string title = host;
-	
-	if (port != "5665")
-		title += +":" + port;
-	
-	title += " - Icinga Studio";
+	std::string title = url->Format() + " - Icinga Studio";
 	SetTitle(title);
 
 	m_ObjectsList->InsertColumn(0, "Name", 0, 300);

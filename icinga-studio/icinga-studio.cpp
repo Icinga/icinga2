@@ -49,7 +49,7 @@ public:
 				return false;
 
 			pUrl = f.GetUrl();
-			url = pUrl->Format();
+			url = pUrl->Format(true);
 			wUrl = url;
 			config.Write("url", wUrl);
 		} else {

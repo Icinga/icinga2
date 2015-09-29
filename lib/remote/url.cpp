@@ -289,19 +289,18 @@ bool Url::ParseAuthority(const String& authority)
 			return false;
 	}
 
-	m_Host = auth.SubStr(0, pos-1);
+	m_Host = auth.SubStr(0, pos);
 	return ValidateToken(m_Host, ACHOST);
 }
 
 bool Url::ParseUserinfo(const String& userinfo)
 {
 	size_t pos = userinfo.Find(":");
-	m_Username = userinfo.SubStr(0, pos-1);
+	m_Username = userinfo.SubStr(0, pos);
 	if (!ValidateToken(m_Username, ACUSERINFO))
 		return false;
 	m_Username = Utility::UnescapeString(m_Username);
 	if (pos != String::NPos && pos != userinfo.GetLength() - 1) {
-		//Password
 		m_Password = userinfo.SubStr(pos+1);
 		if (!ValidateToken(m_Username, ACUSERINFO))
 			return false;
@@ -358,7 +357,7 @@ bool Url::ParseQuery(const String& query)
 		String key = token.SubStr(0, pHelper);
 		String value = Empty;
 
-		if (pHelper != token.GetLength()-1)
+		if (pHelper != token.GetLength() - 1)
 			value = token.SubStr(pHelper+1);
 
 		if (!ValidateToken(value, ACQUERY))
