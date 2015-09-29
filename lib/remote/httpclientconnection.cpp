@@ -49,6 +49,9 @@ void HttpClientConnection::Reconnect(void)
 	m_Context.~StreamReadContext();
 	new (&m_Context) StreamReadContext();
 
+	m_Requests.clear();
+	m_CurrentResponse.reset();
+
 	TcpSocket::Ptr socket = new TcpSocket();
 	socket->Connect(m_Host, m_Port);
 
@@ -59,9 +62,9 @@ void HttpClientConnection::Reconnect(void)
 		/* m_Stream = new NetworkStream(socket);
 		   -- does not currently work because the NetworkStream class doesn't support async I/O */
 
-	m_Stream->RegisterDataHandler(boost::bind(&HttpClientConnection::DataAvailableHandler, this));
+	m_Stream->RegisterDataHandler(boost::bind(&HttpClientConnection::DataAvailableHandler, this, _1));
 	if (m_Stream->IsDataAvailable())
-		DataAvailableHandler();
+		DataAvailableHandler(m_Stream);
 }
 
 Stream::Ptr HttpClientConnection::GetStream(void) const
@@ -95,8 +98,10 @@ bool HttpClientConnection::ProcessMessage(void)
 {
 	bool res;
 
-	if (m_Requests.empty())
+	if (m_Requests.empty()) {
+		m_Stream->Close();
 		return false;
+	}
 
 	const std::pair<boost::shared_ptr<HttpRequest>, HttpCompletionCallback>& currentRequest = *m_Requests.begin();
 	HttpRequest& request = *currentRequest.first.get();
@@ -129,18 +134,25 @@ bool HttpClientConnection::ProcessMessage(void)
 	return res;
 }
 
-void HttpClientConnection::DataAvailableHandler(void)
+void HttpClientConnection::DataAvailableHandler(const Stream::Ptr& stream)
 {
 	boost::mutex::scoped_lock lock(m_DataHandlerMutex);
+
+	ASSERT(stream == m_Stream);
 
 	try {
 		while (ProcessMessage())
 			; /* empty loop body */
 	} catch (const std::exception& ex) {
 		Log(LogWarning, "HttpClientConnection")
-		    << "Error while reading Http request: " << DiagnosticInformation(ex);
+		    << "Error while reading Http response: " << DiagnosticInformation(ex);
 
 		Disconnect();
+	}
+
+	if (m_Context.Eof) {
+		Log(LogWarning, "HttpClientConnection", "Encountered unexpected EOF while reading Http response.");
+		m_Stream->Close();
 	}
 }
 

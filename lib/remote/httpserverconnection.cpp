@@ -157,6 +157,8 @@ void HttpServerConnection::ProcessMessageAsync(HttpRequest& request)
 		try {
 			HttpHandler::ProcessRequest(user, request, response);
 		} catch (const std::exception& ex) {
+			Log(LogCritical, "HttpServerConnection")
+			    << "Unhandled exception while processing Http request: " << DiagnosticInformation(ex);
 			response.SetStatus(503, "Unhandled exception");
 			response.AddHeader("Content-Type", "text/plain");
 			String errorInfo = DiagnosticInformation(ex);

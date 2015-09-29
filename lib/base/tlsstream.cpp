@@ -184,10 +184,12 @@ void TlsStream::OnEvent(int revents)
 	if (rc > 0) {
 		m_CurrentAction = TlsActionNone;
 
-		if (m_SendQ->GetAvailableBytes() > 0)
-			ChangeEvents(POLLIN|POLLOUT);
-		else
-			ChangeEvents(POLLIN);
+		if (!m_Eof) {
+			if (m_SendQ->GetAvailableBytes() > 0)
+				ChangeEvents(POLLIN|POLLOUT);
+			else
+				ChangeEvents(POLLIN);
+		}
 
 		lock.unlock();
 

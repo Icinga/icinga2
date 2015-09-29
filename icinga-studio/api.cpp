@@ -54,33 +54,32 @@ void ApiClient::TypesHttpCompletionCallback(HttpRequest& request, HttpResponse& 
 	while ((count = response.ReadBody(buffer, sizeof(buffer))) > 0)
 		body += String(buffer, buffer + count);
 
+	std::vector<ApiType::Ptr> types;
+
 	if (response.StatusCode < 200 || response.StatusCode > 299) {
 		Log(LogCritical, "ApiClient")
 		    <<  "Failed HTTP request; Code: " << response.StatusCode << "; Body: " << body;
-		return;
-	}
+	} else {
+		try {
+			result = JsonDecode(body);
 
-	std::vector<ApiType::Ptr> types;
+			Array::Ptr results = result->Get("results");
 
-	try {
-		result = JsonDecode(body);
-
-		Array::Ptr results = result->Get("results");
-
-		ObjectLock olock(results);
-		BOOST_FOREACH(const Dictionary::Ptr typeInfo, results)
-		{
-			ApiType::Ptr type = new ApiType();;
-			type->Abstract = typeInfo->Get("abstract");
-			type->BaseName = typeInfo->Get("base");
-			type->Name = typeInfo->Get("name");
-			type->PluralName = typeInfo->Get("plural_name");
-			// TODO: attributes
-			types.push_back(type);
+			ObjectLock olock(results);
+			BOOST_FOREACH(const Dictionary::Ptr typeInfo, results)
+			{
+				ApiType::Ptr type = new ApiType();;
+				type->Abstract = typeInfo->Get("abstract");
+				type->BaseName = typeInfo->Get("base");
+				type->Name = typeInfo->Get("name");
+				type->PluralName = typeInfo->Get("plural_name");
+				// TODO: attributes
+				types.push_back(type);
+			}
+		} catch (const std::exception& ex) {
+			Log(LogCritical, "ApiClient")
+			    << "Error while decoding response: " << DiagnosticInformation(ex);
 		}
-	} catch (const std::exception& ex) {
-		Log(LogCritical, "ApiClient")
-		    << "Error while decoding response: " << DiagnosticInformation(ex);
 	}
 
 	callback(types);
@@ -125,54 +124,54 @@ void ApiClient::ObjectsHttpCompletionCallback(HttpRequest& request,
 	while ((count = response.ReadBody(buffer, sizeof(buffer))) > 0)
 		body += String(buffer, buffer + count);
 
+	std::vector<ApiObject::Ptr> objects;
+
 	if (response.StatusCode < 200 || response.StatusCode > 299) {
 		Log(LogCritical, "ApiClient")
 		    <<  "Failed HTTP request; Code: " << response.StatusCode << "; Body: " << body;
 		return;
-	}
+	} else {
+		try {
+			result = JsonDecode(body);
 
-	std::vector<ApiObject::Ptr> objects;
+			Array::Ptr results = result->Get("results");
 
-	try {
-		result = JsonDecode(body);
-
-		Array::Ptr results = result->Get("results");
-
-		if (results) {
-			ObjectLock olock(results);
-			BOOST_FOREACH(const Dictionary::Ptr objectInfo, results)
-			{
-				ApiObject::Ptr object = new ApiObject();
-
-				Dictionary::Ptr attrs = objectInfo->Get("attrs");
-
+			if (results) {
+				ObjectLock olock(results);
+				BOOST_FOREACH(const Dictionary::Ptr objectInfo, results)
 				{
-					ObjectLock olock(attrs);
-					BOOST_FOREACH(const Dictionary::Pair& kv, attrs)
+					ApiObject::Ptr object = new ApiObject();
+
+					Dictionary::Ptr attrs = objectInfo->Get("attrs");
+
 					{
-						object->Attrs[kv.first] = kv.second;
+						ObjectLock olock(attrs);
+						BOOST_FOREACH(const Dictionary::Pair& kv, attrs)
+						{
+							object->Attrs[kv.first] = kv.second;
+						}
 					}
-				}
 
-				Array::Ptr used_by = objectInfo->Get("used_by");
+					Array::Ptr used_by = objectInfo->Get("used_by");
 
-				{
-					ObjectLock olock(used_by);
-					BOOST_FOREACH(const Dictionary::Ptr& refInfo, used_by)
 					{
-						ApiObjectReference ref;
-						ref.Name = refInfo->Get("name");
-						ref.Type = refInfo->Get("type");
-						object->UsedBy.push_back(ref);
+						ObjectLock olock(used_by);
+						BOOST_FOREACH(const Dictionary::Ptr& refInfo, used_by)
+						{
+							ApiObjectReference ref;
+							ref.Name = refInfo->Get("name");
+							ref.Type = refInfo->Get("type");
+							object->UsedBy.push_back(ref);
+						}
 					}
-				}
 
-				objects.push_back(object);
+					objects.push_back(object);
+				}
 			}
+		} catch (const std::exception& ex) {
+			Log(LogCritical, "ApiClient")
+				<< "Error while decoding response: " << DiagnosticInformation(ex);
 		}
-	} catch (const std::exception& ex) {
-		Log(LogCritical, "ApiClient")
-			<< "Error while decoding response: " << DiagnosticInformation(ex);
 	}
 
 	callback(objects);

@@ -34,9 +34,13 @@ HttpResponse::HttpResponse(const Stream::Ptr& stream, const HttpRequest& request
 
 void HttpResponse::SetStatus(int code, const String& message)
 {
-	ASSERT(m_State == HttpResponseStart);
 	ASSERT(code >= 100 && code <= 599);
 	ASSERT(!message.IsEmpty());
+
+	if (m_State != HttpResponseStart) {
+		Log(LogWarning, "HttpResponse", "Tried to set Http response status after headers had already been sent.");
+		return;
+	}
 
 	String status = "HTTP/";
 
@@ -54,7 +58,11 @@ void HttpResponse::SetStatus(int code, const String& message)
 
 void HttpResponse::AddHeader(const String& key, const String& value)
 {
-	ASSERT(m_State = HttpResponseHeaders);
+	if (m_State != HttpResponseHeaders) {
+		Log(LogWarning, "HttpResponse", "Tried to add header after headers had already been sent.");
+		return;
+	}
+
 	String header = key + ": " + value + "\r\n";
 	m_Stream->Write(header.CStr(), header.GetLength());
 }

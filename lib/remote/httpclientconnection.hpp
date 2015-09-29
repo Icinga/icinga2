@@ -68,7 +68,7 @@ private:
 
 	void Reconnect(void);
 	bool ProcessMessage(void);
-	void DataAvailableHandler(void);
+	void DataAvailableHandler(const Stream::Ptr& stream);
 
 	void ProcessMessageAsync(HttpRequest& request);
 };
