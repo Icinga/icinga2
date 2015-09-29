@@ -692,12 +692,14 @@ void ApiListener::LogGlobHandler(std::vector<int>& files, const String& file)
 {
 	String name = Utility::BaseName(file);
 
+	if (name == "current")
+		return;
+
 	int ts;
 
 	try {
 		ts = Convert::ToLong(name);
-	}
-	catch (const std::exception&) {
+	} catch (const std::exception&) {
 		return;
 	}
 
