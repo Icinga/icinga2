@@ -166,10 +166,12 @@ void SocketEvents::WakeUpThread(bool wait)
 
 			l_SocketIOFDChanged = true;
 
-			(void) send(l_SocketIOEventFDs[1], "T", 1, 0);
+			while (l_SocketIOFDChanged) {
+				(void) send(l_SocketIOEventFDs[1], "T", 1, 0);
 
-			while (l_SocketIOFDChanged)
-				l_SocketIOCV.wait(lock);
+				boost::system_time const timeout = boost::get_system_time() + boost::posix_time::milliseconds(50);
+				l_SocketIOCV.timed_wait(lock, timeout);
+			}
 		}
 	} else {
 		(void) send(l_SocketIOEventFDs[1], "T", 1, 0);

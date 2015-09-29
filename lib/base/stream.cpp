@@ -22,7 +22,7 @@
 
 using namespace icinga;
 
-void Stream::RegisterDataHandler(const boost::function<void(void)>& handler)
+void Stream::RegisterDataHandler(const boost::function<void(const Stream::Ptr&)>& handler)
 {
 	if (SupportsWaiting())
 		OnDataAvailable.connect(handler);
@@ -42,7 +42,7 @@ bool Stream::IsDataAvailable(void) const
 
 void Stream::SignalDataAvailable(void)
 {
-	OnDataAvailable();
+	OnDataAvailable(this);
 
 	{
 		boost::mutex::scoped_lock lock(m_Mutex);

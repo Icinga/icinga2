@@ -114,7 +114,7 @@ public:
 
 	virtual bool IsDataAvailable(void) const;
 
-	void RegisterDataHandler(const boost::function<void(void)>& handler);
+	void RegisterDataHandler(const boost::function<void(const Stream::Ptr&)>& handler);
 
 	StreamReadStatus ReadLine(String *line, StreamReadContext& context, bool may_wait = false);
 
@@ -122,7 +122,7 @@ protected:
 	void SignalDataAvailable(void);
 
 private:
-	boost::signals2::signal<void(void)> OnDataAvailable;
+	boost::signals2::signal<void(const Stream::Ptr&)> OnDataAvailable;
 
 	boost::mutex m_Mutex;
 	boost::condition_variable m_CV;
