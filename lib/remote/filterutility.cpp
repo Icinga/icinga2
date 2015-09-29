@@ -227,8 +227,6 @@ std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, c
 
 		String type = HttpUtility::GetLastParameter(query, "type");
 
-		Log(LogInformation, "FilterUtility", filter);
-
 		if (!provider->IsValidType(type))
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid type specified."));
 
