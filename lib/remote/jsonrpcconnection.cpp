@@ -92,7 +92,8 @@ ConnectionRole JsonRpcConnection::GetRole(void) const
 
 void JsonRpcConnection::SendMessage(const Dictionary::Ptr& message)
 {
-	m_WriteQueue.Enqueue(boost::bind(&JsonRpcConnection::SendMessageSync, JsonRpcConnection::Ptr(this), message), true);
+	if (!m_Stream->IsEof())
+		m_WriteQueue.Enqueue(boost::bind(&JsonRpcConnection::SendMessageSync, JsonRpcConnection::Ptr(this), message), true);
 }
 
 void JsonRpcConnection::SendMessageSync(const Dictionary::Ptr& message)
@@ -108,7 +109,7 @@ void JsonRpcConnection::SendMessageSync(const Dictionary::Ptr& message)
 		Log(LogWarning, "JsonRpcConnection")
 		    << info.str() << "\n" << DiagnosticInformation(ex);
 
-		Disconnect();
+		Utility::QueueAsyncCallback(boost::bind(&JsonRpcConnection::Disconnect, JsonRpcConnection::Ptr(this)));
 	}
 }
 
@@ -117,14 +118,16 @@ void JsonRpcConnection::Disconnect(void)
 	Log(LogWarning, "JsonRpcConnection")
 	    << "API client disconnected for identity '" << m_Identity << "'";
 
+	m_Stream->Close();
+
+	m_WriteQueue.Join();
+
 	if (m_Endpoint)
 		m_Endpoint->RemoveClient(this);
 	else {
 		ApiListener::Ptr listener = ApiListener::GetInstance();
 		listener->RemoveAnonymousClient(this);
 	}
-
-	m_Stream->Close();
 }
 
 bool JsonRpcConnection::ProcessMessage(void)
