@@ -22,7 +22,9 @@
 #include "base/json.hpp"
 #include "base/logger.hpp"
 #include "base/exception.hpp"
+#include "base/convert.hpp"
 #include <boost/foreach.hpp>
+#include <wx/msgdlg.h>
 
 using namespace icinga;
 
@@ -35,11 +37,23 @@ ApiClient::ApiClient(const String& host, const String& port,
 
 void ApiClient::GetTypes(const TypesCompletionCallback& callback) const
 {
-	boost::shared_ptr<HttpRequest> req = m_Connection->NewRequest();
-	req->RequestMethod = "GET";
-	req->RequestUrl = new Url("https://" + m_Connection->GetHost() + ":" + m_Connection->GetPort() + "/v1/types");
-	req->AddHeader("Authorization", "Basic " + Base64::Encode(m_User + ":" + m_Password));
-	m_Connection->SubmitRequest(req, boost::bind(TypesHttpCompletionCallback, _1, _2, callback));
+	Url::Ptr url = new Url("https://" + m_Connection->GetHost() + ":" + m_Connection->GetPort() + "/v1/types");
+
+	try {
+		boost::shared_ptr<HttpRequest> req = m_Connection->NewRequest();
+		req->RequestMethod = "GET";
+		req->RequestUrl = url;
+		req->AddHeader("Authorization", "Basic " + Base64::Encode(m_User + ":" + m_Password));
+		m_Connection->SubmitRequest(req, boost::bind(TypesHttpCompletionCallback, _1, _2, callback));
+	} catch (const std::exception& ex) {
+		callback(std::vector<ApiType::Ptr>());
+
+		std::string message = "HTTP request (" + url->Format() + ") failed.";
+		wxMessageBox(message);
+
+		Log(LogCritical, "ApiClient")
+		    << "HTTP request failed: " << DiagnosticInformation(ex);
+	}
 }
 
 void ApiClient::TypesHttpCompletionCallback(HttpRequest& request, HttpResponse& response,
@@ -57,8 +71,9 @@ void ApiClient::TypesHttpCompletionCallback(HttpRequest& request, HttpResponse& 
 	std::vector<ApiType::Ptr> types;
 
 	if (response.StatusCode < 200 || response.StatusCode > 299) {
-		Log(LogCritical, "ApiClient")
-		    <<  "Failed HTTP request; Code: " << response.StatusCode << "; Body: " << body;
+		std::string message = "HTTP request failed; Code: " + Convert::ToString(response.StatusCode) + "; Body: " + body;
+
+		wxMessageBox(message);
 	} else {
 		try {
 			result = JsonDecode(body);
@@ -105,11 +120,23 @@ void ApiClient::GetObjects(const String& pluralType, const ObjectsCompletionCall
 		qp += "attrs[]=" + attr;
 	}
 
-	boost::shared_ptr<HttpRequest> req = m_Connection->NewRequest();
-	req->RequestMethod = "GET";
-	req->RequestUrl = new Url(url + "?" + qp);
-	req->AddHeader("Authorization", "Basic " + Base64::Encode(m_User + ":" + m_Password));
-	m_Connection->SubmitRequest(req, boost::bind(ObjectsHttpCompletionCallback, _1, _2, callback));
+	Url::Ptr pUrl = new Url(url + "?" + qp);
+
+	try {
+		boost::shared_ptr<HttpRequest> req = m_Connection->NewRequest();
+		req->RequestMethod = "GET";
+		req->RequestUrl = pUrl;
+		req->AddHeader("Authorization", "Basic " + Base64::Encode(m_User + ":" + m_Password));
+		m_Connection->SubmitRequest(req, boost::bind(ObjectsHttpCompletionCallback, _1, _2, callback));
+	} catch (const std::exception& ex) {
+		callback(std::vector<ApiObject::Ptr>());
+
+		std::string message = "HTTP request (" + pUrl->Format() + ") failed.";
+		wxMessageBox(message);
+
+		Log(LogCritical, "ApiClient")
+		    << "HTTP request failed: " << DiagnosticInformation(ex);
+	}
 }
 
 void ApiClient::ObjectsHttpCompletionCallback(HttpRequest& request,
