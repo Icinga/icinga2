@@ -91,12 +91,6 @@ Additional details can be found in the [Icinga 1.x Documentation](http://docs.ic
   STOP_EXECUTING_HOST_CHECKS                | -  | -
   START_EXECUTING_SVC_CHECKS                | -  | -
   STOP_EXECUTING_SVC_CHECKS                 | -  | -
-  CHANGE_SVC_MODATTR                        | ;&lt;host_name&gt;;&lt;service_name&gt;;&lt;value&gt; (3)  | -
-  CHANGE_HOST_MODATTR                       | ;&lt;host_name&gt;;&lt;value&gt; (2)  | -
-  CHANGE_USER_MODATTR                       | ;&lt;user_name&gt;;&lt;value&gt; (2)  | -
-  CHANGE_CHECKCOMMAND_MODATTR               | ;&lt;checkcommand_name&gt;;&lt;value&gt; (2)  | -
-  CHANGE_EVENTCOMMAND_MODATTR               | ;&lt;eventcommand_name&gt;;&lt;value&gt; (2)  | -
-  CHANGE_NOTIFICATIONCOMMAND_MODATTR        | ;&lt;notificationcommand_name&gt;;&lt;value&gt; (2)  | -
   CHANGE_NORMAL_SVC_CHECK_INTERVAL          | ;&lt;host_name&gt;;&lt;service_name&gt;;&lt;check_interval&gt; (3)  | -
   CHANGE_NORMAL_HOST_CHECK_INTERVAL         | ;&lt;host_name&gt;;&lt;check_interval&gt; (2)  | -
   CHANGE_RETRY_SVC_CHECK_INTERVAL           | ;&lt;host_name&gt;;&lt;service_name&gt;;&lt;check_interval&gt; (3)  | -
