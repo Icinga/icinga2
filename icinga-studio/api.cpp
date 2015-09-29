@@ -129,7 +129,6 @@ void ApiClient::ObjectsHttpCompletionCallback(HttpRequest& request,
 	if (response.StatusCode < 200 || response.StatusCode > 299) {
 		Log(LogCritical, "ApiClient")
 		    <<  "Failed HTTP request; Code: " << response.StatusCode << "; Body: " << body;
-		return;
 	} else {
 		try {
 			result = JsonDecode(body);
