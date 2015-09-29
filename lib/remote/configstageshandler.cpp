@@ -123,6 +123,8 @@ void ConfigStagesHandler::HandlePost(const ApiUser::Ptr& user, HttpRequest& requ
 
 	Dictionary::Ptr result1 = new Dictionary();
 
+	result1->Set("package", packageName);
+	result1->Set("stage", stageName);
 	result1->Set("code", 200);
 	result1->Set("status", "Created stage.");
 
