@@ -84,7 +84,7 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %lex-param { void *scanner }
 
 %union {
-	char *text;
+	String *text;
 	double num;
 	bool boolean;
 	icinga::Expression *expr;
@@ -346,8 +346,8 @@ object:
 
 		bool abstract = $2;
 
-		String type = $3;
-		free($3);
+		String type = *$3;
+		delete $3;
 
 		$6->MakeInline();
 
@@ -407,8 +407,8 @@ identifier_items: /* empty */
 identifier_items_inner: identifier
 	{
 		$$ = new std::vector<String>();
-		$$->push_back($1);
-		free($1);
+		$$->push_back(*$1);
+		delete $1;
 	}
 	| identifier_items_inner ',' identifier
 	{
@@ -417,8 +417,8 @@ identifier_items_inner: identifier
 		else
 			$$ = new std::vector<String>();
 
-		$$->push_back($3);
-		free($3);
+		$$->push_back(*$3);
+		delete $3;
 	}
 	;
 
@@ -443,32 +443,37 @@ lterm: T_LIBRARY rterm
 	}
 	| T_INCLUDE T_STRING
 	{
-		$$ = context->HandleInclude($2, false, @$);
-		free($2);
+		$$ = context->HandleInclude(*$2, false, @$);
+		delete $2;
 	}
 	| T_INCLUDE T_STRING_ANGLE
 	{
-		$$ = context->HandleInclude($2, true, @$);
-		free($2);
+		$$ = context->HandleInclude(*$2, true, @$);
+		delete $2;
 	}
 	| T_INCLUDE_RECURSIVE T_STRING
 	{
-		$$ = context->HandleIncludeRecursive($2, "*.conf", @$);
-		free($2);
+		$$ = context->HandleIncludeRecursive(*$2, "*.conf", @$);
+		delete $2;
 	}
 	| T_INCLUDE_RECURSIVE T_STRING ',' T_STRING
 	{
-		$$ = context->HandleIncludeRecursive($2, $4, @$);
-		free($2);
-		free($4);
+		$$ = context->HandleIncludeRecursive(*$2, *$4, @$);
+		delete $2;
+		delete $4;
 	}
 	| T_INCLUDE_ZONES T_STRING ',' T_STRING
 	{
-		$$ = context->HandleIncludeZones($2, $4, "*.conf", @$);
+		$$ = context->HandleIncludeZones(*$2, *$4, "*.conf", @$);
+		delete $2;
+		delete $4;
 	}
 	| T_INCLUDE_ZONES T_STRING ',' T_STRING ',' T_STRING
 	{
-		$$ = context->HandleIncludeZones($2, $4, $6, @$);
+		$$ = context->HandleIncludeZones(*$2, *$4, *$6, @$);
+		delete $2;
+		delete $4;
+		delete $6;
 	}
 	| T_IMPORT rterm
 	{
@@ -520,16 +525,16 @@ lterm: T_LIBRARY rterm
 	{
 		$9->MakeInline();
 
-		$$ = new ForExpression($3, $5, $7, $9, @$);
-		free($3);
-		free($5);
+		$$ = new ForExpression(*$3, *$5, $7, $9, @$);
+		delete $3;
+		delete $5;
 	}
 	| T_FOR '(' identifier T_IN rterm ')' rterm_scope_require_side_effect
 	{
 		$7->MakeInline();
 
-		$$ = new ForExpression($3, "", $5, $7, @$);
-		free($3);
+		$$ = new ForExpression(*$3, "", $5, $7, @$);
+		delete $3;
 	}
 	| T_FUNCTION identifier '(' identifier_items ')' use_specifier rterm_scope
 	{
@@ -538,13 +543,13 @@ lterm: T_LIBRARY rterm
 		FunctionExpression *fexpr = new FunctionExpression(*$4, $6, $7, @$);
 		delete $4;
 
-		$$ = new SetExpression(MakeIndexer(ScopeThis, $2), OpSetLiteral, fexpr, @$);
-		free($2);
+		$$ = new SetExpression(MakeIndexer(ScopeThis, *$2), OpSetLiteral, fexpr, @$);
+		delete $2;
 	}
 	| T_CONST T_IDENTIFIER T_SET rterm
 	{
-		$$ = new SetExpression(MakeIndexer(ScopeGlobal, $2), OpSetLiteral, $4);
-		free($2);
+		$$ = new SetExpression(MakeIndexer(ScopeGlobal, *$2), OpSetLiteral, $4);
+		delete $2;
 	}
 	| T_VAR rterm
 	{
@@ -692,8 +697,8 @@ rterm_side_effect: rterm '(' rterm_items ')'
 			aexpr->MakeInline();
 
 		std::vector<String> args;
-		args.push_back($1);
-		free($1);
+		args.push_back(*$1);
+		delete $1;
 
 		$$ = new FunctionExpression(args, new std::map<String, Expression *>(), $3, @$);
 	}
@@ -744,8 +749,8 @@ rterm_side_effect: rterm '(' rterm_items ')'
 
 rterm_no_side_effect: T_STRING
 	{
-		$$ = MakeLiteral($1);
-		free($1);
+		$$ = MakeLiteral(*$1);
+		delete $1;
 	}
 	| T_NUMBER
 	{
@@ -761,8 +766,8 @@ rterm_no_side_effect: T_STRING
 	}
 	| rterm '.' T_IDENTIFIER %dprec 2
 	{
-		$$ = new IndexerExpression($1, MakeLiteral($3), @$);
-		free($3);
+		$$ = new IndexerExpression($1, MakeLiteral(*$3), @$);
+		delete $3;
 	}
 	| rterm '[' rterm ']'
 	{
@@ -770,8 +775,8 @@ rterm_no_side_effect: T_STRING
 	}
 	| T_IDENTIFIER
 	{
-		$$ = new VariableExpression($1, @1);
-		free($1);
+		$$ = new VariableExpression(*$1, @1);
+		delete $1;
 	}
 	| '!' rterm
 	{
@@ -869,7 +874,7 @@ rterm: rterm_side_effect
 
 target_type_specifier: /* empty */
 	{
-		$$ = strdup("");
+		$$ = new String();
 	}
 	| T_TO identifier
 	{
@@ -903,29 +908,31 @@ use_specifier_items: use_specifier_item
 
 use_specifier_item: identifier
 	{
-		$$ = new std::pair<String, Expression *>($1, new VariableExpression($1, @1));
+		$$ = new std::pair<String, Expression *>(*$1, new VariableExpression(*$1, @1));
+		delete $1;
 	}
 	| identifier T_SET rterm
 	{
-		$$ = new std::pair<String, Expression *>($1, $3);
+		$$ = new std::pair<String, Expression *>(*$1, $3);
+		delete $1;
 	}
 	;
 
 apply_for_specifier: /* empty */
 	| T_FOR '(' identifier T_FOLLOWS identifier T_IN rterm ')'
 	{
-		context->m_FKVar.top() = $3;
-		free($3);
+		context->m_FKVar.top() = *$3;
+		delete $3;
 
-		context->m_FVVar.top() = $5;
-		free($5);
+		context->m_FVVar.top() = *$5;
+		delete $5;
 
 		context->m_FTerm.top() = $7;
 	}
 	| T_FOR '(' identifier T_IN rterm ')'
 	{
-		context->m_FKVar.top() = $3;
-		free($3);
+		context->m_FKVar.top() = *$3;
+		delete $3;
 
 		context->m_FVVar.top() = "";
 
@@ -955,10 +962,10 @@ apply:
 	{
 		context->m_Apply.pop();
 
-		String type = $3;
-		free($3);
-		String target = $6;
-		free($6);
+		String type = *$3;
+		delete $3;
+		String target = *$6;
+		delete $6;
 
 		if (!ApplyRule::IsValidSourceType(type))
 			BOOST_THROW_EXCEPTION(ScriptError("'apply' cannot be used with type '" + type + "'", DebugInfoRange(@2, @3)));
