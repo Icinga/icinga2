@@ -103,7 +103,9 @@ public:
 
 	static String EscapeShellCmd(const String& s);
 	static String EscapeShellArg(const String& s);
+#ifdef _WIN32
 	static String EscapeCreateProcessArg(const String& arg);
+#endif /* _WIN32 */
 
 	static String EscapeString(const String& s, const String& chars, const bool illegal);
 	static String UnescapeString(const String& s);

@@ -61,7 +61,9 @@ REGISTER_SAFE_SCRIPTFUNCTION(msi_get_component_path, &ScriptUtils::MsiGetCompone
 REGISTER_SAFE_SCRIPTFUNCTION(track_parents, &ScriptUtils::TrackParents);
 REGISTER_SAFE_SCRIPTFUNCTION(escape_shell_cmd, &Utility::EscapeShellCmd);
 REGISTER_SAFE_SCRIPTFUNCTION(escape_shell_arg, &Utility::EscapeShellArg);
+#ifdef _WIN32
 REGISTER_SAFE_SCRIPTFUNCTION(escape_create_process_arg, &Utility::EscapeCreateProcessArg);
+#endif /* _WIN32 */
 
 String ScriptUtils::CastString(const Value& value)
 {
