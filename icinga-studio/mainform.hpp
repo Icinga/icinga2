@@ -20,7 +20,7 @@
 #ifndef MAINFORM_H
 #define MAINFORM_H
 
-#include "icinga-studio/api.hpp"
+#include "icinga-studio/apiclient.hpp"
 #include "remote/url.hpp"
 #include "icinga-studio/forms.h"
 

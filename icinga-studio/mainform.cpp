@@ -39,7 +39,7 @@ MainForm::MainForm(wxWindow *parent, const Url::Ptr& url)
 		port = "5665";
 
 	m_ApiClient = new ApiClient(url->GetHost(), port, url->GetUsername(), url->GetPassword());
-	m_ApiClient->GetTypes(boost::bind(&MainForm::TypesCompletionHandler, this, _1, true));
+	m_ApiClient->GetTypes(boost::bind(&MainForm::TypesCompletionHandler, this, _2, true));
 
 	std::string title = url->Format() + " - Icinga Studio";
 	SetTitle(title);
@@ -101,7 +101,7 @@ void MainForm::OnTypeSelected(wxTreeEvent& event)
 	std::vector<String> attrs;
 	attrs.push_back(type->Name.ToLower() + ".__name");
 
-	m_ApiClient->GetObjects(type->PluralName, boost::bind(&MainForm::ObjectsCompletionHandler, this, _1, true),
+	m_ApiClient->GetObjects(type->PluralName, boost::bind(&MainForm::ObjectsCompletionHandler, this, _2, true),
 	    std::vector<String>(), attrs);
 }
 
@@ -150,7 +150,7 @@ void MainForm::OnObjectSelected(wxListEvent& event)
 	std::vector<String> names;
 	names.push_back(objectName);
 
-	m_ApiClient->GetObjects(type->PluralName, boost::bind(&MainForm::ObjectDetailsCompletionHandler, this, _1, true), names);
+	m_ApiClient->GetObjects(type->PluralName, boost::bind(&MainForm::ObjectDetailsCompletionHandler, this, _2, true), names);
 }
 
 wxPGProperty *MainForm::ValueToProperty(const String& name, const Value& value)

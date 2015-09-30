@@ -17,14 +17,13 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "icinga-studio/api.hpp"
+#include "icinga-studio/apiclient.hpp"
 #include "remote/base64.hpp"
 #include "base/json.hpp"
 #include "base/logger.hpp"
 #include "base/exception.hpp"
 #include "base/convert.hpp"
 #include <boost/foreach.hpp>
-#include <wx/msgdlg.h>
 
 using namespace icinga;
 
@@ -46,13 +45,7 @@ void ApiClient::GetTypes(const TypesCompletionCallback& callback) const
 		req->AddHeader("Authorization", "Basic " + Base64::Encode(m_User + ":" + m_Password));
 		m_Connection->SubmitRequest(req, boost::bind(TypesHttpCompletionCallback, _1, _2, callback));
 	} catch (const std::exception& ex) {
-		callback(std::vector<ApiType::Ptr>());
-
-		std::string message = "HTTP request (" + url->Format() + ") failed.";
-		wxMessageBox(message);
-
-		Log(LogCritical, "ApiClient")
-		    << "HTTP request failed: " << DiagnosticInformation(ex);
+		callback(boost::current_exception(), std::vector<ApiType::Ptr>());
 	}
 }
 
@@ -68,36 +61,38 @@ void ApiClient::TypesHttpCompletionCallback(HttpRequest& request, HttpResponse& 
 	while ((count = response.ReadBody(buffer, sizeof(buffer))) > 0)
 		body += String(buffer, buffer + count);
 
-	std::vector<ApiType::Ptr> types;
+	try {
+		if (response.StatusCode < 200 || response.StatusCode > 299) {
+			std::string message = "HTTP request failed; Code: " + Convert::ToString(response.StatusCode) + "; Body: " + body;
 
-	if (response.StatusCode < 200 || response.StatusCode > 299) {
-		std::string message = "HTTP request failed; Code: " + Convert::ToString(response.StatusCode) + "; Body: " + body;
-
-		wxMessageBox(message);
-	} else {
-		try {
-			result = JsonDecode(body);
-
-			Array::Ptr results = result->Get("results");
-
-			ObjectLock olock(results);
-			BOOST_FOREACH(const Dictionary::Ptr typeInfo, results)
-			{
-				ApiType::Ptr type = new ApiType();;
-				type->Abstract = typeInfo->Get("abstract");
-				type->BaseName = typeInfo->Get("base");
-				type->Name = typeInfo->Get("name");
-				type->PluralName = typeInfo->Get("plural_name");
-				// TODO: attributes
-				types.push_back(type);
-			}
-		} catch (const std::exception& ex) {
-			Log(LogCritical, "ApiClient")
-			    << "Error while decoding response: " << DiagnosticInformation(ex);
+			BOOST_THROW_EXCEPTION(ScriptError(message));
 		}
+
+		std::vector<ApiType::Ptr> types;
+
+		result = JsonDecode(body);
+
+		Array::Ptr results = result->Get("results");
+
+		ObjectLock olock(results);
+		BOOST_FOREACH(const Dictionary::Ptr typeInfo, results)
+		{
+			ApiType::Ptr type = new ApiType();;
+			type->Abstract = typeInfo->Get("abstract");
+			type->BaseName = typeInfo->Get("base");
+			type->Name = typeInfo->Get("name");
+			type->PluralName = typeInfo->Get("plural_name");
+			// TODO: attributes
+			types.push_back(type);
+		}
+
+		callback(boost::exception_ptr(), types);
+	} catch (const std::exception& ex) {
+		Log(LogCritical, "ApiClient")
+		    << "Error while decoding response: " << DiagnosticInformation(ex);
+		callback(boost::current_exception(), std::vector<ApiType::Ptr>());
 	}
 
-	callback(types);
 }
 
 void ApiClient::GetObjects(const String& pluralType, const ObjectsCompletionCallback& callback,
@@ -129,13 +124,7 @@ void ApiClient::GetObjects(const String& pluralType, const ObjectsCompletionCall
 		req->AddHeader("Authorization", "Basic " + Base64::Encode(m_User + ":" + m_Password));
 		m_Connection->SubmitRequest(req, boost::bind(ObjectsHttpCompletionCallback, _1, _2, callback));
 	} catch (const std::exception& ex) {
-		callback(std::vector<ApiObject::Ptr>());
-
-		std::string message = "HTTP request (" + pUrl->Format() + ") failed.";
-		wxMessageBox(message);
-
-		Log(LogCritical, "ApiClient")
-		    << "HTTP request failed: " << DiagnosticInformation(ex);
+		callback(boost::current_exception(), std::vector<ApiObject::Ptr>());
 	}
 }
 
@@ -151,54 +140,56 @@ void ApiClient::ObjectsHttpCompletionCallback(HttpRequest& request,
 	while ((count = response.ReadBody(buffer, sizeof(buffer))) > 0)
 		body += String(buffer, buffer + count);
 
-	std::vector<ApiObject::Ptr> objects;
+	try {
+		if (response.StatusCode < 200 || response.StatusCode > 299) {
+			std::string message = "HTTP request failed; Code: " + Convert::ToString(response.StatusCode) + "; Body: " + body;
 
-	if (response.StatusCode < 200 || response.StatusCode > 299) {
-		Log(LogCritical, "ApiClient")
-		    <<  "Failed HTTP request; Code: " << response.StatusCode << "; Body: " << body;
-	} else {
-		try {
-			result = JsonDecode(body);
-
-			Array::Ptr results = result->Get("results");
-
-			if (results) {
-				ObjectLock olock(results);
-				BOOST_FOREACH(const Dictionary::Ptr objectInfo, results)
-				{
-					ApiObject::Ptr object = new ApiObject();
-
-					Dictionary::Ptr attrs = objectInfo->Get("attrs");
-
-					{
-						ObjectLock olock(attrs);
-						BOOST_FOREACH(const Dictionary::Pair& kv, attrs)
-						{
-							object->Attrs[kv.first] = kv.second;
-						}
-					}
-
-					Array::Ptr used_by = objectInfo->Get("used_by");
-
-					{
-						ObjectLock olock(used_by);
-						BOOST_FOREACH(const Dictionary::Ptr& refInfo, used_by)
-						{
-							ApiObjectReference ref;
-							ref.Name = refInfo->Get("name");
-							ref.Type = refInfo->Get("type");
-							object->UsedBy.push_back(ref);
-						}
-					}
-
-					objects.push_back(object);
-				}
-			}
-		} catch (const std::exception& ex) {
-			Log(LogCritical, "ApiClient")
-				<< "Error while decoding response: " << DiagnosticInformation(ex);
+			BOOST_THROW_EXCEPTION(ScriptError(message));
 		}
-	}
 
-	callback(objects);
+		std::vector<ApiObject::Ptr> objects;
+
+		result = JsonDecode(body);
+
+		Array::Ptr results = result->Get("results");
+
+		if (results) {
+			ObjectLock olock(results);
+			BOOST_FOREACH(const Dictionary::Ptr objectInfo, results)
+			{
+				ApiObject::Ptr object = new ApiObject();
+
+				Dictionary::Ptr attrs = objectInfo->Get("attrs");
+
+				{
+					ObjectLock olock(attrs);
+					BOOST_FOREACH(const Dictionary::Pair& kv, attrs)
+					{
+						object->Attrs[kv.first] = kv.second;
+					}
+				}
+
+				Array::Ptr used_by = objectInfo->Get("used_by");
+
+				{
+					ObjectLock olock(used_by);
+					BOOST_FOREACH(const Dictionary::Ptr& refInfo, used_by)
+					{
+						ApiObjectReference ref;
+						ref.Name = refInfo->Get("name");
+						ref.Type = refInfo->Get("type");
+						object->UsedBy.push_back(ref);
+					}
+				}
+
+				objects.push_back(object);
+			}
+		}
+
+		callback(boost::exception_ptr(), objects);
+	} catch (const std::exception& ex) {
+		Log(LogCritical, "ApiClient")
+			<< "Error while decoding response: " << DiagnosticInformation(ex);
+		callback(boost::current_exception(), std::vector<ApiObject::Ptr>());
+	}
 }

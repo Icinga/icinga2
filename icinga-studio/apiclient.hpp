@@ -17,11 +17,12 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef API_H
-#define API_H
+#ifndef APICLIENT_H
+#define APICLIENT_H
 
 #include "remote/httpclientconnection.hpp"
 #include "base/value.hpp"
+#include "base/exception.hpp"
 #include <vector>
 
 namespace icinga
@@ -87,10 +88,10 @@ public:
 	ApiClient(const String& host, const String& port,
 	    const String& user, const String& password);
 
-	typedef boost::function<void(const std::vector<ApiType::Ptr>&)> TypesCompletionCallback;
+	typedef boost::function<void(boost::exception_ptr, const std::vector<ApiType::Ptr>&)> TypesCompletionCallback;
 	void GetTypes(const TypesCompletionCallback& callback) const;
 
-	typedef boost::function<void(const std::vector<ApiObject::Ptr>&)> ObjectsCompletionCallback;
+	typedef boost::function<void(boost::exception_ptr, const std::vector<ApiObject::Ptr>&)> ObjectsCompletionCallback;
 	void GetObjects(const String& pluralType, const ObjectsCompletionCallback& callback,
 	    const std::vector<String>& names = std::vector<String>(),
 	    const std::vector<String>& attrs = std::vector<String>()) const;
@@ -108,4 +109,4 @@ private:
 
 }
 
-#endif /* API_H */
+#endif /* APICLIENT_H */
