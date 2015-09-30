@@ -133,7 +133,7 @@ Process::Arguments Process::PrepareCommand(const Value& command)
 			if (args != "")
 				args += " ";
 
-			args += Utility::EscapeShellArg(argument);
+			args += Utility::EscapeCreateProcessArg(argument);
 #else /* _WIN32 */
 			args.push_back(argument);
 #endif /* _WIN32 */

@@ -23,6 +23,7 @@ dirname(path)                   | Returns the directory portion of the specified
 basename(path)                  | Returns the filename portion of the specified path.
 escape\_shell\_arg(text)        | Escapes a string for use as a single shell argument.
 escape\_shell\_cmd(text)        | Escapes shell meta characters in a string.
+escape\_create\_process\_arg(text)| (Windows only) Escapes a string for use as an argument for CreateProcess().
 exit(integer)                   | Terminates the application.
 
 ## <a id="object-accessor-functions"></a> Object Accessor Functions

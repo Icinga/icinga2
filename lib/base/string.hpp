@@ -241,6 +241,11 @@ public:
 		return t;
 	}
 
+	inline void Append(int count, char ch)
+	{
+		m_Data.append(count, ch);
+	}
+
 	inline bool Contains(const String& str) const
 	{
 		return (m_Data.find(str) != std::string::npos);
