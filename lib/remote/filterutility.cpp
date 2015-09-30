@@ -34,15 +34,21 @@ Type::Ptr FilterUtility::TypeFromPluralName(const String& pluralName)
 	String uname = pluralName;
 	boost::algorithm::to_lower(uname);
 
-	BOOST_FOREACH(const ConfigType::Ptr& dtype, ConfigType::GetTypes()) {
-		Type::Ptr type = Type::GetByName(dtype->GetName());
-		ASSERT(type);
+	{
+		Dictionary::Ptr globals = ScriptGlobal::GetGlobals();
+		ObjectLock olock(globals);
+		BOOST_FOREACH(const Dictionary::Pair& kv, globals) {
+			if (!kv.second.IsObjectType<Type>())
+				continue;
 
-		String pname = type->GetPluralName();
-		boost::algorithm::to_lower(pname);
+			Type::Ptr type = kv.second;
 
-		if (uname == pname)
-			return type;
+			String pname = type->GetPluralName();
+			boost::algorithm::to_lower(pname);
+
+			if (uname == pname)
+				return type;
+		}
 	}
 
 	return Type::Ptr();
@@ -51,10 +57,11 @@ Type::Ptr FilterUtility::TypeFromPluralName(const String& pluralName)
 void ConfigObjectTargetProvider::FindTargets(const String& type, const boost::function<void (const Value&)>& addTarget) const
 {
 	ConfigType::Ptr dtype = ConfigType::GetByName(type);
-	ASSERT(dtype);
 
-	BOOST_FOREACH(const ConfigObject::Ptr& object, dtype->GetObjects()) {
-		addTarget(object);
+	if (dtype) {
+		BOOST_FOREACH(const ConfigObject::Ptr& object, dtype->GetObjects()) {
+			addTarget(object);
+		}
 	}
 }
 
@@ -70,7 +77,12 @@ Value ConfigObjectTargetProvider::GetTargetByName(const String& type, const Stri
 
 bool ConfigObjectTargetProvider::IsValidType(const String& type) const
 {
-	return ConfigType::GetByName(type) != ConfigType::Ptr();
+	Type::Ptr ptype = Type::GetByName(type);
+
+	if (!ptype)
+		return false;
+
+	return ConfigObject::TypeInstance->IsAssignableFrom(ptype);
 }
 
 String ConfigObjectTargetProvider::GetPluralName(const String& type) const
