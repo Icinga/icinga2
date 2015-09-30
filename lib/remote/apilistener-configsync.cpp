@@ -392,6 +392,15 @@ void ApiListener::SendRuntimeConfigObjects(const JsonRpcConnection::Ptr& aclient
 			if (objZone.IsEmpty())
 				continue;
 
+			/* don't sync objects with an older version time than the endpoint's log position */
+			if (object->GetVersion() < endpoint->GetLocalLogPosition()) {
+				Log(LogDebug, "ApiListener")
+				    << "Skipping sync: object '" << object->GetName() << "'"
+				    << " is older than local log position of endpoint '"
+				    << endpoint->GetName() << "'.";
+				continue;
+			}
+
 			/* don't sync objects for non-matching parent-child zones */
 			if (!azone->IsChildOf(lzone) && azone != lzone) {
 				Log(LogDebug, "ApiListener")

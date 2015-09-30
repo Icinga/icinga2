@@ -223,7 +223,7 @@ void ConfigObject::ModifyAttribute(const String& attr, const Value& value, bool 
 	SetField(fid, newValue);
 
 	if (updateVersion)
-		SetVersion(GetVersion() + 1);
+		SetVersion(Utility::GetTime());
 
 	if (updated_original_attributes)
 		NotifyOriginalAttributes();
@@ -341,11 +341,7 @@ void ConfigObject::RestoreAttribute(const String& attr)
 	original_attributes->Remove(attr);
 	SetField(fid, newValue);
 
-	/* increment the version. although restoring would mean
-	 * decrementing the version, but we cannot notify other
-	 * cluster nodes without increment.
-	 */
-	SetVersion(GetVersion() + 1);
+	SetVersion(Utility::GetTime());
 }
 
 bool ConfigObject::IsAttributeModified(const String& attr) const
@@ -638,7 +634,6 @@ void ConfigObject::DumpModifiedAttributes(const boost::function<void(const Confi
 			ObjectLock olock(originalAttributes);
 			BOOST_FOREACH(const Dictionary::Pair& kv, originalAttributes) {
 				String key = kv.first;
-				// TODO-MA: vars.os
 
 				Type::Ptr type = object->GetReflectionType();
 

@@ -74,6 +74,9 @@ String ConfigObjectUtility::CreateObjectConfig(const Type::Ptr& type, const Stri
 
 	allAttrs->Remove("name");
 
+	/* update the version for config sync */
+	allAttrs->Set("version", Utility::GetTime());
+
 	std::ostringstream config;
 	ConfigWriter::EmitConfigItem(config, type->GetName(), name, false, templates, allAttrs);
 	ConfigWriter::EmitRaw(config, "\n");

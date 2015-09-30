@@ -95,7 +95,7 @@ abstract class ConfigObject : ConfigObjectBase
 	[protected] bool state_loaded;
 	Dictionary::Ptr original_attributes;
 	[state] int version {
-		default {{{ return 1; }}}
+		default {{{ return 0; }}}
 	};
 };
 
