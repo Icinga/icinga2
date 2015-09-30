@@ -36,7 +36,15 @@ ApiClient::ApiClient(const String& host, const String& port,
 
 void ApiClient::GetTypes(const TypesCompletionCallback& callback) const
 {
-	Url::Ptr url = new Url("https://" + m_Connection->GetHost() + ":" + m_Connection->GetPort() + "/v1/types");
+	Url::Ptr url = new Url();
+	url->SetScheme("https");
+	url->SetHost(m_Connection->GetHost());
+	url->SetPort(m_Connection->GetPort());
+
+	std::vector<String> path;
+	path.push_back("v1");
+	path.push_back("types");
+	url->SetPath(path);
 
 	try {
 		boost::shared_ptr<HttpRequest> req = m_Connection->NewRequest();
@@ -98,29 +106,34 @@ void ApiClient::TypesHttpCompletionCallback(HttpRequest& request, HttpResponse& 
 void ApiClient::GetObjects(const String& pluralType, const ObjectsCompletionCallback& callback,
     const std::vector<String>& names, const std::vector<String>& attrs) const
 {
-	String url = "https://" + m_Connection->GetHost() + ":" + m_Connection->GetPort() + "/v1/objects/" + pluralType;
+	Url::Ptr url = new Url();
+	url->SetScheme("https");
+	url->SetHost(m_Connection->GetHost());
+	url->SetPort(m_Connection->GetPort());
+
+	std::vector<String> path;
+	path.push_back("v1");
+	path.push_back("objects");
+	path.push_back(pluralType);
+	url->SetPath(path);
 	String qp;
 
-	BOOST_FOREACH(const String& name, names) {
-		if (!qp.IsEmpty())
-			qp += "&";
+	std::map<String, std::vector<String> > params;
 
-		qp += pluralType.ToLower() + "=" + name;
+	BOOST_FOREACH(const String& name, names) {
+		params[pluralType.ToLower()].push_back(name);
 	}
 
 	BOOST_FOREACH(const String& attr, attrs) {
-		if (!qp.IsEmpty())
-			qp += "&";
-
-		qp += "attrs[]=" + attr;
+		params["attrs"].push_back(attr);
 	}
 
-	Url::Ptr pUrl = new Url(url + "?" + qp);
+	url->SetQuery(params);
 
 	try {
 		boost::shared_ptr<HttpRequest> req = m_Connection->NewRequest();
 		req->RequestMethod = "GET";
-		req->RequestUrl = pUrl;
+		req->RequestUrl = url;
 		req->AddHeader("Authorization", "Basic " + Base64::Encode(m_User + ":" + m_Password));
 		m_Connection->SubmitRequest(req, boost::bind(ObjectsHttpCompletionCallback, _1, _2, callback));
 	} catch (const std::exception& ex) {

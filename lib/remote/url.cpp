@@ -27,7 +27,8 @@
 
 using namespace icinga;
 
-Url::Url() {}
+Url::Url()
+{ }
 
 Url::Url(const String& base_url)
 {
@@ -170,6 +171,7 @@ String Url::GetFragment(void) const
 {
 	return m_Fragment;
 }
+
 void Url::SetScheme(const String& scheme)
 {
 	m_Scheme = scheme;
@@ -180,6 +182,16 @@ void Url::SetAuthority(const String& username, const String& password, const Str
 	m_Username = username;
 	m_Password = password;
 	m_Host = host;
+	m_Port = port;
+}
+
+void Url::SetHost(const String& host)
+{
+	m_Host = host;
+}
+
+void Url::SetPort(const String& port)
+{
 	m_Port = port;
 }
 
@@ -227,9 +239,9 @@ String Url::Format(bool print_credentials) const
 	if (m_Path.empty())
 		url += "/";
 	else {
-		BOOST_FOREACH (const String p, m_Path) {
+		BOOST_FOREACH (const String& segment, m_Path) {
 			url += "/";
-			url += Utility::EscapeString(p, ACPATHSEGMENT, false);
+			url += Utility::EscapeString(segment, ACPATHSEGMENT, false);
 		}
 	}
 
