@@ -37,7 +37,7 @@ void ConfigWriter::EmitBoolean(std::ostream& fp, bool val)
 
 void ConfigWriter::EmitNumber(std::ostream& fp, double val)
 {
-	fp << val;
+	fp << std::fixed << val;
 }
 
 void ConfigWriter::EmitString(std::ostream& fp, const String& val)
