@@ -1017,6 +1017,40 @@ String Utility::EscapeShellArg(const String& s)
 }
 
 #ifdef _WIN32
+String Utility::EscapeCreateProcessArg(const String& arg)
+{
+	if (arg.FindFirstOf(" \t\n\v\"") == String::NPos)
+		return arg;
+
+	String result = "\"";
+
+	for (String::ConstIterator it = arg.Begin(); ; it++) {
+		int numBackslashes = 0;
+
+		while (it != arg.End() && *it == '\\') {
+			it++;
+			numBackslashes++;
+		}
+
+		if (it == arg.End()) {
+			result.Append(numBackslashes * 2, '\\');
+			break;
+		} else if (*it == '"') {
+			result.Append(numBackslashes * 2, '\\');
+			result.Append(1, *it);
+		} else {
+			result.Append(numBackslashes, '\\');
+			result.Append(1, *it);
+		}
+	}
+
+	result += "\"";
+
+	return result;
+}
+#endif /* _WIN32 */
+
+#ifdef _WIN32
 static void WindowsSetThreadName(const char *name)
 {
 	THREADNAME_INFO info;

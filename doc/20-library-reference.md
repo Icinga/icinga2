@@ -21,6 +21,7 @@ get_time()                      | Returns the current UNIX timestamp.
 parse_performance_data(pd)      | Parses a performance data string and returns an array describing the values.
 dirname(path)                   | Returns the directory portion of the specified path.
 basename(path)                  | Returns the filename portion of the specified path.
+escape\_create\_process\_arg(text)| (Windows only) Escapes a string for use as an argument for CreateProcess().
 exit(integer)                   | Terminates the application.
 
 ## <a id="object-accessor-functions"></a> Object Accessor Functions

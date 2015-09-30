@@ -58,6 +58,7 @@ REGISTER_SCRIPTFUNCTION(get_time, &Utility::GetTime);
 REGISTER_SCRIPTFUNCTION(basename, &Utility::BaseName);
 REGISTER_SCRIPTFUNCTION(dirname, &Utility::DirName);
 REGISTER_SCRIPTFUNCTION(msi_get_component_path, &ScriptUtils::MsiGetComponentPathShim);
+REGISTER_SCRIPTFUNCTION(escape_create_process_arg, &Utility::EscapeCreateProcessArg);
 
 String ScriptUtils::CastString(const Value& value)
 {
