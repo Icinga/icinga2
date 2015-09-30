@@ -375,17 +375,23 @@ void ApiListener::NewClientHandlerInternal(const Socket::Ptr& client, const Stri
 		if (endpoint) {
 			endpoint->AddClient(aclient);
 
-			/* sync zone file config */
-			SendConfigUpdate(aclient);
-			/* sync runtime config */
-			SendRuntimeConfigObjects(aclient);
-
 			if (need_sync) {
 				{
 					ObjectLock olock(endpoint);
 
 					endpoint->SetSyncing(true);
 				}
+
+				Log(LogInformation, "ApiListener")
+				    << "Sending updates for endpoint '" << endpoint->GetName() << "'.";
+
+				/* sync zone file config */
+				SendConfigUpdate(aclient);
+				/* sync runtime config */
+				SendRuntimeConfigObjects(aclient);
+
+				Log(LogInformation, "ApiListener")
+				    << "Finished sending updates for endpoint '" << endpoint->GetName() << "'.";
 
 				ReplayLog(aclient);
 			}
