@@ -138,35 +138,39 @@ Value ApiListener::ConfigUpdateObjectAPIHandler(const MessageOrigin::Ptr& origin
 		object->SetVersion(objVersion, false, origin);
 	}
 
+	if (!object)
+		return Empty;
+
 	/* update object attributes if version was changed */
-	if (object && objVersion > object->GetVersion()) {
-		Log(LogInformation, "ApiListener")
-		    << "Processing config update for object '" << object->GetName()
-		    << "': Object version " << object->GetVersion()
-		    << " is older than the received version " << objVersion << ".";
-
-		Dictionary::Ptr modified_attributes = params->Get("modified_attributes");
-
-		if (modified_attributes) {
-			ObjectLock olock(modified_attributes);
-			BOOST_FOREACH(const Dictionary::Pair& kv, modified_attributes) {
-				/* update all modified attributes
-				 * but do not update the object version yet.
-				 * This triggers cluster events otherwise.
-				 */
-				object->ModifyAttribute(kv.first, kv.second, false);
-			}
-		}
-
-		/* keep the object version in sync with the sender */
-		object->SetVersion(objVersion, false, origin);
-	} else {
+	if (objVersion <= object->GetVersion()) {
 		Log(LogNotice, "ApiListener")
 		    << "Discarding config update for object '" << object->GetName()
 		    << "': Object version " << object->GetVersion()
 		    << " is more recent than the received version " << objVersion << ".";
+
 		return Empty;
 	}
+
+	Log(LogNotice, "ApiListener")
+	    << "Processing config update for object '" << object->GetName()
+	    << "': Object version " << object->GetVersion()
+	    << " is older than the received version " << objVersion << ".";
+
+	Dictionary::Ptr modified_attributes = params->Get("modified_attributes");
+
+	if (modified_attributes) {
+		ObjectLock olock(modified_attributes);
+		BOOST_FOREACH(const Dictionary::Pair& kv, modified_attributes) {
+			/* update all modified attributes
+			 * but do not update the object version yet.
+			 * This triggers cluster events otherwise.
+			 */
+			object->ModifyAttribute(kv.first, kv.second, false);
+		}
+	}
+
+	/* keep the object version in sync with the sender */
+	object->SetVersion(objVersion, false, origin);
 
 	return Empty;
 }
