@@ -83,11 +83,8 @@ private:
 
 	StreamReadContext m_Context;
 
-	WorkQueue m_WriteQueue;
-
 	bool ProcessMessage(void);
 	void DataAvailableHandler(void);
-	void SendMessageSync(const Dictionary::Ptr& request);
 
 	static void StaticInitialize(void);
 	static void TimeoutTimerHandler(void);
