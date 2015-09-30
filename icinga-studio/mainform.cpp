@@ -246,8 +246,8 @@ void MainForm::ObjectDetailsCompletionHandler(boost::exception_ptr eptr, const s
 
 	std::map<String, wxStringProperty *> parents;
 
-	typedef std::pair<String, Value> kv_pair;
-	BOOST_FOREACH(const kv_pair& kv, object->Attrs) {
+	typedef std::pair<String, Value> kv_pair_attr;
+	BOOST_FOREACH(const kv_pair_attr& kv, object->Attrs) {
 		std::vector<String> tokens;
 		boost::algorithm::split(tokens, kv.first, boost::is_any_of("."));
 
@@ -257,14 +257,28 @@ void MainForm::ObjectDetailsCompletionHandler(boost::exception_ptr eptr, const s
 
 		if (it == parents.end()) {
 			parent = new wxStringProperty(tokens[0].GetData(), wxPG_LABEL, "<object>");
-			m_PropertyGrid->Append(parent);
 			parents[tokens[0]] = parent;
 		} else
 			parent = it->second;
 
 		wxPGProperty *prop = ValueToProperty(tokens[1], kv.second);
 		parent->AppendChild(prop);
-		m_PropertyGrid->SetPropertyReadOnly(prop);
+	}
+
+	/* Make sure the property node for the real object (as opposed to joined objects) is the first one */
+	String propName = type->Name.ToLower();
+	wxStringProperty *objProp = parents[propName];
+
+	if (objProp) {
+		m_PropertyGrid->Append(objProp);
+		m_PropertyGrid->SetPropertyReadOnly(objProp);
+		parents.erase(propName);
+	}
+
+	typedef std::pair<String, wxStringProperty *> kv_pair_prop;
+	BOOST_FOREACH(const kv_pair_prop& kv, parents) {
+		m_PropertyGrid->Append(kv.second);
+		m_PropertyGrid->SetPropertyReadOnly(kv.second);
 	}
 }
 
