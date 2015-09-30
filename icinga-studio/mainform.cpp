@@ -22,6 +22,7 @@
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/foreach.hpp>
+#include <wx/msgdlg.h>
 
 using namespace icinga;
 
@@ -39,7 +40,7 @@ MainForm::MainForm(wxWindow *parent, const Url::Ptr& url)
 		port = "5665";
 
 	m_ApiClient = new ApiClient(url->GetHost(), port, url->GetUsername(), url->GetPassword());
-	m_ApiClient->GetTypes(boost::bind(&MainForm::TypesCompletionHandler, this, _2, true));
+	m_ApiClient->GetTypes(boost::bind(&MainForm::TypesCompletionHandler, this, _1, _2, true));
 
 	std::string title = url->Format() + " - Icinga Studio";
 	SetTitle(title);
@@ -47,14 +48,26 @@ MainForm::MainForm(wxWindow *parent, const Url::Ptr& url)
 	m_ObjectsList->InsertColumn(0, "Name", 0, 300);
 }
 
-void MainForm::TypesCompletionHandler(const std::vector<ApiType::Ptr>& types, bool forward)
+void MainForm::TypesCompletionHandler(boost::exception_ptr eptr, const std::vector<ApiType::Ptr>& types, bool forward)
 {
 	if (forward) {
-		CallAfter(boost::bind(&MainForm::TypesCompletionHandler, this, types, false));
+		CallAfter(boost::bind(&MainForm::TypesCompletionHandler, this, eptr, types, false));
 		return;
 	}
 
 	m_TypesTree->DeleteAllItems();
+
+	if (eptr) {
+		try {
+			boost::rethrow_exception(eptr);
+		} catch (const std::exception& ex) {
+			std::string message = "HTTP query failed: " + std::string(ex.what());
+			wxMessageBox(message, "Icinga Studio", wxOK | wxCENTRE | wxICON_ERROR, this);
+			Close();
+			return;
+		}
+	}
+
 	wxTreeItemId rootNode = m_TypesTree->AddRoot("root");
 
 	bool all = false;
@@ -101,15 +114,29 @@ void MainForm::OnTypeSelected(wxTreeEvent& event)
 	std::vector<String> attrs;
 	attrs.push_back(type->Name.ToLower() + ".__name");
 
-	m_ApiClient->GetObjects(type->PluralName, boost::bind(&MainForm::ObjectsCompletionHandler, this, _2, true),
+	m_ApiClient->GetObjects(type->PluralName, boost::bind(&MainForm::ObjectsCompletionHandler, this, _1, _2, true),
 	    std::vector<String>(), attrs);
 }
 
-void MainForm::ObjectsCompletionHandler(const std::vector<ApiObject::Ptr>& objects, bool forward)
+void MainForm::ObjectsCompletionHandler(boost::exception_ptr eptr, const std::vector<ApiObject::Ptr>& objects, bool forward)
 {
 	if (forward) {
-		CallAfter(boost::bind(&MainForm::ObjectsCompletionHandler, this, objects, false));
+		CallAfter(boost::bind(&MainForm::ObjectsCompletionHandler, this, eptr, objects, false));
 		return;
+	}
+
+	m_ObjectsList->DeleteAllItems();
+	m_PropertyGrid->Clear();
+
+	if (eptr) {
+
+		try {
+			boost::rethrow_exception(eptr);
+		} catch (const std::exception& ex) {
+			std::string message = "HTTP query failed: " + std::string(ex.what());
+			wxMessageBox(message, "Icinga Studio", wxOK | wxCENTRE | wxICON_ERROR, this);
+			return;
+		}
 	}
 
 	wxTreeItemId selectedId = m_TypesTree->GetSelection();
@@ -117,8 +144,6 @@ void MainForm::ObjectsCompletionHandler(const std::vector<ApiObject::Ptr>& objec
 	ApiType::Ptr type = m_Types[typeName.ToStdString()];
 
 	String nameAttr = type->Name.ToLower() + ".__name";
-
-	m_ObjectsList->DeleteAllItems();
 
 	BOOST_FOREACH(const ApiObject::Ptr& object, objects) {
 		std::map<String, Value>::const_iterator it = object->Attrs.find(nameAttr);
@@ -150,7 +175,7 @@ void MainForm::OnObjectSelected(wxListEvent& event)
 	std::vector<String> names;
 	names.push_back(objectName);
 
-	m_ApiClient->GetObjects(type->PluralName, boost::bind(&MainForm::ObjectDetailsCompletionHandler, this, _2, true), names);
+	m_ApiClient->GetObjects(type->PluralName, boost::bind(&MainForm::ObjectDetailsCompletionHandler, this, _1, _2, true), names);
 }
 
 wxPGProperty *MainForm::ValueToProperty(const String& name, const Value& value)
@@ -190,11 +215,22 @@ wxPGProperty *MainForm::ValueToProperty(const String& name, const Value& value)
 	}
 }
 
-void MainForm::ObjectDetailsCompletionHandler(const std::vector<ApiObject::Ptr>& objects, bool forward)
+void MainForm::ObjectDetailsCompletionHandler(boost::exception_ptr eptr, const std::vector<ApiObject::Ptr>& objects, bool forward)
 {
 	if (forward) {
-		CallAfter(boost::bind(&MainForm::ObjectDetailsCompletionHandler, this, objects, false));
+		CallAfter(boost::bind(&MainForm::ObjectDetailsCompletionHandler, this, eptr, objects, false));
 		return;
+	}
+
+	m_PropertyGrid->Clear();
+
+	if (eptr) {
+		try {
+			boost::rethrow_exception(eptr);
+		} catch (const std::exception& ex) {
+			std::string message = "HTTP query failed: " + std::string(ex.what());
+			wxMessageBox(message, "Icinga Studio", wxOK | wxCENTRE | wxICON_ERROR, this);
+		}
 	}
 
 	wxTreeItemId selectedId = m_TypesTree->GetSelection();
@@ -203,20 +239,31 @@ void MainForm::ObjectDetailsCompletionHandler(const std::vector<ApiObject::Ptr>&
 
 	String nameAttr = type->Name.ToLower() + ".__name";
 
-	m_PropertyGrid->Clear();
-	
 	if (objects.empty())
 		return;
 
 	ApiObject::Ptr object = objects[0];
+
+	std::map<String, wxStringProperty *> parents;
 
 	typedef std::pair<String, Value> kv_pair;
 	BOOST_FOREACH(const kv_pair& kv, object->Attrs) {
 		std::vector<String> tokens;
 		boost::algorithm::split(tokens, kv.first, boost::is_any_of("."));
 
+		std::map<String, wxStringProperty *>::const_iterator it = parents.find(tokens[0]);
+
+		wxStringProperty *parent;
+
+		if (it == parents.end()) {
+			parent = new wxStringProperty(tokens[0].GetData(), wxPG_LABEL, "<object>");
+			m_PropertyGrid->Append(parent);
+			parents[tokens[0]] = parent;
+		} else
+			parent = it->second;
+
 		wxPGProperty *prop = ValueToProperty(tokens[1], kv.second);
-		m_PropertyGrid->Append(prop);
+		parent->AppendChild(prop);
 		m_PropertyGrid->SetPropertyReadOnly(prop);
 	}
 }
