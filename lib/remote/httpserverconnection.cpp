@@ -115,8 +115,6 @@ bool HttpServerConnection::ProcessMessage(void)
 
 void HttpServerConnection::ProcessMessageAsync(HttpRequest& request)
 {
-	Log(LogInformation, "HttpServerConnection", "Processing Http message");
-
 	String auth_header = request.Headers->Get("authorization");
 
 	String::SizeType pos = auth_header.FindFirstOf(" ");
@@ -144,6 +142,10 @@ void HttpServerConnection::ProcessMessageAsync(HttpRequest& request)
 		if (user && user->GetPassword() != password)
 			user.reset();
 	}
+
+	Log(LogInformation, "HttpServerConnection")
+	    << "Request: " << request.RequestMethod << " " << request.RequestUrl->Format()
+	    << " (" << (user ? user->GetName() : "<unauthenticated>") << ")";
 
 	HttpResponse response(m_Stream, request);
 

@@ -71,9 +71,12 @@ Value ApiListener::ConfigUpdateObjectAPIHandler(const MessageOrigin::Ptr& origin
 	if (!listener)
 		return Empty;
 
+	String objType = params->Get("type");
+	String objName = params->Get("name");
+
 	if (!listener->GetAcceptConfig()) {
 		Log(LogWarning, "ApiListener")
-		    << "Ignoring config update. '" << listener->GetName() << "' does not accept config.";
+		    << "Ignoring config update for object '" << objName << "' of type '" << objType << "'. '" << listener->GetName() << "' does not accept config.";
 		return Empty;
 	}
 
@@ -99,8 +102,6 @@ Value ApiListener::ConfigUpdateObjectAPIHandler(const MessageOrigin::Ptr& origin
 	}
 
 	/* update the object */
-	String objType = params->Get("type");
-	String objName = params->Get("name");
 	int objVersion = Convert::ToLong(params->Get("version"));
 
 	ConfigType::Ptr dtype = ConfigType::GetByName(objType);

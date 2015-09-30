@@ -367,7 +367,7 @@ void ApiListener::NewClientHandlerInternal(const Socket::Ptr& client, const Stri
 	}
 
 	if (ctype == ClientJsonRpc) {
-		Log(LogInformation, "ApiListener", "New JSON-RPC client");
+		Log(LogNotice, "ApiListener", "New JSON-RPC client");
 
 		JsonRpcConnection::Ptr aclient = new JsonRpcConnection(identity, verify_ok, tlsStream, role);
 		aclient->Start();
@@ -392,7 +392,7 @@ void ApiListener::NewClientHandlerInternal(const Socket::Ptr& client, const Stri
 		} else
 			AddAnonymousClient(aclient);
 	} else {
-		Log(LogInformation, "ApiListener", "New HTTP client");
+		Log(LogNotice, "ApiListener", "New HTTP client");
 
 		HttpServerConnection::Ptr aclient = new HttpServerConnection(identity, verify_ok, tlsStream);
 		aclient->Start();
