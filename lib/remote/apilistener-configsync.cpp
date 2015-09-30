@@ -257,6 +257,18 @@ void ApiListener::UpdateConfigObject(const ConfigObject::Ptr& object, const Mess
 	if (object->GetZoneName().IsEmpty())
 		return;
 
+	/* only send objects to zones which have access to the object */
+	if (client) {
+		Zone::Ptr target_zone = client->GetEndpoint()->GetZone();
+
+		if (target_zone && !target_zone->CanAccessObject(object)) {
+			Log(LogDebug, "ApiListener")
+			    << "Not sending 'update config' message to unauthorized zone '" << target_zone->GetName() << "'"
+			    << " for object: '" << object->GetName() << "'.";
+
+			return;
+		}
+	}
 	Dictionary::Ptr message = new Dictionary();
 	message->Set("jsonrpc", "2.0");
 	message->Set("method", "config::UpdateObject");
@@ -303,7 +315,7 @@ void ApiListener::UpdateConfigObject(const ConfigObject::Ptr& object, const Mess
 
 #ifdef I2_DEBUG
 	Log(LogDebug, "ApiListener")
-	    << "Sent update for object: " << JsonEncode(params);
+	    << "Sent update for object '" << object->GetName() << "': " << JsonEncode(params);
 #endif /* I2_DEBUG */
 
 	if (client)
@@ -323,6 +335,19 @@ void ApiListener::DeleteConfigObject(const ConfigObject::Ptr& object, const Mess
 	if (object->GetZoneName().IsEmpty())
 		return;
 
+	/* only send objects to zones which have access to the object */
+	if (client) {
+		Zone::Ptr target_zone = client->GetEndpoint()->GetZone();
+
+		if (target_zone && !target_zone->CanAccessObject(object)) {
+			Log(LogDebug, "ApiListener")
+			    << "Not sending 'delete config' message to unauthorized zone '" << target_zone->GetName() << "'"
+			    << " for object: '" << object->GetName() << "'.";
+
+			return;
+		}
+	}
+
 	Dictionary::Ptr message = new Dictionary();
 	message->Set("jsonrpc", "2.0");
 	message->Set("method", "config::DeleteObject");
@@ -338,7 +363,7 @@ void ApiListener::DeleteConfigObject(const ConfigObject::Ptr& object, const Mess
 
 #ifdef I2_DEBUG
 	Log(LogDebug, "ApiListener")
-	    << "Sent delete object: " << JsonEncode(params);
+	    << "Sent delete for object '" << object->GetName() << "': " << JsonEncode(params);
 #endif /* I2_DEBUG */
 
 	if (client)
