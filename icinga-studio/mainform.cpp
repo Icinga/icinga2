@@ -46,6 +46,8 @@ MainForm::MainForm(wxWindow *parent, const Url::Ptr& url)
 	SetTitle(title);
 
 	m_ObjectsList->InsertColumn(0, "Name", 0, 300);
+	
+	m_PropertyGrid->SetColumnCount(3);
 }
 
 void MainForm::TypesCompletionHandler(boost::exception_ptr eptr, const std::vector<ApiType::Ptr>& types, bool forward)
@@ -184,34 +186,59 @@ wxPGProperty *MainForm::ValueToProperty(const String& name, const Value& value)
 
 	if (value.IsNumber()) {
 		double val = value;
-		return new wxFloatProperty(name.GetData(), wxPG_LABEL, value);
+		prop = new wxFloatProperty(name.GetData(), wxPG_LABEL, value);
+		prop->SetAttribute(wxPG_ATTR_UNITS, "Number");
+		return prop;
 	} else if (value.IsBoolean()) {
 		bool val = value;
-		return new wxBoolProperty(name.GetData(), wxPG_LABEL, value);
+		prop = new wxBoolProperty(name.GetData(), wxPG_LABEL, value);
+		prop->SetAttribute(wxPG_ATTR_UNITS, "Boolean");
+		return prop;
 	} else if (value.IsObjectType<Array>()) {
 		wxArrayString val;
 		Array::Ptr arr = value;
-		ObjectLock olock(arr);
-		BOOST_FOREACH(const Value& aitem, arr)
+
 		{
-			String val1 = aitem;
-			val.Add(val1.GetData());
+			ObjectLock olock(arr);
+			BOOST_FOREACH(const Value& aitem, arr) {
+				String val1 = aitem;
+				val.Add(val1.GetData());
+			}
 		}
 
-		return new wxArrayStringProperty(name.GetData(), wxPG_LABEL, val);
+		prop = new wxArrayStringProperty(name.GetData(), wxPG_LABEL, val);
+		prop->SetAttribute(wxPG_ATTR_UNITS, "Array");
+		return prop;
 	} else if (value.IsObjectType<Dictionary>()) {
-		wxStringProperty *prop = new wxStringProperty(name.GetData(), wxPG_LABEL, "<dictionary>");
+		wxStringProperty *prop = new wxStringProperty(name.GetData(), wxPG_LABEL);
 		
 		Dictionary::Ptr dict = value;
-		ObjectLock olock(dict);
-		BOOST_FOREACH(const Dictionary::Pair& kv, dict) {
-			prop->AppendChild(ValueToProperty(kv.first, kv.second));
+
+		{
+			ObjectLock olock(dict);
+			BOOST_FOREACH(const Dictionary::Pair& kv, dict) {
+				if (kv.first != "type")
+					prop->AppendChild(ValueToProperty(kv.first, kv.second));
+			}
 		}
 
+		String type = "Dictionary";
+
+		if (dict->Contains("type"))
+			type = dict->Get("type");
+
+		prop->SetAttribute(wxPG_ATTR_UNITS, type.GetData());
+
+		return prop;
+	} else if (value.IsEmpty() && !value.IsString()) {
+		prop = new wxStringProperty(name.GetData(), wxPG_LABEL, "");
+		prop->SetAttribute(wxPG_ATTR_UNITS, "Empty");
 		return prop;
 	} else {
 		String val = value;
-		return new wxStringProperty(name.GetData(), wxPG_LABEL, val.GetData());
+		prop = new wxStringProperty(name.GetData(), wxPG_LABEL, val.GetData());
+		prop->SetAttribute(wxPG_ATTR_UNITS, "String");
+		return prop;
 	}
 }
 
@@ -256,7 +283,8 @@ void MainForm::ObjectDetailsCompletionHandler(boost::exception_ptr eptr, const s
 		wxStringProperty *parent;
 
 		if (it == parents.end()) {
-			parent = new wxStringProperty(tokens[0].GetData(), wxPG_LABEL, "<object>");
+			parent = new wxStringProperty(tokens[0].GetData(), wxPG_LABEL);
+			parent->SetAttribute(wxPG_ATTR_UNITS, "Object");
 			parents[tokens[0]] = parent;
 		} else
 			parent = it->second;
@@ -280,6 +308,8 @@ void MainForm::ObjectDetailsCompletionHandler(boost::exception_ptr eptr, const s
 		m_PropertyGrid->Append(kv.second);
 		m_PropertyGrid->SetPropertyReadOnly(kv.second);
 	}
+
+	m_PropertyGrid->FitColumns();
 }
 
 void MainForm::OnQuitClicked(wxCommandEvent& event)
