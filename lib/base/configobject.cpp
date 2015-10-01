@@ -222,11 +222,12 @@ void ConfigObject::ModifyAttribute(const String& attr, const Value& value, bool 
 
 	SetField(fid, newValue);
 
-	if (updateVersion)
-		SetVersion(Utility::GetTime());
+	if (updated_original_attributes) {
+		if (updateVersion)
+			SetVersion(Utility::GetTime());
 
-	if (updated_original_attributes)
 		NotifyOriginalAttributes();
+	}
 }
 
 void ConfigObject::RestoreAttribute(const String& attr)
