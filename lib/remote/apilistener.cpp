@@ -511,9 +511,6 @@ void ApiListener::SyncRelayMessage(const MessageOrigin& origin, const DynamicObj
 	Log(LogNotice, "ApiListener")
 	    << "Relaying '" << message->Get("method") << "' message";
 
-	if (log)
-		PersistMessage(message, secobj);
-
 	if (origin.FromZone)
 		message->Set("originZone", origin.FromZone->GetName());
 
@@ -522,14 +519,30 @@ void ApiListener::SyncRelayMessage(const MessageOrigin& origin, const DynamicObj
 	Zone::Ptr my_zone = Zone::GetLocalZone();
 
 	std::vector<Endpoint::Ptr> skippedEndpoints;
+	std::set<Zone::Ptr> allZones;
 	std::set<Zone::Ptr> finishedZones;
+	std::set<Zone::Ptr> finishedLogZones;
 
 	BOOST_FOREACH(const Endpoint::Ptr& endpoint, DynamicType::GetObjectsByType<Endpoint>()) {
-		/* don't relay messages to ourselves or disconnected endpoints */
-		if (endpoint->GetName() == GetIdentity() || !endpoint->IsConnected())
+		/* don't relay messages to ourselves */
+		if (endpoint->GetName() == GetIdentity())
 			continue;
 
 		Zone::Ptr target_zone = endpoint->GetZone();
+
+		allZones.insert(target_zone);
+
+		/* only relay messages to zones which have access to the object */
+		if (!target_zone->CanAccessObject(secobj)) {
+			finishedLogZones.insert(target_zone);
+			continue;
+		}
+
+		/* don't relay messages to disconnected endpoints */
+		if (!endpoint->IsConnected())
+			continue;
+
+		finishedLogZones.insert(target_zone);
 
 		/* don't relay the message to the zone through more than one endpoint */
 		if (finishedZones.find(target_zone) != finishedZones.end()) {
@@ -562,14 +575,13 @@ void ApiListener::SyncRelayMessage(const MessageOrigin& origin, const DynamicObj
 			continue;
 		}
 
-		/* only relay messages to zones which have access to the object */
-		if (!target_zone->CanAccessObject(secobj))
-			continue;
-
 		finishedZones.insert(target_zone);
 
 		SyncSendMessage(endpoint, message);
 	}
+
+	if (log && allZones.size() != finishedLogZones.size())
+		PersistMessage(message, secobj);
 
 	BOOST_FOREACH(const Endpoint::Ptr& endpoint, skippedEndpoints)
 		endpoint->SetLocalLogPosition(ts);
