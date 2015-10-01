@@ -77,6 +77,9 @@ class ConnectFormBase : public wxDialog
 		wxTextCtrl* m_PortText;
 		wxTextCtrl* m_UserText;
 		wxTextCtrl* m_PasswordText;
+		wxStdDialogButtonSizer* m_Buttons;
+		wxButton* m_ButtonsOK;
+		wxButton* m_ButtonsCancel;
 	
 	public:
 		

@@ -52,6 +52,8 @@ ConnectForm::ConnectForm(wxWindow *parent, const Url::Ptr& url)
 		m_PortText->SetValue(hostport[1]);
 	else
 		m_PortText->SetValue("5665");
+
+	SetDefaultItem(m_ButtonsOK);
 }
 
 Url::Ptr ConnectForm::GetUrl(void) const

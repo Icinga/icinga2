@@ -142,9 +142,6 @@ ConnectFormBase::ConnectFormBase( wxWindow* parent, wxWindowID id, const wxStrin
 	wxBoxSizer* m_ButtonsSizer;
 	m_ButtonsSizer = new wxBoxSizer( wxHORIZONTAL );
 	
-	wxStdDialogButtonSizer* m_Buttons;
-	wxButton* m_ButtonsOK;
-	wxButton* m_ButtonsCancel;
 	m_Buttons = new wxStdDialogButtonSizer();
 	m_ButtonsOK = new wxButton( m_ButtonsPanel, wxID_OK );
 	m_Buttons->AddButton( m_ButtonsOK );
