@@ -279,6 +279,7 @@ set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "${CPACK_NSIS_EXTRA_INSTALL_COMMANDS}\nCre
 set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "${CPACK_NSIS_EXTRA_INSTALL_COMMANDS}\nCreateDirectory '$INSTDIR\\\\var\\\\spool\\\\icinga2\\\\perfdata'")
 set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "${CPACK_NSIS_EXTRA_INSTALL_COMMANDS}\nCreateDirectory '$INSTDIR\\\\var\\\\spool\\\\icinga2\\\\tmp'")
 set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "${CPACK_NSIS_EXTRA_INSTALL_COMMANDS}\nnsExec::Exec '\\\"$INSTDIR\\\\sbin\\\\icinga2\\\" --scm-install daemon'")
+set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "${CPACK_NSIS_EXTRA_INSTALL_COMMANDS}\nnsExec::Exec '\\\"$INSTDIR\\\\sbin\\\\icinga2\\\" api setup'")
 set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "${CPACK_NSIS_EXTRA_INSTALL_COMMANDS}\nnsExec::Exec 'net start icinga2'")
 set(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "nsExec::Exec '\\\"$INSTDIR\\\\sbin\\\\icinga2\\\" --scm-uninstall'")
 
