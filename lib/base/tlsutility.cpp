@@ -373,7 +373,7 @@ boost::shared_ptr<X509> CreateCert(EVP_PKEY *pubkey, X509_NAME *subject, X509_NA
 	X509 *cert = X509_new();
 	X509_set_version(cert, 2);
 	X509_gmtime_adj(X509_get_notBefore(cert), 0);
-	X509_gmtime_adj(X509_get_notAfter(cert), 365 * 24 * 60 * 60 * 30);
+	X509_gmtime_adj(X509_get_notAfter(cert), 365 * 24 * 60 * 60 * 15);
 	X509_set_pubkey(cert, pubkey);
 
 	X509_set_subject_name(cert, subject);
