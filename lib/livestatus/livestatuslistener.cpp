@@ -161,7 +161,7 @@ void LivestatusListener::ServerThreadProc(void)
 				break;
 		}
 	} catch (std::exception&) {
-		Log(LogCritical, "ListenerListener", "Cannot accept new connection.");
+		Log(LogCritical, "LivestatusListener", "Cannot accept new connection.");
 	}
 
 	m_Listener->Close();
