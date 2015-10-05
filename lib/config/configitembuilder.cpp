@@ -80,6 +80,11 @@ void ConfigItemBuilder::SetFilter(const boost::shared_ptr<Expression>& filter)
 	m_Filter = filter;
 }
 
+void ConfigItemBuilder::SetIgnoreOnError(bool ignoreOnError)
+{
+	m_IgnoreOnError = ignoreOnError;
+}
+
 ConfigItem::Ptr ConfigItemBuilder::Compile(void)
 {
 	if (m_Type.IsEmpty()) {
@@ -116,6 +121,6 @@ ConfigItem::Ptr ConfigItemBuilder::Compile(void)
 	exprl->MakeInline();
 
 	return new ConfigItem(m_Type, m_Name, m_Abstract, exprl, m_Filter,
-	    m_DebugInfo, m_Scope, m_Zone, m_Package);
+	    m_IgnoreOnError, m_DebugInfo, m_Scope, m_Zone, m_Package);
 }
 

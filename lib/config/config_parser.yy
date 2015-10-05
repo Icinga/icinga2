@@ -143,6 +143,7 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %token T_GLOBALS "globals (T_GLOBALS)"
 %token T_LOCALS "locals (T_LOCALS)"
 %token T_CONST "const (T_CONST)"
+%token T_IGNORE_ON_ERROR "ignore_on_error (T_IGNORE_ON_ERROR)"
 %token T_USE "use (T_USE)"
 %token T_OBJECT "object (T_OBJECT)"
 %token T_TEMPLATE "template (T_TEMPLATE)"
@@ -192,6 +193,7 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %type <expr> apply
 %type <expr> optional_rterm
 %type <text> target_type_specifier
+%type <boolean> ignore_specifier
 %type <cvlist> use_specifier
 %type <cvlist> use_specifier_items
 %type <cvitem> use_specifier_item
@@ -340,7 +342,7 @@ object:
 		context->m_Assign.push(NULL);
 		context->m_Ignore.push(NULL);
 	}
-	object_declaration identifier optional_rterm use_specifier rterm_scope_require_side_effect
+	object_declaration identifier optional_rterm use_specifier ignore_specifier rterm_scope_require_side_effect
 	{
 		context->m_ObjectAssign.pop();
 
@@ -349,7 +351,7 @@ object:
 		String type = *$3;
 		delete $3;
 
-		$6->MakeInline();
+		$7->MakeInline();
 
 		bool seen_assign = context->m_SeenAssign.top();
 		context->m_SeenAssign.pop();
@@ -382,7 +384,7 @@ object:
 				BOOST_THROW_EXCEPTION(ScriptError("object rule 'ignore' is missing 'assign' for type '" + type + "'", DebugInfoRange(@2, @4)));
 		}
 
-		$$ = new ObjectExpression(abstract, type, $4, filter, context->GetZone(), context->GetPackage(), $5, $6, DebugInfoRange(@2, @5));
+		$$ = new ObjectExpression(abstract, type, $4, filter, context->GetZone(), context->GetPackage(), $5, $6, $7, DebugInfoRange(@2, @6));
 	}
 	;
 
@@ -882,6 +884,16 @@ target_type_specifier: /* empty */
 	}
 	;
 
+ignore_specifier: /* empty */
+	{
+		$$ = false;
+	}
+	| T_IGNORE_ON_ERROR
+	{
+		$$ = true;
+	}
+	;
+
 use_specifier: /* empty */
 	{
 		$$ = NULL;
@@ -958,7 +970,7 @@ apply:
 		context->m_FVVar.push("");
 		context->m_FTerm.push(NULL);
 	}
-	T_APPLY identifier optional_rterm apply_for_specifier target_type_specifier use_specifier rterm_scope_require_side_effect
+	T_APPLY identifier optional_rterm apply_for_specifier target_type_specifier use_specifier ignore_specifier rterm_scope_require_side_effect
 	{
 		context->m_Apply.pop();
 
@@ -991,7 +1003,7 @@ apply:
 				BOOST_THROW_EXCEPTION(ScriptError("'apply' target type '" + target + "' is invalid", DebugInfoRange(@2, @5)));
 		}
 
-		$8->MakeInline();
+		$9->MakeInline();
 
 		bool seen_assign = context->m_SeenAssign.top();
 		context->m_SeenAssign.pop();
@@ -1030,7 +1042,7 @@ apply:
 		Expression *fterm = context->m_FTerm.top();
 		context->m_FTerm.pop();
 
-		$$ = new ApplyExpression(type, target, $4, filter, context->GetPackage(), fkvar, fvvar, fterm, $7, $8, DebugInfoRange(@2, @7));
+		$$ = new ApplyExpression(type, target, $4, filter, context->GetPackage(), fkvar, fvvar, fterm, $7, $8, $9, DebugInfoRange(@2, @8));
 	}
 	;
 

@@ -53,6 +53,7 @@ bool Service::EvaluateApplyRuleInstance(const Host::Ptr& host, const String& nam
 	builder->SetType("Service");
 	builder->SetName(name);
 	builder->SetScope(frame.Locals->ShallowClone());
+	builder->SetIgnoreOnError(rule.GetIgnoreOnError());
 
 	builder->AddExpression(new SetExpression(MakeIndexer(ScopeThis, "host_name"), OpSetLiteral, MakeLiteral(host->GetName()), di));
 

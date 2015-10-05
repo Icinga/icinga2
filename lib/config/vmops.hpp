@@ -106,16 +106,16 @@ public:
 
 	static inline Value NewApply(ScriptFrame& frame, const String& type, const String& target, const String& name, const boost::shared_ptr<Expression>& filter,
 		const String& package, const String& fkvar, const String& fvvar, const boost::shared_ptr<Expression>& fterm, std::map<String, Expression *> *closedVars,
-		const boost::shared_ptr<Expression>& expression, const DebugInfo& debugInfo = DebugInfo())
+		bool ignoreOnError, const boost::shared_ptr<Expression>& expression, const DebugInfo& debugInfo = DebugInfo())
 	{
 		ApplyRule::AddRule(type, target, name, expression, filter, package, fkvar,
-		    fvvar, fterm, debugInfo, EvaluateClosedVars(frame, closedVars));
+		    fvvar, fterm, ignoreOnError, debugInfo, EvaluateClosedVars(frame, closedVars));
 
 		return Empty;
 	}
 
 	static inline Value NewObject(ScriptFrame& frame, bool abstract, const String& type, const String& name, const boost::shared_ptr<Expression>& filter,
-		const String& zone, const String& package, std::map<String, Expression *> *closedVars, const boost::shared_ptr<Expression>& expression, const DebugInfo& debugInfo = DebugInfo())
+		const String& zone, const String& package, bool ignoreOnError, std::map<String, Expression *> *closedVars, const boost::shared_ptr<Expression>& expression, const DebugInfo& debugInfo = DebugInfo())
 	{
 		ConfigItemBuilder::Ptr item = new ConfigItemBuilder(debugInfo);
 
@@ -149,6 +149,7 @@ public:
 		item->SetZone(zone);
 		item->SetPackage(package);
 		item->SetFilter(filter);
+		item->SetIgnoreOnError(ignoreOnError);
 		item->Compile()->Register();
 
 		return Empty;

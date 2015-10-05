@@ -41,13 +41,14 @@ public:
 	ConfigItem(const String& type, const String& name, bool abstract,
 	    const boost::shared_ptr<Expression>& exprl,
 	    const boost::shared_ptr<Expression>& filter,
-	    const DebugInfo& debuginfo,
+	    bool ignoreOnError, const DebugInfo& debuginfo,
 	    const Dictionary::Ptr& scope, const String& zone,
 	    const String& package);
 
 	String GetType(void) const;
 	String GetName(void) const;
 	bool IsAbstract(void) const;
+	bool GetIgnoreOnError(void) const;
 
 	std::vector<ConfigItem::Ptr> GetParents(void) const;
 
@@ -80,6 +81,7 @@ private:
 
 	boost::shared_ptr<Expression> m_Expression;
 	boost::shared_ptr<Expression> m_Filter;
+	bool m_IgnoreOnError;
 	DebugInfo m_DebugInfo; /**< Debug information. */
 	Dictionary::Ptr m_Scope; /**< variable scope. */
 	String m_Zone; /**< The zone. */

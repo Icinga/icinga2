@@ -54,6 +54,7 @@ bool ScheduledDowntime::EvaluateApplyRuleInstance(const Checkable::Ptr& checkabl
 	builder->SetType("ScheduledDowntime");
 	builder->SetName(name);
 	builder->SetScope(frame.Locals->ShallowClone());
+	builder->SetIgnoreOnError(rule.GetIgnoreOnError());
 
 	Host::Ptr host;
 	Service::Ptr service;

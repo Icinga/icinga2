@@ -55,6 +55,7 @@ bool Notification::EvaluateApplyRuleInstance(const Checkable::Ptr& checkable, co
 	builder->SetType("Notification");
 	builder->SetName(name);
 	builder->SetScope(frame.Locals->ShallowClone());
+	builder->SetIgnoreOnError(rule.GetIgnoreOnError());
 
 	Host::Ptr host;
 	Service::Ptr service;

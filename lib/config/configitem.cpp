@@ -60,11 +60,11 @@ REGISTER_SCRIPTFUNCTION(commit_objects, &ConfigItem::CommitAndActivate);
  */
 ConfigItem::ConfigItem(const String& type, const String& name,
     bool abstract, const boost::shared_ptr<Expression>& exprl,
-    const boost::shared_ptr<Expression>& filter,
+    const boost::shared_ptr<Expression>& filter, bool ignoreOnError,
     const DebugInfo& debuginfo, const Dictionary::Ptr& scope,
     const String& zone, const String& package)
 	: m_Type(type), m_Name(name), m_Abstract(abstract),
-	  m_Expression(exprl), m_Filter(filter),
+	  m_Expression(exprl), m_Filter(filter), m_IgnoreOnError(ignoreOnError),
 	  m_DebugInfo(debuginfo), m_Scope(scope), m_Zone(zone),
 	  m_Package(package)
 {
@@ -184,7 +184,18 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 	ScriptFrame frame(dobj);
 	if (m_Scope)
 		m_Scope->CopyTo(frame.Locals);
-	m_Expression->Evaluate(frame, &debugHints);
+	try {
+		m_Expression->Evaluate(frame, &debugHints);
+	} catch (const std::exception& ex) {
+		if (m_IgnoreOnError) {
+			Log(LogWarning, "ConfigObject")
+			    << "Ignoring config object '" << m_Name << "' of type '" << m_Type << "' due to errors: " << DiagnosticInformation(ex);
+
+			return ConfigObject::Ptr();
+		}
+
+		throw;
+	}
 
 	if (discard)
 		m_Expression.reset();
@@ -237,16 +248,23 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 	di->Add(m_DebugInfo.LastColumn);
 	persistentItem->Set("debug_info", di);
 
-	ConfigCompilerContext::GetInstance()->WriteObject(persistentItem);
-	persistentItem.reset();
-
 	try {
 		DefaultValidationUtils utils;
 		dobj->Validate(FAConfig, utils);
 	} catch (ValidationError& ex) {
+		if (m_IgnoreOnError) {
+			Log(LogWarning, "ConfigObject")
+			    << "Ignoring config object '" << m_Name << "' of type '" << m_Type << "' due to errors: " << DiagnosticInformation(ex);
+
+			return ConfigObject::Ptr();
+		}
+
 		ex.SetDebugHint(dhint);
 		throw;
 	}
+
+	ConfigCompilerContext::GetInstance()->WriteObject(persistentItem);
+	persistentItem.reset();
 
 	dhint.reset();
 
@@ -407,7 +425,8 @@ bool ConfigItem::CommitNewItems(WorkQueue& upq, std::vector<ConfigItem::Ptr>& ne
 				continue;
 
 			BOOST_FOREACH(const ConfigItem::Ptr& item, new_items) {
-				ASSERT(item->m_Object);
+				if (!item->m_Object)
+					continue;
 
 				if (item->m_Type == type)
 					upq.Enqueue(boost::bind(&ConfigObject::OnAllConfigLoaded, item->m_Object));
@@ -422,7 +441,8 @@ bool ConfigItem::CommitNewItems(WorkQueue& upq, std::vector<ConfigItem::Ptr>& ne
 
 			BOOST_FOREACH(const String& loadDep, ptype->GetLoadDependencies()) {
 				BOOST_FOREACH(const ConfigItem::Ptr& item, new_items) {
-					ASSERT(item->m_Object);
+					if (!item->m_Object)
+						continue;
 
 					if (item->m_Type == loadDep)
 						upq.Enqueue(boost::bind(&ConfigObject::CreateChildObjects, item->m_Object, ptype));
@@ -464,6 +484,9 @@ bool ConfigItem::CommitItems(WorkQueue& upq)
 	typedef std::map<Type::Ptr, int> ItemCountMap;
 	ItemCountMap itemCounts;
 	BOOST_FOREACH(const ConfigItem::Ptr& item, newItems) {
+		if (!item->m_Object)
+			continue;
+
 		itemCounts[item->m_Object->GetReflectionType()]++;
 	}
 

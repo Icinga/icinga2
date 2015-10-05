@@ -29,9 +29,9 @@ ApplyRule::TypeMap ApplyRule::m_Types;
 
 ApplyRule::ApplyRule(const String& targetType, const String& name, const boost::shared_ptr<Expression>& expression,
     const boost::shared_ptr<Expression>& filter, const String& package, const String& fkvar, const String& fvvar, const boost::shared_ptr<Expression>& fterm,
-    const DebugInfo& di, const Dictionary::Ptr& scope)
+    bool ignoreOnError, const DebugInfo& di, const Dictionary::Ptr& scope)
 	: m_TargetType(targetType), m_Name(name), m_Expression(expression), m_Filter(filter), m_Package(package), m_FKVar(fkvar),
-	  m_FVVar(fvvar), m_FTerm(fterm), m_DebugInfo(di), m_Scope(scope), m_HasMatches(false)
+	  m_FVVar(fvvar), m_FTerm(fterm), m_IgnoreOnError(ignoreOnError), m_DebugInfo(di), m_Scope(scope), m_HasMatches(false)
 { }
 
 String ApplyRule::GetTargetType(void) const
@@ -74,6 +74,11 @@ boost::shared_ptr<Expression> ApplyRule::GetFTerm(void) const
 	return m_FTerm;
 }
 
+bool ApplyRule::GetIgnoreOnError(void) const
+{
+	return m_IgnoreOnError;
+}
+
 DebugInfo ApplyRule::GetDebugInfo(void) const
 {
 	return m_DebugInfo;
@@ -86,9 +91,9 @@ Dictionary::Ptr ApplyRule::GetScope(void) const
 
 void ApplyRule::AddRule(const String& sourceType, const String& targetType, const String& name,
     const boost::shared_ptr<Expression>& expression, const boost::shared_ptr<Expression>& filter, const String& package, const String& fkvar,
-    const String& fvvar, const boost::shared_ptr<Expression>& fterm, const DebugInfo& di, const Dictionary::Ptr& scope)
+    const String& fvvar, const boost::shared_ptr<Expression>& fterm, bool ignoreOnError, const DebugInfo& di, const Dictionary::Ptr& scope)
 {
-	m_Rules[sourceType].push_back(ApplyRule(targetType, name, expression, filter, package, fkvar, fvvar, fterm, di, scope));
+	m_Rules[sourceType].push_back(ApplyRule(targetType, name, expression, filter, package, fkvar, fvvar, fterm, ignoreOnError, di, scope));
 }
 
 bool ApplyRule::EvaluateFilter(ScriptFrame& frame) const
