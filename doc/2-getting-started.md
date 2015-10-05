@@ -100,6 +100,10 @@ SLES/openSUSE:
 
     # zypper install icinga2
 
+FreeBSD:
+
+    # pkg install icinga2
+
 ### <a id="installation-enabled-features"></a> Enabled Features during Installation
 
 The default installation will enable three features required for a basic
@@ -136,6 +140,24 @@ By default Icinga 2 uses the following files and directories:
   /var/lib/icinga2                    | Icinga 2 state file, cluster log, local CA and configuration files.
   /var/log/icinga2                    | Log file location and compat/ directory for the CompatLogger feature.
 
+FreeBSD uses slightly different paths:
+
+By default Icinga 2 uses the following files and directories:
+
+  Path                                | Description
+  ------------------------------------|------------------------------------
+  /usr/local/etc/icinga2              | Contains Icinga 2 configuration files.
+  /usr/local/etc/rc.d/icinga2         | The Icinga 2 init script.
+  /usr/local/sbin/icinga2             | The Icinga 2 binary.
+  /usr/local/share/doc/icinga2        | Documentation files that come with Icinga 2.
+  /usr/local/share/icinga2/include    | The Icinga Template Library and plugin command configuration.
+  /var/run/icinga2                    | PID file.
+  /var/run/icinga2/cmd                | Command pipe and Livestatus socket.
+  /var/cache/icinga2                  | status.dat/objects.cache, icinga2.debug files
+  /var/spool/icinga2                  | Used for performance data spool files.
+  /var/lib/icinga2                    | Icinga 2 state file, cluster log, local CA and configuration files.
+  /var/log/icinga2                    | Log file location and compat/ directory for the CompatLogger feature.
+
 ## <a id="setting-up-check-plugins"></a> Setting up Check Plugins
 
 Without plugins Icinga 2 does not know how to check external services. The
@@ -153,7 +175,7 @@ OS/Distribution        | Package Name       | Installation Path
 -----------------------|--------------------|---------------------------
 RHEL/CentOS (EPEL)     | nagios-plugins-all | /usr/lib/nagios/plugins or /usr/lib64/nagios/plugins
 Debian                 | nagios-plugins     | /usr/lib/nagios/plugins
-FreeBSD                | nagios-plugins     | /usr/local/libexec/nagios
+FreeBSD                | monitoring-plugins | /usr/local/libexec/nagios
 OS X (MacPorts)        | nagios-plugins     | /opt/local/libexec
 
 Depending on which directory your plugins are installed into you may need to
@@ -168,7 +190,7 @@ additional check plugins into your Icinga 2 setup.
 
 ### <a id="init-script"></a> Init Script
 
-Icinga 2's init script is installed in `/etc/init.d/icinga2` by default:
+Icinga 2's init script is installed in `/etc/init.d/icinga2` (`/usr/local/etc/rc.d/icinga2` on FreeBSD) by default:
 
     # /etc/init.d/icinga2
     Usage: /etc/init.d/icinga2 {start|stop|restart|reload|checkconfig|status}
@@ -236,6 +258,13 @@ Examples:
 If you're stuck with configuration errors, you can manually invoke the
 [configuration validation](8-cli-commands.md#config-validation).
 
+### FreeBSD
+
+On FreeBSD you need to enable icinga2 in your rc.conf
+
+    # sysrc icinga2_enable=yes
+
+    # service icinga2 restart
 
 ## <a id="configuration-syntax-highlighting"></a> Configuration Syntax Highlighting
 
@@ -325,6 +354,13 @@ SUSE:
     # chkconfig mysqld on
     # service mysqld start
 
+FreeBSD:
+
+    # pkg install mysql56-server
+    # sysrc mysql_enable=yes
+    # service mysql-server restart
+    # mysql_secure_installation
+
 #### <a id="installing-database-mysql-modules"></a> Installing the IDO modules for MySQL
 
 The next step is to install the `icinga2-ido-mysql` package using your
@@ -342,6 +378,10 @@ SUSE:
 
     # zypper install icinga2-ido-mysql
 
+FreeBSD:
+
+On FreeBSD the IDO modules for MySQL are included with the icinga2 package
+and located at /usr/local/share/icinga2-ido-mysql/schema/mysql.sql
 
 > **Note**
 >
@@ -391,6 +431,10 @@ RHEL/CentOS 7 and Fedora:
 
     # systemctl restart icinga2
 
+FreeBSD:
+
+    # service icinga2 restart
+
 ### <a id="configuring-db-ido-postgresql"></a> Configuring DB IDO PostgreSQL
 
 #### <a id="installing-database-postgresql-server"></a> Installing PostgreSQL database server
@@ -418,6 +462,12 @@ SUSE:
     # chkconfig postgresql on
     # service postgresql start
 
+FreeBSD:
+
+    # pkg install postgresql93-server
+    # sysrc postgresql_enable=yes
+    # service postgresql start
+
 #### <a id="installing-database-postgresql-modules"></a> Installing the IDO modules for PostgreSQL
 
 The next step is to install the `icinga2-ido-pgsql` package using your
@@ -434,6 +484,11 @@ RHEL/CentOS:
 SUSE:
 
     # zypper install icinga2-ido-pgsql
+
+FreeBSD:
+
+On FreeBSD the IDO modules for PostgreSQL are included with the icinga2 package
+and located at /usr/local/share/icinga2-ido-pgsql/schema/pgsql.sql
 
 > **Note**
 >
@@ -501,7 +556,7 @@ You can enable the `ido-pgsql` feature configuration file using
 
 After enabling the ido-pgsql feature you have to restart Icinga 2:
 
-Debian/Ubuntu, RHEL/CentOS 6 and SUSE:
+Debian/Ubuntu, RHEL/CentOS 6, SUSE and FreeBSD:
 
     # service icinga2 restart
 
@@ -534,6 +589,18 @@ SUSE:
     # chkconfig on
     # service apache2 start
 
+FreeBSD (nginx, but you could also use the apache24 package):
+
+    # pkg install nginx php56-gettext php56-ldap php56-openssl php56-mysql php56-pdo_mysql php56-pgsql php56-pdo_pgsql php56-sockets php56-gd pecl-imagick pecl-intl
+    # sysrc php_fpm_enable=yes
+    # sysrc nginx_enable=yes
+    # sed -i '' "s/listen\ =\ 127.0.0.1:9000/listen\ =\ \/var\/run\/php5-fpm.sock/" /usr/local/etc/php-fpm.conf
+    # sed -i '' "s/;listen.owner/listen.owner/" /usr/local/etc/php-fpm.conf
+    # sed -i '' "s/;listen.group/listen.group/" /usr/local/etc/php-fpm.conf
+    # sed -i '' "s/;listen.mode/listen.mode/" /usr/local/etc/php-fpm.conf
+    # service php-fpm start
+    # service nginx start
+
 ### <a id="icinga2-user-interface-firewall-rules"></a> Firewall Rules
 
 Example:
@@ -545,6 +612,9 @@ RHEL/CentOS 7 specific:
 
     # firewall-cmd --add-service=http
     # firewall-cmd --permanent --add-service=http
+
+FreeBSD:
+Please consult the [FreeBSD Handbook](https://www.freebsd.org/doc/en_US.ISO8859-1/books/handbook/firewalls.html) how to configure one of FreeBSD's firewalls.
 
 
 ### <a id="setting-up-external-command-pipe"></a> Setting Up External Command Pipe
@@ -566,11 +636,19 @@ RHEL/CentOS 7 and Fedora:
 
     # systemctl restart icinga2
 
+FreeBSD:
+
+    # service icinga2 restart
+
 By default the command pipe file is owned by the group `icingacmd` with
 read/write permissions. Add your webserver's user to the group `icingacmd` to
 enable sending commands to Icinga 2 through your web interface:
 
     # usermod -a -G icingacmd www-data
+
+FreeBSD:
+On FreeBSD the rw directory is owned by the group `www`. You do not need to add the
+user `icinga` to the group `www`.
 
 Debian packages use `nagios` as the default user and group name. Therefore
 change `icingacmd` to `nagios`.
