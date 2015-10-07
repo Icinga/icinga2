@@ -169,7 +169,7 @@ object				return T_OBJECT;
 template			return T_TEMPLATE;
 include				return T_INCLUDE;
 include_recursive		return T_INCLUDE_RECURSIVE;
-include_zones		return T_INCLUDE_ZONES;
+include_zones			return T_INCLUDE_ZONES;
 library				return T_LIBRARY;
 null				return T_NULL;
 true				{ yylval->boolean = 1; return T_BOOLEAN; }

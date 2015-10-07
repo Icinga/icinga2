@@ -323,6 +323,7 @@ const std::vector<String>& ConfigCompiler::GetKeywords(void)
 		keywords.push_back("template");
 		keywords.push_back("include");
 		keywords.push_back("include_recursive");
+		keywords.push_back("include_zones");
 		keywords.push_back("library");
 		keywords.push_back("null");
 		keywords.push_back("true");
@@ -333,6 +334,7 @@ const std::vector<String>& ConfigCompiler::GetKeywords(void)
 		keywords.push_back("globals");
 		keywords.push_back("locals");
 		keywords.push_back("use");
+		keywords.push_back("ignore_on_error");
 		keywords.push_back("apply");
 		keywords.push_back("to");
 		keywords.push_back("where");
