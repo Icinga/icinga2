@@ -10,7 +10,6 @@ make calls to
 
 * run [actions](9-icinga2-api.md#icinga2-api-actions) (reschedule checks, etc.)
 * query, create, modify and delete [config objects](9-icinga2-api.md#icinga2-api-config-objects)
-* [create/update/delete configuration objects](9-icinga2-api.md#icinga2-api-config-objects)
 * [manage configuration packages](9-icinga2-api.md#icinga2-api-config-management)
 * subscribe to [event streams](9-icinga2-api.md#icinga2-api-event-streams)
 
@@ -197,7 +196,6 @@ Example for JSON body:
 
     { "attrs": { "address": "8.8.4.4", "vars.os" : "Windows" } }
 
-**TODO**
 
 #### <a id="icinga2-api-filters"></a> Filters
 
@@ -211,9 +209,6 @@ Example for all services in NOT-OK state:
 Example for matching all hosts by name (**Note**: `"` are url-encoded as `%22`):
 
     https://localhost:5665/v1/objects/hosts?filter=match(%22nbmif*%22,host.name)
-
-**TODO**
-
 
 
 ### <a id="icinga2-api-output-format"></a>Output Format
