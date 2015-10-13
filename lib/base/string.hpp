@@ -203,6 +203,16 @@ public:
 		return m_Data.find_first_not_of(ch, pos);
 	}
 
+	inline SizeType FindLastOf(const char *s, SizeType pos = NPos) const
+	{
+		return m_Data.find_last_of(s, pos);
+	}
+
+	inline SizeType FindLastOf(char ch, SizeType pos = NPos) const
+	{
+		return m_Data.find_last_of(ch, pos);
+	}
+
 	inline String SubStr(SizeType first, SizeType len = NPos) const
 	{
 		return m_Data.substr(first, len);
