@@ -1216,23 +1216,46 @@ Configuration Attributes:
 Time periods can be used to specify when hosts/services should be checked or to limit
 when notifications should be sent out.
 
-Example:
+Examples:
 
-    object TimePeriod "24x7" {
+    object TimePeriod "nonworkhours" {
       import "legacy-timeperiod"
 
-      display_name = "Icinga 2 24x7 TimePeriod"
+      display_name = "Icinga 2 TimePeriod for non working hours"
 
       ranges = {
-        monday = "00:00-24:00"
-        tuesday = "00:00-24:00"
-        wednesday = "00:00-24:00"
-        thursday = "00:00-24:00"
-        friday = "00:00-24:00"
+        monday = "00:00-8:00,17:00-24:00"
+        tuesday = "00:00-8:00,17:00-24:00"
+        wednesday = "00:00-8:00,17:00-24:00"
+        thursday = "00:00-8:00,17:00-24:00"
+        friday = "00:00-8:00,16:00-24:00"
         saturday = "00:00-24:00"
         sunday = "00:00-24:00"
       }
     }
+
+    object TimePeriod "exampledays" {
+        import "legacy-timeperiod"
+
+        display_name = "Icinga 2 TimePeriod for random example days"
+
+        ranges = {
+            //We still believe in Santa, no peeking!
+            //Applies every 25th of December every year
+            "december 25" = "00:00-24:00"
+
+            //Any point in time can be specified,
+            //but you still have to use a range
+            "2038-01-19" = "03:13-03:15"
+
+            //Evey 3rd day from the second monday of February
+            //to 8th of November
+            "monday 2 february - november 8 / 3" = "00:00-24:00"
+        }
+    }
+
+
+Additional examples can be found [within the icinga documentation](http://docs.icinga.org/latest/en/objectdefinitions.html#objectdefinitions-timeperiod).
 
 Configuration Attributes:
 
