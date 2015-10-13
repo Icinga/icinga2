@@ -50,7 +50,7 @@ PerfdataValue::PerfdataValue(String label, double value, bool counter,
 
 PerfdataValue::Ptr PerfdataValue::Parse(const String& perfdata)
 {
-	size_t eqp = perfdata.FindFirstOf('=');
+	size_t eqp = perfdata.FindLastOf('=');
 
 	if (eqp == String::NPos)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid performance data value: " + perfdata));
