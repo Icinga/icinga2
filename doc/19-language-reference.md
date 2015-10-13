@@ -185,7 +185,7 @@ in       | 7          | "foo" in [ "foo", "bar" ] (true)              | Element 
 ^        | 10          | 17 ^ 12 (29)                                  | Bitwise XOR
 &#124;   | 11          | 2 &#124; 3 (3)                                | Binary OR
 &&       | 13         | true && false (false), 3 && 7 (7), 0 && 7 (0) | Logical AND
-&#124;&#124; | 14     | true &#124;&#124; false (true), 0 || 7 (7)| Logical OR
+&#124;&#124; | 14     | true &#124;&#124; false (true), 0 &#124;&#124; 7 (7)| Logical OR
 =        | 12         | a = 3                                         | Assignment
 =>       | 15         | x => x * x (function with arg x)              | Lambda, for loop
 
