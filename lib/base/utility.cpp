@@ -612,13 +612,13 @@ void Utility::MkDir(const String& path, int flags)
 	}
 }
 
-void Utility::MkDirP(const String& path, int flags)
+void Utility::MkDirP(const String& path, int mode)
 {
 	size_t pos = 0;
 
 	while (pos != String::NPos) {
 		pos = path.Find("/", pos + 1);
-		MkDir(path.SubStr(0, pos), flags);
+		MkDir(path.SubStr(0, pos), mode);
 	}
 }
 

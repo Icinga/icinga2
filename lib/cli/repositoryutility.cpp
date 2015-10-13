@@ -232,12 +232,13 @@ bool RepositoryUtility::AddObject(const std::vector<String>& object_paths, const
 
 	if (check_config) {
 		try {
-			Object::Ptr object = utype->Instantiate();
+			ConfigObject::Ptr object = static_pointer_cast<ConfigObject>(utype->Instantiate());
 			Deserialize(object, attrs, false, FAConfig);
+			object->SetName(name);
 
 			RepositoryValidationUtils utils;
 			static_pointer_cast<ConfigObject>(object)->Validate(FAConfig, utils);
-		} catch (const ScriptError& ex) {
+		} catch (const ValidationError& ex) {
 			Log(LogCritical, "config", DiagnosticInformation(ex));
 			return false;
 		}
@@ -554,6 +555,8 @@ bool RepositoryUtility::GetChangeLog(const boost::function<void (const Dictionar
 {
 	std::vector<String> changelog;
 	String path = GetRepositoryChangeLogPath() + "/";
+
+	Utility::MkDirP(path, 0700);
 
 	Utility::Glob(path + "/*.change",
 	    boost::bind(&RepositoryUtility::CollectChangeLog, _1, boost::ref(changelog)), GlobFile);
