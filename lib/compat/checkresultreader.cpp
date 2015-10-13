@@ -55,6 +55,8 @@ void CheckResultReader::StatsFunc(const Dictionary::Ptr& status, const Array::Pt
  */
 void CheckResultReader::Start(void)
 {
+	ObjectImpl<CheckResultReader>::Start();
+
 	m_ReadTimer = new Timer();
 	m_ReadTimer->OnTimerExpired.connect(boost::bind(&CheckResultReader::ReadTimerHandler, this));
 	m_ReadTimer->SetInterval(5);
