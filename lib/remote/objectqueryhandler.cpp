@@ -61,14 +61,17 @@ bool ObjectQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 			attrs.insert(uattr);
 
 			String::SizeType dpos = uattr.FindFirstOf(".");
-			if (dpos != String::NPos) {
-				String userJoinAttr = uattr.SubStr(0, dpos);
-
-				if (userJoinAttr == type->GetName().ToLower())
-					userJoinAttr = "";
-
-				userJoinAttrs.insert(userJoinAttr);
+			if (dpos == String::NPos) {
+				HttpUtility::SendJsonError(response, 400, "Attribute name must contain '.'.");
+				return true;
 			}
+
+			String userJoinAttr = uattr.SubStr(0, dpos);
+
+			if (userJoinAttr == type->GetName().ToLower())
+				userJoinAttr = "";
+
+			userJoinAttrs.insert(userJoinAttr);
 		}
 	}
 
@@ -98,6 +101,7 @@ bool ObjectQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 	std::vector<Value> objs = FilterUtility::GetFilterTargets(qd, params, user);
 
 	Array::Ptr results = new Array();
+	results->Reserve(objs.size());
 
 	BOOST_FOREACH(const ConfigObject::Ptr& obj, objs) {
 		Dictionary::Ptr result1 = new Dictionary();
@@ -128,11 +132,31 @@ bool ObjectQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 
 			Type::Ptr joinedType = joinedObj->GetReflectionType();
 
-			for (int fid = 0; fid < joinedType->GetFieldCount(); fid++) {
+			std::vector<int> fids;
+
+			if (attrs.empty()) {
+				for (int fid = 0; fid < joinedType->GetFieldCount(); fid++) {
+					fids.push_back(fid);
+				}
+			} else {
+				BOOST_FOREACH(const String& aname, attrs) {
+					String::SizeType dpos = aname.FindFirstOf(".");
+					ASSERT(dpos != String::NPos);
+
+					String userJoinAttr = aname.SubStr(0, dpos);
+					if (userJoinAttr != prefix)
+						continue;
+
+					String userAttr = aname.SubStr(dpos + 1);
+
+					int fid = joinedType->GetFieldId(userAttr);
+					fids.push_back(fid);
+				}
+			}
+
+			BOOST_FOREACH(int& fid, fids) {
 				Field field = joinedType->GetFieldInfo(fid);
 				String aname = prefix + "." + field.Name;
-				if (!attrs.empty() && attrs.find(aname) == attrs.end())
-					continue;
 
 				Value val = joinedObj->GetField(fid);
 
