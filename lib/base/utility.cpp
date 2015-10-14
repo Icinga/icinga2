@@ -143,6 +143,26 @@ bool Utility::Match(const String& pattern, const String& text)
 	return (match(pattern.CStr(), text.CStr()) == 0);
 }
 
+static bool ParseIp(const String& ip, char addr[16], int *proto)
+{
+	if (inet_pton(AF_INET, ip.CStr(), addr + 12) == 1) {
+		/* IPv4-mapped IPv6 address (::ffff:<ipv4-bits>) */
+		memset(addr, 0, 10);
+		memset(addr + 10, 0xff, 2);
+		*proto = AF_INET;
+
+		return true;
+	}
+
+	if (inet_pton(AF_INET6, ip.CStr(), addr) == 1) {
+		*proto = AF_INET6;
+
+		return true;
+	}
+
+	return false;
+}
+
 static void ParseIpMask(const String& ip, char mask[16], int *bits)
 {
 	String::SizeType slashp = ip.FindFirstOf("/");
@@ -156,23 +176,20 @@ static void ParseIpMask(const String& ip, char mask[16], int *bits)
 		*bits = Convert::ToLong(ip.SubStr(slashp + 1));
 	}
 
-	/* IPv4-mapped IPv6 address (::ffff:<ipv4-bits>) */
-	memset(mask, 0, 10);
-	memset(mask + 10, 0xff, 2);
-	if (inet_pton(AF_INET, uip.CStr(), mask + 12) < 1) {
-		if (inet_pton(AF_INET6, uip.CStr(), mask) < 1) {
-			BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid IP address specified."));
-		}
-	} else
+	int proto;
+
+	if (!ParseIp(uip, mask, &proto))
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid IP address specified."));
+
+	if (proto == AF_INET)
 		*bits += 96;
 
 	if (slashp == String::NPos)
 		*bits = 128;
 
-	if (*bits > 128)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Mask must not be greater than 128."));
+	if (*bits > 128 || *bits < 0)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Mask must be between 0 and 128."));
 
-	/* TODO: validate mask */
 	for (int i = 0; i < 16; i++) {
 		int lbits = *bits - i * 8;
 
@@ -204,16 +221,16 @@ static bool IpMaskCheck(char addr[16], char mask[16], int bits)
 
 bool Utility::CidrMatch(const String& pattern, const String& ip)
 {
-	char mask[16], addr[16];
+	char mask[16];
 	int bits;
 
-	try {
-		ParseIpMask(ip, addr, &bits);
-	} catch (const std::exception&) {
-		return false;
-	}
-
 	ParseIpMask(pattern, mask, &bits);
+
+	char addr[16];
+	int proto;
+
+	if (!ParseIp(ip, addr, &proto))
+		return false;
 
 	return IpMaskCheck(addr, mask, bits);
 }
