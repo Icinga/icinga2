@@ -39,6 +39,7 @@ using namespace icinga;
 
 REGISTER_SCRIPTFUNCTION(regex, &ScriptUtils::Regex);
 REGISTER_SCRIPTFUNCTION(match, &Utility::Match);
+REGISTER_SCRIPTFUNCTION(cidr_match, &Utility::CidrMatch);
 REGISTER_SCRIPTFUNCTION(len, &ScriptUtils::Len);
 REGISTER_SCRIPTFUNCTION(union, &ScriptUtils::Union);
 REGISTER_SCRIPTFUNCTION(intersection, &ScriptUtils::Intersection);

@@ -65,6 +65,7 @@ public:
 	static String GetSymbolName(const void *addr);
 
 	static bool Match(const String& pattern, const String& text);
+	static bool CidrMatch(const String& pattern, const String& ip);
 
 	static String DirName(const String& path);
 	static String BaseName(const String& path);

@@ -6,6 +6,7 @@ Function                        | Description
 --------------------------------|-----------------------
 regex(pattern, text)            | Returns true if the regex pattern matches the text, false otherwise.
 match(pattern, text)            | Returns true if the wildcard pattern matches the text, false otherwise.
+cidr_match(pattern, ip)         | Returns true if the CIDR pattern matches the IP address, false otherwise. IPv4 addresses are converted to IPv4-mapped IPv6 addresses before being matched against the pattern.
 len(value)                      | Returns the length of the value, i.e. the number of elements for an array or dictionary, or the length of the string in bytes.
 union(array, array, ...)        | Returns an array containing all unique elements from the specified arrays.
 intersection(array, array, ...) | Returns an array containing all unique elements which are common to all specified arrays.
