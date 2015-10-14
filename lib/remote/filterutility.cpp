@@ -231,12 +231,6 @@ std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, c
 		if (!query->Contains("type"))
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Type must be specified when using a filter."));
 
-		String filter;
-		if (!query->Contains("filter"))
-			filter = "true";
-		else
-			filter = HttpUtility::GetLastParameter(query, "filter");
-
 		String type = HttpUtility::GetLastParameter(query, "type");
 
 		if (!provider->IsValidType(type))
@@ -249,7 +243,12 @@ std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, c
 		frame.Sandboxed = true;
 		Dictionary::Ptr uvars = new Dictionary();
 
-		Expression *ufilter = ConfigCompiler::CompileText("<API query>", filter);
+		Expression *ufilter = NULL;
+
+		if (query->Contains("filter")) {
+			String filter = HttpUtility::GetLastParameter(query, "filter");
+			ufilter = ConfigCompiler::CompileText("<API query>", filter);
+		}
 
 		Dictionary::Ptr filter_vars = query->Get("filter_vars");
 		if (filter_vars) {
