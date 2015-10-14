@@ -49,17 +49,43 @@ bool ObjectQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 	qd.Types.insert(type->GetName());
 	qd.Permission = "objects/query/" + type->GetName();
 
+	Dictionary::Ptr params = HttpUtility::FetchRequestParameters(request);
+
+	std::set<String> userJoinAttrs;
+	std::set<String> attrs;
+	Array::Ptr uattrs = params->Get("attrs");
+
+	if (uattrs) {
+		ObjectLock olock(uattrs);
+		BOOST_FOREACH(const String& uattr, uattrs) {
+			attrs.insert(uattr);
+
+			String::SizeType dpos = uattr.FindFirstOf(".");
+			if (dpos != String::NPos) {
+				String userJoinAttr = uattr.SubStr(0, dpos);
+
+				if (userJoinAttr == type->GetName().ToLower())
+					userJoinAttr = "";
+
+				userJoinAttrs.insert(userJoinAttr);
+			}
+		}
+	}
+
 	std::vector<String> joinAttrs;
 	joinAttrs.push_back("");
 
 	for (int fid = 0; fid < type->GetFieldCount(); fid++) {
 		Field field = type->GetFieldInfo(fid);
 
-		if (field.Attributes & FANavigation)
-			joinAttrs.push_back(field.Name);
-	}
+		if (!(field.Attributes & FANavigation))
+			continue;
 
-	Dictionary::Ptr params = HttpUtility::FetchRequestParameters(request);
+		if (!userJoinAttrs.empty() && userJoinAttrs.find(field.Name) == userJoinAttrs.end())
+			continue;
+
+		joinAttrs.push_back(field.Name);
+	}
 
 	params->Set("type", type->GetName());
 
@@ -72,16 +98,6 @@ bool ObjectQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 	std::vector<Value> objs = FilterUtility::GetFilterTargets(qd, params, user);
 
 	Array::Ptr results = new Array();
-
-	std::set<String> attrs;
-	Array::Ptr uattrs = params->Get("attrs");
-
-	if (uattrs) {
-		ObjectLock olock(uattrs);
-		BOOST_FOREACH(const String& uattr, uattrs) {
-			attrs.insert(uattr);
-		}
-	}
 
 	BOOST_FOREACH(const ConfigObject::Ptr& obj, objs) {
 		Dictionary::Ptr result1 = new Dictionary();
