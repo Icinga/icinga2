@@ -143,6 +143,81 @@ bool Utility::Match(const String& pattern, const String& text)
 	return (match(pattern.CStr(), text.CStr()) == 0);
 }
 
+static void ParseIpMask(const String& ip, char mask[16], int *bits)
+{
+	String::SizeType slashp = ip.FindFirstOf("/");
+	String uip;
+
+	if (slashp == String::NPos) {
+		uip = ip;
+		*bits = 0;
+	} else {
+		uip = ip.SubStr(0, slashp);
+		*bits = Convert::ToLong(ip.SubStr(slashp + 1));
+	}
+
+	/* IPv4-mapped IPv6 address (::ffff:<ipv4-bits>) */
+	memset(mask, 0, 10);
+	memset(mask + 10, 0xff, 2);
+	if (inet_pton(AF_INET, uip.CStr(), mask + 12) < 1) {
+		if (inet_pton(AF_INET6, uip.CStr(), mask) < 1) {
+			BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid IP address specified."));
+		}
+	} else
+		*bits += 96;
+
+	if (slashp == String::NPos)
+		*bits = 128;
+
+	if (*bits > 128)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Mask must not be greater than 128."));
+
+	/* TODO: validate mask */
+	for (int i = 0; i < 16; i++) {
+		int lbits = *bits - i * 8;
+
+		if (lbits >= 8)
+			continue;
+
+		if (mask[i] & (0xff >> lbits))
+			BOOST_THROW_EXCEPTION(std::invalid_argument("Masked-off bits must all be zero."));
+	}
+}
+
+static bool IpMaskCheck(char addr[16], char mask[16], int bits)
+{
+	for (int i = 0; i < 16; i++) {
+		if (bits < 8)
+			return !((addr[i] ^ mask[i]) >> (8 - bits));
+
+		if (mask[i] != addr[i])
+			return false;
+
+		bits -= 8;
+
+		if (bits == 0)
+			return true;
+	}
+
+	return true;
+}
+
+bool Utility::CidrMatch(const String& pattern, const String& ip)
+{
+	char mask[16], addr[16];
+	int bits;
+
+	try {
+		ParseIpMask(ip, addr, &bits);
+	} catch (const std::exception&) {
+		return false;
+	}
+
+	ParseIpMask(pattern, mask, &bits);
+
+	return IpMaskCheck(addr, mask, bits);
+}
+
 /**
  * Returns the directory component of a path. See dirname(3) for details.
  *
