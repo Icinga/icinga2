@@ -140,8 +140,8 @@ Value ApiListener::ConfigUpdateObjectAPIHandler(const MessageOrigin::Ptr& origin
 	if (objVersion <= object->GetVersion()) {
 		Log(LogNotice, "ApiListener")
 		    << "Discarding config update for object '" << object->GetName()
-		    << "': Object version " << object->GetVersion()
-		    << " is more recent than the received version " << objVersion << ".";
+		    << "': Object version " << std::fixed << object->GetVersion()
+		    << " is more recent than the received version " << std::fixed << objVersion << ".";
 
 		return Empty;
 	}
