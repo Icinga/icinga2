@@ -455,6 +455,7 @@ Name            | Description
 ----------------|--------------
 imap_address    | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
 imap_port       | **Optional.** The port that should be checked. Defaults to 143.
+imap_timeout    | **Optional.** The timeout in seconds.
 
 
 ## <a id="plugin-check-command-ldap"></a> ldap
@@ -647,6 +648,7 @@ Name            | Description
 ----------------|--------------
 pop_address     | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
 pop_port        | **Optional.** The port that should be checked. Defaults to 110.
+pop_timeout     | **Optional.** The timeout in seconds.
 
 
 ## <a id="plugin-check-command-processes"></a> procs
@@ -684,6 +686,7 @@ Name            | Description
 ----------------|--------------
 simap_address   | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
 simap_port      | **Optional.** The host's port.
+simap_timeout   | **Optional.** The timeout in seconds.
 
 
 ## <a id="plugin-check-command-smtp"></a> smtp
@@ -786,6 +789,7 @@ Name            | Description
 ----------------|--------------
 spop_address    | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
 spop_port       | **Optional.** The host's port.
+spop_timeout    | **Optional.** The timeout in seconds.
 
 
 ## <a id="plugin-check-command-ssh"></a> ssh
