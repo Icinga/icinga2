@@ -539,13 +539,17 @@ void ApiListener::SyncRelayMessage(const MessageOrigin& origin, const DynamicObj
 		}
 
 		/* don't relay messages to disconnected endpoints */
-		if (!endpoint->IsConnected())
+		if (!endpoint->IsConnected()) {
+			if (target_zone == my_zone)
+				finishedLogZones.erase(target_zone);
+
 			continue;
+		}
 
 		finishedLogZones.insert(target_zone);
 
-		/* don't relay the message to the zone through more than one endpoint */
-		if (finishedZones.find(target_zone) != finishedZones.end()) {
+		/* don't relay the message to the zone through more than one endpoint unless this is our own zone */
+		if (finishedZones.find(target_zone) != finishedZones.end() && target_zone != my_zone) {
 			skippedEndpoints.push_back(endpoint);
 			continue;
 		}
