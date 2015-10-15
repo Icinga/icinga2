@@ -1363,7 +1363,7 @@ void DbEvents::AddCheckableCheckHistory(const Checkable::Ptr& checkable, const C
 		return;
 
 	Log(LogDebug, "DbEvents")
-	    << "add service check history for '" << checkable->GetName() << "'";
+	    << "add checkable check history for '" << checkable->GetName() << "'";
 
 	Host::Ptr host;
 	Service::Ptr service;
