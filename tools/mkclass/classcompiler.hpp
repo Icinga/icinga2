@@ -71,7 +71,8 @@ enum FieldAttribute
 	FANoStorage = 128,
 	FALoadDependency = 256,
 	FARequired = 512,
-	FANavigation = 1024
+	FANavigation = 1024,
+	FANoModify = 2048
 };
 
 struct FieldType

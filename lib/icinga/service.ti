@@ -40,7 +40,7 @@ class Service : Checkable < ServiceNameComposer
 {
 	load_after Host;
 
-	[config] array(name(ServiceGroup)) groups {
+	[config, no_modify] array(name(ServiceGroup)) groups {
 		default {{{ return new Array(); }}}
 	};
 

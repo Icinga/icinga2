@@ -35,7 +35,7 @@ class User : CustomVarObject
 				return m_DisplayName;
 		}}}
 	};
-	[config] array(name(UserGroup)) groups {
+	[config, no_modify] array(name(UserGroup)) groups {
 		default {{{ return new Array(); }}}
 	};
 	[config, navigation] name(TimePeriod) period (PeriodRaw) {

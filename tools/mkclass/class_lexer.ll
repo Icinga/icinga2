@@ -146,6 +146,7 @@ protected			{ yylval->num = FAGetProtected | FASetProtected; return T_FIELD_ATTR
 internal			{ yylval->num = FAInternal; return T_FIELD_ATTRIBUTE; }
 no_storage			{ yylval->num = FANoStorage; return T_FIELD_ATTRIBUTE; }
 navigation			{ return T_NAVIGATION; }
+no_modify			{ yylval->num = FANoModify; return T_FIELD_ATTRIBUTE; }
 validator			{ return T_VALIDATOR; }
 required			{ return T_REQUIRED; }
 name				{ return T_NAME; }

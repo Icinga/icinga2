@@ -38,7 +38,8 @@ enum FieldAttribute
 	FAState = 4,
 	FAInternal = 64,
 	FARequired = 512,
-	FANavigation = 1024
+	FANavigation = 1024,
+	FANoModify = 2048
 };
 
 class Type;

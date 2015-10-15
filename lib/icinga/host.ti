@@ -27,7 +27,7 @@ namespace icinga
 
 class Host : Checkable
 {
-	[config] array(name(HostGroup)) groups {
+	[config, no_modify] array(name(HostGroup)) groups {
 		default {{{ return new Array(); }}}
 	};
 

@@ -130,6 +130,9 @@ void ConfigObject::ModifyAttribute(const String& attr, const Value& value, bool 
 	int fid = type->GetFieldId(fieldName);
 	Field field = type->GetFieldInfo(fid);
 
+	if (field.Attributes & FAInternal || field.Attributes & FANoModify)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Attribute cannot be modified."));
+
 	if (field.Attributes & FAConfig) {
 		if (!original_attributes) {
 			original_attributes = new Dictionary();

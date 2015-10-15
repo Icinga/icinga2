@@ -68,8 +68,8 @@ private:
 
 abstract class ConfigObject : ConfigObjectBase
 {
-	[config, internal] String __name (Name);
-	[config] String "name" (ShortName) {
+	[config, internal, no_modify] String __name (Name);
+	[config, no_modify] String "name" (ShortName) {
 		get {{{
 			if (m_ShortName.IsEmpty())
 				return GetName();
@@ -77,22 +77,22 @@ abstract class ConfigObject : ConfigObjectBase
 				return m_ShortName;
 		}}}
 	};
-	[config, internal, get_protected] String type (TypeNameV);
+	[config, internal, get_protected, no_modify] String type (TypeNameV);
 	[config] name(Zone) zone (ZoneName);
 	[config] String package;
-	[config, internal, get_protected] Array::Ptr templates;
+	[config, internal, get_protected, no_modify] Array::Ptr templates;
 	[get_protected] bool active;
 	[get_protected] bool paused {
 		default {{{ return true; }}}
 	};
-	[get_protected, internal] bool start_called;
-	[get_protected, internal] bool stop_called;
-	[get_protected, internal] bool pause_called;
-	[get_protected, internal] bool resume_called;
+	[get_protected, internal, no_modify] bool start_called;
+	[get_protected, internal, no_modify] bool stop_called;
+	[get_protected, internal, no_modify] bool pause_called;
+	[get_protected, internal, no_modify] bool resume_called;
 	[enum] HAMode ha_mode (HAMode);
-	[protected] Dictionary::Ptr extensions;
+	[protected, no_modify] Dictionary::Ptr extensions;
 
-	[protected] bool state_loaded;
+	[protected, no_modify] bool state_loaded;
 	Dictionary::Ptr original_attributes;
 	[state] double version {
 		default {{{ return 0; }}}
