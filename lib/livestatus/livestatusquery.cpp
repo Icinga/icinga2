@@ -675,7 +675,7 @@ void LivestatusQuery::SendResponse(const Stream::Ptr& stream, int code, const St
 		try {
 			stream->Write(data.CStr(), data.GetLength());
 		} catch (const std::exception&) {
-			Log(LogCritical, "LivestatusQuery", "Cannot write to TCP socket.");
+			Log(LogCritical, "LivestatusQuery", "Cannot write query response to socket.");
 		}
 	}
 }
