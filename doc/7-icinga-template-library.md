@@ -1923,6 +1923,28 @@ squid_client		| **Optional.** Path of squidclient (default: /usr/bin/squidclient
 squid_timeout		| **Optional.** Seconds before plugin times out (default: 15).
 
 
+### <a id="plugins-contrib-nginx_status"></a> nginx_status
+
+Plugin for monitoring [nginx_status](https://github.com/regilero/check_nginx_status).
+
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
+
+Name                    | Description
+------------------------|----------------------------------------------------------------------------------
+nginx_status_host_address		| **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, `address6` otherwise.
+nginx_status_port		| **Optional.** the http port.
+nginx_status_url		| **Optional.** URL to use, instead of the default (http://`nginx_status_hostname`/nginx_status).
+nginx_status_servername		| **Optional.** ServerName to use if you specified an IP to match the good Virtualhost in your target
+nginx_status_ssl		| **Optional.** set to use ssl connection
+nginx_status_disable_sslverify		| **Optional.** set to disable SSL hostname verification
+nginx_status_user		| **Optional.** Username for basic auth
+nginx_status_pass		| **Optional.** Password for basic auth
+nginx_status_realm		| **Optional.** Realm for basic auth
+nginx_status_maxreach		| **Optional.** Number of max processes reached (since last check) that should trigger an alert
+nginx_status_timeout		| **Optional.** timeout in seconds
+nginx_status_warn		| **Optional.** Warning threshold (number of active connections, ReqPerSec or ConnPerSec that will cause a WARNING) like '10000,100,200'.
+nginx_status_critical		| **Optional.** Critical threshold (number of active connections, ReqPerSec or ConnPerSec that will cause a CRITICAL) like '20000,200,300'.
+
 ## <a id="plugins-contrib-operating-system"></a> Operating System
 
 In this category you can find plugins for gathering information about your operating system or the system beneath like memory usage.
