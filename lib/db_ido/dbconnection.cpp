@@ -121,6 +121,9 @@ void DbConnection::InsertRuntimeVariable(const String& key, const Value& value)
 
 void DbConnection::ProgramStatusHandler(void)
 {
+	Log(LogNotice, "DbConnection")
+	     << "Updating programstatus table.";
+
 	DbQuery query1;
 	query1.Table = "programstatus";
 	query1.Type = DbQueryDelete;
