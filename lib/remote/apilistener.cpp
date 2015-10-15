@@ -441,6 +441,10 @@ void ApiListener::ApiTimerHandler(void)
 	Zone::Ptr my_zone = Zone::GetLocalZone();
 
 	BOOST_FOREACH(const Zone::Ptr& zone, ConfigType::GetObjectsByType<Zone>()) {
+		/* don't connect to global zones */
+		if (zone->GetGlobal())
+			continue;
+
 		/* only connect to endpoints in a) the same zone b) our parent zone c) immediate child zones */
 		if (my_zone != zone && my_zone != zone->GetParent() && zone != my_zone->GetParent()) {
 			Log(LogDebug, "ApiListener")
