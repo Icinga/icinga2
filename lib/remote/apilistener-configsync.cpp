@@ -102,7 +102,7 @@ Value ApiListener::ConfigUpdateObjectAPIHandler(const MessageOrigin::Ptr& origin
 	}
 
 	/* update the object */
-	double objVersion = Convert::ToLong(params->Get("version"));
+	double objVersion = params->Get("version");
 
 	ConfigType::Ptr dtype = ConfigType::GetByName(objType);
 
