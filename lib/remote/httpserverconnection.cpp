@@ -143,13 +143,17 @@ void HttpServerConnection::ProcessMessageAsync(HttpRequest& request)
 			user.reset();
 	}
 
+        String requestUrl = request.RequestUrl->Format();
+
 	Log(LogInformation, "HttpServerConnection")
-	    << "Request: " << request.RequestMethod << " " << request.RequestUrl->Format()
+	    << "Request: " << request.RequestMethod << " " << requestUrl
 	    << " (" << (user ? user->GetName() : "<unauthenticated>") << ")";
 
 	HttpResponse response(m_Stream, request);
 
 	if (!user) {
+		Log(LogWarning, "HttpServerConnection")
+		    << "Unauthorized request: " << request.RequestMethod << " " << requestUrl;
 		response.SetStatus(401, "Unauthorized");
 		response.AddHeader("Content-Type", "text/html");
 		response.AddHeader("WWW-Authenticate", "Basic realm=\"Icinga 2\"");
