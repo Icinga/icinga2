@@ -805,7 +805,8 @@ Array      | [ "a", "b" ]      | An array.
 Dictionary | { a = 3 }         | A dictionary.
 
 Depending on which libraries are loaded additional types may become available. The `icinga`
-library implements a whole bunch of other types, e.g. Host, Service, CheckCommand, etc.
+library implements a whole bunch of other [object types](6-object-types.md#object-types),
+e.g. Host, Service, CheckCommand, etc.
 
 Each type has an associated type object which describes the type's semantics. These
 type objects are made available using global variables which match the type's name:
@@ -816,8 +817,11 @@ type objects are made available using global variables which match the type's na
 The type object's `prototype` property can be used to find out which methods a certain type
 supports:
 
-    /* This returns: ["find","len","lower","replace","split","substr","to_string","upper"] */
+    /* This returns: ["contains","find","len","lower","replace","reverse","split","substr","to_string","upper"] */
     keys(String.prototype)
+
+Additional documentation on type methods is available in the
+[library reference](21-library-reference.md#library-reference).
 
 ## <a id="reserved-keywords"></a> Reserved Keywords
 

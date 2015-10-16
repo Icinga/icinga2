@@ -508,7 +508,21 @@ Signature:
 
 Returns a copy of the string in reverse order.
 
+## <a id="object-type"></a> Object type
+
+### <a id="object-clone"></a> Object#clone
+
+Signature:
+
+     function clone();
+
+Returns a copy of the object. Note that for object elements which are
+reference values (e.g. objects such as arrays or dictionaries) the entire
+object is recursively copied.
+
 ## <a id="array-type"></a> Array type
+
+Inherits methods from the [object type](21-library-reference.md#object-type).
 
 ### <a id="array-add"></a> Array#add
 
@@ -599,6 +613,10 @@ Signature:
     function reverse();
 
 Returns a new array with all elements of the current array in reverse order.
+
+## <a id="dictionary-type"></a> Dictionary type
+
+Inherits methods from the [object type](21-library-reference.md#object-type).
 
 ### <a id="dictionary-shallow-clone"></a> Dictionary#shallow_clone
 
