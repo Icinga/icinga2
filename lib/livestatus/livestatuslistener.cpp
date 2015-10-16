@@ -177,9 +177,10 @@ void LivestatusListener::ClientHandler(const Socket::Ptr& client)
 
 	Stream::Ptr stream = new NetworkStream(client);
 
+	StreamReadContext context;
+
 	for (;;) {
 		String line;
-		StreamReadContext context;
 
 		std::vector<String> lines;
 
