@@ -235,85 +235,179 @@ The Icinga 2 API provides multiple url endpoints:
 
 Please check the respective sections for detailed urls and parameters.
 
-
 ## <a id="icinga2-api-actions"></a> Actions
 
-There are several actions available for Icinga 2 provided by the `actions` url endpoint.
-
+There are several actions available for Icinga 2 provided by the `actions`
+URL endpoint.
 In case you have been using the [external commands](5-advanced-topics.md#external-commands)
-in the past, the API actions provide a yet more powerful interface with
-filters and even more functionality.
+in the past, the API actions provide a similar interface with filter
+capabilities for some of the more common targets which do not directly change
+the configuration.
+Some actions require specific target types (e.g. `type=Host`) and a
+[filter expression](9-icinga2-api.md#icinga2-api-filters).
+For each object matching the filter the action in question is performed once.
 
-Actions require specific target types (e.g. `type=Host`) and a [filter expression](9-icinga2-api.md#icinga2-api-filters).
+In the following each the actions are listed with their parameters, targets and
+examples. The calls are first shown with all their possible query parameters and
+their type. Optional parameters are encapsulated by `()` and `[]` mark array
+parameters. If an optional parameter has no default value explicitly stated it
+is either 0, NULL, Empty depending on the type. Timestamps are always `time_t`,
+the seconds since the UNIX epoch.
 
-**TODO** Figure out the final names.
+### <a id="icinga2-api-actions-process-check-result"></a> Process Check Result Action
 
-Action name                            | Parameters                        | Target types             | Notes
----------------------------------------|-----------------------------------|--------------------------|-----------------------
-process-check-result                   | exit_status; plugin_output; check_source; performance_data[]; check_command[]; execution_end; execution_start; schedule_end; schedule_start | Service; Host | -
-reschedule-check                       | {next_check}; {(force_check)} | Service; Host | -
-acknowledge-problem                    | author; comment; {timestamp}; {(sticky)}; {(notify)} | Service; Host | -
-remove-acknowledgement                 | - | Service; Host | -
-add-comment                            | author; comment | Service; Host | -
-remove-comment                         | - | Service;Host | -
-remove-comment-by-id                   | comment_id | - | -
-delay-notifications                    | timestamp | Service;Host | -
-add-downtime                           | start_time; end_time; duration; author; comment; {trigger_id}; {(fixed)} | Service; Host; ServiceGroup; HostGroup | Downtime for all services on host x?
-remove-downtime                        | - | Service; Host | -
-remove-downtime-by-id                  | downtime_id | - | -
-send-custom-notification               | options[]; author; comment | Service; Host | -
+    /v1/actions/process-check-result?exit_status=int&(plugin_output=string)&(performance_data[]=string)&\
+	(check_command[]=string)&(check_source=string)&(execution_end=time_t)&(execution_start=time_t)&\
+	(schedule_end=time_t)&(schedule_start=time_t)
 
-enable-passive-checks                  | - | Service; Host; ServiceGroup; HostGroup | "System" as target?
-disable-passive-checks                 | - | Service; Host; ServiceGroup; HostGroup | diable all passive checks for services of hosts y in hostgroup x?
-enable-active-checks                   | - | Host; HostGroup | -
-disable-active-checks                  | - | Host; HostGroup | -
-enable-notifications                   | - | Service; Host; ServiceGroup; HostGroup | Enable all notifications for services of host x?
-disable-notifications                  | - | Service; Host; ServiceGroup; HostGroup | -
-enable-flap-detection                  | - | Service; Host; ServiceGroup; HostGroup | -
-disable-flap-detection                 | - | Service; Host; ServiceGroup; HostGroup | -
-enable-event-handler                   | - | Service; Host | -
-disable-event-handler                  | - | Service; Host | -
+Target: `Service` or `Host`
 
-enable-global-notifications            | - | - | -
-disable-global-notifications           | - | - | -
-enable-global-flap-detection           | - | - | -
-disable-global-flap-detection          | - | - | -
-enable-global-event-handlers           | - | - | -
-disable-global-event-handlers          | - | - | -
-enable-global-performance-data         | - | - | -
-disable-global-performance-data        | - | - | -
-start-global-executing-svc-checks      | - | - | -
-stop-global-executing-svc-checks       | - | - | -
-start-global-executing-host-checks     | - | - | -
-stop-global-executing-host-checks      | - | - | -
-shutdown-process                       | - | - | -
-restart-process                        | - | - | -
+This is used to submit a passive check result for a service or host. Passive
+checks need to be enabled for the check result to be processed.
+The `exit_status` field should be one of the following for services:
+0=OK, 1=WARNING, 2=CRITICAL, 3=UNKNOWN or for hosts: 0=OK, 1=CRITICAL.
+The `plugin_output` field contains text output from the service check, the
+performance data is submitted via `performance_data` as one array entry per ';'
+separated block.
 
+Example:
 
-Examples:
+    $ curl -u root:icinga -k -s 'https://localhost:5665/v1/actions/process-check-result?filter=service.name=="ping6"'
 
-Reschedule a service check for all services in NOT-OK state:
+### reschedule-check
 
-    $ curl -u root:icinga -k -s 'https://localhost:5665/v1/actions/reschedule-check?filter=service.state!=0&type=Service' -X POST | python -m json.tool
-    {
-        "results": [
-            {
-                "code": 200.0,
-                "status": "Successfully rescheduled check for icinga.org!http."
-            },
-            {
-                "code": 200.0,
-                "status": "Successfully rescheduled check for icinga.org!disk."
-            },
-            {
-                "code": 200.0,
-                "status": "Successfully rescheduled check for icinga.org!disk /."
-            }
-        ]
-    }
+    /v1/actions/reschedule-check?next_check=time_t&force_check=boolean
 
+Target: `Service` or `Host`
 
+Schedules an active check of a collection of hosts or services at `next_check`.
+If the `forced_check" flag is set the checks are performed regardless of what
+time it is (e.g. timeperiod restrictions are ignored) and whether or not active
+checks are enabled on a host/service-specific or program-wide basis.
 
+### send-custom-notification
+
+    /v1/actions/send-custom-notification?author=string&comment=string&(force=bool)
+
+Target: `Service` or `Host`
+
+Allows you to send a custom host/service notification. Very useful in dire
+situations, emergencies or to communicate with all admins that are responsible
+for a host or service. The notification requires an `author` and a `comment`,
+though those may be empty. If `force` (default: false) is set to true the
+notification will be send regardless of downtimes or whether notifications are
+enabled or not.
+
+### delay-notification
+
+    /v1/actions/delay-notification?timestamp=time_t
+
+Target: `Service` or `Host`
+
+Delays the next notifications for a collection of services or hosts until
+`timestamp`. Note that this will only have an effect if the service stays in
+the same problem state that it is currently in. If the service changes to
+another state, a new notification may go out before the time you specify in the
+`timestamp` argument.
+
+### acknowledge-problem
+
+    /v1/actions/acknowledge-problem?author=string&comment=string&(expiry=time_t)&(sticky=bool)&(sticky=bool)
+
+Target: `Service` or `Host`
+
+Allows you to acknowledge the current problem for hosts or services. By
+acknowledging the current problem, future notifications (for the same state)
+are disabled. Acknowledgements require an `author` and a `comment` for
+documentation purposes, though both may be empty. If you set an `expiry` time
+the acknowledgement will vanish after that timestamp. If the `sticky` option is
+set (the default), the acknowledgement will remain until the host recovers.
+Otherwise the acknowledgement will automatically be removed when the host
+changes state. If the `notify` option is set, a notification will be sent out
+to contacts indicating that the current host problem has been acknowledged, if
+set to false (the default) there will be no notification.
+
+### remove-acknowledgement
+
+    /v1/actions/remove-acknowledgement
+
+Target: `Service` or `Host`
+
+Removes acknowledgements for services or hosts. Once the acknowledgement has
+been removed, notifications can once again be sent out.
+
+### add-comment
+
+    /v1/actions/add-comment?author=string&comment=string
+
+Target: `service` or `host`
+
+Adds a `comment` by `author` to services or hosts.
+
+### remove-comment
+
+    /v1/actions/remove-comment
+
+Target: `Service` or `Host`
+
+Removes ALL comments for services or hosts.
+
+### remove-comment-by-id
+
+    /v1/actions/remove-comment-by-id?comment_id=int
+
+Target: `None`
+
+Removes the comment with the legacy ID `comment_id`
+
+### schedule-downtime
+
+    /v1/actions/schedule-downtime?start_time=time_t&end_time=time_t&duration=int&author=string&comment=string&\
+    (fixed=bool)&(trigger_id=int)
+
+Target: `Host` or `Service`
+
+Schedules downtime for services or hosts. If the `fixed` argument is set to
+true (default: false) the downtime will start and end at the times specified by
+the `start_time` and `end_time` arguments. Otherwise, downtime will begin
+between `start_time` and `start_end` and last for `duration` seconds. The
+downtime can be triggered by another downtime entry if the `trigger_id` is set
+to the ID of another scheduled downtime entry. Set the `trigger_id` argument to
+zero (the default) if the downtime for the specified host should not be
+triggered by another downtime entry. All downtimes also need a `comment` and
+with it an `author`, even though both can be empty.
+
+### remove-downtime
+
+    /v1/actions/remove-downtime
+
+Target: `Host` or `Service`
+
+Removes ALL downtimes for services or hosts.
+
+### remove-downtime-by-id
+
+    /v1/actions/remove-downtime-by-id?downtime_id=int
+
+Target: `None`
+
+Removes the comment with the legacy ID `downtime_id`
+
+### shutdown-process
+
+    /v1/actions/shutdown-process
+
+Target: `None`
+
+Shuts down Icinga2. May or may not return.
+
+### restart-process
+
+    /v1/actions/restart-process
+
+Target: `None`
+
+Restarts Icinga2. May or may not return.
 
 ## <a id="icinga2-api-event-streams"></a> Event Streams
 
