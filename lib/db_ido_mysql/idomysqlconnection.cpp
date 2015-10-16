@@ -52,6 +52,7 @@ void IdoMysqlConnection::StatsFunc(const Dictionary::Ptr& status, const Array::P
 		Dictionary::Ptr stats = new Dictionary();
 		stats->Set("version", idomysqlconnection->GetSchemaVersion());
 		stats->Set("instance_name", idomysqlconnection->GetInstanceName());
+		stats->Set("connected", idomysqlconnection->GetConnected());
 		stats->Set("query_queue_items", items);
 
 		nodes->Set(idomysqlconnection->GetName(), stats);

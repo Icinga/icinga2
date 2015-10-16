@@ -53,6 +53,7 @@ void IdoPgsqlConnection::StatsFunc(const Dictionary::Ptr& status, const Array::P
 
 		Dictionary::Ptr stats = new Dictionary();
 		stats->Set("version", idopgsqlconnection->GetSchemaVersion());
+		stats->Set("connected", idopgsqlconnection->GetConnected());
 		stats->Set("instance_name", idopgsqlconnection->GetInstanceName());
 		stats->Set("query_queue_items", items);
 
