@@ -54,6 +54,21 @@ def format_logentry(log_entry, args = args, issue_url = ISSUE_URL):
        else:
            return "* %s %d: %s" % log_entry
 
+def print_category(category, entries):
+    if len(entries) > 0:
+        print ""
+        print format_header(category, 4)
+        print ""
+        if args.html:
+            print "<ul>"
+
+        for entry in sorted(entries):
+            print format_logentry(entry)
+
+        if args.html:
+            print "</ul>"
+            print ""
+
 
 version_name = args.version
 
@@ -95,7 +110,9 @@ if changes:
 
 offset = 0
 
-log_entries = []
+features = []
+bugfixes = []
+support = []
 
 while True:
     # We could filter using &cf_13=1, however this doesn't currently work because the custom field isn't set
@@ -120,29 +137,18 @@ while True:
             if ignore_issue:
                 continue
 
-        log_entries.append((issue["tracker"]["name"], issue["id"], issue["subject"].strip()))
+        entry = (issue["tracker"]["name"], issue["id"], issue["subject"].strip())
 
-for p in range(2):
-    not_empty = False
+	if issue["tracker"]["name"] == "Feature":
+            features.append(entry)
+	elif issue["tracker"]["name"] == "Bug":
+            bugfixes.append(entry)
+	elif issue["tracker"]["name"] == "Support":
+            support.append(entry)
 
-    for log_entry in log_entries:
-        if (p == 0 and log_entry[0] == "Feature") or (p == 1 and log_entry[0] != "Feature"):
-            not_empty = True
+print_category("Feature", features)
+print_category("Bugfixes", bugfixes)
+print_category("Support", support)
 
-    if not_empty:
-        print format_header("Features", 4) if p == 0 else format_header("Bugfixes", 4)
-        print ""
-	if args.html:
-            print "<ul>"
-
-    for log_entry in sorted(log_entries):
-        if (p == 0 and log_entry[0] == "Feature") or (p == 1 and log_entry[0] != "Feature"):
-            print format_logentry(log_entry)
-
-    if not_empty:
-	if args.html:
-            print "</ul>"
-
-        print ""
 
 sys.exit(0)
