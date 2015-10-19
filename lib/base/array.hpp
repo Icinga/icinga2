@@ -25,6 +25,7 @@
 #include "base/value.hpp"
 #include <boost/range/iterator.hpp>
 #include <vector>
+#include <set>
 
 namespace icinga
 {
@@ -109,7 +110,14 @@ public:
 		std::copy(v.begin(), v.end(), std::back_inserter(result->m_Data));
 		return result;
 	}
-	
+
+	template<typename T>
+	std::set<T> ToSet(void)
+	{
+		ObjectLock olock(this);
+		return std::set<T>(Begin(), End());
+	}
+
 	virtual Object::Ptr Clone(void) const override;
 
 	Array::Ptr Reverse(void) const;

@@ -234,6 +234,8 @@ void TlsStream::OnEvent(int revents)
 			m_Socket->Close();
 			m_Socket.reset();
 
+			m_Eof = true;
+
 			m_ErrorCode = ERR_peek_error();
 			m_ErrorOccurred = true;
 

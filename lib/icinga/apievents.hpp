@@ -22,9 +22,6 @@
 
 #include "icinga/checkable.hpp"
 #include "icinga/host.hpp"
-#include "icinga/checkcommand.hpp"
-#include "icinga/eventcommand.hpp"
-#include "icinga/notificationcommand.hpp"
 
 namespace icinga
 {
@@ -38,46 +35,26 @@ public:
 	static void StaticInitialize(void);
 
 	static void CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, const MessageOrigin::Ptr& origin);
-	static Value CheckResultAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
+	static void StateChangeHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, StateType type, const MessageOrigin::Ptr& origin);
 
-	static void NextCheckChangedHandler(const Checkable::Ptr& checkable, const MessageOrigin::Ptr& origin);
-	static Value NextCheckChangedAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
 
-	static void NextNotificationChangedHandler(const Notification::Ptr& notification, const MessageOrigin::Ptr& origin);
-	static Value NextNotificationChangedAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
+	static void NotificationSentToAllUsersHandler(const Notification::Ptr& notification, const Checkable::Ptr& checkable,
+	    const std::set<User::Ptr>& users, NotificationType type, const CheckResult::Ptr& cr, const String& author,
+	    const String& text);
 
-	static void ForceNextCheckChangedHandler(const Checkable::Ptr& checkable, const MessageOrigin::Ptr& origin);
-	static Value ForceNextCheckChangedAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
+	static void FlappingChangedHandler(const Checkable::Ptr& checkable, const MessageOrigin::Ptr& origin);
 
-	static void ForceNextNotificationChangedHandler(const Checkable::Ptr& checkable, const MessageOrigin::Ptr& origin);
-	static Value ForceNextNotificationChangedAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
+	static void AcknowledgementSetHandler(const Checkable::Ptr& checkable,
+	    const String& author, const String& comment, AcknowledgementType type,
+	    bool notify, double expiry, const MessageOrigin::Ptr& origin);
+	static void AcknowledgementClearedHandler(const Checkable::Ptr& checkable, const MessageOrigin::Ptr& origin);
 
 	static void CommentAddedHandler(const Checkable::Ptr& checkable, const Comment::Ptr& comment, const MessageOrigin::Ptr& origin);
-	static Value CommentAddedAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
-
 	static void CommentRemovedHandler(const Checkable::Ptr& checkable, const Comment::Ptr& comment, const MessageOrigin::Ptr& origin);
-	static Value CommentRemovedAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
 
 	static void DowntimeAddedHandler(const Checkable::Ptr& checkable, const Downtime::Ptr& downtime, const MessageOrigin::Ptr& origin);
-	static Value DowntimeAddedAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
-
 	static void DowntimeRemovedHandler(const Checkable::Ptr& checkable, const Downtime::Ptr& downtime, const MessageOrigin::Ptr& origin);
-	static Value DowntimeRemovedAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
-
-	static void AcknowledgementSetHandler(const Checkable::Ptr& checkable, const String& author, const String& comment, AcknowledgementType type,
-	    bool notify, double expiry, const MessageOrigin::Ptr& origin);
-	static Value AcknowledgementSetAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
-
-	static void AcknowledgementClearedHandler(const Checkable::Ptr& checkable, const MessageOrigin::Ptr& origin);
-	static Value AcknowledgementClearedAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
-
-	static Value ExecuteCommandAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
-
-	static String GetRepositoryDir(void);
-	static void RepositoryTimerHandler(void);
-	static Value UpdateRepositoryAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
-
-	static Dictionary::Ptr MakeCheckResultMessage(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
+	static void DowntimeTriggeredHandler(const Checkable::Ptr& checkable, const Downtime::Ptr& downtime);
 };
 
 }

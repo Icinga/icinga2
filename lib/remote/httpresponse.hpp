@@ -61,6 +61,8 @@ public:
 	void WriteBody(const char *data, size_t count);
 	void Finish(void);
 
+	bool IsPeerConnected(void) const;
+
 private:
 	HttpResponseState m_State;
 	boost::shared_ptr<ChunkReadContext> m_ChunkContext;

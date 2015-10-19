@@ -327,7 +327,6 @@ void ApiListener::NewClientHandlerInternal(const Socket::Ptr& client, const Stri
 		Log(LogInformation, "ApiListener")
 		    << "New client connection for identity '" << identity << "'" << (verify_ok ? "" : " (unauthenticated)");
 
-
 		if (verify_ok)
 			endpoint = Endpoint::GetByName(identity);
 	} else {

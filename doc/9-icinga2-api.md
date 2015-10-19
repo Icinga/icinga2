@@ -171,9 +171,10 @@ Available permissions for specific url endpoints:
   config/modify				| /v1/config
   objects/query/&lt;type&gt;		| /v1/objects
   objects/create/&lt;type&gt;		| /v1/objects
-  objects/modify`/&lt;type&gt;		| /v1/objects
+  objects/modify/&lt;type&gt;		| /v1/objects
   objects/delete/&lt;type&gt;		| /v1/objects
   status/query				| /v1/status
+  events/&lt;type&gt;			| /v1/events
 
 The required actions or types can be replaced by using a wildcard match ("*").
 
@@ -227,9 +228,9 @@ The Icinga 2 API provides multiple url endpoints:
   --------------|----------------------------------------------------
   /v1/actions	| Endpoint for running specific [API actions](9-icinga2-api.md#icinga2-api-actions).
   /v1/config    | Endpoint for [managing configuration modules](9-icinga2-api.md#icinga2-api-config-management).
-  /v1/events	| Endpoint for subscribing to [API events](9-icinga2-api.md#icinga2-api-actions).
   /v1/objects	| Endpoint for querying, creating, modifying and deleting [config objects](9-icinga2-api.md#icinga2-api-config-objects).
   /v1/status	| Endpoint for receiving icinga2 [status and statistics](9-icinga2-api.md#icinga2-api-status).
+  /v1/events	| Endpoint for subscribing to [API event streams](9-icinga2-api.md#icinga2-api-event-streams).
   /v1/types 	| Endpoint for listing Icinga 2 configuration object types and their attributes.
 
 Please check the respective sections for detailed urls and parameters.
@@ -316,7 +317,41 @@ Reschedule a service check for all services in NOT-OK state:
 
 ## <a id="icinga2-api-event-streams"></a> Event Streams
 
-**TODO** https://dev.icinga.org/issues/9078
+Subscribing to an event stream requires a unique `queue` name
+as query parameter. Multiple HTTP clients may use the same queue
+with existing filters.
+
+The following event stream types are available:
+
+  Type				| Description
+  ------------------------------|------------------------------
+  CheckResult			| Check results for hosts and services.
+  StateChange			| Host/service state changes.
+  Notification			| Notification events including notified users for hosts and services.
+  AcknowledgementSet		| Acknowledgement set on hosts and services.
+  AcknowledgementCleared	| Acknowledgement cleared on hosts and services.
+  CommentAdded			| Comment added for hosts and services.
+  CommentRemoved		| Comment removed for hosts and services.
+  DowntimeAdded			| Downtime added for hosts and services.
+  DowntimeRemoved		| Downtime removed for hosts and services.
+  DowntimeTriggered		| Downtime triggered for hosts and services.
+
+Multiple event streams can be subscribed to by passing multiple
+`types` query parameters. Note: Each type requires [api permissions]()
+being set.
+
+
+TODO
+
+* Types
+* Permissions
+* Filter
+
+Event streams can be filtered by attributes using the prefix `event.`.
+
+* Output
+
+Long-Polling with new lines as separator.
 
 ## <a id="icinga2-api-status"></a> Status and Statistics
 

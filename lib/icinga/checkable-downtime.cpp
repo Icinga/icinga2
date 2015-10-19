@@ -236,9 +236,12 @@ void Checkable::TriggerDowntime(const String& id)
 		downtime->SetTriggerTime(Utility::GetTime());
 
 	Dictionary::Ptr triggers = downtime->GetTriggers();
-	ObjectLock olock(triggers);
-	BOOST_FOREACH(const Dictionary::Pair& kv, triggers) {
-		TriggerDowntime(kv.first);
+
+	{
+		ObjectLock olock(triggers);
+		BOOST_FOREACH(const Dictionary::Pair& kv, triggers) {
+			TriggerDowntime(kv.first);
+		}
 	}
 
 	OnDowntimeTriggered(owner, downtime);

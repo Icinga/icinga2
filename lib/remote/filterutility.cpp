@@ -90,13 +90,19 @@ String ConfigObjectTargetProvider::GetPluralName(const String& type) const
 	return Type::GetByName(type)->GetPluralName();
 }
 
-static bool EvaluateFilter(ScriptFrame& frame, Expression *filter, const Object::Ptr& target)
+bool FilterUtility::EvaluateFilter(ScriptFrame& frame, Expression *filter,
+    const Object::Ptr& target, const String& variableName)
 {
 	if (!filter)
 		return true;
 
 	Type::Ptr type = target->GetReflectionType();
-	String varName = type->GetName().ToLower();
+	String varName;
+
+	if (variableName.IsEmpty())
+		varName = type->GetName().ToLower();
+	else
+		varName = variableName;
 
 	Dictionary::Ptr vars;
 
@@ -128,7 +134,7 @@ static bool EvaluateFilter(ScriptFrame& frame, Expression *filter, const Object:
 static void FilteredAddTarget(ScriptFrame& permissionFrame, Expression *permissionFilter,
     ScriptFrame& frame, Expression *ufilter, std::vector<Value>& result, const Object::Ptr& target)
 {
-	if (EvaluateFilter(permissionFrame, permissionFilter, target) && EvaluateFilter(frame, ufilter, target))
+	if (FilterUtility::EvaluateFilter(permissionFrame, permissionFilter, target) && FilterUtility::EvaluateFilter(frame, ufilter, target))
 		result.push_back(target);
 }
 
@@ -206,7 +212,7 @@ std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, c
 		if (query->Contains(attr)) {
 			Object::Ptr target = provider->GetTargetByName(type, HttpUtility::GetLastParameter(query, attr));
 
-			if (EvaluateFilter(permissionFrame, permissionFilter, target))
+			if (FilterUtility::EvaluateFilter(permissionFrame, permissionFilter, target))
 				result.push_back(target);
 		}
 
@@ -220,7 +226,7 @@ std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, c
 				BOOST_FOREACH(const String& name, names) {
 					Object::Ptr target = provider->GetTargetByName(type, name);
 
-					if (EvaluateFilter(permissionFrame, permissionFilter, target))
+					if (FilterUtility::EvaluateFilter(permissionFrame, permissionFilter, target))
 						result.push_back(target);
 				}
 			}

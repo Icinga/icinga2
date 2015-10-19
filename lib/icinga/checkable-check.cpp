@@ -23,7 +23,7 @@
 #include "icinga/checkcommand.hpp"
 #include "icinga/icingaapplication.hpp"
 #include "icinga/cib.hpp"
-#include "icinga/apievents.hpp"
+#include "icinga/clusterevents.hpp"
 #include "remote/messageorigin.hpp"
 #include "remote/apilistener.hpp"
 #include "base/objectlock.hpp"
@@ -140,7 +140,7 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 
 		if (listener) {
 			/* send message back to its origin */
-			Dictionary::Ptr message = ApiEvents::MakeCheckResultMessage(this, cr);
+			Dictionary::Ptr message = ClusterEvents::MakeCheckResultMessage(this, cr);
 			listener->SyncSendMessage(command_endpoint, message);
 		}
 

@@ -17,36 +17,23 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef HTTPUTILITY_H
-#define HTTPUTILITY_H
+#ifndef EVENTSHANDLER_H
+#define EVENTSHANDLER_H
 
-#include "remote/httprequest.hpp"
-#include "remote/httpresponse.hpp"
-#include "base/dictionary.hpp"
+#include "remote/httphandler.hpp"
+#include "remote/eventqueue.hpp"
 
 namespace icinga
 {
 
-/**
- * Helper functions.
- *
- * @ingroup remote
- */
-class I2_REMOTE_API HttpUtility
+class I2_REMOTE_API EventsHandler : public HttpHandler
 {
-
 public:
-	static Dictionary::Ptr FetchRequestParameters(HttpRequest& request);
-	static void SendJsonBody(HttpResponse& response, const Value& val);
-	static Value GetLastParameter(const Dictionary::Ptr& params, const String& key);
-	static void SendJsonError(HttpResponse& response, const int code,
-	    const String& verbose = String(), const String& diagnosticInformation = String());
+	DECLARE_PTR_TYPEDEFS(EventsHandler);
 
-private:
-	static String GetErrorNameByCode(int code);
-
+	virtual bool HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response) override;
 };
 
 }
 
-#endif /* HTTPUTILITY_H */
+#endif /* EVENTSHANDLER_H */
