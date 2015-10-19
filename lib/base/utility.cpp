@@ -181,17 +181,21 @@ static void ParseIpMask(const String& ip, char mask[16], int *bits)
 	if (!ParseIp(uip, mask, &proto))
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid IP address specified."));
 
-	if (proto == AF_INET)
+	if (proto == AF_INET) {
+		if (*bits > 32 || *bits < 0)
+			BOOST_THROW_EXCEPTION(std::invalid_argument("Mask must be between 0 and 32 for IPv4 CIDR masks."));
+
 		*bits += 96;
+	}
 
 	if (slashp == String::NPos)
 		*bits = 128;
 
 	if (*bits > 128 || *bits < 0)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Mask must be between 0 and 128."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Mask must be between 0 and 128 for IPv6 CIDR masks."));
 
 	for (int i = 0; i < 16; i++) {
-		int lbits = *bits - i * 8;
+		int lbits = std::max(0, *bits - i * 8);
 
 		if (lbits >= 8)
 			continue;
