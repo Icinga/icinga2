@@ -4,6 +4,67 @@ Please check [doc/1-about.md].
 
 ## What's New
 
+### What's New in Version 2.3.11
+
+#### Changes
+
+* Function for performing CIDR matches: cidr_match()
+* New methods: String#reverse and Array#reverse
+* New ITL command definitions: nwc_health, hpasm, squid, pgsql
+* Additional arguments for ITL command definitions: by_ssh, dig, pop, spop, imap, simap
+* Documentation updates
+* Various bugfixes
+
+#### Features
+
+* Feature 9183: Add timestamp support for OpenTsdbWriter
+* Feature 9466: Add FreeBSD setup to getting started
+* Feature 9812: add check command for check_nwc_health
+* Feature 9854: check_command for plugin check_hpasm
+* Feature 10004: escape_shell_arg() method
+* Feature 10006: Implement a way for users to resolve commands+arguments in the same way Icinga does
+* Feature 10057: Command Execution Bridge: Use of same endpoint names in examples for a better understanding
+* Feature 10109: Add check command squid
+* Feature 10112: Add check command pgsql
+* Feature 10129: Add ipv4/ipv6 only to nrpe CheckCommand
+* Feature 10139: expand check command dig
+* Feature 10142: Update debug docs for core dumps and full backtraces
+* Feature 10157: Update graphing section in the docs
+* Feature 10158: Make check_disk.exe CheckCommand Config more verbose
+* Feature 10161: Improve documentation for check_memory
+* Feature 10197: Implement the Array#reverse and String#reverse methods
+* Feature 10207: Find a better description for cluster communication requirements
+* Feature 10216: Clarify on cluster/client naming convention and add troubleshooting section
+* Feature 10219: Add timeout argument for pop, spop, imap, simap commands
+* Feature 10352: Improve timeperiod documentation
+* Feature 10354: New method: cidr_match()
+* Feature 10379: Add a debug log message for updating the program status table in DB IDO
+
+#### Bugfixes
+
+* Bug 8805: check cluster-zone returns wrong log lag
+* Bug 9322: sending multiple Livestatus commands rejects all except the first
+* Bug 10002: Deadlock in WorkQueue::Enqueue
+* Bug 10079: Improve error message for socket errors in Livestatus
+* Bug 10093: Rather use unique SID when granting rights for folders in NSIS on Windows Client
+* Bug 10177: Windows Check Update -> Access denied
+* Bug 10191: String methods cannot be invoked on an empty string
+* Bug 10192: null + null should not be ""
+* Bug 10199: Remove unnecessary MakeLiteral calls in SetExpression::DoEvaluate
+* Bug 10204: Config parser problem with parenthesis and newlines
+* Bug 10205: config checker reports wrong error on apply for rules
+* Bug 10235: Deadlock in TlsStream::Close
+* Bug 10239: Don't throw an exception when replaying the current replay log file
+* Bug 10245: Percent character whitespace on Windows
+* Bug 10254: Performance Data Labels including '=' will not be displayed correct
+* Bug 10262: Don't log messages we've already relayed to all relevant zones
+* Bug 10266: "Not after" value overflows in X509 certificates on RHEL5
+* Bug 10348: Checkresultreader is unable to process host checks
+* Bug 10349: Missing Start call for base class in CheckResultReader
+* Bug 10351: Broken table layout in chapter 20
+* Bug 10365: ApiListener::SyncRelayMessage doesn't send message to all zone members
+* Bug 10377: Wrong connection log message for global zones
+
 ### What's New in Version 2.3.10
 
 #### Features
