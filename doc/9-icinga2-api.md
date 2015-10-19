@@ -166,13 +166,13 @@ Available permissions for specific url endpoints:
 
   Permissions				| Url Endpoint
   --------------------------------------|------------------------
-  actions/;&lt;action;&gt;		| /v1/actions
+  actions/&lt;action&gt;		| /v1/actions
   config/query				| /v1/config
   config/modify				| /v1/config
-  objects/query/;&lt;type;&gt;		| /v1/objects
-  objects/create/;&lt;type;&gt;		| /v1/objects
-  objects/modify`/;&lt;type;&gt;	| /v1/objects
-  objects/delete/;&lt;type;&gt;		| /v1/objects
+  objects/query/&lt;type&gt;		| /v1/objects
+  objects/create/&lt;type&gt;		| /v1/objects
+  objects/modify`/&lt;type&gt;		| /v1/objects
+  objects/delete/&lt;type&gt;		| /v1/objects
   status/query				| /v1/status
 
 The required actions or types can be replaced by using a wildcard match ("*").
