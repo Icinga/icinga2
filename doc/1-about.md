@@ -54,6 +54,67 @@ More details in the [Icinga FAQ](https://www.icinga.org/icinga/faq/).
 
 ## <a id="whats-new"></a> What's New
 
+### What's New in Version 2.3.11
+
+#### Changes
+
+* Function for performing CIDR matches: cidr_match()
+* New methods: String#reverse and Array#reverse
+* New ITL command definitions: nwc_health, hpasm, squid, pgsql
+* Additional arguments for ITL command definitions: by_ssh, dig, pop, spop, imap, simap
+* Documentation updates
+* Various bugfixes
+
+#### Features
+
+* Feature [9183](https://dev.icinga.org/issues/9183 "Feature 9183"): Add timestamp support for OpenTsdbWriter
+* Feature [9466](https://dev.icinga.org/issues/9466 "Feature 9466"): Add FreeBSD setup to getting started
+* Feature [9812](https://dev.icinga.org/issues/9812 "Feature 9812"): add check command for check_nwc_health
+* Feature [9854](https://dev.icinga.org/issues/9854 "Feature 9854"): check_command for plugin check_hpasm
+* Feature [10004](https://dev.icinga.org/issues/10004 "Feature 10004"): escape_shell_arg() method
+* Feature [10006](https://dev.icinga.org/issues/10006 "Feature 10006"): Implement a way for users to resolve commands+arguments in the same way Icinga does
+* Feature [10057](https://dev.icinga.org/issues/10057 "Feature 10057"): Command Execution Bridge: Use of same endpoint names in examples for a better understanding
+* Feature [10109](https://dev.icinga.org/issues/10109 "Feature 10109"): Add check command squid
+* Feature [10112](https://dev.icinga.org/issues/10112 "Feature 10112"): Add check command pgsql
+* Feature [10129](https://dev.icinga.org/issues/10129 "Feature 10129"): Add ipv4/ipv6 only to nrpe CheckCommand
+* Feature [10139](https://dev.icinga.org/issues/10139 "Feature 10139"): expand check command dig
+* Feature [10142](https://dev.icinga.org/issues/10142 "Feature 10142"): Update debug docs for core dumps and full backtraces
+* Feature [10157](https://dev.icinga.org/issues/10157 "Feature 10157"): Update graphing section in the docs
+* Feature [10158](https://dev.icinga.org/issues/10158 "Feature 10158"): Make check_disk.exe CheckCommand Config more verbose
+* Feature [10161](https://dev.icinga.org/issues/10161 "Feature 10161"): Improve documentation for check_memory
+* Feature [10197](https://dev.icinga.org/issues/10197 "Feature 10197"): Implement the Array#reverse and String#reverse methods
+* Feature [10207](https://dev.icinga.org/issues/10207 "Feature 10207"): Find a better description for cluster communication requirements
+* Feature [10216](https://dev.icinga.org/issues/10216 "Feature 10216"): Clarify on cluster/client naming convention and add troubleshooting section
+* Feature [10219](https://dev.icinga.org/issues/10219 "Feature 10219"): Add timeout argument for pop, spop, imap, simap commands
+* Feature [10352](https://dev.icinga.org/issues/10352 "Feature 10352"): Improve timeperiod documentation
+* Feature [10354](https://dev.icinga.org/issues/10354 "Feature 10354"): New method: cidr_match()
+* Feature [10379](https://dev.icinga.org/issues/10379 "Feature 10379"): Add a debug log message for updating the program status table in DB IDO
+
+#### Bugfixes
+
+* Bug [8805](https://dev.icinga.org/issues/8805 "Bug 8805"): check cluster-zone returns wrong log lag
+* Bug [9322](https://dev.icinga.org/issues/9322 "Bug 9322"): sending multiple Livestatus commands rejects all except the first
+* Bug [10002](https://dev.icinga.org/issues/10002 "Bug 10002"): Deadlock in WorkQueue::Enqueue
+* Bug [10079](https://dev.icinga.org/issues/10079 "Bug 10079"): Improve error message for socket errors in Livestatus
+* Bug [10093](https://dev.icinga.org/issues/10093 "Bug 10093"): Rather use unique SID when granting rights for folders in NSIS on Windows Client
+* Bug [10177](https://dev.icinga.org/issues/10177 "Bug 10177"): Windows Check Update -> Access denied
+* Bug [10191](https://dev.icinga.org/issues/10191 "Bug 10191"): String methods cannot be invoked on an empty string
+* Bug [10192](https://dev.icinga.org/issues/10192 "Bug 10192"): null + null should not be ""
+* Bug [10199](https://dev.icinga.org/issues/10199 "Bug 10199"): Remove unnecessary MakeLiteral calls in SetExpression::DoEvaluate
+* Bug [10204](https://dev.icinga.org/issues/10204 "Bug 10204"): Config parser problem with parenthesis and newlines
+* Bug [10205](https://dev.icinga.org/issues/10205 "Bug 10205"): config checker reports wrong error on apply for rules
+* Bug [10235](https://dev.icinga.org/issues/10235 "Bug 10235"): Deadlock in TlsStream::Close
+* Bug [10239](https://dev.icinga.org/issues/10239 "Bug 10239"): Don't throw an exception when replaying the current replay log file
+* Bug [10245](https://dev.icinga.org/issues/10245 "Bug 10245"): Percent character whitespace on Windows
+* Bug [10254](https://dev.icinga.org/issues/10254 "Bug 10254"): Performance Data Labels including '=' will not be displayed correct
+* Bug [10262](https://dev.icinga.org/issues/10262 "Bug 10262"): Don't log messages we've already relayed to all relevant zones
+* Bug [10266](https://dev.icinga.org/issues/10266 "Bug 10266"): "Not after" value overflows in X509 certificates on RHEL5
+* Bug [10348](https://dev.icinga.org/issues/10348 "Bug 10348"): Checkresultreader is unable to process host checks
+* Bug [10349](https://dev.icinga.org/issues/10349 "Bug 10349"): Missing Start call for base class in CheckResultReader
+* Bug [10351](https://dev.icinga.org/issues/10351 "Bug 10351"): Broken table layout in chapter 20
+* Bug [10365](https://dev.icinga.org/issues/10365 "Bug 10365"): ApiListener::SyncRelayMessage doesn't send message to all zone members
+* Bug [10377](https://dev.icinga.org/issues/10377 "Bug 10377"): Wrong connection log message for global zones
+
 ### What's New in Version 2.3.10
 
 #### Features
