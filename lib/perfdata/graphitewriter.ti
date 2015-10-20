@@ -38,15 +38,9 @@ class GraphiteWriter : ConfigObject
 	[config] String service_name_template {
 		default {{{ return "icinga2.$host.name$.services.$service.name$.$service.check_command$"; }}}
 	};
-        [config] bool enable_send_thresholds {
-                default {{{ return false; }}}
-        };
-        [config] bool enable_send_metadata {
-                default {{{ return false; }}}
-        };
-        [config] bool enable_legacy_mode {
-                default {{{ return false; }}}
-        };
+        [config] bool enable_send_thresholds;
+        [config] bool enable_send_metadata;
+        [config] bool enable_legacy_mode;
 
 };
 
