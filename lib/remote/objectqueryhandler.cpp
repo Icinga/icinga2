@@ -160,6 +160,10 @@ bool ObjectQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 
 				Value val = joinedObj->GetField(fid);
 
+				/* hide attributes which shouldn't be user-visible */
+				if (field.Attributes & FANoUserView)
+					continue;
+
 				/* hide internal navigation fields */
 				if (field.Attributes & FANavigation) {
 					Value nval = joinedObj->NavigateField(fid);

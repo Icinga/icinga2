@@ -137,10 +137,10 @@ abstract class Checkable : CustomVarObject
 		default {{{ return AcknowledgementNone; }}}
 	};
 	[state] double acknowledgement_expiry;
-	[state] Dictionary::Ptr comments {
+	[state, no_user_modify] Dictionary::Ptr comments {
 		default {{{ return new Dictionary(); }}}
 	};
-	[state] Dictionary::Ptr downtimes {
+	[state, no_user_modify] Dictionary::Ptr downtimes {
 		default {{{ return new Dictionary(); }}}
 	};
 	[state] bool force_next_notification;

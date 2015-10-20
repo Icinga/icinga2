@@ -51,9 +51,9 @@ abstract class DbConnection : ConfigObject
 		default {{{ return 60; }}}
 	};
 
-	String schema_version;
-	bool connected;
-	bool should_connect {
+	[no_user_modify] String schema_version;
+	[no_user_modify] bool connected;
+	[no_user_modify] bool should_connect {
 		default {{{ return true; }}}
 	};
 };

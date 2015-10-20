@@ -148,9 +148,10 @@ bool TypeQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& requ
 
 			attributeInfo->Set("config", static_cast<bool>(field.Attributes & FAConfig));
 			attributeInfo->Set("state", static_cast<bool>(field.Attributes & FAState));
-			attributeInfo->Set("internal", static_cast<bool>(field.Attributes & FAInternal));
 			attributeInfo->Set("required", static_cast<bool>(field.Attributes & FARequired));
 			attributeInfo->Set("navigation", static_cast<bool>(field.Attributes & FANavigation));
+			attributeInfo->Set("no_user_modify", static_cast<bool>(field.Attributes & FANoUserModify));
+			attributeInfo->Set("no_user_view", static_cast<bool>(field.Attributes & FANoUserView));
 		}
 	}
 

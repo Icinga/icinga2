@@ -67,12 +67,12 @@ enum FieldAttribute
 	FAEnum = 8,
 	FAGetProtected = 16,
 	FASetProtected = 32,
-	FAInternal = 64,
-	FANoStorage = 128,
-	FALoadDependency = 256,
-	FARequired = 512,
-	FANavigation = 1024,
-	FANoModify = 2048
+	FANoStorage = 64,
+	FALoadDependency = 128,
+	FARequired = 256,
+	FANavigation = 512,
+	FANoUserModify = 1024,
+	FANoUserView = 2048
 };
 
 struct FieldType

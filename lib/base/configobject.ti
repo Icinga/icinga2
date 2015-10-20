@@ -68,8 +68,8 @@ private:
 
 abstract class ConfigObject : ConfigObjectBase
 {
-	[config, internal, no_modify] String __name (Name);
-	[config, no_modify] String "name" (ShortName) {
+	[config, no_user_modify] String __name (Name);
+	[config, no_user_modify] String "name" (ShortName) {
 		get {{{
 			if (m_ShortName.IsEmpty())
 				return GetName();
@@ -77,24 +77,24 @@ abstract class ConfigObject : ConfigObjectBase
 				return m_ShortName;
 		}}}
 	};
-	[config, internal, get_protected, no_modify] String type (TypeNameV);
+	[config, get_protected, no_user_modify] String type (TypeNameV);
 	[config] name(Zone) zone (ZoneName);
-	[config] String package;
-	[config, internal, get_protected, no_modify] Array::Ptr templates;
-	[get_protected] bool active;
-	[get_protected] bool paused {
+	[config, no_user_modify] String package;
+	[config, get_protected, no_user_modify] Array::Ptr templates;
+	[get_protected, no_user_modify] bool active;
+	[get_protected, no_user_modify] bool paused {
 		default {{{ return true; }}}
 	};
-	[get_protected, internal, no_modify] bool start_called;
-	[get_protected, internal, no_modify] bool stop_called;
-	[get_protected, internal, no_modify] bool pause_called;
-	[get_protected, internal, no_modify] bool resume_called;
+	[get_protected, no_user_view, no_user_modify] bool start_called;
+	[get_protected, no_user_view, no_user_modify] bool stop_called;
+	[get_protected, no_user_view, no_user_modify] bool pause_called;
+	[get_protected, no_user_view, no_user_modify] bool resume_called;
 	[enum] HAMode ha_mode (HAMode);
-	[protected, no_modify] Dictionary::Ptr extensions;
+	[protected, no_user_view, no_user_modify] Dictionary::Ptr extensions;
 
-	[protected, no_modify] bool state_loaded;
-	Dictionary::Ptr original_attributes;
-	[state] double version {
+	[protected, no_user_view, no_user_modify] bool state_loaded;
+	[no_user_modify] Dictionary::Ptr original_attributes;
+	[state, no_user_modify] double version {
 		default {{{ return 0; }}}
 	};
 };

@@ -37,8 +37,8 @@ class Endpoint : ConfigObject
 	[state] double local_log_position;
 	[state] double remote_log_position;
 
-	bool connecting;
-	bool syncing;
+	[no_user_modify] bool connecting;
+	[no_user_modify] bool syncing;
 };
 
 }

@@ -36,10 +36,10 @@ enum FieldAttribute
 	FAEphemeral = 1,
 	FAConfig = 2,
 	FAState = 4,
-	FAInternal = 64,
-	FARequired = 512,
-	FANavigation = 1024,
-	FANoModify = 2048
+	FARequired = 256,
+	FANavigation = 512,
+	FANoUserModify = 1024,
+	FANoUserView = 2048
 };
 
 class Type;

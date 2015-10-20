@@ -86,7 +86,7 @@ class Notification : CustomVarObject < NotificationNameComposer
 		}}}
 	};
 
-	[state] Array::Ptr notified_users {
+	[state, no_user_modify] Array::Ptr notified_users {
 		default {{{ return new Array(); }}}
 	};
 

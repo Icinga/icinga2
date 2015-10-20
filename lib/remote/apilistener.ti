@@ -43,9 +43,9 @@ class ApiListener : ConfigObject
 
 	[config] String ticket_salt;
 
-	[state] double log_message_timestamp;
+	[state, no_user_modify] double log_message_timestamp;
 
-	String identity;
+	[no_user_modify] String identity;
 };
 
 }

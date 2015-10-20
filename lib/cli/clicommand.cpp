@@ -73,7 +73,7 @@ std::vector<String> icinga::GetFieldCompletionSuggestions(const Type::Ptr& type,
 	for (int i = 0; i < type->GetFieldCount(); i++) {
 		Field field = type->GetFieldInfo(i);
 
-		if (!(field.Attributes & FAConfig) || field.Attributes & FAInternal)
+		if (field.Attributes & FANoUserView)
 			continue;
 
 		if (strcmp(field.TypeName, "int") != 0 && strcmp(field.TypeName, "double") != 0

@@ -143,10 +143,10 @@ enum				{ yylval->num = FAEnum; return T_FIELD_ATTRIBUTE; }
 get_protected			{ yylval->num = FAGetProtected; return T_FIELD_ATTRIBUTE; }
 set_protected			{ yylval->num = FASetProtected; return T_FIELD_ATTRIBUTE; }
 protected			{ yylval->num = FAGetProtected | FASetProtected; return T_FIELD_ATTRIBUTE; }
-internal			{ yylval->num = FAInternal; return T_FIELD_ATTRIBUTE; }
 no_storage			{ yylval->num = FANoStorage; return T_FIELD_ATTRIBUTE; }
+no_user_modify			{ yylval->num = FANoUserModify; return T_FIELD_ATTRIBUTE; }
+no_user_view			{ yylval->num = FANoUserView; return T_FIELD_ATTRIBUTE; }
 navigation			{ return T_NAVIGATION; }
-no_modify			{ yylval->num = FANoModify; return T_FIELD_ATTRIBUTE; }
 validator			{ return T_VALIDATOR; }
 required			{ return T_REQUIRED; }
 name				{ return T_NAME; }
