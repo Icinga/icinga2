@@ -314,7 +314,7 @@ int NodeUtility::GenerateNodeIcingaConfig(const std::vector<std::string>& endpoi
 	my_zone->Set("__name", zonename);
 	my_zone->Set("__type", "Zone");
 	my_zone->Set("parent", master_zone_name); //set the master zone as parent
-	my_zone->Set("//this is the local node", nodename);
+	my_zone->Set("// This is the local node", nodename);
 	my_zone->Set("endpoints", my_zone_members);
 
 	/* store the local config */
@@ -345,7 +345,7 @@ int NodeUtility::GenerateNodeMasterIcingaConfig(const String& nodename)
 
 	my_master_zone->Set("__name", "master");
 	my_master_zone->Set("__type", "Zone");
-	my_master_zone->Set("//this is the local node master named ", "master");
+	my_master_zone->Set("// This is the local master zone", "master");
 	my_master_zone->Set("endpoints", my_master_zone_members);
 
 	/* store the local config */
