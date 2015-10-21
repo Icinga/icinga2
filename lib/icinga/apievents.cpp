@@ -96,7 +96,7 @@ void ApiEvents::StateChangeHandler(const Checkable::Ptr& checkable, const CheckR
 	if (service)
 		result->Set("service", service->GetShortName());
 
-	result->Set("state", service ? service->GetState() : host->GetState());
+	result->Set("state", service ? static_cast<int>(service->GetState()) : static_cast<int>(host->GetState()));
 	result->Set("state_type", checkable->GetStateType());
 	result->Set("check_result", Serialize(cr));
 
@@ -166,7 +166,7 @@ void ApiEvents::FlappingChangedHandler(const Checkable::Ptr& checkable, const Me
 	if (service)
 		result->Set("service", service->GetShortName());
 
-	result->Set("state", service ? service->GetState() : host->GetState());
+	result->Set("state", service ? static_cast<int>(service->GetState()) : static_cast<int>(host->GetState()));
 	result->Set("state_type", checkable->GetStateType());
 	result->Set("is_flapping", checkable->IsFlapping());
 
@@ -198,7 +198,7 @@ void ApiEvents::AcknowledgementSetHandler(const Checkable::Ptr& checkable,
 	if (service)
 		result->Set("service", service->GetShortName());
 
-	result->Set("state", service ? service->GetState() : host->GetState());
+	result->Set("state", service ? static_cast<int>(service->GetState()) : static_cast<int>(host->GetState()));
 	result->Set("state_type", checkable->GetStateType());
 
 	result->Set("author", author);
@@ -233,7 +233,7 @@ void ApiEvents::AcknowledgementClearedHandler(const Checkable::Ptr& checkable, c
 	if (service)
 		result->Set("service", service->GetShortName());
 
-	result->Set("state", service ? service->GetState() : host->GetState());
+	result->Set("state", service ? static_cast<int>(service->GetState()) : static_cast<int>(host->GetState()));
 	result->Set("state_type", checkable->GetStateType());
 
 	BOOST_FOREACH(const EventQueue::Ptr& queue, queues) {
