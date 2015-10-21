@@ -144,7 +144,7 @@ void Application::InitializeBase(void)
 	Loader::ExecuteDeferredInitializers();
 
 	/* make sure the thread pool gets initialized */
-	GetTP();
+	GetTP().Start();
 
 	Timer::Initialize();
 }

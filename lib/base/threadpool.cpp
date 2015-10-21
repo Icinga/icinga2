@@ -31,7 +31,7 @@ using namespace icinga;
 int ThreadPool::m_NextID = 1;
 
 ThreadPool::ThreadPool(size_t max_threads)
-	: m_ID(m_NextID++), m_MaxThreads(max_threads), m_Stopped(false)
+	: m_ID(m_NextID++), m_MaxThreads(max_threads), m_Stopped(true)
 {
 	if (m_MaxThreads != UINT_MAX && m_MaxThreads < sizeof(m_Queues) / sizeof(m_Queues[0]))
 		m_MaxThreads = sizeof(m_Queues) / sizeof(m_Queues[0]);
@@ -46,6 +46,11 @@ ThreadPool::~ThreadPool(void)
 
 void ThreadPool::Start(void)
 {
+	if (!m_Stopped)
+		return;
+
+	m_Stopped = false;
+
 	for (size_t i = 0; i < sizeof(m_Queues) / sizeof(m_Queues[0]); i++)
 		m_Queues[i].SpawnWorker(m_ThreadGroup);
 
@@ -54,6 +59,9 @@ void ThreadPool::Start(void)
 
 void ThreadPool::Stop(void)
 {
+	if (m_Stopped)
+		return;
+
 	{
 		boost::mutex::scoped_lock lock(m_MgmtMutex);
 		m_Stopped = true;
@@ -76,7 +84,7 @@ void ThreadPool::Stop(void)
 	for (size_t i = 0; i < sizeof(m_Queues) / sizeof(m_Queues[0]); i++)
 		m_Queues[i].Stopped = false;
 
-	m_Stopped = false;
+	m_Stopped = true;
 }
 
 /**
