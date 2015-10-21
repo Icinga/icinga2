@@ -42,6 +42,7 @@ bool EventQueue::CanProcessEvent(const String& type) const
 void EventQueue::ProcessEvent(const Dictionary::Ptr& event)
 {
 	ScriptFrame frame;
+	frame.Sandboxed = true;
 
 	if (!FilterUtility::EvaluateFilter(frame, m_Filter, event, "event"))
 		return;
