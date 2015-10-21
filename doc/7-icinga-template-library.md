@@ -726,6 +726,7 @@ Name                | Description
 snmp_address        | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
 snmp_oid            | **Required.** The SNMP OID.
 snmp_community      | **Optional.** The SNMP community. Defaults to "public".
+snmp_port           | **Optional.** The SNMP port. Defaults to "161".
 snmp_warn           | **Optional.** The warning threshold.
 snmp_crit           | **Optional.** The critical threshold.
 snmp_string         | **Optional.** Return OK state if the string matches exactly with the output value
