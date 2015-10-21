@@ -317,9 +317,16 @@ Reschedule a service check for all services in NOT-OK state:
 
 ## <a id="icinga2-api-event-streams"></a> Event Streams
 
-Subscribing to an event stream requires a unique `queue` name
-as query parameter. Multiple HTTP clients may use the same queue
-with existing filters.
+You can subscribe to event streams by sending a `POST` request. The following
+parameters need to be passed as url parameters:
+
+  Parameters	| Description
+  --------------|------------------------------------
+  types		| **Required.** Event type(s). Multiple types as url parameters are supported.
+  queue		| **Required.** Unique queue name. Multiple HTTP clients can use the same queue with existing filters.
+  filter	| **Optional.** Filter for specific event attributes using [filter expressions](9-icinga2-api.md#icinga2-api-filters).
+
+### <a id="icinga2-api-event-streams-types"></a> Event Stream Types
 
 The following event stream types are available:
 
@@ -336,22 +343,38 @@ The following event stream types are available:
   DowntimeRemoved		| Downtime removed for hosts and services.
   DowntimeTriggered		| Downtime triggered for hosts and services.
 
-Multiple event streams can be subscribed to by passing multiple
-`types` query parameters. Note: Each type requires [api permissions]()
+Note: Each type requires [api permissions](9-icinga2-api.md#icinga2-api-permissions)
 being set.
 
+Example for all downtime events:
 
-TODO
+    &types=DowntimeAdded&types=DowntimeRemoved&types=DowntimeTriggered
 
-* Types
-* Permissions
-* Filter
+### <a id="icinga2-api-event-streams-filter"></a> Event Stream Filter
 
 Event streams can be filtered by attributes using the prefix `event.`.
 
-* Output
+Example for the `CheckResult` type with the `exit_code` set to `2`:
 
-Long-Polling with new lines as separator.
+    &types=CheckResult&filter=event.check_result.exit_status==2
+
+Example for the `CheckResult` type with the service matching the string "random":
+
+    &types=CheckResult&filter=match%28%22random*%22,event.service%29
+
+### <a id="icinga2-api-event-streams-response"></a> Event Stream Response
+
+The event stream response is separated with new lines. The HTTP client
+must support long-polling and HTTP/1.1. HTTP/1.0 is not supported.
+
+Example:
+
+    $ curl -k -s -u root:icinga -X POST 'https://localhost:5665/v1/events?queue=michi&types=CheckResult&filter=event.check_result.exit_status==2'
+
+    {"check_result":{ ... },"host":"www.icinga.org","service":"ping4","timestamp":1445421319.7226390839,"type":"CheckResult"}
+    {"check_result":{ ... },"host":"www.icinga.org","service":"ping4","timestamp":1445421324.7226390839,"type":"CheckResult"}
+    {"check_result":{ ... },"host":"www.icinga.org","service":"ping4","timestamp":1445421329.7226390839,"type":"CheckResult"}
+
 
 ## <a id="icinga2-api-status"></a> Status and Statistics
 
