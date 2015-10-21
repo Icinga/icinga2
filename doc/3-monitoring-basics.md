@@ -262,6 +262,11 @@ We can also directly refer to custom attributes, e.g. by using `$ping_wrta$`. Ic
 automatically tries to find the closest match for the attribute you specified. The
 exact rules for this are explained in the next section.
 
+> **Note**
+>
+> When using the `$` sign as single character you must escape it with an
+> additional dollar character (`$$`).
+
 
 ### <a id="macro-evaluation-order"></a> Evaluation Order
 

@@ -167,6 +167,14 @@ Icinga 2 allows you to import templates using the [import](20-language-reference
 contain additional attributes, your objects will automatically inherit them. You can override
 or modify these attributes in the current object.
 
+## <a id="configuration-value-dollar-sign"></a> Configuration Value with Single Dollar Sign
+
+In case your configuration validation fails with a missing closing dollar sign error message, you
+did not properly escape the single dollar sign preventing its usage as [runtime macro](3-monitoring-basics.md#runtime-macros).
+
+    critical/config: Error: Validation failed for Object 'ping4' (Type: 'Service') at /etc/icinga2/zones.d/global-templates/windows.conf:24: Closing $ not found in macro format string 'top-syntax=${list}'.
+
+
 ## <a id="troubleshooting-cluster"></a> Cluster Troubleshooting
 
 This applies to anything using the cluster protocol:
