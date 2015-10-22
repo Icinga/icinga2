@@ -105,10 +105,12 @@ public:
 	static void CollectIncludes(std::vector<Expression *>& expressions,
 	    const String& file, const String& zone, const String& package);
 
-	/* internally used methods */
-	Expression *HandleInclude(const String& include, bool search, const DebugInfo& debuginfo = DebugInfo());
-	Expression *HandleIncludeRecursive(const String& path, const String& pattern, const DebugInfo& debuginfo = DebugInfo());
-	Expression *HandleIncludeZones(const String& tag, const String& path, const String& pattern, const DebugInfo& debuginfo = DebugInfo());
+	static Expression *HandleInclude(const String& relativeBase, const String& path, bool search,
+	    const String& zone, const String& package, const DebugInfo& debuginfo = DebugInfo());
+	static Expression *HandleIncludeRecursive(const String& relativeBase, const String& path,
+	    const String& pattern, const String& zone, const String& package, const DebugInfo& debuginfo = DebugInfo());
+	static Expression *HandleIncludeZones(const String& relativeBase, const String& tag,
+	    const String& path, const String& pattern, const String& package, const DebugInfo& debuginfo = DebugInfo());
 
 	size_t ReadInput(char *buffer, size_t max_bytes);
 	void *GetScanner(void) const;
@@ -135,7 +137,7 @@ private:
 	void InitializeScanner(void);
 	void DestroyScanner(void);
 
-	void HandleIncludeZone(const String& tag, const String& path, const String& pattern, std::vector<Expression *>& expressions);
+	static void HandleIncludeZone(const String& relativeBase, const String& tag, const String& path, const String& pattern, const String& package, std::vector<Expression *>& expressions);
 
 public:
 	bool m_Eof;

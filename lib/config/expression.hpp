@@ -899,6 +899,43 @@ protected:
 	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
+enum IncludeType
+{
+	IncludeRegular,
+	IncludeRecursive,
+	IncludeZones
+};
+
+class I2_CONFIG_API IncludeExpression : public DebuggableExpression
+{
+public:
+	IncludeExpression(const String& relativeBase, Expression *path, Expression *pattern, Expression *name,
+	    IncludeType type, bool searchIncludes, const String& zone, const String& package, const DebugInfo& debugInfo = DebugInfo())
+		: DebuggableExpression(debugInfo), m_RelativeBase(relativeBase), m_Path(path), m_Pattern(pattern),
+		  m_Name(name), m_Type(type), m_SearchIncludes(searchIncludes), m_Zone(zone), m_Package(package)
+	{ }
+
+	~IncludeExpression(void)
+	{
+		delete m_Path;
+		delete m_Pattern;
+		delete m_Name;
+	}
+
+protected:
+	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
+
+private:
+	String m_RelativeBase;
+	Expression *m_Path;
+	Expression *m_Pattern;
+	Expression *m_Name;
+	IncludeType m_Type;
+	bool m_SearchIncludes;
+	String m_Zone;
+	String m_Package;
+};
+
 }
 
 #endif /* EXPRESSION_H */

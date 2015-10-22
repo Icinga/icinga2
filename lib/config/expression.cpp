@@ -19,6 +19,7 @@
 
 #include "config/expression.hpp"
 #include "config/configitem.hpp"
+#include "config/configcompiler.hpp"
 #include "config/vmops.hpp"
 #include "base/array.hpp"
 #include "base/json.hpp"
@@ -783,3 +784,74 @@ ExpressionResult LibraryExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dh
 	return Empty;
 }
 
+ExpressionResult IncludeExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
+{
+	if (frame.Sandboxed)
+		BOOST_THROW_EXCEPTION(ScriptError("Includes are not allowed in sandbox mode.", m_DebugInfo));
+
+	Expression *expr;
+	String name, path, pattern;
+
+	switch (m_Type) {
+		case IncludeRegular:
+			{
+				ExpressionResult pathres = m_Path->Evaluate(frame, dhint);
+				CHECK_RESULT(pathres);
+				path = pathres.GetValue();
+			}
+
+			expr = ConfigCompiler::HandleInclude(m_RelativeBase, path, m_SearchIncludes, m_Zone, m_Package, m_DebugInfo);
+			break;
+
+		case IncludeRecursive:
+			{
+				ExpressionResult pathres = m_Path->Evaluate(frame, dhint);
+				CHECK_RESULT(pathres);
+				path = pathres.GetValue();
+			}
+
+			{
+				ExpressionResult patternres = m_Pattern->Evaluate(frame, dhint);
+				CHECK_RESULT(patternres);
+				pattern = patternres.GetValue();
+			}
+
+			expr = ConfigCompiler::HandleIncludeRecursive(m_RelativeBase, path, pattern, m_Zone, m_Package, m_DebugInfo);
+			break;
+
+		case IncludeZones:
+			{
+				ExpressionResult nameres = m_Name->Evaluate(frame, dhint);
+				CHECK_RESULT(nameres);
+				name = nameres.GetValue();
+			}
+
+			{
+				ExpressionResult pathres = m_Path->Evaluate(frame, dhint);
+				CHECK_RESULT(pathres);
+				path = pathres.GetValue();
+			}
+
+			{
+				ExpressionResult patternres = m_Pattern->Evaluate(frame, dhint);
+				CHECK_RESULT(patternres);
+				pattern = patternres.GetValue();
+			}
+
+			expr = ConfigCompiler::HandleIncludeZones(m_RelativeBase, name, path, pattern, m_Package, m_DebugInfo);
+			break;
+	}
+
+	ExpressionResult res(Empty);
+
+	try {
+		res = expr->Evaluate(frame, dhint);
+	} catch (const std::exception&) {
+		delete expr;
+		throw;
+	}
+
+	delete expr;
+
+	return res;
+}

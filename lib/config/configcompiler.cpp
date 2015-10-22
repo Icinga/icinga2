@@ -119,24 +119,26 @@ void ConfigCompiler::CollectIncludes(std::vector<Expression *>& expressions,
 /**
  * Handles an include directive.
  *
- * @param include The path from the include directive.
+ * @param relativeBath The path this include is relative to.
+ * @param path The path from the include directive.
  * @param search Whether to search global include dirs.
  * @param debuginfo Debug information.
  */
-Expression *ConfigCompiler::HandleInclude(const String& include, bool search, const DebugInfo& debuginfo)
+Expression *ConfigCompiler::HandleInclude(const String& relativeBase, const String& path,
+    bool search, const String& zone, const String& package, const DebugInfo& debuginfo)
 {
-	String path;
+	String upath;
 
-	if (search || (include.GetLength() > 0 && include[0] == '/'))
-		path = include;
+	if (search || (path.GetLength() > 0 && path[0] == '/'))
+		upath = path;
 	else
-		path = Utility::DirName(GetPath()) + "/" + include;
+		upath = relativeBase + "/" + path;
 
-	String includePath = path;
+	String includePath = upath;
 
 	if (search) {
 		BOOST_FOREACH(const String& dir, m_IncludeSearchDirs) {
-			String spath = dir + "/" + include;
+			String spath = dir + "/" + path;
 
 			if (Utility::PathExists(spath)) {
 				includePath = spath;
@@ -147,9 +149,9 @@ Expression *ConfigCompiler::HandleInclude(const String& include, bool search, co
 
 	std::vector<Expression *> expressions;
 
-	if (!Utility::Glob(includePath, boost::bind(&ConfigCompiler::CollectIncludes, boost::ref(expressions), _1, m_Zone, m_Package), GlobFile) && includePath.FindFirstOf("*?") == String::NPos) {
+	if (!Utility::Glob(includePath, boost::bind(&ConfigCompiler::CollectIncludes, boost::ref(expressions), _1, zone, package), GlobFile) && includePath.FindFirstOf("*?") == String::NPos) {
 		std::ostringstream msgbuf;
-		msgbuf << "Include file '" + include + "' does not exist";
+		msgbuf << "Include file '" + path + "' does not exist";
 		BOOST_THROW_EXCEPTION(ScriptError(msgbuf.str(), debuginfo));
 	}
 
@@ -161,25 +163,27 @@ Expression *ConfigCompiler::HandleInclude(const String& include, bool search, co
 /**
  * Handles recursive includes.
  *
+ * @param relativeBase The path this include is relative to.
  * @param path The directory path.
  * @param pattern The file pattern.
  * @param debuginfo Debug information.
  */
-Expression *ConfigCompiler::HandleIncludeRecursive(const String& path, const String& pattern, const DebugInfo&)
+Expression *ConfigCompiler::HandleIncludeRecursive(const String& relativeBase, const String& path,
+    const String& pattern, const String& zone, const String& package, const DebugInfo&)
 {
 	String ppath;
 
 	if (path.GetLength() > 0 && path[0] == '/')
 		ppath = path;
 	else
-		ppath = Utility::DirName(GetPath()) + "/" + path;
+		ppath = relativeBase + "/" + path;
 
 	std::vector<Expression *> expressions;
-	Utility::GlobRecursive(ppath, pattern, boost::bind(&ConfigCompiler::CollectIncludes, boost::ref(expressions), _1, m_Zone, m_Package), GlobFile);
+	Utility::GlobRecursive(ppath, pattern, boost::bind(&ConfigCompiler::CollectIncludes, boost::ref(expressions), _1, zone, package), GlobFile);
 	return new DictExpression(expressions);
 }
 
-void ConfigCompiler::HandleIncludeZone(const String& tag, const String& path, const String& pattern, std::vector<Expression *>& expressions)
+void ConfigCompiler::HandleIncludeZone(const String& relativeBase, const String& tag, const String& path, const String& pattern, const String& package, std::vector<Expression *>& expressions)
 {
 	String zoneName = Utility::BaseName(path);
 
@@ -188,32 +192,34 @@ void ConfigCompiler::HandleIncludeZone(const String& tag, const String& path, co
 	if (path.GetLength() > 0 && path[0] == '/')
 		ppath = path;
 	else
-		ppath = Utility::DirName(GetPath()) + "/" + path;
+		ppath = relativeBase + "/" + path;
 
 	RegisterZoneDir(tag, ppath, zoneName);
 
-	Utility::GlobRecursive(ppath, pattern, boost::bind(&ConfigCompiler::CollectIncludes, boost::ref(expressions), _1, zoneName, m_Package), GlobFile);
+	Utility::GlobRecursive(ppath, pattern, boost::bind(&ConfigCompiler::CollectIncludes, boost::ref(expressions), _1, zoneName, package), GlobFile);
 }
 
 /**
  * Handles zone includes.
  *
+ * @param relativeBase The path this include is relative to.
  * @param tag The tag name.
  * @param path The directory path.
  * @param pattern The file pattern.
  * @param debuginfo Debug information.
  */
-Expression *ConfigCompiler::HandleIncludeZones(const String& tag, const String& path, const String& pattern, const DebugInfo&)
+Expression *ConfigCompiler::HandleIncludeZones(const String& relativeBase, const String& tag,
+    const String& path, const String& pattern, const String& package, const DebugInfo&)
 {
 	String ppath;
 
 	if (path.GetLength() > 0 && path[0] == '/')
 		ppath = path;
 	else
-		ppath = Utility::DirName(GetPath()) + "/" + path;
+		ppath = relativeBase + "/" + path;
 
 	std::vector<Expression *> expressions;
-	Utility::Glob(ppath + "/*", boost::bind(&ConfigCompiler::HandleIncludeZone, this, tag, _1, pattern, boost::ref(expressions)), GlobDirectory);
+	Utility::Glob(ppath + "/*", boost::bind(&ConfigCompiler::HandleIncludeZone, relativeBase, tag, _1, pattern, package, boost::ref(expressions)), GlobDirectory);
 	return new DictExpression(expressions);
 }
 

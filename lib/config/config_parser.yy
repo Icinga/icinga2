@@ -443,39 +443,30 @@ lterm: T_LIBRARY rterm
 	{
 		$$ = new SetExpression($1, $2, $3, @$);
 	}
-	| T_INCLUDE T_STRING
+	| T_INCLUDE rterm
 	{
-		$$ = context->HandleInclude(*$2, false, @$);
-		delete $2;
+		$$ = new IncludeExpression(Utility::DirName(context->GetPath()), $2, NULL, NULL, IncludeRegular, false, context->GetZone(), context->GetPackage(), @$);
 	}
 	| T_INCLUDE T_STRING_ANGLE
 	{
-		$$ = context->HandleInclude(*$2, true, @$);
+		$$ = new IncludeExpression(Utility::DirName(context->GetPath()), MakeLiteral(*$2), NULL, NULL, IncludeRegular, true, context->GetZone(), context->GetPackage(), @$);
 		delete $2;
 	}
-	| T_INCLUDE_RECURSIVE T_STRING
+	| T_INCLUDE_RECURSIVE rterm
 	{
-		$$ = context->HandleIncludeRecursive(*$2, "*.conf", @$);
-		delete $2;
+		$$ = new IncludeExpression(Utility::DirName(context->GetPath()), $2, MakeLiteral("*.conf"), NULL, IncludeRecursive, false, context->GetZone(), context->GetPackage(), @$);
 	}
-	| T_INCLUDE_RECURSIVE T_STRING ',' T_STRING
+	| T_INCLUDE_RECURSIVE rterm ',' rterm
 	{
-		$$ = context->HandleIncludeRecursive(*$2, *$4, @$);
-		delete $2;
-		delete $4;
+		$$ = new IncludeExpression(Utility::DirName(context->GetPath()), $2, $4, NULL, IncludeRecursive, false, context->GetZone(), context->GetPackage(), @$);
 	}
-	| T_INCLUDE_ZONES T_STRING ',' T_STRING
+	| T_INCLUDE_ZONES rterm ',' rterm
 	{
-		$$ = context->HandleIncludeZones(*$2, *$4, "*.conf", @$);
-		delete $2;
-		delete $4;
+		$$ = new IncludeExpression(Utility::DirName(context->GetPath()), $4, MakeLiteral("*.conf"), $2, IncludeZones, false, context->GetZone(), context->GetPackage(), @$);
 	}
-	| T_INCLUDE_ZONES T_STRING ',' T_STRING ',' T_STRING
+	| T_INCLUDE_ZONES rterm ',' rterm ',' rterm
 	{
-		$$ = context->HandleIncludeZones(*$2, *$4, *$6, @$);
-		delete $2;
-		delete $4;
-		delete $6;
+		$$ = new IncludeExpression(Utility::DirName(context->GetPath()), $4, $6, $2, IncludeZones, false, context->GetZone(), context->GetPackage(), @$);
 	}
 	| T_IMPORT rterm
 	{
