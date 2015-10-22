@@ -22,14 +22,23 @@
 
 using namespace icinga;
 
-REGISTER_URLHANDLER("/v1", InfoHandler);
+REGISTER_URLHANDLER("/", InfoHandler);
 
 bool InfoHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
 {
-	if (request.RequestUrl->GetPath().size() != 1)
+	if (request.RequestUrl->GetPath().size() > 2)
 		return false;
 
 	if (request.RequestMethod != "GET")
+		return false;
+
+	if (request.RequestUrl->GetPath().empty()) {
+		response.SetStatus(302, "Found");
+		response.AddHeader("Location", "/v1");
+		return true;
+	}
+
+	if (request.RequestUrl->GetPath()[0] != "v1")
 		return false;
 
 	response.SetStatus(200, "OK");
