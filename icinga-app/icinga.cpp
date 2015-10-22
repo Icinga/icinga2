@@ -193,7 +193,9 @@ int Main(void)
 		("app,a", po::value<std::string>(), "application library name (default: icinga)")
 		("library,l", po::value<std::vector<std::string> >(), "load a library")
 		("include,I", po::value<std::vector<std::string> >(), "add include search directory")
-		("log-level,x", po::value<std::string>(), "specify the log level for the console log");
+		("log-level,x", po::value<std::string>()
+			, "specify the log level for the console log.\n"
+			"The valid value is either debug, notice, information (default), warning, or critical");
 
 	po::options_description hiddenDesc("Hidden options");
 
