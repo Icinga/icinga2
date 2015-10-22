@@ -403,34 +403,50 @@ Filter::Ptr LivestatusQuery::ParseFilter(const String& params, unsigned long& fr
 	return filter;
 }
 
-void LivestatusQuery::PrintResultSet(std::ostream& fp, const Array::Ptr& rs) const
+void LivestatusQuery::BeginResultSet(std::ostream& fp) const
+{
+	if (m_OutputFormat == "json" || m_OutputFormat == "python")
+		fp << "[";
+}
+
+void LivestatusQuery::EndResultSet(std::ostream& fp) const
+{
+	if (m_OutputFormat == "json" || m_OutputFormat == "python")
+		fp << "]";
+}
+
+void LivestatusQuery::AppendResultRow(std::ostream& fp, const Array::Ptr& row, bool& first_row) const
 {
 	if (m_OutputFormat == "csv") {
-		ObjectLock olock(rs);
+		bool first = true;
 
-		BOOST_FOREACH(const Array::Ptr& row, rs) {
-			bool first = true;
+		ObjectLock rlock(row);
+		BOOST_FOREACH(const Value& value, row) {
+			if (first)
+				first = false;
+			else
+				fp << m_Separators[1];
 
-			ObjectLock rlock(row);
-			BOOST_FOREACH(const Value& value, row) {
-				if (first)
-					first = false;
-				else
-					fp << m_Separators[1];
-
-				if (value.IsObjectType<Array>())
-					PrintCsvArray(fp, value, 0);
-				else
-					fp << value;
-			}
-
-			fp << m_Separators[0];
+			if (value.IsObjectType<Array>())
+				PrintCsvArray(fp, value, 0);
+			else
+				fp << value;
 		}
+
+		fp << m_Separators[0];
 	} else if (m_OutputFormat == "json") {
-		fp << JsonEncode(rs);
+		if (!first_row)
+			fp << ", ";
+
+		fp << JsonEncode(row);
 	} else if (m_OutputFormat == "python") {
-		PrintPythonArray(fp, rs);
+		if (!first_row)
+			fp << ", ";
+
+		PrintPythonArray(fp, row);
 	}
+
+	first_row = false;
 }
 
 void LivestatusQuery::PrintCsvArray(std::ostream& fp, const Array::Ptr& array, int level) const
@@ -503,7 +519,9 @@ void LivestatusQuery::ExecuteGetHelper(const Stream::Ptr& stream)
 	else
 		columns = table->GetColumnNames();
 
-	Array::Ptr rs = new Array();
+	std::ostringstream result;
+	bool first_row = true;
+	BeginResultSet(result);
 
 	if (m_Aggregators.empty()) {
 		Array::Ptr header = new Array();
@@ -515,8 +533,6 @@ void LivestatusQuery::ExecuteGetHelper(const Stream::Ptr& stream)
 
 		BOOST_FOREACH(const String& columnName, columns)
 			column_objs.push_back(std::make_pair(columnName, table->GetColumn(columnName)));
-
-		rs->Reserve(1 + objects.size());
 
 		BOOST_FOREACH(const LivestatusRowValue& object, objects) {
 			Array::Ptr row = new Array();
@@ -531,11 +547,11 @@ void LivestatusQuery::ExecuteGetHelper(const Stream::Ptr& stream)
 			}
 
 			if (m_ColumnHeaders) {
-				rs->Add(header);
+				AppendResultRow(result, header, first_row);
 				m_ColumnHeaders = false;
 			}
 
-			rs->Add(row);
+			AppendResultRow(result, row, first_row);
 		}
 	} else {
 		std::vector<double> stats(m_Aggregators.size(), 0);
@@ -563,7 +579,7 @@ void LivestatusQuery::ExecuteGetHelper(const Stream::Ptr& stream)
 				header->Add("stats_" + Convert::ToString(i));
 			}
 
-			rs->Add(header);
+			AppendResultRow(result, header, first_row);
 		}
 
 		Array::Ptr row = new Array();
@@ -587,11 +603,10 @@ void LivestatusQuery::ExecuteGetHelper(const Stream::Ptr& stream)
 		for (size_t i = 0; i < m_Aggregators.size(); i++)
 			row->Add(stats[i]);
 
-		rs->Add(row);
+		AppendResultRow(result, row, first_row);
 	}
 
-	std::ostringstream result;
-	PrintResultSet(result, rs);
+	EndResultSet(result);
 
 	SendResponse(stream, LivestatusErrorOK, result.str());
 }

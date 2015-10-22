@@ -91,14 +91,15 @@ void Host::Stop(void)
 	// TODO: unregister slave services/notifications?
 }
 
-std::set<Service::Ptr> Host::GetServices(void) const
+std::vector<Service::Ptr> Host::GetServices(void) const
 {
 	boost::mutex::scoped_lock lock(m_ServicesMutex);
 
-	std::set<Service::Ptr> services;
+	std::vector<Service::Ptr> services;
+	services.reserve(m_Services.size());
 	typedef std::pair<String, Service::Ptr> ServicePair;
 	BOOST_FOREACH(const ServicePair& kv, m_Services) {
-		services.insert(kv.second);
+		services.push_back(kv.second);
 	}
 
 	return services;

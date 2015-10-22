@@ -1478,9 +1478,12 @@ Value HostsTable::ServicesAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	Array::Ptr services = new Array();
+	std::vector<Service::Ptr> rservices = host->GetServices();
 
-	BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
+	Array::Ptr services = new Array();
+	services->Reserve(rservices.size());
+
+	BOOST_FOREACH(const Service::Ptr& service, rservices) {
 		services->Add(service->GetShortName());
 	}
 
@@ -1494,9 +1497,12 @@ Value HostsTable::ServicesWithStateAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	Array::Ptr services = new Array();
+	std::vector<Service::Ptr> rservices = host->GetServices();
 
-	BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
+	Array::Ptr services = new Array();
+	services->Reserve(rservices.size());
+
+	BOOST_FOREACH(const Service::Ptr& service, rservices) {
 		Array::Ptr svc_add = new Array();
 
 		svc_add->Add(service->GetShortName());
@@ -1515,9 +1521,12 @@ Value HostsTable::ServicesWithInfoAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	Array::Ptr services = new Array();
+	std::vector<Service::Ptr> rservices = host->GetServices();
 
-	BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
+	Array::Ptr services = new Array();
+	services->Reserve(rservices.size());
+
+	BOOST_FOREACH(const Service::Ptr& service, rservices) {
 		Array::Ptr svc_add = new Array();
 
 		svc_add->Add(service->GetShortName());

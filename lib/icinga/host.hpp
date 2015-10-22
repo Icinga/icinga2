@@ -43,7 +43,7 @@ public:
 
 	intrusive_ptr<Service> GetServiceByShortName(const Value& name);
 
-	std::set<intrusive_ptr<Service> > GetServices(void) const;
+	std::vector<intrusive_ptr<Service> > GetServices(void) const;
 	void AddService(const intrusive_ptr<Service>& service);
 	void RemoveService(const intrusive_ptr<Service>& service);
 

@@ -97,7 +97,9 @@ private:
 	unsigned long m_LogTimeUntil;
 	String m_CompatLogPath;
 
-	void PrintResultSet(std::ostream& fp, const Array::Ptr& rs) const;
+	void BeginResultSet(std::ostream& fp) const;
+	void EndResultSet(std::ostream& fp) const;
+	void AppendResultRow(std::ostream& fp, const Array::Ptr& row, bool& first_row) const;
 	void PrintCsvArray(std::ostream& fp, const Array::Ptr& array, int level) const;
 	void PrintPythonArray(std::ostream& fp, const Array::Ptr& array) const;
 	static String QuoteStringPython(const String& str);
