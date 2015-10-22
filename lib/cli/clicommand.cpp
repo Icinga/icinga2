@@ -48,7 +48,7 @@ std::vector<String> icinga::GetBashCompletionSuggestions(const String& type, con
 		result.push_back(wline);
 	}
 	fclose(fp);
-	
+
 	/* Append a slash if there's only one suggestion and it's a directory */
 	if ((type == "file" || type == "directory") && result.size() == 1) {
 		String path = result[0];
@@ -200,12 +200,11 @@ bool CLICommand::ParseCommand(int argc, char **argv, po::options_description& vi
 found_command:
 	lock.unlock();
 
-	po::options_description vdesc("Command options");
-
-	if (command)
+	if (command) {
+		po::options_description vdesc("Command options");
 		command->InitParameters(vdesc, hiddenDesc);
-
-	visibleDesc.add(vdesc);
+		visibleDesc.add(vdesc);
+	}
 
 	if (autocomplete)
 		return true;
@@ -323,7 +322,7 @@ void CLICommand::ShowCommands(int argc, char **argv, po::options_description *vi
 		} else if (autoindex - 1 >= 0 && argv[autoindex - 1][0] == '-' && argv[autoindex - 1][1] != '-') {
 			aname = argv[autoindex - 1];
 			pword = aword;
-			
+
 			if (pword == "=")
 				pword = "";
 		} else if (aword.GetLength() > 1 && aword[0] == '-' && aword[1] != '-') {
@@ -349,7 +348,7 @@ void CLICommand::ShowCommands(int argc, char **argv, po::options_description *vi
 		BOOST_FOREACH(const String& suggestion, command->GetArgumentSuggestions(odesc->long_name(), pword)) {
 			std::cout << prefix << suggestion << "\n";
 		}
-		
+
 		return;
 
 complete_option:
