@@ -49,7 +49,7 @@ static void AuthorityTimerHandler(void)
 
 	std::vector<Endpoint::Ptr> endpoints;
 	BOOST_FOREACH(const Endpoint::Ptr& endpoint, my_zone->GetEndpoints()) {
-		if (!endpoint->IsConnected() && endpoint != my_endpoint)
+		if (!endpoint->GetConnected() && endpoint != my_endpoint)
 			continue;
 
 		endpoints.push_back(endpoint);

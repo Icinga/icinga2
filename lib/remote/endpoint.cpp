@@ -109,7 +109,7 @@ Zone::Ptr Endpoint::GetZone(void) const
 	return m_Zone;
 }
 
-bool Endpoint::IsConnected(void) const
+bool Endpoint::GetConnected(void) const
 {
 	boost::mutex::scoped_lock lock(m_ClientsLock);
 	return !m_Clients.empty();

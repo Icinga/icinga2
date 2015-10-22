@@ -84,7 +84,7 @@ void ClusterZoneCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const Che
 	double zoneLag = 0;
 
 	BOOST_FOREACH(const Endpoint::Ptr& endpoint, zone->GetEndpoints()) {
-		if (endpoint->IsConnected())
+		if (endpoint->GetConnected())
 			connected = true;
 
 		double eplag = ApiListener::CalculateZoneLag(endpoint);

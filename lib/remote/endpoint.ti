@@ -39,6 +39,10 @@ class Endpoint : ConfigObject
 
 	[no_user_modify] bool connecting;
 	[no_user_modify] bool syncing;
+
+	[no_user_modify, no_storage] bool connected {
+		get;
+	};
 };
 
 }

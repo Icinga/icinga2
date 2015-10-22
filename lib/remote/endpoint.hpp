@@ -50,7 +50,7 @@ public:
 
 	intrusive_ptr<Zone> GetZone(void) const;
 
-	bool IsConnected(void) const;
+	virtual bool GetConnected(void) const override;
 
 	static Endpoint::Ptr GetLocalEndpoint(void);
 

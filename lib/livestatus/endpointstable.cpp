@@ -105,7 +105,7 @@ Value EndpointsTable::IsConnectedAccessor(const Value& row)
 	if (!endpoint)
 		return Empty;
 
-	unsigned int is_connected = endpoint->IsConnected() ? 1 : 0;
+	unsigned int is_connected = endpoint->GetConnected() ? 1 : 0;
 
 	/* if identity is equal to node, fake is_connected */
 	if (endpoint->GetName() == IcingaApplication::GetInstance()->GetNodeName())

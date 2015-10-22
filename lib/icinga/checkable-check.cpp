@@ -436,7 +436,7 @@ void Checkable::ExecuteCheck()
 		Dictionary::Ptr macros = new Dictionary();
 		GetCheckCommand()->Execute(this, cr, macros, false);
 
-		if (endpoint->IsConnected()) {
+		if (endpoint->GetConnected()) {
 			/* perform check on remote endpoint */
 			Dictionary::Ptr message = new Dictionary();
 			message->Set("jsonrpc", "2.0");

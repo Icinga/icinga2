@@ -154,7 +154,7 @@ Endpoint::Ptr ApiListener::GetMaster(void) const
 	std::vector<String> names;
 
 	BOOST_FOREACH(const Endpoint::Ptr& endpoint, zone->GetEndpoints())
-		if (endpoint->IsConnected() || endpoint->GetName() == GetIdentity())
+		if (endpoint->GetConnected() || endpoint->GetName() == GetIdentity())
 			names.push_back(endpoint->GetName());
 
 	std::sort(names.begin(), names.end());
@@ -337,7 +337,7 @@ void ApiListener::NewClientHandlerInternal(const Socket::Ptr& client, const Stri
 	bool need_sync = false;
 
 	if (endpoint)
-		need_sync = !endpoint->IsConnected();
+		need_sync = !endpoint->GetConnected();
 
 	ClientType ctype;
 
@@ -477,7 +477,7 @@ void ApiListener::ApiTimerHandler(void)
 			}
 
 			/* don't try to connect if we're already connected */
-			if (endpoint->IsConnected()) {
+			if (endpoint->GetConnected()) {
 				Log(LogDebug, "ApiListener")
 				    << "Not connecting to Endpoint '" << endpoint->GetName()
 				    << "' because we're already connected to it.";
@@ -490,7 +490,7 @@ void ApiListener::ApiTimerHandler(void)
 	}
 
 	BOOST_FOREACH(const Endpoint::Ptr& endpoint, ConfigType::GetObjectsByType<Endpoint>()) {
-		if (!endpoint->IsConnected())
+		if (!endpoint->GetConnected())
 			continue;
 
 		double ts = endpoint->GetRemoteLogPosition();
@@ -522,7 +522,7 @@ void ApiListener::ApiTimerHandler(void)
 
 	std::vector<String> names;
 	BOOST_FOREACH(const Endpoint::Ptr& endpoint, ConfigType::GetObjectsByType<Endpoint>())
-		if (endpoint->IsConnected())
+		if (endpoint->GetConnected())
 			names.push_back(endpoint->GetName() + " (" + Convert::ToString(endpoint->GetClients().size()) + ")");
 
 	Log(LogNotice, "ApiListener")
@@ -615,7 +615,7 @@ void ApiListener::SyncRelayMessage(const MessageOrigin::Ptr& origin,
 		}
 
 		/* don't relay messages to disconnected endpoints */
-		if (!endpoint->IsConnected()) {
+		if (!endpoint->GetConnected()) {
 			if (target_zone == my_zone)
 				finishedLogZones.erase(target_zone);
 
@@ -930,7 +930,7 @@ std::pair<Dictionary::Ptr, Dictionary::Ptr> ApiListener::GetStatus(void)
 			allEndpoints++;
 			countZoneEndpoints++;
 
-			if (!endpoint->IsConnected()) {
+			if (!endpoint->GetConnected()) {
 				allNotConnectedEndpoints->Add(endpoint->GetName());
 			} else {
 				allConnectedEndpoints->Add(endpoint->GetName());
@@ -977,7 +977,7 @@ double ApiListener::CalculateZoneLag(const Endpoint::Ptr& endpoint)
 	double remoteLogPosition = endpoint->GetRemoteLogPosition();
 	double eplag = Utility::GetTime() - remoteLogPosition;
 
-	if ((endpoint->GetSyncing() || !endpoint->IsConnected()) && remoteLogPosition != 0)
+	if ((endpoint->GetSyncing() || !endpoint->GetConnected()) && remoteLogPosition != 0)
 		return eplag;
 
 	return 0;

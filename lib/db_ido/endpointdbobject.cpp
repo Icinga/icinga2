@@ -100,7 +100,7 @@ void EndpointDbObject::UpdateConnectedStatus(const Endpoint::Ptr& endpoint)
 
 int EndpointDbObject::EndpointIsConnected(const Endpoint::Ptr& endpoint)
 {
-	unsigned int is_connected = endpoint->IsConnected() ? 1 : 0;
+	unsigned int is_connected = endpoint->GetConnected() ? 1 : 0;
 
 	/* if identity is equal to node, fake is_connected */
 	if (endpoint->GetName() == IcingaApplication::GetInstance()->GetNodeName())
