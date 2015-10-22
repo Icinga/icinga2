@@ -615,8 +615,8 @@ Detailed examples can be found in the [recurring downtimes](5-advanced-topics.md
 ### <a id="using-apply-for"></a> Using Apply For Rules
 
 Next to the standard way of using [apply rules](3-monitoring-basics.md#using-apply)
-there is the requirement of generating apply rules objects based on set (array or
-dictionary).
+there is the requirement of applying objects based on a set (array or
+dictionary) using [apply for](20-language-reference.md#apply-for) expressions.
 
 The sample configuration already includes a detailed example in [hosts.conf](4-configuring-icinga-2.md#hosts-conf)
 and [services.conf](4-configuring-icinga-2.md#services-conf) for this use case.

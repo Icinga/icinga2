@@ -411,6 +411,42 @@ Any valid config attribute can be accessed using the `host` and `service`
 variables. For example, `host.address` would return the value of the host's
 "address" attribute - or null if that attribute isn't set.
 
+More usage examples are documented in the [monitoring basics](3-monitoring-basics.md#using-apply-expressions)
+chapter.
+
+## <a id="apply-for"></a> Apply For
+
+[Apply](20-language-reference.md#apply) rules can be extended with the
+[for loop](20-language-reference.md#for-loops) keyword.
+
+    apply Service "prefix-" for (key => value in host.vars.dictionary) to Host {
+      import "generic-service"
+
+      check_command = "ping4"
+      vars.host_value = value
+    }
+
+
+Any valid config attribute can be accessed using the `host` and `service`
+variables. The attribute must be of the Array or Dictionary type. In this example
+`host.vars.dictionary` is of the Dictionary type which needs a key-value-pair
+as iterator.
+
+In this example all generated service object names consist of `prefix-` and
+the value of the `key` iterator. The prefix string can be omitted if not required.
+
+The `key` and `value` variables can be used for object attribute assignment, e.g. for
+setting the `check_command` attribute or custom attributes as command parameters.
+
+`apply for` rules are first evaluated against all objects matching the `for loop` list
+and afterwards the `assign where` and `ignore where` conditions are evaluated.
+
+It is not necessary to check attributes referenced in the `for loop` expression
+for their existance using an additional `assign where` condition.
+
+More usage examples are documented in the [monitoring basics](3-monitoring-basics.md#using-apply-for)
+chapter.
+
 ## <a id="group-assign"></a> Group Assign
 
 Group objects can be assigned to specific member objects using the `assign where`
