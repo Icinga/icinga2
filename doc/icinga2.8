@@ -1,51 +1,87 @@
-.TH ICINGA2 "1" "November 2014" "icinga2 - The Icinga 2 network monitoring daemon" "System Administration Utilities"
+.TH ICINGA2 "8" "October 2015" "icinga2 - The Icinga 2 network monitoring daemon"
 .SH NAME
-icinga2 \- manual page for icinga2 - The Icinga 2 network monitoring daemon
-.SH DESCRIPTION
 icinga2 \- The Icinga 2 network monitoring daemon
-.SS "Usage:"
-.IP
-icinga2 daemon [<arguments>]
-.PP
-Starts Icinga 2.
-.SS "Global options:"
+
+.SH SYNOPSIS
+.B icinga2
+.I command
+[
+.I command options
+][
+.I global options
+]
+
+.I command
+:= [
+.B api | console | daemon | feature | node | object | pki | repository | troubleshoot | variable
+]
+.B --help
+
+.SH DESCRIPTION
+
+Icinga 2 is an open source monitoring system which checks the availability of your network resources, notifies users of outages, and generates performance data for reporting.
+
+Scalable and extensible, Icinga 2 can monitor large, complex environments across multiple locations.
+
+.SH OPTIONS
+Details for specific command options can be viewed by invoking the command name with
+.B --help
+parameter.
+
+.SS Global options
 .TP
-\fB\-h\fR [ \fB\-\-help\fR ]
-show this help message
+.B -h,--help
+Show this help message.
 .TP
-\fB\-V\fR [ \fB\-\-version\fR ]
-show version information
+.B -V,--version
+Show version information.
 .TP
-\fB\-\-color\fR
-use VT100 color codes even when stdout is not a terminal
+.B --color
+Use VT100 color codes even when stdout is not a terminal.
 .TP
-\fB\-D\fR [ \fB\-\-define\fR ] arg
-define a constant
+.BI "-D, --define" " arg"
+Define a constant.
 .TP
-\fB\-l\fR [ \fB\-\-library\fR ] arg
-load a library
+.BI "-l, --library" " arg"
+Load a library.
 .TP
-\fB\-I\fR [ \fB\-\-include\fR ] arg
-add include search directory
-.HP
-\fB\-x\fR [ \fB\-\-log\-level\fR ] arg
-specify the log level for the console log
-.SS "Command options:"
+.BI "-I, --include" " arg"
+Add include search directory.
 .TP
-\fB\-c\fR [ \fB\-\-config\fR ] arg
-parse a configuration file
+.BI "-x, --log-level" " [ debug | notice | information | warning | critical ]"
+Specify the log level for the console log, default is
+.B information.
+
+.SS daemon options
+The CLI command daemon provides the functionality to start/stop Icinga 2.
+Furthermore it provides the configuration validation.
+
 .TP
-\fB\-z\fR [ \fB\-\-no\-config\fR ]
-start without a configuration file
+.BI "-c, --config" " arg"
+Using this option you can specify one or more configuration files.
+Config files are processed in the order they are specified on the command-line.
+
+When no configuration file is specified and the
+.B --no-config
+is not used, Icinga 2 automatically falls back to using the configuration file
+.B SysconfDir + "/icinga2/icinga2.conf"
+(where SysconfDir is usually
+.BI "/etc" ")."
+
 .TP
-\fB\-C\fR [ \fB\-\-validate\fR ]
-exit after validating the configuration
+.B "-z, --noconfig"
+Start without a configuration file.
 .TP
-\fB\-e\fR [ \fB\-\-errorlog\fR ] arg log fatal errors to the specified log file (only works
-in combination with \fB\-\-daemonize\fR)
+.B "-C, --validate"
+This option can be used to check if your configuration files contain errors.
+If any errors are found the exit status is 1, otherwise 0 is returned.
 .TP
-\fB\-d\fR [ \fB\-\-daemonize\fR ]
-detach from the controlling terminal
+.BI "-e, --errorlog" " arg"
+Log fatal errors to the specified log file (only works in combination with
+.BR "--daemonize" ")."
+.TP
+.B "-d, --daemonize"
+Detach from the controlling terminal.
 .SH "REPORTING BUGS"
 Report bugs at <https://dev.icinga.org/>
 .br
