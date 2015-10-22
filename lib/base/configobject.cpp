@@ -232,7 +232,7 @@ void ConfigObject::ModifyAttribute(const String& attr, const Value& value, bool 
 		NotifyOriginalAttributes();
 }
 
-void ConfigObject::RestoreAttribute(const String& attr)
+void ConfigObject::RestoreAttribute(const String& attr, bool updateVersion)
 {
 	Type::Ptr type = GetReflectionType();
 
@@ -344,7 +344,8 @@ void ConfigObject::RestoreAttribute(const String& attr)
 	original_attributes->Remove(attr);
 	SetField(fid, newValue);
 
-	SetVersion(Utility::GetTime());
+	if (updateVersion)
+		SetVersion(Utility::GetTime());
 }
 
 bool ConfigObject::IsAttributeModified(const String& attr) const

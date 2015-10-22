@@ -164,6 +164,28 @@ Value ApiListener::ConfigUpdateObjectAPIHandler(const MessageOrigin::Ptr& origin
 		}
 	}
 
+	/* check whether original attributes changed and restore them locally */
+	Array::Ptr newOriginalAttributes = params->Get("original_attributes");
+	Dictionary::Ptr objOriginalAttributes = object->GetOriginalAttributes();
+
+	if (newOriginalAttributes && objOriginalAttributes) {
+		std::vector<String> restoreAttrs;
+
+		{
+			ObjectLock xlock(objOriginalAttributes);
+			BOOST_FOREACH(const Dictionary::Pair& kv, objOriginalAttributes) {
+				/* original attribute was removed, restore it */
+				if (!newOriginalAttributes->Contains(kv.first))
+					restoreAttrs.push_back(kv.first);
+			}
+		}
+
+		BOOST_FOREACH(const String& key, restoreAttrs) {
+			/* do not update the object version yet. */
+			object->RestoreAttribute(key, false);
+		}
+	}
+
 	/* keep the object version in sync with the sender */
 	object->SetVersion(objVersion, false, origin);
 
@@ -278,6 +300,7 @@ void ApiListener::UpdateConfigObject(const ConfigObject::Ptr& object, const Mess
 
 	Dictionary::Ptr original_attributes = object->GetOriginalAttributes();
 	Dictionary::Ptr modified_attributes = new Dictionary();
+	Array::Ptr newOriginalAttributes = new Array();
 
 	if (original_attributes) {
 		ObjectLock olock(original_attributes);
@@ -291,10 +314,15 @@ void ApiListener::UpdateConfigObject(const ConfigObject::Ptr& object, const Mess
 			}
 
 			modified_attributes->Set(kv.first, value);
+
+			newOriginalAttributes->Add(kv.first);
 		}
 	}
 
 	params->Set("modified_attributes", modified_attributes);
+
+	/* only send the original attribute keys */
+	params->Set("original_attributes", newOriginalAttributes);
 
 	message->Set("params", params);
 

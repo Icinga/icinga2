@@ -54,7 +54,7 @@ public:
 	void ClearExtension(const String& key);
 
 	void ModifyAttribute(const String& attr, const Value& value, bool updateVersion = true);
-	void RestoreAttribute(const String& attr);
+	void RestoreAttribute(const String& attr, bool updateVersion = true);
 	bool IsAttributeModified(const String& attr) const;
 
 	void Register(void);
