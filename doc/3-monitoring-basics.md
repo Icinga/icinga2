@@ -568,7 +568,7 @@ the template by checking for custom attributes. This can be achieved by using [c
 
       // same with notification period
       if (host.vars.notification_period) {
-        interval = host.vars.notification_period
+        period = host.vars.notification_period
       }
 
       // Send SMS instead of email if the host's custom attribute `notification_type` is set to `sms`
