@@ -78,10 +78,7 @@ void Dictionary::Set(const String& key, const Value& value)
 	ASSERT(!OwnsLock());
 	ObjectLock olock(this);
 
-	std::pair<std::map<String, Value>::iterator, bool> ret;
-	ret = m_Data.insert(std::make_pair(key, value));
-	if (!ret.second)
-		ret.first->second = value;
+	m_Data[key] = value;
 }
 
 
