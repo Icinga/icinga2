@@ -587,8 +587,16 @@ will not be joined.
 Newly created or updated objects can be synced throughout your
 Icinga 2 cluster. Set the `zone` attribute to the zone this object
 belongs to and let the API and cluster handle the rest.
+Objects without zone attribute are only synced in the same (HA) zone.
 
-If you add a new cluster instance, or boot an instance beeing offline
+> **Note**
+>
+> Cluster nodes must accept configuration for creating, modifying
+> and deleting objects. Ensure that `accept_config` is set to `true`
+> in the [ApiListener](6-object-types.md#objecttype-apilistener) object
+> on each node.
+
+If you add a new cluster instance, or boot an instance which was offline
 for a while, Icinga 2 takes care of the initial object sync for all
 objects created by the API.
 

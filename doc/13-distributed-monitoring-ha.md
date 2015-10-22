@@ -266,6 +266,9 @@ the defined parent zone `config-ha-master`.
 
 ## <a id="cluster-zone-config-sync"></a> Zone Configuration Synchronisation
 
+In case you are using the Icinga 2 API for creating, modifying and deleting objects
+at runtime, please continue over [here](9-icinga2-api.md#icinga2-api-config-objects-cluster-sync).
+
 By default all objects for specific zones should be organized in
 
     /etc/icinga2/zones.d/<zonename>
