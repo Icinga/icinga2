@@ -145,10 +145,10 @@ int NodeSetupCommand::SetupMaster(const boost::program_options::variables_map& v
 	}
 
 	Log(LogInformation, "cli", "Generating master configuration for Icinga 2.");
-	ApiSetupUtility::SetupMasterApiUser(cn);
+	ApiSetupUtility::SetupMasterApiUser();
 
 	if (!FeatureUtility::CheckFeatureEnabled("api")) {
-		ApiSetupUtility::SetupMasterEnableApi(cn);
+		ApiSetupUtility::SetupMasterEnableApi();
 	} else {
 		Log(LogInformation, "cli")
 		    << "'api' feature already enabled.\n";

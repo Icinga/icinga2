@@ -464,10 +464,10 @@ wizard_ticket:
 		}
 
 		std::cout << ConsoleColorTag(Console_Bold) << "Generating master configuration for Icinga 2.\n" << ConsoleColorTag(Console_Normal);
-		ApiSetupUtility::SetupMasterApiUser(cn);
+		ApiSetupUtility::SetupMasterApiUser();
 
 		if (!FeatureUtility::CheckFeatureEnabled("api"))
-			ApiSetupUtility::SetupMasterEnableApi(cn);
+			ApiSetupUtility::SetupMasterEnableApi();
 		else
 			std::cout << "'api' feature already enabled.\n";
 

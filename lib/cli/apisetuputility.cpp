@@ -43,33 +43,36 @@ String ApiSetupUtility::GetConfdPath(void)
         return Application::GetSysconfDir() + "/icinga2/conf.d";
 }
 
-int ApiSetupUtility::SetupMaster(const String& cn)
+bool ApiSetupUtility::SetupMaster(const String& cn)
 {
 	/* if the 'api' feature is enabled we can safely assume
 	 * that either 'api setup' was run, or the user manually
 	 * enabled the api including all certificates e.g. by 'node wizard' in <= v2.3.x
 	 */
 	if (FeatureUtility::CheckFeatureEnabled("api")) {
-		Log(LogInformation, "cli")
-		    << "'api' feature already enabled, skipping feature enable and master certificate creation.\n";
-		return 0;
+		Log(LogInformation, "cli", "'api' feature already enabled, skipping feature enable and master certificate creation.");
+		return false;
 	}
 
-	SetupMasterCertificates(cn);
-	SetupMasterApiUser(cn);
-	SetupMasterEnableApi(cn);
+	if (!SetupMasterCertificates(cn))
+		return false;
 
-	return 0;
+	if (!SetupMasterApiUser())
+		return false;
+
+	if (!SetupMasterEnableApi())
+		return false;
+
+	return true;
 }
 
-int ApiSetupUtility::SetupMasterCertificates(const String& cn)
+bool ApiSetupUtility::SetupMasterCertificates(const String& cn)
 {
 	Log(LogInformation, "cli")
 	    << "Generating new CA.\n";
 
-	if (PkiUtility::NewCa() > 0) {
+	if (PkiUtility::NewCa() > 0)
 		Log(LogWarning, "cli", "Found CA, skipping and using the existing one.");
-	}
 
 	String pki_path = PkiUtility::GetPkiPath();
 	Utility::MkDirP(pki_path, 0700);
@@ -95,7 +98,7 @@ int ApiSetupUtility::SetupMasterCertificates(const String& cn)
 
 	if (PkiUtility::NewCert(cn, key, csr, "") > 0) {
 		Log(LogCritical, "cli", "Failed to create certificate signing request.");
-		return 1;
+		return false;
 	}
 
 	/* Sign the CSR with the CA key */
@@ -109,11 +112,10 @@ int ApiSetupUtility::SetupMasterCertificates(const String& cn)
 
 	if (PkiUtility::SignCsr(csr, cert) != 0) {
 		Log(LogCritical, "cli", "Could not sign CSR.");
-		return 1;
+		return false;
 	}
 
-		/* Copy CA certificate to /etc/icinga2/pki */
-
+	/* Copy CA certificate to /etc/icinga2/pki */
 	String ca_path = PkiUtility::GetLocalCaPath();
 	String ca = ca_path + "/ca.crt";
 	String ca_key = ca_path + "/ca.key";
@@ -147,12 +149,12 @@ int ApiSetupUtility::SetupMasterCertificates(const String& cn)
 		}
 	}
 
-	return 0;
+	return true;
 }
 
-int ApiSetupUtility::SetupMasterApiUser(const String& cn)
+bool ApiSetupUtility::SetupMasterApiUser(void)
 {
-	String api_username = "root"; //TODO make this available as cli parameter?
+	String api_username = "root"; // TODO make this available as cli parameter?
 	String api_password = RandomString(8);
 	String apiuserspath = GetConfdPath() + "/api-users.conf";
 
@@ -189,16 +191,16 @@ int ApiSetupUtility::SetupMasterApiUser(const String& cn)
 		    << boost::errinfo_file_name(apiuserspathtmp));
 	}
 
-	return 0;
+	return true;
 }
 
-int ApiSetupUtility::SetupMasterEnableApi(const String& cn)
+bool ApiSetupUtility::SetupMasterEnableApi(void)
 {
 	Log(LogInformation, "cli", "Enabling the ApiListener feature.\n");
 
-	std::vector<std::string> enable;
-	enable.push_back("api");
-	FeatureUtility::EnableFeatures(enable);
+	std::vector<std::string> features;
+	features.push_back("api");
+	FeatureUtility::EnableFeatures(features);
 
-	return 0;
+	return true;
 }

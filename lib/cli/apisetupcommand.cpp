@@ -55,21 +55,10 @@ int ApiSetupCommand::GetMaxArguments(void) const
  */
 int ApiSetupCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {
-	/* 1. generate CA & signed certificate
-	 * 2. update password inside api-users.conf for the "root" user
-	 * TODO:
-	 * - setup the api on a client?
-	 */
-
-	int result = ApiSetupUtility::SetupMaster(Utility::GetFQDN());
-
-	if (result > 0) {
-		Log(LogCritical, "ApiSetup", "Error occured. Bailing out.");
-		return result;
-	}
+	if (!ApiSetupUtility::SetupMaster(Utility::GetFQDN()))
+		return 1;
 
 	std::cout << "Done.\n\n";
-
 	std::cout << "Now restart your Icinga 2 daemon to finish the installation!\n\n";
 
 	return 0;
