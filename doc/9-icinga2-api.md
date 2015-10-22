@@ -5,7 +5,7 @@
 The Icinga 2 API allows you to manage configuration objects
 and resources in a simple, programmatic way using HTTP requests.
 
-The endpoints are logically separated allowing you to easily
+The URL endpoints are logically separated allowing you to easily
 make calls to
 
 * run [actions](9-icinga2-api.md#icinga2-api-actions) (reschedule checks, etc.)
@@ -14,7 +14,7 @@ make calls to
 * subscribe to [event streams](9-icinga2-api.md#icinga2-api-event-streams)
 
 This chapter will start with a general overview followed by
-detailed information about specific endpoints.
+detailed information about specific URL endpoints.
 
 ### <a id="icinga2-api-requests"></a> Requests
 
@@ -24,9 +24,9 @@ the API, for example [curl](http://curl.haxx.se).
 Requests are only allowed to use the HTTPS protocol so that
 traffic remains encrypted.
 
-By default the Icinga 2 API listens on port `5665` sharing this
-port with the cluster communication protocol. This can be changed
-by setting the `bind_port` attribute in the [ApiListener](6-object-types.md#objecttype-apilistener)
+By default the Icinga 2 API listens on port `5665` which is shared with
+the cluster stack. The port can be changed by setting the `bind_port` attribute
+in the [ApiListener](6-object-types.md#objecttype-apilistener)
 configuration object in the `/etc/icinga2/features-available/api.conf`
 file.
 
@@ -47,7 +47,7 @@ including error codes.
 When an error occurs, the response body will contain additional information
 about the problem and its source.
 
-A status in the range of 200 generally means that the request was succesful
+A status in the range between 200 and 299 generally means that the request was succesful
 and no error was encountered.
 
 Return codes within the 400 range indicate that there was a problem with the
@@ -58,17 +58,13 @@ was malformed.
 A status in the range of 500 generally means that there was a server-side problem
 and Icinga 2 is unable to process your request currently.
 
-Ask your Icinga 2 system administrator to check the `icinga2.log` file for further
-troubleshooting.
-
-
 ### <a id="icinga2-api-responses"></a> Responses
 
 Succesful requests will send back a response body containing a `results`
 list. Depending on the number of affected objects in your request, the
 results may contain one or more entries.
 
-The [output](9-icinga2-api.md#icinga2-api-output) will be sent back as JSON object:
+The [output](9-icinga2-api.md#icinga2-api-output) will be sent back as a JSON object:
 
 
     {
@@ -86,22 +82,23 @@ The [output](9-icinga2-api.md#icinga2-api-output) will be sent back as JSON obje
 There are two different ways for authenticating against the Icinga 2 API:
 
 * username and password using HTTP basic auth
-* X.509 certificate with client CN
+* X.509 certificate
 
 In order to configure a new API user you'll need to add a new [ApiUser](6-object-types.md#objecttype-apiuser)
 configuration object. In this example `root` will be the basic auth username
 and the `password` attribute contains the basic auth password.
 
-    vim /etc/icinga2/conf.d/api-users.conf
+    # vim /etc/icinga2/conf.d/api-users.conf
 
     object ApiUser "root" {
-      password = icinga"
+      password = "icinga"
     }
 
 Alternatively you can use X.509 client certificates by specifying the `client_cn`
-the API should trust.
+the API should trust. The X.509 certificate has to be signed by the CA certificate
+that is configured in the [ApiListener](6-object-types.md#objecttype-apilistener) object.
 
-    vim /etc/icinga2/conf.d/api-users.conf
+    # vim /etc/icinga2/conf.d/api-users.conf
 
     object ApiUser "api-clientcn" {
       password = "CertificateCommonName"
@@ -110,32 +107,33 @@ the API should trust.
 An `ApiUser` object can have both methods configured. Sensitive information
 such as the password will not be exposed through the API itself.
 
-New installations of Icinga 2 will automatically generate a new `ApiUser`
-named `root` with a generated password in the `/etc/icinga2/conf.d/api-users.conf`
+New installations of Icinga 2 will automatically set up a new `ApiUser`
+named `root` with an auto-generated password in the `/etc/icinga2/conf.d/api-users.conf`
 file.
-You can manually invoke the cli command `icinga2 api setup` which will generate
+
+You can manually invoke the CLI command `icinga2 api setup` which will generate
 a new local CA, self-signed certificate and a new API user configuration.
 
 Once the API user is configured make sure to restart Icinga 2:
 
     # service icinga2 restart
 
-Now pass the basic auth information to curl and send a GET request to the API:
+You can test authentication by sending a GET request to the API:
 
-    $ curl -u root:icinga -k -s 'https://localhost:5665/v1/status'
+    $ curl -u root:icinga -k -s 'https://localhost:5665/v1'
 
-In case you will get an error message make sure to check the API user credentials.
+In case you get an error message make sure to check the API user credentials.
 
 ### <a id="icinga2-api-permissions"></a> Permissions
 
-By default an api user does not have any permissions to perform
-actions on the [url endpoints](9-icinga2-api.md#icinga2-api-url-endpoints).
+By default an API user does not have any permissions to perform
+actions on the [URL endpoints](9-icinga2-api.md#icinga2-api-url-endpoints).
 
-Permissions for api users must be specified in the `permissions` attribute
+Permissions for API users must be specified in the `permissions` attribute
 as array. The array items can be a list of permission strings with wildcard
 matches.
 
-Example for an api user with all permissions:
+Example for an API user with all permissions:
 
     permissions = [ "*" ]
 
@@ -147,7 +145,7 @@ The `permission` attribute contains the action and the specific capitalized
 object type name. Instead of the type name it is also possible to use a wildcard
 match.
 
-The following example allows the api user to query all hosts and services with
+The following example allows the API user to query all hosts and services with
 the custom host attribute `os` matching the regular expression `^Linux`.
 
     permissions = [
@@ -162,9 +160,9 @@ the custom host attribute `os` matching the regular expression `^Linux`.
     ]
 
 
-Available permissions for specific url endpoints:
+Available permissions for specific URL endpoints:
 
-  Permissions				| Url Endpoint
+  Permissions				| URL Endpoint
   --------------------------------------|------------------------
   actions/&lt;action&gt;		| /v1/actions
   config/query				| /v1/config
@@ -220,11 +218,11 @@ The request and reponse body contain a JSON encoded string.
 
 Each url contains the version string as prefix (currently "/v1").
 
-### <a id="icinga2-api-url-endpoints"></a>Url Endpoints
+### <a id="icinga2-api-url-endpoints"></a>URL Endpoints
 
-The Icinga 2 API provides multiple url endpoints:
+The Icinga 2 API provides multiple URL endpoints:
 
-  Url Endpoints	| Description
+  URL Endpoints	| Description
   --------------|----------------------------------------------------
   /v1/actions	| Endpoint for running specific [API actions](9-icinga2-api.md#icinga2-api-actions).
   /v1/config    | Endpoint for [managing configuration modules](9-icinga2-api.md#icinga2-api-config-management).
@@ -239,10 +237,12 @@ Please check the respective sections for detailed urls and parameters.
 
 There are several actions available for Icinga 2 provided by the `actions`
 URL endpoint.
+
 In case you have been using the [external commands](5-advanced-topics.md#external-commands)
 in the past, the API actions provide a similar interface with filter
 capabilities for some of the more common targets which do not directly change
 the configuration.
+
 Some actions require specific target types (e.g. `type=Host`) and a
 [filter expression](9-icinga2-api.md#icinga2-api-filters).
 For each object matching the filter the action in question is performed once.
@@ -472,10 +472,10 @@ Example:
 
 ## <a id="icinga2-api-status"></a> Status and Statistics
 
-Contains a list of sub url endpoints which provide the status and statistics
+Contains a list of sub URL endpoints which provide the status and statistics
 of available and enabled features. Any filters are ignored.
 
-Example for the main url endpoint `/v1/status`:
+Example for the main URL endpoint `/v1/status`:
 
     $ curl -k -s -u root:icinga 'https://localhost:5665/v1/status' | python -m json.tool
     {
@@ -495,10 +495,10 @@ Example for the main url endpoint `/v1/status`:
         ]
     }
 
-`/v1/status` is always available as virtual status url endpoint.
+`/v1/status` is always available as virtual status URL endpoint.
 It provides all feature status information into a collected overview.
 
-Example for the icinga application url endpoint `/v1/status/IcingaApplication`:
+Example for the icinga application URL endpoint `/v1/status/IcingaApplication`:
 
     $ curl -k -s -u root:icinga 'https://localhost:5665/v1/status/IcingaApplication' | python -m json.tool
     {
@@ -528,10 +528,10 @@ Example for the icinga application url endpoint `/v1/status/IcingaApplication`:
 
 ## <a id="icinga2-api-config-objects"></a> Config Objects
 
-Provides functionality for all configuration object url endpoints
+Provides functionality for all configuration object URL endpoints
 provided by [config object types](6-object-types.md#object-types):
 
-  Url Endpoints				| Description
+  URL Endpoints				| Description
   --------------------------------------|----------------------------------------------------
   /v1/objects/hosts			| Endpoint for retreiving and updating [Host](6-object-types.md#objecttype-host) objects.
   /v1/objects/services			| Endpoint for retreiving and updating [Service](6-object-types.md#objecttype-service) objects.
@@ -771,7 +771,7 @@ will create a new empty configuration package.
 
 ### <a id="icinga2-api-config-management-create-config-stage"></a> Create Configuration to Package Stage
 
-Send a `POST` request to the url endpoint `/v1/config/stages` including an existing
+Send a `POST` request to the URL endpoint `/v1/config/stages` including an existing
 configuration package, e.g. `puppet`.
 The request body must contain the `files` attribute with the value being
 a dictionary of file targets and their content.
@@ -835,7 +835,7 @@ The latter already has a stage created, but it is not active.
 
 ### <a id="icinga2-api-config-management-list-config-package-stage-files"></a> List Configuration Packages and their Stages
 
-Sent a `GET` request to the url endpoint `/v1/config/stages` including the package
+Sent a `GET` request to the URL endpoint `/v1/config/stages` including the package
 (`puppet`) and stage (`nbmif-1441625839-0`) name.
 
     $ curl -k -s -u root:icinga https://localhost:5665/v1/config/stages/puppet/nbmif-1441625839-0 | python -m json.tool
@@ -868,7 +868,7 @@ Sent a `GET` request to the url endpoint `/v1/config/stages` including the packa
 
 ### <a id="icinga2-api-config-management-fetch-config-package-stage-files"></a> Fetch Configuration Package Stage Files
 
-Send a `GET` request to the url endpoint `/v1/config/files` including
+Send a `GET` request to the URL endpoint `/v1/config/files` including
 the package name, the stage name and the relative path to the file.
 Note: You cannot use dots in paths.
 
