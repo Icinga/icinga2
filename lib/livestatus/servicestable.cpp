@@ -137,6 +137,7 @@ void ServicesTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "check_source", Column(&ServicesTable::CheckSourceAccessor, objectAccessor));
 	table->AddColumn(prefix + "is_reachable", Column(&ServicesTable::IsReachableAccessor, objectAccessor));
 	table->AddColumn(prefix + "cv_is_json", Column(&ServicesTable::CVIsJsonAccessor, objectAccessor));
+	table->AddColumn(prefix + "original_attributes", Column(&ServicesTable::OriginalAttributesAccessor, objectAccessor));
 
 	HostsTable::AddColumns(table, "host_", boost::bind(&ServicesTable::HostAccessor, _1, objectAccessor));
 
@@ -1265,4 +1266,14 @@ Value ServicesTable::IsReachableAccessor(const Value& row)
 		return Empty;
 
 	return service->IsReachable();
+}
+
+Value ServicesTable::OriginalAttributesAccessor(const Value& row)
+{
+	Service::Ptr service = static_cast<Service::Ptr>(row);
+
+	if (!service)
+		return Empty;
+
+	return JsonEncode(service->GetOriginalAttributes());
 }

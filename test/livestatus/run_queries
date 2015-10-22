@@ -1,7 +1,8 @@
 #!/bin/bash
 
 NC=`which nc`
-LIVESTATUSSOCKET="/var/run/icinga2/cmd/livestatus"
+LOCALSTATEDIR=`icinga2 variable get LocalStateDir`
+LIVESTATUSSOCKET="$LOCALSTATEDIR/run/icinga2/cmd/livestatus"
 LIVESTATUSHOST="127.0.0.1"
 LIVESTATUSPORT="6558"
 LIVESTATUSQUERIES="./queries"

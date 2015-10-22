@@ -199,6 +199,8 @@ New columns:
   {host,service}group | notes_url               | TEXT     | NULL    | -
   {host,service}group | action_url              | TEXT     | NULL    | -
   customvariable*     | is_json			| integer  | 0	     | Defines whether `varvalue` is a json encoded string from custom attributes, or not
+  servicestatus       | original_attributes     | TEXT     | NULL    | JSON encoded dictionary of original attributes if modified at runtime.
+  hoststatus          | original_attributes     | TEXT     | NULL    | JSON encoded dictionary of original attributes if modified at runtime.
 
 Additional command custom variables populated from 'vars' dictionary.
 Additional global custom variables populated from 'Vars' constant (object_id is NULL).
@@ -249,6 +251,8 @@ New columns:
   status    | custom_variable_names
   status    | custom_variable_values
   status    | custom_variables
+  hosts     | original_attributes
+  services  | original_attributes
 
 Command custom variables reflect the local 'vars' dictionary.
 Status custom variables reflect the global 'Vars' constant.

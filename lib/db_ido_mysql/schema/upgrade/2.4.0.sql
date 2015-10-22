@@ -42,6 +42,13 @@ ALTER TABLE icinga_services MODIFY freshness_threshold int;
 ALTER TABLE icinga_hosts MODIFY freshness_threshold int;
 
 -- -----------------------------------------
+-- #10392 - original attributes
+-- -----------------------------------------
+
+ALTER TABLE icinga_servicestatus ADD COLUMN original_attributes TEXT character set latin1  default NULL;
+ALTER TABLE icinga_hoststatus ADD COLUMN original_attributes TEXT character set latin1  default NULL;
+
+-- -----------------------------------------
 -- update dbversion
 -- -----------------------------------------
 

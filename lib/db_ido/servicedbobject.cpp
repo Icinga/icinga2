@@ -35,6 +35,7 @@
 #include "base/configtype.hpp"
 #include "base/utility.hpp"
 #include "base/logger.hpp"
+#include "base/json.hpp"
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string/join.hpp>
 
@@ -163,6 +164,8 @@ Dictionary::Ptr ServiceDbObject::GetStatusFields(void) const
 	fields->Set("retry_check_interval", CompatUtility::GetCheckableRetryInterval(service));
 	fields->Set("check_timeperiod_object_id", service->GetCheckPeriod());
 	fields->Set("is_reachable", CompatUtility::GetCheckableIsReachable(service));
+
+	fields->Set("original_attributes", JsonEncode(service->GetOriginalAttributes()));
 
 	return fields;
 }

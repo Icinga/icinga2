@@ -1,4 +1,4 @@
 GET services
-Columns: name modified_attributes modified_attributes_list
+Columns: description modified_attributes modified_attributes_list original_attributes
 ResponseHeader: fixed16
 

@@ -31,6 +31,7 @@
 #include "base/convert.hpp"
 #include "base/objectlock.hpp"
 #include "base/logger.hpp"
+#include "base/json.hpp"
 #include <boost/foreach.hpp>
 
 using namespace icinga;
@@ -169,6 +170,8 @@ Dictionary::Ptr HostDbObject::GetStatusFields(void) const
 	fields->Set("retry_check_interval", CompatUtility::GetCheckableRetryInterval(host));
 	fields->Set("check_timeperiod_object_id", host->GetCheckPeriod());
 	fields->Set("is_reachable", CompatUtility::GetCheckableIsReachable(host));
+
+	fields->Set("original_attributes", JsonEncode(host->GetOriginalAttributes()));
 
 	return fields;
 }

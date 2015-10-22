@@ -164,6 +164,7 @@ void HostsTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "check_source", Column(&HostsTable::CheckSourceAccessor, objectAccessor));
 	table->AddColumn(prefix + "is_reachable", Column(&HostsTable::IsReachableAccessor, objectAccessor));
 	table->AddColumn(prefix + "cv_is_json", Column(&HostsTable::CVIsJsonAccessor, objectAccessor));
+	table->AddColumn(prefix + "original_attributes", Column(&HostsTable::OriginalAttributesAccessor, objectAccessor));
 
 	/* add additional group by values received through the object accessor */
 	if (table->GetGroupByType() == LivestatusGroupByHostGroup) {
@@ -1569,4 +1570,14 @@ Value HostsTable::IsReachableAccessor(const Value& row)
 		return Empty;
 
 	return host->IsReachable();
+}
+
+Value HostsTable::OriginalAttributesAccessor(const Value& row)
+{
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+
+	if (!host)
+		return Empty;
+
+	return JsonEncode(host->GetOriginalAttributes());
 }

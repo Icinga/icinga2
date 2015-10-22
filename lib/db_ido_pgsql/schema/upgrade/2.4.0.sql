@@ -152,6 +152,12 @@ CREATE TABLE  icinga_zonestatus (
 ) ;
 
 -- -----------------------------------------
+-- #10392 original attributes
+-- -----------------------------------------
+ALTER TABLE icinga_servicestatus ADD COLUMN  original_attributes TEXT default NULL;
+ALTER TABLE icinga_hoststatus ADD COLUMN  original_attributes TEXT default NULL;
+
+-- -----------------------------------------
 -- update dbversion
 -- -----------------------------------------
 
