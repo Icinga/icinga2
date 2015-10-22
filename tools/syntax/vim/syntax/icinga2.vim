@@ -51,7 +51,7 @@ syn match		icinga2Objdef		"object[ \t]\+\(timeperiod\|scheduleddowntime\|depende
 syn match		icinga2ObjDef		"object[ \t]\+\(graphitewriter\|idomysqlconnection\|idomysqlconnection\)"
 syn match		icinga2ObjDef		"object[ \t]\+\(livestatuslistener\|statusdatawriter\|externalcommandlistener\)"
 syn match		icinga2ObjDef		"object[ \t]\+\(compatlogger\|checkresultreader\|checkcomponent\|notificationcomponent\)"
-syn match		icinga2ObjDef		"object[ \t]\+\(filelogger\|sysloglogger\|icingastatuswriter\|apilistener\|endpoint\|zone\)"
+syn match		icinga2ObjDef		"object[ \t]\+\(filelogger\|sysloglogger\|icingastatuswriter\|icingaapplication\|apilistener\|apiuser\|endpoint\|zone\)"
 
 
 " apply def
@@ -61,15 +61,15 @@ syn match		icinga2ApplyDef		"apply[ \t]\+\(Service\|Dependency\|Notification\|Sc
 " objects attributes
 syn keyword		icinga2ObjAttr		contained	accept_commands accept_config action_url address address6 arguments author bind_host
 syn keyword		icinga2ObjAttr		contained	bind_port ca_path categories cert_path check_command check_interval
-syn keyword		icinga2ObjAttr		contained	check_period child_host_name child_service_name cleanup command command_endpoint command_path
+syn keyword		icinga2ObjAttr		contained	check_period child_host_name child_service_name cleanup client_cn command command_endpoint command_path
 syn keyword		icinga2ObjAttr		contained	comment compat_log_path crl_path database disable_checks disable_notifications
-syn keyword		icinga2ObjAttr		contained	display_name duration email enable_active_checks enable_event_handler
-syn keyword		icinga2ObjAttr		contained	enable_flapping enable_ha enable_notifications enable_passive_checks enable_perfdata
-syn keyword		icinga2ObjAttr		contained	endpoints env event_command failover_timeout fixed flapping_threshold groups host
+syn keyword		icinga2ObjAttr		contained	display_name duration email enable_active_checks enable_event_handlers enable_event_handler
+syn keyword		icinga2ObjAttr		contained	enable_flapping enable_ha enable_host_checks enable_notifications enable_passive_checks enable_perfdata
+syn keyword		icinga2ObjAttr		contained	enable_service_checks endpoints env event_command failover_timeout fixed flapping_threshold groups host
 syn keyword		icinga2ObjAttr		contained	host_format_template host_name host_name_template host_perfdata_path host_temp_path icon_image
 syn keyword		icinga2ObjAttr		contained	icon_image_alt instance_description instance_name interval key_path log_dir
 syn keyword		icinga2ObjAttr		contained	log_duration max_check_attempts methods name notes notes_url objects_path
-syn keyword		icinga2ObjAttr		contained	pager parent parent_host_name parent_service_name password path period
+syn keyword		icinga2ObjAttr		contained	pager parent parent_host_name parent_service_name password path period permissions
 syn keyword		icinga2ObjAttr		contained	port ranges retry_interval rotation_interval rotation_method
 syn keyword		icinga2ObjAttr		contained	service_format_template service_name service_name_template service_perfdata_path service_temp_path
 syn keyword		icinga2ObjAttr		contained	severity socket_path socket_type spool_dir states status_path table_prefix
@@ -86,8 +86,9 @@ syn match		icinga2AssingCond	contained	"\(assign[ \t]\+\where\|ignore[ \t]\+\whe
 
 
 " Global functions
-syn keyword		icinga2GFunction	contained	regex match len union intersection keys string
-syn keyword 	icinga2GFunction 	contained	number bool random log typeof get_time exit
+syn keyword		icinga2GFunction	contained	regex match cidr_match len union intersection keys string
+syn keyword 	icinga2GFunction 	contained	number bool random log typeof get_time parse_performance_data dirname
+syn keyword 	icinga2GFunction 	contained	basename escape_shell_arg escape_shell_cmd escape_create_process_arg exit
 
 
 " Accessor Functions
@@ -105,7 +106,6 @@ syn match 	icinga2MathFunction  	contained 	"\(Math.pow\|Math.random\|Math.round
 syn match 	icinga2JsonFunction		contained	"\(Json.encode\|Json.decode\)"
 
 " String functions
-syn match 	icinga2StrFunction	contained 	"\(\.to_string\)"
 syn match 	icinga2StrFunction	contained 	"\(\.find\)"
 syn match 	icinga2StrFunction	contained 	"\(\.contains\)"
 syn match 	icinga2StrFunction	contained 	"\(\.len\)"
@@ -114,19 +114,23 @@ syn match 	icinga2StrFunction	contained 	"\(\.upper\)"
 syn match 	icinga2StrFunction	contained 	"\(\.replace\)"
 syn match 	icinga2StrFunction	contained 	"\(\.split\)"
 syn match 	icinga2StrFunction	contained 	"\(\.substr\)"
+syn match 	icinga2StrFunction	contained 	"\(\.to_string\)"
+syn match 	icinga2StrFunction	contained 	"\(\.reverse\)"
 
 " Array and Dict  Functions
+syn match 	icinga2ArrFunction 	contained 	"\(\.clone\)"
 syn match 	icinga2ArrFunction 	contained 	"\(\.add(\)"
 syn match 	icinga2ArrFunction 	contained 	"\(\.clear\)"
-syn match 	icinga2ArrFunction 	contained 	"\(\.clone\)"
+syn match 	icinga2ArrFunction 	contained 	"\(\.shallow_clone\)"
 syn match 	icinga2ArrFunction 	contained 	"\(\.contains\)"
 syn match 	icinga2ArrFunction 	contained 	"\(\.len\)"
 syn match 	icinga2ArrFunction 	contained 	"\(\.remove\)"
 syn match 	icinga2ArrFunction 	contained 	"\(\.set\)"
-syn match 	icinga2ArrFunction 	contained 	"\(\.remove\)"
+syn match 	icinga2ArrFunction 	contained 	"\(\.get\)"
 syn match 	icinga2ArrFunction 	contained 	"\(\.sort\)"
 syn match 	icinga2ArrFunction 	contained 	"\(\.join\)"
-syn match 	icinga2ArrFunction 	contained 	"\(\.clone\)"
+syn match 	icinga2ArrFunction 	contained 	"\(\.reverse\)"
+syn match 	icinga2ArrFunction 	contained 	"\(\.keys\)"
 syn match 	icinga2ArrFunction 	contained 	"\(\.call\)"
 syn match 	icinga2ArrFunction 	contained 	"\(\.callv\)"
 
@@ -172,9 +176,10 @@ syn  match         icinga2Operators "[ \t]\+\(/=\)\+"
 
 " global constats
 syn keyword 	icinga2Gconst		PrefixDir SysconfDir ZonesDir LocalStateDir RunDir PkgDataDir StatePath ObjectsPath
-syn keyword 	icinga2Gconst		PidPath NodeName ApplicationType EnableNotifications EnableEventHandlers EnableFlapping
-syn keyword 	icinga2Gconst		EnableHostChecks EnableServiceChecks EnablePerfdata UseVfork RunAsUser RunAsGroup PluginDir
-syn	match		icinga2Gconst		"\(Vars[ \t]\+\)"
+syn keyword 	icinga2Gconst		PidPath NodeName ApplicationType UseVfork RunAsUser RunAsGroup PluginDir
+" global types 
+syn keyword 	icinga2Gconst		Number String Boolean Array Dictionary Value Object ConfigObject Command CheckResult
+syn keyword     icinga2Gconst           Checkable CustomVarObject DbConnection Type PerfdataValue Comment Downtime Logger Application
 
 " values type
 syn keyword		valueBoolean		contained	true false
