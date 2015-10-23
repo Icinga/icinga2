@@ -94,7 +94,11 @@ which contains the path of the plugins from the Monitoring Plugins project.
 
 Check command for the `check_apt` plugin.
 
-The `apt` check command does not support any vars.
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
+
+Name            | Description
+----------------|--------------
+apt_timeout     | **Optional.** The timeout in seconds.
 
 
 ## <a id="plugin-check-command-by-ssh"></a> by_ssh
