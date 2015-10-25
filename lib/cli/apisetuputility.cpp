@@ -51,7 +51,7 @@ bool ApiSetupUtility::SetupMaster(const String& cn)
 	 */
 	if (FeatureUtility::CheckFeatureEnabled("api")) {
 		Log(LogInformation, "cli", "'api' feature already enabled, skipping feature enable and master certificate creation.");
-		return false;
+		return true;
 	}
 
 	if (!SetupMasterCertificates(cn))
