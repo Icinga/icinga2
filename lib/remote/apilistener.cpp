@@ -824,8 +824,14 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 						continue;
 				}
 
-				NetString::WriteStringToStream(client->GetStream(), pmessage->Get("message"));
-				count++;
+				try  {
+					NetString::WriteStringToStream(client->GetStream(), pmessage->Get("message"));
+					count++;
+				} catch (const std::exception& ex) {
+					Log(LogWarning, "ApiListener")
+					    << "Error while replaying log for endpoint '" << endpoint->GetName() << "': " << DiagnosticInformation(ex);
+					break;
+				}
 
 				peer_ts = pmessage->Get("timestamp");
 
