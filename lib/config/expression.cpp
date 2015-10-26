@@ -640,8 +640,12 @@ bool IndexerExpression::GetReference(ScriptFrame& frame, bool init_dict, Value *
 	ExpressionResult operand2 = m_Operand2->Evaluate(frame);
 	*index = operand2.GetValue();
 
-	if (dhint && psdhint)
-		*dhint = new DebugHint(psdhint->GetChild(*index));
+	if (dhint) {
+		if (psdhint)
+			*dhint = new DebugHint(psdhint->GetChild(*index));
+		else
+			*dhint = NULL;
+	}
 
 	if (free_psd)
 		delete psdhint;
