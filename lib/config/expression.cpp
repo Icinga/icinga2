@@ -698,7 +698,7 @@ ExpressionResult ThrowExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhin
 	ExpressionResult messageres = m_Message->Evaluate(frame);
 	CHECK_RESULT(messageres);
 	Value message = messageres.GetValue();
-	BOOST_THROW_EXCEPTION(ScriptError(message, m_DebugInfo));
+	BOOST_THROW_EXCEPTION(ScriptError(message, m_DebugInfo, m_IncompleteExpr));
 }
 
 ExpressionResult ImportExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const

@@ -242,9 +242,9 @@ Expression *ConfigCompiler::CompileStream(const String& path,
 	try {
 		return ctx.Compile();
 	} catch (const ScriptError& ex) {
-		return new ThrowExpression(MakeLiteral(ex.what()), ex.GetDebugInfo());
+		return new ThrowExpression(MakeLiteral(ex.what()), ex.IsIncompleteExpression(), ex.GetDebugInfo());
 	} catch (const std::exception& ex) {
-		return new ThrowExpression(MakeLiteral(DiagnosticInformation(ex)));
+		return new ThrowExpression(MakeLiteral(DiagnosticInformation(ex)), false);
 	}
 }
 

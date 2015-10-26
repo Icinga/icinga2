@@ -747,8 +747,8 @@ I2_CONFIG_API void BindToScope(Expression *& expr, ScopeSpecifier scopeSpec);
 class I2_CONFIG_API ThrowExpression : public DebuggableExpression
 {
 public:
-	ThrowExpression(Expression *message, const DebugInfo& debugInfo = DebugInfo())
-		: DebuggableExpression(debugInfo), m_Message(message)
+	ThrowExpression(Expression *message, bool incompleteExpr, const DebugInfo& debugInfo = DebugInfo())
+		: DebuggableExpression(debugInfo), m_Message(message), m_IncompleteExpr(incompleteExpr)
 	{ }
 
 	~ThrowExpression(void)
@@ -761,6 +761,7 @@ protected:
 
 private:
 	Expression *m_Message;
+	bool m_IncompleteExpr;
 };
 
 class I2_CONFIG_API ImportExpression : public DebuggableExpression

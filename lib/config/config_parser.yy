@@ -564,7 +564,7 @@ lterm: T_LIBRARY rterm
 	}
 	| T_THROW rterm
 	{
-		$$ = new ThrowExpression($2, @$);
+		$$ = new ThrowExpression($2, false, @$);
 	}
 	| rterm_side_effect
 	;
