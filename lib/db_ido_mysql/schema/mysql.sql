@@ -340,6 +340,7 @@ CREATE TABLE IF NOT EXISTS icinga_customvariables (
   varname varchar(255) character set latin1 collate latin1_general_cs default NULL,
   varvalue TEXT character set latin1  default '',
   is_json smallint default 0,
+  session_token varchar(512) character set latin1 default NULL,
   PRIMARY KEY  (customvariable_id),
   UNIQUE KEY object_id_2 (object_id,config_type,varname),
   KEY varname (varname)
@@ -360,6 +361,7 @@ CREATE TABLE IF NOT EXISTS icinga_customvariablestatus (
   varname varchar(255) character set latin1 collate latin1_general_cs default NULL,
   varvalue TEXT character set latin1  default '',
   is_json smallint default 0,
+  session_token varchar(512) character set latin1 default NULL,
   PRIMARY KEY  (customvariablestatus_id),
   UNIQUE KEY object_id_2 (object_id,varname),
   KEY varname (varname)

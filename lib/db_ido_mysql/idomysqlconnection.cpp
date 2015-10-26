@@ -160,6 +160,8 @@ void IdoMysqlConnection::Reconnect(void)
 
 	CONTEXT("Reconnecting to MySQL IDO database '" + GetName() + "'");
 
+	m_SessionToken = Utility::NewUniqueID();
+
 	SetShouldConnect(true);
 
 	std::vector<DbObject::Ptr> active_dbobjs;
@@ -369,6 +371,18 @@ void IdoMysqlConnection::Reconnect(void)
 			DeactivateObject(dbobj);
 		}
 	}
+
+	/* delete all customvariables without current session token */
+	ClearCustomVarTable("customvariables");
+	ClearCustomVarTable("customvariablestatus");
+
+	Query("COMMIT");
+	Query("BEGIN");
+}
+
+void IdoMysqlConnection::ClearCustomVarTable(const String& table)
+{
+	Query("DELETE FROM " + GetTablePrefix() + table + " WHERE session_token <> '" + Escape(m_SessionToken) + "'");
 }
 
 void IdoMysqlConnection::ClearConfigTable(const String& table)
@@ -663,6 +677,10 @@ bool IdoMysqlConnection::FieldToEscapedString(const String& key, const Value& va
 {
 	if (key == "instance_id") {
 		*result = static_cast<long>(m_InstanceID);
+		return true;
+	}
+	if (key == "session_token") {
+		*result = "'" + Escape(m_SessionToken) + "'";
 		return true;
 	}
 	if (key == "notification_id") {

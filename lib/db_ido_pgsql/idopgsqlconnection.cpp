@@ -160,12 +160,13 @@ void IdoPgsqlConnection::Reconnect(void)
 
 	CONTEXT("Reconnecting to PostgreSQL IDO database '" + GetName() + "'");
 
+	m_SessionToken = Utility::NewUniqueID();
+
 	SetShouldConnect(true);
 
 	std::vector<DbObject::Ptr> active_dbobjs;
 
 	{
-
 		bool reconnect = false;
 
 		if (GetConnected()) {
@@ -365,6 +366,18 @@ void IdoPgsqlConnection::Reconnect(void)
 			DeactivateObject(dbobj);
 		}
 	}
+
+	/* delete all customvariables without current session token */
+	ClearCustomVarTable("customvariables");
+	ClearCustomVarTable("customvariablestatus");
+
+	Query("COMMIT");
+	Query("BEGIN");
+}
+
+void IdoPgsqlConnection::ClearCustomVarTable(const String& table)
+{
+	Query("DELETE FROM " + GetTablePrefix() + table + " WHERE session_token <> '" + Escape(m_SessionToken) + "'");
 }
 
 void IdoPgsqlConnection::ClearConfigTable(const String& table)

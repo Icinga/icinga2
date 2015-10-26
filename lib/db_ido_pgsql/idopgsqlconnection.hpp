@@ -61,6 +61,7 @@ protected:
 
 private:
 	DbReference m_InstanceID;
+	String m_SessionToken;
 
 	WorkQueue m_QueryQueue;
 
@@ -93,6 +94,7 @@ private:
 	void InternalCleanUpExecuteQuery(const String& table, const String& time_key, double time_value);
 
 	virtual void ClearConfigTable(const String& table) override;
+	void ClearCustomVarTable(const String& table);
 
 	void ExceptionHandler(boost::exception_ptr exp);
 };

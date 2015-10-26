@@ -49,6 +49,13 @@ ALTER TABLE icinga_servicestatus ADD COLUMN original_attributes TEXT character s
 ALTER TABLE icinga_hoststatus ADD COLUMN original_attributes TEXT character set latin1  default NULL;
 
 -- -----------------------------------------
+-- #10436 deleted custom vars
+-- -----------------------------------------
+
+ALTER TABLE icinga_customvariables ADD COLUMN session_token varchar(512) character set latin1 default NULL;
+ALTER TABLE icinga_customvariablestatus ADD COLUMN session_token varchar(512) character set latin1 default NULL;
+
+-- -----------------------------------------
 -- update dbversion
 -- -----------------------------------------
 

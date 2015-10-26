@@ -186,6 +186,7 @@ void DbObject::SendVarsConfigUpdate(void)
 			fields->Set("varvalue", value);
 			fields->Set("is_json", is_json);
 			fields->Set("config_type", 1);
+			fields->Set("session_token", 0); /* DbConnection class fills in real ID */
 			fields->Set("object_id", obj);
 			fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
@@ -240,6 +241,7 @@ void DbObject::SendVarsStatusUpdate(void)
 			fields->Set("varvalue", value);
 			fields->Set("is_json", is_json);
 			fields->Set("status_update_time", DbValue::FromTimestamp(Utility::GetTime()));
+			fields->Set("session_token", 0); /* DbConnection class fills in real ID */
 			fields->Set("object_id", obj);
 			fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
 

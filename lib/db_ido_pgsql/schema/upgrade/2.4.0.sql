@@ -158,6 +158,12 @@ ALTER TABLE icinga_servicestatus ADD COLUMN  original_attributes TEXT default NU
 ALTER TABLE icinga_hoststatus ADD COLUMN  original_attributes TEXT default NULL;
 
 -- -----------------------------------------
+-- #10436 deleted custom vars
+-- -----------------------------------------
+ALTER TABLE icinga_customvariables ADD COLUMN session_token TEXT default NULL;
+ALTER TABLE icinga_customvariablestatus ADD COLUMN session_token TEXT default NULL;
+
+-- -----------------------------------------
 -- update dbversion
 -- -----------------------------------------
 
