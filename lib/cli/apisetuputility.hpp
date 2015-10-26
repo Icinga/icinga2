@@ -37,7 +37,7 @@ namespace icinga
 class I2_CLI_API ApiSetupUtility
 {
 public:
-	static bool SetupMaster(const String& cn);
+	static bool SetupMaster(const String& cn, bool prompt_restart = false);
 
 	static bool SetupMasterCertificates(const String& cn);
 	static bool SetupMasterApiUser(void);

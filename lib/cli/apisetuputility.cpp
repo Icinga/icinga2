@@ -43,7 +43,7 @@ String ApiSetupUtility::GetConfdPath(void)
         return Application::GetSysconfDir() + "/icinga2/conf.d";
 }
 
-bool ApiSetupUtility::SetupMaster(const String& cn)
+bool ApiSetupUtility::SetupMaster(const String& cn, bool prompt_restart)
 {
 	/* if the 'api' feature is enabled we can safely assume
 	 * that either 'api setup' was run, or the user manually
@@ -63,13 +63,17 @@ bool ApiSetupUtility::SetupMaster(const String& cn)
 	if (!SetupMasterEnableApi())
 		return false;
 
+	if (prompt_restart) {
+		std::cout << "Done.\n\n";
+		std::cout << "Now restart your Icinga 2 daemon to finish the installation!\n\n";
+	}
+
 	return true;
 }
 
 bool ApiSetupUtility::SetupMasterCertificates(const String& cn)
 {
-	Log(LogInformation, "cli")
-	    << "Generating new CA.\n";
+	Log(LogInformation, "cli", "Generating new CA.");
 
 	if (PkiUtility::NewCa() > 0)
 		Log(LogWarning, "cli", "Found CA, skipping and using the existing one.");
@@ -82,14 +86,14 @@ bool ApiSetupUtility::SetupMasterCertificates(const String& cn)
 
 	if (!Utility::SetFileOwnership(pki_path, user, group)) {
 		Log(LogWarning, "cli")
-		    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << pki_path << "'. Verify it yourself!";
+		    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << pki_path << "'.";
 	}
 
 	String key = pki_path + "/" + cn + ".key";
 	String csr = pki_path + "/" + cn + ".csr";
 
 	Log(LogInformation, "cli")
-	    << "Generating new CSR in '" << csr << "'.\n";
+	    << "Generating new CSR in '" << csr << "'.";
 
 	if (Utility::PathExists(key))
 		NodeUtility::CreateBackupFile(key, true);
@@ -105,7 +109,7 @@ bool ApiSetupUtility::SetupMasterCertificates(const String& cn)
 	String cert = pki_path + "/" + cn + ".crt";
 
 	Log(LogInformation, "cli")
-	    << "Signing CSR with CA and writing certificate to '" << cert << "'.\n";
+	    << "Signing CSR with CA and writing certificate to '" << cert << "'.";
 
 	if (Utility::PathExists(cert))
 		NodeUtility::CreateBackupFile(cert);
@@ -123,7 +127,7 @@ bool ApiSetupUtility::SetupMasterCertificates(const String& cn)
 	String target_ca = pki_path + "/ca.crt";
 
 	Log(LogInformation, "cli")
-	    << "Copying CA certificate to '" << target_ca << "'.\n";
+	    << "Copying CA certificate to '" << target_ca << "'.";
 
 	if (Utility::PathExists(target_ca))
 		NodeUtility::CreateBackupFile(target_ca);
@@ -145,7 +149,7 @@ bool ApiSetupUtility::SetupMasterCertificates(const String& cn)
 	BOOST_FOREACH(const String& file, files) {
 		if (!Utility::SetFileOwnership(file, user, group)) {
 			Log(LogWarning, "cli")
-			    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << file << "'. Verify it yourself!";
+			    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << file << "'.";
 		}
 	}
 
@@ -159,7 +163,7 @@ bool ApiSetupUtility::SetupMasterApiUser(void)
 	String apiuserspath = GetConfdPath() + "/api-users.conf";
 
 	Log(LogInformation, "cli")
-	    << "Adding new ApiUser '" << api_username << "' in '" << apiuserspath << "'.\n";
+	    << "Adding new ApiUser '" << api_username << "' in '" << apiuserspath << "'.";
 
 	NodeUtility::CreateBackupFile(apiuserspath);
 
@@ -173,7 +177,7 @@ bool ApiSetupUtility::SetupMasterApiUser(void)
 	    << " */\n"
 	    << "object ApiUser \"" << api_username << "\" {\n"
 	    << "  password = \"" << api_password << "\"\n"
-	    << "  //client_cn = \"\"\n"
+	    << "  // client_cn = \"\"\n"
 	    << "\n"
 	    << "  permissions = [ \"*\" ]\n"
 	    << "}\n";
@@ -196,7 +200,7 @@ bool ApiSetupUtility::SetupMasterApiUser(void)
 
 bool ApiSetupUtility::SetupMasterEnableApi(void)
 {
-	Log(LogInformation, "cli", "Enabling the ApiListener feature.\n");
+	Log(LogInformation, "cli", "Enabling the 'api' feature.");
 
 	std::vector<std::string> features;
 	features.push_back("api");

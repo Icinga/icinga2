@@ -49,17 +49,14 @@ int ApiSetupCommand::GetMaxArguments(void) const
 }
 
 /**
- * The entry point for the "node wizard" CLI command.
+ * The entry point for the "api setup" CLI command.
  *
  * @returns An exit status.
  */
 int ApiSetupCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {
-	if (!ApiSetupUtility::SetupMaster(Utility::GetFQDN()))
+	if (!ApiSetupUtility::SetupMaster(Utility::GetFQDN(), true))
 		return 1;
-
-	std::cout << "Done.\n\n";
-	std::cout << "Now restart your Icinga 2 daemon to finish the installation!\n\n";
 
 	return 0;
 }
