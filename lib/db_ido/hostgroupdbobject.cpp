@@ -55,15 +55,24 @@ void HostGroupDbObject::OnConfigUpdate(void)
 {
 	HostGroup::Ptr group = static_pointer_cast<HostGroup>(GetObject());
 
+	DbQuery query1;
+	query1.Table = DbType::GetByName("HostGroup")->GetTable() + "_members";
+	query1.Type = DbQueryDelete;
+	query1.Category = DbCatConfig;
+	query1.WhereCriteria = new Dictionary();
+	query1.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
+	query1.WhereCriteria->Set("hostgroup_id", DbValue::FromObjectInsertID(group));
+	OnQuery(query1);
+
 	BOOST_FOREACH(const Host::Ptr& host, group->GetMembers()) {
-		DbQuery query1;
-		query1.Table = DbType::GetByName("HostGroup")->GetTable() + "_members";
-		query1.Type = DbQueryInsert;
-		query1.Category = DbCatConfig;
-		query1.Fields = new Dictionary();
-		query1.Fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
-		query1.Fields->Set("hostgroup_id", DbValue::FromObjectInsertID(group));
-		query1.Fields->Set("host_object_id", host);
-		OnQuery(query1);
+		DbQuery query2;
+		query2.Table = DbType::GetByName("HostGroup")->GetTable() + "_members";
+		query2.Type = DbQueryInsert;
+		query2.Category = DbCatConfig;
+		query2.Fields = new Dictionary();
+		query2.Fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
+		query2.Fields->Set("hostgroup_id", DbValue::FromObjectInsertID(group));
+		query2.Fields->Set("host_object_id", host);
+		OnQuery(query2);
 	}
 }
