@@ -50,7 +50,7 @@ public:
 		if (frame.Locals && frame.Locals->Get(name, &value))
 			return value;
 		else if (frame.Self.IsObject() && frame.Locals != static_cast<Object::Ptr>(frame.Self) && HasField(frame.Self, name))
-			return GetField(frame.Self, name, debugInfo);
+			return GetField(frame.Self, name, frame.Sandboxed, debugInfo);
 		else
 			return ScriptGlobal::Get(name);
 	}
@@ -219,7 +219,7 @@ public:
 			Object::Ptr object = type->GetPrototype();
 
 			if (object && HasField(object, field))
-				return GetField(object, field, debugInfo);
+				return GetField(object, field, false, debugInfo);
 
 			type = type->GetBaseType();
 		} while (type);
@@ -230,7 +230,7 @@ public:
 			return Empty;
 	}
 
-	static inline Value GetField(const Value& context, const String& field, const DebugInfo& debugInfo = DebugInfo())
+	static inline Value GetField(const Value& context, const String& field, bool sandboxed = false, const DebugInfo& debugInfo = DebugInfo())
 	{
 		if (context.IsEmpty() && !context.IsString())
 			return Empty;
@@ -276,6 +276,13 @@ public:
 
 		if (fid == -1)
 			return GetPrototypeField(context, field, true, debugInfo);
+
+		if (sandboxed) {
+			Field fieldInfo = type->GetFieldInfo(fid);
+
+			if (fieldInfo.Attributes & FANoUserView)
+				BOOST_THROW_EXCEPTION(ScriptError("Accessing the field '" + field + "' for type '" + type->GetName() + "' is not allowed in sandbox mode."));
+		}
 
 		return object->GetField(fid);
 	}

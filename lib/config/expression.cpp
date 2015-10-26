@@ -99,7 +99,7 @@ ExpressionResult VariableExpression::DoEvaluate(ScriptFrame& frame, DebugHint *d
 	if (frame.Locals && frame.Locals->Get(m_Variable, &value))
 		return value;
 	else if (frame.Self.IsObject() && frame.Locals != static_cast<Object::Ptr>(frame.Self) && VMOps::HasField(frame.Self, m_Variable))
-		return VMOps::GetField(frame.Self, m_Variable, m_DebugInfo);
+		return VMOps::GetField(frame.Self, m_Variable, frame.Sandboxed, m_DebugInfo);
 	else
 		return ScriptGlobal::Get(m_Variable);
 }
@@ -391,7 +391,7 @@ ExpressionResult FunctionCallExpression::DoEvaluate(ScriptFrame& frame, DebugHin
 	String index;
 
 	if (m_FName->GetReference(frame, false, &self, &index))
-		vfunc = VMOps::GetField(self, index, m_DebugInfo);
+		vfunc = VMOps::GetField(self, index, frame.Sandboxed, m_DebugInfo);
 	else {
 		ExpressionResult vfuncres = m_FName->Evaluate(frame);
 		CHECK_RESULT(vfuncres);
@@ -504,7 +504,7 @@ ExpressionResult SetExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint)
 	CHECK_RESULT(operand2);
 
 	if (m_Op != OpSetLiteral) {
-		Value object = VMOps::GetField(parent, index, m_DebugInfo);
+		Value object = VMOps::GetField(parent, index, frame.Sandboxed, m_DebugInfo);
 
 		switch (m_Op) {
 			case OpSetAdd:
@@ -606,7 +606,7 @@ ExpressionResult IndexerExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dh
 	ExpressionResult operand2 = m_Operand2->Evaluate(frame, dhint);
 	CHECK_RESULT(operand2);
 
-	return VMOps::GetField(operand1.GetValue(), operand2.GetValue(), m_DebugInfo);
+	return VMOps::GetField(operand1.GetValue(), operand2.GetValue(), frame.Sandboxed, m_DebugInfo);
 }
 
 bool IndexerExpression::GetReference(ScriptFrame& frame, bool init_dict, Value *parent, String *index, DebugHint **dhint) const
@@ -624,13 +624,13 @@ bool IndexerExpression::GetReference(ScriptFrame& frame, bool init_dict, Value *
 
 	if (m_Operand1->GetReference(frame, init_dict, &vparent, &vindex, &psdhint)) {
 		if (init_dict) {
-			Value old_value =  VMOps::GetField(vparent, vindex, m_Operand1->GetDebugInfo());
+			Value old_value =  VMOps::GetField(vparent, vindex, frame.Sandboxed, m_Operand1->GetDebugInfo());
 
 			if (old_value.IsEmpty() && !old_value.IsString())
 				VMOps::SetField(vparent, vindex, new Dictionary(), m_Operand1->GetDebugInfo());
 		}
 
-		*parent = VMOps::GetField(vparent, vindex, m_DebugInfo);
+		*parent = VMOps::GetField(vparent, vindex, frame.Sandboxed, m_DebugInfo);
 		free_psd = true;
 	} else {
 		ExpressionResult operand1 = m_Operand1->Evaluate(frame);
@@ -706,7 +706,7 @@ ExpressionResult ImportExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhi
 	if (frame.Sandboxed)
 		BOOST_THROW_EXCEPTION(ScriptError("Imports are not allowed in sandbox mode.", m_DebugInfo));
 
-	String type = VMOps::GetField(frame.Self, "type", m_DebugInfo);
+	String type = VMOps::GetField(frame.Self, "type", frame.Sandboxed, m_DebugInfo);
 	ExpressionResult nameres = m_Name->Evaluate(frame);
 	CHECK_RESULT(nameres);
 	Value name = nameres.GetValue();
