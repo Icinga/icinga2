@@ -22,6 +22,7 @@
 #include "base/debug.hpp"
 #include "base/primitivetype.hpp"
 #include "base/dictionary.hpp"
+#include "base/configwriter.hpp"
 #include <boost/foreach.hpp>
 
 using namespace icinga;
@@ -210,4 +211,11 @@ Array::Ptr Array::Reverse(void) const
 	std::copy(m_Data.rbegin(), m_Data.rend(), std::back_inserter(result->m_Data));
 
 	return result;
+}
+
+String Array::ToString(void) const
+{
+	std::ostringstream msgbuf;
+	ConfigWriter::EmitArray(msgbuf, const_cast<Array *>(this));
+	return msgbuf.str();
 }

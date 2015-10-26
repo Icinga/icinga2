@@ -21,6 +21,7 @@
 #include "base/objectlock.hpp"
 #include "base/debug.hpp"
 #include "base/primitivetype.hpp"
+#include "base/configwriter.hpp"
 #include <boost/foreach.hpp>
 
 using namespace icinga;
@@ -197,4 +198,11 @@ std::vector<String> Dictionary::GetKeys(void) const
 	}
 
 	return keys;
+}
+
+String Dictionary::ToString(void) const
+{
+	std::ostringstream msgbuf;
+	ConfigWriter::EmitScope(msgbuf, 0, const_cast<Dictionary *>(this));
+	return msgbuf.str();
 }

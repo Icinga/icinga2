@@ -19,6 +19,7 @@
 
 #include "cli/consolecommand.hpp"
 #include "config/configcompiler.hpp"
+#include "base/configwriter.hpp"
 #include "base/json.hpp"
 #include "base/console.hpp"
 #include "base/application.hpp"
@@ -80,7 +81,7 @@ static char *ConsoleCompleteHelper(const char *word, int state)
 	if (state == 0) {
 		matches.clear();
 
-		BOOST_FOREACH(const String& keyword, ConfigCompiler::GetKeywords()) {
+		BOOST_FOREACH(const String& keyword, ConfigWriter::GetKeywords()) {
 			AddSuggestion(matches, word, keyword);
 		}
 

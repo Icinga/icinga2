@@ -115,6 +115,8 @@ public:
 	
 	virtual Object::Ptr Clone(void) const override;
 
+	virtual String ToString(void) const override;
+
 private:
 	std::map<String, Value> m_Data; /**< The data for the dictionary. */
 };

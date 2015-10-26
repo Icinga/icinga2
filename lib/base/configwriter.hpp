@@ -20,7 +20,6 @@
 #ifndef CONFIGWRITER_H
 #define CONFIGWRITER_H
 
-#include "config/i2-config.hpp"
 #include "base/object.hpp"
 #include "base/array.hpp"
 #include "base/dictionary.hpp"
@@ -32,9 +31,9 @@ namespace icinga
 /**
  * A configuration writer.
  *
- * @ingroup config
+ * @ingroup base
  */
-class I2_CONFIG_API ConfigWriter
+class I2_BASE_API ConfigWriter
 {
 public:
 	static void EmitBoolean(std::ostream& fp, bool val);
@@ -56,6 +55,7 @@ public:
 	static void EmitComment(std::ostream& fp, const String& text);
 	static void EmitFunctionCall(std::ostream& fp, const String& name, const Array::Ptr& arguments);
 
+	static const std::vector<String>& GetKeywords(void);
 private:
 	ConfigWriter(void);
 

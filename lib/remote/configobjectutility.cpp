@@ -21,7 +21,7 @@
 #include "remote/configpackageutility.hpp"
 #include "config/configcompiler.hpp"
 #include "config/configitem.hpp"
-#include "config/configwriter.hpp"
+#include "base/configwriter.hpp"
 #include "base/exception.hpp"
 #include "base/serializer.hpp"
 #include "base/dependencygraph.hpp"

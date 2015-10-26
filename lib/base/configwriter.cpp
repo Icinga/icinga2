@@ -17,7 +17,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "config/configwriter.hpp"
+#include "base/configwriter.hpp"
 #include "config/configcompiler.hpp"
 #include "base/exception.hpp"
 #include <boost/foreach.hpp>
@@ -145,7 +145,7 @@ void ConfigWriter::EmitIdentifier(std::ostream& fp, const String& identifier, bo
 {
 	static std::set<String> keywords;
 	if (keywords.empty()) {
-		const std::vector<String>& vkeywords = ConfigCompiler::GetKeywords();
+		const std::vector<String>& vkeywords = GetKeywords();
 		std::copy(vkeywords.begin(), vkeywords.end(), std::inserter(keywords, keywords.begin()));
 	}
 
@@ -203,4 +203,45 @@ String ConfigWriter::EscapeIcingaString(const String& str)
 	boost::algorithm::replace_all(result, "\f", "\\f");
 	boost::algorithm::replace_all(result, "\"", "\\\"");
 	return result;
+}
+
+const std::vector<String>& ConfigWriter::GetKeywords(void)
+{
+	static std::vector<String> keywords;
+
+	if (keywords.empty()) {
+		keywords.push_back("object");
+		keywords.push_back("template");
+		keywords.push_back("include");
+		keywords.push_back("include_recursive");
+		keywords.push_back("include_zones");
+		keywords.push_back("library");
+		keywords.push_back("null");
+		keywords.push_back("true");
+		keywords.push_back("false");
+		keywords.push_back("const");
+		keywords.push_back("var");
+		keywords.push_back("this");
+		keywords.push_back("globals");
+		keywords.push_back("locals");
+		keywords.push_back("use");
+		keywords.push_back("ignore_on_error");
+		keywords.push_back("apply");
+		keywords.push_back("to");
+		keywords.push_back("where");
+		keywords.push_back("import");
+		keywords.push_back("assign");
+		keywords.push_back("ignore");
+		keywords.push_back("function");
+		keywords.push_back("return");
+		keywords.push_back("break");
+		keywords.push_back("continue");
+		keywords.push_back("for");
+		keywords.push_back("if");
+		keywords.push_back("else");
+		keywords.push_back("while");
+		keywords.push_back("throw");
+	}
+
+	return keywords;
 }
