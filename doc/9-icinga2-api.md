@@ -1,4 +1,4 @@
-# <a id="icinga2-api"></a> Icinga 2 API
+﻿# <a id="icinga2-api"></a> Icinga 2 API
 
 ## <a id="icinga2-api-introduction"></a> Introduction
 
@@ -16,6 +16,7 @@ make calls to
 This chapter will start with a general overview followed by
 detailed information about specific URL endpoints.
 
+
 ### <a id="icinga2-api-requests"></a> Requests
 
 Any tool capable of making HTTP requests can communicate with
@@ -32,12 +33,13 @@ file.
 
 Supported request methods:
 
-  Method	| Usage
-  --------------|------------------------------------------------------
-  GET		| Retrieve information about configuration objects. Any request using the GET method is read-only and does not affect any objects.
-  POST		| Update attributes of a specified configuration object.
-  PUT		| Create a new object. The PUT request must include all attributes required to create a new object.
-  DELETE	| Remove an object created by the API. The DELETE method is idempotent and does not require any check if the object actually exists.
+  Method | Usage
+  -------|--------
+  GET    | Retrieve information about configuration objects. Any request using the GET method is read-only and does not affect any objects.
+  POST   | Update attributes of a specified configuration object.
+  PUT    | Create a new object. The PUT request must include all attributes required to create a new object.
+  DELETE | Remove an object created by the API. The DELETE method is idempotent and does not require any check if the object actually exists.
+
 
 ### <a id="icinga2-api-http-statuses"></a> HTTP Statuses
 
@@ -57,6 +59,7 @@ was malformed.
 
 A status in the range of 500 generally means that there was a server-side problem
 and Icinga 2 is unable to process your request currently.
+
 
 ### <a id="icinga2-api-responses"></a> Responses
 
@@ -124,6 +127,7 @@ You can test authentication by sending a GET request to the API:
 
 In case you get an error message make sure to check the API user credentials.
 
+
 ### <a id="icinga2-api-permissions"></a> Permissions
 
 By default an API user does not have any permissions to perform
@@ -162,19 +166,20 @@ the custom host attribute `os` matching the regular expression `^Linux`.
 
 Available permissions for specific URL endpoints:
 
-  Permissions				| URL Endpoint
-  --------------------------------------|------------------------
-  actions/&lt;action&gt;		| /v1/actions
-  config/query				| /v1/config
-  config/modify				| /v1/config
-  objects/query/&lt;type&gt;		| /v1/objects
-  objects/create/&lt;type&gt;		| /v1/objects
-  objects/modify/&lt;type&gt;		| /v1/objects
-  objects/delete/&lt;type&gt;		| /v1/objects
-  status/query				| /v1/status
-  events/&lt;type&gt;			| /v1/events
+  Permissions                   | Url Endpoint
+  ------------------------------|---------------
+  actions/;&lt;action;&gt;      | /v1/actions
+  config/query                  | /v1/config
+  config/modify                 | /v1/config
+  objects/query/;&lt;type;&gt;  | /v1/objects
+  objects/create/;&lt;type;&gt; | /v1/objects
+  objects/modify/;&lt;type;&gt; | /v1/objects
+  objects/delete/;&lt;type;&gt; | /v1/objects
+  status/query                  | /v1/status
+  events/&lt;type&gt;           | /v1/events 
 
 The required actions or types can be replaced by using a wildcard match ("*").
+
 
 ### <a id="icinga2-api-parameters"></a> Parameters
 
@@ -210,28 +215,30 @@ Example for matching all hosts by name (**Note**: `"` are url-encoded as `%22`):
     https://localhost:5665/v1/objects/hosts?filter=match(%22nbmif*%22,host.name)
 
 
-### <a id="icinga2-api-output-format"></a>Output Format
+### <a id="icinga2-api-output-format"></a> Output Format
 
-The request and reponse body contain a JSON encoded string.
+The request and response body contain a JSON encoded string.
 
-### <a id="icinga2-api-version"></a>Version
+
+### <a id="icinga2-api-version"></a> Version
 
 Each url contains the version string as prefix (currently "/v1").
 
-### <a id="icinga2-api-url-endpoints"></a>URL Endpoints
+
+### <a id="icinga2-api-url-endpoints"></a> URL Endpoints
 
 The Icinga 2 API provides multiple URL endpoints:
 
-  URL Endpoints	| Description
-  --------------|----------------------------------------------------
-  /v1/actions	| Endpoint for running specific [API actions](9-icinga2-api.md#icinga2-api-actions).
+  Url Endpoints | Description
+  --------------|--------------
+  /v1/actions   | Endpoint for running specific [API actions](9-icinga2-api.md#icinga2-api-actions).
   /v1/config    | Endpoint for [managing configuration modules](9-icinga2-api.md#icinga2-api-config-management).
-  /v1/objects	| Endpoint for querying, creating, modifying and deleting [config objects](9-icinga2-api.md#icinga2-api-config-objects).
-  /v1/status	| Endpoint for receiving icinga2 [status and statistics](9-icinga2-api.md#icinga2-api-status).
-  /v1/events	| Endpoint for subscribing to [API event streams](9-icinga2-api.md#icinga2-api-event-streams).
-  /v1/types 	| Endpoint for listing Icinga 2 configuration object types and their attributes.
+  /v1/events    | Endpoint for subscribing to [API events](9-icinga2-api.md#icinga2-api-actions).
+  /v1/objects   | Endpoint for querying, creating, modifying and deleting [config objects](9-icinga2-api.md#icinga2-api-config-objects).
+  /v1/status    | Endpoint for receiving icinga2 [status and statistics](9-icinga2-api.md#icinga2-api-status).
+  /v1/types     | Endpoint for listing Icinga 2 configuration object types and their attributes.
 
-Please check the respective sections for detailed urls and parameters.
+Please check the respective sections for detailed URL-information and parameters.
 
 ## <a id="icinga2-api-actions"></a> Actions
 
@@ -248,103 +255,178 @@ Some actions require specific target types (e.g. `type=Host`) and a
 For each object matching the filter the action in question is performed once.
 
 In the following each the actions are listed with their parameters, targets and
-examples. The calls are first shown with all their possible query parameters and
+examples. The calls are first shown with all their possible query parameters and 
 their type. Optional parameters are encapsulated by `()` and `[]` mark array
 parameters. If an optional parameter has no default value explicitly stated it
 is either 0, NULL, Empty depending on the type. Timestamps are always `time_t`,
 the seconds since the UNIX epoch.
 
-### <a id="icinga2-api-actions-process-check-result"></a> Process Check Result Action
+These parameters may either be delivered as a query string in the form they are
+shown here (url/actions/action-name?list=of&parameters) or as key-value pairs in 
+a json formatted payload. In any case the request needs to be POST.
 
-    /v1/actions/process-check-result?exit_status=int&(plugin_output=string)&(performance_data[]=string)&\
-	(check_command[]=string)&(check_source=string)&(execution_end=time_t)&(execution_start=time_t)&\
-	(schedule_end=time_t)&(schedule_start=time_t)
+All actions return a 200 `OK` or an appropriate error code for each 
+action performed. So there will be a return for each object matching the filter.
+
+
+### <a id="icinga2-api-actions-process-check-result"></a> process-check-result
+
+    /v1/actions/process-check-result
 
 Target: `Service` or `Host`
 
-This is used to submit a passive check result for a service or host. Passive
-checks need to be enabled for the check result to be processed.
-The `exit_status` field should be one of the following for services:
-0=OK, 1=WARNING, 2=CRITICAL, 3=UNKNOWN or for hosts: 0=OK, 1=CRITICAL.
-The `plugin_output` field contains text output from the service check, the
-performance data is submitted via `performance_data` as one array entry per ';'
-separated block.
+  Parameter         | Type         | Description
+  ------------------|--------------|--------------
+  exit\_status      | integer      | **Required.** For services: 0=OK, 1=WARNING, 2=CRITICAL, 3=UNKNOWN, for hosts: 0=OK, 1=CRITICAL.
+  plugin\_output    | string       | **Required.** Some text output.
+  performance\_data | string array | **Optional.** One array entry per `;` separated block.
+  check\_command    | string array | **Optional.** The first entry should be the check commands path, then one entry for each command line option followed by an entry for each of its argument.
+  check\_source     | string       | **Optional.** Some text
+  execution\_end    | time\_t      | **Optional.**
+  execution\_start  | time\_t      | **Optional.**
+  schedule\_end     | time\_t      | **Optional.**
+  schedule\_start   | time\_t      | **Optional.**
+
+This is used to submit a passive check result for a service or host. Passive 
+checks need to be enabled for the check result to be processed. 
 
 Example:
 
-    $ curl -u root:icinga -k -s 'https://localhost:5665/v1/actions/process-check-result?filter=service.name=="ping6"'
+    curl --user root:icinga -k -X POST "https://127.0.0.1:5665/v1/actions/process-check-result?type=Service&filter=service.name==%22ping6%22" -d \
+    "{\"exit_status\":2,\"plugin_output\":\"IMAGINARY CHECK\",\"performance_data\":[\"This is just\", \"a drill\"],\"check_command\":[\"some/path\", \"--argument\", \"words\"]}" \
+    ;echo
+    {"results":
+      [
+        {
+          "code":200.0,"status":"Successfully processed check result for object icinga!ping6."
+        }
+      ]
+    }
 
-### reschedule-check
 
-    /v1/actions/reschedule-check?next_check=time_t&force_check=boolean
+### <a id="icinga2-api-actions-reschedule-check"></a> reschedule-check
+
+    /v1/actions/reschedule-check
 
 Target: `Service` or `Host`
 
-Schedules an active check of a collection of hosts or services at `next_check`.
-If the `forced_check" flag is set the checks are performed regardless of what
-time it is (e.g. timeperiod restrictions are ignored) and whether or not active
+  Parameter    | Type    | Description
+  -------------|---------|--------------
+  next\_check  | time\_t | **Optional.** The next check will be run at this timestamp. Defaults to `now`.
+  force\_check | boolean | **Optional.** Defaults to `false`. See blow for further information.
+
+If the `forced_check` flag is set the checks are performed regardless of what 
+time it is (i.e. time period restrictions are ignored) and whether or not active 
 checks are enabled on a host/service-specific or program-wide basis.
 
-### send-custom-notification
+Example:
 
-    /v1/actions/send-custom-notification?author=string&comment=string&(force=bool)
+    $ curl --user root:icinga -k -X POST "https://127.0.0.1:5665/v1/actions/reschedule-check?type=Service&filter=service.name==%22ping6%22" -d \
+    "{\"force_check\":true}" \
+    ;echo
+    {"results":
+      [
+        {
+          "code":200.0,"status":"Successfully rescheduled check for icinga!ping6."
+        }
+      ]
+    }
 
-Target: `Service` or `Host`
+This will reschedule all services with the name "ping6" to perform a check now
+(`next_check` default), ignoring any time periods or whether active checks are 
+allowed for the service (`force_check=true`).
 
-Allows you to send a custom host/service notification. Very useful in dire
-situations, emergencies or to communicate with all admins that are responsible
-for a host or service. The notification requires an `author` and a `comment`,
-though those may be empty. If `force` (default: false) is set to true the
-notification will be send regardless of downtimes or whether notifications are
-enabled or not.
 
-### delay-notification
+### <a id="icinga2-api-actions-send-custom-notification"></a> send-custom-notification
 
-    /v1/actions/delay-notification?timestamp=time_t
-
-Target: `Service` or `Host`
-
-Delays the next notifications for a collection of services or hosts until
-`timestamp`. Note that this will only have an effect if the service stays in
-the same problem state that it is currently in. If the service changes to
-another state, a new notification may go out before the time you specify in the
-`timestamp` argument.
-
-### acknowledge-problem
-
-    /v1/actions/acknowledge-problem?author=string&comment=string&(expiry=time_t)&(sticky=bool)&(sticky=bool)
+    /v1/actions/send-custom-notification
 
 Target: `Service` or `Host`
 
-Allows you to acknowledge the current problem for hosts or services. By
-acknowledging the current problem, future notifications (for the same state)
-are disabled. Acknowledgements require an `author` and a `comment` for
-documentation purposes, though both may be empty. If you set an `expiry` time
-the acknowledgement will vanish after that timestamp. If the `sticky` option is
-set (the default), the acknowledgement will remain until the host recovers.
-Otherwise the acknowledgement will automatically be removed when the host
-changes state. If the `notify` option is set, a notification will be sent out
-to contacts indicating that the current host problem has been acknowledged, if
-set to false (the default) there will be no notification.
+  Parameter | Type    | Description
+  ----------|---------|--------------
+  author    | string  | **Required.** Name of the author, may be empty.
+  comment   | string  | **Required.** Comment text, may be empty.
+  force     | boolean | **Optional.** Default: false. If true, the notification is sent regardless of downtimes or whether notifications are enabled or not.
 
-### remove-acknowledgement
+
+### <a id="icinga2-api-actions-delay-notification"></a> delay-notification
+
+    /v1/actions/delay-notification
+
+Target: `Service` or `Host`
+
+  Parameter | Type    | Description
+  ----------|---------|--------------
+  timestamp | time\_t | **Required.** Delay notifications until this timestamp.
+
+Note that this will only have an effect if the service stays in the same problem
+state that it is currently in. If the service changes to another state, a new
+notification may go out before the time you specify in the `timestamp` argument.
+
+
+### <a id="icinga2-api-actions-acknowledge-problem"></a> acknowledge-problem
+
+    /v1/actions/acknowledge-problem
+
+Target: `Service` or `Host`
+
+  Parameter | Type    | Description
+  ----------|---------|--------------
+  author    | string  | **Required.** Name of the author, may be empty.
+  comment   | string  | **Required.** Comment text, may be empty.
+  expiry    | time\_t | **Optional.** If set the acknowledgement will vanish after this timestamp.
+  sticky    | boolean | **Optional.** If `true`, the default, the acknowledgement will remain until the service or host fully recovers.
+  notify    | boolean | **Optional.** If `true` a notification will be sent out to contacts to indicate this problem has been acknowledged. The default is false.
+
+Allows you to acknowledge the current problem for hosts or services. By 
+acknowledging the current problem, future notifications (for the same state) 
+are disabled.
+
+Example:
+
+    $ curl --user root:icinga -k -X POST "https://127.0.0.1:5665/v1/actions/acknowledge-problem?type=Service&filter=service.state==2&service.state_type=1" -d \
+    "{\"author\":\"J. D. Salinger\",\"comment\":\"I thought what I'd do was I'd pretend I was one of those deaf-mutes\",\"notify\":true }" \
+    ;echo
+    {"results":
+      [
+        {"code":200.0,"name":"icinga!down","status":"Attributes updated.","type":"Service"},
+        {"code":200.0,"name":"icinga!ssh","status":"Attributes updated.","type":"Service"}
+      ]
+    }
+
+This acknowledges all services which are in a hard critical state and sends out 
+a notification for them.
+
+
+### <a id="icinga2-api-actions-remove-acknowledgement"></a> remove-acknowledgement
 
     /v1/actions/remove-acknowledgement
 
 Target: `Service` or `Host`
 
-Removes acknowledgements for services or hosts. Once the acknowledgement has
-been removed, notifications can once again be sent out.
+Removes ALL acknowledgements for services or hosts. Once the acknowledgements 
+have been removed, notifications will be sent out again.
 
-### add-comment
 
-    /v1/actions/add-comment?author=string&comment=string
+### <a id="icinga2-api-actions-add-comment"></a> add-comment
+
+    /v1/actions/add-comment
 
 Target: `service` or `host`
 
+  parameter | type    | description
+  ----------|---------|--------------
+  author    | string  | **Required.** name of the author, may be empty.
+  comment   | string  | **Required.** Comment text, may be empty.
+
 Adds a `comment` by `author` to services or hosts.
 
-### remove-comment
+This action works akin to `acknowledge-problem`, using only the `comment` and 
+`author` parameters.
+
+
+### <a id="icinga2-api-actions-remove-comment"></a> remove-comment
 
     /v1/actions/remove-comment
 
@@ -352,60 +434,93 @@ Target: `Service` or `Host`
 
 Removes ALL comments for services or hosts.
 
-### remove-comment-by-id
 
-    /v1/actions/remove-comment-by-id?comment_id=int
+### <a id="icinga2-api-actions-remove-comment-by-id"></a> remove-comment-by-id
+
+    /v1/actions/remove-comment-by-id
 
 Target: `None`
 
-Removes the comment with the legacy ID `comment_id`
+  parameter   | type    | description
+  ------------|---------|--------------
+  comment\_id | integer | **Required.** ID of the comment to remove.
 
-### schedule-downtime
+Removes the comment with the legacy ID `comment_id`.
 
-    /v1/actions/schedule-downtime?start_time=time_t&end_time=time_t&duration=int&author=string&comment=string&\
-    (fixed=bool)&(trigger_id=int)
+
+### <a id="icinga2-api-actions-schedule-downtime"></a> schedule-downtime
+
+    /v1/actions/schedule-downtime
 
 Target: `Host` or `Service`
 
-Schedules downtime for services or hosts. If the `fixed` argument is set to
-true (default: false) the downtime will start and end at the times specified by
-the `start_time` and `end_time` arguments. Otherwise, downtime will begin
-between `start_time` and `start_end` and last for `duration` seconds. The
-downtime can be triggered by another downtime entry if the `trigger_id` is set
-to the ID of another scheduled downtime entry. Set the `trigger_id` argument to
-zero (the default) if the downtime for the specified host should not be
-triggered by another downtime entry. All downtimes also need a `comment` and
-with it an `author`, even though both can be empty.
+  parameter   | type    | description
+  ------------|---------|--------------
+  start\_time | time\_t | **Required.** Timestamp marking the begining of the downtime.
+  end\_time   | time\_t | **Required.** Timestamp marking the end of the downtime.
+  duration    | integer | **Required.** May be zero. Duration of the downtime in seconds if `fixed` is set to false.
+  fixed       | boolean | **Optional.** Default: false. If true the downtime is `fixed`, if false it is `flexible`. See [downtimes](5-advanced-topics.md#Downtimes) for more information.
+  trigger\_id | integer | **Optional.** Sets the trigger for a triggered downtime. See [downtimes](5-advanced-topics.md#Downtimes) for more information on triggered downtimes.
 
-### remove-downtime
+Example:
+
+    $ curl --user root:icinga -k -X POST "https://127.0.0.1:5665/v1/actions/schedule-downtime?type=Host&filter=host.name=%22icinga2b%22" -d \
+    "{\"start_time\":`date "+%s"`, \"end_time\":`date --date="next monday" "+%s"`,\"duration\":0,\"author\":\"Lazy admin\",\"comment\":\"Don't care until next monday\"}" \
+    ;echo
+    { "results":
+      [
+        {
+          "code":200.0,
+          "downtime_id":"icinga2b-1445861488-1",
+          "legacy_id":39.0,
+          "status":"Successfully scheduled downtime with id 39 for object icinga2b."
+        }
+      ]
+    }
+
+
+### <a id="icinga2-api-actions-remove-downtime"></a> remove-downtime
 
     /v1/actions/remove-downtime
 
 Target: `Host` or `Service`
 
+Does not take any parameters.
+
 Removes ALL downtimes for services or hosts.
 
-### remove-downtime-by-id
 
-    /v1/actions/remove-downtime-by-id?downtime_id=int
+### <a id="icinga2-api-actions-remove-downtime-by-id"></a> remove-downtime-by-id
+
+    /v1/actions/remove-downtime-by-id
 
 Target: `None`
 
+  parameter    | type    | description
+  -------------|---------|--------------
+  downtime\_id | integer | **Required.** ID of the downtime to remove.
+
 Removes the comment with the legacy ID `downtime_id`
 
-### shutdown-process
+
+### <a id="icinga2-api-actions-shutdown-process"></a> shutdown-process
 
     /v1/actions/shutdown-process
 
 Target: `None`
 
+Does not take any parameters.
+
 Shuts down Icinga2. May or may not return.
 
-### restart-process
+
+### <a id="icinga2-api-actions-restart-process"></a> restart-process
 
     /v1/actions/restart-process
 
 Target: `None`
+
+Does not take any parameters.
 
 Restarts Icinga2. May or may not return.
 
@@ -414,28 +529,29 @@ Restarts Icinga2. May or may not return.
 You can subscribe to event streams by sending a `POST` request. The following
 parameters need to be passed as url parameters:
 
-  Parameters	| Description
-  --------------|------------------------------------
-  types		| **Required.** Event type(s). Multiple types as url parameters are supported.
-  queue		| **Required.** Unique queue name. Multiple HTTP clients can use the same queue with existing filters.
-  filter	| **Optional.** Filter for specific event attributes using [filter expressions](9-icinga2-api.md#icinga2-api-filters).
+  Parameters | Description
+  -----------|--------------
+  types      | **Required.** Event type(s). Multiple types as url parameters are supported.
+  queue      | **Required.** Unique queue name. Multiple HTTP clients can use the same queue with existing filters.
+  filter     | **Optional.** Filter for specific event attributes using [filter expressions](9-icinga2-api.md#icinga2-api-filters).
+
 
 ### <a id="icinga2-api-event-streams-types"></a> Event Stream Types
 
 The following event stream types are available:
 
-  Type				| Description
-  ------------------------------|------------------------------
-  CheckResult			| Check results for hosts and services.
-  StateChange			| Host/service state changes.
-  Notification			| Notification events including notified users for hosts and services.
-  AcknowledgementSet		| Acknowledgement set on hosts and services.
-  AcknowledgementCleared	| Acknowledgement cleared on hosts and services.
-  CommentAdded			| Comment added for hosts and services.
-  CommentRemoved		| Comment removed for hosts and services.
-  DowntimeAdded			| Downtime added for hosts and services.
-  DowntimeRemoved		| Downtime removed for hosts and services.
-  DowntimeTriggered		| Downtime triggered for hosts and services.
+  Type                   | Description
+  -----------------------|--------------
+  CheckResult            | Check results for hosts and services.
+  StateChange            | Host/service state changes.
+  Notification           | Notification events including notified users for hosts and services.
+  AcknowledgementSet     | Acknowledgement set on hosts and services.
+  AcknowledgementCleared | Acknowledgement cleared on hosts and services.
+  CommentAdded           | Comment added for hosts and services.
+  CommentRemoved         | Comment removed for hosts and services.
+  DowntimeAdded          | Downtime added for hosts and services.
+  DowntimeRemoved        | Downtime removed for hosts and services.
+  DowntimeTriggered      | Downtime triggered for hosts and services.
 
 Note: Each type requires [api permissions](9-icinga2-api.md#icinga2-api-permissions)
 being set.
@@ -443,6 +559,7 @@ being set.
 Example for all downtime events:
 
     &types=DowntimeAdded&types=DowntimeRemoved&types=DowntimeTriggered
+
 
 ### <a id="icinga2-api-event-streams-filter"></a> Event Stream Filter
 
@@ -455,6 +572,7 @@ Example for the `CheckResult` type with the `exit_code` set to `2`:
 Example for the `CheckResult` type with the service matching the string "random":
 
     &types=CheckResult&filter=match%28%22random*%22,event.service%29
+
 
 ### <a id="icinga2-api-event-streams-response"></a> Event Stream Response
 
@@ -469,7 +587,6 @@ Example:
     {"check_result":{ ... },"host":"www.icinga.org","service":"ping4","timestamp":1445421324.7226390839,"type":"CheckResult"}
     {"check_result":{ ... },"host":"www.icinga.org","service":"ping4","timestamp":1445421329.7226390839,"type":"CheckResult"}
 
-
 ## <a id="icinga2-api-status"></a> Status and Statistics
 
 Contains a list of sub URL endpoints which provide the status and statistics
@@ -482,14 +599,14 @@ Example for the main URL endpoint `/v1/status`:
         "results": [
             {
                 "name": "ApiListener",
-				"perfdata": [ ... ],
-				"status": [ ... ]
+                "perfdata": [ ... ],
+                "status": [ ... ]
             },
             ...
             {
                 "name": "IcingaAplication",
-				"perfdata": [ ... ],
-				"status": [ ... ]
+                "perfdata": [ ... ],
+                "status": [ ... ]
             },
             ...
         ]
@@ -531,22 +648,22 @@ Example for the icinga application URL endpoint `/v1/status/IcingaApplication`:
 Provides functionality for all configuration object URL endpoints
 provided by [config object types](6-object-types.md#object-types):
 
-  URL Endpoints				| Description
-  --------------------------------------|----------------------------------------------------
-  /v1/objects/hosts			| Endpoint for retreiving and updating [Host](6-object-types.md#objecttype-host) objects.
-  /v1/objects/services			| Endpoint for retreiving and updating [Service](6-object-types.md#objecttype-service) objects.
-  /v1/objects/notifications		| Endpoint for retreiving and updating [Notification](6-object-types.md#objecttype-notification) objects.
-  /v1/objects/dependencies		| Endpoint for retreiving and updating [Dependency](6-object-types.md#objecttype-dependency) objects.
-  /v1/objects/users			| Endpoint for retreiving and updating [User](6-object-types.md#objecttype-user) objects.
-  /v1/objects/checkcommands		| Endpoint for retreiving and updating [CheckCommand](6-object-types.md#objecttype-checkcommand) objects.
-  /v1/objects/eventcommands		| Endpoint for retreiving and updating [EventCommand](6-object-types.md#objecttype-eventcommand) objects.
-  /v1/objects/notificationcommands	| Endpoint for retreiving and updating [NotificationCommand](6-object-types.md#objecttype-notificationcommand) objects.
-  /v1/objects/hostgroups		| Endpoint for retreiving and updating [HostGroup](6-object-types.md#objecttype-hostgroup) objects.
-  /v1/objects/servicegroups		| Endpoint for retreiving and updating [ServiceGroup](6-object-types.md#objecttype-servicegroup) objects.
-  /v1/objects/usergroups		| Endpoint for retreiving and updating [UserGroup](6-object-types.md#objecttype-usergroup) objects.
-  /v1/objects/zones			| Endpoint for retreiving and updating [Zone](6-object-types.md#objecttype-zone) objects.
-  /v1/objects/endpoints			| Endpoint for retreiving and updating [Endpoint](6-object-types.md#objecttype-endpoint) objects.
-  /v1/objects/timeperiods		| Endpoint for retreiving and updating [TimePeriod](6-object-types.md#objecttype-timeperiod) objects.
+  URL Endpoints                    | Description
+  ---------------------------------|--------------
+  /v1/objects/hosts                | Endpoint for retrieving and updating [Host](6-object-types.md#objecttype-host) objects.
+  /v1/objects/services             | Endpoint for retrieving and updating [Service](6-object-types.md#objecttype-service) objects.
+  /v1/objects/notifications        | Endpoint for retrieving and updating [Notification](6-object-types.md#objecttype-notification) objects.
+  /v1/objects/dependencies         | Endpoint for retrieving and updating [Dependency](6-object-types.md#objecttype-dependency) objects.
+  /v1/objects/users                | Endpoint for retrieving and updating [User](6-object-types.md#objecttype-user) objects.
+  /v1/objects/checkcommands        | Endpoint for retrieving and updating [CheckCommand](6-object-types.md#objecttype-checkcommand) objects.
+  /v1/objects/eventcommands        | Endpoint for retrieving and updating [EventCommand](6-object-types.md#objecttype-eventcommand) objects.
+  /v1/objects/notificationcommands | Endpoint for retrieving and updating [NotificationCommand](6-object-types.md#objecttype-notificationcommand) objects.
+  /v1/objects/hostgroups           | Endpoint for retrieving and updating [HostGroup](6-object-types.md#objecttype-hostgroup) objects.
+  /v1/objects/servicegroups        | Endpoint for retrieving and updating [ServiceGroup](6-object-types.md#objecttype-servicegroup) objects.
+  /v1/objects/usergroups           | Endpoint for retrieving and updating [UserGroup](6-object-types.md#objecttype-usergroup) objects.
+  /v1/objects/zones                | Endpoint for retrieving and updating [Zone](6-object-types.md#objecttype-zone) objects.
+  /v1/objects/endpoints            | Endpoint for retrieving and updating [Endpoint](6-object-types.md#objecttype-endpoint) objects.
+  /v1/objects/timeperiods          | Endpoint for retrieving and updating [TimePeriod](6-object-types.md#objecttype-timeperiod) objects.
 
 All object attributes are prefixed with their respective object type.
 
@@ -556,12 +673,13 @@ Example:
 
 Output listing and url parameters use the same syntax.
 
+
 ### <a id="icinga2-api-config-objects-joins"></a> API Objects and Joins
 
-Icinga 2 knows about object relations, e.g. when querying a service object
+Icinga 2 knows about object relations, i.e. when querying a service object
 the query handler will automatically add the referenced host object and its
-attributes to the result set. If the object reference is null (e.g. no event_command
-defined), the joined results not added to the result set.
+attributes to the result set. If the object reference is null (e.g. when no 
+event\_command is defined), the joined results not added to the result set.
 
 **Note**: Select your required attributes beforehand by passing them to your
 request. The default result set might get huge.
@@ -569,17 +687,17 @@ request. The default result set might get huge.
 Each joined object will use its own attribute name as prefix for the attribute.
 There is an exception for multiple objects used in dependencies and zones.
 
-Objects with optional relations (e.g. a host notification does not have services)
+Objects with optional relations (e.g. host notifications without a service)
 will not be joined.
 
-  Object Type	| Object Relations (prefix name)
-  --------------|---------------------------------
-  Service	| host, notification, check_command, event_command
-  Host		| notification, check_command, event_command
-  Notification  | host, service, command, period
-  Dependency 	| child_host, child_service, parent_host, parent_service, period
-  User		| period
-  Zones		| parent
+  Object Type  | Object Relations (prefix name)
+  -------------|---------------------------------
+  Service      | host, notification, check\_command, event\_command
+  Host         | notification, check\_command, event\_command
+  Notification | host, service, command, period
+  Dependency   | child\_host, child\_service, parent\_host, parent\_service, period
+  User         | period
+  Zones        | parent
 
 
 ### <a id="icinga2-api-config-objects-cluster-sync"></a> API Objects and Cluster Config Sync
@@ -596,9 +714,9 @@ Objects without zone attribute are only synced in the same (HA) zone.
 > in the [ApiListener](6-object-types.md#objecttype-apilistener) object
 > on each node.
 
-If you add a new cluster instance, or boot an instance which was offline
-for a while, Icinga 2 takes care of the initial object sync for all
-objects created by the API.
+If you add a new cluster instance, or boot an instance which has been offline
+for a while, Icinga 2 takes care of the initial object sync for all objects
+created by the API.
 
 More information about distributed monitoring, cluster and its
 configuration can be found [here](13-distributed-monitoring-ha.md#distributed-monitoring-high-availability).
@@ -619,11 +737,11 @@ This works in a similar fashion for other [config objects](9-icinga2-api.md#icin
 New objects must be created by sending a PUT request. The following
 parameters need to be passed inside the JSON body:
 
-  Parameters	| Description
-  --------------|------------------------------------
-  name		| **Required.** Name of the newly created config object.
-  templates	| **Optional.** Import existing configuration templates for this object type.
-  attrs		| **Required.** Set specific object attributes for this [object type](6-object-types.md#object-types).
+  Parameters | Description
+  -----------|--------------
+  name       | **Required.** Name of the newly created config object.
+  templates  | **Optional.** Import existing configuration templates for this object type.
+  attrs      | **Required.** Set specific object attributes for this [object type](6-object-types.md#object-types).
 
 
 If attributes are of the Dictionary type, you can also use the indexer format:
@@ -667,9 +785,10 @@ by the host object.
         ]
     }
 
+
 #### <a id="icinga2-api-object-query"></a> Query Object
 
-Send a `GET` request including the object name inside the url.
+Send a `GET` request including the object name inside the URL.
 
 Example for the host `google.com`:
 
@@ -690,16 +809,17 @@ attributes must be added one by one, e.g. `?attrs=host.address&attrs=host.name`.
         ]
     }
 
+
 #### <a id="icinga2-api-objects-modify"></a> Modify Object
 
-Existing objects must be modifed by sending a `POST` request. The following
+Existing objects must be modified by sending a `POST` request. The following
 parameters need to be passed inside the JSON body:
 
-  Parameters	| Description
-  --------------|------------------------------------
-  name		| **Optional.** If not specified inside the url, this is **required**.
-  templates	| **Optional.** Import existing object configuration templates.
-  attrs		| **Required.** Set specific object attributes for this [object type](6-object-types.md#object-types).
+  Parameters | Description
+  -----------|--------------
+  name       | **Optional.** If not specified inside the url, this is **Required.**.
+  templates  | **Optional.** Import existing object configuration templates.
+  attrs      | **Required.** Set specific object attributes for this [object type](6-object-types.md#object-types).
 
 
 If attributes are of the Dictionary type, you can also use the indexer format:
@@ -724,14 +844,15 @@ Example for existing object `google.com`:
         ]
     }
 
+
 #### <a id="icinga2-api-hosts-delete"></a> Delete Host
 
 You can delete objects created using the API by sending a `DELETE`
 request. Specify the object name inside the url.
 
-  Parameters	| Description
-  --------------|------------------------------------
-  cascade	| **Optional.** Delete objects depending on the deleted objects (e.g. services on a host).
+  Parameters | Description
+  -----------|--------------
+  cascade    | **Optional.** Delete objects depending on the deleted objects (e.g. services on a host).
 
 **Note**: Objects created by apply rules (services, notifications, etc) will implicitely require
 to pass the `cascade` parameter on host object deletion.
@@ -761,6 +882,7 @@ In case you are pushing a new configuration stage to a package, Icinga 2 will
 validate the configuration asynchronously and populate a status log which
 can be fetched in a separated request.
 
+
 ### <a id="icinga2-api-config-management-create-package"></a> Create Config Package
 
 Send a `POST` request to a new config package called `puppet` in this example. This
@@ -776,6 +898,7 @@ will create a new empty configuration package.
             }
         ]
     }
+
 
 ### <a id="icinga2-api-config-management-create-config-stage"></a> Create Configuration to Package Stage
 
@@ -811,13 +934,14 @@ system in place.
 Icinga 2 automatically creates the following files in the main configuration package
 stage:
 
-  File		| Description
-  --------------|---------------------------
-  status	| Contains the [configuration validation](8-cli-commands.md#config-validation) exit code (everything else than 0 indicates an error).
-  startup.log	| Contains the [configuration validation](8-cli-commands.md#config-validation) output.
+  File        | Description
+  ------------|--------------
+  status      | Contains the [configuration validation](8-cli-commands.md#config-validation) exit code (everything else than 0 indicates an error).
+  startup.log | Contains the [configuration validation](8-cli-commands.md#config-validation) output.
 
 You can [fetch these files](9-icinga2-api.md#icinga2-api-config-management-fetch-config-package-stage-files) via API call
 after creating a new stage.
+
 
 ### <a id="icinga2-api-config-management-list-config-packages"></a> List Configuration Packages and their Stages
 
@@ -840,6 +964,7 @@ The latter already has a stage created, but it is not active.
             }
         ]
     }
+
 
 ### <a id="icinga2-api-config-management-list-config-package-stage-files"></a> List Configuration Packages and their Stages
 
@@ -890,6 +1015,7 @@ for further analysis.
     object Host "cfg-mgmt" { chec_command = "dummy" }
 
 Note: The returned files are plain-text instead of JSON-encoded.
+
 
 ### <a id="icinga2-api-config-management-config-package-stage-errors"></a> Configuration Package Stage Errors
 
