@@ -1,4 +1,4 @@
-﻿# <a id="icinga2-api"></a> Icinga 2 API
+# <a id="icinga2-api"></a> Icinga 2 API
 
 ## <a id="icinga2-api-introduction"></a> Introduction
 
