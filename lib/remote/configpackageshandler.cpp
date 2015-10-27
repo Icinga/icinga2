@@ -90,7 +90,7 @@ void ConfigPackagesHandler::HandlePost(const ApiUser::Ptr& user, HttpRequest& re
 		ConfigPackageUtility::CreatePackage(packageName);
 	} catch (const std::exception& ex) {
 		HttpUtility::SendJsonError(response, 500, "Could not create package.",
-			request.GetVerboseErrors() ? DiagnosticInformation(ex) : "");
+			HttpUtility::GetLastParameter(params, "verboseErrors") ? DiagnosticInformation(ex) : "");
 	}
 
 	result1->Set("code", 200);
@@ -131,7 +131,7 @@ void ConfigPackagesHandler::HandleDelete(const ApiUser::Ptr& user, HttpRequest& 
 	} catch (const std::exception& ex) {
 		code = 500;
 		status = "Failed to delete package.";
-		if (request.GetVerboseErrors())
+		if (HttpUtility::GetLastParameter(params, "verboseErrors"))
 			result1->Set("diagnostic information", DiagnosticInformation(ex));
 	}
 

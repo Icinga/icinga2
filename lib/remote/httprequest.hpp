@@ -69,15 +69,11 @@ public:
 	void WriteBody(const char *data, size_t count);
 	void Finish(void);
 
-	inline bool GetVerboseErrors(void)
-	{ return verboseErrors; }
-
 private:
 	Stream::Ptr m_Stream;
 	boost::shared_ptr<ChunkReadContext> m_ChunkContext;
 	HttpRequestState m_State;
 	FIFO::Ptr m_Body;
-	bool verboseErrors;
 
 	void FinishHeaders(void);
 };

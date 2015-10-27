@@ -66,7 +66,7 @@ bool ActionsHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& reques
 		} catch (const std::exception& ex) {
 			HttpUtility::SendJsonError(response, 400,
 			    "Type/Filter was required but not provided or was invalid.",
-			    request.GetVerboseErrors() ? DiagnosticInformation(ex) : "");
+			    HttpUtility::GetLastParameter(params, "verboseErrors") ? DiagnosticInformation(ex) : "");
 			return true;
 		}
 	} else {
@@ -86,7 +86,7 @@ bool ActionsHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& reques
 			Dictionary::Ptr fail = new Dictionary();
 			fail->Set("code", 500);
 			fail->Set("status", "Action execution failed.");
-			if (request.GetVerboseErrors())
+			if (HttpUtility::GetLastParameter(params, "verboseErrors"))
 				fail->Set("diagnostic information", DiagnosticInformation(ex));
 			results->Add(fail);
 		}

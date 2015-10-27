@@ -86,6 +86,15 @@ bool HttpServerConnection::ProcessMessage(void)
 
 	try {
 		res = m_CurrentRequest.Parse(m_Context, false);
+	} catch (const std::invalid_argument& ex) {
+		HttpResponse response(m_Stream, m_CurrentRequest);
+		response.SetStatus(400, "Bad request");
+		String msg = String("<h1>Bad request</h1><p><pre>") + ex.what() + "</pre></p>";
+		response.WriteBody(msg.CStr(), msg.GetLength());
+		response.Finish();
+
+		m_Stream->Shutdown();
+		return false;
 	} catch (const std::exception& ex) {
 		HttpResponse response(m_Stream, m_CurrentRequest);
 		response.SetStatus(400, "Bad request");

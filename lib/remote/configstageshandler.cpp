@@ -118,7 +118,7 @@ void ConfigStagesHandler::HandlePost(const ApiUser::Ptr& user, HttpRequest& requ
 	} catch (const std::exception& ex) {
 		return HttpUtility::SendJsonError(response, 500,
 				"Stage creation failed.",
-				request.GetVerboseErrors() ? DiagnosticInformation(ex) : "");
+				HttpUtility::GetLastParameter(params, "verboseErrors") ? DiagnosticInformation(ex) : "");
 	}
 
 	Dictionary::Ptr result1 = new Dictionary();
@@ -164,7 +164,7 @@ void ConfigStagesHandler::HandleDelete(const ApiUser::Ptr& user, HttpRequest& re
 	} catch (const std::exception& ex) {
 		return HttpUtility::SendJsonError(response, 500,
 		    "Failed to delete stage.",
-		    request.GetVerboseErrors() ? DiagnosticInformation(ex) : "");
+		    HttpUtility::GetLastParameter(params, "verboseErrors") ? DiagnosticInformation(ex) : "");
 	}
 
 	Dictionary::Ptr result1 = new Dictionary();

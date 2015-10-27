@@ -34,8 +34,7 @@ HttpRequest::HttpRequest(const Stream::Ptr& stream)
       ProtocolVersion(HttpVersion11),
       Headers(new Dictionary()),
       m_Stream(stream),
-      m_State(HttpRequestStart),
-      verboseErrors(false)
+      m_State(HttpRequestStart)
 { }
 
 bool HttpRequest::Parse(StreamReadContext& src, bool may_wait)
@@ -61,7 +60,6 @@ bool HttpRequest::Parse(StreamReadContext& src, bool may_wait)
 
 			RequestMethod = tokens[0];
 			RequestUrl = new class Url(tokens[1]);
-			verboseErrors = (RequestUrl->GetQueryElement("verboseErrors") == "true");
 
 			if (tokens[2] == "HTTP/1.0")
 				ProtocolVersion = HttpVersion10;
