@@ -16,7 +16,6 @@ make calls to
 This chapter will start with a general overview followed by
 detailed information about specific URL endpoints.
 
-
 ### <a id="icinga2-api-requests"></a> Requests
 
 Any tool capable of making HTTP requests can communicate with
@@ -40,6 +39,12 @@ Supported request methods:
   PUT    | Create a new object. The PUT request must include all attributes required to create a new object.
   DELETE | Remove an object created by the API. The DELETE method is idempotent and does not require any check if the object actually exists.
 
+Each URL contains the version string as prefix (currently "/v1").
+
+Be prepared to see additional fields being added in future versions. New fields could be added even with minor releases.
+Modifications to existing fields are considered backward-compatibility-breaking and will only take place in new API versions.
+
+The request and response bodies contain a JSON-encoded object.
 
 ### <a id="icinga2-api-http-statuses"></a> HTTP Statuses
 
@@ -168,15 +173,15 @@ Available permissions for specific URL endpoints:
 
   Permissions                   | URL Endpoint
   ------------------------------|---------------
-  actions/;&lt;action;&gt;      | /v1/actions
+  actions/&lt;action&gt;        | /v1/actions
   config/query                  | /v1/config
   config/modify                 | /v1/config
-  objects/query/;&lt;type;&gt;  | /v1/objects
-  objects/create/;&lt;type;&gt; | /v1/objects
-  objects/modify/;&lt;type;&gt; | /v1/objects
-  objects/delete/;&lt;type;&gt; | /v1/objects
+  objects/query/&lt;type&gt;    | /v1/objects
+  objects/create/&lt;type&gt;   | /v1/objects
+  objects/modify/&lt;type&gt;   | /v1/objects
+  objects/delete/&lt;type&gt;   | /v1/objects
   status/query                  | /v1/status
-  events/&lt;type&gt;           | /v1/events 
+  events/&lt;type&gt;           | /v1/events
 
 The required actions or types can be replaced by using a wildcard match ("*").
 
@@ -192,11 +197,11 @@ passing parameters to the request:
 Reserved characters by the HTTP protocol must be passed url-encoded as query string, e.g. a
 space becomes `%20`.
 
-Example for query string:
+Example for a query string:
 
     /v1/objects/hosts?filter=match(%22nbmif*%22,host.name)&attrs=host.name&attrs=host.state
 
-Example for JSON body:
+Example for a JSON body:
 
     { "attrs": { "address": "8.8.4.4", "vars.os" : "Windows" } }
 
@@ -213,15 +218,6 @@ Example for a filter matching all hosts by name (**Note**: `"` are url-encoded a
 
     https://localhost:5665/v1/objects/hosts?filter=match(%22nbmif*%22,host.name)
 
-
-### <a id="icinga2-api-output-format"></a> Output Format
-
-The request and response bodies contain a JSON-encoded object.
-
-### <a id="icinga2-api-version"></a> Version
-
-Each url contains the version string as prefix (currently "/v1").
-
 ### <a id="icinga2-api-url-endpoints"></a> URL Endpoints
 
 The Icinga 2 API provides multiple URL endpoints:
@@ -229,18 +225,18 @@ The Icinga 2 API provides multiple URL endpoints:
   URL Endpoints | Description
   --------------|--------------
   /v1/actions   | Endpoint for running specific [API actions](9-icinga2-api.md#icinga2-api-actions).
-  /v1/config    | Endpoint for [managing configuration modules](9-icinga2-api.md#icinga2-api-config-management).
   /v1/events    | Endpoint for subscribing to [API events](9-icinga2-api.md#icinga2-api-actions).
+  /v1/status    | Endpoint for receiving the global Icinga 2 [status and statistics](9-icinga2-api.md#icinga2-api-status).
   /v1/objects   | Endpoint for querying, creating, modifying and deleting [config objects](9-icinga2-api.md#icinga2-api-config-objects).
-  /v1/status    | Endpoint for receiving icinga2 [status and statistics](9-icinga2-api.md#icinga2-api-status).
   /v1/types     | Endpoint for listing Icinga 2 configuration object types and their attributes.
+  /v1/config    | Endpoint for [managing configuration modules](9-icinga2-api.md#icinga2-api-config-management).
 
-Please check the respective sections for detailed URL-information and parameters.
+Please check the respective sections for detailed URL information and parameters.
 
 ## <a id="icinga2-api-actions"></a> Actions
 
 There are several actions available for Icinga 2 provided by the `actions`
-URL endpoint.
+URL endpoint `/v1/actions`. You can run actions by sending a `POST` request.
 
 In case you have been using the [external commands](5-advanced-topics.md#external-commands)
 in the past, the API actions provide a similar interface with filter
@@ -251,34 +247,32 @@ Some actions require specific target types (e.g. `type=Host`) and a
 [filter expression](9-icinga2-api.md#icinga2-api-filters).
 For each object matching the filter the action in question is performed once.
 
-These parameters may either be delivered as a query string in the form they are
-shown here (url/actions/action-name?list=of&parameters) or as key-value pairs in 
-a json formatted payload, you can also mix them. In any case the request needs
-to be POST.
+These parameters may either be passed as an URL query string (e.g. url/actions/action-name?list=of&parameters)
+or as key-value pairs in a JSON-formatted payload or a mix of both.
 
-All actions return a 200 `OK` or an appropriate error code for each 
-action performed. So there will be a return for each object matching the filter.
+All actions return a 200 `OK` or an appropriate error code for each
+action performed on each object matching the supplied filter.
 
 ### <a id="icinga2-api-actions-process-check-result"></a> process-check-result
 
-    /v1/actions/process-check-result
+Send a `POST` request to the URL endpoint `/v1/actions/process-check-result`.
 
   Parameter         | Type         | Description
   ------------------|--------------|--------------
-  type              | string       | **Required.** Can either be "Host" or "Service"
-  filter            | string       | **Optional.** See [filters](9-icinga2-api#icinga2-api-filters). To apply the action only to yout target services or hosts.
+  type              | string       | **Required.** `Host` or `Service`.
+  filter            | string       | **Optional.** Apply the action only to objects matching the [filter](9-icinga2-api#icinga2-api-filters).
   exit\_status      | integer      | **Required.** For services: 0=OK, 1=WARNING, 2=CRITICAL, 3=UNKNOWN, for hosts: 0=OK, 1=CRITICAL.
   plugin\_output    | string       | **Required.** The plugins main output, i.e. the text before the `|`. Does **not** contain the perfomance data.
   performance\_data | string array | **Optional.** One array entry per `;` separated block.
   check\_command    | string array | **Optional.** The first entry should be the check commands path, then one entry for each command line option followed by an entry for each of its argument.
   check\_source     | string       | **Optional.** Usually the name of the `command_endpoint`
 
-This is used to submit a passive check result for a service or host. Passive 
-checks need to be enabled for the check result to be processed. 
+This is used to submit a passive check result for a service or host. Passive
+checks need to be enabled for the check result to be processed.
 
 Example:
 
-    $ curl --user root:icinga -k -X POST "https://127.0.0.1:5665/v1/actions/process-check-result?type=Service&filter=service.name==%22ping6%22" -d \
+    $ curl -u root:icinga -k -X POST "https://localhost:5665/v1/actions/process-check-result?type=Service&filter=service.name==%22ping6%22" -d \
     "{\"exit_status\":2,\"plugin_output\":\"IMAGINARY CHECK\",\"performance_data\":[\"This is just\", \"a drill\"],\"check_command\":[\"some/path\", \"--argument\", \"words\"]}" \
     ;echo
     {"results":
@@ -289,27 +283,26 @@ Example:
       ]
     }
 
-
 ### <a id="icinga2-api-actions-reschedule-check"></a> reschedule-check
 
-    /v1/actions/reschedule-check
+Send a `POST` request to the URL endpoint `/v1/actions/reschedule-check`.
 
   Parameter    | Type      | Description
   -------------|-----------|--------------
-  type         | string    | **Required.** Can either be "Host" or "Service"
-  filter       | string    | **Optional.** See [filters](9-icinga2-api#icinga2-api-filters). To apply the action only to yout target services or hosts.
+  type         | string    | **Required.** `Host` or `Service`.
+  filter       | string    | **Optional.** Apply the action only to objects matching the [filter](9-icinga2-api#icinga2-api-filters).
   next\_check  | timestamp | **Optional.** The next check will be run at this timestamp. Defaults to `now`.
   force\_check | boolean   | **Optional.** Defaults to `false`. See blow for further information.
 
-If the `forced_check` flag is set the checks are performed regardless of what 
-time it is (i.e. time period restrictions are ignored) and whether or not active 
+If the `forced_check` flag is set the checks are performed regardless of what
+time it is (i.e. time period restrictions are ignored) and whether or not active
 checks are enabled on a host/service-specific or program-wide basis.
 
 Example:
 
-    $ curl --user root:icinga -k -X POST "https://127.0.0.1:5665/v1/actions/reschedule-check?type=Service&filter=service.name==%22ping6%22" -d \
-    "{\"force_check\":true}" \
-    ;echo
+    $ curl -u root:icinga -k -X POST "https://localhost:5665/v1/actions/reschedule-check?type=Service&filter=service.name==%22ping6%22" -d \
+    "{\"force_check\":true}"
+
     {"results":
       [
         {
@@ -319,61 +312,59 @@ Example:
     }
 
 This will reschedule all services with the name "ping6" to perform a check now
-(`next_check` default), ignoring any time periods or whether active checks are 
+(`next_check` default), ignoring any time periods or whether active checks are
 allowed for the service (`force_check=true`).
-
 
 ### <a id="icinga2-api-actions-send-custom-notification"></a> send-custom-notification
 
-    /v1/actions/send-custom-notification
+Send a `POST` request to the URL endpoint `/v1/actions/send-custom-notification`.
 
   Parameter | Type    | Description
   ----------|---------|--------------
-  type      | string  | **Required.** Can either be "Host" or "Service"
-  filter    | string  | **Optional.** See [filters](9-icinga2-api#icinga2-api-filters). To apply the action only to yout target services or hosts.
+  type      | string  | **Required.** `Host` or `Service`.
+  filter    | string  | **Optional.** Apply the action only to objects matching the [filter](9-icinga2-api#icinga2-api-filters).
   author    | string  | **Required.** Name of the author, may be empty.
   comment   | string  | **Required.** Comment text, may be empty.
   force     | boolean | **Optional.** Default: false. If true, the notification is sent regardless of downtimes or whether notifications are enabled or not.
 
-
 ### <a id="icinga2-api-actions-delay-notification"></a> delay-notification
 
-    /v1/actions/delay-notification
+Send a `POST` request to the URL endpoint `/v1/actions/delay-notification`.
 
   Parameter | Type      | Description
   ----------|-----------|--------------
-  type      | string    | **Required.** Can either be "Host" or "Service"
-  filter    | string    | **Optional.** See [filters](9-icinga2-api#icinga2-api-filters). To apply the action only to yout target services or hosts.
+  type      | string    | **Required.** `Host` or `Service`.
+  filter    | string    | **Optional.** Apply the action only to objects matching the [filter](9-icinga2-api#icinga2-api-filters).
   timestamp | timestamp | **Required.** Delay notifications until this timestamp.
 
 Note that this will only have an effect if the service stays in the same problem
 state that it is currently in. If the service changes to another state, a new
 notification may go out before the time you specify in the `timestamp` argument.
 
-
 ### <a id="icinga2-api-actions-acknowledge-problem"></a> acknowledge-problem
 
-    /v1/actions/acknowledge-problem
+Send a `POST` request to the URL endpoint `/v1/actions/acknowledge-problem`.
 
   Parameter | Type      | Description
   ----------|-----------|--------------
-  type      | string    | **Required.** Can either be "Host" or "Service"
-  filter    | string    | **Optional.** See [filters](9-icinga2-api#icinga2-api-filters). To apply the action only to yout target services or hosts.
+  type      | string     | **Required.** `Host` or `Service`.
+  filter    | string    | **Optional.** Apply the action only to objects matching the [filter](9-icinga2-api#icinga2-api-filters).
   author    | string    | **Required.** Name of the author, may be empty.
   comment   | string    | **Required.** Comment text, may be empty.
   expiry    | timestamp | **Optional.** If set the acknowledgement will vanish after this timestamp.
   sticky    | boolean   | **Optional.** If `true`, the default, the acknowledgement will remain until the service or host fully recovers.
   notify    | boolean   | **Optional.** If `true` a notification will be sent out to contacts to indicate this problem has been acknowledged. The default is false.
 
-Allows you to acknowledge the current problem for hosts or services. By 
-acknowledging the current problem, future notifications (for the same state) 
+Allows you to acknowledge the current problem for hosts or services. By
+acknowledging the current problem, future notifications (for the same state)
 are disabled.
 
-Example:
+The following example acknowledges all services which are in a hard critical state and sends out
+a notification for them:
 
-    $ curl --user root:icinga -k -X POST "https://127.0.0.1:5665/v1/actions/acknowledge-problem?type=Service&filter=service.state==2&service.state_type=1" -d \
-    "{\"author\":\"J. D. Salinger\",\"comment\":\"I thought what I'd do was I'd pretend I was one of those deaf-mutes\",\"notify\":true }" \
-    ;echo
+    $ curl -u root:icinga -k -X POST "https://localhost:5665/v1/actions/acknowledge-problem?type=Service&filter=service.state==2&service.state_type=1" -d \
+    "{\"author\":\"J. D. Salinger\",\"comment\":\"I thought what I'd do was I'd pretend I was one of those deaf-mutes\",\"notify\":true }"
+
     {"results":
       [
         {"code":200.0,"name":"icinga!down","status":"Attributes updated.","type":"Service"},
@@ -381,85 +372,75 @@ Example:
       ]
     }
 
-This acknowledges all services which are in a hard critical state and sends out 
-a notification for them.
-
-
 ### <a id="icinga2-api-actions-remove-acknowledgement"></a> remove-acknowledgement
 
-    /v1/actions/remove-acknowledgement
+Send a `POST` request to the URL endpoint `/v1/actions/remove-acknowledgement`.
 
   parameter | type   | description
   ----------|--------|--------------
-  type      | string | **Required.** Can either be "Host" or "Service"
-  filter    | string | **Optional.** See [filters](9-icinga2-api#icinga2-api-filters). To apply the action only to yout target services or hosts.
+  type      | string | **Required.** `Host` or `Service`.
+  filter    | string | **Optional.** Apply the action only to objects matching the [filter](9-icinga2-api#icinga2-api-filters).
 
 Remove the acknowledgements for services or hosts. Once the acknowledgement has
 been removed notifications will be sent out again.
 
-
 ### <a id="icinga2-api-actions-add-comment"></a> add-comment
 
-    /v1/actions/add-comment
+Send a `POST` request to the URL endpoint `/v1/actions/add-comment`.
 
   parameter | type   | description
   ----------|--------|--------------
-  type      | string | **Required.** Can either be "Host" or "Service"
-  filter    | string | **Optional.** See [filters](9-icinga2-api#icinga2-api-filters). To apply the action only to yout target services or hosts.
+  type      | string | **Required.** `Host` or `Service`.
+  filter    | string | **Optional.** Apply the action only to objects matching the [filter](9-icinga2-api#icinga2-api-filters).
   author    | string | **Required.** name of the author, may be empty.
   comment   | string | **Required.** Comment text, may be empty.
 
 Adds a `comment` by `author` to services or hosts.
 
-This action works akin to `acknowledge-problem`, using only the `comment` and 
-`author` parameters.
-
-
 ### <a id="icinga2-api-actions-remove-all-comments"></a> remove-all-comments
 
-    /v1/actions/remove-all-comments
+Send a `POST` request to the URL endpoint `/v1/actions/remove-all-comments`.
 
   parameter   | type    | description
   ------------|---------|--------------
-  type        | string  | **Required.** Can either be "Host" or "Service"
-  filter      | string  | **Optional.** See [filters](9-icinga2-api#icinga2-api-filters). To apply the action only to yout target services or hosts.
+  type        | string  | **Required.** `Host` or `Service`.
+  filter      | string  | **Optional.** Apply the action only to objects matching the [filter](9-icinga2-api#icinga2-api-filters).
 
-Removes ALL comments for services or hosts.
-
+Removes all comments for services or hosts.
 
 ### <a id="icinga2-api-actions-remove-comment-by-id"></a> remove-comment-by-id
 
-    /v1/actions/remove-comment-by-id
+Send a `POST` request to the URL endpoint `/v1/actions/remove-comment-by-id`.
 
   parameter   | type    | description
   ------------|---------|--------------
   comment\_id | integer | **Required.** ID of the comment to remove.
 
-Does not have a target type.
+Does not support a target type or filters.
 
 Tries to remove the comment with the ID `comment_id`, returns `OK` if the
 comment did not exist.
-
+**Note**: This is **not** the legacy ID but the comment ID returned by Icinga 2 itself.
 
 ### <a id="icinga2-api-actions-schedule-downtime"></a> schedule-downtime
 
-    /v1/actions/schedule-downtime
+Send a `POST` request to the URL endpoint `/v1/actions/schedule-downtime`.
 
   parameter   | type      | description
   ------------|-----------|--------------
-  type        | string    | **Required.** Can either be "Host" or "Service"
-  filter      | string    | **Optional.** See [filters](9-icinga2-api#icinga2-api-filters). To apply the action only to yout target services or hosts.
+  type        | string    | **Required.** `Host` or `Service`.
+  filter      | string    | **Optional.** Apply the action only to objects matching the [filter](9-icinga2-api#icinga2-api-filters).
   start\_time | timestamp | **Required.** Timestamp marking the begining of the downtime.
   end\_time   | timestamp | **Required.** Timestamp marking the end of the downtime.
-  duration    | integer   | **Required.** May be zero. Duration of the downtime in seconds if `fixed` is set to false.
-  fixed       | boolean   | **Optional.** Default: false. If true the downtime is `fixed`, if false it is `flexible`. See [downtimes](5-advanced-topics.md#Downtimes) for more information.
+  duration    | integer   | **Required.** Duration of the downtime in seconds if `fixed` is set to false.
+  fixed       | boolean   | **Optional.** Defaults to `false`. If true the downtime is `fixed` otherwise `flexible`. See [downtimes](5-advanced-topics.md#Downtimes) for more information.
   trigger\_id | integer   | **Optional.** Sets the trigger for a triggered downtime. See [downtimes](5-advanced-topics.md#Downtimes) for more information on triggered downtimes.
 
 Example:
 
-    $ curl --user root:icinga -k -X POST "https://127.0.0.1:5665/v1/actions/schedule-downtime?type=Host&filter=host.name=%22icinga2b%22" -d \
-    "{\"start_time\":`date "+%s"`, \"end_time\":`date --date="next monday" "+%s"`,\"duration\":0,\"author\":\"Lazy admin\",\"comment\":\"Don't care until next monday\"}" \
-    ;echo
+    $ curl -u root:icinga -k -X POST "https://localhost:5665/v1/actions/schedule-downtime?type=Host&filter=host.name=%22icinga2b%22" -d \
+    "{\"start_time\":`date "+%s"`, \"end_time\":`date --date="next monday" "+%s"`,\"duration\":0,\"author\":\"Lazy admin\",\"comment\":\"Don't care until next monday\"}"
+
     { "results":
       [
         {
@@ -474,56 +455,54 @@ Example:
 
 ### <a id="icinga2-api-actions-remove-downtime"></a> remove-downtime
 
-    /v1/actions/remove-all-downtimes
+Send a `POST` request to the URL endpoint `/v1/actions/remove-all-downtimes`.
 
   parameter | type   | description
   ----------|--------|--------------
-  type      | string | **Required.** Can either be "Host" or "Service"
-  filter    | string | **Optional.** See [filters](9-icinga2-api#icinga2-api-filters). To apply the action only to yout target services or hosts.
+  type      | string | **Required.** `Host` or `Service`.
+  filter    | string | **Optional.** Apply the action only to objects matching the [filter](9-icinga2-api#icinga2-api-filters).
 
-Removes ALL downtimes for services or hosts.
-
+Removes all downtimes for services or hosts.
 
 ### <a id="icinga2-api-actions-remove-downtime-by-id"></a> remove-downtime-by-id
 
-    /v1/actions/remove-downtime-by-id
+Send a `POST` request to the URL endpoint `/v1/actions/remove-downtime-by-id`.
 
   parameter    | type    | description
   -------------|---------|--------------
   downtime\_id | integer | **Required.** ID of the downtime to remove.
 
-Does not have a target type.
+Does not support a target type or filter.
 
 Tries to remove the downtime with the ID `downtime_id`, returns `OK` if the
 downtime did not exist.
-
+**Note**: This is **not** the legacy ID but the downtime ID returned by Icinga 2 itself.
 
 ### <a id="icinga2-api-actions-shutdown-process"></a> shutdown-process
 
-    /v1/actions/shutdown-process
+Send a `POST` request to the URL endpoint `/v1/actions/shutdown-process`.
 
-Does not have a target type.
+This action does not support a target type or filter.
 
 Shuts down Icinga2. May or may not return.
 
-
 ### <a id="icinga2-api-actions-restart-process"></a> restart-process
 
-    /v1/actions/restart-process
+Send a `POST` request to the URL endpoint `/v1/actions/restart-process`.
 
-Does not have a target type.
+This action does not support a target type or filter.
 
 Restarts Icinga2. May or may not return.
 
 
 ## <a id="icinga2-api-event-streams"></a> Event Streams
 
-You can subscribe to event streams by sending a `POST` request. The following
-parameters need to be passed as url parameters:
+You can subscribe to event streams by sending a `POST` request to the URL endpoint `/v1/events`.
+The following parameters need to be passed as URL parameters:
 
   Parameters | Description
   -----------|--------------
-  types      | **Required.** Event type(s). Multiple types as url parameters are supported.
+  types      | **Required.** Event type(s). Multiple types as URL parameters are supported.
   queue      | **Required.** Unique queue name. Multiple HTTP clients can use the same queue with existing filters.
   filter     | **Optional.** Filter for specific event attributes using [filter expressions](9-icinga2-api.md#icinga2-api-filters).
 
@@ -579,7 +558,11 @@ Example:
     {"check_result":{ ... },"host":"www.icinga.org","service":"ping4","timestamp":1445421324.7226390839,"type":"CheckResult"}
     {"check_result":{ ... },"host":"www.icinga.org","service":"ping4","timestamp":1445421329.7226390839,"type":"CheckResult"}
 
+
 ## <a id="icinga2-api-status"></a> Status and Statistics
+
+Send a `POST` request to the URL endpoint `/v1/status` for retrieving the
+global status and statistics.
 
 Contains a list of sub URL endpoints which provide the status and statistics
 of available and enabled features. Any filters are ignored.
@@ -605,7 +588,7 @@ Example for the main URL endpoint `/v1/status`:
     }
 
 `/v1/status` is always available as virtual status URL endpoint.
-It provides all feature status information into a collected overview.
+It provides all feature status information in a collected overview.
 
 Example for the icinga application URL endpoint `/v1/status/IcingaApplication`:
 
@@ -670,7 +653,7 @@ Output listing and url parameters use the same syntax.
 
 Icinga 2 knows about object relations, i.e. when querying a service object
 the query handler will automatically add the referenced host object and its
-attributes to the result set. If the object reference is null (e.g. when no 
+attributes to the result set. If the object reference is null (e.g. when no
 event\_command is defined), the joined results not added to the result set.
 
 **Note**: Select your required attributes beforehand by passing them to your
