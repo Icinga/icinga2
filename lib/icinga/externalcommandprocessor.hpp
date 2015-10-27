@@ -42,6 +42,8 @@ public:
 private:
 	ExternalCommandProcessor(void);
 
+	static void ExecuteFromFile(const String& line, std::deque< std::vector<String> >& file_queue);
+
 	static void ProcessHostCheckResult(double time, const std::vector<String>& arguments);
 	static void ProcessServiceCheckResult(double time, const std::vector<String>& arguments);
 	static void ScheduleHostCheck(double time, const std::vector<String>& arguments);
