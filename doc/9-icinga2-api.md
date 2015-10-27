@@ -67,7 +67,7 @@ Succesful requests will send back a response body containing a `results`
 list. Depending on the number of affected objects in your request, the
 results may contain one or more entries.
 
-The [output](9-icinga2-api.md#icinga2-api-output) will be sent back as a JSON object:
+The [output](9-icinga2-api.md#icinga2-api-output-format) will be sent back as a JSON object:
 
 
     {
@@ -217,13 +217,11 @@ Example for matching all hosts by name (**Note**: `"` are url-encoded as `%22`):
 
 ### <a id="icinga2-api-output-format"></a> Output Format
 
-The request and response body contain a JSON encoded string.
-
+The request and response bodies contain a JSON-encoded object.
 
 ### <a id="icinga2-api-version"></a> Version
 
 Each url contains the version string as prefix (currently "/v1").
-
 
 ### <a id="icinga2-api-url-endpoints"></a> URL Endpoints
 

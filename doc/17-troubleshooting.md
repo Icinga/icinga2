@@ -301,7 +301,7 @@ There is no cli command for manually executing the check, but you can verify
 the following (e.g. by invoking a forced check from the web interface):
 
 * `/var/log/icinga2/icinga2.log` contains connection and execution errors.
- * The ApiListener is not enabled to [accept commands](#clients-as-command-execution-bridge).
+ * The ApiListener is not enabled to [accept commands](11-icinga2-client.md#icinga2-client-configuration-command-bridge).
  * `CheckCommand` definition not found on the remote client.
  * Referenced check plugin not found on the remote client.
  * Runtime warnings and errors, e.g. unresolved runtime macros or configuration problems.
@@ -318,7 +318,7 @@ If the cluster zones do not sync their configuration, make sure to check the fol
 * The `icinga2.log` log file in `/var/log/icinga2` will indicate whether this ApiListener
 [accepts config](13-distributed-monitoring-ha.md#zone-config-sync-permissions), or not.
 
-### <a id="troubleshooting-cluster-replay-log"></a> Cluster Troubleshooting Overdue Check Results
+### <a id="troubleshooting-cluster-check-results"></a> Cluster Troubleshooting Overdue Check Results
 
 If your master does not receive check results (or any other events) from the child zones
 (satellite, clients, etc) make sure to check whether the client sending in events
