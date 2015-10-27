@@ -40,10 +40,10 @@ REGISTER_APIACTION(delay_notification, "Service;Host", &ApiActions::DelayNotific
 REGISTER_APIACTION(acknowledge_problem, "Service;Host", &ApiActions::AcknowledgeProblem);
 REGISTER_APIACTION(remove_acknowledgement, "Service;Host", &ApiActions::RemoveAcknowledgement);
 REGISTER_APIACTION(add_comment, "Service;Host", &ApiActions::AddComment);
-REGISTER_APIACTION(remove_comment, "Service;Host", &ApiActions::RemoveComment);
+REGISTER_APIACTION(remove_all_comments, "Service;Host", &ApiActions::RemoveAllComments);
 REGISTER_APIACTION(remove_comment_by_id, "", &ApiActions::RemoveCommentByID);
 REGISTER_APIACTION(schedule_downtime, "Service;Host", &ApiActions::ScheduleDowntime);
-REGISTER_APIACTION(remove_downtime, "Service;Host", &ApiActions::RemoveDowntime);
+REGISTER_APIACTION(remove_all_downtimes, "Service;Host", &ApiActions::RemoveAllDowntimes);
 REGISTER_APIACTION(remove_downtime_by_id, "", &ApiActions::RemoveDowntimeByID);
 REGISTER_APIACTION(shutdown_process, "", &ApiActions::ShutdownProcess);
 REGISTER_APIACTION(restart_process, "", &ApiActions::RestartProcess);
@@ -106,11 +106,6 @@ Dictionary::Ptr ApiActions::ProcessCheckResult(const ConfigObject::Ptr& object,
 	cr->SetCheckSource(HttpUtility::GetLastParameter(params, "check_source"));
 	cr->SetPerformanceData(params->Get("performance_data"));
 	cr->SetCommand(params->Get("check_command"));
-	cr->SetExecutionEnd(HttpUtility::GetLastParameter(params, "execution_end"));
-	cr->SetExecutionStart(HttpUtility::GetLastParameter(params, "execution_start"));
-	cr->SetScheduleEnd(HttpUtility::GetLastParameter(params, "schedule_end"));
-	cr->SetScheduleStart(HttpUtility::GetLastParameter(params, "schedule_start"));
-
 	checkable->ProcessCheckResult(cr);
 
 	/* Reschedule the next check. The side effect of this is that for as long
@@ -271,7 +266,7 @@ Dictionary::Ptr ApiActions::AddComment(const ConfigObject::Ptr& object,
 	    + "'.", additional);
 }
 
-Dictionary::Ptr ApiActions::RemoveComment(const ConfigObject::Ptr& object,
+Dictionary::Ptr ApiActions::RemoveAllComments(const ConfigObject::Ptr& object,
     const Dictionary::Ptr& params)
 {
 	Checkable::Ptr checkable = static_pointer_cast<Checkable>(object);
@@ -341,7 +336,7 @@ Dictionary::Ptr ApiActions::ScheduleDowntime(const ConfigObject::Ptr& object,
 	     downtime_id + "' for object '" + checkable->GetName() + "'.", additional);
 }
 
-Dictionary::Ptr ApiActions::RemoveDowntime(const ConfigObject::Ptr& object,
+Dictionary::Ptr ApiActions::RemoveAllDowntimes(const ConfigObject::Ptr& object,
     const Dictionary::Ptr& params)
 {
 	Checkable::Ptr checkable = static_pointer_cast<Checkable>(object);

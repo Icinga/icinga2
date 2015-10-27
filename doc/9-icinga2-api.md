@@ -49,8 +49,8 @@ including error codes.
 When an error occurs, the response body will contain additional information
 about the problem and its source.
 
-A status in the range between 200 and 299 generally means that the request was succesful
-and no error was encountered.
+A status code between 200 and 299 generally means that the request was
+succesful.
 
 Return codes within the 400 range indicate that there was a problem with the
 request. Either you did not authenticate correctly, you are missing the authorization
@@ -166,7 +166,7 @@ the custom host attribute `os` matching the regular expression `^Linux`.
 
 Available permissions for specific URL endpoints:
 
-  Permissions                   | Url Endpoint
+  Permissions                   | URL Endpoint
   ------------------------------|---------------
   actions/;&lt;action;&gt;      | /v1/actions
   config/query                  | /v1/config
@@ -203,14 +203,13 @@ Example for JSON body:
 
 #### <a id="icinga2-api-filters"></a> Filters
 
-Use the same syntax as for apply rule expressions
-for filtering specific objects.
+Uses the same syntax as apply rule expressions for filtering specific objects.
 
-Example for all services in NOT-OK state:
+Example for a filter matching all services in NOT-OK state:
 
-    https://localhost:5665/v1/objects/services?filter=service.state!=0
+    https://localhost:5665/v1/objects/services?filter=service.state!=ServiceOK
 
-Example for matching all hosts by name (**Note**: `"` are url-encoded as `%22`):
+Example for a filter matching all hosts by name (**Note**: `"` are url-encoded as `%22`):
 
     https://localhost:5665/v1/objects/hosts?filter=match(%22nbmif*%22,host.name)
 
@@ -227,7 +226,7 @@ Each url contains the version string as prefix (currently "/v1").
 
 The Icinga 2 API provides multiple URL endpoints:
 
-  Url Endpoints | Description
+  URL Endpoints | Description
   --------------|--------------
   /v1/actions   | Endpoint for running specific [API actions](9-icinga2-api.md#icinga2-api-actions).
   /v1/config    | Endpoint for [managing configuration modules](9-icinga2-api.md#icinga2-api-config-management).
@@ -252,45 +251,34 @@ Some actions require specific target types (e.g. `type=Host`) and a
 [filter expression](9-icinga2-api.md#icinga2-api-filters).
 For each object matching the filter the action in question is performed once.
 
-In the following each the actions are listed with their parameters, targets and
-examples. The calls are first shown with all their possible query parameters and 
-their type. Optional parameters are encapsulated by `()` and `[]` mark array
-parameters. If an optional parameter has no default value explicitly stated it
-is either 0, NULL, Empty depending on the type. Timestamps are always `time_t`,
-the seconds since the UNIX epoch.
-
 These parameters may either be delivered as a query string in the form they are
 shown here (url/actions/action-name?list=of&parameters) or as key-value pairs in 
-a json formatted payload. In any case the request needs to be POST.
+a json formatted payload, you can also mix them. In any case the request needs
+to be POST.
 
 All actions return a 200 `OK` or an appropriate error code for each 
 action performed. So there will be a return for each object matching the filter.
-
 
 ### <a id="icinga2-api-actions-process-check-result"></a> process-check-result
 
     /v1/actions/process-check-result
 
-Target: `Service` or `Host`
-
   Parameter         | Type         | Description
   ------------------|--------------|--------------
+  type              | string       | **Required.** Can either be "Host" or "Service"
+  filter            | string       | **Optional.** See [filters](9-icinga2-api#icinga2-api-filters). To apply the action only to yout target services or hosts.
   exit\_status      | integer      | **Required.** For services: 0=OK, 1=WARNING, 2=CRITICAL, 3=UNKNOWN, for hosts: 0=OK, 1=CRITICAL.
-  plugin\_output    | string       | **Required.** Some text output.
+  plugin\_output    | string       | **Required.** The plugins main output, i.e. the text before the `|`. Does **not** contain the perfomance data.
   performance\_data | string array | **Optional.** One array entry per `;` separated block.
   check\_command    | string array | **Optional.** The first entry should be the check commands path, then one entry for each command line option followed by an entry for each of its argument.
-  check\_source     | string       | **Optional.** Some text
-  execution\_end    | time\_t      | **Optional.**
-  execution\_start  | time\_t      | **Optional.**
-  schedule\_end     | time\_t      | **Optional.**
-  schedule\_start   | time\_t      | **Optional.**
+  check\_source     | string       | **Optional.** Usually the name of the `command_endpoint`
 
 This is used to submit a passive check result for a service or host. Passive 
 checks need to be enabled for the check result to be processed. 
 
 Example:
 
-    curl --user root:icinga -k -X POST "https://127.0.0.1:5665/v1/actions/process-check-result?type=Service&filter=service.name==%22ping6%22" -d \
+    $ curl --user root:icinga -k -X POST "https://127.0.0.1:5665/v1/actions/process-check-result?type=Service&filter=service.name==%22ping6%22" -d \
     "{\"exit_status\":2,\"plugin_output\":\"IMAGINARY CHECK\",\"performance_data\":[\"This is just\", \"a drill\"],\"check_command\":[\"some/path\", \"--argument\", \"words\"]}" \
     ;echo
     {"results":
@@ -306,12 +294,12 @@ Example:
 
     /v1/actions/reschedule-check
 
-Target: `Service` or `Host`
-
-  Parameter    | Type    | Description
-  -------------|---------|--------------
-  next\_check  | time\_t | **Optional.** The next check will be run at this timestamp. Defaults to `now`.
-  force\_check | boolean | **Optional.** Defaults to `false`. See blow for further information.
+  Parameter    | Type      | Description
+  -------------|-----------|--------------
+  type         | string    | **Required.** Can either be "Host" or "Service"
+  filter       | string    | **Optional.** See [filters](9-icinga2-api#icinga2-api-filters). To apply the action only to yout target services or hosts.
+  next\_check  | timestamp | **Optional.** The next check will be run at this timestamp. Defaults to `now`.
+  force\_check | boolean   | **Optional.** Defaults to `false`. See blow for further information.
 
 If the `forced_check` flag is set the checks are performed regardless of what 
 time it is (i.e. time period restrictions are ignored) and whether or not active 
@@ -339,10 +327,10 @@ allowed for the service (`force_check=true`).
 
     /v1/actions/send-custom-notification
 
-Target: `Service` or `Host`
-
   Parameter | Type    | Description
   ----------|---------|--------------
+  type      | string  | **Required.** Can either be "Host" or "Service"
+  filter    | string  | **Optional.** See [filters](9-icinga2-api#icinga2-api-filters). To apply the action only to yout target services or hosts.
   author    | string  | **Required.** Name of the author, may be empty.
   comment   | string  | **Required.** Comment text, may be empty.
   force     | boolean | **Optional.** Default: false. If true, the notification is sent regardless of downtimes or whether notifications are enabled or not.
@@ -352,11 +340,11 @@ Target: `Service` or `Host`
 
     /v1/actions/delay-notification
 
-Target: `Service` or `Host`
-
-  Parameter | Type    | Description
-  ----------|---------|--------------
-  timestamp | time\_t | **Required.** Delay notifications until this timestamp.
+  Parameter | Type      | Description
+  ----------|-----------|--------------
+  type      | string    | **Required.** Can either be "Host" or "Service"
+  filter    | string    | **Optional.** See [filters](9-icinga2-api#icinga2-api-filters). To apply the action only to yout target services or hosts.
+  timestamp | timestamp | **Required.** Delay notifications until this timestamp.
 
 Note that this will only have an effect if the service stays in the same problem
 state that it is currently in. If the service changes to another state, a new
@@ -367,15 +355,15 @@ notification may go out before the time you specify in the `timestamp` argument.
 
     /v1/actions/acknowledge-problem
 
-Target: `Service` or `Host`
-
-  Parameter | Type    | Description
-  ----------|---------|--------------
-  author    | string  | **Required.** Name of the author, may be empty.
-  comment   | string  | **Required.** Comment text, may be empty.
-  expiry    | time\_t | **Optional.** If set the acknowledgement will vanish after this timestamp.
-  sticky    | boolean | **Optional.** If `true`, the default, the acknowledgement will remain until the service or host fully recovers.
-  notify    | boolean | **Optional.** If `true` a notification will be sent out to contacts to indicate this problem has been acknowledged. The default is false.
+  Parameter | Type      | Description
+  ----------|-----------|--------------
+  type      | string    | **Required.** Can either be "Host" or "Service"
+  filter    | string    | **Optional.** See [filters](9-icinga2-api#icinga2-api-filters). To apply the action only to yout target services or hosts.
+  author    | string    | **Required.** Name of the author, may be empty.
+  comment   | string    | **Required.** Comment text, may be empty.
+  expiry    | timestamp | **Optional.** If set the acknowledgement will vanish after this timestamp.
+  sticky    | boolean   | **Optional.** If `true`, the default, the acknowledgement will remain until the service or host fully recovers.
+  notify    | boolean   | **Optional.** If `true` a notification will be sent out to contacts to indicate this problem has been acknowledged. The default is false.
 
 Allows you to acknowledge the current problem for hosts or services. By 
 acknowledging the current problem, future notifications (for the same state) 
@@ -401,22 +389,25 @@ a notification for them.
 
     /v1/actions/remove-acknowledgement
 
-Target: `Service` or `Host`
+  parameter | type   | description
+  ----------|--------|--------------
+  type      | string | **Required.** Can either be "Host" or "Service"
+  filter    | string | **Optional.** See [filters](9-icinga2-api#icinga2-api-filters). To apply the action only to yout target services or hosts.
 
-Removes ALL acknowledgements for services or hosts. Once the acknowledgements 
-have been removed, notifications will be sent out again.
+Remove the acknowledgements for services or hosts. Once the acknowledgement has
+been removed notifications will be sent out again.
 
 
 ### <a id="icinga2-api-actions-add-comment"></a> add-comment
 
     /v1/actions/add-comment
 
-Target: `service` or `host`
-
-  parameter | type    | description
-  ----------|---------|--------------
-  author    | string  | **Required.** name of the author, may be empty.
-  comment   | string  | **Required.** Comment text, may be empty.
+  parameter | type   | description
+  ----------|--------|--------------
+  type      | string | **Required.** Can either be "Host" or "Service"
+  filter    | string | **Optional.** See [filters](9-icinga2-api#icinga2-api-filters). To apply the action only to yout target services or hosts.
+  author    | string | **Required.** name of the author, may be empty.
+  comment   | string | **Required.** Comment text, may be empty.
 
 Adds a `comment` by `author` to services or hosts.
 
@@ -424,11 +415,14 @@ This action works akin to `acknowledge-problem`, using only the `comment` and
 `author` parameters.
 
 
-### <a id="icinga2-api-actions-remove-comment"></a> remove-comment
+### <a id="icinga2-api-actions-remove-all-comments"></a> remove-all-comments
 
-    /v1/actions/remove-comment
+    /v1/actions/remove-all-comments
 
-Target: `Service` or `Host`
+  parameter   | type    | description
+  ------------|---------|--------------
+  type        | string  | **Required.** Can either be "Host" or "Service"
+  filter      | string  | **Optional.** See [filters](9-icinga2-api#icinga2-api-filters). To apply the action only to yout target services or hosts.
 
 Removes ALL comments for services or hosts.
 
@@ -437,28 +431,29 @@ Removes ALL comments for services or hosts.
 
     /v1/actions/remove-comment-by-id
 
-Target: `None`
-
   parameter   | type    | description
   ------------|---------|--------------
   comment\_id | integer | **Required.** ID of the comment to remove.
 
-Removes the comment with the legacy ID `comment_id`.
+Does not have a target type.
+
+Tries to remove the comment with the ID `comment_id`, returns `OK` if the
+comment did not exist.
 
 
 ### <a id="icinga2-api-actions-schedule-downtime"></a> schedule-downtime
 
     /v1/actions/schedule-downtime
 
-Target: `Host` or `Service`
-
-  parameter   | type    | description
-  ------------|---------|--------------
-  start\_time | time\_t | **Required.** Timestamp marking the begining of the downtime.
-  end\_time   | time\_t | **Required.** Timestamp marking the end of the downtime.
-  duration    | integer | **Required.** May be zero. Duration of the downtime in seconds if `fixed` is set to false.
-  fixed       | boolean | **Optional.** Default: false. If true the downtime is `fixed`, if false it is `flexible`. See [downtimes](5-advanced-topics.md#Downtimes) for more information.
-  trigger\_id | integer | **Optional.** Sets the trigger for a triggered downtime. See [downtimes](5-advanced-topics.md#Downtimes) for more information on triggered downtimes.
+  parameter   | type      | description
+  ------------|-----------|--------------
+  type        | string    | **Required.** Can either be "Host" or "Service"
+  filter      | string    | **Optional.** See [filters](9-icinga2-api#icinga2-api-filters). To apply the action only to yout target services or hosts.
+  start\_time | timestamp | **Required.** Timestamp marking the begining of the downtime.
+  end\_time   | timestamp | **Required.** Timestamp marking the end of the downtime.
+  duration    | integer   | **Required.** May be zero. Duration of the downtime in seconds if `fixed` is set to false.
+  fixed       | boolean   | **Optional.** Default: false. If true the downtime is `fixed`, if false it is `flexible`. See [downtimes](5-advanced-topics.md#Downtimes) for more information.
+  trigger\_id | integer   | **Optional.** Sets the trigger for a triggered downtime. See [downtimes](5-advanced-topics.md#Downtimes) for more information on triggered downtimes.
 
 Example:
 
@@ -479,11 +474,12 @@ Example:
 
 ### <a id="icinga2-api-actions-remove-downtime"></a> remove-downtime
 
-    /v1/actions/remove-downtime
+    /v1/actions/remove-all-downtimes
 
-Target: `Host` or `Service`
-
-Does not take any parameters.
+  parameter | type   | description
+  ----------|--------|--------------
+  type      | string | **Required.** Can either be "Host" or "Service"
+  filter    | string | **Optional.** See [filters](9-icinga2-api#icinga2-api-filters). To apply the action only to yout target services or hosts.
 
 Removes ALL downtimes for services or hosts.
 
@@ -492,22 +488,21 @@ Removes ALL downtimes for services or hosts.
 
     /v1/actions/remove-downtime-by-id
 
-Target: `None`
-
   parameter    | type    | description
   -------------|---------|--------------
   downtime\_id | integer | **Required.** ID of the downtime to remove.
 
-Removes the comment with the legacy ID `downtime_id`
+Does not have a target type.
+
+Tries to remove the downtime with the ID `downtime_id`, returns `OK` if the
+downtime did not exist.
 
 
 ### <a id="icinga2-api-actions-shutdown-process"></a> shutdown-process
 
     /v1/actions/shutdown-process
 
-Target: `None`
-
-Does not take any parameters.
+Does not have a target type.
 
 Shuts down Icinga2. May or may not return.
 
@@ -516,11 +511,10 @@ Shuts down Icinga2. May or may not return.
 
     /v1/actions/restart-process
 
-Target: `None`
-
-Does not take any parameters.
+Does not have a target type.
 
 Restarts Icinga2. May or may not return.
+
 
 ## <a id="icinga2-api-event-streams"></a> Event Streams
 
