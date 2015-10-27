@@ -290,6 +290,44 @@ void ExternalCommandProcessor::StaticInitialize(void)
 	RegisterCommand("DISABLE_SERVICEGROUP_SVC_NOTIFICATIONS", &ExternalCommandProcessor::DisableServicegroupSvcNotifications, 1);
 }
 
+void ExternalCommandProcessor::ExecuteFromFile(const String& line, std::deque< std::vector<String> >& file_queue)
+{
+	if (line.IsEmpty())
+		return;
+
+	if (line[0] != '[')
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Missing timestamp in command: " + line));
+
+	size_t pos = line.FindFirstOf("]");
+
+	if (pos == String::NPos)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Missing timestamp in command: " + line));
+
+	String timestamp = line.SubStr(1, pos - 1);
+	String args = line.SubStr(pos + 2, String::NPos);
+
+	double ts = Convert::ToDouble(timestamp);
+
+	if (ts == 0)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid timestamp in command: " + line));
+
+	std::vector<String> argv;
+	boost::algorithm::split(argv, args, boost::is_any_of(";"));
+
+	if (argv.empty())
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Missing arguments in command: " + line));
+
+	std::vector<String> argvExtra(argv.begin() + 1, argv.end());
+
+	if (argv[0] == "PROCESS_FILE") {
+		Log(LogDebug, "ExternalCommandProcessor")
+			<< "Enqueing external command file " << argvExtra[0];
+		file_queue.push_back(argvExtra);
+	} else {
+		Execute(ts, argv[0], argvExtra);
+	}
+}
+
 void ExternalCommandProcessor::ProcessHostCheckResult(double time, const std::vector<String>& arguments)
 {
 	Host::Ptr host = Host::GetByName(arguments[0]);
@@ -897,33 +935,41 @@ void ExternalCommandProcessor::DisableHostgroupPassiveSvcChecks(double, const st
 
 void ExternalCommandProcessor::ProcessFile(double, const std::vector<String>& arguments)
 {
-	String file = arguments[0];
-	int del = Convert::ToLong(arguments[1]);
+	std::deque< std::vector<String> > file_queue;
+	file_queue.push_back(arguments);
 
-	std::ifstream ifp;
-	ifp.exceptions(std::ifstream::badbit);
+	while (!file_queue.empty()) {
+		std::vector<String> argument = file_queue.front();
+		file_queue.pop_front();
 
-	ifp.open(file.CStr(), std::ifstream::in);
+		String file = argument[0];
+		int to_delete = Convert::ToLong(argument[1]);
 
-	while (ifp.good()) {
-		std::string line;
-		std::getline(ifp, line);
+		std::ifstream ifp;
+		ifp.exceptions(std::ifstream::badbit);
 
-		try {
-			Log(LogNotice, "compat")
-			    << "Executing external command: " << line;
+		ifp.open(file.CStr(), std::ifstream::in);
 
-			Execute(line);
-		} catch (const std::exception& ex) {
-			Log(LogWarning, "ExternalCommandProcessor")
-			    << "External command failed: " << DiagnosticInformation(ex);
+		while (ifp.good()) {
+			std::string line;
+			std::getline(ifp, line);
+
+			try {
+				Log(LogNotice, "compat")
+				    << "Executing external command: " << line;
+
+				ExecuteFromFile(line, file_queue);
+			} catch (const std::exception& ex) {
+				Log(LogWarning, "ExternalCommandProcessor")
+				    << "External command failed: " << DiagnosticInformation(ex);
+			}
 		}
+
+		ifp.close();
+
+		if (to_delete > 0)
+			(void) unlink(file.CStr());
 	}
-
-	ifp.close();
-
-	if (del > 0)
-		(void) unlink(file.CStr());
 }
 
 void ExternalCommandProcessor::ScheduleSvcDowntime(double, const std::vector<String>& arguments)
