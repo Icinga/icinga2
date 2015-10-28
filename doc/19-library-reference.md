@@ -413,7 +413,7 @@ Signature:
     function contains(str);
 
 Returns `true` if the string `str` was found in the string. If the string
-was not found `false` is returned. Use [find](21-library-reference.md#string-find)
+was not found `false` is returned. Use [find](19-library-reference.md#string-find)
 for getting the index instead.
 
 Example:
@@ -522,7 +522,7 @@ object is recursively copied.
 
 ## <a id="array-type"></a> Array type
 
-Inherits methods from the [object type](21-library-reference.md#object-type).
+Inherits methods from the [object type](19-library-reference.md#object-type).
 
 ### <a id="array-add"></a> Array#add
 
@@ -616,7 +616,7 @@ Returns a new array with all elements of the current array in reverse order.
 
 ## <a id="dictionary-type"></a> Dictionary type
 
-Inherits methods from the [object type](21-library-reference.md#object-type).
+Inherits methods from the [object type](19-library-reference.md#object-type).
 
 ### <a id="dictionary-shallow-clone"></a> Dictionary#shallow_clone
 

@@ -5,7 +5,7 @@ The configuration files which are automatically created when installing the Icin
 are a good way to start with Icinga 2.
 
 If you're interested in a detailed explanation of each language feature used in those
-configuration files you can find more information in the [Language Reference](20-language-reference.md#language-reference)
+configuration files you can find more information in the [Language Reference](18-language-reference.md#language-reference)
 chapter.
 
 ## <a id="configuration-best-practice"></a> Configuration Best Practice
@@ -79,7 +79,7 @@ Here's a brief description of the example configuration:
      * to the documentation that is distributed as part of Icinga 2.
      */
 
-Icinga 2 supports [C/C++-style comments](20-language-reference.md#comments).
+Icinga 2 supports [C/C++-style comments](18-language-reference.md#comments).
 
     /**
      * The constants.conf defines global constants.
@@ -113,7 +113,7 @@ The `include` directive can be used to include other files.
 
 This `include` directive takes care of including the configuration files for all
 the features which have been enabled with `icinga2 feature enable`. See
-[Enabling/Disabling Features](8-cli-commands.md#features) for more details.
+[Enabling/Disabling Features](8-cli-commands.md#enable-features) for more details.
 
     /**
      * The repository.d directory contains all configuration objects
@@ -295,13 +295,13 @@ host and your additional hosts are getting [services](4-configuring-icinga-2.md#
 
 > **Tip**
 >
-> If you don't understand all the attributes and how to use [apply rules](20-language-reference.md#apply)
+> If you don't understand all the attributes and how to use [apply rules](18-language-reference.md#apply)
 > don't worry - the [monitoring basics](3-monitoring-basics.md#monitoring-basics) chapter will explain
 > that in detail.
 
 #### <a id="services-conf"></a> services.conf
 
-These service [apply rules](20-language-reference.md#apply) will show you how to monitor
+These service [apply rules](18-language-reference.md#apply) will show you how to monitor
 the local host, but also allow you to re-use or modify them for
 your own requirements.
 
@@ -349,7 +349,7 @@ these services in [downtimes.conf](4-configuring-icinga-2.md#downtimes-conf).
 
 In this example the `assign where` condition is a boolean expression which is
 evaluated for all objects of type `Host` and a new service with name "load"
-is created for each matching host. [Expression operators](20-language-reference.md#expression-operators)
+is created for each matching host. [Expression operators](18-language-reference.md#expression-operators)
 may be used in `assign where` conditions.
 
 Multiple `assign where` condition can be combined with `AND` using the `&&` operator
@@ -367,7 +367,7 @@ In this example, the service `ssh` is applied to all hosts having the `address`
 attribute defined `AND` having the custom attribute `os` set to the string
 `Linux`.
 You can modify this condition to match multiple expressions by combinding `AND`
-and `OR` using `&&` and `||` [operators](20-language-reference.md#expression-operators), for example
+and `OR` using `&&` and `||` [operators](18-language-reference.md#expression-operators), for example
 `assign where host.address && (vars.os == "Linux" || vars.os == "Windows")`.
 
 
@@ -515,7 +515,7 @@ The example host defined in [hosts.conf](hosts-conf) already has the
 custom attribute `os` set to `Linux` and is therefore automatically
 a member of the host group `linux-servers`.
 
-This is done by using the [group assign](20-language-reference.md#group-assign) expressions similar
+This is done by using the [group assign](18-language-reference.md#group-assign) expressions similar
 to previously seen [apply rules](3-monitoring-basics.md#using-apply).
 
     object HostGroup "linux-servers" {
@@ -531,7 +531,7 @@ to previously seen [apply rules](3-monitoring-basics.md#using-apply).
     }
 
 Service groups can be grouped together by similar pattern matches.
-The [match() function](20-language-reference.md#function-calls) expects a wildcard match string
+The [match() function](18-language-reference.md#function-calls) expects a wildcard match string
 and the attribute string to match with.
 
     object ServiceGroup "ping" {

@@ -457,7 +457,7 @@ Configuration Attributes:
   enable_send_metadata 	| **Optional.** Send additional metadata metrics. Defaults to `false`.
   enable_legacy_mode	| **Optional.** Enable legacy mode for schema < 2.4. **Note**: This will be removed in future versions.
 
-Additional usage examples can be found [here](5-advanced-topics.md#graphite-carbon-cache-writer).
+Additional usage examples can be found [here](15-features.md#graphite-carbon-cache-writer).
 
 
 
@@ -542,7 +542,7 @@ A group of hosts.
 
 > **Best Practice**
 >
-> Assign host group members using the [group assign](20-language-reference.md#group-assign) rules.
+> Assign host group members using the [group assign](18-language-reference.md#group-assign) rules.
 
 Example:
 
@@ -1155,7 +1155,7 @@ A group of services.
 
 > **Best Practice**
 >
-> Assign service group members using the [group assign](20-language-reference.md#group-assign) rules.
+> Assign service group members using the [group assign](18-language-reference.md#group-assign) rules.
 
 Example:
 
@@ -1342,7 +1342,7 @@ A user group.
 
 > **Best Practice**
 >
-> Assign user group members using the [group assign](20-language-reference.md#group-assign) rules.
+> Assign user group members using the [group assign](18-language-reference.md#group-assign) rules.
 
 Example:
 

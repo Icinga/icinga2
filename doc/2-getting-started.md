@@ -312,10 +312,7 @@ Test it:
 ## <a id="setting-up-the-user-interface"></a> Setting up Icinga Web 2
 
 Icinga 2 can be used with Icinga Web 2 and a number of other web interfaces.
-This chapter explains how to set up Icinga Web 2. The
-[Alternative Frontends](15-alternative-frontends.md#alternative-frontends)
-chapter can be used as a starting point for installing some of the other web
-interfaces which are also available.
+This chapter explains how to set up Icinga Web 2.
 
 The DB IDO (Database Icinga Data Output) modules for Icinga 2 take care of
 exporting all configuration and status information into a database. The IDO

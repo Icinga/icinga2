@@ -13,7 +13,7 @@ Use your distribution's package manager to install the `pnp4nagios` package.
 
 If you're planning to use it configure it to use the
 [bulk mode with npcd and npcdmod](http://docs.pnp4nagios.org/pnp-0.6/modes#bulk_mode_with_npcd_and_npcdmod)
-in combination with Icinga 2's [PerfdataWriter](5-advanced-topics.md#performance-data). NPCD collects the performance
+in combination with Icinga 2's [PerfdataWriter](15-features.md#performance-data). NPCD collects the performance
 data files which Icinga 2 generates.
 
 Enable performance data writer in icinga 2
@@ -45,7 +45,7 @@ Graphite consists of 3 software components:
 * whisper - a simple database library for storing time-series data (similar in design to RRD)
 * graphite webapp - A Django webapp that renders graphs on-demand using Cairo
 
-Use the [GraphiteWriter](5-advanced-topics.md#graphite-carbon-cache-writer) feature
+Use the [GraphiteWriter](15-features.md#graphite-carbon-cache-writer) feature
 for sending real-time metrics from Icinga 2 to Graphite.
 
     # icinga2 feature enable graphite
@@ -59,7 +59,7 @@ A popular alternative frontend for Graphite is for example [Grafana](http://graf
 [InfluxDB](https://influxdb.com) is a time series, metrics, and analytics database.
 It’s written in Go and has no external dependencies.
 
-Use the [GraphiteWriter](5-advanced-topics.md#graphite-carbon-cache-writer) feature
+Use the [GraphiteWriter](15-features.md#graphite-carbon-cache-writer) feature
 for sending real-time metrics from Icinga 2 to InfluxDB. Note: There are [API changes](https://github.com/influxdb/influxdb/issues/2102)
 in InfluxDB 0.9.x.
 
@@ -71,13 +71,13 @@ A popular frontend for InfluxDB is for example [Grafana](http://grafana.org).
 
 ### <a id="addons-visualization-reporting"></a> Icinga Reporting
 
-By enabling the [DB IDO](5-advanced-topics.md#db-ido) feature you can use the
+By enabling the [DB IDO](15-features.md#db-ido) feature you can use the
 [Icinga Reporting package](https://wiki.icinga.org/display/howtos/Setting+up+Icinga+with+Reporting).
 
 ### <a id="addons-visualization-nagvis"></a> NagVis
 
-By using either [Livestatus](16-livestatus.md#setting-up-livestatus) or
-[DB IDO](5-advanced-topics.md#db-ido) as a backend you can create your own network maps
+By using either [Livestatus](15-features.md#setting-up-livestatus) or
+[DB IDO](15-features.md#db-ido) as a backend you can create your own network maps
 based on your monitoring configuration and status data using [NagVis](http://www.nagvis.org).
 
 The configuration in nagvis.ini.php should look like this for Livestatus for example:
@@ -91,7 +91,7 @@ If you are planning an integration into Icinga Web 2, look at [this module](http
 ### <a id="addons-visualization-thruk"></a> Thruk
 
 [Thruk](http://www.thruk.org) is an alternative web interface which can be used with Icinga 2
-and the [Livestatus](16-livestatus.md#setting-up-livestatus) feature.
+and the [Livestatus](15-features.md#setting-up-livestatus) feature.
 
 ## <a id="log-monitoring"></a> Log Monitoring
 
@@ -270,7 +270,7 @@ This behavior changed in Icinga 2 compared to Icinga 1.x. Though there are certa
 fix this:
 
 * Create a symlink for example from the `templates.dist/check_ping.php` template to the actual check name in Icinga 2 (`templates/ping4.php`)
-* Pass the check command name inside the [format template configuration](5-advanced-topics.md#writing-performance-data-files)
+* Pass the check command name inside the [format template configuration](15-features.md#writing-performance-data-files)
 
 The latter becomes difficult with agent based checks like NRPE or SSH where the first command argument acts as
 graph template identifier. There is the possibility to define the pnp template name as custom attribute

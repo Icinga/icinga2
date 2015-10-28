@@ -43,7 +43,7 @@ Decide whether to use the built-in [configuration syncronization](13-distributed
 > **Tip**
 >
 > If you're looking for troubleshooting cluster problems, check the general
-> [troubleshooting](17-troubleshooting.md#troubleshooting-cluster) section.
+> [troubleshooting](16-troubleshooting.md#troubleshooting-cluster) section.
 
 ## <a id="manual-certificate-generation"></a> Manual SSL Certificate Generation
 
@@ -153,7 +153,7 @@ and configure [cluster scenarios](13-distributed-monitoring-ha.md#cluster-scenar
 ### <a id="configure-nodename"></a> Configure the Icinga Node Name
 
 Instead of using the default FQDN as node name you can optionally set
-that value using the [NodeName](20-language-reference.md#constants) constant.
+that value using the [NodeName](18-language-reference.md#constants) constant.
 
 > ** Note **
 >
@@ -346,7 +346,7 @@ process.
 >
 > `zones.d` must not be included in [icinga2.conf](4-configuring-icinga-2.md#icinga2-conf). Icinga 2 automatically
 > determines the required include directory. This can be overridden using the
-> [global constant](20-language-reference.md#constants) `ZonesDir`.
+> [global constant](18-language-reference.md#constants) `ZonesDir`.
 
 ### <a id="zone-global-config-templates"></a> Global Configuration Zone for Templates
 
@@ -406,7 +406,7 @@ master instances anymore.
 
 > ** Tip **
 >
-> Look into the [troubleshooting guides](17-troubleshooting.md#troubleshooting-cluster-config-sync) for debugging
+> Look into the [troubleshooting guides](16-troubleshooting.md#troubleshooting-cluster-config-sync) for debugging
 > problems with the configuration synchronisation.
 
 

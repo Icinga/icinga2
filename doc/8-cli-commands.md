@@ -112,12 +112,12 @@ can be specified with the `--app` command-line option.
 
 ### Libraries
 
-Instead of loading libraries using the [`library` config directive](20-language-reference.md#library)
+Instead of loading libraries using the [`library` config directive](18-language-reference.md#library)
 you can also use the `--library` command-line option.
 
 ### Constants
 
-[Global constants](20-language-reference.md#constants) can be set using the `--define` command-line option.
+[Global constants](18-language-reference.md#constants) can be set using the `--define` command-line option.
 
 ### <a id="config-include-path"></a> Config Include Path
 
@@ -273,9 +273,9 @@ nodes in a [remote monitoring ](11-icinga2-client.md#icinga2-client) or
 
 The `object` CLI command can be used to list all configuration objects and their
 attributes. The command also shows where each of the attributes was modified.
-That way you can also identify which objects have been created from your [apply rules](20-language-reference.md#apply).
+That way you can also identify which objects have been created from your [apply rules](18-language-reference.md#apply).
 
-More information can be found in the [troubleshooting](17-troubleshooting.md#list-configuration-objects) section.
+More information can be found in the [troubleshooting](16-troubleshooting.md#list-configuration-objects) section.
 
     # icinga2 object --help
     icinga2 - The Icinga 2 network monitoring daemon (version: v2.1.1-299-gf695275)
@@ -406,7 +406,7 @@ cleared after review.
 
 ## <a id="cli-command-troubleshoot"></a> CLI command: Troubleshoot
 
-Collects basic information like version, paths, log files and crash reports for troubleshooting purposes and prints them to a file or the console. See [troubleshooting](17-troubleshooting.md#troubleshooting-information-required).
+Collects basic information like version, paths, log files and crash reports for troubleshooting purposes and prints them to a file or the console. See [troubleshooting](16-troubleshooting.md#troubleshooting-information-required).
 
 Its output defaults to a file named `troubleshooting-[TIMESTAMP].log` so it won't overwrite older troubleshooting files.
 
@@ -472,7 +472,7 @@ Lists all configured variables (constants) in a similar fasion like [object list
     Icinga home page: <https://www.icinga.org/>
 
 
-## <a id="features"></a> Enabling/Disabling Features
+## <a id="enable-features"></a> Enabling/Disabling Features
 
 Icinga 2 provides configuration files for some commonly used features. These
 are installed in the `/etc/icinga2/features-available` directory and can be
@@ -555,12 +555,12 @@ Or manually passing the `-C` argument:
 > `# icinga2 daemon -C`
 
 If you encouter errors during configuration validation, please make sure
-to read the [troubleshooting](17-troubleshooting.md#troubleshooting) chapter.
+to read the [troubleshooting](16-troubleshooting.md#troubleshooting) chapter.
 
 You can also use the [CLI command](8-cli-commands.md#cli-command-object) `icinga2 object list`
 after validation passes to analyze object attributes, inheritance or created
 objects by apply rules.
-Find more on troubleshooting with `object list` in [this chapter](17-troubleshooting.md#list-configuration-objects).
+Find more on troubleshooting with `object list` in [this chapter](16-troubleshooting.md#list-configuration-objects).
 
 Example filtered by `Service` objects with the name `ping*`:
 
@@ -604,5 +604,5 @@ safely reload the Icinga 2 daemon.
 > which will validate the configuration in a separate process and not stop
 > the other events like check execution, notifications, etc.
 >
-> Details can be found [here](19-migrating-from-icinga-1x.md#differences-1x-2-real-reload).
+> Details can be found [here](21-migrating-from-icinga-1x.md#differences-1x-2-real-reload).
 

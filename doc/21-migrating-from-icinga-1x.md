@@ -29,7 +29,7 @@ object specific policies.
 For a long-term migration of your configuration you should consider re-creating
 your configuration based on the proposed Icinga 2 configuration paradigm.
 
-Please read the [next chapter](19-migrating-from-icinga-1x.md#differences-1x-2) to find out more about the differences
+Please read the [next chapter](21-migrating-from-icinga-1x.md#differences-1x-2) to find out more about the differences
 between 1.x and 2.
 
 ### <a id="manual-config-migration-hints"></a> Manual Config Migration Hints
@@ -42,7 +42,7 @@ The examples are taken from Icinga 1.x test and production environments and conv
 straight into a possible Icinga 2 format. If you found a different strategy, please
 let us know!
 
-If you require in-depth explanations, please check the [next chapter](19-migrating-from-icinga-1x.md#differences-1x-2).
+If you require in-depth explanations, please check the [next chapter](21-migrating-from-icinga-1x.md#differences-1x-2).
 
 #### <a id="manual-config-migration-hints-Intervals"></a> Manual Config Migration Hints for Intervals
 
@@ -129,7 +129,7 @@ a member and includes all members of the `hg1` hostgroup.
       hostgroup_members               hg1
     }
 
-This can be migrated to Icinga 2 and [using group assign](20-language-reference.md#group-assign). The additional nested hostgroup
+This can be migrated to Icinga 2 and [using group assign](18-language-reference.md#group-assign). The additional nested hostgroup
 `hg1` is included into `hg2` with the `groups` attribute.
 
 
@@ -205,7 +205,7 @@ While you could manually migrate this like (please note the new generic command 
 
 #### <a id="manual-config-migration-hints-runtime-macros"></a> Manual Config Migration Hints for Runtime Macros
 
-Runtime macros have been renamed. A detailed comparison table can be found [here](19-migrating-from-icinga-1x.md#differences-1x-2-runtime-macros).
+Runtime macros have been renamed. A detailed comparison table can be found [here](21-migrating-from-icinga-1x.md#differences-1x-2-runtime-macros).
 
 For example, accessing the service check output looks like the following in Icinga 1.x:
 
@@ -278,7 +278,7 @@ while the service check command resolves its value to the service attribute attr
 #### <a id="manual-config-migration-hints-contacts-users"></a> Manual Config Migration Hints for Contacts (Users)
 
 Contacts in Icinga 1.x act as users in Icinga 2, but do not have any notification commands specified.
-This migration part is explained in the [next chapter](19-migrating-from-icinga-1x.md#manual-config-migration-hints-notifications).
+This migration part is explained in the [next chapter](21-migrating-from-icinga-1x.md#manual-config-migration-hints-notifications).
 
     define contact{
       contact_name                    testconfig-user
@@ -288,7 +288,7 @@ This migration part is explained in the [next chapter](19-migrating-from-icinga-
       email                           icinga@localhost
     }
 
-The `service_notification_options` can be [mapped](19-migrating-from-icinga-1x.md#manual-config-migration-hints-notification-filters)
+The `service_notification_options` can be [mapped](21-migrating-from-icinga-1x.md#manual-config-migration-hints-notification-filters)
 into generic `state` and `type` filters, if additional notification filtering is required. `alias` gets
 renamed to `display_name`.
 
@@ -340,7 +340,7 @@ Assign it to the host or service and set the newly generated notification comman
 
 
 Convert the `notification_options` attribute from Icinga 1.x to Icinga 2 `states` and `types`. Details
-[here](19-migrating-from-icinga-1x.md#manual-config-migration-hints-notification-filters). Add the notification period.
+[here](21-migrating-from-icinga-1x.md#manual-config-migration-hints-notification-filters). Add the notification period.
 
       states = [ OK, Warning, Critical ]
       types = [ Recovery, Problem, Custom ]
@@ -577,7 +577,7 @@ enabled.
       assign where "hg_svcdep2" in host.groups
     }
 
-Host dependencies are explained in the [next chapter](19-migrating-from-icinga-1x.md#manual-config-migration-hints-host-parents).
+Host dependencies are explained in the [next chapter](21-migrating-from-icinga-1x.md#manual-config-migration-hints-host-parents).
 
 
 
@@ -744,11 +744,11 @@ included in `icinga2.conf` by default.
 ### <a id="differences-1x-2-main-config"></a> Main Config File
 
 In Icinga 1.x there are many global configuration settings available in `icinga.cfg`.
-Icinga 2 only uses a small set of [global constants](20-language-reference.md#constants) allowing
+Icinga 2 only uses a small set of [global constants](18-language-reference.md#constants) allowing
 you to specify certain different setting such as the `NodeName` in a cluster scenario.
 
 Aside from that, the [icinga2.conf](4-configuring-icinga-2.md#icinga2-conf) should take care of including
-global constants, enabled [features](8-cli-commands.md#features) and the object configuration.
+global constants, enabled [features](8-cli-commands.md#enable-features) and the object configuration.
 
 ### <a id="differences-1x-2-include-files-dirs"></a> Include Files and Directories
 
@@ -797,7 +797,7 @@ set in the `constants.conf` configuration file:
 
     const PluginDir = "/usr/lib/nagios/plugins"
 
-[Global macros](20-language-reference.md#constants) can only be defined once. Trying to modify a
+[Global macros](18-language-reference.md#constants) can only be defined once. Trying to modify a
 global constant will result in an error.
 
 ### <a id="differences-1x-2-configuration-comments"></a> Configuration Comments
@@ -948,7 +948,7 @@ In Icinga 1.x arguments are specified in the `check_command` attribute and
 are separated from the command name using an exclamation mark (`!`).
 
 Please check the migration hints for a detailed
-[migration example](19-migrating-from-icinga-1x.md#manual-config-migration-hints-check-command-arguments).
+[migration example](21-migrating-from-icinga-1x.md#manual-config-migration-hints-check-command-arguments).
 
 > **Note**
 >
@@ -1340,7 +1340,7 @@ child attributes may be omitted.
 For detailed examples on how to use the dependencies please check the [dependencies](3-monitoring-basics.md#dependencies)
 chapter.
 
-Dependencies can be applied to hosts or services using the [apply rules](20-language-reference.md#apply).
+Dependencies can be applied to hosts or services using the [apply rules](18-language-reference.md#apply).
 
 The `StatusDataWriter`, `IdoMysqlConnection` and `LivestatusListener` types
 support the Icinga 1.x schema with dependencies and parent attributes for

@@ -30,7 +30,7 @@ Keep the [naming convention](13-distributed-monitoring-ha.md#cluster-naming-conv
 > **Tip**
 >
 > If you're looking for troubleshooting clients problems, check the general
-> [cluster troubleshooting](17-troubleshooting.md#troubleshooting-cluster) section.
+> [cluster troubleshooting](16-troubleshooting.md#troubleshooting-cluster) section.
 
 ### <a id="icinga2-client-configuration-combined-scenarios"></a> Combined Client Scenarios
 

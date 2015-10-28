@@ -13,7 +13,7 @@
 * How was Icinga 2 installed (and which repository in case) and which distribution are you using
 * Provide complete configuration snippets explaining your problem in detail
 * If the check command failed - what's the output of your manual plugin tests?
-* In case of [debugging](22-debug.md#debug) Icinga 2, the full back traces and outputs
+* In case of [debugging](20-debug.md#debug) Icinga 2, the full back traces and outputs
 
 ## <a id="troubleshooting-enable-debug-output"></a> Enable Debug Output
 
@@ -37,7 +37,7 @@ and `debug`.
 The `icinga2 object list` CLI command can be used to list all configuration objects and their
 attributes. The tool also shows where each of the attributes was modified.
 
-That way you can also identify which objects have been created from your [apply rules](20-language-reference.md#apply).
+That way you can also identify which objects have been created from your [apply rules](18-language-reference.md#apply).
 
     # icinga2 object list
 
@@ -114,7 +114,7 @@ or similar.
 * Check the debug log to see if the check command gets executed
 * Verify that failed depedencies do not prevent command execution
 * Make sure that the plugin is executable by the Icinga 2 user (run a manual test)
-* Make sure the [checker](8-cli-commands.md#features) feature is enabled.
+* Make sure the [checker](8-cli-commands.md#enable-features) feature is enabled.
 
 Examples:
 
@@ -136,7 +136,7 @@ Verify the following configuration
 * Do the notification attributes `states`, `types`, `period` match the notification conditions?
 * Do the user attributes `states`, `types`, `period` match the notification conditions?
 * Are there any notification `begin` and `end` times configured?
-* Make sure the [notification](8-cli-commands.md#features) feature is enabled.
+* Make sure the [notification](8-cli-commands.md#enable-features) feature is enabled.
 * Does the referenced NotificationCommand work when executed as Icinga user on the shell?
 
 If notifications are to be sent via mail make sure that the mail program specified exists.
@@ -157,13 +157,13 @@ to `features-enabled` and that the latter is included in [icinga2.conf](4-config
 
 ## <a id="configuration-ignored"></a> Configuration is ignored
 
-* Make sure that the line(s) are not [commented out](20-language-reference.md#comments) (starting with `//` or `#`, or
+* Make sure that the line(s) are not [commented out](18-language-reference.md#comments) (starting with `//` or `#`, or
 encapsulated by `/* ... */`).
 * Is the configuration file included in [icinga2.conf](4-configuring-icinga-2.md#icinga2-conf)?
 
 ## <a id="configuration-attribute-inheritance"></a> Configuration attributes are inherited from
 
-Icinga 2 allows you to import templates using the [import](20-language-reference.md#template-imports) keyword. If these templates
+Icinga 2 allows you to import templates using the [import](18-language-reference.md#template-imports) keyword. If these templates
 contain additional attributes, your objects will automatically inherit them. You can override
 or modify these attributes in the current object.
 
@@ -248,7 +248,7 @@ Try to manually connect from `icinga2-node2.localdomain` to the master node `ici
     ---
     ...
 
-If the connection attempt fails or your CA does not match, [verify the master and client certificates](17-troubleshooting.md#troubleshooting-cluster-ssl-certificate-verification).
+If the connection attempt fails or your CA does not match, [verify the master and client certificates](16-troubleshooting.md#troubleshooting-cluster-ssl-certificate-verification).
 
 #### <a id="troubleshooting-cluster-unauthenticated-clients"></a> Cluster Troubleshooting Unauthenticated Clients
 
@@ -263,7 +263,7 @@ Client as command execution bridge:
 
     [2015-07-13 18:29:26 +1000] notice/ApiEvents: Discarding 'execute command' message from 'icinga-master': Invalid endpoint origin (client not allowed).
 
-If these messages do not go away, make sure to [verify the master and client certificates](17-troubleshooting.md#troubleshooting-cluster-ssl-certificate-verification).
+If these messages do not go away, make sure to [verify the master and client certificates](16-troubleshooting.md#troubleshooting-cluster-ssl-certificate-verification).
 
 #### <a id="troubleshooting-cluster-ssl-certificate-verification"></a> Cluster Troubleshooting SSL Certificate Verification
 
@@ -289,7 +289,7 @@ At some point, when the network connection is broken or gone, the Icinga 2 insta
 will be disconnected. If the connection can't be re-established between zones and endpoints,
 they remain in a Split-Brain-mode and history may differ.
 
-Although the Icinga 2 cluster protocol stores historical events in a [replay log](17-troubleshooting.md#troubleshooting-cluster-replay-log)
+Although the Icinga 2 cluster protocol stores historical events in a [replay log](16-troubleshooting.md#troubleshooting-cluster-replay-log)
 for later synchronisation, you should make sure to check why the network connection failed.
 
 ### <a id="troubleshooting-cluster-command-endpoint-errors"></a> Cluster Troubleshooting Command Endpoint Errors
@@ -306,7 +306,7 @@ the following (e.g. by invoking a forced check from the web interface):
  * Referenced check plugin not found on the remote client.
  * Runtime warnings and errors, e.g. unresolved runtime macros or configuration problems.
 * Specific error messages are also populated into `UNKNOWN` check results including a detailed error message in their output.
-* More verbose logs are found inside the [debug log](17-troubleshooting.md#troubleshooting-enable-debug-output).
+* More verbose logs are found inside the [debug log](16-troubleshooting.md#troubleshooting-enable-debug-output).
 
 ### <a id="troubleshooting-cluster-config-sync"></a> Cluster Troubleshooting Config Sync
 
@@ -333,10 +333,10 @@ certificate's CN, the master will deny all events.
 > [Icinga Web 2](2-getting-started.md#setting-up-the-user-interface) provides a dashboard view
 > for overdue check results.
 
-Enable the [debug log](17-troubleshooting.md#troubleshooting-enable-debug-output) on the master
+Enable the [debug log](16-troubleshooting.md#troubleshooting-enable-debug-output) on the master
 for more verbose insights.
 
-If the client cannot authenticate, it's a more general [problem](17-troubleshooting.md#troubleshooting-cluster-unauthenticated-clients).
+If the client cannot authenticate, it's a more general [problem](16-troubleshooting.md#troubleshooting-cluster-unauthenticated-clients).
 
 The client's endpoint is not configured on nor trusted by the master node:
 
@@ -357,6 +357,6 @@ will store all events for not connected endpoints in the same and child zones.
 Check the following:
 
 * All clients are connected? (e.g. [cluster health check](13-distributed-monitoring-ha.md#cluster-health-check)).
-* Check your [connection](17-troubleshooting.md#troubleshooting-cluster-connection-errors) in general.
+* Check your [connection](16-troubleshooting.md#troubleshooting-cluster-connection-errors) in general.
 * Does the log replay work, e.g. are all events processed and the directory gets cleared up over time?
 * Decrease the `log_duration` attribute value for that specific [endpoint](6-object-types.md#objecttype-endpoint).

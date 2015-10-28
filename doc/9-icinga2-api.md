@@ -72,7 +72,7 @@ Succesful requests will send back a response body containing a `results`
 list. Depending on the number of affected objects in your request, the
 results may contain one or more entries.
 
-The [output](9-icinga2-api.md#icinga2-api-output-format) will be sent back as a JSON object:
+The output will be sent back as a JSON object:
 
 
     {
@@ -147,7 +147,7 @@ Example for an API user with all permissions:
     permissions = [ "*" ]
 
 A yet more sophisticated approach is to specify additional permissions
-and their filters. The latter must be defined as [lamdba function](20-language-reference.md#nullary-lambdas)
+and their filters. The latter must be defined as [lamdba function](18-language-reference.md#nullary-lambdas)
 returning a boolean expression.
 
 The `permission` attribute contains the action and the specific capitalized
@@ -238,7 +238,7 @@ Please check the respective sections for detailed URL information and parameters
 There are several actions available for Icinga 2 provided by the `actions`
 URL endpoint `/v1/actions`. You can run actions by sending a `POST` request.
 
-In case you have been using the [external commands](5-advanced-topics.md#external-commands)
+In case you have been using the [external commands](15-features.md#external-commands)
 in the past, the API actions provide a similar interface with filter
 capabilities for some of the more common targets which do not directly change
 the configuration.
@@ -260,7 +260,7 @@ Send a `POST` request to the URL endpoint `/v1/actions/process-check-result`.
   Parameter         | Type         | Description
   ------------------|--------------|--------------
   type              | string       | **Required.** `Host` or `Service`.
-  filter            | string       | **Optional.** Apply the action only to objects matching the [filter](9-icinga2-api#icinga2-api-filters).
+  filter            | string       | **Optional.** Apply the action only to objects matching the [filter](9-icinga2-api.md#icinga2-api-filters).
   exit\_status      | integer      | **Required.** For services: 0=OK, 1=WARNING, 2=CRITICAL, 3=UNKNOWN, for hosts: 0=OK, 1=CRITICAL.
   plugin\_output    | string       | **Required.** The plugins main output, i.e. the text before the `|`. Does **not** contain the perfomance data.
   performance\_data | string array | **Optional.** One array entry per `;` separated block.
@@ -290,7 +290,7 @@ Send a `POST` request to the URL endpoint `/v1/actions/reschedule-check`.
   Parameter    | Type      | Description
   -------------|-----------|--------------
   type         | string    | **Required.** `Host` or `Service`.
-  filter       | string    | **Optional.** Apply the action only to objects matching the [filter](9-icinga2-api#icinga2-api-filters).
+  filter       | string    | **Optional.** Apply the action only to objects matching the [filter](9-icinga2-api.md#icinga2-api-filters).
   next\_check  | timestamp | **Optional.** The next check will be run at this timestamp. Defaults to `now`.
   force\_check | boolean   | **Optional.** Defaults to `false`. See blow for further information.
 
@@ -322,7 +322,7 @@ Send a `POST` request to the URL endpoint `/v1/actions/send-custom-notification`
   Parameter | Type    | Description
   ----------|---------|--------------
   type      | string  | **Required.** `Host` or `Service`.
-  filter    | string  | **Optional.** Apply the action only to objects matching the [filter](9-icinga2-api#icinga2-api-filters).
+  filter    | string  | **Optional.** Apply the action only to objects matching the [filter](9-icinga2-api.md#icinga2-api-filters).
   author    | string  | **Required.** Name of the author, may be empty.
   comment   | string  | **Required.** Comment text, may be empty.
   force     | boolean | **Optional.** Default: false. If true, the notification is sent regardless of downtimes or whether notifications are enabled or not.
@@ -334,7 +334,7 @@ Send a `POST` request to the URL endpoint `/v1/actions/delay-notification`.
   Parameter | Type      | Description
   ----------|-----------|--------------
   type      | string    | **Required.** `Host` or `Service`.
-  filter    | string    | **Optional.** Apply the action only to objects matching the [filter](9-icinga2-api#icinga2-api-filters).
+  filter    | string    | **Optional.** Apply the action only to objects matching the [filter](9-icinga2-api.md#icinga2-api-filters).
   timestamp | timestamp | **Required.** Delay notifications until this timestamp.
 
 Note that this will only have an effect if the service stays in the same problem
@@ -348,7 +348,7 @@ Send a `POST` request to the URL endpoint `/v1/actions/acknowledge-problem`.
   Parameter | Type      | Description
   ----------|-----------|--------------
   type      | string     | **Required.** `Host` or `Service`.
-  filter    | string    | **Optional.** Apply the action only to objects matching the [filter](9-icinga2-api#icinga2-api-filters).
+  filter    | string    | **Optional.** Apply the action only to objects matching the [filter](9-icinga2-api.md#icinga2-api-filters).
   author    | string    | **Required.** Name of the author, may be empty.
   comment   | string    | **Required.** Comment text, may be empty.
   expiry    | timestamp | **Optional.** If set the acknowledgement will vanish after this timestamp.
@@ -379,7 +379,7 @@ Send a `POST` request to the URL endpoint `/v1/actions/remove-acknowledgement`.
   parameter | type   | description
   ----------|--------|--------------
   type      | string | **Required.** `Host` or `Service`.
-  filter    | string | **Optional.** Apply the action only to objects matching the [filter](9-icinga2-api#icinga2-api-filters).
+  filter    | string | **Optional.** Apply the action only to objects matching the [filter](9-icinga2-api.md#icinga2-api-filters).
 
 Remove the acknowledgements for services or hosts. Once the acknowledgement has
 been removed notifications will be sent out again.
@@ -391,7 +391,7 @@ Send a `POST` request to the URL endpoint `/v1/actions/add-comment`.
   parameter | type   | description
   ----------|--------|--------------
   type      | string | **Required.** `Host` or `Service`.
-  filter    | string | **Optional.** Apply the action only to objects matching the [filter](9-icinga2-api#icinga2-api-filters).
+  filter    | string | **Optional.** Apply the action only to objects matching the [filter](9-icinga2-api.md#icinga2-api-filters).
   author    | string | **Required.** name of the author, may be empty.
   comment   | string | **Required.** Comment text, may be empty.
 
@@ -404,7 +404,7 @@ Send a `POST` request to the URL endpoint `/v1/actions/remove-all-comments`.
   parameter   | type    | description
   ------------|---------|--------------
   type        | string  | **Required.** `Host` or `Service`.
-  filter      | string  | **Optional.** Apply the action only to objects matching the [filter](9-icinga2-api#icinga2-api-filters).
+  filter      | string  | **Optional.** Apply the action only to objects matching the [filter](9-icinga2-api.md#icinga2-api-filters).
 
 Removes all comments for services or hosts.
 
@@ -429,12 +429,12 @@ Send a `POST` request to the URL endpoint `/v1/actions/schedule-downtime`.
   parameter   | type      | description
   ------------|-----------|--------------
   type        | string    | **Required.** `Host` or `Service`.
-  filter      | string    | **Optional.** Apply the action only to objects matching the [filter](9-icinga2-api#icinga2-api-filters).
+  filter      | string    | **Optional.** Apply the action only to objects matching the [filter](9-icinga2-api.md#icinga2-api-filters).
   start\_time | timestamp | **Required.** Timestamp marking the begining of the downtime.
   end\_time   | timestamp | **Required.** Timestamp marking the end of the downtime.
   duration    | integer   | **Required.** Duration of the downtime in seconds if `fixed` is set to false.
-  fixed       | boolean   | **Optional.** Defaults to `false`. If true the downtime is `fixed` otherwise `flexible`. See [downtimes](5-advanced-topics.md#Downtimes) for more information.
-  trigger\_id | integer   | **Optional.** Sets the trigger for a triggered downtime. See [downtimes](5-advanced-topics.md#Downtimes) for more information on triggered downtimes.
+  fixed       | boolean   | **Optional.** Defaults to `false`. If true the downtime is `fixed` otherwise `flexible`. See [downtimes](#Downtimes) for more information.
+  trigger\_id | integer   | **Optional.** Sets the trigger for a triggered downtime. See [downtimes](#Downtimes) for more information on triggered downtimes.
 
 Example:
 
@@ -460,7 +460,7 @@ Send a `POST` request to the URL endpoint `/v1/actions/remove-all-downtimes`.
   parameter | type   | description
   ----------|--------|--------------
   type      | string | **Required.** `Host` or `Service`.
-  filter    | string | **Optional.** Apply the action only to objects matching the [filter](9-icinga2-api#icinga2-api-filters).
+  filter    | string | **Optional.** Apply the action only to objects matching the [filter](9-icinga2-api.md#icinga2-api-filters).
 
 Removes all downtimes for services or hosts.
 
