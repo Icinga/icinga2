@@ -38,7 +38,7 @@ bool InfoHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, 
 		return true;
 	}
 
-	if (request.RequestUrl->GetPath()[0] != "v1")
+	if (request.RequestUrl->GetPath()[0] != "v1" || request.RequestUrl->GetPath().size() != 1)
 		return false;
 
 	response.SetStatus(200, "OK");
