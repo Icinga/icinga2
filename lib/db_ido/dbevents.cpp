@@ -574,6 +574,7 @@ void DbEvents::RemoveDowntime(const Checkable::Ptr& checkable, const Downtime::P
 	query1.WhereCriteria = new Dictionary();
 	query1.WhereCriteria->Set("object_id", checkable);
 	query1.WhereCriteria->Set("internal_downtime_id", downtime->GetLegacyId());
+	query1.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
 	DbObject::OnQuery(query1);
 
 	/* History - update actual_end_time, was_cancelled for service (and host in case) */
@@ -592,10 +593,9 @@ void DbEvents::RemoveDowntime(const Checkable::Ptr& checkable, const Downtime::P
 	query3.Fields = fields3;
 
 	query3.WhereCriteria = new Dictionary();
+	query3.WhereCriteria->Set("object_id", checkable);
 	query3.WhereCriteria->Set("internal_downtime_id", downtime->GetLegacyId());
 	query3.WhereCriteria->Set("entry_time", DbValue::FromTimestamp(downtime->GetEntryTime()));
-	query3.WhereCriteria->Set("scheduled_start_time", DbValue::FromTimestamp(downtime->GetStartTime()));
-	query3.WhereCriteria->Set("scheduled_end_time", DbValue::FromTimestamp(downtime->GetEndTime()));
 	query3.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
 	DbObject::OnQuery(query3);
