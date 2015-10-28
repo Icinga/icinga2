@@ -684,6 +684,9 @@ void IdoPgsqlConnection::InternalExecuteQuery(const DbQuery& query, DbQueryType 
 	if (type == DbQueryInsert || type == DbQueryUpdate) {
 		std::ostringstream colbuf, valbuf;
 
+		if (type == DbQueryUpdate && query.Fields->GetLength() == 0)
+			return;
+
 		ObjectLock olock(query.Fields);
 
 		Value value;
