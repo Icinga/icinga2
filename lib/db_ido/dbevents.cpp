@@ -303,7 +303,12 @@ void DbEvents::EnableChangedHandlerInternal(const Checkable::Ptr& checkable, con
 /* comments */
 void DbEvents::AddComments(const Checkable::Ptr& checkable)
 {
-	BOOST_FOREACH(const Comment::Ptr& comment, checkable->GetComments()) {
+	std::set<Comment::Ptr> comments = checkable->GetComments();
+
+	if (!comments.empty())
+		RemoveComments(checkable);
+
+	BOOST_FOREACH(const Comment::Ptr& comment, comments) {
 		AddComment(comment);
 	}
 }
@@ -430,9 +435,12 @@ void DbEvents::RemoveComment(const Comment::Ptr& comment)
 /* downtimes */
 void DbEvents::AddDowntimes(const Checkable::Ptr& checkable)
 {
-	RemoveDowntimes(checkable);
+	std::set<Downtime::Ptr> downtimes = checkable->GetDowntimes();
 
-	BOOST_FOREACH(const Downtime::Ptr& downtime, checkable->GetDowntimes()) {
+	if (!downtimes.empty())
+		RemoveDowntimes(checkable);
+
+	BOOST_FOREACH(const Downtime::Ptr& downtime, downtimes) {
 		AddDowntime(downtime, false);
 	}
 }
