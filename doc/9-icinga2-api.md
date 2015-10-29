@@ -253,6 +253,13 @@ or as key-value pairs in a JSON-formatted payload or a mix of both.
 All actions return a 200 `OK` or an appropriate error code for each
 action performed on each object matching the supplied filter.
 
+Actions which affect the Icinga Application itself such as disabling
+notification on a program-wide basis must be applied by updating the
+[IcingaApplication object](9-icinga2-api.md#icinga2-api-config-objects)
+called `app`.
+
+    $ curl -k -s -u root:icinga -X POST 'https://localhost:5665/v1/objects/icingaapplications/app' -d '{ "attrs": { "enable_notifications": false } }'
+
 ### <a id="icinga2-api-actions-process-check-result"></a> process-check-result
 
 Send a `POST` request to the URL endpoint `/v1/actions/process-check-result`.
@@ -639,6 +646,9 @@ provided by [config object types](6-object-types.md#object-types):
   /v1/objects/zones                | Endpoint for retrieving and updating [Zone](6-object-types.md#objecttype-zone) objects.
   /v1/objects/endpoints            | Endpoint for retrieving and updating [Endpoint](6-object-types.md#objecttype-endpoint) objects.
   /v1/objects/timeperiods          | Endpoint for retrieving and updating [TimePeriod](6-object-types.md#objecttype-timeperiod) objects.
+  /v1/objects/icingaapplications   | Endpoint for retrieving and updating [IcingaApplication](6-object-types.md#objecttype-icingaapplication) objects.
+  /v1/objects/comments             | Endpoint for retrieving and updating [Comment](6-object-types.md#objecttype-comment) objects.
+  /v1/objects/downtimes            | Endpoint for retrieving and updating [Downtime](6-object-types.md#objecttype-downtime) objects.
 
 All object attributes are prefixed with their respective object type.
 
@@ -820,7 +830,7 @@ Example for existing object `google.com`:
     }
 
 
-#### <a id="icinga2-api-hosts-delete"></a> Delete Host
+#### <a id="icinga2-api-objects-delete"></a> Delete Object
 
 You can delete objects created using the API by sending a `DELETE`
 request. Specify the object name inside the url.

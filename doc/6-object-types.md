@@ -202,6 +202,29 @@ Configuration Attributes:
   ----------------|----------------
   spool\_dir      |**Optional.** The directory which contains the check result files. Defaults to LocalStateDir + "/lib/icinga2/spool/checkresults/".
 
+## <a id="objecttype-comment"></a> Comment
+
+Comments created at runtime are represented as objects.
+
+Example:
+
+    object Comment "localhost!my-comment" {
+      host_name = "localhost"
+      author = "icingaadmin"
+      text = "This is a comment."
+    }
+
+Configuration Attributes:
+
+  Name            |Description
+  ----------------|----------------
+  host_name       | **Required.** The name of the host this comment belongs to.
+  service_name    | **Optional.** The short name of the service this comment belongs to. If omitted this comment object is treated as host comment.
+  author          | **Required.** The author's name.
+  text            | **Required.** The comment text.
+  entry_time      | **Optional.** The unix timestamp when this comment was added.
+  entry_type      | **Optional.** The comment type (`User` = 1, `Downtime` = 2, `Flapping` = 3, `Acknowledgement` = 4).
+  expire_time     | **Optional.** The comment's expire time as unix timestamp.
 
 ## <a id="objecttype-compatlogger"></a> CompatLogger
 
@@ -320,6 +343,41 @@ in this dependency relation.
 Dependency objects have composite names, i.e. their names are based on the `child_host_name` and `child_service_name` attributes and the
 name you specified. This means you can define more than one object with the same (short) name as long as one of the `child_host_name` and
 `child_service_name` attributes has a different value.
+
+## <a id="objecttype-downtime"></a> Downtime
+
+Downtimes created at runtime are represented as objects.
+
+Example:
+
+    object Downtime "localhost!my-downtime" {
+      host_name = "localhost"
+      author = "icingaadmin"
+      text = "This is a comment."
+    }
+
+Configuration Attributes:
+
+  Name            |Description
+  ----------------|----------------
+  host_name       | **Required.** The name of the host this comment belongs to.
+  service_name    | **Optional.** The short name of the service this comment belongs to. If omitted this comment object is treated as host comment.
+  author          | **Required.** The author's name.
+  comment         | **Required.** The comment text.
+  start_time      | **Required.** The start time as unix timestamp.
+  end_time        | **Required.** The end time as unix timestamp.
+  duration        | **Required.** The duration as number.
+  entry_time      | **Optional.** The unix timestamp when this downtime was added.
+  fixed           | **Optional.** Whether the downtime is fixed (true) or flexible (false). Defaults to flexible. Details in the [advanced topics chapter](5-advanced-topics.md#fixed-flexible-downtimes).
+  triggers        | **Optional.** List of downtimes which should be triggered by this downtime.
+
+Runtime Attributes:
+
+  Name            |Description
+  ----------------|----------------
+  trigger_time    | The unix timestamp when this downtime was triggered.
+  triggered_by    | The name of the downtime this downtime was triggered by.
+
 
 
 ## <a id="objecttype-endpoint"></a> Endpoint
