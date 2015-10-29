@@ -275,7 +275,7 @@ wizard_master_host:
 
 		//save-cert and store the master certificate somewhere
 
-		Log(LogInformation, "cli", "Generating self-signed certifiate:");
+		Log(LogInformation, "cli", "Generating self-signed certificate:");
 
 		Log(LogInformation, "cli")
 		    << "Fetching public certificate from master ("
