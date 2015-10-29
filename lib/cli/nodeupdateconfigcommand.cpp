@@ -20,6 +20,7 @@
 #include "cli/nodeupdateconfigcommand.hpp"
 #include "cli/nodeutility.hpp"
 #include "cli/repositoryutility.hpp"
+#include "cli/variableutility.hpp"
 #include "base/logger.hpp"
 #include "base/console.hpp"
 #include "base/application.hpp"
@@ -387,21 +388,12 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 		zone_attrs->Set("name", zone);
 		zone_attrs->Set("endpoints", zone_members);
 
-		String node_parent_zone = "master"; //hardcode the name
-		String parent_zone;
+		String parent_zone = VariableUtility::GetVariable("ZoneName");
 
-		if (!node->Contains("parent_zone")) {
+		if (parent_zone.IsEmpty()) {
 			Log(LogWarning, "cli")
-			    << "Node '" << endpoint << "' does not have any parent zone defined. Using 'master' as default. Please verify the generated configuration.";
-			parent_zone = node_parent_zone;
-		} else {
-			parent_zone = node->Get("parent_zone");
-
-			if (parent_zone.IsEmpty()) {
-				Log(LogWarning, "cli")
-				    << "Node '" << endpoint << "' does not have any parent zone defined. Using 'master' as default. Please verify the generated configuration.";
-				parent_zone = node_parent_zone;
-			}
+				<< "Variable 'ZoneName' is not set. Falling back to using 'master' as default. Please verify the generated configuration.";
+			parent_zone = "master";
 		}
 
 		zone_attrs->Set("parent", parent_zone);

@@ -695,11 +695,6 @@ void ClusterEvents::RepositoryTimerHandler(void)
 	Dictionary::Ptr params = new Dictionary();
 	params->Set("seen", Utility::GetTime());
 	params->Set("endpoint", my_endpoint->GetName());
-
-	Zone::Ptr parent_zone = my_zone->GetParent();
-	if (parent_zone)
-		params->Set("parent_zone", parent_zone->GetName());
-
 	params->Set("zone", my_zone->GetName());
 	params->Set("repository", repository);
 
