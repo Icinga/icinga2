@@ -560,6 +560,10 @@ bool IdoPgsqlConnection::FieldToEscapedString(const String& key, const Value& va
 		*result = static_cast<long>(m_InstanceID);
 		return true;
 	}
+	if (key == "session_token") {
+		*result = "'" + Escape(m_SessionToken) + "'";
+		return true;
+	}
 	if (key == "notification_id") {
 		*result = static_cast<long>(GetNotificationInsertID(value));
 		return true;
