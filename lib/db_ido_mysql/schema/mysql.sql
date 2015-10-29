@@ -1637,6 +1637,10 @@ CREATE INDEX sla_idx_obj ON icinga_objects (objecttype_id, is_active, name1);
 -- #4985
 CREATE INDEX commenthistory_delete_idx ON icinga_commenthistory (instance_id, comment_time, internal_comment_id);
 
+-- #10436
+CREATE INDEX cv_session_del_idx ON icinga_customvariables (session_token);
+CREATE INDEX cvs_session_del_idx ON icinga_customvariablestatus (session_token);
+
 -- -----------------------------------------
 -- set dbversion
 -- -----------------------------------------

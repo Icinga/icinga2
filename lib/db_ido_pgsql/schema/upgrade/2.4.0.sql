@@ -163,6 +163,9 @@ ALTER TABLE icinga_hoststatus ADD COLUMN  original_attributes TEXT default NULL;
 ALTER TABLE icinga_customvariables ADD COLUMN session_token TEXT default NULL;
 ALTER TABLE icinga_customvariablestatus ADD COLUMN session_token TEXT default NULL;
 
+CREATE INDEX cv_session_del_idx ON icinga_customvariables (session_token);
+CREATE INDEX cvs_session_del_idx ON icinga_customvariablestatus (session_token);
+
 -- -----------------------------------------
 -- update dbversion
 -- -----------------------------------------
