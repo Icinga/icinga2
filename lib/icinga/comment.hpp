@@ -22,12 +22,11 @@
 
 #include "icinga/i2-icinga.hpp"
 #include "icinga/comment.thpp"
+#include "icinga/checkable.thpp"
 #include "remote/messageorigin.hpp"
 
 namespace icinga
 {
-
-class Checkable;
 
 /**
  * A comment.
@@ -61,13 +60,13 @@ public:
 
 protected:
 	virtual void OnAllConfigLoaded(void) override;
-        virtual void Start(bool runtimeCreated) override;
-        virtual void Stop(bool runtimeRemoved) override;
+	virtual void Start(bool runtimeCreated) override;
+	virtual void Stop(bool runtimeRemoved) override;
 
 private:
-	intrusive_ptr<Checkable> m_Checkable;
+	ObjectImpl<Checkable>::Ptr m_Checkable;
 
-        static void CommentsExpireTimerHandler(void);
+	static void CommentsExpireTimerHandler(void);
 };
 
 }

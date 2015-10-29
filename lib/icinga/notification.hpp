@@ -22,6 +22,7 @@
 
 #include "icinga/i2-icinga.hpp"
 #include "icinga/notification.thpp"
+#include "icinga/checkable.thpp"
 #include "icinga/user.hpp"
 #include "icinga/usergroup.hpp"
 #include "icinga/timeperiod.hpp"
@@ -66,7 +67,6 @@ enum NotificationType
 };
 
 class NotificationCommand;
-class Checkable;
 class ApplyRule;
 struct ScriptFrame;
 class Host;
@@ -122,7 +122,7 @@ protected:
 	virtual void Stop(bool runtimeRemoved) override;
 
 private:
-	intrusive_ptr<Checkable> m_Checkable;
+	ObjectImpl<Checkable>::Ptr m_Checkable;
 
 	void ExecuteNotificationHelper(NotificationType type, const User::Ptr& user, const CheckResult::Ptr& cr, bool force, const String& author = "", const String& text = "");
 

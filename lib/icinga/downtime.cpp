@@ -147,7 +147,7 @@ void Downtime::Stop(bool runtimeRemoved)
 
 Checkable::Ptr Downtime::GetCheckable(void) const
 {
-	return m_Checkable;
+	return static_pointer_cast<Checkable>(m_Checkable);
 }
 
 bool Downtime::IsActive(void) const
@@ -303,7 +303,7 @@ void Downtime::TriggerDowntime(void)
 
 	double now = Utility::GetTime();
 
-        if (now < GetStartTime() || now > GetEndTime()) {
+	if (now < GetStartTime() || now > GetEndTime()) {
 		Log(LogDebug, "Downtime")
 		    << "Not triggering downtime '" << GetName() << "': current time is outside downtime window.";
 		return;

@@ -119,7 +119,7 @@ void Notification::OnAllConfigLoaded(void)
 	if (!m_Checkable)
 		BOOST_THROW_EXCEPTION(ScriptError("Notification object refers to a host/service which doesn't exist.", GetDebugInfo()));
 
-	m_Checkable->RegisterNotification(this);
+	GetCheckable()->RegisterNotification(this);
 }
 
 void Notification::Start(bool runtimeCreated)
@@ -144,7 +144,7 @@ void Notification::Stop(bool runtimeRemoved)
 
 Checkable::Ptr Notification::GetCheckable(void) const
 {
-	return m_Checkable;
+	return static_pointer_cast<Checkable>(m_Checkable);
 }
 
 NotificationCommand::Ptr Notification::GetCommand(void) const

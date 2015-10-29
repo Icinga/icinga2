@@ -22,12 +22,11 @@
 
 #include "icinga/i2-icinga.hpp"
 #include "icinga/downtime.thpp"
+#include "icinga/checkable.thpp"
 #include "remote/messageorigin.hpp"
 
 namespace icinga
 {
-
-class Checkable;
 
 /**
  * A downtime.
@@ -75,7 +74,7 @@ protected:
 	virtual void ValidateEndTime(double value, const ValidationUtils& utils) override;
 
 private:
-	intrusive_ptr<Checkable> m_Checkable;
+	ObjectImpl<Checkable>::Ptr m_Checkable;
 
 	static void DowntimesExpireTimerHandler(void);
 };

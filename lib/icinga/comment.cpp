@@ -44,10 +44,10 @@ REGISTER_TYPE(Comment);
 
 void Comment::StaticInitialize(void)
 {
-        l_CommentsExpireTimer = new Timer();
-        l_CommentsExpireTimer->SetInterval(60);
-        l_CommentsExpireTimer->OnTimerExpired.connect(boost::bind(&Comment::CommentsExpireTimerHandler));
-        l_CommentsExpireTimer->Start();
+	l_CommentsExpireTimer = new Timer();
+	l_CommentsExpireTimer->SetInterval(60);
+	l_CommentsExpireTimer->OnTimerExpired.connect(boost::bind(&Comment::CommentsExpireTimerHandler));
+	l_CommentsExpireTimer->Start();
 }
 
 String CommentNameComposer::MakeName(const String& shortName, const Object::Ptr& context) const
@@ -110,9 +110,9 @@ void Comment::Start(bool runtimeCreated)
 	{
 		boost::mutex::scoped_lock lock(l_CommentMutex);
 
-                SetLegacyId(l_NextCommentID);
-                l_LegacyCommentsCache[l_NextCommentID] = GetName();
-                l_NextCommentID++;
+		SetLegacyId(l_NextCommentID);
+		l_LegacyCommentsCache[l_NextCommentID] = GetName();
+		l_NextCommentID++;
 	}
 
 	GetCheckable()->RegisterComment(this);
@@ -133,7 +133,7 @@ void Comment::Stop(bool runtimeRemoved)
 
 Checkable::Ptr Comment::GetCheckable(void) const
 {
-	return m_Checkable;
+	return static_pointer_cast<Checkable>(m_Checkable);
 }
 
 bool Comment::IsExpired(void) const
@@ -155,43 +155,43 @@ String Comment::AddComment(const Checkable::Ptr& checkable, CommentType entryTyp
 {
 	String fullName;
 
-        if (id.IsEmpty())
-                fullName = checkable->GetName() + "!" + Utility::NewUniqueID();
-        else
-                fullName = id;
+	if (id.IsEmpty())
+		fullName = checkable->GetName() + "!" + Utility::NewUniqueID();
+	else
+		fullName = id;
 
-        Dictionary::Ptr attrs = new Dictionary();
+	Dictionary::Ptr attrs = new Dictionary();
 
-        attrs->Set("author", author);
-        attrs->Set("text", text);
-        attrs->Set("expire_time", expireTime);
-        attrs->Set("entry_type", entryType);
+	attrs->Set("author", author);
+	attrs->Set("text", text);
+	attrs->Set("expire_time", expireTime);
+	attrs->Set("entry_type", entryType);
 
-        Host::Ptr host;
-        Service::Ptr service;
-        tie(host, service) = GetHostService(checkable);
+	Host::Ptr host;
+	Service::Ptr service;
+	tie(host, service) = GetHostService(checkable);
 
-        attrs->Set("host_name", host->GetName());
-        if (service)
-                attrs->Set("service_name", service->GetShortName());
+	attrs->Set("host_name", host->GetName());
+	if (service)
+		attrs->Set("service_name", service->GetShortName());
 
-        String config = ConfigObjectUtility::CreateObjectConfig(Comment::TypeInstance, fullName, true, Array::Ptr(), attrs);
+	String config = ConfigObjectUtility::CreateObjectConfig(Comment::TypeInstance, fullName, true, Array::Ptr(), attrs);
 
-        Array::Ptr errors = new Array();
+	Array::Ptr errors = new Array();
 
-        if (!ConfigObjectUtility::CreateObject(Comment::TypeInstance, fullName, config, errors)) {
-                ObjectLock olock(errors);
-                BOOST_FOREACH(const String& error, errors) {
-                        Log(LogCritical, "Comment", error);
-                }
+	if (!ConfigObjectUtility::CreateObject(Comment::TypeInstance, fullName, config, errors)) {
+		ObjectLock olock(errors);
+		BOOST_FOREACH(const String& error, errors) {
+			Log(LogCritical, "Comment", error);
+		}
 
-                BOOST_THROW_EXCEPTION(std::runtime_error("Could not create comment."));
-        }
+		BOOST_THROW_EXCEPTION(std::runtime_error("Could not create comment."));
+	}
 
 	Comment::Ptr comment = Comment::GetByName(fullName);
 
-        Log(LogNotice, "Comment")
-            << "Added comment '" << comment->GetName() << "'.";
+	Log(LogNotice, "Comment")
+	    << "Added comment '" << comment->GetName() << "'.";
 
 	return fullName;
 }
@@ -205,19 +205,19 @@ void Comment::RemoveComment(const String& id, const MessageOrigin::Ptr& origin)
 
 	int legacy_id = comment->GetLegacyId();
 
-        Log(LogNotice, "Comment")
-            << "Removed comment '" << comment->GetName() << "' from object '" << comment->GetCheckable()->GetName() << "'.";
+	Log(LogNotice, "Comment")
+	    << "Removed comment '" << comment->GetName() << "' from object '" << comment->GetCheckable()->GetName() << "'.";
 
-        Array::Ptr errors = new Array();
+	Array::Ptr errors = new Array();
 
-        if (!ConfigObjectUtility::DeleteObject(comment, false, errors)) {
-                ObjectLock olock(errors);
-                BOOST_FOREACH(const String& error, errors) {
-                        Log(LogCritical, "Comment", error);
-                }
+	if (!ConfigObjectUtility::DeleteObject(comment, false, errors)) {
+		ObjectLock olock(errors);
+		BOOST_FOREACH(const String& error, errors) {
+			Log(LogCritical, "Comment", error);
+		}
 
-                BOOST_THROW_EXCEPTION(std::runtime_error("Could not remove comment."));
-        }
+		BOOST_THROW_EXCEPTION(std::runtime_error("Could not remove comment."));
+	}
 }
 
 String Comment::GetCommentIDFromLegacyID(int id)
@@ -234,14 +234,14 @@ String Comment::GetCommentIDFromLegacyID(int id)
 
 void Comment::CommentsExpireTimerHandler(void)
 {
-        std::vector<Comment::Ptr> comments;
+	std::vector<Comment::Ptr> comments;
 
-        BOOST_FOREACH(const Comment::Ptr& comment, ConfigType::GetObjectsByType<Comment>()) {
-                comments.push_back(comment);
-        }
+	BOOST_FOREACH(const Comment::Ptr& comment, ConfigType::GetObjectsByType<Comment>()) {
+		comments.push_back(comment);
+	}
 
-        BOOST_FOREACH(const Comment::Ptr& comment, comments) {
-                if (comment->IsExpired())
-                        RemoveComment(comment->GetName());
-        }
+	BOOST_FOREACH(const Comment::Ptr& comment, comments) {
+		if (comment->IsExpired())
+			RemoveComment(comment->GetName());
+	}
 }
