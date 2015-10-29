@@ -298,6 +298,88 @@ and adds the excluded time period names as an array.
       }
     }
 
+## <a id="advanced-use-of-apply-rules"></a> Advanced Use of Apply Rules
+
+[Apply rules](3-monitoring-basics.md#using-apply) can be used to create a rule set which is
+entirely based on host objects and their attributes.
+In addition to that [apply for and custom attribute override](3-monitoring-basics.md#using-apply-for)
+extend the possibilities.
+
+The following example defines a dictionary on the host object which contains
+configuration attributes for multiple web servers. This then used to add three checks:
+
+* A `ping4` check using the local IP `address` of the web server.
+* A `tcp` check querying the TCP port where the HTTP service is running on.
+* If the `url` key is defined, the third apply for rule will create service objects using the `http` CheckCommand.
+In addition to that you can optionally define the `ssl` attribute which enables HTTPS checks.
+
+Host definition:
+
+    object Host "webserver01" {
+      import "generic-host"
+      address = "192.168.56.200"
+      vars.os = "Linux"
+
+      vars.webserver = {
+        instance["status"] = {
+          address = "192.168.56.201"
+          port = "80"
+          url = "/status"
+        }
+        instance["tomcat"] = {
+          address = "192.168.56.202"
+          port = "8080"
+        }
+        instance["icingaweb2"] = {
+          address = "192.168.56.210"
+          port = "443"
+          url = "/icingaweb2"
+          ssl = true
+        }
+      }
+    }
+
+Service apply for definitions:
+
+    apply Service "webserver_ping" for (instance => config in host.vars.webserver.instance) {
+      display_name = "webserver_" + instance
+      check_command = "ping4"
+
+      vars.ping_address = config.address
+
+      assign where host.vars.webserver.instance
+    }
+
+    apply Service "webserver_port" for (instance => config in host.vars.webserver.instance) {
+      display_name = "webserver_" + instance + "_" + config.port
+      check_command = "tcp"
+
+      vars.tcp_address = config.address
+      vars.tcp_port = config.port
+
+      assign where host.vars.webserver.instance
+    }
+
+    apply Service "webserver_url" for (instance => config in host.vars.webserver.instance) {
+      display_name = "webserver_" + instance + "_" + config.url
+      check_command = "http"
+
+      vars.http_address = config.address
+      vars.http_port = config.port
+      vars.http_uri = config.url
+
+      if (config.ssl) {
+        vars.http_ssl = config.ssl
+      }
+
+      assign where config.url != ""
+    }
+
+The variables defined in the host dictionary are not using the typical custom attribute
+prefix recommended for CheckCommand parameters. Instead they are re-used for multiple
+service checks in this example.
+In addition to defining check parameters this way, you can also enrich the `display_name`
+attribute with more details. This will be shown in in Icinga Web 2 for example.
 
 ## <a id="use-functions-object-config"></a> Use Functions in Object Configuration
 
