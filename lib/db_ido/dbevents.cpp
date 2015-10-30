@@ -353,6 +353,7 @@ void DbEvents::AddCommentByType(const Comment::Ptr& comment, bool historical)
 		return;
 	}
 
+	fields1->Set("unique_id", comment->GetName());
 	fields1->Set("comment_time", DbValue::FromTimestamp(entry_time)); /* same as entry_time */
 	fields1->Set("author_name", comment->GetAuthor());
 	fields1->Set("comment_data", comment->GetText());
@@ -487,6 +488,7 @@ void DbEvents::AddDowntimeByType(const Downtime::Ptr& downtime, bool historical)
 		return;
 	}
 
+	fields1->Set("unique_id", downtime->GetName());
 	fields1->Set("author_name", downtime->GetAuthor());
 	fields1->Set("comment_data", downtime->GetComment());
 	fields1->Set("triggered_by_id", Downtime::GetByName(downtime->GetTriggeredBy()));
