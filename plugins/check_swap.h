@@ -26,6 +26,7 @@ struct printInfoStruct
 {
 	threshold warn, crit;
 	DOUBLE tSwap, aSwap;
+	DOUBLE percentFree;
 	Bunit unit = BunitMB;
 };
 

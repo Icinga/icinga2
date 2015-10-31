@@ -163,7 +163,6 @@ INT printOutput(printInfoStruct& printInfo)
 		std::wcout << L"Constructing output string" << '\n';
 
 	state state = OK;
-	double fswap = ((double)printInfo.aSwap / (double)printInfo.tSwap) * 100.0;
 
 	if (printInfo.warn.rend(printInfo.aSwap, printInfo.tSwap))
 		state = WARNING;
@@ -173,17 +172,17 @@ INT printOutput(printInfoStruct& printInfo)
 
 	switch (state) {
 	case OK:
-		std::wcout << L"SWAP OK - " << fswap << L"% free | swap=" << printInfo.aSwap << BunitStr(printInfo.unit) << L";"
+		std::wcout << L"SWAP OK - " << printInfo.percentFree << L"% free | swap=" << printInfo.aSwap << BunitStr(printInfo.unit) << L";"
 			<< printInfo.warn.pString(printInfo.tSwap) << L";" << printInfo.crit.pString(printInfo.tSwap) 
 			<< L";0;" << printInfo.tSwap << '\n';
 		break;
 	case WARNING:
-		std::wcout << L"SWAP WARNING - " << fswap << L"% free | swap=" << printInfo.aSwap << BunitStr(printInfo.unit) << L";"
+		std::wcout << L"SWAP WARNING - " << printInfo.percentFree << L"% free | swap=" << printInfo.aSwap << BunitStr(printInfo.unit) << L";"
 			<< printInfo.warn.pString(printInfo.tSwap) << L";" << printInfo.crit.pString(printInfo.tSwap) 
 			<< L";0;" << printInfo.tSwap << '\n';
 		break;
 	case CRITICAL:
-		std::wcout << L"SWAP CRITICAL - " << fswap << L"% free | swap=" << printInfo.aSwap << BunitStr(printInfo.unit) << L";"
+		std::wcout << L"SWAP CRITICAL - " << printInfo.percentFree << L"% free | swap=" << printInfo.aSwap << BunitStr(printInfo.unit) << L";"
 			<< printInfo.warn.pString(printInfo.tSwap) << L";" << printInfo.crit.pString(printInfo.tSwap) 
 			<< L";0;" << printInfo.tSwap << '\n';
 		break;
@@ -204,6 +203,7 @@ INT check_swap(printInfoStruct& printInfo)
 
 	printInfo.tSwap = round(MemBuf.ullTotalPageFile / pow(1024.0, printInfo.unit));
 	printInfo.aSwap = round(MemBuf.ullAvailPageFile / pow(1024.0, printInfo.unit));
+	printInfo.percentFree = 100.0 * MemBuf.ullAvailPageFile / MemBuf.ullTotalPageFile;
 
 	return -1;
 }

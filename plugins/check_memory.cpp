@@ -163,7 +163,6 @@ INT printOutput(printInfoStruct& printInfo)
 		std::wcout << L"Constructing output string" << '\n';
 
 	state state = OK;
-	double fswap = ((double)printInfo.aRam / (double)printInfo.tRam) * 100.0;
 
 	if (printInfo.warn.rend(printInfo.aRam, printInfo.tRam))
 		state = WARNING;
@@ -173,17 +172,17 @@ INT printOutput(printInfoStruct& printInfo)
 
 	switch (state) {
 	case OK:
-		std::wcout << L"MEMORY OK - " << fswap << L"% free | memory=" << printInfo.aRam << BunitStr(printInfo.unit) << L";"
+		std::wcout << L"MEMORY OK - " << printInfo.percentFree << L"% free | memory=" << printInfo.aRam << BunitStr(printInfo.unit) << L";"
 			<< printInfo.warn.pString(printInfo.tRam) << L";" << printInfo.crit.pString(printInfo.tRam)
 			<< L";0;" << printInfo.tRam << '\n';
 		break;
 	case WARNING:
-		std::wcout << L"MEMORY WARNING - " << fswap << L"% free | memory=" << printInfo.aRam << BunitStr(printInfo.unit) << L";"
+		std::wcout << L"MEMORY WARNING - " << printInfo.percentFree << L"% free | memory=" << printInfo.aRam << BunitStr(printInfo.unit) << L";"
 			<< printInfo.warn.pString(printInfo.tRam) << L";" << printInfo.crit.pString(printInfo.tRam)
 			<< L";0;" << printInfo.tRam << '\n';
 		break;
 	case CRITICAL:
-		std::wcout << L"MEMORY CRITICAL - " << fswap << L"% free | memory=" << printInfo.aRam << BunitStr(printInfo.unit) << L";"
+		std::wcout << L"MEMORY CRITICAL - " << printInfo.percentFree << L"% free | memory=" << printInfo.aRam << BunitStr(printInfo.unit) << L";"
 			<< printInfo.warn.pString(printInfo.tRam) << L";" << printInfo.crit.pString(printInfo.tRam)
 			<< L";0;" << printInfo.tRam << '\n';
 		break;
@@ -205,6 +204,7 @@ INT check_memory(printInfoStruct& printInfo)
 
 	printInfo.tRam = round(pMemBuf->ullTotalPhys / pow(1024.0, printInfo.unit));
 	printInfo.aRam = round(pMemBuf->ullAvailPhys / pow(1024.0, printInfo.unit));
+	printInfo.percentFree = 100.0 * pMemBuf->ullAvailPhys / pMemBuf->ullTotalPhys;
 
 	if (debug)
 		std::wcout << L"Found pMemBuf->dwTotalPhys: " << pMemBuf->ullTotalPhys << '\n'
