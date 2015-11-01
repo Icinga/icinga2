@@ -986,7 +986,6 @@ pgsql_query		| **Optional.** SQL query to run. Only first column in first row wi
 pgsql_query_warning	| **Optional.** SQL query value to result in warning status (double).
 pgsql_query_critical	| **Optional.** SQL query value to result in critical status (double).
 
-
 ### <a id="plugin-check-command-mysql"></a> mysql
 
 Check command object for the `check_mysql` plugin.
@@ -995,6 +994,7 @@ Custom attributes passed as [command parameters](3-monitoring-basics.md#command-
 
 Name			| Description
 ------------------------|---------------------------------------------------------------
+<<<<<<< HEAD
 mysql_hostname		| **Optional.** Host name, IP Address, or unix socket (must be an absolute path).
 mysql_port		| **Optional.** Port number (default: 3306).
 mysql_ignore_auth	| **Optional.** Ignore authentication failure and check for mysql connectivity only.
@@ -1012,6 +1012,23 @@ mysql_cert		| **Optional.** Path to SSL certificate.
 mysql_key		| **Optional.** Path to private SSL key.
 mysql_cadir		| **Optional.** Path to CA directory.
 mysql_ciphers		| **Optional.** List of valid SSL ciphers.
+
+### <a id="plugin-check-command-negate"></a> negate
+
+Check command object for the `negate` plugin.
+
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
+
+Name			| Description
+------------------------|---------------------------------------------------------------
+negate_timeout		| **Optional.** Seconds before plugin times out (default: 11).
+negate_timeout_result	| **Optional.** Custom result on Negate timeouts, default to UNKNOWN.
+negate_ok		| **Optional.** OK, WARNING, CRITICAL or UNKNOWN.
+negate_warning		|               Numeric values are accepted.
+negate_critical		|               If nothing is specified, permutes OK and CRITICAL.
+negate_substitute	| **Optional.** Substitute output text as well. Will only substitute text in CAPITALS.
+negate_command		| **Required.** Command to be negated.
+negate_arguments	| **Optional.** Arguments for the negated command.
 
 
 ## <a id="windows-plugins"></a> Windows Plugins for Icinga 2
