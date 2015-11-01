@@ -67,7 +67,7 @@ When an error occurs, the response body will contain additional information
 about the problem and its source.
 
 A status code between 200 and 299 generally means that the request was
-succesful.
+successful.
 
 Return codes within the 400 range indicate that there was a problem with the
 request. Either you did not authenticate correctly, you are missing the authorization
@@ -80,7 +80,7 @@ and Icinga 2 is unable to process your request currently.
 
 ### <a id="icinga2-api-responses"></a> Responses
 
-Succesful requests will send back a response body containing a `results`
+Successful requests will send back a response body containing a `results`
 list. Depending on the number of affected objects in your request, the
 results may contain one or more entries.
 
@@ -121,7 +121,7 @@ that is configured in the [ApiListener](6-object-types.md#objecttype-apilistener
     # vim /etc/icinga2/conf.d/api-users.conf
 
     object ApiUser "api-clientcn" {
-      password = "CertificateCommonName"
+      client_cn = "CertificateCommonName"
     }
 
 An `ApiUser` object can have both methods configured. Sensitive information
@@ -161,7 +161,7 @@ Example for an API user with all permissions:
     permissions = [ "*" ]
 
 A yet more sophisticated approach is to specify additional permissions
-and their filters. The latter must be defined as [lamdba function](18-language-reference.md#nullary-lambdas)
+and their filters. The latter must be defined as [lambda function](18-language-reference.md#nullary-lambdas)
 returning a boolean expression.
 
 The `permission` attribute contains the action and the specific capitalized
@@ -319,7 +319,7 @@ Send a `POST` request to the URL endpoint `/v1/actions/process-check-result`.
   type              | string       | **Required.** `Host` or `Service`.
   filter            | string       | **Optional.** Apply the action only to objects matching the [filter](9-icinga2-api.md#icinga2-api-filters).
   exit\_status      | integer      | **Required.** For services: 0=OK, 1=WARNING, 2=CRITICAL, 3=UNKNOWN, for hosts: 0=OK, 1=CRITICAL.
-  plugin\_output    | string       | **Required.** The plugins main output, i.e. the text before the `|`. Does **not** contain the perfomance data.
+  plugin\_output    | string       | **Required.** The plugins main output, i.e. the text before the `|`. Does **not** contain the performance data.
   performance\_data | string array | **Optional.** One array entry per `;` separated block.
   check\_command    | string array | **Optional.** The first entry should be the check commands path, then one entry for each command line option followed by an entry for each of its argument.
   check\_source     | string       | **Optional.** Usually the name of the `command_endpoint`
@@ -386,7 +386,7 @@ Send a `POST` request to the URL endpoint `/v1/actions/send-custom-notification`
   comment   | string  | **Required.** Comment text, may be empty.
   force     | boolean | **Optional.** Default: false. If true, the notification is sent regardless of downtimes or whether notifications are enabled or not.
 
-Example for a custom host notification announcing a global maintanence to
+Example for a custom host notification announcing a global maintenance to
 host owners:
 
     $ curl -k -s -u root:icinga -X POST 'https://localhost:5665/v1/actions/send-custom-notification' \
@@ -447,7 +447,7 @@ Send a `POST` request to the URL endpoint `/v1/actions/acknowledge-problem`.
 
   Parameter | Type      | Description
   ----------|-----------|--------------
-  type      | string     | **Required.** `Host` or `Service`.
+  type      | string    | **Required.** `Host` or `Service`.
   filter    | string    | **Optional.** Apply the action only to objects matching the [filter](9-icinga2-api.md#icinga2-api-filters).
   author    | string    | **Required.** Name of the author, may be empty.
   comment   | string    | **Required.** Comment text, may be empty.
@@ -594,7 +594,7 @@ Send a `POST` request to the URL endpoint `/v1/actions/schedule-downtime`.
   ------------|-----------|--------------
   type        | string    | **Required.** `Host` or `Service`.
   filter      | string    | **Optional.** Apply the action only to objects matching the [filter](9-icinga2-api.md#icinga2-api-filters).
-  start\_time | timestamp | **Required.** Timestamp marking the begining of the downtime.
+  start\_time | timestamp | **Required.** Timestamp marking the beginning of the downtime.
   end\_time   | timestamp | **Required.** Timestamp marking the end of the downtime.
   duration    | integer   | **Required.** Duration of the downtime in seconds if `fixed` is set to false.
   fixed       | boolean   | **Optional.** Defaults to `false`. If true the downtime is `fixed` otherwise `flexible`. See [downtimes](#Downtimes) for more information.
@@ -734,7 +734,6 @@ The following parameters need to be passed as URL parameters:
   queue      | **Required.** Unique queue name. Multiple HTTP clients can use the same queue with existing filters.
   filter     | **Optional.** Filter for specific event attributes using [filter expressions](9-icinga2-api.md#icinga2-api-filters).
 
-
 ### <a id="icinga2-api-event-streams-types"></a> Event Stream Types
 
 The following event stream types are available:
@@ -818,7 +817,7 @@ Example for the main URL endpoint `/v1/status`:
 `/v1/status` is always available as virtual status URL endpoint.
 It provides all feature status information in a collected overview.
 
-Example for the icinga application URL endpoint `/v1/status/IcingaApplication`:
+Example for the IcingaApplication URL endpoint `/v1/status/IcingaApplication`:
 
     $ curl -k -s -u root:icinga 'https://localhost:5665/v1/status/IcingaApplication' | python -m json.tool
     {
@@ -953,7 +952,7 @@ If attributes are of the Dictionary type, you can also use the indexer format:
 
     "attrs": { "vars.os": "Linux" }
 
-Example fo creating the new host object `google.com`:
+Example for creating the new host object `google.com`:
 
     $ curl -u root:icinga -k -s 'https://localhost:5665/v1/objects/hosts/google.com' \
     -X PUT \
@@ -1059,7 +1058,7 @@ request. Specify the object name inside the url.
   -----------|--------------
   cascade    | **Optional.** Delete objects depending on the deleted objects (e.g. services on a host).
 
-**Note**: Objects created by apply rules (services, notifications, etc) will implicitely require
+**Note**: Objects created by apply rules (services, notifications, etc.) will implicitly require
 to pass the `cascade` parameter on host object deletion.
 
 Example for deleting the host object `google.com`:
@@ -1224,7 +1223,7 @@ Note: The returned files are plain-text instead of JSON-encoded.
 
 ### <a id="icinga2-api-config-management-config-package-stage-errors"></a> Configuration Package Stage Errors
 
-Now that we don’t have an active stage for `puppet` yet seen [here](9-icinga2-api.md#icinga2-api-config-management-list-config-packages),
+Now that we don't have an active stage for `puppet` yet seen [here](9-icinga2-api.md#icinga2-api-config-management-list-config-packages),
 there must have been an error.
 
 Fetch the `startup.log` file and check the config validation errors:
