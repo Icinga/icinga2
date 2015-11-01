@@ -60,7 +60,8 @@ String Type::GetPluralName(void) const
 {
 	String name = GetName();
 
-	if (name[name.GetLength() - 1] == 'y')
+	if (name.GetLength() >= 2 && name[name.GetLength() - 1] == 'y' &&
+	    name.SubStr(name.GetLength() - 2, 1).FindFirstOf("aeiou") == String::NPos)
 		return name.SubStr(0, name.GetLength() - 1) + "ies";
 	else
 		return name + "s";
