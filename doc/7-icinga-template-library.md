@@ -987,6 +987,33 @@ pgsql_query_warning	| **Optional.** SQL query value to result in warning status 
 pgsql_query_critical	| **Optional.** SQL query value to result in critical status (double).
 
 
+### <a id="plugin-check-command-mysql"></a> mysql
+
+Check command object for the `check_mysql` plugin.
+
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
+
+Name			| Description
+------------------------|---------------------------------------------------------------
+mysql_hostname		| **Optional.** Host name, IP Address, or unix socket (must be an absolute path).
+mysql_port		| **Optional.** Port number (default: 3306).
+mysql_ignore_auth	| **Optional.** Ignore authentication failure and check for mysql connectivity only.
+mysql_database		| **Optional.** Check database with indicated name.
+mysql_file		| **Optional.** Read from the specified client options file.
+mysql_group		| **Optional.** Use a client options group.
+mysql_username		| **Optional.** Connect using the indicated username.
+mysql_password		| **Optional.** Use the indicated password to authenticate the connection.
+mysql_check_slave	| **Optional.** Check if the slave thread is running properly.
+mysql_warning		| **Optional.** Exit with WARNING status if slave server is more than INTEGER seconds behind master.
+mysql_critical		| **Optional.** Exit with CRITICAL status if slave server is more then INTEGER seconds behind master.
+mysql_ssl		| **Optional.** Use ssl encryptation.
+mysql_cacert		| **Optional.** Path to CA signing the cert.
+mysql_cert		| **Optional.** Path to SSL certificate.
+mysql_key		| **Optional.** Path to private SSL key.
+mysql_cadir		| **Optional.** Path to CA directory.
+mysql_ciphers		| **Optional.** List of valid SSL ciphers.
+
+
 ## <a id="windows-plugins"></a> Windows Plugins for Icinga 2
 
 To allow a basic monitoring of Windows clients Icinga 2 comes with a set of Windows only plugins. While trying to mirror the functionalities of their linux cousins from the monitoring-plugins package, the differences between Windows and Linux are too big to be able use the same CheckCommands for both systems.
