@@ -39,12 +39,24 @@ Supported request methods:
   PUT    | Create a new object. The PUT request must include all attributes required to create a new object.
   DELETE | Remove an object created by the API. The DELETE method is idempotent and does not require any check if the object actually exists.
 
-Each URL contains the version string as prefix (currently "/v1").
 
-Be prepared to see additional fields being added in future versions. New fields could be added even with minor releases.
+Each URL contains the version string as prefix (currently "/v1"). Be prepared to see additional fields being added in future versions. New fields could be added even with minor releases.
 Modifications to existing fields are considered backward-compatibility-breaking and will only take place in new API versions.
 
 The request and response bodies contain a JSON-encoded object.
+
+### <a id="icinga2-api-requests-method-override"></a> Request Method Override
+
+`GET` requests do not allow to send a request body. In case you cannot pass everything as URL parameters (e.g. complex filters or JSON-encoded dictionaries) you can use the `X-HTTP-Method-Override` header. This comes in handy when you are using HTTP proxies disallowing `PUT` or `DELETE` requests too.
+
+Query an existing object by sending a `POST` request with `X-HTTP-Method-Override: GET` as request header:
+
+    $ curl -k -s -u 'root:icinga' -H 'X-HTTP-Method-Override: GET' -X POST 'https://localhost:5665/v1/objects/hosts'
+
+Delete an existing object by sending a `POST` request with `X-HTTP-Method-Override: GET` as request header:
+
+    $ curl -k -s -u 'root:icinga' -H 'X-HTTP-Method-Override: DELETE' -X POST 'https://localhost:5665/v1/objects/hosts/icinga.org'
+
 
 ### <a id="icinga2-api-http-statuses"></a> HTTP Statuses
 
@@ -132,6 +144,8 @@ You can test authentication by sending a GET request to the API:
 
 In case you get an error message make sure to check the API user credentials.
 
+Read the next chapter on [API permissions](9-icinga2-api.md#icinga2-api-permissions)
+in order to authorize the newly created API user.
 
 ### <a id="icinga2-api-permissions"></a> Permissions
 
@@ -191,13 +205,13 @@ The required actions or types can be replaced by using a wildcard match ("*").
 Depending on the request method there are two ways of
 passing parameters to the request:
 
-* JSON body (`POST`, `PUT`)
-* Query string (`GET`, `DELETE`)
+* JSON object as request body (`POST`, `PUT`)
+* Query string as URL parameter (`GET`, `DELETE`)
 
-Reserved characters by the HTTP protocol must be passed url-encoded as query string, e.g. a
-space becomes `%20`.
+Reserved characters by the HTTP protocol must be [URL-encoded](https://en.wikipedia.org/wiki/Percent-encoding)
+as query string, e.g. a space becomes `%20`.
 
-Example for a query string:
+Example for an URL-encoded query string:
 
     /v1/objects/hosts?filter=match(%22nbmif*%22,host.name)&attrs=host.name&attrs=host.state
 
@@ -206,17 +220,50 @@ Example for a JSON body:
     { "attrs": { "address": "8.8.4.4", "vars.os" : "Windows" } }
 
 
+Selecting a single object as URL parameter:
+
+    ?host=icinga.org
+
+Selecting multiple objects as URL parameter:
+
+    ?hosts=host1&hosts=host2&hosts=host3
+
+The array-append-notation is also supported:
+
+    ?hosts[]=host1&hosts[]=host2&hosts[]=host3
+
 #### <a id="icinga2-api-filters"></a> Filters
 
-Uses the same syntax as apply rule expressions for filtering specific objects.
+Uses the same syntax as [apply rule expressions](3-monitoring-basics.md#using-apply-expressions)
+for filtering specific objects.
 
-Example for a filter matching all services in NOT-OK state:
+> **Note**
+>
+> Filters used as URL parameter must be URL-encoded. The following examples
+> are **not URL-encoded** for better readability.
+
+Example matching all services in NOT-OK state:
 
     https://localhost:5665/v1/objects/services?filter=service.state!=ServiceOK
 
-Example for a filter matching all hosts by name (**Note**: `"` are url-encoded as `%22`):
+Example matching all hosts by name:
 
-    https://localhost:5665/v1/objects/hosts?filter=match(%22nbmif*%22,host.name)
+    https://localhost:5665/v1/objects/hosts?filter=match("nbmif*",host.name)
+
+Example for all hosts being a member of the host group `linux-servers`:
+
+    https://localhost:5665/v1/objects/hosts?filter="linux-servers" in host.groups
+
+
+In order to add complex filters with specific filter variables it is possible
+to send a `POST` request using `X-HTTP-Method-Override: GET`. Add the `filter`
+and `filter_vars` attributes to the request body and receive all host objects
+matching the filter:
+
+    $ curl -k -s -u 'root:icinga' -H 'X-HTTP-Method-Override: GET' -X POST 'https://localhost:5665/v1/objects/hosts' \
+    -d '{ "filter": "host.vars.os == os", "filter_vars": { "os": "Linux" } }'
+
+The `filters_vars` attribute can only be used inside the request body, but not as URL parameter.
 
 ### <a id="icinga2-api-url-endpoints"></a> URL Endpoints
 
@@ -232,6 +279,7 @@ The Icinga 2 API provides multiple URL endpoints:
   /v1/config    | Endpoint for [managing configuration modules](9-icinga2-api.md#icinga2-api-config-management).
 
 Please check the respective sections for detailed URL information and parameters.
+
 
 ## <a id="icinga2-api-actions"></a> Actions
 
@@ -262,6 +310,8 @@ called `app`.
 
 ### <a id="icinga2-api-actions-process-check-result"></a> process-check-result
 
+Process a check result for a host or a service.
+
 Send a `POST` request to the URL endpoint `/v1/actions/process-check-result`.
 
   Parameter         | Type         | Description
@@ -279,18 +329,21 @@ checks need to be enabled for the check result to be processed.
 
 Example:
 
-    $ curl -u root:icinga -k -X POST "https://localhost:5665/v1/actions/process-check-result?type=Service&filter=service.name==%22ping6%22" -d \
-    "{\"exit_status\":2,\"plugin_output\":\"IMAGINARY CHECK\",\"performance_data\":[\"This is just\", \"a drill\"],\"check_command\":[\"some/path\", \"--argument\", \"words\"]}" \
-    ;echo
-    {"results":
-      [
-        {
-          "code":200.0,"status":"Successfully processed check result for object icinga!ping6."
-        }
-      ]
+    $ curl -k -s -u root:icinga -X POST 'https://localhost:5665/v1/actions/process-check-result?type=Service&filter=service.name==%22ping6%22' \
+    -d '{ "exit_status": 2, "plugin_output": "PING CRITICAL - Packet loss = 100%", "performance_data": [ "rta=5000.000000ms;3000.000000;5000.000000;0.000000", "pl=100%;80;100;0" ], "check_source": "icinga2-node1.localdomain" }' | python -m json.tool
+
+    {
+        "results": [
+            {
+                "code": 200.0,
+                "status": "Successfully processed check result for object 'localhost!ping6'."
+            }
+        ]
     }
 
 ### <a id="icinga2-api-actions-reschedule-check"></a> reschedule-check
+
+Reschedule a check for hosts and services. The check can be forced if required.
 
 Send a `POST` request to the URL endpoint `/v1/actions/reschedule-check`.
 
@@ -298,31 +351,30 @@ Send a `POST` request to the URL endpoint `/v1/actions/reschedule-check`.
   -------------|-----------|--------------
   type         | string    | **Required.** `Host` or `Service`.
   filter       | string    | **Optional.** Apply the action only to objects matching the [filter](9-icinga2-api.md#icinga2-api-filters).
-  next\_check  | timestamp | **Optional.** The next check will be run at this timestamp. Defaults to `now`.
-  force\_check | boolean   | **Optional.** Defaults to `false`. See blow for further information.
+  next\_check  | timestamp | **Optional.** The next check will be run at this time. If omitted the current time is used.
+  force\_check | boolean   | **Optional.** Defaults to `false`. If enabled the checks are executed regardless of time period restrictions and checks being disabled per object or on a global basis.
 
-If the `forced_check` flag is set the checks are performed regardless of what
-time it is (i.e. time period restrictions are ignored) and whether or not active
-checks are enabled on a host/service-specific or program-wide basis.
-
-Example:
-
-    $ curl -u root:icinga -k -X POST "https://localhost:5665/v1/actions/reschedule-check?type=Service&filter=service.name==%22ping6%22" -d \
-    "{\"force_check\":true}"
-
-    {"results":
-      [
-        {
-          "code":200.0,"status":"Successfully rescheduled check for icinga!ping6."
-        }
-      ]
-    }
-
-This will reschedule all services with the name "ping6" to perform a check now
+The example reschedules all services with the name "ping6" to immediately perform a check
 (`next_check` default), ignoring any time periods or whether active checks are
 allowed for the service (`force_check=true`).
 
+    $ curl -k -s -u root:icinga -X POST "https://localhost:5665/v1/actions/reschedule-check?type=Service&filter=service.name==%22ping6%22" \
+    -d '{ "force_check": true }' | python -m json.tool
+
+    {
+        "results": [
+            {
+                "code": 200.0,
+                "status": "Successfully rescheduled check for object 'localhost!ping6'."
+            }
+        ]
+    }
+
+
 ### <a id="icinga2-api-actions-send-custom-notification"></a> send-custom-notification
+
+Send a custom notification for hosts and services. This notification
+type can be forced being sent to all users.
 
 Send a `POST` request to the URL endpoint `/v1/actions/send-custom-notification`.
 
@@ -334,7 +386,30 @@ Send a `POST` request to the URL endpoint `/v1/actions/send-custom-notification`
   comment   | string  | **Required.** Comment text, may be empty.
   force     | boolean | **Optional.** Default: false. If true, the notification is sent regardless of downtimes or whether notifications are enabled or not.
 
+Example for a custom host notification announcing a global maintanence to
+host owners:
+
+    $ curl -k -s -u root:icinga -X POST 'https://localhost:5665/v1/actions/send-custom-notification' \
+    -d '{ "type": "Host", "author": "icingaadmin", "comment": "System is going down for maintenance", "force": true }' | python -m json.tool
+
+    {
+        "results": [
+            {
+                "code": 200.0,
+                "status": "Successfully sent custom notification for object 'host0'."
+            },
+            {
+                "code": 200.0,
+                "status": "Successfully sent custom notification for object 'host1'."
+            }
+    }
+
 ### <a id="icinga2-api-actions-delay-notification"></a> delay-notification
+
+Delay notifications for a host or a service.
+Note that this will only have an effect if the service stays in the same problem
+state that it is currently in. If the service changes to another state, a new
+notification may go out before the time you specify in the `timestamp` argument.
 
 Send a `POST` request to the URL endpoint `/v1/actions/delay-notification`.
 
@@ -344,11 +419,29 @@ Send a `POST` request to the URL endpoint `/v1/actions/delay-notification`.
   filter    | string    | **Optional.** Apply the action only to objects matching the [filter](9-icinga2-api.md#icinga2-api-filters).
   timestamp | timestamp | **Required.** Delay notifications until this timestamp.
 
-Note that this will only have an effect if the service stays in the same problem
-state that it is currently in. If the service changes to another state, a new
-notification may go out before the time you specify in the `timestamp` argument.
+
+Example:
+
+    $ curl -k -s -u root:icinga -X POST 'https://localhost:5665/v1/actions/delay-notification' \
+    -d '{ "type": "Service", "timestamp": 1446389894 }' | python -m json.tool
+
+    {
+        "results": [
+            {
+                "code": 200.0,
+                "status": "Successfully delayed notifications for object 'host0!service0'."
+            },
+            {
+                "code": 200.0,
+                "status": "Successfully delayed notifications for object 'host1!service1'."
+            }
+    }
 
 ### <a id="icinga2-api-actions-acknowledge-problem"></a> acknowledge-problem
+
+Allows you to acknowledge the current problem for hosts or services. By
+acknowledging the current problem, future notifications (for the same state if `sticky` is set to `false`)
+are disabled.
 
 Send a `POST` request to the URL endpoint `/v1/actions/acknowledge-problem`.
 
@@ -362,24 +455,29 @@ Send a `POST` request to the URL endpoint `/v1/actions/acknowledge-problem`.
   sticky    | boolean   | **Optional.** If `true`, the default, the acknowledgement will remain until the service or host fully recovers.
   notify    | boolean   | **Optional.** If `true` a notification will be sent out to contacts to indicate this problem has been acknowledged. The default is false.
 
-Allows you to acknowledge the current problem for hosts or services. By
-acknowledging the current problem, future notifications (for the same state)
-are disabled.
-
 The following example acknowledges all services which are in a hard critical state and sends out
 a notification for them:
 
-    $ curl -u root:icinga -k -X POST "https://localhost:5665/v1/actions/acknowledge-problem?type=Service&filter=service.state==2&service.state_type=1" -d \
-    "{\"author\":\"J. D. Salinger\",\"comment\":\"I thought what I'd do was I'd pretend I was one of those deaf-mutes\",\"notify\":true }"
+    $ curl -k -s -u root:icinga -X POST 'https://localhost:566tions/acknowledge-problem?type=Service&filter=service.state==2&service.state_type=1' \
+    -d '{ "author": "icingaadmin", "comment": "Global outage. Working on it.", "notify": true }' | python -m json.tool
 
-    {"results":
-      [
-        {"code":200.0,"name":"icinga!down","status":"Attributes updated.","type":"Service"},
-        {"code":200.0,"name":"icinga!ssh","status":"Attributes updated.","type":"Service"}
-      ]
+    {
+        "results": [
+            {
+                "code": 200.0,
+                "status": "Successfully acknowledged problem for object 'i-42866686!ping4'."
+            },
+            {
+                "code": 200.0,
+                "status": "Successfully acknowledged problem for object 'i-43866687!ping4'."
+            }
     }
 
+
 ### <a id="icinga2-api-actions-remove-acknowledgement"></a> remove-acknowledgement
+
+Removes the acknowledgements for services or hosts. Once the acknowledgement has
+been removed notifications will be sent out again.
 
 Send a `POST` request to the URL endpoint `/v1/actions/remove-acknowledgement`.
 
@@ -388,10 +486,25 @@ Send a `POST` request to the URL endpoint `/v1/actions/remove-acknowledgement`.
   type      | string | **Required.** `Host` or `Service`.
   filter    | string | **Optional.** Apply the action only to objects matching the [filter](9-icinga2-api.md#icinga2-api-filters).
 
-Remove the acknowledgements for services or hosts. Once the acknowledgement has
-been removed notifications will be sent out again.
+The example removes all service acknowledgements:
+
+    $ curl -k -s -u root:icinga -X POST 'https://localhost:5665/v1/actions/remove-acknowledgement?type=Service' | python -m json.tool
+
+    {
+        "results": [
+            {
+                "code": 200.0,
+                "status": "Successfully removed acknowledgement for object 'host0!service0'."
+            },
+            {
+                "code": 200.0,
+                "status": "Successfully removed acknowledgement for object 'i-42866686!aws-health'."
+            }
+    }
 
 ### <a id="icinga2-api-actions-add-comment"></a> add-comment
+
+Adds a `comment` from an `author` to services or hosts.
 
 Send a `POST` request to the URL endpoint `/v1/actions/add-comment`.
 
@@ -402,9 +515,24 @@ Send a `POST` request to the URL endpoint `/v1/actions/add-comment`.
   author    | string | **Required.** name of the author, may be empty.
   comment   | string | **Required.** Comment text, may be empty.
 
-Adds a `comment` by `author` to services or hosts.
+Example:
+
+    $ curl -k -s -u root:icinga -X POST 'https://localhost:5665/v1/actions/add-comment?type=Service&filter=service.name==%22ping4%22' -d '{ "author": "icingaadmin", "comment": "Troubleticket #123456789 opened." }' | python -m json.tool
+
+    {
+        "results": [
+            {
+                "code": 200.0,
+                "comment_id": "i-42866686!ping4!mbmif.local-1446390475-55",
+                "legacy_id": 2.0,
+                "status": "Successfully added comment with id 'i-42866686!ping4!mbmif.local-1446390475-55' for object 'i-42866686!ping4'."
+            }
+    }
+
 
 ### <a id="icinga2-api-actions-remove-all-comments"></a> remove-all-comments
+
+Removes all comments for services or hosts.
 
 Send a `POST` request to the URL endpoint `/v1/actions/remove-all-comments`.
 
@@ -413,9 +541,27 @@ Send a `POST` request to the URL endpoint `/v1/actions/remove-all-comments`.
   type        | string  | **Required.** `Host` or `Service`.
   filter      | string  | **Optional.** Apply the action only to objects matching the [filter](9-icinga2-api.md#icinga2-api-filters).
 
-Removes all comments for services or hosts.
+Example:
+
+    $ curl -k -s -u root:icinga -X POST 'https://localhost:5665/v1/actions/remove-all-comments?type=Service' | python -m json.tool
+
+    {
+        "results": [
+            {
+                "code": 200.0,
+                "status": "Successfully removed comments for object 'i-42866686!aws-health'."
+            },
+            {
+                "code": 200.0,
+                "status": "Successfully removed comments for object 'i-43866687!aws-health'."
+            }
+    }
 
 ### <a id="icinga2-api-actions-remove-comment-by-id"></a> remove-comment-by-id
+
+Tries to remove the comment with the ID `comment_id`, returns `OK` if the
+comment did not exist.
+**Note**: This is **not** the legacy ID but the comment ID returned by Icinga 2 itself.
 
 Send a `POST` request to the URL endpoint `/v1/actions/remove-comment-by-id`.
 
@@ -425,11 +571,22 @@ Send a `POST` request to the URL endpoint `/v1/actions/remove-comment-by-id`.
 
 Does not support a target type or filters.
 
-Tries to remove the comment with the ID `comment_id`, returns `OK` if the
-comment did not exist.
-**Note**: This is **not** the legacy ID but the comment ID returned by Icinga 2 itself.
+Example:
+
+    $ curl -k -s -u root:icinga -X POST 'https://localhost:5665/v1/actions/remove-comment-by-id?comment_id=i-43866687!ping4!mbmif.local-1446390475-56' | python -m json.tool
+
+    {
+        "results": [
+            {
+                "code": 200.0,
+                "status": "Successfully removed comment 'i-43866687!ping4!mbmif.local-1446390475-56'."
+            }
+        ]
+    }
 
 ### <a id="icinga2-api-actions-schedule-downtime"></a> schedule-downtime
+
+Schedule a downtime for hosts and services.
 
 Send a `POST` request to the URL endpoint `/v1/actions/schedule-downtime`.
 
@@ -445,22 +602,30 @@ Send a `POST` request to the URL endpoint `/v1/actions/schedule-downtime`.
 
 Example:
 
-    $ curl -u root:icinga -k -X POST "https://localhost:5665/v1/actions/schedule-downtime?type=Host&filter=host.name=%22icinga2b%22" -d \
-    "{\"start_time\":`date "+%s"`, \"end_time\":`date --date="next monday" "+%s"`,\"duration\":0,\"author\":\"Lazy admin\",\"comment\":\"Don't care until next monday\"}"
+    $ curl -k -s -u root:icinga -X POST 'https://localhost:5665/v1/actions/schedule-downtime?type=Service&filter=service.name==%22ping4%22' \
+    -d '{ "start_time": 1446388806, "end_time": 1446389806, "duration": 1000, "author": "icingaadmin", "comment": "IPv4 network maintenance" }' | python -m json.tool
 
-    { "results":
-      [
-        {
-          "code":200.0,
-          "downtime_id":"icinga2b-1445861488-1",
-          "legacy_id":39.0,
-          "status":"Successfully scheduled downtime with id 39 for object icinga2b."
-        }
-      ]
+    {
+        "results": [
+            {
+                "code": 200.0,
+                "downtime_id": "i-42866686!ping4!mbmif.local-1446388986-545",
+                "legacy_id": 8.0,
+                "status": "Successfully scheduled downtime with id 'i-42866686!ping4!mbmif.local-1446388986-545' for object 'i-42866686!ping4'."
+            },
+            {
+                "code": 200.0,
+                "downtime_id": "i-43866687!ping4!mbmif.local-1446388986-546",
+                "legacy_id": 9.0,
+                "status": "Successfully scheduled downtime with id 'i-43866687!ping4!mbmif.local-1446388986-546' for object 'i-43866687!ping4'."
+            }
+        ]
     }
 
 
-### <a id="icinga2-api-actions-remove-downtime"></a> remove-downtime
+### <a id="icinga2-api-actions-remove-all-downtimes"></a> remove-all-downtimes
+
+Removes all downtimes for services or hosts.
 
 Send a `POST` request to the URL endpoint `/v1/actions/remove-all-downtimes`.
 
@@ -469,9 +634,28 @@ Send a `POST` request to the URL endpoint `/v1/actions/remove-all-downtimes`.
   type      | string | **Required.** `Host` or `Service`.
   filter    | string | **Optional.** Apply the action only to objects matching the [filter](9-icinga2-api.md#icinga2-api-filters).
 
-Removes all downtimes for services or hosts.
+Example:
+
+    $ curl -k -s -u root:icinga -X POST 'https://localhost:5665/v1/actions/remove-all-downtimes?type=Service&filter=service.name==%22ping4%22' | python -m json.tool
+
+    {
+        "results": [
+            {
+                "code": 200.0,
+                "status": "Successfully removed downtimes for object 'i-42866686!ping4'."
+            },
+            {
+                "code": 200.0,
+                "status": "Successfully removed downtimes for object 'i-43866687!ping4'."
+            }
+        ]
+    }
 
 ### <a id="icinga2-api-actions-remove-downtime-by-id"></a> remove-downtime-by-id
+
+Tries to remove the downtime with the ID `downtime_id`, returns `OK` if the
+downtime did not exist.
+**Note**: This is **not** the legacy ID but the downtime ID returned by Icinga 2 itself.
 
 Send a `POST` request to the URL endpoint `/v1/actions/remove-downtime-by-id`.
 
@@ -481,25 +665,62 @@ Send a `POST` request to the URL endpoint `/v1/actions/remove-downtime-by-id`.
 
 Does not support a target type or filter.
 
-Tries to remove the downtime with the ID `downtime_id`, returns `OK` if the
-downtime did not exist.
-**Note**: This is **not** the legacy ID but the downtime ID returned by Icinga 2 itself.
+Example:
+
+    $ curl -k -s -u root:icinga -X POST 'https://localhost:5665/v1/actions/remove-downtime-by-id?downtime_id=mbmif.local-1446339731-582' | python -m json.tool
+
+    {
+        "results": [
+            {
+                "code": 200.0,
+                "status": "Successfully removed downtime 'mbmif.local-1446339731-582'."
+            }
+        ]
+    }
+
 
 ### <a id="icinga2-api-actions-shutdown-process"></a> shutdown-process
+
+Shuts down Icinga2. May or may not return.
 
 Send a `POST` request to the URL endpoint `/v1/actions/shutdown-process`.
 
 This action does not support a target type or filter.
 
-Shuts down Icinga2. May or may not return.
+Example:
+
+    $ curl -k -s -u root:icinga -X POST 'https://localhost:5665/v1/actions/shutdown-process' | python -m json.tool
+
+    {
+        "results": [
+            {
+                "code": 200.0,
+                "status": "Shutting down Icinga 2."
+            }
+        ]
+    }
 
 ### <a id="icinga2-api-actions-restart-process"></a> restart-process
+
+Restarts Icinga2. May or may not return.
 
 Send a `POST` request to the URL endpoint `/v1/actions/restart-process`.
 
 This action does not support a target type or filter.
 
-Restarts Icinga2. May or may not return.
+Example:
+
+    $ curl -k -s -u root:icinga -X POST 'https://localhost:5665/v1/actions/restart-process' | python -m json.tool
+
+    {
+        "results": [
+            {
+                "code": 200.0,
+                "status": "Restarting Icinga 2."
+            }
+        ]
+    }
+
 
 
 ## <a id="icinga2-api-event-streams"></a> Event Streams
@@ -657,7 +878,6 @@ Example:
     host.address
 
 Output listing and url parameters use the same syntax.
-
 
 ### <a id="icinga2-api-config-objects-joins"></a> API Objects and Joins
 
