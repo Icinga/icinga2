@@ -289,7 +289,12 @@ Dictionary::Ptr ApiActions::RemoveCommentByID(const ConfigObject::Ptr& object,
 
 	Comment::RemoveComment(comment_id);
 
-	return ApiActions::CreateResult(200, "Successfully removed comment '" + comment_id + "'.");
+	Comment::Ptr comment = Comment::GetByName(comment_id);
+
+	if (!comment)
+		return ApiActions::CreateResult(200, "Successfully removed comment '" + comment_id + "'.");
+
+	return ApiActions::CreateResult(403, "Could not remove comment '" + comment_id + "'.");
 }
 
 Dictionary::Ptr ApiActions::ScheduleDowntime(const ConfigObject::Ptr& object,
@@ -353,7 +358,12 @@ Dictionary::Ptr ApiActions::RemoveDowntimeByID(const ConfigObject::Ptr& object,
 
 	Downtime::RemoveDowntime(downtime_id, true);
 
-	return ApiActions::CreateResult(200, "Successfully removed downtime '" + downtime_id + "'.");
+	Downtime::Ptr downtime = Downtime::GetByName(downtime_id);
+
+	if (!downtime)
+		return ApiActions::CreateResult(200, "Successfully removed downtime '" + downtime_id + "'.");
+
+	return ApiActions::CreateResult(403, "Could not remove downtime '" + downtime_id + "'.");
 }
 
 Dictionary::Ptr ApiActions::ShutdownProcess(const ConfigObject::Ptr& object,
