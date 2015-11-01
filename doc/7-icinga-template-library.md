@@ -424,6 +424,8 @@ http_extendedperfdata    | **Optional.** Print additional perfdata. Defaults to 
 http_onredirect          | **Optional.** How to handle redirect pages. Possible values: "ok" (default), "warning", "critical", "follow", "sticky" (like follow but stick to address), "stickyport" (like sticky but also to port)
 http_pagesize            | **Optional.** Minimum page size required:Maximum page size required.
 http_timeout             | **Optional.** Seconds before connection times out.
+http_ipv4                | **Optional.** Use IPv4 only.
+http_ipv6                | **Optional.** Use IPv6 only.
 
 
 ### <a id="plugin-check-command-icmp"></a> icmp
@@ -516,8 +518,8 @@ nrpe_no_ssl     | **Optional.** Whether to disable SSL or not. Defaults to `fals
 nrpe_timeout_unknown | **Optional.** Whether to set timeouts to unknown instead of critical state. Defaults to `false`.
 nrpe_timeout    | **Optional.** The timeout in seconds.
 nrpe_arguments	| **Optional.** Arguments that should be passed to the command. Multiple arguments must be defined as array.
-nrpe_ipv4	| **Optional.** Use IPv4 only.
-nrpe_ipv6	| **Optional.** Use IPv6 only.
+nrpe_ipv4       | **Optional.** Use IPv4 only.
+nrpe_ipv6       | **Optional.** Use IPv6 only.
 
 
 ### <a id="plugin-check-command-nscp"></a> nscp
@@ -874,6 +876,8 @@ tcp_ssl         | **Optional.** Use SSL for the connection. Defaults to false.
 tcp_wtime       | **Optional.** Response time to result in warning status (seconds).
 tcp_ctime       | **Optional.** Response time to result in critical status (seconds).
 tcp_timeout     | **Optional.** Seconds before connection times out. Defaults to 10.
+tcp_ipv4        | **Optional.** Use IPv4 only.
+tcp_ipv6        | **Optional.** Use IPv6 only.
 
 
 ### <a id="plugin-check-command-udp"></a> udp
@@ -889,6 +893,8 @@ udp_port        | **Required.** The port that should be checked.
 udp_send        | **Required.** The payload to send in the UDP datagram.
 udp_expect      | **Required.** The payload to expect in the response datagram.
 udp_quit        | **Optional.** The payload to send to 'close' the session.
+udp_ipv4        | **Optional.** Use IPv4 only.
+udp_ipv6        | **Optional.** Use IPv6 only.
 
 
 ### <a id="plugin-check-command-ups"></a> ups
