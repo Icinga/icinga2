@@ -324,11 +324,15 @@ static BOOL CreatePipeOverlapped(HANDLE *outReadPipe, HANDLE *outWritePipe,
     SECURITY_ATTRIBUTES *securityAttributes, DWORD size, DWORD readMode, DWORD writeMode)
 {
 	static int pipeIndex = 0;
+	static boost::mutex mutex;
 
 	if (size == 0)
 		size = 8192;
 
-	pipeIndex++;
+	{
+		boost::mutex::scoped_lock lock(mutex);
+		pipeIndex++;
+	}
 
 	char pipeName[128];
 	sprintf(pipeName, "\\\\.\\Pipe\\OverlappedPipe.%d.%d", (int)GetCurrentProcessId(), pipeIndex);
@@ -336,7 +340,7 @@ static BOOL CreatePipeOverlapped(HANDLE *outReadPipe, HANDLE *outWritePipe,
 	*outReadPipe = CreateNamedPipe(pipeName, PIPE_ACCESS_INBOUND | readMode,
 	    PIPE_TYPE_BYTE | PIPE_WAIT, 1, size, size, 60 * 1000, securityAttributes);
 	
-	if (!*outReadPipe)
+	if (*outReadPipe == INVALID_HANDLE_VALUE)
 		return FALSE;
 
 	*outWritePipe = CreateFile(pipeName, GENERIC_WRITE, 0, securityAttributes, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | writeMode, NULL);
