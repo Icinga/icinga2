@@ -37,6 +37,10 @@ and `debug`.
 The `icinga2 object list` CLI command can be used to list all configuration objects and their
 attributes. The tool also shows where each of the attributes was modified.
 
+> **Tip**
+>
+> Use the Icinga 2 API to access [config objects at runtime](9-icinga2-api.md#icinga2-api-config-objects) directly.
+
 That way you can also identify which objects have been created from your [apply rules](18-language-reference.md#apply).
 
     # icinga2 object list
@@ -115,6 +119,7 @@ or similar.
 * Verify that failed depedencies do not prevent command execution
 * Make sure that the plugin is executable by the Icinga 2 user (run a manual test)
 * Make sure the [checker](8-cli-commands.md#enable-features) feature is enabled.
+* Use the Icinga 2 API [event streams](9-icinga2-api.md#icinga2-api-event-streams) to receive live check result streams.
 
 Examples:
 
@@ -122,6 +127,10 @@ Examples:
 
     # icinga2 feature enable checker
     The feature 'checker' is already enabled.
+
+Fetch all check result events matching the `event.service` name `random`:
+
+    $ curl -k -s -u root:icinga -X POST 'https://localhost:5665/v1/events?queue=debugchecks&types=CheckResult&filter=match%28%22random*%22,event.service%29'
 
 
 ## <a id="notifications-not-sent"></a> Notifications are not sent
@@ -139,14 +148,21 @@ Verify the following configuration
 * Make sure the [notification](8-cli-commands.md#enable-features) feature is enabled.
 * Does the referenced NotificationCommand work when executed as Icinga user on the shell?
 
-If notifications are to be sent via mail make sure that the mail program specified exists.
+If notifications are to be sent via mail make sure that the mail program specified inside the
+[NotificationCommand object](6-object-types.md#objecttype-notificationcommand) exists.
 The name and location depends on the distribution so the preconfigured setting might have to be
 changed on your system.
+
 
 Examples:
 
     # icinga2 feature enable notification
     The feature 'notification' is already enabled.
+
+You can use the Icinga 2 API [event streams](9-icinga2-api.md#icinga2-api-event-streams) to receive live notification streams:
+
+    $ curl -k -s -u root:icinga -X POST 'https://localhost:5665/v1/events?queue=debugnotifications&types=Notification'
+
 
 ## <a id="feature-not-working"></a> Feature is not working
 
@@ -175,7 +191,7 @@ did not properly escape the single dollar sign preventing its usage as [runtime 
     critical/config: Error: Validation failed for Object 'ping4' (Type: 'Service') at /etc/icinga2/zones.d/global-templates/windows.conf:24: Closing $ not found in macro format string 'top-syntax=${list}'.
 
 
-## <a id="troubleshooting-cluster"></a> Cluster Troubleshooting
+## <a id="troubleshooting-cluster"></a> Cluster and Clients Troubleshooting
 
 This applies to anything using the cluster protocol:
 
@@ -286,7 +302,7 @@ On SLES11 you'll need to use the `openssl1` command instead of `openssl`.
 ### <a id="troubleshooting-cluster-message-errors"></a> Cluster Troubleshooting Message Errors
 
 At some point, when the network connection is broken or gone, the Icinga 2 instances
-will be disconnected. If the connection can't be re-established between zones and endpoints,
+will be disconnected. If the connection can't be re-established between endpoints in the same HA zone,
 they remain in a Split-Brain-mode and history may differ.
 
 Although the Icinga 2 cluster protocol stores historical events in a [replay log](16-troubleshooting.md#troubleshooting-cluster-replay-log)
@@ -306,7 +322,16 @@ the following (e.g. by invoking a forced check from the web interface):
  * Referenced check plugin not found on the remote client.
  * Runtime warnings and errors, e.g. unresolved runtime macros or configuration problems.
 * Specific error messages are also populated into `UNKNOWN` check results including a detailed error message in their output.
+* Verify the `check_source` object attribute. This is populated by the node executing the check.
 * More verbose logs are found inside the [debug log](16-troubleshooting.md#troubleshooting-enable-debug-output).
+
+* Use the Icinga 2 API [event streams](9-icinga2-api.md#icinga2-api-event-streams) to receive live check result streams.
+
+Fetch all check result events matching the `event.service` name `remote-client`:
+
+    $ curl -k -s -u root:icinga -X POST 'https://localhost:5665/v1/events?queue=debugcommandendpoint&types=CheckResult&filter=match%28%22remote-client*%22,event.service%29'
+
+
 
 ### <a id="troubleshooting-cluster-config-sync"></a> Cluster Troubleshooting Config Sync
 
@@ -317,6 +342,9 @@ If the cluster zones do not sync their configuration, make sure to check the fol
 ** The other nodes receive the configuration into `/var/lib/icinga2/api/zones/`.
 * The `icinga2.log` log file in `/var/log/icinga2` will indicate whether this ApiListener
 [accepts config](13-distributed-monitoring-ha.md#zone-config-sync-permissions), or not.
+
+Verify the object's [version](6-object-types.md#object-types) attribute on all nodes to
+check whether the config update and reload was succesful or not.
 
 ### <a id="troubleshooting-cluster-check-results"></a> Cluster Troubleshooting Overdue Check Results
 

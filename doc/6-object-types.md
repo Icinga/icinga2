@@ -1,10 +1,25 @@
-# <a id="object-types"></a> Object Types
+# <a id="object-types"></a> Config Object Types
 
-This chapter provides an overview of all available object types which can be
+This chapter provides an overview of all available config object types which can be
 instantiated using the `object` keyword.
 
 Additional details on configuration and runtime attributes and their
 description are explained as well.
+
+Config objects share these runtime attributes which cannot be
+modified by the user. You can access these attributes using
+the [Icinga 2 API](9-icinga2-api.md#icinga2-api-config-objects).
+
+  Name                      |Description
+  --------------------------|--------------------------
+  version                   | Timestamp when the object was created or modified. Synced throughout cluster nodes.
+  type                      | Object type.
+  original_attributes       | Original values of object attributes modified at runtime.
+  active                    | Object is active (e.g. a service being checked).
+  paused                    | Object has been paused at runtime (e.g. [IdoMysqlConnection](6-object-types.md#objecttype-idomysqlconnection). Defaults to `false`.
+  templates                 | Templates imported on object compilation.
+  package                   | [Configuration package name](9-icinga2-api.md#icinga2-api-config-management) this object belongs to. Local configuration is set to `_etc`, runtime created objects use `_api`.
+
 
 ## <a id="objecttype-apilistener"></a> ApiListener
 
@@ -586,8 +601,8 @@ Runtime Attributes:
   last\_in\_downtime        | Boolean       | Whether the host was in a downtime when the last check occurred.
   acknowledgement           | Number        | The acknowledgement type (0 = NONE, 1 = NORMAL, 2 = STICKY).
   acknowledgement_expiry    | Number        | When the acknowledgement expires (as a UNIX timestamp; 0 = no expiry).
-  comments                  | Dictionary    | The comments for this host.
-  downtimes                 | Dictionary    | The downtimes for this host.
+  flapping_last_change      | Number        | When the last flapping change occurred (as a UNIX timestamp).
+  flapping                  | Boolean       | Whether the host is flapping between states.
   state                     | Number        | The current state (0 = UP, 1 = DOWN).
   last\_state               | Number        | The previous state (0 = UP, 1 = DOWN).
   last\_hard\_state         | Number        | The last hard state (0 = UP, 1 = DOWN).
@@ -733,26 +748,26 @@ Data Categories:
 
   Name                 | Description            | Required by
   ---------------------|------------------------|--------------------
-  DbCatConfig          | Configuration data     | Icinga Web/Reporting
-  DbCatState           | Current state data     | Icinga Web/Reporting
-  DbCatAcknowledgement | Acknowledgements       | Icinga Web/Reporting
-  DbCatComment         | Comments               | Icinga Web/Reporting
-  DbCatDowntime        | Downtimes              | Icinga Web/Reporting
-  DbCatEventHandler    | Event handler data     | Icinga Web/Reporting
-  DbCatExternalCommand | External commands      | Icinga Web/Reporting
-  DbCatFlapping        | Flap detection data    | Icinga Web/Reporting
+  DbCatConfig          | Configuration data     | Icinga Web 2
+  DbCatState           | Current state data     | Icinga Web 2
+  DbCatAcknowledgement | Acknowledgements       | Icinga Web 2
+  DbCatComment         | Comments               | Icinga Web 2
+  DbCatDowntime        | Downtimes              | Icinga Web 2
+  DbCatEventHandler    | Event handler data     | Icinga Web 2
+  DbCatExternalCommand | External commands      | Icinga Web 2
+  DbCatFlapping        | Flap detection data    | Icinga Web 2
   DbCatCheck           | Check results          | --
-  DbCatLog             | Log messages           | Icinga Web/Reporting
-  DbCatNotification    | Notifications          | Icinga Web/Reporting
-  DbCatProgramStatus   | Program status data    | Icinga Web/Reporting
-  DbCatRetention       | Retention data         | Icinga Web/Reporting
-  DbCatStateHistory    | Historical state data  | Icinga Web/Reporting
+  DbCatLog             | Log messages           | Icinga Web 2
+  DbCatNotification    | Notifications          | Icinga Web 2
+  DbCatProgramStatus   | Program status data    | Icinga Web 2
+  DbCatRetention       | Retention data         | Icinga Web 2
+  DbCatStateHistory    | Historical state data  | Icinga Web 2
 
 Multiple categories can be combined using the `|` operator. In addition to
 the category flags listed above the `DbCatEverything` flag may be used as
 a shortcut for listing all flags.
 
-External interfaces like Icinga Web require everything except `DbCatCheck`
+External interfaces like Icinga Web 2 require everything except `DbCatCheck`
 which is the default value if `categories` is not set.
 
 ## <a id="objecttype-idopgsqlconnection"></a> IdoPgSqlConnection
@@ -822,27 +837,28 @@ Data Categories:
 
   Name                 | Description            | Required by
   ---------------------|------------------------|--------------------
-  DbCatConfig          | Configuration data     | Icinga Web/Reporting
-  DbCatState           | Current state data     | Icinga Web/Reporting
-  DbCatAcknowledgement | Acknowledgements       | Icinga Web/Reporting
-  DbCatComment         | Comments               | Icinga Web/Reporting
-  DbCatDowntime        | Downtimes              | Icinga Web/Reporting
-  DbCatEventHandler    | Event handler data     | Icinga Web/Reporting
-  DbCatExternalCommand | External commands      | Icinga Web/Reporting
-  DbCatFlapping        | Flap detection data    | Icinga Web/Reporting
+  DbCatConfig          | Configuration data     | Icinga Web 2
+  DbCatState           | Current state data     | Icinga Web 2
+  DbCatAcknowledgement | Acknowledgements       | Icinga Web 2
+  DbCatComment         | Comments               | Icinga Web 2
+  DbCatDowntime        | Downtimes              | Icinga Web 2
+  DbCatEventHandler    | Event handler data     | Icinga Web 2
+  DbCatExternalCommand | External commands      | Icinga Web 2
+  DbCatFlapping        | Flap detection data    | Icinga Web 2
   DbCatCheck           | Check results          | --
-  DbCatLog             | Log messages           | Icinga Web/Reporting
-  DbCatNotification    | Notifications          | Icinga Web/Reporting
-  DbCatProgramStatus   | Program status data    | Icinga Web/Reporting
-  DbCatRetention       | Retention data         | Icinga Web/Reporting
-  DbCatStateHistory    | Historical state data  | Icinga Web/Reporting
+  DbCatLog             | Log messages           | Icinga Web 2
+  DbCatNotification    | Notifications          | Icinga Web 2
+  DbCatProgramStatus   | Program status data    | Icinga Web 2
+  DbCatRetention       | Retention data         | Icinga Web 2
+  DbCatStateHistory    | Historical state data  | Icinga Web 2
 
 Multiple categories can be combined using the `|` operator. In addition to
 the category flags listed above the `DbCatEverything` flag may be used as
 a shortcut for listing all flags.
 
-External interfaces like Icinga Web require everything except `DbCatCheck`
+External interfaces like Icinga Web 2 require everything except `DbCatCheck`
 which is the default value if `categories` is not set.
+
 
 ## <a id="objecttype-livestatuslistener"></a> LiveStatusListener
 
@@ -1200,8 +1216,8 @@ Runtime Attributes:
   last\_in\_downtime        | Boolean       | Whether the service was in a downtime when the last check occurred.
   acknowledgement           | Number        | The acknowledgement type (0 = NONE, 1 = NORMAL, 2 = STICKY).
   acknowledgement_expiry    | Number        | When the acknowledgement expires (as a UNIX timestamp; 0 = no expiry).
-  comments                  | Dictionary    | The comments for this service.
-  downtimes                 | Dictionary    | The downtimes for this service.
+  flapping_last_change      | Number        | When the last flapping change occurred (as a UNIX timestamp).
+  flapping                  | Boolean       | Whether the host is flapping between states.
   state                     | Number        | The current state (0 = OK, 1 = WARNING, 2 = CRITICAL, 3 = UNKNOWN).
   last\_state               | Number        | The previous state (0 = OK, 1 = WARNING, 2 = CRITICAL, 3 = UNKNOWN).
   last\_hard\_state         | Number        | The last hard state (0 = OK, 1 = WARNING, 2 = CRITICAL, 3 = UNKNOWN).
@@ -1439,3 +1455,53 @@ Configuration Attributes:
   endpoints       |**Optional.** Dictionary with endpoints located in this zone.
   parent          |**Optional.** The name of the parent zone.
   global          |**Optional.** Whether configuration files for this zone should be synced to all endpoints. Defaults to false.
+
+
+
+# <a id="value-types"></a> Value Types
+
+In addition to [expressions](18-language-reference.md#expressions)
+used in object attribute assignments such as
+
+* [Numeric](18-language-reference.md#numeric-literals), [duration](8-language-reference.md#duration-literals), [string](18-language-reference.md#string-literals) and [boolean](18-language-reference.md#boolean-literals) literals
+* [Array](18-language-reference.md#array)
+* [Dictionary](18-language-reference.md#dictionary)
+
+Icinga 2 uses the following value types for runtime attributes
+exposed via the [Icinga 2 API](9-icinga2-api.md#icinga2-api).
+
+## <a id="value-types-checkresult"></a> CheckResult
+
+  Name                      | Type          | Description
+  --------------------------|---------------|-----------------
+  exit_status               | Number        | The exit status returned by the check execution.
+  output                    | String        | The check output.
+  performance_data          | Array         | Array of [performance data values](6-object-types.md#value-types-perfdatavalue).
+  check_source              | String        | Name of the node executing the check.
+  state                     | Number        | The current state (0 = OK, 1 = WARNING, 2 = CRITICAL, 3 = UNKNOWN).
+  command                   | Value         | Array of command with shell-escaped arguments or command line string.
+  execution_start           | Number        | Check execution start time (as a UNIX timestamp).
+  execution_end             | Number        | Check execution end time (as a UNIX timestamp).
+  schedule_start            | Number        | Scheduled check execution start time (as a UNIX timestamp).
+  schedule_end              | Number        | Scheduled check execution end time (as a UNIX timestamp).
+  active                    | Boolean       | Whether the result is from an active or passive check.
+  vars_before               | Dictionary    | Internal attribute used for calculations.
+  vars_after                | Dictionary    | Internal attribute used for calculations.
+
+## <a id="value-types-perfdatavalue"></a> PerfdataValue
+
+Icinga 2 parses performance data strings and exposes
+the object to external interfaces (e.g. [GraphiteWriter](6-object-types.md#objecttype-graphitewriter) or the [Icinga 2 API](9-icinga2-api.md#icinga2-api)).
+
+  Name                      | Type          | Description
+  --------------------------|---------------|-----------------
+  label                     | String        | Performance data label.
+  value                     | Number        | Normalized performance data value without unit.
+  counter                   | Boolean       | Enabled if the original value contains `c` as unit. Defaults to `false`.
+  unit                      | String        | Unit of measurement (`seconds`, `bytes`. `percent`) according to the [plugin API](14-addons-plugins.md#plugin-api).
+  crit                      | Value         | Critical threshold value.
+  warn                      | Value         | Warning threshold value.
+  min                       | Value         | Minimum value returned by the check.
+  max                       | Value         | Maximum value returned by the check.
+
+
