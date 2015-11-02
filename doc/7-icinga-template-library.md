@@ -295,6 +295,22 @@ dummy_state     | **Optional.** The state. Can be one of 0 (ok), 1 (warning), 2 
 dummy_text      | **Optional.** Plugin output. Defaults to "Check was successful.".
 
 
+### <a id="plugin-check-command-file-age"></a> file_age
+
+Check command object for the `check_file_age` plugin.
+
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
+
+Name                   | Description
+-----------------------|--------------------------------------------------------------------------------------------------------
+file_age_file          | **Required.** File to monitor.
+file_age_warning_time  | **Optional.** File must be no more than this many seconds old as warning threshold. Defaults to "240s".
+file_age_critical_time | **Optional.** File must be no more than this many seconds old as critical threshold. Defaults to "600s".
+file_age_warning_size  | **Optional.** File must be at least this many bytes long as warning threshold. No default given.
+file_age_critical_size | **Optional.** File must be at least this many bytes long as critical threshold. Defaults to "0B".
+file_age_ignoremissing | **Optional.** Return OK if the file does not exist. Defaults to false.
+
+
 ### <a id="plugin-check-command-fping4"></a> fping4
 
 Check command object for the `check_fping` plugin.
@@ -541,7 +557,7 @@ imap_ipv6             | **Optional.** Use IPv6 connection. Defaults to false.
 
 ### <a id="plugin-check-command-ldap"></a> ldap
 
-Check command object for the `check_ldap` plugin.
+Check command object for the `check_ldap` plugin. Use the plugin also for monitoring ldaps connections instead of the deprecated `check_ldaps`.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
