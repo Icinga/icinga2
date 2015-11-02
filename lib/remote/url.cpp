@@ -177,12 +177,14 @@ void Url::SetScheme(const String& scheme)
 	m_Scheme = scheme;
 }
 
-void Url::SetAuthority(const String& username, const String& password, const String& host, const String& port)
+void Url::SetUsername(const String& username)
 {
 	m_Username = username;
+}
+
+void Url::SetPassword(const String& password)
+{
 	m_Password = password;
-	m_Host = host;
-	m_Port = port;
 }
 
 void Url::SetHost(const String& host)

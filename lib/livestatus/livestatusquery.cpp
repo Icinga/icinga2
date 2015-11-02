@@ -31,7 +31,6 @@
 #include "livestatus/orfilter.hpp"
 #include "livestatus/andfilter.hpp"
 #include "icinga/externalcommandprocessor.hpp"
-#include "config/configcompiler.hpp"
 #include "base/debug.hpp"
 #include "base/convert.hpp"
 #include "base/objectlock.hpp"
@@ -52,36 +51,6 @@ using namespace icinga;
 
 static int l_ExternalCommands = 0;
 static boost::mutex l_QueryMutex;
-static std::map<String, LivestatusScriptFrame> l_LivestatusScriptFrames;
-static Timer::Ptr l_FrameCleanupTimer;
-static boost::mutex l_LivestatusScriptMutex;
-
-static void ScriptFrameCleanupHandler(void)
-{
-	boost::mutex::scoped_lock lock(l_LivestatusScriptMutex);
-
-	std::vector<String> cleanup_keys;
-
-	typedef std::pair<String, LivestatusScriptFrame> KVPair;
-
-	BOOST_FOREACH(const KVPair& kv, l_LivestatusScriptFrames) {
-		if (kv.second.Seen < Utility::GetTime() - 1800)
-			cleanup_keys.push_back(kv.first);
-	}
-
-	BOOST_FOREACH(const String& key, cleanup_keys)
-		l_LivestatusScriptFrames.erase(key);
-}
-
-static void InitScriptFrameCleanup(void)
-{
-	l_FrameCleanupTimer = new Timer();
-	l_FrameCleanupTimer->OnTimerExpired.connect(boost::bind(ScriptFrameCleanupHandler));
-	l_FrameCleanupTimer->SetInterval(30);
-	l_FrameCleanupTimer->Start();
-}
-
-INITIALIZE_ONCE(InitScriptFrameCleanup);
 
 LivestatusQuery::LivestatusQuery(const std::vector<String>& lines, const String& compat_log_path)
 	: m_KeepAlive(false), m_OutputFormat("csv"), m_ColumnHeaders(true), m_Limit(-1), m_ErrorCode(0),
@@ -123,16 +92,6 @@ LivestatusQuery::LivestatusQuery(const std::vector<String>& lines, const String&
 	if (m_Verb == "COMMAND") {
 		m_KeepAlive = true;
 		m_Command = target;
-	} else if (m_Verb == "SCRIPT") {
-		m_Session = target;
-
-		for (unsigned int i = 1; i < lines.size(); i++) {
-			if (m_Command != "")
-				m_Command += "\n";
-			m_Command += lines[i];
-		}
-
-		return;
 	} else if (m_Verb == "GET") {
 		m_Table = target;
 	} else {
@@ -625,54 +584,6 @@ void LivestatusQuery::ExecuteCommandHelper(const Stream::Ptr& stream)
 	SendResponse(stream, LivestatusErrorOK, "");
 }
 
-void LivestatusQuery::ExecuteScriptHelper(const Stream::Ptr& stream)
-{
-	Log(LogInformation, "LivestatusQuery")
-	    << "Executing expression: " << m_Command;
-
-	m_ResponseHeader = "fixed16";
-
-	LivestatusScriptFrame& lsf = l_LivestatusScriptFrames[m_Session];
-	lsf.Seen = Utility::GetTime();
-
-	if (!lsf.Locals)
-		lsf.Locals = new Dictionary();
-
-	String fileName = "<" + Convert::ToString(lsf.NextLine) + ">";
-	lsf.NextLine++;
-
-	lsf.Lines[fileName] = m_Command;
-
-	Expression *expr = NULL;
-	Value result;
-	try {
-		expr = ConfigCompiler::CompileText(fileName, m_Command);
-		ScriptFrame frame;
-		frame.Locals = lsf.Locals;
-		frame.Self = lsf.Locals;
-		result = expr->Evaluate(frame);
-	} catch (const ScriptError& ex) {
-		delete expr;
-
-		DebugInfo di = ex.GetDebugInfo();
-
-		std::ostringstream msgbuf;
-
-		msgbuf << di.Path << ": " << lsf.Lines[di.Path] << "\n"
-		    << String(di.Path.GetLength() + 2, ' ')
-		    << String(di.FirstColumn, ' ') << String(di.LastColumn - di.FirstColumn + 1, '^') << "\n"
-		    << ex.what() << "\n";
-
-		SendResponse(stream, LivestatusErrorQuery, msgbuf.str());
-		return;
-	} catch (...) {
-		delete expr;
-		throw;
-	}
-	delete expr;
-	SendResponse(stream, LivestatusErrorOK, JsonEncode(Serialize(result, FAEphemeral | FAState | FAConfig), true));
-}
-
 void LivestatusQuery::ExecuteErrorHelper(const Stream::Ptr& stream)
 {
 	Log(LogDebug, "LivestatusQuery")
@@ -720,8 +631,6 @@ bool LivestatusQuery::Execute(const Stream::Ptr& stream)
 			ExecuteGetHelper(stream);
 		else if (m_Verb == "COMMAND")
 			ExecuteCommandHelper(stream);
-		else if (m_Verb == "SCRIPT")
-			ExecuteScriptHelper(stream);
 		else if (m_Verb == "ERROR")
 			ExecuteErrorHelper(stream);
 		else

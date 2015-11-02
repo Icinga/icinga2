@@ -21,10 +21,10 @@ mkclass_target(endpoint.ti endpoint.tcpp endpoint.thpp)
 mkclass_target(zone.ti zone.tcpp zone.thpp)
 
 set(remote_SOURCES
-  actionshandler.cpp apiaction.cpp
+  actionshandler.cpp apiaction.cpp apiclient.cpp
   apifunction.cpp apilistener.cpp apilistener.thpp apilistener-configsync.cpp
   apilistener-filesync.cpp apiuser.cpp apiuser.thpp authority.cpp base64.cpp
-  configfileshandler.cpp configpackageshandler.cpp configpackageutility.cpp configobjectutility.cpp
+  consolehandler.cpp configfileshandler.cpp configpackageshandler.cpp configpackageutility.cpp configobjectutility.cpp
   configstageshandler.cpp createobjecthandler.cpp deleteobjecthandler.cpp
   endpoint.cpp endpoint.thpp eventshandler.cpp eventqueue.cpp filterutility.cpp
   httpchunkedencoding.cpp httpclientconnection.cpp httpserverconnection.cpp httphandler.cpp httprequest.cpp httpresponse.cpp

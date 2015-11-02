@@ -17,38 +17,44 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef MAINFORM_H
-#define MAINFORM_H
+#ifndef CONSOLEHANDLER_H
+#define CONSOLEHANDLER_H
 
-#include "remote/apiclient.hpp"
-#include "remote/url.hpp"
-#include "base/exception.hpp"
-#include "icinga-studio/forms.h"
+#include "remote/httphandler.hpp"
+#include "base/scriptframe.hpp"
 
 namespace icinga
 {
 
-class MainForm : public MainFormBase
+struct I2_REMOTE_API ApiScriptFrame
+{
+	double Seen;
+	int NextLine;
+	std::map<String, String> Lines;
+	Dictionary::Ptr Locals;
+
+	ApiScriptFrame(void)
+		: Seen(0), NextLine(1)
+	{ }
+};
+
+class I2_REMOTE_API ConsoleHandler : public HttpHandler
 {
 public:
-	MainForm(wxWindow *parent, const Url::Ptr& url);
+	DECLARE_PTR_TYPEDEFS(ConsoleHandler);
 
-	virtual void OnQuitClicked(wxCommandEvent& event) override;
-	virtual void OnAboutClicked(wxCommandEvent& event) override;
-	virtual void OnTypeSelected(wxTreeEvent& event) override;
-	virtual void OnObjectSelected(wxListEvent& event) override;
+	virtual bool HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response) override;
+
+	static std::vector<String> GetAutocompletionSuggestions(const String& word, ScriptFrame& frame);
 
 private:
-	ApiClient::Ptr m_ApiClient;
-	std::map<String, ApiType::Ptr> m_Types;
+	static bool ExecuteScriptHelper(HttpRequest& request, HttpResponse& response,
+	    const String& command, const String& session, bool sandboxed);
+	static bool AutocompleteScriptHelper(HttpRequest& request, HttpResponse& response,
+	    const String& command, const String& session, bool sandboxed);
 
-	void TypesCompletionHandler(boost::exception_ptr eptr, const std::vector<ApiType::Ptr>& types, bool forward);
-	void ObjectsCompletionHandler(boost::exception_ptr eptr, const std::vector<ApiObject::Ptr>& objects, bool forward);
-	void ObjectDetailsCompletionHandler(boost::exception_ptr eptr, const std::vector<ApiObject::Ptr>& objects, bool forward);
-
-	wxPGProperty *ValueToProperty(const String& name, const Value& value);
 };
 
 }
 
-#endif /* MAINFORM_H */
+#endif /* CONSOLEHANDLER_H */

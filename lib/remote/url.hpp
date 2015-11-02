@@ -59,12 +59,13 @@ public:
 	String GetFragment(void) const;
 
 	void SetScheme(const String& scheme);
-	void SetAuthority(const String& username, const String& password, 
-	    const String& host, const String& port);
+	void SetUsername(const String& username);
+	void SetPassword(const String& password);
 	void SetHost(const String& host);
 	void SetPort(const String& port);
 	void SetPath(const std::vector<String>& path);
 	void SetQuery(const std::map<String, std::vector<String> >& query);
+
 	void AddQueryElement(const String& name, const String& query);
 	void SetQueryElements(const String& name, const std::vector<String>& query);
 	void SetFragment(const String& fragment);

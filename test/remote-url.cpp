@@ -47,7 +47,10 @@ BOOST_AUTO_TEST_CASE(get_and_set)
 {
 	Url::Ptr url = new Url();
 	url->SetScheme("ftp");
-	url->SetAuthority("Horst", "Seehofer", "koenigreich.bayern", "1918");
+	url->SetUsername("Horst");
+	url->SetPassword("Seehofer");
+	url->SetHost("koenigreich.bayern");
+	url->SetPort("1918");
 	std::vector<String> p = boost::assign::list_of("path")("to")("münchen");
 	url->SetPath(p);
 	BOOST_CHECK(url->Format(true) == "ftp://Horst:Seehofer@koenigreich.bayern:1918/path/to/m%C3%BCnchen");

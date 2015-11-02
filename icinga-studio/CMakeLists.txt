@@ -27,7 +27,7 @@ endif()
 
 add_executable(icinga-studio MACOSX_BUNDLE WIN32 icinga-studio.cpp
   forms.cpp aboutform.cpp connectform.cpp mainform.cpp
-  icinga.icns apiclient.cpp ${WindowsSources})
+  icinga.icns ${WindowsSources})
 
 include_directories(${Boost_INCLUDE_DIRS})
 target_link_libraries(icinga-studio ${Boost_LIBRARIES} ${wxWidgets_LIBRARIES} base remote)

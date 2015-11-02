@@ -21,6 +21,7 @@
 #define CONSOLECOMMAND_H
 
 #include "cli/clicommand.hpp"
+#include "base/exception.hpp"
 
 namespace icinga
 {
@@ -41,6 +42,22 @@ public:
 	virtual void InitParameters(boost::program_options::options_description& visibleDesc,
 	    boost::program_options::options_description& hiddenDesc) const override;
 	virtual int Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const override;
+
+private:
+	mutable boost::mutex m_Mutex;
+	mutable boost::condition_variable m_CV;
+	mutable bool m_CommandReady;
+
+	static void ExecuteScriptCompletionHandler(boost::mutex& mutex, boost::condition_variable& cv,
+	    bool& ready, boost::exception_ptr eptr, const Value& result, Value& resultOut,
+	    boost::exception_ptr& eptrOut);
+	static void AutocompleteScriptCompletionHandler(boost::mutex& mutex, boost::condition_variable& cv,
+	    bool& ready, boost::exception_ptr eptr, const Array::Ptr& result, Array::Ptr& resultOut);
+
+#ifdef HAVE_EDITLINE
+	static char *ConsoleCompleteHelper(const char *word, int state);
+#endif /* HAVE_EDITLINE */
+
 };
 
 }

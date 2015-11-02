@@ -142,7 +142,6 @@ void MainForm::ObjectsCompletionHandler(boost::exception_ptr eptr, const std::ve
 	m_PropertyGrid->Clear();
 
 	if (eptr) {
-
 		try {
 			boost::rethrow_exception(eptr);
 		} catch (const std::exception& ex) {

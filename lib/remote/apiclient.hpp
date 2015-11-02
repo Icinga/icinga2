@@ -96,6 +96,14 @@ public:
 	    const std::vector<String>& names = std::vector<String>(),
 	    const std::vector<String>& attrs = std::vector<String>()) const;
 
+	typedef boost::function<void(boost::exception_ptr, const Value&)> ExecuteScriptCompletionCallback;
+	void ExecuteScript(const String& session, const String& command, bool sandboxed,
+	    const ExecuteScriptCompletionCallback& callback) const;
+	
+	typedef boost::function<void(boost::exception_ptr, const Array::Ptr&)> AutocompleteScriptCompletionCallback;
+	void AutocompleteScript(const String& session, const String& command, bool sandboxed,
+	    const AutocompleteScriptCompletionCallback& callback) const;
+
 private:
 	HttpClientConnection::Ptr m_Connection;
 	String m_User;
@@ -105,6 +113,10 @@ private:
 	    HttpResponse& response, const TypesCompletionCallback& callback);
 	static void ObjectsHttpCompletionCallback(HttpRequest& request,
 	    HttpResponse& response, const ObjectsCompletionCallback& callback);
+	static void ExecuteScriptHttpCompletionCallback(HttpRequest& request,
+	    HttpResponse& response, const ExecuteScriptCompletionCallback& callback);
+	static void AutocompleteScriptHttpCompletionCallback(HttpRequest& request,
+	    HttpResponse& response, const AutocompleteScriptCompletionCallback& callback);
 };
 
 }

@@ -19,7 +19,11 @@
 
 #include "cli/consolecommand.hpp"
 #include "config/configcompiler.hpp"
+#include "remote/apiclient.hpp"
+#include "remote/consolehandler.hpp"
+#include "remote/url.hpp"
 #include "base/configwriter.hpp"
+#include "base/serializer.hpp"
 #include "base/json.hpp"
 #include "base/console.hpp"
 #include "base/application.hpp"
@@ -37,6 +41,8 @@ using namespace icinga;
 namespace po = boost::program_options;
 
 static ScriptFrame *l_ScriptFrame;
+static ApiClient::Ptr l_ApiClient;
+static String l_Session;
 
 REGISTER_CLICOMMAND("console", ConsoleCommand);
 
@@ -60,89 +66,41 @@ void ConsoleCommand::InitParameters(boost::program_options::options_description&
 {
 	visibleDesc.add_options()
 		("connect,c", po::value<std::string>(), "connect to an Icinga 2 instance")
+		("eval,e", po::value<std::string>(), "evaluate expression and terminate")
 		("sandbox", "enable sandbox mode")
 	;
 }
 
 #ifdef HAVE_EDITLINE
-static void AddSuggestion(std::vector<String>& matches, const String& word, const String& suggestion)
-{
-	if (suggestion.Find(word) != 0)
-		return;
-
-	matches.push_back(suggestion);
-}
-
-static char *ConsoleCompleteHelper(const char *word, int state)
+char *ConsoleCommand::ConsoleCompleteHelper(const char *word, int state)
 {
 	static std::vector<String> matches;
-	String aword = word;
 
 	if (state == 0) {
-		matches.clear();
+		if (!l_ApiClient)
+			matches = ConsoleHandler::GetAutocompletionSuggestions(word, *l_ScriptFrame); 
+		else {
+			boost::mutex mutex;
+			boost::condition_variable cv;
+			bool ready = false;
+			Array::Ptr suggestions;
 
-		BOOST_FOREACH(const String& keyword, ConfigWriter::GetKeywords()) {
-			AddSuggestion(matches, word, keyword);
-		}
+			l_ApiClient->AutocompleteScript(l_Session, word, l_ScriptFrame->Sandboxed,
+			    boost::bind(&ConsoleCommand::AutocompleteScriptCompletionHandler,
+			    boost::ref(mutex), boost::ref(cv), boost::ref(ready),
+			    _1, _2,
+			    boost::ref(suggestions)));
 
-		{
-			ObjectLock olock(l_ScriptFrame->Locals);
-			BOOST_FOREACH(const Dictionary::Pair& kv, l_ScriptFrame->Locals) {
-				AddSuggestion(matches, word, kv.first);
+			{
+				boost::mutex::scoped_lock lock(mutex);
+				while (!ready)
+					cv.wait(lock);
 			}
-		}
 
-		{
-			ObjectLock olock(ScriptGlobal::GetGlobals());
-			BOOST_FOREACH(const Dictionary::Pair& kv, ScriptGlobal::GetGlobals()) {
-				AddSuggestion(matches, word, kv.first);
-			}
-		}
+			matches.clear();
 
-		String::SizeType cperiod = aword.RFind(".");
-
-		if (cperiod != -1) {
-			String pword = aword.SubStr(0, cperiod);
-
-			Value value;
-
-			try {
-				Expression *expr = ConfigCompiler::CompileText("temp", pword);
-
-				if (expr)
-					value = expr->Evaluate(*l_ScriptFrame);
-
-				if (value.IsObjectType<Dictionary>()) {
-					Dictionary::Ptr dict = value;
-
-					ObjectLock olock(dict);
-					BOOST_FOREACH(const Dictionary::Pair& kv, dict) {
-						AddSuggestion(matches, word, pword + "." + kv.first);
-					}
-				}
-
-				Type::Ptr type = value.GetReflectionType();
-
-				for (int i = 0; i < type->GetFieldCount(); i++) {
-					Field field = type->GetFieldInfo(i);
-
-					AddSuggestion(matches, word, pword + "." + field.Name);
-				}
-
-				while (type) {
-					Object::Ptr prototype = type->GetPrototype();
-					Dictionary::Ptr dict = dynamic_pointer_cast<Dictionary>(prototype);
-
-					if (dict) {
-						ObjectLock olock(dict);
-						BOOST_FOREACH(const Dictionary::Pair& kv, dict) {
-							AddSuggestion(matches, word, pword + "." + kv.first);
-						}
-					}
-
-					type = type->GetBaseType();
-				}
-			} catch (...) { /* Ignore the exception */ }
+			ObjectLock olock(suggestions);
+			std::copy(suggestions->Begin(), suggestions->End(), std::back_inserter(matches));
 		}
 	}
 
@@ -164,30 +122,53 @@ int ConsoleCommand::Run(const po::variables_map& vm, const std::vector<std::stri
 	int next_line = 1;
 
 #ifdef HAVE_EDITLINE
-	rl_completion_entry_function = ConsoleCompleteHelper;
+	rl_completion_entry_function = ConsoleCommand::ConsoleCompleteHelper;
 	rl_completion_append_character = '\0';
 #endif /* HAVE_EDITLINE */
 
-	String addr, session;
+	String addr;
 	ScriptFrame scriptFrame;
 
 	l_ScriptFrame = &scriptFrame;
+	l_Session = Utility::NewUniqueID();
+
+	if (vm.count("sandbox"))
+		scriptFrame.Sandboxed = true;
+
+	if (!vm.count("eval"))
+		std::cout << "Icinga 2 (version: " << Application::GetAppVersion() << ")\n";
+
+	const char *addrEnv = getenv("ICINGA2_API_URL");
+	if (addrEnv)
+		addr = addrEnv;
 
 	if (vm.count("connect")) {
 		addr = vm["connect"].as<std::string>();
-		session = Utility::NewUniqueID();
 	}
 
-	if (vm.count("sandbox")) {
-		if (vm.count("connect")) {
-			Log(LogCritical, "ConsoleCommand", "Sandbox mode cannot be used together with --connect.");
+	if (!addr.IsEmpty()) {
+		Url::Ptr url;
+
+		try {
+			url = new Url(addr);
+		} catch (const std::exception& ex) {
+			Log(LogCritical, "ConsoleCommand", ex.what());
 			return EXIT_FAILURE;
 		}
 
-		scriptFrame.Sandboxed = true;
-	}
+		const char *usernameEnv = getenv("ICINGA2_API_USERNAME");
+		const char *passwordEnv = getenv("ICINGA2_API_PASSWORD");
 
-	std::cout << "Icinga (version: " << Application::GetAppVersion() << ")\n";
+		if (usernameEnv)
+			url->SetUsername(usernameEnv);
+		if (passwordEnv)
+			url->SetPassword(passwordEnv);
+
+		if (url->GetPort().IsEmpty())
+			url->SetPort("5665");
+
+		l_ApiClient = new ApiClient(url->GetHost(), url->GetPort(), url->GetUsername(), url->GetPassword());
+	}
 
 	while (std::cin.good()) {
 		String fileName = "<" + Convert::ToString(next_line) + ">";
@@ -197,148 +178,191 @@ int ConsoleCommand::Run(const po::variables_map& vm, const std::vector<std::stri
 		std::string command;
 
 incomplete:
-#ifdef HAVE_EDITLINE
-		std::ostringstream promptbuf;
-		std::ostream& os = promptbuf;
-#else /* HAVE_EDITLINE */
-		std::ostream& os = std::cout;
-#endif /* HAVE_EDITLINE */
-
-		os << fileName;
-
-		if (!continuation)
-			os << " => ";
-		else
-			os << " .. ";
-
-#ifdef HAVE_EDITLINE
-		String prompt = promptbuf.str();
-
-		char *cline;
-		cline = readline(prompt.CStr());
-
-		if (!cline)
-			break;
-
-		add_history(cline);
-
-		std::string line = cline;
-
-		free(cline);
-#else /* HAVE_EDITLINE */
 		std::string line;
-		std::getline(std::cin, line);
+
+		if (!vm.count("eval")) {
+#ifdef HAVE_EDITLINE
+			std::ostringstream promptbuf;
+			std::ostream& os = promptbuf;
+#else /* HAVE_EDITLINE */
+			std::ostream& os = std::cout;
 #endif /* HAVE_EDITLINE */
+
+			os << fileName;
+
+			if (!continuation)
+				os << " => ";
+			else
+				os << " .. ";
+
+#ifdef HAVE_EDITLINE
+			String prompt = promptbuf.str();
+
+			char *cline;
+			cline = readline(prompt.CStr());
+
+			if (!cline)
+				break;
+
+			add_history(cline);
+
+			line = cline;
+
+			free(cline);
+#else /* HAVE_EDITLINE */
+			std::getline(std::cin, line);
+#endif /* HAVE_EDITLINE */
+		} else
+			line = vm["eval"].as<std::string>();
 
 		if (!command.empty())
 			command += "\n";
 
 		command += line;
 
-		if (addr.IsEmpty()) {
-			Expression *expr = NULL;
+		Expression *expr = NULL;
 
-			try {
-				lines[fileName] = command;
+		try {
+			lines[fileName] = command;
 
+			Value result;
+
+			if (!l_ApiClient) {
 				expr = ConfigCompiler::CompileText(fileName, command);
-
-				if (expr) {
-					Value result = expr->Evaluate(scriptFrame);
-					std::cout << ConsoleColorTag(Console_ForegroundCyan);
-					if (!result.IsObject() || result.IsObjectType<Array>() || result.IsObjectType<Dictionary>())
-						std::cout << JsonEncode(result);
-					else
-						std::cout << result;
-					std::cout << ConsoleColorTag(Console_Normal) << "\n";
-				}
-			} catch (const ScriptError& ex) {
-				if (ex.IsIncompleteExpression()) {
-					continuation = true;
-					goto incomplete;
-				}
-
-				DebugInfo di = ex.GetDebugInfo();
-
-				if (lines.find(di.Path) != lines.end()) {
-					String text = lines[di.Path];
-
-					std::vector<String> ulines;
-					boost::algorithm::split(ulines, text, boost::is_any_of("\n"));
-
-					for (int i = 1; i <= ulines.size(); i++) {
-						int start, len;
-
-						if (i == di.FirstLine)
-							start = di.FirstColumn;
-						else
-							start = 0;
-
-						if (i == di.LastLine)
-							len = di.LastColumn - di.FirstColumn + 1;
-						else
-							len = ulines[i - 1].GetLength();
-
-						int offset;
-
-						if (di.Path != fileName) {
-							std::cout << di.Path << ": " << ulines[i - 1] << "\n";
-							offset = 2;
-						} else
-							offset = 4;
-
-						if (i >= di.FirstLine && i <= di.LastLine) {
-							std::cout << String(di.Path.GetLength() + offset, ' ');
-							std::cout << String(start, ' ') << String(len, '^') << "\n";
-						}
-					}
-				} else {
-					ShowCodeFragment(std::cout, di);
-				}
-
-				std::cout << ex.what() << "\n";
-			} catch (const std::exception& ex) {
-				std::cout << "Error: " << DiagnosticInformation(ex) << "\n";
-			}
-
-			delete expr;
-		} else {
-			Socket::Ptr socket;
-
-#ifndef _WIN32
-			if (addr.FindFirstOf("/") != String::NPos) {
-				UnixSocket::Ptr usocket = new UnixSocket();
-				usocket->Connect(addr);
-				socket = usocket;
+				result = Serialize(expr->Evaluate(scriptFrame), 0);
 			} else {
-#endif /* _WIN32 */
-				Log(LogCritical, "ConsoleCommand", "Sorry, TCP sockets aren't supported yet.");
-				return 1;
-#ifndef _WIN32
-			}
-#endif /* _WIN32 */
+				boost::mutex mutex;
+				boost::condition_variable cv;
+				bool ready = false;
+				boost::exception_ptr eptr;
 
-			String query = "SCRIPT " + session + "\n" + line + "\n\n";
+				l_ApiClient->ExecuteScript(l_Session, command, scriptFrame.Sandboxed,
+				    boost::bind(&ConsoleCommand::ExecuteScriptCompletionHandler,
+				    boost::ref(mutex), boost::ref(cv), boost::ref(ready),
+				    _1, _2,
+				    boost::ref(result), boost::ref(eptr)));
 
-			NetworkStream::Ptr ns = new NetworkStream(socket);
-			ns->Write(query.CStr(), query.GetLength());
+				{
+					boost::mutex::scoped_lock lock(mutex);
+					while (!ready)
+						cv.wait(lock);
+				}
 
-			String result;
-			char buf[1024];
-
-			while (!ns->IsEof()) {
-				size_t rc = ns->Read(buf, sizeof(buf), true);
-				result += String(buf, buf + rc);
-			}
-
-			if (result.GetLength() < 16) {
-				Log(LogCritical, "ConsoleCommand", "Received invalid response from Livestatus.");
-				continue;
+				if (eptr)
+					boost::rethrow_exception(eptr);
 			}
 
-			std::cout << result.SubStr(16) << "\n";
+			if (!vm.count("eval")) {
+				std::cout << ConsoleColorTag(Console_ForegroundCyan);
+				ConfigWriter::EmitValue(std::cout, 1, result);
+				std::cout << ConsoleColorTag(Console_Normal) << "\n";
+			} else {
+				std::cout << JsonEncode(result) << "\n";
+				break;
+			}
+		} catch (const ScriptError& ex) {
+			if (ex.IsIncompleteExpression()) {
+				continuation = true;
+				goto incomplete;
+			}
+
+			DebugInfo di = ex.GetDebugInfo();
+
+			if (lines.find(di.Path) != lines.end()) {
+				String text = lines[di.Path];
+
+				std::vector<String> ulines;
+				boost::algorithm::split(ulines, text, boost::is_any_of("\n"));
+
+				for (int i = 1; i <= ulines.size(); i++) {
+					int start, len;
+
+					if (i == di.FirstLine)
+						start = di.FirstColumn;
+					else
+						start = 0;
+
+					if (i == di.LastLine)
+						len = di.LastColumn - di.FirstColumn + 1;
+					else
+						len = ulines[i - 1].GetLength();
+
+					int offset;
+
+					if (di.Path != fileName) {
+						std::cout << di.Path << ": " << ulines[i - 1] << "\n";
+						offset = 2;
+					} else
+						offset = 4;
+
+					if (i >= di.FirstLine && i <= di.LastLine) {
+						std::cout << String(di.Path.GetLength() + offset, ' ');
+						std::cout << String(start, ' ') << String(len, '^') << "\n";
+					}
+				}
+			} else {
+				ShowCodeFragment(std::cout, di);
+			}
+
+			std::cout << ex.what() << "\n";
+
+			if (vm.count("eval"))
+				return EXIT_FAILURE;
+		} catch (const std::exception& ex) {
+			std::cout << "Error: " << DiagnosticInformation(ex) << "\n";
+
+			if (vm.count("eval"))
+				return EXIT_FAILURE;
+		}
+
+		delete expr;
+	}
+
+	return EXIT_SUCCESS;
+}
+
+void ConsoleCommand::ExecuteScriptCompletionHandler(boost::mutex& mutex, boost::condition_variable& cv,
+    bool& ready, boost::exception_ptr eptr, const Value& result, Value& resultOut, boost::exception_ptr& eptrOut)
+{
+	if (eptr) {
+		try {
+			boost::rethrow_exception(eptr);
+		} catch (const ScriptError& ex) {
+			eptrOut = boost::current_exception();
+		} catch (const std::exception& ex) {
+			Log(LogCritical, "ConsoleCommand")
+			    << "HTTP query failed: " << ex.what();
+			Application::Exit(EXIT_FAILURE);
 		}
 	}
 
-	return 0;
+	resultOut = result;
+
+	{
+		boost::mutex::scoped_lock lock(mutex);
+		ready = true;
+		cv.notify_all();
+	}
+}
+
+void ConsoleCommand::AutocompleteScriptCompletionHandler(boost::mutex& mutex, boost::condition_variable& cv,
+    bool& ready, boost::exception_ptr eptr, const Array::Ptr& result, Array::Ptr& resultOut)
+{
+	if (eptr) {
+		try {
+			boost::rethrow_exception(eptr);
+		} catch (const std::exception& ex) {
+			Log(LogCritical, "ConsoleCommand")
+			    << "HTTP query failed: " << ex.what();
+			Application::Exit(EXIT_FAILURE);
+		}
+	}
+
+	resultOut = result;
+
+	{
+		boost::mutex::scoped_lock lock(mutex);
+		ready = true;
+		cv.notify_all();
+	}
 }

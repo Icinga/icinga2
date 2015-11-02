@@ -63,7 +63,7 @@ static Object::Ptr SerializeObject(const Object::Ptr& input, int attributeTypes)
 	for (int i = 0; i < type->GetFieldCount(); i++) {
 		Field field = type->GetFieldInfo(i);
 
-		if ((field.Attributes & attributeTypes) == 0)
+		if (attributeTypes != 0 && (field.Attributes & attributeTypes) == 0)
 			continue;
 
 		fields->Set(field.Name, Serialize(input->GetField(i), attributeTypes));

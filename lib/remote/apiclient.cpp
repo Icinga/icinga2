@@ -17,7 +17,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "icinga-studio/apiclient.hpp"
+#include "remote/apiclient.hpp"
 #include "remote/base64.hpp"
 #include "base/json.hpp"
 #include "base/logger.hpp"
@@ -116,7 +116,6 @@ void ApiClient::GetObjects(const String& pluralType, const ObjectsCompletionCall
 	path.push_back("objects");
 	path.push_back(pluralType);
 	url->SetPath(path);
-	String qp;
 
 	std::map<String, std::vector<String> > params;
 
@@ -204,5 +203,161 @@ void ApiClient::ObjectsHttpCompletionCallback(HttpRequest& request,
 		Log(LogCritical, "ApiClient")
 			<< "Error while decoding response: " << DiagnosticInformation(ex);
 		callback(boost::current_exception(), std::vector<ApiObject::Ptr>());
+	}
+}
+
+void ApiClient::ExecuteScript(const String& session, const String& command, bool sandboxed,
+    const ExecuteScriptCompletionCallback& callback) const
+{
+	Url::Ptr url = new Url();
+	url->SetScheme("https");
+	url->SetHost(m_Connection->GetHost());
+	url->SetPort(m_Connection->GetPort());
+
+	std::vector<String> path;
+	path.push_back("v1");
+	path.push_back("console");
+	path.push_back("execute-script");
+	url->SetPath(path);
+
+	std::map<String, std::vector<String> > params;
+	params["session"].push_back(session);
+	params["command"].push_back(command);
+	params["sandboxed"].push_back(sandboxed ? "1" : "0");
+	url->SetQuery(params);
+
+	try {
+		boost::shared_ptr<HttpRequest> req = m_Connection->NewRequest();
+		req->RequestMethod = "POST";
+		req->RequestUrl = url;
+		req->AddHeader("Authorization", "Basic " + Base64::Encode(m_User + ":" + m_Password));
+		m_Connection->SubmitRequest(req, boost::bind(ExecuteScriptHttpCompletionCallback, _1, _2, callback));
+	} catch (const std::exception& ex) {
+		callback(boost::current_exception(), Empty);
+	}
+}
+
+void ApiClient::ExecuteScriptHttpCompletionCallback(HttpRequest& request,
+    HttpResponse& response, const ExecuteScriptCompletionCallback& callback)
+{
+	Dictionary::Ptr result;
+
+	String body;
+	char buffer[1024];
+	size_t count;
+
+	while ((count = response.ReadBody(buffer, sizeof(buffer))) > 0)
+		body += String(buffer, buffer + count);
+
+	try {
+		if (response.StatusCode < 200 || response.StatusCode > 299) {
+			std::string message = "HTTP request failed; Code: " + Convert::ToString(response.StatusCode) + "; Body: " + body;
+
+			BOOST_THROW_EXCEPTION(ScriptError(message));
+		}
+
+		result = JsonDecode(body);
+
+		Array::Ptr results = result->Get("results");
+		Value result;
+		bool incompleteExpression = false;
+		String errorMessage = "Unexpected result from API.";
+
+		if (results && results->GetLength() > 0) {
+			Dictionary::Ptr resultInfo = results->Get(0);
+			errorMessage = resultInfo->Get("status");
+
+			if (resultInfo->Get("code") >= 200 && resultInfo->Get("code") <= 299) {
+				result = resultInfo->Get("result");
+			} else {
+				DebugInfo di;
+				Dictionary::Ptr debugInfo = resultInfo->Get("debug_info");
+				if (debugInfo) {
+					di.Path = debugInfo->Get("path");
+					di.FirstLine = debugInfo->Get("first_line");
+					di.FirstColumn = debugInfo->Get("first_column");
+					di.LastLine = debugInfo->Get("last_line");
+					di.LastColumn = debugInfo->Get("last_column");
+				}
+				bool incompleteExpression = resultInfo->Get("incomplete_expression");
+				BOOST_THROW_EXCEPTION(ScriptError(errorMessage, di, incompleteExpression));
+			}
+		}
+
+		callback(boost::exception_ptr(), result);
+	} catch (const std::exception& ex) {
+		callback(boost::current_exception(), Empty);
+	}
+}
+
+void ApiClient::AutocompleteScript(const String& session, const String& command, bool sandboxed,
+    const AutocompleteScriptCompletionCallback& callback) const
+{
+	Url::Ptr url = new Url();
+	url->SetScheme("https");
+	url->SetHost(m_Connection->GetHost());
+	url->SetPort(m_Connection->GetPort());
+
+	std::vector<String> path;
+	path.push_back("v1");
+	path.push_back("console");
+	path.push_back("auto-complete-script");
+	url->SetPath(path);
+
+	std::map<String, std::vector<String> > params;
+	params["session"].push_back(session);
+	params["command"].push_back(command);
+	params["sandboxed"].push_back(sandboxed ? "1" : "0");
+	url->SetQuery(params);
+
+	try {
+		boost::shared_ptr<HttpRequest> req = m_Connection->NewRequest();
+		req->RequestMethod = "POST";
+		req->RequestUrl = url;
+		req->AddHeader("Authorization", "Basic " + Base64::Encode(m_User + ":" + m_Password));
+		m_Connection->SubmitRequest(req, boost::bind(AutocompleteScriptHttpCompletionCallback, _1, _2, callback));
+	} catch (const std::exception& ex) {
+		callback(boost::current_exception(), Array::Ptr());
+	}
+}
+
+void ApiClient::AutocompleteScriptHttpCompletionCallback(HttpRequest& request,
+    HttpResponse& response, const AutocompleteScriptCompletionCallback& callback)
+{
+	Dictionary::Ptr result;
+
+	String body;
+	char buffer[1024];
+	size_t count;
+
+	while ((count = response.ReadBody(buffer, sizeof(buffer))) > 0)
+		body += String(buffer, buffer + count);
+
+	try {
+		if (response.StatusCode < 200 || response.StatusCode > 299) {
+			std::string message = "HTTP request failed; Code: " + Convert::ToString(response.StatusCode) + "; Body: " + body;
+
+			BOOST_THROW_EXCEPTION(ScriptError(message));
+		}
+
+		result = JsonDecode(body);
+
+		Array::Ptr results = result->Get("results");
+		Array::Ptr suggestions;
+		String errorMessage = "Unexpected result from API.";
+
+		if (results && results->GetLength() > 0) {
+			Dictionary::Ptr resultInfo = results->Get(0);
+			errorMessage = resultInfo->Get("status");
+
+			if (resultInfo->Get("code") >= 200 && resultInfo->Get("code") <= 299)
+				suggestions = resultInfo->Get("suggestions");
+			else
+				BOOST_THROW_EXCEPTION(ScriptError(errorMessage));
+		}
+
+		callback(boost::exception_ptr(), suggestions);
+	} catch (const std::exception& ex) {
+		callback(boost::current_exception(), Array::Ptr());
 	}
 }
