@@ -55,7 +55,8 @@ void HttpServerConnection::StaticInitialize(void)
 
 void HttpServerConnection::Start(void)
 {
-	m_Stream->RegisterDataHandler(boost::bind(&HttpServerConnection::DataAvailableHandler, this));
+	/* the stream holds an owning reference to this object through the callback we're registering here */
+	m_Stream->RegisterDataHandler(boost::bind(&HttpServerConnection::DataAvailableHandler, HttpServerConnection::Ptr(this)));
 	if (m_Stream->IsDataAvailable())
 		DataAvailableHandler();
 }

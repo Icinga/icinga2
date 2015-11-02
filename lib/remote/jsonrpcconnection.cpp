@@ -60,7 +60,8 @@ void JsonRpcConnection::StaticInitialize(void)
 
 void JsonRpcConnection::Start(void)
 {
-	m_Stream->RegisterDataHandler(boost::bind(&JsonRpcConnection::DataAvailableHandler, this));
+	/* the stream holds an owning reference to this object through the callback we're registering here */
+	m_Stream->RegisterDataHandler(boost::bind(&JsonRpcConnection::DataAvailableHandler, JsonRpcConnection::Ptr(this)));
 	if (m_Stream->IsDataAvailable())
 		DataAvailableHandler();
 }
@@ -103,7 +104,7 @@ void JsonRpcConnection::SendMessage(const Dictionary::Ptr& message)
 		Log(LogWarning, "JsonRpcConnection")
 		    << info.str() << "\n" << DiagnosticInformation(ex);
 
-		Utility::QueueAsyncCallback(boost::bind(&JsonRpcConnection::Disconnect, JsonRpcConnection::Ptr(this)));
+		Disconnect();
 	}
 }
 

@@ -62,7 +62,8 @@ void HttpClientConnection::Reconnect(void)
 		/* m_Stream = new NetworkStream(socket);
 		   -- does not currently work because the NetworkStream class doesn't support async I/O */
 
-	m_Stream->RegisterDataHandler(boost::bind(&HttpClientConnection::DataAvailableHandler, this, _1));
+	/* the stream holds an owning reference to this object through the callback we're registering here */
+	m_Stream->RegisterDataHandler(boost::bind(&HttpClientConnection::DataAvailableHandler, HttpClientConnection::Ptr(this), _1));
 	if (m_Stream->IsDataAvailable())
 		DataAvailableHandler(m_Stream);
 }
