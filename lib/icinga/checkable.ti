@@ -101,16 +101,16 @@ abstract class Checkable : CustomVarObject
 	[state] int check_attempt {
 		default {{{ return 1; }}}
 	};
-	[state, enum] ServiceState state_raw {
+	[state, enum, no_user_view, no_user_modify] ServiceState state_raw {
 		default {{{ return ServiceUnknown; }}}
 	};
 	[state, enum] StateType state_type {
 		default {{{ return StateTypeSoft; }}}
 	};
-	[state, enum] ServiceState last_state_raw {
+	[state, enum, no_user_view, no_user_modify] ServiceState last_state_raw {
 		default {{{ return ServiceUnknown; }}}
 	};
-	[state, enum] ServiceState last_hard_state_raw {
+	[state, enum, no_user_view, no_user_modify] ServiceState last_hard_state_raw {
 		default {{{ return ServiceUnknown; }}}
 	};
 	[state, enum] StateType last_state_type {
@@ -126,10 +126,6 @@ abstract class Checkable : CustomVarObject
 	[state] double last_hard_state_change {
 		default {{{ return Application::GetStartTime(); }}}
 	};
-	[state] double last_state_ok (LastStateOK);
-	[state] double last_state_warning;
-	[state] double last_state_critical;
-	[state] double last_state_unknown;
 	[state] double last_state_unreachable;
 	[state] bool last_in_downtime;
 	[state] bool force_next_check;
@@ -143,6 +139,9 @@ abstract class Checkable : CustomVarObject
 	[state] double flapping_last_change;
 	[no_storage, protected] bool flapping {
 		get {{{ return false; }}}
+	};
+	[no_storage] double last_check {
+		get;
 	};
 
 	[config, navigation] name(Endpoint) command_endpoint (CommandEndpointRaw) {

@@ -52,7 +52,8 @@ class Host : Checkable
 	[enum, no_storage] HostState last_hard_state {
 		get;
 	};
-
+	[state] double last_state_up;
+	[state] double last_state_down;
 };
 
 }

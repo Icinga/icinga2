@@ -344,11 +344,17 @@ void StatusDataWriter::DumpCheckableStatusAttrs(std::ostream& fp, const Checkabl
 	tie(host, service) = GetHostService(checkable);
 
 	if (service) {
-		fp << "\t" << "current_state=" << service->GetState() << "\n"
-		   << "\t" << "last_hard_state=" << service->GetLastHardState() << "\n";
+		fp << "\t" "current_state=" << service->GetState() << "\n"
+		      "\t" "last_hard_state=" << service->GetLastHardState() << "\n"
+		      "\t" "last_time_ok=" << static_cast<int>(service->GetLastStateOK()) << "\n"
+		      "\t" "last_time_warn=" << static_cast<int>(service->GetLastStateWarning()) << "\n"
+		      "\t" "last_time_critical=" << static_cast<int>(service->GetLastStateCritical()) << "\n"
+		      "\t" "last_time_unknown=" << static_cast<int>(service->GetLastStateUnknown()) << "\n";
 	} else {
-		fp << "\t" << "current_state=" << CompatUtility::GetHostCurrentState(host) << "\n"
-		   << "\t" << "last_hard_state=" << host->GetLastHardState() << "\n";
+		fp << "\t" "current_state=" << CompatUtility::GetHostCurrentState(host) << "\n"
+		      "\t" "last_hard_state=" << host->GetLastHardState() << "\n"
+		      "\t" "last_time_up=" << static_cast<int>(host->GetLastStateUp()) << "\n"
+		      "\t" "last_time_down=" << static_cast<int>(host->GetLastStateDown()) << "\n";
 	}
 
 	fp << "\t" "state_type=" << checkable->GetStateType() << "\n"
@@ -366,10 +372,6 @@ void StatusDataWriter::DumpCheckableStatusAttrs(std::ostream& fp, const Checkabl
 	      "\t" "max_attempts=" << checkable->GetMaxCheckAttempts() << "\n"
 	      "\t" "last_state_change=" << static_cast<long>(checkable->GetLastStateChange()) << "\n"
 	      "\t" "last_hard_state_change=" << static_cast<long>(checkable->GetLastHardStateChange()) << "\n"
-	      "\t" "last_time_ok=" << static_cast<int>(checkable->GetLastStateOK()) << "\n"
-	      "\t" "last_time_warn=" << static_cast<int>(checkable->GetLastStateWarning()) << "\n"
-	      "\t" "last_time_critical=" << static_cast<int>(checkable->GetLastStateCritical()) << "\n"
-	      "\t" "last_time_unknown=" << static_cast<int>(checkable->GetLastStateUnknown()) << "\n"
 	      "\t" "last_update=" << static_cast<long>(time(NULL)) << "\n"
 	      "\t" "notifications_enabled=" << CompatUtility::GetCheckableNotificationsEnabled(checkable) << "\n"
 	      "\t" "active_checks_enabled=" << CompatUtility::GetCheckableActiveChecksEnabled(checkable) << "\n"

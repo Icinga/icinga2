@@ -45,6 +45,8 @@ public:
 
 	virtual bool ResolveMacro(const String& macro, const CheckResult::Ptr& cr, Value *result) const override;
 
+	virtual void SaveLastState(ServiceState state, double timestamp);
+
 	static ServiceState StateFromString(const String& state);
 	static String StateToString(ServiceState state);
 

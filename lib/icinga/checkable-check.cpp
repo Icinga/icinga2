@@ -185,7 +185,7 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 			recovery = true; // NOT OK -> SOFT/HARD OK
 
 		ResetNotificationNumbers();
-		SetLastStateOK(Utility::GetTime());
+		SaveLastState(ServiceOK, Utility::GetTime());
 
 		/* update reachability for child objects in OK state */
 		if (!children.empty())
@@ -203,19 +203,8 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 			attempt = old_attempt;
 		}
 
-		switch (cr->GetState()) {
-			case ServiceOK:
-				/* Nothing to do here. */
-				break;
-			case ServiceWarning:
-				SetLastStateWarning(Utility::GetTime());
-				break;
-			case ServiceCritical:
-				SetLastStateCritical(Utility::GetTime());
-				break;
-			case ServiceUnknown:
-				SetLastStateUnknown(Utility::GetTime());
-				break;
+		if (cr->GetState() != ServiceOK) {
+			SaveLastState(cr->GetState(), Utility::GetTime());
 		}
 
 		/* update reachability for child objects in NOT-OK state */

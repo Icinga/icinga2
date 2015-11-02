@@ -54,8 +54,8 @@ public:
 	virtual HostState GetState(void) const override;
 	virtual HostState GetLastState(void) const override;
 	virtual HostState GetLastHardState(void) const override;
-	double GetLastStateUp(void) const;
-	double GetLastStateDown(void) const;
+
+	virtual void SaveLastState(ServiceState state, double timestamp);
 
 	static HostState StateFromString(const String& state);
 	static String StateToString(HostState state);

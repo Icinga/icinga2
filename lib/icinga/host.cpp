@@ -173,17 +173,12 @@ HostState Host::GetLastHardState(void) const
 	return CalculateState(GetLastHardStateRaw());
 }
 
-double Host::GetLastStateUp(void) const
+void Host::SaveLastState(ServiceState state, double timestamp)
 {
-	if (GetLastStateOK() > GetLastStateWarning())
-		return GetLastStateOK();
-	else
-		return GetLastStateWarning();
-}
-
-double Host::GetLastStateDown(void) const
-{
-	return GetLastStateCritical();
+	if (state == ServiceOK || state == ServiceWarning)
+		SetLastStateUp(timestamp);
+	else if (state == ServiceCritical)
+		SetLastStateDown(timestamp);
 }
 
 HostState Host::StateFromString(const String& state)

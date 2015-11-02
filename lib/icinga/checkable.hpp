@@ -92,8 +92,9 @@ public:
 	void UpdateNextCheck(void);
 
 	bool HasBeenChecked(void) const;
+	virtual double GetLastCheck(void) const override;
 
-	double GetLastCheck(void) const;
+	virtual void SaveLastState(ServiceState state, double timestamp) = 0;
 
 	static void UpdateStatistics(const CheckResult::Ptr& cr, CheckableType type);
 

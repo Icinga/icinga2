@@ -117,6 +117,18 @@ Host::Ptr Service::GetHost(void) const
 	return m_Host;
 }
 
+void Service::SaveLastState(ServiceState state, double timestamp)
+{
+	if (state == ServiceOK)
+		SetLastStateOK(timestamp);
+	else if (state == ServiceWarning)
+		SetLastStateWarning(timestamp);
+	else if (state == ServiceCritical)
+		SetLastStateCritical(timestamp);
+	else if (state == ServiceUnknown)
+		SetLastStateUnknown(timestamp);
+}
+
 ServiceState Service::StateFromString(const String& state)
 {
 	if (state == "OK")

@@ -591,6 +591,7 @@ Runtime Attributes:
   Name                      | Type          | Description
   --------------------------|---------------|-----------------
   next\_check               | Number        | When the next check occurs (as a UNIX timestamp).
+  last\_check               | Number        | When the last check occured (as a UNIX timestamp).
   check\_attempt            | Number        | The current check attempt number.
   state\_type               | Number        | The current state type (0 = SOFT, 1 = HARD).
   last\_state\_type         | Number        | The previous state type (0 = SOFT, 1 = HARD).
@@ -606,6 +607,8 @@ Runtime Attributes:
   state                     | Number        | The current state (0 = UP, 1 = DOWN).
   last\_state               | Number        | The previous state (0 = UP, 1 = DOWN).
   last\_hard\_state         | Number        | The last hard state (0 = UP, 1 = DOWN).
+  last_state_up             | Number        | When the last UP state occurred (as a UNIX timestamp).
+  last_state_down           | Number        | When the last DOWN state occurred (as a UNIX timestamp).
 
 
 
@@ -1206,6 +1209,7 @@ Runtime Attributes:
   Name                      | Type          | Description
   --------------------------|---------------|-----------------
   next\_check               | Number        | When the next check occurs (as a UNIX timestamp).
+  last\_check               | Number        | When the last check occured (as a UNIX timestamp).
   check\_attempt            | Number        | The current check attempt number.
   state\_type               | Number        | The current state type (0 = SOFT, 1 = HARD).
   last\_state\_type         | Number        | The previous state type (0 = SOFT, 1 = HARD).
@@ -1221,6 +1225,10 @@ Runtime Attributes:
   state                     | Number        | The current state (0 = OK, 1 = WARNING, 2 = CRITICAL, 3 = UNKNOWN).
   last\_state               | Number        | The previous state (0 = OK, 1 = WARNING, 2 = CRITICAL, 3 = UNKNOWN).
   last\_hard\_state         | Number        | The last hard state (0 = OK, 1 = WARNING, 2 = CRITICAL, 3 = UNKNOWN).
+  last_state_ok             | Number        | When the last OK state occurred (as a UNIX timestamp).
+  last_state_warning        | Number        | When the last WARNING state occurred (as a UNIX timestamp).
+  last_state_critical       | Number        | When the last CRITICAL state occurred (as a UNIX timestamp).
+  last_state_unknown        | Number        | When the last UNKNOWN state occurred (as a UNIX timestamp).
 
 
 ## <a id="objecttype-servicegroup"></a> ServiceGroup
