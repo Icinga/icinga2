@@ -144,6 +144,8 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %token T_LOCALS "locals (T_LOCALS)"
 %token T_CONST "const (T_CONST)"
 %token T_IGNORE_ON_ERROR "ignore_on_error (T_IGNORE_ON_ERROR)"
+%token T_CURRENT_FILENAME "current_filename (T_CURRENT_FILENAME)"
+%token T_CURRENT_LINE "current_line (T_CURRENT_LINE)"
 %token T_USE "use (T_USE)"
 %token T_OBJECT "object (T_OBJECT)"
 %token T_TEMPLATE "template (T_TEMPLATE)"
@@ -798,6 +800,14 @@ rterm_no_side_effect: T_STRING
 	| T_LOCALS
 	{
 		$$ = new GetScopeExpression(ScopeLocal);
+	}
+	| T_CURRENT_FILENAME
+	{
+		$$ = MakeLiteral(@$.Path);
+	}
+	| T_CURRENT_LINE
+	{
+		$$ = MakeLiteral(@$.FirstLine);
 	}
 	| rterm_array
 	| rterm_scope_require_side_effect

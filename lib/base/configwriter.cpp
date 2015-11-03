@@ -232,6 +232,8 @@ const std::vector<String>& ConfigWriter::GetKeywords(void)
 		keywords.push_back("locals");
 		keywords.push_back("use");
 		keywords.push_back("ignore_on_error");
+		keywords.push_back("current_filename");
+		keywords.push_back("current_line");
 		keywords.push_back("apply");
 		keywords.push_back("to");
 		keywords.push_back("where");

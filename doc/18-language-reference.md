@@ -859,6 +859,15 @@ supports:
 Additional documentation on type methods is available in the
 [library reference](19-library-reference.md#library-reference).
 
+## <a id="location-information"></a> Location Information
+
+The location of the currently executing script can be obtained using the
+`current_filename` and `current_line` keywords.
+
+Example:
+
+    log("Hello from '" + current_filename + "' in line " + current_line)
+
 ## <a id="reserved-keywords"></a> Reserved Keywords
 
 These keywords are reserved and must not be used as constants or custom attributes.
@@ -867,6 +876,7 @@ These keywords are reserved and must not be used as constants or custom attribut
     template
     include
     include_recursive
+    ignore_on_error
     library
     null
     true
@@ -887,6 +897,8 @@ These keywords are reserved and must not be used as constants or custom attribut
     if
     else
     in
+    current_filename
+    current_line
 
 You can escape reserved keywords using the `@` character. The following example
 tries to set `vars.include` which references a reserved keyword and generates

@@ -196,6 +196,8 @@ else				return T_ELSE;
 while				return T_WHILE;
 throw				return T_THROW;
 ignore_on_error			return T_IGNORE_ON_ERROR;
+current_filename		return T_CURRENT_FILENAME;
+current_line			return T_CURRENT_LINE;
 =\>				return T_FOLLOWS;
 \<\<				return T_SHIFT_LEFT;
 \>\>				return T_SHIFT_RIGHT;
