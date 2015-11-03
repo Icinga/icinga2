@@ -118,6 +118,19 @@ void MainForm::OnTypeSelected(wxTreeEvent& event)
 	    std::vector<String>(), attrs);
 }
 
+static bool ApiObjectLessComparer(const String& nameAttr, const ApiObject::Ptr& o1, const ApiObject::Ptr& o2)
+{
+	std::map<String, Value>::const_iterator it1 = o1->Attrs.find(nameAttr);
+	if (it1 == o1->Attrs.end())
+		return false;
+
+	std::map<String, Value>::const_iterator it2 = o2->Attrs.find(nameAttr);
+	if (it2 == o2->Attrs.end())
+		return false;
+
+	return it1->second < it2->second;
+}
+
 void MainForm::ObjectsCompletionHandler(boost::exception_ptr eptr, const std::vector<ApiObject::Ptr>& objects, bool forward)
 {
 	if (forward) {
@@ -145,7 +158,10 @@ void MainForm::ObjectsCompletionHandler(boost::exception_ptr eptr, const std::ve
 
 	String nameAttr = type->Name.ToLower() + ".__name";
 
-	BOOST_FOREACH(const ApiObject::Ptr& object, objects) {
+	std::vector<ApiObject::Ptr> sortedObjects = objects;
+	std::sort(sortedObjects.begin(), sortedObjects.end(), boost::bind(ApiObjectLessComparer, nameAttr, _2, _1));
+
+	BOOST_FOREACH(const ApiObject::Ptr& object, sortedObjects) {
 		std::map<String, Value>::const_iterator it = object->Attrs.find(nameAttr);
 		if (it == object->Attrs.end())
 			continue;
