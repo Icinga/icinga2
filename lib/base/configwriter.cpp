@@ -212,6 +212,8 @@ String ConfigWriter::EscapeIcingaString(const String& str)
 const std::vector<String>& ConfigWriter::GetKeywords(void)
 {
 	static std::vector<String> keywords;
+	static boost::mutex mutex;
+	boost::mutex::scoped_lock lock(mutex);
 
 	if (keywords.empty()) {
 		keywords.push_back("object");
