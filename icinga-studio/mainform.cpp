@@ -72,37 +72,35 @@ void MainForm::TypesCompletionHandler(boost::exception_ptr eptr, const std::vect
 
 	wxTreeItemId rootNode = m_TypesTree->AddRoot("root");
 
-	bool all = false;
-	std::map<String, wxTreeItemId> items;
+	BOOST_FOREACH(const ApiType::Ptr& type, types) {
+		m_Types[type->Name] = type;
+	}
 
-	m_Types.clear();
+	BOOST_FOREACH(const ApiType::Ptr& type, types) {
+		if (type->Abstract)
+			continue;
 
-	while (!all) {
-		all = true;
+		bool configObject = false;
+		ApiType::Ptr currentType = type;
 
-		BOOST_FOREACH(const ApiType::Ptr& type, types) {
-			std::string name = type->Name;
+		for (;;) {
+			if (currentType->BaseName.IsEmpty())
+				break;
 
-			if (items.find(name) != items.end())
-				continue;
+			currentType = m_Types[currentType->BaseName];
 
-			all = false;
+			if (!currentType)
+				break;
 
-			wxTreeItemId parent;
-			
-			if (type->BaseName.IsEmpty())
-				parent = rootNode;
-			else {
-				std::map<String, wxTreeItemId>::const_iterator it = items.find(type->BaseName);
-
-				if (it == items.end())
-					continue;
-
-				parent = it->second;
+			if (currentType->Name == "ConfigObject") {
+				configObject = true;
+				break;
 			}
+		}
 
-			m_Types[name] = type;
-			items[name] = m_TypesTree->AppendItem(parent, name, 0);
+		if (configObject) {
+			std::string name = type->Name;
+			m_TypesTree->AppendItem(rootNode, name, 0);
 		}
 	}
 }
