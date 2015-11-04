@@ -54,7 +54,9 @@ void ConfigWriter::EmitArray(std::ostream& fp, int indentLevel, const Array::Ptr
 {
 	fp << "[ ";
 	EmitArrayItems(fp, indentLevel, val);
-	fp << " ]";
+	if (val->GetLength() > 0)
+		fp << " ";
+	fp << "]";
 }
 
 void ConfigWriter::EmitArrayItems(std::ostream& fp, int indentLevel, const Array::Ptr& val)
