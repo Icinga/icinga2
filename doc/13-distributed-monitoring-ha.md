@@ -416,7 +416,7 @@ The configuration synchronisation works with multiple hierarchies. The following
 illustrate a quite common setup where the master is reponsible for configuration deployment:
 
 * [High-Availability master zone](13-distributed-monitoring-ha.md#distributed-monitoring-high-availability)
-* [Distributed satellites](12-distributed-monitoring-ha.md#)
+* [Distributed satellites](13-distributed-monitoring-ha.md#cluster-scenarios-distributed-zones)
 * [Remote clients](11-icinga2-client.md#icinga2-client-scenarios) connected to the satellite
 
 While you could use the clients with local configuration and service discovery on the satellite/master

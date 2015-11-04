@@ -508,18 +508,3 @@ It may be reasonable to have a volatile service which stays in a `HARD`
 state type if the service stays in a `NOT-OK` state. That way each
 service recheck will automatically trigger a notification unless the
 service is acknowledged or in a scheduled downtime.
-
-## <a id="api"></a> Icinga 2 API
-
-The Icinga 2 API allows you to manage configuration objects
-and resources in a simple, programmatic way using HTTP requests.
-
-More details can be found in [this chapter](9-icinga2-api.md#icinga2-api).
-
-## <a id="features"></a> Icinga 2 Feature Configuration
-
-Icinga 2 provides several features which can be enabled using [CLI commands](8-cli-commands.md#cli-command-feature).
-
-More details can be found in [this chapter](15-features.md#icinga2-features).
-
-

@@ -1471,7 +1471,7 @@ Configuration Attributes:
 In addition to [expressions](18-language-reference.md#expressions)
 used in object attribute assignments such as
 
-* [Numeric](18-language-reference.md#numeric-literals), [duration](8-language-reference.md#duration-literals), [string](18-language-reference.md#string-literals) and [boolean](18-language-reference.md#boolean-literals) literals
+* [Numeric](18-language-reference.md#numeric-literals), [duration](18-language-reference.md#duration-literals), [string](18-language-reference.md#string-literals) and [boolean](18-language-reference.md#boolean-literals) literals
 * [Array](18-language-reference.md#array)
 * [Dictionary](18-language-reference.md#dictionary)
 

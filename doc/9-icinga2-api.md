@@ -140,9 +140,22 @@ Once the API user is configured make sure to restart Icinga 2:
 
 You can test authentication by sending a GET request to the API:
 
-    $ curl -u root:icinga -k -s 'https://localhost:5665/v1'
+    $ curl -k -s -u root:icinga 'https://localhost:5665/v1'
 
 In case you get an error message make sure to check the API user credentials.
+
+The curl parameter `-k` disables the master certificate verification. In order
+to securely check each connection you'll need to pass the trusted CA certificate
+using the curl parameter`--cacert`:
+
+    $ curl -u root:icinga --cacert ca.crt 'icinga2.node1.localdomain:5665/v1'
+
+Using client certificates you'll need to pass your client certificate
+and the trusted CA certificate from your Icinga 2 instance to the curl call:
+
+    $ curl --cert icinga2-node1.localdomain.crt --key icinga2-node1.localdomain.key --cacert ca.crt 'https://icinga2-node1.localdomain:5665/v1/status'
+
+In case of an error make sure to verify the client certificate and CA.
 
 Read the next chapter on [API permissions](9-icinga2-api.md#icinga2-api-permissions)
 in order to authorize the newly created API user.
@@ -196,6 +209,7 @@ Available permissions for specific URL endpoints:
   objects/delete/&lt;type&gt;   | /v1/objects
   status/query                  | /v1/status
   events/&lt;type&gt;           | /v1/events
+  console/*                     | /v1/console
 
 The required actions or types can be replaced by using a wildcard match ("*").
 
@@ -213,11 +227,11 @@ as query string, e.g. a space becomes `%20`.
 
 Example for an URL-encoded query string:
 
-    /v1/objects/hosts?filter=match(%22nbmif*%22,host.name)&attrs=host.name&attrs=host.state
+    /v1/objects/hosts?filter=match(%22icinga2-node1.localdomain*%22,host.name)&attrs=host.name&attrs=host.state
 
 Example for a JSON body:
 
-    { "attrs": { "address": "8.8.4.4", "vars.os" : "Windows" } }
+    { "templates": [ "generic-host" ], "attrs": { "address": "8.8.8.8", "check_command": "hostalive", "vars.os" : "Linux" } }
 
 
 Selecting a single object as URL parameter:
@@ -248,7 +262,7 @@ Example matching all services in NOT-OK state:
 
 Example matching all hosts by name:
 
-    https://localhost:5665/v1/objects/hosts?filter=match("nbmif*",host.name)
+    https://localhost:5665/v1/objects/hosts?filter=match("icinga2-node1.localdomain*",host.name)
 
 Example for all hosts being a member of the host group `linux-servers`:
 
@@ -275,8 +289,9 @@ The Icinga 2 API provides multiple URL endpoints:
   /v1/events    | Endpoint for subscribing to [API events](9-icinga2-api.md#icinga2-api-actions).
   /v1/status    | Endpoint for receiving the global Icinga 2 [status and statistics](9-icinga2-api.md#icinga2-api-status).
   /v1/objects   | Endpoint for querying, creating, modifying and deleting [config objects](9-icinga2-api.md#icinga2-api-config-objects).
-  /v1/types     | Endpoint for listing Icinga 2 configuration object types and their attributes.
   /v1/config    | Endpoint for [managing configuration modules](9-icinga2-api.md#icinga2-api-config-management).
+  /v1/types     | Endpoint for listing Icinga 2 configuration object types and their attributes.
+  /v1/console   | Endpoint for connecting the [Icinga 2 console](9-icinga2-api.md#icinga2-api-clients-cli-console)
 
 Please check the respective sections for detailed URL information and parameters.
 
@@ -931,7 +946,7 @@ configuration can be found [here](13-distributed-monitoring-ha.md#distributed-mo
 Send a `GET` request to `/v1/objects/hosts` to list all host objects and
 their attributes.
 
-    $ curl -u root:icinga -k -s 'https://localhost:5665/v1/objects/hosts'
+    $ curl -k -s -u root:icinga 'https://localhost:5665/v1/objects/hosts'
 
 This works in a similar fashion for other [config objects](9-icinga2-api.md#icinga2-api-config-objects).
 
@@ -954,7 +969,7 @@ If attributes are of the Dictionary type, you can also use the indexer format:
 
 Example for creating the new host object `google.com`:
 
-    $ curl -u root:icinga -k -s 'https://localhost:5665/v1/objects/hosts/google.com' \
+    $ curl -k -s -u root:icinga 'https://localhost:5665/v1/objects/hosts/google.com' \
     -X PUT \
     -d '{ "templates": [ "generic-host" ], "attrs": { "address": "8.8.8.8", "check_command": "hostalive", "vars.os" : "Linux" } }' \
     | python -m json.tool
@@ -973,7 +988,7 @@ If the configuration validation fails, the new object will not be created and th
 contains a detailed error message. The following example omits the `check_command` attribute required
 by the host object.
 
-    $ curl -u root:icinga -k -s 'https://localhost:5665/v1/objects/hosts/google.com' \
+    $ curl -k -s -u root:icinga 'https://localhost:5665/v1/objects/hosts/google.com' \
     -X PUT \
     -d '{ "attrs": { "address": "8.8.8.8", "vars.os" : "Linux" } }' \
     | python -m json.tool
@@ -996,12 +1011,12 @@ Send a `GET` request including the object name inside the URL.
 
 Example for the host `google.com`:
 
-    $ curl -u root:icinga -k -s 'https://localhost:5665/v1/objects/hosts/google.com'
+    $ curl -k -s -u root:icinga 'https://localhost:5665/v1/objects/hosts/google.com'
 
 You can select specific attributes by adding them as url parameters using `?attrs=...`. Multiple
 attributes must be added one by one, e.g. `?attrs=host.address&attrs=host.name`.
 
-    $ curl -u root:icinga -k -s 'https://localhost:5665/v1/objects/hosts/google.com?attrs=host.name&attrs=host.address' | python -m json.tool
+    $ curl -k -s -u root:icinga 'https://localhost:5665/v1/objects/hosts/google.com?attrs=host.name&attrs=host.address' | python -m json.tool
     {
         "results": [
             {
@@ -1033,7 +1048,7 @@ If attributes are of the Dictionary type, you can also use the indexer format:
 
 Example for existing object `google.com`:
 
-    $ curl -u root:icinga -k -s 'https://localhost:5665/v1/objects/hosts/google.com' \
+    $ curl -k -s -u root:icinga 'https://localhost:5665/v1/objects/hosts/google.com' \
     -X POST \
     -d '{ "attrs": { "address": "8.8.4.4", "vars.os" : "Windows" } }' \
     | python -m json.tool
@@ -1063,7 +1078,7 @@ to pass the `cascade` parameter on host object deletion.
 
 Example for deleting the host object `google.com`:
 
-    $ curl -u root:icinga -k -s 'https://localhost:5665/v1/objects/hosts/google.com?cascade=1' -X DELETE | python -m json.tool
+    $ curl -k -s -u root:icinga 'https://localhost:5665/v1/objects/hosts/google.com?cascade=1' -X DELETE | python -m json.tool
     {
         "results": [
             {
@@ -1089,15 +1104,15 @@ can be fetched in a separated request.
 
 ### <a id="icinga2-api-config-management-create-package"></a> Create Config Package
 
-Send a `POST` request to a new config package called `puppet` in this example. This
+Send a `POST` request to a new config package called `example-cmdb` in this example. This
 will create a new empty configuration package.
 
-    $ curl -k -s -u root:icinga -X POST https://localhost:5665/v1/config/packages/puppet | python -m json.tool
+    $ curl -k -s -u root:icinga -X POST https://localhost:5665/v1/config/packages/example-cmdb | python -m json.tool
     {
         "results": [
             {
                 "code": 200.0,
-                "package": "puppet",
+                "package": "example-cmdb",
                 "status": "Created package."
             }
         ]
@@ -1107,7 +1122,7 @@ will create a new empty configuration package.
 ### <a id="icinga2-api-config-management-create-config-stage"></a> Create Configuration to Package Stage
 
 Send a `POST` request to the URL endpoint `/v1/config/stages` including an existing
-configuration package, e.g. `puppet`.
+configuration package, e.g. `example-cmdb`.
 The request body must contain the `files` attribute with the value being
 a dictionary of file targets and their content.
 
@@ -1118,13 +1133,13 @@ generates a unique name for the `package` attribute you'll need for later reques
 
 Note: This example contains an error (`chec_command`), do not blindly copy paste it.
 
-    $ curl -k -s -u root:icinga -X POST -d '{ "files": { "conf.d/test.conf": "object Host \"cfg-mgmt\" { chec_command = \"dummy\" }" } }' https://localhost:5665/v1/config/stages/puppet | python -m json.tool
+    $ curl -k -s -u root:icinga -X POST -d '{ "files": { "conf.d/test.conf": "object Host \"cfg-mgmt\" { chec_command = \"dummy\" }" } }' https://localhost:5665/v1/config/stages/example-cmdb | python -m json.tool
     {
         "results": [
             {
                 "code": 200.0,
-                "package": "puppet",
-                "stage": "nbmif-1441625839-0",
+                "package": "example-cmdb",
+                "stage": "icinga2-node1.localdomain-1441625839-0",
                 "status": "Created stage."
             }
         ]
@@ -1153,7 +1168,7 @@ List all config packages, their active stage and other stages.
 That way you may iterate of all of them programmatically for
 older revisions and their requests.
 
-The following example contains one configuration package `puppet`.
+The following example contains one configuration package `example-cmdb`.
 The latter already has a stage created, but it is not active.
 
     $ curl -k -s -u root:icinga https://localhost:5665/v1/config/packages | python -m json.tool
@@ -1161,9 +1176,9 @@ The latter already has a stage created, but it is not active.
         "results": [
             {
                 "active-stage": "",
-                "name": "puppet",
+                "name": "example-cmdb",
                 "stages": [
-                    "nbmif-1441625839-0"
+                    "icinga2-node1.localdomain-1441625839-0"
                 ]
             }
         ]
@@ -1173,9 +1188,9 @@ The latter already has a stage created, but it is not active.
 ### <a id="icinga2-api-config-management-list-config-package-stage-files"></a> List Configuration Packages and their Stages
 
 Sent a `GET` request to the URL endpoint `/v1/config/stages` including the package
-(`puppet`) and stage (`nbmif-1441625839-0`) name.
+(`example-cmdb`) and stage (`icinga2-node1.localdomain-1441625839-0`) name.
 
-    $ curl -k -s -u root:icinga https://localhost:5665/v1/config/stages/puppet/nbmif-1441625839-0 | python -m json.tool
+    $ curl -k -s -u root:icinga https://localhost:5665/v1/config/stages/example-cmdb/icinga2-node1.localdomain-1441625839-0 | python -m json.tool
     {
         "results": [
     ...
@@ -1212,10 +1227,10 @@ Note: You cannot use dots in paths.
 You can fetch a [list of existing files](9-icinga2-api.md#icinga2-api-config-management-list-config-package-stage-files)
 in a configuration stage and then specifically request their content.
 
-The following example fetches the faulty configuration inside `conf.d/test.conf`
+The following example fetches the **erroneous** configuration inside `conf.d/test.conf`
 for further analysis.
 
-    $ curl -k -s -u root:icinga https://localhost:5665/v1/config/files/puppet/nbmif-1441625839-0/conf.d/test.conf
+    $ curl -k -s -u root:icinga https://localhost:5665/v1/config/files/example-cmdb/icinga2-node1.localdomain-1441625839-0/conf.d/test.conf
     object Host "cfg-mgmt" { chec_command = "dummy" }
 
 Note: The returned files are plain-text instead of JSON-encoded.
@@ -1223,20 +1238,232 @@ Note: The returned files are plain-text instead of JSON-encoded.
 
 ### <a id="icinga2-api-config-management-config-package-stage-errors"></a> Configuration Package Stage Errors
 
-Now that we don't have an active stage for `puppet` yet seen [here](9-icinga2-api.md#icinga2-api-config-management-list-config-packages),
+Now that we don't have an active stage for `example-cmdb` yet seen [here](9-icinga2-api.md#icinga2-api-config-management-list-config-packages),
 there must have been an error.
 
 Fetch the `startup.log` file and check the config validation errors:
 
-    $ curl -k -s -u root:icinga https://localhost:5665/v1/config/files/puppet/imagine-1441133065-1/startup.log
+    $ curl -k -s -u root:icinga https://localhost:5665/v1/config/files/example-cmdb/imagine-1441133065-1/startup.log
     ...
 
     critical/config: Error: Attribute 'chec_command' does not exist.
     Location:
-    /var/lib/icinga2/api/packages/puppet/imagine-1441133065-1/conf.d/test.conf(1): object Host "cfg-mgmt" { chec_command = "dummy" }
+    /var/lib/icinga2/api/packages/example-cmdb/imagine-1441133065-1/conf.d/test.conf(1): object Host "cfg-mgmt" { chec_command = "dummy" }
                                                                                                            ^^^^^^^^^^^^^^^^^^^^^^
 
     critical/config: 1 error
 
 The output is similar to the manual [configuration validation](8-cli-commands.md#config-validation).
+
+
+## <a id="icinga2-api-clients"></a> API Clients
+
+There's a couple of existing clients using the Icinga 2 API
+for various use cases:
+
+* [curl](http://curl.haxx.se)
+* [console cli command](9-icinga2-api.md#icinga2-api-clients-cli-console)
+* [Icinga Studio](9-icinga2-api.md#icinga2-api-clients-icinga-studio)
+* [Icinga Web 2 Director](https://dev.icinga.org/projects/icingaweb2-modules)
+
+Demo cases:
+
+* [Dashing](https://github.com/Icinga/dashing-icinga2)
+* [AWS host creation/update/deletion](https://github.com/Icinga/aws-icinga2)
+
+Additional [programmatic examples](9-icinga2-api.md#icinga2-api-clients-programmatic-examples)
+will help you getting started using the Icinga 2 API in your environment.
+
+### <a id="icinga2-api-clients-icinga-studio"></a> Icinga Studio
+
+Icinga Studio is a graphical application to query configuration objects provided by the API.
+
+![Icinga Studio Connection](images/icinga2-api/icinga2_api_icinga_studio_connect.png)
+
+![Icinga Studio Overview](images/icinga2-api/icinga2_api_icinga_studio_overview.png)
+
+Please check the package repository of your distribution for available
+packages.
+
+The Windows installer includes Icinga Studio already. You must additionally
+install the [WxWidgets library](https://www.wxwidgets.org/downloads/).
+
+### <a id="icinga2-api-clients-cli-console"></a> Console Command using the API
+
+The [console cli command](8-cli-commands.md#cli-command-console) accepts the API URL as `--connect` parameter. Note: You can omit the
+username and/or password string and use the environment variables `ICINGA2_API_USERNAME`
+and `ICINGA2_API_PASSWORD` instead.
+
+    $ icinga2 console --connect 'https://root:icinga@localhost:5665/'
+    Icinga 2 (version: v2.3.11-762-g1d327ac)
+    <1> =>
+
+Once connected fetch the host object and print its attribute `last_check_result`.
+Tip: On systems with enabled auto-completion press <TAB>.
+
+    <1> => h = get_host("mbmif.int.netways.de")
+    null
+    <2> => h.last_check_result
+    {
+            active = true
+            check_source = "mbmif.int.netways.de"
+            command = [ "/usr/local/sbin/check_ping", "-H", "127.0.0.1", "-c", "5000,100%", "-w", "3000,80%" ]
+            execution_end = 1446653527.174983
+            execution_start = 1446653523.152673
+            exit_status = 0.000000
+            output = "PING OK - Packet loss = 0%, RTA = 0.11 ms"
+            performance_data = [ "rta=0.114000ms;3000.000000;5000.000000;0.000000", "pl=0%;80;100;0" ]
+            schedule_end = 1446653527.175133
+            schedule_start = 1446653583.150000
+            state = 0.000000
+            type = "CheckResult"
+            vars_after = {
+                    attempt = 1.000000
+                    reachable = true
+                    state = 0.000000
+                    state_type = 1.000000
+            }
+            vars_before = {
+                    attempt = 1.000000
+                    reachable = true
+                    state = 0.000000
+                    state_type = 1.000000
+            }
+    }
+    <3> =>
+
+
+Use the `--eval` parameter to evaluate a single expression in batch mode. The
+following example fetches the local node object and its check result:
+
+    $ icinga2 console --connect 'https://root:icinga@localhost:5665/' --eval "get_host(NodeName).last_check_result.command" | python -m json.tool
+    [
+        "/usr/local/sbin/check_ping",
+        "-H",
+        "127.0.0.1",
+        "-c",
+        "5000,100%",
+        "-w",
+        "3000,80%"
+    ]
+
+### <a id="icinga2-api-clients-programmatic-examples"></a> API Clients Programmatic Examples
+
+#### <a id="icinga2-api-clients-programmatic-examples-Python"></a> Example API Client using Python
+
+Example for **Python** using the `requests` and `json` module:
+
+    # pip install requests
+    # pip install json
+
+    $ vim icinga2-api-example.py
+
+    #!/usr/bin/env python
+
+    import requests, json
+
+    request_url = "https://localhost:5665/v1/status"
+    headers = {"Content-Type": "application/json", "Accept": "application/json"}
+    r = requests.get(request_url, headers=headers, auth=('root', 'icinga'), verify=False)
+
+    print "Status code: " + str(r.status_code)
+    print "Result: " + json.dumps(r.json())
+
+    $ python icinga2-api-example.py
+
+
+#### <a id="icinga2-api-clients-programmatic-examples-ruby"></a> Example API Client using Ruby
+
+Example for **Ruby** using the `rest_client` gem:
+
+    # gem install rest_client
+
+    $ vim icinga2-api-example.rb
+
+    #!/usr/bin/ruby
+
+    require 'rest_client'
+
+    request_url = "https://localhost:5665/v1/status"
+    options = { :user => "root", :password => "icinga", :verify_ssl => OpenSSL::SSL::VERIFY_NONE }
+    headers = {"Content-Type" => "application/json", "Accept" => "application/json"}
+    r = RestClient::Resource.new(URI.encode(request_url), options)
+    response = r.get(headers)
+
+    puts "Status: " + response.code.to_s
+    puts "Result: " + (JSON.pretty_generate JSON.parse(response.body))
+
+    $ ruby icinga2-api-example.rb
+
+A more detailed example can be found in the [Dashing demo](https://github.com/Icinga/dashing-icinga2).
+
+#### <a id="icinga2-api-clients-programmatic-examples-php"></a> Example API Client using PHP
+
+Example for **PHP** using `curl`:
+
+    $ vim icinga2-api-example.php
+
+    #!/usr/bin/env php
+    <?php
+    $request_url = "https://localhost:5665/v1/status";
+    $username = "root";
+    $password = "icinga";
+    $headers = array(
+        'Accept: application/json',
+        'Content-Type: application/json',
+    );
+
+    $curl = curl_init();
+    curl_setopt($curl, CURLOPT_URL, $request_url);
+    curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+    curl_setopt($curl, CURLOPT_USERPWD, $username . ":" . $password);
+    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
+    curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+
+    $response = curl_exec($curl);
+    $code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+    curl_close($curl);
+
+    if ($code == 200) {
+            $response = json_decode($response, true);
+            print_r($response);
+    } else {
+            echo 'error ' . $code;
+    }
+    ?>
+
+    $ php icinga2-api-example.php
+
+#### <a id="icinga2-api-clients-programmatic-examples-perl"></a> Example API Client using Perl
+
+Example for **Perl** using the `Rest::Client` module:
+
+    # perl -MCPAN -e 'install REST::Client'
+    # perl -MCPAN -e 'install JSON'
+    # perl -MCPAN -e 'install MIME::Base64'
+
+    $ vim icinga2-api-example.pl
+
+    #!/usr/bin/env perl
+
+    use REST::Client;
+    use MIME::Base64;
+    use JSON;
+
+    $ENV{PERL_LWP_SSL_VERIFY_HOSTNAME}=0;
+
+    $userpass = "root:icinga";
+    my $client = REST::Client->new();
+    $client->setHost("https://127.0.0.1:5665");
+    $client->addHeader("Content-Type", "application/json");
+    $client->addHeader("Accept", "application/json");
+    $client->addHeader("Authorization", "Basic ".encode_base64($userpass));
+    $client->GET("/v1/status");
+
+    print "Status: " . $client->responseCode() . "\n";
+    print "Result: " . $client->responseContent() . "\n";
+
+    $ perl icinga2-api-example.pl
+
 

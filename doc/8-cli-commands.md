@@ -138,10 +138,10 @@ added.
 ## <a id="cli-command-console"></a> CLI command: Console
 
 The CLI command `console` can be used to evaluate Icinga config expressions, e.g. to test
-`assign where` rules.
+[functions](18-language-reference.md#functions).
 
     $ icinga2 console
-    Icinga (version: v2.2.0-435-gc95d2f1)
+    Icinga 2 (version: v2.4.0)
     <1> => function test(name) {
     <1> ..   log("Hello " + name)
     <1> .. }
@@ -149,11 +149,92 @@ The CLI command `console` can be used to evaluate Icinga config expressions, e.g
     <2> => test("World")
     information/config: Hello World
     null
+    <3> =>
 
-The `console` command does not support line-editing or a command history. However you can
+
+On operating systems without the `libedit` library installed there is no
+support line-editing or a command history. However you can
 use the `rlwrap` program if you require those features:
 
     $ rlwrap icinga2 console
+
+The `console` can be used to connect to a running Icinga 2 instance using
+the [REST API](9-icinga2-api.md#icinga2-api). [API permissions](9-icinga2-api.md#icinga2-api-permissions)
+are required for executing config expressions and auto-completion.
+
+The `--connect` parameter expects the API URL as string, optionally with basic auth credentials:
+
+    $ icinga2 console --connect 'https://root:icinga@localhost:5665/'
+    Icinga 2 (version: v2.4.0)
+    <1> =>
+
+Example using [object accessor functions](19-library-reference.md#object-accessor-functions)
+to fetch the host object for the local node and print its `last_check_result` attribute:
+
+    <1> => NodeName
+    "icinga2-node1.localdomain"
+    <2> => get_host(NodeName).last_check_result
+    {
+            active = true
+            check_source = "icinga2-node1.localdomain"
+            command = [ "/usr/local/sbin/check_ping", "-H", "127.0.0.1", "-c", "5000,100%", "-w", "3000,80%" ]
+            execution_end = 1446716536.250887
+            execution_start = 1446716532.222686
+            exit_status = 0.000000
+            output = "PING OK - Packet loss = 0%, RTA = 0.08 ms"
+            performance_data = [ "rta=0.076000ms;3000.000000;5000.000000;0.000000", "pl=0%;80;100;0" ]
+            schedule_end = 1446716536.250992
+            schedule_start = 1446716592.210000
+            state = 0.000000
+            type = "CheckResult"
+            vars_after = {
+                    attempt = 1.000000
+                    reachable = true
+                    state = 0.000000
+                    state_type = 1.000000
+            }
+            vars_before = {
+                    attempt = 1.000000
+                    reachable = true
+                    state = 0.000000
+                    state_type = 1.000000
+            }
+    }
+    <3> =>
+
+In order to evaluate a single config expression use the `--eval`
+parameter. The following example prints the command line from
+the local node's last check result:
+
+    $ icinga2 console --connect 'https://root:icinga@localhost:5665/' --eval "get_host(NodeName).last_check_result.command" | python -m json.tool
+    [
+        "/usr/local/sbin/check_ping",
+        "-H",
+        "127.0.0.1",
+        "-c",
+        "5000,100%",
+        "-w",
+        "3000,80%"
+    ]
+
+
+The following environment variables can be exported to the
+user's environment instead of adding them to the `--connect` parameter:
+
+  Environment Variable  | Description
+  ----------------------|--------------------------
+  ICINGA2_API_USERNAME  | Basic auth username.
+  ICINGA2_API_PASSWORD  | Basic auth password.
+  ICINGA2_API_URL       | URL with or without basic auth credentials.
+
+Example:
+
+    $ export ICINGA2_API_USERNAME=root
+    $ export ICINGA2_API_PASSWORD=icinga
+
+    $ icinga2 console --connect 'https://localhost:5665/'
+    Icinga 2 (version: v2.4.0)
+    <1> =>
 
 ## <a id="cli-command-daemon"></a> CLI command: Daemon
 
