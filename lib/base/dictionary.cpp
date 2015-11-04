@@ -203,6 +203,6 @@ std::vector<String> Dictionary::GetKeys(void) const
 String Dictionary::ToString(void) const
 {
 	std::ostringstream msgbuf;
-	ConfigWriter::EmitScope(msgbuf, 0, const_cast<Dictionary *>(this));
+	ConfigWriter::EmitScope(msgbuf, 1, const_cast<Dictionary *>(this));
 	return msgbuf.str();
 }
