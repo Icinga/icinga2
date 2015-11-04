@@ -368,7 +368,7 @@ void MacroProcessor::ValidateCustomVars(const ConfigObject::Ptr& object, const D
 
 			ObjectLock xlock(varval_dict);
 			BOOST_FOREACH(const Dictionary::Pair& kv_var, varval_dict) {
-				if (kv_var.second.IsEmpty())
+				if (!kv_var.second.IsString())
 					continue;
 
 				if (!ValidateMacroString(kv_var.second))
@@ -380,7 +380,7 @@ void MacroProcessor::ValidateCustomVars(const ConfigObject::Ptr& object, const D
 
 			ObjectLock ylock (varval_arr);
 			BOOST_FOREACH(const Value& arrval, varval_arr) {
-				if (arrval.IsEmpty())
+				if (!arrval.IsString())
 					continue;
 
 				if (!ValidateMacroString(arrval)) {
@@ -388,13 +388,11 @@ void MacroProcessor::ValidateCustomVars(const ConfigObject::Ptr& object, const D
 				}
 			}
 		} else {
-			if (varval.IsEmpty())
+			if (!varval.IsString())
 				continue;
 
-			String varstr = varval;
-
-			if (!ValidateMacroString(varstr))
-				BOOST_THROW_EXCEPTION(ValidationError(object.get(), boost::assign::list_of<String>("vars")(kv.first), "Closing $ not found in macro format string '" + varstr + "'."));
+			if (!ValidateMacroString(varval))
+				BOOST_THROW_EXCEPTION(ValidationError(object.get(), boost::assign::list_of<String>("vars")(kv.first), "Closing $ not found in macro format string '" + varval + "'."));
 		}
 	}
 }
