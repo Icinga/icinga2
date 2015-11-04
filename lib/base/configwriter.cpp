@@ -50,14 +50,14 @@ void ConfigWriter::EmitEmpty(std::ostream& fp)
 	fp << "null";
 }
 
-void ConfigWriter::EmitArray(std::ostream& fp, const Array::Ptr& val)
+void ConfigWriter::EmitArray(std::ostream& fp, int indentLevel, const Array::Ptr& val)
 {
 	fp << "[ ";
-	EmitArrayItems(fp, val);
+	EmitArrayItems(fp, indentLevel, val);
 	fp << " ]";
 }
 
-void ConfigWriter::EmitArrayItems(std::ostream& fp, const Array::Ptr& val)
+void ConfigWriter::EmitArrayItems(std::ostream& fp, int indentLevel, const Array::Ptr& val)
 {
 	bool first = true;
 
@@ -68,7 +68,7 @@ void ConfigWriter::EmitArrayItems(std::ostream& fp, const Array::Ptr& val)
 		else
 			fp << ", ";
 
-		EmitValue(fp, 0, item);
+		EmitValue(fp, indentLevel, item);
 	}
 }
 
@@ -117,7 +117,7 @@ void ConfigWriter::EmitScope(std::ostream& fp, int indentLevel, const Dictionary
 void ConfigWriter::EmitValue(std::ostream& fp, int indentLevel, const Value& val)
 {
 	if (val.IsObjectType<Array>())
-		EmitArray(fp, val);
+		EmitArray(fp, indentLevel, val);
 	else if (val.IsObjectType<Dictionary>())
 		EmitScope(fp, indentLevel, val);
 	else if (val.IsString())
@@ -192,7 +192,7 @@ void ConfigWriter::EmitFunctionCall(std::ostream& fp, const String& name, const 
 {
 	EmitIdentifier(fp, name, false);
 	fp << "(";
-	EmitArrayItems(fp, arguments);
+	EmitArrayItems(fp, 0, arguments);
 	fp << ")";
 }
 

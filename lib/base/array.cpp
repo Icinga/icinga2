@@ -216,6 +216,6 @@ Array::Ptr Array::Reverse(void) const
 String Array::ToString(void) const
 {
 	std::ostringstream msgbuf;
-	ConfigWriter::EmitArray(msgbuf, const_cast<Array *>(this));
+	ConfigWriter::EmitArray(msgbuf, 1, const_cast<Array *>(this));
 	return msgbuf.str();
 }
