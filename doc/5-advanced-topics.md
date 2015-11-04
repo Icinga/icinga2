@@ -411,7 +411,7 @@ cluster state and output:
         if (up_count >= down_count) {
           return 0 //same up as down -> UP
         } else {
-          return 1 //something is broken
+          return 2 //something is broken
         }
       }}
 
