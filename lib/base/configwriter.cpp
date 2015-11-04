@@ -146,9 +146,14 @@ void ConfigWriter::EmitIndent(std::ostream& fp, int indentLevel)
 void ConfigWriter::EmitIdentifier(std::ostream& fp, const String& identifier, bool inAssignment)
 {
 	static std::set<String> keywords;
-	if (keywords.empty()) {
-		const std::vector<String>& vkeywords = GetKeywords();
-		std::copy(vkeywords.begin(), vkeywords.end(), std::inserter(keywords, keywords.begin()));
+	static boost::mutex mutex;
+
+	{
+		boost::mutex::scoped_lock lock(mutex);
+		if (keywords.empty()) {
+			const std::vector<String>& vkeywords = GetKeywords();
+			std::copy(vkeywords.begin(), vkeywords.end(), std::inserter(keywords, keywords.begin()));
+		}
 	}
 
 	if (keywords.find(identifier) != keywords.end()) {
