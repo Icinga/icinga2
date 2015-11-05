@@ -188,7 +188,7 @@ INT printOutput(printInfoStruct& printInfo, CONST std::vector<nInterface>& vInte
 				std::wcout << "\tNo friendly name found, using adapter name\n";
 			wsFriendlyName = it->name;
 		}
-		tss << L"netI=\"" << wsFriendlyName << L"\";in=" << it->BytesInSec << "B/s;out=" << it->BytesOutSec << L"B/s ";
+		tss << L"\'" << wsFriendlyName << L"_in\'=" << it->BytesInSec << L" \'" << wsFriendlyName << L"_out\'=" << it->BytesOutSec << L" ";
 	}
 
 	if (printInfo.warn.rend(tIn + tOut))
@@ -196,7 +196,7 @@ INT printOutput(printInfoStruct& printInfo, CONST std::vector<nInterface>& vInte
 	if (printInfo.crit.rend(tIn + tOut))
 		state = CRITICAL;
 
-	perfDataFirst << L"network=" << tIn + tOut << L"B/s;" << printInfo.warn.pString() << L";" << printInfo.crit.pString() << L";" << L"0; ";
+	perfDataFirst << L"network=" << tIn + tOut << L";" << printInfo.warn.pString() << L";" << printInfo.crit.pString() << L";" << L"0; ";
 
 	switch (state) {
 	case OK:
