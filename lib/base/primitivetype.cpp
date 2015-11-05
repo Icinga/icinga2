@@ -46,17 +46,32 @@ int PrimitiveType::GetAttributes(void) const
 
 int PrimitiveType::GetFieldId(const String& name) const
 {
-	return -1;
+	Type::Ptr base = GetBaseType();
+
+	if (base)
+		return base->GetFieldId(name);
+	else
+		return -1;
 }
 
 Field PrimitiveType::GetFieldInfo(int id) const
 {
-	throw std::runtime_error("Invalid field ID.");
+	Type::Ptr base = GetBaseType();
+
+	if (base)
+		return base->GetFieldInfo(id);
+	else
+		throw std::runtime_error("Invalid field ID.");
 }
 
 int PrimitiveType::GetFieldCount(void) const
 {
-	return 0;
+	Type::Ptr base = GetBaseType();
+
+	if (base)
+		return Object::TypeInstance->GetFieldCount();
+	else
+		return 0;
 }
 
 ObjectFactory PrimitiveType::GetFactory(void) const

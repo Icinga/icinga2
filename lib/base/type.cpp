@@ -121,7 +121,7 @@ Value Type::GetField(int id) const
 	else if (id == 2)
 		return GetBaseType();
 
-	return Object::GetField(id);
+	return Object::GetField(id - 3);
 }
 
 std::vector<String> Type::GetLoadDependencies(void) const
@@ -169,11 +169,11 @@ Field TypeType::GetFieldInfo(int id) const
 	if (real_id < 0)
 		return GetBaseType()->GetFieldInfo(id);
 
-	if (id == 0)
+	if (real_id == 0)
 		return Field(0, "String", "name", "", NULL, 0, 0);
-	else if (id == 1)
+	else if (real_id == 1)
 		return Field(1, "Object", "prototype", "", NULL, 0, 0);
-	else if (id == 2)
+	else if (real_id == 2)
 		return Field(2, "Type", "base", "", NULL, 0, 0);
 
 	throw std::runtime_error("Invalid field ID.");
