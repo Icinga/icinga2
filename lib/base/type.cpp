@@ -114,14 +114,18 @@ void Type::SetField(int id, const Value& value, bool suppress_events, const Valu
 
 Value Type::GetField(int id) const
 {
-	if (id == 0)
+	int real_id = id - Object::TypeInstance->GetFieldCount();
+	if (real_id < 0)
+		return Object::GetField(id);
+
+	if (real_id == 0)
 		return GetName();
-	else if (id == 1)
+	else if (real_id == 1)
 		return GetPrototype();
-	else if (id == 2)
+	else if (real_id == 2)
 		return GetBaseType();
 
-	return Object::GetField(id - 3);
+	BOOST_THROW_EXCEPTION(std::runtime_error("Invalid field ID."));
 }
 
 std::vector<String> Type::GetLoadDependencies(void) const
