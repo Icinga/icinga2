@@ -50,7 +50,7 @@ public:
 	intrusive_ptr<ApiType> Type;
 };
 
-class ApiType : public Object
+class I2_REMOTE_API ApiType : public Object
 {
 public:
 	DECLARE_PTR_TYPEDEFS(ApiType);
@@ -71,7 +71,7 @@ public:
 	String Type;
 };
 
-struct ApiObject : public Object
+struct I2_REMOTE_API ApiObject : public Object
 {
 public:
 	DECLARE_PTR_TYPEDEFS(ApiObject);
@@ -80,7 +80,7 @@ public:
 	std::vector<ApiObjectReference> UsedBy;
 };
 
-class ApiClient : public Object
+class I2_REMOTE_API ApiClient : public Object
 {
 public:
 	DECLARE_PTR_TYPEDEFS(ApiClient);
