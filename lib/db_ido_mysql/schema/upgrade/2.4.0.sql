@@ -52,8 +52,8 @@ ALTER TABLE icinga_hoststatus ADD COLUMN original_attributes TEXT character set 
 -- #10436 deleted custom vars
 -- -----------------------------------------
 
-ALTER TABLE icinga_customvariables ADD COLUMN session_token varchar(512) character set latin1 default NULL;
-ALTER TABLE icinga_customvariablestatus ADD COLUMN session_token varchar(512) character set latin1 default NULL;
+ALTER TABLE icinga_customvariables ADD COLUMN session_token int default NULL;
+ALTER TABLE icinga_customvariablestatus ADD COLUMN session_token int default NULL;
 
 CREATE INDEX cv_session_del_idx ON icinga_customvariables (session_token);
 CREATE INDEX cvs_session_del_idx ON icinga_customvariablestatus (session_token);

@@ -61,7 +61,7 @@ protected:
 
 private:
 	DbReference m_InstanceID;
-	String m_SessionToken;
+	int m_SessionToken;
 
 	WorkQueue m_QueryQueue;
 

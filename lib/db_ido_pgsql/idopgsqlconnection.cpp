@@ -160,7 +160,7 @@ void IdoPgsqlConnection::Reconnect(void)
 
 	CONTEXT("Reconnecting to PostgreSQL IDO database '" + GetName() + "'");
 
-	m_SessionToken = Utility::NewUniqueID();
+	m_SessionToken = static_cast<int>(Utility::GetTime());
 
 	SetShouldConnect(true);
 
@@ -377,7 +377,7 @@ void IdoPgsqlConnection::Reconnect(void)
 
 void IdoPgsqlConnection::ClearCustomVarTable(const String& table)
 {
-	Query("DELETE FROM " + GetTablePrefix() + table + " WHERE session_token <> '" + Escape(m_SessionToken) + "'");
+	Query("DELETE FROM " + GetTablePrefix() + table + " WHERE session_token <> " + Convert::ToString(m_SessionToken));
 }
 
 void IdoPgsqlConnection::ClearConfigTable(const String& table)
@@ -561,7 +561,7 @@ bool IdoPgsqlConnection::FieldToEscapedString(const String& key, const Value& va
 		return true;
 	}
 	if (key == "session_token") {
-		*result = "'" + Escape(m_SessionToken) + "'";
+		*result = m_SessionToken;
 		return true;
 	}
 	if (key == "notification_id") {

@@ -160,7 +160,7 @@ void IdoMysqlConnection::Reconnect(void)
 
 	CONTEXT("Reconnecting to MySQL IDO database '" + GetName() + "'");
 
-	m_SessionToken = Utility::NewUniqueID();
+	m_SessionToken = static_cast<int>(Utility::GetTime());
 
 	SetShouldConnect(true);
 
@@ -382,7 +382,7 @@ void IdoMysqlConnection::Reconnect(void)
 
 void IdoMysqlConnection::ClearCustomVarTable(const String& table)
 {
-	Query("DELETE FROM " + GetTablePrefix() + table + " WHERE session_token <> '" + Escape(m_SessionToken) + "'");
+	Query("DELETE FROM " + GetTablePrefix() + table + " WHERE session_token <> " + Convert::ToString(m_SessionToken));
 }
 
 void IdoMysqlConnection::ClearConfigTable(const String& table)
@@ -683,7 +683,7 @@ bool IdoMysqlConnection::FieldToEscapedString(const String& key, const Value& va
 		return true;
 	}
 	if (key == "session_token") {
-		*result = "'" + Escape(m_SessionToken) + "'";
+		*result = m_SessionToken;
 		return true;
 	}
 	if (key == "notification_id") {

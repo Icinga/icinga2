@@ -368,7 +368,7 @@ CREATE TABLE  icinga_customvariables (
   varname TEXT  default '',
   varvalue TEXT  default '',
   is_json INTEGER  default 0,
-  session_token TEXT default NULL,
+  session_token INTEGER default NULL,
   CONSTRAINT PK_customvariable_id PRIMARY KEY (customvariable_id) ,
   CONSTRAINT UQ_customvariables UNIQUE (object_id,config_type,varname)
 ) ;
@@ -389,7 +389,7 @@ CREATE TABLE  icinga_customvariablestatus (
   varname TEXT  default '',
   varvalue TEXT  default '',
   is_json INTEGER  default 0,
-  session_token TEXT default NULL,
+  session_token INTEGER default NULL,
   CONSTRAINT PK_customvariablestatus_id PRIMARY KEY (customvariablestatus_id) ,
   CONSTRAINT UQ_customvariablestatus UNIQUE (object_id,varname)
 ) ;
