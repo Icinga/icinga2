@@ -135,6 +135,8 @@ int ConsoleCommand::Run(const po::variables_map& vm, const std::vector<std::stri
 	if (vm.count("sandbox"))
 		scriptFrame.Sandboxed = true;
 
+	scriptFrame.Self = scriptFrame.Locals;
+
 	if (!vm.count("eval"))
 		std::cout << "Icinga 2 (version: " << Application::GetAppVersion() << ")\n";
 

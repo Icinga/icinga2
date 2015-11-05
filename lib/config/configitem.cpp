@@ -174,7 +174,6 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 	ConfigObject::Ptr dobj = static_pointer_cast<ConfigObject>(type->Instantiate());
 
 	dobj->SetDebugInfo(m_DebugInfo);
-	dobj->SetTypeNameV(m_Type);
 	dobj->SetZoneName(m_Zone);
 	dobj->SetPackage(m_Package);
 	dobj->SetName(m_Name);

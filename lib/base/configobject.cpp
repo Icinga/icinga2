@@ -53,7 +53,7 @@ ConfigObject::ConfigObject(void)
 
 ConfigType::Ptr ConfigObject::GetType(void) const
 {
-	return ConfigType::GetByName(GetTypeNameV());
+	return ConfigType::GetByName(GetReflectionType()->GetName());
 }
 
 bool ConfigObject::IsActive(void) const

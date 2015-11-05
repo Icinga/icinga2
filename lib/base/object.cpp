@@ -25,7 +25,7 @@
 
 using namespace icinga;
 
-REGISTER_PRIMITIVE_TYPE(Object, None, Object::GetPrototype());
+DEFINE_TYPE_INSTANCE(Object);
 
 /**
  * Default constructor for the Object class.
@@ -79,7 +79,7 @@ void Object::InflateMutex(void)
 void Object::SetField(int id, const Value&, bool, const Value&)
 {
 	if (id == 0)
-		BOOST_THROW_EXCEPTION(std::runtime_error("Prototype field cannot be set."));
+		BOOST_THROW_EXCEPTION(std::runtime_error("Type field cannot be set."));
 	else
 		BOOST_THROW_EXCEPTION(std::runtime_error("Invalid field ID."));
 }
@@ -87,7 +87,7 @@ void Object::SetField(int id, const Value&, bool, const Value&)
 Value Object::GetField(int id) const
 {
 	if (id == 0)
-		return Empty;
+		return GetReflectionType()->GetName();
 	else
 		BOOST_THROW_EXCEPTION(std::runtime_error("Invalid field ID."));
 }

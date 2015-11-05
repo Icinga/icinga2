@@ -30,7 +30,7 @@ set(base_SOURCES
   exception.cpp fifo.cpp filelogger.cpp filelogger.thpp initialize.cpp json.cpp
   json-script.cpp loader.cpp logger.cpp logger.thpp math-script.cpp
   netstring.cpp networkstream.cpp number.cpp number-script.cpp object.cpp
-  object-script.cpp primitivetype.cpp process.cpp ringbuffer.cpp scriptframe.cpp
+  object-script.cpp objecttype.cpp primitivetype.cpp process.cpp ringbuffer.cpp scriptframe.cpp
   function.cpp function-script.cpp functionwrapper.cpp scriptglobal.cpp
   scriptutils.cpp serializer.cpp socket.cpp socketevents.cpp stacktrace.cpp
   statsfunction.cpp stdiostream.cpp stream.cpp streamlogger.cpp streamlogger.thpp string.cpp string-script.cpp
