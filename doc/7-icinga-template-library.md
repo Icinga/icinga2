@@ -1995,7 +1995,9 @@ jmx4perl_label               | **Optional.** Label to be used for printing out t
 jmx4perl_perfdata            | **Optional.** Whether performance data should be omitted, which are included by default. Defaults to "on" for numeric values, to "off" for strings.
 jmx4perl_unknown_is_critical | **Optional.** Map UNKNOWN errors to errors with a CRITICAL status. Defaults to false.
 jmx4perl_timeout             | **Optional.** Seconds before plugin times out. Defaults to "15".
-
+jmx4perl_config              | **Optional.** Path to configuration file.
+jmx4perl_server              | **Optional.** Symbolic name of server url to use, which needs to be configured in the configuration file.
+jmx4perl_check               | **Optional.** Name of a check configuration as defined in the configuration file, use array if you need arguments.
 
 #### <a id="plugins-contrib-squid"></a> squid
 
