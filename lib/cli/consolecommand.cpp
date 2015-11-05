@@ -46,6 +46,36 @@ static String l_Session;
 
 REGISTER_CLICOMMAND("console", ConsoleCommand);
 
+INITIALIZE_ONCE(&ConsoleCommand::StaticInitialize);
+
+void ConsoleCommand::BreakpointHandler(ScriptFrame& frame, ScriptError *ex, const DebugInfo& di)
+{
+	static boost::mutex mutex;
+	boost::mutex::scoped_lock lock(mutex);
+
+	if (!Application::GetScriptDebuggerEnabled())
+		return;
+
+	if (ex && ex->IsHandledByDebugger())
+		return;
+
+	std::cout << "Breakpoint encountered in '" << di.Path << "' at " << di << "\n";
+
+	if (ex) {
+		std::cout << "Exception: " << DiagnosticInformation(*ex);
+		ex->SetHandledByDebugger(true);
+	}
+
+	std::cout << "You can leave the debugger and continue the program with \"$quit\".\n";
+
+	ConsoleCommand::RunScriptConsole(frame);
+}
+
+void ConsoleCommand::StaticInitialize(void)
+{
+	Expression::OnBreakpoint.connect(&ConsoleCommand::BreakpointHandler);
+}
+
 String ConsoleCommand::GetDescription(void) const
 {
 	return "Interprets Icinga script expressions.";
@@ -118,19 +148,15 @@ char *ConsoleCommand::ConsoleCompleteHelper(const char *word, int state)
  */
 int ConsoleCommand::Run(const po::variables_map& vm, const std::vector<std::string>& ap) const
 {
-	std::map<String, String> lines;
-	int next_line = 1;
-
 #ifdef HAVE_EDITLINE
 	rl_completion_entry_function = ConsoleCommand::ConsoleCompleteHelper;
 	rl_completion_append_character = '\0';
 #endif /* HAVE_EDITLINE */
 
-	String addr;
+	String addr, session;
 	ScriptFrame scriptFrame;
 
-	l_ScriptFrame = &scriptFrame;
-	l_Session = Utility::NewUniqueID();
+	session = Utility::NewUniqueID();
 
 	if (vm.count("sandbox"))
 		scriptFrame.Sandboxed = true;
@@ -144,9 +170,24 @@ int ConsoleCommand::Run(const po::variables_map& vm, const std::vector<std::stri
 	if (addrEnv)
 		addr = addrEnv;
 
-	if (vm.count("connect")) {
+	if (vm.count("connect"))
 		addr = vm["connect"].as<std::string>();
-	}
+
+	String command;
+
+	if (vm.count("eval"))
+		command = vm["eval"].as<std::string>();
+
+	return RunScriptConsole(scriptFrame, addr, session, command);;
+}
+
+int ConsoleCommand::RunScriptConsole(ScriptFrame& scriptFrame, const String& addr, const String& session, const String& commandOnce)
+{
+	std::map<String, String> lines;
+	int next_line = 1;
+
+	l_ScriptFrame = &scriptFrame;
+	l_Session = session;
 
 	if (!addr.IsEmpty()) {
 		Url::Ptr url;
@@ -182,7 +223,7 @@ int ConsoleCommand::Run(const po::variables_map& vm, const std::vector<std::stri
 incomplete:
 		std::string line;
 
-		if (!vm.count("eval")) {
+		if (commandOnce.IsEmpty()) {
 #ifdef HAVE_EDITLINE
 			std::ostringstream promptbuf;
 			std::ostream& os = promptbuf;
@@ -215,7 +256,14 @@ incomplete:
 			std::getline(std::cin, line);
 #endif /* HAVE_EDITLINE */
 		} else
-			line = vm["eval"].as<std::string>();
+			line = commandOnce;
+
+		if (!line.empty() && line[0] == '$') {
+			if (line == "$quit")
+				break;
+
+			std::cout << "Unknown debugger command: " << line;
+		}
 
 		if (!command.empty())
 			command += "\n";
@@ -254,7 +302,7 @@ incomplete:
 					boost::rethrow_exception(eptr);
 			}
 
-			if (!vm.count("eval")) {
+			if (commandOnce.IsEmpty()) {
 				std::cout << ConsoleColorTag(Console_ForegroundCyan);
 				ConfigWriter::EmitValue(std::cout, 1, result);
 				std::cout << ConsoleColorTag(Console_Normal) << "\n";
@@ -308,12 +356,12 @@ incomplete:
 
 			std::cout << ex.what() << "\n";
 
-			if (vm.count("eval"))
+			if (!commandOnce.IsEmpty())
 				return EXIT_FAILURE;
 		} catch (const std::exception& ex) {
 			std::cout << "Error: " << DiagnosticInformation(ex) << "\n";
 
-			if (vm.count("eval"))
+			if (!commandOnce.IsEmpty())
 				return EXIT_FAILURE;
 		}
 

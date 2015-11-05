@@ -254,7 +254,7 @@ ScriptError::ScriptError(const String& message)
 { }
 
 ScriptError::ScriptError(const String& message, const DebugInfo& di, bool incompleteExpr)
-	: m_Message(message), m_DebugInfo(di), m_IncompleteExpr(incompleteExpr)
+	: m_Message(message), m_DebugInfo(di), m_IncompleteExpr(incompleteExpr), m_HandledByDebugger(false)
 { }
 
 ScriptError::~ScriptError(void) throw()
@@ -273,6 +273,16 @@ DebugInfo ScriptError::GetDebugInfo(void) const
 bool ScriptError::IsIncompleteExpression(void) const
 {
 	return m_IncompleteExpr;;
+}
+
+bool ScriptError::IsHandledByDebugger(void) const
+{
+	return m_HandledByDebugger;
+}
+
+void ScriptError::SetHandledByDebugger(bool handled)
+{
+	m_HandledByDebugger = handled;
 }
 
 posix_error::posix_error(void)

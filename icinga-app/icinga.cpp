@@ -193,9 +193,9 @@ int Main(void)
 		("app,a", po::value<std::string>(), "application library name (default: icinga)")
 		("library,l", po::value<std::vector<std::string> >(), "load a library")
 		("include,I", po::value<std::vector<std::string> >(), "add include search directory")
-		("log-level,x", po::value<std::string>()
-			, "specify the log level for the console log.\n"
-			"The valid value is either debug, notice, information (default), warning, or critical");
+		("log-level,x", po::value<std::string>(), "specify the log level for the console log.\n"
+		    "The valid value is either debug, notice, information (default), warning, or critical")
+		("script-debugger,X", "whether to enable the script debugger");
 
 	po::options_description hiddenDesc("Hidden options");
 
@@ -263,6 +263,9 @@ int Main(void)
 			ScriptGlobal::Set(key, value);
 		}
 	}
+
+	if (vm.count("script-debugger"))
+		Application::SetScriptDebuggerEnabled(true);
 
 	Application::DeclareStatePath(Application::GetLocalStateDir() + "/lib/icinga2/icinga2.state");
 	Application::DeclareModAttrPath(Application::GetLocalStateDir() + "/lib/icinga2/modified-attributes.conf");

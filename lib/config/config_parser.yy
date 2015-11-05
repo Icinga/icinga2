@@ -146,6 +146,7 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %token T_IGNORE_ON_ERROR "ignore_on_error (T_IGNORE_ON_ERROR)"
 %token T_CURRENT_FILENAME "current_filename (T_CURRENT_FILENAME)"
 %token T_CURRENT_LINE "current_line (T_CURRENT_LINE)"
+%token T_DEBUGGER "debugger (T_DEBUGGER)"
 %token T_USE "use (T_USE)"
 %token T_OBJECT "object (T_OBJECT)"
 %token T_TEMPLATE "template (T_TEMPLATE)"
@@ -513,6 +514,10 @@ lterm: T_LIBRARY rterm
 	| T_CONTINUE
 	{
 		$$ = new ContinueExpression(@$);
+	}
+	| T_DEBUGGER
+	{
+		$$ = new BreakpointExpression(@$);
 	}
 	| apply
 	| object

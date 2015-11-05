@@ -34,8 +34,22 @@
 
 using namespace icinga;
 
+boost::signals2::signal<void (ScriptFrame&, ScriptError *ex, const DebugInfo&)> Expression::OnBreakpoint;
+boost::thread_specific_ptr<bool> l_InBreakpointHandler;
+
 Expression::~Expression(void)
 { }
+
+void Expression::ScriptBreakpoint(ScriptFrame& frame, ScriptError *ex, const DebugInfo& di)
+{
+	bool *inHandler = l_InBreakpointHandler.get();
+	if (!inHandler || !*inHandler) {
+		inHandler = new bool(true);
+		l_InBreakpointHandler.reset(inHandler);
+		OnBreakpoint(frame, ex, di);
+		*inHandler = false;
+	}
+}
 
 ExpressionResult Expression::Evaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
@@ -48,7 +62,8 @@ ExpressionResult Expression::Evaluate(ScriptFrame& frame, DebugHint *dhint) cons
 #endif /* I2_DEBUG */
 
 		return DoEvaluate(frame, dhint);
-	} catch (const ScriptError& ex) {
+	} catch (ScriptError& ex) {
+		ScriptBreakpoint(frame, &ex, GetDebugInfo());
 		throw;
 	} catch (const std::exception& ex) {
 		BOOST_THROW_EXCEPTION(ScriptError("Error while evaluating expression: " + String(ex.what()), GetDebugInfo())
@@ -859,3 +874,11 @@ ExpressionResult IncludeExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dh
 
 	return res;
 }
+
+ExpressionResult BreakpointExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
+{
+	ScriptBreakpoint(frame, NULL, GetDebugInfo());
+
+	return Empty;
+}
+

@@ -22,6 +22,7 @@
 
 #include "cli/clicommand.hpp"
 #include "base/exception.hpp"
+#include "base/scriptframe.hpp"
 
 namespace icinga
 {
@@ -36,12 +37,17 @@ class ConsoleCommand : public CLICommand
 public:
 	DECLARE_PTR_TYPEDEFS(ConsoleCommand);
 
+	static void StaticInitialize(void);
+
 	virtual String GetDescription(void) const override;
 	virtual String GetShortDescription(void) const override;
 	virtual ImpersonationLevel GetImpersonationLevel(void) const override;
 	virtual void InitParameters(boost::program_options::options_description& visibleDesc,
 	    boost::program_options::options_description& hiddenDesc) const override;
 	virtual int Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const override;
+
+	static int RunScriptConsole(ScriptFrame& scriptFrame, const String& addr = String(),
+	    const String& session = String(), const String& commandOnce = String());
 
 private:
 	mutable boost::mutex m_Mutex;
@@ -57,6 +63,8 @@ private:
 #ifdef HAVE_EDITLINE
 	static char *ConsoleCompleteHelper(const char *word, int state);
 #endif /* HAVE_EDITLINE */
+
+	static void BreakpointHandler(ScriptFrame& frame, ScriptError *ex, const DebugInfo& di);
 
 };
 

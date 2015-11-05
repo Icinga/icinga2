@@ -198,6 +198,10 @@ public:
 	virtual const DebugInfo& GetDebugInfo(void) const;
 
 	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const = 0;
+
+	static boost::signals2::signal<void (ScriptFrame& frame, ScriptError *ex, const DebugInfo& di)> OnBreakpoint;
+
+	static void ScriptBreakpoint(ScriptFrame& frame, ScriptError *ex, const DebugInfo& di);
 };
 
 I2_CONFIG_API Expression *MakeIndexer(ScopeSpecifier scopeSpec, const String& index);
@@ -935,6 +939,17 @@ private:
 	bool m_SearchIncludes;
 	String m_Zone;
 	String m_Package;
+};
+
+class I2_CONFIG_API BreakpointExpression : public DebuggableExpression
+{
+public:
+	BreakpointExpression(const DebugInfo& debugInfo = DebugInfo())
+	    : DebuggableExpression(debugInfo)
+	{ }
+
+protected:
+	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
 }

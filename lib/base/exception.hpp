@@ -60,10 +60,14 @@ public:
 	DebugInfo GetDebugInfo(void) const;
 	bool IsIncompleteExpression(void) const;
 
+	bool IsHandledByDebugger(void) const;
+	void SetHandledByDebugger(bool handled);
+
 private:
 	String m_Message;
 	DebugInfo m_DebugInfo;
 	bool m_IncompleteExpr;
+	bool m_HandledByDebugger;
 };
 
 /*

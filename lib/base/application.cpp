@@ -63,6 +63,7 @@ static bool l_InExceptionHandler = false;
 int Application::m_ArgC;
 char **Application::m_ArgV;
 double Application::m_StartTime;
+bool Application::m_ScriptDebuggerEnabled = false;
 
 /**
  * Constructor for the Application class.
@@ -1448,6 +1449,16 @@ double Application::GetStartTime(void)
 void Application::SetStartTime(double ts)
 {
 	m_StartTime = ts;
+}
+
+bool Application::GetScriptDebuggerEnabled(void)
+{
+	return m_ScriptDebuggerEnabled;
+}
+
+void Application::SetScriptDebuggerEnabled(bool enabled)
+{
+	m_ScriptDebuggerEnabled = enabled;
 }
 
 void Application::ValidateName(const String& value, const ValidationUtils& utils)
