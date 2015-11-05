@@ -26,4 +26,4 @@ if test "x`uname -s`" = "xLinux" -a "x$1" = "xconsole"; then
   fi
 fi
 
-exec $ICINGA2_BIN $@
+exec $ICINGA2_BIN "$@"
