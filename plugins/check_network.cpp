@@ -101,7 +101,7 @@ INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& p
 		std::cout << desc;
 		wprintf(
 			L"\nIt will then output a string looking something like this:\n\n"
-			L"\tNETWORK WARNING 1131B/s | network=1131B/s;1000;7000;0\n\n"
+			L"\tNETWORK WARNING 1131B/s | network=1131B;1000;7000;0\n\n"
 			L"\"NETWORK\" being the type of the check, \"WARNING\" the returned status\n"
 			L"and \"1131B/s\" is the returned value.\n"
 			L"The performance data is found behind the \"|\", in order:\n"
@@ -190,7 +190,7 @@ INT printOutput(printInfoStruct& printInfo, CONST std::vector<nInterface>& vInte
 			wsFriendlyName = it->name;
 		}
 		boost::algorithm::replace_all(wsFriendlyName, "'", "''");
-		tss << L"netI='" << wsFriendlyName << L"';in=" << it->BytesInSec << "B/s;out=" << it->BytesOutSec << L"B/s ";
+		tss << L"netI='" << wsFriendlyName << L"';in=" << it->BytesInSec << "B;out=" << it->BytesOutSec << L"B ";
 	}
 
 	if (printInfo.warn.rend(tIn + tOut))
@@ -198,7 +198,7 @@ INT printOutput(printInfoStruct& printInfo, CONST std::vector<nInterface>& vInte
 	if (printInfo.crit.rend(tIn + tOut))
 		state = CRITICAL;
 
-	perfDataFirst << L"network=" << tIn + tOut << L"B/s;" << printInfo.warn.pString() << L";" << printInfo.crit.pString() << L";" << L"0; ";
+	perfDataFirst << L"network=" << tIn + tOut << L"B;" << printInfo.warn.pString() << L";" << printInfo.crit.pString() << L";" << L"0; ";
 
 	switch (state) {
 	case OK:
