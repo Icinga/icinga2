@@ -342,9 +342,6 @@ getent passwd %{icinga_user} >/dev/null || %{_sbindir}/useradd -c "icinga" -s /s
 
 %post bin
 
-# install the api setup
-%{_sbindir}/%{name} api setup
-
 # suse
 %if "%{_vendor}" == "suse"
 

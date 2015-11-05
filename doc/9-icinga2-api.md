@@ -131,8 +131,11 @@ New installations of Icinga 2 will automatically set up a new `ApiUser`
 named `root` with an auto-generated password in the `/etc/icinga2/conf.d/api-users.conf`
 file.
 
-You can manually invoke the CLI command `icinga2 api setup` which will generate
-a new local CA, self-signed certificate and a new API user configuration.
+Run the CLI command `icinga2 api setup` to generate certificates
+and a new API user `root` with an auto-generated password in the
+`/etc/icinga2/conf.d/api-users.conf` configuration file.
+
+    # icinga2 api setup
 
 Once the API user is configured make sure to restart Icinga 2:
 
@@ -144,7 +147,7 @@ You can test authentication by sending a GET request to the API:
 
 In case you get an error message make sure to check the API user credentials.
 
-The curl parameter `-k` disables the master certificate verification. In order
+The curl parameter `-k` disables certificate verification. In order
 to securely check each connection you'll need to pass the trusted CA certificate
 using the curl parameter`--cacert`:
 
