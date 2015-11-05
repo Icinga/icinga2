@@ -30,6 +30,7 @@
 #include <IPHlpApi.h>
 
 #include "check_network.h"
+#include "boost/algorithm/string/replace.hpp"
 
 #define VERSION 1.1
 
@@ -188,7 +189,8 @@ INT printOutput(printInfoStruct& printInfo, CONST std::vector<nInterface>& vInte
 				std::wcout << "\tNo friendly name found, using adapter name\n";
 			wsFriendlyName = it->name;
 		}
-		tss << L"netI=\"" << wsFriendlyName << L"\";in=" << it->BytesInSec << "B/s;out=" << it->BytesOutSec << L"B/s ";
+		boost::algorithm::replace_all(wsFriendlyName, "'", "''");
+		tss << L"netI='" << wsFriendlyName << L"';in=" << it->BytesInSec << "B/s;out=" << it->BytesOutSec << L"B/s ";
 	}
 
 	if (printInfo.warn.rend(tIn + tOut))
