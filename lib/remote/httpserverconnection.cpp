@@ -161,7 +161,14 @@ void HttpServerConnection::ProcessMessageAsync(HttpRequest& request)
 
 	HttpResponse response(m_Stream, request);
 
-	if (!user) {
+	String accept_header = request.Headers->Get("accept");
+
+	if (request.RequestMethod != "GET" && accept_header != "application/json") {
+		response.SetStatus(400, "Wrong Accept header");
+		response.AddHeader("Content-Type", "text/html");
+		String msg = "<h1>Accept header is missing or not set to 'application/json'.</h1>";
+		response.WriteBody(msg.CStr(), msg.GetLength());
+	} else if (!user) {
 		Log(LogWarning, "HttpServerConnection")
 		    << "Unauthorized request: " << request.RequestMethod << " " << requestUrl;
 		response.SetStatus(401, "Unauthorized");

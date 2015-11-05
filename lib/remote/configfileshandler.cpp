@@ -49,6 +49,11 @@ bool ConfigFilesHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 		params->Set("path", boost::algorithm::join(tmpPath, "/"));
 	}
 
+	if (request.Headers->Get("accept") == "application/json") {
+		HttpUtility::SendJsonError(response, 400, "Invalid Accept header. Either remove the Accept header or set it to 'application/octet-stream'.");
+		return true;
+	}
+
 	FilterUtility::CheckPermission(user, "config/query");
 
 	String packageName = HttpUtility::GetLastParameter(params, "package");
