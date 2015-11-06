@@ -85,7 +85,7 @@ bool ActionsHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& reques
 		} catch (const std::exception& ex) {
 			Dictionary::Ptr fail = new Dictionary();
 			fail->Set("code", 500);
-			fail->Set("status", "Action execution failed.");
+			fail->Set("status", "Action execution failed: '" + DiagnosticInformation(ex, false) + "'.");
 			if (HttpUtility::GetLastParameter(params, "verboseErrors"))
 				fail->Set("diagnostic information", DiagnosticInformation(ex));
 			results->Add(fail);

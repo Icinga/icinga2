@@ -59,14 +59,14 @@ CREATE INDEX cv_session_del_idx ON icinga_customvariables (session_token);
 CREATE INDEX cvs_session_del_idx ON icinga_customvariablestatus (session_token);
 
 -- -----------------------------------------
--- #10431 comment/downtime unique id
+-- #10431 comment/downtime name
 -- -----------------------------------------
 
-ALTER TABLE icinga_comments ADD COLUMN unique_id TEXT character set latin1 default NULL;
-ALTER TABLE icinga_commenthistory ADD COLUMN unique_id TEXT character set latin1 default NULL;
+ALTER TABLE icinga_comments ADD COLUMN name TEXT character set latin1 default NULL;
+ALTER TABLE icinga_commenthistory ADD COLUMN name TEXT character set latin1 default NULL;
 
-ALTER TABLE icinga_scheduleddowntime ADD COLUMN unique_id TEXT character set latin1 default NULL;
-ALTER TABLE icinga_downtimehistory ADD COLUMN unique_id TEXT character set latin1 default NULL;
+ALTER TABLE icinga_scheduleddowntime ADD COLUMN name TEXT character set latin1 default NULL;
+ALTER TABLE icinga_downtimehistory ADD COLUMN name TEXT character set latin1 default NULL;
 
 -- -----------------------------------------
 -- update dbversion

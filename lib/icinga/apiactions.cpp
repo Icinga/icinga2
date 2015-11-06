@@ -41,10 +41,10 @@ REGISTER_APIACTION(acknowledge_problem, "Service;Host", &ApiActions::Acknowledge
 REGISTER_APIACTION(remove_acknowledgement, "Service;Host", &ApiActions::RemoveAcknowledgement);
 REGISTER_APIACTION(add_comment, "Service;Host", &ApiActions::AddComment);
 REGISTER_APIACTION(remove_all_comments, "Service;Host", &ApiActions::RemoveAllComments);
-REGISTER_APIACTION(remove_comment_by_id, "", &ApiActions::RemoveCommentByID);
+REGISTER_APIACTION(remove_comment, "", &ApiActions::RemoveComment);
 REGISTER_APIACTION(schedule_downtime, "Service;Host", &ApiActions::ScheduleDowntime);
 REGISTER_APIACTION(remove_all_downtimes, "Service;Host", &ApiActions::RemoveAllDowntimes);
-REGISTER_APIACTION(remove_downtime_by_id, "", &ApiActions::RemoveDowntimeByID);
+REGISTER_APIACTION(remove_downtime, "", &ApiActions::RemoveDowntime);
 REGISTER_APIACTION(shutdown_process, "", &ApiActions::ShutdownProcess);
 REGISTER_APIACTION(restart_process, "", &ApiActions::RestartProcess);
 
@@ -250,19 +250,19 @@ Dictionary::Ptr ApiActions::AddComment(const ConfigObject::Ptr& object,
 	if (!params->Contains("author") || !params->Contains("comment"))
 		return ApiActions::CreateResult(403, "Comments require author and comment.");
 
-	String comment_id = Comment::AddComment(checkable, CommentUser,
+	String comment_name = Comment::AddComment(checkable, CommentUser,
 	    HttpUtility::GetLastParameter(params, "author"),
 	    HttpUtility::GetLastParameter(params, "comment"), 0);
 
-	Comment::Ptr comment = Comment::GetByName(comment_id);
+	Comment::Ptr comment = Comment::GetByName(comment_name);
 	int legacy_id = comment->GetLegacyId();
 
 	Dictionary::Ptr additional = new Dictionary();
-	additional->Set("comment_id", comment_id);
+	additional->Set("name", comment_name);
 	additional->Set("legacy_id", legacy_id);
 
-	return ApiActions::CreateResult(200, "Successfully added comment with id '"
-	    + comment_id + "' for object '" + checkable->GetName()
+	return ApiActions::CreateResult(200, "Successfully added comment '"
+	    + comment_name + "' for object '" + checkable->GetName()
 	    + "'.", additional);
 }
 
@@ -279,22 +279,22 @@ Dictionary::Ptr ApiActions::RemoveAllComments(const ConfigObject::Ptr& object,
 	return ApiActions::CreateResult(200, "Successfully removed comments for object '" + checkable->GetName() + "'.");
 }
 
-Dictionary::Ptr ApiActions::RemoveCommentByID(const ConfigObject::Ptr& object,
+Dictionary::Ptr ApiActions::RemoveComment(const ConfigObject::Ptr& object,
     const Dictionary::Ptr& params)
 {
-	if (!params->Contains("comment_id"))
-		return ApiActions::CreateResult(403, "Parameter 'comment_id' is required.");
+	if (!params->Contains("name"))
+		return ApiActions::CreateResult(403, "Parameter 'name' is required.");
 
-	String comment_id = HttpUtility::GetLastParameter(params, "comment_id");
+	String comment_name = HttpUtility::GetLastParameter(params, "name");
 
-	Comment::RemoveComment(comment_id);
+	Comment::RemoveComment(comment_name);
 
-	Comment::Ptr comment = Comment::GetByName(comment_id);
+	Comment::Ptr comment = Comment::GetByName(comment_name);
 
 	if (!comment)
-		return ApiActions::CreateResult(200, "Successfully removed comment '" + comment_id + "'.");
+		return ApiActions::CreateResult(200, "Successfully removed comment '" + comment_name + "'.");
 
-	return ApiActions::CreateResult(403, "Could not remove comment '" + comment_id + "'.");
+	return ApiActions::CreateResult(403, "Could not remove comment '" + comment_name + "'.");
 }
 
 Dictionary::Ptr ApiActions::ScheduleDowntime(const ConfigObject::Ptr& object,
@@ -316,23 +316,23 @@ Dictionary::Ptr ApiActions::ScheduleDowntime(const ConfigObject::Ptr& object,
 	if (params->Contains("fixed"))
 		fixed = HttpUtility::GetLastParameter(params, "fixed");
 
-	String downtime_id = Downtime::AddDowntime(checkable,
+	String downtime_name = Downtime::AddDowntime(checkable,
 	    HttpUtility::GetLastParameter(params, "author"),
 	    HttpUtility::GetLastParameter(params, "comment"),
 	    HttpUtility::GetLastParameter(params, "start_time"),
 	    HttpUtility::GetLastParameter(params, "end_time"), fixed,
-	    HttpUtility::GetLastParameter(params, "trigger_id"),
+	    HttpUtility::GetLastParameter(params, "trigger_name"),
 	    HttpUtility::GetLastParameter(params, "duration"));
 
-	Downtime::Ptr downtime = Downtime::GetByName(downtime_id);
+	Downtime::Ptr downtime = Downtime::GetByName(downtime_name);
 	int legacy_id = downtime->GetLegacyId();
 
 	Dictionary::Ptr additional = new Dictionary();
-	additional->Set("downtime_id", downtime_id);
+	additional->Set("name", downtime_name);
 	additional->Set("legacy_id", legacy_id);
 
-	return ApiActions::CreateResult(200, "Successfully scheduled downtime with id '" +
-	     downtime_id + "' for object '" + checkable->GetName() + "'.", additional);
+	return ApiActions::CreateResult(200, "Successfully scheduled downtime '" +
+	     downtime_name + "' for object '" + checkable->GetName() + "'.", additional);
 }
 
 Dictionary::Ptr ApiActions::RemoveAllDowntimes(const ConfigObject::Ptr& object,
@@ -348,22 +348,22 @@ Dictionary::Ptr ApiActions::RemoveAllDowntimes(const ConfigObject::Ptr& object,
 	return ApiActions::CreateResult(200, "Successfully removed downtimes for object '" + checkable->GetName() + "'.");
 }
 
-Dictionary::Ptr ApiActions::RemoveDowntimeByID(const ConfigObject::Ptr& object,
+Dictionary::Ptr ApiActions::RemoveDowntime(const ConfigObject::Ptr& object,
     const Dictionary::Ptr& params)
 {
-	if (!params->Contains("downtime_id"))
-		return ApiActions::CreateResult(403, "Parameter 'downtime_id' is required.");
+	if (!params->Contains("name"))
+		return ApiActions::CreateResult(403, "Parameter 'name' is required.");
 
-	String downtime_id = HttpUtility::GetLastParameter(params, "downtime_id");
+	String downtime_name = HttpUtility::GetLastParameter(params, "name");
 
-	Downtime::RemoveDowntime(downtime_id, true);
+	Downtime::RemoveDowntime(downtime_name, true);
 
-	Downtime::Ptr downtime = Downtime::GetByName(downtime_id);
+	Downtime::Ptr downtime = Downtime::GetByName(downtime_name);
 
 	if (!downtime)
-		return ApiActions::CreateResult(200, "Successfully removed downtime '" + downtime_id + "'.");
+		return ApiActions::CreateResult(200, "Successfully removed downtime '" + downtime_name + "'.");
 
-	return ApiActions::CreateResult(403, "Could not remove downtime '" + downtime_id + "'.");
+	return ApiActions::CreateResult(403, "Could not remove downtime '" + downtime_name + "'.");
 }
 
 Dictionary::Ptr ApiActions::ShutdownProcess(const ConfigObject::Ptr& object,

@@ -252,6 +252,12 @@ The array-append-notation is also supported:
 
     ?hosts[]=host1&hosts[]=host2&hosts[]=host3
 
+In case you want to add an object with a reference to other objects (e.g. the service
+`ping4` belonging to the host `icinga2-node1.localdomain`) you'll need to use the
+full name from the returned result set, e.g. `icinga2-node1.localdomain`. An object's
+full name can also be retrieved from the `__name` object attribute in object queries.
+A similar output is shown in [object list](8-cli-commands.md#cli-command-object) cli output.
+
 #### <a id="icinga2-api-filters"></a> Filters
 
 Uses the same syntax as [apply rule expressions](3-monitoring-basics.md#using-apply-expressions)
@@ -539,17 +545,22 @@ Send a `POST` request to the URL endpoint `/v1/actions/add-comment`.
 Example:
 
     $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/add-comment?type=Service&filter=service.name==%22ping4%22' -d '{ "author": "icingaadmin", "comment": "Troubleticket #123456789 opened." }' | python -m json.tool
-
     {
         "results": [
             {
                 "code": 200.0,
-                "comment_id": "i-42866686!ping4!mbmif.local-1446390475-55",
-                "legacy_id": 2.0,
-                "status": "Successfully added comment with id 'i-42866686!ping4!mbmif.local-1446390475-55' for object 'i-42866686!ping4'."
+                "legacy_id": 26.0,
+                "name": "i-43866687!ping4!mbmif.int.netways.de-1446824161-0",
+                "status": "Successfully added comment 'i-43866687!ping4!mbmif.int.netways.de-1446824161-0' for object 'i-43866687!ping4'."
+            },
+            {
+                "code": 200.0,
+                "legacy_id": 27.0,
+                "name": "i-42866686!ping4!mbmif.int.netways.de-1446824161-1",
+                "status": "Successfully added comment 'i-42866686!ping4!mbmif.int.netways.de-1446824161-1' for object 'i-42866686!ping4'."
             }
+        ]
     }
-
 
 ### <a id="icinga2-api-actions-remove-all-comments"></a> remove-all-comments
 
@@ -578,29 +589,29 @@ Example:
             }
     }
 
-### <a id="icinga2-api-actions-remove-comment-by-id"></a> remove-comment-by-id
+### <a id="icinga2-api-actions-remove-comment"></a> remove-comment
 
-Tries to remove the comment with the ID `comment_id`, returns `OK` if the
+Remove the comment using its `name` attribute , returns `OK` if the
 comment did not exist.
-**Note**: This is **not** the legacy ID but the comment ID returned by Icinga 2 itself.
+**Note**: This is **not** the legacy ID but the comment name returned by
+Icinga 2 when [add a comment](9-icinga2-api.md#icinga2-api-actions-add-comment).
 
-Send a `POST` request to the URL endpoint `/v1/actions/remove-comment-by-id`.
+Send a `POST` request to the URL endpoint `/v1/actions/remove-comment`.
 
   parameter   | type    | description
   ------------|---------|--------------
-  comment\_id | integer | **Required.** ID of the comment to remove.
+  name        | string  | **Required.** Name of the comment to remove.
 
 Does not support a target type or filters.
 
 Example:
 
-    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/remove-comment-by-id?comment_id=i-43866687!ping4!mbmif.local-1446390475-56' | python -m json.tool
-
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/remove-comment?name=i-43866687!ping4!mbmif.int.netways.de-1446824161-0' | python -m json.tool
     {
         "results": [
             {
                 "code": 200.0,
-                "status": "Successfully removed comment 'i-43866687!ping4!mbmif.local-1446390475-56'."
+                "status": "Successfully removed comment 'i-43866687!ping4!mbmif.int.netways.de-1446824161-0'."
             }
         ]
     }
@@ -619,26 +630,24 @@ Send a `POST` request to the URL endpoint `/v1/actions/schedule-downtime`.
   end\_time   | timestamp | **Required.** Timestamp marking the end of the downtime.
   duration    | integer   | **Required.** Duration of the downtime in seconds if `fixed` is set to false.
   fixed       | boolean   | **Optional.** Defaults to `false`. If true the downtime is `fixed` otherwise `flexible`. See [downtimes](5-advanced-topics.md#downtimes) for more information.
-  trigger\_id | integer   | **Optional.** Sets the trigger for a triggered downtime. See [downtimes](5-advanced-topics.md#downtimes) for more information on triggered downtimes.
+  trigger\_name | string   | **Optional.** Sets the trigger for a triggered downtime. See [downtimes](5-advanced-topics.md#downtimes) for more information on triggered downtimes.
 
 Example:
 
-    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/schedule-downtime?type=Service&filter=service.name==%22ping4%22' \
-    -d '{ "start_time": 1446388806, "end_time": 1446389806, "duration": 1000, "author": "icingaadmin", "comment": "IPv4 network maintenance" }' | python -m json.tool
-
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/schedule-downtime?type=Service&filter=service.name==%22ping4%22' -d '{ "start_time": 1446388806, "end_time": 1446389806, "duration": 1000, "author": "icingaadmin", "comment": "IPv4 network maintenance" }' | python -m json.tool
     {
         "results": [
             {
                 "code": 200.0,
-                "downtime_id": "i-42866686!ping4!mbmif.local-1446388986-545",
-                "legacy_id": 8.0,
-                "status": "Successfully scheduled downtime with id 'i-42866686!ping4!mbmif.local-1446388986-545' for object 'i-42866686!ping4'."
+                "legacy_id": 2.0,
+                "name": "i-42866686!ping4!mbmif.int.netways.de-1446822004-0",
+                "status": "Successfully scheduled downtime 'i-42866686!ping4!mbmif.int.netways.de-1446822004-0' for object 'i-42866686!ping4'."
             },
             {
                 "code": 200.0,
-                "downtime_id": "i-43866687!ping4!mbmif.local-1446388986-546",
-                "legacy_id": 9.0,
-                "status": "Successfully scheduled downtime with id 'i-43866687!ping4!mbmif.local-1446388986-546' for object 'i-43866687!ping4'."
+                "legacy_id": 3.0,
+                "name": "i-43866687!ping4!mbmif.int.netways.de-1446822004-1",
+                "status": "Successfully scheduled downtime 'i-43866687!ping4!mbmif.int.netways.de-1446822004-1' for object 'i-43866687!ping4'."
             }
         ]
     }
@@ -672,33 +681,32 @@ Example:
         ]
     }
 
-### <a id="icinga2-api-actions-remove-downtime-by-id"></a> remove-downtime-by-id
+### <a id="icinga2-api-actions-remove-downtime"></a> remove-downtime
 
-Tries to remove the downtime with the ID `downtime_id`, returns `OK` if the
+Remove the downtime using its `name` attribute , returns `OK` if the
 downtime did not exist.
-**Note**: This is **not** the legacy ID but the downtime ID returned by Icinga 2 itself.
+**Note**: This is **not** the legacy ID but the downtime name returned by
+Icinga 2 when [scheduling a downtime](9-icinga2-api.md#icinga2-api-actions-schedule-downtime).
 
-Send a `POST` request to the URL endpoint `/v1/actions/remove-downtime-by-id`.
+Send a `POST` request to the URL endpoint `/v1/actions/remove-downtime`.
 
   parameter    | type    | description
   -------------|---------|--------------
-  downtime\_id | integer | **Required.** ID of the downtime to remove.
+  name         | string  | **Required.** Name of the downtime to remove.
 
 Does not support a target type or filter.
 
 Example:
 
-    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/remove-downtime-by-id?downtime_id=mbmif.local-1446339731-582' | python -m json.tool
-
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/remove-downtime?name=i-43866687!ping4!mbmif.int.netways.de-1446822004-1' | python -m json.tool
     {
         "results": [
             {
                 "code": 200.0,
-                "status": "Successfully removed downtime 'mbmif.local-1446339731-582'."
+                "status": "Successfully removed downtime 'i-43866687!ping4!mbmif.int.netways.de-1446822004-1'."
             }
         ]
     }
-
 
 ### <a id="icinga2-api-actions-shutdown-process"></a> shutdown-process
 

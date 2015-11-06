@@ -319,8 +319,8 @@ void Downtime::TriggerDowntime(void)
 
 	{
 		ObjectLock olock(triggers);
-		BOOST_FOREACH(const String& id, triggers) {
-			Downtime::GetByName(id)->TriggerDowntime();
+		BOOST_FOREACH(const String& triggerName, triggers) {
+			Downtime::GetByName(triggerName)->TriggerDowntime();
 		}
 	}
 
