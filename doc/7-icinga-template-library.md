@@ -95,9 +95,19 @@ which contains the path of the plugins from the Monitoring Plugins project.
 
 ### <a id="plugin-check-command-apt"></a> apt
 
-Check command for the `check_apt` plugin.
+The plugin `apt` is used to check the aptitude package management system for updates on Debian based systems.
 
-The `apt` check command does not support any vars.
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
+
+Name                    | Description
+------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+apt_extra_opts          | **Optional.** Read options from an ini file.
+apt_upgrade             | **Optional.** [Default] Perform an upgrade. If an optional OPTS argument is provided, apt-get will be run with these command line options instead of the default.
+apt_dist_upgrade        | **Optional.** Perform a dist-upgrade instead of normal upgrade. Like with -U OPTS can be provided to override the default options.
+apt_include             | **Optional.** Include only packages matching REGEXP. Can be specified multiple times the values will be combined together.
+apt_exclude             | **Optional.** Exclude packages matching REGEXP from the list of packages that would otherwise be included. Can be specified multiple times.
+apt_critical            | **Optional.** If the full package information of any of the upgradable packages match this REGEXP, the plugin will return CRITICAL status. Can be specified multiple times.
+apt_timeout             | **Optional.** Seconds before plugin times out (default: 10).
 
 
 ### <a id="plugin-check-command-by-ssh"></a> by_ssh
