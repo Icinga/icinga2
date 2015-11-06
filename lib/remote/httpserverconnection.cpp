@@ -153,7 +153,7 @@ void HttpServerConnection::ProcessMessageAsync(HttpRequest& request)
 			user.reset();
 	}
 
-        String requestUrl = request.RequestUrl->Format();
+	String requestUrl = request.RequestUrl->Format();
 
 	Log(LogInformation, "HttpServerConnection")
 	    << "Request: " << request.RequestMethod << " " << requestUrl

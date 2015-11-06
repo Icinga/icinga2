@@ -112,23 +112,15 @@ void MainForm::OnTypeSelected(wxTreeEvent& event)
 	ApiType::Ptr type = m_Types[typeName.ToStdString()];
 
 	std::vector<String> attrs;
-	attrs.push_back(type->Name.ToLower() + ".__name");
+	attrs.push_back("__name");
 
 	m_ApiClient->GetObjects(type->PluralName, boost::bind(&MainForm::ObjectsCompletionHandler, this, _1, _2, true),
 	    std::vector<String>(), attrs);
 }
 
-static bool ApiObjectLessComparer(const String& nameAttr, const ApiObject::Ptr& o1, const ApiObject::Ptr& o2)
+static bool ApiObjectLessComparer(const ApiObject::Ptr& o1, const ApiObject::Ptr& o2)
 {
-	std::map<String, Value>::const_iterator it1 = o1->Attrs.find(nameAttr);
-	if (it1 == o1->Attrs.end())
-		return false;
-
-	std::map<String, Value>::const_iterator it2 = o2->Attrs.find(nameAttr);
-	if (it2 == o2->Attrs.end())
-		return false;
-
-	return it1->second < it2->second;
+	return o1->Name < o2->Name;
 }
 
 void MainForm::ObjectsCompletionHandler(boost::exception_ptr eptr, const std::vector<ApiObject::Ptr>& objects, bool forward)
@@ -151,21 +143,12 @@ void MainForm::ObjectsCompletionHandler(boost::exception_ptr eptr, const std::ve
 		}
 	}
 
-	wxTreeItemId selectedId = m_TypesTree->GetSelection();
-	wxString typeName = m_TypesTree->GetItemText(selectedId);
-	ApiType::Ptr type = m_Types[typeName.ToStdString()];
-
-	String nameAttr = type->Name.ToLower() + ".__name";
-
 	std::vector<ApiObject::Ptr> sortedObjects = objects;
-	std::sort(sortedObjects.begin(), sortedObjects.end(), boost::bind(ApiObjectLessComparer, nameAttr, _2, _1));
+	std::sort(sortedObjects.begin(), sortedObjects.end(), ApiObjectLessComparer);
 
 	BOOST_FOREACH(const ApiObject::Ptr& object, sortedObjects) {
-		std::map<String, Value>::const_iterator it = object->Attrs.find(nameAttr);
-		if (it == object->Attrs.end())
-			continue;
-		String name = it->second;
-		m_ObjectsList->InsertItem(0, name.GetData());
+		std::string name = object->Name;
+		m_ObjectsList->InsertItem(0, name);
 	}
 }
 
@@ -190,7 +173,8 @@ void MainForm::OnObjectSelected(wxListEvent& event)
 	std::vector<String> names;
 	names.push_back(objectName);
 
-	m_ApiClient->GetObjects(type->PluralName, boost::bind(&MainForm::ObjectDetailsCompletionHandler, this, _1, _2, true), names);
+	m_ApiClient->GetObjects(type->PluralName, boost::bind(&MainForm::ObjectDetailsCompletionHandler, this, _1, _2, true),
+	    names, std::vector<String>(), std::vector<String>(), true);
 }
 
 wxPGProperty *MainForm::ValueToProperty(const String& name, const Value& value)

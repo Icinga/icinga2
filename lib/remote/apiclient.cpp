@@ -105,7 +105,7 @@ void ApiClient::TypesHttpCompletionCallback(HttpRequest& request, HttpResponse& 
 }
 
 void ApiClient::GetObjects(const String& pluralType, const ObjectsCompletionCallback& callback,
-    const std::vector<String>& names, const std::vector<String>& attrs) const
+    const std::vector<String>& names, const std::vector<String>& attrs, const std::vector<String>& joins, bool all_joins) const
 {
 	Url::Ptr url = new Url();
 	url->SetScheme("https");
@@ -127,6 +127,12 @@ void ApiClient::GetObjects(const String& pluralType, const ObjectsCompletionCall
 	BOOST_FOREACH(const String& attr, attrs) {
 		params["attrs"].push_back(attr);
 	}
+
+	BOOST_FOREACH(const String& join, joins) {
+		params["joins"].push_back(join);
+	}
+
+	params["all_joins"].push_back(all_joins ? "1" : "0");
 
 	url->SetQuery(params);
 
@@ -169,26 +175,42 @@ void ApiClient::ObjectsHttpCompletionCallback(HttpRequest& request,
 
 		if (results) {
 			ObjectLock olock(results);
-			BOOST_FOREACH(const Dictionary::Ptr objectInfo, results)
-			{
+			BOOST_FOREACH(const Dictionary::Ptr objectInfo, results) {
 				ApiObject::Ptr object = new ApiObject();
+
+				object->Name = objectInfo->Get("name");
+				object->Type = objectInfo->Get("type");
 
 				Dictionary::Ptr attrs = objectInfo->Get("attrs");
 
-				{
+				if (attrs) {
 					ObjectLock olock(attrs);
-					BOOST_FOREACH(const Dictionary::Pair& kv, attrs)
-					{
-						object->Attrs[kv.first] = kv.second;
+					BOOST_FOREACH(const Dictionary::Pair& kv, attrs) {
+						object->Attrs[object->Type.ToLower() + "." + kv.first] = kv.second;
+					}
+				}
+
+				Dictionary::Ptr joins = objectInfo->Get("joins");
+
+				if (joins) {
+					ObjectLock olock(joins);
+					BOOST_FOREACH(const Dictionary::Pair& kv, joins) {
+						Dictionary::Ptr attrs = kv.second;
+
+						if (attrs) {
+							ObjectLock olock(attrs);
+							BOOST_FOREACH(const Dictionary::Pair& kv2, attrs) {
+								object->Attrs[kv.first + "." + kv2.first] = kv2.second;
+							}
+						}
 					}
 				}
 
 				Array::Ptr used_by = objectInfo->Get("used_by");
 
-				{
+				if (used_by) {
 					ObjectLock olock(used_by);
-					BOOST_FOREACH(const Dictionary::Ptr& refInfo, used_by)
-					{
+					BOOST_FOREACH(const Dictionary::Ptr& refInfo, used_by) {
 						ApiObjectReference ref;
 						ref.Name = refInfo->Get("name");
 						ref.Type = refInfo->Get("type");
