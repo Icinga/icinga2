@@ -51,6 +51,11 @@ Add include search directory.
 .BI "-x, --log-level" " [ debug | notice | information | warning | critical ]"
 Specify the log level for the console log, default is
 .B information.
+.TP
+.BI "-X, --script-debugger"
+Enables the script debugger. When an exception occurs or the 'debugger' keyword
+is encountered in a user script Icinga 2 launches the script debugger that
+allows the user to debug the script.
 
 .SS daemon options
 The CLI command daemon provides the functionality to start/stop Icinga 2.
