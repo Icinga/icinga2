@@ -39,6 +39,9 @@ Supported request methods:
   PUT    | Create a new object. The PUT request must include all attributes required to create a new object.
   DELETE | Remove an object created by the API. The DELETE method is idempotent and does not require any check if the object actually exists.
 
+All requests except `GET` require the `Accept` header being sent. Example for a JSON response body:
+
+    Accept: application/json
 
 Each URL contains the version string as prefix (currently "/v1"). Be prepared to see additional fields being added in future versions. New fields could be added even with minor releases.
 Modifications to existing fields are considered backward-compatibility-breaking and will only take place in new API versions.
@@ -324,7 +327,7 @@ notification on a program-wide basis must be applied by updating the
 [IcingaApplication object](9-icinga2-api.md#icinga2-api-config-objects)
 called `app`.
 
-    $ curl -k -s -u root:icinga -X POST 'https://localhost:5665/v1/objects/icingaapplications/app' -d '{ "attrs": { "enable_notifications": false } }'
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/objects/icingaapplications/app' -d '{ "attrs": { "enable_notifications": false } }'
 
 ### <a id="icinga2-api-actions-process-check-result"></a> process-check-result
 
@@ -347,7 +350,7 @@ checks need to be enabled for the check result to be processed.
 
 Example:
 
-    $ curl -k -s -u root:icinga -X POST 'https://localhost:5665/v1/actions/process-check-result?type=Service&filter=service.name==%22ping6%22' \
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/process-check-result?type=Service&filter=service.name==%22ping6%22' \
     -d '{ "exit_status": 2, "plugin_output": "PING CRITICAL - Packet loss = 100%", "performance_data": [ "rta=5000.000000ms;3000.000000;5000.000000;0.000000", "pl=100%;80;100;0" ], "check_source": "icinga2-node1.localdomain" }' | python -m json.tool
 
     {
@@ -376,7 +379,7 @@ The example reschedules all services with the name "ping6" to immediately perfor
 (`next_check` default), ignoring any time periods or whether active checks are
 allowed for the service (`force_check=true`).
 
-    $ curl -k -s -u root:icinga -X POST "https://localhost:5665/v1/actions/reschedule-check?type=Service&filter=service.name==%22ping6%22" \
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST "https://localhost:5665/v1/actions/reschedule-check?type=Service&filter=service.name==%22ping6%22" \
     -d '{ "force_check": true }' | python -m json.tool
 
     {
@@ -407,7 +410,7 @@ Send a `POST` request to the URL endpoint `/v1/actions/send-custom-notification`
 Example for a custom host notification announcing a global maintenance to
 host owners:
 
-    $ curl -k -s -u root:icinga -X POST 'https://localhost:5665/v1/actions/send-custom-notification' \
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/send-custom-notification' \
     -d '{ "type": "Host", "author": "icingaadmin", "comment": "System is going down for maintenance", "force": true }' | python -m json.tool
 
     {
@@ -440,7 +443,7 @@ Send a `POST` request to the URL endpoint `/v1/actions/delay-notification`.
 
 Example:
 
-    $ curl -k -s -u root:icinga -X POST 'https://localhost:5665/v1/actions/delay-notification' \
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/delay-notification' \
     -d '{ "type": "Service", "timestamp": 1446389894 }' | python -m json.tool
 
     {
@@ -476,7 +479,7 @@ Send a `POST` request to the URL endpoint `/v1/actions/acknowledge-problem`.
 The following example acknowledges all services which are in a hard critical state and sends out
 a notification for them:
 
-    $ curl -k -s -u root:icinga -X POST 'https://localhost:566tions/acknowledge-problem?type=Service&filter=service.state==2&service.state_type=1' \
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:566tions/acknowledge-problem?type=Service&filter=service.state==2&service.state_type=1' \
     -d '{ "author": "icingaadmin", "comment": "Global outage. Working on it.", "notify": true }' | python -m json.tool
 
     {
@@ -506,7 +509,7 @@ Send a `POST` request to the URL endpoint `/v1/actions/remove-acknowledgement`.
 
 The example removes all service acknowledgements:
 
-    $ curl -k -s -u root:icinga -X POST 'https://localhost:5665/v1/actions/remove-acknowledgement?type=Service' | python -m json.tool
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/remove-acknowledgement?type=Service' | python -m json.tool
 
     {
         "results": [
@@ -535,7 +538,7 @@ Send a `POST` request to the URL endpoint `/v1/actions/add-comment`.
 
 Example:
 
-    $ curl -k -s -u root:icinga -X POST 'https://localhost:5665/v1/actions/add-comment?type=Service&filter=service.name==%22ping4%22' -d '{ "author": "icingaadmin", "comment": "Troubleticket #123456789 opened." }' | python -m json.tool
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/add-comment?type=Service&filter=service.name==%22ping4%22' -d '{ "author": "icingaadmin", "comment": "Troubleticket #123456789 opened." }' | python -m json.tool
 
     {
         "results": [
@@ -561,7 +564,7 @@ Send a `POST` request to the URL endpoint `/v1/actions/remove-all-comments`.
 
 Example:
 
-    $ curl -k -s -u root:icinga -X POST 'https://localhost:5665/v1/actions/remove-all-comments?type=Service' | python -m json.tool
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/remove-all-comments?type=Service' | python -m json.tool
 
     {
         "results": [
@@ -591,7 +594,7 @@ Does not support a target type or filters.
 
 Example:
 
-    $ curl -k -s -u root:icinga -X POST 'https://localhost:5665/v1/actions/remove-comment-by-id?comment_id=i-43866687!ping4!mbmif.local-1446390475-56' | python -m json.tool
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/remove-comment-by-id?comment_id=i-43866687!ping4!mbmif.local-1446390475-56' | python -m json.tool
 
     {
         "results": [
@@ -615,12 +618,12 @@ Send a `POST` request to the URL endpoint `/v1/actions/schedule-downtime`.
   start\_time | timestamp | **Required.** Timestamp marking the beginning of the downtime.
   end\_time   | timestamp | **Required.** Timestamp marking the end of the downtime.
   duration    | integer   | **Required.** Duration of the downtime in seconds if `fixed` is set to false.
-  fixed       | boolean   | **Optional.** Defaults to `false`. If true the downtime is `fixed` otherwise `flexible`. See [downtimes](#Downtimes) for more information.
-  trigger\_id | integer   | **Optional.** Sets the trigger for a triggered downtime. See [downtimes](#Downtimes) for more information on triggered downtimes.
+  fixed       | boolean   | **Optional.** Defaults to `false`. If true the downtime is `fixed` otherwise `flexible`. See [downtimes](5-advanced-topics.md#downtimes) for more information.
+  trigger\_id | integer   | **Optional.** Sets the trigger for a triggered downtime. See [downtimes](5-advanced-topics.md#downtimes) for more information on triggered downtimes.
 
 Example:
 
-    $ curl -k -s -u root:icinga -X POST 'https://localhost:5665/v1/actions/schedule-downtime?type=Service&filter=service.name==%22ping4%22' \
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/schedule-downtime?type=Service&filter=service.name==%22ping4%22' \
     -d '{ "start_time": 1446388806, "end_time": 1446389806, "duration": 1000, "author": "icingaadmin", "comment": "IPv4 network maintenance" }' | python -m json.tool
 
     {
@@ -654,7 +657,7 @@ Send a `POST` request to the URL endpoint `/v1/actions/remove-all-downtimes`.
 
 Example:
 
-    $ curl -k -s -u root:icinga -X POST 'https://localhost:5665/v1/actions/remove-all-downtimes?type=Service&filter=service.name==%22ping4%22' | python -m json.tool
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/remove-all-downtimes?type=Service&filter=service.name==%22ping4%22' | python -m json.tool
 
     {
         "results": [
@@ -685,7 +688,7 @@ Does not support a target type or filter.
 
 Example:
 
-    $ curl -k -s -u root:icinga -X POST 'https://localhost:5665/v1/actions/remove-downtime-by-id?downtime_id=mbmif.local-1446339731-582' | python -m json.tool
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/remove-downtime-by-id?downtime_id=mbmif.local-1446339731-582' | python -m json.tool
 
     {
         "results": [
@@ -707,7 +710,7 @@ This action does not support a target type or filter.
 
 Example:
 
-    $ curl -k -s -u root:icinga -X POST 'https://localhost:5665/v1/actions/shutdown-process' | python -m json.tool
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/shutdown-process' | python -m json.tool
 
     {
         "results": [
@@ -728,7 +731,7 @@ This action does not support a target type or filter.
 
 Example:
 
-    $ curl -k -s -u root:icinga -X POST 'https://localhost:5665/v1/actions/restart-process' | python -m json.tool
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/restart-process' | python -m json.tool
 
     {
         "results": [
@@ -797,7 +800,7 @@ must support long-polling and HTTP/1.1. HTTP/1.0 is not supported.
 
 Example:
 
-    $ curl -k -s -u root:icinga -X POST 'https://localhost:5665/v1/events?queue=michi&types=CheckResult&filter=event.check_result.exit_status==2'
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/events?queue=michi&types=CheckResult&filter=event.check_result.exit_status==2'
 
     {"check_result":{ ... },"host":"www.icinga.org","service":"ping4","timestamp":1445421319.7226390839,"type":"CheckResult"}
     {"check_result":{ ... },"host":"www.icinga.org","service":"ping4","timestamp":1445421324.7226390839,"type":"CheckResult"}
@@ -1040,7 +1043,6 @@ parameters need to be passed inside the JSON body:
   Parameters | Description
   -----------|--------------
   name       | **Optional.** If not specified inside the url, this is **Required.**.
-  templates  | **Optional.** Import existing object configuration templates.
   attrs      | **Required.** Set specific object attributes for this [object type](6-object-types.md#object-types).
 
 
@@ -1051,8 +1053,7 @@ If attributes are of the Dictionary type, you can also use the indexer format:
 
 Example for existing object `google.com`:
 
-    $ curl -k -s -u root:icinga 'https://localhost:5665/v1/objects/hosts/google.com' \
-    -X POST \
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/objects/hosts/google.com' \
     -d '{ "attrs": { "address": "8.8.4.4", "vars.os" : "Windows" } }' \
     | python -m json.tool
     {
@@ -1081,7 +1082,7 @@ to pass the `cascade` parameter on host object deletion.
 
 Example for deleting the host object `google.com`:
 
-    $ curl -k -s -u root:icinga 'https://localhost:5665/v1/objects/hosts/google.com?cascade=1' -X DELETE | python -m json.tool
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X DELETE 'https://localhost:5665/v1/objects/hosts/google.com?cascade=1' | python -m json.tool
     {
         "results": [
             {
@@ -1110,7 +1111,7 @@ can be fetched in a separated request.
 Send a `POST` request to a new config package called `example-cmdb` in this example. This
 will create a new empty configuration package.
 
-    $ curl -k -s -u root:icinga -X POST https://localhost:5665/v1/config/packages/example-cmdb | python -m json.tool
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST https://localhost:5665/v1/config/packages/example-cmdb | python -m json.tool
     {
         "results": [
             {
@@ -1136,7 +1137,7 @@ generates a unique name for the `package` attribute you'll need for later reques
 
 Note: This example contains an error (`chec_command`), do not blindly copy paste it.
 
-    $ curl -k -s -u root:icinga -X POST -d '{ "files": { "conf.d/test.conf": "object Host \"cfg-mgmt\" { chec_command = \"dummy\" }" } }' https://localhost:5665/v1/config/stages/example-cmdb | python -m json.tool
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST -d '{ "files": { "conf.d/test.conf": "object Host \"cfg-mgmt\" { chec_command = \"dummy\" }" } }' https://localhost:5665/v1/config/stages/example-cmdb | python -m json.tool
     {
         "results": [
             {
@@ -1170,6 +1171,8 @@ after creating a new stage.
 List all config packages, their active stage and other stages.
 That way you may iterate of all of them programmatically for
 older revisions and their requests.
+
+Sent a `GET` request to the URL endpoint `/v1/config/packages`.
 
 The following example contains one configuration package `example-cmdb`.
 The latter already has a stage created, but it is not active.
