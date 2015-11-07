@@ -68,6 +68,11 @@ void ConsoleCommand::BreakpointHandler(ScriptFrame& frame, ScriptError *ex, cons
 
 	std::cout << "You can leave the debugger and continue the program with \"$quit\".\n";
 
+#ifdef HAVE_EDITLINE
+	rl_completion_entry_function = ConsoleCommand::ConsoleCompleteHelper;
+	rl_completion_append_character = '\0';
+#endif /* HAVE_EDITLINE */
+
 	ConsoleCommand::RunScriptConsole(frame);
 }
 
