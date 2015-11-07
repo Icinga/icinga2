@@ -112,7 +112,7 @@ bool FilterUtility::EvaluateFilter(ScriptFrame& frame, Expression *filter,
 	} else
 		vars = frame.Self;
 
-	vars->Set("object", target);
+	vars->Set("obj", target);
 	vars->Set(varName, target);
 
 	for (int fid = 0; fid < type->GetFieldCount(); fid++) {

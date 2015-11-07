@@ -274,7 +274,7 @@ For example when querying objects of type `Host` the variable in the filter expr
 `host`. Additionally related objects such as the host's check command are also made available
 (e.g., via the `check_command` variable).
 
-The object is also made available via the `object` variable. This makes it easier to build
+The object is also made available via the `obj` variable. This makes it easier to build
 filters which can be used for more than one object type (e.g., for permissions).
 
 > **Note**
