@@ -66,7 +66,8 @@ void ConsoleCommand::BreakpointHandler(ScriptFrame& frame, ScriptError *ex, cons
 		ex->SetHandledByDebugger(true);
 	}
 
-	std::cout << "You can leave the debugger and continue the program with \"$quit\".\n";
+	std::cout << "You can inspect expressions (such as variables) by entering them at the prompt.\n"
+	          << "To leave the debugger and continue the program use \"$quit\".\n";
 
 #ifdef HAVE_EDITLINE
 	rl_completion_entry_function = ConsoleCommand::ConsoleCompleteHelper;
@@ -267,7 +268,8 @@ incomplete:
 			if (line == "$quit")
 				break;
 
-			std::cout << "Unknown debugger command: " << line;
+			std::cout << "Unknown debugger command: " << line << "\n";
+			continue;
 		}
 
 		if (!command.empty())
