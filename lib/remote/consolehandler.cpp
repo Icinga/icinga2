@@ -93,12 +93,12 @@ bool ConsoleHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& reques
 
 	bool sandboxed = HttpUtility::GetLastParameter(params, "sandboxed");
 
-	if (methodName == "execute-script") {
+	if (methodName == "execute-script")
 		return ExecuteScriptHelper(request, response, command, session, sandboxed);
-	} else if (methodName == "auto-complete-script") {
+	else if (methodName == "auto-complete-script")
 		return AutocompleteScriptHelper(request, response, command, session, sandboxed);
-	}
 
+	HttpUtility::SendJsonError(response, 400, "Invalid method specified: " + methodName);
 	return true;
 }
 
