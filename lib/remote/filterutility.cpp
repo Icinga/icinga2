@@ -123,10 +123,7 @@ bool FilterUtility::EvaluateFilter(ScriptFrame& frame, Expression *filter,
 
 		Object::Ptr joinedObj = target->NavigateField(fid);
 
-		varName = field.TypeName;
-		boost::algorithm::to_lower(varName);
-
-		vars->Set(varName, joinedObj);
+		vars->Set(field.Name, joinedObj);
 	}
 
 	return Convert::ToBool(filter->Evaluate(frame));
