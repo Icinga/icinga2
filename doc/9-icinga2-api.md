@@ -1,5 +1,19 @@
 # <a id="icinga2-api"></a> Icinga 2 API
 
+## <a id="icinga2-api-setup"></a> Setting up the API
+
+You can run the CLI command `icinga2 api setup` to set up certificates
+and a new API user `root` with an auto-generated password in the
+`/etc/icinga2/conf.d/api-users.conf` configuration file:
+
+    # icinga2 api setup
+
+Make sure to restart Icinga 2 to enable the changes you just made:
+
+    # service icinga2 restart
+
+The next chapter provides a quick overview of how you can use the API.
+
 ## <a id="icinga2-api-introduction"></a> Introduction
 
 The Icinga 2 API allows you to manage configuration objects
@@ -8,13 +22,10 @@ and resources in a simple, programmatic way using HTTP requests.
 The URL endpoints are logically separated allowing you to easily
 make calls to
 
-* run [actions](9-icinga2-api.md#icinga2-api-actions) (reschedule checks, etc.)
+* perform [actions](9-icinga2-api.md#icinga2-api-actions) (reschedule checks, etc.)
 * query, create, modify and delete [config objects](9-icinga2-api.md#icinga2-api-config-objects)
 * [manage configuration packages](9-icinga2-api.md#icinga2-api-config-management)
 * subscribe to [event streams](9-icinga2-api.md#icinga2-api-event-streams)
-
-This chapter will start with a general overview followed by
-detailed information about specific URL endpoints.
 
 ### <a id="icinga2-api-requests"></a> Requests
 
@@ -39,27 +50,11 @@ Supported request methods:
   PUT    | Create a new object. The PUT request must include all attributes required to create a new object.
   DELETE | Remove an object created by the API. The DELETE method is idempotent and does not require any check if the object actually exists.
 
-All requests except `GET` require the `Accept` header being sent. Example for a JSON response body:
+All requests apart from `GET` require that the following `Accept` header is set:
 
     Accept: application/json
 
-Each URL contains the version string as prefix (currently "/v1"). Be prepared to see additional fields being added in future versions. New fields could be added even with minor releases.
-Modifications to existing fields are considered backward-compatibility-breaking and will only take place in new API versions.
-
-The request and response bodies contain a JSON-encoded object.
-
-### <a id="icinga2-api-requests-method-override"></a> Request Method Override
-
-`GET` requests do not allow to send a request body. In case you cannot pass everything as URL parameters (e.g. complex filters or JSON-encoded dictionaries) you can use the `X-HTTP-Method-Override` header. This comes in handy when you are using HTTP proxies disallowing `PUT` or `DELETE` requests too.
-
-Query an existing object by sending a `POST` request with `X-HTTP-Method-Override: GET` as request header:
-
-    $ curl -k -s -u 'root:icinga' -H 'X-HTTP-Method-Override: GET' -X POST 'https://localhost:5665/v1/objects/hosts'
-
-Delete an existing object by sending a `POST` request with `X-HTTP-Method-Override: GET` as request header:
-
-    $ curl -k -s -u 'root:icinga' -H 'X-HTTP-Method-Override: DELETE' -X POST 'https://localhost:5665/v1/objects/hosts/icinga.org'
-
+Each URL is prefixed with the API version (currently "/v1").
 
 ### <a id="icinga2-api-http-statuses"></a> HTTP Statuses
 
@@ -78,14 +73,13 @@ for your requested action, the requested object does not exist or the request
 was malformed.
 
 A status in the range of 500 generally means that there was a server-side problem
-and Icinga 2 is unable to process your request currently.
-
+and Icinga 2 is unable to process your request.
 
 ### <a id="icinga2-api-responses"></a> Responses
 
 Successful requests will send back a response body containing a `results`
 list. Depending on the number of affected objects in your request, the
-results may contain one or more entries.
+`results` list may contain more than one entry.
 
 The output will be sent back as a JSON object:
 
@@ -99,6 +93,23 @@ The output will be sent back as a JSON object:
         ]
     }
 
+> **Note**
+>
+> Future versions of Icinga 2 might set additional fields. Your application
+> should gracefully handle fields it is not familiar with, for example by
+> ignoring them.
+
+### <a id="icinga2-api-requests-method-override"></a> Request Method Override
+
+`GET` requests do not allow to send a request body. In case you cannot pass everything as URL parameters (e.g. complex filters or JSON-encoded dictionaries) you can use the `X-HTTP-Method-Override` header. This comes in handy when you are using HTTP proxies disallowing `PUT` or `DELETE` requests too.
+
+Query an existing object by sending a `POST` request with `X-HTTP-Method-Override: GET` as request header:
+
+    $ curl -k -s -u 'root:icinga' -H 'X-HTTP-Method-Override: GET' -X POST 'https://localhost:5665/v1/objects/hosts'
+
+Delete an existing object by sending a `POST` request with `X-HTTP-Method-Override: DELETE` as request header:
+
+    $ curl -k -s -u 'root:icinga' -H 'X-HTTP-Method-Override: DELETE' -X POST 'https://localhost:5665/v1/objects/hosts/icinga.org'
 
 ### <a id="icinga2-api-authentication"></a> Authentication
 
@@ -123,26 +134,11 @@ that is configured in the [ApiListener](6-object-types.md#objecttype-apilistener
 
     # vim /etc/icinga2/conf.d/api-users.conf
 
-    object ApiUser "api-clientcn" {
+    object ApiUser "root" {
       client_cn = "CertificateCommonName"
     }
 
-An `ApiUser` object can have both methods configured. Sensitive information
-such as the password will not be exposed through the API itself.
-
-New installations of Icinga 2 will automatically set up a new `ApiUser`
-named `root` with an auto-generated password in the `/etc/icinga2/conf.d/api-users.conf`
-file.
-
-Run the CLI command `icinga2 api setup` to generate certificates
-and a new API user `root` with an auto-generated password in the
-`/etc/icinga2/conf.d/api-users.conf` configuration file.
-
-    # icinga2 api setup
-
-Once the API user is configured make sure to restart Icinga 2:
-
-    # service icinga2 restart
+An `ApiUser` object can have both authentication methods configured.
 
 You can test authentication by sending a GET request to the API:
 
@@ -150,21 +146,21 @@ You can test authentication by sending a GET request to the API:
 
 In case you get an error message make sure to check the API user credentials.
 
-The curl parameter `-k` disables certificate verification. In order
-to securely check each connection you'll need to pass the trusted CA certificate
-using the curl parameter`--cacert`:
+When using client certificates for authentication you'll need to pass your client certificate
+and private key to the curl call:
 
-    $ curl -u root:icinga --cacert ca.crt 'icinga2.node1.localdomain:5665/v1'
-
-Using client certificates you'll need to pass your client certificate
-and the trusted CA certificate from your Icinga 2 instance to the curl call:
-
-    $ curl --cert icinga2-node1.localdomain.crt --key icinga2-node1.localdomain.key --cacert ca.crt 'https://icinga2-node1.localdomain:5665/v1/status'
+    $ curl -k --cert icinga2-node1.localdomain.crt --key icinga2-node1.localdomain.key 'https://icinga2-node1.localdomain:5665/v1/status'
 
 In case of an error make sure to verify the client certificate and CA.
 
+The curl parameter `-k` disables certificate verification and should therefore
+only be used for testing. In order to securely check each connection you'll need to
+specify the trusted CA certificate using the curl parameter`--cacert`:
+
+    $ curl -u root:icinga --cacert ca.crt 'icinga2.node1.localdomain:5665/v1'
+
 Read the next chapter on [API permissions](9-icinga2-api.md#icinga2-api-permissions)
-in order to authorize the newly created API user.
+in order to configure authorization settings for your newly created API user.
 
 ### <a id="icinga2-api-permissions"></a> Permissions
 
@@ -179,46 +175,48 @@ Example for an API user with all permissions:
 
     permissions = [ "*" ]
 
-A yet more sophisticated approach is to specify additional permissions
-and their filters. The latter must be defined as [lambda function](18-language-reference.md#nullary-lambdas)
-returning a boolean expression.
+Note that you can use wildcards. Here's another example that only allows the user
+to perform read-only object queries for hosts and services:
 
-The `permission` attribute contains the action and the specific capitalized
-object type name. Instead of the type name it is also possible to use a wildcard
-match.
+    permissions = [ "objects/query/Host", "objects/query/Service" ]
 
-The following example allows the API user to query all hosts and services with
-the custom host attribute `os` matching the regular expression `^Linux`.
+You can also further restrict permissions by specifying a filter expression. The
+filter expression has to be a [lambda function](18-language-reference.md#nullary-lambdas)
+which must return a boolean value.
+
+The following example allows the API user to query all hosts and services which have a
+custom attribute `os` that matches the regular expression `^Linux`.
 
     permissions = [
       {
         permission = "objects/query/Host"
-        filter = {{ regex("^Linux", host.vars.os)  }}
+        filter = {{ regex("^Linux", host.vars.os) }}
       },
       {
         permission = "objects/query/Service"
-        filter = {{ regex("^Linux", host.vars.os)  }}
-      },
+        filter = {{ regex("^Linux", service.vars.os) }}
+      }
     ]
 
+More information about filters can be found in the [filters](#9-icinga2-api.md#icinga2-api-filters) chapter.
 
 Available permissions for specific URL endpoints:
 
-  Permissions                   | URL Endpoint
-  ------------------------------|---------------
-  actions/&lt;action&gt;        | /v1/actions
-  config/query                  | /v1/config
-  config/modify                 | /v1/config
-  objects/query/&lt;type&gt;    | /v1/objects
-  objects/create/&lt;type&gt;   | /v1/objects
-  objects/modify/&lt;type&gt;   | /v1/objects
-  objects/delete/&lt;type&gt;   | /v1/objects
-  status/query                  | /v1/status
-  events/&lt;type&gt;           | /v1/events
-  console/*                     | /v1/console
+  Permissions                   | URL Endpoint  | Supports Filters
+  ------------------------------|---------------|-----------------
+  actions/&lt;action&gt;        | /v1/actions   | Yes
+  config/query                  | /v1/config    | No
+  config/modify                 | /v1/config    | No
+  objects/query/&lt;type&gt;    | /v1/objects   | Yes
+  objects/create/&lt;type&gt;   | /v1/objects   | No
+  objects/modify/&lt;type&gt;   | /v1/objects   | Yes
+  objects/delete/&lt;type&gt;   | /v1/objects   | Yes
+  status/query/&lt;type&gt;     | /v1/status    | Yes
+  events/&lt;type&gt;           | /v1/events    | No
+  console/execute-script        | /v1/console   | No
+  console/auto-complete-script  | /v1/console   | No
 
 The required actions or types can be replaced by using a wildcard match ("*").
-
 
 ### <a id="icinga2-api-parameters"></a> Parameters
 
@@ -231,7 +229,7 @@ passing parameters to the request:
 Reserved characters by the HTTP protocol must be [URL-encoded](https://en.wikipedia.org/wiki/Percent-encoding)
 as query string, e.g. a space becomes `%20`.
 
-Example for an URL-encoded query string:
+Example for a URL-encoded query string:
 
     /v1/objects/hosts?filter=match(%22icinga2-node1.localdomain*%22,host.name)&attrs=host.name&attrs=host.state
 
@@ -260,8 +258,24 @@ A similar output is shown in [object list](8-cli-commands.md#cli-command-object)
 
 #### <a id="icinga2-api-filters"></a> Filters
 
-Uses the same syntax as [apply rule expressions](3-monitoring-basics.md#using-apply-expressions)
-for filtering specific objects.
+The information provided in this chapter applies to both permission filters (as used when
+configuring `ApiUser` objects) and filters specified in queries.
+
+The syntax for filters is the same like for [apply rule expressions](3-monitoring-basics.md#using-apply-expressions).
+
+User-specified filters are run in a sandbox environment which ensures that filters cannot
+modify Icinga's state, for example object attributes or global variables.
+
+When querying objects of a specific type the filter expression is evaluated for each object
+of that type. The object is made available to the filter expression as a variable whose name
+is the lower-case version of the object's type name.
+
+For example when querying objects of type `Host` the variable in the filter expression is named
+`host`. Additionally related objects such as the host's check command are also made available
+(e.g., via the `check_command` variable).
+
+The object is also made available via the `object` variable. This makes it easier to build
+filters which can be used for more than one object type (e.g., for permissions).
 
 > **Note**
 >
@@ -276,20 +290,28 @@ Example matching all hosts by name:
 
     https://localhost:5665/v1/objects/hosts?filter=match("icinga2-node1.localdomain*",host.name)
 
-Example for all hosts being a member of the host group `linux-servers`:
+Example for all hosts which are in the host group `linux-servers`:
 
     https://localhost:5665/v1/objects/hosts?filter="linux-servers" in host.groups
 
+When building filters you have to ensure that values such as
+`"linux-servers"` are escaped properly according to the rules of the Icinga 2 configuration
+language.
 
-In order to add complex filters with specific filter variables it is possible
-to send a `POST` request using `X-HTTP-Method-Override: GET`. Add the `filter`
-and `filter_vars` attributes to the request body and receive all host objects
-matching the filter:
+To make using the API in scripts easier you can use the `filter_vars` attribute to specify
+variables which should be made available to your filter expression. This way you don't have
+to worry about escaping values:
 
     $ curl -k -s -u 'root:icinga' -H 'X-HTTP-Method-Override: GET' -X POST 'https://localhost:5665/v1/objects/hosts' \
     -d '{ "filter": "host.vars.os == os", "filter_vars": { "os": "Linux" } }'
 
-The `filters_vars` attribute can only be used inside the request body, but not as URL parameter.
+> **Note**
+>
+> We're using X-HTTP-Method-Override here because the HTTP specification does
+> not allow message bodies for GET requests.
+
+The `filters_vars` attribute can only be used inside the request body, but not as
+a URL parameter because there is no way to specify a dictionary in a URL.
 
 ### <a id="icinga2-api-url-endpoints"></a> URL Endpoints
 
@@ -303,7 +325,7 @@ The Icinga 2 API provides multiple URL endpoints:
   /v1/objects   | Endpoint for querying, creating, modifying and deleting [config objects](9-icinga2-api.md#icinga2-api-config-objects).
   /v1/config    | Endpoint for [managing configuration modules](9-icinga2-api.md#icinga2-api-config-management).
   /v1/types     | Endpoint for listing Icinga 2 configuration object types and their attributes.
-  /v1/console   | Endpoint for connecting the [Icinga 2 console](9-icinga2-api.md#icinga2-api-clients-cli-console)
+  /v1/console   | Endpoint for evaluating arbitrary expressions. Used by the [Icinga 2 console](9-icinga2-api.md#icinga2-api-clients-cli-console).
 
 Please check the respective sections for detailed URL information and parameters.
 
@@ -322,7 +344,7 @@ Some actions require specific target types (e.g. `type=Host`) and a
 [filter expression](9-icinga2-api.md#icinga2-api-filters).
 For each object matching the filter the action in question is performed once.
 
-These parameters may either be passed as an URL query string (e.g. url/actions/action-name?list=of&parameters)
+These parameters may either be passed as a URL query string (e.g. url/actions/action-name?list=of&parameters)
 or as key-value pairs in a JSON-formatted payload or a mix of both.
 
 All actions return a 200 `OK` or an appropriate error code for each
