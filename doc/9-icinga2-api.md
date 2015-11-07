@@ -26,6 +26,7 @@ make calls to
 * query, create, modify and delete [config objects](9-icinga2-api.md#icinga2-api-config-objects)
 * [manage configuration packages](9-icinga2-api.md#icinga2-api-config-management)
 * subscribe to [event streams](9-icinga2-api.md#icinga2-api-event-streams)
+* evaluate [script expressions](9-icinga2-api.md#icinga2-api-console)
 
 ### <a id="icinga2-api-requests"></a> Requests
 
@@ -165,7 +166,7 @@ in order to configure authorization settings for your newly created API user.
 ### <a id="icinga2-api-permissions"></a> Permissions
 
 By default an API user does not have any permissions to perform
-actions on the [URL endpoints](9-icinga2-api.md#icinga2-api-url-endpoints).
+actions on the URL endpoints.
 
 Permissions for API users must be specified in the `permissions` attribute
 as array. The array items can be a list of permission strings with wildcard
@@ -330,23 +331,6 @@ to worry about escaping values:
 
 The `filters_vars` attribute can only be used inside the request body, but not as
 a URL parameter because there is no way to specify a dictionary in a URL.
-
-### <a id="icinga2-api-url-endpoints"></a> URL Endpoints
-
-The Icinga 2 API provides multiple URL endpoints:
-
-  URL Endpoints | Description
-  --------------|--------------
-  /v1/actions   | Endpoint for running specific [API actions](9-icinga2-api.md#icinga2-api-actions).
-  /v1/events    | Endpoint for subscribing to [API events](9-icinga2-api.md#icinga2-api-actions).
-  /v1/status    | Endpoint for receiving the global Icinga 2 [status and statistics](9-icinga2-api.md#icinga2-api-status).
-  /v1/objects   | Endpoint for querying, creating, modifying and deleting [config objects](9-icinga2-api.md#icinga2-api-config-objects).
-  /v1/config    | Endpoint for [managing configuration modules](9-icinga2-api.md#icinga2-api-config-management).
-  /v1/types     | Endpoint for listing Icinga 2 configuration object types and their attributes.
-  /v1/console   | Endpoint for evaluating arbitrary expressions. Used by the [Icinga 2 console](9-icinga2-api.md#icinga2-api-clients-cli-console).
-
-Please check the respective sections for detailed URL information and parameters.
-
 
 ## <a id="icinga2-api-actions"></a> Actions
 
