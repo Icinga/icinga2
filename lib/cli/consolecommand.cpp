@@ -59,7 +59,7 @@ void ConsoleCommand::BreakpointHandler(ScriptFrame& frame, ScriptError *ex, cons
 	if (ex && ex->IsHandledByDebugger())
 		return;
 
-	std::cout << "Breakpoint encountered in '" << di.Path << "' at " << di << "\n";
+	std::cout << "Breakpoint encountered " << di << "\n";
 
 	if (ex) {
 		std::cout << "Exception: " << DiagnosticInformation(*ex);
