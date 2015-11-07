@@ -2,8 +2,9 @@
 
 ## <a id="icinga2-api-setup"></a> Setting up the API
 
-You can run the CLI command `icinga2 api setup` to set up certificates
-and a new API user `root` with an auto-generated password in the
+You can run the CLI command `icinga2 api setup` to enable the
+`api` [feature](8-cli-commands.md#enable-features) and set up
+certificates as well as a new API user `root` with an auto-generated password in the
 `/etc/icinga2/conf.d/api-users.conf` configuration file:
 
     # icinga2 api setup
@@ -1335,8 +1336,8 @@ The output is similar to the manual [configuration validation](8-cli-commands.md
 
 There are a couple of existing clients which can be used with the Icinga 2 API:
 
-* [curl](http://curl.haxx.se)
-* [console CLI command](9-icinga2-api.md#icinga2-api-clients-cli-console)
+* [curl](http://curl.haxx.se) or any other HTTP client really
+* [Icinga 2 console (CLI command)](9-icinga2-api.md#icinga2-api-clients-cli-console)
 * [Icinga Studio](9-icinga2-api.md#icinga2-api-clients-icinga-studio)
 * [Icinga Web 2 Director](https://dev.icinga.org/projects/icingaweb2-modules)
 
@@ -1365,75 +1366,9 @@ packages.
 The Windows installer includes Icinga Studio already. You must additionally
 install the [wxWidgets library](https://github.com/wxWidgets/wxWidgets/releases/download/v3.0.2/wxMSW-3.0.2-Setup.exe).
 
-### <a id="icinga2-api-clients-cli-console"></a> Console Command using the API
+### <a id="icinga2-api-clients-cli-console"></a> Icinga 2 Console
 
 By default the [console CLI command](8-cli-commands.md#cli-command-console) evaluates expressions in a local interpreter, i.e. independently from your Icinga 2 daemon. Using the `--connect` parameter you can use the Icinga 2  console to evaluate expressions via the API.
-
-> **Note**
-> The console does not currently support SSL certificate verification.
-
-Although the password can be specified in the URL process arguments on UNIX platforms are usually visible to other users (e.g. through `ps`). In order to securely specify the user credentials the console supports two environment variables:
-
-  Environment variable | Description
-  ---------------------|-------------
-  ICINGA2_API_USERNAME | The API username.
-  ICINGA2_API_PASSWORD | The API password.
-
-Here's an example:
-
-    $ ICINGA2_API_PASSWORD=icinga icinga2 console --connect 'https://root@localhost:5665/'
-    Icinga 2 (version: v2.3.11-762-g1d327ac)
-    <1> =>
-
-Once connected you can inspect variables and execute other expressions by entering them at the prompt:
-
-    <1> => var h = get_host("mbmif.int.netways.de")
-    null
-    <2> => h.last_check_result
-    {
-            active = true
-            check_source = "mbmif.int.netways.de"
-            command = [ "/usr/local/sbin/check_ping", "-H", "127.0.0.1", "-c", "5000,100%", "-w", "3000,80%" ]
-            execution_end = 1446653527.174983
-            execution_start = 1446653523.152673
-            exit_status = 0.000000
-            output = "PING OK - Packet loss = 0%, RTA = 0.11 ms"
-            performance_data = [ "rta=0.114000ms;3000.000000;5000.000000;0.000000", "pl=0%;80;100;0" ]
-            schedule_end = 1446653527.175133
-            schedule_start = 1446653583.150000
-            state = 0.000000
-            type = "CheckResult"
-            vars_after = {
-                    attempt = 1.000000
-                    reachable = true
-                    state = 0.000000
-                    state_type = 1.000000
-            }
-            vars_before = {
-                    attempt = 1.000000
-                    reachable = true
-                    state = 0.000000
-                    state_type = 1.000000
-            }
-    }
-    <3> =>
-
-
-You can use the `--eval` parameter to evaluate a single expression in batch mode. The output format for batch mode is JSON.
-
-Here's an example that retrieves the command that was used by Icinga to check the `example-host` host:
-
-    $ ICINGA2_API_PASSWORD=icinga icinga2 console --connect 'https://root@localhost:5665/' --eval 'get_host("example-host").last_check_result.command' | python -m json.tool
-    [
-        "/usr/local/sbin/check_ping",
-        "-H",
-        "127.0.0.1",
-        "-c",
-        "5000,100%",
-        "-w",
-        "3000,80%"
-    ]
-
 
 ### <a id="icinga2-api-clients-programmatic-examples"></a> API Clients Programmatic Examples
 

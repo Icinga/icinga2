@@ -153,7 +153,7 @@ The CLI command `console` can be used to evaluate Icinga config expressions, e.g
 
 
 On operating systems without the `libedit` library installed there is no
-support line-editing or a command history. However you can
+support for line-editing or a command history. However you can
 use the `rlwrap` program if you require those features:
 
     $ rlwrap icinga2 console
@@ -162,29 +162,40 @@ The `console` can be used to connect to a running Icinga 2 instance using
 the [REST API](9-icinga2-api.md#icinga2-api). [API permissions](9-icinga2-api.md#icinga2-api-permissions)
 are required for executing config expressions and auto-completion.
 
-The `--connect` parameter expects the API URL as string, optionally with basic auth credentials:
+> **Note**
+> The console does not currently support SSL certificate verification.
 
-    $ icinga2 console --connect 'https://root:icinga@localhost:5665/'
+You can specify the API URL using the `--connect` parameter.
+
+Although the password can be specified there process arguments on UNIX platforms are usually visible to other users (e.g. through `ps`). In order to securely specify the user credentials the console supports two environment variables:
+
+  Environment variable | Description
+  ---------------------|-------------
+  ICINGA2_API_USERNAME | The API username.
+  ICINGA2_API_PASSWORD | The API password.
+
+Here's an example:
+
+    $ ICINGA2_API_PASSWORD=icinga icinga2 console --connect 'https://root@localhost:5665/'
     Icinga 2 (version: v2.4.0)
     <1> =>
 
-Example using [object accessor functions](19-library-reference.md#object-accessor-functions)
-to fetch the host object for the local node and print its `last_check_result` attribute:
+Once connected you can inspect variables and execute other expressions by entering them at the prompt:
 
-    <1> => NodeName
-    "icinga2-node1.localdomain"
-    <2> => get_host(NodeName).last_check_result
+    <1> => var h = get_host("mbmif.int.netways.de")
+    null
+    <2> => h.last_check_result
     {
             active = true
-            check_source = "icinga2-node1.localdomain"
+            check_source = "mbmif.int.netways.de"
             command = [ "/usr/local/sbin/check_ping", "-H", "127.0.0.1", "-c", "5000,100%", "-w", "3000,80%" ]
-            execution_end = 1446716536.250887
-            execution_start = 1446716532.222686
+            execution_end = 1446653527.174983
+            execution_start = 1446653523.152673
             exit_status = 0.000000
-            output = "PING OK - Packet loss = 0%, RTA = 0.08 ms"
-            performance_data = [ "rta=0.076000ms;3000.000000;5000.000000;0.000000", "pl=0%;80;100;0" ]
-            schedule_end = 1446716536.250992
-            schedule_start = 1446716592.210000
+            output = "PING OK - Packet loss = 0%, RTA = 0.11 ms"
+            performance_data = [ "rta=0.114000ms;3000.000000;5000.000000;0.000000", "pl=0%;80;100;0" ]
+            schedule_end = 1446653527.175133
+            schedule_start = 1446653583.150000
             state = 0.000000
             type = "CheckResult"
             vars_after = {
@@ -202,11 +213,12 @@ to fetch the host object for the local node and print its `last_check_result` at
     }
     <3> =>
 
-In order to evaluate a single config expression use the `--eval`
-parameter. The following example prints the command line from
-the local node's last check result:
 
-    $ icinga2 console --connect 'https://root:icinga@localhost:5665/' --eval "get_host(NodeName).last_check_result.command" | python -m json.tool
+You can use the `--eval` parameter to evaluate a single expression in batch mode. The output format for batch mode is JSON.
+
+Here's an example that retrieves the command that was used by Icinga to check the `example-host` host:
+
+    $ ICINGA2_API_PASSWORD=icinga icinga2 console --connect 'https://root@localhost:5665/' --eval 'get_host("example-host").last_check_result.command' | python -m json.tool
     [
         "/usr/local/sbin/check_ping",
         "-H",
@@ -216,25 +228,6 @@ the local node's last check result:
         "-w",
         "3000,80%"
     ]
-
-
-The following environment variables can be exported to the
-user's environment instead of adding them to the `--connect` parameter:
-
-  Environment Variable  | Description
-  ----------------------|--------------------------
-  ICINGA2_API_USERNAME  | Basic auth username.
-  ICINGA2_API_PASSWORD  | Basic auth password.
-  ICINGA2_API_URL       | URL with or without basic auth credentials.
-
-Example:
-
-    $ export ICINGA2_API_USERNAME=root
-    $ export ICINGA2_API_PASSWORD=icinga
-
-    $ icinga2 console --connect 'https://localhost:5665/'
-    Icinga 2 (version: v2.4.0)
-    <1> =>
 
 ## <a id="cli-command-daemon"></a> CLI command: Daemon
 
