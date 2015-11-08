@@ -81,8 +81,7 @@ bool ConsoleHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& reques
 
 	String methodName = request.RequestUrl->GetPath()[2];
 	
-	String permission = "console";
-	FilterUtility::CheckPermission(user, permission);
+	FilterUtility::CheckPermission(user, "console");
 
 	String session = HttpUtility::GetLastParameter(params, "session");
 
