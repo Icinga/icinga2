@@ -36,7 +36,7 @@ class I2_BASE_API FIFO : public Stream
 public:
 	DECLARE_PTR_TYPEDEFS(FIFO);
 
-	static const size_t BlockSize = 16 * 1024;
+	static const size_t BlockSize = 512;
 
 	FIFO(void);
 	~FIFO(void);

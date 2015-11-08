@@ -85,7 +85,7 @@ TlsStream::TlsStream(const Socket::Ptr& socket, const String& hostname, Connecti
 
 TlsStream::~TlsStream(void)
 {
-	SocketEvents::Unregister();
+	Close();
 }
 
 int TlsStream::ValidateCertificate(int preverify_ok, X509_STORE_CTX *ctx)
@@ -216,33 +216,31 @@ void TlsStream::OnEvent(int revents)
 
 			break;
 		case SSL_ERROR_ZERO_RETURN:
-			SocketEvents::Unregister();
+			lock.unlock();
 
-			m_SSL.reset();
-			m_Socket->Close();
-			m_Socket.reset();
+			if (IsHandlingEvents())
+				SignalDataAvailable();
 
-			m_Eof = true;
-
-			m_CV.notify_all();
+			Close();
 
 			break;
 		default:
-			SocketEvents::Unregister();
-
-			m_SSL.reset();
-			m_Socket->Close();
-			m_Socket.reset();
-
-			m_Eof = true;
-
 			m_ErrorCode = ERR_peek_error();
 			m_ErrorOccurred = true;
 
-			Log(LogWarning, "TlsStream")
-			    << "OpenSSL error: " << ERR_error_string(m_ErrorCode, NULL);
+			if (m_ErrorCode != 0) {
+				Log(LogWarning, "TlsStream")
+					<< "OpenSSL error: " << ERR_error_string(m_ErrorCode, NULL);
+			} else {
+				Log(LogWarning, "TlsStream", "TLS stream was disconnected.");
+			}
 
-			m_CV.notify_all();
+			lock.unlock();
+
+			if (IsHandlingEvents())
+				SignalDataAvailable();
+
+			Close();
 
 			break;
 	}
@@ -318,6 +316,8 @@ void TlsStream::Shutdown(void)
  */
 void TlsStream::Close(void)
 {
+	Stream::Close();
+
 	SocketEvents::Unregister();
 
 	boost::mutex::scoped_lock lock(m_Mutex);
@@ -327,11 +327,13 @@ void TlsStream::Close(void)
 	if (!m_SSL)
 		return;
 
-	(void) SSL_shutdown(m_SSL.get());
+	(void)SSL_shutdown(m_SSL.get());
 	m_SSL.reset();
 
 	m_Socket->Close();
 	m_Socket.reset();
+
+	m_CV.notify_all();
 }
 
 bool TlsStream::IsEof(void) const

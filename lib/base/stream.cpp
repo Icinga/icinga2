@@ -76,6 +76,11 @@ bool Stream::WaitForData(int timeout)
 	return IsDataAvailable() || IsEof();
 }
 
+void Stream::Close(void)
+{
+	OnDataAvailable.disconnect_all_slots();
+}
+
 StreamReadStatus Stream::ReadLine(String *line, StreamReadContext& context, bool may_wait)
 {
 	if (context.Eof)

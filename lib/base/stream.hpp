@@ -113,7 +113,7 @@ public:
 	/**
 	 * Closes the stream and releases resources.
 	 */
-	virtual void Close(void) = 0;
+	virtual void Close(void);
 
 	/**
 	 * Checks whether we've reached the end-of-file condition.

@@ -27,6 +27,8 @@ NetworkStream::NetworkStream(const Socket::Ptr& socket)
 
 void NetworkStream::Close(void)
 {
+	Stream::Close();
+
 	m_Socket->Close();
 }
 
