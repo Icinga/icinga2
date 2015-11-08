@@ -83,6 +83,12 @@ bool ApiSetupUtility::SetupMasterCertificates(const String& cn)
 	String key = pki_path + "/" + cn + ".key";
 	String csr = pki_path + "/" + cn + ".csr";
 
+	if (Utility::PathExists(key)) {
+		Log(LogInformation, "cli")
+		    << "Private key file '" << key << "' already existing, skipping.";
+		return true;
+	}
+
 	Log(LogInformation, "cli")
 	    << "Generating new CSR in '" << csr << "'.";
 
@@ -152,6 +158,12 @@ bool ApiSetupUtility::SetupMasterApiUser(void)
 	String api_username = "root"; // TODO make this available as cli parameter?
 	String api_password = RandomString(8);
 	String apiuserspath = GetConfdPath() + "/api-users.conf";
+
+	if (Utility::PathExists(apiuserspath)) {
+		Log(LogInformation, "cli")
+		    << "API user config file '" << apiuserspath << "' already existing, skipping.";
+		return true;
+	}
 
 	Log(LogInformation, "cli")
 	    << "Adding new ApiUser '" << api_username << "' in '" << apiuserspath << "'.";
