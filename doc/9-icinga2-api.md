@@ -257,13 +257,13 @@ If you're only interested in a single object you can limit the output to that ob
 
     https://localhost:5665/v1/objects/hosts?host=localhost
 
-The name of the URL parameter is the lower-case version of the type the query applies to. For
+**The name of the URL parameter is the lower-case version of the type the query applies to.** For
 example, for `Host` objects the URL parameter therefore is `host`, for `Service` objects it is
 `service` and so on.
 
 You can also specify multiple objects:
 
-    https://localhost:5665/v1/objects/hosts?hosts=first-host&hosts=second-host 
+    https://localhost:5665/v1/objects/hosts?hosts=first-host&hosts=second-host
 
 Again - like in the previous example - the name of the URL parameter is the lower-case version of the type. However, because we're specifying multiple objects here the **plural form** of the type is used.
 
@@ -578,30 +578,6 @@ The following example adds a comment for all `ping4` services:
         ]
     }
 
-### <a id="icinga2-api-actions-remove-all-comments"></a> remove-all-comments
-
-Removes all comments for services or hosts.
-
-Send a `POST` request to the URL endpoint `/v1/actions/remove-all-comments`.
-
-A [filter](9-icinga2-api.md#icinga2-api-filters) must be provided. The valid types for this action are `Host` and `Service`.
-
-The following example removes all comments from all services:
-
-    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/remove-all-comments?type=Service' | python -m json.tool
-
-    {
-        "results": [
-            {
-                "code": 200.0,
-                "status": "Successfully removed comments for object 'example2.localdomain!aws-health'."
-            },
-            {
-                "code": 200.0,
-                "status": "Successfully removed comments for object 'example.localdomain!aws-health'."
-            }
-    }
-
 ### <a id="icinga2-api-actions-remove-comment"></a> remove-comment
 
 Remove the comment using its `name` attribute , returns `OK` if the
@@ -611,23 +587,36 @@ Icinga 2 when [adding a comment](9-icinga2-api.md#icinga2-api-actions-add-commen
 
 Send a `POST` request to the URL endpoint `/v1/actions/remove-comment`.
 
-  Parameter   | Type    | Description
-  ------------|---------|--------------
-  name        | string  | **Required.** Name of the comment to remove.
+A [filter](9-icinga2-api.md#icinga2-api-filters) must be provided. The valid types for this action are `Host`, `Service` and `Comment`.
 
-Does not support a target type or filters.
+Example for a simple filter using the `comment` URL parameter:
 
-Example:
-
-    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/remove-comment?name=example.localdomain!ping4!example.localdomain-1446824161-0' | python -m json.tool
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/remove-comment?comment=example2.localdomain!ping4!mbmif.local-1446986367-0' | python -m json.tool
     {
         "results": [
             {
                 "code": 200.0,
-                "status": "Successfully removed comment 'example.localdomain!ping4!example.localdomain-1446824161-0'."
+                "status": "Successfully removed comment 'example2.localdomain!ping4!mbmif.local-1446986367-0'."
             }
         ]
     }
+
+Example for removing all service comments using a service name filter for `ping4`:
+
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/remove-comment?filter=service.name==%22ping4%22&type=Service' | python -m json.tool
+    {
+        "results": [
+            {
+                "code": 200.0,
+                "status": "Successfully removed all comments for object 'example2.localdomain!ping4'."
+            },
+            {
+                "code": 200.0,
+                "status": "Successfully removed all comments for object 'example.localdomain!ping4'."
+            }
+        ]
+    }
+
 
 ### <a id="icinga2-api-actions-schedule-downtime"></a> schedule-downtime
 
@@ -665,32 +654,6 @@ Example:
         ]
     }
 
-
-### <a id="icinga2-api-actions-remove-all-downtimes"></a> remove-all-downtimes
-
-Removes all downtimes for services or hosts.
-
-Send a `POST` request to the URL endpoint `/v1/actions/remove-all-downtimes`.
-
-A [filter](9-icinga2-api.md#icinga2-api-filters) must be provided. The valid types for this action are `Host` and `Service`.
-
-The following example removes all downtimes for all `ping4` services:
-
-    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/remove-all-downtimes?type=Service&filter=service.name==%22ping4%22' | python -m json.tool
-
-    {
-        "results": [
-            {
-                "code": 200.0,
-                "status": "Successfully removed downtimes for object 'example2.localdomain!ping4'."
-            },
-            {
-                "code": 200.0,
-                "status": "Successfully removed downtimes for object 'example.localdomain!ping4'."
-            }
-        ]
-    }
-
 ### <a id="icinga2-api-actions-remove-downtime"></a> remove-downtime
 
 Remove the downtime using its `name` attribute , returns `OK` if the
@@ -700,20 +663,28 @@ Icinga 2 when [scheduling a downtime](9-icinga2-api.md#icinga2-api-actions-sched
 
 Send a `POST` request to the URL endpoint `/v1/actions/remove-downtime`.
 
-  Parameter    | Type    | Description
-  -------------|---------|--------------
-  name         | string  | **Required.** Name of the downtime to remove.
+A [filter](9-icinga2-api.md#icinga2-api-filters) must be provided. The valid types for this action are `Host`, `Service` and `Downtime`.
 
-Does not support a target type or filter.
+Example for a simple filter using the `downtime` URL parameter:
 
-Example:
-
-    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/remove-downtime?name=example.localdomain!ping4!example.localdomain-1446822004-1' | python -m json.tool
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/remove-downtime?downtime=example.localdomain!ping4!mbmif.local-1446979168-6' | python -m json.tool
     {
         "results": [
             {
                 "code": 200.0,
-                "status": "Successfully removed downtime 'example.localdomain!ping4!example.localdomain-1446822004-1'."
+                "status": "Successfully removed downtime 'example.localdomain!ping4!mbmif.local-1446979168-6'."
+            }
+        ]
+    }
+
+Example for removing all host downtimes using a host name filter for `example.localdomain`:
+
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/remove-downtime?filter=host.name==%22example.localdomain%22&type=Host' | python -m json.tool
+    {
+        "results": [
+            {
+                "code": 200.0,
+                "status": "Successfully removed all downtimes for object 'example.localdomain'."
             }
         ]
     }
