@@ -13,7 +13,7 @@ Make sure to restart Icinga 2 to enable the changes you just made:
 
     # service icinga2 restart
 
-If the prefer to set up the API manually you will have to perform the following steps:
+If you prefer to set up the API manually you will have to perform the following steps:
 
 * Set up X.509 certificates for Icinga 2
 * Enable the `api` feature (`icinga2 feature enable api`)
