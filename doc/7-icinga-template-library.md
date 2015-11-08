@@ -129,6 +129,32 @@ by_ssh_warn     | **Optional.** The warning threshold.
 by_ssh_crit     | **Optional.** The critical threshold.
 by_ssh_timeout  | **Optional.** The timeout in seconds.
 
+### <a id="plugin-check-command-clamd"></a> clamd
+
+Check command object for the `check_clamd` plugin.
+
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
+
+Name               | Description
+-------------------|--------------
+clamd_address        | **Required.** The host's address or unix socket (must be an absolute path).
+clamd_port           | **Optional.** Port number (default: none).
+clamd_expect         | **Optional.** String to expect in server response (may be repeated).
+clamd_all            | **Optional.** All expect strings need to occur in server response. Defaults to false.
+clamd_escape_send    | **Optional.** Enable usage of \n, \r, \t or \\\\ in send string.
+clamd_send           | **Optional.** String to send to the server.
+clamd_escape_quit    | **Optional.** Enable usage of \n, \r, \t or \\\\ in quit string.
+clamd_quit           | **Optional.** String to send server to initiate a clean close of the connection.
+clamd_refuse         | **Optional.** Accept TCP refusals with states ok, warn, crit. Defaults to crit.
+clamd_mismatch       | **Optional.** Accept expected string mismatches with states ok, warn, crit. Defaults to warn.
+clamd_jail           | **Optional.** Hide output from TCP socket.
+clamd_maxbytes       | **Optional.** Close connection once more than this number of bytes are received.
+clamd_delay          | **Optional.** Seconds to wait between sending string and polling for response.
+clamd_certificate    | **Optional.** Minimum number of days a certificate has to be valid. 1st value is number of days for warning, 2nd is critical (if not specified: 0) - seperated by comma.
+clamd_ssl            | **Optional.** Use SSL for the connection. Defaults to false.
+clamd_wtime          | **Optional.** Response time to result in warning status (seconds).
+clamd_ctime          | **Optional.** Response time to result in critical status (seconds).
+clamd_timeout        | **Optional.** Seconds before connection times out. Defaults to 10.
 
 ### <a id="plugin-check-command-dhcp"></a> dhcp
 
@@ -512,6 +538,63 @@ load_cload5     | **Optional.** The 5-minute critical threshold. Defaults to 6.
 load_cload15    | **Optional.** The 15-minute critical threshold. Defaults to 4.
 load_percpu     | **Optional.** Divide the load averages by the number of CPUs (when possible). Defaults to false.
 
+### <a id="plugin-check-command-mailq"></a> mailq
+
+Check command object for the `check_mailq` plugin.
+
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
+
+Name                    | Description
+------------------------|--------------
+mailq_warning		| **Required.** Min. number of messages in queue to generate warning.
+mailq_critical		| **Required.** Min. number of messages in queue to generate critical alert ( w < c ).
+mailq_domain_warning	| **Optional.** Min. number of messages for same domain in queue to generate warning
+mailq_domain_critical	| **Optional.** Min. number of messages for same domain in queue to generate critical alert ( W < C ).
+mailq_timeout		| **Optional.** Plugin timeout in seconds (default = 15).
+mailq_servertype	| **Optional.** [ sendmail | qmail | postfix | exim | nullmailer ] (default = autodetect).
+
+### <a id="plugin-check-command-mysql"></a> mysql
+
+Check command object for the `check_mysql` plugin.
+
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
+
+Name			| Description
+------------------------|---------------------------------------------------------------
+mysql_hostname		| **Optional.** Host name, IP Address, or unix socket (must be an absolute path).
+mysql_port		| **Optional.** Port number (default: 3306).
+mysql_ignore_auth	| **Optional.** Ignore authentication failure and check for mysql connectivity only.
+mysql_database		| **Optional.** Check database with indicated name.
+mysql_file		| **Optional.** Read from the specified client options file.
+mysql_group		| **Optional.** Use a client options group.
+mysql_username		| **Optional.** Connect using the indicated username.
+mysql_password		| **Optional.** Use the indicated password to authenticate the connection.
+mysql_check_slave	| **Optional.** Check if the slave thread is running properly.
+mysql_warning		| **Optional.** Exit with WARNING status if slave server is more than INTEGER seconds behind master.
+mysql_critical		| **Optional.** Exit with CRITICAL status if slave server is more then INTEGER seconds behind master.
+mysql_ssl		| **Optional.** Use ssl encryptation.
+mysql_cacert		| **Optional.** Path to CA signing the cert.
+mysql_cert		| **Optional.** Path to SSL certificate.
+mysql_key		| **Optional.** Path to private SSL key.
+mysql_cadir		| **Optional.** Path to CA directory.
+mysql_ciphers		| **Optional.** List of valid SSL ciphers.
+
+### <a id="plugin-check-command-negate"></a> negate
+
+Check command object for the `negate` plugin.
+
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
+
+Name			| Description
+------------------------|---------------------------------------------------------------
+negate_timeout		| **Optional.** Seconds before plugin times out (default: 11).
+negate_timeout_result	| **Optional.** Custom result on Negate timeouts, default to UNKNOWN.
+negate_ok		| **Optional.** OK, WARNING, CRITICAL or UNKNOWN.
+negate_warning		|               Numeric values are accepted.
+negate_critical		|               If nothing is specified, permutes OK and CRITICAL.
+negate_substitute	| **Optional.** Substitute output text as well. Will only substitute text in CAPITALS.
+negate_command		| **Required.** Command to be negated.
+negate_arguments	| **Optional.** Arguments for the negated command.
 
 ### <a id="plugin-check-command-nrpe"></a> nrpe
 
@@ -600,6 +683,26 @@ Name            | Description
 dummy_state     | **Optional.** The state. Can be one of 0 (ok), 1 (warning), 2 (critical) and 3 (unknown). Defaults to 3.
 dummy_text      | **Optional.** Plugin output. Defaults to "No Passive Check Result Received.".
 
+### <a id="plugin-check-command-pgsql"></a> pgsql
+
+Check command object for the `check_pgsql` plugin.
+
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
+
+Name			| Description
+------------------------|---------------------------------------------------------------
+pgsql_hostname		| **Optional.** Host name, IP Address, or unix socket (must be an absolute path).
+pgsql_port		| **Optional.** Port number (default: 5432).
+pgsql_database		| **Optional.** Database to check (default: template1).
+pgsql_username		| **Optional.** Login name of user.
+pgsql_password		| **Optional.** Password (BIG SECURITY ISSUE).
+pgsql_options		| **Optional.** Connection parameters (keyword = value), see below.
+pgsql_warning		| **Optional.** Response time to result in warning status (seconds).
+pgsql_critical		| **Optional.** Response time to result in critical status (seconds).
+pgsql_timeout		| **Optional.** Seconds before connection times out (default: 10).
+pgsql_query		| **Optional.** SQL query to run. Only first column in first row will be read.
+pgsql_query_warning	| **Optional.** SQL query value to result in warning status (double).
+pgsql_query_critical	| **Optional.** SQL query value to result in critical status (double).
 
 ### <a id="plugin-check-command-ping"></a> ping
 
@@ -935,117 +1038,6 @@ Name            | Description
 ----------------|--------------
 users_wgreater  | **Optional.** The user count warning threshold. Defaults to 20.
 users_cgreater  | **Optional.** The user count critical threshold. Defaults to 50.
-
-
-### <a id="plugin-check-command-clamd"></a> clamd
-
-Check command object for the `check_clamd` plugin.
-
-Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
-
-Name               | Description
--------------------|--------------
-clamd_address        | **Required.** The host's address or unix socket (must be an absolute path).
-clamd_port           | **Optional.** Port number (default: none).
-clamd_expect         | **Optional.** String to expect in server response (may be repeated).
-clamd_all            | **Optional.** All expect strings need to occur in server response. Defaults to false.
-clamd_escape_send    | **Optional.** Enable usage of \n, \r, \t or \\\\ in send string.
-clamd_send           | **Optional.** String to send to the server.
-clamd_escape_quit    | **Optional.** Enable usage of \n, \r, \t or \\\\ in quit string.
-clamd_quit           | **Optional.** String to send server to initiate a clean close of the connection.
-clamd_refuse         | **Optional.** Accept TCP refusals with states ok, warn, crit. Defaults to crit.
-clamd_mismatch       | **Optional.** Accept expected string mismatches with states ok, warn, crit. Defaults to warn.
-clamd_jail           | **Optional.** Hide output from TCP socket.
-clamd_maxbytes       | **Optional.** Close connection once more than this number of bytes are received.
-clamd_delay          | **Optional.** Seconds to wait between sending string and polling for response.
-clamd_certificate    | **Optional.** Minimum number of days a certificate has to be valid. 1st value is number of days for warning, 2nd is critical (if not specified: 0) - seperated by comma.
-clamd_ssl            | **Optional.** Use SSL for the connection. Defaults to false.
-clamd_wtime          | **Optional.** Response time to result in warning status (seconds).
-clamd_ctime          | **Optional.** Response time to result in critical status (seconds).
-clamd_timeout        | **Optional.** Seconds before connection times out. Defaults to 10.
-
-
-### <a id="plugin-check-command-mailq"></a> mailq
-
-Check command object for the `check_mailq` plugin.
-
-Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
-
-Name                    | Description
-------------------------|--------------
-mailq_warning		| **Required.** Min. number of messages in queue to generate warning.
-mailq_critical		| **Required.** Min. number of messages in queue to generate critical alert ( w < c ).
-mailq_domain_warning	| **Optional.** Min. number of messages for same domain in queue to generate warning
-mailq_domain_critical	| **Optional.** Min. number of messages for same domain in queue to generate critical alert ( W < C ).
-mailq_timeout		| **Optional.** Plugin timeout in seconds (default = 15).
-mailq_servertype	| **Optional.** [ sendmail | qmail | postfix | exim | nullmailer ] (default = autodetect).
-
-
-### <a id="plugin-check-command-pgsql"></a> pgsql
-
-Check command object for the `check_pgsql` plugin.
-
-Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
-
-Name			| Description
-------------------------|---------------------------------------------------------------
-pgsql_hostname		| **Optional.** Host name, IP Address, or unix socket (must be an absolute path).
-pgsql_port		| **Optional.** Port number (default: 5432).
-pgsql_database		| **Optional.** Database to check (default: template1).
-pgsql_username		| **Optional.** Login name of user.
-pgsql_password		| **Optional.** Password (BIG SECURITY ISSUE).
-pgsql_options		| **Optional.** Connection parameters (keyword = value), see below.
-pgsql_warning		| **Optional.** Response time to result in warning status (seconds).
-pgsql_critical		| **Optional.** Response time to result in critical status (seconds).
-pgsql_timeout		| **Optional.** Seconds before connection times out (default: 10).
-pgsql_query		| **Optional.** SQL query to run. Only first column in first row will be read.
-pgsql_query_warning	| **Optional.** SQL query value to result in warning status (double).
-pgsql_query_critical	| **Optional.** SQL query value to result in critical status (double).
-
-### <a id="plugin-check-command-mysql"></a> mysql
-
-Check command object for the `check_mysql` plugin.
-
-Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
-
-Name			| Description
-------------------------|---------------------------------------------------------------
-<<<<<<< HEAD
-mysql_hostname		| **Optional.** Host name, IP Address, or unix socket (must be an absolute path).
-mysql_port		| **Optional.** Port number (default: 3306).
-mysql_ignore_auth	| **Optional.** Ignore authentication failure and check for mysql connectivity only.
-mysql_database		| **Optional.** Check database with indicated name.
-mysql_file		| **Optional.** Read from the specified client options file.
-mysql_group		| **Optional.** Use a client options group.
-mysql_username		| **Optional.** Connect using the indicated username.
-mysql_password		| **Optional.** Use the indicated password to authenticate the connection.
-mysql_check_slave	| **Optional.** Check if the slave thread is running properly.
-mysql_warning		| **Optional.** Exit with WARNING status if slave server is more than INTEGER seconds behind master.
-mysql_critical		| **Optional.** Exit with CRITICAL status if slave server is more then INTEGER seconds behind master.
-mysql_ssl		| **Optional.** Use ssl encryptation.
-mysql_cacert		| **Optional.** Path to CA signing the cert.
-mysql_cert		| **Optional.** Path to SSL certificate.
-mysql_key		| **Optional.** Path to private SSL key.
-mysql_cadir		| **Optional.** Path to CA directory.
-mysql_ciphers		| **Optional.** List of valid SSL ciphers.
-
-### <a id="plugin-check-command-negate"></a> negate
-
-Check command object for the `negate` plugin.
-
-Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
-
-Name			| Description
-------------------------|---------------------------------------------------------------
-negate_timeout		| **Optional.** Seconds before plugin times out (default: 11).
-negate_timeout_result	| **Optional.** Custom result on Negate timeouts, default to UNKNOWN.
-negate_ok		| **Optional.** OK, WARNING, CRITICAL or UNKNOWN.
-negate_warning		|               Numeric values are accepted.
-negate_critical		|               If nothing is specified, permutes OK and CRITICAL.
-negate_substitute	| **Optional.** Substitute output text as well. Will only substitute text in CAPITALS.
-negate_command		| **Required.** Command to be negated.
-negate_arguments	| **Optional.** Arguments for the negated command.
-
 
 ## <a id="windows-plugins"></a> Windows Plugins for Icinga 2
 
