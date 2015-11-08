@@ -278,6 +278,9 @@ void ApiListener::UpdateConfigObject(const ConfigObject::Ptr& object, const Mess
 		}
 	}
 
+	if (object->GetPackage() != "_api" && object->GetVersion() == 0)
+		return;
+
 	Dictionary::Ptr message = new Dictionary();
 	message->Set("jsonrpc", "2.0");
 	message->Set("method", "config::UpdateObject");
