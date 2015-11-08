@@ -145,7 +145,7 @@ In case you get an error message make sure to check the API user credentials.
 When using client certificates for authentication you'll need to pass your client certificate
 and private key to the curl call:
 
-    $ curl -k --cert icinga2-node1.localdomain.crt --key icinga2-node1.localdomain.key 'https://icinga2-node1.localdomain:5665/v1/status'
+    $ curl -k --cert example.localdomain.crt --key example.localdomain.key 'https://example.localdomain:5665/v1/status'
 
 In case of an error make sure to verify the client certificate and CA.
 
@@ -227,11 +227,11 @@ as query string, e.g. a space character becomes `%20`.
 
 Example for a URL-encoded query string:
 
-    /v1/objects/hosts?filter=match(%22icinga2-node1.localdomain*%22,host.name)&attrs=host.name&attrs=host.state
+    /v1/objects/hosts?filter=match(%22example.localdomain*%22,host.name)&attrs=host.name&attrs=host.state
 
 Here are the exact same query parameters as a JSON object:
 
-    { "filter": "match(\"icinga2-node1.localdomain*\",host.name)", "attrs": [ "host.name", "host.state" ] }
+    { "filter": "match(\"example.localdomain*\",host.name)", "attrs": [ "host.name", "host.state" ] }
 
 ### <a id="icinga2-api-requests-method-override"></a> Request Method Override
 
@@ -243,7 +243,7 @@ Query an existing object by sending a `POST` request with `X-HTTP-Method-Overrid
 
 Delete an existing object by sending a `POST` request with `X-HTTP-Method-Override: DELETE` as request header:
 
-    $ curl -k -s -u 'root:icinga' -H 'X-HTTP-Method-Override: DELETE' -X POST 'https://localhost:5665/v1/objects/hosts/icinga.org'
+    $ curl -k -s -u 'root:icinga' -H 'X-HTTP-Method-Override: DELETE' -X POST 'https://localhost:5665/v1/objects/hosts/example.localdomain'
 
 ### <a id="icinga2-api-filters"></a> Filters
 
@@ -293,7 +293,7 @@ Example matching all services in NOT-OK state:
 
 Example matching all hosts by name:
 
-    https://localhost:5665/v1/objects/hosts?filter=match("icinga2-node1.localdomain*",host.name)
+    https://localhost:5665/v1/objects/hosts?filter=match("example.localdomain*",host.name)
 
 Example for all hosts which are in the host group `linux-servers`:
 
@@ -377,14 +377,14 @@ In addition to these parameters a [filter](9-icinga2-api.md#icinga2-api-filters)
 
 Example:
 
-    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/process-check-result?service=localhost!ping6' \
-    -d '{ "exit_status": 2, "plugin_output": "PING CRITICAL - Packet loss = 100%", "performance_data": [ "rta=5000.000000ms;3000.000000;5000.000000;0.000000", "pl=100%;80;100;0" ], "check_source": "icinga2-node1.localdomain" }' | python -m json.tool
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/process-check-result?service=example.localdomain!passive-ping6' \
+    -d '{ "exit_status": 2, "plugin_output": "PING CRITICAL - Packet loss = 100%", "performance_data": [ "rta=5000.000000ms;3000.000000;5000.000000;0.000000", "pl=100%;80;100;0" ], "check_source": "example.localdomain" }' | python -m json.tool
 
     {
         "results": [
             {
                 "code": 200.0,
-                "status": "Successfully processed check result for object 'localhost!ping6'."
+                "status": "Successfully processed check result for object 'localdomain!passive-ping6'."
             }
         ]
     }
@@ -512,11 +512,11 @@ a notification for them:
         "results": [
             {
                 "code": 200.0,
-                "status": "Successfully acknowledged problem for object 'i-42866686!ping4'."
+                "status": "Successfully acknowledged problem for object 'example2.localdomain!ping4'."
             },
             {
                 "code": 200.0,
-                "status": "Successfully acknowledged problem for object 'i-43866687!ping4'."
+                "status": "Successfully acknowledged problem for object 'example.localdomain!ping4'."
             }
     }
 
@@ -542,7 +542,7 @@ The example removes all service acknowledgements:
             },
             {
                 "code": 200.0,
-                "status": "Successfully removed acknowledgement for object 'i-42866686!aws-health'."
+                "status": "Successfully removed acknowledgement for object 'example2.localdomain!aws-health'."
             }
     }
 
@@ -567,14 +567,14 @@ The following example adds a comment for all `ping4` services:
             {
                 "code": 200.0,
                 "legacy_id": 26.0,
-                "name": "i-43866687!ping4!mbmif.int.netways.de-1446824161-0",
-                "status": "Successfully added comment 'i-43866687!ping4!mbmif.int.netways.de-1446824161-0' for object 'i-43866687!ping4'."
+                "name": "example.localdomain!ping4!example.localdomain-1446824161-0",
+                "status": "Successfully added comment 'example.localdomain!ping4!example.localdomain-1446824161-0' for object 'example.localdomain!ping4'."
             },
             {
                 "code": 200.0,
                 "legacy_id": 27.0,
-                "name": "i-42866686!ping4!mbmif.int.netways.de-1446824161-1",
-                "status": "Successfully added comment 'i-42866686!ping4!mbmif.int.netways.de-1446824161-1' for object 'i-42866686!ping4'."
+                "name": "example2.localdomain!ping4!example.localdomain-1446824161-1",
+                "status": "Successfully added comment 'example2.localdomain!ping4!example.localdomain-1446824161-1' for object 'example2.localdomain!ping4'."
             }
         ]
     }
@@ -595,11 +595,11 @@ The following example removes all comments from all services:
         "results": [
             {
                 "code": 200.0,
-                "status": "Successfully removed comments for object 'i-42866686!aws-health'."
+                "status": "Successfully removed comments for object 'example2.localdomain!aws-health'."
             },
             {
                 "code": 200.0,
-                "status": "Successfully removed comments for object 'i-43866687!aws-health'."
+                "status": "Successfully removed comments for object 'example.localdomain!aws-health'."
             }
     }
 
@@ -620,12 +620,12 @@ Does not support a target type or filters.
 
 Example:
 
-    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/remove-comment?name=i-43866687!ping4!mbmif.int.netways.de-1446824161-0' | python -m json.tool
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/remove-comment?name=example.localdomain!ping4!example.localdomain-1446824161-0' | python -m json.tool
     {
         "results": [
             {
                 "code": 200.0,
-                "status": "Successfully removed comment 'i-43866687!ping4!mbmif.int.netways.de-1446824161-0'."
+                "status": "Successfully removed comment 'example.localdomain!ping4!example.localdomain-1446824161-0'."
             }
         ]
     }
@@ -654,14 +654,14 @@ Example:
             {
                 "code": 200.0,
                 "legacy_id": 2.0,
-                "name": "i-42866686!ping4!mbmif.int.netways.de-1446822004-0",
-                "status": "Successfully scheduled downtime 'i-42866686!ping4!mbmif.int.netways.de-1446822004-0' for object 'i-42866686!ping4'."
+                "name": "example2.localdomain!ping4!example.localdomain-1446822004-0",
+                "status": "Successfully scheduled downtime 'example2.localdomain!ping4!example.localdomain-1446822004-0' for object 'example2.localdomain!ping4'."
             },
             {
                 "code": 200.0,
                 "legacy_id": 3.0,
-                "name": "i-43866687!ping4!mbmif.int.netways.de-1446822004-1",
-                "status": "Successfully scheduled downtime 'i-43866687!ping4!mbmif.int.netways.de-1446822004-1' for object 'i-43866687!ping4'."
+                "name": "example.localdomain!ping4!example.localdomain-1446822004-1",
+                "status": "Successfully scheduled downtime 'example.localdomain!ping4!example.localdomain-1446822004-1' for object 'example.localdomain!ping4'."
             }
         ]
     }
@@ -683,11 +683,11 @@ The following example removes all downtimes for all `ping4` services:
         "results": [
             {
                 "code": 200.0,
-                "status": "Successfully removed downtimes for object 'i-42866686!ping4'."
+                "status": "Successfully removed downtimes for object 'example2.localdomain!ping4'."
             },
             {
                 "code": 200.0,
-                "status": "Successfully removed downtimes for object 'i-43866687!ping4'."
+                "status": "Successfully removed downtimes for object 'example.localdomain!ping4'."
             }
         ]
     }
@@ -709,12 +709,12 @@ Does not support a target type or filter.
 
 Example:
 
-    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/remove-downtime?name=i-43866687!ping4!mbmif.int.netways.de-1446822004-1' | python -m json.tool
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/remove-downtime?name=example.localdomain!ping4!example.localdomain-1446822004-1' | python -m json.tool
     {
         "results": [
             {
                 "code": 200.0,
-                "status": "Successfully removed downtime 'i-43866687!ping4!mbmif.int.netways.de-1446822004-1'."
+                "status": "Successfully removed downtime 'example.localdomain!ping4!example.localdomain-1446822004-1'."
             }
         ]
     }
@@ -820,9 +820,9 @@ Example:
 
     $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/events?queue=michi&types=CheckResult&filter=event.check_result.exit_status==2'
 
-    {"check_result":{ ... },"host":"www.icinga.org","service":"ping4","timestamp":1445421319.7226390839,"type":"CheckResult"}
-    {"check_result":{ ... },"host":"www.icinga.org","service":"ping4","timestamp":1445421324.7226390839,"type":"CheckResult"}
-    {"check_result":{ ... },"host":"www.icinga.org","service":"ping4","timestamp":1445421329.7226390839,"type":"CheckResult"}
+    {"check_result":{ ... },"host":"example.localdomain","service":"ping4","timestamp":1445421319.7226390839,"type":"CheckResult"}
+    {"check_result":{ ... },"host":"example.localdomain","service":"ping4","timestamp":1445421324.7226390839,"type":"CheckResult"}
+    {"check_result":{ ... },"host":"example.localdomain","service":"ping4","timestamp":1445421329.7226390839,"type":"CheckResult"}
 
 
 ## <a id="icinga2-api-status"></a> Status and Statistics
@@ -872,7 +872,7 @@ Example for the IcingaApplication URL endpoint `/v1/status/IcingaApplication`:
                             "enable_notifications": true,
                             "enable_perfdata": true,
                             "enable_service_checks": true,
-                            "node_name": "icinga.org",
+                            "node_name": "example.localdomain",
                             "pid": 59819.0,
                             "program_start": 1443019345.093372,
                             "version": "v2.3.0-573-g380a131"
@@ -951,24 +951,24 @@ The following URL parameters can be added:
   joins      | **Optional.** Join related object types and their attributes (`?joins=host` for the entire set, or selectively by `?joins=host.name`).
   meta       | **Optional.** Enable meta information using `?meta=used_by`. Defaults to disabled.
 
-Example for the host `google.com` inside the URL:
+Example for the host `example.localdomain` inside the URL:
 
-    $ curl -k -s -u root:icinga 'https://localhost:5665/v1/objects/hosts/google.com'
+    $ curl -k -s -u root:icinga 'https://localhost:5665/v1/objects/hosts/example.localdomain'
 
 You can select specific attributes by adding them as url parameters using `?attrs=...`. Multiple
 attributes must be added one by one, e.g. `?attrs=address&attrs=name`.
 
-    $ curl -k -s -u root:icinga 'https://localhost:5665/v1/objects/hosts/google.com?attrs=name&attrs=address' | python -m json.tool
+    $ curl -k -s -u root:icinga 'https://localhost:5665/v1/objects/hosts/example.localdomain?attrs=name&attrs=address' | python -m json.tool
     {
         "results": [
             {
                 "attrs": {
-                    "name": "google.com"
-                    "address": "8.8.8.8"
+                    "name": "example.localdomain"
+                    "address": "192.168.1.1"
                 },
                 "joins": {},
                 "meta": {},
-                "name": "google.com",
+                "name": "example.localdomain",
                 "type": "Host"
             }
         ]
@@ -1035,12 +1035,12 @@ Here's an example that retrieves all service objects for hosts which have had th
                 },
                 "joins": {
                     "host": {
-                        "address": "54.149.27.119",
-                        "name": "i-43866687"
+                        "address": "192.168.1.1",
+                        "name": "example.localdomain"
                     }
                 },
                 "meta": {},
-                "name": "i-43866687!ping4",
+                "name": "example.localdomain!ping4",
                 "type": "Service"
             },
             {
@@ -1050,12 +1050,12 @@ Here's an example that retrieves all service objects for hosts which have had th
                 },
                 "joins": {
                     "host": {
-                        "address": "54.149.27.119",
-                        "name": "i-43866687"
+                        "address": "192.168.1.1",
+                        "name": "example.localdomain"
                     }
                 },
                 "meta": {},
-                "name": "i-43866687!ssh",
+                "name": "example.localdomain!ssh",
                 "type": "Service"
             }
         ]
@@ -1078,10 +1078,10 @@ If attributes are of the Dictionary type, you can also use the indexer format. T
 
     "attrs": { "vars.os": "Linux" }
 
-Example for creating the new host object `google.com`:
+Example for creating the new host object `example.localdomain`:
 
-    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X PUT 'https://localhost:5665/v1/objects/hosts/google.com' \
-    -d '{ "templates": [ "generic-host" ], "attrs": { "address": "8.8.8.8", "check_command": "hostalive", "vars.os" : "Linux" } }' \
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X PUT 'https://localhost:5665/v1/objects/hosts/example.localdomain' \
+    -d '{ "templates": [ "generic-host" ], "attrs": { "address": "192.168.1.1", "check_command": "hostalive", "vars.os" : "Linux" } }' \
     | python -m json.tool
     {
         "results": [
@@ -1096,15 +1096,15 @@ If the configuration validation fails, the new object will not be created and th
 contains a detailed error message. The following example is missing the `check_command` attribute
 which is required for host objects:
 
-    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X PUT 'https://localhost:5665/v1/objects/hosts/google.com' \
-    -d '{ "attrs": { "address": "8.8.8.8", "vars.os" : "Linux" } }' \
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X PUT 'https://localhost:5665/v1/objects/hosts/example.localdomain' \
+    -d '{ "attrs": { "address": "192.168.1.1", "vars.os" : "Linux" } }' \
     | python -m json.tool
     {
         "results": [
             {
                 "code": 500.0,
                 "errors": [
-                    "Error: Validation failed for object 'google.com' of type 'Host'; Attribute 'check_command': Attribute must not be empty."
+                    "Error: Validation failed for object 'example.localdomain' of type 'Host'; Attribute 'check_command': Attribute must not be empty."
                 ],
                 "status": "Object could not be created."
             }
@@ -1128,16 +1128,16 @@ If attributes are of the Dictionary type, you can also use the indexer format:
 
     "attrs": { "vars.os": "Linux" }
 
-The following example updates the `address` attribute and the custom attribute `os` for the `google.com` host:
+The following example updates the `address` attribute and the custom attribute `os` for the `example.localdomain` host:
 
-    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/objects/hosts/google.com' \
-    -d '{ "attrs": { "address": "8.8.4.4", "vars.os" : "Windows" } }' \
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/objects/hosts/example.localdomain' \
+    -d '{ "attrs": { "address": "192.168.1.2", "vars.os" : "Windows" } }' \
     | python -m json.tool
     {
         "results": [
             {
                 "code": 200.0,
-                "name": "google.com",
+                "name": "example.localdomain",
                 "status": "Attributes updated.",
                 "type": "Host"
             }
@@ -1156,14 +1156,14 @@ request.
 
 In addition to these parameters a [filter](9-icinga2-api.md#icinga2-api-filters) should be provided.
 
-Example for deleting the host object `google.com`:
+Example for deleting the host object `example.localdomain`:
 
-    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X DELETE 'https://localhost:5665/v1/objects/hosts/google.com?cascade=1' | python -m json.tool
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X DELETE 'https://localhost:5665/v1/objects/hosts/example.localdomain?cascade=1' | python -m json.tool
     {
         "results": [
             {
                 "code": 200.0,
-                "name": "google.com",
+                "name": "example.localdomain",
                 "status": "Object was deleted.",
                 "type": "Host"
             }
@@ -1219,7 +1219,7 @@ Note: This example contains an error (`chec_command`), do not blindly copy paste
             {
                 "code": 200.0,
                 "package": "example-cmdb",
-                "stage": "icinga2-node1.localdomain-1441625839-0",
+                "stage": "example.localdomain-1441625839-0",
                 "status": "Created stage."
             }
         ]
@@ -1260,7 +1260,7 @@ The latter already has a stage created, but it is not active.
                 "active-stage": "",
                 "name": "example-cmdb",
                 "stages": [
-                    "icinga2-node1.localdomain-1441625839-0"
+                    "example.localdomain-1441625839-0"
                 ]
             }
         ]
@@ -1270,9 +1270,9 @@ The latter already has a stage created, but it is not active.
 ### <a id="icinga2-api-config-management-list-config-package-stage-files"></a> List Configuration Packages and their Stages
 
 Sent a `GET` request to the URL endpoint `/v1/config/stages` including the package
-(`example-cmdb`) and stage (`icinga2-node1.localdomain-1441625839-0`) name.
+(`example-cmdb`) and stage (`example.localdomain-1441625839-0`) name.
 
-    $ curl -k -s -u root:icinga https://localhost:5665/v1/config/stages/example-cmdb/icinga2-node1.localdomain-1441625839-0 | python -m json.tool
+    $ curl -k -s -u root:icinga https://localhost:5665/v1/config/stages/example-cmdb/example.localdomain-1441625839-0 | python -m json.tool
     {
         "results": [
     ...
@@ -1312,7 +1312,7 @@ in a configuration stage and then specifically request their content.
 The following example fetches the **erroneous** configuration inside `conf.d/test.conf`
 for further analysis.
 
-    $ curl -k -s -u root:icinga https://localhost:5665/v1/config/files/example-cmdb/icinga2-node1.localdomain-1441625839-0/conf.d/test.conf
+    $ curl -k -s -u root:icinga https://localhost:5665/v1/config/files/example-cmdb/example.localdomain-1441625839-0/conf.d/test.conf
     object Host "cfg-mgmt" { chec_command = "dummy" }
 
 Note: The returned files are plain-text instead of JSON-encoded.
@@ -1325,12 +1325,12 @@ there must have been an error.
 
 Fetch the `startup.log` file and check the config validation errors:
 
-    $ curl -k -s -u root:icinga https://localhost:5665/v1/config/files/example-cmdb/imagine-1441133065-1/startup.log
+    $ curl -k -s -u root:icinga https://localhost:5665/v1/config/files/example-cmdb/example.localdomain-1441133065-1/startup.log
     ...
 
     critical/config: Error: Attribute 'chec_command' does not exist.
     Location:
-    /var/lib/icinga2/api/packages/example-cmdb/imagine-1441133065-1/conf.d/test.conf(1): object Host "cfg-mgmt" { chec_command = "dummy" }
+    /var/lib/icinga2/api/packages/example-cmdb/example.localdomain-1441133065-1/conf.d/test.conf(1): object Host "cfg-mgmt" { chec_command = "dummy" }
                                                                                                            ^^^^^^^^^^^^^^^^^^^^^^
 
     critical/config: 1 error
