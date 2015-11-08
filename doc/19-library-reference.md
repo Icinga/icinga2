@@ -17,7 +17,7 @@ bool(value)                     | Converts the value to a bool.
 random()                        | Returns a random value between 0 and RAND_MAX (as defined in stdlib.h).
 log(value)                      | Writes a message to the log. Non-string values are converted to a JSON string.
 log(severity, facility, value)  | Writes a message to the log. `severity` can be one of `LogDebug`, `LogNotice`, `LogInformation`, `LogWarning`, and `LogCritical`. Non-string values are converted to a JSON string.
-typeof(value)                   | Returns the type object for a value.
+typeof(value)                   | Returns the [Type](19-library-reference.md#type-type) object for a value.
 get_time()                      | Returns the current UNIX timestamp.
 parse_performance_data(pd)      | Parses a performance data string and returns an array describing the values.
 dirname(path)                   | Returns the directory portion of the specified path.
@@ -510,6 +510,8 @@ Returns a copy of the string in reverse order.
 
 ## <a id="object-type"></a> Object type
 
+This is the base type for all types in the Icinga application.
+
 ### <a id="object-clone"></a> Object#clone
 
 Signature:
@@ -520,9 +522,77 @@ Returns a copy of the object. Note that for object elements which are
 reference values (e.g. objects such as arrays or dictionaries) the entire
 object is recursively copied.
 
+## <a id="object-to-string"></a> Object#to_string
+
+Signature:
+
+    function to_string();
+
+Returns a string representation for the object. Unless overridden this returns a string
+of the format "Object of type '<typename>'" where <typename> is the name of the
+object's type.
+
+Example:
+
+    [ 3, true ].to_string() /* Returns "[ 3.000000, true ]" */
+
+## <a id="object-type-field"></a> Object#type
+
+Signature:
+
+    String type;
+
+Returns the object's type name. This attribute is read-only.
+
+Example:
+
+    get_host("localhost").type /* Returns "Host" */
+
+## <a id="type-type"></a> Type type
+
+Inherits methods from the [Object type](19-library-reference.md#object-type).
+
+The `Type` type provides information about the underlying type of an object or scalar value.
+
+All types are registered as global variables. For example, in order to obtain a reference to the `String` type the global variable `String` can be used.
+
+### <a id="type-base"></a> Type#base
+
+Signature:
+
+    Type base;
+
+Returns a reference to the type's base type. This attribute is read-only.
+
+Example:
+
+    Dictionary.base == Object /* Returns true, because the Dictionary type inherits directly from the Object type. */
+
+### <a id="type-name"></a> Type#name
+
+Signature:
+
+    String name;
+
+Returns the name of the type.
+
+### <a id="type-prototype"></a> Type#prototype
+
+Signature:
+
+    Object prototype;
+
+Returns the prototype object for the type. When an attribute is accessed on an object that doesn't exist the prototype object is checked to see if an attribute with the requested name exists there. If it does that attribute's value is returned.
+
+The prototype functionality is used to implement methods.
+
+Example:
+
+    3.to_string() /* Even though '3' does not have a to_string property the Number type's prototype object does. */
+
 ## <a id="array-type"></a> Array type
 
-Inherits methods from the [object type](19-library-reference.md#object-type).
+Inherits methods from the [Object type](19-library-reference.md#object-type).
 
 ### <a id="array-add"></a> Array#add
 
@@ -616,7 +686,7 @@ Returns a new array with all elements of the current array in reverse order.
 
 ## <a id="dictionary-type"></a> Dictionary type
 
-Inherits methods from the [object type](19-library-reference.md#object-type).
+Inherits methods from the [Object type](19-library-reference.md#object-type).
 
 ### <a id="dictionary-shallow-clone"></a> Dictionary#shallow_clone
 

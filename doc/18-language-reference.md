@@ -813,6 +813,22 @@ The `continue` and `break` keywords can be used to control how the loop is execu
 skips over the remaining expressions for the loop body and begins the next loop evaluation. The `break` keyword
 breaks out of the loop.
 
+## <a id="constructor"></a> Constructors
+
+In order to create a new value of a specific type constructor calls may be used.
+
+Example:
+
+    var pd = PerfdataValue()
+    pd.label = "test"
+    pd.value = 10
+
+You can also try to convert an existing value to another type by specifying it as an argument for the constructor call.
+
+Example:
+
+    var s = String(3) /* Sets s to "3". */
+
 ## <a id="throw"></a> Exceptions
 
 Built-in commands may throw exceptions to signal errors such as invalid arguments. User scripts can throw exceptions
@@ -823,6 +839,12 @@ Example:
     throw "An error occurred."
 
 There is currently no way for scripts to catch exceptions.
+
+## <a id="breakpoints"></a> Breakpoints
+
+The `debugger` keyword can be used to insert a breakpoint. It may be used at any place where an assignment would also be a valid expression.
+
+By default breakpoints have no effect unless Icinga is started with the `--script-debugger` command-line option. When the script debugger is enabled Icinga stops execution of the script when it encounters a breakpoint and spawns a console which lets the user inspect the current state of the execution environment.
 
 ## <a id="types"></a> Types
 

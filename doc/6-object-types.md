@@ -1468,15 +1468,7 @@ Configuration Attributes:
 
 # <a id="value-types"></a> Value Types
 
-In addition to [expressions](18-language-reference.md#expressions)
-used in object attribute assignments such as
-
-* [Numeric](18-language-reference.md#numeric-literals), [duration](18-language-reference.md#duration-literals), [string](18-language-reference.md#string-literals) and [boolean](18-language-reference.md#boolean-literals) literals
-* [Array](18-language-reference.md#array)
-* [Dictionary](18-language-reference.md#dictionary)
-
-Icinga 2 uses the following value types for runtime attributes
-exposed via the [Icinga 2 API](9-icinga2-api.md#icinga2-api).
+In addition to [configuration objects](6-object-types.md) Icinga 2 also uses a few other types to represent its internal state. The following types are exposed via the [API](9-icinga2-api.md#icinga2-api).
 
 ## <a id="value-types-checkresult"></a> CheckResult
 
@@ -1498,8 +1490,7 @@ exposed via the [Icinga 2 API](9-icinga2-api.md#icinga2-api).
 
 ## <a id="value-types-perfdatavalue"></a> PerfdataValue
 
-Icinga 2 parses performance data strings and exposes
-the object to external interfaces (e.g. [GraphiteWriter](6-object-types.md#objecttype-graphitewriter) or the [Icinga 2 API](9-icinga2-api.md#icinga2-api)).
+Icinga 2 parses performance data strings returned by check plugins and makes the information available to external interfaces (e.g. [GraphiteWriter](6-object-types.md#objecttype-graphitewriter) or the [Icinga 2 API](9-icinga2-api.md#icinga2-api)).
 
   Name                      | Type          | Description
   --------------------------|---------------|-----------------

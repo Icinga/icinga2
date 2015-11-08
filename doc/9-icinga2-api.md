@@ -13,6 +13,12 @@ Make sure to restart Icinga 2 to enable the changes you just made:
 
     # service icinga2 restart
 
+If the prefer to set up the API manually you will have to perform the following steps:
+
+* Set up X.509 certificates for Icinga 2
+* Enable the `api` feature (`icinga2 feature enable api`)
+* Create an `ApiUser` object for authentication
+
 The next chapter provides a quick overview of how you can use the API.
 
 ## <a id="icinga2-api-introduction"></a> Introduction
@@ -39,9 +45,9 @@ traffic remains encrypted.
 
 By default the Icinga 2 API listens on port `5665` which is shared with
 the cluster stack. The port can be changed by setting the `bind_port` attribute
-in the [ApiListener](6-object-types.md#objecttype-apilistener)
-configuration object in the `/etc/icinga2/features-available/api.conf`
-file.
+for the [ApiListener](6-object-types.md#objecttype-apilistener)
+object in the `/etc/icinga2/features-available/api.conf`
+configuration file.
 
 Supported request methods:
 
@@ -57,25 +63,6 @@ All requests apart from `GET` require that the following `Accept` header is set:
     Accept: application/json
 
 Each URL is prefixed with the API version (currently "/v1").
-
-### <a id="icinga2-api-http-statuses"></a> HTTP Statuses
-
-The API will return standard [HTTP statuses](https://www.ietf.org/rfc/rfc2616.txt)
-including error codes.
-
-When an error occurs, the response body will contain additional information
-about the problem and its source.
-
-A status code between 200 and 299 generally means that the request was
-successful.
-
-Return codes within the 400 range indicate that there was a problem with the
-request. Either you did not authenticate correctly, you are missing the authorization
-for your requested action, the requested object does not exist or the request
-was malformed.
-
-A status in the range of 500 generally means that there was a server-side problem
-and Icinga 2 is unable to process your request.
 
 ### <a id="icinga2-api-responses"></a> Responses
 
@@ -101,17 +88,24 @@ The output will be sent back as a JSON object:
 > should gracefully handle fields it is not familiar with, for example by
 > ignoring them.
 
-### <a id="icinga2-api-requests-method-override"></a> Request Method Override
+### <a id="icinga2-api-http-statuses"></a> HTTP Statuses
 
-`GET` requests do not allow to send a request body. In case you cannot pass everything as URL parameters (e.g. complex filters or JSON-encoded dictionaries) you can use the `X-HTTP-Method-Override` header. This comes in handy when you are using HTTP proxies disallowing `PUT` or `DELETE` requests too.
+The API will return standard [HTTP statuses](https://www.ietf.org/rfc/rfc2616.txt)
+including error codes.
 
-Query an existing object by sending a `POST` request with `X-HTTP-Method-Override: GET` as request header:
+When an error occurs, the response body will contain additional information
+about the problem and its source.
 
-    $ curl -k -s -u 'root:icinga' -H 'X-HTTP-Method-Override: GET' -X POST 'https://localhost:5665/v1/objects/hosts'
+A status code between 200 and 299 generally means that the request was
+successful.
 
-Delete an existing object by sending a `POST` request with `X-HTTP-Method-Override: DELETE` as request header:
+Return codes within the 400 range indicate that there was a problem with the
+request. Either you did not authenticate correctly, you are missing the authorization
+for your requested action, the requested object does not exist or the request
+was malformed.
 
-    $ curl -k -s -u 'root:icinga' -H 'X-HTTP-Method-Override: DELETE' -X POST 'https://localhost:5665/v1/objects/hosts/icinga.org'
+A status in the range of 500 generally means that there was a server-side problem
+and Icinga 2 is unable to process your request.
 
 ### <a id="icinga2-api-authentication"></a> Authentication
 
@@ -238,6 +232,18 @@ Example for a URL-encoded query string:
 Here are the exact same query parameters as a JSON object:
 
     { "filter": "match(\"icinga2-node1.localdomain*\",host.name)", "attrs": [ "host.name", "host.state" ] }
+
+### <a id="icinga2-api-requests-method-override"></a> Request Method Override
+
+`GET` requests do not allow to send a request body. In case you cannot pass everything as URL parameters (e.g. complex filters or JSON-encoded dictionaries) you can use the `X-HTTP-Method-Override` header. This comes in handy when you are using HTTP proxies disallowing `PUT` or `DELETE` requests too.
+
+Query an existing object by sending a `POST` request with `X-HTTP-Method-Override: GET` as request header:
+
+    $ curl -k -s -u 'root:icinga' -H 'X-HTTP-Method-Override: GET' -X POST 'https://localhost:5665/v1/objects/hosts'
+
+Delete an existing object by sending a `POST` request with `X-HTTP-Method-Override: DELETE` as request header:
+
+    $ curl -k -s -u 'root:icinga' -H 'X-HTTP-Method-Override: DELETE' -X POST 'https://localhost:5665/v1/objects/hosts/icinga.org'
 
 ### <a id="icinga2-api-filters"></a> Filters
 
