@@ -45,15 +45,6 @@ String ApiSetupUtility::GetConfdPath(void)
 
 bool ApiSetupUtility::SetupMaster(const String& cn, bool prompt_restart)
 {
-	/* if the 'api' feature is enabled we can safely assume
-	 * that either 'api setup' was run, or the user manually
-	 * enabled the api including all certificates e.g. by 'node wizard' in <= v2.3.x
-	 */
-	if (FeatureUtility::CheckFeatureEnabled("api")) {
-		Log(LogInformation, "cli", "'api' feature already enabled, skipping feature enable and master certificate creation.");
-		return true;
-	}
-
 	if (!SetupMasterCertificates(cn))
 		return false;
 
