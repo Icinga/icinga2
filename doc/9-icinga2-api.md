@@ -209,8 +209,7 @@ Available permissions for specific URL endpoints:
   objects/delete/&lt;type&gt;   | /v1/objects   | Yes
   status/query/&lt;type&gt;     | /v1/status    | Yes
   events/&lt;type&gt;           | /v1/events    | No
-  console/execute-script        | /v1/console   | No
-  console/auto-complete-script  | /v1/console   | No
+  console                       | /v1/console   | No
 
 The required actions or types can be replaced by using a wildcard match ("*").
 
