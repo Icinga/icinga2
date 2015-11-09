@@ -19,6 +19,7 @@
 
 #include "remote/httputility.hpp"
 #include "base/json.hpp"
+#include "base/logger.hpp"
 #include <boost/foreach.hpp>
 
 using namespace icinga;
@@ -34,8 +35,13 @@ Dictionary::Ptr HttpUtility::FetchRequestParameters(HttpRequest& request)
 	while ((count = request.ReadBody(buffer, sizeof(buffer))) > 0)
 		body += String(buffer, buffer + count);
 
-	if (!body.IsEmpty())
+	if (!body.IsEmpty()) {
+#ifdef I2_DEBUG
+		Log(LogDebug, "HttpUtility")
+		    << "Request body: '" << body << "'";
+#endif /* I2_DEBUG */
 		result = JsonDecode(body);
+	}
 
 	if (!result)
 		result = new Dictionary();
