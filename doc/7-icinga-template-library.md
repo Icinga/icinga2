@@ -1844,6 +1844,23 @@ hpasm_servertype		| **Optional.** The type of the server: proliant (default) or 
 hpasm_eval-nics			| **Optional.** Check network interfaces (and groups). Try it and report me whyt you think about it. I need to build up some know how on this subject. If get an error and you think, it is not justified for your configuration, please tell me about it. (alwasy send the output of "snmpwalk -On .... 1.3.6.1.4.1.232" and a description how you setup your nics and why it is correct opposed to the plugins error message.
 
 
+### <a id="plugins-contrib-icingacli"></a> IcingaCLI
+
+This category includes all plugins using the icingacli provided by Icinga Web 2.
+
+#### <a id="plugins-contrib-icingacli-businessprocess"></a> Business Process
+
+This subcommand is provided by the [business process module](https://exchange.icinga.org/icinga/Business+Process) and executed as `icingacli-businessprocess`. The module is hosted by the Icinga project on its [project homepage](https://dev.icinga.org/projects/icingaweb2-module-businessprocess).
+
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
+
+Name                    	          | Description
+------------------------------------------|-----------------------------------------------------------------------------------------
+icingacli_businessprocess_process         | **Required.** Business process to monitor.
+icingacli_businessprocess_config          | **Optional.** Configuration file containing your business process without file extension.
+icingacli_businessprocess_details         | **Optional.** Get details for root cause analyses. Defaults to false.
+
+
 ### <a id="plugins-contrib-ipmi"></a> IPMI Devices
 
 This category includes all plugins for IPMI devices.
