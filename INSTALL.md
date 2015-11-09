@@ -37,12 +37,13 @@ libopenssl-devel on SLES12, libssl-dev on Debian)
             repository for el7 e.g.), libedit-dev on Debian)
 * optional: Termcap (libtermcap-devel on RHEL, not necessary on Debian) - only
             required if libedit doesn't already link against termcap/ncurses
+* optional: libwxgtk2.8-dev or newer (wxGTK-devel and wxBase) - only required when building the Icinga 2 Studio
 
 Note: RHEL5 ships an ancient flex version. Updated packages are available for
 example from the repoforge buildtools repository.
 
 * x86: http://mirror.hs-esslingen.de/repoforge/redhat/el5/en/i386/buildtools/
-* x86\_64: http://mirror.hs-esslingen.de/repoforge/redhat/el5/en/x86_64/buildtools/
+* x86\_64: http://mirror.hs-esslingen.de/repoforge/redhat/el5/en/x86\_64/buildtools/
 
 ### User Requirements
 
