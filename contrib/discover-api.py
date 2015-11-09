@@ -21,7 +21,14 @@
 import sys
 import subprocess
 import socket
+import urlparse
+import requests
+import json
 from xml.dom.minidom import parse
+
+api_url = "https://localhost:5665/"
+api_user = "root"
+api_password = "root"
 
 if len(sys.argv) < 2:
     print "Syntax: %s <xml-file> [<xml-file> ...]" % (sys.argv[0])
@@ -29,8 +36,7 @@ if len(sys.argv) < 2:
 
 tcp_service_commands = {
   'ssh': 'ssh',
-  'http': 'http_ip',
-  'https': 'https_ip',
+  'http': 'http',
   'smtp': 'smtp',
   'ssmtp': 'ssmtp'
 }
@@ -104,24 +110,32 @@ def process_host(host_element):
 
     hosts[name] = { "name": name, "address": address, "services": services }
 
-def print_host(host):
-    print "object Host \"%s\" {" % (host["name"])
-    print "\timport \"discovered-host\","
-    print ""
-    print "\taddress = \"%s\"," % (host["address"])
-    print "}"
-    print ""
+def create_host(host):
+    global api_url, api_user, api_password
+
+    req = {
+      "templates": [ "discovered-host" ],
+      "attrs": {
+        "address": host["address"]
+      }
+    }
+
+    headers = {"Accept": "application/json"}
+    url = urlparse.urljoin(api_url, "v1/objects/hosts/%s" % (host["name"]))
+    requests.put(url, headers=headers, auth=(api_user, api_password), data=json.dumps(req), verify=False)
 
     for serv, service in host["services"].iteritems():
-        print "object Service \"%s\" {" % (serv)
-        print "\timport \"discovered-service\","
-        print ""
-        print "\thost_name = \"%s\"" % (host["name"])
-        print "\tcheck_command = \"%s\"," % (service["command"])
-        print ""
-        print "\tvars.port = %s" % (service["port"])
-        print "}"
-        print ""
+        req = {
+          "templates": [ "discovered-service" ],
+          "attrs": {
+            "vars.%s_port" % (service["command"]): service["port"],
+            "check_command": service["command"],
+          }
+        }
+    
+        headers = {"Accept": "application/json"}
+        url = urlparse.urljoin(api_url, "v1/objects/services/%s!%s" % (host["name"], serv))
+        requests.put(url, headers=headers, auth=(api_user, api_password), data=json.dumps(req), verify=False)
 
 for arg in sys.argv[1:]:
     # Expects XML output from 'nmap -oX'
@@ -131,4 +145,4 @@ for arg in sys.argv[1:]:
         process_host(host)
 
 for host in hosts.values():
-    print_host(host)
+    create_host(host)
