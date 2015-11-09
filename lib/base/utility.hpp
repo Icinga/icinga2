@@ -96,11 +96,11 @@ public:
 	static String FormatErrorNumber(int code);
 
 #ifndef _WIN32
-	static void SetNonBlocking(int fd);
-	static void SetCloExec(int fd);
+	static void SetNonBlocking(int fd, bool nb = true);
+	static void SetCloExec(int fd, bool cloexec = true);
 #endif /* _WIN32 */
 
-	static void SetNonBlockingSocket(SOCKET s);
+	static void SetNonBlockingSocket(SOCKET s, bool nb = true);
 
 	static String EscapeShellCmd(const String& s);
 	static String EscapeShellArg(const String& s);

@@ -94,17 +94,15 @@ void ExternalCommandListener::CommandPipeThread(const String& commandPath)
 	}
 
 	for (;;) {
-		int fd;
-
-		do {
-			fd = open(commandPath.CStr(), O_RDONLY);
-		} while (fd < 0 && errno == EINTR);
+		int fd = open(commandPath.CStr(), O_RDONLY | O_NONBLOCK);
 
 		if (fd < 0) {
 			Log(LogCritical, "ExternalCommandListener")
 			    << "open() for fifo path '" << commandPath << "' failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 			return;
 		}
+
+		Utility::SetNonBlocking(fd, false);
 
 		FILE *fp = fdopen(fd, "r");
 

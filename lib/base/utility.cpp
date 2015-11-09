@@ -806,7 +806,7 @@ bool Utility::SetFileOwnership(const String& file, const String& user, const Str
 }
 
 #ifndef _WIN32
-void Utility::SetNonBlocking(int fd)
+void Utility::SetNonBlocking(int fd, bool nb)
 {
 	int flags = fcntl(fd, F_GETFL, 0);
 
@@ -816,14 +816,19 @@ void Utility::SetNonBlocking(int fd)
 		    << boost::errinfo_errno(errno));
 	}
 
-	if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) < 0) {
+	if (nb)
+		flags |= O_NONBLOCK;
+	else
+		flags &= ~O_NONBLOCK;
+
+	if (fcntl(fd, F_SETFL, flags) < 0) {
 		BOOST_THROW_EXCEPTION(posix_error()
 		    << boost::errinfo_api_function("fcntl")
 		    << boost::errinfo_errno(errno));
 	}
 }
 
-void Utility::SetCloExec(int fd)
+void Utility::SetCloExec(int fd, bool cloexec)
 {
 	int flags = fcntl(fd, F_GETFD, 0);
 
@@ -833,7 +838,12 @@ void Utility::SetCloExec(int fd)
 		    << boost::errinfo_errno(errno));
 	}
 
-	if (fcntl(fd, F_SETFD, flags | FD_CLOEXEC) < 0) {
+	if (cloexec)
+		flags |= FD_CLOEXEC;
+	else
+		flags &= ~FD_CLOEXEC;
+
+	if (fcntl(fd, F_SETFD, flags) < 0) {
 		BOOST_THROW_EXCEPTION(posix_error()
 		    << boost::errinfo_api_function("fcntl")
 		    << boost::errinfo_errno(errno));
@@ -841,13 +851,13 @@ void Utility::SetCloExec(int fd)
 }
 #endif /* _WIN32 */
 
-void Utility::SetNonBlockingSocket(SOCKET s)
+void Utility::SetNonBlockingSocket(SOCKET s, bool nb)
 {
 #ifndef _WIN32
-	SetNonBlocking(s);
+	SetNonBlocking(s, nb);
 #else /* _WIN32 */
-	unsigned long lTrue = 1;
-	ioctlsocket(s, FIONBIO, &lTrue);
+	unsigned long lflag = nb;
+	ioctlsocket(s, FIONBIO, &lflag);
 #endif /* _WIN32 */
 }
 
