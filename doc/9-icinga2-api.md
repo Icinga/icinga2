@@ -760,7 +760,7 @@ The following event stream types are available:
   DowntimeRemoved        | Downtime removed for hosts and services.
   DowntimeTriggered      | Downtime triggered for hosts and services.
 
-Note: Each type requires [api permissions](9-icinga2-api.md#icinga2-api-permissions)
+Note: Each type requires [API permissions](9-icinga2-api.md#icinga2-api-permissions)
 being set.
 
 Example for all downtime events:
@@ -1306,6 +1306,67 @@ Fetch the `startup.log` file and check the config validation errors:
     critical/config: 1 error
 
 The output is similar to the manual [configuration validation](8-cli-commands.md#config-validation).
+
+
+## <a id="icinga2-api-console"></a> Console
+
+You can inspect variables and execute other expressions by sending a `POST` request to the URL endpoint `/v1/console/execute-script`.
+In order to receive auto-completion suggestions, send a `POST` request to the URL endpoint `/v1/console/auto-complete-script`.
+
+The following parameters need to be specified (either as URL parameters or in a JSON-encoded message body):
+
+  Parameter  | Type         | Description
+  -----------|--------------|-------------
+  session    | string       | **Optional.** The session ID. The server will generate a unique session ID if omitted.
+  command    | string       | **Required.** Command expression for execution or auto-completion.
+  sandboxed  | number       | **Optional.** Whether runtime changes are allowed or forbidden. Defaults to disabled.
+
+The [API permission](9-icinga2-api.md#icinga2-api-permissions) `console` is required for executing
+expressions.
+
+Example for fetching the command line from the local host's last check result:
+
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/console/execute-script?command=get_host(NodeName).last_check_result.command&sandboxed=0&session=1234' | python -m json.tool
+    {
+        "results": [
+            {
+                "code": 200.0,
+                "result": [
+                    "/usr/local/sbin/check_ping",
+                    "-H",
+                    "127.0.0.1",
+                    "-c",
+                    "5000,100%",
+                    "-w",
+                    "3000,80%"
+                ],
+                "status": "Executed successfully."
+            }
+        ]
+    }
+
+Example for fetching auto-completion suggestions for the `Host.` type. This works in a
+similar fashion when pressing TAB inside the [console CLI command](8-cli-commands.md#cli-command-console):
+
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/console/auto-complete-script?command=Host.&sandboxed=0&session=1234' | python -m json.tool
+    {
+        "results": [
+            {
+                "code": 200.0,
+                "status": "Auto-completed successfully.",
+                "suggestions": [
+                    "Host.type",
+                    "Host.name",
+                    "Host.prototype",
+                    "Host.base",
+                    "Host.register_attribute_handler",
+                    "Host.clone",
+                    "Host.notify_attribute",
+                    "Host.to_string"
+                ]
+            }
+        ]
+    }
 
 
 ## <a id="icinga2-api-clients"></a> API Clients
