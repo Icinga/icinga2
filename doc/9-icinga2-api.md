@@ -451,8 +451,8 @@ attribute. There is an exception for multiple objects used in dependencies and z
 
   Object Type  | Object Relations (prefix name)
   -------------|---------------------------------
-  Service      | host, notification, check\_command, event\_command
-  Host         | notification, check\_command, event\_command
+  Service      | host, notification, check\_command, event\_command, command\_endpoint
+  Host         | notification, check\_command, event\_command, command\_endpoint
   Notification | host, service, command, period
   Dependency   | child\_host, child\_service, parent\_host, parent\_service, period
   User         | period
@@ -1394,9 +1394,19 @@ By default the [console CLI command](8-cli-commands.md#cli-command-console) eval
 
 ### <a id="icinga2-api-clients-programmatic-examples"></a> API Clients Programmatic Examples
 
-#### <a id="icinga2-api-clients-programmatic-examples-Python"></a> Example API Client using Python
+The programmatic examples use HTTP basic authentication and SSL certificate
+verification. The CA file is expected in `pki/icinga2-ca.crt`
+but you may adjust the examples for your likings.
 
-Example for **Python** using the `requests` and `json` module:
+The request method is `POST` using `X-HTTP-Method-Override: GET`
+which allows you to send a JSON request body. The examples request
+specific service attributes joined with host attributes. `attrs`
+and `joins` are therefore specified as array.
+The `filter` attribute matches on all services with `ping` in their name.
+
+#### <a id="icinga2-api-clients-programmatic-examples-python"></a> Example API Client in Python
+
+The following example uses **Python** and the `requests` and `json` module:
 
     # pip install requests
     # pip install json
@@ -1404,109 +1414,189 @@ Example for **Python** using the `requests` and `json` module:
     $ vim icinga2-api-example.py
 
     #!/usr/bin/env python
-
+    
     import requests, json
-
-    request_url = "https://localhost:5665/v1/status"
-    headers = {"Accept": "application/json"}
-    r = requests.get(request_url, headers=headers, auth=('root', 'icinga'), verify=False)
-
+    
+    # Replace 'localhost' with your FQDN and certificate CN
+    # for SSL verification
+    request_url = "https://localhost:5665/v1/objects/services"
+    headers = {
+            'Accept': 'application/json',
+            'X-HTTP-Method-Override': 'GET'
+            }
+    data = {
+            "attrs": [ "name", "state", "last_check_result" ],
+            "joins": [ "host.name", "host.state", "host.last_check_result" ],
+            "filter": "match(\"ping*\", service.name)",
+    }
+    
+    r = requests.post(request_url,
+            headers=headers,
+            auth=('root', 'icinga'),
+            data=json.dumps(data),
+            verify="pki/icinga2-ca.crt")
+    
+    print "Request URL: " + str(r.url)
     print "Status code: " + str(r.status_code)
-    print "Result: " + json.dumps(r.json())
+    
+    if (r.status_code == 200):
+            print "Result: " + json.dumps(r.json())
+    else:
+            print r.text
+            r.raise_for_status()
 
     $ python icinga2-api-example.py
 
 
-#### <a id="icinga2-api-clients-programmatic-examples-ruby"></a> Example API Client using Ruby
+#### <a id="icinga2-api-clients-programmatic-examples-ruby"></a> Example API Client in Ruby
 
-Example for **Ruby** using the `rest_client` gem:
+The following example uses **Ruby** and the `rest_client` gem:
 
     # gem install rest_client
 
     $ vim icinga2-api-example.rb
 
     #!/usr/bin/ruby
-
+    
     require 'rest_client'
-
-    request_url = "https://localhost:5665/v1/status"
-    options = { :user => "root", :password => "icinga", :verify_ssl => OpenSSL::SSL::VERIFY_NONE }
-    headers = {"Accept" => "application/json"}
-    r = RestClient::Resource.new(URI.encode(request_url), options)
-    response = r.get(headers)
-
+    
+    # Replace 'localhost' with your FQDN and certificate CN
+    # for SSL verification
+    request_url = "https://localhost:5665/v1/objects/services"
+    headers = {
+            "Accept" => "application/json",
+            "X-HTTP-Method-Override" => "GET"
+    }
+    data = {
+            "attrs" => [ "name", "state", "last_check_result" ],
+            "joins" => [ "host.name", "host.state", "host.last_check_result" ],
+            "filter" => "match(\"ping*\", service.name)",
+    }
+    
+    r = RestClient::Resource.new(
+            URI.encode(request_url),
+            :headers => headers,
+            :user => "root",
+            :password => "icinga",
+            :ssl_ca_file => "pki/icinga2-ca.crt")
+    
+    begin
+            response = r.post(data.to_json)
+    rescue => e
+            response = e.response
+    end
+    
     puts "Status: " + response.code.to_s
-    puts "Result: " + (JSON.pretty_generate JSON.parse(response.body))
+    if response.code == 200
+            puts "Result: " + (JSON.pretty_generate JSON.parse(response.body))
+    else
+            puts "Error: " + response
+    end
 
     $ ruby icinga2-api-example.rb
 
 A more detailed example can be found in the [Dashing demo](https://github.com/Icinga/dashing-icinga2).
 
-#### <a id="icinga2-api-clients-programmatic-examples-php"></a> Example API Client using PHP
+#### <a id="icinga2-api-clients-programmatic-examples-php"></a> Example API Client in PHP
 
-Example for **PHP** using `curl`:
+The following example uses **PHP** and its `curl` library:
 
     $ vim icinga2-api-example.php
 
     #!/usr/bin/env php
     <?php
-    $request_url = "https://localhost:5665/v1/status";
+    # Replace 'localhost' with your FQDN and certificate CN
+    # for SSL verification
+    $request_url = "https://localhost:5665/v1/objects/services";
     $username = "root";
     $password = "icinga";
     $headers = array(
-        'Accept: application/json'
+            'Accept: application/json',
+            'X-HTTP-Method-Override: GET'
     );
-
-    $curl = curl_init();
-    curl_setopt($curl, CURLOPT_URL, $request_url);
-    curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
-    curl_setopt($curl, CURLOPT_USERPWD, $username . ":" . $password);
-    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
-    curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
-
-    $response = curl_exec($curl);
-    $code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-    curl_close($curl);
-
+    $data = array(
+            attrs => array('name', 'state', 'last_check_result'),
+            joins => array('host.name', 'host.state', 'host.last_check_result'),
+            filter => 'match("ping*", service.name)',
+    );
+    
+    $ch = curl_init();
+    curl_setopt_array($ch, array(
+            CURLOPT_URL => $request_url,
+            CURLOPT_HTTPHEADER => $headers,
+            CURLOPT_USERPWD => $username . ":" . $password,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_SSL_VERIFYHOST => 2,
+            CURLOPT_SSL_VERIFYPEER => true,
+            CURLOPT_CAINFO => "pki/icinga2-ca.crt",
+            CURLOPT_POST => count($data),
+            CURLOPT_POSTFIELDS => json_encode($data)
+    ));
+    
+    $response = curl_exec($ch);
+    if ($response === false) {
+            print "Error: " . curl_error($ch) . "(" . $response . ")\n";
+    }
+    
+    $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+    print "Status: " . $code . "\n";
+    
     if ($code == 200) {
             $response = json_decode($response, true);
             print_r($response);
-    } else {
-            echo 'error ' . $code;
     }
     ?>
 
     $ php icinga2-api-example.php
 
-#### <a id="icinga2-api-clients-programmatic-examples-perl"></a> Example API Client using Perl
+#### <a id="icinga2-api-clients-programmatic-examples-perl"></a> Example API Client in Perl
 
-Example for **Perl** using the `Rest::Client` module:
+The following example uses **Perl** and the `Rest::Client` module:
 
     # perl -MCPAN -e 'install REST::Client'
     # perl -MCPAN -e 'install JSON'
     # perl -MCPAN -e 'install MIME::Base64'
+    # perl -MCPAN -e 'install Data::Dumper'
 
     $ vim icinga2-api-example.pl
 
     #!/usr/bin/env perl
-
+    
+    use strict;
+    use warnings;
     use REST::Client;
     use MIME::Base64;
     use JSON;
-
-    $ENV{PERL_LWP_SSL_VERIFY_HOSTNAME}=0;
-
-    $userpass = "root:icinga";
+    use Data::Dumper;
+    
+    # Replace 'localhost' with your FQDN and certificate CN
+    # for SSL verification
+    my $request_host = "https://localhost:5665";
+    my $userpass = "root:icinga";
+    
     my $client = REST::Client->new();
-    $client->setHost("https://127.0.0.1:5665");
+    $client->setHost($request_host);
+    $client->setCa("pki/icinga2-ca.crt");
     $client->addHeader("Accept", "application/json");
+    $client->addHeader("X-HTTP-Method-Override", "GET");
     $client->addHeader("Authorization", "Basic ".encode_base64($userpass));
-    $client->GET("/v1/status");
-
-    print "Status: " . $client->responseCode() . "\n";
-    print "Result: " . $client->responseContent() . "\n";
+    my %json_data = (
+            attrs => ['name', 'state', 'last_check_result'],
+            joins => ['host.name', 'host.state', 'host.last_check_result'],
+            filter => 'match("ping*", service.name)',
+    );
+    my $data = encode_json(\%json_data);
+    $client->POST("/v1/objects/services", $data);
+    
+    my $status = $client->responseCode();
+    print "Status: " . $status . "\n";
+    my $response = $client->responseContent();
+    if ($status == 200) {
+            print "Result: " . Dumper(decode_json($response)) . "\n";
+    } else {
+            print "Error: " . $response . "\n";
+    }
 
     $ perl icinga2-api-example.pl
-
 
