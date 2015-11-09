@@ -182,12 +182,12 @@ Here's an example:
 
 Once connected you can inspect variables and execute other expressions by entering them at the prompt:
 
-    <1> => var h = get_host("mbmif.int.netways.de")
+    <1> => var h = get_host("example.localdomain")
     null
     <2> => h.last_check_result
     {
             active = true
-            check_source = "mbmif.int.netways.de"
+            check_source = "example.localdomain"
             command = [ "/usr/local/sbin/check_ping", "-H", "127.0.0.1", "-c", "5000,100%", "-w", "3000,80%" ]
             execution_end = 1446653527.174983
             execution_start = 1446653523.152673
@@ -216,9 +216,9 @@ Once connected you can inspect variables and execute other expressions by enteri
 
 You can use the `--eval` parameter to evaluate a single expression in batch mode. The output format for batch mode is JSON.
 
-Here's an example that retrieves the command that was used by Icinga to check the `example-host` host:
+Here's an example that retrieves the command that was used by Icinga to check the `example.localdomain` host:
 
-    $ ICINGA2_API_PASSWORD=icinga icinga2 console --connect 'https://root@localhost:5665/' --eval 'get_host("example-host").last_check_result.command' | python -m json.tool
+    $ ICINGA2_API_PASSWORD=icinga icinga2 console --connect 'https://root@localhost:5665/' --eval 'get_host("example.localdomain").last_check_result.command' | python -m json.tool
     [
         "/usr/local/sbin/check_ping",
         "-H",
