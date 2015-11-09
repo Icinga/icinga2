@@ -113,7 +113,12 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 
 		if (!ConfigItem::CommitItems(upq) || !ConfigItem::ActivateItems(upq, false, true)) {
 			if (errors) {
-				unlink(path.CStr());
+				if (unlink(path.CStr()) < 0) {
+					BOOST_THROW_EXCEPTION(posix_error()
+					    << boost::errinfo_api_function("unlink")
+					    << boost::errinfo_errno(errno)
+					    << boost::errinfo_file_name(path));
+				}
 
 				BOOST_FOREACH(const boost::exception_ptr& ex, upq.GetExceptions()) {
 					errors->Add(DiagnosticInformation(ex));
@@ -125,7 +130,12 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 	} catch (const std::exception& ex) {
 		delete expr;
 
-		unlink(path.CStr());
+		if (unlink(path.CStr()) < 0) {
+			BOOST_THROW_EXCEPTION(posix_error()
+			    << boost::errinfo_api_function("unlink")
+			    << boost::errinfo_errno(errno)
+			    << boost::errinfo_file_name(path));
+		}
 
 		if (errors)
 			errors->Add(DiagnosticInformation(ex));
