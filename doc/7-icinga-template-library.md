@@ -898,6 +898,16 @@ simap_timeout          | **Optional.** Seconds before connection times out (defa
 simap_ipv4             | **Optional.** Use IPv4 connection. Defaults to false.
 simap_ipv6             | **Optional.** Use IPv6 connection. Defaults to false.
 
+### <a id="plugin-check-command-smart"></a> smart
+
+Check command object for the `check_ide_smart` plugin. Requires installation of `smartctl`.
+
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
+
+Name            | Description
+----------------|--------------
+smart_device    | **Required.** The name of a local hard drive to monitor.
+
 
 ### <a id="plugin-check-command-smtp"></a> smtp
 
