@@ -29,10 +29,10 @@ and resources in a simple, programmatic way using HTTP requests.
 The URL endpoints are logically separated allowing you to easily
 make calls to
 
-* perform [actions](9-icinga2-api.md#icinga2-api-actions) (reschedule checks, etc.)
 * query, create, modify and delete [config objects](9-icinga2-api.md#icinga2-api-config-objects)
-* [manage configuration packages](9-icinga2-api.md#icinga2-api-config-management)
+* perform [actions](9-icinga2-api.md#icinga2-api-actions) (reschedule checks, etc.)
 * subscribe to [event streams](9-icinga2-api.md#icinga2-api-event-streams)
+* [manage configuration packages](9-icinga2-api.md#icinga2-api-config-management)
 * evaluate [script expressions](9-icinga2-api.md#icinga2-api-console)
 
 ### <a id="icinga2-api-requests"></a> Requests
@@ -337,6 +337,278 @@ to worry about escaping values:
 
 The `filters_vars` attribute can only be used inside the request body, but not as
 a URL parameter because there is no way to specify a dictionary in a URL.
+
+## <a id="icinga2-api-config-objects"></a> Config Objects
+
+Provides methods to manage configuration objects:
+
+* [creating objects](9-icinga2-api.md#icinga2-api-config-objects-create)
+* [querying objects](9-icinga2-api.md#icinga2-api-config-objects-query)
+* [modifying objects](9-icinga2-api.md#icinga2-api-config-objects-modify)
+* [deleting objects](9-icinga2-api.md#icinga2-api-config-objects-delete)
+
+### <a id="icinga2-api-config-objects-cluster-sync"></a> API Objects and Cluster Config Sync
+
+Newly created or updated objects can be synced throughout your
+Icinga 2 cluster. Set the `zone` attribute to the zone this object
+belongs to and let the API and cluster handle the rest.
+
+Objects without a zone attribute are only synced in the same zone the Icinga instance belongs to.
+
+> **Note**
+>
+> Cluster nodes must accept configuration for creating, modifying
+> and deleting objects. Ensure that `accept_config` is set to `true`
+> in the [ApiListener](6-object-types.md#objecttype-apilistener) object
+> on each node.
+
+If you add a new cluster instance, or reconnect an instance which has been offline
+for a while, Icinga 2 takes care of the initial object sync for all objects
+created by the API.
+
+### <a id="icinga2-api-config-objects-query"></a> Querying Objects
+
+You can request information about configuration objects by sending
+a `GET` query to the `/v1/objects/<type>` URL endpoint. `<type` has
+to be replaced with the plural name of the object type you are interested
+in:
+
+    $ curl -k -s -u root:icinga 'https://localhost:5665/v1/objects/hosts'
+
+A list of all available configuration types is available in the
+[object types](6-object-types.md#object-types) chapter.
+
+The following URL parameters are available:
+
+  Parameters | Type         | Description
+  -----------|--------------|----------------------------
+  attrs      | string array | **Optional.** Limits attributes in the output.
+  joins      | string array | **Optional.** Join related object types and their attributes (`?joins=host` for the entire set, or selectively by `?joins=host.name`).
+  meta       | string array | **Optional.** Enable meta information using `?meta=used_by`. Defaults to disabled.
+
+In addition to these parameters a [filter](9-icinga2-api.md#icinga2-api-filters) may be provided.
+
+Instead of using a filter you can optionally specify the object name in the
+URL path when querying a single object. For objects with composite names
+(e.g. services) the full name (e.g. `localhost!http`) must be specified:
+
+    $ curl -k -s -u root:icinga 'https://localhost:5665/v1/objects/services/localhost!http'
+
+You can limit the output to specific attributes using the `attrs` URL parameter:
+
+    $ curl -k -s -u root:icinga 'https://localhost:5665/v1/objects/hosts/example.localdomain?attrs=name&attrs=address' | python -m json.tool
+    {
+        "results": [
+            {
+                "attrs": {
+                    "name": "example.localdomain"
+                    "address": "192.168.1.1"
+                },
+                "joins": {},
+                "meta": {},
+                "name": "example.localdomain",
+                "type": "Host"
+            }
+        ]
+    }
+
+#### <a id="icinga2-api-config-objects-query-result"></a> Object Queries Result
+
+Each response entry in the results array contains the following attributes:
+
+  Attribute  | Type       | Description
+  -----------|------------|--------------
+  name       | string     | Full object name.
+  type       | string     | Object type.
+  attrs      | dictionary | Object attributes (can be filtered using the URL parameter `attrs`).
+  joins      | dictionary | [Joined object types](9-icinga2-api.md#icinga2-api-config-objects-query-joins) as key, attributes as nested dictionary. Disabled by default.
+  meta       | dictionary | Contains `used_by` object references. Disabled by default, enable it using `?meta=used_by` as URL parameter.
+
+#### <a id="icinga2-api-config-objects-query-joins"></a> Object Queries and Joins
+
+Icinga 2 knows about object relations, i.e. when querying service objects
+the query handler will allow you to add the referenced host object and its
+attributes to the result set inside the `joins` result attribute.
+
+Add the following URL parameter to join all host attributes:
+
+    ?joins=host
+
+If you just want to join specific object attributes, selectively add them
+as URL parameters:
+
+    ?joins=host.name&joins=host.address
+
+You can enable all default joins using
+
+    ?all_joins=1
+
+**Note**: Select your required attributes beforehand by passing them to your
+request. The default result set might get huge.
+
+Each joined object will use its own attribute name inside the `joins` response
+attribute. There is an exception for multiple objects used in dependencies and zones.
+
+  Object Type  | Object Relations (prefix name)
+  -------------|---------------------------------
+  Service      | host, notification, check\_command, event\_command
+  Host         | notification, check\_command, event\_command
+  Notification | host, service, command, period
+  Dependency   | child\_host, child\_service, parent\_host, parent\_service, period
+  User         | period
+  Zones        | parent
+
+In addition to these parameters a [filter](9-icinga2-api.md#icinga2-api-filters) may be provided.
+
+Here's an example that retrieves all service objects for hosts which have had their `os` custom attribute set to `Linux`. The result set contains the `display_name` and `check_command` attributes for the service. The query also returns the host's `name` and `address` attribute via a join:
+
+    $ curl -k -s -u root:icinga 'https://localhost:5665/v1/objects/services?attrs=display_name&attrs=check_command&joins=host.name&joins=host.address&filter=host.vars.os==%22Linux%22' | python -m json.tool
+
+    {
+        "results": [
+            {
+                "attrs": {
+                    "check_command": "ping4",
+                    "display_name": "ping4"
+                },
+                "joins": {
+                    "host": {
+                        "address": "192.168.1.1",
+                        "name": "example.localdomain"
+                    }
+                },
+                "meta": {},
+                "name": "example.localdomain!ping4",
+                "type": "Service"
+            },
+            {
+                "attrs": {
+                    "check_command": "ssh",
+                    "display_name": "ssh"
+                },
+                "joins": {
+                    "host": {
+                        "address": "192.168.1.1",
+                        "name": "example.localdomain"
+                    }
+                },
+                "meta": {},
+                "name": "example.localdomain!ssh",
+                "type": "Service"
+            }
+        ]
+    }
+
+
+### <a id="icinga2-api-config-objects-create"></a> Creating Config Objects
+
+New objects must be created by sending a PUT request. The following
+parameters need to be passed inside the JSON body:
+
+  Parameters | Type         | Description
+  -----------|--------------|--------------------------
+  templates  | string array | **Optional.** Import existing configuration templates for this object type.
+  attrs      | dictionary   | **Required.** Set specific object attributes for this [object type](6-object-types.md#object-types).
+
+The object name must be specified as part of the URL path. For objects with composite names (e.g. services)
+the full name (e.g. `localhost!http`) must be specified.
+
+If attributes are of the Dictionary type, you can also use the indexer format. This might be necessary to only override specific custom variables and keep all other existing custom variables (e.g. from templates):
+
+    "attrs": { "vars.os": "Linux" }
+
+Example for creating the new host object `example.localdomain`:
+
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X PUT 'https://localhost:5665/v1/objects/hosts/example.localdomain' \
+    -d '{ "templates": [ "generic-host" ], "attrs": { "address": "192.168.1.1", "check_command": "hostalive", "vars.os" : "Linux" } }' \
+    | python -m json.tool
+    {
+        "results": [
+            {
+                "code": 200.0,
+                "status": "Object was created."
+            }
+        ]
+    }
+
+If the configuration validation fails, the new object will not be created and the response body
+contains a detailed error message. The following example is missing the `check_command` attribute
+which is required for host objects:
+
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X PUT 'https://localhost:5665/v1/objects/hosts/example.localdomain' \
+    -d '{ "attrs": { "address": "192.168.1.1", "vars.os" : "Linux" } }' \
+    | python -m json.tool
+    {
+        "results": [
+            {
+                "code": 500.0,
+                "errors": [
+                    "Error: Validation failed for object 'example.localdomain' of type 'Host'; Attribute 'check_command': Attribute must not be empty."
+                ],
+                "status": "Object could not be created."
+            }
+        ]
+    }
+
+
+
+### <a id="icinga2-api-config-objects-modify"></a> Modifying Objects
+
+Existing objects must be modified by sending a `POST` request. The following
+parameters need to be passed inside the JSON body:
+
+  Parameters | Type       | Description
+  -----------|------------|---------------------------
+  attrs      | dictionary | **Required.** Set specific object attributes for this [object type](6-object-types.md#object-types).
+
+In addition to these parameters a [filter](9-icinga2-api.md#icinga2-api-filters) should be provided.
+
+If attributes are of the Dictionary type, you can also use the indexer format:
+
+    "attrs": { "vars.os": "Linux" }
+
+The following example updates the `address` attribute and the custom attribute `os` for the `example.localdomain` host:
+
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/objects/hosts/example.localdomain' \
+    -d '{ "attrs": { "address": "192.168.1.2", "vars.os" : "Windows" } }' \
+    | python -m json.tool
+    {
+        "results": [
+            {
+                "code": 200.0,
+                "name": "example.localdomain",
+                "status": "Attributes updated.",
+                "type": "Host"
+            }
+        ]
+    }
+
+
+### <a id="icinga2-api-config-objects-delete"></a> Deleting Objects
+
+You can delete objects created using the API by sending a `DELETE`
+request.
+
+  Parameters | Type    | Description
+  -----------|---------|---------------
+  cascade    | boolean |  **Optional.** Delete objects depending on the deleted objects (e.g. services on a host).
+
+In addition to these parameters a [filter](9-icinga2-api.md#icinga2-api-filters) should be provided.
+
+Example for deleting the host object `example.localdomain`:
+
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X DELETE 'https://localhost:5665/v1/objects/hosts/example.localdomain?cascade=1' | python -m json.tool
+    {
+        "results": [
+            {
+                "code": 200.0,
+                "name": "example.localdomain",
+                "status": "Object was deleted.",
+                "type": "Host"
+            }
+        ]
+    }
+
 
 ## <a id="icinga2-api-actions"></a> Actions
 
@@ -849,293 +1121,6 @@ Example for the IcingaApplication URL endpoint `/v1/status/IcingaApplication`:
                         }
                     }
                 }
-            }
-        ]
-    }
-
-
-## <a id="icinga2-api-config-objects"></a> Config Objects
-
-Provides methods to
-
-* [create objects](9-icinga2-api.md#icinga2-api-config-objects-create)
-* [query objects](9-icinga2-api.md#icinga2-api-config-objects-query)
-* [modify objects](9-icinga2-api.md#icinga2-api-config-objects-modify)
-* [delete objects](9-icinga2-api.md#icinga2-api-config-objects-delete)
-
-available as [config object types](6-object-types.md#object-types):
-
-  URL Endpoints                    | Description
-  ---------------------------------|--------------
-  /v1/objects/hosts                | Endpoint for [Host](6-object-types.md#objecttype-host) objects.
-  /v1/objects/services             | Endpoint for [Service](6-object-types.md#objecttype-service) objects.
-  /v1/objects/notifications        | Endpoint for [Notification](6-object-types.md#objecttype-notification) objects.
-  /v1/objects/dependencies         | Endpoint for [Dependency](6-object-types.md#objecttype-dependency) objects.
-  /v1/objects/users                | Endpoint for [User](6-object-types.md#objecttype-user) objects.
-  /v1/objects/checkcommands        | Endpoint for [CheckCommand](6-object-types.md#objecttype-checkcommand) objects.
-  /v1/objects/eventcommands        | Endpoint for [EventCommand](6-object-types.md#objecttype-eventcommand) objects.
-  /v1/objects/notificationcommands | Endpoint for [NotificationCommand](6-object-types.md#objecttype-notificationcommand) objects.
-  /v1/objects/hostgroups           | Endpoint for [HostGroup](6-object-types.md#objecttype-hostgroup) objects.
-  /v1/objects/servicegroups        | Endpoint for [ServiceGroup](6-object-types.md#objecttype-servicegroup) objects.
-  /v1/objects/usergroups           | Endpoint for [UserGroup](6-object-types.md#objecttype-usergroup) objects.
-  /v1/objects/zones                | Endpoint for [Zone](6-object-types.md#objecttype-zone) objects.
-  /v1/objects/endpoints            | Endpoint for [Endpoint](6-object-types.md#objecttype-endpoint) objects.
-  /v1/objects/timeperiods          | Endpoint for [TimePeriod](6-object-types.md#objecttype-timeperiod) objects.
-  /v1/objects/icingaapplications   | Endpoint for [IcingaApplication](6-object-types.md#objecttype-icingaapplication) objects.
-  /v1/objects/comments             | Endpoint for [Comment](6-object-types.md#objecttype-comment) objects.
-  /v1/objects/downtimes            | Endpoint for [Downtime](6-object-types.md#objecttype-downtime) objects.
-
-### <a id="icinga2-api-config-objects-cluster-sync"></a> API Objects and Cluster Config Sync
-
-Newly created or updated objects can be synced throughout your
-Icinga 2 cluster. Set the `zone` attribute to the zone this object
-belongs to and let the API and cluster handle the rest.
-
-Objects without a zone attribute are only synced in the same zone the Icinga instance belongs to.
-
-> **Note**
->
-> Cluster nodes must accept configuration for creating, modifying
-> and deleting objects. Ensure that `accept_config` is set to `true`
-> in the [ApiListener](6-object-types.md#objecttype-apilistener) object
-> on each node.
-
-If you add a new cluster instance, or reconnect an instance which has been offline
-for a while, Icinga 2 takes care of the initial object sync for all objects
-created by the API.
-
-### <a id="icinga2-api-config-objects-query"></a> Querying Objects
-
-Send a `GET` request to `/v1/objects/hosts` to list all host objects and
-their attributes.
-
-    $ curl -k -s -u root:icinga 'https://localhost:5665/v1/objects/hosts'
-
-This works in a similar fashion for other [config objects](9-icinga2-api.md#icinga2-api-config-objects).
-
-The following URL parameters can be added:
-
-  Parameters | Description
-  -----------|--------------
-  attrs      | **Optional.** Query specific object attributes for this [object type](6-object-types.md#object-types).
-  joins      | **Optional.** Join related object types and their attributes (`?joins=host` for the entire set, or selectively by `?joins=host.name`).
-  meta       | **Optional.** Enable meta information using `?meta=used_by`. Defaults to disabled.
-
-Example for the host `example.localdomain` inside the URL:
-
-    $ curl -k -s -u root:icinga 'https://localhost:5665/v1/objects/hosts/example.localdomain'
-
-You can select specific attributes by adding them as url parameters using `?attrs=...`. Multiple
-attributes must be added one by one, e.g. `?attrs=address&attrs=name`.
-
-    $ curl -k -s -u root:icinga 'https://localhost:5665/v1/objects/hosts/example.localdomain?attrs=name&attrs=address' | python -m json.tool
-    {
-        "results": [
-            {
-                "attrs": {
-                    "name": "example.localdomain"
-                    "address": "192.168.1.1"
-                },
-                "joins": {},
-                "meta": {},
-                "name": "example.localdomain",
-                "type": "Host"
-            }
-        ]
-    }
-
-#### <a id="icinga2-api-config-objects-query-result"></a> Object Queries Result
-
-Each response entry in the results array contains the following attributes:
-
-  Attribute  | Type       | Description
-  -----------|------------|--------------
-  name       | string     | Full object name.
-  type       | string     | Object type.
-  attrs      | dictionary | Object attributes (can be filtered using the URL parameter `attrs`).
-  joins      | dictionary | [Joined object types](9-icinga2-api.md#icinga2-api-config-objects-query-joins) as key, attributes as nested dictionary. Disabled by default.
-  meta       | dictionary | Contains `used_by` object references. Disabled by default, enable it using `?meta=used_by` as URL parameter.
-
-#### <a id="icinga2-api-config-objects-query-joins"></a> Object Queries and Joins
-
-Icinga 2 knows about object relations, i.e. when querying service objects
-the query handler will allow you to add the referenced host object and its
-attributes to the result set inside the `joins` result attribute.
-
-Add the following URL parameter to join all host attributes:
-
-    ?joins=host
-
-If you just want to join specific object attributes, selectively add them
-as URL parameters:
-
-    ?joins=host.name&joins=host.address
-
-You can enable all default joins using
-
-    ?all_joins=1
-
-**Note**: Select your required attributes beforehand by passing them to your
-request. The default result set might get huge.
-
-Each joined object will use its own attribute name inside the `joins` response
-attribute. There is an exception for multiple objects used in dependencies and zones.
-
-  Object Type  | Object Relations (prefix name)
-  -------------|---------------------------------
-  Service      | host, notification, check\_command, event\_command
-  Host         | notification, check\_command, event\_command
-  Notification | host, service, command, period
-  Dependency   | child\_host, child\_service, parent\_host, parent\_service, period
-  User         | period
-  Zones        | parent
-
-In addition to these parameters a [filter](9-icinga2-api.md#icinga2-api-filters) may be provided.
-
-Here's an example that retrieves all service objects for hosts which have had their `os` custom attribute set to `Linux`. The result set contains the `display_name` and `check_command` attributes for the service. The query also returns the host's `name` and `address` attribute via a join:
-
-    $ curl -k -s -u root:icinga 'https://localhost:5665/v1/objects/services?attrs=display_name&attrs=check_command&joins=host.name&joins=host.address&filter=host.vars.os==%22Linux%22' | python -m json.tool
-
-    {
-        "results": [
-            {
-                "attrs": {
-                    "check_command": "ping4",
-                    "display_name": "ping4"
-                },
-                "joins": {
-                    "host": {
-                        "address": "192.168.1.1",
-                        "name": "example.localdomain"
-                    }
-                },
-                "meta": {},
-                "name": "example.localdomain!ping4",
-                "type": "Service"
-            },
-            {
-                "attrs": {
-                    "check_command": "ssh",
-                    "display_name": "ssh"
-                },
-                "joins": {
-                    "host": {
-                        "address": "192.168.1.1",
-                        "name": "example.localdomain"
-                    }
-                },
-                "meta": {},
-                "name": "example.localdomain!ssh",
-                "type": "Service"
-            }
-        ]
-    }
-
-
-### <a id="icinga2-api-config-objects-create"></a> Creating Config Objects
-
-New objects must be created by sending a PUT request. The following
-parameters need to be passed inside the JSON body:
-
-  Parameters | Description
-  -----------|--------------
-  name       | **Required.** Name of the newly created config object.
-  templates  | **Optional.** Import existing configuration templates for this object type.
-  attrs      | **Required.** Set specific object attributes for this [object type](6-object-types.md#object-types).
-
-
-If attributes are of the Dictionary type, you can also use the indexer format. This might be necessary to only override specific custom variables and keep all other existing custom variables (e.g. from templates):
-
-    "attrs": { "vars.os": "Linux" }
-
-Example for creating the new host object `example.localdomain`:
-
-    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X PUT 'https://localhost:5665/v1/objects/hosts/example.localdomain' \
-    -d '{ "templates": [ "generic-host" ], "attrs": { "address": "192.168.1.1", "check_command": "hostalive", "vars.os" : "Linux" } }' \
-    | python -m json.tool
-    {
-        "results": [
-            {
-                "code": 200.0,
-                "status": "Object was created."
-            }
-        ]
-    }
-
-If the configuration validation fails, the new object will not be created and the response body
-contains a detailed error message. The following example is missing the `check_command` attribute
-which is required for host objects:
-
-    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X PUT 'https://localhost:5665/v1/objects/hosts/example.localdomain' \
-    -d '{ "attrs": { "address": "192.168.1.1", "vars.os" : "Linux" } }' \
-    | python -m json.tool
-    {
-        "results": [
-            {
-                "code": 500.0,
-                "errors": [
-                    "Error: Validation failed for object 'example.localdomain' of type 'Host'; Attribute 'check_command': Attribute must not be empty."
-                ],
-                "status": "Object could not be created."
-            }
-        ]
-    }
-
-
-
-### <a id="icinga2-api-config-objects-modify"></a> Modifying Objects
-
-Existing objects must be modified by sending a `POST` request. The following
-parameters need to be passed inside the JSON body:
-
-  Parameters | Description
-  -----------|--------------
-  name       | **Optional.** If not specified inside the url, this is **Required.**.
-  attrs      | **Required.** Set specific object attributes for this [object type](6-object-types.md#object-types).
-
-
-If attributes are of the Dictionary type, you can also use the indexer format:
-
-    "attrs": { "vars.os": "Linux" }
-
-The following example updates the `address` attribute and the custom attribute `os` for the `example.localdomain` host:
-
-    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/objects/hosts/example.localdomain' \
-    -d '{ "attrs": { "address": "192.168.1.2", "vars.os" : "Windows" } }' \
-    | python -m json.tool
-    {
-        "results": [
-            {
-                "code": 200.0,
-                "name": "example.localdomain",
-                "status": "Attributes updated.",
-                "type": "Host"
-            }
-        ]
-    }
-
-
-### <a id="icinga2-api-config-objects-delete"></a> Deleting Objects
-
-You can delete objects created using the API by sending a `DELETE`
-request.
-
-  Parameters | Description
-  -----------|--------------
-  cascade    | **Optional.** Delete objects depending on the deleted objects (e.g. services on a host).
-
-In addition to these parameters a [filter](9-icinga2-api.md#icinga2-api-filters) should be provided.
-
-Example for deleting the host object `example.localdomain`:
-
-    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X DELETE 'https://localhost:5665/v1/objects/hosts/example.localdomain?cascade=1' | python -m json.tool
-    {
-        "results": [
-            {
-                "code": 200.0,
-                "name": "example.localdomain",
-                "status": "Object was deleted.",
-                "type": "Host"
             }
         ]
     }
