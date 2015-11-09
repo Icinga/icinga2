@@ -64,9 +64,20 @@ bool CreateObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 
 	String config = ConfigObjectUtility::CreateObjectConfig(type, name, ignoreOnError, templates, attrs);
 
+	Array::Ptr results = new Array();
+	results->Add(result1);
+
+	Dictionary::Ptr result = new Dictionary();
+	result->Set("results", results);
+
 	if (!ConfigObjectUtility::CreateObject(type, name, config, errors)) {
 		result1->Set("errors", errors);
-		HttpUtility::SendJsonError(response, 500, "Object could not be created.");
+		result1->Set("code", 500);
+		result1->Set("status", "Object could not be created.");
+
+		response.SetStatus(500, "Object could not be created");
+		HttpUtility::SendJsonBody(response, result);
+
 		return true;
 	}
 
@@ -80,12 +91,6 @@ bool CreateObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 		result1->Set("status", "Object was created");
 	else if (!obj && ignoreOnError)
 		result1->Set("status", "Object was not created but 'ignore_on_error' was set to true");
-
-	Array::Ptr results = new Array();
-	results->Add(result1);
-
-	Dictionary::Ptr result = new Dictionary();
-	result->Set("results", results);
 
 	response.SetStatus(200, "OK");
 	HttpUtility::SendJsonBody(response, result);
