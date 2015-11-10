@@ -1302,16 +1302,18 @@ The following parameters need to be specified (either as URL parameters or in a 
 
   Parameter  | Type         | Description
   -----------|--------------|-------------
-  session    | string       | **Optional.** The session ID. The server will generate a unique session ID if omitted.
+  session    | string       | **Optional.** The session ID. Ideally this should be a GUID or some other unique identifier.
   command    | string       | **Required.** Command expression for execution or auto-completion.
   sandboxed  | number       | **Optional.** Whether runtime changes are allowed or forbidden. Defaults to disabled.
 
 The [API permission](9-icinga2-api.md#icinga2-api-permissions) `console` is required for executing
 expressions.
 
+If you specify a session identifier the same script context can be reused for multiple requests. This allows you to, for example, set a local variable in a request and use that local variable in another request. Sessions automatically expire after a set period of inactivity (currently 30 minutes).
+
 Example for fetching the command line from the local host's last check result:
 
-    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/console/execute-script?command=get_host(NodeName).last_check_result.command&sandboxed=0&session=1234' | python -m json.tool
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/console/execute-script?command=get_host(NodeName).last_check_result.command&sandboxed=0&session=bb75fd7c-c686-407d-9688-582c04227756' | python -m json.tool
     {
         "results": [
             {
@@ -1333,7 +1335,7 @@ Example for fetching the command line from the local host's last check result:
 Example for fetching auto-completion suggestions for the `Host.` type. This works in a
 similar fashion when pressing TAB inside the [console CLI command](8-cli-commands.md#cli-command-console):
 
-    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/console/auto-complete-script?command=Host.&sandboxed=0&session=1234' | python -m json.tool
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/console/auto-complete-script?command=Host.&sandboxed=0&session=bb75fd7c-c686-407d-9688-582c04227756' | python -m json.tool
     {
         "results": [
             {
