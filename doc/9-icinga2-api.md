@@ -1135,7 +1135,8 @@ can be fetched in a separated request.
 Send a `POST` request to a new config package called `example-cmdb` in this example. This
 will create a new empty configuration package.
 
-    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST https://localhost:5665/v1/config/packages/example-cmdb | python -m json.tool
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST \
+    'https://localhost:5665/v1/config/packages/example-cmdb' | python -m json.tool
     {
         "results": [
             {
@@ -1146,25 +1147,25 @@ will create a new empty configuration package.
         ]
     }
 
+Package names starting with an underscore are exclusive to the Icinga 2 daemon
+and must not be used.
 
 ### <a id="icinga2-api-config-management-create-config-stage"></a> Uploading configuration for a Config Package
 
 Configuration files in packages are managed in stages. Stages provide a way to maintain multiple configuration versions for a package.
 
-Send a `POST` request to the URL endpoint `/v1/config/stages` including an existing
-configuration package, e.g. `example-cmdb`.
+Send a `POST` request to the URL endpoint `/v1/config/stages` and add the name of an existing
+configuration package to the URL path (e.g. `example-cmdb`).
 The request body must contain the `files` attribute with the value being
 a dictionary of file targets and their content.
 
 The example below will create a new file called `test.conf` in the `conf.d`
-directory.
+directory. Note: This example contains an error (`chec_command`). This is
+intentional.
 
-The Icinga 2 API returns the `package` name this stage was created for, and also
-generates a unique name for the `stage` attribute you'll need for later requests.
-
-Note: This example contains an error (`chec_command`). This is intentional.
-
-    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST -d '{ "files": { "conf.d/test.conf": "object Host \"cfg-mgmt\" { chec_command = \"dummy\" }" } }' https://localhost:5665/v1/config/stages/example-cmdb | python -m json.tool
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST \
+    -d '{ "files": { "conf.d/test.conf": "object Host \"cmdb-host\" { chec_command = \"dummy\" }" } }' \
+    'https://localhost:5665/v1/config/stages/example-cmdb' | python -m json.tool
     {
         "results": [
             {
@@ -1176,20 +1177,27 @@ Note: This example contains an error (`chec_command`). This is intentional.
         ]
     }
 
-Icinga 2 automatically restarts to activate the new config stage. If validation for the new config stage fails the old stage will remain active.
+The Icinga 2 API returns the `package` name this stage was created for, and also
+generates a unique name for the `stage` attribute you'll need for later requests.
 
-Old stages are not automatically removed. You can remove stages that are no longer use.
+Icinga 2 automatically restarts the daemon in order to activate the new config stage.
+If the validation for the new config stage failed the old stage and its configuration objects
+will remain active.
 
-Icinga 2 automatically creates the following files in the main configuration package
-stage:
+> **Note**
+>
+> Old stages are not purged automatically. You can [remove stages](9-icinga2-api.md#) that are no longer in use.
+
+Icinga 2 will create the following files in the configuration package
+stage after configuration validation:
 
   File        | Description
   ------------|--------------
   status      | Contains the [configuration validation](8-cli-commands.md#config-validation) exit code (everything else than 0 indicates an error).
   startup.log | Contains the [configuration validation](8-cli-commands.md#config-validation) output.
 
-You can [fetch these files](9-icinga2-api.md#icinga2-api-config-management-fetch-config-package-stage-files) via API call
-after creating a new stage.
+You can [fetch these files](9-icinga2-api.md#icinga2-api-config-management-fetch-config-package-stage-files)
+in order to verify that the new configuration was deployed successfully.
 
 
 ### <a id="icinga2-api-config-management-list-config-packages"></a> List Configuration Packages and their Stages
@@ -1199,7 +1207,7 @@ A list of packages and their stages can be retrieved by sending a `GET` request 
 The following example contains one configuration package `example-cmdb`. The package does not currently
 have an active stage.
 
-    $ curl -k -s -u root:icinga https://localhost:5665/v1/config/packages | python -m json.tool
+    $ curl -k -s -u root:icinga 'https://localhost:5665/v1/config/packages' | python -m json.tool
     {
         "results": [
             {
@@ -1215,10 +1223,11 @@ have an active stage.
 
 ### <a id="icinga2-api-config-management-list-config-package-stage-files"></a> List Configuration Packages and their Stages
 
-In order to retrieve a list of files for a stage you can send a `GET` request to the URL endpoint `/v1/config/stages`. You need to include
+In order to retrieve a list of files for a stage you can send a `GET` request to
+the URL endpoint `/v1/config/stages`. You need to include
 the package name (`example-cmdb`) and stage name (`example.localdomain-1441625839-0`) in the URL:
 
-    $ curl -k -s -u root:icinga https://localhost:5665/v1/config/stages/example-cmdb/example.localdomain-1441625839-0 | python -m json.tool
+    $ curl -k -s -u root:icinga 'https://localhost:5665/v1/config/stages/example-cmdb/example.localdomain-1441625839-0' | python -m json.tool
     {
         "results": [
     ...
@@ -1247,38 +1256,89 @@ the package name (`example-cmdb`) and stage name (`example.localdomain-144162583
 
 ### <a id="icinga2-api-config-management-fetch-config-package-stage-files"></a> Fetch Configuration Package Stage Files
 
-Send a `GET` request to the URL endpoint `/v1/config/files` including
-the package name, the stage name and the relative path to the file.
-
-You can fetch a [list of existing files](9-icinga2-api.md#icinga2-api-config-management-list-config-package-stage-files)
-in a configuration stage and then specifically request their content.
+Send a `GET` request to the URL endpoint `/v1/config/files` and add
+the package name, the stage name and the relative path to the file to the URL path.
 
 > **Note**
+>
 > The returned files are plain-text instead of JSON-encoded.
 
 The following example fetches the configuration file `conf.d/test.conf`:
 
-    $ curl -k -s -u root:icinga https://localhost:5665/v1/config/files/example-cmdb/example.localdomain-1441625839-0/conf.d/test.conf
-    object Host "cfg-mgmt" { chec_command = "dummy" }
+    $ curl -k -s -u root:icinga 'https://localhost:5665/v1/config/files/example-cmdb/example.localdomain-1441625839-0/conf.d/test.conf'
+
+    object Host "cmdb-host" { chec_command = "dummy" }
+
+You can fetch a [list of existing files](9-icinga2-api.md#icinga2-api-config-management-list-config-package-stage-files)
+in a configuration stage and then specifically request their content.
 
 ### <a id="icinga2-api-config-management-config-package-stage-errors"></a> Configuration Package Stage Errors
 
 Now that we don't have an active stage for `example-cmdb` yet seen [here](9-icinga2-api.md#icinga2-api-config-management-list-config-packages),
 there must have been an error.
 
-Fetch the `startup.log` file and check the config validation errors:
+In order to check for validation errors you can fetch the `startup.log` file
+by sending a `GET` request to the URL endpoint `/v1/config/files`. You must include
+the package name, stage name and the `startup.log` in the URL path.
 
-    $ curl -k -s -u root:icinga https://localhost:5665/v1/config/files/example-cmdb/example.localdomain-1441133065-1/startup.log
+    $ curl -k -s -u root:icinga 'https://localhost:5665/v1/config/files/example-cmdb/example.localdomain-1441133065-1/startup.log'
     ...
 
     critical/config: Error: Attribute 'chec_command' does not exist.
     Location:
-    /var/lib/icinga2/api/packages/example-cmdb/example.localdomain-1441133065-1/conf.d/test.conf(1): object Host "cfg-mgmt" { chec_command = "dummy" }
+    /var/lib/icinga2/api/packages/example-cmdb/example.localdomain-1441133065-1/conf.d/test.conf(1): object Host "cmdb-host" { chec_command = "dummy" }
                                                                                                            ^^^^^^^^^^^^^^^^^^^^^^
 
     critical/config: 1 error
 
 The output is similar to the manual [configuration validation](8-cli-commands.md#config-validation).
+
+> **Note**
+>
+> The returned output is plain-text instead of JSON-encoded.
+
+
+### <a id="icinga2-api-config-management-delete-config-stage"></a> Deleting Configuration Package Stage
+
+You can send a `DELETE` request to the URL endpoint `/v1/config/stages`
+in order to purge a configuration stage. You must include the package and
+stage name inside the URL path.
+
+The following example removes the failed configuration stage `example.localdomain-1441133065-1`
+in the `example-cmdb` configuration package:
+
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X DELETE \
+    'https://localhost:5665/v1/config/stages/example-cmdb/example.localdomain-1441133065-1' | python -m json.tool
+    {
+        "results": [
+            {
+                "code": 200.0,
+                "status": "Stage deleted."
+            }
+        ]
+    }
+
+
+### <a id="icinga2-api-config-management-delete-config-package"></a> Deleting Configuration Package
+
+In order to completely purge a configuration package and its stages
+you can send a `DELETE` request to the URL endpoint `/v1/config/packages`
+with the package name in the URL path.
+
+This example entirely deletes the configuration package `example-cmdb`:
+
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X DELETE \
+    'https://localhost:5665/v1/config/packages/example-cmdb' | python -m json.tool
+    {
+        "results": [
+            {
+                "code": 200.0,
+                "package": "example-cmdb",
+                "status": "Deleted package."
+            }
+        ]
+    }
+
 
 ## <a id="icinga2-api-types"></a> Types
 
