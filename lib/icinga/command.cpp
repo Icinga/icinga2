@@ -50,30 +50,21 @@ void Command::Validate(int types, const ValidationUtils& utils)
 				Dictionary::Ptr argdict = arginfo;
 
 				if (argdict->Contains("value")) {
-					String argvalue = argdict->Get("value");
+					Value argvalue = argdict->Get("value");
 
-					if (!MacroProcessor::ValidateMacroString(argvalue))
+					if (argvalue.IsString() && !MacroProcessor::ValidateMacroString(argvalue))
 						BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of<String>("arguments")(kv.first)("value"), "Validation failed: Closing $ not found in macro format string '" + argvalue + "'."));
 				}
 
 				if (argdict->Contains("set_if")) {
-					String argsetif = argdict->Get("set_if");
+					Value argsetif = argdict->Get("set_if");
 
-					if (!MacroProcessor::ValidateMacroString(argsetif))
+					if (argsetif.IsString() && !MacroProcessor::ValidateMacroString(argsetif))
 						BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of<String>("arguments")(kv.first)("set_if"), "Closing $ not found in macro format string '" + argsetif + "'."));
 				}
-			} else if (arginfo.IsObjectType<Function>()) {
-				continue; /* we cannot evaluate macros in functions */
-			} else {
-				argval = arginfo;
-
-				if (argval.IsEmpty())
-					continue;
-
-				String argstr = argval;
-
-				if (!MacroProcessor::ValidateMacroString(argstr))
-					BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of<String>("arguments")(kv.first), "Closing $ not found in macro format string '" + argstr + "'."));
+			} else if (arginfo.IsString()) {
+				if (!MacroProcessor::ValidateMacroString(arginfo))
+					BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of<String>("arguments")(kv.first), "Closing $ not found in macro format string '" + arginfo + "'."));
 			}
 		}
 	}

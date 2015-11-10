@@ -48,7 +48,7 @@ Object::~Object(void)
  */
 String Object::ToString(void) const
 {
-	return "Object of type '" + Utility::GetTypeName(typeid(*this)) + "'";
+	return "Object of type '" + GetReflectionType()->GetName() + "'";
 }
 
 #ifdef I2_DEBUG
