@@ -102,40 +102,38 @@ void ExternalCommandListener::CommandPipeThread(const String& commandPath)
 			return;
 		}
 
-		Utility::SetNonBlocking(fd, false);
+		FIFO::Ptr fifo = new FIFO();
+		Socket::Ptr sock = new Socket(fd);
+		StreamReadContext src;
 
-		FILE *fp = fdopen(fd, "r");
+		for (;;) {
+			sock->Poll(true, false);
 
-		if (fp == NULL) {
-			Log(LogCritical, "ExternalCommandListener")
-			    << "fdopen() for fifo path '" << commandPath << "' failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
-			return;
-		}
+			char buffer[8192];
+			size_t rc = sock->Read(buffer, sizeof(buffer));
+			if (rc <= 0)
+				break;
 
-		const int linesize = 128 * 1024;
-		char *line = new char[linesize];
+			fifo->Write(buffer, rc);
 
-		while (fgets(line, linesize, fp) != NULL) {
-			// remove trailing new-line
-			while (strlen(line) > 0 &&
-			    (line[strlen(line) - 1] == '\r' || line[strlen(line) - 1] == '\n'))
-				line[strlen(line) - 1] = '\0';
+			for (;;) {
+				String command;
+				StreamReadStatus srs = fifo->ReadLine(&command, src);
 
-			String command = line;
+				if (srs != StatusNewItem)
+					break;
 
-			try {
-				Log(LogInformation, "ExternalCommandListener")
-				    << "Executing external command: " << command;
+				try {
+					Log(LogInformation, "ExternalCommandListener")
+					    << "Executing external command: " << command;
 
-				ExternalCommandProcessor::Execute(command);
-			} catch (const std::exception& ex) {
-				Log(LogWarning, "ExternalCommandListener")
-				    << "External command failed." << DiagnosticInformation(ex);
+					ExternalCommandProcessor::Execute(command);
+				} catch (const std::exception& ex) {
+					Log(LogWarning, "ExternalCommandListener")
+					    << "External command failed." << DiagnosticInformation(ex);
+				}
 			}
 		}
-
-		delete [] line;
-		fclose(fp);
 	}
 }
 #endif /* _WIN32 */

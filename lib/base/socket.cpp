@@ -262,7 +262,13 @@ void Socket::Listen(void)
  */
 size_t Socket::Write(const void *buffer, size_t count)
 {
-	int rc = send(GetFD(), (const char *)buffer, count, 0);
+	int rc;
+
+#ifndef _WIN32
+	rc = write(GetFD(), (const char *)buffer, count);
+#else /* _WIN32 */
+	rc = send(GetFD(), (const char *)buffer, count, 0);
+#endif /* _WIN32 */
 
 	if (rc < 0) {
 #ifndef _WIN32
@@ -290,7 +296,13 @@ size_t Socket::Write(const void *buffer, size_t count)
  */
 size_t Socket::Read(void *buffer, size_t count)
 {
-	int rc = recv(GetFD(), (char *)buffer, count, 0);
+	int rc;
+
+#ifndef _WIN32
+	rc = read(GetFD(), (char *)buffer, count);
+#else /* _WIN32 */
+	rc = recv(GetFD(), (char *)buffer, count);
+#endif /* _WIN32 */
 
 	if (rc < 0) {
 #ifndef _WIN32
