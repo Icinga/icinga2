@@ -56,7 +56,7 @@ ExpressionResult Expression::Evaluate(ScriptFrame& frame, DebugHint *dhint) cons
 	try {
 #ifdef I2_DEBUG
 /*		std::ostringstream msgbuf;
-		ShowCodeFragment(msgbuf, GetDebugInfo(), false);
+		ShowCodeLocation(msgbuf, GetDebugInfo(), false);
 		Log(LogDebug, "Expression")
 			<< "Executing:\n" << msgbuf.str();*/
 #endif /* I2_DEBUG */

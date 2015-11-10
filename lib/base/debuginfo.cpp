@@ -57,10 +57,12 @@ DebugInfo icinga::DebugInfoRange(const DebugInfo& start, const DebugInfo& end)
 
 #define EXTRA_LINES 2
 
-void icinga::ShowCodeFragment(std::ostream& out, const DebugInfo& di, bool verbose)
+void icinga::ShowCodeLocation(std::ostream& out, const DebugInfo& di, bool verbose)
 {
 	if (di.Path.IsEmpty())
 		return;
+
+	out << "Location: " << di << "\n";
 
 	std::ifstream ifs;
 	ifs.open(di.Path.CStr(), std::ifstream::in);

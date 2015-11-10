@@ -59,12 +59,13 @@ void ConsoleCommand::BreakpointHandler(ScriptFrame& frame, ScriptError *ex, cons
 	if (ex && ex->IsHandledByDebugger())
 		return;
 
-	std::cout << "Breakpoint encountered " << di << "\n";
+	std::cout << "Breakpoint encountered.\n";
 
 	if (ex) {
-		std::cout << "Exception: " << DiagnosticInformation(*ex);
+		std::cout << "Exception: " << DiagnosticInformation(*ex) << "\n";
 		ex->SetHandledByDebugger(true);
-	}
+	} else
+		ShowCodeLocation(std::cout, di);
 
 	std::cout << "You can inspect expressions (such as variables) by entering them at the prompt.\n"
 	          << "To leave the debugger and continue the program use \"$continue\".\n";
@@ -358,7 +359,7 @@ incomplete:
 					}
 				}
 			} else {
-				ShowCodeFragment(std::cout, di);
+				ShowCodeLocation(std::cout, di);
 			}
 
 			std::cout << ex.what() << "\n";

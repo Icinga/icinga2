@@ -48,7 +48,7 @@ I2_BASE_API std::ostream& operator<<(std::ostream& out, const DebugInfo& val);
 
 I2_BASE_API DebugInfo DebugInfoRange(const DebugInfo& start, const DebugInfo& end);
 
-I2_BASE_API void ShowCodeFragment(std::ostream& out, const DebugInfo& di, bool verbose = true);
+I2_BASE_API void ShowCodeLocation(std::ostream& out, const DebugInfo& di, bool verbose = true);
 
 }
 

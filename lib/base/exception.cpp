@@ -140,16 +140,14 @@ String icinga::DiagnosticInformation(const std::exception& ex, bool verbose, Sta
 	const ValidationError *vex = dynamic_cast<const ValidationError *>(&ex);
 
 	if (message.IsEmpty())
-		result << boost::diagnostic_information(ex);
+		result << boost::diagnostic_information(ex) << "\n";
 	else
-		result << "Error: " << message;
+		result << "Error: " << message << "\n";
 
 	const ScriptError *dex = dynamic_cast<const ScriptError *>(&ex);
 
-	if (dex && !dex->GetDebugInfo().Path.IsEmpty()) {
-		result << "\nLocation:\n";
-		ShowCodeFragment(result, dex->GetDebugInfo());
-	}
+	if (dex && !dex->GetDebugInfo().Path.IsEmpty())
+		ShowCodeLocation(result, dex->GetDebugInfo());
 
 	if (vex) {
 		DebugInfo di;
@@ -187,10 +185,8 @@ String icinga::DiagnosticInformation(const std::exception& ex, bool verbose, Sta
 			di.LastColumn = message->Get(5);
 		}
 
-		if (!di.Path.IsEmpty()) {
-			result << "\nLocation:\n";
-			ShowCodeFragment(result, di);
-		}
+		if (!di.Path.IsEmpty())
+			ShowCodeLocation(result, di);
 	}
 
 	const user_error *uex = dynamic_cast<const user_error *>(&ex);
