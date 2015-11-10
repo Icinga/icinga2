@@ -507,7 +507,7 @@ parameters need to be passed inside the JSON body:
 
   Parameters | Type         | Description
   -----------|--------------|--------------------------
-  templates  | string array | **Optional.** Import existing configuration templates for this object type.
+  templates  | string array | **Optional.** Import existing configuration templates for this object type.
   attrs      | dictionary   | **Required.** Set specific object attributes for this [object type](6-object-types.md#object-types).
 
 The object name must be specified as part of the URL path. For objects with composite names (e.g. services)
@@ -591,7 +591,7 @@ request.
 
   Parameters | Type    | Description
   -----------|---------|---------------
-  cascade    | boolean |  **Optional.** Delete objects depending on the deleted objects (e.g. services on a host).
+  cascade    | boolean |  **Optional.** Delete objects depending on the deleted objects (e.g. services on a host).
 
 In addition to these parameters a [filter](9-icinga2-api.md#icinga2-api-filters) should be provided.
 
@@ -1069,13 +1069,9 @@ Example:
 
 ## <a id="icinga2-api-status"></a> Status and Statistics
 
-Send a `POST` request to the URL endpoint `/v1/status` for retrieving the
-global status and statistics.
+Send a `GET` request to the URL endpoint `/v1/status` to retrieve status information and statistics for Icinga 2.
 
-Contains a list of sub URL endpoints which provide the status and statistics
-of available and enabled features. Any filters are ignored.
-
-Example for the main URL endpoint `/v1/status`:
+Example:
 
     $ curl -k -s -u root:icinga 'https://localhost:5665/v1/status' | python -m json.tool
     {
@@ -1095,10 +1091,7 @@ Example for the main URL endpoint `/v1/status`:
         ]
     }
 
-`/v1/status` is always available as virtual status URL endpoint.
-It provides all feature status information in a collected overview.
-
-Example for the IcingaApplication URL endpoint `/v1/status/IcingaApplication`:
+You can limit the output by specifying a status type in the URL, e.g. `IcingaApplication`:
 
     $ curl -k -s -u root:icinga 'https://localhost:5665/v1/status/IcingaApplication' | python -m json.tool
     {
@@ -1137,7 +1130,7 @@ validate the configuration asynchronously and populate a status log which
 can be fetched in a separated request.
 
 
-### <a id="icinga2-api-config-management-create-package"></a> Create Config Package
+### <a id="icinga2-api-config-management-create-package"></a> Creating a Config Package
 
 Send a `POST` request to a new config package called `example-cmdb` in this example. This
 will create a new empty configuration package.
@@ -1154,19 +1147,22 @@ will create a new empty configuration package.
     }
 
 
-### <a id="icinga2-api-config-management-create-config-stage"></a> Create Configuration to Package Stage
+### <a id="icinga2-api-config-management-create-config-stage"></a> Uploading configuration for a Config Package
+
+Configuration files in packages are managed in stages. Stages provide a way to maintain multiple configuration versions for a package.
 
 Send a `POST` request to the URL endpoint `/v1/config/stages` including an existing
 configuration package, e.g. `example-cmdb`.
 The request body must contain the `files` attribute with the value being
 a dictionary of file targets and their content.
 
-The example below will create a new file called `test.conf` underneath the `conf.d`
-directory populated by the sent configuration.
-The Icinga 2 API returns the `package` name this stage was created for, and also
-generates a unique name for the `package` attribute you'll need for later requests.
+The example below will create a new file called `test.conf` in the `conf.d`
+directory.
 
-Note: This example contains an error (`chec_command`), do not blindly copy paste it.
+The Icinga 2 API returns the `package` name this stage was created for, and also
+generates a unique name for the `stage` attribute you'll need for later requests.
+
+Note: This example contains an error (`chec_command`). This is intentional.
 
     $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST -d '{ "files": { "conf.d/test.conf": "object Host \"cfg-mgmt\" { chec_command = \"dummy\" }" } }' https://localhost:5665/v1/config/stages/example-cmdb | python -m json.tool
     {
@@ -1180,10 +1176,9 @@ Note: This example contains an error (`chec_command`), do not blindly copy paste
         ]
     }
 
-If the configuration fails, the old active stage will remain active.
-If everything is successful, the new config stage is activated and live.
-Older stages will still be available in order to have some sort of revision
-system in place.
+Icinga 2 automatically restarts to activate the new config stage. If validation for the new config stage fails the old stage will remain active.
+
+Old stages are not automatically removed. You can remove stages that are no longer use.
 
 Icinga 2 automatically creates the following files in the main configuration package
 stage:
@@ -1199,14 +1194,10 @@ after creating a new stage.
 
 ### <a id="icinga2-api-config-management-list-config-packages"></a> List Configuration Packages and their Stages
 
-List all config packages, their active stage and other stages.
-That way you may iterate of all of them programmatically for
-older revisions and their requests.
+A list of packages and their stages can be retrieved by sending a `GET` request to the URL endpoint `/v1/config/packages`.
 
-Sent a `GET` request to the URL endpoint `/v1/config/packages`.
-
-The following example contains one configuration package `example-cmdb`.
-The latter already has a stage created, but it is not active.
+The following example contains one configuration package `example-cmdb`. The package does not currently
+have an active stage.
 
     $ curl -k -s -u root:icinga https://localhost:5665/v1/config/packages | python -m json.tool
     {
@@ -1224,8 +1215,8 @@ The latter already has a stage created, but it is not active.
 
 ### <a id="icinga2-api-config-management-list-config-package-stage-files"></a> List Configuration Packages and their Stages
 
-Sent a `GET` request to the URL endpoint `/v1/config/stages` including the package
-(`example-cmdb`) and stage (`example.localdomain-1441625839-0`) name.
+In order to retrieve a list of files for a stage you can send a `GET` request to the URL endpoint `/v1/config/stages`. You need to include
+the package name (`example-cmdb`) and stage name (`example.localdomain-1441625839-0`) in the URL:
 
     $ curl -k -s -u root:icinga https://localhost:5665/v1/config/stages/example-cmdb/example.localdomain-1441625839-0 | python -m json.tool
     {
@@ -1254,24 +1245,21 @@ Sent a `GET` request to the URL endpoint `/v1/config/stages` including the packa
         ]
     }
 
-
 ### <a id="icinga2-api-config-management-fetch-config-package-stage-files"></a> Fetch Configuration Package Stage Files
 
 Send a `GET` request to the URL endpoint `/v1/config/files` including
 the package name, the stage name and the relative path to the file.
-Note: You cannot use dots in paths.
 
 You can fetch a [list of existing files](9-icinga2-api.md#icinga2-api-config-management-list-config-package-stage-files)
 in a configuration stage and then specifically request their content.
 
-The following example fetches the **erroneous** configuration inside `conf.d/test.conf`
-for further analysis.
+> **Note**
+> The returned files are plain-text instead of JSON-encoded.
+
+The following example fetches the configuration file `conf.d/test.conf`:
 
     $ curl -k -s -u root:icinga https://localhost:5665/v1/config/files/example-cmdb/example.localdomain-1441625839-0/conf.d/test.conf
     object Host "cfg-mgmt" { chec_command = "dummy" }
-
-Note: The returned files are plain-text instead of JSON-encoded.
-
 
 ### <a id="icinga2-api-config-management-config-package-stage-errors"></a> Configuration Package Stage Errors
 
