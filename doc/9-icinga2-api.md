@@ -1147,8 +1147,7 @@ will create a new empty configuration package.
         ]
     }
 
-Package names starting with an underscore are exclusive to the Icinga 2 daemon
-and must not be used.
+Package names starting with an underscore are reserved for internal packages and must not be used.
 
 ### <a id="icinga2-api-config-management-create-config-stage"></a> Uploading configuration for a Config Package
 
