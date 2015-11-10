@@ -287,11 +287,6 @@ Dictionary::Ptr ApiActions::RemoveComment(const ConfigObject::Ptr& object,
 
 	Comment::RemoveComment(commentName);
 
-	comment = Comment::GetByName(commentName);
-
-	if (comment)
-		return ApiActions::CreateResult(403, "Could not remove comment '" + commentName + "'.");
-
 	return ApiActions::CreateResult(200, "Successfully removed comment '" + commentName + "'.");
 }
 
@@ -355,11 +350,6 @@ Dictionary::Ptr ApiActions::RemoveDowntime(const ConfigObject::Ptr& object,
 	String downtimeName = downtime->GetName();
 
 	Downtime::RemoveDowntime(downtimeName, true);
-
-	downtime = Downtime::GetByName(downtimeName);
-
-	if (downtime)
-		return ApiActions::CreateResult(403, "Could not remove downtime '" + downtimeName + "'.");
 
 	return ApiActions::CreateResult(200, "Successfully removed downtime '" + downtimeName + "'.");
 }
