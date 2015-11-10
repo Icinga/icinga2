@@ -1526,8 +1526,6 @@ The following example uses **PHP** and its `curl` library:
             CURLOPT_HTTPHEADER => $headers,
             CURLOPT_USERPWD => $username . ":" . $password,
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_SSL_VERIFYHOST => 2,
-            CURLOPT_SSL_VERIFYPEER => true,
             CURLOPT_CAINFO => "pki/icinga2-ca.crt",
             CURLOPT_POST => count($data),
             CURLOPT_POSTFIELDS => json_encode($data)
@@ -1580,7 +1578,7 @@ The following example uses **Perl** and the `Rest::Client` module:
     $client->setCa("pki/icinga2-ca.crt");
     $client->addHeader("Accept", "application/json");
     $client->addHeader("X-HTTP-Method-Override", "GET");
-    $client->addHeader("Authorization", "Basic ".encode_base64($userpass));
+    $client->addHeader("Authorization", "Basic " . encode_base64($userpass));
     my %json_data = (
             attrs => ['name', 'state', 'last_check_result'],
             joins => ['host.name', 'host.state', 'host.last_check_result'],
