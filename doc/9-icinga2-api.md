@@ -1280,6 +1280,55 @@ Fetch the `startup.log` file and check the config validation errors:
 
 The output is similar to the manual [configuration validation](8-cli-commands.md#config-validation).
 
+## <a id="icinga2-api-types"></a> Types
+
+You can retrieve the configuration object types by sending a `GET` request to URL
+endpoint `/v1/types`.
+
+Each response entry in the results array contains the following attributes:
+
+  Attribute      | Type         | Description
+  ---------------|--------------|---------------------
+  name           | string       | The type name.
+  plural_name    | string       | The plural name.
+  fields         | dictionary   | Available fields including details on e.g. the type and attribute accessibility.
+  abstract       | boolean      | Whether objects of this type are abstract.
+  base           | boolean      | The base type this type inherits from (e.g. `Service` inherits fields and prototype methods from `Checkable`).
+  prototype_keys | string array | Available prototype methods.
+
+In order to view a specific configuration object type specify its name inside the URL path:
+
+    $ curl -k -s -u root:icinga 'https://localhost:5665/v1/types/Object' | python -m json.tool
+    {
+        "results": [
+            {
+                "abstract": false,
+                "fields": {
+                    "type": {
+                        "array_rank": 0.0,
+                        "attributes": {
+                            "config": false,
+                            "navigation": false,
+                            "no_user_modify": false,
+                            "no_user_view": false,
+                            "required": false,
+                            "state": false
+                        },
+                        "id": 0.0,
+                        "type": "String"
+                    }
+                },
+                "name": "Object",
+                "plural_name": "Objects",
+                "prototype_keys": [
+                    "clone",
+                    "notify_attribute",
+                    "to_string"
+                ]
+            }
+        ]
+    }
+
 
 ## <a id="icinga2-api-console"></a> Console
 
