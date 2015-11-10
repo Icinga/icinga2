@@ -6,10 +6,10 @@ parameter to enable the script debugger:
     # icinga2 daemon -X
 
 When an exception occurs or the [debugger](18-language-reference.md#breakpoints)
-keyword is encountered in a user script Icinga 2 launches a console that
+keyword is encountered in a user script, Icinga 2 launches a console that
 allows the user to debug the script.
 
-Here is a list of common error which can be diagnosed with the script debugger:
+Here is a list of common errors which can be diagnosed with the script debugger:
 
 * Configuration errors (apply)
 * Errors in user-defined functions

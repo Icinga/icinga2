@@ -234,7 +234,7 @@ Here are the exact same query parameters as a JSON object:
 
 ### <a id="icinga2-api-requests-method-override"></a> Request Method Override
 
-`GET` requests do not allow to send a request body. In case you cannot pass everything as URL parameters (e.g. complex filters or JSON-encoded dictionaries) you can use the `X-HTTP-Method-Override` header. This comes in handy when you are using HTTP proxies disallowing `PUT` or `DELETE` requests too.
+`GET` requests do not allow you to send a request body. In case you cannot pass everything as URL parameters (e.g. complex filters or JSON-encoded dictionaries) you can use the `X-HTTP-Method-Override` header. This comes in handy when you are using HTTP proxies disallowing `PUT` or `DELETE` requests too.
 
 Query an existing object by sending a `POST` request with `X-HTTP-Method-Override: GET` as request header:
 
