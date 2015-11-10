@@ -1350,10 +1350,10 @@ Each response entry in the results array contains the following attributes:
   Attribute      | Type         | Description
   ---------------|--------------|---------------------
   name           | string       | The type name.
-  plural_name    | string       | The plural name.
+  plural_name    | string       | The plural type name.
   fields         | dictionary   | Available fields including details on e.g. the type and attribute accessibility.
-  abstract       | boolean      | Whether objects of this type are abstract.
-  base           | boolean      | The base type this type inherits from (e.g. `Service` inherits fields and prototype methods from `Checkable`).
+  abstract       | boolean      | Whether objects can be instantiated for this type.
+  base           | boolean      | The base type (e.g. `Service` inherits fields and prototype methods from `Checkable`).
   prototype_keys | string array | Available prototype methods.
 
 In order to view a specific configuration object type specify its name inside the URL path:
