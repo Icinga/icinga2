@@ -1,4 +1,7 @@
-# <a id="debug"></a> Debug Icinga 2
+# <a id="development"></a> Develop Icinga 2
+
+This chapter provides hints on Icinga 2 development
+especially for debugging purposes.
 
 > **Note**
 >

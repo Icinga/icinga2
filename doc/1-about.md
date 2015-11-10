@@ -31,7 +31,7 @@ Please get in touch with the Icinga team at https://www.icinga.org/community/.
 If you want to help update this documentation please read
 [this howto](https://wiki.icinga.org/display/community/Update+the+Icinga+2+documentation).
 
-### <a id="development"></a> Icinga 2 Development
+### <a id="development-info"></a> Icinga 2 Development
 
 You can follow Icinga 2's development closely by checking
 out these resources:

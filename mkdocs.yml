@@ -21,9 +21,10 @@ pages:
 - [17-upgrading-icinga-2.md, Upgrading Icinga 2]
 - [18-language-reference.md, Language Reference]
 - [19-library-reference.md, Library Reference]
-- [20-debug.md, Debug]
-- [21-migrating-from-icinga-1x.md, Migrating from Icinga 1.x]
-- [22-appendix.md, Appendix]
+- [20-script-debugger.md, Script Debugger]
+- [21-development.md, Development]
+- [22-migrating-from-icinga-1x.md, Migrating from Icinga 1.x]
+- [23-appendix.md, Appendix]
 theme: readthedocs
 markdown_extensions: [smarty]
 extra_javascript: [scroll.js]

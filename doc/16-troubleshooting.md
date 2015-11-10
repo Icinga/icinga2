@@ -13,7 +13,7 @@
 * How was Icinga 2 installed (and which repository in case) and which distribution are you using
 * Provide complete configuration snippets explaining your problem in detail
 * If the check command failed - what's the output of your manual plugin tests?
-* In case of [debugging](20-debug.md#debug) Icinga 2, the full back traces and outputs
+* In case of [debugging](21-development.md#development) Icinga 2, the full back traces and outputs
 
 ## <a id="troubleshooting-enable-debug-output"></a> Enable Debug Output
 
