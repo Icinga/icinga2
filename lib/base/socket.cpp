@@ -301,7 +301,7 @@ size_t Socket::Read(void *buffer, size_t count)
 #ifndef _WIN32
 	rc = read(GetFD(), (char *)buffer, count);
 #else /* _WIN32 */
-	rc = recv(GetFD(), (char *)buffer, count);
+	rc = recv(GetFD(), (char *)buffer, count, 0);
 #endif /* _WIN32 */
 
 	if (rc < 0) {
