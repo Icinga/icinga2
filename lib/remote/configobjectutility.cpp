@@ -66,8 +66,22 @@ String ConfigObjectUtility::CreateObjectConfig(const Type::Ptr& type, const Stri
 
 	Dictionary::Ptr allAttrs = new Dictionary();
 
-	if (attrs)
+	if (attrs) {
 		attrs->CopyTo(allAttrs);
+
+		ObjectLock olock(attrs);
+		BOOST_FOREACH(const Dictionary::Pair& kv, attrs) {
+			int fid = type->GetFieldId(kv.first);
+
+			if (fid < 0)
+				BOOST_THROW_EXCEPTION(ScriptError("Invalid attribute specified: " + kv.first));
+
+			Field field = type->GetFieldInfo(fid);
+
+			if (field.Attributes & FANoUserModify)
+				BOOST_THROW_EXCEPTION(ScriptError("Attribute is marked for internal use only and may not be set: " + kv.first));
+		}
+	}
 
 	if (nameParts)
 		nameParts->CopyTo(allAttrs);
