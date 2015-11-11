@@ -307,7 +307,9 @@ is the lower-case version of the object's type name.
 
 For example when querying objects of type `Host` the variable in the filter expression is named
 `host`. Additionally related objects such as the host's check command are also made available
-(e.g., via the `check_command` variable).
+(e.g., via the `check_command` variable). The variable names are the exact same as for the `joins`
+query parameter; see [object query joins](9-icinga2-api.md#icinga2-api-config-objects-query-joins)
+for details.
 
 The object is also made available via the `obj` variable. This makes it easier to build
 filters which can be used for more than one object type (e.g., for permissions).
@@ -424,43 +426,45 @@ Each response entry in the results array contains the following attributes:
   joins      | dictionary | [Joined object types](9-icinga2-api.md#icinga2-api-config-objects-query-joins) as key, attributes as nested dictionary. Disabled by default.
   meta       | dictionary | Contains `used_by` object references. Disabled by default, enable it using `?meta=used_by` as URL parameter.
 
-#### <a id="icinga2-api-config-objects-query-joins"></a> Object Queries and Joins
+#### <a id="icinga2-api-config-objects-query-joins"></a> Object Query Joins
 
-Icinga 2 knows about object relations, i.e. when querying service objects
-the query handler will allow you to add the referenced host object and its
-attributes to the result set inside the `joins` result attribute.
+Icinga 2 knows about object relations. For example it can optionally return
+information about the host when querying service objects.
 
-Add the following URL parameter to join all host attributes:
+The following query retrieves all host attributes:
 
-    ?joins=host
+    https://localhost:5665/v1/objects/services?joins=host
 
-If you just want to join specific object attributes, selectively add them
-as URL parameters:
+Instead of requesting all host attributes you can also limit the output to specific
+attributes:
 
-    ?joins=host.name&joins=host.address
+    https://localhost:5665/v1/objects/services?joins=host.name&joins=host.address
 
-You can enable all default joins using
+You can request that all available joins are returned in the result set by using
+the `all_joins` query parameter.
 
-    ?all_joins=1
+    https://localhost:5665/v1/objects/services?all_joins=1
 
-**Note**: Select your required attributes beforehand by passing them to your
-request. The default result set might get huge.
+> **Note**
+>
+> For performance reasons you should only request attributes which your application
+> requires.
 
-Each joined object will use its own attribute name inside the `joins` response
-attribute. There is an exception for multiple objects used in dependencies and zones.
+The following joins are available:
 
-  Object Type  | Object Relations (prefix name)
-  -------------|---------------------------------
-  Service      | host, notification, check\_command, event\_command, command\_endpoint
-  Host         | notification, check\_command, event\_command, command\_endpoint
+  Object Type  | Object Relations (`joins` prefix name)
+  -------------|------------------------------------------
+  Service      | host, check\_command, check\_period, event\_command, command\_endpoint
+  Host         | check\_command, check\_period, event\_command, command\_endpoint
   Notification | host, service, command, period
   Dependency   | child\_host, child\_service, parent\_host, parent\_service, period
   User         | period
   Zones        | parent
 
-In addition to these parameters a [filter](9-icinga2-api.md#icinga2-api-filters) may be provided.
-
-Here's an example that retrieves all service objects for hosts which have had their `os` custom attribute set to `Linux`. The result set contains the `display_name` and `check_command` attributes for the service. The query also returns the host's `name` and `address` attribute via a join:
+Here's an example that retrieves all service objects for hosts which have had their `os`
+custom attribute set to `Linux`. The result set contains the `display_name` and `check_command`
+attributes for the service. The query also returns the host's `name` and `address` attribute
+via a join:
 
     $ curl -k -s -u root:icinga 'https://localhost:5665/v1/objects/services?attrs=display_name&attrs=check_command&joins=host.name&joins=host.address&filter=host.vars.os==%22Linux%22' | python -m json.tool
 

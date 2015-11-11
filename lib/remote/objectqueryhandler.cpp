@@ -148,18 +148,25 @@ bool ObjectQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 	results->Reserve(objs.size());
 
 	std::set<String> joinAttrs;
+	std::set<String> userJoinAttrs;
 
-	if (allJoins) {
-		for (int fid = 0; fid < type->GetFieldCount(); fid++) {
-			Field field = type->GetFieldInfo(fid);
-			if (field.Attributes & FANavigation)
-				joinAttrs.insert(field.Name);
-		}
-	} else if (ujoins) {
+	if (ujoins) {
 		ObjectLock olock(ujoins);
 		BOOST_FOREACH(const String& ujoin, ujoins) {
-			joinAttrs.insert(ujoin.SubStr(0, ujoin.FindFirstOf(".")));
+			userJoinAttrs.insert(ujoin.SubStr(0, ujoin.FindFirstOf(".")));
 		}
+	}
+
+	for (int fid = 0; fid < type->GetFieldCount(); fid++) {
+		Field field = type->GetFieldInfo(fid);
+
+		if (!(field.Attributes & FANavigation))
+			continue;
+
+		if (!allJoins && userJoinAttrs.find(field.NavigationName) == userJoinAttrs.end())
+			continue;
+
+		joinAttrs.insert(field.Name);
 	}
 
 	BOOST_FOREACH(const ConfigObject::Ptr& obj, objs) {
@@ -210,8 +217,6 @@ bool ObjectQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 
 		BOOST_FOREACH(const String& joinAttr, joinAttrs) {
 			Object::Ptr joinedObj;
-			String prefix;
-
 			int fid = type->GetFieldId(joinAttr);
 
 			if (fid < 0) {
@@ -231,8 +236,7 @@ bool ObjectQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 			if (!joinedObj)
 				continue;
 
-			prefix = field.NavigationName;
-			boost::algorithm::to_lower(prefix);
+			String prefix = field.NavigationName;
 
 			try {
 				joins->Set(prefix, SerializeObjectAttrs(joinedObj, prefix, ujoins, true, allJoins));
