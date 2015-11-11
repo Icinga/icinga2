@@ -157,18 +157,18 @@ Dictionary::Ptr Dictionary::ShallowClone(void) const
 /**
  * Makes a deep clone of a dictionary
  * and its elements.
- * 
+ *
  * @returns a copy of the dictionary.
  */
 Object::Ptr Dictionary::Clone(void) const
 {
 	Dictionary::Ptr dict = new Dictionary();
-	
+
 	ObjectLock olock(this);
 	BOOST_FOREACH(const Dictionary::Pair& kv, m_Data) {
 		dict->Set(kv.first, kv.second.Clone());
 	}
-	
+
 	return dict;
 }
 

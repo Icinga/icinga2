@@ -39,3 +39,7 @@ bool Function::IsSideEffectFree(void) const
 	return m_SideEffectFree;
 }
 
+Object::Ptr Function::Clone(void) const
+{
+	return const_cast<Function *>(this);
+}

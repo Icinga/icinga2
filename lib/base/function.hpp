@@ -49,6 +49,8 @@ public:
 
 	static Object::Ptr GetPrototype(void);
 
+	virtual Object::Ptr Clone(void) const override;
+
 private:
 	Callback m_Callback;
 	bool m_SideEffectFree;
