@@ -41,9 +41,6 @@ public:
 
 	virtual Dictionary::Ptr GetConfigFields(void) const override;
 	virtual Dictionary::Ptr GetStatusFields(void) const override;
-
-protected:
-	virtual void OnConfigUpdate(void) override;
 };
 
 }

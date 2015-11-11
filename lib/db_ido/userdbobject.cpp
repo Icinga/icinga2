@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "db_ido/userdbobject.hpp"
+#include "db_ido/usergroupdbobject.hpp"
 #include "db_ido/dbtype.hpp"
 #include "db_ido/dbvalue.hpp"
 #include "icinga/user.hpp"
@@ -79,6 +80,36 @@ void UserDbObject::OnConfigUpdate(void)
 {
 	Dictionary::Ptr fields = new Dictionary();
 	User::Ptr user = static_pointer_cast<User>(GetObject());
+
+	/* groups */
+	Array::Ptr groups = user->GetGroups();
+
+	if (groups) {
+		ObjectLock olock(groups);
+		BOOST_FOREACH(const String& groupName, groups) {
+			UserGroup::Ptr group = UserGroup::GetByName(groupName);
+
+			DbQuery query1;
+			query1.Table = DbType::GetByName("UserGroup")->GetTable() + "_members";
+			query1.Type = DbQueryDelete;
+			query1.Category = DbCatConfig;
+			query1.WhereCriteria = new Dictionary();
+			query1.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
+			query1.WhereCriteria->Set("contactgroup_id", DbValue::FromObjectInsertID(group));
+			query1.WhereCriteria->Set("contact_object_id", user);
+			OnQuery(query1);
+
+			DbQuery query2;
+			query2.Table = DbType::GetByName("UserGroup")->GetTable() + "_members";
+			query2.Type = DbQueryInsert;
+			query2.Category = DbCatConfig;
+			query2.Fields = new Dictionary();
+			query2.Fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
+			query2.Fields->Set("contactgroup_id", DbValue::FromObjectInsertID(group));
+			query2.Fields->Set("contact_object_id", user);
+			OnQuery(query2);
+		}
+	}
 
 	/* contact addresses */
 	Log(LogDebug, "UserDbObject")

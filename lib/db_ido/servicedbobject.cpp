@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "db_ido/servicedbobject.hpp"
+#include "db_ido/servicegroupdbobject.hpp"
 #include "db_ido/dbtype.hpp"
 #include "db_ido/dbvalue.hpp"
 #include "db_ido/dbevents.hpp"
@@ -178,6 +179,36 @@ bool ServiceDbObject::IsStatusAttribute(const String& attribute) const
 void ServiceDbObject::OnConfigUpdate(void)
 {
 	Service::Ptr service = static_pointer_cast<Service>(GetObject());
+
+	/* groups */
+	Array::Ptr groups = service->GetGroups();
+
+	if (groups) {
+		ObjectLock olock(groups);
+		BOOST_FOREACH(const String& groupName, groups) {
+			ServiceGroup::Ptr group = ServiceGroup::GetByName(groupName);
+
+			DbQuery query1;
+			query1.Table = DbType::GetByName("ServiceGroup")->GetTable() + "_members";
+			query1.Type = DbQueryDelete;
+			query1.Category = DbCatConfig;
+			query1.WhereCriteria = new Dictionary();
+			query1.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
+			query1.WhereCriteria->Set("servicegroup_id", DbValue::FromObjectInsertID(group));
+			query1.WhereCriteria->Set("service_object_id", service);
+			OnQuery(query1);
+
+			DbQuery query2;
+			query2.Table = DbType::GetByName("ServiceGroup")->GetTable() + "_members";
+			query2.Type = DbQueryInsert;
+			query2.Category = DbCatConfig;
+			query2.Fields = new Dictionary();
+			query2.Fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
+			query2.Fields->Set("servicegroup_id", DbValue::FromObjectInsertID(group));
+			query2.Fields->Set("service_object_id", service);
+			OnQuery(query2);
+		}
+	}
 
 	/* service dependencies */
 	Log(LogDebug, "ServiceDbObject")

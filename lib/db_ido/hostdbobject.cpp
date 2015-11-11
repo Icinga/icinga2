@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "db_ido/hostdbobject.hpp"
+#include "db_ido/hostgroupdbobject.hpp"
 #include "db_ido/dbtype.hpp"
 #include "db_ido/dbvalue.hpp"
 #include "db_ido/dbevents.hpp"
@@ -179,6 +180,36 @@ Dictionary::Ptr HostDbObject::GetStatusFields(void) const
 void HostDbObject::OnConfigUpdate(void)
 {
 	Host::Ptr host = static_pointer_cast<Host>(GetObject());
+
+	/* groups */
+	Array::Ptr groups = host->GetGroups();
+
+	if (groups) {
+		ObjectLock olock(groups);
+		BOOST_FOREACH(const String& groupName, groups) {
+			HostGroup::Ptr group = HostGroup::GetByName(groupName);
+
+			DbQuery query1;
+			query1.Table = DbType::GetByName("HostGroup")->GetTable() + "_members";
+			query1.Type = DbQueryDelete;
+			query1.Category = DbCatConfig;
+			query1.WhereCriteria = new Dictionary();
+			query1.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
+			query1.WhereCriteria->Set("hostgroup_id", DbValue::FromObjectInsertID(group));
+			query1.WhereCriteria->Set("host_object_id", host);
+			OnQuery(query1);
+
+			DbQuery query2;
+			query2.Table = DbType::GetByName("HostGroup")->GetTable() + "_members";
+			query2.Type = DbQueryInsert;
+			query2.Category = DbCatConfig;
+			query2.Fields = new Dictionary();
+			query2.Fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
+			query2.Fields->Set("hostgroup_id", DbValue::FromObjectInsertID(group));
+			query2.Fields->Set("host_object_id", host);
+			OnQuery(query2);
+		}
+	}
 
 	/* parents */
 	BOOST_FOREACH(const Checkable::Ptr& checkable, host->GetParents()) {

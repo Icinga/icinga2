@@ -47,29 +47,3 @@ Dictionary::Ptr UserGroupDbObject::GetStatusFields(void) const
 {
 	return Empty;
 }
-
-void UserGroupDbObject::OnConfigUpdate(void)
-{
-	UserGroup::Ptr group = static_pointer_cast<UserGroup>(GetObject());
-
-	DbQuery query1;
-	query1.Table = DbType::GetByName("UserGroup")->GetTable() + "_members";
-	query1.Type = DbQueryDelete;
-	query1.Category = DbCatConfig;
-	query1.WhereCriteria = new Dictionary();
-	query1.WhereCriteria->Set("instance_id", 0);
-	query1.WhereCriteria->Set("contactgroup_id", DbValue::FromObjectInsertID(group));
-	OnQuery(query1);
-
-	BOOST_FOREACH(const User::Ptr& user, group->GetMembers()) {
-		DbQuery query2;
-		query2.Table = DbType::GetByName("UserGroup")->GetTable() + "_members";
-		query2.Type = DbQueryInsert;
-		query2.Category = DbCatConfig;
-		query2.Fields = new Dictionary();
-		query2.Fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
-		query2.Fields->Set("contactgroup_id", DbValue::FromObjectInsertID(group));
-		query2.Fields->Set("contact_object_id", user);
-		OnQuery(query2);
-	}
-}
