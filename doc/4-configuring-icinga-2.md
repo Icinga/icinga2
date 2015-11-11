@@ -630,7 +630,7 @@ to define the default value for the time ranges required for recurring downtime 
 #### <a id="timeperiods-conf"></a> timeperiods.conf
 
 This file contains the default timeperiod definitions for `24x7`, `9to5`
-and `never`. Timeperiod objects are referenced by `*period`
+and `never`. TimePeriod objects are referenced by `*period`
 objects such as hosts, services or notifications.
 
 
