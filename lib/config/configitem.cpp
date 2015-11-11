@@ -157,8 +157,6 @@ public:
  */
 ConfigObject::Ptr ConfigItem::Commit(bool discard)
 {
-	ASSERT(!OwnsLock());
-
 #ifdef I2_DEBUG
 	Log(LogDebug, "ConfigItem")
 	    << "Commit called for ConfigItem Type=" << GetType() << ", Name=" << GetName();

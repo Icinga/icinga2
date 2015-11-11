@@ -28,9 +28,7 @@ using namespace icinga;
 
 ConfigType::ConfigType(const String& name)
 	: m_Name(name)
-{
-	InflateMutex();
-}
+{ }
 
 ConfigType::Ptr ConfigType::GetByName(const String& name)
 {

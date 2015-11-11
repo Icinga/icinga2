@@ -56,9 +56,8 @@ public:
 	inline void Lock(void)
 	{
 		ASSERT(!m_Locked && m_Object != NULL);
-		ASSERT(!m_Object->OwnsLock());
 
-		m_Object->m_Mutex.Lock();
+		m_Object->m_Mutex.lock();
 		m_Locked = true;
 
 #ifdef I2_DEBUG
@@ -83,7 +82,7 @@ public:
 #endif /* I2_DEBUG */
 
 		if (m_Locked) {
-			m_Object->m_Mutex.Unlock();
+			m_Object->m_Mutex.unlock();
 			m_Locked = false;
 		}
 	}

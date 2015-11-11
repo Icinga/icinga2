@@ -37,7 +37,6 @@ REGISTER_PRIMITIVE_TYPE(Array, Object, Array::GetPrototype());
  */
 Value Array::Get(unsigned int index) const
 {
-	ASSERT(!OwnsLock());
 	ObjectLock olock(this);
 
 	return m_Data.at(index);
@@ -51,7 +50,6 @@ Value Array::Get(unsigned int index) const
  */
 void Array::Set(unsigned int index, const Value& value)
 {
-	ASSERT(!OwnsLock());
 	ObjectLock olock(this);
 
 	m_Data.at(index) = value;
@@ -64,7 +62,6 @@ void Array::Set(unsigned int index, const Value& value)
  */
 void Array::Add(const Value& value)
 {
-	ASSERT(!OwnsLock());
 	ObjectLock olock(this);
 
 	m_Data.push_back(value);
@@ -77,7 +74,6 @@ void Array::Add(const Value& value)
  */
 size_t Array::GetLength(void) const
 {
-	ASSERT(!OwnsLock());
 	ObjectLock olock(this);
 
 	return m_Data.size();
@@ -91,7 +87,6 @@ size_t Array::GetLength(void) const
  */
 bool Array::Contains(const Value& value) const
 {
-	ASSERT(!OwnsLock());
 	ObjectLock olock(this);
 
 	return (std::find(m_Data.begin(), m_Data.end(), value) != m_Data.end());
@@ -105,7 +100,6 @@ bool Array::Contains(const Value& value) const
  */
 void Array::Insert(unsigned int index, const Value& value)
 {
-	ASSERT(!OwnsLock());
 	ObjectLock olock(this);
 
 	ASSERT(index <= m_Data.size());
@@ -120,7 +114,6 @@ void Array::Insert(unsigned int index, const Value& value)
  */
 void Array::Remove(unsigned int index)
 {
-	ASSERT(!OwnsLock());
 	ObjectLock olock(this);
 
 	m_Data.erase(m_Data.begin() + index);
@@ -140,7 +133,6 @@ void Array::Remove(Array::Iterator it)
 
 void Array::Resize(size_t new_size)
 {
-	ASSERT(!OwnsLock());
 	ObjectLock olock(this);
 
 	m_Data.resize(new_size);
@@ -148,7 +140,6 @@ void Array::Resize(size_t new_size)
 
 void Array::Clear(void)
 {
-	ASSERT(!OwnsLock());
 	ObjectLock olock(this);
 
 	m_Data.clear();
@@ -156,7 +147,6 @@ void Array::Clear(void)
 
 void Array::Reserve(size_t new_size)
 {
-	ASSERT(!OwnsLock());
 	ObjectLock olock(this);
 
 	m_Data.reserve(new_size);
@@ -164,7 +154,6 @@ void Array::Reserve(size_t new_size)
 
 void Array::CopyTo(const Array::Ptr& dest) const
 {
-	ASSERT(!OwnsLock());
 	ObjectLock olock(this);
 	ObjectLock xlock(dest);
 

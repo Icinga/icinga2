@@ -151,7 +151,6 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 	bool reachable = IsReachable();
 	bool notification_reachable = IsReachable(DependencyNotification);
 
-	ASSERT(!OwnsLock());
 	ObjectLock olock(this);
 
 	CheckResult::Ptr old_cr = GetLastCheckResult();
@@ -383,11 +382,9 @@ void Checkable::ExecuteRemoteCheck(const Dictionary::Ptr& resolvedMacros)
 	GetCheckCommand()->Execute(this, cr, resolvedMacros, true);
 }
 
-void Checkable::ExecuteCheck()
+void Checkable::ExecuteCheck(void)
 {
 	CONTEXT("Executing check for object '" + GetName() + "'");
-
-	ASSERT(!OwnsLock());
 
 	UpdateNextCheck();
 

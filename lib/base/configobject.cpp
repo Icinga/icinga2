@@ -378,7 +378,6 @@ void ConfigObject::Start(bool runtimeCreated)
 {
 	ObjectImpl<ConfigObject>::Start(runtimeCreated);
 
-	ASSERT(!OwnsLock());
 	ObjectLock olock(this);
 
 	SetStartCalled(true);
@@ -387,8 +386,6 @@ void ConfigObject::Start(bool runtimeCreated)
 void ConfigObject::Activate(bool runtimeCreated)
 {
 	CONTEXT("Activating object '" + GetName() + "' of type '" + GetType()->GetName() + "'");
-
-	ASSERT(!OwnsLock());
 
 	Start(runtimeCreated);
 
@@ -409,7 +406,6 @@ void ConfigObject::Stop(bool runtimeRemoved)
 {
 	ObjectImpl<ConfigObject>::Stop(runtimeRemoved);
 
-	ASSERT(!OwnsLock());
 	ObjectLock olock(this);
 
 	SetStopCalled(true);
@@ -418,8 +414,6 @@ void ConfigObject::Stop(bool runtimeRemoved)
 void ConfigObject::Deactivate(bool runtimeRemoved)
 {
 	CONTEXT("Deactivating object '" + GetName() + "' of type '" + GetType()->GetName() + "'");
-
-	ASSERT(!OwnsLock());
 
 	SetAuthority(false);
 

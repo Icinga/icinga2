@@ -240,8 +240,6 @@ String Notification::NotificationTypeToString(NotificationType type)
 
 void Notification::BeginExecuteNotification(NotificationType type, const CheckResult::Ptr& cr, bool force, const String& author, const String& text)
 {
-	ASSERT(!OwnsLock());
-
 	Log(LogNotice, "Notification")
 	    << "Attempting to send notifications for notification object '" << GetName() << "'.";
 
@@ -398,8 +396,6 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 
 bool Notification::CheckNotificationUserFilters(NotificationType type, const User::Ptr& user, bool force)
 {
-	ASSERT(!OwnsLock());
-
 	if (!force) {
 		TimePeriod::Ptr tp = user->GetPeriod();
 
@@ -465,8 +461,6 @@ bool Notification::CheckNotificationUserFilters(NotificationType type, const Use
 
 void Notification::ExecuteNotificationHelper(NotificationType type, const User::Ptr& user, const CheckResult::Ptr& cr, bool force, const String& author, const String& text)
 {
-	ASSERT(!OwnsLock());
-
 	try {
 		NotificationCommand::Ptr command = GetCommand();
 

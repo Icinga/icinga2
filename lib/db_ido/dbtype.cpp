@@ -83,8 +83,6 @@ DbType::Ptr DbType::GetByID(long tid)
 
 DbObject::Ptr DbType::GetOrCreateObjectByName(const String& name1, const String& name2)
 {
-	ASSERT(!OwnsLock());
-
 	ObjectLock olock(this);
 
 	DbType::ObjectMap::const_iterator it = m_Objects.find(std::make_pair(name1, name2));

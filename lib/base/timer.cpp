@@ -90,8 +90,6 @@ void Timer::Uninitialize(void)
  */
 void Timer::Call(void)
 {
-	ASSERT(!OwnsLock());
-
 	try {
 		OnTimerExpired(Timer::Ptr(this));
 	} catch (...) {
@@ -110,8 +108,6 @@ void Timer::Call(void)
  */
 void Timer::SetInterval(double interval)
 {
-	ASSERT(!OwnsLock());
-
 	boost::mutex::scoped_lock lock(l_TimerMutex);
 	m_Interval = interval;
 }
@@ -123,8 +119,6 @@ void Timer::SetInterval(double interval)
  */
 double Timer::GetInterval(void) const
 {
-	ASSERT(!OwnsLock());
-
 	boost::mutex::scoped_lock lock(l_TimerMutex);
 	return m_Interval;
 }
@@ -134,8 +128,6 @@ double Timer::GetInterval(void) const
  */
 void Timer::Start(void)
 {
-	ASSERT(!OwnsLock());
-
 	{
 		boost::mutex::scoped_lock lock(l_TimerMutex);
 		m_Started = true;
@@ -149,8 +141,6 @@ void Timer::Start(void)
  */
 void Timer::Stop(bool wait)
 {
-	ASSERT(!OwnsLock());
-
 	if (l_StopTimerThread)
 		return;
 
@@ -180,8 +170,6 @@ void Timer::Reschedule(double next)
  */
 void Timer::InternalReschedule(bool completed, double next)
 {
-	ASSERT(!OwnsLock());
-
 	boost::mutex::scoped_lock lock(l_TimerMutex);
 
 	if (completed)
@@ -214,8 +202,6 @@ void Timer::InternalReschedule(bool completed, double next)
  */
 double Timer::GetNext(void) const
 {
-	ASSERT(!OwnsLock());
-
 	boost::mutex::scoped_lock lock(l_TimerMutex);
 	return m_Next;
 }

@@ -36,7 +36,6 @@ REGISTER_PRIMITIVE_TYPE(Dictionary, Object, Dictionary::GetPrototype());
  */
 Value Dictionary::Get(const String& key) const
 {
-	ASSERT(!OwnsLock());
 	ObjectLock olock(this);
 
 	std::map<String, Value>::const_iterator it = m_Data.find(key);
@@ -56,7 +55,6 @@ Value Dictionary::Get(const String& key) const
  */
 bool Dictionary::Get(const String& key, Value *result) const
 {
-	ASSERT(!OwnsLock());
 	ObjectLock olock(this);
 
 	std::map<String, Value>::const_iterator it = m_Data.find(key);
@@ -76,7 +74,6 @@ bool Dictionary::Get(const String& key, Value *result) const
  */
 void Dictionary::Set(const String& key, const Value& value)
 {
-	ASSERT(!OwnsLock());
 	ObjectLock olock(this);
 
 	m_Data[key] = value;
@@ -90,7 +87,6 @@ void Dictionary::Set(const String& key, const Value& value)
  */
 size_t Dictionary::GetLength(void) const
 {
-	ASSERT(!OwnsLock());
 	ObjectLock olock(this);
 
 	return m_Data.size();
@@ -104,7 +100,6 @@ size_t Dictionary::GetLength(void) const
  */
 bool Dictionary::Contains(const String& key) const
 {
-	ASSERT(!OwnsLock());
 	ObjectLock olock(this);
 
 	return (m_Data.find(key) != m_Data.end());
@@ -117,7 +112,6 @@ bool Dictionary::Contains(const String& key) const
  */
 void Dictionary::Remove(const String& key)
 {
-	ASSERT(!OwnsLock());
 	ObjectLock olock(this);
 
 	Dictionary::Iterator it;
@@ -134,7 +128,6 @@ void Dictionary::Remove(const String& key)
  */
 void Dictionary::Clear(void)
 {
-	ASSERT(!OwnsLock());
 	ObjectLock olock(this);
 
 	m_Data.clear();
@@ -142,7 +135,6 @@ void Dictionary::Clear(void)
 
 void Dictionary::CopyTo(const Dictionary::Ptr& dest) const
 {
-	ASSERT(!OwnsLock());
 	ObjectLock olock(this);
 
 	BOOST_FOREACH(const Dictionary::Pair& kv, m_Data) {
@@ -188,7 +180,6 @@ Object::Ptr Dictionary::Clone(void) const
  */
 std::vector<String> Dictionary::GetKeys(void) const
 {
-	ASSERT(!OwnsLock());
 	ObjectLock olock(this);
 
 	std::vector<String> keys;

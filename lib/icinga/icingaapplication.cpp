@@ -125,8 +125,6 @@ int IcingaApplication::Main(void)
 
 void IcingaApplication::OnShutdown(void)
 {
-	ASSERT(!OwnsLock());
-
 	{
 		ObjectLock olock(this);
 		l_RetentionTimer->Stop();

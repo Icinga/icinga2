@@ -982,7 +982,6 @@ int Application::Run(void)
  */
 void Application::UpdatePidFile(const String& filename, pid_t pid)
 {
-	ASSERT(!OwnsLock());
 	ObjectLock olock(this);
 
 	if (m_PidFile != NULL)
@@ -1038,7 +1037,6 @@ void Application::UpdatePidFile(const String& filename, pid_t pid)
  */
 void Application::ClosePidFile(bool unlink)
 {
-	ASSERT(!OwnsLock());
 	ObjectLock olock(this);
 
 	if (m_PidFile != NULL)

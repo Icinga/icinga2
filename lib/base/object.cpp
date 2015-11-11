@@ -71,11 +71,6 @@ bool Object::OwnsLock(void) const
 }
 #endif /* I2_DEBUG */
 
-void Object::InflateMutex(void)
-{
-	m_Mutex.Inflate();
-}
-
 void Object::SetField(int id, const Value&, bool, const Value&)
 {
 	if (id == 0)
