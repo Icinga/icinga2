@@ -76,9 +76,9 @@ class Downtime : ConfigObject < DowntimeNameComposer
 	[state] double trigger_time;
 	[config] bool fixed;
 	[config] double duration;
-	[state] name(Downtime) triggered_by;
+	[config] name(Downtime) triggered_by;
 	[config] String scheduled_by;
-	[config] Array::Ptr triggers {
+	[state] Array::Ptr triggers {
 		default {{{ return new Array(); }}}
 	};
 	int legacy_id;

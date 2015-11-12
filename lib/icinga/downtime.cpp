@@ -320,7 +320,12 @@ void Downtime::TriggerDowntime(void)
 	{
 		ObjectLock olock(triggers);
 		BOOST_FOREACH(const String& triggerName, triggers) {
-			Downtime::GetByName(triggerName)->TriggerDowntime();
+			Downtime::Ptr downtime = Downtime::GetByName(triggerName);
+
+			if (!downtime)
+				continue;
+
+			downtime->TriggerDowntime();
 		}
 	}
 

@@ -71,14 +71,14 @@ String ConfigObjectUtility::CreateObjectConfig(const Type::Ptr& type, const Stri
 
 		ObjectLock olock(attrs);
 		BOOST_FOREACH(const Dictionary::Pair& kv, attrs) {
-			int fid = type->GetFieldId(kv.first);
+			int fid = type->GetFieldId(kv.first.SubStr(0, kv.first.FindFirstOf(".")));
 
 			if (fid < 0)
 				BOOST_THROW_EXCEPTION(ScriptError("Invalid attribute specified: " + kv.first));
 
 			Field field = type->GetFieldInfo(fid);
 
-			if (field.Attributes & FANoUserModify)
+			if (!(field.Attributes & FAConfig) || kv.first == "name")
 				BOOST_THROW_EXCEPTION(ScriptError("Attribute is marked for internal use only and may not be set: " + kv.first));
 		}
 	}
