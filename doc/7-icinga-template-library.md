@@ -128,6 +128,7 @@ by_ssh_quiet    | **Optional.** Whether to suppress SSH warnings. Defaults to fa
 by_ssh_warn     | **Optional.** The warning threshold.
 by_ssh_crit     | **Optional.** The critical threshold.
 by_ssh_timeout  | **Optional.** The timeout in seconds.
+by_ssh_options  | **Optional.** Call ssh with '-o OPTION' (multiple options may be specified as an array).
 
 ### <a id="plugin-check-command-clamd"></a> clamd
 
