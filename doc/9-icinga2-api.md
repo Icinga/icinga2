@@ -1487,8 +1487,8 @@ packages.
 > **Note**
 > Icinga Studio does not currently support SSL certificate verification.
 
-The Windows installer includes Icinga Studio already. You must additionally
-install the [wxWidgets library](https://github.com/wxWidgets/wxWidgets/releases/download/v3.0.2/wxMSW-3.0.2-Setup.exe).
+The Windows installer already includes Icinga Studio. On Debian and Ubuntu the package
+`icinga2-studio` can be used to install Icinga Studio.
 
 ### <a id="icinga2-api-clients-cli-console"></a> Icinga 2 Console
 

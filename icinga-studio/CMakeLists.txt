@@ -16,7 +16,7 @@
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
 set(wxWidgets_CONFIGURATION mswu)
-find_package(wxWidgets COMPONENTS core base propgrid REQUIRED)
+find_package(wxWidgets COMPONENTS core base propgrid adv REQUIRED)
 include(${wxWidgets_USE_FILE})
 
 if(MSVC)
