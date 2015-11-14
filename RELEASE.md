@@ -97,17 +97,17 @@ Example for CentOS7:
 
 ### Windows
 
-* Build the newly created git tag for Windows.
+* Build the newly created Git tag for Windows.
 * Test the [setup wizard](http://packages.icinga.org/windows/) inside a Windows VM.
 
-## Github Release
+## GitHub Release
 
-Create a new release from the newly created git tag.
+Create a new release for the newly created Git tag.
 https://github.com/Icinga/icinga2/releases
 
 ## Online Documentation
 
-Ssh into the web box, navigate into `icinga2-latest/module/icinga2`
+SSH into the web box, navigate into `icinga2-latest/module/icinga2`
 and pull the current icinga2 revision to update what's new".
 
 ## Announcement

@@ -4,6 +4,275 @@ Please check [doc/1-about.md].
 
 ## What's New
 
+### What's New in Version 2.4.0
+
+#### Changes
+
+* API
+    * RESTful API with basic auth or client certificates
+    * Filters, types, permissions
+    * configuration package management
+    * query/create/modify/delete config objects at runtime
+    * status queries for global stats
+    * actions (e.g. acknowledge all service problems)
+    * event streams
+* ITL and Plugin Check Command definitions
+    * The 'running_kernel' check command was moved to the plugins-contrib section. You have to update your config to include 'plugins-contrib'
+* Configuration
+    * The global constants Enable* and Vars have been removed. Use the IcingaApplication object attributes instead.
+* Features
+    * New Graphite tree. Please check the documentation how enable the legacy schema.
+    * IcingaStatusWriter feature has been deprecated and will be removed in future versions.
+    * Modified attributes are not exposed as bit mask to external interfaces anymore (api related changes). External commands like CHANGE_*_MODATTR have been removed.
+
+#### Feature
+
+* Feature 7709: Validators should be implemented in (auto-generated) native code
+* Feature 8093: Add icinga, cluster, cluster-zone check information to the ApiListener status handler
+* Feature 8149: graphite writer should pass "-" in host names and "." in perf data
+* Feature 8666: Allow some of the Array and Dictionary methods to be inlined by the compiler
+* Feature 8688: Add embedded DB IDO version health check
+* Feature 8689: Add support for current and current-1 db ido schema version
+* Feature 8690: 'icinga2 console' should serialize temporary attributes (rather than just config + state)
+* Feature 8738: Implement support for CLIENT_MULTI_STATEMENTS
+* Feature 8741: Deprecate IcingaStatusWriter feature
+* Feature 8775: Move the base command templates into libmethods
+* Feature 8776: Implement support for libedit
+* Feature 8791: Refactor the startup process
+* Feature 8832: Implement constructor-style casts
+* Feature 8842: Add support for the C++11 keyword 'override'
+* Feature 8867: Use DebugHint information when reporting validation errors
+* Feature 8890: Move implementation code from thpp files into separate files
+* Feature 8922: Avoid unnecessary dictionary lookups
+* Feature 9044: Remove the ScopeCurrent constant
+* Feature 9068: Implement sandbox mode for the config parser
+* Feature 9074: Basic API framework
+* Feature 9076: Reflection support for the API
+* Feature 9077: Implement filters for the API
+* Feature 9078: Event stream support for the API
+* Feature 9079: Implement status queries for the API
+* Feature 9080: Add commands (actions) for the API
+* Feature 9081: Add modified attribute support for the API
+* Feature 9082: Runtime configuration for the API
+* Feature 9083: Configuration file management for the API
+* Feature 9084: Enable the ApiListener by default
+* Feature 9085: Certificate-based authentication for the API
+* Feature 9086: Password-based authentication for the API
+* Feature 9087: Create default administrative user
+* Feature 9088: API permissions
+* Feature 9091: API status queries
+* Feature 9093: Changelog for modified attributes
+* Feature 9095: Disallow changes for certain config attributes at runtime
+* Feature 9096: Dependency tracking for objects
+* Feature 9098: Update modules to support adding and removing objects at runtime
+* Feature 9099: Implement support for writing configuration files
+* Feature 9100: Multiple sources for zone configuration tree
+* Feature 9101: Commands for adding and removing objects
+* Feature 9102: Support validating configuration changes
+* Feature 9103: Staging for configuration validation
+* Feature 9104: Implement config file management commands
+* Feature 9105: API Documentation
+* Feature 9175: Move 'running_kernel' check command to plugins-contrib 'operating system' section
+* Feature 9286: DB IDO/Livestatus: Add zone object table w/ endpoint members
+* Feature 9414: "-Wno-deprecated-register" compiler option breaks builds on SLES 11
+* Feature 9447: Implement support for HTTP
+* Feature 9448: Define RESTful url schema
+* Feature 9461: New Graphite schema
+* Feature 9470: Implement URL parser
+* Feature 9471: Implement ApiUser type
+* Feature 9594: Implement base64 de- and encoder
+* Feature 9614: Register ServiceOK, ServiceWarning, HostUp, etc. as constants
+* Feature 9647: Move url to /lib/remote from /lib/base
+* Feature 9689: Add exceptions for Utility::MkDir{,P}
+* Feature 9693: Add Array::FromVector() method
+* Feature 9698: Implement support for X-HTTP-Method-Override
+* Feature 9704: String::Trim() should return a new string rather than modifying the current string
+* Feature 9705: Add real path sanity checks to provided file paths
+* Feature 9723: Documentation for config management API
+* Feature 9768: Update the url parsers behaviour
+* Feature 9777: Make Comments and Downtime types available as ConfigObject type in the API
+* Feature 9794: Setting global variables with i2tcl doesn't work
+* Feature 9849: Validation for modified attributes
+* Feature 9850: Re-implement events for attribute changes
+* Feature 9851: Remove GetModifiedAttributes/SetModifiedAttributes
+* Feature 9852: Implement support for . in modify_attribute
+* Feature 9859: Implement global modified attributes
+* Feature 9866: Implement support for attaching GDB to the Icinga process on crash
+* Feature 9914: Rename DynamicObject/DynamicType to ConfigObject/ConfigType
+* Feature 9919: Allow comments when parsing JSON
+* Feature 9921: Implement the 'base' field for the Type class
+* Feature 9926: Ensure that runtime config objects are persisted on disk
+* Feature 9927: Figure out how to sync dynamically created objects inside the cluster
+* Feature 9929: Add override keyword for all relevant methods
+* Feature 9930: Document Object#clone
+* Feature 9931: Implement Object#clone and rename Array/Dictionary#clone to shallow_clone
+* Feature 9933: Implement support for indexers in ConfigObject::RestoreAttribute
+* Feature 9935: Implement support for restoring modified attributes
+* Feature 9937: Add package attribute for ConfigObject and set its origin
+* Feature 9940: Implement support for filter_vars
+* Feature 9944: Add String::ToLower/ToUpper
+* Feature 9946: Remove debug messages in HttpRequest class
+* Feature 9953: Rename config/modules to config/packages
+* Feature 9960: Implement ignore_on_error keyword
+* Feature 10017: Use an AST node for the 'library' keyword
+* Feature 10038: Add plural_name field to /v1/types
+* Feature 10039: URL class improvements
+* Feature 10042: Implement a demo API client: Icinga Studio
+* Feature 10060: Implement joins for status queries
+* Feature 10116: Add global status handler for the API
+* Feature 10186: Make ConfigObject::{G,S}etField() method public
+* Feature 10194: Sanitize error status codes and messages
+* Feature 10202: Add documentation for api-users.conf and app.conf
+* Feature 10209: Rename statusqueryhandler to objectqueryhandler
+* Feature 10212: Move /v1/<type> to /v1/objects/<type>
+* Feature 10243: Provide keywords to retrieve the current file name at parse time
+* Feature 10257: Change object version to timestamps for diff updates on config sync
+* Feature 10329: Pretty-print arrays and dictionaries when converting them to strings
+* Feature 10368: Document that modified attributes require accept_config for cluster/clients
+* Feature 10374: Add check command nginx_status
+* Feature 10383: DB IDO should provide its connected state via /v1/status
+* Feature 10385: Add 'support' tracker to changelog.py
+* Feature 10387: Use the API for "icinga2 console"
+* Feature 10388: Log a warning message on unauthorized http request
+* Feature 10392: Original attributes list in IDO
+* Feature 10393: Hide internal attributes
+* Feature 10394: Add getter for endpoint 'connected' attribute
+* Feature 10407: Remove api.cpp, api.hpp
+* Feature 10409: Add documentation for apply+for in the language reference chapter
+* Feature 10423: Ability to set port on SNMP Checks
+* Feature 10431: Add the name for comments/downtimes next to legacy_id to DB IDO
+* Feature 10441: Rewrite man page
+* Feature 10479: Use ZoneName variable for parent_zone in node update-config
+* Feature 10482: Documentation: Reorganize Livestatus and alternative frontends
+* Feature 10503: Missing parameters for check jmx4perl
+* Feature 10507: Add check command negate
+* Feature 10509: Change GetLastStateUp/Down to host attributes
+* Feature 10511: Add check command mysql
+* Feature 10513: Add ipv4/ipv6 only to tcp and http CheckCommand
+* Feature 10522: Change output format for 'icinga2 console'
+* Feature 10547: Icinga 2 script debugger
+* Feature 10548: Implement CSRF protection for the API
+* Feature 10549: Change 'api setup' into a manual step while configuring the API
+* Feature 10551: Change object query result set
+* Feature 10566: Enhance programmatic examples for the API docs
+* Feature 10574: Mention wxWidget (optional) requirement in INSTALL.md
+* Feature 10575: Documentation for /v1/console
+* Feature 10576: Explain variable names for joined objects in filter expressions
+* Feature 10577: Documentation for the script debugger
+* Feature 10591: Explain DELETE for config stages/packages
+* Feature 10630: Update wxWidgets documentation for Icinga Studio
+
+#### Bugfixes
+
+* Bug 8822: Update OpenSSL for the Windows builds
+* Bug 8823: Don't allow users to instantiate the StreamLogger class
+* Bug 8830: Make default notifications include users from host.vars.notification.mail.users
+* Bug 8865: Failed assertion in IdoMysqlConnection::FieldToEscapedString
+* Bug 8907: Validation fails even though field is not required
+* Bug 8924: Specify pidfile for status_of_proc in the init script
+* Bug 8952: Crash in VMOps::FunctionCall
+* Bug 8989: pgsql driver does not have latest mysql changes synced
+* Bug 9015: Compiler warnings with latest HEAD 5ac5f98
+* Bug 9027: PostgreSQL schema sets default timestamps w/o time zone
+* Bug 9053: icinga demo module can not be built
+* Bug 9188: Remove incorrect 'ignore where' expression from 'ssh' apply example
+* Bug 9455: Fix incorrect datatype for the check_source column in icinga_statehistory table
+* Bug 9547: Wrong vars changed handler in api events
+* Bug 9576: Overflow in freshness_threshold column (smallint) w/ DB IDO MySQL
+* Bug 9590: 'node wizard/setup' should always generate new CN certificates
+* Bug 9703: Problem with child nodes in http url registry
+* Bug 9735: Broken cluster config sync w/o include_zones
+* Bug 9778: Accessing field ID 0 ("prototype") fails
+* Bug 9793: Operator - should not work with "" and numbers
+* Bug 9795: ScriptFrame's 'Self' attribute gets corrupted when an expression throws an exception
+* Bug 9813: win32 build: S_ISDIR is undefined
+* Bug 9843: console autocompletion should take into account parent classes' prototypes
+* Bug 9868: Crash in ScriptFrame::~ScriptFrame
+* Bug 9872: Color codes in console prompt break line editing
+* Bug 9876: Crash during cluster log replay
+* Bug 9879: Missing conf.d or zones.d cause parse failure
+* Bug 9911: Do not let API users create objects with invalid names
+* Bug 9966: Fix formatting in mkclass
+* Bug 9968: Implement support for '.' when persisting modified attributes
+* Bug 9987: Crash in ConfigCompiler::RegisterZoneDir
+* Bug 10008: Don't parse config files for branches not taken
+* Bug 10012: Unused variable 'dobj' in configobject.tcpp
+* Bug 10024: HTTP keep-alive does not work with .NET WebClient
+* Bug 10027: Filtering by name doesn't work
+* Bug 10034: Unused variable console_type in consolecommand.cpp
+* Bug 10041: build failure: demo module
+* Bug 10048: Error handling in HttpClient/icinga-studio
+* Bug 10110: Add object_id where clause for icinga_downtimehistory
+* Bug 10180: API actions do not follow REST guidelines
+* Bug 10198: Detect infinite recursion in user scripts
+* Bug 10210: Move the Collection status handler to /v1/status
+* Bug 10211: PerfdataValue is not properly serialised in status queries
+* Bug 10224: URL parser is cutting off last character
+* Bug 10234: ASCII NULs don't work in string values
+* Bug 10238: Use a temporary file for modified-attributes.conf updates
+* Bug 10241: Properly encode URLs in Icinga Studio
+* Bug 10249: Config Sync shouldn't send updates for objects the client doesn't have access to
+* Bug 10253: /v1/objects/<type> returns an HTTP error when there are no objects of that type
+* Bug 10255: Config sync does not set endpoint syncing and plays disconnect-sync ping-pong
+* Bug 10256: ConfigWriter::EmitValue should format floating point values properly
+* Bug 10326: icinga2 repository host add does not work
+* Bug 10350: Remove duplicated text in section "Apply Notifications to Hosts and Services"
+* Bug 10355: Version updates are not working properly
+* Bug 10360: Icinga2 API performance regression
+* Bug 10371: Ensure that modified attributes work with clients with local config and no zone attribute
+* Bug 10386: restore_attribute does not work in clusters
+* Bug 10403: Escaping $ not documented
+* Bug 10406: Misleading wording in generated zones.conf
+* Bug 10410: OpenBSD: hang during ConfigItem::ActivateItems() in daemon startup
+* Bug 10417: 'which' isn't available in a minimal CentOS container
+* Bug 10422: Changing a group's attributes causes duplicate rows in the icinga_*group_members table
+* Bug 10433: 'dig_lookup' custom attribute for the 'dig' check command isn't optional
+* Bug 10436: Custom variables aren't removed from the IDO database
+* Bug 10439: "Command options" is empty when executing icinga2 without any argument.
+* Bug 10440: Improve --help output for the --log-level option
+* Bug 10455: Improve error handling during log replay
+* Bug 10456: Incorrect attribute name in the documentation
+* Bug 10457: Don't allow scripts to access FANoUserView attributes in sandbox mode
+* Bug 10461: Line continuation is broken in 'icinga2 console'
+* Bug 10466: Crash in IndexerExpression::GetReference when attempting to set an attribute on an object other than the current one
+* Bug 10473: IDO tries to execute empty UPDATE queries
+* Bug 10491: Unique constraint violation with multiple comment inserts in DB IDO
+* Bug 10495: Incorrect JSON-RPC message causes Icinga 2 to crash
+* Bug 10498: IcingaStudio: Accessing non-ConfigObjects causes ugly exception
+* Bug 10501: Plural name rule not treating edge case correcly
+* Bug 10504: Increase the default timeout for OS checks
+* Bug 10508: Figure out whether we need the Checkable attributes state_raw, last_state_raw, hard_state_raw
+* Bug 10510: CreatePipeOverlapped is not thread-safe
+* Bug 10512: Mismatch on {comment,downtime}_id vs internal name in the API
+* Bug 10517: Circular reference between *Connection and TlsStream objects
+* Bug 10518: Crash in ConfigWriter::GetKeywords
+* Bug 10527: Fix indentation for Dictionary::ToString
+* Bug 10529: Change session_token to integer timestamp
+* Bug 10535: Spaces do not work in command arguments
+* Bug 10538: Crash in ConfigWriter::EmitIdentifier
+* Bug 10539: Don't validate custom attributes that aren't strings
+* Bug 10540: Async mysql queries aren't logged in the debug log
+* Bug 10545: Broken build - unresolved external symbol "public: void __thiscall icinga::ApiClient::ExecuteScript...
+* Bug 10555: Don't try to use --gc-sections on Solaris
+* Bug 10556: Update OpenSSL for the Windows builds
+* Bug 10558: There's a variable called 'string' in filter expressions
+* Bug 10559: Autocompletion doesn't work in the debugger
+* Bug 10560: 'api setup' should create a user even when api feature is already enabled
+* Bug 10561: 'remove-comment' action does not support filters
+* Bug 10562: Documentation should not reference real host names
+* Bug 10563: /v1/console should only use a single permission
+* Bug 10568: Improve location information for errors in API filters
+* Bug 10569: Icinga 2 API Docs
+* Bug 10578: API call doesn't fail when trying to use a template that doesn't exist
+* Bug 10580: Detailed error message is missing when object creation via API fails
+* Bug 10583: modify_attribute: object cannot be cloned
+* Bug 10588: Documentation for /v1/types
+* Bug 10596: Deadlock in MacroProcessor::EvaluateFunction
+* Bug 10601: Don't allow users to set state attributes via PUT
+* Bug 10602: API overwrites (and then deletes) config file when trying to create an object that already exists
+* Bug 10604: Group memberships are not updated for runtime created objects
+* Bug 10629: Download URL for NSClient++ is incorrect
+
 ### What's New in Version 2.3.11
 
 #### Changes
