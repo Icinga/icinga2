@@ -63,7 +63,7 @@ public:
 			return Convert::ToDouble(value);
 		else if (type->GetName() == "Boolean")
 			return Convert::ToBool(value);
-		else if (!type->IsAssignableFrom(value.GetReflectionType()))
+		else if (!value.IsEmpty() && !type->IsAssignableFrom(value.GetReflectionType()))
 			BOOST_THROW_EXCEPTION(ScriptError("Invalid cast: Tried to cast object of type '" + value.GetReflectionType()->GetName() + "' to type '" + type->GetName() + "'", debugInfo));
 		else
 			return value;
