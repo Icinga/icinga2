@@ -989,7 +989,7 @@ String Utility::FormatErrorNumber(int code) {
 	String result = "Unknown error.";
 
 	DWORD rc = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER |
-		FORMAT_MESSAGE_FROM_SYSTEM, NULL, code, 0, (char *)&message,
+		FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, code, 0, (char *)&message,
 		0, NULL);
 
 	if (rc != 0) {
