@@ -82,8 +82,7 @@ void WorkQueue::Enqueue(const Task& task, bool allowInterleaved)
 
 	m_Tasks.push_back(task);
 
-	if (m_Tasks.size() == 1)
-		m_CVEmpty.notify_all();
+	m_CVEmpty.notify_one();
 }
 
 /**
