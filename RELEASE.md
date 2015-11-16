@@ -26,15 +26,15 @@ the changelog.py script. Also generate HTML for the wordpress release announceme
 
 Changelog:
 
-    $ ./changelog.py --version 2.3.11 --project i2
+    $ ./changelog.py --version 2.4.0 --project i2
 
 Docs:
 
-    $ ./changelog.py --version 2.3.11 --project i2 --links
+    $ ./changelog.py --version 2.4.0 --project i2 --links
 
 Wordpress:
 
-    $ ./changelog.py --version 2.3.11 --project i2 --html --links
+    $ ./changelog.py --version 2.4.0 --project i2 --html --links
 
 ## Git Tag
 
@@ -62,16 +62,16 @@ Push the tag.
 For major releases: Create a new "support" branch:
 
     $ git checkout master
-    $ git checkout -b support/2.3
-    $ git push -u origin support/2.3
+    $ git checkout -b support/2.4
+    $ git push -u origin support/2.4
 
 For minor releases: Push the support branch, cherry-pick the release commit
 into master and merge the support branch:
 
-    $ git push -u origin support/2.3
+    $ git push -u origin support/2.4
     $ git checkout master
-    $ git cherry-pick support/2.3
-    $ git merge --strategy=ours support/2.3
+    $ git cherry-pick support/2.4
+    $ git merge --strategy=ours support/2.4
     $ git push origin master
 
 # External Dependencies
