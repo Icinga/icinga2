@@ -322,3 +322,4 @@ More details in the [Icinga FAQ](https://www.icinga.org/icinga/faq/).
 * Bug [10602](https://dev.icinga.org/issues/10602 "Bug 10602"): API overwrites (and then deletes) config file when trying to create an object that already exists
 * Bug [10604](https://dev.icinga.org/issues/10604 "Bug 10604"): Group memberships are not updated for runtime created objects
 * Bug [10629](https://dev.icinga.org/issues/10629 "Bug 10629"): Download URL for NSClient++ is incorrect
+* Bug [10637](https://dev.icinga.org/issues/10637 "Bug 10637"): Utility::FormatErrorNumber fails when error message uses arguments

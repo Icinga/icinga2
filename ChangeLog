@@ -272,6 +272,7 @@ Please check [doc/1-about.md].
 * Bug 10602: API overwrites (and then deletes) config file when trying to create an object that already exists
 * Bug 10604: Group memberships are not updated for runtime created objects
 * Bug 10629: Download URL for NSClient++ is incorrect
+* Bug 10637: Utility::FormatErrorNumber fails when error message uses arguments
 
 ### What's New in Version 2.3.11
 
