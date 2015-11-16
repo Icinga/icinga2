@@ -446,6 +446,9 @@ http_vhost               | **Optional.** The virtual host that should be sent in
 http_uri                 | **Optional.** The request URI for GET or POST. Defaults to `/`.
 http_port                | **Optional.** The TCP port. Defaults to 80 when not using SSL, 443 otherwise.
 http_ssl                 | **Optional.** Whether to use SSL. Defaults to false.
+http_ssl_force_tlsv1     | **Optional.** Whether to force TLSv1.
+http_ssl_force_sslv2     | **Optional.** Whether to force SSLv2.
+http_ssl_force_sslv3     | **Optional.** Whether to force SSLv3.
 http_sni                 | **Optional.** Whether to use SNI. Defaults to false.
 http_auth_pair           | **Optional.** Add 'username:password' authorization pair.
 http_proxy_auth_pair     | **Optional.** Add 'username:password' authorization pair for proxy.
