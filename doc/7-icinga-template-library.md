@@ -1945,7 +1945,7 @@ This category includes all plugins for web-based checks.
 
 #### <a id="plugin-check-command-webinject"></a> webinject
 
-Check command object for the [check_webinject](http://http://www.webinject.org/manual.html) plugin.
+Check command object for the [check_webinject](http://www.webinject.org/manual.html) plugin.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
