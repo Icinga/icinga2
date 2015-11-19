@@ -45,17 +45,20 @@ String PkiUtility::GetLocalCaPath(void)
 
 int PkiUtility::NewCa(void)
 {
-	String cadir = GetLocalCaPath();
+	String caDir = GetLocalCaPath();
+	String caCertFile = caDir + "/ca.crt";
+	String caKeyFile = caDir + "/ca.key";
+	String caSerialFile = caDir + "/serial.txt";
 
-	if (Utility::PathExists(cadir)) {
+	if (Utility::PathExists(caCertFile) && Utility::PathExists(caKeyFile)) {
 		Log(LogCritical, "cli")
-		    << "CA directory '" << cadir << "' already exists.";
+		    << "CA files '" << caCertFile << "' and '" << caKeyFile << "'already exist.";
 		return 1;
 	}
 
-	Utility::MkDirP(cadir, 0700);
+	Utility::MkDirP(caDir, 0700);
 
-	MakeX509CSR("Icinga CA", cadir + "/ca.key", String(), cadir + "/ca.crt", cadir + "/serial.txt", true);
+	MakeX509CSR("Icinga CA", caKeyFile, String(), caCertFile, caSerialFile, true);
 
 	return 0;
 }
