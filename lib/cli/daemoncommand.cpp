@@ -230,7 +230,9 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 	else if (!vm.count("no-config"))
 		configs.push_back(Application::GetSysconfDir() + "/icinga2/icinga2.conf");
 
-	if (!DaemonUtility::LoadConfigFiles(configs, Application::GetObjectsPath(), Application::GetVarsPath()))
+	std::vector<ConfigItem::Ptr> newItems;
+
+	if (!DaemonUtility::LoadConfigFiles(configs, newItems, Application::GetObjectsPath(), Application::GetVarsPath()))
 		return EXIT_FAILURE;
 
 	if (vm.count("validate")) {
@@ -258,11 +260,20 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 		}
 	}
 
+	/* restore the previous program state */
+	try {
+		ConfigObject::RestoreObjects(Application::GetStatePath());
+	} catch (const std::exception& ex) {
+		Log(LogCritical, "cli")
+		    << "Failed to restore state file: " << DiagnosticInformation(ex);
+		return EXIT_FAILURE;
+	}
+
 	{
 		WorkQueue upq(25000, Application::GetConcurrency());
 
 		// activate config only after daemonization: it starts threads and that is not compatible with fork()
-		if (!ConfigItem::ActivateItems(upq, true)) {
+		if (!ConfigItem::ActivateItems(upq, newItems)) {
 			Log(LogCritical, "cli", "Error activating configuration.");
 			return EXIT_FAILURE;
 		}

@@ -84,11 +84,14 @@ struct GlobalConfigFixture {
 		std::vector<std::string> configs;
 		configs.push_back(TestConfig);
 
-		DaemonUtility::LoadConfigFiles(configs, "icinga2.debug", "icinga2.vars");
+		ActivationScope ascope;
+		std::vector<ConfigItem::Ptr> newItems;
+
+		DaemonUtility::LoadConfigFiles(configs, newItems, "icinga2.debug", "icinga2.vars");
 
 		/* ignore config errors */
 		WorkQueue upq;
-		ConfigItem::ActivateItems(upq, false);
+		ConfigItem::ActivateItems(upq, newItems);
 	}
 
 	~GlobalConfigFixture()

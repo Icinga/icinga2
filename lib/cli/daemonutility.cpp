@@ -138,13 +138,16 @@ bool DaemonUtility::ValidateConfigFiles(const std::vector<std::string>& configs,
 }
 
 bool DaemonUtility::LoadConfigFiles(const std::vector<std::string>& configs,
+    std::vector<ConfigItem::Ptr>& newItems,
     const String& objectsFile, const String& varsfile)
 {
+	ActivationScope ascope;
+
 	if (!DaemonUtility::ValidateConfigFiles(configs, objectsFile))
 		return false;
 
 	WorkQueue upq(25000, Application::GetConcurrency());
-	bool result = ConfigItem::CommitItems(upq);
+	bool result = ConfigItem::CommitItems(ascope.GetContext(), upq, newItems);
 
 	if (!result)
 		return false;
