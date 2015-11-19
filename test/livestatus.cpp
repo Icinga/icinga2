@@ -78,13 +78,14 @@ struct GlobalConfigFixture {
 		Application::DeclareSysconfDir("etc");
 		Application::DeclareLocalStateDir("var");
 
+		ActivationScope ascope;
+
 		Loader::LoadExtensionLibrary("icinga");
 		Loader::LoadExtensionLibrary("methods"); //loaded by ITL
 
 		std::vector<std::string> configs;
 		configs.push_back(TestConfig);
 
-		ActivationScope ascope;
 		std::vector<ConfigItem::Ptr> newItems;
 
 		DaemonUtility::LoadConfigFiles(configs, newItems, "icinga2.debug", "icinga2.vars");
