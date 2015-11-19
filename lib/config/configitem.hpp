@@ -22,11 +22,13 @@
 
 #include "config/i2-config.hpp"
 #include "config/expression.hpp"
+#include "config/activationcontext.hpp"
 #include "base/configobject.hpp"
 #include "base/workqueue.hpp"
 
 namespace icinga
 {
+
 
 /**
  * A configuration item. Non-abstract configuration items can be used to
@@ -55,7 +57,6 @@ public:
 	boost::shared_ptr<Expression> GetExpression(void) const;
 	boost::shared_ptr<Expression> GetFilter(void) const;
 
-	ConfigObject::Ptr Commit(bool discard = true);
 	void Register(void);
 	void Unregister(void);
 
@@ -67,10 +68,10 @@ public:
 	static ConfigItem::Ptr GetByTypeAndName(const String& type,
 	    const String& name);
 
-	static bool CommitItems(WorkQueue& upq);
-	static bool ActivateItems(WorkQueue& upq, bool restoreState, bool runtimeCreated = false);
+	static bool CommitItems(const ActivationContext::Ptr& context, WorkQueue& upq, std::vector<ConfigItem::Ptr>& newItems);
+	static bool ActivateItems(WorkQueue& upq, const std::vector<ConfigItem::Ptr>& newItems, bool runtimeCreated = false);
 
-	static bool CommitAndActivate(void);
+	static bool RunWithActivationContext(const Function::Ptr& function);
 
 	static std::vector<ConfigItem::Ptr> GetItems(const String& type);
 
@@ -86,6 +87,7 @@ private:
 	Dictionary::Ptr m_Scope; /**< variable scope. */
 	String m_Zone; /**< The zone. */
 	String m_Package;
+	ActivationContext::Ptr m_ActivationContext;
 
 	ConfigObject::Ptr m_Object;
 
@@ -102,9 +104,12 @@ private:
 	static ConfigItem::Ptr GetObjectUnlocked(const String& type,
 	    const String& name);
 
-	static bool CommitNewItems(WorkQueue& upq, std::vector<ConfigItem::Ptr>& newItems);
+	ConfigObject::Ptr Commit(bool discard = true);
 
-	void OnAllConfigLoadedWrapper(void);
+	static bool CommitNewItems(const ActivationContext::Ptr& context, WorkQueue& upq, std::vector<ConfigItem::Ptr>& newItems);
+
+	void OnAllConfigLoadedHelper(void);
+	void CreateChildObjectsHelper(const Type::Ptr& type);
 };
 
 }

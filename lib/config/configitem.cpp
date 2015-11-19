@@ -44,9 +44,8 @@ using namespace icinga;
 boost::mutex ConfigItem::m_Mutex;
 ConfigItem::TypeMap ConfigItem::m_Items;
 ConfigItem::ItemList ConfigItem::m_UnnamedItems;
-ConfigItem::ItemList ConfigItem::m_CommittedItems;
 
-REGISTER_SCRIPTFUNCTION(commit_objects, &ConfigItem::CommitAndActivate);
+REGISTER_SCRIPTFUNCTION(__run_with_activation_context, &ConfigItem::RunWithActivationContext);
 
 /**
  * Constructor for the ConfigItem class.
@@ -235,11 +234,6 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 		throw;
 	}
 
-	{
-		boost::mutex::scoped_lock lock(m_Mutex);
-		m_CommittedItems.push_back(this);
-	}
-
 	Dictionary::Ptr persistentItem = new Dictionary();
 
 	persistentItem->Set("type", GetType());
@@ -291,14 +285,15 @@ void ConfigItem::Register(void)
 {
 	Type::Ptr type = Type::GetByName(m_Type);
 
+	m_ActivationContext = ActivationContext::GetCurrentContext();
+
+	boost::mutex::scoped_lock lock(m_Mutex);
+
 	/* If this is a non-abstract object with a composite name
 	 * we register it in m_UnnamedItems instead of m_Items. */
-	if (!m_Abstract && dynamic_cast<NameComposer *>(type.get())) {
-		boost::mutex::scoped_lock lock(m_Mutex);
+	if (!m_Abstract && dynamic_cast<NameComposer *>(type.get()))
 		m_UnnamedItems.push_back(this);
-	} else {
-		boost::mutex::scoped_lock lock(m_Mutex);
-
+	else {
 		ItemMap::const_iterator it = m_Items[m_Type].find(m_Name);
 
 		if (it != m_Items[m_Type].end()) {
@@ -324,7 +319,6 @@ void ConfigItem::Unregister(void)
 	boost::mutex::scoped_lock lock(m_Mutex);
 	m_UnnamedItems.erase(std::remove(m_UnnamedItems.begin(), m_UnnamedItems.end(), this), m_UnnamedItems.end());
 	m_Items[m_Type].erase(m_Name);
-	m_CommittedItems.erase(std::remove(m_CommittedItems.begin(), m_CommittedItems.end(), this), m_CommittedItems.end());
 }
 
 /**
@@ -351,7 +345,7 @@ ConfigItem::Ptr ConfigItem::GetByTypeAndName(const String& type, const String& n
 	return it2->second;
 }
 
-void ConfigItem::OnAllConfigLoadedWrapper(void)
+void ConfigItem::OnAllConfigLoadedHelper(void)
 {
 	try {
 		m_Object->OnAllConfigLoaded();
@@ -369,7 +363,13 @@ void ConfigItem::OnAllConfigLoadedWrapper(void)
 	}
 }
 
-bool ConfigItem::CommitNewItems(WorkQueue& upq, std::vector<ConfigItem::Ptr>& newItems)
+void ConfigItem::CreateChildObjectsHelper(const Type::Ptr& type)
+{
+	ActivationScope ascope(m_ActivationContext);
+	m_Object->CreateChildObjects(type);
+}
+
+bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue& upq, std::vector<ConfigItem::Ptr>& newItems)
 {
 	typedef std::pair<ConfigItem::Ptr, bool> ItemPair;
 	std::vector<ItemPair> items;
@@ -379,17 +379,31 @@ bool ConfigItem::CommitNewItems(WorkQueue& upq, std::vector<ConfigItem::Ptr>& ne
 
 		BOOST_FOREACH(const TypeMap::value_type& kv, m_Items) {
 			BOOST_FOREACH(const ItemMap::value_type& kv2, kv.second) {
-				if (!kv2.second->m_Abstract && !kv2.second->m_Object)
-					items.push_back(std::make_pair(kv2.second, false));
+				if (kv2.second->m_Abstract || kv2.second->m_Object)
+					continue;
+
+				if (kv2.second->m_ActivationContext != context)
+					continue;
+
+				items.push_back(std::make_pair(kv2.second, false));
 			}
 		}
 
+		ItemList newUnnamedItems;
+
 		BOOST_FOREACH(const ConfigItem::Ptr& item, m_UnnamedItems) {
-			if (!item->m_Abstract && !item->m_Object)
-				items.push_back(std::make_pair(item, true));
+			if (item->m_ActivationContext != context) {
+				newUnnamedItems.push_back(item);
+				continue;
+			}
+
+			if (item->m_Abstract || item->m_Object)
+				continue;
+
+			items.push_back(std::make_pair(item, true));
 		}
 
-		m_UnnamedItems.clear();
+		m_UnnamedItems.swap(newUnnamedItems);
 	}
 
 	if (items.empty())
@@ -404,13 +418,6 @@ bool ConfigItem::CommitNewItems(WorkQueue& upq, std::vector<ConfigItem::Ptr>& ne
 
 	if (upq.HasExceptions())
 		return false;
-
-	std::vector<ConfigItem::Ptr> new_items;
-
-	{
-		boost::mutex::scoped_lock lock(m_Mutex);
-		new_items.swap(m_CommittedItems);
-	}
 
 	std::set<String> types;
 
@@ -451,12 +458,14 @@ bool ConfigItem::CommitNewItems(WorkQueue& upq, std::vector<ConfigItem::Ptr>& ne
 			if (unresolved_dep)
 				continue;
 
-			BOOST_FOREACH(const ConfigItem::Ptr& item, new_items) {
+			BOOST_FOREACH(const ItemPair& ip, items) {
+				const ConfigItem::Ptr& item = ip.first;
+
 				if (!item->m_Object)
 					continue;
 
 				if (item->m_Type == type)
-					upq.Enqueue(boost::bind(&ConfigItem::OnAllConfigLoadedWrapper, item));
+					upq.Enqueue(boost::bind(&ConfigItem::OnAllConfigLoadedHelper, item));
 			}
 
 			completed_types.insert(type);
@@ -467,12 +476,14 @@ bool ConfigItem::CommitNewItems(WorkQueue& upq, std::vector<ConfigItem::Ptr>& ne
 				return false;
 
 			BOOST_FOREACH(const String& loadDep, ptype->GetLoadDependencies()) {
-				BOOST_FOREACH(const ConfigItem::Ptr& item, new_items) {
+				BOOST_FOREACH(const ItemPair& ip, items) {
+					const ConfigItem::Ptr& item = ip.first;
+
 					if (!item->m_Object)
 						continue;
 
 					if (item->m_Type == loadDep)
-						upq.Enqueue(boost::bind(&ConfigObject::CreateChildObjects, item->m_Object, ptype));
+						upq.Enqueue(boost::bind(&ConfigItem::CreateChildObjectsHelper, item, ptype));
 				}
 			}
 
@@ -481,7 +492,7 @@ bool ConfigItem::CommitNewItems(WorkQueue& upq, std::vector<ConfigItem::Ptr>& ne
 			if (upq.HasExceptions())
 				return false;
 
-			if (!CommitNewItems(upq, newItems))
+			if (!CommitNewItems(context, upq, newItems))
 				return false;
 		}
 	}
@@ -489,13 +500,11 @@ bool ConfigItem::CommitNewItems(WorkQueue& upq, std::vector<ConfigItem::Ptr>& ne
 	return true;
 }
 
-bool ConfigItem::CommitItems(WorkQueue& upq)
+bool ConfigItem::CommitItems(const ActivationContext::Ptr& context, WorkQueue& upq, std::vector<ConfigItem::Ptr>& newItems)
 {
 	Log(LogInformation, "ConfigItem", "Committing config items");
 
-	std::vector<ConfigItem::Ptr> newItems;
-
-	if (!CommitNewItems(upq, newItems)) {
+	if (!CommitNewItems(context, upq, newItems)) {
 		upq.ReportExceptions("config");
 
 		BOOST_FOREACH(const ConfigItem::Ptr& item, newItems) {
@@ -504,6 +513,8 @@ bool ConfigItem::CommitItems(WorkQueue& upq)
 
 		return false;
 	}
+
+	ASSERT(newItems.size() > 0);
 
 	ApplyRule::CheckMatches();
 
@@ -525,34 +536,27 @@ bool ConfigItem::CommitItems(WorkQueue& upq)
 	return true;
 }
 
-bool ConfigItem::ActivateItems(WorkQueue& upq, bool restoreState, bool runtimeCreated)
+bool ConfigItem::ActivateItems(WorkQueue& upq, const std::vector<ConfigItem::Ptr>& newItems, bool runtimeCreated)
 {
 	static boost::mutex mtx;
 	boost::mutex::scoped_lock lock(mtx);
 
-	if (restoreState) {
-		/* restore the previous program state */
-		try {
-			ConfigObject::RestoreObjects(Application::GetStatePath());
-		} catch (const std::exception& ex) {
-			Log(LogCritical, "ConfigItem")
-			    << "Failed to restore state file: " << DiagnosticInformation(ex);
-		}
-	}
-
 	Log(LogInformation, "ConfigItem", "Triggering Start signal for config items");
 
-	BOOST_FOREACH(const ConfigType::Ptr& type, ConfigType::GetTypes()) {
-		BOOST_FOREACH(const ConfigObject::Ptr& object, type->GetObjects()) {
-			if (object->IsActive())
-				continue;
+	BOOST_FOREACH(const ConfigItem::Ptr& item, newItems) {
+		if (!item->m_Object)
+			continue;
+
+		ConfigObject::Ptr object = item->m_Object;
+
+		if (object->IsActive())
+			continue;
 
 #ifdef I2_DEBUG
-			Log(LogDebug, "ConfigItem")
-			    << "Activating object '" << object->GetName() << "' of type '" << object->GetType()->GetName() << "'";
+		Log(LogDebug, "ConfigItem")
+		    << "Activating object '" << object->GetName() << "' of type '" << object->GetType()->GetName() << "'";
 #endif /* I2_DEBUG */
-			upq.Enqueue(boost::bind(&ConfigObject::Activate, object, runtimeCreated));
-		}
+		upq.Enqueue(boost::bind(&ConfigObject::Activate, object, runtimeCreated));
 	}
 
 	upq.Join();
@@ -563,10 +567,13 @@ bool ConfigItem::ActivateItems(WorkQueue& upq, bool restoreState, bool runtimeCr
 	}
 
 #ifdef I2_DEBUG
-	BOOST_FOREACH(const ConfigType::Ptr& type, ConfigType::GetTypes()) {
-		BOOST_FOREACH(const ConfigObject::Ptr& object, type->GetObjects()) {
-			ASSERT(object->IsActive());
-		}
+	BOOST_FOREACH(const ConfigItem::Ptr& item, newItems) {
+		ConfigObject::Ptr object = item->m_Object;
+
+		if (item->m_Abstract)
+			continue;
+
+		ASSERT(object && object->IsActive());
 	}
 #endif /* I2_DEBUG */
 
@@ -575,14 +582,22 @@ bool ConfigItem::ActivateItems(WorkQueue& upq, bool restoreState, bool runtimeCr
 	return true;
 }
 
-bool ConfigItem::CommitAndActivate(void)
+bool ConfigItem::RunWithActivationContext(const Function::Ptr& function)
 {
-	WorkQueue upq(25000, Application::GetConcurrency());
+	ActivationScope scope;
 
-	if (!CommitItems(upq))
+	{
+		ScriptFrame frame;
+		function->Invoke();
+	}
+
+	WorkQueue upq(25000, Application::GetConcurrency());
+	std::vector<ConfigItem::Ptr> newItems;
+
+	if (!CommitItems(scope.GetContext(), upq, newItems))
 		return false;
 
-	if (!ActivateItems(upq, false))
+	if (!ActivateItems(upq, newItems))
 		return false;
 
 	return true;

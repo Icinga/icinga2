@@ -121,14 +121,17 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 	Expression *expr = ConfigCompiler::CompileFile(path, String(), "_api");
 
 	try {
+		ActivationScope ascope;
+
 		ScriptFrame frame;
 		expr->Evaluate(frame);
 		delete expr;
 		expr = NULL;
 
 		WorkQueue upq;
+		std::vector<ConfigItem::Ptr> newItems;
 
-		if (!ConfigItem::CommitItems(upq) || !ConfigItem::ActivateItems(upq, false, true)) {
+		if (!ConfigItem::CommitItems(ascope.GetContext(), upq, newItems) || !ConfigItem::ActivateItems(upq, newItems, true)) {
 			if (errors) {
 				if (unlink(path.CStr()) < 0) {
 					BOOST_THROW_EXCEPTION(posix_error()

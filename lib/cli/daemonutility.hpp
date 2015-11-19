@@ -21,6 +21,7 @@
 #define DAEMONUTILITY_H
 
 #include "cli/i2-cli.hpp"
+#include "config/configitem.hpp"
 #include "base/string.hpp"
 #include <boost/program_options.hpp>
 
@@ -34,7 +35,8 @@ class I2_CLI_API DaemonUtility
 {
 public:
 	static bool ValidateConfigFiles(const std::vector<std::string>& configs, const String& objectsFile = String());
-	static bool LoadConfigFiles(const std::vector<std::string>& configs, const String& objectsFile = String(), const String& varsfile = String());
+	static bool LoadConfigFiles(const std::vector<std::string>& configs, std::vector<ConfigItem::Ptr>& newItems,
+	    const String& objectsFile = String(), const String& varsfile = String());
 };
 
 }

@@ -34,7 +34,7 @@ add_flex_bison_dependency(config_lexer config_parser)
 include_directories(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
 
 set(config_SOURCES
-  applyrule.cpp
+  activationcontext.cpp applyrule.cpp
   configcompilercontext.cpp configcompiler.cpp configitembuilder.cpp
   configitem.cpp ${FLEX_config_lexer_OUTPUTS} ${BISON_config_parser_OUTPUTS}
   expression.cpp objectrule.cpp
