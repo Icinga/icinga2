@@ -112,6 +112,20 @@ apt_critical            | **Optional.** If the full package information of any o
 apt_timeout             | **Optional.** Seconds before plugin times out (default: 10).
 
 
+### <a id="plugin-check-command-breeze"></a> breeze
+
+Check command object for the `check_breeze` plugin.
+
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
+
+Name             | Description
+-----------------|---------------------------------
+breeze_hostname  | **Required.** Name or IP address of host to check. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
+breeze_community | **Optional.** SNMPv1 community. Defaults to "public".
+breeze_warning   | **Required.** Percentage strength below which a WARNING status will result. Defaults to 50.
+breeze_critical  | **Required.** Percentage strength below which a WARNING status will result. Defaults to 20.
+
+
 ### <a id="plugin-check-command-by-ssh"></a> by_ssh
 
 Check command object for the `check_by_ssh` plugin.
@@ -311,6 +325,18 @@ file_age_critical_size | **Optional.** File must be at least this many bytes lon
 file_age_ignoremissing | **Optional.** Return OK if the file does not exist. Defaults to false.
 
 
+### <a id="plugin-check-command-flexlm"></a> flexlm
+
+Check command object for the `check_flexlm` plugin. Requires the command `lmstat` installed.
+
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
+
+Name               | Description
+-------------------|----------------------------------------------------------
+flexlm_licensefile | **Required.** Name of license file (usually license.dat).
+flexlm_timeout     | **Optional.** Plugin time out in seconds. Defaults to 15.
+
+
 ### <a id="plugin-check-command-fping4"></a> fping4
 
 Check command object for the `check_fping` plugin.
@@ -381,6 +407,25 @@ ftp_ctime          | **Optional.** Response time to result in critical status (s
 ftp_timeout        | **Optional.** Seconds before connection times out. Defaults to 10.
 ftp_ipv4           | **Optional.** Use IPv4 connection. Defaults to false.
 ftp_ipv6           | **Optional.** Use IPv6 connection. Defaults to false.
+
+
+### <a id="plugin-check-command-game"></a> game
+
+Check command object for the `check_game` plugin. Requires the command `qstat` (if installed from packages typically named `quakestat`) which also allows to provide some default configuration.
+
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
+
+Name               | Description
+-------------------|--------------
+game_game | **Required.** Name of the game.
+game_ipaddress | **Required.** Ipaddress of the game server to query.
+game_timeout | **Optional.** Seconds before connection times out. Defaults to 10.
+game_port | **Optional.** Port to connect to.
+game_gamefield | **Optional.** Field number in raw qstat output that contains game name.
+game_mapfield  | **Optional.** Field number in raw qstat output that contains map name.
+game_pingfield | **Optional.** Field number in raw qstat output that contains ping time.
+game_gametime  | **Optional.** Field number in raw qstat output that contains game time.
+game_hostname  | **Optional.** Name of the host running the game.
 
 
 ### <a id="plugin-check-command-hostalive"></a> hostalive
