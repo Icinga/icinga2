@@ -829,7 +829,7 @@ Send a `POST` request to the URL endpoint `/v1/actions/add-comment`.
 
   Parameter | Type   | Description
   ----------|--------|--------------
-  author    | string | **Required.** name of the author, may be empty.
+  author    | string | **Required.** Name of the author, may be empty.
   comment   | string | **Required.** Comment text, may be empty.
 
 In addition to these parameters a [filter](9-icinga2-api.md#icinga2-api-filters) must be provided. The valid types for this action are `Host` and `Service`.
@@ -900,13 +900,15 @@ Schedule a downtime for hosts and services.
 
 Send a `POST` request to the URL endpoint `/v1/actions/schedule-downtime`.
 
-  Parameter   | Type      | Description
-  ------------|-----------|--------------
-  start\_time | timestamp | **Required.** Timestamp marking the beginning of the downtime.
-  end\_time   | timestamp | **Required.** Timestamp marking the end of the downtime.
-  duration    | integer   | **Required.** Duration of the downtime in seconds if `fixed` is set to false.
-  fixed       | boolean   | **Optional.** Defaults to `false`. If true the downtime is `fixed` otherwise `flexible`. See [downtimes](5-advanced-topics.md#downtimes) for more information.
-  trigger\_name | string   | **Optional.** Sets the trigger for a triggered downtime. See [downtimes](5-advanced-topics.md#downtimes) for more information on triggered downtimes.
+  Parameter     | Type      | Description
+  --------------|-----------|--------------
+  author        | string    | **Required.** Name of the author.
+  comment       | string    | **Required.** Comment text.
+  start\_time   | timestamp | **Required.** Timestamp marking the beginning of the downtime.
+  end\_time     | timestamp | **Required.** Timestamp marking the end of the downtime.
+  duration      | integer   | **Required.** Duration of the downtime in seconds if `fixed` is set to false.
+  fixed         | boolean   | **Optional.** Defaults to `false`. If true the downtime is `fixed` otherwise `flexible`. See [downtimes](5-advanced-topics.md#downtimes) for more information.
+  trigger\_name | string    | **Optional.** Sets the trigger for a triggered downtime. See [downtimes](5-advanced-topics.md#downtimes) for more information on triggered downtimes.
 
 In addition to these parameters a [filter](9-icinga2-api.md#icinga2-api-filters) must be provided. The valid types for this action are `Host` and `Service`.
 
