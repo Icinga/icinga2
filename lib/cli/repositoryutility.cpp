@@ -233,6 +233,7 @@ bool RepositoryUtility::AddObject(const std::vector<String>& object_paths, const
 	if (check_config) {
 		try {
 			ConfigObject::Ptr object = static_pointer_cast<ConfigObject>(utype->Instantiate());
+			attrs->Set("type", utype->GetName());
 			Deserialize(object, attrs, false, FAConfig);
 			object->SetName(name);
 
