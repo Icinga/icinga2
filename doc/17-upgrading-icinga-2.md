@@ -12,7 +12,7 @@ If you're upgrading an existing Icinga 2 instance you should check the
 >
 > If there isn't an upgrade file for your current version available there's nothing to do.
 
-Apply all database schema upgrade files incrementially.
+Apply all database schema upgrade files incrementally.
 
     # mysql -u root -p icinga < /usr/share/icinga2-ido-mysql/schema/upgrade/<version>.sql
 
@@ -27,7 +27,7 @@ the *upgrade* directory:
     2.0.2.sql  2.1.0.sql 2.2.0.sql 2.3.0.sql
 
 There are two new upgrade files called `2.1.0.sql`, `2.2.0.sql` and `2.3.0.sql`
-which must be applied incrementially to your IDO database.
+which must be applied incrementally to your IDO database.
 
 ## <a id="upgrading-postgresql-db"></a> Upgrading the PostgreSQL database
 
@@ -38,7 +38,7 @@ If you're updating an existing Icinga 2 instance you should check the
 >
 > If there isn't an upgrade file for your current version available there's nothing to do.
 
-Apply all database schema upgrade files incrementially.
+Apply all database schema upgrade files incrementally.
 
     # export PGPASSWORD=icinga
     # psql -U icinga -d icinga < /usr/share/icinga2-ido-pgsql/schema/upgrade/<version>.sql
@@ -53,4 +53,4 @@ the *upgrade* directory:
     2.0.2.sql  2.1.0.sql 2.2.0.sql 2.3.0.sql
 
 There are two new upgrade files called `2.1.0.sql`, `2.2.0.sql` and `2.3.0.sql`
-which must be applied incrementially to your IDO database.
+which must be applied incrementally to your IDO database.

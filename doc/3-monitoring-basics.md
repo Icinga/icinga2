@@ -672,7 +672,7 @@ with many interfaces (services). The following requirements/problems apply:
 * Each interface service check should be named with a prefix and a name defined in your host object (which could be generated from your CMDB, etc)
 * Each interface has its own vlan tag
 * Some interfaces have QoS enabled
-* Additional attributes such as `display_name` or `notes, `notes_url` and `action_url` must be
+* Additional attributes such as `display_name` or `notes`, `notes_url` and `action_url` must be
 dynamically generated
 
 
@@ -810,7 +810,7 @@ inherited custom attributes:
     # icinga2 daemon -C
     # icinga2 object list --type Service --name *catalyst*
 
-Object 'cisco-catalyst-6509-34!if-GigabitEthernet0/2' of type 'Service':
+    Object 'cisco-catalyst-6509-34!if-GigabitEthernet0/2' of type 'Service':
     ......
       * vars
         % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 59:3-59:26
@@ -969,7 +969,7 @@ to a group based on their attributes:
     }
 
 In this example all hosts with the `vars` attribute `mssql_port`
-will be added as members to the host group `mssql`. However, all `*internal`
+will be added as members to the host group `mssql`. However, all `\*internal`
 hosts or with the `test_server` attribute set to `true` are not added to this
 group.
 

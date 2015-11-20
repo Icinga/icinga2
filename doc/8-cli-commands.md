@@ -628,7 +628,7 @@ Or manually passing the `-C` argument:
 >
 > `# icinga2 daemon -C`
 
-If you encouter errors during configuration validation, please make sure
+If you encounter errors during configuration validation, please make sure
 to read the [troubleshooting](16-troubleshooting.md#troubleshooting) chapter.
 
 You can also use the [CLI command](8-cli-commands.md#cli-command-object) `icinga2 object list`
