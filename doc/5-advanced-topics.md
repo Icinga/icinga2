@@ -6,7 +6,7 @@ can safely skip over things you're not interested in.
 ## <a id="downtimes"></a> Downtimes
 
 Downtimes can be scheduled for planned server maintenance or
-any other targetted service outage you are aware of in advance.
+any other targeted service outage you are aware of in advance.
 
 Downtimes will suppress any notifications, and may trigger other
 downtimes too. If the downtime was set by accident, or the duration
@@ -66,7 +66,7 @@ This is optional when scheduling a downtime. If there is already a downtime
 scheduled for a future maintenance, the current downtime can be triggered by
 that downtime. This renders useful if you have scheduled a host downtime and
 are now scheduling a child host's downtime getting triggered by the parent
-downtime on NOT-OK state change.
+downtime on `NOT-OK` state change.
 
 ### <a id="recurring-downtimes"></a> Recurring Downtimes
 
@@ -98,7 +98,7 @@ Example:
 Comments can be added at runtime and are persistent over restarts. You can
 add useful information for others on repeating incidents (for example
 "last time syslog at 100% cpu on 17.10.2013 due to stale nfs mount") which
-is primarly accessible using web interfaces.
+is primarily accessible using web interfaces.
 
 Adding and deleting comment actions are possible through the external command pipe
 provided with the `ExternalCommandListener` configuration. The caller must
@@ -140,7 +140,7 @@ configuration attributes for `Notification` and `User` objects.
 
 > **Note**
 >
-> If you are familar with Icinga 1.x - these time period definitions
+> If you are familiar with Icinga 1.x - these time period definitions
 > are called `legacy timeperiods` in Icinga 2.
 >
 > An Icinga 2 legacy timeperiod requires the `ITL` provided template
@@ -234,10 +234,10 @@ inside the `icinga2.log` file depending in your log severity
 ### <a id="use-functions-command-arguments-setif"></a> Use Functions in Command Arguments set_if
 
 The `set_if` attribute inside the command arguments definition in the
-[CheckCommand object definition](6-object-types.md#objecttype-checkcommand) is primarly used to
+[CheckCommand object definition](6-object-types.md#objecttype-checkcommand) is primarily used to
 evaluate whether the command parameter should be set or not.
 
-By default you can evaluate runtime macros for their existance, and if the result is not an empty
+By default you can evaluate runtime macros for their existence, and if the result is not an empty
 string the command parameter is passed. This becomes fairly complicated when want to evaluate
 multiple conditions and attributes.
 
@@ -489,7 +489,7 @@ If the freshness checks are invalid, a new check is executed defined by the
 ## <a id="check-flapping"></a> Check Flapping
 
 The flapping algorithm used in Icinga 2 does not store the past states but
-calculcates the flapping threshold from a single value based on counters and
+calculates the flapping threshold from a single value based on counters and
 half-life values. Icinga 2 compares the value with a single flapping threshold
 configuration attribute named `flapping_threshold`.
 

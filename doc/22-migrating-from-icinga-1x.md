@@ -1184,7 +1184,7 @@ Icinga 2 doesn't support non-persistent comments.
 Unlike in Icinga 1.x there are three different command types in Icinga 2:
 `CheckCommand`, `NotificationCommand`, and `EventCommand`.
 
-For example in Icinga 1.x it is possible to accidently use a notification
+For example in Icinga 1.x it is possible to accidentally use a notification
 command as an event handler which might cause problems depending on which
 runtime macros are used in the notification command.
 
@@ -1356,7 +1356,7 @@ is as follows:
 
 The flapping value is then compared to the low and high flapping thresholds.
 
-The algorithm used in Icinga 2 does not store the past states but calculcates the flapping
+The algorithm used in Icinga 2 does not store the past states but calculates the flapping
 threshold from a single value based on counters and half-life values. Icinga 2 compares
 the value with a single flapping threshold configuration attribute.
 

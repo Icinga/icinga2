@@ -211,7 +211,7 @@ Available permissions for specific URL endpoints:
   events/&lt;type&gt;           | /v1/events    | No
   console                       | /v1/console   | No
 
-The required actions or types can be replaced by using a wildcard match ("*").
+The required actions or types can be replaced by using a wildcard match ("\*").
 
 ### <a id="icinga2-api-parameters"></a> Parameters
 
