@@ -382,7 +382,6 @@ The idea is simple: Your host in [hosts.conf](4-configuring-icinga-2.md#hosts-co
 Remember the example from [hosts.conf](4-configuring-icinga-2.md#hosts-conf):
 
     ...
-
       /* Define disks and attributes for service apply rules in `services.conf`. */
       vars.disks["disk"] = {
         /* No parameters. */
