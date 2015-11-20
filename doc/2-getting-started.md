@@ -498,15 +498,17 @@ and located at /usr/local/share/icinga2-ido-pgsql/schema/pgsql.sql
 Set up a PostgreSQL database for Icinga 2:
 
     # cd /tmp
-    # sudo -u postgres psql -c "CREATE ROLE icinga WITH LOGIN PASSWORD 'icinga'";
+    # sudo -u postgres psql -c "CREATE ROLE icinga WITH LOGIN PASSWORD 'icinga'"
     # sudo -u postgres createdb -O icinga -E UTF8 icinga
     # sudo -u postgres createlang plpgsql icinga
 
 > **Note**
 >
 > When using PostgreSQL 9.x you can omit the `createlang` command.
+> Also it is assumed here that your locale is set to utf-8, you may run into
+> problems otherwise.
 
-Locate your pg_hba.conf (Debian: `/etc/postgresql/*/main/pg_hba.conf`,
+Locate your pg\_hba.conf (Debian: `/etc/postgresql/*/main/pg_hba.conf`,
 RHEL/SUSE: `/var/lib/pgsql/data/pg_hba.conf`), add the icinga user with md5
 authentication method and restart the postgresql server.
 
