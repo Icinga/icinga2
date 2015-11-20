@@ -366,6 +366,32 @@ You can omit the `log()` calls, they only help debugging.
       }
     }
 
+### <a id="custom-functions-as-attribute"></a> Use Custom Functions as Attribute
+
+To use custom functions as attributes, the function must be defined in a
+slightly unexpected way. The following example shows how to assign values
+depending on group membership. All hosts in the `slow-lan` host group use 300
+as value for `ping_wrta`, all other hosts use 100.
+
+    globals.group_specific_value = function(group, group_value, non_group_value) {
+        return function() use (group, group_value, non_group_value) {
+            if (group in host.groups) {
+                return group_value
+            } else {
+                return non_group_value
+            }
+        }
+    }
+    
+    apply Service "ping4" {
+        import "generic-service"
+        check_command = "ping4"
+    
+        vars.ping_wrta = group_specific_value("slow-lan", 300, 100)
+        vars.ping_crta = group_specific_value("slow-lan", 500, 200)
+    
+        assign where true
+    }
 
 
 ## <a id="access-object-attributes-at-runtime"></a> Access Object Attributes at Runtime
