@@ -342,8 +342,8 @@ object:
 		context->m_ObjectAssign.push(true);
 		context->m_SeenAssign.push(false);
 		context->m_SeenIgnore.push(false);
-		context->m_Assign.push(NULL);
-		context->m_Ignore.push(NULL);
+		context->m_Assign.push(0);
+		context->m_Ignore.push(0);
 	}
 	object_declaration identifier optional_rterm use_specifier ignore_specifier rterm_scope_require_side_effect
 	{
