@@ -44,9 +44,6 @@
 #ifdef __linux__
 #include <sys/prctl.h>
 #endif /* __linux__ */
-#ifdef _WIN32
-#include <VersionHelpers.h>
-#endif /*_WIN32*/
 
 using namespace icinga;
 
@@ -483,107 +480,6 @@ String Application::GetExePath(const String& argv0)
 #endif /* _WIN32 */
 }
 
-#ifndef _WIN32
-static String UnameHelper(char type)
-{
-	/* Unfortunately the uname() system call doesn't support some of the
-	 * query types we're interested in - so we're using popen() instead. */
-
-	char cmd[] = "uname -X 2>&1";
-	cmd[7] = type;
-
-	FILE *fp = popen(cmd, "r");
-
-	char line[1024];
-	std::ostringstream msgbuf;
-
-	while (fgets(line, sizeof(line), fp) != NULL)
-		msgbuf << line;
-
-	pclose(fp);
-
-	String result = msgbuf.str();
-
-	return result.Trim();
-}
-
-int ReleaseHelper(std::string &result)
-{
-	/* You are useing *some* distribution */
-	FILE *fp = popen("lsb_release -s -d 2>&1", "r");
-	std::ostringstream msgbuf;
-
-	if (fp != NULL) {
-		char line[1024];
-		while (fgets(line, sizeof(line), fp) != NULL)
-			msgbuf << line;
-		int status = pclose(fp);
-		if (WEXITSTATUS(status) == 0) { 
-			result = msgbuf.str();
-			boost::trim(result);
-			return result.length();
-		}
-	}
-
-	/* You have systemd or Ubuntu etc. */
-	std::ifstream release("/etc/os-release");
-	std::string release_line;
-	if (release.is_open()) {
-		while (getline(release, release_line)) {
-			if (release_line.find("PRETTY_NAME") != std::string::npos) {
-				result = release_line.substr(13, release_line.length() - 14); 
-				return result.length();
-			}
-		}
-	}
-
-	/* Centos < 7 */
-	release.close();
-	release.open("/etc/redhat-release");
-	if (release.is_open()) {
-		getline(release, release_line);
-		result = release_line;
-		return result.length();
-	}
-
-	/* sles 11 sp3, opensuse w/e */
-	release.close();
-	release.open("etc/SuSE-release");
-	if (release.is_open()) {
-		getline(release, release_line);
-		result = release_line;
-		return result.length();
-	}
-
-	/* Just give up */
-	return 0;
-}
-
-#else
-static String WindowsVersionHelper()
-{
-	//Minimum required Version, the installer/user is in the responsibility to take care of that
-	String winver = "Windows Vista";
-	if (IsWindowsVistaSP1OrGreater())
-		winver = "Windows Vista SP1";
-	if (IsWindowsVistaSP2OrGreater())
-		winver = "Windows Vista SP2";
-	if (IsWindows7OrGreater())
-		winver = "Windows 7";
-	if (IsWindows7SP1OrGreater())
-		winver = "Windows 7 SP1";
-	if (IsWindows8OrGreater())
-		winver = "Windows 8";
-	if (IsWindows8Point1OrGreater())
-		winver = "Windows 8.1 or greater";
-	if (IsWindowsServer())
-		winver += " (Server)";
-
-	return winver;
-}
-
-#endif /* _WIN32 */
-
 /**
  * Display version and path information.
  */
@@ -605,24 +501,13 @@ void Application::DisplayInfoMessage(std::ostream& os, bool skipVersion)
 	   << "  Vars path: " << GetVarsPath() << "\n"
 	   << "  PID path: " << GetPidPath() << "\n";
 
-#ifndef _WIN32
 	os << "\n"
 	   << "System information:" << "\n"
-	   << "  Operating system: " << UnameHelper('s') << "\n"
-	   << "  Operating system version: " << UnameHelper('r') << "\n"
-	   << "  Architecture: " << UnameHelper('m') << "\n";
-#else
-	os << "\n"
-	   << "System information:\n"
-	   << "  Operating system: Windows\n"
-	   << "  Operating system version: " << WindowsVersionHelper() << "\n";
-#endif /* _WIN32 */
-
-#ifdef __linux__
-	std::string release;
-	if (ReleaseHelper(release))
-		os << "  Distribution: " << release << "\n";
-#endif /* __linux__ */
+	   << "  Platform: " << Utility::GetPlatformName() << "\n"
+	   << "  Platform version: " << Utility::GetPlatformVersion() << "\n"
+	   << "  Kernel: " << Utility::GetPlatformKernel() << "\n"
+	   << "  Kernel version: " << Utility::GetPlatformKernelVersion() << "\n"
+	   << "  Architecture: " << Utility::GetPlatformArchitecture() << "\n";
 }
 
 /**

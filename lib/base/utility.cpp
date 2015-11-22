@@ -46,11 +46,14 @@
 #endif /* HAVE_CXXABI_H */
 
 #ifndef _WIN32
-#       include <sys/types.h>
-#       include <pwd.h>
-#       include <grp.h>
+#	include <sys/types.h>
+#	include <pwd.h>
+#	include <grp.h>
 #endif /* _WIN32 */
 
+#ifdef _WIN32
+#	include <VersionHelpers.h>
+#endif /*_WIN32*/
 
 using namespace icinga;
 
@@ -1404,4 +1407,249 @@ String Utility::UnescapeString(const String& s)
 	}
 
 	return result.str();
+}
+
+#ifndef _WIN32
+static String UnameHelper(char type)
+{
+	/* Unfortunately the uname() system call doesn't support some of the
+	* query types we're interested in - so we're using popen() instead. */
+
+	char cmd[] = "uname -X 2>&1";
+	cmd[7] = type;
+
+	FILE *fp = popen(cmd, "r");
+
+	char line[1024];
+	std::ostringstream msgbuf;
+
+	while (fgets(line, sizeof(line), fp) != NULL)
+		msgbuf << line;
+
+	pclose(fp);
+
+	String result = msgbuf.str();
+
+	return result.Trim();
+}
+#endif /* _WIN32 */
+static bool ReleaseHelper(String *platformName, String *platformVersion)
+{
+#ifdef _WIN32
+	if (platformName)
+		*platformName = "Windows";
+
+	if (platformVersion) {
+		String *platformVersion = "Vista";
+		if (IsWindowsVistaSP1OrGreater())
+			*platformVersion = "Vista SP1";
+		if (IsWindowsVistaSP2OrGreater())
+			*platformVersion = "Vista SP2";
+		if (IsWindows7OrGreater())
+			*platformVersion = "7";
+		if (IsWindows7SP1OrGreater())
+			*platformVersion = "7 SP1";
+		if (IsWindows8OrGreater())
+			*platformVersion = "8";
+		if (IsWindows8Point1OrGreater())
+			*platformVersion = "8.1 or greater";
+		if (IsWindowsServer())
+			*platformVersion += " (Server)";
+	}
+
+	return true;
+#else /* _WIN32 */
+	if (platformName)
+		*platformName = "Unknown";
+
+	if (platformVersion)
+		*platformVersion = "Unknown";
+
+	/* You are using a distribution which supports LSB. */
+	FILE *fp = popen("lsb_release -s -i 2>&1", "r");
+
+	if (fp != NULL) {
+		std::ostringstream msgbuf;
+		char line[1024];
+		while (fgets(line, sizeof(line), fp) != NULL)
+			msgbuf << line;
+		int status = pclose(fp);
+		if (WEXITSTATUS(status) == 0) {
+			if (platformName)
+				*platformName = msgbuf.str();
+		}
+	}
+
+	fp = popen("lsb_release -s -r 2>&1", "r");
+
+	if (fp != NULL) {
+		std::ostringstream msgbuf;
+		char line[1024];
+		while (fgets(line, sizeof(line), fp) != NULL)
+			msgbuf << line;
+		int status = pclose(fp);
+		if (WEXITSTATUS(status) == 0) {
+			if (platformVersion)
+				*platformVersion = msgbuf.str();
+		}
+	}
+
+	/* OS X */
+	fp = popen("sw_vers -productName 2>&1", "r");
+
+	if (fp != NULL) {
+		std::ostringstream msgbuf;
+		char line[1024];
+		while (fgets(line, sizeof(line), fp) != NULL)
+			msgbuf << line;
+		int status = pclose(fp);
+		if (WEXITSTATUS(status) == 0) {
+			String info = msgbuf.str();
+			info = info.Trim();
+
+			if (platformName)
+				*platformName = info;
+		}
+	}
+
+	fp = popen("sw_vers -productVersion 2>&1", "r");
+
+	if (fp != NULL) {
+		std::ostringstream msgbuf;
+		char line[1024];
+		while (fgets(line, sizeof(line), fp) != NULL)
+			msgbuf << line;
+		int status = pclose(fp);
+		if (WEXITSTATUS(status) == 0) {
+			String info = msgbuf.str();
+			info = info.Trim();
+
+			if (platformVersion)
+				*platformVersion = info;
+
+			return true;
+		}
+	}
+
+	/* You have systemd or Ubuntu etc. */
+	std::ifstream release("/etc/os-release");
+	if (release.is_open()) {
+		std::string release_line;
+		while (getline(release, release_line)) {
+			if (platformName) {
+				if (release_line.find("NAME") != std::string::npos) {
+					*platformName = release_line.substr(6, release_line.length() - 7);
+				}
+			}
+
+			if (platformVersion) {
+				if (release_line.find("VERSION") != std::string::npos) {
+					*platformVersion = release_line.substr(8, release_line.length() - 9);
+				}
+			}
+		}
+
+		return true;
+	}
+
+	/* Centos < 7 */
+	release.close();
+	release.open("/etc/redhat-release");
+	if (release.is_open()) {
+		std::string release_line;
+		getline(release, release_line);
+
+		String info = release_line;
+
+		if (platformName)
+			*platformName = info.SubStr(0, info.FindFirstOf(" "));
+
+		if (platformVersion)
+			*platformVersion = info.SubStr(info.FindFirstOf(" ") + 1);
+
+		return true;
+	}
+
+	/* sles 11 sp3, opensuse w/e */
+	release.close();
+	release.open("/etc/SuSE-release");
+	if (release.is_open()) {
+		std::string release_line;
+		getline(release, release_line);
+
+		String info = release_line;
+
+		if (platformName)
+			*platformName = info.SubStr(0, info.FindFirstOf(" "));
+
+		if (platformVersion)
+			*platformVersion = info.SubStr(info.FindFirstOf(" ") + 1);
+
+		return true;
+	}
+
+	/* Just give up */
+	return false;
+#endif /* _WIN32 */
+}
+
+String Utility::GetPlatformKernel(void)
+{
+#ifdef _WIN32
+	return "Windows";
+#else /* _WIN32 */
+	return UnameHelper('s');
+#endif /* _WIN32 */
+}
+
+String Utility::GetPlatformKernelVersion(void)
+{
+#ifdef _WIN32
+	OSVERSIONINFO info;
+	info.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+	GetVersionEx(&info);
+
+	std::ostringstream msgbuf;
+	msgbuf << info.dwMajorVersion << "." << info.dwMinorVersion;
+
+	return msgbuf.str();
+#else /* _WIN32 */
+	return UnameHelper('r');
+#endif /* _WIN32 */
+}
+
+String Utility::GetPlatformName(void)
+{
+	String platformName;
+	if (!ReleaseHelper(&platformName, NULL))
+		return "Unknown";
+	return platformName;
+}
+
+String Utility::GetPlatformVersion(void)
+{
+	String platformVersion;
+	if (!ReleaseHelper(NULL, &platformVersion))
+		return "Unknown";
+	return platformVersion;
+}
+
+String Utility::GetPlatformArchitecture(void)
+{
+#ifdef _WIN32
+	SYSTEM_INFO info;
+	GetNativeSystemInfo(&info);
+	switch (info.wProcessorArchitecture) {
+		case PROCESSOR_ARCHITECTURE_AMD64:
+			return "x86_64";
+		case PROCESSOR_ARCHITECTURE_ARM:
+			return "arm";
+		case PROCESSOR_ARCHITECTURE_INTEL:
+			return "x86";
+		default:
+			return "unknown";
+	}
+#else /* _WIN32 */
+	return UnameHelper('m');
+#endif /* _WIN32 */
 }
