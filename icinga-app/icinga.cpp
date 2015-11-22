@@ -176,6 +176,12 @@ int Main(void)
 
 	ScriptGlobal::Set("AttachDebugger", false);
 
+	ScriptGlobal::Set("PlatformKernel", Utility::GetPlatformKernel());
+	ScriptGlobal::Set("PlatformKernelVersion", Utility::GetPlatformKernelVersion());
+	ScriptGlobal::Set("PlatformName", Utility::GetPlatformName());
+	ScriptGlobal::Set("PlatformVersion", Utility::GetPlatformVersion());
+	ScriptGlobal::Set("PlatformArchitecture", Utility::GetPlatformArchitecture());
+
 	LogSeverity logLevel = Logger::GetConsoleLogSeverity();
 	Logger::SetConsoleLogSeverity(LogWarning);
 

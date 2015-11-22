@@ -133,6 +133,12 @@ public:
 	static Value LoadJsonFile(const String& path);
 	static void SaveJsonFile(const String& path, const Value& value);
 
+	static String GetPlatformKernel(void);
+	static String GetPlatformKernelVersion(void);
+	static String GetPlatformName(void);
+	static String GetPlatformVersion(void);
+	static String GetPlatformArchitecture(void);
+
 private:
 	Utility(void);
 	static void CollectPaths(const String& path, std::vector<String>& paths);

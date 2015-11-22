@@ -371,7 +371,11 @@ NodeName            |**Read-write.** Contains the cluster node name. Set to the 
 UseVfork            |**Read-write.** Whether to use vfork(). Only available on *NIX. Defaults to true.
 AttachDebugger      |**Read-write.** Whether to attach a debugger when Icinga 2 crashes. Defaults to false.
 RunAsUser           |**Read-write.** Defines the user the Icinga 2 daemon is running as. Used in the `init.conf` configuration file.
-RunAsGroup	    |**Read-write.** Defines the group the Icinga 2 daemon is running as. Used in the `init.conf` configuration file.
+RunAsGroup          |**Read-write.** Defines the group the Icinga 2 daemon is running as. Used in the `init.conf` configuration file.
+PlatformName        |**Read-only.** The name of the operating system, e.g. "Ubuntu".
+PlatformVersion     |**Read-only.** The version of the operating system, e.g. "14.04.3 LTS".
+PlatformKernel      |**Read-only.** The name of the operating system kernel, e.g. "Linux".
+PlatformKernelVersion|**Read-only.** The version of the operating system kernel, e.g. "3.13.0-63-generic".
 
 ## <a id="apply"></a> Apply
 
