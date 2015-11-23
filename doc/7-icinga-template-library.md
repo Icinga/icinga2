@@ -2066,7 +2066,11 @@ mem_critical | **Required.** Specify the critical threshold as number interprete
 Check command object for the `check_running_kernel` plugin
 provided by the `nagios-plugins-contrib` package on Debian.
 
-The `running_kernel` check command does not support any vars.
+Custom attributes:
+
+Name                       | Description
+---------------------------|-------------
+running\_kernel\_use\_sudo | Whether to run the plugin with `sudo`. Defaults to false except on Ubuntu where it defaults to true.
 
 #### <a id="plugin-contrib-command-yum"></a> yum
 
