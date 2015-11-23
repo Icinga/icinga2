@@ -570,7 +570,7 @@ bool ConfigItem::ActivateItems(WorkQueue& upq, const std::vector<ConfigItem::Ptr
 	BOOST_FOREACH(const ConfigItem::Ptr& item, newItems) {
 		ConfigObject::Ptr object = item->m_Object;
 
-		if (item->m_Abstract)
+		if (!object)
 			continue;
 
 		ASSERT(object && object->IsActive());
