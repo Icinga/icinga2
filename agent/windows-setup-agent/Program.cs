@@ -23,7 +23,7 @@ namespace Icinga
 
 		public static void FatalError(Form owner, string message)
 		{
-			MessageBox.Show(owner, message, owner.Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
+			MessageBox.Show(owner, message, "Icinga 2 Setup Wizard", MessageBoxButtons.OK, MessageBoxIcon.Error);
 			Application.Exit();
 		}
 
