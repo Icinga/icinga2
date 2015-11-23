@@ -116,10 +116,11 @@ the duplicate import in your `~/.gdbinit` file.
 
 ### <a id="development-debug-gdb-run"></a> GDB Run
 
-Call GDB with the binary and all arguments and run it in foreground.
+Call GDB with the binary (`/usr/sbin/icinga2` is a wrapper script calling
+`/usr/lib64/icinga2/sbin/icinga2` since 2.4) and all arguments and run it in foreground.
 If VFork causes trouble disable it inside the gdb run.
 
-    # gdb --args /usr/sbin/icinga2 daemon -x debug -DUseVfork=0
+    # gdb --args /usr/lib64/icinga2/sbin/icinga2 daemon -x debug -DUseVfork=0
 
 > **Note**
 >
