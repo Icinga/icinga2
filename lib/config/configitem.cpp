@@ -313,8 +313,10 @@ void ConfigItem::Register(void)
  */
 void ConfigItem::Unregister(void)
 {
-	if (m_Object)
+	if (m_Object) {
 		m_Object->Unregister();
+		m_Object.reset();
+	}
 
 	boost::mutex::scoped_lock lock(m_Mutex);
 	m_UnnamedItems.erase(std::remove(m_UnnamedItems.begin(), m_UnnamedItems.end(), this), m_UnnamedItems.end());
