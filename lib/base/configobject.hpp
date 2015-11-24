@@ -53,6 +53,8 @@ public:
 	Value GetExtension(const String& key);
 	void ClearExtension(const String& key);
 
+	ConfigObject::Ptr GetZone(void) const;
+
 	void ModifyAttribute(const String& attr, const Value& value, bool updateVersion = true);
 	void RestoreAttribute(const String& attr, bool updateVersion = true);
 	bool IsAttributeModified(const String& attr) const;
@@ -97,6 +99,8 @@ protected:
 	explicit ConfigObject(void);
 
 private:
+	ConfigObject::Ptr m_Zone;
+
 	static void RestoreObject(const String& message, int attributeTypes);
 };
 

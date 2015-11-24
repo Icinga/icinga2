@@ -59,6 +59,8 @@ public:
 	Endpoint::Ptr GetMaster(void) const;
 	bool IsMaster(void) const;
 
+	Endpoint::Ptr GetLocalEndpoint(void) const;
+
 	static String GetApiDir(void);
 
 	void SyncSendMessage(const Endpoint::Ptr& endpoint, const Dictionary::Ptr& message);
@@ -97,6 +99,9 @@ private:
 	std::set<JsonRpcConnection::Ptr> m_AnonymousClients;
 	std::set<HttpServerConnection::Ptr> m_HttpClients;
 	Timer::Ptr m_Timer;
+	Endpoint::Ptr m_LocalEndpoint;
+
+	static ApiListener::Ptr m_Instance;
 
 	void ApiTimerHandler(void);
 
