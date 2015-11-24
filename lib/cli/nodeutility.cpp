@@ -19,6 +19,7 @@
 
 #include "cli/nodeutility.hpp"
 #include "cli/clicommand.hpp"
+#include "cli/variableutility.hpp"
 #include "base/logger.hpp"
 #include "base/application.hpp"
 #include "base/tlsutility.hpp"
@@ -314,6 +315,7 @@ int NodeUtility::GenerateNodeIcingaConfig(const std::vector<std::string>& endpoi
 	my_zone->Set("__name", zonename);
 	my_zone->Set("__type", "Zone");
 	my_zone->Set("parent", master_zone_name); //set the master zone as parent
+
 	my_zone->Set("// This is the local node", nodename);
 	my_zone->Set("endpoints", my_zone_members);
 
@@ -343,9 +345,11 @@ int NodeUtility::GenerateNodeMasterIcingaConfig(const String& nodename)
 
 	my_master_zone_members->Add(nodename);
 
-	my_master_zone->Set("__name", "master");
+	String zonename = VariableUtility::GetVariable("ZoneName");
+
+	my_master_zone->Set("__name", zonename);
 	my_master_zone->Set("__type", "Zone");
-	my_master_zone->Set("// This is the local master zone", "master");
+	my_master_zone->Set("// This is the local master zone", zonename);
 	my_master_zone->Set("endpoints", my_master_zone_members);
 
 	/* store the local config */
