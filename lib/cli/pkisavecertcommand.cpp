@@ -20,6 +20,7 @@
 #include "cli/pkisavecertcommand.hpp"
 #include "cli/pkiutility.hpp"
 #include "base/logger.hpp"
+#include "base/tlsutility.hpp"
 
 using namespace icinga;
 namespace po = boost::program_options;
@@ -40,11 +41,11 @@ void PKISaveCertCommand::InitParameters(boost::program_options::options_descript
     boost::program_options::options_description& hiddenDesc) const
 {
 	visibleDesc.add_options()
-	    ("key", po::value<std::string>(), "Key file path (input)")
-	    ("cert", po::value<std::string>(), "Certificate file path (input)")
+	    ("key", po::value<std::string>(), "Key file path (input), obsolete")
+	    ("cert", po::value<std::string>(), "Certificate file path (input), obsolete")
 	    ("trustedcert", po::value<std::string>(), "Trusted certificate file path (output)")
 	    ("host", po::value<std::string>(), "Icinga 2 host")
-	    ("port", po::value<std::string>(), "Icinga 2 port");
+	    ("port", po::value<std::string>()->default_value("5665"), "Icinga 2 port");
 }
 
 std::vector<String> PKISaveCertCommand::GetArgumentSuggestions(const String& argument, const String& word) const
@@ -71,25 +72,18 @@ int PKISaveCertCommand::Run(const boost::program_options::variables_map& vm, con
 		return 1;
 	}
 
-	if (!vm.count("key")) {
-		Log(LogCritical, "cli", "Key input file path (--key) must be specified.");
-		return 1;
-	}
-
-	if (!vm.count("cert")) {
-		Log(LogCritical, "cli", "Certificate input file path (--cert) must be specified.");
-		return 1;
-	}
-
 	if (!vm.count("trustedcert")) {
 		Log(LogCritical, "cli", "Trusted certificate output file path (--trustedcert) must be specified.");
 		return 1;
 	}
 
-	String port = "5665";
+	boost::shared_ptr<X509> cert =
+	    PkiUtility::FetchCert(vm["host"].as<std::string>(), vm["port"].as<std::string>());
 
-	if (vm.count("port"))
-		port = vm["port"].as<std::string>();
+	if (!cert) {
+		Log(LogCritical, "cli", "Failed to fetch certificate from host");
+		return 1;
+	}
 
-	return PkiUtility::SaveCert(vm["host"].as<std::string>(), port, vm["key"].as<std::string>(), vm["cert"].as<std::string>(), vm["trustedcert"].as<std::string>());
+	return PkiUtility::WriteCert(cert, vm["trustedcert"].as<std::string>());
 }

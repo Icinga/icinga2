@@ -20,6 +20,7 @@
 #include "cli/pkirequestcommand.hpp"
 #include "cli/pkiutility.hpp"
 #include "base/logger.hpp"
+#include "base/tlsutility.hpp"
 #include <iostream>
 
 using namespace icinga;
@@ -105,6 +106,6 @@ int PKIRequestCommand::Run(const boost::program_options::variables_map& vm, cons
 		port = vm["port"].as<std::string>();
 
 	return PkiUtility::RequestCertificate(vm["host"].as<std::string>(), port, vm["key"].as<std::string>(),
-	    vm["cert"].as<std::string>(), vm["ca"].as<std::string>(), vm["trustedcert"].as<std::string>(),
+	    vm["cert"].as<std::string>(), vm["ca"].as<std::string>(), GetX509Certificate(vm["trustedcert"].as<std::string>()),
 	    vm["ticket"].as<std::string>());
 }
