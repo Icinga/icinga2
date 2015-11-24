@@ -36,6 +36,8 @@ public:
 	DECLARE_OBJECT(Zone);
 	DECLARE_OBJECTNAME(Zone);
 
+	virtual void OnAllConfigLoaded(void) override;
+
 	Zone::Ptr GetParent(void) const;
 	std::set<Endpoint::Ptr> GetEndpoints(void) const;
 
@@ -44,6 +46,9 @@ public:
 	bool IsGlobal(void) const;
 
 	static Zone::Ptr GetLocalZone(void);
+
+private:
+	Zone::Ptr m_Parent;
 };
 
 }
