@@ -24,6 +24,7 @@
 #include "cli/i2-cli.hpp"
 #include "base/dictionary.hpp"
 #include "base/string.hpp"
+#include <openssl/x509v3.h>
 
 namespace icinga
 {
@@ -40,14 +41,16 @@ public:
 	static int NewCa(void);
 	static int NewCert(const String& cn, const String& keyfile, const String& csrfile, const String& certfile);
 	static int SignCsr(const String& csrfile, const String& certfile);
-	static int SaveCert(const String& host, const String& port, const String& keyfile, const String& certfile, const String& trustedfile);
+	static boost::shared_ptr<X509> FetchCert(const String& host, const String& port);
+	static int WriteCert(const boost::shared_ptr<X509>& cert, const String& trustedfile);
 	static int GenTicket(const String& cn, const String& salt, std::ostream& ticketfp);
 	static int RequestCertificate(const String& host, const String& port, const String& keyfile,
-	    const String& certfile, const String& cafile, const String& trustedfile, const String& ticket);
+	    const String& certfile, const String& cafile, const boost::shared_ptr<X509>& trustedcert,
+	    const String& ticket);
+	static String GetCertificateInformation(const boost::shared_ptr<X509>& certificate);
 
 private:
 	PkiUtility(void);
-
 
 };
 

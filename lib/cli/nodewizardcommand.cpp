@@ -67,14 +67,16 @@ int NodeWizardCommand::GetMaxArguments(void) const
  *
  * @returns An exit status.
  */
-int NodeWizardCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
+int NodeWizardCommand::Run(const boost::program_options::variables_map& vm,
+    const std::vector<std::string>& ap) const
 {
 	/*
 	 * The wizard will get all information from the user,
 	 * and then call all required functions.
 	 */
 
-	std::cout << ConsoleColorTag(Console_Bold | Console_ForegroundBlue) << "Welcome to the Icinga 2 Setup Wizard!\n"
+	std::cout << ConsoleColorTag(Console_Bold | Console_ForegroundBlue)
+	    << "Welcome to the Icinga 2 Setup Wizard!\n"
 	    << "\n"
 	    << "We'll guide you through all required configuration details.\n"
 	    << "\n"
@@ -101,8 +103,10 @@ int NodeWizardCommand::Run(const boost::program_options::variables_map& vm, cons
 	bool is_node_setup = true;
 
 	/* master or node setup */
-	std::cout << ConsoleColorTag(Console_Bold) << "Please specify if this is a satellite setup "
-	    << "('n' installs a master setup)" << ConsoleColorTag(Console_Normal) << " [Y/n]: ";
+	std::cout << ConsoleColorTag(Console_Bold)
+	    << "Please specify if this is a satellite setup "
+	    << "('n' installs a master setup)" << ConsoleColorTag(Console_Normal)
+	    << " [Y/n]: ";
 	std::getline (std::cin, answer);
 
 	boost::algorithm::to_lower(answer);
@@ -117,7 +121,10 @@ int NodeWizardCommand::Run(const boost::program_options::variables_map& vm, cons
 		std::cout << "Starting the Node setup routine...\n";
 
 		/* CN */
-		std::cout << ConsoleColorTag(Console_Bold) << "Please specifiy the common name (CN)" << ConsoleColorTag(Console_Normal) << " [" << Utility::GetFQDN() << "]: ";
+		std::cout << ConsoleColorTag(Console_Bold)
+		    << "Please specifiy the common name (CN)"
+		    << ConsoleColorTag(Console_Normal)
+		    << " [" << Utility::GetFQDN() << "]: ";
 
 		std::getline(std::cin, answer);
 		boost::algorithm::to_lower(answer);
@@ -128,7 +135,9 @@ int NodeWizardCommand::Run(const boost::program_options::variables_map& vm, cons
 		String cn = answer;
 		cn = cn.Trim();
 
-		std::cout << ConsoleColorTag(Console_Bold) << "Please specifiy the local zone name" << ConsoleColorTag(Console_Normal) << " [" << cn << "]: ";
+		std::cout << ConsoleColorTag(Console_Bold)
+		    << "Please specifiy the local zone name"
+		    << ConsoleColorTag(Console_Normal) << " [" << cn << "]: ";
 
 		std::getline(std::cin, answer);
 		boost::algorithm::to_lower(answer);
@@ -143,12 +152,16 @@ int NodeWizardCommand::Run(const boost::program_options::variables_map& vm, cons
 
 		String endpoint_buffer;
 
-		std::cout << ConsoleColorTag(Console_Bold) << "Please specify the master endpoint(s) this node should connect to:" << ConsoleColorTag(Console_Normal) << "\n";
+		std::cout << ConsoleColorTag(Console_Bold)
+		    << "Please specify the master endpoint(s) this node should connect to:"
+		    << ConsoleColorTag(Console_Normal) << "\n";
 		String master_endpoint_name;
 
 wizard_endpoint_loop_start:
 
-		std::cout << ConsoleColorTag(Console_Bold) << "Master Common Name" << ConsoleColorTag(Console_Normal) << " (CN from your master setup): ";
+		std::cout << ConsoleColorTag(Console_Bold)
+		    << "Master Common Name" << ConsoleColorTag(Console_Normal)
+		    << " (CN from your master setup): ";
 
 		std::getline(std::cin, answer);
 		boost::algorithm::to_lower(answer);
@@ -161,7 +174,9 @@ wizard_endpoint_loop_start:
 		endpoint_buffer = answer;
 		endpoint_buffer = endpoint_buffer.Trim();
 
-		std::cout << "Do you want to establish a connection to the master " << ConsoleColorTag(Console_Bold) << "from this node?" << ConsoleColorTag(Console_Normal) << " [Y/n]: ";
+		std::cout << "Do you want to establish a connection to the master "
+		    << ConsoleColorTag(Console_Bold) << "from this node?"
+		    << ConsoleColorTag(Console_Normal) << " [Y/n]: ";
 
 		std::getline (std::cin, answer);
 		boost::algorithm::to_lower(answer);
@@ -171,8 +186,11 @@ wizard_endpoint_loop_start:
 			Log(LogWarning, "cli", "Node to master connection setup skipped");
 			std::cout << "Connection setup skipped. Please configure your master to connect to this node.\n";
 		} else  {
-			std::cout << ConsoleColorTag(Console_Bold) << "Please fill out the master connection information:" << ConsoleColorTag(Console_Normal) << "\n";
-			std::cout << ConsoleColorTag(Console_Bold) << "Master endpoint host" << ConsoleColorTag(Console_Normal) << " (Your master's IP address or FQDN): ";
+			std::cout << ConsoleColorTag(Console_Bold)
+			    << "Please fill out the master connection information:"
+			    << ConsoleColorTag(Console_Normal) << "\n"
+			    << ConsoleColorTag(Console_Bold) << "Master endpoint host"
+			    << ConsoleColorTag(Console_Normal) << " (Your master's IP address or FQDN): ";
 
 			std::getline(std::cin, answer);
 			boost::algorithm::to_lower(answer);
@@ -188,7 +206,9 @@ wizard_endpoint_loop_start:
 			endpoint_buffer += "," + tmp;
 			master_endpoint_name = tmp; //store the endpoint name for later
 
-			std::cout << ConsoleColorTag(Console_Bold) << "Master endpoint port" << ConsoleColorTag(Console_Normal) << " [5665]: ";
+			std::cout << ConsoleColorTag(Console_Bold)
+			     << "Master endpoint port" << ConsoleColorTag(Console_Normal)
+			     << " [5665]: ";
 
 			std::getline(std::cin, answer);
 			boost::algorithm::to_lower(answer);
@@ -203,7 +223,8 @@ wizard_endpoint_loop_start:
 
 		endpoints.push_back(endpoint_buffer);
 
-		std::cout << ConsoleColorTag(Console_Bold) << "Add more master endpoints?" << ConsoleColorTag(Console_Normal) << " [y/N]: ";
+		std::cout << ConsoleColorTag(Console_Bold) << "Add more master endpoints?"
+		    << ConsoleColorTag(Console_Normal) << " [y/N]: ";
 		std::getline (std::cin, answer);
 
 		boost::algorithm::to_lower(answer);
@@ -213,10 +234,13 @@ wizard_endpoint_loop_start:
 		if (choice.Contains("y"))
 			goto wizard_endpoint_loop_start;
 
-		std::cout << ConsoleColorTag(Console_Bold) << "Please specify the master connection for CSR auto-signing" << ConsoleColorTag(Console_Normal) << " (defaults to master endpoint host):\n";
+		std::cout << ConsoleColorTag(Console_Bold)
+		    << "Please specify the master connection for CSR auto-signing"
+		    << ConsoleColorTag(Console_Normal) << " (defaults to master endpoint host):\n";
 
 wizard_master_host:
-		std::cout << ConsoleColorTag(Console_Bold) << "Host" << ConsoleColorTag(Console_Normal) << " [" << master_endpoint_name << "]: ";
+		std::cout << ConsoleColorTag(Console_Bold) << "Host"
+		    << ConsoleColorTag(Console_Normal) << " [" << master_endpoint_name << "]: ";
 
 		std::getline(std::cin, answer);
 		boost::algorithm::to_lower(answer);
@@ -230,7 +254,8 @@ wizard_master_host:
 		String master_host = answer;
 		master_host = master_host.Trim();
 
-		std::cout << ConsoleColorTag(Console_Bold) << "Port" << ConsoleColorTag(Console_Normal) << " [5665]: ";
+		std::cout << ConsoleColorTag(Console_Bold) << "Port"
+		    << ConsoleColorTag(Console_Normal) << " [5665]: ";
 
 		std::getline(std::cin, answer);
 		boost::algorithm::to_lower(answer);
@@ -250,7 +275,9 @@ wizard_master_host:
 
 		if (!Utility::SetFileOwnership(pki_path, user, group)) {
 			Log(LogWarning, "cli")
-			    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << pki_path << "'. Verify it yourself!";
+			    << "Cannot set ownership for user '" << user
+			    << "' group '" << group
+			    << "' on file '" << pki_path << "'. Verify it yourself!";
 		}
 
 		String node_cert = pki_path + "/" + cn + ".crt";
@@ -263,40 +290,48 @@ wizard_master_host:
 
 		if (PkiUtility::NewCert(cn, node_key, Empty, node_cert) > 0) {
 			Log(LogCritical, "cli")
-			    << "Failed to create new self-signed certificate for CN '" << cn << "'. Please try again.";
+			    << "Failed to create new self-signed certificate for CN '"
+			    << cn << "'. Please try again.";
 			return 1;
 		}
 
 		/* fix permissions: root -> icinga daemon user */
 		if (!Utility::SetFileOwnership(node_key, user, group)) {
 			Log(LogWarning, "cli")
-			    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << node_key << "'. Verify it yourself!";
+			    << "Cannot set ownership for user '" << user
+			    << "' group '" << group
+			    << "' on file '" << node_key << "'. Verify it yourself!";
 		}
 
 		//save-cert and store the master certificate somewhere
-
-		Log(LogInformation, "cli", "Generating self-signed certificate:");
-
 		Log(LogInformation, "cli")
 		    << "Fetching public certificate from master ("
 		    << master_host << ", " << master_port << "):\n";
 
-		String trusted_cert = PkiUtility::GetPkiPath() + "/trusted-master.crt";
-
-		if (Utility::PathExists(trusted_cert))
-			NodeUtility::CreateBackupFile(trusted_cert);
-
-		if (PkiUtility::SaveCert(master_host, master_port, node_key, node_cert, trusted_cert) > 0) {
-			Log(LogCritical, "cli")
-			    << "Failed to fetch trusted master certificate. Please try again.";
+		boost::shared_ptr<X509> trustedcert = PkiUtility::FetchCert(master_host, master_port);
+		if (!trustedcert) {
+			Log(LogCritical, "cli", "Peer did not present a valid certificate.");
 			return 1;
 		}
 
-		Log(LogInformation, "cli")
-		    << "Stored trusted master certificate in '" << trusted_cert << "'.\n";
+		std::cout << ConsoleColorTag(Console_Bold) << "Certificate information:\n"
+		    << ConsoleColorTag(Console_Normal) << PkiUtility::GetCertificateInformation(trustedcert)
+		    << ConsoleColorTag(Console_Bold) << "\nIs this information correct?"
+		    << ConsoleColorTag(Console_Normal) << " [y/N]: ";
+
+		std::getline (std::cin, answer);
+		boost::algorithm::to_lower(answer);
+		if (answer != "y") {
+			Log(LogWarning, "cli", "Process aborted.");
+			return 1;
+		}
+
+		Log(LogInformation, "cli", "Received trusted master certificate.\n");
 
 wizard_ticket:
-		std::cout << ConsoleColorTag(Console_Bold) << "Please specify the request ticket generated on your Icinga 2 master." << ConsoleColorTag(Console_Normal) << "\n"
+		std::cout << ConsoleColorTag(Console_Bold)
+		    << "Please specify the request ticket generated on your Icinga 2 master."
+		    << ConsoleColorTag(Console_Normal) << "\n"
 		    << " (Hint: # icinga2 pki ticket --cn '" << cn << "'): ";
 
 		std::getline(std::cin, answer);
@@ -309,7 +344,7 @@ wizard_ticket:
 		ticket = ticket.Trim();
 
 		Log(LogInformation, "cli")
-		    << "Processing self-signed certificate request. Ticket '" << ticket << "'.\n";
+		    << "Requesting certificate with ticket '" << ticket << "'.\n";
 
 		String target_ca = pki_path + "/ca.crt";
 
@@ -318,9 +353,11 @@ wizard_ticket:
 		if (Utility::PathExists(node_cert))
 			NodeUtility::CreateBackupFile(node_cert);
 
-		if (PkiUtility::RequestCertificate(master_host, master_port, node_key, node_cert, target_ca, trusted_cert, ticket) > 0) {
+		if (PkiUtility::RequestCertificate(master_host, master_port, node_key,
+		    node_cert, target_ca, trustedcert, ticket) > 0) {
 			Log(LogCritical, "cli")
-			    << "Failed to fetch signed certificate from master '" << master_host << ", "
+			    << "Failed to fetch signed certificate from master '"
+			    << master_host << ", "
 			    << master_port <<"'. Please try again.";
 			goto wizard_ticket;
 		}
@@ -328,12 +365,17 @@ wizard_ticket:
 		/* fix permissions (again) when updating the signed certificate */
 		if (!Utility::SetFileOwnership(node_cert, user, group)) {
 			Log(LogWarning, "cli")
-			    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << node_cert << "'. Verify it yourself!";
+			    << "Cannot set ownership for user '" << user
+			    << "' group '" << group << "' on file '"
+			    << node_cert << "'. Verify it yourself!";
 		}
 
 		/* apilistener config */
-		std::cout << ConsoleColorTag(Console_Bold) << "Please specify the API bind host/port" << ConsoleColorTag(Console_Normal) << " (optional):\n";
-		std::cout << ConsoleColorTag(Console_Bold) << "Bind Host" << ConsoleColorTag(Console_Normal) << " []: ";
+		std::cout << ConsoleColorTag(Console_Bold)
+		    << "Please specify the API bind host/port"
+		    << ConsoleColorTag(Console_Normal) << " (optional):\n"
+		    << ConsoleColorTag(Console_Bold) << "Bind Host"
+		    << ConsoleColorTag(Console_Normal) << " []: ";
 
 		std::getline(std::cin, answer);
 		boost::algorithm::to_lower(answer);
@@ -349,14 +391,18 @@ wizard_ticket:
 		String bind_port = answer;
 		bind_port = bind_port.Trim();
 
-		std::cout << ConsoleColorTag(Console_Bold) << "Accept config from master?" << ConsoleColorTag(Console_Normal) << " [y/N]: ";
+		std::cout << ConsoleColorTag(Console_Bold)
+		    << "Accept config from master?" << ConsoleColorTag(Console_Normal)
+		    << " [y/N]: ";
 		std::getline(std::cin, answer);
 		boost::algorithm::to_lower(answer);
 		choice = answer;
 
 		String accept_config = choice.Contains("y") ? "true" : "false";
 
-		std::cout << ConsoleColorTag(Console_Bold) << "Accept commands from master?" << ConsoleColorTag(Console_Normal) << " [y/N]: ";
+		std::cout << ConsoleColorTag(Console_Bold)
+		    << "Accept commands from master?" << ConsoleColorTag(Console_Normal)
+		    << " [y/N]: ";
 		std::getline(std::cin, answer);
 		boost::algorithm::to_lower(answer);
 		choice = answer;
@@ -424,7 +470,8 @@ wizard_ticket:
 
 		if (cn != Utility::GetFQDN()) {
 			Log(LogWarning, "cli")
-			    << "CN '" << cn << "' does not match the default FQDN '" << Utility::GetFQDN() << "'. Requires update for NodeName constant in constants.conf!";
+			    << "CN '" << cn << "' does not match the default FQDN '"
+			    << Utility::GetFQDN() << "'. Requires update for NodeName constant in constants.conf!";
 		}
 
 		Log(LogInformation, "cli", "Updating constants.conf.");
@@ -440,7 +487,9 @@ wizard_ticket:
 		std::cout << ConsoleColorTag(Console_Bold) << "Starting the Master setup routine...\n";
 
 		/* CN */
-		std::cout << ConsoleColorTag(Console_Bold) << "Please specifiy the common name" << ConsoleColorTag(Console_Normal) << " (CN) [" << Utility::GetFQDN() << "]: ";
+		std::cout << ConsoleColorTag(Console_Bold)
+		    << "Please specifiy the common name" << ConsoleColorTag(Console_Normal)
+		    << " (CN) [" << Utility::GetFQDN() << "]: ";
 
 		std::getline(std::cin, answer);
 		boost::algorithm::to_lower(answer);
@@ -454,16 +503,20 @@ wizard_ticket:
 		/* check whether the user wants to generate a new certificate or not */
 		String existing_path = PkiUtility::GetPkiPath() + "/" + cn + ".crt";
 
-		std::cout << ConsoleColorTag(Console_Normal) << "Checking for existing certificates for common name '" << cn << "'...\n";
+		std::cout << ConsoleColorTag(Console_Normal)
+		    << "Checking for existing certificates for common name '" << cn << "'...\n";
 
 		if (Utility::PathExists(existing_path)) {
-			std::cout << "Certificate '" << existing_path << "' for CN '" << cn << "' already existing. Skipping certificate generation.\n";
+			std::cout << "Certificate '" << existing_path << "' for CN '"
+			    << cn << "' already existing. Skipping certificate generation.\n";
 		} else {
 			std::cout << "Certificates not yet generated. Running 'api setup' now.\n";
 			ApiSetupUtility::SetupMasterCertificates(cn);
 		}
 
-		std::cout << ConsoleColorTag(Console_Bold) << "Generating master configuration for Icinga 2.\n" << ConsoleColorTag(Console_Normal);
+		std::cout << ConsoleColorTag(Console_Bold)
+		    << "Generating master configuration for Icinga 2.\n"
+		    << ConsoleColorTag(Console_Normal);
 		ApiSetupUtility::SetupMasterApiUser();
 
 		if (!FeatureUtility::CheckFeatureEnabled("api"))
@@ -474,8 +527,10 @@ wizard_ticket:
 		NodeUtility::GenerateNodeMasterIcingaConfig();
 
 		/* apilistener config */
-		std::cout << ConsoleColorTag(Console_Bold) << "Please specify the API bind host/port (optional):\n";
-		std::cout << ConsoleColorTag(Console_Bold) << "Bind Host" << ConsoleColorTag(Console_Normal) << " []: ";
+		std::cout << ConsoleColorTag(Console_Bold)
+		    << "Please specify the API bind host/port (optional):\n";
+		std::cout << ConsoleColorTag(Console_Bold)
+		    << "Bind Host" << ConsoleColorTag(Console_Normal) << " []: ";
 
 		std::getline(std::cin, answer);
 		boost::algorithm::to_lower(answer);
@@ -483,7 +538,8 @@ wizard_ticket:
 		String bind_host = answer;
 		bind_host = bind_host.Trim();
 
-		std::cout << ConsoleColorTag(Console_Bold) << "Bind Port" << ConsoleColorTag(Console_Normal) << " []: ";
+		std::cout << ConsoleColorTag(Console_Bold)
+		    << "Bind Port" << ConsoleColorTag(Console_Normal) << " []: ";
 
 		std::getline(std::cin, answer);
 		boost::algorithm::to_lower(answer);
@@ -533,7 +589,8 @@ wizard_ticket:
 		/* update constants.conf with NodeName = CN + TicketSalt = random value */
 		if (cn != Utility::GetFQDN()) {
 			Log(LogWarning, "cli")
-				<< "CN '" << cn << "' does not match the default FQDN '" << Utility::GetFQDN() << "'. Requires update for NodeName constant in constants.conf!";
+			    << "CN '" << cn << "' does not match the default FQDN '"
+			    << Utility::GetFQDN() << "'. Requires update for NodeName constant in constants.conf!";
 		}
 
 		Log(LogInformation, "cli", "Updating constants.conf.");
