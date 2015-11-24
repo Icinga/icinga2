@@ -748,7 +748,7 @@ bool Process::DoEvents(void)
 		    << "PID " << m_PID << " (" << PrettyPrintArguments(m_Arguments) << ") terminated with exit code " << exitcode;
 	} else if (WIFSIGNALED(status)) {
 		int signum = WTERMSIG(status);
-		char *zsigname = strsignal(signum);
+		const char *zsigname = strsignal(signum);
 
 		String signame = Convert::ToString(signum);
 
