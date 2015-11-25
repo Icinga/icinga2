@@ -107,6 +107,8 @@ Defaults to `OFF`.
 - `ICINGA2_WITH_LIVESTATUS`: Determines whether the Livestatus module is built; defaults to `ON`
 - `ICINGA2_WITH_NOTIFICATION`: Determines whether the notification module is built; defaults to `ON`
 - `ICINGA2_WITH_PERFDATA`: Determines whether the perfdata module is built; defaults to `ON`
+- `ICINGA2_WITH_STUDIO`: Determines whether the Icinga Studio application is built; defaults to `OFF`
+- `ICINGA2_WITH_TESTS`: Determines whether the unit tests are built; defaults to `ON`
 
 CMake determines the Icinga 2 version number using `git describe` if the
 source directory is contained in a Git repository. Otherwise the version number
