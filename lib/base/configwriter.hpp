@@ -29,6 +29,24 @@ namespace icinga
 {
 
 /**
+ * A config identifier.
+ *
+ * @ingroup base
+ */
+class I2_BASE_API ConfigIdentifier : public Object
+{
+public:
+	DECLARE_PTR_TYPEDEFS(ConfigIdentifier);
+
+	ConfigIdentifier(const String& name);
+
+	String GetName(void) const;
+
+private:
+	String m_Name;
+};
+
+/**
  * A configuration writer.
  *
  * @ingroup base

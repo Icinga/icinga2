@@ -59,8 +59,8 @@ public:
 	static void UpdateConstant(const String& name, const String& value);
 
 	/* node setup helpers */
-	static int GenerateNodeIcingaConfig(const std::vector<std::string>& endpoints, const String& nodename, const String& zonename);
-	static int GenerateNodeMasterIcingaConfig(const String& nodename);
+	static int GenerateNodeIcingaConfig(const std::vector<std::string>& endpoints);
+	static int GenerateNodeMasterIcingaConfig(void);
 
 	/* black/whitelist */
 	static String GetBlackAndWhiteListPath(const String& type);
@@ -79,9 +79,7 @@ private:
 	static Dictionary::Ptr LoadNodeFile(const String& node_file);
 	static void CollectNodes(const String& node_file, std::vector<Dictionary::Ptr>& nodes);
 
-	static void SerializeObject(std::ostream& fp, const String& name, const String& type, const Dictionary::Ptr& object);
-	static void FormatValue(std::ostream& fp, const Value& val);
-	static void FormatArray(std::ostream& fp, const Array::Ptr& arr);
+	static void SerializeObject(std::ostream& fp, const Dictionary::Ptr& object);
 };
 
 }

@@ -122,6 +122,8 @@ void ConfigWriter::EmitValue(std::ostream& fp, int indentLevel, const Value& val
 		EmitArray(fp, indentLevel, val);
 	else if (val.IsObjectType<Dictionary>())
 		EmitScope(fp, indentLevel, val);
+	else if (val.IsObjectType<ConfigIdentifier>())
+		EmitIdentifier(fp, static_cast<ConfigIdentifier::Ptr>(val)->GetName(), false);
 	else if (val.IsString())
 		EmitString(fp, val);
 	else if (val.IsNumber())
@@ -259,4 +261,13 @@ const std::vector<String>& ConfigWriter::GetKeywords(void)
 	}
 
 	return keywords;
+}
+
+ConfigIdentifier::ConfigIdentifier(const String& identifier)
+    : m_Name(identifier)
+{ }
+
+String ConfigIdentifier::GetName(void) const
+{
+	return m_Name;
 }

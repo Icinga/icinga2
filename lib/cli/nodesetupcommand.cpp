@@ -154,13 +154,11 @@ int NodeSetupCommand::SetupMaster(const boost::program_options::variables_map& v
 		    << "'api' feature already enabled.\n";
 	}
 
-	NodeUtility::GenerateNodeMasterIcingaConfig(cn);
-
-	/* read zones.conf and update with zone + endpoint information */
+	/* write zones.conf and update with zone + endpoint information */
 
 	Log(LogInformation, "cli", "Generating zone and object configuration.");
 
-	NodeUtility::GenerateNodeMasterIcingaConfig(cn);
+	NodeUtility::GenerateNodeMasterIcingaConfig();
 
 	/* update the ApiListener config - SetupMaster() will always enable it */
 
@@ -220,6 +218,7 @@ int NodeSetupCommand::SetupMaster(const boost::program_options::variables_map& v
 	NodeUtility::CreateBackupFile(Application::GetSysconfDir() + "/icinga2/constants.conf");
 
 	NodeUtility::UpdateConstant("NodeName", cn);
+	NodeUtility::UpdateConstant("ZoneName", cn);
 
 	String salt = RandomString(16);
 
@@ -433,7 +432,7 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 
 	Log(LogInformation, "cli", "Generating zone and object configuration.");
 
-	NodeUtility::GenerateNodeIcingaConfig(vm["endpoint"].as<std::vector<std::string> >(), cn, vm["zone"].as<std::string>());
+	NodeUtility::GenerateNodeIcingaConfig(vm["endpoint"].as<std::vector<std::string> >());
 
 	/* update constants.conf with NodeName = CN */
 	if (cn != Utility::GetFQDN()) {
@@ -446,6 +445,7 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 	NodeUtility::CreateBackupFile(Application::GetSysconfDir() + "/icinga2/constants.conf");
 
 	NodeUtility::UpdateConstant("NodeName", cn);
+	NodeUtility::UpdateConstant("ZoneName", vm["zone"].as<std::string>());
 
 	/* tell the user to reload icinga2 */
 
