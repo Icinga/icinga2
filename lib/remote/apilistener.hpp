@@ -113,6 +113,7 @@ private:
 	void ListenerThreadProc(const Socket::Ptr& server);
 
 	WorkQueue m_RelayQueue;
+	WorkQueue m_SyncQueue;
 
 	boost::mutex m_LogLock;
 	Stream::Ptr m_LogFile;
@@ -144,6 +145,8 @@ private:
 	void DeleteConfigObject(const ConfigObject::Ptr& object, const MessageOrigin::Ptr& origin,
 	    const JsonRpcConnection::Ptr& client = JsonRpcConnection::Ptr());
 	void SendRuntimeConfigObjects(const JsonRpcConnection::Ptr& aclient);
+
+	void SyncClient(const JsonRpcConnection::Ptr& aclient, const Endpoint::Ptr& endpoint);
 };
 
 }

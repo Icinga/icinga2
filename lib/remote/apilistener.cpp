@@ -48,7 +48,7 @@ REGISTER_STATSFUNCTION(ApiListener, &ApiListener::StatsFunc);
 REGISTER_APIFUNCTION(Hello, icinga, &ApiListener::HelloAPIHandler);
 
 ApiListener::ApiListener(void)
-	: m_LogMessageCount(0)
+	: m_SyncQueue(0, 4), m_LogMessageCount(0)
 { }
 
 void ApiListener::OnConfigLoaded(void)
@@ -373,26 +373,8 @@ void ApiListener::NewClientHandlerInternal(const Socket::Ptr& client, const Stri
 		if (endpoint) {
 			endpoint->AddClient(aclient);
 
-			if (need_sync) {
-				{
-					ObjectLock olock(endpoint);
-
-					endpoint->SetSyncing(true);
-				}
-
-				Log(LogInformation, "ApiListener")
-				    << "Sending updates for endpoint '" << endpoint->GetName() << "'.";
-
-				/* sync zone file config */
-				SendConfigUpdate(aclient);
-				/* sync runtime config */
-				SendRuntimeConfigObjects(aclient);
-
-				Log(LogInformation, "ApiListener")
-				    << "Finished sending updates for endpoint '" << endpoint->GetName() << "'.";
-
-				ReplayLog(aclient);
-			}
+			if (need_sync)
+				m_SyncQueue.Enqueue(boost::bind(&ApiListener::SyncClient, this, aclient, endpoint));
 		} else
 			AddAnonymousClient(aclient);
 	} else {
@@ -401,6 +383,33 @@ void ApiListener::NewClientHandlerInternal(const Socket::Ptr& client, const Stri
 		HttpServerConnection::Ptr aclient = new HttpServerConnection(identity, verify_ok, tlsStream);
 		aclient->Start();
 		AddHttpClient(aclient);
+	}
+}
+
+void ApiListener::SyncClient(const JsonRpcConnection::Ptr& aclient, const Endpoint::Ptr& endpoint)
+{
+	try {
+		{
+			ObjectLock olock(endpoint);
+
+			endpoint->SetSyncing(true);
+		}
+
+		Log(LogInformation, "ApiListener")
+		    << "Sending updates for endpoint '" << endpoint->GetName() << "'.";
+
+		/* sync zone file config */
+		SendConfigUpdate(aclient);
+		/* sync runtime config */
+		SendRuntimeConfigObjects(aclient);
+
+		Log(LogInformation, "ApiListener")
+		    << "Finished sending updates for endpoint '" << endpoint->GetName() << "'.";
+
+		ReplayLog(aclient);
+	} catch (const std::exception& ex) {
+		Log(LogCritical, "ApiListener")
+		    << "Error while syncing endpoint '" << endpoint->GetName() << "': " << DiagnosticInformation(ex);
 	}
 }
 
