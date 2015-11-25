@@ -33,6 +33,7 @@
 #include "base/objectlock.hpp"
 #include "base/console.hpp"
 #include "base/exception.hpp"
+#include "base/configwriter.hpp"
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/join.hpp>
@@ -254,7 +255,7 @@ void NodeUtility::CollectNodes(const String& node_file, std::vector<Dictionary::
  * Node Setup helpers
  */
 
-int NodeUtility::GenerateNodeIcingaConfig(const std::vector<std::string>& endpoints, const String& nodename, const String& zonename)
+int NodeUtility::GenerateNodeIcingaConfig(const std::vector<std::string>& endpoints)
 {
 	Array::Ptr my_config = new Array();
 
@@ -306,17 +307,16 @@ int NodeUtility::GenerateNodeIcingaConfig(const std::vector<std::string>& endpoi
 	Dictionary::Ptr my_endpoint = new Dictionary();
 	Dictionary::Ptr my_zone = new Dictionary();
 
-	my_endpoint->Set("__name", nodename);
+	my_endpoint->Set("__name", new ConfigIdentifier("NodeName"));
 	my_endpoint->Set("__type", "Endpoint");
 
 	Array::Ptr my_zone_members = new Array();
-	my_zone_members->Add(nodename);
+	my_zone_members->Add(new ConfigIdentifier("NodeName"));
 
-	my_zone->Set("__name", zonename);
+	my_zone->Set("__name", new ConfigIdentifier("ZoneName"));
 	my_zone->Set("__type", "Zone");
 	my_zone->Set("parent", master_zone_name); //set the master zone as parent
 
-	my_zone->Set("// This is the local node", nodename);
 	my_zone->Set("endpoints", my_zone_members);
 
 	/* store the local config */
@@ -331,7 +331,7 @@ int NodeUtility::GenerateNodeIcingaConfig(const std::vector<std::string>& endpoi
 	return 0;
 }
 
-int NodeUtility::GenerateNodeMasterIcingaConfig(const String& nodename)
+int NodeUtility::GenerateNodeMasterIcingaConfig(void)
 {
 	Array::Ptr my_config = new Array();
 
@@ -340,16 +340,13 @@ int NodeUtility::GenerateNodeMasterIcingaConfig(const String& nodename)
 	Dictionary::Ptr my_master_zone = new Dictionary();
 	Array::Ptr my_master_zone_members = new Array();
 
-	my_master_endpoint->Set("__name", nodename);
+	my_master_endpoint->Set("__name", new ConfigIdentifier("NodeName"));
 	my_master_endpoint->Set("__type", "Endpoint");
 
-	my_master_zone_members->Add(nodename);
+	my_master_zone_members->Add(new ConfigIdentifier("NodeName"));
 
-	String zonename = VariableUtility::GetVariable("ZoneName");
-
-	my_master_zone->Set("__name", zonename);
+	my_master_zone->Set("__name", new ConfigIdentifier("ZoneName"));
 	my_master_zone->Set("__type", "Zone");
-	my_master_zone->Set("// This is the local master zone", zonename);
 	my_master_zone->Set("endpoints", my_master_zone_members);
 
 	/* store the local config */
@@ -364,10 +361,6 @@ int NodeUtility::GenerateNodeMasterIcingaConfig(const String& nodename)
 	return 0;
 }
 
-/*
- * This is ugly and requires refactoring into a generic config writer class.
- * TODO.
- */
 bool NodeUtility::WriteNodeConfigObjects(const String& filename, const Array::Ptr& objects)
 {
 	Log(LogInformation, "cli")
@@ -403,10 +396,7 @@ bool NodeUtility::WriteNodeConfigObjects(const String& filename, const Array::Pt
 
 	ObjectLock olock(objects);
 	BOOST_FOREACH(const Dictionary::Ptr& object, objects) {
-		String name = object->Get("__name");
-		String type = object->Get("__type");
-
-		SerializeObject(fp, name, type, object);
+		SerializeObject(fp, object);
 	}
 
 	fp << std::endl;
@@ -622,58 +612,27 @@ bool NodeUtility::CreateBackupFile(const String& target, bool is_private)
 	return true;
 }
 
-void NodeUtility::SerializeObject(std::ostream& fp, const String& name, const String& type, const Dictionary::Ptr& object)
+void NodeUtility::SerializeObject(std::ostream& fp, const Dictionary::Ptr& object)
 {
-	fp << "object " << type << " \"" << name << "\" {\n";
+	fp << "object ";
+	ConfigWriter::EmitIdentifier(fp, object->Get("__type"), false);
+	fp << " ";
+	ConfigWriter::EmitValue(fp, 0, object->Get("__name"));
+	fp << " {\n";
+
 	ObjectLock olock(object);
 	BOOST_FOREACH(const Dictionary::Pair& kv, object) {
 		if (kv.first == "__type" || kv.first == "__name")
 			continue;
 
-		fp << "\t" << kv.first << " = ";
-		FormatValue(fp, kv.second);
-		fp << "\n";
+		fp << "\t";
+		ConfigWriter::EmitIdentifier(fp, kv.first, true);
+		fp << " = ";
+		ConfigWriter::EmitValue(fp, 1, kv.second);
+		fp << ";\n";
 	}
+
 	fp << "}\n\n";
-}
-
-void NodeUtility::FormatValue(std::ostream& fp, const Value& val)
-{
-	if (val.IsObjectType<Array>()) {
-		FormatArray(fp, val);
-		return;
-	}
-
-	if (val.IsString()) {
-		fp << "\"" << Convert::ToString(val) << "\"";
-		return;
-	}
-
-	fp << Convert::ToString(val);
-}
-
-void NodeUtility::FormatArray(std::ostream& fp, const Array::Ptr& arr)
-{
-	bool first = true;
-
-	fp << "[ ";
-
-	if (arr) {
-		ObjectLock olock(arr);
-		BOOST_FOREACH(const Value& value, arr) {
-			if (first)
-				first = false;
-			else
-				fp << ", ";
-
-			FormatValue(fp, value);
-		}
-	}
-
-	if (!first)
-		fp << " ";
-
-	fp << "]";
 }
 
 void NodeUtility::UpdateConstant(const String& name, const String& value)

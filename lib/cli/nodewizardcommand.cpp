@@ -420,7 +420,7 @@ wizard_ticket:
 		/* apilistener config */
 		Log(LogInformation, "cli", "Generating local zones.conf.");
 
-		NodeUtility::GenerateNodeIcingaConfig(endpoints, cn, local_zone);
+		NodeUtility::GenerateNodeIcingaConfig(endpoints);
 
 		if (cn != Utility::GetFQDN()) {
 			Log(LogWarning, "cli")
@@ -471,7 +471,7 @@ wizard_ticket:
 		else
 			std::cout << "'api' feature already enabled.\n";
 
-		NodeUtility::GenerateNodeMasterIcingaConfig(cn);
+		NodeUtility::GenerateNodeMasterIcingaConfig();
 
 		/* apilistener config */
 		std::cout << ConsoleColorTag(Console_Bold) << "Please specify the API bind host/port (optional):\n";
@@ -543,6 +543,7 @@ wizard_ticket:
 		NodeUtility::CreateBackupFile(constants_file);
 
 		NodeUtility::UpdateConstant("NodeName", cn);
+		NodeUtility::UpdateConstant("ZoneName", cn);
 
 		String salt = RandomString(16);
 
