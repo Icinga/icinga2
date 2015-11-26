@@ -278,6 +278,9 @@ bool IcingaApplication::ResolveMacro(const String& macro, const CheckResult::Ptr
 		} else if (macro == "num_hosts_down") {
 			*result = Convert::ToString(hs.hosts_down);
 			return true;
+		} else if (macro == "num_hosts_pending") {
+			*result = Convert::ToString(hs.hosts_pending);
+			return true;
 		} else if (macro == "num_hosts_unreachable") {
 			*result = Convert::ToString(hs.hosts_unreachable);
 			return true;

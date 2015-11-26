@@ -311,6 +311,7 @@ void CIB::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata) {
 
 	status->Set("num_hosts_up", hs.hosts_up);
 	status->Set("num_hosts_down", hs.hosts_down);
+	status->Set("num_hosts_pending", hs.hosts_pending);
 	status->Set("num_hosts_unreachable", hs.hosts_unreachable);
 	status->Set("num_hosts_flapping", hs.hosts_flapping);
 	status->Set("num_hosts_in_downtime", hs.hosts_in_downtime);
