@@ -57,7 +57,6 @@ install_if_not_exists(icinga2/conf.d/timeperiods.conf ${CMAKE_INSTALL_SYSCONFDIR
 install_if_not_exists(icinga2/conf.d/users.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/conf.d)
 install_if_not_exists(icinga2/features-available/api.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/features-available)
 install_if_not_exists(icinga2/features-available/debuglog.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/features-available)
-install_if_not_exists(icinga2/features-available/icingastatus.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/features-available)
 install_if_not_exists(icinga2/features-available/mainlog.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/features-available)
 if(NOT WIN32)
   install_if_not_exists(icinga2/features-available/syslog.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/features-available)
