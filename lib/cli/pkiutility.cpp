@@ -122,7 +122,7 @@ boost::shared_ptr<X509> PkiUtility::FetchCert(const String& host, const String& 
 		    << "Cannot connect to host '" << host << "' on port '" << port << "'";
 		Log(LogDebug, "pki")
 		    << "Cannot connect to host '" << host << "' on port '" << port << "':\n" << DiagnosticInformation(ex);
-		return NULL;
+		return boost::shared_ptr<X509>();
 	}
 
 	boost::shared_ptr<SSL_CTX> sslContext;
@@ -134,7 +134,7 @@ boost::shared_ptr<X509> PkiUtility::FetchCert(const String& host, const String& 
 		    << "Cannot make SSL context.";
 		Log(LogDebug, "pki")
 		    << "Cannot make SSL context:\n"  << DiagnosticInformation(ex);
-		return NULL;
+		return boost::shared_ptr<X509>();
 	}
 
 	TlsStream::Ptr stream = new TlsStream(client, String(), RoleClient, sslContext);
