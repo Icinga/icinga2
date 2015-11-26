@@ -658,31 +658,6 @@ Configuration Attributes:
   enable_perfdata       |**Optional.** Whether performance data processing is globally enabled. Defaults to true.
   vars                  |**Optional.** A dictionary containing custom attributes that are available globally.
 
-## <a id="objecttype-icingastatuswriter"></a> IcingaStatusWriter
-
-> **Note**
->
-> This feature was deprecated in 2.4 and will be removed in future releases.
-
-The IcingaStatusWriter feature periodically dumps the current status
-and performance data from Icinga 2 and all registered features into
-a defined JSON file.
-
-Example:
-
-    object IcingaStatusWriter "status" {
-      status_path = LocalStateDir + "/cache/icinga2/status.json"
-      update_interval = 15s
-    }
-
-Configuration Attributes:
-
-  Name                      |Description
-  --------------------------|--------------------------
-  status\_path              |**Optional.** Path to cluster status file. Defaults to LocalStateDir + "/cache/icinga2/status.json"
-  update\_interval          |**Optional.** The interval in which the status files are updated. Defaults to 15 seconds.
-
-
 ## <a id="objecttype-idomysqlconnection"></a> IdoMySqlConnection
 
 IDO database adapter for MySQL.

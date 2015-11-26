@@ -51,7 +51,7 @@ syn match		icinga2Objdef		"object[ \t]\+\(timeperiod\|scheduleddowntime\|depende
 syn match		icinga2ObjDef		"object[ \t]\+\(graphitewriter\|idomysqlconnection\|idomysqlconnection\)"
 syn match		icinga2ObjDef		"object[ \t]\+\(livestatuslistener\|statusdatawriter\|externalcommandlistener\)"
 syn match		icinga2ObjDef		"object[ \t]\+\(compatlogger\|checkresultreader\|checkcomponent\|notificationcomponent\)"
-syn match		icinga2ObjDef		"object[ \t]\+\(filelogger\|sysloglogger\|icingastatuswriter\|icingaapplication\|apilistener\|apiuser\|endpoint\|zone\)"
+syn match		icinga2ObjDef		"object[ \t]\+\(filelogger\|sysloglogger\|icingaapplication\|apilistener\|apiuser\|endpoint\|zone\)"
 
 
 " apply def
