@@ -9,6 +9,8 @@ LIVESTATUSQUERIES="./queries"
 
 LIVESTATUSTABLE=$1
 
+echo -e "Querying Livestatus socket: $LIVESTATUSSOCKET"
+
 if [ -n "$LIVESTATUSTABLE" ]; then
 	cat "$LIVESTATUSTABLE"
 	(cat "$LIVESTATUSTABLE"; sleep 1) | $NC -U $LIVESTATUSSOCKET

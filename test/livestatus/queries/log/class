@@ -1,0 +1,5 @@
+GET log
+Filter: time >= 1348657741
+Filter: class = 1
+ResponseHeader: fixed16
+
