@@ -1440,7 +1440,7 @@ static bool ReleaseHelper(String *platformName, String *platformVersion)
 		*platformName = "Windows";
 
 	if (platformVersion) {
-		String *platformVersion = "Vista";
+		*platformVersion = "Vista";
 		if (IsWindowsVistaSP1OrGreater())
 			*platformVersion = "Vista SP1";
 		if (IsWindowsVistaSP2OrGreater())
