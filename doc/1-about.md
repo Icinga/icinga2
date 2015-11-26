@@ -54,6 +54,42 @@ More details in the [Icinga FAQ](https://www.icinga.org/icinga/faq/).
 
 ## <a id="whats-new"></a> What's New
 
+### What's New in Version 2.4.1
+
+#### Changes
+
+* ITL
+    * Add running_kernel_use_sudo option for the running_kernel check
+* Configuration
+    * Add global constants: `PlatformName`. `PlatformVersion`, `PlatformKernel` and `PlatformKernelVersion`
+* CLI
+    * Use NodeName and ZoneName constants for 'node setup' and 'node wizard' 
+
+#### Feature
+
+* Feature [10622](https://dev.icinga.org/issues/10622 "Feature 10622"): Add by_ssh_options argument for the check_by_ssh plugin
+* Feature [10693](https://dev.icinga.org/issues/10693 "Feature 10693"): Add running_kernel_use_sudo option for the running_kernel check
+* Feature [10716](https://dev.icinga.org/issues/10716 "Feature 10716"): Use NodeName and ZoneName constants for 'node setup' and 'node wizard'
+
+#### Bugfixes
+
+* Bug [10528](https://dev.icinga.org/issues/10528 "Bug 10528"): Documentation example in "Access Object Attributes at Runtime" doesn't work correctly
+* Bug [10615](https://dev.icinga.org/issues/10615 "Bug 10615"): Build fails on SLES 11 SP3 with GCC 4.8
+* Bug [10632](https://dev.icinga.org/issues/10632 "Bug 10632"): "node wizard" does not ask user to verify SSL certificate
+* Bug [10641](https://dev.icinga.org/issues/10641 "Bug 10641"): API setup command incorrectly overwrites existing certificates
+* Bug [10643](https://dev.icinga.org/issues/10643 "Bug 10643"): Icinga 2 crashes when ScheduledDowntime objects are used
+* Bug [10645](https://dev.icinga.org/issues/10645 "Bug 10645"): Documentation for schedule-downtime is missing required paremeters
+* Bug [10648](https://dev.icinga.org/issues/10648 "Bug 10648"): lib/base/process.cpp SIGSEGV on Debian squeeze / RHEL 6
+* Bug [10661](https://dev.icinga.org/issues/10661 "Bug 10661"): Incorrect web inject URL in documentation
+* Bug [10663](https://dev.icinga.org/issues/10663 "Bug 10663"): Incorrect redirect for stderr in /usr/lib/icinga2/prepare-dirs
+* Bug [10667](https://dev.icinga.org/issues/10667 "Bug 10667"): Indentation in command-plugins.conf
+* Bug [10677](https://dev.icinga.org/issues/10677 "Bug 10677"): node wizard checks for /var/lib/icinga2/ca directory but not the files
+* Bug [10690](https://dev.icinga.org/issues/10690 "Bug 10690"): CLI command 'repository add' doesn't work
+* Bug [10692](https://dev.icinga.org/issues/10692 "Bug 10692"): Fix typos in the documentation
+* Bug [10708](https://dev.icinga.org/issues/10708 "Bug 10708"): Windows setup wizard crashes when InstallDir registry key is not set
+* Bug [10710](https://dev.icinga.org/issues/10710 "Bug 10710"): Incorrect path for icinga2 binary in development documentation
+* Bug [10720](https://dev.icinga.org/issues/10720 "Bug 10720"): Remove --master_zone from --help because it is currently not implemented
+
 ### What's New in Version 2.4.0
 
 #### Changes
