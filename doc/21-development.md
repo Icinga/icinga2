@@ -122,6 +122,10 @@ If VFork causes trouble disable it inside the gdb run.
 
     # gdb --args /usr/lib64/icinga2/sbin/icinga2 daemon -x debug -DUseVfork=0
 
+The exact path to the Icinga 2 binary differs on each distribution. On Ubuntu
+it is installed into `/usr/lib/x86_64-linux-gnu/icinga2/sbin/icinga2` on 64-bit systems
+for example.
+
 > **Note**
 >
 > If gdb tells you it's missing debug symbols, quit gdb and install
