@@ -420,6 +420,7 @@ The following macros provide global statistics:
   icinga.num_hosts_up               | Current number of hosts in state 'Up'.
   icinga.num_hosts_down             | Current number of hosts in state 'Down'.
   icinga.num_hosts_unreachable      | Current number of unreachable hosts.
+  icinga.num_hosts_pending          | Current number of pending hosts.
   icinga.num_hosts_flapping         | Current number of flapping hosts.
   icinga.num_hosts_in_downtime      | Current number of hosts in downtime.
   icinga.num_hosts_acknowledged     | Current number of acknowledged host problems.

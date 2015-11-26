@@ -91,6 +91,7 @@ void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& service, const CheckResul
 
 	perfdata->Add(new PerfdataValue("num_hosts_up", hs.hosts_up));
 	perfdata->Add(new PerfdataValue("num_hosts_down", hs.hosts_down));
+	perfdata->Add(new PerfdataValue("num_hosts_pending", hs.hosts_pending));
 	perfdata->Add(new PerfdataValue("num_hosts_unreachable", hs.hosts_unreachable));
 	perfdata->Add(new PerfdataValue("num_hosts_flapping", hs.hosts_flapping));
 	perfdata->Add(new PerfdataValue("num_hosts_in_downtime", hs.hosts_in_downtime));
