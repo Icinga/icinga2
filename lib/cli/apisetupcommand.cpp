@@ -19,6 +19,7 @@
 
 #include "cli/apisetupcommand.hpp"
 #include "cli/apisetuputility.hpp"
+#include "cli/variableutility.hpp"
 #include "base/logger.hpp"
 #include "base/console.hpp"
 #include <iostream>
@@ -55,7 +56,12 @@ int ApiSetupCommand::GetMaxArguments(void) const
  */
 int ApiSetupCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {
-	if (!ApiSetupUtility::SetupMaster(Utility::GetFQDN(), true))
+	String cn = VariableUtility::GetVariable("NodeName");
+
+	if (cn.IsEmpty())
+		cn = Utility::GetFQDN();
+
+	if (!ApiSetupUtility::SetupMaster(cn, true))
 		return 1;
 
 	return 0;
