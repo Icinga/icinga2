@@ -206,11 +206,7 @@ int Main(void)
 	po::options_description hiddenDesc("Hidden options");
 
 	hiddenDesc.add_options()
-#ifndef _WIN32
 		("no-stack-rlimit", "used internally, do not specify manually")
-#else /* _WIN32 */
-		("no-stack-rlimit", "used internally, do not specify manually")
-#endif /* _WIN32 */
 		("arg", po::value<std::vector<std::string> >(), "positional argument");
 
 	po::positional_options_description positionalDesc;
