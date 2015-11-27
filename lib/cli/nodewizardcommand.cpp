@@ -182,6 +182,8 @@ wizard_endpoint_loop_start:
 		boost::algorithm::to_lower(answer);
 		choice = answer;
 
+		String tmpPort = "5665";
+
 		if (choice.Contains("n")) {
 			Log(LogWarning, "cli", "Node to master connection setup skipped");
 			std::cout << "Connection setup skipped. Please configure your master to connect to this node.\n";
@@ -208,17 +210,15 @@ wizard_endpoint_loop_start:
 
 			std::cout << ConsoleColorTag(Console_Bold)
 			     << "Master endpoint port" << ConsoleColorTag(Console_Normal)
-			     << " [5665]: ";
+			     << " [" << tmpPort << "]: ";
 
 			std::getline(std::cin, answer);
 			boost::algorithm::to_lower(answer);
 
 			if (!answer.empty())
-				tmp = answer;
-			else
-				tmp = "5665";
+				tmpPort = answer;
 
-			endpoint_buffer += "," + tmp.Trim();
+			endpoint_buffer += "," + tmpPort.Trim();
 		}
 
 		endpoints.push_back(endpoint_buffer);
@@ -255,15 +255,15 @@ wizard_master_host:
 		master_host = master_host.Trim();
 
 		std::cout << ConsoleColorTag(Console_Bold) << "Port"
-		    << ConsoleColorTag(Console_Normal) << " [5665]: ";
+		    << ConsoleColorTag(Console_Normal) << " [" << tmpPort << "]: ";
 
 		std::getline(std::cin, answer);
 		boost::algorithm::to_lower(answer);
 
-		if (answer.empty())
-			answer = "5665";
+		if (!answer.empty())
+			tmpPort = answer;
 
-		String master_port = answer;
+		String master_port = tmpPort;
 		master_port = master_port.Trim();
 
 		/* workaround for fetching the master cert */
