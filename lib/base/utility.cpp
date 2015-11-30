@@ -707,7 +707,8 @@ void Utility::MkDir(const String& path, int flags)
 #endif /* _WIN32 */
 		BOOST_THROW_EXCEPTION(posix_error()
 		    << boost::errinfo_api_function("mkdir")
-		    << boost::errinfo_errno(errno));
+		    << boost::errinfo_errno(errno)
+		    << boost::errinfo_file_name(path));
 	}
 }
 
