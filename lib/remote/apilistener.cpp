@@ -53,6 +53,11 @@ ApiListener::ApiListener(void)
 
 void ApiListener::OnConfigLoaded(void)
 {
+	if (m_Instance)
+		BOOST_THROW_EXCEPTION(ScriptError("Only one ApiListener object is allowed.", GetDebugInfo()));
+
+	m_Instance = this;
+
 	/* set up SSL context */
 	boost::shared_ptr<X509> cert;
 	try {
@@ -103,11 +108,6 @@ void ApiListener::OnAllConfigLoaded(void)
 void ApiListener::Start(bool runtimeCreated)
 {
 	SyncZoneDirs();
-
-	if (m_Instance)
-		BOOST_THROW_EXCEPTION(ScriptError("Only one ApiListener object is allowed.", GetDebugInfo()));
-
-	m_Instance = this;
 
 	ObjectImpl<ApiListener>::Start(runtimeCreated);
 
