@@ -135,19 +135,6 @@ int NodeWizardCommand::Run(const boost::program_options::variables_map& vm,
 		String cn = answer;
 		cn = cn.Trim();
 
-		std::cout << ConsoleColorTag(Console_Bold)
-		    << "Please specifiy the local zone name"
-		    << ConsoleColorTag(Console_Normal) << " [" << cn << "]: ";
-
-		std::getline(std::cin, answer);
-		boost::algorithm::to_lower(answer);
-
-		if (answer.empty())
-			answer = cn;
-
-		String local_zone = answer;
-		local_zone = local_zone.Trim();
-
 		std::vector<std::string> endpoints;
 
 		String endpoint_buffer;
@@ -481,7 +468,7 @@ wizard_ticket:
 		NodeUtility::CreateBackupFile(constants_file);
 
 		NodeUtility::UpdateConstant("NodeName", cn);
-		NodeUtility::UpdateConstant("ZoneName", local_zone);
+		NodeUtility::UpdateConstant("ZoneName", cn);
 	} else {
 		/* master setup */
 		std::cout << ConsoleColorTag(Console_Bold) << "Starting the Master setup routine...\n";
