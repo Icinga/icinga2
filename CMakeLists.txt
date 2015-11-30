@@ -199,14 +199,27 @@ if(HAVE_LIBEXECINFO)
   set(HAVE_BACKTRACE_SYMBOLS TRUE)
 endif()
 
+set(_ICINGA2_CXX11 OFF)
+
 if(UNIX)
   include(CheckCXXCompilerFlag)
   check_cxx_compiler_flag("-std=c++11" CXX_FLAG_CXX11)
-  check_cxx_compiler_flag("-std=c++0x" CXX_FLAG_CXX0X)
+
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    exec_program(${CMAKE_CXX_COMPILER}
+      ARGS -dumpversion
+      OUTPUT_VARIABLE _ICINGA2_COMPILER_VERSION
+    )
+
+    if (${_ICINGA2_COMPILER_VERSION} VERSION_LESS "4.7.0")
+      message(STATUS "Your version of GCC is too old for building Icinga 2 in C++11 mode.")
+      set(CXX_FLAG_CXX11 OFF)
+    endif()
+  endif()
+
   if(CXX_FLAG_CXX11)
+    set(_ICINGA2_CXX11 ON)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-  elseif(CXX_FLAG_CXX0X)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
   endif()
 
   check_cxx_compiler_flag("-Wno-inconsistent-missing-override" CXX_FLAG_NO_OVERRIDE_WARNING)
@@ -215,8 +228,12 @@ if(UNIX)
   endif()
 endif()
 
-include(CheckCXXSourceCompiles)
-check_cxx_source_compiles("class Base { public: virtual void test(void) { } }; class Derived : public Base { virtual void test(void) override { } }; int main(){}" CXX_FEATURE_OVERRIDE)
+set(CXX_FEATURE_OVERRIDE OFF)
+
+if(_ICINGA2_CXX11)
+  include(CheckCXXSourceCompiles)
+  check_cxx_source_compiles("class Base { public: virtual void test(void) { } }; class Derived : public Base { virtual void test(void) override { } }; int main(){}" CXX_FEATURE_OVERRIDE)
+endif()
 
 if(NOT CXX_FEATURE_OVERRIDE)
   add_definitions("-Doverride=")
