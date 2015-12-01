@@ -690,27 +690,6 @@ rterm_side_effect: rterm '(' rterm_items ')'
 		$$ = new FunctionCallExpression($1, *$3, @$);
 		delete $3;
 	}
-	| identifier T_FOLLOWS rterm
-	{
-		DictExpression *aexpr = dynamic_cast<DictExpression *>($3);
-		if (aexpr)
-			aexpr->MakeInline();
-
-		std::vector<String> args;
-		args.push_back(*$1);
-		delete $1;
-
-		$$ = new FunctionExpression(args, new std::map<String, Expression *>(), $3, @$);
-	}
-	| '(' identifier_items ')' T_FOLLOWS rterm
-	{
-		DictExpression *aexpr = dynamic_cast<DictExpression *>($5);
-		if (aexpr)
-			aexpr->MakeInline();
-
-		$$ = new FunctionExpression(*$2, new std::map<String, Expression *>(), $5, @$);
-		delete $2;
-	}
 	| T_IF '(' rterm ')' rterm_scope else_if_branches
 	{
 		$5->MakeInline();
@@ -813,6 +792,27 @@ rterm_no_side_effect: T_STRING
 	| T_CURRENT_LINE
 	{
 		$$ = MakeLiteral(@$.FirstLine);
+	}
+	| identifier T_FOLLOWS rterm
+	{
+		DictExpression *aexpr = dynamic_cast<DictExpression *>($3);
+		if (aexpr)
+			aexpr->MakeInline();
+
+		std::vector<String> args;
+		args.push_back(*$1);
+		delete $1;
+
+		$$ = new FunctionExpression(args, new std::map<String, Expression *>(), $3, @$);
+	}
+	| '(' identifier_items ')' T_FOLLOWS rterm
+	{
+		DictExpression *aexpr = dynamic_cast<DictExpression *>($5);
+		if (aexpr)
+			aexpr->MakeInline();
+
+		$$ = new FunctionExpression(*$2, new std::map<String, Expression *>(), $5, @$);
+		delete $2;
 	}
 	| rterm_array
 	| rterm_scope_require_side_effect
