@@ -147,7 +147,7 @@ Dictionary::Ptr LivestatusLogUtility::GetAttributes(const String& text)
 
 	/* set default values */
 	bag->Set("class", LogEntryClassInfo);
-	bag->Set("type", 0);
+	bag->Set("log_type", 0);
 	bag->Set("state", 0);
 	bag->Set("attempt", 0);
 	bag->Set("message", text); /* used as 'message' in log table, and 'log_output' in statehist table */
@@ -166,15 +166,15 @@ Dictionary::Ptr LivestatusLogUtility::GetAttributes(const String& text)
 
 		if (type.Contains("INITIAL HOST STATE")) {
 			bag->Set("class", LogEntryClassState);
-			bag->Set("type", LogEntryTypeHostInitialState);
+			bag->Set("log_type", LogEntryTypeHostInitialState);
 		}
 		else if (type.Contains("CURRENT HOST STATE")) {
 			bag->Set("class", LogEntryClassState);
-			bag->Set("type", LogEntryTypeHostCurrentState);
+			bag->Set("log_type", LogEntryTypeHostCurrentState);
 		}
 		else {
 			bag->Set("class", LogEntryClassAlert);
-			bag->Set("type", LogEntryTypeHostAlert);
+			bag->Set("log_type", LogEntryTypeHostAlert);
 		}
 
 		return bag;
@@ -189,10 +189,10 @@ Dictionary::Ptr LivestatusLogUtility::GetAttributes(const String& text)
 
 		if (type.Contains("HOST FLAPPING ALERT")) {
 			bag->Set("class", LogEntryClassAlert);
-			bag->Set("type", LogEntryTypeHostFlapping);
+			bag->Set("log_type", LogEntryTypeHostFlapping);
 		} else {
 			bag->Set("class", LogEntryClassAlert);
-			bag->Set("type", LogEntryTypeHostDowntimeAlert);
+			bag->Set("log_type", LogEntryTypeHostDowntimeAlert);
 		}
 
 		return bag;
@@ -211,15 +211,15 @@ Dictionary::Ptr LivestatusLogUtility::GetAttributes(const String& text)
 
 		if (type.Contains("INITIAL SERVICE STATE")) {
 			bag->Set("class", LogEntryClassState);
-			bag->Set("type", LogEntryTypeServiceInitialState);
+			bag->Set("log_type", LogEntryTypeServiceInitialState);
 		}
 		else if (type.Contains("CURRENT SERVICE STATE")) {
 			bag->Set("class", LogEntryClassState);
-			bag->Set("type", LogEntryTypeServiceCurrentState);
+			bag->Set("log_type", LogEntryTypeServiceCurrentState);
 		}
 		else {
 			bag->Set("class", LogEntryClassAlert);
-			bag->Set("type", LogEntryTypeServiceAlert);
+			bag->Set("log_type", LogEntryTypeServiceAlert);
 		}
 
 		return bag;
@@ -235,10 +235,10 @@ Dictionary::Ptr LivestatusLogUtility::GetAttributes(const String& text)
 
 		if (type.Contains("SERVICE FLAPPING ALERT")) {
 			bag->Set("class", LogEntryClassAlert);
-			bag->Set("type", LogEntryTypeServiceFlapping);
+			bag->Set("log_type", LogEntryTypeServiceFlapping);
 		} else {
 			bag->Set("class", LogEntryClassAlert);
-			bag->Set("type", LogEntryTypeServiceDowntimeAlert);
+			bag->Set("log_type", LogEntryTypeServiceDowntimeAlert);
 		}
 
 		return bag;
@@ -247,7 +247,7 @@ Dictionary::Ptr LivestatusLogUtility::GetAttributes(const String& text)
 			return bag;
 
 		bag->Set("class", LogEntryClassState);
-		bag->Set("type", LogEntryTypeTimeperiodTransition);
+		bag->Set("log_type", LogEntryTypeTimeperiodTransition);
 
 		bag->Set("host_name", tokens[0]);
 		bag->Set("service_description", tokens[1]);
@@ -265,7 +265,7 @@ Dictionary::Ptr LivestatusLogUtility::GetAttributes(const String& text)
 		bag->Set("plugin_output", tokens[5]);
 
 		bag->Set("class", LogEntryClassNotification);
-		bag->Set("type", LogEntryTypeHostNotification);
+		bag->Set("log_type", LogEntryTypeHostNotification);
 
 		return bag;
 	} else if (type.Contains("SERVICE NOTIFICATION")) {
@@ -281,7 +281,7 @@ Dictionary::Ptr LivestatusLogUtility::GetAttributes(const String& text)
 		bag->Set("plugin_output", tokens[6]);
 
 		bag->Set("class", LogEntryClassNotification);
-		bag->Set("type", LogEntryTypeServiceNotification);
+		bag->Set("log_type", LogEntryTypeServiceNotification);
 
 		return bag;
 	} else if (type.Contains("PASSIVE HOST CHECK")) {
@@ -314,17 +314,17 @@ Dictionary::Ptr LivestatusLogUtility::GetAttributes(const String& text)
 		return bag;
 	} else if (type.Contains("LOG VERSION")) {
 		bag->Set("class", LogEntryClassProgram);
-		bag->Set("type", LogEntryTypeVersion);
+		bag->Set("log_type", LogEntryTypeVersion);
 
 		return bag;
 	} else if (type.Contains("logging initial states")) {
 		bag->Set("class", LogEntryClassProgram);
-		bag->Set("type", LogEntryTypeInitialStates);
+		bag->Set("log_type", LogEntryTypeInitialStates);
 
 		return bag;
 	} else if (type.Contains("starting... (PID=")) {
 		bag->Set("class", LogEntryClassProgram);
-		bag->Set("type", LogEntryTypeProgramStarting);
+		bag->Set("log_type", LogEntryTypeProgramStarting);
 
 		return bag;
 	}
