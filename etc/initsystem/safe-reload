@@ -12,8 +12,10 @@ printf "Validating config files: "
 
 OUTPUTFILE=`mktemp`
 
-if type chcon >/dev/null 2>&1; then
-	chcon -t icinga2_tmp_t $OUTPUTFILE
+if type selinuxenabled >/dev/null 2>&1; then
+	if selinuxenabled; then
+		chcon -t icinga2_tmp_t $OUTPUTFILE
+	fi
 fi
 
 if ! $DAEMON daemon --validate --color > $OUTPUTFILE; then
