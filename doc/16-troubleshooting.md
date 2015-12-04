@@ -358,7 +358,7 @@ certificate's CN, the master will deny all events.
 
 > **Tip**
 >
-> [Icinga Web 2](2-getting-started.md#setting-up-the-user-interface) provides a dashboard view
+> [Icinga Web 2](2-getting-started.md#setting-up-icingaweb2) provides a dashboard view
 > for overdue check results.
 
 Enable the [debug log](16-troubleshooting.md#troubleshooting-enable-debug-output) on the master

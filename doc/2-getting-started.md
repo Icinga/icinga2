@@ -1,7 +1,7 @@
 # <a id="getting-started"></a> Getting Started
 
 This tutorial is a step-by-step introduction to installing [Icinga 2](2-getting-started.md#setting-up-icinga2)
-and [Icinga Web 2](2-getting-started.md#setting-up-the-user-interface).
+and [Icinga Web 2](2-getting-started.md#setting-up-icingaweb2).
 It assumes that you are familiar with the operating system you're using to install Icinga 2.
 
 ## <a id="setting-up-icinga2"></a> Setting up Icinga 2
@@ -309,7 +309,7 @@ Test it:
     $ nano /etc/icinga2/conf.d/templates.conf
 
 
-## <a id="setting-up-the-user-interface"></a> Setting up Icinga Web 2
+## <a id="setting-up-icingaweb2"></a> Setting up Icinga Web 2
 
 Icinga 2 can be used with Icinga Web 2 and a number of other web interfaces.
 This chapter explains how to set up Icinga Web 2.
@@ -661,7 +661,7 @@ group using the `id` command:
     $ id <your-webserver-user>
 
 
-### <a id="setting-up-icingaweb2"></a> Installing up Icinga Web 2
+### <a id="installing-icingaweb2"></a> Installing Icinga Web 2
 
 Please consult the [installation documentation](https://github.com/Icinga/icingaweb2/blob/master/doc/installation.md)
 for further instructions on how to install Icinga Web 2.
