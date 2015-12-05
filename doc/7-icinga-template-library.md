@@ -2174,6 +2174,22 @@ Name                       | Description
 ---------------------------|-------------
 running\_kernel\_use\_sudo | Whether to run the plugin with `sudo`. Defaults to false except on Ubuntu where it defaults to true.
 
+#### <a id="plugins-contrib-command-iostat"></a> iostat
+
+The plugin [check_iostat](https://github.com/dnsmichi/icinga-plugins/blob/master/scripts/check_iostat) is used to monitor I/O with `iostat` on a linux host. The default thresholds are rather high so you can use a grapher for baselining before setting your own.
+
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
+
+Name           | Description
+---------------|-----------------------------------------------------------------------------------------------------------------------
+iostat\_disk   | **Required.** The device to monitor without path. e.g. sda or vda. (default: sda)
+iostat\_wtps   | **Required.** Warning threshold for tps (default: 100)
+iostat\_wread  | **Required.** Warning threshold for KB/s reads (default: 100)
+iostat\_wwrite | **Required.** Warning threshold for KB/s writes (default: 100)
+iostat\_ctps   | **Required.** Critical threshold for tps (default: 200)
+iostat\_cread  | **Required.** Critical threshold for KB/s reads (default: 200)
+iostat\_cwrite | **Required.** Critical threshold for KB/s writes (default: 200)
+
 #### <a id="plugin-contrib-command-yum"></a> yum
 
 The plugin `yum` is used to check the YUM package management system for package updates. To differentiate between security and normal updates it requires the YUM security plugin installed. It is provied by `Christoph Anton Mitterer` on [https://github.com](https://github.com/calestyo/check_yum).
