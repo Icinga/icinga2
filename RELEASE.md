@@ -1,9 +1,13 @@
-# Quality Assurance
-
-Review and test the changes and issues for this version.
-https://dev.icinga.org/projects/i2/roadmap
-
 # Release Workflow
+
+Print this document.
+
+## Issues
+
+Check the following issue filters:
+
+* [Pending backports](https://dev.icinga.org/projects/i2/issues?query_id=41)
+* [Valid target version](https://dev.icinga.org/projects/i2/issues?query_id=55)
 
 ## Authors
 
@@ -78,9 +82,11 @@ into master and merge the support branch:
 
 ## Build Server
 
+* Update Git tags for the release jobs.
+
 ### Linux
 
-* Build the newly created git tag for Debian/RHEL/SuSE.
+* Build the newly created Git tag for Debian/RHEL/SuSE.
 * Provision the vagrant boxes and test the release packages.
 * Start a new docker container and install/run icinga2
 
@@ -115,3 +121,9 @@ and pull the current icinga2 revision to update what's new".
 * Create a new blog post on www.icinga.org/blog
 * Send announcement mail to icinga-announce@lists.icinga.org
 * Social media: [Twitter](https://twitter.com/icinga), [Facebook](https://www.facebook.com/icinga), [G+](http://plus.google.com/+icinga), [Xing](https://www.xing.com/communities/groups/icinga-da4b-1060043), [LinkedIn](https://www.linkedin.com/groups/Icinga-1921830/about)
+* Update IRC channel topic
+
+# After the release
+
+* Add new minor version
+* Update Redmine filters for the next major/minor version
