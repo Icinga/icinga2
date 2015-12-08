@@ -449,7 +449,7 @@ RHEL/CentOS 5/6:
 RHEL/CentOS 7:
 
     # yum install postgresql-server postgresql
-    # postgresql-setup --initdb
+    # postgresql-setup initdb
     # systemctl enable postgresql
     # systemctl start postgresql
 
