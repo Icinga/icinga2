@@ -671,7 +671,17 @@ void Application::SigAbrtHandler(int)
 		  << std::endl;
 
 	String fname = GetCrashReportFilename();
-	Utility::MkDir(Utility::DirName(fname), 0750);
+	String dirName = Utility::DirName(fname);
+
+	if (!Utility::PathExists(dirName)) {
+#ifndef _WIN32
+		if (mkdir(dirName.CStr(), 0700) < 0 && errno != EEXIST) {
+#else /*_ WIN32 */
+		if (mkdir(dirName.CStr()) < 0 && errno != EEXIST) {
+#endif /* _WIN32 */
+			std::cerr << "Could not create directory '" << dirName << "': Error " << errno << ", " << strerror(errno) << "\n";
+		}
+	}
 
 	bool interactive_debugger = Convert::ToBool(ScriptGlobal::Get("AttachDebugger"));
 
@@ -693,7 +703,7 @@ void Application::SigAbrtHandler(int)
 		ofs << "\n";
 		ofs.close();
 	} else {
-		Log(LogCritical, "Application", "Icinga 2 has terminated unexpeectedly. Attaching debugger...");
+		Log(LogCritical, "Application", "Icinga 2 has terminated unexpectedly. Attaching debugger...");
 	}
 
 	AttachDebugger(fname, interactive_debugger);
@@ -737,11 +747,21 @@ void Application::ExceptionHandler(void)
 #endif /* _WIN32 */
 
 	String fname = GetCrashReportFilename();
-	Utility::MkDir(Utility::DirName(fname), 0750);
+	String dirName = Utility::DirName(fname);
+
+	if (!Utility::PathExists(dirName)) {
+#ifndef _WIN32
+		if (mkdir(dirName.CStr(), 0700) < 0 && errno != EEXIST) {
+#else /*_ WIN32 */
+		if (mkdir(dirName.CStr()) < 0 && errno != EEXIST) {
+#endif /* _WIN32 */
+			std::cerr << "Could not create directory '" << dirName << "': Error " << errno << ", " << strerror(errno) << "\n";
+		}
+	}
 
 	bool interactive_debugger = Convert::ToBool(ScriptGlobal::Get("AttachDebugger"));
 
-	if (interactive_debugger) {
+	if (!interactive_debugger) {
 		std::ofstream ofs;
 		ofs.open(fname.CStr());
 
@@ -783,7 +803,17 @@ LONG CALLBACK Application::SEHUnhandledExceptionFilter(PEXCEPTION_POINTERS exi)
 	l_InExceptionHandler = true;
 
 	String fname = GetCrashReportFilename();
-	Utility::MkDir(Utility::DirName(fname), 0750);
+	String dirName = Utility::DirName(fname);
+
+	if (!Utility::PathExists(dirName)) {
+#ifndef _WIN32
+		if (mkdir(dirName.CStr(), 0700) < 0 && errno != EEXIST) {
+#else /*_ WIN32 */
+		if (mkdir(dirName.CStr()) < 0 && errno != EEXIST) {
+#endif /* _WIN32 */
+			std::cerr << "Could not create directory '" << dirName << "': Error " << errno << ", " << strerror(errno) << "\n";
+		}
+	}
 
 	std::ofstream ofs;
 	ofs.open(fname.CStr());
