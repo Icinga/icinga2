@@ -171,12 +171,13 @@ distribution's package manager.
 For your convenience here is a list of package names for some of the more
 popular operating systems/distributions:
 
-OS/Distribution        | Package Name       | Installation Path
------------------------|--------------------|---------------------------
-RHEL/CentOS (EPEL)     | nagios-plugins-all | /usr/lib/nagios/plugins or /usr/lib64/nagios/plugins
-Debian                 | nagios-plugins     | /usr/lib/nagios/plugins
-FreeBSD                | monitoring-plugins | /usr/local/libexec/nagios
-OS X (MacPorts)        | nagios-plugins     | /opt/local/libexec
+OS/Distribution        | Package Name       | Repository                | Installation Path
+-----------------------|--------------------|---------------------------|----------------------------
+RHEL/CentOS            | nagios-plugins-all | [EPEL](http://fedoraproject.org/wiki/EPEL) | /usr/lib/nagios/plugins or /usr/lib64/nagios/plugins
+SLES/OpenSUSE          | monitoring-plugins | [server:monitoring](https://build.opensuse.org/project/repositories/server:monitoring) | /usr/lib/nagios/plugins
+Debian/Ubuntu          | nagios-plugins     | -                         | /usr/lib/nagios/plugins
+FreeBSD                | monitoring-plugins | -                         | /usr/local/libexec/nagios
+OS X                   | nagios-plugins     | [MacPorts](http://www.macports.org), [Homebrew](http://brew.sh) | /opt/local/libexec or /usr/local/sbin
 
 Depending on which directory your plugins are installed into you may need to
 update the global `PluginDir` constant in your [Icinga 2 configuration](4-configuring-icinga-2.md#constants-conf).
