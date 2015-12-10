@@ -34,8 +34,7 @@ REGISTER_APIFUNCTION(Update, config, &ApiListener::ConfigUpdateHandler);
 
 bool ApiListener::IsConfigMaster(const Zone::Ptr& zone)
 {
-	String path = Application::GetZonesDir() + "/" + zone->GetName();
-	return Utility::PathExists(path);
+	return !ConfigCompiler::GetZoneDirs(zone->GetName()).empty();
 }
 
 void ApiListener::ConfigGlobHandler(Dictionary::Ptr& config, const String& path, const String& file)
