@@ -139,6 +139,8 @@ public:
 	static String GetPlatformVersion(void);
 	static String GetPlatformArchitecture(void);
 
+	static String ValidateUTF8(const String& input);
+
 private:
 	Utility(void);
 	static void CollectPaths(const String& path, std::vector<String>& paths);

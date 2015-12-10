@@ -464,10 +464,12 @@ String IdoPgsqlConnection::Escape(const String& s)
 {
 	AssertOnWorkQueue();
 
-	size_t length = s.GetLength();
-	char *to = new char[s.GetLength() * 2 + 1];
+	String utf8s = Utility::ValidateUTF8(s);
 
-	PQescapeStringConn(m_Connection, to, s.CStr(), length, NULL);
+	size_t length = utf8s.GetLength();
+	char *to = new char[utf8s.GetLength() * 2 + 1];
+
+	PQescapeStringConn(m_Connection, to, utf8s.CStr(), length, NULL);
 
 	String result = String(to);
 

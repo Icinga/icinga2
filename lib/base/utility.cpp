@@ -1654,3 +1654,39 @@ String Utility::GetPlatformArchitecture(void)
 	return UnameHelper('m');
 #endif /* _WIN32 */
 }
+
+String Utility::ValidateUTF8(const String& input)
+{
+	String output;
+	size_t length = input.GetLength();
+
+	for (size_t i = 0; i < length; i++) {
+		if ((input[i] & 0x80) == 0) {
+			output += input[i];
+			continue;
+		}
+
+		if ((input[i] & 0xE0) == 0xC0 && length > i + 1 &&
+		    (input[i + 1] & 0xC0) == 0x80) {
+			output += input[i];
+			output += input[i + 1];
+			i++;
+			continue;
+		}
+
+		if ((input[i] & 0xF0) == 0xE0 && length > i + 2 &&
+		    (input[i + 1] & 0xC0) == 0x80 && (input[i + 2] & 0xC0) == 0x80) {
+			output += input[i];
+			output += input[i + 1];
+			output += input[i + 2];
+			i += 2;
+			continue;
+		}
+
+		output += '\xEF';
+		output += '\xBF';
+		output += '\xBD';
+	}
+
+	return output;
+}
