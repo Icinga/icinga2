@@ -101,7 +101,7 @@ void DbEvents::NextCheckChangedHandler(const Checkable::Ptr& checkable)
 	else
 		query1.Table = "hoststatus";
 
-	query1.Type = DbQueryInsert | DbQueryUpdate;
+	query1.Type = DbQueryUpdate;
 	query1.Category = DbCatState;
 	query1.StatusUpdate = true;
 	query1.Object = DbObject::GetOrCreateByObject(checkable);
@@ -132,7 +132,7 @@ void DbEvents::FlappingChangedHandler(const Checkable::Ptr& checkable)
 	else
 		query1.Table = "hoststatus";
 
-	query1.Type = DbQueryInsert | DbQueryUpdate;
+	query1.Type = DbQueryUpdate;
 	query1.Category = DbCatState;
 	query1.StatusUpdate = true;
 	query1.Object = DbObject::GetOrCreateByObject(checkable);
@@ -170,7 +170,7 @@ void DbEvents::LastNotificationChangedHandler(const Notification::Ptr& notificat
 	else
 		query1.Table = "hoststatus";
 
-	query1.Type = DbQueryInsert | DbQueryUpdate;
+	query1.Type = DbQueryUpdate;
 	query1.Category = DbCatState;
 	query1.StatusUpdate = true;
 	query1.Object = DbObject::GetOrCreateByObject(checkable);
@@ -217,7 +217,7 @@ void DbEvents::ReachabilityChangedHandler(const Checkable::Ptr& checkable, const
 		else
 			query1.Table = "hoststatus";
 
-		query1.Type = DbQueryInsert | DbQueryUpdate;
+		query1.Type = DbQueryUpdate;
 		query1.Category = DbCatState;
 		query1.StatusUpdate = true;
 		query1.Object = DbObject::GetOrCreateByObject(child);
@@ -277,7 +277,7 @@ void DbEvents::EnableChangedHandlerInternal(const Checkable::Ptr& checkable, con
 	else
 		query1.Table = "hoststatus";
 
-	query1.Type = DbQueryInsert | DbQueryUpdate;
+	query1.Type = DbQueryUpdate;
 	query1.Category = DbCatState;
 	query1.StatusUpdate = true;
 	query1.Object = DbObject::GetOrCreateByObject(checkable);
