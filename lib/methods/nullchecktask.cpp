@@ -22,6 +22,7 @@
 #endif /* _WIN32 */
 #include "methods/nullchecktask.hpp"
 #include "icinga/perfdatavalue.hpp"
+#include "icinga/icingaapplication.hpp"
 #include "base/utility.hpp"
 #include "base/convert.hpp"
 #include "base/function.hpp"
@@ -38,7 +39,7 @@ void NullCheckTask::ScriptFunc(const Checkable::Ptr& service, const CheckResult:
 		return;
 
 	String output = "Hello from ";
-	output += Utility::GetFQDN();
+	output += IcingaApplication::GetInstance()->GetNodeName();
 
 	Array::Ptr perfdata = new Array();
 	perfdata->Add(new PerfdataValue("time", Convert::ToDouble(Utility::GetTime())));
