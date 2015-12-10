@@ -70,11 +70,12 @@ struct I2_DB_IDO_API DbQuery
 	intrusive_ptr<CustomVarObject> NotificationObject;
 	bool ConfigUpdate;
 	bool StatusUpdate;
+	WorkQueuePriority Priority;
 
 	static void StaticInitialize(void);
 
 	DbQuery(void)
-		: Type(0), Category(DbCatInvalid), ConfigUpdate(false), StatusUpdate(false)
+		: Type(0), Category(DbCatInvalid), ConfigUpdate(false), StatusUpdate(false), Priority(PriorityLow)
 	{ }
 };
 

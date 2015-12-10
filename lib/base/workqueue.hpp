@@ -27,12 +27,37 @@
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition_variable.hpp>
 #include <boost/exception_ptr.hpp>
+#include <queue>
 #include <deque>
 
 namespace icinga
 {
 
-typedef boost::function<void (void)> Task;
+enum WorkQueuePriority
+{
+	PriorityLow,
+	PriorityNormal,
+	PriorityHigh
+};
+
+struct Task
+{
+	Task(void)
+	    : Priority(PriorityNormal)
+	{ }
+
+	Task(const boost::function<void (void)>& function, WorkQueuePriority priority)
+	    : Function(function), Priority(priority)
+	{ }
+
+	boost::function<void (void)> Function;
+	WorkQueuePriority Priority;
+};
+
+inline bool operator<(const Task& a, const Task& b)
+{
+	return a.Priority < b.Priority;
+}
 
 /**
  * A workqueue.
@@ -47,7 +72,8 @@ public:
 	WorkQueue(size_t maxItems = 0, int threadCount = 1);
 	~WorkQueue(void);
 
-	void Enqueue(const Task& task, bool allowInterleaved = false);
+	void Enqueue(const boost::function<void (void)>& function, WorkQueuePriority priority = PriorityNormal,
+	    bool allowInterleaved = false);
 	void Join(bool stop = false);
 
 	bool IsWorkerThread(void) const;
@@ -74,7 +100,7 @@ private:
 	size_t m_MaxItems;
 	bool m_Stopped;
 	int m_Processing;
-	std::deque<Task> m_Tasks;
+	std::priority_queue<Task, std::deque<Task> > m_Tasks;
 	ExceptionCallback m_ExceptionCallback;
 	std::vector<boost::exception_ptr> m_Exceptions;
 	Timer::Ptr m_StatusTimer;
