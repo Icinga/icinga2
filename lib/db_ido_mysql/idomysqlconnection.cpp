@@ -574,10 +574,12 @@ String IdoMysqlConnection::Escape(const String& s)
 {
 	AssertOnWorkQueue();
 
-	size_t length = s.GetLength();
-	char *to = new char[s.GetLength() * 2 + 1];
+	String utf8s = Utility::ValidateUTF8(s);
 
-	mysql_real_escape_string(&m_Connection, to, s.CStr(), length);
+	size_t length = utf8s.GetLength();
+	char *to = new char[utf8s.GetLength() * 2 + 1];
+
+	mysql_real_escape_string(&m_Connection, to, utf8s.CStr(), length);
 
 	String result = String(to);
 
