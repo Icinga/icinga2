@@ -97,6 +97,9 @@ void DbConnection::Pause(void)
 	query1.Fields = new Dictionary();
 	query1.Fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
 	query1.Fields->Set("program_end_time", DbValue::FromTimestamp(Utility::GetTime()));
+
+	query1.Priority = PriorityHigh;
+
 	ExecuteQuery(query1);
 
 	NewTransaction();
@@ -134,6 +137,7 @@ void DbConnection::ProgramStatusHandler(void)
 	query1.Category = DbCatProgramStatus;
 	query1.WhereCriteria = new Dictionary();
 	query1.WhereCriteria->Set("instance_id", 0);  /* DbConnection class fills in real ID */
+	query1.Priority = PriorityHigh;
 	DbObject::OnQuery(query1);
 
 	DbQuery query2;
@@ -160,6 +164,7 @@ void DbConnection::ProgramStatusHandler(void)
 	query2.Fields->Set("event_handlers_enabled", (IcingaApplication::GetInstance()->GetEnableEventHandlers() ? 1 : 0));
 	query2.Fields->Set("flap_detection_enabled", (IcingaApplication::GetInstance()->GetEnableFlapping() ? 1 : 0));
 	query2.Fields->Set("process_performance_data", (IcingaApplication::GetInstance()->GetEnablePerfdata() ? 1 : 0));
+	query2.Priority = PriorityHigh;
 	DbObject::OnQuery(query2);
 
 	DbQuery query3;

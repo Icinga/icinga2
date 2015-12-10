@@ -95,7 +95,7 @@ void IdoMysqlConnection::Pause(void)
 
 	DbConnection::Pause();
 
-	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::Disconnect, this));
+	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::Disconnect, this), PriorityHigh);
 	m_QueryQueue.Join();
 }
 
@@ -138,8 +138,8 @@ void IdoMysqlConnection::TxTimerHandler(void)
 
 void IdoMysqlConnection::NewTransaction(void)
 {
-	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::InternalNewTransaction, this));
-	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::FinishAsyncQueries, this, true));
+	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::InternalNewTransaction, this), PriorityHigh);
+	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::FinishAsyncQueries, this, true), PriorityHigh);
 }
 
 void IdoMysqlConnection::InternalNewTransaction(void)
@@ -155,12 +155,15 @@ void IdoMysqlConnection::InternalNewTransaction(void)
 
 void IdoMysqlConnection::ReconnectTimerHandler(void)
 {
-	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::Reconnect, this));
+	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::Reconnect, this), PriorityLow);
 }
 
 void IdoMysqlConnection::Reconnect(void)
 {
 	AssertOnWorkQueue();
+
+	if (!IsActive())
+		return;
 
 	CONTEXT("Reconnecting to MySQL IDO database '" + GetName() + "'");
 
@@ -406,7 +409,7 @@ void IdoMysqlConnection::AsyncQuery(const String& query, const boost::function<v
 	if (m_AsyncQueries.size() > 500)
 		FinishAsyncQueries(true);
 	else
-		m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::FinishAsyncQueries, this, false));
+		m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::FinishAsyncQueries, this, false), PriorityLow);
 }
 
 void IdoMysqlConnection::FinishAsyncQueries(bool force)
@@ -625,7 +628,7 @@ void IdoMysqlConnection::DiscardRows(const IdoMysqlResult& result)
 
 void IdoMysqlConnection::ActivateObject(const DbObject::Ptr& dbobj)
 {
-	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::InternalActivateObject, this, dbobj));
+	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::InternalActivateObject, this, dbobj), PriorityLow);
 }
 
 void IdoMysqlConnection::InternalActivateObject(const DbObject::Ptr& dbobj)
@@ -659,7 +662,7 @@ void IdoMysqlConnection::InternalActivateObject(const DbObject::Ptr& dbobj)
 
 void IdoMysqlConnection::DeactivateObject(const DbObject::Ptr& dbobj)
 {
-	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::InternalDeactivateObject, this, dbobj));
+	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::InternalDeactivateObject, this, dbobj), PriorityLow);
 }
 
 void IdoMysqlConnection::InternalDeactivateObject(const DbObject::Ptr& dbobj)
@@ -753,7 +756,7 @@ void IdoMysqlConnection::ExecuteQuery(const DbQuery& query)
 {
 	ASSERT(query.Category != DbCatInvalid);
 
-	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::InternalExecuteQuery, this, query, (DbQueryType *)NULL), true);
+	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::InternalExecuteQuery, this, query, (DbQueryType *)NULL), query.Priority, true);
 }
 
 void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query, DbQueryType *typeOverride)
@@ -781,7 +784,7 @@ void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query, DbQueryType 
 
 		BOOST_FOREACH(const Dictionary::Pair& kv, query.WhereCriteria) {
 			if (!FieldToEscapedString(kv.first, kv.second, &value)) {
-				m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::InternalExecuteQuery, this, query, (DbQueryType *)NULL));
+				m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::InternalExecuteQuery, this, query, (DbQueryType *)NULL), query.Priority);
 				return;
 			}
 
@@ -902,7 +905,7 @@ void IdoMysqlConnection::FinishExecuteQuery(const DbQuery& query, int type, bool
 
 void IdoMysqlConnection::CleanUpExecuteQuery(const String& table, const String& time_column, double max_age)
 {
-	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::InternalCleanUpExecuteQuery, this, table, time_column, max_age), true);
+	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::InternalCleanUpExecuteQuery, this, table, time_column, max_age), PriorityLow, true);
 }
 
 void IdoMysqlConnection::InternalCleanUpExecuteQuery(const String& table, const String& time_column, double max_age)

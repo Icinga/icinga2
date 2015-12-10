@@ -415,8 +415,6 @@ void ConfigObject::Deactivate(bool runtimeRemoved)
 {
 	CONTEXT("Deactivating object '" + GetName() + "' of type '" + GetType()->GetName() + "'");
 
-	SetAuthority(false);
-
 	{
 		ObjectLock olock(this);
 
@@ -425,6 +423,8 @@ void ConfigObject::Deactivate(bool runtimeRemoved)
 
 		SetActive(false, true);
 	}
+
+	SetAuthority(false);
 
 	Stop(runtimeRemoved);
 
@@ -471,10 +471,10 @@ void ConfigObject::SetAuthority(bool authority)
 		ASSERT(GetResumeCalled());
 		SetPaused(false);
 	} else if (!authority && !GetPaused()) {
+		SetPaused(true);
 		SetPauseCalled(false);
 		Pause();
 		ASSERT(GetPauseCalled());
-		SetPaused(true);
 	}
 }
 
