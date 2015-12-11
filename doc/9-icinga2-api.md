@@ -1157,12 +1157,29 @@ Package names starting with an underscore are reserved for internal packages and
 
 ### <a id="icinga2-api-config-management-create-config-stage"></a> Uploading configuration for a Config Package
 
-Configuration files in packages are managed in stages. Stages provide a way to maintain multiple configuration versions for a package.
+Configuration files in packages are managed in stages.
+Stages provide a way to maintain multiple configuration versions for a package.
 
 Send a `POST` request to the URL endpoint `/v1/config/stages` and add the name of an existing
 configuration package to the URL path (e.g. `example-cmdb`).
 The request body must contain the `files` attribute with the value being
 a dictionary of file targets and their content.
+
+The file path requires one of these two directories inside its path:
+
+  Directory   | Description
+  ------------|------------------------------------
+  conf.d      | Local configuration directory.
+  zones.d     | Configuration directory for cluster zones, each zone must be put into its own zone directory underneath. Supports the [cluster config sync](13-distributed-monitoring-ha.md#cluster-zone-config-sync).
+
+Example for a local configuration in the `conf.d` directory:
+
+    "files": { "conf.d/host1.conf": "object Host \"local-host\" { address = \"127.0.0.1\", check_command = \"hostalive\" }" }
+
+Example for a host configuration inside the `satellite` zone in the `zones.d` directory:
+
+    "files": { "zones.d/satellite/host2.conf": "object Host \"satellite-host\" { address = \"192.168.1.100\", check_command = \"hostalive\" }" }
+
 
 The example below will create a new file called `test.conf` in the `conf.d`
 directory. Note: This example contains an error (`chec_command`). This is
