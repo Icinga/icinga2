@@ -212,7 +212,7 @@ if(UNIX)
       OUTPUT_VARIABLE _ICINGA2_COMPILER_VERSION
     )
 
-    if (${_ICINGA2_COMPILER_VERSION} VERSION_LESS "4.7.0")
+    if("${_ICINGA2_COMPILER_VERSION}" VERSION_LESS "4.7.0")
       message(STATUS "Your version of GCC is too old for building Icinga 2 in C++11 mode.")
       set(CXX_FLAG_CXX11 OFF)
     endif()
