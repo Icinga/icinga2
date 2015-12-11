@@ -212,14 +212,17 @@ Expression *ConfigCompiler::HandleIncludeZones(const String& relativeBase, const
     const String& path, const String& pattern, const String& package, const DebugInfo&)
 {
 	String ppath;
+	String newRelativeBase = relativeBase;
 
 	if (path.GetLength() > 0 && path[0] == '/')
 		ppath = path;
-	else
+	else {
 		ppath = relativeBase + "/" + path;
+		newRelativeBase = ".";
+	}
 
 	std::vector<Expression *> expressions;
-	Utility::Glob(ppath + "/*", boost::bind(&ConfigCompiler::HandleIncludeZone, relativeBase, tag, _1, pattern, package, boost::ref(expressions)), GlobDirectory);
+	Utility::Glob(ppath + "/*", boost::bind(&ConfigCompiler::HandleIncludeZone, newRelativeBase, tag, _1, pattern, package, boost::ref(expressions)), GlobDirectory);
 	return new DictExpression(expressions);
 }
 
