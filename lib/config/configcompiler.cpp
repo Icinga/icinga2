@@ -323,3 +323,22 @@ void ConfigCompiler::RegisterZoneDir(const String& tag, const String& ppath, con
 	m_ZoneDirs[zoneName].push_back(zf);
 }
 
+bool ConfigCompiler::HasZoneConfigAuthority(const String& zoneName)
+{
+	std::vector<ZoneFragment> zoneDirs = m_ZoneDirs[zoneName];
+
+	bool empty = zoneDirs.empty();
+
+	if (!empty) {
+		std::vector<String> paths;
+		BOOST_FOREACH(const ZoneFragment& zf, zoneDirs) {
+			paths.push_back(zf.Path);
+		}
+
+		Log(LogNotice, "ConfigCompiler")
+		    << "Registered authoritative config directories for zone '" << zoneName << "': " << Utility::NaturalJoin(paths);
+	}
+
+	return !empty;
+}
+

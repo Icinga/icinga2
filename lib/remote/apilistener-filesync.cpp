@@ -32,21 +32,6 @@ using namespace icinga;
 
 REGISTER_APIFUNCTION(Update, config, &ApiListener::ConfigUpdateHandler);
 
-bool ApiListener::IsConfigMaster(const Zone::Ptr& zone)
-{
-	std::vector<ZoneFragment> zoneDirs = ConfigCompiler::GetZoneDirs(zone->GetName());
-
-	std::vector<String> paths;
-	BOOST_FOREACH(const ZoneFragment& zf, zoneDirs) {
-		paths.push_back(zf.Path);
-	}
-
-	Log(LogNotice, "ApiListener")
-	    << "Registered config directories for zone '" << zone->GetName() << "': " << Utility::NaturalJoin(paths);
-
-	return zoneDirs.size() > 0;
-}
-
 void ApiListener::ConfigGlobHandler(Dictionary::Ptr& config, const String& path, const String& file)
 {
 	CONTEXT("Creating config update for file '" + file + "'");
@@ -141,10 +126,13 @@ void ApiListener::SyncZoneDir(const Zone::Ptr& zone) const
 		}
 	}
 
+	if (newConfig->GetLength() == 0)
+		return;
+
 	String oldDir = Application::GetLocalStateDir() + "/lib/icinga2/api/zones/" + zone->GetName();
 
 	Log(LogInformation, "ApiListener")
-	    << "Copying zone configuration files for zone '" << zone->GetName() << "' to  '" << oldDir << "'.";
+	    << "Copying " << newConfig->GetLength() << " zone configuration files for zone '" << zone->GetName() << "' to '" << oldDir << "'.";
 
 	Utility::MkDir(oldDir, 0700);
 
@@ -156,12 +144,6 @@ void ApiListener::SyncZoneDir(const Zone::Ptr& zone) const
 void ApiListener::SyncZoneDirs(void) const
 {
 	BOOST_FOREACH(const Zone::Ptr& zone, ConfigType::GetObjectsByType<Zone>()) {
-		if (!IsConfigMaster(zone)) {
-			Log(LogWarning, "ApiListener")
-			    << "Not syncing config update for zone '" << zone->GetName() << "' because we do not have an authoritative version of the zone's config.";
-			continue;
-		}
-
 		try {
 			SyncZoneDir(zone);
 		} catch (const std::exception&) {
@@ -250,7 +232,7 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 			continue;
 		}
 
-		if (IsConfigMaster(zone)) {
+		if (ConfigCompiler::HasZoneConfigAuthority(kv.first)) {
 			Log(LogWarning, "ApiListener")
 			    << "Ignoring config update for zone '" << kv.first << "' because we have an authoritative version of the zone's config.";
 			continue;

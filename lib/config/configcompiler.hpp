@@ -118,6 +118,8 @@ public:
 	static std::vector<ZoneFragment> GetZoneDirs(const String& zone);
 	static void RegisterZoneDir(const String& tag, const String& ppath, const String& zoneName);
 
+	static bool HasZoneConfigAuthority(const String& zoneName);
+
 private:
 	boost::promise<boost::shared_ptr<Expression> > m_Promise;
 
