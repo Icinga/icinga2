@@ -34,7 +34,17 @@ REGISTER_APIFUNCTION(Update, config, &ApiListener::ConfigUpdateHandler);
 
 bool ApiListener::IsConfigMaster(const Zone::Ptr& zone)
 {
-	return !ConfigCompiler::GetZoneDirs(zone->GetName()).empty();
+	std::vector<ZoneFragment> zoneDirs = ConfigCompiler::GetZoneDirs(zone->GetName());
+
+	std::vector<String> paths;
+	BOOST_FOREACH(const ZoneFragment& zf, zoneDirs) {
+		paths.push_back(zf.Path);
+	}
+
+	Log(LogNotice, "ApiListener")
+	    << "Registered config directories for zone '" << zone->GetName() << "': " << Utility::NaturalJoin(paths);
+
+	return zoneDirs.size() > 0;
 }
 
 void ApiListener::ConfigGlobHandler(Dictionary::Ptr& config, const String& path, const String& file)
@@ -146,8 +156,11 @@ void ApiListener::SyncZoneDir(const Zone::Ptr& zone) const
 void ApiListener::SyncZoneDirs(void) const
 {
 	BOOST_FOREACH(const Zone::Ptr& zone, ConfigType::GetObjectsByType<Zone>()) {
-		if (!IsConfigMaster(zone))
+		if (!IsConfigMaster(zone)) {
+			Log(LogWarning, "ApiListener")
+			    << "Not syncing config update for zone '" << zone->GetName() << "' because we do not have an authoritative version of the zone's config.";
 			continue;
+		}
 
 		try {
 			SyncZoneDir(zone);
