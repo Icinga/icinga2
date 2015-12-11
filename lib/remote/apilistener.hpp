@@ -129,7 +129,6 @@ private:
 	void SyncZoneDirs(void) const;
 	void SyncZoneDir(const Zone::Ptr& zone) const;
 
-	static bool IsConfigMaster(const Zone::Ptr& zone);
 	static void ConfigGlobHandler(Dictionary::Ptr& config, const String& path, const String& file);
 	void SendConfigUpdate(const JsonRpcConnection::Ptr& aclient);
 

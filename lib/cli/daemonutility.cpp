@@ -60,25 +60,40 @@ static void IncludeZoneDirRecursive(const String& path, const String& package, b
 
 static void IncludeNonLocalZone(const String& zonePath, const String& package, bool& success)
 {
-	String etcPath = Application::GetZonesDir() + "/" + Utility::BaseName(zonePath);
+	/* Note: This include function must not call RegisterZoneDir().
+	 * We do not need to copy it for cluster config sync. */
 
-	if (Utility::PathExists(etcPath) || Utility::PathExists(zonePath + "/.authoritative"))
+	String zoneName = Utility::BaseName(zonePath);
+
+	/* Check whether this node already has an authoritative config version
+	 * from zones.d in etc or api package directory, or a local marker file)
+	 */
+	if (ConfigCompiler::HasZoneConfigAuthority(zoneName) || Utility::PathExists(zonePath + "/.authoritative")) {
+		Log(LogWarning, "config")
+		    << "Ignoring non local config include for zone '" << zoneName << "': We already have an authoritative copy included.";
 		return;
+	}
 
-	IncludeZoneDirRecursive(zonePath, package, success);
+	std::vector<Expression *> expressions;
+	Utility::GlobRecursive(zonePath, "*.conf", boost::bind(&ConfigCompiler::CollectIncludes, boost::ref(expressions), _1, zoneName, package), GlobFile);
+	DictExpression expr(expressions);
+	if (!ExecuteExpression(&expr))
+		success = false;
 }
 
 static void IncludePackage(const String& packagePath, bool& success)
 {
+	/* Note: Package includes will register their zones
+	 * for config sync inside their generated config. */
 	String packageName = Utility::BaseName(packagePath);
-	
+
 	if (Utility::PathExists(packagePath + "/include.conf")) {
 		Expression *expr = ConfigCompiler::CompileFile(packagePath + "/include.conf",
 		    String(), packageName);
-		
+
 		if (!ExecuteExpression(expr))
 			success = false;
-			
+
 		delete expr;
 	}
 }
@@ -99,8 +114,9 @@ bool DaemonUtility::ValidateConfigFiles(const std::vector<std::string>& configs,
 		}
 	}
 
-	/* Load cluster config files - this should probably be in libremote but
-	* unfortunately moving it there is somewhat non-trivial. */
+	/* Load cluster config files from /etc/icinga2/zones.d.
+	 * This should probably be in libremote but
+	 * unfortunately moving it there is somewhat non-trivial. */
 	success = true;
 
 	String zonesEtcDir = Application::GetZonesDir();
@@ -110,16 +126,19 @@ bool DaemonUtility::ValidateConfigFiles(const std::vector<std::string>& configs,
 	if (!success)
 		return false;
 
-	String zonesVarDir = Application::GetLocalStateDir() + "/lib/icinga2/api/zones";
-	if (Utility::PathExists(zonesVarDir))
-		Utility::Glob(zonesVarDir + "/*", boost::bind(&IncludeNonLocalZone, _1, "_cluster", boost::ref(success)), GlobDirectory);
+	/* Load package config files - they may contain additional zones which
+	 * are authoritative on this node and are checked in HasZoneConfigAuthority(). */
+	String packagesVarDir = Application::GetLocalStateDir() + "/lib/icinga2/api/packages";
+	if (Utility::PathExists(packagesVarDir))
+		Utility::Glob(packagesVarDir + "/*", boost::bind(&IncludePackage, _1, boost::ref(success)), GlobDirectory);
 
 	if (!success)
 		return false;
 
-	String packagesVarDir = Application::GetLocalStateDir() + "/lib/icinga2/api/packages";
-	if (Utility::PathExists(packagesVarDir))
-		Utility::Glob(packagesVarDir + "/*", boost::bind(&IncludePackage, _1, boost::ref(success)), GlobDirectory);
+	/* Load cluster synchronized configuration files */
+	String zonesVarDir = Application::GetLocalStateDir() + "/lib/icinga2/api/zones";
+	if (Utility::PathExists(zonesVarDir))
+		Utility::Glob(zonesVarDir + "/*", boost::bind(&IncludeNonLocalZone, _1, "_cluster", boost::ref(success)), GlobDirectory);
 
 	if (!success)
 		return false;
