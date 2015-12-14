@@ -139,7 +139,7 @@ void IdoMysqlConnection::TxTimerHandler(void)
 void IdoMysqlConnection::NewTransaction(void)
 {
 	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::InternalNewTransaction, this), PriorityHigh);
-	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::FinishAsyncQueries, this, true), PriorityHigh);
+	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::FinishAsyncQueries, this), PriorityHigh);
 }
 
 void IdoMysqlConnection::InternalNewTransaction(void)
@@ -405,18 +405,10 @@ void IdoMysqlConnection::AsyncQuery(const String& query, const boost::function<v
 	aq.Query = query;
 	aq.Callback = callback;
 	m_AsyncQueries.push_back(aq);
-
-	if (m_AsyncQueries.size() > 500)
-		FinishAsyncQueries(true);
-	else
-		m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::FinishAsyncQueries, this, false), PriorityLow);
 }
 
-void IdoMysqlConnection::FinishAsyncQueries(bool force)
+void IdoMysqlConnection::FinishAsyncQueries(void)
 {
-	if (m_AsyncQueries.size() < 10 && !force)
-		return;
-
 	std::vector<IdoAsyncQuery> queries;
 	m_AsyncQueries.swap(queries);
 
@@ -515,7 +507,7 @@ IdoMysqlResult IdoMysqlConnection::Query(const String& query)
 	AssertOnWorkQueue();
 
 	/* finish all async queries to maintain the right order for queries */
-	FinishAsyncQueries(true);
+	FinishAsyncQueries();
 
 	Log(LogDebug, "IdoMysqlConnection")
 	    << "Query: " << query;
