@@ -61,6 +61,7 @@ void DbConnection::Start(bool runtimeCreated)
 	ObjectImpl<DbConnection>::Start(runtimeCreated);
 
 	DbObject::OnQuery.connect(boost::bind(&DbConnection::ExecuteQuery, this, _1));
+	DbObject::OnMultipleQueries.connect(boost::bind(&DbConnection::ExecuteMultipleQueries, this, _1));
 	ConfigObject::OnActiveChanged.connect(boost::bind(&DbConnection::UpdateObject, this, _1));
 }
 
@@ -131,6 +132,8 @@ void DbConnection::ProgramStatusHandler(void)
 	Log(LogNotice, "DbConnection")
 	     << "Updating programstatus table.";
 
+	std::vector<DbQuery> queries;
+
 	DbQuery query1;
 	query1.Table = "programstatus";
 	query1.Type = DbQueryDelete;
@@ -138,7 +141,7 @@ void DbConnection::ProgramStatusHandler(void)
 	query1.WhereCriteria = new Dictionary();
 	query1.WhereCriteria->Set("instance_id", 0);  /* DbConnection class fills in real ID */
 	query1.Priority = PriorityHigh;
-	DbObject::OnQuery(query1);
+	queries.push_back(query1);
 
 	DbQuery query2;
 	query2.Table = "programstatus";
@@ -165,7 +168,9 @@ void DbConnection::ProgramStatusHandler(void)
 	query2.Fields->Set("flap_detection_enabled", (IcingaApplication::GetInstance()->GetEnableFlapping() ? 1 : 0));
 	query2.Fields->Set("process_performance_data", (IcingaApplication::GetInstance()->GetEnablePerfdata() ? 1 : 0));
 	query2.Priority = PriorityHigh;
-	DbObject::OnQuery(query2);
+	queries.push_back(query2);
+
+	DbObject::OnMultipleQueries(queries);
 
 	DbQuery query3;
 	query3.Table = "runtimevariables";
@@ -349,11 +354,6 @@ void DbConnection::SetStatusUpdate(const DbObject::Ptr& dbobj, bool hasupdate)
 bool DbConnection::GetStatusUpdate(const DbObject::Ptr& dbobj) const
 {
 	return (m_StatusUpdates.find(dbobj) != m_StatusUpdates.end());
-}
-
-void DbConnection::ExecuteQuery(const DbQuery&)
-{
-	/* Default handler does nothing. */
 }
 
 void DbConnection::UpdateObject(const ConfigObject::Ptr& object)

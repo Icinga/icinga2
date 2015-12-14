@@ -43,20 +43,31 @@ enum WorkQueuePriority
 struct Task
 {
 	Task(void)
-	    : Priority(PriorityNormal)
+	    : Priority(PriorityNormal), ID(-1)
 	{ }
 
-	Task(const boost::function<void (void)>& function, WorkQueuePriority priority)
-	    : Function(function), Priority(priority)
+	Task(const boost::function<void (void)>& function, WorkQueuePriority priority, int id)
+	    : Function(function), Priority(priority), ID(id)
 	{ }
 
 	boost::function<void (void)> Function;
 	WorkQueuePriority Priority;
+	int ID;
 };
 
 inline bool operator<(const Task& a, const Task& b)
 {
-	return a.Priority < b.Priority;
+	if (a.Priority < b.Priority)
+		return true;
+
+	if (a.Priority == b.Priority) {
+		if (a.ID > b.ID)
+			return true;
+		else
+			return false;
+	}
+
+	return false;
 }
 
 /**
@@ -101,6 +112,7 @@ private:
 	bool m_Stopped;
 	int m_Processing;
 	std::priority_queue<Task, std::deque<Task> > m_Tasks;
+	int m_NextTaskID;
 	ExceptionCallback m_ExceptionCallback;
 	std::vector<boost::exception_ptr> m_Exceptions;
 	Timer::Ptr m_StatusTimer;

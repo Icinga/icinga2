@@ -45,7 +45,7 @@ void DbEvents::StaticInitialize(void)
 	/* Status */
 	Comment::OnCommentAdded.connect(boost::bind(&DbEvents::AddComment, _1));
 	Comment::OnCommentRemoved.connect(boost::bind(&DbEvents::RemoveComment, _1));
-	Downtime::OnDowntimeAdded.connect(boost::bind(&DbEvents::AddDowntime, _1, true));
+	Downtime::OnDowntimeAdded.connect(boost::bind(&DbEvents::AddDowntime, _1));
 	Downtime::OnDowntimeRemoved.connect(boost::bind(&DbEvents::RemoveDowntime, _1));
 	Downtime::OnDowntimeTriggered.connect(boost::bind(&DbEvents::TriggerDowntime, _1));
 	Checkable::OnAcknowledgementSet.connect(boost::bind(&DbEvents::AddAcknowledgement, _1, _4));
@@ -303,30 +303,42 @@ void DbEvents::AddComments(const Checkable::Ptr& checkable)
 {
 	std::set<Comment::Ptr> comments = checkable->GetComments();
 
-	if (!comments.empty())
-		RemoveComments(checkable);
+	if (comments.empty())
+		return;
+
+	std::vector<DbQuery> queries;
+
+	DbQuery query1;
+	query1.Table = "comments";
+	query1.Type = DbQueryDelete;
+	query1.Category = DbCatComment;
+	query1.WhereCriteria = new Dictionary();
+	query1.WhereCriteria->Set("object_id", checkable);
+	queries.push_back(query1);
 
 	BOOST_FOREACH(const Comment::Ptr& comment, comments) {
-		AddComment(comment);
+		AddCommentInternal(queries, comment, false);
 	}
+
+	DbObject::OnMultipleQueries(queries);
 }
 
 void DbEvents::AddComment(const Comment::Ptr& comment)
 {
-	AddCommentInternal(comment, false);
+	std::vector<DbQuery> queries;
+	RemoveCommentInternal(queries, comment);
+	AddCommentInternal(queries, comment, false);
+	DbObject::OnMultipleQueries(queries);
 }
 
 void DbEvents::AddCommentHistory(const Comment::Ptr& comment)
 {
-	AddCommentInternal(comment, true);
+	std::vector<DbQuery> queries;
+	AddCommentInternal(queries, comment, true);
+	DbObject::OnMultipleQueries(queries);
 }
 
-void DbEvents::AddCommentInternal(const Comment::Ptr& comment, bool historical)
-{
-	AddCommentByType(comment, historical);
-}
-
-void DbEvents::AddCommentByType(const Comment::Ptr& comment, bool historical)
+void DbEvents::AddCommentInternal(std::vector<DbQuery>& queries, const Comment::Ptr& comment, bool historical)
 {
 	Checkable::Ptr checkable = comment->GetCheckable();
 
@@ -376,24 +388,18 @@ void DbEvents::AddCommentByType(const Comment::Ptr& comment, bool historical)
 	query1.Type = DbQueryInsert;
 	query1.Category = DbCatComment;
 	query1.Fields = fields1;
-	DbObject::OnQuery(query1);
-}
 
-void DbEvents::RemoveComments(const Checkable::Ptr& checkable)
-{
-	Log(LogDebug, "DbEvents")
-	    << "removing service comments for '" << checkable->GetName() << "'";
-
-	DbQuery query1;
-	query1.Table = "comments";
-	query1.Type = DbQueryDelete;
-	query1.Category = DbCatComment;
-	query1.WhereCriteria = new Dictionary();
-	query1.WhereCriteria->Set("object_id", checkable);
-	DbObject::OnQuery(query1);
+	queries.push_back(query1);
 }
 
 void DbEvents::RemoveComment(const Comment::Ptr& comment)
+{
+	std::vector<DbQuery> queries;
+	RemoveCommentInternal(queries, comment);
+	DbObject::OnMultipleQueries(queries);
+}
+
+void DbEvents::RemoveCommentInternal(std::vector<DbQuery>& queries, const Comment::Ptr& comment)
 {
 	Checkable::Ptr checkable = comment->GetCheckable();
 
@@ -425,6 +431,7 @@ void DbEvents::RemoveComment(const Comment::Ptr& comment)
 
 	query2.WhereCriteria = new Dictionary();
 	query2.WhereCriteria->Set("internal_comment_id", comment->GetLegacyId());
+	query2.WhereCriteria->Set("object_id", checkable);
 	query2.WhereCriteria->Set("comment_time", DbValue::FromTimestamp(entry_time));
 	query2.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
@@ -436,37 +443,42 @@ void DbEvents::AddDowntimes(const Checkable::Ptr& checkable)
 {
 	std::set<Downtime::Ptr> downtimes = checkable->GetDowntimes();
 
-	if (!downtimes.empty())
-		RemoveDowntimes(checkable);
+	if (downtimes.empty())
+		return;
+
+	std::vector<DbQuery> queries;
+
+	DbQuery query1;
+	query1.Table = "scheduleddowntime";
+	query1.Type = DbQueryDelete;
+	query1.Category = DbCatDowntime;
+	query1.WhereCriteria = new Dictionary();
+	query1.WhereCriteria->Set("object_id", checkable);
+	queries.push_back(query1);
 
 	BOOST_FOREACH(const Downtime::Ptr& downtime, downtimes) {
-		AddDowntime(downtime, false);
+		AddDowntimeInternal(queries, downtime, false);
 	}
+
+	DbObject::OnMultipleQueries(queries);
 }
 
-void DbEvents::AddDowntime(const Downtime::Ptr& downtime, bool remove_existing)
+void DbEvents::AddDowntime(const Downtime::Ptr& downtime)
 {
-	/*
-	 * make sure to delete any old downtime to avoid multiple inserts from
-	 * configured ScheduledDowntime dumps and CreateNextDowntime() calls
-	 */
-	if (remove_existing)
-		RemoveDowntime(downtime);
-
-	AddDowntimeInternal(downtime, false);
+	std::vector<DbQuery> queries;
+	RemoveDowntimeInternal(queries, downtime);
+	AddDowntimeInternal(queries, downtime, false);
+	DbObject::OnMultipleQueries(queries);
 }
 
 void DbEvents::AddDowntimeHistory(const Downtime::Ptr& downtime)
 {
-	AddDowntimeInternal(downtime, true);
+	std::vector<DbQuery> queries;
+	AddDowntimeInternal(queries, downtime, false);
+	DbObject::OnMultipleQueries(queries);
 }
 
-void DbEvents::AddDowntimeInternal(const Downtime::Ptr& downtime, bool historical)
-{
-	AddDowntimeByType(downtime, historical);
-}
-
-void DbEvents::AddDowntimeByType(const Downtime::Ptr& downtime, bool historical)
+void DbEvents::AddDowntimeInternal(std::vector<DbQuery>& queries, const Downtime::Ptr& downtime, bool historical)
 {
 	Checkable::Ptr checkable = downtime->GetCheckable();
 
@@ -514,21 +526,18 @@ void DbEvents::AddDowntimeByType(const Downtime::Ptr& downtime, bool historical)
 	query1.Type = DbQueryInsert;
 	query1.Category = DbCatDowntime;
 	query1.Fields = fields1;
-	DbObject::OnQuery(query1);
-}
 
-void DbEvents::RemoveDowntimes(const Checkable::Ptr& checkable)
-{
-	DbQuery query1;
-	query1.Table = "scheduleddowntime";
-	query1.Type = DbQueryDelete;
-	query1.Category = DbCatDowntime;
-	query1.WhereCriteria = new Dictionary();
-	query1.WhereCriteria->Set("object_id", checkable);
-	DbObject::OnQuery(query1);
+	queries.push_back(query1);
 }
 
 void DbEvents::RemoveDowntime(const Downtime::Ptr& downtime)
+{
+	std::vector<DbQuery> queries;
+	RemoveDowntimeInternal(queries, downtime);
+	DbObject::OnMultipleQueries(queries);
+}
+
+void DbEvents::RemoveDowntimeInternal(std::vector<DbQuery>& queries, const Downtime::Ptr& downtime)
 {
 	Checkable::Ptr checkable = downtime->GetCheckable();
 
@@ -541,7 +550,7 @@ void DbEvents::RemoveDowntime(const Downtime::Ptr& downtime)
 	query1.WhereCriteria->Set("object_id", checkable);
 	query1.WhereCriteria->Set("internal_downtime_id", downtime->GetLegacyId());
 	query1.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
-	DbObject::OnQuery(query1);
+	queries.push_back(query1);
 
 	/* History - update actual_end_time, was_cancelled for service (and host in case) */
 	double now = Utility::GetTime();
@@ -564,7 +573,7 @@ void DbEvents::RemoveDowntime(const Downtime::Ptr& downtime)
 	query3.WhereCriteria->Set("entry_time", DbValue::FromTimestamp(downtime->GetEntryTime()));
 	query3.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
-	DbObject::OnQuery(query3);
+	queries.push_back(query3);
 
 	/* host/service status */
 	Host::Ptr host;
@@ -577,7 +586,7 @@ void DbEvents::RemoveDowntime(const Downtime::Ptr& downtime)
 	else
 		query4.Table = "hoststatus";
 
-	query4.Type = DbQueryInsert | DbQueryUpdate;
+	query4.Type = DbQueryUpdate;
 	query4.Category = DbCatState;
 	query4.StatusUpdate = true;
 	query4.Object = DbObject::GetOrCreateByObject(checkable);
@@ -595,7 +604,7 @@ void DbEvents::RemoveDowntime(const Downtime::Ptr& downtime)
 
 	query4.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
-	DbObject::OnQuery(query4);
+	queries.push_back(query4);
 }
 
 void DbEvents::TriggerDowntime(const Downtime::Ptr& downtime)
@@ -660,7 +669,7 @@ void DbEvents::TriggerDowntime(const Downtime::Ptr& downtime)
 	else
 		query4.Table = "hoststatus";
 
-	query4.Type = DbQueryInsert | DbQueryUpdate;
+	query4.Type = DbQueryUpdate;
 	query4.Category = DbCatState;
 	query4.StatusUpdate = true;
 	query4.Object = DbObject::GetOrCreateByObject(checkable);
@@ -754,7 +763,7 @@ void DbEvents::AddAcknowledgementInternal(const Checkable::Ptr& checkable, Ackno
 	else
 		query1.Table = "hoststatus";
 
-	query1.Type = DbQueryInsert | DbQueryUpdate;
+	query1.Type = DbQueryUpdate;
 	query1.Category = DbCatState;
 	query1.StatusUpdate = true;
 	query1.Object = DbObject::GetOrCreateByObject(checkable);

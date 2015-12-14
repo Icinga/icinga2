@@ -83,6 +83,7 @@ protected:
 	virtual void Pause(void) override;
 
 	virtual void ExecuteQuery(const DbQuery& query) = 0;
+	virtual void ExecuteMultipleQueries(const std::vector<DbQuery>&) = 0;
 	virtual void ActivateObject(const DbObject::Ptr& dbobj) = 0;
 	virtual void DeactivateObject(const DbObject::Ptr& dbobj) = 0;
 
