@@ -81,7 +81,7 @@ void WorkQueue::Enqueue(const boost::function<void (void)>& function, WorkQueueP
 			m_CVFull.wait(lock);
 	}
 
-	m_Tasks.push(Task(function, priority));
+	m_Tasks.push(Task(function, priority, ++m_NextTaskID));
 
 	m_CVEmpty.notify_one();
 }

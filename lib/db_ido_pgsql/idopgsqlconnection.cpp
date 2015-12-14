@@ -630,7 +630,19 @@ void IdoPgsqlConnection::ExecuteQuery(const DbQuery& query)
 {
 	ASSERT(query.Category != DbCatInvalid);
 
+	boost::mutex::scoped_lock lock(m_QueryQueueMutex);
 	m_QueryQueue.Enqueue(boost::bind(&IdoPgsqlConnection::InternalExecuteQuery, this, query, (DbQueryType *)NULL), query.Priority, true);
+}
+
+void IdoPgsqlConnection::ExecuteMultipleQueries(const std::vector<DbQuery>& queries)
+{
+	boost::mutex::scoped_lock lock(m_QueryQueueMutex);
+
+	BOOST_FOREACH(const DbQuery& query, queries) {
+		ASSERT(query.Category != DbCatInvalid);
+
+		m_QueryQueue.Enqueue(boost::bind(&IdoPgsqlConnection::InternalExecuteQuery, this, query, (DbQueryType *)NULL), query.Priority, true);
+	}
 }
 
 void IdoPgsqlConnection::InternalExecuteQuery(const DbQuery& query, DbQueryType *typeOverride)
@@ -657,8 +669,10 @@ void IdoPgsqlConnection::InternalExecuteQuery(const DbQuery& query, DbQueryType 
 		bool first = true;
 
 		BOOST_FOREACH(const Dictionary::Pair& kv, query.WhereCriteria) {
-			if (!FieldToEscapedString(kv.first, kv.second, &value))
+			if (!FieldToEscapedString(kv.first, kv.second, &value)) {
+				m_QueryQueue.Enqueue(boost::bind(&IdoPgsqlConnection::InternalExecuteQuery, this, query, (DbQueryType *)NULL), query.Priority);
 				return;
+			}
 
 			if (!first)
 				where << " AND ";
@@ -718,8 +732,10 @@ void IdoPgsqlConnection::InternalExecuteQuery(const DbQuery& query, DbQueryType 
 			if (kv.second.IsEmpty() && !kv.second.IsString())
 				continue;
 
-			if (!FieldToEscapedString(kv.first, kv.second, &value))
+			if (!FieldToEscapedString(kv.first, kv.second, &value)) {
+				m_QueryQueue.Enqueue(boost::bind(&IdoPgsqlConnection::InternalExecuteQuery, this, query, (DbQueryType *)NULL), query.Priority);
 				return;
+			}
 
 			if (type == DbQueryInsert) {
 				if (!first) {

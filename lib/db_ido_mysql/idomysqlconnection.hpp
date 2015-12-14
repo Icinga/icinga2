@@ -63,6 +63,7 @@ protected:
 	virtual void ActivateObject(const DbObject::Ptr& dbobj) override;
 	virtual void DeactivateObject(const DbObject::Ptr& dbobj) override;
 	virtual void ExecuteQuery(const DbQuery& query) override;
+	virtual void ExecuteMultipleQueries(const std::vector<DbQuery>& queries);
 	virtual void CleanUpExecuteQuery(const String& table, const String& time_key, double time_value) override;
 	virtual void FillIDCache(const DbType::Ptr& type) override;
 	virtual void NewTransaction(void) override;
@@ -72,6 +73,7 @@ private:
 	int m_SessionToken;
 
 	WorkQueue m_QueryQueue;
+	boost::mutex m_QueryQueueMutex;
 
 	MYSQL m_Connection;
 	int m_AffectedRows;

@@ -61,11 +61,8 @@ class DbEvents
 public:
 	static void StaticInitialize(void);
 
-	static void AddCommentByType(const Comment::Ptr& comment, bool historical);
 	static void AddComments(const Checkable::Ptr& checkable);
-	static void RemoveComments(const Checkable::Ptr& checkable);
 
-	static void AddDowntimeByType(const Downtime::Ptr& downtime, bool historical);
 	static void AddDowntimes(const Checkable::Ptr& checkable);
 	static void RemoveDowntimes(const Checkable::Ptr& checkable);
 
@@ -85,7 +82,7 @@ public:
 	static void AddComment(const Comment::Ptr& comment);
 	static void RemoveComment(const Comment::Ptr& comment);
 
-	static void AddDowntime(const Downtime::Ptr& downtime, bool remove_existing);
+	static void AddDowntime(const Downtime::Ptr& downtime);
 	static void RemoveDowntime(const Downtime::Ptr& downtime);
 	static void TriggerDowntime(const Downtime::Ptr& downtime);
 
@@ -130,8 +127,10 @@ public:
 private:
 	DbEvents(void);
 
-	static void AddCommentInternal(const Comment::Ptr& comment, bool historical);
-	static void AddDowntimeInternal(const Downtime::Ptr& downtime, bool historical);
+	static void AddCommentInternal(std::vector<DbQuery>& queries, const Comment::Ptr& comment, bool historical);
+	static void RemoveCommentInternal(std::vector<DbQuery>& queries, const Comment::Ptr& comment);
+	static void AddDowntimeInternal(std::vector<DbQuery>& queries, const Downtime::Ptr& downtime, bool historical);
+	static void RemoveDowntimeInternal(std::vector<DbQuery>& queries, const Downtime::Ptr& downtime);
 	static void EnableChangedHandlerInternal(const Checkable::Ptr& checkable, const String& fieldName, bool enabled);
 };
 

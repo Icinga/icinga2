@@ -748,7 +748,19 @@ void IdoMysqlConnection::ExecuteQuery(const DbQuery& query)
 {
 	ASSERT(query.Category != DbCatInvalid);
 
+	boost::mutex::scoped_lock lock(m_QueryQueueMutex);
 	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::InternalExecuteQuery, this, query, (DbQueryType *)NULL), query.Priority, true);
+}
+
+void IdoMysqlConnection::ExecuteMultipleQueries(const std::vector<DbQuery>& queries)
+{
+	boost::mutex::scoped_lock lock(m_QueryQueueMutex);
+
+	BOOST_FOREACH(const DbQuery& query, queries) {
+		ASSERT(query.Category != DbCatInvalid);
+
+		m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::InternalExecuteQuery, this, query, (DbQueryType *)NULL), query.Priority, true);
+	}
 }
 
 void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query, DbQueryType *typeOverride)
@@ -839,8 +851,10 @@ void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query, DbQueryType 
 			if (kv.second.IsEmpty() && !kv.second.IsString())
 				continue;
 
-			if (!FieldToEscapedString(kv.first, kv.second, &value))
+			if (!FieldToEscapedString(kv.first, kv.second, &value)) {
+				m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::InternalExecuteQuery, this, query, (DbQueryType *)NULL), query.Priority);
 				return;
+			}
 
 			if (type == DbQueryInsert) {
 				if (!first) {

@@ -79,6 +79,7 @@ public:
 	static DbObject::Ptr GetOrCreateByObject(const ConfigObject::Ptr& object);
 
 	static boost::signals2::signal<void (const DbQuery&)> OnQuery;
+	static boost::signals2::signal<void (const std::vector<DbQuery>&)> OnMultipleQueries;
 
 	void SendConfigUpdate(void);
 	void SendStatusUpdate(void);

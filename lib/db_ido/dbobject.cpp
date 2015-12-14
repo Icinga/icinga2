@@ -37,6 +37,7 @@
 using namespace icinga;
 
 boost::signals2::signal<void (const DbQuery&)> DbObject::OnQuery;
+boost::signals2::signal<void (const std::vector<DbQuery>&)> DbObject::OnMultipleQueries;
 
 INITIALIZE_ONCE(&DbObject::StaticInitialize);
 
