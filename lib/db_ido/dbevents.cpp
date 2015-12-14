@@ -117,8 +117,6 @@ void DbEvents::NextCheckChangedHandler(const Checkable::Ptr& checkable)
 	else
 		query1.WhereCriteria->Set("host_object_id", host);
 
-	query1.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
-
 	DbObject::OnQuery(query1);
 }
 

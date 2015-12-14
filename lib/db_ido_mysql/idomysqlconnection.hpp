@@ -90,7 +90,7 @@ private:
 	void DiscardRows(const IdoMysqlResult& result);
 
 	void AsyncQuery(const String& query, const IdoAsyncCallback& callback = IdoAsyncCallback());
-	void FinishAsyncQueries(bool force = false);
+	void FinishAsyncQueries(void);
 
 	bool FieldToEscapedString(const String& key, const Value& value, Value *result);
 	void InternalActivateObject(const DbObject::Ptr& dbobj);
