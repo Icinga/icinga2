@@ -164,6 +164,7 @@ void IdoPgsqlConnection::Reconnect(void)
 
 	CONTEXT("Reconnecting to PostgreSQL IDO database '" + GetName() + "'");
 
+	double startTime = Utility::GetTime();
 	m_SessionToken = static_cast<int>(Utility::GetTime());
 
 	SetShouldConnect(true);
@@ -375,6 +376,9 @@ void IdoPgsqlConnection::Reconnect(void)
 	/* delete all customvariables without current session token */
 	ClearCustomVarTable("customvariables");
 	ClearCustomVarTable("customvariablestatus");
+
+	Log(LogInformation, "IdoPgsqlConnection")
+	    << "Finished reconnecting to PostgreSQL IDO database in " << std::setw(2) << Utility::GetTime() - startTime << " second(s).";
 
 	Query("COMMIT");
 	Query("BEGIN");
