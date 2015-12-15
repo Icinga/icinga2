@@ -364,14 +364,14 @@ void DbConnection::UpdateObject(const ConfigObject::Ptr& object)
 	DbObject::Ptr dbobj = DbObject::GetOrCreateByObject(object);
 
 	if (dbobj) {
+		bool dbActive = GetObjectActive(dbobj);
 		bool active = object->IsActive();
 
-		if (active) {
+		if (active && !dbActive) {
 			ActivateObject(dbobj);
-
 			dbobj->SendConfigUpdate();
 			dbobj->SendStatusUpdate();
-		} else
+		} else if (!active && dbActive)
 			DeactivateObject(dbobj);
 	}
 }

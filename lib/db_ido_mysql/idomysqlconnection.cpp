@@ -171,8 +171,6 @@ void IdoMysqlConnection::Reconnect(void)
 
 	SetShouldConnect(true);
 
-	std::vector<DbObject::Ptr> active_dbobjs;
-
 	bool reconnect = false;
 
 	if (GetConnected()) {
@@ -351,6 +349,8 @@ void IdoMysqlConnection::Reconnect(void)
 	q1buf << "SELECT object_id, objecttype_id, name1, name2, is_active FROM " + GetTablePrefix() + "objects WHERE instance_id = " << static_cast<long>(m_InstanceID);
 	result = Query(q1buf.str());
 
+	std::vector<DbObject::Ptr> activeDbObjs;
+
 	while ((row = FetchRow(result))) {
 		DbType::Ptr dbtype = DbType::GetByID(row->Get("objecttype_id"));
 
@@ -359,25 +359,28 @@ void IdoMysqlConnection::Reconnect(void)
 
 		DbObject::Ptr dbobj = dbtype->GetOrCreateObjectByName(row->Get("name1"), row->Get("name2"));
 		SetObjectID(dbobj, DbReference(row->Get("object_id")));
-		SetObjectActive(dbobj, row->Get("is_active"));
+		bool active = row->Get("is_active");
+		SetObjectActive(dbobj, active);
 
-		if (GetObjectActive(dbobj))
-			active_dbobjs.push_back(dbobj);
+		if (active)
+			activeDbObjs.push_back(dbobj);
 	}
 
 	Query("BEGIN");
 
-	UpdateAllObjects();
-
-	/* deactivate all deleted configuration objects */
-	BOOST_FOREACH(const DbObject::Ptr& dbobj, active_dbobjs) {
+	BOOST_FOREACH(const DbObject::Ptr& dbobj, activeDbObjs) {
 		if (dbobj->GetObject() == NULL) {
 			Log(LogNotice, "IdoMysqlConnection")
 			    << "Deactivate deleted object name1: '" << dbobj->GetName1()
 			    << "' name2: '" << dbobj->GetName2() + "'.";
 			DeactivateObject(dbobj);
+		} else {
+			dbobj->SendConfigUpdate();
+			dbobj->SendStatusUpdate();
 		}
 	}
+
+	UpdateAllObjects();
 
 	/* delete all customvariables without current session token */
 	ClearCustomVarTable("customvariables");
