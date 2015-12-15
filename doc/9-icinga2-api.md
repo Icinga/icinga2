@@ -332,10 +332,8 @@ to worry about escaping values:
     $ curl -k -s -u 'root:icinga' -H 'X-HTTP-Method-Override: GET' -X POST 'https://localhost:5665/v1/objects/hosts' \
     -d '{ "filter": "host.vars.os == os", "filter_vars": { "os": "Linux" } }'
 
-> **Note**
->
-> We're using X-HTTP-Method-Override here because the HTTP specification does
-> not allow message bodies for GET requests.
+We're using X-HTTP-Method-Override here because the HTTP specification does
+not allow message bodies for GET requests.
 
 The `filters_vars` attribute can only be used inside the request body, but not as
 a URL parameter because there is no way to specify a dictionary in a URL.
