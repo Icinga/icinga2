@@ -395,7 +395,7 @@ void DbConnection::PrepareDatabase(void)
 	 */
 
 	//ClearConfigTable("commands");
-	ClearConfigTable("comments");
+	//ClearConfigTable("comments");
 	ClearConfigTable("contact_addresses");
 	ClearConfigTable("contact_notificationcommands");
 	ClearConfigTable("contactgroup_members");
@@ -414,7 +414,7 @@ void DbConnection::PrepareDatabase(void)
 	//ClearConfigTable("hostgroups");
 	//ClearConfigTable("hosts");
 	//ClearConfigTable("hoststatus");
-	ClearConfigTable("scheduleddowntime");
+	//ClearConfigTable("scheduleddowntime");
 	ClearConfigTable("service_contactgroups");
 	ClearConfigTable("service_contacts");
 	ClearConfigTable("servicedependencies");

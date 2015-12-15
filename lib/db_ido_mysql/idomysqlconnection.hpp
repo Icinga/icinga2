@@ -73,7 +73,6 @@ private:
 	int m_SessionToken;
 
 	WorkQueue m_QueryQueue;
-	boost::mutex m_QueryQueueMutex;
 
 	MYSQL m_Connection;
 	int m_AffectedRows;
@@ -106,7 +105,11 @@ private:
 	void TxTimerHandler(void);
 	void ReconnectTimerHandler(void);
 
+	bool CanExecuteQuery(const DbQuery& query);
+
 	void InternalExecuteQuery(const DbQuery& query, DbQueryType *typeOverride = NULL);
+	void InternalExecuteMultipleQueries(const std::vector<DbQuery>& queries);
+
 	void FinishExecuteQuery(const DbQuery& query, int type, bool upsert);
 	void InternalCleanUpExecuteQuery(const String& table, const String& time_key, double time_value);
 	void InternalNewTransaction(void);

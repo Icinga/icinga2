@@ -634,18 +634,59 @@ void IdoPgsqlConnection::ExecuteQuery(const DbQuery& query)
 {
 	ASSERT(query.Category != DbCatInvalid);
 
-	boost::mutex::scoped_lock lock(m_QueryQueueMutex);
 	m_QueryQueue.Enqueue(boost::bind(&IdoPgsqlConnection::InternalExecuteQuery, this, query, (DbQueryType *)NULL), query.Priority, true);
 }
 
 void IdoPgsqlConnection::ExecuteMultipleQueries(const std::vector<DbQuery>& queries)
 {
-	boost::mutex::scoped_lock lock(m_QueryQueueMutex);
+	ASSERT(!queries.empty());
+
+	m_QueryQueue.Enqueue(boost::bind(&IdoPgsqlConnection::InternalExecuteMultipleQueries, this, queries), queries[0].Priority, true);
+}
+
+bool IdoPgsqlConnection::CanExecuteQuery(const DbQuery& query)
+{
+	if (query.WhereCriteria) {
+		ObjectLock olock(query.WhereCriteria);
+		Value value;
+
+		BOOST_FOREACH(const Dictionary::Pair& kv, query.WhereCriteria) {
+			if (!FieldToEscapedString(kv.first, kv.second, &value))
+				return false;
+		}
+	}
+
+	if (query.Fields) {
+		ObjectLock olock(query.Fields);
+
+		BOOST_FOREACH(const Dictionary::Pair& kv, query.Fields) {
+			Value value;
+
+			if (kv.second.IsEmpty() && !kv.second.IsString())
+				continue;
+
+			if (!FieldToEscapedString(kv.first, kv.second, &value))
+				return false;
+		}
+	}
+
+	return true;
+}
+
+void IdoPgsqlConnection::InternalExecuteMultipleQueries(const std::vector<DbQuery>& queries)
+{
+	AssertOnWorkQueue();
 
 	BOOST_FOREACH(const DbQuery& query, queries) {
 		ASSERT(query.Category != DbCatInvalid);
 
-		m_QueryQueue.Enqueue(boost::bind(&IdoPgsqlConnection::InternalExecuteQuery, this, query, (DbQueryType *)NULL), query.Priority, true);
+		if (!CanExecuteQuery(query)) {
+			m_QueryQueue.Enqueue(boost::bind(&IdoPgsqlConnection::InternalExecuteMultipleQueries, this, queries), query.Priority);
+		}
+	}
+
+	BOOST_FOREACH(const DbQuery& query, queries) {
+		InternalExecuteQuery(query, NULL);
 	}
 }
 
