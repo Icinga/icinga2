@@ -682,13 +682,16 @@ bool IdoMysqlConnection::FieldToEscapedString(const String& key, const Value& va
 	if (key == "instance_id") {
 		*result = static_cast<long>(m_InstanceID);
 		return true;
-	}
-	if (key == "session_token") {
+	} else if (key == "session_token") {
 		*result = m_SessionToken;
 		return true;
-	}
-	if (key == "notification_id") {
-		*result = static_cast<long>(GetNotificationInsertID(value));
+	} else if (key == "notification_id") {
+		DbReference ref = GetNotificationInsertID(value);
+
+		if (!ref.IsValid())
+			return false;
+
+		*result = static_cast<long>(ref);
 		return true;
 	}
 
