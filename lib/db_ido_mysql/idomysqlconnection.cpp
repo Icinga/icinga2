@@ -167,6 +167,7 @@ void IdoMysqlConnection::Reconnect(void)
 
 	CONTEXT("Reconnecting to MySQL IDO database '" + GetName() + "'");
 
+	double startTime = Utility::GetTime();
 	m_SessionToken = static_cast<int>(Utility::GetTime());
 
 	SetShouldConnect(true);
@@ -385,6 +386,9 @@ void IdoMysqlConnection::Reconnect(void)
 	/* delete all customvariables without current session token */
 	ClearCustomVarTable("customvariables");
 	ClearCustomVarTable("customvariablestatus");
+
+	Log(LogInformation, "IdoMysqlConnection")
+	    << "Finished reconnecting to MySQL IDO database in " << std::setw(2) << Utility::GetTime() - startTime << " second(s).";
 
 	Query("COMMIT");
 	Query("BEGIN");
