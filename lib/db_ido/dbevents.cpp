@@ -474,7 +474,7 @@ void DbEvents::AddDowntime(const Downtime::Ptr& downtime)
 void DbEvents::AddDowntimeHistory(const Downtime::Ptr& downtime)
 {
 	std::vector<DbQuery> queries;
-	AddDowntimeInternal(queries, downtime, false);
+	AddDowntimeInternal(queries, downtime, true);
 	DbObject::OnMultipleQueries(queries);
 }
 

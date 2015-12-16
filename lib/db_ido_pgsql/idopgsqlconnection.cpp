@@ -699,6 +699,7 @@ void IdoPgsqlConnection::InternalExecuteMultipleQueries(const std::vector<DbQuer
 
 		if (!CanExecuteQuery(query)) {
 			m_QueryQueue.Enqueue(boost::bind(&IdoPgsqlConnection::InternalExecuteMultipleQueries, this, queries), query.Priority);
+			return;
 		}
 	}
 
