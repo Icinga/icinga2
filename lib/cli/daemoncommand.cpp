@@ -35,6 +35,7 @@
 #include <boost/tuple/tuple.hpp>
 #include <boost/foreach.hpp>
 #include <iostream>
+#include <fstream>
 
 using namespace icinga;
 namespace po = boost::program_options;
@@ -152,9 +153,15 @@ static void TerminateAndWaitForEnd(pid_t target)
 		ret = kill(target, 0);
 	}
 
-	// timeout and the process still seems to live: kill it
-	if (ret == 0 || errno != ESRCH)
+	// timeout and the process still seems to live: update pid and kill it
+	if (ret == 0 || errno != ESRCH) {
+		String pidFile = Application::GetPidPath();
+		std::ofstream fp(pidFile.CStr());
+		fp << Utility::GetPid();
+		fp.close();
+
 		kill(target, SIGKILL);
+	}
 
 #else
 	// TODO: implement this for Win32
