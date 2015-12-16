@@ -387,6 +387,18 @@ void IdoMysqlConnection::Reconnect(void)
 	ClearCustomVarTable("customvariables");
 	ClearCustomVarTable("customvariablestatus");
 
+	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::FinishConnect, this, startTime), PriorityLow);
+}
+
+void IdoMysqlConnection::FinishConnect(double startTime)
+{
+	AssertOnWorkQueue();
+
+	if (!GetConnected())
+		return;
+
+	FinishAsyncQueries();
+
 	Log(LogInformation, "IdoMysqlConnection")
 	    << "Finished reconnecting to MySQL IDO database in " << std::setw(2) << Utility::GetTime() - startTime << " second(s).";
 
