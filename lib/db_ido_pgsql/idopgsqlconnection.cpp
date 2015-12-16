@@ -691,6 +691,9 @@ void IdoPgsqlConnection::InternalExecuteMultipleQueries(const std::vector<DbQuer
 {
 	AssertOnWorkQueue();
 
+	if (!GetConnected())
+		return;
+
 	BOOST_FOREACH(const DbQuery& query, queries) {
 		ASSERT(query.Category != DbCatInvalid);
 
