@@ -118,6 +118,8 @@ private:
 	void ClearCustomVarTable(const String& table);
 
 	void ExceptionHandler(boost::exception_ptr exp);
+
+	void FinishConnect(double startTime);
 };
 
 }

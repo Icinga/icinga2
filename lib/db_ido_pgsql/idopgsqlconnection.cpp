@@ -377,6 +377,16 @@ void IdoPgsqlConnection::Reconnect(void)
 	ClearCustomVarTable("customvariables");
 	ClearCustomVarTable("customvariablestatus");
 
+	m_QueryQueue.Enqueue(boost::bind(&IdoPgsqlConnection::FinishConnect, this, startTime), PriorityLow);
+}
+
+void IdoPgsqlConnection::FinishConnect(double startTime)
+{
+	AssertOnWorkQueue();
+
+	if (!GetConnected())
+		return;
+
 	Log(LogInformation, "IdoPgsqlConnection")
 	    << "Finished reconnecting to PostgreSQL IDO database in " << std::setw(2) << Utility::GetTime() - startTime << " second(s).";
 

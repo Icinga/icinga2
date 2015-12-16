@@ -91,6 +91,8 @@ private:
 	void TxTimerHandler(void);
 	void ReconnectTimerHandler(void);
 
+	void StatsLoggerTimerHandler(void);
+
 	bool CanExecuteQuery(const DbQuery& query);
 
 	void InternalExecuteQuery(const DbQuery& query, DbQueryType *typeOverride = NULL);
@@ -101,6 +103,8 @@ private:
 	void ClearCustomVarTable(const String& table);
 
 	void ExceptionHandler(boost::exception_ptr exp);
+
+	void FinishConnect(double startTime);
 };
 
 }
