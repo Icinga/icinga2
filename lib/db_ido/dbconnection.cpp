@@ -67,6 +67,9 @@ void DbConnection::Start(bool runtimeCreated)
 
 void DbConnection::StatsLoggerTimerHandler(void)
 {
+	if (!GetConnected())
+		return;
+
 	int pending = GetPendingQueryCount();
 
 	double now = Utility::GetTime();
