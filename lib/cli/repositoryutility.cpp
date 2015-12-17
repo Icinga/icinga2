@@ -233,12 +233,15 @@ bool RepositoryUtility::AddObject(const std::vector<String>& object_paths, const
 	if (check_config) {
 		try {
 			ConfigObject::Ptr object = static_pointer_cast<ConfigObject>(utype->Instantiate());
+			/* temporarly set the object type for validation */
 			attrs->Set("type", utype->GetName());
 			Deserialize(object, attrs, false, FAConfig);
 			object->SetName(name);
 
 			RepositoryValidationUtils utils;
 			static_pointer_cast<ConfigObject>(object)->Validate(FAConfig, utils);
+
+			attrs->Remove("type");
 		} catch (const ValidationError& ex) {
 			Log(LogCritical, "config", DiagnosticInformation(ex));
 			return false;
