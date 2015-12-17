@@ -144,7 +144,12 @@ class DefaultValidationUtils : public ValidationUtils
 public:
 	virtual bool ValidateName(const String& type, const String& name) const override
 	{
-		return ConfigItem::GetByTypeAndName(type, name) != ConfigItem::Ptr();
+		ConfigItem::Ptr item = ConfigItem::GetByTypeAndName(type, name);
+
+		if (!item || (item && item->IsAbstract()))
+			return false;
+
+		return true;
 	}
 };
 
