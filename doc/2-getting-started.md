@@ -165,8 +165,10 @@ Without plugins Icinga 2 does not know how to check external services. The
 an extensive set of plugins which can be used with Icinga 2 to check whether
 services are working properly.
 
-The recommended way of installing these standard plugins is to use your
-distribution's package manager.
+> **Note**
+>
+> These plugins are required to make the [example configuration](4-configuring-icinga-2.md#configuring-icinga2-overview)
+> work out-of-the-box.
 
 For your convenience here is a list of package names for some of the more
 popular operating systems/distributions:
@@ -178,13 +180,47 @@ Debian                 | nagios-plugins     | /usr/lib/nagios/plugins
 FreeBSD                | monitoring-plugins | /usr/local/libexec/nagios
 OS X (MacPorts)        | nagios-plugins     | /opt/local/libexec
 
+The recommended way of installing these standard plugins is to use your
+distribution's package manager.
+
+Debian/Ubuntu:
+
+    # apt-get install nagios-plugins
+
+RHEL/CentOS:
+
+    # yum install nagios-plugins-all
+
+The packages for RHEL/CentOS depend on other packages which are distributed
+as part of the [EPEL repository](http://fedoraproject.org/wiki/EPEL). Please
+make sure to enable this repository by following
+[these instructions](http://fedoraproject.org/wiki/EPEL#How_can_I_use_these_extra_packages.3F).
+
+Fedora:
+
+    # dnf install nagios-plugins-all
+
+SLES/openSUSE:
+
+    # zypper install monitoring-plugins
+
+The packages for SLES/OpenSUSE depend on other packages which are distributed
+as part of the [server:monitoring repository](https://build.opensuse.org/project/repositories/server:monitoring).
+Please make sure to enable this repository beforehand.
+
+FreeBSD:
+
+    # pkg install monitoring-plugins
+
 Depending on which directory your plugins are installed into you may need to
 update the global `PluginDir` constant in your [Icinga 2 configuration](4-configuring-icinga-2.md#constants-conf).
 This constant is used by the check command definitions contained in the Icinga Template Library
 to determine where to find the plugin binaries.
 
-Please refer to the [plugins](14-addons-plugins.md#plugins) chapter for details about how to integrate
-additional check plugins into your Icinga 2 setup.
+> **Note**
+>
+> Please refer to the [plugins](14-addons-plugins.md#plugins) chapter for details about how to integrate
+> additional check plugins into your Icinga 2 setup.
 
 ## <a id="running-icinga2"></a> Running Icinga 2
 
