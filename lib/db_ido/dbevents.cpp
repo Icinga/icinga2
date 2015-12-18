@@ -411,7 +411,7 @@ void DbEvents::RemoveCommentInternal(std::vector<DbQuery>& queries, const Commen
 	query1.WhereCriteria = new Dictionary();
 	query1.WhereCriteria->Set("object_id", checkable);
 	query1.WhereCriteria->Set("internal_comment_id", comment->GetLegacyId());
-	DbObject::OnQuery(query1);
+	queries.push_back(query1);
 
 	/* History - update deletion time for service/host */
 	unsigned long entry_time = static_cast<long>(comment->GetEntryTime());
@@ -434,8 +434,7 @@ void DbEvents::RemoveCommentInternal(std::vector<DbQuery>& queries, const Commen
 	query2.WhereCriteria->Set("object_id", checkable);
 	query2.WhereCriteria->Set("comment_time", DbValue::FromTimestamp(entry_time));
 	query2.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
-
-	DbObject::OnQuery(query2);
+	queries.push_back(query2);
 }
 
 /* downtimes */
