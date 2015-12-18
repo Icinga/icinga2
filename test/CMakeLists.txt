@@ -24,7 +24,7 @@ set(base_test_SOURCES
   base-stream.cpp base-string.cpp base-timer.cpp base-type.cpp
   base-value.cpp config-ops.cpp icinga-macros.cpp
   icinga-perfdata.cpp test.cpp 
-  remote-url.cpp
+  remote-base64.cpp remote-url.cpp
 )
 
 set(livestatus_test_SOURCES
@@ -107,6 +107,7 @@ add_boost_test(base
         icinga_perfdata/ignore_invalid_warn_crit_min_max
         icinga_perfdata/invalid
         icinga_perfdata/multi
+        remote_base64/base64
         remote_url/id_and_path
         remote_url/parameters
         remote_url/get_and_set

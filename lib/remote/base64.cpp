@@ -18,44 +18,50 @@
  ******************************************************************************/
 
 #include "remote/base64.hpp"
-#include <boost/archive/iterators/base64_from_binary.hpp>
-#include <boost/archive/iterators/binary_from_base64.hpp>
-#include <boost/archive/iterators/insert_linebreaks.hpp>
-#include <boost/archive/iterators/transform_width.hpp>
-#include <boost/archive/iterators/ostream_iterator.hpp>
+#include <openssl/bio.h>
+#include <openssl/evp.h>
+#include <openssl/buffer.h>
 #include <sstream>
 
 using namespace icinga;
 
-const String base64_padding[] = {"", "==", "="};
-
-String Base64::Encode(const String& data)
+String Base64::Encode(const String& input)
 {
-	typedef boost::archive::iterators::base64_from_binary <boost::archive::iterators::transform_width<const char *, 6, 8> > base64_encode;
+	BIO *biomem = BIO_new(BIO_s_mem());
+	BIO *bio64 = BIO_new(BIO_f_base64());
+	BIO_push(bio64, biomem);
+	BIO_set_flags(bio64, BIO_FLAGS_BASE64_NO_NL);
+	BIO_write(bio64, input.CStr(), input.GetLength());
+	BIO_flush(bio64);
 
-	std::ostringstream msgbuf;
-	std::copy(base64_encode(data.CStr()), base64_encode(data.CStr() + data.GetLength()), std::ostream_iterator<char>(msgbuf));
-	msgbuf << base64_padding[data.GetLength() % 3];
-	return msgbuf.str();
+	char *outbuf;
+	long len = BIO_get_mem_data(biomem, &outbuf);
+
+	String ret = String(outbuf, outbuf + len);
+	BIO_free_all(bio64);
+	
+	return ret;
 }
 
-String Base64::Decode(const String& data)
+String Base64::Decode(const String& input)
 {
-	typedef boost::archive::iterators::transform_width<boost::archive::iterators::binary_from_base64<const char *>, 8, 6> base64_decode;
+	BIO *biomem = BIO_new_mem_buf(
+	    const_cast<char*>(input.CStr()), input.GetLength());
+	BIO *bio64 = BIO_new(BIO_f_base64());
+	BIO_push(bio64, biomem);
+	BIO_set_flags(bio64, BIO_FLAGS_BASE64_NO_NL);
 
-	String::SizeType size = data.GetLength();
+	char *outbuf = new char[input.GetLength()];
+	
+	size_t rc, len = 0;
+	while (rc = BIO_read(bio64, outbuf + len, input.GetLength() - len))
+		len += rc;
 
-	if (size && data[size - 1] == '=') {
-		--size;
+	String ret = String(outbuf, outbuf + len);
+	BIO_free_all(bio64);
+	
+	if (ret.IsEmpty() && !input.IsEmpty())
+		throw std::invalid_argument("Not a valid base64 string");
 
-		if (size && data[size - 1] == '=')
-			--size;
-	}
-
-	if (size == 0)
-		return String();
-
-	std::ostringstream msgbuf;
-	std::copy(base64_decode(data.CStr()), base64_decode(data.CStr() + size), std::ostream_iterator<char>(msgbuf));
-	return msgbuf.str();
+	return ret;
 }
