@@ -69,7 +69,7 @@ static void IncludeNonLocalZone(const String& zonePath, const String& package, b
 	 * from zones.d in etc or api package directory, or a local marker file)
 	 */
 	if (ConfigCompiler::HasZoneConfigAuthority(zoneName) || Utility::PathExists(zonePath + "/.authoritative")) {
-		Log(LogWarning, "config")
+		Log(LogNotice, "config")
 		    << "Ignoring non local config include for zone '" << zoneName << "': We already have an authoritative copy included.";
 		return;
 	}
