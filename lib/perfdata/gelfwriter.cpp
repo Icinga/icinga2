@@ -33,6 +33,8 @@
 #include "base/networkstream.hpp"
 #include "base/json.hpp"
 #include "base/context.hpp"
+#include <boost/foreach.hpp>
+#include <boost/algorithm/string/replace.hpp>
 
 using namespace icinga;
 
@@ -107,11 +109,48 @@ void GelfWriter::CheckResultHandler(const Checkable::Ptr& checkable, const Check
 	fields->Set("_current_check_attempt", checkable->GetCheckAttempt());
 	fields->Set("_max_check_attempts", checkable->GetMaxCheckAttempts());
 
+	fields->Set("_latency", Service::CalculateLatency(cr));
+	fields->Set("_execution_time", Service::CalculateExecutionTime(cr));
+	fields->Set("_reachable",  checkable->IsReachable());
+
 	if (cr) {
 		fields->Set("short_message", CompatUtility::GetCheckResultOutput(cr));
 		fields->Set("full_message", CompatUtility::GetCheckResultLongOutput(cr));
 		fields->Set("_check_source", cr->GetCheckSource());
 	}
+
+	if (GetIncludePerfdataFields()) {
+		Array::Ptr perfdata = cr->GetPerformanceData();
+		if (perfdata) {
+			ObjectLock olock(perfdata);
+			BOOST_FOREACH(const Value& val, perfdata) {
+				PerfdataValue::Ptr pdv;
+
+				if (val.IsObjectType<PerfdataValue>())
+					pdv = val;
+				else {
+					try {
+						pdv = PerfdataValue::Parse(val);
+
+						String escaped_key = pdv->GetLabel();
+						boost::replace_all(escaped_key, " ", "_");
+						boost::replace_all(escaped_key, ".", "_");
+						boost::replace_all(escaped_key, "\\", "_");
+						boost::algorithm::replace_all(escaped_key, "::", ".");
+
+						fields->Set("_" + escaped_key, pdv->GetValue());
+
+						if (pdv->GetMin()) fields->Set("_" + escaped_key + "_min", pdv->GetMin());
+						if (pdv->GetMax()) fields->Set("_" + escaped_key + "_max", pdv->GetMax());
+						if (pdv->GetWarn())	fields->Set("_" + escaped_key + "_warn", pdv->GetWarn());
+						if (pdv->GetCrit()) fields->Set("_" + escaped_key + "_crit", pdv->GetCrit());
+					} catch (const std::exception&) {
+						Log(LogWarning, "GelfWriter") << "Ignoring invalid perfdata value: " << val;
+					}
+				}
+			}
+		}
+    }
 
 	SendLogMessage(ComposeGelfMessage(fields, GetSource()));
 }
