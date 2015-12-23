@@ -258,7 +258,7 @@ Steps on the client `icinga2-node2.localdomain`:
 
 Try to manually connect from `icinga2-node2.localdomain` to the master node `icinga2-node1.localdomain`:
 
-    # openssl s_client -CAfile /etc/icinga2/pki/ca.crt -cert /etc/icinga2/pki/icinga2-node2.localdomain.crt -key /etc/icinga2/pki/icinga2-node2.localdomain..key -connect icinga2-node1.localdomain.crt:5665
+    # openssl s_client -CAfile /etc/icinga2/pki/ca.crt -cert /etc/icinga2/pki/icinga2-node2.localdomain.crt -key /etc/icinga2/pki/icinga2-node2.localdomain.key -connect icinga2-node1.localdomain:5665
 
     CONNECTED(00000003)
     ---
