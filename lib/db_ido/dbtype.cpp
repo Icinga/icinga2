@@ -26,14 +26,13 @@
 
 using namespace icinga;
 
-DbType::DbType(const String& table, long tid, const String& idcolumn, const DbType::ObjectFactory& factory)
-	: m_Table(table), m_TypeID(tid), m_IDColumn(idcolumn), m_ObjectFactory(factory)
+DbType::DbType(const String& name, const String& table, long tid, const String& idcolumn, const DbType::ObjectFactory& factory)
+	: m_Name(name), m_Table(table), m_TypeID(tid), m_IDColumn(idcolumn), m_ObjectFactory(factory)
 { }
 
-std::vector<String> DbType::GetNames(void) const
+String DbType::GetName(void) const
 {
-	boost::mutex::scoped_lock lock(GetStaticMutex());
-	return m_Names;
+	return m_Name;
 }
 
 String DbType::GetTable(void) const
@@ -51,11 +50,10 @@ String DbType::GetIDColumn(void) const
 	return m_IDColumn;
 }
 
-void DbType::RegisterType(const String& name, const DbType::Ptr& type)
+void DbType::RegisterType(const DbType::Ptr& type)
 {
 	boost::mutex::scoped_lock lock(GetStaticMutex());
-	type->m_Names.push_back(name);
-	GetTypes()[name] = type;
+	GetTypes()[type->GetName()] = type;
 }
 
 DbType::Ptr DbType::GetByName(const String& name)
@@ -92,6 +90,13 @@ DbObject::Ptr DbType::GetOrCreateObjectByName(const String& name1, const String&
 
 	DbObject::Ptr dbobj = m_ObjectFactory(this, name1, name2);
 	m_Objects[std::make_pair(name1, name2)] = dbobj;
+
+	String objName = name1;
+
+	if (!name2.IsEmpty())
+		objName += "!" + name2;
+
+	dbobj->SetObject(ConfigObject::GetObject(m_Name, objName));
 
 	return dbobj;
 }
