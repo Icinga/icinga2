@@ -2,7 +2,7 @@
 -- pgsql.sql
 -- DB definition for IDO Postgresql
 --
--- Copyright (c) 2009-2015 Icinga Development Team (https://www.icinga.org)
+-- Copyright (c) 2009-2016 Icinga Development Team (https://www.icinga.org/)
 --
 -- --------------------------------------------------------
 
