@@ -1,6 +1,6 @@
 /******************************************************************************
 * Icinga 2                                                                   *
-* Copyright (C) 2012-2015 Icinga Development Team (http://www.icinga.org)    *
+* Copyright (C) 2012-2016 Icinga Development Team (https://www.icinga.org/)  *
 *                                                                            *
 * This program is free software; you can redistribute it and/or              *
 * modify it under the terms of the GNU General Public License                *
@@ -16,8 +16,10 @@
 * along with this program; if not, write to the Free Software Foundation     *
 * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
 ******************************************************************************/
+
 #ifndef THRESHOLDS_H
 #define THRESHOLDS_H
+
 #include <string>
 #include <Windows.h>
 #include <vector>
@@ -67,4 +69,5 @@ Tunit parseTUnit(CONST std::wstring&);
 std::wstring TunitStr(CONST Tunit&);
 
 VOID die(DWORD err = 0);
-#endif
+
+#endif /* THRESHOLDS_H */
