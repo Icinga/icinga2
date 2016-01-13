@@ -216,6 +216,12 @@ void HttpServerConnection::DataAvailableHandler(void)
 
 	if (close)
 		Disconnect();
+
+		return;
+	}
+
+	if (m_Stream->IsEof())
+		Disconnect();
 }
 
 void HttpServerConnection::CheckLiveness(void)
