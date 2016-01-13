@@ -53,8 +53,10 @@ String Base64::Decode(const String& input)
 
 	char *outbuf = new char[input.GetLength()];
 	
-	size_t rc, len = 0;
-	while (rc = BIO_read(bio64, outbuf + len, input.GetLength() - len))
+	size_t len = 0;
+	int rc;
+
+	while ((rc = BIO_read(bio64, outbuf + len, input.GetLength() - len)) > 0)
 		len += rc;
 
 	String ret = String(outbuf, outbuf + len);
