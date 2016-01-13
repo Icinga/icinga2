@@ -143,7 +143,7 @@ Name               | Description
 -------------------|--------------
 clamd_address        | **Required.** The host's address or unix socket (must be an absolute path).
 clamd_port           | **Optional.** Port number (default: none).
-clamd_expect         | **Optional.** String to expect in server response (may be repeated).
+clamd_expect         | **Optional.** String to expect in server response. Multiple strings must be defined as array.
 clamd_all            | **Optional.** All expect strings need to occur in server response. Defaults to false.
 clamd_escape_send    | **Optional.** Enable usage of \n, \r, \t or \\\\ in send string.
 clamd_send           | **Optional.** String to send to the server.
@@ -232,13 +232,13 @@ disk_stat_remote_fs    | **Optional.** Only check local filesystems against thre
 disk_mountpoint        | **Optional.** Display the mountpoint instead of the partition. May be true or false.
 disk_megabytes         | **Optional.** Same as --units MB. May be true or false.
 disk_all               | **Optional.** Explicitly select all paths. This is equivalent to -R '.*'. May be true or false.
-disk_eregi_path        | **Optional.** Case insensitive regular expression for path/partition (may be repeated).
-disk_ereg_path         | **Optional.** Regular expression for path or partition (may be repeated).
-disk_ignore_eregi_path | **Optional.** Regular expression to ignore selected path/partition (case insensitive) (may be repeated).
-disk_ignore_ereg_path  | **Optional.** Regular expression to ignore selected path or partition (may be repeated).
+disk_eregi_path        | **Optional.** Case insensitive regular expression for path/partition. Multiple regular expression strings must be defined as array.
+disk_ereg_path         | **Optional.** Regular expression for path or partition. Multiple regular expression strings must be defined as array.
+disk_ignore_eregi_path | **Optional.** Regular expression to ignore selected path/partition (case insensitive). Multiple regular expression strings must be defined as array.
+disk_ignore_ereg_path  | **Optional.** Regular expression to ignore selected path or partition. Multiple regular expression strings must be defined as array.
 disk_timeout           | **Optional.** Seconds before connection times out (default: 10).
 disk_units             | **Optional.** Choose bytes, kB, MB, GB, TB (default: MB).
-disk_exclude_type      | **Optional.** Ignore all filesystems of indicated type (may be repeated).
+disk_exclude_type      | **Optional.** Ignore all filesystems of indicated type. Multiple regular expression strings must be defined as array.
 
 ### <a id="plugin-check-command-disk-smb"></a> disk_smb
 
@@ -344,7 +344,7 @@ Name               | Description
 -------------------|--------------
 ftp_address        | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
 ftp_port           | **Optional.** The FTP port number.
-ftp_expect         | **Optional.** String to expect in server response (may be repeated).
+ftp_expect         | **Optional.** String to expect in server response. Multiple strings must be defined as array.
 ftp_all            | **Optional.** All expect strings need to occur in server response. Defaults to false.
 ftp_escape_send    | **Optional.** Enable usage of \n, \r, \t or \\\\ in send string.
 ftp_send           | **Optional.** String to send to the server.
@@ -509,7 +509,7 @@ imap_address          | **Optional.** The host's address. Defaults to "$address$
 imap_port             | **Optional.** The port that should be checked. Defaults to 143.
 imap_escape           | **Optional.** Can use \n, \r, \t or \\ in send or quit string. Must come before send or quit option. Default: nothing added to send, \r\n added to end of quit.
 imap_send             | **Optional.** String to send to the server.
-imap_expect           | **Optional.** String to expect in server response (may be repeated).
+imap_expect           | **Optional.** String to expect in server response. Multiple strings must be defined as array.
 imap_all              | **Optional.** All expect strings need to occur in server response. Default is any.
 imap_quit             | **Optional.** String to send server to initiate a clean close of the connection.
 imap_refuse           | **Optional.** Accept TCP refusals with states ok, warn, crit (default: crit).
@@ -799,7 +799,7 @@ pop_address          | **Optional.** The host's address. Defaults to "$address$"
 pop_port             | **Optional.** The port that should be checked. Defaults to 110.
 pop_escape           | **Optional.** Can use \n, \r, \t or \\ in send or quit string. Must come before send or quit option. Default: nothing added to send, \r\n added to end of quit.
 pop_send             | **Optional.** String to send to the server.
-pop_expect           | **Optional.** String to expect in server response (may be repeated).
+pop_expect           | **Optional.** String to expect in server response. Multiple strings must be defined as array.
 pop_all              | **Optional.** All expect strings need to occur in server response. Default is any.
 pop_quit             | **Optional.** String to send server to initiate a clean close of the connection.
 pop_refuse           | **Optional.** Accept TCP refusals with states ok, warn, crit (default: crit).
@@ -853,7 +853,7 @@ simap_address          | **Optional.** The host's address. Defaults to "$address
 simap_port             | **Optional.** The port that should be checked. Defaults to 993.
 simap_escape           | **Optional.** Can use \n, \r, \t or \\ in send or quit string. Must come before send or quit option. Default: nothing added to send, \r\n added to end of quit.
 simap_send             | **Optional.** String to send to the server.
-simap_expect           | **Optional.** String to expect in server response (may be repeated).
+simap_expect           | **Optional.** String to expect in server response. Multiple strings must be defined as array.
 simap_all              | **Optional.** All expect strings need to occur in server response. Default is any.
 simap_quit             | **Optional.** String to send server to initiate a clean close of the connection.
 simap_refuse           | **Optional.** Accept TCP refusals with states ok, warn, crit (default: crit).
@@ -975,7 +975,7 @@ spop_address          | **Optional.** The host's address. Defaults to "$address$
 spop_port             | **Optional.** The port that should be checked. Defaults to 995.
 spop_escape           | **Optional.** Can use \n, \r, \t or \\ in send or quit string. Must come before send or quit option. Default: nothing added to send, \r\n added to end of quit.
 spop_send             | **Optional.** String to send to the server.
-spop_expect           | **Optional.** String to expect in server response (may be repeated).
+spop_expect           | **Optional.** String to expect in server response. Multiple strings must be defined as array.
 spop_all              | **Optional.** All expect strings need to occur in server response. Default is any.
 spop_quit             | **Optional.** String to send server to initiate a clean close of the connection.
 spop_refuse           | **Optional.** Accept TCP refusals with states ok, warn, crit (default: crit).
@@ -1034,7 +1034,7 @@ ssmtp_address          | **Optional.** The host's address. Defaults to "$address
 ssmtp_port             | **Optional.** The port that should be checked. Defaults to 465.
 ssmtp_escape           | **Optional.** Can use \n, \r, \t or \\ in send or quit string. Must come before send or quit option. Default: nothing added to send, \r\n added to end of quit.
 ssmtp_send             | **Optional.** String to send to the server.
-ssmtp_expect           | **Optional.** String to expect in server response (may be repeated).
+ssmtp_expect           | **Optional.** String to expect in server response. Multiple strings must be defined as array.
 ssmtp_all              | **Optional.** All expect strings need to occur in server response. Default is any.
 ssmtp_quit             | **Optional.** String to send server to initiate a clean close of the connection.
 ssmtp_refuse           | **Optional.** Accept TCP refusals with states ok, warn, crit (default: crit).
@@ -1073,7 +1073,7 @@ Name            | Description
 ----------------|--------------
 tcp_address     | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
 tcp_port        | **Required.** The port that should be checked.
-tcp_expect      | **Optional.** String to expect in server response (may be repeated).
+tcp_expect      | **Optional.** String to expect in server response. Multiple strings must be defined as array.
 tcp_all         | **Optional.** All expect strings need to occur in server response. Defaults to false.
 tcp_escape_send | **Optional.** Enable usage of \n, \r, \t or \\\\ in send string.
 tcp_send        | **Optional.** String to send to the server.
