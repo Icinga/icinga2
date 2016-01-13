@@ -206,7 +206,12 @@ void HttpServerConnection::DataAvailableHandler(void)
 		    << "Error while reading Http request: " << DiagnosticInformation(ex);
 
 		Disconnect();
+
+		return;
 	}
+
+	if (m_Stream->IsEof())
+		Disconnect();
 }
 
 void HttpServerConnection::CheckLiveness(void)

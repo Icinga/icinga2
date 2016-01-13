@@ -202,7 +202,12 @@ void JsonRpcConnection::DataAvailableHandler(void)
 		    << "': " << DiagnosticInformation(ex);
 
 		Disconnect();
+
+		return;
 	}
+
+	if (m_Stream->IsEof())
+		Disconnect();
 }
 
 Value SetLogPositionHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)

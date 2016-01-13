@@ -218,9 +218,6 @@ void TlsStream::OnEvent(int revents)
 		case SSL_ERROR_ZERO_RETURN:
 			lock.unlock();
 
-			if (IsHandlingEvents())
-				SignalDataAvailable();
-
 			Close();
 
 			break;
@@ -236,9 +233,6 @@ void TlsStream::OnEvent(int revents)
 			}
 
 			lock.unlock();
-
-			if (IsHandlingEvents())
-				SignalDataAvailable();
 
 			Close();
 
@@ -316,13 +310,17 @@ void TlsStream::Shutdown(void)
  */
 void TlsStream::Close(void)
 {
+	if (!m_Eof) {
+		m_Eof = true;
+		SignalDataAvailable();
+	}
+
 	Stream::Close();
 
 	SocketEvents::Unregister();
 
 	boost::mutex::scoped_lock lock(m_Mutex);
 
-	m_Eof = true;
 
 	if (!m_SSL)
 		return;
