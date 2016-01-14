@@ -63,6 +63,15 @@ void Service::OnAllConfigLoaded(void)
 {
 	ObjectImpl<Service>::OnAllConfigLoaded();
 
+	String zoneName = GetZoneName();
+
+	if (!zoneName.IsEmpty()) {
+		Zone::Ptr zone = Zone::GetByName(zoneName);
+
+		if (zone && zone->IsGlobal())
+			BOOST_THROW_EXCEPTION(std::invalid_argument("Service '" + GetName() + "' cannot be put into global zone '" + zone->GetName() + "'."));
+	}
+
 	m_Host = Host::GetByName(GetHostName());
 
 	if (m_Host)
