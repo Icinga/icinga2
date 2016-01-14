@@ -38,6 +38,15 @@ void Host::OnAllConfigLoaded(void)
 {
 	ObjectImpl<Host>::OnAllConfigLoaded();
 
+	String zoneName = GetZoneName();
+
+	if (!zoneName.IsEmpty()) {
+		Zone::Ptr zone = Zone::GetByName(zoneName);
+
+		if (zone && zone->IsGlobal())
+			BOOST_THROW_EXCEPTION(std::invalid_argument("Host '" + GetName() + "' cannot be put into global zone '" + zone->GetName() + "'."));
+	}
+
 	HostGroup::EvaluateObjectRules(this);
 
 	Array::Ptr groups = GetGroups();
