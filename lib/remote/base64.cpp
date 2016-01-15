@@ -61,7 +61,8 @@ String Base64::Decode(const String& input)
 
 	String ret = String(outbuf, outbuf + len);
 	BIO_free_all(bio64);
-	
+	delete [] outbuf;
+
 	if (ret.IsEmpty() && !input.IsEmpty())
 		throw std::invalid_argument("Not a valid base64 string");
 
