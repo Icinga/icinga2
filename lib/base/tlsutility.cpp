@@ -562,6 +562,7 @@ String RandomString(int length)
 
 	String result = output;
 	delete [] output;
+	delete [] bytes;
 
 	return result;
 }
