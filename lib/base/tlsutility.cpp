@@ -561,6 +561,7 @@ String RandomString(int length)
 		sprintf(output + 2 * i, "%02x", bytes[i]);
 
 	String result = output;
+	delete [] bytes;
 	delete [] output;
 
 	return result;
