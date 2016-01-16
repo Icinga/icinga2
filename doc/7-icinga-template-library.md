@@ -1170,12 +1170,13 @@ Aggregates the free disk space of all volumes and mount points it can find, or t
 
 Custom attributes:
 
-Name            | Description
-:---------------|:------------
-disk\_win\_warn | **Optional**. The warning threshold.
-disk\_win\_crit | **Optional**. The critical threshold.
-disk\_win\_path | **Optional**. Check only these paths, default checks all.
-disk\_win\_unit | **Optional**. Use this unit to display disk space, thresholds are interpreted in this unit. Defaults to "mb", possible values are: b, kb, mb, gb and tb.
+Name               | Description
+:------------------|:------------
+disk\_win\_warn    | **Optional**. The warning threshold.
+disk\_win\_crit    | **Optional**. The critical threshold.
+disk\_win\_path    | **Optional**. Check only these paths, default checks all.
+disk\_win\_unit    | **Optional**. Use this unit to display disk space, thresholds are interpreted in this unit. Defaults to "mb", possible values are: b, kb, mb, gb and tb.
+disk\_win\_exclude | **Optional**. Exclude these drives from check.
 
 
 ### <a id="windows-plugins-load-windows"></a> load-windows
