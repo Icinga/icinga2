@@ -32,7 +32,7 @@ String Base64::Encode(const String& input)
 	BIO_push(bio64, biomem);
 	BIO_set_flags(bio64, BIO_FLAGS_BASE64_NO_NL);
 	BIO_write(bio64, input.CStr(), input.GetLength());
-	BIO_flush(bio64);
+	(void) BIO_flush(bio64);
 
 	char *outbuf;
 	long len = BIO_get_mem_data(biomem, &outbuf);
