@@ -1762,6 +1762,7 @@ mongodb_database                 | **Optional.** Specify the database to check
 mongodb_alldatabases             | **Optional.** Check all databases (action database_size)
 mongodb_ssl                      | **Optional.** Connect using SSL
 mongodb_replicaset               | **Optional.** Connect to replicaset
+mongodb_replcheck                | **Optional.** If set to true, will enable the mongodb_replicaset value needed for "replica_primary" check
 mongodb_querytype                | **Optional.** The query type to check [query|insert|update|delete|getmore|command] from queries_per_second
 mongodb_collection               | **Optional.** Specify the collection to check
 mongodb_sampletime               | **Optional.** Time used to sample number of pages faults
