@@ -134,8 +134,16 @@ private:
 	friend void intrusive_ptr_release(Object *object);
 };
 
+void TypeAddObject(Object *object);
+void TypeRemoveObject(Object *object);
+
 inline void intrusive_ptr_add_ref(Object *object)
 {
+#ifdef I2_DEBUG
+	if (object->m_References == 0)
+		TypeAddObject(object);
+#endif /* I2_DEBUG */
+
 #ifdef _WIN32
 	InterlockedIncrement(&object->m_References);
 #else /* _WIN32 */
@@ -153,8 +161,13 @@ inline void intrusive_ptr_release(Object *object)
 	refs = __sync_sub_and_fetch(&object->m_References, 1);
 #endif /* _WIN32 */
 
-	if (refs == 0)
+	if (refs == 0) {
+#ifdef I2_DEBUG
+		TypeRemoveObject(object);
+#endif /* I2_DEBUG */
+
 		delete object;
+	}
 }
 
 template<typename T>
