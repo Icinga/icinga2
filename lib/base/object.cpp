@@ -40,7 +40,7 @@ static Timer::Ptr l_ObjectCountTimer;
  * Default constructor for the Object class.
  */
 Object::Object(void)
-	: m_References(0)
+	: m_References(0), m_Mutex(0)
 #ifdef I2_DEBUG
 	, m_LockOwner(0)
 #endif /* I2_DEBUG */
@@ -50,7 +50,9 @@ Object::Object(void)
  * Destructor for the Object class.
  */
 Object::~Object(void)
-{ }
+{
+	delete reinterpret_cast<boost::recursive_mutex *>(m_Mutex);
+}
 
 /**
  * Returns a string representation for the object.

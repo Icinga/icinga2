@@ -117,8 +117,8 @@ private:
 	Object(const Object& other);
 	Object& operator=(const Object& rhs);
 
-	uintptr_t m_References;
-	mutable boost::recursive_mutex m_Mutex;
+	intptr_t m_References;
+	mutable uintptr_t m_Mutex;
 
 #ifdef I2_DEBUG
 #	ifndef _WIN32
@@ -153,12 +153,14 @@ inline void intrusive_ptr_add_ref(Object *object)
 
 inline void intrusive_ptr_release(Object *object)
 {
-	uintptr_t refs;
+	intptr_t refs;
 #ifdef _WIN32
 	refs = InterlockedDecrement(&object->m_References);
 #else /* _WIN32 */
 	refs = __sync_sub_and_fetch(&object->m_References, 1);
 #endif /* _WIN32 */
+
+	ASSERT(refs >= 0);
 
 	if (refs == 0) {
 #ifdef I2_DEBUG
