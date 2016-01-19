@@ -30,11 +30,11 @@ using namespace icinga;
 
 DEFINE_TYPE_INSTANCE(Object);
 
-#ifdef I2_DEBUG
+#ifdef I2_LEAK_DEBUG
 static boost::mutex l_ObjectCountLock;
 static std::map<String, int> l_ObjectCounts;
 static Timer::Ptr l_ObjectCountTimer;
-#endif
+#endif /* I2_LEAK_DEBUG */
 
 /**
  * Default constructor for the Object class.
@@ -128,7 +128,7 @@ Type::Ptr Object::GetReflectionType(void) const
 	return Object::TypeInstance;
 }
 
-#ifdef I2_DEBUG
+#ifdef I2_LEAK_DEBUG
 void icinga::TypeAddObject(Object *object)
 {
 	boost::mutex::scoped_lock lock(l_ObjectCountLock);
@@ -168,5 +168,5 @@ static void StartTypeInfoTimer(void)
 }
 
 INITIALIZE_ONCE(StartTypeInfoTimer);
-#endif /* I2_DEBUG */
+#endif /* I2_LEAK_DEBUG */
 
