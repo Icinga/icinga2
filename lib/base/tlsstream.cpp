@@ -85,7 +85,7 @@ TlsStream::TlsStream(const Socket::Ptr& socket, const String& hostname, Connecti
 
 TlsStream::~TlsStream(void)
 {
-	Close();
+	CloseInternal(true);
 }
 
 int TlsStream::ValidateCertificate(int preverify_ok, X509_STORE_CTX *ctx)
@@ -310,17 +310,21 @@ void TlsStream::Shutdown(void)
  */
 void TlsStream::Close(void)
 {
-	if (!m_Eof) {
+	CloseInternal(false);
+}
+
+void TlsStream::CloseInternal(bool inDestructor)
+{
+	if (!m_Eof && !inDestructor) {
 		m_Eof = true;
 		SignalDataAvailable();
 	}
 
-	Stream::Close();
-
 	SocketEvents::Unregister();
 
-	boost::mutex::scoped_lock lock(m_Mutex);
+	Stream::Close();
 
+	boost::mutex::scoped_lock lock(m_Mutex);
 
 	if (!m_SSL)
 		return;
