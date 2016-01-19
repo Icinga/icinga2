@@ -321,6 +321,12 @@ void ApiListener::NewClientHandlerInternal(const Socket::Ptr& client, const Stri
 			return;
 		}
 
+		if (!hostname.IsEmpty() && identity != hostname) {
+			Log(LogInformation, "ApiListener")
+			    << "Unexpected certificate common name while connecting to endpoint '" << hostname << "': got '" << identity << "'";
+			return;
+		}
+
 		verify_ok = tlsStream->IsVerifyOK();
 
 		Log(LogInformation, "ApiListener")

@@ -85,7 +85,7 @@ TlsStream::TlsStream(const Socket::Ptr& socket, const String& hostname, Connecti
 
 TlsStream::~TlsStream(void)
 {
-	Close();
+	CloseInternal(true);
 }
 
 int TlsStream::ValidateCertificate(int preverify_ok, X509_STORE_CTX *ctx)
@@ -321,10 +321,6 @@ void TlsStream::Shutdown(void)
  */
 void TlsStream::Close(void)
 {
-<<<<<<< HEAD
-	if (!m_Eof) {
-		m_Eof = true;
-=======
 	CloseInternal(false);
 }
 
@@ -336,15 +332,13 @@ void TlsStream::CloseInternal(bool inDestructor)
 	m_Eof = true;
 
 	if (!inDestructor)
->>>>>>> 2dc385e... Fix memory/thread leak in the HttpServerConnection class
 		SignalDataAvailable();
-
-	Stream::Close();
 
 	SocketEvents::Unregister();
 
-	boost::mutex::scoped_lock lock(m_Mutex);
+	Stream::Close();
 
+	boost::mutex::scoped_lock lock(m_Mutex);
 
 	if (!m_SSL)
 		return;

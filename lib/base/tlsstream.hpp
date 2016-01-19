@@ -99,6 +99,8 @@ private:
 
 	static int ValidateCertificate(int preverify_ok, X509_STORE_CTX *ctx);
 	static void NullCertificateDeleter(X509 *certificate);
+
+	void CloseInternal(bool inDestructor);
 };
 
 }
