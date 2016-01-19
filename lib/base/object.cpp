@@ -22,10 +22,19 @@
 #include "base/dictionary.hpp"
 #include "base/primitivetype.hpp"
 #include "base/utility.hpp"
+#include "base/timer.hpp"
+#include "base/logger.hpp"
+#include <boost/foreach.hpp>
 
 using namespace icinga;
 
 DEFINE_TYPE_INSTANCE(Object);
+
+#ifdef I2_DEBUG
+static boost::mutex l_ObjectCountLock;
+static std::map<String, int> l_ObjectCounts;
+static Timer::Ptr l_ObjectCountTimer;
+#endif
 
 /**
  * Default constructor for the Object class.
@@ -116,4 +125,46 @@ Type::Ptr Object::GetReflectionType(void) const
 {
 	return Object::TypeInstance;
 }
+
+#ifdef I2_DEBUG
+void icinga::TypeAddObject(Object *object)
+{
+	boost::mutex::scoped_lock lock(l_ObjectCountLock);
+	String typeName = Utility::GetTypeName(typeid(*object));
+	l_ObjectCounts[typeName]++;
+}
+
+void icinga::TypeRemoveObject(Object *object)
+{
+	boost::mutex::scoped_lock lock(l_ObjectCountLock);
+	String typeName = Utility::GetTypeName(typeid(*object));
+	l_ObjectCounts[typeName]--;
+}
+
+static void TypeInfoTimerHandler(void)
+{
+	boost::mutex::scoped_lock lock(l_ObjectCountLock);
+
+	typedef std::map<String, int>::value_type kv_pair;
+	BOOST_FOREACH(kv_pair& kv, l_ObjectCounts) {
+		if (kv.second == 0)
+			continue;
+
+		Log(LogInformation, "TypeInfo")
+		    << kv.second << " " << kv.first << " objects";
+
+		kv.second = 0;
+	}
+}
+
+static void StartTypeInfoTimer(void)
+{
+	l_ObjectCountTimer = new Timer();
+	l_ObjectCountTimer->SetInterval(10);
+	l_ObjectCountTimer->OnTimerExpired.connect(boost::bind(TypeInfoTimerHandler));
+	l_ObjectCountTimer->Start();
+}
+
+INITIALIZE_ONCE(StartTypeInfoTimer);
+#endif /* I2_DEBUG */
 
