@@ -139,10 +139,10 @@ void TypeRemoveObject(Object *object);
 
 inline void intrusive_ptr_add_ref(Object *object)
 {
-#ifdef I2_DEBUG
+#ifdef I2_LEAK_DEBUG
 	if (object->m_References == 0)
 		TypeAddObject(object);
-#endif /* I2_DEBUG */
+#endif /* I2_LEAK_DEBUG */
 
 #ifdef _WIN32
 	InterlockedIncrement(&object->m_References);
@@ -162,9 +162,9 @@ inline void intrusive_ptr_release(Object *object)
 #endif /* _WIN32 */
 
 	if (refs == 0) {
-#ifdef I2_DEBUG
+#ifdef I2_LEAK_DEBUG
 		TypeRemoveObject(object);
-#endif /* I2_DEBUG */
+#endif /* I2_LEAK_DEBUG */
 
 		delete object;
 	}
