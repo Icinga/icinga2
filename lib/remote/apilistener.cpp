@@ -749,8 +749,11 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 {
 	Endpoint::Ptr endpoint = client->GetEndpoint();
 
-	if (endpoint->GetLogDuration() == 0)
+	if (endpoint->GetLogDuration() == 0) {
+		ObjectLock olock2(endpoint);
+		endpoint->SetSyncing(false);
 		return;
+	}
 
 	CONTEXT("Replaying log for Endpoint '" + endpoint->GetName() + "'");
 
