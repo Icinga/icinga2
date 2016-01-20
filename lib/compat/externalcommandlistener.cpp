@@ -110,7 +110,16 @@ void ExternalCommandListener::CommandPipeThread(const String& commandPath)
 			sock->Poll(true, false);
 
 			char buffer[8192];
-			size_t rc = sock->Read(buffer, sizeof(buffer));
+			size_t rc;
+
+			try {
+				rc = sock->Read(buffer, sizeof(buffer));
+			} catch (const std::exception& ex) {
+				Log(LogWarning, "ExternalCommandListener")
+				    << "Cannot read from socket." << DiagnosticInformation(ex);
+				break;
+			}
+
 			if (rc <= 0)
 				break;
 
