@@ -187,7 +187,10 @@ void IdoMysqlConnection::Reconnect(void)
 	ClearIDCache();
 
 	String ihost, isocket_path, iuser, ipasswd, idb;
+	String isslKey, isslCert, isslCa, isslCaPath, isslCipher;
 	const char *host, *socket_path, *user , *passwd, *db;
+	const char *sslKey, *sslCert, *sslCa, *sslCaPath, *sslCipher;
+	bool enableSsl;
 	long port;
 
 	ihost = GetHost();
@@ -196,12 +199,25 @@ void IdoMysqlConnection::Reconnect(void)
 	ipasswd = GetPassword();
 	idb = GetDatabase();
 
+	enableSsl = GetEnableSsl();
+	isslKey = GetSslKey();
+	isslCert = GetSslCert();
+	isslCa = GetSslCa();
+	isslCaPath = GetSslCapath();
+	isslCipher = GetSslCipher();
+
 	host = (!ihost.IsEmpty()) ? ihost.CStr() : NULL;
 	port = GetPort();
 	socket_path = (!isocket_path.IsEmpty()) ? isocket_path.CStr() : NULL;
 	user = (!iuser.IsEmpty()) ? iuser.CStr() : NULL;
 	passwd = (!ipasswd.IsEmpty()) ? ipasswd.CStr() : NULL;
 	db = (!idb.IsEmpty()) ? idb.CStr() : NULL;
+
+	sslKey = (!isslKey.IsEmpty()) ? isslKey.CStr() : NULL;
+	sslCert = (!isslCert.IsEmpty()) ? isslCert.CStr() : NULL;
+	sslCa = (!isslCa.IsEmpty()) ? isslCa.CStr() : NULL;
+	sslCaPath = (!isslCaPath.IsEmpty()) ? isslCaPath.CStr() : NULL;
+	sslCipher = (!isslCipher.IsEmpty()) ? isslCipher.CStr() : NULL;
 
 	/* connection */
 	if (!mysql_init(&m_Connection)) {
@@ -211,10 +227,13 @@ void IdoMysqlConnection::Reconnect(void)
 		BOOST_THROW_EXCEPTION(std::bad_alloc());
 	}
 
+	if (enableSsl)
+		mysql_ssl_set(&m_Connection, sslKey, sslCert, sslCa, sslCaPath, sslCipher);
+
 	if (!mysql_real_connect(&m_Connection, host, user, passwd, db, port, socket_path, CLIENT_FOUND_ROWS | CLIENT_MULTI_STATEMENTS)) {
 		Log(LogCritical, "IdoMysqlConnection")
 		    << "Connection to database '" << db << "' with user '" << user << "' on '" << host << ":" << port
-		    << "' failed: \"" << mysql_error(&m_Connection) << "\"";
+		    << "' " << (enableSsl ? "(SSL enabled) " : "") << "failed: \"" << mysql_error(&m_Connection) << "\"";
 
 		BOOST_THROW_EXCEPTION(std::runtime_error(mysql_error(&m_Connection)));
 	}
