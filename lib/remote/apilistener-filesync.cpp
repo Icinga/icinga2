@@ -171,16 +171,11 @@ void ApiListener::SendConfigUpdate(const JsonRpcConnection::Ptr& aclient)
 	BOOST_FOREACH(const Zone::Ptr& zone, ConfigType::GetObjectsByType<Zone>()) {
 		String zoneDir = zonesDir + "/" + zone->GetName();
 
-		if (!zone->IsChildOf(azone) && !zone->IsGlobal()) {
-			Log(LogNotice, "ApiListener")
-			    << "Skipping sync for '" << zone->GetName() << "'. Not a child of zone '" << azone->GetName() << "'.";
+		if (!zone->IsChildOf(azone) && !zone->IsGlobal())
 			continue;
-		}
-		if (!Utility::PathExists(zoneDir)) {
-			Log(LogNotice, "ApiListener")
-			    << "Ignoring sync for '" << zone->GetName() << "'. Zone directory '" << zoneDir << "' does not exist.";
+
+		if (!Utility::PathExists(zoneDir))
 			continue;
-		}
 
 		Log(LogInformation, "ApiListener")
 		    << "Syncing " << (zone->IsGlobal() ? "global " : "")
