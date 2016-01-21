@@ -757,7 +757,7 @@ Example:
 
     library "db_ido_pgsql"
 
-    object IdoMysqlConnection "pgsql-ido" {
+    object IdoPgsqlConnection "pgsql-ido" {
       host = "127.0.0.1"
       port = 5432
       user = "icinga"
