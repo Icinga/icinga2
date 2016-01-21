@@ -576,6 +576,7 @@ Value ClusterEvents::ExecuteCommandAPIHandler(const MessageOrigin::Ptr& origin, 
 
 		attrs->Set("__name", params->Get("host"));
 		attrs->Set("type", "Host");
+		attrs->Set("enable_active_checks", false);
 
 		Deserialize(host, attrs, false, FAConfig);
 
