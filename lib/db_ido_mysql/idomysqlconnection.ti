@@ -42,6 +42,21 @@ class IdoMysqlConnection : DbConnection
 	[config] String database {
 		default {{{ return "icinga"; }}}
 	};
+	[config] String ssl_key {
+			default {{{ return ""; }}}
+	};
+	[config] String ssl_cert {
+			default {{{ return ""; }}}
+	};
+	[config] String ssl_ca {
+			default {{{ return ""; }}}
+	};
+	[config] String ssl_ca_path {
+			default {{{ return ""; }}}
+	};
+	[config] String ssl_cipher {
+			default {{{ return ""; }}}
+	};
 	[config] String instance_name {
 		default {{{ return "default"; }}}
 	};
