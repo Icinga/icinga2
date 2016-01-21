@@ -444,6 +444,10 @@ void Checkable::ExecuteCheck(void)
 			if (listener)
 				listener->SyncSendMessage(endpoint, message);
 
+			/* Re-schedule the check so we don't run it again until after we've received
+			   a check result from the remote instance. The check will be re-scheduled
+			   using the proper check interval once we've received a check result. */
+			SetNextCheck(Utility::GetTime() + GetCheckCommand()->GetTimeout() + 30);
 		} else if (Application::GetInstance()->GetStartTime() < Utility::GetTime() - 30) {
 			/* fail to perform check on unconnected endpoint */
 			cr->SetState(ServiceUnknown);
