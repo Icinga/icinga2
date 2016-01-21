@@ -1569,84 +1569,84 @@ void ExternalCommandProcessor::EnableNotifications(double, const std::vector<Str
 {
 	Log(LogNotice, "ExternalCommandProcessor", "Globally enabling notifications.");
 
-	IcingaApplication::GetInstance()->SetEnableNotifications(true);
+	IcingaApplication::GetInstance()->ModifyAttribute("enable_notifications", true);
 }
 
 void ExternalCommandProcessor::DisableNotifications(double, const std::vector<String>&)
 {
 	Log(LogNotice, "ExternalCommandProcessor", "Globally disabling notifications.");
 
-	IcingaApplication::GetInstance()->SetEnableNotifications(false);
+	IcingaApplication::GetInstance()->ModifyAttribute("enable_notifications", false);
 }
 
 void ExternalCommandProcessor::EnableFlapDetection(double, const std::vector<String>&)
 {
 	Log(LogNotice, "ExternalCommandProcessor", "Globally enabling flap detection.");
 
-	IcingaApplication::GetInstance()->SetEnableFlapping(true);
+	IcingaApplication::GetInstance()->ModifyAttribute("enable_flapping", true);
 }
 
 void ExternalCommandProcessor::DisableFlapDetection(double, const std::vector<String>&)
 {
 	Log(LogNotice, "ExternalCommandProcessor", "Globally disabling flap detection.");
 
-	IcingaApplication::GetInstance()->SetEnableFlapping(false);
+	IcingaApplication::GetInstance()->ModifyAttribute("enable_flapping", false);
 }
 
 void ExternalCommandProcessor::EnableEventHandlers(double, const std::vector<String>&)
 {
 	Log(LogNotice, "ExternalCommandProcessor", "Globally enabling event handlers.");
 
-	IcingaApplication::GetInstance()->SetEnableEventHandlers(true);
+	IcingaApplication::GetInstance()->ModifyAttribute("enable_event_handlers", true);
 }
 
 void ExternalCommandProcessor::DisableEventHandlers(double, const std::vector<String>&)
 {
 	Log(LogNotice, "ExternalCommandProcessor", "Globally disabling event handlers.");
 
-	IcingaApplication::GetInstance()->SetEnableEventHandlers(false);
+	IcingaApplication::GetInstance()->ModifyAttribute("enable_event_handlers", false);
 }
 
 void ExternalCommandProcessor::EnablePerformanceData(double, const std::vector<String>&)
 {
 	Log(LogNotice, "ExternalCommandProcessor", "Globally enabling performance data processing.");
 
-	IcingaApplication::GetInstance()->SetEnablePerfdata(true);
+	IcingaApplication::GetInstance()->ModifyAttribute("enable_perfdata", true);
 }
 
 void ExternalCommandProcessor::DisablePerformanceData(double, const std::vector<String>&)
 {
 	Log(LogNotice, "ExternalCommandProcessor", "Globally disabling performance data processing.");
 
-	IcingaApplication::GetInstance()->SetEnablePerfdata(false);
+	IcingaApplication::GetInstance()->ModifyAttribute("enable_perfdata", false);
 }
 
 void ExternalCommandProcessor::StartExecutingSvcChecks(double, const std::vector<String>&)
 {
 	Log(LogNotice, "ExternalCommandProcessor", "Globally enabling service checks.");
 
-	IcingaApplication::GetInstance()->SetEnableServiceChecks(true);
+	IcingaApplication::GetInstance()->ModifyAttribute("enable_service_checks", true);
 }
 
 void ExternalCommandProcessor::StopExecutingSvcChecks(double, const std::vector<String>&)
 {
 	Log(LogNotice, "ExternalCommandProcessor", "Globally disabling service checks.");
 
-	IcingaApplication::GetInstance()->SetEnableServiceChecks(false);
+	IcingaApplication::GetInstance()->ModifyAttribute("enable_service_checks", false);
 }
 
 void ExternalCommandProcessor::StartExecutingHostChecks(double, const std::vector<String>&)
 {
 	Log(LogNotice, "ExternalCommandProcessor", "Globally enabling host checks.");
 
-	IcingaApplication::GetInstance()->SetEnableHostChecks(true);
+	IcingaApplication::GetInstance()->ModifyAttribute("enable_host_checks", true);
 }
 
 void ExternalCommandProcessor::StopExecutingHostChecks(double, const std::vector<String>&)
 {
 	Log(LogNotice, "ExternalCommandProcessor", "Globally disabling host checks.");
 
-	IcingaApplication::GetInstance()->SetEnableHostChecks(false);
+	IcingaApplication::GetInstance()->ModifyAttribute("enable_host_checks", false);
 }
 
 void ExternalCommandProcessor::ChangeNormalSvcCheckInterval(double, const std::vector<String>& arguments)
