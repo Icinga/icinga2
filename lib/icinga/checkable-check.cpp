@@ -311,8 +311,16 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 		UpdateFlappingStatus(stateChange);
 	is_flapping = IsFlapping();
 
-	/* update next check time on possible state changes */
-	UpdateNextCheck();
+	/* update next check time for active and passive check results */
+	if (!GetEnableActiveChecks() && GetEnablePassiveChecks()) {
+		/* Reschedule the next passive check. The side effect of this is that for as long
+		 * as we receive passive results for a service we won't execute any
+		 * active checks. */
+		SetNextCheck(Utility::GetTime() + GetCheckInterval());
+	} else if (GetEnableActiveChecks()) {
+		/* update next check time based on state changes and types */
+		UpdateNextCheck();
+	}
 
 	olock.Unlock();
 
