@@ -382,6 +382,9 @@ void ExternalCommandProcessor::ScheduleHostCheck(double, const std::vector<Strin
 		planned_check = Utility::GetTime();
 
 	host->SetNextCheck(planned_check);
+
+	/* trigger update event for DB IDO */
+	Checkable::OnNextCheckUpdated(host);
 }
 
 void ExternalCommandProcessor::ScheduleForcedHostCheck(double, const std::vector<String>& arguments)
@@ -396,6 +399,9 @@ void ExternalCommandProcessor::ScheduleForcedHostCheck(double, const std::vector
 
 	host->SetForceNextCheck(true);
 	host->SetNextCheck(Convert::ToDouble(arguments[1]));
+
+	/* trigger update event for DB IDO */
+	Checkable::OnNextCheckUpdated(host);
 }
 
 void ExternalCommandProcessor::ScheduleSvcCheck(double, const std::vector<String>& arguments)
@@ -421,6 +427,9 @@ void ExternalCommandProcessor::ScheduleSvcCheck(double, const std::vector<String
 		planned_check = Utility::GetTime();
 
 	service->SetNextCheck(planned_check);
+
+	/* trigger update event for DB IDO */
+	Checkable::OnNextCheckUpdated(service);
 }
 
 void ExternalCommandProcessor::ScheduleForcedSvcCheck(double, const std::vector<String>& arguments)
@@ -435,6 +444,9 @@ void ExternalCommandProcessor::ScheduleForcedSvcCheck(double, const std::vector<
 
 	service->SetForceNextCheck(true);
 	service->SetNextCheck(Convert::ToDouble(arguments[2]));
+
+	/* trigger update event for DB IDO */
+	Checkable::OnNextCheckUpdated(service);
 }
 
 void ExternalCommandProcessor::EnableHostCheck(double, const std::vector<String>& arguments)
@@ -516,6 +528,9 @@ void ExternalCommandProcessor::ScheduleForcedHostSvcChecks(double, const std::ve
 
 		service->SetNextCheck(planned_check);
 		service->SetForceNextCheck(true);
+
+		/* trigger update event for DB IDO */
+		Checkable::OnNextCheckUpdated(service);
 	}
 }
 
@@ -543,6 +558,9 @@ void ExternalCommandProcessor::ScheduleHostSvcChecks(double, const std::vector<S
 		    << "Rescheduling next check for service '" << service->GetName() << "'";
 
 		service->SetNextCheck(planned_check);
+
+		/* trigger update event for DB IDO */
+		Checkable::OnNextCheckUpdated(service);
 	}
 }
 
