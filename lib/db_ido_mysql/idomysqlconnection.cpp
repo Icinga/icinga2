@@ -444,7 +444,7 @@ void IdoMysqlConnection::ClearCustomVarTable(const String& table)
 	Query("DELETE FROM " + GetTablePrefix() + table + " WHERE session_token <> " + Convert::ToString(m_SessionToken));
 }
 
-void IdoMysqlConnection::ClearConfiglTable(const String& table)
+void IdoMysqlConnection::ClearConfigTable(const String& table)
 {
 	Query("DELETE FROM " + GetTablePrefix() + table + " WHERE instance_id = " + Convert::ToString(static_cast<long>(m_InstanceID)));
 }
