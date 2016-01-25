@@ -85,7 +85,13 @@ boost::shared_ptr<SSL_CTX> MakeSSLContext(const String& pubkey, const String& pr
 
 	boost::shared_ptr<SSL_CTX> sslContext = boost::shared_ptr<SSL_CTX>(SSL_CTX_new(SSLv23_method()), SSL_CTX_free);
 
-	SSL_CTX_set_options(sslContext.get(), SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_NO_COMPRESSION);
+	long flags = SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3;
+
+#ifdef SSL_OP_NO_COMPRESSION
+	flags |= SSL_OP_NO_COMPRESSION;
+#endif
+
+	SSL_CTX_set_options(sslContext.get(), flags);
 
 	SSL_CTX_set_mode(sslContext.get(), SSL_MODE_ENABLE_PARTIAL_WRITE | SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER);
 	SSL_CTX_set_session_id_context(sslContext.get(), (const unsigned char *)"Icinga 2", 8);
