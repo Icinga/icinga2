@@ -58,14 +58,15 @@ bool ApiListener::UpdateConfigDir(const Dictionary::Ptr& oldConfig, const Dictio
 {
 	bool configChange = false;
 
-	if (oldConfig->Contains(".timestamp") && newConfig->Contains(".timestamp")) {
-		double oldTS = Convert::ToDouble(oldConfig->Get(".timestamp"));
-		double newTS = Convert::ToDouble(newConfig->Get(".timestamp"));
+	if (!(oldConfig->Contains(".timestamp") && newConfig->Contains(".timestamp")))
+		return false;
 
-		/* skip update if our config is newer */
-		if (oldTS <= newTS)
-			return false;
-	}
+	double oldTimestamp = Convert::ToDouble(oldConfig->Get(".timestamp"));
+	double newTimestamp = Convert::ToDouble(newConfig->Get(".timestamp"));
+
+	/* skip update if our config is newer */
+	if (oldTimestamp <= newTimestamp)
+		return false;
 
 	{
 		ObjectLock olock(newConfig);
@@ -99,7 +100,7 @@ bool ApiListener::UpdateConfigDir(const Dictionary::Ptr& oldConfig, const Dictio
 	String tsPath = configDir + "/.timestamp";
 	if (!Utility::PathExists(tsPath)) {
 		std::ofstream fp(tsPath.CStr(), std::ofstream::out | std::ostream::trunc);
-		fp << std::fixed << Utility::GetTime();
+		fp << std::fixed << newTimestamp;
 		fp.close();
 	}
 
