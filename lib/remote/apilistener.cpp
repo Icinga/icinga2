@@ -520,8 +520,19 @@ void ApiListener::ApiTimerHandler(void)
 		lmessage->Set("method", "log::SetLogPosition");
 		lmessage->Set("params", lparams);
 
-		BOOST_FOREACH(const JsonRpcConnection::Ptr& client, endpoint->GetClients())
-			client->SendMessage(lmessage);
+		double maxTs = 0;
+
+		BOOST_FOREACH(const JsonRpcConnection::Ptr& client, endpoint->GetClients()) {
+			if (client->GetTimestamp() > maxTs)
+				maxTs = client->GetTimestamp();
+		}
+
+		BOOST_FOREACH(const JsonRpcConnection::Ptr& client, endpoint->GetClients()) {
+			if (client->GetTimestamp() != maxTs)
+				client->Disconnect();
+			else
+				client->SendMessage(lmessage);
+		}
 
 		Log(LogNotice, "ApiListener")
 		    << "Setting log position for identity '" << endpoint->GetName() << "': "
@@ -586,8 +597,19 @@ void ApiListener::SyncSendMessage(const Endpoint::Ptr& endpoint, const Dictionar
 		Log(LogNotice, "ApiListener")
 		    << "Sending message to '" << endpoint->GetName() << "'";
 
-		BOOST_FOREACH(const JsonRpcConnection::Ptr& client, endpoint->GetClients())
+		double maxTs = 0;
+
+		BOOST_FOREACH(const JsonRpcConnection::Ptr& client, endpoint->GetClients()) {
+			if (client->GetTimestamp() > maxTs)
+				maxTs = client->GetTimestamp();
+		}
+
+		BOOST_FOREACH(const JsonRpcConnection::Ptr& client, endpoint->GetClients()) {
+			if (client->GetTimestamp() != maxTs)
+				continue;
+
 			client->SendMessage(message);
+		}
 	}
 }
 
