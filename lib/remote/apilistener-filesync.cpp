@@ -58,14 +58,22 @@ bool ApiListener::UpdateConfigDir(const Dictionary::Ptr& oldConfig, const Dictio
 {
 	bool configChange = false;
 
-	if (!(oldConfig->Contains(".timestamp") && newConfig->Contains(".timestamp")))
-		return false;
+	double oldTimestamp;
 
-	double oldTimestamp = Convert::ToDouble(oldConfig->Get(".timestamp"));
-	double newTimestamp = Convert::ToDouble(newConfig->Get(".timestamp"));
+	if (!oldConfig->Contains(".timestamp"))
+		oldTimestamp = 0;
+	else
+		oldTimestamp = oldConfig->Get(".timestamp");
+
+	double newTimestamp;
+
+	if (!newConfig->Contains(".timestamp"))
+		newTimestamp = Utility::GetTime();
+	else
+		newTimestamp = newConfig->Get(".timestamp");
 
 	/* skip update if our config is newer */
-	if (oldTimestamp <= newTimestamp)
+	if (oldTimestamp >= newTimestamp)
 		return false;
 
 	{
