@@ -41,7 +41,7 @@ static Timer::Ptr l_JsonRpcConnectionTimeoutTimer;
 JsonRpcConnection::JsonRpcConnection(const String& identity, bool authenticated,
     const TlsStream::Ptr& stream, ConnectionRole role)
 	: m_Identity(identity), m_Authenticated(authenticated), m_Stream(stream),
-	  m_Role(role), m_Seen(Utility::GetTime()),
+	  m_Role(role), m_Timestamp(Utility::GetTime()), m_Seen(Utility::GetTime()),
 	  m_NextHeartbeat(0), m_HeartbeatTimeout(0)
 {
 	boost::call_once(l_JsonRpcConnectionOnceFlag, &JsonRpcConnection::StaticInitialize);
@@ -64,6 +64,11 @@ void JsonRpcConnection::Start(void)
 	m_Stream->RegisterDataHandler(boost::bind(&JsonRpcConnection::DataAvailableHandler, JsonRpcConnection::Ptr(this)));
 	if (m_Stream->IsDataAvailable())
 		DataAvailableHandler();
+}
+
+double JsonRpcConnection::GetTimestamp(void) const
+{
+	return m_Timestamp;
 }
 
 String JsonRpcConnection::GetIdentity(void) const

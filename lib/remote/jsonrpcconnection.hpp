@@ -57,6 +57,7 @@ public:
 
 	void Start(void);
 
+	double GetTimestamp(void) const;
 	String GetIdentity(void) const;
 	bool IsAuthenticated(void) const;
 	Endpoint::Ptr GetEndpoint(void) const;
@@ -76,6 +77,7 @@ private:
 	Endpoint::Ptr m_Endpoint;
 	TlsStream::Ptr m_Stream;
 	ConnectionRole m_Role;
+	double m_Timestamp;
 	double m_Seen;
 	double m_NextHeartbeat;
 	double m_HeartbeatTimeout;
