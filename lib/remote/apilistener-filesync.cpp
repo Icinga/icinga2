@@ -134,7 +134,7 @@ void ApiListener::SyncZoneDir(const Zone::Ptr& zone) const
 	Log(LogInformation, "ApiListener")
 	    << "Copying " << newConfig->GetLength() << " zone configuration files for zone '" << zone->GetName() << "' to '" << oldDir << "'.";
 
-	Utility::MkDir(oldDir, 0700);
+	Utility::MkDirP(oldDir, 0700);
 
 	Dictionary::Ptr oldConfig = LoadConfigDir(oldDir);
 
@@ -240,7 +240,7 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 
 		String oldDir = Application::GetLocalStateDir() + "/lib/icinga2/api/zones/" + zone->GetName();
 
-		Utility::MkDir(oldDir, 0700);
+		Utility::MkDirP(oldDir, 0700);
 
 		Dictionary::Ptr newConfig = kv.second;
 		Dictionary::Ptr oldConfig = LoadConfigDir(oldDir);
