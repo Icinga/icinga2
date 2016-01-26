@@ -50,7 +50,7 @@ void ApiListener::ConfigGlobHandler(Dictionary::Ptr& config, const String& path,
 Dictionary::Ptr ApiListener::LoadConfigDir(const String& dir)
 {
 	Dictionary::Ptr config = new Dictionary();
-	Utility::GlobRecursive(dir, "*.conf", boost::bind(&ApiListener::ConfigGlobHandler, boost::ref(config), dir, _1), GlobFile);
+	Utility::GlobRecursive(dir, "*", boost::bind(&ApiListener::ConfigGlobHandler, boost::ref(config), dir, _1), GlobFile);
 	return config;
 }
 
