@@ -133,6 +133,13 @@ static String StringReverse(void)
 	return self.Reverse();
 }
 
+static String StringTrim(void)
+{
+	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
+	String self = vframe->Self;
+	return self.Trim();
+}
+
 Object::Ptr String::GetPrototype(void)
 {
 	static Dictionary::Ptr prototype;
@@ -149,6 +156,7 @@ Object::Ptr String::GetPrototype(void)
 		prototype->Set("contains", new Function(WrapFunction(StringContains), true));
 		prototype->Set("replace", new Function(WrapFunction(StringReplace), true));
 		prototype->Set("reverse", new Function(WrapFunction(StringReverse), true));
+		prototype->Set("trim", new Function(WrapFunction(StringTrim), true));
 	}
 
 	return prototype;

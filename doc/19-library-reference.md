@@ -508,6 +508,14 @@ Signature:
 
 Returns a copy of the string in reverse order.
 
+### <a id="string-trim"></a> String#trim
+
+Signature:
+
+    function trim();
+
+Removes trailing whitespaces and returns the string.
+
 ## <a id="object-type"></a> Object type
 
 This is the base type for all types in the Icinga application.
