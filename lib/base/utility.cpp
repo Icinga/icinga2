@@ -1466,6 +1466,39 @@ static bool ReleaseHelper(String *platformName, String *platformVersion)
 	if (platformVersion)
 		*platformVersion = "Unknown";
 
+	/* You have systemd or Ubuntu etc. */
+	std::ifstream release("/etc/os-release");
+	if (release.is_open()) {
+		std::string release_line;
+		while (getline(release, release_line)) {
+			std::string::size_type pos = release_line.find("=");
+
+			if (pos == std::string::npos)
+				continue;
+
+			std::string key = release_line.substr(0, pos);
+			std::string value = release_line.substr(pos + 1);
+
+			std::string::size_type firstQuote = value.find("\"");
+
+			if (firstQuote != std::string::npos)
+				value.erase(0, firstQuote + 1);
+
+			std::string::size_type lastQuote = value.rfind("\"");
+
+			if (lastQuote != std::string::npos)
+				value.erase(lastQuote);
+
+			if (platformName && key == "NAME")
+				*platformName = value;
+
+			if (platformVersion && key == "VERSION")
+				*platformVersion = value;
+		}
+
+		return true;
+	}
+
 	/* You are using a distribution which supports LSB. */
 	FILE *fp = popen("lsb_release -s -i 2>&1", "r");
 
@@ -1532,28 +1565,7 @@ static bool ReleaseHelper(String *platformName, String *platformVersion)
 		}
 	}
 
-	/* You have systemd or Ubuntu etc. */
-	std::ifstream release("/etc/os-release");
-	if (release.is_open()) {
-		std::string release_line;
-		while (getline(release, release_line)) {
-			if (platformName) {
-				if (release_line.find("NAME") != std::string::npos) {
-					*platformName = release_line.substr(6, release_line.length() - 7);
-				}
-			}
-
-			if (platformVersion) {
-				if (release_line.find("VERSION") != std::string::npos) {
-					*platformVersion = release_line.substr(8, release_line.length() - 9);
-				}
-			}
-		}
-
-		return true;
-	}
-
-	/* Centos < 7 */
+	/* Centos/RHEL < 7 */
 	release.close();
 	release.open("/etc/redhat-release");
 	if (release.is_open()) {
@@ -1562,11 +1574,12 @@ static bool ReleaseHelper(String *platformName, String *platformVersion)
 
 		String info = release_line;
 
+		/* example: Red Hat Enterprise Linux Server release 6.7 (Santiago) */
 		if (platformName)
-			*platformName = info.SubStr(0, info.FindFirstOf(" "));
+			*platformName = info.SubStr(0, info.Find("release") - 1);
 
 		if (platformVersion)
-			*platformVersion = info.SubStr(info.FindFirstOf(" ") + 1);
+			*platformVersion = info.SubStr(info.Find("release") + 8);
 
 		return true;
 	}
