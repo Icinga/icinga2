@@ -89,7 +89,7 @@ boost::shared_ptr<SSL_CTX> MakeSSLContext(const String& pubkey, const String& pr
 
 #ifdef SSL_OP_NO_COMPRESSION
 	flags |= SSL_OP_NO_COMPRESSION;
-#endif
+#endif /* SSL_OP_NO_COMPRESSION */
 
 	SSL_CTX_set_options(sslContext.get(), flags);
 
