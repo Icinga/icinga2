@@ -105,6 +105,9 @@ bool ApiListener::UpdateConfigDir(const ConfigDirInformation& oldConfigInfo, con
 	{
 		ObjectLock olock(newConfig);
 		BOOST_FOREACH(const Dictionary::Pair& kv, newConfig) {
+			if (Utility::Match("*/.timestamp", kv.first))
+				continue;
+
 			if (oldConfig->Get(kv.first) != kv.second) {
 				configChange = true;
 
