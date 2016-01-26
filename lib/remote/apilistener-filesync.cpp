@@ -32,7 +32,7 @@ using namespace icinga;
 
 REGISTER_APIFUNCTION(Update, config, &ApiListener::ConfigUpdateHandler);
 
-void ApiListener::ConfigGlobHandler(Dictionary::Ptr& config, const String& path, const String& file)
+void ApiListener::ConfigGlobHandler(ConfigDirInformation& config, const String& path, const String& file)
 {
 	CONTEXT("Creating config update for file '" + file + "'");
 
@@ -44,19 +44,45 @@ void ApiListener::ConfigGlobHandler(Dictionary::Ptr& config, const String& path,
 		return;
 
 	String content((std::istreambuf_iterator<char>(fp)), std::istreambuf_iterator<char>());
-	config->Set(file.SubStr(path.GetLength()), content);
+
+	Dictionary::Ptr update;
+
+	if (Utility::Match("*.conf", file))
+		update = config.UpdateV1;
+	else
+		update = config.UpdateV2;
+
+	update->Set(file.SubStr(path.GetLength()), content);
 }
 
-Dictionary::Ptr ApiListener::LoadConfigDir(const String& dir)
+Dictionary::Ptr ApiListener::MergeConfigUpdate(const ConfigDirInformation& config)
 {
-	Dictionary::Ptr config = new Dictionary();
+	Dictionary::Ptr result = new Dictionary();
+
+	if (config.UpdateV1)
+		config.UpdateV1->CopyTo(result);
+
+	if (config.UpdateV2)
+		config.UpdateV2->CopyTo(result);
+
+	return result;
+}
+
+ConfigDirInformation ApiListener::LoadConfigDir(const String& dir)
+{
+	ConfigDirInformation config;
+	config.UpdateV1 = new Dictionary();
+	config.UpdateV2 = new Dictionary();
 	Utility::GlobRecursive(dir, "*", boost::bind(&ApiListener::ConfigGlobHandler, boost::ref(config), dir, _1), GlobFile);
 	return config;
 }
 
-bool ApiListener::UpdateConfigDir(const Dictionary::Ptr& oldConfig, const Dictionary::Ptr& newConfig, const String& configDir, bool authoritative)
+bool ApiListener::UpdateConfigDir(const ConfigDirInformation& oldConfigInfo, const ConfigDirInformation& newConfigInfo, const String& configDir, bool authoritative)
 {
 	bool configChange = false;
+
+	Dictionary::Ptr oldConfig = MergeConfigUpdate(oldConfigInfo);
+	Dictionary::Ptr newConfig = MergeConfigUpdate(newConfigInfo);
 
 	double oldTimestamp;
 
@@ -125,29 +151,43 @@ bool ApiListener::UpdateConfigDir(const Dictionary::Ptr& oldConfig, const Dictio
 
 void ApiListener::SyncZoneDir(const Zone::Ptr& zone) const
 {
-	Dictionary::Ptr newConfig = new Dictionary();
-	BOOST_FOREACH(const ZoneFragment& zf, ConfigCompiler::GetZoneDirs(zone->GetName())) {
-		Dictionary::Ptr newConfigPart = LoadConfigDir(zf.Path);
+	ConfigDirInformation newConfigInfo;
+	newConfigInfo.UpdateV1 = new Dictionary();
+	newConfigInfo.UpdateV2 = new Dictionary();
 
-		ObjectLock olock(newConfigPart);
-		BOOST_FOREACH(const Dictionary::Pair& kv, newConfigPart) {
-			newConfig->Set("/" + zf.Tag + kv.first, kv.second);
+	BOOST_FOREACH(const ZoneFragment& zf, ConfigCompiler::GetZoneDirs(zone->GetName())) {
+		ConfigDirInformation newConfigPart = LoadConfigDir(zf.Path);
+
+		{
+			ObjectLock olock(newConfigPart.UpdateV1);
+			BOOST_FOREACH(const Dictionary::Pair& kv, newConfigPart.UpdateV1) {
+				newConfigInfo.UpdateV1->Set("/" + zf.Tag + kv.first, kv.second);
+			}
+		}
+
+		{
+			ObjectLock olock(newConfigPart.UpdateV2);
+			BOOST_FOREACH(const Dictionary::Pair& kv, newConfigPart.UpdateV2) {
+				newConfigInfo.UpdateV2->Set("/" + zf.Tag + kv.first, kv.second);
+			}
 		}
 	}
 
-	if (newConfig->GetLength() == 0)
+	int sumUpdates = newConfigInfo.UpdateV1->GetLength() + newConfigInfo.UpdateV2->GetLength();
+
+	if (sumUpdates == 0)
 		return;
 
 	String oldDir = Application::GetLocalStateDir() + "/lib/icinga2/api/zones/" + zone->GetName();
 
 	Log(LogInformation, "ApiListener")
-	    << "Copying " << newConfig->GetLength() << " zone configuration files for zone '" << zone->GetName() << "' to '" << oldDir << "'.";
+	    << "Copying " << sumUpdates << " zone configuration files for zone '" << zone->GetName() << "' to '" << oldDir << "'.";
 
 	Utility::MkDirP(oldDir, 0700);
 
-	Dictionary::Ptr oldConfig = LoadConfigDir(oldDir);
+	ConfigDirInformation oldConfigInfo = LoadConfigDir(oldDir);
 
-	UpdateConfigDir(oldConfig, newConfig, oldDir, true);
+	UpdateConfigDir(oldConfigInfo, newConfigInfo, oldDir, true);
 }
 
 void ApiListener::SyncZoneDirs(void) const
@@ -173,7 +213,8 @@ void ApiListener::SendConfigUpdate(const JsonRpcConnection::Ptr& aclient)
 	if (!azone->IsChildOf(lzone))
 		return;
 
-	Dictionary::Ptr configUpdate = new Dictionary();
+	Dictionary::Ptr configUpdateV1 = new Dictionary();
+	Dictionary::Ptr configUpdateV2 = new Dictionary();
 
 	String zonesDir = Application::GetLocalStateDir() + "/lib/icinga2/api/zones";
 
@@ -190,11 +231,14 @@ void ApiListener::SendConfigUpdate(const JsonRpcConnection::Ptr& aclient)
 		    << "Syncing " << (zone->IsGlobal() ? "global " : "")
 		    << "zone '" << zone->GetName() << "' to endpoint '" << endpoint->GetName() << "'.";
 
-		configUpdate->Set(zone->GetName(), LoadConfigDir(zonesDir + "/" + zone->GetName()));
+		ConfigDirInformation config = LoadConfigDir(zonesDir + "/" + zone->GetName());
+		configUpdateV1->Set(zone->GetName(), config.UpdateV1);
+		configUpdateV2->Set(zone->GetName(), config.UpdateV2);
 	}
 
 	Dictionary::Ptr params = new Dictionary();
-	params->Set("update", configUpdate);
+	params->Set("update", configUpdateV1);
+	params->Set("update_v2", configUpdateV2);
 
 	Dictionary::Ptr message = new Dictionary();
 	message->Set("jsonrpc", "2.0");
@@ -222,12 +266,13 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 		return Empty;
 	}
 
-	Dictionary::Ptr update = params->Get("update");
+	Dictionary::Ptr updateV1 = params->Get("update");
+	Dictionary::Ptr updateV2 = params->Get("update_v2");
 
 	bool configChange = false;
 
-	ObjectLock olock(update);
-	BOOST_FOREACH(const Dictionary::Pair& kv, update) {
+	ObjectLock olock(updateV1);
+	BOOST_FOREACH(const Dictionary::Pair& kv, updateV1) {
 		Zone::Ptr zone = Zone::GetByName(kv.first);
 
 		if (!zone) {
@@ -246,10 +291,16 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 
 		Utility::MkDirP(oldDir, 0700);
 
-		Dictionary::Ptr newConfig = kv.second;
-		Dictionary::Ptr oldConfig = LoadConfigDir(oldDir);
+		ConfigDirInformation newConfigInfo;
+		newConfigInfo.UpdateV1 = kv.second;
 
-		if (UpdateConfigDir(oldConfig, newConfig, oldDir, false))
+		if (updateV2)
+			newConfigInfo.UpdateV2 = updateV2->Get(kv.first);
+
+		Dictionary::Ptr newConfig = kv.second;
+		ConfigDirInformation oldConfigInfo = LoadConfigDir(oldDir);
+
+		if (UpdateConfigDir(oldConfigInfo, newConfigInfo, oldDir, false))
 			configChange = true;
 	}
 
