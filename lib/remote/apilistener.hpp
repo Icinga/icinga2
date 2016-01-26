@@ -38,6 +38,15 @@ namespace icinga
 class JsonRpcConnection;
 
 /**
+ * @ingroup remote
+ */
+struct ConfigDirInformation
+{
+	Dictionary::Ptr UpdateV1;
+	Dictionary::Ptr UpdateV2;
+};
+
+/**
 * @ingroup remote
 */
 class I2_REMOTE_API ApiListener : public ObjectImpl<ApiListener>
@@ -129,13 +138,14 @@ private:
 	void ReplayLog(const JsonRpcConnection::Ptr& client);
 
 	/* filesync */
-	static Dictionary::Ptr LoadConfigDir(const String& dir);
-	static bool UpdateConfigDir(const Dictionary::Ptr& oldConfig, const Dictionary::Ptr& newConfig, const String& configDir, bool authoritative);
+	static ConfigDirInformation LoadConfigDir(const String& dir);
+	static Dictionary::Ptr MergeConfigUpdate(const ConfigDirInformation& config);
+	static bool UpdateConfigDir(const ConfigDirInformation& oldConfig, const ConfigDirInformation& newConfig, const String& configDir, bool authoritative);
 
 	void SyncZoneDirs(void) const;
 	void SyncZoneDir(const Zone::Ptr& zone) const;
 
-	static void ConfigGlobHandler(Dictionary::Ptr& config, const String& path, const String& file);
+	static void ConfigGlobHandler(ConfigDirInformation& config, const String& path, const String& file);
 	void SendConfigUpdate(const JsonRpcConnection::Ptr& aclient);
 
 	/* configsync */
