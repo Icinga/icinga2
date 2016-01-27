@@ -613,17 +613,17 @@ void ApiListener::SyncSendMessage(const Endpoint::Ptr& endpoint, const Dictionar
 	}
 }
 
-bool ApiListener::RelayMessageOne(const Zone::Ptr& targetZone, const MessageOrigin::Ptr& origin, const Dictionary::Ptr& message)
+bool ApiListener::RelayMessageOne(const Zone::Ptr& targetZone, const MessageOrigin::Ptr& origin, const Dictionary::Ptr& message, const Endpoint::Ptr& currentMaster)
 {
 	ASSERT(targetZone);
 
-	bool is_master = IsMaster();
-	Endpoint::Ptr master = GetMaster();
 	Zone::Ptr myZone = Zone::GetLocalZone();
 
 	/* only relay the message to a) the same zone, b) the parent zone and c) direct child zones */
 	if (targetZone != myZone && targetZone != myZone->GetParent() && targetZone->GetParent() != myZone)
 		return true;
+
+	Endpoint::Ptr myEndpoint = GetLocalEndpoint();
 
 	std::vector<Endpoint::Ptr> skippedEndpoints;
 
@@ -665,7 +665,7 @@ bool ApiListener::RelayMessageOne(const Zone::Ptr& targetZone, const MessageOrig
 		}
 
 		/* only relay message to the master if we're not currently the master */
-		if (!is_master && master != endpoint) {
+		if (currentMaster != myEndpoint && currentMaster != endpoint) {
 			skippedEndpoints.push_back(endpoint);
 			continue;
 		}
@@ -709,10 +709,12 @@ void ApiListener::SyncRelayMessage(const MessageOrigin::Ptr& origin,
 	if (!target_zone)
 		target_zone = Zone::GetLocalZone();
 
-	bool need_log = !RelayMessageOne(target_zone, origin, message);
+	Endpoint::Ptr master = GetMaster();
+
+	bool need_log = !RelayMessageOne(target_zone, origin, message, master);
 
 	BOOST_FOREACH(const Zone::Ptr& zone, target_zone->GetAllParents()) {
-		if (!RelayMessageOne(zone, origin, message))
+		if (!RelayMessageOne(zone, origin, message, master))
 			need_log = true;
 	}
 
