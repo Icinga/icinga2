@@ -72,6 +72,7 @@ public:
 	static Value HeartbeatAPIHandler(const intrusive_ptr<MessageOrigin>& origin, const Dictionary::Ptr& params);
 
 private:
+	int m_ID;
 	String m_Identity;
 	bool m_Authenticated;
 	Endpoint::Ptr m_Endpoint;
@@ -86,6 +87,7 @@ private:
 	StreamReadContext m_Context;
 
 	bool ProcessMessage(void);
+	void MessageHandler(const Dictionary::Ptr& message);
 	void DataAvailableHandler(void);
 
 	static void StaticInitialize(void);
