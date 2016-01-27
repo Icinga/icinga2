@@ -87,7 +87,8 @@ private:
 	StreamReadContext m_Context;
 
 	bool ProcessMessage(void);
-	void MessageHandler(const Dictionary::Ptr& message);
+	void MessageHandlerWrapper(const String& jsonString);
+	void MessageHandler(const String& jsonString);
 	void DataAvailableHandler(void);
 
 	static void StaticInitialize(void);
