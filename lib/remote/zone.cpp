@@ -30,6 +30,14 @@ REGISTER_TYPE(Zone);
 void Zone::OnAllConfigLoaded(void)
 {
 	m_Parent = Zone::GetByName(GetParentRaw());
+
+	Zone::Ptr zone = m_Parent;
+
+	while (zone) {
+		m_AllParents.push_back(zone);
+
+		zone = Zone::GetByName(zone->GetParentRaw());
+	}
 }
 
 Zone::Ptr Zone::GetParent(void) const
@@ -57,6 +65,11 @@ std::set<Endpoint::Ptr> Zone::GetEndpoints(void) const
 	}
 
 	return result;
+}
+
+std::vector<Zone::Ptr> Zone::GetAllParents(void) const
+{
+	return m_AllParents;
 }
 
 bool Zone::CanAccessObject(const ConfigObject::Ptr& object)
