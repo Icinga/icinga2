@@ -34,7 +34,7 @@ void JsonRpc::SendMessage(const Stream::Ptr& stream, const Dictionary::Ptr& mess
 	NetString::WriteStringToStream(stream, json);
 }
 
-StreamReadStatus JsonRpc::ReadMessage(const Stream::Ptr& stream, Dictionary::Ptr *message, StreamReadContext& src, bool may_wait)
+StreamReadStatus JsonRpc::ReadMessage(const Stream::Ptr& stream, String *message, StreamReadContext& src, bool may_wait)
 {
 	String jsonString;
 	StreamReadStatus srs = NetString::ReadStringFromStream(stream, &jsonString, src, may_wait);
@@ -42,15 +42,19 @@ StreamReadStatus JsonRpc::ReadMessage(const Stream::Ptr& stream, Dictionary::Ptr
 	if (srs != StatusNewItem)
 		return srs;
 
-	Value value = JsonDecode(jsonString);
+	*message = jsonString;
+
+	return StatusNewItem;
+}
+
+Dictionary::Ptr JsonRpc::DecodeMessage(const String& message)
+{
+	Value value = JsonDecode(message);
 
 	if (!value.IsObjectType<Dictionary>()) {
 		BOOST_THROW_EXCEPTION(std::invalid_argument("JSON-RPC"
 		    " message must be a dictionary."));
 	}
 
-	*message = value;
-
-	return StatusNewItem;
+	return value;
 }
-

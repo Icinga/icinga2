@@ -134,8 +134,28 @@ void JsonRpcConnection::Disconnect(void)
 	}
 }
 
-void JsonRpcConnection::MessageHandler(const Dictionary::Ptr& message)
+void JsonRpcConnection::MessageHandlerWrapper(const String& jsonString)
 {
+	if (m_Stream->IsEof())
+		return;
+
+	try {
+		MessageHandler(jsonString);
+	} catch (const std::exception& ex) {
+		Log(LogWarning, "JsonRpcConnection")
+		    << "Error while reading JSON-RPC message for identity '" << m_Identity
+		    << "': " << DiagnosticInformation(ex);
+
+		Disconnect();
+
+		return;
+	}
+}
+
+void JsonRpcConnection::MessageHandler(const String& jsonString)
+{
+	Dictionary::Ptr message = JsonRpc::DecodeMessage(jsonString);
+
 	m_Seen = Utility::GetTime();
 
 	if (m_HeartbeatTimeout != 0)
@@ -193,14 +213,14 @@ void JsonRpcConnection::MessageHandler(const Dictionary::Ptr& message)
 
 bool JsonRpcConnection::ProcessMessage(void)
 {
-	Dictionary::Ptr message;
+	String message;
 
 	StreamReadStatus srs = JsonRpc::ReadMessage(m_Stream, &message, m_Context, false);
 
 	if (srs != StatusNewItem)
 		return false;
 
-	l_JsonRpcConnectionWorkQueues[m_ID % l_JsonRpcConnectionWorkQueueCount].Enqueue(boost::bind(&JsonRpcConnection::MessageHandler, JsonRpcConnection::Ptr(this), message));
+	l_JsonRpcConnectionWorkQueues[m_ID % l_JsonRpcConnectionWorkQueueCount].Enqueue(boost::bind(&JsonRpcConnection::MessageHandlerWrapper, JsonRpcConnection::Ptr(this), message));
 
 	return true;
 }
