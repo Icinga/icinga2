@@ -63,7 +63,7 @@ bool Zone::CanAccessObject(const ConfigObject::Ptr& object)
 {
 	Zone::Ptr object_zone;
 
-	if (dynamic_pointer_cast<Zone>(object))
+	if (object->GetReflectionType() == Zone::TypeInstance)
 		object_zone = static_pointer_cast<Zone>(object);
 	else
 		object_zone = static_pointer_cast<Zone>(object->GetZone());
