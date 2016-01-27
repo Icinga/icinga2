@@ -128,7 +128,7 @@ private:
 	Stream::Ptr m_LogFile;
 	size_t m_LogMessageCount;
 
-	bool RelayMessageOne(const Zone::Ptr& zone, const MessageOrigin::Ptr& origin, const Dictionary::Ptr& message);
+	bool RelayMessageOne(const Zone::Ptr& zone, const MessageOrigin::Ptr& origin, const Dictionary::Ptr& message, const Endpoint::Ptr& currentMaster);
 	void SyncRelayMessage(const MessageOrigin::Ptr& origin, const ConfigObject::Ptr& secobj, const Dictionary::Ptr& message, bool log);
 	void PersistMessage(const Dictionary::Ptr& message, const ConfigObject::Ptr& secobj);
 
