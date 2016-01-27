@@ -40,6 +40,7 @@ public:
 
 	Zone::Ptr GetParent(void) const;
 	std::set<Endpoint::Ptr> GetEndpoints(void) const;
+	std::vector<Zone::Ptr> GetAllParents(void) const;
 
 	bool CanAccessObject(const ConfigObject::Ptr& object);
 	bool IsChildOf(const Zone::Ptr& zone);
@@ -49,6 +50,7 @@ public:
 
 private:
 	Zone::Ptr m_Parent;
+	std::vector<Zone::Ptr> m_AllParents;
 };
 
 }
