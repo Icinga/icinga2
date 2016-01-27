@@ -636,13 +636,12 @@ void ApiListener::SyncRelayMessage(const MessageOrigin::Ptr& origin,
 
 		Zone::Ptr target_zone = endpoint->GetZone();
 
-		allZones.insert(target_zone);
 
 		/* only relay messages to zones which have access to the object */
-		if (!target_zone->CanAccessObject(secobj)) {
-			finishedLogZones.insert(target_zone);
+		if (!target_zone->CanAccessObject(secobj))
 			continue;
-		}
+
+		allZones.insert(target_zone);
 
 		/* don't relay messages to disconnected endpoints */
 		if (!endpoint->GetConnected()) {
