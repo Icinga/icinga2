@@ -162,18 +162,19 @@ void SocketEvents::ThreadProc(void)
 
 void SocketEvents::WakeUpThread(bool wait)
 {
+	if (boost::this_thread::get_id() == l_SocketIOThread.get_id())
+		return;
+
 	if (wait) {
-		if (boost::this_thread::get_id() != l_SocketIOThread.get_id()) {
-			boost::mutex::scoped_lock lock(l_SocketIOMutex);
+		boost::mutex::scoped_lock lock(l_SocketIOMutex);
 
-			l_SocketIOFDChanged = true;
+		l_SocketIOFDChanged = true;
 
-			while (l_SocketIOFDChanged) {
-				(void) send(l_SocketIOEventFDs[1], "T", 1, 0);
+		while (l_SocketIOFDChanged) {
+			(void) send(l_SocketIOEventFDs[1], "T", 1, 0);
 
-				boost::system_time const timeout = boost::get_system_time() + boost::posix_time::milliseconds(50);
-				l_SocketIOCV.timed_wait(lock, timeout);
-			}
+			boost::system_time const timeout = boost::get_system_time() + boost::posix_time::milliseconds(50);
+			l_SocketIOCV.timed_wait(lock, timeout);
 		}
 	} else {
 		(void) send(l_SocketIOEventFDs[1], "T", 1, 0);
@@ -204,13 +205,14 @@ void SocketEvents::Register(Object *lifesupportObject)
 		VERIFY(m_FD != INVALID_SOCKET);
 
 		SocketEventDescriptor desc;
-		desc.Events = 0;
+		desc.Events = POLLIN;
 		desc.EventInterface = this;
 		desc.LifesupportObject = lifesupportObject;
 
 		VERIFY(l_SocketIOSockets.find(m_FD) == l_SocketIOSockets.end());
 
 		l_SocketIOSockets[m_FD] = desc;
+		l_SocketIOFDChanged = true;
 
 		m_Events = true;
 	}
@@ -227,9 +229,11 @@ void SocketEvents::Unregister(void)
 			return;
 
 		l_SocketIOSockets.erase(m_FD);
-		m_FD = INVALID_SOCKET;
+		l_SocketIOFDChanged = true;
 
+		m_FD = INVALID_SOCKET;
 		m_Events = false;
+
 	}
 
 	WakeUpThread(true);
@@ -248,7 +252,11 @@ void SocketEvents::ChangeEvents(int events)
 		if (it == l_SocketIOSockets.end())
 			return;
 
+		if (it->second.Events == events)
+			return;
+
 		it->second.Events = events;
+		l_SocketIOFDChanged = true;
 	}
 
 	WakeUpThread();
