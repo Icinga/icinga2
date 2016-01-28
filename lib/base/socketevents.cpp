@@ -73,26 +73,31 @@ void SocketEvents::ThreadProc(void)
 {
 	Utility::SetThreadName("SocketIO");
 
+	pollfd *pfds = NULL;
+	int pfdcount;
+
 	for (;;) {
-		pollfd *pfds;
-		int pfdcount;
-
-		typedef std::map<SOCKET, SocketEventDescriptor>::value_type SocketDesc;
-
 		{
 			boost::mutex::scoped_lock lock(l_SocketIOMutex);
 
-			pfdcount = l_SocketIOSockets.size();
-			pfds  = new pollfd[pfdcount];
+			if (pfds == NULL) {
+				typedef std::map<SOCKET, SocketEventDescriptor>::value_type SocketDesc;
 
-			int i = 0;
+				pfdcount = l_SocketIOSockets.size();
+				pfds  = new pollfd[pfdcount];
 
-			BOOST_FOREACH(const SocketDesc& desc, l_SocketIOSockets) {
-				pfds[i].fd = desc.first;
-				pfds[i].events = desc.second.Events;
-				pfds[i].revents = 0;
+				int i = 0;
 
-				i++;
+				BOOST_FOREACH(const SocketDesc& desc, l_SocketIOSockets) {
+					pfds[i].fd = desc.first;
+					pfds[i].events = desc.second.Events;
+					pfds[i].revents = 0;
+
+					i++;
+				}
+
+				l_SocketIOFDChanged = false;
+				l_SocketIOCV.notify_all();
 			}
 		}
 
@@ -106,9 +111,8 @@ void SocketEvents::ThreadProc(void)
 			boost::mutex::scoped_lock lock(l_SocketIOMutex);
 
 			if (l_SocketIOFDChanged) {
-				l_SocketIOFDChanged = false;
-				l_SocketIOCV.notify_all();
 				delete [] pfds;
+				pfds = NULL;
 				continue;
 			}
 		}
@@ -153,8 +157,6 @@ void SocketEvents::ThreadProc(void)
 				Log(LogCritical, "SocketEvents", "Exception of unknown type thrown in socket I/O handler.");
 			}
 		}
-
-		delete [] pfds;
 	}
 }
 
@@ -196,22 +198,24 @@ SocketEvents::~SocketEvents(void)
 
 void SocketEvents::Register(Object *lifesupportObject)
 {
-	boost::mutex::scoped_lock lock(l_SocketIOMutex);
+	{
+		boost::mutex::scoped_lock lock(l_SocketIOMutex);
 
-	VERIFY(m_FD != INVALID_SOCKET);
+		VERIFY(m_FD != INVALID_SOCKET);
 
-	SocketEventDescriptor desc;
-	desc.Events = 0;
-	desc.EventInterface = this;
-	desc.LifesupportObject = lifesupportObject;
+		SocketEventDescriptor desc;
+		desc.Events = 0;
+		desc.EventInterface = this;
+		desc.LifesupportObject = lifesupportObject;
 
-	VERIFY(l_SocketIOSockets.find(m_FD) == l_SocketIOSockets.end());
+		VERIFY(l_SocketIOSockets.find(m_FD) == l_SocketIOSockets.end());
 
-	l_SocketIOSockets[m_FD] = desc;
+		l_SocketIOSockets[m_FD] = desc;
 
-	m_Events = true;
+		m_Events = true;
+	}
 
-	/* There's no need to wake up the I/O thread here. */
+	WakeUpThread(true);
 }
 
 void SocketEvents::Unregister(void)
