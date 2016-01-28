@@ -81,6 +81,7 @@ void SocketEvents::ThreadProc(void)
 	Utility::SetThreadName("SocketIO");
 
 	pollfd *pfds = NULL;
+	SocketEventDescriptor *descriptors = NULL;
 	int pfdcount;
 
 	for (;;) {
@@ -88,17 +89,19 @@ void SocketEvents::ThreadProc(void)
 			boost::mutex::scoped_lock lock(l_SocketIOMutex);
 
 			if (pfds == NULL) {
-				typedef std::map<SOCKET, SocketEventDescriptor>::value_type SocketDesc;
-
 				pfdcount = l_SocketIOSockets.size();
 				pfds  = new pollfd[pfdcount];
+				descriptors = new SocketEventDescriptor[pfdcount];
 
 				int i = 0;
 
-				BOOST_FOREACH(const SocketDesc& desc, l_SocketIOSockets) {
+				typedef std::map<SOCKET, SocketEventDescriptor>::value_type kv_pair;
+
+				BOOST_FOREACH(const kv_pair& desc, l_SocketIOSockets) {
 					pfds[i].fd = desc.first;
 					pfds[i].events = desc.second.Events;
 					pfds[i].revents = 0;
+					descriptors[i] = desc.second;
 
 					i++;
 				}
@@ -121,6 +124,7 @@ void SocketEvents::ThreadProc(void)
 
 			if (l_SocketIOFDChanged) {
 				delete [] pfds;
+				delete [] descriptors;
 				pfds = NULL;
 				continue;
 			}
@@ -139,13 +143,7 @@ void SocketEvents::ThreadProc(void)
 
 				EventDescription event;
 				event.REvents = pfds[i].revents;
-
-				std::map<SOCKET, SocketEventDescriptor>::const_iterator it = l_SocketIOSockets.find(pfds[i].fd);
-
-				if (it == l_SocketIOSockets.end())
-					continue;
-
-				event.Descriptor = it->second;
+				event.Descriptor = descriptors[i];
 				event.LifesupportReference = event.Descriptor.LifesupportObject;
 				VERIFY(event.LifesupportReference);
 
