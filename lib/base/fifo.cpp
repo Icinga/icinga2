@@ -67,7 +67,7 @@ void FIFO::ResizeBuffer(size_t newSize, bool decrease)
  */
 void FIFO::Optimize(void)
 {
-	if (m_DataSize < m_Offset) {
+	if (m_Offset - m_DataSize > 1024) {
 		std::memcpy(m_Buffer, m_Buffer + m_Offset, m_DataSize);
 		m_Offset = 0;
 
