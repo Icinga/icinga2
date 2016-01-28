@@ -211,9 +211,6 @@ void SocketEvents::Register(Object *lifesupportObject)
 
 		VERIFY(m_FD != INVALID_SOCKET);
 
-		Log(LogWarning, "SocketEvents")
-		    << "Registered socket " << m_FD;
-
 		SocketEventDescriptor desc;
 		desc.Events = 0;
 		desc.EventInterface = this;
@@ -237,9 +234,6 @@ void SocketEvents::Unregister(void)
 
 		if (m_FD == INVALID_SOCKET)
 			return;
-
-		Log(LogWarning, "SocketEvents")
-		    << "Unregistered socket " << m_FD;
 
 		l_SocketIOSockets.erase(m_FD);
 		l_SocketIOFDChanged = true;
