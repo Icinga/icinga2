@@ -41,6 +41,13 @@ struct SocketEventDescriptor
 	{ }
 };
 
+struct EventDescription
+{
+	int REvents;
+	SocketEventDescriptor Descriptor;
+	Object::Ptr LifesupportReference;
+};
+
 static boost::thread l_SocketIOThread;
 static boost::once_flag l_SocketIOOnceFlag = BOOST_ONCE_INIT;
 static SOCKET l_SocketIOEventFDs[2];
@@ -107,6 +114,8 @@ void SocketEvents::ThreadProc(void)
 		(void) poll(pfds, pfdcount, -1);
 #endif /* _WIN32 */
 
+		std::vector<EventDescription> events;
+
 		{
 			boost::mutex::scoped_lock lock(l_SocketIOMutex);
 
@@ -115,40 +124,38 @@ void SocketEvents::ThreadProc(void)
 				pfds = NULL;
 				continue;
 			}
-		}
 
-		for (int i = 0; i < pfdcount; i++) {
-			if ((pfds[i].revents & (POLLIN | POLLOUT | POLLHUP | POLLERR)) == 0)
-				continue;
+			for (int i = 0; i < pfdcount; i++) {
+				if ((pfds[i].revents & (POLLIN | POLLOUT | POLLHUP | POLLERR)) == 0)
+					continue;
 
-			if (pfds[i].fd == l_SocketIOEventFDs[0]) {
-				char buffer[512];
-				if (recv(l_SocketIOEventFDs[0], buffer, sizeof(buffer), 0) < 0)
-					Log(LogCritical, "SocketEvents", "Read from event FD failed.");
+				if (pfds[i].fd == l_SocketIOEventFDs[0]) {
+					char buffer[512];
+					if (recv(l_SocketIOEventFDs[0], buffer, sizeof(buffer), 0) < 0)
+						Log(LogCritical, "SocketEvents", "Read from event FD failed.");
 
-				continue;
-			}
+					continue;
+				}
 
-			SocketEventDescriptor desc;
-			Object::Ptr ltref;
-
-			{
-				boost::mutex::scoped_lock lock(l_SocketIOMutex);
+				EventDescription event;
+				event.REvents = pfds[i].revents;
 
 				std::map<SOCKET, SocketEventDescriptor>::const_iterator it = l_SocketIOSockets.find(pfds[i].fd);
 
 				if (it == l_SocketIOSockets.end())
 					continue;
 
-				desc = it->second;
+				event.Descriptor = it->second;
+				event.LifesupportReference = event.Descriptor.LifesupportObject;
+				VERIFY(event.LifesupportReference);
 
-				/* We must hold a ref-counted reference to the event object to keep it alive. */
-				ltref = desc.LifesupportObject;
-				VERIFY(ltref);
+				events.push_back(event);
 			}
+		}
 
+		BOOST_FOREACH(const EventDescription& event, events) {
 			try {
-				desc.EventInterface->OnEvent(pfds[i].revents);
+				event.Descriptor.EventInterface->OnEvent(event.REvents);
 			} catch (const std::exception& ex) {
 				Log(LogCritical, "SocketEvents")
 				    << "Exception thrown in socket I/O handler:\n"
@@ -203,6 +210,9 @@ void SocketEvents::Register(Object *lifesupportObject)
 
 		VERIFY(m_FD != INVALID_SOCKET);
 
+		Log(LogWarning, "SocketEvents")
+		    << "Registered socket " << m_FD;
+
 		SocketEventDescriptor desc;
 		desc.Events = 0;
 		desc.EventInterface = this;
@@ -225,6 +235,9 @@ void SocketEvents::Unregister(void)
 
 		if (m_FD == INVALID_SOCKET)
 			return;
+
+		Log(LogWarning, "SocketEvents")
+		    << "Unregistered socket " << m_FD;
 
 		l_SocketIOSockets.erase(m_FD);
 		m_FD = INVALID_SOCKET;
