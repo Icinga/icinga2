@@ -130,9 +130,6 @@ void DbObject::SendStatusUpdate(void)
 	if (query.Table != "endpointstatus" && query.Table != "zonestatus") {
 		String node = IcingaApplication::GetInstance()->GetNodeName();
 
-		Log(LogDebug, "DbObject")
-		    << "Endpoint node: '" << node << "' status update for '" << GetObject()->GetName() << "'";
-
 		Endpoint::Ptr endpoint = Endpoint::GetByName(node);
 		if (endpoint)
 			query.Fields->Set("endpoint_object_id", endpoint);
@@ -164,9 +161,6 @@ void DbObject::SendVarsConfigUpdate(void)
 	Dictionary::Ptr vars = CompatUtility::GetCustomAttributeConfig(custom_var_object);
 
 	if (vars) {
-		Log(LogDebug, "DbObject")
-		    << "Updating object vars for '" << custom_var_object->GetName() << "'";
-
 		ObjectLock olock (vars);
 
 		BOOST_FOREACH(const Dictionary::Pair& kv, vars) {
@@ -219,9 +213,6 @@ void DbObject::SendVarsStatusUpdate(void)
 	Dictionary::Ptr vars = CompatUtility::GetCustomAttributeConfig(custom_var_object);
 
 	if (vars) {
-		Log(LogDebug, "DbObject")
-		    << "Updating object vars for '" << custom_var_object->GetName() << "'";
-
 		ObjectLock olock (vars);
 
 		BOOST_FOREACH(const Dictionary::Pair& kv, vars) {
@@ -343,9 +334,6 @@ void DbObject::StateChangedHandler(const ConfigObject::Ptr& object)
 void DbObject::VarsChangedHandler(const CustomVarObject::Ptr& object)
 {
 	DbObject::Ptr dbobj = GetOrCreateByObject(object);
-
-	Log(LogDebug, "DbObject")
-	    << "Vars changed for object '" << object->GetName() << "'";
 
 	if (!dbobj)
 		return;
