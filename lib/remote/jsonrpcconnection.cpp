@@ -207,7 +207,7 @@ void JsonRpcConnection::MessageHandler(const String& jsonString)
 	if (message->Contains("id")) {
 		resultMessage->Set("jsonrpc", "2.0");
 		resultMessage->Set("id", message->Get("id"));
-		JsonRpc::SendMessage(m_Stream, resultMessage);
+		SendMessage(resultMessage);
 	}
 }
 
