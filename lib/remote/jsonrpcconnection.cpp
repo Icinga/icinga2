@@ -227,18 +227,28 @@ bool JsonRpcConnection::ProcessMessage(void)
 
 void JsonRpcConnection::DataAvailableHandler(void)
 {
-	boost::mutex::scoped_lock lock(m_DataHandlerMutex);
+	bool close = false;
 
-	try {
-		while (ProcessMessage())
-			; /* empty loop body */
-	} catch (const std::exception& ex) {
-		Log(LogWarning, "JsonRpcConnection")
-		    << "Error while reading JSON-RPC message for identity '" << m_Identity
-		    << "': " << DiagnosticInformation(ex);
+	if (!m_Stream->IsEof()) {
+		boost::mutex::scoped_lock lock(m_DataHandlerMutex);
 
+		try {
+			while (ProcessMessage())
+				; /* empty loop body */
+		} catch (const std::exception& ex) {
+			Log(LogWarning, "JsonRpcConnection")
+			    << "Error while reading JSON-RPC message for identity '" << m_Identity
+			    << "': " << DiagnosticInformation(ex);
+
+			Disconnect();
+
+			return;
+		}
+	} else
+		close = true;
+
+	if (close)
 		Disconnect();
-	}
 }
 
 Value SetLogPositionHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)

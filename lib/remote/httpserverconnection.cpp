@@ -78,7 +78,8 @@ void HttpServerConnection::Disconnect(void)
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 	listener->RemoveHttpClient(this);
 
-	m_Stream->Shutdown();
+	if (!m_Stream->IsEof())
+		m_Stream->Shutdown();
 }
 
 bool HttpServerConnection::ProcessMessage(void)
@@ -196,17 +197,25 @@ void HttpServerConnection::ProcessMessageAsync(HttpRequest& request)
 
 void HttpServerConnection::DataAvailableHandler(void)
 {
-	boost::mutex::scoped_lock lock(m_DataHandlerMutex);
+	bool close = false;
 
-	try {
-		while (ProcessMessage())
-			; /* empty loop body */
-	} catch (const std::exception& ex) {
-		Log(LogWarning, "HttpServerConnection")
-		    << "Error while reading Http request: " << DiagnosticInformation(ex);
+	if (!m_Stream->IsEof()) {
+		boost::mutex::scoped_lock lock(m_DataHandlerMutex);
 
+		try {
+			while (ProcessMessage())
+				; /* empty loop body */
+		} catch (const std::exception& ex) {
+			Log(LogWarning, "HttpServerConnection")
+			    << "Error while reading Http request: " << DiagnosticInformation(ex);
+
+			close = true;
+		}
+	} else
+		close = true;
+
+	if (close)
 		Disconnect();
-	}
 }
 
 void HttpServerConnection::CheckLiveness(void)
