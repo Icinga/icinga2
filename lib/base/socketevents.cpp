@@ -80,18 +80,16 @@ void SocketEvents::ThreadProc(void)
 {
 	Utility::SetThreadName("SocketIO");
 
-	pollfd *pfds = NULL;
-	SocketEventDescriptor *descriptors = NULL;
-	int pfdcount;
+	std::vector<pollfd> pfds;
+	std::vector<SocketEventDescriptor> descriptors;
 
 	for (;;) {
 		{
 			boost::mutex::scoped_lock lock(l_SocketIOMutex);
 
-			if (pfds == NULL) {
-				pfdcount = l_SocketIOSockets.size();
-				pfds  = new pollfd[pfdcount];
-				descriptors = new SocketEventDescriptor[pfdcount];
+			if (l_SocketIOFDChanged) {
+				pfds.resize(l_SocketIOSockets.size());
+				descriptors.resize(l_SocketIOSockets.size());
 
 				int i = 0;
 
@@ -111,10 +109,12 @@ void SocketEvents::ThreadProc(void)
 			}
 		}
 
+		ASSERT(!pfds.empty());
+
 #ifdef _WIN32
-		(void) WSAPoll(pfds, pfdcount, -1);
+		(void) WSAPoll(&pfds[0], pfds.size(), -1);
 #else /* _WIN32 */
-		(void) poll(pfds, pfdcount, -1);
+		(void) poll(&pfds[0], pfds.size(), -1);
 #endif /* _WIN32 */
 
 		std::vector<EventDescription> events;
@@ -122,14 +122,10 @@ void SocketEvents::ThreadProc(void)
 		{
 			boost::mutex::scoped_lock lock(l_SocketIOMutex);
 
-			if (l_SocketIOFDChanged) {
-				delete [] pfds;
-				delete [] descriptors;
-				pfds = NULL;
+			if (l_SocketIOFDChanged)
 				continue;
-			}
 
-			for (int i = 0; i < pfdcount; i++) {
+			for (int i = 0; i < pfds.size(); i++) {
 				if ((pfds[i].revents & (POLLIN | POLLOUT | POLLHUP | POLLERR)) == 0)
 					continue;
 
