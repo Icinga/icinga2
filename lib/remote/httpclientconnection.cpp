@@ -137,24 +137,28 @@ bool HttpClientConnection::ProcessMessage(void)
 
 void HttpClientConnection::DataAvailableHandler(const Stream::Ptr& stream)
 {
-	boost::mutex::scoped_lock lock(m_DataHandlerMutex);
-
 	ASSERT(stream == m_Stream);
 
-	try {
-		while (ProcessMessage())
-			; /* empty loop body */
-	} catch (const std::exception& ex) {
-		Log(LogWarning, "HttpClientConnection")
-		    << "Error while reading Http response: " << DiagnosticInformation(ex);
+	bool close = false;
 
-		Disconnect();
-	}
+	if (!m_Stream->IsEof()) {
+		boost::mutex::scoped_lock lock(m_DataHandlerMutex);
 
-	if (m_Context.Eof) {
-		Log(LogWarning, "HttpClientConnection", "Encountered unexpected EOF while reading Http response.");
+		try {
+			while (ProcessMessage())
+				; /* empty loop body */
+		} catch (const std::exception& ex) {
+			Log(LogWarning, "HttpClientConnection")
+			    << "Error while reading Http response: " << DiagnosticInformation(ex);
+
+			close = true;
+			Disconnect();
+		}
+	} else
+		close = true;
+
+	if (close)
 		m_Stream->Close();
-	}
 }
 
 boost::shared_ptr<HttpRequest> HttpClientConnection::NewRequest(void)
