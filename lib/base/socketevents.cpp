@@ -85,8 +85,6 @@ void SocketEvents::ThreadProc(void)
 			boost::mutex::scoped_lock lock(l_SocketIOMutex);
 
 			if (l_SocketIOFDChanged) {
-				Log(LogWarning, "SocketEvents", "Updated event FDs");
-
 				pfds.resize(l_SocketIOSockets.size());
 				descriptors.resize(l_SocketIOSockets.size());
 
