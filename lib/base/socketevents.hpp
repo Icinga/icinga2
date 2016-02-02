@@ -52,14 +52,17 @@ protected:
 	SocketEvents(const Socket::Ptr& socket, Object *lifesupportObject);
 
 private:
+	int m_ID;
 	SOCKET m_FD;
 	bool m_Events;
 	pollfd *m_PFD;
 
-	static void InitializeThread(void);
-	static void ThreadProc(void);
+	static int m_NextID;
 
-	static void WakeUpThread(bool wait = false);
+	static void InitializeThread(void);
+	static void ThreadProc(int tid);
+
+	void WakeUpThread(bool wait = false);
 
 	int GetPollEvents(void) const;
 
