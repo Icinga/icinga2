@@ -739,7 +739,7 @@ CREATE TABLE  icinga_hoststatus (
   output TEXT  default '',
   long_output TEXT  default '',
   perfdata TEXT  default '',
-  check_source TEXT  default '',
+  check_source varchar(255) default '',
   current_state INTEGER  default 0,
   has_been_checked INTEGER  default 0,
   should_be_scheduled INTEGER  default 0,
@@ -1226,7 +1226,7 @@ CREATE TABLE  icinga_servicestatus (
   output TEXT  default '',
   long_output TEXT  default '',
   perfdata TEXT  default '',
-  check_source TEXT  default '',
+  check_source varchar(255) default '',
   current_state INTEGER  default 0,
   has_been_checked INTEGER  default 0,
   should_be_scheduled INTEGER  default 0,
@@ -1323,7 +1323,7 @@ CREATE TABLE  icinga_statehistory (
   last_hard_state INTEGER  default '-1',
   output TEXT  default '',
   long_output TEXT  default '',
-  check_source TEXT default '',
+  check_source varchar(255) default '',
   CONSTRAINT PK_statehistory_id PRIMARY KEY (statehistory_id)
 ) ;
 
