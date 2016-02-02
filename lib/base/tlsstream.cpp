@@ -134,7 +134,7 @@ void TlsStream::OnEvent(int revents)
 	if (!m_SSL)
 		return;
 
-	char buffer[512];
+	char buffer[64 * 1024];
 
 	if (m_CurrentAction == TlsActionNone) {
 		if (revents & (POLLIN | POLLERR | POLLHUP))
