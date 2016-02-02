@@ -92,6 +92,13 @@ void IdoCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult
 
 	DbConnection::Ptr conn = static_pointer_cast<DbConnection>(dtype->GetObject(idoName));
 
+	if (!conn) {
+		cr->SetOutput("IDO connection '" + idoName + "' does not exist.");
+		cr->SetState(ServiceUnknown);
+		checkable->ProcessCheckResult(cr);
+		return;
+	}
+
 	double qps = conn->GetQueryCount(60) / 60.0;
 
 	if (!conn->GetConnected()) {
