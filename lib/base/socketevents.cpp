@@ -24,10 +24,6 @@
 #include <boost/foreach.hpp>
 #include <map>
 
-#ifndef _WIN32
-#	include <poll.h>
-#endif /* _WIN32 */
-
 using namespace icinga;
 
 struct SocketEventDescriptor
@@ -55,6 +51,7 @@ static boost::mutex l_SocketIOMutex;
 static boost::condition_variable l_SocketIOCV;
 static bool l_SocketIOFDChanged;
 static std::map<SOCKET, SocketEventDescriptor> l_SocketIOSockets;
+static std::map<SOCKET, int> l_SocketIOEventChanges;
 
 void SocketEvents::InitializeThread(void)
 {
@@ -88,6 +85,8 @@ void SocketEvents::ThreadProc(void)
 			boost::mutex::scoped_lock lock(l_SocketIOMutex);
 
 			if (l_SocketIOFDChanged) {
+				Log(LogWarning, "SocketEvents", "Updated event FDs");
+
 				pfds.resize(l_SocketIOSockets.size());
 				descriptors.resize(l_SocketIOSockets.size());
 
@@ -96,9 +95,11 @@ void SocketEvents::ThreadProc(void)
 				typedef std::map<SOCKET, SocketEventDescriptor>::value_type kv_pair;
 
 				BOOST_FOREACH(const kv_pair& desc, l_SocketIOSockets) {
+					if (desc.second.EventInterface)
+						desc.second.EventInterface->m_PFD = &pfds[i];
+
 					pfds[i].fd = desc.first;
 					pfds[i].events = desc.second.Events;
-					pfds[i].revents = 0;
 					descriptors[i] = desc.second;
 
 					i++;
@@ -185,7 +186,7 @@ void SocketEvents::WakeUpThread(bool wait)
  * Constructor for the SocketEvents class.
  */
 SocketEvents::SocketEvents(const Socket::Ptr& socket, Object *lifesupportObject)
-	: m_FD(socket->GetFD())
+	: m_FD(socket->GetFD()), m_PFD(NULL)
 {
 	boost::call_once(l_SocketIOOnceFlag, &SocketEvents::InitializeThread);
 
@@ -250,6 +251,11 @@ void SocketEvents::ChangeEvents(int events)
 			return;
 
 		it->second.Events = events;
+
+		if (m_PFD && boost::this_thread::get_id() == l_SocketIOThread.get_id())
+			m_PFD->events = events;
+		else
+			l_SocketIOFDChanged = true;
 	}
 
 	WakeUpThread();
