@@ -23,6 +23,10 @@
 #include "base/i2-base.hpp"
 #include "base/socket.hpp"
 
+#ifndef _WIN32
+#	include <poll.h>
+#endif /* _WIN32 */
+
 namespace icinga
 {
 
@@ -50,6 +54,7 @@ protected:
 private:
 	SOCKET m_FD;
 	bool m_Events;
+	pollfd *m_PFD;
 
 	static void InitializeThread(void);
 	static void ThreadProc(void);
