@@ -142,9 +142,9 @@ clamd_address        | **Required.** The host's address or unix socket (must be 
 clamd_port           | **Optional.** Port number (default: none).
 clamd_expect         | **Optional.** String to expect in server response (may be repeated).
 clamd_all            | **Optional.** All expect strings need to occur in server response. Defaults to false.
-clamd_escape_send    | **Optional.** Enable usage of \n, \r, \t or \\\\ in send string.
+clamd_escape_send    | **Optional.** Enable usage of \\n, \\r, \\t or \\\\ in send string.
 clamd_send           | **Optional.** String to send to the server.
-clamd_escape_quit    | **Optional.** Enable usage of \n, \r, \t or \\\\ in quit string.
+clamd_escape_quit    | **Optional.** Enable usage of \\n, \\r, \\t or \\\\ in quit string.
 clamd_quit           | **Optional.** String to send server to initiate a clean close of the connection.
 clamd_refuse         | **Optional.** Accept TCP refusals with states ok, warn, crit. Defaults to crit.
 clamd_mismatch       | **Optional.** Accept expected string mismatches with states ok, warn, crit. Defaults to warn.
@@ -338,9 +338,9 @@ ftp_address        | **Optional.** The host's address. Defaults to "$address$" i
 ftp_port           | **Optional.** The FTP port number.
 ftp_expect         | **Optional.** String to expect in server response (may be repeated).
 ftp_all            | **Optional.** All expect strings need to occur in server response. Defaults to false.
-ftp_escape_send    | **Optional.** Enable usage of \n, \r, \t or \\\\ in send string.
+ftp_escape_send    | **Optional.** Enable usage of \\n, \\r, \\t or \\\\ in send string.
 ftp_send           | **Optional.** String to send to the server.
-ftp_escape_quit    | **Optional.** Enable usage of \n, \r, \t or \\\\ in quit string.
+ftp_escape_quit    | **Optional.** Enable usage of \\n, \\r, \\t or \\\\ in quit string.
 ftp_quit           | **Optional.** String to send server to initiate a clean close of the connection.
 ftp_refuse         | **Optional.** Accept TCP refusals with states ok, warn, crit. Defaults to crit.
 ftp_mismatch       | **Optional.** Accept expected string mismatches with states ok, warn, crit. Defaults to warn.
@@ -493,11 +493,27 @@ Check command object for the `check_imap` plugin.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
-Name            | Description
-----------------|--------------
-imap_address    | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
-imap_port       | **Optional.** The port that should be checked. Defaults to 143.
-imap_timeout    | **Optional.** The timeout in seconds.
+Name                  | Description
+----------------------|--------------
+imap_address          | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
+imap_port             | **Optional.** The port that should be checked. Defaults to 143.
+imap_escape           | **Optional.** Can use \\n, \\r, \\t or \\ in send or quit string. Must come before send or quit option. Default: nothing added to send, \\r\\n added to end of quit.
+imap_send             | **Optional.** String to send to the server.
+imap_expect           | **Optional.** String to expect in server response. Multiple strings must be defined as array.
+imap_all              | **Optional.** All expect strings need to occur in server response. Default is any.
+imap_quit             | **Optional.** String to send server to initiate a clean close of the connection.
+imap_refuse           | **Optional.** Accept TCP refusals with states ok, warn, crit (default: crit).
+imap_mismatch         | **Optional.** Accept expected string mismatches with states ok, warn, crit (default: warn).
+imap_jail             | **Optional.** Hide output from TCP socket.
+imap_maxbytes         | **Optional.** Close connection once more than this number of bytes are received.
+imap_delay            | **Optional.** Seconds to wait between sending string and polling for response.
+imap_certificate_age  | **Optional.** Minimum number of days a certificate has to be valid.
+imap_ssl              | **Optional.** Use SSL for the connection.
+imap_warning          | **Optional.** Response time to result in warning status (seconds).
+imap_critical         | **Optional.** Response time to result in critical status (seconds).
+imap_timeout          | **Optional.** Seconds before connection times out (default: 10).
+imap_ipv4             | **Optional.** Use IPv4 connection. Defaults to false.
+imap_ipv6             | **Optional.** Use IPv6 connection. Defaults to false.
 
 
 ### <a id="plugin-check-command-ldap"></a> ldap
@@ -763,11 +779,27 @@ Check command object for the `check_pop` plugin.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
-Name            | Description
-----------------|--------------
-pop_address     | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
-pop_port        | **Optional.** The port that should be checked. Defaults to 110.
-pop_timeout     | **Optional.** The timeout in seconds.
+Name                 | Description
+---------------------|--------------
+pop_address          | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
+pop_port             | **Optional.** The port that should be checked. Defaults to 110.
+pop_escape           | **Optional.** Can use \\n, \\r, \\t or \\ in send or quit string. Must come before send or quit option. Default: nothing added to send, \\r\\n added to end of quit.
+pop_send             | **Optional.** String to send to the server.
+pop_expect           | **Optional.** String to expect in server response. Multiple strings must be defined as array.
+pop_all              | **Optional.** All expect strings need to occur in server response. Default is any.
+pop_quit             | **Optional.** String to send server to initiate a clean close of the connection.
+pop_refuse           | **Optional.** Accept TCP refusals with states ok, warn, crit (default: crit).
+pop_mismatch         | **Optional.** Accept expected string mismatches with states ok, warn, crit (default: warn).
+pop_jail             | **Optional.** Hide output from TCP socket.
+pop_maxbytes         | **Optional.** Close connection once more than this number of bytes are received.
+pop_delay            | **Optional.** Seconds to wait between sending string and polling for response.
+pop_certificate_age  | **Optional.** Minimum number of days a certificate has to be valid.
+pop_ssl              | **Optional.** Use SSL for the connection.
+pop_warning          | **Optional.** Response time to result in warning status (seconds).
+pop_critical         | **Optional.** Response time to result in critical status (seconds).
+pop_timeout          | **Optional.** Seconds before connection times out (default: 10).
+pop_ipv4             | **Optional.** Use IPv4 connection. Defaults to false.
+pop_ipv6             | **Optional.** Use IPv6 connection. Defaults to false.
 
 
 ### <a id="plugin-check-command-processes"></a> procs
@@ -801,11 +833,27 @@ Check command object for the `check_simap` plugin.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
-Name            | Description
-----------------|--------------
-simap_address   | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
-simap_port      | **Optional.** The host's port.
-simap_timeout   | **Optional.** The timeout in seconds.
+Name                   | Description
+-----------------------|--------------
+simap_address          | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
+simap_port             | **Optional.** The port that should be checked. Defaults to 993.
+simap_escape           | **Optional.** Can use \\n, \\r, \\t or \\ in send or quit string. Must come before send or quit option. Default: nothing added to send, \\r\\n added to end of quit.
+simap_send             | **Optional.** String to send to the server.
+simap_expect           | **Optional.** String to expect in server response. Multiple strings must be defined as array.
+simap_all              | **Optional.** All expect strings need to occur in server response. Default is any.
+simap_quit             | **Optional.** String to send server to initiate a clean close of the connection.
+simap_refuse           | **Optional.** Accept TCP refusals with states ok, warn, crit (default: crit).
+simap_mismatch         | **Optional.** Accept expected string mismatches with states ok, warn, crit (default: warn).
+simap_jail             | **Optional.** Hide output from TCP socket.
+simap_maxbytes         | **Optional.** Close connection once more than this number of bytes are received.
+simap_delay            | **Optional.** Seconds to wait between sending string and polling for response.
+simap_certificate_age  | **Optional.** Minimum number of days a certificate has to be valid.
+simap_ssl              | **Optional.** Use SSL for the connection.
+simap_warning          | **Optional.** Response time to result in warning status (seconds).
+simap_critical         | **Optional.** Response time to result in critical status (seconds).
+simap_timeout          | **Optional.** Seconds before connection times out (default: 10).
+simap_ipv4             | **Optional.** Use IPv4 connection. Defaults to false.
+simap_ipv6             | **Optional.** Use IPv6 connection. Defaults to false.
 
 
 ### <a id="plugin-check-command-smtp"></a> smtp
@@ -906,11 +954,27 @@ Check command object for the `check_spop` plugin.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
-Name            | Description
-----------------|--------------
-spop_address    | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
-spop_port       | **Optional.** The host's port.
-spop_timeout    | **Optional.** The timeout in seconds.
+Name                  | Description
+----------------------|--------------
+spop_address          | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
+spop_port             | **Optional.** The port that should be checked. Defaults to 995.
+spop_escape           | **Optional.** Can use \\n, \\r, \\t or \\ in send or quit string. Must come before send or quit option. Default: nothing added to send, \\r\\n added to end of quit.
+spop_send             | **Optional.** String to send to the server.
+spop_expect           | **Optional.** String to expect in server response. Multiple strings must be defined as array.
+spop_all              | **Optional.** All expect strings need to occur in server response. Default is any.
+spop_quit             | **Optional.** String to send server to initiate a clean close of the connection.
+spop_refuse           | **Optional.** Accept TCP refusals with states ok, warn, crit (default: crit).
+spop_mismatch         | **Optional.** Accept expected string mismatches with states ok, warn, crit (default: warn).
+spop_jail             | **Optional.** Hide output from TCP socket.
+spop_maxbytes         | **Optional.** Close connection once more than this number of bytes are received.
+spop_delay            | **Optional.** Seconds to wait between sending string and polling for response.
+spop_certificate_age  | **Optional.** Minimum number of days a certificate has to be valid.
+spop_ssl              | **Optional.** Use SSL for the connection.
+spop_warning          | **Optional.** Response time to result in warning status (seconds).
+spop_critical         | **Optional.** Response time to result in critical status (seconds).
+spop_timeout          | **Optional.** Seconds before connection times out (default: 10).
+spop_ipv4             | **Optional.** Use IPv4 connection. Defaults to false.
+spop_ipv6             | **Optional.** Use IPv6 connection. Defaults to false.
 
 
 ### <a id="plugin-check-command-ssh"></a> ssh
@@ -947,10 +1011,27 @@ Check command object for the `check_ssmtp` plugin.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
-Name            | Description
-----------------|--------------
-ssmtp_address   | **Required.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
-ssmtp_port      | **Optional.** The port that should be checked. Defaults to 465.
+Name                   | Description
+-----------------------|--------------
+ssmtp_address          | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
+ssmtp_port             | **Optional.** The port that should be checked. Defaults to 465.
+ssmtp_escape           | **Optional.** Can use \\n, \\r, \\t or \\ in send or quit string. Must come before send or quit option. Default: nothing added to send, \\r\\n added to end of quit.
+ssmtp_send             | **Optional.** String to send to the server.
+ssmtp_expect           | **Optional.** String to expect in server response. Multiple strings must be defined as array.
+ssmtp_all              | **Optional.** All expect strings need to occur in server response. Default is any.
+ssmtp_quit             | **Optional.** String to send server to initiate a clean close of the connection.
+ssmtp_refuse           | **Optional.** Accept TCP refusals with states ok, warn, crit (default: crit).
+ssmtp_mismatch         | **Optional.** Accept expected string mismatches with states ok, warn, crit (default: warn).
+ssmtp_jail             | **Optional.** Hide output from TCP socket.
+ssmtp_maxbytes         | **Optional.** Close connection once more than this number of bytes are received.
+ssmtp_delay            | **Optional.** Seconds to wait between sending string and polling for response.
+ssmtp_certificate_age  | **Optional.** Minimum number of days a certificate has to be valid.
+ssmtp_ssl              | **Optional.** Use SSL for the connection.
+ssmtp_warning          | **Optional.** Response time to result in warning status (seconds).
+ssmtp_critical         | **Optional.** Response time to result in critical status (seconds).
+ssmtp_timeout          | **Optional.** Seconds before connection times out (default: 10).
+ssmtp_ipv4             | **Optional.** Use IPv4 connection. Defaults to false.
+ssmtp_ipv6             | **Optional.** Use IPv6 connection. Defaults to false.
 
 
 ### <a id="plugin-check-command-swap"></a> swap
@@ -977,9 +1058,9 @@ tcp_address     | **Optional.** The host's address. Defaults to "$address$" if t
 tcp_port        | **Required.** The port that should be checked.
 tcp_expect      | **Optional.** String to expect in server response (may be repeated).
 tcp_all         | **Optional.** All expect strings need to occur in server response. Defaults to false.
-tcp_escape_send | **Optional.** Enable usage of \n, \r, \t or \\\\ in send string.
+tcp_escape_send | **Optional.** Enable usage of \\n, \\r, \\t or \\\\ in send string.
 tcp_send        | **Optional.** String to send to the server.
-tcp_escape_quit | **Optional.** Enable usage of \n, \r, \t or \\\\ in quit string.
+tcp_escape_quit | **Optional.** Enable usage of \\n, \\r, \\t or \\\\ in quit string.
 tcp_quit        | **Optional.** String to send server to initiate a clean close of the connection.
 tcp_refuse      | **Optional.** Accept TCP refusals with states ok, warn, crit. Defaults to crit.
 tcp_mismatch    | **Optional.** Accept expected string mismatches with states ok, warn, crit. Defaults to warn.
