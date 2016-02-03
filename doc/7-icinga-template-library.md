@@ -145,9 +145,9 @@ clamd_address        | **Required.** The host's address or unix socket (must be 
 clamd_port           | **Optional.** Port number (default: none).
 clamd_expect         | **Optional.** String to expect in server response. Multiple strings must be defined as array.
 clamd_all            | **Optional.** All expect strings need to occur in server response. Defaults to false.
-clamd_escape_send    | **Optional.** Enable usage of \n, \r, \t or \\\\ in send string.
+clamd_escape_send    | **Optional.** Enable usage of \\n, \\r, \\t or \\\\ in send string.
 clamd_send           | **Optional.** String to send to the server.
-clamd_escape_quit    | **Optional.** Enable usage of \n, \r, \t or \\\\ in quit string.
+clamd_escape_quit    | **Optional.** Enable usage of \\n, \\r, \\t or \\\\ in quit string.
 clamd_quit           | **Optional.** String to send server to initiate a clean close of the connection.
 clamd_refuse         | **Optional.** Accept TCP refusals with states ok, warn, crit. Defaults to crit.
 clamd_mismatch       | **Optional.** Accept expected string mismatches with states ok, warn, crit. Defaults to warn.
@@ -346,9 +346,9 @@ ftp_address        | **Optional.** The host's address. Defaults to "$address$" i
 ftp_port           | **Optional.** The FTP port number.
 ftp_expect         | **Optional.** String to expect in server response. Multiple strings must be defined as array.
 ftp_all            | **Optional.** All expect strings need to occur in server response. Defaults to false.
-ftp_escape_send    | **Optional.** Enable usage of \n, \r, \t or \\\\ in send string.
+ftp_escape_send    | **Optional.** Enable usage of \\n, \\r, \\t or \\\\ in send string.
 ftp_send           | **Optional.** String to send to the server.
-ftp_escape_quit    | **Optional.** Enable usage of \n, \r, \t or \\\\ in quit string.
+ftp_escape_quit    | **Optional.** Enable usage of \\n, \\r, \\t or \\\\ in quit string.
 ftp_quit           | **Optional.** String to send server to initiate a clean close of the connection.
 ftp_refuse         | **Optional.** Accept TCP refusals with states ok, warn, crit. Defaults to crit.
 ftp_mismatch       | **Optional.** Accept expected string mismatches with states ok, warn, crit. Defaults to warn.
@@ -507,7 +507,7 @@ Name                  | Description
 ----------------------|--------------
 imap_address          | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
 imap_port             | **Optional.** The port that should be checked. Defaults to 143.
-imap_escape           | **Optional.** Can use \n, \r, \t or \\ in send or quit string. Must come before send or quit option. Default: nothing added to send, \r\n added to end of quit.
+imap_escape           | **Optional.** Can use \\n, \\r, \\t or \\ in send or quit string. Must come before send or quit option. Default: nothing added to send, \\r\\n added to end of quit.
 imap_send             | **Optional.** String to send to the server.
 imap_expect           | **Optional.** String to expect in server response. Multiple strings must be defined as array.
 imap_all              | **Optional.** All expect strings need to occur in server response. Default is any.
@@ -797,7 +797,7 @@ Name                 | Description
 ---------------------|--------------
 pop_address          | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
 pop_port             | **Optional.** The port that should be checked. Defaults to 110.
-pop_escape           | **Optional.** Can use \n, \r, \t or \\ in send or quit string. Must come before send or quit option. Default: nothing added to send, \r\n added to end of quit.
+pop_escape           | **Optional.** Can use \\n, \\r, \\t or \\ in send or quit string. Must come before send or quit option. Default: nothing added to send, \\r\\n added to end of quit.
 pop_send             | **Optional.** String to send to the server.
 pop_expect           | **Optional.** String to expect in server response. Multiple strings must be defined as array.
 pop_all              | **Optional.** All expect strings need to occur in server response. Default is any.
@@ -851,7 +851,7 @@ Name                   | Description
 -----------------------|--------------
 simap_address          | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
 simap_port             | **Optional.** The port that should be checked. Defaults to 993.
-simap_escape           | **Optional.** Can use \n, \r, \t or \\ in send or quit string. Must come before send or quit option. Default: nothing added to send, \r\n added to end of quit.
+simap_escape           | **Optional.** Can use \\n, \\r, \\t or \\ in send or quit string. Must come before send or quit option. Default: nothing added to send, \\r\\n added to end of quit.
 simap_send             | **Optional.** String to send to the server.
 simap_expect           | **Optional.** String to expect in server response. Multiple strings must be defined as array.
 simap_all              | **Optional.** All expect strings need to occur in server response. Default is any.
@@ -974,7 +974,7 @@ Name                  | Description
 ----------------------|--------------
 spop_address          | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
 spop_port             | **Optional.** The port that should be checked. Defaults to 995.
-spop_escape           | **Optional.** Can use \n, \r, \t or \\ in send or quit string. Must come before send or quit option. Default: nothing added to send, \r\n added to end of quit.
+spop_escape           | **Optional.** Can use \\n, \\r, \\t or \\ in send or quit string. Must come before send or quit option. Default: nothing added to send, \\r\\n added to end of quit.
 spop_send             | **Optional.** String to send to the server.
 spop_expect           | **Optional.** String to expect in server response. Multiple strings must be defined as array.
 spop_all              | **Optional.** All expect strings need to occur in server response. Default is any.
@@ -1033,7 +1033,7 @@ Name                   | Description
 -----------------------|--------------
 ssmtp_address          | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
 ssmtp_port             | **Optional.** The port that should be checked. Defaults to 465.
-ssmtp_escape           | **Optional.** Can use \n, \r, \t or \\ in send or quit string. Must come before send or quit option. Default: nothing added to send, \r\n added to end of quit.
+ssmtp_escape           | **Optional.** Can use \\n, \\r, \\t or \\ in send or quit string. Must come before send or quit option. Default: nothing added to send, \\r\\n added to end of quit.
 ssmtp_send             | **Optional.** String to send to the server.
 ssmtp_expect           | **Optional.** String to expect in server response. Multiple strings must be defined as array.
 ssmtp_all              | **Optional.** All expect strings need to occur in server response. Default is any.
@@ -1076,9 +1076,9 @@ tcp_address     | **Optional.** The host's address. Defaults to "$address$" if t
 tcp_port        | **Required.** The port that should be checked.
 tcp_expect      | **Optional.** String to expect in server response. Multiple strings must be defined as array.
 tcp_all         | **Optional.** All expect strings need to occur in server response. Defaults to false.
-tcp_escape_send | **Optional.** Enable usage of \n, \r, \t or \\\\ in send string.
+tcp_escape_send | **Optional.** Enable usage of \\n, \\r, \\t or \\\\ in send string.
 tcp_send        | **Optional.** String to send to the server.
-tcp_escape_quit | **Optional.** Enable usage of \n, \r, \t or \\\\ in quit string.
+tcp_escape_quit | **Optional.** Enable usage of \\n, \\r, \\t or \\\\ in quit string.
 tcp_quit        | **Optional.** String to send server to initiate a clean close of the connection.
 tcp_refuse      | **Optional.** Accept TCP refusals with states ok, warn, crit. Defaults to crit.
 tcp_mismatch    | **Optional.** Accept expected string mismatches with states ok, warn, crit. Defaults to warn.
