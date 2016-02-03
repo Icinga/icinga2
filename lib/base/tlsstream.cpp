@@ -189,7 +189,7 @@ void TlsStream::OnEvent(int revents)
 			VERIFY(!"Invalid TlsAction");
 	}
 
-	if (rc < 0) {
+	if (rc <= 0) {
 		int err = SSL_get_error(m_SSL.get(), rc);
 
 		switch (err) {
@@ -208,7 +208,7 @@ void TlsStream::OnEvent(int revents)
 
 				Close();
 
-				break;
+				return;
 			default:
 				m_ErrorCode = ERR_peek_error();
 				m_ErrorOccurred = true;
@@ -224,7 +224,7 @@ void TlsStream::OnEvent(int revents)
 
 				Close();
 
-				break;
+				return;
 		}
 	}
 
@@ -242,11 +242,12 @@ void TlsStream::OnEvent(int revents)
 
 		while (m_RecvQ->IsDataAvailable() && IsHandlingEvents())
 			SignalDataAvailable();
-
-		if (m_Shutdown && !m_SendQ->IsDataAvailable())
-			Close();
 	}
 
+	if (m_Shutdown && !m_SendQ->IsDataAvailable()) {
+		lock.unlock();
+		Close();
+	}
 }
 
 void TlsStream::HandleError(void) const
@@ -312,6 +313,7 @@ void TlsStream::Write(const void *buffer, size_t count)
 void TlsStream::Shutdown(void)
 {
 	m_Shutdown = true;
+	ChangeEvents(POLLOUT);
 }
 
 /**
@@ -324,10 +326,13 @@ void TlsStream::Close(void)
 
 void TlsStream::CloseInternal(bool inDestructor)
 {
-	if (!m_Eof && !inDestructor) {
-		m_Eof = true;
+	if (m_Eof)
+		return;
+
+	m_Eof = true;
+
+	if (!inDestructor)
 		SignalDataAvailable();
-	}
 
 	SocketEvents::Unregister();
 

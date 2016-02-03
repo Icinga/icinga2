@@ -78,8 +78,7 @@ void HttpServerConnection::Disconnect(void)
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 	listener->RemoveHttpClient(this);
 
-	if (!m_Stream->IsEof())
-		m_Stream->Shutdown();
+	m_Stream->Shutdown();
 }
 
 bool HttpServerConnection::ProcessMessage(void)
