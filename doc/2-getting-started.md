@@ -329,7 +329,8 @@ Install the package vim-icinga2 with your distribution's package manager.
 
 Debian/Ubuntu:
 
-    $ apt-get install vim-icinga2
+    $ apt-get install vim-icinga2 vim-addon-manager
+    $ vim-addon-manager -w install icinga2
 
 RHEL/CentOS/Fedora:
 
@@ -350,9 +351,8 @@ Test it:
 
 Install the package nano-icinga2 with your distribution's package manager.
 
-Debian/Ubuntu:
-
-    $ apt-get install nano-icinga2
+**Note:** On Debian and Ubuntu the syntax files are installed with the `icinga2-common` package, and
+enabled by default.
 
 RHEL/CentOS/Fedora:
 
@@ -362,13 +362,11 @@ SLES/openSUSE:
 
     $ zypper install nano-icinga2
 
-Copy the `/etc/nanorc` sample file to your home directory. 
+In addition, for RPM based systems, make sure to enable the syntax extension, by copying the `/etc/nanorc`
+sample file to your home directory. And including the `icinga2.nanorc` file.
 
     $ cp /etc/nanorc ~/.nanorc
-
-On Debian systems change `/usr/share/doc/icinga2-common-[x.x.x]/syntax/nano/icinga2.nanorc` to `/usr/share/nano/icinga2.nanorc`.
-
-Then include the icinga2.nanorc file in your ~/.nanorc by adding the following line:
+    $ vim ~/.nanorc
 
     ## Icinga 2
     include "/usr/share/nano/icinga2.nanorc"
