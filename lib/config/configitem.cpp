@@ -521,8 +521,6 @@ bool ConfigItem::CommitItems(const ActivationContext::Ptr& context, WorkQueue& u
 		return false;
 	}
 
-	ASSERT(newItems.size() > 0);
-
 	ApplyRule::CheckMatches();
 
 	/* log stats for external parsers */
@@ -592,6 +590,9 @@ bool ConfigItem::ActivateItems(WorkQueue& upq, const std::vector<ConfigItem::Ptr
 bool ConfigItem::RunWithActivationContext(const Function::Ptr& function)
 {
 	ActivationScope scope;
+
+	if (!function)
+		BOOST_THROW_EXCEPTION(ScriptError("'function' argument must not be null."));
 
 	{
 		ScriptFrame frame;
