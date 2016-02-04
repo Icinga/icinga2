@@ -55,7 +55,9 @@ private:
 	int m_ID;
 	SOCKET m_FD;
 	bool m_Events;
+#ifndef __linux__
 	pollfd *m_PFD;
+#endif /* __linux__ */
 
 	static int m_NextID;
 
@@ -67,6 +69,9 @@ private:
 	int GetPollEvents(void) const;
 
 	void Register(Object *lifesupportObject);
+
+	static int PollToEpoll(int events);
+	static int EpollToPoll(int events);
 };
 
 }
