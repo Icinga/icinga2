@@ -333,11 +333,6 @@ void ApiListener::NewClientHandlerInternal(const Socket::Ptr& client, const Stri
 		    << "New client connection (no client certificate)";
 	}
 
-	bool need_sync = false;
-
-	if (endpoint)
-		need_sync = !endpoint->GetConnected();
-
 	ClientType ctype;
 
 	if (role == RoleClient) {
@@ -371,10 +366,11 @@ void ApiListener::NewClientHandlerInternal(const Socket::Ptr& client, const Stri
 		aclient->Start();
 
 		if (endpoint) {
+			bool needSync = !endpoint->GetConnected();
+
 			endpoint->AddClient(aclient);
 
-			if (need_sync)
-				m_SyncQueue.Enqueue(boost::bind(&ApiListener::SyncClient, this, aclient, endpoint));
+			m_SyncQueue.Enqueue(boost::bind(&ApiListener::SyncClient, this, aclient, endpoint, needSync));
 		} else
 			AddAnonymousClient(aclient);
 	} else {
@@ -386,7 +382,7 @@ void ApiListener::NewClientHandlerInternal(const Socket::Ptr& client, const Stri
 	}
 }
 
-void ApiListener::SyncClient(const JsonRpcConnection::Ptr& aclient, const Endpoint::Ptr& endpoint)
+void ApiListener::SyncClient(const JsonRpcConnection::Ptr& aclient, const Endpoint::Ptr& endpoint, bool needSync)
 {
 	try {
 		{
@@ -395,8 +391,12 @@ void ApiListener::SyncClient(const JsonRpcConnection::Ptr& aclient, const Endpoi
 			endpoint->SetSyncing(true);
 		}
 
+		/* Make sure that the config updates are synced
+		 * before the logs are replayed.
+		 */
+
 		Log(LogInformation, "ApiListener")
-		    << "Sending updates for endpoint '" << endpoint->GetName() << "'.";
+		    << "Sending config updates for endpoint '" << endpoint->GetName() << "'.";
 
 		/* sync zone file config */
 		SendConfigUpdate(aclient);
@@ -404,9 +404,19 @@ void ApiListener::SyncClient(const JsonRpcConnection::Ptr& aclient, const Endpoi
 		SendRuntimeConfigObjects(aclient);
 
 		Log(LogInformation, "ApiListener")
-		    << "Finished sending updates for endpoint '" << endpoint->GetName() << "'.";
+		    << "Finished sending config updates for endpoint '" << endpoint->GetName() << "'.";
+
+		if (!needSync)
+			return;
+
+		Log(LogInformation, "ApiListener")
+		    << "Sending replay log for endpoint '" << endpoint->GetName() << "'.";
 
 		ReplayLog(aclient);
+
+		Log(LogInformation, "ApiListener")
+		    << "Finished sending replay log for endpoint '" << endpoint->GetName() << "'.";
+
 	} catch (const std::exception& ex) {
 		Log(LogCritical, "ApiListener")
 		    << "Error while syncing endpoint '" << endpoint->GetName() << "': " << DiagnosticInformation(ex);
