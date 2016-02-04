@@ -156,7 +156,7 @@ private:
 	    const JsonRpcConnection::Ptr& client = JsonRpcConnection::Ptr());
 	void SendRuntimeConfigObjects(const JsonRpcConnection::Ptr& aclient);
 
-	void SyncClient(const JsonRpcConnection::Ptr& aclient, const Endpoint::Ptr& endpoint);
+	void SyncClient(const JsonRpcConnection::Ptr& aclient, const Endpoint::Ptr& endpoint, bool needSync);
 };
 
 }
