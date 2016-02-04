@@ -64,8 +64,8 @@ bool ActionsHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& reques
 		try {
 			objs = FilterUtility::GetFilterTargets(qd, params, user);
 		} catch (const std::exception& ex) {
-			HttpUtility::SendJsonError(response, 400,
-			    "Type/Filter was required but not provided or was invalid.",
+			HttpUtility::SendJsonError(response, 404,
+			    "No objects found.",
 			    HttpUtility::GetLastParameter(params, "verboseErrors") ? DiagnosticInformation(ex) : "");
 			return true;
 		}

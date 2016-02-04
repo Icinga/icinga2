@@ -59,7 +59,16 @@ bool ModifyObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 		params->Set(attr, request.RequestUrl->GetPath()[3]);
 	}
 
-	std::vector<Value> objs = FilterUtility::GetFilterTargets(qd, params, user);
+	std::vector<Value> objs;
+
+	try {
+		objs = FilterUtility::GetFilterTargets(qd, params, user);
+	} catch (const std::exception& ex) {
+		HttpUtility::SendJsonError(response, 404,
+		    "No objects found.",
+		    HttpUtility::GetLastParameter(params, "verboseErrors") ? DiagnosticInformation(ex) : "");
+		return true;
+	}
 
 	Dictionary::Ptr attrs = params->Get("attrs");
 
