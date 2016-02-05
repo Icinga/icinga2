@@ -407,8 +407,12 @@ void DbConnection::UpdateObject(const ConfigObject::Ptr& object)
 			ActivateObject(dbobj);
 			dbobj->SendConfigUpdate();
 			dbobj->SendStatusUpdate();
-		} else if (!active && dbActive)
+		} else if (!active) {
+			/* Deactivate the deleted object no matter
+			 * which state it had in the database.
+			 */
 			DeactivateObject(dbobj);
+		}
 	}
 }
 
