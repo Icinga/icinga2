@@ -303,7 +303,7 @@ Dictionary::Ptr ApiActions::ScheduleDowntime(const ConfigObject::Ptr& object,
 		return ApiActions::CreateResult(404, "Options 'start_time', 'end_time', 'duration', 'author' and 'comment' are required");
 	}
 
-	bool fixed = false;
+	bool fixed = true;
 	if (params->Contains("fixed"))
 		fixed = HttpUtility::GetLastParameter(params, "fixed");
 
