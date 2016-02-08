@@ -242,7 +242,6 @@ void ConfigObject::RestoreAttribute(const String& attr, bool updateVersion)
 	String fieldName = tokens[0];
 
 	int fid = type->GetFieldId(fieldName);
-	Field field = type->GetFieldInfo(fid);
 
 	Value currentValue = GetField(fid);
 
