@@ -364,12 +364,6 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 		OnNotificationsRequested(this, recovery ? NotificationRecovery : NotificationProblem, cr, "", "");
 }
 
-bool Checkable::IsCheckPending(void) const
-{
-	ObjectLock olock(this);
-	return m_CheckRunning;
-}
-
 void Checkable::ExecuteRemoteCheck(const Dictionary::Ptr& resolvedMacros)
 {
 	CONTEXT("Executing remote check for object '" + GetName() + "'");
