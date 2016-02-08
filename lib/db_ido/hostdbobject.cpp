@@ -189,15 +189,16 @@ void HostDbObject::OnConfigUpdate(void)
 		BOOST_FOREACH(const String& groupName, groups) {
 			HostGroup::Ptr group = HostGroup::GetByName(groupName);
 
+			std::vector<DbQuery> queries;
+
 			DbQuery query1;
 			query1.Table = DbType::GetByName("HostGroup")->GetTable() + "_members";
 			query1.Type = DbQueryDelete;
 			query1.Category = DbCatConfig;
 			query1.WhereCriteria = new Dictionary();
 			query1.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
-			query1.WhereCriteria->Set("hostgroup_id", DbValue::FromObjectInsertID(group));
 			query1.WhereCriteria->Set("host_object_id", host);
-			OnQuery(query1);
+			queries.push_back(query1);
 
 			DbQuery query2;
 			query2.Table = DbType::GetByName("HostGroup")->GetTable() + "_members";
@@ -207,7 +208,9 @@ void HostDbObject::OnConfigUpdate(void)
 			query2.Fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
 			query2.Fields->Set("hostgroup_id", DbValue::FromObjectInsertID(group));
 			query2.Fields->Set("host_object_id", host);
-			OnQuery(query2);
+			queries.push_back(query2);
+
+			DbObject::OnMultipleQueries(queries);
 		}
 	}
 
