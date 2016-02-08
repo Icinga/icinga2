@@ -285,7 +285,6 @@ void ApiClient::ExecuteScriptHttpCompletionCallback(HttpRequest& request,
 
 		Array::Ptr results = result->Get("results");
 		Value result;
-		bool incompleteExpression = false;
 		String errorMessage = "Unexpected result from API.";
 
 		if (results && results->GetLength() > 0) {
