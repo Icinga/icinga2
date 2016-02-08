@@ -406,8 +406,11 @@ void ApiListener::SyncClient(const JsonRpcConnection::Ptr& aclient, const Endpoi
 		Log(LogInformation, "ApiListener")
 		    << "Finished sending config updates for endpoint '" << endpoint->GetName() << "'.";
 
-		if (!needSync)
+		if (!needSync) {
+			ObjectLock olock2(endpoint);
+			endpoint->SetSyncing(false);
 			return;
+		}
 
 		Log(LogInformation, "ApiListener")
 		    << "Sending replay log for endpoint '" << endpoint->GetName() << "'.";
@@ -416,8 +419,10 @@ void ApiListener::SyncClient(const JsonRpcConnection::Ptr& aclient, const Endpoi
 
 		Log(LogInformation, "ApiListener")
 		    << "Finished sending replay log for endpoint '" << endpoint->GetName() << "'.";
-
 	} catch (const std::exception& ex) {
+		ObjectLock olock2(endpoint);
+		endpoint->SetSyncing(false);
+
 		Log(LogCritical, "ApiListener")
 		    << "Error while syncing endpoint '" << endpoint->GetName() << "': " << DiagnosticInformation(ex);
 	}
@@ -806,8 +811,11 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 
 	Zone::Ptr target_zone = target_endpoint->GetZone();
 
-	if (!target_zone)
+	if (!target_zone) {
+		ObjectLock olock2(endpoint);
+		endpoint->SetSyncing(false);
 		return;
+	}
 
 	for (;;) {
 		boost::mutex::scoped_lock lock(m_LogLock);

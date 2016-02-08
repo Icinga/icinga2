@@ -104,8 +104,6 @@ public:
 
 	Endpoint::Ptr GetCommandEndpoint(void) const;
 
-	bool IsCheckPending(void) const;
-
 	static double CalculateExecutionTime(const CheckResult::Ptr& cr);
 	static double CalculateLatency(const CheckResult::Ptr& cr);
 
