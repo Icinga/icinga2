@@ -203,8 +203,6 @@ void Comment::RemoveComment(const String& id, const MessageOrigin::Ptr& origin)
 	if (!comment)
 		return;
 
-	int legacy_id = comment->GetLegacyId();
-
 	Log(LogNotice, "Comment")
 	    << "Removed comment '" << comment->GetName() << "' from object '" << comment->GetCheckable()->GetName() << "'.";
 
