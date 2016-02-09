@@ -117,7 +117,7 @@ private:
 	Object(const Object& other);
 	Object& operator=(const Object& rhs);
 
-	intptr_t m_References;
+	uintptr_t m_References;
 	mutable uintptr_t m_Mutex;
 
 #ifdef I2_DEBUG
@@ -153,14 +153,13 @@ inline void intrusive_ptr_add_ref(Object *object)
 
 inline void intrusive_ptr_release(Object *object)
 {
-	intptr_t refs;
+	uintptr_t refs;
+
 #ifdef _WIN32
 	refs = InterlockedDecrement(&object->m_References);
 #else /* _WIN32 */
 	refs = __sync_sub_and_fetch(&object->m_References, 1);
 #endif /* _WIN32 */
-
-	ASSERT(refs >= 0);
 
 	if (refs == 0) {
 #ifdef I2_LEAK_DEBUG
