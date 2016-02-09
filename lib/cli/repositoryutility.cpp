@@ -22,6 +22,7 @@
 #include "base/logger.hpp"
 #include "base/application.hpp"
 #include "base/convert.hpp"
+#include "base/configwriter.hpp"
 #include "base/scriptglobal.hpp"
 #include "base/json.hpp"
 #include "base/netstring.hpp"
@@ -680,7 +681,7 @@ void RepositoryUtility::FormatChangelogEntry(std::ostream& fp, const Dictionary:
  */
 void RepositoryUtility::SerializeObject(std::ostream& fp, const String& name, const String& type, const Dictionary::Ptr& object)
 {
-	fp << "object " << type << " \"" << EscapeIcingaString(name) << "\" {\n";
+	fp << "object " << type << " \"" << ConfigWriter::EscapeIcingaString(name) << "\" {\n";
 
 	if (!object) {
 		fp << "}\n";
@@ -709,19 +710,6 @@ void RepositoryUtility::SerializeObject(std::ostream& fp, const String& name, co
 	fp << "}\n";
 }
 
-String RepositoryUtility::EscapeIcingaString(const String& str)
-{
-	String result = str;
-	boost::algorithm::replace_all(result, "\\", "\\\\");
-	boost::algorithm::replace_all(result, "\n", "\\n");
-	boost::algorithm::replace_all(result, "\t", "\\t");
-	boost::algorithm::replace_all(result, "\r", "\\r");
-	boost::algorithm::replace_all(result, "\b", "\\b");
-	boost::algorithm::replace_all(result, "\f", "\\f");
-	boost::algorithm::replace_all(result, "\"", "\\\"");
-	return result;
-}
-
 void RepositoryUtility::FormatValue(std::ostream& fp, const Value& val)
 {
 	if (val.IsObjectType<Array>()) {
@@ -730,11 +718,11 @@ void RepositoryUtility::FormatValue(std::ostream& fp, const Value& val)
 	}
 
 	if (val.IsString()) {
-		fp << "\"" << EscapeIcingaString(val) << "\"";
+		fp << "\"" << ConfigWriter::EscapeIcingaString(val) << "\"";
 		return;
 	}
 
-	fp << EscapeIcingaString(val);
+	fp << ConfigWriter::EscapeIcingaString(val);
 }
 
 void RepositoryUtility::FormatArray(std::ostream& fp, const Array::Ptr& arr)
