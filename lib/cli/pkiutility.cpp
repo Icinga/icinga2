@@ -53,7 +53,7 @@ int PkiUtility::NewCa(void)
 
 	if (Utility::PathExists(caCertFile) && Utility::PathExists(caKeyFile)) {
 		Log(LogCritical, "cli")
-		    << "CA files '" << caCertFile << "' and '" << caKeyFile << "'already exist.";
+		    << "CA files '" << caCertFile << "' and '" << caKeyFile << "' already exist.";
 		return 1;
 	}
 

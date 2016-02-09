@@ -240,7 +240,7 @@ Value ApiListener::ConfigDeleteObjectAPIHandler(const MessageOrigin::Ptr& origin
 
 	if (!object) {
 		Log(LogNotice, "ApiListener")
-		    << "Could not delete non-existing object '" << params->Get("name") << "'.";
+		    << "Could not delete non-existent object '" << params->Get("name") << "'.";
 		return Empty;
 	}
 

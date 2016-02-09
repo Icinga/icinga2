@@ -258,7 +258,7 @@ void ConfigObject::RestoreAttribute(const String& attr, bool updateVersion)
 		Value current = newValue;
 
 		if (current.IsEmpty())
-			BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot restore non-existing object attribute"));
+			BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot restore non-existent object attribute"));
 
 		String prefix = tokens[0];
 
@@ -272,7 +272,7 @@ void ConfigObject::RestoreAttribute(const String& attr, bool updateVersion)
 			prefix += "." + key;
 
 			if (!dict->Contains(key))
-				BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot restore non-existing object attribute"));
+				BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot restore non-existent object attribute"));
 
 			current = dict->Get(key);
 		}

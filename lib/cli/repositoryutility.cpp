@@ -612,18 +612,15 @@ void RepositoryUtility::CommitChange(const Dictionary::Ptr& change, const String
 	String command = change->Get("command");
 	Dictionary::Ptr attrs;
 
-	if (change->Contains("attrs")) {
+	if (change->Contains("attrs"))
 		attrs = change->Get("attrs");
-	}
 
 	bool success = false;
 
-	if (command == "add") {
+	if (command == "add")
 		success = AddObjectInternal(name, type, attrs);
-	}
-	else if (command == "remove") {
+	else if (command == "remove")
 		success = RemoveObjectInternal(name, type, attrs);
-	}
 
 	if (success) {
 		Log(LogNotice, "cli")
