@@ -566,6 +566,9 @@ void ApiListener::ApiTimerHandler(void)
 void ApiListener::RelayMessage(const MessageOrigin::Ptr& origin,
     const ConfigObject::Ptr& secobj, const Dictionary::Ptr& message, bool log)
 {
+	if (!IsActive())
+		return;
+
 	m_RelayQueue.Enqueue(boost::bind(&ApiListener::SyncRelayMessage, this, origin, secobj, message, log), PriorityNormal, true);
 }
 
