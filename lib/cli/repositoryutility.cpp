@@ -670,7 +670,7 @@ void RepositoryUtility::FormatChangelogEntry(std::ostream& fp, const Dictionary:
 			continue;
 
 		fp << std::setw(4) << " " << ConsoleColorTag(Console_ForegroundGreen) << kv.first << ConsoleColorTag(Console_Normal) << " = ";
-		FormatValue(fp, kv.second);
+		ConfigWriter::EmitValue(fp, 0, kv.second);
 		fp << "\n";
 	}
 }
@@ -681,7 +681,9 @@ void RepositoryUtility::FormatChangelogEntry(std::ostream& fp, const Dictionary:
  */
 void RepositoryUtility::SerializeObject(std::ostream& fp, const String& name, const String& type, const Dictionary::Ptr& object)
 {
-	fp << "object " << type << " \"" << ConfigWriter::EscapeIcingaString(name) << "\" {\n";
+	fp << "object " << type << " ";
+	ConfigWriter::EmitString(fp, name);
+ 	fp << " {\n";
 
 	if (!object) {
 		fp << "}\n";
@@ -693,7 +695,9 @@ void RepositoryUtility::SerializeObject(std::ostream& fp, const String& name, co
 
 		ObjectLock olock(imports);
 		BOOST_FOREACH(const String& import, imports) {
-			fp << "\t" << "import \"" << import << "\"\n";
+			fp << "\t" << "import ";
+			ConfigWriter::EmitString(fp, import);
+			fp << '\n';
 		}
 	}
 
@@ -702,49 +706,12 @@ void RepositoryUtility::SerializeObject(std::ostream& fp, const String& name, co
 		if (kv.first == "import" || kv.first == "name" || kv.first == "__name") {
 			continue;
 		} else {
-			fp << "\t" << kv.first << " = ";
-			FormatValue(fp, kv.second);
+			fp << "\t";
+			ConfigWriter::EmitIdentifier(fp, kv.first, true);
+			fp << " = ";
+			ConfigWriter::EmitValue(fp, 1, kv.second);
 		}
 		fp << "\n";
 	}
 	fp << "}\n";
-}
-
-void RepositoryUtility::FormatValue(std::ostream& fp, const Value& val)
-{
-	if (val.IsObjectType<Array>()) {
-		FormatArray(fp, val);
-		return;
-	}
-
-	if (val.IsString()) {
-		fp << "\"" << ConfigWriter::EscapeIcingaString(val) << "\"";
-		return;
-	}
-
-	fp << ConfigWriter::EscapeIcingaString(val);
-}
-
-void RepositoryUtility::FormatArray(std::ostream& fp, const Array::Ptr& arr)
-{
-	bool first = true;
-
-	fp << "[ ";
-
-	if (arr) {
-		ObjectLock olock(arr);
-		BOOST_FOREACH(const Value& value, arr) {
-			if (first)
-				first = false;
-			else
-				fp << ", ";
-
-			FormatValue(fp, value);
-		}
-	}
-
-	if (!first)
-		fp << " ";
-
-	fp << "]";
 }
