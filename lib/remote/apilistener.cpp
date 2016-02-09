@@ -321,16 +321,24 @@ void ApiListener::NewClientHandlerInternal(const Socket::Ptr& client, const Stri
 			return;
 		}
 
-		if (!hostname.IsEmpty() && identity != hostname) {
-			Log(LogInformation, "ApiListener")
-			    << "Unexpected certificate common name while connecting to endpoint '" << hostname << "': got '" << identity << "'";
-			return;
+		verify_ok = tlsStream->IsVerifyOK();
+		if (!hostname.IsEmpty()) {
+			if (identity != hostname) {
+				Log(LogWarning, "ApiListener")
+					<< "Unexpected certificate common name while connecting to endpoint '"
+				    << hostname << "': got '" << identity << "'";
+				return;
+			} else if (!verify_ok) {
+				Log(LogWarning, "ApiListener")
+					<< "Peer certificate for endpoint '" << hostname
+					<< "' is not signed by the certificate authority.";
+				return;
+			}
 		}
 
-		verify_ok = tlsStream->IsVerifyOK();
-
 		Log(LogInformation, "ApiListener")
-		    << "New client connection for identity '" << identity << "'" << (verify_ok ? "" : " (unauthenticated)");
+		    << "New client connection for identity '" << identity << "'"
+		    << (verify_ok ? "" : " (client certificate not signed by CA)");
 
 		if (verify_ok)
 			endpoint = Endpoint::GetByName(identity);
