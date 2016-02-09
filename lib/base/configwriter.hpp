@@ -73,8 +73,8 @@ public:
 	static void EmitFunctionCall(std::ostream& fp, const String& name, const Array::Ptr& arguments);
 
 	static const std::vector<String>& GetKeywords(void);
-	static String EscapeIcingaString(const String& str);
 private:
+	static String EscapeIcingaString(const String& str);
 	ConfigWriter(void);
 };
 
