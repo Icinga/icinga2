@@ -128,9 +128,11 @@ Value ApiListener::ConfigUpdateObjectAPIHandler(const MessageOrigin::Ptr& origin
 			return Empty;
 		}
 
-		/* object was created, update its version to its origin */
+		/* object was created, update its version */
 		object = dtype->GetObject(objName);
-		object->SetVersion(objVersion, false, origin);
+
+		if (object)
+			object->SetVersion(objVersion, false, origin);
 	}
 
 	if (!object)
