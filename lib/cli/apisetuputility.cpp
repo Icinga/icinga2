@@ -85,7 +85,7 @@ bool ApiSetupUtility::SetupMasterCertificates(const String& cn)
 
 	if (Utility::PathExists(key)) {
 		Log(LogInformation, "cli")
-		    << "Private key file '" << key << "' already existing, skipping.";
+		    << "Private key file '" << key << "' already exists, not generating new certificate.";
 		return true;
 	}
 
@@ -161,7 +161,7 @@ bool ApiSetupUtility::SetupMasterApiUser(void)
 
 	if (Utility::PathExists(apiuserspath)) {
 		Log(LogInformation, "cli")
-		    << "API user config file '" << apiuserspath << "' already existing, skipping.";
+		    << "API user config file '" << apiuserspath << "' already exists, not creating config file.";
 		return true;
 	}
 

@@ -138,7 +138,7 @@ int NodeSetupCommand::SetupMaster(const boost::program_options::variables_map& v
 
 	if (Utility::PathExists(existing_path)) {
 		Log(LogWarning, "cli")
-		    << "Certificate '" << existing_path << "' for CN '" << cn << "' already existing. Skipping certificate generation.";
+		    << "Certificate '" << existing_path << "' for CN '" << cn << "' already exists. Not generating new certificate.";
 	} else {
 		Log(LogInformation, "cli")
 		    << "Certificates not yet generated. Running 'api setup' now.";

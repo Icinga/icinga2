@@ -256,7 +256,7 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 				BOOST_FOREACH(const String& object_path, object_paths) {
 					if (object_path.Contains(host_pattern)) {
 						Log(LogNotice, "cli")
-						    << "Host '" << host << "' already existing. Skipping its creation.";
+						    << "Host '" << host << "' already exists.";
 						skip_host = true;
 						break;
 					}
@@ -272,7 +272,7 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 				if (NodeUtility::CheckAgainstBlackAndWhiteList("blacklist", node_name, host, Empty) &&
 				    !NodeUtility::CheckAgainstBlackAndWhiteList("whitelist", node_name, host, Empty)) {
 					Log(LogWarning, "cli")
-					    << "Host '" << host << "' on node '" << node_name << "' is blacklisted, but not whitelisted. Skipping.";
+					    << "Host '" << host << "' on node '" << node_name << "' is blacklisted, but not whitelisted. Not creating host object.";
 					skip_host = true;
 					host_was_blacklisted = true; //check this for services on this blacklisted host
 				}
@@ -321,7 +321,7 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 					BOOST_FOREACH(const String& object_path, object_paths) {
 						if (object_path.Contains(service_pattern)) {
 							Log(LogNotice, "cli")
-							    << "Service '" << service << "' on Host '" << host << "' already existing. Skipping its creation.";
+							    << "Service '" << service << "' on Host '" << host << "' already exists.";
 							skip_service = true;
 							break;
 						}
@@ -332,7 +332,7 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 					    !NodeUtility::CheckAgainstBlackAndWhiteList("whitelist", endpoint, host, service)) {
 						Log(LogWarning, "cli")
 						    << "Service '" << service << "' on host '" << host << "' on node '"
-						    << node_name << "' is blacklisted, but not whitelisted. Skipping.";
+						    << node_name << "' is blacklisted, but not whitelisted. Not creating service object.";
 						skip_service = true;
 					}
 

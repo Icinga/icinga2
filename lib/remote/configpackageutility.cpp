@@ -107,7 +107,7 @@ String ConfigPackageUtility::CreateStage(const String& packageName, const Dictio
 			Log(LogInformation, "ConfigPackageUtility")
 			    << "Updating configuration file: " << filePath;
 
-			//pass the directory and generate a dir tree, if not existing already
+			// Pass the directory and generate a dir tree, if it does not already exist
 			Utility::MkDirP(Utility::DirName(filePath), 0750);
 			std::ofstream fp(filePath.CStr(), std::ofstream::out | std::ostream::binary | std::ostream::trunc);
 			fp << kv.second;
