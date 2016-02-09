@@ -96,7 +96,6 @@ private:
 
 	/* config print helpers */
 	static void SerializeObject(std::ostream& fp, const String& name, const String& type, const Dictionary::Ptr& object);
-	static String EscapeIcingaString(const String& str);
 	static void FormatValue(std::ostream& fp, const Value& val);
 	static void FormatArray(std::ostream& fp, const Array::Ptr& arr);
 
