@@ -213,32 +213,33 @@ Check command object for the `check_disk` plugin.
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name            	| Description
-------------------------|------------------------
-disk_wfree      	| **Optional.** The free space warning threshold. Defaults to "20%". If the percent sign is omitted, units from `disk_units` are used.
-disk_cfree      	| **Optional.** The free space critical threshold. Defaults to "10%". If the percent sign is omitted, units from `disk_units` are used.
-disk_inode_wfree 	| **Optional.** The free inode warning threshold.
-disk_inode_cfree 	| **Optional.** The free inode critical threshold.
-disk_partition		| **Optional.** The partition. **Deprecated in 2.3.**
-disk_partition_excluded | **Optional.** The excluded partition. **Deprecated in 2.3.**
-disk_partitions        	| **Optional.** The partition(s). Multiple partitions must be defined as array.
-disk_partitions_excluded | **Optional.** The excluded partition(s). Multiple partitions must be defined as array.
-disk_clear               | **Optional.** Clear thresholds.
-disk_exact_match       | **Optional.** For paths or partitions specified with -p, only check for exact paths.
-disk_errors_only       | **Optional.** Display only devices/mountpoints with errors. May be true or false.
-disk_group             | **Optional.** Group paths. Thresholds apply to (free-)space of all partitions together
-disk_kilobytes         | **Optional.** Same as --units kB. May be true or false.
-disk_local             | **Optional.** Only check local filesystems. May be true or false.
-disk_stat_remote_fs    | **Optional.** Only check local filesystems against thresholds. Yet call stat on remote filesystems to test if they are accessible (e.g. to detect Stale NFS Handles). Myy be true or false
-disk_mountpoint        | **Optional.** Display the mountpoint instead of the partition. May be true or false.
-disk_megabytes         | **Optional.** Same as --units MB. May be true or false.
-disk_all               | **Optional.** Explicitly select all paths. This is equivalent to -R '.*'. May be true or false.
-disk_eregi_path        | **Optional.** Case insensitive regular expression for path/partition. Multiple regular expression strings must be defined as array.
-disk_ereg_path         | **Optional.** Regular expression for path or partition. Multiple regular expression strings must be defined as array.
-disk_ignore_eregi_path | **Optional.** Regular expression to ignore selected path/partition (case insensitive). Multiple regular expression strings must be defined as array.
-disk_ignore_ereg_path  | **Optional.** Regular expression to ignore selected path or partition. Multiple regular expression strings must be defined as array.
-disk_timeout           | **Optional.** Seconds before connection times out (default: 10).
-disk_units             | **Optional.** Choose bytes, kB, MB, GB, TB (default: MB).
-disk_exclude_type      | **Optional.** Ignore all filesystems of indicated type. Multiple regular expression strings must be defined as array.
+--------------------|------------------------
+disk\_wfree      	| **Optional.** The free space warning threshold. Defaults to "20%". If the percent sign is omitted, units from `disk_units` are used.
+disk\_cfree      	| **Optional.** The free space critical threshold. Defaults to "10%". If the percent sign is omitted, units from `disk_units` are used.
+disk\_inode\_wfree 	| **Optional.** The free inode warning threshold.
+disk\_inode\_cfree 	| **Optional.** The free inode critical threshold.
+disk\_partition		| **Optional.** The partition. **Deprecated in 2.3.**
+disk\_partition\_excluded  | **Optional.** The excluded partition. **Deprecated in 2.3.**
+disk\_partitions 	| **Optional.** The partition(s). Multiple partitions must be defined as array.
+disk\_partitions\_excluded | **Optional.** The excluded partition(s). Multiple partitions must be defined as array.
+disk\_clear             | **Optional.** Clear thresholds.
+disk\_exact\_match      | **Optional.** For paths or partitions specified with -p, only check for exact paths.
+disk\_errors\_only      | **Optional.** Display only devices/mountpoints with errors. May be true or false.
+disk\_ignore\_reserved  | **Optional.** If set account root-reserved blocks are not accounted for freespace in perfdata.
+disk\_group             | **Optional.** Group paths. Thresholds apply to (free-)space of all partitions together.
+disk\_kilobytes         | **Optional.** Same as --units kB. May be true or false.
+disk\_local             | **Optional.** Only check local filesystems. May be true or false.
+disk\_stat\_remote\_fs  | **Optional.** Only check local filesystems against thresholds. Yet call stat on remote filesystems to test if they are accessible (e.g. to detect Stale NFS Handles). May be true or false.
+disk\_mountpoint          | **Optional.** Display the mountpoint instead of the partition. May be true or false.
+disk\_megabytes           | **Optional.** Same as --units MB. May be true or false.
+disk\_all                 | **Optional.** Explicitly select all paths. This is equivalent to -R '.\*'. May be true or false.
+disk\_eregi\_path         | **Optional.** Case insensitive regular expression for path/partition. Multiple regular expression strings must be defined as array.
+disk\_ereg\_path          | **Optional.** Regular expression for path or partition. Multiple regular expression strings must be defined as array.
+disk\_ignore\_eregi\_path | **Optional.** Regular expression to ignore selected path/partition (case insensitive). Multiple regular expression strings must be defined as array.
+disk\_ignore\_ereg\_path  | **Optional.** Regular expression to ignore selected path or partition. Multiple regular expression strings must be defined as array.
+disk\_timeout             | **Optional.** Seconds before connection times out (default: 10).
+disk\_units               | **Optional.** Choose bytes, kB, MB, GB, TB (default: MB).
+disk\_exclude\_type       | **Optional.** Ignore all filesystems of indicated type. Multiple regular expression strings must be defined as array.
 
 ### <a id="plugin-check-command-disk-smb"></a> disk_smb
 
