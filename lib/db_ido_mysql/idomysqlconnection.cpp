@@ -39,7 +39,7 @@ REGISTER_TYPE(IdoMysqlConnection);
 REGISTER_STATSFUNCTION(IdoMysqlConnection, &IdoMysqlConnection::StatsFunc);
 
 IdoMysqlConnection::IdoMysqlConnection(void)
-	: m_QueryQueue(500000)
+	: m_QueryQueue(1000000)
 { }
 
 void IdoMysqlConnection::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
