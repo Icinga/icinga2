@@ -44,23 +44,28 @@ struct EventDescription
 	Object::Ptr LifesupportReference;
 };
 
-#define IOTHREADS 8
+#define SOCKET_IOTHREADS 8
 
 static boost::once_flag l_SocketIOOnceFlag = BOOST_ONCE_INIT;
-static boost::thread l_SocketIOThreads[IOTHREADS];
-static SOCKET l_SocketIOEventFDs[IOTHREADS][2];
-static boost::mutex l_SocketIOMutex[IOTHREADS];
-static boost::condition_variable l_SocketIOCV[IOTHREADS];
-static bool l_SocketIOFDChanged[IOTHREADS];
-static std::map<SOCKET, SocketEventDescriptor> l_SocketIOSockets[IOTHREADS];
-static std::map<SOCKET, int> l_SocketIOEventChanges[IOTHREADS];
+static boost::thread l_SocketIOThreads[SOCKET_IOTHREADS];
+#ifdef __linux__
+static SOCKET l_SocketIOPollFDs[SOCKET_IOTHREADS];
+#endif /* __linux__ */
+static SOCKET l_SocketIOEventFDs[SOCKET_IOTHREADS][2];
+static bool l_SocketIOFDChanged[SOCKET_IOTHREADS];
+static boost::mutex l_SocketIOMutex[SOCKET_IOTHREADS];
+static boost::condition_variable l_SocketIOCV[SOCKET_IOTHREADS];
+static std::map<SOCKET, SocketEventDescriptor> l_SocketIOSockets[SOCKET_IOTHREADS];
 
 int SocketEvents::m_NextID = 0;
 
 void SocketEvents::InitializeThread(void)
 {
+	for (int i = 0; i < SOCKET_IOTHREADS; i++) {
+#ifdef __linux__
+		l_SocketIOPollFDs[i] = epoll_create1(EPOLL_CLOEXEC);
+#endif /* __linux__ */
 
-	for (int i = 0; i < IOTHREADS; i++) {
 		Socket::SocketPair(l_SocketIOEventFDs[i]);
 
 		Utility::SetNonBlockingSocket(l_SocketIOEventFDs[i][0]);
@@ -170,7 +175,7 @@ void SocketEvents::ThreadProc(int tid)
 
 void SocketEvents::WakeUpThread(bool wait)
 {
-	int tid = m_ID % IOTHREADS;
+	int tid = m_ID % SOCKET_IOTHREADS;
 
 	if (boost::this_thread::get_id() == l_SocketIOThreads[tid].get_id())
 		return;
@@ -209,7 +214,7 @@ SocketEvents::~SocketEvents(void)
 
 void SocketEvents::Register(Object *lifesupportObject)
 {
-	int tid = m_ID % IOTHREADS;
+	int tid = m_ID % SOCKET_IOTHREADS;
 
 	{
 		boost::mutex::scoped_lock lock(l_SocketIOMutex[tid]);
@@ -234,7 +239,7 @@ void SocketEvents::Register(Object *lifesupportObject)
 
 void SocketEvents::Unregister(void)
 {
-	int tid = m_ID % IOTHREADS;
+	int tid = m_ID % SOCKET_IOTHREADS;
 
 	{
 		boost::mutex::scoped_lock lock(l_SocketIOMutex[tid]);
@@ -255,13 +260,13 @@ void SocketEvents::Unregister(void)
 
 void SocketEvents::ChangeEvents(int events)
 {
-	int tid = m_ID % IOTHREADS;
+	if (m_FD == INVALID_SOCKET)
+		BOOST_THROW_EXCEPTION(std::runtime_error("Tried to read/write from a closed socket."));
+
+	int tid = m_ID % SOCKET_IOTHREADS;
 
 	{
 		boost::mutex::scoped_lock lock(l_SocketIOMutex[tid]);
-
-		if (m_FD == INVALID_SOCKET)
-			BOOST_THROW_EXCEPTION(std::runtime_error("Tried to read/write from a closed socket."));
 
 		std::map<SOCKET, SocketEventDescriptor>::iterator it = l_SocketIOSockets[tid].find(m_FD);
 
@@ -281,7 +286,7 @@ void SocketEvents::ChangeEvents(int events)
 
 bool SocketEvents::IsHandlingEvents(void) const
 {
-	int tid = m_ID % IOTHREADS;
+	int tid = m_ID % SOCKET_IOTHREADS;
 	boost::mutex::scoped_lock lock(l_SocketIOMutex[tid]);
 	return m_Events;
 }
