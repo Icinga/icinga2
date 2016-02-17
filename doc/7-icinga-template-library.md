@@ -579,7 +579,7 @@ mailq_critical		| **Required.** Min. number of messages in queue to generate cri
 mailq_domain_warning	| **Optional.** Min. number of messages for same domain in queue to generate warning
 mailq_domain_critical	| **Optional.** Min. number of messages for same domain in queue to generate critical alert ( W < C ).
 mailq_timeout		| **Optional.** Plugin timeout in seconds (default = 15).
-mailq_servertype	| **Optional.** [ sendmail | qmail | postfix | exim | nullmailer ] (default = autodetect).
+mailq_servertype	| **Optional.** [ sendmail \| qmail \| postfix \| exim \| nullmailer ] (default = autodetect).
 
 ### <a id="plugin-check-command-mysql"></a> mysql
 
@@ -1764,7 +1764,7 @@ mongodb_alldatabases             | **Optional.** Check all databases (action dat
 mongodb_ssl                      | **Optional.** Connect using SSL
 mongodb_replicaset               | **Optional.** Connect to replicaset
 mongodb_replcheck                | **Optional.** If set to true, will enable the mongodb_replicaset value needed for "replica_primary" check
-mongodb_querytype                | **Optional.** The query type to check [query|insert|update|delete|getmore|command] from queries_per_second
+mongodb_querytype                | **Optional.** The query type to check [query\|insert\|update\|delete\|getmore\|command] from queries_per_second
 mongodb_collection               | **Optional.** Specify the collection to check
 mongodb_sampletime               | **Optional.** Time used to sample number of pages faults
 
@@ -1836,9 +1836,9 @@ hpasm_eventrange		| **Optional.** Period of time before critical IML events resp
 hpasm_perfdata			| **Optional.** Output performance data. If your performance data string becomes too long and is truncated by Nagios, then you can use --perfdata=short instead. This will output temperature tags without location information.
 hpasm_username			| **Optional.** The securityName for the USM security model (SNMPv3 only).
 hpasm_authpassword		| **Optional.** The authentication password for SNMPv3.
-hpasm_authprotocol		| **Optional.** The authentication protocol for SNMPv3 (md5|sha).
+hpasm_authprotocol		| **Optional.** The authentication protocol for SNMPv3 (md5\|sha).
 hpasm_privpassword		| **Optional.** The password for authPriv security level.
-hpasm_privprotocol		| **Optional.** The private protocol for SNMPv3 (des|aes|aes128|3des|3desde).
+hpasm_privprotocol		| **Optional.** The private protocol for SNMPv3 (des\|aes\|aes128\|3des\|3desde).
 hpasm_servertype		| **Optional.** The type of the server: proliant (default) or bladesystem.
 hpasm_eval-nics			| **Optional.** Check network interfaces (and groups). Try it and report me whyt you think about it. I need to build up some know how on this subject. If get an error and you think, it is not justified for your configuration, please tell me about it. (alwasy send the output of "snmpwalk -On .... 1.3.6.1.4.1.232" and a description how you setup your nics and why it is correct opposed to the plugins error message.
 
@@ -1980,9 +1980,9 @@ interfaces_bandwidth      | **Optional.** Bandwidth warn level in percent.
 interfaces_speed          | **Optional.** Override speed detection with this value (bits per sec).
 interfaces_trim           | **Optional.** Cut this number of characters from the start of interface descriptions.
 interfaces_mode           | **Optional.** Special operating mode (default,cisco,nonbulk,bintec).
-interfaces_auth_proto     | **Optional.** SNMPv3 Auth Protocol (SHA|MD5)
+interfaces_auth_proto     | **Optional.** SNMPv3 Auth Protocol (SHA\|MD5)
 interfaces_auth_phrase    | **Optional.** SNMPv3 Auth Phrase
-interfaces_priv_proto     | **Optional.** SNMPv3 Privacy Protocol (AES|DES)
+interfaces_priv_proto     | **Optional.** SNMPv3 Privacy Protocol (AES\|DES)
 interfaces_priv_phrase    | **Optional.** SNMPv3 Privacy Phrase
 interfaces_user           | **Optional.** SNMPv3 User
 interfaces_down_is_ok     | **Optional.** Disables critical alerts for down interfaces.
@@ -2009,9 +2009,9 @@ nwc_health_protocol	  	| **Optional.** The SNMP protocol to use (default: 2c, ot
 nwc_health_community	  	| **Optional.** SNMP community of the server (SNMP v1/2 only).
 nwc_health_username	  	| **Optional.** The securityName for the USM security model (SNMPv3 only).
 nwc_health_authpassword	  	| **Optional.** The authentication password for SNMPv3.
-nwc_health_authprotocol	  	| **Optional.** The authentication protocol for SNMPv3 (md5|sha).
+nwc_health_authprotocol	  	| **Optional.** The authentication protocol for SNMPv3 (md5\|sha).
 nwc_health_privpassword   	| **Optional.** The password for authPriv security level.
-nwc_health_privprotocol		| **Optional.** The private protocol for SNMPv3 (des|aes|aes128|3des|3desde).
+nwc_health_privprotocol		| **Optional.** The private protocol for SNMPv3 (des\|aes\|aes128\|3des\|3desde).
 nwc_health_contextengineid	| **Optional.** The context engine id for SNMPv3 (10 to 64 hex characters).
 nwc_health_contextname		| **Optional.** The context name for SNMPv3 (empty represents the default context).
 nwc_health_name			| **Optional.** The name of an interface (ifDescr).
@@ -2090,7 +2090,7 @@ jmx4perl_base                | **Optional.** Base name, which when given, interp
 jmx4perl_base_mbean          | **Optional.** Base MBean name, interprets critical and warning values as relative in the range 0 .. 100%. Requires "jmx4perl_base_attribute".
 jmx4perl_base_attribute      | **Optional.** Base attribute for a relative check. Requires "jmx4perl_base_mbean".
 jmx4perl_base_path           | **Optional.** Base path for relative checks, where this path is used on the base attribute's value.
-jmx4perl_unit                | **Optional.** Unit of measurement of the data retreived. Recognized values are [B|KB|MN|GB|TB] for memory values and [us|ms|s|m|h|d] for time values.
+jmx4perl_unit                | **Optional.** Unit of measurement of the data retreived. Recognized values are [B\|KB\|MN\|GB\|TB] for memory values and [us\|ms\|s\|m\|h\|d] for time values.
 jmx4perl_null                | **Optional.** Value which should be used in case of a null return value of an operation or attribute. Defaults to null.
 jmx4perl_string              | **Optional.** Force string comparison for critical and warning checks. Defaults to false.
 jmx4perl_numeric             | **Optional.** Force numeric comparison for critical and warning checks. Defaults to false.
