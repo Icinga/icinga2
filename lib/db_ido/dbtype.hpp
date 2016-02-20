@@ -1,6 +1,6 @@
 /******************************************************************************
  * Icinga 2                                                                   *
- * Copyright (C) 2012-2015 Icinga Development Team (http://www.icinga.org)    *
+ * Copyright (C) 2012-2016 Icinga Development Team (https://www.icinga.org/)  *
  *                                                                            *
  * This program is free software; you can redistribute it and/or              *
  * modify it under the terms of the GNU General Public License                *
@@ -45,14 +45,14 @@ public:
 	typedef std::map<String, DbType::Ptr> TypeMap;
 	typedef std::map<std::pair<String, String>, intrusive_ptr<DbObject> > ObjectMap;
 
-	DbType(const String& table, long tid, const String& idcolumn, const ObjectFactory& factory);
+	DbType(const String& name, const String& table, long tid, const String& idcolumn, const ObjectFactory& factory);
 
-	std::vector<String> GetNames(void) const;
+	String GetName(void) const;
 	String GetTable(void) const;
 	long GetTypeID(void) const;
 	String GetIDColumn(void) const;
 
-	static void RegisterType(const String& name, const DbType::Ptr& type);
+	static void RegisterType(const DbType::Ptr& type);
 
 	static DbType::Ptr GetByName(const String& name);
 	static DbType::Ptr GetByID(long tid);
@@ -62,7 +62,7 @@ public:
 	static std::set<DbType::Ptr> GetAllTypes(void);
 
 private:
-	std::vector<String> m_Names;
+	String m_Name;
 	String m_Table;
 	long m_TypeID;
 	String m_IDColumn;
@@ -100,8 +100,8 @@ intrusive_ptr<T> DbObjectFactory(const DbType::Ptr& type, const String& name1, c
 	namespace { namespace UNIQUE_NAME(ido) { namespace ido ## name { \
 		void RegisterDbType(void) \
 		{ \
-			DbType::Ptr dbtype = new DbType(table, tid, idcolumn, DbObjectFactory<type>); \
-			DbType::RegisterType(#name, dbtype); \
+			DbType::Ptr dbtype = new DbType(#name, table, tid, idcolumn, DbObjectFactory<type>); \
+			DbType::RegisterType(dbtype); \
 		} \
 		INITIALIZE_ONCE(RegisterDbType); \
 	} } }

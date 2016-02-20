@@ -1,6 +1,6 @@
 /******************************************************************************
  * Icinga 2                                                                   *
- * Copyright (C) 2012-2015 Icinga Development Team (http://www.icinga.org)    *
+ * Copyright (C) 2012-2016 Icinga Development Team (https://www.icinga.org/)  *
  *                                                                            *
  * This program is free software; you can redistribute it and/or              *
  * modify it under the terms of the GNU General Public License                *
@@ -242,7 +242,6 @@ void ConfigObject::RestoreAttribute(const String& attr, bool updateVersion)
 	String fieldName = tokens[0];
 
 	int fid = type->GetFieldId(fieldName);
-	Field field = type->GetFieldInfo(fid);
 
 	Value currentValue = GetField(fid);
 
@@ -259,7 +258,7 @@ void ConfigObject::RestoreAttribute(const String& attr, bool updateVersion)
 		Value current = newValue;
 
 		if (current.IsEmpty())
-			BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot restore non-existing object attribute"));
+			BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot restore non-existent object attribute"));
 
 		String prefix = tokens[0];
 
@@ -273,7 +272,7 @@ void ConfigObject::RestoreAttribute(const String& attr, bool updateVersion)
 			prefix += "." + key;
 
 			if (!dict->Contains(key))
-				BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot restore non-existing object attribute"));
+				BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot restore non-existent object attribute"));
 
 			current = dict->Get(key);
 		}

@@ -1,6 +1,6 @@
 /******************************************************************************
  * Icinga 2                                                                   *
- * Copyright (C) 2012-2015 Icinga Development Team (http://www.icinga.org)    *
+ * Copyright (C) 2012-2016 Icinga Development Team (https://www.icinga.org/)  *
  *                                                                            *
  * This program is free software; you can redistribute it and/or              *
  * modify it under the terms of the GNU General Public License                *
@@ -51,7 +51,7 @@ void DbEvents::StaticInitialize(void)
 	Checkable::OnAcknowledgementSet.connect(boost::bind(&DbEvents::AddAcknowledgement, _1, _4));
 	Checkable::OnAcknowledgementCleared.connect(boost::bind(&DbEvents::RemoveAcknowledgement, _1));
 
-	Checkable::OnNextCheckChanged.connect(boost::bind(&DbEvents::NextCheckChangedHandler, _1));
+	Checkable::OnNextCheckUpdated.connect(boost::bind(&DbEvents::NextCheckUpdatedHandler, _1));
 	Checkable::OnFlappingChanged.connect(boost::bind(&DbEvents::FlappingChangedHandler, _1));
 	Checkable::OnNotificationSentToAllUsers.connect(boost::bind(&DbEvents::LastNotificationChangedHandler, _1, _2));
 
@@ -89,7 +89,7 @@ void DbEvents::StaticInitialize(void)
 }
 
 /* check events */
-void DbEvents::NextCheckChangedHandler(const Checkable::Ptr& checkable)
+void DbEvents::NextCheckUpdatedHandler(const Checkable::Ptr& checkable)
 {
 	Host::Ptr host;
 	Service::Ptr service;

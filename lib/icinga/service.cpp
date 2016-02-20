@@ -1,6 +1,6 @@
 /******************************************************************************
  * Icinga 2                                                                   *
- * Copyright (C) 2012-2015 Icinga Development Team (http://www.icinga.org)    *
+ * Copyright (C) 2012-2016 Icinga Development Team (https://www.icinga.org/)  *
  *                                                                            *
  * This program is free software; you can redistribute it and/or              *
  * modify it under the terms of the GNU General Public License                *
@@ -62,6 +62,15 @@ Dictionary::Ptr ServiceNameComposer::ParseName(const String& name) const
 void Service::OnAllConfigLoaded(void)
 {
 	ObjectImpl<Service>::OnAllConfigLoaded();
+
+	String zoneName = GetZoneName();
+
+	if (!zoneName.IsEmpty()) {
+		Zone::Ptr zone = Zone::GetByName(zoneName);
+
+		if (zone && zone->IsGlobal())
+			BOOST_THROW_EXCEPTION(std::invalid_argument("Service '" + GetName() + "' cannot be put into global zone '" + zone->GetName() + "'."));
+	}
 
 	m_Host = Host::GetByName(GetHostName());
 

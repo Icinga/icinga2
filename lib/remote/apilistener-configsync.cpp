@@ -1,6 +1,6 @@
 /******************************************************************************
  * Icinga 2                                                                   *
- * Copyright (C) 2012-2015 Icinga Development Team (http://www.icinga.org)    *
+ * Copyright (C) 2012-2016 Icinga Development Team (https://www.icinga.org/)  *
  *                                                                            *
  * This program is free software; you can redistribute it and/or              *
  * modify it under the terms of the GNU General Public License                *
@@ -128,8 +128,12 @@ Value ApiListener::ConfigUpdateObjectAPIHandler(const MessageOrigin::Ptr& origin
 			return Empty;
 		}
 
-		/* object was created, update its version to its origin */
 		object = dtype->GetObject(objName);
+
+		if (!object)
+			return Empty;
+
+		/* object was created, update its version */
 		object->SetVersion(objVersion, false, origin);
 	}
 
@@ -238,7 +242,7 @@ Value ApiListener::ConfigDeleteObjectAPIHandler(const MessageOrigin::Ptr& origin
 
 	if (!object) {
 		Log(LogNotice, "ApiListener")
-		    << "Could not delete non-existing object '" << params->Get("name") << "'.";
+		    << "Could not delete non-existent object '" << params->Get("name") << "'.";
 		return Empty;
 	}
 

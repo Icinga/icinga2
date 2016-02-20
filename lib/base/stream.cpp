@@ -1,6 +1,6 @@
 /******************************************************************************
  * Icinga 2                                                                   *
- * Copyright (C) 2012-2015 Icinga Development Team (http://www.icinga.org)    *
+ * Copyright (C) 2012-2016 Icinga Development Team (https://www.icinga.org/)  *
  *                                                                            *
  * This program is free software; you can redistribute it and/or              *
  * modify it under the terms of the GNU General Public License                *
@@ -76,9 +76,16 @@ bool Stream::WaitForData(int timeout)
 	return IsDataAvailable() || IsEof();
 }
 
+static void StreamDummyCallback(void)
+{ }
+
 void Stream::Close(void)
 {
 	OnDataAvailable.disconnect_all_slots();
+
+	/* Force signals2 to remove the slots, see https://stackoverflow.com/questions/2049291/force-deletion-of-slot-in-boostsignals2
+	 * for details. */
+	OnDataAvailable.connect(boost::bind(&StreamDummyCallback));
 }
 
 StreamReadStatus Stream::ReadLine(String *line, StreamReadContext& context, bool may_wait)

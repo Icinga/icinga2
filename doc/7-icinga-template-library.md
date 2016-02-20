@@ -143,11 +143,11 @@ Name               | Description
 -------------------|--------------
 clamd_address        | **Required.** The host's address or unix socket (must be an absolute path).
 clamd_port           | **Optional.** Port number (default: none).
-clamd_expect         | **Optional.** String to expect in server response (may be repeated).
+clamd_expect         | **Optional.** String to expect in server response. Multiple strings must be defined as array.
 clamd_all            | **Optional.** All expect strings need to occur in server response. Defaults to false.
-clamd_escape_send    | **Optional.** Enable usage of \n, \r, \t or \\\\ in send string.
+clamd_escape_send    | **Optional.** Enable usage of \\n, \\r, \\t or \\\\ in send string.
 clamd_send           | **Optional.** String to send to the server.
-clamd_escape_quit    | **Optional.** Enable usage of \n, \r, \t or \\\\ in quit string.
+clamd_escape_quit    | **Optional.** Enable usage of \\n, \\r, \\t or \\\\ in quit string.
 clamd_quit           | **Optional.** String to send server to initiate a clean close of the connection.
 clamd_refuse         | **Optional.** Accept TCP refusals with states ok, warn, crit. Defaults to crit.
 clamd_mismatch       | **Optional.** Accept expected string mismatches with states ok, warn, crit. Defaults to warn.
@@ -213,32 +213,33 @@ Check command object for the `check_disk` plugin.
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name            	| Description
-------------------------|------------------------
-disk_wfree      	| **Optional.** The free space warning threshold. Defaults to "20%". If the percent sign is omitted, units from `disk_units` are used.
-disk_cfree      	| **Optional.** The free space critical threshold. Defaults to "10%". If the percent sign is omitted, units from `disk_units` are used.
-disk_inode_wfree 	| **Optional.** The free inode warning threshold.
-disk_inode_cfree 	| **Optional.** The free inode critical threshold.
-disk_partition		| **Optional.** The partition. **Deprecated in 2.3.**
-disk_partition_excluded | **Optional.** The excluded partition. **Deprecated in 2.3.**
-disk_partitions        	| **Optional.** The partition(s). Multiple partitions must be defined as array.
-disk_partitions_excluded | **Optional.** The excluded partition(s). Multiple partitions must be defined as array.
-disk_clear               | **Optional.** Clear thresholds.
-disk_exact_match       | **Optional.** For paths or partitions specified with -p, only check for exact paths.
-disk_errors_only       | **Optional.** Display only devices/mountpoints with errors. May be true or false.
-disk_group             | **Optional.** Group paths. Thresholds apply to (free-)space of all partitions together
-disk_kilobytes         | **Optional.** Same as --units kB. May be true or false.
-disk_local             | **Optional.** Only check local filesystems. May be true or false.
-disk_stat_remote_fs    | **Optional.** Only check local filesystems against thresholds. Yet call stat on remote filesystems to test if they are accessible (e.g. to detect Stale NFS Handles). Myy be true or false
-disk_mountpoint        | **Optional.** Display the mountpoint instead of the partition. May be true or false.
-disk_megabytes         | **Optional.** Same as --units MB. May be true or false.
-disk_all               | **Optional.** Explicitly select all paths. This is equivalent to -R '.*'. May be true or false.
-disk_eregi_path        | **Optional.** Case insensitive regular expression for path/partition (may be repeated).
-disk_ereg_path         | **Optional.** Regular expression for path or partition (may be repeated).
-disk_ignore_eregi_path | **Optional.** Regular expression to ignore selected path/partition (case insensitive) (may be repeated).
-disk_ignore_ereg_path  | **Optional.** Regular expression to ignore selected path or partition (may be repeated).
-disk_timeout           | **Optional.** Seconds before connection times out (default: 10).
-disk_units             | **Optional.** Choose bytes, kB, MB, GB, TB (default: MB).
-disk_exclude_type      | **Optional.** Ignore all filesystems of indicated type (may be repeated).
+--------------------|------------------------
+disk\_wfree      	| **Optional.** The free space warning threshold. Defaults to "20%". If the percent sign is omitted, units from `disk_units` are used.
+disk\_cfree      	| **Optional.** The free space critical threshold. Defaults to "10%". If the percent sign is omitted, units from `disk_units` are used.
+disk\_inode\_wfree 	| **Optional.** The free inode warning threshold.
+disk\_inode\_cfree 	| **Optional.** The free inode critical threshold.
+disk\_partition		| **Optional.** The partition. **Deprecated in 2.3.**
+disk\_partition\_excluded  | **Optional.** The excluded partition. **Deprecated in 2.3.**
+disk\_partitions 	| **Optional.** The partition(s). Multiple partitions must be defined as array.
+disk\_partitions\_excluded | **Optional.** The excluded partition(s). Multiple partitions must be defined as array.
+disk\_clear             | **Optional.** Clear thresholds.
+disk\_exact\_match      | **Optional.** For paths or partitions specified with -p, only check for exact paths.
+disk\_errors\_only      | **Optional.** Display only devices/mountpoints with errors. May be true or false.
+disk\_ignore\_reserved  | **Optional.** If set account root-reserved blocks are not accounted for freespace in perfdata.
+disk\_group             | **Optional.** Group paths. Thresholds apply to (free-)space of all partitions together.
+disk\_kilobytes         | **Optional.** Same as --units kB. May be true or false.
+disk\_local             | **Optional.** Only check local filesystems. May be true or false.
+disk\_stat\_remote\_fs  | **Optional.** Only check local filesystems against thresholds. Yet call stat on remote filesystems to test if they are accessible (e.g. to detect Stale NFS Handles). May be true or false.
+disk\_mountpoint          | **Optional.** Display the mountpoint instead of the partition. May be true or false.
+disk\_megabytes           | **Optional.** Same as --units MB. May be true or false.
+disk\_all                 | **Optional.** Explicitly select all paths. This is equivalent to -R '.\*'. May be true or false.
+disk\_eregi\_path         | **Optional.** Case insensitive regular expression for path/partition. Multiple regular expression strings must be defined as array.
+disk\_ereg\_path          | **Optional.** Regular expression for path or partition. Multiple regular expression strings must be defined as array.
+disk\_ignore\_eregi\_path | **Optional.** Regular expression to ignore selected path/partition (case insensitive). Multiple regular expression strings must be defined as array.
+disk\_ignore\_ereg\_path  | **Optional.** Regular expression to ignore selected path or partition. Multiple regular expression strings must be defined as array.
+disk\_timeout             | **Optional.** Seconds before connection times out (default: 10).
+disk\_units               | **Optional.** Choose bytes, kB, MB, GB, TB (default: MB).
+disk\_exclude\_type       | **Optional.** Ignore all filesystems of indicated type. Multiple regular expression strings must be defined as array.
 
 ### <a id="plugin-check-command-disk-smb"></a> disk_smb
 
@@ -344,11 +345,11 @@ Name               | Description
 -------------------|--------------
 ftp_address        | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
 ftp_port           | **Optional.** The FTP port number.
-ftp_expect         | **Optional.** String to expect in server response (may be repeated).
+ftp_expect         | **Optional.** String to expect in server response. Multiple strings must be defined as array.
 ftp_all            | **Optional.** All expect strings need to occur in server response. Defaults to false.
-ftp_escape_send    | **Optional.** Enable usage of \n, \r, \t or \\\\ in send string.
+ftp_escape_send    | **Optional.** Enable usage of \\n, \\r, \\t or \\\\ in send string.
 ftp_send           | **Optional.** String to send to the server.
-ftp_escape_quit    | **Optional.** Enable usage of \n, \r, \t or \\\\ in quit string.
+ftp_escape_quit    | **Optional.** Enable usage of \\n, \\r, \\t or \\\\ in quit string.
 ftp_quit           | **Optional.** String to send server to initiate a clean close of the connection.
 ftp_refuse         | **Optional.** Accept TCP refusals with states ok, warn, crit. Defaults to crit.
 ftp_mismatch       | **Optional.** Accept expected string mismatches with states ok, warn, crit. Defaults to warn.
@@ -507,9 +508,9 @@ Name                  | Description
 ----------------------|--------------
 imap_address          | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
 imap_port             | **Optional.** The port that should be checked. Defaults to 143.
-imap_escape           | **Optional.** Can use \n, \r, \t or \\ in send or quit string. Must come before send or quit option. Default: nothing added to send, \r\n added to end of quit.
+imap_escape           | **Optional.** Can use \\n, \\r, \\t or \\ in send or quit string. Must come before send or quit option. Default: nothing added to send, \\r\\n added to end of quit.
 imap_send             | **Optional.** String to send to the server.
-imap_expect           | **Optional.** String to expect in server response (may be repeated).
+imap_expect           | **Optional.** String to expect in server response. Multiple strings must be defined as array.
 imap_all              | **Optional.** All expect strings need to occur in server response. Default is any.
 imap_quit             | **Optional.** String to send server to initiate a clean close of the connection.
 imap_refuse           | **Optional.** Accept TCP refusals with states ok, warn, crit (default: crit).
@@ -797,9 +798,9 @@ Name                 | Description
 ---------------------|--------------
 pop_address          | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
 pop_port             | **Optional.** The port that should be checked. Defaults to 110.
-pop_escape           | **Optional.** Can use \n, \r, \t or \\ in send or quit string. Must come before send or quit option. Default: nothing added to send, \r\n added to end of quit.
+pop_escape           | **Optional.** Can use \\n, \\r, \\t or \\ in send or quit string. Must come before send or quit option. Default: nothing added to send, \\r\\n added to end of quit.
 pop_send             | **Optional.** String to send to the server.
-pop_expect           | **Optional.** String to expect in server response (may be repeated).
+pop_expect           | **Optional.** String to expect in server response. Multiple strings must be defined as array.
 pop_all              | **Optional.** All expect strings need to occur in server response. Default is any.
 pop_quit             | **Optional.** String to send server to initiate a clean close of the connection.
 pop_refuse           | **Optional.** Accept TCP refusals with states ok, warn, crit (default: crit).
@@ -851,9 +852,9 @@ Name                   | Description
 -----------------------|--------------
 simap_address          | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
 simap_port             | **Optional.** The port that should be checked. Defaults to 993.
-simap_escape           | **Optional.** Can use \n, \r, \t or \\ in send or quit string. Must come before send or quit option. Default: nothing added to send, \r\n added to end of quit.
+simap_escape           | **Optional.** Can use \\n, \\r, \\t or \\ in send or quit string. Must come before send or quit option. Default: nothing added to send, \\r\\n added to end of quit.
 simap_send             | **Optional.** String to send to the server.
-simap_expect           | **Optional.** String to expect in server response (may be repeated).
+simap_expect           | **Optional.** String to expect in server response. Multiple strings must be defined as array.
 simap_all              | **Optional.** All expect strings need to occur in server response. Default is any.
 simap_quit             | **Optional.** String to send server to initiate a clean close of the connection.
 simap_refuse           | **Optional.** Accept TCP refusals with states ok, warn, crit (default: crit).
@@ -949,6 +950,7 @@ snmpv3_ereg          | **Optional.** Return OK state (for that OID) if extended 
 snmpv3_eregi         | **Optional.** Return OK state (for that OID) if case-insensitive extended REGEX matches.
 snmpv3_invert_search | **Optional.** Invert search result and return CRITICAL if found
 snmpv3_label         | **Optional.** Prefix label for output value.
+snmpv3_timeout       | **Optional.** The command timeout in seconds. Defaults to 10 seconds.
 
 ### <a id="plugin-check-command-snmp-uptime"></a> snmp-uptime
 
@@ -973,9 +975,9 @@ Name                  | Description
 ----------------------|--------------
 spop_address          | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
 spop_port             | **Optional.** The port that should be checked. Defaults to 995.
-spop_escape           | **Optional.** Can use \n, \r, \t or \\ in send or quit string. Must come before send or quit option. Default: nothing added to send, \r\n added to end of quit.
+spop_escape           | **Optional.** Can use \\n, \\r, \\t or \\ in send or quit string. Must come before send or quit option. Default: nothing added to send, \\r\\n added to end of quit.
 spop_send             | **Optional.** String to send to the server.
-spop_expect           | **Optional.** String to expect in server response (may be repeated).
+spop_expect           | **Optional.** String to expect in server response. Multiple strings must be defined as array.
 spop_all              | **Optional.** All expect strings need to occur in server response. Default is any.
 spop_quit             | **Optional.** String to send server to initiate a clean close of the connection.
 spop_refuse           | **Optional.** Accept TCP refusals with states ok, warn, crit (default: crit).
@@ -1032,9 +1034,9 @@ Name                   | Description
 -----------------------|--------------
 ssmtp_address          | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
 ssmtp_port             | **Optional.** The port that should be checked. Defaults to 465.
-ssmtp_escape           | **Optional.** Can use \n, \r, \t or \\ in send or quit string. Must come before send or quit option. Default: nothing added to send, \r\n added to end of quit.
+ssmtp_escape           | **Optional.** Can use \\n, \\r, \\t or \\ in send or quit string. Must come before send or quit option. Default: nothing added to send, \\r\\n added to end of quit.
 ssmtp_send             | **Optional.** String to send to the server.
-ssmtp_expect           | **Optional.** String to expect in server response (may be repeated).
+ssmtp_expect           | **Optional.** String to expect in server response. Multiple strings must be defined as array.
 ssmtp_all              | **Optional.** All expect strings need to occur in server response. Default is any.
 ssmtp_quit             | **Optional.** String to send server to initiate a clean close of the connection.
 ssmtp_refuse           | **Optional.** Accept TCP refusals with states ok, warn, crit (default: crit).
@@ -1073,11 +1075,11 @@ Name            | Description
 ----------------|--------------
 tcp_address     | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
 tcp_port        | **Required.** The port that should be checked.
-tcp_expect      | **Optional.** String to expect in server response (may be repeated).
+tcp_expect      | **Optional.** String to expect in server response. Multiple strings must be defined as array.
 tcp_all         | **Optional.** All expect strings need to occur in server response. Defaults to false.
-tcp_escape_send | **Optional.** Enable usage of \n, \r, \t or \\\\ in send string.
+tcp_escape_send | **Optional.** Enable usage of \\n, \\r, \\t or \\\\ in send string.
 tcp_send        | **Optional.** String to send to the server.
-tcp_escape_quit | **Optional.** Enable usage of \n, \r, \t or \\\\ in quit string.
+tcp_escape_quit | **Optional.** Enable usage of \\n, \\r, \\t or \\\\ in quit string.
 tcp_quit        | **Optional.** String to send server to initiate a clean close of the connection.
 tcp_refuse      | **Optional.** Accept TCP refusals with states ok, warn, crit. Defaults to crit.
 tcp_mismatch    | **Optional.** Accept expected string mismatches with states ok, warn, crit. Defaults to warn.
@@ -1169,13 +1171,13 @@ Aggregates the free disk space of all volumes and mount points it can find, or t
 
 Custom attributes:
 
-Name            | Description
-:---------------|:------------
-disk\_win\_warn | **Optional**. The warning threshold.
-disk\_win\_crit | **Optional**. The critical threshold.
-disk\_win\_path | **Optional**. Check only these paths, default checks all.
-disk\_win\_unit | **Optional**. Use this unit to display disk space, thresholds are interpreted in this unit. Defaults to "mb", possible values are: b, kb, mb, gb and tb.
-
+Name                | Description
+:-------------------|:------------
+disk\_win\_warn     | **Optional**. The warning threshold.
+disk\_win\_crit     | **Optional**. The critical threshold.
+disk\_win\_path     | **Optional**. Check only these paths, default checks all.
+disk\_win\_unit     | **Optional**. Use this unit to display disk space, thresholds are interpreted in this unit. Defaults to "mb", possible values are: b, kb, mb, gb and tb.
+disk\_win\_exclude  | **Optional**. Exclude these drives from check.
 
 ### <a id="windows-plugins-load-windows"></a> load-windows
 
@@ -1761,6 +1763,7 @@ mongodb_database                 | **Optional.** Specify the database to check
 mongodb_alldatabases             | **Optional.** Check all databases (action database_size)
 mongodb_ssl                      | **Optional.** Connect using SSL
 mongodb_replicaset               | **Optional.** Connect to replicaset
+mongodb_replcheck                | **Optional.** If set to true, will enable the mongodb_replicaset value needed for "replica_primary" check
 mongodb_querytype                | **Optional.** The query type to check [query|insert|update|delete|getmore|command] from queries_per_second
 mongodb_collection               | **Optional.** Specify the collection to check
 mongodb_sampletime               | **Optional.** Time used to sample number of pages faults
@@ -2170,6 +2173,22 @@ Custom attributes:
 Name                       | Description
 ---------------------------|-------------
 running\_kernel\_use\_sudo | Whether to run the plugin with `sudo`. Defaults to false except on Ubuntu where it defaults to true.
+
+#### <a id="plugins-contrib-command-iostat"></a> iostat
+
+The plugin [check_iostat](https://github.com/dnsmichi/icinga-plugins/blob/master/scripts/check_iostat) is used to monitor I/O with `iostat` on a linux host. The default thresholds are rather high so you can use a grapher for baselining before setting your own.
+
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
+
+Name           | Description
+---------------|-----------------------------------------------------------------------------------------------------------------------
+iostat\_disk   | **Required.** The device to monitor without path. e.g. sda or vda. (default: sda)
+iostat\_wtps   | **Required.** Warning threshold for tps (default: 100)
+iostat\_wread  | **Required.** Warning threshold for KB/s reads (default: 100)
+iostat\_wwrite | **Required.** Warning threshold for KB/s writes (default: 100)
+iostat\_ctps   | **Required.** Critical threshold for tps (default: 200)
+iostat\_cread  | **Required.** Critical threshold for KB/s reads (default: 200)
+iostat\_cwrite | **Required.** Critical threshold for KB/s writes (default: 200)
 
 #### <a id="plugin-contrib-command-yum"></a> yum
 

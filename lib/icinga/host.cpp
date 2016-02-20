@@ -1,6 +1,6 @@
 /******************************************************************************
  * Icinga 2                                                                   *
- * Copyright (C) 2012-2015 Icinga Development Team (http://www.icinga.org)    *
+ * Copyright (C) 2012-2016 Icinga Development Team (https://www.icinga.org/)  *
  *                                                                            *
  * This program is free software; you can redistribute it and/or              *
  * modify it under the terms of the GNU General Public License                *
@@ -37,6 +37,15 @@ REGISTER_TYPE(Host);
 void Host::OnAllConfigLoaded(void)
 {
 	ObjectImpl<Host>::OnAllConfigLoaded();
+
+	String zoneName = GetZoneName();
+
+	if (!zoneName.IsEmpty()) {
+		Zone::Ptr zone = Zone::GetByName(zoneName);
+
+		if (zone && zone->IsGlobal())
+			BOOST_THROW_EXCEPTION(std::invalid_argument("Host '" + GetName() + "' cannot be put into global zone '" + zone->GetName() + "'."));
+	}
 
 	HostGroup::EvaluateObjectRules(this);
 

@@ -1,6 +1,6 @@
 /******************************************************************************
  * Icinga 2                                                                   *
- * Copyright (C) 2012-2015 Icinga Development Team (http://www.icinga.org)    *
+ * Copyright (C) 2012-2016 Icinga Development Team (https://www.icinga.org/)  *
  *                                                                            *
  * This program is free software; you can redistribute it and/or              *
  * modify it under the terms of the GNU General Public License                *
@@ -104,8 +104,6 @@ public:
 
 	Endpoint::Ptr GetCommandEndpoint(void) const;
 
-	bool IsCheckPending(void) const;
-
 	static double CalculateExecutionTime(const CheckResult::Ptr& cr);
 	static double CalculateLatency(const CheckResult::Ptr& cr);
 
@@ -126,6 +124,7 @@ public:
 	static boost::signals2::signal<void (const Checkable::Ptr&, const String&, const String&, AcknowledgementType,
 					     bool, double, const MessageOrigin::Ptr&)> OnAcknowledgementSet;
 	static boost::signals2::signal<void (const Checkable::Ptr&, const MessageOrigin::Ptr&)> OnAcknowledgementCleared;
+	static boost::signals2::signal<void (const Checkable::Ptr&)> OnNextCheckUpdated;
 	static boost::signals2::signal<void (const Checkable::Ptr&)> OnEventCommandExecuted;
 
 	/* Downtimes */

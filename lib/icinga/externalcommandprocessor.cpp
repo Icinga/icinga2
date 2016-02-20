@@ -1,6 +1,6 @@
 /******************************************************************************
  * Icinga 2                                                                   *
- * Copyright (C) 2012-2015 Icinga Development Team (http://www.icinga.org)    *
+ * Copyright (C) 2012-2016 Icinga Development Team (https://www.icinga.org/)  *
  *                                                                            *
  * This program is free software; you can redistribute it and/or              *
  * modify it under the terms of the GNU General Public License                *
@@ -327,11 +327,6 @@ void ExternalCommandProcessor::ProcessHostCheckResult(double time, const std::ve
 	    << "Processing passive check result for host '" << arguments[0] << "'";
 
 	host->ProcessCheckResult(result);
-
-	/* Reschedule the next check. The side effect of this is that for as long
-	 * as we receive passive results for a service we won't execute any
-	 * active checks. */
-	host->SetNextCheck(Utility::GetTime() + host->GetCheckInterval());
 }
 
 void ExternalCommandProcessor::ProcessServiceCheckResult(double time, const std::vector<String>& arguments)
@@ -362,11 +357,6 @@ void ExternalCommandProcessor::ProcessServiceCheckResult(double time, const std:
 	    << "Processing passive check result for service '" << arguments[1] << "'";
 
 	service->ProcessCheckResult(result);
-
-	/* Reschedule the next check. The side effect of this is that for as long
-	 * as we receive passive results for a service we won't execute any
-	 * active checks. */
-	service->SetNextCheck(Utility::GetTime() + service->GetCheckInterval());
 }
 
 void ExternalCommandProcessor::ScheduleHostCheck(double, const std::vector<String>& arguments)
@@ -392,6 +382,9 @@ void ExternalCommandProcessor::ScheduleHostCheck(double, const std::vector<Strin
 		planned_check = Utility::GetTime();
 
 	host->SetNextCheck(planned_check);
+
+	/* trigger update event for DB IDO */
+	Checkable::OnNextCheckUpdated(host);
 }
 
 void ExternalCommandProcessor::ScheduleForcedHostCheck(double, const std::vector<String>& arguments)
@@ -406,6 +399,9 @@ void ExternalCommandProcessor::ScheduleForcedHostCheck(double, const std::vector
 
 	host->SetForceNextCheck(true);
 	host->SetNextCheck(Convert::ToDouble(arguments[1]));
+
+	/* trigger update event for DB IDO */
+	Checkable::OnNextCheckUpdated(host);
 }
 
 void ExternalCommandProcessor::ScheduleSvcCheck(double, const std::vector<String>& arguments)
@@ -431,6 +427,9 @@ void ExternalCommandProcessor::ScheduleSvcCheck(double, const std::vector<String
 		planned_check = Utility::GetTime();
 
 	service->SetNextCheck(planned_check);
+
+	/* trigger update event for DB IDO */
+	Checkable::OnNextCheckUpdated(service);
 }
 
 void ExternalCommandProcessor::ScheduleForcedSvcCheck(double, const std::vector<String>& arguments)
@@ -445,6 +444,9 @@ void ExternalCommandProcessor::ScheduleForcedSvcCheck(double, const std::vector<
 
 	service->SetForceNextCheck(true);
 	service->SetNextCheck(Convert::ToDouble(arguments[2]));
+
+	/* trigger update event for DB IDO */
+	Checkable::OnNextCheckUpdated(service);
 }
 
 void ExternalCommandProcessor::EnableHostCheck(double, const std::vector<String>& arguments)
@@ -526,6 +528,9 @@ void ExternalCommandProcessor::ScheduleForcedHostSvcChecks(double, const std::ve
 
 		service->SetNextCheck(planned_check);
 		service->SetForceNextCheck(true);
+
+		/* trigger update event for DB IDO */
+		Checkable::OnNextCheckUpdated(service);
 	}
 }
 
@@ -553,6 +558,9 @@ void ExternalCommandProcessor::ScheduleHostSvcChecks(double, const std::vector<S
 		    << "Rescheduling next check for service '" << service->GetName() << "'";
 
 		service->SetNextCheck(planned_check);
+
+		/* trigger update event for DB IDO */
+		Checkable::OnNextCheckUpdated(service);
 	}
 }
 
@@ -1569,84 +1577,84 @@ void ExternalCommandProcessor::EnableNotifications(double, const std::vector<Str
 {
 	Log(LogNotice, "ExternalCommandProcessor", "Globally enabling notifications.");
 
-	IcingaApplication::GetInstance()->SetEnableNotifications(true);
+	IcingaApplication::GetInstance()->ModifyAttribute("enable_notifications", true);
 }
 
 void ExternalCommandProcessor::DisableNotifications(double, const std::vector<String>&)
 {
 	Log(LogNotice, "ExternalCommandProcessor", "Globally disabling notifications.");
 
-	IcingaApplication::GetInstance()->SetEnableNotifications(false);
+	IcingaApplication::GetInstance()->ModifyAttribute("enable_notifications", false);
 }
 
 void ExternalCommandProcessor::EnableFlapDetection(double, const std::vector<String>&)
 {
 	Log(LogNotice, "ExternalCommandProcessor", "Globally enabling flap detection.");
 
-	IcingaApplication::GetInstance()->SetEnableFlapping(true);
+	IcingaApplication::GetInstance()->ModifyAttribute("enable_flapping", true);
 }
 
 void ExternalCommandProcessor::DisableFlapDetection(double, const std::vector<String>&)
 {
 	Log(LogNotice, "ExternalCommandProcessor", "Globally disabling flap detection.");
 
-	IcingaApplication::GetInstance()->SetEnableFlapping(false);
+	IcingaApplication::GetInstance()->ModifyAttribute("enable_flapping", false);
 }
 
 void ExternalCommandProcessor::EnableEventHandlers(double, const std::vector<String>&)
 {
 	Log(LogNotice, "ExternalCommandProcessor", "Globally enabling event handlers.");
 
-	IcingaApplication::GetInstance()->SetEnableEventHandlers(true);
+	IcingaApplication::GetInstance()->ModifyAttribute("enable_event_handlers", true);
 }
 
 void ExternalCommandProcessor::DisableEventHandlers(double, const std::vector<String>&)
 {
 	Log(LogNotice, "ExternalCommandProcessor", "Globally disabling event handlers.");
 
-	IcingaApplication::GetInstance()->SetEnableEventHandlers(false);
+	IcingaApplication::GetInstance()->ModifyAttribute("enable_event_handlers", false);
 }
 
 void ExternalCommandProcessor::EnablePerformanceData(double, const std::vector<String>&)
 {
 	Log(LogNotice, "ExternalCommandProcessor", "Globally enabling performance data processing.");
 
-	IcingaApplication::GetInstance()->SetEnablePerfdata(true);
+	IcingaApplication::GetInstance()->ModifyAttribute("enable_perfdata", true);
 }
 
 void ExternalCommandProcessor::DisablePerformanceData(double, const std::vector<String>&)
 {
 	Log(LogNotice, "ExternalCommandProcessor", "Globally disabling performance data processing.");
 
-	IcingaApplication::GetInstance()->SetEnablePerfdata(false);
+	IcingaApplication::GetInstance()->ModifyAttribute("enable_perfdata", false);
 }
 
 void ExternalCommandProcessor::StartExecutingSvcChecks(double, const std::vector<String>&)
 {
 	Log(LogNotice, "ExternalCommandProcessor", "Globally enabling service checks.");
 
-	IcingaApplication::GetInstance()->SetEnableServiceChecks(true);
+	IcingaApplication::GetInstance()->ModifyAttribute("enable_service_checks", true);
 }
 
 void ExternalCommandProcessor::StopExecutingSvcChecks(double, const std::vector<String>&)
 {
 	Log(LogNotice, "ExternalCommandProcessor", "Globally disabling service checks.");
 
-	IcingaApplication::GetInstance()->SetEnableServiceChecks(false);
+	IcingaApplication::GetInstance()->ModifyAttribute("enable_service_checks", false);
 }
 
 void ExternalCommandProcessor::StartExecutingHostChecks(double, const std::vector<String>&)
 {
 	Log(LogNotice, "ExternalCommandProcessor", "Globally enabling host checks.");
 
-	IcingaApplication::GetInstance()->SetEnableHostChecks(true);
+	IcingaApplication::GetInstance()->ModifyAttribute("enable_host_checks", true);
 }
 
 void ExternalCommandProcessor::StopExecutingHostChecks(double, const std::vector<String>&)
 {
 	Log(LogNotice, "ExternalCommandProcessor", "Globally disabling host checks.");
 
-	IcingaApplication::GetInstance()->SetEnableHostChecks(false);
+	IcingaApplication::GetInstance()->ModifyAttribute("enable_host_checks", false);
 }
 
 void ExternalCommandProcessor::ChangeNormalSvcCheckInterval(double, const std::vector<String>& arguments)

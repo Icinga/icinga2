@@ -1,6 +1,6 @@
 /******************************************************************************
  * Icinga 2                                                                   *
- * Copyright (C) 2012-2015 Icinga Development Team (http://www.icinga.org)    *
+ * Copyright (C) 2012-2016 Icinga Development Team (https://www.icinga.org/)  *
  *                                                                            *
  * This program is free software; you can redistribute it and/or              *
  * modify it under the terms of the GNU General Public License                *
@@ -26,6 +26,7 @@ struct printInfoStruct
 {
 	threshold warn, crit;
 	DOUBLE tSwap, aSwap;
+	DOUBLE percentFree;
 	Bunit unit = BunitMB;
 };
 

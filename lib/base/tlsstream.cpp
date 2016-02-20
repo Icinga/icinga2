@@ -1,6 +1,6 @@
 /******************************************************************************
  * Icinga 2                                                                   *
- * Copyright (C) 2012-2015 Icinga Development Team (http://www.icinga.org)    *
+ * Copyright (C) 2012-2016 Icinga Development Team (https://www.icinga.org/)  *
  *                                                                            *
  * This program is free software; you can redistribute it and/or              *
  * modify it under the terms of the GNU General Public License                *
@@ -85,7 +85,7 @@ TlsStream::TlsStream(const Socket::Ptr& socket, const String& hostname, Connecti
 
 TlsStream::~TlsStream(void)
 {
-	Close();
+	CloseInternal(true);
 }
 
 int TlsStream::ValidateCertificate(int preverify_ok, X509_STORE_CTX *ctx)
@@ -126,7 +126,7 @@ boost::shared_ptr<X509> TlsStream::GetPeerCertificate(void) const
 
 void TlsStream::OnEvent(int revents)
 {
-	int rc, err;
+	int rc;
 	size_t count;
 
 	boost::mutex::scoped_lock lock(m_Mutex);
@@ -134,7 +134,7 @@ void TlsStream::OnEvent(int revents)
 	if (!m_SSL)
 		return;
 
-	char buffer[512];
+	char buffer[64 * 1024];
 
 	if (m_CurrentAction == TlsActionNone) {
 		if (revents & (POLLIN | POLLERR | POLLHUP))
@@ -147,6 +147,8 @@ void TlsStream::OnEvent(int revents)
 		}
 	}
 
+	bool success = false;
+
 	switch (m_CurrentAction) {
 		case TlsActionRead:
 			do {
@@ -154,9 +156,12 @@ void TlsStream::OnEvent(int revents)
 
 				if (rc > 0) {
 					m_RecvQ->Write(buffer, rc);
-					m_CV.notify_all();
+					success = true;
 				}
-			} while (SSL_pending(m_SSL.get()));
+			} while (rc > 0);
+
+			if (success)
+				m_CV.notify_all();
 
 			break;
 		case TlsActionWrite:
@@ -164,14 +169,17 @@ void TlsStream::OnEvent(int revents)
 
 			rc = SSL_write(m_SSL.get(), buffer, count);
 
-			if (rc > 0)
+			if (rc > 0) {
 				m_SendQ->Read(NULL, rc, true);
+				success = true;
+			}
 
 			break;
 		case TlsActionHandshake:
 			rc = SSL_do_handshake(m_SSL.get());
 
 			if (rc > 0) {
+				success = true;
 				m_HandshakeOK = true;
 				m_CV.notify_all();
 			}
@@ -181,7 +189,46 @@ void TlsStream::OnEvent(int revents)
 			VERIFY(!"Invalid TlsAction");
 	}
 
-	if (rc > 0) {
+	if (rc <= 0) {
+		int err = SSL_get_error(m_SSL.get(), rc);
+
+		switch (err) {
+			case SSL_ERROR_WANT_READ:
+				m_Retry = true;
+				ChangeEvents(POLLIN);
+
+				break;
+			case SSL_ERROR_WANT_WRITE:
+				m_Retry = true;
+				ChangeEvents(POLLOUT);
+
+				break;
+			case SSL_ERROR_ZERO_RETURN:
+				lock.unlock();
+
+				Close();
+
+				return;
+			default:
+				m_ErrorCode = ERR_peek_error();
+				m_ErrorOccurred = true;
+
+				if (m_ErrorCode != 0) {
+					Log(LogWarning, "TlsStream")
+						<< "OpenSSL error: " << ERR_error_string(m_ErrorCode, NULL);
+				} else {
+					Log(LogWarning, "TlsStream", "TLS stream was disconnected.");
+				}
+
+				lock.unlock();
+
+				Close();
+
+				return;
+		}
+	}
+
+	if (success) {
 		m_CurrentAction = TlsActionNone;
 
 		if (!m_Eof) {
@@ -195,54 +242,11 @@ void TlsStream::OnEvent(int revents)
 
 		while (m_RecvQ->IsDataAvailable() && IsHandlingEvents())
 			SignalDataAvailable();
-
-		if (m_Shutdown && !m_SendQ->IsDataAvailable())
-			Close();
-
-		return;
 	}
 
-	err = SSL_get_error(m_SSL.get(), rc);
-
-	switch (err) {
-		case SSL_ERROR_WANT_READ:
-			m_Retry = true;
-			ChangeEvents(POLLIN);
-
-			break;
-		case SSL_ERROR_WANT_WRITE:
-			m_Retry = true;
-			ChangeEvents(POLLOUT);
-
-			break;
-		case SSL_ERROR_ZERO_RETURN:
-			lock.unlock();
-
-			if (IsHandlingEvents())
-				SignalDataAvailable();
-
-			Close();
-
-			break;
-		default:
-			m_ErrorCode = ERR_peek_error();
-			m_ErrorOccurred = true;
-
-			if (m_ErrorCode != 0) {
-				Log(LogWarning, "TlsStream")
-					<< "OpenSSL error: " << ERR_error_string(m_ErrorCode, NULL);
-			} else {
-				Log(LogWarning, "TlsStream", "TLS stream was disconnected.");
-			}
-
-			lock.unlock();
-
-			if (IsHandlingEvents())
-				SignalDataAvailable();
-
-			Close();
-
-			break;
+	if (m_Shutdown && !m_SendQ->IsDataAvailable()) {
+		lock.unlock();
+		Close();
 	}
 }
 
@@ -309,6 +313,7 @@ void TlsStream::Write(const void *buffer, size_t count)
 void TlsStream::Shutdown(void)
 {
 	m_Shutdown = true;
+	ChangeEvents(POLLOUT);
 }
 
 /**
@@ -316,13 +321,24 @@ void TlsStream::Shutdown(void)
  */
 void TlsStream::Close(void)
 {
-	Stream::Close();
+	CloseInternal(false);
+}
+
+void TlsStream::CloseInternal(bool inDestructor)
+{
+	if (m_Eof)
+		return;
+
+	m_Eof = true;
+
+	if (!inDestructor)
+		SignalDataAvailable();
 
 	SocketEvents::Unregister();
 
-	boost::mutex::scoped_lock lock(m_Mutex);
+	Stream::Close();
 
-	m_Eof = true;
+	boost::mutex::scoped_lock lock(m_Mutex);
 
 	if (!m_SSL)
 		return;

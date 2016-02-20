@@ -1,6 +1,6 @@
 /******************************************************************************
  * Icinga 2                                                                   *
- * Copyright (C) 2012-2015 Icinga Development Team (http://www.icinga.org)    *
+ * Copyright (C) 2012-2016 Icinga Development Team (https://www.icinga.org/)  *
  *                                                                            *
  * This program is free software; you can redistribute it and/or              *
  * modify it under the terms of the GNU General Public License                *
@@ -156,9 +156,4 @@ void CheckResultReader::ProcessCheckResultFile(const String& path) const
 
 	Log(LogDebug, "CheckResultReader")
 	    << "Processed checkresult file for object '" << checkable->GetName() << "'";
-
-	/* Reschedule the next check. The side effect of this is that for as long
-	 * as we receive check result files for a host/service we won't execute any
-	 * active checks. */
-	checkable->SetNextCheck(Utility::GetTime() + checkable->GetCheckInterval());
 }

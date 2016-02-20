@@ -1,6 +1,6 @@
 /******************************************************************************
  * Icinga 2                                                                   *
- * Copyright (C) 2012-2015 Icinga Development Team (http://www.icinga.org)    *
+ * Copyright (C) 2012-2016 Icinga Development Team (https://www.icinga.org/)  *
  *                                                                            *
  * This program is free software; you can redistribute it and/or              *
  * modify it under the terms of the GNU General Public License                *
@@ -53,7 +53,7 @@ int PkiUtility::NewCa(void)
 
 	if (Utility::PathExists(caCertFile) && Utility::PathExists(caKeyFile)) {
 		Log(LogCritical, "cli")
-		    << "CA files '" << caCertFile << "' and '" << caKeyFile << "'already exist.";
+		    << "CA files '" << caCertFile << "' and '" << caKeyFile << "' already exist.";
 		return 1;
 	}
 
@@ -232,17 +232,20 @@ int PkiUtility::RequestCertificate(const String& host, const String& port, const
 
 	JsonRpc::SendMessage(stream, request);
 
+	String jsonString;
 	Dictionary::Ptr response;
 	StreamReadContext src;
 
 	for (;;) {
-		StreamReadStatus srs = JsonRpc::ReadMessage(stream, &response, src);
+		StreamReadStatus srs = JsonRpc::ReadMessage(stream, &jsonString, src);
 
 		if (srs == StatusEof)
 			break;
 
 		if (srs != StatusNewItem)
 			continue;
+
+		response = JsonRpc::DecodeMessage(jsonString);
 
 		if (response && response->Contains("error")) {
 			Log(LogCritical, "cli", "Could not fetch valid response. Please check the master log (notice or debug).");

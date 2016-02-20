@@ -1,6 +1,6 @@
 /******************************************************************************
  * Icinga 2                                                                   *
- * Copyright (C) 2012-2015 Icinga Development Team (http://www.icinga.org)    *
+ * Copyright (C) 2012-2016 Icinga Development Team (https://www.icinga.org/)  *
  *                                                                            *
  * This program is free software; you can redistribute it and/or              *
  * modify it under the terms of the GNU General Public License                *
@@ -91,6 +91,13 @@ void IdoCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult
 	VERIFY(dtype);
 
 	DbConnection::Ptr conn = static_pointer_cast<DbConnection>(dtype->GetObject(idoName));
+
+	if (!conn) {
+		cr->SetOutput("IDO connection '" + idoName + "' does not exist.");
+		cr->SetState(ServiceUnknown);
+		checkable->ProcessCheckResult(cr);
+		return;
+	}
 
 	double qps = conn->GetQueryCount(60) / 60.0;
 

@@ -1,6 +1,6 @@
 /******************************************************************************
  * Icinga 2                                                                   *
- * Copyright (C) 2012-2015 Icinga Development Team (http://www.icinga.org)    *
+ * Copyright (C) 2012-2016 Icinga Development Team (https://www.icinga.org/)  *
  *                                                                            *
  * This program is free software; you can redistribute it and/or              *
  * modify it under the terms of the GNU General Public License                *
@@ -85,7 +85,7 @@ bool ApiSetupUtility::SetupMasterCertificates(const String& cn)
 
 	if (Utility::PathExists(key)) {
 		Log(LogInformation, "cli")
-		    << "Private key file '" << key << "' already existing, skipping.";
+		    << "Private key file '" << key << "' already exists, not generating new certificate.";
 		return true;
 	}
 
@@ -161,7 +161,7 @@ bool ApiSetupUtility::SetupMasterApiUser(void)
 
 	if (Utility::PathExists(apiuserspath)) {
 		Log(LogInformation, "cli")
-		    << "API user config file '" << apiuserspath << "' already existing, skipping.";
+		    << "API user config file '" << apiuserspath << "' already exists, not creating config file.";
 		return true;
 	}
 

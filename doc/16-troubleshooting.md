@@ -113,9 +113,19 @@ on upgrade, so please send modifications as proposed patches upstream. The defau
 You should add your own command definitions to a new file in `conf.d/` called `commands.conf`
 or similar.
 
-## <a id="checks-not-executed"></a> Checks are not executed
+## <a id="troubleshooting-checks"></a> Checks
 
-* Check the debug log to see if the check command gets executed
+### <a id="checks-executed-command"></a> Executed Command for Checks
+
+* Use the Icinga 2 API to [query](9-icinga2-api.md#icinga2-api-config-objects-query) host/service objects
+for their check result containing the executed shell command.
+* Use the Icinga 2 [console cli command](8-cli-commands.md#cli-command-console)
+to fetch the checkable object, its check result and the executed shell command.
+* Alternatively enable the [debug log](16-troubleshooting.md#troubleshooting-enable-debug-output) and look for the executed command.
+
+### <a id="checks-not-executed"></a> Checks are not executed
+
+* Check the [debug log](16-troubleshooting.md#troubleshooting-enable-debug-output) to see if the check command gets executed
 * Verify that failed depedencies do not prevent command execution
 * Make sure that the plugin is executable by the Icinga 2 user (run a manual test)
 * Make sure the [checker](8-cli-commands.md#enable-features) feature is enabled.
@@ -258,7 +268,7 @@ Steps on the client `icinga2-node2.localdomain`:
 
 Try to manually connect from `icinga2-node2.localdomain` to the master node `icinga2-node1.localdomain`:
 
-    # openssl s_client -CAfile /etc/icinga2/pki/ca.crt -cert /etc/icinga2/pki/icinga2-node2.localdomain.crt -key /etc/icinga2/pki/icinga2-node2.localdomain..key -connect icinga2-node1.localdomain.crt:5665
+    # openssl s_client -CAfile /etc/icinga2/pki/ca.crt -cert /etc/icinga2/pki/icinga2-node2.localdomain.crt -key /etc/icinga2/pki/icinga2-node2.localdomain.key -connect icinga2-node1.localdomain:5665
 
     CONNECTED(00000003)
     ---

@@ -1,6 +1,6 @@
 /******************************************************************************
  * Icinga 2                                                                   *
- * Copyright (C) 2012-2015 Icinga Development Team (http://www.icinga.org)    *
+ * Copyright (C) 2012-2016 Icinga Development Team (https://www.icinga.org/)  *
  *                                                                            *
  * This program is free software; you can redistribute it and/or              *
  * modify it under the terms of the GNU General Public License                *
@@ -35,7 +35,6 @@ using namespace icinga;
 
 REGISTER_URLHANDLER("/v1/console", ConsoleHandler);
 
-static int l_ExternalCommands = 0;
 static boost::mutex l_QueryMutex;
 static std::map<String, ApiScriptFrame> l_ApiScriptFrames;
 static Timer::Ptr l_FrameCleanupTimer;
@@ -241,7 +240,7 @@ std::vector<String> ConsoleHandler::GetAutocompletionSuggestions(const String& w
 
 	String::SizeType cperiod = word.RFind(".");
 
-	if (cperiod != -1) {
+	if (cperiod != String::NPos) {
 		String pword = word.SubStr(0, cperiod);
 
 		Value value;

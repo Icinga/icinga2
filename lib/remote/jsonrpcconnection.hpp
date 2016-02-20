@@ -1,6 +1,6 @@
 /******************************************************************************
  * Icinga 2                                                                   *
- * Copyright (C) 2012-2015 Icinga Development Team (http://www.icinga.org)    *
+ * Copyright (C) 2012-2016 Icinga Development Team (https://www.icinga.org/)  *
  *                                                                            *
  * This program is free software; you can redistribute it and/or              *
  * modify it under the terms of the GNU General Public License                *
@@ -57,6 +57,7 @@ public:
 
 	void Start(void);
 
+	double GetTimestamp(void) const;
 	String GetIdentity(void) const;
 	bool IsAuthenticated(void) const;
 	Endpoint::Ptr GetEndpoint(void) const;
@@ -71,11 +72,13 @@ public:
 	static Value HeartbeatAPIHandler(const intrusive_ptr<MessageOrigin>& origin, const Dictionary::Ptr& params);
 
 private:
+	int m_ID;
 	String m_Identity;
 	bool m_Authenticated;
 	Endpoint::Ptr m_Endpoint;
 	TlsStream::Ptr m_Stream;
 	ConnectionRole m_Role;
+	double m_Timestamp;
 	double m_Seen;
 	double m_NextHeartbeat;
 	double m_HeartbeatTimeout;
@@ -84,6 +87,8 @@ private:
 	StreamReadContext m_Context;
 
 	bool ProcessMessage(void);
+	void MessageHandlerWrapper(const String& jsonString);
+	void MessageHandler(const String& jsonString);
 	void DataAvailableHandler(void);
 
 	static void StaticInitialize(void);

@@ -1,6 +1,6 @@
 /******************************************************************************
  * Icinga 2                                                                   *
- * Copyright (C) 2012-2015 Icinga Development Team (http://www.icinga.org)    *
+ * Copyright (C) 2012-2016 Icinga Development Team (https://www.icinga.org/)  *
  *                                                                            *
  * This program is free software; you can redistribute it and/or              *
  * modify it under the terms of the GNU General Public License                *
@@ -30,6 +30,14 @@ REGISTER_TYPE(Zone);
 void Zone::OnAllConfigLoaded(void)
 {
 	m_Parent = Zone::GetByName(GetParentRaw());
+
+	Zone::Ptr zone = m_Parent;
+
+	while (zone) {
+		m_AllParents.push_back(zone);
+
+		zone = Zone::GetByName(zone->GetParentRaw());
+	}
 }
 
 Zone::Ptr Zone::GetParent(void) const
@@ -59,11 +67,16 @@ std::set<Endpoint::Ptr> Zone::GetEndpoints(void) const
 	return result;
 }
 
+std::vector<Zone::Ptr> Zone::GetAllParents(void) const
+{
+	return m_AllParents;
+}
+
 bool Zone::CanAccessObject(const ConfigObject::Ptr& object)
 {
 	Zone::Ptr object_zone;
 
-	if (dynamic_pointer_cast<Zone>(object))
+	if (object->GetReflectionType() == Zone::TypeInstance)
 		object_zone = static_pointer_cast<Zone>(object);
 	else
 		object_zone = static_pointer_cast<Zone>(object->GetZone());

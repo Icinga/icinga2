@@ -1,5 +1,5 @@
 # Icinga 2
-# Copyright (C) 2012-2015 Icinga Development Team (http://www.icinga.org)
+# Copyright (C) 2012-2016 Icinga Development Team (https://www.icinga.org/)
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -140,8 +140,8 @@ if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lpthread")
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -lpthread")
   else()
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -pthread")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -pthread")
   endif()
 
   if(NOT CMAKE_SYSTEM_NAME MATCHES AIX AND NOT CMAKE_SYSTEM_NAME MATCHES OpenBSD AND NOT CMAKE_SYSTEM_NAME MATCHES SunOS)
@@ -229,15 +229,17 @@ if(UNIX)
   endif()
 endif()
 
-set(CXX_FEATURE_OVERRIDE OFF)
+if(NOT MSVC)
+  set(CXX_FEATURE_OVERRIDE OFF)
 
-if(_ICINGA2_CXX11)
-  include(CheckCXXSourceCompiles)
-  check_cxx_source_compiles("class Base { public: virtual void test(void) { } }; class Derived : public Base { virtual void test(void) override { } }; int main(){}" CXX_FEATURE_OVERRIDE)
-endif()
+  if(_ICINGA2_CXX11)
+    include(CheckCXXSourceCompiles)
+    check_cxx_source_compiles("class Base { public: virtual void test(void) { } }; class Derived : public Base { virtual void test(void) override { } }; int main(){}" CXX_FEATURE_OVERRIDE)
+  endif()
 
-if(NOT CXX_FEATURE_OVERRIDE)
-  add_definitions("-Doverride=")
+  if(NOT CXX_FEATURE_OVERRIDE)
+    add_definitions("-Doverride=")
+  endif()
 endif()
 
 configure_file(config.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config.h ESCAPE_QUOTES)

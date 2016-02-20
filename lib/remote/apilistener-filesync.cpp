@@ -1,6 +1,6 @@
 /******************************************************************************
  * Icinga 2                                                                   *
- * Copyright (C) 2012-2015 Icinga Development Team (http://www.icinga.org)    *
+ * Copyright (C) 2012-2016 Icinga Development Team (https://www.icinga.org/)  *
  *                                                                            *
  * This program is free software; you can redistribute it and/or              *
  * modify it under the terms of the GNU General Public License                *
@@ -32,7 +32,7 @@ using namespace icinga;
 
 REGISTER_APIFUNCTION(Update, config, &ApiListener::ConfigUpdateHandler);
 
-void ApiListener::ConfigGlobHandler(Dictionary::Ptr& config, const String& path, const String& file)
+void ApiListener::ConfigGlobHandler(ConfigDirInformation& config, const String& path, const String& file)
 {
 	CONTEXT("Creating config update for file '" + file + "'");
 
@@ -44,34 +44,70 @@ void ApiListener::ConfigGlobHandler(Dictionary::Ptr& config, const String& path,
 		return;
 
 	String content((std::istreambuf_iterator<char>(fp)), std::istreambuf_iterator<char>());
-	config->Set(file.SubStr(path.GetLength()), content);
+
+	Dictionary::Ptr update;
+
+	if (Utility::Match("*.conf", file))
+		update = config.UpdateV1;
+	else
+		update = config.UpdateV2;
+
+	update->Set(file.SubStr(path.GetLength()), content);
 }
 
-Dictionary::Ptr ApiListener::LoadConfigDir(const String& dir)
+Dictionary::Ptr ApiListener::MergeConfigUpdate(const ConfigDirInformation& config)
 {
-	Dictionary::Ptr config = new Dictionary();
-	Utility::GlobRecursive(dir, "*.conf", boost::bind(&ApiListener::ConfigGlobHandler, boost::ref(config), dir, _1), GlobFile);
+	Dictionary::Ptr result = new Dictionary();
+
+	if (config.UpdateV1)
+		config.UpdateV1->CopyTo(result);
+
+	if (config.UpdateV2)
+		config.UpdateV2->CopyTo(result);
+
+	return result;
+}
+
+ConfigDirInformation ApiListener::LoadConfigDir(const String& dir)
+{
+	ConfigDirInformation config;
+	config.UpdateV1 = new Dictionary();
+	config.UpdateV2 = new Dictionary();
+	Utility::GlobRecursive(dir, "*", boost::bind(&ApiListener::ConfigGlobHandler, boost::ref(config), dir, _1), GlobFile);
 	return config;
 }
 
-bool ApiListener::UpdateConfigDir(const Dictionary::Ptr& oldConfig, const Dictionary::Ptr& newConfig, const String& configDir, bool authoritative)
+bool ApiListener::UpdateConfigDir(const ConfigDirInformation& oldConfigInfo, const ConfigDirInformation& newConfigInfo, const String& configDir, bool authoritative)
 {
 	bool configChange = false;
 
-	if (oldConfig->Contains(".timestamp") && newConfig->Contains(".timestamp")) {
-		double oldTS = Convert::ToDouble(oldConfig->Get(".timestamp"));
-		double newTS = Convert::ToDouble(newConfig->Get(".timestamp"));
+	Dictionary::Ptr oldConfig = MergeConfigUpdate(oldConfigInfo);
+	Dictionary::Ptr newConfig = MergeConfigUpdate(newConfigInfo);
 
-		/* skip update if our config is newer */
-		if (oldTS <= newTS)
-			return false;
-	}
+	double oldTimestamp;
+
+	if (!oldConfig->Contains(".timestamp"))
+		oldTimestamp = 0;
+	else
+		oldTimestamp = oldConfig->Get(".timestamp");
+
+	double newTimestamp;
+
+	if (!newConfig->Contains(".timestamp"))
+		newTimestamp = Utility::GetTime();
+	else
+		newTimestamp = newConfig->Get(".timestamp");
+
+	/* skip update if our config is newer */
+	if (oldTimestamp >= newTimestamp)
+		return false;
 
 	{
 		ObjectLock olock(newConfig);
 		BOOST_FOREACH(const Dictionary::Pair& kv, newConfig) {
 			if (oldConfig->Get(kv.first) != kv.second) {
-				configChange = true;
+				if (!Utility::Match("*/.timestamp", kv.first))
+					configChange = true;
 
 				String path = configDir + "/" + kv.first;
 				Log(LogInformation, "ApiListener")
@@ -99,7 +135,7 @@ bool ApiListener::UpdateConfigDir(const Dictionary::Ptr& oldConfig, const Dictio
 	String tsPath = configDir + "/.timestamp";
 	if (!Utility::PathExists(tsPath)) {
 		std::ofstream fp(tsPath.CStr(), std::ofstream::out | std::ostream::trunc);
-		fp << std::fixed << Utility::GetTime();
+		fp << std::fixed << newTimestamp;
 		fp.close();
 	}
 
@@ -116,29 +152,43 @@ bool ApiListener::UpdateConfigDir(const Dictionary::Ptr& oldConfig, const Dictio
 
 void ApiListener::SyncZoneDir(const Zone::Ptr& zone) const
 {
-	Dictionary::Ptr newConfig = new Dictionary();
-	BOOST_FOREACH(const ZoneFragment& zf, ConfigCompiler::GetZoneDirs(zone->GetName())) {
-		Dictionary::Ptr newConfigPart = LoadConfigDir(zf.Path);
+	ConfigDirInformation newConfigInfo;
+	newConfigInfo.UpdateV1 = new Dictionary();
+	newConfigInfo.UpdateV2 = new Dictionary();
 
-		ObjectLock olock(newConfigPart);
-		BOOST_FOREACH(const Dictionary::Pair& kv, newConfigPart) {
-			newConfig->Set("/" + zf.Tag + kv.first, kv.second);
+	BOOST_FOREACH(const ZoneFragment& zf, ConfigCompiler::GetZoneDirs(zone->GetName())) {
+		ConfigDirInformation newConfigPart = LoadConfigDir(zf.Path);
+
+		{
+			ObjectLock olock(newConfigPart.UpdateV1);
+			BOOST_FOREACH(const Dictionary::Pair& kv, newConfigPart.UpdateV1) {
+				newConfigInfo.UpdateV1->Set("/" + zf.Tag + kv.first, kv.second);
+			}
+		}
+
+		{
+			ObjectLock olock(newConfigPart.UpdateV2);
+			BOOST_FOREACH(const Dictionary::Pair& kv, newConfigPart.UpdateV2) {
+				newConfigInfo.UpdateV2->Set("/" + zf.Tag + kv.first, kv.second);
+			}
 		}
 	}
 
-	if (newConfig->GetLength() == 0)
+	int sumUpdates = newConfigInfo.UpdateV1->GetLength() + newConfigInfo.UpdateV2->GetLength();
+
+	if (sumUpdates == 0)
 		return;
 
 	String oldDir = Application::GetLocalStateDir() + "/lib/icinga2/api/zones/" + zone->GetName();
 
 	Log(LogInformation, "ApiListener")
-	    << "Copying " << newConfig->GetLength() << " zone configuration files for zone '" << zone->GetName() << "' to '" << oldDir << "'.";
+	    << "Copying " << sumUpdates << " zone configuration files for zone '" << zone->GetName() << "' to '" << oldDir << "'.";
 
-	Utility::MkDir(oldDir, 0700);
+	Utility::MkDirP(oldDir, 0700);
 
-	Dictionary::Ptr oldConfig = LoadConfigDir(oldDir);
+	ConfigDirInformation oldConfigInfo = LoadConfigDir(oldDir);
 
-	UpdateConfigDir(oldConfig, newConfig, oldDir, true);
+	UpdateConfigDir(oldConfigInfo, newConfigInfo, oldDir, true);
 }
 
 void ApiListener::SyncZoneDirs(void) const
@@ -164,33 +214,32 @@ void ApiListener::SendConfigUpdate(const JsonRpcConnection::Ptr& aclient)
 	if (!azone->IsChildOf(lzone))
 		return;
 
-	Dictionary::Ptr configUpdate = new Dictionary();
+	Dictionary::Ptr configUpdateV1 = new Dictionary();
+	Dictionary::Ptr configUpdateV2 = new Dictionary();
 
 	String zonesDir = Application::GetLocalStateDir() + "/lib/icinga2/api/zones";
 
 	BOOST_FOREACH(const Zone::Ptr& zone, ConfigType::GetObjectsByType<Zone>()) {
 		String zoneDir = zonesDir + "/" + zone->GetName();
 
-		if (!zone->IsChildOf(azone) && !zone->IsGlobal()) {
-			Log(LogNotice, "ApiListener")
-			    << "Skipping sync for '" << zone->GetName() << "'. Not a child of zone '" << azone->GetName() << "'.";
+		if (!zone->IsChildOf(azone) && !zone->IsGlobal())
 			continue;
-		}
-		if (!Utility::PathExists(zoneDir)) {
-			Log(LogNotice, "ApiListener")
-			    << "Ignoring sync for '" << zone->GetName() << "'. Zone directory '" << zoneDir << "' does not exist.";
+
+		if (!Utility::PathExists(zoneDir))
 			continue;
-		}
 
 		Log(LogInformation, "ApiListener")
 		    << "Syncing " << (zone->IsGlobal() ? "global " : "")
 		    << "zone '" << zone->GetName() << "' to endpoint '" << endpoint->GetName() << "'.";
 
-		configUpdate->Set(zone->GetName(), LoadConfigDir(zonesDir + "/" + zone->GetName()));
+		ConfigDirInformation config = LoadConfigDir(zonesDir + "/" + zone->GetName());
+		configUpdateV1->Set(zone->GetName(), config.UpdateV1);
+		configUpdateV2->Set(zone->GetName(), config.UpdateV2);
 	}
 
 	Dictionary::Ptr params = new Dictionary();
-	params->Set("update", configUpdate);
+	params->Set("update", configUpdateV1);
+	params->Set("update_v2", configUpdateV2);
 
 	Dictionary::Ptr message = new Dictionary();
 	message->Set("jsonrpc", "2.0");
@@ -218,12 +267,13 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 		return Empty;
 	}
 
-	Dictionary::Ptr update = params->Get("update");
+	Dictionary::Ptr updateV1 = params->Get("update");
+	Dictionary::Ptr updateV2 = params->Get("update_v2");
 
 	bool configChange = false;
 
-	ObjectLock olock(update);
-	BOOST_FOREACH(const Dictionary::Pair& kv, update) {
+	ObjectLock olock(updateV1);
+	BOOST_FOREACH(const Dictionary::Pair& kv, updateV1) {
 		Zone::Ptr zone = Zone::GetByName(kv.first);
 
 		if (!zone) {
@@ -240,12 +290,18 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 
 		String oldDir = Application::GetLocalStateDir() + "/lib/icinga2/api/zones/" + zone->GetName();
 
-		Utility::MkDir(oldDir, 0700);
+		Utility::MkDirP(oldDir, 0700);
+
+		ConfigDirInformation newConfigInfo;
+		newConfigInfo.UpdateV1 = kv.second;
+
+		if (updateV2)
+			newConfigInfo.UpdateV2 = updateV2->Get(kv.first);
 
 		Dictionary::Ptr newConfig = kv.second;
-		Dictionary::Ptr oldConfig = LoadConfigDir(oldDir);
+		ConfigDirInformation oldConfigInfo = LoadConfigDir(oldDir);
 
-		if (UpdateConfigDir(oldConfig, newConfig, oldDir, false))
+		if (UpdateConfigDir(oldConfigInfo, newConfigInfo, oldDir, false))
 			configChange = true;
 	}
 

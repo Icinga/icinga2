@@ -1,6 +1,6 @@
 /******************************************************************************
  * Icinga 2                                                                   *
- * Copyright (C) 2012-2015 Icinga Development Team (http://www.icinga.org)    *
+ * Copyright (C) 2012-2016 Icinga Development Team (https://www.icinga.org/)  *
  *                                                                            *
  * This program is free software; you can redistribute it and/or              *
  * modify it under the terms of the GNU General Public License                *
@@ -202,8 +202,6 @@ void Comment::RemoveComment(const String& id, const MessageOrigin::Ptr& origin)
 
 	if (!comment)
 		return;
-
-	int legacy_id = comment->GetLegacyId();
 
 	Log(LogNotice, "Comment")
 	    << "Removed comment '" << comment->GetName() << "' from object '" << comment->GetCheckable()->GetName() << "'.";

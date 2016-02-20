@@ -1,6 +1,6 @@
 /******************************************************************************
  * Icinga 2                                                                   *
- * Copyright (C) 2012-2015 Icinga Development Team (http://www.icinga.org)    *
+ * Copyright (C) 2012-2016 Icinga Development Team (https://www.icinga.org/)  *
  *                                                                            *
  * This program is free software; you can redistribute it and/or              *
  * modify it under the terms of the GNU General Public License                *
@@ -407,8 +407,12 @@ void DbConnection::UpdateObject(const ConfigObject::Ptr& object)
 			ActivateObject(dbobj);
 			dbobj->SendConfigUpdate();
 			dbobj->SendStatusUpdate();
-		} else if (!active && dbActive)
+		} else if (!active) {
+			/* Deactivate the deleted object no matter
+			 * which state it had in the database.
+			 */
 			DeactivateObject(dbobj);
+		}
 	}
 }
 

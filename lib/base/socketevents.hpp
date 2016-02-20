@@ -1,6 +1,6 @@
 /******************************************************************************
  * Icinga 2                                                                   *
- * Copyright (C) 2012-2015 Icinga Development Team (http://www.icinga.org)    *
+ * Copyright (C) 2012-2016 Icinga Development Team (https://www.icinga.org/)  *
  *                                                                            *
  * This program is free software; you can redistribute it and/or              *
  * modify it under the terms of the GNU General Public License                *
@@ -22,6 +22,10 @@
 
 #include "base/i2-base.hpp"
 #include "base/socket.hpp"
+
+#ifndef _WIN32
+#	include <poll.h>
+#endif /* _WIN32 */
 
 namespace icinga
 {
@@ -48,17 +52,26 @@ protected:
 	SocketEvents(const Socket::Ptr& socket, Object *lifesupportObject);
 
 private:
+	int m_ID;
 	SOCKET m_FD;
 	bool m_Events;
+#ifndef __linux__
+	pollfd *m_PFD;
+#endif /* __linux__ */
+
+	static int m_NextID;
 
 	static void InitializeThread(void);
-	static void ThreadProc(void);
+	static void ThreadProc(int tid);
 
-	static void WakeUpThread(bool wait = false);
+	void WakeUpThread(bool wait = false);
 
 	int GetPollEvents(void) const;
 
 	void Register(Object *lifesupportObject);
+
+	static int PollToEpoll(int events);
+	static int EpollToPoll(int events);
 };
 
 }

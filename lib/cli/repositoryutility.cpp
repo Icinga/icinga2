@@ -1,6 +1,6 @@
 /******************************************************************************
  * Icinga 2                                                                   *
- * Copyright (C) 2012-2015 Icinga Development Team (http://www.icinga.org)    *
+ * Copyright (C) 2012-2016 Icinga Development Team (https://www.icinga.org/)  *
  *                                                                            *
  * This program is free software; you can redistribute it and/or              *
  * modify it under the terms of the GNU General Public License                *
@@ -22,6 +22,7 @@
 #include "base/logger.hpp"
 #include "base/application.hpp"
 #include "base/convert.hpp"
+#include "base/configwriter.hpp"
 #include "base/scriptglobal.hpp"
 #include "base/json.hpp"
 #include "base/netstring.hpp"
@@ -611,18 +612,15 @@ void RepositoryUtility::CommitChange(const Dictionary::Ptr& change, const String
 	String command = change->Get("command");
 	Dictionary::Ptr attrs;
 
-	if (change->Contains("attrs")) {
+	if (change->Contains("attrs"))
 		attrs = change->Get("attrs");
-	}
 
 	bool success = false;
 
-	if (command == "add") {
+	if (command == "add")
 		success = AddObjectInternal(name, type, attrs);
-	}
-	else if (command == "remove") {
+	else if (command == "remove")
 		success = RemoveObjectInternal(name, type, attrs);
-	}
 
 	if (success) {
 		Log(LogNotice, "cli")
@@ -672,7 +670,7 @@ void RepositoryUtility::FormatChangelogEntry(std::ostream& fp, const Dictionary:
 			continue;
 
 		fp << std::setw(4) << " " << ConsoleColorTag(Console_ForegroundGreen) << kv.first << ConsoleColorTag(Console_Normal) << " = ";
-		FormatValue(fp, kv.second);
+		ConfigWriter::EmitValue(fp, 0, kv.second);
 		fp << "\n";
 	}
 }
@@ -683,7 +681,9 @@ void RepositoryUtility::FormatChangelogEntry(std::ostream& fp, const Dictionary:
  */
 void RepositoryUtility::SerializeObject(std::ostream& fp, const String& name, const String& type, const Dictionary::Ptr& object)
 {
-	fp << "object " << type << " \"" << name << "\" {\n";
+	fp << "object " << type << " ";
+	ConfigWriter::EmitString(fp, name);
+ 	fp << " {\n";
 
 	if (!object) {
 		fp << "}\n";
@@ -695,7 +695,9 @@ void RepositoryUtility::SerializeObject(std::ostream& fp, const String& name, co
 
 		ObjectLock olock(imports);
 		BOOST_FOREACH(const String& import, imports) {
-			fp << "\t" << "import \"" << import << "\"\n";
+			fp << "\t" << "import ";
+			ConfigWriter::EmitString(fp, import);
+			fp << '\n';
 		}
 	}
 
@@ -704,49 +706,12 @@ void RepositoryUtility::SerializeObject(std::ostream& fp, const String& name, co
 		if (kv.first == "import" || kv.first == "name" || kv.first == "__name") {
 			continue;
 		} else {
-			fp << "\t" << kv.first << " = ";
-			FormatValue(fp, kv.second);
+			fp << "\t";
+			ConfigWriter::EmitIdentifier(fp, kv.first, true);
+			fp << " = ";
+			ConfigWriter::EmitValue(fp, 1, kv.second);
 		}
 		fp << "\n";
 	}
 	fp << "}\n";
-}
-
-void RepositoryUtility::FormatValue(std::ostream& fp, const Value& val)
-{
-	if (val.IsObjectType<Array>()) {
-		FormatArray(fp, val);
-		return;
-	}
-
-	if (val.IsString()) {
-		fp << "\"" << Convert::ToString(val) << "\"";
-		return;
-	}
-
-	fp << Convert::ToString(val);
-}
-
-void RepositoryUtility::FormatArray(std::ostream& fp, const Array::Ptr& arr)
-{
-	bool first = true;
-
-	fp << "[ ";
-
-	if (arr) {
-		ObjectLock olock(arr);
-		BOOST_FOREACH(const Value& value, arr) {
-			if (first)
-				first = false;
-			else
-				fp << ", ";
-
-			FormatValue(fp, value);
-		}
-	}
-
-	if (!first)
-		fp << " ";
-
-	fp << "]";
 }

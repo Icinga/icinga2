@@ -1,6 +1,6 @@
 /******************************************************************************
  * Icinga 2                                                                   *
- * Copyright (C) 2012-2015 Icinga Development Team (http://www.icinga.org)    *
+ * Copyright (C) 2012-2016 Icinga Development Team (https://www.icinga.org/)  *
  *                                                                            *
  * This program is free software; you can redistribute it and/or              *
  * modify it under the terms of the GNU General Public License                *
@@ -67,8 +67,8 @@ void FIFO::ResizeBuffer(size_t newSize, bool decrease)
  */
 void FIFO::Optimize(void)
 {
-	if (m_DataSize < m_Offset) {
-		std::memcpy(m_Buffer, m_Buffer + m_Offset, m_DataSize);
+	if (m_Offset - m_DataSize > 1024) {
+		std::memmove(m_Buffer, m_Buffer + m_Offset, m_DataSize);
 		m_Offset = 0;
 
 		if (m_DataSize > 0)

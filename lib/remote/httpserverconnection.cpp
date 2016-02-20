@@ -1,6 +1,6 @@
 /******************************************************************************
  * Icinga 2                                                                   *
- * Copyright (C) 2012-2015 Icinga Development Team (http://www.icinga.org)    *
+ * Copyright (C) 2012-2016 Icinga Development Team (https://www.icinga.org/)  *
  *                                                                            *
  * This program is free software; you can redistribute it and/or              *
  * modify it under the terms of the GNU General Public License                *
@@ -196,17 +196,25 @@ void HttpServerConnection::ProcessMessageAsync(HttpRequest& request)
 
 void HttpServerConnection::DataAvailableHandler(void)
 {
-	boost::mutex::scoped_lock lock(m_DataHandlerMutex);
+	bool close = false;
 
-	try {
-		while (ProcessMessage())
-			; /* empty loop body */
-	} catch (const std::exception& ex) {
-		Log(LogWarning, "HttpServerConnection")
-		    << "Error while reading Http request: " << DiagnosticInformation(ex);
+	if (!m_Stream->IsEof()) {
+		boost::mutex::scoped_lock lock(m_DataHandlerMutex);
 
+		try {
+			while (ProcessMessage())
+				; /* empty loop body */
+		} catch (const std::exception& ex) {
+			Log(LogWarning, "HttpServerConnection")
+			    << "Error while reading Http request: " << DiagnosticInformation(ex);
+
+			close = true;
+		}
+	} else
+		close = true;
+
+	if (close)
 		Disconnect();
-	}
 }
 
 void HttpServerConnection::CheckLiveness(void)

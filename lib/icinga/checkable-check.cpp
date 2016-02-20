@@ -1,6 +1,6 @@
 /******************************************************************************
  * Icinga 2                                                                   *
- * Copyright (C) 2012-2015 Icinga Development Team (http://www.icinga.org)    *
+ * Copyright (C) 2012-2016 Icinga Development Team (https://www.icinga.org/)  *
  *                                                                            *
  * This program is free software; you can redistribute it and/or              *
  * modify it under the terms of the GNU General Public License                *
@@ -39,6 +39,7 @@ boost::signals2::signal<void (const Checkable::Ptr&, const CheckResult::Ptr&, co
 boost::signals2::signal<void (const Checkable::Ptr&, const CheckResult::Ptr&, StateType, const MessageOrigin::Ptr&)> Checkable::OnStateChange;
 boost::signals2::signal<void (const Checkable::Ptr&, const CheckResult::Ptr&, std::set<Checkable::Ptr>, const MessageOrigin::Ptr&)> Checkable::OnReachabilityChanged;
 boost::signals2::signal<void (const Checkable::Ptr&, NotificationType, const CheckResult::Ptr&, const String&, const String&)> Checkable::OnNotificationsRequested;
+boost::signals2::signal<void (const Checkable::Ptr&)> Checkable::OnNextCheckUpdated;
 
 CheckCommand::Ptr Checkable::GetCheckCommand(void) const
 {
@@ -115,24 +116,14 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 	if (cr->GetExecutionEnd() == 0)
 		cr->SetExecutionEnd(now);
 
-	if (!origin || origin->IsLocal()) {
-		Log(LogDebug, "Checkable")
-		    << "No origin or local origin for object '" << GetName()
-		    << "', setting " << IcingaApplication::GetInstance()->GetNodeName()
-		    << " as check_source.";
+	if (!origin || origin->IsLocal())
 		cr->SetCheckSource(IcingaApplication::GetInstance()->GetNodeName());
-	}
 
 	Endpoint::Ptr command_endpoint = GetCommandEndpoint();
 
 	/* override check source if command_endpoint was defined */
-	if (command_endpoint && !GetExtension("agent_check")) {
-		Log(LogDebug, "Checkable")
-		    << "command_endpoint found for object '" << GetName()
-		    << "', setting " << command_endpoint->GetName()
-		    << " as check_source.";
+	if (command_endpoint && !GetExtension("agent_check"))
 		cr->SetCheckSource(command_endpoint->GetName());
-	}
 
 	/* agent checks go through the api */
 	if (command_endpoint && GetExtension("agent_check")) {
@@ -311,6 +302,17 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 		UpdateFlappingStatus(stateChange);
 	is_flapping = IsFlapping();
 
+	/* update next check time for active and passive check results */
+	if (!GetEnableActiveChecks() && GetEnablePassiveChecks()) {
+		/* Reschedule the next passive check. The side effect of this is that for as long
+		 * as we receive passive results for a service we won't execute any
+		 * active checks. */
+		SetNextCheck(Utility::GetTime() + GetCheckInterval());
+	} else if (GetEnableActiveChecks()) {
+		/* update next check time based on state changes and types */
+		UpdateNextCheck();
+	}
+
 	olock.Unlock();
 
 //	Log(LogDebug, "Checkable")
@@ -360,12 +362,6 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 		NotifyFlapping(origin);
 	} else if (send_notification)
 		OnNotificationsRequested(this, recovery ? NotificationRecovery : NotificationProblem, cr, "", "");
-}
-
-bool Checkable::IsCheckPending(void) const
-{
-	ObjectLock olock(this);
-	return m_CheckRunning;
 }
 
 void Checkable::ExecuteRemoteCheck(const Dictionary::Ptr& resolvedMacros)
@@ -448,7 +444,11 @@ void Checkable::ExecuteCheck(void)
 			if (listener)
 				listener->SyncSendMessage(endpoint, message);
 
-		} else if (Application::GetInstance()->GetStartTime() < Utility::GetTime() - 30) {
+			/* Re-schedule the check so we don't run it again until after we've received
+			   a check result from the remote instance. The check will be re-scheduled
+			   using the proper check interval once we've received a check result. */
+			SetNextCheck(Utility::GetTime() + GetCheckCommand()->GetTimeout() + 30);
+		} else if (Application::GetInstance()->GetStartTime() < Utility::GetTime() - 300) {
 			/* fail to perform check on unconnected endpoint */
 			cr->SetState(ServiceUnknown);
 

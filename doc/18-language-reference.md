@@ -879,7 +879,7 @@ type objects are made available using global variables which match the type's na
 The type object's `prototype` property can be used to find out which methods a certain type
 supports:
 
-    /* This returns: ["contains","find","len","lower","replace","reverse","split","substr","to_string","upper"] */
+    /* This returns: ["contains","find","len","lower","replace","reverse","split","substr","to_string","trim","upper"] */
     keys(String.prototype)
 
 Additional documentation on type methods is available in the

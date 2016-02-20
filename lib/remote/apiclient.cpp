@@ -1,6 +1,6 @@
 /******************************************************************************
  * Icinga 2                                                                   *
- * Copyright (C) 2012-2015 Icinga Development Team (http://www.icinga.org)    *
+ * Copyright (C) 2012-2016 Icinga Development Team (https://www.icinga.org/)  *
  *                                                                            *
  * This program is free software; you can redistribute it and/or              *
  * modify it under the terms of the GNU General Public License                *
@@ -285,7 +285,6 @@ void ApiClient::ExecuteScriptHttpCompletionCallback(HttpRequest& request,
 
 		Array::Ptr results = result->Get("results");
 		Value result;
-		bool incompleteExpression = false;
 		String errorMessage = "Unexpected result from API.";
 
 		if (results && results->GetLength() > 0) {

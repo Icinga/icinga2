@@ -1,6 +1,6 @@
 /******************************************************************************
  * Icinga 2                                                                   *
- * Copyright (C) 2012-2015 Icinga Development Team (http://www.icinga.org)    *
+ * Copyright (C) 2012-2016 Icinga Development Team (https://www.icinga.org/)  *
  *                                                                            *
  * This program is free software; you can redistribute it and/or              *
  * modify it under the terms of the GNU General Public License                *
@@ -97,7 +97,16 @@ bool TypeQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& requ
 	if (request.RequestUrl->GetPath().size() >= 3)
 		params->Set("name", request.RequestUrl->GetPath()[2]);
 
-	std::vector<Value> objs = FilterUtility::GetFilterTargets(qd, params, user);
+	std::vector<Value> objs;
+
+	try {
+		objs = FilterUtility::GetFilterTargets(qd, params, user);
+	} catch (const std::exception& ex) {
+		HttpUtility::SendJsonError(response, 404,
+		    "No objects found.",
+		    HttpUtility::GetLastParameter(params, "verboseErrors") ? DiagnosticInformation(ex) : "");
+		return true;
+	}
 
 	Array::Ptr results = new Array();
 

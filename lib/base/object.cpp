@@ -1,6 +1,6 @@
 /******************************************************************************
  * Icinga 2                                                                   *
- * Copyright (C) 2012-2015 Icinga Development Team (http://www.icinga.org)    *
+ * Copyright (C) 2012-2016 Icinga Development Team (https://www.icinga.org/)  *
  *                                                                            *
  * This program is free software; you can redistribute it and/or              *
  * modify it under the terms of the GNU General Public License                *
@@ -22,16 +22,25 @@
 #include "base/dictionary.hpp"
 #include "base/primitivetype.hpp"
 #include "base/utility.hpp"
+#include "base/timer.hpp"
+#include "base/logger.hpp"
+#include <boost/foreach.hpp>
 
 using namespace icinga;
 
 DEFINE_TYPE_INSTANCE(Object);
 
+#ifdef I2_LEAK_DEBUG
+static boost::mutex l_ObjectCountLock;
+static std::map<String, int> l_ObjectCounts;
+static Timer::Ptr l_ObjectCountTimer;
+#endif /* I2_LEAK_DEBUG */
+
 /**
  * Default constructor for the Object class.
  */
 Object::Object(void)
-	: m_References(0)
+	: m_References(0), m_Mutex(0)
 #ifdef I2_DEBUG
 	, m_LockOwner(0)
 #endif /* I2_DEBUG */
@@ -41,7 +50,9 @@ Object::Object(void)
  * Destructor for the Object class.
  */
 Object::~Object(void)
-{ }
+{
+	delete reinterpret_cast<boost::recursive_mutex *>(m_Mutex);
+}
 
 /**
  * Returns a string representation for the object.
@@ -116,4 +127,46 @@ Type::Ptr Object::GetReflectionType(void) const
 {
 	return Object::TypeInstance;
 }
+
+#ifdef I2_LEAK_DEBUG
+void icinga::TypeAddObject(Object *object)
+{
+	boost::mutex::scoped_lock lock(l_ObjectCountLock);
+	String typeName = Utility::GetTypeName(typeid(*object));
+	l_ObjectCounts[typeName]++;
+}
+
+void icinga::TypeRemoveObject(Object *object)
+{
+	boost::mutex::scoped_lock lock(l_ObjectCountLock);
+	String typeName = Utility::GetTypeName(typeid(*object));
+	l_ObjectCounts[typeName]--;
+}
+
+static void TypeInfoTimerHandler(void)
+{
+	boost::mutex::scoped_lock lock(l_ObjectCountLock);
+
+	typedef std::map<String, int>::value_type kv_pair;
+	BOOST_FOREACH(kv_pair& kv, l_ObjectCounts) {
+		if (kv.second == 0)
+			continue;
+
+		Log(LogInformation, "TypeInfo")
+		    << kv.second << " " << kv.first << " objects";
+
+		kv.second = 0;
+	}
+}
+
+static void StartTypeInfoTimer(void)
+{
+	l_ObjectCountTimer = new Timer();
+	l_ObjectCountTimer->SetInterval(10);
+	l_ObjectCountTimer->OnTimerExpired.connect(boost::bind(TypeInfoTimerHandler));
+	l_ObjectCountTimer->Start();
+}
+
+INITIALIZE_ONCE(StartTypeInfoTimer);
+#endif /* I2_LEAK_DEBUG */
 

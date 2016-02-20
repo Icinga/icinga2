@@ -1,6 +1,6 @@
 /******************************************************************************
  * Icinga 2                                                                   *
- * Copyright (C) 2012-2015 Icinga Development Team (http://www.icinga.org)    *
+ * Copyright (C) 2012-2016 Icinga Development Team (https://www.icinga.org/)  *
  *                                                                            *
  * This program is free software; you can redistribute it and/or              *
  * modify it under the terms of the GNU General Public License                *
@@ -64,8 +64,8 @@ bool ActionsHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& reques
 		try {
 			objs = FilterUtility::GetFilterTargets(qd, params, user);
 		} catch (const std::exception& ex) {
-			HttpUtility::SendJsonError(response, 400,
-			    "Type/Filter was required but not provided or was invalid.",
+			HttpUtility::SendJsonError(response, 404,
+			    "No objects found.",
 			    HttpUtility::GetLastParameter(params, "verboseErrors") ? DiagnosticInformation(ex) : "");
 			return true;
 		}

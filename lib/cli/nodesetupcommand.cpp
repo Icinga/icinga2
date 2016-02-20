@@ -1,6 +1,6 @@
 /******************************************************************************
  * Icinga 2                                                                   *
- * Copyright (C) 2012-2015 Icinga Development Team (http://www.icinga.org)    *
+ * Copyright (C) 2012-2016 Icinga Development Team (https://www.icinga.org/)  *
  *                                                                            *
  * This program is free software; you can redistribute it and/or              *
  * modify it under the terms of the GNU General Public License                *
@@ -138,7 +138,7 @@ int NodeSetupCommand::SetupMaster(const boost::program_options::variables_map& v
 
 	if (Utility::PathExists(existing_path)) {
 		Log(LogWarning, "cli")
-		    << "Certificate '" << existing_path << "' for CN '" << cn << "' already existing. Skipping certificate generation.";
+		    << "Certificate '" << existing_path << "' for CN '" << cn << "' already exists. Not generating new certificate.";
 	} else {
 		Log(LogInformation, "cli")
 		    << "Certificates not yet generated. Running 'api setup' now.";

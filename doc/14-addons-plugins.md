@@ -86,7 +86,7 @@ The configuration in nagvis.ini.php should look like this for Livestatus for exa
     backendtype="mklivestatus"
     socket="unix:/var/run/icinga2/cmd/livestatus"
 
-If you are planning an integration into Icinga Web 2, look at [this module](https://github.com/divetoh/icingaweb2-module-nagvis).
+If you are planning an integration into Icinga Web 2, look at [this module](https://github.com/Icinga/icingaweb2-module-nagvis).
 
 ### <a id="addons-visualization-thruk"></a> Thruk
 
@@ -123,7 +123,7 @@ Additionally external services can be [integrated with Icinga 2](https://www.ici
 * [VictorOps](https://www.icinga.org/partners/victorops/)
 * [StackStorm](https://www.icinga.org/partners/stackstorm/)
 
-More information can be found on the [Icinga Website](https://www.icinga.org)
+More information can be found on the [Icinga Website](https://www.icinga.org/)
 and the [Icinga Wiki](https://wiki.icinga.org/display/howtos/Home).
 
 ## <a id="configuration-tools"></a> Configuration Management Tools
