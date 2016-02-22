@@ -482,10 +482,8 @@ void ConfigObject::DumpObjects(const String& filename, int attributeTypes)
 	Log(LogInformation, "ConfigObject")
 	    << "Dumping program state to file '" << filename << "'";
 
-	String tempFilename = filename + ".tmp";
-
 	std::fstream fp;
-	fp.open(tempFilename.CStr(), std::ios_base::out);
+	String tempFilename = Utility::CreateTempFile(filename + ".XXXXXX", fp);
 
 	if (!fp)
 		BOOST_THROW_EXCEPTION(std::runtime_error("Could not open '" + tempFilename + "' file"));

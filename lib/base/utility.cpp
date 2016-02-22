@@ -53,6 +53,8 @@
 
 #ifdef _WIN32
 #	include <VersionHelpers.h>
+#	include <windows.h>
+#	include <io.h>
 #endif /*_WIN32*/
 
 using namespace icinga;
@@ -1327,9 +1329,9 @@ Value Utility::LoadJsonFile(const String& path)
 
 void Utility::SaveJsonFile(const String& path, const Value& value)
 {
-	String tempPath = path + ".tmp";
+	std::fstream fp;
+	String tempFilename = Utility::CreateTempFile(path + ".XXXXXX", fp);
 
-	std::ofstream fp(tempPath.CStr(), std::ofstream::out | std::ostream::trunc);
 	fp.exceptions(std::ofstream::failbit | std::ofstream::badbit);
 	fp << JsonEncode(value);
 	fp.close();
@@ -1338,11 +1340,11 @@ void Utility::SaveJsonFile(const String& path, const Value& value)
 	_unlink(path.CStr());
 #endif /* _WIN32 */
 
-	if (rename(tempPath.CStr(), path.CStr()) < 0) {
+	if (rename(tempFilename.CStr(), path.CStr()) < 0) {
 		BOOST_THROW_EXCEPTION(posix_error()
 		    << boost::errinfo_api_function("rename")
 		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(tempPath));
+		    << boost::errinfo_file_name(tempFilename));
 	}
 }
 
@@ -1703,3 +1705,139 @@ String Utility::ValidateUTF8(const String& input)
 
 	return output;
 }
+
+String Utility::CreateTempFile(const String& path, std::fstream& fp)
+{
+	std::vector<char> targetPath(path.Begin(), path.End());
+	targetPath.push_back('\0');
+
+	int fd;
+#ifndef _WIN32
+	fd = mkstemp(&targetPath[0]);
+#else /* _WIN32 */
+	fd = MksTemp(&targetPath[0]);
+#endif /*_WIN32*/
+
+	if (fd < 0) {
+		BOOST_THROW_EXCEPTION(posix_error()
+		    << boost::errinfo_api_function("mkstemp")
+		    << boost::errinfo_errno(errno)
+		    << boost::errinfo_file_name(path));
+	}
+
+	try {
+		fp.open(&targetPath[0], std::ios_base::trunc | std::ios_base::out);
+	} catch (const std::fstream::failure& e) {
+		close(fd);
+		throw;
+	}
+
+	close(fd);
+
+	return String(targetPath.begin(), targetPath.end() - 1);
+}
+
+#ifdef _WIN32
+/* mkstemp extracted from libc/sysdeps/posix/tempname.c.  Copyright
+   (C) 1991-1999, 2000, 2001, 2006 Free Software Foundation, Inc.
+
+   The GNU C Library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Lesser General Public
+   License as published by the Free Software Foundation; either
+   version 2.1 of the License, or (at your option) any later version.  */
+
+#define _O_EXCL 0x0400
+#define _O_CREAT 0x0100
+#define _O_RDWR 0x0002
+#define O_EXCL _O_EXCL
+#define O_CREAT	_O_CREAT
+#define O_RDWR _O_RDWR
+
+static const char letters[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+/* Generate a temporary file name based on TMPL.  TMPL must match the
+   rules for mk[s]temp (i.e. end in "XXXXXX").  The name constructed
+   does not exist at the time of the call to mkstemp.  TMPL is
+   overwritten with the result.  */
+int Utility::MksTemp(char *tmpl)
+{
+	int len;
+	char *XXXXXX;
+	static unsigned long long value;
+	unsigned long long random_time_bits;
+	unsigned int count;
+	int fd = -1;
+	int save_errno = errno;
+
+	/* A lower bound on the number of temporary files to attempt to
+	generate.  The maximum total number of temporary file names that
+	can exist for a given template is 62**6.  It should never be
+	necessary to try all these combinations.  Instead if a reasonable
+	number of names is tried (we define reasonable as 62**3) fail to
+	give the system administrator the chance to remove the problems.  */
+#define ATTEMPTS_MIN (62 * 62 * 62)
+
+	/* The number of times to attempt to generate a temporary file.  To
+	   conform to POSIX, this must be no smaller than TMP_MAX.  */
+#if ATTEMPTS_MIN < TMP_MAX
+	unsigned int attempts = TMP_MAX;
+#else
+	unsigned int attempts = ATTEMPTS_MIN;
+#endif
+
+	len = strlen (tmpl);
+	if (len < 6 || strcmp (&tmpl[len - 6], "XXXXXX")) {
+		errno = EINVAL;
+		return -1;
+	}
+
+	/* This is where the Xs start.  */
+	XXXXXX = &tmpl[len - 6];
+
+	/* Get some more or less random data.  */
+	{
+		SYSTEMTIME stNow;
+		FILETIME ftNow;
+
+		// get system time
+		GetSystemTime(&stNow);
+		stNow.wMilliseconds = 500;
+		if (!SystemTimeToFileTime(&stNow, &ftNow)) {
+		    errno = -1;
+		    return -1;
+		}
+
+		random_time_bits = (((unsigned long long)ftNow.dwHighDateTime << 32) | (unsigned long long)ftNow.dwLowDateTime);
+	}
+
+	value += random_time_bits ^ (unsigned long long)GetCurrentThreadId();
+
+	for (count = 0; count < attempts; value += 7777, ++count) {
+		unsigned long long v = value;
+
+		/* Fill in the random bits.  */
+		XXXXXX[0] = letters[v % 62];
+		v /= 62;
+		XXXXXX[1] = letters[v % 62];
+		v /= 62;
+		XXXXXX[2] = letters[v % 62];
+		v /= 62;
+		XXXXXX[3] = letters[v % 62];
+		v /= 62;
+		XXXXXX[4] = letters[v % 62];
+		v /= 62;
+		XXXXXX[5] = letters[v % 62];
+
+		fd = open(tmpl, O_RDWR | O_CREAT | O_EXCL, _S_IREAD | _S_IWRITE);
+		if (fd >= 0) {
+			errno = save_errno;
+			return fd;
+		} else if (errno != EEXIST)
+			return -1;
+	}
+
+	/* We got out of the loop because we ran out of combinations to try.  */
+	errno = EEXIST;
+	return -1;
+}
+#endif /*_WIN32*/

@@ -141,9 +141,15 @@ public:
 
 	static String ValidateUTF8(const String& input);
 
+	static String CreateTempFile(const String& path, std::fstream& fp);
+
 private:
 	Utility(void);
 	static void CollectPaths(const String& path, std::vector<String>& paths);
+
+#ifdef _WIN32
+	static int MksTemp (char *tmpl);
+#endif /* _WIN32 */
 
 	static boost::thread_specific_ptr<String> m_ThreadName;
 	static boost::thread_specific_ptr<unsigned int> m_RandSeed;

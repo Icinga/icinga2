@@ -356,9 +356,9 @@ bool RepositoryUtility::WriteObjectToRepositoryChangeLog(const String& path, con
 
 	CreateRepositoryPath(Utility::DirName(path));
 
-	String tempPath = path + ".tmp";
+	std::fstream fp;
+	String tempFilename = Utility::CreateTempFile(path + ".XXXXXX", fp);
 
-	std::ofstream fp(tempPath.CStr(), std::ofstream::out | std::ostream::trunc);
 	fp << JsonEncode(item);
 	fp.close();
 
@@ -366,11 +366,11 @@ bool RepositoryUtility::WriteObjectToRepositoryChangeLog(const String& path, con
 	_unlink(path.CStr());
 #endif /* _WIN32 */
 
-	if (rename(tempPath.CStr(), path.CStr()) < 0) {
+	if (rename(tempFilename.CStr(), path.CStr()) < 0) {
 		BOOST_THROW_EXCEPTION(posix_error()
 		    << boost::errinfo_api_function("rename")
 		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(tempPath));
+		    << boost::errinfo_file_name(tempFilename));
 	}
 
 	return true;
@@ -496,9 +496,9 @@ bool RepositoryUtility::WriteObjectToRepository(const String& path, const String
 
 	CreateRepositoryPath(Utility::DirName(path));
 
-	String tempPath = path + ".tmp";
+	std::fstream fp;
+	String tempFilename = Utility::CreateTempFile(path + ".XXXXXX", fp);
 
-	std::ofstream fp(tempPath.CStr(), std::ofstream::out | std::ostream::trunc);
 	SerializeObject(fp, name, type, item);
 	fp << std::endl;
 	fp.close();
@@ -507,11 +507,11 @@ bool RepositoryUtility::WriteObjectToRepository(const String& path, const String
 	_unlink(path.CStr());
 #endif /* _WIN32 */
 
-	if (rename(tempPath.CStr(), path.CStr()) < 0) {
+	if (rename(tempFilename.CStr(), path.CStr()) < 0) {
 		BOOST_THROW_EXCEPTION(posix_error()
 		    << boost::errinfo_api_function("rename")
 		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(tempPath));
+		    << boost::errinfo_file_name(tempFilename));
 	}
 
 	return true;
