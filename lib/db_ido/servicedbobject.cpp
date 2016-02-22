@@ -196,6 +196,7 @@ void ServiceDbObject::OnConfigUpdate(void)
 			query1.Category = DbCatConfig;
 			query1.WhereCriteria = new Dictionary();
 			query1.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
+			query1.WhereCriteria->Set("servicegroup_id", DbValue::FromObjectInsertID(group));
 			query1.WhereCriteria->Set("service_object_id", service);
 			queries.push_back(query1);
 
