@@ -63,7 +63,8 @@ void SocketEvents::InitializeThread(void)
 {
 	for (int i = 0; i < SOCKET_IOTHREADS; i++) {
 #ifdef __linux__
-		l_SocketIOPollFDs[i] = epoll_create1(EPOLL_CLOEXEC);
+		l_SocketIOPollFDs[i] = epoll_create(128);
+		Utility::SetCloExec(l_SocketIOPollFDs[i]);
 #endif /* __linux__ */
 
 		Socket::SocketPair(l_SocketIOEventFDs[i]);
