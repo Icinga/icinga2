@@ -197,6 +197,7 @@ void HostDbObject::OnConfigUpdate(void)
 			query1.Category = DbCatConfig;
 			query1.WhereCriteria = new Dictionary();
 			query1.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
+			query1.WhereCriteria->Set("hostgroup_id", DbValue::FromObjectInsertID(group));
 			query1.WhereCriteria->Set("host_object_id", host);
 			queries.push_back(query1);
 
