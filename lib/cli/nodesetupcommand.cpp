@@ -169,10 +169,8 @@ int NodeSetupCommand::SetupMaster(const boost::program_options::variables_map& v
 	String apipath = FeatureUtility::GetFeaturesAvailablePath() + "/api.conf";
 	NodeUtility::CreateBackupFile(apipath);
 
-	String apipathtmp = apipath + ".tmp";
-
-	std::ofstream fp;
-	fp.open(apipathtmp.CStr(), std::ofstream::out | std::ofstream::trunc);
+	std::fstream fp;
+	String tempApiPath = Utility::CreateTempFile(apipath + ".XXXXXX", fp);
 
 	fp << "/**\n"
 	    << " * The API listener is used for distributed monitoring setups.\n"
@@ -202,11 +200,11 @@ int NodeSetupCommand::SetupMaster(const boost::program_options::variables_map& v
 	_unlink(apipath.CStr());
 #endif /* _WIN32 */
 
-	if (rename(apipathtmp.CStr(), apipath.CStr()) < 0) {
+	if (rename(tempApiPath.CStr(), apipath.CStr()) < 0) {
 		BOOST_THROW_EXCEPTION(posix_error()
 		    << boost::errinfo_api_function("rename")
 		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(apipathtmp));
+		    << boost::errinfo_file_name(tempApiPath));
 	}
 
 	/* update constants.conf with NodeName = CN + TicketSalt = random value */
@@ -376,10 +374,8 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 	String apipath = FeatureUtility::GetFeaturesAvailablePath() + "/api.conf";
 	NodeUtility::CreateBackupFile(apipath);
 
-	String apipathtmp = apipath + ".tmp";
-
-	std::ofstream fp;
-	fp.open(apipathtmp.CStr(), std::ofstream::out | std::ofstream::trunc);
+	std::fstream fp;
+	String tempApiPath = Utility::CreateTempFile(apipath + ".XXXXXX", fp);
 
 	fp << "/**\n"
 	    << " * The API listener is used for distributed monitoring setups.\n"
@@ -421,11 +417,11 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 	_unlink(apipath.CStr());
 #endif /* _WIN32 */
 
-	if (rename(apipathtmp.CStr(), apipath.CStr()) < 0) {
+	if (rename(tempApiPath.CStr(), apipath.CStr()) < 0) {
 		BOOST_THROW_EXCEPTION(posix_error()
 		    << boost::errinfo_api_function("rename")
 		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(apipathtmp));
+		    << boost::errinfo_file_name(tempApiPath));
 	}
 
 	/* generate local zones.conf with zone+endpoint */

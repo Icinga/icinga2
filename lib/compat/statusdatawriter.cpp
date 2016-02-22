@@ -536,11 +536,10 @@ void StatusDataWriter::UpdateObjectsCache(void)
 {
 	CONTEXT("Writing objects.cache file");
 
-	String objectspath = GetObjectsPath();
-	String objectspathtmp = objectspath + ".tmp";
+	String objectsPath = GetObjectsPath();
 
-	std::ofstream objectfp;
-	objectfp.open(objectspathtmp.CStr(), std::ofstream::out | std::ofstream::trunc);
+	std::fstream objectfp;
+	String tempObjectsPath = Utility::CreateTempFile(objectsPath + ".XXXXXX", objectfp);
 
 	objectfp << std::fixed;
 
@@ -760,14 +759,14 @@ void StatusDataWriter::UpdateObjectsCache(void)
 	objectfp.close();
 
 #ifdef _WIN32
-	_unlink(objectspath.CStr());
+	_unlink(objectsPath.CStr());
 #endif /* _WIN32 */
 
-	if (rename(objectspathtmp.CStr(), objectspath.CStr()) < 0) {
+	if (rename(tempObjectsPath.CStr(), objectsPath.CStr()) < 0) {
 		BOOST_THROW_EXCEPTION(posix_error()
 		    << boost::errinfo_api_function("rename")
 		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(objectspathtmp));
+		    << boost::errinfo_file_name(tempObjectsPath));
 	}
 }
 
@@ -783,11 +782,10 @@ void StatusDataWriter::StatusTimerHandler(void)
 
 	double start = Utility::GetTime();
 
-	String statuspath = GetStatusPath();
-	String statuspathtmp = statuspath + ".tmp"; /* XXX make this a global definition */
+	String statusPath = GetStatusPath();
 
-	std::ofstream statusfp;
-	statusfp.open(statuspathtmp.CStr(), std::ofstream::out | std::ofstream::trunc);
+	std::fstream statusfp;
+	String tempStatusPath = Utility::CreateTempFile(statusPath + ".XXXXXX", statusfp);
 
 	statusfp << std::fixed;
 
@@ -843,14 +841,14 @@ void StatusDataWriter::StatusTimerHandler(void)
 	statusfp.close();
 
 #ifdef _WIN32
-	_unlink(statuspath.CStr());
+	_unlink(statusPath.CStr());
 #endif /* _WIN32 */
 
-	if (rename(statuspathtmp.CStr(), statuspath.CStr()) < 0) {
+	if (rename(tempStatusPath.CStr(), statusPath.CStr()) < 0) {
 		BOOST_THROW_EXCEPTION(posix_error()
 		    << boost::errinfo_api_function("rename")
 		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(statuspathtmp));
+		    << boost::errinfo_file_name(tempStatusPath));
 	}
 
 	Log(LogNotice, "StatusDataWriter")

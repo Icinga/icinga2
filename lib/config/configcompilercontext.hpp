@@ -42,6 +42,7 @@ public:
 
 private:
 	String m_ObjectsPath;
+	String m_ObjectsTempFile;
 	StdioStream::Ptr m_ObjectsFP;
 
 	mutable boost::mutex m_Mutex;

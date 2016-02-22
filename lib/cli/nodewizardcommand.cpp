@@ -412,10 +412,8 @@ wizard_ticket:
 		String apipath = FeatureUtility::GetFeaturesAvailablePath() + "/api.conf";
 		NodeUtility::CreateBackupFile(apipath);
 
-		String apipathtmp = apipath + ".tmp";
-
-		std::ofstream fp;
-		fp.open(apipathtmp.CStr(), std::ofstream::out | std::ofstream::trunc);
+		std::fstream fp;
+		String tempApiPath = Utility::CreateTempFile(apipath + ".XXXXXX", fp);
 
 		fp << "/**\n"
 		    << " * The API listener is used for distributed monitoring setups.\n"
@@ -443,11 +441,11 @@ wizard_ticket:
 		_unlink(apipath.CStr());
 #endif /* _WIN32 */
 
-		if (rename(apipathtmp.CStr(), apipath.CStr()) < 0) {
+		if (rename(tempApiPath.CStr(), apipath.CStr()) < 0) {
 			BOOST_THROW_EXCEPTION(posix_error()
 			    << boost::errinfo_api_function("rename")
 			    << boost::errinfo_errno(errno)
-			    << boost::errinfo_file_name(apipathtmp));
+			    << boost::errinfo_file_name(tempApiPath));
 		}
 
 		/* apilistener config */
@@ -538,10 +536,9 @@ wizard_ticket:
 		String apipath = FeatureUtility::GetFeaturesAvailablePath() + "/api.conf";
 		NodeUtility::CreateBackupFile(apipath);
 
-		String apipathtmp = apipath + ".tmp";
 
-		std::ofstream fp;
-		fp.open(apipathtmp.CStr(), std::ofstream::out | std::ofstream::trunc);
+		std::fstream fp;
+		String tempApiPath = Utility::CreateTempFile(apipath + ".XXXXXX", fp);
 
 		fp << "/**\n"
 		    << " * The API listener is used for distributed monitoring setups.\n"
@@ -566,11 +563,11 @@ wizard_ticket:
 		_unlink(apipath.CStr());
 #endif /* _WIN32 */
 
-		if (rename(apipathtmp.CStr(), apipath.CStr()) < 0) {
+		if (rename(tempApiPath.CStr(), apipath.CStr()) < 0) {
 			BOOST_THROW_EXCEPTION(posix_error()
 			    << boost::errinfo_api_function("rename")
 			    << boost::errinfo_errno(errno)
-			    << boost::errinfo_file_name(apipathtmp));
+			    << boost::errinfo_file_name(tempApiPath));
 		}
 
 		/* update constants.conf with NodeName = CN + TicketSalt = random value */
