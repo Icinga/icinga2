@@ -346,22 +346,24 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 	if (send_downtime_notification)
 		OnNotificationsRequested(this, in_downtime ? NotificationDowntimeStart : NotificationDowntimeEnd, cr, "", "");
 
-	if (!was_flapping && is_flapping) {
-		OnNotificationsRequested(this, NotificationFlappingStart, cr, "", "");
+	if (send_notification) {
+		if (!was_flapping && is_flapping) {
+			OnNotificationsRequested(this, NotificationFlappingStart, cr, "", "");
 
-		Log(LogNotice, "Checkable")
-		    << "Flapping: Checkable " << GetName() << " started flapping (" << GetFlappingThreshold() << "% < " << GetFlappingCurrent() << "%).";
+			Log(LogNotice, "Checkable")
+				<< "Flapping: Checkable " << GetName() << " started flapping (" << GetFlappingThreshold() << "% < " << GetFlappingCurrent() << "%).";
 
-		NotifyFlapping(origin);
-	} else if (was_flapping && !is_flapping) {
-		OnNotificationsRequested(this, NotificationFlappingEnd, cr, "", "");
+			NotifyFlapping(origin);
+		} else if (was_flapping && !is_flapping) {
+			OnNotificationsRequested(this, NotificationFlappingEnd, cr, "", "");
 
-		Log(LogNotice, "Checkable")
-		    << "Flapping: Checkable " << GetName() << " stopped flapping (" << GetFlappingThreshold() << "% >= " << GetFlappingCurrent() << "%).";
+			Log(LogNotice, "Checkable")
+				<< "Flapping: Checkable " << GetName() << " stopped flapping (" << GetFlappingThreshold() << "% >= " << GetFlappingCurrent() << "%).";
 
-		NotifyFlapping(origin);
-	} else if (send_notification)
-		OnNotificationsRequested(this, recovery ? NotificationRecovery : NotificationProblem, cr, "", "");
+			NotifyFlapping(origin);
+		} else if (!was_flapping && !is_flapping)
+			OnNotificationsRequested(this, recovery ? NotificationRecovery : NotificationProblem, cr, "", "");
+	}
 }
 
 void Checkable::ExecuteRemoteCheck(const Dictionary::Ptr& resolvedMacros)
