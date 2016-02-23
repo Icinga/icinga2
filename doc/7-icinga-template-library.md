@@ -2160,8 +2160,8 @@ Name         | Description
 mem_used     | **Optional.** Tell the plugin to check for used memory in opposite of **mem_free**. Must specify one of these as true.
 mem_free     | **Optional.** Tell the plugin to check for free memory in opposite of **mem_used**. Must specify one of these as true.
 mem_cache    | **Optional.** If set to true plugin will count cache as free memory. Defaults to false.
-mem_warning  | **Required.** Specifiy the warning threshold as number interpreted as percent.
-mem_critical | **Required.** Specifiy the critical threshold as number interpreted as percent.
+mem_warning  | **Required.** Specify the warning threshold as number interpreted as percent.
+mem_critical | **Required.** Specify the critical threshold as number interpreted as percent.
 
 #### <a id="plugin-contrib-command-running-kernel"></a> running_kernel
 
