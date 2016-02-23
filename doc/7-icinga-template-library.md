@@ -1739,6 +1739,9 @@ postgres_standby     | **Optional.** Assume that the server is in continious WAL
 postgres_production  | **Optional.** Assume that the server is in production mode if set to true. Defaults to false.
 postgres_action      | **Required.** Determines the test executed.
 postgres_unixsocket  | **Optional.** If "postgres_unixsocket" is set to true the unix socket is used instead of an address. Defaults to false.
+postgres_query       | **Optional.** Query for "custom_query" action.
+postgres_valtype     | **Optional.** Value type of query result for "custom_query".
+postgres_reverse     | **Optional.** If "postgres_reverse" is set, warning and critical values are reversed for "custom_query" action.
 
 #### <a id="plugins-contrib-command-mongodb"></a> mongodb
 
