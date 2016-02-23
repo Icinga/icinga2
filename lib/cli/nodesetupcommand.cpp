@@ -335,16 +335,9 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 	}
 
 	/* fix permissions: root -> icinga daemon user */
-	std::vector<String> files;
-	files.push_back(ca);
-	files.push_back(key);
-	files.push_back(cert);
-
-	BOOST_FOREACH(const String& file, files) {
-		if (!Utility::SetFileOwnership(file, user, group)) {
-			Log(LogWarning, "cli")
-			    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << file << "'. Verify it yourself!";
-		}
+	if (!Utility::SetFileOwnership(key, user, group)) {
+		Log(LogWarning, "cli")
+		    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << key << "'. Verify it yourself!";
 	}
 
 	Log(LogInformation, "cli", "Requesting a signed certificate from the master.");
@@ -352,6 +345,11 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 	if (PkiUtility::RequestCertificate(master_host, master_port, key, cert, ca, trustedcert, ticket) != 0) {
 		Log(LogCritical, "cli", "Failed to request certificate from Icinga 2 master.");
 		return 1;
+	}
+
+	if (!Utility::SetFileOwnership(ca, user, group)) {
+		Log(LogWarning, "cli")
+		    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << ca << "'. Verify it yourself!";
 	}
 
 	/* fix permissions (again) when updating the signed certificate */
