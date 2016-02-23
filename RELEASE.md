@@ -7,7 +7,7 @@ Print this document.
 Check the following issue filters:
 
 * [Pending backports](https://dev.icinga.org/projects/i2/issues?query_id=41)
-* [Valid target version](https://dev.icinga.org/projects/i2/issues?query_id=55)
+* [Invalid target version](https://dev.icinga.org/projects/i2/issues?query_id=55)
 
 ## Authors
 
@@ -30,15 +30,15 @@ the changelog.py script. Also generate HTML for the wordpress release announceme
 
 Changelog:
 
-    $ ./changelog.py --version 2.4.0 --project i2
+    $ ./changelog.py --version 2.4.2 --project i2
 
 Docs:
 
-    $ ./changelog.py --version 2.4.0 --project i2 --links
+    $ ./changelog.py --version 2.4.2 --project i2 --links
 
 Wordpress:
 
-    $ ./changelog.py --version 2.4.0 --project i2 --html --links
+    $ ./changelog.py --version 2.4.2 --project i2 --html --links
 
 ## Git Tag
 
