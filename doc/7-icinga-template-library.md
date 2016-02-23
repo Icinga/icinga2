@@ -140,7 +140,7 @@ Name               | Description
 -------------------|--------------
 clamd_address        | **Required.** The host's address or unix socket (must be an absolute path).
 clamd_port           | **Optional.** Port number (default: none).
-clamd_expect         | **Optional.** String to expect in server response (may be repeated).
+clamd_expect         | **Optional.** String to expect in server response. Multiple strings must be defined as array.
 clamd_all            | **Optional.** All expect strings need to occur in server response. Defaults to false.
 clamd_escape_send    | **Optional.** Enable usage of \\n, \\r, \\t or \\\\ in send string.
 clamd_send           | **Optional.** String to send to the server.
@@ -337,7 +337,7 @@ Name               | Description
 -------------------|--------------
 ftp_address        | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
 ftp_port           | **Optional.** The FTP port number.
-ftp_expect         | **Optional.** String to expect in server response (may be repeated).
+ftp_expect         | **Optional.** String to expect in server response. Multiple strings must be defined as array.
 ftp_all            | **Optional.** All expect strings need to occur in server response. Defaults to false.
 ftp_escape_send    | **Optional.** Enable usage of \\n, \\r, \\t or \\\\ in send string.
 ftp_send           | **Optional.** String to send to the server.
@@ -1057,7 +1057,7 @@ Name            | Description
 ----------------|--------------
 tcp_address     | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
 tcp_port        | **Required.** The port that should be checked.
-tcp_expect      | **Optional.** String to expect in server response (may be repeated).
+tcp_expect      | **Optional.** String to expect in server response. Multiple strings must be defined as array.
 tcp_all         | **Optional.** All expect strings need to occur in server response. Defaults to false.
 tcp_escape_send | **Optional.** Enable usage of \\n, \\r, \\t or \\\\ in send string.
 tcp_send        | **Optional.** String to send to the server.
