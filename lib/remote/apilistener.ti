@@ -33,7 +33,7 @@ class ApiListener : ConfigObject
 	[config, required] String ca_path;
 	[config] String crl_path;
 	[config] String cipher_list {
-		 default {{{ return "ECDH+SHA256+AES128:ECDH+SHA384+AES256"; }}}
+		 default {{{ return "ALL:!LOW:!WEAK:!MEDIUM:!EXP:!NULL"; }}}
 	};
 
 	[config] String bind_host;
