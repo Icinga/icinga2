@@ -54,6 +54,121 @@ More details in the [Icinga FAQ](https://www.icinga.org/icinga/faq/).
 
 ## <a id="whats-new"></a> What's New
 
+### What's New in Version 2.4.2
+
+#### Changes
+
+* ITL
+    Additional arguments for check_disk
+    Fix incorrect path for the check_hpasm plugin
+    New command: check_iostat
+    Fix incorrect variable names for the check_impi plugin
+* Cluster
+    Improve cluster performance
+    Fix connection handling problems (multiple connections for the same endpoint)
+* Performance improvements for the DB IDO modules
+* Lots and lots of various other bugfixes
+* Documentation updates
+
+#### Feature
+
+* Feature [10660](https://dev.icinga.org/issues/10660 "Feature 10660"): Add CMake flag for disabling the unit tests
+* Feature [10777](https://dev.icinga.org/issues/10777 "Feature 10777"): Add check_iostat to ITL
+* Feature [10787](https://dev.icinga.org/issues/10787 "Feature 10787"): Add "-x" parameter in command definition for disk-windows CheckCommand
+* Feature [10807](https://dev.icinga.org/issues/10807 "Feature 10807"): Raise a config error for "Checkable" objects in global zones
+* Feature [10857](https://dev.icinga.org/issues/10857 "Feature 10857"): DB IDO: Add a log message when the connection handling is completed
+* Feature [10860](https://dev.icinga.org/issues/10860 "Feature 10860"): Log DB IDO query queue stats
+* Feature [10880](https://dev.icinga.org/issues/10880 "Feature 10880"): "setting up check plugins" section should be enhanced with package manager examples
+* Feature [10920](https://dev.icinga.org/issues/10920 "Feature 10920"): Add Timeout parameter to snmpv3 check
+* Feature [10947](https://dev.icinga.org/issues/10947 "Feature 10947"): Add example how to use custom functions in attributes
+* Feature [10964](https://dev.icinga.org/issues/10964 "Feature 10964"): Troubleshooting: Explain how to fetch the executed command
+* Feature [10988](https://dev.icinga.org/issues/10988 "Feature 10988"): Support TLSv1.1 and TLSv1.2 for the cluster transport encryption
+* Feature [11037](https://dev.icinga.org/issues/11037 "Feature 11037"): Add String#trim
+* Feature [11138](https://dev.icinga.org/issues/11138 "Feature 11138"): Checkcommand Disk : Option Freespace-ignore-reserved
+
+#### Bugfixes
+
+* Bug [7287](https://dev.icinga.org/issues/7287 "Bug 7287"): Re-checks scheduling w/ retry_interval
+* Bug [8714](https://dev.icinga.org/issues/8714 "Bug 8714"): Add priority queue for disconnect/programstatus update events
+* Bug [8976](https://dev.icinga.org/issues/8976 "Bug 8976"): DB IDO: notification_id for contact notifications is out of range
+* Bug [10226](https://dev.icinga.org/issues/10226 "Bug 10226"): Icinga2 reload timeout results in killing old and new process because of systemd
+* Bug [10449](https://dev.icinga.org/issues/10449 "Bug 10449"): Livestatus log query - filter "class" yields empty results
+* Bug [10458](https://dev.icinga.org/issues/10458 "Bug 10458"): Incorrect SQL command for creating the user of the PostgreSQL DB for the IDO
+* Bug [10460](https://dev.icinga.org/issues/10460 "Bug 10460"): A PgSQL DB for the IDO can't be created w/ UTF8
+* Bug [10497](https://dev.icinga.org/issues/10497 "Bug 10497"): check_memory and check_swap plugins do unit conversion and rounding before percentage calculations resulting in imprecise percentages
+* Bug [10544](https://dev.icinga.org/issues/10544 "Bug 10544"): check_network performance data in invalid format
+* Bug [10554](https://dev.icinga.org/issues/10554 "Bug 10554"): Non-UTF8 characters from plugins causes IDO to fail
+* Bug [10655](https://dev.icinga.org/issues/10655 "Bug 10655"): API queries cause memory leaks
+* Bug [10700](https://dev.icinga.org/issues/10700 "Bug 10700"): Crash in ExternalCommandListener
+* Bug [10711](https://dev.icinga.org/issues/10711 "Bug 10711"): Zone::CanAccessObject is very expensive
+* Bug [10713](https://dev.icinga.org/issues/10713 "Bug 10713"): ApiListener::ReplayLog can block with a lot of clients
+* Bug [10714](https://dev.icinga.org/issues/10714 "Bug 10714"): API is not working on wheezy
+* Bug [10724](https://dev.icinga.org/issues/10724 "Bug 10724"): Remove the local zone name question in node wizard
+* Bug [10728](https://dev.icinga.org/issues/10728 "Bug 10728"): node wizard does not remember user defined port
+* Bug [10736](https://dev.icinga.org/issues/10736 "Bug 10736"): Missing num_hosts_pending in /v1/status/CIB
+* Bug [10739](https://dev.icinga.org/issues/10739 "Bug 10739"): Crash on startup with incorrect directory permissions
+* Bug [10744](https://dev.icinga.org/issues/10744 "Bug 10744"): build of icinga2 with gcc 4.4.7 segfaulting with ido
+* Bug [10745](https://dev.icinga.org/issues/10745 "Bug 10745"): ITL check command possibly mistyped variable names
+* Bug [10748](https://dev.icinga.org/issues/10748 "Bug 10748"): Missing path in mkdir() exceptions
+* Bug [10760](https://dev.icinga.org/issues/10760 "Bug 10760"): Disallow lambda expressions where side-effect-free expressions are not allowed
+* Bug [10765](https://dev.icinga.org/issues/10765 "Bug 10765"): Avoid duplicate config and status updates on startup
+* Bug [10773](https://dev.icinga.org/issues/10773 "Bug 10773"): chcon partial context error in safe-reload prevents reload
+* Bug [10779](https://dev.icinga.org/issues/10779 "Bug 10779"): Wrong postgresql-setup initdb command for RHEL7
+* Bug [10780](https://dev.icinga.org/issues/10780 "Bug 10780"): The hpasm check command is using the PluginDir constant
+* Bug [10784](https://dev.icinga.org/issues/10784 "Bug 10784"): Incorrect information in --version on Linux
+* Bug [10806](https://dev.icinga.org/issues/10806 "Bug 10806"): Missing SUSE repository for monitoring plugins documentation
+* Bug [10817](https://dev.icinga.org/issues/10817 "Bug 10817"): Failed IDO query for icinga_downtimehistory
+* Bug [10818](https://dev.icinga.org/issues/10818 "Bug 10818"): Use NodeName in null and random checks
+* Bug [10819](https://dev.icinga.org/issues/10819 "Bug 10819"): Cluster config sync ignores zones.d from API packages
+* Bug [10824](https://dev.icinga.org/issues/10824 "Bug 10824"): Windows build fails with latest git master
+* Bug [10825](https://dev.icinga.org/issues/10825 "Bug 10825"): Missing documentation for API packages zones.d config sync
+* Bug [10826](https://dev.icinga.org/issues/10826 "Bug 10826"): Build error with older CMake versions on VERSION_LESS compare
+* Bug [10828](https://dev.icinga.org/issues/10828 "Bug 10828"): Relative path in include_zones does not work
+* Bug [10829](https://dev.icinga.org/issues/10829 "Bug 10829"): IDO breaks when writing to icinga_programstatus with latest snapshots
+* Bug [10830](https://dev.icinga.org/issues/10830 "Bug 10830"): Config validation doesn't fail when templates are used as object names
+* Bug [10852](https://dev.icinga.org/issues/10852 "Bug 10852"): Formatting problem in "Advanced Filter" chapter
+* Bug [10855](https://dev.icinga.org/issues/10855 "Bug 10855"): Implement support for re-ordering groups of IDO queries
+* Bug [10862](https://dev.icinga.org/issues/10862 "Bug 10862"): Evaluate if CanExecuteQuery/FieldToEscapedString lead to exceptions on !m_Connected
+* Bug [10867](https://dev.icinga.org/issues/10867 "Bug 10867"): "repository add" cli command writes invalid "type" attribute
+* Bug [10883](https://dev.icinga.org/issues/10883 "Bug 10883"): Icinga2 crashes in IDO when removing a comment
+* Bug [10890](https://dev.icinga.org/issues/10890 "Bug 10890"): Remove superfluous #ifdef
+* Bug [10891](https://dev.icinga.org/issues/10891 "Bug 10891"): is_active in IDO is only re-enabled on "every second" restart
+* Bug [10908](https://dev.icinga.org/issues/10908 "Bug 10908"): Typos in the "troubleshooting" section of the documentation
+* Bug [10923](https://dev.icinga.org/issues/10923 "Bug 10923"): API actions: Decide whether fixed: false is the right default
+* Bug [10931](https://dev.icinga.org/issues/10931 "Bug 10931"): Exception stack trace on icinga2 client when the master reloads the configuration
+* Bug [10932](https://dev.icinga.org/issues/10932 "Bug 10932"): Cluster config sync: Ensure that /var/lib/icinga2/api/zones/* exists
+* Bug [10935](https://dev.icinga.org/issues/10935 "Bug 10935"): Logrotate on systemd distros should use systemctl not service
+* Bug [10948](https://dev.icinga.org/issues/10948 "Bug 10948"): Icinga state file corruption with temporary file creation
+* Bug [10956](https://dev.icinga.org/issues/10956 "Bug 10956"): Compiler warnings in lib/remote/base64.cpp
+* Bug [10959](https://dev.icinga.org/issues/10959 "Bug 10959"): Better explaination for array values in "disk" CheckCommand docs
+* Bug [10963](https://dev.icinga.org/issues/10963 "Bug 10963"): high load and memory consumption on icinga2 agent v2.4.1
+* Bug [10968](https://dev.icinga.org/issues/10968 "Bug 10968"): Race condition when using systemd unit file
+* Bug [10974](https://dev.icinga.org/issues/10974 "Bug 10974"): Modified attributes do not work for the IcingaApplication object w/ external commands
+* Bug [10979](https://dev.icinga.org/issues/10979 "Bug 10979"): Mistake in mongodb command definition (mongodb_replicaset)
+* Bug [10981](https://dev.icinga.org/issues/10981 "Bug 10981"): Incorrect name in AUTHORS
+* Bug [10989](https://dev.icinga.org/issues/10989 "Bug 10989"): Escaped sequences not properly generated with 'node update-config'
+* Bug [10991](https://dev.icinga.org/issues/10991 "Bug 10991"): Stream buffer size is 512 bytes, could be raised
+* Bug [10998](https://dev.icinga.org/issues/10998 "Bug 10998"): Incorrect IdoPgSqlConnection Example in Documentation
+* Bug [11006](https://dev.icinga.org/issues/11006 "Bug 11006"): Segfault in ApiListener::ConfigUpdateObjectAPIHandler
+* Bug [11014](https://dev.icinga.org/issues/11014 "Bug 11014"): Check event duplication with parallel connections involved
+* Bug [11019](https://dev.icinga.org/issues/11019 "Bug 11019"): next_check noise in the IDO
+* Bug [11020](https://dev.icinga.org/issues/11020 "Bug 11020"): Master reloads with agents generate false alarms
+* Bug [11065](https://dev.icinga.org/issues/11065 "Bug 11065"): Deleting an object via API does not disable it in DB IDO
+* Bug [11074](https://dev.icinga.org/issues/11074 "Bug 11074"): Partially missing escaping in doc/7-icinga-template-library.md
+* Bug [11075](https://dev.icinga.org/issues/11075 "Bug 11075"): Outdated link to icingaweb2-module-nagvis
+* Bug [11083](https://dev.icinga.org/issues/11083 "Bug 11083"): Ensure that config sync updates are always sent on reconnect
+* Bug [11085](https://dev.icinga.org/issues/11085 "Bug 11085"): Crash in ConfigItem::RunWithActivationContext
+* Bug [11088](https://dev.icinga.org/issues/11088 "Bug 11088"): API queries on non-existant objects cause exception
+* Bug [11096](https://dev.icinga.org/issues/11096 "Bug 11096"): Windows build fails on InterlockedIncrement type
+* Bug [11103](https://dev.icinga.org/issues/11103 "Bug 11103"): Problem with hostgroup_members table cleanup
+* Bug [11111](https://dev.icinga.org/issues/11111 "Bug 11111"): Clean up unused variables a bit
+* Bug [11118](https://dev.icinga.org/issues/11118 "Bug 11118"): Cluster WQ thread dies after fork()
+* Bug [11122](https://dev.icinga.org/issues/11122 "Bug 11122"): Connections are not cleaned up properly
+* Bug [11132](https://dev.icinga.org/issues/11132 "Bug 11132"): YYYY-MM-DD time specs are parsed incorrectly
+* Bug [11178](https://dev.icinga.org/issues/11178 "Bug 11178"): Documentation: Unescaped pipe character in tables
+* Bug [11179](https://dev.icinga.org/issues/11179 "Bug 11179"): CentOS 5 doesn't support epoll_create1
+* Bug [11204](https://dev.icinga.org/issues/11204 "Bug 11204"): "node setup" tries to chown() files before they're created
+
 ### What's New in Version 2.4.1
 
 #### Changes
