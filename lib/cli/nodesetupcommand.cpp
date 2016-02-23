@@ -293,10 +293,9 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 	boost::shared_ptr<X509> trustedcert = GetX509Certificate(vm["trustedcert"].as<std::string>());
 
 	Log(LogInformation, "cli")
-	    << "Verifying trusted certificate from file '" << trustedcert << "'.";
+	    << "Verifying trusted certificate file '" << vm["trustedcert"].as<std::string>() << "'.";
 
 	/* retrieve CN and pass it (defaults to FQDN) */
-
 	String cn = Utility::GetFQDN();
 
 	if (vm.count("cn"))
