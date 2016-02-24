@@ -501,6 +501,11 @@ via a join:
         ]
     }
 
+In case you want to fetch all [comments](6-object-types.md#objecttype-comment)
+for hosts and services, you can use the following query URL (similar example
+for downtimes):
+
+   https://localhost:5665/v1/objects/comments?joins=host&joins=service
 
 ### <a id="icinga2-api-config-objects-create"></a> Creating Config Objects
 
