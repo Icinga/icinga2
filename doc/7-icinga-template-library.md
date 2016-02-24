@@ -443,7 +443,7 @@ Name                     | Description
 -------------------------|--------------
 http_address             | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
 http_vhost               | **Optional.** The virtual host that should be sent in the "Host" header.
-http_uri                 | **Optional.** The request URI.
+http_uri                 | **Optional.** The request URI for GET or POST. Defaults to `/`.
 http_port                | **Optional.** The TCP port. Defaults to 80 when not using SSL, 443 otherwise.
 http_ssl                 | **Optional.** Whether to use SSL. Defaults to false.
 http_sni                 | **Optional.** Whether to use SNI. Defaults to false.
