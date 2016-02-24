@@ -700,10 +700,10 @@ bool Utility::GlobRecursive(const String& path, const String& pattern, const boo
 }
 
 
-void Utility::MkDir(const String& path, int flags)
+void Utility::MkDir(const String& path, int mode)
 {
 #ifndef _WIN32
-	if (mkdir(path.CStr(), flags) < 0 && errno != EEXIST) {
+	if (mkdir(path.CStr(), mode) < 0 && errno != EEXIST) {
 #else /*_ WIN32 */
 	if (mkdir(path.CStr()) < 0 && errno != EEXIST) {
 #endif /* _WIN32 */
@@ -1327,10 +1327,10 @@ Value Utility::LoadJsonFile(const String& path)
 	return JsonDecode(json);
 }
 
-void Utility::SaveJsonFile(const String& path, const Value& value)
+void Utility::SaveJsonFile(const String& path, int mode, const Value& value)
 {
 	std::fstream fp;
-	String tempFilename = Utility::CreateTempFile(path + ".XXXXXX", fp);
+	String tempFilename = Utility::CreateTempFile(path + ".XXXXXX", mode, fp);
 
 	fp.exceptions(std::ofstream::failbit | std::ofstream::badbit);
 	fp << JsonEncode(value);
@@ -1706,7 +1706,7 @@ String Utility::ValidateUTF8(const String& input)
 	return output;
 }
 
-String Utility::CreateTempFile(const String& path, std::fstream& fp)
+String Utility::CreateTempFile(const String& path, int mode, std::fstream& fp)
 {
 	std::vector<char> targetPath(path.Begin(), path.End());
 	targetPath.push_back('\0');
@@ -1734,7 +1734,16 @@ String Utility::CreateTempFile(const String& path, std::fstream& fp)
 
 	close(fd);
 
-	return String(targetPath.begin(), targetPath.end() - 1);
+	String resultPath = String(targetPath.begin(), targetPath.end() - 1);
+
+	if (chmod(resultPath.CStr(), mode) < 0) {
+		BOOST_THROW_EXCEPTION(posix_error()
+		    << boost::errinfo_api_function("chmod")
+		    << boost::errinfo_errno(errno)
+		    << boost::errinfo_file_name(resultPath));
+	}
+
+	return resultPath;
 }
 
 #ifdef _WIN32

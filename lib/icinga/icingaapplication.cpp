@@ -175,7 +175,7 @@ void IcingaApplication::DumpModifiedAttributes(void)
 	String path = GetModAttrPath();
 
 	std::fstream fp;
-	String tempFilename = Utility::CreateTempFile(path + ".XXXXXX", fp);
+	String tempFilename = Utility::CreateTempFile(path + ".XXXXXX", 0640, fp);
 
 	ConfigObject::Ptr previousObject;
 	ConfigObject::DumpModifiedAttributes(boost::bind(&PersistModAttrHelper, boost::ref(fp), boost::ref(previousObject), _1, _2, _3));

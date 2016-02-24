@@ -539,7 +539,7 @@ void StatusDataWriter::UpdateObjectsCache(void)
 	String objectsPath = GetObjectsPath();
 
 	std::fstream objectfp;
-	String tempObjectsPath = Utility::CreateTempFile(objectsPath + ".XXXXXX", objectfp);
+	String tempObjectsPath = Utility::CreateTempFile(objectsPath + ".XXXXXX", 0640, objectfp);
 
 	objectfp << std::fixed;
 
@@ -785,7 +785,7 @@ void StatusDataWriter::StatusTimerHandler(void)
 	String statusPath = GetStatusPath();
 
 	std::fstream statusfp;
-	String tempStatusPath = Utility::CreateTempFile(statusPath + ".XXXXXX", statusfp);
+	String tempStatusPath = Utility::CreateTempFile(statusPath + ".XXXXXX", 0640, statusfp);
 
 	statusfp << std::fixed;
 

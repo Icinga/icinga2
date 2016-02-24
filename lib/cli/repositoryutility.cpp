@@ -357,7 +357,7 @@ bool RepositoryUtility::WriteObjectToRepositoryChangeLog(const String& path, con
 	CreateRepositoryPath(Utility::DirName(path));
 
 	std::fstream fp;
-	String tempFilename = Utility::CreateTempFile(path + ".XXXXXX", fp);
+	String tempFilename = Utility::CreateTempFile(path + ".XXXXXX", 0600, fp);
 
 	fp << JsonEncode(item);
 	fp.close();
@@ -497,7 +497,7 @@ bool RepositoryUtility::WriteObjectToRepository(const String& path, const String
 	CreateRepositoryPath(Utility::DirName(path));
 
 	std::fstream fp;
-	String tempFilename = Utility::CreateTempFile(path + ".XXXXXX", fp);
+	String tempFilename = Utility::CreateTempFile(path + ".XXXXXX", 0640, fp);
 
 	SerializeObject(fp, name, type, item);
 	fp << std::endl;
