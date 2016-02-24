@@ -54,18 +54,25 @@ More details in the [Icinga FAQ](https://www.icinga.org/icinga/faq/).
 
 ## <a id="whats-new"></a> What's New
 
+### What's New in Version 2.4.3
+
+#### Bugfixes
+
+* Bug [11211](https://dev.icinga.org/issues/11211 "Bug 11211"): Permission problem after running icinga2 node wizard
+* Bug [11212](https://dev.icinga.org/issues/11212 "Bug 11212"): Wrong permissions for files in /var/cache/icinga2/*
+
 ### What's New in Version 2.4.2
 
 #### Changes
 
 * ITL
-    Additional arguments for check_disk
-    Fix incorrect path for the check_hpasm plugin
-    New command: check_iostat
-    Fix incorrect variable names for the check_impi plugin
+    * Additional arguments for check_disk
+    * Fix incorrect path for the check_hpasm plugin
+    * New command: check_iostat
+    * Fix incorrect variable names for the check_impi plugin
 * Cluster
-    Improve cluster performance
-    Fix connection handling problems (multiple connections for the same endpoint)
+    * Improve cluster performance
+    * Fix connection handling problems (multiple connections for the same endpoint)
 * Performance improvements for the DB IDO modules
 * Lots and lots of various other bugfixes
 * Documentation updates
