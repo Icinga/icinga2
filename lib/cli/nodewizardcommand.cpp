@@ -413,7 +413,7 @@ wizard_ticket:
 		NodeUtility::CreateBackupFile(apipath);
 
 		std::fstream fp;
-		String tempApiPath = Utility::CreateTempFile(apipath + ".XXXXXX", 0640, fp);
+		String tempApiPath = Utility::CreateTempFile(apipath + ".XXXXXX", 0644, fp);
 
 		fp << "/**\n"
 		    << " * The API listener is used for distributed monitoring setups.\n"
@@ -538,7 +538,7 @@ wizard_ticket:
 
 
 		std::fstream fp;
-		String tempApiPath = Utility::CreateTempFile(apipath + ".XXXXXX", 0640, fp);
+		String tempApiPath = Utility::CreateTempFile(apipath + ".XXXXXX", 0644, fp);
 
 		fp << "/**\n"
 		    << " * The API listener is used for distributed monitoring setups.\n"

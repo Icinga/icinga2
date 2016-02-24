@@ -497,7 +497,7 @@ bool RepositoryUtility::WriteObjectToRepository(const String& path, const String
 	CreateRepositoryPath(Utility::DirName(path));
 
 	std::fstream fp;
-	String tempFilename = Utility::CreateTempFile(path + ".XXXXXX", 0640, fp);
+	String tempFilename = Utility::CreateTempFile(path + ".XXXXXX", 0644, fp);
 
 	SerializeObject(fp, name, type, item);
 	fp << std::endl;

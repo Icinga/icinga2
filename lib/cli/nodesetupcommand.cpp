@@ -170,7 +170,7 @@ int NodeSetupCommand::SetupMaster(const boost::program_options::variables_map& v
 	NodeUtility::CreateBackupFile(apipath);
 
 	std::fstream fp;
-	String tempApiPath = Utility::CreateTempFile(apipath + ".XXXXXX", 0640, fp);
+	String tempApiPath = Utility::CreateTempFile(apipath + ".XXXXXX", 0644, fp);
 
 	fp << "/**\n"
 	    << " * The API listener is used for distributed monitoring setups.\n"
@@ -374,7 +374,7 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 	NodeUtility::CreateBackupFile(apipath);
 
 	std::fstream fp;
-	String tempApiPath = Utility::CreateTempFile(apipath + ".XXXXXX", 0640, fp);
+	String tempApiPath = Utility::CreateTempFile(apipath + ".XXXXXX", 0644, fp);
 
 	fp << "/**\n"
 	    << " * The API listener is used for distributed monitoring setups.\n"
