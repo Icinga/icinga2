@@ -37,7 +37,7 @@ void ConfigCompilerContext::OpenObjectsFile(const String& filename)
 	m_ObjectsPath = filename;
 
 	std::fstream *fp = new std::fstream();
-	m_ObjectsTempFile = Utility::CreateTempFile(filename + ".XXXXXX", *fp);
+	m_ObjectsTempFile = Utility::CreateTempFile(filename + ".XXXXXX", 0600, *fp);
 
 	if (!*fp)
 		BOOST_THROW_EXCEPTION(std::runtime_error("Could not open '" + m_ObjectsTempFile + "' file"));

@@ -415,7 +415,7 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 
 	/* store the new inventory for next run */
 	NodeUtility::CreateRepositoryPath();
-	Utility::SaveJsonFile(inventory_path, inventory);
+	Utility::SaveJsonFile(inventory_path, 0600, inventory);
 
 	std::cout << "Make sure to reload Icinga 2 for these changes to take effect." << std::endl;
 

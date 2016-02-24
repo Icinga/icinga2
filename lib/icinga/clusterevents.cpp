@@ -724,7 +724,7 @@ Value ClusterEvents::UpdateRepositoryAPIHandler(const MessageOrigin::Ptr& origin
 	String repositoryFile = GetRepositoryDir() + SHA256(params->Get("endpoint")) + ".repo";
 
 	std::fstream fp;
-	String tempRepositoryFile = Utility::CreateTempFile(repositoryFile + ".XXXXXX", fp);
+	String tempRepositoryFile = Utility::CreateTempFile(repositoryFile + ".XXXXXX", 0640, fp);
 
 	fp << JsonEncode(params);
 	fp.close();

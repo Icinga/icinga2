@@ -131,7 +131,7 @@ public:
 	static void CopyFile(const String& source, const String& target);
 
 	static Value LoadJsonFile(const String& path);
-	static void SaveJsonFile(const String& path, const Value& value);
+	static void SaveJsonFile(const String& path, int mode, const Value& value);
 
 	static String GetPlatformKernel(void);
 	static String GetPlatformKernelVersion(void);
@@ -141,7 +141,7 @@ public:
 
 	static String ValidateUTF8(const String& input);
 
-	static String CreateTempFile(const String& path, std::fstream& fp);
+	static String CreateTempFile(const String& path, int mode, std::fstream& fp);
 
 private:
 	Utility(void);
