@@ -6,8 +6,8 @@
     <!-- Read this before publishing packages to chocolatey.org: https://github.com/chocolatey/chocolatey/wiki/CreatePackages -->
     <id>icinga2</id>
     <title>Icinga2</title>
-    <version>2.4.2</version>
-    <authors>2015 - The Icinga Project</authors>
+    <version>2.4.3</version>
+    <authors>2016 - The Icinga Project</authors>
     <owners>Icinga Development Team</owners>
     <summary>icinga2 - Monitoring Agent for Windows</summary>
     <description>Icinga 2 is an open source monitoring platform which notifies users about host and service outages.</description>

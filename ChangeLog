@@ -4,6 +4,13 @@ Please check [doc/1-about.md].
 
 ## What's New
 
+### What's New in Version 2.4.3
+
+#### Bugfixes
+
+* Bug 11211: Permission problem after running icinga2 node wizard
+* Bug 11212: Wrong permissions for files in /var/cache/icinga2/*
+
 ### What's New in Version 2.4.2
 
 #### Changes
