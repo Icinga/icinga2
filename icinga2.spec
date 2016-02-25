@@ -107,6 +107,13 @@ BuildRequires: bison
 BuildRequires: make
 %if 0%{?fedora}
 BuildRequires: wxGTK3-devel
+BuildRequires: firewalld-filesystem
+Requires: firewalld-filesystem
+Requires(post): firewalld-filesystem
+%endif
+%if 0%{?rhel} == 7
+Requires: firewalld
+Requires(post): firewalld
 %endif
 
 %if 0%{?build_icinga_org} && "%{_vendor}" == "redhat" && (0%{?el5} || 0%{?rhel} == 5 || "%{?dist}" == ".el5" || 0%{?el6} || 0%{?rhel} == 6 || "%{?dist}" == ".el6")
@@ -366,6 +373,11 @@ Categories=GTK;Utility;
 Keywords=Monitoring;" > %{buildroot}%{_datadir}/applications/icinga2-studio.desktop
 %endif
 
+%if 0%{?fedora} || 0%{?rhel} == 7
+mkdir -p %{buildroot}%{_prefix}/lib/firewalld/services
+install -p -m 644 tools/firewalld/%{name}.xml %{buildroot}%{_prefix}/lib/firewalld/services
+%endif
+
 %clean
 [ "%{buildroot}" != "/" ] && [ -d "%{buildroot}" ] && rm -rf %{buildroot}
 
@@ -395,6 +407,14 @@ getent passwd %{icinga_user} >/dev/null || %{_sbindir}/useradd -c "icinga" -s /s
 %endif
 
 %endif #suse/rhel
+
+%if 0%{?fedora}
+%firewalld_reload
+%endif
+%if 0%{?rhel} == 7
+test -f /usr/bin/firewall-cmd && firewall-cmd --reload --quiet || :
+%endif
+
 
 %post common
 # suse
@@ -597,6 +617,10 @@ fi
 
 %attr(0750,%{icinga_user},%{icingacmd_group}) %ghost %{_rundir}/%{name}
 %attr(2750,%{icinga_user},%{icingacmd_group}) %ghost %{_rundir}/%{name}/cmd
+
+%if 0%{?fedora} || 0%{?rhel} == 7
+%{_prefix}/lib/firewalld/services/%{name}.xml
+%endif
 
 %files libs
 %defattr(-,root,root,-)
