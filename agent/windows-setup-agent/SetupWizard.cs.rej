@@ -1,0 +1,18 @@
+diff a/agent/windows-setup-agent/SetupWizard.cs b/agent/windows-setup-agent/SetupWizard.cs	(rejected hunks)
+@@ -243,14 +246,13 @@ namespace Icinga
+ 			}
+ 
+ 			if (!RunProcess(Program.Icinga2InstallDir + "\\sbin\\icinga2.exe",
+-				"--scm-install daemon",
++				"--scm-install --scm-user \"" + txtUser.Text + "\" daemon",
+ 				out output)) {
+ 				ShowErrorText(output);
+ 				return;
+ 			}
+ 
+-			if (chkInstallNSCP.Checked)
+-			{
++			if (chkInstallNSCP.Checked) {
+ 				SetConfigureStatus(85, "Waiting for NSClient++ installation to complete...");
+ 
+ 				Process proc = new Process();

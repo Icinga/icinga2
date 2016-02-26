@@ -509,8 +509,20 @@ static int SetupService(bool install, int argc, char **argv)
 	String szArgs;
 	szArgs = Utility::EscapeShellArg(szPath) + " --scm";
 
-	for (int i = 0; i < argc; i++)
-		szArgs += " " + Utility::EscapeShellArg(argv[i]);
+	std::string scmUser = "NT AUTHORITY\\NetworkService";
+	std::ifstream initf(Utility::GetIcingaDataPath() + "\\etc\\icinga2\\user");
+	if (initf.good()) {
+		std::getline(initf, scmUser);
+	}
+	initf.close();
+
+	for (int i = 0; i < argc; i++) {
+		if (!strcmp(argv[i], "--scm-user") && i + 1 < argc) {
+			scmUser = argv[i + 1];
+			i++;
+		} else
+			szArgs += " " + Utility::EscapeShellArg(argv[i]);
+	}
 
 	SC_HANDLE schService = OpenService(schSCManager, "icinga2", SERVICE_ALL_ACCESS);
 
@@ -547,14 +559,14 @@ static int SetupService(bool install, int argc, char **argv)
 			NULL,
 			NULL,
 			NULL,
-			"NT AUTHORITY\\NetworkService",
+			scmUser.c_str(),
 			NULL);
 
 		if (schService == NULL) {
 			printf("CreateService failed (%d)\n", GetLastError());
 			CloseServiceHandle(schSCManager);
 			return 1;
-		}	
+		}
 	} else {
 		printf("Service isn't installed.\n");
 		CloseServiceHandle(schSCManager);
@@ -571,11 +583,21 @@ static int SetupService(bool install, int argc, char **argv)
 
 		printf("Service uninstalled successfully\n");
 	} else {
-		ChangeServiceConfig(schService, SERVICE_NO_CHANGE, SERVICE_AUTO_START,
-		    SERVICE_ERROR_NORMAL, szArgs.CStr(), NULL, NULL, NULL, NULL, NULL, NULL);
+		if (!ChangeServiceConfig(schService, SERVICE_NO_CHANGE, SERVICE_AUTO_START,
+			SERVICE_ERROR_NORMAL, szArgs.CStr(), NULL, NULL, NULL, scmUser.c_str(), NULL, NULL)) {
+			printf("ChangeServiceConfig failed (%d)\n", GetLastError());
+			CloseServiceHandle(schService);
+			CloseServiceHandle(schSCManager);
+			return 1;
+		}
 
 		SERVICE_DESCRIPTION sdDescription = { "The Icinga 2 monitoring application" };
-		ChangeServiceConfig2(schService, SERVICE_CONFIG_DESCRIPTION, &sdDescription);
+		if(!ChangeServiceConfig2(schService, SERVICE_CONFIG_DESCRIPTION, &sdDescription)) {
+			printf("ChangeServiceConfig2 failed (%d)\n", GetLastError());
+			CloseServiceHandle(schService);
+			CloseServiceHandle(schSCManager);
+			return 1;
+		}
 
 		if (!StartService(schService, 0, NULL)) {
 			printf("StartService failed (%d)\n", GetLastError());
@@ -584,7 +606,14 @@ static int SetupService(bool install, int argc, char **argv)
 			return 1;
 		}
 
-		printf("Service installed successfully\n");
+		printf("Service successfully installed for user '%s'\n", scmUser);
+
+		std::ofstream fuser(Utility::GetIcingaDataPath() + "\\etc\\icinga2\\user", std::ios::out | std::ios::trunc);
+		if (fuser)
+			fuser << scmUser;
+		else
+			printf("Could not write user to %s\\etc\\icinga2\\user", Utility::GetIcingaDataPath());
+		fuser.close();
 	}
 
 	CloseServiceHandle(schService);
@@ -635,7 +664,6 @@ VOID WINAPI ServiceMain(DWORD argc, LPSTR *argv)
 	l_SvcStatus.dwServiceSpecificExitCode = 0;
 
 	ReportSvcStatus(SERVICE_RUNNING, NO_ERROR, 0);
-
 	l_Job = CreateJobObject(NULL, NULL);
 
 	for (;;) {

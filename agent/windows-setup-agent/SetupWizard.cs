@@ -18,12 +18,16 @@ namespace Icinga
 	public partial class SetupWizard : Form
 	{
 		private string _TrustedFile;
+		private string Icinga2User;
 
 		public SetupWizard()
 		{
 			InitializeComponent();
 
 			txtInstanceName.Text = Icinga2InstanceName;
+
+			Icinga2User = Program.Icinga2User;
+			txtUser.Text = Icinga2User;
 		}
 
 		private void Warning(string message)
@@ -121,10 +125,12 @@ namespace Icinga
 			String result = "";
 
 			using (Process proc = Process.Start(psi)) {
-				proc.ErrorDataReceived += delegate(object sender, DataReceivedEventArgs args) {
+				proc.ErrorDataReceived += delegate (object sender, DataReceivedEventArgs args)
+				{
 					result += args.Data + "\r\n";
 				};
-				proc.OutputDataReceived += delegate(object sender, DataReceivedEventArgs args) {
+				proc.OutputDataReceived += delegate (object sender, DataReceivedEventArgs args)
+				{
 					result += args.Data + "\r\n";
 				};
 				proc.BeginOutputReadLine();
@@ -186,7 +192,8 @@ namespace Icinga
 			if (rdoNewMaster.Checked)
 				args += " --master";
 
-			Invoke((MethodInvoker)delegate {
+			Invoke((MethodInvoker)delegate
+			{
 				string master_host, master_port;
 				GetMasterHostPort(out master_host, out master_port);
 
@@ -194,7 +201,7 @@ namespace Icinga
 
 				foreach (ListViewItem lvi in lvwEndpoints.Items) {
 					args += " --endpoint " + lvi.SubItems[0].Text;
-					
+
 					if (lvi.SubItems.Count > 1)
 						args += "," + lvi.SubItems[1].Text + "," + lvi.SubItems[2].Text;
 				}
@@ -224,11 +231,16 @@ namespace Icinga
 			SetConfigureStatus(50, "Setting ACLs for the Icinga 2 directory...");
 			DirectoryInfo di = new DirectoryInfo(Program.Icinga2InstallDir);
 			DirectorySecurity ds = di.GetAccessControl();
-			FileSystemAccessRule rule = new FileSystemAccessRule("NT AUTHORITY\\NetworkService",
+			FileSystemAccessRule rule = new FileSystemAccessRule(txtUser.Text,
 				FileSystemRights.Modify,
 				InheritanceFlags.ObjectInherit | InheritanceFlags.ContainerInherit, PropagationFlags.None, AccessControlType.Allow);
-			ds.AddAccessRule(rule);
-			di.SetAccessControl(ds);
+			try {
+				ds.AddAccessRule(rule);
+				di.SetAccessControl(ds);
+			} catch (System.Security.Principal.IdentityNotMappedException) {
+				ShowErrorText("Could not set ACLs for \"" + txtUser.Text + "\". Identitiy is not mapped.\n");
+				return;
+			}
 
 			SetConfigureStatus(75, "Installing the Icinga 2 service...");
 
@@ -244,14 +256,14 @@ namespace Icinga
 			}
 
 			if (!RunProcess(Program.Icinga2InstallDir + "\\sbin\\icinga2.exe",
-				"--scm-install daemon",
+				"--scm-install --scm-user \"" + txtUser.Text + "\" daemon",
 				out output)) {
-				ShowErrorText("Running command 'icinga2.exe daemon --scm-install daemon' produced the following output:\n" + output);
+				ShowErrorText("\nRunning command 'icinga2.exe --scm-install --scm-user \"" +
+				    txtUser.Text + "\" daemon' produced the following output:\n" + output);
 				return;
 			}
 
-			if (chkInstallNSCP.Checked)
-			{
+			if (chkInstallNSCP.Checked) {
 				SetConfigureStatus(85, "Waiting for NSClient++ installation to complete...");
 
 				Process proc = new Process();
@@ -321,6 +333,11 @@ namespace Icinga
 					Warning("You need to specify a listener port.");
 					return;
 				}
+
+				if (txtUser.Text.Length == 0) {
+					Warning("Icinga2 user may not be empty.");
+					return;
+				}
 			}
 
 			if (tbcPages.SelectedTab == tabFinish || tbcPages.SelectedTab == tabError)
@@ -356,7 +373,7 @@ namespace Icinga
 				thread.Start();
 			}
 
-            /*if (tbcPages.SelectedTab == tabParameters &&
+			/*if (tbcPages.SelectedTab == tabParameters &&
 				!File.Exists(Icinga2DataDir + "\\etc\\icinga2\\pki\\agent\\agent.crt")) {
 				byte[] bytes = Convert.FromBase64String(txtBundle.Text);
 				MemoryStream ms = new MemoryStream(bytes);
@@ -372,7 +389,7 @@ namespace Icinga
 				tr.ReadToEnd(Icinga2DataDir + "\\etc\\icinga2\\pki\\agent");
 			}*/
 
-            if (tbcPages.SelectedTab == tabConfigure) {
+			if (tbcPages.SelectedTab == tabConfigure) {
 				Thread thread = new Thread(ConfigureService);
 				thread.Start();
 			}
@@ -478,6 +495,13 @@ namespace Icinga
 			while (lvwEndpoints.SelectedItems.Count > 0) {
 				lvwEndpoints.Items.Remove(lvwEndpoints.SelectedItems[0]);
 			}
-        }
+		}
+
+		private void chkDifferentUser_CheckedChanged(object sender, EventArgs e)
+		{
+			txtUser.ReadOnly = !txtUser.ReadOnly;
+			if (txtUser.ReadOnly)
+				txtUser.Text = Icinga2User;
+		}
 	}
 }

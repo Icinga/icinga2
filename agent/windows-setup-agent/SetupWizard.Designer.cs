@@ -39,6 +39,9 @@
 			this.prgConfig = new System.Windows.Forms.ProgressBar();
 			this.tabParameters = new System.Windows.Forms.TabPage();
 			this.groupBox3 = new System.Windows.Forms.GroupBox();
+			this.txtUser = new System.Windows.Forms.TextBox();
+			this.chkDifferentUser = new System.Windows.Forms.CheckBox();
+			this.chkInstallNSCP = new System.Windows.Forms.CheckBox();
 			this.chkAcceptConfig = new System.Windows.Forms.CheckBox();
 			this.chkAcceptCommands = new System.Windows.Forms.CheckBox();
 			this.txtTicket = new System.Windows.Forms.TextBox();
@@ -78,7 +81,6 @@
 			this.txtError = new System.Windows.Forms.TextBox();
 			this.lblError = new System.Windows.Forms.Label();
 			this.picBanner = new System.Windows.Forms.PictureBox();
-			this.chkInstallNSCP = new System.Windows.Forms.CheckBox();
 			this.tabFinish.SuspendLayout();
 			this.tabConfigure.SuspendLayout();
 			this.tabParameters.SuspendLayout();
@@ -192,20 +194,52 @@
 			// 
 			// groupBox3
 			// 
+			this.groupBox3.Controls.Add(this.txtUser);
+			this.groupBox3.Controls.Add(this.chkDifferentUser);
 			this.groupBox3.Controls.Add(this.chkInstallNSCP);
 			this.groupBox3.Controls.Add(this.chkAcceptConfig);
 			this.groupBox3.Controls.Add(this.chkAcceptCommands);
 			this.groupBox3.Location = new System.Drawing.Point(308, 359);
 			this.groupBox3.Name = "groupBox3";
-			this.groupBox3.Size = new System.Drawing.Size(301, 111);
+			this.groupBox3.Size = new System.Drawing.Size(301, 135);
 			this.groupBox3.TabIndex = 5;
 			this.groupBox3.TabStop = false;
 			this.groupBox3.Text = "Advanced Options";
 			// 
+			// txtUser
+			//
+			this.txtUser.Location = new System.Drawing.Point(28, 111);
+			this.txtUser.Name = "txtUser";
+			this.txtUser.ReadOnly = true;
+			this.txtUser.Size = new System.Drawing.Size(267, 20);
+			this.txtUser.TabIndex = 8;
+			this.txtUser.Text = "NT AUTHORITY\\NetworkService";
+			// 
+			// chkDifferentUser
+			// 
+			this.chkDifferentUser.AutoSize = true;
+			this.chkDifferentUser.Location = new System.Drawing.Point(9, 88);
+			this.chkDifferentUser.Name = "chkDifferentUser";
+			this.chkDifferentUser.Size = new System.Drawing.Size(109, 17);
+			this.chkDifferentUser.TabIndex = 7;
+			this.chkDifferentUser.Text = "Use different user";
+			this.chkDifferentUser.UseVisualStyleBackColor = true;
+			this.chkDifferentUser.CheckedChanged += new System.EventHandler(this.chkDifferentUser_CheckedChanged);
+			// 
+			// chkInstallNSCP
+			// 
+			this.chkInstallNSCP.AutoSize = true;
+			this.chkInstallNSCP.Location = new System.Drawing.Point(9, 65);
+			this.chkInstallNSCP.Name = "chkInstallNSCP";
+			this.chkInstallNSCP.Size = new System.Drawing.Size(149, 17);
+			this.chkInstallNSCP.TabIndex = 6;
+			this.chkInstallNSCP.Text = "Install/Update NSClient++";
+			this.chkInstallNSCP.UseVisualStyleBackColor = true;
+			// 
 			// chkAcceptConfig
 			// 
 			this.chkAcceptConfig.AutoSize = true;
-			this.chkAcceptConfig.Location = new System.Drawing.Point(9, 47);
+			this.chkAcceptConfig.Location = new System.Drawing.Point(9, 42);
 			this.chkAcceptConfig.Name = "chkAcceptConfig";
 			this.chkAcceptConfig.Size = new System.Drawing.Size(190, 17);
 			this.chkAcceptConfig.TabIndex = 1;
@@ -215,7 +249,7 @@
 			// chkAcceptCommands
 			// 
 			this.chkAcceptCommands.AutoSize = true;
-			this.chkAcceptCommands.Location = new System.Drawing.Point(9, 24);
+			this.chkAcceptCommands.Location = new System.Drawing.Point(9, 19);
 			this.chkAcceptCommands.Name = "chkAcceptCommands";
 			this.chkAcceptCommands.Size = new System.Drawing.Size(171, 17);
 			this.chkAcceptCommands.TabIndex = 0;
@@ -262,7 +296,7 @@
 			this.groupBox2.Controls.Add(this.rdoListener);
 			this.groupBox2.Location = new System.Drawing.Point(8, 359);
 			this.groupBox2.Name = "groupBox2";
-			this.groupBox2.Size = new System.Drawing.Size(294, 111);
+			this.groupBox2.Size = new System.Drawing.Size(294, 135);
 			this.groupBox2.TabIndex = 2;
 			this.groupBox2.TabStop = false;
 			this.groupBox2.Text = "TCP Listener";
@@ -347,9 +381,9 @@
 			// lvwEndpoints
 			// 
 			this.lvwEndpoints.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
-            this.colInstanceName,
-            this.colHost,
-            this.colPort});
+			this.colInstanceName,
+			this.colHost,
+			this.colPort});
 			this.lvwEndpoints.FullRowSelect = true;
 			this.lvwEndpoints.Location = new System.Drawing.Point(11, 83);
 			this.lvwEndpoints.Name = "lvwEndpoints";
@@ -488,8 +522,8 @@
 			// lvwX509Fields
 			// 
 			this.lvwX509Fields.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
-            this.colField,
-            this.colValue});
+			this.colField,
+			this.colValue});
 			this.lvwX509Fields.Location = new System.Drawing.Point(6, 19);
 			this.lvwX509Fields.Name = "lvwX509Fields";
 			this.lvwX509Fields.Size = new System.Drawing.Size(586, 172);
@@ -592,16 +626,6 @@
 			this.picBanner.TabIndex = 1;
 			this.picBanner.TabStop = false;
 			// 
-			// chkInstallNSCP
-			// 
-			this.chkInstallNSCP.AutoSize = true;
-			this.chkInstallNSCP.Location = new System.Drawing.Point(9, 70);
-			this.chkInstallNSCP.Name = "chkInstallNSCP";
-			this.chkInstallNSCP.Size = new System.Drawing.Size(149, 17);
-			this.chkInstallNSCP.TabIndex = 6;
-			this.chkInstallNSCP.Text = "Install/Update NSClient++";
-			this.chkInstallNSCP.UseVisualStyleBackColor = true;
-			// 
 			// SetupWizard
 			// 
 			this.AcceptButton = this.btnNext;
@@ -693,10 +717,12 @@
 		private System.Windows.Forms.TextBox txtTicket;
 		private System.Windows.Forms.Label lblTicket;
 		private System.Windows.Forms.ColumnHeader colInstanceName;
-        private System.Windows.Forms.GroupBox groupBox3;
-        private System.Windows.Forms.CheckBox chkAcceptConfig;
-        private System.Windows.Forms.CheckBox chkAcceptCommands;
-	private System.Windows.Forms.CheckBox chkInstallNSCP;
+		private System.Windows.Forms.GroupBox groupBox3;
+		private System.Windows.Forms.CheckBox chkAcceptConfig;
+		private System.Windows.Forms.CheckBox chkAcceptCommands;
+		private System.Windows.Forms.CheckBox chkInstallNSCP;
+		private System.Windows.Forms.TextBox txtUser;
+		private System.Windows.Forms.CheckBox chkDifferentUser;
 	}
 }
 

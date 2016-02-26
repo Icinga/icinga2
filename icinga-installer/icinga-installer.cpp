@@ -43,6 +43,7 @@ static std::string GetIcingaInstallPath(void)
 	return szFileName;
 }
 
+
 static bool ExecuteCommand(const std::string& app, const std::string& arguments)
 {
 	SHELLEXECUTEINFO sei = {};
@@ -281,7 +282,6 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
 
 	//AllocConsole();
-
 	int rc;
 
 	if (strcmp(lpCmdLine, "install") == 0) {
