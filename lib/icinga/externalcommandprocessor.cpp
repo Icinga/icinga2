@@ -215,7 +215,7 @@ void ExternalCommandProcessor::StaticInitialize(void)
 	RegisterCommand("DEL_SVC_DOWNTIME", &ExternalCommandProcessor::DelSvcDowntime, 1);
 	RegisterCommand("SCHEDULE_HOST_DOWNTIME", &ExternalCommandProcessor::ScheduleHostDowntime, 8);
 	RegisterCommand("DEL_HOST_DOWNTIME", &ExternalCommandProcessor::DelHostDowntime, 1);
-	RegisterCommand("DEL_DOWNTIME_BY_HOST_NAME", &ExternalCommandProcessor::DelDowntimeByHostName, 1);
+	RegisterCommand("DEL_DOWNTIME_BY_HOST_NAME", &ExternalCommandProcessor::DelDowntimeByHostName, 1, 4);
 	RegisterCommand("SCHEDULE_HOST_SVC_DOWNTIME", &ExternalCommandProcessor::ScheduleHostSvcDowntime, 8);
 	RegisterCommand("SCHEDULE_HOSTGROUP_HOST_DOWNTIME", &ExternalCommandProcessor::ScheduleHostgroupHostDowntime, 8);
 	RegisterCommand("SCHEDULE_HOSTGROUP_SVC_DOWNTIME", &ExternalCommandProcessor::ScheduleHostgroupSvcDowntime, 8);
