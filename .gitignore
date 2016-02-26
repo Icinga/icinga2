@@ -1,7 +1,12 @@
 .vagrant
+.idea
+*.patch
 *.komodoproject
+*.playground
 .*.swp
 .*.swo
 build/
 build-debug/
 build-release/
+debug/
+release/
