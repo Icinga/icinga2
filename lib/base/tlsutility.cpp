@@ -173,13 +173,15 @@ void SetCipherListToSSLContext(const boost::shared_ptr<SSL_CTX>& context, const 
 
   if ( cipherOk == 0 ) {
     Log(LogCritical, "SSL")
-      << "Error with cipher list '" << cipherList << "' results in no availabe ciphers: "
+      << "Error with cipher list '"
+      << cipherList
+      << "' results in no availabe ciphers: "
       << ERR_peek_error() << ", \""
       << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
 
     BOOST_THROW_EXCEPTION(openssl_error()
 			<< boost::errinfo_api_function("SSL_CTX_set_cipher_list")
-			  << errinfo_openssl_error(ERR_peek_error()));
+			<< errinfo_openssl_error(ERR_peek_error()));
   }
 }
 
