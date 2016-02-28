@@ -1322,6 +1322,9 @@ Configuration Attributes:
   display_name    |**Optional.** A short description of the time period.
   update          |**Required.** The "update" script method takes care of updating the internal representation of the time period. In virtually all cases you should import the "legacy-timeperiod" template to take care of this setting.
   ranges          |**Required.** A dictionary containing information which days and durations apply to this timeperiod.
+  prefer_includes |**Optional.** Boolean for prefer include or exclude timeperiods. Default to true.
+  excludes        |**Optional.** An array of timeperiods, which should exclude from your timerange.
+  includes        |**Optional.** An array of timeperiods, which should include into your timerange.
 
 The `/etc/icinga2/conf.d/timeperiods.conf` file is usually used to define
 timeperiods including this one.
