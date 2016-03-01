@@ -76,6 +76,8 @@ bool DeleteObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 
 	Array::Ptr results = new Array();
 
+	bool success = true;
+
 	BOOST_FOREACH(const ConfigObject::Ptr& obj, objs) {
 		Dictionary::Ptr result1 = new Dictionary();
 		result1->Set("type", type->GetName());
@@ -88,6 +90,7 @@ bool DeleteObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 			result1->Set("code", 500);
 			result1->Set("status", "Object could not be deleted.");
 			result1->Set("errors", errors);
+			success = false;
 		} else {
 			result1->Set("code", 200);
 			result1->Set("status", "Object was deleted.");
@@ -97,7 +100,11 @@ bool DeleteObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 	Dictionary::Ptr result = new Dictionary();
 	result->Set("results", results);
 
-	response.SetStatus(200, "OK");
+	if (!success)
+		response.SetStatus(500, "One or more objects could not be deleted");
+	else
+		response.SetStatus(200, "OK");
+
 	HttpUtility::SendJsonBody(response, result);
 
 	return true;
