@@ -369,13 +369,6 @@ void SocketEvents::ChangeEvents(int events)
 
 	int tid = m_ID % SOCKET_IOTHREADS;
 
-#ifdef __linux__
-	epoll_event event;
-	memset(&event, 0, sizeof(event));
-	event.data.fd = m_FD;
-	event.events = PollToEpoll(events);
-	epoll_ctl(l_SocketIOPollFDs[tid], EPOLL_CTL_MOD, m_FD, &event);
-#else /* __linux__ */
 	{
 		boost::mutex::scoped_lock lock(l_SocketIOMutex[tid]);
 
@@ -384,6 +377,13 @@ void SocketEvents::ChangeEvents(int events)
 		if (it == l_SocketIOSockets[tid].end())
 			return;
 
+#ifdef __linux__
+		epoll_event event;
+		memset(&event, 0, sizeof(event));
+		event.data.fd = m_FD;
+		event.events = PollToEpoll(events);
+		epoll_ctl(l_SocketIOPollFDs[tid], EPOLL_CTL_MOD, m_FD, &event);
+#else /* __linux__ */
 		if (it->second.Events == events)
 			return;
 
@@ -393,8 +393,10 @@ void SocketEvents::ChangeEvents(int events)
 			m_PFD->events = events;
 		else
 			l_SocketIOFDChanged[tid] = true;
+#endif /* __linux__ */
 	}
 
+#ifndef __linux__
 	WakeUpThread();
 #endif /* __linux__ */
 }
