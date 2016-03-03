@@ -702,11 +702,13 @@ bool Utility::GlobRecursive(const String& path, const String& pattern, const boo
 
 void Utility::MkDir(const String& path, int mode)
 {
+
 #ifndef _WIN32
 	if (mkdir(path.CStr(), mode) < 0 && errno != EEXIST) {
 #else /*_ WIN32 */
 	if (mkdir(path.CStr()) < 0 && errno != EEXIST) {
 #endif /* _WIN32 */
+
 		BOOST_THROW_EXCEPTION(posix_error()
 		    << boost::errinfo_api_function("mkdir")
 		    << boost::errinfo_errno(errno)
@@ -719,7 +721,11 @@ void Utility::MkDirP(const String& path, int mode)
 	size_t pos = 0;
 
 	while (pos != String::NPos) {
+#ifndef _WIN32
 		pos = path.Find("/", pos + 1);
+#else /*_ WIN32 */
+		pos = path.Find("\\", pos + 1);
+#endif /* _WIN32 */
 		MkDir(path.SubStr(0, pos), mode);
 	}
 }
