@@ -85,7 +85,7 @@ boost::shared_ptr<SSL_CTX> MakeSSLContext(const String& pubkey, const String& pr
 
 	boost::shared_ptr<SSL_CTX> sslContext = boost::shared_ptr<SSL_CTX>(SSL_CTX_new(SSLv23_method()), SSL_CTX_free);
 
-	long flags = SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3;
+	long flags = SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_CIPHER_SERVER_PREFERENCE;
 
 #ifdef SSL_OP_NO_COMPRESSION
 	flags |= SSL_OP_NO_COMPRESSION;
