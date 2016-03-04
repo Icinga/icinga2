@@ -185,6 +185,47 @@ void SetCipherListToSSLContext(const boost::shared_ptr<SSL_CTX>& context, const 
   }
 }
 
+/** Set the minimum TLS protocol to the specified SSL context.
+ *
+ * @param context The ssl context.
+ * @param tlsProtocolmin The TLS protocol minimum.
+**/
+void SetTlsProtocolminToSSLContext(const boost::shared_ptr<SSL_CTX>& context, const String& tlsProtocolmin)
+{
+  long flags = SSL_CTX_get_options(context.get());
+
+  flags |= SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3;
+
+  if ( tlsProtocolmin == "TLSv1.1" ) {
+    flags |=SSL_OP_NO_TLSv1;
+  }
+
+  if ( tlsProtocolmin == "TLSv1.2" ) {
+    flags |=SSL_OP_NO_TLSv1 | SSL_OP_NO_TLSv1_1;
+  }
+
+  SSL_CTX_set_options(context.get(),flags);
+
+
+  if ( tlsProtocolmin != SSL_TXT_TLSV1
+       && tlsProtocolmin != SSL_TXT_TLSV1_1
+       && tlsProtocolmin != SSL_TXT_TLSV1_2
+     ) {
+    Log(LogCritical, "SSL")
+      << "Error with tls_protocolmin '"
+      << tlsProtocolmin
+      << "' is unknown version. Only allowed "
+      << SSL_TXT_TLSV1
+      << ", "
+      << SSL_TXT_TLSV1_1
+      << ", "
+      << SSL_TXT_TLSV1_2;
+
+    BOOST_THROW_EXCEPTION(openssl_error()
+			  << boost::errinfo_api_function("SSL_CTX_set_options"));
+  }
+}
+
 /**
  * Loads a CRL and appends its certificates to the specified SSL context.
  *

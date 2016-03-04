@@ -101,6 +101,14 @@ void ApiListener::OnConfigLoaded(void)
 					      + GetCipherList() + "'.", GetDebugInfo()));
 	  }
 	}
+
+	if (!GetTlsProtocolmin().IsEmpty()){
+	  try {
+	    SetTlsProtocolminToSSLContext(m_SSLContext, GetTlsProtocolmin());
+	  } catch (const std::exception&) {
+	    BOOST_THROW_EXCEPTION(ScriptError("Cannot set tls protocol minimum to SSL context with tls_protocolmin: '" + GetTlsProtocolmin()+"'.",GetDebugInfo()));
+	  }
+	}
 }
 
 void ApiListener::OnAllConfigLoaded(void)
