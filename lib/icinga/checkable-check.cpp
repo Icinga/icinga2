@@ -302,9 +302,6 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 		UpdateFlappingStatus(stateChange);
 	is_flapping = IsFlapping();
 
-	/* update next check time on possible state changes */
-	UpdateNextCheck();
-
 	olock.Unlock();
 
 //	Log(LogDebug, "Checkable")
