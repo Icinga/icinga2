@@ -156,4 +156,9 @@ void CheckResultReader::ProcessCheckResultFile(const String& path) const
 
 	Log(LogDebug, "CheckResultReader")
 	    << "Processed checkresult file for object '" << checkable->GetName() << "'";
+
+	/* Reschedule the next check. The side effect of this is that for as long
+	 * as we receive check result files for a host/service we won't execute any
+	 * active checks. */
+	checkable->SetNextCheck(Utility::GetTime() + checkable->GetCheckInterval());
 }
