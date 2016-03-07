@@ -724,7 +724,7 @@ void Utility::MkDirP(const String& path, int mode)
 #ifndef _WIN32
 		pos = path.Find("/", pos + 1);
 #else /*_ WIN32 */
-		pos = path.Find("\\", pos + 1);
+		pos = path.FindFirstOf("/\\", pos + 1);
 #endif /* _WIN32 */
 		MkDir(path.SubStr(0, pos), mode);
 	}
