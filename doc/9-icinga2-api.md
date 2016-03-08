@@ -793,7 +793,7 @@ In addition to these parameters a [filter](9-icinga2-api.md#icinga2-api-filters)
 The following example acknowledges all services which are in a hard critical state and sends out
 a notification for them:
 
-    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:566tions/acknowledge-problem?type=Service&filter=service.state==2&service.state_type=1' \
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/acknowledge-problem?type=Service&filter=service.state==2&service.state_type=1' \
     -d '{ "author": "icingaadmin", "comment": "Global outage. Working on it.", "notify": true }' | python -m json.tool
 
     {
