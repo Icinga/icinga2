@@ -50,6 +50,8 @@ Configuration Attributes:
   bind\_port                |**Optional.** The port the api listener should be bound to. Defaults to `5665`.
   accept\_config            |**Optional.** Accept zone configuration. Defaults to `false`.
   accept\_commands          |**Optional.** Accept remote commands. Defaults to `false`.
+  tls\_protocolmin	    |**Optional.** TLS protocol minimum. Allowed is `TLSv1`, `TLSv1.1` or `TLSv1.2`. Defaults to `TLSv1`.
+  cipher\_list		    |**Optional.** Cipher list that is allowed.
 
 ## <a id="objecttype-apiuser"></a> ApiUser
 
