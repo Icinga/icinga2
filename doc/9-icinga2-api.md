@@ -557,6 +557,16 @@ which is required for host objects:
         ]
     }
 
+Service objects must be created using their full name ("hostname!servicename") referencing an existing host object:
+
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X PUT 'https://localhost:5665/v1/objects/services/localhost!realtime-load' \
+    -d '{ "templates": [ "generic-service" ], "attrs": { "check_command": "load", "check_interval": 1,"retry_interval": 1 } }'
+
+
+Example for a new CheckCommand object:
+
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X PUT 'https://localhost:5665/v1/objects/checkcommands/mytest' \
+    -d '{ "templates": [ "plugin-check-command" ], "attrs": { "command": [ "/usr/local/sbin/check_http" ], "arguments": { "-I": "$mytest_iparam$" } } }'
 
 
 ### <a id="icinga2-api-config-objects-modify"></a> Modifying Objects
