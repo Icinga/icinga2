@@ -104,6 +104,10 @@ Dictionary::Ptr ApiActions::ProcessCheckResult(const ConfigObject::Ptr& object,
 	cr->SetCheckSource(HttpUtility::GetLastParameter(params, "check_source"));
 	cr->SetPerformanceData(params->Get("performance_data"));
 	cr->SetCommand(params->Get("check_command"));
+
+	/* Mark this check result as passive. */
+	cr->SetActive(false);
+
 	checkable->ProcessCheckResult(cr);
 
 	/* Reschedule the next check. The side effect of this is that for as long
