@@ -287,7 +287,17 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 	Checkable::UpdateStatistics(cr, checkableType);
 
 	bool in_downtime = IsInDowntime();
-	bool send_notification = hardChange && notification_reachable && !in_downtime && !IsAcknowledged();
+
+	bool send_notification = false;
+
+	if (notification_reachable && !in_downtime && !IsAcknowledged()) {
+		/* Send notifications whether when a hard state change occured. */
+		if (hardChange)
+			send_notification = true;
+		/* Or if the checkable is volatile and in a HARD state. */
+		else if (is_volatile && GetStateType() == StateTypeHard)
+			send_notification = true;
+	}
 
 	if (!old_cr)
 		send_notification = false; /* Don't send notifications for the initial state change */
