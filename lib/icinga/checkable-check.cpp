@@ -197,7 +197,14 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 			attempt = old_attempt + 1; // NOT-OK -> NOT-OK counter
 		} else if (IsStateOK(old_state)) {
 			SetStateType(StateTypeSoft);
-			attempt = 1; //OK -> NOT-OK transition, reset the counter
+			attempt = 1; // OK -> NOT-OK transition, reset the counter
+
+			/* If there was a OK -> NOT-OK state change for actively scheduled checks,
+			 * update the next check time using the retry_interval.
+			 * Important: Add the cluster message origin.
+			 */
+			if (cr->GetActive())
+				SetNextCheck(Utility::GetTime() + GetRetryInterval(), false, origin);
 		} else {
 			attempt = old_attempt;
 		}

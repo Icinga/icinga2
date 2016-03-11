@@ -321,6 +321,8 @@ void ExternalCommandProcessor::ProcessHostCheckResult(double time, const std::ve
 	result->SetScheduleEnd(time);
 	result->SetExecutionStart(time);
 	result->SetExecutionEnd(time);
+
+	/* Mark this check result as passive. */
 	result->SetActive(false);
 
 	Log(LogNotice, "ExternalCommandProcessor")
@@ -356,6 +358,8 @@ void ExternalCommandProcessor::ProcessServiceCheckResult(double time, const std:
 	result->SetScheduleEnd(time);
 	result->SetExecutionStart(time);
 	result->SetExecutionEnd(time);
+
+	/* Mark this check result as passive. */
 	result->SetActive(false);
 
 	Log(LogNotice, "ExternalCommandProcessor")
