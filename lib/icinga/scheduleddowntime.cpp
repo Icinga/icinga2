@@ -106,7 +106,8 @@ void ScheduledDowntime::Start(bool runtimeCreated)
 void ScheduledDowntime::TimerProc(void)
 {
 	BOOST_FOREACH(const ScheduledDowntime::Ptr& sd, ConfigType::GetObjectsByType<ScheduledDowntime>()) {
-		sd->CreateNextDowntime();
+		if (sd->IsActive())
+			sd->CreateNextDowntime();
 	}
 }
 
