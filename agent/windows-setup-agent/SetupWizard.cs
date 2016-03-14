@@ -208,10 +208,10 @@ namespace Icinga
 			if (chkAcceptCommands.Checked)
 				args += " --accept-commands";
 
-			args += " --ticket " + txtTicket.Text;
-			args += " --trustedcert " + _TrustedFile;
-			args += " --cn " + txtInstanceName.Text;
-			args += " --zone " + txtInstanceName.Text;
+			args += " --ticket \"" + txtTicket.Text + "\"";
+			args += " --trustedcert \"" + _TrustedFile + "\"";
+			args += " --cn \"" + txtInstanceName.Text + "\"";
+			args += " --zone \"" + txtInstanceName.Text + "\"";
 
 			if (!RunProcess(Program.Icinga2InstallDir + "\\sbin\\icinga2.exe",
 				"node setup" + args,
