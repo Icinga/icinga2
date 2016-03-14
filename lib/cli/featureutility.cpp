@@ -197,30 +197,16 @@ int FeatureUtility::ListFeatures(std::ostream& os)
 
 bool FeatureUtility::GetFeatures(std::vector<String>& features, bool get_disabled)
 {
-	String path;
-
 	/* request all disabled features */
 	if (get_disabled) {
 		/* disable = available-enabled */
 		String available_pattern = GetFeaturesAvailablePath() + "/*.conf";
 		std::vector<String> available;
-
-		if (!Utility::Glob(available_pattern,
-		    boost::bind(&FeatureUtility::CollectFeatures, _1, boost::ref(available)), GlobFile)) {
-			Log(LogCritical, "cli")
-			    << "Cannot access path '" << path << "'.";
-			return false;
-		}
+		Utility::Glob(available_pattern, boost::bind(&FeatureUtility::CollectFeatures, _1, boost::ref(available)), GlobFile);
 
 		String enabled_pattern = GetFeaturesEnabledPath() + "/*.conf";
 		std::vector<String> enabled;
-
-		if (!Utility::Glob(enabled_pattern,
-		    boost::bind(&FeatureUtility::CollectFeatures, _1, boost::ref(enabled)), GlobFile)) {
-			Log(LogCritical, "cli")
-			    << "Cannot access path '" << path << "'.";
-			return false;
-		}
+		Utility::Glob(enabled_pattern, boost::bind(&FeatureUtility::CollectFeatures, _1, boost::ref(enabled)), GlobFile);
 
 		std::sort(available.begin(), available.end());
 		std::sort(enabled.begin(), enabled.end());
@@ -233,12 +219,7 @@ bool FeatureUtility::GetFeatures(std::vector<String>& features, bool get_disable
 		/* all enabled features */
 		String enabled_pattern = GetFeaturesEnabledPath() + "/*.conf";
 
-		if (!Utility::Glob(enabled_pattern,
-		    boost::bind(&FeatureUtility::CollectFeatures, _1, boost::ref(features)), GlobFile)) {
-			Log(LogCritical, "cli")
-			    << "Cannot access path '" << path << "'.";
-			return false;
-		}
+		Utility::Glob(enabled_pattern, boost::bind(&FeatureUtility::CollectFeatures, _1, boost::ref(features)), GlobFile);
 	}
 
 	return true;
