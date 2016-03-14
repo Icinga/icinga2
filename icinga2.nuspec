@@ -16,9 +16,6 @@
     <licenseUrl>https://www.icinga.org/resources/faq/</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <iconUrl>https://www.icinga.org/wp-content/uploads/2015/05/icinga_icon_128x128.png</iconUrl>
-    <dependencies>
-      <dependency id="DotNet3.5" />
-    </dependencies>
   </metadata>
   <files>
     <file src="tools\chocolateyInstall.ps1" target="tools" />
