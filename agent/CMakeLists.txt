@@ -24,7 +24,7 @@ if(MSVC)
   )
 
   install(
-    FILES ${CMAKE_CURRENT_SOURCE_DIR}/windows-setup-agent/bin/\${CMAKE_INSTALL_CONFIG_NAME}/Icinga2SetupAgent.exe
+    FILES ${CMAKE_CURRENT_SOURCE_DIR}/windows-setup-agent/bin/\${CMAKE_INSTALL_CONFIG_NAME}/Icinga2SetupAgent.exe ${CMAKE_CURRENT_SOURCE_DIR}/windows-setup-agent/bin/\${CMAKE_INSTALL_CONFIG_NAME}/Icinga2SetupAgent.exe.config
     DESTINATION ${CMAKE_INSTALL_SBINDIR}
   )
 endif()
