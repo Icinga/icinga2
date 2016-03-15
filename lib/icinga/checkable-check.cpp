@@ -61,7 +61,7 @@ long Checkable::GetSchedulingOffset(void)
 	return m_SchedulingOffset;
 }
 
-void Checkable::UpdateNextCheck(void)
+void Checkable::UpdateNextCheck(const MessageOrigin::Ptr& origin)
 {
 	double interval;
 
@@ -76,7 +76,7 @@ void Checkable::UpdateNextCheck(void)
 	if (interval > 1)
 		adj = fmod(now * 100 + GetSchedulingOffset(), interval * 100) / 100.0;
 
-	SetNextCheck(now - adj + interval);
+	SetNextCheck(now - adj + interval, false, origin);
 }
 
 bool Checkable::HasBeenChecked(void) const
@@ -198,13 +198,6 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 		} else if (IsStateOK(old_state)) {
 			SetStateType(StateTypeSoft);
 			attempt = 1; // OK -> NOT-OK transition, reset the counter
-
-			/* If there was a OK -> NOT-OK state change for actively scheduled checks,
-			 * update the next check time using the retry_interval.
-			 * Important: Add the cluster message origin.
-			 */
-			if (cr->GetActive())
-				SetNextCheck(Utility::GetTime() + GetRetryInterval(), false, origin);
 		} else {
 			attempt = old_attempt;
 		}
@@ -328,6 +321,18 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 		UpdateFlappingStatus(stateChange);
 
 	is_flapping = IsFlapping();
+
+	if (cr->GetActive()) {
+		/* If there was a OK -> NOT-OK state change for actively scheduled checks,
+		 * update the next check time using the retry_interval.
+		 * Important: Add the cluster message origin. */
+		UpdateNextCheck(origin);
+	} else {
+		/* Reschedule the next check for passive check results. The side effect of
+		 * this is that for as long as we receive passive results for a service we
+		 * won't execute any active checks. */
+		SetNextCheck(Utility::GetTime() + GetCheckInterval(), false, origin);
+	}
 
 	olock.Unlock();
 

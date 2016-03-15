@@ -89,7 +89,7 @@ public:
 	long GetSchedulingOffset(void);
 	void SetSchedulingOffset(long offset);
 
-	void UpdateNextCheck(void);
+	void UpdateNextCheck(const MessageOrigin::Ptr& origin = MessageOrigin::Ptr());
 
 	bool HasBeenChecked(void) const;
 	virtual bool IsStateOK(ServiceState state) = 0;
