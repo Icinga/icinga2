@@ -2013,9 +2013,10 @@ Custom attributes passed as [command parameters](3-monitoring-basics.md#command-
 
 Name                      	| Description
 --------------------------------|---------------------------------------------------------
+nwc_health_hostname             | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
+nwc_health_mode                 | **Optional.** The plugin mode. A list of all available modes can be found in the [plugin documentation](https://labs.consol.de/nagios/check_nwc_health/index.html).
 nwc_health_timeout	  	| **Optional.** Seconds before plugin times out (default: 15)
 nwc_health_blacklist	  	| **Optional.** Blacklist some (missing/failed) components.
-nwc_health_hostname	  	| **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
 nwc_health_port		  	| **Optional.** The SNMP port to use (default: 161).
 nwc_health_domain	  	| **Optional.** The transport domain to use (default: udp/ipv4, other possible values: udp6, udp/ipv6, tcp, tcp4, tcp/ipv4, tcp6, tcp/ipv6).
 nwc_health_protocol	  	| **Optional.** The SNMP protocol to use (default: 2c, other possibilities: 1,3).
