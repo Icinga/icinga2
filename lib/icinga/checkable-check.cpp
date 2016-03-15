@@ -95,16 +95,6 @@ double Checkable::GetLastCheck(void) const
 	return schedule_end;
 }
 
-bool Checkable::StateIsOK(CheckableType type, ServiceState state)
-{
-	if (type == CheckableHost && Host::CalculateState(state) == HostUp)
-		return true;
-	else if (type == CheckableService && state == ServiceOK)
-		return true;
-
-	return false;
-}
-
 void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrigin::Ptr& origin)
 {
 	{
@@ -184,13 +174,13 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 
 	if (!old_cr) {
 		SetStateType(StateTypeHard);
-	} else if (StateIsOK(checkableType, cr->GetState())) {
-		if (StateIsOK(checkableType, old_state) && old_stateType == StateTypeSoft) {
+	} else if (IsStateOK(cr->GetState())) {
+		if (IsStateOK(old_state) && old_stateType == StateTypeSoft) {
 			SetStateType(StateTypeHard); // SOFT OK -> HARD OK
 			recovery = true;
 		}
 
-		if (!StateIsOK(checkableType, old_state))
+		if (!IsStateOK(old_state))
 			recovery = true; // NOT OK -> SOFT/HARD OK
 
 		ResetNotificationNumbers();
@@ -202,17 +192,17 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 	} else {
 		if (old_attempt >= GetMaxCheckAttempts()) {
 			SetStateType(StateTypeHard);
-		} else if (old_stateType == StateTypeSoft && !StateIsOK(checkableType, old_state)) {
+		} else if (old_stateType == StateTypeSoft && !IsStateOK(old_state)) {
 			SetStateType(StateTypeSoft);
-			attempt = old_attempt + 1; //NOT-OK -> NOT-OK counter
-		} else if (StateIsOK(checkableType, old_state)) {
+			attempt = old_attempt + 1; // NOT-OK -> NOT-OK counter
+		} else if (IsStateOK(old_state)) {
 			SetStateType(StateTypeSoft);
 			attempt = 1; //OK -> NOT-OK transition, reset the counter
 		} else {
 			attempt = old_attempt;
 		}
 
-		if (!StateIsOK(checkableType, cr->GetState())) {
+		if (!IsStateOK(cr->GetState())) {
 			SaveLastState(cr->GetState(), Utility::GetTime());
 		}
 
@@ -242,7 +232,7 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 
 		/* remove acknowledgements */
 		if (GetAcknowledgement() == AcknowledgementNormal ||
-		    (GetAcknowledgement() == AcknowledgementSticky && StateIsOK(checkableType, new_state))) {
+		    (GetAcknowledgement() == AcknowledgementSticky && IsStateOK(new_state))) {
 			ClearAcknowledgement();
 		}
 
@@ -273,7 +263,7 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 		SetLastHardStateChange(now);
 	}
 
-	if (!StateIsOK(checkableType, new_state))
+	if (!IsStateOK(new_state))
 		TriggerDowntimes();
 
 	/* statistics for external tools */
@@ -295,10 +285,10 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 	if (!old_cr)
 		send_notification = false; /* Don't send notifications for the initial state change */
 
-	if (StateIsOK(checkableType, old_state) && old_stateType == StateTypeSoft)
+	if (IsStateOK(old_state) && old_stateType == StateTypeSoft)
 		send_notification = false; /* Don't send notifications for SOFT-OK -> HARD-OK. */
 
-	if (is_volatile && StateIsOK(checkableType, old_state) && StateIsOK(checkableType, new_state))
+	if (is_volatile && IsStateOK(old_state) && IsStateOK(new_state))
 		send_notification = false; /* Don't send notifications for volatile OK -> OK changes. */
 
 	bool send_downtime_notification = (GetLastInDowntime() != in_downtime);

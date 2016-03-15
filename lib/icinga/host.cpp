@@ -182,6 +182,11 @@ HostState Host::GetLastHardState(void) const
 	return CalculateState(GetLastHardStateRaw());
 }
 
+bool Host::IsStateOK(ServiceState state)
+{
+	return Host::CalculateState(state) == HostUp;
+}
+
 void Host::SaveLastState(ServiceState state, double timestamp)
 {
 	if (state == ServiceOK || state == ServiceWarning)
