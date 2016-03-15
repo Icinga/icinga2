@@ -439,44 +439,51 @@ Check command object for the `check_http` plugin.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
-Name                     | Description
--------------------------|--------------
-http_address             | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
-http_vhost               | **Optional.** The virtual host that should be sent in the "Host" header.
-http_uri                 | **Optional.** The request URI for GET or POST. Defaults to `/`.
-http_port                | **Optional.** The TCP port. Defaults to 80 when not using SSL, 443 otherwise.
-http_ssl                 | **Optional.** Whether to use SSL. Defaults to false.
-http_ssl_force_tlsv1     | **Optional.** Whether to force TLSv1.
-http_ssl_force_sslv2     | **Optional.** Whether to force SSLv2.
-http_ssl_force_sslv3     | **Optional.** Whether to force SSLv3.
-http_sni                 | **Optional.** Whether to use SNI. Defaults to false.
-http_auth_pair           | **Optional.** Add 'username:password' authorization pair.
-http_proxy_auth_pair     | **Optional.** Add 'username:password' authorization pair for proxy.
-http_ignore_body         | **Optional.** Don't download the body, just the headers.
-http_linespan            | **Optional.** Allow regex to span newline.
-http_expect_body_regex   | **Optional.** A regular expression which the body must match against. Incompatible with http_ignore_body.
-http_expect_body_eregi   | **Optional.** A case-insensitive expression which the body must match against. Incompatible with http_ignore_body.
-http_invertregex         | **Optional.** Changes behaviour of http_expect_body_regex and http_expect_body_eregi to return CRITICAL if found, OK if not.
-http_warn_time           | **Optional.** The warning threshold.
-http_critical_time       | **Optional.** The critical threshold.
-http_expect              | **Optional.** Comma-delimited list of strings, at least one of them is expected in the first (status) line of the server response. Default: HTTP/1.
-http_certificate         | **Optional.** Minimum number of days a certificate has to be valid. Port defaults to 443.
-http_clientcert          | **Optional.** Name of file contains the client certificate (PEM format).
-http_privatekey          | **Optional.** Name of file contains the private key (PEM format).
-http_headerstring        | **Optional.** String to expect in the response headers.
-http_string              | **Optional.** String to expect in the content.
-http_post                | **Optional.** URL encoded http POST data.
-http_method              | **Optional.** Set http method (for example: HEAD, OPTIONS, TRACE, PUT, DELETE).
-http_maxage              | **Optional.** Warn if document is more than seconds old.
-http_contenttype         | **Optional.** Specify Content-Type header when POSTing.
-http_useragent           | **Optional.** String to be sent in http header as User Agent.
-http_header              | **Optional.** Any other tags to be sent in http header.
-http_extendedperfdata    | **Optional.** Print additional perfdata. Defaults to false.
-http_onredirect          | **Optional.** How to handle redirect pages. Possible values: "ok" (default), "warning", "critical", "follow", "sticky" (like follow but stick to address), "stickyport" (like sticky but also to port)
-http_pagesize            | **Optional.** Minimum page size required:Maximum page size required.
-http_timeout             | **Optional.** Seconds before connection times out.
-http_ipv4                | **Optional.** Use IPv4 connection. Defaults to false.
-http_ipv6                | **Optional.** Use IPv6 connection. Defaults to false.
+Name                             | Description
+---------------------------------|---------------------------------
+http_address                     | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
+http_vhost                       | **Optional.** The virtual host that should be sent in the "Host" header.
+http_uri                         | **Optional.** The request URI for GET or POST. Defaults to `/`.
+http_port                        | **Optional.** The TCP port. Defaults to 80 when not using SSL, 443 otherwise.
+http_ssl                         | **Optional.** Whether to use SSL. Defaults to false.
+http_ssl_force_tlsv1             | **Optional.** Whether to force TLSv1.
+http_ssl_force_tlsv1_1           | **Optional.** Whether to force TLSv1.1.
+http_ssl_force_tlsv1_2           | **Optional.** Whether to force TLSv1.2.
+http_ssl_force_sslv2             | **Optional.** Whether to force SSLv2.
+http_ssl_force_sslv3             | **Optional.** Whether to force SSLv3.
+http_ssl_force_tlsv1_or_higher   | **Optional.** Whether to force TLSv1 or higher.
+http_ssl_force_tlsv1_1_or_higher | **Optional.** Whether to force TLSv1.1 or higher.
+http_ssl_force_tlsv1_2_or_higher | **Optional.** Whether to force TLSv1.2 or higher.
+http_ssl_force_sslv2_or_higher   | **Optional.** Whether to force SSLv2 or higher.
+http_ssl_force_sslv3_or_higher   | **Optional.** Whether to force SSLv3 or higher.
+http_sni                         | **Optional.** Whether to use SNI. Defaults to false.
+http_auth_pair                   | **Optional.** Add 'username:password' authorization pair.
+http_proxy_auth_pair             | **Optional.** Add 'username:password' authorization pair for proxy.
+http_ignore_body                 | **Optional.** Don't download the body, just the headers.
+http_linespan                    | **Optional.** Allow regex to span newline.
+http_expect_body_regex           | **Optional.** A regular expression which the body must match against. Incompatible with http_ignore_body.
+http_expect_body_eregi           | **Optional.** A case-insensitive expression which the body must match against. Incompatible with http_ignore_body.
+http_invertregex                 | **Optional.** Changes behaviour of http_expect_body_regex and http_expect_body_eregi to return CRITICAL if found, OK if not.
+http_warn_time                   | **Optional.** The warning threshold.
+http_critical_time               | **Optional.** The critical threshold.
+http_expect                      | **Optional.** Comma-delimited list of strings, at least one of them is expected in the first (status) line of the server response. Default: HTTP/1.
+http_certificate                 | **Optional.** Minimum number of days a certificate has to be valid. Port defaults to 443.
+http_clientcert                  | **Optional.** Name of file contains the client certificate (PEM format).
+http_privatekey                  | **Optional.** Name of file contains the private key (PEM format).
+http_headerstring                | **Optional.** String to expect in the response headers.
+http_string                      | **Optional.** String to expect in the content.
+http_post                        | **Optional.** URL encoded http POST data.
+http_method                      | **Optional.** Set http method (for example: HEAD, OPTIONS, TRACE, PUT, DELETE).
+http_maxage                      | **Optional.** Warn if document is more than seconds old.
+http_contenttype                 | **Optional.** Specify Content-Type header when POSTing.
+http_useragent                   | **Optional.** String to be sent in http header as User Agent.
+http_header                      | **Optional.** Any other tags to be sent in http header.
+http_extendedperfdata            | **Optional.** Print additional perfdata. Defaults to false.
+http_onredirect                  | **Optional.** How to handle redirect pages. Possible values: "ok" (default), "warning", "critical", "follow", "sticky" (like follow but stick to address), "stickyport" (like sticky but also to port)
+http_pagesize                    | **Optional.** Minimum page size required:Maximum page size required.
+http_timeout                     | **Optional.** Seconds before connection times out.
+http_ipv4                        | **Optional.** Use IPv4 connection. Defaults to false.
+http_ipv6                        | **Optional.** Use IPv6 connection. Defaults to false.
 
 
 ### <a id="plugin-check-command-icmp"></a> icmp
