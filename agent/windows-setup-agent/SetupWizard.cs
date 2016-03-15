@@ -145,14 +145,14 @@ namespace Icinga
 			SetRetrievalStatus(25);
 
 			string pathPrefix = Program.Icinga2InstallDir + "\\etc\\icinga2\\pki\\" + txtInstanceName.Text;
-
+			string processArguments = "pki new-cert --cn \"" + txtInstanceName.Text + "\" --key \"" + pathPrefix + ".key\" --cert \"" + pathPrefix + ".crt\"";
 			string output;
 
 			if (!File.Exists(pathPrefix + ".crt")) {
 				if (!RunProcess(Program.Icinga2InstallDir + "\\sbin\\icinga2.exe",
-					"pki new-cert --cn \"" + txtInstanceName.Text + "\" --key \"" + pathPrefix + ".key\" --cert \"" + pathPrefix + ".crt\"",
+					processArguments,
 					out output)) {
-					ShowErrorText(output);
+					ShowErrorText("Running command 'icinga2.exe " + processArguments + "' produced the following output:\n" + output);
 					return;
 				}
 			}
@@ -161,10 +161,11 @@ namespace Icinga
 
 			_TrustedFile = Path.GetTempFileName();
 
+			processArguments = "pki save-cert --host \"" + host + "\" --port \"" + port + "\" --key \"" + pathPrefix + ".key\" --cert \"" + pathPrefix + ".crt\" --trustedcert \"" + _TrustedFile + "\"";
 			if (!RunProcess(Program.Icinga2InstallDir + "\\sbin\\icinga2.exe",
-				"pki save-cert --host \"" + host + "\" --port \"" + port + "\" --key \"" + pathPrefix + ".key\" --cert \"" + pathPrefix + ".crt\" --trustedcert \"" + _TrustedFile + "\"",
+				processArguments,
 				out output)) {
-				ShowErrorText(output);
+				ShowErrorText("Running command 'icinga2.exe " + processArguments + "' produced the following output:\n" + output);
 				return;
 			}
 
@@ -216,7 +217,7 @@ namespace Icinga
 			if (!RunProcess(Program.Icinga2InstallDir + "\\sbin\\icinga2.exe",
 				"node setup" + args,
 				out output)) {
-				ShowErrorText(output);
+				ShowErrorText("Running command 'icinga2.exe " + "node setup" + args + "' produced the following output:\n" + output);
 				return;
 			}
 
@@ -238,14 +239,14 @@ namespace Icinga
 			if (!RunProcess(Program.Icinga2InstallDir + "\\sbin\\icinga2.exe",
 				"daemon --validate",
 				out output)) {
-				ShowErrorText(output);
+				ShowErrorText("Running command 'icinga2.exe daemon --validate' produced the following output:\n" + output);
 				return;
 			}
 
 			if (!RunProcess(Program.Icinga2InstallDir + "\\sbin\\icinga2.exe",
 				"--scm-install daemon",
 				out output)) {
-				ShowErrorText(output);
+				ShowErrorText("Running command 'icinga2.exe daemon --scm-install daemon' produced the following output:\n" + output);
 				return;
 			}
 
