@@ -110,11 +110,6 @@ Dictionary::Ptr ApiActions::ProcessCheckResult(const ConfigObject::Ptr& object,
 
 	checkable->ProcessCheckResult(cr);
 
-	/* Reschedule the next check. The side effect of this is that for as long
-	 * as we receive passive results for a service we won't execute any
-	 * active checks. */
-	checkable->SetNextCheck(Utility::GetTime() + checkable->GetCheckInterval());
-
 	return ApiActions::CreateResult(200, "Successfully processed check result for object '" + checkable->GetName() + "'.");
 }
 
