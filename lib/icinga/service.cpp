@@ -126,6 +126,11 @@ Host::Ptr Service::GetHost(void) const
 	return m_Host;
 }
 
+bool Service::IsStateOK(ServiceState state)
+{
+	return state == ServiceOK;
+}
+
 void Service::SaveLastState(ServiceState state, double timestamp)
 {
 	if (state == ServiceOK)

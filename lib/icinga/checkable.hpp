@@ -92,7 +92,7 @@ public:
 	void UpdateNextCheck(void);
 
 	bool HasBeenChecked(void) const;
-	bool StateIsOK(CheckableType type, ServiceState state);
+	virtual bool IsStateOK(ServiceState state) = 0;
 
 	virtual double GetLastCheck(void) const override;
 
