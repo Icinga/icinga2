@@ -54,6 +54,41 @@ More details in the [Icinga FAQ](https://www.icinga.org/icinga/faq/).
 
 ## <a id="whats-new"></a> What's New
 
+### What's New in Version 2.4.4
+
+#### Feature
+
+* Feature [10358](https://dev.icinga.org/issues/10358 "Feature 10358"): ITL: Allow to enforce specific SSL versions using the http check command
+* Feature [11205](https://dev.icinga.org/issues/11205 "Feature 11205"): Add "query" option to check_postgres command.
+
+#### Bugfixes
+
+* Bug [9642](https://dev.icinga.org/issues/9642 "Bug 9642"): Flapping notifications are sent for hosts/services which are in a downtime
+* Bug [9969](https://dev.icinga.org/issues/9969 "Bug 9969"): Problem notifications while Flapping is active
+* Bug [10225](https://dev.icinga.org/issues/10225 "Bug 10225"): Host notification type is PROBLEM but should be RECOVERY
+* Bug [10231](https://dev.icinga.org/issues/10231 "Bug 10231"): MkDirP not working on Windows
+* Bug [10766](https://dev.icinga.org/issues/10766 "Bug 10766"): DB IDO: User notification type filters are incorrect
+* Bug [10770](https://dev.icinga.org/issues/10770 "Bug 10770"): Status code 200 even if an object could not be deleted.
+* Bug [10795](https://dev.icinga.org/issues/10795 "Bug 10795"): http check's URI is really just Path
+* Bug [10976](https://dev.icinga.org/issues/10976 "Bug 10976"): Explain how to join hosts/services for /v1/objects/comments
+* Bug [11107](https://dev.icinga.org/issues/11107 "Bug 11107"): ITL: Missing documentation for nwc_health "mode" parameter
+* Bug [11159](https://dev.icinga.org/issues/11159 "Bug 11159"): Common name in node wizard isn't case sensitive
+* Bug [11208](https://dev.icinga.org/issues/11208 "Bug 11208"): CMake does not find MySQL libraries on Windows
+* Bug [11209](https://dev.icinga.org/issues/11209 "Bug 11209"): Wrong log message for trusted cert in node setup command
+* Bug [11240](https://dev.icinga.org/issues/11240 "Bug 11240"): DEL_DOWNTIME_BY_HOST_NAME does not accept optional arguments
+* Bug [11248](https://dev.icinga.org/issues/11248 "Bug 11248"): Active checks are executed even though passive results are submitted
+* Bug [11257](https://dev.icinga.org/issues/11257 "Bug 11257"): Incorrect check interval when passive check results are used
+* Bug [11273](https://dev.icinga.org/issues/11273 "Bug 11273"): Services status updated multiple times within check_interval even though no retry was triggered
+* Bug [11289](https://dev.icinga.org/issues/11289 "Bug 11289"): epoll_ctl might cause oops on Ubuntu trusty
+* Bug [11320](https://dev.icinga.org/issues/11320 "Bug 11320"): Volatile transitions from HARD NOT-OK->NOT-OK do not trigger notifications
+* Bug [11328](https://dev.icinga.org/issues/11328 "Bug 11328"): Typo in API docs
+* Bug [11331](https://dev.icinga.org/issues/11331 "Bug 11331"): Update build requirements for SLES 11 SP4
+* Bug [11349](https://dev.icinga.org/issues/11349 "Bug 11349"): 'icinga2 feature list' fails when all features are disabled
+* Bug [11350](https://dev.icinga.org/issues/11350 "Bug 11350"): Docs: Add API examples for creating services and check commands
+* Bug [11352](https://dev.icinga.org/issues/11352 "Bug 11352"): Segmentation fault during 'icinga2 daemon -C'
+* Bug [11369](https://dev.icinga.org/issues/11369 "Bug 11369"): Chocolatey package is missing uninstall function
+* Bug [11385](https://dev.icinga.org/issues/11385 "Bug 11385"): Update development docs to use 'thread apply all bt full'
+
 ### What's New in Version 2.4.3
 
 #### Bugfixes
