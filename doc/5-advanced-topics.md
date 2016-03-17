@@ -208,6 +208,7 @@ Use the `period` attribute to assign time periods to
       period = "workhours"
     }
 
+
 ## <a id="use-functions-object-config"></a> Use Functions in Object Configuration
 
 There is a limited scope where functions can be used as object attributes such as:
@@ -393,6 +394,94 @@ as value for `ping_wrta`, all other hosts use 100.
         assign where true
     }
 
+### <a id="use-functions-assign-where"></a> Use Functions in Assign Where Expressions
+
+If a simple expression for matching a name or checking if an item
+exists in an array or dictionary does not fit you should consider
+writing your own global [functions](18-language-reference.md#functions).
+You can call them inside `assign where` and `ignore where` expressions
+for [apply rules](3-monitoring-basics.md#using-apply-expressions) or
+[group assignments](3-monitoring-basics.md#group-assign-intro) just like
+any other global functions for example [match](19-library-reference.md#global-functions).
+
+The following example requires the host `myprinter` being added
+to the host group `printers-lexmark` but only if the host uses
+a template matching the name `lexmark*`.
+
+    template Host "lexmark-printer-host" {
+      vars.printer_type = "Lexmark"
+    }
+
+    object Host "myprinter" {
+      import "generic-host"
+      import "lexmark-printer-host"
+
+      address = "192.168.1.1"
+    }
+
+    /* register a global function for the assign where call */
+    globals.check_host_templates = function(host, search) {
+      /* iterate over all host templates and check if the search matches */
+      for (tmpl in host.templates) {
+        if (match(search, tmpl)) {
+          return true
+        }
+      }
+
+      /* nothing matched */
+      return false
+    }
+
+    object HostGroup "printers-lexmark" {
+      display_name = "Lexmark Printers"
+      /* call the global function and pass the arguments */
+      assign where check_host_templates(host, "lexmark*")
+    }
+
+
+Take a different more complex example: All hosts with the
+custom attribute `vars_app` as nested dictionary should be
+added to the host group `ABAP-app-server`. But only if the
+`app_type` for all entries is set to `ABAP`.
+
+It could read as wildcard match for nested dictionaries:
+
+    where host.vars.vars_app["*"].app_type == "ABAP"
+
+The solution for this problem is to register a global
+function which checks the `app_type` for all hosts
+with the `vars_app` dictionary.
+
+    object Host "appserver01" {
+      check_command = "dummy"
+      vars.vars_app["ABC"] = { app_type = "ABAP" }
+    }
+    object Host "appserver02" {
+      check_command = "dummy"
+      vars.vars_app["DEF"] = { app_type = "ABAP" }
+    }
+
+    globals.check_app_type = function(host, type) {
+      /* ensure that other hosts without the custom attribute do not match */
+      if (typeof(host.vars.vars_app) != Dictionary) {
+        return false
+      }
+
+      /* iterate over the vars_app dictionary */
+      for (key => val in host.vars.vars_app) {
+        /* if the value is a dictionary and if contains the app_type being the requested type */
+        if (typeof(val) == Dictionary && val.app_type == type) {
+          return true
+        }
+      }
+
+      /* nothing matched */
+      return false
+    }
+
+    object HostGroup "ABAP-app-server" {
+      assign where check_app_type(host, "ABAP")
+    }
 
 ## <a id="access-object-attributes-at-runtime"></a> Access Object Attributes at Runtime
 
