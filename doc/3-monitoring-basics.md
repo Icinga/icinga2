@@ -517,6 +517,8 @@ The notification is ignored for services whose host name ends with `*internal`
       ignore where match("*internal", host.name) || (service.vars.priority < 2 && host.vars.is_clustered == true)
     }
 
+More advanced examples are covered [here](5-advanced-topics.md#use-functions-assign-where).
+
 ### <a id="using-apply-services"></a> Apply Services to Hosts
 
 The sample configuration already includes a detailed example in [hosts.conf](4-configuring-icinga-2.md#hosts-conf)
