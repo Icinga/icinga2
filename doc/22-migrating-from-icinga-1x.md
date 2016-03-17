@@ -6,24 +6,6 @@ The Icinga 2 configuration format introduces plenty of behavioural changes. In
 order to ease migration from Icinga 1.x, this section provides hints and tips
 on your migration requirements.
 
-### <a id="configuration-migration-script"></a> Configuration Migration Script
-
-A standalone configuration migration script is available at
-https://github.com/Icinga/icinga2-migration. All further
-details on the command line parameters are documented there too.
-
-Please note that not each configuration detail, trick or attribute does work.
-Some specific migration steps will be still required to be done manually,
-especially if you want to preserve your existing file layout, or any other
-object specific policies.
-
-> **Note**
->
-> It is highly recommended to review your existing installation, do an inventory
-> of checked objects, thresholds and then design your new configuration layout.
-> Keep in mind that the more dynamic approach using the [apply rules](3-monitoring-basics.md#using-apply)
-> allows you to start over in many scenarios.
-
 ### <a id="manual-config-migration"></a> Manual Config Migration
 
 For a long-term migration of your configuration you should consider re-creating
