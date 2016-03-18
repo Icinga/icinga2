@@ -944,6 +944,9 @@ snmpv3_ereg          | **Optional.** Return OK state (for that OID) if extended 
 snmpv3_eregi         | **Optional.** Return OK state (for that OID) if case-insensitive extended REGEX matches.
 snmpv3_invert_search | **Optional.** Invert search result and return CRITICAL if found
 snmpv3_label         | **Optional.** Prefix label for output value.
+snmpv3_units         | **Optional.** Units label(s) for output value (e.g., 'sec.').
+snmpv3_rate_multiplier | **Optional.** Converts rate per second. For example, set to 60 to convert to per minute.
+snmpv3_rate          | **Optional.** Boolean. Enable rate calculation.
 snmpv3_timeout       | **Optional.** The command timeout in seconds. Defaults to 10 seconds.
 
 ### <a id="plugin-check-command-snmp-uptime"></a> snmp-uptime
