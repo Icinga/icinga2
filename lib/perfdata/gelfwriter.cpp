@@ -116,7 +116,7 @@ void GelfWriter::CheckResultHandler(const Checkable::Ptr& checkable, const Check
 
 	if (cr) {
 		fields->Set("short_message", CompatUtility::GetCheckResultOutput(cr));
-		fields->Set("full_message", CompatUtility::GetCheckResultLongOutput(cr));
+		fields->Set("full_message", cr->GetOutput());
 		fields->Set("_check_source", cr->GetCheckSource());
 	}
 
@@ -243,7 +243,7 @@ void GelfWriter::StateChangeHandler(const Checkable::Ptr& checkable, const Check
 
 	if (cr) {
 		fields->Set("short_message", CompatUtility::GetCheckResultOutput(cr));
-		fields->Set("full_message", CompatUtility::GetCheckResultLongOutput(cr));
+		fields->Set("full_message", cr->GetOutput());
 		fields->Set("_check_source", cr->GetCheckSource());
 	}
 
