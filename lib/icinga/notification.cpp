@@ -466,7 +466,7 @@ void Notification::ExecuteNotificationHelper(NotificationType type, const User::
 
 		if (!command) {
 			Log(LogDebug, "Notification")
-			    << "No notification_command found for notification '" << GetName() << "'. Skipping execution.";
+			    << "No command found for notification '" << GetName() << "'. Skipping execution.";
 			return;
 		}
 
@@ -482,7 +482,9 @@ void Notification::ExecuteNotificationHelper(NotificationType type, const User::
 		Service::OnNotificationSentToUser(this, GetCheckable(), user, type, cr, author, text, command->GetName());
 
 		Log(LogInformation, "Notification")
-		    << "Completed sending notification '" << GetName() << "' for checkable '" << GetCheckable()->GetName() << "'";
+		    << "Completed sending notification '" << GetName()
+		    << "' for checkable '" << GetCheckable()->GetName()
+		    << "' and user '" << user->GetName() << "'.";
 	} catch (const std::exception& ex) {
 		Log(LogWarning, "Notification")
 		    << "Exception occured during notification for checkable '"

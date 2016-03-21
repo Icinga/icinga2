@@ -833,8 +833,7 @@ void DbEvents::AddNotificationHistory(const Notification::Ptr& notification, con
 	query1.Table = "notifications";
 	query1.Type = DbQueryInsert;
 	query1.Category = DbCatNotification;
-	/* store the object ptr for caching the insert id for this object */
-	query1.NotificationObject = notification;
+	query1.NotificationInsertID = new DbValue(DbValueObjectInsertID, -1);
 
 	Host::Ptr host;
 	Service::Ptr service;
@@ -868,15 +867,16 @@ void DbEvents::AddNotificationHistory(const Notification::Ptr& notification, con
 	query1.Fields = fields1;
 	DbObject::OnQuery(query1);
 
-	DbQuery query2;
-	query2.Table = "contactnotifications";
-	query2.Type = DbQueryInsert;
-	query2.Category = DbCatNotification;
+	std::vector<DbQuery> queries;
 
-	/* filtered users */
 	BOOST_FOREACH(const User::Ptr& user, users) {
 		Log(LogDebug, "DbEvents")
 		    << "add contact notification history for service '" << checkable->GetName() << "' and user '" << user->GetName() << "'.";
+
+		DbQuery query2;
+		query2.Table = "contactnotifications";
+		query2.Type = DbQueryInsert;
+		query2.Category = DbCatNotification;
 
 		Dictionary::Ptr fields2 = new Dictionary();
 		fields2->Set("contact_object_id", user);
@@ -885,12 +885,14 @@ void DbEvents::AddNotificationHistory(const Notification::Ptr& notification, con
 		fields2->Set("end_time", DbValue::FromTimestamp(time_bag.first));
 		fields2->Set("end_time_usec", time_bag.second);
 
-		fields2->Set("notification_id", notification); /* DbConnection class fills in real ID from notification insert id cache */
+		fields2->Set("notification_id", query1.NotificationInsertID);
 		fields2->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
 		query2.Fields = fields2;
-		DbObject::OnQuery(query2);
+		queries.push_back(query2);
 	}
+
+	DbObject::OnMultipleQueries(queries);
 }
 
 /* statehistory */

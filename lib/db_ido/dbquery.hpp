@@ -21,6 +21,7 @@
 #define DBQUERY_H
 
 #include "db_ido/i2-db_ido.hpp"
+#include "db_ido/dbvalue.hpp"
 #include "icinga/customvarobject.hpp"
 #include "base/dictionary.hpp"
 #include "base/configobject.hpp"
@@ -67,7 +68,7 @@ struct I2_DB_IDO_API DbQuery
 	Dictionary::Ptr Fields;
 	Dictionary::Ptr WhereCriteria;
 	intrusive_ptr<DbObject> Object;
-	intrusive_ptr<CustomVarObject> NotificationObject;
+	DbValue::Ptr NotificationInsertID;
 	bool ConfigUpdate;
 	bool StatusUpdate;
 	WorkQueuePriority Priority;

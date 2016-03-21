@@ -93,3 +93,8 @@ Value DbValue::GetValue(void) const
 {
 	return m_Value;
 }
+
+void DbValue::SetValue(const Value& value)
+{
+	m_Value = value;
+}
