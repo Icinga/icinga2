@@ -661,7 +661,7 @@ bool Utility::GlobRecursive(const String& path, const String& pattern, const boo
 
 		struct stat statbuf;
 
-		if (lstat(cpath.CStr(), &statbuf) < 0)
+		if (stat(cpath.CStr(), &statbuf) < 0)
 			continue;
 
 		if (S_ISDIR(statbuf.st_mode))
