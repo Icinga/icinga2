@@ -421,7 +421,13 @@ Requirements:
 * Windows Vista/Server 2008 or higher
 * [Microsoft .NET Framework 2.0](http://www.microsoft.com/de-de/download/details.aspx?id=1639) if not already installed.
 
-The setup wizard will install Icinga 2 and then continue with SSL certificate generation,
+The installer package includes the [NSClient++](http://www.nsclient.org/) so Icinga 2 can use its built-in plugins. You can use [predefined commands from the ITL](7-icinga-template-library.md#nscp-plugin-check-commands) for these plugins.
+
+If you want to install the Client silently / unattended use the `/S` modifier. Using `/D` allows for changing the location where the Client will be installed.
+
+    C:> Icinga2-v2.4.4.exe /S /D=D:\tools\monitoring
+
+After the installation you can run Icinga 2 from the Start menu. (The graphical installer will offer to run Icinga 2 right after the installation) On the first start Icinga 2 will show you the setup wizard which will help you with SSL certificate generation,
 CSR-Autosigning and configuration setup.
 
 You'll need the following configuration details:
@@ -434,7 +440,9 @@ You'll need the following configuration details:
 for CSR Auto-Signing
 * Bind host/port for the Api feature (optional)
 
-Once install is done, Icinga 2 is automatically started as a Windows service.
+Besides the configuration changes, the setup wizard offers you to install the included NSClient++ package.
+
+Once install and configuration is done, Icinga 2 is automatically started as a Windows service. Running Icinga 2 again from the Start menu will allow you to change the settings from the the first setup wizard run. Please keep in mind that you can change all those settings within the configuration file and on the commandline.
 
 The Icinga 2 configuration is located inside the installation path and can be edited with
 your favorite editor.
