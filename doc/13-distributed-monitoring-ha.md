@@ -50,18 +50,14 @@ Decide whether to use the built-in [configuration syncronization](13-distributed
 Icinga 2 provides [CLI commands](8-cli-commands.md#cli-command-pki) assisting with CA
 and node certificate creation for your Icinga 2 distributed setup.
 
-> **Tip**
->
-> You can also use the master and client setup wizards to install the cluster nodes
-> using CSR-Autosigning.
->
-> The manual steps are helpful if you want to use your own and/or existing CA (for example
-> Puppet CA).
+You can also use the master and client setup wizards to install the cluster nodes
+using CSR-Autosigning.
 
-> **Note**
->
-> You're free to use your own method to generated a valid ca and signed client
-> certificates.
+The manual steps are helpful if you want to use your own and/or existing CA (for example
+Puppet CA).
+
+You're free to use your own method to generated a valid ca and signed client
+certificates.
 
 The first step is the creation of the certificate authority (CA) by running the
 following command:
