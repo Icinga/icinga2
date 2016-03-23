@@ -33,10 +33,14 @@ struct I2_BASE_API ScriptFrame
 	Dictionary::Ptr Locals;
 	Value Self;
 	bool Sandboxed;
+	int Depth;
 
 	ScriptFrame(void);
 	ScriptFrame(const Value& self);
 	~ScriptFrame(void);
+
+	void IncreaseStackDepth(void);
+	void DecreaseStackDepth(void);
 
 	static ScriptFrame *GetCurrentFrame(void);
 
