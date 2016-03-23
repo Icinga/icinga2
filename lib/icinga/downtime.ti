@@ -81,7 +81,7 @@ class Downtime : ConfigObject < DowntimeNameComposer
 	[state] Array::Ptr triggers {
 		default {{{ return new Array(); }}}
 	};
-	int legacy_id;
+	[state] int legacy_id;
 	[state] bool was_cancelled;
 	[config] String config_owner;
 };
