@@ -32,11 +32,16 @@ void Zone::OnAllConfigLoaded(void)
 	m_Parent = Zone::GetByName(GetParentRaw());
 
 	Zone::Ptr zone = m_Parent;
+	int levels = 0;
 
 	while (zone) {
 		m_AllParents.push_back(zone);
 
 		zone = Zone::GetByName(zone->GetParentRaw());
+		levels++;
+
+		if (levels > 32)
+			BOOST_THROW_EXCEPTION(ScriptError("Infinite recursion detected while resolving zone graph. Check your zone hierarchy.", GetDebugInfo()));
 	}
 }
 
