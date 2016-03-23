@@ -26,13 +26,13 @@ using namespace icinga;
 boost::thread_specific_ptr<std::stack<ScriptFrame *> > ScriptFrame::m_ScriptFrames;
 
 ScriptFrame::ScriptFrame(void)
-	: Locals(new Dictionary()), Self(ScriptGlobal::GetGlobals()), Sandboxed(false)
+	: Locals(new Dictionary()), Self(ScriptGlobal::GetGlobals()), Sandboxed(false), Depth(0)
 {
 	PushFrame(this);
 }
 
 ScriptFrame::ScriptFrame(const Value& self)
-	: Locals(new Dictionary()), Self(self), Sandboxed(false)
+	: Locals(new Dictionary()), Self(self), Sandboxed(false), Depth(0)
 {
 	PushFrame(this);
 }
@@ -41,6 +41,19 @@ ScriptFrame::~ScriptFrame(void)
 {
 	ScriptFrame *frame = PopFrame();
 	ASSERT(frame == this);
+}
+
+void ScriptFrame::IncreaseStackDepth(void)
+{
+	if (Depth + 1 > 300)
+		BOOST_THROW_EXCEPTION(ScriptError("Stack overflow while evaluating expression: Recursion level too deep."));
+
+	Depth++;
+}
+
+void ScriptFrame::DecreaseStackDepth(void)
+{
+	Depth--;
 }
 
 ScriptFrame *ScriptFrame::GetCurrentFrame(void)
@@ -72,8 +85,10 @@ void ScriptFrame::PushFrame(ScriptFrame *frame)
 		m_ScriptFrames.reset(frames);
 	}
 
-	if (frames->size() > 500)
-		BOOST_THROW_EXCEPTION(ScriptError("Recursion level too deep."));
+	if (!frames->empty()) {
+		ScriptFrame *parent = frames->top();
+		frame->Depth += parent->Depth;
+	}
 
 	frames->push(frame);
 }

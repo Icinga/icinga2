@@ -61,14 +61,23 @@ ExpressionResult Expression::Evaluate(ScriptFrame& frame, DebugHint *dhint) cons
 			<< "Executing:\n" << msgbuf.str();*/
 #endif /* I2_DEBUG */
 
-		return DoEvaluate(frame, dhint);
+		frame.IncreaseStackDepth();
+		ExpressionResult result = DoEvaluate(frame, dhint);
+		frame.DecreaseStackDepth();
+		return result;
 	} catch (ScriptError& ex) {
+		frame.DecreaseStackDepth();
+
 		ScriptBreakpoint(frame, &ex, GetDebugInfo());
 		throw;
 	} catch (const std::exception& ex) {
+		frame.DecreaseStackDepth();
+
 		BOOST_THROW_EXCEPTION(ScriptError("Error while evaluating expression: " + String(ex.what()), GetDebugInfo())
 		    << boost::errinfo_nested_exception(boost::current_exception()));
 	}
+
+	frame.DecreaseStackDepth();
 }
 
 bool Expression::GetReference(ScriptFrame& frame, bool init_dict, Value *parent, String *index, DebugHint **dhint) const
