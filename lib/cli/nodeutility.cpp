@@ -628,7 +628,7 @@ void NodeUtility::SerializeObject(std::ostream& fp, const Dictionary::Ptr& objec
 		ConfigWriter::EmitIdentifier(fp, kv.first, true);
 		fp << " = ";
 		ConfigWriter::EmitValue(fp, 1, kv.second);
-		fp << ";\n";
+		fp << "\n";
 	}
 
 	fp << "}\n\n";
