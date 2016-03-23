@@ -40,22 +40,34 @@ Ubuntu (PPA):
     # add-apt-repository ppa:formorer/icinga
     # apt-get update
 
-RHEL/CentOS:
+RHEL/CentOS 7:
 
-    # rpm --import http://packages.icinga.org/icinga.key
-    # curl -o /etc/yum.repos.d/ICINGA-release.repo http://packages.icinga.org/epel/ICINGA-release.repo
-    # yum makecache
+    yum install https://packages.icinga.org/epel/7/release/noarch/icinga-rpm-release-7-1.el7.centos.noarch.rpm
+
+RHEL/CentOS 6:
+
+    yum install https://packages.icinga.org/epel/6/release/noarch/icinga-rpm-release-6-1.el6.noarch.rpm
+
+RHEL/CentOS 5:
+
+     rpm -i http://packages.icinga.org/epel/5/release/noarch/icinga-rpm-release-5-1.el5.centos.noarch.rpm
 
 The packages for RHEL/CentOS depend on other packages which are distributed
 as part of the [EPEL repository](http://fedoraproject.org/wiki/EPEL). Please
 make sure to enable this repository by following
 [these instructions](http://fedoraproject.org/wiki/EPEL#How_can_I_use_these_extra_packages.3F).
 
-Fedora:
+Fedora 23:
 
-    # rpm --import http://packages.icinga.org/icinga.key
-    # curl -o /etc/yum.repos.d/ICINGA-release.repo http://packages.icinga.org/fedora/ICINGA-release.repo
-    # yum makecache
+     dnf install https://packages.icinga.org/fedora/23/release/noarch/icinga-rpm-release-23-1.fc23.noarch.rpm
+
+Fedora 22:
+
+    dnf install https://packages.icinga.org/fedora/22/release/noarch/icinga-rpm-release-22-1.fc22.noarch.rpm
+
+Fedora 21:
+
+    yum install http://packages.icinga.org/fedora/21/release/noarch/icinga-rpm-release-21-1.fc21.noarch.rpm
 
 SLES 11:
 
