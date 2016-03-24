@@ -226,6 +226,23 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 
 	dobj->SetName(name);
 
+	Dictionary::Ptr dhint = debugHints.ToDictionary();
+
+	try {
+		DefaultValidationUtils utils;
+		dobj->Validate(FAConfig, utils);
+	} catch (ValidationError& ex) {
+		if (m_IgnoreOnError) {
+			Log(LogWarning, "ConfigObject")
+			    << "Ignoring config object '" << m_Name << "' of type '" << m_Type << "' due to errors: " << DiagnosticInformation(ex);
+
+			return ConfigObject::Ptr();
+		}
+
+		ex.SetDebugHint(dhint);
+		throw;
+	}
+
 	try {
 		dobj->OnConfigLoaded();
 	} catch (const std::exception& ex) {
@@ -244,8 +261,6 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 	persistentItem->Set("type", GetType());
 	persistentItem->Set("name", GetName());
 	persistentItem->Set("properties", Serialize(dobj, FAConfig));
-
-	Dictionary::Ptr dhint = debugHints.ToDictionary();
 	persistentItem->Set("debug_hints", dhint);
 
 	Array::Ptr di = new Array();
@@ -255,21 +270,6 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 	di->Add(m_DebugInfo.LastLine);
 	di->Add(m_DebugInfo.LastColumn);
 	persistentItem->Set("debug_info", di);
-
-	try {
-		DefaultValidationUtils utils;
-		dobj->Validate(FAConfig, utils);
-	} catch (ValidationError& ex) {
-		if (m_IgnoreOnError) {
-			Log(LogWarning, "ConfigObject")
-			    << "Ignoring config object '" << m_Name << "' of type '" << m_Type << "' due to errors: " << DiagnosticInformation(ex);
-
-			return ConfigObject::Ptr();
-		}
-
-		ex.SetDebugHint(dhint);
-		throw;
-	}
 
 	ConfigCompilerContext::GetInstance()->WriteObject(persistentItem);
 	persistentItem.reset();
