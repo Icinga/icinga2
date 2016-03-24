@@ -111,6 +111,8 @@ void User::ValidateStates(const Array::Ptr& value, const ValidationUtils& utils)
 
 void User::ValidateTypes(const Array::Ptr& value, const ValidationUtils& utils)
 {
+	ObjectImpl<User>::ValidateTypes(value, utils);
+
 	int tfilter = FilterArrayToInt(value, 0);
 
 	if ((tfilter & ~(1 << NotificationDowntimeStart | 1 << NotificationDowntimeEnd | 1 << NotificationDowntimeRemoved |

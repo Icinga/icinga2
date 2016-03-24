@@ -158,6 +158,33 @@ static bool FieldTypeCmp(const Field& a, const Field& b)
 	return a.Type.GetRealType() < b.Type.GetRealType();
 }
 
+static std::string FieldTypeToIcingaName(const Field& field, bool inner)
+{
+	std::string ftype = field.Type.TypeName;
+
+	if (!inner && field.Type.ArrayRank > 0)
+		return "Array";
+
+	if (field.Type.IsName)
+		return "String";
+
+	if (field.Attributes & FAEnum)
+		return "Number";
+
+	if (ftype == "bool" || ftype == "int" || ftype == "double")
+		return "Number";
+
+	if (ftype == "int" || ftype == "double")
+		return "Number";
+	else if (ftype == "bool")
+		return "Boolean";
+
+	if (ftype.find("::Ptr") != std::string::npos)
+		return ftype.substr(0, ftype.size() - strlen("::Ptr"));
+
+	return ftype;
+}
+
 void ClassCompiler::OptimizeStructLayout(std::vector<Field>& fields)
 {
 	std::sort(fields.begin(), fields.end(), FieldTypeCmp);
@@ -342,21 +369,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 
 		size_t num = 0;
 		for (it = klass.Fields.begin(); it != klass.Fields.end(); it++) {
-			std::string ftype = it->Type.GetRealType();
-
-			if (ftype == "bool" || ftype == "int" || ftype == "double")
-				ftype = "Number";
-
-			if (ftype == "int" || ftype == "double")
-				ftype = "Number";
-			else if (ftype == "bool")
-				ftype = "Boolean";
-
-			if (ftype.find("::Ptr") != std::string::npos)
-				ftype = ftype.substr(0, ftype.size() - strlen("::Ptr"));
-
-			if (it->Attributes & FAEnum)
-				ftype = "Number";
+			std::string ftype = FieldTypeToIcingaName(*it, false);
 
 			std::string nameref;
 
@@ -487,33 +500,39 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 
 		const Field& field = *it;
 
-		if ((field.Attributes & (FARequired)) || field.Type.IsName) {
-			if (field.Attributes & FARequired) {
-				if (field.Type.GetRealType().find("::Ptr") != std::string::npos)
-					m_Impl << "\t" << "if (!value)" << std::endl;
-				else
-					m_Impl << "\t" << "if (value.IsEmpty())" << std::endl;
+		if (field.Attributes & FARequired) {
+			if (field.Type.GetRealType().find("::Ptr") != std::string::npos)
+				m_Impl << "\t" << "if (!value)" << std::endl;
+			else
+				m_Impl << "\t" << "if (value.IsEmpty())" << std::endl;
 
-				m_Impl << "\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_cast<ConfigObject *>(this), boost::assign::list_of(\"" << field.Name << "\"), \"Attribute must not be empty.\"));" << std::endl << std::endl;
-			}
+			m_Impl << "\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_cast<ConfigObject *>(this), boost::assign::list_of(\"" << field.Name << "\"), \"Attribute must not be empty.\"));" << std::endl << std::endl;
+		}
 
-			if (field.Type.IsName) {
-				if (field.Type.ArrayRank > 0) {
-					m_Impl << "\t" << "if (value) {" << std::endl
-					       << "\t\t" << "ObjectLock olock(value);" << std::endl
-					       << "\t\t" << "BOOST_FOREACH(const String& ref, value) {" << std::endl;
-				} else
-					m_Impl << "\t" << "String ref = value;" << std::endl;
+		if (field.Type.ArrayRank > 0) {
+			m_Impl << "\t" << "if (value) {" << std::endl
+			       << "\t\t" << "ObjectLock olock(value);" << std::endl
+			       << "\t\t" << "BOOST_FOREACH(const Value& avalue, value) {" << std::endl;
+		} else
+			m_Impl << "\t" << "Value avalue = value;" << std::endl;
 
-				m_Impl << "\t" << "if (!ref.IsEmpty() && !utils.ValidateName(\"" << field.Type.TypeName << "\", ref))" << std::endl
-				       << "\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_cast<ConfigObject *>(this), boost::assign::list_of(\"" << field.Name << "\"), \"Object '\" + ref + \"' of type '" << field.Type.TypeName
-				       << "' does not exist.\"));" << std::endl;
+		std::string ftype = FieldTypeToIcingaName(field, true);
 
-				if (field.Type.ArrayRank > 0) {
-					m_Impl << "\t\t" << "}" << std::endl
-					       << "\t" << "}" << std::endl;
-				}
-			}
+		if (field.Type.IsName) {
+			m_Impl << "\t" << "if (!avalue.IsEmpty() && !utils.ValidateName(\"" << field.Type.TypeName << "\", avalue))" << std::endl
+			       << "\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_cast<ConfigObject *>(this), boost::assign::list_of(\"" << field.Name << "\"), \"Object '\" + avalue + \"' of type '" << field.Type.TypeName
+			       << "' does not exist.\"));" << std::endl;
+		} else if (field.Type.ArrayRank > 0 && (ftype == "Number" || ftype == "Boolean")) {
+			m_Impl << "\t" << "try {" << std::endl
+			       << "\t\t" << "Convert::ToDouble(avalue);" << std::endl
+			       << "\t" << "} catch (const std::invalid_argument&) {" << std::endl
+			       << "\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_cast<ConfigObject *>(this), boost::assign::list_of(\"" << field.Name << "\"), \"Array element '\" + avalue + \"' of type '\" + avalue.GetReflectionType()->GetName() + \"' is not valid here; expected type '" << ftype << "'.\"));" << std::endl
+			       << "\t" << "}" << std::endl;
+		}
+
+		if (field.Type.ArrayRank > 0) {
+			m_Impl << "\t\t" << "}" << std::endl
+			       << "\t" << "}" << std::endl;
 		}
 
 		m_Impl << "}" << std::endl << std::endl;
