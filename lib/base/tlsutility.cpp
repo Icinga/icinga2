@@ -159,6 +159,29 @@ boost::shared_ptr<SSL_CTX> MakeSSLContext(const String& pubkey, const String& pr
 }
 
 /**
+ * Set the cipher list to the specified SSL context.
+ * @param context The ssl context.
+ * @param cipherList The ciper list.
+ **/
+void SetCipherListToSSLContext(const boost::shared_ptr<SSL_CTX>& context, const String& cipherList)
+{
+	char errbuf[256];
+
+	if (SSL_CTX_set_cipher_list(context.get(), cipherList.CStr()) == 0) {
+		Log(LogCritical, "SSL")
+		    << "Error with cipher list '"
+		    << cipherList
+		    << "' results in no availabe ciphers: "
+		    << ERR_peek_error() << ", \""
+		    << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
+
+		BOOST_THROW_EXCEPTION(openssl_error()
+		    << boost::errinfo_api_function("SSL_CTX_set_cipher_list")
+		    << errinfo_openssl_error(ERR_peek_error()));
+	}
+}
+
+/**
  * Loads a CRL and appends its certificates to the specified SSL context.
  *
  * @param context The SSL context.
