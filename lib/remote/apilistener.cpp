@@ -92,6 +92,16 @@ void ApiListener::OnConfigLoaded(void)
 			    + GetCrlPath() + "'.", GetDebugInfo()));
 		}
 	}
+
+	if (!GetCipherList().IsEmpty()) {
+	  try {
+	    SetCipherListToSSLContext(m_SSLContext, GetCipherList());
+	  } catch (const std::exception&) {
+	    BOOST_THROW_EXCEPTION(ScriptError("Cannot set cipher list to SSL context for cipher list: '"
+					      + GetCipherList() + "'.", GetDebugInfo()));
+	  }
+	}
+
 }
 
 void ApiListener::OnAllConfigLoaded(void)
