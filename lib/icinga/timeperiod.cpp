@@ -77,15 +77,22 @@ void TimePeriod::AddSegment(double begin, double end)
 			if (segment->Get("begin") <= begin && segment->Get("end") >= end)
 				return; /* New segment is fully contained in this segment. */
 
-			if (segment->Get("begin") <= begin && segment->Get("end") >= begin) {
-				segment->Set("end", end); /* Extend an existing segment. */
+			if (segment->Get("begin") >= begin && segment->Get("end") <= end) {
+				segment->Set("begin", begin);
+				segment->Set("end", end); /* Extend an existing segment to both sides */
+				return;
+			}
+
+			if (segment->Get("end") >= begin && segment->Get("end") <= end) {
+				segment->Set("end", end); /* Extend an existing segment to right. */
 				return;
 			}
 
 			if (segment->Get("begin") >= begin && segment->Get("begin") <= end) {
-				segment->Set("begin", begin); /* Extend an existing segment. */
+				segment->Set("begin", begin); /* Extend an existing segment to left. */
 				return;
 			}
+
 		}
 	}
 
@@ -142,6 +149,21 @@ void TimePeriod::RemoveSegment(double begin, double end)
 			continue;
 		}
 
+		/* Cut between */
+		if (segment->Get("begin") < begin && segment->Get("end") > end) {
+			Dictionary::Ptr firstsegment = new Dictionary();
+			firstsegment->Set("begin", segment->Get("begin"));
+			firstsegment->Set("end", begin);
+
+			Dictionary::Ptr secondsegment = new Dictionary();
+			secondsegment->Set("begin", end);
+			secondsegment->Set("end", segment->Get("end"));
+
+			newSegments->Add(firstsegment);
+			newSegments->Add(secondsegment);
+			continue;
+		}
+
 		/* Adjust the begin/end timestamps so as to not overlap with the specified range. */
 		if (segment->Get("begin") > begin && segment->Get("begin") < end)
 			segment->Set("begin", end);
@@ -155,6 +177,11 @@ void TimePeriod::RemoveSegment(double begin, double end)
 	SetSegments(newSegments);
 
 	Dump();
+}
+
+void TimePeriod::RemoveSegment(const Dictionary::Ptr& segment)
+{
+	RemoveSegment(segment->Get("begin"), segment->Get("end"));
 }
 
 void TimePeriod::PurgeSegments(double end)
@@ -187,6 +214,23 @@ void TimePeriod::PurgeSegments(double end)
 	SetSegments(newSegments);
 }
 
+void TimePeriod::Merge(const TimePeriod::Ptr& timeperiod, bool include)
+{
+	Log(LogDebug, "TimePeriod")
+	    << "Merge TimePeriod '" << GetName() << "' with '" << timeperiod->GetName() << "' "
+	    << "Method: " << (include ? "include" : "exclude");
+
+	Array::Ptr segments = timeperiod->GetSegments();
+
+	if (segments) {
+		ObjectLock dlock(segments);
+		ObjectLock ilock(this);
+		BOOST_FOREACH(const Dictionary::Ptr& segment, segments) {
+			include ? AddSegment(segment) : RemoveSegment(segment);
+		}
+	}
+}
+
 void TimePeriod::UpdateRegion(double begin, double end, bool clearExisting)
 {
 	if (!clearExisting) {
@@ -213,6 +257,34 @@ void TimePeriod::UpdateRegion(double begin, double end, bool clearExisting)
 			BOOST_FOREACH(const Dictionary::Ptr& segment, segments) {
 				AddSegment(segment);
 			}
+		}
+	}
+
+	bool preferInclude = GetPreferIncludes();
+
+	/* First handle the non preferred timeranges */
+	Array::Ptr timeranges = preferInclude ? GetExcludes() : GetIncludes();
+
+	if (timeranges) {
+		ObjectLock olock(timeranges);
+		BOOST_FOREACH(const String& name, timeranges) {
+			const TimePeriod::Ptr timeperiod = TimePeriod::GetByName(name);
+
+			if (timeperiod)
+				Merge(timeperiod, !preferInclude);
+		}
+	}
+
+	/* Preferred timeranges must be handled at the end */
+	timeranges = preferInclude ? GetIncludes() : GetExcludes();
+
+	if (timeranges) {
+		ObjectLock olock(timeranges);
+		BOOST_FOREACH(const String& name, timeranges) {
+			const TimePeriod::Ptr timeperiod = TimePeriod::GetByName(name);
+
+			if (timeperiod)
+				Merge(timeperiod, preferInclude);
 		}
 	}
 }

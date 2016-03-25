@@ -132,8 +132,9 @@ re-notify if the problem persists.
 
 ## <a id="timeperiods"></a> Time Periods
 
-Time Periods define time ranges in Icinga where event actions are
-triggered, for example whether a service check is executed or not within
+[Time Periods](6-object-types.md#objecttype-timeperiod) define
+time ranges in Icinga where event actions are triggered, for
+example whether a service check is executed or not within
 the `check_period` attribute. Or a notification should be sent to
 users or not, filtered by the `period` and `notification_period`
 configuration attributes for `Notification` and `User` objects.
@@ -206,6 +207,67 @@ Use the `period` attribute to assign time periods to
       command = "mail-notification"
       users = [ "icingaadmin" ]
       period = "workhours"
+    }
+
+### <a id="timeperiods-includes-excludes"></a> Time Periods Inclusion and Exclusion
+
+Sometimes it is necessary to exclude certain time ranges from
+your default time period definitions. For example if you don't
+want to send out any notification during the holiday season,
+or if you only want to allow small time windows for executed checks.
+
+The [TimePeriod object](6-object-types.md#objecttype-timeperiod)
+provides the `includes` and `excludes` attributes to solve this issue.
+`prefer_includes` defines whether included or excluded time periods are
+preferred.
+
+The following example defines a time period called `holidays` where
+notifications should be supressed:
+
+    object TimePeriod "holidays" {
+      import "legacy-timeperiod"
+    
+      ranges = {
+        "january 1" = "00:00-24:00"                 //new year's day
+        "july 4" = "00:00-24:00"                    //independence day
+        "december 25" = "00:00-24:00"               //christmas
+        "december 31" = "18:00-24:00"               //new year's eve (6pm+)
+        "2017-04-16" = "00:00-24:00"                //easter 2017
+        "monday -1 may" = "00:00-24:00"             //memorial day (last monday in may)
+        "monday 1 september" = "00:00-24:00"        //labor day (1st monday in september)
+        "thursday 4 november" = "00:00-24:00"       //thanksgiving (4th thursday in november)
+      }
+    }
+
+In addition to that the time period `weekends` defines an additional
+time window which should be excluded from notifications:
+
+    object TimePeriod "weekends-excluded" {
+      import "legacy-timeperiod"
+    
+      ranges = {
+        "saturday"  = "00:00-09:00,18:00-24:00"
+        "sunday"    = "00:00-09:00,18:00-24:00"
+      }
+    }
+
+The time period `prod-notification` defines the default time ranges
+and adds the excluded time period names as an array.
+
+    object TimePeriod "prod-notification" {
+      import "legacy-timeperiod"
+    
+      excludes = [ "holidays", "weekends-excluded" ]
+    
+      ranges = {
+        "monday"    = "00:00-24:00"
+        "tuesday"   = "00:00-24:00"
+        "wednesday" = "00:00-24:00"
+        "thursday"  = "00:00-24:00"
+        "friday"    = "00:00-24:00"
+        "saturday"  = "00:00-24:00"
+        "sunday"    = "00:00-24:00"
+      }
     }
 
 

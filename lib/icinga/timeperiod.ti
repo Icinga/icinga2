@@ -37,6 +37,15 @@ class TimePeriod : CustomVarObject
 	};
 	[config] Dictionary::Ptr ranges;
 	[config, required] Function::Ptr update;
+	[config] bool prefer_includes {
+		default {{{ return true; }}}
+	};
+	[config] array(name(TimePeriod)) excludes {
+		default {{{ return new Array(); }}}
+	};
+	[config] array(name(TimePeriod)) includes {
+		default {{{ return new Array(); }}}
+	};
 	[state, no_user_modify] Value valid_begin;
 	[state, no_user_modify] Value valid_end;
 	[state, no_user_modify] Array::Ptr segments;

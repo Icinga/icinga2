@@ -54,7 +54,10 @@ private:
 	void AddSegment(double s, double end);
 	void AddSegment(const Dictionary::Ptr& segment);
 	void RemoveSegment(double begin, double end);
+	void RemoveSegment(const Dictionary::Ptr& segment);
 	void PurgeSegments(double end);
+
+	void Merge(const TimePeriod::Ptr& timeperiod, bool include = true);
 
 	void Dump(void);
 

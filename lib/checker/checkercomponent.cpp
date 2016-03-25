@@ -162,7 +162,8 @@ void CheckerComponent::CheckThreadProc(void)
 
 			if (tp && !tp->IsInside(Utility::GetTime())) {
 				Log(LogNotice, "CheckerComponent")
-				    << "Skipping check for object '" << checkable->GetName() << "': not in check_period";
+				    << "Skipping check for object '" << checkable->GetName()
+				    << "': not in check period '" << tp->GetName() << "'";
 				check = false;
 			}
 		}

@@ -250,7 +250,8 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 
 		if (tp && !tp->IsInside(Utility::GetTime())) {
 			Log(LogNotice, "Notification")
-			    << "Not sending notifications for notification object '" << GetName() << "': not in timeperiod";
+			    << "Not sending notifications for notification object '" << GetName()
+			    << "': not in timeperiod '" << tp->GetName() << "'";
 			return;
 		}
 
@@ -402,7 +403,8 @@ bool Notification::CheckNotificationUserFilters(NotificationType type, const Use
 		if (tp && !tp->IsInside(Utility::GetTime())) {
 			Log(LogNotice, "Notification")
 			    << "Not sending notifications for notification object '"
-			    << GetName() << " and user '" << user->GetName() << "': user not in timeperiod";
+			    << GetName() << " and user '" << user->GetName()
+			    << "': user period not in timeperiod '" << tp->GetName() << "'";
 			return false;
 		}
 
