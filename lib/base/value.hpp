@@ -69,6 +69,14 @@ public:
 		: m_Value(double(value))
 	{ }
 
+	inline Value(long long value)
+		: m_Value(double(value))
+	{ }
+
+	inline Value(unsigned long long value)
+		: m_Value(double(value))
+	{ }
+
 	inline Value(double value)
 		: m_Value(value)
 	{ }
