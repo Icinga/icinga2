@@ -84,6 +84,7 @@ endif()
 if(WIN32)
   set(Boost_USE_STATIC_LIBS ON)
   add_definitions(-DBOOST_ALL_NO_LIB)
+  add_definitions(/bigobj)
 endif()
 
 find_package(Boost ${BOOST_MIN_VERSION} COMPONENTS thread system program_options regex REQUIRED)
