@@ -86,7 +86,7 @@ static Array::Ptr StringSplit(const String& delims)
 	return result;
 }
 
-static Value StringFind(const std::vector<Value>& args)
+static int StringFind(const std::vector<Value>& args)
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	String self = vframe->Self;
