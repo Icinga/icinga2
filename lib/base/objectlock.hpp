@@ -62,7 +62,7 @@ public:
 
 #ifdef _WIN32
 #	ifdef _WIN64
-		while (InterlockedCompareExchange64(&object->m_Mutex, I2MUTEX_LOCKED, I2MUTEX_UNLOCKED) != I2MUTEX_UNLOCKED) {
+		while (InterlockedCompareExchange64((LONGLONG *)&object->m_Mutex, I2MUTEX_LOCKED, I2MUTEX_UNLOCKED) != I2MUTEX_UNLOCKED) {
 #	else /* _WIN64 */
 		while (InterlockedCompareExchange(&object->m_Mutex, I2MUTEX_LOCKED, I2MUTEX_UNLOCKED) != I2MUTEX_UNLOCKED) {
 #	endif /* _WIN64 */
@@ -84,7 +84,7 @@ public:
 		mtx->lock();
 #ifdef _WIN32
 #	ifdef _WIN64
-		InterlockedCompareExchange64(&object->m_Mutex, reinterpret_cast<LONGLONG>(mtx), I2MUTEX_LOCKED);
+		InterlockedCompareExchange64((LONGLONG *)&object->m_Mutex, reinterpret_cast<LONGLONG>(mtx), I2MUTEX_LOCKED);
 #	else /* _WIN64 */
 		InterlockedCompareExchange(&object->m_Mutex, reinterpret_cast<LONG>(mtx), I2MUTEX_LOCKED);
 #	endif /* _WIN64 */
