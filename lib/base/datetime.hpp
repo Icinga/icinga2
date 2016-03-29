@@ -17,33 +17,41 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/convert.hpp"
-#include "base/datetime.hpp"
-#include <boost/lexical_cast.hpp>
+#ifndef DATETIME_H
+#define DATETIME_H
 
-using namespace icinga;
+#include "base/i2-base.hpp"
+#include "base/datetime.thpp"
+#include "base/value.hpp"
+#include <vector>
 
-String Convert::ToString(const String& val)
+namespace icinga
 {
-	return val;
+
+/**
+ * A date/time value.
+ *
+ * @ingroup base
+ */
+class I2_BASE_API DateTime : public ObjectImpl<DateTime>
+{
+public:
+	DECLARE_OBJECT(DateTime);
+
+	DateTime(double value);
+	DateTime(const std::vector<Value>& args);
+
+	String Format(const String& format) const;
+
+	virtual double GetValue(void) const override;
+	virtual String ToString(void) const override;
+
+	static Object::Ptr GetPrototype(void);
+
+private:
+	double m_Value;
+};
+
 }
 
-String Convert::ToString(const Value& val)
-{
-	return val;
-}
-
-double Convert::ToDateTimeValue(double val)
-{
-	return val;
-}
-
-double Convert::ToDateTimeValue(const Value& val)
-{
-	if (val.IsNumber())
-		return val;
-	else if (val.IsObjectType<DateTime>())
-		return static_cast<DateTime::Ptr>(val)->GetValue();
-	else
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Not a DateTime value."));
-}
+#endif /* DATETIME_H */

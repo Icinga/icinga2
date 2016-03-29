@@ -75,6 +75,9 @@ private:
 #define REGISTER_PRIMITIVE_TYPE(type, base, prototype)				\
 	REGISTER_PRIMITIVE_TYPE_FACTORY(type, base, prototype, DefaultObjectFactory<type>)
 
+#define REGISTER_PRIMITIVE_TYPE_VA(type, base, prototype)				\
+	REGISTER_PRIMITIVE_TYPE_FACTORY(type, base, prototype, DefaultObjectFactoryVA<type>)
+
 #define REGISTER_PRIMITIVE_TYPE_NOINST(type, base, prototype)			\
 	REGISTER_PRIMITIVE_TYPE_FACTORY(type, base, prototype, NULL)
 

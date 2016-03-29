@@ -20,6 +20,8 @@
 #include "base/value.hpp"
 #include "base/array.hpp"
 #include "base/dictionary.hpp"
+#include "base/datetime.hpp"
+#include "base/convert.hpp"
 #include "base/utility.hpp"
 #include "base/objectlock.hpp"
 #include <boost/foreach.hpp>
@@ -177,6 +179,13 @@ bool Value::operator==(const Value& rhs) const
 		return false;
 
 	if (IsObject()) {
+		if (IsObjectType<DateTime>() && rhs.IsObjectType<DateTime>()) {
+			DateTime::Ptr dt1 = *this;
+			DateTime::Ptr dt2 = rhs;
+
+			return dt1->GetValue() == dt2->GetValue();
+		}
+
 		if (IsObjectType<Array>() && rhs.IsObjectType<Array>()) {
 			Array::Ptr arr1 = *this;
 			Array::Ptr arr2 = rhs;
@@ -234,6 +243,8 @@ Value icinga::operator+(const Value& lhs, const Value& rhs)
 		return static_cast<String>(lhs) + static_cast<String>(rhs);
 	else if ((lhs.IsNumber() || lhs.IsEmpty()) && (rhs.IsNumber() || rhs.IsEmpty()) && !(lhs.IsEmpty() && rhs.IsEmpty()) && !(lhs.IsEmpty() && rhs.IsEmpty()))
 		return static_cast<double>(lhs) + static_cast<double>(rhs);
+	else if (lhs.IsObjectType<DateTime>() && rhs.IsNumber())
+		return new DateTime(Convert::ToDateTimeValue(lhs) + rhs);
 	else if ((lhs.IsObjectType<Array>() || lhs.IsEmpty()) && (rhs.IsObjectType<Array>() || rhs.IsEmpty()) && !(lhs.IsEmpty() && rhs.IsEmpty()) && !(lhs.IsEmpty() && rhs.IsEmpty())) {
 		Array::Ptr result = new Array();
 		if (!lhs.IsEmpty())
@@ -277,6 +288,12 @@ Value icinga::operator-(const Value& lhs, const Value& rhs)
 {
 	if ((lhs.IsNumber() || lhs.IsEmpty()) && !lhs.IsString() && (rhs.IsNumber() || rhs.IsEmpty()) && !rhs.IsString() && !(lhs.IsEmpty() && rhs.IsEmpty()))
 		return static_cast<double>(lhs) - static_cast<double>(rhs);
+	else if (lhs.IsObjectType<DateTime>() && rhs.IsNumber())
+		return new DateTime(Convert::ToDateTimeValue(lhs) - rhs);
+	else if (lhs.IsObjectType<DateTime>() && rhs.IsObjectType<DateTime>())
+		return Convert::ToDateTimeValue(lhs) - Convert::ToDateTimeValue(rhs);
+	else if ((lhs.IsObjectType<DateTime>() || lhs.IsEmpty()) && (rhs.IsObjectType<DateTime>() || rhs.IsEmpty()) && !(lhs.IsEmpty() && rhs.IsEmpty()) && !(lhs.IsEmpty() && rhs.IsEmpty()))
+		return new DateTime(Convert::ToDateTimeValue(lhs) - Convert::ToDateTimeValue(rhs));
 	else if ((lhs.IsObjectType<Array>() || lhs.IsEmpty()) && (rhs.IsObjectType<Array>() || rhs.IsEmpty()) && !(lhs.IsEmpty() && rhs.IsEmpty())) {
 		if (lhs.IsEmpty())
 			return new Array();
@@ -567,6 +584,8 @@ bool icinga::operator<(const Value& lhs, const Value& rhs)
 		return static_cast<String>(lhs) < static_cast<String>(rhs);
 	else if ((lhs.IsNumber() || lhs.IsEmpty()) && (rhs.IsNumber() || rhs.IsEmpty()) && !(lhs.IsEmpty() && rhs.IsEmpty()))
 		return static_cast<double>(lhs) < static_cast<double>(rhs);
+	else if ((lhs.IsObjectType<DateTime>() || lhs.IsEmpty()) && (rhs.IsObjectType<DateTime>() || rhs.IsEmpty()) && !(lhs.IsEmpty() && rhs.IsEmpty()) && !(lhs.IsEmpty() && rhs.IsEmpty()))
+		return Convert::ToDateTimeValue(lhs) < Convert::ToDateTimeValue(rhs);
 	else
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Operator < cannot be applied to values of type '" + lhs.GetTypeName() + "' and '" + rhs.GetTypeName() + "'"));
 }
@@ -597,6 +616,8 @@ bool icinga::operator>(const Value& lhs, const Value& rhs)
 		return static_cast<String>(lhs) > static_cast<String>(rhs);
 	else if ((lhs.IsNumber() || lhs.IsEmpty()) && (rhs.IsNumber() || rhs.IsEmpty()) && !(lhs.IsEmpty() && rhs.IsEmpty()))
 		return static_cast<double>(lhs) > static_cast<double>(rhs);
+	else if ((lhs.IsObjectType<DateTime>() || lhs.IsEmpty()) && (rhs.IsObjectType<DateTime>() || rhs.IsEmpty()) && !(lhs.IsEmpty() && rhs.IsEmpty()) && !(lhs.IsEmpty() && rhs.IsEmpty()))
+		return Convert::ToDateTimeValue(lhs) > Convert::ToDateTimeValue(rhs);
 	else
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Operator > cannot be applied to values of type '" + lhs.GetTypeName() + "' and '" + rhs.GetTypeName() + "'"));
 }
@@ -627,6 +648,8 @@ bool icinga::operator<=(const Value& lhs, const Value& rhs)
 		return static_cast<String>(lhs) <= static_cast<String>(rhs);
 	else if ((lhs.IsNumber() || lhs.IsEmpty()) && (rhs.IsNumber() || rhs.IsEmpty()) && !(lhs.IsEmpty() && rhs.IsEmpty()))
 		return static_cast<double>(lhs) <= static_cast<double>(rhs);
+	else if ((lhs.IsObjectType<DateTime>() || lhs.IsEmpty()) && (rhs.IsObjectType<DateTime>() || rhs.IsEmpty()) && !(lhs.IsEmpty() && rhs.IsEmpty()) && !(lhs.IsEmpty() && rhs.IsEmpty()))
+		return Convert::ToDateTimeValue(lhs) <= Convert::ToDateTimeValue(rhs);
 	else
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Operator <= cannot be applied to values of type '" + lhs.GetTypeName() + "' and '" + rhs.GetTypeName() + "'"));
 }
@@ -657,6 +680,8 @@ bool icinga::operator>=(const Value& lhs, const Value& rhs)
 		return static_cast<String>(lhs) >= static_cast<String>(rhs);
 	else if ((lhs.IsNumber() || lhs.IsEmpty()) && (rhs.IsNumber() || rhs.IsEmpty()) && !(lhs.IsEmpty() && rhs.IsEmpty()))
 		return static_cast<double>(lhs) >= static_cast<double>(rhs);
+	else if ((lhs.IsObjectType<DateTime>() || lhs.IsEmpty()) && (rhs.IsObjectType<DateTime>() || rhs.IsEmpty()) && !(lhs.IsEmpty() && rhs.IsEmpty()) && !(lhs.IsEmpty() && rhs.IsEmpty()))
+		return Convert::ToDateTimeValue(lhs) >= Convert::ToDateTimeValue(rhs);
 	else
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Operator >= cannot be applied to values of type '" + lhs.GetTypeName() + "' and '" + rhs.GetTypeName() + "'"));
 }

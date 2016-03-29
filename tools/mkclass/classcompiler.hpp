@@ -159,7 +159,8 @@ struct Field
 
 enum TypeAttribute
 {
-	TAAbstract = 1
+	TAAbstract = 1,
+	TAVarArgConstructor = 2
 };
 
 struct Klass

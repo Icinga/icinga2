@@ -67,14 +67,14 @@ String Type::GetPluralName(void) const
 		return name + "s";
 }
 
-Object::Ptr Type::Instantiate(void) const
+Object::Ptr Type::Instantiate(const std::vector<Value>& args) const
 {
 	ObjectFactory factory = GetFactory();
 
 	if (!factory)
 		BOOST_THROW_EXCEPTION(std::runtime_error("Type does not have a factory function."));
 
-	return factory();
+	return factory(args);
 }
 
 bool Type::IsAbstract(void) const

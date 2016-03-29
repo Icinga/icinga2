@@ -17,33 +17,31 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/convert.hpp"
 #include "base/datetime.hpp"
-#include <boost/lexical_cast.hpp>
+#include "base/function.hpp"
+#include "base/functionwrapper.hpp"
+#include "base/scriptframe.hpp"
+#include "base/objectlock.hpp"
 
 using namespace icinga;
 
-String Convert::ToString(const String& val)
+static String DateTimeFormat(const String& format)
 {
-	return val;
+	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
+	DateTime::Ptr self = static_cast<DateTime::Ptr>(vframe->Self);
+
+	return self->Format(format);
 }
 
-String Convert::ToString(const Value& val)
+Object::Ptr DateTime::GetPrototype(void)
 {
-	return val;
+	static Dictionary::Ptr prototype;
+
+	if (!prototype) {
+		prototype = new Dictionary();
+		prototype->Set("format", new Function(WrapFunction(DateTimeFormat)));
+	}
+
+	return prototype;
 }
 
-double Convert::ToDateTimeValue(double val)
-{
-	return val;
-}
-
-double Convert::ToDateTimeValue(const Value& val)
-{
-	if (val.IsNumber())
-		return val;
-	else if (val.IsObjectType<DateTime>())
-		return static_cast<DateTime::Ptr>(val)->GetValue();
-	else
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Not a DateTime value."));
-}

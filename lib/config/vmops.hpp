@@ -55,36 +55,33 @@ public:
 			return ScriptGlobal::Get(name);
 	}
 
-	static inline Value CopyConstructorCall(const Type::Ptr& type, const Value& value, const DebugInfo& debugInfo = DebugInfo())
+	static inline Value ConstructorCall(const Type::Ptr& type, const std::vector<Value>& args, const DebugInfo& debugInfo = DebugInfo())
 	{
-		if (type->GetName() == "String")
-			return Convert::ToString(value);
-		else if (type->GetName() == "Number")
-			return Convert::ToDouble(value);
-		else if (type->GetName() == "Boolean")
-			return Convert::ToBool(value);
-		else if (!value.IsEmpty() && !type->IsAssignableFrom(value.GetReflectionType()))
-			BOOST_THROW_EXCEPTION(ScriptError("Invalid cast: Tried to cast object of type '" + value.GetReflectionType()->GetName() + "' to type '" + type->GetName() + "'", debugInfo));
+		if (type->GetName() == "String") {
+			if (args.empty())
+				return "";
+			else if (args.size() == 1)
+				return Convert::ToString(args[0]);
+			else
+				BOOST_THROW_EXCEPTION(ScriptError("Too many arguments for constructor."));
+		} else if (type->GetName() == "Number") {
+			if (args.empty())
+				return 0;
+			else if (args.size() == 1)
+				return Convert::ToDouble(args[0]);
+			else
+				BOOST_THROW_EXCEPTION(ScriptError("Too many arguments for constructor."));
+		} else if (type->GetName() == "Boolean") {
+			if (args.empty())
+				return 0;
+			else if (args.size() == 1)
+				return Convert::ToBool(args[0]);
+			else
+				BOOST_THROW_EXCEPTION(ScriptError("Too many arguments for constructor."));
+		} else if (args.size() == 1 && type->IsAssignableFrom(args[0].GetReflectionType()))
+			return args[0];
 		else
-			return value;
-	}
-
-	static inline Value ConstructorCall(const Type::Ptr& type, const DebugInfo& debugInfo = DebugInfo())
-	{
-		if (type->GetName() == "String")
-			return "";
-		else if (type->GetName() == "Number")
-			return 0;
-		else if (type->GetName() == "Boolean")
-			return false;
-		else {
-			Object::Ptr object = type->Instantiate();
-
-			if (!object)
-				BOOST_THROW_EXCEPTION(ScriptError("Failed to instantiate object of type '" + type->GetName() + "'", debugInfo));
-
-			return object;
-		}
+			return type->Instantiate(args);
 	}
 
 	static inline Value FunctionCall(ScriptFrame& frame, const Value& self, const Function::Ptr& func, const std::vector<Value>& arguments)

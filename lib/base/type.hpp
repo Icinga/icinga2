@@ -86,7 +86,7 @@ public:
 
 	String GetPluralName(void) const;
 
-	Object::Ptr Instantiate(void) const;
+	Object::Ptr Instantiate(const std::vector<Value>& args = std::vector<Value>()) const;
 
 	bool IsAssignableFrom(const Type::Ptr& other) const;
 

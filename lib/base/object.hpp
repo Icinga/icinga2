@@ -25,6 +25,7 @@
 #include <boost/thread/recursive_mutex.hpp>
 #include <boost/thread/condition_variable.hpp>
 #include <boost/smart_ptr/intrusive_ptr.hpp>
+#include <vector>
 
 using boost::intrusive_ptr;
 using boost::dynamic_pointer_cast;
@@ -61,19 +62,42 @@ extern I2_BASE_API Value Empty;
 	IMPL_TYPE_LOOKUP();
 
 template<typename T>
-intrusive_ptr<Object> DefaultObjectFactory(void)
+intrusive_ptr<Object> DefaultObjectFactory(const std::vector<Value>& args)
 {
+	if (!args.empty())
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Constructor does not take any arguments."));
+
 	return new T();
 }
 
-typedef intrusive_ptr<Object> (*ObjectFactory)(void);
+template<typename T>
+intrusive_ptr<Object> DefaultObjectFactoryVA(const std::vector<Value>& args)
+{
+	return new T(args);
+}
+
+typedef intrusive_ptr<Object> (*ObjectFactory)(const std::vector<Value>&);
+
+template<typename T, bool VA>
+struct TypeHelper
+{
+};
 
 template<typename T>
-struct TypeHelper
+struct TypeHelper<T, false>
 {
 	static ObjectFactory GetFactory(void)
 	{
 		return DefaultObjectFactory<T>;
+	}
+};
+
+template<typename T>
+struct TypeHelper<T, true>
+{
+	static ObjectFactory GetFactory(void)
+	{
+		return DefaultObjectFactoryVA<T>;
 	}
 };
 

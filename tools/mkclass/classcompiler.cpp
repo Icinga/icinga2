@@ -222,7 +222,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 	/* TypeHelper */
 	if (klass.Attributes & TAAbstract) {
 		m_Header << "template<>" << std::endl
-			 << "struct TypeHelper<" << klass.Name << ">" << std::endl
+			 << "struct TypeHelper<" << klass.Name << ", " << ((klass.Attributes & TAVarArgConstructor) ? "true" : "false") << ">" << std::endl
 			 << "{" << std::endl
 			 << "\t" << "static ObjectFactory GetFactory(void)" << std::endl
 			 << "\t" << "{" << std::endl
@@ -412,7 +412,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 
 	m_Impl << "ObjectFactory TypeImpl<" << klass.Name << ">::GetFactory(void) const" << std::endl
 	       << "{" << std::endl
-	       << "\t" << "return TypeHelper<" << klass.Name << ">::GetFactory();" << std::endl
+	       << "\t" << "return TypeHelper<" << klass.Name << ", " << ((klass.Attributes & TAVarArgConstructor) ? "true" : "false") << ">::GetFactory();" << std::endl
 	       << "}" << std::endl << std::endl;
 
 	/* GetLoadDependencies */

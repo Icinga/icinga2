@@ -17,33 +17,16 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/convert.hpp"
-#include "base/datetime.hpp"
-#include <boost/lexical_cast.hpp>
+library base;
 
-using namespace icinga;
-
-String Convert::ToString(const String& val)
+namespace icinga
 {
-	return val;
-}
 
-String Convert::ToString(const Value& val)
+vararg_constructor class DateTime
 {
-	return val;
-}
+	[state, no_storage] double value {
+		get;
+	};
+};
 
-double Convert::ToDateTimeValue(double val)
-{
-	return val;
-}
-
-double Convert::ToDateTimeValue(const Value& val)
-{
-	if (val.IsNumber())
-		return val;
-	else if (val.IsObjectType<DateTime>())
-		return static_cast<DateTime::Ptr>(val)->GetValue();
-	else
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Not a DateTime value."));
 }

@@ -17,33 +17,59 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/convert.hpp"
 #include "base/datetime.hpp"
-#include <boost/lexical_cast.hpp>
+#include "base/datetime.tcpp"
+#include "base/utility.hpp"
+#include "base/primitivetype.hpp"
 
 using namespace icinga;
 
-String Convert::ToString(const String& val)
-{
-	return val;
-}
+REGISTER_TYPE_WITH_PROTOTYPE(DateTime, DateTime::GetPrototype());
 
-String Convert::ToString(const Value& val)
-{
-	return val;
-}
+DateTime::DateTime(double value)
+	: m_Value(value)
+{ }
 
-double Convert::ToDateTimeValue(double val)
+DateTime::DateTime(const std::vector<Value>& args)
 {
-	return val;
-}
+	if (args.empty())
+		m_Value = Utility::GetTime();
+	else if (args.size() == 3 || args.size() == 6) {
+		struct tm tms;
+		tms.tm_year = args[0] - 1900;
+		tms.tm_mon = args[1] - 1;
+		tms.tm_mday = args[2];
 
-double Convert::ToDateTimeValue(const Value& val)
-{
-	if (val.IsNumber())
-		return val;
-	else if (val.IsObjectType<DateTime>())
-		return static_cast<DateTime::Ptr>(val)->GetValue();
+		if (args.size() == 6) {
+			tms.tm_hour = args[3];
+			tms.tm_min = args[4];
+			tms.tm_sec = args[5];
+		} else {
+			tms.tm_hour = 0;
+			tms.tm_min = 0;
+			tms.tm_sec = 0;
+		}
+
+		tms.tm_isdst = -1;
+
+		m_Value = mktime(&tms);
+	} else if (args.size() == 1)
+		m_Value = args[0];
 	else
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Not a DateTime value."));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid number of arguments for the DateTime constructor."));
+}
+
+double DateTime::GetValue(void) const
+{
+	return m_Value;
+}
+
+String DateTime::Format(const String& format) const
+{
+	return Utility::FormatDateTime(format.CStr(), m_Value);
+}
+
+String DateTime::ToString(void) const
+{
+	return Format("%Y-%m-%d %H:%M:%S %z");
 }
