@@ -120,7 +120,7 @@ static Object::Ptr DeserializeObject(const Object::Ptr& object, const Dictionary
 	if (object)
 		instance = object;
 	else
-		instance = type->Instantiate();
+		instance = type->Instantiate(std::vector<Value>());
 
 	ObjectLock olock(input);
 	BOOST_FOREACH(const Dictionary::Pair& kv, input) {

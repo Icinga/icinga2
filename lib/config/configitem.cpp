@@ -173,7 +173,7 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 	if (IsAbstract())
 		return ConfigObject::Ptr();
 
-	ConfigObject::Ptr dobj = static_pointer_cast<ConfigObject>(type->Instantiate());
+	ConfigObject::Ptr dobj = static_pointer_cast<ConfigObject>(type->Instantiate(std::vector<Value>()));
 
 	dobj->SetDebugInfo(m_DebugInfo);
 	dobj->SetZoneName(m_Zone);

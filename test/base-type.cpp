@@ -58,7 +58,7 @@ BOOST_AUTO_TEST_CASE(instantiate)
 {
 	Type::Ptr t = Type::GetByName("PerfdataValue");
 
-	Object::Ptr p = t->Instantiate();
+	Object::Ptr p = t->Instantiate(std::vector<Value>());
 
 	BOOST_CHECK(p);
 }
