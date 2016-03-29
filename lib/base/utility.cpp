@@ -726,7 +726,11 @@ void Utility::MkDirP(const String& path, int mode)
 #else /*_ WIN32 */
 		pos = path.FindFirstOf("/\\", pos + 1);
 #endif /* _WIN32 */
-		MkDir(path.SubStr(0, pos), mode);
+
+		String spath = path.SubStr(0, pos + 1);
+		struct stat statbuf;
+		if (stat(spath.CStr(), &statbuf) < 0 && errno == ENOENT)
+			MkDir(path.SubStr(0, pos), mode);
 	}
 }
 
