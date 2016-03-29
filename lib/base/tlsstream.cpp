@@ -245,7 +245,9 @@ void TlsStream::OnEvent(int revents)
 	}
 
 	if (m_Shutdown && !m_SendQ->IsDataAvailable()) {
-		lock.unlock();
+		if (!success)
+			lock.unlock();
+
 		Close();
 	}
 }
