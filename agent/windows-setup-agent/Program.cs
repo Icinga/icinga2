@@ -38,8 +38,10 @@ namespace Icinga
 
 			string installDir = Program.Icinga2InstallDir;
 
-			if (installDir == "")
-				FatalError(null, "Icinga 2 does not seem to be installed properly.");
+            if (installDir == "") {
+                FatalError(null, "Icinga 2 does not seem to be installed properly.");
+                return;
+            }
 
 			Form form;
 
