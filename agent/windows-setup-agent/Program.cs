@@ -2,22 +2,46 @@
 using System.IO;
 using System.Windows.Forms;
 using Microsoft.Win32;
+using System.Runtime.InteropServices;
+using System.Text;
 
 namespace Icinga
 {
 	static class Program
 	{
+        [DllImport("msi.dll", SetLastError = true)]
+        static extern int MsiEnumProducts(int iProductIndex, StringBuilder lpProductBuf);
 
-		public static string Icinga2InstallDir
+        [DllImport("msi.dll", CharSet = CharSet.Unicode)]
+        static extern Int32 MsiGetProductInfo(string product, string property, [Out] StringBuilder valueBuf, ref Int32 len);
+
+        public static string Icinga2InstallDir
 		{
 			get
 			{
-				RegistryKey rk = Registry.LocalMachine.OpenSubKey("SOFTWARE\\Icinga Development Team\\ICINGA2");
+                StringBuilder szProduct;
 
-				if (rk == null)
-					return "";
+                for (int index = 0; ; index++) {
+                    szProduct = new StringBuilder(39);
+                    if (MsiEnumProducts(index, szProduct) != 0)
+                        break;
 
-				return (string)rk.GetValue("");
+                    int cbName = 128;
+                    StringBuilder szName = new StringBuilder(cbName);
+
+                    if (MsiGetProductInfo(szProduct.ToString(), "ProductName", szName, ref cbName) != 0)
+                        continue;
+
+                    if (szName.ToString() != "Icinga 2")
+                        continue;
+
+                    int cbLocation = 1024;
+                    StringBuilder szLocation = new StringBuilder(cbLocation);
+                    if (MsiGetProductInfo(szProduct.ToString(), "InstallLocation", szLocation, ref cbLocation) == 0)
+                        return szLocation.ToString();
+                }
+
+                return "";
 			}
 		}
 
