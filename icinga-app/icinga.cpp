@@ -40,8 +40,6 @@
 #	include <sys/types.h>
 #	include <pwd.h>
 #	include <grp.h>
-#else /* _WIN32 */
-#	include <msi.h>
 #endif /* _WIN32 */
 
 using namespace icinga;
@@ -127,31 +125,9 @@ int Main(void)
 #ifdef _WIN32
 	bool builtinPaths = true;
 
-	String prefix;
+	String prefix = Utility::GetIcingaInstallPath();
 
-	char szProduct[39];
-	bool foundMsi = false;
-
-	for (int i = 0; MsiEnumProducts(i, szProduct) == ERROR_SUCCESS; i++) {
-		char szName[128];
-		DWORD cbName = sizeof(szName);
-		if (MsiGetProductInfo(szProduct, INSTALLPROPERTY_INSTALLEDPRODUCTNAME, szName, &cbName) != ERROR_SUCCESS)
-			continue;
-
-		if (strcmp(szName, "Icinga 2") != 0)
-			continue;
-
-		char szLocation[1024];
-		DWORD cbLocation = sizeof(szLocation);
-		if (MsiGetProductInfo(szProduct, INSTALLPROPERTY_INSTALLLOCATION, szLocation, &cbLocation) == ERROR_SUCCESS) {
-			builtinPaths = false;
-			prefix = szLocation;
-			foundMsi = true;
-			break;
-		}
-	}
-
-	if (!builtinPaths) {
+	if (!prefix.IsEmpty()) {
 		Application::DeclarePrefixDir(prefix);
 		Application::DeclareSysconfDir(prefix + "\\etc");
 		Application::DeclareRunDir(prefix + "\\var\\run");

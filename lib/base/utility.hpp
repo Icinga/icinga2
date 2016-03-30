@@ -143,6 +143,10 @@ public:
 
 	static String CreateTempFile(const String& path, int mode, std::fstream& fp);
 
+#ifdef _WIN32
+	static String GetIcingaInstallPath(void);
+#endif /* _WIN32 */
+
 private:
 	Utility(void);
 	static void CollectPaths(const String& path, std::vector<String>& paths);

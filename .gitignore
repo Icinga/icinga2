@@ -5,3 +5,7 @@
 build/
 build-debug/
 build-release/
+build32/
+build64/
+debug/
+release/
