@@ -40,6 +40,8 @@
 #	include <sys/types.h>
 #	include <pwd.h>
 #	include <grp.h>
+#else /* _WIN32 */
+#	include <msi.h>
 #endif /* _WIN32 */
 
 using namespace icinga;
@@ -125,30 +127,38 @@ int Main(void)
 #ifdef _WIN32
 	bool builtinPaths = true;
 
-	HKEY hKey;
-	if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SOFTWARE\\Icinga Development Team\\ICINGA2", 0,
-	    KEY_QUERY_VALUE, &hKey) == ERROR_SUCCESS) {
-		BYTE pvData[MAX_PATH];
-		DWORD cbData = sizeof(pvData)-1;
-		DWORD lType;
-		if (RegQueryValueEx(hKey, NULL, NULL, &lType, pvData, &cbData) == ERROR_SUCCESS && lType == REG_SZ) {
-			pvData[cbData] = '\0';
+	String prefix;
 
-			String prefix = (char *)pvData;
-			Application::DeclarePrefixDir(prefix);
-			Application::DeclareSysconfDir(prefix + "\\etc");
-			Application::DeclareRunDir(prefix + "\\var\\run");
-			Application::DeclareLocalStateDir(prefix + "\\var");
-			Application::DeclarePkgDataDir(prefix + "\\share\\icinga2");
-			Application::DeclareIncludeConfDir(prefix + "\\share\\icinga2\\include");
+	char szProduct[39];
+	bool foundMsi = false;
 
+	for (int i = 0; MsiEnumProducts(i, szProduct) == ERROR_SUCCESS; i++) {
+		char szName[128];
+		DWORD cbName = sizeof(szName);
+		if (MsiGetProductInfo(szProduct, INSTALLPROPERTY_INSTALLEDPRODUCTNAME, szName, &cbName) != ERROR_SUCCESS)
+			continue;
+
+		if (strcmp(szName, "Icinga 2") != 0)
+			continue;
+
+		char szLocation[1024];
+		DWORD cbLocation = sizeof(szLocation);
+		if (MsiGetProductInfo(szProduct, INSTALLPROPERTY_INSTALLLOCATION, szLocation, &cbLocation) == ERROR_SUCCESS) {
 			builtinPaths = false;
+			prefix = szLocation;
+			foundMsi = true;
+			break;
 		}
-
-		RegCloseKey(hKey);
 	}
 
-	if (builtinPaths) {
+	if (!builtinPaths) {
+		Application::DeclarePrefixDir(prefix);
+		Application::DeclareSysconfDir(prefix + "\\etc");
+		Application::DeclareRunDir(prefix + "\\var\\run");
+		Application::DeclareLocalStateDir(prefix + "\\var");
+		Application::DeclarePkgDataDir(prefix + "\\share\\icinga2");
+		Application::DeclareIncludeConfDir(prefix + "\\share\\icinga2\\include");
+	} else {
 		Log(LogWarning, "icinga-app", "Registry key could not be read. Falling back to built-in paths.");
 
 #endif /* _WIN32 */

@@ -289,7 +289,7 @@ if(ICINGA2_WITH_TESTS)
   add_subdirectory(test)
 endif()
 
-set(CPACK_PACKAGE_NAME "Icinga2")
+set(CPACK_PACKAGE_NAME "Icinga 2")
 set(CPACK_PACKAGE_VENDOR "Icinga Development Team")
 set(CPACK_PACKAGE_VERSION ${ICINGA2_VERSION})
 set(CPACK_NSIS_DISPLAY_NAME "Icinga 2")
@@ -321,6 +321,8 @@ set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "${CPACK_NSIS_EXTRA_INSTALL_COMMANDS}\nCre
 set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "${CPACK_NSIS_EXTRA_INSTALL_COMMANDS}\nnsExec::Exec '\\\"$INSTDIR\\\\sbin\\\\icinga2\\\" --scm-install daemon'")
 set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "${CPACK_NSIS_EXTRA_INSTALL_COMMANDS}\nnsExec::Exec 'net start icinga2'")
 set(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "nsExec::Exec '\\\"$INSTDIR\\\\sbin\\\\icinga2\\\" --scm-uninstall'")
+set(CPACK_WIX_PRODUCT_ICON "${CMAKE_CURRENT_SOURCE_DIR}/icinga-app\\\\icinga.ico")
+set(CPACK_WIX_UPGRADE_GUID "52F2BEAA-4DF0-4C3E-ABDC-C0F61DE4DF8A")
 
 set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP TRUE)
 include(InstallRequiredSystemLibraries)
