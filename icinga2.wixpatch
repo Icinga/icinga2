@@ -1,0 +1,11 @@
+<CPackWiXPatch>
+  <CPackWiXFragment Id="#PRODUCT">
+    <CustomAction Id="XtraInstall" FileKey="CM_FP_sbin.icinga2_installer.exe" ExeCommand="install" Execute="deferred" Impersonate="no" />
+    <CustomAction Id="XtraUninstall" FileKey="CM_FP_sbin.icinga2_installer.exe" ExeCommand="uninstall" Execute="deferred" Impersonate="no" />
+
+    <InstallExecuteSequence>
+      <Custom Action="XtraInstall" Before="InstallFinalize">$CM_CP_sbin.icinga2_installer.exe&gt;2</Custom>
+      <Custom Action="XtraUninstall" After="InstallInitialize">$CM_CP_sbin.icinga2_installer.exe=2</Custom>
+    </InstallExecuteSequence>
+  </CPackWiXFragment>
+</CPackWiXPatch>

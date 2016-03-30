@@ -55,6 +55,7 @@
 #	include <VersionHelpers.h>
 #	include <windows.h>
 #	include <io.h>
+#	include <msi.h>
 #endif /*_WIN32*/
 
 using namespace icinga;
@@ -1859,4 +1860,27 @@ int Utility::MksTemp(char *tmpl)
 	errno = EEXIST;
 	return -1;
 }
-#endif /*_WIN32*/
+
+String Utility::GetIcingaInstallPath(void)
+{
+	char szProduct[39];
+
+	for (int i = 0; MsiEnumProducts(i, szProduct) == ERROR_SUCCESS; i++) {
+		char szName[128];
+		DWORD cbName = sizeof(szName);
+		if (MsiGetProductInfo(szProduct, INSTALLPROPERTY_INSTALLEDPRODUCTNAME, szName, &cbName) != ERROR_SUCCESS)
+			continue;
+
+		if (strcmp(szName, "Icinga 2") != 0)
+			continue;
+
+		char szLocation[1024];
+		DWORD cbLocation = sizeof(szLocation);
+		if (MsiGetProductInfo(szProduct, INSTALLPROPERTY_INSTALLLOCATION, szLocation, &cbLocation) == ERROR_SUCCESS)
+			return szLocation;
+	}
+
+	return "";
+}
+
+#endif /* _WIN32 */
