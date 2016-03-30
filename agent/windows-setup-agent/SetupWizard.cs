@@ -256,7 +256,7 @@ namespace Icinga
 
 				Process proc = new Process();
 				proc.StartInfo.FileName = "msiexec.exe";
-				proc.StartInfo.Arguments = "/i \"" + Program.Icinga2InstallDir + "\\sbin\\NSCP-Win32.msi\"";
+				proc.StartInfo.Arguments = "/i \"" + Program.Icinga2InstallDir + "\\sbin\\NSCP.msi\"";
 				proc.Start();
 				proc.WaitForExit();
 			}
