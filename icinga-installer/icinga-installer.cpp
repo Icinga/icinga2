@@ -41,9 +41,23 @@ static void ExecuteIcingaCommand(const String& args)
 	ExecuteCommand("\"" + GetIcingaInstallDir() + "\\sbin\\icinga2.exe\" " + args);
 }
 
+static void CopyConfigFile(const String& installDir, const String& sourceConfigPath, size_t skelPrefixLength)
+{
+	String relativeConfigPath = sourceConfigPath.SubStr(installDir.GetLength() + skelPrefixLength);
+
+	String targetConfigPath = installDir + relativeConfigPath;
+
+	if (!Utility::PathExists(targetConfigPath)) {
+		Utility::MkDirP(Utility::DirName(targetConfigPath), 0700);
+		Utility::CopyFile(sourceConfigPath, targetConfigPath);
+	}
+}
+
 static int InstallIcinga(void)
 {
 	String installDir = GetIcingaInstallDir();
+
+	installDir = "C:\\Program Files\\Icinga2\\";
 
 	ExecuteCommand("icacls \"" + installDir + "\" /grant *S-1-5-20:(oi)(ci)m");
 	ExecuteCommand("icacls \"" + installDir + "\\etc\" /inheritance:r /grant:r *S-1-5-20:(oi)(ci)m *S-1-5-32-544:(oi)(ci)f");
@@ -60,6 +74,9 @@ static int InstallIcinga(void)
 	Utility::MkDirP(installDir + "/var/log/icinga2/crash", 0700);
 	Utility::MkDirP(installDir + "/var/spool/icinga2/perfdata", 0700);
 	Utility::MkDirP(installDir + "/var/spool/icinga2/tmp", 0700);
+
+	String skelDir = "/share/skel";
+	Utility::GlobRecursive(installDir + skelDir, "*", boost::bind(&CopyConfigFile, installDir, _1, skelDir.GetLength()), GlobFile);
 
 	ExecuteIcingaCommand("--scm-install daemon");
 
