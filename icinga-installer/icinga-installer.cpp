@@ -57,8 +57,6 @@ static int InstallIcinga(void)
 {
 	String installDir = GetIcingaInstallDir();
 
-	installDir = "C:\\Program Files\\Icinga2\\";
-
 	ExecuteCommand("icacls \"" + installDir + "\" /grant *S-1-5-20:(oi)(ci)m");
 	ExecuteCommand("icacls \"" + installDir + "\\etc\" /inheritance:r /grant:r *S-1-5-20:(oi)(ci)m *S-1-5-32-544:(oi)(ci)f");
 
@@ -72,6 +70,7 @@ static int InstallIcinga(void)
 	Utility::MkDirP(installDir + "/var/lib/icinga2/api/zones", 0700);
 	Utility::MkDirP(installDir + "/var/log/icinga2/compat/archive", 0700);
 	Utility::MkDirP(installDir + "/var/log/icinga2/crash", 0700);
+	Utility::MkDirP(installDir + "/var/run/icinga2/cmd", 0700);
 	Utility::MkDirP(installDir + "/var/spool/icinga2/perfdata", 0700);
 	Utility::MkDirP(installDir + "/var/spool/icinga2/tmp", 0700);
 
