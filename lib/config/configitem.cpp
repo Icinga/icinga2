@@ -44,6 +44,7 @@ using namespace icinga;
 boost::mutex ConfigItem::m_Mutex;
 ConfigItem::TypeMap ConfigItem::m_Items;
 ConfigItem::ItemList ConfigItem::m_UnnamedItems;
+ConfigItem::IgnoredItemList ConfigItem::m_IgnoredItems;
 
 REGISTER_SCRIPTFUNCTION(__run_with_activation_context, &ConfigItem::RunWithActivationContext);
 
@@ -190,8 +191,10 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 		m_Expression->Evaluate(frame, &debugHints);
 	} catch (const std::exception& ex) {
 		if (m_IgnoreOnError) {
-			Log(LogWarning, "ConfigObject")
+			Log(LogNotice, "ConfigObject")
 			    << "Ignoring config object '" << m_Name << "' of type '" << m_Type << "' due to errors: " << DiagnosticInformation(ex);
+
+			m_IgnoredItems.push_back(m_DebugInfo.Path);
 
 			return ConfigObject::Ptr();
 		}
@@ -234,8 +237,10 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 		dobj->Validate(FAConfig, utils);
 	} catch (ValidationError& ex) {
 		if (m_IgnoreOnError) {
-			Log(LogWarning, "ConfigObject")
+			Log(LogNotice, "ConfigObject")
 			    << "Ignoring config object '" << m_Name << "' of type '" << m_Type << "' due to errors: " << DiagnosticInformation(ex);
+
+			m_IgnoredItems.push_back(m_DebugInfo.Path);
 
 			return ConfigObject::Ptr();
 		}
@@ -248,8 +253,10 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 		dobj->OnConfigLoaded();
 	} catch (const std::exception& ex) {
 		if (m_IgnoreOnError) {
-			Log(LogWarning, "ConfigObject")
+			Log(LogNotice, "ConfigObject")
 			    << "Ignoring config object '" << m_Name << "' of type '" << m_Type << "' due to errors: " << DiagnosticInformation(ex);
+
+			m_IgnoredItems.push_back(m_DebugInfo.Path);
 
 			return ConfigObject::Ptr();
 		}
@@ -359,10 +366,12 @@ void ConfigItem::OnAllConfigLoadedHelper(void)
 		m_Object->OnAllConfigLoaded();
 	} catch (const std::exception& ex) {
 		if (m_IgnoreOnError) {
-			Log(LogWarning, "ConfigObject")
+			Log(LogNotice, "ConfigObject")
 			    << "Ignoring config object '" << m_Name << "' of type '" << m_Type << "' due to errors: " << DiagnosticInformation(ex);
 
 			Unregister();
+
+			m_IgnoredItems.push_back(m_DebugInfo.Path);
 
 			return;
 		}
@@ -629,4 +638,24 @@ std::vector<ConfigItem::Ptr> ConfigItem::GetItems(const String& type)
 	}
 
 	return items;
+}
+
+void ConfigItem::RemoveIgnoredItems(const String& allowedConfigPath)
+{
+	BOOST_FOREACH(const String& path, m_IgnoredItems) {
+		if (path.Find(allowedConfigPath) == String::NPos)
+			continue;
+
+		Log(LogNotice, "ConfigItem")
+		    << "Removing ignored item path '" << path << "'.";
+
+		if (unlink(path.CStr()) < 0) {
+			BOOST_THROW_EXCEPTION(posix_error()
+			    << boost::errinfo_api_function("unlink")
+			    << boost::errinfo_errno(errno)
+			    << boost::errinfo_file_name(path));
+		}
+	}
+
+	m_IgnoredItems.clear();
 }
