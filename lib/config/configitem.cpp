@@ -168,7 +168,8 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 
 	/* Make sure the type is valid. */
 	Type::Ptr type = Type::GetByName(GetType());
-	ASSERT(type && ConfigObject::TypeInstance->IsAssignableFrom(type));
+	if (!type || !ConfigObject::TypeInstance->IsAssignableFrom(type))
+		BOOST_THROW_EXCEPTION(ScriptError("Type '" + GetType() + "' does not exist.", m_DebugInfo));
 
 	if (IsAbstract())
 		return ConfigObject::Ptr();
