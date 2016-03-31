@@ -619,7 +619,6 @@
 			this.MaximizeBox = false;
 			this.Name = "SetupWizard";
 			this.Text = "Icinga 2 Setup Wizard";
-			this.Shown += new System.EventHandler(this.AgentWizard_Shown);
 			this.tabFinish.ResumeLayout(false);
 			this.tabFinish.PerformLayout();
 			this.tabConfigure.ResumeLayout(false);
