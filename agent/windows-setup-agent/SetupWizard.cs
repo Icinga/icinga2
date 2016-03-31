@@ -275,25 +275,6 @@ namespace Icinga
 			tbcPages.SelectedTab = tabFinish;
 		}
 
-		private void AgentWizard_Shown(object sender, EventArgs e)
-		{
-			string installDir = Program.Icinga2InstallDir;
-
-			/* TODO: This is something the NSIS installer should do */
-			Directory.CreateDirectory(installDir + "\\etc\\icinga2\\pki");
-			Directory.CreateDirectory(installDir + "\\var\\cache\\icinga2");
-			Directory.CreateDirectory(installDir + "\\var\\lib\\icinga2\\pki");
-			Directory.CreateDirectory(installDir + "\\var\\lib\\icinga2\\agent\\inventory");
-			Directory.CreateDirectory(installDir + "\\var\\lib\\icinga2\\api\\config");
-			Directory.CreateDirectory(installDir + "\\var\\lib\\icinga2\\api\\log");
-			Directory.CreateDirectory(installDir + "\\var\\lib\\icinga2\\api\\zones");
-			Directory.CreateDirectory(installDir + "\\var\\log\\icinga2\\compat\\archive");
-			Directory.CreateDirectory(installDir + "\\var\\log\\icinga2\\crash");
-			Directory.CreateDirectory(installDir + "\\var\\run\\icinga2\\cmd");
-			Directory.CreateDirectory(installDir + "\\var\\spool\\icinga2\\perfdata");
-			Directory.CreateDirectory(installDir + "\\var\\spool\\icinga2\\tmp");
-		}
-
 		private void btnBack_Click(object sender, EventArgs e)
 		{
 			if (tbcPages.SelectedTab == tabError) {
