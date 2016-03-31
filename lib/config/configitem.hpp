@@ -75,6 +75,8 @@ public:
 
 	static std::vector<ConfigItem::Ptr> GetItems(const String& type);
 
+	static void RemoveIgnoredItems(const String& allowedConfigPath);
+
 private:
 	String m_Type; /**< The object type. */
 	String m_Name; /**< The name. */
@@ -99,7 +101,9 @@ private:
 
 	typedef std::vector<ConfigItem::Ptr> ItemList;
 	static ItemList m_UnnamedItems;
-	static ItemList m_CommittedItems;
+
+	typedef std::vector<String> IgnoredItemList;
+	static IgnoredItemList m_IgnoredItems;
 
 	static ConfigItem::Ptr GetObjectUnlocked(const String& type,
 	    const String& name);
