@@ -22,15 +22,54 @@
 
 using namespace icinga;
 
-int InstallIcinga(void)
+static String GetIcingaInstallDir(void)
 {
-	MessageBox(NULL, "Install", "Icinga 2", 0);
+	char szFileName[MAX_PATH];
+	if (!GetModuleFileName(NULL, szFileName, sizeof(szFileName)))
+		return "";
+	return Utility::DirName(Utility::DirName(szFileName));
+}
+
+static void ExecuteCommand(const String& command)
+{
+	std::cerr << "Executing command: " << command << std::endl;
+	system(command.CStr());
+}
+
+static void ExecuteIcingaCommand(const String& args)
+{
+	ExecuteCommand("\"" + GetIcingaInstallDir() + "\\sbin\\icinga2.exe\" " + args);
+}
+
+static int InstallIcinga(void)
+{
+	String installDir = GetIcingaInstallDir();
+
+	ExecuteCommand("icacls \"" + installDir + "\" /grant *S-1-5-20:(oi)(ci)m");
+	ExecuteCommand("icacls \"" + installDir + "\\etc\" /inheritance:r /grant:r *S-1-5-20:(oi)(ci)m *S-1-5-32-544:(oi)(ci)f");
+
+	Utility::MkDirP(installDir + "/etc/icinga2/pki", 0700);
+	Utility::MkDirP(installDir + "/var/cache/icinga2", 0700);
+	Utility::MkDirP(installDir + "/var/lib/icinga2/pki", 0700);
+	Utility::MkDirP(installDir + "/var/lib/icinga2/agent/inventory", 0700);
+	Utility::MkDirP(installDir + "/var/lib/icinga2/api/config", 0700);
+	Utility::MkDirP(installDir + "/var/lib/icinga2/api/log", 0700);
+	Utility::MkDirP(installDir + "/var/lib/icinga2/api/zones", 0700);
+	Utility::MkDirP(installDir + "/var/lib/icinga2/api/zones", 0700);
+	Utility::MkDirP(installDir + "/var/log/icinga2/compat/archive", 0700);
+	Utility::MkDirP(installDir + "/var/log/icinga2/crash", 0700);
+	Utility::MkDirP(installDir + "/var/spool/icinga2/perfdata", 0700);
+	Utility::MkDirP(installDir + "/var/spool/icinga2/tmp", 0700);
+
+	ExecuteIcingaCommand("--scm-install daemon");
+
 	return 0;
 }
 
-int UninstallIcinga(void)
+static int UninstallIcinga(void)
 {
-	MessageBox(NULL, "Uninstall", "Icinga 2", 0);
+	ExecuteIcingaCommand("--scm-uninstall");
+
 	return 0;
 }
 
@@ -42,6 +81,8 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	/* must be called before using any other libbase functions */
 	Application::InitializeBase();
 
+	//AllocConsole();
+
 	int rc;
 
 	if (strcmp(lpCmdLine, "install") == 0) {
@@ -52,6 +93,8 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 		MessageBox(NULL, "This application should only be run by the MSI installer package.", "Icinga 2 Installer", MB_ICONWARNING);
 		rc = 1;
 	}
+
+	//Utility::Sleep(3);
 
 	Application::Exit(rc);
 }
