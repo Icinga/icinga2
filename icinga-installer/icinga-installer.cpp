@@ -19,6 +19,7 @@
 
 #include "base/utility.hpp"
 #include "base/application.hpp"
+#include <shellapi.h>
 
 using namespace icinga;
 
@@ -30,15 +31,35 @@ static String GetIcingaInstallDir(void)
 	return Utility::DirName(Utility::DirName(szFileName));
 }
 
-static void ExecuteCommand(const String& command)
+static bool ExecuteCommand(const String& app, const String& arguments)
 {
-	std::cerr << "Executing command: " << command << std::endl;
-	system(command.CStr());
+	SHELLEXECUTEINFO sei = {};
+	sei.cbSize = sizeof(sei);
+	sei.fMask = SEE_MASK_NOCLOSEPROCESS;
+	sei.lpFile = app.CStr();
+	sei.lpParameters = arguments.CStr();
+	sei.nShow = SW_HIDE;
+	if (!ShellExecuteEx(&sei))
+		return false;
+	
+	if (!sei.hProcess)
+		return false;
+
+	WaitForSingleObject(sei.hProcess, INFINITE);
+
+	DWORD exitCode;
+	bool res = GetExitCodeProcess(sei.hProcess, &exitCode);
+	CloseHandle(sei.hProcess);
+
+	if (!res)
+		return false;
+
+	return exitCode == 0;
 }
 
-static void ExecuteIcingaCommand(const String& args)
+static bool ExecuteIcingaCommand(const String& arguments)
 {
-	ExecuteCommand("\"" + GetIcingaInstallDir() + "\\sbin\\icinga2.exe\" " + args);
+	return ExecuteCommand(GetIcingaInstallDir() + "\\sbin\\icinga2.exe", arguments);
 }
 
 static void CopyConfigFile(const String& installDir, const String& sourceConfigPath, size_t skelPrefixLength)
@@ -57,8 +78,8 @@ static int InstallIcinga(void)
 {
 	String installDir = GetIcingaInstallDir();
 
-	ExecuteCommand("icacls \"" + installDir + "\" /grant *S-1-5-20:(oi)(ci)m");
-	ExecuteCommand("icacls \"" + installDir + "\\etc\" /inheritance:r /grant:r *S-1-5-20:(oi)(ci)m *S-1-5-32-544:(oi)(ci)f");
+	ExecuteCommand("icacls", "\"" + installDir + "\" /grant *S-1-5-20:(oi)(ci)m");
+	ExecuteCommand("icacls", "\"" + installDir + "\\etc\" /inheritance:r /grant:r *S-1-5-20:(oi)(ci)m *S-1-5-32-544:(oi)(ci)f");
 
 	Utility::MkDirP(installDir + "/etc/icinga2/pki", 0700);
 	Utility::MkDirP(installDir + "/var/cache/icinga2", 0700);
@@ -96,6 +117,8 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 {
 	/* must be called before using any other libbase functions */
 	Application::InitializeBase();
+
+	CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
 
 	//AllocConsole();
 
