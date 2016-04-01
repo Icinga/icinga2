@@ -45,7 +45,16 @@ namespace Icinga
 			}
 		}
 
-		public static void FatalError(Form owner, string message)
+        public static string Icinga2DataDir
+        {
+            get
+            {
+                return Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) + "\\icinga2";
+            }
+        }
+
+
+        public static void FatalError(Form owner, string message)
 		{
 			MessageBox.Show(owner, message, "Icinga 2 Setup Wizard", MessageBoxButtons.OK, MessageBoxIcon.Error);
 			Application.Exit();
@@ -69,7 +78,7 @@ namespace Icinga
 
 			Form form;
 
-			if (File.Exists(installDir + "\\etc\\icinga2\\features-enabled\\api.conf"))
+			if (File.Exists(Program.Icinga2DataDir + "\\etc\\icinga2\\features-enabled\\api.conf"))
 				form = new ServiceStatus();
 			else
 				form = new SetupWizard();
