@@ -45,10 +45,7 @@ if(NOT WIN32)
   install(CODE "file(MAKE_DIRECTORY \"\$ENV{DESTDIR}${CMAKE_INSTALL_FULL_SYSCONFDIR}/icinga2/features-enabled\")")
   install(CODE "execute_process(COMMAND \"${CMAKE_COMMAND}\" -E create_symlink ../features-available/checker.conf \"\$ENV{DESTDIR}${CMAKE_INSTALL_FULL_SYSCONFDIR}/icinga2/features-enabled/checker.conf\")")
 else()
-  install(
-    FILES ${PROJECT_SOURCE_DIR}/etc/icinga2/features-enabled/checker.conf
-    DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/features-enabled
-  )
+  install_if_not_exists(${PROJECT_SOURCE_DIR}/etc/icinga2/features-enabled/checker.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/features-enabled)
 endif()
 
 install(

@@ -145,6 +145,7 @@ public:
 
 #ifdef _WIN32
 	static String GetIcingaInstallPath(void);
+	static String GetIcingaDataPath(void);
 #endif /* _WIN32 */
 
 private:
