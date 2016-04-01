@@ -23,7 +23,7 @@
 
 using namespace icinga;
 
-static String GetIcingaInstallDir(void)
+static String GetIcingaInstallPath(void)
 {
 	char szFileName[MAX_PATH];
 	if (!GetModuleFileName(NULL, szFileName, sizeof(szFileName)))
@@ -59,12 +59,12 @@ static bool ExecuteCommand(const String& app, const String& arguments)
 
 static bool ExecuteIcingaCommand(const String& arguments)
 {
-	return ExecuteCommand(GetIcingaInstallDir() + "\\sbin\\icinga2.exe", arguments);
+	return ExecuteCommand(GetIcingaInstallPath() + "\\sbin\\icinga2.exe", arguments);
 }
 
 static void CopyConfigFile(const String& installDir, const String& sourceConfigPath, size_t skelPrefixLength)
 {
-	String relativeConfigPath = sourceConfigPath.SubStr(installDir.GetLength() + skelPrefixLength);
+	String relativeConfigPath = sourceConfigPath.SubStr(skelPrefixLength);
 
 	String targetConfigPath = installDir + relativeConfigPath;
 
@@ -74,29 +74,74 @@ static void CopyConfigFile(const String& installDir, const String& sourceConfigP
 	}
 }
 
+static String GetNSISInstallPath(void)
+{
+	HKEY hKey;
+	if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SOFTWARE\\Icinga Development Team\\ICINGA2", 0,
+		KEY_QUERY_VALUE | KEY_WOW64_32KEY, &hKey) == ERROR_SUCCESS) {
+		BYTE pvData[MAX_PATH];
+		DWORD cbData = sizeof(pvData) - 1;
+		DWORD lType;
+		if (RegQueryValueEx(hKey, NULL, NULL, &lType, pvData, &cbData) == ERROR_SUCCESS && lType == REG_SZ) {
+			pvData[cbData] = '\0';
+
+			return (char *)pvData;
+		}
+
+		RegCloseKey(hKey);
+	}
+
+	return "";
+}
+
+static int UpgradeNSIS(void)
+{
+	String installPath = GetNSISInstallPath();
+
+	if (installPath.IsEmpty())
+		return 0;
+
+	if (!Utility::PathExists(installPath + "\\uninstall.exe"))
+		return 0;
+
+	ExecuteCommand(installPath + "\\uninstall.exe", "/S");
+
+	String dataPath = Utility::GetIcingaDataPath();
+
+	if (!Utility::PathExists(dataPath))
+		CreateSymbolicLink(dataPath.CStr(), installPath.CStr(), SYMBOLIC_LINK_FLAG_DIRECTORY);
+
+	return 0;
+}
+
 static int InstallIcinga(void)
 {
-	String installDir = GetIcingaInstallDir();
+	UpgradeNSIS();
 
-	ExecuteCommand("icacls", "\"" + installDir + "\" /grant *S-1-5-20:(oi)(ci)m");
-	ExecuteCommand("icacls", "\"" + installDir + "\\etc\" /inheritance:r /grant:r *S-1-5-20:(oi)(ci)m *S-1-5-32-544:(oi)(ci)f");
+	String installDir = GetIcingaInstallPath();
+	String dataDir = Utility::GetIcingaDataPath();
 
-	Utility::MkDirP(installDir + "/etc/icinga2/pki", 0700);
-	Utility::MkDirP(installDir + "/var/cache/icinga2", 0700);
-	Utility::MkDirP(installDir + "/var/lib/icinga2/pki", 0700);
-	Utility::MkDirP(installDir + "/var/lib/icinga2/agent/inventory", 0700);
-	Utility::MkDirP(installDir + "/var/lib/icinga2/api/config", 0700);
-	Utility::MkDirP(installDir + "/var/lib/icinga2/api/log", 0700);
-	Utility::MkDirP(installDir + "/var/lib/icinga2/api/zones", 0700);
-	Utility::MkDirP(installDir + "/var/lib/icinga2/api/zones", 0700);
-	Utility::MkDirP(installDir + "/var/log/icinga2/compat/archive", 0700);
-	Utility::MkDirP(installDir + "/var/log/icinga2/crash", 0700);
-	Utility::MkDirP(installDir + "/var/run/icinga2/cmd", 0700);
-	Utility::MkDirP(installDir + "/var/spool/icinga2/perfdata", 0700);
-	Utility::MkDirP(installDir + "/var/spool/icinga2/tmp", 0700);
+	Utility::MkDirP(dataDir, 0700);
+
+	ExecuteCommand("icacls", "\"" + dataDir + "\" /grant *S-1-5-20:(oi)(ci)m");
+	ExecuteCommand("icacls", "\"" + dataDir + "\\etc\" /inheritance:r /grant:r *S-1-5-20:(oi)(ci)m *S-1-5-32-544:(oi)(ci)f");
+
+	Utility::MkDirP(dataDir + "/etc/icinga2/pki", 0700);
+	Utility::MkDirP(dataDir + "/var/cache/icinga2", 0700);
+	Utility::MkDirP(dataDir + "/var/lib/icinga2/pki", 0700);
+	Utility::MkDirP(dataDir + "/var/lib/icinga2/agent/inventory", 0700);
+	Utility::MkDirP(dataDir + "/var/lib/icinga2/api/config", 0700);
+	Utility::MkDirP(dataDir + "/var/lib/icinga2/api/log", 0700);
+	Utility::MkDirP(dataDir + "/var/lib/icinga2/api/zones", 0700);
+	Utility::MkDirP(dataDir + "/var/lib/icinga2/api/zones", 0700);
+	Utility::MkDirP(dataDir + "/var/log/icinga2/compat/archive", 0700);
+	Utility::MkDirP(dataDir + "/var/log/icinga2/crash", 0700);
+	Utility::MkDirP(dataDir + "/var/run/icinga2/cmd", 0700);
+	Utility::MkDirP(dataDir + "/var/spool/icinga2/perfdata", 0700);
+	Utility::MkDirP(dataDir + "/var/spool/icinga2/tmp", 0700);
 
 	String skelDir = "/share/skel";
-	Utility::GlobRecursive(installDir + skelDir, "*", boost::bind(&CopyConfigFile, installDir, _1, skelDir.GetLength()), GlobFile);
+	Utility::GlobRecursive(installDir + skelDir, "*", boost::bind(&CopyConfigFile, dataDir, _1, installDir.GetLength() + skelDir.GetLength()), GlobFile);
 
 	ExecuteIcingaCommand("--scm-install daemon");
 

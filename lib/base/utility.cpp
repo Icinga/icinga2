@@ -56,6 +56,7 @@
 #	include <windows.h>
 #	include <io.h>
 #	include <msi.h>
+#	include <shlobj.h>
 #endif /*_WIN32*/
 
 using namespace icinga;
@@ -1881,6 +1882,14 @@ String Utility::GetIcingaInstallPath(void)
 	}
 
 	return "";
+}
+
+String Utility::GetIcingaDataPath(void)
+{
+	char path[MAX_PATH];
+	if (!SUCCEEDED(SHGetFolderPath(NULL, CSIDL_COMMON_APPDATA, NULL, 0, path)))
+		return "";
+	return String(path) + "\\icinga2";
 }
 
 #endif /* _WIN32 */

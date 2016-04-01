@@ -125,15 +125,16 @@ int Main(void)
 #ifdef _WIN32
 	bool builtinPaths = true;
 
-	String prefix = Utility::GetIcingaInstallPath();
+	String binaryPrefix = Utility::GetIcingaInstallPath();
+	String dataPrefix = Utility::GetIcingaDataPath();
 
-	if (!prefix.IsEmpty()) {
-		Application::DeclarePrefixDir(prefix);
-		Application::DeclareSysconfDir(prefix + "\\etc");
-		Application::DeclareRunDir(prefix + "\\var\\run");
-		Application::DeclareLocalStateDir(prefix + "\\var");
-		Application::DeclarePkgDataDir(prefix + "\\share\\icinga2");
-		Application::DeclareIncludeConfDir(prefix + "\\share\\icinga2\\include");
+	if (!binaryPrefix.IsEmpty() && !dataPrefix.IsEmpty()) {
+		Application::DeclarePrefixDir(binaryPrefix);
+		Application::DeclareSysconfDir(dataPrefix + "\\etc");
+		Application::DeclareRunDir(dataPrefix + "\\var\\run");
+		Application::DeclareLocalStateDir(dataPrefix + "\\var");
+		Application::DeclarePkgDataDir(binaryPrefix + "\\share\\icinga2");
+		Application::DeclareIncludeConfDir(binaryPrefix + "\\share\\icinga2\\include");
 	} else {
 		Log(LogWarning, "icinga-app", "Registry key could not be read. Falling back to built-in paths.");
 

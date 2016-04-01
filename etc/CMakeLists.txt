@@ -83,10 +83,7 @@ if(NOT WIN32)
     DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/bash_completion.d
   )
 else()
-  install(
-    FILES icinga2/features-enabled/mainlog.conf
-    DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/features-enabled
-  )
+  install_if_not_exists(icinga2/features-enabled/mainlog.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/features-enabled)
 endif()
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
