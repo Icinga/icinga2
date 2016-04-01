@@ -702,7 +702,7 @@ group using the `id` command:
 
 ### <a id="installing-icingaweb2"></a> Installing Icinga Web 2
 
-Please consult the [installation documentation](https://github.com/Icinga/icingaweb2/blob/master/doc/installation.md)
+Please consult the [installation documentation](https://github.com/Icinga/icingaweb2/blob/master/doc/02-Installation.md)
 for further instructions on how to install Icinga Web 2.
 
 
