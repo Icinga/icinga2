@@ -144,12 +144,16 @@ void HttpServerConnection::ProcessMessageAsync(HttpRequest& request)
 
 	ApiUser::Ptr user;
 
+	/* client_cn matched. */
 	if (m_ApiUser)
 		user = m_ApiUser;
 	else {
 		user = ApiUser::GetByName(username);
 
-		if (user && user->GetPassword() != password)
+		/* Deny authentication if 1) given password is empty 2) configured password does not match. */
+		if (password.IsEmpty())
+			user.reset();
+		else if (user && user->GetPassword() != password)
 			user.reset();
 	}
 
