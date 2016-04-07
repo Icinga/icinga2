@@ -88,7 +88,12 @@ void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkab
 		return;
 
 	Process::Ptr process = new Process(Process::PrepareCommand(command), envMacros);
-	process->SetTimeout(commandObj->GetTimeout());
+
+	if (checkable->GetCheckTimeout().IsEmpty())
+		process->SetTimeout(commandObj->GetTimeout());
+	else
+		process->SetTimeout(checkable->GetCheckTimeout());
+
 	process->Run(boost::bind(callback, command, _1));
 }
 
