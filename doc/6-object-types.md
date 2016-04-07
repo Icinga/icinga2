@@ -562,6 +562,7 @@ Configuration Attributes:
   check\_command  |**Required.** The name of the check command.
   max\_check\_attempts|**Optional.** The number of times a host is re-checked before changing into a hard state. Defaults to 3.
   check\_period   |**Optional.** The name of a time period which determines when this host should be checked. Not set by default.
+  check\_timeout  |**Optional.** Check command timeout in seconds. Overrides the CheckCommand's `timeout` attribute.
   check\_interval |**Optional.** The check interval (in seconds). This interval is used for checks when the host is in a `HARD` state. Defaults to 5 minutes.
   retry\_interval |**Optional.** The retry interval (in seconds). This interval is used for checks when the host is in a `SOFT` state. Defaults to 1 minute.
   enable\_notifications|**Optional.** Whether notifications are enabled. Defaults to true.
@@ -1182,6 +1183,7 @@ Configuration Attributes:
   check\_command  |**Required.** The name of the check command.
   max\_check\_attempts|**Optional.** The number of times a service is re-checked before changing into a hard state. Defaults to 3.
   check\_period   |**Optional.** The name of a time period which determines when this service should be checked. Not set by default.
+  check\_timeout  |**Optional.** Check command timeout in seconds. Overrides the CheckCommand's `timeout` attribute.
   check\_interval |**Optional.** The check interval (in seconds). This interval is used for checks when the service is in a `HARD` state. Defaults to 5 minutes.
   retry\_interval |**Optional.** The retry interval (in seconds). This interval is used for checks when the service is in a `SOFT` state. Defaults to 1 minute.
   enable\_notifications|**Optional.** Whether notifications are enabled. Defaults to true.

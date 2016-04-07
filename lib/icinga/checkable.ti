@@ -57,6 +57,7 @@ abstract class Checkable : CustomVarObject
 			return TimePeriod::GetByName(GetCheckPeriodRaw());
 		}}}
 	};
+	[config] Value check_timeout;
 	[config] double check_interval {
 		default {{{ return 5 * 60; }}}
 	};
