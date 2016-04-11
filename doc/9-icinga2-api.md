@@ -194,7 +194,7 @@ custom attribute `os` that matches the regular expression `^Linux`.
       }
     ]
 
-More information about filters can be found in the [filters](#9-icinga2-api.md#icinga2-api-filters) chapter.
+More information about filters can be found in the [filters](9-icinga2-api.md#icinga2-api-filters) chapter.
 
 Available permissions for specific URL endpoints:
 
