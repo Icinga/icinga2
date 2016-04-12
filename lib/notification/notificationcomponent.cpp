@@ -72,6 +72,9 @@ void NotificationComponent::NotificationTimerHandler(void)
 	double now = Utility::GetTime();
 
 	BOOST_FOREACH(const Notification::Ptr& notification, ConfigType::GetObjectsByType<Notification>()) {
+		if (!notification->IsActive())
+			continue;
+
 		Checkable::Ptr checkable = notification->GetCheckable();
 
 		if (checkable->IsPaused() && GetEnableHA())

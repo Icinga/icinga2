@@ -244,7 +244,7 @@ void Comment::CommentsExpireTimerHandler(void)
 	}
 
 	BOOST_FOREACH(const Comment::Ptr& comment, comments) {
-		if (comment->IsExpired())
+		if (comment->IsActive() && comment->IsExpired())
 			RemoveComment(comment->GetName());
 	}
 }

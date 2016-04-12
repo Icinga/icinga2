@@ -358,7 +358,7 @@ void Downtime::DowntimesExpireTimerHandler(void)
 	}
 
 	BOOST_FOREACH(const Downtime::Ptr& downtime, downtimes) {
-		if (downtime->IsExpired())
+		if (downtime->IsActive() && downtime->IsExpired())
 			RemoveDowntime(downtime->GetName(), false, true);
 	}
 }
