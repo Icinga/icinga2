@@ -1,6 +1,7 @@
 <CPackWiXPatch>
   <CPackWiXFragment Id="#PRODUCT">
     <Property Id="ALLUSERS">1</Property>
+    <Property Id="MSIRESTARTMANAGERCONTROL">Disable</Property>
 
     <CustomAction Id="XtraInstall" FileKey="CM_FP_sbin.icinga2_installer.exe" ExeCommand="install" Execute="deferred" Impersonate="no" />
     <CustomAction Id="XtraUninstall" FileKey="CM_FP_sbin.icinga2_installer.exe" ExeCommand="uninstall" Execute="deferred" Impersonate="no" />
