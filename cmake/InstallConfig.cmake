@@ -26,7 +26,7 @@ function(install_if_not_exists src dest)
   string(REPLACE "/" "\\\\" nsis_dest_dir "${real_dest}")
   string(REPLACE "/" "\\\\" nsis_dest "${real_dest}/${basename_dest}")
   install(CODE "
-    if(\${CMAKE_INSTALL_PREFIX} MATCHES .*/_CPack_Packages/.* OR NOT EXISTS \"\$ENV{DESTDIR}${dest}/${src_name}\")
+    if(\${CMAKE_INSTALL_PREFIX} MATCHES .*/_CPack_Packages/.* OR NOT EXISTS \"\$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/\${skel_prefix}${dest}/${src_name}\")
       message(STATUS \"Installing: \$ENV{DESTDIR}${dest}/${src_name}\")
       if(\${CMAKE_INSTALL_PREFIX} MATCHES .*/_CPack_Packages/.*)
         set(skel_prefix \"share/skel/\")
