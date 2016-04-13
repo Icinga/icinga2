@@ -94,12 +94,8 @@ Dictionary::Ptr ObjectQueryHandler::SerializeObjectAttrs(const Object::Ptr& obje
 			continue;
 
 		/* hide internal navigation fields */
-		if (field.Attributes & FANavigation) {
-			Value nval = object->NavigateField(fid);
-
-			if (val == nval)
-				continue;
-		}
+		if (field.Attributes & FANavigation && !(field.Attributes & (FAConfig | FAState)))
+			continue;
 
 		Value sval = Serialize(val, FAConfig | FAState);
 		resultAttrs->Set(field.Name, sval);
