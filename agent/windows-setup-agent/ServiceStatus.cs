@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
 using System.ServiceProcess;
+using System.Diagnostics;
 
 namespace Icinga
 {
@@ -33,5 +34,9 @@ namespace Icinga
 		{
 			Close();
 		}
-	}
+
+        private void btnOpenConfigDir_Click(object sender, EventArgs e) {
+            Process.Start("explorer.exe", Program.Icinga2DataDir + "\\etc\\icinga2");
+        }
+    }
 }
