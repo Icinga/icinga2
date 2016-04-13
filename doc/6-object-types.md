@@ -697,11 +697,11 @@ Configuration Attributes:
   user            |**Optional.** MySQL database user with read/write permission to the icinga database. Defaults to "icinga".
   password        |**Optional.** MySQL database user's password. Defaults to "icinga".
   database        |**Optional.** MySQL database name. Defaults to "icinga".
-  ssl_key         |**Optional.** MySQL SSL client key file path.
-  ssl_cert        |**Optional.** MySQL SSL certificate file path.
-  ssl_ca          |**Optional.** MySQL SSL Certificate Authority certificate file path.
-  ssl_capath      |**Optional.** MySQL SSL trusted SSL CA certificates in PEM format directory path.
-  ssl_cipher      |**Optional.** MySQL SSL list of permissible ciphers.
+  ssl\_key         |**Optional.** MySQL SSL client key file path.
+  ssl\_cert        |**Optional.** MySQL SSL certificate file path.
+  ssl\_ca          |**Optional.** MySQL SSL Certificate Authority certificate file path.
+  ssl\_capath      |**Optional.** MySQL SSL trusted SSL CA certificates in PEM format directory path.
+  ssl\_cipher      |**Optional.** MySQL SSL list of permissible ciphers.
   table\_prefix   |**Optional.** MySQL database table prefix. Defaults to "icinga\_".
   instance\_name  |**Optional.** Unique identifier for the local Icinga 2 instance. Defaults to "default".
   instance\_description|**Optional.** Description for the Icinga 2 instance.
