@@ -26,6 +26,11 @@ function(install_if_not_exists src dest)
   string(REPLACE "/" "\\\\" nsis_dest_dir "${real_dest}")
   string(REPLACE "/" "\\\\" nsis_dest "${real_dest}/${basename_dest}")
   install(CODE "
+   if(\"\$ENV{DESTDIR}\" STREQUAL \"\")
+      set(target_dir \${CMAKE_INSTALL_PREFIX})
+    else()
+      set(target_dir \$ENV{DESTDIR})
+    endif()
     if(\${CMAKE_INSTALL_PREFIX} MATCHES .*/_CPack_Packages/.* OR NOT EXISTS \"\$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/\${skel_prefix}${dest}/${src_name}\")
       message(STATUS \"Installing: \$ENV{DESTDIR}${dest}/${src_name}\")
       if(\${CMAKE_INSTALL_PREFIX} MATCHES .*/_CPack_Packages/.*)
@@ -34,14 +39,14 @@ function(install_if_not_exists src dest)
         set(skel_prefix \"\")
       endif()
       execute_process(COMMAND \${CMAKE_COMMAND} -E copy \"${src}\"
-                      \"\$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/\${skel_prefix}${dest}/${src_name}\"
+                      \"\${target_dir}/\${skel_prefix}${dest}/${src_name}\"
                       RESULT_VARIABLE copy_result
                       ERROR_VARIABLE error_output)
       if(copy_result)
         message(FATAL_ERROR \${error_output})
       endif()
     else()
-      message(STATUS \"Skipping  : \$ENV{DESTDIR}${dest}/${src_name}\")
+      message(STATUS \"Skipping  : \${target_dir}/${dest}/${src_name}\")
     endif()
   ")
 endfunction(install_if_not_exists)
