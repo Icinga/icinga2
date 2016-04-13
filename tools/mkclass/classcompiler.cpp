@@ -935,11 +935,11 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 				 << "\t" << "virtual void Notify" << it->GetFriendlyName() << "(const Value& cookie = Empty);" << std::endl;
 
 			m_Impl << "void ObjectImpl<" << klass.Name << ">::Notify" << it->GetFriendlyName() << "(const Value& cookie)" << std::endl
-			       << "{" << std::endl
-			       << "\t" << "ConfigObject *dobj = dynamic_cast<ConfigObject *>(this);" << std::endl;
+			       << "{" << std::endl;
 
 			if (it->Name != "active") {
-				m_Impl << "\t" << "if (!dobj || dobj->IsActive())" << std::endl
+				m_Impl << "\t" << "ConfigObject *dobj = dynamic_cast<ConfigObject *>(this);" << std::endl
+				       << "\t" << "if (!dobj || dobj->IsActive())" << std::endl
 				       << "\t";
 			}
 
