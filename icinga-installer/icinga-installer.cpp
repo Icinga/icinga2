@@ -19,6 +19,7 @@
 
 #include "base/utility.hpp"
 #include "base/application.hpp"
+#include <boost/foreach.hpp>
 #include <shellapi.h>
 
 using namespace icinga;
@@ -48,7 +49,7 @@ static bool ExecuteCommand(const String& app, const String& arguments)
 	WaitForSingleObject(sei.hProcess, INFINITE);
 
 	DWORD exitCode;
-	bool res = GetExitCodeProcess(sei.hProcess, &exitCode);
+	BOOL res = GetExitCodeProcess(sei.hProcess, &exitCode);
 	CloseHandle(sei.hProcess);
 
 	if (!res)
@@ -94,6 +95,41 @@ static String GetNSISInstallPath(void)
 	return "";
 }
 
+static void CollectPaths(std::vector<String>& paths, const String& path)
+{
+	paths.push_back(path);
+}
+
+static bool MoveDirectory(const String& source, const String& destination)
+{
+	if (!MoveFileEx(source.CStr(), destination.CStr(), MOVEFILE_COPY_ALLOWED | MOVEFILE_WRITE_THROUGH)) {
+		// SHFileOperation requires file names to be terminated with two \0s
+		String tmpSource = source + String(1, '\0');
+		String tmpDestination = destination + String(1, '\0');
+
+		SHFILEOPSTRUCT fop;
+		fop.wFunc = FO_COPY;
+		fop.pFrom = tmpSource.CStr();
+		fop.pTo = tmpDestination.CStr();
+		fop.fFlags = FOF_NO_UI;
+		if (SHFileOperation(&fop) != 0)
+			return false;
+
+		std::vector<String> paths;
+		paths.push_back(source);
+		Utility::GlobRecursive(source, "*", boost::bind(&CollectPaths, boost::ref(paths), _1), GlobDirectory);
+		Utility::GlobRecursive(source, "*", boost::bind(&CollectPaths, boost::ref(paths), _1), GlobFile);
+
+		std::reverse(paths.begin(), paths.end());
+
+		BOOST_FOREACH(const String& path, paths) {
+			(void)MoveFileEx(path.CStr(), NULL, MOVEFILE_DELAY_UNTIL_REBOOT);
+		}
+	}
+
+	return true;
+}
+
 static int UpgradeNSIS(void)
 {
 	String installPath = GetNSISInstallPath();
@@ -108,15 +144,28 @@ static int UpgradeNSIS(void)
 
 	String dataPath = Utility::GetIcingaDataPath();
 
-	if (!Utility::PathExists(dataPath))
-		CreateSymbolicLink(dataPath.CStr(), installPath.CStr(), SYMBOLIC_LINK_FLAG_DIRECTORY);
+	/* perform open heart surgery on the user's data dirs - yay */
+	if (!Utility::PathExists(dataPath)) {
+		Utility::MkDirP(dataPath, 0700);
+
+		String oldNameEtc = installPath + "\\etc";
+		String newNameEtc = dataPath + "\\etc";
+		if (!MoveDirectory(oldNameEtc, newNameEtc))
+			return 1;
+
+		String oldNameVar = installPath + "\\var";
+		String newNameVar = dataPath + "\\var";
+		if (!MoveDirectory(oldNameVar, newNameVar))
+			return 1;
+	}	
 
 	return 0;
 }
 
 static int InstallIcinga(void)
 {
-	UpgradeNSIS();
+	if (UpgradeNSIS() != 0)
+		return 1;
 
 	String installDir = GetIcingaInstallPath();
 	String dataDir = Utility::GetIcingaDataPath();
