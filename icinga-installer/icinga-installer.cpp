@@ -17,28 +17,37 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/utility.hpp"
-#include "base/application.hpp"
-#include <boost/foreach.hpp>
+#include <string>
+#include <vector>
+#include <fstream>
+#include <direct.h>
+#include <windows.h>
+#include <shlwapi.h>
 #include <shellapi.h>
+#include <shlobj.h>
 
-using namespace icinga;
-
-static String GetIcingaInstallPath(void)
+static std::string GetIcingaInstallPath(void)
 {
 	char szFileName[MAX_PATH];
 	if (!GetModuleFileName(NULL, szFileName, sizeof(szFileName)))
 		return "";
-	return Utility::DirName(Utility::DirName(szFileName));
+
+	if (!PathRemoveFileSpec(szFileName))
+		return "";
+
+	if (!PathRemoveFileSpec(szFileName))
+		return "";
+
+	return szFileName;
 }
 
-static bool ExecuteCommand(const String& app, const String& arguments)
+static bool ExecuteCommand(const std::string& app, const std::string& arguments)
 {
 	SHELLEXECUTEINFO sei = {};
 	sei.cbSize = sizeof(sei);
 	sei.fMask = SEE_MASK_NOCLOSEPROCESS;
-	sei.lpFile = app.CStr();
-	sei.lpParameters = arguments.CStr();
+	sei.lpFile = app.c_str();
+	sei.lpParameters = arguments.c_str();
 	sei.nShow = SW_HIDE;
 	if (!ShellExecuteEx(&sei))
 		return false;
@@ -58,24 +67,82 @@ static bool ExecuteCommand(const String& app, const String& arguments)
 	return exitCode == 0;
 }
 
-static bool ExecuteIcingaCommand(const String& arguments)
+static bool ExecuteIcingaCommand(const std::string& arguments)
 {
 	return ExecuteCommand(GetIcingaInstallPath() + "\\sbin\\icinga2.exe", arguments);
 }
 
-static void CopyConfigFile(const String& installDir, const String& sourceConfigPath, size_t skelPrefixLength)
+static std::string DirName(const std::string& path)
 {
-	String relativeConfigPath = sourceConfigPath.SubStr(skelPrefixLength);
+	char *spath = strdup(path.c_str());
 
-	String targetConfigPath = installDir + relativeConfigPath;
+	if (!PathRemoveFileSpec(spath)) {
+		free(spath);
+		throw std::runtime_error("PathRemoveFileSpec failed");
+	}
 
-	if (!Utility::PathExists(targetConfigPath)) {
-		Utility::MkDirP(Utility::DirName(targetConfigPath), 0700);
-		Utility::CopyFile(sourceConfigPath, targetConfigPath);
+	std::string result = spath;
+
+	free(spath);
+
+	return result;
+}
+
+static bool PathExists(const std::string& path)
+{
+	struct _stat statbuf;
+	return (_stat(path.c_str(), &statbuf) >= 0);
+}
+
+static void CopyFile(const std::string& source, const std::string& target)
+{
+	std::ifstream ifs(source.c_str(), std::ios::binary);
+	std::ofstream ofs(target.c_str(), std::ios::binary | std::ios::trunc);
+
+	ofs << ifs.rdbuf();
+}
+
+static std::string GetIcingaDataPath(void)
+{
+	char path[MAX_PATH];
+	if (!SUCCEEDED(SHGetFolderPath(NULL, CSIDL_COMMON_APPDATA, NULL, 0, path)))
+		throw std::runtime_error("SHGetFolderPath failed");
+	return std::string(path) + "\\icinga2";
+}
+
+static void MkDir(const std::string& path)
+{
+	if (mkdir(path.c_str()) < 0 && errno != EEXIST)
+		throw std::runtime_error("mkdir failed");
+}
+
+static void MkDirP(const std::string& path)
+{
+	size_t pos = 0;
+
+	while (pos != std::string::npos) {
+		pos = path.find_first_of("/\\", pos + 1);
+
+		std::string spath = path.substr(0, pos + 1);
+		struct stat statbuf;
+		if (stat(spath.c_str(), &statbuf) < 0 && errno == ENOENT)
+			MkDir(path.substr(0, pos));
 	}
 }
 
-static String GetNSISInstallPath(void)
+static void CopyConfigFile(const std::string& installDir, const std::string& sourceConfigPath, size_t skelPrefixLength)
+{
+	std::string relativeConfigPath = sourceConfigPath.substr(skelPrefixLength);
+
+	std::string targetConfigPath = installDir + relativeConfigPath;
+
+	if (!PathExists(targetConfigPath)) {
+		MkDirP(DirName(targetConfigPath));
+		CopyFile(sourceConfigPath, targetConfigPath);
+	}
+}
+
+static std::string GetNSISInstallPath(void)
 {
 	HKEY hKey;
 	if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SOFTWARE\\Icinga Development Team\\ICINGA2", 0,
@@ -95,36 +162,37 @@ static String GetNSISInstallPath(void)
 	return "";
 }
 
-static void CollectPaths(std::vector<String>& paths, const String& path)
+static void CollectPaths(std::vector<std::string>& paths, const std::string& path)
 {
 	paths.push_back(path);
 }
 
-static bool MoveDirectory(const String& source, const String& destination)
+static bool MoveDirectory(const std::string& source, const std::string& destination)
 {
-	if (!MoveFileEx(source.CStr(), destination.CStr(), MOVEFILE_COPY_ALLOWED | MOVEFILE_WRITE_THROUGH)) {
+	if (!MoveFileEx(source.c_str(), destination.c_str(), MOVEFILE_COPY_ALLOWED | MOVEFILE_WRITE_THROUGH)) {
 		// SHFileOperation requires file names to be terminated with two \0s
-		String tmpSource = source + String(1, '\0');
-		String tmpDestination = destination + String(1, '\0');
+		std::string tmpSource = source + std::string(1, '\0');
+		std::string tmpDestination = destination + std::string(1, '\0');
 
 		SHFILEOPSTRUCT fop;
 		fop.wFunc = FO_COPY;
-		fop.pFrom = tmpSource.CStr();
-		fop.pTo = tmpDestination.CStr();
+		fop.pFrom = tmpSource.c_str();
+		fop.pTo = tmpDestination.c_str();
 		fop.fFlags = FOF_NO_UI;
 		if (SHFileOperation(&fop) != 0)
 			return false;
 
-		std::vector<String> paths;
+		// XXX: reimplement
+		/*std::vector<std::string> paths;
 		paths.push_back(source);
 		Utility::GlobRecursive(source, "*", boost::bind(&CollectPaths, boost::ref(paths), _1), GlobDirectory);
 		Utility::GlobRecursive(source, "*", boost::bind(&CollectPaths, boost::ref(paths), _1), GlobFile);
 
 		std::reverse(paths.begin(), paths.end());
 
-		BOOST_FOREACH(const String& path, paths) {
-			(void)MoveFileEx(path.CStr(), NULL, MOVEFILE_DELAY_UNTIL_REBOOT);
-		}
+		BOOST_FOREACH(const std::string& path, paths) {
+			(void)MoveFileEx(path.c_str(), NULL, MOVEFILE_DELAY_UNTIL_REBOOT);
+		}*/
 	}
 
 	return true;
@@ -132,33 +200,33 @@ static bool MoveDirectory(const String& source, const String& destination)
 
 static int UpgradeNSIS(void)
 {
-	String installPath = GetNSISInstallPath();
+	std::string installPath = GetNSISInstallPath();
 
-	if (installPath.IsEmpty())
+	if (installPath.empty())
 		return 0;
 
-	String uninstallerPath = installPath + "\\uninstall.exe";
+	std::string uninstallerPath = installPath + "\\uninstall.exe";
 
-	if (!Utility::PathExists(uninstallerPath))
+	if (!PathExists(uninstallerPath))
 		return 0;
 
 	ExecuteCommand(uninstallerPath, "/S _?=" + installPath);
 
-	_unlink(uninstallerPath.CStr());
+	_unlink(uninstallerPath.c_str());
 
-	String dataPath = Utility::GetIcingaDataPath();
+	std::string dataPath = GetIcingaDataPath();
 
 	/* perform open heart surgery on the user's data dirs - yay */
-	if (!Utility::PathExists(dataPath)) {
-		Utility::MkDirP(dataPath, 0700);
+	if (!PathExists(dataPath)) {
+		MkDir(dataPath.c_str());
 
-		String oldNameEtc = installPath + "\\etc";
-		String newNameEtc = dataPath + "\\etc";
+		std::string oldNameEtc = installPath + "\\etc";
+		std::string newNameEtc = dataPath + "\\etc";
 		if (!MoveDirectory(oldNameEtc, newNameEtc))
 			return 1;
 
-		String oldNameVar = installPath + "\\var";
-		String newNameVar = dataPath + "\\var";
+		std::string oldNameVar = installPath + "\\var";
+		std::string newNameVar = dataPath + "\\var";
 		if (!MoveDirectory(oldNameVar, newNameVar))
 			return 1;
 	}	
@@ -168,33 +236,39 @@ static int UpgradeNSIS(void)
 
 static int InstallIcinga(void)
 {
-	if (UpgradeNSIS() != 0)
-		return 1;
+	std::string installDir = GetIcingaInstallPath();
+	std::string dataDir = GetIcingaDataPath();
 
-	String installDir = GetIcingaInstallPath();
-	String dataDir = Utility::GetIcingaDataPath();
+	if (!PathExists(dataDir)) {
+		std::string sourceDir = installDir + "\\share\\skel" + std::string(1, '\0');
+		std::string destinationDir = dataDir + std::string(1, '\0');
 
-	Utility::MkDirP(dataDir, 0700);
+		SHFILEOPSTRUCT fop;
+		fop.wFunc = FO_COPY;
+		fop.pFrom = sourceDir.c_str();
+		fop.pTo = destinationDir.c_str();
+		fop.fFlags = FOF_NO_UI | FOF_NOCOPYSECURITYATTRIBS;
+
+		if (SHFileOperation(&fop) != 0)
+			return 1;
+
+		MkDirP(dataDir + "/etc/icinga2/pki");
+		MkDirP(dataDir + "/var/cache/icinga2");
+		MkDirP(dataDir + "/var/lib/icinga2/pki");
+		MkDirP(dataDir + "/var/lib/icinga2/agent/inventory");
+		MkDirP(dataDir + "/var/lib/icinga2/api/config");
+		MkDirP(dataDir + "/var/lib/icinga2/api/log");
+		MkDirP(dataDir + "/var/lib/icinga2/api/zones");
+		MkDirP(dataDir + "/var/lib/icinga2/api/zones");
+		MkDirP(dataDir + "/var/log/icinga2/compat/archive");
+		MkDirP(dataDir + "/var/log/icinga2/crash");
+		MkDirP(dataDir + "/var/run/icinga2/cmd");
+		MkDirP(dataDir + "/var/spool/icinga2/perfdata");
+		MkDirP(dataDir + "/var/spool/icinga2/tmp");
+	}
 
 	ExecuteCommand("icacls", "\"" + dataDir + "\" /grant *S-1-5-20:(oi)(ci)m");
 	ExecuteCommand("icacls", "\"" + dataDir + "\\etc\" /inheritance:r /grant:r *S-1-5-20:(oi)(ci)m *S-1-5-32-544:(oi)(ci)f");
-
-	Utility::MkDirP(dataDir + "/etc/icinga2/pki", 0700);
-	Utility::MkDirP(dataDir + "/var/cache/icinga2", 0700);
-	Utility::MkDirP(dataDir + "/var/lib/icinga2/pki", 0700);
-	Utility::MkDirP(dataDir + "/var/lib/icinga2/agent/inventory", 0700);
-	Utility::MkDirP(dataDir + "/var/lib/icinga2/api/config", 0700);
-	Utility::MkDirP(dataDir + "/var/lib/icinga2/api/log", 0700);
-	Utility::MkDirP(dataDir + "/var/lib/icinga2/api/zones", 0700);
-	Utility::MkDirP(dataDir + "/var/lib/icinga2/api/zones", 0700);
-	Utility::MkDirP(dataDir + "/var/log/icinga2/compat/archive", 0700);
-	Utility::MkDirP(dataDir + "/var/log/icinga2/crash", 0700);
-	Utility::MkDirP(dataDir + "/var/run/icinga2/cmd", 0700);
-	Utility::MkDirP(dataDir + "/var/spool/icinga2/perfdata", 0700);
-	Utility::MkDirP(dataDir + "/var/spool/icinga2/tmp", 0700);
-
-	String skelDir = "/share/skel";
-	Utility::GlobRecursive(installDir + skelDir, "*", boost::bind(&CopyConfigFile, dataDir, _1, installDir.GetLength() + skelDir.GetLength()), GlobFile);
 
 	ExecuteIcingaCommand("--scm-install daemon");
 
@@ -213,9 +287,6 @@ static int UninstallIcinga(void)
 */
 int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
-	/* must be called before using any other libbase functions */
-	Application::InitializeBase();
-
 	CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
 
 	//AllocConsole();
@@ -226,12 +297,14 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 		rc = InstallIcinga();
 	} else if (strcmp(lpCmdLine, "uninstall") == 0) {
 		rc = UninstallIcinga();
+	} else if (strcmp(lpCmdLine, "upgrade-nsis") == 0) {
+		rc = UpgradeNSIS();
 	} else {
 		MessageBox(NULL, "This application should only be run by the MSI installer package.", "Icinga 2 Installer", MB_ICONWARNING);
 		rc = 1;
 	}
 
-	//Utility::Sleep(3);
+	//::Sleep(3000s);
 
-	Application::Exit(rc);
+	return rc;
 }
