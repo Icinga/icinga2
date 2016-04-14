@@ -24,7 +24,6 @@
     <CustomAction Id="LaunchIcinga2Wizard"
         BinaryKey="WixCA"
         DllEntry="WixShellExec"
-        Execute="deferred"
         Impersonate="no" />
 
     <UI>
