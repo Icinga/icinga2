@@ -218,7 +218,7 @@ static int UpgradeNSIS(void)
 		if (!MoveDirectory(oldNameVar, newNameVar))
 			return 1;
 
-		_unlink(installPath.c_str());
+		_rmdir(installPath.c_str());
 	}	
 
 	return 0;
