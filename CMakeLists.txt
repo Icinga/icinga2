@@ -306,6 +306,8 @@ set(CPACK_WIX_UPGRADE_GUID "52F2BEAA-4DF0-4C3E-ABDC-C0F61DE4DF8A")
 set(CPACK_WIX_EXTENSIONS "WixUtilExtension")
 set(CPACK_WIX_UI_BANNER "${CMAKE_CURRENT_SOURCE_DIR}/icinga-installer/bannrbmp.bmp")
 set(CPACK_WIX_UI_DIALOG "${CMAKE_CURRENT_SOURCE_DIR}/icinga-installer/dlgbmp.bmp")
+set(CPACK_WIX_PATCH_FILE "${CMAKE_CURRENT_BINARY_DIR}/icinga-installer/icinga2.wixpatch.Debug")
+set(CPACK_WIX_PATCH_FILE "${CMAKE_CURRENT_BINARY_DIR}/icinga-installer/icinga2.wixpatch")
 
 set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP TRUE)
 include(InstallRequiredSystemLibraries)
