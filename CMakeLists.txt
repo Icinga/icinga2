@@ -16,7 +16,6 @@
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
 cmake_minimum_required(VERSION 2.6)
-cmake_policy(SET CMP0026 OLD)
 set(BOOST_MIN_VERSION "1.41.0")
 
 project(icinga2)
