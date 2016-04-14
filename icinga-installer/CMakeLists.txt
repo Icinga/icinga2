@@ -25,7 +25,7 @@ endforeach(flag_var)
 
 add_executable(icinga-installer icinga-installer.cpp)
 
-set_target_properties (
+set_target_properties(
   icinga-installer PROPERTIES
   FOLDER Bin
   OUTPUT_NAME icinga2-installer
@@ -34,8 +34,15 @@ set_target_properties (
 
 target_link_libraries(icinga-installer shlwapi)
 
-get_property(ICINGA2_INSTALLER_TARGET TARGET icinga-installer PROPERTY LOCATION_Release)
-configure_file(icinga2.wixpatch.cmake ${CMAKE_CURRENT_BINARY_DIR}/icinga2.wixpatch @ONLY)
+install(CODE "
+set(CPACK_WIX_PATCH_FILE \"\${CMAKE_CURRENT_BINARY_DIR}/icinga-installer/icinga2.wixpatch.\${BUILD_TYPE}\")
+")
+
+file(
+  GENERATE
+  OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/icinga2.wixpatch.$<CONFIG>"
+  INPUT "${CMAKE_CURRENT_SOURCE_DIR}/icinga2.wixpatch.cmake"
+)
 
 set(InstallPath "${CMAKE_INSTALL_SBINDIR}")
 
