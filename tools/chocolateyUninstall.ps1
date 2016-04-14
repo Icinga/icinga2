@@ -1,25 +1,28 @@
-$instDir = "unset"
-$uninstaller = "Uninstall.exe"
-$icingaRegistry64bitOS = "hklm:\SOFTWARE\Wow6432Node\Icinga Development Team\ICINGA2"
-$icingaRegistry32bitOS = "hklm:\SOFTWARE\Icinga Development Team\ICINGA2"
-$found = $false
+$packageName = "Icinga 2";
+$fileType = 'msi';
+$silentArgs = '/qr /norestart'
 $validExitCodes = @(0)
-
-if(test-path $icingaRegistry32bitOS) {
-  $instDir = (get-itemproperty -literalpath $icingaRegistry32bitOS).'(default)'
-  $found = $true
+ 
+try {
+    $packageGuid = Get-ChildItem HKLM:\SOFTWARE\Classes\Installer\Products |
+      Get-ItemProperty -Name 'ProductName' |
+      ? { $_.ProductName -like $packageName + "*"} |
+      Select -ExpandProperty PSChildName -First 1
+   
+  $properties = Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\UserData\S-1-5-18\Products\$packageGuid\InstallProperties
+   
+  $file = $properties.LocalPackage
+   
+  # Would like to use the following, but looks like there is a bug in this method when uninstalling MSI's
+  # Uninstall-ChocolateyPackage $packageName $fileType $silentArgs $file -validExitCodes $validExitCodes
+   
+  # Use this instead
+  $msiArgs = "/x $file $silentArgs";
+  Start-ChocolateyProcessAsAdmin "$msiArgs" 'msiexec' -validExitCodes $validExitCodes
+   
+  Write-ChocolateySuccess $package
 }
-elseif(test-path $icingaRegistry64bitOS) {
-  $instDir = (get-itemproperty -literalpath $icingaRegistry64bitOS).'(default)'
-  $found = $true
-}
-else {
-  Write-Host "Did not find a path in the registry to the Icinga2 folder, did you use the installer?"
-} 
-
-if ($found) {
-  $packageArgs = "/S ?_="
-  $statements = "& `"$instDir\$uninstaller`" $packageArgs`"$instDir`""
-
-  Start-ChocolateyProcessAsAdmin "$statements" -minimized -validExitCodes $validExitCodes
+catch {
+  Write-ChocolateyFailure $package "$($_.Exception.Message)"
+  throw
 }
