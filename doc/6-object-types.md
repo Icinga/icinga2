@@ -698,16 +698,11 @@ Example:
       user = "icinga"
       password = "icinga"
       database = "icinga"
-      table_prefix = "icinga_"
-      instance_name = "icinga2"
-      instance_description = "icinga2 instance"
 
       cleanup = {
         downtimehistory_age = 48h
         logentries_age = 31d
       }
-
-      categories = DbCatConfig | DbCatState
     }
 
 Configuration Attributes:
@@ -788,16 +783,11 @@ Example:
       user = "icinga"
       password = "icinga"
       database = "icinga"
-      table_prefix = "icinga_"
-      instance_name = "icinga2"
-      instance_description = "icinga2 instance"
 
       cleanup = {
         downtimehistory_age = 48h
         logentries_age = 31d
       }
-
-      categories = DbCatConfig | DbCatState
     }
 
 Configuration Attributes:
