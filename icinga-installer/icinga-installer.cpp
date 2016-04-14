@@ -137,10 +137,14 @@ static int UpgradeNSIS(void)
 	if (installPath.IsEmpty())
 		return 0;
 
-	if (!Utility::PathExists(installPath + "\\uninstall.exe"))
+	String uninstallerPath = installPath + "\\uninstall.exe";
+
+	if (!Utility::PathExists(uninstallerPath))
 		return 0;
 
-	ExecuteCommand(installPath + "\\uninstall.exe", "/S");
+	ExecuteCommand(uninstallerPath, "/S \"_?=" + installPath + "\"");
+
+	_unlink(uninstallerPath.CStr());
 
 	String dataPath = Utility::GetIcingaDataPath();
 
