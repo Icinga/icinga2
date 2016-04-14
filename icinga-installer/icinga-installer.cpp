@@ -142,7 +142,7 @@ static int UpgradeNSIS(void)
 	if (!Utility::PathExists(uninstallerPath))
 		return 0;
 
-	ExecuteCommand(uninstallerPath, "/S \"_?=" + installPath + "\"");
+	ExecuteCommand(uninstallerPath, "/S _?=" + installPath);
 
 	_unlink(uninstallerPath.CStr());
 
