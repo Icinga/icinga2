@@ -7,7 +7,7 @@
     <CustomAction Id="XtraInstall" FileKey="CM_FP_sbin.icinga2_installer.exe" ExeCommand="install" Execute="deferred" Impersonate="no" />
     <CustomAction Id="XtraUninstall" FileKey="CM_FP_sbin.icinga2_installer.exe" ExeCommand="uninstall" Execute="deferred" Impersonate="no" />
 
-    <Binary Id="icinga2_installer" SourceFile="@ICINGA2_INSTALLER_TARGET@" />
+    <Binary Id="icinga2_installer" SourceFile="$<TARGET_FILE:icinga-installer>" />
     
     <InstallExecuteSequence>
       <Custom Action='CheckForUCRT' Before='LaunchConditions'>
