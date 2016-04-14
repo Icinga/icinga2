@@ -35,7 +35,13 @@ set_target_properties(
 target_link_libraries(icinga-installer shlwapi)
 
 install(CODE "
-set(CPACK_WIX_PATCH_FILE \"\${CMAKE_CURRENT_BINARY_DIR}/icinga-installer/icinga2.wixpatch.\${BUILD_TYPE}\")
+  execute_process(COMMAND \${CMAKE_COMMAND} -E copy \"${CMAKE_CURRENT_BINARY_DIR}/icinga2.wixpatch.\${BUILD_TYPE}\"
+                  \"${CMAKE_CURRENT_BINARY_DIR}/icinga2.wixpatch\"
+                  RESULT_VARIABLE copy_result
+                  ERROR_VARIABLE error_output)
+  if(copy_result)
+    message(FATAL_ERROR \${error_output})
+  endif()
 ")
 
 file(
