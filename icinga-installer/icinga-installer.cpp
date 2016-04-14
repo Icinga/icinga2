@@ -181,18 +181,6 @@ static bool MoveDirectory(const std::string& source, const std::string& destinat
 		fop.fFlags = FOF_NO_UI;
 		if (SHFileOperation(&fop) != 0)
 			return false;
-
-		// XXX: reimplement
-		/*std::vector<std::string> paths;
-		paths.push_back(source);
-		Utility::GlobRecursive(source, "*", boost::bind(&CollectPaths, boost::ref(paths), _1), GlobDirectory);
-		Utility::GlobRecursive(source, "*", boost::bind(&CollectPaths, boost::ref(paths), _1), GlobFile);
-
-		std::reverse(paths.begin(), paths.end());
-
-		BOOST_FOREACH(const std::string& path, paths) {
-			(void)MoveFileEx(path.c_str(), NULL, MOVEFILE_DELAY_UNTIL_REBOOT);
-		}*/
 	}
 
 	return true;
@@ -229,6 +217,8 @@ static int UpgradeNSIS(void)
 		std::string newNameVar = dataPath + "\\var";
 		if (!MoveDirectory(oldNameVar, newNameVar))
 			return 1;
+
+		_unlink(installPath.c_str());
 	}	
 
 	return 0;
