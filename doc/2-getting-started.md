@@ -318,37 +318,55 @@ On FreeBSD you need to enable icinga2 in your rc.conf
 ## <a id="configuration-syntax-highlighting"></a> Configuration Syntax Highlighting
 
 Icinga 2 ships configuration examples for syntax highlighting using the `vim` and `nano` editors.
-The RHEL, SUSE and Debian package `icinga2-common` install these files into
-`/usr/share/*/icinga2-common/syntax`. Sources provide these files in `tools/syntax`.
+The RHEL and SUSE package `icinga2-common` installs these files into `/usr/share/doc/icinga2-common-[x.x.x]/syntax`
+(where `[x.x.x]` is the version number, e.g. `2.4.3` or `2.4.4`). Sources provide these files in `tools/syntax`.
+On Debian systems the `icinga2-common` package provides only the Nano configuration file (`/usr/share/nano/icinga2.nanorc`);
+to obtain the Vim configuration, please install the extra package `vim-icinga2`. The files are located in `/usr/share/vim/addons`.
 
 ### <a id="configuration-syntax-highlighting-vim"></a> Configuration Syntax Highlighting using Vim
 
-Create a new local vim configuration storage, if not already existing.
-Edit `vim/ftdetect/icinga2.vim` if your paths to the Icinga 2 configuration
-differ.
+Create a new local vim configuration storage in your home directory (`~/.vim`), if it doesn't exist already.
+The `~/.vim/syntax` directory  contains the actual syntax file and the one in `~/.vim/ftdetect` is used to detect
+the file type. Both are called `icinga2.vim`. 
 
     $ PREFIX=~/.vim
     $ mkdir -p $PREFIX/{syntax,ftdetect}
-    $ cp vim/syntax/icinga2.vim $PREFIX/syntax/
-    $ cp vim/ftdetect/icinga2.vim $PREFIX/ftdetect/
+    $ cd /usr/share/doc/icinga2-common-[x.x.x]/syntax/vim
+    $ cp syntax/icinga2.vim $PREFIX/syntax/
+    $ cp ftdetect/icinga2.vim $PREFIX/ftdetect/
+
+On Debian systems replace the path `/usr/share/doc/icinga2-common-[x.x.x]/syntax/vim` with `/usr/share/vim/addons`. Alternatively,
+you can use the `vim-addons` tool to create the `~/.vim/syntax` and `~/.vim/ftdetect` directories and create symlinks to the files
+in `/usr/share/vim/addons`:
+
+    $ vim-addons install icinga2
+    Info: installing removed addon 'icinga2' to /home/root/.vim
+    $ ls -l /home/root/.vim/*
+    /home/root/.vim/ftdetect:
+    lrwxrwxrwx 1 root root [...] icinga2.vim -> /usr/share/vim/addons/ftdetect/icinga2.vim
+
+    /home/root/.vim/syntax:
+    lrwxrwxrwx 1 root root [...]  icinga2.vim -> /usr/share/vim/addons/syntax/icinga2.vim
 
 Test it:
 
     $ vim /etc/icinga2/conf.d/templates.conf
 
+![Vim with syntax highlighting](images/getting-started/vim-syntax.png "Vim with Icinga 2 syntax highlighting")
+
+
 ### <a id="configuration-syntax-highlighting-nano"></a> Configuration Syntax Highlighting using Nano
 
-Copy the `/etc/nanorc` sample file to your home directory. Create the `/etc/nano` directory
-and copy the provided `icinga2.nanorc` into it.
+Copy the `/etc/nanorc` sample file to your home directory and rename it to `~/.nanorc`. Create the `/etc/nano`
+directory and copy the provided `icinga2.nanorc` into it.
 
     $ cp /etc/nanorc ~/.nanorc
-
     # mkdir -p /etc/nano
-    # cp icinga2.nanorc /etc/nano/
+    # cp /usr/share/doc/icinga2-common-[x.x.x]/syntax/nano/icinga2.nanorc /etc/nano
+
+On Debian systems change `/usr/share/doc/icinga2-common-[x.x.x]/syntax/nano/icinga2.nanorc` to `/usr/share/nano/icinga2.nanorc`.
 
 Then include the icinga2.nanorc file in your ~/.nanorc by adding the following line:
-
-    $ vim ~/.nanorc
 
     ## Icinga 2
     include "/etc/nano/icinga2.nanorc"
@@ -357,6 +375,7 @@ Test it:
 
     $ nano /etc/icinga2/conf.d/templates.conf
 
+![Nano with syntax highlighting](images/getting-started/nano-syntax.png "Nano with Icinga 2 syntax highlighting")
 
 ## <a id="setting-up-icingaweb2"></a> Setting up Icinga Web 2
 
@@ -442,7 +461,10 @@ Set up a MySQL database for Icinga 2:
     # mysql -u root -p
 
     mysql>  CREATE DATABASE icinga;
-            GRANT SELECT, INSERT, UPDATE, DELETE, DROP, CREATE VIEW, INDEX, EXECUTE ON icinga.* TO 'icinga'@'localhost' IDENTIFIED BY 'icinga';
+    mysql>  GRANT SELECT, INSERT, UPDATE, DELETE, DROP, CREATE VIEW, INDEX, EXECUTE ON icinga.* TO 'icinga'@'localhost' IDENTIFIED BY 'icinga';
+    mysql> quit
+
+![setting up the database on CentOS 7](images/getting-started/mariadb-centos7.png "Setting up the database on CentOS 7")
 
 After creating the database you can import the Icinga 2 IDO schema using the
 following command:
@@ -561,8 +583,6 @@ Locate your pg\_hba.conf (Debian: `/etc/postgresql/*/main/pg_hba.conf`,
 RHEL/SUSE: `/var/lib/pgsql/data/pg_hba.conf`), add the icinga user with md5
 authentication method and restart the postgresql server.
 
-    # vim /var/lib/pgsql/data/pg_hba.conf
-
     # icinga
     local   icinga      icinga                            md5
     host    icinga      icinga      127.0.0.1/32          md5
@@ -583,6 +603,8 @@ schema using the following command:
 
     # export PGPASSWORD=icinga
     # psql -U icinga -d icinga < /usr/share/icinga2-ido-pgsql/schema/pgsql.sql
+
+![importing the Icinga 2 IDO schema](images/getting-started/postgr-import-ido.png "Importing the Icinga 2 IDO schema on Debian Jessie")
 
 
 #### <a id="enabling-ido-postgresql"></a> Enabling the IDO PostgreSQL module
@@ -704,13 +726,15 @@ change `icingacmd` to `nagios`.
 The webserver's user is different between distributions so you might have to
 change `www-data` to `wwwrun`, `www`, or `apache`.
 
-Change "www-data" to the user you're using to run queries.
+Change `www-data` to the user you're using to run queries.
 
 You can verify that the user has been successfully added to the `icingacmd`
 group using the `id` command:
 
     $ id <your-webserver-user>
 
+![id command on CentOS 7](images/getting-started/id-apache-centos7.png "Confirm that the webserver's user
+(here: `apache` on a CentOS 7 system) is a member of the group `icingacmd`.")
 
 ### <a id="installing-icingaweb2"></a> Installing Icinga Web 2
 
