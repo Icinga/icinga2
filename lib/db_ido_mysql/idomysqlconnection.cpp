@@ -186,9 +186,9 @@ void IdoMysqlConnection::Reconnect(void)
 
 	ClearIDCache();
 
-	String ihost, isocket_path, iuser, ipasswd, idb;
-	String issl_key, issl_cert, issl_ca, issl_capath, issl_cipher;
+	String ihost, isocket_path, iuser, ipasswd, idb, ienable_ssl;
 	const char *host, *socket_path, *user , *passwd, *db;
+	bool enable_ssl;
 	const char *ssl_key, *ssl_cert, *ssl_ca, *ssl_capath, *ssl_cipher;
 	long port;
 
@@ -197,12 +197,7 @@ void IdoMysqlConnection::Reconnect(void)
 	iuser = GetUser();
 	ipasswd = GetPassword();
 	idb = GetDatabase();
-
-	issl_key = GetSslKey();
-	issl_cert = GetSslCert();
-	issl_ca = GetSslCa();
-	issl_capath = GetSslCapath();
-	issl_cipher = GetSslCipher();
+	enable_ssl = GetEnableSsl();
 
 	host = (!ihost.IsEmpty()) ? ihost.CStr() : NULL;
 	port = GetPort();
@@ -210,13 +205,7 @@ void IdoMysqlConnection::Reconnect(void)
 	user = (!iuser.IsEmpty()) ? iuser.CStr() : NULL;
 	passwd = (!ipasswd.IsEmpty()) ? ipasswd.CStr() : NULL;
 	db = (!idb.IsEmpty()) ? idb.CStr() : NULL;
-
-	ssl_key = (!issl_key.IsEmpty()) ? issl_key.CStr() : NULL;
-	ssl_cert = (!issl_cert.IsEmpty()) ? issl_cert.CStr() : NULL;
-	ssl_ca = (!issl_ca.IsEmpty()) ? issl_ca.CStr() : NULL;
-	ssl_capath = (!issl_capath.IsEmpty()) ? issl_capath.CStr() : NULL;
-	ssl_cipher = (!issl_cipher.IsEmpty()) ? issl_cipher.CStr() : NULL;
-	bool have_ssl = (ssl_key || ssl_cert || ssl_ca || ssl_capath || ssl_cipher);
+	socket_path = (!isocket_path.IsEmpty()) ? isocket_path.CStr() : NULL;
 
 	/* connection */
 	if (!mysql_init(&m_Connection)) {
@@ -226,7 +215,19 @@ void IdoMysqlConnection::Reconnect(void)
 		BOOST_THROW_EXCEPTION(std::bad_alloc());
 	}
 
-	if (have_ssl) {
+	if (enable_ssl) {
+		String issl_key, issl_cert, issl_ca, issl_capath, issl_cipher;
+		issl_key = GetSslKey();
+		issl_cert = GetSslCert();
+		issl_ca = GetSslCa();
+		issl_capath = GetSslCapath();
+		issl_cipher = GetSslCipher();
+		ssl_key = (!issl_key.IsEmpty()) ? issl_key.CStr() : NULL;
+		ssl_cert = (!issl_cert.IsEmpty()) ? issl_cert.CStr() : NULL;
+		ssl_ca = (!issl_ca.IsEmpty()) ? issl_ca.CStr() : NULL;
+		ssl_capath = (!issl_capath.IsEmpty()) ? issl_capath.CStr() : NULL;
+		ssl_cipher = (!issl_cipher.IsEmpty()) ? issl_cipher.CStr() : NULL;
+
 		mysql_ssl_set(&m_Connection, ssl_key, ssl_cert, ssl_ca, ssl_capath, ssl_cipher);
 	}
 
@@ -235,8 +236,8 @@ void IdoMysqlConnection::Reconnect(void)
 		    << "Connection to database '" << db << "' with user '" << user << "' on '" << host << ":" << port
 		    << "' failed: \"" << mysql_error(&m_Connection) << "\"";
 		Log(LogDebug, "IdoMySqlConnection")
-			<< "Have SSL: " << (have_ssl ? "YES": "NO");
-		if (have_ssl) {
+			<< "SSL enabled: " << (enable_ssl ? "YES": "NO");
+		if (enable_ssl) {
 			Log(LogDebug, "IdoMysqlConnection")
 				<< "ssl_key: " << ssl_key;
 			Log(LogDebug, "IdoMysqlConnection")
