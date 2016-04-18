@@ -167,23 +167,32 @@ static void CollectPaths(std::vector<std::string>& paths, const std::string& pat
 	paths.push_back(path);
 }
 
-static bool MoveDirectory(const std::string& source, const std::string& destination)
+static bool CopyDirectory(const std::string& source, const std::string& destination)
 {
-	if (!MoveFileEx(source.c_str(), destination.c_str(), MOVEFILE_COPY_ALLOWED | MOVEFILE_WRITE_THROUGH)) {
-		// SHFileOperation requires file names to be terminated with two \0s
-		std::string tmpSource = source + std::string(1, '\0');
-		std::string tmpDestination = destination + std::string(1, '\0');
+	// SHFileOperation requires file names to be terminated with two \0s
+	std::string tmpSource = source + std::string(1, '\0');
+	std::string tmpDestination = destination + std::string(1, '\0');
 
-		SHFILEOPSTRUCT fop;
-		fop.wFunc = FO_COPY;
-		fop.pFrom = tmpSource.c_str();
-		fop.pTo = tmpDestination.c_str();
-		fop.fFlags = FOF_NO_UI;
-		if (SHFileOperation(&fop) != 0)
-			return false;
-	}
+	SHFILEOPSTRUCT fop;
+	fop.wFunc = FO_COPY;
+	fop.pFrom = tmpSource.c_str();
+	fop.pTo = tmpDestination.c_str();
+	fop.fFlags = FOF_NO_UI;
 
-	return true;
+	return (SHFileOperation(&fop) == 0);
+}
+
+static bool DeleteDirectory(const std::string& dir)
+{
+	// SHFileOperation requires file names to be terminated with two \0s
+	std::string tmpDir = dir + std::string(1, '\0');
+
+	SHFILEOPSTRUCT fop;
+	fop.wFunc = FO_DELETE;
+	fop.pFrom = tmpDir.c_str();
+	fop.fFlags = FOF_NO_UI;
+
+	return (SHFileOperation(&fop) == 0);
 }
 
 static int UpgradeNSIS(void)
@@ -198,24 +207,39 @@ static int UpgradeNSIS(void)
 	if (!PathExists(uninstallerPath))
 		return 0;
 
-	ExecuteCommand(uninstallerPath, "/S _?=" + installPath);
-
-	_unlink(uninstallerPath.c_str());
-
 	std::string dataPath = GetIcingaDataPath();
 
+	if (dataPath.empty())
+		return 1;
+
+	bool moveUserData = !PathExists(dataPath);
+
 	/* perform open heart surgery on the user's data dirs - yay */
-	if (!PathExists(dataPath)) {
+	if (moveUserData) {
 		MkDir(dataPath.c_str());
 
 		std::string oldNameEtc = installPath + "\\etc";
 		std::string newNameEtc = dataPath + "\\etc";
-		if (!MoveDirectory(oldNameEtc, newNameEtc))
+		if (!CopyDirectory(oldNameEtc, newNameEtc))
 			return 1;
 
 		std::string oldNameVar = installPath + "\\var";
 		std::string newNameVar = dataPath + "\\var";
-		if (!MoveDirectory(oldNameVar, newNameVar))
+		if (!CopyDirectory(oldNameVar, newNameVar))
+			return 1;
+	}
+
+	ExecuteCommand(uninstallerPath, "/S _?=" + installPath);
+
+	_unlink(uninstallerPath.c_str());
+
+	if (moveUserData) {
+		std::string oldNameEtc = installPath + "\\etc";
+		if (!DeleteDirectory(oldNameEtc))
+			return 1;
+
+		std::string oldNameVar = installPath + "\\var";
+		if (!DeleteDirectory(oldNameVar))
 			return 1;
 
 		_rmdir(installPath.c_str());
