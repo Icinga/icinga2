@@ -32,7 +32,7 @@ set(base_SOURCES
   netstring.cpp networkstream.cpp number.cpp number-script.cpp object.cpp
   object-script.cpp objecttype.cpp primitivetype.cpp process.cpp ringbuffer.cpp scriptframe.cpp
   function.cpp function-script.cpp functionwrapper.cpp scriptglobal.cpp
-  scriptutils.cpp serializer.cpp socket.cpp socketevents.cpp stacktrace.cpp
+  scriptutils.cpp serializer.cpp socket.cpp socketevents.cpp socketevents-epoll.cpp socketevents-poll.cpp stacktrace.cpp
   statsfunction.cpp stdiostream.cpp stream.cpp streamlogger.cpp streamlogger.thpp string.cpp string-script.cpp
   sysloglogger.cpp sysloglogger.thpp tcpsocket.cpp threadpool.cpp timer.cpp
   tlsstream.cpp tlsutility.cpp type.cpp typetype-script.cpp unixsocket.cpp utility.cpp value.cpp
