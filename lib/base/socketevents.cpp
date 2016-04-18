@@ -96,10 +96,10 @@ void SocketEvents::InitializeEngine(void)
 		l_SocketIOEngine = new SocketEventEngineEpoll();
 #endif /* __linux__ */
 	else {
-		eventEngine = "poll";
-
 		Log(LogWarning, "SocketEvents")
 		    << "Invalid event engine selected: " << eventEngine << " - Falling back to 'poll'";
+
+		eventEngine = "poll";
 
 		l_SocketIOEngine = new SocketEventEnginePoll();
 	}
