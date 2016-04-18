@@ -124,6 +124,9 @@ public:
 
 	virtual String ToString(void) const override;
 
+	virtual Value GetFieldByName(const String& field, bool sandboxed, const DebugInfo& debugInfo) const override;
+	virtual void SetFieldByName(const String& field, const Value& value, const DebugInfo& debugInfo) override;
+
 private:
 	std::vector<Value> m_Data; /**< The data for the array. */
 };

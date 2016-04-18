@@ -23,6 +23,8 @@
 #include "base/primitivetype.hpp"
 #include "base/dictionary.hpp"
 #include "base/configwriter.hpp"
+#include "base/convert.hpp"
+#include "base/exception.hpp"
 #include <boost/foreach.hpp>
 
 using namespace icinga;
@@ -207,4 +209,32 @@ String Array::ToString(void) const
 	std::ostringstream msgbuf;
 	ConfigWriter::EmitArray(msgbuf, 1, const_cast<Array *>(this));
 	return msgbuf.str();
+}
+
+Value Array::GetFieldByName(const String& field, bool sandboxed, const DebugInfo& debugInfo) const
+{
+	int index;
+
+	try {
+		index = Convert::ToLong(field);
+	} catch (...) {
+		return Object::GetFieldByName(field, sandboxed, debugInfo);
+	}
+
+	ObjectLock olock(this);
+
+	if (index < 0 || index >= GetLength())
+		BOOST_THROW_EXCEPTION(ScriptError("Array index '" + Convert::ToString(index) + "' is out of bounds.", debugInfo));
+
+	return Get(index);
+}
+
+void Array::SetFieldByName(const String& field, const Value& value, const DebugInfo& debugInfo)
+{
+	ObjectLock olock(this);
+
+	int index = Convert::ToLong(field);
+	if (index >= GetLength())
+		Resize(index + 1);
+	Set(index, value);
 }

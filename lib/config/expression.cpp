@@ -122,7 +122,7 @@ ExpressionResult VariableExpression::DoEvaluate(ScriptFrame& frame, DebugHint *d
 
 	if (frame.Locals && frame.Locals->Get(m_Variable, &value))
 		return value;
-	else if (frame.Self.IsObject() && frame.Locals != static_cast<Object::Ptr>(frame.Self) && VMOps::HasField(frame.Self, m_Variable))
+	else if (frame.Self.IsObject() && frame.Locals != static_cast<Object::Ptr>(frame.Self) && static_cast<Object::Ptr>(frame.Self)->HasOwnField(m_Variable))
 		return VMOps::GetField(frame.Self, m_Variable, frame.Sandboxed, m_DebugInfo);
 	else
 		return ScriptGlobal::Get(m_Variable);
@@ -137,7 +137,7 @@ bool VariableExpression::GetReference(ScriptFrame& frame, bool init_dict, Value 
 
 		if (dhint)
 			*dhint = NULL;
-	} else if (frame.Self.IsObject() && frame.Locals != static_cast<Object::Ptr>(frame.Self) && VMOps::HasField(frame.Self, m_Variable)) {
+	} else if (frame.Self.IsObject() && frame.Locals != static_cast<Object::Ptr>(frame.Self) && static_cast<Object::Ptr>(frame.Self)->HasOwnField(m_Variable)) {
 		*parent = frame.Self;
 
 		if (dhint && *dhint)

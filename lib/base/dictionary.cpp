@@ -197,3 +197,23 @@ String Dictionary::ToString(void) const
 	ConfigWriter::EmitScope(msgbuf, 1, const_cast<Dictionary *>(this));
 	return msgbuf.str();
 }
+
+Value Dictionary::GetFieldByName(const String& field, bool sandboxed, const DebugInfo& debugInfo) const
+{
+	Value value;
+
+	if (Get(field, &value))
+		return value;
+	else
+		return GetPrototypeField(const_cast<Dictionary *>(this), field, false, debugInfo);
+}
+
+void Dictionary::SetFieldByName(const String& field, const Value& value, const DebugInfo& debugInfo)
+{
+	Set(field, value);
+}
+
+bool Dictionary::HasOwnField(const String& field) const
+{
+	return Contains(field);
+}

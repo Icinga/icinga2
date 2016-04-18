@@ -49,7 +49,7 @@ public:
 		Value value;
 		if (frame.Locals && frame.Locals->Get(name, &value))
 			return value;
-		else if (frame.Self.IsObject() && frame.Locals != static_cast<Object::Ptr>(frame.Self) && HasField(frame.Self, name))
+		else if (frame.Self.IsObject() && frame.Locals != static_cast<Object::Ptr>(frame.Self) && static_cast<Object::Ptr>(frame.Self)->HasOwnField(name))
 			return GetField(frame.Self, name, frame.Sandboxed, debugInfo);
 		else
 			return ScriptGlobal::Get(name);
@@ -191,42 +191,6 @@ public:
 		return Empty;
 	}
 
-	static inline bool HasField(const Object::Ptr& context, const String& field)
-	{
-		Dictionary::Ptr dict = dynamic_pointer_cast<Dictionary>(context);
-
-		if (dict)
-			return dict->Contains(field);
-		else {
-			Type::Ptr type = context->GetReflectionType();
-
-			if (!type)
-				return false;
-
-			return type->GetFieldId(field) != -1;
-		}
-	}
-
-	static inline Value GetPrototypeField(const Value& context, const String& field, bool not_found_error = true, const DebugInfo& debugInfo = DebugInfo())
-	{
-		Type::Ptr ctype = context.GetReflectionType();
-		Type::Ptr type = ctype;
-
-		do {
-			Object::Ptr object = type->GetPrototype();
-
-			if (object && HasField(object, field))
-				return GetField(object, field, false, debugInfo);
-
-			type = type->GetBaseType();
-		} while (type);
-
-		if (not_found_error)
-			BOOST_THROW_EXCEPTION(ScriptError("Invalid field access (for value of type '" + ctype->GetName() + "'): '" + field + "'", debugInfo));
-		else
-			return Empty;
-	}
-
 	static inline Value GetField(const Value& context, const String& field, bool sandboxed = false, const DebugInfo& debugInfo = DebugInfo())
 	{
 		if (context.IsEmpty() && !context.IsString())
@@ -237,51 +201,7 @@ public:
 
 		Object::Ptr object = context;
 
-		Dictionary::Ptr dict = dynamic_pointer_cast<Dictionary>(object);
-
-		if (dict) {
-			Value value;
-			if (dict->Get(field, &value))
-				return value;
-			else
-				return GetPrototypeField(context, field, false, debugInfo);
-		}
-
-		Array::Ptr arr = dynamic_pointer_cast<Array>(object);
-
-		if (arr) {
-			int index;
-
-			try {
-				index = Convert::ToLong(field);
-			} catch (...) {
-				return GetPrototypeField(context, field, true, debugInfo);
-			}
-
-			if (index < 0 || index >= arr->GetLength())
-				BOOST_THROW_EXCEPTION(ScriptError("Array index '" + Convert::ToString(index) + "' is out of bounds.", debugInfo));
-
-			return arr->Get(index);
-		}
-
-		Type::Ptr type = object->GetReflectionType();
-
-		if (!type)
-			return Empty;
-
-		int fid = type->GetFieldId(field);
-
-		if (fid == -1)
-			return GetPrototypeField(context, field, true, debugInfo);
-
-		if (sandboxed) {
-			Field fieldInfo = type->GetFieldInfo(fid);
-
-			if (fieldInfo.Attributes & FANoUserView)
-				BOOST_THROW_EXCEPTION(ScriptError("Accessing the field '" + field + "' for type '" + type->GetName() + "' is not allowed in sandbox mode."));
-		}
-
-		return object->GetField(fid);
+		return object->GetFieldByName(field, sandboxed, debugInfo);
 	}
 
 	static inline void SetField(const Object::Ptr& context, const String& field, const Value& value, const DebugInfo& debugInfo = DebugInfo())
@@ -289,44 +209,7 @@ public:
 		if (!context)
 			BOOST_THROW_EXCEPTION(ScriptError("Cannot set field '" + field + "' on a value that is not an object.", debugInfo));
 
-		Dictionary::Ptr dict = dynamic_pointer_cast<Dictionary>(context);
-
-		if (dict) {
-			dict->Set(field, value);
-			return;
-		}
-
-		Array::Ptr arr = dynamic_pointer_cast<Array>(context);
-
-		if (arr) {
-			int index = Convert::ToLong(field);
-			if (index >= arr->GetLength())
-				arr->Resize(index + 1);
-			arr->Set(index, value);
-			return;
-		}
-
-		Type::Ptr type = context->GetReflectionType();
-
-		if (!type)
-			BOOST_THROW_EXCEPTION(ScriptError("Cannot set field on object.", debugInfo));
-
-		int fid = type->GetFieldId(field);
-
-		if (fid == -1)
-			BOOST_THROW_EXCEPTION(ScriptError("Attribute '" + field + "' does not exist.", debugInfo));
-
-		try {
-			context->SetField(fid, value);
-		} catch (const boost::bad_lexical_cast&) {
-			Field fieldInfo = type->GetFieldInfo(fid);
-			Type::Ptr ftype = Type::GetByName(fieldInfo.TypeName);
-			BOOST_THROW_EXCEPTION(ScriptError("Attribute '" + field + "' cannot be set to value of type '" + value.GetTypeName() + "', expected '" + ftype->GetName() + "'", debugInfo));
-		} catch (const std::bad_cast&) {
-			Field fieldInfo = type->GetFieldInfo(fid);
-			Type::Ptr ftype = Type::GetByName(fieldInfo.TypeName);
-			BOOST_THROW_EXCEPTION(ScriptError("Attribute '" + field + "' cannot be set to value of type '" + value.GetTypeName() + "', expected '" + ftype->GetName() + "'", debugInfo));
-		}
+		return context->SetFieldByName(field, value, debugInfo);
 	}
 
 private:

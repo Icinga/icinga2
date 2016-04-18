@@ -41,6 +41,7 @@ class Value;
 class Object;
 class Type;
 class String;
+class DebugInfo;
 class ValidationUtils;
 
 extern I2_BASE_API Value Empty;
@@ -123,6 +124,9 @@ public:
 
 	virtual void SetField(int id, const Value& value, bool suppress_events = false, const Value& cookie = Empty);
 	virtual Value GetField(int id) const;
+	virtual Value GetFieldByName(const String& field, bool sandboxed, const DebugInfo& debugInfo) const;
+	virtual void SetFieldByName(const String& field, const Value& value, const DebugInfo& debugInfo);
+	virtual bool HasOwnField(const String& field) const;
 	virtual void ValidateField(int id, const Value& value, const ValidationUtils& utils);
 	virtual void NotifyField(int id, const Value& cookie = Empty);
 	virtual Object::Ptr NavigateField(int id) const;
@@ -157,6 +161,8 @@ private:
 	friend void intrusive_ptr_add_ref(Object *object);
 	friend void intrusive_ptr_release(Object *object);
 };
+
+I2_BASE_API Value GetPrototypeField(const Value& context, const String& field, bool not_found_error, const DebugInfo& debugInfo);
 
 void TypeAddObject(Object *object);
 void TypeRemoveObject(Object *object);

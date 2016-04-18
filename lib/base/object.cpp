@@ -24,7 +24,9 @@
 #include "base/utility.hpp"
 #include "base/timer.hpp"
 #include "base/logger.hpp"
+#include "base/exception.hpp"
 #include <boost/foreach.hpp>
+#include <boost/lexical_cast/bad_lexical_cast.hpp>
 
 using namespace icinga;
 
@@ -98,6 +100,63 @@ Value Object::GetField(int id) const
 		BOOST_THROW_EXCEPTION(std::runtime_error("Invalid field ID."));
 }
 
+bool Object::HasOwnField(const String& field) const
+{
+	Type::Ptr type = GetReflectionType();
+
+	if (!type)
+		return false;
+
+	return type->GetFieldId(field) != -1;
+}
+
+Value Object::GetFieldByName(const String& field, bool sandboxed, const DebugInfo& debugInfo) const
+{
+	Type::Ptr type = GetReflectionType();
+
+	if (!type)
+		return Empty;
+
+	int fid = type->GetFieldId(field);
+
+	if (fid == -1)
+		return GetPrototypeField(const_cast<Object *>(this), field, true, debugInfo);
+
+	if (sandboxed) {
+		Field fieldInfo = type->GetFieldInfo(fid);
+
+		if (fieldInfo.Attributes & FANoUserView)
+			BOOST_THROW_EXCEPTION(ScriptError("Accessing the field '" + field + "' for type '" + type->GetName() + "' is not allowed in sandbox mode.", debugInfo));
+	}
+
+	return GetField(fid);
+}
+
+void Object::SetFieldByName(const String& field, const Value& value, const DebugInfo& debugInfo)
+{
+	Type::Ptr type = GetReflectionType();
+
+	if (!type)
+		BOOST_THROW_EXCEPTION(ScriptError("Cannot set field on object.", debugInfo));
+
+	int fid = type->GetFieldId(field);
+
+	if (fid == -1)
+		BOOST_THROW_EXCEPTION(ScriptError("Attribute '" + field + "' does not exist.", debugInfo));
+
+	try {
+		SetField(fid, value);
+	} catch (const boost::bad_lexical_cast&) {
+		Field fieldInfo = type->GetFieldInfo(fid);
+		Type::Ptr ftype = Type::GetByName(fieldInfo.TypeName);
+		BOOST_THROW_EXCEPTION(ScriptError("Attribute '" + field + "' cannot be set to value of type '" + value.GetTypeName() + "', expected '" + ftype->GetName() + "'", debugInfo));
+	} catch (const std::bad_cast&) {
+		Field fieldInfo = type->GetFieldInfo(fid);
+		Type::Ptr ftype = Type::GetByName(fieldInfo.TypeName);
+		BOOST_THROW_EXCEPTION(ScriptError("Attribute '" + field + "' cannot be set to value of type '" + value.GetTypeName() + "', expected '" + ftype->GetName() + "'", debugInfo));
+	}
+}
+
 void Object::Validate(int types, const ValidationUtils& utils)
 {
 	/* Nothing to do here. */
@@ -126,6 +185,26 @@ Object::Ptr Object::Clone(void) const
 Type::Ptr Object::GetReflectionType(void) const
 {
 	return Object::TypeInstance;
+}
+
+Value icinga::GetPrototypeField(const Value& context, const String& field, bool not_found_error, const DebugInfo& debugInfo)
+{
+	Type::Ptr ctype = context.GetReflectionType();
+	Type::Ptr type = ctype;
+
+	do {
+		Object::Ptr object = type->GetPrototype();
+
+		if (object && object->HasOwnField(field))
+			return object->GetFieldByName(field, false, debugInfo);
+
+		type = type->GetBaseType();
+	} while (type);
+
+	if (not_found_error)
+		BOOST_THROW_EXCEPTION(ScriptError("Invalid field access (for value of type '" + ctype->GetName() + "'): '" + field + "'", debugInfo));
+	else
+		return Empty;
 }
 
 #ifdef I2_LEAK_DEBUG
