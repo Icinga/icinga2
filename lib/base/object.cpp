@@ -26,7 +26,7 @@
 #include "base/logger.hpp"
 #include "base/exception.hpp"
 #include <boost/foreach.hpp>
-#include <boost/lexical_cast/bad_lexical_cast.hpp>
+#include <boost/lexical_cast.hpp>
 
 using namespace icinga;
 
