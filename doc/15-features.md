@@ -74,7 +74,7 @@ Example for PostgreSQL:
     (1 Zeile)
 
 
-A detailed list on the available table attributes can be found in the [DB IDO Schema documentation](23-appendix.md#schema-db-ido).
+A detailed list on the available table attributes can be found in the [DB IDO Schema documentation](24-appendix.md#schema-db-ido).
 
 
 ## <a id="external-commands"></a> External Commands
@@ -102,7 +102,7 @@ a forced service check:
     Oct 17 15:01:25 icinga-server icinga2: Executing external command: [1382014885] SCHEDULE_FORCED_SVC_CHECK;localhost;ping4;1382014885
     Oct 17 15:01:25 icinga-server icinga2: Rescheduling next check for service 'ping4'
 
-A list of currently supported external commands can be found [here](23-appendix.md#external-commands-list-detail).
+A list of currently supported external commands can be found [here](24-appendix.md#external-commands-list-detail).
 
 Detailed information on the commands and their required parameters can be found
 on the [Icinga 1.x documentation](http://docs.icinga.org/latest/en/extcommands2.html).
@@ -432,7 +432,7 @@ re-implementation of the Livestatus protocol which is compatible with MK
 Livestatus.
 
 Details on the available tables and attributes with Icinga 2 can be found
-in the [Livestatus Schema](23-appendix.md#schema-livestatus) section.
+in the [Livestatus Schema](24-appendix.md#schema-livestatus) section.
 
 You can enable Livestatus using icinga2 feature enable:
 
@@ -508,7 +508,7 @@ Example using the tcp socket listening on port `6558`:
 
 ### <a id="livestatus-command-queries"></a> Livestatus COMMAND Queries
 
-A list of available external commands and their parameters can be found [here](23-appendix.md#external-commands-list-detail)
+A list of available external commands and their parameters can be found [here](24-appendix.md#external-commands-list-detail)
 
     $ echo -e 'COMMAND <externalcommandstring>' | netcat 127.0.0.1 6558
 
@@ -609,7 +609,7 @@ Default separators.
 
 The `commands` table is populated with `CheckCommand`, `EventCommand` and `NotificationCommand` objects.
 
-A detailed list on the available table attributes can be found in the [Livestatus Schema documentation](23-appendix.md#schema-livestatus).
+A detailed list on the available table attributes can be found in the [Livestatus Schema documentation](24-appendix.md#schema-livestatus).
 
 
 ## <a id="status-data"></a> Status Data Files

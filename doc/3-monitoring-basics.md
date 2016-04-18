@@ -1779,7 +1779,7 @@ Rephrased: If the parent service object changes into the `Warning` state, this
 dependency will fail and render all child objects (hosts or services) unreachable.
 
 You can determine the child's reachability by querying the `is_reachable` attribute
-in for example [DB IDO](23-appendix.md#schema-db-ido-extensions).
+in for example [DB IDO](24-appendix.md#schema-db-ido-extensions).
 
 ### <a id="dependencies-implicit-host-service"></a> Implicit Dependencies for Services on Host
 

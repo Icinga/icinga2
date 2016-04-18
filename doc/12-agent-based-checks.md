@@ -181,7 +181,7 @@ SNMP Traps can be received and filtered by using [SNMPTT](http://snmptt.sourcefo
 and specific trap handlers passing the check results to Icinga 2.
 
 Following the SNMPTT [Format](http://snmptt.sourceforge.net/docs/snmptt.shtml#SNMPTT.CONF-FORMAT)
-documentation and the Icinga external command syntax found [here](23-appendix.md#external-commands-list-detail)
+documentation and the Icinga external command syntax found [here](24-appendix.md#external-commands-list-detail)
 we can create generic services that can accommodate any number of hosts for a given scenario.
 
 ### <a id="simple-traps"></a> Simple SNMP Traps
