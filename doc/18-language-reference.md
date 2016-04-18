@@ -369,6 +369,7 @@ PidPath             |**Read-write.** Contains the path of the Icinga 2 PID file.
 Vars                |**Read-write.** Contains a dictionary with global custom attributes. Not set by default.
 NodeName            |**Read-write.** Contains the cluster node name. Set to the local hostname by default.
 UseVfork            |**Read-write.** Whether to use vfork(). Only available on *NIX. Defaults to true.
+EventEngine         |**Read-write.** The name of the socket event engine, can be "poll" or "epoll". The epoll interface is only supported on Linux.
 AttachDebugger      |**Read-write.** Whether to attach a debugger when Icinga 2 crashes. Defaults to false.
 RunAsUser           |**Read-write.** Defines the user the Icinga 2 daemon is running as. Used in the `init.conf` configuration file.
 RunAsGroup          |**Read-write.** Defines the group the Icinga 2 daemon is running as. Used in the `init.conf` configuration file.

@@ -20,6 +20,8 @@
 #include "base/socketevents.hpp"
 #include "base/exception.hpp"
 #include "base/logger.hpp"
+#include "base/application.hpp"
+#include "base/scriptglobal.hpp"
 #include <boost/thread/once.hpp>
 #include <boost/foreach.hpp>
 #include <map>
@@ -29,268 +31,91 @@
 
 using namespace icinga;
 
-struct SocketEventDescriptor
-{
-#ifndef __linux__
-	int Events;
-#endif /* __linux__ */
-	SocketEvents *EventInterface;
-	Object *LifesupportObject;
-
-	SocketEventDescriptor(void)
-		:
-#ifndef __linux__
-		Events(POLLIN),
-#endif /* __linux__ */
-		EventInterface(NULL), LifesupportObject(NULL)
-	{ }
-};
-
-struct EventDescription
-{
-	int REvents;
-	SocketEventDescriptor Descriptor;
-	Object::Ptr LifesupportReference;
-};
-
-#define SOCKET_IOTHREADS 8
-
 static boost::once_flag l_SocketIOOnceFlag = BOOST_ONCE_INIT;
-static boost::thread l_SocketIOThreads[SOCKET_IOTHREADS];
-#ifdef __linux__
-static SOCKET l_SocketIOPollFDs[SOCKET_IOTHREADS];
-#endif /* __linux__ */
-static SOCKET l_SocketIOEventFDs[SOCKET_IOTHREADS][2];
-static bool l_SocketIOFDChanged[SOCKET_IOTHREADS];
-static boost::mutex l_SocketIOMutex[SOCKET_IOTHREADS];
-static boost::condition_variable l_SocketIOCV[SOCKET_IOTHREADS];
-static std::map<SOCKET, SocketEventDescriptor> l_SocketIOSockets[SOCKET_IOTHREADS];
+static SocketEventEngine *l_SocketIOEngine;
 
 int SocketEvents::m_NextID = 0;
 
-void SocketEvents::InitializeThread(void)
+void SocketEventEngine::Start(void)
 {
-	for (int i = 0; i < SOCKET_IOTHREADS; i++) {
-#ifdef __linux__
-		l_SocketIOPollFDs[i] = epoll_create(128);
-		Utility::SetCloExec(l_SocketIOPollFDs[i]);
-#endif /* __linux__ */
+	for (int tid = 0; tid < SOCKET_IOTHREADS; tid++) {
+		Socket::SocketPair(m_EventFDs[tid]);
 
-		Socket::SocketPair(l_SocketIOEventFDs[i]);
-
-		Utility::SetNonBlockingSocket(l_SocketIOEventFDs[i][0]);
-		Utility::SetNonBlockingSocket(l_SocketIOEventFDs[i][1]);
+		Utility::SetNonBlockingSocket(m_EventFDs[tid][0]);
+		Utility::SetNonBlockingSocket(m_EventFDs[tid][1]);
 
 #ifndef _WIN32
-		Utility::SetCloExec(l_SocketIOEventFDs[i][0]);
-		Utility::SetCloExec(l_SocketIOEventFDs[i][1]);
+		Utility::SetCloExec(m_EventFDs[tid][0]);
+		Utility::SetCloExec(m_EventFDs[tid][1]);
 #endif /* _WIN32 */
 
-		SocketEventDescriptor sed;
-#ifndef __linux__
-		sed.Events = POLLIN;
-#endif /* __linux__ */
+		InitializeThread(tid);
 
-		l_SocketIOSockets[i][l_SocketIOEventFDs[i][0]] = sed;
-		l_SocketIOFDChanged[i] = true;
-
-#ifdef __linux__
-		epoll_event event;
-		memset(&event, 0, sizeof(event));
-		event.data.fd = l_SocketIOEventFDs[i][0];
-		event.events = EPOLLIN;
-		epoll_ctl(l_SocketIOPollFDs[i], EPOLL_CTL_ADD, l_SocketIOEventFDs[i][0], &event);
-#endif /* __linux__ */
-
-		l_SocketIOThreads[i] = boost::thread(&SocketEvents::ThreadProc, i);
+		m_Threads[tid] = boost::thread(boost::bind(&SocketEventEngine::ThreadProc, this, tid));
 	}
 }
 
-#ifdef __linux__
-int SocketEvents::PollToEpoll(int events)
+void SocketEventEngine::WakeUpThread(int sid, bool wait)
 {
-	int result = 0;
+	int tid = sid % SOCKET_IOTHREADS;
 
-	if (events & POLLIN)
-		result |= EPOLLIN;
-
-	if (events & POLLOUT)
-		result |= EPOLLOUT;
-
-	return events;
-}
-
-int SocketEvents::EpollToPoll(int events)
-{
-	int result = 0;
-
-	if (events & EPOLLIN)
-		result |= POLLIN;
-
-	if (events & EPOLLOUT)
-		result |= POLLOUT;
-
-	return events;
-}
-#endif /* __linux__ */
-
-void SocketEvents::ThreadProc(int tid)
-{
-	Utility::SetThreadName("SocketIO");
-
-#ifndef __linux__
-	std::vector<pollfd> pfds;
-	std::vector<SocketEventDescriptor> descriptors;
-#endif /* __linux__ */
-
-	for (;;) {
-		{
-			boost::mutex::scoped_lock lock(l_SocketIOMutex[tid]);
-
-			if (l_SocketIOFDChanged[tid]) {
-#ifndef __linux__
-				pfds.resize(l_SocketIOSockets[tid].size());
-				descriptors.resize(l_SocketIOSockets[tid].size());
-
-				int i = 0;
-
-				typedef std::map<SOCKET, SocketEventDescriptor>::value_type kv_pair;
-
-				BOOST_FOREACH(const kv_pair& desc, l_SocketIOSockets[tid]) {
-					if (desc.second.EventInterface)
-						desc.second.EventInterface->m_PFD = &pfds[i];
-
-					pfds[i].fd = desc.first;
-					pfds[i].events = desc.second.Events;
-					descriptors[i] = desc.second;
-
-					i++;
-				}
-#endif /* __linux__ */
-
-				l_SocketIOFDChanged[tid] = false;
-				l_SocketIOCV[tid].notify_all();
-			}
-		}
-
-#ifndef __linux__
-		ASSERT(!pfds.empty());
-#endif /* __linux__ */
-
-#ifdef __linux__
-		epoll_event pevents[64];
-		int ready = epoll_wait(l_SocketIOPollFDs[tid], pevents, sizeof(pevents) / sizeof(pevents[0]), -1);
-#elif _WIN32
-		(void) WSAPoll(&pfds[0], pfds.size(), -1);
-#else /* _WIN32 */
-		(void) poll(&pfds[0], pfds.size(), -1);
-#endif /* _WIN32 */
-
-		std::vector<EventDescription> events;
-
-		{
-			boost::mutex::scoped_lock lock(l_SocketIOMutex[tid]);
-
-			if (l_SocketIOFDChanged[tid]) {
-#ifdef __linux__
-				l_SocketIOFDChanged[tid] = false;
-#endif /* __linux__ */
-
-				continue;
-			}
-
-#ifdef __linux__
-			for (int i = 0; i < ready; i++) {
-				if (pevents[i].data.fd == l_SocketIOEventFDs[tid][0]) {
-					char buffer[512];
-					if (recv(l_SocketIOEventFDs[tid][0], buffer, sizeof(buffer), 0) < 0)
-						Log(LogCritical, "SocketEvents", "Read from event FD failed.");
-
-					continue;
-				}
-
-				if ((pevents[i].events & (EPOLLIN | EPOLLOUT | EPOLLHUP | EPOLLERR)) == 0)
-					continue;
-
-				EventDescription event;
-				event.REvents = EpollToPoll(pevents[i].events);
-				event.Descriptor = l_SocketIOSockets[tid][pevents[i].data.fd];
-				event.LifesupportReference = event.Descriptor.LifesupportObject;
-				VERIFY(event.LifesupportReference);
-
-				events.push_back(event);
-			}
-#else /* __linux__ */
-			for (int i = 0; i < pfds.size(); i++) {
-				if ((pfds[i].revents & (POLLIN | POLLOUT | POLLHUP | POLLERR)) == 0)
-					continue;
-
-				if (pfds[i].fd == l_SocketIOEventFDs[tid][0]) {
-					char buffer[512];
-					if (recv(l_SocketIOEventFDs[tid][0], buffer, sizeof(buffer), 0) < 0)
-						Log(LogCritical, "SocketEvents", "Read from event FD failed.");
-
-					continue;
-				}
-
-				EventDescription event;
-				event.REvents = pfds[i].revents;
-				event.Descriptor = descriptors[i];
-				event.LifesupportReference = event.Descriptor.LifesupportObject;
-				VERIFY(event.LifesupportReference);
-
-				events.push_back(event);
-			}
-#endif /* __linux__ */
-		}
-
-		BOOST_FOREACH(const EventDescription& event, events) {
-			try {
-				event.Descriptor.EventInterface->OnEvent(event.REvents);
-			} catch (const std::exception& ex) {
-				Log(LogCritical, "SocketEvents")
-				    << "Exception thrown in socket I/O handler:\n"
-				    << DiagnosticInformation(ex);
-			} catch (...) {
-				Log(LogCritical, "SocketEvents", "Exception of unknown type thrown in socket I/O handler.");
-			}
-		}
-	}
-}
-
-void SocketEvents::WakeUpThread(bool wait)
-{
-	int tid = m_ID % SOCKET_IOTHREADS;
-
-	if (boost::this_thread::get_id() == l_SocketIOThreads[tid].get_id())
+	if (boost::this_thread::get_id() == m_Threads[tid].get_id())
 		return;
 
 	if (wait) {
-		boost::mutex::scoped_lock lock(l_SocketIOMutex[tid]);
+		boost::mutex::scoped_lock lock(m_EventMutex[tid]);
 
-		l_SocketIOFDChanged[tid] = true;
+		m_FDChanged[tid] = true;
 
-		while (l_SocketIOFDChanged[tid]) {
-			(void) send(l_SocketIOEventFDs[tid][1], "T", 1, 0);
+		while (m_FDChanged[tid]) {
+			(void) send(m_EventFDs[tid][1], "T", 1, 0);
 
 			boost::system_time const timeout = boost::get_system_time() + boost::posix_time::milliseconds(50);
-			l_SocketIOCV[tid].timed_wait(lock, timeout);
+			m_CV[tid].timed_wait(lock, timeout);
 		}
 	} else {
-		(void) send(l_SocketIOEventFDs[tid][1], "T", 1, 0);
+		(void) send(m_EventFDs[tid][1], "T", 1, 0);
 	}
+}
+
+void SocketEvents::InitializeEngine(void)
+{
+	String eventEngine = ScriptGlobal::Get("EventEngine", &Empty);
+
+	if (eventEngine.IsEmpty())
+#ifdef __linux__
+		eventEngine = "epoll";
+#else /* __linux__ */
+		eventEngine = "poll";
+#endif /* __linux__ */
+
+	if (eventEngine == "poll")
+		l_SocketIOEngine = new SocketEventEnginePoll();
+#ifdef __linux__
+	else if (eventEngine == "epoll")
+		l_SocketIOEngine = new SocketEventEngineEpoll();
+#endif /* __linux__ */
+	else {
+		eventEngine = "poll";
+
+		Log(LogWarning, "SocketEvents")
+		    << "Invalid event engine selected: " << eventEngine << " - Falling back to 'poll'";
+
+		l_SocketIOEngine = new SocketEventEnginePoll();
+	}
+
+	l_SocketIOEngine->Start();
+
+	ScriptGlobal::Set("EventEngine", eventEngine);
 }
 
 /**
  * Constructor for the SocketEvents class.
  */
 SocketEvents::SocketEvents(const Socket::Ptr& socket, Object *lifesupportObject)
-	: m_ID(m_NextID++), m_FD(socket->GetFD())
-#ifndef __linux__
-	  , m_PFD(NULL)
-#endif /* __linux__ */
+	: m_ID(m_NextID++), m_FD(socket->GetFD()), m_EnginePrivate(NULL)
 {
-	boost::call_once(l_SocketIOOnceFlag, &SocketEvents::InitializeThread);
+	boost::call_once(l_SocketIOOnceFlag, &SocketEvents::InitializeEngine);
 
 	Register(lifesupportObject);
 }
@@ -302,109 +127,28 @@ SocketEvents::~SocketEvents(void)
 
 void SocketEvents::Register(Object *lifesupportObject)
 {
-	int tid = m_ID % SOCKET_IOTHREADS;
-
-	{
-		boost::mutex::scoped_lock lock(l_SocketIOMutex[tid]);
-
-		VERIFY(m_FD != INVALID_SOCKET);
-
-		SocketEventDescriptor desc;
-#ifndef __linux__
-		desc.Events = 0;
-#endif /* __linux__ */
-		desc.EventInterface = this;
-		desc.LifesupportObject = lifesupportObject;
-
-		VERIFY(l_SocketIOSockets[tid].find(m_FD) == l_SocketIOSockets[tid].end());
-
-		l_SocketIOSockets[tid][m_FD] = desc;
-
-#ifdef __linux__
-		epoll_event event;
-		memset(&event, 0, sizeof(event));
-		event.data.fd = m_FD;
-		event.events = 0;
-		epoll_ctl(l_SocketIOPollFDs[tid], EPOLL_CTL_ADD, m_FD, &event);
-#else /* __linux__ */
-		l_SocketIOFDChanged[tid] = true;
-#endif /* __linux__ */
-
-		m_Events = true;
-	}
-
-#ifndef __linux__
-	WakeUpThread(true);
-#endif /* __linux__ */
+	l_SocketIOEngine->Register(this, lifesupportObject);
 }
 
 void SocketEvents::Unregister(void)
 {
-	int tid = m_ID % SOCKET_IOTHREADS;
-
-	{
-		boost::mutex::scoped_lock lock(l_SocketIOMutex[tid]);
-
-		if (m_FD == INVALID_SOCKET)
-			return;
-
-		l_SocketIOSockets[tid].erase(m_FD);
-		l_SocketIOFDChanged[tid] = true;
-
-#ifdef __linux__
-		epoll_ctl(l_SocketIOPollFDs[tid], EPOLL_CTL_DEL, m_FD, NULL);
-#endif /* __linux__ */
-
-		m_FD = INVALID_SOCKET;
-		m_Events = false;
-	}
-
-	WakeUpThread(true);
+	l_SocketIOEngine->Unregister(this);
 }
 
 void SocketEvents::ChangeEvents(int events)
 {
-	if (m_FD == INVALID_SOCKET)
-		BOOST_THROW_EXCEPTION(std::runtime_error("Tried to read/write from a closed socket."));
+	l_SocketIOEngine->ChangeEvents(this, events);
+}
 
-	int tid = m_ID % SOCKET_IOTHREADS;
-
-	{
-		boost::mutex::scoped_lock lock(l_SocketIOMutex[tid]);
-
-		std::map<SOCKET, SocketEventDescriptor>::iterator it = l_SocketIOSockets[tid].find(m_FD);
-
-		if (it == l_SocketIOSockets[tid].end())
-			return;
-
-#ifdef __linux__
-		epoll_event event;
-		memset(&event, 0, sizeof(event));
-		event.data.fd = m_FD;
-		event.events = PollToEpoll(events);
-		epoll_ctl(l_SocketIOPollFDs[tid], EPOLL_CTL_MOD, m_FD, &event);
-#else /* __linux__ */
-		if (it->second.Events == events)
-			return;
-
-		it->second.Events = events;
-
-		if (m_PFD && boost::this_thread::get_id() == l_SocketIOThreads[tid].get_id())
-			m_PFD->events = events;
-		else
-			l_SocketIOFDChanged[tid] = true;
-#endif /* __linux__ */
-	}
-
-#ifndef __linux__
-	WakeUpThread();
-#endif /* __linux__ */
+boost::mutex& SocketEventEngine::GetMutex(int tid)
+{
+	return m_EventMutex[tid];
 }
 
 bool SocketEvents::IsHandlingEvents(void) const
 {
 	int tid = m_ID % SOCKET_IOTHREADS;
-	boost::mutex::scoped_lock lock(l_SocketIOMutex[tid]);
+	boost::mutex::scoped_lock lock(l_SocketIOEngine->GetMutex(tid));
 	return m_Events;
 }
 
