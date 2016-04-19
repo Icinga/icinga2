@@ -418,50 +418,94 @@ Restart Icinga 2 once complete.
 Download the MSI-Installer package from [http://packages.icinga.org/windows/](http://packages.icinga.org/windows/).
 
 Requirements:
+
 * Windows Vista/Server 2008 or higher
 * [Microsoft .NET Framework 2.0](http://www.microsoft.com/de-de/download/details.aspx?id=1639) if not already installed.
 
 The installer package includes the [NSClient++](http://www.nsclient.org/) so Icinga 2 can
-use its built-in plugins. You can use [predefined commands from the ITL](7-icinga-template-library.md#nscp-plugin-check-commands) for these plugins.
+use its built-in plugins. You can use the [nscp-local commands from the ITL](7-icinga-template-library.md#nscp-plugin-check-commands)
+for these plugins.
 
-If you want to install the client silently / unattended use the `/qn` modifier. The
-installation should not trigger a restart but if you want to be completly sure, you can use the `/norestart` modifier.
+![Icinga 2 Windows Setup](images/icinga2-client/icinga2_windows_setup_installer_01.png)
+![Icinga 2 Windows Setup](images/icinga2-client/icinga2_windows_setup_installer_02.png)
+![Icinga 2 Windows Setup](images/icinga2-client/icinga2_windows_setup_installer_03.png)
+![Icinga 2 Windows Setup](images/icinga2-client/icinga2_windows_setup_installer_04.png)
+![Icinga 2 Windows Setup](images/icinga2-client/icinga2_windows_setup_installer_05.png)
 
-    C:> msiexec /i C:\Icinga2-v2.4.5-x86.msi /qn /norestart
+The graphical installer will offer to run the Icinga 2 setup wizard after the installation.
+You can also manually run the Icinga 2 setup wizard from the start menu.
 
-After the installation you can run Icinga 2 from the Start menu. (The graphical installer will
-offer to run Icinga 2 right after the installation) On the first start Icinga 2 will show you
-the setup wizard which will help you with SSL certificate generation,
-CSR-Autosigning and configuration setup.
+On a fresh installation the setup wizard will guide you through the initial configuration
+as well as the required details for SSL certificate generation using CSR-Autosigning.
 
 You'll need the following configuration details:
 
 * The client common name (CN). Defaults to FQDN.
-* The client's local zone name. Defaults to FQDN.
-* The master endpoint name. Look into your master setup `zones.conf` file for the proper name.
-* The master endpoint connection information. Your master's IP address and port (defaults to 5665)
 * The [request ticket number](11-icinga2-client.md#csr-autosigning-requirements) generated on your master
 for CSR Auto-Signing
-* Bind host/port for the Api feature (optional)
 
-Besides the configuration changes, the setup wizard offers you to install the included NSClient++ package.
+Example on the master:
+
+    icinga2 pki ticket --cn DESKTOP-IHRPO96
+
+Fill in the required information and click `Add` to add a new master connection.
+
+![Icinga 2 Windows Setup](images/icinga2-client/icinga2_windows_setup_wizard_01.png)
+
+Add the following details:
+
+* The master endpoint name. Look into your master setup `zones.conf` file for the proper name.
+* The master endpoint connection information. Your master's IP address and port (defaults to 5665)
+
+![Icinga 2 Windows Setup](images/icinga2-client/icinga2_windows_setup_wizard_02.png)
+
+You can optionally enable the following settings:
+
+* Accept commands from master (client as [command execution bridge](11-icinga2-client.md#icinga2-client-configuration-command-bridge)).
+* Accept config updates from master ([client receiving configuration](11-icinga2-client.md#icinga2-client-scenarios))
+* Install/Update NSClient++
+
+![Icinga 2 Windows Setup](images/icinga2-client/icinga2_windows_setup_wizard_03.png)
+
+The next step allows you to verify the CA presented by the master.
+
+![Icinga 2 Windows Setup](images/icinga2-client/icinga2_windows_setup_wizard_04.png)
+
+If you have chosen to install/update the NSClient++ package the Icinga 2 setup wizard will ask
+you to do so.
+
+![Icinga 2 Windows Setup](images/icinga2-client/icinga2_windows_setup_wizard_05.png)
+
+Finish the setup wizard.
+
+![Icinga 2 Windows Setup](images/icinga2-client/icinga2_windows_setup_wizard_06.png)
 
 Once install and configuration is done, Icinga 2 is automatically started as a Windows service.
-Running Icinga 2 again from the Start menu will allow you to change the settings from the the first
-setup wizard run. Please keep in mind that you can change all those settings within the configuration
-file and on the commandline.
 
-The Icinga 2 configuration is located inside the installation path and can be edited with
-your favorite editor.
+![Icinga 2 Windows Setup](images/icinga2-client/icinga2_windows_running_service.png)
+
+The Icinga 2 configuration is located inside the `C:\ProgramData\icinga2` directory.
+If you click `Examine Config` in the setup wizard running it will open a new explorer window.
+
+![Icinga 2 Windows Setup](images/icinga2-client/icinga2_windows_setup_wizard_examine_config.png)
+
+The configuration files can be modified with your favorite editor.
 
 Configuration validation is done similar to the linux pendant on the Windows shell:
 
     C:> icinga2.exe daemon -C
 
-> **Note**
->
-> You have to run this command in a shell with `administrator` permissions.
+**Note**: You have to run this command in a shell with `administrator` permissions.
 
+In case you want to restart the Icinga 2 service, run `services.msc` and restart the
+`icinga2` service. Alternatively you can use the `net {start,stop}` CLI commands.
+
+#### <a id="icinga2-client-installation-client-setup-windows-silent"></a> Silent Windows Client Setup
+
+If you want to install the client silently / unattended use the `/qn` modifier. The
+installation should not trigger a restart but if you want to be completly sure, you can use the `/norestart` modifier.
+
+    C:> msiexec /i C:\Icinga2-v2.4.5-x86.msi /qn /norestart
 
 ## <a id="icinga2-client-configuration-modes"></a> Client Configuration Modes
 
