@@ -27,7 +27,7 @@ Configure npcd to use the performance data created by Icinga 2:
 Set `perfdata_spool_dir = /var/spool/icinga2/perfdata` and restart the `npcd` daemon.
 
 There's also an Icinga Web 2 module for direct PNP graph integration
-available at https://exchange.icinga.org/icinga/PNP4Nagios
+available at [Icinga Exchange](https://exchange.icinga.org/icinga/PNP).
 
 More information on [action_url as attribute](14-addons-plugins.md#addons-graphing-pnp-action-url)
 and [graph template names](14-addons-plugins.md#addons-graphing-pnp-custom-templates).
@@ -59,11 +59,10 @@ A popular alternative frontend for Graphite is for example [Grafana](http://graf
 [InfluxDB](https://influxdb.com) is a time series, metrics, and analytics database.
 It’s written in Go and has no external dependencies.
 
-Use the [GraphiteWriter](15-features.md#graphite-carbon-cache-writer) feature
-for sending real-time metrics from Icinga 2 to InfluxDB. Note: There are [API changes](https://github.com/influxdb/influxdb/issues/2102)
-in InfluxDB 0.9.x.
+Use the [InfluxdbWriter](15-features.md#influxdb-writer) feature
+for sending real-time metrics from Icinga 2 to InfluxDB.
 
-    # icinga2 feature enable graphite
+    # icinga2 feature enable influxdb
 
 A popular frontend for InfluxDB is for example [Grafana](http://grafana.org).
 

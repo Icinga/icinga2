@@ -311,6 +311,20 @@ Cache. Please make sure that the order is correct because the first match wins.
     pattern = ^icinga\.
     retentions = 1m:2d,5m:10d,30m:90d,360m:4y
 
+### <a id="influxdb-writer"></a> InfluxDB Writer
+
+Once there are new metrics available, Icinga 2 will directly write them to the
+defined InfluxDB HTTP API.
+
+You can enable the feature using
+
+    # icinga2 feature enable influxdb
+
+By default the [InfluxdbWriter](6-object-types.md#objecttype-influxdbwriter) feature
+expects the InfluxDB daemon to listen at `127.0.0.1` on port `8086`.
+
+More configuration details can be found [here](6-object-types.md#objecttype-influxdbwriter).
+
 ### <a id="gelfwriter"></a> GELF Writer
 
 The `Graylog Extended Log Format` (short: [GELF](http://www.graylog2.org/resources/gelf))
