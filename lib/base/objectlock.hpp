@@ -62,14 +62,14 @@ public:
 
 #ifdef _WIN32
 #	ifdef _WIN64
-		while (InterlockedCompareExchange64((LONGLONG *)&object->m_Mutex, I2MUTEX_LOCKED, I2MUTEX_UNLOCKED) != I2MUTEX_UNLOCKED) {
+		while (likely(InterlockedCompareExchange64((LONGLONG *)&object->m_Mutex, I2MUTEX_LOCKED, I2MUTEX_UNLOCKED) != I2MUTEX_UNLOCKED)) {
 #	else /* _WIN64 */
-		while (InterlockedCompareExchange(&object->m_Mutex, I2MUTEX_LOCKED, I2MUTEX_UNLOCKED) != I2MUTEX_UNLOCKED) {
+		while (likely(InterlockedCompareExchange(&object->m_Mutex, I2MUTEX_LOCKED, I2MUTEX_UNLOCKED) != I2MUTEX_UNLOCKED)) {
 #	endif /* _WIN64 */
 #else /* _WIN32 */
-		while (!__sync_bool_compare_and_swap(&object->m_Mutex, I2MUTEX_UNLOCKED, I2MUTEX_LOCKED)) {
+		while (likely(!__sync_bool_compare_and_swap(&object->m_Mutex, I2MUTEX_UNLOCKED, I2MUTEX_LOCKED))) {
 #endif /* _WIN32 */
-			if (object->m_Mutex > I2MUTEX_LOCKED) {
+			if (likely(object->m_Mutex > I2MUTEX_LOCKED)) {
 				boost::recursive_mutex *mtx = reinterpret_cast<boost::recursive_mutex *>(object->m_Mutex);
 				mtx->lock();
 

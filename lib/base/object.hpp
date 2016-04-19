@@ -191,7 +191,7 @@ inline void intrusive_ptr_release(Object *object)
 	refs = __sync_sub_and_fetch(&object->m_References, 1);
 #endif /* _WIN32 */
 
-	if (refs == 0) {
+	if (unlikely(refs == 0)) {
 #ifdef I2_LEAK_DEBUG
 		TypeRemoveObject(object);
 #endif /* I2_LEAK_DEBUG */

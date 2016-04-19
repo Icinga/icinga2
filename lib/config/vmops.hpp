@@ -193,10 +193,10 @@ public:
 
 	static inline Value GetField(const Value& context, const String& field, bool sandboxed = false, const DebugInfo& debugInfo = DebugInfo())
 	{
-		if (context.IsEmpty() && !context.IsString())
+		if (unlikely(context.IsEmpty() && !context.IsString()))
 			return Empty;
 
-		if (!context.IsObject())
+		if (unlikely(!context.IsObject()))
 			return GetPrototypeField(context, field, true, debugInfo);
 
 		Object::Ptr object = context;
