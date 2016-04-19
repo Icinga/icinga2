@@ -476,8 +476,16 @@ void Checkable::ExecuteCheck(void)
 			/* fail to perform check on unconnected endpoint */
 			cr->SetState(ServiceUnknown);
 
-			cr->SetOutput("Remote Icinga instance '" + endpoint->GetName() +
-			    "' " + "is not connected to '" + Endpoint::GetLocalEndpoint()->GetName() + "'");
+			String output = "Remote Icinga instance '" + endpoint->GetName() + "' is not connected to ";
+
+			Endpoint::Ptr localEndpoint = Endpoint::GetLocalEndpoint();
+
+			if (localEndpoint)
+				output += "'" + localEndpoint->GetName() + "'";
+			else
+				output += "this instance";
+
+			cr->SetOutput(output);
 
 			ProcessCheckResult(cr);
 		}
