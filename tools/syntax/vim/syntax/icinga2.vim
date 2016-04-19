@@ -82,7 +82,7 @@ syn keyword		icinga2Keyword		template const import include include_recursive var
 
 
 " Assign conditions
-syn match		icinga2AssingCond	contained	"\(assign[ \t]\+\where\|ignore[ \t]\+\where\)"
+syn match		icinga2AssignCond	contained	"\(assign[ \t]\+\where\|ignore[ \t]\+\where\)"
 
 
 " Global functions
