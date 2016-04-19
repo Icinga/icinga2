@@ -35,8 +35,8 @@ namespace Icinga
 			Close();
 		}
 
-        private void btnOpenConfigDir_Click(object sender, EventArgs e) {
-            Process.Start("explorer.exe", Program.Icinga2DataDir + "\\etc\\icinga2");
-        }
-    }
+		private void btnOpenConfigDir_Click(object sender, EventArgs e) {
+			Process.Start("explorer.exe", Program.Icinga2DataDir);
+		}
+	}
 }
