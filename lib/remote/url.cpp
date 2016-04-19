@@ -263,7 +263,12 @@ String Url::Format(bool print_credentials) const
 				if (!temp.IsEmpty())
 					temp += "&";
 
-				temp += key + "[]=" + Utility::EscapeString(s, ACQUERY, false);
+				temp += key;
+
+				if (kv.second.size() > 1)
+					temp += "[]";
+
+				temp += "=" + Utility::EscapeString(s, ACQUERY, false);
 			}
 			param += temp;
 		}

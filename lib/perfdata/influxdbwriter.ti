@@ -1,0 +1,109 @@
+/******************************************************************************
+ * Icinga 2                                                                   *
+ * Copyright (C) 2012-2016 Icinga Development Team (https://www.icinga.org/)  *
+ *                                                                            *
+ * This program is free software; you can redistribute it and/or              *
+ * modify it under the terms of the GNU General Public License                *
+ * as published by the Free Software Foundation; either version 2             *
+ * of the License, or (at your option) any later version.                     *
+ *                                                                            *
+ * This program is distributed in the hope that it will be useful,            *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
+ * GNU General Public License for more details.                               *
+ *                                                                            *
+ * You should have received a copy of the GNU General Public License          *
+ * along with this program; if not, write to the Free Software Foundation     *
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
+ ******************************************************************************/
+
+#include "base/configobject.hpp"
+
+library perfdata;
+
+namespace icinga
+{
+
+class InfluxdbWriter : ConfigObject
+{
+	[config, required] String host {
+		default {{{ return "127.0.0.1"; }}}
+	};
+	[config, required] String port {
+		default {{{ return "8086"; }}}
+	};
+	[config, required] String database {
+		default {{{ return "icinga2"; }}}
+	};
+	[config] String username {
+		default {{{ return ""; }}}
+	};
+	[config, no_user_view] String password {
+		default {{{ return ""; }}}
+	};
+	[config] bool ssl_enable {
+		default {{{ return false; }}}
+	};
+	[config] String ssl_ca_cert {
+		default {{{ return ""; }}}
+	};
+	[config] String ssl_cert {
+		default {{{ return ""; }}}
+	};
+	[config] String ssl_key{
+		default {{{ return ""; }}}
+	};
+	[config, required] Dictionary::Ptr host_template {
+		default {{{
+			Dictionary::Ptr tags = new Dictionary();
+			tags->Set("hostname", "$host.name$");
+
+			Dictionary::Ptr tmpl = new Dictionary();
+			tmpl->Set("measurement", "$host.check_command$");
+			tmpl->Set("tags", tags);
+
+			return tmpl;
+		}}}
+	};
+	[config, required] Dictionary::Ptr service_template {
+		default {{{
+			Dictionary::Ptr tags = new Dictionary();
+			tags->Set("hostname", "$host.name$");
+			tags->Set("service", "$service.name$");
+
+			Dictionary::Ptr tmpl = new Dictionary();
+			tmpl->Set("measurement", "$service.check_command$");
+			tmpl->Set("tags", tags);
+
+			return tmpl;
+		}}}
+	};
+	[config] bool enable_send_thresholds {
+		default {{{ return false; }}}
+	};
+	[config] int flush_interval {
+		default {{{ return 10; }}}
+	};
+	[config] int flush_threshold {
+		default {{{ return 1024; }}}
+	};
+};
+
+validator InfluxdbWriter {
+	Dictionary host_template {
+		required measurement;
+		String measurement;
+		Dictionary "tags" {
+			String "*";
+		};
+	};
+	Dictionary service_template {
+		required measurement;
+		String measurement;
+		Dictionary "tags" {
+			String "*";
+		};
+	};
+};
+
+}
