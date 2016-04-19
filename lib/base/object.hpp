@@ -41,7 +41,7 @@ class Value;
 class Object;
 class Type;
 class String;
-class DebugInfo;
+struct DebugInfo;
 class ValidationUtils;
 
 extern I2_BASE_API Value Empty;
