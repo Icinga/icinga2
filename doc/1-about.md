@@ -54,6 +54,70 @@ More details in the [Icinga FAQ](https://www.icinga.org/icinga/faq/).
 
 ## <a id="whats-new"></a> What's New
 
+### What's New in Version 2.4.5
+
+#### Changes
+
+* Windows Installer changed from NSIS to MSI
+* New configuration attribute for hosts and services: check_timeout (overrides the CheckCommand's timeout when set)
+* ITL updates
+* Lots of bugfixes
+
+#### Feature
+
+* Feature [9283](https://dev.icinga.org/issues/9283 "Feature 9283"): Implement support for overriding check command timeout
+* Feature [9618](https://dev.icinga.org/issues/9618 "Feature 9618"): Add Windows setup wizard screenshots
+* Feature [11098](https://dev.icinga.org/issues/11098 "Feature 11098"): Add --method parameter for check_{oracle,mysql,mssql}_health CheckCommands
+* Feature [11194](https://dev.icinga.org/issues/11194 "Feature 11194"): Add --units, --rate and --rate-multiplier support for the snmpv3 check command
+* Feature [11399](https://dev.icinga.org/issues/11399 "Feature 11399"): Update .mailmap for Markus Frosch
+* Feature [11437](https://dev.icinga.org/issues/11437 "Feature 11437"): Add silent install / reference to NSClient++ to documentation
+* Feature [11449](https://dev.icinga.org/issues/11449 "Feature 11449"): Build 64-bit packages for Windows
+* Feature [11473](https://dev.icinga.org/issues/11473 "Feature 11473"): Update NSClient++ to version 0.4.4.19
+* Feature [11474](https://dev.icinga.org/issues/11474 "Feature 11474"): Install 64-bit version of NSClient++ on 64-bit versions of Windows
+* Feature [11585](https://dev.icinga.org/issues/11585 "Feature 11585"): Make sure to update the agent wizard banner
+* Feature [11587](https://dev.icinga.org/issues/11587 "Feature 11587"): Update chocolatey uninstall script for the MSI package
+
+#### Bugfixes
+
+* Bug [9249](https://dev.icinga.org/issues/9249 "Bug 9249"): logrotate fails since the "su" directive was removed
+* Bug [10624](https://dev.icinga.org/issues/10624 "Bug 10624"): Add application manifest for the Windows agent wizard
+* Bug [10843](https://dev.icinga.org/issues/10843 "Bug 10843"): DB IDO: downtime is not in effect after restart
+* Bug [11106](https://dev.icinga.org/issues/11106 "Bug 11106"): Too many assign where filters cause stack overflow
+* Bug [11224](https://dev.icinga.org/issues/11224 "Bug 11224"): Socket Exceptions (Operation not permitted) while reading from API
+* Bug [11227](https://dev.icinga.org/issues/11227 "Bug 11227"): Downtimes and Comments are not synced to child zones
+* Bug [11258](https://dev.icinga.org/issues/11258 "Bug 11258"): Incorrect base URL in the icinga-rpm-release packages for Fedora
+* Bug [11336](https://dev.icinga.org/issues/11336 "Bug 11336"): Use retry_interval instead of check_interval for first OK -> NOT-OK state change
+* Bug [11347](https://dev.icinga.org/issues/11347 "Bug 11347"): Symlink subfolders not followed/considered for config files
+* Bug [11382](https://dev.icinga.org/issues/11382 "Bug 11382"): Downtimes are not always activated/expired on restart
+* Bug [11384](https://dev.icinga.org/issues/11384 "Bug 11384"): Remove dependency for .NET 3.5 from the chocolatey package
+* Bug [11387](https://dev.icinga.org/issues/11387 "Bug 11387"): IDO: historical contact notifications table column notification_id is off-by-one
+* Bug [11402](https://dev.icinga.org/issues/11402 "Bug 11402"): Explain how to use functions for wildcard matches for arrays and/or dictionaries in assign where expressions
+* Bug [11407](https://dev.icinga.org/issues/11407 "Bug 11407"): Docs: Remove the migration script chapter
+* Bug [11434](https://dev.icinga.org/issues/11434 "Bug 11434"): Config validation for Notification objects should check whether the state filters are valid
+* Bug [11435](https://dev.icinga.org/issues/11435 "Bug 11435"): Icinga 2 Windows Agent does not honor install path during upgrade
+* Bug [11438](https://dev.icinga.org/issues/11438 "Bug 11438"): Remove semi-colons in the auto-generated configs
+* Bug [11439](https://dev.icinga.org/issues/11439 "Bug 11439"): Update the CentOS installation documentation
+* Bug [11440](https://dev.icinga.org/issues/11440 "Bug 11440"): Docs: Cluster manual SSL generation formatting is broken
+* Bug [11455](https://dev.icinga.org/issues/11455 "Bug 11455"): ConfigSync broken from 2.4.3. to 2.4.4 under Windows
+* Bug [11462](https://dev.icinga.org/issues/11462 "Bug 11462"): Error compiling icinga2 targeted for x64 on Windows
+* Bug [11475](https://dev.icinga.org/issues/11475 "Bug 11475"): FatalError() returns when called before Application.Run
+* Bug [11482](https://dev.icinga.org/issues/11482 "Bug 11482"): API User gets wrongly authenticated (client_cn and no password)
+* Bug [11484](https://dev.icinga.org/issues/11484 "Bug 11484"): Overwriting global type variables causes crash in ConfigItem::Commit()
+* Bug [11494](https://dev.icinga.org/issues/11494 "Bug 11494"): Update documentation URL for Icinga Web 2
+* Bug [11522](https://dev.icinga.org/issues/11522 "Bug 11522"): Make the socket event engine configurable
+* Bug [11534](https://dev.icinga.org/issues/11534 "Bug 11534"): DowntimesExpireTimerHandler crashes Icinga2 with <unknown function>
+* Bug [11542](https://dev.icinga.org/issues/11542 "Bug 11542"): make install overwrites configuration files
+* Bug [11559](https://dev.icinga.org/issues/11559 "Bug 11559"): Segfault during config validation if host exists, service does not exist any longer and downtime expires
+* Bug [11564](https://dev.icinga.org/issues/11564 "Bug 11564"): Incorrect link in the documentation
+* Bug [11567](https://dev.icinga.org/issues/11567 "Bug 11567"): Navigation attributes are missing in /v1/objects/<type>
+* Bug [11574](https://dev.icinga.org/issues/11574 "Bug 11574"): Package fails to build on *NIX
+* Bug [11577](https://dev.icinga.org/issues/11577 "Bug 11577"): Compiler warning in NotifyActive
+* Bug [11582](https://dev.icinga.org/issues/11582 "Bug 11582"): icinga2 crashes when a command_endpoint is set, but the api feature is not active
+* Bug [11586](https://dev.icinga.org/issues/11586 "Bug 11586"): icinga2-installer.exe doesn't wait until NSIS uninstall.exe exits
+* Bug [11592](https://dev.icinga.org/issues/11592 "Bug 11592"): Remove instance_name from Ido*Connection example
+* Bug [11610](https://dev.icinga.org/issues/11610 "Bug 11610"): Windows installer does not copy "features-enabled" on upgrade
+* Bug [11617](https://dev.icinga.org/issues/11617 "Bug 11617"): Vim Syntax Highlighting does not work with assign where
+
 ### What's New in Version 2.4.4
 
 #### Feature
