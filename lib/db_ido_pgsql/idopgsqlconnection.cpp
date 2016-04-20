@@ -600,7 +600,8 @@ bool IdoPgsqlConnection::FieldToEscapedString(const String& key, const Value& va
 		if (DbValue::IsObjectInsertID(value)) {
 			dbrefcol = GetInsertID(dbobjcol);
 
-			ASSERT(dbrefcol.IsValid());
+			if (!dbrefcol.IsValid())
+				return false;
 		} else {
 			dbrefcol = GetObjectID(dbobjcol);
 
