@@ -54,6 +54,18 @@ More details in the [Icinga FAQ](https://www.icinga.org/icinga/faq/).
 
 ## <a id="whats-new"></a> What's New
 
+### What's New in Version 2.4.6
+
+#### Feature
+
+* Feature [11638](https://dev.icinga.org/issues/11638 "Feature 11638"): Update RELEASE.md
+
+#### Bugfixes
+
+* Bug [11628](https://dev.icinga.org/issues/11628 "Bug 11628"): Docs: Zone attribute 'endpoints' is an array
+* Bug [11634](https://dev.icinga.org/issues/11634 "Bug 11634"): Icinga 2 fails to build on Ubuntu Xenial
+* Bug [11635](https://dev.icinga.org/issues/11635 "Bug 11635"): Failed assertion in IdoPgsqlConnection::FieldToEscapedString
+
 ### What's New in Version 2.4.5
 
 #### Changes
