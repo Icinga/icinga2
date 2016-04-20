@@ -45,6 +45,8 @@ FIND_PATH(MYSQL_INCLUDE_DIR mysql.h
 
 #----------------- FIND MYSQL_LIB_DIR -------------------
 IF (WIN32)
+  SET(MYSQL_CLIENT_LIBS libmysql)
+
   # Set lib path suffixes
   # dist = for mysql binary distributions
   # build = for custom built tree
@@ -67,6 +69,7 @@ IF (WIN32)
     $ENV{ProgramFiles}/MySQL/*/lib/${libsuffixDist}
     $ENV{SystemDrive}/MySQL/*/lib/${libsuffixDist})
 ELSE (WIN32)
+  SET(MYSQL_CLIENT_LIBS mysqlclient_r)
   FIND_LIBRARY(MYSQL_LIB NAMES mysqlclient_r
     PATHS
     $ENV{MYSQL_DIR}/libmysql_r/.libs
@@ -80,6 +83,23 @@ ELSE (WIN32)
     /opt/local/lib/mysql5/mysql
     /opt/mysql/mysql/lib/mysql
     /opt/mysql/lib/mysql)
+
+  IF(NOT MYSQL_LIB)
+    SET(MYSQL_CLIENT_LIBS mysqlclient)
+    FIND_LIBRARY(MYSQL_LIB NAMES mysqlclient
+      PATHS
+      $ENV{MYSQL_DIR}/libmysql_r/.libs
+      $ENV{MYSQL_DIR}/lib
+      $ENV{MYSQL_DIR}/lib/mysql
+      /usr/lib/mysql
+      /usr/local/lib/mysql
+      /usr/local/mysql/lib
+      /usr/local/mysql/lib/mysql
+      /opt/local/mysql5/lib
+      /opt/local/lib/mysql5/mysql
+      /opt/mysql/mysql/lib/mysql
+      /opt/mysql/lib/mysql)
+  ENDIF (NOT MYSQL_LIB)
 ENDIF (WIN32)
 
 IF(MYSQL_LIB)
@@ -96,11 +116,6 @@ IF (MYSQL_INCLUDE_DIR AND MYSQL_LIB_DIR)
   FIND_LIBRARY(MYSQL_YASSL yassl PATHS ${MYSQL_LIB_DIR})
   FIND_LIBRARY(MYSQL_TAOCRYPT taocrypt PATHS ${MYSQL_LIB_DIR})
 
-  IF (WIN32)
-    SET(MYSQL_CLIENT_LIBS libmysql)
-  ELSE (WIN32)
-    SET(MYSQL_CLIENT_LIBS mysqlclient_r)
-  ENDIF (WIN32)
   IF (MYSQL_ZLIB)
     SET(MYSQL_CLIENT_LIBS ${MYSQL_CLIENT_LIBS} zlib)
   ENDIF (MYSQL_ZLIB)
