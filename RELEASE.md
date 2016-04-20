@@ -11,7 +11,7 @@ Check the following issue filters:
 
 ## Backport Commits
 
-    $ ./pick.py -V 2.4.5
+    $ ./pick.py -V 2.4.6
 
 Verify the created branch and replace it into the current support branch.
 
@@ -36,15 +36,15 @@ the changelog.py script. Also generate HTML for the wordpress release announceme
 
 Changelog:
 
-    $ ./changelog.py -V 2.4.5
+    $ ./changelog.py -V 2.4.6
 
 Docs:
 
-    $ ./changelog.py -V 2.4.5 -l
+    $ ./changelog.py -V 2.4.6 -l
 
 Wordpress:
 
-    $ ./changelog.py -V 2.4.5 -H -l
+    $ ./changelog.py -V 2.4.6 -H -l
 
 ## Git Tag
 
