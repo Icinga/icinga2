@@ -82,10 +82,12 @@ while True:
 
 repo = Repo(".")
 
-new_branch = repo.create_head("auto-merged-" + version_name, "support/" + ".".join(version_name.split(".")[:-1]))
+repo.git.fetch()
+
+new_branch = repo.create_head("auto-merged-" + version_name, "origin/support/" + ".".join(version_name.split(".")[:-1]))
 new_branch.checkout()
 
-commits = reversed(list(repo.iter_commits(rev="master")))
+commits = reversed(list(repo.iter_commits(rev="origin/master")))
 
 tmpEditor = NamedTemporaryFile()
 
