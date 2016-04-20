@@ -9,6 +9,12 @@ Check the following issue filters:
 * [Pending backports](https://dev.icinga.org/projects/i2/issues?query_id=41)
 * [Invalid target version](https://dev.icinga.org/projects/i2/issues?query_id=55)
 
+## Backport Commits
+
+    $ ./pick.py -V 2.4.5
+
+Verify the created branch and replace it into the current support branch.
+
 ## Authors
 
 Update the [.mailmap](.mailmap) and [AUTHORS](AUTHORS) files:
@@ -30,15 +36,15 @@ the changelog.py script. Also generate HTML for the wordpress release announceme
 
 Changelog:
 
-    $ ./changelog.py --version 2.4.5 --project i2
+    $ ./changelog.py -V 2.4.5
 
 Docs:
 
-    $ ./changelog.py --version 2.4.5 --project i2 --links
+    $ ./changelog.py -V 2.4.5 -l
 
 Wordpress:
 
-    $ ./changelog.py --version 2.4.5 --project i2 --html --links
+    $ ./changelog.py -V 2.4.5 -H -l
 
 ## Git Tag
 
@@ -83,16 +89,20 @@ into master and merge the support branch:
 ## Build Server
 
 * Update Git tags for the release jobs.
-
-### Linux
-
 * Build the newly created Git tag for Debian/RHEL/SuSE.
+* Build the newly created Git tag for Windows.
+
+## Release Tests
+
+* Test DB IDO with MySQL and PostgreSQL.
 * Provision the vagrant boxes and test the release packages.
-* Start a new docker container and install/run icinga2
+* Test the [setup wizard](http://packages.icinga.org/windows/) inside a Windows VM.
+
+* Start a new docker container and install/run icinga2.
 
 Example for CentOS7:
 
-    $ sudo docker run -ti centos:latest bash
+    $ docker run -ti centos:latest bash
 
     # yum -y install http://packages.icinga.org/epel/7/release/noarch/icinga-rpm-release-7-1.el7.centos.noarch.rpm
     # yum -y install icinga2
@@ -100,11 +110,6 @@ Example for CentOS7:
 
     # systemctl start icinga2
     # tail -f /var/log/icinga2/icinga2.log
-
-### Windows
-
-* Build the newly created Git tag for Windows.
-* Test the [setup wizard](http://packages.icinga.org/windows/) inside a Windows VM.
 
 ## GitHub Release
 
@@ -114,7 +119,7 @@ https://github.com/Icinga/icinga2/releases
 ## Online Documentation
 
 SSH into the web box, navigate into `icinga2-latest/module/icinga2`
-and pull the current icinga2 revision to update what's new".
+and pull the current support branch.
 
 ## Announcement
 
@@ -126,4 +131,5 @@ and pull the current icinga2 revision to update what's new".
 # After the release
 
 * Add new minor version
+* Close the released version
 * Update Redmine filters for the next major/minor version
