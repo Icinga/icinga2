@@ -137,7 +137,7 @@ boost::shared_ptr<X509> PkiUtility::FetchCert(const String& host, const String& 
 		return boost::shared_ptr<X509>();
 	}
 
-	TlsStream::Ptr stream = new TlsStream(client, String(), RoleClient, sslContext);
+	TlsStream::Ptr stream = new TlsStream(client, host, RoleClient, sslContext);
 
 	try {
 		stream->Handshake();
@@ -201,7 +201,7 @@ int PkiUtility::RequestCertificate(const String& host, const String& port, const
 		return 1;
 	}
 
-	TlsStream::Ptr stream = new TlsStream(client, String(), RoleClient, sslContext);
+	TlsStream::Ptr stream = new TlsStream(client, host, RoleClient, sslContext);
 
 	try {
 		stream->Handshake();
