@@ -191,19 +191,12 @@ void AddCRLToSSLContext(const boost::shared_ptr<SSL_CTX>& context, const String&
 	X509_VERIFY_PARAM_free(param);
 }
 
-/**
- * Retrieves the common name for an X509 certificate.
- *
- * @param certificate The X509 certificate.
- * @returns The common name.
- */
-String GetCertificateCN(const boost::shared_ptr<X509>& certificate)
+static String GetX509NameCN(X509_NAME *name)
 {
 	char errbuf[120];
 	char buffer[256];
 
-	int rc = X509_NAME_get_text_by_NID(X509_get_subject_name(certificate.get()),
-	    NID_commonName, buffer, sizeof(buffer));
+	int rc = X509_NAME_get_text_by_NID(name, NID_commonName, buffer, sizeof(buffer));
 
 	if (rc == -1) {
 		Log(LogCritical, "SSL")
@@ -214,6 +207,17 @@ String GetCertificateCN(const boost::shared_ptr<X509>& certificate)
 	}
 
 	return buffer;
+}
+
+/**
+ * Retrieves the common name for an X509 certificate.
+ *
+ * @param certificate The X509 certificate.
+ * @returns The common name.
+ */
+String GetCertificateCN(const boost::shared_ptr<X509>& certificate)
+{
+	return GetX509NameCN(X509_get_subject_name(certificate.get()));
 }
 
 /**
@@ -416,7 +420,6 @@ boost::shared_ptr<X509> CreateCert(EVP_PKEY *pubkey, X509_NAME *subject, X509_NA
 
 	ASN1_INTEGER_set(X509_get_serialNumber(cert), serial);
 
-	X509_EXTENSION *ext;
 	X509V3_CTX ctx;
 	X509V3_set_ctx_nodb(&ctx);
 	X509V3_set_ctx(&ctx, cert, cert, NULL, NULL, 0);
@@ -428,12 +431,23 @@ boost::shared_ptr<X509> CreateCert(EVP_PKEY *pubkey, X509_NAME *subject, X509_NA
 	else
 		attr = "critical,CA:FALSE";
 
-	ext = X509V3_EXT_conf_nid(NULL, &ctx, NID_basic_constraints, const_cast<char *>(attr));
+	X509_EXTENSION *basicConstraintsExt = X509V3_EXT_conf_nid(NULL, &ctx, NID_basic_constraints, const_cast<char *>(attr));
 
-	if (ext)
-		X509_add_ext(cert, ext, -1);
+	if (basicConstraintsExt) {
+		X509_add_ext(cert, basicConstraintsExt, -1);
+		X509_EXTENSION_free(basicConstraintsExt);
+	}
 
-	X509_EXTENSION_free(ext);
+	String cn = GetX509NameCN(subject);
+
+	if (!cn.Contains(" ") && cn.Contains(".")) {
+		String san = "DNS:" + cn;
+		X509_EXTENSION *subjectAltNameExt = X509V3_EXT_conf_nid(NULL, &ctx, NID_subject_alt_name, const_cast<char *>(san.CStr()));
+		if (subjectAltNameExt) {
+			X509_add_ext(cert, subjectAltNameExt, -1);
+			X509_EXTENSION_free(subjectAltNameExt);
+		}
+	}
 
 	X509_sign(cert, cakey, EVP_sha256());
 
