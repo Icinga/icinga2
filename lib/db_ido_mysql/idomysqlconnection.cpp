@@ -775,7 +775,8 @@ void IdoMysqlConnection::ExecuteQuery(const DbQuery& query)
 
 void IdoMysqlConnection::ExecuteMultipleQueries(const std::vector<DbQuery>& queries)
 {
-	ASSERT(!queries.empty());
+	if (queries.empty())
+		return;
 
 	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::InternalExecuteMultipleQueries, this, queries), queries[0].Priority, true);
 }
