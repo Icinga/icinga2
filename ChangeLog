@@ -4,6 +4,12 @@ Please check [doc/1-about.md].
 
 ## What's New
 
+### What's New in Version 2.4.7
+
+#### Bugfixes
+
+* Bug 11639: Crash in IdoMysqlConnection::ExecuteMultipleQueries
+
 ### What's New in Version 2.4.6
 
 #### Feature

@@ -54,6 +54,12 @@ More details in the [Icinga FAQ](https://www.icinga.org/icinga/faq/).
 
 ## <a id="whats-new"></a> What's New
 
+### What's New in Version 2.4.7
+
+#### Bugfixes
+
+* Bug [11639](https://dev.icinga.org/issues/11639 "Bug 11639"): Crash in IdoMysqlConnection::ExecuteMultipleQueries
+
 ### What's New in Version 2.4.6
 
 #### Feature

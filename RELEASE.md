@@ -12,9 +12,9 @@ Check the following issue filters:
 ## Backport Commits
 
     $ git checkout master
-    $ ./pick.py -V 2.4.6
+    $ ./pick.py -V 2.4.7
 
-The script creates a new branch 'auto-merged-2.4.6' which is based on the
+The script creates a new branch 'auto-merged-2.4.7' which is based on the
 current support branch. It then merges all commits from the 'master' branch which
 reference a ticket for the version that was specified.
 
@@ -26,7 +26,7 @@ rebase until no commits are left:
 After finishing the rebase the branch needs to be merged into the support branch:
 
     $ git checkout support/2.4
-    $ git merge --ff-only auto-merged-2.4.6
+    $ git merge --ff-only auto-merged-2.4.7
 
 ## Authors
 
@@ -50,15 +50,15 @@ the changelog.py script. Also generate HTML for the wordpress release announceme
 
 Changelog:
 
-    $ ./changelog.py -V 2.4.6
+    $ ./changelog.py -V 2.4.7
 
 Docs:
 
-    $ ./changelog.py -V 2.4.6 -l
+    $ ./changelog.py -V 2.4.7 -l
 
 Wordpress:
 
-    $ ./changelog.py -V 2.4.6 -H -l
+    $ ./changelog.py -V 2.4.7 -H -l
 
 ## Git Tag
 
