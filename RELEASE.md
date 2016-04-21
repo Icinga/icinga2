@@ -130,6 +130,21 @@ Example for CentOS7:
 Create a new release for the newly created Git tag.
 https://github.com/Icinga/icinga2/releases
 
+## Chocolatey
+
+Navigate to the git repository on your Windows box which
+already has chocolatey installed. Pull/checkout the release.
+
+Create the nupkg package:
+
+    cpack
+
+Install the created icinga2 package locally:
+
+    choco install icinga2 -version 2.4.7 -fdv "%cd%" -source "'%cd%;https://chocolatey.org/api/v2/'"
+
+Upload the package to [chocolatey](https://chocolatey.org/packages/upload).
+
 ## Online Documentation
 
 SSH into the web box, navigate into `icinga2-latest/module/icinga2`
