@@ -803,7 +803,7 @@ Example:
 
 Inherits methods from the [Object type](19-library-reference.md#object-type).
 
-### <a id="datetime-ctor"> DateTime constructor
+### <a id="datetime-ctor"></a> DateTime constructor
 
 Signature:
 
@@ -820,7 +820,7 @@ Example:
     var d1 = DateTime() /* current time */
     var d2 = DateTime(2016, 5, 21) /* midnight April 21st, 2016 (local time) */
 
-### <a id="datetime-operator-sub"> DateTime arithmetic
+### <a id="datetime-arithmetic"></a> DateTime arithmetic
 
 Subtracting two DateTime objects yields the interval between them, in seconds.
 
@@ -840,7 +840,7 @@ Example:
 
     var dt = DateTime() + 24 * 60 60 /* Current time plus 24 hours */
 
-### <a id="datetime-format"> DateTime#format
+### <a id="datetime-format"></a> DateTime#format
 
 Signature:
 
@@ -853,7 +853,7 @@ Example:
 
     var s = DateTime(2016, 4, 21).format("%A") /* Sets s to "Thursday". */
 
-### <a id="datetime-tostring"> DateTime#to_string
+### <a id="datetime-tostring"></a> DateTime#to_string
 
 Signature:
 
