@@ -92,6 +92,8 @@ public:
 
 	static void StaticInitialize(void);
 
+	virtual void ValidateSeverity(const String& value, const ValidationUtils& utils) override;
+
 protected:
 	virtual void Start(bool runtimeCreated) override;
 	virtual void Stop(bool runtimeRemoved) override;
