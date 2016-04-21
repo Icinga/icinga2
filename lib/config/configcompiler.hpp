@@ -64,6 +64,13 @@ struct EItemInfo
 	CompilerDebugInfo DebugInfo;
 };
 
+enum FlowControlType
+{
+	FlowControlReturn = 1,
+	FlowControlContinue = 2,
+	FlowControlBreak = 4
+};
+
 struct ZoneFragment
 {
 	String Tag;
@@ -156,6 +163,7 @@ public:
 	std::stack<String> m_FKVar;
 	std::stack<String> m_FVVar;
 	std::stack<Expression *> m_FTerm;
+	std::stack<int> m_FlowControlInfo;
 };
 
 }

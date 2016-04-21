@@ -62,6 +62,8 @@ do {							\
 	fputs(str.c_str(), file);			\
 } while (0)
 
+#define YYINITDEPTH 10000
+
 using namespace icinga;
 
 template<typename T>
@@ -184,12 +186,14 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %type <llist> lterm_items_inner
 %type <expr> rterm
 %type <expr> rterm_array
+%type <dexpr> rterm_dict
 %type <dexpr> rterm_scope_require_side_effect
 %type <dexpr> rterm_scope
 %type <ebranchlist> else_if_branches
 %type <ebranch> else_if_branch
 %type <expr> rterm_side_effect
 %type <expr> rterm_no_side_effect
+%type <expr> rterm_no_side_effect_no_dict
 %type <expr> lterm
 %type <expr> object
 %type <expr> apply
@@ -238,6 +242,27 @@ void yyerror(const YYLTYPE *locp, std::vector<std::pair<Expression *, EItemInfo>
 
 int yyparse(std::vector<std::pair<Expression *, EItemInfo> > *llist, ConfigCompiler *context);
 
+static void BeginFlowControlBlock(ConfigCompiler *compiler, int allowedTypes, bool inherit)
+{
+	if (inherit)
+		allowedTypes |= compiler->m_FlowControlInfo.top();
+
+	compiler->m_FlowControlInfo.push(allowedTypes);
+}
+
+static void EndFlowControlBlock(ConfigCompiler *compiler)
+{
+	compiler->m_FlowControlInfo.pop();
+}
+
+static void UseFlowControl(ConfigCompiler *compiler, FlowControlType type, const CompilerDebugInfo& location)
+{
+	int fci = compiler->m_FlowControlInfo.top();
+
+	if ((type & fci) != type)
+		BOOST_THROW_EXCEPTION(ScriptError("Invalid flow control statement.", location));
+}
+
 Expression *ConfigCompiler::Compile(void)
 {
 	std::vector<std::pair<Expression *, EItemInfo> > llist;
@@ -245,10 +270,12 @@ Expression *ConfigCompiler::Compile(void)
 	//yydebug = 1;
 
 	m_IgnoreNewlines.push(false);
+	BeginFlowControlBlock(this, 0, false);
 
 	if (yyparse(&llist, this) != 0)
 		return NULL;
 
+	EndFlowControlBlock(this);
 	m_IgnoreNewlines.pop();
 
 	std::vector<Expression *> dlist;
@@ -344,16 +371,20 @@ object:
 		context->m_Assign.push(0);
 		context->m_Ignore.push(0);
 	}
-	object_declaration identifier optional_rterm use_specifier ignore_specifier rterm_scope_require_side_effect
+	object_declaration identifier optional_rterm use_specifier ignore_specifier
 	{
+		BeginFlowControlBlock(context, FlowControlReturn, false);
+	}
+	rterm_scope_require_side_effect
+	{
+		EndFlowControlBlock(context);
+
 		context->m_ObjectAssign.pop();
 
 		bool abstract = $2;
 
 		String type = *$3;
 		delete $3;
-
-		$7->MakeInline();
 
 		bool seen_assign = context->m_SeenAssign.top();
 		context->m_SeenAssign.pop();
@@ -386,7 +417,7 @@ object:
 				BOOST_THROW_EXCEPTION(ScriptError("object rule 'ignore' is missing 'assign' for type '" + type + "'", DebugInfoRange(@2, @4)));
 		}
 
-		$$ = new ObjectExpression(abstract, type, $4, filter, context->GetZone(), context->GetPackage(), $5, $6, $7, DebugInfoRange(@2, @6));
+		$$ = new ObjectExpression(abstract, type, $4, filter, context->GetZone(), context->GetPackage(), $5, $6, $8, DebugInfoRange(@2, @6));
 	}
 	;
 
@@ -474,8 +505,30 @@ lterm: T_LIBRARY rterm
 	{
 		$$ = new ImportExpression($2, @$);
 	}
-	| T_ASSIGN T_WHERE rterm
+	| T_ASSIGN T_WHERE
 	{
+		BeginFlowControlBlock(context, FlowControlReturn, false);
+	}
+	rterm_scope %dprec 2
+	{
+		EndFlowControlBlock(context);
+
+		if ((context->m_Apply.empty() || !context->m_Apply.top()) && (context->m_ObjectAssign.empty() || !context->m_ObjectAssign.top()))
+			BOOST_THROW_EXCEPTION(ScriptError("'assign' keyword not valid in this context.", @$));
+
+		context->m_SeenAssign.top() = true;
+
+		if (context->m_Assign.top())
+			context->m_Assign.top() = new LogicalOrExpression(context->m_Assign.top(), $4, @$);
+		else
+			context->m_Assign.top() = $4;
+
+		$$ = MakeLiteral();
+	}
+	| T_ASSIGN T_WHERE rterm %dprec 1
+	{
+		ASSERT(!dynamic_cast<DictExpression *>($3));
+
 		if ((context->m_Apply.empty() || !context->m_Apply.top()) && (context->m_ObjectAssign.empty() || !context->m_ObjectAssign.top()))
 			BOOST_THROW_EXCEPTION(ScriptError("'assign' keyword not valid in this context.", @$));
 
@@ -488,8 +541,30 @@ lterm: T_LIBRARY rterm
 
 		$$ = MakeLiteral();
 	}
-	| T_IGNORE T_WHERE rterm
+	| T_IGNORE T_WHERE
 	{
+		BeginFlowControlBlock(context, FlowControlReturn, false);
+	}
+	rterm_scope %dprec 2
+	{
+		EndFlowControlBlock(context);
+
+		if ((context->m_Apply.empty() || !context->m_Apply.top()) && (context->m_ObjectAssign.empty() || !context->m_ObjectAssign.top()))
+			BOOST_THROW_EXCEPTION(ScriptError("'ignore' keyword not valid in this context.", @$));
+
+		context->m_SeenIgnore.top() = true;
+
+		if (context->m_Ignore.top())
+			context->m_Ignore.top() = new LogicalOrExpression(context->m_Ignore.top(), $4, @$);
+		else
+			context->m_Ignore.top() = $4;
+
+		$$ = MakeLiteral();
+	}
+	| T_IGNORE T_WHERE rterm %dprec 1
+	{
+		ASSERT(!dynamic_cast<DictExpression *>($3));
+
 		if ((context->m_Apply.empty() || !context->m_Apply.top()) && (context->m_ObjectAssign.empty() || !context->m_ObjectAssign.top()))
 			BOOST_THROW_EXCEPTION(ScriptError("'ignore' keyword not valid in this context.", @$));
 
@@ -504,14 +579,17 @@ lterm: T_LIBRARY rterm
 	}
 	| T_RETURN optional_rterm
 	{
+		UseFlowControl(context, FlowControlReturn, @$);
 		$$ = new ReturnExpression($2, @$);
 	}
 	| T_BREAK
 	{
+		UseFlowControl(context, FlowControlBreak, @$);
 		$$ = new BreakExpression(@$);
 	}
 	| T_CONTINUE
 	{
+		UseFlowControl(context, FlowControlContinue, @$);
 		$$ = new ContinueExpression(@$);
 	}
 	| T_DEBUGGER
@@ -520,26 +598,38 @@ lterm: T_LIBRARY rterm
 	}
 	| apply
 	| object
-	| T_FOR '(' identifier T_FOLLOWS identifier T_IN rterm ')' rterm_scope_require_side_effect
+	| T_FOR '(' identifier T_FOLLOWS identifier T_IN rterm ')'
 	{
-		$9->MakeInline();
+		BeginFlowControlBlock(context, FlowControlContinue | FlowControlBreak, true);
+	}
+	rterm_scope_require_side_effect
+	{
+		EndFlowControlBlock(context);
 
-		$$ = new ForExpression(*$3, *$5, $7, $9, @$);
+		$$ = new ForExpression(*$3, *$5, $7, $10, @$);
 		delete $3;
 		delete $5;
 	}
-	| T_FOR '(' identifier T_IN rterm ')' rterm_scope_require_side_effect
+	| T_FOR '(' identifier T_IN rterm ')'
 	{
-		$7->MakeInline();
+		BeginFlowControlBlock(context, FlowControlContinue | FlowControlBreak, true);
+	}
+	rterm_scope_require_side_effect
+	{
+		EndFlowControlBlock(context);
 
-		$$ = new ForExpression(*$3, "", $5, $7, @$);
+		$$ = new ForExpression(*$3, "", $5, $8, @$);
 		delete $3;
 	}
-	| T_FUNCTION identifier '(' identifier_items ')' use_specifier rterm_scope
+	| T_FUNCTION identifier '(' identifier_items ')' use_specifier
 	{
-		$7->MakeInline();
+		BeginFlowControlBlock(context, FlowControlReturn, false);
+	}
+	rterm_scope
+	{
+		EndFlowControlBlock(context);
 
-		FunctionExpression *fexpr = new FunctionExpression(*$4, $6, $7, @$);
+		FunctionExpression *fexpr = new FunctionExpression(*$4, $6, $8, @$);
 		delete $4;
 
 		$$ = new SetExpression(MakeIndexer(ScopeThis, *$2), OpSetLiteral, fexpr, @$);
@@ -562,11 +652,15 @@ lterm: T_LIBRARY rterm
 		BindToScope(expr, ScopeLocal);
 		$$ = new SetExpression(expr, $3, $4, @$);
 	}
-	| T_WHILE '(' rterm ')' rterm_scope
+	| T_WHILE '(' rterm ')'
 	{
-		$5->MakeInline();
+		BeginFlowControlBlock(context, FlowControlContinue | FlowControlBreak, true);
+	}
+	rterm_scope
+	{
+		EndFlowControlBlock(context);
 
-		$$ = new WhileExpression($3, $5, @$);
+		$$ = new WhileExpression($3, $6, @$);
 	}
 	| T_THROW rterm
 	{
@@ -613,8 +707,34 @@ rterm_array: '['
 	}
 	rterm_items ']'
 	{
+		context->m_OpenBraces--;
 		$$ = new ArrayExpression(*$3, @$);
 		delete $3;
+	}
+	;
+
+rterm_dict: '{'
+	{
+		BeginFlowControlBlock(context, 0, false);
+		context->m_IgnoreNewlines.push(false);
+		context->m_OpenBraces++;
+	}
+	statements '}'
+	{
+		EndFlowControlBlock(context);
+		context->m_OpenBraces--;
+		context->m_IgnoreNewlines.pop();
+		std::vector<Expression *> dlist;
+		typedef std::pair<Expression *, EItemInfo> EListItem;
+		int num = 0;
+		BOOST_FOREACH(const EListItem& litem, *$3) {
+			if (!litem.second.SideEffect)
+				yyerror(&litem.second.DebugInfo, NULL, NULL, "Value computed is not used.");
+			dlist.push_back(litem.first);
+			num++;
+		}
+		delete $3;
+		$$ = new DictExpression(dlist, @$);
 	}
 	;
 
@@ -638,6 +758,7 @@ rterm_scope_require_side_effect: '{'
 		}
 		delete $3;
 		$$ = new DictExpression(dlist, @$);
+		$$->MakeInline();
 	}
 	;
 
@@ -661,13 +782,12 @@ rterm_scope: '{'
 		}
 		delete $3;
 		$$ = new DictExpression(dlist, @$);
+		$$->MakeInline();
 	}
 	;
 
 else_if_branch: T_ELSE T_IF '(' rterm ')' rterm_scope
 	{
-		$6->MakeInline();
-
 		$$ = new std::pair<Expression *, Expression *>($4, $6);
 	}
 	;
@@ -691,8 +811,6 @@ rterm_side_effect: rterm '(' rterm_items ')'
 	}
 	| T_IF '(' rterm ')' rterm_scope else_if_branches
 	{
-		$5->MakeInline();
-
 		std::vector<std::pair<Expression *, Expression *> > ebranches = *$6;
 		delete $6;
 
@@ -707,8 +825,6 @@ rterm_side_effect: rterm '(' rterm_items ')'
 	}
 	| T_IF '(' rterm ')' rterm_scope else_if_branches T_ELSE rterm_scope
 	{
-		$5->MakeInline();
-
 		std::vector<std::pair<Expression *, Expression *> > ebranches = *$6;
 		delete $6;
 
@@ -725,7 +841,7 @@ rterm_side_effect: rterm '(' rterm_items ')'
 	}
 	;
 
-rterm_no_side_effect: T_STRING
+rterm_no_side_effect_no_dict: T_STRING
 	{
 		$$ = MakeLiteral(*$1);
 		delete $1;
@@ -792,11 +908,23 @@ rterm_no_side_effect: T_STRING
 	{
 		$$ = MakeLiteral(@$.FirstLine);
 	}
-	| identifier T_FOLLOWS rterm
+	| identifier T_FOLLOWS
 	{
-		DictExpression *aexpr = dynamic_cast<DictExpression *>($3);
-		if (aexpr)
-			aexpr->MakeInline();
+		BeginFlowControlBlock(context, FlowControlReturn, false);
+	}
+	rterm_scope %dprec 2
+	{
+		EndFlowControlBlock(context);
+
+		std::vector<String> args;
+		args.push_back(*$1);
+		delete $1;
+
+		$$ = new FunctionExpression(args, new std::map<String, Expression *>(), $4, @$);
+	}
+	| identifier T_FOLLOWS rterm %dprec 1
+	{
+		ASSERT(!dynamic_cast<DictExpression *>($3));
 
 		std::vector<String> args;
 		args.push_back(*$1);
@@ -804,22 +932,25 @@ rterm_no_side_effect: T_STRING
 
 		$$ = new FunctionExpression(args, new std::map<String, Expression *>(), $3, @$);
 	}
-	| '(' identifier_items ')' T_FOLLOWS rterm
+	| '(' identifier_items ')' T_FOLLOWS
 	{
-		DictExpression *aexpr = dynamic_cast<DictExpression *>($5);
-		if (aexpr)
-			aexpr->MakeInline();
+		BeginFlowControlBlock(context, FlowControlReturn, false);
+	}
+	rterm_scope %dprec 2
+	{
+		EndFlowControlBlock(context);
+
+		$$ = new FunctionExpression(*$2, new std::map<String, Expression *>(), $6, @$);
+		delete $2;
+	}
+	| '(' identifier_items ')' T_FOLLOWS rterm %dprec 1
+	{
+		ASSERT(!dynamic_cast<DictExpression *>($5));
 
 		$$ = new FunctionExpression(*$2, new std::map<String, Expression *>(), $5, @$);
 		delete $2;
 	}
 	| rterm_array
-	| rterm_scope_require_side_effect
-	{
-		Expression *expr = $1;
-		BindToScope(expr, ScopeThis);
-		$$ = expr;
-	}
 	| '('
 	{
 		context->m_OpenBraces++;
@@ -849,25 +980,35 @@ rterm_no_side_effect: T_STRING
 	| rterm T_DIVIDE_OP rterm { MakeRBinaryOp<DivideExpression>(&$$, $1, $3, @1, @3); }
 	| rterm T_MODULO rterm { MakeRBinaryOp<ModuloExpression>(&$$, $1, $3, @1, @3); }
 	| rterm T_XOR rterm { MakeRBinaryOp<XorExpression>(&$$, $1, $3, @1, @3); }
-	| T_FUNCTION '(' identifier_items ')' use_specifier rterm_scope
+	| T_FUNCTION '(' identifier_items ')' use_specifier
 	{
-		$6->MakeInline();
+		BeginFlowControlBlock(context, FlowControlReturn, false);
+	}
+	rterm_scope
+	{
+		EndFlowControlBlock(context);
 
-		$$ = new FunctionExpression(*$3, $5, $6, @$);
+		$$ = new FunctionExpression(*$3, $5, $7, @$);
 		delete $3;
 	}
-	| T_NULLARY_LAMBDA_BEGIN statements T_NULLARY_LAMBDA_END
+	| T_NULLARY_LAMBDA_BEGIN
 	{
+		BeginFlowControlBlock(context, FlowControlReturn, false);
+	}
+	statements T_NULLARY_LAMBDA_END
+	{
+		EndFlowControlBlock(context);
+
 		std::vector<Expression *> dlist;
 		typedef std::pair<Expression *, EItemInfo> EListItem;
 		int num = 0;
-		BOOST_FOREACH(const EListItem& litem, *$2) {
-			if (!litem.second.SideEffect && num != $2->size() - 1)
+		BOOST_FOREACH(const EListItem& litem, *$3) {
+			if (!litem.second.SideEffect && num != $3->size() - 1)
 				yyerror(&litem.second.DebugInfo, NULL, NULL, "Value computed is not used.");
 			dlist.push_back(litem.first);
 			num++;
 		}
-		delete $2;
+		delete $3;
 		DictExpression *aexpr = new DictExpression(dlist, @$);
 		aexpr->MakeInline();
 
@@ -875,8 +1016,19 @@ rterm_no_side_effect: T_STRING
 	}
 	;
 
-rterm: rterm_side_effect
-	| rterm_no_side_effect
+rterm_no_side_effect:
+	rterm_no_side_effect_no_dict %dprec 1
+	| rterm_dict %dprec 2
+	{
+		Expression *expr = $1;
+		BindToScope(expr, ScopeThis);
+		$$ = expr;
+	}
+	;
+
+rterm:
+	rterm_side_effect %dprec 2
+	| rterm_no_side_effect %dprec 1
 	;
 
 target_type_specifier: /* empty */
@@ -975,8 +1127,14 @@ apply:
 		context->m_FVVar.push("");
 		context->m_FTerm.push(NULL);
 	}
-	T_APPLY identifier optional_rterm apply_for_specifier target_type_specifier use_specifier ignore_specifier rterm_scope_require_side_effect
+	T_APPLY identifier optional_rterm apply_for_specifier target_type_specifier use_specifier ignore_specifier
 	{
+		BeginFlowControlBlock(context, FlowControlReturn, false);
+	}
+	rterm_scope_require_side_effect
+	{
+		EndFlowControlBlock(context);
+
 		context->m_Apply.pop();
 
 		String type = *$3;
@@ -1007,8 +1165,6 @@ apply:
 			} else
 				BOOST_THROW_EXCEPTION(ScriptError("'apply' target type '" + target + "' is invalid", DebugInfoRange(@2, @5)));
 		}
-
-		$9->MakeInline();
 
 		bool seen_assign = context->m_SeenAssign.top();
 		context->m_SeenAssign.pop();
@@ -1047,7 +1203,7 @@ apply:
 		Expression *fterm = context->m_FTerm.top();
 		context->m_FTerm.pop();
 
-		$$ = new ApplyExpression(type, target, $4, filter, context->GetPackage(), fkvar, fvvar, fterm, $7, $8, $9, DebugInfoRange(@2, @8));
+		$$ = new ApplyExpression(type, target, $4, filter, context->GetPackage(), fkvar, fvvar, fterm, $7, $8, $10, DebugInfoRange(@2, @8));
 	}
 	;
 
