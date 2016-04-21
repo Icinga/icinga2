@@ -11,14 +11,28 @@ Check the following issue filters:
 
 ## Backport Commits
 
+    $ git checkout master
     $ ./pick.py -V 2.4.6
 
-Verify the created branch and replace it into the current support branch.
+The script creates a new branch 'auto-merged-2.4.6' which is based on the
+current support branch. It then merges all commits from the 'master' branch which
+reference a ticket for the version that was specified.
+
+If there are any merge commits you will need to manually fix them and continue the
+rebase until no commits are left:
+
+    $ git rebase --continue
+
+After finishing the rebase the branch needs to be merged into the support branch:
+
+    $ git checkout support/2.4
+    $ git merge --ff-only auto-merged-2.4.6
 
 ## Authors
 
 Update the [.mailmap](.mailmap) and [AUTHORS](AUTHORS) files:
 
+    $ git checkout master
     $ git log --use-mailmap | grep ^Author: | cut -f2- -d' ' | sort | uniq > AUTHORS
 
 ## Version
@@ -27,7 +41,7 @@ Update the version number in the following files:
 
 * [icinga2.spec]: Version: (.*)
 * [icinga2.nuspec]: <version>(.*)</version>
-* [tools/chocolateyInstall.ps1]: Icinga2-v(.*).exe
+* [tools/chocolateyInstall.ps1]: Icinga2-v(.*)-{x86,x86_64}.msi
 
 ## Changelog
 
