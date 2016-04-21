@@ -757,6 +757,8 @@ Returns a list of keys for all items that are currently in the dictionary.
 
 ## <a id="scriptfunction-type"></a> Function type
 
+Inherits methods from the [Object type](19-library-reference.md#object-type).
+
 ### <a id="scriptfunction-call"></a> Function#call
 
 Signature:
@@ -797,3 +799,68 @@ Example:
 
 	set_x.callv(dict, args) /* Invokes set_x using `dict` as `this` */
 
+## <a id="datetime-type"></a> DateTime type
+
+Inherits methods from the [Object type](19-library-reference.md#object-type).
+
+### <a id="datetime-ctor"> DateTime constructor
+
+Signature:
+
+    function DateTime()
+    function DateTime(unixTimestamp)
+    function DateTime(year, month, day)
+    function DateTime(year, month, day, hours, minutes, seconds)
+
+Constructs a new DateTime object. When no arguments are specified for the constructor a new
+DateTime object representing the current time is created.
+
+Example:
+
+    var d1 = DateTime() /* current time */
+    var d2 = DateTime(2016, 5, 21) /* midnight April 21st, 2016 (local time) */
+
+### <a id="datetime-operator-sub"> DateTime arithmetic
+
+Subtracting two DateTime objects yields the interval between them, in seconds.
+
+Example:
+
+    var delta = DateTime() - DateTime(2016, 5, 21) /* seconds since midnight April 21st, 2016 */
+
+Subtracting a number from a DateTime object yields a new DateTime object that is further in the past:
+
+Example:
+
+    var dt = DateTime() - 2 * 60 * 60 /* Current time minus 2 hours */
+
+Adding a number to a DateTime object yields a new DateTime object that is in the future:
+
+Example:
+
+    var dt = DateTime() + 24 * 60 60 /* Current time plus 24 hours */
+
+### <a id="datetime-format"> DateTime#format
+
+Signature:
+
+    function format(fmt)
+
+Returns a string representation for the DateTime object using the specified format string.
+The format string may contain format conversion placeholders as specified in strftime(3).
+
+Example:
+
+    var s = DateTime(2016, 4, 21).format("%A") /* Sets s to "Thursday". */
+
+### <a id="datetime-tostring"> DateTime#to_string
+
+Signature:
+
+    function to_string()
+
+Returns a string representation for the DateTime object. Uses a suitable default format.
+
+Example:
+
+    var s = DateTime(2016, 4, 21).to_string() /* Sets s to "2016-04-21 00:00:00 +0200". */
