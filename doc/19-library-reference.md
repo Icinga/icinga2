@@ -530,7 +530,7 @@ Returns a copy of the object. Note that for object elements which are
 reference values (e.g. objects such as arrays or dictionaries) the entire
 object is recursively copied.
 
-## <a id="object-to-string"></a> Object#to_string
+### <a id="object-to-string"></a> Object#to_string
 
 Signature:
 
@@ -544,7 +544,7 @@ Example:
 
     [ 3, true ].to_string() /* Returns "[ 3.000000, true ]" */
 
-## <a id="object-type-field"></a> Object#type
+### <a id="object-type-field"></a> Object#type
 
 Signature:
 
