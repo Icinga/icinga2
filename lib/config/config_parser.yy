@@ -154,7 +154,6 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %token T_INCLUDE_RECURSIVE "include_recursive (T_INCLUDE_RECURSIVE)"
 %token T_INCLUDE_ZONES "include_zones (T_INCLUDE_ZONES)"
 %token T_LIBRARY "library (T_LIBRARY)"
-%token T_INHERITS "inherits (T_INHERITS)"
 %token T_APPLY "apply (T_APPLY)"
 %token T_TO "to (T_TO)"
 %token T_WHERE "where (T_WHERE)"
