@@ -131,6 +131,9 @@ std::pair<double, double> ScheduledDowntime::FindNextSegment(void)
 
 	Dictionary::Ptr ranges = GetRanges();
 
+	if (!ranges)
+		return std::make_pair(0, 0);
+
 	Array::Ptr segments = new Array();
 
 	Dictionary::Ptr bestSegment;
