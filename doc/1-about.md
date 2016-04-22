@@ -22,13 +22,13 @@ the [support overview page](https://support.icinga.org).
 
 ## <a id="contribute"></a> Contribute
 
-There are many ways to contribute to Icinga - whether it be sending patches,
+There are many ways to contribute to Icinga -- whether it be sending patches,
 testing, reporting bugs, or reviewing and updating the documentation. Every
 contribution is appreciated!
 
 Please get in touch with the Icinga team at https://www.icinga.org/community/.
 
-If you want to help update this documentation please read
+If you want to help update this documentation, please read
 [this howto](https://wiki.icinga.org/display/community/Update+the+Icinga+2+documentation).
 
 ### <a id="development-info"></a> Icinga 2 Development
