@@ -1228,6 +1228,9 @@ void ExternalCommandProcessor::AddHostComment(double, const std::vector<String>&
 	if (!host)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot add host comment for non-existent host '" + arguments[0] + "'"));
 
+	if (arguments[2].IsEmpty() || arguments[3].IsEmpty())
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Author and comment may not be empty"));
+
 	Log(LogNotice, "ExternalCommandProcessor")
 	    << "Creating comment for host " << host->GetName();
 	(void) Comment::AddComment(host, CommentUser, arguments[2], arguments[3], 0);
@@ -1248,6 +1251,9 @@ void ExternalCommandProcessor::AddSvcComment(double, const std::vector<String>& 
 
 	if (!service)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot add service comment for non-existent service '" + arguments[1] + "' on host '" + arguments[0] + "'"));
+
+	if (arguments[3].IsEmpty() || arguments[4].IsEmpty())
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Author and comment may not be empty"));
 
 	Log(LogNotice, "ExternalCommandProcessor")
 	    << "Creating comment for service " << service->GetName();
