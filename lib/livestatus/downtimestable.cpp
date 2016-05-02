@@ -129,7 +129,7 @@ Value DowntimesTable::TypeAccessor(const Value& row)
 {
 	Downtime::Ptr downtime = static_cast<Downtime::Ptr>(row);
 	// 1 .. active, 0 .. pending
-	return (downtime->IsActive() ? 1 : 0);
+	return (downtime->IsInEffect() ? 1 : 0);
 }
 
 Value DowntimesTable::IsServiceAccessor(const Value& row)

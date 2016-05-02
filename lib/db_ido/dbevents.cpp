@@ -506,7 +506,7 @@ void DbEvents::AddDowntimeInternal(std::vector<DbQuery>& queries, const Downtime
 	fields1->Set("scheduled_start_time", DbValue::FromTimestamp(downtime->GetStartTime()));
 	fields1->Set("scheduled_end_time", DbValue::FromTimestamp(downtime->GetEndTime()));
 	fields1->Set("was_started", ((downtime->GetStartTime() <= Utility::GetTime()) ? 1 : 0));
-	fields1->Set("is_in_effect", (downtime->IsActive() ? 1 : 0));
+	fields1->Set("is_in_effect", (downtime->IsInEffect() ? 1 : 0));
 	fields1->Set("trigger_time", DbValue::FromTimestamp(downtime->GetTriggerTime()));
 	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
@@ -658,7 +658,7 @@ void DbEvents::TriggerDowntime(const Downtime::Ptr& downtime)
 	fields1->Set("was_started", 1);
 	fields1->Set("actual_start_time", DbValue::FromTimestamp(time_bag.first));
 	fields1->Set("actual_start_time_usec", time_bag.second);
-	fields1->Set("is_in_effect", (downtime->IsActive() ? 1 : 0));
+	fields1->Set("is_in_effect", (downtime->IsInEffect() ? 1 : 0));
 	fields1->Set("trigger_time", DbValue::FromTimestamp(downtime->GetTriggerTime()));
 	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
 

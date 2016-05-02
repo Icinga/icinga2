@@ -45,7 +45,7 @@ public:
 
 	intrusive_ptr<Checkable> GetCheckable(void) const;
 
-	bool IsActive(void) const;
+	bool IsInEffect(void) const;
 	bool IsTriggered(void) const;
 	bool IsExpired(void) const;
 
