@@ -181,7 +181,7 @@ void StatusDataWriter::DumpDowntimes(std::ostream& fp, const Checkable::Ptr& che
 		      "\t" "triggered_by=" << triggeredByLegacy << "\n"
 		      "\t" "fixed=" << static_cast<long>(downtime->GetFixed()) << "\n"
 		      "\t" "duration=" << static_cast<long>(downtime->GetDuration()) << "\n"
-		      "\t" "is_in_effect=" << (downtime->IsActive() ? 1 : 0) << "\n"
+		      "\t" "is_in_effect=" << (downtime->IsInEffect() ? 1 : 0) << "\n"
 		      "\t" "author=" << downtime->GetAuthor() << "\n"
 		      "\t" "comment=" << downtime->GetComment() << "\n"
 		      "\t" "trigger_time=" << downtime->GetTriggerTime() << "\n"

@@ -150,7 +150,7 @@ Checkable::Ptr Downtime::GetCheckable(void) const
 	return static_pointer_cast<Checkable>(m_Checkable);
 }
 
-bool Downtime::IsActive(void) const
+bool Downtime::IsInEffect(void) const
 {
 	double now = Utility::GetTime();
 
@@ -294,7 +294,7 @@ void Downtime::RemoveDowntime(const String& id, bool cancelled, bool expired, co
 
 void Downtime::TriggerDowntime(void)
 {
-	if (IsActive() && IsTriggered()) {
+	if (IsInEffect() && IsTriggered()) {
 		Log(LogDebug, "Downtime")
 		    << "Not triggering downtime '" << GetName() << "': already triggered.";
 		return;
@@ -358,6 +358,7 @@ void Downtime::DowntimesExpireTimerHandler(void)
 	}
 
 	BOOST_FOREACH(const Downtime::Ptr& downtime, downtimes) {
+		/* Only remove downtimes which are activated after daemon start. */
 		if (downtime->IsActive() && downtime->IsExpired())
 			RemoveDowntime(downtime->GetName(), false, true);
 	}

@@ -244,6 +244,7 @@ void Comment::CommentsExpireTimerHandler(void)
 	}
 
 	BOOST_FOREACH(const Comment::Ptr& comment, comments) {
+		/* Only remove comment which are activated after daemon start. */
 		if (comment->IsActive() && comment->IsExpired())
 			RemoveComment(comment->GetName());
 	}

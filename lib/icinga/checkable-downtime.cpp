@@ -44,7 +44,7 @@ void Checkable::TriggerDowntimes(void)
 bool Checkable::IsInDowntime(void) const
 {
 	BOOST_FOREACH(const Downtime::Ptr& downtime, GetDowntimes()) {
-		if (downtime->IsActive())
+		if (downtime->IsInEffect())
 			return true;
 	}
 
@@ -56,7 +56,7 @@ int Checkable::GetDowntimeDepth(void) const
 	int downtime_depth = 0;
 
 	BOOST_FOREACH(const Downtime::Ptr& downtime, GetDowntimes()) {
-		if (downtime->IsActive())
+		if (downtime->IsInEffect())
 			downtime_depth++;
 	}
 
