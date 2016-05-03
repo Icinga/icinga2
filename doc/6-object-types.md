@@ -830,6 +830,60 @@ External interfaces like Icinga Web 2 require everything except `DbCatCheck`
 which is the default value if `categories` is not set.
 
 
+## <a id="objecttype-influxdbwriter"></a> InfluxdbWriter
+
+Writes check result metrics and performance data to a defined InfluxDB host.
+
+Example:
+
+    library "perfdata"
+    
+    object InfluxdbWriter "influxdb" {
+      host = "127.0.0.1"
+      port = 8086
+      database = "icinga2"
+      host_template = {
+        measurement = "$host.check_command$"
+        tags = {
+          hostname = "$host.name$"
+        }
+      }
+      service_template = {
+        measurement = "$service.check_command$"
+        tags = {
+          hostname = "$host.name$"
+          service = "$service.name$"
+        }
+      }
+    }
+
+Measurement names and tags are fully configurable by the end user.  The InfluxdbWriter
+object will automatically add a `metric` and `type` tag to each data point.  These
+correlate to perfdata label and perfdata field (value, warn, crit, min, max) respectively.
+If a value associated with a tag is not able to be resolved it will be dropped and not
+sent to the target host.
+
+The database is assumed to exist so this object will make no attempt to create it currently.
+
+Configuration Attributes:
+
+  Name                   |Description
+  -----------------------|---------------------------------------------------------------------------------------------------------
+  host                   | **Required.** InfluxDB host address. Defaults to `127.0.0.1`.
+  port                   | **Required.** InfluxDB HTTP port. Defaults to `8086`.
+  database               | **Required.** InfluxDB database name. Defaults to `icinga2`.
+  username               | **Optional.** InfluxDB user name. Defaults to `none`.
+  password               | **Optional.** InfluxDB user password.  Defaults to `none`.
+  ssl_enable             | **Optional.** Whether to use a TLS stream.  Defaults to `false`.
+  ssl_ca_cert            | **Optional.** CA certificate to validate the remote host.
+  ssl_cert               | **Optional.** Host certificate to present to the remote host for mutual verification.
+  ssl_key                | **Optional.** Host key to accompany the ssl_cert
+  host_template          | **Required.** Host template to define the InfluxDB line protocol.
+  service_template       | **Required.** Service template to define the influxDB line protocol.
+  enable_send_thresholds | **Optional.** Whether to send warn, crit, min & max tagged data.
+  flush_interval         | **Optional.** How long to buffer data points before transfering to InfluxDB. Defaults to `10s`.
+  flush_threshold        | **Optional.** How many data points to buffer before forcing a transfer to InfluxDB.  Defaults to `1024`.
+
 ## <a id="objecttype-livestatuslistener"></a> LiveStatusListener
 
 Livestatus API interface available as TCP or UNIX socket. Historical table queries
