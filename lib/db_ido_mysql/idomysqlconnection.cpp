@@ -186,8 +186,10 @@ void IdoMysqlConnection::Reconnect(void)
 
 	ClearIDCache();
 
-	String ihost, isocket_path, iuser, ipasswd, idb;
+	String ihost, isocket_path, iuser, ipasswd, idb, ienable_ssl;
 	const char *host, *socket_path, *user , *passwd, *db;
+	bool enable_ssl;
+	const char *ssl_key, *ssl_cert, *ssl_ca, *ssl_capath, *ssl_cipher;
 	long port;
 
 	ihost = GetHost();
@@ -195,6 +197,7 @@ void IdoMysqlConnection::Reconnect(void)
 	iuser = GetUser();
 	ipasswd = GetPassword();
 	idb = GetDatabase();
+	enable_ssl = GetEnableSsl();
 
 	host = (!ihost.IsEmpty()) ? ihost.CStr() : NULL;
 	port = GetPort();
@@ -202,6 +205,7 @@ void IdoMysqlConnection::Reconnect(void)
 	user = (!iuser.IsEmpty()) ? iuser.CStr() : NULL;
 	passwd = (!ipasswd.IsEmpty()) ? ipasswd.CStr() : NULL;
 	db = (!idb.IsEmpty()) ? idb.CStr() : NULL;
+	socket_path = (!isocket_path.IsEmpty()) ? isocket_path.CStr() : NULL;
 
 	/* connection */
 	if (!mysql_init(&m_Connection)) {
@@ -211,10 +215,40 @@ void IdoMysqlConnection::Reconnect(void)
 		BOOST_THROW_EXCEPTION(std::bad_alloc());
 	}
 
+	if (enable_ssl) {
+		String issl_key, issl_cert, issl_ca, issl_capath, issl_cipher;
+		issl_key = GetSslKey();
+		issl_cert = GetSslCert();
+		issl_ca = GetSslCa();
+		issl_capath = GetSslCapath();
+		issl_cipher = GetSslCipher();
+		ssl_key = (!issl_key.IsEmpty()) ? issl_key.CStr() : NULL;
+		ssl_cert = (!issl_cert.IsEmpty()) ? issl_cert.CStr() : NULL;
+		ssl_ca = (!issl_ca.IsEmpty()) ? issl_ca.CStr() : NULL;
+		ssl_capath = (!issl_capath.IsEmpty()) ? issl_capath.CStr() : NULL;
+		ssl_cipher = (!issl_cipher.IsEmpty()) ? issl_cipher.CStr() : NULL;
+
+		mysql_ssl_set(&m_Connection, ssl_key, ssl_cert, ssl_ca, ssl_capath, ssl_cipher);
+	}
+
 	if (!mysql_real_connect(&m_Connection, host, user, passwd, db, port, socket_path, CLIENT_FOUND_ROWS | CLIENT_MULTI_STATEMENTS)) {
 		Log(LogCritical, "IdoMysqlConnection")
 		    << "Connection to database '" << db << "' with user '" << user << "' on '" << host << ":" << port
 		    << "' failed: \"" << mysql_error(&m_Connection) << "\"";
+		Log(LogDebug, "IdoMySqlConnection")
+			<< "SSL enabled: " << (enable_ssl ? "YES": "NO");
+		if (enable_ssl) {
+			Log(LogDebug, "IdoMysqlConnection")
+				<< "ssl_key: " << ssl_key;
+			Log(LogDebug, "IdoMysqlConnection")
+				<< "ssl_cert: " << ssl_cert;
+			Log(LogDebug, "IdoMysqlConnection")
+				<< "ssl_ca: " << ssl_ca;
+			Log(LogDebug, "IdoMysqlConnection")
+				<< "ssl_capath: " << ssl_capath;
+			Log(LogDebug, "IdoMysqlConnection")
+				<< "ssl_cipher: " << ssl_cipher;
+		}
 
 		BOOST_THROW_EXCEPTION(std::runtime_error(mysql_error(&m_Connection)));
 	}
