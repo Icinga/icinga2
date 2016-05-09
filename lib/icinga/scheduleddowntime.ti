@@ -53,7 +53,7 @@ class ScheduledDowntime : CustomVarObject < ScheduledDowntimeNameComposer
 
 			if (!newValue.IsEmpty()) {
 				Service::Ptr service = Service::GetByNamePair(GetHostName(), newValue);
-				DependencyGraph::RemoveDependency(this, service.get());
+				DependencyGraph::AddDependency(this, service.get());
 			}
 		}}}
 		navigate {{{

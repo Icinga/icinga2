@@ -901,7 +901,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 			       << "\t" << klass.Parent << "::Start(runtimeCreated);" << std::endl << std::endl;
 
 			for (it = klass.Fields.begin(); it != klass.Fields.end(); it++) {
-				if (!(it->Type.IsName))
+				if (!it->Type.IsName && it->TrackAccessor.empty())
 					continue;
 
 				m_Impl << "\t" << "Track" << it->GetFriendlyName() << "(Empty, Get" << it->GetFriendlyName() << "());" << std::endl;
@@ -913,7 +913,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 			       << "\t" << klass.Parent << "::Stop(runtimeRemoved);" << std::endl << std::endl;
 
 			for (it = klass.Fields.begin(); it != klass.Fields.end(); it++) {
-				if (!(it->Type.IsName))
+				if (!it->Type.IsName && it->TrackAccessor.empty())
 					continue;
 
 				m_Impl << "\t" << "Track" << it->GetFriendlyName() << "(Get" << it->GetFriendlyName() << "(), Empty);" << std::endl;

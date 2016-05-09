@@ -34,7 +34,20 @@ void DependencyGraph::AddDependency(Object *parent, Object *child)
 void DependencyGraph::RemoveDependency(Object *parent, Object *child)
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
-	m_Dependencies[child][parent]--;
+
+	std::map<Object *, int>& refs = m_Dependencies[child];
+	std::map<Object *, int>::iterator it = refs.find(parent);
+
+	if (it == refs.end())
+		return;
+
+	it->second--;
+
+	if (it->second == 0)
+		refs.erase(it);
+
+	if (refs.empty())
+		m_Dependencies.erase(child);
 }
 
 std::vector<Object::Ptr> DependencyGraph::GetParents(const Object::Ptr& child)

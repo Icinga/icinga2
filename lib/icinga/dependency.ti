@@ -55,7 +55,7 @@ class Dependency : CustomVarObject < DependencyNameComposer
 
 			if (!newValue.IsEmpty()) {
 				Service::Ptr service = Service::GetByNamePair(GetParentHostName(), newValue);
-				DependencyGraph::RemoveDependency(this, service.get());
+				DependencyGraph::AddDependency(this, service.get());
 			}
 		}}}
 		navigate {{{
@@ -82,7 +82,7 @@ class Dependency : CustomVarObject < DependencyNameComposer
 
 			if (!newValue.IsEmpty()) {
 				Service::Ptr service = Service::GetByNamePair(GetParentHostName(), newValue);
-				DependencyGraph::RemoveDependency(this, service.get());
+				DependencyGraph::AddDependency(this, service.get());
 			}
 		}}}
 		navigate {{{
