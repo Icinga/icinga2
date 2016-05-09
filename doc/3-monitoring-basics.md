@@ -1612,6 +1612,10 @@ available through runtime vars. Runtime macros such as `$service.state_type$`
 and `$service.state$` will be processed by Icinga 2 helping on fine-granular
 events being triggered.
 
+If you are using a client as [command execution bridge](11-icinga2-client.md#icinga2-client-configuration-command-bridge)
+the event command will be executed on the client itself (similar to the check
+command).
+
 Common use case scenarios are a failing HTTP check requiring an immediate
 restart via event command, or if an application is locked and requires
 a restart upon detection.
@@ -1621,7 +1625,7 @@ to support native plugin based checks.
 
 #### <a id="event-command-restart-service-daemon"></a> Use Event Commands to Restart Service Daemon
 
-The following example will triggert a restart of the `httpd` daemon
+The following example will trigger a restart of the `httpd` daemon
 via ssh when the `http` service check fails. If the service state is
 `OK`, it will not trigger any event action.
 
