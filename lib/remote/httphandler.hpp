@@ -40,7 +40,7 @@ class I2_REMOTE_API HttpHandler : public Object
 public:
 	DECLARE_PTR_TYPEDEFS(HttpHandler);
 
-	virtual bool HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response) = 0;
+	virtual bool HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response, const Dictionary::Ptr& params) = 0;
 
 	static void Register(const Url::Ptr& url, const HttpHandler::Ptr& handler);
 	static void ProcessRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response);

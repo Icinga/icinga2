@@ -104,7 +104,7 @@ Dictionary::Ptr ObjectQueryHandler::SerializeObjectAttrs(const Object::Ptr& obje
 	return resultAttrs;
 }
 
-bool ObjectQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
+bool ObjectQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response, const Dictionary::Ptr& params)
 {
 	if (request.RequestUrl->GetPath().size() < 3 || request.RequestUrl->GetPath().size() > 4)
 		return false;
@@ -122,8 +122,6 @@ bool ObjectQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 	QueryDescription qd;
 	qd.Types.insert(type->GetName());
 	qd.Permission = "objects/query/" + type->GetName();
-
-	Dictionary::Ptr params = HttpUtility::FetchRequestParameters(request);
 
 	Array::Ptr uattrs = params->Get("attrs");
 	Array::Ptr ujoins = params->Get("joins");

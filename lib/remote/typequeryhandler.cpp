@@ -75,7 +75,7 @@ public:
 	}
 };
 
-bool TypeQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
+bool TypeQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response, const Dictionary::Ptr& params)
 {
 	if (request.RequestUrl->GetPath().size() > 3)
 		return false;
@@ -86,8 +86,6 @@ bool TypeQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& requ
 	QueryDescription qd;
 	qd.Types.insert("Type");
 	qd.Provider = new TypeTargetProvider();
-
-	Dictionary::Ptr params = HttpUtility::FetchRequestParameters(request);
 
 	if (params->Contains("type"))
 		params->Set("name", params->Get("type"));

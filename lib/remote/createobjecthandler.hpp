@@ -30,7 +30,8 @@ class I2_REMOTE_API CreateObjectHandler : public HttpHandler
 public:
 	DECLARE_PTR_TYPEDEFS(CreateObjectHandler);
 
-	virtual bool HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response) override;
+	virtual bool HandleRequest(const ApiUser::Ptr& user, HttpRequest& request,
+	    HttpResponse& response, const Dictionary::Ptr& params) override;
 };
 
 }

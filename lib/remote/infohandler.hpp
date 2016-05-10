@@ -30,7 +30,8 @@ class I2_REMOTE_API InfoHandler : public HttpHandler
 public:
 	DECLARE_PTR_TYPEDEFS(InfoHandler);
 
-	virtual bool HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response) override;
+	virtual bool HandleRequest(const ApiUser::Ptr& user, HttpRequest& request,
+	    HttpResponse& response, const Dictionary::Ptr& params) override;
 };
 
 }

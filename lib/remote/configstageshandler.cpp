@@ -30,28 +30,26 @@ using namespace icinga;
 
 REGISTER_URLHANDLER("/v1/config/stages", ConfigStagesHandler);
 
-bool ConfigStagesHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
+bool ConfigStagesHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response, const Dictionary::Ptr& params)
 {
 	if (request.RequestUrl->GetPath().size() > 5)
 		return false;
 
 	if (request.RequestMethod == "GET")
-		HandleGet(user, request, response);
+		HandleGet(user, request, response, params);
 	else if (request.RequestMethod == "POST")
-		HandlePost(user, request, response);
+		HandlePost(user, request, response, params);
 	else if (request.RequestMethod == "DELETE")
-		HandleDelete(user, request, response);
+		HandleDelete(user, request, response, params);
 	else
 		return false;
 
 	return true;
 }
 
-void ConfigStagesHandler::HandleGet(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
+void ConfigStagesHandler::HandleGet(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response, const Dictionary::Ptr& params)
 {
 	FilterUtility::CheckPermission(user, "config/query");
-
-	Dictionary::Ptr params = HttpUtility::FetchRequestParameters(request);
 
 	if (request.RequestUrl->GetPath().size() >= 4)
 		params->Set("package", request.RequestUrl->GetPath()[3]);
@@ -89,11 +87,9 @@ void ConfigStagesHandler::HandleGet(const ApiUser::Ptr& user, HttpRequest& reque
 	HttpUtility::SendJsonBody(response, result);
 }
 
-void ConfigStagesHandler::HandlePost(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
+void ConfigStagesHandler::HandlePost(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response, const Dictionary::Ptr& params)
 {
 	FilterUtility::CheckPermission(user, "config/modify");
-
-	Dictionary::Ptr params = HttpUtility::FetchRequestParameters(request);
 
 	if (request.RequestUrl->GetPath().size() >= 4)
 		params->Set("package", request.RequestUrl->GetPath()[3]);
@@ -138,11 +134,9 @@ void ConfigStagesHandler::HandlePost(const ApiUser::Ptr& user, HttpRequest& requ
 	HttpUtility::SendJsonBody(response, result);
 }
 
-void ConfigStagesHandler::HandleDelete(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
+void ConfigStagesHandler::HandleDelete(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response, const Dictionary::Ptr& params)
 {
 	FilterUtility::CheckPermission(user, "config/modify");
-
-	Dictionary::Ptr params = HttpUtility::FetchRequestParameters(request);
 
 	if (request.RequestUrl->GetPath().size() >= 4)
 		params->Set("package", request.RequestUrl->GetPath()[3]);

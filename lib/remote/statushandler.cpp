@@ -72,7 +72,7 @@ public:
 	}
 };
 
-bool StatusHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
+bool StatusHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response, const Dictionary::Ptr& params)
 {
 	if (request.RequestUrl->GetPath().size() > 3)
 		return false;
@@ -84,8 +84,6 @@ bool StatusHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request
 	qd.Types.insert("Status");
 	qd.Provider = new StatusTargetProvider();
 	qd.Permission = "status/query";
-
-	Dictionary::Ptr params = HttpUtility::FetchRequestParameters(request);
 
 	params->Set("type", "Status");
 
