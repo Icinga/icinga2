@@ -86,8 +86,11 @@ CheckableCheckStatistics CIB::CalculateHostCheckStats(void)
 
 		CheckResult::Ptr cr = host->GetLastCheckResult();
 
+		if (!cr)
+			continue;
+
 		/* latency */
-		double latency = Host::CalculateLatency(cr);
+		double latency = cr->CalculateLatency();
 
 		if (min_latency == -1 || latency < min_latency)
 			min_latency = latency;
@@ -99,7 +102,7 @@ CheckableCheckStatistics CIB::CalculateHostCheckStats(void)
 		count_latency++;
 
 		/* execution_time */
-		double execution_time = Host::CalculateExecutionTime(cr);
+		double execution_time = cr->CalculateExecutionTime();
 
 		if (min_execution_time == -1 || execution_time < min_execution_time)
 			min_execution_time = execution_time;
@@ -135,8 +138,11 @@ CheckableCheckStatistics CIB::CalculateServiceCheckStats(void)
 
 		CheckResult::Ptr cr = service->GetLastCheckResult();
 
+		if (!cr)
+			continue;
+
 		/* latency */
-		double latency = Service::CalculateLatency(cr);
+		double latency = cr->CalculateLatency();
 
 		if (min_latency == -1 || latency < min_latency)
 			min_latency = latency;
@@ -148,7 +154,7 @@ CheckableCheckStatistics CIB::CalculateServiceCheckStats(void)
 		count_latency++;
 
 		/* execution_time */
-		double execution_time = Service::CalculateExecutionTime(cr);
+		double execution_time = cr->CalculateExecutionTime();
 
 		if (min_execution_time == -1 || execution_time < min_execution_time)
 			min_execution_time = execution_time;

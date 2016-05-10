@@ -515,24 +515,3 @@ void Checkable::UpdateStatistics(const CheckResult::Ptr& cr, CheckableType type)
 		Log(LogWarning, "Checkable", "Unknown checkable type for statistic update.");
 	}
 }
-
-double Checkable::CalculateExecutionTime(const CheckResult::Ptr& cr)
-{
-	if (!cr)
-		return 0;
-
-	return cr->GetExecutionEnd() - cr->GetExecutionStart();
-}
-
-double Checkable::CalculateLatency(const CheckResult::Ptr& cr)
-{
-	if (!cr)
-		return 0;
-
-	double latency = (cr->GetScheduleEnd() - cr->GetScheduleStart()) - CalculateExecutionTime(cr);
-
-	if (latency < 0)
-		latency = 0;
-
-	return latency;
-}

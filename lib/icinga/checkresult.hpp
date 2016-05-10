@@ -36,6 +36,9 @@ class I2_ICINGA_API CheckResult : public ObjectImpl<CheckResult>
 public:
 	DECLARE_OBJECT(CheckResult);
 
+	double CalculateExecutionTime(void) const;
+	double CalculateLatency(void) const;
+
 	static void StaticInitialize(void);
 };
 

@@ -874,7 +874,12 @@ Value ServicesTable::LatencyAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return (Service::CalculateLatency(service->GetLastCheckResult()));
+	CheckResult::Ptr cr = service->GetLastCheckResult();
+
+	if (!cr)
+		return Empty;
+
+	return cr->CalculateLatency();
 }
 
 Value ServicesTable::ExecutionTimeAccessor(const Value& row)
@@ -884,7 +889,12 @@ Value ServicesTable::ExecutionTimeAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return (Service::CalculateExecutionTime(service->GetLastCheckResult()));
+	CheckResult::Ptr cr = service->GetLastCheckResult();
+
+	if (!cr)
+		return Empty;
+
+	return cr->CalculateExecutionTime();
 }
 
 Value ServicesTable::PercentStateChangeAccessor(const Value& row)

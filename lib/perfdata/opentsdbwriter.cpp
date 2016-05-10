@@ -145,8 +145,8 @@ void OpenTsdbWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 
 	SendMetric(metric + ".current_attempt", tags, checkable->GetCheckAttempt(), ts);
 	SendMetric(metric + ".max_check_attempts", tags, checkable->GetMaxCheckAttempts(), ts);
-	SendMetric(metric + ".latency", tags, Service::CalculateLatency(cr), ts);
-	SendMetric(metric + ".execution_time", tags, Service::CalculateExecutionTime(cr), ts);
+	SendMetric(metric + ".latency", tags, cr->CalculateLatency(), ts);
+	SendMetric(metric + ".execution_time", tags, cr->CalculateExecutionTime(), ts);
 }
 
 void OpenTsdbWriter::SendPerfdata(const String& metric, const std::map<String, String>& tags, const CheckResult::Ptr& cr, double ts)
