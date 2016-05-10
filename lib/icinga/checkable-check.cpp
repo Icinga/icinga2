@@ -406,6 +406,10 @@ void Checkable::ExecuteCheck(void)
 {
 	CONTEXT("Executing check for object '" + GetName() + "'");
 
+	/* keep track of scheduling info in case the check type doesn't provide its own information */
+	double scheduled_start = GetNextCheck();
+	double before_check = Utility::GetTime();
+
 	UpdateNextCheck();
 
 	bool reachable = IsReachable();
@@ -423,10 +427,6 @@ void Checkable::ExecuteCheck(void)
 		SetLastStateType(GetLastStateType());
 		SetLastReachable(reachable);
 	}
-
-	/* keep track of scheduling info in case the check type doesn't provide its own information */
-	double scheduled_start = GetNextCheck();
-	double before_check = Utility::GetTime();
 
 	CheckResult::Ptr cr = new CheckResult();
 

@@ -189,13 +189,19 @@ Argument array `repeat_key = false`:
 
 ## <a id="objecttype-checkcomponent"></a> CheckerComponent
 
-The checker component is responsible for scheduling active checks. There are no configurable options.
+The checker component is responsible for scheduling active checks.
 
 Example:
 
     library "checker"
 
     object CheckerComponent "checker" { }
+
+Configuration Attributes:
+
+  Name                |Description
+  --------------------|----------------
+  concurrent\_checks  |**Optional.** The maximum number of concurrent checks. Defaults to 512.
 
 ## <a id="objecttype-checkresultreader"></a> CheckResultReader
 

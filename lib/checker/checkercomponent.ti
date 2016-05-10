@@ -26,6 +26,11 @@ namespace icinga
 
 class CheckerComponent : ConfigObject
 {
+	[config] int concurrent_checks {
+		default {{{
+			return 512;
+		}}}
+	};
 };
 
 }
