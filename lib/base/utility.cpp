@@ -1435,6 +1435,9 @@ static String UnameHelper(char type)
 
 	FILE *fp = popen(cmd, "r");
 
+	if (!fp)
+		return "Unknown";
+
 	char line[1024];
 	std::ostringstream msgbuf;
 
