@@ -335,8 +335,8 @@ void StatusDataWriter::DumpCheckableStatusAttrs(std::ostream& fp, const Checkabl
 	      "\t" "event_handler_enabled=" << CompatUtility::GetCheckableEventHandlerEnabled(checkable) << "\n";
 
 	if (cr) {
-	   fp << "\t" << "check_execution_time=" << Convert::ToString(Service::CalculateExecutionTime(cr)) << "\n"
-		 "\t" "check_latency=" << Convert::ToString(Service::CalculateLatency(cr)) << "\n";
+	   fp << "\t" << "check_execution_time=" << Convert::ToString(cr->CalculateExecutionTime()) << "\n"
+		 "\t" "check_latency=" << Convert::ToString(cr->CalculateLatency()) << "\n";
 	}
 
 	Host::Ptr host;

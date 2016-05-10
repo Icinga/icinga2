@@ -110,8 +110,8 @@ void GelfWriter::CheckResultHandler(const Checkable::Ptr& checkable, const Check
 	fields->Set("_current_check_attempt", checkable->GetCheckAttempt());
 	fields->Set("_max_check_attempts", checkable->GetMaxCheckAttempts());
 
-	fields->Set("_latency", Service::CalculateLatency(cr));
-	fields->Set("_execution_time", Service::CalculateExecutionTime(cr));
+	fields->Set("_latency", cr->CalculateLatency());
+	fields->Set("_execution_time", cr->CalculateExecutionTime());
 	fields->Set("_reachable",  checkable->IsReachable());
 
 	if (cr) {

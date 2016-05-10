@@ -36,3 +36,18 @@ void CheckResult::StaticInitialize(void)
 	ScriptGlobal::Set("HostUp", HostUp);
 	ScriptGlobal::Set("HostDown", HostDown);
 }
+
+double CheckResult::CalculateExecutionTime(void) const
+{
+	return GetExecutionEnd() - GetExecutionStart();
+}
+
+double CheckResult::CalculateLatency(void) const
+{
+	double latency = (GetScheduleEnd() - GetScheduleStart()) - CalculateExecutionTime();
+
+	if (latency < 0)
+		latency = 0;
+
+	return latency;
+}

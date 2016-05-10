@@ -289,10 +289,10 @@ bool Host::ResolveMacro(const String& macro, const CheckResult::Ptr&, Value *res
 
 	if (cr) {
 		if (macro == "latency") {
-			*result = Convert::ToString(Service::CalculateLatency(cr));
+			*result = Convert::ToString(cr->CalculateLatency());
 			return true;
 		} else if (macro == "execution_time") {
-			*result = Convert::ToString(Service::CalculateExecutionTime(cr));
+			*result = Convert::ToString(cr->CalculateExecutionTime());
 			return true;
 		} else if (macro == "output") {
 			*result = cr->GetOutput();

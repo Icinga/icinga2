@@ -106,9 +106,6 @@ public:
 
 	Endpoint::Ptr GetCommandEndpoint(void) const;
 
-	static double CalculateExecutionTime(const CheckResult::Ptr& cr);
-	static double CalculateLatency(const CheckResult::Ptr& cr);
-
 	static boost::signals2::signal<void (const Checkable::Ptr&, const CheckResult::Ptr&, const MessageOrigin::Ptr&)> OnNewCheckResult;
 	static boost::signals2::signal<void (const Checkable::Ptr&, const CheckResult::Ptr&, StateType, const MessageOrigin::Ptr&)> OnStateChange;
 	static boost::signals2::signal<void (const Checkable::Ptr&, const CheckResult::Ptr&, std::set<Checkable::Ptr>, const MessageOrigin::Ptr&)> OnReachabilityChanged;
