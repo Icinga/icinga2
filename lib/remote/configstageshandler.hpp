@@ -30,12 +30,16 @@ class I2_REMOTE_API ConfigStagesHandler : public HttpHandler
 public:
 	DECLARE_PTR_TYPEDEFS(ConfigStagesHandler);
 
-	virtual bool HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response) override;
+	virtual bool HandleRequest(const ApiUser::Ptr& user, HttpRequest& request,
+	    HttpResponse& response, const Dictionary::Ptr& params) override;
 
 private:
-	void HandleGet(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response);
-	void HandlePost(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response);
-	void HandleDelete(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response);
+	void HandleGet(const ApiUser::Ptr& user, HttpRequest& request,
+	    HttpResponse& response, const Dictionary::Ptr& params);
+	void HandlePost(const ApiUser::Ptr& user, HttpRequest& request,
+	    HttpResponse& response, const Dictionary::Ptr& params);
+	void HandleDelete(const ApiUser::Ptr& user, HttpRequest& request,
+	    HttpResponse& response, const Dictionary::Ptr& params);
 
 };
 

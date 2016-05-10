@@ -67,7 +67,7 @@ static void InitScriptFrameCleanup(void)
 
 INITIALIZE_ONCE(InitScriptFrameCleanup);
 
-bool ConsoleHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
+bool ConsoleHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response, const Dictionary::Ptr& params)
 {
 	if (request.RequestUrl->GetPath().size() > 3)
 		return false;
@@ -76,10 +76,9 @@ bool ConsoleHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& reques
 		return false;
 
 	QueryDescription qd;
-	Dictionary::Ptr params = HttpUtility::FetchRequestParameters(request);
 
 	String methodName = request.RequestUrl->GetPath()[2];
-	
+
 	FilterUtility::CheckPermission(user, "console");
 
 	String session = HttpUtility::GetLastParameter(params, "session");

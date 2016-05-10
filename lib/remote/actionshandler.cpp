@@ -31,7 +31,7 @@ using namespace icinga;
 
 REGISTER_URLHANDLER("/v1/actions", ActionsHandler);
 
-bool ActionsHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
+bool ActionsHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response, const Dictionary::Ptr& params)
 {
 	if (request.RequestUrl->GetPath().size() != 3)
 		return false;
@@ -49,8 +49,6 @@ bool ActionsHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& reques
 	}
 
 	QueryDescription qd;
-
-	Dictionary::Ptr params = HttpUtility::FetchRequestParameters(request);
 
 	const std::vector<String>& types = action->GetTypes();
 	std::vector<Value> objs;

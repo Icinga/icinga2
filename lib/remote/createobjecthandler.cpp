@@ -30,7 +30,7 @@ using namespace icinga;
 
 REGISTER_URLHANDLER("/v1/objects", CreateObjectHandler);
 
-bool CreateObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
+bool CreateObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response, const Dictionary::Ptr& params)
 {
 	if (request.RequestUrl->GetPath().size() != 4)
 		return false;
@@ -48,7 +48,6 @@ bool CreateObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 	FilterUtility::CheckPermission(user, "objects/create/" + type->GetName());
 
 	String name = request.RequestUrl->GetPath()[3];
-	Dictionary::Ptr params = HttpUtility::FetchRequestParameters(request);
 	Array::Ptr templates = params->Get("templates");
 	Dictionary::Ptr attrs = params->Get("attrs");
 

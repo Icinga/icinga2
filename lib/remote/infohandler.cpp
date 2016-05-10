@@ -24,7 +24,7 @@ using namespace icinga;
 
 REGISTER_URLHANDLER("/", InfoHandler);
 
-bool InfoHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
+bool InfoHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response, const Dictionary::Ptr& params)
 {
 	if (request.RequestUrl->GetPath().size() > 2)
 		return false;

@@ -31,7 +31,7 @@ using namespace icinga;
 
 REGISTER_URLHANDLER("/v1/events", EventsHandler);
 
-bool EventsHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
+bool EventsHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response, const Dictionary::Ptr& params)
 {
 	if (request.RequestUrl->GetPath().size() != 2)
 		return false;
@@ -43,8 +43,6 @@ bool EventsHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request
 		HttpUtility::SendJsonError(response, 400, "HTTP/1.0 not supported for event streams.");
 		return true;
 	}
-
-	Dictionary::Ptr params = HttpUtility::FetchRequestParameters(request);
 
 	Array::Ptr types = params->Get("types");
 

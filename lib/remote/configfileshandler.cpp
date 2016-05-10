@@ -29,12 +29,10 @@ using namespace icinga;
 
 REGISTER_URLHANDLER("/v1/config/files", ConfigFilesHandler);
 
-bool ConfigFilesHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
+bool ConfigFilesHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response, const Dictionary::Ptr& params)
 {
 	if (request.RequestMethod != "GET")
 		return false;
-
-	Dictionary::Ptr params = HttpUtility::FetchRequestParameters(request);
 
 	const std::vector<String>& urlPath = request.RequestUrl->GetPath();
 

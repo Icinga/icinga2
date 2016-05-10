@@ -43,7 +43,8 @@ class I2_REMOTE_API ConsoleHandler : public HttpHandler
 public:
 	DECLARE_PTR_TYPEDEFS(ConsoleHandler);
 
-	virtual bool HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response) override;
+	virtual bool HandleRequest(const ApiUser::Ptr& user, HttpRequest& request,
+	    HttpResponse& response, const Dictionary::Ptr& params) override;
 
 	static std::vector<String> GetAutocompletionSuggestions(const String& word, ScriptFrame& frame);
 

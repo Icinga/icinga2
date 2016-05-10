@@ -28,7 +28,7 @@ using namespace icinga;
 
 REGISTER_URLHANDLER("/v1/config/packages", ConfigPackagesHandler);
 
-bool ConfigPackagesHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
+bool ConfigPackagesHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response, const Dictionary::Ptr& params)
 {
 	if (request.RequestUrl->GetPath().size() > 4)
 		return false;
@@ -36,9 +36,9 @@ bool ConfigPackagesHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest&
 	if (request.RequestMethod == "GET")
 		HandleGet(user, request, response);
 	else if (request.RequestMethod == "POST")
-		HandlePost(user, request, response);
+		HandlePost(user, request, response, params);
 	else if (request.RequestMethod == "DELETE")
-		HandleDelete(user, request, response);
+		HandleDelete(user, request, response, params);
 	else
 		return false;
 
@@ -68,11 +68,9 @@ void ConfigPackagesHandler::HandleGet(const ApiUser::Ptr& user, HttpRequest& req
 	HttpUtility::SendJsonBody(response, result);
 }
 
-void ConfigPackagesHandler::HandlePost(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
+void ConfigPackagesHandler::HandlePost(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response, const Dictionary::Ptr& params)
 {
 	FilterUtility::CheckPermission(user, "config/modify");
-
-	Dictionary::Ptr params = HttpUtility::FetchRequestParameters(request);
 
 	if (request.RequestUrl->GetPath().size() >= 4)
 		params->Set("package", request.RequestUrl->GetPath()[3]);
@@ -106,11 +104,9 @@ void ConfigPackagesHandler::HandlePost(const ApiUser::Ptr& user, HttpRequest& re
 	HttpUtility::SendJsonBody(response, result);
 }
 
-void ConfigPackagesHandler::HandleDelete(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
+void ConfigPackagesHandler::HandleDelete(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response, const Dictionary::Ptr& params)
 {
 	FilterUtility::CheckPermission(user, "config/modify");
-
-	Dictionary::Ptr params = HttpUtility::FetchRequestParameters(request);
 
 	if (request.RequestUrl->GetPath().size() >= 4)
 		params->Set("package", request.RequestUrl->GetPath()[3]);

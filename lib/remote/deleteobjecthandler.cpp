@@ -32,7 +32,7 @@ using namespace icinga;
 
 REGISTER_URLHANDLER("/v1/objects", DeleteObjectHandler);
 
-bool DeleteObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
+bool DeleteObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response, const Dictionary::Ptr& params)
 {
 	if (request.RequestUrl->GetPath().size() < 3 || request.RequestUrl->GetPath().size() > 4)
 		return false;
@@ -50,8 +50,6 @@ bool DeleteObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 	QueryDescription qd;
 	qd.Types.insert(type->GetName());
 	qd.Permission = "objects/delete/" + type->GetName();
-
-	Dictionary::Ptr params = HttpUtility::FetchRequestParameters(request);
 
 	params->Set("type", type->GetName());
 
