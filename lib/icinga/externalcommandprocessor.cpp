@@ -67,22 +67,6 @@ static std::map<String, ExternalCommandInfo>& GetCommands(void)
 
 boost::signals2::signal<void (double, const String&, const std::vector<String>&)> ExternalCommandProcessor::OnNewExternalCommand;
 
-static Value ExternalCommandAPIWrapper(const String& command, const Dictionary::Ptr& params)
-{
-	std::vector<String> arguments;
-
-	if (params) {
-		int i = 0;
-		while (params->Contains("arg" + Convert::ToString(i))) {
-			arguments.push_back(params->Get("arg" + Convert::ToString(i)));
-			i++;
-		}
-	}
-
-	ExternalCommandProcessor::Execute(Utility::GetTime(), command, arguments);
-	return true;
-}
-
 static void RegisterCommand(const String& command, const ExternalCommandCallback& callback, size_t minArgs = 0, size_t maxArgs = UINT_MAX)
 {
 	boost::mutex::scoped_lock lock(GetMutex());
@@ -91,9 +75,6 @@ static void RegisterCommand(const String& command, const ExternalCommandCallback
 	eci.MinArgs = minArgs;
 	eci.MaxArgs = (maxArgs == UINT_MAX) ? minArgs : maxArgs;
 	GetCommands()[command] = eci;
-
-	ApiFunction::Ptr afunc = new ApiFunction(boost::bind(&ExternalCommandAPIWrapper, command, _2));
-	ApiFunction::Register("extcmd::" + command, afunc);
 }
 
 void ExternalCommandProcessor::Execute(const String& line)
