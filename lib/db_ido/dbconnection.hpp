@@ -95,6 +95,8 @@ protected:
 
 	void IncreaseQueryCount(void);
 
+	static void UpdateProgramStatus(void);
+
 private:
 	std::map<DbObject::Ptr, DbReference> m_ObjectIDs;
 	std::map<std::pair<DbType::Ptr, DbReference>, DbReference> m_InsertIDs;
@@ -114,7 +116,6 @@ private:
 	void StatsLoggerTimerHandler(void);
 
 	static void InsertRuntimeVariable(const String& key, const Value& value);
-	static void ProgramStatusHandler(void);
 
 	mutable boost::mutex m_StatsMutex;
 	RingBuffer m_QueryStats;
