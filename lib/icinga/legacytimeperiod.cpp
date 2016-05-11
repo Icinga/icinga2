@@ -150,6 +150,7 @@ void LegacyTimePeriod::ParseTimeSpec(const String& timespec, tm *begin, tm *end,
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid day in time specification: " + timespec));
 
 		if (begin) {
+			*begin = *reference;
 			begin->tm_year = year - 1900;
 			begin->tm_mon = month - 1;
 			begin->tm_mday = day;
@@ -159,6 +160,7 @@ void LegacyTimePeriod::ParseTimeSpec(const String& timespec, tm *begin, tm *end,
 		}
 
 		if (end) {
+			*end = *reference;
 			end->tm_year = year - 1900;
 			end->tm_mon = month - 1;
 			end->tm_mday = day;
@@ -191,7 +193,7 @@ void LegacyTimePeriod::ParseTimeSpec(const String& timespec, tm *begin, tm *end,
 
 			/* Negative days are relative to the next month. */
 			if (mday < 0) {
-				end->tm_mday--;
+				begin->tm_mday = mday * -1 - 1;
 				begin->tm_mon++;
 			}
 		}
@@ -206,7 +208,7 @@ void LegacyTimePeriod::ParseTimeSpec(const String& timespec, tm *begin, tm *end,
 
 			/* Negative days are relative to the next month. */
 			if (mday < 0) {
-				end->tm_mday--;
+				end->tm_mday = mday * -1 - 1;
 				end->tm_mon++;
 			}
 		}
