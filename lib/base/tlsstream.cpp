@@ -268,8 +268,11 @@ void TlsStream::Handshake(void)
 	m_CurrentAction = TlsActionHandshake;
 	ChangeEvents(POLLOUT);
 
-	while (!m_HandshakeOK && !m_ErrorOccurred)
+	while (!m_HandshakeOK && !m_ErrorOccurred && !m_Eof)
 		m_CV.wait(lock);
+
+	if (m_Eof)
+		BOOST_THROW_EXCEPTION(std::runtime_error("Socket was closed during TLS handshake."));
 
 	HandleError();
 }
