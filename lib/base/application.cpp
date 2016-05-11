@@ -62,6 +62,7 @@ char **Application::m_ArgV;
 double Application::m_StartTime;
 double Application::m_MainTime;
 bool Application::m_ScriptDebuggerEnabled = false;
+double Application::m_LastReloadFailed;
 
 /**
  * Constructor for the Application class.
@@ -330,8 +331,10 @@ void Application::OnShutdown(void)
 
 static void ReloadProcessCallbackInternal(const ProcessResult& pr)
 {
-	if (pr.ExitStatus != 0)
+	if (pr.ExitStatus != 0) {
+		Application::SetLastReloadFailed(Utility::GetTime());
 		Log(LogCritical, "Application", "Found error in config: reloading aborted");
+	}
 #ifdef _WIN32
 	else
 		Application::Exit(7); /* keep this exit code in sync with icinga-app */
@@ -1385,6 +1388,16 @@ bool Application::GetScriptDebuggerEnabled(void)
 void Application::SetScriptDebuggerEnabled(bool enabled)
 {
 	m_ScriptDebuggerEnabled = enabled;
+}
+
+double Application::GetLastReloadFailed(void)
+{
+	return m_LastReloadFailed;
+}
+
+void Application::SetLastReloadFailed(double ts)
+{
+	m_LastReloadFailed = ts;
 }
 
 void Application::ValidateName(const String& value, const ValidationUtils& utils)
