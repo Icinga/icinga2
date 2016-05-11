@@ -219,6 +219,9 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 	NameComposer *nc = dynamic_cast<NameComposer *>(type.get());
 
 	if (nc) {
+		if (name.IsEmpty())
+			BOOST_THROW_EXCEPTION(ScriptError("Object name must not be empty.", m_DebugInfo));
+
 		name = nc->MakeName(name, dobj);
 
 		if (name.IsEmpty())
