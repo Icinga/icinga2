@@ -42,43 +42,63 @@ bool InfoHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, 
 		return false;
 
 	response.SetStatus(200, "OK");
-	response.AddHeader("Content-Type", "text/html");
 
-	String body = "<html><head><title>Icinga 2</title></head><h1>Hello from Icinga 2!</h1>";
-	body += "<p>You are authenticated as <b>" + user->GetName() + "</b>. ";
-
-	bool has_permissions = false;
-	String perm_info;
-
+	std::vector<String> permInfo;
 	Array::Ptr permissions = user->GetPermissions();
+
 	if (permissions) {
 		ObjectLock olock(permissions);
 		BOOST_FOREACH(const Value& permission, permissions) {
-			has_permissions = true;
-
 			String name;
-			bool has_filter = false;
+			bool hasFilter = false;
 			if (permission.IsObjectType<Dictionary>()) {
 				Dictionary::Ptr dpermission = permission;
 				name = dpermission->Get("permission");
-				has_filter = dpermission->Contains("filter");
+				hasFilter = dpermission->Contains("filter");
 			} else
 				name = permission;
 
-			perm_info += "<li>" + name;
-			if (has_filter)
-				perm_info += " (filtered)";
-			perm_info += "</li>";
+			if (hasFilter)
+				name += " (filtered)";
+
+			permInfo.push_back(name);
 		}
 	}
 
-	if (has_permissions)
-		body += "Your user has the following permissions:</p> <ul>" + perm_info + "</ul>";
-	else
-		body += "Your user does not have any permissions.</p>";
+	if (request.Headers->Get("accept") == "application/json") {
+		Dictionary::Ptr result1 = new Dictionary();
 
-	body += "<p>More information about API requests is available in the <a href=\"http://docs.icinga.org/icinga2/latest\" target=\"_blank\">documentation</a>.</p></html>";
-	response.WriteBody(body.CStr(), body.GetLength());
+		result1->Set("user", user->GetName());
+		result1->Set("permissions", Array::FromVector(permInfo));
+		result1->Set("info", "More information about API requests is available in the documentation at http://docs.icinga.org/icinga2/latest.");
+
+		Array::Ptr results = new Array();
+		results->Add(result1);
+
+		Dictionary::Ptr result = new Dictionary();
+		result->Set("results", results);
+
+		HttpUtility::SendJsonBody(response, result);
+	} else {
+		response.AddHeader("Content-Type", "text/html");
+
+		String body = "<html><head><title>Icinga 2</title></head><h1>Hello from Icinga 2!</h1>";
+		body += "<p>You are authenticated as <b>" + user->GetName() + "</b>. ";
+
+		if (!permInfo.empty()) {
+			body += "Your user has the following permissions:</p> <ul>";
+
+			BOOST_FOREACH(const String& perm, permInfo) {
+				body += "<li>" + perm + "</li>";
+			}
+
+			body += "</ul>";
+		} else
+			body += "Your user does not have any permissions.</p>";
+
+		body += "<p>More information about API requests is available in the <a href=\"http://docs.icinga.org/icinga2/latest\" target=\"_blank\">documentation</a>.</p></html>";
+		response.WriteBody(body.CStr(), body.GetLength());
+	}
 
 	return true;
 }
