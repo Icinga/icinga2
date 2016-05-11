@@ -195,6 +195,9 @@ String Comment::AddComment(const Checkable::Ptr& checkable, CommentType entryTyp
 
 	Comment::Ptr comment = Comment::GetByName(fullName);
 
+	if (!comment)
+		BOOST_THROW_EXCEPTION(std::runtime_error("Could not create comment."));
+
 	Log(LogNotice, "Comment")
 	    << "Added comment '" << comment->GetName() << "'.";
 
