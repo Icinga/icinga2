@@ -303,8 +303,7 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 	sigaction(SIGHUP, &sa, NULL);
 #endif /* _WIN32 */
 
-	/* update object authority */
-	ApiListener::UpdateObjectAuthorityAsync();
+	ApiListener::UpdateObjectAuthority();
 
 	return Application::GetInstance()->Run();
 }

@@ -431,6 +431,9 @@ void ApiListener::SyncClient(const JsonRpcConnection::Ptr& aclient, const Endpoi
 
 		ReplayLog(aclient);
 
+		if (endpoint->GetZone() == Zone::GetLocalZone())
+			UpdateObjectAuthority();
+
 		Log(LogInformation, "ApiListener")
 		    << "Finished sending replay log for endpoint '" << endpoint->GetName() << "'.";
 	} catch (const std::exception& ex) {

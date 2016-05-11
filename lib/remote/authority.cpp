@@ -34,7 +34,7 @@ static bool ObjectNameLessComparer(const ConfigObject::Ptr& a, const ConfigObjec
 	return a->GetName() < b->GetName();
 }
 
-static void AuthorityTimerHandler(void)
+void ApiListener::UpdateObjectAuthority(void)
 {
 	Zone::Ptr my_zone = Zone::GetLocalZone();
 
@@ -80,16 +80,11 @@ static void AuthorityTimerHandler(void)
 	}
 }
 
-void ApiListener::UpdateObjectAuthorityAsync(void)
-{
-	l_AuthorityTimer->Reschedule(0);
-}
-
 static void StaticInitialize(void)
 {
 	l_AuthorityTimer = new Timer();
-	l_AuthorityTimer->OnTimerExpired.connect(boost::bind(&AuthorityTimerHandler));
-	l_AuthorityTimer->SetInterval(15);
+	l_AuthorityTimer->OnTimerExpired.connect(boost::bind(&ApiListener::UpdateObjectAuthority));
+	l_AuthorityTimer->SetInterval(30);
 	l_AuthorityTimer->Start();
 }
 

@@ -19,6 +19,7 @@
 
 #include "remote/configobjectutility.hpp"
 #include "remote/configpackageutility.hpp"
+#include "remote/apilistener.hpp"
 #include "config/configcompiler.hpp"
 #include "config/configitem.hpp"
 #include "base/configwriter.hpp"
@@ -149,6 +150,8 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 
 			return false;
 		}
+
+		ApiListener::UpdateObjectAuthority();
 	} catch (const std::exception& ex) {
 		delete expr;
 
