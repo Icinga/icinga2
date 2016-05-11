@@ -144,7 +144,7 @@ void ExternalCommandListener::CommandPipeThread(const String& commandPath)
 					ExternalCommandProcessor::Execute(command);
 				} catch (const std::exception& ex) {
 					Log(LogWarning, "ExternalCommandListener")
-					    << "External command failed." << DiagnosticInformation(ex);
+					    << "External command failed: " << DiagnosticInformation(ex);
 				}
 			}
 		}

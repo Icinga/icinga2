@@ -251,11 +251,13 @@ String Downtime::AddDowntime(const Checkable::Ptr& checkable, const String& auth
 
 	Downtime::Ptr downtime = Downtime::GetByName(fullName);
 
+	if (!downtime)
+		BOOST_THROW_EXCEPTION(std::runtime_error("Could not create downtime."));
+
 	Log(LogNotice, "Downtime")
 	    << "Added downtime '" << downtime->GetName()
 	    << "' between '" << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", startTime)
 	    << "' and '" << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", endTime) << "'.";
-
 
 	return fullName;
 }
