@@ -166,7 +166,7 @@ bool Downtime::IsInEffect(void) const
 	if (triggerTime == 0)
 		return false;
 
-	return (triggerTime + GetDuration() < now);
+	return (now < triggerTime + GetDuration());
 }
 
 bool Downtime::IsTriggered(void) const
