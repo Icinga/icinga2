@@ -98,7 +98,7 @@ public:
 	
 	static Value HelloAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
 
-	static void UpdateObjectAuthorityAsync(void);
+	static void UpdateObjectAuthority(void);
 
 protected:
 	virtual void OnConfigLoaded(void) override;
