@@ -140,6 +140,9 @@ public:
 	static bool GetScriptDebuggerEnabled(void);
 	static void SetScriptDebuggerEnabled(bool enabled);
 
+	static double GetLastReloadFailed(void);
+	static void SetLastReloadFailed(double ts);
+
 	static void DisplayInfoMessage(std::ostream& os, bool skipVersion = false);
 
 protected:
@@ -172,6 +175,7 @@ private:
 	static double m_StartTime;
 	static double m_MainTime;
 	static bool m_ScriptDebuggerEnabled;
+	static double m_LastReloadFailed;
 
 #ifndef _WIN32
 	static void SigIntTermHandler(int signum);
