@@ -134,6 +134,9 @@ public:
 	static double GetStartTime(void);
 	static void SetStartTime(double ts);
 
+	static double GetMainTime(void);
+	static void SetMainTime(double ts);
+
 	static bool GetScriptDebuggerEnabled(void);
 	static void SetScriptDebuggerEnabled(bool enabled);
 
@@ -167,6 +170,7 @@ private:
 	static bool m_Debugging; /**< Whether debugging is enabled. */
 	static LogSeverity m_DebuggingSeverity; /**< Whether debugging severity is set. */
 	static double m_StartTime;
+	static double m_MainTime;
 	static bool m_ScriptDebuggerEnabled;
 
 #ifndef _WIN32

@@ -36,42 +36,60 @@ static bool ObjectNameLessComparer(const ConfigObject::Ptr& a, const ConfigObjec
 
 static void AuthorityTimerHandler(void)
 {
-	ApiListener::Ptr listener = ApiListener::GetInstance();
-
-	if (!listener || !listener->IsActive())
-		return;
-
 	Zone::Ptr my_zone = Zone::GetLocalZone();
-	if (!my_zone)
-		return;
-
-	Endpoint::Ptr my_endpoint = Endpoint::GetLocalEndpoint();
 
 	std::vector<Endpoint::Ptr> endpoints;
-	BOOST_FOREACH(const Endpoint::Ptr& endpoint, my_zone->GetEndpoints()) {
-		if (!endpoint->GetConnected() && endpoint != my_endpoint)
-			continue;
+	Endpoint::Ptr my_endpoint;
 
-		endpoints.push_back(endpoint);
+	if (my_zone) {
+		my_endpoint = Endpoint::GetLocalEndpoint();
+
+		int num_total = 0;
+
+		BOOST_FOREACH(const Endpoint::Ptr& endpoint, my_zone->GetEndpoints()) {
+			num_total++;
+
+			if (endpoint != my_endpoint && !endpoint->GetConnected())
+				continue;
+
+			endpoints.push_back(endpoint);
+		}
+
+		double mainTime = Application::GetMainTime();
+
+		if (num_total > 1 && endpoints.size() <= 1 && (mainTime == 0 || Utility::GetTime() - mainTime < 60))
+			return;
+
+		std::sort(endpoints.begin(), endpoints.end(), ObjectNameLessComparer);
 	}
-
-	std::sort(endpoints.begin(), endpoints.end(), ObjectNameLessComparer);
 
 	BOOST_FOREACH(const ConfigType::Ptr& type, ConfigType::GetTypes()) {
 		BOOST_FOREACH(const ConfigObject::Ptr& object, type->GetObjects()) {
-			Endpoint::Ptr endpoint = endpoints[Utility::SDBM(object->GetName()) % endpoints.size()];
+			if (object->GetHAMode() != HARunOnce)
+				continue;
 
-			if (object->GetHAMode() == HARunOnce)
-				object->SetAuthority(endpoint == my_endpoint);
+			bool authority;
+
+			if (!my_zone)
+				authority = true;
+			else
+				authority = endpoints[Utility::SDBM(object->GetName()) % endpoints.size()] == my_endpoint;
+
+			object->SetAuthority(authority);
 		}
 	}
+}
+
+void ApiListener::UpdateObjectAuthorityAsync(void)
+{
+	l_AuthorityTimer->Reschedule(0);
 }
 
 static void StaticInitialize(void)
 {
 	l_AuthorityTimer = new Timer();
 	l_AuthorityTimer->OnTimerExpired.connect(boost::bind(&AuthorityTimerHandler));
-	l_AuthorityTimer->SetInterval(30);
+	l_AuthorityTimer->SetInterval(15);
 	l_AuthorityTimer->Start();
 }
 

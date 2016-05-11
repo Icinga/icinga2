@@ -60,6 +60,7 @@ static bool l_InExceptionHandler = false;
 int Application::m_ArgC;
 char **Application::m_ArgV;
 double Application::m_StartTime;
+double Application::m_MainTime;
 bool Application::m_ScriptDebuggerEnabled = false;
 
 /**
@@ -885,6 +886,8 @@ int Application::Run(void)
 		return EXIT_FAILURE;
 	}
 
+	SetMainTime(Utility::GetTime());
+
 	return Main();
 }
 
@@ -1362,6 +1365,16 @@ double Application::GetStartTime(void)
 void Application::SetStartTime(double ts)
 {
 	m_StartTime = ts;
+}
+
+double Application::GetMainTime(void)
+{
+	return m_MainTime;
+}
+
+void Application::SetMainTime(double ts)
+{
+	m_MainTime = ts;
 }
 
 bool Application::GetScriptDebuggerEnabled(void)
