@@ -19,6 +19,7 @@
 
 #include "cli/daemoncommand.hpp"
 #include "cli/daemonutility.hpp"
+#include "remote/apilistener.hpp"
 #include "config/configcompiler.hpp"
 #include "config/configcompilercontext.hpp"
 #include "config/configitembuilder.hpp"
@@ -301,6 +302,9 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 	sa.sa_handler = &SigHupHandler;
 	sigaction(SIGHUP, &sa, NULL);
 #endif /* _WIN32 */
+
+	/* update object authority */
+	ApiListener::UpdateObjectAuthorityAsync();
 
 	return Application::GetInstance()->Run();
 }

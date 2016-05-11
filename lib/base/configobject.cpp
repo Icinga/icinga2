@@ -396,7 +396,8 @@ void ConfigObject::Activate(bool runtimeCreated)
 		SetActive(true, true);
 	}
 
-	SetAuthority(true);
+	if (GetHAMode() == HARunEverywhere)
+		SetAuthority(true);
 
 	NotifyActive();
 }
