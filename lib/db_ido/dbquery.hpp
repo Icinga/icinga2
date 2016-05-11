@@ -33,7 +33,8 @@ enum DbQueryType
 {
 	DbQueryInsert = 1,
 	DbQueryUpdate = 2,
-	DbQueryDelete = 4
+	DbQueryDelete = 4,
+	DbQueryNewTransaction = 8
 };
 
 enum DbQueryCategory

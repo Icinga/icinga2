@@ -146,7 +146,7 @@ void DbConnection::InitializeDbTimer(void)
 {
 	m_ProgramStatusTimer = new Timer();
 	m_ProgramStatusTimer->SetInterval(10);
-	m_ProgramStatusTimer->OnTimerExpired.connect(boost::bind(&DbConnection::ProgramStatusHandler));
+	m_ProgramStatusTimer->OnTimerExpired.connect(boost::bind(&DbConnection::UpdateProgramStatus));
 	m_ProgramStatusTimer->Start();
 }
 
@@ -163,7 +163,7 @@ void DbConnection::InsertRuntimeVariable(const String& key, const Value& value)
 	DbObject::OnQuery(query);
 }
 
-void DbConnection::ProgramStatusHandler(void)
+void DbConnection::UpdateProgramStatus(void)
 {
 	Log(LogNotice, "DbConnection")
 	     << "Updating programstatus table.";
@@ -206,15 +206,19 @@ void DbConnection::ProgramStatusHandler(void)
 	query2.Priority = PriorityHigh;
 	queries.push_back(query2);
 
+	DbQuery query3;
+	query3.Type = DbQueryNewTransaction;
+	queries.push_back(query3);
+
 	DbObject::OnMultipleQueries(queries);
 
-	DbQuery query3;
-	query3.Table = "runtimevariables";
-	query3.Type = DbQueryDelete;
-	query3.Category = DbCatProgramStatus;
-	query3.WhereCriteria = new Dictionary();
-	query3.WhereCriteria->Set("instance_id", 0);  /* DbConnection class fills in real ID */
-	DbObject::OnQuery(query3);
+	DbQuery query4;
+	query4.Table = "runtimevariables";
+	query4.Type = DbQueryDelete;
+	query4.Category = DbCatProgramStatus;
+	query4.WhereCriteria = new Dictionary();
+	query4.WhereCriteria->Set("instance_id", 0);  /* DbConnection class fills in real ID */
+	DbObject::OnQuery(query4);
 
 	InsertRuntimeVariable("total_services", std::distance(ConfigType::GetObjectsByType<Service>().first, ConfigType::GetObjectsByType<Service>().second));
 	InsertRuntimeVariable("total_scheduled_services", std::distance(ConfigType::GetObjectsByType<Service>().first, ConfigType::GetObjectsByType<Service>().second));
