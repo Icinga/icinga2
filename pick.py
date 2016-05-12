@@ -71,7 +71,7 @@ while True:
 
         if "custom_fields" in issue:
             for field in issue["custom_fields"]:
-                if field["id"] == 12 and "value" in field and field["value"] != "0":
+                if field["id"] == 12 and "value" in field and field["value"] != "Not yet backported":
                     ignore_issue = True
                     break
 
