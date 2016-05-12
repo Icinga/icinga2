@@ -54,6 +54,51 @@ More details in the [Icinga FAQ](https://www.icinga.org/icinga/faq/).
 
 ## <a id="whats-new"></a> What's New
 
+### What's New in Version 2.4.8
+
+#### Changes
+
+* Bugfixes
+* Support for limiting the maximum number of concurrent checks (new configuration option)
+* HA-aware features now wait for connected cluster nodes in the same zone (e.g. DB IDO)
+* The 'icinga' check now alerts on failed reloads
+
+#### Feature
+
+* Feature [8137](https://dev.icinga.org/issues/8137 "Feature 8137") (Checker): Maximum concurrent service checks
+* Feature [9236](https://dev.icinga.org/issues/9236 "Feature 9236") (Perfdata): PerfdataWriter: Better failure handling for file renames across file systems
+* Feature [9997](https://dev.icinga.org/issues/9997 "Feature 9997") (libmethods): "icinga" check should have state WARNING when the last reload failed
+* Feature [10581](https://dev.icinga.org/issues/10581 "Feature 10581") (ITL): Provide icingacli in the ITL
+* Feature [11556](https://dev.icinga.org/issues/11556 "Feature 11556") (libbase): Add support for subjectAltName in SSL certificates
+* Feature [11651](https://dev.icinga.org/issues/11651 "Feature 11651") (CLI): Implement SNI support for the CLI commands
+* Feature [11720](https://dev.icinga.org/issues/11720 "Feature 11720") (ITL): 'disk' CheckCommand: Exclude 'cgroup' and 'tracefs' by default
+* Feature [11748](https://dev.icinga.org/issues/11748 "Feature 11748") (Cluster): Remove unused cluster commands
+* Feature [11765](https://dev.icinga.org/issues/11765 "Feature 11765") (Cluster): Only activate HARunOnce objects once there's a cluster connection
+* Feature [11768](https://dev.icinga.org/issues/11768 "Feature 11768") (Documentation): Add the category to the generated changelog
+
+#### Bugfixes
+
+* Bug [9989](https://dev.icinga.org/issues/9989 "Bug 9989") (Configuration): Service apply without name possible
+* Bug [10426](https://dev.icinga.org/issues/10426 "Bug 10426") (libicinga): Icinga crashes with a segfault on receiving a lot of check results for nonexisting hosts/services
+* Bug [10717](https://dev.icinga.org/issues/10717 "Bug 10717") (Configuration): Comments and downtimes of deleted checkable objects are not deleted
+* Bug [11046](https://dev.icinga.org/issues/11046 "Bug 11046") (Cluster): Icinga2 agent gets stuck after disconnect and won't relay messages
+* Bug [11112](https://dev.icinga.org/issues/11112 "Bug 11112") (Compat): Empty author/text attribute for comment/downtimes external commands causing crash
+* Bug [11147](https://dev.icinga.org/issues/11147 "Bug 11147") (libicinga): "day -X" time specifications are parsed incorrectly
+* Bug [11158](https://dev.icinga.org/issues/11158 "Bug 11158") (libicinga): Crash with empty ScheduledDowntime 'ranges' attribute
+* Bug [11374](https://dev.icinga.org/issues/11374 "Bug 11374") (API): Icinga2 API: deleting service with cascade=1 does not delete dependant notification
+* Bug [11390](https://dev.icinga.org/issues/11390 "Bug 11390") (Compat): Command pipe overloaded: Can't send external Icinga command to the local command file
+* Bug [11396](https://dev.icinga.org/issues/11396 "Bug 11396") (API): inconsistent API /v1/objects/* response for PUT requests
+* Bug [11589](https://dev.icinga.org/issues/11589 "Bug 11589") (libicinga): notification sent out during flexible downtime
+* Bug [11645](https://dev.icinga.org/issues/11645 "Bug 11645") (Documentation): Incorrect chapter headings for Object#to_string and Object#type
+* Bug [11646](https://dev.icinga.org/issues/11646 "Bug 11646") (Configuration): Wrong log severity causes segfault
+* Bug [11686](https://dev.icinga.org/issues/11686 "Bug 11686") (API): Icinga Crash with the workflow Create_Host-> Downtime for the Host ->  Delete Downtime -> Remove Host
+* Bug [11711](https://dev.icinga.org/issues/11711 "Bug 11711") (libicinga): Expired downtimes are not removed
+* Bug [11714](https://dev.icinga.org/issues/11714 "Bug 11714") (libbase): Crash in UnameHelper
+* Bug [11742](https://dev.icinga.org/issues/11742 "Bug 11742") (Documentation): Missing documentation for event commands w/ execution bridge
+* Bug [11757](https://dev.icinga.org/issues/11757 "Bug 11757") (API): API: Missing error handling for invalid JSON request body
+* Bug [11767](https://dev.icinga.org/issues/11767 "Bug 11767") (DB IDO): Ensure that program status updates are immediately updated in DB IDO
+* Bug [11779](https://dev.icinga.org/issues/11779 "Bug 11779") (API): Incorrect variable names for joined fields in filters
+
 ### What's New in Version 2.4.7
 
 #### Bugfixes

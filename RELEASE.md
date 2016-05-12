@@ -12,9 +12,9 @@ Check the following issue filters:
 ## Backport Commits
 
     $ git checkout master
-    $ ./pick.py -V 2.4.7
+    $ ./pick.py -V 2.4.8
 
-The script creates a new branch 'auto-merged-2.4.7' which is based on the
+The script creates a new branch 'auto-merged-2.4.8' which is based on the
 current support branch. It then merges all commits from the 'master' branch which
 reference a ticket for the version that was specified.
 
@@ -26,7 +26,7 @@ rebase until no commits are left:
 After finishing the rebase the branch needs to be merged into the support branch:
 
     $ git checkout support/2.4
-    $ git merge --ff-only auto-merged-2.4.7
+    $ git merge --ff-only auto-merged-2.4.8
 
 ## Authors
 
@@ -50,15 +50,15 @@ the changelog.py script. Also generate HTML for the wordpress release announceme
 
 Changelog:
 
-    $ ./changelog.py -V 2.4.7
+    $ ./changelog.py -V 2.4.8
 
 Docs:
 
-    $ ./changelog.py -V 2.4.7 -l
+    $ ./changelog.py -V 2.4.8 -l
 
 Wordpress:
 
-    $ ./changelog.py -V 2.4.7 -H -l
+    $ ./changelog.py -V 2.4.8 -H -l
 
 ## Git Tag
 
@@ -141,7 +141,7 @@ Create the nupkg package:
 
 Install the created icinga2 package locally:
 
-    choco install icinga2 -version 2.4.7 -fdv "%cd%" -source "'%cd%;https://chocolatey.org/api/v2/'"
+    choco install icinga2 -version 2.4.8 -fdv "%cd%" -source "'%cd%;https://chocolatey.org/api/v2/'"
 
 Upload the package to [chocolatey](https://chocolatey.org/packages/upload).
 
