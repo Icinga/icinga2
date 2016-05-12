@@ -980,6 +980,28 @@ Example for removing all host downtimes using a host name filter for `example.lo
         ]
     }
 
+Example for removing a downtime from a host but not the services filtered by the author name. This example uses
+filter variables explained in the [advanced filters](9-icinga2-api.md#icinga2-api-advanced-filters) chapter.
+
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/remove-downtime' \
+            -d $'{
+      "type": "Downtime",
+      "filter": "host.name == filterHost && !service && downtime.author == filterAuthor",
+      "filter_vars": {
+        "filterHost": "example.localdomain",
+        "filterAuthor": "icingaadmin"
+      }
+    }' | python -m json.tool
+
+    {
+        "results": [
+            {
+                "code": 200.0,
+                "status": "Successfully removed downtime 'example.localdomain!mbmif.local-1463043129-3'."
+            }
+        ]
+    }
+
 ### <a id="icinga2-api-actions-shutdown-process"></a> shutdown-process
 
 Shuts down Icinga2. May or may not return.
