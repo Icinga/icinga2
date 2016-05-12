@@ -386,18 +386,18 @@ void ConfigObject::Activate(bool runtimeCreated)
 {
 	CONTEXT("Activating object '" + GetName() + "' of type '" + GetType()->GetName() + "'");
 
-	Start(runtimeCreated);
-
-	ASSERT(GetStartCalled());
-
 	{
 		ObjectLock olock(this);
+
+		Start(runtimeCreated);
+
+		ASSERT(GetStartCalled());
 		ASSERT(!IsActive());
 		SetActive(true, true);
-	}
 
-	if (GetHAMode() == HARunEverywhere)
-		SetAuthority(true);
+		if (GetHAMode() == HARunEverywhere)
+			SetAuthority(true);
+	}
 
 	NotifyActive();
 }
@@ -422,11 +422,11 @@ void ConfigObject::Deactivate(bool runtimeRemoved)
 			return;
 
 		SetActive(false, true);
+
+		SetAuthority(false);
+
+		Stop(runtimeRemoved);
 	}
-
-	SetAuthority(false);
-
-	Stop(runtimeRemoved);
 
 	ASSERT(GetStopCalled());
 
@@ -465,6 +465,8 @@ void ConfigObject::Resume(void)
 
 void ConfigObject::SetAuthority(bool authority)
 {
+	ObjectLock olock(this);
+
 	if (authority && GetPaused()) {
 		SetResumeCalled(false);
 		Resume();
