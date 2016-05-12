@@ -178,6 +178,10 @@ public:
 
 	virtual void ValidateCheckInterval(double value, const ValidationUtils& utils) override;
 
+	static void IncreasePendingChecks(void);
+	static void DecreasePendingChecks(void);
+	static int GetPendingChecks(void);
+
 protected:
 	virtual void Start(bool runtimeCreated) override;
 
@@ -185,6 +189,9 @@ private:
 	mutable boost::mutex m_CheckableMutex;
 	bool m_CheckRunning;
 	long m_SchedulingOffset;
+
+	static boost::mutex m_StatsMutex;
+	static int m_PendingChecks;
 
 	/* Downtimes */
 	std::set<Downtime::Ptr> m_Downtimes;

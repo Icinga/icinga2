@@ -52,6 +52,8 @@ void PluginCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	resolvers.push_back(std::make_pair("command", commandObj));
 	resolvers.push_back(std::make_pair("icinga", IcingaApplication::GetInstance()));
 
+	Checkable::IncreasePendingChecks();
+
 	PluginUtility::ExecuteCommand(commandObj, checkable, checkable->GetLastCheckResult(),
 	    resolvers, resolvedMacros, useResolvedMacros,
 	    boost::bind(&PluginCheckTask::ProcessFinishedHandler, checkable, cr, _1, _2));
@@ -59,6 +61,8 @@ void PluginCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 
 void PluginCheckTask::ProcessFinishedHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, const Value& commandLine, const ProcessResult& pr)
 {
+	Checkable::DecreasePendingChecks();
+
 	if (pr.ExitStatus > 3) {
 		Process::Arguments parguments = Process::PrepareCommand(commandLine);
 		Log(LogWarning, "PluginCheckTask")
