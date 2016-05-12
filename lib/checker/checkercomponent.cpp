@@ -69,7 +69,6 @@ void CheckerComponent::OnConfigLoaded(void)
 	ConfigObject::OnActiveChanged.connect(bind(&CheckerComponent::ObjectHandler, this, _1));
 	ConfigObject::OnPausedChanged.connect(bind(&CheckerComponent::ObjectHandler, this, _1));
 
-	Checkable::OnNewCheckResult.connect(bind(&CheckerComponent::CheckResultHandler, this, _1));
 	Checkable::OnNextCheckChanged.connect(bind(&CheckerComponent::NextCheckChangedHandler, this, _1));
 }
 
@@ -122,7 +121,7 @@ void CheckerComponent::CheckThreadProc(void)
 
 		double wait = checkable->GetNextCheck() - Utility::GetTime();
 
-		if (wait > 0 || m_PendingCheckables.size() >= GetConcurrentChecks()) {
+		if (wait > 0 || Checkable::GetPendingChecks() >= GetConcurrentChecks()) {
 			/* Wait for the next check. */
 			m_CV.timed_wait(lock, boost::posix_time::milliseconds(wait * 1000));
 
@@ -216,6 +215,27 @@ void CheckerComponent::ExecuteCheckHelper(const Checkable::Ptr& checkable)
 
 		Log(LogCritical, "checker", output);
 	}
+
+	{
+		boost::mutex::scoped_lock lock(m_Mutex);
+
+		/* remove the object from the list of pending objects; if it's not in the
+		 * list this was a manual (i.e. forced) check and we must not re-add the
+		 * object to the list because it's already there. */
+		CheckerComponent::CheckableSet::iterator it;
+		it = m_PendingCheckables.find(checkable);
+		if (it != m_PendingCheckables.end()) {
+			m_PendingCheckables.erase(it);
+
+			if (checkable->IsActive())
+				m_IdleCheckables.insert(checkable);
+
+			m_CV.notify_all();
+		}
+	}
+
+	Log(LogDebug, "CheckerComponent")
+	    << "Check finished for object '" << checkable->GetName() << "'";
 }
 
 void CheckerComponent::ResultTimerHandler(void)
@@ -257,30 +277,6 @@ void CheckerComponent::ObjectHandler(const ConfigObject::Ptr& object)
 
 		m_CV.notify_all();
 	}
-}
-
-void CheckerComponent::CheckResultHandler(const Checkable::Ptr& checkable)
-{
-	{
-		boost::mutex::scoped_lock lock(m_Mutex);
-
-		/* remove the object from the list of pending objects; if it's not in the
-		 * list this was a manual (i.e. forced) check and we must not re-add the
-		 * object to the list because it's already there. */
-		CheckerComponent::CheckableSet::iterator it;
-		it = m_PendingCheckables.find(checkable);
-		if (it != m_PendingCheckables.end()) {
-			m_PendingCheckables.erase(it);
-
-			if (checkable->IsActive())
-				m_IdleCheckables.insert(checkable);
-
-			m_CV.notify_all();
-		}
-	}
-
-	Log(LogDebug, "CheckerComponent")
-	    << "Check finished for object '" << checkable->GetName() << "'";
 }
 
 void CheckerComponent::NextCheckChangedHandler(const Checkable::Ptr& checkable)
