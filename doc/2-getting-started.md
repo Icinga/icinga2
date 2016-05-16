@@ -12,7 +12,7 @@ and distribution you are running.
 
   Distribution            | Repository
   ------------------------|---------------------------
-  Debian                  | [debmon](http://debmon.org/packages/debmon-jessie/icinga2), [Icinga Repository](http://packages.icinga.org/debian/)
+  Debian                  | [debmon](https://debmon.org/packages/debmon-jessie/icinga2), [Icinga Repository](http://packages.icinga.org/debian/)
   Ubuntu                  | [Icinga PPA](https://launchpad.net/~formorer/+archive/ubuntu/icinga), [Icinga Repository](http://packages.icinga.org/ubuntu/)
   RHEL/CentOS             | [Icinga Repository](http://packages.icinga.org/epel/)
   openSUSE                | [Icinga Repository](http://packages.icinga.org/openSUSE/), [Server Monitoring Repository](https://build.opensuse.org/package/show/server:monitoring/icinga2)
@@ -31,7 +31,7 @@ Below is a list with examples for the various distributions.
 
 Debian (debmon):
 
-    # wget -O - http://debmon.org/debmon/repo.key 2>/dev/null | apt-key add -
+    # wget -O - https://debmon.org/debmon/repo.key 2>/dev/null | apt-key add -
     # echo 'deb http://debmon.org/debmon debmon-jessie main' >/etc/apt/sources.list.d/debmon.list
     # apt-get update
 
