@@ -324,6 +324,8 @@ void IdoPgsqlConnection::Reconnect(void)
 	Log(LogInformation, "IdoPgsqlConnection")
 	    << "pgSQL IDO instance id: " << static_cast<long>(m_InstanceID) << " (schema version: '" + version + "')";
 
+	Query("BEGIN");
+
 	/* update programstatus table */
 	UpdateProgramStatus();
 
@@ -359,8 +361,6 @@ void IdoPgsqlConnection::Reconnect(void)
 		if (active)
 			activeDbObjs.push_back(dbobj);
 	}
-
-	Query("BEGIN");
 
 	BOOST_FOREACH(const DbObject::Ptr& dbobj, activeDbObjs) {
 		if (dbobj->GetObject() == NULL) {
