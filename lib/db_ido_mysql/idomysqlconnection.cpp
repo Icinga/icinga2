@@ -337,6 +337,8 @@ void IdoMysqlConnection::Reconnect(void)
 	/* set session time zone to utc */
 	Query("SET SESSION TIME_ZONE='+00:00'");
 
+	Query("BEGIN");
+
 	/* update programstatus table */
 	UpdateProgramStatus();
 
@@ -369,8 +371,6 @@ void IdoMysqlConnection::Reconnect(void)
 		if (active)
 			activeDbObjs.push_back(dbobj);
 	}
-
-	Query("BEGIN");
 
 	BOOST_FOREACH(const DbObject::Ptr& dbobj, activeDbObjs) {
 		if (dbobj->GetObject() == NULL) {
