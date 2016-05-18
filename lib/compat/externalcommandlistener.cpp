@@ -94,7 +94,7 @@ void ExternalCommandListener::CommandPipeThread(const String& commandPath)
 	}
 
 	for (;;) {
-		int fd = open(commandPath.CStr(), O_RDONLY | O_NONBLOCK);
+		int fd = open(commandPath.CStr(), O_RDWR | O_NONBLOCK);
 
 		if (fd < 0) {
 			Log(LogCritical, "ExternalCommandListener")
