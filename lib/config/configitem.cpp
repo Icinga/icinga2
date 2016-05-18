@@ -194,7 +194,10 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 			Log(LogNotice, "ConfigObject")
 			    << "Ignoring config object '" << m_Name << "' of type '" << m_Type << "' due to errors: " << DiagnosticInformation(ex);
 
-			m_IgnoredItems.push_back(m_DebugInfo.Path);
+			{
+				boost::mutex::scoped_lock lock(m_Mutex);
+				m_IgnoredItems.push_back(m_DebugInfo.Path);
+			}
 
 			return ConfigObject::Ptr();
 		}
@@ -243,7 +246,10 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 			Log(LogNotice, "ConfigObject")
 			    << "Ignoring config object '" << m_Name << "' of type '" << m_Type << "' due to errors: " << DiagnosticInformation(ex);
 
-			m_IgnoredItems.push_back(m_DebugInfo.Path);
+			{
+				boost::mutex::scoped_lock lock(m_Mutex);
+				m_IgnoredItems.push_back(m_DebugInfo.Path);
+			}
 
 			return ConfigObject::Ptr();
 		}
@@ -259,7 +265,10 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 			Log(LogNotice, "ConfigObject")
 			    << "Ignoring config object '" << m_Name << "' of type '" << m_Type << "' due to errors: " << DiagnosticInformation(ex);
 
-			m_IgnoredItems.push_back(m_DebugInfo.Path);
+			{
+				boost::mutex::scoped_lock lock(m_Mutex);
+				m_IgnoredItems.push_back(m_DebugInfo.Path);
+			}
 
 			return ConfigObject::Ptr();
 		}
@@ -374,7 +383,10 @@ void ConfigItem::OnAllConfigLoadedHelper(void)
 
 			Unregister();
 
-			m_IgnoredItems.push_back(m_DebugInfo.Path);
+			{
+				boost::mutex::scoped_lock lock(m_Mutex);
+				m_IgnoredItems.push_back(m_DebugInfo.Path);
+			}
 
 			return;
 		}
@@ -645,6 +657,8 @@ std::vector<ConfigItem::Ptr> ConfigItem::GetItems(const String& type)
 
 void ConfigItem::RemoveIgnoredItems(const String& allowedConfigPath)
 {
+	boost::mutex::scoped_lock lock(m_Mutex);
+
 	BOOST_FOREACH(const String& path, m_IgnoredItems) {
 		if (path.Find(allowedConfigPath) == String::NPos)
 			continue;
