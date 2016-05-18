@@ -121,7 +121,10 @@ void CheckerComponent::CheckThreadProc(void)
 
 		double wait = checkable->GetNextCheck() - Utility::GetTime();
 
-		if (wait > 0 || Checkable::GetPendingChecks() >= GetConcurrentChecks()) {
+		if (Checkable::GetPendingChecks() >= GetConcurrentChecks())
+			wait = 0.5;
+
+		if (wait > 0) {
 			/* Wait for the next check. */
 			m_CV.timed_wait(lock, boost::posix_time::milliseconds(wait * 1000));
 
