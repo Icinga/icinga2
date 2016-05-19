@@ -54,6 +54,12 @@ More details in the [Icinga FAQ](https://www.icinga.org/icinga/faq/).
 
 ## <a id="whats-new"></a> What's New
 
+### What's New in Version 2.4.10
+
+#### Bugfixes
+
+* Bug [11812](https://dev.icinga.org/issues/11812 "Bug 11812") (Checker): Checker component doesn't execute any checks for command_endpoint
+
 ### What's New in Version 2.4.9
 
 #### Changes
