@@ -54,6 +54,18 @@ More details in the [Icinga FAQ](https://www.icinga.org/icinga/faq/).
 
 ## <a id="whats-new"></a> What's New
 
+### What's New in Version 2.4.9
+
+#### Changes
+
+This release fixes a number of issues introduced in 2.4.8.
+
+#### Bugfixes
+
+* Bug [11801](https://dev.icinga.org/issues/11801 "Bug 11801") (Perfdata): Error: Function call 'rename' for file '/var/spool/icinga2/tmp/service-perfdata' failed with error code 2, 'No such file or directory'
+* Bug [11804](https://dev.icinga.org/issues/11804 "Bug 11804") (Configuration): Segfault when trying to start 2.4.8
+* Bug [11807](https://dev.icinga.org/issues/11807 "Bug 11807") (Compat): Command Pipe thread 100% CPU Usage
+
 ### What's New in Version 2.4.8
 
 #### Changes
