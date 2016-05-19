@@ -229,6 +229,29 @@ bool TimePeriod::IsInside(double ts) const
 	if (GetValidBegin().IsEmpty() || ts < GetValidBegin() || GetValidEnd().IsEmpty() || ts > GetValidEnd())
 		return true; /* Assume that all invalid regions are "inside". */
 
+	bool prefer_include = GetPreferIncludes();
+	/* Check for the preferred Timerange array*/
+	Array::Ptr timeranges = prefer_include ? GetIncludes() : GetExcludes();
+	if (timeranges) {
+		ObjectLock olock(timeranges);
+		BOOST_FOREACH(const String& name, timeranges) {
+			TimePeriod::Ptr timerange = TimePeriod::GetByName(name);
+			if (timerange->IsInside(ts))
+				return prefer_include ? true : false;
+		}
+	}
+
+	/* Check for the non preferred Timerange array*/
+	timeranges = prefer_include ? GetExcludes() : GetIncludes();
+	if (timeranges) {
+		ObjectLock olock(timeranges);
+		BOOST_FOREACH(const String& name, timeranges) {
+			TimePeriod::Ptr timerange = TimePeriod::GetByName(name);
+			if (timerange->IsInside(ts))
+				return prefer_include ? false : true;
+		}
+	}
+
 	Array::Ptr segments = GetSegments();
 
 	if (segments) {
