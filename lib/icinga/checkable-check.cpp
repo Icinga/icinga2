@@ -329,8 +329,14 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 		/* If there was a OK -> NOT-OK state change for actively scheduled checks,
 		 * update the next check time using the retry_interval.
 		 * Important: Add the cluster message origin. */
-		if (GetStateType() == StateTypeSoft)
+		if (GetStateType() == StateTypeSoft) {
 			UpdateNextCheck(origin);
+		} else if (hardChange) {
+			/* A hard state change must enforce the check interval again.
+			 * UpdateNextCheck() will use the scheduling offset which generates
+			 * an incorrect check time from the previous retry interval. */
+			SetNextCheck(Utility::GetTime() + GetCheckInterval(), false, origin);
+		}
 	} else {
 		/* Reschedule the next check for passive check results. The side effect of
 		 * this is that for as long as we receive passive results for a service we
