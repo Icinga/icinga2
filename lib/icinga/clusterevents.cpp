@@ -721,6 +721,8 @@ Value ClusterEvents::UpdateRepositoryAPIHandler(const MessageOrigin::Ptr& origin
 	if (vrepository.IsEmpty() || !vrepository.IsObjectType<Dictionary>())
 		return Empty;
 
+	Utility::MkDirP(GetRepositoryDir(), 0755);
+
 	String repositoryFile = GetRepositoryDir() + SHA256(params->Get("endpoint")) + ".repo";
 
 	std::fstream fp;
