@@ -355,7 +355,8 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 	String old_state_str = (service ? Service::StateToString(old_state) : Host::StateToString(Host::CalculateState(old_state)));
 	String new_state_str = (service ? Service::StateToString(new_state) : Host::StateToString(Host::CalculateState(new_state)));
 
-	if (hardChange || is_volatile) {
+	/* Whether a hard state change or a volatile state change except OK -> OK happened. */
+	if (hardChange || is_volatile && !(IsStateOK(old_state) && IsStateOK(new_state))) {
 		OnStateChange(this, cr, StateTypeHard, origin);
 		Log(LogNotice, "Checkable")
 		    << "State Change: Checkable " << GetName() << " hard state change from " << old_state_str << " to " << new_state_str << " detected." << (is_volatile ? " Checkable is volatile." : "");
@@ -365,7 +366,8 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 		    << "State Change: Checkable " << GetName() << " soft state change from " << old_state_str << " to " << new_state_str << " detected.";
 	}
 
-	if (GetStateType() == StateTypeSoft || hardChange || recovery || is_volatile)
+	if (GetStateType() == StateTypeSoft || hardChange || recovery ||
+	    is_volatile && !(IsStateOK(old_state) && IsStateOK(new_state)))
 		ExecuteEventHandler();
 
 	if (send_downtime_notification)
