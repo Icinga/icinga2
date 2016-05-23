@@ -272,7 +272,7 @@ Signature:
     function max(...);
 
 Returns the largest argument. A variable number of arguments can be specified.
-If no arguments are given -Infinity is returned.
+If no arguments are given, -Infinity is returned.
 
 ### <a id="math-min"></a> Math.min
 
@@ -281,7 +281,7 @@ Signature:
     function min(...);
 
 Returns the smallest argument. A variable number of arguments can be specified.
-If no arguments are given +Infinity is returned.
+If no arguments are given, +Infinity is returned.
 
 ### <a id="math-pow"></a> Math.pow
 
@@ -399,7 +399,7 @@ Signature:
     function find(str, start);
 
 Returns the zero-based index at which the string `str` was found in the string. If the string
-was not found -1 is returned. `start` specifies the zero-based index at which `find` should
+was not found, -1 is returned. `start` specifies the zero-based index at which `find` should
 start looking for the string (defaults to 0 when not specified).
 
 Example:
@@ -413,7 +413,7 @@ Signature:
     function contains(str);
 
 Returns `true` if the string `str` was found in the string. If the string
-was not found `false` is returned. Use [find](19-library-reference.md#string-find)
+was not found, `false` is returned. Use [find](19-library-reference.md#string-find)
 for getting the index instead.
 
 Example:
@@ -590,7 +590,7 @@ Signature:
 
     Object prototype;
 
-Returns the prototype object for the type. When an attribute is accessed on an object that doesn't exist the prototype object is checked to see if an attribute with the requested name exists there. If it does that attribute's value is returned.
+Returns the prototype object for the type. When an attribute is accessed on an object that doesn't exist the prototype object is checked to see if an attribute with the requested name exists. If it does, the attribute's value is returned.
 
 The prototype functionality is used to implement methods.
 

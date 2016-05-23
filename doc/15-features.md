@@ -38,14 +38,14 @@ the Icinga 2 cluster.
 The following example query checks the health of the current Icinga 2 instance
 writing its current status to the DB IDO backend table `icinga_programstatus`
 every 10 seconds. By default it checks 60 seconds into the past which is a reasonable
-amount of time - adjust it for your requirements. If the condition is not met,
+amount of time -- adjust it for your requirements. If the condition is not met,
 the query returns an empty result.
 
 > **Tip**
 >
 > Use [check plugins](14-addons-plugins.md#plugins) to monitor the backend.
 
-Replace the `default` string with your instance name, if different.
+Replace the `default` string with your instance name if different.
 
 Example for MySQL:
 
@@ -621,7 +621,7 @@ Icinga 1.x Classic UI requires this data set as part of its backend.
 
 > **Note**
 >
-> If you are not using any web interface or addon which uses these files
+> If you are not using any web interface or addon which uses these files,
 > you can safely disable this feature.
 
 

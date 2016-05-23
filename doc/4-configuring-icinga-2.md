@@ -24,7 +24,7 @@ There are many ways of creating Icinga 2 configuration objects:
 
 In order to find the best strategy for your own configuration, ask yourself the following questions:
 
-* Do your hosts share a common group of services (for example linux hosts with disk, load, etc checks)?
+* Do your hosts share a common group of services (for example linux hosts with disk, load, etc. checks)?
 * Only a small set of users receives notifications and escalations for all hosts/services?
 
 If you can at least answer one of these questions with yes, look for the
@@ -34,14 +34,14 @@ host and service basis.
 * You are required to define specific configuration for each host/service?
 * Does your configuration generation tool already know about the host-service-relationship?
 
-Then you should look for the object specific configuration setting `host_name` etc accordingly.
+Then you should look for the object specific configuration setting `host_name` etc. accordingly.
 
 Finding the best files and directory tree for your configuration is up to you. Make sure that
 the [icinga2.conf](4-configuring-icinga-2.md#icinga2-conf) configuration file includes them,
 and then think about:
 
 * tree-based on locations, hostgroups, specific host attributes with sub levels of directories.
-* flat `hosts.conf`, `services.conf`, etc files for rule based configuration.
+* flat `hosts.conf`, `services.conf`, etc. files for rule based configuration.
 * generated configuration with one file per host and a global configuration for groups, users, etc.
 * one big file generated from an external application (probably a bad idea for maintaining changes).
 * your own.

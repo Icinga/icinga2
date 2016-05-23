@@ -135,7 +135,7 @@ Example:
 
 Identifiers may not contain certain characters (e.g. space) or start
 with certain characters (e.g. digits). If you want to use a dictionary
-key that is not a valid identifier you can enclose the key in double
+key that is not a valid identifier, you can enclose the key in double
 quotes.
 
 ### <a id="array"></a> Array
@@ -308,7 +308,7 @@ This is equivalent to writing:
       }
     }
 
-If the `hello` attribute does not already have a value it is automatically initialized to an empty dictionary.
+If the `hello` attribute does not already have a value, it is automatically initialized to an empty dictionary.
 
 ## <a id="template-imports"></a> Template Imports
 
@@ -414,7 +414,7 @@ ScheduledDowntime | Service     | host, service
 
 Any valid config attribute can be accessed using the `host` and `service`
 variables. For example, `host.address` would return the value of the host's
-"address" attribute - or null if that attribute isn't set.
+"address" attribute -- or null if that attribute isn't set.
 
 More usage examples are documented in the [monitoring basics](3-monitoring-basics.md#using-apply-expressions)
 chapter.

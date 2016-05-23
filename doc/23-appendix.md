@@ -350,7 +350,7 @@ Status custom variables reflect the global 'Vars' constant.
   num_services_hard_warn | int      | All services in a hard state with Warning state.
   num_services_hard_crit | int      | All services in a hard state with Critical state.
   num_services_hard_unknown  | int  | All services in a hard state with Unknown state.
-  hard_state            | int       | Returns OK, if state is OK. Returns current state if now a hard state type. Returns last hard state otherwise.
+  hard_state            | int       | Returns OK if state is OK. Returns current state if now a hard state type. Returns last hard state otherwise.
   staleness             | int       | Indicates time since last check normalized onto the check_interval.
   groups                | array     | All hostgroups this host is a member of.
   contact_groups        | array     | All usergroups associated with this host through notifications.
@@ -470,7 +470,7 @@ Not supported: `initial_state`, `pending_flex_downtime`, `check_flapping_recover
   custom_variable_names | array     | .
   custom_variable_values | array    | .
   custom_variables      | array     | Array of custom variable array pair.
-  hard_state            | int       | Returns OK, if state is OK. Returns current state if now a hard state type. Returns last hard state otherwise.
+  hard_state            | int       | Returns OK if state is OK. Returns current state if now a hard state type. Returns last hard state otherwise.
   staleness             | int       | Indicates time since last check normalized onto the check_interval.
   groups                | array     | All hostgroups this host is a member of.
   contact_groups        | array     | All usergroups associated with this host through notifications.

@@ -5,12 +5,12 @@ are scheme updates for the IDO database.
 
 ## <a id="upgrading-mysql-db"></a> Upgrading the MySQL database
 
-If you're upgrading an existing Icinga 2 instance you should check the
+If you're upgrading an existing Icinga 2 instance, you should check the
 `/usr/share/icinga2-ido-mysql/schema/upgrade` directory for an incremental schema upgrade file.
 
 > **Note**
 >
-> If there isn't an upgrade file for your current version available there's nothing to do.
+> If there isn't an upgrade file for your current version available, there's nothing to do.
 
 Apply all database schema upgrade files incrementally.
 
@@ -31,12 +31,12 @@ which must be applied incrementally to your IDO database.
 
 ## <a id="upgrading-postgresql-db"></a> Upgrading the PostgreSQL database
 
-If you're updating an existing Icinga 2 instance you should check the
+If you're updating an existing Icinga 2 instance, you should check the
 `/usr/share/icinga2-ido-pgsql/schema/upgrade` directory for an incremental schema upgrade file.
 
 > **Note**
 >
-> If there isn't an upgrade file for your current version available there's nothing to do.
+> If there isn't an upgrade file for your current version available, there's nothing to do.
 
 Apply all database schema upgrade files incrementally.
 

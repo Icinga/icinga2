@@ -11,7 +11,7 @@ by the monitoring plugins. The data is stored as rrd (round robin database) file
 
 Use your distribution's package manager to install the `pnp4nagios` package.
 
-If you're planning to use it configure it to use the
+If you're planning to use it, configure it to use the
 [bulk mode with npcd and npcdmod](http://docs.pnp4nagios.org/pnp-0.6/modes#bulk_mode_with_npcd_and_npcdmod)
 in combination with Icinga 2's [PerfdataWriter](15-features.md#performance-data). NPCD collects the performance
 data files which Icinga 2 generates.
@@ -41,9 +41,9 @@ and web interfaces.
 
 Graphite consists of 3 software components:
 
-* carbon - a Twisted daemon that listens for time-series data
-* whisper - a simple database library for storing time-series data (similar in design to RRD)
-* graphite webapp - A Django webapp that renders graphs on-demand using Cairo
+* carbon -- a Twisted daemon that listens for time-series data
+* whisper -- a simple database library for storing time-series data (similar in design to RRD)
+* graphite webapp -- a Django webapp that renders graphs on-demand using Cairo
 
 Use the [GraphiteWriter](15-features.md#graphite-carbon-cache-writer) feature
 for sending real-time metrics from Icinga 2 to Graphite.
@@ -127,11 +127,11 @@ and the [Icinga Wiki](https://wiki.icinga.org/display/howtos/Home).
 
 ## <a id="configuration-tools"></a> Configuration Management Tools
 
-If you require your favourite configuration tool to export Icinga 2 configuration, please get in
+If you require your favourite configuration tool to export the Icinga 2 configuration, please get in
 touch with their developers. The Icinga project does not provide a configuration web interface
 yet. Follow the [Icinga Blog](https://www.icinga.org/blog/) for updates on this topic.
 
-If you're looking for puppet manifests, chef cookbooks, ansible recipes, etc - we're happy
+If you're looking for puppet manifests, chef cookbooks, ansible recipes, etc. -- we're happy
 to integrate them upstream, so please get in touch with the [Icinga team](https://www.icinga.org/community/get-involved/).
 
 These tools are currently in development and require feedback and tests:
@@ -296,7 +296,7 @@ Example for services:
       vars.pnp_check_arg1 = "!$nrpe_command$"
     }
 
-If there are warnings about unresolved macros make sure to specify a default value for `vars.pnp_check_arg1` inside the
+If there are warnings about unresolved macros, make sure to specify a default value for `vars.pnp_check_arg1` inside the
 
 In PNP, the custom template for nrpe is then defined in `/etc/pnp4nagios/custom/nrpe.cfg`
 and the additional command arg string will be seen in the xml too for other templates.

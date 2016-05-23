@@ -43,7 +43,7 @@ Keep the following hints in mind:
 * You can blacklist remote nodes entirely. They are then ignored on `node update-config`
 on the master.
 * Your remote instance can have local configuration **and** act as remote command execution bridge.
-* You can use the `global` cluster zones to sync check commands, templates, etc to your remote clients.
+* You can use the `global` cluster zones to sync check commands, templates, etc. to your remote clients.
 Be it just for command execution or for helping the local configuration.
 * If your remote clients shouldn't have local configuration, remove `conf.d` inclusion from `icinga2`
 and simply use the cluster configuration sync.
@@ -598,7 +598,7 @@ client discovered objects only.
 
 ### <a id="icinga2-client-configuration-command-bridge"></a> Clients as Command Execution Bridge
 
-Similar to other addons (NRPE, NSClient++, etc) the remote Icinga 2 client will only
+Similar to other addons (NRPE, NSClient++, etc.) the remote Icinga 2 client will only
 execute commands the master instance is sending. There are no local host or service
 objects configured, only the check command definitions must be configured.
 
@@ -737,7 +737,7 @@ rules must only be configured once.
 ### <a id="icinga2-client-configuration-master-config-sync"></a> Clients with Master Config Sync
 
 This is an advanced configuration mode which requires knowledge about the Icinga 2
-cluster configuration and its object relation (Zones, Endpoints, etc) and the way you
+cluster configuration and its object relation (Zones, Endpoints, etc.) and the way you
 will be able to sync the configuration from the master to the remote satellite or client.
 
 Please continue reading in the [distributed monitoring chapter](13-distributed-monitoring-ha.md#distributed-monitoring-high-availability),

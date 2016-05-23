@@ -37,7 +37,7 @@ Get pen and paper or a drawing board and design your nodes and zones!
 * All nodes (endpoints) in a cluster zone provide high availability functionality and trust each other.
 * Cluster zones can be built in a Top-Down-design where the child trusts the parent.
 
-Decide whether to use the built-in [configuration syncronization](13-distributed-monitoring-ha.md#cluster-zone-config-sync) or use an external tool (Puppet, Ansible, Chef, Salt, etc) to manage the configuration deployment.
+Decide whether to use the built-in [configuration syncronization](13-distributed-monitoring-ha.md#cluster-zone-config-sync) or use an external tool (Puppet, Ansible, Chef, Salt, etc.) to manage the configuration deployment.
 
 
 > **Tip**
@@ -352,7 +352,7 @@ on your configuration master unique.
 
 > ** Note **
 >
-> Only put templates, groups, etc into this zone. DO NOT add checkable objects such as
+> Only put templates, groups, etc. into this zone. DO NOT add checkable objects such as
 > hosts or services here. If they are checked by all instances globally, this will lead
 > into duplicated check results and unclear state history. Not easy to troubleshoot too -
 > you have been warned.
@@ -552,7 +552,7 @@ feature enabled, but not `notification` or `ido-mysql` features).
 >
 > There's a [Vagrant demo setup](https://github.com/Icinga/icinga-vagrant/tree/master/icinga2x-cluster)
 > available featuring a two node cluster showcasing several aspects (config sync,
-> remote command execution, etc).
+> remote command execution, etc.).
 
 ### <a id="cluster-scenarios-master-satellite-clients"></a> Cluster with Master, Satellites and Remote Clients
 
@@ -576,11 +576,11 @@ You'll need to think about the following:
 ### <a id="cluster-scenarios-security"></a> Security in Cluster Scenarios
 
 While there are certain capabilities to ensure the safe communication between all
-nodes (firewalls, policies, software hardening, etc) the Icinga 2 cluster also provides
+nodes (firewalls, policies, software hardening, etc.) the Icinga 2 cluster also provides
 additional security itself:
 
 * [SSL certificates](13-distributed-monitoring-ha.md#manual-certificate-generation) are mandatory for cluster communication.
-* Child zones only receive event updates (check results, commands, etc) for their configured updates.
+* Child zones only receive event updates (check results, commands, etc.) for their configured updates.
 * Zones cannot influence/interfere other zones. Each checked object is assigned to only one zone.
 * All nodes in a zone trust each other.
 * [Configuration sync](13-distributed-monitoring-ha.md#zone-config-sync-permissions) is disabled by default.
@@ -605,7 +605,7 @@ to a master instance. Their network connection only works towards the master mas
 (or the master is able to connect, depending on firewall policies) which means
 remote instances won't see each/connect to each other.
 
-All events (check results, downtimes, comments, etc) are synced to the master node,
+All events (check results, downtimes, comments, etc.) are synced to the master node,
 but the remote nodes can still run local features such as a web interface, reporting,
 graphing, etc. in their own specified zone.
 

@@ -30,7 +30,7 @@ SLES/openSUSE:
 
 Furthermore, you may also have to install debug symbols for Boost and your C library.
 
-If you're building your own binaries you should use the `-DCMAKE_BUILD_TYPE=Debug` cmake
+If you're building your own binaries, you should use the `-DCMAKE_BUILD_TYPE=Debug` cmake
 build flag for debug builds.
 
 
@@ -118,7 +118,7 @@ the duplicate import in your `~/.gdbinit` file.
 
 Call GDB with the binary (`/usr/sbin/icinga2` is a wrapper script calling
 `/usr/lib64/icinga2/sbin/icinga2` since 2.4) and all arguments and run it in foreground.
-If VFork causes trouble disable it inside the gdb run.
+If VFork causes trouble, disable it inside the gdb run.
 
     # gdb --args /usr/lib64/icinga2/sbin/icinga2 daemon -x debug -DUseVfork=0
 
@@ -158,12 +158,12 @@ If Icinga 2 aborted its operation abnormally, generate a backtrace.
     (gdb) bt
     (gdb) thread apply all bt full
 
-If Icinga 2 is still running generate a full backtrace from the running
+If Icinga 2 is still running, generate a full backtrace from the running
 process and store it into a new file (e.g. for debugging dead locks):
 
     # gdb -p $(pidof icinga2) -batch -ex "thread apply all bt full" -ex "detach" -ex "q" > gdb_bt.log
 
-If you're opening an issue at [https://dev.icinga.org] make sure
+If you're opening an issue at [https://dev.icinga.org], make sure
 to attach as much detail as possible.
 
 ### <a id="development-debug-gdb-backtrace-stepping"></a> GDB Backtrace Stepping

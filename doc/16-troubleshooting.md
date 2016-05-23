@@ -8,11 +8,11 @@
 	* `icinga2 feature list`
 	* `icinga2 daemon --validate`
 	* Relevant output from your main and debug log ( `icinga2 object list --type='filelogger'` )
-	* The newest Icinga 2 crash log, if relevant
+	* The newest Icinga 2 crash log if relevant
 	* Your icinga2.conf and, if you run multiple Icinga 2 instances, your zones.conf
 * How was Icinga 2 installed (and which repository in case) and which distribution are you using
 * Provide complete configuration snippets explaining your problem in detail
-* If the check command failed - what's the output of your manual plugin tests?
+* If the check command failed, what's the output of your manual plugin tests?
 * In case of [debugging](21-development.md#development) Icinga 2, the full back traces and outputs
 
 ## <a id="troubleshooting-enable-debug-output"></a> Enable Debug Output
@@ -125,9 +125,9 @@ to fetch the checkable object, its check result and the executed shell command.
 
 ### <a id="checks-not-executed"></a> Checks are not executed
 
-* Check the [debug log](16-troubleshooting.md#troubleshooting-enable-debug-output) to see if the check command gets executed
-* Verify that failed depedencies do not prevent command execution
-* Make sure that the plugin is executable by the Icinga 2 user (run a manual test)
+* Check the [debug log](16-troubleshooting.md#troubleshooting-enable-debug-output) to see if the check command gets executed.
+* Verify that failed depedencies do not prevent command execution.
+* Make sure that the plugin is executable by the Icinga 2 user (run a manual test).
 * Make sure the [checker](8-cli-commands.md#enable-features) feature is enabled.
 * Use the Icinga 2 API [event streams](9-icinga2-api.md#icinga2-api-event-streams) to receive live check result streams.
 
@@ -145,20 +145,20 @@ Fetch all check result events matching the `event.service` name `random`:
 
 ## <a id="notifications-not-sent"></a> Notifications are not sent
 
-* Check the debug log to see if a notification is triggered
-* If yes, verify that all conditions are satisfied
+* Check the debug log to see if a notification is triggered.
+* If yes, verify that all conditions are satisfied.
 * Are any errors on the notification command execution logged?
 
-Verify the following configuration
+Verify the following configuration:
 
-* Is the host/service `enable_notifications` attribute set, and if, to which value?
+* Is the host/service `enable_notifications` attribute set, and if so, to which value?
 * Do the notification attributes `states`, `types`, `period` match the notification conditions?
 * Do the user attributes `states`, `types`, `period` match the notification conditions?
 * Are there any notification `begin` and `end` times configured?
 * Make sure the [notification](8-cli-commands.md#enable-features) feature is enabled.
 * Does the referenced NotificationCommand work when executed as Icinga user on the shell?
 
-If notifications are to be sent via mail make sure that the mail program specified inside the
+If notifications are to be sent via mail, make sure that the mail program specified inside the
 [NotificationCommand object](6-object-types.md#objecttype-notificationcommand) exists.
 The name and location depends on the distribution so the preconfigured setting might have to be
 changed on your system.
@@ -224,7 +224,7 @@ General connection errors normally lead you to one of the following problems:
 * Packet loss on the connection
 * Firewall rules preventing traffic
 
-Use tools like `netstat`, `tcpdump`, `nmap`, etc to make sure that the cluster communication
+Use tools like `netstat`, `tcpdump`, `nmap`, etc. to make sure that the cluster communication
 happens (default port is `5665`).
 
     # tcpdump -n port 5665 -i any
@@ -359,11 +359,11 @@ check whether the config update and reload was succesful or not.
 ### <a id="troubleshooting-cluster-check-results"></a> Cluster Troubleshooting Overdue Check Results
 
 If your master does not receive check results (or any other events) from the child zones
-(satellite, clients, etc) make sure to check whether the client sending in events
+(satellite, clients, etc.), make sure to check whether the client sending in events
 is allowed to do so.
 
 The [cluster naming convention](13-distributed-monitoring-ha.md#cluster-naming-convention)
-applies so if there's a mismatch between your client node's endpoint name and its provided
+applies. So, if there's a mismatch between your client node's endpoint name and its provided
 certificate's CN, the master will deny all events.
 
 > **Tip**

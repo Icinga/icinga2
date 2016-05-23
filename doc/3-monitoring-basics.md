@@ -672,7 +672,7 @@ generic `apply for` rule generating the object name with or without a prefix.
 Imagine a different more advanced example: You are monitoring your network device (host)
 with many interfaces (services). The following requirements/problems apply:
 
-* Each interface service check should be named with a prefix and a name defined in your host object (which could be generated from your CMDB, etc)
+* Each interface service check should be named with a prefix and a name defined in your host object (which could be generated from your CMDB, etc.)
 * Each interface has its own vlan tag
 * Some interfaces have QoS enabled
 * Additional attributes such as `display_name` or `notes`, `notes_url` and `action_url` must be
@@ -1515,7 +1515,7 @@ when passing credentials to database checks:
 ### <a id="notification-commands"></a> Notification Commands
 
 [NotificationCommand](6-object-types.md#objecttype-notificationcommand) objects define how notifications are delivered to external
-interfaces (email, XMPP, IRC, Twitter, etc).
+interfaces (email, XMPP, IRC, Twitter, etc.).
 
 [NotificationCommand](6-object-types.md#objecttype-notificationcommand) objects are referenced by
 [Notification](6-object-types.md#objecttype-notification) objects using the `command` attribute.
