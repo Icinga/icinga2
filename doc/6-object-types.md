@@ -131,7 +131,7 @@ Configuration Attributes:
 ### <a id="objecttype-checkcommand-arguments"></a> CheckCommand Arguments
 
 Command arguments can be defined as key-value-pairs in the `arguments`
-dictionary. If the argument requires additional configuration for example
+dictionary. If the argument requires additional configuration, for example
 a `description` attribute or an optional condition, the value can be defined
 as dictionary specifying additional options.
 
@@ -240,7 +240,7 @@ Configuration Attributes:
   Name            |Description
   ----------------|----------------
   host_name       | **Required.** The name of the host this comment belongs to.
-  service_name    | **Optional.** The short name of the service this comment belongs to. If omitted this comment object is treated as host comment.
+  service_name    | **Optional.** The short name of the service this comment belongs to. If omitted, this comment object is treated as host comment.
   author          | **Required.** The author's name.
   text            | **Required.** The comment text.
   entry_time      | **Optional.** The unix timestamp when this comment was added.
@@ -314,9 +314,9 @@ Configuration Attributes:
   Name                  |Description
   ----------------------|----------------
   parent_host_name      |**Required.** The parent host.
-  parent_service_name   |**Optional.** The parent service. If omitted this dependency object is treated as host dependency.
+  parent_service_name   |**Optional.** The parent service. If omitted, this dependency object is treated as host dependency.
   child_host_name       |**Required.** The child host.
-  child_service_name    |**Optional.** The child service. If omitted this dependency object is treated as host dependency.
+  child_service_name    |**Optional.** The child service. If omitted, this dependency object is treated as host dependency.
   disable_checks        |**Optional.** Whether to disable checks when this dependency fails. Defaults to false.
   disable_notifications |**Optional.** Whether to disable notifications when this dependency fails. Defaults to true.
   ignore_soft_states    |**Optional.** Whether to ignore soft states for the reachability calculation. Defaults to true.
@@ -382,7 +382,7 @@ Configuration Attributes:
   Name            |Description
   ----------------|----------------
   host_name       | **Required.** The name of the host this comment belongs to.
-  service_name    | **Optional.** The short name of the service this comment belongs to. If omitted this comment object is treated as host comment.
+  service_name    | **Optional.** The short name of the service this comment belongs to. If omitted, this comment object is treated as host comment.
   author          | **Required.** The author's name.
   comment         | **Required.** The comment text.
   start_time      | **Required.** The start time as unix timestamp.
@@ -645,7 +645,7 @@ Configuration Attributes:
 
 The IcingaApplication object is required to start Icinga 2.
 The object name must be `app`. If the object configuration
-is missing Icinga 2 will automatically create an IcingaApplication
+is missing, Icinga 2 will automatically create an IcingaApplication
 object.
 
 Example:
@@ -872,7 +872,7 @@ Example:
 Measurement names and tags are fully configurable by the end user. The InfluxdbWriter
 object will automatically add a `metric` and `type` tag to each data point. These
 correlate to perfdata label and perfdata field (value, warn, crit, min, max) respectively.
-If a value associated with a tag is not able to be resolved it will be dropped and not
+If a value associated with a tag is not able to be resolved, it will be dropped and not
 sent to the target host.
 
 The database is assumed to exist so this object will make no attempt to create it currently.
@@ -963,7 +963,7 @@ Configuration Attributes:
   Name                      | Description
   --------------------------|----------------
   host_name                 | **Required.** The name of the host this notification belongs to.
-  service_name              | **Optional.** The short name of the service this notification belongs to. If omitted this notification object is treated as host notification.
+  service_name              | **Optional.** The short name of the service this notification belongs to. If omitted, this notification object is treated as host notification.
   vars                      | **Optional.** A dictionary containing custom attributes that are specific to this notification object.
   users                     | **Optional.** A list of user names who should be notified.
   user_groups               | **Optional.** A list of user group names who should be notified.
@@ -1159,7 +1159,7 @@ Configuration Attributes:
   Name            |Description
   ----------------|----------------
   host_name       |**Required.** The name of the host this scheduled downtime belongs to.
-  service_name    |**Optional.** The short name of the service this scheduled downtime belongs to. If omitted this downtime object is treated as host downtime.
+  service_name    |**Optional.** The short name of the service this scheduled downtime belongs to. If omitted, this downtime object is treated as host downtime.
   author          |**Required.** The author of the downtime.
   comment         |**Required.** A comment for the downtime.
   fixed           |**Optional.** Whether this is a fixed downtime. Defaults to true.
