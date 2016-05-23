@@ -5,13 +5,13 @@ The configuration files which are automatically created when installing the Icin
 are a good way to start with Icinga 2.
 
 If you're interested in a detailed explanation of each language feature used in those
-configuration files you can find more information in the [Language Reference](18-language-reference.md#language-reference)
+configuration files, you can find more information in the [Language Reference](18-language-reference.md#language-reference)
 chapter.
 
 ## <a id="configuration-best-practice"></a> Configuration Best Practice
 
 If you are ready to configure additional hosts, services, notifications,
-dependencies, etc, you should think about the requirements first and then
+dependencies, etc., you should think about the requirements first and then
 decide for a possible strategy.
 
 There are many ways of creating Icinga 2 configuration objects:
@@ -72,7 +72,7 @@ Here's a brief description of the example configuration:
 
     /**
      * Icinga 2 configuration file
-     * - this is where you define settings for the Icinga application including
+     * -- this is where you define settings for the Icinga application including
      * which hosts/services to check.
      *
      * For an overview of all available configuration options please refer
@@ -184,7 +184,7 @@ It can be used as reference example for your own configuration strategy.
 Just keep in mind to include the main directories in the
 [icinga2.conf](4-configuring-icinga-2.md#icinga2-conf) file.
 
-You are certainly not bound to it. Remove it, if you prefer your own
+You are certainly not bound to it. Remove it if you prefer your own
 way of deploying Icinga 2 configuration.
 
 Further details on configuration best practice and how to build your
@@ -232,7 +232,7 @@ service apply rule defined in [services.conf](4-configuring-icinga-2.md#services
 * define notification types (`mail`) and set the groups attribute. This
 will be used by notification apply rules in [notifications.conf](notifications-conf).
 
-If you've installed [Icinga Web 2](2-getting-started.md#setting-up-icingaweb2) you can
+If you've installed [Icinga Web 2](2-getting-started.md#setting-up-icingaweb2), you can
 uncomment the http vhost attributes and reload Icinga 2. The apply
 rules in [services.conf](4-configuring-icinga-2.md#services-conf) will automatically
 generate a new service checking the `/icingaweb2` URI using the `http`
@@ -295,8 +295,8 @@ host and your additional hosts are getting [services](4-configuring-icinga-2.md#
 
 > **Tip**
 >
-> If you don't understand all the attributes and how to use [apply rules](18-language-reference.md#apply)
-> don't worry - the [monitoring basics](3-monitoring-basics.md#monitoring-basics) chapter will explain
+> If you don't understand all the attributes and how to use [apply rules](18-language-reference.md#apply),
+> don't worry -- the [monitoring basics](3-monitoring-basics.md#monitoring-basics) chapter will explain
 > that in detail.
 
 #### <a id="services-conf"></a> services.conf
@@ -396,7 +396,7 @@ This dictionary contains multiple service names we want to monitor. `disk`
 should just check all available disks, while `disk /` will pass an additional
 parameter `disk_partition` to the check command.
 
-You'll recognize that the naming is important - that's the very same name
+You'll recognize that the naming is important -- that's the very same name
 as it is passed from a service to a check command argument. Read about services
 and passing check commands in [this chapter](3-monitoring-basics.md#command-passing-parameters).
 
@@ -473,7 +473,7 @@ Please note that the `to` keyword is important in [notification apply rules](3-m
 defining whether these notifications are applies to hosts or services.
 The `import` keyword imports the specific mail templates defined in [templates.conf](4-configuring-icinga-2.md#templates-conf).
 
-The `interval` attribute is not explicitly set - it [defaults to 30 minutes](6-object-types.md#objecttype-notification).
+The `interval` attribute is not explicitly set -- it [defaults to 30 minutes](6-object-types.md#objecttype-notification).
 
 By setting the `user_groups` to the value provided by the
 respective [host.vars.notification.mail](4-configuring-icinga-2.md#hosts-conf) attribute we'll
