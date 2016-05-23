@@ -1,6 +1,6 @@
 # <a id="advanced-topics"></a> Advanced Topics
 
-This chapter covers a number of advanced topics. If you're new to Icinga you
+This chapter covers a number of advanced topics. If you're new to Icinga, you
 can safely skip over things you're not interested in.
 
 ## <a id="downtimes"></a> Downtimes
@@ -107,7 +107,7 @@ pass the comment id in case of manipulating an existing comment.
 
 ## <a id="acknowledgements"></a> Acknowledgements
 
-If a problem is alerted and notified you may signal the other notification
+If a problem is alerted and notified, you may signal the other notification
 recipients that you are aware of the problem and will handle it.
 
 By sending an acknowledgement to Icinga 2 (using the external command pipe
@@ -127,7 +127,7 @@ current problem should be resolved in the future at a defined time,
 you can define an expiration time when acknowledging the problem.
 
 Icinga 2 will clear the acknowledgement when expired and start to
-re-notify if the problem persists.
+re-notify, if the problem persists.
 
 
 ## <a id="timeperiods"></a> Time Periods
@@ -141,7 +141,7 @@ configuration attributes for `Notification` and `User` objects.
 
 > **Note**
 >
-> If you are familiar with Icinga 1.x - these time period definitions
+> If you are familiar with Icinga 1.x, these time period definitions
 > are called `legacy timeperiods` in Icinga 2.
 >
 > An Icinga 2 legacy timeperiod requires the `ITL` provided template
@@ -161,7 +161,7 @@ The descending order of precedence is as follows:
 * Normal weekday (Tuesday)
 
 If you don't set any `check_period` or `notification_period` attribute
-on your configuration objects Icinga 2 assumes `24x7` as time period
+on your configuration objects, Icinga 2 assumes `24x7` as time period
 as shown below.
 
     object TimePeriod "24x7" {
@@ -179,7 +179,7 @@ as shown below.
       }
     }
 
-If your operation staff should only be notified during workhours
+If your operation staff should only be notified during workhours,
 create a new timeperiod named `workhours` defining a work day from
 09:00 to 17:00.
 
@@ -212,7 +212,7 @@ Use the `period` attribute to assign time periods to
 ### <a id="timeperiods-includes-excludes"></a> Time Periods Inclusion and Exclusion
 
 Sometimes it is necessary to exclude certain time ranges from
-your default time period definitions. For example if you don't
+your default time period definitions, for example, if you don't
 want to send out any notification during the holiday season,
 or if you only want to allow small time windows for executed checks.
 
@@ -300,8 +300,8 @@ The `set_if` attribute inside the command arguments definition in the
 [CheckCommand object definition](6-object-types.md#objecttype-checkcommand) is primarily used to
 evaluate whether the command parameter should be set or not.
 
-By default you can evaluate runtime macros for their existence, and if the result is not an empty
-string the command parameter is passed. This becomes fairly complicated when want to evaluate
+By default you can evaluate runtime macros for their existence. If the result is not an empty
+string, the command parameter is passed. This becomes fairly complicated when want to evaluate
 multiple conditions and attributes.
 
 The following example was found on the community support channels. The user had defined a host
@@ -459,7 +459,7 @@ as value for `ping_wrta`, all other hosts use 100.
 ### <a id="use-functions-assign-where"></a> Use Functions in Assign Where Expressions
 
 If a simple expression for matching a name or checking if an item
-exists in an array or dictionary does not fit you should consider
+exists in an array or dictionary does not fit, you should consider
 writing your own global [functions](18-language-reference.md#functions).
 You can call them inside `assign where` and `ignore where` expressions
 for [apply rules](3-monitoring-basics.md#using-apply-expressions) or
