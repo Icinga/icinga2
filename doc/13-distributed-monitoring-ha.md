@@ -12,7 +12,7 @@ You can combine these scenarios into a global setup fitting your requirements.
 Each instance got their own event scheduler, and does not depend on a centralized master
 coordinating and distributing the events. In case of a cluster failure, all nodes
 continue to run independently. Be alarmed when your cluster fails and a Split-Brain-scenario
-is in effect - all alive instances continue to do their job, and history will begin to differ.
+is in effect -- all alive instances continue to do their job, and history will begin to differ.
 
 
 ## <a id="cluster-requirements"></a> Cluster Requirements
@@ -90,7 +90,7 @@ the host's FQDN):
 * &lt;fqdn-nodename&gt;.crt
 * &lt;fqdn-nodename&gt;.key
 
-If you're planning to use your existing CA and certificates please note that you *must not*
+If you're planning to use your existing CA and certificates, please note that you *must not*
 use wildcard certificates. The common name (CN) is mandatory for the cluster communication and
 therefore must be unique for each connecting instance.
 
@@ -196,7 +196,7 @@ You can simply enable the `api` feature using
 Edit `/etc/icinga2/features-enabled/api.conf` if you require the configuration
 synchronisation enabled for this node. Set the `accept_config` attribute to `true`.
 
-If you want to use this node as [remote client for command execution](11-icinga2-client.md#icinga2-client-configuration-command-bridge)
+If you want to use this node as [remote client for command execution](11-icinga2-client.md#icinga2-client-configuration-command-bridge),
 set the `accept_commands` attribute to `true`.
 
 > **Note**
@@ -243,7 +243,7 @@ define the zone `config-ha-master` where the `icinga2a` and `icinga2b` endpoints
 are located. The `check-satellite` zone consists of `icinga2c` only, but more nodes could
 be added.
 
-The `config-ha-master` zone acts as High-Availability setup - the Icinga 2 instances elect
+The `config-ha-master` zone acts as High-Availability setup -- the Icinga 2 instances elect
 one instance running a check, notification or feature (DB IDO), for example `icinga2a`. In case of
 failure of the `icinga2a` instance, `icinga2b` will take over automatically.
 
@@ -300,7 +300,7 @@ These zone packages are then distributed to all nodes in the same zone, and
 to their respective target zone instances.
 
 Each configured zone must exist with the same directory name. The parent zone
-syncs the configuration to the child zones, if allowed using the `accept_config`
+syncs the configuration to the child zones if allowed using the `accept_config`
 attribute of the [ApiListener](13-distributed-monitoring-ha.md#configure-apilistener-object) object.
 
 Config on node `icinga2a`:
@@ -335,7 +335,7 @@ Config on node `icinga2b`:
     /etc/icinga2/zones.d
       EMPTY_IF_CONFIG_SYNC_ENABLED
 
-If the local configuration is newer than the received update Icinga 2 will skip the synchronisation
+If the local configuration is newer than the received update, Icinga 2 will skip the synchronisation
 process.
 
 > **Note**
@@ -346,7 +346,7 @@ process.
 
 ### <a id="zone-global-config-templates"></a> Global Configuration Zone for Templates
 
-If your zone configuration setup shares the same templates, groups, commands, timeperiods, etc.
+If your zone configuration setup shares the same templates, groups, commands, timeperiods, etc.,
 you would have to duplicate quite a lot of configuration objects making the merged configuration
 on your configuration master unique.
 
@@ -381,7 +381,7 @@ your zone configuration visible to all nodes.
     }
 
 If the remote node does not have this zone configured, it will ignore the configuration
-update, if it accepts synchronized configuration.
+update if it accepts synchronized configuration.
 
 If you do not require any global configuration, skip this setting.
 
@@ -465,7 +465,7 @@ The configuration tree could look like this:
     
     7 directories, 13 files
 
-If you prefer a different naming schema for directories or files names, go for it. If you
+If you prefer a different naming schema for directories or file names, go for it. If you
 are unsure about the best method, join the [support channels](1-about.md#support) and discuss
 with the community.
 
@@ -679,7 +679,7 @@ check results from the satellite nodes in the zones `berlin` and `vienna`.
 
 ### <a id="cluster-scenarios-load-distribution"></a> Load Distribution
 
-If you are planning to off-load the checks to a defined set of remote workers
+If you are planning to off-load the checks to a defined set of remote workers,
 you can achieve that by:
 
 * Deploying the configuration on all nodes.
@@ -696,7 +696,7 @@ Configuration on the master node:
       master/
       checker/
 
-If you are planning to have some checks executed by a specific set of checker nodes
+If you are planning to have some checks executed by a specific set of checker nodes,
 you have to define additional zones and define these check objects there.
 
 Endpoints:
