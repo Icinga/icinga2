@@ -14,9 +14,9 @@ monitoring and high-availability, please continue reading in
 
 > **Tip**
 >
-> Don't panic - there are CLI commands available, including setup wizards for easy installation
+> Don't panic -- there are CLI commands available, including setup wizards for easy installation
 > with SSL certificates.
-> If you prefer to use your own CA (for example Puppet) you can do that as well.
+> If you prefer to use your own CA (for example Puppet), you can do that as well.
 
 
 ## <a id="icinga2-client-scenarios"></a> Client Scenarios
@@ -76,7 +76,7 @@ and zone configuration.
 
 ### <a id="icinga2-client-installation-master-setup"></a> Setup the Master for Remote Clients
 
-If you are planning to use the [remote Icinga 2 clients](11-icinga2-client.md#icinga2-client)
+If you are planning to use the [remote Icinga 2 clients](11-icinga2-client.md#icinga2-client),
 you'll first need to update your master setup.
 
 Your master setup requires the following
@@ -200,7 +200,7 @@ one for you already.
 > and must remain on the master providing the CSR Auto-Signing functionality for security reasons.
 
 The client setup wizard will ask you to generate a valid ticket number using its CN.
-If you already know your remote client's Common Names (CNs) - usually the FQDN - you
+If you already know your remote client's Common Names (CNs) -- usually the FQDN --, you
 can generate all ticket numbers on-demand.
 
 This is also reasonable if you are not capable of installing the remote client, but
@@ -471,7 +471,7 @@ The next step allows you to verify the CA presented by the master.
 
 ![Icinga 2 Windows Setup](images/icinga2-client/icinga2_windows_setup_wizard_04.png)
 
-If you have chosen to install/update the NSClient++ package the Icinga 2 setup wizard will ask
+If you have chosen to install/update the NSClient++ package, the Icinga 2 setup wizard will ask
 you to do so.
 
 ![Icinga 2 Windows Setup](images/icinga2-client/icinga2_windows_setup_wizard_05.png)
@@ -485,7 +485,7 @@ Once install and configuration is done, Icinga 2 is automatically started as a W
 ![Icinga 2 Windows Setup](images/icinga2-client/icinga2_windows_running_service.png)
 
 The Icinga 2 configuration is located inside the `C:\ProgramData\icinga2` directory.
-If you click `Examine Config` in the setup wizard running it will open a new explorer window.
+If you click `Examine Config` in the setup wizard, it will open a new explorer window.
 
 ![Icinga 2 Windows Setup](images/icinga2-client/icinga2_windows_setup_wizard_examine_config.png)
 
@@ -502,8 +502,8 @@ In case you want to restart the Icinga 2 service, run `services.msc` and restart
 
 #### <a id="icinga2-client-installation-client-setup-windows-silent"></a> Silent Windows Client Setup
 
-If you want to install the client silently / unattended use the `/qn` modifier. The
-installation should not trigger a restart but if you want to be completly sure, you can use the `/norestart` modifier.
+If you want to install the client silently/unattended, use the `/qn` modifier. The
+installation should not trigger a restart but if you want to be completly sure you can use the `/norestart` modifier.
 
     C:> msiexec /i C:\Icinga2-v2.4.5-x86.msi /qn /norestart
 
@@ -519,7 +519,7 @@ This is considered as independant satellite using a local scheduler, configurati
 and the possibility to add Icinga 2 features on demand.
 
 There is no difference in the configuration syntax on clients to any other Icinga 2 installation.
-You can also use additional features like notifications directly on the remote client, if you are
+You can also use additional features like notifications directly on the remote client if you are
 required to. Basically everything a single Icinga 2 instance provides by default.
 
 The following convention applies to remote clients:
@@ -585,7 +585,7 @@ Using systemd:
     # systemctl reload icinga2
 
 
-The `update-config` CLI command will fail, if there are uncommitted changes for the
+The `update-config` CLI command will fail if there are uncommitted changes for the
 configuration repository or if your master is part of a HA setup (see https://dev.icinga.org/issues/8292 for details).
 Please review these changes manually, or clear the commit and try again. This is a
 safety hook to prevent unwanted manual changes to be committed by a updating the
@@ -627,7 +627,7 @@ Icinga 2 already provides a variety of `CheckCommand` definitions using the Plug
 Check Commands, but you should also modify the local configuration inside `commands.conf`
 for example.
 
-If you're wondering why you need to keep the same command configuration on the master and
+If you're wondering, why you need to keep the same command configuration on the master and
 remote client: Icinga 2 calculates all required runtime macros used as command arguments on
 the master and sends that information to the client.
 In case you want to limit command arguments or handles values in a different manner, you

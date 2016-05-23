@@ -276,7 +276,7 @@ Icinga 2 automatically falls back to using the configuration file
 ### Config Validation
 
 The `--validate` option can be used to check if your configuration files
-contain errors. If any errors are found the exit status is 1, otherwise 0
+contain errors. If any errors are found, the exit status is 1, otherwise 0
 is returned. More details in the [configuration validation](8-cli-commands.md#config-validation) chapter.
 
 
@@ -667,7 +667,7 @@ Example filtered by `Service` objects with the name `ping*`:
 ## <a id="config-change-reload"></a> Reload on Configuration Changes
 
 Everytime you have changed your configuration you should first tell Icinga 2
-to [validate](8-cli-commands.md#config-validation). If there are no validation errors you can
+to [validate](8-cli-commands.md#config-validation). If there are no validation errors, you can
 safely reload the Icinga 2 daemon.
 
     # /etc/init.d/icinga2 reload

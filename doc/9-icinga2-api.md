@@ -13,7 +13,7 @@ Make sure to restart Icinga 2 to enable the changes you just made:
 
     # service icinga2 restart
 
-If you prefer to set up the API manually you will have to perform the following steps:
+If you prefer to set up the API manually, you will have to perform the following steps:
 
 * Set up X.509 certificates for Icinga 2
 * Enable the `api` feature (`icinga2 feature enable api`)
@@ -253,7 +253,7 @@ example, the following query returns all `Host` objects:
 
     https://localhost:5665/v1/objects/hosts
 
-If you're only interested in a single object you can limit the output to that object by specifying its name:
+If you're only interested in a single object, you can limit the output to that object by specifying its name:
 
     https://localhost:5665/v1/objects/hosts?host=localhost
 
@@ -265,7 +265,7 @@ You can also specify multiple objects:
 
     https://localhost:5665/v1/objects/hosts?hosts=first-host&hosts=second-host
 
-Again - like in the previous example - the name of the URL parameter is the lower-case version of the type. However, because we're specifying multiple objects here the **plural form** of the type is used.
+Again -- like in the previous example -- the name of the URL parameter is the lower-case version of the type. However, because we're specifying multiple objects here the **plural form** of the type is used.
 
 When specifying names for objects which have composite names like for example services the
 full name has to be used:
@@ -685,8 +685,8 @@ Send a `POST` request to the URL endpoint `/v1/actions/reschedule-check`.
 
   Parameter    | Type      | Description
   -------------|-----------|--------------
-  next\_check  | timestamp | **Optional.** The next check will be run at this time. If omitted the current time is used.
-  force\_check | boolean   | **Optional.** Defaults to `false`. If enabled the checks are executed regardless of time period restrictions and checks being disabled per object or on a global basis.
+  next\_check  | timestamp | **Optional.** The next check will be run at this time. If omitted, the current time is used.
+  force\_check | boolean   | **Optional.** Defaults to `false`. If enabled, the checks are executed regardless of time period restrictions and checks being disabled per object or on a global basis.
 
 In addition to these parameters a [filter](9-icinga2-api.md#icinga2-api-filters) must be provided. The valid types for this action are `Host` and `Service`.
 
@@ -784,9 +784,9 @@ Send a `POST` request to the URL endpoint `/v1/actions/acknowledge-problem`.
   ----------|-----------|--------------
   author    | string    | **Required.** Name of the author, may be empty.
   comment   | string    | **Required.** Comment text, may be empty.
-  expiry    | timestamp | **Optional.** If set the acknowledgement will vanish after this timestamp.
+  expiry    | timestamp | **Optional.** If set, the acknowledgement will vanish after this timestamp.
   sticky    | boolean   | **Optional.** If `true`, the default, the acknowledgement will remain until the service or host fully recovers.
-  notify    | boolean   | **Optional.** If `true` a notification will be sent out to contacts to indicate this problem has been acknowledged. The default is false.
+  notify    | boolean   | **Optional.** If `true`, a notification will be sent out to contacts to indicate this problem has been acknowledged. The default is false.
 
 In addition to these parameters a [filter](9-icinga2-api.md#icinga2-api-filters) must be provided. The valid types for this action are `Host` and `Service`.
 
@@ -920,7 +920,7 @@ Send a `POST` request to the URL endpoint `/v1/actions/schedule-downtime`.
   start\_time   | timestamp | **Required.** Timestamp marking the beginning of the downtime.
   end\_time     | timestamp | **Required.** Timestamp marking the end of the downtime.
   duration      | integer   | **Required.** Duration of the downtime in seconds if `fixed` is set to false.
-  fixed         | boolean   | **Optional.** Defaults to `true`. If true the downtime is `fixed` otherwise `flexible`. See [downtimes](5-advanced-topics.md#downtimes) for more information.
+  fixed         | boolean   | **Optional.** Defaults to `true`. If true, the downtime is `fixed` otherwise `flexible`. See [downtimes](5-advanced-topics.md#downtimes) for more information.
   trigger\_name | string    | **Optional.** Sets the trigger for a triggered downtime. See [downtimes](5-advanced-topics.md#downtimes) for more information on triggered downtimes.
 
 In addition to these parameters a [filter](9-icinga2-api.md#icinga2-api-filters) must be provided. The valid types for this action are `Host` and `Service`.
@@ -1238,7 +1238,7 @@ The Icinga 2 API returns the `package` name this stage was created for, and also
 generates a unique name for the `stage` attribute you'll need for later requests.
 
 Icinga 2 automatically restarts the daemon in order to activate the new config stage.
-If the validation for the new config stage failed the old stage and its configuration objects
+If the validation for the new config stage failed, the old stage and its configuration objects
 will remain active.
 
 > **Note**
@@ -1463,7 +1463,7 @@ The following parameters need to be specified (either as URL parameters or in a 
 The [API permission](9-icinga2-api.md#icinga2-api-permissions) `console` is required for executing
 expressions.
 
-If you specify a session identifier the same script context can be reused for multiple requests. This allows you to, for example, set a local variable in a request and use that local variable in another request. Sessions automatically expire after a set period of inactivity (currently 30 minutes).
+If you specify a session identifier, the same script context can be reused for multiple requests. This allows you to, for example, set a local variable in a request and use that local variable in another request. Sessions automatically expire after a set period of inactivity (currently 30 minutes).
 
 Example for fetching the command line from the local host's last check result:
 
