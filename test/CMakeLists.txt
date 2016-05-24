@@ -23,13 +23,13 @@ set(base_test_SOURCES
   base-serialize.cpp base-shellescape.cpp base-stacktrace.cpp
   base-stream.cpp base-string.cpp base-timer.cpp base-type.cpp
   base-value.cpp config-ops.cpp icinga-macros.cpp
-  icinga-perfdata.cpp test.cpp 
+  icinga-perfdata.cpp base-test.cpp 
   remote-base64.cpp remote-url.cpp
 )
 
 set(livestatus_test_SOURCES
   livestatus.cpp
-  test.cpp
+  livestatus-test.cpp
 )
 
 set_property(SOURCE test.cpp PROPERTY EXCLUDE_UNITY_BUILD TRUE)
@@ -39,7 +39,7 @@ if(ICINGA2_UNITY_BUILD)
 endif()
 
 add_boost_test(base
-  SOURCES test.cpp ${base_test_SOURCES}
+  SOURCES base-test.cpp ${base_test_SOURCES}
   LIBRARIES base config icinga
   TESTS base_array/construct
         base_array/getset
@@ -117,8 +117,9 @@ add_boost_test(base
 
 if(ICINGA2_WITH_LIVESTATUS)
   add_boost_test(livestatus
-    SOURCES test.cpp ${livestatus_test_SOURCES}
+    SOURCES livestatus-test.cpp ${livestatus_test_SOURCES}
     LIBRARIES base config icinga cli livestatus
+    DEPENDENCIES methods
     TESTS livestatus/hosts livestatus/services
   )
 endif()

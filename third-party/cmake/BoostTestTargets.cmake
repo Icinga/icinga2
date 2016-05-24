@@ -14,7 +14,8 @@
 #   [LAUNCHER <generic launcher script>]
 #   [LIBRARIES <library> [<library>...]]
 #   [RESOURCES <resource> [<resource>...]]
-#   [TESTS <testcasename> [<testcasename>...]])
+#   [TESTS <testcasename> [<testcasename>...]]
+#   [DEPENDENCIES <dependency> [<dependency>...]])
 #
 #  If for some reason you need access to the executable target created,
 #  it can be found in ${${testdriver_name}_TARGET_NAME} as specified when
@@ -116,7 +117,8 @@ function(add_boost_test _name)
 		LAUNCHER
 		LIBRARIES
 		RESOURCES
-		TESTS)
+		TESTS
+		DEPENDENCIES)
 	set(_bool_args
 		USE_COMPILED_LIBRARY)
 	foreach(_arg ${_val_args} ${_bool_args})
@@ -263,6 +265,10 @@ function(add_boost_test _name)
 					FAIL_REGULAR_EXPRESSION
 					"${FAIL_REGULAR_EXPRESSION}")
 			endif()
+		endif()
+
+		if (DEPENDENCIES)
+			add_dependencies(${_target_name} ${DEPENDENCIES})
 		endif()
 
 		# CppCheck the test if we can.
