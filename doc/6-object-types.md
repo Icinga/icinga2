@@ -589,6 +589,9 @@ Configuration Attributes:
   icon\_image     |**Optional.** Icon image for the host. Used by external interfaces only.
   icon\_image\_alt|**Optional.** Icon image description for the host. Used by external interface only.
 
+The actual check interval might deviate slightly from the configured values due to the fact that Icinga tries
+to evenly distribute all checks over a certain period of time, i.e. to avoid load spikes.
+
 > **Best Practice**
 >
 > The `address` and `address6` attributes are required for running commands using
@@ -1237,6 +1240,9 @@ Configuration Attributes:
 
 Service objects have composite names, i.e. their names are based on the host_name attribute and the name you specified. This means
 you can define more than one object with the same (short) name as long as the `host_name` attribute has a different value.
+
+The actual check interval might deviate slightly from the configured values due to the fact that Icinga tries
+to evenly distribute all checks over a certain period of time, i.e. to avoid load spikes.
 
 Runtime Attributes:
 
