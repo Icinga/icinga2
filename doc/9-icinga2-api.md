@@ -318,7 +318,7 @@ Some queries can be performed for more than just one object type. One example is
 action which can be used for both hosts and services. When using advanced filters you will also have to specify the
 type using the `type` parameter:
 
-    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST "https://localhost:5665/v1/actions/reschedule-check \
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/reschedule-check' \
     -d '{ "type": "Service", "filter": "service.name==\"ping6\"" }' | python -m json.tool
 
 When building filters you have to ensure that values such as
@@ -694,7 +694,7 @@ The example reschedules all services with the name "ping6" to immediately perfor
 (`next_check` default), ignoring any time periods or whether active checks are
 allowed for the service (`force_check=true`).
 
-    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST "https://localhost:5665/v1/actions/reschedule-check \
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/reschedule-check' \
     -d '{ "type": "Service", "filter": "service.name==\"ping6\"", "force_check": true }' | python -m json.tool
 
     {
