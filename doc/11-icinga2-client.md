@@ -370,6 +370,7 @@ Required information:
 
 * The client common name (CN). Use the FQDN, e.g. `icinga2-node2.localdomain`.
 * The master host and zone name. Pass that to `pki save-cert` as `--host` parameter for example.
+ * Optional: Master endpoint host and port information for the `--endpoint` parameter.
 * The client ticket number generated on the master (`icinga2 pki ticket --cn icinga2-node2.localdomain`)
 
 Generate a new local self-signed certificate.
@@ -407,6 +408,11 @@ the previously stored trusted master certificate.
     --zone icinga2-node2.localdomain \
     --master_host icinga2-node1.localdomain \
     --trustedcert /etc/icinga2/pki/trusted-master.crt
+
+In case the client should connect to the master node, you'll
+need to modify the `--endpoint` parameter using the format `cn,host,port`.
+
+    --endpoint icinga2-node1.localdomain,192.168.56.101,5665
 
 Restart Icinga 2 once complete.
 
