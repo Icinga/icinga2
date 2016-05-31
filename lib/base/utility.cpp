@@ -64,6 +64,10 @@ using namespace icinga;
 boost::thread_specific_ptr<String> Utility::m_ThreadName;
 boost::thread_specific_ptr<unsigned int> Utility::m_RandSeed;
 
+#ifdef I2_DEBUG
+double Utility::m_DebugTime = -1;
+#endif /* I2_DEBUG */
+
 /**
  * Demangles a symbol name.
  *
@@ -332,6 +336,29 @@ void Utility::NullDeleter(void *)
 	/* Nothing to do here. */
 }
 
+#ifdef I2_DEBUG
+/**
+ * (DEBUG / TESTING ONLY) Sets the current system time to a static value,
+ * that will be be retrieved by any component of Icinga, when using GetTime().
+ *
+ * This should be only used for testing purposes, e.g. unit tests and debugging of certain functionalities.
+ */
+void Utility::SetTime(double time)
+{
+	m_DebugTime = time;
+}
+
+/**
+ * (DEBUG / TESTING ONLY) Increases the set debug system time by X seconds.
+ *
+ * This should be only used for testing purposes, e.g. unit tests and debugging of certain functionalities.
+ */
+void Utility::IncrementTime(double diff)
+{
+	m_DebugTime += diff;
+}
+#endif /* I2_DEBUG */
+
 /**
  * Returns the current UNIX timestamp including fractions of seconds.
  *
@@ -339,6 +366,12 @@ void Utility::NullDeleter(void *)
  */
 double Utility::GetTime(void)
 {
+#ifdef I2_DEBUG
+	if (m_DebugTime >= 0) {
+		// (DEBUG / TESTING ONLY) this will return a *STATIC* system time, if the value has been set!
+		return m_DebugTime;
+	}
+#endif /* I2_DEBUG */
 #ifdef _WIN32
 	FILETIME cft;
 	GetSystemTimeAsFileTime(&cft);
