@@ -180,13 +180,10 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 	if (!old_cr) {
 		SetStateType(StateTypeHard);
 	} else if (IsStateOK(cr->GetState())) {
-		if (IsStateOK(old_state) && old_stateType == StateTypeSoft) {
-			SetStateType(StateTypeHard); // SOFT OK -> HARD OK
-			recovery = true;
-		}
+		SetStateType(StateTypeHard); // NOT-OK -> HARD OK
 
 		if (!IsStateOK(old_state))
-			recovery = true; // NOT OK -> SOFT/HARD OK
+			recovery = true;
 
 		ResetNotificationNumbers();
 		SaveLastState(ServiceOK, Utility::GetTime());
