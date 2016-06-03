@@ -303,10 +303,10 @@ void DbEvents::AddComments(const Checkable::Ptr& checkable)
 {
 	std::set<Comment::Ptr> comments = checkable->GetComments();
 
-	if (comments.empty())
-		return;
-
 	std::vector<DbQuery> queries;
+
+	/* Ensure to delete all comments and then insert any or none.
+	 * We must purge obsolete comments in the database at all cost. */
 
 	DbQuery query1;
 	query1.Table = "comments";
@@ -442,8 +442,8 @@ void DbEvents::AddDowntimes(const Checkable::Ptr& checkable)
 {
 	std::set<Downtime::Ptr> downtimes = checkable->GetDowntimes();
 
-	if (downtimes.empty())
-		return;
+	/* Ensure to delete all downtimes and then insert any or none.
+	 * We must purge obsolete downtimes in the database at all cost. */
 
 	std::vector<DbQuery> queries;
 
