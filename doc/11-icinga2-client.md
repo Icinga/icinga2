@@ -588,6 +588,7 @@ After updating the configuration repository, make sure to reload Icinga 2.
     # service icinga2 reload
 
 Using systemd:
+
     # systemctl reload icinga2
 
 
