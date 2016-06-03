@@ -24,7 +24,6 @@
 #include "config/configcompiler.hpp"
 #include "config/configcompilercontext.hpp"
 #include "config/configitembuilder.hpp"
-#include "remote/configobjectutility.hpp"
 
 
 using namespace icinga;
@@ -168,9 +167,6 @@ bool DaemonUtility::LoadConfigFiles(const std::vector<std::string>& configs,
 
 	WorkQueue upq(25000, Application::GetConcurrency());
 	bool result = ConfigItem::CommitItems(ascope.GetContext(), upq, newItems);
-
-	/* Remove ignored Downtime/Comment objects. */
-	ConfigItem::RemoveIgnoredItems(ConfigObjectUtility::GetConfigDir());
 
 	if (!result)
 		return false;

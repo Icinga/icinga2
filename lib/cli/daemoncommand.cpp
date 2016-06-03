@@ -20,6 +20,7 @@
 #include "cli/daemoncommand.hpp"
 #include "cli/daemonutility.hpp"
 #include "remote/apilistener.hpp"
+#include "remote/configobjectutility.hpp"
 #include "config/configcompiler.hpp"
 #include "config/configcompilercontext.hpp"
 #include "config/configitembuilder.hpp"
@@ -295,6 +296,9 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 		SetDaemonIO(errorLog);
 		Logger::DisableConsoleLog();
 	}
+
+	/* Remove ignored Downtime/Comment objects. */
+	ConfigItem::RemoveIgnoredItems(ConfigObjectUtility::GetConfigDir());
 
 #ifndef _WIN32
 	struct sigaction sa;
