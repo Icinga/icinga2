@@ -734,7 +734,7 @@ argument parameters already (for example `iftraffic_units`), you could also add 
 After `vars` is fully populated, all object attributes can be set calculated from
 provided host attributes. For strings, you can use string concatention with the `+` operator.
 
-You can also specifiy the display_name, check command, interval, notes, notes_url, action_url, etc.
+You can also specify the display_name, check command, interval, notes, notes_url, action_url, etc.
 attributes that way. Attribute strings can be [concatenated](18-language-reference.md#expression-operators),
 for example for adding a more detailed service `display_name`.
 
@@ -1338,7 +1338,7 @@ can also be inherited from a parent template using additive inheritance (`+=`).
 The check command definition also sets `mysql_host` to the `$address$` default value. You can override
 this command parameter if for example your MySQL host is not running on the same server's ip address.
 
-Make sure pass all required command parameters, such as `mysql_user`, `mysql_password` and `mysql_database`.
+Make sure to pass all required command parameters, such as `mysql_user`, `mysql_password` and `mysql_database`.
 `MysqlUsername` and `MysqlPassword` are specified as [global constants](4-configuring-icinga-2.md#constants-conf)
 in this example.
 
