@@ -411,6 +411,15 @@ Example:
     object Endpoint "icinga2b" {
       host = "192.168.5.46"
       port = 5665
+      log_duration = 1d
+    }
+
+Example (disable replay log):
+
+    object Endpoint "icinga2b" {
+      host = "192.168.5.46"
+      port = 5665
+      log_duration = 0
     }
 
 Configuration Attributes:
@@ -419,7 +428,7 @@ Configuration Attributes:
   ----------------|----------------
   host            |**Optional.** The hostname/IP address of the remote Icinga 2 instance.
   port            |**Optional.** The service name/port of the remote Icinga 2 instance. Defaults to `5665`.
-  log_duration    |**Optional.** Duration for keeping replay logs on connection loss. Defaults to `1d`.
+  log_duration    |**Optional.** Duration for keeping replay logs on connection loss. Defaults to `1d` (86400 seconds). Attribute is specified in seconds. If log_duration is set to 0, replaying logs is disabled. You could also specify the value in human readable format like `10m` for 10 minutes or `1h` for one hour.
 
 
 ## <a id="objecttype-eventcommand"></a> EventCommand
