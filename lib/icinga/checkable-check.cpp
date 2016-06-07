@@ -38,7 +38,7 @@ using namespace icinga;
 boost::signals2::signal<void (const Checkable::Ptr&, const CheckResult::Ptr&, const MessageOrigin::Ptr&)> Checkable::OnNewCheckResult;
 boost::signals2::signal<void (const Checkable::Ptr&, const CheckResult::Ptr&, StateType, const MessageOrigin::Ptr&)> Checkable::OnStateChange;
 boost::signals2::signal<void (const Checkable::Ptr&, const CheckResult::Ptr&, std::set<Checkable::Ptr>, const MessageOrigin::Ptr&)> Checkable::OnReachabilityChanged;
-boost::signals2::signal<void (const Checkable::Ptr&, NotificationType, const CheckResult::Ptr&, const String&, const String&)> Checkable::OnNotificationsRequested;
+boost::signals2::signal<void (const Checkable::Ptr&, NotificationType, const CheckResult::Ptr&, const String&, const String&, const MessageOrigin::Ptr&)> Checkable::OnNotificationsRequested;
 boost::signals2::signal<void (const Checkable::Ptr&)> Checkable::OnNextCheckUpdated;
 
 boost::mutex Checkable::m_StatsMutex;
@@ -368,26 +368,30 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 	    (is_volatile && !(IsStateOK(old_state) && IsStateOK(new_state))))
 		ExecuteEventHandler();
 
-	if (send_downtime_notification)
-		OnNotificationsRequested(this, in_downtime ? NotificationDowntimeStart : NotificationDowntimeEnd, cr, "", "");
+	if (send_downtime_notification && !origin)
+		OnNotificationsRequested(this, in_downtime ? NotificationDowntimeStart : NotificationDowntimeEnd, cr, "", "", MessageOrigin::Ptr());
 
 	if (send_notification) {
 		if (!was_flapping && is_flapping) {
-			OnNotificationsRequested(this, NotificationFlappingStart, cr, "", "");
+			if (!IsPaused())
+				OnNotificationsRequested(this, NotificationFlappingStart, cr, "", "", MessageOrigin::Ptr());
 
 			Log(LogNotice, "Checkable")
 				<< "Flapping: Checkable " << GetName() << " started flapping (" << GetFlappingThreshold() << "% < " << GetFlappingCurrent() << "%).";
 
 			NotifyFlapping(origin);
 		} else if (was_flapping && !is_flapping) {
-			OnNotificationsRequested(this, NotificationFlappingEnd, cr, "", "");
+			if (!IsPaused())
+				OnNotificationsRequested(this, NotificationFlappingEnd, cr, "", "", MessageOrigin::Ptr());
 
 			Log(LogNotice, "Checkable")
 				<< "Flapping: Checkable " << GetName() << " stopped flapping (" << GetFlappingThreshold() << "% >= " << GetFlappingCurrent() << "%).";
 
 			NotifyFlapping(origin);
-		} else if (!was_flapping && !is_flapping)
-			OnNotificationsRequested(this, recovery ? NotificationRecovery : NotificationProblem, cr, "", "");
+		} else if (!was_flapping && !is_flapping) {
+			if (!IsPaused())
+				OnNotificationsRequested(this, recovery ? NotificationRecovery : NotificationProblem, cr, "", "", MessageOrigin::Ptr());
+		}
 	}
 }
 

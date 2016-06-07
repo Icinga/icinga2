@@ -1078,7 +1078,7 @@ Configuration Attributes:
 
   Name            |Description
   ----------------|----------------
-  enable\_ha      |**Optional.** Enable the high availability functionality. Only valid in a [cluster setup](13-distributed-monitoring-ha.md#high-availability-notifications). Defaults to "true".
+  enable\_ha      |**Optional.** Enable the high availability functionality. Only valid in a [cluster setup](13-distributed-monitoring-ha.md#high-availability-notifications). Disabling this currently only affects reminder notifications. Defaults to "true".
 
 ## <a id="objecttype-opentsdbwriter"></a> OpenTsdbWriter
 

@@ -97,8 +97,8 @@ void Checkable::AcknowledgeProblem(const String& author, const String& comment, 
 	SetAcknowledgementRaw(type);
 	SetAcknowledgementExpiry(expiry);
 
-	if (notify)
-		OnNotificationsRequested(this, NotificationAcknowledgement, GetLastCheckResult(), author, comment);
+	if (notify && !IsPaused())
+		OnNotificationsRequested(this, NotificationAcknowledgement, GetLastCheckResult(), author, comment, MessageOrigin::Ptr());
 
 	OnAcknowledgementSet(this, author, comment, type, notify, expiry, origin);
 }

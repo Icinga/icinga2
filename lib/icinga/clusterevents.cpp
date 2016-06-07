@@ -48,6 +48,7 @@ REGISTER_APIFUNCTION(SetAcknowledgement, event, &ClusterEvents::AcknowledgementS
 REGISTER_APIFUNCTION(ClearAcknowledgement, event, &ClusterEvents::AcknowledgementClearedAPIHandler);
 REGISTER_APIFUNCTION(UpdateRepository, event, &ClusterEvents::UpdateRepositoryAPIHandler);
 REGISTER_APIFUNCTION(ExecuteCommand, event, &ClusterEvents::ExecuteCommandAPIHandler);
+REGISTER_APIFUNCTION(SendNotifications, event, &ClusterEvents::SendNotificationsAPIHandler);
 
 static Timer::Ptr l_RepositoryTimer;
 
@@ -58,6 +59,7 @@ void ClusterEvents::StaticInitialize(void)
 	Notification::OnNextNotificationChanged.connect(&ClusterEvents::NextNotificationChangedHandler);
 	Checkable::OnForceNextCheckChanged.connect(&ClusterEvents::ForceNextCheckChangedHandler);
 	Checkable::OnForceNextNotificationChanged.connect(&ClusterEvents::ForceNextNotificationChangedHandler);
+	Checkable::OnNotificationsRequested.connect(&ClusterEvents::SendNotificationsHandler);
 
 	Checkable::OnAcknowledgementSet.connect(&ClusterEvents::AcknowledgementSetHandler);
 	Checkable::OnAcknowledgementCleared.connect(&ClusterEvents::AcknowledgementClearedHandler);
@@ -753,6 +755,76 @@ Value ClusterEvents::UpdateRepositoryAPIHandler(const MessageOrigin::Ptr& origin
 	message->Set("params", params);
 
 	listener->RelayMessage(origin, Zone::GetLocalZone(), message, true);
+
+	return Empty;
+}
+
+void ClusterEvents::SendNotificationsHandler(const Checkable::Ptr& checkable, NotificationType type,
+    const CheckResult::Ptr& cr, const String& author, const String& text, const MessageOrigin::Ptr& origin)
+{
+	ApiListener::Ptr listener = ApiListener::GetInstance();
+
+	if (!listener)
+		return;
+
+	Dictionary::Ptr message = MakeCheckResultMessage(checkable, cr);
+	message->Set("method", "event::SendNotifications");
+
+	Dictionary::Ptr params = message->Get("params");
+	params->Set("type", type);
+	params->Set("author", author);
+	params->Set("text", text);
+
+	listener->RelayMessage(origin, checkable, message, true);
+}
+
+Value ClusterEvents::SendNotificationsAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
+{
+	Endpoint::Ptr endpoint = origin->FromClient->GetEndpoint();
+
+	if (!endpoint) {
+		Log(LogNotice, "ClusterEvents")
+		    << "Discarding 'send notification' message from '" << origin->FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
+		return Empty;
+	}
+
+	if (!params)
+		return Empty;
+
+	Host::Ptr host = Host::GetByName(params->Get("host"));
+
+	if (!host)
+		return Empty;
+
+	Checkable::Ptr checkable;
+
+	if (params->Contains("service"))
+		checkable = host->GetServiceByShortName(params->Get("service"));
+	else
+		checkable = host;
+
+	if (!checkable)
+		return Empty;
+
+	if (origin->FromZone && !origin->FromZone->CanAccessObject(checkable)) {
+		Log(LogNotice, "ClusterEvents")
+		    << "Discarding 'send custom notification' message from '" << origin->FromClient->GetIdentity() << "': Unauthorized access.";
+		return Empty;
+	}
+
+	CheckResult::Ptr cr = new CheckResult();
+
+	Dictionary::Ptr vcr = params->Get("cr");
+	Array::Ptr vperf = vcr->Get("performance_data");
+	vcr->Remove("performance_data");
+
+	Deserialize(cr, params->Get("cr"), true);
+
+	NotificationType type = static_cast<NotificationType>(static_cast<int>(params->Get("type")));
+	String author = params->Get("author");
+	String text = params->Get("text");
+
+	Checkable::OnNotificationsRequested(checkable, type, cr, author, text, origin);
 
 	return Empty;
 }

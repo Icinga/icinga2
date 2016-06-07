@@ -131,8 +131,5 @@ void NotificationComponent::NotificationTimerHandler(void)
 void NotificationComponent::SendNotificationsHandler(const Checkable::Ptr& checkable, NotificationType type,
     const CheckResult::Ptr& cr, const String& author, const String& text)
 {
-	if (checkable->IsPaused() && GetEnableHA())
-		return;
-
 	checkable->SendNotifications(type, cr, author, text);
 }

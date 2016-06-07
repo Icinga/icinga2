@@ -73,7 +73,8 @@ void Checkable::SendNotifications(NotificationType type, const CheckResult::Ptr&
 
 	BOOST_FOREACH(const Notification::Ptr& notification, notifications) {
 		try {
-			notification->BeginExecuteNotification(type, cr, force, author, text);
+			if (!notification->IsPaused())
+				notification->BeginExecuteNotification(type, cr, force, author, text);
 		} catch (const std::exception& ex) {
 			Log(LogWarning, "Checkable")
 			    << "Exception occured during notification for service '"

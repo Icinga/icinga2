@@ -66,6 +66,10 @@ public:
 	static Value UpdateRepositoryAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
 
 	static Dictionary::Ptr MakeCheckResultMessage(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
+
+	static void SendNotificationsHandler(const Checkable::Ptr& checkable, NotificationType type,
+	    const CheckResult::Ptr& cr, const String& author, const String& text, const MessageOrigin::Ptr& origin);
+	static Value SendNotificationsAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
 };
 
 }
