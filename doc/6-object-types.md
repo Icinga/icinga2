@@ -882,10 +882,10 @@ Example:
     }
 
 Measurement names and tags are fully configurable by the end user. The InfluxdbWriter
-object will automatically add a `metric` and `type` tag to each data point. These
-correlate to perfdata label and perfdata field (value, warn, crit, min, max) respectively.
-If a value associated with a tag is not able to be resolved, it will be dropped and not
-sent to the target host.
+object will automatically add a `metric` tag to each data point. This correlates to the
+perfdata label. Fields (value, warn, crit, min, max) are created from data if available
+and the configuration allows it.  If a value associated with a tag is not able to be
+resolved, it will be dropped and not sent to the target host.
 
 The database is assumed to exist so this object will make no attempt to create it currently.
 
@@ -907,6 +907,45 @@ Configuration Attributes:
   enable_send_thresholds | **Optional.** Whether to send warn, crit, min & max tagged data.
   flush_interval         | **Optional.** How long to buffer data points before transfering to InfluxDB. Defaults to `10s`.
   flush_threshold        | **Optional.** How many data points to buffer before forcing a transfer to InfluxDB.  Defaults to `1024`.
+
+### <a id="objecttype-influxdbwriter-instance-tags"></a> Instance Tagging
+
+Consider the following service check:
+
+    apply Service "disk" for (disk => attributes in host.vars.disks) {
+      import "generic-service"
+      check_command = "disk"
+      display_name = "Disk " + disk
+      vars.disk_partitions = disk
+      assign where host.vars.disks
+    }
+
+This is a typical pattern for checking individual disks, NICs, SSL certificates etc associated
+with a host.  What would be useful is to have the data points tagged with the specific instance
+for that check.  This would allow you to query time series data for a check on a host and for a
+specific instance e.g. /dev/sda.  To do this quite simply add the instance to the service variables:
+
+    apply Service "disk" for (disk => attributes in host.vars.disks) {
+      ...
+      vars.instance = disk
+      ...
+    }
+
+Then modify your writer configuration to add this tag to your data points if the instance variable
+is associated with the service:
+
+    object InfluxdbWriter "influxdb" {
+      ...
+      service_template = {
+        measurement = "$service.check_command$"
+        tags = {
+          hostname = "$host.name$"
+          service = "$service.name$"
+          instance = "$service.vars.instance$"
+        }
+      }
+      ...
+    }
 
 ## <a id="objecttype-livestatuslistener"></a> LiveStatusListener
 

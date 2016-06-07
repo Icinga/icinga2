@@ -45,6 +45,7 @@
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/replace.hpp>
+#include <boost/regex.hpp>
 
 using namespace icinga;
 
@@ -140,8 +141,6 @@ void InfluxdbWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 	double ts = cr->GetExecutionEnd();
 
 	// Clone the template and perform an in-place macro expansion of measurement and tag values
-	// Work Needed: Escape ' ', ',' and '=' in field keys, tag keys and tag values
-	//              Quote field values when the type is string
 	Dictionary::Ptr tmpl_clean = service ? GetServiceTemplate() : GetHostTemplate();
 	Dictionary::Ptr tmpl = static_pointer_cast<Dictionary>(tmpl_clean->Clone());
 	tmpl->Set("measurement", MacroProcessor::ResolveMacros(tmpl->Get("measurement"), resolvers, cr));
@@ -158,16 +157,10 @@ retry:
 		}
 	}
 
-	// If the service was appiled via a 'apply Service for' command then resolve the
-	// instance and add it as a tag (e.g. check_command = mtu, name = mtueth0, instance = eth0)
-	if (service && (service->GetName() != service->GetCheckCommand()->GetName())) {
-		tags->Set("instance", service->GetName().SubStr(service->GetCheckCommand()->GetName().GetLength()));
-	}
-
 	SendPerfdata(tmpl, cr, ts);
 }
 
-void InfluxdbWriter::SendPerfdata(const Dictionary::Ptr tmpl, const CheckResult::Ptr& cr, double ts)
+void InfluxdbWriter::SendPerfdata(const Dictionary::Ptr& tmpl, const CheckResult::Ptr& cr, double ts)
 {
 	Array::Ptr perfdata = cr->GetPerformanceData();
 
@@ -190,37 +183,86 @@ void InfluxdbWriter::SendPerfdata(const Dictionary::Ptr tmpl, const CheckResult:
 			}
 		}
 
-		SendMetric(tmpl, pdv->GetLabel(), "value", pdv->GetValue(), ts);
-
+		Dictionary::Ptr fields = new Dictionary();
+		fields->Set(String("value"), pdv->GetValue());
 		if (GetEnableSendThresholds()) {
 			if (pdv->GetCrit())
-				SendMetric(tmpl, pdv->GetLabel(), "crit", pdv->GetCrit(), ts);
+				fields->Set(String("crit"), pdv->GetCrit());
 			if (pdv->GetWarn())
-				SendMetric(tmpl, pdv->GetLabel(), "warn", pdv->GetWarn(), ts);
+				fields->Set(String("warn"), pdv->GetWarn());
 			if (pdv->GetMin())
-				SendMetric(tmpl, pdv->GetLabel(), "min", pdv->GetMin(), ts);
+				fields->Set(String("min"), pdv->GetMin());
 			if (pdv->GetMax())
-				SendMetric(tmpl, pdv->GetLabel(), "max", pdv->GetMax(), ts);
+				fields->Set(String("max"), pdv->GetMax());
 		}
+
+		SendMetric(tmpl, pdv->GetLabel(), fields, ts);
 	}
 }
 
-void InfluxdbWriter::SendMetric(const Dictionary::Ptr tmpl, const String& label, const String& type, double value, double ts)
+String InfluxdbWriter::EscapeKey(const String& str)
+{
+	// Iterate over the key name and escape commas and spaces with a backslash
+	String result = str;
+	boost::algorithm::replace_all(result, ",", "\\,");
+	boost::algorithm::replace_all(result, " ", "\\ ");
+	return str;
+}
+
+String InfluxdbWriter::EscapeField(const String& str)
+{
+	// Technically everything entering here from PerfdataValue is a
+	// double, but best have the safety net in place.
+
+	// Handle numerics
+	boost::regex numeric("-?\\d+(\\.\\d+)?((e|E)[+-]?\\d+)?");
+	if (boost::regex_match(str.GetData(), numeric)) {
+		return str;
+	}
+
+	// Handle booleans
+	boost::regex boolean_true("t|true", boost::regex::icase);
+	if (boost::regex_match(str.GetData(), boolean_true))
+		return "true";
+	boost::regex boolean_false("f|false", boost::regex::icase);
+	if (boost::regex_match(str.GetData(), boolean_false))
+		return "false";
+
+	// Otherwise it's a string and needs escaping and quoting
+	String result = str;
+	boost::algorithm::replace_all(result, "\"", "\\\"");
+	return "\"" + result + "\"";
+}
+
+void InfluxdbWriter::SendMetric(const Dictionary::Ptr& tmpl, const String& label, const Dictionary::Ptr& fields, double ts)
 {
 	std::ostringstream msgbuf;
-	msgbuf << tmpl->Get("measurement");
+	msgbuf << EscapeKey(tmpl->Get("measurement"));
 
 	Dictionary::Ptr tags = tmpl->Get("tags");
 	if (tags) {
 		ObjectLock olock(tags);
 		BOOST_FOREACH(const Dictionary::Pair& pair, tags) {
 			// Empty macro expansion, no tag
-			if (!pair.second.IsEmpty())
-				msgbuf << "," << pair.first << "=" << pair.second;
+			if (!pair.second.IsEmpty()) {
+				msgbuf << "," << EscapeKey(pair.first) << "=" << EscapeKey(pair.second);
+			}
 		}
 	}
 
-	msgbuf << ",metric=" << label << ",type=" << type << " value=" << value << " " << static_cast<unsigned long>(ts);
+	msgbuf << ",metric=" << label << " ";
+
+	bool first = true;
+	ObjectLock fieldLock(fields);
+	BOOST_FOREACH(const Dictionary::Pair& pair, fields) {
+		if (first)
+			first = false;
+		else
+			msgbuf << ",";
+		msgbuf << EscapeKey(pair.first) << "=" << EscapeField(pair.second);
+	}
+
+	msgbuf << " " <<  static_cast<unsigned long>(ts);
 
 	Log(LogDebug, "InfluxdbWriter")
 	    << "Add to metric list:'" << msgbuf.str() << "'.";

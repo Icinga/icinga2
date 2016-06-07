@@ -54,10 +54,13 @@ private:
 	Array::Ptr m_DataBuffer;
 
 	void CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
-	void SendPerfdata(const Dictionary::Ptr tmpl, const CheckResult::Ptr& cr, double ts);
-	void SendMetric(const Dictionary::Ptr tmpl, const String& label, const String& type, double value, double ts);
+	void SendPerfdata(const Dictionary::Ptr& tmpl, const CheckResult::Ptr& cr, double ts);
+	void SendMetric(const Dictionary::Ptr& tmpl, const String& label, const Dictionary::Ptr& fields, double ts);
 	void FlushTimeout(void);
 	void Flush(void);
+
+	static String EscapeKey(const String& str);
+	static String EscapeField(const String& str);
 
 	Stream::Ptr Connect(void);
 };
