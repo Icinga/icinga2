@@ -157,10 +157,20 @@ retry:
 		}
 	}
 
-	SendPerfdata(tmpl, cr, ts);
+	SendPerfdata(tmpl, checkable, cr, ts);
 }
 
-void InfluxdbWriter::SendPerfdata(const Dictionary::Ptr& tmpl, const CheckResult::Ptr& cr, double ts)
+String InfluxdbWriter::FormatInteger(const int val)
+{
+	return Convert::ToString(val) + "i";
+}
+
+String InfluxdbWriter::FormatBoolean(const bool val)
+{
+	return val ? "true" : "false";
+}
+
+void InfluxdbWriter::SendPerfdata(const Dictionary::Ptr& tmpl, const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, double ts)
 {
 	Array::Ptr perfdata = cr->GetPerformanceData();
 
@@ -185,6 +195,7 @@ void InfluxdbWriter::SendPerfdata(const Dictionary::Ptr& tmpl, const CheckResult
 
 		Dictionary::Ptr fields = new Dictionary();
 		fields->Set(String("value"), pdv->GetValue());
+
 		if (GetEnableSendThresholds()) {
 			if (pdv->GetCrit())
 				fields->Set(String("crit"), pdv->GetCrit());
@@ -194,6 +205,25 @@ void InfluxdbWriter::SendPerfdata(const Dictionary::Ptr& tmpl, const CheckResult
 				fields->Set(String("min"), pdv->GetMin());
 			if (pdv->GetMax())
 				fields->Set(String("max"), pdv->GetMax());
+		}
+
+		if (GetEnableSendMetadata()) {
+			Host::Ptr host;
+			Service::Ptr service;
+			boost::tie(host, service) = GetHostService(checkable);
+
+			if (service)
+				fields->Set(String("state"), FormatInteger(service->GetState()));
+			else
+				fields->Set(String("state"), FormatInteger(host->GetState()));
+
+			fields->Set(String("current_attempt"), FormatInteger(checkable->GetCheckAttempt()));
+			fields->Set(String("max_check_attempts"), FormatInteger(checkable->GetMaxCheckAttempts()));
+			fields->Set(String("state_type"), FormatInteger(checkable->GetStateType()));
+			fields->Set(String("reachable"), FormatBoolean(checkable->IsReachable()));
+			fields->Set(String("downtime_depth"), FormatInteger(checkable->GetDowntimeDepth()));
+			fields->Set(String("latency"), cr->CalculateLatency());
+			fields->Set(String("execution_time"), cr->CalculateExecutionTime());
 		}
 
 		SendMetric(tmpl, pdv->GetLabel(), fields, ts);
@@ -211,8 +241,11 @@ String InfluxdbWriter::EscapeKey(const String& str)
 
 String InfluxdbWriter::EscapeField(const String& str)
 {
-	// Technically everything entering here from PerfdataValue is a
-	// double, but best have the safety net in place.
+	// Handle integers
+	boost::regex integer("-?\\d+i");
+	if (boost::regex_match(str.GetData(), integer)) {
+		return str;
+	}
 
 	// Handle numerics
 	boost::regex numeric("-?\\d+(\\.\\d+)?((e|E)[+-]?\\d+)?");
@@ -335,6 +368,7 @@ void InfluxdbWriter::Flush(void)
 	} catch (const std::exception&) {
 		Log(LogWarning, "InfluxdbWriter")
 		    << "Cannot write to TCP socket on host '" << GetHost() << "' port '" << GetPort() << "'.";
+		return;
 	}
 
 	HttpResponse resp(stream, req);
@@ -342,9 +376,10 @@ void InfluxdbWriter::Flush(void)
 
 	try {
 		resp.Parse(context, true);
-	} catch (const std::exception) {
+	} catch (const std::exception&) {
 		Log(LogWarning, "InfluxdbWriter")
 		    << "Cannot read from TCP socket from host '" << GetHost() << "' port '" << GetPort() << "'.";
+		return;
 	}
 
 	if (resp.StatusCode != 204) {

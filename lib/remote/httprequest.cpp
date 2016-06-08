@@ -174,8 +174,11 @@ void HttpRequest::FinishHeaders(void)
 	if (m_State == HttpRequestHeaders) {
 		AddHeader("User-Agent", "Icinga/" + Application::GetAppVersion());
 
-		if (ProtocolVersion == HttpVersion11)
+		if (ProtocolVersion == HttpVersion11) {
 			AddHeader("Transfer-Encoding", "chunked");
+			if (!Headers->Contains("Host"))
+				AddHeader("Host", RequestUrl->GetHost() + ":" + RequestUrl->GetPort());
+		}
 
 		ObjectLock olock(Headers);
 		BOOST_FOREACH(const Dictionary::Pair& kv, Headers)

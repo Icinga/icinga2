@@ -905,6 +905,7 @@ Configuration Attributes:
   host_template          | **Required.** Host template to define the InfluxDB line protocol.
   service_template       | **Required.** Service template to define the influxDB line protocol.
   enable_send_thresholds | **Optional.** Whether to send warn, crit, min & max tagged data.
+  enable_send_metadata   | **Optional.** Whether to send check metadata e.g. states, execution time, latency etc.
   flush_interval         | **Optional.** How long to buffer data points before transfering to InfluxDB. Defaults to `10s`.
   flush_threshold        | **Optional.** How many data points to buffer before forcing a transfer to InfluxDB.  Defaults to `1024`.
 
