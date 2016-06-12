@@ -1456,8 +1456,11 @@ This command has the same custom attributes like the `nscp-local` check command.
 
 ## <a id="snmp-manubulon-plugin-check-commands"></a> Plugin Check Commands for Manubulon SNMP
 
-The `SNMP Manubulon Plugin Check Commands` provide example configuration for plugin check
+The `SNMP Manubulon Plugin Check Commands` provide configuration for plugin check
 commands provided by the [SNMP Manubulon project](http://nagios.manubulon.com/index_snmp.html).
+
+**Note:** Some plugin parameters are only available in Debian packages or in a
+[forked repository](https://github.com/dnsmichi/manubulon-snmp) with patches applied.
 
 The SNMP manubulon plugin check commands assume that the global constant named `ManubulonPluginDir`
 is set to the path where the Manubublon SNMP plugins are installed.
@@ -1604,6 +1607,7 @@ snmp_interface_errors       | **Optional.** Add error & discard to Perfparse out
 snmp_interface_noregexp     | **Optional.** Do not use regexp to match interface name in description OID. Defaults to false.
 snmp_interface_delta        | **Optional.** Delta time of perfcheck. Defaults to "300" (5 min).
 snmp_warncrit_percent       | **Optional.** Make the warning and critical levels in % of reported interface speed. If set, **snmp_interface_megabytes** needs to be set to false. Defaults to false.
+snmp_interface_ifname       | **Optional.** Switch from IF-MIB::ifDescr to IF-MIB::ifName when looking up the interface's name
 snmp_perf                   | **Optional.** Enable perfdata values. Defaults to true.
 snmp_timeout                | **Optional.** The command timeout in seconds. Defaults to 5 seconds.
 
