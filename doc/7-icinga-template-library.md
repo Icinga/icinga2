@@ -1577,35 +1577,35 @@ Check command object for the [check_snmp_int.pl](http://nagios.manubulon.com/snm
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
-Name                        | Description
-----------------------------|--------------
-snmp_address                | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
-snmp_nocrypt                | **Optional.** Define SNMP encryption. If set, **snmp_v3** needs to be set. Defaults to false.
-snmp_community              | **Optional.** The SNMP community. Defaults to "public".
-snmp_port                   | **Optional.** The SNMP port connection.
-snmp_v2                     | **Optional.** SNMP version to 2c. Defaults to false.
-snmp_v3                     | **Optional.** SNMP version to 3. Defaults to false.
-snmp_login                  | **Optional.** SNMP version 3 username. Defaults to "snmpuser".
-snmp_password               | **Required.** SNMP version 3 password. No value defined as default.
-snmp_v3_use_privpass        | **Optional.** Define to use SNMP version 3 priv password. Defaults to false.
-snmp_authprotocol           | **Optional.** SNMP version 3 authentication protocol. Defaults to "md5,des".
-snmp_privpass               | **Required.** SNMP version 3 priv password. No value defined as default.
-snmp_warn                   | **Optional.** The warning threshold.
-snmp_crit                   | **Optional.** The critical threshold.
-snmp_interface              | **Optional.** Network interface name. Default to regex "eth0".
-snmp_interface_perf         | **Optional.** Check the input/ouput bandwidth of the interface. Defaults to true.
-snmp_interface_label        | **Optional.** Add label before speed in output: in=, out=, errors-out=, etc.
-snmp_interface_bits_bytes   | **Optional.** Output performance data in bits/s or Bytes/s. **Depends** on snmp_interface_kbits set to true. Defaults to true.
-snmp_interface_percent      | **Optional.** Output performance data in % of max speed. Defaults to false.
-snmp_interface_kbits        | **Optional.** Make the warning and critical levels in KBits/s. Defaults to true.
-snmp_interface_megabytes    | **Optional.** Make the warning and critical levels in Mbps or MBps. **Depends** on snmp_interface_kbits set to true. Defaults to true.
-snmp_interface_64bit        | **Optional.** Use 64 bits counters instead of the standard counters when checking bandwidth & performance data for interface >= 1Gbps. Defaults to false.
-snmp_interface_errors       | **Optional.** Add error & discard to Perfparse output. Defaults to true.
-snmp_interface_noregexp     | **Optional.** Do not use regexp to match interface name in description OID. Defaults to false.
-snmp_interface_delta        | **Optional.** Delta time of perfcheck. Defaults to "300" (5 min).
-snmp_warncrit_percent       | **Optional.** Make the warning and critical levels in % of reported interface speed. If set, **snmp_interface_megabytes** needs to be set to false. Defaults to false.
-snmp_perf                   | **Optional.** Enable perfdata values. Defaults to true.
-snmp_timeout                | **Optional.** The command timeout in seconds. Defaults to 5 seconds.
+Name                                  | Description
+--------------------------------------|--------------
+snmp_address                          | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
+snmp_nocrypt                          | **Optional.** Define SNMP encryption. If set, **snmp_v3** needs to be set. Defaults to false.
+snmp_community                        | **Optional.** The SNMP community. Defaults to "public".
+snmp_port                             | **Optional.** The SNMP port connection.
+snmp_v2                               | **Optional.** SNMP version to 2c. Defaults to false.
+snmp_v3                               | **Optional.** SNMP version to 3. Defaults to false.
+snmp_login                            | **Optional.** SNMP version 3 username. Defaults to "snmpuser".
+snmp_password                         | **Required.** SNMP version 3 password. No value defined as default.
+snmp_v3_use_privpass                  | **Optional.** Define to use SNMP version 3 priv password. Defaults to false.
+snmp_authprotocol                     | **Optional.** SNMP version 3 authentication protocol. Defaults to "md5,des".
+snmp_privpass                         | **Required.** SNMP version 3 priv password. No value defined as default.
+snmp_warn                             | **Optional.** The warning threshold.
+snmp_crit                             | **Optional.** The critical threshold.
+snmp_interface                        | **Optional.** Network interface name. Default to regex "eth0".
+snmp_interface_perf                   | **Optional.** Check the input/ouput bandwidth of the interface. Defaults to true.
+snmp_interface_label                  | **Optional.** Add label before speed in output: in=, out=, errors-out=, etc.
+snmp_interface_bits_bytes             | **Optional.** Output performance data in bits/s or Bytes/s. **Depends** on snmp_interface_kbits set to true. Defaults to true.
+snmp_interface_percent                | **Optional.** Output performance data in % of max speed. Defaults to false.
+snmp_interface_kbits                  | **Optional.** Make the warning and critical levels in KBits/s. Defaults to true.
+snmp_interface_megabytes              | **Optional.** Make the warning and critical levels in Mbps or MBps. **Depends** on snmp_interface_kbits set to true. Defaults to true.
+snmp_interface_64bit                  | **Optional.** Use 64 bits counters instead of the standard counters when checking bandwidth & performance data for interface >= 1Gbps. Defaults to false.
+snmp_interface_errors                 | **Optional.** Add error & discard to Perfparse output. Defaults to true.
+snmp_interface_noregexp               | **Optional.** Do not use regexp to match interface name in description OID. Defaults to false.
+snmp_interface_delta                  | **Optional.** Delta time of perfcheck. Defaults to "300" (5 min).
+snmp_interface_warncrit_percent       | **Optional.** Make the warning and critical levels in % of reported interface speed. If set, **snmp_interface_megabytes** needs to be set to false. Defaults to false.
+snmp_perf                             | **Optional.** Enable perfdata values. Defaults to true.
+snmp_timeout                          | **Optional.** The command timeout in seconds. Defaults to 5 seconds.
 
 ### <a id="plugin-check-command-snmp-process"></a> snmp-process
 
