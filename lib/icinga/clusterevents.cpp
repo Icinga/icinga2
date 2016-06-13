@@ -775,7 +775,7 @@ void ClusterEvents::SendNotificationsHandler(const Checkable::Ptr& checkable, No
 	params->Set("author", author);
 	params->Set("text", text);
 
-	listener->RelayMessage(origin, checkable, message, true);
+	listener->RelayMessage(origin, ConfigObject::Ptr(), message, true);
 }
 
 Value ClusterEvents::SendNotificationsAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
