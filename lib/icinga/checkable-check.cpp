@@ -370,27 +370,29 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 	if (send_downtime_notification && IsActive())
 		OnNotificationsRequested(this, in_downtime ? NotificationDowntimeStart : NotificationDowntimeEnd, cr, "", "", MessageOrigin::Ptr());
 
-	if (send_notification) {
-		if (!was_flapping && is_flapping) {
-			if (!IsPaused())
-				OnNotificationsRequested(this, NotificationFlappingStart, cr, "", "", MessageOrigin::Ptr());
+	/* Flapping start/end notifications */
+	if (!was_flapping && is_flapping) {
+		if (!IsPaused())
+			OnNotificationsRequested(this, NotificationFlappingStart, cr, "", "", MessageOrigin::Ptr());
 
-			Log(LogNotice, "Checkable")
-				<< "Flapping: Checkable " << GetName() << " started flapping (" << GetFlappingThreshold() << "% < " << GetFlappingCurrent() << "%).";
+		Log(LogNotice, "Checkable")
+			<< "Flapping: Checkable " << GetName() << " started flapping (" << GetFlappingThreshold() << "% < " << GetFlappingCurrent() << "%).";
 
-			NotifyFlapping(origin);
-		} else if (was_flapping && !is_flapping) {
-			if (!IsPaused())
-				OnNotificationsRequested(this, NotificationFlappingEnd, cr, "", "", MessageOrigin::Ptr());
+		NotifyFlapping(origin);
+	} else if (was_flapping && !is_flapping) {
+		if (!IsPaused())
+			OnNotificationsRequested(this, NotificationFlappingEnd, cr, "", "", MessageOrigin::Ptr());
 
-			Log(LogNotice, "Checkable")
-				<< "Flapping: Checkable " << GetName() << " stopped flapping (" << GetFlappingThreshold() << "% >= " << GetFlappingCurrent() << "%).";
+		Log(LogNotice, "Checkable")
+			<< "Flapping: Checkable " << GetName() << " stopped flapping (" << GetFlappingThreshold() << "% >= " << GetFlappingCurrent() << "%).";
 
-			NotifyFlapping(origin);
-		} else if (!was_flapping && !is_flapping) {
-			if (!IsPaused())
-				OnNotificationsRequested(this, recovery ? NotificationRecovery : NotificationProblem, cr, "", "", MessageOrigin::Ptr());
-		}
+		NotifyFlapping(origin);
+	}
+
+	/* Problem notifications */
+	if (send_notification && !is_flapping) {
+		if (!IsPaused())
+			OnNotificationsRequested(this, recovery ? NotificationRecovery : NotificationProblem, cr, "", "", MessageOrigin::Ptr());
 	}
 }
 
