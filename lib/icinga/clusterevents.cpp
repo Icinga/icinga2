@@ -806,7 +806,7 @@ Value ClusterEvents::SendNotificationsAPIHandler(const MessageOrigin::Ptr& origi
 	if (!checkable)
 		return Empty;
 
-	if (origin->FromZone && !origin->FromZone->CanAccessObject(checkable)) {
+	if (origin->FromZone && origin->FromZone != Zone::GetLocalZone()) {
 		Log(LogNotice, "ClusterEvents")
 		    << "Discarding 'send custom notification' message from '" << origin->FromClient->GetIdentity() << "': Unauthorized access.";
 		return Empty;
