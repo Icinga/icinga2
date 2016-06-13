@@ -211,10 +211,13 @@ std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, c
 			attr = "name";
 
 		if (query->Contains(attr)) {
-			Object::Ptr target = provider->GetTargetByName(type, HttpUtility::GetLastParameter(query, attr));
+			String name = HttpUtility::GetLastParameter(query, attr);
+			Object::Ptr target = provider->GetTargetByName(type, name);
 
-			if (FilterUtility::EvaluateFilter(permissionFrame, permissionFilter, target))
-				result.push_back(target);
+			if (!FilterUtility::EvaluateFilter(permissionFrame, permissionFilter, target))
+				BOOST_THROW_EXCEPTION(ScriptError("Access denied to object '" + name + "' of type '" + type + "'"));
+
+			result.push_back(target);
 		}
 
 		attr = provider->GetPluralName(type);
@@ -227,8 +230,10 @@ std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, c
 				BOOST_FOREACH(const String& name, names) {
 					Object::Ptr target = provider->GetTargetByName(type, name);
 
-					if (FilterUtility::EvaluateFilter(permissionFrame, permissionFilter, target))
-						result.push_back(target);
+					if (!FilterUtility::EvaluateFilter(permissionFrame, permissionFilter, target))
+						BOOST_THROW_EXCEPTION(ScriptError("Access denied to object '" + name + "' of type '" + type + "'"));
+
+					result.push_back(target);
 				}
 			}
 		}
