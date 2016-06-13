@@ -99,7 +99,7 @@ Make sure to answer the first question with `n` (no).
 
     Please specify if this is a satellite setup ('n' installs a master setup) [Y/n]: n
     Starting the Master setup routine...
-    Please specifiy the common name (CN) [icinga2-node1.localdomain]: 
+    Please specify the common name (CN) [icinga2-node1.localdomain]: 
     Checking the 'api' feature...
     'api' feature not enabled, running 'api setup' now.
     information/cli: Generating new CA.
@@ -259,8 +259,8 @@ allow you to continue pressing `Enter` instead of entering a value.
 
     Please specify if this is a satellite setup ('n' installs a master setup) [Y/n]:
     Starting the Node setup routine...
-    Please specifiy the common name (CN) [icinga2-node2.localdomain]:
-    Please specifiy the local zone name [icinga2-node2.localdomain]:
+    Please specify the common name (CN) [icinga2-node2.localdomain]:
+    Please specify the local zone name [icinga2-node2.localdomain]:
     Please specify the master endpoint(s) this node should connect to:
     Master Common Name (CN from your master setup): icinga2-node1.localdomain
     Please fill out the master connection information:
