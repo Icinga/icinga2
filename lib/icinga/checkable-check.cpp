@@ -365,7 +365,7 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 	    (is_volatile && !(IsStateOK(old_state) && IsStateOK(new_state))))
 		ExecuteEventHandler();
 
-	if (send_downtime_notification && !origin)
+	if (send_downtime_notification && IsActive())
 		OnNotificationsRequested(this, in_downtime ? NotificationDowntimeStart : NotificationDowntimeEnd, cr, "", "", MessageOrigin::Ptr());
 
 	if (send_notification) {
