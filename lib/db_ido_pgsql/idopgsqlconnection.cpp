@@ -42,7 +42,14 @@ REGISTER_STATSFUNCTION(IdoPgsqlConnection, &IdoPgsqlConnection::StatsFunc);
 
 IdoPgsqlConnection::IdoPgsqlConnection(void)
 	: m_QueryQueue(1000000)
-{ }
+{
+	m_QueryQueue.SetName("IdoPgsqlConnection, " + GetName());
+}
+
+void IdoPgsqlConnection::OnConfigLoaded(void)
+{
+	m_QueryQueue.SetName("IdoPgsqlConnection, " + GetName());
+}
 
 void IdoPgsqlConnection::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
 {

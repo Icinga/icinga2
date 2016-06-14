@@ -49,6 +49,7 @@ public:
 	virtual int GetPendingQueryCount(void) const override;
 
 protected:
+	virtual void OnConfigLoaded(void) override;
 	virtual void Resume(void) override;
 	virtual void Pause(void) override;
 

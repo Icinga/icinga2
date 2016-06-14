@@ -42,6 +42,11 @@ IdoMysqlConnection::IdoMysqlConnection(void)
 	: m_QueryQueue(1000000)
 { }
 
+void IdoMysqlConnection::OnConfigLoaded(void)
+{
+	m_QueryQueue.SetName("IdoMysqlConnection, " + GetName());
+}
+
 void IdoMysqlConnection::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
 {
 	Dictionary::Ptr nodes = new Dictionary();

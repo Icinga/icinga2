@@ -625,6 +625,8 @@ bool ConfigItem::RunWithActivationContext(const Function::Ptr& function)
 	}
 
 	WorkQueue upq(25000, Application::GetConcurrency());
+	upq.SetName("ConfigItem::RunWithActivationContext");
+
 	std::vector<ConfigItem::Ptr> newItems;
 
 	if (!CommitItems(scope.GetContext(), upq, newItems))

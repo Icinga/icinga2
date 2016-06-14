@@ -49,6 +49,16 @@ WorkQueue::~WorkQueue(void)
 	Join(true);
 }
 
+void WorkQueue::SetName(const String& name)
+{
+	m_Name = name;
+}
+
+String WorkQueue::GetName(void) const
+{
+	return m_Name;
+}
+
 /**
  * Enqueues a task. Tasks are guaranteed to be executed in the order
  * they were enqueued in except if there is more than one worker thread or when
@@ -177,8 +187,14 @@ void WorkQueue::StatusTimerHandler(void)
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
 
-	Log(LogNotice, "WorkQueue")
-	    << "#" << m_ID << " tasks: " << m_Tasks.size();
+	Log log(LogNotice, "WorkQueue");
+
+	log << "#" << m_ID;
+
+	if (!m_Name.IsEmpty())
+		log << " (" << m_Name << ")";
+
+	log << " tasks: " << m_Tasks.size();
 }
 
 void WorkQueue::WorkerThreadProc(void)

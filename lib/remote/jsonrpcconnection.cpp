@@ -26,6 +26,7 @@
 #include "base/utility.hpp"
 #include "base/logger.hpp"
 #include "base/exception.hpp"
+#include "base/convert.hpp"
 #include <boost/thread/once.hpp>
 
 using namespace icinga;
@@ -62,6 +63,10 @@ void JsonRpcConnection::StaticInitialize(void)
 
 	l_JsonRpcConnectionWorkQueueCount = Application::GetConcurrency();
 	l_JsonRpcConnectionWorkQueues = new WorkQueue[l_JsonRpcConnectionWorkQueueCount];
+
+	for (int i = 0; i < l_JsonRpcConnectionWorkQueueCount; i++) {
+		l_JsonRpcConnectionWorkQueues[i].SetName("JsonRpcConnection, #" + Convert::ToString(i));
+	}
 }
 
 void JsonRpcConnection::Start(void)

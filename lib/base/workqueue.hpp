@@ -83,6 +83,9 @@ public:
 	WorkQueue(size_t maxItems = 0, int threadCount = 1);
 	~WorkQueue(void);
 
+	void SetName(const String& name);
+	String GetName(void) const;
+
 	void Enqueue(const boost::function<void (void)>& function, WorkQueuePriority priority = PriorityNormal,
 	    bool allowInterleaved = false);
 	void Join(bool stop = false);
@@ -99,6 +102,7 @@ public:
 
 private:
 	int m_ID;
+	String m_Name;
 	static int m_NextID;
 	int m_ThreadCount;
 	bool m_Spawned;

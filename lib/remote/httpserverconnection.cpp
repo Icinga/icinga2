@@ -41,6 +41,8 @@ HttpServerConnection::HttpServerConnection(const String& identity, bool authenti
 {
 	boost::call_once(l_HttpServerConnectionOnceFlag, &HttpServerConnection::StaticInitialize);
 
+	m_RequestQueue.SetName("HttpServerConnection");
+
 	if (authenticated)
 		m_ApiUser = ApiUser::GetByClientCN(identity);
 }
