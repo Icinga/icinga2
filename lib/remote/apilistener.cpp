@@ -602,10 +602,13 @@ void ApiListener::PersistMessage(const Dictionary::Ptr& message, const ConfigObj
 	pmessage->Set("timestamp", ts);
 
 	pmessage->Set("message", JsonEncode(message));
-	Dictionary::Ptr secname = new Dictionary();
-	secname->Set("type", secobj->GetType()->GetName());
-	secname->Set("name", secobj->GetName());
-	pmessage->Set("secobj", secname);
+
+	if (secobj) {
+		Dictionary::Ptr secname = new Dictionary();
+		secname->Set("type", secobj->GetType()->GetName());
+		secname->Set("name", secobj->GetName());
+		pmessage->Set("secobj", secname);
+	}
 
 	boost::mutex::scoped_lock lock(m_LogLock);
 	if (m_LogFile) {
