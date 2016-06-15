@@ -626,6 +626,32 @@ Example for deleting the host object `example.localdomain`:
         ]
     }
 
+## <a id="icinga2-api-config-templates"></a> Config Templates
+
+Provides methods to manage configuration templates:
+
+* [querying templates](9-icinga2-api.md#icinga2-api-config-templates-query)
+
+### <a id="icinga2-api-config-templates-query"></a> Querying Templates
+
+You can request information about configuration templates by sending
+a `GET` query to the `/v1/templates/<type>` URL endpoint. `<type` has
+to be replaced with the plural name of the object type you are interested
+in:
+
+    $ curl -k -s -u root:icinga 'https://localhost:5665/v1/templates/hosts'
+
+A list of all available configuration types is available in the
+[object types](6-object-types.md#object-types) chapter.
+
+A [filter](9-icinga2-api.md#icinga2-api-filters) may be provided for this query type.
+
+Instead of using a filter you can optionally specify the template name in the
+URL path when querying a single object:
+
+    $ curl -k -s -u root:icinga 'https://localhost:5665/v1/templates/hosts/generic-host'
+
+The result set contains the type and name of the template.
 
 ## <a id="icinga2-api-actions"></a> Actions
 
