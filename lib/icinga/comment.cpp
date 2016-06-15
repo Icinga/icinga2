@@ -166,6 +166,7 @@ String Comment::AddComment(const Checkable::Ptr& checkable, CommentType entryTyp
 	attrs->Set("text", text);
 	attrs->Set("expire_time", expireTime);
 	attrs->Set("entry_type", entryType);
+	attrs->Set("entry_time", Utility::GetTime());
 
 	Host::Ptr host;
 	Service::Ptr service;

@@ -214,6 +214,7 @@ String Downtime::AddDowntime(const Checkable::Ptr& checkable, const String& auth
 	attrs->Set("triggered_by", triggeredBy);
 	attrs->Set("scheduled_by", scheduledBy);
 	attrs->Set("config_owner", scheduledDowntime);
+	attrs->Set("entry_time", Utility::GetTime());
 
 	Host::Ptr host;
 	Service::Ptr service;
