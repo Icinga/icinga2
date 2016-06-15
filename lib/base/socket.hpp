@@ -51,6 +51,7 @@ public:
 	size_t Write(const void *buffer, size_t size);
 
 	void Listen(void);
+	void Connect(const String& node, const String& service);
 	Socket::Ptr Accept(void);
 
 	bool Poll(bool read, bool write, struct timeval *timeout = NULL);
@@ -58,11 +59,15 @@ public:
 	void MakeNonBlocking(void);
 
 	static void SocketPair(SOCKET s[2]);
-
+	
 protected:
 	void SetFD(SOCKET fd);
 
 	int GetError(void) const;
+	int socktype; 
+        int protocol;
+
+	virtual void SocketType(){};
 
 	mutable boost::mutex m_SocketMutex;
 

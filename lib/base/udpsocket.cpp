@@ -1,6 +1,6 @@
 /******************************************************************************
  * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
+ * Copyright (C) 2012-2016 Icinga Development Team (https://www.icinga.org/)  *
  *                                                                            *
  * This program is free software; you can redistribute it and/or              *
  * modify it under the terms of the GNU General Public License                *
@@ -17,51 +17,17 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef GELFWRITER_H
-#define GELFWRITER_H
+#include "base/udpsocket.hpp"
+#include "base/logger.hpp"
+#include "base/utility.hpp"
+#include "base/exception.hpp"
+#include <boost/exception/errinfo_api_function.hpp>
+#include <boost/exception/errinfo_errno.hpp>
+#include <iostream>
 
-#include "perfdata/gelfwriter.thpp"
-#include "icinga/service.hpp"
-#include "base/configobject.hpp"
-#include "base/tcpsocket.hpp"
-#include "base/timer.hpp"
-#include <fstream>
+using namespace icinga;
 
-namespace icinga
-{
-
-/**
- * An Icinga gelf writer.
- *
- * @ingroup perfdata
- */
-class GelfWriter : public ObjectImpl<GelfWriter>
-{
-public:
-	DECLARE_OBJECT(GelfWriter);
-	DECLARE_OBJECTNAME(GelfWriter);
-
-protected:
-	virtual void Start(bool runtimeCreated) override;
-	virtual void Stop(bool runtimeRemoved) override;
-
-private:
-	Stream::Ptr m_Stream;
-
-	Timer::Ptr m_ReconnectTimer;
-
-	void CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
-	void NotificationToUserHandler(const Notification::Ptr& notification, const Checkable::Ptr& checkable,
-	const User::Ptr& user, NotificationType notification_type, CheckResult::Ptr const& cr,
-	const String& author, const String& comment_text, const String& command_name);
-	String ComposeGelfMessage(const Dictionary::Ptr& fields, const String& source, double ts);
-	void StateChangeHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, StateType type);
-	void SendLogMessage(const String& gelf);
-
-	void ReconnectTimerHandler(void);
-};
-
+void UdpSocket::SocketType(){
+	socktype = SOCK_DGRAM;
+	protocol = IPPROTO_UDP;
 }
-
-#endif /* GELFWRITER_H */
-

@@ -39,7 +39,8 @@ public:
 	void Bind(const String& service, int family);
 	void Bind(const String& node, const String& service, int family);
 
-	void Connect(const String& node, const String& service);
+private:
+	void SocketType();
 };
 
 }

@@ -45,6 +45,7 @@ Value Dictionary::Get(const String& key) const
 	return it->second;
 }
 
+
 /**
  * Retrieves a value from a dictionary.
  *

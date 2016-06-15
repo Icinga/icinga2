@@ -1,6 +1,6 @@
 /******************************************************************************
  * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
+ * Copyright (C) 2012-2016 Icinga Development Team (https://www.icinga.org/)  *
  *                                                                            *
  * This program is free software; you can redistribute it and/or              *
  * modify it under the terms of the GNU General Public License                *
@@ -17,51 +17,34 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef GELFWRITER_H
-#define GELFWRITER_H
-
-#include "perfdata/gelfwriter.thpp"
-#include "icinga/service.hpp"
 #include "base/configobject.hpp"
-#include "base/tcpsocket.hpp"
-#include "base/timer.hpp"
-#include <fstream>
+
+library perfdata;
 
 namespace icinga
 {
 
-/**
- * An Icinga gelf writer.
- *
- * @ingroup perfdata
- */
-class GelfWriter : public ObjectImpl<GelfWriter>
+class LogstashWriter : ConfigObject
 {
-public:
-	DECLARE_OBJECT(GelfWriter);
-	DECLARE_OBJECTNAME(GelfWriter);
+	[config] String host {
+		default {{{ return "127.0.0.1"; }}}
+	};
 
-protected:
-	virtual void Start(bool runtimeCreated) override;
-	virtual void Stop(bool runtimeRemoved) override;
+	[config] String port {
+		default {{{ return "9201"; }}}
+	};
+	
+	[config] bool defaultProtocol {
+		default {{{ return "true"; }}}
+	};
 
-private:
-	Stream::Ptr m_Stream;
+	[config] String source {
+		default {{{ return "icinga2"; }}}
+	};
 
-	Timer::Ptr m_ReconnectTimer;
-
-	void CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
-	void NotificationToUserHandler(const Notification::Ptr& notification, const Checkable::Ptr& checkable,
-	const User::Ptr& user, NotificationType notification_type, CheckResult::Ptr const& cr,
-	const String& author, const String& comment_text, const String& command_name);
-	String ComposeGelfMessage(const Dictionary::Ptr& fields, const String& source, double ts);
-	void StateChangeHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, StateType type);
-	void SendLogMessage(const String& gelf);
-
-	void ReconnectTimerHandler(void);
+	[config] bool enable_send_perfdata {
+		default {{{ return false; }}}
+	};
 };
 
 }
-
-#endif /* GELFWRITER_H */
-
