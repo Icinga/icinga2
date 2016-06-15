@@ -49,6 +49,8 @@ REGISTER_APIFUNCTION(ClearAcknowledgement, event, &ClusterEvents::Acknowledgemen
 REGISTER_APIFUNCTION(UpdateRepository, event, &ClusterEvents::UpdateRepositoryAPIHandler);
 REGISTER_APIFUNCTION(ExecuteCommand, event, &ClusterEvents::ExecuteCommandAPIHandler);
 REGISTER_APIFUNCTION(SendNotifications, event, &ClusterEvents::SendNotificationsAPIHandler);
+REGISTER_APIFUNCTION(NotificationSentUser, event, &ClusterEvents::NotificationSentUserAPIHandler);
+REGISTER_APIFUNCTION(NotificationSentAllUsers, event, &ClusterEvents::NotificationSentAllUsersAPIHandler);
 
 static Timer::Ptr l_RepositoryTimer;
 
@@ -60,6 +62,8 @@ void ClusterEvents::StaticInitialize(void)
 	Checkable::OnForceNextCheckChanged.connect(&ClusterEvents::ForceNextCheckChangedHandler);
 	Checkable::OnForceNextNotificationChanged.connect(&ClusterEvents::ForceNextNotificationChangedHandler);
 	Checkable::OnNotificationsRequested.connect(&ClusterEvents::SendNotificationsHandler);
+	Checkable::OnNotificationSentToUser.connect(&ClusterEvents::NotificationSentUserHandler);
+	Checkable::OnNotificationSentToAllUsers.connect(&ClusterEvents::NotificationSentAllUsersHandler);
 
 	Checkable::OnAcknowledgementSet.connect(&ClusterEvents::AcknowledgementSetHandler);
 	Checkable::OnAcknowledgementCleared.connect(&ClusterEvents::AcknowledgementClearedHandler);
@@ -825,6 +829,224 @@ Value ClusterEvents::SendNotificationsAPIHandler(const MessageOrigin::Ptr& origi
 	String text = params->Get("text");
 
 	Checkable::OnNotificationsRequested(checkable, type, cr, author, text, origin);
+
+	return Empty;
+}
+
+void ClusterEvents::NotificationSentUserHandler(const Notification::Ptr& notification, const Checkable::Ptr& checkable, const User::Ptr& user,
+    NotificationType notificationType, const CheckResult::Ptr& cr, const String& author, const String& commentText, const String& command,
+    const MessageOrigin::Ptr& origin)
+{
+	ApiListener::Ptr listener = ApiListener::GetInstance();
+
+	if (!listener)
+		return;
+
+	Host::Ptr host;
+	Service::Ptr service;
+	tie(host, service) = GetHostService(checkable);
+
+	Dictionary::Ptr params = new Dictionary();
+	params->Set("host", host->GetName());
+	if (service)
+		params->Set("service", service->GetShortName());
+	params->Set("notification", notification->GetName());
+	params->Set("user", user->GetName());
+	params->Set("type", notificationType);
+	params->Set("cr", Serialize(cr));
+	params->Set("author", author);
+	params->Set("text", commentText);
+	params->Set("command", command);
+
+	Dictionary::Ptr message = new Dictionary();
+	message->Set("jsonrpc", "2.0");
+	message->Set("method", "event::NotificationSentUser");
+	message->Set("params", params);
+
+	listener->RelayMessage(origin, ConfigObject::Ptr(), message, true);
+}
+
+Value ClusterEvents::NotificationSentUserAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
+{
+	Endpoint::Ptr endpoint = origin->FromClient->GetEndpoint();
+
+	if (!endpoint) {
+		Log(LogNotice, "ClusterEvents")
+		    << "Discarding 'sent notification to user' message from '" << origin->FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
+		return Empty;
+	}
+
+	if (!params)
+		return Empty;
+
+	Host::Ptr host = Host::GetByName(params->Get("host"));
+
+	if (!host)
+		return Empty;
+
+	Checkable::Ptr checkable;
+
+	if (params->Contains("service"))
+		checkable = host->GetServiceByShortName(params->Get("service"));
+	else
+		checkable = host;
+
+	if (!checkable)
+		return Empty;
+
+	if (origin->FromZone && origin->FromZone != Zone::GetLocalZone()) {
+		Log(LogNotice, "ClusterEvents")
+		    << "Discarding 'sent notification to user' message from '" << origin->FromClient->GetIdentity() << "': Unauthorized access.";
+		return Empty;
+	}
+
+	CheckResult::Ptr cr = new CheckResult();
+
+	Dictionary::Ptr vcr = params->Get("cr");
+	Array::Ptr vperf = vcr->Get("performance_data");
+	vcr->Remove("performance_data");
+
+	Deserialize(cr, params->Get("cr"), true);
+
+	NotificationType type = static_cast<NotificationType>(static_cast<int>(params->Get("type")));
+	String author = params->Get("author");
+	String text = params->Get("text");
+
+	Notification::Ptr notification = Notification::GetByName(params->Get("notification"));
+
+	if (!notification)
+		return Empty;
+
+	User::Ptr user = User::GetByName(params->Get("user"));
+
+	if (!user)
+		return Empty;
+
+	String command = params->Get("command");
+
+	Checkable::OnNotificationSentToUser(notification, checkable, user, type, cr, author, text, command, origin);
+
+	return Empty;
+}
+
+void ClusterEvents::NotificationSentAllUsersHandler(const Notification::Ptr& notification, const Checkable::Ptr& checkable, const std::set<User::Ptr>& users,
+    NotificationType notificationType, const CheckResult::Ptr& cr, const String& author, const String& commentText, const MessageOrigin::Ptr& origin)
+{
+	ApiListener::Ptr listener = ApiListener::GetInstance();
+
+	if (!listener)
+		return;
+
+	Host::Ptr host;
+	Service::Ptr service;
+	tie(host, service) = GetHostService(checkable);
+
+	Dictionary::Ptr params = new Dictionary();
+	params->Set("host", host->GetName());
+	if (service)
+		params->Set("service", service->GetShortName());
+	params->Set("notification", notification->GetName());
+
+	Array::Ptr ausers = new Array();
+	BOOST_FOREACH(const User::Ptr& user, users) {
+		ausers->Add(user->GetName());
+	}
+	params->Set("users", ausers);
+
+	params->Set("type", notificationType);
+	params->Set("cr", Serialize(cr));
+	params->Set("author", author);
+	params->Set("text", commentText);
+
+	params->Set("last_notification", notification->GetLastNotification());
+	params->Set("next_notifications", notification->GetNextNotification());
+	params->Set("notification_number", notification->GetNotificationNumber());
+	params->Set("last_problem_notification", notification->GetLastProblemNotification());
+
+	Dictionary::Ptr message = new Dictionary();
+	message->Set("jsonrpc", "2.0");
+	message->Set("method", "event::NotificationSentAllUsers");
+	message->Set("params", params);
+
+	listener->RelayMessage(origin, ConfigObject::Ptr(), message, true);
+}
+
+Value ClusterEvents::NotificationSentAllUsersAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
+{
+	Endpoint::Ptr endpoint = origin->FromClient->GetEndpoint();
+
+	if (!endpoint) {
+		Log(LogNotice, "ClusterEvents")
+		    << "Discarding 'sent notification to all users' message from '" << origin->FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
+		return Empty;
+	}
+
+	if (!params)
+		return Empty;
+
+	Host::Ptr host = Host::GetByName(params->Get("host"));
+
+	if (!host)
+		return Empty;
+
+	Checkable::Ptr checkable;
+
+	if (params->Contains("service"))
+		checkable = host->GetServiceByShortName(params->Get("service"));
+	else
+		checkable = host;
+
+	if (!checkable)
+		return Empty;
+
+	if (origin->FromZone && origin->FromZone != Zone::GetLocalZone()) {
+		Log(LogNotice, "ClusterEvents")
+		    << "Discarding 'sent notification to all users' message from '" << origin->FromClient->GetIdentity() << "': Unauthorized access.";
+		return Empty;
+	}
+
+	CheckResult::Ptr cr = new CheckResult();
+
+	Dictionary::Ptr vcr = params->Get("cr");
+	Array::Ptr vperf = vcr->Get("performance_data");
+	vcr->Remove("performance_data");
+
+	Deserialize(cr, params->Get("cr"), true);
+
+	NotificationType type = static_cast<NotificationType>(static_cast<int>(params->Get("type")));
+	String author = params->Get("author");
+	String text = params->Get("text");
+
+	Notification::Ptr notification = Notification::GetByName(params->Get("notification"));
+
+	if (!notification)
+		return Empty;
+
+	Array::Ptr ausers = params->Get("users");
+
+	if (!ausers)
+		return Empty;
+
+	std::set<User::Ptr> users;
+
+	{
+		ObjectLock olock(ausers);
+		BOOST_FOREACH(const String& auser, ausers) {
+			User::Ptr user = User::GetByName(auser);
+
+			if (!user)
+				continue;
+
+			users.insert(user);
+		}
+	}
+
+	notification->SetLastNotification(params->Get("last_notification"));
+	notification->SetNextNotification(params->Get("next_notification"));
+	notification->SetNotificationNumber(params->Get("notification_number"));
+	notification->SetLastProblemNotification(params->Get("last_problem_notification"));
+
+	Checkable::OnNotificationSentToAllUsers(notification, checkable, users, type, cr, author, text, origin);
 
 	return Empty;
 }

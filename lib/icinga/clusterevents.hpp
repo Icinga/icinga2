@@ -70,6 +70,14 @@ public:
 	static void SendNotificationsHandler(const Checkable::Ptr& checkable, NotificationType type,
 	    const CheckResult::Ptr& cr, const String& author, const String& text, const MessageOrigin::Ptr& origin);
 	static Value SendNotificationsAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
+
+	static void NotificationSentUserHandler(const Notification::Ptr& notification, const Checkable::Ptr& checkable, const User::Ptr& user,
+	    NotificationType notificationType, const CheckResult::Ptr& cr, const String& author, const String& commentText, const String& command, const MessageOrigin::Ptr& origin);
+	static Value NotificationSentUserAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
+
+	static void NotificationSentAllUsersHandler(const Notification::Ptr& notification, const Checkable::Ptr& checkable, const std::set<User::Ptr>& users,
+	    NotificationType notificationType, const CheckResult::Ptr& cr, const String& author, const String& commentText, const MessageOrigin::Ptr& origin);
+	static Value NotificationSentAllUsersAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
 };
 
 }

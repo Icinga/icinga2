@@ -345,7 +345,11 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 		std::copy(members.begin(), members.end(), std::inserter(allUsers, allUsers.begin()));
 	}
 
-	Service::OnNotificationSendStart(this, checkable, allUsers, type, cr, author, text);
+	{
+		ObjectLock olock(this);
+		UpdateNotificationNumber();
+		SetLastNotification(Utility::GetTime());
+	}
 
 	std::set<User::Ptr> allNotifiedUsers;
 	Array::Ptr notifiedUsers = GetNotifiedUsers();
@@ -392,7 +396,7 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 		notifiedUsers->Clear();
 
 	/* used in db_ido for notification history */
-	Service::OnNotificationSentToAllUsers(this, checkable, allNotifiedUsers, type, cr, author, text);
+	Service::OnNotificationSentToAllUsers(this, checkable, allNotifiedUsers, type, cr, author, text, MessageOrigin::Ptr());
 }
 
 bool Notification::CheckNotificationUserFilters(NotificationType type, const User::Ptr& user, bool force)
@@ -474,14 +478,8 @@ void Notification::ExecuteNotificationHelper(NotificationType type, const User::
 
 		command->Execute(this, user, cr, type, author, text);
 
-		{
-			ObjectLock olock(this);
-			UpdateNotificationNumber();
-			SetLastNotification(Utility::GetTime());
-		}
-
 		/* required by compatlogger */
-		Service::OnNotificationSentToUser(this, GetCheckable(), user, type, cr, author, text, command->GetName());
+		Service::OnNotificationSentToUser(this, GetCheckable(), user, type, cr, author, text, command->GetName(), MessageOrigin::Ptr());
 
 		Log(LogInformation, "Notification")
 		    << "Completed sending notification '" << GetName()

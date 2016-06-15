@@ -107,7 +107,7 @@ void ApiEvents::StateChangeHandler(const Checkable::Ptr& checkable, const CheckR
 
 void ApiEvents::NotificationSentToAllUsersHandler(const Notification::Ptr& notification,
     const Checkable::Ptr& checkable, const std::set<User::Ptr>& users, NotificationType type,
-    const CheckResult::Ptr& cr, const String& author, const String& text)
+    const CheckResult::Ptr& cr, const String& author, const String& text, const MessageOrigin::Ptr& origin)
 {
 	std::vector<EventQueue::Ptr> queues = EventQueue::GetQueuesForType("Notification");
 

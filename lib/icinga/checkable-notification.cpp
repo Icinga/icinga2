@@ -29,11 +29,11 @@
 using namespace icinga;
 
 boost::signals2::signal<void (const Notification::Ptr&, const Checkable::Ptr&, const std::set<User::Ptr>&,
-    const NotificationType&, const CheckResult::Ptr&, const String&, const String&)> Checkable::OnNotificationSentToAllUsers;
-boost::signals2::signal<void (const Notification::Ptr&, const Checkable::Ptr&, const std::set<User::Ptr>&,
-    const NotificationType&, const CheckResult::Ptr&, const String&, const String&)> Checkable::OnNotificationSendStart;
+    const NotificationType&, const CheckResult::Ptr&, const String&, const String&,
+    const MessageOrigin::Ptr&)> Checkable::OnNotificationSentToAllUsers;
 boost::signals2::signal<void (const Notification::Ptr&, const Checkable::Ptr&, const User::Ptr&,
-    const NotificationType&, const CheckResult::Ptr&, const String&, const String&, const String&)> Checkable::OnNotificationSentToUser;
+    const NotificationType&, const CheckResult::Ptr&, const String&, const String&, const String&,
+    const MessageOrigin::Ptr&)> Checkable::OnNotificationSentToUser;
 
 void Checkable::ResetNotificationNumbers(void)
 {

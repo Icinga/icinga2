@@ -92,7 +92,7 @@ class Notification : CustomVarObject < NotificationNameComposer
 
 	[state] double last_notification;
 	[state] double next_notification;
-	[state, set_protected] Value notification_number;
+	[state] int notification_number;
 	[state] double last_problem_notification;
 
 	[config, navigation] name(Endpoint) command_endpoint (CommandEndpointRaw) {
