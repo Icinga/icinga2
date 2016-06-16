@@ -35,6 +35,12 @@ String Convert::ToString(const Value& val)
 
 String Convert::ToString(double val)
 {
+	double integral;
+	double fractional = std::modf(val, &integral);
+
+	if (fractional == 0)
+		return Convert::ToString(static_cast<long>(val));
+
 	std::ostringstream msgbuf;
 	msgbuf << std::fixed << val;
 	return msgbuf.str();

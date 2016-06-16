@@ -46,14 +46,14 @@ BOOST_AUTO_TEST_CASE(todouble)
 BOOST_AUTO_TEST_CASE(tostring)
 {
 	BOOST_CHECK(Convert::ToString(7) == "7");
-	BOOST_CHECK(Convert::ToString(7.5) == "7.5");
+	BOOST_CHECK(Convert::ToString(7.5) == "7.500000");
 	BOOST_CHECK(Convert::ToString("hello") == "hello");
 
 	String str = "hello";
 	BOOST_CHECK(Convert::ToString(str) == "hello");
 
 	BOOST_CHECK(Convert::ToString(Value(7)) == "7");
-	BOOST_CHECK(Convert::ToString(Value(7.5)) == "7.5");
+	BOOST_CHECK(Convert::ToString(Value(7.5)) == "7.500000");
 	BOOST_CHECK(Convert::ToString(Value("hello")) == "hello");
 	BOOST_CHECK(Convert::ToString(Value("hello hello")) == "hello hello");
 }

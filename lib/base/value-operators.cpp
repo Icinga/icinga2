@@ -56,19 +56,12 @@ Value::operator double(void) const
 Value::operator String(void) const
 {
 	Object *object;
-	double dvalue, integral, fractional;
 
 	switch (GetType()) {
 		case ValueEmpty:
 			return String();
 		case ValueNumber:
-			dvalue = boost::get<double>(m_Value);
-			fractional = std::modf(dvalue, &integral);
-
-			if (fractional != 0)
-				return Convert::ToString(dvalue);
-			else
-				return Convert::ToString(static_cast<long>(dvalue));
+			return Convert::ToString(boost::get<double>(m_Value));
 		case ValueBoolean:
 			if (boost::get<bool>(m_Value))
 				return "true";
