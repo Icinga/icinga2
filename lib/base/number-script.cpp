@@ -28,8 +28,7 @@ using namespace icinga;
 static String NumberToString(void)
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
-	double self = vframe->Self;
-	return Convert::ToString(self);
+	return vframe->Self;
 }
 
 Object::Ptr Number::GetPrototype(void)

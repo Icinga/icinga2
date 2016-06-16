@@ -82,6 +82,7 @@ public:
 
 	static String ToString(const String& val);
 	static String ToString(const Value& val);
+	static String ToString(double val);
 
 	static double ToDateTimeValue(double val);
 	static double ToDateTimeValue(const Value& val);

@@ -210,7 +210,7 @@ bool IcingaApplication::ResolveMacro(const String& macro, const CheckResult::Ptr
 	double now = Utility::GetTime();
 
 	if (macro == "timet") {
-		*result = Convert::ToString((long)now);
+		*result = now;
 		return true;
 	} else if (macro == "long_date_time") {
 		*result = Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", now);
@@ -240,31 +240,31 @@ bool IcingaApplication::ResolveMacro(const String& macro, const CheckResult::Ptr
 		ServiceStatistics ss = CIB::CalculateServiceStats();
 
 		if (macro == "num_services_ok") {
-			*result = Convert::ToString(ss.services_ok);
+			*result = ss.services_ok;
 			return true;
 		} else if (macro == "num_services_warning") {
-			*result = Convert::ToString(ss.services_warning);
+			*result = ss.services_warning;
 			return true;
 		} else if (macro == "num_services_critical") {
-			*result = Convert::ToString(ss.services_critical);
+			*result = ss.services_critical;
 			return true;
 		} else if (macro == "num_services_unknown") {
-			*result = Convert::ToString(ss.services_unknown);
+			*result = ss.services_unknown;
 			return true;
 		} else if (macro == "num_services_pending") {
-			*result = Convert::ToString(ss.services_pending);
+			*result = ss.services_pending;
 			return true;
 		} else if (macro == "num_services_unreachable") {
-			*result = Convert::ToString(ss.services_unreachable);
+			*result = ss.services_unreachable;
 			return true;
 		} else if (macro == "num_services_flapping") {
-			*result = Convert::ToString(ss.services_flapping);
+			*result = ss.services_flapping;
 			return true;
 		} else if (macro == "num_services_in_downtime") {
-			*result = Convert::ToString(ss.services_in_downtime);
+			*result = ss.services_in_downtime;
 			return true;
 		} else if (macro == "num_services_acknowledged") {
-			*result = Convert::ToString(ss.services_acknowledged);
+			*result = ss.services_acknowledged;
 			return true;
 		}
 	}
@@ -272,25 +272,25 @@ bool IcingaApplication::ResolveMacro(const String& macro, const CheckResult::Ptr
 		HostStatistics hs = CIB::CalculateHostStats();
 
 		if (macro == "num_hosts_up") {
-			*result = Convert::ToString(hs.hosts_up);
+			*result = hs.hosts_up;
 			return true;
 		} else if (macro == "num_hosts_down") {
-			*result = Convert::ToString(hs.hosts_down);
+			*result = hs.hosts_down;
 			return true;
 		} else if (macro == "num_hosts_pending") {
-			*result = Convert::ToString(hs.hosts_pending);
+			*result = hs.hosts_pending;
 			return true;
 		} else if (macro == "num_hosts_unreachable") {
-			*result = Convert::ToString(hs.hosts_unreachable);
+			*result = hs.hosts_unreachable;
 			return true;
 		} else if (macro == "num_hosts_flapping") {
-			*result = Convert::ToString(hs.hosts_flapping);
+			*result = hs.hosts_flapping;
 			return true;
 		} else if (macro == "num_hosts_in_downtime") {
-			*result = Convert::ToString(hs.hosts_in_downtime);
+			*result = hs.hosts_in_downtime;
 			return true;
 		} else if (macro == "num_hosts_acknowledged") {
-			*result = Convert::ToString(hs.hosts_acknowledged);
+			*result = hs.hosts_acknowledged;
 			return true;
 		}
 	}

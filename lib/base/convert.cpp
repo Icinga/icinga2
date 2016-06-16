@@ -33,6 +33,13 @@ String Convert::ToString(const Value& val)
 	return val;
 }
 
+String Convert::ToString(double val)
+{
+	std::ostringstream msgbuf;
+	msgbuf << std::fixed << val;
+	return msgbuf.str();
+}
+
 double Convert::ToDateTimeValue(double val)
 {
 	return val;

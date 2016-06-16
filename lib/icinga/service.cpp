@@ -192,7 +192,7 @@ bool Service::ResolveMacro(const String& macro, const CheckResult::Ptr& cr, Valu
 		*result = StateToString(GetState());
 		return true;
 	} else if (macro == "state_id") {
-		*result = Convert::ToString(GetState());
+		*result = GetState();
 		return true;
 	} else if (macro == "state_type") {
 		*result = StateTypeToString(GetStateType());
@@ -201,28 +201,28 @@ bool Service::ResolveMacro(const String& macro, const CheckResult::Ptr& cr, Valu
 		*result = StateToString(GetLastState());
 		return true;
 	} else if (macro == "last_state_id") {
-		*result = Convert::ToString(GetLastState());
+		*result = GetLastState();
 		return true;
 	} else if (macro == "last_state_type") {
 		*result = StateTypeToString(GetLastStateType());
 		return true;
 	} else if (macro == "last_state_change") {
-		*result = Convert::ToString((long)GetLastStateChange());
+		*result = GetLastStateChange();
 		return true;
 	} else if (macro == "downtime_depth") {
-		*result = Convert::ToString((long)GetDowntimeDepth());
+		*result = GetDowntimeDepth();
 		return true;
 	} else if (macro == "duration_sec") {
-		*result = Convert::ToString((long)(Utility::GetTime() - GetLastStateChange()));
+		*result = Utility::GetTime() - GetLastStateChange();
 		return true;
 	}
 
 	if (cr) {
 		if (macro == "latency") {
-			*result = Convert::ToString(cr->CalculateLatency());
+			*result = cr->CalculateLatency();
 			return true;
 		} else if (macro == "execution_time") {
-			*result = Convert::ToString(cr->CalculateExecutionTime());
+			*result = cr->CalculateExecutionTime();
 			return true;
 		} else if (macro == "output") {
 			*result = cr->GetOutput();
@@ -231,7 +231,7 @@ bool Service::ResolveMacro(const String& macro, const CheckResult::Ptr& cr, Valu
 			*result = PluginUtility::FormatPerfdata(cr->GetPerformanceData());
 			return true;
 		} else if (macro == "last_check") {
-			*result = Convert::ToString((long)cr->GetExecutionEnd());
+			*result = cr->GetExecutionEnd();
 			return true;
 		} else if (macro == "check_source") {
 			*result = cr->GetCheckSource();
