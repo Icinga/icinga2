@@ -133,9 +133,9 @@ bool FilterUtility::EvaluateFilter(ScriptFrame& frame, Expression *filter,
 }
 
 static void FilteredAddTarget(ScriptFrame& permissionFrame, Expression *permissionFilter,
-    ScriptFrame& frame, Expression *ufilter, std::vector<Value>& result, const Object::Ptr& target)
+    ScriptFrame& frame, Expression *ufilter, std::vector<Value>& result, const String& variableName, const Object::Ptr& target)
 {
-	if (FilterUtility::EvaluateFilter(permissionFrame, permissionFilter, target) && FilterUtility::EvaluateFilter(frame, ufilter, target))
+	if (FilterUtility::EvaluateFilter(permissionFrame, permissionFilter, target, variableName) && FilterUtility::EvaluateFilter(frame, ufilter, target, variableName))
 		result.push_back(target);
 }
 
@@ -187,7 +187,7 @@ void FilterUtility::CheckPermission(const ApiUser::Ptr& user, const String& perm
 		BOOST_THROW_EXCEPTION(ScriptError("Missing permission: " + requiredPermission));
 }
 
-std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, const Dictionary::Ptr& query, const ApiUser::Ptr& user)
+std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, const Dictionary::Ptr& query, const ApiUser::Ptr& user, const String& variableName)
 {
 	std::vector<Value> result;
 
@@ -214,7 +214,7 @@ std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, c
 			String name = HttpUtility::GetLastParameter(query, attr);
 			Object::Ptr target = provider->GetTargetByName(type, name);
 
-			if (!FilterUtility::EvaluateFilter(permissionFrame, permissionFilter, target))
+			if (!FilterUtility::EvaluateFilter(permissionFrame, permissionFilter, target, variableName))
 				BOOST_THROW_EXCEPTION(ScriptError("Access denied to object '" + name + "' of type '" + type + "'"));
 
 			result.push_back(target);
@@ -230,7 +230,7 @@ std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, c
 				BOOST_FOREACH(const String& name, names) {
 					Object::Ptr target = provider->GetTargetByName(type, name);
 
-					if (!FilterUtility::EvaluateFilter(permissionFrame, permissionFilter, target))
+					if (!FilterUtility::EvaluateFilter(permissionFrame, permissionFilter, target, variableName))
 						BOOST_THROW_EXCEPTION(ScriptError("Access denied to object '" + name + "' of type '" + type + "'"));
 
 					result.push_back(target);
@@ -275,7 +275,7 @@ std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, c
 		try {
 			provider->FindTargets(type, boost::bind(&FilteredAddTarget,
 			    boost::ref(permissionFrame), permissionFilter,
-			    boost::ref(frame), ufilter, boost::ref(result), _1));
+			    boost::ref(frame), ufilter, boost::ref(result), variableName, _1));
 		} catch (const std::exception& ex) {
 			delete ufilter;
 			throw;

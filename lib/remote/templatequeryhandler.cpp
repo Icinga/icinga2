@@ -36,14 +36,20 @@ class TemplateTargetProvider : public TargetProvider
 public:
 	DECLARE_PTR_TYPEDEFS(TemplateTargetProvider);
 
+	static Dictionary::Ptr GetTargetForTemplate(const ConfigItem::Ptr& item)
+	{
+		Dictionary::Ptr target = new Dictionary();
+		target->Set("name", item->GetName());
+		target->Set("type", item->GetType());
+		return target;
+	}
+
 	virtual void FindTargets(const String& type,
 	    const boost::function<void (const Value&)>& addTarget) const override
 	{
-		std::vector<ConfigItem::Ptr> targets = ConfigItem::GetItems(type);
-
-		BOOST_FOREACH(const ConfigItem::Ptr& target, targets) {
-			if (target->IsAbstract())
-				addTarget(target);
+		BOOST_FOREACH(const ConfigItem::Ptr& item, ConfigItem::GetItems(type)) {
+			if (item->IsAbstract())
+				addTarget(GetTargetForTemplate(item));
 		}
 	}
 
@@ -54,7 +60,7 @@ public:
 		if (!item || !item->IsAbstract())
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Template does not exist."));
 
-		return item;
+		return GetTargetForTemplate(item);
 	}
 
 	virtual bool IsValidType(const String& type) const override
@@ -104,7 +110,7 @@ bool TemplateQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& 
 	std::vector<Value> objs;
 
 	try {
-		objs = FilterUtility::GetFilterTargets(qd, params, user);
+		objs = FilterUtility::GetFilterTargets(qd, params, user, "tmpl");
 	} catch (const std::exception& ex) {
 		HttpUtility::SendJsonError(response, 404,
 		    "No templates found.",
@@ -114,12 +120,8 @@ bool TemplateQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& 
 
 	Array::Ptr results = new Array();
 
-	BOOST_FOREACH(const ConfigItem::Ptr& obj, objs) {
-		Dictionary::Ptr result1 = new Dictionary();
-		results->Add(result1);
-
-		result1->Set("type", obj->GetType());
-		result1->Set("name", obj->GetName());
+	BOOST_FOREACH(const Dictionary::Ptr& obj, objs) {
+		results->Add(obj);
 	}
 
 	Dictionary::Ptr result = new Dictionary();

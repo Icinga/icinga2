@@ -644,7 +644,11 @@ in:
 A list of all available configuration types is available in the
 [object types](6-object-types.md#object-types) chapter.
 
-A [filter](9-icinga2-api.md#icinga2-api-filters) may be provided for this query type.
+A [filter](9-icinga2-api.md#icinga2-api-filters) may be provided for this query type. The
+template object can be accessed in the filter using the `tmpl` variable:
+
+    $ curl -u root:root -k 'https://localhost:5661/v1/templates/hosts' -H "Accept: application/json" -X PUT -H "X-HTTP-Method-Override: GET" \
+    -d '{ "filter": "match(\"g*\", tmpl.name)" }'
 
 Instead of using a filter you can optionally specify the template name in the
 URL path when querying a single object:
