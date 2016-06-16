@@ -48,6 +48,8 @@ IdoPgsqlConnection::IdoPgsqlConnection(void)
 
 void IdoPgsqlConnection::OnConfigLoaded(void)
 {
+	ObjectImpl<IdoPgsqlConnection>::OnConfigLoaded();
+
 	m_QueryQueue.SetName("IdoPgsqlConnection, " + GetName());
 }
 

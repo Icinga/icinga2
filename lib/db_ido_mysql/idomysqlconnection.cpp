@@ -44,6 +44,8 @@ IdoMysqlConnection::IdoMysqlConnection(void)
 
 void IdoMysqlConnection::OnConfigLoaded(void)
 {
+	ObjectImpl<IdoMysqlConnection>::OnConfigLoaded();
+
 	m_QueryQueue.SetName("IdoMysqlConnection, " + GetName());
 }
 
