@@ -657,6 +657,32 @@ URL path when querying a single object:
 
 The result set contains the type and name of the template.
 
+## <a id="icinga2-api-variables"></a> Variables
+
+Provides methods to manage global variables:
+
+* [querying variables](9-icinga2-api.md#icinga2-api-variables-query)
+
+### <a id="icinga2-api-variables-query"></a> Querying Variables
+
+You can request information about global variables by sending
+a `GET` query to the `/v1/variables/` URL endpoint:
+
+    $ curl -k -s -u root:icinga 'https://localhost:5665/v1/variables'
+
+A [filter](9-icinga2-api.md#icinga2-api-filters) may be provided for this query type. The
+variable information object can be accessed in the filter using the `variable` variable:
+
+    $ curl -u root:root -k 'https://localhost:5661/v1/variables' -H "Accept: application/json" -X PUT -H "X-HTTP-Method-Override: GET" \
+    -d '{ "filter": "variable.type in [ \"String\", \"Number\" ]" }'
+
+Instead of using a filter you can optionally specify the variable name in the
+URL path when querying a single variable:
+
+    $ curl -k -s -u root:icinga 'https://localhost:5665/v1/variables/PrefixDir'
+
+The result set contains the type, name and value of the global variable.
+
 ## <a id="icinga2-api-actions"></a> Actions
 
 There are several actions available for Icinga 2 provided by the `/v1/actions`

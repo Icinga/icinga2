@@ -30,7 +30,7 @@ set(remote_SOURCES
   httpchunkedencoding.cpp httpclientconnection.cpp httpserverconnection.cpp httphandler.cpp httprequest.cpp httpresponse.cpp
   httputility.cpp infohandler.cpp jsonrpc.cpp jsonrpcconnection.cpp jsonrpcconnection-heartbeat.cpp
   messageorigin.cpp modifyobjecthandler.cpp statushandler.cpp objectqueryhandler.cpp templatequeryhandler.cpp
-  typequeryhandler.cpp url.cpp zone.cpp zone.thpp
+  typequeryhandler.cpp url.cpp variablequeryhandler.cpp zone.cpp zone.thpp
 )
 
 if(ICINGA2_UNITY_BUILD)
