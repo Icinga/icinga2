@@ -230,9 +230,6 @@ bool Service::ResolveMacro(const String& macro, const CheckResult::Ptr& cr, Valu
 		} else if (macro == "perfdata") {
 			*result = PluginUtility::FormatPerfdata(cr->GetPerformanceData());
 			return true;
-		} else if (macro == "last_check") {
-			*result = cr->GetExecutionEnd();
-			return true;
 		} else if (macro == "check_source") {
 			*result = cr->GetCheckSource();
 			return true;
