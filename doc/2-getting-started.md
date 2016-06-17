@@ -325,12 +325,13 @@ to obtain the Vim configuration, please install the extra package `vim-icinga2`.
 
 ### <a id="configuration-syntax-highlighting-vim"></a> Configuration Syntax Highlighting using Vim
 
-Install the package vim-icinga2 with your distribution's package manager.
+Install the package `vim-icinga2` with your distribution's package manager.
 
 Debian/Ubuntu:
 
     $ apt-get install vim-icinga2 vim-addon-manager
     $ vim-addon-manager -w install icinga2
+    Info: installing removed addon 'icinga2' to /var/lib/vim/addons
 
 RHEL/CentOS/Fedora:
 
@@ -339,6 +340,12 @@ RHEL/CentOS/Fedora:
 SLES/openSUSE:
 
     $ zypper install vim-icinga2
+
+Ensure that syntax highlighting is enabled e.g. by editing the user's `vimrc`
+configuration file:
+
+    $ vim ~/.vimrc
+    syntax on
 
 Test it:
 
@@ -349,10 +356,11 @@ Test it:
 
 ### <a id="configuration-syntax-highlighting-nano"></a> Configuration Syntax Highlighting using Nano
 
-Install the package nano-icinga2 with your distribution's package manager.
+Install the package `nano-icinga2` with your distribution's package manager.
 
-**Note:** On Debian and Ubuntu the syntax files are installed with the `icinga2-common` package, and
-enabled by default.
+Debian/Ubuntu:
+
+**Note:** The syntax files are installed with the `icinga2-common` package already.
 
 RHEL/CentOS/Fedora:
 
@@ -362,10 +370,12 @@ SLES/openSUSE:
 
     $ zypper install nano-icinga2
 
-In addition, for RPM based systems, make sure to enable the syntax extension, by copying the `/etc/nanorc`
-sample file to your home directory. And including the `icinga2.nanorc` file.
+Copy the `/etc/nanorc` sample file to your home directory.
 
     $ cp /etc/nanorc ~/.nanorc
+
+Include the `icinga2.nanorc` file.
+
     $ vim ~/.nanorc
 
     ## Icinga 2
