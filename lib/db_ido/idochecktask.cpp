@@ -111,16 +111,19 @@ void IdoCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult
 		}
 	} else {
 		String schema_version = conn->GetSchemaVersion();
+		std::ostringstream msgbuf;
 
 		if (Utility::CompareVersion(IDO_CURRENT_SCHEMA_VERSION, schema_version) < 0) {
-			cr->SetOutput("Outdated schema version: " + schema_version + "; Latest version: "  IDO_CURRENT_SCHEMA_VERSION);
+			msgbuf << "Outdated schema version: '" << schema_version << "'. Latest version: '" << IDO_CURRENT_SCHEMA_VERSION << "'.";
 			cr->SetState(ServiceWarning);
 		} else {
-			std::ostringstream msgbuf;
-			msgbuf << "Connected to the database server; queries per second: "  << std::fixed << std::setprecision(3) << qps;
-			cr->SetOutput(msgbuf.str());
+			msgbuf << "Connected to the database server (Schema version: '" << schema_version << "').";
 			cr->SetState(ServiceOK);
 		}
+
+		msgbuf << " Queries per second: " << std::fixed << std::setprecision(3) << qps;
+
+		cr->SetOutput(msgbuf.str());
 	}
 
 	Array::Ptr perfdata = new Array();
