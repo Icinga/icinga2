@@ -1674,6 +1674,10 @@ CREATE INDEX commenthistory_delete_idx ON icinga_commenthistory (instance_id, co
 CREATE INDEX cv_session_del_idx ON icinga_customvariables (session_token);
 CREATE INDEX cvs_session_del_idx ON icinga_customvariablestatus (session_token);
 
+-- #10070
+CREATE INDEX idx_comments_object_id on icinga_comments(object_id);
+CREATE INDEX idx_scheduleddowntime_object_id on icinga_scheduleddowntime(object_id);
+
 -- -----------------------------------------
 -- set dbversion
 -- -----------------------------------------
