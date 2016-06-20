@@ -1578,7 +1578,7 @@ There are a couple of existing clients which can be used with the Icinga 2 API:
 Demo cases:
 
 * [Dashing](https://github.com/Icinga/dashing-icinga2)
-* [AWS host creation/update/deletion](https://github.com/Icinga/aws-icinga2)
+* [API examples](https://github.com/Icinga/icinga2-api-examples)
 
 Additional [programmatic examples](9-icinga2-api.md#icinga2-api-clients-programmatic-examples)
 will help you getting started using the Icinga 2 API in your environment.
