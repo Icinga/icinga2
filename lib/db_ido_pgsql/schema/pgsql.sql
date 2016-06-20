@@ -1678,5 +1678,5 @@ CREATE INDEX cvs_session_del_idx ON icinga_customvariablestatus (session_token);
 -- set dbversion
 -- -----------------------------------------
 
-SELECT updatedbversion('1.14.0');
+SELECT updatedbversion('1.14.1');
 
