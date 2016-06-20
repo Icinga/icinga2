@@ -403,19 +403,21 @@ void DbEvents::RemoveCommentInternal(std::vector<DbQuery>& queries, const Commen
 {
 	Checkable::Ptr checkable = comment->GetCheckable();
 
+	unsigned long entry_time = static_cast<long>(comment->GetEntryTime());
+
 	/* Status */
 	DbQuery query1;
 	query1.Table = "comments";
 	query1.Type = DbQueryDelete;
 	query1.Category = DbCatComment;
 	query1.WhereCriteria = new Dictionary();
-	query1.WhereCriteria->Set("object_id", checkable);
 	query1.WhereCriteria->Set("internal_comment_id", comment->GetLegacyId());
+	query1.WhereCriteria->Set("object_id", checkable);
+	query1.WhereCriteria->Set("comment_time", DbValue::FromTimestamp(entry_time));
+	query1.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
 	queries.push_back(query1);
 
 	/* History - update deletion time for service/host */
-	unsigned long entry_time = static_cast<long>(comment->GetEntryTime());
-
 	double now = Utility::GetTime();
 	std::pair<unsigned long, unsigned long> time_bag = CompatUtility::ConvertTimestamp(now);
 
@@ -582,6 +584,7 @@ void DbEvents::RemoveDowntimeInternal(std::vector<DbQuery>& queries, const Downt
 	query1.WhereCriteria = new Dictionary();
 	query1.WhereCriteria->Set("object_id", checkable);
 	query1.WhereCriteria->Set("internal_downtime_id", downtime->GetLegacyId());
+	query1.WhereCriteria->Set("entry_time", DbValue::FromTimestamp(downtime->GetEntryTime()));
 	query1.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
 	queries.push_back(query1);
 
