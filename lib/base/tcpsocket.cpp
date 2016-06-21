@@ -177,6 +177,17 @@ void TcpSocket::Connect(const String& node, const String& service)
 			continue;
 		}
 
+		int optval = 1;
+		if (setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &optval, sizeof(optval)) != 0) {
+#ifdef _WIN32
+			error = WSAGetLastError();
+#else /* _WIN32 */
+			error = errno;
+#endif /* _WIN32 */
+			Log(LogWarning, "TcpSocket")
+			    << "setsockopt() unable to enable TCP keep-alives with error code " << rc;
+		}
+
 		rc = connect(fd, info->ai_addr, info->ai_addrlen);
 
 		if (rc < 0) {
