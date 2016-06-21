@@ -109,8 +109,8 @@ int CompatUtility::GetHostNotifyOnDown(const Host::Ptr& host)
 {
 	unsigned long notification_state_filter = GetCheckableNotificationStateFilter(host);
 
-	if (notification_state_filter & (1<<ServiceCritical) ||
-	    notification_state_filter & (1<<ServiceWarning))
+	if ((notification_state_filter & ServiceCritical) ||
+	    (notification_state_filter & ServiceWarning))
 		return 1;
 
 	return 0;
@@ -120,7 +120,7 @@ int CompatUtility::GetHostNotifyOnUnreachable(const Host::Ptr& host)
 {
 	unsigned long notification_state_filter = GetCheckableNotificationStateFilter(host);
 
-	if (notification_state_filter & (1<<ServiceUnknown))
+	if (notification_state_filter & ServiceUnknown)
 		return 1;
 
 	return 0;
@@ -477,32 +477,32 @@ String CompatUtility::GetCheckableNotificationNotificationOptions(const Checkabl
 
 	/* notification state filters */
 	if (service) {
-		if (notification_state_filter & (1<<ServiceWarning)) {
+		if (notification_state_filter & ServiceWarning) {
 			notification_options.push_back("w");
 		}
-		if (notification_state_filter & (1<<ServiceUnknown)) {
+		if (notification_state_filter & ServiceUnknown) {
 			notification_options.push_back("u");
 		}
-		if (notification_state_filter & (1<<ServiceCritical)) {
+		if (notification_state_filter & ServiceCritical) {
 			notification_options.push_back("c");
 		}
 	} else {
-		if (notification_state_filter & (1<<HostDown)) {
+		if (notification_state_filter & HostDown) {
 			notification_options.push_back("d");
 		}
 	}
 
 	/* notification type filters */
-	if (notification_type_filter & (1<<NotificationRecovery)) {
+	if (notification_type_filter & NotificationRecovery) {
 		notification_options.push_back("r");
 	}
-	if (notification_type_filter & (1<<NotificationFlappingStart) ||
-			notification_type_filter & (1<<NotificationFlappingEnd)) {
+	if ((notification_type_filter & NotificationFlappingStart) ||
+	    (notification_type_filter & NotificationFlappingEnd)) {
 		notification_options.push_back("f");
 	}
-	if (notification_type_filter & (1<<NotificationDowntimeStart) ||
-			notification_type_filter & (1<<NotificationDowntimeEnd) ||
-			notification_type_filter & (1<<NotificationDowntimeRemoved)) {
+	if ((notification_type_filter & NotificationDowntimeStart) ||
+	    (notification_type_filter & NotificationDowntimeEnd) ||
+	    (notification_type_filter & NotificationDowntimeRemoved)) {
 		notification_options.push_back("s");
 	}
 
@@ -537,7 +537,7 @@ int CompatUtility::GetCheckableNotificationStateFilter(const Checkable::Ptr& che
 
 int CompatUtility::GetCheckableNotifyOnWarning(const Checkable::Ptr& checkable)
 {
-	if (GetCheckableNotificationStateFilter(checkable) & (1<<ServiceWarning))
+	if (GetCheckableNotificationStateFilter(checkable) & ServiceWarning)
 		return 1;
 
 	return 0;
@@ -545,7 +545,7 @@ int CompatUtility::GetCheckableNotifyOnWarning(const Checkable::Ptr& checkable)
 
 int CompatUtility::GetCheckableNotifyOnCritical(const Checkable::Ptr& checkable)
 {
-	if (GetCheckableNotificationStateFilter(checkable) & (1<<ServiceCritical))
+	if (GetCheckableNotificationStateFilter(checkable) & ServiceCritical)
 		return 1;
 
 	return 0;
@@ -553,7 +553,7 @@ int CompatUtility::GetCheckableNotifyOnCritical(const Checkable::Ptr& checkable)
 
 int CompatUtility::GetCheckableNotifyOnUnknown(const Checkable::Ptr& checkable)
 {
-	if (GetCheckableNotificationStateFilter(checkable) & (1<<ServiceUnknown))
+	if (GetCheckableNotificationStateFilter(checkable) & ServiceUnknown)
 		return 1;
 
 	return 0;
@@ -561,7 +561,7 @@ int CompatUtility::GetCheckableNotifyOnUnknown(const Checkable::Ptr& checkable)
 
 int CompatUtility::GetCheckableNotifyOnRecovery(const Checkable::Ptr& checkable)
 {
-	if (GetCheckableNotificationTypeFilter(checkable) & (1<<NotificationRecovery))
+	if (GetCheckableNotificationTypeFilter(checkable) & NotificationRecovery)
 		return 1;
 
 	return 0;
@@ -571,8 +571,8 @@ int CompatUtility::GetCheckableNotifyOnFlapping(const Checkable::Ptr& checkable)
 {
 	unsigned long notification_type_filter = GetCheckableNotificationTypeFilter(checkable);
 
-	if (notification_type_filter & (1<<NotificationFlappingStart) ||
-	    notification_type_filter & (1<<NotificationFlappingEnd))
+	if ((notification_type_filter & NotificationFlappingStart) ||
+	    (notification_type_filter & NotificationFlappingEnd))
 		return 1;
 
 	return 0;
@@ -582,9 +582,9 @@ int CompatUtility::GetCheckableNotifyOnDowntime(const Checkable::Ptr& checkable)
 {
 	unsigned long notification_type_filter = GetCheckableNotificationTypeFilter(checkable);
 
-	if (notification_type_filter & (1<<NotificationDowntimeStart) ||
-	    notification_type_filter & (1<<NotificationDowntimeEnd) ||
-	    notification_type_filter & (1<<NotificationDowntimeRemoved))
+	if ((notification_type_filter & NotificationDowntimeStart) ||
+	    (notification_type_filter & NotificationDowntimeEnd) ||
+	    (notification_type_filter & NotificationDowntimeRemoved))
 		return 1;
 
 	return 0;

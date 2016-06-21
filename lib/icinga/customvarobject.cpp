@@ -33,3 +33,34 @@ void CustomVarObject::ValidateVars(const Dictionary::Ptr& value, const Validatio
 {
 	MacroProcessor::ValidateCustomVars(this, value);
 }
+
+int icinga::FilterArrayToInt(const Array::Ptr& typeFilters, const std::map<String, int>& filterMap, int defaultValue)
+{
+	Value resultTypeFilter;
+
+	if (!typeFilters)
+		return defaultValue;
+
+	resultTypeFilter = 0;
+
+	ObjectLock olock(typeFilters);
+	BOOST_FOREACH(const Value& typeFilter, typeFilters) {
+		if (typeFilter.IsNumber()) {
+			resultTypeFilter = resultTypeFilter | typeFilter;
+			continue;
+		}
+
+		if (!typeFilter.IsString())
+			return -1;
+
+		std::map<String, int>::const_iterator it = filterMap.find(typeFilter);
+
+		if (it == filterMap.end())
+			return -1;
+
+		resultTypeFilter = resultTypeFilter | it->second;
+	}
+
+	return resultTypeFilter;
+}
+

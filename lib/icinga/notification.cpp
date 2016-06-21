@@ -37,6 +37,9 @@ using namespace icinga;
 REGISTER_TYPE(Notification);
 INITIALIZE_ONCE(&Notification::StaticInitialize);
 
+std::map<String, int> Notification::m_StateFilterMap;
+std::map<String, int> Notification::m_TypeFilterMap;
+
 boost::signals2::signal<void (const Notification::Ptr&, const MessageOrigin::Ptr&)> Notification::OnNextNotificationChanged;
 
 String NotificationNameComposer::MakeName(const String& shortName, const Object::Ptr& context) const
@@ -79,30 +82,47 @@ Dictionary::Ptr NotificationNameComposer::ParseName(const String& name) const
 
 void Notification::StaticInitialize(void)
 {
-	ScriptGlobal::Set("OK", StateFilterOK);
-	ScriptGlobal::Set("Warning", StateFilterWarning);
-	ScriptGlobal::Set("Critical", StateFilterCritical);
-	ScriptGlobal::Set("Unknown", StateFilterUnknown);
-	ScriptGlobal::Set("Up", StateFilterUp);
-	ScriptGlobal::Set("Down", StateFilterDown);
+	ScriptGlobal::Set("OK", "OK");
+	ScriptGlobal::Set("Warning", "Warning");
+	ScriptGlobal::Set("Critical", "Critical");
+	ScriptGlobal::Set("Unknown", "Unknown");
+	ScriptGlobal::Set("Up", "Up");
+	ScriptGlobal::Set("Down", "Down");
 
-	ScriptGlobal::Set("DowntimeStart", 1 << NotificationDowntimeStart);
-	ScriptGlobal::Set("DowntimeEnd", 1 << NotificationDowntimeEnd);
-	ScriptGlobal::Set("DowntimeRemoved", 1 << NotificationDowntimeRemoved);
-	ScriptGlobal::Set("Custom", 1 << NotificationCustom);
-	ScriptGlobal::Set("Acknowledgement", 1 << NotificationAcknowledgement);
-	ScriptGlobal::Set("Problem", 1 << NotificationProblem);
-	ScriptGlobal::Set("Recovery", 1 << NotificationRecovery);
-	ScriptGlobal::Set("FlappingStart", 1 << NotificationFlappingStart);
-	ScriptGlobal::Set("FlappingEnd", 1 << NotificationFlappingEnd);
+	ScriptGlobal::Set("DowntimeStart", "DowntimeStart");
+	ScriptGlobal::Set("DowntimeEnd", "DowntimeEnd");
+	ScriptGlobal::Set("DowntimeRemoved", "DowntimeRemoved");
+	ScriptGlobal::Set("Custom", "Custom");
+	ScriptGlobal::Set("Acknowledgement", "Acknowledgement");
+	ScriptGlobal::Set("Problem", "Problem");
+	ScriptGlobal::Set("Recovery", "Recovery");
+	ScriptGlobal::Set("FlappingStart", "FlappingStart");
+	ScriptGlobal::Set("FlappingEnd", "FlappingEnd");
+
+	m_StateFilterMap["OK"] = StateFilterOK;
+	m_StateFilterMap["Warning"] = StateFilterWarning;
+	m_StateFilterMap["Critical"] = StateFilterCritical;
+	m_StateFilterMap["Unknown"] = StateFilterUnknown;
+	m_StateFilterMap["Up"] = StateFilterUp;
+	m_StateFilterMap["Down"] = StateFilterDown;
+
+	m_TypeFilterMap["DowntimeStart"] = NotificationDowntimeStart;
+	m_TypeFilterMap["DowntimeEnd"] = NotificationDowntimeEnd;
+	m_TypeFilterMap["DowntimeRemoved"] = NotificationDowntimeRemoved;
+	m_TypeFilterMap["Custom"] = NotificationCustom;
+	m_TypeFilterMap["Acknowledgement"] = NotificationAcknowledgement;
+	m_TypeFilterMap["Problem"] = NotificationProblem;
+	m_TypeFilterMap["Recovery"] = NotificationRecovery;
+	m_TypeFilterMap["FlappingStart"] = NotificationFlappingStart;
+	m_TypeFilterMap["FlappingEnd"] = NotificationFlappingEnd;
 }
 
 void Notification::OnConfigLoaded(void)
 {
 	ObjectImpl<Notification>::OnConfigLoaded();
 
-	SetTypeFilter(FilterArrayToInt(GetTypes(), ~0));
-	SetStateFilter(FilterArrayToInt(GetStates(), ~0));
+	SetTypeFilter(FilterArrayToInt(GetTypes(), GetTypeFilterMap(), ~0));
+	SetStateFilter(FilterArrayToInt(GetStates(), GetStateFilterMap(), ~0));
 }
 
 void Notification::OnAllConfigLoaded(void)
@@ -280,18 +300,18 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 			}
 		}
 
-		unsigned long ftype = 1 << type;
+		unsigned long ftype = type;
 
 		Log(LogDebug, "Notification")
 		    << "Type '" << NotificationTypeToStringInternal(type)
-		    << "', TypeFilter " << NotificationFilterToString(GetTypeFilter())
+		    << "', TypeFilter: " << NotificationFilterToString(GetTypeFilter(), GetTypeFilterMap())
 		    << " (FType=" << ftype << ", TypeFilter=" << GetTypeFilter() << ")";
 
 		if (!(ftype & GetTypeFilter())) {
 			Log(LogNotice, "Notification")
 			    << "Not sending notifications for notification object '" << GetName() << "': type '"
-			    << NotificationTypeToStringInternal(type) << "' does not match type filter '"
-			    << NotificationFilterToString(GetTypeFilter()) << ".";
+			    << NotificationTypeToStringInternal(type) << "' does not match type filter: "
+			    << NotificationFilterToString(GetTypeFilter(), GetTypeFilterMap()) << ".";
 			return;
 		}
 
@@ -313,13 +333,13 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 			}
 
 			Log(LogDebug, "Notification")
-			    << "State '" << stateStr << "', StateFilter " << NotificationFilterToString(GetStateFilter())
+			    << "State '" << stateStr << "', StateFilter: " << NotificationFilterToString(GetStateFilter(), GetStateFilterMap())
 			    << " (FState=" << fstate << ", StateFilter=" << GetStateFilter() << ")";
 
 			if (!(fstate & GetStateFilter())) {
 				Log(LogNotice, "Notification")
 				    << "Not sending notifications for notification object '" << GetName() << "': state '" << stateStr
-				    << "' does not match state filter " << NotificationFilterToString(GetStateFilter()) << ".";
+				    << "' does not match state filter: " << NotificationFilterToString(GetStateFilter(), GetStateFilterMap()) << ".";
 				return;
 			}
 		}
@@ -412,11 +432,11 @@ bool Notification::CheckNotificationUserFilters(NotificationType type, const Use
 			return false;
 		}
 
-		unsigned long ftype = 1 << type;
+		unsigned long ftype = type;
 
 		Log(LogDebug, "Notification")
 		    << "User notification, Type '" << NotificationTypeToStringInternal(type)
-		    << "', TypeFilter " << NotificationFilterToString(user->GetTypeFilter())
+		    << "', TypeFilter: " << NotificationFilterToString(user->GetTypeFilter(), GetTypeFilterMap())
 		    << " (FType=" << ftype << ", TypeFilter=" << GetTypeFilter() << ")";
 
 
@@ -424,8 +444,8 @@ bool Notification::CheckNotificationUserFilters(NotificationType type, const Use
 			Log(LogNotice, "Notification")
 			    << "Not sending notifications for notification object '"
 			    << GetName() << " and user '" << user->GetName() << "': type '"
-			    << NotificationTypeToStringInternal(type) << "' does not match type filter "
-			    << NotificationFilterToString(user->GetTypeFilter()) << ".";
+			    << NotificationTypeToStringInternal(type) << "' does not match type filter: "
+			    << NotificationFilterToString(user->GetTypeFilter(), GetTypeFilterMap()) << ".";
 			return false;
 		}
 
@@ -448,15 +468,15 @@ bool Notification::CheckNotificationUserFilters(NotificationType type, const Use
 			}
 
 			Log(LogDebug, "Notification")
-			    << "User notification, State '" << stateStr << "', StateFilter "
-			    << NotificationFilterToString(user->GetStateFilter())
+			    << "User notification, State '" << stateStr << "', StateFilter: "
+			    << NotificationFilterToString(user->GetStateFilter(), GetStateFilterMap())
 			    << " (FState=" << fstate << ", StateFilter=" << user->GetStateFilter() << ")";
 
 			if (!(fstate & user->GetStateFilter())) {
 				Log(LogNotice, "Notification")
 				    << "Not sending notifications for notification object '"
 				    << GetName() << " and user '" << user->GetName() << "': state '" << stateStr
-				    << "' does not match state filter " << NotificationFilterToString(user->GetStateFilter()) << ".";
+				    << "' does not match state filter: " << NotificationFilterToString(user->GetStateFilter(), GetStateFilterMap()) << ".";
 				return false;
 			}
 		}
@@ -520,62 +540,17 @@ int icinga::HostStateToFilter(HostState state)
 	}
 }
 
-int icinga::FilterArrayToInt(const Array::Ptr& typeFilters, int defaultValue)
+String Notification::NotificationFilterToString(int filter, const std::map<String, int>& filterMap)
 {
-	Value resultTypeFilter;
+	std::vector<String> sFilters;
 
-	if (!typeFilters)
-		return defaultValue;
-
-	resultTypeFilter = 0;
-
-	ObjectLock olock(typeFilters);
-	BOOST_FOREACH(const Value& typeFilter, typeFilters) {
-		resultTypeFilter = resultTypeFilter | typeFilter;
+	typedef std::pair<String, int> kv_pair;
+	BOOST_FOREACH(const kv_pair& kv, filterMap) {
+		if (filter & kv.second)
+			sFilters.push_back(kv.first);
 	}
 
-	return resultTypeFilter;
-}
-
-std::vector<String> icinga::FilterIntToArray(int iFilter)
-{
-	std::vector<String> filter;
-
-	if (iFilter & StateFilterOK)
-		filter.push_back("OK");
-	if (iFilter & StateFilterWarning)
-		filter.push_back("Warning");
-	if (iFilter & StateFilterUnknown)
-		filter.push_back("Unknown");
-	if (iFilter & StateFilterUp)
-		filter.push_back("Up");
-	if (iFilter & StateFilterDown)
-		filter.push_back("Down");
-	if (iFilter & NotificationDowntimeStart)
-		filter.push_back("DowntimeStart");
-	if (iFilter & NotificationDowntimeEnd)
-		filter.push_back("DowntimeEnd");
-	if (iFilter & NotificationDowntimeRemoved)
-		filter.push_back("DowntimeRemoved");
-	if (iFilter & NotificationCustom)
-		filter.push_back("Custom");
-	if (iFilter & NotificationAcknowledgement)
-		filter.push_back("Acknowledgement");
-	if (iFilter & NotificationProblem)
-		filter.push_back("Problem");
-	if (iFilter & NotificationRecovery)
-		filter.push_back("Recovery");
-	if (iFilter & NotificationFlappingStart)
-		filter.push_back("FlappingStart");
-	if (iFilter & NotificationFlappingEnd)
-		filter.push_back("FlappingEnd");
-
-	return filter;
-}
-
-String Notification::NotificationFilterToString(int filter)
-{
-	return Utility::NaturalJoin(FilterIntToArray(filter));
+	return Utility::NaturalJoin(sFilters);
 }
 
 /* internal for logging */
@@ -651,12 +626,12 @@ void Notification::ValidateStates(const Array::Ptr& value, const ValidationUtils
 {
 	ObjectImpl<Notification>::ValidateStates(value, utils);
 
-	int sfilter = FilterArrayToInt(value, 0);
+	int filter = FilterArrayToInt(value, GetStateFilterMap(), 0);
 
-	if (GetServiceName().IsEmpty() && (sfilter & ~(StateFilterUp | StateFilterDown)) != 0)
+	if (GetServiceName().IsEmpty() && (filter == -1 || (filter & ~(StateFilterUp | StateFilterDown)) != 0))
 		BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of("states"), "State filter is invalid."));
 
-	if (!GetServiceName().IsEmpty() && (sfilter & ~(StateFilterOK | StateFilterWarning | StateFilterCritical | StateFilterUnknown)) != 0)
+	if (!GetServiceName().IsEmpty() && (filter == -1 || (filter & ~(StateFilterOK | StateFilterWarning | StateFilterCritical | StateFilterUnknown)) != 0))
 		BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of("types"), "State filter is invalid."));
 }
 
@@ -664,11 +639,11 @@ void Notification::ValidateTypes(const Array::Ptr& value, const ValidationUtils&
 {
 	ObjectImpl<Notification>::ValidateTypes(value, utils);
 
-	int tfilter = FilterArrayToInt(value, 0);
+	int filter = FilterArrayToInt(value, GetTypeFilterMap(), 0);
 
-	if ((tfilter & ~(1 << NotificationDowntimeStart | 1 << NotificationDowntimeEnd | 1 << NotificationDowntimeRemoved |
-	    1 << NotificationCustom | 1 << NotificationAcknowledgement | 1 << NotificationProblem | 1 << NotificationRecovery |
-	    1 << NotificationFlappingStart | 1 << NotificationFlappingEnd)) != 0)
+	if (filter == -1 || (filter & ~(NotificationDowntimeStart | NotificationDowntimeEnd | NotificationDowntimeRemoved |
+	    NotificationCustom | NotificationAcknowledgement | NotificationProblem | NotificationRecovery |
+	    NotificationFlappingStart | NotificationFlappingEnd)) != 0)
 		BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of("types"), "Type filter is invalid."));
 }
 
@@ -677,3 +652,12 @@ Endpoint::Ptr Notification::GetCommandEndpoint(void) const
 	return Endpoint::GetByName(GetCommandEndpointRaw());
 }
 
+const std::map<String, int>& Notification::GetStateFilterMap(void)
+{
+	return m_StateFilterMap;
+}
+
+const std::map<String, int>& Notification::GetTypeFilterMap(void)
+{
+	return m_TypeFilterMap;
+}

@@ -34,8 +34,8 @@ void User::OnConfigLoaded(void)
 {
 	ObjectImpl<User>::OnConfigLoaded();
 
-	SetTypeFilter(FilterArrayToInt(GetTypes(), ~0));
-	SetStateFilter(FilterArrayToInt(GetStates(), ~0));
+	SetTypeFilter(FilterArrayToInt(GetTypes(), Notification::GetTypeFilterMap(), ~0));
+	SetStateFilter(FilterArrayToInt(GetStates(), Notification::GetStateFilterMap(), ~0));
 }
 
 void User::OnAllConfigLoaded(void)
@@ -102,22 +102,20 @@ void User::ValidateStates(const Array::Ptr& value, const ValidationUtils& utils)
 {
 	ObjectImpl<User>::ValidateStates(value, utils);
 
-	int sfilter = FilterArrayToInt(value, 0);
+	int filter = FilterArrayToInt(value, Notification::GetStateFilterMap(), 0);
 
-	if ((sfilter & ~(StateFilterUp | StateFilterDown | StateFilterOK | StateFilterWarning | StateFilterCritical | StateFilterUnknown)) != 0) {
+	if (filter == -1 || (filter & ~(StateFilterUp | StateFilterDown | StateFilterOK | StateFilterWarning | StateFilterCritical | StateFilterUnknown)) != 0)
 		BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of("states"), "State filter is invalid."));
-	}
 }
 
 void User::ValidateTypes(const Array::Ptr& value, const ValidationUtils& utils)
 {
 	ObjectImpl<User>::ValidateTypes(value, utils);
 
-	int tfilter = FilterArrayToInt(value, 0);
+	int filter = FilterArrayToInt(value, Notification::GetTypeFilterMap(), 0);
 
-	if ((tfilter & ~(1 << NotificationDowntimeStart | 1 << NotificationDowntimeEnd | 1 << NotificationDowntimeRemoved |
-	    1 << NotificationCustom | 1 << NotificationAcknowledgement | 1 << NotificationProblem | 1 << NotificationRecovery |
-	    1 << NotificationFlappingStart | 1 << NotificationFlappingEnd)) != 0) {
+	if (filter == -1 || (filter & ~(NotificationDowntimeStart | NotificationDowntimeEnd | NotificationDowntimeRemoved |
+	    NotificationCustom | NotificationAcknowledgement | NotificationProblem | NotificationRecovery |
+	    NotificationFlappingStart | NotificationFlappingEnd)) != 0)
 		BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of("types"), "Type filter is invalid."));
-	}
 }

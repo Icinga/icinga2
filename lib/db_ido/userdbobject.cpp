@@ -53,16 +53,16 @@ Dictionary::Ptr UserDbObject::GetConfigFields(void) const
 	int typeFilter = user->GetTypeFilter();
 	int stateFilter = user->GetStateFilter();
 
-	fields->Set("notify_service_recovery", (typeFilter & (1 << NotificationRecovery)) != 0);
+	fields->Set("notify_service_recovery", (typeFilter & NotificationRecovery) != 0);
 	fields->Set("notify_service_warning", (stateFilter & StateFilterWarning) != 0);
 	fields->Set("notify_service_unknown", (stateFilter & StateFilterUnknown) != 0);
 	fields->Set("notify_service_critical", (stateFilter & StateFilterCritical) != 0);
-	fields->Set("notify_service_flapping", (typeFilter & ((1 << NotificationFlappingStart) | (1 << NotificationFlappingEnd))) != 0);
-	fields->Set("notify_service_downtime", (typeFilter & ((1 << NotificationDowntimeStart) | (1 << NotificationDowntimeEnd) | (1 << NotificationDowntimeRemoved))) != 0);
-	fields->Set("notify_host_recovery", (typeFilter & (1 << NotificationRecovery)) != 0);
+	fields->Set("notify_service_flapping", (typeFilter & (NotificationFlappingStart | NotificationFlappingEnd)) != 0);
+	fields->Set("notify_service_downtime", (typeFilter & (NotificationDowntimeStart | NotificationDowntimeEnd | NotificationDowntimeRemoved)) != 0);
+	fields->Set("notify_host_recovery", (typeFilter & NotificationRecovery) != 0);
 	fields->Set("notify_host_down", (stateFilter & StateFilterDown) != 0);
-	fields->Set("notify_host_flapping", (typeFilter & ((1 << NotificationFlappingStart) | (1 << NotificationFlappingEnd))) != 0);
-	fields->Set("notify_host_downtime", (typeFilter & ((1 << NotificationDowntimeStart) | (1 << NotificationDowntimeEnd) | (1 << NotificationDowntimeRemoved))) != 0);
+	fields->Set("notify_host_flapping", (typeFilter & (NotificationFlappingStart | NotificationFlappingEnd)) != 0);
+	fields->Set("notify_host_downtime", (typeFilter & (NotificationDowntimeStart | NotificationDowntimeEnd | NotificationDowntimeRemoved)) != 0);
 
 	return fields;
 }

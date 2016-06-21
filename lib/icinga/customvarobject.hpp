@@ -41,6 +41,8 @@ public:
 	virtual void ValidateVars(const Dictionary::Ptr& value, const ValidationUtils& utils) override;
 };
 
+I2_ICINGA_API int FilterArrayToInt(const Array::Ptr& typeFilters, const std::map<String, int>& filterMap, int defaultValue);
+
 }
 
 #endif /* CUSTOMVAROBJECT_H */
