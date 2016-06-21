@@ -2243,6 +2243,35 @@ apache_status_warning	| **Optional.** Warning threshold (number of open slots, b
 apache_status_critical	| **Optional.** Critical threshold (number of open slots, busy workers and idle workers that will cause a CRITICAL) like ':10,25,:20'.
 
 
+#### <a id="plugins-contrib-kdc"></a> kdc
+
+Plugin for monitoring [kdc](https://exchange.nagios.org/directory/Plugins/Security/check_kdc/details).
+
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
+
+Name            | Description
+----------------|--------------------------------------------------------------------------
+kdc_address	| **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, `address6` otherwise.
+kdc_port	| **Optional** Port on which KDC runs (default 88).
+kdc_principal	| **Required** Principal name to authenticate as (including realm).
+kdc_keytab	| **Required** Keytab file containing principal's key.
+
+
+#### <a id="plugins-contrib-rbl"></a> rbl
+
+Plugin for monitoring [rbl](https://github.com/matteocorti/check_rbl)
+
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
+
+Name            | Description
+----------------|--------------------------------------------------------------------------
+rbl_hostname	| **Optional.** The address or name of the SMTP server to check. Defaults to "$address$" if the host's `address` attribute is set, `address6` otherwise.
+rbl_server	| **Required** List of RBL servers as an array.
+rbl_warning	| **Optional** Number of blacklisting servers for a warning.
+rbl_critical	| **Optional** Number of blacklisting servers for a critical.
+tbl_timeout	| **Optional** Seconds before plugin times out (default: 15).
+
+
 ### <a id="plugins-contrib-operating-system"></a> Operating System
 
 In this category you can find plugins for gathering information about your operating system or the system beneath like memory usage.
