@@ -210,7 +210,7 @@ bool IcingaApplication::ResolveMacro(const String& macro, const CheckResult::Ptr
 	double now = Utility::GetTime();
 
 	if (macro == "timet") {
-		*result = now;
+		*result = static_cast<long>(now);
 		return true;
 	} else if (macro == "long_date_time") {
 		*result = Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", now);
