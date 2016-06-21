@@ -74,10 +74,10 @@ class Service : Checkable < ServiceNameComposer
 			return GetLastHardStateRaw();
 		}}}
 	};
-	[state] double last_state_ok (LastStateOK);
-	[state] double last_state_warning;
-	[state] double last_state_critical;
-	[state] double last_state_unknown;
+	[state] Timestamp last_state_ok (LastStateOK);
+	[state] Timestamp last_state_warning;
+	[state] Timestamp last_state_critical;
+	[state] Timestamp last_state_unknown;
 };
 
 }

@@ -159,6 +159,11 @@ bool MacroProcessor::ResolveMacro(const String& macro, const ResolverList& resol
 				}
 
 				ref = object->GetField(field);
+
+				Field fieldInfo = type->GetFieldInfo(field);
+
+				if (strcmp(fieldInfo.TypeName, "Timestamp") == 0)
+					ref = static_cast<long>(ref);
 			}
 		}
 

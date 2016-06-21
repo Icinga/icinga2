@@ -61,10 +61,10 @@ enum StateType
 
 class CheckResult
 {
-	[state] double schedule_start;
-	[state] double schedule_end;
-	[state] double execution_start;
-	[state] double execution_end;
+	[state] Timestamp schedule_start;
+	[state] Timestamp schedule_end;
+	[state] Timestamp execution_start;
+	[state] Timestamp execution_end;
 
 	[state] Value command;
 	[state] int exit_status;

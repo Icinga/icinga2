@@ -24,7 +24,7 @@ namespace icinga
 
 vararg_constructor class DateTime
 {
-	[state, no_storage] double value {
+	[state, no_storage] Timestamp value {
 		get;
 	};
 };

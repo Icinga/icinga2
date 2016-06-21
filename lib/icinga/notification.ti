@@ -90,10 +90,10 @@ class Notification : CustomVarObject < NotificationNameComposer
 		default {{{ return new Array(); }}}
 	};
 
-	[state] double last_notification;
-	[state] double next_notification;
+	[state] Timestamp last_notification;
+	[state] Timestamp next_notification;
 	[state] int notification_number;
-	[state] double last_problem_notification;
+	[state] Timestamp last_problem_notification;
 
 	[config, navigation] name(Endpoint) command_endpoint (CommandEndpointRaw) {
 		navigate {{{

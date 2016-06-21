@@ -34,8 +34,8 @@ class Endpoint : ConfigObject
 		default {{{ return 86400; }}}
 	};
 
-	[state] double local_log_position;
-	[state] double remote_log_position;
+	[state] Timestamp local_log_position;
+	[state] Timestamp remote_log_position;
 
 	[no_user_modify] bool connecting;
 	[no_user_modify] bool syncing;

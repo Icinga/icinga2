@@ -28,6 +28,8 @@
 namespace icinga
 {
 
+typedef double Timestamp;
+
 /**
  * The type of a Value.
  *

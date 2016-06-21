@@ -98,7 +98,7 @@ abstract class Checkable : CustomVarObject
 	[config] String icon_image;
 	[config] String icon_image_alt;
 
-	[state] double next_check;
+	[state] Timestamp next_check;
 	[state] int check_attempt {
 		default {{{ return 1; }}}
 	};
@@ -121,27 +121,27 @@ abstract class Checkable : CustomVarObject
 		default {{{ return true; }}}
 	};
 	[state] CheckResult::Ptr last_check_result;
-	[state] double last_state_change {
+	[state] Timestamp last_state_change {
 		default {{{ return Application::GetStartTime(); }}}
 	};
-	[state] double last_hard_state_change {
+	[state] Timestamp last_hard_state_change {
 		default {{{ return Application::GetStartTime(); }}}
 	};
-	[state] double last_state_unreachable;
+	[state] Timestamp last_state_unreachable;
 	[state] bool last_in_downtime;
 	[state] bool force_next_check;
 	[state] int acknowledgement (AcknowledgementRaw) {
 		default {{{ return AcknowledgementNone; }}}
 	};
-	[state] double acknowledgement_expiry;
+	[state] Timestamp acknowledgement_expiry;
 	[state] bool force_next_notification;
 	[state] int flapping_positive;
 	[state] int flapping_negative;
-	[state] double flapping_last_change;
+	[state] Timestamp flapping_last_change;
 	[no_storage, protected] bool flapping {
 		get {{{ return false; }}}
 	};
-	[no_storage] double last_check {
+	[no_storage] Timestamp last_check {
 		get;
 	};
 

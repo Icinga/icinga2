@@ -79,7 +79,7 @@ class Comment : ConfigObject < CommentNameComposer
 		}}}
 	};
 
-	[config] double entry_time {
+	[config] Timestamp entry_time {
 		default {{{ return Utility::GetTime(); }}}
 	};
 	[config, enum] CommentType entry_type {
@@ -87,7 +87,7 @@ class Comment : ConfigObject < CommentNameComposer
 	};
 	[config, required] String author;
 	[config, required] String text;
-	[config] double expire_time;
+	[config] Timestamp expire_time;
 	[state] int legacy_id;
 };
 

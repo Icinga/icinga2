@@ -56,7 +56,7 @@ class User : CustomVarObject
 		default {{{ return true; }}}
 	};
 
-	[state] double last_notification;
+	[state] Timestamp last_notification;
 };
 
 }

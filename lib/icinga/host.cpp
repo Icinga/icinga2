@@ -252,7 +252,7 @@ bool Host::ResolveMacro(const String& macro, const CheckResult::Ptr&, Value *res
 		*result = StateTypeToString(GetLastStateType());
 		return true;
 	} else if (macro == "last_state_change") {
-		*result = GetLastStateChange();
+		*result = static_cast<long>(GetLastStateChange());
 		return true;
 	} else if (macro == "downtime_depth") {
 		*result = GetDowntimeDepth();

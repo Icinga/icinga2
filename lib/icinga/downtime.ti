@@ -66,16 +66,16 @@ class Downtime : ConfigObject < DowntimeNameComposer
 		}}}
 	};
 
-	[config] double entry_time {
+	[config] Timestamp entry_time {
 		default {{{ return Utility::GetTime(); }}}
 	};
 	[config, required] String author;
 	[config, required] String comment;
-	[config] double start_time;
-	[config] double end_time;
-	[state] double trigger_time;
+	[config] Timestamp start_time;
+	[config] Timestamp end_time;
+	[state] Timestamp trigger_time;
 	[config] bool fixed;
-	[config] double duration;
+	[config] Timestamp duration;
 	[config] name(Downtime) triggered_by;
 	[config] String scheduled_by;
 	[state] Array::Ptr triggers {
