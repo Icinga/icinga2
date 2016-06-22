@@ -180,7 +180,10 @@ Expression *ConfigCompiler::HandleIncludeRecursive(const String& relativeBase, c
 
 	std::vector<Expression *> expressions;
 	Utility::GlobRecursive(ppath, pattern, boost::bind(&ConfigCompiler::CollectIncludes, boost::ref(expressions), _1, zone, package), GlobFile);
-	return new DictExpression(expressions);
+
+	DictExpression *dict = new DictExpression(expressions);
+	dict->MakeInline();
+	return dict;
 }
 
 void ConfigCompiler::HandleIncludeZone(const String& relativeBase, const String& tag, const String& path, const String& pattern, const String& package, std::vector<Expression *>& expressions)
