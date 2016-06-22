@@ -35,13 +35,27 @@ abstract class DbConnection : ConfigObject
 		default {{{ return new Dictionary(); }}}
 	};
 
-	[config] int categories {
+	[config] Value categories {
 		default {{{
-			return DbCatConfig | DbCatState | DbCatAcknowledgement |
-			    DbCatComment | DbCatDowntime | DbCatEventHandler | DbCatExternalCommand | DbCatFlapping |
-			    DbCatLog | DbCatNotification | DbCatProgramStatus | DbCatRetention | DbCatStateHistory;
+			Array::Ptr cat = new Array();
+			cat->Add("DbCatConfig");
+			cat->Add("DbCatState");
+			cat->Add("DbCatAcknowledgement");
+			cat->Add("DbCatComment");
+			cat->Add("DbCatDowntime");
+			cat->Add("DbCatEventHandler");
+			cat->Add("DbCatExternalCommand");
+			cat->Add("DbCatFlapping");
+			cat->Add("DbCatLog");
+			cat->Add("DbCatNotification");
+			cat->Add("DbCatProgramStatus");
+			cat->Add("DbCatRetention");
+			cat->Add("DbCatStateHistory");
+
+			return cat;
 		}}}
 	};
+	int categories_filter_real (CategoryFilter);
 
 	[config] bool enable_ha {
 		default {{{ return true; }}}
@@ -76,6 +90,12 @@ validator DbConnection {
 		Number statehistory_age;
 		Number servicechecks_age;
 		Number systemcommands_age;
+	};
+
+	Number categories;
+	Array categories {
+		String "*";
+		Number "*";
 	};
 };
 

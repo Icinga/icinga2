@@ -46,6 +46,14 @@ void DbConnection::OnConfigLoaded(void)
 {
 	ConfigObject::OnConfigLoaded();
 
+	Value categories = GetCategories();
+
+	//TODO: Remove 'cat1 | cat2' notation in 2.6
+	if (categories.IsNumber())
+		SetCategoryFilter(categories);
+	else
+		SetCategoryFilter(FilterArrayToInt(categories, DbQuery::GetCategoryFilterMap(), DbCatEverything));
+
 	if (!GetEnableHa()) {
 		Log(LogDebug, "DbConnection")
 		    << "HA functionality disabled. Won't pause IDO connection: " << GetName();

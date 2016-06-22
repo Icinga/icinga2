@@ -722,7 +722,7 @@ Configuration Attributes:
   enable_ha       |**Optional.** Enable the high availability functionality. Only valid in a [cluster setup](13-distributed-monitoring-ha.md#high-availability-db-ido). Defaults to "true".
   failover_timeout | **Optional.** Set the failover timeout in a [HA cluster](13-distributed-monitoring-ha.md#high-availability-db-ido). Must not be lower than 60s. Defaults to "60s".
   cleanup         |**Optional.** Dictionary with items for historical table cleanup.
-  categories      |**Optional.** The types of information that should be written to the database.
+  categories      |**Optional.** Array of information types that should be written to the database.
 
 Cleanup Items:
 
@@ -763,9 +763,14 @@ Data Categories:
   DbCatRetention       | Retention data         | Icinga Web 2
   DbCatStateHistory    | Historical state data  | Icinga Web 2
 
-Multiple categories can be combined using the `|` operator. In addition to
-the category flags listed above the `DbCatEverything` flag may be used as
-a shortcut for listing all flags.
+In addition to the category flags listed above the `DbCatEverything`
+flag may be used as a shortcut for listing all flags.
+
+> **Note**
+>
+> The previous way of defining the `categories` attribute e.g.
+> `DbCatProgramStatus | DbCatState` was deprecated in 2.5 and will
+> be removed in future versions.
 
 External interfaces like Icinga Web 2 require everything except `DbCatCheck`
 which is the default value if `categories` is not set.
@@ -806,7 +811,7 @@ Configuration Attributes:
   enable_ha       |**Optional.** Enable the high availability functionality. Only valid in a [cluster setup](13-distributed-monitoring-ha.md#high-availability-db-ido). Defaults to "true".
   failover_timeout | **Optional.** Set the failover timeout in a [HA cluster](13-distributed-monitoring-ha.md#high-availability-db-ido). Must not be lower than 60s. Defaults to "60s".
   cleanup         |**Optional.** Dictionary with items for historical table cleanup.
-  categories      |**Optional.** The types of information that should be written to the database.
+  categories      |**Optional.** Array of information types that should be written to the database.
 
 Cleanup Items:
 
@@ -847,9 +852,14 @@ Data Categories:
   DbCatRetention       | Retention data         | Icinga Web 2
   DbCatStateHistory    | Historical state data  | Icinga Web 2
 
-Multiple categories can be combined using the `|` operator. In addition to
-the category flags listed above the `DbCatEverything` flag may be used as
-a shortcut for listing all flags.
+In addition to the category flags listed above the `DbCatEverything`
+flag may be used as a shortcut for listing all flags.
+
+> **Note**
+>
+> The previous way of defining the `categories` attribute e.g.
+> `DbCatProgramStatus | DbCatState` was deprecated in 2.5 and will
+> be removed in future versions.
 
 External interfaces like Icinga Web 2 require everything except `DbCatCheck`
 which is the default value if `categories` is not set.

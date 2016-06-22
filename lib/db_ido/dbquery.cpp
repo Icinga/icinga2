@@ -25,6 +25,8 @@ using namespace icinga;
 
 INITIALIZE_ONCE(&DbQuery::StaticInitialize);
 
+std::map<String, int> DbQuery::m_CategoryFilterMap;
+
 void DbQuery::StaticInitialize(void)
 {
 	ScriptGlobal::Set("DbCatConfig", DbCatConfig);
@@ -42,5 +44,26 @@ void DbQuery::StaticInitialize(void)
 	ScriptGlobal::Set("DbCatRetention", DbCatRetention);
 	ScriptGlobal::Set("DbCatStateHistory", DbCatStateHistory);
 
-	ScriptGlobal::Set("DbCatEverything", ~(unsigned int)0);
+	ScriptGlobal::Set("DbCatEverything", DbCatEverything);
+
+	m_CategoryFilterMap["DbCatConfig"] = DbCatConfig;
+	m_CategoryFilterMap["DbCatState"] = DbCatState;
+	m_CategoryFilterMap["DbCatAcknowledgement"] = DbCatAcknowledgement;
+	m_CategoryFilterMap["DbCatComment"] = DbCatComment;
+	m_CategoryFilterMap["DbCatDowntime"] = DbCatDowntime;
+	m_CategoryFilterMap["DbCatEventHandler"] = DbCatEventHandler;
+	m_CategoryFilterMap["DbCatExternalCommand"] = DbCatExternalCommand;
+	m_CategoryFilterMap["DbCatFlapping"] = DbCatFlapping;
+	m_CategoryFilterMap["DbCatCheck"] = DbCatCheck;
+	m_CategoryFilterMap["DbCatLog"] = DbCatLog;
+	m_CategoryFilterMap["DbCatNotification"] = DbCatNotification;
+	m_CategoryFilterMap["DbCatProgramStatus"] = DbCatProgramStatus;
+	m_CategoryFilterMap["DbCatRetention"] = DbCatRetention;
+	m_CategoryFilterMap["DbCatStateHistory"] = DbCatStateHistory;
+	m_CategoryFilterMap["DbCatEverything"] = DbCatEverything;
+}
+
+const std::map<String, int>& DbQuery::GetCategoryFilterMap(void)
+{
+	return m_CategoryFilterMap;
 }
