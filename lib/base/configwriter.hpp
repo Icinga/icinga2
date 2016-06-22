@@ -60,7 +60,8 @@ public:
 	static void EmitEmpty(std::ostream& fp);
 	static void EmitArray(std::ostream& fp, int indentLevel, const Array::Ptr& val);
 	static void EmitArrayItems(std::ostream& fp, int indentLevel, const Array::Ptr& val);
-	static void EmitScope(std::ostream& fp, int indentLevel, const Dictionary::Ptr& val, const Array::Ptr& imports = Array::Ptr());
+	static void EmitScope(std::ostream& fp, int indentLevel, const Dictionary::Ptr& val,
+	    const Array::Ptr& imports = Array::Ptr(), bool splitDot = false);
 	static void EmitValue(std::ostream& fp, int indentLevel, const Value& val);
 	static void EmitRaw(std::ostream& fp, const String& val);
 	static void EmitIndent(std::ostream& fp, int indentLevel);

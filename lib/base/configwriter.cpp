@@ -74,7 +74,8 @@ void ConfigWriter::EmitArrayItems(std::ostream& fp, int indentLevel, const Array
 	}
 }
 
-void ConfigWriter::EmitScope(std::ostream& fp, int indentLevel, const Dictionary::Ptr& val, const Array::Ptr& imports)
+void ConfigWriter::EmitScope(std::ostream& fp, int indentLevel, const Dictionary::Ptr& val,
+    const Array::Ptr& imports, bool splitDot)
 {
 	fp << "{";
 
@@ -94,18 +95,21 @@ void ConfigWriter::EmitScope(std::ostream& fp, int indentLevel, const Dictionary
 		BOOST_FOREACH(const Dictionary::Pair& kv, val) {
 			fp << "\n";
 			EmitIndent(fp, indentLevel);
-			
-			std::vector<String> tokens;
-			boost::algorithm::split(tokens, kv.first, boost::is_any_of("."));
-			
-			EmitIdentifier(fp, tokens[0], true);
-			
-			for (std::vector<String>::size_type i = 1; i < tokens.size(); i++) {
-				fp << "[";
-				EmitString(fp, tokens[i]);
-				fp << "]";
-			}
-			
+
+			if (splitDot) {
+				std::vector<String> tokens;
+				boost::algorithm::split(tokens, kv.first, boost::is_any_of("."));
+
+				EmitIdentifier(fp, tokens[0], true);
+
+				for (std::vector<String>::size_type i = 1; i < tokens.size(); i++) {
+					fp << "[";
+					EmitString(fp, tokens[i]);
+					fp << "]";
+				}
+			} else
+				EmitIdentifier(fp, kv.first, true);
+
 			fp << " = ";
 			EmitValue(fp, indentLevel + 1, kv.second);
 		}
@@ -189,7 +193,7 @@ void ConfigWriter::EmitConfigItem(std::ostream& fp, const String& type, const St
 		fp << " ignore_on_error";
 
 	fp << " ";
-	EmitScope(fp, 1, attrs, imports);
+	EmitScope(fp, 1, attrs, imports, true);
 }
 
 void ConfigWriter::EmitComment(std::ostream& fp, const String& text)
