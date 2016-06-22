@@ -22,6 +22,13 @@ CREATE INDEX idx_comments_object_id on icinga_comments(object_id);
 CREATE INDEX idx_scheduleddowntime_object_id on icinga_scheduleddowntime(object_id);
 
 -- -----------------------------------------
+-- #11962
+-- -----------------------------------------
+
+ALTER TABLE icinga_hoststatus MODIFY COLUMN current_notification_number int unsigned default 0;
+ALTER TABLE icinga_servicestatus MODIFY COLUMN current_notification_number int unsigned default 0;
+
+-- -----------------------------------------
 -- set dbversion
 -- -----------------------------------------
 INSERT INTO icinga_dbversion (name, version, create_time, modify_time) VALUES ('idoutils', '1.14.1', NOW(), NOW()) ON DUPLICATE KEY UPDATE version='1.14.1', modify_time=NOW();
