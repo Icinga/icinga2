@@ -430,6 +430,7 @@ Configuration Attributes:
   port            |**Optional.** The service name/port of the remote Icinga 2 instance. Defaults to `5665`.
   log_duration    |**Optional.** Duration for keeping replay logs on connection loss. Defaults to `1d` (86400 seconds). Attribute is specified in seconds. If log_duration is set to 0, replaying logs is disabled. You could also specify the value in human readable format like `10m` for 10 minutes or `1h` for one hour.
 
+Endpoint objects cannot currently be created with the API.
 
 ## <a id="objecttype-eventcommand"></a> EventCommand
 
@@ -1556,7 +1557,7 @@ Configuration Attributes:
   parent          |**Optional.** The name of the parent zone.
   global          |**Optional.** Whether configuration files for this zone should be synced to all endpoints. Defaults to false.
 
-
+Zone objects cannot currently be created with the API.
 
 # <a id="value-types"></a> Value Types
 
