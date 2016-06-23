@@ -23,7 +23,7 @@ monitoring and high-availability, please continue reading in
 
 * Clients with [local configuration](11-icinga2-client.md#icinga2-client-configuration-local), sending their inventory to the master
 * Clients as [command execution bridge](11-icinga2-client.md#icinga2-client-configuration-command-bridge) without local configuration
-* Clients receive their configuration from the master ([Cluster config sync](11-icinga2-client.md#icinga2-client-configuration-master-config-sync))
+* Clients receive their configuration from the master using the [cluster config sync](11-icinga2-client.md#icinga2-client-configuration-master-config-sync)
 
 Keep the [naming convention](13-distributed-monitoring-ha.md#cluster-naming-convention) for nodes in mind.
 
