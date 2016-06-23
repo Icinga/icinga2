@@ -222,6 +222,7 @@ void InfluxdbWriter::SendPerfdata(const Dictionary::Ptr& tmpl, const Checkable::
 			fields->Set(String("state_type"), FormatInteger(checkable->GetStateType()));
 			fields->Set(String("reachable"), FormatBoolean(checkable->IsReachable()));
 			fields->Set(String("downtime_depth"), FormatInteger(checkable->GetDowntimeDepth()));
+			fields->Set(String("acknowledgement"), FormatInteger(checkable->GetAcknowledgement()));
 			fields->Set(String("latency"), cr->CalculateLatency());
 			fields->Set(String("execution_time"), cr->CalculateExecutionTime());
 		}

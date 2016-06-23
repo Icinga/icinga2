@@ -129,6 +129,7 @@ void OpenTsdbWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 	SendMetric(metric + ".state_type", tags, checkable->GetStateType(), ts);
 	SendMetric(metric + ".reachable", tags, checkable->IsReachable(), ts);
 	SendMetric(metric + ".downtime_depth", tags, checkable->GetDowntimeDepth(), ts);
+	SendMetric(metric + ".acknowledgement", tags, checkable->GetAcknowledgement(), ts);
 
 	SendPerfdata(metric, tags, cr, ts);
 

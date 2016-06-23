@@ -141,6 +141,7 @@ void GraphiteWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 			SendMetric(prefix_metadata, "state_type", checkable->GetStateType(), ts);
 			SendMetric(prefix_metadata, "reachable", checkable->IsReachable(), ts);
 			SendMetric(prefix_metadata, "downtime_depth", checkable->GetDowntimeDepth(), ts);
+			SendMetric(prefix_metadata, "acknowledgement", checkable->GetAcknowledgement(), ts);
 			SendMetric(prefix_metadata, "latency", cr->CalculateLatency(), ts);
 			SendMetric(prefix_metadata, "execution_time", cr->CalculateExecutionTime(), ts);
 		}
@@ -160,6 +161,7 @@ void GraphiteWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 		SendMetric(prefix, "state_type", checkable->GetStateType(), ts);
 		SendMetric(prefix, "reachable", checkable->IsReachable(), ts);
 		SendMetric(prefix, "downtime_depth", checkable->GetDowntimeDepth(), ts);
+		SendMetric(prefix, "acknowledgement", checkable->GetAcknowledgement(), ts);
 		SendMetric(prefix, "latency", cr->CalculateLatency(), ts);
 		SendMetric(prefix, "execution_time", cr->CalculateExecutionTime(), ts);
 		SendPerfdata(prefix, cr, ts);

@@ -215,6 +215,7 @@ By enabling `enable_send_metadata` Icinga 2 automatically adds the following met
 
     <prefix>.metadata.current_attempt
     <prefix>.metadata.downtime_depth
+    <prefix>.metadata.acknowledgement
     <prefix>.metadata.execution_time
     <prefix>.metadata.latency
     <prefix>.metadata.max_check_attempts
@@ -230,6 +231,7 @@ Metadata metric overview:
   max_check_attempts | maximum check attempts until the hard state is reached
   reachable          | checked object is reachable
   downtime_depth     | number of downtimes this object is in
+  acknowledgement    | whether the object is acknowledged or not
   execution_time     | check execution time
   latency            | check latency
   state              | current state of the checked object
@@ -294,6 +296,7 @@ internal check statistic data to Graphite:
   max_check_attempts | maximum check attempts until the hard state is reached
   reachable          | checked object is reachable
   downtime_depth     | number of downtimes this object is in
+  acknowledgement    | whether the object is acknowledged or not
   execution_time     | check execution time
   latency            | check latency
   state              | current state of the checked object
@@ -387,6 +390,7 @@ internal check statistic data to OpenTSDB:
   max_check_attempts | maximum check attempts until the hard state is reached
   reachable          | checked object is reachable
   downtime_depth     | number of downtimes this object is in
+  acknowledgement    | whether the object is acknowledged or not
   execution_time     | check execution time
   latency            | check latency
   state              | current state of the checked object
