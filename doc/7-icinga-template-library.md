@@ -54,9 +54,11 @@ Check command for the built-in `cluster-zone` check.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
-Name         | Description
--------------|---------------
-cluster_zone | **Optional.** The zone name. Defaults to "$host.name$".
+Name                 | Description
+---------------------|---------------
+cluster_zone         | **Required.** The zone name.
+cluster_lag_warning  | **Optional.** Warning threshold for log lag in seconds.
+cluster_lag_critical | **Optional.** Critical threshold for log lag in seconds.
 
 ### <a id="itl-icinga-ido"></a> ido
 
