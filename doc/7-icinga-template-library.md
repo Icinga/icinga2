@@ -57,8 +57,8 @@ Custom attributes passed as [command parameters](3-monitoring-basics.md#command-
 Name                 | Description
 ---------------------|---------------
 cluster_zone         | **Required.** The zone name.
-cluster_lag_warning  | **Optional.** Warning threshold for log lag in seconds.
-cluster_lag_critical | **Optional.** Critical threshold for log lag in seconds.
+cluster_lag_warning  | **Optional.** Warning threshold for log lag in seconds. Applies if the log lag is greater than the threshold.
+cluster_lag_critical | **Optional.** Critical threshold for log lag in seconds. Applies if the log lag is greater than the threshold.
 
 ### <a id="itl-icinga-ido"></a> ido
 
