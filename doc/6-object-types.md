@@ -623,6 +623,7 @@ Runtime Attributes:
   last\_in\_downtime        | Boolean       | Whether the host was in a downtime when the last check occurred.
   acknowledgement           | Number        | The acknowledgement type (0 = NONE, 1 = NORMAL, 2 = STICKY).
   acknowledgement_expiry    | Number        | When the acknowledgement expires (as a UNIX timestamp; 0 = no expiry).
+  downtime\_depth           | Number        | Whether the host has one or more active downtimes.
   flapping_last_change      | Number        | When the last flapping change occurred (as a UNIX timestamp).
   flapping                  | Boolean       | Whether the host is flapping between states.
   state                     | Number        | The current state (0 = UP, 1 = DOWN).
@@ -1320,6 +1321,7 @@ Runtime Attributes:
   last\_in\_downtime        | Boolean       | Whether the service was in a downtime when the last check occurred.
   acknowledgement           | Number        | The acknowledgement type (0 = NONE, 1 = NORMAL, 2 = STICKY).
   acknowledgement_expiry    | Number        | When the acknowledgement expires (as a UNIX timestamp; 0 = no expiry).
+  downtime\_depth           | Number        | Whether the service has one or more active downtimes.
   flapping_last_change      | Number        | When the last flapping change occurred (as a UNIX timestamp).
   flapping                  | Boolean       | Whether the host is flapping between states.
   state                     | Number        | The current state (0 = OK, 1 = WARNING, 2 = CRITICAL, 3 = UNKNOWN).

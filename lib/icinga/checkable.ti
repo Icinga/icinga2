@@ -144,6 +144,9 @@ abstract class Checkable : CustomVarObject
 	[no_storage] Timestamp last_check {
 		get;
 	};
+	[no_storage] int downtime_depth {
+		get;
+	};
 
 	[config, navigation] name(Endpoint) command_endpoint (CommandEndpointRaw) {
 		navigate {{{

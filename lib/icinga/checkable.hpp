@@ -124,7 +124,7 @@ public:
 	static boost::signals2::signal<void (const Checkable::Ptr&)> OnEventCommandExecuted;
 
 	/* Downtimes */
-	int GetDowntimeDepth(void) const;
+	virtual int GetDowntimeDepth(void) const override;
 
 	void RemoveAllDowntimes(void);
 	void TriggerDowntimes(void);
