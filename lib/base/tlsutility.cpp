@@ -32,6 +32,7 @@ namespace icinga
 static bool l_SSLInitialized = false;
 static boost::mutex *l_Mutexes;
 
+#ifdef CRYPTO_LOCK
 static void OpenSSLLockingCallback(int mode, int type, const char *, int)
 {
 	if (mode & CRYPTO_LOCK)
@@ -48,6 +49,7 @@ static unsigned long OpenSSLIDCallback(void)
 	return (unsigned long)pthread_self();
 #endif /* _WIN32 */
 }
+#endif /* CRYPTO_LOCK */
 
 /**
  * Initializes the OpenSSL library.
@@ -62,9 +64,11 @@ void InitializeOpenSSL(void)
 
 	SSL_COMP_get_compression_methods();
 
+#ifdef CRYPTO_LOCK
 	l_Mutexes = new boost::mutex[CRYPTO_num_locks()];
 	CRYPTO_set_locking_callback(&OpenSSLLockingCallback);
 	CRYPTO_set_id_callback(&OpenSSLIDCallback);
+#endif /* CRYPTO_LOCK */
 
 	l_SSLInitialized = true;
 }
