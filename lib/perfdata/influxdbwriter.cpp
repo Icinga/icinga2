@@ -237,7 +237,7 @@ String InfluxdbWriter::EscapeKey(const String& str)
 	String result = str;
 	boost::algorithm::replace_all(result, ",", "\\,");
 	boost::algorithm::replace_all(result, " ", "\\ ");
-	return str;
+	return result;
 }
 
 String InfluxdbWriter::EscapeField(const String& str)
