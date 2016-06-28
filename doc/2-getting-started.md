@@ -177,10 +177,8 @@ Without plugins Icinga 2 does not know how to check external services. The
 an extensive set of plugins which can be used with Icinga 2 to check whether
 services are working properly.
 
-> **Note**
->
-> These plugins are required to make the [example configuration](4-configuring-icinga-2.md#configuring-icinga2-overview)
-> work out-of-the-box.
+These plugins are required to make the [example configuration](4-configuring-icinga-2.md#configuring-icinga2-overview)
+work out-of-the-box.
 
 For your convenience here is a list of package names for some of the more
 popular operating systems/distributions:
