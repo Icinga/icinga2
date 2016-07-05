@@ -113,7 +113,14 @@ String ConfigCompiler::GetPackage(void) const
 void ConfigCompiler::CollectIncludes(std::vector<Expression *>& expressions,
     const String& file, const String& zone, const String& package)
 {
-	expressions.push_back(CompileFile(file, zone, package));
+	try {
+		Expression *expr = CompileFile(file, zone, package);
+		expressions.push_back(expr);
+	} catch (const std::exception& ex) {
+		Log(LogWarning, "ConfigCompiler")
+		    << "Cannot compile file '"
+		    << file << "': " << DiagnosticInformation(ex);
+	}
 }
 
 /**
