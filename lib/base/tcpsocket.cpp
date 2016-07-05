@@ -177,8 +177,8 @@ void TcpSocket::Connect(const String& node, const String& service)
 			continue;
 		}
 
-		int optval = 1;
-		if (setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &optval, sizeof(optval)) != 0) {
+		const int optTrue = 1;
+		if (setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, reinterpret_cast<const char *>(&optTrue), sizeof(optTrue)) != 0) {
 #ifdef _WIN32
 			error = WSAGetLastError();
 #else /* _WIN32 */
