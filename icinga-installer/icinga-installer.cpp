@@ -25,6 +25,8 @@
 #include <shlwapi.h>
 #include <shellapi.h>
 #include <shlobj.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 static std::string GetIcingaInstallPath(void)
 {
@@ -124,8 +126,8 @@ static void MkDirP(const std::string& path)
 		pos = path.find_first_of("/\\", pos + 1);
 
 		std::string spath = path.substr(0, pos + 1);
-		struct stat statbuf;
-		if (stat(spath.c_str(), &statbuf) < 0 && errno == ENOENT)
+		struct _stat statbuf;
+		if (_stat(spath.c_str(), &statbuf) < 0 && errno == ENOENT)
 			MkDir(path.substr(0, pos));
 	}
 }
