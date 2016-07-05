@@ -149,6 +149,11 @@ void TlsStream::OnEvent(int revents)
 
 	bool success = false;
 
+	/* Clear error queue for this thread before using SSL_{read,write,do_handshake}.
+	 * Otherwise SSL_*_error() does not work reliably.
+	 */
+	ERR_clear_error();
+
 	switch (m_CurrentAction) {
 		case TlsActionRead:
 			do {
