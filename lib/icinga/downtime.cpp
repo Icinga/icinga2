@@ -367,7 +367,7 @@ void Downtime::DowntimesExpireTimerHandler(void)
 	}
 }
 
-void Downtime::ValidateStartTime(double value, const ValidationUtils& utils)
+void Downtime::ValidateStartTime(const Timestamp& value, const ValidationUtils& utils)
 {
 	ObjectImpl<Downtime>::ValidateStartTime(value, utils);
 
@@ -375,7 +375,7 @@ void Downtime::ValidateStartTime(double value, const ValidationUtils& utils)
 		BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of("start_time"), "Start time must be greater than 0."));
 }
 
-void Downtime::ValidateEndTime(double value, const ValidationUtils& utils)
+void Downtime::ValidateEndTime(const Timestamp& value, const ValidationUtils& utils)
 {
 	ObjectImpl<Downtime>::ValidateEndTime(value, utils);
 
