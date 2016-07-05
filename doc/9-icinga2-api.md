@@ -580,6 +580,11 @@ parameters need to be passed inside the JSON body:
 
 In addition to these parameters a [filter](9-icinga2-api.md#icinga2-api-filters) should be provided.
 
+**Note**: Modified attributes do not trigger a re-evaluation of existing
+static [apply rules](3-monitoring-basics.md#using-apply) and [group assignments](3-monitoring-basics.md#group-assign-intro).
+Delete and re-create the objects if you require such changes.
+
+
 If attributes are of the Dictionary type, you can also use the indexer format:
 
     "attrs": { "vars.os": "Linux" }
