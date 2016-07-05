@@ -280,7 +280,7 @@ Expression *ConfigCompiler::CompileFile(const String& path, const String& zone,
 			<< boost::errinfo_errno(errno)
 			<< boost::errinfo_file_name(path));
 
-	Log(LogInformation, "ConfigCompiler")
+	Log(LogNotice, "ConfigCompiler")
 	    << "Compiling config file: " << path;
 
 	return CompileStream(path, &stream, zone, package);

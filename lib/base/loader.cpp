@@ -40,7 +40,7 @@ void Loader::LoadExtensionLibrary(const String& library)
 	path = "lib" + library + ".so";
 #endif /* _WIN32 */
 
-	Log(LogInformation, "Utility")
+	Log(LogNotice, "Loader")
 	    << "Loading library '" << path << "'";
 
 #ifdef _WIN32

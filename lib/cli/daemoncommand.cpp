@@ -239,6 +239,8 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 	else if (!vm.count("no-config"))
 		configs.push_back(Application::GetSysconfDir() + "/icinga2/icinga2.conf");
 
+	Log(LogInformation, "cli", "Loading configuration file(s).");
+
 	std::vector<ConfigItem::Ptr> newItems;
 
 	if (!DaemonUtility::LoadConfigFiles(configs, newItems, Application::GetObjectsPath(), Application::GetVarsPath()))

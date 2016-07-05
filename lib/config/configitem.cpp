@@ -534,7 +534,7 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 
 bool ConfigItem::CommitItems(const ActivationContext::Ptr& context, WorkQueue& upq, std::vector<ConfigItem::Ptr>& newItems)
 {
-	Log(LogInformation, "ConfigItem", "Committing config items");
+	Log(LogInformation, "ConfigItem", "Committing config item(s).");
 
 	if (!CommitNewItems(context, upq, newItems)) {
 		upq.ReportExceptions("config");
