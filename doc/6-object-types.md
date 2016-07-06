@@ -697,7 +697,7 @@ Example:
 
       cleanup = {
         downtimehistory_age = 48h
-        logentries_age = 31d
+        contactnotifications_age = 31d
       }
     }
 
@@ -758,7 +758,7 @@ Data Categories:
   DbCatExternalCommand | External commands      | Icinga Web 2
   DbCatFlapping        | Flap detection data    | Icinga Web 2
   DbCatCheck           | Check results          | --
-  DbCatLog             | Log messages           | Icinga Web 2
+  DbCatLog             | Log messages           | --
   DbCatNotification    | Notifications          | Icinga Web 2
   DbCatProgramStatus   | Program status data    | Icinga Web 2
   DbCatRetention       | Retention data         | Icinga Web 2
@@ -774,7 +774,7 @@ flag may be used as a shortcut for listing all flags.
 > be removed in future versions.
 
 External interfaces like Icinga Web 2 require everything except `DbCatCheck`
-which is the default value if `categories` is not set.
+and `DbCatLog` which is the default value if `categories` is not set.
 
 ## <a id="objecttype-idopgsqlconnection"></a> IdoPgSqlConnection
 
@@ -793,7 +793,7 @@ Example:
 
       cleanup = {
         downtimehistory_age = 48h
-        logentries_age = 31d
+        contactnotifications_age = 31d
       }
     }
 
@@ -847,7 +847,7 @@ Data Categories:
   DbCatExternalCommand | External commands      | Icinga Web 2
   DbCatFlapping        | Flap detection data    | Icinga Web 2
   DbCatCheck           | Check results          | --
-  DbCatLog             | Log messages           | Icinga Web 2
+  DbCatLog             | Log messages           | --
   DbCatNotification    | Notifications          | Icinga Web 2
   DbCatProgramStatus   | Program status data    | Icinga Web 2
   DbCatRetention       | Retention data         | Icinga Web 2
@@ -863,7 +863,7 @@ flag may be used as a shortcut for listing all flags.
 > be removed in future versions.
 
 External interfaces like Icinga Web 2 require everything except `DbCatCheck`
-which is the default value if `categories` is not set.
+and `DbCatLog` which is the default value if `categories` is not set.
 
 
 ## <a id="objecttype-influxdbwriter"></a> InfluxdbWriter

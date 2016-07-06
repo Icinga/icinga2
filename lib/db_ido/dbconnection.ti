@@ -46,7 +46,6 @@ abstract class DbConnection : ConfigObject
 			cat->Add("DbCatEventHandler");
 			cat->Add("DbCatExternalCommand");
 			cat->Add("DbCatFlapping");
-			cat->Add("DbCatLog");
 			cat->Add("DbCatNotification");
 			cat->Add("DbCatProgramStatus");
 			cat->Add("DbCatRetention");
