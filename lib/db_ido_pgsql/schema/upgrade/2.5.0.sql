@@ -39,6 +39,11 @@ CREATE INDEX idx_zones_parent_object_id on icinga_zones(parent_zone_object_id);
 CREATE INDEX idx_zonestatus_parent_object_id on icinga_zonestatus(parent_zone_object_id);
 
 -- -----------------------------------------
+-- #12107
+-- -----------------------------------------
+CREATE INDEX idx_statehistory_cleanup on icinga_statehistory(instance_id, state_time);
+
+-- -----------------------------------------
 -- set dbversion
 -- -----------------------------------------
 
