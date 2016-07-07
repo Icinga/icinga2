@@ -180,7 +180,7 @@ CREATE TABLE IF NOT EXISTS icinga_contactgroups (
   instance_id bigint unsigned default 0,
   config_type smallint default 0,
   contactgroup_object_id bigint unsigned default 0,
-  alias TEXT character set latin1  default '',
+  alias varchar(255) character set latin1  default '',
   PRIMARY KEY  (contactgroup_id),
   UNIQUE KEY instance_id (instance_id,config_type,contactgroup_object_id)
 ) ENGINE=InnoDB  COMMENT='Contactgroup definitions';
@@ -249,7 +249,7 @@ CREATE TABLE IF NOT EXISTS icinga_contacts (
   instance_id bigint unsigned default 0,
   config_type smallint default 0,
   contact_object_id bigint unsigned default 0,
-  alias TEXT character set latin1  default '',
+  alias varchar(255) character set latin1  default '',
   email_address varchar(255) character set latin1  default '',
   pager_address varchar(64) character set latin1  default '',
   host_timeperiod_object_id bigint unsigned default 0,
@@ -606,7 +606,7 @@ CREATE TABLE IF NOT EXISTS icinga_hostgroups (
   instance_id bigint unsigned default 0,
   config_type smallint default 0,
   hostgroup_object_id bigint unsigned default 0,
-  alias TEXT character set latin1  default '',
+  alias varchar(255) character set latin1  default '',
   notes TEXT character set latin1  default NULL,
   notes_url TEXT character set latin1  default NULL,
   action_url TEXT character set latin1  default NULL,
@@ -639,7 +639,7 @@ CREATE TABLE IF NOT EXISTS icinga_hosts (
   instance_id bigint unsigned default 0,
   config_type smallint default 0,
   host_object_id bigint unsigned default 0,
-  alias TEXT character set latin1  default '',
+  alias varchar(255) character set latin1  default '',
   display_name varchar(255) character set latin1 collate latin1_general_cs  default '',
   address varchar(128) character set latin1  default '',
   address6 varchar(128) character set latin1  default '',
@@ -1100,7 +1100,7 @@ CREATE TABLE IF NOT EXISTS icinga_servicegroups (
   instance_id bigint unsigned default 0,
   config_type smallint default 0,
   servicegroup_object_id bigint unsigned default 0,
-  alias TEXT character set latin1  default '',
+  alias varchar(255) character set latin1  default '',
   notes TEXT character set latin1  default NULL,
   notes_url TEXT character set latin1  default NULL,
   action_url TEXT character set latin1  default NULL,
@@ -1336,7 +1336,7 @@ CREATE TABLE IF NOT EXISTS icinga_timeperiods (
   instance_id bigint unsigned default 0,
   config_type smallint default 0,
   timeperiod_object_id bigint unsigned default 0,
-  alias TEXT character set latin1  default '',
+  alias varchar(255) character set latin1  default '',
   PRIMARY KEY  (timeperiod_id),
   UNIQUE KEY instance_id (instance_id,config_type,timeperiod_object_id)
 ) ENGINE=InnoDB  COMMENT='Timeperiod definitions';

@@ -28,6 +28,16 @@ CREATE INDEX idx_scheduleddowntime_object_id on icinga_scheduleddowntime(object_
 ALTER TABLE icinga_hoststatus MODIFY COLUMN current_notification_number int unsigned default 0;
 ALTER TABLE icinga_servicestatus MODIFY COLUMN current_notification_number int unsigned default 0;
 
+-- -----------------------------------------
+-- #10061
+-- -----------------------------------------
+
+ALTER TABLE icinga_contactgroups MODIFY COLUMN alias varchar(255) character set latin1  default '';
+ALTER TABLE icinga_contacts MODIFY COLUMN alias varchar(255) character set latin1  default '';
+ALTER TABLE icinga_hostgroups MODIFY COLUMN alias varchar(255) character set latin1  default '';
+ALTER TABLE icinga_hosts MODIFY COLUMN alias varchar(255) character set latin1  default '';
+ALTER TABLE icinga_servicegroups MODIFY COLUMN alias varchar(255) character set latin1  default '';
+ALTER TABLE icinga_timeperiods MODIFY COLUMN alias varchar(255) character set latin1  default '';
 
 -- -----------------------------------------
 -- #10066
