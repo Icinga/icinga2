@@ -49,9 +49,11 @@ void DbConnection::OnConfigLoaded(void)
 	Value categories = GetCategories();
 
 	//TODO: Remove 'cat1 | cat2' notation in 2.6
-	if (categories.IsNumber())
+	if (categories.IsNumber()) {
 		SetCategoryFilter(categories);
-	else
+		Log(LogWarning, "DbConnection")
+		    << "Specifying flags using '|' for 'categories' is deprecated. This functionality will be removed in 2.6.0. Please use an array.";
+	} else
 		SetCategoryFilter(FilterArrayToInt(categories, DbQuery::GetCategoryFilterMap(), DbCatEverything));
 
 	if (!GetEnableHa()) {
