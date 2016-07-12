@@ -2040,6 +2040,24 @@ iftraffic_warn		| **Optional.** Percent of bandwidth usage necessary to result i
 iftraffic_crit		| **Optional.** Percent of bandwidth usage necessary to result in critical status (defaults to `98%`).
 iftraffic_max_counter	| **Optional.** Maximum counter value of net devices in kilo/mega/giga/bytes.
 
+#### <a id="plugins-contrib-command-iftraffic64"></a> iftraffic64
+
+The plugin [check_iftraffic64](https://exchange.icinga.org/exchange/iftraffic64)
+checks the utilization of a given interface name using the SNMP protocol.
+
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
+
+Name                    | Description
+------------------------|---------------------------------------------------------
+iftraffic64_address     | **Required.** Specifies the remote host. Defaults to "$address$".
+iftraffic64_community   | **Optional.** SNMP community. Defaults to "public'" if omitted.
+iftraffic64_interface   | **Required.** Queried interface name.
+iftraffic64_bandwidth   | **Required.** Interface maximum speed in kilo/mega/giga/bits per second.
+iftraffic64_units       | **Optional.** Interface units can be one of these values: `g` (gigabits/s),`m` (megabits/s), `k` (kilobits/s),`b` (bits/s)
+iftraffic64_warn        | **Optional.** Percent of bandwidth usage necessary to result in warning status (defaults to `85`).
+iftraffic64_crit        | **Optional.** Percent of bandwidth usage necessary to result in critical status (defaults to `98`).
+iftraffic64_max_counter	| **Optional.** Maximum counter value of net devices in kilo/mega/giga/bytes.
+
 #### <a id="plugins-contrib-command-interfaces"></a> interfaces
 
 The plugin [check_interfaces](https://www.netways.org/projects/check-interfaces)
