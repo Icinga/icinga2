@@ -161,6 +161,7 @@ void DbObject::SendVarsConfigUpdate(void)
 	Dictionary::Ptr vars = CompatUtility::GetCustomAttributeConfig(custom_var_object);
 
 	if (vars) {
+		std::vector<DbQuery> queries;
 		ObjectLock olock (vars);
 
 		BOOST_FOREACH(const Dictionary::Pair& kv, vars) {
@@ -196,8 +197,10 @@ void DbObject::SendVarsConfigUpdate(void)
 			query.WhereCriteria->Set("varname", kv.first);
 			query.Object = this;
 
-			OnQuery(query);
+			queries.push_back(query);
 		}
+
+		OnMultipleQueries(queries);
 	}
 }
 
@@ -213,6 +216,7 @@ void DbObject::SendVarsStatusUpdate(void)
 	Dictionary::Ptr vars = CompatUtility::GetCustomAttributeConfig(custom_var_object);
 
 	if (vars) {
+		std::vector<DbQuery> queries;
 		ObjectLock olock (vars);
 
 		BOOST_FOREACH(const Dictionary::Pair& kv, vars) {
@@ -248,8 +252,10 @@ void DbObject::SendVarsStatusUpdate(void)
 			query.WhereCriteria->Set("varname", kv.first);
 			query.Object = this;
 
-			OnQuery(query);
+			queries.push_back(query);
 		}
+
+		OnMultipleQueries(queries);
 	}
 }
 
