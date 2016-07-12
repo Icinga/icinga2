@@ -2036,8 +2036,8 @@ iftraffic_community	| **Optional.** SNMP community. Defaults to "public'" if omi
 iftraffic_interface	| **Required.** Queried interface name.
 iftraffic_bandwidth	| **Required.** Interface maximum speed in kilo/mega/giga/bits per second.
 iftraffic_units		| **Optional.** Interface units can be one of these values: `g` (gigabits/s),`m` (megabits/s), `k` (kilobits/s),`b` (bits/s)
-iftraffic_warn		| **Optional.** Percent of bandwidth usage necessary to result in warning status (defaults to `85%`).
-iftraffic_crit		| **Optional.** Percent of bandwidth usage necessary to result in critical status (defaults to `98%`).
+iftraffic_warn		| **Optional.** Percent of bandwidth usage necessary to result in warning status (defaults to `85`).
+iftraffic_crit		| **Optional.** Percent of bandwidth usage necessary to result in critical status (defaults to `98`).
 iftraffic_max_counter	| **Optional.** Maximum counter value of net devices in kilo/mega/giga/bytes.
 
 #### <a id="plugins-contrib-command-iftraffic64"></a> iftraffic64
