@@ -55,6 +55,9 @@ void SocketEventEnginePoll::ThreadProc(int tid)
 				typedef std::map<SOCKET, SocketEventDescriptor>::value_type kv_pair;
 
 				BOOST_FOREACH(const kv_pair& desc, m_Sockets[tid]) {
+					if (desc.second.Events == 0)
+						continue;
+
 					if (desc.second.EventInterface)
 						desc.second.EventInterface->m_EnginePrivate = &pfds[i];
 
@@ -64,6 +67,8 @@ void SocketEventEnginePoll::ThreadProc(int tid)
 
 					i++;
 				}
+
+				pfds.resize(i);
 
 				m_FDChanged[tid] = false;
 				m_CV[tid].notify_all();
