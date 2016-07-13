@@ -39,7 +39,7 @@ REGISTER_TYPE(IdoMysqlConnection);
 REGISTER_STATSFUNCTION(IdoMysqlConnection, &IdoMysqlConnection::StatsFunc);
 
 IdoMysqlConnection::IdoMysqlConnection(void)
-	: m_QueryQueue(1000000)
+	: m_QueryQueue(10000000)
 { }
 
 void IdoMysqlConnection::OnConfigLoaded(void)
@@ -453,6 +453,11 @@ void IdoMysqlConnection::AsyncQuery(const String& query, const boost::function<v
 	aq.Query = query;
 	aq.Callback = callback;
 	m_AsyncQueries.push_back(aq);
+
+	if (m_AsyncQueries.size() > 25000) {
+		FinishAsyncQueries();
+		InternalNewTransaction();
+	}
 }
 
 void IdoMysqlConnection::FinishAsyncQueries(void)
