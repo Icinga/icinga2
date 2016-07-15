@@ -58,8 +58,15 @@ void DbType::RegisterType(const DbType::Ptr& type)
 
 DbType::Ptr DbType::GetByName(const String& name)
 {
+	String typeName;
+
+	if (name == "CheckCommand" || name == "NotificationCommand" || name == "EventCommand")
+		typeName = "Command";
+	else
+		typeName = name;
+
 	boost::mutex::scoped_lock lock(GetStaticMutex());
-	DbType::TypeMap::const_iterator it = GetTypes().find(name);
+	DbType::TypeMap::const_iterator it = GetTypes().find(typeName);
 
 	if (it == GetTypes().end())
 		return DbType::Ptr();
@@ -96,7 +103,22 @@ DbObject::Ptr DbType::GetOrCreateObjectByName(const String& name1, const String&
 	if (!name2.IsEmpty())
 		objName += "!" + name2;
 
-	dbobj->SetObject(ConfigObject::GetObject(m_Name, objName));
+	String objType = m_Name;
+
+	if (m_TypeID == DbObjectTypeCommand) {
+		if (objName.SubStr(0, 6) == "check_") {
+			objType = "CheckCommand";
+			objName = objName.SubStr(6);
+		} else if (objName.SubStr(0, 13) == "notification_") {
+			objType = "NotificationCommand";
+			objName = objName.SubStr(13);
+		} else if (objName.SubStr(0, 6) == "event_") {
+			objType = "EventCommand";
+			objName = objName.SubStr(6);
+		}
+	}
+
+	dbobj->SetObject(ConfigObject::GetObject(objType, objName));
 
 	return dbobj;
 }

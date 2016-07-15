@@ -28,9 +28,7 @@
 
 using namespace icinga;
 
-REGISTER_DBTYPE(CheckCommand, "command", DbObjectTypeCommand, "object_id", CommandDbObject);
-REGISTER_DBTYPE(EventCommand, "command", DbObjectTypeCommand, "object_id", CommandDbObject);
-REGISTER_DBTYPE(NotificationCommand, "command", DbObjectTypeCommand, "object_id", CommandDbObject);
+REGISTER_DBTYPE(Command, "command", DbObjectTypeCommand, "object_id", CommandDbObject);
 
 CommandDbObject::CommandDbObject(const DbType::Ptr& type, const String& name1, const String& name2)
 	: DbObject(type, name1, name2)

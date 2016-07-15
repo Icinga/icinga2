@@ -398,6 +398,8 @@ void IdoMysqlConnection::Reconnect(void)
 			activeDbObjs.push_back(dbobj);
 	}
 
+	SetIDCacheValid(true);
+
 	BOOST_FOREACH(const DbObject::Ptr& dbobj, activeDbObjs) {
 		if (dbobj->GetObject() == NULL) {
 			Log(LogNotice, "IdoMysqlConnection")
@@ -750,6 +752,9 @@ bool IdoMysqlConnection::FieldToEscapedString(const String& key, const Value& va
 			return true;
 		}
 
+		if (!IsIDCacheValid())
+			return false;
+
 		DbReference dbrefcol;
 
 		if (DbValue::IsObjectInsertID(value)) {
@@ -817,6 +822,9 @@ void IdoMysqlConnection::ExecuteMultipleQueries(const std::vector<DbQuery>& quer
 
 bool IdoMysqlConnection::CanExecuteQuery(const DbQuery& query)
 {
+	if (query.Object && !IsIDCacheValid())
+		return false;
+
 	if (query.WhereCriteria) {
 		ObjectLock olock(query.WhereCriteria);
 		Value value;
@@ -874,6 +882,11 @@ void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query, DbQueryType 
 
 	if (query.Type == DbQueryNewTransaction) {
 		InternalNewTransaction();
+		return;
+	}
+
+	if (!CanExecuteQuery(query)) {
+		m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::InternalExecuteQuery, this, query, typeOverride), query.Priority);
 		return;
 	}
 

@@ -39,7 +39,7 @@ Timer::Ptr DbConnection::m_ProgramStatusTimer;
 boost::once_flag DbConnection::m_OnceFlag = BOOST_ONCE_INIT;
 
 DbConnection::DbConnection(void)
-	: m_QueryStats(15 * 60), m_PendingQueries(0), m_PendingQueriesTimestamp(0)
+	: m_QueryStats(15 * 60), m_PendingQueries(0), m_PendingQueriesTimestamp(0), m_IDCacheValid(false)
 { }
 
 void DbConnection::OnConfigLoaded(void)
@@ -352,6 +352,8 @@ bool DbConnection::GetObjectActive(const DbObject::Ptr& dbobj) const
 
 void DbConnection::ClearIDCache(void)
 {
+	SetIDCacheValid(false);
+
 	m_ObjectIDs.clear();
 	m_InsertIDs.clear();
 	m_ActiveObjects.clear();
@@ -483,4 +485,14 @@ int DbConnection::GetQueryCount(RingBuffer::SizeType span) const
 {
 	boost::mutex::scoped_lock lock(m_StatsMutex);
 	return m_QueryStats.GetValues(span);
+}
+
+bool DbConnection::IsIDCacheValid(void) const
+{
+	return m_IDCacheValid;
+}
+
+void DbConnection::SetIDCacheValid(bool valid)
+{
+	m_IDCacheValid = valid;
 }

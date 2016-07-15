@@ -95,9 +95,13 @@ protected:
 
 	void IncreaseQueryCount(void);
 
+	bool IsIDCacheValid(void) const;
+	void SetIDCacheValid(bool valid);
+
 	static void UpdateProgramStatus(void);
 
 private:
+	bool m_IDCacheValid;
 	std::map<DbObject::Ptr, DbReference> m_ObjectIDs;
 	std::map<std::pair<DbType::Ptr, DbReference>, DbReference> m_InsertIDs;
 	std::set<DbObject::Ptr> m_ActiveObjects;
