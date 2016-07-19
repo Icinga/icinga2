@@ -54,7 +54,7 @@ abstract class DbConnection : ConfigObject
 			return cat;
 		}}}
 	};
-	int categories_filter_real (CategoryFilter);
+	[no_user_view, no_user_modify] int categories_filter_real (CategoryFilter);
 
 	[config] bool enable_ha {
 		default {{{ return true; }}}
