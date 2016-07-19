@@ -169,9 +169,9 @@ void SetCipherListToSSLContext(const boost::shared_ptr<SSL_CTX>& context, const 
 
 	if (SSL_CTX_set_cipher_list(context.get(), cipherList.CStr()) == 0) {
 		Log(LogCritical, "SSL")
-		    << "Error with cipher list '"
+		    << "Cipher list '"
 		    << cipherList
-		    << "' results in no availabe ciphers: "
+		    << "' does not specify any usable ciphers: "
 		    << ERR_peek_error() << ", \""
 		    << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
 
