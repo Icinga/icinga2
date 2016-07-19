@@ -173,7 +173,7 @@ Value ClusterEvents::CheckResultAPIHandler(const MessageOrigin::Ptr& origin, con
 		return Empty;
 	}
 
-	if (endpoint == checkable->GetCommandEndpoint())
+	if (Zone::GetLocalZone() == checkable->GetZone() && endpoint == checkable->GetCommandEndpoint())
 		checkable->ProcessCheckResult(cr);
 	else
 		checkable->ProcessCheckResult(cr, origin);
