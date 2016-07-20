@@ -1676,6 +1676,7 @@ snmp_crit               | **Optional.** The critical threshold.
 snmp_process_name       | **Optional.** Name of the process (regexp). No trailing slash!. Defaults to ".*".
 snmp_perf               | **Optional.** Enable perfdata values. Defaults to true.
 snmp_timeout            | **Optional.** The command timeout in seconds. Defaults to 5 seconds.
+snmp_process_use_params | **Optional.** Add process parameters to process name for regexp matching. Example: "named.*-t /var/named/chroot" will only select named process with this parameter. Defaults to false.
 
 
 
