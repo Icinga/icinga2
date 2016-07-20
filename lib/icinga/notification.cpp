@@ -348,9 +348,9 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 	{
 		ObjectLock olock(this);
 
+		UpdateNotificationNumber();
 		double now = Utility::GetTime();
 		SetLastNotification(now);
-
 		if (type == NotificationProblem)
 			SetLastProblemNotification(now);
 	}
@@ -363,12 +363,6 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 	BOOST_FOREACH(const UserGroup::Ptr& ug, GetUserGroups()) {
 		std::set<User::Ptr> members = ug->GetMembers();
 		std::copy(members.begin(), members.end(), std::inserter(allUsers, allUsers.begin()));
-	}
-
-	{
-		ObjectLock olock(this);
-		UpdateNotificationNumber();
-		SetLastNotification(Utility::GetTime());
 	}
 
 	std::set<User::Ptr> allNotifiedUsers;
