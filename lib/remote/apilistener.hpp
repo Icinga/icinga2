@@ -111,11 +111,13 @@ private:
 	std::set<JsonRpcConnection::Ptr> m_AnonymousClients;
 	std::set<HttpServerConnection::Ptr> m_HttpClients;
 	Timer::Ptr m_Timer;
+	Timer::Ptr m_ReconnectTimer;
 	Endpoint::Ptr m_LocalEndpoint;
 
 	static ApiListener::Ptr m_Instance;
 
 	void ApiTimerHandler(void);
+	void ApiReconnectTimerHandler(void);
 
 	bool AddListener(const String& node, const String& service);
 	void AddConnection(const Endpoint::Ptr& endpoint);

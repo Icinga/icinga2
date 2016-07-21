@@ -142,6 +142,12 @@ void ApiListener::Start(bool runtimeCreated)
 	m_Timer->Start();
 	m_Timer->Reschedule(0);
 
+	m_ReconnectTimer = new Timer();
+	m_ReconnectTimer->OnTimerExpired.connect(boost::bind(&ApiListener::ApiReconnectTimerHandler, this));
+	m_ReconnectTimer->SetInterval(60);
+	m_ReconnectTimer->Start();
+	m_ReconnectTimer->Reschedule(0);
+
 	OnMasterChanged(true);
 }
 
@@ -489,6 +495,46 @@ void ApiListener::ApiTimerHandler(void)
 		}
 	}
 
+	BOOST_FOREACH(const Endpoint::Ptr& endpoint, ConfigType::GetObjectsByType<Endpoint>()) {
+		if (!endpoint->GetConnected())
+			continue;
+
+		double ts = endpoint->GetRemoteLogPosition();
+
+		if (ts == 0)
+			continue;
+
+		Dictionary::Ptr lparams = new Dictionary();
+		lparams->Set("log_position", ts);
+
+		Dictionary::Ptr lmessage = new Dictionary();
+		lmessage->Set("jsonrpc", "2.0");
+		lmessage->Set("method", "log::SetLogPosition");
+		lmessage->Set("params", lparams);
+
+		double maxTs = 0;
+
+		BOOST_FOREACH(const JsonRpcConnection::Ptr& client, endpoint->GetClients()) {
+			if (client->GetTimestamp() > maxTs)
+				maxTs = client->GetTimestamp();
+		}
+
+		BOOST_FOREACH(const JsonRpcConnection::Ptr& client, endpoint->GetClients()) {
+			if (client->GetTimestamp() != maxTs)
+				client->Disconnect();
+			else
+				client->SendMessage(lmessage);
+		}
+
+		Log(LogNotice, "ApiListener")
+		    << "Setting log position for identity '" << endpoint->GetName() << "': "
+		    << Utility::FormatDateTime("%Y/%m/%d %H:%M:%S", ts);
+	}
+
+}
+
+void ApiListener::ApiReconnectTimerHandler(void)
+{
 	Zone::Ptr my_zone = Zone::GetLocalZone();
 
 	BOOST_FOREACH(const Zone::Ptr& zone, ConfigType::GetObjectsByType<Zone>()) {
@@ -539,42 +585,6 @@ void ApiListener::ApiTimerHandler(void)
 			boost::thread thread(boost::bind(&ApiListener::AddConnection, this, endpoint));
 			thread.detach();
 		}
-	}
-
-	BOOST_FOREACH(const Endpoint::Ptr& endpoint, ConfigType::GetObjectsByType<Endpoint>()) {
-		if (!endpoint->GetConnected())
-			continue;
-
-		double ts = endpoint->GetRemoteLogPosition();
-
-		if (ts == 0)
-			continue;
-
-		Dictionary::Ptr lparams = new Dictionary();
-		lparams->Set("log_position", ts);
-
-		Dictionary::Ptr lmessage = new Dictionary();
-		lmessage->Set("jsonrpc", "2.0");
-		lmessage->Set("method", "log::SetLogPosition");
-		lmessage->Set("params", lparams);
-
-		double maxTs = 0;
-
-		BOOST_FOREACH(const JsonRpcConnection::Ptr& client, endpoint->GetClients()) {
-			if (client->GetTimestamp() > maxTs)
-				maxTs = client->GetTimestamp();
-		}
-
-		BOOST_FOREACH(const JsonRpcConnection::Ptr& client, endpoint->GetClients()) {
-			if (client->GetTimestamp() != maxTs)
-				client->Disconnect();
-			else
-				client->SendMessage(lmessage);
-		}
-
-		Log(LogNotice, "ApiListener")
-		    << "Setting log position for identity '" << endpoint->GetName() << "': "
-		    << Utility::FormatDateTime("%Y/%m/%d %H:%M:%S", ts);
 	}
 
 	Endpoint::Ptr master = GetMaster();
