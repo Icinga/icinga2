@@ -47,6 +47,8 @@ Additional details can be found in the [Icinga 1.x Documentation](http://docs.ic
   PROCESS_FILE                              | ;&lt;file_name&gt;;&lt;delete&gt; (2)  | -
   SCHEDULE_SVC_DOWNTIME                     | ;&lt;host_name&gt;;&lt;service_name&gt;;&lt;start_time&gt;;&lt;end_time&gt;;&lt;fixed&gt;;&lt;trigger_id&gt;;&lt;duration&gt;;&lt;author&gt;;&lt;comment&gt; (9)  | -
   DEL_SVC_DOWNTIME                          | ;&lt;downtime_id&gt; (1)   | -
+  SCHEDULE_AND_PROPAGATE_HOST_DOWNTIME      | ;&lt;host_name&gt;;&lt;start_time&gt;;&lt;end_time&gt;;&lt;fixed&gt;;&lt;trigger_id&gt;;&lt;duration&gt;;&lt;author&gt;;&lt;comment&gt; (8)  | -
+  SCHEDULE_AND_PROPAGATE_TRIGGERED_HOST_DOWNTIME | ;&lt;host_name&gt;;&lt;start_time&gt;;&lt;end_time&gt;;&lt;fixed&gt;;&lt;trigger_id&gt;;&lt;duration&gt;;&lt;author&gt;;&lt;comment&gt; (8)  | -
   SCHEDULE_HOST_DOWNTIME                    | ;&lt;host_name&gt;;&lt;start_time&gt;;&lt;end_time&gt;;&lt;fixed&gt;;&lt;trigger_id&gt;;&lt;duration&gt;;&lt;author&gt;;&lt;comment&gt; (8)  | -
   DEL_HOST_DOWNTIME                         | ;&lt;downtime_id&gt; (1)  | -
   DEL_DOWNTIME_BY_HOST_NAME                 | ;&lt;host_name&gt;[;&lt;service_name;&gt;[;&lt;start_time;&gt;[;&lt;comment_text;&gt;]]] (1)  | -

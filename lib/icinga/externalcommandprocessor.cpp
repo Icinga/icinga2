@@ -193,6 +193,8 @@ void ExternalCommandProcessor::StaticInitialize(void)
 	RegisterCommand("SCHEDULE_SVC_DOWNTIME", &ExternalCommandProcessor::ScheduleSvcDowntime, 9);
 	RegisterCommand("DEL_SVC_DOWNTIME", &ExternalCommandProcessor::DelSvcDowntime, 1);
 	RegisterCommand("SCHEDULE_HOST_DOWNTIME", &ExternalCommandProcessor::ScheduleHostDowntime, 8);
+	RegisterCommand("SCHEDULE_AND_PROPAGATE_HOST_DOWNTIME", &ExternalCommandProcessor::ScheduleAndPropagateHostDowntime, 8);
+	RegisterCommand("SCHEDULE_AND_PROPAGATE_TRIGGERED_HOST_DOWNTIME", &ExternalCommandProcessor::ScheduleAndPropagateTriggeredHostDowntime, 8);
 	RegisterCommand("DEL_HOST_DOWNTIME", &ExternalCommandProcessor::DelHostDowntime, 1);
 	RegisterCommand("DEL_DOWNTIME_BY_HOST_NAME", &ExternalCommandProcessor::DelDowntimeByHostName, 1, 4);
 	RegisterCommand("SCHEDULE_HOST_SVC_DOWNTIME", &ExternalCommandProcessor::ScheduleHostSvcDowntime, 8);
@@ -999,6 +1001,78 @@ void ExternalCommandProcessor::ScheduleHostDowntime(double, const std::vector<St
 	(void) Downtime::AddDowntime(host, arguments[6], arguments[7],
 	    Convert::ToDouble(arguments[1]), Convert::ToDouble(arguments[2]),
 	    Convert::ToBool(is_fixed), triggeredBy, Convert::ToDouble(arguments[5]));
+}
+
+void ExternalCommandProcessor::ScheduleAndPropagateHostDowntime(double, const std::vector<String>& arguments)
+{
+	Host::Ptr host = Host::GetByName(arguments[0]);
+
+	if (!host)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot schedule and propagate host downtime for non-existent host '" + arguments[0] + "'"));
+
+	String triggeredBy;
+	int triggeredByLegacy = Convert::ToLong(arguments[4]);
+	int is_fixed = Convert::ToLong(arguments[3]);
+	if (triggeredByLegacy != 0)
+		triggeredBy = Downtime::GetDowntimeIDFromLegacyID(triggeredByLegacy);
+
+	Log(LogNotice, "ExternalCommandProcessor")
+	    << "Creating downtime for host " << host->GetName();
+
+	(void) Downtime::AddDowntime(host, arguments[6], arguments[7],
+	    Convert::ToDouble(arguments[1]), Convert::ToDouble(arguments[2]),
+	    Convert::ToBool(is_fixed), triggeredBy, Convert::ToDouble(arguments[5]));
+
+	/* Schedule downtime for all child hosts */
+	BOOST_FOREACH(const Checkable::Ptr& child, host->GetChildren()) {
+		Host::Ptr host;
+		Service::Ptr service;
+		tie(host, service) = GetHostService(child);
+
+		/* ignore all service children */
+		if (service)
+			continue;
+
+		(void) Downtime::AddDowntime(child, arguments[6], arguments[7],
+		    Convert::ToDouble(arguments[1]), Convert::ToDouble(arguments[2]),
+		    Convert::ToBool(is_fixed), triggeredBy, Convert::ToDouble(arguments[5]));
+	}
+}
+
+void ExternalCommandProcessor::ScheduleAndPropagateTriggeredHostDowntime(double, const std::vector<String>& arguments)
+{
+	Host::Ptr host = Host::GetByName(arguments[0]);
+
+	if (!host)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot schedule and propagate triggered host downtime for non-existent host '" + arguments[0] + "'"));
+
+	String triggeredBy;
+	int triggeredByLegacy = Convert::ToLong(arguments[4]);
+	int is_fixed = Convert::ToLong(arguments[3]);
+	if (triggeredByLegacy != 0)
+		triggeredBy = Downtime::GetDowntimeIDFromLegacyID(triggeredByLegacy);
+
+	Log(LogNotice, "ExternalCommandProcessor")
+	    << "Creating downtime for host " << host->GetName();
+
+	String parentDowntime = Downtime::AddDowntime(host, arguments[6], arguments[7],
+	    Convert::ToDouble(arguments[1]), Convert::ToDouble(arguments[2]),
+	    Convert::ToBool(is_fixed), triggeredBy, Convert::ToDouble(arguments[5]));
+
+	/* Schedule downtime for all child hosts and explicitely trigger them through the parent host's downtime */
+	BOOST_FOREACH(const Checkable::Ptr& child, host->GetChildren()) {
+		Host::Ptr host;
+		Service::Ptr service;
+		tie(host, service) = GetHostService(child);
+
+		/* ignore all service children */
+		if (service)
+			continue;
+
+		(void) Downtime::AddDowntime(child, arguments[6], arguments[7],
+		    Convert::ToDouble(arguments[1]), Convert::ToDouble(arguments[2]),
+		    Convert::ToBool(is_fixed), parentDowntime, Convert::ToDouble(arguments[5]));
+	}
 }
 
 void ExternalCommandProcessor::DelHostDowntime(double, const std::vector<String>& arguments)
