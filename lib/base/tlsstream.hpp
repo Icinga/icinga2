@@ -69,6 +69,7 @@ public:
 	virtual bool IsDataAvailable(void) const override;
 
 	bool IsVerifyOK(void) const;
+	String GetVerifyError(void) const;
 
 private:
 	boost::shared_ptr<SSL> m_SSL;
@@ -77,6 +78,7 @@ private:
 	mutable boost::condition_variable m_CV;
 	bool m_HandshakeOK;
 	bool m_VerifyOK;
+	String m_VerifyError;
 	int m_ErrorCode;
 	bool m_ErrorOccurred;
 

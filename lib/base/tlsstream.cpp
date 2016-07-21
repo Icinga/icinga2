@@ -92,14 +92,27 @@ int TlsStream::ValidateCertificate(int preverify_ok, X509_STORE_CTX *ctx)
 {
 	SSL *ssl = static_cast<SSL *>(X509_STORE_CTX_get_ex_data(ctx, SSL_get_ex_data_X509_STORE_CTX_idx()));
 	TlsStream *stream = static_cast<TlsStream *>(SSL_get_ex_data(ssl, m_SSLIndex));
-	if (!preverify_ok)
+
+	if (!preverify_ok) {
 		stream->m_VerifyOK = false;
+
+		std::ostringstream msgbuf;
+		int err = X509_STORE_CTX_get_error(ctx);
+		msgbuf << "code " << err << ": " << X509_verify_cert_error_string(err);
+		stream->m_VerifyError = msgbuf.str();
+	}
+
 	return 1;
 }
 
 bool TlsStream::IsVerifyOK(void) const
 {
 	return m_VerifyOK;
+}
+
+String TlsStream::GetVerifyError(void) const
+{
+	return m_VerifyError;
 }
 
 /**

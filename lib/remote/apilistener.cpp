@@ -363,7 +363,7 @@ void ApiListener::NewClientHandlerInternal(const Socket::Ptr& client, const Stri
 			log << "New client connection for identity '" << identity << "'";
 
 			if (!verify_ok)
-				log << " (client certificate not signed by CA)";
+				log << " (certificate validation failed: " << tlsStream->GetVerifyError() << ")";
 			else if (!endpoint)
 				log << " (no Endpoint object found for identity)";
 		}
