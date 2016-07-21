@@ -387,9 +387,7 @@ void IdoPgsqlConnection::Reconnect(void)
 
 	UpdateAllObjects();
 
-	/* delete all customvariables without current session token */
-	ClearCustomVarTable("customvariables");
-	ClearCustomVarTable("customvariablestatus");
+	m_QueryQueue.Enqueue(boost::bind(&IdoPgsqlConnection::ClearTablesBySession, this), PriorityLow);
 
 	m_QueryQueue.Enqueue(boost::bind(&IdoPgsqlConnection::FinishConnect, this, startTime), PriorityLow);
 }
@@ -408,9 +406,21 @@ void IdoPgsqlConnection::FinishConnect(double startTime)
 	Query("BEGIN");
 }
 
-void IdoPgsqlConnection::ClearCustomVarTable(const String& table)
+void IdoPgsqlConnection::ClearTablesBySession(void)
 {
-	Query("DELETE FROM " + GetTablePrefix() + table + " WHERE session_token <> " + Convert::ToString(m_SessionToken));
+	/* delete all customvariables and group members without current session token */
+	ClearTableBySession("customvariables");
+	ClearTableBySession("customvariablestatus");
+	ClearTableBySession("hostgroup_members");
+	ClearTableBySession("servicegroup_members");
+	ClearTableBySession("contactgroup_members");
+}
+
+void IdoPgsqlConnection::ClearTableBySession(const String& table)
+{
+	Query("DELETE FROM " + GetTablePrefix() + table + " WHERE instance_id = " +
+	    Convert::ToString(static_cast<long>(m_InstanceID)) + " AND session_token <> " +
+	    Convert::ToString(m_SessionToken));
 }
 
 void IdoPgsqlConnection::ClearConfigTable(const String& table)
@@ -786,12 +796,12 @@ void IdoPgsqlConnection::InternalExecuteQuery(const DbQuery& query, DbQueryType 
 	if ((type & DbQueryInsert) && (type & DbQueryUpdate)) {
 		bool hasid = false;
 
-		ASSERT(query.Object);
-
-		if (query.ConfigUpdate)
-			hasid = GetConfigUpdate(query.Object);
-		else if (query.StatusUpdate)
-			hasid = GetStatusUpdate(query.Object);
+		if (query.Object) {
+			if (query.ConfigUpdate)
+				hasid = GetConfigUpdate(query.Object);
+			else if (query.StatusUpdate)
+				hasid = GetStatusUpdate(query.Object);
+		}
 
 		if (!hasid)
 			upsert = true;

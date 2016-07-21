@@ -188,29 +188,21 @@ void ServiceDbObject::OnConfigUpdate(void)
 		BOOST_FOREACH(const String& groupName, groups) {
 			ServiceGroup::Ptr group = ServiceGroup::GetByName(groupName);
 
-			std::vector<DbQuery> queries;
-
 			DbQuery query1;
 			query1.Table = DbType::GetByName("ServiceGroup")->GetTable() + "_members";
-			query1.Type = DbQueryDelete;
+			query1.Type = DbQueryInsert | DbQueryUpdate;
 			query1.Category = DbCatConfig;
+			query1.Fields = new Dictionary();
+			query1.Fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
+			query1.Fields->Set("servicegroup_id", DbValue::FromObjectInsertID(group));
+			query1.Fields->Set("service_object_id", service);
+			query1.Fields->Set("session_token", 0); /* DbConnection class fills in real ID */
 			query1.WhereCriteria = new Dictionary();
 			query1.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
 			query1.WhereCriteria->Set("servicegroup_id", DbValue::FromObjectInsertID(group));
 			query1.WhereCriteria->Set("service_object_id", service);
-			queries.push_back(query1);
 
-			DbQuery query2;
-			query2.Table = DbType::GetByName("ServiceGroup")->GetTable() + "_members";
-			query2.Type = DbQueryInsert;
-			query2.Category = DbCatConfig;
-			query2.Fields = new Dictionary();
-			query2.Fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
-			query2.Fields->Set("servicegroup_id", DbValue::FromObjectInsertID(group));
-			query2.Fields->Set("service_object_id", service);
-			queries.push_back(query2);
-
-			DbObject::OnMultipleQueries(queries);
+			DbObject::OnQuery(query1);
 		}
 	}
 

@@ -77,7 +77,7 @@ struct I2_DB_IDO_API DbQuery
 	static void StaticInitialize(void);
 
 	DbQuery(void)
-		: Type(0), Category(DbCatInvalid), ConfigUpdate(false), StatusUpdate(false), Priority(PriorityLow)
+		: Type(0), Category(DbCatInvalid), ConfigUpdate(false), StatusUpdate(false), Priority(PriorityNormal)
 	{ }
 
 	static const std::map<String, int>& GetCategoryFilterMap(void);

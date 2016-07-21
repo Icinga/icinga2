@@ -182,53 +182,47 @@ void DbConnection::UpdateProgramStatus(void)
 
 	DbQuery query1;
 	query1.Table = "programstatus";
-	query1.Type = DbQueryDelete;
+	query1.IdColumn = "programstatus_id";
+	query1.Type = DbQueryInsert | DbQueryUpdate;
 	query1.Category = DbCatProgramStatus;
+
+	query1.Fields = new Dictionary();
+	query1.Fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
+	query1.Fields->Set("program_version", Application::GetAppVersion());
+	query1.Fields->Set("status_update_time", DbValue::FromTimestamp(Utility::GetTime()));
+	query1.Fields->Set("program_start_time", DbValue::FromTimestamp(Application::GetStartTime()));
+	query1.Fields->Set("is_currently_running", 1);
+	query1.Fields->Set("endpoint_name", IcingaApplication::GetInstance()->GetNodeName());
+	query1.Fields->Set("process_id", Utility::GetPid());
+	query1.Fields->Set("daemon_mode", 1);
+	query1.Fields->Set("last_command_check", DbValue::FromTimestamp(Utility::GetTime()));
+	query1.Fields->Set("notifications_enabled", (IcingaApplication::GetInstance()->GetEnableNotifications() ? 1 : 0));
+	query1.Fields->Set("active_host_checks_enabled", (IcingaApplication::GetInstance()->GetEnableHostChecks() ? 1 : 0));
+	query1.Fields->Set("passive_host_checks_enabled", 1);
+	query1.Fields->Set("active_service_checks_enabled", (IcingaApplication::GetInstance()->GetEnableServiceChecks() ? 1 : 0));
+	query1.Fields->Set("passive_service_checks_enabled", 1);
+	query1.Fields->Set("event_handlers_enabled", (IcingaApplication::GetInstance()->GetEnableEventHandlers() ? 1 : 0));
+	query1.Fields->Set("flap_detection_enabled", (IcingaApplication::GetInstance()->GetEnableFlapping() ? 1 : 0));
+	query1.Fields->Set("process_performance_data", (IcingaApplication::GetInstance()->GetEnablePerfdata() ? 1 : 0));
 	query1.WhereCriteria = new Dictionary();
 	query1.WhereCriteria->Set("instance_id", 0);  /* DbConnection class fills in real ID */
+
 	query1.Priority = PriorityHigh;
 	queries.push_back(query1);
 
 	DbQuery query2;
-	query2.Table = "programstatus";
-	query2.IdColumn = "programstatus_id";
-	query2.Type = DbQueryInsert;
-	query2.Category = DbCatProgramStatus;
-
-	query2.Fields = new Dictionary();
-	query2.Fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
-	query2.Fields->Set("program_version", Application::GetAppVersion());
-	query2.Fields->Set("status_update_time", DbValue::FromTimestamp(Utility::GetTime()));
-	query2.Fields->Set("program_start_time", DbValue::FromTimestamp(Application::GetStartTime()));
-	query2.Fields->Set("is_currently_running", 1);
-	query2.Fields->Set("endpoint_name", IcingaApplication::GetInstance()->GetNodeName());
-	query2.Fields->Set("process_id", Utility::GetPid());
-	query2.Fields->Set("daemon_mode", 1);
-	query2.Fields->Set("last_command_check", DbValue::FromTimestamp(Utility::GetTime()));
-	query2.Fields->Set("notifications_enabled", (IcingaApplication::GetInstance()->GetEnableNotifications() ? 1 : 0));
-	query2.Fields->Set("active_host_checks_enabled", (IcingaApplication::GetInstance()->GetEnableHostChecks() ? 1 : 0));
-	query2.Fields->Set("passive_host_checks_enabled", 1);
-	query2.Fields->Set("active_service_checks_enabled", (IcingaApplication::GetInstance()->GetEnableServiceChecks() ? 1 : 0));
-	query2.Fields->Set("passive_service_checks_enabled", 1);
-	query2.Fields->Set("event_handlers_enabled", (IcingaApplication::GetInstance()->GetEnableEventHandlers() ? 1 : 0));
-	query2.Fields->Set("flap_detection_enabled", (IcingaApplication::GetInstance()->GetEnableFlapping() ? 1 : 0));
-	query2.Fields->Set("process_performance_data", (IcingaApplication::GetInstance()->GetEnablePerfdata() ? 1 : 0));
-	query2.Priority = PriorityHigh;
+	query2.Type = DbQueryNewTransaction;
 	queries.push_back(query2);
-
-	DbQuery query3;
-	query3.Type = DbQueryNewTransaction;
-	queries.push_back(query3);
 
 	DbObject::OnMultipleQueries(queries);
 
-	DbQuery query4;
-	query4.Table = "runtimevariables";
-	query4.Type = DbQueryDelete;
-	query4.Category = DbCatProgramStatus;
-	query4.WhereCriteria = new Dictionary();
-	query4.WhereCriteria->Set("instance_id", 0);  /* DbConnection class fills in real ID */
-	DbObject::OnQuery(query4);
+	DbQuery query3;
+	query3.Table = "runtimevariables";
+	query3.Type = DbQueryDelete;
+	query3.Category = DbCatProgramStatus;
+	query3.WhereCriteria = new Dictionary();
+	query3.WhereCriteria->Set("instance_id", 0);  /* DbConnection class fills in real ID */
+	DbObject::OnQuery(query3);
 
 	InsertRuntimeVariable("total_services", std::distance(ConfigType::GetObjectsByType<Service>().first, ConfigType::GetObjectsByType<Service>().second));
 	InsertRuntimeVariable("total_scheduled_services", std::distance(ConfigType::GetObjectsByType<Service>().first, ConfigType::GetObjectsByType<Service>().second));
@@ -433,7 +427,7 @@ void DbConnection::PrepareDatabase(void)
 	//ClearConfigTable("comments");
 	ClearConfigTable("contact_addresses");
 	ClearConfigTable("contact_notificationcommands");
-	ClearConfigTable("contactgroup_members");
+	//ClearConfigTable("contactgroup_members");
 	//ClearConfigTable("contactgroups");
 	//ClearConfigTable("contacts");
 	//ClearConfigTable("contactstatus");
@@ -445,7 +439,7 @@ void DbConnection::PrepareDatabase(void)
 	ClearConfigTable("host_contacts");
 	ClearConfigTable("host_parenthosts");
 	ClearConfigTable("hostdependencies");
-	ClearConfigTable("hostgroup_members");
+	//ClearConfigTable("hostgroup_members");
 	//ClearConfigTable("hostgroups");
 	//ClearConfigTable("hosts");
 	//ClearConfigTable("hoststatus");
@@ -453,7 +447,7 @@ void DbConnection::PrepareDatabase(void)
 	ClearConfigTable("service_contactgroups");
 	ClearConfigTable("service_contacts");
 	ClearConfigTable("servicedependencies");
-	ClearConfigTable("servicegroup_members");
+	//ClearConfigTable("servicegroup_members");
 	//ClearConfigTable("servicegroups");
 	//ClearConfigTable("services");
 	//ClearConfigTable("servicestatus");

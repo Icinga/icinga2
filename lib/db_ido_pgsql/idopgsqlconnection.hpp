@@ -101,7 +101,8 @@ private:
 	void InternalCleanUpExecuteQuery(const String& table, const String& time_key, double time_value);
 
 	virtual void ClearConfigTable(const String& table) override;
-	void ClearCustomVarTable(const String& table);
+	void ClearTableBySession(const String& table);
+	void ClearTablesBySession(void);
 
 	void ExceptionHandler(boost::exception_ptr exp);
 

@@ -414,9 +414,7 @@ void IdoMysqlConnection::Reconnect(void)
 
 	UpdateAllObjects();
 
-	/* delete all customvariables without current session token */
-	ClearCustomVarTable("customvariables");
-	ClearCustomVarTable("customvariablestatus");
+	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::ClearTablesBySession, this), PriorityLow);
 
 	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::FinishConnect, this, startTime), PriorityLow);
 }
@@ -437,9 +435,21 @@ void IdoMysqlConnection::FinishConnect(double startTime)
 	Query("BEGIN");
 }
 
-void IdoMysqlConnection::ClearCustomVarTable(const String& table)
+void IdoMysqlConnection::ClearTablesBySession(void)
 {
-	Query("DELETE FROM " + GetTablePrefix() + table + " WHERE session_token <> " + Convert::ToString(m_SessionToken));
+	/* delete all customvariables and group members without current session token */
+	ClearTableBySession("customvariables");
+	ClearTableBySession("customvariablestatus");
+	ClearTableBySession("hostgroup_members");
+	ClearTableBySession("servicegroup_members");
+	ClearTableBySession("contactgroup_members");
+}
+
+void IdoMysqlConnection::ClearTableBySession(const String& table)
+{
+	Query("DELETE FROM " + GetTablePrefix() + table + " WHERE instance_id = " +
+	    Convert::ToString(static_cast<long>(m_InstanceID)) + " AND session_token <> " +
+	    Convert::ToString(m_SessionToken));
 }
 
 void IdoMysqlConnection::ClearConfigTable(const String& table)
@@ -929,12 +939,12 @@ void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query, DbQueryType 
 	if ((type & DbQueryInsert) && (type & DbQueryUpdate)) {
 		bool hasid = false;
 
-		ASSERT(query.Object);
-
-		if (query.ConfigUpdate)
-			hasid = GetConfigUpdate(query.Object);
-		else if (query.StatusUpdate)
-			hasid = GetStatusUpdate(query.Object);
+		if (query.Object) {
+			if (query.ConfigUpdate)
+				hasid = GetConfigUpdate(query.Object);
+			else if (query.StatusUpdate)
+				hasid = GetStatusUpdate(query.Object);
+		}
 
 		if (!hasid)
 			upsert = true;

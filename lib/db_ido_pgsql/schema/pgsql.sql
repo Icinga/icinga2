@@ -652,6 +652,7 @@ CREATE TABLE  icinga_hostgroup_members (
   instance_id bigint default 0,
   hostgroup_id bigint default 0,
   host_object_id bigint default 0,
+  session_token INTEGER default NULL,
   CONSTRAINT PK_hostgroup_member_id PRIMARY KEY (hostgroup_member_id)
 ) ;
 
@@ -1146,6 +1147,7 @@ CREATE TABLE  icinga_servicegroup_members (
   instance_id bigint default 0,
   servicegroup_id bigint default 0,
   service_object_id bigint default 0,
+  session_token INTEGER default NULL,
   CONSTRAINT PK_servicegroup_member_id PRIMARY KEY (servicegroup_member_id)
 ) ;
 
@@ -1670,10 +1672,6 @@ CREATE INDEX sla_idx_obj ON icinga_objects (objecttype_id, is_active, name1);
 -- #4985
 CREATE INDEX commenthistory_delete_idx ON icinga_commenthistory (instance_id, comment_time, internal_comment_id);
 
--- #10436
-CREATE INDEX cv_session_del_idx ON icinga_customvariables (session_token);
-CREATE INDEX cvs_session_del_idx ON icinga_customvariablestatus (session_token);
-
 -- #10070
 CREATE INDEX idx_comments_object_id on icinga_comments(object_id);
 CREATE INDEX idx_scheduleddowntime_object_id on icinga_scheduleddowntime(object_id);
@@ -1690,6 +1688,17 @@ CREATE INDEX idx_zonestatus_object_id on icinga_zonestatus(zone_object_id);
 
 CREATE INDEX idx_zones_parent_object_id on icinga_zones(parent_zone_object_id);
 CREATE INDEX idx_zonestatus_parent_object_id on icinga_zonestatus(parent_zone_object_id);
+
+-- #12210
+CREATE INDEX idx_hg_session_del ON icinga_hostgroup_members (session_token);
+CREATE INDEX idx_sg_session_del ON icinga_servicegroup_members (session_token);
+CREATE INDEX idx_cg_session_del ON icinga_contactgroup_members (session_token);
+
+DROP INDEX cv_session_del_idx;
+DROP INDEX cvs_session_del_idx;
+
+CREATE INDEX idx_cv_session_del ON icinga_customvariables (instance_id, session_token);
+CREATE INDEX idx_cvs_session_del ON icinga_customvariablestatus (instance_id, session_token);
 
 -- #12107
 CREATE INDEX idx_statehistory_cleanup on icinga_statehistory(instance_id, state_time);
