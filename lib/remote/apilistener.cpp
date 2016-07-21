@@ -354,12 +354,19 @@ void ApiListener::NewClientHandlerInternal(const Socket::Ptr& client, const Stri
 			}
 		}
 
-		Log(LogInformation, "ApiListener")
-		    << "New client connection for identity '" << identity << "'"
-		    << (verify_ok ? "" : " (client certificate not signed by CA)");
-
 		if (verify_ok)
 			endpoint = Endpoint::GetByName(identity);
+
+		{
+			Log log(LogInformation, "ApiListener");
+
+			log << "New client connection for identity '" << identity << "'";
+
+			if (!verify_ok)
+				log << " (client certificate not signed by CA)";
+			else if (!endpoint)
+				log << " (no Endpoint object found for identity)";
+		}
 	} else {
 		Log(LogInformation, "ApiListener")
 		    << "New client connection (no client certificate)";
