@@ -52,6 +52,7 @@ public:
 	static void Assert(const Value& arg);
 	static String MsiGetComponentPathShim(const String& component);
 	static Array::Ptr TrackParents(const Object::Ptr& parent);
+	static double Ptr(const Object::Ptr& object);
 
 private:
 	ScriptUtils(void);
