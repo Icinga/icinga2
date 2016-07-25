@@ -312,8 +312,8 @@ void CIB::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata) {
 	status->Set("min_latency", scs.min_latency);
 	status->Set("max_latency", scs.max_latency);
 	status->Set("avg_latency", scs.avg_latency);
-	status->Set("min_execution_time", scs.min_latency);
-	status->Set("max_execution_time", scs.max_latency);
+	status->Set("min_execution_time", scs.min_execution_time);
+	status->Set("max_execution_time", scs.max_execution_time);
 	status->Set("avg_execution_time", scs.avg_execution_time);
 
 	ServiceStatistics ss = CalculateServiceStats();

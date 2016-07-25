@@ -68,8 +68,8 @@ void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& service, const CheckResul
 	perfdata->Add(new PerfdataValue("min_latency", scs.min_latency));
 	perfdata->Add(new PerfdataValue("max_latency", scs.max_latency));
 	perfdata->Add(new PerfdataValue("avg_latency", scs.avg_latency));
-	perfdata->Add(new PerfdataValue("min_execution_time", scs.min_latency));
-	perfdata->Add(new PerfdataValue("max_execution_time", scs.max_latency));
+	perfdata->Add(new PerfdataValue("min_execution_time", scs.min_execution_time));
+	perfdata->Add(new PerfdataValue("max_execution_time", scs.max_execution_time));
 	perfdata->Add(new PerfdataValue("avg_execution_time", scs.avg_execution_time));
 
 	ServiceStatistics ss = CIB::CalculateServiceStats();
