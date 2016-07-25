@@ -80,6 +80,7 @@ CheckableCheckStatistics CIB::CalculateHostCheckStats(void)
 	int count_latency = 0;
 	double min_execution_time = -1, max_execution_time = 0, sum_execution_time = 0;
 	int count_execution_time = 0;
+	bool checkresult = false;
 
 	BOOST_FOREACH(const Host::Ptr& host, ConfigType::GetObjectsByType<Host>()) {
 		ObjectLock olock(host);
@@ -88,6 +89,9 @@ CheckableCheckStatistics CIB::CalculateHostCheckStats(void)
 
 		if (!cr)
 			continue;
+
+		/* set to true, we have a checkresult */
+		checkresult = true;
 
 		/* latency */
 		double latency = cr->CalculateLatency();
@@ -114,6 +118,11 @@ CheckableCheckStatistics CIB::CalculateHostCheckStats(void)
 		count_execution_time++;
 	}
 
+	if (!checkresult) {
+		min_latency = 0;
+		min_execution_time = 0;
+	}
+
 	CheckableCheckStatistics ccs;
 
 	ccs.min_latency = min_latency;
@@ -132,6 +141,7 @@ CheckableCheckStatistics CIB::CalculateServiceCheckStats(void)
 	int count_latency = 0;
 	double min_execution_time = -1, max_execution_time = 0, sum_execution_time = 0;
 	int count_execution_time = 0;
+	bool checkresult = false;
 
 	BOOST_FOREACH(const Service::Ptr& service, ConfigType::GetObjectsByType<Service>()) {
 		ObjectLock olock(service);
@@ -140,6 +150,9 @@ CheckableCheckStatistics CIB::CalculateServiceCheckStats(void)
 
 		if (!cr)
 			continue;
+
+		/* set to true, we have a checkresult */
+		checkresult = true;
 
 		/* latency */
 		double latency = cr->CalculateLatency();
@@ -164,6 +177,11 @@ CheckableCheckStatistics CIB::CalculateServiceCheckStats(void)
 
 		sum_execution_time += execution_time;
 		count_execution_time++;
+	}
+
+	if (!checkresult) {
+		min_latency = 0;
+		min_execution_time = 0;
 	}
 
 	CheckableCheckStatistics ccs;
