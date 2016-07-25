@@ -330,6 +330,15 @@ void ApiListener::NewClientHandlerInternal(const Socket::Ptr& client, const Stri
 	Endpoint::Ptr endpoint;
 	bool verify_ok = false;
 
+	String conninfo;
+
+	if (role == RoleClient)
+		conninfo = "to";
+	else
+		conninfo = "from";
+
+	conninfo += " " + client->GetPeerAddress();
+
 	if (cert) {
 		try {
 			identity = GetCertificateCN(cert);
@@ -360,7 +369,7 @@ void ApiListener::NewClientHandlerInternal(const Socket::Ptr& client, const Stri
 		{
 			Log log(LogInformation, "ApiListener");
 
-			log << "New client connection for identity '" << identity << "'";
+			log << "New client connection for identity '" << identity << "' " << conninfo;
 
 			if (!verify_ok)
 				log << " (certificate validation failed: " << tlsStream->GetVerifyError() << ")";
@@ -369,7 +378,7 @@ void ApiListener::NewClientHandlerInternal(const Socket::Ptr& client, const Stri
 		}
 	} else {
 		Log(LogInformation, "ApiListener")
-		    << "New client connection (no client certificate)";
+		    << "New client connection " << conninfo << " (no client certificate)";
 	}
 
 	ClientType ctype;
