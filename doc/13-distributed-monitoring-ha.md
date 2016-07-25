@@ -472,45 +472,13 @@ If you are planning to synchronize local service health checks inside a zone, lo
 [command endpoint](13-distributed-monitoring-ha.md#cluster-health-check-command-endpoint)
 explainations.
 
-[Apply rules](3-monitoring-basics.md#using-apply) put into zone directories underneath `zones.d`
-must specify the zone where they should be applied to e.g. `assign where host.zone == "dmz1-checker"`.
+[Apply rules](3-monitoring-basics.md#using-apply) in zone directories underneath `zones.d`
+also match against objects defined outside of that particular zone directory.
 
-    # tree /etc/icinga2/zones.d
-    /etc/icinga2/zones.d
-    ├── dmz1-checker
-    │   ├── hosts.conf
-    │   ├── apply_services.conf
-    ├── dmz2-checker
-    │   └── hosts.conf
-    ├── global-templates
-    │   ├── apply_services.conf
-    │   ├── commands.conf
-    ├── ha-master
-    │   └── health.conf
-    └── README
+To work around this issue you can use an `assign where` rule to limit the apply rule to
+a specific zone:
 
-Global apply rules:
-
-    # cat /etc/icinga2/zones.d/global-templates/apply_services.conf
-
-    apply Service "ping4" {
-      check_command = "ping4"
-
-      assign where host.address
-    }
-
-
-Zone-specific apply rules:
-
-    # cat /etc/icinga2/zones.d/dmz1-checker/apply_services.conf
-
-    apply Service "mysql" {
-      check_command = "mysql"
-
-      assign where host.zone == "dmz1-checker" && host.vars.db_type == "mysql"
-    }
-
-
+    assign where host.zone == "dmz1-checker"
 
 ## <a id="cluster-health-check"></a> Cluster Health Check
 
