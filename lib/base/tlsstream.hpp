@@ -51,6 +51,8 @@ public:
 	TlsStream(const Socket::Ptr& socket, const String& hostname, ConnectionRole role, const boost::shared_ptr<SSL_CTX>& sslContext = MakeSSLContext());
 	~TlsStream(void);
 
+	Socket::Ptr GetSocket(void) const;
+
 	boost::shared_ptr<X509> GetClientCertificate(void) const;
 	boost::shared_ptr<X509> GetPeerCertificate(void) const;
 

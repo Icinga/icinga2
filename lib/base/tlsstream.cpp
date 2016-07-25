@@ -391,3 +391,8 @@ bool TlsStream::IsDataAvailable(void) const
 
 	return m_RecvQ->GetAvailableBytes() > 0;
 }
+
+Socket::Ptr TlsStream::GetSocket(void) const
+{
+	return m_Socket;
+}
