@@ -2361,7 +2361,9 @@ iostat\_cwrite | **Required.** Critical threshold for KB/s writes (default: 200)
 
 #### <a id="plugin-contrib-command-yum"></a> yum
 
-The plugin `yum` is used to check the YUM package management system for package updates. To differentiate between security and normal updates it requires the YUM security plugin installed. It is provied by `Christoph Anton Mitterer` on [https://github.com](https://github.com/calestyo/check_yum).
+The plugin [check_yum](https://github.com/calestyo/check_yum) is used to check the YUM package
+management system for package updates.
+The plugin requires the `yum-plugin-security` package to differentiate between security and normal updates.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
