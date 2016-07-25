@@ -1738,12 +1738,33 @@ mysql_health_password            | **Optional.** The password for the database c
 mysql_health_database            | **Optional.** The database to connect to. Defaults to information_schema.
 mysql_health_warning             | **Optional.** The warning threshold depending on the mode.
 mysql_health_critical            | **Optional.** The critical threshold depending on the mode.
+mysql_health_warningx            | **Optional.** The extended warning thresholds depending on the mode.
+mysql_health_criticalx           | **Optional.** The extended critical thresholds depending on the mode.
 mysql_health_mode                | **Required.** The mode uses predefined keywords for the different checks. For example "connection-time", "slave-lag" or "sql".
 mysql_health_method              | **Optional.** How the plugin should connect to the database (`dbi` for using DBD::Mysql (default), `mysql` for using the mysql-Tool).
-mysql_health_name                | **Optional.** The SQL statement to be executed with "mysql_health_mode" sql.
-mysql_health_name2               | **Optional.** If "mysql_health_name" is a sql statement, "mysql_health_name2" can be used to appear in the output and the performance data.
+mysql_health_commit              | **Optional.** Turns on autocommit for the dbd::* module.
+mysql_health_notemp              | **Optional.** Ignore temporary databases/tablespaces.
+mysql_health_nooffline           | **Optional.** Skip the offline databases.
+mysql_health_regexp              | **Optional.** Parameter name/name2/name3 will be interpreted as (perl) regular expression.
+mysql_health_name                | **Optional.** The name of a specific component to check.
+mysql_health_name2               | **Optional.** The secondary name of a component.
+mysql_health_name3               | **Optional.** The tertiary name of a component.
 mysql_health_units               | **Optional.** This is used for a better output of mode=sql and for specifying thresholds for mode=tablespace-free. Possible values are "%", "KB", "MB" and "GB".
 mysql_health_labelformat         | **Optional.** One of those formats pnp4nagios or groundwork. Defaults to pnp4nagios.
+mysql_health_extraopts           | **Optional.** Read command line arguments from an external file.
+mysql_health_blacklist           | **Optional.** Blacklist some (missing/failed) components"
+mysql_health_mitigation          | **Optional.** "The parameter allows you to change a critical error to a warning."
+mysql_health_lookback            | **Optional.** The amount of time you want to look back when calculating average rates."
+mysql_health_environment         | **Optional.** Add a variable to the plugin's environment."
+mysql_health_morphmessage        | **Optional.** Modify the final output message."
+mysql_health_morphperfdata       | **Optional.** The parameter allows you to change performance data labels."
+mysql_health_selectedperfdata    | **Optional.** The parameter allows you to limit the list of performance data."
+mysql_health_report              | **Optional.** Can be used to shorten the output."
+mysql_health_multiline           | **Optional.** Multiline output."
+mysql_health_negate              | **Optional.** Emulate the negate plugin. --negate warning=critical --negate unknown=critical."
+mysql_health_withmymodulesdyndir | **Optional.** Add-on modules for the my-modes will be searched in this directory."
+mysql_health_statefilesdir       | **Optional.** An alternate directory where the plugin can save files."
+mysql_health_isvalidtime         | **Optional.** Signals the plugin to return OK if now is not a valid check time."
 
 #### <a id="plugins-contrib-command-oracle_health"></a> oracle_health
 
