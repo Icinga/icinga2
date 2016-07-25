@@ -243,7 +243,7 @@ String Url::Format(bool print_credentials) const
 	else {
 		BOOST_FOREACH (const String& segment, m_Path) {
 			url += "/";
-			url += Utility::EscapeString(segment, ACPATHSEGMENT, false);
+			url += Utility::EscapeString(segment, ACPATHSEGMENT_ENCODE, false);
 		}
 	}
 
@@ -252,7 +252,7 @@ String Url::Format(bool print_credentials) const
 		typedef std::pair<String, std::vector<String> > kv_pair;
 
 		BOOST_FOREACH (const kv_pair& kv, m_Query) {
-			String key = Utility::EscapeString(kv.first, ACQUERY, false);
+			String key = Utility::EscapeString(kv.first, ACQUERY_ENCODE, false);
 			if (param.IsEmpty())
 				param = "?";
 			else
@@ -268,7 +268,7 @@ String Url::Format(bool print_credentials) const
 				if (kv.second.size() > 1)
 					temp += "[]";
 
-				temp += "=" + Utility::EscapeString(s, ACQUERY, false);
+				temp += "=" + Utility::EscapeString(s, ACQUERY_ENCODE, false);
 			}
 			param += temp;
 		}
@@ -277,7 +277,7 @@ String Url::Format(bool print_credentials) const
 	url += param;
 
 	if (!m_Fragment.IsEmpty())
-		url += "#" + Utility::EscapeString(m_Fragment, ACFRAGMENT, false);
+		url += "#" + Utility::EscapeString(m_Fragment, ACFRAGMENT_ENCODE, false);
 
 	return url;
 }
