@@ -607,7 +607,25 @@ You'll need to think about the following:
 
 * Deploy the entire configuration from the master to satellites and cascading remote clients? ("top down")
 * Use local client configuration instead and report the inventory to satellites and cascading to the master? ("bottom up")
-* Combine that with command execution brdiges on remote clients and also satellites
+* Combine that with command execution bridges on remote clients and also satellites
+
+In case you want to use [CSR Auto-Signing](11-icinga2-client.md#csr-autosigning-requirements) in
+a three level cluster you'll need to ensure that the clients can connect to the master node once.
+The setup wizard can still be configured to connect to the satellite node following the example
+below.
+
+    # icinga2 node wizard
+    ...
+    Please specify the master endpoint(s) this node should connect to:
+    Master Common Name (CN from your master setup): icinga2-satellite1.localdomain
+    Please fill out the master connection information:
+    Master endpoint host (optional, your master's IP address or FQDN): icinga2-satellite1.localdomain
+    ...
+    Please specify the master connection for CSR auto-signing (defaults to master endpoint host):
+    Host [icinga2-satellite1.localdomain]: icinga2-master1.localdomain
+
+Alternatively you can copy the CA director from your master in `/var/lib/icinga2/ca` to your satellites
+and connect to them using the client setup wizards.
 
 
 ### <a id="cluster-scenarios-security"></a> Security in Cluster Scenarios
