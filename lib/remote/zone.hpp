@@ -48,6 +48,9 @@ public:
 
 	static Zone::Ptr GetLocalZone(void);
 
+protected:
+	virtual void ValidateEndpointsRaw(const Array::Ptr& value, const ValidationUtils& utils) override;
+
 private:
 	Zone::Ptr m_Parent;
 	std::vector<Zone::Ptr> m_AllParents;

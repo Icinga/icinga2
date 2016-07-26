@@ -21,6 +21,7 @@
 #include "remote/zone.tcpp"
 #include "remote/jsonrpcconnection.hpp"
 #include "base/objectlock.hpp"
+#include "base/logger.hpp"
 #include <boost/foreach.hpp>
 
 using namespace icinga;
@@ -121,3 +122,14 @@ Zone::Ptr Zone::GetLocalZone(void)
 	return local->GetZone();
 }
 
+void Zone::ValidateEndpointsRaw(const Array::Ptr& value, const ValidationUtils& utils)
+{
+	ObjectImpl<Zone>::ValidateEndpointsRaw(value, utils);
+
+	if (value && value->GetLength() > 2) {
+		Log(LogWarning, "Zone")
+		    << "The Zone object '" << GetName() << "' has more than two endpoints."
+		    << " Due to a known issue this type of configuration is strongly"
+		    << " discouraged and may cause Icinga to use excessive amounts of CPU time.";
+	}
+}
