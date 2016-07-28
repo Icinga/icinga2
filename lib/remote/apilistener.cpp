@@ -394,7 +394,8 @@ void ApiListener::NewClientHandlerInternal(const Socket::Ptr& client, const Stri
 		tlsStream->WaitForData(5);
 
 		if (!tlsStream->IsDataAvailable()) {
-			Log(LogWarning, "ApiListener", "No data received on new API connection.");
+			Log(LogWarning, "ApiListener")
+			    << "No data received on new API connection for identity '" << identity << "'. Ensure that the remote endpoints are properly configured in a cluster setup.";
 			return;
 		}
 
