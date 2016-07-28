@@ -52,7 +52,9 @@ void DbConnection::OnConfigLoaded(void)
 	if (categories.IsNumber()) {
 		SetCategoryFilter(categories);
 		Log(LogWarning, "DbConnection")
-		    << "Specifying flags using '|' for 'categories' is deprecated. This functionality will be removed in 2.6.0. Please use an array.";
+		    << "Specifying flags using '|' for 'categories' for object '" << GetName()
+		    << "' of type '" << GetType()->GetName() << "'"
+		    << " is deprecated. This functionality will be removed in 2.6.0. Please use an array.";
 	} else
 		SetCategoryFilter(FilterArrayToInt(categories, DbQuery::GetCategoryFilterMap(), DbCatEverything));
 
