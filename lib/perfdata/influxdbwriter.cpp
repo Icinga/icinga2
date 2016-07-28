@@ -34,6 +34,7 @@
 #include "base/convert.hpp"
 #include "base/utility.hpp"
 #include "base/stream.hpp"
+#include "base/json.hpp"
 #include "base/networkstream.hpp"
 #include "base/exception.hpp"
 #include "base/statsfunction.hpp"
@@ -43,6 +44,7 @@
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/regex.hpp>
+#include <boost/scoped_array.hpp>
 
 using namespace icinga;
 
@@ -508,6 +510,36 @@ void InfluxdbWriter::FlushHandler(const String& body)
 	if (resp.StatusCode != 204) {
 		Log(LogWarning, "InfluxdbWriter")
 		    << "Unexpected response code " << resp.StatusCode;
+
+		// Finish parsing the headers and body
+		while (!resp.Complete)
+			resp.Parse(context, true);
+
+		String contentType = resp.Headers->Get("content-type");
+		if (contentType != "application/json") {
+			Log(LogWarning, "InfluxdbWriter")
+			    << "Unexpected Content-Type: " << contentType;
+			return;
+		}
+
+		size_t responseSize = resp.GetBodySize();
+		boost::scoped_array<char> buffer(new char[responseSize + 1]);
+		resp.ReadBody(buffer.get(), responseSize);
+		buffer.get()[responseSize] = '\0';
+
+		Dictionary::Ptr jsonResponse;
+		try {
+			jsonResponse = JsonDecode(buffer.get());
+		} catch (...) {
+			Log(LogWarning, "InfluxdbWriter")
+			    << "Unable to parse JSON response:\n" << buffer.get();
+			return;
+		}
+
+		String error = jsonResponse->Get("error");
+
+		Log(LogCritical, "InfluxdbWriter")
+		    << "InfluxDB error message:\n" << error;
 	}
 }
 
