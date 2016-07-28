@@ -900,6 +900,11 @@ perfdata label. Fields (value, warn, crit, min, max) are created from data if av
 and the configuration allows it.  If a value associated with a tag is not able to be
 resolved, it will be dropped and not sent to the target host.
 
+Backslashes are allowed in tag keys, tag values and field keys, however they are also
+escape characters when followed by a space or comma, but cannot be escaped themselves.
+As a result all trailling slashes in these fields are replaced with an underscore.  This
+predominantly affects Windows paths e.g. `C:\` becomes `C:_`.
+
 The database is assumed to exist so this object will make no attempt to create it currently.
 
 Configuration Attributes:

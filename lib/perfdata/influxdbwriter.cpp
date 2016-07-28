@@ -237,6 +237,16 @@ String InfluxdbWriter::EscapeKey(const String& str)
 	String result = str;
 	boost::algorithm::replace_all(result, ",", "\\,");
 	boost::algorithm::replace_all(result, " ", "\\ ");
+
+	// InfluxDB 'feature': although backslashes are allowed in keys they also act
+	// as escape sequences when followed by ',' or ' '.  When your tag is like
+	// 'metric=C:\' bad things happen.  Backslashes themselves cannot be escaped
+	// and through experimentation they also escape '='.  To be safe we replace
+	// trailing backslashes with and underscore.
+	size_t length = result.GetLength();
+	if (result[length - 1] == '\\')
+		result[length - 1] = '_';
+
 	return result;
 }
 
@@ -284,7 +294,7 @@ void InfluxdbWriter::SendMetric(const Dictionary::Ptr& tmpl, const String& label
 		}
 	}
 
-	msgbuf << ",metric=" << label << " ";
+	msgbuf << ",metric=" << EscapeKey(label) << " ";
 
 	bool first = true;
 	ObjectLock fieldLock(fields);
