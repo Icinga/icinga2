@@ -165,8 +165,14 @@ case "$1" in
   status)
         status
         ;;
-  restart|condrestart)
+  restart)
 	checkconfig restart fail
+        stop nofail
+        start
+        ;;
+  condrestart)
+        status > /dev/null 2>&1 || exit 0
+        checkconfig restart fail
         stop nofail
         start
         ;;
