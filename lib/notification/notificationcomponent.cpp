@@ -75,10 +75,10 @@ void NotificationComponent::NotificationTimerHandler(void)
 		if (!notification->IsActive())
 			continue;
 
-		Checkable::Ptr checkable = notification->GetCheckable();
-
-		if (checkable->IsPaused() && GetEnableHA())
+		if (notification->IsPaused() && GetEnableHA())
 			continue;
+
+		Checkable::Ptr checkable = notification->GetCheckable();
 
 		if (!IcingaApplication::GetInstance()->GetEnableNotifications() || !checkable->GetEnableNotifications())
 			continue;
