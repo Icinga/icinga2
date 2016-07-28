@@ -117,9 +117,9 @@ void CheckerComponent::CheckThreadProc(void)
 			break;
 
 		CheckTimeView::iterator it = idx.begin();
-		Checkable::Ptr checkable = *it;
+		CheckableScheduleInfo csi = *it;
 
-		double wait = checkable->GetNextCheck() - Utility::GetTime();
+		double wait = csi.NextCheck - Utility::GetTime();
 
 		if (Checkable::GetPendingChecks() >= GetConcurrentChecks())
 			wait = 0.5;
@@ -130,6 +130,8 @@ void CheckerComponent::CheckThreadProc(void)
 
 			continue;
 		}
+
+		Checkable::Ptr checkable = csi.Object;
 
 		m_IdleCheckables.erase(checkable);
 
@@ -170,7 +172,7 @@ void CheckerComponent::CheckThreadProc(void)
 
 		/* reschedule the checkable if checks are disabled */
 		if (!check) {
-			m_IdleCheckables.insert(checkable);
+			m_IdleCheckables.insert(GetCheckableScheduleInfo(checkable));
 			lock.unlock();
 
 			checkable->UpdateNextCheck();
@@ -180,7 +182,7 @@ void CheckerComponent::CheckThreadProc(void)
 			continue;
 		}
 
-		m_PendingCheckables.insert(checkable);
+		m_PendingCheckables.insert(GetCheckableScheduleInfo(checkable));
 
 		lock.unlock();
 
@@ -232,7 +234,7 @@ void CheckerComponent::ExecuteCheckHelper(const Checkable::Ptr& checkable)
 			m_PendingCheckables.erase(it);
 
 			if (checkable->IsActive())
-				m_IdleCheckables.insert(checkable);
+				m_IdleCheckables.insert(GetCheckableScheduleInfo(checkable));
 
 			m_CV.notify_all();
 		}
@@ -250,7 +252,7 @@ void CheckerComponent::ResultTimerHandler(void)
 		boost::mutex::scoped_lock lock(m_Mutex);
 
 		msgbuf << "Pending checkables: " << m_PendingCheckables.size() << "; Idle checkables: " << m_IdleCheckables.size() << "; Checks/s: "
-		    << (CIB::GetActiveHostChecksStatistics(5) + CIB::GetActiveServiceChecksStatistics(5)) / 5.0;
+		    << (CIB::GetActiveHostChecksStatistics(60) + CIB::GetActiveServiceChecksStatistics(60)) / 60.0;
 	}
 
 	Log(LogNotice, "CheckerComponent", msgbuf.str());
@@ -273,7 +275,7 @@ void CheckerComponent::ObjectHandler(const ConfigObject::Ptr& object)
 			if (m_PendingCheckables.find(checkable) != m_PendingCheckables.end())
 				return;
 
-			m_IdleCheckables.insert(checkable);
+			m_IdleCheckables.insert(GetCheckableScheduleInfo(checkable));
 		} else {
 			m_IdleCheckables.erase(checkable);
 			m_PendingCheckables.erase(checkable);
@@ -281,6 +283,14 @@ void CheckerComponent::ObjectHandler(const ConfigObject::Ptr& object)
 
 		m_CV.notify_all();
 	}
+}
+
+CheckableScheduleInfo CheckerComponent::GetCheckableScheduleInfo(const Checkable::Ptr& checkable)
+{
+	CheckableScheduleInfo csi;
+	csi.Object = checkable;
+	csi.NextCheck = checkable->GetNextCheck();
+	return csi;
 }
 
 void CheckerComponent::NextCheckChangedHandler(const Checkable::Ptr& checkable)
@@ -296,7 +306,10 @@ void CheckerComponent::NextCheckChangedHandler(const Checkable::Ptr& checkable)
 		return;
 
 	idx.erase(checkable);
-	idx.insert(checkable);
+
+	CheckableScheduleInfo csi = GetCheckableScheduleInfo(checkable);
+	idx.insert(csi);
+
 	m_CV.notify_all();
 }
 

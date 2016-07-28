@@ -38,6 +38,15 @@ namespace icinga
 /**
  * @ingroup checker
  */
+struct CheckableScheduleInfo
+{
+	Checkable::Ptr Object;
+	double NextCheck;
+};
+
+/**
+ * @ingroup checker
+ */
 struct CheckableNextCheckExtractor
 {
 	typedef double result_type;
@@ -45,9 +54,9 @@ struct CheckableNextCheckExtractor
 	/**
 	 * @threadsafety Always.
 	 */
-	double operator()(const Checkable::Ptr& checkable)
+	double operator()(const CheckableScheduleInfo& csi)
 	{
-		return checkable->GetNextCheck();
+		return csi.NextCheck;
 	}
 };
 
@@ -61,9 +70,9 @@ public:
 	DECLARE_OBJECTNAME(CheckerComponent);
 
 	typedef boost::multi_index_container<
-		Checkable::Ptr,
+		CheckableScheduleInfo,
 		boost::multi_index::indexed_by<
-			boost::multi_index::ordered_unique<boost::multi_index::identity<Checkable::Ptr> >,
+			boost::multi_index::ordered_unique<boost::multi_index::member<CheckableScheduleInfo, Checkable::Ptr, &CheckableScheduleInfo::Object> >,
 			boost::multi_index::ordered_non_unique<CheckableNextCheckExtractor>
 		>
 	> CheckableSet;
@@ -100,6 +109,8 @@ private:
 	void NextCheckChangedHandler(const Checkable::Ptr& checkable);
 
 	void RescheduleCheckTimer(void);
+
+	static CheckableScheduleInfo GetCheckableScheduleInfo(const Checkable::Ptr& checkable);
 };
 
 }
