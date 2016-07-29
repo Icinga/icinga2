@@ -172,14 +172,17 @@ static Value ArrayReduce(const Function::Ptr& function)
 	if (vframe->Sandboxed && !function->IsSideEffectFree())
 		BOOST_THROW_EXCEPTION(ScriptError("Reduce function must be side-effect free."));
 
-	Value result;
+	if (self->GetLength() == 0)
+		return Empty;
+
+	Value result = self->Get(0);
 
 	ObjectLock olock(self);
-	BOOST_FOREACH(const Value& item, self) {
+	for (size_t i = 1; i < self->GetLength(); i++) {
 		ScriptFrame uframe;
 		std::vector<Value> args;
 		args.push_back(result);
-		args.push_back(item);
+		args.push_back(self->Get(i));
 		result = function->Invoke(args);
 	}
 

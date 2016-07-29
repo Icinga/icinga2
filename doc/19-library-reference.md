@@ -708,8 +708,8 @@ Signature:
     function reduce(func);
 
 Reduces the elements of the array into a single value by calling the provided
-function `func` as `func(a, b)` repeatedly where `a` is the previous result of
-function call (null initially) and `b` is an element of the array.
+function `func` as `func(a, b)` repeatedly where `a` and `b` are elements of the array
+or results from previous function calls.
 
 ### <a id="array-filter"> Array#filter
 
