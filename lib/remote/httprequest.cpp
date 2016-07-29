@@ -108,9 +108,6 @@ bool HttpRequest::Parse(StreamReadContext& src, bool may_wait)
 			if (srs != StatusNewItem)
 				return false;
 
-			Log(LogInformation, "HttpRequest")
-			    << "Read " << size << " bytes";
-
 			m_Body->Write(data, size);
 
 			delete [] data;
