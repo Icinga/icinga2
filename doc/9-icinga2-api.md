@@ -207,7 +207,7 @@ Available permissions for specific URL endpoints:
   objects/create/&lt;type&gt;   | /v1/objects   | No
   objects/modify/&lt;type&gt;   | /v1/objects   | Yes
   objects/delete/&lt;type&gt;   | /v1/objects   | Yes
-  status/query/&lt;type&gt;     | /v1/status    | Yes
+  status/query                  | /v1/status    | Yes
   events/&lt;type&gt;           | /v1/events    | No
   console                       | /v1/console   | No
 
