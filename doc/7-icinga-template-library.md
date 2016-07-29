@@ -1972,6 +1972,30 @@ ipmi_number_of_active_fans       | **Optional.** Number of fans that should be a
 ipmi_show_fru                    | **Optional.** Print the product serial number if it is available in the IPMI FRU data.
 ipmi_no_sel_checking             | **Optional.** Turn off system event log checking via ipmi-sel.
 
+### <a id="plugins-contrib-metrics"></a> Metrics
+
+This category includes all plugins for metric-based checks.
+
+#### <a id="plugin-check-command-graphite"></a> graphite
+
+Check command object for the [check_graphite](https://github.com/obfuscurity/nagios-scripts) plugin.
+
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
+
+Name                                | Description
+------------------------------------|-----------------------------------------------------------------------------------------------------
+graphite_url                        | **Required.** Target url.
+graphite_metric                     | **Required.** Metric path string.
+graphite_shortname                  | **Optional.** Metric short name (used for performance data).
+graphite_duration                   | **Optional.** Length, in minute of data to parse (default: 5).
+graphite_function                   | **Optional.** Function applied to metrics for thresholds (default: average).
+graphite_warning                    | **Required.** Warning threshold.
+graphite_critical                   | **Required.** Critical threshold.
+graphite_units                      | **Optional.** Adds a text tag to the metric count in the plugin output. Useful to identify the metric units. Doesn't affect data queries.
+graphite_message                    | **Optional.** Text message to output (default: "metric count:").
+graphite_zero_on_error              | **Optional.** Return 0 on a graphite 500 error.
+graphite_link_graph                 | **Optional.** Add a link in the plugin output, showing a 24h graph for this metric in graphite.
+
 ### <a id="plugins-contrib-network-components"></a> Network Components
 
 This category includes all plugins for various network components like routers, switches and firewalls.
