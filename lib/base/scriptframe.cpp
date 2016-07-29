@@ -28,6 +28,11 @@ boost::thread_specific_ptr<std::stack<ScriptFrame *> > ScriptFrame::m_ScriptFram
 ScriptFrame::ScriptFrame(void)
 	: Locals(new Dictionary()), Self(ScriptGlobal::GetGlobals()), Sandboxed(false), Depth(0)
 {
+	std::stack<ScriptFrame *> *frames = m_ScriptFrames.get();
+
+	if (frames && !frames->empty())
+		Sandboxed = frames->top()->Sandboxed;
+
 	PushFrame(this);
 }
 
