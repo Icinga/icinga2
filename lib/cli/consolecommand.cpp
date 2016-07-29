@@ -193,6 +193,20 @@ int ConsoleCommand::RunScriptConsole(ScriptFrame& scriptFrame, const String& add
 	std::map<String, String> lines;
 	int next_line = 1;
 
+#ifdef HAVE_EDITLINE
+	String homeEnv = getenv("HOME");
+	String historyPath = homeEnv + "/.icinga2_history";
+
+	std::fstream historyfp;
+	historyfp.open(historyPath.CStr(), std::fstream::in);
+
+	String line;
+	while (std::getline(historyfp, line.GetData()))
+		add_history(line.CStr());
+
+	historyfp.close();
+#endif /* HAVE_EDITLINE */
+
 	l_ScriptFrame = &scriptFrame;
 	l_Session = session;
 
@@ -254,7 +268,13 @@ incomplete:
 			if (!cline)
 				break;
 
-			add_history(cline);
+			if (commandOnce.IsEmpty()) {
+				add_history(cline);
+
+				historyfp.open(historyPath.CStr(), std::fstream::out | std::fstream::app);
+				historyfp << cline << "\n";
+				historyfp.close();
+			}
 
 			line = cline;
 
