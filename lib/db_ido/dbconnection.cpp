@@ -492,3 +492,8 @@ void DbConnection::SetIDCacheValid(bool valid)
 {
 	m_IDCacheValid = valid;
 }
+
+int DbConnection::GetSessionToken(void)
+{
+	return Application::GetStartTime();
+}

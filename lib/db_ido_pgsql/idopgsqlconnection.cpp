@@ -174,7 +174,6 @@ void IdoPgsqlConnection::Reconnect(void)
 	CONTEXT("Reconnecting to PostgreSQL IDO database '" + GetName() + "'");
 
 	double startTime = Utility::GetTime();
-	m_SessionToken = static_cast<int>(Utility::GetTime());
 
 	SetShouldConnect(true);
 
@@ -420,7 +419,7 @@ void IdoPgsqlConnection::ClearTableBySession(const String& table)
 {
 	Query("DELETE FROM " + GetTablePrefix() + table + " WHERE instance_id = " +
 	    Convert::ToString(static_cast<long>(m_InstanceID)) + " AND session_token <> " +
-	    Convert::ToString(m_SessionToken));
+	    Convert::ToString(GetSessionToken()));
 }
 
 void IdoPgsqlConnection::ClearConfigTable(const String& table)
@@ -605,7 +604,7 @@ bool IdoPgsqlConnection::FieldToEscapedString(const String& key, const Value& va
 		*result = static_cast<long>(m_InstanceID);
 		return true;
 	} else if (key == "session_token") {
-		*result = m_SessionToken;
+		*result = GetSessionToken();
 		return true;
 	}
 

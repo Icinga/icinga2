@@ -71,7 +71,6 @@ protected:
 
 private:
 	DbReference m_InstanceID;
-	int m_SessionToken;
 
 	WorkQueue m_QueryQueue;
 

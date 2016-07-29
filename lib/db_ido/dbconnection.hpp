@@ -100,6 +100,8 @@ protected:
 
 	static void UpdateProgramStatus(void);
 
+	static int GetSessionToken(void);
+
 private:
 	bool m_IDCacheValid;
 	std::map<DbObject::Ptr, DbReference> m_ObjectIDs;

@@ -175,7 +175,6 @@ void IdoMysqlConnection::Reconnect(void)
 	CONTEXT("Reconnecting to MySQL IDO database '" + GetName() + "'");
 
 	double startTime = Utility::GetTime();
-	m_SessionToken = static_cast<int>(Utility::GetTime());
 
 	SetShouldConnect(true);
 
@@ -449,7 +448,7 @@ void IdoMysqlConnection::ClearTableBySession(const String& table)
 {
 	Query("DELETE FROM " + GetTablePrefix() + table + " WHERE instance_id = " +
 	    Convert::ToString(static_cast<long>(m_InstanceID)) + " AND session_token <> " +
-	    Convert::ToString(m_SessionToken));
+	    Convert::ToString(GetSessionToken()));
 }
 
 void IdoMysqlConnection::ClearConfigTable(const String& table)
@@ -748,7 +747,7 @@ bool IdoMysqlConnection::FieldToEscapedString(const String& key, const Value& va
 		*result = static_cast<long>(m_InstanceID);
 		return true;
 	} else if (key == "session_token") {
-		*result = m_SessionToken;
+		*result = GetSessionToken();
 		return true;
 	}
 
