@@ -22,6 +22,7 @@
 #include "base/functionwrapper.hpp"
 #include "base/scriptframe.hpp"
 #include "base/objectlock.hpp"
+#include "base/exception.hpp"
 #include <boost/foreach.hpp>
 
 using namespace icinga;
@@ -94,6 +95,11 @@ static Array::Ptr ArraySort(const std::vector<Value>& args)
 		ObjectLock olock(arr);
 		std::sort(arr->Begin(), arr->End());
 	} else {
+		Function::Ptr function = args[0];
+
+		if (vframe->Sandboxed && !function->IsSideEffectFree())
+			BOOST_THROW_EXCEPTION(ScriptError("Sort function must be side-effect free."));
+
 		ObjectLock olock(arr);
 		std::sort(arr->Begin(), arr->End(), boost::bind(ArraySortCmp, args[0], _1, _2));
 	}
@@ -137,6 +143,86 @@ static Array::Ptr ArrayReverse(void)
 	return self->Reverse();
 }
 
+static Array::Ptr ArrayMap(const Function::Ptr& function)
+{
+	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
+	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
+
+	if (vframe->Sandboxed && !function->IsSideEffectFree())
+		BOOST_THROW_EXCEPTION(ScriptError("Map function must be side-effect free."));
+
+	Array::Ptr result = new Array();
+
+	ObjectLock olock(self);
+	BOOST_FOREACH(const Value& item, self) {
+		ScriptFrame uframe;
+		std::vector<Value> args;
+		args.push_back(item);
+		result->Add(function->Invoke(args));
+	}
+
+	return result;
+}
+
+static Value ArrayReduce(const Function::Ptr& function)
+{
+	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
+	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
+
+	if (vframe->Sandboxed && !function->IsSideEffectFree())
+		BOOST_THROW_EXCEPTION(ScriptError("Reduce function must be side-effect free."));
+
+	Value result;
+
+	ObjectLock olock(self);
+	BOOST_FOREACH(const Value& item, self) {
+		ScriptFrame uframe;
+		std::vector<Value> args;
+		args.push_back(result);
+		args.push_back(item);
+		result = function->Invoke(args);
+	}
+
+	return result;
+}
+
+static Array::Ptr ArrayFilter(const Function::Ptr& function)
+{
+	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
+	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
+
+	if (vframe->Sandboxed && !function->IsSideEffectFree())
+		BOOST_THROW_EXCEPTION(ScriptError("Filter function must be side-effect free."));
+
+	Array::Ptr result = new Array();
+
+	ObjectLock olock(self);
+	BOOST_FOREACH(const Value& item, self) {
+		ScriptFrame uframe;
+		std::vector<Value> args;
+		args.push_back(item);
+		if (function->Invoke(args))
+			result->Add(item);
+	}
+
+	return result;
+}
+
+static Array::Ptr ArrayUnique(void)
+{
+	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
+	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
+
+	std::set<Value> result;
+
+	ObjectLock olock(self);
+	BOOST_FOREACH(const Value& item, self) {
+		result.insert(item);
+	}
+
+	return Array::FromSet(result);
+}
+
 Object::Ptr Array::GetPrototype(void)
 {
 	static Dictionary::Ptr prototype;
@@ -154,6 +240,10 @@ Object::Ptr Array::GetPrototype(void)
 		prototype->Set("shallow_clone", new Function(WrapFunction(ArrayShallowClone), true));
 		prototype->Set("join", new Function(WrapFunction(ArrayJoin), true));
 		prototype->Set("reverse", new Function(WrapFunction(ArrayReverse), true));
+		prototype->Set("map", new Function(WrapFunction(ArrayMap), true));
+		prototype->Set("reduce", new Function(WrapFunction(ArrayReduce), true));
+		prototype->Set("filter", new Function(WrapFunction(ArrayFilter), true));
+		prototype->Set("unique", new Function(WrapFunction(ArrayUnique), true));
 	}
 
 	return prototype;

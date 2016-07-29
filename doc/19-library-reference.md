@@ -692,6 +692,43 @@ Signature:
 
 Returns a new array with all elements of the current array in reverse order.
 
+### <a id="array-map"></a> Array#map
+
+Signature:
+
+    function map(func);
+
+Calls `func(element)` for each of the elements in the array and returns
+a new array containing the return values of these function calls.
+
+### <a id="array-reduce"></a> Array#reduce
+
+Signature:
+
+    function reduce(func);
+
+Reduces the elements of the array into a single value by calling the provided
+function `func` as `func(a, b)` repeatedly where `a` is the previous result of
+function call (null initially) and `b` is an element of the array.
+
+### <a id="array-filter"> Array#filter
+
+Signature:
+
+    function filter(func);
+
+Returns a copy of the array containing only the elements for which `func(element)`
+is true.
+
+### <a id="array-filter"> Array#unique
+
+Signature:
+
+    function unique();
+
+Returns a copy of the array with all duplicate elements removed. The original order
+of the array is not preserved.
+
 ## <a id="dictionary-type"></a> Dictionary type
 
 Inherits methods from the [Object type](19-library-reference.md#object-type).

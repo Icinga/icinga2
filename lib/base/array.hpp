@@ -118,6 +118,15 @@ public:
 		return std::set<T>(Begin(), End());
 	}
 
+	template<typename T>
+	static Array::Ptr FromSet(const std::set<T>& v)
+	{
+		Array::Ptr result = new Array();
+		ObjectLock olock(result);
+		std::copy(v.begin(), v.end(), std::back_inserter(result->m_Data));
+		return result;
+	}
+
 	virtual Object::Ptr Clone(void) const override;
 
 	Array::Ptr Reverse(void) const;
