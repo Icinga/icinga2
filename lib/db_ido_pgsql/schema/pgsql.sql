@@ -222,6 +222,7 @@ CREATE TABLE  icinga_contactgroup_members (
   instance_id bigint default 0,
   contactgroup_id bigint default 0,
   contact_object_id bigint default 0,
+  session_token INTEGER default NULL,
   CONSTRAINT PK_contactgroup_member_id PRIMARY KEY (contactgroup_member_id)
 );
 
