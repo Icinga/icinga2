@@ -319,11 +319,11 @@ String PkiUtility::GetCertificateInformation(const boost::shared_ptr<X509>& cert
 
 	pre = "\n Valid From:  ";
 	BIO_write(out, pre.CStr(), pre.GetLength());
-	ASN1_TIME_print(out, X509_get_notBefore(cert));
+	ASN1_TIME_print(out, X509_get_notBefore(cert.get()));
 
 	pre = "\n Valid Until: ";
 	BIO_write(out, pre.CStr(), pre.GetLength());
-	ASN1_TIME_print(out, X509_get_notAfter(cert));
+	ASN1_TIME_print(out, X509_get_notAfter(cert.get()));
 
 	pre = "\n Fingerprint: ";
 	BIO_write(out, pre.CStr(), pre.GetLength());
