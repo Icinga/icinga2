@@ -1691,9 +1691,9 @@ CREATE INDEX idx_zones_parent_object_id on icinga_zones(parent_zone_object_id);
 CREATE INDEX idx_zonestatus_parent_object_id on icinga_zonestatus(parent_zone_object_id);
 
 -- #12210
-CREATE INDEX idx_hg_session_del ON icinga_hostgroup_members (session_token);
-CREATE INDEX idx_sg_session_del ON icinga_servicegroup_members (session_token);
-CREATE INDEX idx_cg_session_del ON icinga_contactgroup_members (session_token);
+CREATE INDEX idx_hg_session_del ON icinga_hostgroup_members (instance_id, session_token);
+CREATE INDEX idx_sg_session_del ON icinga_servicegroup_members (instance_id, session_token);
+CREATE INDEX idx_cg_session_del ON icinga_contactgroup_members (instance_id, session_token);
 
 DROP INDEX cv_session_del_idx;
 DROP INDEX cvs_session_del_idx;
