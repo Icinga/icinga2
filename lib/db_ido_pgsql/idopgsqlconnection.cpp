@@ -413,6 +413,8 @@ void IdoPgsqlConnection::ClearTablesBySession(void)
 	ClearTableBySession("hostgroup_members");
 	ClearTableBySession("servicegroup_members");
 	ClearTableBySession("contactgroup_members");
+	ClearTableBySession("comments");
+	ClearTableBySession("scheduleddowntime");
 }
 
 void IdoPgsqlConnection::ClearTableBySession(const String& table)

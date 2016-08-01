@@ -57,6 +57,15 @@ CREATE INDEX idx_cv_session_del ON icinga_customvariables (instance_id, session_
 CREATE INDEX idx_cvs_session_del ON icinga_customvariablestatus (instance_id, session_token);
 
 -- -----------------------------------------
+-- #12258
+-- -----------------------------------------
+ALTER TABLE icinga_comments ADD COLUMN session_token INTEGER default NULL;
+ALTER TABLE icinga_scheduleddowntime ADD COLUMN session_token INTEGER default NULL;
+
+CREATE INDEX idx_comments_session_del ON icinga_comments (instance_id, session_token);
+CREATE INDEX idx_downtimes_session_del ON icinga_scheduleddowntime (instance_id, session_token);
+
+-- -----------------------------------------
 -- #12107
 -- -----------------------------------------
 CREATE INDEX idx_statehistory_cleanup on icinga_statehistory(instance_id, state_time);

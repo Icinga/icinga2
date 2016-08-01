@@ -110,6 +110,7 @@ CREATE TABLE IF NOT EXISTS icinga_comments (
   expires smallint default 0,
   expiration_time timestamp  default '0000-00-00 00:00:00',
   name TEXT character set latin1 default NULL,
+  session_token int default NULL,
   PRIMARY KEY  (comment_id),
   UNIQUE KEY instance_id (instance_id,object_id,comment_time,internal_comment_id)
 ) ENGINE=InnoDB  COMMENT='Usercomments on Icinga objects';
@@ -1668,6 +1669,8 @@ CREATE INDEX idx_cg_session_del ON icinga_contactgroup_members (instance_id, ses
 
 CREATE INDEX idx_cv_session_del ON icinga_customvariables (instance_id, session_token);
 CREATE INDEX idx_cvs_session_del ON icinga_customvariablestatus (instance_id, session_token);
+
+CREATE INDEX idx_comments_session_del ON icinga_comments (instance_id, session_token);
 
 -- #12107
 CREATE INDEX idx_statehistory_cleanup on icinga_statehistory(instance_id, state_time);

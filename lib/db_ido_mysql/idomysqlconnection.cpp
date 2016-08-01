@@ -442,6 +442,8 @@ void IdoMysqlConnection::ClearTablesBySession(void)
 	ClearTableBySession("hostgroup_members");
 	ClearTableBySession("servicegroup_members");
 	ClearTableBySession("contactgroup_members");
+	ClearTableBySession("comments");
+	ClearTableBySession("scheduleddowntime");
 }
 
 void IdoMysqlConnection::ClearTableBySession(const String& table)

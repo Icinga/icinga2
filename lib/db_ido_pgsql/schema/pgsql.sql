@@ -136,6 +136,7 @@ CREATE TABLE  icinga_comments (
   expires INTEGER  default 0,
   expiration_time timestamp with time zone default '1970-01-01 00:00:00+00',
   name TEXT default NULL,
+  session_token INTEGER default NULL,
   CONSTRAINT PK_comment_id PRIMARY KEY (comment_id) ,
   CONSTRAINT UQ_comments UNIQUE (instance_id,object_id,comment_time,internal_comment_id)
 )  ;
@@ -1005,6 +1006,7 @@ CREATE TABLE  icinga_scheduleddowntime (
   is_in_effect INTEGER  default 0,
   trigger_time timestamp with time zone default '1970-01-01 00:00:00+00',
   name TEXT default NULL,
+  session_token INTEGER default NULL,
   CONSTRAINT PK_scheduleddowntime_id PRIMARY KEY (scheduleddowntime_id) ,
   CONSTRAINT UQ_scheduleddowntime UNIQUE (instance_id,object_id,entry_time,internal_downtime_id)
 ) ;
@@ -1694,6 +1696,9 @@ CREATE INDEX idx_zonestatus_parent_object_id on icinga_zonestatus(parent_zone_ob
 CREATE INDEX idx_hg_session_del ON icinga_hostgroup_members (instance_id, session_token);
 CREATE INDEX idx_sg_session_del ON icinga_servicegroup_members (instance_id, session_token);
 CREATE INDEX idx_cg_session_del ON icinga_contactgroup_members (instance_id, session_token);
+
+CREATE INDEX idx_comments_session_del ON icinga_comments (instance_id, session_token);
+CREATE INDEX idx_downtimes_session_del ON icinga_scheduleddowntime (instance_id, session_token);
 
 CREATE INDEX idx_cv_session_del ON icinga_customvariables (instance_id, session_token);
 CREATE INDEX idx_cvs_session_del ON icinga_customvariablestatus (instance_id, session_token);

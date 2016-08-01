@@ -305,17 +305,6 @@ void DbEvents::AddComments(const Checkable::Ptr& checkable)
 
 	std::vector<DbQuery> queries;
 
-	/* Ensure to delete all comments and then insert any or none.
-	 * We must purge obsolete comments in the database at all cost. */
-
-	DbQuery query1;
-	query1.Table = "comments";
-	query1.Type = DbQueryDelete;
-	query1.Category = DbCatComment;
-	query1.WhereCriteria = new Dictionary();
-	query1.WhereCriteria->Set("object_id", checkable);
-	queries.push_back(query1);
-
 	BOOST_FOREACH(const Comment::Ptr& comment, comments) {
 		AddCommentInternal(queries, comment, false);
 	}
@@ -326,7 +315,6 @@ void DbEvents::AddComments(const Checkable::Ptr& checkable)
 void DbEvents::AddComment(const Comment::Ptr& comment)
 {
 	std::vector<DbQuery> queries;
-	RemoveCommentInternal(queries, comment);
 	AddCommentInternal(queries, comment, false);
 	DbObject::OnMultipleQueries(queries);
 }
@@ -382,10 +370,19 @@ void DbEvents::AddCommentInternal(std::vector<DbQuery>& queries, const Comment::
 	DbQuery query1;
 	if (!historical) {
 		query1.Table = "comments";
+		query1.Type = DbQueryInsert | DbQueryUpdate;
+
+		fields1->Set("session_token", 0); /* DbConnection class fills in real ID */
+
+		query1.WhereCriteria = new Dictionary();
+		query1.WhereCriteria->Set("internal_comment_id", comment->GetLegacyId());
+		query1.WhereCriteria->Set("object_id", checkable);
+		query1.WhereCriteria->Set("comment_time", DbValue::FromTimestamp(entry_time));
+		query1.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
 	} else {
 		query1.Table = "commenthistory";
+		query1.Type = DbQueryInsert;
 	}
-	query1.Type = DbQueryInsert;
 	query1.Category = DbCatComment;
 	query1.Fields = fields1;
 
@@ -520,12 +517,22 @@ void DbEvents::AddDowntimeInternal(std::vector<DbQuery>& queries, const Downtime
 
 	DbQuery query1;
 
-	if (!historical)
+	if (!historical) {
 		query1.Table = "scheduleddowntime";
-	else
-		query1.Table = "downtimehistory";
+		query1.Type = DbQueryInsert | DbQueryUpdate;
 
-	query1.Type = DbQueryInsert;
+		fields1->Set("session_token", 0); /* DbConnection class fills in real ID */
+
+		query1.WhereCriteria = new Dictionary();
+		query1.WhereCriteria->Set("object_id", checkable);
+		query1.WhereCriteria->Set("internal_downtime_id", downtime->GetLegacyId());
+		query1.WhereCriteria->Set("entry_time", DbValue::FromTimestamp(downtime->GetEntryTime()));
+		query1.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
+	} else {
+		query1.Table = "downtimehistory";
+		query1.Type = DbQueryInsert;
+	}
+
 	query1.Category = DbCatDowntime;
 	query1.Fields = fields1;
 
