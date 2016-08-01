@@ -35,6 +35,9 @@ class ApiListener : ConfigObject
 	[config] String cipher_list {
 		default {{{ return "ALL:!LOW:!WEAK:!MEDIUM:!EXP:!NULL"; }}}
 	};
+	[config] String tls_protocolmin {
+		default {{{ return "TLSv1"; }}}
+	};
 
 	[config] String bind_host;
 	[config] String bind_port {

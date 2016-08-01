@@ -182,6 +182,28 @@ void SetCipherListToSSLContext(const boost::shared_ptr<SSL_CTX>& context, const 
 }
 
 /**
+ * Set the minimum TLS protocol version to the specified SSL context.
+ *
+ * @param context The ssl context.
+ * @param tlsProtocolmin The minimum TLS protocol version.
+ */
+void SetTlsProtocolminToSSLContext(const boost::shared_ptr<SSL_CTX>& context, const String& tlsProtocolmin)
+{
+	long flags = SSL_CTX_get_options(context.get());
+
+	flags |= SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3;
+
+	if (tlsProtocolmin == SSL_TXT_TLSV1_1)
+		flags |= SSL_OP_NO_TLSv1;
+	else if (tlsProtocolmin == SSL_TXT_TLSV1_2)
+		flags |= SSL_OP_NO_TLSv1 | SSL_OP_NO_TLSv1_1;
+	else if (tlsProtocolmin != SSL_TXT_TLSV1)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid TLS protocol version specified."));
+
+	SSL_CTX_set_options(context.get(), flags);
+}
+
+/**
  * Loads a CRL and appends its certificates to the specified SSL context.
  *
  * @param context The SSL context.

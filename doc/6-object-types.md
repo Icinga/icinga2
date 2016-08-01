@@ -51,6 +51,7 @@ Configuration Attributes:
   accept\_config            |**Optional.** Accept zone configuration. Defaults to `false`.
   accept\_commands          |**Optional.** Accept remote commands. Defaults to `false`.
   cipher\_list		    |**Optional.** Cipher list that is allowed.
+  tls\_protocolmin          |**Optional.** Minimum TLS protocol version. Must be one of `TLSv1`, `TLSv1.1` or `TLSv1.2`. Defaults to `TLSv1`.
 
 ## <a id="objecttype-apiuser"></a> ApiUser
 

@@ -105,6 +105,8 @@ protected:
 	virtual void OnAllConfigLoaded(void) override;
 	virtual void Start(bool runtimeCreated) override;
 
+	virtual void ValidateTlsProtocolmin(const String& value, const ValidationUtils& utils) override;
+
 private:
 	boost::shared_ptr<SSL_CTX> m_SSLContext;
 	std::set<TcpSocket::Ptr> m_Servers;

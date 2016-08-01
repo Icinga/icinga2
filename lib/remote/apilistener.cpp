@@ -104,6 +104,14 @@ void ApiListener::OnConfigLoaded(void)
 			    + GetCipherList() + "'.", GetDebugInfo()));
 		}
 	}
+
+	if (!GetTlsProtocolmin().IsEmpty()){
+		try {
+			SetTlsProtocolminToSSLContext(m_SSLContext, GetTlsProtocolmin());
+		} catch (const std::exception&) {
+			BOOST_THROW_EXCEPTION(ScriptError("Cannot set minimum TLS protocol version to SSL context with tls_protocolmin: '" + GetTlsProtocolmin() + "'.", GetDebugInfo()));
+		}
+	}
 }
 
 void ApiListener::OnAllConfigLoaded(void)
@@ -1170,4 +1178,15 @@ Value ApiListener::HelloAPIHandler(const MessageOrigin::Ptr& origin, const Dicti
 Endpoint::Ptr ApiListener::GetLocalEndpoint(void) const
 {
 	return m_LocalEndpoint;
+}
+
+void ApiListener::ValidateTlsProtocolmin(const String& value, const ValidationUtils& utils) override
+{
+	ObjectImpl<ApiListener>::ValidateTlsProtocolmin(value, utils);
+
+	if (value != SSL_TXT_TLSV1 && value != SSL_TXT_TLSV1_1 &&
+	    value != SSL_TXT_TLSV1_2) {
+		BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of("tls_protocolmin"), "Invalid TLS version. "
+		    "Must be one of '" SSL_TXT_TLSV1 "', '" SSL_TXT_TLSV1_1 "' or '" SSL_TXT_TLSV1_2 "'"));
+	}
 }
