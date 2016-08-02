@@ -894,16 +894,18 @@ void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query, DbQueryType 
 		return;
 	}
 
-	if (!CanExecuteQuery(query)) {
-		m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::InternalExecuteQuery, this, query, typeOverride), query.Priority);
-		return;
-	}
-
+	/* check whether we're allowed to execute the query first */
 	if (GetCategoryFilter() != DbCatEverything && (query.Category & GetCategoryFilter()) == 0)
 		return;
 
 	if (query.Object && query.Object->GetObject()->GetExtension("agent_check").ToBool())
 		return;
+
+	/* check if there are missing object/insert ids and re-enqueue the query */
+	if (!CanExecuteQuery(query)) {
+		m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::InternalExecuteQuery, this, query, typeOverride), query.Priority);
+		return;
+	}
 
 	std::ostringstream qbuf, where;
 	int type;
