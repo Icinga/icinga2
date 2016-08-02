@@ -1695,9 +1695,6 @@ CREATE INDEX idx_hg_session_del ON icinga_hostgroup_members (instance_id, sessio
 CREATE INDEX idx_sg_session_del ON icinga_servicegroup_members (instance_id, session_token);
 CREATE INDEX idx_cg_session_del ON icinga_contactgroup_members (instance_id, session_token);
 
-DROP INDEX cv_session_del_idx;
-DROP INDEX cvs_session_del_idx;
-
 CREATE INDEX idx_cv_session_del ON icinga_customvariables (instance_id, session_token);
 CREATE INDEX idx_cvs_session_del ON icinga_customvariablestatus (instance_id, session_token);
 
