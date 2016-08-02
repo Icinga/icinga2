@@ -351,6 +351,10 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 		UpdateNotificationNumber();
 		double now = Utility::GetTime();
 		SetLastNotification(now);
+
+		if (type == NotificationProblem && GetInterval() > 0)
+			SetNextNotification(now + GetInterval());
+
 		if (type == NotificationProblem)
 			SetLastProblemNotification(now);
 	}
