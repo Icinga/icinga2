@@ -18,7 +18,11 @@
 mkembedconfig_target(methods-itl.conf methods-itl.cpp)
 
 if(MSVC)
-  set(WindowsSources clrchecktask.cpp)
+  if(ICINGA2_WITH_CLRCHECKTASK)
+    set(WindowsSources clrchecktask.cpp)
+  else()
+    set(WindowsSources "")
+  endif()
 else()
   set(WindowsSources "")
 endif()

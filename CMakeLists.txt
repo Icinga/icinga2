@@ -40,6 +40,7 @@ option(ICINGA2_WITH_PERFDATA "Build the perfdata module" ON)
 option(ICINGA2_WITH_REDIS "Build the redis module" ON)
 option(ICINGA2_WITH_STUDIO "Build the Icinga Studio application" OFF)
 option(ICINGA2_WITH_TESTS "Run unit tests" ON)
+option(ICINGA2_WITH_CLRCHECKTASK "Allow loading .Net code under Windows" ON)
 
 file(STRINGS icinga2.spec VERSION_LINE REGEX "^Version: ")
 string(REPLACE "Version: " "" ICINGA2_VERSION ${VERSION_LINE})
