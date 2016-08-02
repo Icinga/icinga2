@@ -979,6 +979,7 @@ CREATE TABLE IF NOT EXISTS icinga_scheduleddowntime (
   is_in_effect smallint default 0,
   trigger_time timestamp  default '0000-00-00 00:00:00',
   name TEXT character set latin1 default NULL,
+  session_token int default NULL,
   PRIMARY KEY  (scheduleddowntime_id),
   UNIQUE KEY instance_id (instance_id,object_id,entry_time,internal_downtime_id)
 ) ENGINE=InnoDB COMMENT='Current scheduled host and service downtime';
@@ -1671,6 +1672,7 @@ CREATE INDEX idx_cv_session_del ON icinga_customvariables (instance_id, session_
 CREATE INDEX idx_cvs_session_del ON icinga_customvariablestatus (instance_id, session_token);
 
 CREATE INDEX idx_comments_session_del ON icinga_comments (instance_id, session_token);
+CREATE INDEX idx_downtimes_session_del ON icinga_scheduleddowntime (instance_id, session_token);
 
 -- #12107
 CREATE INDEX idx_statehistory_cleanup on icinga_statehistory(instance_id, state_time);
