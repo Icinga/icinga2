@@ -306,30 +306,6 @@ void ApiListener::NewClientHandlerInternal(const Socket::Ptr& client, const Stri
 {
 	CONTEXT("Handling new API client connection");
 
-	TlsStream::Ptr tlsStream;
-
-	{
-		ObjectLock olock(this);
-		try {
-			tlsStream = new TlsStream(client, hostname, role, m_SSLContext);
-		} catch (const std::exception&) {
-			Log(LogCritical, "ApiListener", "Cannot create TLS stream from client connection.");
-			return;
-		}
-	}
-
-	try {
-		tlsStream->Handshake();
-	} catch (const std::exception& ex) {
-		Log(LogCritical, "ApiListener", "Client TLS handshake failed");
-		return;
-	}
-
-	boost::shared_ptr<X509> cert = tlsStream->GetPeerCertificate();
-	String identity;
-	Endpoint::Ptr endpoint;
-	bool verify_ok = false;
-
 	String conninfo;
 
 	if (role == RoleClient)
@@ -338,6 +314,32 @@ void ApiListener::NewClientHandlerInternal(const Socket::Ptr& client, const Stri
 		conninfo = "from";
 
 	conninfo += " " + client->GetPeerAddress();
+
+	TlsStream::Ptr tlsStream;
+
+	{
+		ObjectLock olock(this);
+		try {
+			tlsStream = new TlsStream(client, hostname, role, m_SSLContext);
+		} catch (const std::exception&) {
+			Log(LogCritical, "ApiListener")
+			    << "Cannot create TLS stream from client connection (" << conninfo << ")";
+			return;
+		}
+	}
+
+	try {
+		tlsStream->Handshake();
+	} catch (const std::exception& ex) {
+		Log(LogCritical, "ApiListener")
+		    << "Client TLS handshake failed (" << conninfo << ")";
+		return;
+	}
+
+	boost::shared_ptr<X509> cert = tlsStream->GetPeerCertificate();
+	String identity;
+	Endpoint::Ptr endpoint;
+	bool verify_ok = false;
 
 	if (cert) {
 		try {
