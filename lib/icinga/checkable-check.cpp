@@ -389,10 +389,17 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 		NotifyFlapping(origin);
 	}
 
-	/* Problem notifications */
-	if (send_notification && !is_flapping) {
+	if (recovery) {
+		/* Recovery notifications must be sent any time.
+		 * Users who where notified about a problem before
+		 * will be filtered when processing the notification.
+		 */
 		if (!IsPaused())
-			OnNotificationsRequested(this, recovery ? NotificationRecovery : NotificationProblem, cr, "", "", MessageOrigin::Ptr());
+			OnNotificationsRequested(this, NotificationRecovery, cr, "", "", MessageOrigin::Ptr());
+	} else if (send_notification && !is_flapping) {
+		/* Problem notifications */
+		if (!IsPaused())
+			OnNotificationsRequested(this, NotificationProblem, cr, "", "", MessageOrigin::Ptr());
 	}
 }
 
