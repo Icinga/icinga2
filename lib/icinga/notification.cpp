@@ -397,7 +397,8 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 		}
 
 		Log(LogInformation, "Notification")
-		    << "Sending notification '" << GetName() << "' for user '" << userName << "'";
+		    << "Sending '" << NotificationTypeToStringInternal(type) << "' notification '"
+		    << GetName() << " for user '" << userName << "'";
 
 		Utility::QueueAsyncCallback(boost::bind(&Notification::ExecuteNotificationHelper, this, type, user, cr, force, author, text));
 
@@ -500,7 +501,8 @@ void Notification::ExecuteNotificationHelper(NotificationType type, const User::
 		Service::OnNotificationSentToUser(this, GetCheckable(), user, type, cr, author, text, command->GetName(), MessageOrigin::Ptr());
 
 		Log(LogInformation, "Notification")
-		    << "Completed sending notification '" << GetName()
+		    << "Completed sending '" << NotificationTypeToStringInternal(type)
+		    << "' notification '" << GetName()
 		    << "' for checkable '" << GetCheckable()->GetName()
 		    << "' and user '" << user->GetName() << "'.";
 	} catch (const std::exception& ex) {
