@@ -30,9 +30,12 @@
 #include <boost/regex.hpp>
 #include <algorithm>
 #include <set>
+
+#ifdef ICINGA2_WITH_MSI_FUNCTION
 #ifdef _WIN32
 #include <msi.h>
 #endif /* _WIN32 */
+#endif /* ICINGA2_WITH_MSI_FUNCTION */
 
 using namespace icinga;
 
@@ -58,6 +61,7 @@ REGISTER_SAFE_SCRIPTFUNCTION_NS(System, get_time, &Utility::GetTime, "");
 REGISTER_SAFE_SCRIPTFUNCTION_NS(System, basename, &Utility::BaseName, "path");
 REGISTER_SAFE_SCRIPTFUNCTION_NS(System, dirname, &Utility::DirName, "path");
 REGISTER_SAFE_SCRIPTFUNCTION_NS(System, msi_get_component_path, &ScriptUtils::MsiGetComponentPathShim, "component");
+REGISTER_SAFE_SCRIPTFUNCTION_NS(System, windows_program_path, &ScriptUtils::WindowsGetProgramPath, "path");
 REGISTER_SAFE_SCRIPTFUNCTION_NS(System, track_parents, &ScriptUtils::TrackParents, "child");
 REGISTER_SAFE_SCRIPTFUNCTION_NS(System, escape_shell_cmd, &Utility::EscapeShellCmd, "cmd");
 REGISTER_SAFE_SCRIPTFUNCTION_NS(System, escape_shell_arg, &Utility::EscapeShellArg, "arg");
@@ -303,6 +307,7 @@ void ScriptUtils::Assert(const Value& arg)
 String ScriptUtils::MsiGetComponentPathShim(const String& component)
 {
 #ifdef _WIN32
+#ifdef ICINGA2_WITH_MSI_FUNCTION
 	TCHAR productCode[39];
 	if (MsiGetProductCode(component.CStr(), productCode) != ERROR_SUCCESS)
 		return "";
@@ -311,6 +316,27 @@ String ScriptUtils::MsiGetComponentPathShim(const String& component)
 	path[0] = '\0';
 	MsiGetComponentPath(productCode, component.CStr(), path, &szPath);
 	return path;
+#endif /* ICINGA2_WITH_MSI_FUNCTION */
+	return String();
+#else /* _WIN32 */
+	return String();
+#endif /* _WIN32 */
+}
+
+String ScriptUtils::WindowsGetProgramPath(void)
+{
+#ifdef _WIN32
+	char result[ MAX_PATH ];
+	std::string path = std::string( result, GetModuleFileName( NULL, result, MAX_PATH ) );
+        boost::regex pattern ("(.+\\)*(.+)\.exe$");
+        boost::smatch programpath;
+
+	if (boost::regex_search(path, programpath, pattern)) {
+		return std::string(programpath[1]);
+	}
+	else {
+		BOOST_THROW_EXCEPTION(std::runtime_error("Failed to get the path of the icinga2 executable"));
+	}
 #else /* _WIN32 */
 	return String();
 #endif /* _WIN32 */
