@@ -772,7 +772,7 @@ Name            | Description
 ----------------|--------------
 ntp_address     | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
 ntp_port        | **Optional.** Port number (default: 123).
-ntp_quit        | **Optional.** Returns UNKNOWN instead of CRITICAL if offset cannot be found.
+ntp_quiet       | **Optional.** Returns UNKNOWN instead of CRITICAL if offset cannot be found.
 ntp_warning     | **Optional.** Offset to result in warning status (seconds).
 ntp_critical    | **Optional.** Offset to result in critical status (seconds).
 ntp_timeoffset  | **Optional.** Expected offset of the ntp server relative to local server (seconds).
