@@ -1180,7 +1180,7 @@ Endpoint::Ptr ApiListener::GetLocalEndpoint(void) const
 	return m_LocalEndpoint;
 }
 
-void ApiListener::ValidateTlsProtocolmin(const String& value, const ValidationUtils& utils) override
+void ApiListener::ValidateTlsProtocolmin(const String& value, const ValidationUtils& utils)
 {
 	ObjectImpl<ApiListener>::ValidateTlsProtocolmin(value, utils);
 
