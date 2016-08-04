@@ -282,24 +282,29 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 		double now = Utility::GetTime();
 		Dictionary::Ptr times = GetTimes();
 
-		if (type == NotificationProblem) {
-			if (times && times->Contains("begin") && now < checkable->GetLastHardStateChange() + times->Get("begin")) {
+		if (times && type == NotificationProblem) {
+			Value timesBegin = times->Get("begin");
+			Value timesEnd = times->Get("end");
+
+			if (timesBegin != Empty && timesBegin >= 0 && now < checkable->GetLastHardStateChange() + timesBegin) {
 				Log(LogNotice, "Notification")
-				    << "Not sending notifications for notification object '" << GetName() << "': before escalation range";
+				    << "Not sending notifications for notification object '" << GetName()
+				    << "': before specified begin time (" << Utility::FormatDuration(timesBegin) << ")";
 
 				/* we need to adjust the next notification time
 				 * to now + begin delaying the first notification
 				 */
-				double nextProposedNotification = now + times->Get("begin") + 1.0;
+				double nextProposedNotification = now + timesBegin + 1.0;
 				if (GetNextNotification() > nextProposedNotification)
 					SetNextNotification(nextProposedNotification);
 
 				return;
 			}
 
-			if (times && times->Contains("end") && now > checkable->GetLastHardStateChange() + times->Get("end")) {
+			if (timesEnd != Empty && timesEnd >= 0 && now > checkable->GetLastHardStateChange() + timesEnd) {
 				Log(LogNotice, "Notification")
-				    << "Not sending notifications for notification object '" << GetName() << "': after escalation range";
+				    << "Not sending notifications for notification object '" << GetName()
+				    << "': after specified end time (" << Utility::FormatDuration(timesEnd) << ")";
 				return;
 			}
 		}
