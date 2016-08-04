@@ -21,6 +21,7 @@
 #include "icinga/notification.tcpp"
 #include "icinga/notificationcommand.hpp"
 #include "icinga/service.hpp"
+#include "remote/apilistener.hpp"
 #include "base/objectlock.hpp"
 #include "base/logger.hpp"
 #include "base/utility.hpp"
@@ -144,12 +145,15 @@ void Notification::OnAllConfigLoaded(void)
 
 void Notification::Start(bool runtimeCreated)
 {
-	ObjectImpl<Notification>::Start(runtimeCreated);
-
 	Checkable::Ptr obj = GetCheckable();
 
 	if (obj)
 		obj->RegisterNotification(this);
+
+	if (ApiListener::IsHACluster() && GetNextNotification() < Utility::GetTime() + 60)
+		SetNextNotification(Utility::GetTime() + 60, true);
+
+	ObjectImpl<Notification>::Start(runtimeCreated);
 }
 
 void Notification::Stop(bool runtimeRemoved)

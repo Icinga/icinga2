@@ -1190,3 +1190,14 @@ void ApiListener::ValidateTlsProtocolmin(const String& value, const ValidationUt
 		    "Must be one of '" SSL_TXT_TLSV1 "', '" SSL_TXT_TLSV1_1 "' or '" SSL_TXT_TLSV1_2 "'"));
 	}
 }
+
+bool ApiListener::IsHACluster(void)
+{
+	Zone::Ptr zone = Zone::GetLocalZone();
+
+	if (!zone)
+		return false;
+
+	return zone->IsSingleInstance();
+}
+

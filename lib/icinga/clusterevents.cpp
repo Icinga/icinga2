@@ -240,6 +240,11 @@ Value ClusterEvents::NextCheckChangedAPIHandler(const MessageOrigin::Ptr& origin
 		return Empty;
 	}
 
+	double nextCheck = params->Get("next_check");
+
+	if (nextCheck < Application::GetStartTime() + 60)
+		return Empty;
+
 	checkable->SetNextCheck(params->Get("next_check"), false, origin);
 
 	return Empty;
@@ -288,7 +293,12 @@ Value ClusterEvents::NextNotificationChangedAPIHandler(const MessageOrigin::Ptr&
 		return Empty;
 	}
 
-	notification->SetNextNotification(params->Get("next_notification"), false, origin);
+	double nextNotification = params->Get("next_notification");
+
+	if (nextNotification < Utility::GetTime())
+		return Empty;
+
+	notification->SetNextNotification(nextNotification, false, origin);
 
 	return Empty;
 }

@@ -100,6 +100,8 @@ public:
 
 	static void UpdateObjectAuthority(void);
 
+	static bool IsHACluster(void);
+
 protected:
 	virtual void OnConfigLoaded(void) override;
 	virtual void OnAllConfigLoaded(void) override;

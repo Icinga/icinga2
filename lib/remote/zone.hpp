@@ -45,6 +45,7 @@ public:
 	bool CanAccessObject(const ConfigObject::Ptr& object);
 	bool IsChildOf(const Zone::Ptr& zone);
 	bool IsGlobal(void) const;
+	bool IsSingleInstance(void) const;
 
 	static Zone::Ptr GetLocalZone(void);
 

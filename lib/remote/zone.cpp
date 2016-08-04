@@ -112,6 +112,12 @@ bool Zone::IsGlobal(void) const
 	return GetGlobal();
 }
 
+bool Zone::IsSingleInstance(void) const
+{
+	Array::Ptr endpoints = GetEndpointsRaw();
+	return !endpoints || endpoints->GetLength() < 2;
+}
+
 Zone::Ptr Zone::GetLocalZone(void)
 {
 	Endpoint::Ptr local = Endpoint::GetLocalEndpoint();
