@@ -178,7 +178,7 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 	std::set<Checkable::Ptr> children = GetChildren();
 
 	if (!old_cr) {
-		SetStateType(StateTypeHard);
+		SetStateType(StateTypeSoft);
 	} else if (IsStateOK(cr->GetState())) {
 		SetStateType(StateTypeHard); // NOT-OK -> HARD OK
 
