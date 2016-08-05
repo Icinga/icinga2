@@ -58,6 +58,18 @@ void ConfigCompilerContext::WriteObject(const Dictionary::Ptr& object)
 	}
 }
 
+void ConfigCompilerContext::CancelObjectsFile(void)
+{
+	m_ObjectsFP->Close();
+	m_ObjectsFP.reset();
+
+#ifdef _WIN32
+	_unlink(m_ObjectsTempFile.CStr());
+#else /* _WIN32 */
+	unlink(m_ObjectsTempFile.CStr());
+#endif /* _WIN32 */
+}
+
 void ConfigCompilerContext::FinishObjectsFile(void)
 {
 	m_ObjectsFP->Close();

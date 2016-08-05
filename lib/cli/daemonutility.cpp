@@ -162,14 +162,18 @@ bool DaemonUtility::LoadConfigFiles(const std::vector<std::string>& configs,
 {
 	ActivationScope ascope;
 
-	if (!DaemonUtility::ValidateConfigFiles(configs, objectsFile))
+	if (!DaemonUtility::ValidateConfigFiles(configs, objectsFile)) {
+		ConfigCompilerContext::GetInstance()->CancelObjectsFile();
 		return false;
+	}
 
 	WorkQueue upq(25000, Application::GetConcurrency());
 	bool result = ConfigItem::CommitItems(ascope.GetContext(), upq, newItems);
 
-	if (!result)
+	if (!result) {
+		ConfigCompilerContext::GetInstance()->CancelObjectsFile();
 		return false;
+	}
 
 	ConfigCompilerContext::GetInstance()->FinishObjectsFile();
 	ScriptGlobal::WriteToFile(varsfile);

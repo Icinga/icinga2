@@ -36,6 +36,7 @@ class I2_CONFIG_API ConfigCompilerContext
 public:
 	void OpenObjectsFile(const String& filename);
 	void WriteObject(const Dictionary::Ptr& object);
+	void CancelObjectsFile(void);
 	void FinishObjectsFile(void);
 
 	static ConfigCompilerContext *GetInstance(void);
