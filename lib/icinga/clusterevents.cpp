@@ -969,7 +969,7 @@ void ClusterEvents::NotificationSentAllUsersHandler(const Notification::Ptr& not
 	params->Set("text", commentText);
 
 	params->Set("last_notification", notification->GetLastNotification());
-	params->Set("next_notifications", notification->GetNextNotification());
+	params->Set("next_notification", notification->GetNextNotification());
 	params->Set("notification_number", notification->GetNotificationNumber());
 	params->Set("last_problem_notification", notification->GetLastProblemNotification());
 
