@@ -1184,10 +1184,18 @@ void ApiListener::ValidateTlsProtocolmin(const String& value, const ValidationUt
 {
 	ObjectImpl<ApiListener>::ValidateTlsProtocolmin(value, utils);
 
-	if (value != SSL_TXT_TLSV1 && value != SSL_TXT_TLSV1_1 &&
-	    value != SSL_TXT_TLSV1_2) {
+	if (value != SSL_TXT_TLSV1
+#ifdef SSL_TXT_TLSV1_1
+	    && value != SSL_TXT_TLSV1_1 &&
+	    value != SSL_TXT_TLSV1_2
+#endif /* SSL_TXT_TLSV1_1 */
+	    ) {
 		BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of("tls_protocolmin"), "Invalid TLS version. "
-		    "Must be one of '" SSL_TXT_TLSV1 "', '" SSL_TXT_TLSV1_1 "' or '" SSL_TXT_TLSV1_2 "'"));
+		    "Must be one of '" SSL_TXT_TLSV1 "'"
+#ifdef SSL_TXT_TLSV1_1
+		    ", '" SSL_TXT_TLSV1_1 "' or '" SSL_TXT_TLSV1_2 "'"
+#endif /* SSL_TXT_TLSV1_1 */
+		    ));
 	}
 }
 

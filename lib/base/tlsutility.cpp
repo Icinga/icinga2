@@ -193,11 +193,16 @@ void SetTlsProtocolminToSSLContext(const boost::shared_ptr<SSL_CTX>& context, co
 
 	flags |= SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3;
 
+#ifdef SSL_TXT_TLSV1_1
 	if (tlsProtocolmin == SSL_TXT_TLSV1_1)
 		flags |= SSL_OP_NO_TLSv1;
-	else if (tlsProtocolmin == SSL_TXT_TLSV1_2)
+	else
+#elif defined(SSL_TXT_TLSV1_2)
+	if (tlsProtocolmin == SSL_TXT_TLSV1_2)
 		flags |= SSL_OP_NO_TLSv1 | SSL_OP_NO_TLSv1_1;
-	else if (tlsProtocolmin != SSL_TXT_TLSV1)
+	else
+#endif /* SSL_TXT_TLSV1_2 */
+	if (tlsProtocolmin != SSL_TXT_TLSV1)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid TLS protocol version specified."));
 
 	SSL_CTX_set_options(context.get(), flags);
