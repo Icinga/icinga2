@@ -17,38 +17,30 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-template CheckCommand "icinga-check-command" {
-	execute = IcingaCheck
+#ifndef EXCEPTIONCHECKTASK_H
+#define EXCEPTIONCHECKTASK_H
+
+#include "icinga/service.hpp"
+#include "base/dictionary.hpp"
+
+namespace icinga
+{
+
+/**
+ * Test class for additional check types. Implements the "exception" check type.
+ *
+ * @ingroup methods
+ */
+class ExceptionCheckTask
+{
+public:
+	static void ScriptFunc(const Checkable::Ptr& service, const CheckResult::Ptr& cr,
+	    const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros);
+
+private:
+	ExceptionCheckTask(void);
+};
+
 }
 
-template CheckCommand "cluster-check-command" {
-	execute = ClusterCheck
-}
-
-template CheckCommand "cluster-zone-check-command" {
-	execute = ClusterZoneCheck
-}
-
-template CheckCommand "plugin-check-command" {
-	execute = PluginCheck
-}
-
-template CheckCommand "clr-check-command" {
-	execute = ClrCheck
-}
-
-template NotificationCommand "plugin-notification-command" {
-	execute = PluginNotification
-}
-
-template EventCommand "plugin-event-command" {
-	execute = PluginEvent
-}
-
-template CheckCommand "random-check-command" {
-	execute = RandomCheck
-}
-
-template CheckCommand "exception-check-command" {
-	execute = ExceptionCheck
-}
+#endif /* EXCEPTIONCHECKTASK_H */

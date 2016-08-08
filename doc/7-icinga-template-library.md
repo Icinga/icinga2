@@ -79,6 +79,12 @@ and adds the check source to the check output.
 For test and demo purposes only. The `random` check command does not support
 any vars.
 
+### <a id="itl-exception"></a> exception
+
+Check command for the built-in `exception` check. This check throws an exception.
+
+For test and demo purposes only. The `exception` check command does not support
+any vars.
 
 # <a id="plugin-check-commands"></a> Plugin Check Commands
 

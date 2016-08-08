@@ -17,38 +17,25 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-template CheckCommand "icinga-check-command" {
-	execute = IcingaCheck
-}
+#ifndef _WIN32
+#	include <stdlib.h>
+#endif /* _WIN32 */
+#include "methods/exceptionchecktask.hpp"
+#include "base/utility.hpp"
+#include "base/convert.hpp"
+#include "base/function.hpp"
+#include "base/logger.hpp"
+#include "base/exception.hpp"
 
-template CheckCommand "cluster-check-command" {
-	execute = ClusterCheck
-}
+using namespace icinga;
 
-template CheckCommand "cluster-zone-check-command" {
-	execute = ClusterZoneCheck
-}
+REGISTER_SCRIPTFUNCTION(ExceptionCheck, &ExceptionCheckTask::ScriptFunc);
 
-template CheckCommand "plugin-check-command" {
-	execute = PluginCheck
-}
+void ExceptionCheckTask::ScriptFunc(const Checkable::Ptr& service, const CheckResult::Ptr& cr,
+    const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
+{
+	if (resolvedMacros && !useResolvedMacros)
+		return;
 
-template CheckCommand "clr-check-command" {
-	execute = ClrCheck
-}
-
-template NotificationCommand "plugin-notification-command" {
-	execute = PluginNotification
-}
-
-template EventCommand "plugin-event-command" {
-	execute = PluginEvent
-}
-
-template CheckCommand "random-check-command" {
-	execute = RandomCheck
-}
-
-template CheckCommand "exception-check-command" {
-	execute = ExceptionCheck
+	BOOST_THROW_EXCEPTION(ScriptError("Test") << boost::errinfo_api_function("Test"));
 }

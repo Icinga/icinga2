@@ -24,7 +24,7 @@ else()
 endif()
 
 set(methods_SOURCES
-  clusterchecktask.cpp clusterzonechecktask.cpp
+  clusterchecktask.cpp clusterzonechecktask.cpp exceptionchecktask.cpp
   icingachecktask.cpp methods-itl.cpp nullchecktask.cpp nulleventtask.cpp
   pluginchecktask.cpp plugineventtask.cpp pluginnotificationtask.cpp
   randomchecktask.cpp timeperiodtask.cpp ${WindowsSources}
