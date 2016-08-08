@@ -107,6 +107,9 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 		m_CheckRunning = false;
 	}
 
+	if (!cr)
+		return;
+
 	double now = Utility::GetTime();
 
 	if (cr->GetScheduleStart() == 0)
