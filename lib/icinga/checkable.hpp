@@ -179,6 +179,8 @@ public:
 	static void DecreasePendingChecks(void);
 	static int GetPendingChecks(void);
 
+	static Object::Ptr GetPrototype(void);
+
 protected:
 	virtual void Start(bool runtimeCreated) override;
 

@@ -29,7 +29,7 @@
 
 using namespace icinga;
 
-REGISTER_TYPE(Checkable);
+REGISTER_TYPE_WITH_PROTOTYPE(Checkable, Checkable::GetPrototype());
 
 boost::signals2::signal<void (const Checkable::Ptr&, const String&, const String&, AcknowledgementType, bool, double, const MessageOrigin::Ptr&)> Checkable::OnAcknowledgementSet;
 boost::signals2::signal<void (const Checkable::Ptr&, const MessageOrigin::Ptr&)> Checkable::OnAcknowledgementCleared;
