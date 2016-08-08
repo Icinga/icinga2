@@ -268,14 +268,12 @@ incomplete:
 			if (!cline)
 				break;
 
-			if (commandOnce.IsEmpty()) {
+			if (commandOnce.IsEmpty() && cline[0] != '\0') {
 				add_history(cline);
 
-				if (cline[0] != '\0') {
-					historyfp.open(historyPath.CStr(), std::fstream::out | std::fstream::app);
-					historyfp << cline << "\n";
-					historyfp.close();
-				}
+				historyfp.open(historyPath.CStr(), std::fstream::out | std::fstream::app);
+				historyfp << cline << "\n";
+				historyfp.close();
 			}
 
 			line = cline;
