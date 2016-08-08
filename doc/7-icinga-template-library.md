@@ -686,6 +686,27 @@ mysql_key		| **Optional.** Path to private SSL key.
 mysql_cadir		| **Optional.** Path to CA directory.
 mysql_ciphers		| **Optional.** List of valid SSL ciphers.
 
+
+### <a id="plugin-check-command-mysql-query"></a> mysql_query
+
+Check command object for the `check_mysql_query` plugin.
+
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
+
+Name                    | Description
+------------------------|---------------------------------------------------------------
+mysql_query_hostname    | **Optional.** Host name, IP Address, or unix socket (must be an absolute path).
+mysql_query_port        | **Optional.** Port number (default: 3306).
+mysql_query_database    | **Optional.** Check database with indicated name.
+mysql_query_file        | **Optional.** Read from the specified client options file.
+mysql_query_group       | **Optional.** Use a client options group.
+mysql_query_username    | **Optional.** Connect using the indicated username.
+mysql_query_password    | **Optional.** Use the indicated password to authenticate the connection.
+mysql_query_execute     | **Required.** SQL Query to run on the MySQL Server.
+mysql_query_warning     | **Optional.** Exit with WARNING status if query is outside of the range (format: start:end).
+mysql_query_critical    | **Optional.** Exit with CRITICAL status if query is outside of the range.
+
+
 ### <a id="plugin-check-command-negate"></a> negate
 
 Check command object for the `negate` plugin.
