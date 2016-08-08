@@ -177,9 +177,7 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 
 	std::set<Checkable::Ptr> children = GetChildren();
 
-	if (!old_cr) {
-		SetStateType(StateTypeSoft);
-	} else if (IsStateOK(cr->GetState())) {
+	if (IsStateOK(cr->GetState())) {
 		SetStateType(StateTypeHard); // NOT-OK -> HARD OK
 
 		if (!IsStateOK(old_state))
@@ -192,7 +190,7 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 		if (!children.empty())
 			OnReachabilityChanged(this, cr, children, origin);
 	} else {
-		if (old_attempt >= GetMaxCheckAttempts()) {
+		if (old_attempt + 1 >= GetMaxCheckAttempts()) {
 			SetStateType(StateTypeHard);
 		} else if (old_stateType == StateTypeSoft && !IsStateOK(old_state)) {
 			SetStateType(StateTypeSoft);
@@ -283,9 +281,6 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 		else if (is_volatile && GetStateType() == StateTypeHard)
 			send_notification = true;
 	}
-
-	if (!old_cr)
-		send_notification = false; /* Don't send notifications for the initial state change */
 
 	if (IsStateOK(old_state) && old_stateType == StateTypeSoft)
 		send_notification = false; /* Don't send notifications for SOFT-OK -> HARD-OK. */
