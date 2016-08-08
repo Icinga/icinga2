@@ -223,8 +223,8 @@ Value MacroProcessor::EvaluateFunction(const Function::Ptr& func, const Resolver
 	    _1, boost::cref(resolvers), cr, resolvedMacros, useResolvedMacros,
 	    recursionLevel + 1)));
 
-	ScriptFrame frame(resolvers_this);
-	return func->Invoke();
+	std::vector<Value> args;
+	return func->Invoke(resolvers_this, args);
 }
 
 Value MacroProcessor::InternalResolveMacros(const String& str, const ResolverList& resolvers,

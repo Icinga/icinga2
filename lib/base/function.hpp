@@ -45,6 +45,7 @@ public:
 	Function(const Callback& function, bool side_effect_free = false);
 
 	Value Invoke(const std::vector<Value>& arguments = std::vector<Value>());
+	Value Invoke(const Value& otherThis, const std::vector<Value>& arguments = std::vector<Value>());
 	bool IsSideEffectFree(void) const;
 
 	static Object::Ptr GetPrototype(void);

@@ -155,7 +155,6 @@ static Array::Ptr ArrayMap(const Function::Ptr& function)
 
 	ObjectLock olock(self);
 	BOOST_FOREACH(const Value& item, self) {
-		ScriptFrame uframe;
 		std::vector<Value> args;
 		args.push_back(item);
 		result->Add(function->Invoke(args));
@@ -179,7 +178,6 @@ static Value ArrayReduce(const Function::Ptr& function)
 
 	ObjectLock olock(self);
 	for (size_t i = 1; i < self->GetLength(); i++) {
-		ScriptFrame uframe;
 		std::vector<Value> args;
 		args.push_back(result);
 		args.push_back(self->Get(i));
@@ -201,7 +199,6 @@ static Array::Ptr ArrayFilter(const Function::Ptr& function)
 
 	ObjectLock olock(self);
 	BOOST_FOREACH(const Value& item, self) {
-		ScriptFrame uframe;
 		std::vector<Value> args;
 		args.push_back(item);
 		if (function->Invoke(args))
@@ -251,4 +248,3 @@ Object::Ptr Array::GetPrototype(void)
 
 	return prototype;
 }
-

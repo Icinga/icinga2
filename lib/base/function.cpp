@@ -20,6 +20,7 @@
 #include "base/function.hpp"
 #include "base/primitivetype.hpp"
 #include "base/dictionary.hpp"
+#include "base/scriptframe.hpp"
 
 using namespace icinga;
 
@@ -31,6 +32,14 @@ Function::Function(const Callback& function, bool side_effect_free)
 
 Value Function::Invoke(const std::vector<Value>& arguments)
 {
+	ScriptFrame frame;
+	return m_Callback(arguments);
+}
+
+Value Function::Invoke(const Value& otherThis, const std::vector<Value>& arguments)
+{
+	ScriptFrame frame;
+	frame.Self = otherThis;
 	return m_Callback(arguments);
 }
 

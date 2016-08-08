@@ -89,9 +89,10 @@ public:
 		ScriptFrame vframe;
 		
 		if (!self.IsEmpty() || self.IsString())
-			vframe.Self = self;
+			return func->Invoke(self, arguments);
+		else
+			return func->Invoke(arguments);
 
-		return func->Invoke(arguments);
 	}
 
 	static inline Value NewFunction(ScriptFrame& frame, const std::vector<String>& args,

@@ -619,10 +619,7 @@ bool ConfigItem::RunWithActivationContext(const Function::Ptr& function)
 	if (!function)
 		BOOST_THROW_EXCEPTION(ScriptError("'function' argument must not be null."));
 
-	{
-		ScriptFrame frame;
-		function->Invoke();
-	}
+	function->Invoke();
 
 	WorkQueue upq(25000, Application::GetConcurrency());
 	upq.SetName("ConfigItem::RunWithActivationContext");

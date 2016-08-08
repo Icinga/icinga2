@@ -30,8 +30,6 @@ static void InvokeAttributeHandlerHelper(const Function::Ptr& callback,
 {
 	std::vector<Value> arguments;
 	arguments.push_back(object);
-	
-	ScriptFrame frame;
 	callback->Invoke(arguments);
 }
 
