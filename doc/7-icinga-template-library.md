@@ -1794,6 +1794,33 @@ uncommenting the corresponding line in [icinga2.conf](4-configuring-icinga-2.md#
 
 All database plugins go in this category.
 
+#### <a id="plugins-contrib-command-db2_health"></a> db2_health
+
+The plugin `db2_health` utilises Perl DBD::DB2.
+For release tarballs and detailed documentation especially on the different modes and required permissions see [https://labs.consol.de](https://labs.consol.de/nagios/check_db2_health/). For development check [https://github.com](https://github.com/lausser/check_db2_health).
+
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
+
+Name                             | Description
+---------------------------------|------------------------------------------------------------------------------------------------------------------------------
+db2_health_database           | **Required.** The name of the database. (If it was catalogued locally, this parameter is the only you need. Otherwise you must specify database, hostname and port)
+db2_health_username           | **Optional.** The username for the database connection.
+db2_health_password           | **Optional.** The password for the database connection.
+db2_health_port               | **Optional.** The port where DB2 is listening.
+db2_health_warning            | **Optional.** The warning threshold depending on the mode.
+db2_health_critical           | **Optional.** The critical threshold depending on the mode.
+db2_health_mode               | **Required.** The mode uses predefined keywords for the different checks. For example "connection-time", "database-usage" or "sql".
+db2_health_method             | **Optional.** This tells the plugin how to connect to the database. The only method implemented yet is “dbi” which is the default. (It means, the plugin uses the perl module DBD::DB2).
+db2_health_name               | **Optional.** The tablespace, datafile, wait event, latch, enqueue depending on the mode or SQL statement to be executed with "db2_health_mode" sql.
+db2_health_name2              | **Optional.** If "db2_health_name" is a sql statement, "db2_health_name2" can be used to appear in the output and the performance data.
+db2_health_regexp             | **Optional.** If set to true, "db2_health_name" will be interpreted as a regular expression. Defaults to false.
+db2_health_units              | **Optional.** This is used for a better output of mode=sql and for specifying thresholds for mode=tablespace-free. Possible values are "%", "KB", "MB" and "GB".
+db2_health_maxinactivity      | **Optional.** Used for the maximum amount of time a certain event has not happened.
+db2_health_mitigation         | **Optional.** Classifies the severity of an offline tablespace.
+db2_health_lookback           | **Optional.** How many days in the past db2_health check should look back to calculate exitcode.
+db2_health_env_db2_home       | **Required.** Specifies the location of the db2 client libraries as environment variable `DB2_HOME`. Defaults to "/opt/ibm/db2/V10.5".
+db2_health_env_db2_version    | **Optional.** Specifies the DB2 version as environment variable `DB2_VERSION`.
+
 #### <a id="plugins-contrib-command-mssql_health"></a> mssql_health
 
 The plugin `mssql_health` utilises Perl DBD::Sybase based on FreeTDS to connect to MSSQL databases for monitoring.
