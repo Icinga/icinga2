@@ -19,6 +19,7 @@
 
 #include "remote/infohandler.hpp"
 #include "remote/httputility.hpp"
+#include "base/application.hpp"
 
 using namespace icinga;
 
@@ -70,6 +71,7 @@ bool InfoHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, 
 
 		result1->Set("user", user->GetName());
 		result1->Set("permissions", Array::FromVector(permInfo));
+		result1->Set("version", Application::GetAppVersion());
 		result1->Set("info", "More information about API requests is available in the documentation at http://docs.icinga.org/icinga2/latest.");
 
 		Array::Ptr results = new Array();
@@ -82,7 +84,7 @@ bool InfoHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, 
 	} else {
 		response.AddHeader("Content-Type", "text/html");
 
-		String body = "<html><head><title>Icinga 2</title></head><h1>Hello from Icinga 2!</h1>";
+		String body = "<html><head><title>Icinga 2</title></head><h1>Hello from Icinga 2 (Version: " + Application::GetAppVersion() + ")!</h1>";
 		body += "<p>You are authenticated as <b>" + user->GetName() + "</b>. ";
 
 		if (!permInfo.empty()) {
