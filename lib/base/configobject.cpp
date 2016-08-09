@@ -487,6 +487,7 @@ void ConfigObject::DumpObjects(const String& filename, int attributeTypes)
 
 	std::fstream fp;
 	String tempFilename = Utility::CreateTempFile(filename + ".XXXXXX", 0600, fp);
+	fp.exceptions(std::ofstream::failbit | std::ofstream::badbit);
 
 	if (!fp)
 		BOOST_THROW_EXCEPTION(std::runtime_error("Could not open '" + tempFilename + "' file"));
