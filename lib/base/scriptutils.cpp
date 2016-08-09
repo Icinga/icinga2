@@ -65,7 +65,7 @@ REGISTER_SAFE_SCRIPTFUNCTION(escape_shell_arg, &Utility::EscapeShellArg);
 #ifdef _WIN32
 REGISTER_SAFE_SCRIPTFUNCTION(escape_create_process_arg, &Utility::EscapeCreateProcessArg);
 #endif /* _WIN32 */
-REGISTER_SCRIPTFUNCTION(__ptr, &ScriptUtils::Ptr);
+REGISTER_SCRIPTFUNCTION(ptr, &ScriptUtils::Ptr);
 
 String ScriptUtils::CastString(const Value& value)
 {

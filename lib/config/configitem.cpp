@@ -46,7 +46,9 @@ ConfigItem::TypeMap ConfigItem::m_Items;
 ConfigItem::ItemList ConfigItem::m_UnnamedItems;
 ConfigItem::IgnoredItemList ConfigItem::m_IgnoredItems;
 
+#ifdef I2_DEBUG
 REGISTER_SCRIPTFUNCTION(__run_with_activation_context, &ConfigItem::RunWithActivationContext);
+#endif /* I2_DEBUG */
 
 /**
  * Constructor for the ConfigItem class.
@@ -612,6 +614,7 @@ bool ConfigItem::ActivateItems(WorkQueue& upq, const std::vector<ConfigItem::Ptr
 	return true;
 }
 
+#ifdef I2_DEBUG
 bool ConfigItem::RunWithActivationContext(const Function::Ptr& function)
 {
 	ActivationScope scope;
@@ -634,6 +637,7 @@ bool ConfigItem::RunWithActivationContext(const Function::Ptr& function)
 
 	return true;
 }
+#endif /* I2_DEBUG */
 
 std::vector<ConfigItem::Ptr> ConfigItem::GetItems(const String& type)
 {
