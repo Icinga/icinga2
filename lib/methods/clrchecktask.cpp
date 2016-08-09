@@ -39,7 +39,7 @@
 
 using namespace icinga;
 
-REGISTER_SCRIPTFUNCTION(ClrCheck,  &ClrCheckTask::ScriptFunc);
+REGISTER_SCRIPTFUNCTION_NS(Internal, ClrCheck,  &ClrCheckTask::ScriptFunc);
 
 static boost::once_flag l_OnceFlag = BOOST_ONCE_INIT;
 

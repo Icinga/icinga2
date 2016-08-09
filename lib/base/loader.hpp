@@ -68,7 +68,6 @@ private:
 	Loader(void);
 
 	static boost::thread_specific_ptr<std::priority_queue<DeferredInitializer> >& GetDeferredInitializers(void);
-
 };
 
 }

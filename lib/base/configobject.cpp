@@ -548,7 +548,6 @@ void ConfigObject::RestoreObject(const String& message, int attributeTypes)
 	if (!object)
 		return;
 
-	ASSERT(!object->IsActive());
 #ifdef I2_DEBUG
 	Log(LogDebug, "ConfigObject")
 	    << "Restoring object '" << name << "' of type '" << type << "'.";

@@ -68,12 +68,10 @@ public:
 	static ConfigItem::Ptr GetByTypeAndName(const String& type,
 	    const String& name);
 
-	static bool CommitItems(const ActivationContext::Ptr& context, WorkQueue& upq, std::vector<ConfigItem::Ptr>& newItems);
-	static bool ActivateItems(WorkQueue& upq, const std::vector<ConfigItem::Ptr>& newItems, bool runtimeCreated = false);
+	static bool CommitItems(const ActivationContext::Ptr& context, WorkQueue& upq, std::vector<ConfigItem::Ptr>& newItems, bool silent = false);
+	static bool ActivateItems(WorkQueue& upq, const std::vector<ConfigItem::Ptr>& newItems, bool runtimeCreated = false, bool silent = false);
 
-#ifdef I2_DEBUG
 	static bool RunWithActivationContext(const Function::Ptr& function);
-#endif /* I2_DEBUG */
 
 	static std::vector<ConfigItem::Ptr> GetItems(const String& type);
 

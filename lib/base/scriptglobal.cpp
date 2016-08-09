@@ -27,6 +27,7 @@
 #include "base/objectlock.hpp"
 #include "base/exception.hpp"
 #include <boost/foreach.hpp>
+#include <boost/algorithm/string/split.hpp>
 #include <fstream>
 
 using namespace icinga;
@@ -47,7 +48,33 @@ Value ScriptGlobal::Get(const String& name, const Value *defaultValue)
 
 void ScriptGlobal::Set(const String& name, const Value& value)
 {
-	m_Globals->Set(name, value);
+	std::vector<String> tokens;
+	boost::algorithm::split(tokens, name, boost::is_any_of("."));
+
+	if (tokens.empty())
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Name must not be empty"));
+
+	{
+		ObjectLock olock(m_Globals);
+
+		Dictionary::Ptr parent = m_Globals;
+
+		for (std::vector<String>::size_type i = 0; i < tokens.size(); i++) {
+			const String& token = tokens[i];
+
+			if (i + 1 != tokens.size()) {
+				if (!parent->Contains(token)) {
+					Dictionary::Ptr dict = new Dictionary();
+					parent->Set(token, dict);
+					parent = dict;
+				} else {
+					parent = parent->Get(token);
+				}
+			}
+		}
+
+		parent->Set(tokens[tokens.size() - 1], value);
+	}
 }
 
 bool ScriptGlobal::Exists(const String& name)

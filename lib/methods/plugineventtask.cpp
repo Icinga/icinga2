@@ -32,7 +32,7 @@
 
 using namespace icinga;
 
-REGISTER_SCRIPTFUNCTION(PluginEvent, &PluginEventTask::ScriptFunc);
+REGISTER_SCRIPTFUNCTION_NS(Internal, PluginEvent, &PluginEventTask::ScriptFunc);
 
 void PluginEventTask::ScriptFunc(const Checkable::Ptr& checkable,
     const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)

@@ -34,7 +34,7 @@
 
 using namespace icinga;
 
-REGISTER_SCRIPTFUNCTION(ClusterCheck, &ClusterCheckTask::ScriptFunc);
+REGISTER_SCRIPTFUNCTION_NS(Internal, ClusterCheck, &ClusterCheckTask::ScriptFunc);
 
 void ClusterCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr,
     const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)

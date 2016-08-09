@@ -23,7 +23,7 @@
 
 using namespace icinga;
 
-REGISTER_SCRIPTFUNCTION(NullEvent, &NullEventTask::ScriptFunc);
+REGISTER_SCRIPTFUNCTION_NS(Internal, NullEvent, &NullEventTask::ScriptFunc);
 
 void NullEventTask::ScriptFunc(const Checkable::Ptr&, const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
 { }

@@ -37,13 +37,15 @@ mkclass_target(timeperiod.ti timeperiod.tcpp timeperiod.thpp)
 mkclass_target(usergroup.ti usergroup.tcpp usergroup.thpp)
 mkclass_target(user.ti user.tcpp user.thpp)
 
+mkembedconfig_target(icinga-itl.conf icinga-itl.cpp)
+
 set(icinga_SOURCES
   apiactions.cpp apievents.cpp checkable.cpp checkable.thpp checkable-dependency.cpp checkable-downtime.cpp checkable-event.cpp
   checkable-flapping.cpp checkable-script.cpp checkcommand.cpp checkcommand.thpp checkresult.cpp checkresult.thpp
   cib.cpp clusterevents.cpp command.cpp command.thpp comment.cpp comment.thpp compatutility.cpp dependency.cpp dependency.thpp
   dependency-apply.cpp downtime.cpp downtime.thpp eventcommand.cpp eventcommand.thpp
   externalcommandprocessor.cpp host.cpp host.thpp hostgroup.cpp hostgroup.thpp icingaapplication.cpp icingaapplication.thpp
-  customvarobject.cpp customvarobject.thpp
+  icinga-itl.cpp customvarobject.cpp customvarobject.thpp
   legacytimeperiod.cpp macroprocessor.cpp notificationcommand.cpp notificationcommand.thpp notification.cpp notification.thpp
   notification-apply.cpp objectutils.cpp perfdatavalue.cpp perfdatavalue.thpp pluginutility.cpp scheduleddowntime.cpp scheduleddowntime.thpp
   scheduleddowntime-apply.cpp service-apply.cpp checkable-check.cpp checkable-comment.cpp

@@ -46,9 +46,7 @@ ConfigItem::TypeMap ConfigItem::m_Items;
 ConfigItem::ItemList ConfigItem::m_UnnamedItems;
 ConfigItem::IgnoredItemList ConfigItem::m_IgnoredItems;
 
-#ifdef I2_DEBUG
-REGISTER_SCRIPTFUNCTION(__run_with_activation_context, &ConfigItem::RunWithActivationContext);
-#endif /* I2_DEBUG */
+REGISTER_SCRIPTFUNCTION_NS(Internal, run_with_activation_context, &ConfigItem::RunWithActivationContext);
 
 /**
  * Constructor for the ConfigItem class.
@@ -534,9 +532,10 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 	return true;
 }
 
-bool ConfigItem::CommitItems(const ActivationContext::Ptr& context, WorkQueue& upq, std::vector<ConfigItem::Ptr>& newItems)
+bool ConfigItem::CommitItems(const ActivationContext::Ptr& context, WorkQueue& upq, std::vector<ConfigItem::Ptr>& newItems, bool silent)
 {
-	Log(LogInformation, "ConfigItem", "Committing config item(s).");
+	if (!silent)
+		Log(LogInformation, "ConfigItem", "Committing config item(s).");
 
 	if (!CommitNewItems(context, upq, newItems)) {
 		upq.ReportExceptions("config");
@@ -550,30 +549,33 @@ bool ConfigItem::CommitItems(const ActivationContext::Ptr& context, WorkQueue& u
 
 	ApplyRule::CheckMatches();
 
-	/* log stats for external parsers */
-	typedef std::map<Type::Ptr, int> ItemCountMap;
-	ItemCountMap itemCounts;
-	BOOST_FOREACH(const ConfigItem::Ptr& item, newItems) {
-		if (!item->m_Object)
-			continue;
+	if (!silent) {
+		/* log stats for external parsers */
+		typedef std::map<Type::Ptr, int> ItemCountMap;
+		ItemCountMap itemCounts;
+		BOOST_FOREACH(const ConfigItem::Ptr& item, newItems) {
+			if (!item->m_Object)
+				continue;
 
-		itemCounts[item->m_Object->GetReflectionType()]++;
-	}
+			itemCounts[item->m_Object->GetReflectionType()]++;
+		}
 
-	BOOST_FOREACH(const ItemCountMap::value_type& kv, itemCounts) {
-		Log(LogInformation, "ConfigItem")
-		    << "Instantiated " << kv.second << " " << (kv.second != 1 ? kv.first->GetPluralName() : kv.first->GetName()) << ".";
+		BOOST_FOREACH(const ItemCountMap::value_type& kv, itemCounts) {
+			Log(LogInformation, "ConfigItem")
+			    << "Instantiated " << kv.second << " " << (kv.second != 1 ? kv.first->GetPluralName() : kv.first->GetName()) << ".";
+		}
 	}
 
 	return true;
 }
 
-bool ConfigItem::ActivateItems(WorkQueue& upq, const std::vector<ConfigItem::Ptr>& newItems, bool runtimeCreated)
+bool ConfigItem::ActivateItems(WorkQueue& upq, const std::vector<ConfigItem::Ptr>& newItems, bool runtimeCreated, bool silent)
 {
 	static boost::mutex mtx;
 	boost::mutex::scoped_lock lock(mtx);
 
-	Log(LogInformation, "ConfigItem", "Triggering Start signal for config items");
+	if (!silent)
+		Log(LogInformation, "ConfigItem", "Triggering Start signal for config items");
 
 	BOOST_FOREACH(const ConfigItem::Ptr& item, newItems) {
 		if (!item->m_Object)
@@ -609,12 +611,12 @@ bool ConfigItem::ActivateItems(WorkQueue& upq, const std::vector<ConfigItem::Ptr
 	}
 #endif /* I2_DEBUG */
 
-	Log(LogInformation, "ConfigItem", "Activated all objects.");
+	if (!silent)
+		Log(LogInformation, "ConfigItem", "Activated all objects.");
 
 	return true;
 }
 
-#ifdef I2_DEBUG
 bool ConfigItem::RunWithActivationContext(const Function::Ptr& function)
 {
 	ActivationScope scope;
@@ -629,15 +631,14 @@ bool ConfigItem::RunWithActivationContext(const Function::Ptr& function)
 
 	std::vector<ConfigItem::Ptr> newItems;
 
-	if (!CommitItems(scope.GetContext(), upq, newItems))
+	if (!CommitItems(scope.GetContext(), upq, newItems, true))
 		return false;
 
-	if (!ActivateItems(upq, newItems))
+	if (!ActivateItems(upq, newItems, false, true))
 		return false;
 
 	return true;
 }
-#endif /* I2_DEBUG */
 
 std::vector<ConfigItem::Ptr> ConfigItem::GetItems(const String& type)
 {

@@ -63,7 +63,16 @@ private:
 			Function::Ptr sf = new icinga::Function(WrapFunction(callback)); \
 			ScriptGlobal::Set(#name, sf); \
 		} \
-		INITIALIZE_ONCE(RegisterFunction); \
+		INITIALIZE_ONCE_WITH_PRIORITY(RegisterFunction, 10); \
+	} } }
+
+#define REGISTER_SCRIPTFUNCTION_NS(ns, name, callback) \
+	namespace { namespace UNIQUE_NAME(sf) { namespace sf ## ns ## name { \
+		void RegisterFunction(void) { \
+			Function::Ptr sf = new icinga::Function(WrapFunction(callback)); \
+			ScriptGlobal::Set(#ns "." #name, sf); \
+		} \
+		INITIALIZE_ONCE_WITH_PRIORITY(RegisterFunction, 10); \
 	} } }
 
 #define REGISTER_SAFE_SCRIPTFUNCTION(name, callback) \
@@ -72,9 +81,17 @@ private:
 			Function::Ptr sf = new icinga::Function(WrapFunction(callback), true); \
 			ScriptGlobal::Set(#name, sf); \
 		} \
-		INITIALIZE_ONCE(RegisterFunction); \
+		INITIALIZE_ONCE_WITH_PRIORITY(RegisterFunction, 10); \
 	} } }
 
+#define REGISTER_SAFE_SCRIPTFUNCTION_NS(ns, name, callback) \
+	namespace { namespace UNIQUE_NAME(sf) { namespace sf ## ns ## name { \
+		void RegisterFunction(void) { \
+			Function::Ptr sf = new icinga::Function(WrapFunction(callback), true); \
+			ScriptGlobal::Set(#ns "." #name, sf); \
+		} \
+		INITIALIZE_ONCE_WITH_PRIORITY(RegisterFunction, 10); \
+	} } }
 }
 
 #endif /* SCRIPTFUNCTION_H */
