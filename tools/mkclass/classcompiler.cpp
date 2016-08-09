@@ -109,6 +109,20 @@ void ClassCompiler::HandleCode(const std::string& code, const ClassDebugInfo&)
 void ClassCompiler::HandleLibrary(const std::string& library, const ClassDebugInfo& locp)
 {
 	m_Library = library;
+
+	std::string libName = m_Library;
+	std::locale locale;
+
+	for (std::string::size_type i = 0; i < libName.size(); i++)
+		libName[i] = std::toupper(libName[i], locale);
+
+	m_Header << "#ifndef I2_" << libName << "_API" << std::endl
+		 << "#	ifdef I2_" << libName << "_BUILD" << std::endl
+		 << "#		define I2_" << libName << "_API I2_EXPORT" << std::endl
+		 << "#	else /* I2_" << libName << "_BUILD */" << std::endl
+		 << "#		define I2_" << libName << "_API I2_IMPORT" << std::endl
+		 << "#	endif /* I2_" << libName << "_BUILD */" << std::endl
+		 << "#endif /* I2_" << libName << "_API */" << std::endl << std::endl;
 }
 
 unsigned long ClassCompiler::SDBM(const std::string& str, size_t len = std::string::npos)
@@ -204,14 +218,6 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		for (std::string::size_type i = 0; i < libName.size(); i++)
 			libName[i] = std::toupper(libName[i], locale);
 
-		m_Header << "#ifndef I2_" << libName << "_API" << std::endl
-			 << "#	ifdef I2_" << libName << "_BUILD" << std::endl
-			 << "#		define I2_" << libName << "_API I2_EXPORT" << std::endl
-			 << "#	else /* I2_" << libName << "_BUILD */" << std::endl
-			 << "#		define I2_" << libName << "_API I2_IMPORT" << std::endl
-			 << "#	endif /* I2_" << libName << "_BUILD */" << std::endl
-			 << "#endif /* I2_" << libName << "_API */" << std::endl << std::endl;
-
 		apiMacro = "I2_" + libName + "_API ";
 	}
 
@@ -233,7 +239,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 
 	/* TypeImpl */
 	m_Header << "template<>" << std::endl
-		 << "class TypeImpl<" << klass.Name << ">"
+		 << "class " << apiMacro << "TypeImpl<" << klass.Name << ">"
 		 << " : public Type";
 	
 	if (!klass.TypeBase.empty())

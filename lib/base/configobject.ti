@@ -31,8 +31,11 @@ enum HAMode
 	HARunEverywhere
 };
 
-class NameComposer {
+class I2_BASE_API NameComposer
+{
 public:
+	virtual ~NameComposer(void);
+
 	virtual String MakeName(const String& shortName, const Object::Ptr& context) const = 0;
 	virtual Dictionary::Ptr ParseName(const String& name) const = 0;
 };

@@ -22,10 +22,11 @@
 
 #ifndef _WIN32
 #	define I2_EXPORT __attribute__ ((visibility("default")))
-#	define I2_IMPORT
+#	define I2_IMPORT __attribute__ ((visibility("default")))
 #else /* _WIN32 */
 #	define I2_EXPORT __declspec(dllexport)
 #	define I2_IMPORT __declspec(dllimport)
+#	define I2_HIDDEN
 #endif /* _WIN32 */
 
 #define TOKENPASTE(x, y) x ## y

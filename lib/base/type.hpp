@@ -132,7 +132,7 @@ protected:
 };
 
 template<typename T>
-class TypeImpl
+class I2_BASE_API TypeImpl
 {
 };
 

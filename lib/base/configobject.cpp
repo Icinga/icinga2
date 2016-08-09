@@ -690,3 +690,6 @@ ConfigObject::Ptr ConfigObject::GetZone(void) const
 {
 	return m_Zone;
 }
+
+NameComposer::~NameComposer(void)
+{ }
