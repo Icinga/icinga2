@@ -168,6 +168,7 @@ bool DaemonUtility::LoadConfigFiles(const std::vector<std::string>& configs,
 	}
 
 	WorkQueue upq(25000, Application::GetConcurrency());
+	upq.SetName("DaemonUtility::LoadConfigFiles");
 	bool result = ConfigItem::CommitItems(ascope.GetContext(), upq, newItems);
 
 	if (!result) {

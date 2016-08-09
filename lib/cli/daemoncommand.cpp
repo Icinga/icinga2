@@ -282,6 +282,7 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 
 	{
 		WorkQueue upq(25000, Application::GetConcurrency());
+		upq.SetName("DaemonCommand::Run");
 
 		// activate config only after daemonization: it starts threads and that is not compatible with fork()
 		if (!ConfigItem::ActivateItems(upq, newItems)) {
