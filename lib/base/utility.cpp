@@ -421,7 +421,11 @@ pid_t Utility::GetPid(void)
 void Utility::Sleep(double timeout)
 {
 #ifndef _WIN32
-	usleep(timeout * 1000 * 1000);
+	unsigned long micros = timeout * 1000000u;
+	if (timeout >= 1.0)
+		sleep((unsigned)timeout);
+
+	usleep(micros % 1000000u);
 #else /* _WIN32 */
 	::Sleep(timeout * 1000);
 #endif /* _WIN32 */
