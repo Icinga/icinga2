@@ -39,7 +39,7 @@ static Value i2_call_tcl(const String& command, const String& mtype, const std::
 	delete [] objv;
 
 	if (code == TCL_ERROR)
-		BOOST_THROW_EXCEPTION(std::runtime_error("An error occured in the TCL script"));
+		BOOST_THROW_EXCEPTION(std::runtime_error("An error occurred in the TCL script"));
 
 	Value vresult;
 

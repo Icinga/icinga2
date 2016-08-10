@@ -32,8 +32,7 @@ i2_register_command chanhost getchanhost string
 i2_register_command chanbans chanbans list
 i2_register_command getnick i2_getnick string
 i2_register_command getchan i2_getchan string
-i2_register_command __commit i2_null null
-i2_register_command commit_objects i2_null null
+i2_register_command "Internal.run_with_activation_context" i2_null null
 i2_register_command exit i2_null null
 
 proc i2_null {} {
