@@ -146,17 +146,17 @@ Object::Ptr String::GetPrototype(void)
 
 	if (!prototype) {
 		prototype = new Dictionary();
-		prototype->Set("len", new Function(WrapFunction(StringLen), true));
-		prototype->Set("to_string", new Function(WrapFunction(StringToString), true));
-		prototype->Set("substr", new Function(WrapFunction(StringSubstr), true));
-		prototype->Set("upper", new Function(WrapFunction(StringUpper), true));
-		prototype->Set("lower", new Function(WrapFunction(StringLower), true));
-		prototype->Set("split", new Function(WrapFunction(StringSplit), true));
-		prototype->Set("find", new Function(WrapFunction(StringFind), true));
-		prototype->Set("contains", new Function(WrapFunction(StringContains), true));
-		prototype->Set("replace", new Function(WrapFunction(StringReplace), true));
-		prototype->Set("reverse", new Function(WrapFunction(StringReverse), true));
-		prototype->Set("trim", new Function(WrapFunction(StringTrim), true));
+		prototype->Set("len", new Function("String#len", WrapFunction(StringLen), true));
+		prototype->Set("to_string", new Function("String#to_string", WrapFunction(StringToString), true));
+		prototype->Set("substr", new Function("String#substr", WrapFunction(StringSubstr), true));
+		prototype->Set("upper", new Function("String#upper", WrapFunction(StringUpper), true));
+		prototype->Set("lower", new Function("String#lower", WrapFunction(StringLower), true));
+		prototype->Set("split", new Function("String#split", WrapFunction(StringSplit), true));
+		prototype->Set("find", new Function("String#find", WrapFunction(StringFind), true));
+		prototype->Set("contains", new Function("String#contains", WrapFunction(StringContains), true));
+		prototype->Set("replace", new Function("String#replace", WrapFunction(StringReplace), true));
+		prototype->Set("reverse", new Function("String#reverse", WrapFunction(StringReverse), true));
+		prototype->Set("trim", new Function("String#trim", WrapFunction(StringTrim), true));
 	}
 
 	return prototype;

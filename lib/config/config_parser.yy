@@ -629,7 +629,7 @@ lterm: T_LIBRARY rterm
 	{
 		EndFlowControlBlock(context);
 
-		FunctionExpression *fexpr = new FunctionExpression(*$4, $6, $8, @$);
+		FunctionExpression *fexpr = new FunctionExpression(*$2, *$4, $6, $8, @$);
 		delete $4;
 
 		$$ = new SetExpression(MakeIndexer(ScopeThis, *$2), OpSetLiteral, fexpr, @$);
@@ -920,7 +920,7 @@ rterm_no_side_effect_no_dict: T_STRING
 		args.push_back(*$1);
 		delete $1;
 
-		$$ = new FunctionExpression(args, new std::map<String, Expression *>(), $4, @$);
+		$$ = new FunctionExpression("<anonymous>", args, new std::map<String, Expression *>(), $4, @$);
 	}
 	| identifier T_FOLLOWS rterm %dprec 1
 	{
@@ -930,7 +930,7 @@ rterm_no_side_effect_no_dict: T_STRING
 		args.push_back(*$1);
 		delete $1;
 
-		$$ = new FunctionExpression(args, new std::map<String, Expression *>(), $3, @$);
+		$$ = new FunctionExpression("<anonymous>", args, new std::map<String, Expression *>(), $3, @$);
 	}
 	| '(' identifier_items ')' T_FOLLOWS
 	{
@@ -940,14 +940,14 @@ rterm_no_side_effect_no_dict: T_STRING
 	{
 		EndFlowControlBlock(context);
 
-		$$ = new FunctionExpression(*$2, new std::map<String, Expression *>(), $6, @$);
+		$$ = new FunctionExpression("<anonymous>", *$2, new std::map<String, Expression *>(), $6, @$);
 		delete $2;
 	}
 	| '(' identifier_items ')' T_FOLLOWS rterm %dprec 1
 	{
 		ASSERT(!dynamic_cast<DictExpression *>($5));
 
-		$$ = new FunctionExpression(*$2, new std::map<String, Expression *>(), $5, @$);
+		$$ = new FunctionExpression("<anonymous>", *$2, new std::map<String, Expression *>(), $5, @$);
 		delete $2;
 	}
 	| rterm_array
@@ -988,7 +988,7 @@ rterm_no_side_effect_no_dict: T_STRING
 	{
 		EndFlowControlBlock(context);
 
-		$$ = new FunctionExpression(*$3, $5, $7, @$);
+		$$ = new FunctionExpression("<anonymous>", *$3, $5, $7, @$);
 		delete $3;
 	}
 	| T_NULLARY_LAMBDA_BEGIN
@@ -1012,7 +1012,7 @@ rterm_no_side_effect_no_dict: T_STRING
 		DictExpression *aexpr = new DictExpression(dlist, @$);
 		aexpr->MakeInline();
 
-		$$ = new FunctionExpression(std::vector<String>(), NULL, aexpr, @$);
+		$$ = new FunctionExpression("<anonymous>", std::vector<String>(), NULL, aexpr, @$);
 	}
 	;
 

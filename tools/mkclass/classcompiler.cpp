@@ -522,6 +522,12 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		} else
 			m_Impl << "\t" << "Value avalue = value;" << std::endl;
 
+		m_Impl << "\t" << "if (avalue.IsObjectType<Function>()) {" << std::endl
+		       << "\t\t" << "Function::Ptr func = avalue;" << std::endl
+		       << "\t\t" << "if (func->IsDeprecated())" << std::endl
+		       << "\t\t\t" << "Log(LogWarning, \"" << klass.Name << "\") << \"Field '" << field.Name << "' for object '\" << dynamic_cast<ConfigObject *>(this)->GetName() << \"' of type '\" << dynamic_cast<ConfigObject *>(this)->GetType()->GetName() << \"' is set to a deprecated function: \" << func->GetName();" << std::endl
+		       << "\t" << "}" << std::endl << std::endl;
+
 		std::string ftype = FieldTypeToIcingaName(field, true);
 
 		if (field.Type.IsName) {
@@ -1379,6 +1385,9 @@ void ClassCompiler::CompileStream(const std::string& path, std::istream& input,
 	      << "#include \"base/utility.hpp\"" << std::endl
 	      << "#include \"base/convert.hpp\"" << std::endl
 	      << "#include \"base/dependencygraph.hpp\"" << std::endl
+	      << "#include \"base/logger.hpp\"" << std::endl
+	      << "#include \"base/function.hpp\"" << std::endl
+	      << "#include \"base/configtype.hpp\"" << std::endl
 	      << "#include <boost/foreach.hpp>" << std::endl
 	      << "#include <boost/assign/list_of.hpp>" << std::endl
 	      << "#ifdef _MSC_VER" << std::endl

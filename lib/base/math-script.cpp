@@ -174,27 +174,27 @@ static void InitializeMathObj(void)
 	mathObj->Set("SQRT2", 1.41421356237309504880);
 
 	/* Methods */
-	mathObj->Set("abs", new Function(WrapFunction(MathAbs), true));
-	mathObj->Set("acos", new Function(WrapFunction(MathAcos), true));
-	mathObj->Set("asin", new Function(WrapFunction(MathAsin), true));
-	mathObj->Set("atan", new Function(WrapFunction(MathAtan), true));
-	mathObj->Set("atan2", new Function(WrapFunction(MathAtan2), true));
-	mathObj->Set("ceil", new Function(WrapFunction(MathCeil), true));
-	mathObj->Set("cos", new Function(WrapFunction(MathCos), true));
-	mathObj->Set("exp", new Function(WrapFunction(MathExp), true));
-	mathObj->Set("floor", new Function(WrapFunction(MathFloor), true));
-	mathObj->Set("log", new Function(WrapFunction(MathLog), true));
-	mathObj->Set("max", new Function(WrapFunction(MathMax), true));
-	mathObj->Set("min", new Function(WrapFunction(MathMin), true));
-	mathObj->Set("pow", new Function(WrapFunction(MathPow), true));
-	mathObj->Set("random", new Function(WrapFunction(MathRandom), true));
-	mathObj->Set("round", new Function(WrapFunction(MathRound), true));
-	mathObj->Set("sin", new Function(WrapFunction(MathSin), true));
-	mathObj->Set("sqrt", new Function(WrapFunction(MathSqrt), true));
-	mathObj->Set("tan", new Function(WrapFunction(MathTan), true));
-	mathObj->Set("isnan", new Function(WrapFunction(MathIsnan), true));
-	mathObj->Set("isinf", new Function(WrapFunction(MathIsinf), true));
-	mathObj->Set("sign", new Function(WrapFunction(MathSign), true));
+	mathObj->Set("abs", new Function("Math#abs", WrapFunction(MathAbs), true));
+	mathObj->Set("acos", new Function("Math#acos", WrapFunction(MathAcos), true));
+	mathObj->Set("asin", new Function("Math#asin", WrapFunction(MathAsin), true));
+	mathObj->Set("atan", new Function("Math#atan", WrapFunction(MathAtan), true));
+	mathObj->Set("atan2", new Function("Math#atan2", WrapFunction(MathAtan2), true));
+	mathObj->Set("ceil", new Function("Math#ceil", WrapFunction(MathCeil), true));
+	mathObj->Set("cos", new Function("Math#cos", WrapFunction(MathCos), true));
+	mathObj->Set("exp", new Function("Math#exp", WrapFunction(MathExp), true));
+	mathObj->Set("floor", new Function("Math#floor", WrapFunction(MathFloor), true));
+	mathObj->Set("log", new Function("Math#log", WrapFunction(MathLog), true));
+	mathObj->Set("max", new Function("Math#max", WrapFunction(MathMax), true));
+	mathObj->Set("min", new Function("Math#min", WrapFunction(MathMin), true));
+	mathObj->Set("pow", new Function("Math#pow", WrapFunction(MathPow), true));
+	mathObj->Set("random", new Function("Math#random", WrapFunction(MathRandom), true));
+	mathObj->Set("round", new Function("Math#round", WrapFunction(MathRound), true));
+	mathObj->Set("sin", new Function("Math#sin", WrapFunction(MathSin), true));
+	mathObj->Set("sqrt", new Function("Math#sqrt", WrapFunction(MathSqrt), true));
+	mathObj->Set("tan", new Function("Math#tan", WrapFunction(MathTan), true));
+	mathObj->Set("isnan", new Function("Math#isnan", WrapFunction(MathIsnan), true));
+	mathObj->Set("isinf", new Function("Math#isinf", WrapFunction(MathIsinf), true));
+	mathObj->Set("sign", new Function("Math#sign", WrapFunction(MathSign), true));
 
 	ScriptGlobal::Set("Math", mathObj);
 }

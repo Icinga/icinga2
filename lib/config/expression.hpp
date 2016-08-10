@@ -790,7 +790,7 @@ private:
 class I2_CONFIG_API FunctionExpression : public DebuggableExpression
 {
 public:
-	FunctionExpression(const std::vector<String>& args,
+	FunctionExpression(const String& name, const std::vector<String>& args,
 	    std::map<String, Expression *> *closedVars, Expression *expression, const DebugInfo& debugInfo = DebugInfo())
 		: DebuggableExpression(debugInfo), m_Args(args), m_ClosedVars(closedVars), m_Expression(expression)
 	{ }
@@ -799,6 +799,7 @@ protected:
 	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 
 private:
+	String m_Name;
 	std::vector<String> m_Args;
 	std::map<String, Expression *> *m_ClosedVars;
 	boost::shared_ptr<Expression> m_Expression;

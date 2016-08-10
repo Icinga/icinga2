@@ -52,9 +52,9 @@ Object::Ptr Object::GetPrototype(void)
 
 	if (!prototype) {
 		prototype = new Dictionary();
-		prototype->Set("to_string", new Function(WrapFunction(ObjectToString), true));
-		prototype->Set("notify_attribute", new Function(WrapFunction(ObjectNotifyAttribute), false));
-		prototype->Set("clone", new Function(WrapFunction(ObjectClone), true));
+		prototype->Set("to_string", new Function("Object#to_string", WrapFunction(ObjectToString), true));
+		prototype->Set("notify_attribute", new Function("Object#notify_attribute", WrapFunction(ObjectNotifyAttribute), false));
+		prototype->Set("clone", new Function("Object#clone", WrapFunction(ObjectClone), true));
 	}
 
 	return prototype;

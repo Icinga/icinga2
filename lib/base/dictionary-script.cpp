@@ -86,13 +86,13 @@ Object::Ptr Dictionary::GetPrototype(void)
 
 	if (!prototype) {
 		prototype = new Dictionary();
-		prototype->Set("len", new Function(WrapFunction(DictionaryLen), true));
-		prototype->Set("set", new Function(WrapFunction(DictionarySet)));
-		prototype->Set("get", new Function(WrapFunction(DictionaryGet)));
-		prototype->Set("remove", new Function(WrapFunction(DictionaryRemove)));
-		prototype->Set("contains", new Function(WrapFunction(DictionaryContains), true));
-		prototype->Set("shallow_clone", new Function(WrapFunction(DictionaryShallowClone), true));
-		prototype->Set("keys", new Function(WrapFunction(DictionaryKeys), true));
+		prototype->Set("len", new Function("Dictionary#len", WrapFunction(DictionaryLen), true));
+		prototype->Set("set", new Function("Dictionary#set", WrapFunction(DictionarySet)));
+		prototype->Set("get", new Function("Dictionary#get", WrapFunction(DictionaryGet)));
+		prototype->Set("remove", new Function("Dictionary#remove", WrapFunction(DictionaryRemove)));
+		prototype->Set("contains", new Function("Dictionary#contains", WrapFunction(DictionaryContains), true));
+		prototype->Set("shallow_clone", new Function("Dictionary#shallow_clone", WrapFunction(DictionaryShallowClone), true));
+		prototype->Set("keys", new Function("Dictionary#keys", WrapFunction(DictionaryKeys), true));
 	}
 
 	return prototype;

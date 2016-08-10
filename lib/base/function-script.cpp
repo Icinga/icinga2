@@ -59,8 +59,8 @@ Object::Ptr Function::GetPrototype(void)
 
 	if (!prototype) {
 		prototype = new Dictionary();
-		prototype->Set("call", new Function(WrapFunction(FunctionCall)));
-		prototype->Set("callv", new Function(WrapFunction(FunctionCallV)));
+		prototype->Set("call", new Function("Function#call", WrapFunction(FunctionCall)));
+		prototype->Set("callv", new Function("Function#callv", WrapFunction(FunctionCallV)));
 	}
 
 	return prototype;

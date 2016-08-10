@@ -18,17 +18,20 @@
  ******************************************************************************/
 
 #include "base/function.hpp"
-#include "base/primitivetype.hpp"
-#include "base/dictionary.hpp"
+#include "base/function.tcpp"
 #include "base/scriptframe.hpp"
 
 using namespace icinga;
 
-REGISTER_PRIMITIVE_TYPE_NOINST(Function, Object, Function::GetPrototype());
+REGISTER_TYPE_WITH_PROTOTYPE(Function, Function::GetPrototype());
 
-Function::Function(const Callback& function, bool side_effect_free)
-	: m_Callback(function), m_SideEffectFree(side_effect_free)
-{ }
+Function::Function(const String& name, const Callback& function, bool side_effect_free, bool deprecated)
+	: m_Callback(function)
+{
+	SetName(name, true);
+	SetSideEffectFree(side_effect_free, true);
+	SetDeprecated(deprecated, true);
+}
 
 Value Function::Invoke(const std::vector<Value>& arguments)
 {
@@ -41,11 +44,6 @@ Value Function::Invoke(const Value& otherThis, const std::vector<Value>& argumen
 	ScriptFrame frame;
 	frame.Self = otherThis;
 	return m_Callback(arguments);
-}
-
-bool Function::IsSideEffectFree(void) const
-{
-	return m_SideEffectFree;
 }
 
 Object::Ptr Function::Clone(void) const

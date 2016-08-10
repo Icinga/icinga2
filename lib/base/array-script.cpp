@@ -229,21 +229,21 @@ Object::Ptr Array::GetPrototype(void)
 
 	if (!prototype) {
 		prototype = new Dictionary();
-		prototype->Set("len", new Function(WrapFunction(ArrayLen), true));
-		prototype->Set("set", new Function(WrapFunction(ArraySet)));
-		prototype->Set("get", new Function(WrapFunction(ArrayGet)));
-		prototype->Set("add", new Function(WrapFunction(ArrayAdd)));
-		prototype->Set("remove", new Function(WrapFunction(ArrayRemove)));
-		prototype->Set("contains", new Function(WrapFunction(ArrayContains), true));
-		prototype->Set("clear", new Function(WrapFunction(ArrayClear)));
-		prototype->Set("sort", new Function(WrapFunction(ArraySort), true));
-		prototype->Set("shallow_clone", new Function(WrapFunction(ArrayShallowClone), true));
-		prototype->Set("join", new Function(WrapFunction(ArrayJoin), true));
-		prototype->Set("reverse", new Function(WrapFunction(ArrayReverse), true));
-		prototype->Set("map", new Function(WrapFunction(ArrayMap), true));
-		prototype->Set("reduce", new Function(WrapFunction(ArrayReduce), true));
-		prototype->Set("filter", new Function(WrapFunction(ArrayFilter), true));
-		prototype->Set("unique", new Function(WrapFunction(ArrayUnique), true));
+		prototype->Set("len", new Function("Array#len", WrapFunction(ArrayLen), true));
+		prototype->Set("set", new Function("Array#set", WrapFunction(ArraySet)));
+		prototype->Set("get", new Function("Array#get", WrapFunction(ArrayGet)));
+		prototype->Set("add", new Function("Array#add", WrapFunction(ArrayAdd)));
+		prototype->Set("remove", new Function("Array#remove", WrapFunction(ArrayRemove)));
+		prototype->Set("contains", new Function("Array#contains", WrapFunction(ArrayContains), true));
+		prototype->Set("clear", new Function("Array#clear", WrapFunction(ArrayClear)));
+		prototype->Set("sort", new Function("Array#sort", WrapFunction(ArraySort), true));
+		prototype->Set("shallow_clone", new Function("Array#shallow_clone", WrapFunction(ArrayShallowClone), true));
+		prototype->Set("join", new Function("Array#join", WrapFunction(ArrayJoin), true));
+		prototype->Set("reverse", new Function("Array#reverse", WrapFunction(ArrayReverse), true));
+		prototype->Set("map", new Function("Array#map", WrapFunction(ArrayMap), true));
+		prototype->Set("reduce", new Function("Array#reduce", WrapFunction(ArrayReduce), true));
+		prototype->Set("filter", new Function("Array#filter", WrapFunction(ArrayFilter), true));
+		prototype->Set("unique", new Function("Array#unique", WrapFunction(ArrayUnique), true));
 	}
 
 	return prototype;

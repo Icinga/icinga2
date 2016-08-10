@@ -17,31 +17,18 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "icinga/checkable.hpp"
 #include "base/configobject.hpp"
-#include "base/dictionary.hpp"
-#include "base/function.hpp"
-#include "base/functionwrapper.hpp"
-#include "base/scriptframe.hpp"
 
-using namespace icinga;
+library base;
 
-static void CheckableProcessCheckResult(const CheckResult::Ptr& cr)
+namespace icinga
 {
-	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
-	Checkable::Ptr self = vframe->Self;
-	self->ProcessCheckResult(cr);
-}
 
-Object::Ptr Checkable::GetPrototype(void)
+abstract class Function
 {
-	static Dictionary::Ptr prototype;
+	String "name";
+	bool side_effect_free;
+	bool deprecated;
+};
 
-	if (!prototype) {
-		prototype = new Dictionary();
-		prototype->Set("process_check_result", new Function("Checkable#process_check_result", WrapFunction(CheckableProcessCheckResult), false));
-	}
-
-	return prototype;
 }
-
