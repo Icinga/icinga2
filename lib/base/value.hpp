@@ -144,7 +144,7 @@ public:
 	template<typename T>
 	operator intrusive_ptr<T>(void) const
 	{
-		if (IsEmpty())
+		if (IsEmpty() && !IsString())
 			return intrusive_ptr<T>();
 
 		if (!IsObject())
