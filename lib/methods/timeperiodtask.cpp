@@ -22,8 +22,8 @@
 
 using namespace icinga;
 
-REGISTER_SCRIPTFUNCTION_NS(Internal, EmptyTimePeriod, &TimePeriodTask::EmptyTimePeriodUpdate);
-REGISTER_SCRIPTFUNCTION_NS(Internal, EvenMinutesTimePeriod, &TimePeriodTask::EvenMinutesTimePeriodUpdate);
+REGISTER_SCRIPTFUNCTION_NS_DEPRECATED(Internal, EmptyTimePeriod, &TimePeriodTask::EmptyTimePeriodUpdate);
+REGISTER_SCRIPTFUNCTION_NS_DEPRECATED(Internal, EvenMinutesTimePeriod, &TimePeriodTask::EvenMinutesTimePeriodUpdate);
 
 Array::Ptr TimePeriodTask::EmptyTimePeriodUpdate(const TimePeriod::Ptr&, double, double)
 {
