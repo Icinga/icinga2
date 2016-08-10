@@ -329,13 +329,16 @@ static BOOL CreatePipeOverlapped(HANDLE *outReadPipe, HANDLE *outWritePipe,
 	if (size == 0)
 		size = 8192;
 
+	int currentIndex;
+
 	{
 		boost::mutex::scoped_lock lock(mutex);
+		currentIndex = pipeIndex;
 		pipeIndex++;
 	}
 
 	char pipeName[128];
-	sprintf(pipeName, "\\\\.\\Pipe\\OverlappedPipe.%d.%d", (int)GetCurrentProcessId(), pipeIndex);
+	sprintf(pipeName, "\\\\.\\Pipe\\OverlappedPipe.%d.%d", (int)GetCurrentProcessId(), currentIndex);
 
 	*outReadPipe = CreateNamedPipe(pipeName, PIPE_ACCESS_INBOUND | readMode,
 	    PIPE_TYPE_BYTE | PIPE_WAIT, 1, size, size, 60 * 1000, securityAttributes);
