@@ -180,7 +180,20 @@ bool Downtime::IsTriggered(void) const
 
 bool Downtime::IsExpired(void) const
 {
-	return (GetEndTime() < Utility::GetTime());
+	double now = Utility::GetTime();
+
+	if (GetFixed())
+		return (GetEndTime() < now);
+	else {
+		/* triggered flexible downtime not in effect anymore */
+		if (IsTriggered() && !IsInEffect())
+			return true;
+		/* flexible downtime never triggered */
+		else if (!IsTriggered() && (GetEndTime() < now))
+			return true;
+		else
+			return false;
+	}
 }
 
 int Downtime::GetNextDowntimeID(void)

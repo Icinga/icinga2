@@ -153,6 +153,10 @@ void Checkable::NotifyDowntimeInternal(const Downtime::Ptr& downtime)
 
 void Checkable::NotifyDowntimeEnd(const Downtime::Ptr& downtime)
 {
+	/* don't send notifications for flexible downtimes which never triggered */
+	if (!downtime->GetFixed() && !downtime->IsTriggered())
+		return;
+
 	Checkable::Ptr checkable = downtime->GetCheckable();
 
 	if (!checkable->IsPaused())
