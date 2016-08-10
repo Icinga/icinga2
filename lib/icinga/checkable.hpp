@@ -68,6 +68,8 @@ public:
 	DECLARE_OBJECT(Checkable);
 	DECLARE_OBJECTNAME(Checkable);
 
+	static void StaticInitialize(void);
+
 	Checkable(void);
 
 	std::set<Checkable::Ptr> GetParents(void) const;
@@ -195,6 +197,12 @@ private:
 	/* Downtimes */
 	std::set<Downtime::Ptr> m_Downtimes;
 	mutable boost::mutex m_DowntimeMutex;
+
+	static void NotifyFixedDowntimeStart(const Downtime::Ptr& downtime);
+	static void NotifyFlexibleDowntimeStart(const Downtime::Ptr& downtime);
+	static void NotifyDowntimeInternal(const Downtime::Ptr& downtime);
+
+	static void NotifyDowntimeEnd(const Downtime::Ptr& downtime);
 
 	/* Comments */
 	std::set<Comment::Ptr> m_Comments;

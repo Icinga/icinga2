@@ -291,7 +291,6 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 	if (is_volatile && IsStateOK(old_state) && IsStateOK(new_state))
 		send_notification = false; /* Don't send notifications for volatile OK -> OK changes. */
 
-	bool send_downtime_notification = (GetLastInDowntime() != in_downtime);
 	SetLastInDowntime(in_downtime);
 
 	olock.Unlock();
@@ -364,9 +363,6 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 	if (GetStateType() == StateTypeSoft || hardChange || recovery ||
 	    (is_volatile && !(IsStateOK(old_state) && IsStateOK(new_state))))
 		ExecuteEventHandler();
-
-	if (send_downtime_notification && IsActive())
-		OnNotificationsRequested(this, in_downtime ? NotificationDowntimeStart : NotificationDowntimeEnd, cr, "", "", MessageOrigin::Ptr());
 
 	/* Flapping start/end notifications */
 	if (!was_flapping && is_flapping) {

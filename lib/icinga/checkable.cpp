@@ -30,9 +30,20 @@
 using namespace icinga;
 
 REGISTER_TYPE_WITH_PROTOTYPE(Checkable, Checkable::GetPrototype());
+INITIALIZE_ONCE(&Checkable::StaticInitialize);
 
 boost::signals2::signal<void (const Checkable::Ptr&, const String&, const String&, AcknowledgementType, bool, double, const MessageOrigin::Ptr&)> Checkable::OnAcknowledgementSet;
 boost::signals2::signal<void (const Checkable::Ptr&, const MessageOrigin::Ptr&)> Checkable::OnAcknowledgementCleared;
+
+void Checkable::StaticInitialize(void)
+{
+	/* fixed downtime start */
+	Downtime::OnDowntimeAdded.connect(boost::bind(&Checkable::NotifyFixedDowntimeStart, _1));
+	/* flexible downtime start */
+	Downtime::OnDowntimeTriggered.connect(boost::bind(&Checkable::NotifyFlexibleDowntimeStart, _1));
+	/* fixed/flexible downtime end */
+	Downtime::OnDowntimeRemoved.connect(boost::bind(&Checkable::NotifyDowntimeEnd, _1));
+}
 
 Checkable::Checkable(void)
 	: m_CheckRunning(false)
@@ -114,6 +125,38 @@ void Checkable::ClearAcknowledgement(const MessageOrigin::Ptr& origin)
 Endpoint::Ptr Checkable::GetCommandEndpoint(void) const
 {
 	return Endpoint::GetByName(GetCommandEndpointRaw());
+}
+
+void Checkable::NotifyFixedDowntimeStart(const Downtime::Ptr& downtime)
+{
+	if (!downtime->GetFixed())
+		return;
+
+	NotifyDowntimeInternal(downtime);
+}
+
+void Checkable::NotifyFlexibleDowntimeStart(const Downtime::Ptr& downtime)
+{
+	if (downtime->GetFixed())
+		return;
+
+	NotifyDowntimeInternal(downtime);
+}
+
+void Checkable::NotifyDowntimeInternal(const Downtime::Ptr& downtime)
+{
+	Checkable::Ptr checkable = downtime->GetCheckable();
+
+	if (!checkable->IsPaused())
+		OnNotificationsRequested(checkable, NotificationDowntimeStart, checkable->GetLastCheckResult(), downtime->GetAuthor(), downtime->GetComment(), MessageOrigin::Ptr());
+}
+
+void Checkable::NotifyDowntimeEnd(const Downtime::Ptr& downtime)
+{
+	Checkable::Ptr checkable = downtime->GetCheckable();
+
+	if (!checkable->IsPaused())
+		OnNotificationsRequested(checkable, NotificationDowntimeEnd, checkable->GetLastCheckResult(), downtime->GetAuthor(), downtime->GetComment(), MessageOrigin::Ptr());
 }
 
 void Checkable::ValidateCheckInterval(double value, const ValidationUtils& utils)
