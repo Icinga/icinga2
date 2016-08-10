@@ -377,6 +377,9 @@ PlatformName        |**Read-only.** The name of the operating system, e.g. "Ubun
 PlatformVersion     |**Read-only.** The version of the operating system, e.g. "14.04.3 LTS".
 PlatformKernel      |**Read-only.** The name of the operating system kernel, e.g. "Linux".
 PlatformKernelVersion|**Read-only.** The version of the operating system kernel, e.g. "3.13.0-63-generic".
+BuildCompilerName   |**Read-only.** The name of the compiler Icinga was built with, e.g. "Clang".
+BuildCompilerVersion|**Read-only.** The version of the compiler Icinga was built with, e.g. "7.3.0.7030031".
+BuildHostName       |**Read-only.** The name of the host Icinga was built on, e.g. "acheron".
 
 ## <a id="apply"></a> Apply
 

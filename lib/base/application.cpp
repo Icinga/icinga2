@@ -512,6 +512,11 @@ void Application::DisplayInfoMessage(std::ostream& os, bool skipVersion)
 	   << "  Kernel: " << Utility::GetPlatformKernel() << "\n"
 	   << "  Kernel version: " << Utility::GetPlatformKernelVersion() << "\n"
 	   << "  Architecture: " << Utility::GetPlatformArchitecture() << "\n";
+
+	os << "\n"
+	   << "Build information:" << "\n"
+	   << "  Compiler: " << ScriptGlobal::Get("BuildCompilerName") << " " << ScriptGlobal::Get("BuildCompilerVersion") << "\n"
+	   << "  Build host: " << ScriptGlobal::Get("BuildHostName") << "\n";
 }
 
 /**

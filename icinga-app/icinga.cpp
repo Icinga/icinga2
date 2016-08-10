@@ -169,6 +169,10 @@ int Main(void)
 	ScriptGlobal::Set("PlatformVersion", Utility::GetPlatformVersion());
 	ScriptGlobal::Set("PlatformArchitecture", Utility::GetPlatformArchitecture());
 
+	ScriptGlobal::Set("BuildHostName", ICINGA_BUILD_HOST_NAME);
+	ScriptGlobal::Set("BuildCompilerName", ICINGA_BUILD_COMPILER_NAME);
+	ScriptGlobal::Set("BuildCompilerVersion", ICINGA_BUILD_COMPILER_VERSION);
+
 	LogSeverity logLevel = Logger::GetConsoleLogSeverity();
 	Logger::SetConsoleLogSeverity(LogWarning);
 
