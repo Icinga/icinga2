@@ -46,7 +46,7 @@ struct LivestatusFixture
 		cfgfp.open(cfg_file_path_tmp.CStr(), std::ofstream::out | std::ofstream::trunc);
 		cfgfp << std::fixed;
 		cfgfp << "object CheckCommand \"dummy\" {\n";
-		cfgfp << "  execute = PluginCheck\n";
+		cfgfp << "  import \"plugin-check-command\"\n";
 		cfgfp << "  command = \"/bin/echo\"\n";
 		cfgfp << "}\n";
 		cfgfp << "object Host \"test-01\" {\n";
