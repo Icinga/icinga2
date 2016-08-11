@@ -441,18 +441,7 @@ void DbEvents::AddDowntimes(const Checkable::Ptr& checkable)
 {
 	std::set<Downtime::Ptr> downtimes = checkable->GetDowntimes();
 
-	/* Ensure to delete all downtimes and then insert any or none.
-	 * We must purge obsolete downtimes in the database at all cost. */
-
 	std::vector<DbQuery> queries;
-
-	DbQuery query1;
-	query1.Table = "scheduleddowntime";
-	query1.Type = DbQueryDelete;
-	query1.Category = DbCatDowntime;
-	query1.WhereCriteria = new Dictionary();
-	query1.WhereCriteria->Set("object_id", checkable);
-	queries.push_back(query1);
 
 	BOOST_FOREACH(const Downtime::Ptr& downtime, downtimes) {
 		AddDowntimeInternal(queries, downtime, false);
