@@ -352,6 +352,9 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 				return;
 			}
 		}
+	} else {
+		Log(LogNotice, "Notification")
+		    << "Not checking notification filters for notification object '" << GetName() << "': Notification was forced.";
 	}
 
 	{
@@ -488,6 +491,10 @@ bool Notification::CheckNotificationUserFilters(NotificationType type, const Use
 				return false;
 			}
 		}
+	} else {
+		Log(LogNotice, "Notification")
+		    << "Not checking notification filters for notification object '"
+		    << GetName() << "' and user '" << user->GetName() << "': Notification was forced.";
 	}
 
 	return true;
