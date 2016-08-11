@@ -323,22 +323,15 @@ String Process::PrettyPrintArguments(const Process::Arguments& arguments)
 static BOOL CreatePipeOverlapped(HANDLE *outReadPipe, HANDLE *outWritePipe,
     SECURITY_ATTRIBUTES *securityAttributes, DWORD size, DWORD readMode, DWORD writeMode)
 {
-	static int pipeIndex = 0;
-	static boost::mutex mutex;
+	static LONG pipeIndex = 0;
 
 	if (size == 0)
 		size = 8192;
 
-	int currentIndex;
-
-	{
-		boost::mutex::scoped_lock lock(mutex);
-		currentIndex = pipeIndex;
-		pipeIndex++;
-	}
+	LONG currentIndex = InterlockedIncrement(&pipeIndex);
 
 	char pipeName[128];
-	sprintf(pipeName, "\\\\.\\Pipe\\OverlappedPipe.%d.%d", (int)GetCurrentProcessId(), currentIndex);
+	sprintf(pipeName, "\\\\.\\Pipe\\OverlappedPipe.%d.%d", (int)GetCurrentProcessId(), (int)currentIndex);
 
 	*outReadPipe = CreateNamedPipe(pipeName, PIPE_ACCESS_INBOUND | readMode,
 	    PIPE_TYPE_BYTE | PIPE_WAIT, 1, size, size, 60 * 1000, securityAttributes);
