@@ -503,7 +503,15 @@ void DbEvents::AddDowntimeInternal(std::vector<DbQuery>& queries, const Downtime
 	fields1->Set("duration", downtime->GetDuration());
 	fields1->Set("scheduled_start_time", DbValue::FromTimestamp(downtime->GetStartTime()));
 	fields1->Set("scheduled_end_time", DbValue::FromTimestamp(downtime->GetEndTime()));
-	fields1->Set("was_started", ((downtime->GetStartTime() <= Utility::GetTime()) ? 1 : 0));
+
+	/* flexible downtimes are started at trigger time */
+	if (downtime->GetFixed()) {
+		std::pair<unsigned long, unsigned long> time_bag = CompatUtility::ConvertTimestamp(downtime->GetStartTime());
+		fields1->Set("actual_start_time", DbValue::FromTimestamp(time_bag.first));
+		fields1->Set("actual_start_time_usec", time_bag.second);
+		fields1->Set("was_started", ((downtime->GetStartTime() <= Utility::GetTime()) ? 1 : 0));
+	}
+
 	fields1->Set("is_in_effect", (downtime->IsInEffect() ? 1 : 0));
 	fields1->Set("trigger_time", DbValue::FromTimestamp(downtime->GetTriggerTime()));
 	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
