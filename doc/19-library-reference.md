@@ -711,7 +711,7 @@ Reduces the elements of the array into a single value by calling the provided
 function `func` as `func(a, b)` repeatedly where `a` and `b` are elements of the array
 or results from previous function calls.
 
-### <a id="array-filter"> Array#filter
+### <a id="array-filter"></a> Array#filter
 
 Signature:
 
@@ -720,7 +720,7 @@ Signature:
 Returns a copy of the array containing only the elements for which `func(element)`
 is true.
 
-### <a id="array-filter"> Array#unique
+### <a id="array-unique"></a> Array#unique
 
 Signature:
 
