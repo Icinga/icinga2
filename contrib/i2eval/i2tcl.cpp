@@ -84,7 +84,7 @@ static Value i2_call_tcl(const String& command, const String& mtype, const std::
 
 void i2_register_command(const char *icmd, const char *tcmd, const char *mtype, Tcl_Interp *interp)
 {
-	Function::Ptr sf = new Function(boost::bind(i2_call_tcl, String(tcmd), String(mtype), _1));
+	Function::Ptr sf = new Function(icmd, boost::bind(i2_call_tcl, String(tcmd), String(mtype), _1));
 	ScriptGlobal::Set(icmd, sf);
 }
 
