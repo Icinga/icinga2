@@ -80,7 +80,7 @@ private:
 		void RegisterFunction(void) { \
 			Function::Ptr sf = new icinga::Function(#ns "#" #name, WrapFunction(callback), false); \
 			ScriptGlobal::Set(#ns "." #name, sf); \
-			Function::Ptr dsf = new icinga::Function("Deprecated#" #name " (deprecated)", WrapFunction(callback), false, true); \
+			Function::Ptr dsf = new icinga::Function("Deprecated#__" #name " (deprecated)", WrapFunction(callback), false, true); \
 			ScriptGlobal::Set("Deprecated.__" #name, dsf); \
 		} \
 		INITIALIZE_ONCE_WITH_PRIORITY(RegisterFunction, 10); \
