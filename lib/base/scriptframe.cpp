@@ -30,8 +30,15 @@ ScriptFrame::ScriptFrame(void)
 {
 	std::stack<ScriptFrame *> *frames = m_ScriptFrames.get();
 
-	if (frames && !frames->empty())
-		Sandboxed = frames->top()->Sandboxed;
+	if (frames && !frames->empty()) {
+		ScriptFrame *frame = frames->top();
+
+		Sandboxed = frame->Sandboxed;
+		Imports = frame->Imports;
+	} else {
+		Imports = new Array();
+		Imports->Add(ScriptGlobal::Get("System"));
+	}
 
 	PushFrame(this);
 }

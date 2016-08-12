@@ -180,6 +180,7 @@ this				return T_THIS;
 globals				return T_GLOBALS;
 locals				return T_LOCALS;
 use				return T_USE;
+__using				return T_USING;
 apply				return T_APPLY;
 to				return T_TO;
 where				return T_WHERE;

@@ -37,35 +37,35 @@
 
 using namespace icinga;
 
-REGISTER_SAFE_SCRIPTFUNCTION(regex, &ScriptUtils::Regex);
-REGISTER_SAFE_SCRIPTFUNCTION(match, &Utility::Match);
-REGISTER_SAFE_SCRIPTFUNCTION(cidr_match, &Utility::CidrMatch);
-REGISTER_SAFE_SCRIPTFUNCTION(len, &ScriptUtils::Len);
-REGISTER_SAFE_SCRIPTFUNCTION(union, &ScriptUtils::Union);
-REGISTER_SAFE_SCRIPTFUNCTION(intersection, &ScriptUtils::Intersection);
-REGISTER_SCRIPTFUNCTION(log, &ScriptUtils::Log);
-REGISTER_SCRIPTFUNCTION(range, &ScriptUtils::Range);
-REGISTER_SCRIPTFUNCTION(exit, &Application::Exit);
-REGISTER_SAFE_SCRIPTFUNCTION(typeof, &ScriptUtils::TypeOf);
-REGISTER_SAFE_SCRIPTFUNCTION(keys, &ScriptUtils::Keys);
-REGISTER_SAFE_SCRIPTFUNCTION(random, &Utility::Random);
-REGISTER_SAFE_SCRIPTFUNCTION(get_object, &ScriptUtils::GetObject);
-REGISTER_SAFE_SCRIPTFUNCTION(get_objects, &ScriptUtils::GetObjects);
-REGISTER_SCRIPTFUNCTION(assert, &ScriptUtils::Assert);
-REGISTER_SAFE_SCRIPTFUNCTION(string, &ScriptUtils::CastString);
-REGISTER_SAFE_SCRIPTFUNCTION(number, &ScriptUtils::CastNumber);
-REGISTER_SAFE_SCRIPTFUNCTION(bool, &ScriptUtils::CastBool);
-REGISTER_SAFE_SCRIPTFUNCTION(get_time, &Utility::GetTime);
-REGISTER_SAFE_SCRIPTFUNCTION(basename, &Utility::BaseName);
-REGISTER_SAFE_SCRIPTFUNCTION(dirname, &Utility::DirName);
-REGISTER_SAFE_SCRIPTFUNCTION(msi_get_component_path, &ScriptUtils::MsiGetComponentPathShim);
-REGISTER_SAFE_SCRIPTFUNCTION(track_parents, &ScriptUtils::TrackParents);
-REGISTER_SAFE_SCRIPTFUNCTION(escape_shell_cmd, &Utility::EscapeShellCmd);
-REGISTER_SAFE_SCRIPTFUNCTION(escape_shell_arg, &Utility::EscapeShellArg);
+REGISTER_SAFE_SCRIPTFUNCTION_NS(System, regex, &ScriptUtils::Regex);
+REGISTER_SAFE_SCRIPTFUNCTION_NS(System, match, &Utility::Match);
+REGISTER_SAFE_SCRIPTFUNCTION_NS(System, cidr_match, &Utility::CidrMatch);
+REGISTER_SAFE_SCRIPTFUNCTION_NS(System, len, &ScriptUtils::Len);
+REGISTER_SAFE_SCRIPTFUNCTION_NS(System, union, &ScriptUtils::Union);
+REGISTER_SAFE_SCRIPTFUNCTION_NS(System, intersection, &ScriptUtils::Intersection);
+REGISTER_SCRIPTFUNCTION_NS(System, log, &ScriptUtils::Log);
+REGISTER_SCRIPTFUNCTION_NS(System, range, &ScriptUtils::Range);
+REGISTER_SCRIPTFUNCTION_NS(System, exit, &Application::Exit);
+REGISTER_SAFE_SCRIPTFUNCTION_NS(System, typeof, &ScriptUtils::TypeOf);
+REGISTER_SAFE_SCRIPTFUNCTION_NS(System, keys, &ScriptUtils::Keys);
+REGISTER_SAFE_SCRIPTFUNCTION_NS(System, random, &Utility::Random);
+REGISTER_SAFE_SCRIPTFUNCTION_NS(System, get_object, &ScriptUtils::GetObject);
+REGISTER_SAFE_SCRIPTFUNCTION_NS(System, get_objects, &ScriptUtils::GetObjects);
+REGISTER_SCRIPTFUNCTION_NS(System, assert, &ScriptUtils::Assert);
+REGISTER_SAFE_SCRIPTFUNCTION_NS(System, string, &ScriptUtils::CastString);
+REGISTER_SAFE_SCRIPTFUNCTION_NS(System, number, &ScriptUtils::CastNumber);
+REGISTER_SAFE_SCRIPTFUNCTION_NS(System, bool, &ScriptUtils::CastBool);
+REGISTER_SAFE_SCRIPTFUNCTION_NS(System, get_time, &Utility::GetTime);
+REGISTER_SAFE_SCRIPTFUNCTION_NS(System, basename, &Utility::BaseName);
+REGISTER_SAFE_SCRIPTFUNCTION_NS(System, dirname, &Utility::DirName);
+REGISTER_SAFE_SCRIPTFUNCTION_NS(System, msi_get_component_path, &ScriptUtils::MsiGetComponentPathShim);
+REGISTER_SAFE_SCRIPTFUNCTION_NS(System, track_parents, &ScriptUtils::TrackParents);
+REGISTER_SAFE_SCRIPTFUNCTION_NS(System, escape_shell_cmd, &Utility::EscapeShellCmd);
+REGISTER_SAFE_SCRIPTFUNCTION_NS(System, escape_shell_arg, &Utility::EscapeShellArg);
 #ifdef _WIN32
-REGISTER_SAFE_SCRIPTFUNCTION(escape_create_process_arg, &Utility::EscapeCreateProcessArg);
+REGISTER_SAFE_SCRIPTFUNCTION_NS(System, escape_create_process_arg, &Utility::EscapeCreateProcessArg);
 #endif /* _WIN32 */
-REGISTER_SCRIPTFUNCTION(ptr, &ScriptUtils::Ptr);
+REGISTER_SCRIPTFUNCTION_NS(System, ptr, &ScriptUtils::Ptr);
 
 String ScriptUtils::CastString(const Value& value)
 {

@@ -44,15 +44,33 @@ namespace icinga
 class VMOps
 {
 public:
-	static inline Value Variable(ScriptFrame& frame, const String& name, const DebugInfo& debugInfo = DebugInfo())
+	static inline bool FindVarImportRef(ScriptFrame& frame, const String& name, Value *result, const DebugInfo& debugInfo = DebugInfo())
 	{
-		Value value;
-		if (frame.Locals && frame.Locals->Get(name, &value))
-			return value;
-		else if (frame.Self.IsObject() && frame.Locals != static_cast<Object::Ptr>(frame.Self) && static_cast<Object::Ptr>(frame.Self)->HasOwnField(name))
-			return GetField(frame.Self, name, frame.Sandboxed, debugInfo);
-		else
-			return ScriptGlobal::Get(name);
+		if (!frame.Imports)
+			return false;
+
+		ObjectLock olock(frame.Imports);
+		BOOST_FOREACH(const Value& import, frame.Imports) {
+			Object::Ptr obj = import;
+			if (obj->HasOwnField(name)) {
+				*result = import;
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	static inline bool FindVarImport(ScriptFrame& frame, const String& name, Value *result, const DebugInfo& debugInfo = DebugInfo())
+	{
+		Value parent;
+
+		if (FindVarImportRef(frame, name, &parent, debugInfo)) {
+			*result = GetField(parent, name, frame.Sandboxed, debugInfo);
+			return true;
+		}
+
+		return false;
 	}
 
 	static inline Value ConstructorCall(const Type::Ptr& type, const std::vector<Value>& args, const DebugInfo& debugInfo = DebugInfo())

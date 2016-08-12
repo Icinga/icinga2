@@ -244,6 +244,7 @@ const std::vector<String>& ConfigWriter::GetKeywords(void)
 		keywords.push_back("globals");
 		keywords.push_back("locals");
 		keywords.push_back("use");
+		keywords.push_back("__using");
 		keywords.push_back("ignore_on_error");
 		keywords.push_back("current_filename");
 		keywords.push_back("current_line");

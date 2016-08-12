@@ -30,7 +30,7 @@
 using namespace icinga;
 
 REGISTER_TYPE(PerfdataValue);
-REGISTER_SCRIPTFUNCTION(parse_performance_data, PerfdataValue::Parse);
+REGISTER_SCRIPTFUNCTION_NS(System, parse_performance_data, PerfdataValue::Parse);
 
 PerfdataValue::PerfdataValue(void)
 { }

@@ -22,6 +22,7 @@
 
 #include "config/i2-config.hpp"
 #include "base/dictionary.hpp"
+#include "base/array.hpp"
 #include <boost/thread/tss.hpp>
 #include <stack>
 
@@ -31,6 +32,7 @@ namespace icinga
 struct I2_BASE_API ScriptFrame
 {
 	Dictionary::Ptr Locals;
+	Array::Ptr Imports;
 	Value Self;
 	bool Sandboxed;
 	int Depth;

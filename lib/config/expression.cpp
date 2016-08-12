@@ -124,6 +124,8 @@ ExpressionResult VariableExpression::DoEvaluate(ScriptFrame& frame, DebugHint *d
 		return value;
 	else if (frame.Self.IsObject() && frame.Locals != static_cast<Object::Ptr>(frame.Self) && static_cast<Object::Ptr>(frame.Self)->HasOwnField(m_Variable))
 		return VMOps::GetField(frame.Self, m_Variable, frame.Sandboxed, m_DebugInfo);
+	else if (VMOps::FindVarImport(frame, m_Variable, &value, m_DebugInfo))
+		return value;
 	else
 		return ScriptGlobal::Get(m_Variable);
 }
@@ -142,6 +144,8 @@ bool VariableExpression::GetReference(ScriptFrame& frame, bool init_dict, Value 
 
 		if (dhint && *dhint)
 			*dhint = new DebugHint((*dhint)->GetChild(m_Variable));
+	} else if (VMOps::FindVarImportRef(frame, m_Variable, parent, m_DebugInfo)) {
+		return true;
 	} else if (ScriptGlobal::Exists(m_Variable)) {
 		*parent = ScriptGlobal::GetGlobals();
 
@@ -887,6 +891,28 @@ ExpressionResult IncludeExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dh
 ExpressionResult BreakpointExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
 	ScriptBreakpoint(frame, NULL, GetDebugInfo());
+
+	return Empty;
+}
+
+ExpressionResult UsingExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
+{
+	if (frame.Sandboxed)
+		BOOST_THROW_EXCEPTION(ScriptError("Using directives are not allowed in sandbox mode.", m_DebugInfo));
+
+	ExpressionResult importres = m_Name->Evaluate(frame);
+	CHECK_RESULT(importres);
+	Value import = importres.GetValue();
+
+	if (!import.IsObject())
+		BOOST_THROW_EXCEPTION(ScriptError("The parameter does not resolve to an object", m_DebugInfo));
+
+	if (!frame.Imports)
+		frame.Imports = new Array();
+	else
+		frame.Imports = static_pointer_cast<Array>(frame.Imports->Clone());
+
+	frame.Imports->Add(import);
 
 	return Empty;
 }

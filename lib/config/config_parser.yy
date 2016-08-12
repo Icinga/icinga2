@@ -150,6 +150,7 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %token T_CURRENT_LINE "current_line (T_CURRENT_LINE)"
 %token T_DEBUGGER "debugger (T_DEBUGGER)"
 %token T_USE "use (T_USE)"
+%token T_USING "__using (T_USING)"
 %token T_OBJECT "object (T_OBJECT)"
 %token T_TEMPLATE "template (T_TEMPLATE)"
 %token T_INCLUDE "include (T_INCLUDE)"
@@ -595,6 +596,10 @@ lterm: T_LIBRARY rterm
 	| T_DEBUGGER
 	{
 		$$ = new BreakpointExpression(@$);
+	}
+	| T_USING rterm
+	{
+		$$ = new UsingExpression($2, @$);
 	}
 	| apply
 	| object

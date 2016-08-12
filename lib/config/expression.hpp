@@ -953,6 +953,25 @@ protected:
 	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
+class I2_CONFIG_API UsingExpression : public DebuggableExpression
+{
+public:
+	UsingExpression(Expression *name, const DebugInfo& debugInfo = DebugInfo())
+		: DebuggableExpression(debugInfo), m_Name(name)
+	{ }
+
+	~UsingExpression(void)
+	{
+		delete m_Name;
+	}
+
+protected:
+	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
+
+private:
+	Expression *m_Name;
+};
+
 }
 
 #endif /* EXPRESSION_H */

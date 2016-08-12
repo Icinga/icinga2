@@ -23,6 +23,8 @@
 #include "config/configcompiler.hpp"
 #include "base/initialize.hpp"
 #include "base/debug.hpp"
+#include "base/exception.hpp"
+#include "base/application.hpp"
 
 #define REGISTER_CONFIG_FRAGMENT(id, name, fragment) \
 	namespace { \
@@ -30,8 +32,13 @@
 		{ \
 			icinga::Expression *expression = icinga::ConfigCompiler::CompileText(name, fragment); \
 			VERIFY(expression); \
-			icinga::ScriptFrame frame; \
-			expression->Evaluate(frame); \
+			try { \
+				icinga::ScriptFrame frame; \
+				expression->Evaluate(frame); \
+			} catch (const std::exception& ex) { \
+				std::cerr << icinga::DiagnosticInformation(ex) << std::endl; \
+				icinga::Application::Exit(1); \
+			} \
 			delete expression; \
 		} \
 		\
