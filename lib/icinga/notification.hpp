@@ -94,9 +94,8 @@ public:
 	void UpdateNotificationNumber(void);
 	void ResetNotificationNumber(void);
 
-	void BeginExecuteNotification(NotificationType type, const CheckResult::Ptr& cr, bool force, const String& author = "", const String& text = "");
-
-	bool CheckNotificationUserFilters(NotificationType type, const User::Ptr& user, bool force);
+	void BeginExecuteNotification(NotificationType type, const CheckResult::Ptr& cr, bool force,
+	    bool reminder = false, const String& author = "", const String& text = "");
 
 	Endpoint::Ptr GetCommandEndpoint(void) const;
 
@@ -126,6 +125,8 @@ protected:
 
 private:
 	ObjectImpl<Checkable>::Ptr m_Checkable;
+
+	bool CheckNotificationUserFilters(NotificationType type, const User::Ptr& user, bool force, bool reminder);
 
 	void ExecuteNotificationHelper(NotificationType type, const User::Ptr& user, const CheckResult::Ptr& cr, bool force, const String& author = "", const String& text = "");
 

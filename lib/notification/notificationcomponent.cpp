@@ -116,7 +116,7 @@ void NotificationComponent::NotificationTimerHandler(void)
 		try {
 			Log(LogNotice, "NotificationComponent")
 			    << "Attempting to send reminder notification for object '" << checkable->GetName() << "'";
-			notification->BeginExecuteNotification(NotificationProblem, checkable->GetLastCheckResult(), false);
+			notification->BeginExecuteNotification(NotificationProblem, checkable->GetLastCheckResult(), false, true);
 		} catch (const std::exception& ex) {
 			Log(LogWarning, "NotificationComponent")
 			    << "Exception occured during notification for object '"
