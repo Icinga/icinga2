@@ -751,6 +751,11 @@ ExpressionResult ImportExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhi
 	if (!item)
 		BOOST_THROW_EXCEPTION(ScriptError("Import references unknown template: '" + name + "'", m_DebugInfo));
 
+	Dictionary::Ptr scope = item->GetScope();
+
+	if (scope)
+		scope->CopyTo(frame.Locals);
+
 	ExpressionResult result = item->GetExpression()->Evaluate(frame, dhint);
 	CHECK_RESULT(result);
 
