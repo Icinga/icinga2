@@ -1175,8 +1175,11 @@ Custom attributes passed as [command parameters](3-monitoring-basics.md#command-
 
 Name            | Description
 ----------------|--------------
-swap_wfree      | **Optional.** The free swap space warning threshold in %. Defaults to 50.
-swap_cfree      | **Optional.** The free swap space critical threshold in %. Defaults to 25.
+swap_wfree      | **Optional.** The free swap space warning threshold in % (enable `swap_integer` for number values). Defaults to `50%`.
+swap_cfree      | **Optional.** The free swap space critical threshold in % (enable `swap_integer` for number values). Defaults to `25%`.
+swap_integer    | **Optional.** Specifies whether the thresholds are passed as number or percent value. Defaults to false (percent values).
+swap_allswaps   | **Optional.** Conduct comparisons for all swap partitions, one by one. Defaults to false.
+swap_noswap     | **Optional.** Resulting state when there is no swap regardless of thresholds. Possible values are "ok", "warning", "critical", "unknown". Defaults to "critical".
 
 
 ### <a id="plugin-check-command-tcp"></a> tcp
