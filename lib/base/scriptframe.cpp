@@ -112,6 +112,7 @@ Array::Ptr ScriptFrame::GetImports(void)
 	if (!m_Imports) {
 		m_Imports = new Array();
 		m_Imports->Add(ScriptGlobal::Get("System"));
+		m_Imports->Add(ScriptGlobal::Get("Deprecated"));
 	}
 
 	return m_Imports;
