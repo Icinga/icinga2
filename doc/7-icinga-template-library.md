@@ -91,7 +91,7 @@ any vars.
 ## <a id="plugin-check-commands-monitoring-plugins"></a> Plugin Check Commands for Monitoring Plugins
 
 The Plugin Check Commands provides example configuration for plugin check commands
-provided by the Monitoring Plugins project.
+provided by the [Monitoring Plugins](https://www.monitoring-plugins.org) project.
 
 By default the Plugin Check Commands are included in the `icinga2.conf` configuration
 file:
@@ -101,9 +101,14 @@ file:
 The plugin check commands assume that there's a global constant named `PluginDir`
 which contains the path of the plugins from the Monitoring Plugins project.
 
+**Note**: If there are command parameters missing for the provided CheckCommand
+definitions please kindly send a patch upstream. This should include an update
+for the ITL CheckCommand itself and this documentation section.
+
 ### <a id="plugin-check-command-apt"></a> apt
 
-The plugin `apt` is used to check the aptitude package management system for updates on Debian based systems.
+The plugin [apt](https://www.monitoring-plugins.org/doc/index.html) checks for software updates on systems that use
+package management systems based on the apt-get(8) command found in Debian based systems.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
@@ -120,7 +125,8 @@ apt_timeout             | **Optional.** Seconds before plugin times out (default
 
 ### <a id="plugin-check-command-breeze"></a> breeze
 
-Check command object for the `check_breeze` plugin.
+The [check_breeze](https://www.monitoring-plugins.org/doc/man/check_breeze.html) plugin reports the signal
+strength of a Breezecom wireless equipment.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
@@ -134,7 +140,8 @@ breeze_critical  | **Required.** Percentage strength below which a WARNING statu
 
 ### <a id="plugin-check-command-by-ssh"></a> by_ssh
 
-Check command object for the `check_by_ssh` plugin.
+The [check_by_ssh](https://www.monitoring-plugins.org/doc/man/check_by_ssh.html) plugin uses SSH to execute
+commands on a remote host.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
@@ -157,7 +164,8 @@ by_ssh_ipv6     | **Optional.** Use IPv6 connection. Defaults to false.
 
 ### <a id="plugin-check-command-clamd"></a> clamd
 
-Check command object for the `check_clamd` plugin.
+The [check_clamd](https://www.monitoring-plugins.org/doc/man/check_clamd.html) plugin tests CLAMD
+connections with the specified host (or unix socket).
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
@@ -187,7 +195,8 @@ clamd_ipv6           | **Optional.** Use IPv6 connection. Defaults to false.
 
 ### <a id="plugin-check-command-dhcp"></a> dhcp
 
-Check command object for the `check_dhcp` plugin.
+The [check_dhcp](https://www.monitoring-plugins.org/doc/man/check_dhcp.html) plugin
+tests the availability of DHCP servers on a network.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
@@ -203,7 +212,8 @@ dhcp_unicast    | **Optional.** Whether to use unicast requests. Defaults to fal
 
 ### <a id="plugin-check-command-dig"></a> dig
 
-Check command object for the `check_dig` plugin.
+The [check_dig](https://www.monitoring-plugins.org/doc/man/check_dig.html) plugin
+test the DNS service on the specified host using dig.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
@@ -225,12 +235,9 @@ dig_ipv6             | **Optional.** Force dig to only use IPv6 query transport.
 
 ### <a id="plugin-check-command-disk"></a> disk
 
-Check command object for the `check_disk` plugin.
-
-> **Note**
->
-> `disk_wfree` and `disk_cfree` require the percent sign compared to older versions.
-> If omitted, disk units can be used. This has been changed in **2.3.0**.
+The [check_disk](https://www.monitoring-plugins.org/doc/man/check_disk.html) plugin
+checks the amount of used disk space on a mounted file system and generates an alert
+if free space is less than one of the threshold values.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
@@ -265,11 +272,8 @@ disk\_exclude\_type       | **Optional.** Ignore all filesystems of indicated ty
 
 ### <a id="plugin-check-command-disk-smb"></a> disk_smb
 
-Check command object for the `check_disk_smb` plugin.
-
-> **Note**
->
-> `disk_smb_wused` and `disk_smb_cused` require the percent sign. If omitted, disk units can be used.
+The [check_disk_smb](https://www.monitoring-plugins.org/doc/man/check_disk_smb.html) plugin
+uses the `smbclient` binary to check SMB shares.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
@@ -287,7 +291,10 @@ disk_smb_port		| **Optional.** Connection port, e.g. `139` or `445`. Defaults to
 
 ### <a id="plugin-check-command-dns"></a> dns
 
-Check command object for the `check_dns` plugin.
+The [check_dns](https://www.monitoring-plugins.org/doc/man/check_dns.html) plugin
+uses the nslookup program to obtain the IP address for the given host/domain query.
+An optional DNS server to use may be specified. If no DNS server is specified, the
+default server(s) specified in `/etc/resolv.conf` will be used.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
@@ -305,7 +312,9 @@ dns_timeout          | **Optional.** Seconds before connection times out. Defaul
 
 ### <a id="plugin-check-command-dummy"></a> dummy
 
-Check command object for the `check_dummy` plugin.
+The [check_dummy](https://www.monitoring-plugins.org/doc/man/check_dummy.html) plugin
+will simply return the state corresponding to the numeric value of the `dummy_state`
+argument with optional text.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
@@ -317,7 +326,8 @@ dummy_text      | **Optional.** Plugin output. Defaults to "Check was successful
 
 ### <a id="plugin-check-command-file-age"></a> file_age
 
-Check command object for the `check_file_age` plugin.
+The [check_file_age](https://www.monitoring-plugins.org/doc/man/check_file_age.html) plugin
+checks a file's size and modification time to make sure it's not empty and that it's sufficiently recent.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
@@ -333,7 +343,8 @@ file_age_ignoremissing | **Optional.** Return OK if the file does not exist. Def
 
 ### <a id="plugin-check-command-flexlm"></a> flexlm
 
-Check command object for the `check_flexlm` plugin. Requires the command `lmstat` installed.
+The [check_flexlm](https://www.monitoring-plugins.org/doc/man/check_flexlm.html) plugin
+checks available flexlm license managers. Requires the `lmstat` command.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
@@ -345,7 +356,11 @@ flexlm_timeout     | **Optional.** Plugin time out in seconds. Defaults to 15.
 
 ### <a id="plugin-check-command-fping4"></a> fping4
 
-Check command object for the `check_fping` plugin.
+The [check_fping](https://www.monitoring-plugins.org/doc/man/check_fping.html) plugin
+will use the `fping` command to ping the specified host for a fast check. Note that it is
+necessary to set the suid flag on fping.
+
+This CheckCommand expects an IPv4 address.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
@@ -366,7 +381,11 @@ fping_source_interface | **Optional.** The source interface name.
 
 ### <a id="plugin-check-command-fping6"></a> fping6
 
-Check command object for the `check_fping` plugin.
+The [check_fping](https://www.monitoring-plugins.org/doc/man/check_fping.html) plugin
+will use the `fping` command to ping the specified host for a fast check. Note that it is
+necessary to set the suid flag on fping.
+
+This CheckCommand expects an IPv6 address.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
@@ -387,7 +406,8 @@ fping_source_interface | **Optional.** The source interface name.
 
 ### <a id="plugin-check-command-ftp"></a> ftp
 
-Check command object for the `check_ftp` plugin.
+The [check_ftp](https://www.monitoring-plugins.org/doc/man/check_ftp.html) plugin
+tests FTP connections with the specified host (or unix socket).
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
@@ -417,28 +437,32 @@ ftp_ipv6           | **Optional.** Use IPv6 connection. Defaults to false.
 
 ### <a id="plugin-check-command-game"></a> game
 
-Check command object for the `check_game` plugin. Requires the command `qstat` (if installed from packages typically named `quakestat`) which also allows to provide some default configuration.
+The [check_game](https://www.monitoring-plugins.org/doc/man/check_game.html) plugin
+tests game server connections with the specified host.
+This plugin uses the 'qstat' command, the popular game server status query tool.
+If you don't have the package installed, you will need to [download](http://www.activesw.com/people/steve/qstat.html)
+or install the package `quakestat` before you can use this plugin.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name               | Description
--------------------|--------------
-game_game | **Required.** Name of the game.
-game_ipaddress | **Required.** Ipaddress of the game server to query.
-game_timeout | **Optional.** Seconds before connection times out. Defaults to 10.
-game_port | **Optional.** Port to connect to.
-game_gamefield | **Optional.** Field number in raw qstat output that contains game name.
-game_mapfield  | **Optional.** Field number in raw qstat output that contains map name.
-game_pingfield | **Optional.** Field number in raw qstat output that contains ping time.
-game_gametime  | **Optional.** Field number in raw qstat output that contains game time.
-game_hostname  | **Optional.** Name of the host running the game.
+-------------------|-------------------
+game_game          | **Required.** Name of the game.
+game_ipaddress     | **Required.** Ipaddress of the game server to query.
+game_timeout       | **Optional.** Seconds before connection times out. Defaults to 10.
+game_port          | **Optional.** Port to connect to.
+game_gamefield     | **Optional.** Field number in raw qstat output that contains game name.
+game_mapfield      | **Optional.** Field number in raw qstat output that contains map name.
+game_pingfield     | **Optional.** Field number in raw qstat output that contains ping time.
+game_gametime      | **Optional.** Field number in raw qstat output that contains game time.
+game_hostname      | **Optional.** Name of the host running the game.
 
 
 ### <a id="plugin-check-command-hostalive"></a> hostalive
 
-Check command object for the `check_ping` plugin with host check default values. This variant
-uses the host's `address` attribute if available and falls back to using the `address6` attribute
-if the `address` attribute is not set.
+Check command object for the [check_ping](https://www.monitoring-plugins.org/doc/man/check_ping.html)
+plugin with host check default values. This variant uses the host's `address` attribute
+if available and falls back to using the `address6` attribute if the `address` attribute is not set.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
@@ -455,8 +479,8 @@ ping_timeout    | **Optional.** The plugin timeout in seconds. Defaults to 0 (no
 
 ### <a id="plugin-check-command-hostalive4"></a> hostalive4
 
-Check command object for the `check_ping` plugin with host check default values. This variant
-uses the host's `address` attribute.
+Check command object for the [check_ping](https://www.monitoring-plugins.org/doc/man/check_ping.html)
+plugin with host check default values. This variant uses the host's `address` attribute.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
@@ -473,8 +497,8 @@ ping_timeout    | **Optional.** The plugin timeout in seconds. Defaults to 0 (no
 
 ### <a id="plugin-check-command-hostalive6"></a> hostalive6
 
-Check command object for the `check_ping` plugin with host check default values. This variant
-uses the host's `address6` attribute.
+Check command object for the [check_ping](https://www.monitoring-plugins.org/doc/man/check_ping.html)
+plugin with host check default values. This variant uses the host's `address6` attribute.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
@@ -491,7 +515,9 @@ ping_timeout    | **Optional.** The plugin timeout in seconds. Defaults to 0 (no
 
 ### <a id="plugin-check-command-hpjd"></a> hpjd
 
-Check command object for the `check_hpjd` plugin.
+The [check_hpjd](https://www.monitoring-plugins.org/doc/man/check_hpjd.html) plugin
+tests the state of an HP printer with a JetDirect card. Net-snmp must be installed
+on the computer running the plugin.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
@@ -504,7 +530,10 @@ hpjd_community  | **Optional.** The SNMP community. Defaults  to "public".
 
 ### <a id="plugin-check-command-http"></a> http
 
-Check command object for the `check_http` plugin.
+The [check_http](https://www.monitoring-plugins.org/doc/man/check_http.html) plugin
+tests the HTTP service on the specified host. It can test normal (http) and secure
+(https) servers, follow redirects, search for strings and regular expressions,
+check connection times, and report on certificate expiration times.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
@@ -557,7 +586,11 @@ http_ipv6                        | **Optional.** Use IPv6 connection. Defaults t
 
 ### <a id="plugin-check-command-icmp"></a> icmp
 
-Check command object for the `check_icmp` plugin.
+The [check_icmp](https://www.monitoring-plugins.org/doc/man/check_icmp.html) plugin
+check_icmp allows for checking multiple hosts at once compared to `check_ping`.
+The main difference is that check_ping executes the system's ping(1) command and
+parses its output while check_icmp talks ICMP itself. check_icmp must be installed
+setuid root.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
@@ -579,7 +612,8 @@ icmp_timeout    | **Optional.** The plugin timeout in seconds. Defaults to 10 (s
 
 ### <a id="plugin-check-command-imap"></a> imap
 
-Check command object for the `check_imap` plugin.
+The [check_imap](https://www.monitoring-plugins.org/doc/man/check_imap.html) plugin
+tests IMAP connections with the specified host (or unix socket).
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
@@ -608,7 +642,11 @@ imap_ipv6             | **Optional.** Use IPv6 connection. Defaults to false.
 
 ### <a id="plugin-check-command-ldap"></a> ldap
 
-Check command object for the `check_ldap` plugin. Use the plugin also for monitoring ldaps connections instead of the deprecated `check_ldaps`.
+The [check_ldap](https://www.monitoring-plugins.org/doc/man/check_ldap.html) plugin
+can be used to check LDAP servers.
+
+The plugin can also be used for monitoring ldaps connections instead of the deprecated `check_ldaps`.
+This can be ensured by enabling `ldap_starttls` or `ldap_ssl`.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
@@ -631,7 +669,8 @@ ldap_verbose	| **Optional.** Show details for command-line debugging (disabled b
 
 ### <a id="plugin-check-command-load"></a> load
 
-Check command object for the `check_load` plugin.
+The [check_load](https://www.monitoring-plugins.org/doc/man/check_load.html) plugin
+tests the current system load average.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
@@ -647,7 +686,8 @@ load_percpu     | **Optional.** Divide the load averages by the number of CPUs (
 
 ### <a id="plugin-check-command-mailq"></a> mailq
 
-Check command object for the `check_mailq` plugin.
+The [check_mailq](https://www.monitoring-plugins.org/doc/man/check_mailq.html) plugin
+checks the number of messages in the mail queue (supports multiple sendmail queues, qmail).
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
@@ -662,7 +702,8 @@ mailq_servertype	| **Optional.** [ sendmail \| qmail \| postfix \| exim \| nullm
 
 ### <a id="plugin-check-command-mysql"></a> mysql
 
-Check command object for the `check_mysql` plugin.
+The [check_mysql](https://www.monitoring-plugins.org/doc/man/check_mysql.html) plugin
+tests connections to a MySQL server.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
@@ -689,7 +730,12 @@ mysql_ciphers		| **Optional.** List of valid SSL ciphers.
 
 ### <a id="plugin-check-command-mysql-query"></a> mysql_query
 
-Check command object for the `check_mysql_query` plugin.
+The [check_mysql_query](https://www.monitoring-plugins.org/doc/man/check_mysql_query.html) plugin
+checks a query result against threshold levels.
+The result from the query should be numeric. For extra security, create a user with minimal access.
+
+**Note**: You must specify `mysql_query_password` with an empty string to force an empty password,
+overriding any my.cnf settings.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
@@ -709,7 +755,9 @@ mysql_query_critical    | **Optional.** Exit with CRITICAL status if query is ou
 
 ### <a id="plugin-check-command-negate"></a> negate
 
-Check command object for the `negate` plugin.
+The [negate](https://www.monitoring-plugins.org/doc/man/negate.html) plugin
+negates the status of a plugin (returns OK for CRITICAL and vice-versa).
+Additional switches can be used to control which state becomes what.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
@@ -726,7 +774,9 @@ negate_arguments	| **Optional.** Arguments for the negated command.
 
 ### <a id="plugin-check-command-nrpe"></a> nrpe
 
-Check command object for the `check_nrpe` plugin.
+The `check_nrpe` plugin can be used to query an [NRPE](http://docs.icinga.org/latest/en/nrpe.html)
+server or [NSClient++](https://www.nsclient.org). **Note**: This plugin
+is considered insecure/deprecated.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
@@ -745,7 +795,8 @@ nrpe_ipv6       | **Optional.** Use IPv6 connection. Defaults to false.
 
 ### <a id="plugin-check-command-nscp"></a> nscp
 
-Check command object for the `check_nt` plugin.
+The [check_nt](https://www.monitoring-plugins.org/doc/man/check_nt.html) plugin
+collects data from the [NSClient++](https://www.nsclient.org) service.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
@@ -764,7 +815,10 @@ nscp_showall    | **Optional.** Use with SERVICESTATE to see working services or
 
 ### <a id="plugin-check-command-ntp-time"></a> ntp_time
 
-Check command object for the `check_ntp_time` plugin.
+The [check_ntp_time](https://www.monitoring-plugins.org/doc/man/check_ntp_time.html) plugin
+checks the clock offset between the local host and a remote NTP server.
+
+**Note**: If you want to monitor an NTP server, please use `ntp_peer`.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
@@ -783,7 +837,10 @@ ntp_ipv6        | **Optional.** Use IPv6 connection. Defaults to false.
 
 ### <a id="plugin-check-command-ntp-peer"></a> ntp_peer
 
-Check command object for the `check_ntp_peer` plugin.
+The [check_ntp_peer](https://www.monitoring-plugins.org/doc/man/check_ntp_peer.html) plugin
+checks the health of an NTP server. It supports checking the offset with the sync peer, the
+jitter and stratum. This plugin will not check the clock offset between the local host and NTP
+ server; please use `ntp_time` for that purpose.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
@@ -817,7 +874,11 @@ dummy_text      | **Optional.** Plugin output. Defaults to "No Passive Check Res
 
 ### <a id="plugin-check-command-pgsql"></a> pgsql
 
-Check command object for the `check_pgsql` plugin.
+The [check_pgsql](https://www.monitoring-plugins.org/doc/man/check_pgsql.html) plugin
+tests a PostgreSQL DBMS to determine whether it is active and accepting queries.
+If a query is specified using the `pgsql_query` attribute, it will be executed after
+connecting to the server. The result from the query has to be numeric in order
+to compare it against the query thresholds if set.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
@@ -838,9 +899,12 @@ pgsql_query_critical	| **Optional.** SQL query value to result in critical statu
 
 ### <a id="plugin-check-command-ping"></a> ping
 
-Check command object for the `check_ping` plugin. This command uses the host's `address` attribute
-if available and falls back to using the `address6` attribute if the `address` attribute is not set.
+The [check_ping](https://www.monitoring-plugins.org/doc/man/check_ping.html) plugin
+uses the ping command to probe the specified host for packet loss (percentage) and
+round trip average (milliseconds).
 
+This command uses the host's `address` attribute if available and falls back to using
+the `address6` attribute if the `address` attribute is not set.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
@@ -857,7 +921,12 @@ ping_timeout    | **Optional.** The plugin timeout in seconds. Defaults to 0 (no
 
 ### <a id="plugin-check-command-ping4"></a> ping4
 
-Check command object for the `check_ping` plugin.
+The [check_ping](https://www.monitoring-plugins.org/doc/man/check_ping.html) plugin
+uses the ping command to probe the specified host for packet loss (percentage) and
+round trip average (milliseconds).
+
+This command uses the host's `address` attribute if not explicitely specified using
+the `ping_address` attribute.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
@@ -873,7 +942,12 @@ ping_timeout    | **Optional.** The plugin timeout in seconds. Defaults to 0 (no
 
 ### <a id="plugin-check-command-ping6"></a> ping6
 
-Check command object for the `check_ping` plugin.
+The [check_ping](https://www.monitoring-plugins.org/doc/man/check_ping.html) plugin
+uses the ping command to probe the specified host for packet loss (percentage) and
+round trip average (milliseconds).
+
+This command uses the host's `address6` attribute if not explicitely specified using
+the `ping_address` attribute.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
@@ -890,7 +964,8 @@ ping_timeout    | **Optional.** The plugin timeout in seconds. Defaults to 0 (no
 
 ### <a id="plugin-check-command-pop"></a> pop
 
-Check command object for the `check_pop` plugin.
+The [check_pop](https://www.monitoring-plugins.org/doc/man/check_pop.html) plugin
+tests POP connections with the specified host (or unix socket).
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
@@ -919,7 +994,10 @@ pop_ipv6             | **Optional.** Use IPv6 connection. Defaults to false.
 
 ### <a id="plugin-check-command-processes"></a> procs
 
-Check command object for the `check_procs` plugin.
+The [check_procs](https://www.monitoring-plugins.org/doc/man/check_procs.html) plugin
+checks all processes and generates WARNING or CRITICAL states if the specified
+metric is outside the required threshold ranges. The metric defaults to number
+of processes. Search filters can be applied to limit the processes to check.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
@@ -944,7 +1022,8 @@ procs_nokthreads     | **Optional.** Only scan for non kernel threads. Defaults 
 
 ### <a id="plugin-check-command-simap"></a> simap
 
-Check command object for the `check_simap` plugin.
+The [check_simap](https://www.monitoring-plugins.org/doc/man/check_simap.html) plugin
+tests SIMAP connections with the specified host (or unix socket).
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
@@ -972,7 +1051,8 @@ simap_ipv6             | **Optional.** Use IPv6 connection. Defaults to false.
 
 ### <a id="plugin-check-command-smart"></a> smart
 
-Check command object for the `check_ide_smart` plugin. Requires installation of `smartctl`.
+The [check_ide_smart](https://www.monitoring-plugins.org/doc/man/check_ide_smart.html) plugin
+checks a local hard drive with the (Linux specific) SMART interface. Requires installation of `smartctl`.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
@@ -983,7 +1063,8 @@ smart_device    | **Required.** The name of a local hard drive to monitor.
 
 ### <a id="plugin-check-command-smtp"></a> smtp
 
-Check command object for the `check_smtp` plugin.
+The [check_smtp](https://www.monitoring-plugins.org/doc/man/check_smtp.html) plugin
+will attempt to open an SMTP connection with the host.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
@@ -1011,7 +1092,10 @@ smtp_ipv6             | **Optional.** Use IPv6 connection. Defaults to false.
 
 ### <a id="plugin-check-command-snmp"></a> snmp
 
-Check command object for the `check_snmp` plugin.
+The [check_snmp](https://www.monitoring-plugins.org/doc/man/check_snmp.html) plugin
+checks the status of remote machines and obtains system information via SNMP.
+
+**Note**: This plugin uses the `snmpget` command included with the NET-SNMP package.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
@@ -1039,7 +1123,8 @@ snmp_timeout        | **Optional.** The command timeout in seconds. Defaults to 
 
 ### <a id="plugin-check-command-snmpv3"></a> snmpv3
 
-Check command object for the `check_snmp` plugin, using SNMPv3 authentication and encryption options.
+Check command object for the [check_snmp](https://www.monitoring-plugins.org/doc/man/check_snmp.html)
+plugin, using SNMPv3 authentication and encryption options.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
@@ -1068,7 +1153,8 @@ snmpv3_timeout       | **Optional.** The command timeout in seconds. Defaults to
 
 ### <a id="plugin-check-command-snmp-uptime"></a> snmp-uptime
 
-Check command object for the `check_snmp` plugin.
+Check command object for the [check_snmp](https://www.monitoring-plugins.org/doc/man/check_snmp.html)
+plugin, using the uptime OID by default.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
@@ -1081,7 +1167,8 @@ snmp_community  | **Optional.** The SNMP community. Defaults to "public".
 
 ### <a id="plugin-check-command-spop"></a> spop
 
-Check command object for the `check_spop` plugin.
+The [check_spop](https://www.monitoring-plugins.org/doc/man/check_spop.html) plugin
+tests SPOP connections with the specified host (or unix socket).
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
@@ -1110,7 +1197,8 @@ spop_ipv6             | **Optional.** Use IPv6 connection. Defaults to false.
 
 ### <a id="plugin-check-command-ssh"></a> ssh
 
-Check command object for the `check_ssh` plugin.
+The [check_ssh](https://www.monitoring-plugins.org/doc/man/check_ssh.html) plugin
+connects to an SSH server at a specified host and port.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
@@ -1125,7 +1213,8 @@ ssh_ipv6        | **Optional.** Use IPv6 connection. Defaults to false.
 
 ### <a id="plugin-check-command-ssl"></a> ssl
 
-Check command object for the `check_tcp` plugin, using ssl-related options.
+Check command object for the [check_tcp](https://www.monitoring-plugins.org/doc/man/check_tcp.html) plugin,
+using ssl-related options.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
@@ -1140,7 +1229,8 @@ ssl_cert_valid_days_critical  | **Optional.** Critical threshold for days before
 
 ### <a id="plugin-check-command-ssmtp"></a> ssmtp
 
-Check command object for the `check_ssmtp` plugin.
+The [check_ssmtp](https://www.monitoring-plugins.org/doc/man/check_ssmtp.html) plugin
+tests SSMTP connections with the specified host (or unix socket).
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
@@ -1169,7 +1259,8 @@ ssmtp_ipv6             | **Optional.** Use IPv6 connection. Defaults to false.
 
 ### <a id="plugin-check-command-swap"></a> swap
 
-Check command object for the `check_swap` plugin.
+The [check_swap](https://www.monitoring-plugins.org/doc/man/check_swap.html) plugin
+checks the swap space on a local machine.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
@@ -1184,7 +1275,8 @@ swap_noswap     | **Optional.** Resulting state when there is no swap regardless
 
 ### <a id="plugin-check-command-tcp"></a> tcp
 
-Check command object for the `check_tcp` plugin.
+The [check_tcp](https://www.monitoring-plugins.org/doc/man/check_tcp.html) plugin
+tests TCP connections with the specified host (or unix socket).
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
@@ -1214,7 +1306,8 @@ tcp_ipv6        | **Optional.** Use IPv6 connection. Defaults to false.
 
 ### <a id="plugin-check-command-udp"></a> udp
 
-Check command object for the `check_udp` plugin.
+The [check_udp](https://www.monitoring-plugins.org/doc/man/check_udp.html) plugin
+tests UDP connections with the specified host (or unix socket).
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
@@ -1231,7 +1324,9 @@ udp_ipv6        | **Optional.** Use IPv6 connection. Defaults to false.
 
 ### <a id="plugin-check-command-ups"></a> ups
 
-Check command object for the `check_ups` plugin.
+The [check_ups](https://www.monitoring-plugins.org/doc/man/check_ups.html) plugin
+tests the UPS service on the specified host. [Network UPS Tools](http://www.networkupstools.org)
+ must be running for this plugin to work.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
@@ -1249,7 +1344,9 @@ ups_timeout     | **Optional.** The number of seconds before the connection time
 
 ### <a id="plugin-check-command-users"></a> users
 
-Check command object for the `check_users` plugin.
+The [check_users](https://www.monitoring-plugins.org/doc/man/check_users.html) plugin
+checks the number of users currently logged in on the local system and generates an
+error if the number exceeds the thresholds specified.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
