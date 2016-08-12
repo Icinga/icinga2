@@ -28,6 +28,17 @@ boost::thread_specific_ptr<std::stack<ScriptFrame *> > ScriptFrame::m_ScriptFram
 ScriptFrame::ScriptFrame(void)
 	: Locals(new Dictionary()), Self(ScriptGlobal::GetGlobals()), Sandboxed(false), Depth(0)
 {
+	InitializeFrame();
+}
+
+ScriptFrame::ScriptFrame(const Value& self)
+	: Locals(new Dictionary()), Self(self), Sandboxed(false), Depth(0)
+{
+	InitializeFrame();
+}
+
+void ScriptFrame::InitializeFrame(void)
+{
 	std::stack<ScriptFrame *> *frames = m_ScriptFrames.get();
 
 	if (frames && !frames->empty()) {
@@ -35,17 +46,13 @@ ScriptFrame::ScriptFrame(void)
 
 		Sandboxed = frame->Sandboxed;
 		Imports = frame->Imports;
-	} else {
+	}
+
+	if (!Imports) {
 		Imports = new Array();
 		Imports->Add(ScriptGlobal::Get("System"));
 	}
 
-	PushFrame(this);
-}
-
-ScriptFrame::ScriptFrame(const Value& self)
-	: Locals(new Dictionary()), Self(self), Sandboxed(false), Depth(0)
-{
 	PushFrame(this);
 }
 

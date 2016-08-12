@@ -51,6 +51,8 @@ private:
 
 	inline static void PushFrame(ScriptFrame *frame);
 	inline static ScriptFrame *PopFrame(void);
+
+	void InitializeFrame(void);
 };
 
 }
