@@ -32,7 +32,7 @@ static void RegisterTypeType(void)
 	Type::Register(type);
 }
 
-INITIALIZE_ONCE(RegisterTypeType);
+INITIALIZE_ONCE_WITH_PRIORITY(RegisterTypeType, 20);
 
 String Type::ToString(void) const
 {

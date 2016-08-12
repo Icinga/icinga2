@@ -30,7 +30,7 @@ static void RegisterObjectType(void)
 	Object::TypeInstance = type;
 }
 
-INITIALIZE_ONCE(&RegisterObjectType);
+INITIALIZE_ONCE_WITH_PRIORITY(&RegisterObjectType, 20);
 
 ObjectType::ObjectType(void)
 { }
