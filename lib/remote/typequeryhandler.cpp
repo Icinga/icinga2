@@ -38,18 +38,7 @@ public:
 	virtual void FindTargets(const String& type,
 	    const boost::function<void (const Value&)>& addTarget) const override
 	{
-		std::vector<Type::Ptr> targets;
-
-		{
-			Dictionary::Ptr globals = ScriptGlobal::GetGlobals();
-			ObjectLock olock(globals);
-			BOOST_FOREACH(const Dictionary::Pair& kv, globals) {
-				if (kv.second.IsObjectType<Type>())
-					targets.push_back(kv.second);
-			}
-		}
-
-		BOOST_FOREACH(const Type::Ptr& target, targets) {
+		BOOST_FOREACH(const Type::Ptr& target, Type::GetAllTypes()) {
 			addTarget(target);
 		}
 	}

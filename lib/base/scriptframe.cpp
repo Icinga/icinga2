@@ -34,6 +34,10 @@ void ScriptFrame::StaticInitialize(void)
 	ScriptGlobal::Set("System", systemNS);
 	AddImport(systemNS);
 
+	Dictionary::Ptr typesNS = new Dictionary();
+	ScriptGlobal::Set("Types", typesNS);
+	AddImport(typesNS);
+
 	Dictionary::Ptr deprecatedNS = new Dictionary();
 	ScriptGlobal::Set("Deprecated", deprecatedNS);
 	AddImport(deprecatedNS);

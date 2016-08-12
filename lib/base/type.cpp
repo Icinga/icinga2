@@ -19,6 +19,8 @@
 
 #include "base/type.hpp"
 #include "base/scriptglobal.hpp"
+#include "base/objectlock.hpp"
+#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -43,17 +45,41 @@ void Type::Register(const Type::Ptr& type)
 {
 	VERIFY(GetByName(type->GetName()) == NULL);
 
-	ScriptGlobal::Set(type->GetName(), type);
+	ScriptGlobal::Set("Types." + type->GetName(), type);
 }
 
 Type::Ptr Type::GetByName(const String& name)
 {
-	Value ptype = ScriptGlobal::Get(name, &Empty);
+	Dictionary::Ptr typesNS = ScriptGlobal::Get("Types", &Empty);
+
+	if (!typesNS)
+		return Type::Ptr();
+
+	Value ptype = typesNS->Get(name);
 
 	if (!ptype.IsObjectType<Type>())
 		return Type::Ptr();
 
 	return ptype;
+}
+
+std::vector<Type::Ptr> Type::GetAllTypes(void)
+{
+	std::vector<Type::Ptr> types;
+
+	Dictionary::Ptr typesNS = ScriptGlobal::Get("Types", &Empty);
+
+	if (typesNS) {
+		ObjectLock olock(typesNS);
+
+		BOOST_FOREACH(const Dictionary::Pair& kv, typesNS) {
+			if (kv.second.IsObjectType<Type>())
+				types.push_back(kv.second);
+	}
+
+	}
+
+	return types;
 }
 
 String Type::GetPluralName(void) const

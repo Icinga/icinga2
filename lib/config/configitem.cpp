@@ -453,18 +453,7 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 
 	std::set<String> types;
 
-	std::vector<Type::Ptr> all_types;
-	Dictionary::Ptr globals = ScriptGlobal::GetGlobals();
-
-	{
-		ObjectLock olock(globals);
-		BOOST_FOREACH(const Dictionary::Pair& kv, globals) {
-			if (kv.second.IsObjectType<Type>())
-				all_types.push_back(kv.second);
-		}
-	}
-
-	BOOST_FOREACH(const Type::Ptr& type, all_types) {
+	BOOST_FOREACH(const Type::Ptr& type, Type::GetAllTypes()) {
 		if (ConfigObject::TypeInstance->IsAssignableFrom(type))
 			types.insert(type->GetName());
 	}

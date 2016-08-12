@@ -97,6 +97,7 @@ public:
 
 	static void Register(const Type::Ptr& type);
 	static Type::Ptr GetByName(const String& name);
+	static std::vector<Type::Ptr> GetAllTypes(void);
 
 	virtual void SetField(int id, const Value& value, bool suppress_events = false, const Value& cookie = Empty) override;
 	virtual Value GetField(int id) const override;

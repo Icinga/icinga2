@@ -34,21 +34,12 @@ Type::Ptr FilterUtility::TypeFromPluralName(const String& pluralName)
 	String uname = pluralName;
 	boost::algorithm::to_lower(uname);
 
-	{
-		Dictionary::Ptr globals = ScriptGlobal::GetGlobals();
-		ObjectLock olock(globals);
-		BOOST_FOREACH(const Dictionary::Pair& kv, globals) {
-			if (!kv.second.IsObjectType<Type>())
-				continue;
+	BOOST_FOREACH(const Type::Ptr&type, Type::GetAllTypes()) {
+		String pname = type->GetPluralName();
+		boost::algorithm::to_lower(pname);
 
-			Type::Ptr type = kv.second;
-
-			String pname = type->GetPluralName();
-			boost::algorithm::to_lower(pname);
-
-			if (uname == pname)
-				return type;
-		}
+		if (uname == pname)
+			return type;
 	}
 
 	return Type::Ptr();
