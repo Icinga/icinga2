@@ -904,15 +904,10 @@ ExpressionResult UsingExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhin
 	CHECK_RESULT(importres);
 	Value import = importres.GetValue();
 
-	if (!import.IsObject())
-		BOOST_THROW_EXCEPTION(ScriptError("The parameter does not resolve to an object", m_DebugInfo));
+	if (!import.IsObjectType<Dictionary>())
+		BOOST_THROW_EXCEPTION(ScriptError("The parameter must resolve to an object of type 'Dictionary'", m_DebugInfo));
 
-	if (!frame.Imports)
-		frame.Imports = new Array();
-	else
-		frame.Imports = static_pointer_cast<Array>(frame.Imports->ShallowClone());
-
-	frame.Imports->Add(import);
+	ScriptFrame::AddImport(import);
 
 	return Empty;
 }

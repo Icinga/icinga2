@@ -32,7 +32,6 @@ namespace icinga
 struct I2_BASE_API ScriptFrame
 {
 	Dictionary::Ptr Locals;
-	Array::Ptr Imports;
 	Value Self;
 	bool Sandboxed;
 	int Depth;
@@ -46,8 +45,12 @@ struct I2_BASE_API ScriptFrame
 
 	static ScriptFrame *GetCurrentFrame(void);
 
+	static Array::Ptr GetImports(void);
+	static void AddImport(const Object::Ptr& import);
+
 private:
 	static boost::thread_specific_ptr<std::stack<ScriptFrame *> > m_ScriptFrames;
+	static Array::Ptr m_Imports;
 
 	inline static void PushFrame(ScriptFrame *frame);
 	inline static ScriptFrame *PopFrame(void);

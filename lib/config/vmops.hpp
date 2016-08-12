@@ -46,11 +46,10 @@ class VMOps
 public:
 	static inline bool FindVarImportRef(ScriptFrame& frame, const String& name, Value *result, const DebugInfo& debugInfo = DebugInfo())
 	{
-		if (!frame.Imports)
-			return false;
+		Array::Ptr imports = ScriptFrame::GetImports();
 
-		ObjectLock olock(frame.Imports);
-		BOOST_FOREACH(const Value& import, frame.Imports) {
+		ObjectLock olock(imports);
+		BOOST_FOREACH(const Value& import, imports) {
 			Object::Ptr obj = import;
 			if (obj->HasOwnField(name)) {
 				*result = import;

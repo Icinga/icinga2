@@ -215,7 +215,7 @@ static void AddSuggestion(std::vector<String>& matches, const String& word, cons
 	matches.push_back(suggestion);
 }
 
-static void AddSuggestions(std::vector<String>& matches, const String& word, const String& pword, const Value& value)
+static void AddSuggestions(std::vector<String>& matches, const String& word, const String& pword, bool withPrototype, const Value& value)
 {
 	String prefix;
 
@@ -239,18 +239,20 @@ static void AddSuggestions(std::vector<String>& matches, const String& word, con
 		AddSuggestion(matches, word, prefix + field.Name);
 	}
 
-	while (type) {
-		Object::Ptr prototype = type->GetPrototype();
-		Dictionary::Ptr dict = dynamic_pointer_cast<Dictionary>(prototype);
+	if (withPrototype) {
+		while (type) {
+			Object::Ptr prototype = type->GetPrototype();
+			Dictionary::Ptr dict = dynamic_pointer_cast<Dictionary>(prototype);
 
-		if (dict) {
-			ObjectLock olock(dict);
-			BOOST_FOREACH(const Dictionary::Pair& kv, dict) {
-				AddSuggestion(matches, word, prefix + kv.first);
+			if (dict) {
+				ObjectLock olock(dict);
+				BOOST_FOREACH(const Dictionary::Pair& kv, dict) {
+					AddSuggestion(matches, word, prefix + kv.first);
+				}
 			}
-		}
 
-		type = type->GetBaseType();
+			type = type->GetBaseType();
+		}
 	}
 }
 
@@ -276,10 +278,11 @@ std::vector<String> ConsoleHandler::GetAutocompletionSuggestions(const String& w
 		}
 	}
 
-	if (frame.Imports) {
-		ObjectLock olock(frame.Imports);
-		BOOST_FOREACH(const Value& import, frame.Imports) {
-			AddSuggestions(matches, word, "", import);
+	{
+		Array::Ptr imports = ScriptFrame::GetImports();
+		ObjectLock olock(imports);
+		BOOST_FOREACH(const Value& import, imports) {
+			AddSuggestions(matches, word, "", false, import);
 		}
 	}
 
@@ -296,7 +299,7 @@ std::vector<String> ConsoleHandler::GetAutocompletionSuggestions(const String& w
 			if (expr)
 				value = expr->Evaluate(frame);
 
-			AddSuggestions(matches, word, pword, value);
+			AddSuggestions(matches, word, pword, true, value);
 
 		} catch (...) { /* Ignore the exception */ }
 	}

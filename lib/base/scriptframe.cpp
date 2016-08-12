@@ -24,6 +24,7 @@
 using namespace icinga;
 
 boost::thread_specific_ptr<std::stack<ScriptFrame *> > ScriptFrame::m_ScriptFrames;
+Array::Ptr ScriptFrame::m_Imports;
 
 ScriptFrame::ScriptFrame(void)
 	: Locals(new Dictionary()), Self(ScriptGlobal::GetGlobals()), Sandboxed(false), Depth(0)
@@ -45,12 +46,6 @@ void ScriptFrame::InitializeFrame(void)
 		ScriptFrame *frame = frames->top();
 
 		Sandboxed = frame->Sandboxed;
-		Imports = frame->Imports;
-	}
-
-	if (!Imports) {
-		Imports = new Array();
-		Imports->Add(ScriptGlobal::Get("System"));
 	}
 
 	PushFrame(this);
@@ -111,3 +106,21 @@ void ScriptFrame::PushFrame(ScriptFrame *frame)
 
 	frames->push(frame);
 }
+
+Array::Ptr ScriptFrame::GetImports(void)
+{
+	if (!m_Imports) {
+		m_Imports = new Array();
+		m_Imports->Add(ScriptGlobal::Get("System"));
+	}
+
+	return m_Imports;
+}
+
+void ScriptFrame::AddImport(const Object::Ptr& import)
+{
+	Array::Ptr imports = m_Imports->ShallowClone();
+	imports->Add(import);
+	m_Imports = imports;
+}
+
