@@ -48,6 +48,40 @@ REGISTER_CLICOMMAND("console", ConsoleCommand);
 
 INITIALIZE_ONCE(&ConsoleCommand::StaticInitialize);
 
+extern "C" void dbg_spawn_console(void)
+{
+	ScriptFrame frame;
+	ConsoleCommand::RunScriptConsole(frame);
+}
+
+extern "C" void dbg_inspect_value(const Value& value)
+{
+	ConfigWriter::EmitValue(std::cout, 1, Serialize(value, 0));
+	std::cout << std::endl;
+}
+
+extern "C" void dbg_inspect_object(Object *obj)
+{
+	Object::Ptr objr = obj;
+	dbg_inspect_value(objr);
+}
+
+extern "C" void dbg_eval(const char *text)
+{
+	Expression *expr;
+
+	try {
+		ScriptFrame frame;
+		expr = ConfigCompiler::CompileText("<dbg>", text);
+		Value result = Serialize(expr->Evaluate(frame), 0);
+		dbg_inspect_value(result);
+	} catch (const std::exception& ex) {
+		std::cout << "Error: " << DiagnosticInformation(ex) << "\n";
+	}
+
+	delete expr;
+}
+
 void ConsoleCommand::BreakpointHandler(ScriptFrame& frame, ScriptError *ex, const DebugInfo& di)
 {
 	static boost::mutex mutex;
