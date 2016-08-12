@@ -525,7 +525,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		m_Impl << "\t" << "if (avalue.IsObjectType<Function>()) {" << std::endl
 		       << "\t\t" << "Function::Ptr func = avalue;" << std::endl
 		       << "\t\t" << "if (func->IsDeprecated())" << std::endl
-		       << "\t\t\t" << "Log(LogWarning, \"" << klass.Name << "\") << \"Field '" << field.Name << "' for object '\" << dynamic_cast<ConfigObject *>(this)->GetName() << \"' of type '\" << dynamic_cast<ConfigObject *>(this)->GetType()->GetName() << \"' is set to a deprecated function: \" << func->GetName();" << std::endl
+		       << "\t\t\t" << "Log(LogWarning, \"" << klass.Name << "\") << \"Attribute '" << field.Name << "' for object '\" << dynamic_cast<ConfigObject *>(this)->GetName() << \"' of type '\" << dynamic_cast<ConfigObject *>(this)->GetType()->GetName() << \"' is set to a deprecated function: \" << func->GetName();" << std::endl
 		       << "\t" << "}" << std::endl << std::endl;
 
 		std::string ftype = FieldTypeToIcingaName(field, true);
