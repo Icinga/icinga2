@@ -66,6 +66,7 @@ REGISTER_SAFE_SCRIPTFUNCTION_NS(System, escape_shell_arg, &Utility::EscapeShellA
 REGISTER_SAFE_SCRIPTFUNCTION_NS(System, escape_create_process_arg, &Utility::EscapeCreateProcessArg);
 #endif /* _WIN32 */
 REGISTER_SCRIPTFUNCTION_NS(System, ptr, &ScriptUtils::Ptr);
+REGISTER_SCRIPTFUNCTION_NS(System, sleep, &Utility::Sleep);
 
 String ScriptUtils::CastString(const Value& value)
 {
