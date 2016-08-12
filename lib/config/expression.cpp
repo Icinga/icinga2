@@ -910,7 +910,7 @@ ExpressionResult UsingExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhin
 	if (!frame.Imports)
 		frame.Imports = new Array();
 	else
-		frame.Imports = static_pointer_cast<Array>(frame.Imports->Clone());
+		frame.Imports = static_pointer_cast<Array>(frame.Imports->ShallowClone());
 
 	frame.Imports->Add(import);
 
