@@ -215,7 +215,7 @@ static void AddSuggestion(std::vector<String>& matches, const String& word, cons
 	matches.push_back(suggestion);
 }
 
-static void AddSuggestions(std::vector<String>& matches, const String& word, const String& pword, bool withPrototype, const Value& value)
+static void AddSuggestions(std::vector<String>& matches, const String& word, const String& pword, bool withFields, const Value& value)
 {
 	String prefix;
 
@@ -231,15 +231,15 @@ static void AddSuggestions(std::vector<String>& matches, const String& word, con
 		}
 	}
 
-	Type::Ptr type = value.GetReflectionType();
+	if (withFields) {
+		Type::Ptr type = value.GetReflectionType();
 
-	for (int i = 0; i < type->GetFieldCount(); i++) {
-		Field field = type->GetFieldInfo(i);
+		for (int i = 0; i < type->GetFieldCount(); i++) {
+			Field field = type->GetFieldInfo(i);
 
-		AddSuggestion(matches, word, prefix + field.Name);
-	}
+			AddSuggestion(matches, word, prefix + field.Name);
+		}
 
-	if (withPrototype) {
 		while (type) {
 			Object::Ptr prototype = type->GetPrototype();
 			Dictionary::Ptr dict = dynamic_pointer_cast<Dictionary>(prototype);
