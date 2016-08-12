@@ -120,8 +120,15 @@ Array::Ptr ScriptFrame::GetImports(void)
 
 void ScriptFrame::AddImport(const Object::Ptr& import)
 {
-	Array::Ptr imports = m_Imports->ShallowClone();
+	Array::Ptr imports;
+
+	if (!m_Imports)
+		imports = new Array();
+	else
+		imports = m_Imports->ShallowClone();
+
 	imports->Add(import);
+
 	m_Imports = imports;
 }
 
