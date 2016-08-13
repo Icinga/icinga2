@@ -53,7 +53,7 @@ is removed (may happen before or after the actual end time!).
 
 ### <a id="scheduling-downtime"></a> Scheduling a downtime
 
-This can either happen through a web interface or by sending an [external command](15-features.md#external-commands)
+This can either happen through a web interface or by sending an [external command](14-features.md#external-commands)
 to the external command pipe provided by the `ExternalCommandListener` configuration.
 
 Fixed downtimes require a start and end time (a duration will be ignored).
@@ -70,7 +70,7 @@ downtime on `NOT-OK` state change.
 
 ### <a id="recurring-downtimes"></a> Recurring Downtimes
 
-[ScheduledDowntime objects](6-object-types.md#objecttype-scheduleddowntime) can be used to set up
+[ScheduledDowntime objects](9-object-types.md#objecttype-scheduleddowntime) can be used to set up
 recurring downtimes for services.
 
 Example:
@@ -132,7 +132,7 @@ re-notify, if the problem persists.
 
 ## <a id="timeperiods"></a> Time Periods
 
-[Time Periods](6-object-types.md#objecttype-timeperiod) define
+[Time Periods](9-object-types.md#objecttype-timeperiod) define
 time ranges in Icinga where event actions are triggered, for
 example whether a service check is executed or not within
 the `check_period` attribute. Or a notification should be sent to
@@ -216,7 +216,7 @@ your default time period definitions, for example, if you don't
 want to send out any notification during the holiday season,
 or if you only want to allow small time windows for executed checks.
 
-The [TimePeriod object](6-object-types.md#objecttype-timeperiod)
+The [TimePeriod object](9-object-types.md#objecttype-timeperiod)
 provides the `includes` and `excludes` attributes to solve this issue.
 `prefer_includes` defines whether included or excluded time periods are
 preferred.
@@ -276,8 +276,8 @@ and adds the excluded time period names as an array.
 There is a limited scope where functions can be used as object attributes such as:
 
 * As value for [Custom Attributes](3-monitoring-basics.md#custom-attributes-functions)
-* Returning boolean expressions for [set_if](5-advanced-topics.md#use-functions-command-arguments-setif) inside command arguments
-* Returning a [command](5-advanced-topics.md#use-functions-command-attribute) array inside command objects
+* Returning boolean expressions for [set_if](8-advanced-topics.md#use-functions-command-arguments-setif) inside command arguments
+* Returning a [command](8-advanced-topics.md#use-functions-command-attribute) array inside command objects
 
 The other way around you can create objects dynamically using your own global functions.
 
@@ -285,11 +285,11 @@ The other way around you can create objects dynamically using your own global fu
 >
 > Functions called inside command objects share the same global scope as runtime macros.
 > Therefore you can access host custom attributes like `host.vars.os`, or any other
-> object attribute from inside the function definition used for [set_if](5-advanced-topics.md#use-functions-command-arguments-setif) or [command](5-advanced-topics.md#use-functions-command-attribute).
+> object attribute from inside the function definition used for [set_if](8-advanced-topics.md#use-functions-command-arguments-setif) or [command](8-advanced-topics.md#use-functions-command-attribute).
 
 Tips when implementing functions:
 
-* Use [log()](19-library-reference.md#global-functions) to dump variables. You can see the output
+* Use [log()](18-library-reference.md#global-functions) to dump variables. You can see the output
 inside the `icinga2.log` file depending in your log severity
 * Use the `icinga2 console` to test basic functionality (e.g. iterating over a dictionary)
 * Build them step-by-step. You can always refactor your code later on.
@@ -297,7 +297,7 @@ inside the `icinga2.log` file depending in your log severity
 ### <a id="use-functions-command-arguments-setif"></a> Use Functions in Command Arguments set_if
 
 The `set_if` attribute inside the command arguments definition in the
-[CheckCommand object definition](6-object-types.md#objecttype-checkcommand) is primarily used to
+[CheckCommand object definition](9-object-types.md#objecttype-checkcommand) is primarily used to
 evaluate whether the command parameter should be set or not.
 
 By default you can evaluate runtime macros for their existence. If the result is not an empty
@@ -318,7 +318,7 @@ dictionary named `compellent` with the key `disks`. This was then used inside se
 The more significant problem was to only add the command parameter `--disk` to the plugin call
 when the dictionary `compellent` contains the key `disks`, and omit it if not found.
 
-By defining `set_if` as [abbreviated lambda function](18-language-reference.md#nullary-lambdas)
+By defining `set_if` as [abbreviated lambda function](17-language-reference.md#nullary-lambdas)
 and evaluating the host custom attribute `compellent` containing the `disks` this problem was
 solved like this:
 
@@ -338,9 +338,9 @@ solved like this:
       }
     }
 
-This implementation uses the dictionary type method [contains](19-library-reference.md#dictionary-contains)
+This implementation uses the dictionary type method [contains](18-library-reference.md#dictionary-contains)
 and will fail if `host.vars.compellent` is not of the type `Dictionary`.
-Therefore you can extend the checks using the [typeof](18-language-reference.md#types) function.
+Therefore you can extend the checks using the [typeof](17-language-reference.md#types) function.
 
 You can test the types using the `icinga2 console`:
 
@@ -376,8 +376,8 @@ The more programmatic approach for `set_if` could look like this:
 
 ### <a id="use-functions-command-attribute"></a> Use Functions as Command Attribute
 
-This comes in handy for [NotificationCommands](6-object-types.md#objecttype-notificationcommand)
-or [EventCommands](6-object-types.md#objecttype-eventcommand) which does not require
+This comes in handy for [NotificationCommands](9-object-types.md#objecttype-notificationcommand)
+or [EventCommands](9-object-types.md#objecttype-eventcommand) which does not require
 a returned checkresult including state/output.
 
 The following example was taken from the community support channels. The requirement was to
@@ -460,11 +460,11 @@ as value for `ping_wrta`, all other hosts use 100.
 
 If a simple expression for matching a name or checking if an item
 exists in an array or dictionary does not fit, you should consider
-writing your own global [functions](18-language-reference.md#functions).
+writing your own global [functions](17-language-reference.md#functions).
 You can call them inside `assign where` and `ignore where` expressions
 for [apply rules](3-monitoring-basics.md#using-apply-expressions) or
 [group assignments](3-monitoring-basics.md#group-assign-intro) just like
-any other global functions for example [match](19-library-reference.md#global-functions).
+any other global functions for example [match](18-library-reference.md#global-functions).
 
 The following example requires the host `myprinter` being added
 to the host group `printers-lexmark` but only if the host uses
@@ -547,11 +547,11 @@ with the `vars_app` dictionary.
 
 ## <a id="access-object-attributes-at-runtime"></a> Access Object Attributes at Runtime
 
-The [Object Accessor Functions](19-library-reference.md#object-accessor-functions)
+The [Object Accessor Functions](18-library-reference.md#object-accessor-functions)
 can be used to retrieve references to other objects by name.
 
 This allows you to access configuration and runtime object attributes. A detailed
-list can be found [here](6-object-types.md#object-types).
+list can be found [here](9-object-types.md#object-types).
 
 Simple cluster example for accessing two host object states and calculating a virtual
 cluster state and output:

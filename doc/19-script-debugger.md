@@ -5,7 +5,7 @@ parameter to enable the script debugger:
 
     # icinga2 daemon -X
 
-When an exception occurs or the [debugger](18-language-reference.md#breakpoints)
+When an exception occurs or the [debugger](17-language-reference.md#breakpoints)
 keyword is encountered in a user script, Icinga 2 launches a console that
 allows the user to debug the script.
 

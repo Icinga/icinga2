@@ -17,7 +17,7 @@ bool(value)                     | Converts the value to a bool.
 random()                        | Returns a random value between 0 and RAND_MAX (as defined in stdlib.h).
 log(value)                      | Writes a message to the log. Non-string values are converted to a JSON string.
 log(severity, facility, value)  | Writes a message to the log. `severity` can be one of `LogDebug`, `LogNotice`, `LogInformation`, `LogWarning`, and `LogCritical`. Non-string values are converted to a JSON string.
-typeof(value)                   | Returns the [Type](19-library-reference.md#type-type) object for a value.
+typeof(value)                   | Returns the [Type](18-library-reference.md#type-type) object for a value.
 get_time()                      | Returns the current UNIX timestamp.
 parse_performance_data(pd)      | Parses a performance data string and returns an array describing the values.
 dirname(path)                   | Returns the directory portion of the specified path.
@@ -414,7 +414,7 @@ Signature:
     function contains(str);
 
 Returns `true` if the string `str` was found in the string. If the string
-was not found, `false` is returned. Use [find](19-library-reference.md#string-find)
+was not found, `false` is returned. Use [find](18-library-reference.md#string-find)
 for getting the index instead.
 
 Example:
@@ -559,7 +559,7 @@ Example:
 
 ## <a id="type-type"></a> Type type
 
-Inherits methods from the [Object type](19-library-reference.md#object-type).
+Inherits methods from the [Object type](18-library-reference.md#object-type).
 
 The `Type` type provides information about the underlying type of an object or scalar value.
 
@@ -601,7 +601,7 @@ Example:
 
 ## <a id="array-type"></a> Array type
 
-Inherits methods from the [Object type](19-library-reference.md#object-type).
+Inherits methods from the [Object type](18-library-reference.md#object-type).
 
 ### <a id="array-add"></a> Array#add
 
@@ -732,7 +732,7 @@ of the array is not preserved.
 
 ## <a id="dictionary-type"></a> Dictionary type
 
-Inherits methods from the [Object type](19-library-reference.md#object-type).
+Inherits methods from the [Object type](18-library-reference.md#object-type).
 
 ### <a id="dictionary-shallow-clone"></a> Dictionary#shallow_clone
 
@@ -795,7 +795,7 @@ Returns a list of keys for all items that are currently in the dictionary.
 
 ## <a id="scriptfunction-type"></a> Function type
 
-Inherits methods from the [Object type](19-library-reference.md#object-type).
+Inherits methods from the [Object type](18-library-reference.md#object-type).
 
 ### <a id="scriptfunction-call"></a> Function#call
 
@@ -839,7 +839,7 @@ Example:
 
 ## <a id="datetime-type"></a> DateTime type
 
-Inherits methods from the [Object type](19-library-reference.md#object-type).
+Inherits methods from the [Object type](18-library-reference.md#object-type).
 
 ### <a id="datetime-ctor"></a> DateTime constructor
 

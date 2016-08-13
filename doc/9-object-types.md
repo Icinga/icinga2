@@ -8,7 +8,7 @@ description are explained as well.
 
 Config objects share these runtime attributes which cannot be
 modified by the user. You can access these attributes using
-the [Icinga 2 API](9-icinga2-api.md#icinga2-api-config-objects).
+the [Icinga 2 API](12-icinga2-api.md#icinga2-api-config-objects).
 
   Name                      |Description
   --------------------------|--------------------------
@@ -16,9 +16,9 @@ the [Icinga 2 API](9-icinga2-api.md#icinga2-api-config-objects).
   type                      | Object type.
   original_attributes       | Original values of object attributes modified at runtime.
   active                    | Object is active (e.g. a service being checked).
-  paused                    | Object has been paused at runtime (e.g. [IdoMysqlConnection](6-object-types.md#objecttype-idomysqlconnection). Defaults to `false`.
+  paused                    | Object has been paused at runtime (e.g. [IdoMysqlConnection](9-object-types.md#objecttype-idomysqlconnection). Defaults to `false`.
   templates                 | Templates imported on object compilation.
-  package                   | [Configuration package name](9-icinga2-api.md#icinga2-api-config-management) this object belongs to. Local configuration is set to `_etc`, runtime created objects use `_api`.
+  package                   | [Configuration package name](12-icinga2-api.md#icinga2-api-config-management) this object belongs to. Local configuration is set to `_etc`, runtime created objects use `_api`.
 
 
 ## <a id="objecttype-apilistener"></a> ApiListener
@@ -73,7 +73,7 @@ Configuration Attributes:
   client\_cn                |**Optional.** Client Common Name (CN).
   permissions		    |**Required.** Array of permissions. Either as string or dictionary with the keys `permission` and `filter`. The latter must be specified as function.
 
-Available permissions are described in the [API permissions](9-icinga2-api.md#icinga2-api-permissions)
+Available permissions are described in the [API permissions](12-icinga2-api.md#icinga2-api-permissions)
 chapter.
 
 ## <a id="objecttype-checkcommand"></a> CheckCommand
@@ -391,7 +391,7 @@ Configuration Attributes:
   end_time        | **Required.** The end time as unix timestamp.
   duration        | **Required.** The duration as number.
   entry_time      | **Optional.** The unix timestamp when this downtime was added.
-  fixed           | **Optional.** Whether the downtime is fixed (true) or flexible (false). Defaults to flexible. Details in the [advanced topics chapter](5-advanced-topics.md#fixed-flexible-downtimes).
+  fixed           | **Optional.** Whether the downtime is fixed (true) or flexible (false). Defaults to flexible. Details in the [advanced topics chapter](8-advanced-topics.md#fixed-flexible-downtimes).
   triggers        | **Optional.** List of downtimes which should be triggered by this downtime.
 
 Runtime Attributes:
@@ -458,7 +458,7 @@ Configuration Attributes:
   timeout         |**Optional.** The command timeout in seconds. Defaults to 60 seconds.
   arguments       |**Optional.** A dictionary of command arguments.
 
-Command arguments can be used the same way as for [CheckCommand objects](6-object-types.md#objecttype-checkcommand-arguments).
+Command arguments can be used the same way as for [CheckCommand objects](9-object-types.md#objecttype-checkcommand-arguments).
 
 
 ## <a id="objecttype-externalcommandlistener"></a> ExternalCommandListener
@@ -549,7 +549,7 @@ Configuration Attributes:
   enable_send_metadata 	| **Optional.** Send additional metadata metrics. Defaults to `false`.
   enable_legacy_mode	| **Optional.** Enable legacy mode for schema < 2.4. **Note**: This will be removed in future versions.
 
-Additional usage examples can be found [here](15-features.md#graphite-carbon-cache-writer).
+Additional usage examples can be found [here](14-features.md#graphite-carbon-cache-writer).
 
 
 
@@ -642,7 +642,7 @@ A group of hosts.
 
 > **Best Practice**
 >
-> Assign host group members using the [group assign](18-language-reference.md#group-assign) rules.
+> Assign host group members using the [group assign](17-language-reference.md#group-assign) rules.
 
 Example:
 
@@ -722,8 +722,8 @@ Configuration Attributes:
   table\_prefix   |**Optional.** MySQL database table prefix. Defaults to "icinga\_".
   instance\_name  |**Optional.** Unique identifier for the local Icinga 2 instance. Defaults to "default".
   instance\_description|**Optional.** Description for the Icinga 2 instance.
-  enable_ha       |**Optional.** Enable the high availability functionality. Only valid in a [cluster setup](13-distributed-monitoring-ha.md#high-availability-db-ido). Defaults to "true".
-  failover_timeout | **Optional.** Set the failover timeout in a [HA cluster](13-distributed-monitoring-ha.md#high-availability-db-ido). Must not be lower than 60s. Defaults to "60s".
+  enable_ha       |**Optional.** Enable the high availability functionality. Only valid in a [cluster setup](6-distributed-monitoring.md#distributed-monitoring-high-availability-db-ido). Defaults to "true".
+  failover_timeout | **Optional.** Set the failover timeout in a [HA cluster](6-distributed-monitoring.md#distributed-monitoring-high-availability-db-ido). Must not be lower than 60s. Defaults to "60s".
   cleanup         |**Optional.** Dictionary with items for historical table cleanup.
   categories      |**Optional.** Array of information types that should be written to the database.
 
@@ -811,8 +811,8 @@ Configuration Attributes:
   table\_prefix   |**Optional.** PostgreSQL database table prefix. Defaults to "icinga\_".
   instance\_name  |**Optional.** Unique identifier for the local Icinga 2 instance. Defaults to "default".
   instance\_description|**Optional.** Description for the Icinga 2 instance.
-  enable_ha       |**Optional.** Enable the high availability functionality. Only valid in a [cluster setup](13-distributed-monitoring-ha.md#high-availability-db-ido). Defaults to "true".
-  failover_timeout | **Optional.** Set the failover timeout in a [HA cluster](13-distributed-monitoring-ha.md#high-availability-db-ido). Must not be lower than 60s. Defaults to "60s".
+  enable_ha       |**Optional.** Enable the high availability functionality. Only valid in a [cluster setup](6-distributed-monitoring.md#distributed-monitoring-high-availability-db-ido). Defaults to "true".
+  failover_timeout | **Optional.** Set the failover timeout in a [HA cluster](6-distributed-monitoring.md#distributed-monitoring-high-availability-db-ido). Must not be lower than 60s. Defaults to "60s".
   cleanup         |**Optional.** Dictionary with items for historical table cleanup.
   categories      |**Optional.** Array of information types that should be written to the database.
 
@@ -970,7 +970,7 @@ is associated with the service:
 ## <a id="objecttype-livestatuslistener"></a> LiveStatusListener
 
 Livestatus API interface available as TCP or UNIX socket. Historical table queries
-require the [CompatLogger](6-object-types.md#objecttype-compatlogger) feature enabled
+require the [CompatLogger](9-object-types.md#objecttype-compatlogger) feature enabled
 pointing to the log files using the `compat_log_path` configuration attribute.
 
 Example:
@@ -1120,7 +1120,7 @@ Configuration Attributes:
   timeout         |**Optional.** The command timeout in seconds. Defaults to 60 seconds.
   arguments       |**Optional.** A dictionary of command arguments.
 
-Command arguments can be used the same way as for [CheckCommand objects](6-object-types.md#objecttype-checkcommand-arguments).
+Command arguments can be used the same way as for [CheckCommand objects](9-object-types.md#objecttype-checkcommand-arguments).
 
 
 ## <a id="objecttype-notificationcomponent"></a> NotificationComponent
@@ -1137,7 +1137,7 @@ Configuration Attributes:
 
   Name            |Description
   ----------------|----------------
-  enable\_ha      |**Optional.** Enable the high availability functionality. Only valid in a [cluster setup](13-distributed-monitoring-ha.md#high-availability-notifications). Disabling this currently only affects reminder notifications. Defaults to "true".
+  enable\_ha      |**Optional.** Enable the high availability functionality. Only valid in a [cluster setup](6-distributed-monitoring.md#distributed-monitoring-high-availability-notifications). Disabling this currently only affects reminder notifications. Defaults to "true".
 
 ## <a id="objecttype-opentsdbwriter"></a> OpenTsdbWriter
 
@@ -1206,7 +1206,7 @@ ScheduledDowntime objects can be used to set up recurring downtimes for hosts/se
 > to just create a `ScheduledDowntime` template and use the `apply` keyword to assign the
 > scheduled downtime to a number of hosts or services. Use the `to` keyword to set the specific target
 > type for `Host` or `Service`.
-> Check the [recurring downtimes](5-advanced-topics.md#recurring-downtimes) example for details.
+> Check the [recurring downtimes](8-advanced-topics.md#recurring-downtimes) example for details.
 
 Example:
 
@@ -1346,7 +1346,7 @@ A group of services.
 
 > **Best Practice**
 >
-> Assign service group members using the [group assign](18-language-reference.md#group-assign) rules.
+> Assign service group members using the [group assign](17-language-reference.md#group-assign) rules.
 
 Example:
 
@@ -1536,7 +1536,7 @@ A user group.
 
 > **Best Practice**
 >
-> Assign user group members using the [group assign](18-language-reference.md#group-assign) rules.
+> Assign user group members using the [group assign](17-language-reference.md#group-assign) rules.
 
 Example:
 
@@ -1580,7 +1580,7 @@ Zone objects cannot currently be created with the API.
 
 # <a id="value-types"></a> Value Types
 
-In addition to [configuration objects](6-object-types.md) Icinga 2 also uses a few other types to represent its internal state. The following types are exposed via the [API](9-icinga2-api.md#icinga2-api).
+In addition to [configuration objects](9-object-types.md#object-types) Icinga 2 also uses a few other types to represent its internal state. The following types are exposed via the [API](12-icinga2-api.md#icinga2-api).
 
 ## <a id="value-types-checkresult"></a> CheckResult
 
@@ -1588,7 +1588,7 @@ In addition to [configuration objects](6-object-types.md) Icinga 2 also uses a f
   --------------------------|---------------|-----------------
   exit_status               | Number        | The exit status returned by the check execution.
   output                    | String        | The check output.
-  performance_data          | Array         | Array of [performance data values](6-object-types.md#value-types-perfdatavalue).
+  performance_data          | Array         | Array of [performance data values](9-object-types.md#value-types-perfdatavalue).
   check_source              | String        | Name of the node executing the check.
   state                     | Number        | The current state (0 = OK, 1 = WARNING, 2 = CRITICAL, 3 = UNKNOWN).
   command                   | Value         | Array of command with shell-escaped arguments or command line string.
@@ -1602,14 +1602,14 @@ In addition to [configuration objects](6-object-types.md) Icinga 2 also uses a f
 
 ## <a id="value-types-perfdatavalue"></a> PerfdataValue
 
-Icinga 2 parses performance data strings returned by check plugins and makes the information available to external interfaces (e.g. [GraphiteWriter](6-object-types.md#objecttype-graphitewriter) or the [Icinga 2 API](9-icinga2-api.md#icinga2-api)).
+Icinga 2 parses performance data strings returned by check plugins and makes the information available to external interfaces (e.g. [GraphiteWriter](9-object-types.md#objecttype-graphitewriter) or the [Icinga 2 API](12-icinga2-api.md#icinga2-api)).
 
   Name                      | Type          | Description
   --------------------------|---------------|-----------------
   label                     | String        | Performance data label.
   value                     | Number        | Normalized performance data value without unit.
   counter                   | Boolean       | Enabled if the original value contains `c` as unit. Defaults to `false`.
-  unit                      | String        | Unit of measurement (`seconds`, `bytes`. `percent`) according to the [plugin API](14-addons-plugins.md#plugin-api).
+  unit                      | String        | Unit of measurement (`seconds`, `bytes`. `percent`) according to the [plugin API](5-service-monitoring.md#service-monitoring-plugin-api).
   crit                      | Value         | Critical threshold value.
   warn                      | Value         | Warning threshold value.
   min                       | Value         | Minimum value returned by the check.

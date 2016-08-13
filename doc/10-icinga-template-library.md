@@ -11,6 +11,11 @@ By default the ITL is included in the `icinga2.conf` configuration file:
 
 These templates are imported by the provided example configuration.
 
+> **Note**:
+>
+> These templates are built into the binaries. By convention
+> all command objects should import these templates.
+
 ### <a id="itl-plugin-check-command"></a> plugin-check-command
 
 Command template for check plugins executed by Icinga 2.
@@ -1396,7 +1401,7 @@ disk\_win\_exclude  | **Optional**. Exclude these drives from check.
 ### <a id="windows-plugins-load-windows"></a> load-windows
 
 Check command object for the `check_load.exe` plugin.
-This plugin collects the inverse of the performance counter `\Processor(_Total)\% Idle Time` two times, with a wait time of one second between the collection. To change this wait time use [`perfmon-windows`](7-icinga-template-library.md#windows-plugins-load-windows).
+This plugin collects the inverse of the performance counter `\Processor(_Total)\% Idle Time` two times, with a wait time of one second between the collection. To change this wait time use [`perfmon-windows`](10-icinga-template-library.md#windows-plugins-load-windows).
 
 Custom attributes:
 
@@ -1429,7 +1434,7 @@ memory\_win\_unit | **Optional**. The unit to display the received value in, thr
 ### <a id="windows-plugins-network-windows"></a> network-windows
 
 Check command object for the `check_network.exe` plugin.
-Collects the total Bytes inbount and outbound for all interfaces in one second, to itemise interfaces or use a different collection interval use [`perfmon-windows`](7-icinga-template-library.md#windows-plugins-load-windows).
+Collects the total Bytes inbount and outbound for all interfaces in one second, to itemise interfaces or use a different collection interval use [`perfmon-windows`](10-icinga-template-library.md#windows-plugins-load-windows).
 
 Custom attributes:
 
@@ -1880,7 +1885,7 @@ snmp_process_use_params | **Optional.** Add process parameters to process name f
 
 
 
-## <a id="plugins-contrib"></a> Contributed Plugin Check Commands
+## <a id="plugin-contrib"></a> Contributed Plugin Check Commands
 
 The contributed Plugin Check Commands provides various additional command definitions
 contributed by community members.
@@ -1889,13 +1894,13 @@ These check commands assume that the global constant named `PluginContribDir`
 is set to the path where the user installs custom plugins and can be enabled by
 uncommenting the corresponding line in [icinga2.conf](4-configuring-icinga-2.md#icinga2-conf):
 
-    include <plugins-contrib>
+    include <plugin-contrib>
 
-### <a id="plugins-contrib-databases"></a> Databases
+### <a id="plugin-contrib-databases"></a> Databases
 
 All database plugins go in this category.
 
-#### <a id="plugins-contrib-command-db2_health"></a> db2_health
+#### <a id="plugin-contrib-command-db2_health"></a> db2_health
 
 The plugin `db2_health` utilises Perl DBD::DB2.
 For release tarballs and detailed documentation especially on the different modes and required permissions see [https://labs.consol.de](https://labs.consol.de/nagios/check_db2_health/). For development check [https://github.com](https://github.com/lausser/check_db2_health).
@@ -1922,7 +1927,7 @@ db2_health_lookback           | **Optional.** How many days in the past db2_heal
 db2_health_env_db2_home       | **Required.** Specifies the location of the db2 client libraries as environment variable `DB2_HOME`. Defaults to "/opt/ibm/db2/V10.5".
 db2_health_env_db2_version    | **Optional.** Specifies the DB2 version as environment variable `DB2_VERSION`.
 
-#### <a id="plugins-contrib-command-mssql_health"></a> mssql_health
+#### <a id="plugin-contrib-command-mssql_health"></a> mssql_health
 
 The plugin `mssql_health` utilises Perl DBD::Sybase based on FreeTDS to connect to MSSQL databases for monitoring.
 For release tarballs, detailed documentation especially on the different modes and scripts for creating a monitoring user see [https://labs.consol.de](https://labs.consol.de/nagios/check_mssql_health/). For development check [https://github.com](https://github.com/lausser/check_mssql_health).
@@ -1948,7 +1953,7 @@ mssql_health_units               | **Optional.** This is used for a better outpu
 mssql_health_offlineok           | **Optional.** Set this to true if offline databases are perfectly ok for you. Defaults to false.
 mssql_health_commit              | **Optional.** Set this to true to turn on autocommit for the dbd::sybase module. Defaults to false.
 
-#### <a id="plugins-contrib-command-mysql_health"></a> mysql_health
+#### <a id="plugin-contrib-command-mysql_health"></a> mysql_health
 
 The plugin `mysql_health` utilises Perl DBD::MySQL to connect to MySQL databases for monitoring.
 For release tarballs and detailed documentation especially on the different modes and required permissions see [https://labs.consol.de](https://labs.consol.de/nagios/check_mysql_health/). For development check [https://github.com](https://github.com/lausser/check_mysql_health).
@@ -1993,7 +1998,7 @@ mysql_health_withmymodulesdyndir | **Optional.** Add-on modules for the my-modes
 mysql_health_statefilesdir       | **Optional.** An alternate directory where the plugin can save files."
 mysql_health_isvalidtime         | **Optional.** Signals the plugin to return OK if now is not a valid check time."
 
-#### <a id="plugins-contrib-command-oracle_health"></a> oracle_health
+#### <a id="plugin-contrib-command-oracle_health"></a> oracle_health
 
 The plugin `oracle_health` utilises Perl DBD::Oracle based on oracle-instantclient-sdk or sqlplus to connect to Oracle databases for monitoring.
 For release tarballs and detailed documentation especially on the different modes and required permissions see [https://labs.consol.de](https://labs.consol.de/nagios/check_oracle_health/). For development check [https://github.com](https://github.com/lausser/check_oracle_health).
@@ -2024,7 +2029,7 @@ Name                | Description
 ORACLE_HOME         | **Required.** Specifies the location of the oracle instant client libraries. Defaults to "/usr/lib/oracle/11.2/client64/lib". Can be overridden by setting "oracle_home".
 TNS_ADMIN           | **Required.** Specifies the location of the tnsnames.ora including the database connection strings. Defaults to "/etc/icinga2/plugin-configs". Can be overridden by setting "oracle_tns_admin".
 
-#### <a id="plugins-contrib-command-postgres"></a> postgres
+#### <a id="plugin-contrib-command-postgres"></a> postgres
 
 The plugin `postgres` utilises the psql binary to connect to PostgreSQL databases for monitoring.
 For release tarballs and detailed documentation especially the different actions and required persmissions see [https://bucardo.org/wiki/Check_postgres](https://bucardo.org/wiki/Check_postgres). For development check [https://github.com](https://github.com/bucardo/check_postgres).
@@ -2053,7 +2058,7 @@ postgres_query       | **Optional.** Query for "custom_query" action.
 postgres_valtype     | **Optional.** Value type of query result for "custom_query".
 postgres_reverse     | **Optional.** If "postgres_reverse" is set, warning and critical values are reversed for "custom_query" action.
 
-#### <a id="plugins-contrib-command-mongodb"></a> mongodb
+#### <a id="plugin-contrib-command-mongodb"></a> mongodb
 
 The plugin `mongodb` utilises Python PyMongo.
 For development check [https://github.com](https://github.com/mzupan/nagios-plugin-mongodb).
@@ -2081,7 +2086,7 @@ mongodb_querytype                | **Optional.** The query type to check [query\
 mongodb_collection               | **Optional.** Specify the collection to check
 mongodb_sampletime               | **Optional.** Time used to sample number of pages faults
 
-#### <a id="plugins-contrib-command-elasticsearch"></a> elasticsearch
+#### <a id="plugin-contrib-command-elasticsearch"></a> elasticsearch
 
 An [ElasticSearch](https://www.elastic.co/products/elasticsearch) availability
 and performance monitoring plugin available for download at [GitHub](https://github.com/anchor/nagios-plugin-elasticsearch).
@@ -2096,7 +2101,7 @@ elasticsearch_port           | **Optional.** TCP port to probe.  The ElasticSear
 elasticsearch_prefix         | **Optional.** Optional prefix (e.g. 'es') for the ElasticSearch API. Defaults to ''.
 elasticsearch_yellowcritical | **Optional.** Instead of issuing a 'warning' for a yellow cluster state, issue a 'critical' alert. Defaults to false.
 
-#### <a id="plugins-contrib-command-redis"></a> redis
+#### <a id="plugin-contrib-command-redis"></a> redis
 
 The plugin `redis` can measure response time, hitrate, memory utilization, check replication sync and more. It can also test data in a specified key (if necessary, doing average or sum on range).
 It is provided by `William Leibzon` at [https://github.com](https://github.com/willixix/naglio-plugins/blob/master/check_redis.pl).
@@ -2125,11 +2130,11 @@ redis_total_memory       | **Optional.** Amount of memory on a system for memory
 redis_replication_delay  | **Optional.** Allows to set threshold on replication delay info.
 
 
-### <a id="plugins-contrib-hardware"></a> Hardware
+### <a id="plugin-contrib-hardware"></a> Hardware
 
 This category includes all plugins for various hardware checks.
 
-#### <a id="plugins-contrib-command-hpasm"></a> hpasm
+#### <a id="plugin-contrib-command-hpasm"></a> hpasm
 
 The plugin [check_hpasm](https://labs.consol.de/de/nagios/check_hpasm/index.html) is a plugin to monitor HP hardware through the HP Insight Agent via SNMP.
 
@@ -2156,11 +2161,11 @@ hpasm_servertype		| **Optional.** The type of the server: proliant (default) or 
 hpasm_eval-nics			| **Optional.** Check network interfaces (and groups). Try it and report me whyt you think about it. I need to build up some know how on this subject. If you get an error and think, it is not justified for your configuration, please tell me about it. (alwasy send the output of "snmpwalk -On .... 1.3.6.1.4.1.232" and a description how you setup your nics and why it is correct opposed to the plugins error message.
 
 
-### <a id="plugins-contrib-icingacli"></a> IcingaCLI
+### <a id="plugin-contrib-icingacli"></a> IcingaCLI
 
 This category includes all plugins using the icingacli provided by Icinga Web 2.
 
-#### <a id="plugins-contrib-icingacli-businessprocess"></a> Business Process
+#### <a id="plugin-contrib-icingacli-businessprocess"></a> Business Process
 
 This subcommand is provided by the [business process module](https://exchange.icinga.org/icinga/Business+Process) and executed as `icingacli-businessprocess`. The module is hosted by the Icinga project on its [project homepage](https://dev.icinga.org/projects/icingaweb2-module-businessprocess).
 
@@ -2173,11 +2178,11 @@ icingacli_businessprocess_config          | **Optional.** Configuration file con
 icingacli_businessprocess_details         | **Optional.** Get details for root cause analyses. Defaults to false.
 
 
-### <a id="plugins-contrib-ipmi"></a> IPMI Devices
+### <a id="plugin-contrib-ipmi"></a> IPMI Devices
 
 This category includes all plugins for IPMI devices.
 
-#### <a id="plugins-contrib-command-ipmi-sensor"></a> ipmi-sensor
+#### <a id="plugin-contrib-command-ipmi-sensor"></a> ipmi-sensor
 
 With the plugin `ipmi-sensor` provided by <a href="https://www.thomas-krenn.com/">Thomas-Krenn.AG</a> you can monitor sensor data for IPMI devices. See https://www.thomas-krenn.com/en/wiki/IPMI_Sensor_Monitoring_Plugin for installation and configuration instructions.
 
@@ -2199,11 +2204,11 @@ ipmi_number_of_active_fans       | **Optional.** Number of fans that should be a
 ipmi_show_fru                    | **Optional.** Print the product serial number if it is available in the IPMI FRU data.
 ipmi_no_sel_checking             | **Optional.** Turn off system event log checking via ipmi-sel.
 
-### <a id="plugins-contrib-metrics"></a> Metrics
+### <a id="plugin-contrib-metrics"></a> Metrics
 
 This category includes all plugins for metric-based checks.
 
-#### <a id="plugin-check-command-graphite"></a> graphite
+#### <a id="plugin-contrib-command-graphite"></a> graphite
 
 Check command object for the [check_graphite](https://github.com/obfuscurity/nagios-scripts) plugin.
 
@@ -2223,11 +2228,11 @@ graphite_message                    | **Optional.** Text message to output (defa
 graphite_zero_on_error              | **Optional.** Return 0 on a graphite 500 error.
 graphite_link_graph                 | **Optional.** Add a link in the plugin output, showing a 24h graph for this metric in graphite.
 
-### <a id="plugins-contrib-network-components"></a> Network Components
+### <a id="plugin-contrib-network-components"></a> Network Components
 
 This category includes all plugins for various network components like routers, switches and firewalls.
 
-#### <a id="plugins-contrib-command-interfacetable"></a> interfacetable
+#### <a id="plugin-contrib-command-interfacetable"></a> interfacetable
 
 The plugin `interfacetable` generates a html page containing information about the monitored node and all of its interfaces. The actively developed and maintained version is `interfacetable_v3t` provided by `Yannick Charton` on [http://www.tontonitch.com](http://www.tontonitch.com/tiki/tiki-index.php?page=Nagios+plugins+-+interfacetable_v3t) or [https://github.com](https://github.com/Tontonitch/interfacetable_v3t).
 
@@ -2295,7 +2300,7 @@ interfacetable_defaulttablesorting  | **Optional.** Default table sorting can be
 interfacetable_tablesplit           | **Optional.** Generate multiple interface tables, one per interface type. Defaults to false.
 interfacetable_notype               | **Optional.** Remove the interface type for each interface. Defaults to false.
 
-#### <a id="plugins-contrib-command-iftraffic"></a> iftraffic
+#### <a id="plugin-contrib-command-iftraffic"></a> iftraffic
 
 The plugin [check_iftraffic](https://exchange.icinga.org/exchange/iftraffic)
 checks the utilization of a given interface name using the SNMP protocol.
@@ -2313,7 +2318,7 @@ iftraffic_warn		| **Optional.** Percent of bandwidth usage necessary to result i
 iftraffic_crit		| **Optional.** Percent of bandwidth usage necessary to result in critical status (defaults to `98`).
 iftraffic_max_counter	| **Optional.** Maximum counter value of net devices in kilo/mega/giga/bytes.
 
-#### <a id="plugins-contrib-command-iftraffic64"></a> iftraffic64
+#### <a id="plugin-contrib-command-iftraffic64"></a> iftraffic64
 
 The plugin [check_iftraffic64](https://exchange.icinga.org/exchange/iftraffic64)
 checks the utilization of a given interface name using the SNMP protocol.
@@ -2331,7 +2336,7 @@ iftraffic64_warn        | **Optional.** Percent of bandwidth usage necessary to 
 iftraffic64_crit        | **Optional.** Percent of bandwidth usage necessary to result in critical status (defaults to `98`).
 iftraffic64_max_counter	| **Optional.** Maximum counter value of net devices in kilo/mega/giga/bytes.
 
-#### <a id="plugins-contrib-command-interfaces"></a> interfaces
+#### <a id="plugin-contrib-command-interfaces"></a> interfaces
 
 The plugin [check_interfaces](https://www.netways.org/projects/check-interfaces)
 Check interfaces and utilization.
@@ -2363,7 +2368,7 @@ interfaces_match_aliases  | **Optional.** Also match against aliases (Option --a
 interfaces_timeout        | **Optional.** Sets the SNMP timeout (in ms).
 interfaces_sleep          | **Optional.** Sleep between every SNMP query (in ms).
 
-#### <a id="plugins-contrib-command-nwc_health"></a> nwc_health
+#### <a id="plugin-contrib-command-nwc_health"></a> nwc_health
 
 The plugin [check_nwc_health](https://labs.consol.de/de/nagios/check_nwc_health/index.html)
 Check switches, router, there interfaces and utilization.
@@ -2415,11 +2420,11 @@ nwc_health_offline		| **Optional.** The maximum number of seconds since the last
 nwc_health_multiline		| **Optional.** Multiline output
 
 
-### <a id="plugins-contrib-web"></a> Web
+### <a id="plugin-contrib-web"></a> Web
 
 This category includes all plugins for web-based checks.
 
-#### <a id="plugin-check-command-webinject"></a> webinject
+#### <a id="plugin-contrib-command-webinject"></a> webinject
 
 Check command object for the [check_webinject](http://www.webinject.org/manual.html) plugin.
 
@@ -2434,7 +2439,7 @@ webinject_timeout       | **Optional.** The value [given in seconds] will be com
 webinject_report_type   | **Optional.** This setting is used to enable output formatting that is compatible for use with specific external programs. The available values you can set this to are: nagios, mrtg, external and standard.
 webinject_testcase_file | **Optional.** When you launch WebInject in console mode, you can optionally supply an argument for a testcase file to run. It will look for this file in the directory that webinject.pl resides in. If no filename is passed from the command line, it will look in config.xml for testcasefile declarations. If no files are specified, it will look for a default file named 'testcases.xml' in the current [webinject] directory. If none of these are found, the engine will stop and give you an error.
 
-#### <a id="plugin-check-command-jmx4perl"></a> jmx4perl
+#### <a id="plugin-contrib-command-jmx4perl"></a> jmx4perl
 
 The plugin `jmx4perl` utilizes the api provided by the jolokia web application to query java message beans on an application server. It is part of the perl module provided by Roland Huß on [cpan](http://search.cpan.org/~roland/jmx4perl/) including a detailed [documentation](http://search.cpan.org/~roland/jmx4perl/scripts/check_jmx4perl) containing installation tutorial, security advices und usage examples.
 
@@ -2477,7 +2482,7 @@ jmx4perl_config              | **Optional.** Path to configuration file.
 jmx4perl_server              | **Optional.** Symbolic name of server url to use, which needs to be configured in the configuration file.
 jmx4perl_check               | **Optional.** Name of a check configuration as defined in the configuration file, use array if you need arguments.
 
-#### <a id="plugins-contrib-squid"></a> squid
+#### <a id="plugin-contrib-command-squid"></a> squid
 
 Plugin for monitoring [Squid](https://exchange.icinga.org/exchange/check_squid).
 
@@ -2496,7 +2501,7 @@ squid_client		| **Optional.** Path of squidclient (default: /usr/bin/squidclient
 squid_timeout		| **Optional.** Seconds before plugin times out (default: 15).
 
 
-#### <a id="plugins-contrib-nginx_status"></a> nginx_status
+#### <a id="plugin-contrib-command-nginx_status"></a> nginx_status
 
 Plugin for monitoring [nginx_status](https://github.com/regilero/check_nginx_status).
 
@@ -2519,7 +2524,7 @@ nginx_status_warn		| **Optional.** Warning threshold (number of active connectio
 nginx_status_critical		| **Optional.** Critical threshold (number of active connections, ReqPerSec or ConnPerSec that will cause a CRITICAL) like '20000,200,300'.
 
 
-#### <a id="plugins-contrib-apache_status"></a> apache_status
+#### <a id="plugin-contrib-command-apache_status"></a> apache_status
 
 Plugin for monitoring [apache_status](https://github.com/lbetz/check_apache_status).
 
@@ -2536,7 +2541,7 @@ apache_status_warning	| **Optional.** Warning threshold (number of open slots, b
 apache_status_critical	| **Optional.** Critical threshold (number of open slots, busy workers and idle workers that will cause a CRITICAL) like ':10,25,:20'.
 
 
-#### <a id="plugins-contrib-kdc"></a> kdc
+#### <a id="plugin-contrib-command-kdc"></a> kdc
 
 Plugin for monitoring [kdc](https://exchange.nagios.org/directory/Plugins/Security/check_kdc/details).
 
@@ -2550,7 +2555,7 @@ kdc_principal	| **Required** Principal name to authenticate as (including realm)
 kdc_keytab	| **Required** Keytab file containing principal's key.
 
 
-#### <a id="plugins-contrib-rbl"></a> rbl
+#### <a id="plugin-contrib-command-rbl"></a> rbl
 
 Plugin for monitoring [rbl](https://github.com/matteocorti/check_rbl)
 
@@ -2565,11 +2570,11 @@ rbl_critical	| **Optional** Number of blacklisting servers for a critical.
 tbl_timeout	| **Optional** Seconds before plugin times out (default: 15).
 
 
-### <a id="plugins-contrib-operating-system"></a> Operating System
+### <a id="plugin-contrib-operating-system"></a> Operating System
 
 In this category you can find plugins for gathering information about your operating system or the system beneath like memory usage.
 
-#### <a id="plugins-contrib-command-mem"></a> mem
+#### <a id="plugin-contrib-command-mem"></a> mem
 
 The plugin `mem` is used for gathering information about memory usage on linux and unix hosts. It is able to count cache memory as free when comparing it to the thresholds. It is provided by `Justin Ellison` on [https://github.com](https://github.com/justintime/nagios-plugins). For more details see the developers blog [http://sysadminsjourney.com](http://sysadminsjourney.com/content/2009/06/04/new-and-improved-checkmempl-nagios-plugin).
 
@@ -2583,10 +2588,10 @@ mem_cache    | **Optional.** If set to true, plugin will count cache as free mem
 mem_warning  | **Required.** Specify the warning threshold as number interpreted as percent.
 mem_critical | **Required.** Specify the critical threshold as number interpreted as percent.
 
-#### <a id="plugin-contrib-command-running-kernel"></a> running_kernel
+#### <a id="plugin-contrib-command-running_kernel"></a> running_kernel
 
 Check command object for the `check_running_kernel` plugin
-provided by the `nagios-plugins-contrib` package on Debian.
+provided by the `nagios-plugin-contrib` package on Debian.
 
 Custom attributes:
 
@@ -2594,7 +2599,7 @@ Name                       | Description
 ---------------------------|-------------
 running\_kernel\_use\_sudo | Whether to run the plugin with `sudo`. Defaults to false except on Ubuntu where it defaults to true.
 
-#### <a id="plugins-contrib-command-iostat"></a> iostat
+#### <a id="plugin-contrib-command-iostat"></a> iostat
 
 The plugin [check_iostat](https://github.com/dnsmichi/icinga-plugins/blob/master/scripts/check_iostat) is used to monitor I/O with `iostat` on a linux host. The default thresholds are rather high so you can use a grapher for baselining before setting your own.
 
@@ -2630,11 +2635,11 @@ yum_disablerepo         | **Optional.** Explicitly disables a reposity when call
 yum_installroot         | **Optional.** Specifies another installation root directory (for example a chroot).
 yum_timeout             | **Optional.** Set a timeout in seconds after which the plugin will exit (defaults to 55 seconds).
 
-### <a id="plugins-contrib-virtualization"></a> Virtualization
+### <a id="plugin-contrib-virtualization"></a> Virtualization
 
 This category includes all plugins for various virtualization technologies.
 
-#### <a id="plugins-contrib-command-esxi-hardware"></a> esxi_hardware
+#### <a id="plugin-contrib-command-esxi-hardware"></a> esxi_hardware
 
 The plugin `esxi_hardware` is a plugin to monitor hardware of ESXi servers through the vmware api and cim service. It is provided by `Claudio Kuenzler` on [http://www.claudiokuenzler.com](http://www.claudiokuenzler.com/nagios-plugins/check_esxi_hardware.php). For instruction on creating the required local user and workarounds for some hardware types have a look on his homepage.
 
@@ -2656,11 +2661,11 @@ esxi_hardware_nocurrent | **Optional.** Do not collect current performance data,
 esxi_hardware_notemp    | **Optional.** Do not collect temperature performance data, when **esxi_hardware_perfdata** is set to true. Defaults to false.
 esxi_hardware_nofan     | **Optional.** Do not collect fan performance data, when **esxi_hardware_perfdata** is set to true. Defaults to false.
 
-### <a id="plugins-contrib-vmware"></a> VMware
+### <a id="plugin-contrib-vmware"></a> VMware
 
 Check commands for the [check_vmware_esx](https://github.com/BaldMansMojo/check_vmware_esx) plugin.
 
-#### <a id="plugins-contrib-vmware-esx-dc-volumes"></a> vmware-esx-dc-volumes
+#### <a id="plugin-contrib-vmware-esx-dc-volumes"></a> vmware-esx-dc-volumes
 
 Check command object for the `check_vmware_esx` plugin. Shows all datastore volumes info.
 
@@ -2692,7 +2697,7 @@ vmware_warn             | **Optional.** The warning threshold for volumes. Defau
 vmware_crit             | **Optional.** The critical threshold for volumes. Defaults to "90%".
 
 
-#### <a id="plugins-contrib-vmware-esx-dc-runtime-info"></a> vmware-esx-dc-runtime-info
+#### <a id="plugin-contrib-vmware-esx-dc-runtime-info"></a> vmware-esx-dc-runtime-info
 
 Check command object for the `check_vmware_esx` plugin. Shows all runtime info for the datacenter/Vcenter.
 
@@ -2714,7 +2719,7 @@ vmware_password         | **Optional.** The username's password. No value define
 vmware_authfile         | **Optional.** Use auth file instead username/password to session connect. No effect if **vmware_username** and **vmware_password** are defined <br> **Autentication file content:** <br>  username=vmuser <br> password=p@ssw0rd
 
 
-#### <a id="plugins-contrib-vmware-esx-dc-runtime-listvms"></a> vmware-esx-dc-runtime-listvms
+#### <a id="plugin-contrib-vmware-esx-dc-runtime-listvms"></a> vmware-esx-dc-runtime-listvms
 
 Check command object for the `check_vmware_esx` plugin. List of vmware machines and their power state. BEWARE!! In larger environments systems can cause trouble displaying the informations needed due to the mass of data. Use **vmware_alertonly** to avoid this.
 
@@ -2741,7 +2746,7 @@ vmware_isregexp         | **Optional.** Treat blacklist and whitelist expression
 vmware_multiline        | **Optional.** Multiline output in overview. This mean technically that a multiline output uses a HTML **\<br\>** for the GUI. No value defined as default.
 
 
-#### <a id="plugins-contrib-vmware-esx-dc-runtime-listhost"></a> vmware-esx-dc-runtime-listhost
+#### <a id="plugin-contrib-vmware-esx-dc-runtime-listhost"></a> vmware-esx-dc-runtime-listhost
 
 Check command object for the `check_vmware_esx` plugin. List of VMware ESX hosts and their power state.
 
@@ -2768,7 +2773,7 @@ vmware_isregexp         | **Optional.** Treat blacklist and whitelist expression
 vmware_multiline        | **Optional.** Multiline output in overview. This mean technically that a multiline output uses a HTML **\<br\>** for the GUI. No value defined as default.
 
 
-#### <a id="plugins-contrib-vmware-esx-dc-runtime-listcluster"></a> vmware-esx-dc-runtime-listcluster
+#### <a id="plugin-contrib-vmware-esx-dc-runtime-listcluster"></a> vmware-esx-dc-runtime-listcluster
 
 Check command object for the `check_vmware_esx` plugin. List of VMware clusters and their states.
 
@@ -2795,7 +2800,7 @@ vmware_isregexp         | **Optional.** Treat blacklist and whitelist expression
 vmware_multiline        | **Optional.** Multiline output in overview. This mean technically that a multiline output uses a HTML **\<br\>** for the GUI. No value defined as default.
 
 
-#### <a id="plugins-contrib-vmware-esx-dc-runtime-issues"></a> vmware-esx-dc-runtime-issues
+#### <a id="plugin-contrib-vmware-esx-dc-runtime-issues"></a> vmware-esx-dc-runtime-issues
 
 Check command object for the `check_vmware_esx` plugin. All issues for the host.
 
@@ -2821,7 +2826,7 @@ vmware_isregexp         | **Optional.** Treat blacklist and whitelist expression
 vmware_multiline        | **Optional.** Multiline output in overview. This mean technically that a multiline output uses a HTML **\<br\>** for the GUI. No value defined as default.
 
 
-#### <a id="plugins-contrib-vmware-esx-dc-runtime-status"></a> vmware-esx-dc-runtime-status
+#### <a id="plugin-contrib-vmware-esx-dc-runtime-status"></a> vmware-esx-dc-runtime-status
 
 Check command object for the `check_vmware_esx` plugin. Overall object status (gray/green/red/yellow).
 
@@ -2843,7 +2848,7 @@ vmware_password         | **Optional.** The username's password. No value define
 vmware_authfile         | **Optional.** Use auth file instead username/password to session connect. No effect if **vmware_username** and **vmware_password** are defined <br> **Autentication file content:** <br>  username=vmuser <br> password=p@ssw0rd
 
 
-#### <a id="plugins-contrib-vmware-esx-dc-runtime-tools"></a> vmware-esx-dc-runtime-tools
+#### <a id="plugin-contrib-vmware-esx-dc-runtime-tools"></a> vmware-esx-dc-runtime-tools
 
 Check command object for the `check_vmware_esx` plugin. Vmware Tools status.
 
@@ -2872,7 +2877,7 @@ vmware_multiline        | **Optional.** Multiline output in overview. This mean 
 vmware_openvmtools	| **Optional** Prevent CRITICAL state for installed and running Open VM Tools.
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-host-check"></a> vmware-esx-soap-host-check
+#### <a id="plugin-contrib-vmware-esx-soap-host-check"></a> vmware-esx-soap-host-check
 
 Check command object for the `check_vmware_esx` plugin. Simple check to verify a successfull connection to VMware SOAP API.
 
@@ -2894,7 +2899,7 @@ vmware_password         | **Optional.** The username's password. No value define
 vmware_authfile         | **Optional.** Use auth file instead username/password to session connect. No effect if **vmware_username** and **vmware_password** are defined <br> **Autentication file content:** <br>  username=vmuser <br> password=p@ssw0rd
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-host-uptime"></a> vmware-esx-soap-host-uptime
+#### <a id="plugin-contrib-vmware-esx-soap-host-uptime"></a> vmware-esx-soap-host-uptime
 
 Check command object for the `check_vmware_esx` plugin. Displays uptime of the VMware host.
 
@@ -2916,7 +2921,7 @@ vmware_password         | **Optional.** The username's password. No value define
 vmware_authfile         | **Optional.** Use auth file instead username/password to session connect. No effect if **vmware_username** and **vmware_password** are defined <br> **Autentication file content:** <br>  username=vmuser <br> password=p@ssw0rd
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-host-cpu"></a> vmware-esx-soap-host-cpu
+#### <a id="plugin-contrib-vmware-esx-soap-host-cpu"></a> vmware-esx-soap-host-cpu
 
 Check command object for the `check_vmware_esx` plugin. CPU usage in percentage.
 
@@ -2940,7 +2945,7 @@ vmware_warn             | **Optional.** The warning threshold in percent. Defaul
 vmware_crit             | **Optional.** The critical threshold in percent. Defaults to "90%".
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-host-cpu-ready"></a> vmware-esx-soap-host-cpu-ready
+#### <a id="plugin-contrib-vmware-esx-soap-host-cpu-ready"></a> vmware-esx-soap-host-cpu-ready
 
 Check command object for the `check_vmware_esx` plugin. Percentage of time that the virtual machine was ready, but could not get scheduled to run on the physical CPU. CPU ready time is dependent on the number of virtual machines on the host and their CPU loads. High or growing ready time can be a hint CPU bottlenecks.
 
@@ -2962,7 +2967,7 @@ vmware_password         | **Optional.** The username's password. No value define
 vmware_authfile         | **Optional.** Use auth file instead username/password to session connect. No effect if **vmware_username** and **vmware_password** are defined <br> **Autentication file content:** <br>  username=vmuser <br> password=p@ssw0rd
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-host-cpu-wait"></a> vmware-esx-soap-host-cpu-wait
+#### <a id="plugin-contrib-vmware-esx-soap-host-cpu-wait"></a> vmware-esx-soap-host-cpu-wait
 
 Check command object for the `check_vmware_esx` plugin. CPU time spent in wait state. The wait total includes time spent the CPU idle, CPU swap wait, and CPU I/O wait states. High or growing wait time can be a hint I/O bottlenecks.
 
@@ -2984,7 +2989,7 @@ vmware_password         | **Optional.** The username's password. No value define
 vmware_authfile         | **Optional.** Use auth file instead username/password to session connect. No effect if **vmware_username** and **vmware_password** are defined <br> **Autentication file content:** <br>  username=vmuser <br> password=p@ssw0rd
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-host-cpu-usage"></a> vmware-esx-soap-host-cpu-usage
+#### <a id="plugin-contrib-vmware-esx-soap-host-cpu-usage"></a> vmware-esx-soap-host-cpu-usage
 
 Check command object for the `check_vmware_esx` plugin. Actively used CPU of the host, as a percentage of the total available CPU. Active CPU is approximately equal to the ratio of the used CPU to the available CPU.
 
@@ -3008,7 +3013,7 @@ vmware_warn             | **Optional.** The warning threshold in percent. Defaul
 vmware_crit             | **Optional.** The critical threshold in percent. Defaults to "90%".
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-host-mem"></a> vmware-esx-soap-host-mem
+#### <a id="plugin-contrib-vmware-esx-soap-host-mem"></a> vmware-esx-soap-host-mem
 
 Check command object for the `check_vmware_esx` plugin. All mem info(except overall and no thresholds).
 
@@ -3030,7 +3035,7 @@ vmware_password         | **Optional.** The username's password. No value define
 vmware_authfile         | **Optional.** Use auth file instead username/password to session connect. No effect if **vmware_username** and **vmware_password** are defined <br> **Autentication file content:** <br>  username=vmuser <br> password=p@ssw0rd
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-host-mem-usage"></a> vmware-esx-soap-host-mem-usage
+#### <a id="plugin-contrib-vmware-esx-soap-host-mem-usage"></a> vmware-esx-soap-host-mem-usage
 
 Check command object for the `check_vmware_esx` plugin. Average mem usage in percentage.
 
@@ -3054,7 +3059,7 @@ vmware_warn             | **Optional.** The warning threshold in percent. Defaul
 vmware_crit             | **Optional.** The critical threshold in percent. Defaults to "90%".
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-host-mem-consumed"></a> vmware-esx-soap-host-mem-consumed
+#### <a id="plugin-contrib-vmware-esx-soap-host-mem-consumed"></a> vmware-esx-soap-host-mem-consumed
 
 Check command object for the `check_vmware_esx` plugin. Amount of machine memory used on the host. Consumed memory includes Includes memory used by the Service Console, the VMkernel vSphere services, plus the total consumed metrics for all running virtual machines in MB.
 
@@ -3078,7 +3083,7 @@ vmware_warn             | **Optional.** The warning threshold in percent. No val
 vmware_crit             | **Optional.** The critical threshold in percent. No value defined as default.
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-host-mem-swapused"></a> vmware-esx-soap-host-mem-swapused
+#### <a id="plugin-contrib-vmware-esx-soap-host-mem-swapused"></a> vmware-esx-soap-host-mem-swapused
 
 Check command object for the `check_vmware_esx` plugin. Amount of memory that is used by swap. Sum of memory swapped of all powered on VMs and vSphere services on the host in MB. In case of an error all VMs with their swap used will be displayed.
 
@@ -3103,7 +3108,7 @@ vmware_crit             | **Optional.** The critical threshold in percent. No va
 vmware_multiline        | **Optional.** Multiline output in overview. This mean technically that a multiline output uses a HTML **\<br\>** for the GUI. No value defined as default.
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-host-mem-overhead"></a> vmware-esx-soap-host-mem-overhead
+#### <a id="plugin-contrib-vmware-esx-soap-host-mem-overhead"></a> vmware-esx-soap-host-mem-overhead
 
 Check command object for the `check_vmware_esx` plugin. Additional mem used by VM Server in MB.
 
@@ -3127,7 +3132,7 @@ vmware_warn             | **Optional.** The warning threshold in percent. No val
 vmware_crit             | **Optional.** The critical threshold in percent. No value defined as default.
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-host-mem-memctl"></a> vmware-esx-soap-host-mem-memctl
+#### <a id="plugin-contrib-vmware-esx-soap-host-mem-memctl"></a> vmware-esx-soap-host-mem-memctl
 
 Check command object for the `check_vmware_esx` plugin. The sum of all vmmemctl values in MB for all powered-on virtual machines, plus vSphere services on the host. If the balloon target value is greater than the balloon value, the VMkernel inflates the balloon, causing more virtual machine memory to be reclaimed. If the balloon target value is less than the balloon value, the VMkernel deflates the balloon, which allows the virtual machine to consume additional memory if needed (used by VM memory control driver). In case of an error all VMs with their vmmemctl values will be displayed.
 
@@ -3152,7 +3157,7 @@ vmware_crit             | **Optional.** The critical threshold in percent. No va
 vmware_multiline        | **Optional.** Multiline output in overview. This mean technically that a multiline output uses a HTML **\<br\>** for the GUI. No value defined as default.
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-host-net"></a> vmware-esx-soap-host-net
+#### <a id="plugin-contrib-vmware-esx-soap-host-net"></a> vmware-esx-soap-host-net
 
 Check command object for the `check_vmware_esx` plugin. Shows net info.
 
@@ -3176,7 +3181,7 @@ vmware_exclude          | **Optional.** Blacklist NICs. No value defined as defa
 vmware_isregexp         | **Optional.** Treat blacklist expression as regexp.
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-host-net-usage"></a> vmware-esx-soap-host-net-usage
+#### <a id="plugin-contrib-vmware-esx-soap-host-net-usage"></a> vmware-esx-soap-host-net-usage
 
 Check command object for the `check_vmware_esx` plugin. Overall network usage in KBps(Kilobytes per Second).
 
@@ -3200,7 +3205,7 @@ vmware_warn             | **Optional.** The warning threshold in KBps(Kilobytes 
 vmware_crit             | **Optional.** The critical threshold in KBps(Kilobytes per Second). No value defined as default.
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-host-net-receive"></a> vmware-esx-soap-host-net-receive
+#### <a id="plugin-contrib-vmware-esx-soap-host-net-receive"></a> vmware-esx-soap-host-net-receive
 
 Check command object for the `check_vmware_esx` plugin. Data receive in KBps(Kilobytes per Second).
 
@@ -3224,7 +3229,7 @@ vmware_warn             | **Optional.** The warning threshold in KBps(Kilobytes 
 vmware_crit             | **Optional.** The critical threshold in KBps(Kilobytes per Second). No value defined as default.
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-host-net-send"></a> vmware-esx-soap-host-net-send
+#### <a id="plugin-contrib-vmware-esx-soap-host-net-send"></a> vmware-esx-soap-host-net-send
 
 Check command object for the `check_vmware_esx` plugin. Data send in KBps(Kilobytes per Second).
 
@@ -3248,7 +3253,7 @@ vmware_warn             | **Optional.** The warning threshold in KBps(Kilobytes 
 vmware_crit             | **Optional.** The critical threshold in KBps(Kilobytes per Second). No value defined as default.
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-host-net-nic"></a> vmware-esx-soap-host-net-nic
+#### <a id="plugin-contrib-vmware-esx-soap-host-net-nic"></a> vmware-esx-soap-host-net-nic
 
 Check command object for the `check_vmware_esx` plugin. Check all active NICs.
 
@@ -3272,7 +3277,7 @@ vmware_exclude          | **Optional.** Blacklist NICs. No value defined as defa
 vmware_isregexp         | **Optional.** Treat blacklist expression as regexp.
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-host-volumes"></a> vmware-esx-soap-host-volumes
+#### <a id="plugin-contrib-vmware-esx-soap-host-volumes"></a> vmware-esx-soap-host-volumes
 
 Check command object for the `check_vmware_esx` plugin. Shows all datastore volumes info.
 
@@ -3304,7 +3309,7 @@ vmware_crit             | **Optional.** The critical threshold for volumes. Defa
 vmware_spaceleft        | **Optional.** This has to be used in conjunction with thresholds as mentioned above.
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-host-io"></a> vmware-esx-soap-host-io
+#### <a id="plugin-contrib-vmware-esx-soap-host-io"></a> vmware-esx-soap-host-io
 
 Check command object for the `check_vmware_esx` plugin. Shows all disk io info. Without subselect no thresholds can be given. All I/O values are aggregated from historical intervals over the past 24 hours with a 5 minute sample rate.
 
@@ -3326,7 +3331,7 @@ vmware_password         | **Optional.** The username's password. No value define
 vmware_authfile         | **Optional.** Use auth file instead username/password to session connect. No effect if **vmware_username** and **vmware_password** are defined <br> **Autentication file content:** <br>  username=vmuser <br> password=p@ssw0rd
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-host-io-aborted"></a> vmware-esx-soap-host-io-aborted
+#### <a id="plugin-contrib-vmware-esx-soap-host-io-aborted"></a> vmware-esx-soap-host-io-aborted
 
 Check command object for the `check_vmware_esx` plugin. Number of aborted SCSI commands.
 
@@ -3350,7 +3355,7 @@ vmware_warn             | **Optional.** The warning threshold. No value defined 
 vmware_crit             | **Optional.** The critical threshold. No value defined as default.
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-host-io-resets"></a> vmware-esx-soap-host-io-resets
+#### <a id="plugin-contrib-vmware-esx-soap-host-io-resets"></a> vmware-esx-soap-host-io-resets
 
 Check command object for the `check_vmware_esx` plugin. Number of SCSI bus resets.
 
@@ -3374,7 +3379,7 @@ vmware_warn             | **Optional.** The warning threshold. No value defined 
 vmware_crit             | **Optional.** The critical threshold. No value defined as default.
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-host-io-read"></a> vmware-esx-soap-host-io-read
+#### <a id="plugin-contrib-vmware-esx-soap-host-io-read"></a> vmware-esx-soap-host-io-read
 
 Check command object for the `check_vmware_esx` plugin. Average number of kilobytes read from the disk each second.
 
@@ -3398,7 +3403,7 @@ vmware_warn             | **Optional.** The warning threshold. No value defined 
 vmware_crit             | **Optional.** The critical threshold. No value defined as default.
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-host-io-read-latency"></a> vmware-esx-soap-host-io-read-latency
+#### <a id="plugin-contrib-vmware-esx-soap-host-io-read-latency"></a> vmware-esx-soap-host-io-read-latency
 
 Check command object for the `check_vmware_esx` plugin. Average amount of time (ms) to process a SCSI read command issued from the Guest OS to the virtual machine.
 
@@ -3422,7 +3427,7 @@ vmware_warn             | **Optional.** The warning threshold. No value defined 
 vmware_crit             | **Optional.** The critical threshold. No value defined as default.
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-host-io-write"></a> vmware-esx-soap-host-io-write
+#### <a id="plugin-contrib-vmware-esx-soap-host-io-write"></a> vmware-esx-soap-host-io-write
 
 Check command object for the `check_vmware_esx` plugin. Average number of kilobytes written to disk each second.
 
@@ -3446,7 +3451,7 @@ vmware_warn             | **Optional.** The warning threshold. No value defined 
 vmware_crit             | **Optional.** The critical threshold. No value defined as default.
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-host-io-write-latency"></a> vmware-esx-soap-host-io-write-latency
+#### <a id="plugin-contrib-vmware-esx-soap-host-io-write-latency"></a> vmware-esx-soap-host-io-write-latency
 
 Check command object for the `check_vmware_esx` plugin. Average amount of time (ms) taken to process a SCSI write command issued by the Guest OS to the virtual machine.
 
@@ -3470,7 +3475,7 @@ vmware_warn             | **Optional.** The warning threshold. No value defined 
 vmware_crit             | **Optional.** The critical threshold. No value defined as default.
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-host-io-usage"></a> vmware-esx-soap-host-io-usage
+#### <a id="plugin-contrib-vmware-esx-soap-host-io-usage"></a> vmware-esx-soap-host-io-usage
 
 Check command object for the `check_vmware_esx` plugin. Aggregated disk I/O rate. For hosts, this metric includes the rates for all virtual machines running on the host.
 
@@ -3494,7 +3499,7 @@ vmware_warn             | **Optional.** The warning threshold. No value defined 
 vmware_crit             | **Optional.** The critical threshold. No value defined as default.
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-host-io-kernel-latency"></a> vmware-esx-soap-host-io-kernel-latency
+#### <a id="plugin-contrib-vmware-esx-soap-host-io-kernel-latency"></a> vmware-esx-soap-host-io-kernel-latency
 
 Check command object for the `check_vmware_esx` plugin. Average amount of time (ms) spent by VMkernel processing each SCSI command.
 
@@ -3518,7 +3523,7 @@ vmware_warn             | **Optional.** The warning threshold. No value defined 
 vmware_crit             | **Optional.** The critical threshold. No value defined as default.
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-host-io-device-latency"></a> vmware-esx-soap-host-io-device-latency
+#### <a id="plugin-contrib-vmware-esx-soap-host-io-device-latency"></a> vmware-esx-soap-host-io-device-latency
 
 Check command object for the `check_vmware_esx` plugin. Average amount of time (ms) to complete a SCSI command from the physical device.
 
@@ -3542,7 +3547,7 @@ vmware_warn             | **Optional.** The warning threshold. No value defined 
 vmware_crit             | **Optional.** The critical threshold. No value defined as default.
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-host-io-queue-latency"></a> vmware-esx-soap-host-io-queue-latency
+#### <a id="plugin-contrib-vmware-esx-soap-host-io-queue-latency"></a> vmware-esx-soap-host-io-queue-latency
 
 Check command object for the `check_vmware_esx` plugin. Average amount of time (ms) spent in the VMkernel queue.
 
@@ -3566,7 +3571,7 @@ vmware_warn             | **Optional.** The warning threshold. No value defined 
 vmware_crit             | **Optional.** The critical threshold. No value defined as default.
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-host-io-total-latency"></a> vmware-esx-soap-host-io-total-latency
+#### <a id="plugin-contrib-vmware-esx-soap-host-io-total-latency"></a> vmware-esx-soap-host-io-total-latency
 
 Check command object for the `check_vmware_esx` plugin. Average amount of time (ms) taken during the collection interval to process a SCSI command issued by the guest OS to the virtual machine. The sum of kernelWriteLatency and deviceWriteLatency.
 
@@ -3590,7 +3595,7 @@ vmware_warn             | **Optional.** The warning threshold. No value defined 
 vmware_crit             | **Optional.** The critical threshold. No value defined as default.
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-host-media"></a> vmware-esx-soap-host-media
+#### <a id="plugin-contrib-vmware-esx-soap-host-media"></a> vmware-esx-soap-host-media
 
 Check command object for the `check_vmware_esx` plugin. List vm's with attached host mounted media like cd,dvd or floppy drives. This is important for monitoring because a virtual machine with a mount cd or dvd drive can not be moved to another host.
 
@@ -3616,7 +3621,7 @@ vmware_isregexp         | **Optional.** Treat blacklist and whitelist expression
 vmware_multiline        | **Optional.** Multiline output in overview. This mean technically that a multiline output uses a HTML **\<br\>** for the GUI. No value defined as default.
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-host-service"></a> vmware-esx-soap-host-service
+#### <a id="plugin-contrib-vmware-esx-soap-host-service"></a> vmware-esx-soap-host-service
 
 Check command object for the `check_vmware_esx` plugin. Shows host service info.
 
@@ -3642,7 +3647,7 @@ vmware_isregexp         | **Optional.** Treat blacklist and whitelist expression
 vmware_multiline        | **Optional.** Multiline output in overview. This mean technically that a multiline output uses a HTML **\<br\>** for the GUI. No value defined as default.
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-host-runtime"></a> vmware-esx-soap-host-runtime
+#### <a id="plugin-contrib-vmware-esx-soap-host-runtime"></a> vmware-esx-soap-host-runtime
 
 Check command object for the `check_vmware_esx` plugin. Shows runtime info: VMs, overall status, connection state, health, storagehealth, temperature and sensor are represented as one value and without thresholds.
 
@@ -3664,7 +3669,7 @@ vmware_password         | **Optional.** The username's password. No value define
 vmware_authfile         | **Optional.** Use auth file instead username/password to session connect. No effect if **vmware_username** and **vmware_password** are defined <br> **Autentication file content:** <br>  username=vmuser <br> password=p@ssw0rd
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-host-runtime-con"></a> vmware-esx-soap-host-runtime-con
+#### <a id="plugin-contrib-vmware-esx-soap-host-runtime-con"></a> vmware-esx-soap-host-runtime-con
 
 Check command object for the `check_vmware_esx` plugin. Shows connection state.
 
@@ -3686,7 +3691,7 @@ vmware_password         | **Optional.** The username's password. No value define
 vmware_authfile         | **Optional.** Use auth file instead username/password to session connect. No effect if **vmware_username** and **vmware_password** are defined <br> **Autentication file content:** <br>  username=vmuser <br> password=p@ssw0rd
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-host-runtime-listvms"></a> vmware-esx-soap-host-runtime-listvms
+#### <a id="plugin-contrib-vmware-esx-soap-host-runtime-listvms"></a> vmware-esx-soap-host-runtime-listvms
 
 Check command object for the `check_vmware_esx` plugin. List of VMware machines and their status.
 
@@ -3712,7 +3717,7 @@ vmware_isregexp         | **Optional.** Treat blacklist and whitelist expression
 vmware_multiline        | **Optional.** Multiline output in overview. This mean technically that a multiline output uses a HTML **\<br\>** for the GUI. No value defined as default.
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-host-runtime-status"></a> vmware-esx-soap-host-runtime-status
+#### <a id="plugin-contrib-vmware-esx-soap-host-runtime-status"></a> vmware-esx-soap-host-runtime-status
 
 Check command object for the `check_vmware_esx` plugin. Overall object status (gray/green/red/yellow).
 
@@ -3734,7 +3739,7 @@ vmware_password         | **Optional.** The username's password. No value define
 vmware_authfile         | **Optional.** Use auth file instead username/password to session connect. No effect if **vmware_username** and **vmware_password** are defined <br> **Autentication file content:** <br>  username=vmuser <br> password=p@ssw0rd
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-host-runtime-health"></a> vmware-esx-soap-host-runtime-health
+#### <a id="plugin-contrib-vmware-esx-soap-host-runtime-health"></a> vmware-esx-soap-host-runtime-health
 
 Check command object for the `check_vmware_esx` plugin. Checks cpu/storage/memory/sensor status.
 
@@ -3759,7 +3764,7 @@ vmware_include          | **Optional.** Whitelist status name. No value defined 
 vmware_isregexp         | **Optional.** Treat blacklist and whitelist expressions as regexp.
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-host-runtime-health-listsensors"></a> vmware-esx-soap-host-runtime-health-listsensors
+#### <a id="plugin-contrib-vmware-esx-soap-host-runtime-health-listsensors"></a> vmware-esx-soap-host-runtime-health-listsensors
 
 Check command object for the `check_vmware_esx` plugin. List all available sensors(use for listing purpose only).
 
@@ -3784,7 +3789,7 @@ vmware_include          | **Optional.** Whitelist status name. No value defined 
 vmware_isregexp         | **Optional.** Treat blacklist and whitelist expressions as regexp.
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-host-runtime-health-nostoragestatus"></a> vmware-esx-soap-host-runtime-health-nostoragestatus
+#### <a id="plugin-contrib-vmware-esx-soap-host-runtime-health-nostoragestatus"></a> vmware-esx-soap-host-runtime-health-nostoragestatus
 
 Check command object for the `check_vmware_esx` plugin. This is to avoid a double alarm if you use **vmware-esx-soap-host-runtime-health** and **vmware-esx-soap-host-runtime-storagehealth**.
 
@@ -3809,7 +3814,7 @@ vmware_include          | **Optional.** Whitelist status name. No value defined 
 vmware_isregexp         | **Optional.** Treat blacklist and whitelist expressions as regexp.
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-host-runtime-storagehealth"></a> vmware-esx-soap-host-runtime-storagehealth
+#### <a id="plugin-contrib-vmware-esx-soap-host-runtime-storagehealth"></a> vmware-esx-soap-host-runtime-storagehealth
 
 Check command object for the `check_vmware_esx` plugin. Local storage status check.
 
@@ -3835,7 +3840,7 @@ vmware_isregexp         | **Optional.** Treat blacklist and whitelist expression
 vmware_multiline        | **Optional.** Multiline output in overview. This mean technically that a multiline output uses a HTML **\<br\>** for the GUI. No value defined as default.
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-host-runtime-temp"></a> vmware-esx-soap-host-runtime-temp
+#### <a id="plugin-contrib-vmware-esx-soap-host-runtime-temp"></a> vmware-esx-soap-host-runtime-temp
 
 Check command object for the `check_vmware_esx` plugin. Lists all temperature sensors.
 
@@ -3861,7 +3866,7 @@ vmware_isregexp         | **Optional.** Treat blacklist and whitelist expression
 vmware_multiline        | **Optional.** Multiline output in overview. This mean technically that a multiline output uses a HTML **\<br\>** for the GUI. No value defined as default.
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-host-runtime-issues"></a> vmware-esx-soap-host-runtime-issues
+#### <a id="plugin-contrib-vmware-esx-soap-host-runtime-issues"></a> vmware-esx-soap-host-runtime-issues
 
 Check command object for the `check_vmware_esx` plugin. Lists all configuration issues for the host.
 
@@ -3887,7 +3892,7 @@ vmware_isregexp         | **Optional.** Treat blacklist and whitelist expression
 vmware_multiline        | **Optional.** Multiline output in overview. This mean technically that a multiline output uses a HTML **\<br\>** for the GUI. No value defined as default.
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-host-storage"></a> vmware-esx-soap-host-storage
+#### <a id="plugin-contrib-vmware-esx-soap-host-storage"></a> vmware-esx-soap-host-storage
 
 Check command object for the `check_vmware_esx` plugin. Shows Host storage info.
 
@@ -3912,7 +3917,7 @@ vmware_include          | **Optional.** Whitelist adapters, luns and paths. No v
 vmware_isregexp         | **Optional.** Treat blacklist and whitelist expressions as regexp.
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-host-storage-adapter"></a> vmware-esx-soap-host-storage-adapter
+#### <a id="plugin-contrib-vmware-esx-soap-host-storage-adapter"></a> vmware-esx-soap-host-storage-adapter
 
 Check command object for the `check_vmware_esx` plugin. List host bus adapters.
 
@@ -3938,7 +3943,7 @@ vmware_isregexp         | **Optional.** Treat blacklist and whitelist expression
 vmware_multiline        | **Optional.** Multiline output in overview. This mean technically that a multiline output uses a HTML **\<br\>** for the GUI. No value defined as default.
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-host-storage-lun"></a> vmware-esx-soap-host-storage-lun
+#### <a id="plugin-contrib-vmware-esx-soap-host-storage-lun"></a> vmware-esx-soap-host-storage-lun
 
 Check command object for the `check_vmware_esx` plugin. List SCSI logical units. The listing will include: LUN, canonical name of the disc, all of displayed name which is not part of the canonical name and status.
 
@@ -3964,7 +3969,7 @@ vmware_isregexp         | **Optional.** Treat blacklist and whitelist expression
 vmware_multiline        | **Optional.** Multiline output in overview. This mean technically that a multiline output uses a HTML **\<br\>** for the GUI. No value defined as default.
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-host-storage-path"></a> vmware-esx-soap-host-storage-path
+#### <a id="plugin-contrib-vmware-esx-soap-host-storage-path"></a> vmware-esx-soap-host-storage-path
 
 Check command object for the `check_vmware_esx` plugin. List multipaths and the associated paths.
 
@@ -3991,7 +3996,7 @@ vmware_isregexp         | **Optional.** Treat blacklist and whitelist expression
 vmware_multiline        | **Optional.** Multiline output in overview. This mean technically that a multiline output uses a HTML **\<br\>** for the GUI. No value defined as default.
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-vm-cpu"></a> vmware-esx-soap-vm-cpu
+#### <a id="plugin-contrib-vmware-esx-soap-vm-cpu"></a> vmware-esx-soap-vm-cpu
 
 Check command object for the `check_vmware_esx` plugin. Shows all CPU usage info.
 
@@ -4016,7 +4021,7 @@ vmware_authfile         | **Optional.** Use auth file instead username/password 
 
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-vm-cpu-ready"></a> vmware-esx-soap-vm-cpu-ready
+#### <a id="plugin-contrib-vmware-esx-soap-vm-cpu-ready"></a> vmware-esx-soap-vm-cpu-ready
 
 Check command object for the `check_vmware_esx` plugin. Percentage of time that the virtual machine was ready, but could not get scheduled to run on the physical CPU.
 
@@ -4042,7 +4047,7 @@ vmware_warn             | **Optional.** The warning threshold. No value defined 
 vmware_crit             | **Optional.** The critical threshold. No value defined as default.
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-vm-cpu-wait"></a> vmware-esx-soap-vm-cpu-wait
+#### <a id="plugin-contrib-vmware-esx-soap-vm-cpu-wait"></a> vmware-esx-soap-vm-cpu-wait
 
 Check command object for the `check_vmware_esx` plugin. CPU time spent in wait state. The wait total includes time spent the CPU idle, CPU swap wait, and CPU I/O wait states. High or growing wait time can be a hint I/O bottlenecks.
 
@@ -4068,7 +4073,7 @@ vmware_warn             | **Optional.** The warning threshold. No value defined 
 vmware_crit             | **Optional.** The critical threshold. No value defined as default.
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-vm-cpu-usage"></a> vmware-esx-soap-vm-cpu-usage
+#### <a id="plugin-contrib-vmware-esx-soap-vm-cpu-usage"></a> vmware-esx-soap-vm-cpu-usage
 
 Check command object for the `check_vmware_esx` plugin. Amount of actively used virtual CPU, as a percentage of total available CPU. This is the host's view of the CPU usage, not the guest operating system view. It is the average CPU utilization over all available virtual CPUs in the virtual machine.
 
@@ -4094,7 +4099,7 @@ vmware_warn             | **Optional.** Warning threshold in percent. Defaults t
 vmware_crit             | **Optional.** Critical threshold in percent. Defaults to "90%".
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-vm-mem"></a> vmware-esx-soap-vm-mem
+#### <a id="plugin-contrib-vmware-esx-soap-vm-mem"></a> vmware-esx-soap-vm-mem
 
 Check command object for the `check_vmware_esx` plugin. Shows all memory info, except overall.
 
@@ -4118,7 +4123,7 @@ vmware_password         | **Optional.** The username's password. No value define
 vmware_authfile         | **Optional.** Use auth file instead username/password to session connect. No effect if **vmware_username** and **vmware_password** are defined <br> **Autentication file content:** <br>  username=vmuser <br> password=p@ssw0rd
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-vm-mem-usage"></a> vmware-esx-soap-vm-mem-usage
+#### <a id="plugin-contrib-vmware-esx-soap-vm-mem-usage"></a> vmware-esx-soap-vm-mem-usage
 
 Check command object for the `check_vmware_esx` plugin. Average mem usage in percentage of configured virtual machine "physical" memory.
 
@@ -4144,7 +4149,7 @@ vmware_warn             | **Optional.** Warning threshold in percent. Defaults t
 vmware_crit             | **Optional.** Critical threshold in percent. Defaults to "90%".
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-vm-mem-consumed"></a> vmware-esx-soap-vm-mem-consumed
+#### <a id="plugin-contrib-vmware-esx-soap-vm-mem-consumed"></a> vmware-esx-soap-vm-mem-consumed
 
 Check command object for the `check_vmware_esx` plugin. Amount of guest physical memory in MB consumed by the virtual machine for guest memory. Consumed memory does not include overhead memory. It includes shared memory and memory that might be reserved, but not actually used. Use this metric for charge-back purposes.<br>
 **vm consumed memory = memory granted -- memory saved**
@@ -4171,7 +4176,7 @@ vmware_warn             | **Optional.** The warning threshold. No value defined 
 vmware_crit             | **Optional.** The critical threshold. No value defined as default.
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-vm-mem-memctl"></a> vmware-esx-soap-vm-mem-memctl
+#### <a id="plugin-contrib-vmware-esx-soap-vm-mem-memctl"></a> vmware-esx-soap-vm-mem-memctl
 
 Check command object for the `check_vmware_esx` plugin. Amount of guest physical memory that is currently reclaimed from the virtual machine through ballooning. This is the amount of guest physical memory that has been allocated and pinned by the balloon driver.
 
@@ -4198,7 +4203,7 @@ vmware_crit             | **Optional.** The critical threshold. No value defined
 
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-vm-net"></a> vmware-esx-soap-vm-net
+#### <a id="plugin-contrib-vmware-esx-soap-vm-net"></a> vmware-esx-soap-vm-net
 
 Check command object for the `check_vmware_esx` plugin. Shows net info.
 
@@ -4222,7 +4227,7 @@ vmware_password         | **Optional.** The username's password. No value define
 vmware_authfile         | **Optional.** Use auth file instead username/password to session connect. No effect if **vmware_username** and **vmware_password** are defined <br> **Autentication file content:** <br>  username=vmuser <br> password=p@ssw0rd
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-vm-net-usage"></a> vmware-esx-soap-vm-net-usage
+#### <a id="plugin-contrib-vmware-esx-soap-vm-net-usage"></a> vmware-esx-soap-vm-net-usage
 
 Check command object for the `check_vmware_esx` plugin. Overall network usage in KBps(Kilobytes per Second).
 
@@ -4248,7 +4253,7 @@ vmware_warn             | **Optional.** The warning threshold. No value defined 
 vmware_crit             | **Optional.** The critical threshold. No value defined as default.
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-vm-net-receive"></a> vmware-esx-soap-vm-net-receive
+#### <a id="plugin-contrib-vmware-esx-soap-vm-net-receive"></a> vmware-esx-soap-vm-net-receive
 
 Check command object for the `check_vmware_esx` plugin. Receive in KBps(Kilobytes per Second).
 
@@ -4274,7 +4279,7 @@ vmware_warn             | **Optional.** The warning threshold. No value defined 
 vmware_crit             | **Optional.** The critical threshold. No value defined as default.
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-vm-net-send"></a> vmware-esx-soap-vm-net-send
+#### <a id="plugin-contrib-vmware-esx-soap-vm-net-send"></a> vmware-esx-soap-vm-net-send
 
 Check command object for the `check_vmware_esx` plugin. Send in KBps(Kilobytes per Second).
 
@@ -4300,7 +4305,7 @@ vmware_warn             | **Optional.** The warning threshold. No value defined 
 vmware_crit             | **Optional.** The critical threshold. No value defined as default.
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-vm-io"></a> vmware-esx-soap-vm-io
+#### <a id="plugin-contrib-vmware-esx-soap-vm-io"></a> vmware-esx-soap-vm-io
 
 Check command object for the `check_vmware_esx` plugin. SShows all disk io info. Without subselect no thresholds can be given. All I/O values are aggregated from historical intervals over the past 24 hours with a 5 minute sample rate.
 
@@ -4324,7 +4329,7 @@ vmware_password         | **Optional.** The username's password. No value define
 vmware_authfile         | **Optional.** Use auth file instead username/password to session connect. No effect if **vmware_username** and **vmware_password** are defined <br> **Autentication file content:** <br>  username=vmuser <br> password=p@ssw0rd
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-vm-io-read"></a> vmware-esx-soap-vm-io-read
+#### <a id="plugin-contrib-vmware-esx-soap-vm-io-read"></a> vmware-esx-soap-vm-io-read
 
 Check command object for the `check_vmware_esx` plugin. Average number of kilobytes read from the disk each second.
 
@@ -4350,7 +4355,7 @@ vmware_warn             | **Optional.** The warning threshold. No value defined 
 vmware_crit             | **Optional.** The critical threshold. No value defined as default.
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-vm-io-write"></a> vmware-esx-soap-vm-io-write
+#### <a id="plugin-contrib-vmware-esx-soap-vm-io-write"></a> vmware-esx-soap-vm-io-write
 
 Check command object for the `check_vmware_esx` plugin. Average number of kilobytes written to disk each second.
 
@@ -4376,7 +4381,7 @@ vmware_warn             | **Optional.** The warning threshold. No value defined 
 vmware_crit             | **Optional.** The critical threshold. No value defined as default.
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-vm-io-usage"></a> vmware-esx-soap-vm-io-usage
+#### <a id="plugin-contrib-vmware-esx-soap-vm-io-usage"></a> vmware-esx-soap-vm-io-usage
 
 Check command object for the `check_vmware_esx` plugin. Aggregated disk I/O rate.
 
@@ -4402,7 +4407,7 @@ vmware_warn             | **Optional.** The warning threshold. No value defined 
 vmware_crit             | **Optional.** The critical threshold. No value defined as default.
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-vm-runtime"></a> vmware-esx-soap-vm-runtime
+#### <a id="plugin-contrib-vmware-esx-soap-vm-runtime"></a> vmware-esx-soap-vm-runtime
 
 Check command object for the `check_vmware_esx` plugin. Shows virtual machine runtime info.
 
@@ -4426,7 +4431,7 @@ vmware_password         | **Optional.** The username's password. No value define
 vmware_authfile         | **Optional.** Use auth file instead username/password to session connect. No effect if **vmware_username** and **vmware_password** are defined <br> **Autentication file content:** <br>  username=vmuser <br> password=p@ssw0rd
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-vm-runtime-con"></a> vmware-esx-soap-vm-runtime-con
+#### <a id="plugin-contrib-vmware-esx-soap-vm-runtime-con"></a> vmware-esx-soap-vm-runtime-con
 
 Check command object for the `check_vmware_esx` plugin. Shows the connection state.
 
@@ -4450,7 +4455,7 @@ vmware_password         | **Optional.** The username's password. No value define
 vmware_authfile         | **Optional.** Use auth file instead username/password to session connect. No effect if **vmware_username** and **vmware_password** are defined <br> **Autentication file content:** <br>  username=vmuser <br> password=p@ssw0rd
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-vm-runtime-powerstate"></a> vmware-esx-soap-vm-runtime-powerstate
+#### <a id="plugin-contrib-vmware-esx-soap-vm-runtime-powerstate"></a> vmware-esx-soap-vm-runtime-powerstate
 
 Check command object for the `check_vmware_esx` plugin. Shows virtual machine power state: poweredOn, poweredOff or suspended.
 
@@ -4474,7 +4479,7 @@ vmware_password         | **Optional.** The username's password. No value define
 vmware_authfile         | **Optional.** Use auth file instead username/password to session connect. No effect if **vmware_username** and **vmware_password** are defined <br> **Autentication file content:** <br>  username=vmuser <br> password=p@ssw0rd
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-vm-runtime-status"></a> vmware-esx-soap-vm-runtime-status
+#### <a id="plugin-contrib-vmware-esx-soap-vm-runtime-status"></a> vmware-esx-soap-vm-runtime-status
 
 Check command object for the `check_vmware_esx` plugin. Overall object status (gray/green/red/yellow).
 
@@ -4498,7 +4503,7 @@ vmware_password         | **Optional.** The username's password. No value define
 vmware_authfile         | **Optional.** Use auth file instead username/password to session connect. No effect if **vmware_username** and **vmware_password** are defined <br> **Autentication file content:** <br>  username=vmuser <br> password=p@ssw0rd
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-vm-runtime-consoleconnections"></a> vmware-esx-soap-vm-runtime-consoleconnections
+#### <a id="plugin-contrib-vmware-esx-soap-vm-runtime-consoleconnections"></a> vmware-esx-soap-vm-runtime-consoleconnections
 
 Check command object for the `check_vmware_esx` plugin. Console connections to virtual machine.
 
@@ -4524,7 +4529,7 @@ vmware_warn             | **Optional.** The warning threshold. No value defined 
 vmware_crit             | **Optional.** The critical threshold. No value defined as default.
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-vm-runtime-gueststate"></a> vmware-esx-soap-vm-runtime-gueststate
+#### <a id="plugin-contrib-vmware-esx-soap-vm-runtime-gueststate"></a> vmware-esx-soap-vm-runtime-gueststate
 
 Check command object for the `check_vmware_esx` plugin. Guest OS status. Needs VMware Tools installed and running.
 
@@ -4547,7 +4552,7 @@ vmware_username         | **Optional.** The username to connect to Host or vCent
 vmware_password         | **Optional.** The username's password. No value defined as default.
 vmware_authfile         | **Optional.** Use auth file instead username/password to session connect. No effect if **vmware_username** and **vmware_password** are defined <br> **Autentication file content:** <br>  username=vmuser <br> password=p@ssw0rd
 
-#### <a id="plugins-contrib-vmware-esx-soap-vm-runtime-tools"></a> vmware-esx-soap-vm-runtime-tools
+#### <a id="plugin-contrib-vmware-esx-soap-vm-runtime-tools"></a> vmware-esx-soap-vm-runtime-tools
 
 Check command object for the `check_vmware_esx` plugin. Guest OS status. VMware tools  status.
 
@@ -4572,7 +4577,7 @@ vmware_authfile         | **Optional.** Use auth file instead username/password 
 vmware_openvmtools	| **Optional** Prevent CRITICAL state for installed and running Open VM Tools.
 
 
-#### <a id="plugins-contrib-vmware-esx-soap-vm-runtime-issues"></a> vmware-esx-soap-vm-runtime-issues
+#### <a id="plugin-contrib-vmware-esx-soap-vm-runtime-issues"></a> vmware-esx-soap-vm-runtime-issues
 
 Check command object for the `check_vmware_esx` plugin. All issues for the virtual machine.
 

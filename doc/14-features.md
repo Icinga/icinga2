@@ -29,10 +29,10 @@ by a number of projects including Icinga Web 1.x and 2.
 
 Details on the installation can be found in the [Configuring DB IDO](2-getting-started.md#configuring-db-ido-mysql)
 chapter. Details on the configuration can be found in the
-[IdoMysqlConnection](6-object-types.md#objecttype-idomysqlconnection) and
-[IdoPgsqlConnection](6-object-types.md#objecttype-idopgsqlconnection)
+[IdoMysqlConnection](9-object-types.md#objecttype-idomysqlconnection) and
+[IdoPgsqlConnection](9-object-types.md#objecttype-idopgsqlconnection)
 object configuration documentation.
-The DB IDO feature supports [High Availability](13-distributed-monitoring-ha.md#high-availability-db-ido) in
+The DB IDO feature supports [High Availability](6-distributed-monitoring.md#distributed-monitoring-high-availability-db-ido) in
 the Icinga 2 cluster.
 
 The following example query checks the health of the current Icinga 2 instance
@@ -43,7 +43,7 @@ the query returns an empty result.
 
 > **Tip**
 >
-> Use [check plugins](14-addons-plugins.md#plugins) to monitor the backend.
+> Use [check plugins](5-service-monitoring.md#service-monitoring-plugins) to monitor the backend.
 
 Replace the `default` string with your instance name if different.
 
@@ -74,7 +74,7 @@ Example for PostgreSQL:
     (1 Zeile)
 
 
-A detailed list on the available table attributes can be found in the [DB IDO Schema documentation](24-appendix.md#schema-db-ido).
+A detailed list on the available table attributes can be found in the [DB IDO Schema documentation](23-appendix.md#schema-db-ido).
 
 
 ## <a id="external-commands"></a> External Commands
@@ -102,7 +102,7 @@ a forced service check:
     Oct 17 15:01:25 icinga-server icinga2: Executing external command: [1382014885] SCHEDULE_FORCED_SVC_CHECK;localhost;ping4;1382014885
     Oct 17 15:01:25 icinga-server icinga2: Rescheduling next check for service 'ping4'
 
-A list of currently supported external commands can be found [here](24-appendix.md#external-commands-list-detail).
+A list of currently supported external commands can be found [here](23-appendix.md#external-commands-list-detail).
 
 Detailed information on the commands and their required parameters can be found
 on the [Icinga 1.x documentation](http://docs.icinga.org/latest/en/extcommands2.html).
@@ -118,15 +118,15 @@ The performance data can be passed to external applications which aggregate and
 store them in their backends. These tools usually generate graphs for historical
 reporting and trending.
 
-Well-known addons processing Icinga performance data are [PNP4Nagios](14-addons-plugins.md#addons-graphing-pnp),
-[Graphite](14-addons-plugins.md#addons-graphing-graphite) or [OpenTSDB](15-features.md#opentsdb-writer).
+Well-known addons processing Icinga performance data are [PNP4Nagios](13-addons.md#addons-graphing-pnp),
+[Graphite](13-addons.md#addons-graphing-graphite) or [OpenTSDB](14-features.md#opentsdb-writer).
 
 ### <a id="writing-performance-data-files"></a> Writing Performance Data Files
 
 PNP4Nagios and Graphios use performance data collector daemons to fetch
 the current performance files for their backend updates.
 
-Therefore the Icinga 2 [PerfdataWriter](6-object-types.md#objecttype-perfdatawriter)
+Therefore the Icinga 2 [PerfdataWriter](9-object-types.md#objecttype-perfdatawriter)
 feature allows you to define the output template format for host and services helped
 with Icinga 2 runtime vars.
 
@@ -146,7 +146,7 @@ remove the processed files.
 
 ### <a id="graphite-carbon-cache-writer"></a> Graphite Carbon Cache Writer
 
-While there are some [Graphite](14-addons-plugins.md#addons-graphing-graphite)
+While there are some [Graphite](13-addons.md#addons-graphing-graphite)
 collector scripts and daemons like Graphios available for Icinga 1.x it's more
 reasonable to directly process the check and plugin performance
 in memory in Icinga 2. Once there are new metrics available, Icinga 2 will directly
@@ -156,7 +156,7 @@ You can enable the feature using
 
     # icinga2 feature enable graphite
 
-By default the [GraphiteWriter](6-object-types.md#objecttype-graphitewriter) feature
+By default the [GraphiteWriter](9-object-types.md#objecttype-graphitewriter) feature
 expects the Graphite Carbon Cache to listen at `127.0.0.1` on TCP port `2003`.
 
 #### <a id="graphite-carbon-cache-writer-schema"></a> Current Graphite Schema
@@ -267,7 +267,7 @@ You can customize the metric prefix name by using the `host_name_template` and
 `service_name_template` configuration attributes.
 
 The example below uses [runtime macros](3-monitoring-basics.md#runtime-macros) and a
-[global constant](18-language-reference.md#constants) named `GraphiteEnv`. The constant name
+[global constant](17-language-reference.md#constants) named `GraphiteEnv`. The constant name
 is freely definable and should be put in the [constants.conf](4-configuring-icinga-2.md#constants-conf) file.
 
     const GraphiteEnv = "icinga.env1"
@@ -323,10 +323,10 @@ You can enable the feature using
 
     # icinga2 feature enable influxdb
 
-By default the [InfluxdbWriter](6-object-types.md#objecttype-influxdbwriter) feature
+By default the [InfluxdbWriter](9-object-types.md#objecttype-influxdbwriter) feature
 expects the InfluxDB daemon to listen at `127.0.0.1` on port `8086`.
 
-More configuration details can be found [here](6-object-types.md#objecttype-influxdbwriter).
+More configuration details can be found [here](9-object-types.md#objecttype-influxdbwriter).
 
 ### <a id="gelfwriter"></a> GELF Writer
 
@@ -432,7 +432,7 @@ re-implementation of the Livestatus protocol which is compatible with MK
 Livestatus.
 
 Details on the available tables and attributes with Icinga 2 can be found
-in the [Livestatus Schema](24-appendix.md#schema-livestatus) section.
+in the [Livestatus Schema](23-appendix.md#schema-livestatus) section.
 
 You can enable Livestatus using icinga2 feature enable:
 
@@ -475,7 +475,7 @@ Other to the Icinga 1.x Addon, Icinga 2 supports two socket types
 * Unix socket (default)
 * TCP socket
 
-Details on the configuration can be found in the [LivestatusListener](6-object-types.md#objecttype-livestatuslistener)
+Details on the configuration can be found in the [LivestatusListener](9-object-types.md#objecttype-livestatuslistener)
 object configuration.
 
 ### <a id="livestatus-get-queries"></a> Livestatus GET Queries
@@ -508,7 +508,7 @@ Example using the tcp socket listening on port `6558`:
 
 ### <a id="livestatus-command-queries"></a> Livestatus COMMAND Queries
 
-A list of available external commands and their parameters can be found [here](24-appendix.md#external-commands-list-detail)
+A list of available external commands and their parameters can be found [here](23-appendix.md#external-commands-list-detail)
 
     $ echo -e 'COMMAND <externalcommandstring>' | netcat 127.0.0.1 6558
 
@@ -601,15 +601,15 @@ Default separators.
   downtimes     | services  | status attributes
   timeperiods   | &nbsp;    | name and is inside flag
   endpoints     | &nbsp;    | config and status attributes
-  log           | services, hosts, contacts, commands | parses [compatlog](6-object-types.md#objecttype-compatlogger) and shows log attributes
-  statehist     | hosts, services | parses [compatlog](6-object-types.md#objecttype-compatlogger) and aggregates state change attributes
+  log           | services, hosts, contacts, commands | parses [compatlog](9-object-types.md#objecttype-compatlogger) and shows log attributes
+  statehist     | hosts, services | parses [compatlog](9-object-types.md#objecttype-compatlogger) and aggregates state change attributes
   hostsbygroup  | hostgroups | host attributes grouped by hostgroup and its attributes
   servicesbygroup | servicegroups | service attributes grouped by servicegroup and its attributes
   servicesbyhostgroup  | hostgroups | service attributes grouped by hostgroup and its attributes
 
 The `commands` table is populated with `CheckCommand`, `EventCommand` and `NotificationCommand` objects.
 
-A detailed list on the available table attributes can be found in the [Livestatus Schema documentation](24-appendix.md#schema-livestatus).
+A detailed list on the available table attributes can be found in the [Livestatus Schema documentation](23-appendix.md#schema-livestatus).
 
 
 ## <a id="status-data"></a> Status Data Files
@@ -637,7 +637,7 @@ in Icinga 2 provided with the `CompatLogger` object.
 These logs are not only used for informational representation in
 external web interfaces parsing the logs, but also to generate
 SLA reports and trends in Icinga 1.x Classic UI. Furthermore the
-[Livestatus](15-features.md#setting-up-livestatus) feature uses these logs for answering queries to
+[Livestatus](14-features.md#setting-up-livestatus) feature uses these logs for answering queries to
 historical tables.
 
 The `CompatLogger` object can be enabled with

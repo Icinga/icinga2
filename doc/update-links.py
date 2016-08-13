@@ -34,7 +34,7 @@ for file in sys.argv[1:]:
         id = match.group("id")
 
         if id in anchors:
-            print "Anchor '%s' is used multiple times: in %s and %s" % (id, file, anchors[id])
+            print "Error: Anchor '%s' is used multiple times: in %s and %s" % (id, file, anchors[id])
 
         anchors[match.group("id")] = file
 
@@ -44,12 +44,13 @@ def update_anchor(match):
     try:
         file = os.path.basename(anchors[id])
     except KeyError:
-        print "Unmatched anchor: %s" % (id)
+        print "Error: Unmatched anchor: %s" % (id)
         file = ""
 
     return "[%s](%s#%s)" % (match.group("text"), file, id)
 
 for file in sys.argv[1:]:
     text = open(file).read()
+    print "> Processing file '%s'..." % (file)
     new_text = re.sub(r"\[(?P<text>.*?)\]\((?P<file>[0-9-a-z\.]+)?#(?P<id>[^#\)]+)\)", update_anchor, text)
     open(file, "w").write(new_text)

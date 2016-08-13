@@ -126,7 +126,7 @@ Icinga 2 installation:
 * `mainlog` for writing the `icinga2.log` file
 
 You can verify that by calling `icinga2 feature list`
-[CLI command](8-cli-commands.md#cli-command-feature) to see which features are
+[CLI command](11-cli-commands.md#cli-command-feature) to see which features are
 enabled and disabled.
 
     # icinga2 feature list
@@ -230,7 +230,7 @@ to determine where to find the plugin binaries.
 
 > **Note**
 >
-> Please refer to the [plugins](14-addons-plugins.md#plugins) chapter for details about how to integrate
+> Please refer to the [service monitoring](5-service-monitoring.md#service-monitoring-plugins) chapter for details about how to integrate
 > additional check plugins into your Icinga 2 setup.
 
 ## <a id="running-icinga2"></a> Running Icinga 2
@@ -303,7 +303,7 @@ Examples:
     Job for icinga2.service failed. See 'systemctl status icinga2.service' and 'journalctl -xn' for details.
 
 If you're stuck with configuration errors, you can manually invoke the
-[configuration validation](8-cli-commands.md#config-validation).
+[configuration validation](11-cli-commands.md#config-validation).
 
 ### FreeBSD
 
@@ -487,7 +487,7 @@ The package provides a new configuration file that is installed in
 update the database credentials in this file.
 
 All available attributes are explained in the
-[IdoMysqlConnection object](6-object-types.md#objecttype-idomysqlconnection)
+[IdoMysqlConnection object](9-object-types.md#objecttype-idomysqlconnection)
 chapter.
 
 You can enable the `ido-mysql` feature configuration file using
@@ -622,7 +622,7 @@ The package provides a new configuration file that is installed in
 the database credentials in this file.
 
 All available attributes are explained in the
-[IdoPgsqlConnection object](6-object-types.md#objecttype-idopgsqlconnection)
+[IdoPgsqlConnection object](9-object-types.md#objecttype-idopgsqlconnection)
 chapter.
 
 You can enable the `ido-pgsql` feature configuration file using
@@ -754,4 +754,12 @@ for further instructions on how to install Icinga Web 2.
 
 A number of additional features are available in the form of addons. A list of
 popular addons is available in the
-[Addons and Plugins](14-addons-plugins.md#addons-plugins) chapter.
+[Addons and Plugins](13-addons.md#addons) chapter.
+
+## <a id="install-backup"></a> Backup
+
+Ensure to include the following in your backups:
+
+* Configuration files in `/etc/icinga2`
+* Runtime files in `/var/lib/icinga2` (the master's CA is stored here as well)
+* Optional: IDO database backup

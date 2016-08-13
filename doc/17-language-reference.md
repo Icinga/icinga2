@@ -199,7 +199,7 @@ Functions can be called using the `()` operator:
       check_interval = len(MyGroups) * 1m
     }
 
-A list of available functions is available in the [Library Reference](19-library-reference.md#library-reference) chapter.
+A list of available functions is available in the [Library Reference](18-library-reference.md#library-reference) chapter.
 
 ## <a id="dictionary-operators"></a> Assignments
 
@@ -396,7 +396,7 @@ another group of objects.
 
 In this example the `assign where` condition is a boolean expression which is
 evaluated for all objects of type `Host` and a new service with name "ping"
-is created for each matching host. [Expression operators](18-language-reference.md#expression-operators)
+is created for each matching host. [Expression operators](17-language-reference.md#expression-operators)
 may be used in `assign where` conditions.
 
 The `to` keyword and the target type may be omitted if there is only one target
@@ -424,8 +424,8 @@ chapter.
 
 ## <a id="apply-for"></a> Apply For
 
-[Apply](18-language-reference.md#apply) rules can be extended with the
-[for loop](18-language-reference.md#for-loops) keyword.
+[Apply](17-language-reference.md#apply) rules can be extended with the
+[for loop](17-language-reference.md#for-loops) keyword.
 
     apply Service "prefix-" for (key => value in host.vars.dictionary) to Host {
       import "generic-service"
@@ -469,7 +469,7 @@ and `ignore where` conditions.
 In this example the `assign where` condition is a boolean expression which is evaluated
 for all objects of the type `Host`. Each matching host is added as member to the host group
 with the name "linux-servers". Membership exclusion can be controlled using the `ignore where`
-condition. [Expression operators](18-language-reference.md#expression-operators) may be used in `assign where` and
+condition. [Expression operators](17-language-reference.md#expression-operators) may be used in `assign where` and
 `ignore where` conditions.
 
 Source Type       | Variables
@@ -498,7 +498,7 @@ Empty dictionary     | {}                | false
 Non-empty dictionary | { key = "value" } | true
 
 For a list of supported expression operators for `assign where` and `ignore where`
-statements, see [expression operators](18-language-reference.md#expression-operators).
+statements, see [expression operators](17-language-reference.md#expression-operators).
 
 ## <a id="comments"></a> Comments
 
@@ -536,7 +536,7 @@ Note the use of angle brackets instead of double quotes. This causes the
 config compiler to search the include search paths for the specified
 file. By default $PREFIX/share/icinga2/include is included in the list of search
 paths. Additional include search paths can be added using
-[command-line options](8-cli-commands.md#config-include-path).
+[command-line options](11-cli-commands.md#config-include-path).
 
 Wildcards are not permitted when using angle brackets.
 
@@ -871,7 +871,7 @@ Array      | [ "a", "b" ]      | An array.
 Dictionary | { a = 3 }         | A dictionary.
 
 Depending on which libraries are loaded additional types may become available. The `icinga`
-library implements a whole bunch of other [object types](6-object-types.md#object-types),
+library implements a whole bunch of other [object types](9-object-types.md#object-types),
 e.g. Host, Service, CheckCommand, etc.
 
 Each type has an associated type object which describes the type's semantics. These
@@ -887,7 +887,7 @@ supports:
     keys(String.prototype)
 
 Additional documentation on type methods is available in the
-[library reference](19-library-reference.md#library-reference).
+[library reference](18-library-reference.md#library-reference).
 
 ## <a id="location-information"></a> Location Information
 
