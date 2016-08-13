@@ -48,6 +48,7 @@ public:
 	bool IsInEffect(void) const;
 	bool IsTriggered(void) const;
 	bool IsExpired(void) const;
+	bool HasValidConfigOwner(void) const;
 
 	static int GetNextDowntimeID(void);
 

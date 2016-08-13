@@ -20,6 +20,7 @@
 #include "icinga/downtime.hpp"
 #include "icinga/downtime.tcpp"
 #include "icinga/host.hpp"
+#include "icinga/scheduleddowntime.hpp"
 #include "remote/configobjectutility.hpp"
 #include "base/configtype.hpp"
 #include "base/utility.hpp"
@@ -194,6 +195,17 @@ bool Downtime::IsExpired(void) const
 		else
 			return false;
 	}
+}
+
+bool Downtime::HasValidConfigOwner(void) const
+{
+	String configOwner = GetConfigOwner();
+
+	if (!configOwner.IsEmpty()) {
+		return (GetObject("ScheduledDowntime", configOwner) != ScheduledDowntime::Ptr());
+	}
+
+	return true;
 }
 
 int Downtime::GetNextDowntimeID(void)
@@ -375,7 +387,7 @@ void Downtime::DowntimesExpireTimerHandler(void)
 
 	BOOST_FOREACH(const Downtime::Ptr& downtime, downtimes) {
 		/* Only remove downtimes which are activated after daemon start. */
-		if (downtime->IsActive() && downtime->IsExpired())
+		if (downtime->IsActive() && (downtime->IsExpired() || !downtime->HasValidConfigOwner()))
 			RemoveDowntime(downtime->GetName(), false, true);
 	}
 }
