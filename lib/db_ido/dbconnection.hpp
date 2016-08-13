@@ -98,6 +98,8 @@ protected:
 	bool IsIDCacheValid(void) const;
 	void SetIDCacheValid(bool valid);
 
+	void EnableActiveChangedHandler(void);
+
 	static void UpdateProgramStatus(void);
 
 	static int GetSessionToken(void);
@@ -127,6 +129,7 @@ private:
 	RingBuffer m_QueryStats;
 	int m_PendingQueries;
 	double m_PendingQueriesTimestamp;
+	bool m_ActiveChangedHandler;
 };
 
 struct database_error : virtual std::exception, virtual boost::exception { };

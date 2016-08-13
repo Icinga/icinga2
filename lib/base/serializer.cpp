@@ -138,7 +138,7 @@ static Object::Ptr DeserializeObject(const Object::Ptr& object, const Dictionary
 			continue;
 
 		try {
-			instance->SetField(fid, Deserialize(kv.second, safe_mode, attributeTypes));
+			instance->SetField(fid, Deserialize(kv.second, safe_mode, attributeTypes), true);
 		} catch (const std::exception&) {
 			instance->SetField(fid, Empty);
 		}

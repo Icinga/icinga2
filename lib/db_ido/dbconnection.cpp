@@ -39,7 +39,8 @@ Timer::Ptr DbConnection::m_ProgramStatusTimer;
 boost::once_flag DbConnection::m_OnceFlag = BOOST_ONCE_INIT;
 
 DbConnection::DbConnection(void)
-	: m_QueryStats(15 * 60), m_PendingQueries(0), m_PendingQueriesTimestamp(0), m_IDCacheValid(false)
+	: m_QueryStats(15 * 60), m_PendingQueries(0), m_PendingQueriesTimestamp(0),
+	  m_IDCacheValid(false), m_ActiveChangedHandler(false)
 { }
 
 void DbConnection::OnConfigLoaded(void)
@@ -74,7 +75,14 @@ void DbConnection::Start(bool runtimeCreated)
 
 	DbObject::OnQuery.connect(boost::bind(&DbConnection::ExecuteQuery, this, _1));
 	DbObject::OnMultipleQueries.connect(boost::bind(&DbConnection::ExecuteMultipleQueries, this, _1));
-	ConfigObject::OnActiveChanged.connect(boost::bind(&DbConnection::UpdateObject, this, _1));
+}
+
+void DbConnection::EnableActiveChangedHandler(void)
+{
+	if (!m_ActiveChangedHandler) {
+		ConfigObject::OnActiveChanged.connect(boost::bind(&DbConnection::UpdateObject, this, _1));
+		m_ActiveChangedHandler = true;
+	}
 }
 
 void DbConnection::StatsLoggerTimerHandler(void)
@@ -394,8 +402,10 @@ void DbConnection::UpdateObject(const ConfigObject::Ptr& object)
 		bool dbActive = GetObjectActive(dbobj);
 		bool active = object->IsActive();
 
-		if (active && !dbActive) {
-			ActivateObject(dbobj);
+		if (active) {
+			if (!dbActive)
+				ActivateObject(dbobj);
+
 			dbobj->SendConfigUpdate();
 			dbobj->SendStatusUpdate();
 		} else if (!active) {

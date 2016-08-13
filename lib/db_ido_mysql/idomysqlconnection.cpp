@@ -399,16 +399,16 @@ void IdoMysqlConnection::Reconnect(void)
 
 	SetIDCacheValid(true);
 
+	EnableActiveChangedHandler();
+
 	BOOST_FOREACH(const DbObject::Ptr& dbobj, activeDbObjs) {
-		if (dbobj->GetObject() == NULL) {
-			Log(LogNotice, "IdoMysqlConnection")
-			    << "Deactivate deleted object name1: '" << dbobj->GetName1()
-			    << "' name2: '" << dbobj->GetName2() + "'.";
-			DeactivateObject(dbobj);
-		} else {
-			dbobj->SendConfigUpdate();
-			dbobj->SendStatusUpdate();
-		}
+		if (dbobj->GetObject())
+			continue;
+
+		Log(LogNotice, "IdoMysqlConnection")
+		    << "Deactivate deleted object name1: '" << dbobj->GetName1()
+		    << "' name2: '" << dbobj->GetName2() + "'.";
+		DeactivateObject(dbobj);
 	}
 
 	UpdateAllObjects();
