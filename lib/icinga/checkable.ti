@@ -44,10 +44,6 @@ enum AcknowledgementType
 
 abstract class Checkable : CustomVarObject
 {
-	load_after ApiListener;
-	load_after Endpoint;
-	load_after Zone;
-
 	[config, required, navigation] name(CheckCommand) check_command (CheckCommandRaw) {
 		navigate {{{
 			return CheckCommand::GetByName(GetCheckCommandRaw());

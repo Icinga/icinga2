@@ -38,7 +38,10 @@ public:
 
 class Service : Checkable < ServiceNameComposer
 {
+	load_after ApiListener;
+	load_after Endpoint;
 	load_after Host;
+	load_after Zone;
 
 	[config, no_user_modify] array(name(ServiceGroup)) groups {
 		default {{{ return new Array(); }}}

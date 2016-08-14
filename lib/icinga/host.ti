@@ -27,6 +27,10 @@ namespace icinga
 
 class Host : Checkable
 {
+	load_after ApiListener;
+	load_after Endpoint;
+	load_after Zone;
+
 	[config, no_user_modify] array(name(HostGroup)) groups {
 		default {{{ return new Array(); }}}
 	};
