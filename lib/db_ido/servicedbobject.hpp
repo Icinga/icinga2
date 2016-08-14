@@ -45,8 +45,6 @@ public:
 	virtual Dictionary::Ptr GetStatusFields(void) const override;
 
 protected:
-	virtual bool IsStatusAttribute(const String& attribute) const override;
-
 	virtual void OnConfigUpdate(void) override;
 	virtual void OnStatusUpdate(void) override;
 };

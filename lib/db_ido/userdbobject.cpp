@@ -140,8 +140,3 @@ void UserDbObject::OnConfigUpdate(void)
 		}
 	}
 }
-
-bool UserDbObject::IsStatusAttribute(const String& attribute) const
-{
-	return (attribute == "last_notification");
-}

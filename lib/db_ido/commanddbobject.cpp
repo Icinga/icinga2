@@ -46,10 +46,5 @@ Dictionary::Ptr CommandDbObject::GetConfigFields(void) const
 
 Dictionary::Ptr CommandDbObject::GetStatusFields(void) const
 {
-	return Empty;
-}
-
-void CommandDbObject::OnConfigUpdate(void)
-{
-	return;
+	return Dictionary::Ptr();
 }

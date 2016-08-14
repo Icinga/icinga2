@@ -45,5 +45,5 @@ Dictionary::Ptr UserGroupDbObject::GetConfigFields(void) const
 
 Dictionary::Ptr UserGroupDbObject::GetStatusFields(void) const
 {
-	return Empty;
+	return Dictionary::Ptr();
 }

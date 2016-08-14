@@ -269,11 +269,6 @@ double DbObject::GetLastStatusUpdate(void) const
 	return m_LastStatusUpdate;
 }
 
-bool DbObject::IsStatusAttribute(const String&) const
-{
-	return false;
-}
-
 void DbObject::OnConfigUpdate(void)
 {
 	/* Default handler does nothing. */

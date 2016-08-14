@@ -47,5 +47,5 @@ Dictionary::Ptr ServiceGroupDbObject::GetConfigFields(void) const
 
 Dictionary::Ptr ServiceGroupDbObject::GetStatusFields(void) const
 {
-	return Empty;
+	return Dictionary::Ptr();
 }

@@ -171,11 +171,6 @@ Dictionary::Ptr ServiceDbObject::GetStatusFields(void) const
 	return fields;
 }
 
-bool ServiceDbObject::IsStatusAttribute(const String& attribute) const
-{
-	return (attribute == "last_result");
-}
-
 void ServiceDbObject::OnConfigUpdate(void)
 {
 	Service::Ptr service = static_pointer_cast<Service>(GetObject());

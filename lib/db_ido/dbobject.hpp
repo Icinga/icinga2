@@ -92,8 +92,6 @@ public:
 protected:
 	DbObject(const intrusive_ptr<DbType>& type, const String& name1, const String& name2);
 
-	virtual bool IsStatusAttribute(const String& attribute) const;
-
 	virtual void OnConfigUpdate(void);
 	virtual void OnStatusUpdate(void);
 

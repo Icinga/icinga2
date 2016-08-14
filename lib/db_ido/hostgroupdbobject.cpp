@@ -48,5 +48,5 @@ Dictionary::Ptr HostGroupDbObject::GetConfigFields(void) const
 
 Dictionary::Ptr HostGroupDbObject::GetStatusFields(void) const
 {
-	return Empty;
+	return Dictionary::Ptr();
 }
