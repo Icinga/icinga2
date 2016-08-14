@@ -152,7 +152,7 @@ int PkiUtility::WriteCert(const boost::shared_ptr<X509>& cert, const String& tru
 	}
 
 	Log(LogInformation, "pki")
-	    << "Writing trusted certificate to file '" << trustedfile << "'.";
+	    << "Writing certificate to file '" << trustedfile << "'.";
 
 	return 0;
 }
