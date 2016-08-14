@@ -1691,6 +1691,7 @@ nscp_counter_warning   | **Optional.** WARNING Threshold.
 nscp_counter_critical  | **Optional.** CRITICAL Threshold.
 nscp_counter_arguments | **Optional.** Additional arguments.
 nscp_counter_showall   | **Optional.** Shows more details in plugin output, default to false.
+nscp_counter_perfsyntax | **Optional.** Apply performance data label, e.g. `Total Processor Time` to avoid special character problems. Defaults to `nscp_counter_name`.
 
 
 
