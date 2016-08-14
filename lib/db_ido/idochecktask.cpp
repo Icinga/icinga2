@@ -98,6 +98,13 @@ void IdoCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult
 
 	double qps = conn->GetQueryCount(60) / 60.0;
 
+	if (conn->IsPaused()) {
+		cr->SetOutput("IDO connection is temporarily disabled on this cluster instance.");
+		cr->SetState(ServiceOK);
+		checkable->ProcessCheckResult(cr);
+		return;
+	}
+
 	if (!conn->GetConnected()) {
 		if (conn->GetShouldConnect()) {
 			cr->SetOutput("Could not connect to the database server.");
