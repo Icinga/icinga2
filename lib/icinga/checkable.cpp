@@ -51,6 +51,27 @@ Checkable::Checkable(void)
 	SetSchedulingOffset(Utility::Random());
 }
 
+void Checkable::OnAllConfigLoaded(void)
+{
+	ObjectImpl<Checkable>::OnAllConfigLoaded();
+
+	Endpoint::Ptr endpoint = GetCommandEndpoint();
+
+	if (endpoint) {
+		Zone::Ptr checkableZone = static_pointer_cast<Zone>(GetZone());
+
+		if (!checkableZone)
+			checkableZone = Zone::GetLocalZone();
+
+		Zone::Ptr cmdZone = endpoint->GetZone();
+
+		if (cmdZone != checkableZone && cmdZone->GetParent() != checkableZone) {
+			BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of("command_endpoint"),
+			    "Command endpoint must be in zone '" + checkableZone->GetName() + "' or in a direct child zone thereof."));
+		}
+	}
+}
+
 void Checkable::Start(bool runtimeCreated)
 {
 	double now = Utility::GetTime();

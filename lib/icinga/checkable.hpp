@@ -185,6 +185,7 @@ public:
 
 protected:
 	virtual void Start(bool runtimeCreated) override;
+	virtual void OnAllConfigLoaded(void) override;
 
 private:
 	mutable boost::mutex m_CheckableMutex;

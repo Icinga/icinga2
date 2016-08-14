@@ -37,7 +37,7 @@ boost::signals2::signal<void(const Endpoint::Ptr&, const JsonRpcConnection::Ptr&
 
 void Endpoint::OnAllConfigLoaded(void)
 {
-	ConfigObject::OnConfigLoaded();
+	ObjectImpl<Endpoint>::OnAllConfigLoaded();
 
 	BOOST_FOREACH(const Zone::Ptr& zone, ConfigType::GetObjectsByType<Zone>()) {
 		const std::set<Endpoint::Ptr> members = zone->GetEndpoints();

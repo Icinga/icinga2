@@ -30,6 +30,8 @@ REGISTER_TYPE(Zone);
 
 void Zone::OnAllConfigLoaded(void)
 {
+	ObjectImpl<Zone>::OnAllConfigLoaded();
+
 	m_Parent = Zone::GetByName(GetParentRaw());
 
 	Zone::Ptr zone = m_Parent;
