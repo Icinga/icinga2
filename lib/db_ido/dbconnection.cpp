@@ -285,6 +285,42 @@ void DbConnection::CleanUpExecuteQuery(const String&, const String&, double)
 	/* Default handler does nothing. */
 }
 
+void DbConnection::SetConfigHash(const DbObject::Ptr& dbobj, const String& hash)
+{
+	SetConfigHash(dbobj->GetType(), GetObjectID(dbobj), hash);
+}
+
+void DbConnection::SetConfigHash(const DbType::Ptr& type, const DbReference& objid, const String& hash)
+{
+	if (!objid.IsValid())
+		return;
+
+	if (!hash.IsEmpty())
+		m_ConfigHashes[std::make_pair(type, objid)] = hash;
+	else
+		m_ConfigHashes.erase(std::make_pair(type, objid));
+}
+
+String DbConnection::GetConfigHash(const DbObject::Ptr& dbobj) const
+{
+	return GetConfigHash(dbobj->GetType(), GetObjectID(dbobj));
+}
+
+String DbConnection::GetConfigHash(const DbType::Ptr& type, const DbReference& objid) const
+{
+	if (!objid.IsValid())
+		return String();
+
+	std::map<std::pair<DbType::Ptr, DbReference>, String>::const_iterator it;
+
+	it = m_ConfigHashes.find(std::make_pair(type, objid));
+
+	if (it == m_ConfigHashes.end())
+		return String();
+
+	return it->second;
+}
+
 void DbConnection::SetObjectID(const DbObject::Ptr& dbobj, const DbReference& dbref)
 {
 	if (dbref.IsValid())
@@ -363,6 +399,7 @@ void DbConnection::ClearIDCache(void)
 	m_ActiveObjects.clear();
 	m_ConfigUpdates.clear();
 	m_StatusUpdates.clear();
+	m_ConfigHashes.clear();
 }
 
 void DbConnection::SetConfigUpdate(const DbObject::Ptr& dbobj, bool hasupdate)
@@ -406,8 +443,18 @@ void DbConnection::UpdateObject(const ConfigObject::Ptr& object)
 			if (!dbActive)
 				ActivateObject(dbobj);
 
-			dbobj->SendConfigUpdate();
-			dbobj->SendStatusUpdate();
+			Dictionary::Ptr configFields = dbobj->GetConfigFields();
+			String configHash = dbobj->CalculateConfigHash(configFields);
+			configFields->Set("config_hash", configHash);
+
+			String cachedHash = GetConfigHash(dbobj);
+
+			if (cachedHash != configHash) {
+				dbobj->SendConfigUpdateHeavy(configFields);
+				dbobj->SendStatusUpdate();
+			} else {
+				dbobj->SendConfigUpdateLight();
+			}
 		} else if (!active) {
 			/* Deactivate the deleted object no matter
 			 * which state it had in the database.
@@ -429,43 +476,6 @@ void DbConnection::UpdateAllObjects(void)
 
 void DbConnection::PrepareDatabase(void)
 {
-	/*
-	 * only clear tables on reconnect which
-	 * cannot be updated by their existing ids
-	 * for details check https://dev.icinga.org/issues/5565
-	 */
-
-	//ClearConfigTable("commands");
-	//ClearConfigTable("comments");
-	ClearConfigTable("contact_addresses");
-	ClearConfigTable("contact_notificationcommands");
-	//ClearConfigTable("contactgroup_members");
-	//ClearConfigTable("contactgroups");
-	//ClearConfigTable("contacts");
-	//ClearConfigTable("contactstatus");
-	//ClearConfigTable("customvariables");
-	//ClearConfigTable("customvariablestatus");
-	//ClearConfigTable("endpoints");
-	//ClearConfigTable("endpointstatus");
-	ClearConfigTable("host_contactgroups");
-	ClearConfigTable("host_contacts");
-	ClearConfigTable("host_parenthosts");
-	ClearConfigTable("hostdependencies");
-	//ClearConfigTable("hostgroup_members");
-	//ClearConfigTable("hostgroups");
-	//ClearConfigTable("hosts");
-	//ClearConfigTable("hoststatus");
-	//ClearConfigTable("scheduleddowntime");
-	ClearConfigTable("service_contactgroups");
-	ClearConfigTable("service_contacts");
-	ClearConfigTable("servicedependencies");
-	//ClearConfigTable("servicegroup_members");
-	//ClearConfigTable("servicegroups");
-	//ClearConfigTable("services");
-	//ClearConfigTable("servicestatus");
-	ClearConfigTable("timeperiod_timeranges");
-	//ClearConfigTable("timeperiods");
-
 	BOOST_FOREACH(const DbType::Ptr& type, DbType::GetAllTypes()) {
 		FillIDCache(type);
 	}

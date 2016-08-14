@@ -204,6 +204,12 @@ Array::Ptr Array::Reverse(void) const
 	return result;
 }
 
+void Array::Sort(void)
+{
+	ObjectLock olock(this);
+	std::sort(m_Data.begin(), m_Data.end());
+}
+
 String Array::ToString(void) const
 {
 	std::ostringstream msgbuf;

@@ -80,6 +80,7 @@ CREATE TABLE  icinga_commands (
   config_type INTEGER  default 0,
   object_id bigint default 0,
   command_line TEXT  default '',
+  config_hash varchar(64) DEFAULT NULL,
   CONSTRAINT PK_command_id PRIMARY KEY (command_id) ,
   CONSTRAINT UQ_commands UNIQUE (instance_id,object_id,config_type)
 ) ;
@@ -208,6 +209,7 @@ CREATE TABLE  icinga_contactgroups (
   config_type INTEGER  default 0,
   contactgroup_object_id bigint default 0,
   alias TEXT  default '',
+  config_hash varchar(64) DEFAULT NULL,
   CONSTRAINT PK_contactgroup_id PRIMARY KEY (contactgroup_id) ,
   CONSTRAINT UQ_contactgroups UNIQUE (instance_id,config_type,contactgroup_object_id)
 );
@@ -296,6 +298,7 @@ CREATE TABLE  icinga_contacts (
   notify_host_unreachable INTEGER  default 0,
   notify_host_flapping INTEGER  default 0,
   notify_host_downtime INTEGER  default 0,
+  config_hash varchar(64) DEFAULT NULL,
   CONSTRAINT PK_contact_id PRIMARY KEY (contact_id) ,
   CONSTRAINT UQ_contacts UNIQUE (instance_id,config_type,contact_object_id)
 ) ;
@@ -639,6 +642,7 @@ CREATE TABLE  icinga_hostgroups (
   notes TEXT  default NULL,
   notes_url TEXT  default NULL,
   action_url TEXT  default NULL,
+  config_hash varchar(64) DEFAULT NULL,
   CONSTRAINT PK_hostgroup_id PRIMARY KEY (hostgroup_id) ,
   CONSTRAINT UQ_hostgroups UNIQUE (instance_id,hostgroup_object_id)
 ) ;
@@ -724,6 +728,7 @@ CREATE TABLE  icinga_hosts (
   x_3d double precision  default 0,
   y_3d double precision  default 0,
   z_3d double precision  default 0,
+  config_hash varchar(64) DEFAULT NULL,
   CONSTRAINT PK_host_id PRIMARY KEY (host_id) ,
   CONSTRAINT UQ_hosts UNIQUE (instance_id,config_type,host_object_id)
 ) ;
@@ -1135,6 +1140,7 @@ CREATE TABLE  icinga_servicegroups (
   notes TEXT  default NULL,
   notes_url TEXT  default NULL,
   action_url TEXT  default NULL,
+  config_hash varchar(64) DEFAULT NULL,
   CONSTRAINT PK_servicegroup_id PRIMARY KEY (servicegroup_id) ,
   CONSTRAINT UQ_servicegroups UNIQUE (instance_id,config_type,servicegroup_object_id)
 ) ;
@@ -1213,6 +1219,7 @@ CREATE TABLE  icinga_services (
   action_url TEXT  default '',
   icon_image TEXT  default '',
   icon_image_alt TEXT  default '',
+  config_hash varchar(64) DEFAULT NULL,
   CONSTRAINT PK_service_id PRIMARY KEY (service_id) ,
   CONSTRAINT UQ_services UNIQUE (instance_id,config_type,service_object_id)
 ) ;
@@ -1368,6 +1375,7 @@ CREATE TABLE  icinga_timeperiods (
   config_type INTEGER  default 0,
   timeperiod_object_id bigint default 0,
   alias TEXT  default '',
+  config_hash varchar(64) DEFAULT NULL,
   CONSTRAINT PK_timeperiod_id PRIMARY KEY (timeperiod_id) ,
   CONSTRAINT UQ_timeperiods UNIQUE (instance_id,config_type,timeperiod_object_id)
 ) ;
@@ -1405,6 +1413,7 @@ CREATE TABLE  icinga_endpoints (
   config_type integer default 0,
   identity text DEFAULT NULL,
   node text DEFAULT NULL,
+  config_hash varchar(64) DEFAULT NULL,
   CONSTRAINT PK_endpoint_id PRIMARY KEY (endpoint_id) ,
   CONSTRAINT UQ_endpoints UNIQUE (instance_id,config_type,endpoint_object_id)
 ) ;
@@ -1439,6 +1448,7 @@ CREATE TABLE  icinga_zones (
   parent_zone_object_id bigint default 0,
   config_type integer default 0,
   is_global integer default 0,
+  config_hash varchar(64) DEFAULT NULL,
   CONSTRAINT PK_zone_id PRIMARY KEY (zone_id) ,
   CONSTRAINT UQ_zones UNIQUE (instance_id,config_type,zone_object_id)
 ) ;
@@ -1693,18 +1703,21 @@ CREATE INDEX idx_zones_parent_object_id on icinga_zones(parent_zone_object_id);
 CREATE INDEX idx_zonestatus_parent_object_id on icinga_zonestatus(parent_zone_object_id);
 
 -- #12210
-CREATE INDEX idx_hg_session_del ON icinga_hostgroup_members (instance_id, session_token);
-CREATE INDEX idx_sg_session_del ON icinga_servicegroup_members (instance_id, session_token);
-CREATE INDEX idx_cg_session_del ON icinga_contactgroup_members (instance_id, session_token);
-
 CREATE INDEX idx_comments_session_del ON icinga_comments (instance_id, session_token);
 CREATE INDEX idx_downtimes_session_del ON icinga_scheduleddowntime (instance_id, session_token);
 
-CREATE INDEX idx_cv_session_del ON icinga_customvariables (instance_id, session_token);
-CREATE INDEX idx_cvs_session_del ON icinga_customvariablestatus (instance_id, session_token);
-
 -- #12107
 CREATE INDEX idx_statehistory_cleanup on icinga_statehistory(instance_id, state_time);
+
+-- #12435
+CREATE INDEX idx_customvariables_object_id on icinga_customvariables(object_id);
+CREATE INDEX idx_contactgroup_members_object_id on icinga_contactgroup_members(contact_object_id);
+CREATE INDEX idx_hostgroup_members_object_id on icinga_hostgroup_members(host_object_id);
+CREATE INDEX idx_servicegroup_members_object_id on icinga_servicegroup_members(service_object_id);
+CREATE INDEX idx_servicedependencies_dependent_service_object_id on icinga_servicedependencies(dependent_service_object_id);
+CREATE INDEX idx_hostdependencies_dependent_host_object_id on icinga_hostdependencies(dependent_host_object_id);
+CREATE INDEX idx_service_contacts_service_id on icinga_service_contacts(service_id);
+CREATE INDEX idx_host_contacts_host_id on icinga_host_contacts(host_id);
 
 -- -----------------------------------------
 -- set dbversion

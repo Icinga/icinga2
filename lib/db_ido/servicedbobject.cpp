@@ -171,39 +171,62 @@ Dictionary::Ptr ServiceDbObject::GetStatusFields(void) const
 	return fields;
 }
 
-void ServiceDbObject::OnConfigUpdate(void)
+void ServiceDbObject::OnConfigUpdateHeavy(void)
 {
 	Service::Ptr service = static_pointer_cast<Service>(GetObject());
 
 	/* groups */
 	Array::Ptr groups = service->GetGroups();
 
+	std::vector<DbQuery> queries;
+
+	DbQuery query1;
+	query1.Table = DbType::GetByName("ServiceGroup")->GetTable() + "_members";
+	query1.Type = DbQueryDelete;
+	query1.Category = DbCatConfig;
+	query1.WhereCriteria = new Dictionary();
+	query1.WhereCriteria->Set("service_object_id", service);
+
+	queries.push_back(query1);
+
 	if (groups) {
 		ObjectLock olock(groups);
 		BOOST_FOREACH(const String& groupName, groups) {
 			ServiceGroup::Ptr group = ServiceGroup::GetByName(groupName);
 
-			DbQuery query1;
-			query1.Table = DbType::GetByName("ServiceGroup")->GetTable() + "_members";
-			query1.Type = DbQueryInsert | DbQueryUpdate;
-			query1.Category = DbCatConfig;
-			query1.Fields = new Dictionary();
-			query1.Fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
-			query1.Fields->Set("servicegroup_id", DbValue::FromObjectInsertID(group));
-			query1.Fields->Set("service_object_id", service);
-			query1.Fields->Set("session_token", 0); /* DbConnection class fills in real ID */
-			query1.WhereCriteria = new Dictionary();
-			query1.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
-			query1.WhereCriteria->Set("servicegroup_id", DbValue::FromObjectInsertID(group));
-			query1.WhereCriteria->Set("service_object_id", service);
+			DbQuery query2;
+			query2.Table = DbType::GetByName("ServiceGroup")->GetTable() + "_members";
+			query2.Type = DbQueryInsert;
+			query2.Category = DbCatConfig;
+			query2.Fields = new Dictionary();
+			query2.Fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
+			query2.Fields->Set("servicegroup_id", DbValue::FromObjectInsertID(group));
+			query2.Fields->Set("service_object_id", service);
+			query2.WhereCriteria = new Dictionary();
+			query2.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
+			query2.WhereCriteria->Set("servicegroup_id", DbValue::FromObjectInsertID(group));
+			query2.WhereCriteria->Set("service_object_id", service);
 
-			DbObject::OnQuery(query1);
+			queries.push_back(query2);
 		}
 	}
+
+	DbObject::OnMultipleQueries(queries);
 
 	/* service dependencies */
 	Log(LogDebug, "ServiceDbObject")
 	    << "service dependencies for '" << service->GetName() << "'";
+
+	queries.clear();
+
+	DbQuery query2;
+	query2.Table = GetType()->GetTable() + "dependencies";
+	query2.Type = DbQueryDelete;
+	query2.Category = DbCatConfig;
+	query2.WhereCriteria = new Dictionary();
+	query2.WhereCriteria->Set("dependent_service_object_id", service);
+
+	queries.push_back(query2);
 
 	BOOST_FOREACH(const Dependency::Ptr& dep, service->GetDependencies()) {
 		Checkable::Ptr parent = dep->GetParent();
@@ -236,12 +259,26 @@ void ServiceDbObject::OnConfigUpdate(void)
 		query1.Type = DbQueryInsert;
 		query1.Category = DbCatConfig;
 		query1.Fields = fields1;
-		OnQuery(query1);
+
+		queries.push_back(query1);
 	}
+
+	DbObject::OnMultipleQueries(queries);
 
 	/* service contacts, contactgroups */
 	Log(LogDebug, "ServiceDbObject")
 	    << "service contacts: " << service->GetName();
+
+	queries.clear();
+
+	DbQuery query3;
+	query3.Table = GetType()->GetTable() + "_contacts";
+	query3.Type = DbQueryDelete;
+	query3.Category = DbCatConfig;
+	query3.WhereCriteria = new Dictionary();
+	query3.WhereCriteria->Set("service_id", DbValue::FromObjectInsertID(service));
+
+	queries.push_back(query3);
 
 	BOOST_FOREACH(const User::Ptr& user, CompatUtility::GetCheckableNotificationUsers(service)) {
 		Log(LogDebug, "ServiceDbObject")
@@ -257,11 +294,25 @@ void ServiceDbObject::OnConfigUpdate(void)
 		query_contact.Type = DbQueryInsert;
 		query_contact.Category = DbCatConfig;
 		query_contact.Fields = fields_contact;
-		OnQuery(query_contact);
+
+		queries.push_back(query_contact);
 	}
+
+	DbObject::OnMultipleQueries(queries);
 
 	Log(LogDebug, "ServiceDbObject")
 	    << "service contactgroups: " << service->GetName();
+
+	queries.clear();
+
+	DbQuery query4;
+	query4.Table = GetType()->GetTable() + "_contactgroups";
+	query4.Type = DbQueryDelete;
+	query4.Category = DbCatConfig;
+	query4.WhereCriteria = new Dictionary();
+	query4.WhereCriteria->Set("service_id", DbValue::FromObjectInsertID(service));
+
+	queries.push_back(query4);
 
 	BOOST_FOREACH(const UserGroup::Ptr& usergroup, CompatUtility::GetCheckableNotificationUserGroups(service)) {
 		Log(LogDebug, "ServiceDbObject")
@@ -277,14 +328,77 @@ void ServiceDbObject::OnConfigUpdate(void)
 		query_contact.Type = DbQueryInsert;
 		query_contact.Category = DbCatConfig;
 		query_contact.Fields = fields_contact;
-		OnQuery(query_contact);
+
+		queries.push_back(query_contact);
 	}
+
+	DbObject::OnMultipleQueries(queries);
+
+	DoCommonConfigUpdate();
+}
+
+void ServiceDbObject::OnConfigUpdateLight(void)
+{
+	DoCommonConfigUpdate();
+}
+
+void ServiceDbObject::DoCommonConfigUpdate(void)
+{
+	Service::Ptr service = static_pointer_cast<Service>(GetObject());
 
 	/* update comments and downtimes on config change */
 	DbEvents::AddComments(service);
 	DbEvents::AddDowntimes(service);
 }
 
-void ServiceDbObject::OnStatusUpdate(void)
+String ServiceDbObject::CalculateConfigHash(const Dictionary::Ptr& configFields) const
 {
+	String hashData = DbObject::CalculateConfigHash(configFields);
+
+	Service::Ptr service = static_pointer_cast<Service>(GetObject());
+
+	Array::Ptr dependencies = new Array();
+
+	/* dependencies */
+	BOOST_FOREACH(const Dependency::Ptr& dep, service->GetDependencies()) {
+		Checkable::Ptr parent = dep->GetParent();
+
+		if (!parent)
+			continue;
+
+		int state_filter = dep->GetStateFilter();
+
+		Array::Ptr depInfo = new Array();
+		depInfo->Add(parent->GetName());
+		depInfo->Add(dep->GetStateFilter());
+		depInfo->Add(dep->GetPeriodRaw());
+
+		dependencies->Add(depInfo);
+	}
+
+	dependencies->Sort();
+
+	hashData += DbObject::HashValue(dependencies);
+
+	Array::Ptr users = new Array();
+
+	BOOST_FOREACH(const User::Ptr& user, CompatUtility::GetCheckableNotificationUsers(service)) {
+		users->Add(user->GetName());
+	}
+
+	users->Sort();
+
+	hashData += DbObject::HashValue(users);
+
+	Array::Ptr userGroups = new Array();
+
+	BOOST_FOREACH(const UserGroup::Ptr& usergroup, CompatUtility::GetCheckableNotificationUserGroups(service)) {
+		userGroups->Add(usergroup->GetName());
+	}
+
+	userGroups->Sort();
+
+	hashData += DbObject::HashValue(userGroups);
+
+	return SHA256(hashData);
 }

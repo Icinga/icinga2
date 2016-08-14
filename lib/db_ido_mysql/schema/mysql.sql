@@ -54,6 +54,7 @@ CREATE TABLE IF NOT EXISTS icinga_commands (
   config_type smallint default 0,
   object_id bigint unsigned default 0,
   command_line TEXT character set latin1  default '',
+  config_hash varchar(64) DEFAULT NULL,
   PRIMARY KEY  (command_id),
   UNIQUE KEY instance_id (instance_id,object_id,config_type)
 ) ENGINE=InnoDB  COMMENT='Command definitions';
@@ -182,6 +183,7 @@ CREATE TABLE IF NOT EXISTS icinga_contactgroups (
   config_type smallint default 0,
   contactgroup_object_id bigint unsigned default 0,
   alias varchar(255) character set latin1  default '',
+  config_hash varchar(64) DEFAULT NULL,
   PRIMARY KEY  (contactgroup_id),
   UNIQUE KEY instance_id (instance_id,config_type,contactgroup_object_id)
 ) ENGINE=InnoDB  COMMENT='Contactgroup definitions';
@@ -197,7 +199,6 @@ CREATE TABLE IF NOT EXISTS icinga_contactgroup_members (
   instance_id bigint unsigned default 0,
   contactgroup_id bigint unsigned default 0,
   contact_object_id bigint unsigned default 0,
-  session_token int default NULL,
   PRIMARY KEY  (contactgroup_member_id)
 ) ENGINE=InnoDB  COMMENT='Contactgroup members';
 
@@ -270,6 +271,7 @@ CREATE TABLE IF NOT EXISTS icinga_contacts (
   notify_host_unreachable smallint default 0,
   notify_host_flapping smallint default 0,
   notify_host_downtime smallint default 0,
+  config_hash varchar(64) DEFAULT NULL,
   PRIMARY KEY  (contact_id),
   UNIQUE KEY instance_id (instance_id,config_type,contact_object_id)
 ) ENGINE=InnoDB  COMMENT='Contact definitions';
@@ -344,7 +346,6 @@ CREATE TABLE IF NOT EXISTS icinga_customvariables (
   varname varchar(255) character set latin1 collate latin1_general_cs default NULL,
   varvalue TEXT character set latin1  default '',
   is_json smallint default 0,
-  session_token int default NULL,
   PRIMARY KEY  (customvariable_id),
   UNIQUE KEY object_id_2 (object_id,config_type,varname),
   KEY varname (varname)
@@ -365,7 +366,6 @@ CREATE TABLE IF NOT EXISTS icinga_customvariablestatus (
   varname varchar(255) character set latin1 collate latin1_general_cs default NULL,
   varvalue TEXT character set latin1  default '',
   is_json smallint default 0,
-  session_token int default NULL,
   PRIMARY KEY  (customvariablestatus_id),
   UNIQUE KEY object_id_2 (object_id,varname),
   KEY varname (varname)
@@ -612,6 +612,7 @@ CREATE TABLE IF NOT EXISTS icinga_hostgroups (
   notes TEXT character set latin1  default NULL,
   notes_url TEXT character set latin1  default NULL,
   action_url TEXT character set latin1  default NULL,
+  config_hash varchar(64) DEFAULT NULL,
   PRIMARY KEY  (hostgroup_id),
   UNIQUE KEY instance_id (instance_id,hostgroup_object_id)
 ) ENGINE=InnoDB  COMMENT='Hostgroup definitions';
@@ -627,7 +628,6 @@ CREATE TABLE IF NOT EXISTS icinga_hostgroup_members (
   instance_id bigint unsigned default 0,
   hostgroup_id bigint unsigned default 0,
   host_object_id bigint unsigned default 0,
-  session_token int default NULL,
   PRIMARY KEY  (hostgroup_member_id)
 ) ENGINE=InnoDB  COMMENT='Hostgroup members';
 
@@ -697,6 +697,7 @@ CREATE TABLE IF NOT EXISTS icinga_hosts (
   x_3d double  default '0',
   y_3d double  default '0',
   z_3d double  default '0',
+  config_hash varchar(64) DEFAULT NULL,
   PRIMARY KEY  (host_id),
   UNIQUE KEY instance_id (instance_id,config_type,host_object_id),
   KEY host_object_id (host_object_id)
@@ -1108,6 +1109,7 @@ CREATE TABLE IF NOT EXISTS icinga_servicegroups (
   notes TEXT character set latin1  default NULL,
   notes_url TEXT character set latin1  default NULL,
   action_url TEXT character set latin1  default NULL,
+  config_hash varchar(64) DEFAULT NULL,
   PRIMARY KEY  (servicegroup_id),
   UNIQUE KEY instance_id (instance_id,config_type,servicegroup_object_id)
 ) ENGINE=InnoDB  COMMENT='Servicegroup definitions';
@@ -1123,7 +1125,6 @@ CREATE TABLE IF NOT EXISTS icinga_servicegroup_members (
   instance_id bigint unsigned default 0,
   servicegroup_id bigint unsigned default 0,
   service_object_id bigint unsigned default 0,
-  session_token int default NULL,
   PRIMARY KEY  (servicegroup_member_id)
 ) ENGINE=InnoDB  COMMENT='Servicegroup members';
 
@@ -1186,6 +1187,7 @@ CREATE TABLE IF NOT EXISTS icinga_services (
   action_url TEXT character set latin1  default '',
   icon_image TEXT character set latin1  default '',
   icon_image_alt TEXT character set latin1  default '',
+  config_hash varchar(64) DEFAULT NULL,
   PRIMARY KEY  (service_id),
   UNIQUE KEY instance_id (instance_id,config_type,service_object_id),
   KEY service_object_id (service_object_id)
@@ -1342,6 +1344,7 @@ CREATE TABLE IF NOT EXISTS icinga_timeperiods (
   config_type smallint default 0,
   timeperiod_object_id bigint unsigned default 0,
   alias varchar(255) character set latin1  default '',
+  config_hash varchar(64) DEFAULT NULL,
   PRIMARY KEY  (timeperiod_id),
   UNIQUE KEY instance_id (instance_id,config_type,timeperiod_object_id)
 ) ENGINE=InnoDB  COMMENT='Timeperiod definitions';
@@ -1379,6 +1382,7 @@ CREATE TABLE IF NOT EXISTS icinga_endpoints (
   config_type smallint(6) DEFAULT '0',
   identity varchar(255) DEFAULT NULL,
   node varchar(255) DEFAULT NULL,
+  config_hash varchar(64) DEFAULT NULL,
   PRIMARY KEY  (endpoint_id)
 ) ENGINE=InnoDB COMMENT='Endpoint configuration';
 
@@ -1411,6 +1415,7 @@ CREATE TABLE IF NOT EXISTS icinga_zones (
   config_type smallint(6) DEFAULT '0',
   parent_zone_object_id bigint(20) unsigned DEFAULT '0',
   is_global smallint(6),
+  config_hash varchar(64) DEFAULT NULL,
   PRIMARY KEY  (zone_id)
 ) ENGINE=InnoDB COMMENT='Zone configuration';
 
@@ -1664,18 +1669,21 @@ CREATE INDEX idx_zones_parent_object_id on icinga_zones(parent_zone_object_id);
 CREATE INDEX idx_zonestatus_parent_object_id on icinga_zonestatus(parent_zone_object_id);
 
 -- #12210
-CREATE INDEX idx_hg_session_del ON icinga_hostgroup_members (instance_id, session_token);
-CREATE INDEX idx_sg_session_del ON icinga_servicegroup_members (instance_id, session_token);
-CREATE INDEX idx_cg_session_del ON icinga_contactgroup_members (instance_id, session_token);
-
-CREATE INDEX idx_cv_session_del ON icinga_customvariables (instance_id, session_token);
-CREATE INDEX idx_cvs_session_del ON icinga_customvariablestatus (instance_id, session_token);
-
 CREATE INDEX idx_comments_session_del ON icinga_comments (instance_id, session_token);
 CREATE INDEX idx_downtimes_session_del ON icinga_scheduleddowntime (instance_id, session_token);
 
 -- #12107
 CREATE INDEX idx_statehistory_cleanup on icinga_statehistory(instance_id, state_time);
+
+-- #12435
+CREATE INDEX idx_customvariables_object_id on icinga_customvariables(object_id);
+CREATE INDEX idx_contactgroup_members_object_id on icinga_contactgroup_members(contact_object_id);
+CREATE INDEX idx_hostgroup_members_object_id on icinga_hostgroup_members(host_object_id);
+CREATE INDEX idx_servicegroup_members_object_id on icinga_servicegroup_members(service_object_id);
+CREATE INDEX idx_servicedependencies_dependent_service_object_id on icinga_servicedependencies(dependent_service_object_id);
+CREATE INDEX idx_hostdependencies_dependent_host_object_id on icinga_hostdependencies(dependent_host_object_id);
+CREATE INDEX idx_service_contacts_service_id on icinga_service_contacts(service_id);
+CREATE INDEX idx_host_contacts_host_id on icinga_host_contacts(host_id);
 
 -- -----------------------------------------
 -- set dbversion

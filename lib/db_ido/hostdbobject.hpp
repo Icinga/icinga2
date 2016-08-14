@@ -41,9 +41,13 @@ public:
 	virtual Dictionary::Ptr GetConfigFields(void) const override;
 	virtual Dictionary::Ptr GetStatusFields(void) const override;
 
+	virtual void OnConfigUpdateHeavy(void) override;
+	virtual void OnConfigUpdateLight(void) override;
+
+	virtual String CalculateConfigHash(const Dictionary::Ptr& configFields) const;
+
 private:
-	virtual void OnConfigUpdate(void) override;
-	virtual void OnStatusUpdate(void) override;
+	void DoCommonConfigUpdate(void);
 };
 
 }

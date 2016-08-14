@@ -131,6 +131,8 @@ public:
 
 	Array::Ptr Reverse(void) const;
 
+	void Sort(void);
+
 	virtual String ToString(void) const override;
 
 	virtual Value GetFieldByName(const String& field, bool sandboxed, const DebugInfo& debugInfo) const override;

@@ -30,6 +30,8 @@
 #include "base/configobject.hpp"
 #include "base/configtype.hpp"
 #include "base/json.hpp"
+#include "base/serializer.hpp"
+#include "base/json.hpp"
 #include "base/convert.hpp"
 #include "base/objectlock.hpp"
 #include "base/utility.hpp"
@@ -83,35 +85,82 @@ DbType::Ptr DbObject::GetType(void) const
 	return m_Type;
 }
 
-void DbObject::SendConfigUpdate(void)
+String DbObject::CalculateConfigHash(const Dictionary::Ptr& configFields) const
+{
+	Dictionary::Ptr configFieldsDup = configFields->ShallowClone();
+
+	{
+		ObjectLock olock(configFieldsDup);
+
+		BOOST_FOREACH(const Dictionary::Pair& kv, configFieldsDup) {
+			if (kv.second.IsObjectType<ConfigObject>()) {
+				ConfigObject::Ptr obj = kv.second;
+				configFieldsDup->Set(kv.first, obj->GetName());
+			}
+		}
+	}
+
+	Array::Ptr data = new Array();
+	data->Add(configFieldsDup);
+
+	CustomVarObject::Ptr custom_var_object = dynamic_pointer_cast<CustomVarObject>(GetObject());
+
+	if (custom_var_object)
+		data->Add(custom_var_object->GetVars());
+
+	return HashValue(data);
+}
+
+String DbObject::HashValue(const Value& value)
+{
+	Value temp;
+
+	Type::Ptr type = value.GetReflectionType();
+
+	if (ConfigObject::TypeInstance->IsAssignableFrom(type))
+		temp = Serialize(value, FAConfig);
+	else
+		temp = value;
+
+	return SHA256(JsonEncode(temp));
+}
+
+void DbObject::SendConfigUpdateHeavy(const Dictionary::Ptr& configFields)
 {
 	/* update custom var config and status */
-	SendVarsConfigUpdate();
+	SendVarsConfigUpdateHeavy();
 	SendVarsStatusUpdate();
 
 	/* config attributes */
-	Dictionary::Ptr fields = GetConfigFields();
-
-	if (!fields)
+	if (!configFields)
 		return;
+
+	ASSERT(configFields->Contains("config_hash"));
+
+	ConfigObject::Ptr object = GetObject();
 
 	DbQuery query;
 	query.Table = GetType()->GetTable() + "s";
 	query.Type = DbQueryInsert | DbQueryUpdate;
 	query.Category = DbCatConfig;
-	query.Fields = fields;
-	query.Fields->Set(GetType()->GetIDColumn(), GetObject());
+	query.Fields = configFields;
+	query.Fields->Set(GetType()->GetIDColumn(), object);
 	query.Fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
 	query.Fields->Set("config_type", 1);
 	query.WhereCriteria = new Dictionary();
-	query.WhereCriteria->Set(GetType()->GetIDColumn(), GetObject());
+	query.WhereCriteria->Set(GetType()->GetIDColumn(), object);
 	query.Object = this;
 	query.ConfigUpdate = true;
 	OnQuery(query);
 
 	m_LastConfigUpdate = Utility::GetTime();
 
-	OnConfigUpdate();
+	OnConfigUpdateHeavy();
+}
+
+void DbObject::SendConfigUpdateLight(void)
+{
+	OnConfigUpdateLight();
 }
 
 void DbObject::SendStatusUpdate(void)
@@ -152,7 +201,7 @@ void DbObject::SendStatusUpdate(void)
 	OnStatusUpdate();
 }
 
-void DbObject::SendVarsConfigUpdate(void)
+void DbObject::SendVarsConfigUpdateHeavy(void)
 {
 	ConfigObject::Ptr obj = GetObject();
 
@@ -161,10 +210,29 @@ void DbObject::SendVarsConfigUpdate(void)
 	if (!custom_var_object)
 		return;
 
+	std::vector<DbQuery> queries;
+
+	DbQuery query1;
+	query1.Table = "customvariables";
+	query1.Type = DbQueryDelete;
+	query1.Category = DbCatConfig;
+	query1.WhereCriteria = new Dictionary();
+	query1.WhereCriteria->Set("object_id", obj);
+
+	queries.push_back(query1);
+
+	DbQuery query2;
+	query2.Table = "customvariablestatus";
+	query2.Type = DbQueryDelete;
+	query2.Category = DbCatConfig;
+	query2.WhereCriteria = new Dictionary();
+	query2.WhereCriteria->Set("object_id", obj);
+
+	queries.push_back(query2);
+
 	Dictionary::Ptr vars = CompatUtility::GetCustomAttributeConfig(custom_var_object);
 
 	if (vars) {
-		std::vector<DbQuery> queries;
 		ObjectLock olock (vars);
 
 		BOOST_FOREACH(const Dictionary::Pair& kv, vars) {
@@ -185,26 +253,25 @@ void DbObject::SendVarsConfigUpdate(void)
 			fields->Set("varvalue", value);
 			fields->Set("is_json", is_json);
 			fields->Set("config_type", 1);
-			fields->Set("session_token", 0); /* DbConnection class fills in real ID */
 			fields->Set("object_id", obj);
 			fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
-			DbQuery query;
-			query.Table = "customvariables";
-			query.Type = DbQueryInsert | DbQueryUpdate;
-			query.Category = DbCatConfig;
-			query.Fields = fields;
+			DbQuery query3;
+			query3.Table = "customvariables";
+			query3.Type = DbQueryInsert;
+			query3.Category = DbCatConfig;
+			query3.Fields = fields;
 
-			query.WhereCriteria = new Dictionary();
-			query.WhereCriteria->Set("object_id", obj);
-			query.WhereCriteria->Set("varname", kv.first);
-			query.Object = this;
+			query3.WhereCriteria = new Dictionary();
+			query3.WhereCriteria->Set("object_id", obj);
+			query3.WhereCriteria->Set("varname", kv.first);
+			query3.Object = this;
 
-			queries.push_back(query);
+			queries.push_back(query3);
 		}
-
-		OnMultipleQueries(queries);
 	}
+
+	OnMultipleQueries(queries);
 }
 
 void DbObject::SendVarsStatusUpdate(void)
@@ -240,7 +307,6 @@ void DbObject::SendVarsStatusUpdate(void)
 			fields->Set("varvalue", value);
 			fields->Set("is_json", is_json);
 			fields->Set("status_update_time", DbValue::FromTimestamp(Utility::GetTime()));
-			fields->Set("session_token", 0); /* DbConnection class fills in real ID */
 			fields->Set("object_id", obj);
 			fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
@@ -272,7 +338,12 @@ double DbObject::GetLastStatusUpdate(void) const
 	return m_LastStatusUpdate;
 }
 
-void DbObject::OnConfigUpdate(void)
+void DbObject::OnConfigUpdateHeavy(void)
+{
+	/* Default handler does nothing. */
+}
+
+void DbObject::OnConfigUpdateLight(void)
 {
 	/* Default handler does nothing. */
 }
@@ -350,7 +421,11 @@ void DbObject::VersionChangedHandler(const ConfigObject::Ptr& object)
 	DbObject::Ptr dbobj = DbObject::GetOrCreateByObject(object);
 
 	if (dbobj) {
-		dbobj->SendConfigUpdate();
+		Dictionary::Ptr configFields = dbobj->GetConfigFields();
+		String configHash = dbobj->CalculateConfigHash(configFields);
+		configFields->Set("config_hash", configHash);
+
+		dbobj->SendConfigUpdateHeavy(configFields);
 		dbobj->SendStatusUpdate();
 	}
 }

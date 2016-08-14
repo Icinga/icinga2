@@ -39,24 +39,6 @@ CREATE INDEX idx_zones_parent_object_id on icinga_zones(parent_zone_object_id);
 CREATE INDEX idx_zonestatus_parent_object_id on icinga_zonestatus(parent_zone_object_id);
 
 -- -----------------------------------------
--- #12210
--- -----------------------------------------
-
-ALTER TABLE icinga_hostgroup_members ADD COLUMN session_token INTEGER default NULL;
-ALTER TABLE icinga_servicegroup_members ADD COLUMN session_token INTEGER default NULL;
-ALTER TABLE icinga_contactgroup_members ADD COLUMN session_token INTEGER default NULL;
-
-CREATE INDEX idx_hg_session_del ON icinga_hostgroup_members (instance_id, session_token);
-CREATE INDEX idx_sg_session_del ON icinga_servicegroup_members (instance_id, session_token);
-CREATE INDEX idx_cg_session_del ON icinga_contactgroup_members (instance_id, session_token);
-
-DROP INDEX cv_session_del_idx;
-DROP INDEX cvs_session_del_idx;
-
-CREATE INDEX idx_cv_session_del ON icinga_customvariables (instance_id, session_token);
-CREATE INDEX idx_cvs_session_del ON icinga_customvariablestatus (instance_id, session_token);
-
--- -----------------------------------------
 -- #12258
 -- -----------------------------------------
 ALTER TABLE icinga_comments ADD COLUMN session_token INTEGER default NULL;
@@ -69,6 +51,32 @@ CREATE INDEX idx_downtimes_session_del ON icinga_scheduleddowntime (instance_id,
 -- #12107
 -- -----------------------------------------
 CREATE INDEX idx_statehistory_cleanup on icinga_statehistory(instance_id, state_time);
+
+-- -----------------------------------------
+-- #12435
+-- -----------------------------------------
+ALTER TABLE icinga_commands ADD config_hash VARCHAR(64) DEFAULT NULL;
+ALTER TABLE icinga_contactgroups ADD config_hash VARCHAR(64) DEFAULT NULL;
+ALTER TABLE icinga_contacts ADD config_hash VARCHAR(64) DEFAULT NULL;
+ALTER TABLE icinga_hostgroups ADD config_hash VARCHAR(64) DEFAULT NULL;
+ALTER TABLE icinga_hosts ADD config_hash VARCHAR(64) DEFAULT NULL;
+ALTER TABLE icinga_servicegroups ADD config_hash VARCHAR(64) DEFAULT NULL;
+ALTER TABLE icinga_services ADD config_hash VARCHAR(64) DEFAULT NULL;
+ALTER TABLE icinga_timeperiods ADD config_hash VARCHAR(64) DEFAULT NULL;
+ALTER TABLE icinga_endpoints ADD config_hash VARCHAR(64) DEFAULT NULL;
+ALTER TABLE icinga_zones ADD config_hash VARCHAR(64) DEFAULT NULL;
+
+ALTER TABLE icinga_customvariables DROP session_token;
+ALTER TABLE icinga_customvariablestatus DROP session_token;
+
+CREATE INDEX idx_customvariables_object_id on icinga_customvariables(object_id);
+CREATE INDEX idx_contactgroup_members_object_id on icinga_contactgroup_members(contact_object_id);
+CREATE INDEX idx_hostgroup_members_object_id on icinga_hostgroup_members(host_object_id);
+CREATE INDEX idx_servicegroup_members_object_id on icinga_servicegroup_members(service_object_id);
+CREATE INDEX idx_servicedependencies_dependent_service_object_id on icinga_servicedependencies(dependent_service_object_id);
+CREATE INDEX idx_hostdependencies_dependent_host_object_id on icinga_hostdependencies(dependent_host_object_id);
+CREATE INDEX idx_service_contacts_service_id on icinga_service_contacts(service_id);
+CREATE INDEX idx_host_contacts_host_id on icinga_host_contacts(host_id);
 
 -- -----------------------------------------
 -- set dbversion

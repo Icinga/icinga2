@@ -50,7 +50,7 @@ Dictionary::Ptr TimePeriodDbObject::GetStatusFields(void) const
 	return Empty;
 }
 
-void TimePeriodDbObject::OnConfigUpdate(void)
+void TimePeriodDbObject::OnConfigUpdateHeavy(void)
 {
 	TimePeriod::Ptr tp = static_pointer_cast<TimePeriod>(GetObject());
 

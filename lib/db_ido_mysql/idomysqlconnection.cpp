@@ -436,12 +436,7 @@ void IdoMysqlConnection::FinishConnect(double startTime)
 
 void IdoMysqlConnection::ClearTablesBySession(void)
 {
-	/* delete all customvariables and group members without current session token */
-	ClearTableBySession("customvariables");
-	ClearTableBySession("customvariablestatus");
-	ClearTableBySession("hostgroup_members");
-	ClearTableBySession("servicegroup_members");
-	ClearTableBySession("contactgroup_members");
+	/* delete all comments and downtimes without current session token */
 	ClearTableBySession("comments");
 	ClearTableBySession("scheduleddowntime");
 }
@@ -451,11 +446,6 @@ void IdoMysqlConnection::ClearTableBySession(const String& table)
 	Query("DELETE FROM " + GetTablePrefix() + table + " WHERE instance_id = " +
 	    Convert::ToString(static_cast<long>(m_InstanceID)) + " AND session_token <> " +
 	    Convert::ToString(GetSessionToken()));
-}
-
-void IdoMysqlConnection::ClearConfigTable(const String& table)
-{
-	Query("DELETE FROM " + GetTablePrefix() + table + " WHERE instance_id = " + Convert::ToString(static_cast<long>(m_InstanceID)));
 }
 
 void IdoMysqlConnection::AsyncQuery(const String& query, const boost::function<void (const IdoMysqlResult&)>& callback)
@@ -1058,13 +1048,15 @@ void IdoMysqlConnection::InternalCleanUpExecuteQuery(const String& table, const 
 
 void IdoMysqlConnection::FillIDCache(const DbType::Ptr& type)
 {
-	String query = "SELECT " + type->GetIDColumn() + " AS object_id, " + type->GetTable() + "_id FROM " + GetTablePrefix() + type->GetTable() + "s";
+	String query = "SELECT " + type->GetIDColumn() + " AS object_id, " + type->GetTable() + "_id, config_hash FROM " + GetTablePrefix() + type->GetTable() + "s";
 	IdoMysqlResult result = Query(query);
 
 	Dictionary::Ptr row;
 
 	while ((row = FetchRow(result))) {
-		SetInsertID(type, DbReference(row->Get("object_id")), DbReference(row->Get(type->GetTable() + "_id")));
+		DbReference dbref(row->Get("object_id"));
+		SetInsertID(type, dbref, DbReference(row->Get(type->GetTable() + "_id")));
+		SetConfigHash(type, dbref, row->Get("config_hash"));
 	}
 }
 

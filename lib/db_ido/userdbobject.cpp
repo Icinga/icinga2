@@ -80,45 +80,65 @@ Dictionary::Ptr UserDbObject::GetStatusFields(void) const
 	return fields;
 }
 
-void UserDbObject::OnConfigUpdate(void)
+void UserDbObject::OnConfigUpdateHeavy(void)
 {
-	Dictionary::Ptr fields = new Dictionary();
 	User::Ptr user = static_pointer_cast<User>(GetObject());
 
 	/* groups */
 	Array::Ptr groups = user->GetGroups();
+
+	std::vector<DbQuery> queries;
+
+	DbQuery query1;
+	query1.Table = DbType::GetByName("UserGroup")->GetTable() + "_members";
+	query1.Type = DbQueryDelete;
+	query1.Category = DbCatConfig;
+	query1.WhereCriteria = new Dictionary();
+	query1.WhereCriteria->Set("contact_object_id", user);
+
+	queries.push_back(query1);
 
 	if (groups) {
 		ObjectLock olock(groups);
 		BOOST_FOREACH(const String& groupName, groups) {
 			UserGroup::Ptr group = UserGroup::GetByName(groupName);
 
-			DbQuery query1;
-			query1.Table = DbType::GetByName("UserGroup")->GetTable() + "_members";
-			query1.Type = DbQueryInsert | DbQueryUpdate;
-			query1.Category = DbCatConfig;
-			query1.Fields = new Dictionary();
-			query1.Fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
-			query1.Fields->Set("contactgroup_id", DbValue::FromObjectInsertID(group));
-			query1.Fields->Set("contact_object_id", user);
-			query1.Fields->Set("session_token", 0); /* DbConnection class fills in real ID */
-			query1.WhereCriteria = new Dictionary();
-			query1.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
-			query1.WhereCriteria->Set("contactgroup_id", DbValue::FromObjectInsertID(group));
-			query1.WhereCriteria->Set("contact_object_id", user);
+			DbQuery query2;
+			query2.Table = DbType::GetByName("UserGroup")->GetTable() + "_members";
+			query2.Type = DbQueryInsert | DbQueryUpdate;
+			query2.Category = DbCatConfig;
+			query2.Fields = new Dictionary();
+			query2.Fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
+			query2.Fields->Set("contactgroup_id", DbValue::FromObjectInsertID(group));
+			query2.Fields->Set("contact_object_id", user);
+			query2.WhereCriteria = new Dictionary();
+			query2.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
+			query2.WhereCriteria->Set("contactgroup_id", DbValue::FromObjectInsertID(group));
+			query2.WhereCriteria->Set("contact_object_id", user);
 
-			OnQuery(query1);
+			queries.push_back(query2);
 		}
 	}
 
-	/* contact addresses */
-	Log(LogDebug, "UserDbObject")
-	    << "contact addresses for '" << user->GetName() << "'";
+	DbObject::OnMultipleQueries(queries);
+
+	queries.clear();
+
+	DbQuery query2;
+	query2.Table = "contact_addresses";
+	query2.Type = DbQueryDelete;
+	query2.Category = DbCatConfig;
+	query2.WhereCriteria = new Dictionary();
+	query2.WhereCriteria->Set("contact_id", DbValue::FromObjectInsertID(user));
+
+	queries.push_back(query2);
 
 	Dictionary::Ptr vars = user->GetVars();
 
 	if (vars) { /* This is sparta. */
 		for (int i = 1; i <= 6; i++) {
+			Dictionary::Ptr fields = new Dictionary();
+
 			String key = "address" + Convert::ToString(i);
 
 			if (!vars->Contains(key))
@@ -136,7 +156,10 @@ void UserDbObject::OnConfigUpdate(void)
 			query.Table = "contact_addresses";
 			query.Category = DbCatConfig;
 			query.Fields = fields;
-			OnQuery(query);
+
+			queries.push_back(query);
 		}
 	}
+
+	DbObject::OnMultipleQueries(queries);
 }

@@ -49,6 +49,11 @@ public:
 
 	static void InitializeDbTimer(void);
 
+	void SetConfigHash(const DbObject::Ptr& dbobj, const String& hash);
+	void SetConfigHash(const DbType::Ptr& type, const DbReference& objid, const String& hash);
+	String GetConfigHash(const DbObject::Ptr& dbobj) const;
+	String GetConfigHash(const DbType::Ptr& type, const DbReference& objid) const;
+
 	void SetObjectID(const DbObject::Ptr& dbobj, const DbReference& dbref);
 	DbReference GetObjectID(const DbObject::Ptr& dbobj) const;
 
@@ -106,6 +111,7 @@ protected:
 
 private:
 	bool m_IDCacheValid;
+	std::map<std::pair<DbType::Ptr, DbReference>, String> m_ConfigHashes;
 	std::map<DbObject::Ptr, DbReference> m_ObjectIDs;
 	std::map<std::pair<DbType::Ptr, DbReference>, DbReference> m_InsertIDs;
 	std::set<DbObject::Ptr> m_ActiveObjects;
@@ -114,8 +120,6 @@ private:
 	Timer::Ptr m_CleanUpTimer;
 
 	void CleanUpHandler(void);
-
-	virtual void ClearConfigTable(const String& table) = 0;
 
 	static Timer::Ptr m_ProgramStatusTimer;
 	static boost::once_flag m_OnceFlag;

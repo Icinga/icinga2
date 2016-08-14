@@ -38,9 +38,11 @@ public:
 
 	TimePeriodDbObject(const DbType::Ptr& type, const String& name1, const String& name2);
 
+protected:
 	virtual Dictionary::Ptr GetConfigFields(void) const override;
 	virtual Dictionary::Ptr GetStatusFields(void) const override;
-	virtual void OnConfigUpdate(void) override;
+
+	virtual void OnConfigUpdateHeavy(void) override;
 };
 
 }

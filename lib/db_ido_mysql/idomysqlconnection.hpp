@@ -114,7 +114,6 @@ private:
 	void InternalCleanUpExecuteQuery(const String& table, const String& time_key, double time_value);
 	void InternalNewTransaction(void);
 
-	virtual void ClearConfigTable(const String& table) override;
 	void ClearTableBySession(const String& table);
 	void ClearTablesBySession(void);
 

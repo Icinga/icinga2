@@ -407,12 +407,7 @@ void IdoPgsqlConnection::FinishConnect(double startTime)
 
 void IdoPgsqlConnection::ClearTablesBySession(void)
 {
-	/* delete all customvariables and group members without current session token */
-	ClearTableBySession("customvariables");
-	ClearTableBySession("customvariablestatus");
-	ClearTableBySession("hostgroup_members");
-	ClearTableBySession("servicegroup_members");
-	ClearTableBySession("contactgroup_members");
+	/* delete all comments and downtimes without current session token */
 	ClearTableBySession("comments");
 	ClearTableBySession("scheduleddowntime");
 }
@@ -422,11 +417,6 @@ void IdoPgsqlConnection::ClearTableBySession(const String& table)
 	Query("DELETE FROM " + GetTablePrefix() + table + " WHERE instance_id = " +
 	    Convert::ToString(static_cast<long>(m_InstanceID)) + " AND session_token <> " +
 	    Convert::ToString(GetSessionToken()));
-}
-
-void IdoPgsqlConnection::ClearConfigTable(const String& table)
-{
-	Query("DELETE FROM " + GetTablePrefix() + table + " WHERE instance_id = " + Convert::ToString(static_cast<long>(m_InstanceID)));
 }
 
 IdoPgsqlResult IdoPgsqlConnection::Query(const String& query)
@@ -919,7 +909,7 @@ void IdoPgsqlConnection::InternalCleanUpExecuteQuery(const String& table, const 
 
 void IdoPgsqlConnection::FillIDCache(const DbType::Ptr& type)
 {
-	String query = "SELECT " + type->GetIDColumn() + " AS object_id, " + type->GetTable() + "_id FROM " + GetTablePrefix() + type->GetTable() + "s";
+	String query = "SELECT " + type->GetIDColumn() + " AS object_id, " + type->GetTable() + "_id, config_hash FROM " + GetTablePrefix() + type->GetTable() + "s";
 	IdoPgsqlResult result = Query(query);
 
 	Dictionary::Ptr row;
@@ -927,7 +917,9 @@ void IdoPgsqlConnection::FillIDCache(const DbType::Ptr& type)
 	int index = 0;
 	while ((row = FetchRow(result, index))) {
 		index++;
-		SetInsertID(type, DbReference(row->Get("object_id")), DbReference(row->Get(type->GetTable() + "_id")));
+		DbReference dbref(row->Get("object_id"));
+		SetInsertID(type, dbref, DbReference(row->Get(type->GetTable() + "_id")));
+		SetConfigHash(type, dbref, row->Get("config_hash"));
 	}
 }
 
