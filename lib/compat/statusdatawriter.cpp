@@ -431,7 +431,7 @@ void StatusDataWriter::DumpServiceObject(std::ostream& fp, const Service::Ptr& s
 		      "\t" "notifications_enabled" "\t" << CompatUtility::GetCheckableNotificationsEnabled(service) << "\n"
 		      "\t" "notification_options" "\t" << CompatUtility::GetCheckableNotificationNotificationOptions(service) << "\n"
 		      "\t" "notification_interval" "\t" << CompatUtility::GetCheckableNotificationNotificationInterval(service) << "\n"
-		      "\t" "notification_period" "\t" << CompatUtility::GetCheckableNotificationNotificationPeriod(service) << "\n"
+		      "\t" "notification_period" "\t" << "" << "\n"
 		      "\t" "event_handler_enabled" "\t" << CompatUtility::GetCheckableEventHandlerEnabled(service) << "\n";
 
 		CheckCommand::Ptr checkcommand = service->GetCheckCommand();

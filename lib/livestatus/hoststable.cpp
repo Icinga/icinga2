@@ -58,7 +58,7 @@ void HostsTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "check_command", Column(&HostsTable::CheckCommandAccessor, objectAccessor));
 	table->AddColumn(prefix + "check_command_expanded", Column(&HostsTable::CheckCommandExpandedAccessor, objectAccessor));
 	table->AddColumn(prefix + "event_handler", Column(&HostsTable::EventHandlerAccessor, objectAccessor));
-	table->AddColumn(prefix + "notification_period", Column(&HostsTable::NotificationPeriodAccessor, objectAccessor));
+	table->AddColumn(prefix + "notification_period", Column(&Table::EmptyStringAccessor, objectAccessor));
 	table->AddColumn(prefix + "check_period", Column(&HostsTable::CheckPeriodAccessor, objectAccessor));
 	table->AddColumn(prefix + "notes", Column(&HostsTable::NotesAccessor, objectAccessor));
 	table->AddColumn(prefix + "notes_expanded", Column(&HostsTable::NotesExpandedAccessor, objectAccessor));
@@ -295,16 +295,6 @@ Value HostsTable::EventHandlerAccessor(const Value& row)
 		return CompatUtility::GetCommandName(eventcommand);
 
 	return Empty;
-}
-
-Value HostsTable::NotificationPeriodAccessor(const Value& row)
-{
-	Host::Ptr host = static_cast<Host::Ptr>(row);
-
-	if (!host)
-		return Empty;
-
-	return CompatUtility::GetCheckableNotificationNotificationPeriod(host);
 }
 
 Value HostsTable::CheckPeriodAccessor(const Value& row)

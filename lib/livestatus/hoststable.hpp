@@ -55,7 +55,6 @@ protected:
 	static Value CheckCommandAccessor(const Value& row);
 	static Value CheckCommandExpandedAccessor(const Value& row);
 	static Value EventHandlerAccessor(const Value& row);
-	static Value NotificationPeriodAccessor(const Value& row);
 	static Value CheckPeriodAccessor(const Value& row);
 	static Value NotesAccessor(const Value& row);
 	static Value NotesExpandedAccessor(const Value& row);

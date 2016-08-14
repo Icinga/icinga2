@@ -61,7 +61,7 @@ void ServicesTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "plugin_output", Column(&ServicesTable::PluginOutputAccessor, objectAccessor));
 	table->AddColumn(prefix + "long_plugin_output", Column(&ServicesTable::LongPluginOutputAccessor, objectAccessor));
 	table->AddColumn(prefix + "perf_data", Column(&ServicesTable::PerfDataAccessor, objectAccessor));
-	table->AddColumn(prefix + "notification_period", Column(&ServicesTable::NotificationPeriodAccessor, objectAccessor));
+	table->AddColumn(prefix + "notification_period", Column(&Table::EmptyStringAccessor, objectAccessor));
 	table->AddColumn(prefix + "check_period", Column(&ServicesTable::CheckPeriodAccessor, objectAccessor));
 	table->AddColumn(prefix + "notes", Column(&ServicesTable::NotesAccessor, objectAccessor));
 	table->AddColumn(prefix + "notes_expanded", Column(&ServicesTable::NotesExpandedAccessor, objectAccessor));
@@ -347,16 +347,6 @@ Value ServicesTable::PerfDataAccessor(const Value& row)
 		perfdata = CompatUtility::GetCheckResultPerfdata(cr);
 
 	return perfdata;
-}
-
-Value ServicesTable::NotificationPeriodAccessor(const Value& row)
-{
-	Service::Ptr service = static_cast<Service::Ptr>(row);
-
-	if (!service)
-		return Empty;
-
-	return CompatUtility::GetCheckableNotificationNotificationPeriod(service);
 }
 
 Value ServicesTable::CheckPeriodAccessor(const Value& row)

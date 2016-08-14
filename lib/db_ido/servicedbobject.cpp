@@ -60,7 +60,7 @@ Dictionary::Ptr ServiceDbObject::GetConfigFields(void) const
 	fields->Set("check_command_args", CompatUtility::GetCheckableCommandArgs(service));
 	fields->Set("eventhandler_command_object_id", service->GetEventCommand());
 	fields->Set("eventhandler_command_args", Empty);
-	fields->Set("notification_timeperiod_object_id", Notification::GetByName(CompatUtility::GetCheckableNotificationNotificationPeriod(service)));
+	fields->Set("notification_timeperiod_object_id", Empty);
 	fields->Set("check_timeperiod_object_id", service->GetCheckPeriod());
 	fields->Set("failure_prediction_options", Empty);
 	fields->Set("check_interval", CompatUtility::GetCheckableCheckInterval(service));

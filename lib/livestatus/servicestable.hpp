@@ -58,7 +58,6 @@ protected:
 	static Value PluginOutputAccessor(const Value& row);
 	static Value LongPluginOutputAccessor(const Value& row);
 	static Value PerfDataAccessor(const Value& row);
-	static Value NotificationPeriodAccessor(const Value& row);
 	static Value CheckPeriodAccessor(const Value& row);
 	static Value NotesAccessor(const Value& row);
 	static Value NotesExpandedAccessor(const Value& row);

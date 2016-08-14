@@ -88,7 +88,6 @@ public:
 	static int GetCheckableNotificationNextNotification(const Checkable::Ptr& checkable);
 	static int GetCheckableNotificationNotificationNumber(const Checkable::Ptr& checkable);
 	static double GetCheckableNotificationNotificationInterval(const Checkable::Ptr& checkable);
-	static String GetCheckableNotificationNotificationPeriod(const Checkable::Ptr& checkable);
 	static String GetCheckableNotificationNotificationOptions(const Checkable::Ptr& checkable);
 	static int GetCheckableNotificationTypeFilter(const Checkable::Ptr& checkable);
 	static int GetCheckableNotificationStateFilter(const Checkable::Ptr& checkable);
