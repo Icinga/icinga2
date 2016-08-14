@@ -580,7 +580,28 @@ bool icinga::operator<(const Value& lhs, const Value& rhs)
 		return static_cast<double>(lhs) < static_cast<double>(rhs);
 	else if ((lhs.IsObjectType<DateTime>() || lhs.IsEmpty()) && (rhs.IsObjectType<DateTime>() || rhs.IsEmpty()) && !(lhs.IsEmpty() && rhs.IsEmpty()) && !(lhs.IsEmpty() && rhs.IsEmpty()))
 		return Convert::ToDateTimeValue(lhs) < Convert::ToDateTimeValue(rhs);
-	else
+	else if (lhs.IsObjectType<Array>() && rhs.IsObjectType<Array>()) {
+		Array::Ptr larr = lhs;
+		Array::Ptr rarr = rhs;
+
+		ObjectLock llock(larr);
+		ObjectLock rlock(rarr);
+
+		Array::SizeType llen = larr->GetLength();
+		Array::SizeType rlen = rarr->GetLength();
+
+		for (Array::SizeType i = 0; i < std::max(llen, rlen); i++) {
+			Value lval = (i >= llen) ? Empty : larr->Get(i);
+			Value rval = (i >= rlen) ? Empty : rarr->Get(i);
+
+			if (lval < rval)
+				return true;
+			else if (lval > rval)
+				return false;
+		}
+
+		return false;
+	} else
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Operator < cannot be applied to values of type '" + lhs.GetTypeName() + "' and '" + rhs.GetTypeName() + "'"));
 }
 
@@ -612,7 +633,28 @@ bool icinga::operator>(const Value& lhs, const Value& rhs)
 		return static_cast<double>(lhs) > static_cast<double>(rhs);
 	else if ((lhs.IsObjectType<DateTime>() || lhs.IsEmpty()) && (rhs.IsObjectType<DateTime>() || rhs.IsEmpty()) && !(lhs.IsEmpty() && rhs.IsEmpty()) && !(lhs.IsEmpty() && rhs.IsEmpty()))
 		return Convert::ToDateTimeValue(lhs) > Convert::ToDateTimeValue(rhs);
-	else
+	else if (lhs.IsObjectType<Array>() && rhs.IsObjectType<Array>()) {
+		Array::Ptr larr = lhs;
+		Array::Ptr rarr = rhs;
+
+		ObjectLock llock(larr);
+		ObjectLock rlock(rarr);
+
+		Array::SizeType llen = larr->GetLength();
+		Array::SizeType rlen = rarr->GetLength();
+
+		for (Array::SizeType i = 0; i < std::max(llen, rlen); i++) {
+			Value lval = (i >= llen) ? Empty : larr->Get(i);
+			Value rval = (i >= rlen) ? Empty : rarr->Get(i);
+
+			if (lval > rval)
+				return true;
+			else if (lval < rval)
+				return false;
+		}
+
+		return false;
+	} else
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Operator > cannot be applied to values of type '" + lhs.GetTypeName() + "' and '" + rhs.GetTypeName() + "'"));
 }
 
