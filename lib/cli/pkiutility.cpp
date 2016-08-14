@@ -96,17 +96,7 @@ int PkiUtility::SignCsr(const String& csrfile, const String& certfile)
 
 	X509_REQ_free(req);
 
-	std::ofstream fpcert;
-	fpcert.open(certfile.CStr());
-
-	if (!fpcert) {
-		Log(LogCritical, "cli")
-		    << "Failed to open certificate file '" << certfile << "' for output";
-		return 1;
-	}
-
-	fpcert << CertificateToString(cert);
-	fpcert.close();
+	WriteCert(cert, certfile);
 
 	return 0;
 }
