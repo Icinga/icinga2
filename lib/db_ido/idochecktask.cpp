@@ -55,6 +55,9 @@ void IdoCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult
 	String idoType = MacroProcessor::ResolveMacros("$ido_type$", resolvers, checkable->GetLastCheckResult(),
 	    NULL, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
 
+	String idoName = MacroProcessor::ResolveMacros("$ido_name$", resolvers, checkable->GetLastCheckResult(),
+	    NULL, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
+
 	if (resolvedMacros && !useResolvedMacros)
 		return;
 
@@ -64,12 +67,6 @@ void IdoCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult
 		checkable->ProcessCheckResult(cr);
 		return;
 	}
-
-	String idoName = MacroProcessor::ResolveMacros("$ido_name$", resolvers, checkable->GetLastCheckResult(),
-	    NULL, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
-
-	if (resolvedMacros && !useResolvedMacros)
-		return;
 
 	if (idoName.IsEmpty()) {
 		cr->SetOutput("Macro 'ido_name' must be set.");
