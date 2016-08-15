@@ -14,7 +14,7 @@ These templates are imported by the provided example configuration.
 > **Note**:
 >
 > These templates are built into the binaries. By convention
-> all command objects should import these templates.
+> all command and timeperiod objects should import these templates.
 
 ### <a id="itl-plugin-check-command"></a> plugin-check-command
 
@@ -33,6 +33,12 @@ The `plugin-notification-command` command does not support any vars.
 Command template for event handler scripts executed by Icinga 2.
 
 The `plugin-event-command` command does not support any vars.
+
+### <a id="itl-legacy-timeperiod"></a> legacy-timeperiod
+
+Timeperiod template for [Timeperiod objects](9-object-types.md#objecttype-timeperiod).
+
+The `legacy-timeperiod` timeperiod does not support any vars.
 
 ## <a id="itl-check-commands"></a> Check Commands
 
