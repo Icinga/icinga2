@@ -1105,6 +1105,31 @@ Example:
         ]
     }
 
+### <a id="icinga2-api-actions-generate-ticket"></a> generate-ticket
+
+Generates a PKI ticket for [CSR auto-signing](6-distributed-monitoring.md#distributed-monitoring-setup-csr-auto-signing).
+This can be used in combination with satellite/client setups requesting this ticket number.
+
+Send a `POST` request to the URL endpoint `/v1/actions/generate-ticket`.
+
+  Parameter     | Type      | Description
+  --------------|-----------|--------------
+  cn            | string    | **Required.** The host's common name for which the ticket should be geenerated.
+
+Example:
+
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/generate-ticket' \
+    -d '{ "cn": "icinga2-client1.localdomain" }' | python -m json.tool
+    {
+        "results": [
+            {
+                "code": 200.0,
+                "status": "Generated PKI ticket '4f75d2ecd253575fe9180938ebff7cbca262f96e' for common name 'icinga2-client1.localdomain'.",
+                "ticket": "4f75d2ecd253575fe9180938ebff7cbca262f96e"
+            }
+        ]
+    }
+
 
 ## <a id="icinga2-api-event-streams"></a> Event Streams
 

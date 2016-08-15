@@ -215,11 +215,21 @@ existing master node setup. If you haven't done so already please [run the maste
 
 Icinga 2 on the master node must be running and accepting connections on port `5665`.
 
+### <a id="distributed-monitoring-setup-csr-auto-signing"></a> CSR Auto-Signing
+
 The `node wizard` cli command will setup a satellite/client using CSR auto-signing. This
 involves that the setup wizard sends a certificate signing request (CSR) to the
 master node.
 There is a security mechanism in place which requires the client to send in a valid
-ticket for CSR auto-signing. This ticket must be generated on the master beforehand.
+ticket for CSR auto-signing.
+
+This ticket must be generated beforehand. The `ticket_salt` attribute for the [ApiListener](9-object-types.md#objecttype-apilistener)
+must be properly configured in order to make this work.
+
+There are two possible ways to retrieve the ticket:
+
+* [CLI command](11-cli-commands.md#cli-command-pki) executed on the master node
+* [REST API](12-icinga2-api.md#icinga2-api) request against the master node
 
 Required information:
 
@@ -231,7 +241,23 @@ Example for the client `icinga2-client1.localdomain` generating a ticket on the 
 `icinga2-master1.localdomain`:
 
     [root@icinga2-master1.localdomain /]# icinga2 pki ticket --cn icinga2-client1.localdomain
-    4f75d2ecd253575fe9180938ebff7cbca262f96e
+
+Querying the [Icinga 2 API](12-icinga2-api.md#icinga2-api) on the master requires an [ApiUser](12-icinga2-api.md#icinga2-api-authentication)
+object with at least the `actions/generate-ticket`.
+
+    [root@icinga2-master1.localdomain /]# vim /etc/icinga2/conf.d/api-users.conf
+
+    object ApiUser "client-pki-ticket" {
+      password = "bea11beb7b810ea9ce6ea" //change this
+      permissions = [ "actions/generate-ticket" ]
+    }
+
+    [root@icinga2-master1.localdomain /]# systemctl restart icinga2
+
+Retrieve the ticket on the client node `icinga2-client1.localdomain` with curl for example:
+
+     [root@icinga2-client1.localdomain /]# curl -k -s -u client-pki-ticket:bea11beb7b810ea9ce6ea -H 'Accept: application/json' \
+     -X POST 'https://icinga2-master1.localdomain:5665/v1/actions/generate-ticket' -d '{ "cn": "icinga2-client1.localdomain" }'
 
 Store that ticket number for the satellite/client setup below.
 
@@ -251,7 +277,7 @@ Required information:
   Add more master endpoints | **Optional.** If you have multiple master nodes configured, add them here.
   Master connection for CSR auto-signing | **Required.** The master node's IP address or FQDN and port where the client should request a certificate from. Defaults to the master endpoint host.
   Certificate information | **Required.** Verify that the connecting host really is the requested master node.
-  Request ticket      | **Required.** Paste the previously generated ticket number from the master node here.
+  Request ticket      | **Required.** Paste the previously generated [ticket number](6-distributed-monitoring.md#distributed-monitoring-setup-csr-auto-signing).
   API bind host       | **Optional.** Allows to specify the address where the ApiListener is bound to. For advanced usage only.
   API bind port       | **Optional.** Allows to specify the port where the ApiListener is bound to. For advanced usage only (requires changing the default port 5665 everywhere).
   Accept config       | **Optional.** Whether this node accepts configuration sync from the master node (required for [config sync mode](6-distributed-monitoring.md#distributed-monitoring-top-down-config-sync). Defaults to 'n'.
@@ -1605,7 +1631,7 @@ Add the disk check using command endpoint checks (details in the
 
 ### <a id="distributed-monitoring-windows-nscp"></a> Windows Client and NSClient++
 
-The [Windows setup](#distributed-monitoring-setup-client-windows) already allows
+The [Windows setup](6-distributed-monitoring.md#distributed-monitoring-setup-client-windows) already allows
 you to install the NSClient++ package. In addition to the Windows plugins you can
 also use the [nscp-local commands](10-icinga-template-library.md#nscp-plugin-check-commands)
 provided by the Icinga Template Library (ITL).
@@ -1805,7 +1831,7 @@ Required information:
 * The client common name (CN). Use the FQDN, e.g. `icinga2-node2.localdomain`.
 * The master host and zone name. Pass that to `pki save-cert` as `--host` parameter for example.
  * Optional: Master endpoint host and port information for the `--endpoint` parameter.
-* The client ticket number generated on the master (`icinga2 pki ticket --cn icinga2-node2.localdomain`)
+* The client [ticket number](6-distributed-monitoring.md#distributed-monitoring-setup-csr-auto-signing)
 
 Generate a new local self-signed certificate.
 

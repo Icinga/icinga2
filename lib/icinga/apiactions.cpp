@@ -26,6 +26,7 @@
 #include "icinga/eventcommand.hpp"
 #include "icinga/notificationcommand.hpp"
 #include "remote/apiaction.hpp"
+#include "remote/apilistener.hpp"
 #include "remote/httputility.hpp"
 #include "base/utility.hpp"
 #include "base/convert.hpp"
@@ -45,6 +46,7 @@ REGISTER_APIACTION(schedule_downtime, "Service;Host", &ApiActions::ScheduleDownt
 REGISTER_APIACTION(remove_downtime, "Service;Host;Downtime", &ApiActions::RemoveDowntime);
 REGISTER_APIACTION(shutdown_process, "", &ApiActions::ShutdownProcess);
 REGISTER_APIACTION(restart_process, "", &ApiActions::RestartProcess);
+REGISTER_APIACTION(generate_ticket, "", &ApiActions::GenerateTicket);
 
 Dictionary::Ptr ApiActions::CreateResult(int code, const String& status,
     const Dictionary::Ptr& additional)
@@ -372,3 +374,25 @@ Dictionary::Ptr ApiActions::RestartProcess(const ConfigObject::Ptr& object,
 	return ApiActions::CreateResult(200, "Restarting Icinga 2.");
 }
 
+Dictionary::Ptr ApiActions::GenerateTicket(const ConfigObject::Ptr&,
+    const Dictionary::Ptr& params)
+{
+	if (!params->Contains("cn"))
+		return ApiActions::CreateResult(404, "Option 'cn' is required");
+
+	String cn = HttpUtility::GetLastParameter(params, "cn");
+
+	ApiListener::Ptr listener = ApiListener::GetInstance();
+	String salt = listener->GetTicketSalt();
+
+	if (salt.IsEmpty())
+		return ApiActions::CreateResult(500, "Ticket salt is not configured in ApiListener object");
+
+	String ticket = PBKDF2_SHA1(cn, salt, 50000);
+
+	Dictionary::Ptr additional = new Dictionary();
+	additional->Set("ticket", ticket);
+
+	return ApiActions::CreateResult(200, "Generated PKI ticket '" + ticket + "' for common name '"
+	    + cn + "'.", additional);
+}
