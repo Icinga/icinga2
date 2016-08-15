@@ -63,7 +63,7 @@ void ClusterEvents::StaticInitialize(void)
 	Checkable::OnForceNextNotificationChanged.connect(&ClusterEvents::ForceNextNotificationChangedHandler);
 	Checkable::OnNotificationsRequested.connect(&ClusterEvents::SendNotificationsHandler);
 	Checkable::OnNotificationSentToUser.connect(&ClusterEvents::NotificationSentUserHandler);
-	Checkable::OnNotificationSentToAllUsers.connect(&ClusterEvents::NotificationSentAllUsersHandler);
+	Checkable::OnNotificationSentToAllUsers.connect(&ClusterEvents::NotificationSentToAllUsersHandler);
 
 	Checkable::OnAcknowledgementSet.connect(&ClusterEvents::AcknowledgementSetHandler);
 	Checkable::OnAcknowledgementCleared.connect(&ClusterEvents::AcknowledgementClearedHandler);
@@ -939,7 +939,7 @@ Value ClusterEvents::NotificationSentUserAPIHandler(const MessageOrigin::Ptr& or
 	return Empty;
 }
 
-void ClusterEvents::NotificationSentAllUsersHandler(const Notification::Ptr& notification, const Checkable::Ptr& checkable, const std::set<User::Ptr>& users,
+void ClusterEvents::NotificationSentToAllUsersHandler(const Notification::Ptr& notification, const Checkable::Ptr& checkable, const std::set<User::Ptr>& users,
     NotificationType notificationType, const CheckResult::Ptr& cr, const String& author, const String& commentText, const MessageOrigin::Ptr& origin)
 {
 	ApiListener::Ptr listener = ApiListener::GetInstance();
@@ -957,11 +957,7 @@ void ClusterEvents::NotificationSentAllUsersHandler(const Notification::Ptr& not
 		params->Set("service", service->GetShortName());
 	params->Set("notification", notification->GetName());
 
-	Array::Ptr ausers = new Array();
-	BOOST_FOREACH(const User::Ptr& user, users) {
-		ausers->Add(user->GetName());
-	}
-	params->Set("users", ausers);
+	params->Set("users", Array::FromSet(users));
 
 	params->Set("type", notificationType);
 	params->Set("cr", Serialize(cr));
@@ -1055,6 +1051,7 @@ Value ClusterEvents::NotificationSentAllUsersAPIHandler(const MessageOrigin::Ptr
 	notification->SetNextNotification(params->Get("next_notification"));
 	notification->SetNotificationNumber(params->Get("notification_number"));
 	notification->SetLastProblemNotification(params->Get("last_problem_notification"));
+	notification->SetNotifiedUsers(Array::FromSet(users));
 
 	Checkable::OnNotificationSentToAllUsers(notification, checkable, users, type, cr, author, text, origin);
 
