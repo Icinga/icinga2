@@ -14,7 +14,7 @@ OUTPUTFILE=`mktemp`
 
 if type selinuxenabled >/dev/null 2>&1; then
 	if selinuxenabled; then
-		chcon -t icinga2_tmp_t $OUTPUTFILE
+		chcon -t icinga2_tmp_t $OUTPUTFILE >/dev/null 2>&1
 	fi
 fi
 
