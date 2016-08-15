@@ -364,6 +364,11 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 		double now = Utility::GetTime();
 		SetLastNotification(now);
 
+		if (type == NotificationProblem && GetInterval() <= 0)
+			SetNoMoreNotifications(true);
+		else
+			SetNoMoreNotifications(false);
+
 		if (type == NotificationProblem && GetInterval() > 0)
 			SetNextNotification(now + GetInterval());
 

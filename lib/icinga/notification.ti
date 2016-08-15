@@ -90,6 +90,10 @@ class Notification : CustomVarObject < NotificationNameComposer
 		default {{{ return new Array(); }}}
 	};
 
+	[state, no_user_modify] bool no_more_notifications {
+		default {{{ return false; }}}
+	};
+
 	[state] Timestamp last_notification;
 	[state] Timestamp next_notification;
 	[state] int notification_number;

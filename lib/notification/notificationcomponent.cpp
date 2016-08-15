@@ -83,8 +83,11 @@ void NotificationComponent::NotificationTimerHandler(void)
 		if (!IcingaApplication::GetInstance()->GetEnableNotifications() || !checkable->GetEnableNotifications())
 			continue;
 
-		if (notification->GetInterval() <= 0 && notification->GetLastProblemNotification() > checkable->GetLastHardStateChange())
+		if (notification->GetInterval() <= 0 && notification->GetNoMoreNotifications()) {
+			Log(LogDebug, "NotificationComponent")
+			    << "Skipping reminder notification '" << notification->GetName() << "'. Interval is 0 and no more notifications are required.";
 			continue;
+		}
 
 		if (notification->GetNextNotification() > now)
 			continue;
@@ -115,7 +118,7 @@ void NotificationComponent::NotificationTimerHandler(void)
 
 		try {
 			Log(LogNotice, "NotificationComponent")
-			    << "Attempting to send reminder notification for object '" << checkable->GetName() << "'";
+			    << "Attempting to send reminder notification '" << notification->GetName() << "'";
 			notification->BeginExecuteNotification(NotificationProblem, checkable->GetLastCheckResult(), false, true);
 		} catch (const std::exception& ex) {
 			Log(LogWarning, "NotificationComponent")

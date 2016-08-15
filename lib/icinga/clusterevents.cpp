@@ -968,6 +968,7 @@ void ClusterEvents::NotificationSentToAllUsersHandler(const Notification::Ptr& n
 	params->Set("next_notification", notification->GetNextNotification());
 	params->Set("notification_number", notification->GetNotificationNumber());
 	params->Set("last_problem_notification", notification->GetLastProblemNotification());
+	params->Set("no_more_notifications", notification->GetNoMoreNotifications());
 
 	Dictionary::Ptr message = new Dictionary();
 	message->Set("jsonrpc", "2.0");
@@ -1051,6 +1052,7 @@ Value ClusterEvents::NotificationSentAllUsersAPIHandler(const MessageOrigin::Ptr
 	notification->SetNextNotification(params->Get("next_notification"));
 	notification->SetNotificationNumber(params->Get("notification_number"));
 	notification->SetLastProblemNotification(params->Get("last_problem_notification"));
+	notification->SetNoMoreNotifications(params->Get("no_more_notifications"));
 	notification->SetNotifiedUsers(Array::FromSet(users));
 
 	Checkable::OnNotificationSentToAllUsers(notification, checkable, users, type, cr, author, text, origin);
