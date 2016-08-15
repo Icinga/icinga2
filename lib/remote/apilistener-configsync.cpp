@@ -291,7 +291,7 @@ void ApiListener::UpdateConfigObject(const ConfigObject::Ptr& object, const Mess
 
 	Dictionary::Ptr params = new Dictionary();
 	params->Set("name", object->GetName());
-	params->Set("type", object->GetType()->GetName());
+	params->Set("type", object->GetReflectionType()->GetName());
 	params->Set("version", object->GetVersion());
 
 	if (object->GetPackage() == "_api") {
@@ -370,7 +370,7 @@ void ApiListener::DeleteConfigObject(const ConfigObject::Ptr& object, const Mess
 
 	Dictionary::Ptr params = new Dictionary();
 	params->Set("name", object->GetName());
-	params->Set("type", object->GetType()->GetName());
+	params->Set("type", object->GetReflectionType()->GetName());
 	params->Set("version", object->GetVersion());
 
 	message->Set("params", params);

@@ -23,6 +23,9 @@
 #include "icinga/customvarobject.hpp"
 #include "icinga/service.hpp"
 #include "icinga/compatutility.hpp"
+#include "icinga/checkcommand.hpp"
+#include "icinga/eventcommand.hpp"
+#include "icinga/notificationcommand.hpp"
 #include "remote/endpoint.hpp"
 #include "base/configobject.hpp"
 #include "base/configtype.hpp"
@@ -288,7 +291,7 @@ DbObject::Ptr DbObject::GetOrCreateByObject(const ConfigObject::Ptr& object)
 	if (dbobj)
 		return dbobj;
 
-	DbType::Ptr dbtype = DbType::GetByName(object->GetType()->GetName());
+	DbType::Ptr dbtype = DbType::GetByName(object->GetReflectionType()->GetName());
 
 	if (!dbtype)
 		return DbObject::Ptr();
@@ -304,9 +307,9 @@ DbObject::Ptr DbObject::GetOrCreateByObject(const ConfigObject::Ptr& object)
 		name1 = service->GetHost()->GetName();
 		name2 = service->GetShortName();
 	} else {
-		if (object->GetType() == ConfigType::GetByName("CheckCommand") ||
-		    object->GetType() == ConfigType::GetByName("EventCommand") ||
-		    object->GetType() == ConfigType::GetByName("NotificationCommand")) {
+		if (object->GetReflectionType() == CheckCommand::TypeInstance ||
+		    object->GetReflectionType() == EventCommand::TypeInstance ||
+		    object->GetReflectionType() == NotificationCommand::TypeInstance) {
 			Command::Ptr command = dynamic_pointer_cast<Command>(object);
 			name1 = CompatUtility::GetCommandName(command);
 		}

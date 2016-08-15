@@ -20,6 +20,7 @@
 #include "icinga/compatutility.hpp"
 #include "icinga/checkcommand.hpp"
 #include "icinga/eventcommand.hpp"
+#include "icinga/notificationcommand.hpp"
 #include "icinga/pluginutility.hpp"
 #include "icinga/service.hpp"
 #include "base/utility.hpp"
@@ -62,11 +63,11 @@ String CompatUtility::GetCommandNamePrefix(const Command::Ptr command)
 		return Empty;
 
 	String prefix;
-	if (command->GetType() == ConfigType::GetByName("CheckCommand"))
+	if (command->GetReflectionType() == CheckCommand::TypeInstance)
 		prefix = "check_";
-	else if (command->GetType() == ConfigType::GetByName("NotificationCommand"))
+	else if (command->GetReflectionType() == NotificationCommand::TypeInstance)
 		prefix = "notification_";
-	else if (command->GetType() == ConfigType::GetByName("EventCommand"))
+	else if (command->GetReflectionType() == EventCommand::TypeInstance)
 		prefix = "event_";
 
 	return prefix;

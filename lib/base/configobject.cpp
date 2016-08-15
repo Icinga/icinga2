@@ -384,7 +384,7 @@ void ConfigObject::Start(bool runtimeCreated)
 
 void ConfigObject::Activate(bool runtimeCreated)
 {
-	CONTEXT("Activating object '" + GetName() + "' of type '" + GetType()->GetName() + "'");
+	CONTEXT("Activating object '" + GetName() + "' of type '" + GetReflectionType()->GetName() + "'");
 
 	{
 		ObjectLock olock(this);
@@ -413,7 +413,7 @@ void ConfigObject::Stop(bool runtimeRemoved)
 
 void ConfigObject::Deactivate(bool runtimeRemoved)
 {
-	CONTEXT("Deactivating object '" + GetName() + "' of type '" + GetType()->GetName() + "'");
+	CONTEXT("Deactivating object '" + GetName() + "' of type '" + GetReflectionType()->GetName() + "'");
 
 	{
 		ObjectLock olock(this);

@@ -651,7 +651,7 @@ void ApiListener::PersistMessage(const Dictionary::Ptr& message, const ConfigObj
 
 	if (secobj) {
 		Dictionary::Ptr secname = new Dictionary();
-		secname->Set("type", secobj->GetType()->GetName());
+		secname->Set("type", secobj->GetReflectionType()->GetName());
 		secname->Set("name", secobj->GetName());
 		pmessage->Set("secobj", secname);
 	}
