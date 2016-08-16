@@ -152,7 +152,7 @@ int Main(void)
 	Application::DeclareZonesDir(Application::GetSysconfDir() + "/icinga2/zones.d");
 	Application::DeclareRunAsUser(ICINGA_USER);
 	Application::DeclareRunAsGroup(ICINGA_GROUP);
-	Application::DeclareConcurrency(boost::thread::hardware_concurrency());
+	Application::DeclareConcurrency(Utility::PhysicalConcurrency());
 
 	if (!ScriptGlobal::Exists("UseVfork"))
 #ifdef __APPLE__

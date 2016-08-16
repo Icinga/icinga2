@@ -153,6 +153,8 @@ public:
 	static void IncrementTime(double);
 #endif /* I2_DEBUG */
 
+	static int PhysicalConcurrency(void);
+
 private:
 	Utility(void);
 	static void CollectPaths(const String& path, std::vector<String>& paths);
