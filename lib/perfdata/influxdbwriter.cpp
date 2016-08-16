@@ -235,6 +235,8 @@ String InfluxdbWriter::EscapeKey(const String& str)
 {
 	// Iterate over the key name and escape commas and spaces with a backslash
 	String result = str;
+	boost::algorithm::replace_all(result, "\"", "\\\"");
+	boost::algorithm::replace_all(result, "=", "\\=");
 	boost::algorithm::replace_all(result, ",", "\\,");
 	boost::algorithm::replace_all(result, " ", "\\ ");
 
@@ -366,7 +368,7 @@ void InfluxdbWriter::Flush(void)
 
 	// Ensure you hold a lock against m_DataBuffer so that things
 	// don't go missing after creating the body and clearing the buffer
-	String body = Utility::Join(m_DataBuffer, '\n');
+	String body = Utility::Join(m_DataBuffer, '\n', false);
 	m_DataBuffer->Clear();
 
 	HttpRequest req(stream);

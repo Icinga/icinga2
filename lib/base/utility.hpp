@@ -89,7 +89,7 @@ public:
 	static void QueueAsyncCallback(const boost::function<void (void)>& callback, SchedulerPolicy policy = DefaultScheduler);
 
 	static String NaturalJoin(const std::vector<String>& tokens);
-	static String Join(const Array::Ptr& tokens, char separator);
+	static String Join(const Array::Ptr& tokens, char separator, bool escapeSeparator = true);
 
 	static String FormatDuration(double duration);
 	static String FormatDateTime(const char *format, double ts);

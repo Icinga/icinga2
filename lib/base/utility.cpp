@@ -939,7 +939,7 @@ String Utility::NaturalJoin(const std::vector<String>& tokens)
 	return result;
 }
 
-String Utility::Join(const Array::Ptr& tokens, char separator)
+String Utility::Join(const Array::Ptr& tokens, char separator, bool escapeSeparator)
 {
 	String result;
 	bool first = true;
@@ -947,15 +947,18 @@ String Utility::Join(const Array::Ptr& tokens, char separator)
 	ObjectLock olock(tokens);
 	BOOST_FOREACH(const Value& vtoken, tokens) {
 		String token = Convert::ToString(vtoken);
-		boost::algorithm::replace_all(token, "\\", "\\\\");
 
-		char sep_before[2], sep_after[3];
-		sep_before[0] = separator;
-		sep_before[1] = '\0';
-		sep_after[0] = '\\';
-		sep_after[1] = separator;
-		sep_after[2] = '\0';
-		boost::algorithm::replace_all(token, sep_before, sep_after);
+		if (escapeSeparator) {
+			boost::algorithm::replace_all(token, "\\", "\\\\");
+
+			char sep_before[2], sep_after[3];
+			sep_before[0] = separator;
+			sep_before[1] = '\0';
+			sep_after[0] = '\\';
+			sep_after[1] = separator;
+			sep_after[2] = '\0';
+			boost::algorithm::replace_all(token, sep_before, sep_after);
+		}
 
 		if (first)
 			first = false;
