@@ -49,7 +49,6 @@ int PkiUtility::NewCa(void)
 	String caDir = GetLocalCaPath();
 	String caCertFile = caDir + "/ca.crt";
 	String caKeyFile = caDir + "/ca.key";
-	String caSerialFile = caDir + "/serial.txt";
 
 	if (Utility::PathExists(caCertFile) && Utility::PathExists(caKeyFile)) {
 		Log(LogCritical, "cli")
@@ -59,7 +58,7 @@ int PkiUtility::NewCa(void)
 
 	Utility::MkDirP(caDir, 0700);
 
-	MakeX509CSR("Icinga CA", caKeyFile, String(), caCertFile, caSerialFile, true);
+	MakeX509CSR("Icinga CA", caKeyFile, String(), caCertFile, true);
 
 	return 0;
 }

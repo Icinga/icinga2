@@ -44,12 +44,13 @@ void I2_BASE_API SetCipherListToSSLContext(const boost::shared_ptr<SSL_CTX>& con
 void I2_BASE_API SetTlsProtocolminToSSLContext(const boost::shared_ptr<SSL_CTX>& context, const String& tlsProtocolmin);
 String I2_BASE_API GetCertificateCN(const boost::shared_ptr<X509>& certificate);
 boost::shared_ptr<X509> I2_BASE_API GetX509Certificate(const String& pemfile);
-int I2_BASE_API MakeX509CSR(const String& cn, const String& keyfile, const String& csrfile = String(), const String& certfile = String(), const String& serialFile = String(), bool ca = false);
-boost::shared_ptr<X509> I2_BASE_API CreateCert(EVP_PKEY *pubkey, X509_NAME *subject, X509_NAME *issuer, EVP_PKEY *cakey, bool ca, const String& serialfile = String());
+int I2_BASE_API MakeX509CSR(const String& cn, const String& keyfile, const String& csrfile = String(), const String& certfile = String(), bool ca = false);
+boost::shared_ptr<X509> I2_BASE_API CreateCert(EVP_PKEY *pubkey, X509_NAME *subject, X509_NAME *issuer, EVP_PKEY *cakey, bool ca);
 String I2_BASE_API GetIcingaCADir(void);
 String I2_BASE_API CertificateToString(const boost::shared_ptr<X509>& cert);
 boost::shared_ptr<X509> I2_BASE_API CreateCertIcingaCA(EVP_PKEY *pubkey, X509_NAME *subject);
 String I2_BASE_API PBKDF2_SHA1(const String& password, const String& salt, int iterations);
+String I2_BASE_API SHA1(const String& s);
 String I2_BASE_API SHA256(const String& s);
 String I2_BASE_API RandomString(int length);
 

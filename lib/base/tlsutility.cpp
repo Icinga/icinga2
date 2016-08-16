@@ -318,7 +318,7 @@ boost::shared_ptr<X509> GetX509Certificate(const String& pemfile)
 	return boost::shared_ptr<X509>(cert, X509_free);
 }
 
-int MakeX509CSR(const String& cn, const String& keyfile, const String& csrfile, const String& certfile, const String& serialfile, bool ca)
+int MakeX509CSR(const String& cn, const String& keyfile, const String& csrfile, const String& certfile, bool ca)
 {
 	char errbuf[120];
 
@@ -362,7 +362,7 @@ int MakeX509CSR(const String& cn, const String& keyfile, const String& csrfile, 
 		X509_NAME *subject = X509_NAME_new();
 		X509_NAME_add_entry_by_txt(subject, "CN", MBSTRING_ASC, (unsigned char *)cn.CStr(), -1, -1, 0);
 
-		boost::shared_ptr<X509> cert = CreateCert(key, subject, subject, key, ca, serialfile);
+		boost::shared_ptr<X509> cert = CreateCert(key, subject, subject, key, ca);
 
 		X509_NAME_free(subject);
 
@@ -439,7 +439,7 @@ int MakeX509CSR(const String& cn, const String& keyfile, const String& csrfile, 
 	return 1;
 }
 
-boost::shared_ptr<X509> CreateCert(EVP_PKEY *pubkey, X509_NAME *subject, X509_NAME *issuer, EVP_PKEY *cakey, bool ca, const String& serialfile)
+boost::shared_ptr<X509> CreateCert(EVP_PKEY *pubkey, X509_NAME *subject, X509_NAME *issuer, EVP_PKEY *cakey, bool ca)
 {
 	X509 *cert = X509_new();
 	X509_set_version(cert, 2);
@@ -450,29 +450,40 @@ boost::shared_ptr<X509> CreateCert(EVP_PKEY *pubkey, X509_NAME *subject, X509_NA
 	X509_set_subject_name(cert, subject);
 	X509_set_issuer_name(cert, issuer);
 
-	int serial = 1;
+	String id = Utility::NewUniqueID();
 
-	if (!serialfile.IsEmpty()) {
-		if (Utility::PathExists(serialfile)) {
-			std::ifstream ifp;
-			ifp.open(serialfile.CStr());
-			ifp >> std::hex >> serial;
-			ifp.close();
+	char errbuf[120];
+	SHA_CTX context;
+	unsigned char digest[SHA_DIGEST_LENGTH];
 
-			if (ifp.fail())
-				BOOST_THROW_EXCEPTION(std::runtime_error("Could not read serial file."));
-		}
-
-		std::ofstream ofp;
-		ofp.open(serialfile.CStr());
-		ofp << std::hex << std::setw(2) << std::setfill('0') << serial + 1;
-		ofp.close();
-
-		if (ofp.fail())
-			BOOST_THROW_EXCEPTION(std::runtime_error("Could not update serial file."));
+	if (!SHA1_Init(&context)) {
+		Log(LogCritical, "SSL")
+		    << "Error on SHA1 Init: " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
+		BOOST_THROW_EXCEPTION(openssl_error()
+		    << boost::errinfo_api_function("SHA1_Init")
+		    << errinfo_openssl_error(ERR_peek_error()));
 	}
 
-	ASN1_INTEGER_set(X509_get_serialNumber(cert), serial);
+	if (!SHA1_Update(&context, (unsigned char*)id.CStr(), id.GetLength())) {
+		Log(LogCritical, "SSL")
+		    << "Error on SHA1 Update: " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
+		BOOST_THROW_EXCEPTION(openssl_error()
+		    << boost::errinfo_api_function("SHA1_Update")
+		    << errinfo_openssl_error(ERR_peek_error()));
+	}
+
+	if (!SHA1_Final(digest, &context)) {
+		Log(LogCritical, "SSL")
+		    << "Error on SHA1 Final: " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
+		BOOST_THROW_EXCEPTION(openssl_error()
+		    << boost::errinfo_api_function("SHA1_Final")
+		    << errinfo_openssl_error(ERR_peek_error()));
+	}
+
+	BIGNUM *bn = BN_new();
+	BN_bin2bn(digest, sizeof(digest), bn);
+	BN_to_ASN1_INTEGER(bn, X509_get_serialNumber(cert));
+	BN_free(bn);
 
 	X509V3_CTX ctx;
 	X509V3_set_ctx_nodb(&ctx);
@@ -548,7 +559,7 @@ boost::shared_ptr<X509> CreateCertIcingaCA(EVP_PKEY *pubkey, X509_NAME *subject)
 	EVP_PKEY *privkey = EVP_PKEY_new();
 	EVP_PKEY_assign_RSA(privkey, rsa);
 
-	return CreateCert(pubkey, subject, X509_get_subject_name(cacert.get()), privkey, false, cadir + "/serial.txt");
+	return CreateCert(pubkey, subject, X509_get_subject_name(cacert.get()), privkey, false);
 }
 
 String CertificateToString(const boost::shared_ptr<X509>& cert)
