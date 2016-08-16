@@ -54,6 +54,8 @@ public:
 
 	static Endpoint::Ptr GetLocalEndpoint(void);
 
+	void SetCachedZone(const intrusive_ptr<Zone>& zone);
+
 protected:
 	virtual void OnAllConfigLoaded(void) override;
 

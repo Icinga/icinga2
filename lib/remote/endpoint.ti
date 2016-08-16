@@ -26,6 +26,8 @@ namespace icinga
 
 class Endpoint : ConfigObject
 {
+	load_after Zone;
+
 	[config] String host;
 	[config, required] String port {
 		default {{{ return "5665"; }}}

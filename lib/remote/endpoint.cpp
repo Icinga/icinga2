@@ -39,24 +39,18 @@ void Endpoint::OnAllConfigLoaded(void)
 {
 	ObjectImpl<Endpoint>::OnAllConfigLoaded();
 
-	BOOST_FOREACH(const Zone::Ptr& zone, ConfigType::GetObjectsByType<Zone>()) {
-		const std::set<Endpoint::Ptr> members = zone->GetEndpoints();
-
-		if (members.empty())
-			continue;
-
-		if (members.find(this) != members.end()) {
-			if (m_Zone)
-				BOOST_THROW_EXCEPTION(ScriptError("Endpoint '" + GetName()
-				    + "' is in more than one zone.", GetDebugInfo()));
-
-			m_Zone = zone;
-		}
-	}
-
 	if (!m_Zone)
 		BOOST_THROW_EXCEPTION(ScriptError("Endpoint '" + GetName() +
 		    "' does not belong to a zone.", GetDebugInfo()));
+}
+
+void Endpoint::SetCachedZone(const Zone::Ptr& zone)
+{
+	if (m_Zone)
+		BOOST_THROW_EXCEPTION(ScriptError("Endpoint '" + GetName()
+		    + "' is in more than one zone.", GetDebugInfo()));
+
+	m_Zone = zone;
 }
 
 void Endpoint::AddClient(const JsonRpcConnection::Ptr& client)

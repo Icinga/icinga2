@@ -37,6 +37,14 @@ void Zone::OnAllConfigLoaded(void)
 	Zone::Ptr zone = m_Parent;
 	int levels = 0;
 
+	Array::Ptr endpoints = GetEndpointsRaw();
+
+	if (endpoints) {
+		BOOST_FOREACH(const String& endpoint, endpoints) {
+			Endpoint::GetByName(endpoint)->SetCachedZone(this);
+		}
+	}
+
 	while (zone) {
 		m_AllParents.push_back(zone);
 
