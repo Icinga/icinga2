@@ -50,7 +50,7 @@ REGISTER_APIFUNCTION(UpdateRepository, event, &ClusterEvents::UpdateRepositoryAP
 REGISTER_APIFUNCTION(ExecuteCommand, event, &ClusterEvents::ExecuteCommandAPIHandler);
 REGISTER_APIFUNCTION(SendNotifications, event, &ClusterEvents::SendNotificationsAPIHandler);
 REGISTER_APIFUNCTION(NotificationSentUser, event, &ClusterEvents::NotificationSentUserAPIHandler);
-REGISTER_APIFUNCTION(NotificationSentAllUsers, event, &ClusterEvents::NotificationSentAllUsersAPIHandler);
+REGISTER_APIFUNCTION(NotificationSentToAllUsers, event, &ClusterEvents::NotificationSentToAllUsersAPIHandler);
 
 static Timer::Ptr l_RepositoryTimer;
 
@@ -972,13 +972,13 @@ void ClusterEvents::NotificationSentToAllUsersHandler(const Notification::Ptr& n
 
 	Dictionary::Ptr message = new Dictionary();
 	message->Set("jsonrpc", "2.0");
-	message->Set("method", "event::NotificationSentAllUsers");
+	message->Set("method", "event::NotificationSentToAllUsers");
 	message->Set("params", params);
 
 	listener->RelayMessage(origin, ConfigObject::Ptr(), message, true);
 }
 
-Value ClusterEvents::NotificationSentAllUsersAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
+Value ClusterEvents::NotificationSentToAllUsersAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
 {
 	Endpoint::Ptr endpoint = origin->FromClient->GetEndpoint();
 
