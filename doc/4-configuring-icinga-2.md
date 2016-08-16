@@ -100,6 +100,9 @@ The `include` directive can be used to include other files.
      */
      include "zones.conf"
 
+The [Icinga Template Library](10-icinga-template-library.md#icinga-template-library) provides a set of common templates
+and [CheckCommand](3-monitoring-basics.md#check-commands) definitions.
+
     /**
      * The Icinga Template Library (ITL) provides a number of useful templates
      * and command definitions.
@@ -107,6 +110,20 @@ The `include` directive can be used to include other files.
      */
     include <itl>
     include <plugins>
+    include <plugins-contrib>
+    include <manubulon>
+
+    /**
+     * This includes the Icinga 2 Windows plugins. These command definitions
+     * are required on a master node when a client is used as command endpoint.
+     */
+    include <windows-plugins>
+
+    /**
+     * This includes the NSClient++ check commands. These command definitions
+     * are required on a master node when a client is used as command endpoint.
+     */
+    include <nscp>
 
     /**
      * The features-available directory contains a number of configuration
