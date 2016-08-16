@@ -303,15 +303,17 @@ Dictionary::Ptr ApiActions::ScheduleDowntime(const ConfigObject::Ptr& object,
 		return ApiActions::CreateResult(404, "Can't schedule downtime for non-existent object.");
 
 	if (!params->Contains("start_time") || !params->Contains("end_time") ||
-	    !params->Contains("duration") || !params->Contains("author") ||
-	    !params->Contains("comment")) {
+	    !params->Contains("author") || !params->Contains("comment")) {
 
-		return ApiActions::CreateResult(404, "Options 'start_time', 'end_time', 'duration', 'author' and 'comment' are required");
+		return ApiActions::CreateResult(404, "Options 'start_time', 'end_time', 'author' and 'comment' are required");
 	}
 
 	bool fixed = true;
 	if (params->Contains("fixed"))
 		fixed = HttpUtility::GetLastParameter(params, "fixed");
+
+	if (!fixed && !params->Contains("duration"))
+		return ApiActions::CreateResult(404, "Option 'duration' is required for flexible downtime");
 
 	String downtimeName = Downtime::AddDowntime(checkable,
 	    HttpUtility::GetLastParameter(params, "author"),
