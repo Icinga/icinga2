@@ -96,14 +96,6 @@ static bool PathExists(const std::string& path)
 	return (_stat(path.c_str(), &statbuf) >= 0);
 }
 
-static void CopyFile(const std::string& source, const std::string& target)
-{
-	std::ifstream ifs(source.c_str(), std::ios::binary);
-	std::ofstream ofs(target.c_str(), std::ios::binary | std::ios::trunc);
-
-	ofs << ifs.rdbuf();
-}
-
 static std::string GetIcingaDataPath(void)
 {
 	char path[MAX_PATH];
@@ -132,18 +124,6 @@ static void MkDirP(const std::string& path)
 	}
 }
 
-static void CopyConfigFile(const std::string& installDir, const std::string& sourceConfigPath, size_t skelPrefixLength)
-{
-	std::string relativeConfigPath = sourceConfigPath.substr(skelPrefixLength);
-
-	std::string targetConfigPath = installDir + relativeConfigPath;
-
-	if (!PathExists(targetConfigPath)) {
-		MkDirP(DirName(targetConfigPath));
-		CopyFile(sourceConfigPath, targetConfigPath);
-	}
-}
-
 static std::string GetNSISInstallPath(void)
 {
 	HKEY hKey;
@@ -162,11 +142,6 @@ static std::string GetNSISInstallPath(void)
 	}
 
 	return "";
-}
-
-static void CollectPaths(std::vector<std::string>& paths, const std::string& path)
-{
-	paths.push_back(path);
 }
 
 static bool CopyDirectory(const std::string& source, const std::string& destination)
