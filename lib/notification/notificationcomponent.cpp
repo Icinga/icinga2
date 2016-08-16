@@ -83,11 +83,8 @@ void NotificationComponent::NotificationTimerHandler(void)
 		if (!IcingaApplication::GetInstance()->GetEnableNotifications() || !checkable->GetEnableNotifications())
 			continue;
 
-		if (notification->GetInterval() <= 0 && notification->GetNoMoreNotifications()) {
-			Log(LogDebug, "NotificationComponent")
-			    << "Skipping reminder notification '" << notification->GetName() << "'. Interval is 0 and no more notifications are required.";
+		if (notification->GetInterval() <= 0 && notification->GetNoMoreNotifications())
 			continue;
-		}
 
 		if (notification->GetNextNotification() > now)
 			continue;
