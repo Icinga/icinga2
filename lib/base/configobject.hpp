@@ -17,8 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef DYNAMICOBJECT_H
-#define DYNAMICOBJECT_H
+#ifndef CONFIGOBJECT_H
+#define CONFIGOBJECT_H
 
 #include "base/i2-base.hpp"
 #include "base/configobject.thpp"
@@ -43,8 +43,6 @@ public:
 	DECLARE_OBJECT(ConfigObject);
 
 	static boost::signals2::signal<void (const ConfigObject::Ptr&)> OnStateChanged;
-
-	intrusive_ptr<ConfigType> GetType(void) const;
 
 	bool IsActive(void) const;
 	bool IsPaused(void) const;
@@ -80,9 +78,9 @@ public:
 	template<typename T>
 	static intrusive_ptr<T> GetObject(const String& name)
 	{
-		ConfigObject::Ptr object = GetObject(T::GetTypeName(), name);
-
-		return static_pointer_cast<T>(object);
+		typedef TypeImpl<T> ObjType;
+		ObjType *ptype = static_cast<ObjType *>(T::TypeInstance.get());
+		return static_pointer_cast<T>(ptype->GetObject(name));
 	}
 
 	static ConfigObject::Ptr GetObject(const String& type, const String& name);
@@ -117,4 +115,4 @@ private:
 
 }
 
-#endif /* DYNAMICOBJECT_H */
+#endif /* CONFIGOBJECT_H */

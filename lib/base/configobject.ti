@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "base/debuginfo.hpp"
+#include "base/configtype.hpp"
 
 library base;
 
@@ -67,9 +68,10 @@ public:
 private:
 	DebugInfo m_DebugInfo;
 };
+
 }}}
 
-abstract class ConfigObject : ConfigObjectBase
+abstract class ConfigObject : ConfigObjectBase < ConfigType
 {
 	[config, no_user_modify] String __name (Name);
 	[config, no_user_modify] String "name" (ShortName) {

@@ -19,6 +19,7 @@
 
 #include "icinga/checkable.hpp"
 #include "icinga/customvarobject.hpp"
+#impl_include "icinga/hostgroup.hpp"
 
 library icinga;
 

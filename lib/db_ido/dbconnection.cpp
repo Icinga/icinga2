@@ -54,7 +54,7 @@ void DbConnection::OnConfigLoaded(void)
 		SetCategoryFilter(categories);
 		Log(LogWarning, "DbConnection")
 		    << "Specifying flags using '|' for 'categories' for object '" << GetName()
-		    << "' of type '" << GetType()->GetName() << "'"
+		    << "' of type '" << GetReflectionType()->GetName() << "'"
 		    << " is deprecated. This functionality will be removed in 2.6.0. Please use an array.";
 	} else
 		SetCategoryFilter(FilterArrayToInt(categories, DbQuery::GetCategoryFilterMap(), DbCatEverything));
@@ -466,9 +466,13 @@ void DbConnection::UpdateObject(const ConfigObject::Ptr& object)
 
 void DbConnection::UpdateAllObjects(void)
 {
-	ConfigType::Ptr type;
-	BOOST_FOREACH(const ConfigType::Ptr& dt, ConfigType::GetTypes()) {
-		BOOST_FOREACH(const ConfigObject::Ptr& object, dt->GetObjects()) {
+	BOOST_FOREACH(const Type::Ptr& type, Type::GetAllTypes()) {
+		ConfigType *dtype = dynamic_cast<ConfigType *>(type.get());
+
+		if (!dtype)
+			continue;
+
+		BOOST_FOREACH(const ConfigObject::Ptr& object, dtype->GetObjects()) {
 			UpdateObject(object);
 		}
 	}

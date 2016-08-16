@@ -17,44 +17,38 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef DYNAMICTYPE_H
-#define DYNAMICTYPE_H
+#ifndef CONFIGTYPE_H
+#define CONFIGTYPE_H
 
 #include "base/i2-base.hpp"
-#include "base/configobject.hpp"
-#include "base/objectlock.hpp"
-#include <map>
-# include <boost/iterator/iterator_facade.hpp>
+#include "base/object.hpp"
+#include "base/type.hpp"
+#include "base/dictionary.hpp"
 
 namespace icinga
 {
 
+class ConfigObject;
+
 template<typename T>
 class ConfigTypeIterator;
 
-class I2_BASE_API ConfigType : public Object
+class I2_BASE_API ConfigType
 {
 public:
-	DECLARE_PTR_TYPEDEFS(ConfigType);
+	virtual ~ConfigType(void);
 
-	ConfigType(const String& name);
+	intrusive_ptr<ConfigObject> GetObject(const String& name) const;
 
-	String GetName(void) const;
+	void RegisterObject(const intrusive_ptr<ConfigObject>& object);
+	void UnregisterObject(const intrusive_ptr<ConfigObject>& object);
 
-	static ConfigType::Ptr GetByName(const String& name);
-
-	ConfigObject::Ptr GetObject(const String& name) const;
-
-	void RegisterObject(const ConfigObject::Ptr& object);
-	void UnregisterObject(const ConfigObject::Ptr& object);
-
-	static std::vector<ConfigType::Ptr> GetTypes(void);
 	std::pair<ConfigTypeIterator<ConfigObject>, ConfigTypeIterator<ConfigObject> > GetObjects(void);
 
 	template<typename T>
 	static std::pair<ConfigTypeIterator<T>, ConfigTypeIterator<T> > GetObjectsByType(void)
 	{
-		ConfigType::Ptr type = GetByName(T::GetTypeName());
+		Type::Ptr type = T::TypeInstance;
 		return std::make_pair(
 		    ConfigTypeIterator<T>(type, 0),
 		    ConfigTypeIterator<T>(type, UINT_MAX)
@@ -64,34 +58,29 @@ public:
 private:
 	template<typename T> friend class ConfigTypeIterator;
 
-	String m_Name;
+	typedef std::map<String, intrusive_ptr<ConfigObject> > ObjectMap;
+	typedef std::vector<intrusive_ptr<ConfigObject> > ObjectVector;
 
-	typedef std::map<String, ConfigObject::Ptr> ObjectMap;
-	typedef std::vector<ConfigObject::Ptr> ObjectVector;
-
+	mutable boost::mutex m_Mutex;
 	ObjectMap m_ObjectMap;
 	ObjectVector m_ObjectVector;
-
-	typedef std::map<String, ConfigType::Ptr> TypeMap;
-	typedef std::vector<ConfigType::Ptr> TypeVector;
-
-	static TypeMap& InternalGetTypeMap(void);
-	static TypeVector& InternalGetTypeVector(void);
-	static boost::mutex& GetStaticMutex(void);
 };
 
 template<typename T>
 class ConfigTypeIterator : public boost::iterator_facade<ConfigTypeIterator<T>, const intrusive_ptr<T>, boost::forward_traversal_tag>
 {
 public:
-	ConfigTypeIterator(const ConfigType::Ptr& type, int index)
-		: m_Type(type), m_Index(index)
-	{ }
+	ConfigTypeIterator(const Type::Ptr& type, int index)
+		: m_Type(type), m_ConfigType(dynamic_cast<ConfigType *>(type.get())), m_Index(index)
+	{
+		ASSERT(m_ConfigType);
+	}
 
 private:
 	friend class boost::iterator_core_access;
 
-	ConfigType::Ptr m_Type;
+	Type::Ptr m_Type;
+	ConfigType *m_ConfigType;
 	ConfigType::ObjectVector::size_type m_Index;
 	mutable intrusive_ptr<T> m_Current;
 
@@ -115,10 +104,10 @@ private:
 		ASSERT(other.m_Type == m_Type);
 
 		{
-			ObjectLock olock(m_Type);
+			boost::mutex::scoped_lock lock(m_ConfigType->m_Mutex);
 
-			if ((other.m_Index == UINT_MAX || other.m_Index >= other.m_Type->m_ObjectVector.size()) &&
-			    (m_Index == UINT_MAX || m_Index >= m_Type->m_ObjectVector.size()))
+			if ((other.m_Index == UINT_MAX || other.m_Index >= other.m_ConfigType->m_ObjectVector.size()) &&
+			    (m_Index == UINT_MAX || m_Index >= m_ConfigType->m_ObjectVector.size()))
 				return true;
 		}
 
@@ -127,12 +116,11 @@ private:
 
 	const intrusive_ptr<T>& dereference(void) const
 	{
-		ObjectLock olock(m_Type);
-		m_Current = static_pointer_cast<T>(*(m_Type->m_ObjectVector.begin() + m_Index));
+		boost::mutex::scoped_lock lock(m_ConfigType->m_Mutex);
+		m_Current = static_pointer_cast<T>(*(m_ConfigType->m_ObjectVector.begin() + m_Index));
 		return m_Current;
 	}
 };
-
 }
 
-#endif /* DYNAMICTYPE_H */
+#endif /* CONFIGTYPE_H */

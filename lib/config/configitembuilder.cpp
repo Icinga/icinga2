@@ -93,7 +93,10 @@ ConfigItem::Ptr ConfigItemBuilder::Compile(void)
 		BOOST_THROW_EXCEPTION(ScriptError(msgbuf.str(), m_DebugInfo));
 	}
 
-	if (!ConfigType::GetByName(m_Type)) {
+	Type::Ptr ptype = Type::GetByName(m_Type);
+	ConfigType *ctype = dynamic_cast<ConfigType *>(ptype.get());
+
+	if (!ctype) {
 		std::ostringstream msgbuf;
 		msgbuf << "The type '" + m_Type + "' is unknown";
 		BOOST_THROW_EXCEPTION(ScriptError(msgbuf.str(), m_DebugInfo));

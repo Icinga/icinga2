@@ -339,11 +339,11 @@ void DbEvents::AddCommentInternal(std::vector<DbQuery>& queries, const Comment::
 	fields1->Set("entry_type", comment->GetEntryType());
 	fields1->Set("object_id", checkable);
 
-	if (checkable->GetType() == ConfigType::GetByName("Host")) {
+	if (checkable->GetReflectionType() == Host::TypeInstance) {
 		fields1->Set("comment_type", 2);
 		/* requires idoutils 1.10 schema fix */
 		fields1->Set("internal_comment_id", comment->GetLegacyId());
-	} else if (checkable->GetType() == ConfigType::GetByName("Service")) {
+	} else if (checkable->GetReflectionType() == Service::TypeInstance) {
 		fields1->Set("comment_type", 1);
 		fields1->Set("internal_comment_id", comment->GetLegacyId());
 	} else {
@@ -472,11 +472,11 @@ void DbEvents::AddDowntimeInternal(std::vector<DbQuery>& queries, const Downtime
 	fields1->Set("entry_time", DbValue::FromTimestamp(downtime->GetEntryTime()));
 	fields1->Set("object_id", checkable);
 
-	if (checkable->GetType() == ConfigType::GetByName("Host")) {
+	if (checkable->GetReflectionType() == Host::TypeInstance) {
 		fields1->Set("downtime_type", 2);
 		/* requires idoutils 1.10 schema fix */
 		fields1->Set("internal_downtime_id", downtime->GetLegacyId());
-	} else if (checkable->GetType() == ConfigType::GetByName("Service")) {
+	} else if (checkable->GetReflectionType() == Service::TypeInstance) {
 		fields1->Set("downtime_type", 1);
 		fields1->Set("internal_downtime_id", downtime->GetLegacyId());
 	} else {

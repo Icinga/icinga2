@@ -197,7 +197,7 @@ bool ObjectQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 							continue;
 
 						Dictionary::Ptr refInfo = new Dictionary();
-						refInfo->Set("type", configObj->GetType()->GetName());
+						refInfo->Set("type", configObj->GetReflectionType()->GetName());
 						refInfo->Set("name", configObj->GetName());
 						used_by->Add(refInfo);
 					}

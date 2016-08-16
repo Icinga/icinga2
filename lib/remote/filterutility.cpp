@@ -47,10 +47,11 @@ Type::Ptr FilterUtility::TypeFromPluralName(const String& pluralName)
 
 void ConfigObjectTargetProvider::FindTargets(const String& type, const boost::function<void (const Value&)>& addTarget) const
 {
-	ConfigType::Ptr dtype = ConfigType::GetByName(type);
+	Type::Ptr ptype = Type::GetByName(type);
+	ConfigType *ctype = dynamic_cast<ConfigType *>(ptype.get());
 
-	if (dtype) {
-		BOOST_FOREACH(const ConfigObject::Ptr& object, dtype->GetObjects()) {
+	if (ctype) {
+		BOOST_FOREACH(const ConfigObject::Ptr& object, ctype->GetObjects()) {
 			addTarget(object);
 		}
 	}

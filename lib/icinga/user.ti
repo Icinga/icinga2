@@ -19,6 +19,7 @@
 
 #include "icinga/customvarobject.hpp"
 #include "base/array.hpp"
+#impl_include "icinga/usergroup.hpp"
 
 library icinga;
 

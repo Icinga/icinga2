@@ -577,7 +577,7 @@ bool ConfigItem::ActivateItems(WorkQueue& upq, const std::vector<ConfigItem::Ptr
 
 #ifdef I2_DEBUG
 		Log(LogDebug, "ConfigItem")
-		    << "Activating object '" << object->GetName() << "' of type '" << object->GetType()->GetName() << "'";
+		    << "Activating object '" << object->GetName() << "' of type '" << object->GetReflectionType()->GetName() << "'";
 #endif /* I2_DEBUG */
 		upq.Enqueue(boost::bind(&ConfigObject::Activate, object, runtimeCreated));
 	}

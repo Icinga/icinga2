@@ -84,7 +84,7 @@ void IdoCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult
 		return;
 	}
 
-	ConfigType::Ptr dtype = ConfigType::GetByName(idoType);
+	ConfigType *dtype = dynamic_cast<ConfigType *>(type.get());
 	VERIFY(dtype);
 
 	DbConnection::Ptr conn = static_pointer_cast<DbConnection>(dtype->GetObject(idoName));

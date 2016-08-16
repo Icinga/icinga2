@@ -262,31 +262,34 @@ Array::Ptr ScriptUtils::Keys(const Dictionary::Ptr& dict)
 
 ConfigObject::Ptr ScriptUtils::GetObject(const Value& vtype, const String& name)
 {
-	String typeName;
+	Type::Ptr ptype;
 
 	if (vtype.IsObjectType<Type>())
-		typeName = static_cast<Type::Ptr>(vtype)->GetName();
+		ptype = vtype;
 	else
-		typeName = vtype;
+		ptype = Type::GetByName(vtype);
 
-	ConfigType::Ptr dtype = ConfigType::GetByName(typeName);
+	ConfigType *ctype = dynamic_cast<ConfigType *>(ptype.get());
 
-	if (!dtype)
+	if (!ctype)
 		return ConfigObject::Ptr();
 
-	return dtype->GetObject(name);
+	return ctype->GetObject(name);
 }
 
 Array::Ptr ScriptUtils::GetObjects(const Type::Ptr& type)
 {
-	ConfigType::Ptr dtype = ConfigType::GetByName(type->GetName());
+	if (!type)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid type: Must not be null"));
 
-	if (!dtype)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid type name"));
+	ConfigType *ctype = dynamic_cast<ConfigType *>(type.get());
+
+	if (!ctype)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid type: Type must inherit from 'ConfigObject'"));
 
 	Array::Ptr result = new Array();
 
-	BOOST_FOREACH(const ConfigObject::Ptr& object, dtype->GetObjects())
+	BOOST_FOREACH(const ConfigObject::Ptr& object, ctype->GetObjects())
 		result->Add(object);
 
 	return result;

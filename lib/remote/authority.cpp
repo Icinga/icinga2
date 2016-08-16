@@ -63,8 +63,13 @@ void ApiListener::UpdateObjectAuthority(void)
 		std::sort(endpoints.begin(), endpoints.end(), ObjectNameLessComparer);
 	}
 
-	BOOST_FOREACH(const ConfigType::Ptr& type, ConfigType::GetTypes()) {
-		BOOST_FOREACH(const ConfigObject::Ptr& object, type->GetObjects()) {
+	BOOST_FOREACH(const Type::Ptr& type, Type::GetAllTypes()) {
+		ConfigType *dtype = dynamic_cast<ConfigType *>(type.get());
+
+		if (!dtype)
+			continue;
+
+		BOOST_FOREACH(const ConfigObject::Ptr& object, dtype->GetObjects()) {
 			if (object->GetHAMode() != HARunOnce)
 				continue;
 

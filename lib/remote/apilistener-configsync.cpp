@@ -99,15 +99,16 @@ Value ApiListener::ConfigUpdateObjectAPIHandler(const MessageOrigin::Ptr& origin
 	/* update the object */
 	double objVersion = params->Get("version");
 
-	ConfigType::Ptr dtype = ConfigType::GetByName(objType);
+	Type::Ptr ptype = Type::GetByName(objType);
+	ConfigType *ctype = dynamic_cast<ConfigType *>(ptype.get());
 
-	if (!dtype) {
+	if (!ctype) {
 		Log(LogCritical, "ApiListener")
 		    << "Config type '" << objType << "' does not exist.";
 		return Empty;
 	}
 
-	ConfigObject::Ptr object = dtype->GetObject(objName);
+	ConfigObject::Ptr object = ctype->GetObject(objName);
 
 	String config = params->Get("config");
 
@@ -115,7 +116,7 @@ Value ApiListener::ConfigUpdateObjectAPIHandler(const MessageOrigin::Ptr& origin
 		/* object does not exist, create it through the API */
 		Array::Ptr errors = new Array();
 
-		if (!ConfigObjectUtility::CreateObject(Type::GetByName(objType),
+		if (!ConfigObjectUtility::CreateObject(ptype,
 		    objName, config, errors)) {
 			Log(LogCritical, "ApiListener")
 			    << "Could not create object '" << objName << "':";
@@ -128,7 +129,7 @@ Value ApiListener::ConfigUpdateObjectAPIHandler(const MessageOrigin::Ptr& origin
 			return Empty;
 		}
 
-		object = dtype->GetObject(objName);
+		object = ctype->GetObject(objName);
 
 		if (!object)
 			return Empty;
@@ -230,15 +231,16 @@ Value ApiListener::ConfigDeleteObjectAPIHandler(const MessageOrigin::Ptr& origin
 	}
 
 	/* delete the object */
-	ConfigType::Ptr dtype = ConfigType::GetByName(params->Get("type"));
+	Type::Ptr ptype = Type::GetByName(params->Get("type"));
+	ConfigType *ctype = dynamic_cast<ConfigType *>(ptype.get());
 
-	if (!dtype) {
+	if (!ctype) {
 		Log(LogCritical, "ApiListener")
 		    << "Config type '" << params->Get("type") << "' does not exist.";
 		return Empty;
 	}
 
-	ConfigObject::Ptr object = dtype->GetObject(params->Get("name"));
+	ConfigObject::Ptr object = ctype->GetObject(params->Get("name"));
 
 	if (!object) {
 		Log(LogNotice, "ApiListener")
@@ -397,8 +399,13 @@ void ApiListener::SendRuntimeConfigObjects(const JsonRpcConnection::Ptr& aclient
 	Log(LogInformation, "ApiListener")
 	    << "Syncing runtime objects to endpoint '" << endpoint->GetName() << "'.";
 
-	BOOST_FOREACH(const ConfigType::Ptr& dt, ConfigType::GetTypes()) {
-		BOOST_FOREACH(const ConfigObject::Ptr& object, dt->GetObjects()) {
+	BOOST_FOREACH(const Type::Ptr& type, Type::GetAllTypes()) {
+		ConfigType *dtype = dynamic_cast<ConfigType *>(type.get());
+
+		if (!dtype)
+			continue;
+
+		BOOST_FOREACH(const ConfigObject::Ptr& object, dtype->GetObjects()) {
 			/* don't sync objects with an older version time than the endpoint's log position */
 			if (object->GetVersion() < endpoint->GetLocalLogPosition())
 				continue;

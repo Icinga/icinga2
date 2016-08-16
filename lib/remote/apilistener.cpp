@@ -955,12 +955,7 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 				Dictionary::Ptr secname = pmessage->Get("secobj");
 
 				if (secname) {
-					ConfigType::Ptr dtype = ConfigType::GetByName(secname->Get("type"));
-
-					if (!dtype)
-						continue;
-
-					ConfigObject::Ptr secobj = dtype->GetObject(secname->Get("name"));
+					ConfigObject::Ptr secobj = ConfigObject::GetObject(secname->Get("type"), secname->Get("name"));
 
 					if (!secobj)
 						continue;

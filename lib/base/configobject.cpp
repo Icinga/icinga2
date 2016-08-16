@@ -51,11 +51,6 @@ boost::signals2::signal<void (const ConfigObject::Ptr&)> ConfigObject::OnStateCh
 ConfigObject::ConfigObject(void)
 { }
 
-ConfigType::Ptr ConfigObject::GetType(void) const
-{
-	return ConfigType::GetByName(GetReflectionType()->GetName());
-}
-
 bool ConfigObject::IsActive(void) const
 {
 	return GetActive();
@@ -103,7 +98,8 @@ class ModAttrValidationUtils : public ValidationUtils
 public:
 	virtual bool ValidateName(const String& type, const String& name) const override
 	{
-		ConfigType::Ptr dtype = ConfigType::GetByName(type);
+		Type::Ptr ptype = Type::GetByName(type);
+		ConfigType *dtype = dynamic_cast<ConfigType *>(ptype.get());
 
 		if (!dtype)
 			return false;
@@ -361,16 +357,16 @@ void ConfigObject::Register(void)
 {
 	ASSERT(!OwnsLock());
 
-	ConfigType::Ptr dtype = GetType();
-	dtype->RegisterObject(this);
+	TypeImpl<ConfigObject>::Ptr type = static_pointer_cast<TypeImpl<ConfigObject> >(GetReflectionType());
+	type->RegisterObject(this);
 }
 
 void ConfigObject::Unregister(void)
 {
 	ASSERT(!OwnsLock());
 
-	ConfigType::Ptr dtype = GetType();
-	dtype->UnregisterObject(this);
+	TypeImpl<ConfigObject>::Ptr type = static_pointer_cast<TypeImpl<ConfigObject> >(GetReflectionType());
+	type->UnregisterObject(this);
 }
 
 void ConfigObject::Start(bool runtimeCreated)
@@ -440,7 +436,17 @@ void ConfigObject::OnConfigLoaded(void)
 
 void ConfigObject::OnAllConfigLoaded(void)
 {
-	m_Zone = GetObject("Zone", GetZoneName());
+	static ConfigType *ctype;
+
+	if (!ctype) {
+		Type::Ptr type = Type::GetByName("Zone");
+		ctype = dynamic_cast<ConfigType *>(type.get());
+	}
+
+	String zoneName = GetZoneName();
+
+	if (!zoneName.IsEmpty())
+		m_Zone = ctype->GetObject(zoneName);
 }
 
 void ConfigObject::CreateChildObjects(const Type::Ptr& childType)
@@ -494,8 +500,13 @@ void ConfigObject::DumpObjects(const String& filename, int attributeTypes)
 
 	StdioStream::Ptr sfp = new StdioStream(&fp, false);
 
-	BOOST_FOREACH(const ConfigType::Ptr& type, ConfigType::GetTypes()) {
-		BOOST_FOREACH(const ConfigObject::Ptr& object, type->GetObjects()) {
+	BOOST_FOREACH(const Type::Ptr& type, Type::GetAllTypes()) {
+		ConfigType *dtype = dynamic_cast<ConfigType *>(type.get());
+
+		if (!dtype)
+			continue;
+
+		BOOST_FOREACH(const ConfigObject::Ptr& object, dtype->GetObjects()) {
 			Dictionary::Ptr persistentObject = new Dictionary();
 
 			persistentObject->Set("type", type->GetName());
@@ -535,15 +546,9 @@ void ConfigObject::RestoreObject(const String& message, int attributeTypes)
 	Dictionary::Ptr persistentObject = JsonDecode(message);
 
 	String type = persistentObject->Get("type");
-
-	ConfigType::Ptr dt = ConfigType::GetByName(type);
-
-	if (!dt)
-		return;
-
 	String name = persistentObject->Get("name");
 
-	ConfigObject::Ptr object = dt->GetObject(name);
+	ConfigObject::Ptr object = GetObject(type, name);
 
 	if (!object)
 		return;
@@ -597,8 +602,13 @@ void ConfigObject::RestoreObjects(const String& filename, int attributeTypes)
 
 	unsigned long no_state = 0;
 
-	BOOST_FOREACH(const ConfigType::Ptr& type, ConfigType::GetTypes()) {
-		BOOST_FOREACH(const ConfigObject::Ptr& object, type->GetObjects()) {
+	BOOST_FOREACH(const Type::Ptr& type, Type::GetAllTypes()) {
+		ConfigType *dtype = dynamic_cast<ConfigType *>(type.get());
+
+		if (!dtype)
+			continue;
+
+		BOOST_FOREACH(const ConfigObject::Ptr& object, dtype->GetObjects()) {
 			if (!object->GetStateLoaded()) {
 				object->OnStateLoaded();
 				object->SetStateLoaded(true);
@@ -614,8 +624,13 @@ void ConfigObject::RestoreObjects(const String& filename, int attributeTypes)
 
 void ConfigObject::StopObjects(void)
 {
-	BOOST_FOREACH(const ConfigType::Ptr& dt, ConfigType::GetTypes()) {
-		BOOST_FOREACH(const ConfigObject::Ptr& object, dt->GetObjects()) {
+	BOOST_FOREACH(const Type::Ptr& type, Type::GetAllTypes()) {
+		ConfigType *dtype = dynamic_cast<ConfigType *>(type.get());
+
+		if (!dtype)
+			continue;
+
+		BOOST_FOREACH(const ConfigObject::Ptr& object, dtype->GetObjects()) {
 			object->Deactivate();
 		}
 	}
@@ -623,8 +638,13 @@ void ConfigObject::StopObjects(void)
 
 void ConfigObject::DumpModifiedAttributes(const boost::function<void(const ConfigObject::Ptr&, const String&, const Value&)>& callback)
 {
-	BOOST_FOREACH(const ConfigType::Ptr& dt, ConfigType::GetTypes()) {
-		BOOST_FOREACH(const ConfigObject::Ptr& object, dt->GetObjects()) {
+	BOOST_FOREACH(const Type::Ptr& type, Type::GetAllTypes()) {
+		ConfigType *dtype = dynamic_cast<ConfigType *>(type.get());
+
+		if (!dtype)
+			continue;
+
+		BOOST_FOREACH(const ConfigObject::Ptr& object, dtype->GetObjects()) {
 			Dictionary::Ptr originalAttributes = object->GetOriginalAttributes();
 
 			if (!originalAttributes)
@@ -680,10 +700,13 @@ void ConfigObject::DumpModifiedAttributes(const boost::function<void(const Confi
 
 ConfigObject::Ptr ConfigObject::GetObject(const String& type, const String& name)
 {
-	ConfigType::Ptr dtype = ConfigType::GetByName(type);
-	if (!dtype)
+	Type::Ptr ptype = Type::GetByName(type);
+	ConfigType *ctype = dynamic_cast<ConfigType *>(ptype.get());
+
+	if (!ctype)
 		return ConfigObject::Ptr();
-	return dtype->GetObject(name);
+
+	return ctype->GetObject(name);
 }
 
 ConfigObject::Ptr ConfigObject::GetZone(void) const

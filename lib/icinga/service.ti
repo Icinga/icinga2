@@ -21,6 +21,7 @@
 #include "icinga/host.hpp"
 #include "icinga/icingaapplication.hpp"
 #include "icinga/customvarobject.hpp"
+#impl_include "icinga/servicegroup.hpp"
 
 library icinga;
 

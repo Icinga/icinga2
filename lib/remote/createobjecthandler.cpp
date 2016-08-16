@@ -95,9 +95,8 @@ bool CreateObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 		return true;
 	}
 
-	ConfigType::Ptr dtype = ConfigType::GetByName(type->GetName());
-
-	ConfigObject::Ptr obj = dtype->GetObject(name);
+	ConfigType *ctype = dynamic_cast<ConfigType *>(type.get());
+	ConfigObject::Ptr obj = ctype->GetObject(name);
 
 	result1->Set("code", 200);
 
