@@ -75,12 +75,19 @@ void ConfigType::UnregisterObject(const ConfigObject::Ptr& object)
 	}
 }
 
-std::pair<ConfigTypeIterator<ConfigObject>, ConfigTypeIterator<ConfigObject> > ConfigType::GetObjects(void)
+std::vector<ConfigObject::Ptr> ConfigType::GetObjects(void) const
 {
-	Type::Ptr type = dynamic_cast<Type *>(this);
+	boost::mutex::scoped_lock lock(m_Mutex);
+	return m_ObjectVector;
+}
 
-	return std::make_pair(
-	    ConfigTypeIterator<ConfigObject>(type, 0),
-	    ConfigTypeIterator<ConfigObject>(type, UINT_MAX)
-	);
+std::vector<ConfigObject::Ptr> ConfigType::GetObjectsHelper(Type *type)
+{
+	return static_cast<TypeImpl<ConfigObject> *>(type)->GetObjects();
+}
+
+int ConfigType::GetObjectCount(void) const
+{
+	boost::mutex::scoped_lock lock(m_Mutex);
+	return m_ObjectVector.size();
 }

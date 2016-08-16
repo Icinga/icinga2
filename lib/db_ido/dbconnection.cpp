@@ -234,10 +234,10 @@ void DbConnection::UpdateProgramStatus(void)
 	query3.WhereCriteria->Set("instance_id", 0);  /* DbConnection class fills in real ID */
 	DbObject::OnQuery(query3);
 
-	InsertRuntimeVariable("total_services", std::distance(ConfigType::GetObjectsByType<Service>().first, ConfigType::GetObjectsByType<Service>().second));
-	InsertRuntimeVariable("total_scheduled_services", std::distance(ConfigType::GetObjectsByType<Service>().first, ConfigType::GetObjectsByType<Service>().second));
-	InsertRuntimeVariable("total_hosts", std::distance(ConfigType::GetObjectsByType<Host>().first, ConfigType::GetObjectsByType<Host>().second));
-	InsertRuntimeVariable("total_scheduled_hosts", std::distance(ConfigType::GetObjectsByType<Host>().first, ConfigType::GetObjectsByType<Host>().second));
+	InsertRuntimeVariable("total_services", ConfigType::Get<Service>()->GetObjectCount());
+	InsertRuntimeVariable("total_scheduled_services", ConfigType::Get<Service>()->GetObjectCount());
+	InsertRuntimeVariable("total_hosts", ConfigType::Get<Host>()->GetObjectCount());
+	InsertRuntimeVariable("total_scheduled_hosts", ConfigType::Get<Host>()->GetObjectCount());
 }
 
 void DbConnection::CleanUpHandler(void)

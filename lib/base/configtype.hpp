@@ -24,14 +24,12 @@
 #include "base/object.hpp"
 #include "base/type.hpp"
 #include "base/dictionary.hpp"
+#include <boost/foreach.hpp>
 
 namespace icinga
 {
 
 class ConfigObject;
-
-template<typename T>
-class ConfigTypeIterator;
 
 class I2_BASE_API ConfigType
 {
@@ -43,84 +41,39 @@ public:
 	void RegisterObject(const intrusive_ptr<ConfigObject>& object);
 	void UnregisterObject(const intrusive_ptr<ConfigObject>& object);
 
-	std::pair<ConfigTypeIterator<ConfigObject>, ConfigTypeIterator<ConfigObject> > GetObjects(void);
+	std::vector<intrusive_ptr<ConfigObject> > GetObjects(void) const;
 
 	template<typename T>
-	static std::pair<ConfigTypeIterator<T>, ConfigTypeIterator<T> > GetObjectsByType(void)
+	static TypeImpl<T> *Get(void)
 	{
-		Type::Ptr type = T::TypeInstance;
-		return std::make_pair(
-		    ConfigTypeIterator<T>(type, 0),
-		    ConfigTypeIterator<T>(type, UINT_MAX)
-		);
+		typedef TypeImpl<T> ObjType;
+		return static_cast<ObjType *>(T::TypeInstance.get());
 	}
 
-private:
-	template<typename T> friend class ConfigTypeIterator;
+	template<typename T>
+	static std::vector<intrusive_ptr<T> > GetObjectsByType(void)
+	{
+		std::vector<intrusive_ptr<ConfigObject> > objects = GetObjectsHelper(T::TypeInstance.get());
+		std::vector<intrusive_ptr<T> > result;
+		BOOST_FOREACH(const intrusive_ptr<ConfigObject>& object, objects) {
+			result.push_back(static_pointer_cast<T>(object));
+		}
+		return result;
+	}
 
+	int GetObjectCount(void) const;
+
+private:
 	typedef std::map<String, intrusive_ptr<ConfigObject> > ObjectMap;
 	typedef std::vector<intrusive_ptr<ConfigObject> > ObjectVector;
 
 	mutable boost::mutex m_Mutex;
 	ObjectMap m_ObjectMap;
 	ObjectVector m_ObjectVector;
+
+	static std::vector<intrusive_ptr<ConfigObject> > GetObjectsHelper(Type *type);
 };
 
-template<typename T>
-class ConfigTypeIterator : public boost::iterator_facade<ConfigTypeIterator<T>, const intrusive_ptr<T>, boost::forward_traversal_tag>
-{
-public:
-	ConfigTypeIterator(const Type::Ptr& type, int index)
-		: m_Type(type), m_ConfigType(dynamic_cast<ConfigType *>(type.get())), m_Index(index)
-	{
-		ASSERT(m_ConfigType);
-	}
-
-private:
-	friend class boost::iterator_core_access;
-
-	Type::Ptr m_Type;
-	ConfigType *m_ConfigType;
-	ConfigType::ObjectVector::size_type m_Index;
-	mutable intrusive_ptr<T> m_Current;
-
-	void increment(void)
-	{
-		m_Index++;
-	}
-
-	void decrement(void)
-	{
-		m_Index--;
-	}
-
-	void advance(int n)
-	{
-		m_Index += n;
-	}
-
-	bool equal(const ConfigTypeIterator<T>& other) const
-	{
-		ASSERT(other.m_Type == m_Type);
-
-		{
-			boost::mutex::scoped_lock lock(m_ConfigType->m_Mutex);
-
-			if ((other.m_Index == UINT_MAX || other.m_Index >= other.m_ConfigType->m_ObjectVector.size()) &&
-			    (m_Index == UINT_MAX || m_Index >= m_ConfigType->m_ObjectVector.size()))
-				return true;
-		}
-
-		return (other.m_Index == m_Index);
-	}
-
-	const intrusive_ptr<T>& dereference(void) const
-	{
-		boost::mutex::scoped_lock lock(m_ConfigType->m_Mutex);
-		m_Current = static_pointer_cast<T>(*(m_ConfigType->m_ObjectVector.begin() + m_Index));
-		return m_Current;
-	}
-};
 }
 
 #endif /* CONFIGTYPE_H */
