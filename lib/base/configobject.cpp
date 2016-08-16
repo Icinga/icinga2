@@ -159,11 +159,9 @@ void ConfigObject::ModifyAttribute(const String& attr, const Value& value, bool 
 			const String& key = tokens[i];
 			prefix += "." + key;
 
-			if (!dict->Contains(key)) {
+			if (!dict->Get(key, &current)) {
 				current = new Dictionary();
 				dict->Set(key, current);
-			} else {
-				current = dict->Get(key);
 			}
 		}
 

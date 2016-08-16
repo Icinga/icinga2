@@ -36,14 +36,16 @@ Dictionary::Ptr ScriptGlobal::m_Globals = new Dictionary();
 
 Value ScriptGlobal::Get(const String& name, const Value *defaultValue)
 {
-	if (!m_Globals->Contains(name)) {
+	Value result;
+
+	if (!m_Globals->Get(name, &result)) {
 		if (defaultValue)
 			return *defaultValue;
 
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Tried to access undefined script variable '" + name + "'"));
 	}
 
-	return m_Globals->Get(name);
+	return result;
 }
 
 void ScriptGlobal::Set(const String& name, const Value& value)
@@ -63,12 +65,14 @@ void ScriptGlobal::Set(const String& name, const Value& value)
 			const String& token = tokens[i];
 
 			if (i + 1 != tokens.size()) {
-				if (!parent->Contains(token)) {
+				Value vparent;
+
+				if (!parent->Get(token, &vparent)) {
 					Dictionary::Ptr dict = new Dictionary();
 					parent->Set(token, dict);
 					parent = dict;
 				} else {
-					parent = parent->Get(token);
+					parent = vparent;
 				}
 			}
 		}
