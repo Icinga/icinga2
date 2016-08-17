@@ -2258,6 +2258,7 @@ interfacetable_includetraffic       | **Optional.** Comma separated list of inte
 interfacetable_warningtraffic       | **Optional.** Interface traffic load percentage leading to a warning alert.
 interfacetable_criticaltraffic      | **Optional.** Interface traffic load percentage leading to a critical alert.
 interfacetable_pkt                  | **Optional.** Add unicast/non-unicast pkt stats for each interface.
+interfacetable_trafficwithpkt       | **Optional.** Enable traffic calculation using pkt counters instead of octet counters. Useful when using 32-bit counters to track the load on > 1GbE interfaces. Defaults to false.
 interfacetable_trackproperty        | **Optional.** List of tracked properties.
 interfacetable_excludeproperty      | **Optional.** Comma separated list of interfaces excluded from the property tracking.
 interfacetable_includeproperty      | **Optional.** Comma separated list of interfaces included in the property tracking.
@@ -2274,6 +2275,7 @@ interfacetable_64bits               | **Optional.** Use SNMP 64-bits counters. D
 interfacetable_maxrepetitions       | **Optional.** Increasing this value may enhance snmp query performances by gathering more results at one time.
 interfacetable_snmptimeout          | **Optional.** Define the Transport Layer timeout for the snmp queries.
 interfacetable_snmpretries          | **Optional.** Define the number of times to retry sending a SNMP message.
+interfacetable_snmpmaxmsgsize       | **Optional.** Size of the SNMP message in octets, usefull in case of too long responses. Be carefull with network filters. Range 484 - 65535. Apply only to netsnmp perl bindings. The default is 1472 octets for UDP/IPv4, 1452 octets for UDP/IPv6, 1460 octets for TCP/IPv4, and 1440 octets for TCP/IPv6.
 interfacetable_unixsnmp             | **Optional.** Use unix snmp utilities for snmp requests. Defaults to false, which means use the perl bindings.
 interfacetable_enableperfdata       | **Optional.** Enable port performance data. Defaults to false.
 interfacetable_perfdataformat       | **Optional.** Define which performance data will be generated. Possible values are "full" (default), "loadonly", "globalonly".
