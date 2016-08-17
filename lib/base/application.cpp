@@ -324,6 +324,11 @@ mainloop:
 	UninitializeBase();
 }
 
+bool Application::IsShuttingDown(void)
+{
+	return m_ShuttingDown;
+}
+
 void Application::OnShutdown(void)
 {
 	/* Nothing to do here. */

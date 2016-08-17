@@ -430,7 +430,7 @@ bool DbConnection::GetStatusUpdate(const DbObject::Ptr& dbobj) const
 
 void DbConnection::UpdateObject(const ConfigObject::Ptr& object)
 {
-	if (!GetConnected())
+	if (!GetConnected() || Application::IsShuttingDown())
 		return;
 
 	DbObject::Ptr dbobj = DbObject::GetOrCreateByObject(object);
