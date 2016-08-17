@@ -120,7 +120,6 @@ bool ApiSetupUtility::SetupMasterCertificates(const String& cn)
 	String ca_path = PkiUtility::GetLocalCaPath();
 	String ca = ca_path + "/ca.crt";
 	String ca_key = ca_path + "/ca.key";
-	String serial = ca_path + "/serial.txt";
 	String target_ca = pki_path + "/ca.crt";
 
 	Log(LogInformation, "cli")
@@ -137,7 +136,6 @@ bool ApiSetupUtility::SetupMasterCertificates(const String& cn)
 	files.push_back(ca_path);
 	files.push_back(ca);
 	files.push_back(ca_key);
-	files.push_back(serial);
 	files.push_back(target_ca);
 	files.push_back(key);
 	files.push_back(csr);
