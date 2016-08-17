@@ -45,12 +45,19 @@ public:
 	inline void AddMessage(const String& message, const DebugInfo& di)
 	{
 		Array::Ptr amsg = new Array();
-		amsg->Add(message);
-		amsg->Add(di.Path);
-		amsg->Add(di.FirstLine);
-		amsg->Add(di.FirstColumn);
-		amsg->Add(di.LastLine);
-		amsg->Add(di.LastColumn);
+
+		{
+			ObjectLock olock(amsg);
+
+			amsg->Reserve(6);
+			amsg->Add(message);
+			amsg->Add(di.Path);
+			amsg->Add(di.FirstLine);
+			amsg->Add(di.FirstColumn);
+			amsg->Add(di.LastLine);
+			amsg->Add(di.LastColumn);
+		}
+
 		GetMessages()->Add(amsg);
 	}
 
@@ -58,14 +65,14 @@ public:
 	{
 		Dictionary::Ptr children = GetChildren();
 
-		Dictionary::Ptr child = children->Get(name);
+		Value vchild;
 
-		if (!child) {
-			child = new Dictionary();
-			children->Set(name, child);
+		if (!children->Get(name, &vchild)) {
+			vchild = new Dictionary();
+			children->Set(name, vchild);
 		}
 
-		return DebugHint(child);
+		return DebugHint(vchild);
 	}
 
 	Dictionary::Ptr ToDictionary(void) const
@@ -81,14 +88,14 @@ private:
 		if (!m_Hints)
 			m_Hints = new Dictionary();
 
-		Array::Ptr messages = m_Hints->Get("messages");
+		Value vmessages;
 
-		if (!messages) {
-			messages = new Array();
-			m_Hints->Set("messages", messages);
+		if (!m_Hints->Get("messages", &vmessages)) {
+			vmessages = new Array();
+			m_Hints->Set("messages", vmessages);
 		}
 
-		return messages;
+		return vmessages;
 	}
 
 	Dictionary::Ptr GetChildren(void)
@@ -96,14 +103,14 @@ private:
 		if (!m_Hints)
 			m_Hints = new Dictionary();
 
-		Dictionary::Ptr children = m_Hints->Get("properties");
+		Value vchildren;
 
-		if (!children) {
-			children = new Dictionary;
-			m_Hints->Set("properties", children);
+		if (!m_Hints->Get("properties", &vchildren)) {
+			vchildren = new Dictionary();
+			m_Hints->Set("properties", vchildren);
 		}
 
-		return children;
+		return vchildren;
 	}
 };
 
