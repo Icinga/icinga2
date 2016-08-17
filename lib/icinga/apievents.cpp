@@ -336,7 +336,7 @@ void ApiEvents::DowntimeTriggeredHandler(const Downtime::Ptr& downtime)
 	result->Set("type", "DowntimeTriggered");
 	result->Set("timestamp", Utility::GetTime());
 
-	result->Set("downtime", Serialize(downtime));
+	result->Set("downtime", Serialize(downtime, FAConfig | FAState));
 
 	BOOST_FOREACH(const EventQueue::Ptr& queue, queues) {
 		queue->ProcessEvent(result);
