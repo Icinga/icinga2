@@ -262,11 +262,6 @@ void DbObject::SendVarsConfigUpdateHeavy(void)
 			query3.Category = DbCatConfig;
 			query3.Fields = fields;
 
-			query3.WhereCriteria = new Dictionary();
-			query3.WhereCriteria->Set("object_id", obj);
-			query3.WhereCriteria->Set("varname", kv.first);
-			query3.Object = this;
-
 			queries.push_back(query3);
 		}
 	}
