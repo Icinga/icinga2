@@ -40,6 +40,7 @@ void Zone::OnAllConfigLoaded(void)
 	Array::Ptr endpoints = GetEndpointsRaw();
 
 	if (endpoints) {
+		ObjectLock olock(endpoints);
 		BOOST_FOREACH(const String& endpoint, endpoints) {
 			Endpoint::GetByName(endpoint)->SetCachedZone(this);
 		}
