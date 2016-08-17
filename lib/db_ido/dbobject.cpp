@@ -314,7 +314,6 @@ void DbObject::SendVarsStatusUpdate(void)
 			query.WhereCriteria = new Dictionary();
 			query.WhereCriteria->Set("object_id", obj);
 			query.WhereCriteria->Set("varname", kv.first);
-			query.Object = this;
 
 			queries.push_back(query);
 		}

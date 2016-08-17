@@ -810,7 +810,7 @@ void IdoMysqlConnection::ExecuteQuery(const DbQuery& query)
 {
 	ASSERT(query.Category != DbCatInvalid);
 
-	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::InternalExecuteQuery, this, query, (DbQueryType *)NULL), query.Priority, true);
+	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::InternalExecuteQuery, this, query, -1), query.Priority, true);
 }
 
 void IdoMysqlConnection::ExecuteMultipleQueries(const std::vector<DbQuery>& queries)
@@ -870,11 +870,11 @@ void IdoMysqlConnection::InternalExecuteMultipleQueries(const std::vector<DbQuer
 	}
 
 	BOOST_FOREACH(const DbQuery& query, queries) {
-		InternalExecuteQuery(query, NULL);
+		InternalExecuteQuery(query);
 	}
 }
 
-void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query, DbQueryType *typeOverride)
+void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query, int typeOverride)
 {
 	AssertOnWorkQueue();
 
@@ -911,7 +911,7 @@ void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query, DbQueryType 
 
 		BOOST_FOREACH(const Dictionary::Pair& kv, query.WhereCriteria) {
 			if (!FieldToEscapedString(kv.first, kv.second, &value)) {
-				m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::InternalExecuteQuery, this, query, (DbQueryType *)NULL), query.Priority);
+				m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::InternalExecuteQuery, this, query, -1), query.Priority);
 				return;
 			}
 
@@ -925,7 +925,7 @@ void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query, DbQueryType 
 		}
 	}
 
-	type = typeOverride ? *typeOverride : query.Type;
+	type = (typeOverride != -1) ? typeOverride : query.Type;
 
 	bool upsert = false;
 
@@ -943,6 +943,14 @@ void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query, DbQueryType 
 			upsert = true;
 
 		type = DbQueryUpdate;
+	}
+
+	if ((type & DbQueryInsert) && (type & DbQueryDelete)) {
+		std::ostringstream qdel;
+		qdel << "DELETE FROM " << GetTablePrefix() << query.Table << where.str();
+		AsyncQuery(qdel.str());
+
+		type = DbQueryInsert;
 	}
 
 	switch (type) {
@@ -975,7 +983,7 @@ void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query, DbQueryType 
 				continue;
 
 			if (!FieldToEscapedString(kv.first, kv.second, &value)) {
-				m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::InternalExecuteQuery, this, query, (DbQueryType *)NULL), query.Priority);
+				m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::InternalExecuteQuery, this, query, -1), query.Priority);
 				return;
 			}
 
@@ -1011,8 +1019,7 @@ void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query, DbQueryType 
 void IdoMysqlConnection::FinishExecuteQuery(const DbQuery& query, int type, bool upsert)
 {
 	if (upsert && GetAffectedRows() == 0) {
-		DbQueryType to = DbQueryInsert;
-		InternalExecuteQuery(query, &to);
+		InternalExecuteQuery(query, DbQueryDelete | DbQueryInsert);
 
 		return;
 	}

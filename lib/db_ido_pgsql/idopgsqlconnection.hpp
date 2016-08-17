@@ -95,7 +95,7 @@ private:
 
 	bool CanExecuteQuery(const DbQuery& query);
 
-	void InternalExecuteQuery(const DbQuery& query, DbQueryType *typeOverride = NULL);
+	void InternalExecuteQuery(const DbQuery& query, int typeOverride = -1);
 	void InternalExecuteMultipleQueries(const std::vector<DbQuery>& queries);
 	void InternalCleanUpExecuteQuery(const String& table, const String& time_key, double time_value);
 

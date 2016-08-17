@@ -107,7 +107,7 @@ private:
 
 	bool CanExecuteQuery(const DbQuery& query);
 
-	void InternalExecuteQuery(const DbQuery& query, DbQueryType *typeOverride = NULL);
+	void InternalExecuteQuery(const DbQuery& query, int typeOverride = -1);
 	void InternalExecuteMultipleQueries(const std::vector<DbQuery>& queries);
 
 	void FinishExecuteQuery(const DbQuery& query, int type, bool upsert);
