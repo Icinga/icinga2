@@ -156,6 +156,11 @@ void ApiListener::Start(bool runtimeCreated)
 	m_ReconnectTimer->Start();
 	m_ReconnectTimer->Reschedule(0);
 
+	m_AuthorityTimer = new Timer();
+	m_AuthorityTimer->OnTimerExpired.connect(boost::bind(&ApiListener::UpdateObjectAuthority));
+	m_AuthorityTimer->SetInterval(30);
+	m_AuthorityTimer->Start();
+
 	OnMasterChanged(true);
 }
 

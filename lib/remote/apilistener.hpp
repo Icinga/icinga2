@@ -116,6 +116,7 @@ private:
 	std::set<HttpServerConnection::Ptr> m_HttpClients;
 	Timer::Ptr m_Timer;
 	Timer::Ptr m_ReconnectTimer;
+	Timer::Ptr m_AuthorityTimer;
 	Endpoint::Ptr m_LocalEndpoint;
 
 	static ApiListener::Ptr m_Instance;

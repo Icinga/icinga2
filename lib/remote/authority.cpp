@@ -21,13 +21,9 @@
 #include "remote/apilistener.hpp"
 #include "base/configtype.hpp"
 #include "base/utility.hpp"
-#include "base/initialize.hpp"
-#include "base/timer.hpp"
 #include <boost/foreach.hpp>
 
 using namespace icinga;
-
-static Timer::Ptr l_AuthorityTimer;
 
 static bool ObjectNameLessComparer(const ConfigObject::Ptr& a, const ConfigObject::Ptr& b)
 {
@@ -70,7 +66,7 @@ void ApiListener::UpdateObjectAuthority(void)
 			continue;
 
 		BOOST_FOREACH(const ConfigObject::Ptr& object, dtype->GetObjects()) {
-			if (object->GetHAMode() != HARunOnce)
+			if (!object->IsActive() || object->GetHAMode() != HARunOnce)
 				continue;
 
 			bool authority;
@@ -84,13 +80,3 @@ void ApiListener::UpdateObjectAuthority(void)
 		}
 	}
 }
-
-static void StaticInitialize(void)
-{
-	l_AuthorityTimer = new Timer();
-	l_AuthorityTimer->OnTimerExpired.connect(boost::bind(&ApiListener::UpdateObjectAuthority));
-	l_AuthorityTimer->SetInterval(30);
-	l_AuthorityTimer->Start();
-}
-
-INITIALIZE_ONCE(StaticInitialize);
