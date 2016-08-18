@@ -6,11 +6,21 @@ setup details.
 
 ## <a id="distributed-monitoring-roles"></a> Roles: Master, Satellite and Clients
 
+A `node` in the Icinga2 cluster is defined as an `endpoint` object, as found in the **zones.conf** file.
 Icinga 2 nodes can be given names for easier understanding:
 
-* A `master` node which is on top of the hierarchy
-* A `satellite` node which is a child of a `master` node
+* A `master` node which is on top of the hierarchy (it *has no* parent)
+* A `satellite` node which is a child of a `master` or `satelite` node 
+    * It *has* a parent
+    * Is able to schedule checks and thus requires a configuration
+    * Continues to run checks even if the master is temporarily unavailable
 * A `client` node which works as an `agent` connected to `master` and/or `satellite` nodes
+    * It *has* a parent
+    * Is not able to schedule checks and thus needs no configuration
+    * It just runs commands in the moment they are provided by its parent. For that, the parent evaluates the 'command_endpoint' config attribute.
+    * Will not run commands if the parent is temporarily unavailable.
+
+Technically, it is possible to mix these role features freely, but above roles are the most used ones.
 
 The following sections will refer to these roles and explain
 their possibilities and differences in detail.
@@ -105,7 +115,8 @@ It is further used for the [Icinga 2 REST API](12-icinga2-api.md#icinga2-api) wh
 the same host and port with the Icinga 2 Cluster protocol.
 
 The object configuration is stored as feature in `/etc/icinga2/features-enabled/api.conf`
-by default.
+by default. 
+Depending on your needs, set `accept_config = true` and / or `accept_commands = true` in that file.
 
 In order to use the `api` feature you need to enable it and restart Icinga 2.
 
@@ -132,7 +143,7 @@ nodes (firewalls, policies, software hardening, etc.) the Icinga 2 also provides
 additional security itself:
 
 * SSL certificates are mandatory for cluster communication. There are CLI commands helping with their creation.
-* Child zones only receive event updates (check results, commands, etc.) for their configured updates.
+* Child zones only receive updates (check results, commands, etc.) for the config objects defined in that zone.
 * Zones cannot influence/interfere other zones. Each checked object is assigned to only one zone.
 * All nodes in a zone trust each other.
 * [Config sync]() and [remote command endpoint execution]() is disabled by default.
@@ -142,6 +153,9 @@ additional security itself:
 This section explains how to install a central single master node using
 the `node wizard` command. If you prefer to do a manual installation please
 refer to the [manual setup]() section.
+
+> **Note**:
+> Master setups are not supported on Microsoft Windows operating systems. 
 
 Required information:
 
@@ -471,10 +485,12 @@ There are two different behaviours with check execution:
 * Send a command execution event remotely, the scheduler still runs on the parent node
 * Sync the host/service objects directly to the child node, checks are executed locally
 
-Again -- it does not matter whether this is a `client` or a `satellite`
+Again -- technically it does not matter whether this is a `client` or a `satellite`
 which is receiving configuration or command execution events.
+But following our [mode definition](#distributed-monitoring-roles), a `client` will just run commands and would not need configuration objects.
 
-### <a id="distributed-monitoring-top-down-command-endpoint"></a> Top Down Command Endpoint
+
+### <a id="distributed-monitoring-top-down-command-endpoint"></a> Top Down Command Endpoint (aka Client, Agent)
 
 This mode will force the Icinga 2 node to execute commands remotely on a specified endpoint.
 The host/service object configuration is located on the master/satellite and the client only
@@ -809,7 +825,7 @@ where they can generate configuration objects gathered from that information.
 Advantages:
 
 * Each child node comes preconfigured with the most common local checks.
-* Central management for zones, endpoints, hosts and services with configuration repository import.
+* Central repository for zones, endpoints, hosts and services with configuration repository import.
 
 Disadvantages:
 
