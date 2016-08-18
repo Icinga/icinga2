@@ -158,13 +158,21 @@ If Icinga 2 aborted its operation abnormally, generate a backtrace.
     (gdb) bt
     (gdb) thread apply all bt full
 
+If gdb stops at a SIGPIPE signal please disable the signal before
+running Icinga 2.
+
+    (gdb) handle SIGPIPE nostop noprint pass
+    (gdb) r
+
+If you're opening an issue at [https://dev.icinga.org], make sure
+to attach as much detail as possible.
+
+### <a id="development-debug-gdb-backtrace-running"></a> GDB Backtrace from Running Process
+
 If Icinga 2 is still running, generate a full backtrace from the running
 process and store it into a new file (e.g. for debugging dead locks):
 
     # gdb -p $(pidof icinga2) -batch -ex "thread apply all bt full" -ex "detach" -ex "q" > gdb_bt.log
-
-If you're opening an issue at [https://dev.icinga.org], make sure
-to attach as much detail as possible.
 
 ### <a id="development-debug-gdb-backtrace-stepping"></a> GDB Backtrace Stepping
 
