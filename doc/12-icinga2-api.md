@@ -203,13 +203,16 @@ Available permissions for specific URL endpoints:
   actions/&lt;action&gt;        | /v1/actions   | Yes
   config/query                  | /v1/config    | No
   config/modify                 | /v1/config    | No
+  console                       | /v1/console   | No
+  events/&lt;type&gt;           | /v1/events    | No
   objects/query/&lt;type&gt;    | /v1/objects   | Yes
   objects/create/&lt;type&gt;   | /v1/objects   | No
   objects/modify/&lt;type&gt;   | /v1/objects   | Yes
   objects/delete/&lt;type&gt;   | /v1/objects   | Yes
   status/query                  | /v1/status    | Yes
-  events/&lt;type&gt;           | /v1/events    | No
-  console                       | /v1/console   | No
+  templates/&lt;type&gt;        | /v1/templates | Yes
+  types                         | /v1/types     | Yes
+  variables                     | /v1/variables | Yes
 
 The required actions or types can be replaced by using a wildcard match ("\*").
 

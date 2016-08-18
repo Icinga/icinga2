@@ -74,6 +74,7 @@ bool TypeQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& requ
 
 	QueryDescription qd;
 	qd.Types.insert("Type");
+	qd.Permission = "types";
 	qd.Provider = new TypeTargetProvider();
 
 	if (params->Contains("type"))

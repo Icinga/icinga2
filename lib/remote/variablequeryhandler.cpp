@@ -83,6 +83,7 @@ bool VariableQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& 
 
 	QueryDescription qd;
 	qd.Types.insert("Variable");
+	qd.Permission = "variables";
 	qd.Provider = new VariableTargetProvider();
 
 	params->Set("type", "Variable");
