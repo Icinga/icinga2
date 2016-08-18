@@ -226,7 +226,7 @@ as query string, e.g. a space character becomes `%20`.
 
 Example for a URL-encoded query string:
 
-    /v1/objects/hosts?filter=match(%22example.localdomain*%22,host.name)&attrs=host.name&attrs=host.state
+    /v1/objects/hosts?filter=match(%22example.localdomain*%22,host.name)&attrs=name&attrs=state
 
 Here are the exact same query parameters as a JSON object:
 
