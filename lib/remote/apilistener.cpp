@@ -372,8 +372,8 @@ void ApiListener::NewClientHandlerInternal(const Socket::Ptr& client, const Stri
 				return;
 			} else if (!verify_ok) {
 				Log(LogWarning, "ApiListener")
-					<< "Peer certificate for endpoint '" << hostname
-					<< "' is not signed by the certificate authority.";
+					<< "Certificate validation failed for endpoint '" << hostname
+					<< "': " << tlsStream->GetVerifyError();
 				return;
 			}
 		}
