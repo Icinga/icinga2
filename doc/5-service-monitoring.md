@@ -144,14 +144,14 @@ already ships various examples like
 
 ## <a id="service-monitoring-database"></a> Database Monitoring
 
-* MySQL ([mysql_health](10-icinga-template-library.md#plugin-contrib-command-mysql_health), [mysql](10-icinga-template-library.md#plugin-check-command-mysql), [mysql_query](10-icinga-template-library.md#plugin-check-command-mysql-query))
-* PostgreSQL ([postgres](10-icinga-template-library.md#plugin-contrib-command-postgres))
-* Oracle ([oracle_health](10-icinga-template-library.md#plugin-contrib-command-oracle_health))
-* MSSQL ([mssql_health](10-icinga-template-library.md#plugin-contrib-command-mssql_health))
-* DB2 ([db2_health](10-icinga-template-library.md#plugin-contrib-command-db2_health))
-* MongoDB ([db2_health](10-icinga-template-library.md#plugin-contrib-command-mongodb))
-* Elasticsearch ([db2_health](10-icinga-template-library.md#plugin-contrib-command-elasticsearch))
-* Redis ([db2_health](10-icinga-template-library.md#plugin-contrib-command-redis))
+* MySQL/MariaDB: [mysql_health](10-icinga-template-library.md#plugin-contrib-command-mysql_health), [mysql](10-icinga-template-library.md#plugin-check-command-mysql), [mysql_query](10-icinga-template-library.md#plugin-check-command-mysql-query)
+* PostgreSQL: [postgres](10-icinga-template-library.md#plugin-contrib-command-postgres)
+* Oracle: [oracle_health](10-icinga-template-library.md#plugin-contrib-command-oracle_health)
+* MSSQL: [mssql_health](10-icinga-template-library.md#plugin-contrib-command-mssql_health)
+* DB2: [db2_health](10-icinga-template-library.md#plugin-contrib-command-db2_health)
+* MongoDB: [mongodb](10-icinga-template-library.md#plugin-contrib-command-mongodb)
+* Elasticsearch: [elasticsearch](10-icinga-template-library.md#plugin-contrib-command-elasticsearch)
+* Redis: [redis](10-icinga-template-library.md#plugin-contrib-command-redis)
 
 ## <a id="service-monitoring-snmp"></a> SNMP Monitoring
 
@@ -198,8 +198,13 @@ already ships various examples like
 
 ## <a id="service-monitoring-virtualization"></a> Virtualization Monitoring
 
+## <a id="service-monitoring-virtualization-vmware"></a> VMWare Monitoring
+
 * [esxi_hardware](10-icinga-template-library.md#plugin-contrib-command-esxi-hardware)
 * [VMWare](10-icinga-template-library.md#plugin-contrib-vmware)
+
+**Tip**: If you are encountering timeouts using the VMWare Perl SDK
+check [this blog entry](http://www.claudiokuenzler.com/blog/650/slow-vmware-perl-sdk-soap-request-error-libwww-version).
 
 ## <a id="service-monitoring-sap"></a> SAP Monitoring
 
