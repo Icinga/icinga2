@@ -33,7 +33,6 @@
 #include "base/workqueue.hpp"
 #include "base/context.hpp"
 #include "base/application.hpp"
-#include "config/configitem.hpp"
 #include <fstream>
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string/split.hpp>

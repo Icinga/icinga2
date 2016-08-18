@@ -18,7 +18,6 @@
  ******************************************************************************/
 
 #include "base/configwriter.hpp"
-#include "config/configcompiler.hpp"
 #include "base/exception.hpp"
 #include <boost/foreach.hpp>
 #include <boost/regex.hpp>

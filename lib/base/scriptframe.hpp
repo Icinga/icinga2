@@ -20,7 +20,7 @@
 #ifndef SCRIPTFRAME_H
 #define SCRIPTFRAME_H
 
-#include "config/i2-config.hpp"
+#include "base/i2-base.hpp"
 #include "base/dictionary.hpp"
 #include "base/array.hpp"
 #include <boost/thread/tss.hpp>
