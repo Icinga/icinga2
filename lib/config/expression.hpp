@@ -802,6 +802,18 @@ public:
 		: DebuggableExpression(debugInfo), m_Args(args), m_Name(name), m_ClosedVars(closedVars), m_Expression(expression)
 	{ }
 
+	~FunctionExpression(void)
+	{
+		if (m_ClosedVars) {
+			typedef std::pair<String, Expression *> kv_pair;
+			BOOST_FOREACH(const kv_pair& kv, *m_ClosedVars) {
+				delete kv.second;
+			}
+		}
+
+		delete m_ClosedVars;
+	}
+
 protected:
 	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 
@@ -828,6 +840,15 @@ public:
 	~ApplyExpression(void)
 	{
 		delete m_Name;
+
+		if (m_ClosedVars) {
+			typedef std::pair<String, Expression *> kv_pair;
+			BOOST_FOREACH(const kv_pair& kv, *m_ClosedVars) {
+				delete kv.second;
+			}
+		}
+
+		delete m_ClosedVars;
 	}
 
 protected:
@@ -861,6 +882,15 @@ public:
 	~ObjectExpression(void)
 	{
 		delete m_Name;
+
+		if (m_ClosedVars) {
+			typedef std::pair<String, Expression *> kv_pair;
+			BOOST_FOREACH(const kv_pair& kv, *m_ClosedVars) {
+				delete kv.second;
+			}
+		}
+
+		delete m_ClosedVars;
 	}
 
 protected:
