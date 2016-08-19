@@ -1344,7 +1344,7 @@ void Application::DeclareConcurrency(int ncpus)
  */
 int Application::GetConcurrency(void)
 {
-	static Value defaultConcurrency = Utility::PhysicalConcurrency();
+	Value defaultConcurrency = boost::thread::hardware_concurrency();
 	return ScriptGlobal::Get("Concurrency", &defaultConcurrency);
 }
 

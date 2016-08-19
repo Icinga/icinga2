@@ -41,7 +41,6 @@
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <strings.h>
-#include <sys/sysctl.h>
 
 typedef int SOCKET;
 #define INVALID_SOCKET (-1)
