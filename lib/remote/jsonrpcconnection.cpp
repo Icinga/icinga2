@@ -129,7 +129,11 @@ void JsonRpcConnection::Disconnect(void)
 	Log(LogWarning, "JsonRpcConnection")
 	    << "API client disconnected for identity '" << m_Identity << "'";
 
-	m_Stream->Close();
+	{
+		Stream::Ptr stream = m_Stream;
+		m_Stream.reset();
+		stream->Close();
+	}
 
 	if (m_Endpoint)
 		m_Endpoint->RemoveClient(this);
@@ -233,6 +237,9 @@ bool JsonRpcConnection::ProcessMessage(void)
 void JsonRpcConnection::DataAvailableHandler(void)
 {
 	bool close = false;
+
+	if (!m_Stream)
+		return;
 
 	if (!m_Stream->IsEof()) {
 		boost::mutex::scoped_lock lock(m_DataHandlerMutex);

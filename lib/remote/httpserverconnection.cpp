@@ -80,7 +80,14 @@ void HttpServerConnection::Disconnect(void)
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 	listener->RemoveHttpClient(this);
 
-	m_Stream->Shutdown();
+	m_CurrentRequest.~HttpRequest();
+	new (&m_CurrentRequest) HttpRequest(Stream::Ptr());
+
+	{
+		Stream::Ptr stream = m_Stream;
+		m_Stream.reset();
+		stream->Close();
+	}
 }
 
 bool HttpServerConnection::ProcessMessage(void)
@@ -203,6 +210,9 @@ void HttpServerConnection::ProcessMessageAsync(HttpRequest& request)
 void HttpServerConnection::DataAvailableHandler(void)
 {
 	bool close = false;
+
+	if (!m_Stream)
+		return;
 
 	if (!m_Stream->IsEof()) {
 		boost::mutex::scoped_lock lock(m_DataHandlerMutex);
