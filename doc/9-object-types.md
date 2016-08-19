@@ -1075,7 +1075,7 @@ Runtime Attributes:
   Name                      | Type          | Description
   --------------------------|---------------|-----------------
   last\_notification        | Number        | When the last notification was sent for this Notification object (as a UNIX timestamp).
-  next\_notifcation         | Number        | When the next notification is going to be sent for this assuming the associated host/service is still in a non-OK state (as a UNIX timestamp).
+  next\_notification         | Number        | When the next notification is going to be sent for this assuming the associated host/service is still in a non-OK state (as a UNIX timestamp).
   notification\_number      | Number        | The notification number
   last\_problem\_notification | Number      | When the last notification was sent for a problem (as a UNIX timestamp).
 
