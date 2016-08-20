@@ -38,12 +38,12 @@ by trying to run it on the console using whichever user Icinga 2 is running as:
     $ /opt/monitoring/plugins/check_snmp_int.pl --help
 
 Additional libraries may be required for some plugins. Please consult the plugin
-documentation and/or plugin provided README for installation instructions.
+documentation and/or the included README file for installation instructions.
 Sometimes plugins contain hard-coded paths to other components. Instead of changing
-the plugin it might be easier to create logical links which is (more) update-safe.
+the plugin it might be easier to create a symbolic link to make sure it doesn't get overwritten during the next update.
 
 Sometimes there are plugins which do not exactly fit your requirements.
-Either you'll modify an existing plugin or you'll write one by yourself.
+In that case you can modify an existing plugin or just write your own.
 
 ### <a id="service-monitoring-plugin-checkcommand"></a> CheckCommand Definition
 
@@ -53,20 +53,20 @@ configuration which can be used in the [Service](9-object-types.md#objecttype-se
 
 Please check if the Icinga 2 package already provides an
 [existing CheckCommand definition](10-icinga-template-library.md#plugin-check-commands).
-If yes throroughly check the required parameters and integrate the check command
+If that's the case, throroughly check the required parameters and integrate the check command
 into your host and service objects.
 
-There are the following conventions to follow when adding a new command object definition:
+Please make sure to follow these conventions when adding a new command object definition:
 
-* Always import the `plugin-check-command` template
-* Use [command-arguments](#) whenever possible. The `command` attribute must be an array
-in `[ ... ]` then for shell escaping.
-* Define a unique `prefix` for the command's specific command arguments. That way you can safely
+* Always import the `plugin-check-command` template.
+* Use 3-monitoring-basics.md#command-arguments whenever possible. The `command` attribute
+must be an array in `[ ... ]` for shell escaping.
+* Define a unique `prefix` for the command's specific arguments. That way you can safely
 set them on host/service level and you'll always know which command they control.
-* Use command argument default values, e.g. for thresholds
+* Use command argument default values, e.g. for thresholds.
 * Use [advanced conditions](9-object-types.md#objecttype-checkcommand) like `set_if` definitions.
 
-Example for a custom `my-snmp-int` check command:
+This is an example for a custom `my-snmp-int` check command:
 
     object CheckCommand "my-snmp-int" {
       import "plugin-check-command"
@@ -98,51 +98,47 @@ Example for a custom `my-snmp-int` check command:
 For further information on your monitoring configuration read the
 [Monitoring Basics](3-monitoring-basics.md#monitoring-basics) chapter.
 
-If you have created your own `CheckCommand` definition please kindly
-[send it upstream](https://wiki.icinga.org/display/community/Contribute+Icinga+2+ITL+Plugin+Check+Command+Definitions)
+If you have created your own `CheckCommand` definition, please kindly
+[send it upstream](https://wiki.icinga.org/display/community/Contribute+Icinga+2+ITL+Plugin+Check+Command+Definitions).
 
 ### <a id="service-monitoring-plugin-api"></a> Plugin API
 
-Currently Icinga 2 supports the native plugin API specification from the `Monitoring Plugins`
-project.
-
-The `Monitoring Plugin API` is defined in the [Monitoring Plugins Development Guidelines](https://www.monitoring-plugins.org/doc/guidelines.html).
+Currently Icinga 2 supports the native plugin API specification from the Monitoring Plugins project. It is defined in the [Monitoring Plugins Development Guidelines](https://www.monitoring-plugins.org/doc/guidelines.html).
 
 ## <a id="service-monitoring-overview"></a> Service Monitoring Overview
 
-The following examples should get you started with your own integration ideas.
-There is a variety of common plugins available. This collection is not complete --
-if you have any updates please send a documentation patch upstream.
+The following examples should help you to start implementing your own ideas.
+There is a variety of plugins available. This collection is not complete --
+if you have any updates, please send a documentation patch upstream.
 
-## <a id="service-monitoring-general"></a> General Monitoring
+### <a id="service-monitoring-general"></a> General Monitoring
 
-If the remote service is available using a network protocol and port,
-and a check plugin is available, you don't necessarily need a local client installed.
-Rather choose a plugin and configure all parameters and thresholds. The [Icinga 2 Template Library](10-icinga-template-library.md#icinga-template-library)
-already ships various examples like
+If the remote service is available (via a network protocol and port),
+and if a check plugin is also available, you don't necessarily need a local client.
+Instead, choose a plugin and configure its parameters and thresholds. The following examples are included in the [Icinga 2 Template Library](10-icinga-template-library.md#icinga-template-library):
 
 * [ping4](10-icinga-template-library.md#plugin-check-command-ping4), [ping6](10-icinga-template-library.md#plugin-check-command-ping6),
 [fping4](10-icinga-template-library.md#plugin-check-command-fping4), [fping6](10-icinga-template-library.md#plugin-check-command-fping6), [hostalive](10-icinga-template-library.md#plugin-check-command-hostalive)
 * [tcp](10-icinga-template-library.md#plugin-check-command-tcp), [udp](10-icinga-template-library.md#plugin-check-command-udp), [ssl](10-icinga-template-library.md#plugin-check-command-ssl)
 * [ntp_time](10-icinga-template-library.md#plugin-check-command-ntp-time)
 
-## <a id="service-monitoring-linux"></a> Linux Monitoring
+### <a id="service-monitoring-linux"></a> Linux Monitoring
 
 * [disk](10-icinga-template-library.md#plugin-check-command-disk)
 * [mem](10-icinga-template-library.md#plugin-contrib-command-mem), [swap](10-icinga-template-library.md#plugin-check-command-swap)
 * [running_kernel](10-icinga-template-library.md#plugin-contrib-command-running_kernel)
-* Package repositores ([apt](10-icinga-template-library.md#plugin-check-command-apt), [yum](10-icinga-template-library.md#plugin-contrib-command-yum), etc.)
+* package management: [apt](10-icinga-template-library.md#plugin-check-command-apt), [yum](10-icinga-template-library.md#plugin-contrib-command-yum), etc.
 * [ssh](10-icinga-template-library.md#plugin-check-command-ssh)
-* Performance ([iostat](10-icinga-template-library.md#plugin-contrib-command-iostat), [check_sar_perf](https://github.com/dnsmichi/icinga-plugins/blob/master/scripts/check_sar_perf.py))
+* performance: [iostat](10-icinga-template-library.md#plugin-contrib-command-iostat), [check_sar_perf](https://github.com/dnsmichi/icinga-plugins/blob/master/scripts/check_sar_perf.py)
 
-## <a id="service-monitoring-windows"></a> Windows Monitoring
+### <a id="service-monitoring-windows"></a> Windows Monitoring
 
 * [check_wmi_plus](http://www.edcint.co.nz/checkwmiplus/)
 * [NSClient++](https://www.nsclient.org) (in combination with the Icinga 2 client as [nscp-local](10-icinga-template-library.md#nscp-plugin-check-commands) check commands)
 * [Icinga 2 Windows Plugins](10-icinga-template-library.md#windows-plugins) (disk, load, memory, network, performance counters, ping, procs, service, swap, updates, uptime, users
 * vbs and Powershell scripts
 
-## <a id="service-monitoring-database"></a> Database Monitoring
+### <a id="service-monitoring-database"></a> Database Monitoring
 
 * MySQL/MariaDB: [mysql_health](10-icinga-template-library.md#plugin-contrib-command-mysql_health), [mysql](10-icinga-template-library.md#plugin-check-command-mysql), [mysql_query](10-icinga-template-library.md#plugin-check-command-mysql-query)
 * PostgreSQL: [postgres](10-icinga-template-library.md#plugin-contrib-command-postgres)
@@ -153,19 +149,19 @@ already ships various examples like
 * Elasticsearch: [elasticsearch](10-icinga-template-library.md#plugin-contrib-command-elasticsearch)
 * Redis: [redis](10-icinga-template-library.md#plugin-contrib-command-redis)
 
-## <a id="service-monitoring-snmp"></a> SNMP Monitoring
+### <a id="service-monitoring-snmp"></a> SNMP Monitoring
 
 * [Manubulon plugins](10-icinga-template-library.md#snmp-manubulon-plugin-check-commands) (interface, storage, load, memory, process)
 * [snmp](10-icinga-template-library.md#plugin-check-command-snmp), [snmpv3](10-icinga-template-library.md#plugin-check-command-snmpv3)
 
-## <a id="service-monitoring-network"></a> Network Monitoring
+### <a id="service-monitoring-network"></a> Network Monitoring
 
 * [nwc_health](10-icinga-template-library.md#plugin-contrib-command-nwc_health)
 * [interfaces](10-icinga-template-library.md#plugin-contrib-command-interfaces)
 * [interfacetable](10-icinga-template-library.md#plugin-contrib-command-interfacetable)
 * [iftraffic](10-icinga-template-library.md#plugin-contrib-command-iftraffic), [iftraffic64](10-icinga-template-library.md#plugin-contrib-command-iftraffic64)
 
-## <a id="service-monitoring-web"></a> Web Monitoring
+### <a id="service-monitoring-web"></a> Web Monitoring
 
 * [http](10-icinga-template-library.md#plugin-check-command-http)
 * [ftp](10-icinga-template-library.md#plugin-check-command-ftp)
@@ -176,52 +172,52 @@ already ships various examples like
 * [kdc](10-icinga-template-library.md#plugin-contrib-command-kdc)
 * [rbl](10-icinga-template-library.md#plugin-contrib-command-rbl)
 
-## <a id="service-monitoring-java"></a> Java Monitoring
+### <a id="service-monitoring-java"></a> Java Monitoring
 
 * [jmx4perl](10-icinga-template-library.md#plugin-contrib-command-jmx4perl)
 
-## <a id="service-monitoring-dns"></a> DNS Monitoring
+### <a id="service-monitoring-dns"></a> DNS Monitoring
 
 * [dns](10-icinga-template-library.md#plugin-check-command-dns)
 * [dig](10-icinga-template-library.md#plugin-check-command-dig)
 * [dhcp](10-icinga-template-library.md#plugin-check-command-dhcp)
 
-## <a id="service-monitoring-backup"></a> Backup Monitoring
+### <a id="service-monitoring-backup"></a> Backup Monitoring
 
 * [check_bareos](https://github.com/widhalmt/check_bareos)
 
-## <a id="service-monitoring-log"></a> Log Monitoring
+### <a id="service-monitoring-log"></a> Log Monitoring
 
 * [check_logfiles](https://labs.consol.de/nagios/check_logfiles/)
 * [check_logstash](https://github.com/widhalmt/check_logstash)
 * [check_graylog2_stream](https://github.com/Graylog2/check-graylog2-stream)
 
-## <a id="service-monitoring-virtualization"></a> Virtualization Monitoring
+### <a id="service-monitoring-virtualization"></a> Virtualization Monitoring
 
-## <a id="service-monitoring-virtualization-vmware"></a> VMWare Monitoring
+### <a id="service-monitoring-virtualization-vmware"></a> VMware Monitoring
 
 * [esxi_hardware](10-icinga-template-library.md#plugin-contrib-command-esxi-hardware)
-* [VMWare](10-icinga-template-library.md#plugin-contrib-vmware)
+* [VMware](10-icinga-template-library.md#plugin-contrib-vmware)
 
-**Tip**: If you are encountering timeouts using the VMWare Perl SDK
+**Tip**: If you are encountering timeouts using the VMware Perl SDK,
 check [this blog entry](http://www.claudiokuenzler.com/blog/650/slow-vmware-perl-sdk-soap-request-error-libwww-version).
 
-## <a id="service-monitoring-sap"></a> SAP Monitoring
+### <a id="service-monitoring-sap"></a> SAP Monitoring
 
 * [check_sap_health](https://labs.consol.de/nagios/check_sap_health/index.html)
 * [SAP CCMS](https://sourceforge.net/projects/nagios-sap-ccms/)
 
-## <a id="service-monitoring-mail"></a> Mail Monitoring
+### <a id="service-monitoring-mail"></a> Mail Monitoring
 
 * [smtp](10-icinga-template-library.md#plugin-check-command-smtp), [ssmtp](10-icinga-template-library.md#plugin-check-command-ssmtp)
 * [imap](10-icinga-template-library.md#plugin-check-command-imap), [simap](10-icinga-template-library.md#plugin-check-command-simap)
 * [pop](10-icinga-template-library.md#plugin-check-command-pop), [spop](10-icinga-template-library.md#plugin-check-command-spop)
 
-## <a id="service-monitoring-hardware"></a> Hardware Monitoring
+### <a id="service-monitoring-hardware"></a> Hardware Monitoring
 
 * [hpasm](10-icinga-template-library.md#plugin-contrib-command-hpasm)
 * [ipmi-sensor](10-icinga-template-library.md#plugin-contrib-command-ipmi-sensor)
 
-## <a id="service-monitoring-metrics"></a> Metrics Monitoring
+### <a id="service-monitoring-metrics"></a> Metrics Monitoring
 
 * [graphite](10-icinga-template-library.md#plugin-contrib-command-graphite)
