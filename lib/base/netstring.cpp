@@ -110,8 +110,19 @@ StreamReadStatus NetString::ReadStringFromStream(const Stream::Ptr& stream, Stri
 void NetString::WriteStringToStream(const Stream::Ptr& stream, const String& str)
 {
 	std::ostringstream msgbuf;
-	msgbuf << str.GetLength() << ":" << str << ",";
+	WriteStringToStream(msgbuf, str);
 
 	String msg = msgbuf.str();
 	stream->Write(msg.CStr(), msg.GetLength());
+}
+
+/**
+ * Writes data into a stream using the netstring format.
+ *
+ * @param stream The stream.
+ * @param str The String that is to be written.
+ */
+void NetString::WriteStringToStream(std::ostream& stream, const String& str)
+{
+	stream << str.GetLength() << ":" << str << ",";
 }

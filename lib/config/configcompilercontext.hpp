@@ -21,9 +21,9 @@
 #define CONFIGCOMPILERCONTEXT_H
 
 #include "config/i2-config.hpp"
-#include "base/stdiostream.hpp"
 #include "base/dictionary.hpp"
 #include <boost/thread/mutex.hpp>
+#include <fstream>
 
 namespace icinga
 {
@@ -34,6 +34,8 @@ namespace icinga
 class I2_CONFIG_API ConfigCompilerContext
 {
 public:
+	ConfigCompilerContext(void);
+
 	void OpenObjectsFile(const String& filename);
 	void WriteObject(const Dictionary::Ptr& object);
 	void CancelObjectsFile(void);
@@ -44,7 +46,7 @@ public:
 private:
 	String m_ObjectsPath;
 	String m_ObjectsTempFile;
-	StdioStream::Ptr m_ObjectsFP;
+	std::fstream *m_ObjectsFP;
 
 	mutable boost::mutex m_Mutex;
 };

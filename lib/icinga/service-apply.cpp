@@ -46,8 +46,10 @@ bool Service::EvaluateApplyRuleInstance(const Host::Ptr& host, const String& nam
 
 	DebugInfo di = rule.GetDebugInfo();
 
+#ifdef _DEBUG
 	Log(LogDebug, "Service")
 	    << "Applying service '" << name << "' to host '" << host->GetName() << "' for rule " << di;
+#endif /* _DEBUG */
 
 	ConfigItemBuilder::Ptr builder = new ConfigItemBuilder(di);
 	builder->SetType("Service");
@@ -109,10 +111,9 @@ bool Service::EvaluateApplyRule(const Host::Ptr& host, const ApplyRule& rule)
 			BOOST_THROW_EXCEPTION(ScriptError("Dictionary iterator requires value to be a dictionary.", di));
 
 		Array::Ptr arr = vinstances;
-		Array::Ptr arrclone = arr->ShallowClone();
 
-		ObjectLock olock(arrclone);
-		BOOST_FOREACH(const Value& instance, arrclone) {
+		ObjectLock olock(arr);
+		BOOST_FOREACH(const Value& instance, arr) {
 			String name = rule.GetName();
 
 			if (!rule.GetFKVar().IsEmpty()) {

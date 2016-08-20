@@ -97,13 +97,13 @@ void Service::OnAllConfigLoaded(void)
 
 void Service::CreateChildObjects(const Type::Ptr& childType)
 {
-	if (childType->GetName() == "ScheduledDowntime")
+	if (childType == ScheduledDowntime::TypeInstance)
 		ScheduledDowntime::EvaluateApplyRules(this);
 
-	if (childType->GetName() == "Notification")
+	if (childType == Notification::TypeInstance)
 		Notification::EvaluateApplyRules(this);
 
-	if (childType->GetName() == "Dependency")
+	if (childType == Dependency::TypeInstance)
 		Dependency::EvaluateApplyRules(this);
 }
 

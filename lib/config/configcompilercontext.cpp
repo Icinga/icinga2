@@ -23,7 +23,6 @@
 #include "base/netstring.hpp"
 #include "base/exception.hpp"
 #include <boost/foreach.hpp>
-#include <fstream>
 
 using namespace icinga;
 
@@ -31,6 +30,10 @@ ConfigCompilerContext *ConfigCompilerContext::GetInstance(void)
 {
 	return Singleton<ConfigCompilerContext>::GetInstance();
 }
+
+ConfigCompilerContext::ConfigCompilerContext(void)
+    : m_ObjectsFP(NULL)
+{ }
 
 void ConfigCompilerContext::OpenObjectsFile(const String& filename)
 {
@@ -42,7 +45,7 @@ void ConfigCompilerContext::OpenObjectsFile(const String& filename)
 	if (!*fp)
 		BOOST_THROW_EXCEPTION(std::runtime_error("Could not open '" + m_ObjectsTempFile + "' file"));
 
-	m_ObjectsFP = new StdioStream(fp, true);
+	m_ObjectsFP = fp;
 }
 
 void ConfigCompilerContext::WriteObject(const Dictionary::Ptr& object)
@@ -54,14 +57,14 @@ void ConfigCompilerContext::WriteObject(const Dictionary::Ptr& object)
 
 	{
 		boost::mutex::scoped_lock lock(m_Mutex);
-		NetString::WriteStringToStream(m_ObjectsFP, json);
+		NetString::WriteStringToStream(*m_ObjectsFP, json);
 	}
 }
 
 void ConfigCompilerContext::CancelObjectsFile(void)
 {
-	m_ObjectsFP->Close();
-	m_ObjectsFP.reset();
+	delete m_ObjectsFP;
+	m_ObjectsFP = NULL;
 
 #ifdef _WIN32
 	_unlink(m_ObjectsTempFile.CStr());
@@ -72,8 +75,8 @@ void ConfigCompilerContext::CancelObjectsFile(void)
 
 void ConfigCompilerContext::FinishObjectsFile(void)
 {
-	m_ObjectsFP->Close();
-	m_ObjectsFP.reset();
+	delete m_ObjectsFP;
+	m_ObjectsFP = NULL;
 
 #ifdef _WIN32
 	_unlink(m_ObjectsPath.CStr());

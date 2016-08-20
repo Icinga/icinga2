@@ -51,7 +51,9 @@ void TimePeriod::Start(bool runtimeCreated)
 	/* Pre-fill the time period for the next 24 hours. */
 	double now = Utility::GetTime();
 	UpdateRegion(now, now + 24 * 3600, true);
+#ifdef _DEBUG
 	Dump();
+#endif /* _DEBUG */
 }
 
 void TimePeriod::AddSegment(double begin, double end)
@@ -176,7 +178,9 @@ void TimePeriod::RemoveSegment(double begin, double end)
 
 	SetSegments(newSegments);
 
+#ifdef _DEBUG
 	Dump();
+#endif /* _DEBUG */
 }
 
 void TimePeriod::RemoveSegment(const Dictionary::Ptr& segment)
@@ -351,7 +355,9 @@ void TimePeriod::UpdateTimerHandler(void)
 		}
 
 		tp->UpdateRegion(valid_end, now + 24 * 3600, false);
+#ifdef _DEBUG
 		tp->Dump();
+#endif /* _DEBUG */
 	}
 }
 
