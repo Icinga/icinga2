@@ -59,7 +59,7 @@ into your host and service objects.
 Please make sure to follow these conventions when adding a new command object definition:
 
 * Always import the `plugin-check-command` template.
-* Use 3-monitoring-basics.md#command-arguments whenever possible. The `command` attribute
+* Use [command arguments](3-monitoring-basics.md#command-arguments) whenever possible. The `command` attribute
 must be an array in `[ ... ]` for shell escaping.
 * Define a unique `prefix` for the command's specific arguments. That way you can safely
 set them on host/service level and you'll always know which command they control.
@@ -104,6 +104,69 @@ If you have created your own `CheckCommand` definition, please kindly
 ### <a id="service-monitoring-plugin-api"></a> Plugin API
 
 Currently Icinga 2 supports the native plugin API specification from the Monitoring Plugins project. It is defined in the [Monitoring Plugins Development Guidelines](https://www.monitoring-plugins.org/doc/guidelines.html).
+
+### <a id="service-monitoring-plugin-new"></a> Create a new Plugin
+
+Sometimes an existing plugin does not satisfy your requirements. You
+can either kindly contact the original author about plans to add changes
+and/or create a patch.
+
+If you just want to format the output and state of an existing plugin
+it might also be helpful to write a wrapper script. This script
+could pass all configured parameters, call the plugin script, parse
+its output/exit code and return your specified output/exit code.
+
+On the other hand plugins for specific services and hardware might not yet
+exist.
+
+Common best practices when creating a new plugin are for example:
+
+* Choose the pragramming language wisely
+ * Scripting languages (Bash, Python, Perl, Ruby, PHP, etc.) are easier to write and setup but their check execution might take longer (invoking the script interpreter as overhead, etc.).
+ * Plugins written in C/C++, Go, etc. improve check execution time but may generate an overhead with installation and packaging.
+* Use a modern VCS such as Git for developing the plugin (e.g. share your plugin on GitHub).
+* Add parameters with key-value pairs to your plugin. They should allow long names (e.g. `--host localhost`) and also short parameters (e.g. `-H localhost`)
+ * `-h|--help` should print the version and all details about parameters and runtime invocation.
+* Add a verbose/debug output functionality for detailed on-demand logging.
+* Respect the exit codes required by the [Plugin API](5-service-monitoring.md#service-monitoring-plugin-api).
+* Always add performance data to your plugin output
+
+Example skeleton:
+
+    # 1. include optional libraries
+    # 2. global variables
+    # 3. helper functions and/or classes
+    # 4. define timeout condition
+
+    if (<timeout_reached>) then
+      print "UNKNOWN - Timeout (...) reached | 'time'=30.0
+    endif
+
+    # 5. main method
+
+    <execute and fetch data>
+
+    if (<threshold_critical_condition>) then
+      print "CRITICAL - ... | 'time'=0.1 'myperfdatavalue'=5.0
+      exit(2)
+    else if (<threshold_warning_condition>) then
+      print "WARNING - ... | 'time'=0.1 'myperfdatavalue'=3.0
+      exit(1)
+    else
+      print "OK - ... | 'time'=0.2 'myperfdatavalue'=1.0
+    endif
+
+There are various plugin libraries available which will help
+with plugin execution and output formatting too, for example
+[nagiosplugin from Python](https://pypi.python.org/pypi/nagiosplugin/).
+
+> **Note**
+>
+> Ensure to test your plugin properly with special cases before putting it
+> into production!
+
+Once you've finished your plugin please upload/sync it to [Icinga Exchange](https://exchange.icinga.org/new).
+Thanks in advance!
 
 ## <a id="service-monitoring-overview"></a> Service Monitoring Overview
 

@@ -50,16 +50,11 @@ RHEL/CentOS 6:
 
 RHEL/CentOS 5:
 
-     rpm -i http://packages.icinga.org/epel/5/release/noarch/icinga-rpm-release-5-1.el5.centos.noarch.rpm
-
-The packages for RHEL/CentOS depend on other packages which are distributed
-as part of the [EPEL repository](http://fedoraproject.org/wiki/EPEL). Please
-make sure to enable this repository by following
-[these instructions](http://fedoraproject.org/wiki/EPEL#How_can_I_use_these_extra_packages.3F).
+    rpm -i http://packages.icinga.org/epel/5/release/noarch/icinga-rpm-release-5-1.el5.centos.noarch.rpm
 
 Fedora 23:
 
-     dnf install https://packages.icinga.org/fedora/23/release/noarch/icinga-rpm-release-23-1.fc23.noarch.rpm
+    dnf install https://packages.icinga.org/fedora/23/release/noarch/icinga-rpm-release-23-1.fc23.noarch.rpm
 
 Fedora 22:
 
@@ -74,9 +69,6 @@ SLES 11:
     # zypper ar http://packages.icinga.org/SUSE/ICINGA-release-11.repo
     # zypper ref
 
-The packages for SLES 11 depend on the `openssl1` package which is distributed
-as part of the [SLES 11 Security Module](https://www.suse.com/communities/conversations/introducing-the-suse-linux-enterprise-11-security-module/).
-
 SLES 12:
 
     # zypper ar http://packages.icinga.org/SUSE/ICINGA-release.repo
@@ -86,6 +78,24 @@ openSUSE:
 
     # zypper ar http://packages.icinga.org/openSUSE/ICINGA-release.repo
     # zypper ref
+
+
+#### <a id="package-repositories-rhel-epel"></a> RHEL/CentOS EPEL Repository
+
+The packages for RHEL/CentOS depend on other packages which are distributed
+as part of the [EPEL repository](http://fedoraproject.org/wiki/EPEL).
+
+CentOS 7/6/5:
+
+    yum install epel-release
+
+If you are using RHEL you need enable the `optional` repository and then install
+the [EPEL rpm package](http://fedoraproject.org/wiki/EPEL#How_can_I_use_these_extra_packages.3F).
+
+#### <a id="package-repositories-sles-security"></a> SLES Security Repository
+
+The packages for SLES 11 depend on the `openssl1` package which is distributed
+as part of the [SLES 11 Security Module](https://www.suse.com/communities/conversations/introducing-the-suse-linux-enterprise-11-security-module/).
 
 ### <a id="installing-icinga2"></a> Installing Icinga 2
 
