@@ -129,11 +129,7 @@ void JsonRpcConnection::Disconnect(void)
 	Log(LogWarning, "JsonRpcConnection")
 	    << "API client disconnected for identity '" << m_Identity << "'";
 
-	{
-		Stream::Ptr stream = m_Stream;
-		m_Stream.reset();
-		stream->Close();
-	}
+	m_Stream->Close();
 
 	if (m_Endpoint)
 		m_Endpoint->RemoveClient(this);
