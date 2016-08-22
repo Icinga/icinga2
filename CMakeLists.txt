@@ -99,7 +99,8 @@ endif()
 
 if(NOT DEFINED LOGROTATE_HAS_SU)
   set(LOGROTATE_HAS_SU OFF)
-  execute_process(COMMAND "/usr/sbin/logrotate" ERROR_VARIABLE LOGROTATE_OUTPUT)
+  find_program(LOGROTATE_BINARY logrotate)
+  execute_process(COMMAND ${LOGROTATE_BINARY} ERROR_VARIABLE LOGROTATE_OUTPUT)
   if(LOGROTATE_OUTPUT)
     string(REGEX REPLACE "^logrotate ([0-9.]*).*" "\\1" LOGROTATE_VERSION
       ${LOGROTATE_OUTPUT})
