@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<service>
-  <short>Icinga2</short>
-  <description>Icinga 2 is an open source monitoring system which checks the availability of your network resources, notifies users of outages, and generates performance data for reporting. Enable this for API, cluster and agent communication.</description>
-  <port protocol="tcp" port="5665"/>
-</service>
-
