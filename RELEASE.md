@@ -50,15 +50,15 @@ the changelog.py script. Also generate HTML for the wordpress release announceme
 
 Changelog:
 
-    $ ./changelog.py -V 2.4.9
+    $ ./changelog.py -V 2.5.0
 
 Docs:
 
-    $ ./changelog.py -V 2.4.9 -l
+    $ ./changelog.py -V 2.5.0 -l
 
 Wordpress:
 
-    $ ./changelog.py -V 2.4.9 -H -l
+    $ ./changelog.py -V 2.5.0 -H -l
 
 ## Git Tag
 
@@ -141,7 +141,7 @@ Create the nupkg package:
 
 Install the created icinga2 package locally:
 
-    choco install icinga2 -version 2.4.9 -fdv "%cd%" -source "'%cd%;https://chocolatey.org/api/v2/'"
+    choco install icinga2 -version 2.5.0 -fdv "%cd%" -source "'%cd%;https://chocolatey.org/api/v2/'"
 
 Upload the package to [chocolatey](https://chocolatey.org/packages/upload).
 

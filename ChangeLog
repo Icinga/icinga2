@@ -4,6 +4,238 @@ Please check [doc/1-about.md].
 
 ## What's New
 
+### What's New in Version 2.5.0
+
+#### Changes
+
+* InfluxdbWriter feature
+* API
+    * New endpoints: /v1/variables and /v1/templates (GET requests), /v1/action/generate-ticket (POST request)
+    * State/type filters for notifications/users are now string values (PUT, POST, GET requests)
+* Configuration
+    * TimePeriod excludes/includes attributes
+    * DateTime object for formatting time strings
+    * New prototype methods: Array#filter, Array#unique, Array#map, Array#reduce
+    * icinga2.conf now includes plugins-contrib, manubulon, windows-plugins, nscp by default (ITL CheckCommand definitions)
+    * Performance improvements (config compiler and validation)
+* CLI
+    * 'icinga2 object list' formats state/type filters as string values
+    * Compiled config files are now visible with "notice" debug level (hidden by default)
+    * CA serial file now uses a hash value (HA cluster w/ 2 CA directories)
+* Cluster
+    * There is a known issue with >2 endpoints inside a zone. Icinga 2 will now log a warning.
+    * Support for accepted ciphers and minimum TLS version
+    * Connection and error logging has been improved.
+* DB IDO
+    * Schema upgrade required (2.5.0.sql)
+    * Incremental config dump (performance boost)
+    * `categories` attribute is now an array. Previous method is deprecated and to be removed.
+    * DbCatLog is not enabled by default anymore.
+    * SSL support for MySQL
+* New packages
+    * vim-icinga2 for syntax highlighting
+    * libicinga2 (Debian), icinga2-libs (RPM) for Icinga Studio packages
+
+#### Feature
+
+* Feature 7355 (libicinga): Exclude option for TimePeriod definitions
+* Feature 8401 (Packages): Package for syntax highlighting
+* Feature 9184 (Perfdata): Add timestamp support for GelfWriter
+* Feature 9264 (ITL): Extend CheckCommand definitions for nscp-local
+* Feature 9725 (DB IDO): Add SSL support for the IdoMysqlConnection feature
+* Feature 9839 (Configuration): Implement support for formatting date/time
+* Feature 9858 (Perfdata): Gelf module: expose 'perfdata' fields for 'CHECK_RESULT' events
+* Feature 10140 (libicinga): Remove the deprecated IcingaStatusWriter feature
+* Feature 10480 (Perfdata): Add InfluxDbWriter feature
+* Feature 10553 (Documentation): Update SELinux documentation
+* Feature 10669 (ITL): Add IPv4/IPv6 support to the rest of the monitoring-plugins
+* Feature 10722 (ITL): icinga2.conf: Include plugins-contrib, manubulon, windows-plugins, nscp by default
+* Feature 10816 (libbase): Add name attribute for WorkQueue class
+* Feature 10952 (Packages): Provide packages for icinga-studio on Fedora
+* Feature 11063 (API): Implement SSL cipher configuration support for the API feature
+* Feature 11290 (API): ApiListener: Force server's preferred cipher
+* Feature 11292 (API): ApiListener: Make minimum TLS version configurable
+* Feature 11359 (ITL): Add "retries" option to check_snmp command
+* Feature 11419 (Configuration): Config parser should not log names of included files by default
+* Feature 11423 (libicinga): Cleanup downtimes created by ScheduleDowntime
+* Feature 11445 (Configuration): Allow strings in state/type filters
+* Feature 11599 (Documentation): Documentation review
+* Feature 11612 (Configuration): Improve performance for field accesses
+* Feature 11623 (Installation): Add script for automatically cherry-picking commits for minor versions
+* Feature 11659 (Configuration): Remove the (unused) 'inherits' keyword
+* Feature 11706 (API): Improve logging for HTTP API requests
+* Feature 11739 (Packages): Windows Installer: Remove dependency on KB2999226 package
+* Feature 11772 (Cluster): Add lag threshold for cluster-zone check
+* Feature 11837 (Documentation): Use HTTPS for debmon.org links in the documentation
+* Feature 11869 (ITL): Add CIM port parameter for esxi_hardware CheckCommand
+* Feature 11875 (Tests): Add debugging mode for Utility::GetTime
+* Feature 11931 (ITL): Adding option to access ifName for manubulon snmp-interface check command
+* Feature 11941 (API): Support for enumerating available templates via the API
+* Feature 11955 (API): Implement support for getting a list of global variables from the API
+* Feature 11967 (DB IDO): Update DB IDO schema version to 1.14.1
+* Feature 11968 (DB IDO): Enhance IDO check with schema version info
+* Feature 11970 (ITL): add check command for plugin check_apache_status
+* Feature 12006 (ITL): Add check command definitions for kdc and rbl
+* Feature 12018 (Graphite): Add acknowledgement type to Graphite, InfluxDB, OpenTSDB metadata
+* Feature 12024 (DB IDO): Change Ido*Connection 'categories' attribute to an array
+* Feature 12041 (API): API: Add missing downtime_depth attribute
+* Feature 12061 (ITL): Add check command definition for db2_health
+* Feature 12106 (DB IDO): Do not populate logentries table by default
+* Feature 12116 (Cluster): Enhance client disconnect message for "No data received on new API connection."
+* Feature 12189 (ITL): Add support for "-A" command line switch to CheckCommand "snmp-process"
+* Feature 12194 (Cluster): Improve log message for connecting nodes without configured Endpoint object
+* Feature 12201 (Cluster): Improve error messages for failed certificate validation
+* Feature 12215 (Cluster): Include IP address and port in the "New connection" log message
+* Feature 12221 (ITL): A lot of missing parameters for (latest) mysql_health
+* Feature 12222 (Cluster): Log a warning if there are more than 2 zone endpoint members
+* Feature 12234 (CLI): Add history for icinga2 console
+* Feature 12247 (Configuration): Add map/reduce and filter functionality for the Array class
+* Feature 12254 (API): Remove obsolete debug log message
+* Feature 12256 (ITL): Add check command definition for check_graphite
+* Feature 12287 (Cluster): Enhance TLS handshake error messages with connection information
+* Feature 12304 (Notifications): Add the notification type into the log message
+* Feature 12314 (ITL): Add command definition for check_mysql_query
+* Feature 12327 (API): Support for determining the Icinga 2 version via the API
+* Feature 12329 (libicinga): Implement process_check_result script method for the Checkable class
+* Feature 12336 (libbase): Improve logging for the WorkQueue class
+* Feature 12338 (Configuration): Move internal script functions into the 'Internal' namespace
+* Feature 12386 (Documentation): Rewrite Client and Cluster chapter and; add service monitoring chapter
+* Feature 12389 (libbase): Include compiler name/version and build host name in --version
+* Feature 12392 (ITL): Add custom variables for all check_swap arguments
+* Feature 12393 (libbase): Implement support for marking functions as deprecated
+* Feature 12407 (CLI): Implement support for inspecting variables with LLDB/GDB
+* Feature 12408 (Configuration): Implement support for namespaces
+* Feature 12412 (Documentation): Add URL and short description for Monitoring Plugins inside the ITL documentation
+* Feature 12424 (ITL): Add perfsyntax parameter to nscp-local-counter CheckCommand
+* Feature 12426 (Configuration): Implement comparison operators for the Array class
+* Feature 12433 (API): Add API action for generating a PKI ticket
+* Feature 12434 (DB IDO): Remove unused code from the IDO classes
+* Feature 12435 (DB IDO): Incremental updates for the IDO database
+* Feature 12448 (libbase): Improve performance for type lookups
+* Feature 12450 (Cluster): Improve performance for Endpoint config validation
+* Feature 12457 (libbase): Remove unnecessary Dictionary::Contains calls
+* Feature 12468 (ITL): Add interfacetable CheckCommand options --trafficwithpkt and --snmp-maxmsgsize
+* Feature 12477 (Documentation): Development docs: Add own section for gdb backtrace from a running process
+* Feature 12481 (libbase): Remove some unused #includes
+
+#### Bugfixes
+
+* Bug 7354 (libicinga): Disable immediate hard state after first checkresult
+* Bug 9242 (Cluster): Custom notification external commands do not work in a master-master setup
+* Bug 9848 (libbase): Function::Invoke should optionally register ScriptFrame
+* Bug 10061 (DB IDO): IDO: icinga_host/service_groups alias columns are TEXT columns
+* Bug 10066 (DB IDO): Missing indexes for icinga_endpoints* and icinga_zones* tables in DB IDO schema
+* Bug 10069 (DB IDO): IDO: check_source should not be a TEXT field
+* Bug 10070 (DB IDO): IDO: there is no usable object index on icinga_{scheduleddowntime,comments}
+* Bug 10075 (libbase): Race condition in CreatePipeOverlapped
+* Bug 10363 (Notifications): Notification times w/ empty begin/end specifications prevent sending notifications
+* Bug 10570 (API): /v1 returns HTML even if JSON is requested
+* Bug 10903 (Perfdata): GELF multi-line output
+* Bug 10937 (Configuration): High CPU usage with self-referenced parent zone config
+* Bug 11182 (DB IDO): IDO: entry_time of all comments is set to the date and time when Icinga 2 was restarted
+* Bug 11196 (Cluster): High load when pinning command endpoint on HA cluster
+* Bug 11483 (libicinga): Numbers are not properly formatted in runtime macro strings
+* Bug 11562 (Notifications): last_problem_notification should be synced in HA cluster
+* Bug 11590 (Notifications): notification interval = 0 not honoured in HA clusters
+* Bug 11622 (Configuration): Don't allow flow control keywords outside of other flow control constructs
+* Bug 11648 (Packages): Reload permission error with SELinux
+* Bug 11650 (Packages): RPM update starts disabled icinga2 service
+* Bug 11688 (DB IDO): Outdated downtime/comments not removed from IDO database (restart)
+* Bug 11730 (libicinga): Icinga 2 client gets killed during network scans
+* Bug 11782 (Packages): Incorrect filter in pick.py
+* Bug 11793 (Documentation): node setup: Add a note for --endpoint syntax for client-master connection
+* Bug 11817 (Installation): Windows: Error with repository handler (missing /var/lib/icinga2/api/repository path)
+* Bug 11823 (DB IDO): Volatile check results for OK->OK transitions are logged into DB IDO statehistory
+* Bug 11825 (libicinga): Problems with check scheduling for HARD state changes (standalone/command_endpoint)
+* Bug 11832 (Tests): Boost tests are missing a dependency on libmethods
+* Bug 11847 (Documentation): Missing quotes for API action URL
+* Bug 11851 (Notifications): Downtime notifications do not pass author and comment
+* Bug 11862 (libicinga): SOFT OK-state after returning from a soft state
+* Bug 11887 (ITL): Add "fuse.gvfsd-fuse" to the list of excluded file systems for check_disk
+* Bug 11890 (Configuration): Config validation should not delete comments/downtimes w/o reference
+* Bug 11894 (Configuration): Incorrect custom variable name in the hosts.conf example config
+* Bug 11898 (libicinga): last SOFT state should be hard (max_check_attempts)
+* Bug 11899 (libicinga): Flapping Notifications dependent on state change
+* Bug 11903 (Documentation): Fix systemd client command formatting
+* Bug 11905 (Documentation): Improve "Endpoint" documentation
+* Bug 11926 (API): Trying to delete an object protected by a permissions filter, ends up deleting all objects that match the filter instead
+* Bug 11933 (DB IDO): SOFT state changes with the same state are not logged
+* Bug 11962 (DB IDO): Overflow in current_notification_number column in DB IDO MySQL
+* Bug 11991 (Documentation): Incorrect URL for API examples in the documentation
+* Bug 11993 (DB IDO): Comment/Downtime delete queries are slow
+* Bug 12003 (libbase): Hang in TlsStream::Handshake
+* Bug 12008 (Documentation): Add a note about creating Zone/Endpoint objects with the API
+* Bug 12016 (Configuration): ConfigWriter::EmitScope incorrectly quotes dictionary keys
+* Bug 12022 (Configuration): Icinga crashes when using include_recursive in an object definition
+* Bug 12029 (Documentation): Migration docs still show unsupported CHANGE_*MODATTR external commands
+* Bug 12044 (Packages): Icinga fails to build with OpenSSL 1.1.0
+* Bug 12046 (Documentation): Typo in Manubulon CheckCommand documentation
+* Bug 12067 (Documentation): Documentation: Setting up Plugins section is broken
+* Bug 12077 (Documentation): Add a note to the docs that API POST updates to custom attributes/groups won't trigger re-evaluation
+* Bug 12085 (DB IDO): deadlock in ido reconnect
+* Bug 12092 (API): Icinga incorrectly disconnects all endpoints if one has a wrong certificate
+* Bug 12098 (Configuration): include_recursive should gracefully handle inaccessible files
+* Bug 12099 (Packages): Build fails with Visual Studio 2013
+* Bug 12100 (libbase): Ensure to clear the SSL error queue before calling SSL_{read,write,do_handshake}
+* Bug 12107 (DB IDO): Add missing index on state history for DB IDO cleanup
+* Bug 12135 (ITL): ITL: check_iftraffic64.pl default values, wrong postfix value in CheckCommand
+* Bug 12144 (Documentation): pkg-config is not listed as a build requirement in INSTALL.md
+* Bug 12147 (DB IDO): IDO module starts threads before daemonize
+* Bug 12179 (Cluster): Duplicate messages for command_endpoint w/ master and satellite
+* Bug 12180 (Cluster): CheckerComponent sometimes fails to schedule checks in time
+* Bug 12193 (Cluster): Increase cluster reconnect interval
+* Bug 12199 (API): Fix URL encoding for '&'
+* Bug 12204 (Documentation): Improve author information about check_yum
+* Bug 12210 (DB IDO): Do not clear {host,service,contact}group_members tables on restart
+* Bug 12216 (libicinga): icinga check reports "-1" for minimum latency and execution time and only uptime has a number but 0
+* Bug 12217 (Documentation): Incorrect documentation about apply rules in zones.d directories
+* Bug 12219 (Documentation): Missing explanation for three level clusters with CSR auto-signing
+* Bug 12225 (libicinga): Icinga stats min_execution_time and max_execution_time are invalid
+* Bug 12227 (Perfdata): Incorrect escaping / formatting of perfdata to InfluxDB
+* Bug 12237 (Installation): Increase default systemd timeout
+* Bug 12257 (Notifications): Notification interval mistimed
+* Bug 12259 (Documentation): Incorrect API permission name for /v1/status in the documentation
+* Bug 12267 (Notifications): Multiple notifications when master fails
+* Bug 12274 (ITL): -q option for check_ntp_time is wrong
+* Bug 12288 (DB IDO): Change the way outdated comments/downtimes are deleted on restart
+* Bug 12293 (Notifications): Missing notification for recovery during downtime
+* Bug 12302 (Cluster): Remove obsolete README files in tools/syntax
+* Bug 12310 (Notifications): Notification sent too fast when one master fails
+* Bug 12318 (Configuration): Icinga doesn't delete temporary icinga2.debug file when config validation fails
+* Bug 12331 (libbase): Fix building Icinga with -fvisibility=hidden
+* Bug 12333 (Notifications): Incorrect downtime notification events
+* Bug 12334 (libbase): Handle I/O errors while writing the Icinga state file more gracefully
+* Bug 12390 (libbase): Disallow casting "" to an Object
+* Bug 12391 (libbase): Don't violate POSIX by ensuring that the argument to usleep(3) is less than 1000000
+* Bug 12395 (libicinga): Flexible downtimes should be removed after trigger_time+duration
+* Bug 12401 (DB IDO): Fixed downtime start does not update actual_start_time
+* Bug 12402 (Notifications): Notification resent, even if interval = 0
+* Bug 12404 (Notifications): Add log message if notifications are forced (i.e. filters are not checked)
+* Bug 12409 (Configuration): 'use' keyword cannot be used with templates
+* Bug 12416 (Documentation): The description for the http_certificate attribute doesn't have the right default value
+* Bug 12417 (DB IDO): IDO does duplicate config updates
+* Bug 12418 (DB IDO): IDO marks objects as inactive on shutdown
+* Bug 12422 (CLI): pki sign-csr does not log where it is writing the certificate file
+* Bug 12425 (libicinga): CompatUtility::GetCheckableNotificationStateFilter is returning an incorrect value
+* Bug 12428 (DB IDO): Fix the "ido" check command for use with command_endpoint
+* Bug 12430 (DB IDO): ido CheckCommand returns returns "Could not connect to database server" when HA enabled
+* Bug 12432 (Cluster): Only allow sending command_endpoint checks to directly connected child zones
+* Bug 12438 (libbase): Replace GetType()->GetName() calls with GetReflectionType()->GetName()
+* Bug 12442 (Documentation): Missing documentation for "legacy-timeperiod" template
+* Bug 12452 (Installation): Remove unused functions from icinga-installer
+* Bug 12453 (libbase): Use hash-based serial numbers for new certificates
+* Bug 12454 (API): API: action schedule-downtime requires a duration also when fixed is true
+* Bug 12458 (DB IDO): Insert fails for the icinga_scheduleddowntime table due to duplicate key
+* Bug 12459 (DB IDO): Query for customvariablestatus incorrectly updates the host's/service's insert ID
+* Bug 12460 (Cluster): DB IDO started before daemonizing (no systemd)
+* Bug 12461 (DB IDO): IDO query fails due to key contraint violation for the icinga_customvariablestatus table
+* Bug 12464 (API): API: events for DowntimeTriggered does not provide needed information
+* Bug 12473 (Documentation): Docs: API example uses wrong attribute name
+* Bug 12474 (libmethods): ClrCheck is null on *nix
+* Bug 12475 (Cluster): Incorrect certificate validation error message
+* Bug 12487 (Configuration): Memory leak when using closures
+* Bug 12488 (Documentation): Typo in Notification object documentation
+
 ### What's New in Version 2.4.10
 
 #### Bugfixes
