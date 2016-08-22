@@ -25,7 +25,6 @@ Rephrasing this picture into more details:
   * A `satellite` node continues to run even if the master node is temporarily unavailable.
 * A `client` node only has a parent node.
   * A `client` node will either run its own configured checks or receive command execution events from the parent node.
-  * A `client` node will not require any further configuration after setup depending on the configuration mode [top down](6-distributed-monitoring.md#distributed-monitoring-top-down).
 
 The following sections will refer to these roles and explain the
 differences and the possibilities this kind of setup offers.
@@ -111,6 +110,9 @@ information, e.g. if the master should actively try to connect to a client.
 
 The zone membership is defined inside the `Zone` object definition using
 the `endpoints` attribute with an array of `Endpoint` names.
+
+If you want to check the availability (e.g. ping checks) of the node
+you still need a [Host](9-object-types.md#objecttype-host) object.
 
 ## <a id="distributed-monitoring-apilistener"></a> ApiListener
 
@@ -912,7 +914,7 @@ If you have accidentally added specific hosts or services, you can safely purge
 them from this directory and restart Icinga 2.
 
 The generated host object uses the `cluster-zone` check command as
-[health check](distributed-monitoring-health-checks).
+[health check](6-distributed-monitoring.md#distributed-monitoring-health-checks).
 
 > **Tip** In case you want to blacklist or whitelist certain hosts and/or services
 > on the master, use the `icinga2 node {black,white}list`
