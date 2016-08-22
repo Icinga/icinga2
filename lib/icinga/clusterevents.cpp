@@ -957,7 +957,11 @@ void ClusterEvents::NotificationSentToAllUsersHandler(const Notification::Ptr& n
 		params->Set("service", service->GetShortName());
 	params->Set("notification", notification->GetName());
 
-	params->Set("users", Array::FromSet(users));
+	Array::Ptr ausers = new Array();
+	BOOST_FOREACH(const User::Ptr& user, users) {
+		ausers->Add(user->GetName());
+	}
+	params->Set("users", ausers);
 
 	params->Set("type", notificationType);
 	params->Set("cr", Serialize(cr));
@@ -1053,7 +1057,13 @@ Value ClusterEvents::NotificationSentToAllUsersAPIHandler(const MessageOrigin::P
 	notification->SetNotificationNumber(params->Get("notification_number"));
 	notification->SetLastProblemNotification(params->Get("last_problem_notification"));
 	notification->SetNoMoreNotifications(params->Get("no_more_notifications"));
-	notification->SetNotifiedUsers(Array::FromSet(users));
+
+	Array::Ptr notifiedUsers = new Array();
+	BOOST_FOREACH(const User::Ptr& user, users) {
+		notifiedUsers->Add(user->GetName());
+	}
+
+	notification->SetNotifiedUsers(notifiedUsers);
 
 	Checkable::OnNotificationSentToAllUsers(notification, checkable, users, type, cr, author, text, origin);
 
