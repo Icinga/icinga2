@@ -183,7 +183,7 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 	if (IsStateOK(cr->GetState())) {
 		SetStateType(StateTypeHard); // NOT-OK -> HARD OK
 
-		if (!IsStateOK(old_state))
+		if (old_stateType == StateTypeHard && !IsStateOK(old_state))
 			recovery = true;
 
 		ResetNotificationNumbers();
