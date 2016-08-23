@@ -916,7 +916,9 @@ them from this directory and restart Icinga 2.
 The generated host object uses the `cluster-zone` check command as
 [health check](6-distributed-monitoring.md#distributed-monitoring-health-checks).
 
-> **Tip** In case you want to blacklist or whitelist certain hosts and/or services
+> **Tip**
+>
+> In case you want to blacklist or whitelist certain hosts and/or services
 > on the master, use the `icinga2 node {black,white}list`
 > commands.
 
@@ -1113,6 +1115,7 @@ replicate cluster events amongst each other. In addition to that, several Icinga
 features can enable HA functionality.
 
 > **Note**
+>
 > All nodes in the same zone require that you enable the same features for high-availability (HA).
 
 Overview:
@@ -1292,6 +1295,7 @@ Open Icinga Web 2 and check the two newly created client hosts with two new serv
 -- one executed locally (`ping4`) and one using command endpoint (`disk`).
 
 > **Tip**
+>
 > It's a good idea to add [health checks](6-distributed-monitoring.md#distributed-monitoring-health-checks)
 > to make sure that your cluster notifies you in case of failure.
 
@@ -1535,6 +1539,7 @@ Open Icinga Web 2 and check the two newly created client hosts with two new serv
 -- one executed locally (`ping4`) and one using command endpoint (`disk`).
 
 > **Tip**
+>
 > It's a good idea to add [health checks](6-distributed-monitoring.md#distributed-monitoring-health-checks)
 > to make sure that your cluster notifies you in case of failure.
 
