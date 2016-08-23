@@ -345,6 +345,9 @@ void TimePeriod::UpdateTimerHandler(void)
 	double now = Utility::GetTime();
 
 	BOOST_FOREACH(const TimePeriod::Ptr& tp, ConfigType::GetObjectsByType<TimePeriod>()) {
+		if (!tp->IsActive())
+			continue;
+
 		double valid_end;
 
 		{
