@@ -33,7 +33,7 @@
 
 using namespace icinga;
 
-REGISTER_SCRIPTFUNCTION_NS_DEPRECATED(Internal, PluginNotification, &PluginNotificationTask::ScriptFunc);
+REGISTER_SCRIPTFUNCTION_NS(Internal, PluginNotification, &PluginNotificationTask::ScriptFunc);
 
 void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification,
     const User::Ptr& user, const CheckResult::Ptr& cr, int itype,

@@ -29,7 +29,7 @@
 
 using namespace icinga;
 
-REGISTER_SCRIPTFUNCTION_NS_DEPRECATED(Internal, ExceptionCheck, &ExceptionCheckTask::ScriptFunc);
+REGISTER_SCRIPTFUNCTION_NS(Internal, ExceptionCheck, &ExceptionCheckTask::ScriptFunc);
 
 void ExceptionCheckTask::ScriptFunc(const Checkable::Ptr& service, const CheckResult::Ptr& cr,
     const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
