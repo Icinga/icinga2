@@ -29,13 +29,11 @@ Rephrasing this picture into more details:
 The following sections will refer to these roles and explain the
 differences and the possibilities this kind of setup offers.
 
-> **Tip**:
->
-> If you just want to install a single master node that monitors several hosts
-> (i.e. Icinga 2 clients), continue reading -- we'll start with
-> simple examples.
-> In case you are planning a huge cluster setup with multiple levels and
-> lots of clients, read on -- we'll deal with these cases later on.
+**Tip**: If you just want to install a single master node that monitors several hosts
+(i.e. Icinga 2 clients), continue reading -- we'll start with
+simple examples.
+In case you are planning a huge cluster setup with multiple levels and
+lots of clients, read on -- we'll deal with these cases later on.
 
 The installation on each system is the same: You need to install the
 [Icinga 2 package](2-getting-started.md#setting-up-icinga2) and the required [plugins](2-getting-started.md#setting-up-check-plugins).
@@ -175,9 +173,7 @@ Install the [Icinga 2 package](2-getting-started.md#setting-up-icinga2) and setu
 the required [plugins](2-getting-started.md#setting-up-check-plugins) if you haven't done
 so already.
 
-> **Note**
->
-> Windows is not supported for a master node setup.
+**Note**: Windows is not supported for a master node setup.
 
 The next step is to run the `node wizard` CLI command. Prior to that
 ensure to collect the required information:
@@ -572,10 +568,8 @@ The endpoint configuration could look like this, for example:
 
 Next, you need to define two zones. There is no naming convention, best practice is to either use `master`, `satellite`/`client-fqdn` or to choose region names for example `Europe`, `USA` and `Asia`, though.
 
-> **Note**
->
-> Each client requires its own zone and endpoint configuration. Best practice
-> is to use the client's FQDN for all object names.
+**Note**: Each client requires its own zone and endpoint configuration. Best practice
+is to use the client's FQDN for all object names.
 
 The `master` zone is a parent of the `icinga2-client2.localdomain` zone:
 
@@ -735,10 +729,8 @@ The endpoint configuration could look like this:
 
 Next, you need to define two zones. There is no naming convention, best practice is to either use `master`, `satellite`/`client-fqdn` or to choose region names for example `Europe`, `USA` and `Asia`, though.
 
-> **Note**
->
-> Each client requires its own zone and endpoint configuration. Best practice
-> is to use the client's FQDN for all object names.
+**Note**: Each client requires its own zone and endpoint configuration. Best practice
+is to use the client's FQDN for all object names.
 
 The `master` zone is a parent of the `icinga2-client1.localdomain` zone:
 
@@ -836,12 +828,10 @@ itself.
 You can also use the config sync inside a high-availability zone to
 ensure that all config objects are synced among zone members.
 
-> **Note**
->
-> You can only have one so-called "config master" in a zone which stores
-> the configuration in the `zones.d` directory.
-> Multiple nodes with configuration files in the `zones.d` directory are
-> **not supported**.
+**Note**: You can only have one so-called "config master" in a zone which stores
+the configuration in the `zones.d` directory.
+Multiple nodes with configuration files in the `zones.d` directory are
+**not supported**.
 
 Now that you've learned the basics about the configuration sync, proceed with
 the [scenarios](6-distributed-monitoring.md#distributed-monitoring-scenarios)
@@ -916,11 +906,9 @@ them from this directory and restart Icinga 2.
 The generated host object uses the `cluster-zone` check command as
 [health check](6-distributed-monitoring.md#distributed-monitoring-health-checks).
 
-> **Tip**
->
-> In case you want to blacklist or whitelist certain hosts and/or services
-> on the master, use the `icinga2 node {black,white}list`
-> commands.
+**Tip**: In case you want to blacklist or whitelist certain hosts and/or services
+on the master, use the `icinga2 node {black,white}list`
+commands.
 
 In this example we're first putting all `ping*` services on all hosts on the blacklist.
 With the next command we allow the host `probe` to run the service `ping4`:
@@ -1114,9 +1102,7 @@ The setup uses the capabilities of the Icinga 2 cluster. All zone members
 replicate cluster events amongst each other. In addition to that, several Icinga 2
 features can enable HA functionality.
 
-> **Note**
->
-> All nodes in the same zone require that you enable the same features for high-availability (HA).
+**Note**: All nodes in the same zone require that you enable the same features for high-availability (HA).
 
 Overview:
 
@@ -1294,10 +1280,8 @@ Validate the configuration and restart Icinga 2 on the master node `icinga2-mast
 Open Icinga Web 2 and check the two newly created client hosts with two new services
 -- one executed locally (`ping4`) and one using command endpoint (`disk`).
 
-> **Tip**
->
-> It's a good idea to add [health checks](6-distributed-monitoring.md#distributed-monitoring-health-checks)
-> to make sure that your cluster notifies you in case of failure.
+**Tip**: It's a good idea to add [health checks](6-distributed-monitoring.md#distributed-monitoring-health-checks)
+to make sure that your cluster notifies you in case of failure.
 
 
 ### <a id="distributed-monitoring-scenarios-master-satellite-client"></a> Three Levels with Master, Satellites, and Clients
@@ -1308,10 +1292,8 @@ This scenario combines everything you've learned so far: High-availability maste
 satellites receiving their config from the master zone, and clients checked via command
 endpoint from the satellite zones.
 
-> **Tip**
->
-> It can get complicated, so grab a pen and paper and bring your thoughts to life.
-> Play around with a test setup before using it in a production environment!
+**Tip**: It can get complicated, so grab a pen and paper and bring your thoughts to life.
+Play around with a test setup before using it in a production environment!
 
 Overview:
 
@@ -1538,10 +1520,8 @@ Validate the configuration and restart Icinga 2 on the master node `icinga2-mast
 Open Icinga Web 2 and check the two newly created client hosts with two new services
 -- one executed locally (`ping4`) and one using command endpoint (`disk`).
 
-> **Tip**
->
-> It's a good idea to add [health checks](6-distributed-monitoring.md#distributed-monitoring-health-checks)
-> to make sure that your cluster notifies you in case of failure.
+**Tip**: It's a good idea to add [health checks](6-distributed-monitoring.md#distributed-monitoring-health-checks)
+to make sure that your cluster notifies you in case of failure.
 
 ## <a id="distributed-monitoring-best-practice"></a> Best Practice
 
@@ -1565,10 +1545,8 @@ configuration files only. Use your preferred package repository
 and/or configuration management tool (Puppet, Ansible, Chef, etc.)
 for that.
 
-> **Note**
->
-> Checkable objects (hosts and services) cannot be put into a global
-> zone. The configuration validation will terminate with an error.
+**Note**: Checkable objects (hosts and services) cannot be put into a global
+zone. The configuration validation will terminate with an error.
 
 The zone object configuration must be deployed on all nodes which should receive
 the global configuration files:
@@ -1597,10 +1575,8 @@ before restarting the parent master/satellite nodes.
 
 Then validate the configuration on the master node and restart Icinga 2.
 
-> **Tip**
->
-> You can copy the example configuration files located in `/etc/icinga2/conf.d`
-> into your global zone.
+**Tip**: You can copy the example configuration files located in `/etc/icinga2/conf.d`
+into your global zone.
 
 Example:
 
@@ -1828,15 +1804,13 @@ By default the DB IDO feature only runs on one node. All other nodes in the same
 the active IDO database connection at runtime. The node with the active DB IDO connection is
 not necessarily the zone master.
 
-> **Note**
->
-> The DB IDO HA feature can be disabled by setting the `enable_ha` attribute to `false`
-> for the [IdoMysqlConnection](9-object-types.md#objecttype-idomysqlconnection) or
-> [IdoPgsqlConnection](9-object-types.md#objecttype-idopgsqlconnection) object on **all** nodes in the
-> **same** zone.
->
-> All endpoints will enable the DB IDO feature and connect to the configured
-> database and dump configuration, status and historical data on their own.
+**Note**: The DB IDO HA feature can be disabled by setting the `enable_ha` attribute to `false`
+for the [IdoMysqlConnection](9-object-types.md#objecttype-idomysqlconnection) or
+[IdoPgsqlConnection](9-object-types.md#objecttype-idopgsqlconnection) object on **all** nodes in the
+**same** zone.
+
+All endpoints will enable the DB IDO feature and connect to the configured
+database and dump configuration, status and historical data on their own.
 
 If the instance with the active DB IDO connection dies, the HA functionality will
 automatically elect a new DB IDO master.
@@ -1888,10 +1862,8 @@ It is not necessary that both the master and the client node establish
 two connections to each other. Icinga 2 will only use one connection
 and close the second connection if established.
 
-> **Tip**
->
-> Choose either to let master/satellite nodes connect to client nodes
-> or vice versa.
+**Tip**: Choose either to let master/satellite nodes connect to client nodes
+or vice versa.
 
 
 ### <a id="distributed-monitoring-advanced-hints-command-endpoint-log-duration"></a> Disable Log Duration for Command Endpoints
@@ -2037,10 +2009,8 @@ Once the setup is completed you can use the `node setup` cli command too.
 Instead of using the `node wizard` CLI command, there is an alternative `node setup`
 command available which has some prerequisites.
 
-> **Note**
->
-> The CLI command can be used on Linux/Unix and Windows operating systems.
-> The graphical Windows setup wizard actively uses these CLI commands.
+**Note**: The CLI command can be used on Linux/Unix and Windows operating systems.
+The graphical Windows setup wizard actively uses these CLI commands.
 
 #### <a id="distributed-monitoring-automation-cli-node-setup-master"></a> Node Setup on the Master Node
 
@@ -2266,8 +2236,6 @@ was executed inside the Docker client.
 
 ![Icinga 2 Client Automation Docker](images/distributed-monitoring/icinga2_distributed_automation_docker_client_icingaweb2.png)
 
-> **Note**
->
-> This is a volatile example using Docker. Build your own Docker
-> container client using these examples.
+**Note**: This is a volatile example using Docker. Build your own Docker
+container client using these examples.
 
