@@ -17,7 +17,7 @@
 # * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
 # ******************************************************************************/
 
-%define revision 3
+%define revision 1
 
 # make sure that _rundir is working on older systems
 %if ! %{defined _rundir}
