@@ -1,7 +1,7 @@
 ﻿$packageName = 'icinga2'
 $installerType = 'msi'
-$url32 = 'http://packages.icinga.org/windows/Icinga2-v2.5.0-x86.msi'
-$url64 = 'http://packages.icinga.org/windows/Icinga2-v2.5.0-x86_64.msi'
+$url32 = 'http://packages.icinga.org/windows/Icinga2-v2.5.1-x86.msi'
+$url64 = 'http://packages.icinga.org/windows/Icinga2-v2.5.1-x86_64.msi'
 $silentArgs = '/qn /norestart'
 $validExitCodes = @(0)
 

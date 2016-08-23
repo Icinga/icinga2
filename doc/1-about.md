@@ -54,6 +54,12 @@ More details in the [Icinga FAQ](https://www.icinga.org/icinga/faq/).
 
 ## <a id="whats-new"></a> What's New
 
+### What's New in Version 2.5.1
+
+#### Bugfixes
+
+* Bug [12517](https://dev.icinga.org/issues/12517 "Bug 12517") (Notifications): Icinga 2 sends recovery notifications for SOFT NOT-OK states
+
 ### What's New in Version 2.5.0
 
 #### Changes
