@@ -706,20 +706,22 @@ VOID WINAPI ServiceMain(DWORD argc, LPSTR *argv)
 int main(int argc, char **argv)
 {
 #ifndef _WIN32
-	rlimit rl;
-	if (getrlimit(RLIMIT_NOFILE, &rl) >= 0) {
-		rlim_t maxfds = rl.rlim_max;
+	if (!getenv("ICINGA2_KEEP_FDS")) {
+		rlimit rl;
+		if (getrlimit(RLIMIT_NOFILE, &rl) >= 0) {
+			rlim_t maxfds = rl.rlim_max;
 
-		if (maxfds == RLIM_INFINITY)
-			maxfds = 65536;
+			if (maxfds == RLIM_INFINITY)
+				maxfds = 65536;
 
-		for (rlim_t i = 3; i < maxfds; i++) {
-			int rc = close(i);
+			for (rlim_t i = 3; i < maxfds; i++) {
+				int rc = close(i);
 
 #ifdef I2_DEBUG
-			if (rc >= 0)
-				std::cerr << "Closed FD " << i << " which we inherited from our parent process." << std::endl;
+				if (rc >= 0)
+					std::cerr << "Closed FD " << i << " which we inherited from our parent process." << std::endl;
 #endif /* I2_DEBUG */
+			}
 		}
 	}
 #endif /* _WIN32 */
