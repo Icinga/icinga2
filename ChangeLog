@@ -4,6 +4,12 @@ Please check [doc/1-about.md].
 
 ## What's New
 
+### What's New in Version 2.5.1
+
+#### Bugfixes
+
+* Bug 12517 (Notifications): Icinga 2 sends recovery notifications for SOFT NOT-OK states
+
 ### What's New in Version 2.5.0
 
 #### Changes
