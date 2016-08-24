@@ -183,7 +183,7 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 	if (IsStateOK(cr->GetState())) {
 		SetStateType(StateTypeHard); // NOT-OK -> HARD OK
 
-		if (old_stateType == StateTypeHard && !IsStateOK(old_state))
+		if (!IsStateOK(old_state))
 			recovery = true;
 
 		ResetNotificationNumbers();
@@ -278,7 +278,7 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 
 	if (notification_reachable && !in_downtime && !IsAcknowledged()) {
 		/* Send notifications whether when a hard state change occured. */
-		if (hardChange)
+		if (hardChange && !(old_stateType == StateTypeSoft && IsStateOK(new_state)))
 			send_notification = true;
 		/* Or if the checkable is volatile and in a HARD state. */
 		else if (is_volatile && GetStateType() == StateTypeHard)
@@ -383,17 +383,9 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 		NotifyFlapping(origin);
 	}
 
-	if (recovery) {
-		/* Recovery notifications must be sent any time.
-		 * Users who where notified about a problem before
-		 * will be filtered when processing the notification.
-		 */
+	if (send_notification && !is_flapping) {
 		if (!IsPaused())
-			OnNotificationsRequested(this, NotificationRecovery, cr, "", "", MessageOrigin::Ptr());
-	} else if (send_notification && !is_flapping) {
-		/* Problem notifications */
-		if (!IsPaused())
-			OnNotificationsRequested(this, NotificationProblem, cr, "", "", MessageOrigin::Ptr());
+			OnNotificationsRequested(this, recovery ? NotificationRecovery : NotificationProblem, cr, "", "", MessageOrigin::Ptr());
 	}
 }
 
