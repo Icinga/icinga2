@@ -54,6 +54,13 @@ More details in the [Icinga FAQ](https://www.icinga.org/icinga/faq/).
 
 ## <a id="whats-new"></a> What's New
 
+### What's New in Version 2.5.2
+
+#### Bugfixes
+
+* Bug [12527](https://dev.icinga.org/issues/12527 "Bug 12527") (DB IDO): Newly added group member tables in the IDO database are not updated
+* Bug [12529](https://dev.icinga.org/issues/12529 "Bug 12529") (Checker): Icinga 2 sends SOFT recovery notifications
+
 ### What's New in Version 2.5.1
 
 #### Bugfixes

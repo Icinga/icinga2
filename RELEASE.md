@@ -12,9 +12,9 @@ Check the following issue filters:
 ## Backport Commits
 
     $ git checkout master
-    $ ./pick.py -V 2.4.9
+    $ ./pick.py -V 2.5.2
 
-The script creates a new branch 'auto-merged-2.4.9' which is based on the
+The script creates a new branch 'auto-merged-2.5.2' which is based on the
 current support branch. It then merges all commits from the 'master' branch which
 reference a ticket for the version that was specified.
 
@@ -25,8 +25,8 @@ rebase until no commits are left:
 
 After finishing the rebase the branch needs to be merged into the support branch:
 
-    $ git checkout support/2.4
-    $ git merge --ff-only auto-merged-2.4.9
+    $ git checkout support/2.5
+    $ git merge --ff-only auto-merged-2.5.2
 
 ## Authors
 
@@ -86,16 +86,16 @@ Push the tag.
 For major releases: Create a new "support" branch:
 
     $ git checkout master
-    $ git checkout -b support/2.4
-    $ git push -u origin support/2.4
+    $ git checkout -b support/2.5
+    $ git push -u origin support/2.5
 
 For minor releases: Push the support branch, cherry-pick the release commit
 into master and merge the support branch:
 
-    $ git push -u origin support/2.4
+    $ git push -u origin support/2.5
     $ git checkout master
-    $ git cherry-pick support/2.4
-    $ git merge --strategy=ours support/2.4
+    $ git cherry-pick support/2.5
+    $ git merge --strategy=ours support/2.5
     $ git push origin master
 
 # External Dependencies
@@ -141,7 +141,7 @@ Create the nupkg package:
 
 Install the created icinga2 package locally:
 
-    choco install icinga2 -version 2.5.0 -fdv "%cd%" -source "'%cd%;https://chocolatey.org/api/v2/'"
+    choco install icinga2 -version 2.5.2 -fdv "%cd%" -source "'%cd%;https://chocolatey.org/api/v2/'"
 
 Upload the package to [chocolatey](https://chocolatey.org/packages/upload).
 

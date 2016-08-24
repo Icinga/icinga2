@@ -4,6 +4,13 @@ Please check [doc/1-about.md].
 
 ## What's New
 
+### What's New in Version 2.5.2
+
+#### Bugfixes
+
+* Bug 12527 (DB IDO): Newly added group member tables in the IDO database are not updated
+* Bug 12529 (Checker): Icinga 2 sends SOFT recovery notifications
+
 ### What's New in Version 2.5.1
 
 #### Bugfixes
