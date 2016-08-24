@@ -22,7 +22,7 @@ set(hello_SOURCES
 )
 
 if(ICINGA2_UNITY_BUILD)
-    mkunity_target(hello hello_SOURCES)
+    mkunity_target(hello hello hello_SOURCES)
 endif()
 
 add_library(hello SHARED ${hello_SOURCES})

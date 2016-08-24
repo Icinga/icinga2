@@ -29,7 +29,7 @@ set(db_ido_SOURCES
 )
 
 if(ICINGA2_UNITY_BUILD)
-    mkunity_target(db_ido db_ido_SOURCES)
+    mkunity_target(db_ido db_ido db_ido_SOURCES)
 endif()
 
 add_library(db_ido SHARED ${db_ido_SOURCES})

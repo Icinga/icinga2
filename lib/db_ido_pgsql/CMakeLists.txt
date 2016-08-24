@@ -28,7 +28,7 @@ if(PostgreSQL_FOUND)
   )
 
   if(ICINGA2_UNITY_BUILD)
-      mkunity_target(db_ido_pgsql db_ido_pgsql_SOURCES)
+      mkunity_target(db_ido_pgsql db_ido_pgsql db_ido_pgsql_SOURCES)
   endif()
 
   add_library(db_ido_pgsql SHARED ${db_ido_pgsql_SOURCES})

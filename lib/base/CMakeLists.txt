@@ -44,7 +44,7 @@ set(base_SOURCES
 set_property(SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/application-version.cpp PROPERTY EXCLUDE_UNITY_BUILD TRUE)
 
 if(ICINGA2_UNITY_BUILD)
-    mkunity_target(base base_SOURCES)
+    mkunity_target(base base base_SOURCES)
 endif()
 
 add_library(base SHARED ${base_SOURCES})

@@ -22,20 +22,12 @@ set(base_test_SOURCES
   base-json.cpp base-match.cpp base-netstring.cpp base-object.cpp
   base-serialize.cpp base-shellescape.cpp base-stacktrace.cpp
   base-stream.cpp base-string.cpp base-timer.cpp base-type.cpp
-  base-value.cpp config-ops.cpp icinga-macros.cpp
-  icinga-perfdata.cpp base-test.cpp 
-  remote-base64.cpp remote-url.cpp
+  base-value.cpp config-ops.cpp icinga-checkresult.cpp icinga-macros.cpp
+  icinga-perfdata.cpp remote-base64.cpp remote-url.cpp
 )
-
-set(livestatus_test_SOURCES
-  livestatus.cpp
-  livestatus-test.cpp
-)
-
-set_property(SOURCE test.cpp PROPERTY EXCLUDE_UNITY_BUILD TRUE)
 
 if(ICINGA2_UNITY_BUILD)
-    mkunity_target(test base_test_SOURCES)
+    mkunity_target(base test base_test_SOURCES)
 endif()
 
 add_boost_test(base
@@ -97,6 +89,8 @@ add_boost_test(base
         base_value/format
         config_ops/simple
         config_ops/advanced
+        icinga_checkresult/host
+        icinga_checkresult/service
         icinga_macros/simple
         icinga_perfdata/empty
         icinga_perfdata/simple
@@ -116,6 +110,14 @@ add_boost_test(base
 )
 
 if(ICINGA2_WITH_LIVESTATUS)
+  set(livestatus_test_SOURCES
+    livestatus.cpp
+  )
+
+  if(ICINGA2_UNITY_BUILD)
+      mkunity_target(livestatus test livestatus_test_SOURCES)
+  endif()
+
   add_boost_test(livestatus
     SOURCES livestatus-test.cpp ${livestatus_test_SOURCES}
     LIBRARIES base config icinga cli livestatus

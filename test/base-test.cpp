@@ -20,6 +20,7 @@
 #define BOOST_TEST_MAIN
 #define BOOST_TEST_MODULE icinga2_test
 
+#include "icinga/icingaapplication.hpp"
 #include "base/application.hpp"
 #include "base/timer.hpp"
 #include <BoostTestTargetConfig.h>
@@ -28,9 +29,14 @@ using namespace icinga;
 
 struct InitLibBase
 {
+	IcingaApplication::Ptr appInst;
+
 	InitLibBase(void)
 	{
 		Application::InitializeBase();
+
+		appInst = new IcingaApplication();
+		static_pointer_cast<ConfigObject>(appInst)->OnConfigLoaded();
 	}
 
 	~InitLibBase(void)

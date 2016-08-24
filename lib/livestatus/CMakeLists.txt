@@ -32,7 +32,7 @@ set(livestatus_SOURCES
 )
 
 if(ICINGA2_UNITY_BUILD)
-    mkunity_target(livestatus livestatus_SOURCES)
+    mkunity_target(livestatus livestatus livestatus_SOURCES)
 endif()
 
 add_library(livestatus SHARED ${livestatus_SOURCES})

@@ -30,9 +30,9 @@ if(ICINGA2_UNITY_BUILD)
       FOLDER Bin
     )
 
-    function(MKUNITY_TARGET Prefix UnityInputRef)
+    function(MKUNITY_TARGET Target Prefix UnityInputRef)
         set(UnityInput ${${UnityInputRef}})
-        set(UnityOutput ${CMAKE_CURRENT_BINARY_DIR}/${Prefix}_unity.cpp)
+        set(UnityOutput ${CMAKE_CURRENT_BINARY_DIR}/${Target}_unity.cpp)
         set(RealSources "")
         set(UnitySources "")
         foreach(UnitySource ${UnityInput})

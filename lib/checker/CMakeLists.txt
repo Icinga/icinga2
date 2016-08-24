@@ -22,7 +22,7 @@ set(checker_SOURCES
 )
 
 if(ICINGA2_UNITY_BUILD)
-    mkunity_target(checker checker_SOURCES)
+    mkunity_target(checker checker checker_SOURCES)
 endif()
 
 add_library(checker SHARED ${checker_SOURCES})

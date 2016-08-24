@@ -54,7 +54,7 @@ set(icinga_SOURCES
 )
 
 if(ICINGA2_UNITY_BUILD)
-    mkunity_target(icinga icinga_SOURCES)
+    mkunity_target(icinga icinga icinga_SOURCES)
 endif()
 
 add_library(icinga SHARED ${icinga_SOURCES})
