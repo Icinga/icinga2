@@ -163,3 +163,17 @@ void UserDbObject::OnConfigUpdateHeavy(void)
 
 	DbObject::OnMultipleQueries(queries);
 }
+
+String UserDbObject::CalculateConfigHash(const Dictionary::Ptr& configFields) const
+{
+	String hashData = DbObject::CalculateConfigHash(configFields);
+
+	User::Ptr user = static_pointer_cast<User>(GetObject());
+
+	Array::Ptr groups = user->GetGroups();
+
+	if (groups)
+		hashData += DbObject::HashValue(groups);
+
+	return hashData;
+}

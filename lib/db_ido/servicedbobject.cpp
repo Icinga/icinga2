@@ -357,6 +357,11 @@ String ServiceDbObject::CalculateConfigHash(const Dictionary::Ptr& configFields)
 
 	Service::Ptr service = static_pointer_cast<Service>(GetObject());
 
+	Array::Ptr groups = service->GetGroups();
+
+	if (groups)
+		hashData += DbObject::HashValue(groups);
+
 	Array::Ptr dependencies = new Array();
 
 	/* dependencies */

@@ -43,6 +43,8 @@ protected:
 	virtual Dictionary::Ptr GetStatusFields(void) const override;
 
 	virtual void OnConfigUpdateHeavy(void) override;
+
+	virtual String CalculateConfigHash(const Dictionary::Ptr& configFields) const;
 };
 
 }
