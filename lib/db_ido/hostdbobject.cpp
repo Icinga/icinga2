@@ -397,6 +397,11 @@ String HostDbObject::CalculateConfigHash(const Dictionary::Ptr& configFields) co
 
 	Host::Ptr host = static_pointer_cast<Host>(GetObject());
 
+	Array::Ptr groups = host->GetGroups();
+
+	if (groups)
+		hashData += DbObject::HashValue(groups);
+
 	Array::Ptr parents = new Array();
 
 	/* parents */
