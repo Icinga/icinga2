@@ -176,7 +176,9 @@ bool CLICommand::ParseCommand(int argc, char **argv, po::options_description& vi
 	BOOST_FOREACH(const CLIKeyValue& kv, GetRegistry()) {
 		const std::vector<String>& vname = kv.first;
 
-		for (int i = 0, k = 1; i < vname.size() && k < argc; i++, k++) {
+		std::vector<String>::size_type i;
+		int k;
+		for (i = 0, k = 1; i < vname.size() && k < argc; i++, k++) {
 			if (strcmp(argv[k], "--no-stack-rlimit") == 0 || strcmp(argv[k], "--autocomplete") == 0 || strcmp(argv[k], "--scm") == 0) {
 				i--;
 				continue;
@@ -237,14 +239,16 @@ void CLICommand::ShowCommands(int argc, char **argv, po::options_description *vi
 
 		arg_begin = 0;
 
-		for (int i = 0, k = 1; i < vname.size() && k < argc; i++, k++) {
+		std::vector<String>::size_type i;
+		int k;
+		for (i = 0, k = 1; i < vname.size() && k < argc; i++, k++) {
 			if (strcmp(argv[k], "--no-stack-rlimit") == 0 || strcmp(argv[k], "--autocomplete") == 0 || strcmp(argv[k], "--scm") == 0) {
 				i--;
 				arg_begin++;
 				continue;
 			}
 
-			if (autocomplete && i >= autoindex - 1)
+			if (autocomplete && static_cast<int>(i) >= autoindex - 1)
 				break;
 
 			if (vname[i] != argv[k])
@@ -267,7 +271,7 @@ void CLICommand::ShowCommands(int argc, char **argv, po::options_description *vi
 		if (autoindex < argc)
 			aword = argv[autoindex];
 
-		if (autoindex - 1 > best_match.size() && !command)
+		if (autoindex - 1 > static_cast<int>(best_match.size()) && !command)
 			return;
 	} else
 		std::cout << "Supported commands: " << std::endl;
@@ -280,7 +284,7 @@ void CLICommand::ShowCommands(int argc, char **argv, po::options_description *vi
 
 		bool match = true;
 
-		for (int i = 0; i < best_match.size(); i++) {
+		for (std::vector<String>::size_type i = 0; i < best_match.size(); i++) {
 			if (vname[i] != best_match[i]) {
 				match = false;
 				break;
@@ -293,7 +297,7 @@ void CLICommand::ShowCommands(int argc, char **argv, po::options_description *vi
 		if (autocomplete) {
 			String cname;
 
-			if (autoindex - 1 < vname.size()) {
+			if (autoindex - 1 < static_cast<int>(vname.size())) {
 				cname = vname[autoindex - 1];
 
 				if (cname.Find(aword) == 0)

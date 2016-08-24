@@ -106,7 +106,7 @@ void ClassCompiler::HandleCode(const std::string& code, const ClassDebugInfo&)
 	m_Header << code << std::endl;
 }
 
-void ClassCompiler::HandleLibrary(const std::string& library, const ClassDebugInfo& locp)
+void ClassCompiler::HandleLibrary(const std::string& library, const ClassDebugInfo&)
 {
 	m_Library = library;
 

@@ -461,14 +461,14 @@ int Main(void)
 		if (vm.count("arg"))
 			args = vm["arg"].as<std::vector<std::string> >();
 
-		if (args.size() < command->GetMinArguments()) {
+		if (static_cast<int>(args.size()) < command->GetMinArguments()) {
 			Log(LogCritical, "cli")
 			    << "Too few arguments. Command needs at least " << command->GetMinArguments()
 			    << " argument" << (command->GetMinArguments() != 1 ? "s" : "") << ".";
 			return EXIT_FAILURE;
 		}
 
-		if (command->GetMaxArguments() >= 0 && args.size() > command->GetMaxArguments()) {
+		if (command->GetMaxArguments() >= 0 && static_cast<int>(args.size()) > command->GetMaxArguments()) {
 			Log(LogCritical, "cli")
 			    << "Too many arguments. At most " << command->GetMaxArguments()
 			    << " argument" << (command->GetMaxArguments() != 1 ? "s" : "") << " may be specified.";

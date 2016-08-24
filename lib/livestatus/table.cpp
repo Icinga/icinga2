@@ -138,7 +138,7 @@ std::vector<LivestatusRowValue> Table::FilterRows(const Filter::Ptr& filter, int
 
 bool Table::FilteredAddRow(std::vector<LivestatusRowValue>& rs, const Filter::Ptr& filter, int limit, const Value& row, LivestatusGroupByType groupByType, const Object::Ptr& groupByObject)
 {
-	if (limit != -1 && rs.size() == limit)
+	if (limit != -1 && static_cast<int>(rs.size()) == limit)
 		return false;
 
 	if (!filter || filter->Apply(this, row)) {

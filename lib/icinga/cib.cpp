@@ -198,7 +198,7 @@ CheckableCheckStatistics CIB::CalculateServiceCheckStats(void)
 
 ServiceStatistics CIB::CalculateServiceStats(void)
 {
-	ServiceStatistics ss = {0};
+	ServiceStatistics ss = {};
 
 	BOOST_FOREACH(const Service::Ptr& service, ConfigType::GetObjectsByType<Service>()) {
 		ObjectLock olock(service);
@@ -232,7 +232,7 @@ ServiceStatistics CIB::CalculateServiceStats(void)
 
 HostStatistics CIB::CalculateHostStats(void)
 {
-	HostStatistics hs = {0};
+	HostStatistics hs = {};
 
 	BOOST_FOREACH(const Host::Ptr& host, ConfigType::GetObjectsByType<Host>()) {
 		ObjectLock olock(host);

@@ -281,7 +281,7 @@ Expression *ConfigCompiler::Compile(void)
 
 	std::vector<Expression *> dlist;
 	typedef std::pair<Expression *, EItemInfo> EListItem;
-	int num = 0;
+	std::vector<std::pair<Expression *, EItemInfo> >::size_type num = 0;
 	BOOST_FOREACH(const EListItem& litem, llist) {
 		if (!litem.second.SideEffect && num != llist.size() - 1) {
 			yyerror(&litem.second.DebugInfo, NULL, NULL, "Value computed is not used.");
@@ -778,7 +778,7 @@ rterm_scope: '{'
 		context->m_IgnoreNewlines.pop();
 		std::vector<Expression *> dlist;
 		typedef std::pair<Expression *, EItemInfo> EListItem;
-		int num = 0;
+		std::vector<std::pair<Expression *, EItemInfo> >::size_type num = 0;
 		BOOST_FOREACH(const EListItem& litem, *$3) {
 			if (!litem.second.SideEffect && num != $3->size() - 1)
 				yyerror(&litem.second.DebugInfo, NULL, NULL, "Value computed is not used.");
@@ -1006,7 +1006,7 @@ rterm_no_side_effect_no_dict: T_STRING
 
 		std::vector<Expression *> dlist;
 		typedef std::pair<Expression *, EItemInfo> EListItem;
-		int num = 0;
+		std::vector<std::pair<Expression *, EItemInfo> >::size_type num = 0;
 		BOOST_FOREACH(const EListItem& litem, *$3) {
 			if (!litem.second.SideEffect && num != $3->size() - 1)
 				yyerror(&litem.second.DebugInfo, NULL, NULL, "Value computed is not used.");

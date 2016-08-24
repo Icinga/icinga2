@@ -198,7 +198,7 @@ String Dictionary::ToString(void) const
 	return msgbuf.str();
 }
 
-Value Dictionary::GetFieldByName(const String& field, bool sandboxed, const DebugInfo& debugInfo) const
+Value Dictionary::GetFieldByName(const String& field, bool, const DebugInfo& debugInfo) const
 {
 	Value value;
 
@@ -208,7 +208,7 @@ Value Dictionary::GetFieldByName(const String& field, bool sandboxed, const Debu
 		return GetPrototypeField(const_cast<Dictionary *>(this), field, false, debugInfo);
 }
 
-void Dictionary::SetFieldByName(const String& field, const Value& value, const DebugInfo& debugInfo)
+void Dictionary::SetFieldByName(const String& field, const Value& value, const DebugInfo&)
 {
 	Set(field, value);
 }

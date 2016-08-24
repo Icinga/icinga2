@@ -52,7 +52,6 @@ bool CreateObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 	Dictionary::Ptr attrs = params->Get("attrs");
 
 	Dictionary::Ptr result1 = new Dictionary();
-	int code;
 	String status;
 	Array::Ptr errors = new Array();
 

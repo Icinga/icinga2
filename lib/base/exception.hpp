@@ -106,7 +106,7 @@ I2_BASE_API void RethrowUncaughtException(void);
 
 typedef boost::error_info<StackTrace, StackTrace> StackTraceErrorInfo;
 
-inline std::string to_string(const StackTraceErrorInfo& e)
+inline std::string to_string(const StackTraceErrorInfo&)
 {
 	return "";
 }

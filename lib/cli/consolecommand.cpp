@@ -175,7 +175,7 @@ char *ConsoleCommand::ConsoleCompleteHelper(const char *word, int state)
 		}
 	}
 
-	if (state >= matches.size())
+	if (state >= static_cast<int>(matches.size()))
 		return NULL;
 
 	return strdup(matches[state].CStr());

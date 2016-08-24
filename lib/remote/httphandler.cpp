@@ -67,7 +67,7 @@ void HttpHandler::ProcessRequest(const ApiUser::Ptr& user, HttpRequest& request,
 	std::vector<HttpHandler::Ptr> handlers;
 	const std::vector<String>& path = request.RequestUrl->GetPath();
 
-	for (int i = 0; i <= path.size(); i++) {
+	for (std::vector<String>::size_type i = 0; i <= path.size(); i++) {
 		Array::Ptr current_handlers = node->Get("handlers");
 
 		if (current_handlers) {

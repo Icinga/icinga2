@@ -799,7 +799,7 @@ class I2_CONFIG_API FunctionExpression : public DebuggableExpression
 public:
 	FunctionExpression(const String& name, const std::vector<String>& args,
 	    std::map<String, Expression *> *closedVars, Expression *expression, const DebugInfo& debugInfo = DebugInfo())
-		: DebuggableExpression(debugInfo), m_Args(args), m_Name(name), m_ClosedVars(closedVars), m_Expression(expression)
+		: DebuggableExpression(debugInfo), m_Name(name), m_Args(args), m_ClosedVars(closedVars), m_Expression(expression)
 	{ }
 
 	~FunctionExpression(void)

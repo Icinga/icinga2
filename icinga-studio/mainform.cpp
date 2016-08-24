@@ -182,12 +182,10 @@ wxPGProperty *MainForm::ValueToProperty(const String& name, const Value& value)
 	wxPGProperty *prop;
 
 	if (value.IsNumber()) {
-		double val = value;
 		prop = new wxFloatProperty(name.GetData(), wxPG_LABEL, value);
 		prop->SetAttribute(wxPG_ATTR_UNITS, "Number");
 		return prop;
 	} else if (value.IsBoolean()) {
-		bool val = value;
 		prop = new wxBoolProperty(name.GetData(), wxPG_LABEL, value);
 		prop->SetAttribute(wxPG_ATTR_UNITS, "Boolean");
 		return prop;

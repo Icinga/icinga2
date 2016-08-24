@@ -52,7 +52,6 @@ public:
 private:
 	mutable boost::mutex m_Mutex;
 	mutable boost::condition_variable m_CV;
-	mutable bool m_CommandReady;
 
 	static void ExecuteScriptCompletionHandler(boost::mutex& mutex, boost::condition_variable& cv,
 	    bool& ready, boost::exception_ptr eptr, const Value& result, Value& resultOut,

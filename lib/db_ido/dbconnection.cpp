@@ -39,8 +39,8 @@ Timer::Ptr DbConnection::m_ProgramStatusTimer;
 boost::once_flag DbConnection::m_OnceFlag = BOOST_ONCE_INIT;
 
 DbConnection::DbConnection(void)
-	: m_QueryStats(15 * 60), m_PendingQueries(0), m_PendingQueriesTimestamp(0),
-	  m_IDCacheValid(false), m_ActiveChangedHandler(false)
+	: m_IDCacheValid(false), m_QueryStats(15 * 60), m_PendingQueries(0),
+	  m_PendingQueriesTimestamp(0), m_ActiveChangedHandler(false)
 { }
 
 void DbConnection::OnConfigLoaded(void)
@@ -255,7 +255,7 @@ void DbConnection::CleanUpHandler(void)
 		{ "downtimehistory", "entry_time" },
 		{ "eventhandlers", "start_time" },
 		{ "externalcommands", "entry_time" },
-		{ "flappinghistory" "event_time" },
+		{ "flappinghistory", "event_time" },
 		{ "hostchecks", "start_time" },
 		{ "logentries", "logentry_time" },
 		{ "notifications", "start_time" },

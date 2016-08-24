@@ -59,10 +59,10 @@ public:
 		m_DebugInfo = di;
 	}
 
-	inline virtual void Start(bool runtimeCreated)
+	inline virtual void Start(bool /* runtimeCreated */)
 	{ }
 
-	inline virtual void Stop(bool runtimeRemoved)
+	inline virtual void Stop(bool /* runtimeRemoved */)
 	{ }
 
 private:

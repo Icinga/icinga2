@@ -64,7 +64,6 @@ private:
 
 	std::set<String> m_Types;
 	Expression *m_Filter;
-	double m_Ttl;
 
 	std::map<void *, std::deque<Dictionary::Ptr> > m_Events;
 };

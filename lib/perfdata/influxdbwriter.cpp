@@ -148,7 +148,6 @@ void InfluxdbWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 	Dictionary::Ptr tags = tmpl->Get("tags");
 	if (tags) {
 		ObjectLock olock(tags);
-retry:
 		BOOST_FOREACH(const Dictionary::Pair& pair, tags) {
 			// Prevent missing macros from warning; will return an empty value
 			// which will be filtered out in SendMetric()
@@ -318,7 +317,7 @@ void InfluxdbWriter::SendMetric(const Dictionary::Ptr& tmpl, const String& label
 	m_DataBuffer->Add(String(msgbuf.str()));
 
 	// Flush if we've buffered too much to prevent excessive memory use
-	if (m_DataBuffer->GetLength() >= GetFlushThreshold()) {
+	if (static_cast<int>(m_DataBuffer->GetLength()) >= GetFlushThreshold()) {
 		Log(LogDebug, "InfluxdbWriter")
 		    << "Data buffer overflow writing " << m_DataBuffer->GetLength() << " data points";
 		Flush();

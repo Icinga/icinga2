@@ -91,7 +91,7 @@ void SocketEventEnginePoll::ThreadProc(int tid)
 			if (m_FDChanged[tid])
 				continue;
 
-			for (int i = 0; i < pfds.size(); i++) {
+			for (std::vector<pollfd>::size_type i = 0; i < pfds.size(); i++) {
 				if ((pfds[i].revents & (POLLIN | POLLOUT | POLLHUP | POLLERR)) == 0)
 					continue;
 

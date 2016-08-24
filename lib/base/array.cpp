@@ -229,7 +229,7 @@ Value Array::GetFieldByName(const String& field, bool sandboxed, const DebugInfo
 
 	ObjectLock olock(this);
 
-	if (index < 0 || index >= GetLength())
+	if (index < 0 || static_cast<size_t>(index) >= GetLength())
 		BOOST_THROW_EXCEPTION(ScriptError("Array index '" + Convert::ToString(index) + "' is out of bounds.", debugInfo));
 
 	return Get(index);
@@ -240,7 +240,12 @@ void Array::SetFieldByName(const String& field, const Value& value, const DebugI
 	ObjectLock olock(this);
 
 	int index = Convert::ToLong(field);
-	if (index >= GetLength())
+
+	if (index < 0)
+		BOOST_THROW_EXCEPTION(ScriptError("Array index '" + Convert::ToString(index) + "' is out of bounds.", debugInfo));
+
+	if (static_cast<size_t>(index) >= GetLength())
 		Resize(index + 1);
+
 	Set(index, value);
 }

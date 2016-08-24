@@ -76,7 +76,7 @@ private:
 
 	MYSQL m_Connection;
 	int m_AffectedRows;
-	int m_MaxPacketSize;
+	unsigned int m_MaxPacketSize;
 
 	std::vector<IdoAsyncQuery> m_AsyncQueries;
 

@@ -64,7 +64,7 @@ void JsonRpcConnection::StaticInitialize(void)
 	l_JsonRpcConnectionWorkQueueCount = Application::GetConcurrency();
 	l_JsonRpcConnectionWorkQueues = new WorkQueue[l_JsonRpcConnectionWorkQueueCount];
 
-	for (int i = 0; i < l_JsonRpcConnectionWorkQueueCount; i++) {
+	for (size_t i = 0; i < l_JsonRpcConnectionWorkQueueCount; i++) {
 		l_JsonRpcConnectionWorkQueues[i].SetName("JsonRpcConnection, #" + Convert::ToString(i));
 	}
 }

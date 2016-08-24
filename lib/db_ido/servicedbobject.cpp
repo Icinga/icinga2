@@ -371,8 +371,6 @@ String ServiceDbObject::CalculateConfigHash(const Dictionary::Ptr& configFields)
 		if (!parent)
 			continue;
 
-		int state_filter = dep->GetStateFilter();
-
 		Array::Ptr depInfo = new Array();
 		depInfo->Add(parent->GetName());
 		depInfo->Add(dep->GetStateFilter());
