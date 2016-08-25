@@ -33,7 +33,7 @@ boost::thread_specific_ptr<WorkQueue *> l_ThreadWorkQueue;
 
 WorkQueue::WorkQueue(size_t maxItems, int threadCount)
 	: m_ID(m_NextID++), m_ThreadCount(threadCount), m_Spawned(false), m_MaxItems(maxItems), m_Stopped(false),
-	  m_Processing(0)
+	  m_Processing(0), m_NextTaskID(0)
 {
 	m_StatusTimer = new Timer();
 	m_StatusTimer->SetInterval(10);
