@@ -174,5 +174,5 @@ String UserDbObject::CalculateConfigHash(const Dictionary::Ptr& configFields) co
 	if (groups)
 		hashData += DbObject::HashValue(groups);
 
-	return hashData;
+	return SHA256(hashData);
 }

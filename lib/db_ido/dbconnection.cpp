@@ -444,6 +444,7 @@ void DbConnection::UpdateObject(const ConfigObject::Ptr& object)
 
 			Dictionary::Ptr configFields = dbobj->GetConfigFields();
 			String configHash = dbobj->CalculateConfigHash(configFields);
+			ASSERT(configHash.GetLength() <= 64);
 			configFields->Set("config_hash", configHash);
 
 			String cachedHash = GetConfigHash(dbobj);
