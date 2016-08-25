@@ -113,8 +113,8 @@ void ClassCompiler::HandleLibrary(const std::string& library, const ClassDebugIn
 	std::string libName = m_Library;
 	std::locale locale;
 
-	for (std::string::size_type i = 0; i < libName.size(); i++)
-		libName[i] = std::toupper(libName[i], locale);
+	for (auto& ch : libName)
+		ch = std::toupper(ch, locale);
 
 	m_Header << "#ifndef I2_" << libName << "_API" << std::endl
 		 << "#	ifdef I2_" << libName << "_BUILD" << std::endl
@@ -215,8 +215,8 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		std::string libName = m_Library;
 		std::locale locale;
 
-		for (std::string::size_type i = 0; i < libName.size(); i++)
-			libName[i] = std::toupper(libName[i], locale);
+		for (auto& ch : libName)
+			ch = std::toupper(ch, locale);
 
 		apiMacro = "I2_" + libName + "_API ";
 	}
@@ -522,7 +522,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		if (field.Type.ArrayRank > 0) {
 			m_Impl << "\t" << "if (value) {" << std::endl
 			       << "\t\t" << "ObjectLock olock(value);" << std::endl
-			       << "\t\t" << "BOOST_FOREACH(const Value& avalue, value) {" << std::endl;
+			       << "\t\t" << "for (const Value& avalue : value) {" << std::endl;
 		} else
 			m_Impl << "\t" << "Value avalue = value;" << std::endl;
 
@@ -863,7 +863,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 				if (it->Type.ArrayRank > 0) {
 					m_Impl << "\t" << "if (oldValue) {" << std::endl
 					       << "\t\t" << "ObjectLock olock(oldValue);" << std::endl
-					       << "\t\t" << "BOOST_FOREACH(const String& ref, oldValue) {" << std::endl
+					       << "\t\t" << "for (const String& ref : oldValue) {" << std::endl
 					       << "\t\t\t" << "DependencyGraph::RemoveDependency(this, ConfigObject::GetObject";
 
 					/* Ew */
@@ -877,7 +877,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 					       << "\t" << "}" << std::endl
 					       << "\t" << "if (newValue) {" << std::endl
 					       << "\t\t" << "ObjectLock olock(newValue);" << std::endl
-					       << "\t\t" << "BOOST_FOREACH(const String& ref, newValue) {" << std::endl
+					       << "\t\t" << "for (const String& ref : newValue) {" << std::endl
 					       << "\t\t\t" << "DependencyGraph::AddDependency(this, ConfigObject::GetObject";
 
 					/* Ew */
@@ -1066,9 +1066,7 @@ void ClassCompiler::CodeGenValidator(const std::string& name, const std::string&
 	if (validatorType == ValidatorField) {
 		bool required = false;
 
-		for (std::vector<Rule>::size_type i = 0; i < rules.size(); i++) {
-			const Rule& rule = rules[i];
-
+		for (const Rule& rule : rules) {
 			if ((rule.Attributes & RARequired) && rule.Pattern == field) {
 				required = true;
 				break;
@@ -1094,12 +1092,13 @@ void ClassCompiler::CodeGenValidator(const std::string& name, const std::string&
 		m_Impl << "\t" << "bool known_attribute = false;" << std::endl;
 
 	bool type_check = false;
+	int i = 0;
 
-	for (std::vector<Rule>::size_type i = 0; i < rules.size(); i++) {
-		const Rule& rule = rules[i];
-
+	for (const Rule& rule : rules) {
 		if (rule.Attributes & RARequired)
 			continue;
+
+		i++;
 
 		if (validatorType == ValidatorField && rule.Pattern != field)
 			continue;
@@ -1160,7 +1159,7 @@ void ClassCompiler::CodeGenValidator(const std::string& name, const std::string&
 
 					m_Impl << (type_check ? "\t" : "") << "\t\t" << "{" << std::endl
 					       << (type_check ? "\t" : "") << "\t\t\t" << "ObjectLock olock(dict);" << std::endl
-					       << (type_check ? "\t" : "") << "\t\t\t" << "BOOST_FOREACH(const Dictionary::Pair& kv, dict) {" << std::endl
+					       << (type_check ? "\t" : "") << "\t\t\t" << "for (const Dictionary::Pair& kv : dict) {" << std::endl
 					       << (type_check ? "\t" : "") << "\t\t\t\t" << "const String& akey = kv.first;" << std::endl
 					       << (type_check ? "\t" : "") << "\t\t\t\t" << "const Value& avalue = kv.second;" << std::endl;
 					indent = true;
@@ -1173,7 +1172,7 @@ void ClassCompiler::CodeGenValidator(const std::string& name, const std::string&
 					m_Impl << (type_check ? "\t" : "") << "\t\t" << "Array::SizeType anum = 0;" << std::endl
 					       << (type_check ? "\t" : "") << "\t\t" << "{" << std::endl
 					       << (type_check ? "\t" : "") << "\t\t\t" << "ObjectLock olock(arr);" << std::endl
-					       << (type_check ? "\t" : "") << "\t\t\t" << "BOOST_FOREACH(const Value& avalue, arr) {" << std::endl
+					       << (type_check ? "\t" : "") << "\t\t\t" << "for (const Value& avalue : arr) {" << std::endl
 					       << (type_check ? "\t" : "") << "\t\t\t\t" << "String akey = Convert::ToString(anum);" << std::endl;
 					indent = true;
 				} else {
@@ -1200,9 +1199,7 @@ void ClassCompiler::CodeGenValidator(const std::string& name, const std::string&
 					       << (type_check ? "\t" : "") << "\t\t" << "}" << std::endl;
 				}
 
-				for (std::vector<Rule>::size_type i = 0; i < rule.Rules.size(); i++) {
-					const Rule& srule = rule.Rules[i];
-
+				for (const Rule& srule : rule.Rules) {
 					if ((srule.Attributes & RARequired) == 0)
 						continue;
 
@@ -1250,11 +1247,13 @@ void ClassCompiler::CodeGenValidator(const std::string& name, const std::string&
 
 void ClassCompiler::CodeGenValidatorSubrules(const std::string& name, const std::string& klass, const std::vector<Rule>& rules)
 {
-	for (std::vector<Rule>::size_type i = 0; i < rules.size(); i++) {
-		const Rule& rule = rules[i];
+	int i = 0;
 
+	for (const Rule& rule : rules) {
 		if (rule.Attributes & RARequired)
 			continue;
+
+		i++;
 
 		if (!rule.Rules.empty()) {
 			ValidatorType subtype;
@@ -1390,12 +1389,13 @@ std::string ClassCompiler::BaseName(const std::string& path)
 std::string ClassCompiler::FileNameToGuardName(const std::string& fname)
 {
 	std::string result = fname;
+	std::locale locale;
 
-	for (std::string::size_type i = 0; i < result.size(); i++) {
-		result[i] = toupper(result[i]);
+	for (auto& ch : result) {
+		ch = std::toupper(ch, locale);
 
-		if (result[i] == '.')
-			result[i] = '_';
+		if (ch == '.')
+			ch = '_';
 	}
 
 	return result;
@@ -1426,7 +1426,6 @@ void ClassCompiler::CompileStream(const std::string& path, std::istream& input,
 	      << "#include \"base/logger.hpp\"" << std::endl
 	      << "#include \"base/function.hpp\"" << std::endl
 	      << "#include \"base/configtype.hpp\"" << std::endl
-	      << "#include <boost/foreach.hpp>" << std::endl
 	      << "#include <boost/assign/list_of.hpp>" << std::endl
 	      << "#ifdef _MSC_VER" << std::endl
 	      << "#pragma warning( push )" << std::endl

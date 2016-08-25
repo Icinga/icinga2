@@ -34,7 +34,6 @@
 #include "base/context.hpp"
 #include "base/application.hpp"
 #include <fstream>
-#include <boost/foreach.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/exception/errinfo_api_function.hpp>
@@ -181,7 +180,7 @@ void ConfigObject::ModifyAttribute(const String& attr, const Value& value, bool 
 			if (oldValue.IsObjectType<Dictionary>()) {
 				Dictionary::Ptr oldDict = oldValue;
 				ObjectLock olock(oldDict);
-				BOOST_FOREACH(const Dictionary::Pair& kv, oldDict) {
+				for (const auto& kv : oldDict) {
 					String key = prefix + "." + kv.first;
 					if (!original_attributes->Contains(key))
 						original_attributes->Set(key, kv.second);
@@ -191,7 +190,7 @@ void ConfigObject::ModifyAttribute(const String& attr, const Value& value, bool 
 				if (value.IsObjectType<Dictionary>()) {
 					Dictionary::Ptr valueDict = value;
 					ObjectLock olock(valueDict);
-					BOOST_FOREACH(const Dictionary::Pair& kv, valueDict) {
+					for (const auto& kv : valueDict) {
 						String key = attr + "." + kv.first;
 						if (!original_attributes->Contains(key))
 							original_attributes->Set(key, Empty);
@@ -282,7 +281,7 @@ void ConfigObject::RestoreAttribute(const String& attr, bool updateVersion)
 
 		{
 			ObjectLock olock(original_attributes);
-			BOOST_FOREACH(const Dictionary::Pair& kv, original_attributes) {
+			for (const auto& kv : original_attributes) {
 				std::vector<String> originalTokens;
 				boost::algorithm::split(originalTokens, kv.first, boost::is_any_of("."));
 
@@ -325,7 +324,7 @@ void ConfigObject::RestoreAttribute(const String& attr, bool updateVersion)
 			}
 		}
 
-		BOOST_FOREACH(const String& attr, restoredAttrs)
+		for (const String& attr : restoredAttrs)
 			original_attributes->Remove(attr);
 
 
@@ -497,13 +496,13 @@ void ConfigObject::DumpObjects(const String& filename, int attributeTypes)
 
 	StdioStream::Ptr sfp = new StdioStream(&fp, false);
 
-	BOOST_FOREACH(const Type::Ptr& type, Type::GetAllTypes()) {
+	for (const Type::Ptr& type : Type::GetAllTypes()) {
 		ConfigType *dtype = dynamic_cast<ConfigType *>(type.get());
 
 		if (!dtype)
 			continue;
 
-		BOOST_FOREACH(const ConfigObject::Ptr& object, dtype->GetObjects()) {
+		for (const ConfigObject::Ptr& object : dtype->GetObjects()) {
 			Dictionary::Ptr persistentObject = new Dictionary();
 
 			persistentObject->Set("type", type->GetName());
@@ -599,13 +598,13 @@ void ConfigObject::RestoreObjects(const String& filename, int attributeTypes)
 
 	unsigned long no_state = 0;
 
-	BOOST_FOREACH(const Type::Ptr& type, Type::GetAllTypes()) {
+	for (const Type::Ptr& type : Type::GetAllTypes()) {
 		ConfigType *dtype = dynamic_cast<ConfigType *>(type.get());
 
 		if (!dtype)
 			continue;
 
-		BOOST_FOREACH(const ConfigObject::Ptr& object, dtype->GetObjects()) {
+		for (const ConfigObject::Ptr& object : dtype->GetObjects()) {
 			if (!object->GetStateLoaded()) {
 				object->OnStateLoaded();
 				object->SetStateLoaded(true);
@@ -621,13 +620,13 @@ void ConfigObject::RestoreObjects(const String& filename, int attributeTypes)
 
 void ConfigObject::StopObjects(void)
 {
-	BOOST_FOREACH(const Type::Ptr& type, Type::GetAllTypes()) {
+	for (const Type::Ptr& type : Type::GetAllTypes()) {
 		ConfigType *dtype = dynamic_cast<ConfigType *>(type.get());
 
 		if (!dtype)
 			continue;
 
-		BOOST_FOREACH(const ConfigObject::Ptr& object, dtype->GetObjects()) {
+		for (const ConfigObject::Ptr& object : dtype->GetObjects()) {
 			object->Deactivate();
 		}
 	}
@@ -635,20 +634,20 @@ void ConfigObject::StopObjects(void)
 
 void ConfigObject::DumpModifiedAttributes(const boost::function<void(const ConfigObject::Ptr&, const String&, const Value&)>& callback)
 {
-	BOOST_FOREACH(const Type::Ptr& type, Type::GetAllTypes()) {
+	for (const Type::Ptr& type : Type::GetAllTypes()) {
 		ConfigType *dtype = dynamic_cast<ConfigType *>(type.get());
 
 		if (!dtype)
 			continue;
 
-		BOOST_FOREACH(const ConfigObject::Ptr& object, dtype->GetObjects()) {
+		for (const ConfigObject::Ptr& object : dtype->GetObjects()) {
 			Dictionary::Ptr originalAttributes = object->GetOriginalAttributes();
 
 			if (!originalAttributes)
 				continue;
 
 			ObjectLock olock(originalAttributes);
-			BOOST_FOREACH(const Dictionary::Pair& kv, originalAttributes) {
+			for (const Dictionary::Pair& kv : originalAttributes) {
 				String key = kv.first;
 
 				Type::Ptr type = object->GetReflectionType();

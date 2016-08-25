@@ -51,7 +51,7 @@ public:
 		{
 			Dictionary::Ptr globals = ScriptGlobal::GetGlobals();
 			ObjectLock olock(globals);
-			BOOST_FOREACH(const Dictionary::Pair& kv, globals) {
+			for (const Dictionary::Pair& kv : globals) {
 				addTarget(GetTargetForVar(kv.first, kv.second));
 			}
 		}
@@ -104,7 +104,7 @@ bool VariableQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& 
 
 	Array::Ptr results = new Array();
 
-	BOOST_FOREACH(const Dictionary::Ptr& var, objs) {
+	for (const Dictionary::Ptr& var : objs) {
 		Dictionary::Ptr result1 = new Dictionary();
 		results->Add(result1);
 

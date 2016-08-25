@@ -19,7 +19,6 @@
 
 #include "base/configwriter.hpp"
 #include "base/exception.hpp"
-#include <boost/foreach.hpp>
 #include <boost/regex.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/split.hpp>
@@ -63,7 +62,7 @@ void ConfigWriter::EmitArrayItems(std::ostream& fp, int indentLevel, const Array
 	bool first = true;
 
 	ObjectLock olock(val);
-	BOOST_FOREACH(const Value& item, val) {
+	for (const Value& item : val) {
 		if (first)
 			first = false;
 		else
@@ -80,7 +79,7 @@ void ConfigWriter::EmitScope(std::ostream& fp, int indentLevel, const Dictionary
 
 	if (imports && imports->GetLength() > 0) {
 		ObjectLock xlock(imports);
-		BOOST_FOREACH(const Value& import, imports) {
+		for (const Value& import : imports) {
 			fp << "\n";
 			EmitIndent(fp, indentLevel);
 			fp << "import \"" << import << "\"";
@@ -91,7 +90,7 @@ void ConfigWriter::EmitScope(std::ostream& fp, int indentLevel, const Dictionary
 
 	if (val) {
 		ObjectLock olock(val);
-		BOOST_FOREACH(const Dictionary::Pair& kv, val) {
+		for (const Dictionary::Pair& kv : val) {
 			fp << "\n";
 			EmitIndent(fp, indentLevel);
 

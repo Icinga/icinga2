@@ -37,7 +37,6 @@
 #include "base/function.hpp"
 #include <sstream>
 #include <fstream>
-#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -409,8 +408,8 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 	{
 		boost::mutex::scoped_lock lock(m_Mutex);
 
-		BOOST_FOREACH(const TypeMap::value_type& kv, m_Items) {
-			BOOST_FOREACH(const ItemMap::value_type& kv2, kv.second) {
+		for (const TypeMap::value_type& kv : m_Items) {
+			for (const ItemMap::value_type& kv2 : kv.second) {
 				if (kv2.second->m_Abstract || kv2.second->m_Object)
 					continue;
 
@@ -423,7 +422,7 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 
 		ItemList newUnnamedItems;
 
-		BOOST_FOREACH(const ConfigItem::Ptr& item, m_UnnamedItems) {
+		for (const ConfigItem::Ptr& item : m_UnnamedItems) {
 			if (item->m_ActivationContext != context) {
 				newUnnamedItems.push_back(item);
 				continue;
@@ -441,7 +440,7 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 	if (items.empty())
 		return true;
 
-	BOOST_FOREACH(const ItemPair& ip, items) {
+	for (const ItemPair& ip : items) {
 		newItems.push_back(ip.first);
 		upq.Enqueue(boost::bind(&ConfigItem::Commit, ip.first, ip.second));
 	}
@@ -453,7 +452,7 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 
 	std::set<String> types;
 
-	BOOST_FOREACH(const Type::Ptr& type, Type::GetAllTypes()) {
+	for (const Type::Ptr& type : Type::GetAllTypes()) {
 		if (ConfigObject::TypeInstance->IsAssignableFrom(type))
 			types.insert(type->GetName());
 	}
@@ -461,7 +460,7 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 	std::set<String> completed_types;
 
 	while (types.size() != completed_types.size()) {
-		BOOST_FOREACH(const String& type, types) {
+		for (const String& type : types) {
 			if (completed_types.find(type) != completed_types.end())
 				continue;
 
@@ -469,7 +468,7 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 			bool unresolved_dep = false;
 
 			/* skip this type (for now) if there are unresolved load dependencies */
-			BOOST_FOREACH(const String& loadDep, ptype->GetLoadDependencies()) {
+			for (const String& loadDep : ptype->GetLoadDependencies()) {
 				if (types.find(loadDep) != types.end() && completed_types.find(loadDep) == completed_types.end()) {
 					unresolved_dep = true;
 					break;
@@ -479,7 +478,7 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 			if (unresolved_dep)
 				continue;
 
-			BOOST_FOREACH(const ItemPair& ip, items) {
+			for (const ItemPair& ip : items) {
 				const ConfigItem::Ptr& item = ip.first;
 
 				if (!item->m_Object)
@@ -496,8 +495,8 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 			if (upq.HasExceptions())
 				return false;
 
-			BOOST_FOREACH(const String& loadDep, ptype->GetLoadDependencies()) {
-				BOOST_FOREACH(const ItemPair& ip, items) {
+			for (const String& loadDep : ptype->GetLoadDependencies()) {
+				for (const ItemPair& ip : items) {
 					const ConfigItem::Ptr& item = ip.first;
 
 					if (!item->m_Object)
@@ -529,7 +528,7 @@ bool ConfigItem::CommitItems(const ActivationContext::Ptr& context, WorkQueue& u
 	if (!CommitNewItems(context, upq, newItems)) {
 		upq.ReportExceptions("config");
 
-		BOOST_FOREACH(const ConfigItem::Ptr& item, newItems) {
+		for (const ConfigItem::Ptr& item : newItems) {
 			item->Unregister();
 		}
 
@@ -542,14 +541,14 @@ bool ConfigItem::CommitItems(const ActivationContext::Ptr& context, WorkQueue& u
 		/* log stats for external parsers */
 		typedef std::map<Type::Ptr, int> ItemCountMap;
 		ItemCountMap itemCounts;
-		BOOST_FOREACH(const ConfigItem::Ptr& item, newItems) {
+		for (const ConfigItem::Ptr& item : newItems) {
 			if (!item->m_Object)
 				continue;
 
 			itemCounts[item->m_Object->GetReflectionType()]++;
 		}
 
-		BOOST_FOREACH(const ItemCountMap::value_type& kv, itemCounts) {
+		for (const ItemCountMap::value_type& kv : itemCounts) {
 			Log(LogInformation, "ConfigItem")
 			    << "Instantiated " << kv.second << " " << (kv.second != 1 ? kv.first->GetPluralName() : kv.first->GetName()) << ".";
 		}
@@ -566,7 +565,7 @@ bool ConfigItem::ActivateItems(WorkQueue& upq, const std::vector<ConfigItem::Ptr
 	if (!silent)
 		Log(LogInformation, "ConfigItem", "Triggering Start signal for config items");
 
-	BOOST_FOREACH(const ConfigItem::Ptr& item, newItems) {
+	for (const ConfigItem::Ptr& item : newItems) {
 		if (!item->m_Object)
 			continue;
 
@@ -590,7 +589,7 @@ bool ConfigItem::ActivateItems(WorkQueue& upq, const std::vector<ConfigItem::Ptr
 	}
 
 #ifdef I2_DEBUG
-	BOOST_FOREACH(const ConfigItem::Ptr& item, newItems) {
+	for (const ConfigItem::Ptr& item : newItems) {
 		ConfigObject::Ptr object = item->m_Object;
 
 		if (!object)
@@ -640,7 +639,7 @@ std::vector<ConfigItem::Ptr> ConfigItem::GetItems(const String& type)
 	if (it == m_Items.end())
 		return items;
 
-	BOOST_FOREACH(const ItemMap::value_type& kv, it->second)
+	for (const ItemMap::value_type& kv : it->second)
 	{
 		items.push_back(kv.second);
 	}
@@ -652,7 +651,7 @@ void ConfigItem::RemoveIgnoredItems(const String& allowedConfigPath)
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
 
-	BOOST_FOREACH(const String& path, m_IgnoredItems) {
+	for (const String& path : m_IgnoredItems) {
 		if (path.Find(allowedConfigPath) == String::NPos)
 			continue;
 

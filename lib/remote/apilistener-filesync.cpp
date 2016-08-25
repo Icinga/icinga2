@@ -24,7 +24,6 @@
 #include "base/logger.hpp"
 #include "base/convert.hpp"
 #include "base/exception.hpp"
-#include <boost/foreach.hpp>
 #include <fstream>
 #include <iomanip>
 
@@ -104,7 +103,7 @@ bool ApiListener::UpdateConfigDir(const ConfigDirInformation& oldConfigInfo, con
 
 	{
 		ObjectLock olock(newConfig);
-		BOOST_FOREACH(const Dictionary::Pair& kv, newConfig) {
+		for (const Dictionary::Pair& kv : newConfig) {
 			if (oldConfig->Get(kv.first) != kv.second) {
 				if (!Utility::Match("*/.timestamp", kv.first))
 					configChange = true;
@@ -123,7 +122,7 @@ bool ApiListener::UpdateConfigDir(const ConfigDirInformation& oldConfigInfo, con
 	}
 
 	ObjectLock xlock(oldConfig);
-	BOOST_FOREACH(const Dictionary::Pair& kv, oldConfig) {
+	for (const Dictionary::Pair& kv : oldConfig) {
 		if (!newConfig->Contains(kv.first)) {
 			configChange = true;
 
@@ -156,19 +155,19 @@ void ApiListener::SyncZoneDir(const Zone::Ptr& zone) const
 	newConfigInfo.UpdateV1 = new Dictionary();
 	newConfigInfo.UpdateV2 = new Dictionary();
 
-	BOOST_FOREACH(const ZoneFragment& zf, ConfigCompiler::GetZoneDirs(zone->GetName())) {
+	for (const ZoneFragment& zf : ConfigCompiler::GetZoneDirs(zone->GetName())) {
 		ConfigDirInformation newConfigPart = LoadConfigDir(zf.Path);
 
 		{
 			ObjectLock olock(newConfigPart.UpdateV1);
-			BOOST_FOREACH(const Dictionary::Pair& kv, newConfigPart.UpdateV1) {
+			for (const Dictionary::Pair& kv : newConfigPart.UpdateV1) {
 				newConfigInfo.UpdateV1->Set("/" + zf.Tag + kv.first, kv.second);
 			}
 		}
 
 		{
 			ObjectLock olock(newConfigPart.UpdateV2);
-			BOOST_FOREACH(const Dictionary::Pair& kv, newConfigPart.UpdateV2) {
+			for (const Dictionary::Pair& kv : newConfigPart.UpdateV2) {
 				newConfigInfo.UpdateV2->Set("/" + zf.Tag + kv.first, kv.second);
 			}
 		}
@@ -193,7 +192,7 @@ void ApiListener::SyncZoneDir(const Zone::Ptr& zone) const
 
 void ApiListener::SyncZoneDirs(void) const
 {
-	BOOST_FOREACH(const Zone::Ptr& zone, ConfigType::GetObjectsByType<Zone>()) {
+	for (const Zone::Ptr& zone : ConfigType::GetObjectsByType<Zone>()) {
 		try {
 			SyncZoneDir(zone);
 		} catch (const std::exception&) {
@@ -219,7 +218,7 @@ void ApiListener::SendConfigUpdate(const JsonRpcConnection::Ptr& aclient)
 
 	String zonesDir = Application::GetLocalStateDir() + "/lib/icinga2/api/zones";
 
-	BOOST_FOREACH(const Zone::Ptr& zone, ConfigType::GetObjectsByType<Zone>()) {
+	for (const Zone::Ptr& zone : ConfigType::GetObjectsByType<Zone>()) {
 		String zoneDir = zonesDir + "/" + zone->GetName();
 
 		if (!zone->IsChildOf(azone) && !zone->IsGlobal())
@@ -273,7 +272,7 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 	bool configChange = false;
 
 	ObjectLock olock(updateV1);
-	BOOST_FOREACH(const Dictionary::Pair& kv, updateV1) {
+	for (const Dictionary::Pair& kv : updateV1) {
 		Zone::Ptr zone = Zone::GetByName(kv.first);
 
 		if (!zone) {

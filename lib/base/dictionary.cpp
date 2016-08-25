@@ -22,7 +22,6 @@
 #include "base/debug.hpp"
 #include "base/primitivetype.hpp"
 #include "base/configwriter.hpp"
-#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -137,7 +136,7 @@ void Dictionary::CopyTo(const Dictionary::Ptr& dest) const
 {
 	ObjectLock olock(this);
 
-	BOOST_FOREACH(const Dictionary::Pair& kv, m_Data) {
+	for (const Dictionary::Pair& kv : m_Data) {
 		dest->Set(kv.first, kv.second);
 	}
 }
@@ -165,7 +164,7 @@ Object::Ptr Dictionary::Clone(void) const
 	Dictionary::Ptr dict = new Dictionary();
 
 	ObjectLock olock(this);
-	BOOST_FOREACH(const Dictionary::Pair& kv, m_Data) {
+	for (const Dictionary::Pair& kv : m_Data) {
 		dict->Set(kv.first, kv.second.Clone());
 	}
 
@@ -184,7 +183,7 @@ std::vector<String> Dictionary::GetKeys(void) const
 
 	std::vector<String> keys;
 
-	BOOST_FOREACH(const Dictionary::Pair& kv, m_Data) {
+	for (const Dictionary::Pair& kv : m_Data) {
 		keys.push_back(kv.first);
 	}
 

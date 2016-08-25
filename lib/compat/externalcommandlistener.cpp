@@ -36,7 +36,7 @@ void ExternalCommandListener::StatsFunc(const Dictionary::Ptr& status, const Arr
 {
 	Dictionary::Ptr nodes = new Dictionary();
 
-	BOOST_FOREACH(const ExternalCommandListener::Ptr& externalcommandlistener, ConfigType::GetObjectsByType<ExternalCommandListener>()) {
+	for (const ExternalCommandListener::Ptr& externalcommandlistener : ConfigType::GetObjectsByType<ExternalCommandListener>()) {
 		nodes->Set(externalcommandlistener->GetName(), 1); //add more stats
 	}
 

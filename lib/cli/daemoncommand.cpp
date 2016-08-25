@@ -35,7 +35,6 @@
 #include "config.h"
 #include <boost/program_options.hpp>
 #include <boost/tuple/tuple.hpp>
-#include <boost/foreach.hpp>
 #include <iostream>
 #include <fstream>
 

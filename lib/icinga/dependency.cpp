@@ -22,7 +22,6 @@
 #include "icinga/service.hpp"
 #include "base/logger.hpp"
 #include "base/exception.hpp"
-#include <boost/foreach.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
 

@@ -21,7 +21,6 @@
 #include "base/debug.hpp"
 #include "base/utility.hpp"
 #include <boost/bind.hpp>
-#include <boost/foreach.hpp>
 #include <boost/thread/thread.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition_variable.hpp>
@@ -223,7 +222,7 @@ void Timer::AdjustTimers(double adjustment)
 
 	std::vector<Timer *> timers;
 
-	BOOST_FOREACH(Timer *timer, idx) {
+	for (Timer *timer : idx) {
 		if (std::fabs(now - (timer->m_Next + adjustment)) <
 		    std::fabs(now - timer->m_Next)) {
 			timer->m_Next += adjustment;
@@ -231,7 +230,7 @@ void Timer::AdjustTimers(double adjustment)
 		}
 	}
 
-	BOOST_FOREACH(Timer *timer, timers) {
+	for (Timer *timer : timers) {
 		l_Timers.erase(timer);
 		l_Timers.insert(timer);
 	}

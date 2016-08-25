@@ -25,7 +25,6 @@
 #include "base/configtype.hpp"
 #include "base/utility.hpp"
 #include "base/timer.hpp"
-#include <boost/foreach.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
 
@@ -255,7 +254,7 @@ String Downtime::AddDowntime(const Checkable::Ptr& checkable, const String& auth
 
 	if (!ConfigObjectUtility::CreateObject(Downtime::TypeInstance, fullName, config, errors)) {
 		ObjectLock olock(errors);
-		BOOST_FOREACH(const String& error, errors) {
+		for (const String& error : errors) {
 			Log(LogCritical, "Downtime", error);
 		}
 
@@ -307,7 +306,7 @@ void Downtime::RemoveDowntime(const String& id, bool cancelled, bool expired, co
 
 	if (!ConfigObjectUtility::DeleteObject(downtime, false, errors)) {
 		ObjectLock olock(errors);
-		BOOST_FOREACH(const String& error, errors) {
+		for (const String& error : errors) {
 			Log(LogCritical, "Downtime", error);
 		}
 
@@ -347,7 +346,7 @@ void Downtime::TriggerDowntime(void)
 
 	{
 		ObjectLock olock(triggers);
-		BOOST_FOREACH(const String& triggerName, triggers) {
+		for (const String& triggerName : triggers) {
 			Downtime::Ptr downtime = Downtime::GetByName(triggerName);
 
 			if (!downtime)
@@ -376,11 +375,11 @@ void Downtime::DowntimesExpireTimerHandler(void)
 {
 	std::vector<Downtime::Ptr> downtimes;
 
-	BOOST_FOREACH(const Downtime::Ptr& downtime, ConfigType::GetObjectsByType<Downtime>()) {
+	for (const Downtime::Ptr& downtime : ConfigType::GetObjectsByType<Downtime>()) {
 		downtimes.push_back(downtime);
 	}
 
-	BOOST_FOREACH(const Downtime::Ptr& downtime, downtimes) {
+	for (const Downtime::Ptr& downtime : downtimes) {
 		/* Only remove downtimes which are activated after daemon start. */
 		if (downtime->IsActive() && (downtime->IsExpired() || !downtime->HasValidConfigOwner()))
 			RemoveDowntime(downtime->GetName(), false, true);

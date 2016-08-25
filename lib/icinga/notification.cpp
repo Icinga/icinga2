@@ -29,7 +29,6 @@
 #include "base/exception.hpp"
 #include "base/initialize.hpp"
 #include "base/scriptglobal.hpp"
-#include <boost/foreach.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
 
@@ -185,7 +184,7 @@ std::set<User::Ptr> Notification::GetUsers(void) const
 	if (users) {
 		ObjectLock olock(users);
 
-		BOOST_FOREACH(const String& name, users) {
+		for (const String& name : users) {
 			User::Ptr user = User::GetByName(name);
 
 			if (!user)
@@ -207,7 +206,7 @@ std::set<UserGroup::Ptr> Notification::GetUserGroups(void) const
 	if (groups) {
 		ObjectLock olock(groups);
 
-		BOOST_FOREACH(const String& name, groups) {
+		for (const String& name : groups) {
 			UserGroup::Ptr ug = UserGroup::GetByName(name);
 
 			if (!ug)
@@ -381,7 +380,7 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 	std::set<User::Ptr> users = GetUsers();
 	std::copy(users.begin(), users.end(), std::inserter(allUsers, allUsers.begin()));
 
-	BOOST_FOREACH(const UserGroup::Ptr& ug, GetUserGroups()) {
+	for (const UserGroup::Ptr& ug : GetUserGroups()) {
 		std::set<User::Ptr> members = ug->GetMembers();
 		std::copy(members.begin(), members.end(), std::inserter(allUsers, allUsers.begin()));
 	}
@@ -389,7 +388,7 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 	std::set<User::Ptr> allNotifiedUsers;
 	Array::Ptr notifiedUsers = GetNotifiedUsers();
 
-	BOOST_FOREACH(const User::Ptr& user, allUsers) {
+	for (const User::Ptr& user : allUsers) {
 		String userName = user->GetName();
 
 		if (!user->GetEnableNotifications()) {
@@ -566,7 +565,7 @@ String Notification::NotificationFilterToString(int filter, const std::map<Strin
 	std::vector<String> sFilters;
 
 	typedef std::pair<String, int> kv_pair;
-	BOOST_FOREACH(const kv_pair& kv, filterMap) {
+	for (const kv_pair& kv : filterMap) {
 		if (filter & kv.second)
 			sFilters.push_back(kv.first);
 	}

@@ -26,7 +26,6 @@
 #include "base/logger.hpp"
 #include "base/context.hpp"
 #include "base/workqueue.hpp"
-#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -69,7 +68,7 @@ void ServiceGroup::EvaluateObjectRules(const Service::Ptr& service)
 {
 	CONTEXT("Evaluating group membership for service '" + service->GetName() + "'");
 
-	BOOST_FOREACH(const ConfigItem::Ptr& group, ConfigItem::GetItems("ServiceGroup"))
+	for (const ConfigItem::Ptr& group : ConfigItem::GetItems("ServiceGroup"))
 	{
 		if (!group->GetFilter())
 			continue;
@@ -113,7 +112,7 @@ bool ServiceGroup::ResolveGroupMembership(const Service::Ptr& service, bool add,
 	if (groups && groups->GetLength() > 0) {
 		ObjectLock olock(groups);
 
-		BOOST_FOREACH(const String& name, groups) {
+		for (const String& name : groups) {
 			ServiceGroup::Ptr group = ServiceGroup::GetByName(name);
 
 			if (group && !group->ResolveGroupMembership(service, add, rstack + 1))

@@ -24,7 +24,6 @@
 #include "base/configtype.hpp"
 #include "base/logger.hpp"
 #include "base/utility.hpp"
-#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -44,8 +43,8 @@ INITIALIZE_ONCE(StartHeartbeatTimer);
 
 void JsonRpcConnection::HeartbeatTimerHandler(void)
 {
-	BOOST_FOREACH(const Endpoint::Ptr& endpoint, ConfigType::GetObjectsByType<Endpoint>()) {
-		BOOST_FOREACH(const JsonRpcConnection::Ptr& client, endpoint->GetClients()) {
+	for (const Endpoint::Ptr& endpoint : ConfigType::GetObjectsByType<Endpoint>()) {
+		for (const JsonRpcConnection::Ptr& client : endpoint->GetClients()) {
 			if (client->m_NextHeartbeat != 0 && client->m_NextHeartbeat < Utility::GetTime()) {
 				Log(LogWarning, "JsonRpcConnection")
 				    << "Client for endpoint '" << endpoint->GetName() << "' has requested "

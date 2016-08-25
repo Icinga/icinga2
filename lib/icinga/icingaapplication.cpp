@@ -66,7 +66,7 @@ void IcingaApplication::StatsFunc(const Dictionary::Ptr& status, const Array::Pt
 {
 	Dictionary::Ptr nodes = new Dictionary();
 
-	BOOST_FOREACH(const IcingaApplication::Ptr& icingaapplication, ConfigType::GetObjectsByType<IcingaApplication>()) {
+	for (const IcingaApplication::Ptr& icingaapplication : ConfigType::GetObjectsByType<IcingaApplication>()) {
 		Dictionary::Ptr stats = new Dictionary();
 		stats->Set("node_name", icingaapplication->GetNodeName());
 		stats->Set("enable_notifications", icingaapplication->GetEnableNotifications());

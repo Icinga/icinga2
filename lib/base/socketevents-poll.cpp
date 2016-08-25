@@ -21,7 +21,6 @@
 #include "base/exception.hpp"
 #include "base/logger.hpp"
 #include <boost/thread/once.hpp>
-#include <boost/foreach.hpp>
 #include <map>
 
 using namespace icinga;
@@ -54,7 +53,7 @@ void SocketEventEnginePoll::ThreadProc(int tid)
 
 				typedef std::map<SOCKET, SocketEventDescriptor>::value_type kv_pair;
 
-				BOOST_FOREACH(const kv_pair& desc, m_Sockets[tid]) {
+				for (const kv_pair& desc : m_Sockets[tid]) {
 					if (desc.second.Events == 0)
 						continue;
 
@@ -113,7 +112,7 @@ void SocketEventEnginePoll::ThreadProc(int tid)
 			}
 		}
 
-		BOOST_FOREACH(const EventDescription& event, events) {
+		for (const EventDescription& event : events) {
 			try {
 				event.Descriptor.EventInterface->OnEvent(event.REvents);
 			} catch (const std::exception& ex) {

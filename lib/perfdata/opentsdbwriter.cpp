@@ -37,7 +37,6 @@
 #include "base/statsfunction.hpp"
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/classification.hpp>
-#include <boost/foreach.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/replace.hpp>
 
@@ -51,7 +50,7 @@ void OpenTsdbWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 {
 	Dictionary::Ptr nodes = new Dictionary();
 
-	BOOST_FOREACH(const OpenTsdbWriter::Ptr& opentsdbwriter, ConfigType::GetObjectsByType<OpenTsdbWriter>()) {
+	for (const OpenTsdbWriter::Ptr& opentsdbwriter : ConfigType::GetObjectsByType<OpenTsdbWriter>()) {
 		nodes->Set(opentsdbwriter->GetName(), 1); //add more stats
 	}
 
@@ -158,7 +157,7 @@ void OpenTsdbWriter::SendPerfdata(const String& metric, const std::map<String, S
 		return;
 
 	ObjectLock olock(perfdata);
-	BOOST_FOREACH(const Value& val, perfdata) {
+	for (const Value& val : perfdata) {
 		PerfdataValue::Ptr pdv;
 
 		if (val.IsObjectType<PerfdataValue>())
@@ -192,7 +191,7 @@ void OpenTsdbWriter::SendPerfdata(const String& metric, const std::map<String, S
 void OpenTsdbWriter::SendMetric(const String& metric, const std::map<String, String>& tags, double value, double ts)
 {
 	String tags_string = "";
-	BOOST_FOREACH(const Dictionary::Pair& tag, tags) {
+	for (const Dictionary::Pair& tag : tags) {
 		tags_string += " " + tag.first + "=" + Convert::ToString(tag.second);
 	}
 

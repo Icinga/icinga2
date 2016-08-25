@@ -42,7 +42,6 @@
 #include "base/timer.hpp"
 #include "base/initialize.hpp"
 #include <boost/algorithm/string/classification.hpp>
-#include <boost/foreach.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/join.hpp>
@@ -64,7 +63,7 @@ LivestatusQuery::LivestatusQuery(const std::vector<String>& lines, const String&
 	}
 
 	String msg;
-	BOOST_FOREACH(const String& line, lines) {
+	for (const String& line : lines) {
 		msg += line + "\n";
 	}
 	Log(LogDebug, "LivestatusQuery", msg);
@@ -272,7 +271,7 @@ LivestatusQuery::LivestatusQuery(const std::vector<String>& lines, const String&
 	/* Combine all top-level filters into a single filter. */
 	AndFilter::Ptr top_filter = new AndFilter();
 
-	BOOST_FOREACH(const Filter::Ptr& filter, filters) {
+	for (const Filter::Ptr& filter : filters) {
 		top_filter->AddSubFilter(filter);
 	}
 
@@ -380,7 +379,7 @@ void LivestatusQuery::AppendResultRow(std::ostream& fp, const Array::Ptr& row, b
 		bool first = true;
 
 		ObjectLock rlock(row);
-		BOOST_FOREACH(const Value& value, row) {
+		for (const Value& value : row) {
 			if (first)
 				first = false;
 			else
@@ -413,7 +412,7 @@ void LivestatusQuery::PrintCsvArray(std::ostream& fp, const Array::Ptr& array, i
 	bool first = true;
 
 	ObjectLock olock(array);
-	BOOST_FOREACH(const Value& value, array) {
+	for (const Value& value : array) {
 		if (first)
 			first = false;
 		else
@@ -434,7 +433,7 @@ void LivestatusQuery::PrintPythonArray(std::ostream& fp, const Array::Ptr& rs) c
 
 	bool first = true;
 
-	BOOST_FOREACH(const Value& value, rs) {
+	for (const Value& value : rs) {
 		if (first)
 			first = false;
 		else
@@ -490,15 +489,15 @@ void LivestatusQuery::ExecuteGetHelper(const Stream::Ptr& stream)
 		std::vector<ColumnPair> column_objs;
 		column_objs.reserve(columns.size());
 
-		BOOST_FOREACH(const String& columnName, columns)
+		for (const String& columnName : columns)
 			column_objs.push_back(std::make_pair(columnName, table->GetColumn(columnName)));
 
-		BOOST_FOREACH(const LivestatusRowValue& object, objects) {
+		for (const LivestatusRowValue& object : objects) {
 			Array::Ptr row = new Array();
 
 			row->Reserve(column_objs.size());
 
-			BOOST_FOREACH(const ColumnPair& cv, column_objs) {
+			for (const ColumnPair& cv : column_objs) {
 				if (m_ColumnHeaders)
 					header->Add(cv.first);
 
@@ -517,8 +516,8 @@ void LivestatusQuery::ExecuteGetHelper(const Stream::Ptr& stream)
 		int index = 0;
 
 		/* add aggregated stats */
-		BOOST_FOREACH(const Aggregator::Ptr aggregator, m_Aggregators) {
-			BOOST_FOREACH(const LivestatusRowValue& object, objects) {
+		for (const Aggregator::Ptr aggregator : m_Aggregators) {
+			for (const LivestatusRowValue& object : objects) {
 				aggregator->Apply(table, object.Row);
 			}
 
@@ -530,7 +529,7 @@ void LivestatusQuery::ExecuteGetHelper(const Stream::Ptr& stream)
 		if (m_ColumnHeaders) {
 			Array::Ptr header = new Array();
 
-			BOOST_FOREACH(const String& columnName, m_Columns) {
+			for (const String& columnName : m_Columns) {
 				header->Add(columnName);
 			}
 
@@ -550,7 +549,7 @@ void LivestatusQuery::ExecuteGetHelper(const Stream::Ptr& stream)
 		 * may not be accurate for grouping!
 		 */
 		if (objects.size() > 0 && m_Columns.size() > 0) {
-			BOOST_FOREACH(const String& columnName, m_Columns) {
+			for (const String& columnName : m_Columns) {
 				Column column = table->GetColumn(columnName);
 
 				LivestatusRowValue object = objects[0]; //first object wins

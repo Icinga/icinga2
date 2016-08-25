@@ -22,7 +22,6 @@
 #include "base/logger.hpp"
 #include "base/convert.hpp"
 #include "base/console.hpp"
-#include <boost/foreach.hpp>
 #include <boost/algorithm/string/join.hpp>
 #include <iostream>
 

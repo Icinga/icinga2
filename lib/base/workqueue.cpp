@@ -24,7 +24,6 @@
 #include "base/application.hpp"
 #include "base/exception.hpp"
 #include <boost/bind.hpp>
-#include <boost/foreach.hpp>
 #include <boost/thread/tss.hpp>
 
 using namespace icinga;
@@ -173,7 +172,7 @@ void WorkQueue::ReportExceptions(const String& facility) const
 {
 	std::vector<boost::exception_ptr> exceptions = GetExceptions();
 
-	BOOST_FOREACH(const boost::exception_ptr& eptr, exceptions) {
+	for (const auto& eptr : exceptions) {
 		Log(LogCritical, facility)
 		    << DiagnosticInformation(eptr);
 	}

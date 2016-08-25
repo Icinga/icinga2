@@ -31,7 +31,6 @@
 #include "base/convert.hpp"
 #include "base/utility.hpp"
 #include "base/context.hpp"
-#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -240,7 +239,7 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 		}
 
 		/* reschedule direct parents */
-		BOOST_FOREACH(const Checkable::Ptr& parent, GetParents()) {
+		for (const Checkable::Ptr& parent : GetParents()) {
 			if (parent.get() == this)
 				continue;
 

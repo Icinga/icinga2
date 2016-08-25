@@ -38,7 +38,6 @@
 #include "base/dictionary.hpp"
 #include <boost/algorithm/string/case_conv.hpp>
 #include <boost/tuple/tuple.hpp>
-#include <boost/foreach.hpp>
 #include <boost/bind.hpp>
 
 using namespace icinga;
@@ -119,9 +118,8 @@ std::vector<String> Table::GetColumnNames(void) const
 {
 	std::vector<String> names;
 
-	String name;
-	BOOST_FOREACH(boost::tie(name, boost::tuples::ignore), m_Columns) {
-		names.push_back(name);
+	for (const auto& kv : m_Columns) {
+		names.push_back(kv.first);
 	}
 
 	return names;

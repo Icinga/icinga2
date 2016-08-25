@@ -32,7 +32,6 @@
 #include "base/exception.hpp"
 #include <sstream>
 #include <stack>
-#include <boost/foreach.hpp>
 
 #define YYLTYPE icinga::CompilerDebugInfo
 #define YYERROR_VERBOSE
@@ -280,9 +279,8 @@ Expression *ConfigCompiler::Compile(void)
 	m_IgnoreNewlines.pop();
 
 	std::vector<Expression *> dlist;
-	typedef std::pair<Expression *, EItemInfo> EListItem;
 	std::vector<std::pair<Expression *, EItemInfo> >::size_type num = 0;
-	BOOST_FOREACH(const EListItem& litem, llist) {
+	for (const auto& litem : llist) {
 		if (!litem.second.SideEffect && num != llist.size() - 1) {
 			yyerror(&litem.second.DebugInfo, NULL, NULL, "Value computed is not used.");
 		}
@@ -732,7 +730,7 @@ rterm_dict: '{'
 		std::vector<Expression *> dlist;
 		typedef std::pair<Expression *, EItemInfo> EListItem;
 		int num = 0;
-		BOOST_FOREACH(const EListItem& litem, *$3) {
+		for (const EListItem& litem : *$3) {
 			if (!litem.second.SideEffect)
 				yyerror(&litem.second.DebugInfo, NULL, NULL, "Value computed is not used.");
 			dlist.push_back(litem.first);
@@ -755,7 +753,7 @@ rterm_scope_require_side_effect: '{'
 		std::vector<Expression *> dlist;
 		typedef std::pair<Expression *, EItemInfo> EListItem;
 		int num = 0;
-		BOOST_FOREACH(const EListItem& litem, *$3) {
+		for (const EListItem& litem : *$3) {
 			if (!litem.second.SideEffect)
 				yyerror(&litem.second.DebugInfo, NULL, NULL, "Value computed is not used.");
 			dlist.push_back(litem.first);
@@ -779,7 +777,7 @@ rterm_scope: '{'
 		std::vector<Expression *> dlist;
 		typedef std::pair<Expression *, EItemInfo> EListItem;
 		std::vector<std::pair<Expression *, EItemInfo> >::size_type num = 0;
-		BOOST_FOREACH(const EListItem& litem, *$3) {
+		for (const EListItem& litem : *$3) {
 			if (!litem.second.SideEffect && num != $3->size() - 1)
 				yyerror(&litem.second.DebugInfo, NULL, NULL, "Value computed is not used.");
 			dlist.push_back(litem.first);
@@ -1007,7 +1005,7 @@ rterm_no_side_effect_no_dict: T_STRING
 		std::vector<Expression *> dlist;
 		typedef std::pair<Expression *, EItemInfo> EListItem;
 		std::vector<std::pair<Expression *, EItemInfo> >::size_type num = 0;
-		BOOST_FOREACH(const EListItem& litem, *$3) {
+		for (const EListItem& litem : *$3) {
 			if (!litem.second.SideEffect && num != $3->size() - 1)
 				yyerror(&litem.second.DebugInfo, NULL, NULL, "Value computed is not used.");
 			dlist.push_back(litem.first);

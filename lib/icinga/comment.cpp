@@ -24,7 +24,6 @@
 #include "base/utility.hpp"
 #include "base/configtype.hpp"
 #include "base/timer.hpp"
-#include <boost/foreach.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
 
@@ -187,7 +186,7 @@ String Comment::AddComment(const Checkable::Ptr& checkable, CommentType entryTyp
 
 	if (!ConfigObjectUtility::CreateObject(Comment::TypeInstance, fullName, config, errors)) {
 		ObjectLock olock(errors);
-		BOOST_FOREACH(const String& error, errors) {
+		for (const String& error : errors) {
 			Log(LogCritical, "Comment", error);
 		}
 
@@ -219,7 +218,7 @@ void Comment::RemoveComment(const String& id, const MessageOrigin::Ptr& origin)
 
 	if (!ConfigObjectUtility::DeleteObject(comment, false, errors)) {
 		ObjectLock olock(errors);
-		BOOST_FOREACH(const String& error, errors) {
+		for (const String& error : errors) {
 			Log(LogCritical, "Comment", error);
 		}
 
@@ -243,11 +242,11 @@ void Comment::CommentsExpireTimerHandler(void)
 {
 	std::vector<Comment::Ptr> comments;
 
-	BOOST_FOREACH(const Comment::Ptr& comment, ConfigType::GetObjectsByType<Comment>()) {
+	for (const Comment::Ptr& comment : ConfigType::GetObjectsByType<Comment>()) {
 		comments.push_back(comment);
 	}
 
-	BOOST_FOREACH(const Comment::Ptr& comment, comments) {
+	for (const Comment::Ptr& comment : comments) {
 		/* Only remove comment which are activated after daemon start. */
 		if (comment->IsActive() && comment->IsExpired())
 			RemoveComment(comment->GetName());

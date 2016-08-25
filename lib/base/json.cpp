@@ -23,7 +23,6 @@
 #include "base/array.hpp"
 #include "base/objectlock.hpp"
 #include "base/convert.hpp"
-#include <boost/foreach.hpp>
 #include <boost/exception_ptr.hpp>
 #include <yajl/yajl_version.h>
 #include <yajl/yajl_gen.h>
@@ -45,7 +44,7 @@ static void EncodeDictionary(yajl_gen handle, const Dictionary::Ptr& dict)
 	yajl_gen_map_open(handle);
 
 	ObjectLock olock(dict);
-	BOOST_FOREACH(const Dictionary::Pair& kv, dict) {
+	for (const Dictionary::Pair& kv : dict) {
 		yajl_gen_string(handle, reinterpret_cast<const unsigned char *>(kv.first.CStr()), kv.first.GetLength());
 		Encode(handle, kv.second);
 	}
@@ -58,7 +57,7 @@ static void EncodeArray(yajl_gen handle, const Array::Ptr& arr)
 	yajl_gen_array_open(handle);
 
 	ObjectLock olock(arr);
-	BOOST_FOREACH(const Value& value, arr) {
+	for (const Value& value : arr) {
 		Encode(handle, value);
 	}
 

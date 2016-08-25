@@ -23,7 +23,6 @@
 #include "base/logger.hpp"
 #include "base/exception.hpp"
 #include "base/convert.hpp"
-#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -84,7 +83,7 @@ void ApiClient::TypesHttpCompletionCallback(HttpRequest& request, HttpResponse& 
 		Array::Ptr results = result->Get("results");
 
 		ObjectLock olock(results);
-		BOOST_FOREACH(const Dictionary::Ptr typeInfo, results)
+		for (const Dictionary::Ptr typeInfo : results)
 		{
 			ApiType::Ptr type = new ApiType();;
 			type->Abstract = typeInfo->Get("abstract");
@@ -120,15 +119,15 @@ void ApiClient::GetObjects(const String& pluralType, const ObjectsCompletionCall
 
 	std::map<String, std::vector<String> > params;
 
-	BOOST_FOREACH(const String& name, names) {
+	for (const String& name : names) {
 		params[pluralType.ToLower()].push_back(name);
 	}
 
-	BOOST_FOREACH(const String& attr, attrs) {
+	for (const String& attr : attrs) {
 		params["attrs"].push_back(attr);
 	}
 
-	BOOST_FOREACH(const String& join, joins) {
+	for (const String& join : joins) {
 		params["joins"].push_back(join);
 	}
 
@@ -175,7 +174,7 @@ void ApiClient::ObjectsHttpCompletionCallback(HttpRequest& request,
 
 		if (results) {
 			ObjectLock olock(results);
-			BOOST_FOREACH(const Dictionary::Ptr objectInfo, results) {
+			for (const Dictionary::Ptr objectInfo : results) {
 				ApiObject::Ptr object = new ApiObject();
 
 				object->Name = objectInfo->Get("name");
@@ -185,7 +184,7 @@ void ApiClient::ObjectsHttpCompletionCallback(HttpRequest& request,
 
 				if (attrs) {
 					ObjectLock olock(attrs);
-					BOOST_FOREACH(const Dictionary::Pair& kv, attrs) {
+					for (const Dictionary::Pair& kv : attrs) {
 						object->Attrs[object->Type.ToLower() + "." + kv.first] = kv.second;
 					}
 				}
@@ -194,12 +193,12 @@ void ApiClient::ObjectsHttpCompletionCallback(HttpRequest& request,
 
 				if (joins) {
 					ObjectLock olock(joins);
-					BOOST_FOREACH(const Dictionary::Pair& kv, joins) {
+					for (const Dictionary::Pair& kv : joins) {
 						Dictionary::Ptr attrs = kv.second;
 
 						if (attrs) {
 							ObjectLock olock(attrs);
-							BOOST_FOREACH(const Dictionary::Pair& kv2, attrs) {
+							for (const Dictionary::Pair& kv2 : attrs) {
 								object->Attrs[kv.first + "." + kv2.first] = kv2.second;
 							}
 						}
@@ -210,7 +209,7 @@ void ApiClient::ObjectsHttpCompletionCallback(HttpRequest& request,
 
 				if (used_by) {
 					ObjectLock olock(used_by);
-					BOOST_FOREACH(const Dictionary::Ptr& refInfo, used_by) {
+					for (const Dictionary::Ptr& refInfo : used_by) {
 						ApiObjectReference ref;
 						ref.Name = refInfo->Get("name");
 						ref.Type = refInfo->Get("type");

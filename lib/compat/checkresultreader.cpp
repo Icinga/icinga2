@@ -44,7 +44,7 @@ void CheckResultReader::StatsFunc(const Dictionary::Ptr& status, const Array::Pt
 {
 	Dictionary::Ptr nodes = new Dictionary();
 
-	BOOST_FOREACH(const CheckResultReader::Ptr& checkresultreader, ConfigType::GetObjectsByType<CheckResultReader>()) {
+	for (const CheckResultReader::Ptr& checkresultreader : ConfigType::GetObjectsByType<CheckResultReader>()) {
 		nodes->Set(checkresultreader->GetName(), 1); //add more stats
 	}
 

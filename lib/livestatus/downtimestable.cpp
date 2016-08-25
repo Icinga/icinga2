@@ -24,7 +24,6 @@
 #include "base/configtype.hpp"
 #include "base/objectlock.hpp"
 #include <boost/tuple/tuple.hpp>
-#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -65,7 +64,7 @@ String DowntimesTable::GetPrefix(void) const
 
 void DowntimesTable::FetchRows(const AddRowFunction& addRowFn)
 {
-	BOOST_FOREACH(const Downtime::Ptr& downtime, ConfigType::GetObjectsByType<Downtime>()) {
+	for (const Downtime::Ptr& downtime : ConfigType::GetObjectsByType<Downtime>()) {
 		if (!addRowFn(downtime, LivestatusGroupByNone, Empty))
 			return;
 	}

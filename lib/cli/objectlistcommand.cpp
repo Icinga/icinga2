@@ -30,7 +30,6 @@
 #include "base/debug.hpp"
 #include "base/objectlock.hpp"
 #include "base/console.hpp"
-#include <boost/foreach.hpp>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <fstream>
@@ -129,7 +128,7 @@ void ObjectListCommand::PrintTypeCounts(std::ostream& fp, const std::map<String,
 {
 	typedef std::map<String, int>::value_type TypeCount;
 
-	BOOST_FOREACH(const TypeCount& kv, type_count) {
+	for (const TypeCount& kv : type_count) {
 		fp << "Found " << kv.second << " " << kv.first << " object";
 
 		if (kv.second != 1)

@@ -36,7 +36,7 @@ public:
 	    const boost::function<void (const Value&)>& addTarget) const override
 	{
 		typedef std::pair<String, StatsFunction::Ptr> kv_pair;
-		BOOST_FOREACH(const kv_pair& kv, StatsFunctionRegistry::GetInstance()->GetItems()) {
+		for (const kv_pair& kv : StatsFunctionRegistry::GetInstance()->GetItems()) {
 			addTarget(GetTargetByName("Status", kv.first));
 		}
 	}

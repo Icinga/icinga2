@@ -21,7 +21,6 @@
 #include "base/objectlock.hpp"
 #include "base/json.hpp"
 #include <boost/test/unit_test.hpp>
-#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -114,7 +113,7 @@ BOOST_AUTO_TEST_CASE(foreach)
 
 	int n = 0;
 
-	BOOST_FOREACH(const Value& item, array) {
+	for (const Value& item : array) {
 		BOOST_CHECK(n != 0 || item == 7);
 		BOOST_CHECK(n != 1 || item == 2);
 		BOOST_CHECK(n != 2 || item == 5);

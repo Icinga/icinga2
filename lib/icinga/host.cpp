@@ -28,7 +28,6 @@
 #include "base/utility.hpp"
 #include "base/debug.hpp"
 #include "base/json.hpp"
-#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -56,7 +55,7 @@ void Host::OnAllConfigLoaded(void)
 
 		ObjectLock olock(groups);
 
-		BOOST_FOREACH(const String& name, groups) {
+		for (const String& name : groups) {
 			HostGroup::Ptr hg = HostGroup::GetByName(name);
 
 			if (hg)
@@ -89,7 +88,7 @@ void Host::Stop(bool runtimeRemoved)
 	if (groups) {
 		ObjectLock olock(groups);
 
-		BOOST_FOREACH(const String& name, groups) {
+		for (const String& name : groups) {
 			HostGroup::Ptr hg = HostGroup::GetByName(name);
 
 			if (hg)
@@ -107,7 +106,7 @@ std::vector<Service::Ptr> Host::GetServices(void) const
 	std::vector<Service::Ptr> services;
 	services.reserve(m_Services.size());
 	typedef std::pair<String, Service::Ptr> ServicePair;
-	BOOST_FOREACH(const ServicePair& kv, m_Services) {
+	for (const ServicePair& kv : m_Services) {
 		services.push_back(kv.second);
 	}
 
@@ -274,7 +273,7 @@ bool Host::ResolveMacro(const String& macro, const CheckResult::Ptr&, Value *res
 			else if (macro == "num_services_critical")
 				filter = ServiceCritical;
 
-			BOOST_FOREACH(const Service::Ptr& service, GetServices()) {
+			for (const Service::Ptr& service : GetServices()) {
 				if (filter != -1 && service->GetState() != filter)
 					continue;
 

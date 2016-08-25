@@ -18,7 +18,6 @@
  ******************************************************************************/
 
 #include "livestatus/andfilter.hpp"
-#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -27,7 +26,7 @@ AndFilter::AndFilter(void)
 
 bool AndFilter::Apply(const Table::Ptr& table, const Value& row)
 {
-	BOOST_FOREACH(const Filter::Ptr& filter, m_Filters) {
+	for (const Filter::Ptr& filter : m_Filters) {
 		if (!filter->Apply(table, row))
 			return false;
 	}

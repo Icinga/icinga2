@@ -34,7 +34,6 @@
 #include <boost/algorithm/string/join.hpp>
 #include <boost/circular_buffer.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/foreach.hpp>
 
 #include <fstream>
 #include <iostream>
@@ -325,9 +324,9 @@ bool TroubleshootCommand::CheckFeatures(InfoLog& log)
 		return false;
 	}
 
-	BOOST_FOREACH(const String feature, disabled_features)
+	for (const String feature : disabled_features)
 		features->Set(feature, false);
-	BOOST_FOREACH(const String feature, enabled_features)
+	for (const String feature : enabled_features)
 		features->Set(feature, true);
 
 	InfoLogLine(log)
@@ -518,7 +517,7 @@ void TroubleshootCommand::CheckObjectFile(const String& objectfile, InfoLog& log
 			Dictionary::Ptr properties = object->Get("properties");
 
 			ObjectLock olock(properties);
-			BOOST_FOREACH(const Dictionary::Pair& kv, properties) {
+			for (const Dictionary::Pair& kv : properties) {
 				if (Utility::Match(kv.first, "path"))
 					logs->Set(name, kv.second);
 			}
@@ -540,7 +539,7 @@ void TroubleshootCommand::CheckObjectFile(const String& objectfile, InfoLog& log
 	    << "Found the " << countTotal << " objects:\n"
 	    << "  Type" << std::string(typeL-4, ' ') << " : Count\n";
 
-	BOOST_FOREACH(const Dictionary::Pair& kv, type_count) {
+	for (const Dictionary::Pair& kv : type_count) {
 		InfoLogLine(log)
 		    << "  " << kv.first << std::string(typeL - kv.first.GetLength(), ' ')
 		    << " : " << kv.second << '\n';
@@ -577,7 +576,7 @@ void TroubleshootCommand::PrintLoggers(InfoLog& log, Dictionary::Ptr& logs)
 		     << "Getting the last 20 lines of " << logs->GetLength() << " FileLogger objects.\n";
 
 		ObjectLock ulock(logs);
-		BOOST_FOREACH(const Dictionary::Pair& kv, logs) {
+		for (const Dictionary::Pair& kv : logs) {
 			InfoLogLine(log)
 			     << "Logger " << kv.first << " at path: " << kv.second << '\n';
 

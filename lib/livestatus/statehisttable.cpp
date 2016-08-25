@@ -36,7 +36,6 @@
 #include "base/logger.hpp"
 #include "base/application.hpp"
 #include "base/objectlock.hpp"
-#include <boost/foreach.hpp>
 #include <boost/tuple/tuple.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
@@ -127,7 +126,7 @@ void StateHistTable::UpdateLogEntries(const Dictionary::Ptr& log_entry_attrs, in
 		/* determine service notifications notification_period and compare against current timestamp */
 		bool in_notification_period = true;
 		String notification_period_name;
-		BOOST_FOREACH(const Notification::Ptr& notification, checkable->GetNotifications()) {
+		for (const Notification::Ptr& notification : checkable->GetNotifications()) {
 			TimePeriod::Ptr notification_period = notification->GetPeriod();
 
 			if (notification_period) {
@@ -268,8 +267,8 @@ void StateHistTable::FetchRows(const AddRowFunction& addRowFn)
 
 	Checkable::Ptr checkable;
 
-	BOOST_FOREACH(boost::tie(checkable, boost::tuples::ignore), m_CheckablesCache) {
-		BOOST_FOREACH(const Dictionary::Ptr& state_hist_bag, m_CheckablesCache[checkable]) {
+	for (const auto& kv : m_CheckablesCache) {
+		for (const Dictionary::Ptr& state_hist_bag : kv.second) {
 			/* pass a dictionary from state history array */
 			if (!addRowFn(state_hist_bag, LivestatusGroupByNone, Empty))
 				return;

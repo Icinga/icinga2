@@ -20,7 +20,6 @@
 #include "remote/httputility.hpp"
 #include "base/json.hpp"
 #include "base/logger.hpp"
-#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -47,7 +46,7 @@ Dictionary::Ptr HttpUtility::FetchRequestParameters(HttpRequest& request)
 		result = new Dictionary();
 
 	typedef std::pair<String, std::vector<String> > kv_pair;
-	BOOST_FOREACH(const kv_pair& kv, request.RequestUrl->GetQuery()) {
+	for (const kv_pair& kv : request.RequestUrl->GetQuery()) {
 		result->Set(kv.first, Array::FromVector(kv.second));
 	}
 

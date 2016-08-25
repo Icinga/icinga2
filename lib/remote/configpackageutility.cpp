@@ -22,7 +22,6 @@
 #include "base/exception.hpp"
 #include "base/scriptglobal.hpp"
 #include "base/utility.hpp"
-#include "boost/foreach.hpp"
 #include <boost/algorithm/string.hpp>
 #include <boost/regex.hpp>
 #include <algorithm>
@@ -96,7 +95,7 @@ String ConfigPackageUtility::CreateStage(const String& packageName, const Dictio
 
 	if (files) {
 		ObjectLock olock(files);
-		BOOST_FOREACH(const Dictionary::Pair& kv, files) {
+		for (const Dictionary::Pair& kv : files) {
 			if (ContainsDotDot(kv.first)) {
 				foundDotDot = true;
 				break;
@@ -292,7 +291,7 @@ bool ConfigPackageUtility::ContainsDotDot(const String& path)
 	std::vector<String> tokens;
 	boost::algorithm::split(tokens, path, boost::is_any_of("/\\"));
 
-	BOOST_FOREACH(const String& part, tokens) {
+	for (const String& part : tokens) {
 		if (part == "..")
 			return true;
 	}

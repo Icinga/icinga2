@@ -23,7 +23,6 @@
 #include "remote/url.hpp"
 #include "remote/url-characters.hpp"
 #include <boost/tokenizer.hpp>
-#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -241,7 +240,7 @@ String Url::Format(bool print_credentials) const
 	if (m_Path.empty())
 		url += "/";
 	else {
-		BOOST_FOREACH (const String& segment, m_Path) {
+		for (const String& segment : m_Path) {
 			url += "/";
 			url += Utility::EscapeString(segment, ACPATHSEGMENT_ENCODE, false);
 		}
@@ -251,7 +250,7 @@ String Url::Format(bool print_credentials) const
 	if (!m_Query.empty()) {
 		typedef std::pair<String, std::vector<String> > kv_pair;
 
-		BOOST_FOREACH (const kv_pair& kv, m_Query) {
+		for (const kv_pair& kv : m_Query) {
 			String key = Utility::EscapeString(kv.first, ACQUERY_ENCODE, false);
 			if (param.IsEmpty())
 				param = "?";
@@ -259,7 +258,7 @@ String Url::Format(bool print_credentials) const
 				param += "&";
 
 			String temp;
-			BOOST_FOREACH (const String s, kv.second) {
+			for (const String s : kv.second) {
 				if (!temp.IsEmpty())
 					temp += "&";
 
@@ -344,7 +343,7 @@ bool Url::ParsePath(const String& path)
 	boost::char_separator<char> sep("/");
 	boost::tokenizer<boost::char_separator<char> > tokens(pathStr, sep);
 
-	BOOST_FOREACH(const String& token, tokens) {
+	for (const String& token : tokens) {
 		if (token.IsEmpty())
 			continue;
 
@@ -366,7 +365,7 @@ bool Url::ParseQuery(const String& query)
 	boost::char_separator<char> sep("&");
 	boost::tokenizer<boost::char_separator<char> > tokens(queryStr, sep);
 
-	BOOST_FOREACH(const String& token, tokens) {
+	for (const String& token : tokens) {
 		size_t pHelper = token.Find("=");
 
 		if (pHelper == 0)
@@ -418,8 +417,8 @@ bool Url::ParseFragment(const String& fragment)
 
 bool Url::ValidateToken(const String& token, const String& symbols)
 {
-	BOOST_FOREACH (const char c, token.CStr()) {
-		if (symbols.FindFirstOf(c) == String::NPos)
+	for (const char ch : token) {
+		if (symbols.FindFirstOf(ch) == String::NPos)
 			return false;
 	}
 

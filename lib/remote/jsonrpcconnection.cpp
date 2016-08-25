@@ -329,12 +329,12 @@ void JsonRpcConnection::TimeoutTimerHandler(void)
 {
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 
-	BOOST_FOREACH(const JsonRpcConnection::Ptr& client, listener->GetAnonymousClients()) {
+	for (const JsonRpcConnection::Ptr& client : listener->GetAnonymousClients()) {
 		client->CheckLiveness();
 	}
 
-	BOOST_FOREACH(const Endpoint::Ptr& endpoint, ConfigType::GetObjectsByType<Endpoint>()) {
-		BOOST_FOREACH(const JsonRpcConnection::Ptr& client, endpoint->GetClients()) {
+	for (const Endpoint::Ptr& endpoint : ConfigType::GetObjectsByType<Endpoint>()) {
+		for (const JsonRpcConnection::Ptr& client : endpoint->GetClients()) {
 			client->CheckLiveness();
 		}
 	}

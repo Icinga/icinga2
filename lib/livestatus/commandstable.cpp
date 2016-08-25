@@ -26,7 +26,6 @@
 #include "base/configtype.hpp"
 #include "base/objectlock.hpp"
 #include "base/convert.hpp"
-#include <boost/foreach.hpp>
 #include <boost/algorithm/string/replace.hpp>
 
 using namespace icinga;
@@ -60,17 +59,17 @@ String CommandsTable::GetPrefix(void) const
 
 void CommandsTable::FetchRows(const AddRowFunction& addRowFn)
 {
-	BOOST_FOREACH(const ConfigObject::Ptr& object, ConfigType::GetObjectsByType<CheckCommand>()) {
+	for (const ConfigObject::Ptr& object : ConfigType::GetObjectsByType<CheckCommand>()) {
 		if (!addRowFn(object, LivestatusGroupByNone, Empty))
 			return;
 	}
 
-	BOOST_FOREACH(const ConfigObject::Ptr& object, ConfigType::GetObjectsByType<EventCommand>()) {
+	for (const ConfigObject::Ptr& object : ConfigType::GetObjectsByType<EventCommand>()) {
 		if (!addRowFn(object, LivestatusGroupByNone, Empty))
 			return;
 	}
 
-	BOOST_FOREACH(const ConfigObject::Ptr& object, ConfigType::GetObjectsByType<NotificationCommand>()) {
+	for (const ConfigObject::Ptr& object : ConfigType::GetObjectsByType<NotificationCommand>()) {
 		if (!addRowFn(object, LivestatusGroupByNone, Empty))
 			return;
 	}
@@ -112,12 +111,11 @@ Value CommandsTable::CustomVariableNamesAccessor(const Value& row)
 
 	Array::Ptr cv = new Array();
 
-	String key;
-	Value value;
-
-	ObjectLock xlock(vars);
-	BOOST_FOREACH(tie(key, value), vars) {
-		cv->Add(key);
+	{
+		ObjectLock xlock(vars);
+		for (const auto& kv : vars) {
+			cv->Add(kv.first);
+		}
 	}
 
 	return cv;
@@ -142,12 +140,11 @@ Value CommandsTable::CustomVariableValuesAccessor(const Value& row)
 
 	Array::Ptr cv = new Array();
 
-	String key;
-	Value value;
-
-	ObjectLock xlock(vars);
-	BOOST_FOREACH(tie(key, value), vars) {
-		cv->Add(value);
+	{
+		ObjectLock xlock(vars);
+		for (const auto& kv : vars) {
+			cv->Add(kv.second);
+		}
 	}
 
 	return cv;
@@ -172,15 +169,14 @@ Value CommandsTable::CustomVariablesAccessor(const Value& row)
 
 	Array::Ptr cv = new Array();
 
-	String key;
-	Value value;
-
-	ObjectLock xlock(vars);
-	BOOST_FOREACH(tie(key, value), vars) {
-		Array::Ptr key_val = new Array();
-		key_val->Add(key);
-		key_val->Add(value);
-		cv->Add(key_val);
+	{
+		ObjectLock xlock(vars);
+		for (const auto& kv : vars) {
+			Array::Ptr key_val = new Array();
+			key_val->Add(kv.first);
+			key_val->Add(kv.second);
+			cv->Add(key_val);
+		}
 	}
 
 	return cv;

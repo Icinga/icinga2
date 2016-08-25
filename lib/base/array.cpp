@@ -25,7 +25,6 @@
 #include "base/configwriter.hpp"
 #include "base/convert.hpp"
 #include "base/exception.hpp"
-#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -185,7 +184,7 @@ Object::Ptr Array::Clone(void) const
 	Array::Ptr arr = new Array();
 	
 	ObjectLock olock(this);
-	BOOST_FOREACH(const Value& val, m_Data) {
+	for (const Value& val : m_Data) {
 		arr->Add(val.Clone());
 	}
 	

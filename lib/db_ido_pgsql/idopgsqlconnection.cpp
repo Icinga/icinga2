@@ -32,7 +32,6 @@
 #include "base/context.hpp"
 #include "base/statsfunction.hpp"
 #include <boost/tuple/tuple.hpp>
-#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -57,7 +56,7 @@ void IdoPgsqlConnection::StatsFunc(const Dictionary::Ptr& status, const Array::P
 {
 	Dictionary::Ptr nodes = new Dictionary();
 
-	BOOST_FOREACH(const IdoPgsqlConnection::Ptr& idopgsqlconnection, ConfigType::GetObjectsByType<IdoPgsqlConnection>()) {
+	for (const IdoPgsqlConnection::Ptr& idopgsqlconnection : ConfigType::GetObjectsByType<IdoPgsqlConnection>()) {
 		size_t items = idopgsqlconnection->m_QueryQueue.GetLength();
 
 		Dictionary::Ptr stats = new Dictionary();
@@ -374,7 +373,7 @@ void IdoPgsqlConnection::Reconnect(void)
 
 	EnableActiveChangedHandler();
 
-	BOOST_FOREACH(const DbObject::Ptr& dbobj, activeDbObjs) {
+	for (const DbObject::Ptr& dbobj : activeDbObjs) {
 		if (dbobj->GetObject())
 			continue;
 
@@ -687,7 +686,7 @@ bool IdoPgsqlConnection::CanExecuteQuery(const DbQuery& query)
 		ObjectLock olock(query.WhereCriteria);
 		Value value;
 
-		BOOST_FOREACH(const Dictionary::Pair& kv, query.WhereCriteria) {
+		for (const Dictionary::Pair& kv : query.WhereCriteria) {
 			if (!FieldToEscapedString(kv.first, kv.second, &value))
 				return false;
 		}
@@ -696,7 +695,7 @@ bool IdoPgsqlConnection::CanExecuteQuery(const DbQuery& query)
 	if (query.Fields) {
 		ObjectLock olock(query.Fields);
 
-		BOOST_FOREACH(const Dictionary::Pair& kv, query.Fields) {
+		for (const Dictionary::Pair& kv : query.Fields) {
 			Value value;
 
 			if (kv.second.IsEmpty() && !kv.second.IsString())
@@ -717,7 +716,7 @@ void IdoPgsqlConnection::InternalExecuteMultipleQueries(const std::vector<DbQuer
 	if (!GetConnected())
 		return;
 
-	BOOST_FOREACH(const DbQuery& query, queries) {
+	for (const DbQuery& query : queries) {
 		ASSERT(query.Type == DbQueryNewTransaction || query.Category != DbCatInvalid);
 
 		if (!CanExecuteQuery(query)) {
@@ -726,7 +725,7 @@ void IdoPgsqlConnection::InternalExecuteMultipleQueries(const std::vector<DbQuer
 		}
 	}
 
-	BOOST_FOREACH(const DbQuery& query, queries) {
+	for (const DbQuery& query : queries) {
 		InternalExecuteQuery(query);
 	}
 }
@@ -766,7 +765,7 @@ void IdoPgsqlConnection::InternalExecuteQuery(const DbQuery& query, int typeOver
 		Value value;
 		bool first = true;
 
-		BOOST_FOREACH(const Dictionary::Pair& kv, query.WhereCriteria) {
+		for (const Dictionary::Pair& kv : query.WhereCriteria) {
 			if (!FieldToEscapedString(kv.first, kv.second, &value)) {
 				m_QueryQueue.Enqueue(boost::bind(&IdoPgsqlConnection::InternalExecuteQuery, this, query, -1), query.Priority);
 				return;
@@ -834,7 +833,7 @@ void IdoPgsqlConnection::InternalExecuteQuery(const DbQuery& query, int typeOver
 
 		Value value;
 		bool first = true;
-		BOOST_FOREACH(const Dictionary::Pair& kv, query.Fields) {
+		for (const Dictionary::Pair& kv : query.Fields) {
 			if (kv.second.IsEmpty() && !kv.second.IsString())
 				continue;
 

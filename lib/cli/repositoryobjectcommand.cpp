@@ -22,7 +22,6 @@
 #include "base/logger.hpp"
 #include "base/application.hpp"
 #include "base/utility.hpp"
-#include <boost/foreach.hpp>
 #include <fstream>
 #include <iostream>
 
@@ -164,7 +163,7 @@ int RepositoryObjectCommand::Run(const boost::program_options::variables_map& vm
 	if (vm.count("import")) {
 		Array::Ptr imports = new Array();
 
-		BOOST_FOREACH(const String& import, vm["import"].as<std::vector<std::string> >()) {
+		for (const String& import : vm["import"].as<std::vector<std::string> >()) {
 			imports->Add(import);
 		}
 

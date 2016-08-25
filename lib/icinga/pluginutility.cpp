@@ -29,7 +29,6 @@
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/trim.hpp>
-#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -70,7 +69,7 @@ void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkab
 
 	if (env) {
 		ObjectLock olock(env);
-		BOOST_FOREACH(const Dictionary::Pair& kv, env) {
+		for (const Dictionary::Pair& kv : env) {
 			String name = kv.second;
 
 			Value value = MacroProcessor::ResolveMacros(name, macroResolvers, cr,
@@ -119,7 +118,7 @@ std::pair<String, String> PluginUtility::ParseCheckOutput(const String& output)
 	std::vector<String> lines;
 	boost::algorithm::split(lines, output, boost::is_any_of("\r\n"));
 
-	BOOST_FOREACH (const String& line, lines) {
+	for (const String& line : lines) {
 		size_t delim = line.FindFirstOf("|");
 
 		if (!text.IsEmpty())
@@ -202,7 +201,7 @@ String PluginUtility::FormatPerfdata(const Array::Ptr& perfdata)
 	ObjectLock olock(perfdata);
 
 	bool first = true;
-	BOOST_FOREACH(const Value& pdv, perfdata) {
+	for (const Value& pdv : perfdata) {
 		if (!first)
 			result << " ";
 		else

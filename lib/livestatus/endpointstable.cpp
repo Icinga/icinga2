@@ -28,7 +28,6 @@
 #include "base/convert.hpp"
 #include "base/utility.hpp"
 #include <boost/algorithm/string/classification.hpp>
-#include <boost/foreach.hpp>
 #include <boost/tuple/tuple.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/split.hpp>
@@ -62,7 +61,7 @@ String EndpointsTable::GetPrefix(void) const
 
 void EndpointsTable::FetchRows(const AddRowFunction& addRowFn)
 {
-	BOOST_FOREACH(const Endpoint::Ptr& endpoint, ConfigType::GetObjectsByType<Endpoint>()) {
+	for (const Endpoint::Ptr& endpoint : ConfigType::GetObjectsByType<Endpoint>()) {
 		if (!addRowFn(endpoint, LivestatusGroupByNone, Empty))
 			return;
 	}

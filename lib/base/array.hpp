@@ -142,32 +142,15 @@ private:
 	std::vector<Value> m_Data; /**< The data for the array. */
 };
 
-inline Array::Iterator range_begin(Array::Ptr x)
+inline Array::Iterator begin(Array::Ptr x)
 {
 	return x->Begin();
 }
 
-inline Array::Iterator range_end(Array::Ptr x)
+inline Array::Iterator end(Array::Ptr x)
 {
 	return x->End();
 }
-
-}
-
-namespace boost
-{
-
-template<>
-struct range_mutable_iterator<icinga::Array::Ptr>
-{
-	typedef icinga::Array::Iterator type;
-};
-
-template<>
-struct range_const_iterator<icinga::Array::Ptr>
-{
-	typedef icinga::Array::Iterator type;
-};
 
 }
 

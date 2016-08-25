@@ -24,21 +24,20 @@
 #include "base/timer.hpp"
 #include "base/utility.hpp"
 #include "base/logger.hpp"
-#include <boost/foreach.hpp>
 
 using namespace icinga;
 
 
 void Checkable::RemoveAllComments(void)
 {
-	BOOST_FOREACH(const Comment::Ptr& comment, GetComments()) {
+	for (const Comment::Ptr& comment : GetComments()) {
 		Comment::RemoveComment(comment->GetName());
 	}
 }
 
 void Checkable::RemoveCommentsByType(int type)
 {
-	BOOST_FOREACH(const Comment::Ptr& comment, GetComments()) {
+	for (const Comment::Ptr& comment : GetComments()) {
 		if (comment->GetEntryType() == type)
 			Comment::RemoveComment(comment->GetName());
 	}

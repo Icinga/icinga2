@@ -27,7 +27,6 @@
 #include "base/tlsutility.hpp"
 #include "base/scriptglobal.hpp"
 #include "base/exception.hpp"
-#include <boost/foreach.hpp>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/case_conv.hpp>
@@ -141,7 +140,7 @@ bool ApiSetupUtility::SetupMasterCertificates(const String& cn)
 	files.push_back(csr);
 	files.push_back(cert);
 
-	BOOST_FOREACH(const String& file, files) {
+	for (const String& file : files) {
 		if (!Utility::SetFileOwnership(file, user, group)) {
 			Log(LogWarning, "cli")
 			    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << file << "'.";

@@ -18,7 +18,6 @@
  ******************************************************************************/
 
 #include "livestatus/orfilter.hpp"
-#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -30,7 +29,7 @@ bool OrFilter::Apply(const Table::Ptr& table, const Value& row)
 	if (m_Filters.empty())
 		return true;
 
-	BOOST_FOREACH(const Filter::Ptr& filter, m_Filters) {
+	for (const Filter::Ptr& filter : m_Filters) {
 		if (filter->Apply(table, row))
 			return true;
 	}

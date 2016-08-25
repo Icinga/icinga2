@@ -30,7 +30,6 @@
 #include "base/convert.hpp"
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
-#include <boost/foreach.hpp>
 
 using namespace icinga;
 

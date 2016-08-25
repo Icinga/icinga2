@@ -21,7 +21,6 @@
 #include "base/type.hpp"
 #include "base/application.hpp"
 #include "base/objectlock.hpp"
-#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -31,7 +30,7 @@ static Array::Ptr SerializeArray(const Array::Ptr& input, int attributeTypes)
 
 	ObjectLock olock(input);
 
-	BOOST_FOREACH(const Value& value, input) {
+	for (const Value& value : input) {
 		result->Add(Serialize(value, attributeTypes));
 	}
 
@@ -44,7 +43,7 @@ static Dictionary::Ptr SerializeDictionary(const Dictionary::Ptr& input, int att
 
 	ObjectLock olock(input);
 
-	BOOST_FOREACH(const Dictionary::Pair& kv, input) {
+	for (const Dictionary::Pair& kv : input) {
 		result->Set(kv.first, Serialize(kv.second, attributeTypes));
 	}
 
@@ -80,7 +79,7 @@ static Array::Ptr DeserializeArray(const Array::Ptr& input, bool safe_mode, int 
 
 	ObjectLock olock(input);
 
-	BOOST_FOREACH(const Value& value, input) {
+	for (const Value& value : input) {
 		result->Add(Deserialize(value, safe_mode, attributeTypes));
 	}
 
@@ -93,7 +92,7 @@ static Dictionary::Ptr DeserializeDictionary(const Dictionary::Ptr& input, bool 
 
 	ObjectLock olock(input);
 
-	BOOST_FOREACH(const Dictionary::Pair& kv, input) {
+	for (const Dictionary::Pair& kv : input) {
 		result->Set(kv.first, Deserialize(kv.second, safe_mode, attributeTypes));
 	}
 
@@ -123,7 +122,7 @@ static Object::Ptr DeserializeObject(const Object::Ptr& object, const Dictionary
 		instance = type->Instantiate(std::vector<Value>());
 
 	ObjectLock olock(input);
-	BOOST_FOREACH(const Dictionary::Pair& kv, input) {
+	for (const Dictionary::Pair& kv : input) {
 		if (kv.first.IsEmpty())
 			continue;
 

@@ -33,7 +33,6 @@
 #include "base/exception.hpp"
 #include "base/convert.hpp"
 #include "base/objectlock.hpp"
-#include <boost/foreach.hpp>
 #include <boost/smart_ptr/make_shared.hpp>
 #include <map>
 #include <vector>
@@ -49,7 +48,7 @@ public:
 		Array::Ptr imports = ScriptFrame::GetImports();
 
 		ObjectLock olock(imports);
-		BOOST_FOREACH(const Value& import, imports) {
+		for (const Value& import : imports) {
 			Object::Ptr obj = import;
 			if (obj->HasOwnField(name)) {
 				*result = import;
@@ -192,12 +191,12 @@ public:
 
 			{
 				ObjectLock olock(dict);
-				BOOST_FOREACH(const Dictionary::Pair& kv, dict) {
+				for (const Dictionary::Pair& kv : dict) {
 					keys.push_back(kv.first);
 				}
 			}
 
-			BOOST_FOREACH(const String& key, keys) {
+			for (const String& key : keys) {
 				frame.Locals->Set(fkvar, key);
 				frame.Locals->Set(fvvar, dict->Get(key));
 				ExpressionResult res = expression->Evaluate(frame);
@@ -256,7 +255,7 @@ private:
 			locals = new Dictionary();
 
 			typedef std::pair<String, Expression *> ClosedVar;
-			BOOST_FOREACH(const ClosedVar& cvar, *closedVars) {
+			for (const ClosedVar& cvar : *closedVars) {
 				locals->Set(cvar.first, cvar.second->Evaluate(frame));
 			}
 		}

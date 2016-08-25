@@ -25,7 +25,6 @@
 #include "base/timer.hpp"
 #include "base/logger.hpp"
 #include "base/exception.hpp"
-#include <boost/foreach.hpp>
 #include <boost/lexical_cast.hpp>
 
 using namespace icinga;
@@ -227,7 +226,7 @@ static void TypeInfoTimerHandler(void)
 	boost::mutex::scoped_lock lock(l_ObjectCountLock);
 
 	typedef std::map<String, int>::value_type kv_pair;
-	BOOST_FOREACH(kv_pair& kv, l_ObjectCounts) {
+	for (kv_pair& kv : l_ObjectCounts) {
 		if (kv.second == 0)
 			continue;
 

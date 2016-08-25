@@ -20,7 +20,6 @@
 #include "icinga/service.hpp"
 #include "icinga/dependency.hpp"
 #include "base/logger.hpp"
-#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -69,7 +68,7 @@ bool Checkable::IsReachable(DependencyType dt, Dependency::Ptr *failedDependency
 		return false;
 	}
 
-	BOOST_FOREACH(const Checkable::Ptr& checkable, GetParents()) {
+	for (const Checkable::Ptr& checkable : GetParents()) {
 		if (!checkable->IsReachable(dt, failedDependency, rstack + 1))
 			return false;
 	}
@@ -87,7 +86,7 @@ bool Checkable::IsReachable(DependencyType dt, Dependency::Ptr *failedDependency
 		}
 	}
 
-	BOOST_FOREACH(const Dependency::Ptr& dep, GetDependencies()) {
+	for (const Dependency::Ptr& dep : GetDependencies()) {
 		if (!dep->IsAvailable(dt)) {
 			if (failedDependency)
 				*failedDependency = dep;
@@ -106,7 +105,7 @@ std::set<Checkable::Ptr> Checkable::GetParents(void) const
 {
 	std::set<Checkable::Ptr> parents;
 
-	BOOST_FOREACH(const Dependency::Ptr& dep, GetDependencies()) {
+	for (const Dependency::Ptr& dep : GetDependencies()) {
 		Checkable::Ptr parent = dep->GetParent();
 
 		if (parent && parent.get() != this)
@@ -120,7 +119,7 @@ std::set<Checkable::Ptr> Checkable::GetChildren(void) const
 {
 	std::set<Checkable::Ptr> parents;
 
-	BOOST_FOREACH(const Dependency::Ptr& dep, GetReverseDependencies()) {
+	for (const Dependency::Ptr& dep : GetReverseDependencies()) {
 		Checkable::Ptr service = dep->GetChild();
 
 		if (service && service.get() != this)

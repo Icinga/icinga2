@@ -23,7 +23,6 @@
 #include "base/console.hpp"
 #include "base/objectlock.hpp"
 #include "base/convert.hpp"
-#include <boost/foreach.hpp>
 #include <iostream>
 #include <iomanip>
 
@@ -77,7 +76,7 @@ void ObjectListUtility::PrintProperties(std::ostream& fp, const Dictionary::Ptr&
 	int offset = 2;
 
 	ObjectLock olock(props);
-	BOOST_FOREACH(const Dictionary::Pair& kv, props)
+	for (const Dictionary::Pair& kv : props)
 	{
 		String key = kv.first;
 		Value val = kv.second;
@@ -114,7 +113,7 @@ void ObjectListUtility::PrintHints(std::ostream& fp, const Dictionary::Ptr& debu
 	if (messages) {
 		ObjectLock olock(messages);
 
-		BOOST_FOREACH(const Value& msg, messages)
+		for (const Value& msg : messages)
 		{
 			PrintHint(fp, msg, indent);
 		}
@@ -155,7 +154,7 @@ void ObjectListUtility::PrintArray(std::ostream& fp, const Array::Ptr& arr)
 
 	if (arr) {
 		ObjectLock olock(arr);
-		BOOST_FOREACH(const Value& value, arr)
+		for (const Value& value : arr)
 		{
 			if (first)
 				first = false;

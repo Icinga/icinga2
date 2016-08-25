@@ -27,7 +27,6 @@
 #include "base/tlsutility.hpp"
 #include "base/json.hpp"
 #include "base/objectlock.hpp"
-#include <boost/foreach.hpp>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <iostream>
@@ -93,7 +92,7 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 	std::vector<Dictionary::Ptr> nodes = NodeUtility::GetNodes();
 
 	/* first make sure that all nodes are valid and should not be removed */
-	BOOST_FOREACH(const Dictionary::Ptr& node, nodes) {
+	for (const Dictionary::Ptr& node : nodes) {
 		Dictionary::Ptr repository = node->Get("repository");
 		String zone = node->Get("zone");
 		String endpoint = node->Get("endpoint");
@@ -106,7 +105,7 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 	if (old_inventory) {
 		/* check if there are objects inside the old_inventory which do not exist anymore */
 		ObjectLock ulock(old_inventory);
-		BOOST_FOREACH(const Dictionary::Pair& old_node_objs, old_inventory) {
+		for (const Dictionary::Pair& old_node_objs : old_inventory) {
 
 			String old_node_name = old_node_objs.first;
 
@@ -121,7 +120,7 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 
 				if (old_node_repository) {
 					ObjectLock olock(old_node_repository);
-					BOOST_FOREACH(const Dictionary::Pair& kv, old_node_repository) {
+					for (const Dictionary::Pair& kv : old_node_repository) {
 						String host = kv.first;
 
 						Dictionary::Ptr host_attrs = new Dictionary();
@@ -150,7 +149,7 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 
 				if (old_node_repository) {
 					ObjectLock xlock(old_node_repository);
-					BOOST_FOREACH(const Dictionary::Pair& kv, old_node_repository) {
+					for (const Dictionary::Pair& kv : old_node_repository) {
 						String old_host = kv.first;
 
 						if (old_host == "localhost") {
@@ -180,7 +179,7 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 							Array::Ptr new_services = new_node_repository->Get(old_host);
 
 							ObjectLock ylock(old_services);
-							BOOST_FOREACH(const String& old_service, old_services) {
+							for (const String& old_service : old_services) {
 								/* check against black/whitelist before trying to remove service */
 								if (NodeUtility::CheckAgainstBlackAndWhiteList("blacklist", old_node_name, old_host, old_service) &&
 								    !NodeUtility::CheckAgainstBlackAndWhiteList("whitelist", old_node_name, old_host, old_service)) {
@@ -209,7 +208,7 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 	}
 
 	/* next iterate over all nodes and add hosts/services */
-	BOOST_FOREACH(const Dictionary::Ptr& node, nodes) {
+	for (const Dictionary::Ptr& node : nodes) {
 		Dictionary::Ptr repository = node->Get("repository");
 		String zone = node->Get("zone");
 		String endpoint = node->Get("endpoint");
@@ -242,7 +241,7 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 
 		if (repository) {
 			ObjectLock olock(repository);
-			BOOST_FOREACH(const Dictionary::Pair& kv, repository) {
+			for (const Dictionary::Pair& kv : repository) {
 				String host = kv.first;
 				String host_pattern = host + ".conf";
 				bool skip_host = false;
@@ -253,7 +252,7 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 					continue;
 				}
 
-				BOOST_FOREACH(const String& object_path, object_paths) {
+				for (const String& object_path : object_paths) {
 					if (object_path.Contains(host_pattern)) {
 						Log(LogNotice, "cli")
 						    << "Host '" << host << "' already exists.";
@@ -313,12 +312,12 @@ int NodeUpdateConfigCommand::Run(const boost::program_options::variables_map& vm
 				}
 
 				ObjectLock xlock(services);
-				BOOST_FOREACH(const String& service, services) {
+				for (const String& service : services) {
 					bool skip_service = false;
 
 					String service_pattern = host + "/" + service + ".conf";
 
-					BOOST_FOREACH(const String& object_path, object_paths) {
+					for (const String& object_path : object_paths) {
 						if (object_path.Contains(service_pattern)) {
 							Log(LogNotice, "cli")
 							    << "Service '" << service << "' on Host '" << host << "' already exists.";

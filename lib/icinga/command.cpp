@@ -22,7 +22,6 @@
 #include "icinga/macroprocessor.hpp"
 #include "base/exception.hpp"
 #include "base/objectlock.hpp"
-#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -42,7 +41,7 @@ void Command::Validate(int types, const ValidationUtils& utils)
 			BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of("command"), "Attribute 'command' must be an array if the 'arguments' attribute is set."));
 
 		ObjectLock olock(arguments);
-		BOOST_FOREACH(const Dictionary::Pair& kv, arguments) {
+		for (const Dictionary::Pair& kv : arguments) {
 			const Value& arginfo = kv.second;
 			Value argval;
 
@@ -73,7 +72,7 @@ void Command::Validate(int types, const ValidationUtils& utils)
 
 	if (env) {
 		ObjectLock olock(env);
-		BOOST_FOREACH(const Dictionary::Pair& kv, env) {
+		for (const Dictionary::Pair& kv : env) {
 			const Value& envval = kv.second;
 
 			if (!envval.IsString() || envval.IsEmpty())

@@ -49,7 +49,7 @@ bool InfoHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, 
 
 	if (permissions) {
 		ObjectLock olock(permissions);
-		BOOST_FOREACH(const Value& permission, permissions) {
+		for (const Value& permission : permissions) {
 			String name;
 			bool hasFilter = false;
 			if (permission.IsObjectType<Dictionary>()) {
@@ -90,7 +90,7 @@ bool InfoHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, 
 		if (!permInfo.empty()) {
 			body += "Your user has the following permissions:</p> <ul>";
 
-			BOOST_FOREACH(const String& perm, permInfo) {
+			for (const String& perm : permInfo) {
 				body += "<li>" + perm + "</li>";
 			}
 

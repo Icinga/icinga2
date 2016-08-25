@@ -25,7 +25,6 @@
 #include "base/objectlock.hpp"
 #include "base/convert.hpp"
 #include "base/utility.hpp"
-#include <boost/foreach.hpp>
 #include <boost/bind/apply.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
@@ -86,7 +85,7 @@ void Service::OnAllConfigLoaded(void)
 
 		ObjectLock olock(groups);
 
-		BOOST_FOREACH(const String& name, groups) {
+		for (const String& name : groups) {
 			ServiceGroup::Ptr sg = ServiceGroup::GetByName(name);
 
 			if (sg)

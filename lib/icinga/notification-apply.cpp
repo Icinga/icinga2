@@ -27,7 +27,6 @@
 #include "base/context.hpp"
 #include "base/workqueue.hpp"
 #include "base/exception.hpp"
-#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -126,7 +125,7 @@ bool Notification::EvaluateApplyRule(const Checkable::Ptr& checkable, const Appl
 		Array::Ptr arr = vinstances;
 
 		ObjectLock olock(arr);
-		BOOST_FOREACH(const Value& instance, arr) {
+		for (const Value& instance : arr) {
 			String name = rule.GetName();
 
 			if (!rule.GetFKVar().IsEmpty()) {
@@ -143,7 +142,7 @@ bool Notification::EvaluateApplyRule(const Checkable::Ptr& checkable, const Appl
 	
 		Dictionary::Ptr dict = vinstances;
 
-		BOOST_FOREACH(const String& key, dict->GetKeys()) {
+		for (const String& key : dict->GetKeys()) {
 			frame.Locals->Set(rule.GetFKVar(), key);
 			frame.Locals->Set(rule.GetFVVar(), dict->Get(key));
 
@@ -159,7 +158,7 @@ void Notification::EvaluateApplyRules(const Host::Ptr& host)
 {
 	CONTEXT("Evaluating 'apply' rules for host '" + host->GetName() + "'");
 
-	BOOST_FOREACH(ApplyRule& rule, ApplyRule::GetRules("Notification"))
+	for (ApplyRule& rule : ApplyRule::GetRules("Notification"))
 	{
 		if (rule.GetTargetType() != "Host")
 			continue;
@@ -173,7 +172,7 @@ void Notification::EvaluateApplyRules(const Service::Ptr& service)
 {
 	CONTEXT("Evaluating 'apply' rules for service '" + service->GetName() + "'");
 
-	BOOST_FOREACH(ApplyRule& rule, ApplyRule::GetRules("Notification")) {
+	for (ApplyRule& rule : ApplyRule::GetRules("Notification")) {
 		if (rule.GetTargetType() != "Service")
 			continue;
 

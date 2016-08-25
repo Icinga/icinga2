@@ -28,7 +28,6 @@
 #include "base/objectlock.hpp"
 #include <mmatch.h>
 #include <boost/lexical_cast.hpp>
-#include <boost/foreach.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/trim.hpp>
@@ -264,7 +263,7 @@ String Utility::DirName(const String& path)
 	String dupPath = path;
 
 	/* PathRemoveFileSpec doesn't properly handle forward slashes. */
-	BOOST_FOREACH(char& ch, dupPath) {
+	for (char& ch : dupPath) {
 		if (ch == '/')
 			ch = '\\';
 	}
@@ -543,7 +542,7 @@ bool Utility::Glob(const String& pathSpec, const boost::function<void (const Str
 			if (!GlobHelper(part1, GlobDirectory, files2, dirs2))
 				return false;
 
-			BOOST_FOREACH(const String& dir, dirs2) {
+			for (const String& dir : dirs2) {
 				if (!Utility::Glob(dir + "/" + part2, callback, type))
 					return false;
 			}
@@ -595,12 +594,12 @@ bool Utility::Glob(const String& pathSpec, const boost::function<void (const Str
 #endif /* _WIN32 */
 
 	std::sort(files.begin(), files.end());
-	BOOST_FOREACH(const String& cpath, files) {
+	for (const String& cpath : files) {
 		callback(cpath);
 	}
 
 	std::sort(dirs.begin(), dirs.end());
-	BOOST_FOREACH(const String& cpath, dirs) {
+	for (const String& cpath : dirs) {
 		callback(cpath);
 	}
 
@@ -721,17 +720,17 @@ bool Utility::GlobRecursive(const String& path, const String& pattern, const boo
 #endif /* _WIN32 */
 
 	std::sort(files.begin(), files.end());
-	BOOST_FOREACH(const String& cpath, files) {
+	for (const String& cpath : files) {
 		callback(cpath);
 	}
 
 	std::sort(dirs.begin(), dirs.end());
-	BOOST_FOREACH(const String& cpath, dirs) {
+	for (const String& cpath : dirs) {
 		callback(cpath);
 	}
 
 	std::sort(alldirs.begin(), alldirs.end());
-	BOOST_FOREACH(const String& cpath, alldirs) {
+	for (const String& cpath : alldirs) {
 		GlobRecursive(cpath, pattern, callback, type);
 	}
 
@@ -782,7 +781,7 @@ void Utility::RemoveDirRecursive(const String& path)
 	   first before recursing into subdirectories. */
 	std::reverse(paths.begin(), paths.end());
 
-	BOOST_FOREACH(const String& path, paths) {
+	for (const String& path : paths) {
 		if (remove(path.CStr()) < 0)
 			BOOST_THROW_EXCEPTION(posix_error()
 			    << boost::errinfo_api_function("remove")
@@ -945,7 +944,7 @@ String Utility::Join(const Array::Ptr& tokens, char separator, bool escapeSepara
 	bool first = true;
 
 	ObjectLock olock(tokens);
-	BOOST_FOREACH(const Value& vtoken, tokens) {
+	for (const Value& vtoken : tokens) {
 		String token = Convert::ToString(vtoken);
 
 		if (escapeSeparator) {
@@ -1071,7 +1070,7 @@ String Utility::EscapeShellCmd(const String& s)
 	size_t prev_quote = String::NPos;
 	int index = -1;
 
-	BOOST_FOREACH(char ch, s) {
+	for (char ch : s) {
 		bool escape = false;
 
 		index++;
@@ -1121,7 +1120,7 @@ String Utility::EscapeShellArg(const String& s)
 	result = "'";
 #endif /* _WIN32 */
 
-	BOOST_FOREACH(char ch, s) {
+	for (char ch : s) {
 #ifdef _WIN32
 		if (ch == '"' || ch == '%') {
 			result += ' ';
@@ -1236,7 +1235,7 @@ unsigned long Utility::SDBM(const String& str, size_t len)
 	unsigned long hash = 0;
 	size_t current = 0;
 
-	BOOST_FOREACH(char c, str) {
+	for (char c : str) {
 		if (current >= len)
 			break;
 
@@ -1424,7 +1423,7 @@ String Utility::EscapeString(const String& s, const String& chars, const bool il
 {
 	std::ostringstream result;
 	if (illegal) {
-		BOOST_FOREACH(char ch, s) {
+		for (char ch : s) {
 			if (chars.FindFirstOf(ch) != String::NPos || ch == '%') {
 				result << '%';
 				HexEncode(ch, result);
@@ -1432,7 +1431,7 @@ String Utility::EscapeString(const String& s, const String& chars, const bool il
 				result << ch;
 		}
 	} else {
-		BOOST_FOREACH(char ch, s) {
+		for (char ch : s) {
 			if (chars.FindFirstOf(ch) == String::NPos || ch == '%') {
 				result << '%';
 				HexEncode(ch, result);

@@ -38,7 +38,7 @@ public:
 	virtual void FindTargets(const String& type,
 	    const boost::function<void (const Value&)>& addTarget) const override
 	{
-		BOOST_FOREACH(const Type::Ptr& target, Type::GetAllTypes()) {
+		for (const Type::Ptr& target : Type::GetAllTypes()) {
 			addTarget(target);
 		}
 	}
@@ -98,7 +98,7 @@ bool TypeQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& requ
 
 	Array::Ptr results = new Array();
 
-	BOOST_FOREACH(const Type::Ptr& obj, objs) {
+	for (const Type::Ptr& obj : objs) {
 		Dictionary::Ptr result1 = new Dictionary();
 		results->Add(result1);
 
@@ -116,7 +116,7 @@ bool TypeQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& requ
 
 		if (prototype) {
 			ObjectLock olock(prototype);
-			BOOST_FOREACH(const Dictionary::Pair& kv, prototype) {
+			for (const Dictionary::Pair& kv : prototype) {
 				prototypeKeys->Add(kv.first);
 			}
 		}

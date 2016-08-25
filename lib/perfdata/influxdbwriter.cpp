@@ -42,7 +42,6 @@
 #include "base/tlsutility.hpp"
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/classification.hpp>
-#include <boost/foreach.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/regex.hpp>
@@ -57,7 +56,7 @@ void InfluxdbWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 {
 	Dictionary::Ptr nodes = new Dictionary();
 
-	BOOST_FOREACH(const InfluxdbWriter::Ptr& influxdbwriter, ConfigType::GetObjectsByType<InfluxdbWriter>()) {
+	for (const InfluxdbWriter::Ptr& influxdbwriter : ConfigType::GetObjectsByType<InfluxdbWriter>()) {
 		nodes->Set(influxdbwriter->GetName(), 1); //add more stats
 	}
 
@@ -148,7 +147,7 @@ void InfluxdbWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 	Dictionary::Ptr tags = tmpl->Get("tags");
 	if (tags) {
 		ObjectLock olock(tags);
-		BOOST_FOREACH(const Dictionary::Pair& pair, tags) {
+		for (const Dictionary::Pair& pair : tags) {
 			// Prevent missing macros from warning; will return an empty value
 			// which will be filtered out in SendMetric()
 			String missing_macro;
@@ -177,7 +176,7 @@ void InfluxdbWriter::SendPerfdata(const Dictionary::Ptr& tmpl, const Checkable::
 		return;
 
 	ObjectLock olock(perfdata);
-	BOOST_FOREACH(const Value& val, perfdata) {
+	for (const Value& val : perfdata) {
 		PerfdataValue::Ptr pdv;
 
 		if (val.IsObjectType<PerfdataValue>())
@@ -287,7 +286,7 @@ void InfluxdbWriter::SendMetric(const Dictionary::Ptr& tmpl, const String& label
 	Dictionary::Ptr tags = tmpl->Get("tags");
 	if (tags) {
 		ObjectLock olock(tags);
-		BOOST_FOREACH(const Dictionary::Pair& pair, tags) {
+		for (const Dictionary::Pair& pair : tags) {
 			// Empty macro expansion, no tag
 			if (!pair.second.IsEmpty()) {
 				msgbuf << "," << EscapeKey(pair.first) << "=" << EscapeKey(pair.second);
@@ -299,7 +298,7 @@ void InfluxdbWriter::SendMetric(const Dictionary::Ptr& tmpl, const String& label
 
 	bool first = true;
 	ObjectLock fieldLock(fields);
-	BOOST_FOREACH(const Dictionary::Pair& pair, fields) {
+	for (const Dictionary::Pair& pair : fields) {
 		if (first)
 			first = false;
 		else
@@ -411,7 +410,7 @@ void InfluxdbWriter::ValidateHostTemplate(const Dictionary::Ptr& value, const Va
 	Dictionary::Ptr tags = value->Get("tags");
 	if (tags) {
 		ObjectLock olock(tags);
-		BOOST_FOREACH(const Dictionary::Pair& pair, tags) {
+		for (const Dictionary::Pair& pair : tags) {
 			if (!MacroProcessor::ValidateMacroString(pair.second))
 				BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of<String>("host_template")("tags")(pair.first), "Closing $ not found in macro format string '" + pair.second));
 		}
@@ -429,7 +428,7 @@ void InfluxdbWriter::ValidateServiceTemplate(const Dictionary::Ptr& value, const
 	Dictionary::Ptr tags = value->Get("tags");
 	if (tags) {
 		ObjectLock olock(tags);
-		BOOST_FOREACH(const Dictionary::Pair& pair, tags) {
+		for (const Dictionary::Pair& pair : tags) {
 			if (!MacroProcessor::ValidateMacroString(pair.second))
 				BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of<String>("service_template")("tags")(pair.first), "Closing $ not found in macro format string '" + pair.second));
 		}

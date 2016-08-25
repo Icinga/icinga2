@@ -32,7 +32,6 @@
 #include "base/scriptglobal.hpp"
 #include "base/process.hpp"
 #include <boost/algorithm/string/classification.hpp>
-#include <boost/foreach.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/exception/errinfo_api_function.hpp>
@@ -115,7 +114,7 @@ void Application::Exit(int rc)
 	std::cout.flush();
 	std::cerr.flush();
 
-	BOOST_FOREACH(const Logger::Ptr& logger, Logger::GetLoggers()) {
+	for (const Logger::Ptr& logger : Logger::GetLoggers()) {
 		logger->Flush();
 	}
 
@@ -452,7 +451,7 @@ String Application::GetExePath(const String& argv0)
 			boost::algorithm::split(paths, pathEnv, boost::is_any_of(":"));
 
 			bool foundPath = false;
-			BOOST_FOREACH(String& path, paths) {
+			for (const String& path : paths) {
 				String pathTest = path + "/" + argv0;
 
 				if (access(pathTest.CStr(), X_OK) == 0) {

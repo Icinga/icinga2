@@ -38,7 +38,6 @@
 #include "base/application.hpp"
 #include "base/context.hpp"
 #include "base/statsfunction.hpp"
-#include <boost/foreach.hpp>
 #include <boost/tuple/tuple.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/replace.hpp>
@@ -54,7 +53,7 @@ void StatusDataWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr
 {
 	Dictionary::Ptr nodes = new Dictionary();
 
-	BOOST_FOREACH(const StatusDataWriter::Ptr& statusdatawriter, ConfigType::GetObjectsByType<StatusDataWriter>()) {
+	for (const StatusDataWriter::Ptr& statusdatawriter : ConfigType::GetObjectsByType<StatusDataWriter>()) {
 		nodes->Set(statusdatawriter->GetName(), 1); //add more stats
 	}
 
@@ -92,7 +91,7 @@ void StatusDataWriter::DumpComments(std::ostream& fp, const Checkable::Ptr& chec
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
 
-	BOOST_FOREACH(const Comment::Ptr& comment, checkable->GetComments()) {
+	for (const Comment::Ptr& comment : checkable->GetComments()) {
 		if (comment->IsExpired())
 			continue;
 
@@ -126,7 +125,7 @@ void StatusDataWriter::DumpTimePeriod(std::ostream& fp, const TimePeriod::Ptr& t
 
 	if (ranges) {
 		ObjectLock olock(ranges);
-		BOOST_FOREACH(const Dictionary::Pair& kv, ranges) {
+		for (const Dictionary::Pair& kv : ranges) {
 			fp << "\t" << kv.first << "\t" << kv.second << "\n";
 		}
 	}
@@ -158,7 +157,7 @@ void StatusDataWriter::DumpDowntimes(std::ostream& fp, const Checkable::Ptr& che
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
 
-	BOOST_FOREACH(const Downtime::Ptr& downtime, checkable->GetDowntimes()) {
+	for (const Downtime::Ptr& downtime : checkable->GetDowntimes()) {
 		if (downtime->IsExpired())
 			continue;
 
@@ -296,7 +295,7 @@ void StatusDataWriter::DumpHostObject(std::ostream& fp, const Host::Ptr& host)
 	if (groups) {
 		ObjectLock olock(groups);
 
-		BOOST_FOREACH(const String& name, groups) {
+		for (const String& name : groups) {
 			HostGroup::Ptr hg = HostGroup::GetByName(name);
 
 			if (hg) {
@@ -481,7 +480,7 @@ void StatusDataWriter::DumpServiceObject(std::ostream& fp, const Service::Ptr& s
 	if (groups) {
 		ObjectLock olock(groups);
 
-		BOOST_FOREACH(const String& name, groups) {
+		for (const String& name : groups) {
 			ServiceGroup::Ptr sg = ServiceGroup::GetByName(name);
 
 			if (sg) {
@@ -513,7 +512,7 @@ void StatusDataWriter::DumpCustomAttributes(std::ostream& fp, const CustomVarObj
 	bool is_json = false;
 
 	ObjectLock olock(vars);
-	BOOST_FOREACH(const Dictionary::Pair& kv, vars) {
+	for (const Dictionary::Pair& kv : vars) {
 		if (kv.first.IsEmpty())
 			continue;
 
@@ -547,13 +546,13 @@ void StatusDataWriter::UpdateObjectsCache(void)
 		    "# This file is auto-generated. Do not modify this file." "\n"
 		    "\n";
 
-	BOOST_FOREACH(const Host::Ptr& host, ConfigType::GetObjectsByType<Host>()) {
+	for (const Host::Ptr& host : ConfigType::GetObjectsByType<Host>()) {
 		std::ostringstream tempobjectfp;
 		tempobjectfp << std::fixed;
 		DumpHostObject(tempobjectfp, host);
 		objectfp << tempobjectfp.str();
 
-		BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
+		for (const Service::Ptr& service : host->GetServices()) {
 			std::ostringstream tempobjectfp;
 			tempobjectfp << std::fixed;
 			DumpServiceObject(tempobjectfp, service);
@@ -561,7 +560,7 @@ void StatusDataWriter::UpdateObjectsCache(void)
 		}
 	}
 
-	BOOST_FOREACH(const HostGroup::Ptr& hg, ConfigType::GetObjectsByType<HostGroup>()) {
+	for (const HostGroup::Ptr& hg : ConfigType::GetObjectsByType<HostGroup>()) {
 		std::ostringstream tempobjectfp;
 		tempobjectfp << std::fixed;
 
@@ -592,7 +591,7 @@ void StatusDataWriter::UpdateObjectsCache(void)
 		objectfp << tempobjectfp.str();
 	}
 
-	BOOST_FOREACH(const ServiceGroup::Ptr& sg, ConfigType::GetObjectsByType<ServiceGroup>()) {
+	for (const ServiceGroup::Ptr& sg : ConfigType::GetObjectsByType<ServiceGroup>()) {
 		std::ostringstream tempobjectfp;
 		tempobjectfp << std::fixed;
 
@@ -618,7 +617,7 @@ void StatusDataWriter::UpdateObjectsCache(void)
 		tempobjectfp << "\t" "members" "\t";
 
 		std::vector<String> sglist;
-		BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
+		for (const Service::Ptr& service : sg->GetMembers()) {
 			Host::Ptr host = service->GetHost();
 
 			sglist.push_back(host->GetName());
@@ -633,7 +632,7 @@ void StatusDataWriter::UpdateObjectsCache(void)
 		objectfp << tempobjectfp.str();
 	}
 
-	BOOST_FOREACH(const User::Ptr& user, ConfigType::GetObjectsByType<User>()) {
+	for (const User::Ptr& user : ConfigType::GetObjectsByType<User>()) {
 		std::ostringstream tempobjectfp;
 		tempobjectfp << std::fixed;
 
@@ -661,7 +660,7 @@ void StatusDataWriter::UpdateObjectsCache(void)
 		objectfp << tempobjectfp.str();
 	}
 
-	BOOST_FOREACH(const UserGroup::Ptr& ug, ConfigType::GetObjectsByType<UserGroup>()) {
+	for (const UserGroup::Ptr& ug : ConfigType::GetObjectsByType<UserGroup>()) {
 		std::ostringstream tempobjectfp;
 		tempobjectfp << std::fixed;
 
@@ -677,23 +676,23 @@ void StatusDataWriter::UpdateObjectsCache(void)
 		objectfp << tempobjectfp.str();
 	}
 
-	BOOST_FOREACH(const Command::Ptr& command, ConfigType::GetObjectsByType<CheckCommand>()) {
+	for (const Command::Ptr& command : ConfigType::GetObjectsByType<CheckCommand>()) {
 		DumpCommand(objectfp, command);
 	}
 
-	BOOST_FOREACH(const Command::Ptr& command, ConfigType::GetObjectsByType<NotificationCommand>()) {
+	for (const Command::Ptr& command : ConfigType::GetObjectsByType<NotificationCommand>()) {
 		DumpCommand(objectfp, command);
 	}
 
-	BOOST_FOREACH(const Command::Ptr& command, ConfigType::GetObjectsByType<EventCommand>()) {
+	for (const Command::Ptr& command : ConfigType::GetObjectsByType<EventCommand>()) {
 		DumpCommand(objectfp, command);
 	}
 
-	BOOST_FOREACH(const TimePeriod::Ptr& tp, ConfigType::GetObjectsByType<TimePeriod>()) {
+	for (const TimePeriod::Ptr& tp : ConfigType::GetObjectsByType<TimePeriod>()) {
 		DumpTimePeriod(objectfp, tp);
 	}
 
-	BOOST_FOREACH(const Dependency::Ptr& dep, ConfigType::GetObjectsByType<Dependency>()) {
+	for (const Dependency::Ptr& dep : ConfigType::GetObjectsByType<Dependency>()) {
 		Checkable::Ptr parent = dep->GetParent();
 
 		if (!parent) {
@@ -824,13 +823,13 @@ void StatusDataWriter::StatusTimerHandler(void)
 	statusfp << "\t" "}" "\n"
 		    "\n";
 
-	BOOST_FOREACH(const Host::Ptr& host, ConfigType::GetObjectsByType<Host>()) {
+	for (const Host::Ptr& host : ConfigType::GetObjectsByType<Host>()) {
 		std::ostringstream tempstatusfp;
 		tempstatusfp << std::fixed;
 		DumpHostStatus(tempstatusfp, host);
 		statusfp << tempstatusfp.str();
 
-		BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
+		for (const Service::Ptr& service : host->GetServices()) {
 			std::ostringstream tempstatusfp;
 			tempstatusfp << std::fixed;
 			DumpServiceStatus(tempstatusfp, service);

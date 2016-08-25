@@ -18,7 +18,6 @@
  ******************************************************************************/
 
 #include "config/objectrule.hpp"
-#include <boost/foreach.hpp>
 #include <set>
 
 using namespace icinga;

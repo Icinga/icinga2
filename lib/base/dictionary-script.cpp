@@ -22,7 +22,6 @@
 #include "base/functionwrapper.hpp"
 #include "base/scriptframe.hpp"
 #include "base/array.hpp"
-#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -74,7 +73,7 @@ static Array::Ptr DictionaryKeys(void)
 	Dictionary::Ptr self = static_cast<Dictionary::Ptr>(vframe->Self);
 	Array::Ptr keys = new Array();
 	ObjectLock olock(self);
-	BOOST_FOREACH(const Dictionary::Pair& kv, self) {
+	for (const Dictionary::Pair& kv : self) {
 		keys->Add(kv.first);
 	}
 	return keys;

@@ -27,7 +27,6 @@
 #include "base/utility.hpp"
 #include "base/exception.hpp"
 #include "base/statsfunction.hpp"
-#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -39,7 +38,7 @@ void NotificationComponent::StatsFunc(const Dictionary::Ptr& status, const Array
 {
 	Dictionary::Ptr nodes = new Dictionary();
 
-	BOOST_FOREACH(const NotificationComponent::Ptr& notification_component, ConfigType::GetObjectsByType<NotificationComponent>()) {
+	for (const NotificationComponent::Ptr& notification_component : ConfigType::GetObjectsByType<NotificationComponent>()) {
 		nodes->Set(notification_component->GetName(), 1); //add more stats
 	}
 
@@ -71,7 +70,7 @@ void NotificationComponent::NotificationTimerHandler(void)
 {
 	double now = Utility::GetTime();
 
-	BOOST_FOREACH(const Notification::Ptr& notification, ConfigType::GetObjectsByType<Notification>()) {
+	for (const Notification::Ptr& notification : ConfigType::GetObjectsByType<Notification>()) {
 		if (!notification->IsActive())
 			continue;
 

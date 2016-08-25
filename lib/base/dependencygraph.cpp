@@ -18,7 +18,6 @@
  ******************************************************************************/
 
 #include "base/dependencygraph.hpp"
-#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -59,7 +58,7 @@ std::vector<Object::Ptr> DependencyGraph::GetParents(const Object::Ptr& child)
 
 	if (it != m_Dependencies.end()) {
 		typedef std::pair<Object *, int> kv_pair;
-		BOOST_FOREACH(const kv_pair& kv, it->second) {
+		for (const kv_pair& kv : it->second) {
 			objects.push_back(kv.first);
 		}
 	}

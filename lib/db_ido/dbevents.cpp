@@ -33,7 +33,6 @@
 #include "icinga/externalcommandprocessor.hpp"
 #include "icinga/compatutility.hpp"
 #include "icinga/icingaapplication.hpp"
-#include <boost/foreach.hpp>
 #include <boost/algorithm/string/join.hpp>
 
 using namespace icinga;
@@ -203,7 +202,7 @@ void DbEvents::ReachabilityChangedHandler(const Checkable::Ptr& checkable, const
 	Log(LogDebug, "DbEvents")
 	    << "Updating reachability for checkable '" << checkable->GetName() << "': " << (is_reachable ? "" : "not" ) << " reachable for " << children.size() << " children.";
 
-	BOOST_FOREACH(const Checkable::Ptr& child, children) {
+	for (const Checkable::Ptr& child : children) {
 		Log(LogDebug, "DbEvents")
 		    << "Updating reachability for checkable '" << child->GetName() << "': " << (is_reachable ? "" : "not" ) << " reachable.";
 
@@ -305,7 +304,7 @@ void DbEvents::AddComments(const Checkable::Ptr& checkable)
 
 	std::vector<DbQuery> queries;
 
-	BOOST_FOREACH(const Comment::Ptr& comment, comments) {
+	for (const Comment::Ptr& comment : comments) {
 		AddCommentInternal(queries, comment, false);
 	}
 
@@ -443,7 +442,7 @@ void DbEvents::AddDowntimes(const Checkable::Ptr& checkable)
 
 	std::vector<DbQuery> queries;
 
-	BOOST_FOREACH(const Downtime::Ptr& downtime, downtimes) {
+	for (const Downtime::Ptr& downtime : downtimes) {
 		AddDowntimeInternal(queries, downtime, false);
 	}
 
@@ -875,7 +874,7 @@ void DbEvents::AddNotificationHistory(const Notification::Ptr& notification, con
 
 	std::vector<DbQuery> queries;
 
-	BOOST_FOREACH(const User::Ptr& user, users) {
+	for (const User::Ptr& user : users) {
 		Log(LogDebug, "DbEvents")
 		    << "add contact notification history for service '" << checkable->GetName() << "' and user '" << user->GetName() << "'.";
 

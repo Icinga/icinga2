@@ -27,7 +27,6 @@
 #include "base/configtype.hpp"
 #include "base/application.hpp"
 #include "base/dependencygraph.hpp"
-#include <boost/foreach.hpp>
 #include <boost/regex.hpp>
 #include <algorithm>
 #include <set>
@@ -115,19 +114,19 @@ Array::Ptr ScriptUtils::Union(const std::vector<Value>& arguments)
 {
 	std::set<Value> values;
 
-	BOOST_FOREACH(const Value& varr, arguments) {
+	for (const Value& varr : arguments) {
 		Array::Ptr arr = varr;
 
 		if (arr) {
 			ObjectLock olock(arr);
-			BOOST_FOREACH(const Value& value, arr) {
+			for (const Value& value : arr) {
 				values.insert(value);
 			}
 		}
 	}
 
 	Array::Ptr result = new Array();
-	BOOST_FOREACH(const Value& value, values) {
+	for (const Value& value : values) {
 		result->Add(value);
 	}
 
@@ -252,7 +251,7 @@ Array::Ptr ScriptUtils::Keys(const Dictionary::Ptr& dict)
 
 	if (dict) {
 		ObjectLock olock(dict);
-		BOOST_FOREACH(const Dictionary::Pair& kv, dict) {
+		for (const Dictionary::Pair& kv : dict) {
 			result->Add(kv.first);
 		}
 	}
@@ -289,7 +288,7 @@ Array::Ptr ScriptUtils::GetObjects(const Type::Ptr& type)
 
 	Array::Ptr result = new Array();
 
-	BOOST_FOREACH(const ConfigObject::Ptr& object, ctype->GetObjects())
+	for (const ConfigObject::Ptr& object : ctype->GetObjects())
 		result->Add(object);
 
 	return result;

@@ -24,7 +24,6 @@
 #include "base/objectlock.hpp"
 #include "base/convert.hpp"
 #include "base/utility.hpp"
-#include <boost/foreach.hpp>
 #include <boost/algorithm/string/replace.hpp>
 
 using namespace icinga;
@@ -54,7 +53,7 @@ String TimePeriodsTable::GetPrefix(void) const
 
 void TimePeriodsTable::FetchRows(const AddRowFunction& addRowFn)
 {
-	BOOST_FOREACH(const TimePeriod::Ptr& tp, ConfigType::GetObjectsByType<TimePeriod>()) {
+	for (const TimePeriod::Ptr& tp : ConfigType::GetObjectsByType<TimePeriod>()) {
 		if (!addRowFn(tp, LivestatusGroupByNone, Empty))
 			return;
 	}

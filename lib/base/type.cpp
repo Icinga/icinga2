@@ -20,7 +20,6 @@
 #include "base/type.hpp"
 #include "base/scriptglobal.hpp"
 #include "base/objectlock.hpp"
-#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -72,11 +71,10 @@ std::vector<Type::Ptr> Type::GetAllTypes(void)
 	if (typesNS) {
 		ObjectLock olock(typesNS);
 
-		BOOST_FOREACH(const Dictionary::Pair& kv, typesNS) {
+		for (const Dictionary::Pair& kv : typesNS) {
 			if (kv.second.IsObjectType<Type>())
 				types.push_back(kv.second);
-	}
-
+		}
 	}
 
 	return types;

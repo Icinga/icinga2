@@ -44,7 +44,7 @@ int icinga::FilterArrayToInt(const Array::Ptr& typeFilters, const std::map<Strin
 	resultTypeFilter = 0;
 
 	ObjectLock olock(typeFilters);
-	BOOST_FOREACH(const Value& typeFilter, typeFilters) {
+	for (const Value& typeFilter : typeFilters) {
 		if (typeFilter.IsNumber()) {
 			resultTypeFilter = resultTypeFilter | typeFilter;
 			continue;

@@ -24,7 +24,6 @@
 #include "base/exception.hpp"
 #include "base/context.hpp"
 #include "base/convert.hpp"
-#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -37,7 +36,7 @@ boost::signals2::signal<void (const Notification::Ptr&, const Checkable::Ptr&, c
 
 void Checkable::ResetNotificationNumbers(void)
 {
-	BOOST_FOREACH(const Notification::Ptr& notification, GetNotifications()) {
+	for (const Notification::Ptr& notification : GetNotifications()) {
 		ObjectLock olock(notification);
 		notification->ResetNotificationNumber();
 	}
@@ -71,7 +70,7 @@ void Checkable::SendNotifications(NotificationType type, const CheckResult::Ptr&
 	Log(LogDebug, "Checkable")
 	    << "Checkable '" << GetName() << "' has " << notifications.size() << " notification(s).";
 
-	BOOST_FOREACH(const Notification::Ptr& notification, notifications) {
+	for (const Notification::Ptr& notification : notifications) {
 		try {
 			if (!notification->IsPaused())
 				notification->BeginExecuteNotification(type, cr, force, false, author, text);

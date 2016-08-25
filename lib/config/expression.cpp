@@ -28,7 +28,6 @@
 #include "base/exception.hpp"
 #include "base/scriptglobal.hpp"
 #include "base/loader.hpp"
-#include <boost/foreach.hpp>
 #include <boost/exception_ptr.hpp>
 #include <boost/exception/errinfo_nested_exception.hpp>
 
@@ -429,7 +428,7 @@ ExpressionResult FunctionCallExpression::DoEvaluate(ScriptFrame& frame, DebugHin
 
 	if (vfunc.IsObjectType<Type>()) {
 		std::vector<Value> arguments;
-		BOOST_FOREACH(Expression *arg, m_Args) {
+		for (Expression *arg : m_Args) {
 			ExpressionResult argres = arg->Evaluate(frame);
 			CHECK_RESULT(argres);
 
@@ -448,7 +447,7 @@ ExpressionResult FunctionCallExpression::DoEvaluate(ScriptFrame& frame, DebugHin
 		BOOST_THROW_EXCEPTION(ScriptError("Function is not marked as safe for sandbox mode.", m_DebugInfo));
 
 	std::vector<Value> arguments;
-	BOOST_FOREACH(Expression *arg, m_Args) {
+	for (Expression *arg : m_Args) {
 		ExpressionResult argres = arg->Evaluate(frame);
 		CHECK_RESULT(argres);
 
@@ -462,7 +461,7 @@ ExpressionResult ArrayExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhin
 {
 	Array::Ptr result = new Array();
 
-	BOOST_FOREACH(Expression *aexpr, m_Expressions) {
+	for (Expression *aexpr : m_Expressions) {
 		ExpressionResult element = aexpr->Evaluate(frame);
 		CHECK_RESULT(element);
 
@@ -484,7 +483,7 @@ ExpressionResult DictExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint
 	Value result;
 
 	try {
-		BOOST_FOREACH(Expression *aexpr, m_Expressions) {
+		for (Expression *aexpr : m_Expressions) {
 			ExpressionResult element = aexpr->Evaluate(frame, dhint);
 			CHECK_RESULT(element);
 			result = element.GetValue();
@@ -686,7 +685,7 @@ void icinga::BindToScope(Expression *& expr, ScopeSpecifier scopeSpec)
 	DictExpression *dexpr = dynamic_cast<DictExpression *>(expr);
 
 	if (dexpr) {
-		BOOST_FOREACH(Expression *& expr, dexpr->m_Expressions)
+		for (Expression *& expr : dexpr->m_Expressions)
 			BindToScope(expr, scopeSpec);
 
 		return;

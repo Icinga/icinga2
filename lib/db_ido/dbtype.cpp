@@ -22,7 +22,6 @@
 #include "base/objectlock.hpp"
 #include "base/debug.hpp"
 #include <boost/thread/once.hpp>
-#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -78,7 +77,7 @@ DbType::Ptr DbType::GetByID(long tid)
 {
 	boost::mutex::scoped_lock lock(GetStaticMutex());
 
-	BOOST_FOREACH(const TypeMap::value_type& kv, GetTypes()) {
+	for (const TypeMap::value_type& kv : GetTypes()) {
 		if (kv.second->GetTypeID() == tid)
 			return kv.second;
 	}
@@ -142,10 +141,11 @@ std::set<DbType::Ptr> DbType::GetAllTypes(void)
 {
 	std::set<DbType::Ptr> result;
 
-	boost::mutex::scoped_lock lock(GetStaticMutex());
-	std::pair<String, DbType::Ptr> kv;
-	BOOST_FOREACH(kv, GetTypes()) {
-		result.insert(kv.second);
+	{
+		boost::mutex::scoped_lock lock(GetStaticMutex());
+		for (const auto& kv : GetTypes()) {
+			result.insert(kv.second);
+		}
 	}
 
 	return result;

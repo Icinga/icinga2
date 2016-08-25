@@ -24,7 +24,6 @@
 #include "base/configtype.hpp"
 #include "base/objectlock.hpp"
 #include <boost/tuple/tuple.hpp>
-#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -65,7 +64,7 @@ String CommentsTable::GetPrefix(void) const
 
 void CommentsTable::FetchRows(const AddRowFunction& addRowFn)
 {
-	BOOST_FOREACH(const Comment::Ptr& comment, ConfigType::GetObjectsByType<Comment>()) {
+	for (const Comment::Ptr& comment : ConfigType::GetObjectsByType<Comment>()) {
 		if (!addRowFn(comment, LivestatusGroupByNone, Empty))
 			return;
 	}

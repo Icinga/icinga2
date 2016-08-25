@@ -19,7 +19,6 @@
 
 #include "base/context.hpp"
 #include <boost/thread/tss.hpp>
-#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -52,7 +51,7 @@ void ContextTrace::Print(std::ostream& fp) const
 	fp << std::endl;
 
 	int i = 0;
-	BOOST_FOREACH(const String& frame, m_Frames) {
+	for (const String& frame : m_Frames) {
 		fp << "\t(" << i << ") " << frame << std::endl;
 		i++;
 	}

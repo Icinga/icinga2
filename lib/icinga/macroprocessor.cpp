@@ -29,7 +29,6 @@
 #include "base/convert.hpp"
 #include "base/exception.hpp"
 #include <boost/assign.hpp>
-#include <boost/foreach.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/classification.hpp>
@@ -55,7 +54,7 @@ Value MacroProcessor::ResolveMacros(const Value& str, const ResolverList& resolv
 
 		ObjectLock olock(arr);
 
-		BOOST_FOREACH(const Value& arg, arr) {
+		for (const Value& arg : arr) {
 			/* Note: don't escape macros here. */
 			Value value = InternalResolveMacros(arg, resolvers, cr, missingMacro,
 			    EscapeCallback(), resolvedMacros, useResolvedMacros, recursionLevel + 1);
@@ -73,7 +72,7 @@ Value MacroProcessor::ResolveMacros(const Value& str, const ResolverList& resolv
 
 		ObjectLock olock(dict);
 
-		BOOST_FOREACH(const Dictionary::Pair& kv, dict) {
+		for (const Dictionary::Pair& kv : dict) {
 			/* Note: don't escape macros here. */
 			resultDict->Set(kv.first, InternalResolveMacros(kv.second, resolvers, cr, missingMacro,
 			    EscapeCallback(), resolvedMacros, useResolvedMacros, recursionLevel + 1));
@@ -105,7 +104,7 @@ bool MacroProcessor::ResolveMacro(const String& macro, const ResolverList& resol
 		tokens.erase(tokens.begin());
 	}
 
-	BOOST_FOREACH(const ResolverSpec& resolver, resolvers) {
+	for (const ResolverSpec& resolver : resolvers) {
 		if (!objName.IsEmpty() && objName != resolver.first)
 			continue;
 
@@ -131,7 +130,7 @@ bool MacroProcessor::ResolveMacro(const String& macro, const ResolverList& resol
 		Value ref = resolver.second;
 		bool valid = true;
 
-		BOOST_FOREACH(const String& token, tokens) {
+		for (const String& token : tokens) {
 			if (ref.IsObjectType<Dictionary>()) {
 				Dictionary::Ptr dict = ref;
 				if (dict->Contains(token)) {
@@ -212,7 +211,7 @@ Value MacroProcessor::EvaluateFunction(const Function::Ptr& func, const Resolver
 {
 	Dictionary::Ptr resolvers_this = new Dictionary();
 
-	BOOST_FOREACH(const ResolverSpec& resolver, resolvers) {
+	for (const ResolverSpec& resolver : resolvers) {
 		resolvers_this->Set(resolver.first, resolver.second);
 	}
 
@@ -290,7 +289,7 @@ Value MacroProcessor::InternalResolveMacros(const String& str, const ResolverLis
 				Array::Ptr resolved_arr = new Array();
 
 				ObjectLock olock(arr);
-				BOOST_FOREACH(const Value& value, arr) {
+				for (const Value& value : arr) {
 					if (value.IsScalar()) {
 						resolved_arr->Add(InternalResolveMacros(value,
 							resolvers, cr, missingMacro, EscapeCallback(), Dictionary::Ptr(),
@@ -364,7 +363,7 @@ void MacroProcessor::ValidateCustomVars(const ConfigObject::Ptr& object, const D
 
 	/* string, array, dictionary */
 	ObjectLock olock(value);
-	BOOST_FOREACH(const Dictionary::Pair& kv, value) {
+	for (const Dictionary::Pair& kv : value) {
 		const Value& varval = kv.second;
 
 		if (varval.IsObjectType<Dictionary>()) {
@@ -372,7 +371,7 @@ void MacroProcessor::ValidateCustomVars(const ConfigObject::Ptr& object, const D
 			Dictionary::Ptr varval_dict = varval;
 
 			ObjectLock xlock(varval_dict);
-			BOOST_FOREACH(const Dictionary::Pair& kv_var, varval_dict) {
+			for (const Dictionary::Pair& kv_var : varval_dict) {
 				if (!kv_var.second.IsString())
 					continue;
 
@@ -384,7 +383,7 @@ void MacroProcessor::ValidateCustomVars(const ConfigObject::Ptr& object, const D
 			Array::Ptr varval_arr = varval;
 
 			ObjectLock ylock (varval_arr);
-			BOOST_FOREACH(const Value& arrval, varval_arr) {
+			for (const Value& arrval : varval_arr) {
 				if (!arrval.IsString())
 					continue;
 
@@ -420,7 +419,7 @@ Value MacroProcessor::EscapeMacroShellArg(const Value& value)
 		Array::Ptr arr = value;
 
 		ObjectLock olock(arr);
-		BOOST_FOREACH(const Value& arg, arr) {
+		for (const Value& arg : arr) {
 			if (result.GetLength() > 0)
 				result += " ";
 
@@ -469,7 +468,7 @@ Value MacroProcessor::ResolveArguments(const Value& command, const Dictionary::P
 		std::vector<CommandArgument> args;
 
 		ObjectLock olock(arguments);
-		BOOST_FOREACH(const Dictionary::Pair& kv, arguments) {
+		for (const Dictionary::Pair& kv : arguments) {
 			const Value& arginfo = kv.second;
 
 			CommandArgument arg;
@@ -548,7 +547,7 @@ Value MacroProcessor::ResolveArguments(const Value& command, const Dictionary::P
 		std::sort(args.begin(), args.end());
 
 		Array::Ptr command_arr = resolvedCommand;
-		BOOST_FOREACH(const CommandArgument& arg, args) {
+		for (const CommandArgument& arg : args) {
 
 			if (arg.AValue.IsObjectType<Dictionary>()) {
 				Log(LogWarning, "PluginUtility", "Tried to use dictionary in argument");
@@ -558,7 +557,7 @@ Value MacroProcessor::ResolveArguments(const Value& command, const Dictionary::P
 				Array::Ptr arr = static_cast<Array::Ptr>(arg.AValue);
 
 				ObjectLock olock(arr);
-				BOOST_FOREACH(const Value& value, arr) {
+				for (const Value& value : arr) {
 					bool add_key;
 
 					if (first) {

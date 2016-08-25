@@ -37,7 +37,6 @@
 #include "base/utility.hpp"
 #include "base/initialize.hpp"
 #include "base/logger.hpp"
-#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -92,7 +91,7 @@ String DbObject::CalculateConfigHash(const Dictionary::Ptr& configFields) const
 	{
 		ObjectLock olock(configFieldsDup);
 
-		BOOST_FOREACH(const Dictionary::Pair& kv, configFieldsDup) {
+		for (const Dictionary::Pair& kv : configFieldsDup) {
 			if (kv.second.IsObjectType<ConfigObject>()) {
 				ConfigObject::Ptr obj = kv.second;
 				configFieldsDup->Set(kv.first, obj->GetName());
@@ -235,7 +234,7 @@ void DbObject::SendVarsConfigUpdateHeavy(void)
 	if (vars) {
 		ObjectLock olock (vars);
 
-		BOOST_FOREACH(const Dictionary::Pair& kv, vars) {
+		for (const Dictionary::Pair& kv : vars) {
 			if (kv.first.IsEmpty())
 				continue;
 
@@ -284,7 +283,7 @@ void DbObject::SendVarsStatusUpdate(void)
 		std::vector<DbQuery> queries;
 		ObjectLock olock (vars);
 
-		BOOST_FOREACH(const Dictionary::Pair& kv, vars) {
+		for (const Dictionary::Pair& kv : vars) {
 			if (kv.first.IsEmpty())
 				continue;
 

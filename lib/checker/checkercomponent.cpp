@@ -30,7 +30,6 @@
 #include "base/exception.hpp"
 #include "base/convert.hpp"
 #include "base/statsfunction.hpp"
-#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -42,7 +41,7 @@ void CheckerComponent::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr
 {
 	Dictionary::Ptr nodes = new Dictionary();
 
-	BOOST_FOREACH(const CheckerComponent::Ptr& checker, ConfigType::GetObjectsByType<CheckerComponent>()) {
+	for (const CheckerComponent::Ptr& checker : ConfigType::GetObjectsByType<CheckerComponent>()) {
 		unsigned long idle = checker->GetIdleCheckables();
 		unsigned long pending = checker->GetPendingCheckables();
 

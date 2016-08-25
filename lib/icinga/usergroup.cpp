@@ -26,7 +26,6 @@
 #include "base/logger.hpp"
 #include "base/context.hpp"
 #include "base/workqueue.hpp"
-#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -66,7 +65,7 @@ void UserGroup::EvaluateObjectRules(const User::Ptr& user)
 {
 	CONTEXT("Evaluating group membership for user '" + user->GetName() + "'");
 
-	BOOST_FOREACH(const ConfigItem::Ptr& group, ConfigItem::GetItems("UserGroup"))
+	for (const ConfigItem::Ptr& group : ConfigItem::GetItems("UserGroup"))
 	{
 		if (!group->GetFilter())
 			continue;
@@ -110,7 +109,7 @@ bool UserGroup::ResolveGroupMembership(const User::Ptr& user, bool add, int rsta
 	if (groups && groups->GetLength() > 0) {
 		ObjectLock olock(groups);
 
-		BOOST_FOREACH(const String& name, groups) {
+		for (const String& name : groups) {
 			UserGroup::Ptr group = UserGroup::GetByName(name);
 
 			if (group && !group->ResolveGroupMembership(user, add, rstack + 1))

@@ -239,7 +239,7 @@ void HttpServerConnection::TimeoutTimerHandler(void)
 {
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 
-	BOOST_FOREACH(const HttpServerConnection::Ptr& client, listener->GetHttpClients()) {
+	for (const HttpServerConnection::Ptr& client : listener->GetHttpClients()) {
 		client->CheckLiveness();
 	}
 }

@@ -28,7 +28,6 @@
 #include "base/utility.hpp"
 #include "base/process.hpp"
 #include "base/convert.hpp"
-#include <boost/foreach.hpp>
 
 using namespace icinga;
 

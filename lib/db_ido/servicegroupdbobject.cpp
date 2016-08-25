@@ -22,7 +22,6 @@
 #include "db_ido/dbvalue.hpp"
 #include "base/objectlock.hpp"
 #include "base/initialize.hpp"
-#include <boost/foreach.hpp>
 
 using namespace icinga;
 

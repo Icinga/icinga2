@@ -24,7 +24,6 @@
 #include "base/object.hpp"
 #include "base/type.hpp"
 #include "base/dictionary.hpp"
-#include <boost/foreach.hpp>
 
 namespace icinga
 {
@@ -55,7 +54,7 @@ public:
 	{
 		std::vector<intrusive_ptr<ConfigObject> > objects = GetObjectsHelper(T::TypeInstance.get());
 		std::vector<intrusive_ptr<T> > result;
-		BOOST_FOREACH(const intrusive_ptr<ConfigObject>& object, objects) {
+		for (const auto& object : objects) {
 			result.push_back(static_pointer_cast<T>(object));
 		}
 		return result;

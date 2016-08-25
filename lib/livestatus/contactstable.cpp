@@ -25,7 +25,6 @@
 #include "base/objectlock.hpp"
 #include "base/json.hpp"
 #include "base/utility.hpp"
-#include <boost/foreach.hpp>
 #include <boost/tuple/tuple.hpp>
 
 using namespace icinga;
@@ -70,7 +69,7 @@ String ContactsTable::GetPrefix(void) const
 
 void ContactsTable::FetchRows(const AddRowFunction& addRowFn)
 {
-	BOOST_FOREACH(const User::Ptr& user, ConfigType::GetObjectsByType<User>()) {
+	for (const User::Ptr& user : ConfigType::GetObjectsByType<User>()) {
 		if (!addRowFn(user, LivestatusGroupByNone, Empty))
 			return;
 	}
@@ -217,7 +216,7 @@ Value ContactsTable::CustomVariableNamesAccessor(const Value& row)
 	Array::Ptr cv = new Array();
 
 	ObjectLock olock(vars);
-	BOOST_FOREACH(const Dictionary::Pair& kv, vars) {
+	for (const Dictionary::Pair& kv : vars) {
 		cv->Add(kv.first);
 	}
 
@@ -244,7 +243,7 @@ Value ContactsTable::CustomVariableValuesAccessor(const Value& row)
 	Array::Ptr cv = new Array();
 
 	ObjectLock olock(vars);
-	BOOST_FOREACH(const Dictionary::Pair& kv, vars) {
+	for (const Dictionary::Pair& kv : vars) {
 		if (kv.second.IsObjectType<Array>() || kv.second.IsObjectType<Dictionary>())
 			cv->Add(JsonEncode(kv.second));
 		else
@@ -274,7 +273,7 @@ Value ContactsTable::CustomVariablesAccessor(const Value& row)
 	Array::Ptr cv = new Array();
 
 	ObjectLock olock(vars);
-	BOOST_FOREACH(const Dictionary::Pair& kv, vars) {
+	for (const Dictionary::Pair& kv : vars) {
 		Array::Ptr key_val = new Array();
 		key_val->Add(kv.first);
 
@@ -309,7 +308,7 @@ Value ContactsTable::CVIsJsonAccessor(const Value& row)
 	bool cv_is_json = false;
 
 	ObjectLock olock(vars);
-	BOOST_FOREACH(const Dictionary::Pair& kv, vars) {
+	for (const Dictionary::Pair& kv : vars) {
 		if (kv.second.IsObjectType<Array>() || kv.second.IsObjectType<Dictionary>())
 			cv_is_json = true;
 	}

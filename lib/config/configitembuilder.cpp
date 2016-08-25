@@ -20,7 +20,6 @@
 #include "config/configitembuilder.hpp"
 #include "base/configtype.hpp"
 #include <sstream>
-#include <boost/foreach.hpp>
 #include <boost/smart_ptr/make_shared.hpp>
 
 using namespace icinga;

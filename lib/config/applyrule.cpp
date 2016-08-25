@@ -19,7 +19,6 @@
 
 #include "config/applyrule.hpp"
 #include "base/logger.hpp"
-#include <boost/foreach.hpp>
 #include <set>
 
 using namespace icinga;
@@ -121,7 +120,7 @@ bool ApplyRule::IsValidTargetType(const String& sourceType, const String& target
 	if (it->second.size() == 1 && targetType == "")
 		return true;
 
-	BOOST_FOREACH(const String& type, it->second) {
+	for (const String& type : it->second) {
 		if (type == targetType)
 			return true;
 	}
@@ -161,8 +160,8 @@ std::vector<ApplyRule>& ApplyRule::GetRules(const String& type)
 
 void ApplyRule::CheckMatches(void)
 {
-	BOOST_FOREACH(const RuleMap::value_type& kv, m_Rules) {
-		BOOST_FOREACH(const ApplyRule& rule, kv.second) {
+	for (const RuleMap::value_type& kv : m_Rules) {
+		for (const ApplyRule& rule : kv.second) {
 			if (!rule.HasMatches())
 				Log(LogWarning, "ApplyRule")
 				    << "Apply rule '" << rule.GetName() << "' (" << rule.GetDebugInfo() << ") for type '" << kv.first << "' does not match anywhere!";

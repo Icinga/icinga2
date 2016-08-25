@@ -37,7 +37,6 @@
 #include "base/statsfunction.hpp"
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/classification.hpp>
-#include <boost/foreach.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/replace.hpp>
 
@@ -51,7 +50,7 @@ void GraphiteWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 {
 	Dictionary::Ptr nodes = new Dictionary();
 
-	BOOST_FOREACH(const GraphiteWriter::Ptr& graphitewriter, ConfigType::GetObjectsByType<GraphiteWriter>()) {
+	for (const GraphiteWriter::Ptr& graphitewriter : ConfigType::GetObjectsByType<GraphiteWriter>()) {
 		nodes->Set(graphitewriter->GetName(), 1); //add more stats
 	}
 
@@ -176,7 +175,7 @@ void GraphiteWriter::SendPerfdata(const String& prefix, const CheckResult::Ptr& 
 		return;
 
 	ObjectLock olock(perfdata);
-	BOOST_FOREACH(const Value& val, perfdata) {
+	for (const Value& val : perfdata) {
 		PerfdataValue::Ptr pdv;
 
 		if (val.IsObjectType<PerfdataValue>())
@@ -287,7 +286,7 @@ Value GraphiteWriter::EscapeMacroMetric(const Value& value, bool legacyMode)
 		Array::Ptr result = new Array();
 
 		ObjectLock olock(arr);
-		BOOST_FOREACH(const Value& arg, arr) {
+		for (const Value& arg : arr) {
 			result->Add(EscapeMetric(arg, legacyMode));
 		}
 

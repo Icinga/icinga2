@@ -21,7 +21,6 @@
 #include "remote/apilistener.hpp"
 #include "base/configtype.hpp"
 #include "base/utility.hpp"
-#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -42,7 +41,7 @@ void ApiListener::UpdateObjectAuthority(void)
 
 		int num_total = 0;
 
-		BOOST_FOREACH(const Endpoint::Ptr& endpoint, my_zone->GetEndpoints()) {
+		for (const Endpoint::Ptr& endpoint : my_zone->GetEndpoints()) {
 			num_total++;
 
 			if (endpoint != my_endpoint && !endpoint->GetConnected())
@@ -59,13 +58,13 @@ void ApiListener::UpdateObjectAuthority(void)
 		std::sort(endpoints.begin(), endpoints.end(), ObjectNameLessComparer);
 	}
 
-	BOOST_FOREACH(const Type::Ptr& type, Type::GetAllTypes()) {
+	for (const Type::Ptr& type : Type::GetAllTypes()) {
 		ConfigType *dtype = dynamic_cast<ConfigType *>(type.get());
 
 		if (!dtype)
 			continue;
 
-		BOOST_FOREACH(const ConfigObject::Ptr& object, dtype->GetObjects()) {
+		for (const ConfigObject::Ptr& object : dtype->GetObjects()) {
 			if (!object->IsActive() || object->GetHAMode() != HARunOnce)
 				continue;
 

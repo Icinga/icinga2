@@ -77,7 +77,7 @@ bool ActionsHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& reques
 	Log(LogNotice, "ApiActionHandler")
 	    << "Running action " << actionName;
 
-	BOOST_FOREACH(const ConfigObject::Ptr& obj, objs) {
+	for (const ConfigObject::Ptr& obj : objs) {
 		try {
 			results->Add(action->Invoke(obj, params));
 		} catch (const std::exception& ex) {

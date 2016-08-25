@@ -47,7 +47,7 @@ void LivestatusListener::StatsFunc(const Dictionary::Ptr& status, const Array::P
 {
 	Dictionary::Ptr nodes = new Dictionary();
 
-	BOOST_FOREACH(const LivestatusListener::Ptr& livestatuslistener, ConfigType::GetObjectsByType<LivestatusListener>()) {
+	for (const LivestatusListener::Ptr& livestatuslistener : ConfigType::GetObjectsByType<LivestatusListener>()) {
 		Dictionary::Ptr stats = new Dictionary();
 		stats->Set("connections", l_Connections);
 

@@ -29,7 +29,6 @@
 #include "base/utility.hpp"
 #include "base/logger.hpp"
 #include "base/exception.hpp"
-#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -466,13 +465,13 @@ void DbConnection::UpdateObject(const ConfigObject::Ptr& object)
 
 void DbConnection::UpdateAllObjects(void)
 {
-	BOOST_FOREACH(const Type::Ptr& type, Type::GetAllTypes()) {
+	for (const Type::Ptr& type : Type::GetAllTypes()) {
 		ConfigType *dtype = dynamic_cast<ConfigType *>(type.get());
 
 		if (!dtype)
 			continue;
 
-		BOOST_FOREACH(const ConfigObject::Ptr& object, dtype->GetObjects()) {
+		for (const ConfigObject::Ptr& object : dtype->GetObjects()) {
 			UpdateObject(object);
 		}
 	}
@@ -480,7 +479,7 @@ void DbConnection::UpdateAllObjects(void)
 
 void DbConnection::PrepareDatabase(void)
 {
-	BOOST_FOREACH(const DbType::Ptr& type, DbType::GetAllTypes()) {
+	for (const DbType::Ptr& type : DbType::GetAllTypes()) {
 		FillIDCache(type);
 	}
 }

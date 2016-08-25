@@ -20,7 +20,6 @@
 #include "base/array.hpp"
 #include "remote/url.hpp"
 #include <boost/test/unit_test.hpp>
-#include <boost/foreach.hpp>
 #include <boost/assign/list_of.hpp>
 
 using namespace icinga;

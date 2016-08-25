@@ -105,7 +105,7 @@ bool DaemonUtility::ValidateConfigFiles(const std::vector<std::string>& configs,
 		ConfigCompilerContext::GetInstance()->OpenObjectsFile(objectsFile);
 
 	if (!configs.empty()) {
-		BOOST_FOREACH(const String& configPath, configs) {
+		for (const String& configPath : configs) {
 			Expression *expression = ConfigCompiler::CompileFile(configPath, String(), "_etc");
 			success = ExecuteExpression(expression);
 			delete expression;

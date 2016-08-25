@@ -39,7 +39,7 @@ Dictionary::Ptr ObjectQueryHandler::SerializeObjectAttrs(const Object::Ptr& obje
 
 	if (isJoin && attrs) {
 		ObjectLock olock(attrs);
-		BOOST_FOREACH(const String& attr, attrs) {
+		for (const String& attr : attrs) {
 			if (attr == attrPrefix) {
 				allAttrs = true;
 				break;
@@ -56,7 +56,7 @@ Dictionary::Ptr ObjectQueryHandler::SerializeObjectAttrs(const Object::Ptr& obje
 		}
 	} else if (attrs) {
 		ObjectLock olock(attrs);
-		BOOST_FOREACH(const String& attr, attrs) {
+		for (const String& attr : attrs) {
 			String userAttr;
 			
 			if (isJoin) {
@@ -83,7 +83,7 @@ Dictionary::Ptr ObjectQueryHandler::SerializeObjectAttrs(const Object::Ptr& obje
 
 	Dictionary::Ptr resultAttrs = new Dictionary();
 
-	BOOST_FOREACH(int& fid, fids)
+	for (int& fid : fids)
 	{
 		Field field = type->GetFieldInfo(fid);
 
@@ -155,7 +155,7 @@ bool ObjectQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 
 	if (ujoins) {
 		ObjectLock olock(ujoins);
-		BOOST_FOREACH(const String& ujoin, ujoins) {
+		for (const String& ujoin : ujoins) {
 			userJoinAttrs.insert(ujoin.SubStr(0, ujoin.FindFirstOf(".")));
 		}
 	}
@@ -172,7 +172,7 @@ bool ObjectQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 		joinAttrs.insert(field.Name);
 	}
 
-	BOOST_FOREACH(const ConfigObject::Ptr& obj, objs) {
+	for (const ConfigObject::Ptr& obj : objs) {
 		Dictionary::Ptr result1 = new Dictionary();
 		results->Add(result1);
 
@@ -184,12 +184,12 @@ bool ObjectQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 
 		if (umetas) {
 			ObjectLock olock(umetas);
-			BOOST_FOREACH(const String& meta, umetas) {
+			for (const String& meta : umetas) {
 				if (meta == "used_by") {
 					Array::Ptr used_by = new Array();
 					metaAttrs->Set("used_by", used_by);
 
-					BOOST_FOREACH(const Object::Ptr& pobj, DependencyGraph::GetParents((obj)))
+					for (const Object::Ptr& pobj : DependencyGraph::GetParents((obj)))
 					{
 						ConfigObject::Ptr configObj = dynamic_pointer_cast<ConfigObject>(pobj);
 
@@ -218,7 +218,7 @@ bool ObjectQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 		Dictionary::Ptr joins = new Dictionary();
 		result1->Set("joins", joins);
 
-		BOOST_FOREACH(const String& joinAttr, joinAttrs) {
+		for (const String& joinAttr : joinAttrs) {
 			Object::Ptr joinedObj;
 			int fid = type->GetFieldId(joinAttr);
 

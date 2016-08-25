@@ -23,7 +23,6 @@
 #include "base/scriptframe.hpp"
 #include "base/objectlock.hpp"
 #include "base/exception.hpp"
-#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -123,7 +122,7 @@ static Value ArrayJoin(const Value& separator)
 	bool first = true;
 
 	ObjectLock olock(self);
-	BOOST_FOREACH(const Value& item, self) {
+	for (const Value& item : self) {
 		if (first) {
 			first = false;
 		} else {
@@ -154,7 +153,7 @@ static Array::Ptr ArrayMap(const Function::Ptr& function)
 	Array::Ptr result = new Array();
 
 	ObjectLock olock(self);
-	BOOST_FOREACH(const Value& item, self) {
+	for (const Value& item : self) {
 		std::vector<Value> args;
 		args.push_back(item);
 		result->Add(function->Invoke(args));
@@ -198,7 +197,7 @@ static Array::Ptr ArrayFilter(const Function::Ptr& function)
 	Array::Ptr result = new Array();
 
 	ObjectLock olock(self);
-	BOOST_FOREACH(const Value& item, self) {
+	for (const Value& item : self) {
 		std::vector<Value> args;
 		args.push_back(item);
 		if (function->Invoke(args))
@@ -216,7 +215,7 @@ static Array::Ptr ArrayUnique(void)
 	std::set<Value> result;
 
 	ObjectLock olock(self);
-	BOOST_FOREACH(const Value& item, self) {
+	for (const Value& item : self) {
 		result.insert(item);
 	}
 

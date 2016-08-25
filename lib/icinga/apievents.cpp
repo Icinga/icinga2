@@ -70,7 +70,7 @@ void ApiEvents::CheckResultHandler(const Checkable::Ptr& checkable, const CheckR
 
 	result->Set("check_result", Serialize(cr));
 
-	BOOST_FOREACH(const EventQueue::Ptr& queue, queues) {
+	for (const EventQueue::Ptr& queue : queues) {
 		queue->ProcessEvent(result);
 	}
 }
@@ -100,7 +100,7 @@ void ApiEvents::StateChangeHandler(const Checkable::Ptr& checkable, const CheckR
 	result->Set("state_type", checkable->GetStateType());
 	result->Set("check_result", Serialize(cr));
 
-	BOOST_FOREACH(const EventQueue::Ptr& queue, queues) {
+	for (const EventQueue::Ptr& queue : queues) {
 		queue->ProcessEvent(result);
 	}
 }
@@ -130,7 +130,7 @@ void ApiEvents::NotificationSentToAllUsersHandler(const Notification::Ptr& notif
 
 	Array::Ptr userNames = new Array();
 
-	BOOST_FOREACH(const User::Ptr& user, users) {
+	for (const User::Ptr& user : users) {
 		userNames->Add(user->GetName());
 	}
 
@@ -140,7 +140,7 @@ void ApiEvents::NotificationSentToAllUsersHandler(const Notification::Ptr& notif
 	result->Set("text", text);
 	result->Set("check_result", Serialize(cr));
 
-	BOOST_FOREACH(const EventQueue::Ptr& queue, queues) {
+	for (const EventQueue::Ptr& queue : queues) {
 		queue->ProcessEvent(result);
 	}
 }
@@ -170,7 +170,7 @@ void ApiEvents::FlappingChangedHandler(const Checkable::Ptr& checkable, const Me
 	result->Set("state_type", checkable->GetStateType());
 	result->Set("is_flapping", checkable->IsFlapping());
 
-	BOOST_FOREACH(const EventQueue::Ptr& queue, queues) {
+	for (const EventQueue::Ptr& queue : queues) {
 		queue->ProcessEvent(result);
 	}
 }
@@ -207,7 +207,7 @@ void ApiEvents::AcknowledgementSetHandler(const Checkable::Ptr& checkable,
 	result->Set("notify", notify);
 	result->Set("expiry", expiry);
 
-	BOOST_FOREACH(const EventQueue::Ptr& queue, queues) {
+	for (const EventQueue::Ptr& queue : queues) {
 		queue->ProcessEvent(result);
 	}
 }
@@ -236,7 +236,7 @@ void ApiEvents::AcknowledgementClearedHandler(const Checkable::Ptr& checkable, c
 	result->Set("state", service ? static_cast<int>(service->GetState()) : static_cast<int>(host->GetState()));
 	result->Set("state_type", checkable->GetStateType());
 
-	BOOST_FOREACH(const EventQueue::Ptr& queue, queues) {
+	for (const EventQueue::Ptr& queue : queues) {
 		queue->ProcessEvent(result);
 	}
 
@@ -258,7 +258,7 @@ void ApiEvents::CommentAddedHandler(const Comment::Ptr& comment)
 
 	result->Set("comment", Serialize(comment, FAConfig | FAState));
 
-	BOOST_FOREACH(const EventQueue::Ptr& queue, queues) {
+	for (const EventQueue::Ptr& queue : queues) {
 		queue->ProcessEvent(result);
 	}
 }
@@ -278,7 +278,7 @@ void ApiEvents::CommentRemovedHandler(const Comment::Ptr& comment)
 
 	result->Set("comment", Serialize(comment, FAConfig | FAState));
 
-	BOOST_FOREACH(const EventQueue::Ptr& queue, queues) {
+	for (const EventQueue::Ptr& queue : queues) {
 		queue->ProcessEvent(result);
 	}
 }
@@ -298,7 +298,7 @@ void ApiEvents::DowntimeAddedHandler(const Downtime::Ptr& downtime)
 
 	result->Set("downtime", Serialize(downtime, FAConfig | FAState));
 
-	BOOST_FOREACH(const EventQueue::Ptr& queue, queues) {
+	for (const EventQueue::Ptr& queue : queues) {
 		queue->ProcessEvent(result);
 	}
 }
@@ -318,7 +318,7 @@ void ApiEvents::DowntimeRemovedHandler(const Downtime::Ptr& downtime)
 
 	result->Set("downtime", Serialize(downtime, FAConfig | FAState));
 
-	BOOST_FOREACH(const EventQueue::Ptr& queue, queues) {
+	for (const EventQueue::Ptr& queue : queues) {
 		queue->ProcessEvent(result);
 	}
 }
@@ -338,7 +338,7 @@ void ApiEvents::DowntimeTriggeredHandler(const Downtime::Ptr& downtime)
 
 	result->Set("downtime", Serialize(downtime, FAConfig | FAState));
 
-	BOOST_FOREACH(const EventQueue::Ptr& queue, queues) {
+	for (const EventQueue::Ptr& queue : queues) {
 		queue->ProcessEvent(result);
 	}
 }

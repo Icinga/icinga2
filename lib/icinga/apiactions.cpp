@@ -174,7 +174,7 @@ Dictionary::Ptr ApiActions::DelayNotification(const ConfigObject::Ptr& object,
 	if (!params->Contains("timestamp"))
 		return ApiActions::CreateResult(403, "A timestamp is required to delay notifications");
 
-	BOOST_FOREACH(const Notification::Ptr& notification, checkable->GetNotifications()) {
+	for (const Notification::Ptr& notification : checkable->GetNotifications()) {
 		notification->SetNextNotification(HttpUtility::GetLastParameter(params, "timestamp"));
 	}
 
@@ -275,7 +275,7 @@ Dictionary::Ptr ApiActions::RemoveComment(const ConfigObject::Ptr& object,
 	if (checkable) {
 		std::set<Comment::Ptr> comments = checkable->GetComments();
 
-		BOOST_FOREACH(const Comment::Ptr& comment, comments) {
+		for (const Comment::Ptr& comment : comments) {
 			Comment::RemoveComment(comment->GetName());
 		}
 
@@ -341,7 +341,7 @@ Dictionary::Ptr ApiActions::RemoveDowntime(const ConfigObject::Ptr& object,
 	if (checkable) {
 		std::set<Downtime::Ptr> downtimes = checkable->GetDowntimes();
 
-		BOOST_FOREACH(const Downtime::Ptr& downtime, downtimes) {
+		for (const Downtime::Ptr& downtime : downtimes) {
 			Downtime::RemoveDowntime(downtime->GetName(), true);
 		}
 

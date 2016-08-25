@@ -23,27 +23,26 @@
 #include "base/logger.hpp"
 #include "base/utility.hpp"
 #include "base/convert.hpp"
-#include <boost/foreach.hpp>
 
 using namespace icinga;
 
 void Checkable::RemoveAllDowntimes(void)
 {
-	BOOST_FOREACH(const Downtime::Ptr& downtime, GetDowntimes()) {
+	for (const Downtime::Ptr& downtime : GetDowntimes()) {
 		Downtime::RemoveDowntime(downtime->GetName(), true, true);
 	}
 }
 
 void Checkable::TriggerDowntimes(void)
 {
-	BOOST_FOREACH(const Downtime::Ptr& downtime, GetDowntimes()) {
+	for (const Downtime::Ptr& downtime : GetDowntimes()) {
 		downtime->TriggerDowntime();
 	}
 }
 
 bool Checkable::IsInDowntime(void) const
 {
-	BOOST_FOREACH(const Downtime::Ptr& downtime, GetDowntimes()) {
+	for (const Downtime::Ptr& downtime : GetDowntimes()) {
 		if (downtime->IsInEffect())
 			return true;
 	}
@@ -55,7 +54,7 @@ int Checkable::GetDowntimeDepth(void) const
 {
 	int downtime_depth = 0;
 
-	BOOST_FOREACH(const Downtime::Ptr& downtime, GetDowntimes()) {
+	for (const Downtime::Ptr& downtime : GetDowntimes()) {
 		if (downtime->IsInEffect())
 			downtime_depth++;
 	}

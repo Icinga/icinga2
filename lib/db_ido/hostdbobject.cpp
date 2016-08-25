@@ -33,7 +33,6 @@
 #include "base/objectlock.hpp"
 #include "base/logger.hpp"
 #include "base/json.hpp"
-#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -197,7 +196,7 @@ void HostDbObject::OnConfigUpdateHeavy(void)
 
 	if (groups) {
 		ObjectLock olock(groups);
-		BOOST_FOREACH(const String& groupName, groups) {
+		for (const String& groupName : groups) {
 			HostGroup::Ptr group = HostGroup::GetByName(groupName);
 
 			DbQuery query2;
@@ -231,7 +230,7 @@ void HostDbObject::OnConfigUpdateHeavy(void)
 	queries.push_back(query2);
 
 	/* parents */
-	BOOST_FOREACH(const Checkable::Ptr& checkable, host->GetParents()) {
+	for (const Checkable::Ptr& checkable : host->GetParents()) {
 		Host::Ptr parent = dynamic_pointer_cast<Host>(checkable);
 
 		if (!parent)
@@ -272,7 +271,7 @@ void HostDbObject::OnConfigUpdateHeavy(void)
 
 	queries.push_back(query3);
 
-	BOOST_FOREACH(const Dependency::Ptr& dep, host->GetDependencies()) {
+	for (const Dependency::Ptr& dep : host->GetDependencies()) {
 		Checkable::Ptr parent = dep->GetParent();
 
 		if (!parent) {
@@ -320,7 +319,7 @@ void HostDbObject::OnConfigUpdateHeavy(void)
 
 	queries.push_back(query4);
 
-	BOOST_FOREACH(const User::Ptr& user, CompatUtility::GetCheckableNotificationUsers(host)) {
+	for (const User::Ptr& user : CompatUtility::GetCheckableNotificationUsers(host)) {
 		Log(LogDebug, "HostDbObject")
 		    << "host contacts: " << user->GetName();
 
@@ -354,7 +353,7 @@ void HostDbObject::OnConfigUpdateHeavy(void)
 
 	queries.push_back(query5);
 
-	BOOST_FOREACH(const UserGroup::Ptr& usergroup, CompatUtility::GetCheckableNotificationUserGroups(host)) {
+	for (const UserGroup::Ptr& usergroup : CompatUtility::GetCheckableNotificationUserGroups(host)) {
 		Log(LogDebug, "HostDbObject")
 		    << "host contactgroups: " << usergroup->GetName();
 
@@ -405,7 +404,7 @@ String HostDbObject::CalculateConfigHash(const Dictionary::Ptr& configFields) co
 	Array::Ptr parents = new Array();
 
 	/* parents */
-	BOOST_FOREACH(const Checkable::Ptr& checkable, host->GetParents()) {
+	for (const Checkable::Ptr& checkable : host->GetParents()) {
 		Host::Ptr parent = dynamic_pointer_cast<Host>(checkable);
 
 		if (!parent)
@@ -421,7 +420,7 @@ String HostDbObject::CalculateConfigHash(const Dictionary::Ptr& configFields) co
 	Array::Ptr dependencies = new Array();
 
 	/* dependencies */
-	BOOST_FOREACH(const Dependency::Ptr& dep, host->GetDependencies()) {
+	for (const Dependency::Ptr& dep : host->GetDependencies()) {
 		Checkable::Ptr parent = dep->GetParent();
 
 		if (!parent)
@@ -441,7 +440,7 @@ String HostDbObject::CalculateConfigHash(const Dictionary::Ptr& configFields) co
 
 	Array::Ptr users = new Array();
 
-	BOOST_FOREACH(const User::Ptr& user, CompatUtility::GetCheckableNotificationUsers(host)) {
+	for (const User::Ptr& user : CompatUtility::GetCheckableNotificationUsers(host)) {
 		users->Add(user->GetName());
 	}
 
@@ -451,7 +450,7 @@ String HostDbObject::CalculateConfigHash(const Dictionary::Ptr& configFields) co
 
 	Array::Ptr userGroups = new Array();
 
-	BOOST_FOREACH(const UserGroup::Ptr& usergroup, CompatUtility::GetCheckableNotificationUserGroups(host)) {
+	for (const UserGroup::Ptr& usergroup : CompatUtility::GetCheckableNotificationUserGroups(host)) {
 		userGroups->Add(usergroup->GetName());
 	}
 

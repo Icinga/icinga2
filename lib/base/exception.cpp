@@ -18,8 +18,6 @@
  ******************************************************************************/
 
 #include "base/exception.hpp"
-#include <boost/thread/tss.hpp>
-#include <boost/foreach.hpp>
 
 #ifdef HAVE_CXXABI_H
 #	include <cxxabi.h>
@@ -160,7 +158,7 @@ String icinga::DiagnosticInformation(const std::exception& ex, bool verbose, Sta
 		Array::Ptr messages;
 
 		if (currentHint) {
-			BOOST_FOREACH(const String& attr, vex->GetAttributePath()) {
+			for (const String& attr : vex->GetAttributePath()) {
 				Dictionary::Ptr props = currentHint->Get("properties");
 
 				if (!props)
@@ -326,7 +324,7 @@ ValidationError::ValidationError(const ConfigObject::Ptr& object, const std::vec
 {
 	String path;
 
-	BOOST_FOREACH(const String& attribute, attributePath) {
+	for (const String& attribute : attributePath) {
 		if (!path.IsEmpty())
 			path += " -> ";
 

@@ -138,7 +138,7 @@ Value ClusterEvents::CheckResultAPIHandler(const MessageOrigin::Ptr& origin, con
 
 	if (vperf) {
 		ObjectLock olock(vperf);
-		BOOST_FOREACH(const Value& vp, vperf) {
+		for (const Value& vp : vperf) {
 			Value p;
 
 			if (vp.IsObjectType<Dictionary>()) {
@@ -687,10 +687,10 @@ void ClusterEvents::RepositoryTimerHandler(void)
 
 	Dictionary::Ptr repository = new Dictionary();
 
-	BOOST_FOREACH(const Host::Ptr& host, ConfigType::GetObjectsByType<Host>()) {
+	for (const Host::Ptr& host : ConfigType::GetObjectsByType<Host>()) {
 		Array::Ptr services = new Array();
 
-		BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
+		for (const Service::Ptr& service : host->GetServices()) {
 			services->Add(service->GetShortName());
 		}
 
@@ -958,7 +958,7 @@ void ClusterEvents::NotificationSentToAllUsersHandler(const Notification::Ptr& n
 	params->Set("notification", notification->GetName());
 
 	Array::Ptr ausers = new Array();
-	BOOST_FOREACH(const User::Ptr& user, users) {
+	for (const User::Ptr& user : users) {
 		ausers->Add(user->GetName());
 	}
 	params->Set("users", ausers);
@@ -1042,7 +1042,7 @@ Value ClusterEvents::NotificationSentToAllUsersAPIHandler(const MessageOrigin::P
 
 	{
 		ObjectLock olock(ausers);
-		BOOST_FOREACH(const String& auser, ausers) {
+		for (const String& auser : ausers) {
 			User::Ptr user = User::GetByName(auser);
 
 			if (!user)
@@ -1059,7 +1059,7 @@ Value ClusterEvents::NotificationSentToAllUsersAPIHandler(const MessageOrigin::P
 	notification->SetNoMoreNotifications(params->Get("no_more_notifications"));
 
 	Array::Ptr notifiedUsers = new Array();
-	BOOST_FOREACH(const User::Ptr& user, users) {
+	for (const User::Ptr& user : users) {
 		notifiedUsers->Add(user->GetName());
 	}
 

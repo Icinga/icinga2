@@ -24,7 +24,6 @@
 #include "base/scriptframe.hpp"
 #include "base/exception.hpp"
 #include <boost/algorithm/string.hpp>
-#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -80,7 +79,7 @@ static Array::Ptr StringSplit(const String& delims)
 	boost::algorithm::split(tokens, self, boost::is_any_of(delims));
 
 	Array::Ptr result = new Array();
-	BOOST_FOREACH(const String& token, tokens) {
+	for (const String& token : tokens) {
 		result->Add(token);
 	}
 	return result;

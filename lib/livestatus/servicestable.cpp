@@ -36,7 +36,6 @@
 #include "base/json.hpp"
 #include "base/convert.hpp"
 #include "base/utility.hpp"
-#include <boost/foreach.hpp>
 #include <boost/tuple/tuple.hpp>
 #include <boost/algorithm/string/replace.hpp>
 
@@ -168,19 +167,19 @@ String ServicesTable::GetPrefix(void) const
 void ServicesTable::FetchRows(const AddRowFunction& addRowFn)
 {
 	if (GetGroupByType() == LivestatusGroupByServiceGroup) {
-		BOOST_FOREACH(const ServiceGroup::Ptr& sg, ConfigType::GetObjectsByType<ServiceGroup>()) {
-			BOOST_FOREACH(const Service::Ptr& service, sg->GetMembers()) {
+		for (const ServiceGroup::Ptr& sg : ConfigType::GetObjectsByType<ServiceGroup>()) {
+			for (const Service::Ptr& service : sg->GetMembers()) {
 				/* the caller must know which groupby type and value are set for this row */
 				if (!addRowFn(service, LivestatusGroupByServiceGroup, sg))
 					return;
 			}
 		}
 	} else if (GetGroupByType() == LivestatusGroupByHostGroup) {
-		BOOST_FOREACH(const HostGroup::Ptr& hg, ConfigType::GetObjectsByType<HostGroup>()) {
+		for (const HostGroup::Ptr& hg : ConfigType::GetObjectsByType<HostGroup>()) {
 			ObjectLock ylock(hg);
-			BOOST_FOREACH(const Host::Ptr& host, hg->GetMembers()) {
+			for (const Host::Ptr& host : hg->GetMembers()) {
 				ObjectLock ylock(host);
-				BOOST_FOREACH(const Service::Ptr& service, host->GetServices()) {
+				for (const Service::Ptr& service : host->GetServices()) {
 					/* the caller must know which groupby type and value are set for this row */
 					if (!addRowFn(service, LivestatusGroupByHostGroup, hg))
 						return;
@@ -188,7 +187,7 @@ void ServicesTable::FetchRows(const AddRowFunction& addRowFn)
 			}
 		}
 	} else {
-		BOOST_FOREACH(const Service::Ptr& service, ConfigType::GetObjectsByType<Service>()) {
+		for (const Service::Ptr& service : ConfigType::GetObjectsByType<Service>()) {
 			if (!addRowFn(service, LivestatusGroupByNone, Empty))
 				return;
 		}
@@ -926,7 +925,7 @@ Value ServicesTable::ContactsAccessor(const Value& row)
 
 	Array::Ptr contact_names = new Array();
 
-	BOOST_FOREACH(const User::Ptr& user, CompatUtility::GetCheckableNotificationUsers(service)) {
+	for (const User::Ptr& user : CompatUtility::GetCheckableNotificationUsers(service)) {
 		contact_names->Add(user->GetName());
 	}
 
@@ -942,7 +941,7 @@ Value ServicesTable::DowntimesAccessor(const Value& row)
 
 	Array::Ptr results = new Array();
 
-	BOOST_FOREACH(const Downtime::Ptr& downtime, service->GetDowntimes()) {
+	for (const Downtime::Ptr& downtime : service->GetDowntimes()) {
 		if (downtime->IsExpired())
 			continue;
 
@@ -961,7 +960,7 @@ Value ServicesTable::DowntimesWithInfoAccessor(const Value& row)
 
 	Array::Ptr results = new Array();
 
-	BOOST_FOREACH(const Downtime::Ptr& downtime, service->GetDowntimes()) {
+	for (const Downtime::Ptr& downtime : service->GetDowntimes()) {
 		if (downtime->IsExpired())
 			continue;
 
@@ -984,7 +983,7 @@ Value ServicesTable::CommentsAccessor(const Value& row)
 
 	Array::Ptr results = new Array();
 
-	BOOST_FOREACH(const Comment::Ptr& comment, service->GetComments()) {
+	for (const Comment::Ptr& comment : service->GetComments()) {
 		if (comment->IsExpired())
 			continue;
 
@@ -1003,7 +1002,7 @@ Value ServicesTable::CommentsWithInfoAccessor(const Value& row)
 
 	Array::Ptr results = new Array();
 
-	BOOST_FOREACH(const Comment::Ptr& comment, service->GetComments()) {
+	for (const Comment::Ptr& comment : service->GetComments()) {
 		if (comment->IsExpired())
 			continue;
 
@@ -1026,7 +1025,7 @@ Value ServicesTable::CommentsWithExtraInfoAccessor(const Value& row)
 
 	Array::Ptr results = new Array();
 
-	BOOST_FOREACH(const Comment::Ptr& comment, service->GetComments()) {
+	for (const Comment::Ptr& comment : service->GetComments()) {
 		if (comment->IsExpired())
 			continue;
 
@@ -1062,7 +1061,7 @@ Value ServicesTable::CustomVariableNamesAccessor(const Value& row)
 	Array::Ptr cv = new Array();
 
 	ObjectLock olock(vars);
-	BOOST_FOREACH(const Dictionary::Pair& kv, vars) {
+	for (const Dictionary::Pair& kv : vars) {
 		cv->Add(kv.first);
 	}
 
@@ -1089,7 +1088,7 @@ Value ServicesTable::CustomVariableValuesAccessor(const Value& row)
 	Array::Ptr cv = new Array();
 
 	ObjectLock olock(vars);
-	BOOST_FOREACH(const Dictionary::Pair& kv, vars) {
+	for (const Dictionary::Pair& kv : vars) {
 		if (kv.second.IsObjectType<Array>() || kv.second.IsObjectType<Dictionary>())
 			cv->Add(JsonEncode(kv.second));
 		else
@@ -1119,7 +1118,7 @@ Value ServicesTable::CustomVariablesAccessor(const Value& row)
 	Array::Ptr cv = new Array();
 
 	ObjectLock olock(vars);
-	BOOST_FOREACH(const Dictionary::Pair& kv, vars) {
+	for (const Dictionary::Pair& kv : vars) {
 		Array::Ptr key_val = new Array();
 		key_val->Add(kv.first);
 
@@ -1154,7 +1153,7 @@ Value ServicesTable::CVIsJsonAccessor(const Value& row)
 	bool cv_is_json = false;
 
 	ObjectLock olock(vars);
-	BOOST_FOREACH(const Dictionary::Pair& kv, vars) {
+	for (const Dictionary::Pair& kv : vars) {
 		if (kv.second.IsObjectType<Array>() || kv.second.IsObjectType<Dictionary>())
 			cv_is_json = true;
 	}
@@ -1186,7 +1185,7 @@ Value ServicesTable::ContactGroupsAccessor(const Value& row)
 
 	Array::Ptr contactgroup_names = new Array();
 
-	BOOST_FOREACH(const UserGroup::Ptr& usergroup, CompatUtility::GetCheckableNotificationUserGroups(service)) {
+	for (const UserGroup::Ptr& usergroup : CompatUtility::GetCheckableNotificationUserGroups(service)) {
 		contactgroup_names->Add(usergroup->GetName());
 	}
 

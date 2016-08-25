@@ -71,7 +71,7 @@ String ConfigObjectUtility::CreateObjectConfig(const Type::Ptr& type, const Stri
 		attrs->CopyTo(allAttrs);
 
 		ObjectLock olock(attrs);
-		BOOST_FOREACH(const Dictionary::Pair& kv, attrs) {
+		for (const Dictionary::Pair& kv : attrs) {
 			int fid = type->GetFieldId(kv.first.SubStr(0, kv.first.FindFirstOf(".")));
 
 			if (fid < 0)
@@ -143,7 +143,7 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 					    << boost::errinfo_file_name(path));
 				}
 
-				BOOST_FOREACH(const boost::exception_ptr& ex, upq.GetExceptions()) {
+				for (const boost::exception_ptr& ex : upq.GetExceptions()) {
 					errors->Add(DiagnosticInformation(ex));
 				}
 			}
@@ -183,7 +183,7 @@ bool ConfigObjectUtility::DeleteObjectHelper(const ConfigObject::Ptr& object, bo
 		return false;
 	}
 
-	BOOST_FOREACH(const Object::Ptr& pobj, parents) {
+	for (const Object::Ptr& pobj : parents) {
 		ConfigObject::Ptr parentObj = dynamic_pointer_cast<ConfigObject>(pobj);
 
 		if (!parentObj)

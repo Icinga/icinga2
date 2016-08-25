@@ -21,7 +21,6 @@
 #include "cli/nodeutility.hpp"
 #include "base/logger.hpp"
 #include "base/application.hpp"
-#include <boost/foreach.hpp>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <iostream>
@@ -65,7 +64,7 @@ int NodeRemoveCommand::GetMaxArguments(void) const
  */
 int NodeRemoveCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {
-	BOOST_FOREACH(const String& node, ap) {
+	for (const String& node : ap) {
 		NodeUtility::RemoveNode(node);
 	}
 

@@ -72,7 +72,7 @@ bool ModifyObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 
 	Array::Ptr results = new Array();
 
-	BOOST_FOREACH(const ConfigObject::Ptr& obj, objs) {
+	for (const ConfigObject::Ptr& obj : objs) {
 		Dictionary::Ptr result1 = new Dictionary();
 
 		result1->Set("type", type->GetName());
@@ -83,7 +83,7 @@ bool ModifyObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 		try {
 			if (attrs) {
 				ObjectLock olock(attrs);
-				BOOST_FOREACH(const Dictionary::Pair& kv, attrs) {
+				for (const Dictionary::Pair& kv : attrs) {
 					key = kv.first;
 					obj->ModifyAttribute(kv.first, kv.second);
 				}

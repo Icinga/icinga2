@@ -76,7 +76,7 @@ bool DeleteObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 
 	bool success = true;
 
-	BOOST_FOREACH(const ConfigObject::Ptr& obj, objs) {
+	for (const ConfigObject::Ptr& obj : objs) {
 		Dictionary::Ptr result1 = new Dictionary();
 		result1->Set("type", type->GetName());
 		result1->Set("name", obj->GetName());

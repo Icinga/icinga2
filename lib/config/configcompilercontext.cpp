@@ -22,7 +22,6 @@
 #include "base/json.hpp"
 #include "base/netstring.hpp"
 #include "base/exception.hpp"
-#include <boost/foreach.hpp>
 
 using namespace icinga;
 

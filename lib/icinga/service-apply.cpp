@@ -26,7 +26,6 @@
 #include "base/context.hpp"
 #include "base/workqueue.hpp"
 #include "base/exception.hpp"
-#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -113,7 +112,7 @@ bool Service::EvaluateApplyRule(const Host::Ptr& host, const ApplyRule& rule)
 		Array::Ptr arr = vinstances;
 
 		ObjectLock olock(arr);
-		BOOST_FOREACH(const Value& instance, arr) {
+		for (const Value& instance : arr) {
 			String name = rule.GetName();
 
 			if (!rule.GetFKVar().IsEmpty()) {
@@ -130,7 +129,7 @@ bool Service::EvaluateApplyRule(const Host::Ptr& host, const ApplyRule& rule)
 	
 		Dictionary::Ptr dict = vinstances;
 
-		BOOST_FOREACH(const String& key, dict->GetKeys()) {
+		for (const String& key : dict->GetKeys()) {
 			frame.Locals->Set(rule.GetFKVar(), key);
 			frame.Locals->Set(rule.GetFVVar(), dict->Get(key));
 
@@ -144,7 +143,7 @@ bool Service::EvaluateApplyRule(const Host::Ptr& host, const ApplyRule& rule)
 
 void Service::EvaluateApplyRules(const Host::Ptr& host)
 {
-	BOOST_FOREACH(ApplyRule& rule, ApplyRule::GetRules("Service")) {
+	for (ApplyRule& rule : ApplyRule::GetRules("Service")) {
 		CONTEXT("Evaluating 'apply' rules for host '" + host->GetName() + "'");
 
 		if (EvaluateApplyRule(host, rule))

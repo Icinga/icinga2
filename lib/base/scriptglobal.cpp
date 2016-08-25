@@ -26,7 +26,6 @@
 #include "base/convert.hpp"
 #include "base/objectlock.hpp"
 #include "base/exception.hpp"
-#include <boost/foreach.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <fstream>
 
@@ -105,7 +104,7 @@ void ScriptGlobal::WriteToFile(const String& filename)
 	StdioStream::Ptr sfp = new StdioStream(&fp, false);
 
 	ObjectLock olock(m_Globals);
-	BOOST_FOREACH(const Dictionary::Pair& kv, m_Globals) {
+	for (const Dictionary::Pair& kv : m_Globals) {
 		Dictionary::Ptr persistentVariable = new Dictionary();
 
 		persistentVariable->Set("name", kv.first);

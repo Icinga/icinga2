@@ -42,7 +42,7 @@ void PerfdataWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 {
 	Dictionary::Ptr nodes = new Dictionary();
 
-	BOOST_FOREACH(const PerfdataWriter::Ptr& perfdatawriter, ConfigType::GetObjectsByType<PerfdataWriter>()) {
+	for (const PerfdataWriter::Ptr& perfdatawriter : ConfigType::GetObjectsByType<PerfdataWriter>()) {
 		nodes->Set(perfdatawriter->GetName(), 1); //add more stats
 	}
 

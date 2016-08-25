@@ -25,7 +25,6 @@
 #include "base/utility.hpp"
 #include "base/exception.hpp"
 #include "base/objectlock.hpp"
-#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -69,7 +68,7 @@ void TimePeriodDbObject::OnConfigUpdateHeavy(void)
 
 	time_t refts = Utility::GetTime();
 	ObjectLock olock(ranges);
-	BOOST_FOREACH(const Dictionary::Pair& kv, ranges) {
+	for (const Dictionary::Pair& kv : ranges) {
 		int wday = LegacyTimePeriod::WeekdayFromString(kv.first);
 
 		if (wday == -1)
@@ -81,7 +80,7 @@ void TimePeriodDbObject::OnConfigUpdateHeavy(void)
 		LegacyTimePeriod::ProcessTimeRanges(kv.second, &reference, segments);
 
 		ObjectLock olock(segments);
-		BOOST_FOREACH(const Value& vsegment, segments) {
+		for (const Value& vsegment : segments) {
 			Dictionary::Ptr segment = vsegment;
 			int begin = segment->Get("begin");
 			int end = segment->Get("end");

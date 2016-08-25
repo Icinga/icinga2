@@ -30,7 +30,6 @@
 #include "base/function.hpp"
 #include "base/configtype.hpp"
 #include <boost/algorithm/string/join.hpp>
-#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -82,7 +81,7 @@ String ClusterCheckTask::FormatArray(const Array::Ptr& arr)
 
 	if (arr) {
 		ObjectLock olock(arr);
-		BOOST_FOREACH(const Value& value, arr) {
+		for (const Value& value : arr) {
 			if (first)
 				first = false;
 			else

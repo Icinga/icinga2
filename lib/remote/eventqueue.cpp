@@ -50,7 +50,7 @@ void EventQueue::ProcessEvent(const Dictionary::Ptr& event)
 	boost::mutex::scoped_lock lock(m_Mutex);
 
 	typedef std::pair<void *const, std::deque<Dictionary::Ptr> > kv_pair;
-	BOOST_FOREACH(kv_pair& kv, m_Events) {
+	for (kv_pair& kv : m_Events) {
 		kv.second.push_back(event);
 	}
 
@@ -121,7 +121,7 @@ std::vector<EventQueue::Ptr> EventQueue::GetQueuesForType(const String& type)
 	std::vector<EventQueue::Ptr> availQueues;
 
 	typedef std::pair<String, EventQueue::Ptr> kv_pair;
-	BOOST_FOREACH(const kv_pair& kv, queues) {
+	for (const kv_pair& kv : queues) {
 		if (kv.second->CanProcessEvent(type))
 			availQueues.push_back(kv.second);
 	}

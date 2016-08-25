@@ -37,7 +37,6 @@
 #include "base/utility.hpp"
 #include "base/logger.hpp"
 #include "base/json.hpp"
-#include <boost/foreach.hpp>
 #include <boost/algorithm/string/join.hpp>
 
 using namespace icinga;
@@ -191,7 +190,7 @@ void ServiceDbObject::OnConfigUpdateHeavy(void)
 
 	if (groups) {
 		ObjectLock olock(groups);
-		BOOST_FOREACH(const String& groupName, groups) {
+		for (const String& groupName : groups) {
 			ServiceGroup::Ptr group = ServiceGroup::GetByName(groupName);
 
 			DbQuery query2;
@@ -228,7 +227,7 @@ void ServiceDbObject::OnConfigUpdateHeavy(void)
 
 	queries.push_back(query2);
 
-	BOOST_FOREACH(const Dependency::Ptr& dep, service->GetDependencies()) {
+	for (const Dependency::Ptr& dep : service->GetDependencies()) {
 		Checkable::Ptr parent = dep->GetParent();
 
 		if (!parent) {
@@ -280,7 +279,7 @@ void ServiceDbObject::OnConfigUpdateHeavy(void)
 
 	queries.push_back(query3);
 
-	BOOST_FOREACH(const User::Ptr& user, CompatUtility::GetCheckableNotificationUsers(service)) {
+	for (const User::Ptr& user : CompatUtility::GetCheckableNotificationUsers(service)) {
 		Log(LogDebug, "ServiceDbObject")
 		    << "service contacts: " << user->GetName();
 
@@ -314,7 +313,7 @@ void ServiceDbObject::OnConfigUpdateHeavy(void)
 
 	queries.push_back(query4);
 
-	BOOST_FOREACH(const UserGroup::Ptr& usergroup, CompatUtility::GetCheckableNotificationUserGroups(service)) {
+	for (const UserGroup::Ptr& usergroup : CompatUtility::GetCheckableNotificationUserGroups(service)) {
 		Log(LogDebug, "ServiceDbObject")
 		    << "service contactgroups: " << usergroup->GetName();
 
@@ -365,7 +364,7 @@ String ServiceDbObject::CalculateConfigHash(const Dictionary::Ptr& configFields)
 	Array::Ptr dependencies = new Array();
 
 	/* dependencies */
-	BOOST_FOREACH(const Dependency::Ptr& dep, service->GetDependencies()) {
+	for (const Dependency::Ptr& dep : service->GetDependencies()) {
 		Checkable::Ptr parent = dep->GetParent();
 
 		if (!parent)
@@ -385,7 +384,7 @@ String ServiceDbObject::CalculateConfigHash(const Dictionary::Ptr& configFields)
 
 	Array::Ptr users = new Array();
 
-	BOOST_FOREACH(const User::Ptr& user, CompatUtility::GetCheckableNotificationUsers(service)) {
+	for (const User::Ptr& user : CompatUtility::GetCheckableNotificationUsers(service)) {
 		users->Add(user->GetName());
 	}
 
@@ -395,7 +394,7 @@ String ServiceDbObject::CalculateConfigHash(const Dictionary::Ptr& configFields)
 
 	Array::Ptr userGroups = new Array();
 
-	BOOST_FOREACH(const UserGroup::Ptr& usergroup, CompatUtility::GetCheckableNotificationUserGroups(service)) {
+	for (const UserGroup::Ptr& usergroup : CompatUtility::GetCheckableNotificationUserGroups(service)) {
 		userGroups->Add(usergroup->GetName());
 	}
 

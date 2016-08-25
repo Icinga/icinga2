@@ -34,7 +34,6 @@
 #include "base/console.hpp"
 #include "base/exception.hpp"
 #include "base/configwriter.hpp"
-#include <boost/foreach.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/replace.hpp>
@@ -77,7 +76,7 @@ std::vector<String> NodeUtility::GetNodeCompletionSuggestions(const String& word
 {
 	std::vector<String> suggestions;
 
-	BOOST_FOREACH(const Dictionary::Ptr& node, GetNodes()) {
+	for (const Dictionary::Ptr& node : GetNodes()) {
 		String node_name = node->Get("endpoint");
 
 		if (node_name.Find(word) == 0)
@@ -91,7 +90,7 @@ void NodeUtility::PrintNodes(std::ostream& fp)
 {
 	bool first = true;
 
-	BOOST_FOREACH(const Dictionary::Ptr& node, GetNodes()) {
+	for (const Dictionary::Ptr& node : GetNodes()) {
 		if (first)
 			first = false;
 		else
@@ -126,13 +125,13 @@ void NodeUtility::PrintNodeRepository(std::ostream& fp, const Dictionary::Ptr& r
 		return;
 
 	ObjectLock olock(repository);
-	BOOST_FOREACH(const Dictionary::Pair& kv, repository) {
+	for (const Dictionary::Pair& kv : repository) {
 		fp << std::setw(4) << " "
 		   << "* Host '" << ConsoleColorTag(Console_ForegroundGreen | Console_Bold) << kv.first << ConsoleColorTag(Console_Normal) << "'\n";
 
 		Array::Ptr services = kv.second;
 		ObjectLock xlock(services);
-		BOOST_FOREACH(const String& service, services) {
+		for (const String& service : services) {
 			fp << std::setw(8) << " " << "* Service '" << ConsoleColorTag(Console_ForegroundGreen | Console_Bold) << service << ConsoleColorTag(Console_Normal) << "'\n";
 		}
 	}
@@ -142,7 +141,7 @@ void NodeUtility::PrintNodesJson(std::ostream& fp)
 {
 	Dictionary::Ptr result = new Dictionary();
 
-	BOOST_FOREACH(const Dictionary::Ptr& node, GetNodes()) {
+	for (const Dictionary::Ptr& node : GetNodes()) {
 		result->Set(node->Get("endpoint"), node);
 	}
 
@@ -264,7 +263,7 @@ int NodeUtility::GenerateNodeIcingaConfig(const std::vector<std::string>& endpoi
 
 	String master_zone_name = "master"; //TODO: Find a better name.
 
-	BOOST_FOREACH(const std::string& endpoint, endpoints) {
+	for (const std::string& endpoint : endpoints) {
 
 		/* extract all --endpoint arguments and store host,port info */
 		std::vector<String> tokens;
@@ -394,7 +393,7 @@ bool NodeUtility::WriteNodeConfigObjects(const String& filename, const Array::Pt
 	fp << " */\n\n";
 
 	ObjectLock olock(objects);
-	BOOST_FOREACH(const Dictionary::Ptr& object, objects) {
+	for (const Dictionary::Ptr& object : objects) {
 		SerializeObject(fp, object);
 	}
 
@@ -443,7 +442,7 @@ int NodeUtility::UpdateBlackAndWhiteList(const String& type, const String& zone_
 	{
 		ObjectLock olock(lists);
 
-		BOOST_FOREACH(const Dictionary::Ptr& filter, lists) {
+		for (const Dictionary::Ptr& filter : lists) {
 
 			if (filter->Get("zone") == zone_filter) {
 				if (filter->Get("host") == host_filter && service_filter.IsEmpty()) {
@@ -484,7 +483,7 @@ int NodeUtility::RemoveBlackAndWhiteList(const String& type, const String& zone_
 	{
 		ObjectLock olock(lists);
 
-		BOOST_FOREACH(const Dictionary::Ptr& filter, lists) {
+		for (const Dictionary::Ptr& filter : lists) {
 
 			if (filter->Get("zone") == zone_filter) {
 				if (filter->Get("host") == host_filter && service_filter.IsEmpty()) {
@@ -509,7 +508,7 @@ int NodeUtility::RemoveBlackAndWhiteList(const String& type, const String& zone_
 		return 1;
 	}
 
-	BOOST_FOREACH(int remove, remove_filters) {
+	for (int remove : remove_filters) {
 		lists->Remove(remove);
 	}
 
@@ -530,7 +529,7 @@ int NodeUtility::PrintBlackAndWhiteList(std::ostream& fp, const String& type)
 	fp << "Listing all " << type << " entries:\n";
 
 	ObjectLock olock(lists);
-	BOOST_FOREACH(const Dictionary::Ptr& filter, lists) {
+	for (const Dictionary::Ptr& filter : lists) {
 		fp << type << " filter for Node: '" << filter->Get("zone") << "' Host: '"
 		    << filter->Get("host") << "' Service: '" << filter->Get("service") << "'.\n";
 	}
@@ -546,7 +545,7 @@ bool NodeUtility::CheckAgainstBlackAndWhiteList(const String& type, const String
 	    << "Checking object against " << type << ".";
 
 	ObjectLock olock(lists);
-	BOOST_FOREACH(const Dictionary::Ptr& filter, lists) {
+	for (const Dictionary::Ptr& filter : lists) {
 		String zone_filter = filter->Get("zone");
 		String host_filter = filter->Get("host");
 		String service_filter;
@@ -620,7 +619,7 @@ void NodeUtility::SerializeObject(std::ostream& fp, const Dictionary::Ptr& objec
 	fp << " {\n";
 
 	ObjectLock olock(object);
-	BOOST_FOREACH(const Dictionary::Pair& kv, object) {
+	for (const Dictionary::Pair& kv : object) {
 		if (kv.first == "__type" || kv.first == "__name")
 			continue;
 

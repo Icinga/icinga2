@@ -125,32 +125,15 @@ private:
 	std::map<String, Value> m_Data; /**< The data for the dictionary. */
 };
 
-inline Dictionary::Iterator range_begin(Dictionary::Ptr x)
+inline Dictionary::Iterator begin(Dictionary::Ptr x)
 {
 	return x->Begin();
 }
 
-inline Dictionary::Iterator range_end(Dictionary::Ptr x)
+inline Dictionary::Iterator end(Dictionary::Ptr x)
 {
 	return x->End();
 }
-
-}
-
-namespace boost
-{
-
-template<>
-struct range_mutable_iterator<icinga::Dictionary::Ptr>
-{
-	typedef icinga::Dictionary::Iterator type;
-};
-
-template<>
-struct range_const_iterator<icinga::Dictionary::Ptr>
-{
-	typedef icinga::Dictionary::Iterator type;
-};
 
 }
 

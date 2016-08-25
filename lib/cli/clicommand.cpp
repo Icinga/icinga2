@@ -23,7 +23,6 @@
 #include "base/serializer.hpp"
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/trim.hpp>
-#include <boost/foreach.hpp>
 #include <boost/program_options.hpp>
 #include <algorithm>
 #include <iostream>
@@ -173,7 +172,7 @@ bool CLICommand::ParseCommand(int argc, char **argv, po::options_description& vi
 	std::vector<String> best_match;
 	int arg_end = 0;
 
-	BOOST_FOREACH(const CLIKeyValue& kv, GetRegistry()) {
+	for (const CLIKeyValue& kv : GetRegistry()) {
 		const std::vector<String>& vname = kv.first;
 
 		std::vector<String>::size_type i;
@@ -234,7 +233,7 @@ void CLICommand::ShowCommands(int argc, char **argv, po::options_description *vi
 	int arg_begin = 0;
 	CLICommand::Ptr command;
 
-	BOOST_FOREACH(const CLIKeyValue& kv, GetRegistry()) {
+	for (const CLIKeyValue& kv : GetRegistry()) {
 		const std::vector<String>& vname = kv.first;
 
 		arg_begin = 0;
@@ -276,7 +275,7 @@ void CLICommand::ShowCommands(int argc, char **argv, po::options_description *vi
 	} else
 		std::cout << "Supported commands: " << std::endl;
 
-	BOOST_FOREACH(const CLIKeyValue& kv, GetRegistry()) {
+	for (const CLIKeyValue& kv : GetRegistry()) {
 		const std::vector<String>& vname = kv.first;
 
 		if (vname.size() < best_match.size() || kv.second->IsHidden())
@@ -345,25 +344,25 @@ void CLICommand::ShowCommands(int argc, char **argv, po::options_description *vi
 		if (odesc->semantic()->min_tokens() == 0)
 			goto complete_option;
 
-		BOOST_FOREACH(const String& suggestion, globalArgCompletionCallback(odesc->long_name(), pword)) {
+		for (const String& suggestion : globalArgCompletionCallback(odesc->long_name(), pword)) {
 			std::cout << prefix << suggestion << "\n";
 		}
 
-		BOOST_FOREACH(const String& suggestion, command->GetArgumentSuggestions(odesc->long_name(), pword)) {
+		for (const String& suggestion : command->GetArgumentSuggestions(odesc->long_name(), pword)) {
 			std::cout << prefix << suggestion << "\n";
 		}
 
 		return;
 
 complete_option:
-		BOOST_FOREACH(const boost::shared_ptr<po::option_description>& odesc, visibleDesc->options()) {
+		for (const boost::shared_ptr<po::option_description>& odesc : visibleDesc->options()) {
 			String cname = "--" + odesc->long_name();
 
 			if (cname.Find(aword) == 0)
 				std::cout << cname << "\n";
 		}
 
-		BOOST_FOREACH(const String& suggestion, command->GetPositionalSuggestions(aword)) {
+		for (const String& suggestion : command->GetPositionalSuggestions(aword)) {
 			std::cout << suggestion << "\n";
 		}
 	}

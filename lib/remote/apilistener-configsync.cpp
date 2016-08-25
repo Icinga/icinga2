@@ -25,7 +25,6 @@
 #include "base/json.hpp"
 #include "base/convert.hpp"
 #include "config/vmops.hpp"
-#include <boost/foreach.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <fstream>
@@ -122,7 +121,7 @@ Value ApiListener::ConfigUpdateObjectAPIHandler(const MessageOrigin::Ptr& origin
 			    << "Could not create object '" << objName << "':";
 
 		    	ObjectLock olock(errors);
-		    	BOOST_FOREACH(const String& error, errors) {
+			for (const String& error : errors) {
 		    		Log(LogCritical, "ApiListener", error);
 		    	}
 
@@ -160,7 +159,7 @@ Value ApiListener::ConfigUpdateObjectAPIHandler(const MessageOrigin::Ptr& origin
 
 	if (modified_attributes) {
 		ObjectLock olock(modified_attributes);
-		BOOST_FOREACH(const Dictionary::Pair& kv, modified_attributes) {
+		for (const Dictionary::Pair& kv : modified_attributes) {
 			/* update all modified attributes
 			 * but do not update the object version yet.
 			 * This triggers cluster events otherwise.
@@ -178,14 +177,14 @@ Value ApiListener::ConfigUpdateObjectAPIHandler(const MessageOrigin::Ptr& origin
 
 		{
 			ObjectLock xlock(objOriginalAttributes);
-			BOOST_FOREACH(const Dictionary::Pair& kv, objOriginalAttributes) {
+			for (const Dictionary::Pair& kv : objOriginalAttributes) {
 				/* original attribute was removed, restore it */
 				if (!newOriginalAttributes->Contains(kv.first))
 					restoreAttrs.push_back(kv.first);
 			}
 		}
 
-		BOOST_FOREACH(const String& key, restoreAttrs) {
+		for (const String& key : restoreAttrs) {
 			/* do not update the object version yet. */
 			object->RestoreAttribute(key, false);
 		}
@@ -260,7 +259,7 @@ Value ApiListener::ConfigDeleteObjectAPIHandler(const MessageOrigin::Ptr& origin
 		Log(LogCritical, "ApiListener", "Could not delete object:");
 
 		ObjectLock olock(errors);
-		BOOST_FOREACH(const String& error, errors) {
+		for (const String& error : errors) {
 			Log(LogCritical, "ApiListener", error);
 		}
 	}
@@ -313,12 +312,12 @@ void ApiListener::UpdateConfigObject(const ConfigObject::Ptr& object, const Mess
 
 	if (original_attributes) {
 		ObjectLock olock(original_attributes);
-		BOOST_FOREACH(const Dictionary::Pair& kv, original_attributes) {
+		for (const Dictionary::Pair& kv : original_attributes) {
 			std::vector<String> tokens;
 			boost::algorithm::split(tokens, kv.first, boost::is_any_of("."));
 
 			Value value = object;
-			BOOST_FOREACH(const String& token, tokens) {
+			for (const String& token : tokens) {
 				value = VMOps::GetField(value, token);
 			}
 
@@ -399,13 +398,13 @@ void ApiListener::SendRuntimeConfigObjects(const JsonRpcConnection::Ptr& aclient
 	Log(LogInformation, "ApiListener")
 	    << "Syncing runtime objects to endpoint '" << endpoint->GetName() << "'.";
 
-	BOOST_FOREACH(const Type::Ptr& type, Type::GetAllTypes()) {
+	for (const Type::Ptr& type : Type::GetAllTypes()) {
 		ConfigType *dtype = dynamic_cast<ConfigType *>(type.get());
 
 		if (!dtype)
 			continue;
 
-		BOOST_FOREACH(const ConfigObject::Ptr& object, dtype->GetObjects()) {
+		for (const ConfigObject::Ptr& object : dtype->GetObjects()) {
 			/* don't sync objects with an older version time than the endpoint's log position */
 			if (object->GetVersion() < endpoint->GetLocalLogPosition())
 				continue;

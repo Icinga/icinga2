@@ -24,7 +24,6 @@
 #include "icinga/usergroup.hpp"
 #include "base/objectlock.hpp"
 #include "base/exception.hpp"
-#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -51,7 +50,7 @@ void User::OnAllConfigLoaded(void)
 
 		ObjectLock olock(groups);
 
-		BOOST_FOREACH(const String& name, groups) {
+		for (const String& name : groups) {
 			UserGroup::Ptr ug = UserGroup::GetByName(name);
 
 			if (ug)
@@ -69,7 +68,7 @@ void User::Stop(bool runtimeRemoved)
 	if (groups) {
 		ObjectLock olock(groups);
 
-		BOOST_FOREACH(const String& name, groups) {
+		for (const String& name : groups) {
 			UserGroup::Ptr ug = UserGroup::GetByName(name);
 
 			if (ug)

@@ -28,7 +28,6 @@
 #include "base/tlsutility.hpp"
 #include "base/scriptglobal.hpp"
 #include "base/exception.hpp"
-#include <boost/foreach.hpp>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/case_conv.hpp>

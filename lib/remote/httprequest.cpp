@@ -25,7 +25,6 @@
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/smart_ptr/make_shared.hpp>
-#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -178,7 +177,7 @@ void HttpRequest::FinishHeaders(void)
 		}
 
 		ObjectLock olock(Headers);
-		BOOST_FOREACH(const Dictionary::Pair& kv, Headers)
+		for (const Dictionary::Pair& kv : Headers)
 		{
 			String header = kv.first + ": " + kv.second + "\n";
 			m_Stream->Write(header.CStr(), header.GetLength());

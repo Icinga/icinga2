@@ -21,7 +21,6 @@
 #include "base/utility.hpp"
 #include "base/application.hpp"
 #include <boost/test/unit_test.hpp>
-#include <boost/foreach.hpp>
 
 using namespace icinga;
 

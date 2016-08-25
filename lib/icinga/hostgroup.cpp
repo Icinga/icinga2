@@ -26,7 +26,6 @@
 #include "base/objectlock.hpp"
 #include "base/context.hpp"
 #include "base/workqueue.hpp"
-#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -66,7 +65,7 @@ void HostGroup::EvaluateObjectRules(const Host::Ptr& host)
 {
 	CONTEXT("Evaluating group memberships for host '" + host->GetName() + "'");
 
-	BOOST_FOREACH(const ConfigItem::Ptr& group, ConfigItem::GetItems("HostGroup"))
+	for (const ConfigItem::Ptr& group : ConfigItem::GetItems("HostGroup"))
 	{
 		if (!group->GetFilter())
 			continue;
@@ -110,7 +109,7 @@ bool HostGroup::ResolveGroupMembership(const Host::Ptr& host, bool add, int rsta
 	if (groups && groups->GetLength() > 0) {
 		ObjectLock olock(groups);
 
-		BOOST_FOREACH(const String& name, groups) {
+		for (const String& name : groups) {
 			HostGroup::Ptr group = HostGroup::GetByName(name);
 
 			if (group && !group->ResolveGroupMembership(host, add, rstack + 1))

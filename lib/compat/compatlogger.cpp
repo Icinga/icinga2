@@ -34,7 +34,6 @@
 #include "base/application.hpp"
 #include "base/utility.hpp"
 #include "base/statsfunction.hpp"
-#include <boost/foreach.hpp>
 #include <boost/algorithm/string.hpp>
 
 using namespace icinga;
@@ -47,7 +46,7 @@ void CompatLogger::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 {
 	Dictionary::Ptr nodes = new Dictionary();
 
-	BOOST_FOREACH(const CompatLogger::Ptr& compat_logger, ConfigType::GetObjectsByType<CompatLogger>()) {
+	for (const CompatLogger::Ptr& compat_logger : ConfigType::GetObjectsByType<CompatLogger>()) {
 		nodes->Set(compat_logger->GetName(), 1); //add more stats
 	}
 
@@ -476,7 +475,7 @@ void CompatLogger::ReopenFile(bool rotate)
 	WriteLine("LOG ROTATION: " + GetRotationMethod());
 	WriteLine("LOG VERSION: 2.0");
 
-	BOOST_FOREACH(const Host::Ptr& host, ConfigType::GetObjectsByType<Host>()) {
+	for (const Host::Ptr& host : ConfigType::GetObjectsByType<Host>()) {
 		String output;
 		CheckResult::Ptr cr = host->GetLastCheckResult();
 
@@ -494,7 +493,7 @@ void CompatLogger::ReopenFile(bool rotate)
 		WriteLine(msgbuf.str());
 	}
 
-	BOOST_FOREACH(const Service::Ptr& service, ConfigType::GetObjectsByType<Service>()) {
+	for (const Service::Ptr& service : ConfigType::GetObjectsByType<Service>()) {
 		Host::Ptr host = service->GetHost();
 
 		String output;

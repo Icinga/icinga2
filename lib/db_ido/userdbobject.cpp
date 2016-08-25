@@ -26,7 +26,6 @@
 #include "base/convert.hpp"
 #include "base/objectlock.hpp"
 #include "base/logger.hpp"
-#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -100,7 +99,7 @@ void UserDbObject::OnConfigUpdateHeavy(void)
 
 	if (groups) {
 		ObjectLock olock(groups);
-		BOOST_FOREACH(const String& groupName, groups) {
+		for (const String& groupName : groups) {
 			UserGroup::Ptr group = UserGroup::GetByName(groupName);
 
 			DbQuery query2;

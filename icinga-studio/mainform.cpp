@@ -21,7 +21,6 @@
 #include "icinga-studio/aboutform.hpp"
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
-#include <boost/foreach.hpp>
 #include <wx/msgdlg.h>
 
 using namespace icinga;
@@ -72,11 +71,11 @@ void MainForm::TypesCompletionHandler(boost::exception_ptr eptr, const std::vect
 
 	wxTreeItemId rootNode = m_TypesTree->AddRoot("root");
 
-	BOOST_FOREACH(const ApiType::Ptr& type, types) {
+	for (const ApiType::Ptr& type : types) {
 		m_Types[type->Name] = type;
 	}
 
-	BOOST_FOREACH(const ApiType::Ptr& type, types) {
+	for (const ApiType::Ptr& type : types) {
 		if (type->Abstract)
 			continue;
 
@@ -146,7 +145,7 @@ void MainForm::ObjectsCompletionHandler(boost::exception_ptr eptr, const std::ve
 	std::vector<ApiObject::Ptr> sortedObjects = objects;
 	std::sort(sortedObjects.begin(), sortedObjects.end(), ApiObjectLessComparer);
 
-	BOOST_FOREACH(const ApiObject::Ptr& object, sortedObjects) {
+	for (const ApiObject::Ptr& object : sortedObjects) {
 		std::string name = object->Name;
 		m_ObjectsList->InsertItem(0, name);
 	}
@@ -195,7 +194,7 @@ wxPGProperty *MainForm::ValueToProperty(const String& name, const Value& value)
 
 		{
 			ObjectLock olock(arr);
-			BOOST_FOREACH(const Value& aitem, arr) {
+			for (const Value& aitem : arr) {
 				String val1 = aitem;
 				val.Add(val1.GetData());
 			}
@@ -211,7 +210,7 @@ wxPGProperty *MainForm::ValueToProperty(const String& name, const Value& value)
 
 		{
 			ObjectLock olock(dict);
-			BOOST_FOREACH(const Dictionary::Pair& kv, dict) {
+			for (const Dictionary::Pair& kv : dict) {
 				if (kv.first != "type")
 					prop->AppendChild(ValueToProperty(kv.first, kv.second));
 			}
@@ -268,8 +267,7 @@ void MainForm::ObjectDetailsCompletionHandler(boost::exception_ptr eptr, const s
 
 	std::map<String, wxStringProperty *> parents;
 
-	typedef std::pair<String, Value> kv_pair_attr;
-	BOOST_FOREACH(const kv_pair_attr& kv, object->Attrs) {
+	for (const auto& kv : object->Attrs) {
 		std::vector<String> tokens;
 		boost::algorithm::split(tokens, kv.first, boost::is_any_of("."));
 
@@ -298,8 +296,7 @@ void MainForm::ObjectDetailsCompletionHandler(boost::exception_ptr eptr, const s
 		parents.erase(propName);
 	}
 
-	typedef std::pair<String, wxStringProperty *> kv_pair_prop;
-	BOOST_FOREACH(const kv_pair_prop& kv, parents) {
+	for (const auto& kv : parents) {
 		m_PropertyGrid->Append(kv.second);
 		m_PropertyGrid->SetPropertyReadOnly(kv.second);
 	}

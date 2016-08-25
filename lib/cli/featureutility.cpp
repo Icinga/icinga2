@@ -21,7 +21,6 @@
 #include "base/logger.hpp"
 #include "base/console.hpp"
 #include "base/application.hpp"
-#include <boost/foreach.hpp>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <fstream>
@@ -48,7 +47,7 @@ std::vector<String> FeatureUtility::GetFieldCompletionSuggestions(const String& 
 
 	std::sort(cache.begin(), cache.end());
 
-	BOOST_FOREACH(const String& suggestion, cache) {
+	for (const String& suggestion : cache) {
 		if (suggestion.Find(word) == 0)
 			suggestions.push_back(suggestion);
 	}
@@ -75,7 +74,7 @@ int FeatureUtility::EnableFeatures(const std::vector<std::string>& features)
 
 	std::vector<std::string> errors;
 
-	BOOST_FOREACH(const String& feature, features) {
+	for (const String& feature : features) {
 		String source = features_available_dir + "/" + feature + ".conf";
 
 		if (!Utility::PathExists(source) ) {
@@ -143,7 +142,7 @@ int FeatureUtility::DisableFeatures(const std::vector<std::string>& features)
 
 	std::vector<std::string> errors;
 
-	BOOST_FOREACH(const String& feature, features) {
+	for (const String& feature : features) {
 		String target = features_enabled_dir + "/" + feature + ".conf";
 
 		if (!Utility::PathExists(target) ) {
@@ -242,7 +241,7 @@ bool FeatureUtility::CheckFeatureInternal(const String& feature, bool check_disa
 	if (!FeatureUtility::GetFeatures(features, check_disabled))
 		return false;
 
-	BOOST_FOREACH(const String& check_feature, features) {
+	for (const String& check_feature : features) {
 		if (check_feature == feature)
 			return true;
 	}

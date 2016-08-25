@@ -26,7 +26,6 @@
 #include "base/logger.hpp"
 #include "base/context.hpp"
 #include "base/exception.hpp"
-#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -125,7 +124,7 @@ bool ScheduledDowntime::EvaluateApplyRule(const Checkable::Ptr& checkable, const
 		Array::Ptr arr = vinstances;
 
 		ObjectLock olock(arr);
-		BOOST_FOREACH(const Value& instance, arr) {
+		for (const Value& instance : arr) {
 			String name = rule.GetName();
 
 			if (!rule.GetFKVar().IsEmpty()) {
@@ -142,7 +141,7 @@ bool ScheduledDowntime::EvaluateApplyRule(const Checkable::Ptr& checkable, const
 	
 		Dictionary::Ptr dict = vinstances;
 
-		BOOST_FOREACH(const String& key, dict->GetKeys()) {
+		for (const String& key : dict->GetKeys()) {
 			frame.Locals->Set(rule.GetFKVar(), key);
 			frame.Locals->Set(rule.GetFVVar(), dict->Get(key));
 
@@ -158,7 +157,7 @@ void ScheduledDowntime::EvaluateApplyRules(const Host::Ptr& host)
 {
 	CONTEXT("Evaluating 'apply' rules for host '" + host->GetName() + "'");
 
-	BOOST_FOREACH(ApplyRule& rule, ApplyRule::GetRules("ScheduledDowntime")) {
+	for (ApplyRule& rule : ApplyRule::GetRules("ScheduledDowntime")) {
 		if (rule.GetTargetType() != "Host")
 			continue;
 
@@ -171,7 +170,7 @@ void ScheduledDowntime::EvaluateApplyRules(const Service::Ptr& service)
 {
 	CONTEXT("Evaluating 'apply' rules for service '" + service->GetName() + "'");
 
-	BOOST_FOREACH(ApplyRule& rule, ApplyRule::GetRules("ScheduledDowntime")) {
+	for (ApplyRule& rule : ApplyRule::GetRules("ScheduledDowntime")) {
 		if (rule.GetTargetType() != "Service")
 			continue;
 

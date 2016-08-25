@@ -23,7 +23,6 @@
 #include "remote/filterutility.hpp"
 #include "base/application.hpp"
 #include "base/exception.hpp"
-#include <boost/foreach.hpp>
 #include <boost/algorithm/string/join.hpp>
 
 using namespace icinga;
@@ -73,7 +72,7 @@ void ConfigStagesHandler::HandleGet(const ApiUser::Ptr& user, HttpRequest& reque
 	String prefixPath = ConfigPackageUtility::GetPackageDir() + "/" + packageName + "/" + stageName + "/";
 
 	typedef std::pair<String, bool> kv_pair;
-	BOOST_FOREACH(const kv_pair& kv, paths) {
+	for (const kv_pair& kv : paths) {
 		Dictionary::Ptr stageInfo = new Dictionary();
 		stageInfo->Set("type", (kv.second ? "directory" : "file"));
 		stageInfo->Set("name", kv.first.SubStr(prefixPath.GetLength()));

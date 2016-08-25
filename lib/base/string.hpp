@@ -439,6 +439,25 @@ inline bool operator!=(const char *lhs, const String& rhs)
 	return lhs != rhs.GetData();
 }
 
+inline String::Iterator begin(String& x)
+{
+	return x.Begin();
+}
+
+inline String::ConstIterator begin(const String& x)
+{
+	return x.Begin();
+}
+
+inline String::Iterator end(String& x)
+{
+	return x.End();
+}
+
+inline String::ConstIterator end(const String& x)
+{
+	return x.End();
+}
 inline String::Iterator range_begin(String& x)
 {
 	return x.Begin();

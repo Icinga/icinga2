@@ -23,7 +23,6 @@
 #include "base/application.hpp"
 #include "base/scriptglobal.hpp"
 #include <boost/thread/once.hpp>
-#include <boost/foreach.hpp>
 #include <map>
 #ifdef __linux__
 #	include <sys/epoll.h>

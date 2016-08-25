@@ -26,7 +26,6 @@
 #include "base/configtype.hpp"
 #include "base/utility.hpp"
 #include "base/application.hpp"
-#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -239,10 +238,11 @@ Value StatusTable::CustomVariableNamesAccessor(const Value&)
 
 	Array::Ptr cv = new Array();
 
-	String key;
-	Value value;
-	BOOST_FOREACH(tie(key, value), vars) {
-		cv->Add(key);
+	{
+		ObjectLock olock(vars);
+		for (const auto& kv : vars) {
+			cv->Add(kv.first);
+		}
 	}
 
 	return cv;
@@ -257,10 +257,11 @@ Value StatusTable::CustomVariableValuesAccessor(const Value&)
 
 	Array::Ptr cv = new Array();
 
-	String key;
-	Value value;
-	BOOST_FOREACH(tie(key, value), vars) {
-		cv->Add(value);
+	{
+		ObjectLock olock(vars);
+		for (const auto& kv : vars) {
+			cv->Add(kv.second);
+		}
 	}
 
 	return cv;
@@ -275,13 +276,14 @@ Value StatusTable::CustomVariablesAccessor(const Value&)
 
 	Array::Ptr cv = new Array();
 
-	String key;
-	Value value;
-	BOOST_FOREACH(tie(key, value), vars) {
-		Array::Ptr key_val = new Array();
-		key_val->Add(key);
-		key_val->Add(value);
-		cv->Add(key_val);
+	{
+		ObjectLock olock(vars);
+		for (const auto& kv : vars) {
+			Array::Ptr key_val = new Array();
+			key_val->Add(kv.first);
+			key_val->Add(kv.second);
+			cv->Add(key_val);
+		}
 	}
 
 	return cv;

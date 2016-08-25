@@ -34,7 +34,7 @@ void SyslogLogger::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 {
 	Dictionary::Ptr nodes = new Dictionary();
 
-	BOOST_FOREACH(const SyslogLogger::Ptr& sysloglogger, ConfigType::GetObjectsByType<SyslogLogger>()) {
+	for (const SyslogLogger::Ptr& sysloglogger : ConfigType::GetObjectsByType<SyslogLogger>()) {
 		nodes->Set(sysloglogger->GetName(), 1); //add more stats
 	}
 

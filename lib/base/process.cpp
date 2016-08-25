@@ -27,7 +27,6 @@
 #include "base/logger.hpp"
 #include "base/utility.hpp"
 #include "base/scriptglobal.hpp"
-#include <boost/foreach.hpp>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/thread/once.hpp>
 
@@ -128,7 +127,7 @@ Process::Arguments Process::PrepareCommand(const Value& command)
 		Array::Ptr arguments = command;
 
 		ObjectLock olock(arguments);
-		BOOST_FOREACH(const Value& argument, arguments) {
+		for (const Value& argument : arguments) {
 #ifdef _WIN32
 			if (args != "")
 				args += " ";
@@ -200,7 +199,7 @@ void Process::IOThreadProc(int tid)
 
 			int i = 1;
 			typedef std::pair<ProcessHandle, Process::Ptr> kv_pair;
-			BOOST_FOREACH(const kv_pair& kv, l_Processes[tid]) {
+			for (const kv_pair& kv : l_Processes[tid]) {
 				const Process::Ptr& process = kv.second;
 #ifdef _WIN32
 				handles[i] = kv.first;
@@ -454,7 +453,7 @@ void Process::Run(const boost::function<void(const ProcessResult&)>& callback)
 	if (m_ExtraEnvironment) {
 		ObjectLock olock(m_ExtraEnvironment);
 
-		BOOST_FOREACH(const Dictionary::Pair& kv, m_ExtraEnvironment) {
+		for (const Dictionary::Pair& kv : m_ExtraEnvironment) {
 			String skv = kv.first + "=" + Convert::ToString(kv.second);
 
 			envp = static_cast<char *>(realloc(envp, offset + skv.GetLength() + 1));
@@ -560,7 +559,7 @@ void Process::Run(const boost::function<void(const ProcessResult&)>& callback)
 		ObjectLock olock(m_ExtraEnvironment);
 
 		int index = envc;
-		BOOST_FOREACH(const Dictionary::Pair& kv, m_ExtraEnvironment) {
+		for (const Dictionary::Pair& kv : m_ExtraEnvironment) {
 			String skv = kv.first + "=" + Convert::ToString(kv.second);
 			envp[index] = strdup(skv.CStr());
 			index++;

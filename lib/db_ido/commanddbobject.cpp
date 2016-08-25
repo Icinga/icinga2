@@ -24,7 +24,6 @@
 #include "icinga/compatutility.hpp"
 #include "base/objectlock.hpp"
 #include "base/convert.hpp"
-#include <boost/foreach.hpp>
 
 using namespace icinga;
 

@@ -27,7 +27,7 @@ REGISTER_TYPE(ApiUser);
 
 ApiUser::Ptr ApiUser::GetByClientCN(const String& cn)
 {
-	BOOST_FOREACH(const ApiUser::Ptr& user, ConfigType::GetObjectsByType<ApiUser>()) {
+	for (const ApiUser::Ptr& user : ConfigType::GetObjectsByType<ApiUser>()) {
 		if (user->GetClientCN() == cn)
 			return user;
 	}

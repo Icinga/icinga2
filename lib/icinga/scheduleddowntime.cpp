@@ -30,7 +30,6 @@
 #include "base/convert.hpp"
 #include "base/logger.hpp"
 #include "base/exception.hpp"
-#include <boost/foreach.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
 
@@ -105,7 +104,7 @@ void ScheduledDowntime::Start(bool runtimeCreated)
 
 void ScheduledDowntime::TimerProc(void)
 {
-	BOOST_FOREACH(const ScheduledDowntime::Ptr& sd, ConfigType::GetObjectsByType<ScheduledDowntime>()) {
+	for (const ScheduledDowntime::Ptr& sd : ConfigType::GetObjectsByType<ScheduledDowntime>()) {
 		if (sd->IsActive())
 			sd->CreateNextDowntime();
 	}
@@ -141,7 +140,7 @@ std::pair<double, double> ScheduledDowntime::FindNextSegment(void)
 	double now = Utility::GetTime();
 
 	ObjectLock olock(ranges);
-	BOOST_FOREACH(const Dictionary::Pair& kv, ranges) {
+	for (const Dictionary::Pair& kv : ranges) {
 		Log(LogDebug, "ScheduledDowntime")
 		    << "Evaluating segment: " << kv.first << ": " << kv.second << " at ";
 
@@ -172,7 +171,7 @@ std::pair<double, double> ScheduledDowntime::FindNextSegment(void)
 
 void ScheduledDowntime::CreateNextDowntime(void)
 {
-	BOOST_FOREACH(const Downtime::Ptr& downtime, GetCheckable()->GetDowntimes()) {
+	for (const Downtime::Ptr& downtime : GetCheckable()->GetDowntimes()) {
 		if (downtime->GetScheduledBy() != GetName() ||
 		    downtime->GetStartTime() < Utility::GetTime())
 			continue;
@@ -209,7 +208,7 @@ void ScheduledDowntime::ValidateRanges(const Dictionary::Ptr& value, const Valid
 	Array::Ptr segments = new Array();
 
 	ObjectLock olock(value);
-	BOOST_FOREACH(const Dictionary::Pair& kv, value) {
+	for (const Dictionary::Pair& kv : value) {
 		try {
 			tm begin_tm, end_tm;
 			int stride;

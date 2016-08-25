@@ -33,7 +33,6 @@
 #include "base/console.hpp"
 #include "base/serializer.hpp"
 #include "base/exception.hpp"
-#include <boost/foreach.hpp>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/split.hpp>
@@ -49,7 +48,7 @@ Dictionary::Ptr RepositoryUtility::GetArgumentAttributes(const std::vector<std::
 {
 	Dictionary::Ptr attrs = new Dictionary();
 
-	BOOST_FOREACH(const String& kv, arguments) {
+	for (const String& kv : arguments) {
 		std::vector<String> tokens;
 		boost::algorithm::split(tokens, kv, boost::is_any_of("="));
 
@@ -144,7 +143,7 @@ void RepositoryUtility::PrintObjects(std::ostream& fp, const String& type)
 {
 	std::vector<String> objects = GetObjects(); //full path
 
-	BOOST_FOREACH(const String& object, objects) {
+	for (const String& object : objects) {
 		if (!FilterRepositoryObjects(type, object)) {
 			Log(LogDebug, "cli")
 			    << "Ignoring object '" << object << "'. Type '" << type << "' does not match.";
@@ -184,7 +183,7 @@ void RepositoryUtility::PrintChangeLog(std::ostream& fp)
 
 	std::cout << "Changes to be committed:\n\n";
 
-	BOOST_FOREACH(const Value& entry, changelog) {
+	for (const Value& entry : changelog) {
 		FormatChangelogEntry(std::cout, entry);
 	}
 }
@@ -209,7 +208,7 @@ bool RepositoryUtility::AddObject(const std::vector<String>& object_paths, const
 	else
 		pattern = EscapeName(name) + ".conf";
 
-	BOOST_FOREACH(const String& object_path, object_paths) {
+	for (const String& object_path : object_paths) {
 		if (object_path.Contains(pattern)) {
 			Log(LogWarning, "cli")
 			    << type << " '" << name << "' already exists. Skipping creation.";
@@ -303,7 +302,7 @@ bool RepositoryUtility::CheckChangeExists(const Dictionary::Ptr& change, const A
 	Dictionary::Ptr attrs = change->Get("attrs");
 
 	ObjectLock olock(changes);
-	BOOST_FOREACH(const Dictionary::Ptr& entry, changes) {
+	for (const Dictionary::Ptr& entry : changes) {
 		if (entry->Get("type") != change->Get("type"))
 			continue;
 
@@ -432,7 +431,7 @@ bool RepositoryUtility::RemoveObjectInternal(const String& name, const String& t
 		    boost::bind(&RepositoryUtility::CollectObjects, _1, boost::ref(files)), GlobFile);
 
 
-		BOOST_FOREACH(const String& file, files) {
+		for (const String& file : files) {
 			RemoveObjectFileInternal(file);
 		}
 #ifndef _WIN32
@@ -569,7 +568,7 @@ bool RepositoryUtility::GetChangeLog(const boost::function<void (const Dictionar
 	/* sort by timestamp ascending */
 	std::sort(changelog.begin(), changelog.end());
 
-	BOOST_FOREACH(const String& entry, changelog) {
+	for (const String& entry : changelog) {
 		String file = path + entry + ".change";
 		Dictionary::Ptr change = GetObjectFromRepositoryChangeLog(file);
 
@@ -664,7 +663,7 @@ void RepositoryUtility::FormatChangelogEntry(std::ostream& fp, const Dictionary:
 	fp << ConsoleColorTag(Console_ForegroundBlue | Console_Bold) << change->Get("name") << ConsoleColorTag(Console_Normal) << "'\n";
 
 	ObjectLock olock(attrs);
-	BOOST_FOREACH(const Dictionary::Pair& kv, attrs) {
+	for (const Dictionary::Pair& kv : attrs) {
 		/* skip the name */
 		if (kv.first == "name" || kv.first == "__name")
 			continue;
@@ -694,7 +693,7 @@ void RepositoryUtility::SerializeObject(std::ostream& fp, const String& name, co
 		Array::Ptr imports = object->Get("import");
 
 		ObjectLock olock(imports);
-		BOOST_FOREACH(const String& import, imports) {
+		for (const String& import : imports) {
 			fp << "\t" << "import ";
 			ConfigWriter::EmitString(fp, import);
 			fp << '\n';
@@ -702,7 +701,7 @@ void RepositoryUtility::SerializeObject(std::ostream& fp, const String& name, co
 	}
 
 	ObjectLock xlock(object);
-	BOOST_FOREACH(const Dictionary::Pair& kv, object) {
+	for (const Dictionary::Pair& kv : object) {
 		if (kv.first == "import" || kv.first == "name" || kv.first == "__name") {
 			continue;
 		} else {

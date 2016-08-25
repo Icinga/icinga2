@@ -33,7 +33,6 @@
 #include "base/networkstream.hpp"
 #include "base/json.hpp"
 #include "base/context.hpp"
-#include <boost/foreach.hpp>
 #include <boost/algorithm/string/replace.hpp>
 
 using namespace icinga;
@@ -125,7 +124,7 @@ void GelfWriter::CheckResultHandler(const Checkable::Ptr& checkable, const Check
 
 		if (perfdata) {
 			ObjectLock olock(perfdata);
-			BOOST_FOREACH(const Value& val, perfdata) {
+			for (const Value& val : perfdata) {
 				PerfdataValue::Ptr pdv;
 
 				if (val.IsObjectType<PerfdataValue>())

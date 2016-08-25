@@ -34,7 +34,6 @@
 #include "config.h"
 #include <boost/program_options.hpp>
 #include <boost/tuple/tuple.hpp>
-#include <boost/foreach.hpp>
 
 #ifndef _WIN32
 #	include <sys/types.h>
@@ -243,7 +242,7 @@ int Main(void)
 #endif /* _WIN32 */
 
 	if (vm.count("define")) {
-		BOOST_FOREACH(const String& define, vm["define"].as<std::vector<std::string> >()) {
+		for (const String& define : vm["define"].as<std::vector<std::string> >()) {
 			String key, value;
 			size_t pos = define.FindFirstOf('=');
 			if (pos != String::NPos) {
@@ -269,7 +268,7 @@ int Main(void)
 	ConfigCompiler::AddIncludeSearchDir(Application::GetIncludeConfDir());
 
 	if (!autocomplete && vm.count("include")) {
-		BOOST_FOREACH(const String& includePath, vm["include"].as<std::vector<std::string> >()) {
+		for (const String& includePath : vm["include"].as<std::vector<std::string> >()) {
 			ConfigCompiler::AddIncludeSearchDir(includePath);
 		}
 	}
@@ -293,7 +292,7 @@ int Main(void)
 		}
 
 		if (vm.count("library")) {
-			BOOST_FOREACH(const String& libraryName, vm["library"].as<std::vector<std::string> >()) {
+			for (const String& libraryName : vm["library"].as<std::vector<std::string> >()) {
 				try {
 					(void) Loader::LoadExtensionLibrary(libraryName);
 				} catch (const std::exception& ex) {

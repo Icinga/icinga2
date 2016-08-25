@@ -28,7 +28,6 @@
 #include "base/exception.hpp"
 #include "base/scriptframe.hpp"
 #include "base/convert.hpp"
-#include <boost/foreach.hpp>
 #include <boost/thread/future.hpp>
 #include <map>
 
@@ -574,7 +573,7 @@ public:
 	{
 		delete m_FName;
 
-		BOOST_FOREACH(Expression *expr, m_Args)
+		for (Expression *expr : m_Args)
 			delete expr;
 	}
 
@@ -595,7 +594,7 @@ public:
 
 	~ArrayExpression(void)
 	{
-		BOOST_FOREACH(Expression *expr, m_Expressions)
+		for (Expression *expr : m_Expressions)
 			delete expr;
 	}
 
@@ -615,7 +614,7 @@ public:
 
 	~DictExpression(void)
 	{
-		BOOST_FOREACH(Expression *expr, m_Expressions)
+		for (Expression *expr : m_Expressions)
 			delete expr;
 	}
 
@@ -806,7 +805,7 @@ public:
 	{
 		if (m_ClosedVars) {
 			typedef std::pair<String, Expression *> kv_pair;
-			BOOST_FOREACH(const kv_pair& kv, *m_ClosedVars) {
+			for (const kv_pair& kv : *m_ClosedVars) {
 				delete kv.second;
 			}
 		}
@@ -843,7 +842,7 @@ public:
 
 		if (m_ClosedVars) {
 			typedef std::pair<String, Expression *> kv_pair;
-			BOOST_FOREACH(const kv_pair& kv, *m_ClosedVars) {
+			for (const kv_pair& kv : *m_ClosedVars) {
 				delete kv.second;
 			}
 		}
@@ -885,7 +884,7 @@ public:
 
 		if (m_ClosedVars) {
 			typedef std::pair<String, Expression *> kv_pair;
-			BOOST_FOREACH(const kv_pair& kv, *m_ClosedVars) {
+			for (const kv_pair& kv : *m_ClosedVars) {
 				delete kv.second;
 			}
 		}

@@ -53,7 +53,7 @@ void ConfigPackagesHandler::HandleGet(const ApiUser::Ptr& user, HttpRequest& req
 
 	Array::Ptr results = new Array();
 
-	BOOST_FOREACH(const String& package, packages) {
+	for (const String& package : packages) {
 		Dictionary::Ptr packageInfo = new Dictionary();
 		packageInfo->Set("name", package);
 		packageInfo->Set("stages", Array::FromVector(ConfigPackageUtility::GetStages(package)));

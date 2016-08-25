@@ -23,7 +23,6 @@
 #include "base/application.hpp"
 #include "base/objectlock.hpp"
 #include "base/json.hpp"
-#include <boost/foreach.hpp>
 #include <iostream>
 #include <fstream>
 

@@ -20,7 +20,6 @@
 #include "icinga/checkable.hpp"
 #include "icinga/icingaapplication.hpp"
 #include "base/utility.hpp"
-#include <boost/foreach.hpp>
 
 using namespace icinga;
 

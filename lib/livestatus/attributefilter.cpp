@@ -22,7 +22,6 @@
 #include "base/array.hpp"
 #include "base/objectlock.hpp"
 #include "base/logger.hpp"
-#include <boost/foreach.hpp>
 #include <boost/regex.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 
@@ -45,7 +44,7 @@ bool AttributeFilter::Apply(const Table::Ptr& table, const Value& row)
 			bool negate = (m_Operator == "<");
 
 			ObjectLock olock(array);
-			BOOST_FOREACH(const String& item, array) {
+			for (const String& item : array) {
 				if (item == m_Operand)
 					return !negate; /* Item found in list. */
 			}

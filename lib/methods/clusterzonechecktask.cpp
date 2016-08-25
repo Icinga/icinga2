@@ -26,7 +26,6 @@
 #include "remote/zone.hpp"
 #include "base/function.hpp"
 #include "base/utility.hpp"
-#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -92,7 +91,7 @@ void ClusterZoneCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const Che
 	bool connected = false;
 	double zoneLag = 0;
 
-	BOOST_FOREACH(const Endpoint::Ptr& endpoint, zone->GetEndpoints()) {
+	for (const Endpoint::Ptr& endpoint : zone->GetEndpoints()) {
 		if (endpoint->GetConnected())
 			connected = true;
 

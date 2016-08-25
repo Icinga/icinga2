@@ -23,7 +23,6 @@
 #include "base/objectlock.hpp"
 #include "base/initialize.hpp"
 #include "base/configtype.hpp"
-#include <boost/foreach.hpp>
 
 using namespace icinga;
 

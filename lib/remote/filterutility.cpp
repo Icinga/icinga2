@@ -24,7 +24,6 @@
 #include "base/json.hpp"
 #include "base/configtype.hpp"
 #include "base/logger.hpp"
-#include <boost/foreach.hpp>
 #include <boost/algorithm/string.hpp>
 
 using namespace icinga;
@@ -34,7 +33,7 @@ Type::Ptr FilterUtility::TypeFromPluralName(const String& pluralName)
 	String uname = pluralName;
 	boost::algorithm::to_lower(uname);
 
-	BOOST_FOREACH(const Type::Ptr&type, Type::GetAllTypes()) {
+	for (const Type::Ptr&type : Type::GetAllTypes()) {
 		String pname = type->GetPluralName();
 		boost::algorithm::to_lower(pname);
 
@@ -51,7 +50,7 @@ void ConfigObjectTargetProvider::FindTargets(const String& type, const boost::fu
 	ConfigType *ctype = dynamic_cast<ConfigType *>(ptype.get());
 
 	if (ctype) {
-		BOOST_FOREACH(const ConfigObject::Ptr& object, ctype->GetObjects()) {
+		for (const ConfigObject::Ptr& object : ctype->GetObjects()) {
 			addTarget(object);
 		}
 	}
@@ -145,7 +144,7 @@ void FilterUtility::CheckPermission(const ApiUser::Ptr& user, const String& perm
 	Array::Ptr permissions = user->GetPermissions();
 	if (permissions) {
 		ObjectLock olock(permissions);
-		BOOST_FOREACH(const Value& item, permissions) {
+		for (const Value& item : permissions) {
 			String permission;
 			Function::Ptr filter;
 			if (item.IsObjectType<Dictionary>()) {
@@ -195,7 +194,7 @@ std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, c
 
 	ScriptFrame permissionFrame;
 
-	BOOST_FOREACH(const String& type, qd.Types) {
+	for (const String& type : qd.Types) {
 		String attr = type;
 		boost::algorithm::to_lower(attr);
 
@@ -219,7 +218,7 @@ std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, c
 			Array::Ptr names = query->Get(attr);
 			if (names) {
 				ObjectLock olock(names);
-				BOOST_FOREACH(const String& name, names) {
+				for (const String& name : names) {
 					Object::Ptr target = provider->GetTargetByName(type, name);
 
 					if (!FilterUtility::EvaluateFilter(permissionFrame, permissionFilter, target, variableName))
@@ -257,7 +256,7 @@ std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, c
 		Dictionary::Ptr filter_vars = query->Get("filter_vars");
 		if (filter_vars) {
 			ObjectLock olock(filter_vars);
-			BOOST_FOREACH(const Dictionary::Pair& kv, filter_vars) {
+			for (const Dictionary::Pair& kv : filter_vars) {
 				uvars->Set(kv.first, kv.second);
 			}
 		}

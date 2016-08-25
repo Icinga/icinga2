@@ -27,7 +27,6 @@
 #include "base/utility.hpp"
 #include "base/convert.hpp"
 #include "base/logger.hpp"
-#include <boost/foreach.hpp>
 #include <boost/tuple/tuple.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
@@ -80,9 +79,10 @@ void LivestatusLogUtility::CreateLogCache(std::map<time_t, String> index, Histor
 	ASSERT(table);
 
 	/* m_LogFileIndex map tells which log files are involved ordered by their start timestamp */
-	unsigned int ts;
 	unsigned long line_count = 0;
-	BOOST_FOREACH(boost::tie(ts, boost::tuples::ignore), index) {
+	for (const auto& kv : index) {
+		unsigned int ts = kv.first;
+
 		/* skip log files not in range (performance optimization) */
 		if (ts < from || ts > until)
 			continue;

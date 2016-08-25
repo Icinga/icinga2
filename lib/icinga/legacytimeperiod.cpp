@@ -27,7 +27,6 @@
 #include "base/utility.hpp"
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
-#include <boost/foreach.hpp>
 
 using namespace icinga;
 
@@ -387,7 +386,7 @@ void LegacyTimePeriod::ProcessTimeRanges(const String& timeranges, tm *reference
 
 	boost::algorithm::split(ranges, timeranges, boost::is_any_of(","));
 
-	BOOST_FOREACH(const String& range, ranges) {
+	for (const String& range : ranges) {
 		Dictionary::Ptr segment = ProcessTimeRange(range, reference);
 
 		if (segment->Get("begin") >= segment->Get("end"))
@@ -428,7 +427,7 @@ Dictionary::Ptr LegacyTimePeriod::FindNextSegment(const String& daydef, const St
 				double bestBegin;
 
 				ObjectLock olock(segments);
-				BOOST_FOREACH(const Dictionary::Ptr& segment, segments) {
+				for (const Dictionary::Ptr& segment : segments) {
 					double begin = segment->Get("begin");
 
 					if (begin < tsref)
@@ -472,7 +471,7 @@ Array::Ptr LegacyTimePeriod::ScriptFunc(const TimePeriod::Ptr& tp, double begin,
 #endif /* I2_DEBUG */
 
 			ObjectLock olock(ranges);
-			BOOST_FOREACH(const Dictionary::Pair& kv, ranges) {
+			for (const Dictionary::Pair& kv : ranges) {
 				if (!IsInDayDefinition(kv.first, &reference)) {
 #ifdef I2_DEBUG
 					Log(LogDebug, "LegacyTimePeriod")
