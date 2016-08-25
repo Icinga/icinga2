@@ -44,7 +44,7 @@ public:
 	virtual void OnConfigUpdateHeavy(void) override;
 	virtual void OnConfigUpdateLight(void) override;
 
-	virtual String CalculateConfigHash(const Dictionary::Ptr& configFields) const;
+	virtual String CalculateConfigHash(const Dictionary::Ptr& configFields) const override;
 
 private:
 	void DoCommonConfigUpdate(void);
