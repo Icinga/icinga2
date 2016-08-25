@@ -12,9 +12,9 @@ Check the following issue filters:
 ## Backport Commits
 
     $ git checkout master
-    $ ./pick.py -V 2.5.2
+    $ ./pick.py -V 2.5.3
 
-The script creates a new branch 'auto-merged-2.5.2' which is based on the
+The script creates a new branch 'auto-merged-2.5.3' which is based on the
 current support branch. It then merges all commits from the 'master' branch which
 reference a ticket for the version that was specified.
 
@@ -26,7 +26,7 @@ rebase until no commits are left:
 After finishing the rebase the branch needs to be merged into the support branch:
 
     $ git checkout support/2.5
-    $ git merge --ff-only auto-merged-2.5.2
+    $ git merge --ff-only auto-merged-2.5.3
 
 ## Authors
 
@@ -141,7 +141,7 @@ Create the nupkg package:
 
 Install the created icinga2 package locally:
 
-    choco install icinga2 -version 2.5.2 -fdv "%cd%" -source "'%cd%;https://chocolatey.org/api/v2/'"
+    choco install icinga2 -version 2.5.3 -fdv "%cd%" -source "'%cd%;https://chocolatey.org/api/v2/'"
 
 Upload the package to [chocolatey](https://chocolatey.org/packages/upload).
 
