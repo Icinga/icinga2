@@ -19,6 +19,7 @@
 
 #include "base/application.hpp"
 #include "icinga-version.h"
+#include "icinga-spec-version.h"
 
 using namespace icinga;
 
@@ -27,3 +28,7 @@ String Application::GetAppVersion(void)
 	return VERSION;
 }
 
+String Application::GetAppSpecVersion(void)
+{
+	return SPEC_VERSION;
+}

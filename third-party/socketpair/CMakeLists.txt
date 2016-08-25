@@ -21,6 +21,7 @@ set_target_properties (
   socketpair PROPERTIES
   DEFINE_SYMBOL I2_SOCKETPAIR_BUILD
   FOLDER Lib
+  VERSION ${SPEC_VERSION}
 )
 
 if(WIN32)

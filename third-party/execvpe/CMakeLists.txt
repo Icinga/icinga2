@@ -21,6 +21,7 @@ set_target_properties (
   execvpe PROPERTIES
   DEFINE_SYMBOL I2_EXECVPE_BUILD
   FOLDER Lib
+  VERSION ${SPEC_VERSION}
 )
 
 install(

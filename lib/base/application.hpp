@@ -132,6 +132,7 @@ public:
 	static ThreadPool& GetTP(void);
 
 	static String GetAppVersion(void);
+	static String GetAppSpecVersion(void);
 
 	static double GetStartTime(void);
 	static void SetStartTime(double ts);

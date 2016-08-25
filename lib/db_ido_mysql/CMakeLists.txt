@@ -38,6 +38,7 @@ if(MYSQL_FOUND)
     INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR}/icinga2
     DEFINE_SYMBOL I2_DB_IDO_MYSQL_BUILD
     FOLDER Components
+    VERSION ${SPEC_VERSION}
   )
 
   install_if_not_exists(

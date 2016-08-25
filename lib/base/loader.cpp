@@ -34,9 +34,9 @@ void Loader::LoadExtensionLibrary(const String& library)
 #if defined(_WIN32)
 	path = library + ".dll";
 #elif defined(__APPLE__)
-	path = "lib" + library + ".dylib";
+	path = "lib" + library + "." + Application::GetAppSpecVersion() + ".dylib";
 #else /* __APPLE__ */
-	path = "lib" + library + ".so";
+	path = "lib" + library + ".so." + Application::GetAppSpecVersion();
 #endif /* _WIN32 */
 
 	Log(LogNotice, "Loader")

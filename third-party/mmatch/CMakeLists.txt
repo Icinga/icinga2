@@ -21,6 +21,7 @@ set_target_properties(
   mmatch PROPERTIES
   DEFINE_SYMBOL I2_MMATCH_BUILD
   FOLDER Lib
+  VERSION ${SPEC_VERSION}
 )
 
 install(
