@@ -20,6 +20,7 @@
 #include "base/loader.hpp"
 #include "base/logger.hpp"
 #include "base/exception.hpp"
+#include "base/application.hpp"
 
 using namespace icinga;
 
