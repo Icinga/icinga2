@@ -68,7 +68,7 @@ extern "C" void dbg_inspect_object(Object *obj)
 
 extern "C" void dbg_eval(const char *text)
 {
-	Expression *expr;
+	Expression *expr = NULL;
 
 	try {
 		ScriptFrame frame;
