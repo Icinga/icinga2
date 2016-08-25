@@ -194,6 +194,13 @@ if(HAVE_VISIBILITY_INLINES_HIDDEN)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility-inlines-hidden")
 endif()
 
+check_c_compiler_flag(-fvisibility=hidden HAVE_VISIBILITY_HIDDEN)
+
+if(HAVE_VISIBILITY_HIDDEN)
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fvisibility=hidden")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden")
+endif()
+
 if(MSVC)
   add_definitions(-D_CRT_SECURE_NO_DEPRECATE -D_CRT_NONSTDC_NO_DEPRECATE -D_SCL_SECURE_NO_WARNINGS)
 endif()
