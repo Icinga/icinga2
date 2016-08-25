@@ -64,7 +64,6 @@ public:
 	static std::vector<String> GetTargetTypes(const String& sourceType);
 
 	static void CheckMatches(void);
-	static void DiscardRules(void);
 
 private:
 	String m_TargetType;

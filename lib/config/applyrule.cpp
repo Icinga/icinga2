@@ -168,9 +168,3 @@ void ApplyRule::CheckMatches(void)
 		}
 	}
 }
-
-void ApplyRule::DiscardRules(void)
-{
-	m_Rules.clear();
-}
-
