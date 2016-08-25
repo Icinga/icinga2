@@ -214,7 +214,9 @@ Once connected you can inspect variables and execute other expressions by enteri
     <3> =>
 
 
-You can use the `--eval` parameter to evaluate a single expression in batch mode. The output format for batch mode is JSON.
+You can use the `--eval` parameter to evaluate a single expression in batch mode. Using the `--file` option you can specify a file which should be evaluated. The output format for batch mode is JSON.
+
+The `--syntax-only` option can be used in combination with `--eval` or `--file` to check a script for syntax errors. In this mode the script is parsed to identify syntax errors but not evaluated.
 
 Here's an example that retrieves the command that was used by Icinga to check the `example.localdomain` host:
 

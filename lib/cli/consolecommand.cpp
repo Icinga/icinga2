@@ -138,6 +138,8 @@ void ConsoleCommand::InitParameters(boost::program_options::options_description&
 	visibleDesc.add_options()
 		("connect,c", po::value<std::string>(), "connect to an Icinga 2 instance")
 		("eval,e", po::value<std::string>(), "evaluate expression and terminate")
+		("file,r", po::value<std::string>(), "evaluate a file and terminate")
+		("syntax-only", "only validate syntax (requires --eval or --file)")
 		("sandbox", "enable sandbox mode")
 	;
 }
@@ -204,7 +206,7 @@ int ConsoleCommand::Run(const po::variables_map& vm, const std::vector<std::stri
 
 	scriptFrame.Self = scriptFrame.Locals;
 
-	if (!vm.count("eval"))
+	if (!vm.count("eval") && !vm.count("file"))
 		std::cout << "Icinga 2 (version: " << Application::GetAppVersion() << ")\n";
 
 	const char *addrEnv = getenv("ICINGA2_API_URL");
@@ -215,14 +217,36 @@ int ConsoleCommand::Run(const po::variables_map& vm, const std::vector<std::stri
 		addr = vm["connect"].as<std::string>();
 
 	String command;
+	bool syntaxOnly = false;
+
+	if (vm.count("syntax-only")) {
+		if (vm.count("eval") || vm.count("file"))
+			syntaxOnly = true;
+		else {
+			std::cerr << "The option --syntax-only can only be used in combination with --eval or --file." << std::endl;
+			return EXIT_FAILURE;
+		}
+	}
 
 	if (vm.count("eval"))
 		command = vm["eval"].as<std::string>();
+	else if (vm.count("file")) {
+		std::string fname = vm["file"].as<std::string>();
 
-	return RunScriptConsole(scriptFrame, addr, session, command);;
+		try {
+			std::ifstream fp(fname.c_str());
+			fp.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+			command = String(std::istreambuf_iterator<char>(fp), std::istreambuf_iterator<char>());
+		} catch (const std::exception&) {
+			std::cerr << "Could not read file '" << fname << "'." << std::endl;
+			return EXIT_FAILURE;
+		}
+	}
+
+	return RunScriptConsole(scriptFrame, addr, session, command, syntaxOnly);
 }
 
-int ConsoleCommand::RunScriptConsole(ScriptFrame& scriptFrame, const String& addr, const String& session, const String& commandOnce)
+int ConsoleCommand::RunScriptConsole(ScriptFrame& scriptFrame, const String& addr, const String& session, const String& commandOnce, bool syntaxOnly)
 {
 	std::map<String, String> lines;
 	int next_line = 1;
@@ -341,7 +365,15 @@ incomplete:
 
 			if (!l_ApiClient) {
 				expr = ConfigCompiler::CompileText(fileName, command);
-				result = Serialize(expr->Evaluate(scriptFrame), 0);
+
+				/* This relies on the fact that - for syntax errors - CompileText()
+				 * returns an AST where the top-level expression is a 'throw'. */
+				if (!syntaxOnly || dynamic_cast<ThrowExpression *>(expr)) {
+					if (syntaxOnly)
+						std::cerr << "    => " << command << std::endl;
+					result = Serialize(expr->Evaluate(scriptFrame), 0);
+				} else
+					result = true;
 			} else {
 				boost::mutex mutex;
 				boost::condition_variable cv;
@@ -373,7 +405,7 @@ incomplete:
 				break;
 			}
 		} catch (const ScriptError& ex) {
-			if (ex.IsIncompleteExpression()) {
+			if (ex.IsIncompleteExpression() && commandOnce.IsEmpty()) {
 				continuation = true;
 				goto incomplete;
 			}
