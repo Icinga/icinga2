@@ -54,6 +54,16 @@ More details in the [Icinga FAQ](https://www.icinga.org/icinga/faq/).
 
 ## <a id="whats-new"></a> What's New
 
+### What's New in Version 2.5.3
+
+#### Changes
+
+This release addresses an issue with PostgreSQL support for the IDO database module.
+
+#### Bugfixes
+
+* Bug [12533](https://dev.icinga.org/issues/12533 "Bug 12533") (DB IDO): ido pgsql migration from 2.4.0 to 2.5.0 : wrong size for config_hash
+
 ### What's New in Version 2.5.2
 
 #### Bugfixes
