@@ -235,42 +235,23 @@ if(HAVE_LIBEXECINFO)
   set(HAVE_BACKTRACE_SYMBOLS TRUE)
 endif()
 
-set(_ICINGA2_CXX11 OFF)
+include(CheckCXXCompilerFlag)
 
-if(UNIX)
-  include(CheckCXXCompilerFlag)
-  check_cxx_compiler_flag("-std=c++11" CXX_FLAG_CXX11)
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  exec_program(${CMAKE_CXX_COMPILER}
+    ARGS -dumpversion
+    OUTPUT_VARIABLE _ICINGA2_COMPILER_VERSION
+  )
 
-  if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    exec_program(${CMAKE_CXX_COMPILER}
-      ARGS -dumpversion
-      OUTPUT_VARIABLE _ICINGA2_COMPILER_VERSION
-    )
-
-    if("${_ICINGA2_COMPILER_VERSION}" VERSION_LESS "4.7.0")
-      message(STATUS "Your version of GCC is too old for building Icinga 2 in C++11 mode.")
-      set(CXX_FLAG_CXX11 OFF)
-    endif()
-  endif()
-
-  if(CXX_FLAG_CXX11)
-    set(_ICINGA2_CXX11 ON)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-  endif()
-
-  check_cxx_compiler_flag("-Wno-inconsistent-missing-override" CXX_FLAG_NO_OVERRIDE_WARNING)
-  if(CXX_FLAG_NO_OVERRIDE_WARNING)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-inconsistent-missing-override")
+  if("${_ICINGA2_COMPILER_VERSION}" VERSION_LESS "4.6.0")
+    message(FATAL_ERRORSTATUS "Your version of GCC is too old for building Icinga 2 (GCC >= 4.6.0 is required).")
   endif()
 endif()
 
 if(NOT MSVC)
-  set(CXX_FEATURE_OVERRIDE OFF)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
 
-  if(_ICINGA2_CXX11)
-    include(CheckCXXSourceCompiles)
-    check_cxx_source_compiles("class Base { public: virtual void test(void) { } }; class Derived : public Base { virtual void test(void) override { } }; int main(){}" CXX_FEATURE_OVERRIDE)
-  endif()
+  check_cxx_source_compiles("class Base { public: virtual void test(void) { } }; class Derived : public Base { virtual void test(void) override { } }; int main(){}" CXX_FEATURE_OVERRIDE)
 
   if(NOT CXX_FEATURE_OVERRIDE)
     add_definitions("-Doverride=")
