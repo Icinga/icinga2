@@ -57,7 +57,110 @@ static void CheckNotification(const Checkable::Ptr& checkable, bool expected, No
 	checkable->SetExtension("requested_notifications", false);
 }
 
-BOOST_AUTO_TEST_CASE(host)
+BOOST_AUTO_TEST_CASE(host_1attempt)
+{
+	boost::signals2::connection c = Checkable::OnNotificationsRequested.connect(boost::bind(&NotificationHandler, _1, _2));
+
+	Host::Ptr host = new Host();
+	host->SetMaxCheckAttempts(1);
+	host->Activate();
+	host->SetAuthority(true);
+	host->SetStateRaw(ServiceOK);
+	host->SetStateType(StateTypeHard);
+
+	std::cout << "Before first check result (ok, hard)" << std::endl;
+	BOOST_CHECK(host->GetState() == HostUp);
+	BOOST_CHECK(host->GetStateType() == StateTypeHard);
+	BOOST_CHECK(host->GetCheckAttempt() == 1);
+	CheckNotification(host, false);
+
+	std::cout << "First check result (unknown)" << std::endl;
+	host->ProcessCheckResult(MakeCheckResult(ServiceUnknown));
+	BOOST_CHECK(host->GetState() == HostDown);
+	BOOST_CHECK(host->GetStateType() == StateTypeHard);
+	BOOST_CHECK(host->GetCheckAttempt() == 1);
+	CheckNotification(host, true, NotificationProblem);
+
+	std::cout << "Second check result (ok)" << std::endl;
+	host->ProcessCheckResult(MakeCheckResult(ServiceOK));
+	BOOST_CHECK(host->GetState() == HostUp);
+	BOOST_CHECK(host->GetStateType() == StateTypeHard);
+	BOOST_CHECK(host->GetCheckAttempt() == 1);
+	CheckNotification(host, true, NotificationRecovery);
+
+	std::cout << "Third check result (critical)" << std::endl;
+	host->ProcessCheckResult(MakeCheckResult(ServiceCritical));
+	BOOST_CHECK(host->GetState() == HostDown);
+	BOOST_CHECK(host->GetStateType() == StateTypeHard);
+	BOOST_CHECK(host->GetCheckAttempt() == 1);
+	CheckNotification(host, true, NotificationProblem);
+
+	std::cout << "Fourth check result (ok)" << std::endl;
+	host->ProcessCheckResult(MakeCheckResult(ServiceOK));
+	BOOST_CHECK(host->GetState() == HostUp);
+	BOOST_CHECK(host->GetStateType() == StateTypeHard);
+	BOOST_CHECK(host->GetCheckAttempt() == 1);
+	CheckNotification(host, true, NotificationRecovery);
+
+	c.disconnect();
+}
+
+BOOST_AUTO_TEST_CASE(host_2attempts)
+{
+	boost::signals2::connection c = Checkable::OnNotificationsRequested.connect(boost::bind(&NotificationHandler, _1, _2));
+
+	Host::Ptr host = new Host();
+	host->SetMaxCheckAttempts(2);
+	host->Activate();
+	host->SetAuthority(true);
+	host->SetStateRaw(ServiceOK);
+	host->SetStateType(StateTypeHard);
+
+	std::cout << "Before first check result (ok, hard)" << std::endl;
+	BOOST_CHECK(host->GetState() == HostUp);
+	BOOST_CHECK(host->GetStateType() == StateTypeHard);
+	BOOST_CHECK(host->GetCheckAttempt() == 1);
+	CheckNotification(host, false);
+
+	std::cout << "First check result (unknown)" << std::endl;
+	host->ProcessCheckResult(MakeCheckResult(ServiceUnknown));
+	BOOST_CHECK(host->GetState() == HostDown);
+	BOOST_CHECK(host->GetStateType() == StateTypeSoft);
+	BOOST_CHECK(host->GetCheckAttempt() == 1);
+	CheckNotification(host, false);
+
+	std::cout << "Second check result (critical)" << std::endl;
+	host->ProcessCheckResult(MakeCheckResult(ServiceCritical));
+	BOOST_CHECK(host->GetState() == HostDown);
+	BOOST_CHECK(host->GetStateType() == StateTypeHard);
+	BOOST_CHECK(host->GetCheckAttempt() == 1);
+	CheckNotification(host, true, NotificationProblem);
+
+	std::cout << "Third check result (ok)" << std::endl;
+	host->ProcessCheckResult(MakeCheckResult(ServiceOK));
+	BOOST_CHECK(host->GetState() == HostUp);
+	BOOST_CHECK(host->GetStateType() == StateTypeHard);
+	BOOST_CHECK(host->GetCheckAttempt() == 1);
+	CheckNotification(host, true, NotificationRecovery);
+
+	std::cout << "Fourth check result (critical)" << std::endl;
+	host->ProcessCheckResult(MakeCheckResult(ServiceCritical));
+	BOOST_CHECK(host->GetState() == HostDown);
+	BOOST_CHECK(host->GetStateType() == StateTypeSoft);
+	BOOST_CHECK(host->GetCheckAttempt() == 1);
+	CheckNotification(host, false);
+
+	std::cout << "Fifth check result (ok)" << std::endl;
+	host->ProcessCheckResult(MakeCheckResult(ServiceOK));
+	BOOST_CHECK(host->GetState() == HostUp);
+	BOOST_CHECK(host->GetStateType() == StateTypeHard);
+	BOOST_CHECK(host->GetCheckAttempt() == 1);
+	CheckNotification(host, false);
+
+	c.disconnect();
+}
+
+BOOST_AUTO_TEST_CASE(host_3attempts)
 {
 	boost::signals2::connection c = Checkable::OnNotificationsRequested.connect(boost::bind(&NotificationHandler, _1, _2));
 
@@ -119,7 +222,110 @@ BOOST_AUTO_TEST_CASE(host)
 	c.disconnect();
 }
 
-BOOST_AUTO_TEST_CASE(service)
+BOOST_AUTO_TEST_CASE(service_1attempt)
+{
+	boost::signals2::connection c = Checkable::OnNotificationsRequested.connect(boost::bind(&NotificationHandler, _1, _2));
+
+	Service::Ptr service = new Service();
+	service->SetMaxCheckAttempts(1);
+	service->Activate();
+	service->SetAuthority(true);
+	service->SetStateRaw(ServiceOK);
+	service->SetStateType(StateTypeHard);
+
+	std::cout << "Before first check result (ok, hard)" << std::endl;
+	BOOST_CHECK(service->GetState() == ServiceOK);
+	BOOST_CHECK(service->GetStateType() == StateTypeHard);
+	BOOST_CHECK(service->GetCheckAttempt() == 1);
+	CheckNotification(service, false);
+
+	std::cout << "First check result (unknown)" << std::endl;
+	service->ProcessCheckResult(MakeCheckResult(ServiceUnknown));
+	BOOST_CHECK(service->GetState() == ServiceUnknown);
+	BOOST_CHECK(service->GetStateType() == StateTypeHard);
+	BOOST_CHECK(service->GetCheckAttempt() == 1);
+	CheckNotification(service, true, NotificationProblem);
+
+	std::cout << "Second check result (ok)" << std::endl;
+	service->ProcessCheckResult(MakeCheckResult(ServiceOK));
+	BOOST_CHECK(service->GetState() == ServiceOK);
+	BOOST_CHECK(service->GetStateType() == StateTypeHard);
+	BOOST_CHECK(service->GetCheckAttempt() == 1);
+	CheckNotification(service, true, NotificationRecovery);
+
+	std::cout << "Third check result (critical)" << std::endl;
+	service->ProcessCheckResult(MakeCheckResult(ServiceCritical));
+	BOOST_CHECK(service->GetState() == ServiceCritical);
+	BOOST_CHECK(service->GetStateType() == StateTypeHard);
+	BOOST_CHECK(service->GetCheckAttempt() == 1);
+	CheckNotification(service, true, NotificationProblem);
+
+	std::cout << "Fourth check result (ok)" << std::endl;
+	service->ProcessCheckResult(MakeCheckResult(ServiceOK));
+	BOOST_CHECK(service->GetState() == ServiceOK);
+	BOOST_CHECK(service->GetStateType() == StateTypeHard);
+	BOOST_CHECK(service->GetCheckAttempt() == 1);
+	CheckNotification(service, true, NotificationRecovery);
+
+	c.disconnect();
+}
+
+BOOST_AUTO_TEST_CASE(service_2attempts)
+{
+	boost::signals2::connection c = Checkable::OnNotificationsRequested.connect(boost::bind(&NotificationHandler, _1, _2));
+
+	Service::Ptr service = new Service();
+	service->SetMaxCheckAttempts(2);
+	service->Activate();
+	service->SetAuthority(true);
+	service->SetStateRaw(ServiceOK);
+	service->SetStateType(StateTypeHard);
+
+	std::cout << "Before first check result (ok, hard)" << std::endl;
+	BOOST_CHECK(service->GetState() == ServiceOK);
+	BOOST_CHECK(service->GetStateType() == StateTypeHard);
+	BOOST_CHECK(service->GetCheckAttempt() == 1);
+	CheckNotification(service, false);
+
+	std::cout << "First check result (unknown)" << std::endl;
+	service->ProcessCheckResult(MakeCheckResult(ServiceUnknown));
+	BOOST_CHECK(service->GetState() == ServiceUnknown);
+	BOOST_CHECK(service->GetStateType() == StateTypeSoft);
+	BOOST_CHECK(service->GetCheckAttempt() == 1);
+	CheckNotification(service, false);
+
+	std::cout << "Second check result (critical)" << std::endl;
+	service->ProcessCheckResult(MakeCheckResult(ServiceCritical));
+	BOOST_CHECK(service->GetState() == ServiceCritical);
+	BOOST_CHECK(service->GetStateType() == StateTypeHard);
+	BOOST_CHECK(service->GetCheckAttempt() == 1);
+	CheckNotification(service, true, NotificationProblem);
+
+	std::cout << "Third check result (ok)" << std::endl;
+	service->ProcessCheckResult(MakeCheckResult(ServiceOK));
+	BOOST_CHECK(service->GetState() == ServiceOK);
+	BOOST_CHECK(service->GetStateType() == StateTypeHard);
+	BOOST_CHECK(service->GetCheckAttempt() == 1);
+	CheckNotification(service, true, NotificationRecovery);
+
+	std::cout << "Fourth check result (critical)" << std::endl;
+	service->ProcessCheckResult(MakeCheckResult(ServiceCritical));
+	BOOST_CHECK(service->GetState() == ServiceCritical);
+	BOOST_CHECK(service->GetStateType() == StateTypeSoft);
+	BOOST_CHECK(service->GetCheckAttempt() == 1);
+	CheckNotification(service, false);
+
+	std::cout << "Fifth check result (ok)" << std::endl;
+	service->ProcessCheckResult(MakeCheckResult(ServiceOK));
+	BOOST_CHECK(service->GetState() == ServiceOK);
+	BOOST_CHECK(service->GetStateType() == StateTypeHard);
+	BOOST_CHECK(service->GetCheckAttempt() == 1);
+	CheckNotification(service, false);
+
+	c.disconnect();
+}
+
+BOOST_AUTO_TEST_CASE(service_3attempts)
 {
 	boost::signals2::connection c = Checkable::OnNotificationsRequested.connect(boost::bind(&NotificationHandler, _1, _2));
 

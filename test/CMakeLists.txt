@@ -89,8 +89,12 @@ add_boost_test(base
         base_value/format
         config_ops/simple
         config_ops/advanced
-        icinga_checkresult/host
-        icinga_checkresult/service
+        icinga_checkresult/host_1attempt
+        icinga_checkresult/host_2attempts
+        icinga_checkresult/host_3attempts
+        icinga_checkresult/service_1attempt
+        icinga_checkresult/service_2attempts
+        icinga_checkresult/service_3attempts
         icinga_macros/simple
         icinga_perfdata/empty
         icinga_perfdata/simple
