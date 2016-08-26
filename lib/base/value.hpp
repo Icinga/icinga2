@@ -99,6 +99,10 @@ public:
 		: m_Value(other.m_Value)
 	{ }
 
+	inline Value(Value&& other)
+		: m_Value(other.m_Value)
+	{ }
+
 	inline Value(Object *value)
 	{
 		if (!value)

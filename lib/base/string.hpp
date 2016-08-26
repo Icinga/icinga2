@@ -77,6 +77,10 @@ public:
 		: m_Data(other.m_Data)
 	{ }
 
+	inline String(String&& other)
+		: m_Data(other)
+	{ }
+
 	inline ~String(void)
 	{ }
 
