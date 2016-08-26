@@ -91,6 +91,10 @@ public:
 		: m_Value(value)
 	{ }
 
+	inline Value(String&& value)
+		: m_Value(value)
+	{ }
+
 	inline Value(const char *value)
 		: m_Value(String(value))
 	{ }
