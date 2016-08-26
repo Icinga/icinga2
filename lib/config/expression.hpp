@@ -239,6 +239,11 @@ class I2_CONFIG_API LiteralExpression : public Expression
 public:
 	LiteralExpression(const Value& value = Value());
 
+	const Value& GetValue(void) const
+	{
+		return m_Value;
+	}
+
 protected:
 	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 

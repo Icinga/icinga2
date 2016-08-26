@@ -707,9 +707,8 @@ void icinga::BindToScope(Expression *& expr, ScopeSpecifier scopeSpec)
 	}
 
 	LiteralExpression *lexpr = dynamic_cast<LiteralExpression *>(expr);
-	ScriptFrame frame;
 
-	if (lexpr && lexpr->Evaluate(frame).GetValue().IsString()) {
+	if (lexpr && lexpr->GetValue().IsString()) {
 		Expression *scope = new GetScopeExpression(scopeSpec);
 		expr = new IndexerExpression(scope, lexpr, lexpr->GetDebugInfo());
 	}
