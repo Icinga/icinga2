@@ -535,7 +535,14 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		std::string ftype = FieldTypeToIcingaName(field, true);
 
 		if (field.Type.IsName) {
-			m_Impl << "\t" << "if (!avalue.IsEmpty() && !utils.ValidateName(\"" << field.Type.TypeName << "\", avalue))" << std::endl
+			m_Impl << "\t" << "if (";
+
+			if (field.Type.ArrayRank > 0)
+				m_Impl << "avalue.IsEmpty() || ";
+			else
+				m_Impl << "!avalue.IsEmpty() && ";
+
+			m_Impl << "!utils.ValidateName(\"" << field.Type.TypeName << "\", avalue))" << std::endl
 			       << "\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_cast<ConfigObject *>(this), boost::assign::list_of(\"" << field.Name << "\"), \"Object '\" + avalue + \"' of type '" << field.Type.TypeName
 			       << "' does not exist.\"));" << std::endl;
 		} else if (field.Type.ArrayRank > 0 && (ftype == "Number" || ftype == "Boolean")) {

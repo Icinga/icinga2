@@ -41,7 +41,10 @@ void Zone::OnAllConfigLoaded(void)
 	if (endpoints) {
 		ObjectLock olock(endpoints);
 		for (const String& endpoint : endpoints) {
-			Endpoint::GetByName(endpoint)->SetCachedZone(this);
+			Endpoint::Ptr ep = Endpoint::GetByName(endpoint);
+
+			if (ep)
+				ep->SetCachedZone(this);
 		}
 	}
 
