@@ -2,12 +2,13 @@ sudo: false
 
 language: cpp
 
+cache: ccache
+
 compiler:
   - gcc
 
 addons:
   apt_packages:
-    - ccache
     - libboost-all-dev
     - flex
     - bison
@@ -22,7 +23,6 @@ addons:
 before_script:
   - mkdir build
   - cd build
-  - export PATH="/usr/lib/ccache:$PATH"
   - cmake .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=/tmp/icinga2
 
 script:
