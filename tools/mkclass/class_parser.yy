@@ -248,11 +248,11 @@ class: class_attribute_list T_CLASS T_IDENTIFIER inherits_specifier type_base_sp
 
 		$$->Attributes = $1;
 
-		for (std::vector<Field>::iterator it = $7->begin(); it != $7->end(); it++) {
-			if (it->Attributes & FALoadDependency) {
-				$$->LoadDependencies.push_back(it->Name);
+		for (const Field& field : *$7) {
+			if (field.Attributes & FALoadDependency) {
+				$$->LoadDependencies.push_back(field.Name);
 			} else
-				$$->Fields.push_back(*it);
+				$$->Fields.push_back(field);
 		}
 
 		delete $7;

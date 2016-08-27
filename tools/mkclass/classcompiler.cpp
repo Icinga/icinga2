@@ -130,15 +130,11 @@ unsigned long ClassCompiler::SDBM(const std::string& str, size_t len = std::stri
 	unsigned long hash = 0;
 	size_t current = 0;
 
-	std::string::const_iterator it;
-
-	for (it = str.begin(); it != str.end(); it++) {
+	for (const char& ch : str) {
 		if (current >= len)
 			break;
 
-		char c = *it;
-
-		hash = c + (hash << 6) + (hash << 16) - hash;
+		hash = ch + (hash << 6) + (hash << 16) - hash;
 
 		current++;
 	}
@@ -207,8 +203,6 @@ void ClassCompiler::OptimizeStructLayout(std::vector<Field>& fields)
 
 void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 {
-	std::vector<Field>::const_iterator it;
-
 	std::string apiMacro;
 
 	if (!m_Library.empty()) {
@@ -314,9 +308,9 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		jumptable.clear();
 		collisions = 0;
 
-		for (it = klass.Fields.begin(); it != klass.Fields.end(); it++) {
-			int hash = static_cast<int>(SDBM(it->Name, hlen));
-			jumptable[hash].push_back(std::make_pair(num, it->Name));
+		for (const Field& field : klass.Fields) {
+			int hash = static_cast<int>(SDBM(field.Name, hlen));
+			jumptable[hash].push_back(std::make_pair(num, field.Name));
 			num++;
 
 			if (jumptable[hash].size() > 1)
@@ -327,16 +321,12 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 	if (!klass.Fields.empty()) {
 		m_Impl << "\tswitch (static_cast<int>(Utility::SDBM(name, " << hlen << "))) {" << std::endl;
 
-		std::map<int, std::vector<std::pair<int, std::string> > >::const_iterator itj;
+		for (const auto& itj : jumptable) {
+			m_Impl << "\t\tcase " << itj.first << ":" << std::endl;
 
-		for (itj = jumptable.begin(); itj != jumptable.end(); itj++) {
-			m_Impl << "\t\tcase " << itj->first << ":" << std::endl;
-
-			std::vector<std::pair<int, std::string> >::const_iterator itf;
-
-			for (itf = itj->second.begin(); itf != itj->second.end(); itf++) {
-				m_Impl << "\t\t\t" << "if (name == \"" << itf->second << "\")" << std::endl
-				       << "\t\t\t\t" << "return offset + " << itf->first << ";" << std::endl;
+			for (const auto& itf : itj.second) {
+				m_Impl << "\t\t\t" << "if (name == \"" << itf.second << "\")" << std::endl
+				       << "\t\t\t\t" << "return offset + " << itf.first << ";" << std::endl;
 			}
 
 			m_Impl << std::endl
@@ -378,18 +368,18 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		m_Impl << ") {" << std::endl;
 
 		size_t num = 0;
-		for (it = klass.Fields.begin(); it != klass.Fields.end(); it++) {
-			std::string ftype = FieldTypeToIcingaName(*it, false);
+		for (const Field& field : klass.Fields) {
+			std::string ftype = FieldTypeToIcingaName(field, false);
 
 			std::string nameref;
 
-			if (it->Type.IsName)
-				nameref = "\"" + it->Type.TypeName + "\"";
+			if (field.Type.IsName)
+				nameref = "\"" + field.Type.TypeName + "\"";
 			else
 				nameref = "NULL";
 
 			m_Impl << "\t\t" << "case " << num << ":" << std::endl
-				 << "\t\t\t" << "return Field(" << num << ", \"" << ftype << "\", \"" << it->Name << "\", \"" << (it->NavigationName.empty() ? it->Name : it->NavigationName) << "\", "  << nameref << ", " << it->Attributes << ", " << it->Type.ArrayRank << ");" << std::endl;
+				 << "\t\t\t" << "return Field(" << num << ", \"" << ftype << "\", \"" << field.Name << "\", \"" << (field.NavigationName.empty() ? field.Name : field.NavigationName) << "\", "  << nameref << ", " << field.Attributes << ", " << field.Type.ArrayRank << ");" << std::endl;
 			num++;
 		}
 
@@ -432,8 +422,8 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 	       << "{" << std::endl
 	       << "\t" << "std::vector<String> deps;" << std::endl;
 
-	for (std::vector<std::string>::const_iterator itd = klass.LoadDependencies.begin(); itd != klass.LoadDependencies.end(); itd++)
-		m_Impl << "\t" << "deps.push_back(\"" << *itd << "\");" << std::endl;
+	for (const std::string& dep : klass.LoadDependencies)
+		m_Impl << "\t" << "deps.push_back(\"" << dep << "\");" << std::endl;
 
 	m_Impl << "\t" << "return deps;" << std::endl
 	       << "}" << std::endl << std::endl;
@@ -459,9 +449,9 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 	m_Impl << ") {" << std::endl;
 
 	int num = 0;
-	for (it = klass.Fields.begin(); it != klass.Fields.end(); it++) {
+	for (const Field& field : klass.Fields) {
 		m_Impl << "\t\t" << "case " << num << ":" << std::endl
-		       << "\t\t\t" << "ObjectImpl<" << klass.Name << ">::On" << it->GetFriendlyName() << "Changed.connect(callback);" << std::endl
+		       << "\t\t\t" << "ObjectImpl<" << klass.Name << ">::On" << field.GetFriendlyName() << "Changed.connect(callback);" << std::endl
 		       << "\t\t\t" << "break;" << std::endl;
 		num++;
 	}
@@ -495,61 +485,67 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 	if (!klass.Parent.empty())
 		m_Impl << "\t" << klass.Parent << "::Validate(types, utils);" << std::endl << std::endl;
 
-	for (it = klass.Fields.begin(); it != klass.Fields.end(); it++) {
-		m_Impl << "\t" << "if (" << (it->Attributes & (FAEphemeral|FAConfig|FAState)) << " & types)" << std::endl
-			 << "\t\t" << "Validate" << it->GetFriendlyName() << "(Get" << it->GetFriendlyName() << "(), utils);" << std::endl;
+	for (const Field& field : klass.Fields) {
+		m_Impl << "\t" << "if (" << (field.Attributes & (FAEphemeral|FAConfig|FAState)) << " & types)" << std::endl
+			 << "\t\t" << "Validate" << field.GetFriendlyName() << "(Get" << field.GetFriendlyName() << "(), utils);" << std::endl;
 	}
 
 	m_Impl << "}" << std::endl << std::endl;
 
-	for (it = klass.Fields.begin(); it != klass.Fields.end(); it++) {
-		m_Header << "\t" << "void SimpleValidate" << it->GetFriendlyName() << "(" << it->Type.GetArgumentType() << " value, const ValidationUtils& utils);" << std::endl;
+	for (const Field& field : klass.Fields) {
+		std::string argName;
 
-		m_Impl << "void ObjectImpl<" << klass.Name << ">::SimpleValidate" << it->GetFriendlyName() << "(" << it->Type.GetArgumentType() << " value, const ValidationUtils& utils)" << std::endl
+		if (field.Type.ArrayRank > 0)
+			argName = "avalue";
+		else
+			argName = "value";
+
+		m_Header << "\t" << "void SimpleValidate" << field.GetFriendlyName() << "(" << field.Type.GetArgumentType() << " " << argName << ", const ValidationUtils& utils);" << std::endl;
+
+		m_Impl << "void ObjectImpl<" << klass.Name << ">::SimpleValidate" << field.GetFriendlyName() << "(" << field.Type.GetArgumentType() << " " << argName << ", const ValidationUtils& utils)" << std::endl
 		       << "{" << std::endl;
-
-		const Field& field = *it;
 
 		if (field.Attributes & FARequired) {
 			if (field.Type.GetRealType().find("::Ptr") != std::string::npos)
-				m_Impl << "\t" << "if (!value)" << std::endl;
+				m_Impl << "\t" << "if (!" << argName << ")" << std::endl;
 			else
-				m_Impl << "\t" << "if (value.IsEmpty())" << std::endl;
+				m_Impl << "\t" << "if (" << argName << ".IsEmpty())" << std::endl;
 
 			m_Impl << "\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_cast<ConfigObject *>(this), boost::assign::list_of(\"" << field.Name << "\"), \"Attribute must not be empty.\"));" << std::endl << std::endl;
 		}
 
 		if (field.Type.ArrayRank > 0) {
-			m_Impl << "\t" << "if (value) {" << std::endl
-			       << "\t\t" << "ObjectLock olock(value);" << std::endl
-			       << "\t\t" << "for (const Value& avalue : value) {" << std::endl;
-		} else
-			m_Impl << "\t" << "Value avalue = value;" << std::endl;
-
-		m_Impl << "\t" << "if (avalue.IsObjectType<Function>()) {" << std::endl
-		       << "\t\t" << "Function::Ptr func = avalue;" << std::endl
-		       << "\t\t" << "if (func->IsDeprecated())" << std::endl
-		       << "\t\t\t" << "Log(LogWarning, \"" << klass.Name << "\") << \"Attribute '" << field.Name << "' for object '\" << dynamic_cast<ConfigObject *>(this)->GetName() << \"' of type '\" << dynamic_cast<ConfigObject *>(this)->GetReflectionType()->GetName() << \"' is set to a deprecated function: \" << func->GetName();" << std::endl
-		       << "\t" << "}" << std::endl << std::endl;
+			m_Impl << "\t" << "if (avalue) {" << std::endl
+			       << "\t\t" << "ObjectLock olock(avalue);" << std::endl
+			       << "\t\t" << "for (const Value& value : avalue) {" << std::endl;
+		}
 
 		std::string ftype = FieldTypeToIcingaName(field, true);
+
+		if (ftype == "Value") {
+			m_Impl << "\t" << "if (value.IsObjectType<Function>()) {" << std::endl
+			       << "\t\t" << "Function::Ptr func = value;" << std::endl
+			       << "\t\t" << "if (func->IsDeprecated())" << std::endl
+			       << "\t\t\t" << "Log(LogWarning, \"" << klass.Name << "\") << \"Attribute '" << field.Name << "' for object '\" << dynamic_cast<ConfigObject *>(this)->GetName() << \"' of type '\" << dynamic_cast<ConfigObject *>(this)->GetReflectionType()->GetName() << \"' is set to a deprecated function: \" << func->GetName();" << std::endl
+			       << "\t" << "}" << std::endl << std::endl;
+		}
 
 		if (field.Type.IsName) {
 			m_Impl << "\t" << "if (";
 
 			if (field.Type.ArrayRank > 0)
-				m_Impl << "avalue.IsEmpty() || ";
+				m_Impl << "value.IsEmpty() || ";
 			else
-				m_Impl << "!avalue.IsEmpty() && ";
+				m_Impl << "!value.IsEmpty() && ";
 
-			m_Impl << "!utils.ValidateName(\"" << field.Type.TypeName << "\", avalue))" << std::endl
-			       << "\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_cast<ConfigObject *>(this), boost::assign::list_of(\"" << field.Name << "\"), \"Object '\" + avalue + \"' of type '" << field.Type.TypeName
+			m_Impl << "!utils.ValidateName(\"" << field.Type.TypeName << "\", value))" << std::endl
+			       << "\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_cast<ConfigObject *>(this), boost::assign::list_of(\"" << field.Name << "\"), \"Object '\" + value + \"' of type '" << field.Type.TypeName
 			       << "' does not exist.\"));" << std::endl;
 		} else if (field.Type.ArrayRank > 0 && (ftype == "Number" || ftype == "Boolean")) {
 			m_Impl << "\t" << "try {" << std::endl
-			       << "\t\t" << "Convert::ToDouble(avalue);" << std::endl
+			       << "\t\t" << "Convert::ToDouble(value);" << std::endl
 			       << "\t" << "} catch (const std::invalid_argument&) {" << std::endl
-			       << "\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_cast<ConfigObject *>(this), boost::assign::list_of(\"" << field.Name << "\"), \"Array element '\" + avalue + \"' of type '\" + avalue.GetReflectionType()->GetName() + \"' is not valid here; expected type '" << ftype << "'.\"));" << std::endl
+			       << "\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_cast<ConfigObject *>(this), boost::assign::list_of(\"" << field.Name << "\"), \"Array element '\" + value + \"' of type '\" + value.GetReflectionType()->GetName() + \"' is not valid here; expected type '" << ftype << "'.\"));" << std::endl
 			       << "\t" << "}" << std::endl;
 		}
 
@@ -569,8 +565,8 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		m_Impl << "ObjectImpl<" << klass.Name << ">::ObjectImpl(void)" << std::endl
 		       << "{" << std::endl;
 
-		for (it = klass.Fields.begin(); it != klass.Fields.end(); it++) {
-			m_Impl << "\t" << "Set" << it->GetFriendlyName() << "(" << "GetDefault" << it->GetFriendlyName() << "(), true);" << std::endl;
+		for (const Field& field : klass.Fields) {
+			m_Impl << "\t" << "Set" << field.GetFriendlyName() << "(" << "GetDefault" << field.GetFriendlyName() << "(), true);" << std::endl;
 		}
 
 		m_Impl << "}" << std::endl << std::endl;
@@ -603,16 +599,16 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		m_Impl << ") {" << std::endl;
 
 		size_t num = 0;
-		for (it = klass.Fields.begin(); it != klass.Fields.end(); it++) {
+		for (const Field& field : klass.Fields) {
 			m_Impl << "\t\t" << "case " << num << ":" << std::endl
-			       << "\t\t\t" << "Set" << it->GetFriendlyName() << "(";
+			       << "\t\t\t" << "Set" << field.GetFriendlyName() << "(";
 			
-			if (it->Attributes & FAEnum)
-				m_Impl << "static_cast<" << it->Type.GetRealType() << ">(static_cast<int>(";
+			if (field.Attributes & FAEnum)
+				m_Impl << "static_cast<" << field.Type.GetRealType() << ">(static_cast<int>(";
 
 			m_Impl << "value";
 			
-			if (it->Attributes & FAEnum)
+			if (field.Attributes & FAEnum)
 				m_Impl << "))";
 			
 			m_Impl << ", suppress_events, cookie);" << std::endl
@@ -647,9 +643,9 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		m_Impl << ") {" << std::endl;
 
 		num = 0;
-		for (it = klass.Fields.begin(); it != klass.Fields.end(); it++) {
+		for (const Field& field : klass.Fields) {
 			m_Impl << "\t\t" << "case " << num << ":" << std::endl
-			       << "\t\t\t" << "return Get" << it->GetFriendlyName() << "();" << std::endl;
+			       << "\t\t\t" << "return Get" << field.GetFriendlyName() << "();" << std::endl;
 			num++;
 		}
 
@@ -680,16 +676,16 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		m_Impl << ") {" << std::endl;
 
 		num = 0;
-		for (it = klass.Fields.begin(); it != klass.Fields.end(); it++) {
+		for (const Field& field : klass.Fields) {
 			m_Impl << "\t\t" << "case " << num << ":" << std::endl
-			       << "\t\t\t" << "Validate" << it->GetFriendlyName() << "(";
+			       << "\t\t\t" << "Validate" << field.GetFriendlyName() << "(";
 			
-			if (it->Attributes & FAEnum)
-				m_Impl << "static_cast<" << it->Type.GetRealType() << ">(static_cast<int>(";
+			if (field.Attributes & FAEnum)
+				m_Impl << "static_cast<" << field.Type.GetRealType() << ">(static_cast<int>(";
 
 			m_Impl << "value";
 			
-			if (it->Attributes & FAEnum)
+			if (field.Attributes & FAEnum)
 				m_Impl << "))";
 			
 			m_Impl << ", utils);" << std::endl
@@ -724,9 +720,9 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		m_Impl << ") {" << std::endl;
 
 		num = 0;
-		for (it = klass.Fields.begin(); it != klass.Fields.end(); it++) {
+		for (const Field& field : klass.Fields) {
 			m_Impl << "\t\t" << "case " << num << ":" << std::endl
-			       << "\t\t\t" << "Notify" << it->GetFriendlyName() << "(cookie);" << std::endl
+			       << "\t\t\t" << "Notify" << field.GetFriendlyName() << "(cookie);" << std::endl
 			       << "\t\t\t" << "break;" << std::endl;
 			num++;
 		}
@@ -758,10 +754,10 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		m_Impl << ") {" << std::endl;
 
 		num = 0;
-		for (it = klass.Fields.begin(); it != klass.Fields.end(); it++) {
-			if (it->Attributes & FANavigation) {
+		for (const Field& field : klass.Fields) {
+			if (field.Attributes & FANavigation) {
 				m_Impl << "\t\t" << "case " << num << ":" << std::endl
-				       << "\t\t\t" << "return Navigate" << it->GetFriendlyName() << "();" << std::endl;
+				       << "\t\t\t" << "return Navigate" << field.GetFriendlyName() << "();" << std::endl;
 			}
 
 			num++;
@@ -774,75 +770,75 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		m_Impl << "}" << std::endl << std::endl;
 
 		/* getters */
-		for (it = klass.Fields.begin(); it != klass.Fields.end(); it++) {
+		for (const Field& field : klass.Fields) {
 			std::string prot;
 
-			if (it->Attributes & FAGetProtected)
+			if (field.Attributes & FAGetProtected)
 				prot = "protected";
 			else
 				prot = "public";
 
 			m_Header << prot << ":" << std::endl
-			 	 << "\t" << "virtual " << it->Type.GetRealType() << " Get" << it->GetFriendlyName() << "(void) const";
+			 	 << "\t" << "virtual " << field.Type.GetRealType() << " Get" << field.GetFriendlyName() << "(void) const";
 
-			if (it->PureGetAccessor) {
+			if (field.PureGetAccessor) {
 				m_Header << " = 0;" << std::endl;
 			} else {
 				m_Header << ";" << std::endl;
 
-				m_Impl << it->Type.GetRealType() << " ObjectImpl<" << klass.Name << ">::Get" << it->GetFriendlyName() << "(void) const" << std::endl
+				m_Impl << field.Type.GetRealType() << " ObjectImpl<" << klass.Name << ">::Get" << field.GetFriendlyName() << "(void) const" << std::endl
 				       << "{" << std::endl;
 
-				if (it->GetAccessor.empty() && !(it->Attributes & FANoStorage))
-					m_Impl << "\t" << "return m_" << it->GetFriendlyName() << ";" << std::endl;
+				if (field.GetAccessor.empty() && !(field.Attributes & FANoStorage))
+					m_Impl << "\t" << "return m_" << field.GetFriendlyName() << ";" << std::endl;
 				else
-					m_Impl << it->GetAccessor << std::endl;
+					m_Impl << field.GetAccessor << std::endl;
 
 				m_Impl << "}" << std::endl << std::endl;
 			}
 		}
 
 		/* setters */
-		for (it = klass.Fields.begin(); it != klass.Fields.end(); it++) {
+		for (const Field& field : klass.Fields) {
 			std::string prot;
 
-			if (it->Attributes & FASetProtected)
+			if (field.Attributes & FASetProtected)
 				prot = "protected";
 			else
 				prot = "public";
 
 			m_Header << prot << ":" << std::endl
-				 << "\t" << "virtual void Set" << it->GetFriendlyName() << "(" << it->Type.GetArgumentType() << " value, bool suppress_events = false, const Value& cookie = Empty)";
+				 << "\t" << "virtual void Set" << field.GetFriendlyName() << "(" << field.Type.GetArgumentType() << " value, bool suppress_events = false, const Value& cookie = Empty)";
 
-			if (it->PureSetAccessor) {
+			if (field.PureSetAccessor) {
 				m_Header << " = 0;" << std::endl;
 			} else {
 				m_Header << ";" << std::endl;
 
-				m_Impl << "void ObjectImpl<" << klass.Name << ">::Set" << it->GetFriendlyName() << "(" << it->Type.GetArgumentType() << " value, bool suppress_events, const Value& cookie)" << std::endl
+				m_Impl << "void ObjectImpl<" << klass.Name << ">::Set" << field.GetFriendlyName() << "(" << field.Type.GetArgumentType() << " value, bool suppress_events, const Value& cookie)" << std::endl
 				       << "{" << std::endl;
 
-				if (it->Type.IsName || !it->TrackAccessor.empty())
-					m_Impl << "\t" << "Value oldValue = Get" << it->GetFriendlyName() << "();" << std::endl;
+				if (field.Type.IsName || !field.TrackAccessor.empty())
+					m_Impl << "\t" << "Value oldValue = Get" << field.GetFriendlyName() << "();" << std::endl;
 
 					
-				if (it->SetAccessor.empty() && !(it->Attributes & FANoStorage))
-					m_Impl << "\t" << "m_" << it->GetFriendlyName() << " = value;" << std::endl;
+				if (field.SetAccessor.empty() && !(field.Attributes & FANoStorage))
+					m_Impl << "\t" << "m_" << field.GetFriendlyName() << " = value;" << std::endl;
 				else
-					m_Impl << it->SetAccessor << std::endl << std::endl;
+					m_Impl << field.SetAccessor << std::endl << std::endl;
 
-				if (it->Type.IsName || !it->TrackAccessor.empty()) {
-					if (it->Name != "active") {
+				if (field.Type.IsName || !field.TrackAccessor.empty()) {
+					if (field.Name != "active") {
 						m_Impl << "\t" << "ConfigObject *dobj = dynamic_cast<ConfigObject *>(this);" << std::endl
 						       << "\t" << "if (!dobj || dobj->IsActive())" << std::endl
 						       << "\t";
 					}
 
-					m_Impl << "\t" << "Track" << it->GetFriendlyName() << "(oldValue, value);" << std::endl;
+					m_Impl << "\t" << "Track" << field.GetFriendlyName() << "(oldValue, value);" << std::endl;
 				}
 
 				m_Impl << "\t" << "if (!suppress_events)" << std::endl
-				       << "\t\t" << "Notify" << it->GetFriendlyName() << "(cookie);" << std::endl
+				       << "\t\t" << "Notify" << field.GetFriendlyName() << "(cookie);" << std::endl
 				       << "}" << std::endl << std::endl;
 			}
 		}
@@ -852,32 +848,32 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		bool needs_tracking = false;
 
 		/* tracking */
-		for (it = klass.Fields.begin(); it != klass.Fields.end(); it++) {
-			if (!it->Type.IsName && it->TrackAccessor.empty())
+		for (const Field& field : klass.Fields) {
+			if (!field.Type.IsName && field.TrackAccessor.empty())
 				continue;
 
 			needs_tracking = true;
 
-			m_Header << "\t" << "virtual void Track" << it->GetFriendlyName() << "(" << it->Type.GetArgumentType() << " oldValue, " << it->Type.GetArgumentType() << " newValue);";
+			m_Header << "\t" << "virtual void Track" << field.GetFriendlyName() << "(" << field.Type.GetArgumentType() << " oldValue, " << field.Type.GetArgumentType() << " newValue);";
 
-			m_Impl << "void ObjectImpl<" << klass.Name << ">::Track" << it->GetFriendlyName() << "(" << it->Type.GetArgumentType() << " oldValue, " << it->Type.GetArgumentType() << " newValue)" << std::endl
+			m_Impl << "void ObjectImpl<" << klass.Name << ">::Track" << field.GetFriendlyName() << "(" << field.Type.GetArgumentType() << " oldValue, " << field.Type.GetArgumentType() << " newValue)" << std::endl
 			       << "{" << std::endl;
 
-			if (!it->TrackAccessor.empty())
-				m_Impl << "\t" << it->TrackAccessor << std::endl;
+			if (!field.TrackAccessor.empty())
+				m_Impl << "\t" << field.TrackAccessor << std::endl;
 
-			if (it->Type.TypeName != "String") {
-				if (it->Type.ArrayRank > 0) {
+			if (field.Type.TypeName != "String") {
+				if (field.Type.ArrayRank > 0) {
 					m_Impl << "\t" << "if (oldValue) {" << std::endl
 					       << "\t\t" << "ObjectLock olock(oldValue);" << std::endl
 					       << "\t\t" << "for (const String& ref : oldValue) {" << std::endl
 					       << "\t\t\t" << "DependencyGraph::RemoveDependency(this, ConfigObject::GetObject";
 
 					/* Ew */
-					if (it->Type.TypeName == "Zone" && m_Library == "base")
+					if (field.Type.TypeName == "Zone" && m_Library == "base")
 						m_Impl << "(\"Zone\", ";
 					else
-						m_Impl << "<" << it->Type.TypeName << ">(";
+						m_Impl << "<" << field.Type.TypeName << ">(";
 
 					m_Impl << "ref).get());" << std::endl
 					       << "\t\t" << "}" << std::endl
@@ -888,10 +884,10 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 					       << "\t\t\t" << "DependencyGraph::AddDependency(this, ConfigObject::GetObject";
 
 					/* Ew */
-					if (it->Type.TypeName == "Zone" && m_Library == "base")
+					if (field.Type.TypeName == "Zone" && m_Library == "base")
 						m_Impl << "(\"Zone\", ";
 					else
-						m_Impl << "<" << it->Type.TypeName << ">(";
+						m_Impl << "<" << field.Type.TypeName << ">(";
 
 					m_Impl << "ref).get());" << std::endl
 					       << "\t\t" << "}" << std::endl
@@ -901,20 +897,20 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 					       << "\t\t" << "DependencyGraph::RemoveDependency(this, ConfigObject::GetObject";
 
 					/* Ew */
-					if (it->Type.TypeName == "Zone" && m_Library == "base")
+					if (field.Type.TypeName == "Zone" && m_Library == "base")
 						m_Impl << "(\"Zone\", ";
 					else
-						m_Impl << "<" << it->Type.TypeName << ">(";
+						m_Impl << "<" << field.Type.TypeName << ">(";
 
 					m_Impl << "oldValue).get());" << std::endl
 					       << "\t" << "if (!newValue.IsEmpty())" << std::endl
 					       << "\t\t" << "DependencyGraph::AddDependency(this, ConfigObject::GetObject";
 
 					/* Ew */
-					if (it->Type.TypeName == "Zone" && m_Library == "base")
+					if (field.Type.TypeName == "Zone" && m_Library == "base")
 						m_Impl << "(\"Zone\", ";
 					else
-						m_Impl << "<" << it->Type.TypeName << ">(";
+						m_Impl << "<" << field.Type.TypeName << ">(";
 
 					m_Impl << "newValue).get());" << std::endl;
 				}
@@ -924,25 +920,25 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		}
 
 		/* navigation */
-		for (it = klass.Fields.begin(); it != klass.Fields.end(); it++) {
-			if ((it->Attributes & FANavigation) == 0)
+		for (const Field& field : klass.Fields) {
+			if ((field.Attributes & FANavigation) == 0)
 				continue;
 
 			m_Header << "public:" << std::endl
-				 << "\t" << "virtual Object::Ptr Navigate" << it->GetFriendlyName() << "(void) const";
+				 << "\t" << "virtual Object::Ptr Navigate" << field.GetFriendlyName() << "(void) const";
 
-			if (it->PureNavigateAccessor) {
+			if (field.PureNavigateAccessor) {
 				m_Header << " = 0;" << std::endl;
 			} else {
 				m_Header << ";" << std::endl;
 
-				m_Impl << "Object::Ptr ObjectImpl<" << klass.Name << ">::Navigate" << it->GetFriendlyName() << "(void) const" << std::endl
+				m_Impl << "Object::Ptr ObjectImpl<" << klass.Name << ">::Navigate" << field.GetFriendlyName() << "(void) const" << std::endl
 				       << "{" << std::endl;
 
-				if (it->NavigateAccessor.empty())
-					m_Impl << "\t" << "return Get" << it->GetFriendlyName() << "();" << std::endl;
+				if (field.NavigateAccessor.empty())
+					m_Impl << "\t" << "return Get" << field.GetFriendlyName() << "();" << std::endl;
 				else
-					m_Impl << "\t" << it->NavigateAccessor << std::endl;
+					m_Impl << "\t" << field.NavigateAccessor << std::endl;
 
 				m_Impl << "}" << std::endl << std::endl;
 			}
@@ -957,11 +953,11 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 			       << "{" << std::endl
 			       << "\t" << klass.Parent << "::Start(runtimeCreated);" << std::endl << std::endl;
 
-			for (it = klass.Fields.begin(); it != klass.Fields.end(); it++) {
-				if (!it->Type.IsName && it->TrackAccessor.empty())
+			for (const Field& field : klass.Fields) {
+				if (!field.Type.IsName && field.TrackAccessor.empty())
 					continue;
 
-				m_Impl << "\t" << "Track" << it->GetFriendlyName() << "(Empty, Get" << it->GetFriendlyName() << "());" << std::endl;
+				m_Impl << "\t" << "Track" << field.GetFriendlyName() << "(Empty, Get" << field.GetFriendlyName() << "());" << std::endl;
 			}
 
 			m_Impl << "}" << std::endl << std::endl
@@ -969,81 +965,81 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 			       << "{" << std::endl
 			       << "\t" << klass.Parent << "::Stop(runtimeRemoved);" << std::endl << std::endl;
 
-			for (it = klass.Fields.begin(); it != klass.Fields.end(); it++) {
-				if (!it->Type.IsName && it->TrackAccessor.empty())
+			for (const Field& field : klass.Fields) {
+				if (!field.Type.IsName && field.TrackAccessor.empty())
 					continue;
 
-				m_Impl << "\t" << "Track" << it->GetFriendlyName() << "(Get" << it->GetFriendlyName() << "(), Empty);" << std::endl;
+				m_Impl << "\t" << "Track" << field.GetFriendlyName() << "(Get" << field.GetFriendlyName() << "(), Empty);" << std::endl;
 			}
 
 			m_Impl << "}" << std::endl << std::endl;
 		}
 
 		/* notify */
-		for (it = klass.Fields.begin(); it != klass.Fields.end(); it++) {
+		for (const Field& field : klass.Fields) {
 			std::string prot;
 
-			if (it->Attributes & FASetProtected)
+			if (field.Attributes & FASetProtected)
 				prot = "protected";
 			else
 				prot = "public";
 
 			m_Header << prot << ":" << std::endl
-				 << "\t" << "virtual void Notify" << it->GetFriendlyName() << "(const Value& cookie = Empty);" << std::endl;
+				 << "\t" << "virtual void Notify" << field.GetFriendlyName() << "(const Value& cookie = Empty);" << std::endl;
 
-			m_Impl << "void ObjectImpl<" << klass.Name << ">::Notify" << it->GetFriendlyName() << "(const Value& cookie)" << std::endl
+			m_Impl << "void ObjectImpl<" << klass.Name << ">::Notify" << field.GetFriendlyName() << "(const Value& cookie)" << std::endl
 			       << "{" << std::endl;
 
-			if (it->Name != "active") {
+			if (field.Name != "active") {
 				m_Impl << "\t" << "ConfigObject *dobj = dynamic_cast<ConfigObject *>(this);" << std::endl
 				       << "\t" << "if (!dobj || dobj->IsActive())" << std::endl
 				       << "\t";
 			}
 
-			m_Impl << "\t" << "On" << it->GetFriendlyName() << "Changed(static_cast<" << klass.Name << " *>(this), cookie);" << std::endl
+			m_Impl << "\t" << "On" << field.GetFriendlyName() << "Changed(static_cast<" << klass.Name << " *>(this), cookie);" << std::endl
 			       << "}" << std::endl << std::endl;
 		}
 		
 		/* default */
-		for (it = klass.Fields.begin(); it != klass.Fields.end(); it++) {
-			std::string realType = it->Type.GetRealType();
+		for (const Field& field : klass.Fields) {
+			std::string realType = field.Type.GetRealType();
 
 			m_Header << "private:" << std::endl
-				 << "\t" << "inline " << realType << " GetDefault" << it->GetFriendlyName() << "(void) const;" << std::endl;
+				 << "\t" << "inline " << realType << " GetDefault" << field.GetFriendlyName() << "(void) const;" << std::endl;
 
-			m_Impl << realType << " ObjectImpl<" << klass.Name << ">::GetDefault" << it->GetFriendlyName() << "(void) const" << std::endl
+			m_Impl << realType << " ObjectImpl<" << klass.Name << ">::GetDefault" << field.GetFriendlyName() << "(void) const" << std::endl
 			       << "{" << std::endl;
 
-			if (it->DefaultAccessor.empty())
+			if (field.DefaultAccessor.empty())
 				m_Impl << "\t" << "return " << realType << "();" << std::endl;
 			else
-				m_Impl << "\t" << it->DefaultAccessor << std::endl;
+				m_Impl << "\t" << field.DefaultAccessor << std::endl;
 
 			m_Impl << "}" << std::endl << std::endl;
 		}
 
 		/* validators */
-		for (it = klass.Fields.begin(); it != klass.Fields.end(); it++) {
+		for (const Field& field : klass.Fields) {
 			m_Header << "protected:" << std::endl
-				 << "\t" << "virtual void Validate" << it->GetFriendlyName() << "(" << it->Type.GetArgumentType() << " value, const ValidationUtils& utils);" << std::endl;
+				 << "\t" << "virtual void Validate" << field.GetFriendlyName() << "(" << field.Type.GetArgumentType() << " value, const ValidationUtils& utils);" << std::endl;
 		}
 
 		/* instance variables */
 		m_Header << "private:" << std::endl;
 
-		for (it = klass.Fields.begin(); it != klass.Fields.end(); it++) {
-			if (it->Attributes & FANoStorage)
+		for (const Field& field : klass.Fields) {
+			if (field.Attributes & FANoStorage)
 				continue;
 
-			m_Header << "\t" << it->Type.GetRealType() << " m_" << it->GetFriendlyName() << ";" << std::endl;
+			m_Header << "\t" << field.Type.GetRealType() << " m_" << field.GetFriendlyName() << ";" << std::endl;
 		}
 		
 		/* signal */
 		m_Header << "public:" << std::endl;
 		
-		for (it = klass.Fields.begin(); it != klass.Fields.end(); it++) {
-			m_Header << "\t" << "static boost::signals2::signal<void (const intrusive_ptr<" << klass.Name << ">&, const Value&)> On" << it->GetFriendlyName() << "Changed;" << std::endl;
-			m_Impl << std::endl << "boost::signals2::signal<void (const intrusive_ptr<" << klass.Name << ">&, const Value&)> ObjectImpl<" << klass.Name << ">::On" << it->GetFriendlyName() << "Changed;" << std::endl << std::endl;
+		for (const Field& field : klass.Fields) {
+			m_Header << "\t" << "static boost::signals2::signal<void (const intrusive_ptr<" << klass.Name << ">&, const Value&)> On" << field.GetFriendlyName() << "Changed;" << std::endl;
+			m_Impl << std::endl << "boost::signals2::signal<void (const intrusive_ptr<" << klass.Name << ">&, const Value&)> ObjectImpl<" << klass.Name << ">::On" << field.GetFriendlyName() << "Changed;" << std::endl << std::endl;
 		}
 	}
 
@@ -1055,8 +1051,8 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 
 	m_Header << "};" << std::endl << std::endl;
 
-	for (it = klass.Fields.begin(); it != klass.Fields.end(); it++) {
-		m_MissingValidators[std::make_pair(klass.Name, it->GetFriendlyName())] = *it;
+	for (const Field& field : klass.Fields) {
+		m_MissingValidators[std::make_pair(klass.Name, field.GetFriendlyName())] = field;
 	}
 }
 
@@ -1291,16 +1287,16 @@ void ClassCompiler::HandleValidator(const Validator& validator, const ClassDebug
 {
 	CodeGenValidatorSubrules(validator.Name, validator.Name, validator.Rules);
 
-	for (std::map<std::pair<std::string, std::string>, Field>::const_iterator it = m_MissingValidators.begin(); it != m_MissingValidators.end(); it++)
-		CodeGenValidator(it->first.first + it->first.second, it->first.first, validator.Rules, it->second.Name, it->second.Type, ValidatorField);
+	for (const auto& it : m_MissingValidators)
+		CodeGenValidator(it.first.first + it.first.second, it.first.first, validator.Rules, it.second.Name, it.second.Type, ValidatorField);
 
-	for (std::map<std::pair<std::string, std::string>, Field>::const_iterator it = m_MissingValidators.begin(); it != m_MissingValidators.end(); it++) {
-		m_Impl << "void ObjectImpl<" << it->first.first << ">::Validate" << it->first.second << "(" << it->second.Type.GetArgumentType() << " value, const ValidationUtils& utils)" << std::endl
+	for (const auto& it : m_MissingValidators) {
+		m_Impl << "void ObjectImpl<" << it.first.first << ">::Validate" << it.first.second << "(" << it.second.Type.GetArgumentType() << " value, const ValidationUtils& utils)" << std::endl
 		       << "{" << std::endl
-		       << "\t" << "SimpleValidate" << it->first.second << "(value, utils);" << std::endl
+		       << "\t" << "SimpleValidate" << it.first.second << "(value, utils);" << std::endl
 		       << "\t" << "std::vector<String> location;" << std::endl
-		       << "\t" << "location.push_back(\"" << it->second.Name << "\");" << std::endl
-		       << "\t" << "TIValidate" << it->first.first << it->first.second << "(this, value, location, utils);" << std::endl
+		       << "\t" << "location.push_back(\"" << it.second.Name << "\");" << std::endl
+		       << "\t" << "TIValidate" << it.first.first << it.first.second << "(this, value, location, utils);" << std::endl
 		       << "\t" << "location.pop_back();" << std::endl
 		       << "}" << std::endl << std::endl;
 	}
@@ -1310,10 +1306,10 @@ void ClassCompiler::HandleValidator(const Validator& validator, const ClassDebug
 
 void ClassCompiler::HandleMissingValidators(void)
 {
-	for (std::map<std::pair<std::string, std::string>, Field>::const_iterator it = m_MissingValidators.begin(); it != m_MissingValidators.end(); it++) {
-		m_Impl << "void ObjectImpl<" << it->first.first << ">::Validate" << it->first.second << "(" << it->second.Type.GetArgumentType() << " value, const ValidationUtils& utils)" << std::endl
+	for (const auto& it : m_MissingValidators) {
+		m_Impl << "void ObjectImpl<" << it.first.first << ">::Validate" << it.first.second << "(" << it.second.Type.GetArgumentType() << " value, const ValidationUtils& utils)" << std::endl
 		       << "{" << std::endl
-		       << "\t" << "SimpleValidate" << it->first.second << "(value, utils);" << std::endl
+		       << "\t" << "SimpleValidate" << it.first.second << "(value, utils);" << std::endl
 		       << "}" << std::endl << std::endl;
 	}
 
