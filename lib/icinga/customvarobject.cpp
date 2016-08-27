@@ -36,7 +36,7 @@ void CustomVarObject::ValidateVars(const Dictionary::Ptr& value, const Validatio
 
 int icinga::FilterArrayToInt(const Array::Ptr& typeFilters, const std::map<String, int>& filterMap, int defaultValue)
 {
-	Value resultTypeFilter;
+	int resultTypeFilter;
 
 	if (!typeFilters)
 		return defaultValue;
