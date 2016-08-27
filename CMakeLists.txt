@@ -180,11 +180,19 @@ if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
   endif()
 endif()
 
+include(CheckCXXCompilerFlag)
+
 if(ICINGA2_LTO_BUILD)
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -flto -fno-fat-lto-objects")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -flto -fno-fat-lto-objects")
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -flto")
-  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -flto")
+  check_cxx_compiler_flag("-flto" CXX_FLAG_LTO)
+
+  if(NOT CXX_FLAG_LTO)
+    message(WARNING "Compiler does not support LTO, falling back to non-LTO build")
+  else()
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -flto")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -flto")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -flto")
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -flto")
+  endif()
 endif()
 
 include(CheckCCompilerFlag)
@@ -236,8 +244,6 @@ if(HAVE_LIBEXECINFO)
   set(HAVE_BACKTRACE_SYMBOLS TRUE)
 endif()
 
-include(CheckCXXCompilerFlag)
-
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   exec_program(${CMAKE_CXX_COMPILER}
     ARGS -dumpversion
@@ -257,16 +263,6 @@ if(NOT MSVC)
   if(NOT CXX_FEATURE_OVERRIDE)
     add_definitions("-Doverride=")
   endif()
-endif()
-
-check_cxx_compiler_flag("-flto" CXX_FLAG_LTO)
-
-if(CXX_FLAG_LTO)
-  set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_DEBUG} -flto")
-  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_DEBUG} -flto")
-
-  set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_DEBUG} -flto")
-  set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_DEBUG} -flto")
 endif()
 
 configure_file(config.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config.h ESCAPE_QUOTES)
