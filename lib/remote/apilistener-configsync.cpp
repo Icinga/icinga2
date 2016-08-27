@@ -31,17 +31,13 @@
 
 using namespace icinga;
 
-INITIALIZE_ONCE(&ApiListener::StaticInitialize);
-
 REGISTER_APIFUNCTION(UpdateObject, config, &ApiListener::ConfigUpdateObjectAPIHandler);
 REGISTER_APIFUNCTION(DeleteObject, config, &ApiListener::ConfigDeleteObjectAPIHandler);
 
-
-void ApiListener::StaticInitialize(void)
-{
+INITIALIZE_ONCE([]() {
 	ConfigObject::OnActiveChanged.connect(&ApiListener::ConfigUpdateObjectHandler);
 	ConfigObject::OnVersionChanged.connect(&ApiListener::ConfigUpdateObjectHandler);
-}
+});
 
 void ApiListener::ConfigUpdateObjectHandler(const ConfigObject::Ptr& object, const Value& cookie)
 {

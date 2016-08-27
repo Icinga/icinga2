@@ -158,8 +158,7 @@ static double MathSign(double x)
 		return 0;
 }
 
-static void InitializeMathObj(void)
-{
+INITIALIZE_ONCE([]() {
 	Dictionary::Ptr mathObj = new Dictionary();
 
 	/* Constants */
@@ -196,7 +195,4 @@ static void InitializeMathObj(void)
 	mathObj->Set("sign", new Function("Math#sign", WrapFunction(MathSign), true));
 
 	ScriptGlobal::Set("Math", mathObj);
-}
-
-INITIALIZE_ONCE(InitializeMathObj);
-
+});

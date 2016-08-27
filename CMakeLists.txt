@@ -217,9 +217,8 @@ include(CheckIncludeFileCXX)
 
 check_symbol_exists(__COUNTER__ "" HAVE_COUNTER_MACRO)
 
-if(NOT HAVE_COUNTER_MACRO AND ICINGA2_UNITY_BUILD)
-  message(STATUS "Your C/C++ compiler does not support the __COUNTER__ macro. Disabling unity build.")
-  set(ICINGA2_UNITY_BUILD FALSE)
+if(NOT HAVE_COUNTER_MACRO)
+message(FATAL_ERROR "Your C/C++ compiler does not support the __COUNTER__ macro.")
 endif()
 
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -DI2_DEBUG")

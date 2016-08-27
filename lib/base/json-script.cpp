@@ -31,8 +31,7 @@ static String JsonEncodeShim(const Value& value)
 	return JsonEncode(value);
 }
 
-static void InitializeJsonObj(void)
-{
+INITIALIZE_ONCE([]() {
 	Dictionary::Ptr jsonObj = new Dictionary();
 
 	/* Methods */
@@ -40,7 +39,4 @@ static void InitializeJsonObj(void)
 	jsonObj->Set("decode", new Function("Json#decode", WrapFunction(JsonDecode), true));
 
 	ScriptGlobal::Set("Json", jsonObj);
-}
-
-INITIALIZE_ONCE(InitializeJsonObj);
-
+});

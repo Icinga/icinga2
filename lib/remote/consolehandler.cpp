@@ -57,15 +57,12 @@ static void ScriptFrameCleanupHandler(void)
 		l_ApiScriptFrames.erase(key);
 }
 
-static void InitScriptFrameCleanup(void)
-{
+INITIALIZE_ONCE([]() {
 	l_FrameCleanupTimer = new Timer();
 	l_FrameCleanupTimer->OnTimerExpired.connect(boost::bind(ScriptFrameCleanupHandler));
 	l_FrameCleanupTimer->SetInterval(30);
 	l_FrameCleanupTimer->Start();
-}
-
-INITIALIZE_ONCE(InitScriptFrameCleanup);
+});
 
 bool ConsoleHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response, const Dictionary::Ptr& params)
 {

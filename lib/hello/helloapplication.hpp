@@ -36,8 +36,6 @@ public:
 	DECLARE_OBJECT(HelloApplication);
 	DECLARE_OBJECTNAME(HelloApplication);
 
-	static void StaticInitialize(void);
-
 	virtual int Main(void) override;
 };
 

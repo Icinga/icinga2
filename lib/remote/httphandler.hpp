@@ -61,15 +61,11 @@ public:
 };
 
 #define REGISTER_URLHANDLER(url, klass) \
-	namespace { namespace UNIQUE_NAME(apif) { namespace apif ## name { \
-		void RegisterHandler(void) \
-		{ \
-			Url::Ptr uurl = new Url(url); \
-			HttpHandler::Ptr handler = new klass(); \
-			HttpHandler::Register(uurl, handler); \
-		} \
-		INITIALIZE_ONCE(RegisterHandler); \
-	} } }
+	INITIALIZE_ONCE([]() { \
+		Url::Ptr uurl = new Url(url); \
+		HttpHandler::Ptr handler = new klass(); \
+		HttpHandler::Register(uurl, handler); \
+	})
 
 }
 

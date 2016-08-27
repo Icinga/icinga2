@@ -31,15 +31,12 @@ REGISTER_APIFUNCTION(Heartbeat, event, &JsonRpcConnection::HeartbeatAPIHandler);
 
 static Timer::Ptr l_HeartbeatTimer;
 
-static void StartHeartbeatTimer(void)
-{
+INITIALIZE_ONCE([]() {
 	l_HeartbeatTimer = new Timer();
 	l_HeartbeatTimer->OnTimerExpired.connect(boost::bind(&JsonRpcConnection::HeartbeatTimerHandler));
 	l_HeartbeatTimer->SetInterval(10);
 	l_HeartbeatTimer->Start();
-}
-
-INITIALIZE_ONCE(StartHeartbeatTimer);
+});
 
 void JsonRpcConnection::HeartbeatTimerHandler(void)
 {

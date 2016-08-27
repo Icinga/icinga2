@@ -26,22 +26,19 @@ using namespace icinga;
 boost::thread_specific_ptr<std::stack<ScriptFrame *> > ScriptFrame::m_ScriptFrames;
 Array::Ptr ScriptFrame::m_Imports;
 
-INITIALIZE_ONCE_WITH_PRIORITY(&ScriptFrame::StaticInitialize, 50);
-
-void ScriptFrame::StaticInitialize(void)
-{
+INITIALIZE_ONCE_WITH_PRIORITY([]() {
 	Dictionary::Ptr systemNS = new Dictionary();
 	ScriptGlobal::Set("System", systemNS);
-	AddImport(systemNS);
+	ScriptFrame::AddImport(systemNS);
 
 	Dictionary::Ptr typesNS = new Dictionary();
 	ScriptGlobal::Set("Types", typesNS);
-	AddImport(typesNS);
+	ScriptFrame::AddImport(typesNS);
 
 	Dictionary::Ptr deprecatedNS = new Dictionary();
 	ScriptGlobal::Set("Deprecated", deprecatedNS);
-	AddImport(deprecatedNS);
-}
+	ScriptFrame::AddImport(deprecatedNS);
+}, 50);
 
 ScriptFrame::ScriptFrame(void)
 	: Locals(new Dictionary()), Self(ScriptGlobal::GetGlobals()), Sandboxed(false), Depth(0)

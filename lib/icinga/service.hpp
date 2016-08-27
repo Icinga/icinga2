@@ -54,8 +54,6 @@ public:
 	static StateType StateTypeFromString(const String& state);
 	static String StateTypeToString(StateType state);
 
-	static void RegisterApplyRuleHandler(void);
-
 	static void EvaluateApplyRules(const Host::Ptr& host);
 
 protected:

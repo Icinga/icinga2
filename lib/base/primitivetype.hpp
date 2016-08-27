@@ -49,27 +49,19 @@ private:
 };
 
 #define REGISTER_BUILTIN_TYPE(type, prototype)					\
-	namespace { namespace UNIQUE_NAME(prt) { namespace prt ## type {	\
-		void RegisterBuiltinType(void)					\
-		{								\
-			icinga::Type::Ptr t = new PrimitiveType(#type, "None"); \
-			t->SetPrototype(prototype);				\
-			icinga::Type::Register(t);				\
-		}								\
-		INITIALIZE_ONCE_WITH_PRIORITY(RegisterBuiltinType, 15);		\
-	} } }
+	INITIALIZE_ONCE_WITH_PRIORITY([]() {					\
+		icinga::Type::Ptr t = new PrimitiveType(#type, "None"); 	\
+		t->SetPrototype(prototype);					\
+		icinga::Type::Register(t);					\
+	}, 15)
 
 #define REGISTER_PRIMITIVE_TYPE_FACTORY(type, base, prototype, factory)		\
-	namespace { namespace UNIQUE_NAME(prt) { namespace prt ## type {	\
-		void RegisterPrimitiveType(void)				\
-		{								\
-			icinga::Type::Ptr t = new PrimitiveType(#type, #base, factory);\
-			t->SetPrototype(prototype);				\
-			icinga::Type::Register(t);				\
-			type::TypeInstance = t;					\
-		}								\
-		INITIALIZE_ONCE_WITH_PRIORITY(RegisterPrimitiveType, 15);	\
-	} } }									\
+	INITIALIZE_ONCE_WITH_PRIORITY([]() {					\
+		icinga::Type::Ptr t = new PrimitiveType(#type, #base, factory);	\
+		t->SetPrototype(prototype);					\
+		icinga::Type::Register(t);					\
+		type::TypeInstance = t;						\
+	}, 15);									\
 	DEFINE_TYPE_INSTANCE(type)
 
 #define REGISTER_PRIMITIVE_TYPE(type, base, prototype)				\

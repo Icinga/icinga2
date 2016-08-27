@@ -48,8 +48,6 @@ public:
 
 	Checkable::Ptr GetCheckable(void) const;
 
-	static void RegisterApplyRuleHandler(void);
-
 	static void EvaluateApplyRules(const intrusive_ptr<Host>& host);
 	static void EvaluateApplyRules(const intrusive_ptr<Service>& service);
 

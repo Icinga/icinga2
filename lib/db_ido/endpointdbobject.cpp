@@ -30,7 +30,6 @@
 
 using namespace icinga;
 
-
 REGISTER_DBTYPE(Endpoint, "endpoint", DbObjectTypeEndpoint, "endpoint_object_id", EndpointDbObject);
 
 INITIALIZE_ONCE(&EndpointDbObject::StaticInitialize);

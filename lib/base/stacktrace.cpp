@@ -27,8 +27,6 @@
 
 using namespace icinga;
 
-INITIALIZE_ONCE(&StackTrace::StaticInitialize);
-
 #ifdef _MSC_VER
 #	pragma optimize("", off)
 #endif /* _MSC_VER */
@@ -85,13 +83,12 @@ StackTrace::StackTrace(PEXCEPTION_POINTERS exi)
 }
 #endif /* _WIN32 */
 
-void StackTrace::StaticInitialize(void)
-{
 #ifdef _WIN32
+INITIALIZE_ONCE([]() {
 	(void) SymSetOptions(SYMOPT_UNDNAME | SYMOPT_LOAD_LINES);
 	(void) SymInitialize(GetCurrentProcess(), NULL, TRUE);
+});
 #endif /* _WIN32 */
-}
 
 /**
  * Prints a stacktrace to the specified stream.

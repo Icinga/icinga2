@@ -104,8 +104,6 @@ public:
 
 	static boost::signals2::signal<void (const Notification::Ptr&, const MessageOrigin::Ptr&)> OnNextNotificationChanged;
 
-	static void RegisterApplyRuleHandler(void);
-
 	virtual void Validate(int types, const ValidationUtils& utils) override;
 
 	virtual void ValidateStates(const Array::Ptr& value, const ValidationUtils& utils) override;

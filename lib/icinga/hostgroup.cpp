@@ -31,12 +31,9 @@ using namespace icinga;
 
 REGISTER_TYPE(HostGroup);
 
-INITIALIZE_ONCE(&HostGroup::RegisterObjectRuleHandler);
-
-void HostGroup::RegisterObjectRuleHandler(void)
-{
+INITIALIZE_ONCE([]() {
 	ObjectRule::RegisterType("HostGroup");
-}
+});
 
 bool HostGroup::EvaluateObjectRule(const Host::Ptr& host, const ConfigItem::Ptr& group)
 {

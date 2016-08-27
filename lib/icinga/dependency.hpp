@@ -49,8 +49,6 @@ public:
 
 	bool IsAvailable(DependencyType dt) const;
 
-	static void RegisterApplyRuleHandler(void);
-
 	virtual void ValidateStates(const Array::Ptr& value, const ValidationUtils& utils) override;
 
 	static void EvaluateApplyRules(const intrusive_ptr<Host>& host);

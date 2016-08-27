@@ -31,12 +31,9 @@ using namespace icinga;
 
 REGISTER_TYPE(UserGroup);
 
-INITIALIZE_ONCE(&UserGroup::RegisterObjectRuleHandler);
-
-void UserGroup::RegisterObjectRuleHandler(void)
-{
+INITIALIZE_ONCE([]() {
 	ObjectRule::RegisterType("UserGroup");
-}
+});
 
 bool UserGroup::EvaluateObjectRule(const User::Ptr& user, const ConfigItem::Ptr& group)
 {

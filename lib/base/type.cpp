@@ -25,15 +25,12 @@ using namespace icinga;
 
 Type::Ptr Type::TypeInstance;
 
-static void RegisterTypeType(void)
-{
+INITIALIZE_ONCE_WITH_PRIORITY([]() {
 	Type::Ptr type = new TypeType();
 	type->SetPrototype(TypeType::GetPrototype());
 	Type::TypeInstance = type;
 	Type::Register(type);
-}
-
-INITIALIZE_ONCE_WITH_PRIORITY(RegisterTypeType, 20);
+}, 20);
 
 String Type::ToString(void) const
 {

@@ -57,26 +57,22 @@ private:
 };
 
 #define REGISTER_BLACKANDWHITELIST_CLICOMMAND(type) \
-	namespace { namespace UNIQUE_NAME(blackandwhitelist) { namespace blackandwhitelist ## type { \
-		void RegisterCommand(void) \
-		{ \
-			String ltype = #type; \
-			boost::algorithm::to_lower(ltype); \
+	INITIALIZE_ONCE([]() { \
+		String ltype = #type; \
+		boost::algorithm::to_lower(ltype); \
 \
-			std::vector<String> name; \
-			name.push_back("node"); \
-			name.push_back(ltype); \
-			name.push_back("add"); \
-			CLICommand::Register(name, new BlackAndWhitelistCommand(#type, BlackAndWhitelistCommandAdd)); \
+		std::vector<String> name; \
+		name.push_back("node"); \
+		name.push_back(ltype); \
+		name.push_back("add"); \
+		CLICommand::Register(name, new BlackAndWhitelistCommand(#type, BlackAndWhitelistCommandAdd)); \
 \
-			name[2] = "remove"; \
-			CLICommand::Register(name, new BlackAndWhitelistCommand(#type, BlackAndWhitelistCommandRemove)); \
+		name[2] = "remove"; \
+		CLICommand::Register(name, new BlackAndWhitelistCommand(#type, BlackAndWhitelistCommandRemove)); \
 \
-			name[2] = "list"; \
-			CLICommand::Register(name, new BlackAndWhitelistCommand(#type, BlackAndWhitelistCommandList)); \
-		} \
-		INITIALIZE_ONCE(RegisterCommand); \
-	} } }
+		name[2] = "list"; \
+		CLICommand::Register(name, new BlackAndWhitelistCommand(#type, BlackAndWhitelistCommandList)); \
+	})
 
 }
 

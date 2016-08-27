@@ -27,12 +27,9 @@ using namespace icinga;
 
 REGISTER_TYPE(HelloApplication);
 
-INITIALIZE_ONCE(&HelloApplication::StaticInitialize);
-
-void HelloApplication::StaticInitialize(void)
-{
+INITIALIZE_ONCE([]() {
 	ScriptGlobal::Set("ApplicationType", "HelloApplication");
-}
+});
 
 /**
  * The entry point for the hello application.

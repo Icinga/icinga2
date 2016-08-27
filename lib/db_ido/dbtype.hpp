@@ -97,14 +97,10 @@ intrusive_ptr<T> DbObjectFactory(const DbType::Ptr& type, const String& name1, c
 }
 
 #define REGISTER_DBTYPE(name, table, tid, idcolumn, type) \
-	namespace { namespace UNIQUE_NAME(ido) { namespace ido ## name { \
-		void RegisterDbType(void) \
-		{ \
-			DbType::Ptr dbtype = new DbType(#name, table, tid, idcolumn, DbObjectFactory<type>); \
-			DbType::RegisterType(dbtype); \
-		} \
-		INITIALIZE_ONCE(RegisterDbType); \
-	} } }
+	INITIALIZE_ONCE([]() { \
+		DbType::Ptr dbtype = new DbType(#name, table, tid, idcolumn, DbObjectFactory<type>); \
+		DbType::RegisterType(dbtype); \
+	})
 
 }
 

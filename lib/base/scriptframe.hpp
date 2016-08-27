@@ -40,8 +40,6 @@ struct I2_BASE_API ScriptFrame
 	ScriptFrame(const Value& self);
 	~ScriptFrame(void);
 
-	static void StaticInitialize(void);
-
 	void IncreaseStackDepth(void);
 	void DecreaseStackDepth(void);
 

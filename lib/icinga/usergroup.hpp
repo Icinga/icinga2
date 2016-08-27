@@ -46,8 +46,6 @@ public:
 
 	bool ResolveGroupMembership(const User::Ptr& user, bool add = true, int rstack = 0);
 
-	static void RegisterObjectRuleHandler(void);
-
 	static void EvaluateObjectRules(const User::Ptr& user);
 
 private:

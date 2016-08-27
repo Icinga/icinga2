@@ -61,26 +61,22 @@ private:
 };
 
 #define REGISTER_REPOSITORY_CLICOMMAND(type) \
-	namespace { namespace UNIQUE_NAME(repositoryobject) { namespace repositoryobject ## type { \
-		void RegisterCommand(void) \
-		{ \
-			String ltype = #type; \
-			boost::algorithm::to_lower(ltype); \
+	INITIALIZE_ONCE([]() { \
+		String ltype = #type; \
+		boost::algorithm::to_lower(ltype); \
 \
-			std::vector<String> name; \
-			name.push_back("repository"); \
-			name.push_back(ltype); \
-			name.push_back("add"); \
-			CLICommand::Register(name, new RepositoryObjectCommand(#type, RepositoryCommandAdd)); \
+		std::vector<String> name; \
+		name.push_back("repository"); \
+		name.push_back(ltype); \
+		name.push_back("add"); \
+		CLICommand::Register(name, new RepositoryObjectCommand(#type, RepositoryCommandAdd)); \
 \
-			name[2] = "remove"; \
-			CLICommand::Register(name, new RepositoryObjectCommand(#type, RepositoryCommandRemove)); \
+		name[2] = "remove"; \
+		CLICommand::Register(name, new RepositoryObjectCommand(#type, RepositoryCommandRemove)); \
 \
-			name[2] = "list"; \
-			CLICommand::Register(name, new RepositoryObjectCommand(#type, RepositoryCommandList)); \
-		} \
-		INITIALIZE_ONCE(RegisterCommand); \
-	} } }
+		name[2] = "list"; \
+		CLICommand::Register(name, new RepositoryObjectCommand(#type, RepositoryCommandList)); \
+	})
 
 }
 

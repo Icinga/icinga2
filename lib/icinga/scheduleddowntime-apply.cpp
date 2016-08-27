@@ -29,15 +29,12 @@
 
 using namespace icinga;
 
-INITIALIZE_ONCE(&ScheduledDowntime::RegisterApplyRuleHandler);
-
-void ScheduledDowntime::RegisterApplyRuleHandler(void)
-{
+INITIALIZE_ONCE([]() {
 	std::vector<String> targets;
 	targets.push_back("Host");
 	targets.push_back("Service");
 	ApplyRule::RegisterType("ScheduledDowntime", targets);
-}
+});
 
 bool ScheduledDowntime::EvaluateApplyRuleInstance(const Checkable::Ptr& checkable, const String& name, ScriptFrame& frame, const ApplyRule& rule)
 {

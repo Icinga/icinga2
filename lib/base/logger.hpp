@@ -90,8 +90,6 @@ public:
 	static void SetConsoleLogSeverity(LogSeverity logSeverity);
 	static LogSeverity GetConsoleLogSeverity(void);
 
-	static void StaticInitialize(void);
-
 	virtual void ValidateSeverity(const String& value, const ValidationUtils& utils) override;
 
 protected:

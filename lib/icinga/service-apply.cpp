@@ -29,14 +29,11 @@
 
 using namespace icinga;
 
-INITIALIZE_ONCE(&Service::RegisterApplyRuleHandler);
-
-void Service::RegisterApplyRuleHandler(void)
-{
+INITIALIZE_ONCE([]() {
 	std::vector<String> targets;
 	targets.push_back("Host");
 	ApplyRule::RegisterType("Service", targets);
-}
+});
 
 bool Service::EvaluateApplyRuleInstance(const Host::Ptr& host, const String& name, ScriptFrame& frame, const ApplyRule& rule)
 {

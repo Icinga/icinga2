@@ -31,12 +31,9 @@ using namespace icinga;
 
 REGISTER_TYPE(ServiceGroup);
 
-INITIALIZE_ONCE(&ServiceGroup::RegisterObjectRuleHandler);
-
-void ServiceGroup::RegisterObjectRuleHandler(void)
-{
+INITIALIZE_ONCE([]() {
 	ObjectRule::RegisterType("ServiceGroup");
-}
+});
 
 bool ServiceGroup::EvaluateObjectRule(const Service::Ptr& service, const ConfigItem::Ptr& group)
 {

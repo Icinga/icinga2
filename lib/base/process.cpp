@@ -56,8 +56,6 @@ static std::map<Process::ConsoleHandle, Process::ProcessHandle> l_FDs[IOTHREADS]
 #endif /* _WIN32 */
 static boost::once_flag l_OnceFlag = BOOST_ONCE_INIT;
 
-INITIALIZE_ONCE(&Process::StaticInitialize);
-
 Process::Process(const Process::Arguments& arguments, const Dictionary::Ptr& extraEnvironment)
 	: m_Arguments(arguments), m_ExtraEnvironment(extraEnvironment), m_Timeout(600)
 #ifdef _WIN32
@@ -76,8 +74,7 @@ Process::~Process(void)
 #endif /* _WIN32 */
 }
 
-void Process::StaticInitialize(void)
-{
+INITIALIZE_ONCE([]() {
 	for (int tid = 0; tid < IOTHREADS; tid++) {
 #ifdef _WIN32
 		l_Events[tid] = CreateEvent(NULL, TRUE, FALSE, NULL);
@@ -104,7 +101,7 @@ void Process::StaticInitialize(void)
 #	endif /* HAVE_PIPE2 */
 #endif /* _WIN32 */
 	}
-}
+});
 
 void Process::ThreadInitialize(void)
 {

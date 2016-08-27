@@ -23,9 +23,18 @@
 
 using namespace icinga;
 
-INITIALIZE_ONCE(&Console::DetectType);
-
 static ConsoleType l_ConsoleType = Console_Dumb;
+
+INITIALIZE_ONCE([]() {
+	l_ConsoleType = Console_Dumb;
+
+#ifndef _WIN32
+	if (isatty(1))
+		l_ConsoleType = Console_VT100;
+#else /* _WIN32 */
+	l_ConsoleType = Console_Windows;
+#endif /* _WIN32 */
+});
 
 ConsoleColorTag::ConsoleColorTag(int color, ConsoleType consoleType)
 	: m_Color(color), m_ConsoleType(consoleType)
@@ -44,18 +53,6 @@ std::ostream& icinga::operator<<(std::ostream& fp, const ConsoleColorTag& cct)
 #endif /* _WIN32 */
 
 	return fp;
-}
-
-void Console::DetectType(void)
-{
-	l_ConsoleType = Console_Dumb;
-
-#ifndef _WIN32
-	if (isatty(1))
-		l_ConsoleType = Console_VT100;
-#else /* _WIN32 */
-	l_ConsoleType = Console_Windows;
-#endif /* _WIN32 */
 }
 
 void Console::SetType(std::ostream& fp, ConsoleType type)

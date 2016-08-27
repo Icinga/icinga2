@@ -55,8 +55,6 @@ public:
 	DECLARE_OBJECT(ApiListener);
 	DECLARE_OBJECTNAME(ApiListener);
 
-	static void StaticInitialize(void);
-	
 	static boost::signals2::signal<void(bool)> OnMasterChanged;
 
 	ApiListener(void);

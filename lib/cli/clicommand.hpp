@@ -88,15 +88,11 @@ private:
 };
 
 #define REGISTER_CLICOMMAND(name, klass) \
-	namespace { namespace UNIQUE_NAME(cli) { \
-		void RegisterCommand(void) \
-		{ \
-			std::vector<String> vname; \
-			boost::algorithm::split(vname, name, boost::is_any_of("/")); \
-			CLICommand::Register(vname, new klass()); \
-		} \
-		INITIALIZE_ONCE(RegisterCommand); \
-	} }
+	INITIALIZE_ONCE([]() { \
+		std::vector<String> vname; \
+		boost::algorithm::split(vname, name, boost::is_any_of("/")); \
+		CLICommand::Register(vname, new klass()); \
+	})
 
 }
 

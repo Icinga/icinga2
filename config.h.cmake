@@ -1,7 +1,6 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#cmakedefine HAVE_COUNTER_MACRO
 #cmakedefine HAVE_BACKTRACE_SYMBOLS
 #cmakedefine HAVE_PIPE2
 #cmakedefine HAVE_VFORK

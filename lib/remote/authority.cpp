@@ -24,11 +24,6 @@
 
 using namespace icinga;
 
-static bool ObjectNameLessComparer(const ConfigObject::Ptr& a, const ConfigObject::Ptr& b)
-{
-	return a->GetName() < b->GetName();
-}
-
 void ApiListener::UpdateObjectAuthority(void)
 {
 	Zone::Ptr my_zone = Zone::GetLocalZone();
@@ -55,7 +50,11 @@ void ApiListener::UpdateObjectAuthority(void)
 		if (num_total > 1 && endpoints.size() <= 1 && (mainTime == 0 || Utility::GetTime() - mainTime < 60))
 			return;
 
-		std::sort(endpoints.begin(), endpoints.end(), ObjectNameLessComparer);
+		std::sort(endpoints.begin(), endpoints.end(),
+			[](const ConfigObject::Ptr& a, const ConfigObject::Ptr& b) {
+				return a->GetName() < b->GetName();
+			}
+		);
 	}
 
 	for (const Type::Ptr& type : Type::GetAllTypes()) {

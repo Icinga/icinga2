@@ -237,14 +237,11 @@ static void TypeInfoTimerHandler(void)
 	}
 }
 
-static void StartTypeInfoTimer(void)
-{
+INITIALIZE_ONCE([]() {
 	l_ObjectCountTimer = new Timer();
 	l_ObjectCountTimer->SetInterval(10);
 	l_ObjectCountTimer->OnTimerExpired.connect(boost::bind(TypeInfoTimerHandler));
 	l_ObjectCountTimer->Start();
-}
-
-INITIALIZE_ONCE(StartTypeInfoTimer);
+});
 #endif /* I2_LEAK_DEBUG */
 

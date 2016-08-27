@@ -79,7 +79,6 @@ public:
 
 	static Arguments PrepareCommand(const Value& command);
 
-	static void StaticInitialize(void);
 	static void ThreadInitialize(void);
 
 	static String PrettyPrintArguments(const Arguments& arguments);

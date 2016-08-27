@@ -138,30 +138,20 @@ class I2_BASE_API TypeImpl
 };
 
 #define REGISTER_TYPE(type) \
-	namespace { namespace UNIQUE_NAME(rt) { \
-		void RegisterType ## type(void) \
-		{ \
-			icinga::Type::Ptr t = new TypeImpl<type>(); \
-			type::TypeInstance = t; \
-			icinga::Type::Register(t); \
-		} \
-		\
-		INITIALIZE_ONCE_WITH_PRIORITY(RegisterType ## type, 10); \
-	} } \
+	INITIALIZE_ONCE_WITH_PRIORITY([]() { \
+		icinga::Type::Ptr t = new TypeImpl<type>(); \
+		type::TypeInstance = t; \
+		icinga::Type::Register(t); \
+	}, 10); \
 	DEFINE_TYPE_INSTANCE(type)
 
 #define REGISTER_TYPE_WITH_PROTOTYPE(type, prototype) \
-	namespace { namespace UNIQUE_NAME(rt) { \
-		void RegisterType ## type(void) \
-		{ \
-			icinga::Type::Ptr t = new TypeImpl<type>(); \
-			t->SetPrototype(prototype); \
-			type::TypeInstance = t; \
-			icinga::Type::Register(t); \
-		} \
-		\
-		INITIALIZE_ONCE_WITH_PRIORITY(RegisterType ## type, 10); \
-	} } \
+	INITIALIZE_ONCE_WITH_PRIORITY([]() { \
+		icinga::Type::Ptr t = new TypeImpl<type>(); \
+		t->SetPrototype(prototype); \
+		type::TypeInstance = t; \
+		icinga::Type::Register(t); \
+	}, 10); \
 	DEFINE_TYPE_INSTANCE(type)
 
 #define DEFINE_TYPE_INSTANCE(type) \

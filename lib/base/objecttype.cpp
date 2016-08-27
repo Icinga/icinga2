@@ -22,15 +22,12 @@
 
 using namespace icinga;
 
-static void RegisterObjectType(void)
-{
+INITIALIZE_ONCE_WITH_PRIORITY([]() {
 	Type::Ptr type = new ObjectType();
 	type->SetPrototype(Object::GetPrototype());
 	Type::Register(type);
 	Object::TypeInstance = type;
-}
-
-INITIALIZE_ONCE_WITH_PRIORITY(&RegisterObjectType, 20);
+}, 20);
 
 ObjectType::ObjectType(void)
 { }

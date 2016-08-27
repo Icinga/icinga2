@@ -46,8 +46,6 @@ public:
 
 	bool ResolveGroupMembership(const Host::Ptr& host, bool add = true, int rstack = 0);
 
-	static void RegisterObjectRuleHandler(void);
-
 	static void EvaluateObjectRules(const Host::Ptr& host);
 
 private:

@@ -62,14 +62,10 @@ public:
 };
 
 #define REGISTER_STATSFUNCTION(name, callback) \
-	namespace { namespace UNIQUE_NAME(stf) { namespace stf ## name { \
-		void RegisterStatsFunction(void) \
-		{ \
-			StatsFunction::Ptr stf = new StatsFunction(callback); \
-			StatsFunctionRegistry::GetInstance()->Register(#name, stf); \
-		} \
-		INITIALIZE_ONCE(RegisterStatsFunction); \
-	} } }
+	INITIALIZE_ONCE([]() { \
+		StatsFunction::Ptr stf = new StatsFunction(callback); \
+		StatsFunctionRegistry::GetInstance()->Register(#name, stf); \
+	})
 
 }
 
