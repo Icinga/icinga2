@@ -230,7 +230,7 @@ String Comment::GetCommentIDFromLegacyID(int id)
 {
 	boost::mutex::scoped_lock lock(l_CommentMutex);
 
-	std::map<int, String>::iterator it = l_LegacyCommentsCache.find(id);
+	auto it = l_LegacyCommentsCache.find(id);
 
 	if (it == l_LegacyCommentsCache.end())
 		return Empty;

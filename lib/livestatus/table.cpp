@@ -92,7 +92,7 @@ void Table::AddColumn(const String& name, const Column& column)
 {
 	std::pair<String, Column> item = std::make_pair(name, column);
 
-	std::pair<std::map<String, Column>::iterator, bool> ret = m_Columns.insert(item);
+	auto ret = m_Columns.insert(item);
 
 	if (!ret.second)
 		ret.first->second = column;

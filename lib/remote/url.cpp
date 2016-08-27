@@ -208,7 +208,7 @@ void Url::SetQuery(const std::map<String, std::vector<String> >& query)
 
 void Url::AddQueryElement(const String& name, const String& value)
 {
-	std::map<String, std::vector<String> >::iterator it = m_Query.find(name);
+	auto it = m_Query.find(name);
 	if (it == m_Query.end()) {
 		m_Query[name] = std::vector<String>();
 		m_Query[name].push_back(value);
@@ -395,7 +395,7 @@ bool Url::ParseQuery(const String& query)
 
 		key = Utility::UnescapeString(key);
 
-		std::map<String, std::vector<String> >::iterator it = m_Query.find(key);
+		auto it = m_Query.find(key);
 
 		if (it == m_Query.end()) {
 			m_Query[key] = std::vector<String>();

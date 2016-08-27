@@ -150,7 +150,7 @@ bool ApplyRule::HasMatches(void) const
 
 std::vector<ApplyRule>& ApplyRule::GetRules(const String& type)
 {
-	RuleMap::iterator it = m_Rules.find(type);
+	auto it = m_Rules.find(type);
 	if (it == m_Rules.end()) {
 		static std::vector<ApplyRule> emptyList;
 		return emptyList;

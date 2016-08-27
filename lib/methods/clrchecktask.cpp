@@ -182,7 +182,7 @@ void ClrCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult
 	{
 		boost::mutex::scoped_lock lock(l_ObjectsMutex);
 
-		std::map<Checkable::Ptr, variant_t>::iterator it = l_Objects.find(checkable);
+		auto it = l_Objects.find(checkable);
 
 		if (it != l_Objects.end()) {
 			vtObject = it->second;

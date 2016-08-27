@@ -34,8 +34,8 @@ void DependencyGraph::RemoveDependency(Object *parent, Object *child)
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
 
-	std::map<Object *, int>& refs = m_Dependencies[child];
-	std::map<Object *, int>::iterator it = refs.find(parent);
+	auto& refs = m_Dependencies[child];
+	auto it = refs.find(parent);
 
 	if (it == refs.end())
 		return;

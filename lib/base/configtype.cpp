@@ -45,7 +45,7 @@ void ConfigType::RegisterObject(const ConfigObject::Ptr& object)
 	{
 		boost::mutex::scoped_lock lock(m_Mutex);
 
-		ObjectMap::iterator it = m_ObjectMap.find(name);
+		auto it = m_ObjectMap.find(name);
 
 		if (it != m_ObjectMap.end()) {
 			if (it->second == object)

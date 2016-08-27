@@ -593,9 +593,9 @@ void TroubleshootCommand::PrintObjectOrigin(InfoLog& log, const std::set<String>
 	InfoLogLine(log)
 	     << "The objects origins are:\n";
 
-	for (std::set<String>::iterator it = configSet.begin(); it != configSet.end(); it++) {
+	for (const String& config : configSet) {
 		InfoLogLine(log)
-		     << "  " << *it << '\n';
+		     << "  " << config << '\n';
 	}
 }
 

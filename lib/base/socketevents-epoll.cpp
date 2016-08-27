@@ -193,7 +193,7 @@ void SocketEventEngineEpoll::ChangeEvents(SocketEvents *se, int events)
 	{
 		boost::mutex::scoped_lock lock(m_EventMutex[tid]);
 
-		std::map<SOCKET, SocketEventDescriptor>::iterator it = m_Sockets[tid].find(se->m_FD);
+		auto it = m_Sockets[tid].find(se->m_FD);
 
 		if (it == m_Sockets[tid].end())
 			return;

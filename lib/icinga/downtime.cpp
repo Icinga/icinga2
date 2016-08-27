@@ -363,7 +363,7 @@ String Downtime::GetDowntimeIDFromLegacyID(int id)
 {
 	boost::mutex::scoped_lock lock(l_DowntimeMutex);
 
-	std::map<int, String>::iterator it = l_LegacyDowntimesCache.find(id);
+	auto it = l_LegacyDowntimesCache.find(id);
 
 	if (it == l_LegacyDowntimesCache.end())
 		return Empty;

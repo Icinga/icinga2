@@ -259,7 +259,7 @@ void Timer::TimerThreadProc(void)
 		if (l_StopTimerThread)
 			break;
 
-		NextTimerView::iterator it = idx.begin();
+		auto it = idx.begin();
 		Timer *timer = *it;
 
 		double wait = timer->m_Next - Utility::GetTime();

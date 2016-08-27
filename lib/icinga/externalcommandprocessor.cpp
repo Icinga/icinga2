@@ -114,8 +114,7 @@ void ExternalCommandProcessor::Execute(double time, const String& command, const
 	{
 		boost::mutex::scoped_lock lock(GetMutex());
 
-		std::map<String, ExternalCommandInfo>::iterator it;
-		it = GetCommands().find(command);
+		auto it = GetCommands().find(command);
 
 		if (it == GetCommands().end())
 			BOOST_THROW_EXCEPTION(std::invalid_argument("The external command '" + command + "' does not exist."));

@@ -260,17 +260,15 @@ void Process::IOThreadProc(int tid)
 #endif /* _WIN32 */
 
 			for (int i = 1; i < count; i++) {
-				std::map<ProcessHandle, Process::Ptr>::iterator it;
 #ifdef _WIN32
-				it = l_Processes[tid].find(handles[i]);
+				auto it = l_Processes[tid].find(handles[i]);
 #else /* _WIN32 */
-				std::map<ConsoleHandle, ProcessHandle>::iterator it2;
-				it2 = l_FDs[tid].find(pfds[i].fd);
+				auto it2 = l_FDs[tid].find(pfds[i].fd);
 
 				if (it2 == l_FDs[tid].end())
 					continue; /* This should never happen. */
 
-				it = l_Processes[tid].find(it2->second);
+				auto it = l_Processes[tid].find(it2->second);
 #endif /* _WIN32 */
 
 				if (it == l_Processes[tid].end())

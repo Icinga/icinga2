@@ -61,8 +61,7 @@ void EventQueue::AddClient(void *client)
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
 
-	typedef std::map<void *, std::deque<Dictionary::Ptr> >::iterator it_type;
-	std::pair<it_type, bool> result = m_Events.insert(std::make_pair(client, std::deque<Dictionary::Ptr>()));
+	auto result = m_Events.insert(std::make_pair(client, std::deque<Dictionary::Ptr>()));
 	ASSERT(result.second);
 }
 
@@ -99,7 +98,7 @@ Dictionary::Ptr EventQueue::WaitForEvent(void *client, double timeout)
 	boost::mutex::scoped_lock lock(m_Mutex);
 
 	for (;;) {
-		std::map<void *, std::deque<Dictionary::Ptr> >::iterator it = m_Events.find(client);
+		auto it = m_Events.find(client);
 		ASSERT(it != m_Events.end());
 
 		if (!it->second.empty()) {

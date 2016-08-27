@@ -115,7 +115,7 @@ void CheckerComponent::CheckThreadProc(void)
 		if (m_Stopped)
 			break;
 
-		CheckTimeView::iterator it = idx.begin();
+		auto it = idx.begin();
 		CheckableScheduleInfo csi = *it;
 
 		double wait = csi.NextCheck - Utility::GetTime();
@@ -227,8 +227,8 @@ void CheckerComponent::ExecuteCheckHelper(const Checkable::Ptr& checkable)
 		/* remove the object from the list of pending objects; if it's not in the
 		 * list this was a manual (i.e. forced) check and we must not re-add the
 		 * object to the list because it's already there. */
-		CheckerComponent::CheckableSet::iterator it;
-		it = m_PendingCheckables.find(checkable);
+		auto it = m_PendingCheckables.find(checkable);
+
 		if (it != m_PendingCheckables.end()) {
 			m_PendingCheckables.erase(it);
 
@@ -300,7 +300,8 @@ void CheckerComponent::NextCheckChangedHandler(const Checkable::Ptr& checkable)
 	typedef boost::multi_index::nth_index<CheckableSet, 0>::type CheckableView;
 	CheckableView& idx = boost::get<0>(m_IdleCheckables);
 
-	CheckableView::iterator it = idx.find(checkable);
+	auto it = idx.find(checkable);
+
 	if (it == idx.end())
 		return;
 
