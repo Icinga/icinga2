@@ -55,7 +55,9 @@ public:
 
 	Value Get(unsigned int index) const;
 	void Set(unsigned int index, const Value& value);
+	void Set(unsigned int index, Value&& value);
 	void Add(const Value& value);
+	void Add(Value&& value);
 
 	/**
 	 * Returns an iterator to the beginning of the array.

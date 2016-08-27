@@ -78,6 +78,18 @@ void Dictionary::Set(const String& key, const Value& value)
 	m_Data[key] = value;
 }
 
+/**
+ * Sets a value in the dictionary.
+ *
+ * @param key The key.
+ * @param value The value.
+ */
+void Dictionary::Set(const String& key, Value&& value)
+{
+	ObjectLock olock(this);
+
+	m_Data[key].Swap(value);
+}
 
 /**
  * Returns the number of elements in the dictionary.

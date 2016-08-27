@@ -57,11 +57,36 @@ void Array::Set(unsigned int index, const Value& value)
 }
 
 /**
+ * Sets a value in the array.
+ *
+ * @param index The index.
+ * @param value The value.
+ */
+void Array::Set(unsigned int index, Value&& value)
+{
+	ObjectLock olock(this);
+
+	m_Data.at(index).Swap(value);
+}
+
+/**
  * Adds a value to the array.
  *
  * @param value The value.
  */
 void Array::Add(const Value& value)
+{
+	ObjectLock olock(this);
+
+	m_Data.push_back(value);
+}
+
+/**
+ * Adds a value to the array.
+ *
+ * @param value The value.
+ */
+void Array::Add(Value&& value)
 {
 	ObjectLock olock(this);
 

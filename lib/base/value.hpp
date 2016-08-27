@@ -244,9 +244,14 @@ public:
 	*
 	* @returns The type.
 	*/
-	ValueType GetType(void) const
+	inline ValueType GetType(void) const
 	{
 		return static_cast<ValueType>(m_Value.which());
+	}
+
+	inline void Swap(Value& other)
+	{
+		m_Value.swap(other.m_Value);
 	}
 
 	String GetTypeName(void) const;
