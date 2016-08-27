@@ -275,6 +275,7 @@ CMAKE_OPTS="-DCMAKE_INSTALL_PREFIX=/usr \
          -DCMAKE_INSTALL_SYSCONFDIR=/etc \
          -DCMAKE_INSTALL_LOCALSTATEDIR=/var \
          -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+         -DICINGA2_LTO_BUILD=ON \
          -DCMAKE_VERBOSE_MAKEFILE=ON \
          -DBoost_NO_BOOST_CMAKE=ON \
          -DICINGA2_RUNDIR=%{_rundir} \
