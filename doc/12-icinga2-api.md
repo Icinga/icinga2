@@ -387,7 +387,7 @@ The following URL parameters are available:
   -----------|--------------|----------------------------
   attrs      | string array | **Optional.** Limits attributes in the output.
   joins      | string array | **Optional.** Join related object types and their attributes (`?joins=host` for the entire set, or selectively by `?joins=host.name`).
-  meta       | string array | **Optional.** Enable meta information using `?meta=used_by`. Defaults to disabled.
+  meta       | string array | **Optional.** Enable meta information using `?meta=used_by` (references from other objects) and/or `?meta=location` (location information). Defaults to disabled.
 
 In addition to these parameters a [filter](12-icinga2-api.md#icinga2-api-filters) may be provided.
 
@@ -663,7 +663,7 @@ URL path when querying a single object:
 
     $ curl -k -s -u root:icinga 'https://localhost:5665/v1/templates/hosts/generic-host'
 
-The result set contains the type and name of the template.
+The result set contains the type, name as well as the location of the template.
 
 ## <a id="icinga2-api-variables"></a> Variables
 

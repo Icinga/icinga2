@@ -201,6 +201,15 @@ bool ObjectQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 						refInfo->Set("name", configObj->GetName());
 						used_by->Add(refInfo);
 					}
+				} else if (meta == "location") {
+					DebugInfo di = obj->GetDebugInfo();
+					Dictionary::Ptr dinfo = new Dictionary();
+					dinfo->Set("path", di.Path);
+					dinfo->Set("first_line", di.FirstLine);
+					dinfo->Set("first_column", di.FirstColumn);
+					dinfo->Set("last_line", di.LastLine);
+					dinfo->Set("last_column", di.LastColumn);
+					metaAttrs->Set("location", dinfo);
 				} else {
 					HttpUtility::SendJsonError(response, 400, "Invalid field specified for meta: " + meta);
 					return true;

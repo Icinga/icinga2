@@ -41,6 +41,16 @@ public:
 		Dictionary::Ptr target = new Dictionary();
 		target->Set("name", item->GetName());
 		target->Set("type", item->GetType());
+
+		DebugInfo di = item->GetDebugInfo();
+		Dictionary::Ptr dinfo = new Dictionary();
+		dinfo->Set("path", di.Path);
+		dinfo->Set("first_line", di.FirstLine);
+		dinfo->Set("first_column", di.FirstColumn);
+		dinfo->Set("last_line", di.LastLine);
+		dinfo->Set("last_column", di.LastColumn);
+		target->Set("location", dinfo);
+
 		return target;
 	}
 
