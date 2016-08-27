@@ -23,7 +23,6 @@
 #include "base/scriptframe.hpp"
 #include "base/initialize.hpp"
 #include <boost/math/special_functions/round.hpp>
-#include <boost/math/special_functions/fpclassify.hpp>
 #include <cmath>
 
 using namespace icinga;

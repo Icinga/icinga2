@@ -24,7 +24,6 @@
 #include "base/objectlock.hpp"
 #include "base/utility.hpp"
 #include "base/exception.hpp"
-#include <boost/bind/apply.hpp>
 
 using namespace icinga;
 
