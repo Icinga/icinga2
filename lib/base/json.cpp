@@ -68,7 +68,7 @@ static void Encode(yajl_gen handle, const Value& value)
 {
 	switch (value.GetType()) {
 		case ValueNumber:
-			if (yajl_gen_double(handle, static_cast<double>(value)) == yajl_gen_invalid_number)
+			if (yajl_gen_double(handle, value.Get<double>()) == yajl_gen_invalid_number)
 				yajl_gen_double(handle, 0);
 
 			break;
