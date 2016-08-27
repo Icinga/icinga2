@@ -460,6 +460,7 @@ ExpressionResult FunctionCallExpression::DoEvaluate(ScriptFrame& frame, DebugHin
 ExpressionResult ArrayExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
 	Array::Ptr result = new Array();
+	result->Reserve(m_Expressions.size());
 
 	for (Expression *aexpr : m_Expressions) {
 		ExpressionResult element = aexpr->Evaluate(frame);

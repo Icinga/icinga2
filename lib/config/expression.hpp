@@ -41,37 +41,29 @@ public:
 		: m_Hints(hints)
 	{ }
 
+	DebugHint(Dictionary::Ptr&& hints)
+	    : m_Hints(std::move(hints))
+	{ }
+
 	inline void AddMessage(const String& message, const DebugInfo& di)
 	{
-		Array::Ptr amsg = new Array();
-
-		{
-			ObjectLock olock(amsg);
-
-			amsg->Reserve(6);
-			amsg->Add(message);
-			amsg->Add(di.Path);
-			amsg->Add(di.FirstLine);
-			amsg->Add(di.FirstColumn);
-			amsg->Add(di.LastLine);
-			amsg->Add(di.LastColumn);
-		}
-
-		GetMessages()->Add(amsg);
+		GetMessages()->Add(new Array({ message, di.Path, di.FirstLine, di.FirstColumn, di.LastLine, di.LastColumn }));
 	}
 
 	inline DebugHint GetChild(const String& name)
 	{
-		Dictionary::Ptr children = GetChildren();
+		const Dictionary::Ptr& children = GetChildren();
 
 		Value vchild;
+		Dictionary::Ptr child;
 
 		if (!children->Get(name, &vchild)) {
-			vchild = new Dictionary();
-			children->Set(name, vchild);
-		}
+			child = new Dictionary();
+			children->Set(name, child);
+		} else
+			child = vchild;
 
-		return DebugHint(vchild);
+		return DebugHint(child);
 	}
 
 	Dictionary::Ptr ToDictionary(void) const
@@ -81,35 +73,45 @@ public:
 
 private:
 	Dictionary::Ptr m_Hints;
+	Array::Ptr m_Messages;
+	Dictionary::Ptr m_Children;
 
-	Array::Ptr GetMessages(void)
+	const Array::Ptr& GetMessages(void)
 	{
+		if (m_Messages)
+			return m_Messages;
+
 		if (!m_Hints)
 			m_Hints = new Dictionary();
 
 		Value vmessages;
 
 		if (!m_Hints->Get("messages", &vmessages)) {
-			vmessages = new Array();
-			m_Hints->Set("messages", vmessages);
-		}
+			m_Messages = new Array();
+			m_Hints->Set("messages", m_Messages);
+		} else
+			m_Messages = vmessages;
 
-		return vmessages;
+		return m_Messages;
 	}
 
-	Dictionary::Ptr GetChildren(void)
+	const Dictionary::Ptr& GetChildren(void)
 	{
+		if (m_Children)
+			return m_Children;
+
 		if (!m_Hints)
 			m_Hints = new Dictionary();
 
 		Value vchildren;
 
 		if (!m_Hints->Get("properties", &vchildren)) {
-			vchildren = new Dictionary();
-			m_Hints->Set("properties", vchildren);
-		}
+			m_Children = new Dictionary();
+			m_Hints->Set("properties", m_Children);
+		} else
+			m_Children = vchildren;
 
-		return vchildren;
+		return m_Children;
 	}
 };
 
@@ -157,12 +159,12 @@ public:
 	    : m_Value(value), m_Code(code)
 	{ }
 
-	operator Value(void) const
+	operator const Value&(void) const
 	{
 		return m_Value;
 	}
 
-	Value GetValue(void) const
+	const Value& GetValue(void) const
 	{
 		return m_Value;
 	}

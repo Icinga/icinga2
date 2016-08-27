@@ -50,6 +50,10 @@ public:
 	inline Array(void)
 	{ }
 
+	inline Array(std::initializer_list<Value> init)
+	    : m_Data(init)
+	{ }
+
 	inline ~Array(void)
 	{ }
 
