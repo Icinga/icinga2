@@ -246,7 +246,7 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   )
 
   if("${_ICINGA2_COMPILER_VERSION}" VERSION_LESS "4.6.0")
-    message(FATAL_ERRORSTATUS "Your version of GCC is too old for building Icinga 2 (GCC >= 4.6.0 is required).")
+    message(FATAL_ERROR "Your version of GCC (${_ICINGA2_COMPILER_VERSION}) is too old for building Icinga 2 (GCC >= 4.6.0 is required).")
   endif()
 endif()
 
