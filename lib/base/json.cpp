@@ -66,8 +66,6 @@ static void EncodeArray(yajl_gen handle, const Array::Ptr& arr)
 
 static void Encode(yajl_gen handle, const Value& value)
 {
-	String str;
-
 	switch (value.GetType()) {
 		case ValueNumber:
 			if (yajl_gen_double(handle, static_cast<double>(value)) == yajl_gen_invalid_number)
@@ -79,8 +77,7 @@ static void Encode(yajl_gen handle, const Value& value)
 
 			break;
 		case ValueString:
-			str = value;
-			yajl_gen_string(handle, reinterpret_cast<const unsigned char *>(str.CStr()), str.GetLength());
+			yajl_gen_string(handle, reinterpret_cast<const unsigned char *>(value.Get<String>().CStr()), value.Get<String>().GetLength());
 
 			break;
 		case ValueObject:

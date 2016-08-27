@@ -256,14 +256,14 @@ public:
 	
 	Value Clone(void) const;
 
-private:
-	boost::variant<boost::blank, double, bool, String, Object::Ptr> m_Value;
-
 	template<typename T>
 	const T& Get(void) const
 	{
 		return boost::get<T>(m_Value);
 	}
+
+private:
+	boost::variant<boost::blank, double, bool, String, Object::Ptr> m_Value;
 };
 
 extern I2_BASE_API Value Empty;
