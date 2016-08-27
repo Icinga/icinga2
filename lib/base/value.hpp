@@ -100,7 +100,15 @@ public:
 	{ }
 
 	Value(const Value& other) = default;
+
+#if BOOST_VERSION >= 105400
 	Value(Value&& other) = default;
+#else /* BOOST_VERSION */
+	Value(Value&& other)
+	{
+		m_Value.swap(other.m_Value);
+	}
+#endif /* BOOST_VERSION */
 
 	inline Value(Object *value)
 	{
@@ -125,7 +133,15 @@ public:
 	operator String(void) const;
 
 	Value& operator=(const Value& other) = default;
+
+#if BOOST_VERSION >= 105400
 	Value& operator=(Value&& other) = default;
+#else /* BOOST_VERSION */
+	Value& operator=(Value&& other)
+	{
+		m_Value.swap(other.m_Value);
+	}
+#endif /* BOOST_VERSION */
 
 	bool operator==(bool rhs) const;
 	bool operator!=(bool rhs) const;
