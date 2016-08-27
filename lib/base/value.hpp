@@ -256,7 +256,7 @@ public:
 		if (!IsObject())
 			return false;
 
-		return (dynamic_pointer_cast<T>(boost::get<Object::Ptr>(m_Value)) != NULL);
+		return (dynamic_cast<T *>(boost::get<Object::Ptr>(m_Value).get()) != NULL);
 	}
 
 	/**

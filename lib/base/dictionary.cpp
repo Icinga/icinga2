@@ -88,7 +88,7 @@ void Dictionary::Set(const String& key, Value&& value)
 {
 	ObjectLock olock(this);
 
-	m_Data[key].Swap(value);
+	m_Data[key] = std::move(value);
 }
 
 /**
