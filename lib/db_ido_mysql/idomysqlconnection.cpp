@@ -361,6 +361,8 @@ void IdoMysqlConnection::Reconnect(void)
 	/* set session time zone to utc */
 	Query("SET SESSION TIME_ZONE='+00:00'");
 
+	Query("SET SESSION SQL_MODE='NO_AUTO_VALUE_ON_ZERO'");
+
 	Query("BEGIN");
 
 	/* update programstatus table */

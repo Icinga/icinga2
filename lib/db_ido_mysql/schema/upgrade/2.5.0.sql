@@ -7,6 +7,8 @@
 -- Please check http://docs.icinga.org for upgrading information!
 -- -----------------------------------------
 
+SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
+
 -- -----------------------------------------
 -- #10069 IDO: check_source should not be a TEXT field
 -- -----------------------------------------
