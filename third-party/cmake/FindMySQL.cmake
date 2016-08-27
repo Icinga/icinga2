@@ -69,8 +69,8 @@ IF (WIN32)
     $ENV{ProgramFiles}/MySQL/*/lib/${libsuffixDist}
     $ENV{SystemDrive}/MySQL/*/lib/${libsuffixDist})
 ELSE (WIN32)
-  SET(MYSQL_CLIENT_LIBS mysqlclient_r)
-  FIND_LIBRARY(MYSQL_LIB NAMES mysqlclient_r
+  SET(MYSQL_CLIENT_LIBS mysqlclient)
+  FIND_LIBRARY(MYSQL_LIB NAMES mysqlclient
     PATHS
     $ENV{MYSQL_DIR}/libmysql_r/.libs
     $ENV{MYSQL_DIR}/lib
@@ -83,23 +83,6 @@ ELSE (WIN32)
     /opt/local/lib/mysql5/mysql
     /opt/mysql/mysql/lib/mysql
     /opt/mysql/lib/mysql)
-
-  IF(NOT MYSQL_LIB)
-    SET(MYSQL_CLIENT_LIBS mysqlclient)
-    FIND_LIBRARY(MYSQL_LIB NAMES mysqlclient
-      PATHS
-      $ENV{MYSQL_DIR}/libmysql_r/.libs
-      $ENV{MYSQL_DIR}/lib
-      $ENV{MYSQL_DIR}/lib/mysql
-      /usr/lib/mysql
-      /usr/local/lib/mysql
-      /usr/local/mysql/lib
-      /usr/local/mysql/lib/mysql
-      /opt/local/mysql5/lib
-      /opt/local/lib/mysql5/mysql
-      /opt/mysql/mysql/lib/mysql
-      /opt/mysql/lib/mysql)
-  ENDIF (NOT MYSQL_LIB)
 ENDIF (WIN32)
 
 IF(MYSQL_LIB)
