@@ -318,9 +318,11 @@ void ConfigItem::Register(void)
 	if (!m_Abstract && dynamic_cast<NameComposer *>(type.get()))
 		m_UnnamedItems.push_back(this);
 	else {
-		ItemMap::const_iterator it = m_Items[m_Type].find(m_Name);
+		auto& items = m_Items[m_Type];
 
-		if (it != m_Items[m_Type].end()) {
+		auto it = items.find(m_Name);
+
+		if (it != items.end()) {
 			std::ostringstream msgbuf;
 			msgbuf << "A configuration item of type '" << GetType()
 			       << "' and name '" << GetName() << "' already exists ("
@@ -358,12 +360,12 @@ ConfigItem::Ptr ConfigItem::GetByTypeAndName(const String& type, const String& n
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
 
-	ConfigItem::TypeMap::const_iterator it = m_Items.find(type);
+	auto it = m_Items.find(type);
 
 	if (it == m_Items.end())
 		return ConfigItem::Ptr();
 
-	ConfigItem::ItemMap::const_iterator it2 = it->second.find(name);
+	auto it2 = it->second.find(name);
 
 	if (it2 == it->second.end())
 		return ConfigItem::Ptr();
@@ -634,7 +636,7 @@ std::vector<ConfigItem::Ptr> ConfigItem::GetItems(const String& type)
 
 	boost::mutex::scoped_lock lock(m_Mutex);
 
-	TypeMap::const_iterator it = m_Items.find(type);
+	auto it = m_Items.find(type);
 
 	if (it == m_Items.end())
 		return items;

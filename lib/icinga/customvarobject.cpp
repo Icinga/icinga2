@@ -53,7 +53,7 @@ int icinga::FilterArrayToInt(const Array::Ptr& typeFilters, const std::map<Strin
 		if (!typeFilter.IsString())
 			return -1;
 
-		std::map<String, int>::const_iterator it = filterMap.find(typeFilter);
+		auto it = filterMap.find(typeFilter);
 
 		if (it == filterMap.end())
 			return -1;

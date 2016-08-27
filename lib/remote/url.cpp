@@ -146,7 +146,7 @@ const std::map<String, std::vector<String> >& Url::GetQuery(void) const
 
 String Url::GetQueryElement(const String& name) const
 {
-	std::map<String, std::vector<String> >::const_iterator it = m_Query.find(name);
+	auto it = m_Query.find(name);
 
 	if (it == m_Query.end())
 		return String();
@@ -156,7 +156,7 @@ String Url::GetQueryElement(const String& name) const
 
 const std::vector<String>& Url::GetQueryElements(const String& name) const
 {
-	std::map<String, std::vector<String> >::const_iterator it = m_Query.find(name);
+	auto it = m_Query.find(name);
 
 	if (it == m_Query.end()) {
 		static std::vector<String> emptyVector;

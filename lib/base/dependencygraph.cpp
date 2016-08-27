@@ -54,7 +54,7 @@ std::vector<Object::Ptr> DependencyGraph::GetParents(const Object::Ptr& child)
 	std::vector<Object::Ptr> objects;
 
 	boost::mutex::scoped_lock lock(m_Mutex);
-	std::map<Object *, std::map<Object *, int> >::const_iterator it = m_Dependencies.find(child.get());
+	auto it = m_Dependencies.find(child.get());
 
 	if (it != m_Dependencies.end()) {
 		typedef std::pair<Object *, int> kv_pair;

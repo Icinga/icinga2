@@ -30,7 +30,7 @@ ConfigObject::Ptr ConfigType::GetObject(const String& name) const
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
 
-	ConfigType::ObjectMap::const_iterator nt = m_ObjectMap.find(name);
+	auto nt = m_ObjectMap.find(name);
 
 	if (nt == m_ObjectMap.end())
 		return ConfigObject::Ptr();

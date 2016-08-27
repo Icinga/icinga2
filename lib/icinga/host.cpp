@@ -138,7 +138,7 @@ Service::Ptr Host::GetServiceByShortName(const Value& name)
 		{
 			boost::mutex::scoped_lock lock(m_ServicesMutex);
 
-			std::map<String, Service::Ptr>::const_iterator it = m_Services.find(name);
+			auto it = m_Services.find(name);
 
 			if (it != m_Services.end())
 				return it->second;

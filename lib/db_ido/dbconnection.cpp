@@ -310,9 +310,7 @@ String DbConnection::GetConfigHash(const DbType::Ptr& type, const DbReference& o
 	if (!objid.IsValid())
 		return String();
 
-	std::map<std::pair<DbType::Ptr, DbReference>, String>::const_iterator it;
-
-	it = m_ConfigHashes.find(std::make_pair(type, objid));
+	auto it = m_ConfigHashes.find(std::make_pair(type, objid));
 
 	if (it == m_ConfigHashes.end())
 		return String();
@@ -330,9 +328,7 @@ void DbConnection::SetObjectID(const DbObject::Ptr& dbobj, const DbReference& db
 
 DbReference DbConnection::GetObjectID(const DbObject::Ptr& dbobj) const
 {
-	std::map<DbObject::Ptr, DbReference>::const_iterator it;
-
-	it = m_ObjectIDs.find(dbobj);
+	auto it = m_ObjectIDs.find(dbobj);
 
 	if (it == m_ObjectIDs.end())
 		return DbReference();
@@ -366,9 +362,7 @@ DbReference DbConnection::GetInsertID(const DbType::Ptr& type, const DbReference
 	if (!objid.IsValid())
 		return DbReference();
 
-	std::map<std::pair<DbType::Ptr, DbReference>, DbReference>::const_iterator it;
-
-	it = m_InsertIDs.find(std::make_pair(type, objid));
+	auto it = m_InsertIDs.find(std::make_pair(type, objid));
 
 	if (it == m_InsertIDs.end())
 		return DbReference();

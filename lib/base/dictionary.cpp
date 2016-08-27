@@ -37,7 +37,7 @@ Value Dictionary::Get(const String& key) const
 {
 	ObjectLock olock(this);
 
-	std::map<String, Value>::const_iterator it = m_Data.find(key);
+	auto it = m_Data.find(key);
 
 	if (it == m_Data.end())
 		return Empty;
@@ -56,7 +56,7 @@ bool Dictionary::Get(const String& key, Value *result) const
 {
 	ObjectLock olock(this);
 
-	std::map<String, Value>::const_iterator it = m_Data.find(key);
+	auto it = m_Data.find(key);
 
 	if (it == m_Data.end())
 		return false;

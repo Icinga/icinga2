@@ -315,7 +315,7 @@ void ConfigCompiler::AddIncludeSearchDir(const String& dir)
 std::vector<ZoneFragment> ConfigCompiler::GetZoneDirs(const String& zone)
 {
 	boost::mutex::scoped_lock lock(m_ZoneDirsMutex);
-	std::map<String, std::vector<ZoneFragment> >::const_iterator it = m_ZoneDirs.find(zone);
+	auto it = m_ZoneDirs.find(zone);
 	if (it == m_ZoneDirs.end())
 		return std::vector<ZoneFragment>();
 	else

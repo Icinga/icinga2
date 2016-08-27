@@ -26,7 +26,6 @@
 #include "icinga/service.hpp"
 #include "icinga/command.hpp"
 #include "icinga/compatutility.hpp"
-#include "base/objectlock.hpp"
 #include "base/timer.hpp"
 #include "base/utility.hpp"
 #include <boost/thread/thread.hpp>
@@ -65,31 +64,28 @@ private:
 	template<typename T>
 	void DumpNameList(std::ostream& fp, const T& list)
 	{
-		typename T::const_iterator it;
 		bool first = true;
-		for (it = list.begin(); it != list.end(); it++) {
+		for (const auto& obj : list) {
 			if (!first)
 				fp << ",";
 			else
 				first = false;
 
-			ObjectLock olock(*it);
-			fp << (*it)->GetName();
+			fp << obj->GetName();
 		}
 	}
 
 	template<typename T>
 	void DumpStringList(std::ostream& fp, const T& list)
 	{
-		typename T::const_iterator it;
 		bool first = true;
-		for (it = list.begin(); it != list.end(); it++) {
+		for (const auto& str : list) {
 			if (!first)
 				fp << ",";
 			else
 				first = false;
 
-			fp << *it;
+			fp << str;
 		}
 	}
 

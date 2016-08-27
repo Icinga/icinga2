@@ -93,8 +93,7 @@ public:
 	{
 		boost::mutex::scoped_lock lock(m_Mutex);
 
-		typename ItemMap::const_iterator it;
-		it = m_Items.find(name);
+		auto it = m_Items.find(name);
 
 		if (it == m_Items.end())
 			return T();
