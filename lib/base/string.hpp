@@ -69,6 +69,10 @@ public:
 		: m_Data(data)
 	{ }
 
+	inline String(std::string&& data)
+		: m_Data(data)
+	{ }
+
 	inline String(String::SizeType n, char c)
 		: m_Data(n, c)
 	{ }
