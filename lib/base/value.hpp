@@ -99,16 +99,18 @@ public:
 		: m_Value(String(value))
 	{ }
 
-	Value(const Value& other) = default;
+	Value(const Value& other)
+		: m_Value(other.m_Value)
+	{ }
 
-#if BOOST_VERSION >= 105400
-	Value(Value&& other) = default;
-#else /* BOOST_VERSION */
 	Value(Value&& other)
 	{
+#if BOOST_VERSION >= 105400
+		m_Value = std::move(other.m_Value);
+#else /* BOOST_VERSION */
 		m_Value.swap(other.m_Value);
-	}
 #endif /* BOOST_VERSION */
+	}
 
 	inline Value(Object *value)
 	{
@@ -132,16 +134,22 @@ public:
 	operator double(void) const;
 	operator String(void) const;
 
-	Value& operator=(const Value& other) = default;
+	Value& operator=(const Value& other)
+	{
+		m_Value = other.m_Value;
+		return *this;
+	}
 
-#if BOOST_VERSION >= 105400
-	Value& operator=(Value&& other) = default;
-#else /* BOOST_VERSION */
 	Value& operator=(Value&& other)
 	{
+#if BOOST_VERSION >= 105400
+		m_Value = std::move(other.m_Value);
+#else /* BOOST_VERSION */
 		m_Value.swap(other.m_Value);
-	}
 #endif /* BOOST_VERSION */
+
+		return *this;
+	}
 
 	bool operator==(bool rhs) const;
 	bool operator!=(bool rhs) const;

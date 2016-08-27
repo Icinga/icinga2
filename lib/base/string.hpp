@@ -77,8 +77,13 @@ public:
 		: m_Data(n, c)
 	{ }
 
-	String(const String& other) = default;
-	String(String&& other) = default;
+	String(const String& other)
+		: m_Data(other)
+	{ }
+
+	String(String&& other)
+		: m_Data(std::move(other.m_Data))
+	{ }
 
 	inline ~String(void)
 	{ }
@@ -88,8 +93,17 @@ public:
 		: m_Data(begin, end)
 	{ }
 
-	String& operator=(const String& rhs) = default;
-	String& operator=(String&& rhs) = default;
+	String& operator=(const String& rhs)
+	{
+		m_Data = rhs.m_Data;
+		return *this;
+	}
+
+	String& operator=(String&& rhs)
+	{
+		m_Data = std::move(rhs.m_Data);
+		return *this;
+	}
 
 	inline String& operator=(const std::string& rhs)
 	{

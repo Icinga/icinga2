@@ -25,7 +25,8 @@ using namespace icinga;
 
 static ConsoleType l_ConsoleType = Console_Dumb;
 
-INITIALIZE_ONCE([]() {
+static void InitializeConsole(void)
+{
 	l_ConsoleType = Console_Dumb;
 
 #ifndef _WIN32
@@ -34,7 +35,9 @@ INITIALIZE_ONCE([]() {
 #else /* _WIN32 */
 	l_ConsoleType = Console_Windows;
 #endif /* _WIN32 */
-});
+}
+
+INITIALIZE_ONCE(InitializeConsole);
 
 ConsoleColorTag::ConsoleColorTag(int color, ConsoleType consoleType)
 	: m_Color(color), m_ConsoleType(consoleType)

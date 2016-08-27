@@ -74,7 +74,8 @@ Process::~Process(void)
 #endif /* _WIN32 */
 }
 
-INITIALIZE_ONCE([]() {
+static void InitializeProcess(void)
+{
 	for (int tid = 0; tid < IOTHREADS; tid++) {
 #ifdef _WIN32
 		l_Events[tid] = CreateEvent(NULL, TRUE, FALSE, NULL);
@@ -101,7 +102,9 @@ INITIALIZE_ONCE([]() {
 #	endif /* HAVE_PIPE2 */
 #endif /* _WIN32 */
 	}
-});
+}
+
+INITIALIZE_ONCE(InitializeProcess);
 
 void Process::ThreadInitialize(void)
 {
