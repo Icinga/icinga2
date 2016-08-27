@@ -77,13 +77,8 @@ public:
 		: m_Data(n, c)
 	{ }
 
-	inline String(const String& other)
-		: m_Data(other.m_Data)
-	{ }
-
-	inline String(String&& other)
-		: m_Data(other)
-	{ }
+	String(const String& other) = default;
+	String(String&& other) = default;
 
 	inline ~String(void)
 	{ }
@@ -93,11 +88,8 @@ public:
 		: m_Data(begin, end)
 	{ }
 
-	inline String& operator=(const String& rhs)
-	{
-		m_Data = rhs.m_Data;
-		return *this;
-	}
+	String& operator=(const String& rhs) = default;
+	String& operator=(String&& rhs) = default;
 
 	inline String& operator=(const std::string& rhs)
 	{

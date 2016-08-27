@@ -90,7 +90,7 @@ void Array::Add(Value&& value)
 {
 	ObjectLock olock(this);
 
-	m_Data.push_back(value);
+	m_Data.push_back(std::move(value));
 }
 
 /**

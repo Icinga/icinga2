@@ -99,13 +99,8 @@ public:
 		: m_Value(String(value))
 	{ }
 
-	inline Value(const Value& other)
-		: m_Value(other.m_Value)
-	{ }
-
-	inline Value(Value&& other)
-		: m_Value(other.m_Value)
-	{ }
+	Value(const Value& other) = default;
+	Value(Value&& other) = default;
 
 	inline Value(Object *value)
 	{
@@ -129,7 +124,8 @@ public:
 	operator double(void) const;
 	operator String(void) const;
 
-	Value& operator=(const Value& other);
+	Value& operator=(const Value& other) = default;
+	Value& operator=(Value&& other) = default;
 
 	bool operator==(bool rhs) const;
 	bool operator!=(bool rhs) const;
