@@ -26,7 +26,7 @@
 #include "base/exception.hpp"
 #include "base/application.hpp"
 
-#define REGISTER_CONFIG_FRAGMENT(id, name, fragment) \
+#define REGISTER_CONFIG_FRAGMENT(name, fragment) \
 	INITIALIZE_ONCE_WITH_PRIORITY([]() { \
 		icinga::Expression *expression = icinga::ConfigCompiler::CompileText(name, fragment); \
 		VERIFY(expression); \
