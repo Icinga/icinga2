@@ -143,12 +143,7 @@ include_directories(
   ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_BINARY_DIR}/lib
 )
 
-#set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
-
-if(APPLE)
-  set(CMAKE_INSTALL_NAME_DIR "@executable_path/..")
-  set(CMAKE_MACOSX_RPATH 0)
-endif(APPLE)
+set(CMAKE_MACOSX_RPATH 1)
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Qunused-arguments -g")
