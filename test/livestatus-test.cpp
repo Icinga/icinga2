@@ -52,8 +52,6 @@ struct LivestatusFixture
 	static void CreateTestObjects(void)
 	{
 		String config = R"CONFIG(
-library "methods"
-
 object CheckCommand "dummy" {
   command = "/bin/echo"
 }

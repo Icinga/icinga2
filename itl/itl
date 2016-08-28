@@ -22,5 +22,4 @@
  * configuration templates.
  */
 
-include "command.conf"
 include "command-icinga.conf"
