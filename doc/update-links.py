@@ -21,7 +21,7 @@ import sys
 import re
 
 if len(sys.argv) < 2:
-    print "Syntax: %s <md-files>"
+    print "Syntax: %s <md-files>" % sys.argv[0]
     print ""
     print "Updates inter-chapter links in the specified Markdown files."
     sys.exit(1)
