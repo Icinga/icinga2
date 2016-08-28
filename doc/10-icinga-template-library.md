@@ -16,6 +16,11 @@ These templates are imported by the provided example configuration.
 > These templates are built into the binaries. By convention
 > all command and timeperiod objects should import these templates.
 
+If you're not using the ITL includes you can manually load the
+library which contains these templates:
+
+    library "methods"
+
 ### <a id="itl-plugin-check-command"></a> plugin-check-command
 
 Command template for check plugins executed by Icinga 2.
