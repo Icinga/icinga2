@@ -120,7 +120,7 @@ if(ICINGA2_WITH_LIVESTATUS)
 
   add_boost_test(livestatus
     SOURCES livestatus-test.cpp ${livestatus_test_SOURCES}
-    LIBRARIES base config icinga methods livestatus
+    LIBRARIES base config icinga livestatus
     DEPENDENCIES methods
     TESTS livestatus/hosts livestatus/services
   )
