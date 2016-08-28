@@ -53,7 +53,6 @@ struct LivestatusFixture
 	{
 		String config = R"CONFIG(
 object CheckCommand "dummy" {
-  import "plugin-check-command"
   command = "/bin/echo"
 }
 
@@ -67,7 +66,7 @@ object Host "test-02" {
   check_command = "dummy"
 }
 
-apply Service "livestatus"{
+apply Service "livestatus" {
   check_command = "dummy"
   notes = "test livestatus"
   assign where match("test-*", host.name)
