@@ -47,7 +47,7 @@ int main(int argc, char **argv)
 
 	fprintf(outfp, "/* This file has been automatically generated\n"
 	    "   from the input file \"%s\". */\n\n", argv[1]);
-	fprintf(outfp, "#include \"config/configfragment.hpp\"\n\nREGISTER_CONFIG_FRAGMENT(\"%s\", R\"CONFIG_FRAGMENT(\n", argv[1]);
+	fputs("#include \"config/configfragment.hpp\"\n\nnamespace {\n\nconst char *fragment = R\"CONFIG_FRAGMENT(", outfp);
 
 	while (!feof(infp)) {
 		char buf[1024];
@@ -59,7 +59,7 @@ int main(int argc, char **argv)
 		fwrite(buf, rc, 1, outfp);
 	}
 
-	fputs(")CONFIG_FRAGMENT\");", outfp);
+	fprintf(outfp, ")CONFIG_FRAGMENT\";\n\nREGISTER_CONFIG_FRAGMENT(\"%s\", fragment);\n\n}", argv[1]);
 
 	fclose(outfp);
 	fclose(infp);
