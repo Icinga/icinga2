@@ -149,6 +149,7 @@ bool DaemonUtility::ValidateConfigFiles(const std::vector<std::string>& configs,
 		ConfigItemBuilder::Ptr builder = new ConfigItemBuilder();
 		builder->SetType(appType);
 		builder->SetName("app");
+		builder->AddExpression(new ImportDefaultTemplatesExpression());
 		ConfigItem::Ptr item = builder->Compile();
 		item->Register();
 	}
