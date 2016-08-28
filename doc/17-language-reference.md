@@ -344,6 +344,19 @@ custom attributes and the custom attribute `colour` has the value `"blue"`.
 Parent objects are resolved in the order they're specified using the
 `import` keyword.
 
+Default templates which are automatically imported into all object definitions
+can be specified using the `default` keyword:
+
+    template CheckCommand "plugin-check-command" default {
+      // ...
+    }
+
+Default templates are imported before any other user-specified statement in an
+object definition is evaluated.
+
+If there are multiple default templates the order in which they are imported
+is unspecified.
+
 ## <a id="constants"></a> Constants
 
 Global constants can be set using the `const` keyword:

@@ -800,6 +800,17 @@ private:
 	Expression *m_Name;
 };
 
+class I2_CONFIG_API ImportDefaultTemplatesExpression : public DebuggableExpression
+{
+public:
+	ImportDefaultTemplatesExpression(const DebugInfo& debugInfo = DebugInfo())
+		: DebuggableExpression(debugInfo)
+	{ }
+
+protected:
+	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
+};
+
 class I2_CONFIG_API FunctionExpression : public DebuggableExpression
 {
 public:
@@ -879,9 +890,9 @@ class I2_CONFIG_API ObjectExpression : public DebuggableExpression
 public:
 	ObjectExpression(bool abstract, const String& type, Expression *name, Expression *filter,
 	    const String& zone, const String& package, std::map<String, Expression *> *closedVars,
-	    bool ignoreOnError, Expression *expression, const DebugInfo& debugInfo = DebugInfo())
+	    bool defaultTmpl, bool ignoreOnError, Expression *expression, const DebugInfo& debugInfo = DebugInfo())
 		: DebuggableExpression(debugInfo), m_Abstract(abstract), m_Type(type),
-		  m_Name(name), m_Filter(filter), m_Zone(zone), m_Package(package),
+		  m_Name(name), m_Filter(filter), m_Zone(zone), m_Package(package), m_DefaultTmpl(defaultTmpl),
 		  m_IgnoreOnError(ignoreOnError), m_ClosedVars(closedVars), m_Expression(expression)
 	{ }
 
@@ -909,6 +920,7 @@ private:
 	boost::shared_ptr<Expression> m_Filter;
 	String m_Zone;
 	String m_Package;
+	bool m_DefaultTmpl;
 	bool m_IgnoreOnError;
 	std::map<String, Expression *> *m_ClosedVars;
 	boost::shared_ptr<Expression> m_Expression;

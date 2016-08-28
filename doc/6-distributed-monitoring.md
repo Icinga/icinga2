@@ -658,8 +658,6 @@ If you have your own custom `CheckCommand` definition, add it to the global zone
     [root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.d/global-templates/commands.conf
 
     object CheckCommand "my-cmd" {
-      import "plugin-check-command"
-
       //...
     }
 
@@ -1565,8 +1563,6 @@ Next, add a new check command, for example:
     [root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.d/global-templates/commands.conf
 
     object CheckCommand "my-cmd" {
-      import "plugin-check-command"
-
       //...
     }
 

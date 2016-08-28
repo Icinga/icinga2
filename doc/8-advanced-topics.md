@@ -323,7 +323,6 @@ and evaluating the host custom attribute `compellent` containing the `disks` thi
 solved like this:
 
     object CheckCommand "check_compellent" {
-      import "plugin-check-command"
       command   = [ "/usr/bin/check_compellent" ]
       arguments   = {
         "--disks"  = {
@@ -410,7 +409,6 @@ returned.
 You can omit the `log()` calls, they only help debugging.
 
     object NotificationCommand "mail-host-notification-test" {
-      import "plugin-notification-command"
       command = {{
         log("command as function")
         var mailscript = "mail-host-notification-long.sh"

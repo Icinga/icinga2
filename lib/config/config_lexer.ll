@@ -182,6 +182,7 @@ locals				return T_LOCALS;
 use				return T_USE;
 __using				return T_USING;
 apply				return T_APPLY;
+default				return T_DEFAULT;
 to				return T_TO;
 where				return T_WHERE;
 import				return T_IMPORT;

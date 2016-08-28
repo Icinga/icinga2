@@ -58,7 +58,6 @@ into your host and service objects.
 
 Please make sure to follow these conventions when adding a new command object definition:
 
-* Always import the `plugin-check-command` template.
 * Use [command arguments](3-monitoring-basics.md#command-arguments) whenever possible. The `command` attribute
 must be an array in `[ ... ]` for shell escaping.
 * Define a unique `prefix` for the command's specific arguments. That way you can safely
@@ -69,8 +68,6 @@ set them on host/service level and you'll always know which command they control
 This is an example for a custom `my-snmp-int` check command:
 
     object CheckCommand "my-snmp-int" {
-      import "plugin-check-command"
-
       command = [ CustomPluginDir + "/check_snmp_int.pl" ]
 
       arguments = {

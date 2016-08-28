@@ -211,8 +211,6 @@ match your Icinga convention.
 Add an `EventCommand` configuration object for the passive service auto reset event.
 
     object EventCommand "coldstart-reset-event" {
-      import "plugin-event-command"
-
       command = [ SysconfDir + "/icinga2/conf.d/custom/scripts/coldstart_reset_event.sh" ]
 
       arguments = {

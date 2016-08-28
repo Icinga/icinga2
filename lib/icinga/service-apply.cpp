@@ -66,6 +66,8 @@ bool Service::EvaluateApplyRuleInstance(const Host::Ptr& host, const String& nam
 
 	builder->AddExpression(new OwnedExpression(rule.GetExpression()));
 
+	builder->AddExpression(new ImportDefaultTemplatesExpression());
+
 	ConfigItem::Ptr serviceItem = builder->Compile();
 	serviceItem->Register();
 

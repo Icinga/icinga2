@@ -761,6 +761,26 @@ ExpressionResult ImportExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhi
 	return Empty;
 }
 
+ExpressionResult ImportDefaultTemplatesExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
+{
+	if (frame.Sandboxed)
+		BOOST_THROW_EXCEPTION(ScriptError("Imports are not allowed in sandbox mode.", m_DebugInfo));
+
+	String type = VMOps::GetField(frame.Self, "type", frame.Sandboxed, m_DebugInfo);
+
+	for (const ConfigItem::Ptr& item : ConfigItem::GetDefaultTemplates(type)) {
+		Dictionary::Ptr scope = item->GetScope();
+
+		if (scope)
+			scope->CopyTo(frame.Locals);
+
+		ExpressionResult result = item->GetExpression()->Evaluate(frame, dhint);
+		CHECK_RESULT(result);
+	}
+
+	return Empty;
+}
+
 ExpressionResult FunctionExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
 	return VMOps::NewFunction(frame, m_Name, m_Args, m_ClosedVars, m_Expression);
@@ -793,7 +813,7 @@ ExpressionResult ObjectExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhi
 	}
 
 	return VMOps::NewObject(frame, m_Abstract, m_Type, name, m_Filter, m_Zone,
-	    m_Package, m_IgnoreOnError, m_ClosedVars, m_Expression, m_DebugInfo);
+	    m_Package, m_DefaultTmpl, m_IgnoreOnError, m_ClosedVars, m_Expression, m_DebugInfo);
 }
 
 ExpressionResult ForExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const

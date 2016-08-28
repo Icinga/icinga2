@@ -163,8 +163,6 @@ The special case here is that whenever Icinga 2 needs the value for such a custo
 the function and uses whatever value the function returns:
 
     object CheckCommand "random-value" {
-      import "plugin-check-command"
-
       command = [ PluginDir + "/check_dummy", "0", "$text$" ]
 
       vars.text = {{ Math.random() * 100 }}
@@ -229,8 +227,6 @@ are used in command definitions to figure out which IP address a check should be
 run against:
 
     object CheckCommand "my-ping" {
-      import "plugin-check-command"
-
       command = [ PluginDir + "/check_ping", "-H", "$ping_address$" ]
 
       arguments = {
@@ -1238,9 +1234,6 @@ using the `check_command` attribute.
 
 #### <a id="command-plugin-integration"></a> Integrate the Plugin with a CheckCommand Definition
 
-[CheckCommand](9-object-types.md#objecttype-checkcommand) objects require the [ITL template](10-icinga-template-library.md#itl-plugin-check-command)
-`plugin-check-command` to support native plugin based check methods.
-
 Unless you have done so already, download your check plugin and put it
 into the [PluginDir](4-configuring-icinga-2.md#constants-conf) directory. The following example uses the
 `check_mysql` plugin contained in the Monitoring Plugins package.
@@ -1299,8 +1292,6 @@ can also be inherited from a parent template using additive inheritance (`+=`).
     # vim /etc/icinga2/conf.d/commands.conf
 
     object CheckCommand "my-mysql" {
-      import "plugin-check-command"
-
       command = [ PluginDir + "/check_mysql" ] //constants.conf -> const PluginDir
 
       arguments = {
@@ -1426,8 +1417,6 @@ at command execution. Or making arguments optional -- only set if the
 macro value can be resolved by Icinga 2.
 
     object CheckCommand "check_http" {
-      import "plugin-check-command"
-
       command = [ PluginDir + "/check_http" ]
 
       arguments = {
@@ -1490,8 +1479,6 @@ This is useful for example for hiding sensitive information on the command line 
 when passing credentials to database checks:
 
     object CheckCommand "mysql-health" {
-      import "plugin-check-command"
-
       command = [
         PluginDir + "/check_mysql"
       ]
@@ -1520,9 +1507,6 @@ interfaces (email, XMPP, IRC, Twitter, etc.).
 [NotificationCommand](9-object-types.md#objecttype-notificationcommand) objects are referenced by
 [Notification](9-object-types.md#objecttype-notification) objects using the `command` attribute.
 
-`NotificationCommand` objects require the [ITL template](10-icinga-template-library.md#itl-plugin-notification-command)
-`plugin-notification-command` to support native plugin-based notifications.
-
 > **Note**
 >
 > Make sure that the [notification](11-cli-commands.md#enable-features) feature is enabled
@@ -1536,8 +1520,6 @@ If you want to specify default values for some of the custom attribute definitio
 you can add a `vars` dictionary as shown for the `CheckCommand` object.
 
     object NotificationCommand "mail-service-notification" {
-      import "plugin-notification-command"
-
       command = [ SysconfDir + "/icinga2/scripts/mail-notification.sh" ]
 
       env = {
@@ -1618,9 +1600,6 @@ Common use case scenarios are a failing HTTP check requiring an immediate
 restart via event command, or if an application is locked and requires
 a restart upon detection.
 
-`EventCommand` objects require the ITL template `plugin-event-command`
-to support native plugin based checks.
-
 #### <a id="event-command-restart-service-daemon"></a> Use Event Commands to Restart Service Daemon
 
 The following example will trigger a restart of the `httpd` daemon
@@ -1647,8 +1626,6 @@ which can be used for all event commands triggered using ssh:
 
     /* pass event commands through ssh */
     object EventCommand "event_by_ssh" {
-      import "plugin-event-command"
-
       command = [ PluginDir + "/check_by_ssh" ]
 
       arguments = {

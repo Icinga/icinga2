@@ -129,7 +129,7 @@ public:
 	}
 
 	static inline Value NewObject(ScriptFrame& frame, bool abstract, const String& type, const String& name, const boost::shared_ptr<Expression>& filter,
-		const String& zone, const String& package, bool ignoreOnError, std::map<String, Expression *> *closedVars, const boost::shared_ptr<Expression>& expression, const DebugInfo& debugInfo = DebugInfo())
+		const String& zone, const String& package, bool defaultTmpl, bool ignoreOnError, std::map<String, Expression *> *closedVars, const boost::shared_ptr<Expression>& expression, const DebugInfo& debugInfo = DebugInfo())
 	{
 		ConfigItemBuilder::Ptr item = new ConfigItemBuilder(debugInfo);
 
@@ -157,12 +157,16 @@ public:
 		item->SetType(type);
 		item->SetName(name);
 
+		if (!abstract)
+			item->AddExpression(new ImportDefaultTemplatesExpression());
+
 		item->AddExpression(new OwnedExpression(expression));
 		item->SetAbstract(abstract);
 		item->SetScope(EvaluateClosedVars(frame, closedVars));
 		item->SetZone(zone);
 		item->SetPackage(package);
 		item->SetFilter(filter);
+		item->SetDefaultTemplate(defaultTmpl);
 		item->SetIgnoreOnError(ignoreOnError);
 		item->Compile()->Register();
 

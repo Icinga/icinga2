@@ -84,8 +84,6 @@ defined here.
 Example:
 
     object CheckCommand "check_http" {
-      import "plugin-check-command"
-
       command = [ PluginDir + "/check_http" ]
 
       arguments = {
@@ -122,7 +120,7 @@ Configuration Attributes:
 
   Name            |Description
   ----------------|----------------
-  execute         |**Required.** The "execute" script method takes care of executing the check. In virtually all cases you should import the "plugin-check-command" template to take care of this setting.
+  execute         |**Required.** The "execute" script method takes care of executing the check. The default template "plugin-check-command" which is imported into all CheckCommand objects takes care of this setting.
   command         |**Required.** The command. This can either be an array of individual command arguments. Alternatively a string can be specified in which case the shell interpreter (usually /bin/sh) takes care of parsing the command. When using the "arguments" attribute this must be an array. Can be specified as function for advanced implementations.
   env             |**Optional.** A dictionary of macros which should be exported as environment variables prior to executing the command.
   vars            |**Optional.** A dictionary containing custom attributes that are specific to this command.
@@ -441,8 +439,6 @@ An event command definition.
 Example:
 
     object EventCommand "restart-httpd-event" {
-      import "plugin-event-command"
-
       command = "/opt/bin/restart-httpd.sh"
     }
 
@@ -451,7 +447,7 @@ Configuration Attributes:
 
   Name            |Description
   ----------------|----------------
-  execute         |**Required.** The "execute" script method takes care of executing the event handler. In virtually all cases you should import the "plugin-event-command" template to take care of this setting.
+  execute         |**Required.** The "execute" script method takes care of executing the event handler. The default template "plugin-event-command" which is imported into all CheckCommand objects takes care of this setting.
   command         |**Required.** The command. This can either be an array of individual command arguments. Alternatively a string can be specified in which case the shell interpreter (usually /bin/sh) takes care of parsing the command.
   env             |**Optional.** A dictionary of macros which should be exported as environment variables prior to executing the command.
   vars            |**Optional.** A dictionary containing custom attributes that are specific to this command.
@@ -1087,8 +1083,6 @@ A notification command definition.
 Example:
 
     object NotificationCommand "mail-service-notification" {
-      import "plugin-notification-command"
-
       command = [
         SysconfDir + "/icinga2/scripts/mail-notification.sh"
       ]
@@ -1113,7 +1107,7 @@ Configuration Attributes:
 
   Name            |Description
   ----------------|----------------
-  execute         |**Required.** The "execute" script method takes care of executing the notification. In virtually all cases you should import the "plugin-notification-command" template to take care of this setting.
+  execute         |**Required.** The "execute" script method takes care of executing the notification. The default template "plugin-notification-command" which is imported into all CheckCommand objects takes care of this setting.
   command         |**Required.** The command. This can either be an array of individual command arguments. Alternatively a string can be specified in which case the shell interpreter (usually /bin/sh) takes care of parsing the command.
   env             |**Optional.** A dictionary of macros which should be exported as environment variables prior to executing the command.
   vars            |**Optional.** A dictionary containing custom attributes that are specific to this command.

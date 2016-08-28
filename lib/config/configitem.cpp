@@ -59,11 +59,12 @@ REGISTER_SCRIPTFUNCTION_NS(Internal, run_with_activation_context, &ConfigItem::R
  */
 ConfigItem::ConfigItem(const String& type, const String& name,
     bool abstract, const boost::shared_ptr<Expression>& exprl,
-    const boost::shared_ptr<Expression>& filter, bool ignoreOnError,
+    const boost::shared_ptr<Expression>& filter, bool defaultTmpl, bool ignoreOnError,
     const DebugInfo& debuginfo, const Dictionary::Ptr& scope,
     const String& zone, const String& package)
 	: m_Type(type), m_Name(name), m_Abstract(abstract),
-	  m_Expression(exprl), m_Filter(filter), m_IgnoreOnError(ignoreOnError),
+	  m_Expression(exprl), m_Filter(filter),
+	  m_DefaultTmpl(defaultTmpl), m_IgnoreOnError(ignoreOnError),
 	  m_DebugInfo(debuginfo), m_Scope(scope), m_Zone(zone),
 	  m_Package(package)
 {
@@ -97,6 +98,16 @@ String ConfigItem::GetName(void) const
 bool ConfigItem::IsAbstract(void) const
 {
 	return m_Abstract;
+}
+
+bool ConfigItem::IsDefaultTemplate(void) const
+{
+	return m_DefaultTmpl;
+}
+
+bool ConfigItem::IsIgnoreOnError(void) const
+{
+	return m_IgnoreOnError;
 }
 
 /**
@@ -644,6 +655,26 @@ std::vector<ConfigItem::Ptr> ConfigItem::GetItems(const String& type)
 	for (const ItemMap::value_type& kv : it->second)
 	{
 		items.push_back(kv.second);
+	}
+
+	return items;
+}
+
+std::vector<ConfigItem::Ptr> ConfigItem::GetDefaultTemplates(const String& type)
+{
+	std::vector<ConfigItem::Ptr> items;
+
+	boost::mutex::scoped_lock lock(m_Mutex);
+
+	auto it = m_Items.find(type);
+
+	if (it == m_Items.end())
+		return items;
+
+	for (const ItemMap::value_type& kv : it->second)
+	{
+		if (kv.second->IsDefaultTemplate())
+			items.push_back(kv.second);
 	}
 
 	return items;

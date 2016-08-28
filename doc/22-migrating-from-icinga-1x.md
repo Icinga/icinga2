@@ -153,8 +153,6 @@ are referenced as `$ARGn$` where `n` is the argument counter.
 While you could manually migrate this like (please note the new generic command arguments and default argument values!):
 
     object CheckCommand "my-ping-check" {
-      import "plugin-check-command"
-
       command = [
         PluginDir + "/check_ping", "-4"
       ]
@@ -233,7 +231,6 @@ Custom variables from Icinga 1.x are available as Icinga 2 custom attributes.
 Can be written as the following in Icinga 2:
 
     object CheckCommand "test_customvar" {
-      import "plugin-check-command"
       command = "echo "Host CV: $host.vars.CVTEST$ Service CV: $service.vars.CVTEST$\n""
     }
 

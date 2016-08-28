@@ -43,14 +43,15 @@ public:
 	ConfigItem(const String& type, const String& name, bool abstract,
 	    const boost::shared_ptr<Expression>& exprl,
 	    const boost::shared_ptr<Expression>& filter,
-	    bool ignoreOnError, const DebugInfo& debuginfo,
+	    bool defaultTmpl, bool ignoreOnError, const DebugInfo& debuginfo,
 	    const Dictionary::Ptr& scope, const String& zone,
 	    const String& package);
 
 	String GetType(void) const;
 	String GetName(void) const;
 	bool IsAbstract(void) const;
-	bool GetIgnoreOnError(void) const;
+	bool IsDefaultTemplate(void) const;
+	bool IsIgnoreOnError(void) const;
 
 	std::vector<ConfigItem::Ptr> GetParents(void) const;
 
@@ -74,6 +75,7 @@ public:
 	static bool RunWithActivationContext(const Function::Ptr& function);
 
 	static std::vector<ConfigItem::Ptr> GetItems(const String& type);
+	static std::vector<ConfigItem::Ptr> GetDefaultTemplates(const String& type);
 
 	static void RemoveIgnoredItems(const String& allowedConfigPath);
 
@@ -84,6 +86,7 @@ private:
 
 	boost::shared_ptr<Expression> m_Expression;
 	boost::shared_ptr<Expression> m_Filter;
+	bool m_DefaultTmpl;
 	bool m_IgnoreOnError;
 	DebugInfo m_DebugInfo; /**< Debug information. */
 	Dictionary::Ptr m_Scope; /**< variable scope. */

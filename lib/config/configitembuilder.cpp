@@ -79,6 +79,11 @@ void ConfigItemBuilder::SetFilter(const boost::shared_ptr<Expression>& filter)
 	m_Filter = filter;
 }
 
+void ConfigItemBuilder::SetDefaultTemplate(bool defaultTmpl)
+{
+	m_DefaultTmpl = defaultTmpl;
+}
+
 void ConfigItemBuilder::SetIgnoreOnError(bool ignoreOnError)
 {
 	m_IgnoreOnError = ignoreOnError;
@@ -119,10 +124,25 @@ ConfigItem::Ptr ConfigItemBuilder::Compile(void)
 	dexpr->MakeInline();
 	exprs.push_back(dexpr);
 
+#ifdef I2_DEBUG
+	if (!m_Abstract) {
+		bool foundDefaultImport = false;
+
+		for (Expression *expr : m_Expressions) {
+			if (dynamic_cast<ImportDefaultTemplatesExpression *>(expr)) {
+				foundDefaultImport = true;
+				break;
+			}
+		}
+
+		ASSERT(foundDefaultImport);
+	}
+#endif /* I2_DEBUG */
+
 	boost::shared_ptr<DictExpression> exprl = boost::make_shared<DictExpression>(exprs, m_DebugInfo);
 	exprl->MakeInline();
 
 	return new ConfigItem(m_Type, m_Name, m_Abstract, exprl, m_Filter,
-	    m_IgnoreOnError, m_DebugInfo, m_Scope, m_Zone, m_Package);
+	    m_DefaultTmpl, m_IgnoreOnError, m_DebugInfo, m_Scope, m_Zone, m_Package);
 }
 

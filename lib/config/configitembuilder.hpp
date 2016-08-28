@@ -48,6 +48,7 @@ public:
 	void SetScope(const Dictionary::Ptr& scope);
 	void SetZone(const String& zone);
 	void SetPackage(const String& package);
+	void SetDefaultTemplate(bool defaultTmpl);
 	void SetIgnoreOnError(bool ignoreOnError);
 
 	void AddExpression(Expression *expr);
@@ -65,6 +66,7 @@ private:
 	Dictionary::Ptr m_Scope; /**< variable scope. */
 	String m_Zone; /**< The zone. */
 	String m_Package; /**< The package name. */
+	bool m_DefaultTmpl;
 	bool m_IgnoreOnError; /**< Whether the object should be ignored when an error occurs in one of the expressions. */
 };
 

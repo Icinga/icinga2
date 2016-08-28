@@ -144,6 +144,7 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %token T_GLOBALS "globals (T_GLOBALS)"
 %token T_LOCALS "locals (T_LOCALS)"
 %token T_CONST "const (T_CONST)"
+%token T_DEFAULT "default (T_DEFAULT)"
 %token T_IGNORE_ON_ERROR "ignore_on_error (T_IGNORE_ON_ERROR)"
 %token T_CURRENT_FILENAME "current_filename (T_CURRENT_FILENAME)"
 %token T_CURRENT_LINE "current_line (T_CURRENT_LINE)"
@@ -199,6 +200,7 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %type <expr> apply
 %type <expr> optional_rterm
 %type <text> target_type_specifier
+%type <boolean> default_specifier
 %type <boolean> ignore_specifier
 %type <cvlist> use_specifier
 %type <cvlist> use_specifier_items
@@ -370,7 +372,7 @@ object:
 		context->m_Assign.push(0);
 		context->m_Ignore.push(0);
 	}
-	object_declaration identifier optional_rterm use_specifier ignore_specifier
+	object_declaration identifier optional_rterm use_specifier default_specifier ignore_specifier
 	{
 		BeginFlowControlBlock(context, FlowControlReturn, false);
 	}
@@ -381,6 +383,10 @@ object:
 		context->m_ObjectAssign.pop();
 
 		bool abstract = $2;
+		bool defaultTmpl = $6;
+
+		if (!abstract && defaultTmpl)
+			BOOST_THROW_EXCEPTION(ScriptError("'default' keyword is invalid for object definitions", DebugInfoRange(@2, @4)));
 
 		String type = *$3;
 		delete $3;
@@ -416,7 +422,7 @@ object:
 				BOOST_THROW_EXCEPTION(ScriptError("object rule 'ignore' is missing 'assign' for type '" + type + "'", DebugInfoRange(@2, @4)));
 		}
 
-		$$ = new ObjectExpression(abstract, type, $4, filter, context->GetZone(), context->GetPackage(), $5, $6, $8, DebugInfoRange(@2, @6));
+		$$ = new ObjectExpression(abstract, type, $4, filter, context->GetZone(), context->GetPackage(), $5, $6, $7, $9, DebugInfoRange(@2, @7));
 	}
 	;
 
@@ -1041,6 +1047,16 @@ target_type_specifier: /* empty */
 	| T_TO identifier
 	{
 		$$ = $2;
+	}
+	;
+
+default_specifier: /* empty */
+	{
+		$$ = false;
+	}
+	| T_DEFAULT
+	{
+		$$ = true;
 	}
 	;
 
