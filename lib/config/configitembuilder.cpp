@@ -25,7 +25,7 @@
 using namespace icinga;
 
 ConfigItemBuilder::ConfigItemBuilder(void)
-	: m_Abstract(false)
+	: m_Abstract(false), m_DefaultTmpl(false), m_IgnoreOnError(false)
 {
 	m_DebugInfo.FirstLine = 0;
 	m_DebugInfo.FirstColumn = 0;
@@ -34,7 +34,7 @@ ConfigItemBuilder::ConfigItemBuilder(void)
 }
 
 ConfigItemBuilder::ConfigItemBuilder(const DebugInfo& debugInfo)
-	: m_Abstract(false)
+	: m_Abstract(false), m_DefaultTmpl(false), m_IgnoreOnError(false)
 {
 	m_DebugInfo = debugInfo;
 }
