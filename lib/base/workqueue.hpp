@@ -46,8 +46,8 @@ struct Task
 	    : Priority(PriorityNormal), ID(-1)
 	{ }
 
-	Task(const boost::function<void (void)>& function, WorkQueuePriority priority, int id)
-	    : Function(function), Priority(priority), ID(id)
+	Task(boost::function<void (void)>&& function, WorkQueuePriority priority, int id)
+	    : Function(std::move(function)), Priority(priority), ID(id)
 	{ }
 
 	boost::function<void (void)> Function;
