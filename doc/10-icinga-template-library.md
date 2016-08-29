@@ -4617,3 +4617,20 @@ vmware_password         | **Optional.** The username's password. No value define
 vmware_authfile         | **Optional.** Use auth file instead username/password to session connect. No effect if **vmware_username** and **vmware_password** are defined <br> **Autentication file content:** <br>  username=vmuser <br> password=p@ssw0rd
 vmware_multiline        | **Optional.** Multiline output in overview. This mean technically that a multiline output uses a HTML **\<br\>** for the GUI. No value defined as default.
 
+### <a id="plugins-contrib-storage"></a> Storage
+
+This category includes all plugins for various storage and object storage technologies.
+
+#### <a id="plugins-contrib-command-glusterfs"></a> glusterfs
+
+The plugin `glusterfs` is a plugin to checks the GlusterFS storage health on the server. It is provided by `Philippe Kueck` on [https://www.unixadm.org/software/nagios-stuff/checks/check_glusterfs). This plugin needs sudo to run properly.
+
+Name                       | Description
+---------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+glusterfs_perfdata         | **Optional.** Print perfdata of all or the specified volume.
+glusterfs_warnonfailedheal | **Optional.** Warn if the *heal-failed* log contains entries. The log can be cleared by restarting glusterd.
+glusterfs_volume           | **Optional.** Only check the specified *VOLUME*. If --volume is not set, all volumes are checked.
+glusterfs_disk_warning     | **Optional.** Warn if disk usage is above *DISKWARN*. Defaults to 90 (percent).
+glusterfs_disk_critical    | **Optional.** Return a critical error if disk usage is above *DISKCRIT*. Defaults to 95 (percent).
+glusterfs_inode_warning    | **Optional.** Warn if inode usage is above *DISKWARN*. Defaults to 90 (percent).
+glusterfs_inode_critical   | **Optional.** Return a critical error if inode usage is above *DISKCRIT*. Defaults to 95 (percent).
