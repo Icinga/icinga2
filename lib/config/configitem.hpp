@@ -101,6 +101,7 @@ private:
 	typedef std::map<String, ConfigItem::Ptr> ItemMap;
 	typedef std::map<String, ItemMap> TypeMap;
 	static TypeMap m_Items; /**< All registered configuration items. */
+	static TypeMap m_DefaultTemplates;
 
 	typedef std::vector<ConfigItem::Ptr> ItemList;
 	static ItemList m_UnnamedItems;

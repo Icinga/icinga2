@@ -42,6 +42,7 @@ using namespace icinga;
 
 boost::mutex ConfigItem::m_Mutex;
 ConfigItem::TypeMap ConfigItem::m_Items;
+ConfigItem::TypeMap ConfigItem::m_DefaultTemplates;
 ConfigItem::ItemList ConfigItem::m_UnnamedItems;
 ConfigItem::IgnoredItemList ConfigItem::m_IgnoredItems;
 
@@ -342,6 +343,9 @@ void ConfigItem::Register(void)
 		}
 
 		m_Items[m_Type][m_Name] = this;
+
+		if (m_DefaultTmpl)
+			m_DefaultTemplates[m_Type][m_Name] = this;
 	}
 }
 
@@ -358,6 +362,7 @@ void ConfigItem::Unregister(void)
 	boost::mutex::scoped_lock lock(m_Mutex);
 	m_UnnamedItems.erase(std::remove(m_UnnamedItems.begin(), m_UnnamedItems.end(), this), m_UnnamedItems.end());
 	m_Items[m_Type].erase(m_Name);
+	m_DefaultTemplates[m_Type].erase(m_Name);
 }
 
 /**
@@ -650,6 +655,8 @@ std::vector<ConfigItem::Ptr> ConfigItem::GetItems(const String& type)
 	if (it == m_Items.end())
 		return items;
 
+	items.reserve(it->second.size());
+
 	for (const ItemMap::value_type& kv : it->second)
 	{
 		items.push_back(kv.second);
@@ -664,15 +671,16 @@ std::vector<ConfigItem::Ptr> ConfigItem::GetDefaultTemplates(const String& type)
 
 	boost::mutex::scoped_lock lock(m_Mutex);
 
-	auto it = m_Items.find(type);
+	auto it = m_DefaultTemplates.find(type);
 
-	if (it == m_Items.end())
+	if (it == m_DefaultTemplates.end())
 		return items;
+
+	items.reserve(it->second.size());
 
 	for (const ItemMap::value_type& kv : it->second)
 	{
-		if (kv.second->IsDefaultTemplate())
-			items.push_back(kv.second);
+		items.push_back(kv.second);
 	}
 
 	return items;
