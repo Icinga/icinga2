@@ -114,9 +114,6 @@ private:
 	ConfigObject::Ptr Commit(bool discard = true);
 
 	static bool CommitNewItems(const ActivationContext::Ptr& context, WorkQueue& upq, std::vector<ConfigItem::Ptr>& newItems);
-
-	void OnAllConfigLoadedHelper(void);
-	void CreateChildObjectsHelper(const Type::Ptr& type);
 };
 
 }

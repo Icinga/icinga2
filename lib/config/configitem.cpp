@@ -384,35 +384,6 @@ ConfigItem::Ptr ConfigItem::GetByTypeAndName(const String& type, const String& n
 	return it2->second;
 }
 
-void ConfigItem::OnAllConfigLoadedHelper(void)
-{
-	try {
-		m_Object->OnAllConfigLoaded();
-	} catch (const std::exception& ex) {
-		if (m_IgnoreOnError) {
-			Log(LogNotice, "ConfigObject")
-			    << "Ignoring config object '" << m_Name << "' of type '" << m_Type << "' due to errors: " << DiagnosticInformation(ex);
-
-			Unregister();
-
-			{
-				boost::mutex::scoped_lock lock(m_Mutex);
-				m_IgnoredItems.push_back(m_DebugInfo.Path);
-			}
-
-			return;
-		}
-
-		throw;
-	}
-}
-
-void ConfigItem::CreateChildObjectsHelper(const Type::Ptr& type)
-{
-	ActivationScope ascope(m_ActivationContext);
-	m_Object->CreateChildObjects(type);
-}
-
 bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue& upq, std::vector<ConfigItem::Ptr>& newItems)
 {
 	typedef std::pair<ConfigItem::Ptr, bool> ItemPair;
@@ -455,7 +426,9 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 
 	for (const ItemPair& ip : items) {
 		newItems.push_back(ip.first);
-		upq.Enqueue(boost::bind(&ConfigItem::Commit, ip.first, ip.second));
+		upq.Enqueue([&]() {
+			ip.first->Commit(ip.second);
+		});
 	}
 
 	upq.Join();
@@ -497,8 +470,29 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 				if (!item->m_Object)
 					continue;
 
-				if (item->m_Type == type)
-					upq.Enqueue(boost::bind(&ConfigItem::OnAllConfigLoadedHelper, item));
+				if (item->m_Type == type) {
+					upq.Enqueue([&]() {
+						try {
+							item->m_Object->OnAllConfigLoaded();
+						} catch (const std::exception& ex) {
+							if (item->m_IgnoreOnError) {
+								Log(LogNotice, "ConfigObject")
+								    << "Ignoring config object '" << item->m_Name << "' of type '" << item->m_Type << "' due to errors: " << DiagnosticInformation(ex);
+
+								item->Unregister();
+
+								{
+									boost::mutex::scoped_lock lock(item->m_Mutex);
+									item->m_IgnoredItems.push_back(item->m_DebugInfo.Path);
+								}
+
+								return;
+							}
+
+							throw;
+						}
+					});
+				}
 			}
 
 			completed_types.insert(type);
@@ -515,8 +509,12 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 					if (!item->m_Object)
 						continue;
 
-					if (item->m_Type == loadDep)
-						upq.Enqueue(boost::bind(&ConfigItem::CreateChildObjectsHelper, item, ptype));
+					if (item->m_Type == loadDep) {
+						upq.Enqueue([&]() {
+							ActivationScope ascope(item->m_ActivationContext);
+							item->m_Object->CreateChildObjects(ptype);
+						});
+					}
 				}
 			}
 

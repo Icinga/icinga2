@@ -64,7 +64,7 @@ String WorkQueue::GetName(void) const
  * allowInterleaved is true in which case the new task might be run
  * immediately if it's being enqueued from within the WorkQueue thread.
  */
-void WorkQueue::Enqueue(const boost::function<void (void)>& function, WorkQueuePriority priority,
+void WorkQueue::Enqueue(boost::function<void (void)>&& function, WorkQueuePriority priority,
     bool allowInterleaved)
 {
 	bool wq_thread = IsWorkerThread();
@@ -93,7 +93,7 @@ void WorkQueue::Enqueue(const boost::function<void (void)>& function, WorkQueueP
 			m_CVFull.wait(lock);
 	}
 
-	m_Tasks.push(Task(function, priority, ++m_NextTaskID));
+	m_Tasks.emplace(std::move(function), priority, ++m_NextTaskID);
 
 	m_CVEmpty.notify_one();
 }
