@@ -102,8 +102,6 @@ public:
 
 	static inline Value FunctionCall(ScriptFrame& frame, const Value& self, const Function::Ptr& func, const std::vector<Value>& arguments)
 	{
-		ScriptFrame vframe;
-		
 		if (!self.IsEmpty() || self.IsString())
 			return func->Invoke(self, arguments);
 		else
