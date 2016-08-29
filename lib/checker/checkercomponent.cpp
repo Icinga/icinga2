@@ -193,6 +193,8 @@ void CheckerComponent::CheckThreadProc(void)
 		Log(LogDebug, "CheckerComponent")
 		    << "Executing check for '" << checkable->GetName() << "'";
 
+		Checkable::IncreasePendingChecks();
+
 		Utility::QueueAsyncCallback(boost::bind(&CheckerComponent::ExecuteCheckHelper, CheckerComponent::Ptr(this), checkable));
 
 		lock.lock();
@@ -220,6 +222,8 @@ void CheckerComponent::ExecuteCheckHelper(const Checkable::Ptr& checkable)
 
 		Log(LogCritical, "checker", output);
 	}
+
+	Checkable::DecreasePendingChecks();
 
 	{
 		boost::mutex::scoped_lock lock(m_Mutex);
