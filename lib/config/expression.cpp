@@ -485,7 +485,7 @@ ExpressionResult DictExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint
 
 	try {
 		for (Expression *aexpr : m_Expressions) {
-			ExpressionResult element = aexpr->Evaluate(frame, dhint);
+			ExpressionResult element = aexpr->Evaluate(frame, m_Inline ? dhint : NULL);
 			CHECK_RESULT(element);
 			result = element.GetValue();
 		}
