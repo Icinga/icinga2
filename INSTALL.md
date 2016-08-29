@@ -18,13 +18,13 @@ The following requirements need to be fulfilled in order to build the
 application using a dist tarball (package names for RHEL and Debian in
 parentheses):
 
-* cmake
+* cmake >= 2.6
 * GNU make (make)
-* C++ compiler (gcc-c++ >= 4.7 on RHEL/SUSE, build-essential on Debian, alternatively clang++)
+* C++ compiler which supports C++11 (gcc-c++ >= 4.7 on RHEL/SUSE, build-essential on Debian, alternatively clang++)
 * pkg-config
 * OpenSSL library and header files >= 0.9.8 (openssl-devel on RHEL, libopenssl1-devel on SLES11,
 libopenssl-devel on SLES12, libssl-dev on Debian)
-* Boost library and header files (boost-devel on RHEL, libboost-all-dev on Debian)
+* Boost library and header files >= 1.41.0 (boost-devel on RHEL, libboost-all-dev on Debian)
 * GNU bison (bison)
 * GNU flex (flex) >= 2.5.35
 * recommended: libexecinfo on FreeBSD (automatically used when Icinga 2 is
