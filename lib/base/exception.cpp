@@ -29,6 +29,51 @@ static boost::thread_specific_ptr<StackTrace> l_LastExceptionStack;
 static boost::thread_specific_ptr<ContextTrace> l_LastExceptionContext;
 
 #ifdef HAVE_CXXABI_H
+
+#ifdef _LIBCPPABI_VERSION
+class libcxx_type_info : public std::type_info
+{
+public:
+	virtual ~libcxx_type_info();
+
+	virtual void noop1() const;
+	virtual void noop2() const;
+	virtual bool can_catch(const libcxx_type_info *thrown_type, void *&adjustedPtr) const = 0;
+};
+#endif /* _LIBCPPABI_VERSION */
+
+
+#if defined(__GLIBCXX__) || defined(_LIBCPPABI_VERSION)
+inline void *cast_exception(void *obj, const std::type_info *src, const std::type_info *dst)
+{
+#ifdef __GLIBCXX__
+	void *thrown_ptr = obj;
+
+	/* Check if the exception is a pointer type. */
+	if (src->__is_pointer_p())
+		thrown_ptr = *(void **)thrown_ptr;
+
+	if (dst->__do_catch(src, &thrown_ptr, 1))
+		return thrown_ptr;
+	else
+		return NULL;
+#else /* __GLIBCXX__ */
+	const libcxx_type_info *srcInfo = static_cast<const libcxx_type_info *>(src);
+	const libcxx_type_info *dstInfo = static_cast<const libcxx_type_info *>(dst);
+
+	void *adj = obj;
+
+	if (dstInfo->can_catch(srcInfo, adj))
+		return adj;
+	else
+		return NULL;
+#endif /* __GLIBCXX__ */
+
+}
+#else /* defined(__GLIBCXX__) || defined(_LIBCPPABI_VERSION) */
+#define NO_CAST_EXCEPTION
+#endif /* defined(__GLIBCXX__) || defined(_LIBCPPABI_VERSION) */
+
 #	if __clang_major__ > 3 || (__clang_major__ == 3 && __clang_minor__ > 3)
 #		define TYPEINFO_TYPE std::type_info
 #	else
@@ -41,15 +86,14 @@ static boost::thread_specific_ptr<TYPEINFO_TYPE *> l_LastExceptionPvtInfo;
 
 typedef void (*DestCallback)(void *);
 static boost::thread_specific_ptr<DestCallback> l_LastExceptionDest;
-
-extern "C" void __cxa_throw(void *obj, TYPEINFO_TYPE *pvtinfo, void (*dest)(void *));
-extern "C" void __cxa_rethrow_primary_exception(void* thrown_object);
 #	endif /* !__GLIBCXX__ && !_WIN32 */
+
+extern "C" I2_EXPORT void __cxa_throw(void *obj, TYPEINFO_TYPE *pvtinfo, void (*dest)(void *));
 #endif /* HAVE_CXXABI_H */
 
 void icinga::RethrowUncaughtException(void)
 {
-#if defined(__GLIBCXX__) || !defined(HAVE_CXXABI_H)
+#if defined(__GLIBCXX__) && !defined(_WIN32)
 	throw;
 #else /* __GLIBCXX__ || _WIN32 */
 	__cxa_throw(*l_LastExceptionObj.get(), *l_LastExceptionPvtInfo.get(), *l_LastExceptionDest.get());
@@ -65,45 +109,37 @@ void __cxa_throw(void *obj, TYPEINFO_TYPE *pvtinfo, void (*dest)(void *))
 	typedef void (*cxa_throw_fn)(void *, std::type_info *, void (*)(void *)) __attribute__((noreturn));
 	static cxa_throw_fn real_cxa_throw;
 
-#ifndef __GLIBCXX__
+#if !defined(__GLIBCXX__) && !defined(_WIN32)
 	l_LastExceptionObj.reset(new void *(obj));
 	l_LastExceptionPvtInfo.reset(new TYPEINFO_TYPE *(pvtinfo));
 	l_LastExceptionDest.reset(new DestCallback(dest));
-#endif /* __GLIBCXX__ */
+#endif /* !defined(__GLIBCXX__) && !defined(_WIN32) */
 
 	if (real_cxa_throw == 0)
 		real_cxa_throw = (cxa_throw_fn)dlsym(RTLD_NEXT, "__cxa_throw");
 
-#ifdef __GLIBCXX__
-	void *thrown_ptr = obj;
-	const std::type_info *boost_exc = &typeid(boost::exception);
-	const std::type_info *user_exc = &typeid(user_error);
+#ifndef NO_CAST_EXCEPTION
+	void *uex = cast_exception(obj, tinfo, &typeid(user_error));
+	boost::exception *ex = reinterpret_cast<boost::exception *>(cast_exception(obj, tinfo, &typeid(boost::exception)));
 
-	/* Check if the exception is a pointer type. */
-	if (tinfo->__is_pointer_p())
-		thrown_ptr = *(void **)thrown_ptr;
-
-	if (!user_exc->__do_catch(tinfo, &thrown_ptr, 1)) {
-#endif /* __GLIBCXX__ */
+	if (!uex) {
+#endif /* NO_CAST_EXCEPTION */
 		StackTrace stack;
 		SetLastExceptionStack(stack);
 
-		ContextTrace context;
-		SetLastExceptionContext(context);
-
-#ifdef __GLIBCXX__
-		/* Check if thrown_ptr inherits from boost::exception. */
-		if (boost_exc->__do_catch(tinfo, &thrown_ptr, 1)) {
-			boost::exception *ex = (boost::exception *)thrown_ptr;
-
-			if (boost::get_error_info<StackTraceErrorInfo>(*ex) == NULL)
-				*ex << StackTraceErrorInfo(stack);
-
-			if (boost::get_error_info<ContextTraceErrorInfo>(*ex) == NULL)
-				*ex << ContextTraceErrorInfo(context);
-		}
+#ifndef NO_CAST_EXCEPTION
+		if (ex && boost::get_error_info<StackTraceErrorInfo>(*ex) == NULL)
+			*ex << StackTraceErrorInfo(stack);
 	}
-#endif /* __GLIBCXX__ */
+#endif /* NO_CAST_EXCEPTION */
+
+	ContextTrace context;
+	SetLastExceptionContext(context);
+
+#ifndef NO_CAST_EXCEPTION
+	if (ex && boost::get_error_info<ContextTraceErrorInfo>(*ex) == NULL)
+		*ex << ContextTraceErrorInfo(context);
+#endif /* NO_CAST_EXCEPTION */
 
 	real_cxa_throw(obj, tinfo, dest);
 }
@@ -205,16 +241,16 @@ String icinga::DiagnosticInformation(const std::exception& ex, bool verbose, Sta
 				result << *stack;
 
 		}
+	}
 
-		if (boost::get_error_info<ContextTraceErrorInfo>(ex) == NULL) {
-			result << std::endl;
+	if (boost::get_error_info<ContextTraceErrorInfo>(ex) == NULL) {
+		result << std::endl;
 
-			if (!context)
-				context = GetLastExceptionContext();
+		if (!context)
+			context = GetLastExceptionContext();
 
-			if (context)
-				result << *context;
-		}
+		if (context)
+			result << *context;
 	}
 
 	return result.str();
