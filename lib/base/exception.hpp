@@ -29,11 +29,11 @@
 #include "base/dictionary.hpp"
 #include "base/configobject.hpp"
 #include <sstream>
+#include <exception>
 #include <boost/exception/errinfo_api_function.hpp>
 #include <boost/exception/errinfo_errno.hpp>
 #include <boost/exception/errinfo_file_name.hpp>
 #include <boost/exception/diagnostic_information.hpp>
-#include <boost/exception_ptr.hpp>
 
 #ifdef _WIN32
 #	include <boost/algorithm/string/trim.hpp>
@@ -121,7 +121,7 @@ inline std::string to_string(const ContextTraceErrorInfo& e)
 }
 
 I2_BASE_API String DiagnosticInformation(const std::exception& ex, bool verbose = true, StackTrace *stack = NULL, ContextTrace *context = NULL);
-I2_BASE_API String DiagnosticInformation(boost::exception_ptr eptr, bool verbose = true);
+I2_BASE_API String DiagnosticInformation(std::exception_ptr eptr, bool verbose = true);
 
 class I2_BASE_API posix_error : virtual public std::exception, virtual public boost::exception {
 public:

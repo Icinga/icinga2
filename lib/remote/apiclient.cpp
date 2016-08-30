@@ -53,7 +53,7 @@ void ApiClient::GetTypes(const TypesCompletionCallback& callback) const
 		req->AddHeader("Accept", "application/json");
 		m_Connection->SubmitRequest(req, boost::bind(TypesHttpCompletionCallback, _1, _2, callback));
 	} catch (const std::exception& ex) {
-		callback(boost::current_exception(), std::vector<ApiType::Ptr>());
+		callback(std::current_exception(), std::vector<ApiType::Ptr>());
 	}
 }
 
@@ -94,11 +94,11 @@ void ApiClient::TypesHttpCompletionCallback(HttpRequest& request, HttpResponse& 
 			types.push_back(type);
 		}
 
-		callback(boost::exception_ptr(), types);
+		callback(std::exception_ptr(), types);
 	} catch (const std::exception& ex) {
 		Log(LogCritical, "ApiClient")
 		    << "Error while decoding response: " << DiagnosticInformation(ex);
-		callback(boost::current_exception(), std::vector<ApiType::Ptr>());
+		callback(std::current_exception(), std::vector<ApiType::Ptr>());
 	}
 
 }
@@ -143,7 +143,7 @@ void ApiClient::GetObjects(const String& pluralType, const ObjectsCompletionCall
 		req->AddHeader("Accept", "application/json");
 		m_Connection->SubmitRequest(req, boost::bind(ObjectsHttpCompletionCallback, _1, _2, callback));
 	} catch (const std::exception& ex) {
-		callback(boost::current_exception(), std::vector<ApiObject::Ptr>());
+		callback(std::current_exception(), std::vector<ApiObject::Ptr>());
 	}
 }
 
@@ -221,11 +221,11 @@ void ApiClient::ObjectsHttpCompletionCallback(HttpRequest& request,
 			}
 		}
 
-		callback(boost::exception_ptr(), objects);
+		callback(std::exception_ptr(), objects);
 	} catch (const std::exception& ex) {
 		Log(LogCritical, "ApiClient")
 			<< "Error while decoding response: " << DiagnosticInformation(ex);
-		callback(boost::current_exception(), std::vector<ApiObject::Ptr>());
+		callback(std::current_exception(), std::vector<ApiObject::Ptr>());
 	}
 }
 
@@ -257,7 +257,7 @@ void ApiClient::ExecuteScript(const String& session, const String& command, bool
 		req->AddHeader("Accept", "application/json");
 		m_Connection->SubmitRequest(req, boost::bind(ExecuteScriptHttpCompletionCallback, _1, _2, callback));
 	} catch (const std::exception& ex) {
-		callback(boost::current_exception(), Empty);
+		callback(std::current_exception(), Empty);
 	}
 }
 
@@ -307,9 +307,9 @@ void ApiClient::ExecuteScriptHttpCompletionCallback(HttpRequest& request,
 			}
 		}
 
-		callback(boost::exception_ptr(), result);
+		callback(std::exception_ptr(), result);
 	} catch (const std::exception& ex) {
-		callback(boost::current_exception(), Empty);
+		callback(std::current_exception(), Empty);
 	}
 }
 
@@ -341,7 +341,7 @@ void ApiClient::AutocompleteScript(const String& session, const String& command,
 		req->AddHeader("Accept", "application/json");
 		m_Connection->SubmitRequest(req, boost::bind(AutocompleteScriptHttpCompletionCallback, _1, _2, callback));
 	} catch (const std::exception& ex) {
-		callback(boost::current_exception(), Array::Ptr());
+		callback(std::current_exception(), Array::Ptr());
 	}
 }
 
@@ -380,8 +380,8 @@ void ApiClient::AutocompleteScriptHttpCompletionCallback(HttpRequest& request,
 				BOOST_THROW_EXCEPTION(ScriptError(errorMessage));
 		}
 
-		callback(boost::exception_ptr(), suggestions);
+		callback(std::exception_ptr(), suggestions);
 	} catch (const std::exception& ex) {
-		callback(boost::current_exception(), Array::Ptr());
+		callback(std::current_exception(), Array::Ptr());
 	}
 }

@@ -49,7 +49,7 @@ MainForm::MainForm(wxWindow *parent, const Url::Ptr& url)
 	m_PropertyGrid->SetColumnCount(3);
 }
 
-void MainForm::TypesCompletionHandler(boost::exception_ptr eptr, const std::vector<ApiType::Ptr>& types, bool forward)
+void MainForm::TypesCompletionHandler(std::exception_ptr eptr, const std::vector<ApiType::Ptr>& types, bool forward)
 {
 	if (forward) {
 		CallAfter(boost::bind(&MainForm::TypesCompletionHandler, this, eptr, types, false));
@@ -60,7 +60,7 @@ void MainForm::TypesCompletionHandler(boost::exception_ptr eptr, const std::vect
 
 	if (eptr) {
 		try {
-			boost::rethrow_exception(eptr);
+			std::rethrow_exception(eptr);
 		} catch (const std::exception& ex) {
 			std::string message = "HTTP query failed: " + std::string(ex.what());
 			wxMessageBox(message, "Icinga Studio", wxOK | wxCENTRE | wxICON_ERROR, this);
@@ -122,7 +122,7 @@ static bool ApiObjectLessComparer(const ApiObject::Ptr& o1, const ApiObject::Ptr
 	return o1->Name < o2->Name;
 }
 
-void MainForm::ObjectsCompletionHandler(boost::exception_ptr eptr, const std::vector<ApiObject::Ptr>& objects, bool forward)
+void MainForm::ObjectsCompletionHandler(std::exception_ptr eptr, const std::vector<ApiObject::Ptr>& objects, bool forward)
 {
 	if (forward) {
 		CallAfter(boost::bind(&MainForm::ObjectsCompletionHandler, this, eptr, objects, false));
@@ -134,7 +134,7 @@ void MainForm::ObjectsCompletionHandler(boost::exception_ptr eptr, const std::ve
 
 	if (eptr) {
 		try {
-			boost::rethrow_exception(eptr);
+			std::rethrow_exception(eptr);
 		} catch (const std::exception& ex) {
 			std::string message = "HTTP query failed: " + std::string(ex.what());
 			wxMessageBox(message, "Icinga Studio", wxOK | wxCENTRE | wxICON_ERROR, this);
@@ -236,7 +236,7 @@ wxPGProperty *MainForm::ValueToProperty(const String& name, const Value& value)
 	}
 }
 
-void MainForm::ObjectDetailsCompletionHandler(boost::exception_ptr eptr, const std::vector<ApiObject::Ptr>& objects, bool forward)
+void MainForm::ObjectDetailsCompletionHandler(std::exception_ptr eptr, const std::vector<ApiObject::Ptr>& objects, bool forward)
 {
 	if (forward) {
 		CallAfter(boost::bind(&MainForm::ObjectDetailsCompletionHandler, this, eptr, objects, false));
@@ -247,7 +247,7 @@ void MainForm::ObjectDetailsCompletionHandler(boost::exception_ptr eptr, const s
 
 	if (eptr) {
 		try {
-			boost::rethrow_exception(eptr);
+			std::rethrow_exception(eptr);
 		} catch (const std::exception& ex) {
 			std::string message = "HTTP query failed: " + std::string(ex.what());
 			wxMessageBox(message, "Icinga Studio", wxOK | wxCENTRE | wxICON_ERROR, this);

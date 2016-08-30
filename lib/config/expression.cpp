@@ -28,8 +28,6 @@
 #include "base/exception.hpp"
 #include "base/scriptglobal.hpp"
 #include "base/loader.hpp"
-#include <boost/exception_ptr.hpp>
-#include <boost/exception/errinfo_nested_exception.hpp>
 
 using namespace icinga;
 
@@ -72,8 +70,7 @@ ExpressionResult Expression::Evaluate(ScriptFrame& frame, DebugHint *dhint) cons
 	} catch (const std::exception& ex) {
 		frame.DecreaseStackDepth();
 
-		BOOST_THROW_EXCEPTION(ScriptError("Error while evaluating expression: " + String(ex.what()), GetDebugInfo())
-		    << boost::errinfo_nested_exception(boost::current_exception()));
+		BOOST_THROW_EXCEPTION(ScriptError("Error while evaluating expression: " + String(ex.what()), GetDebugInfo()));
 	}
 
 	frame.DecreaseStackDepth();

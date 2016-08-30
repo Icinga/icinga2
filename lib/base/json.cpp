@@ -23,11 +23,11 @@
 #include "base/array.hpp"
 #include "base/objectlock.hpp"
 #include "base/convert.hpp"
-#include <boost/exception_ptr.hpp>
 #include <yajl/yajl_version.h>
 #include <yajl/yajl_gen.h>
 #include <yajl/yajl_parse.h>
 #include <stack>
+#include <exception>
 
 using namespace icinga;
 
@@ -188,19 +188,19 @@ public:
 
 	void SaveException(void)
 	{
-		m_Exception = boost::current_exception();
+		m_Exception = std::current_exception();
 	}
 
 	void ThrowException(void) const
 	{
 		if (m_Exception)
-			boost::rethrow_exception(m_Exception);
+			std::rethrow_exception(m_Exception);
 	}
 
 private:
 	std::stack<JsonElement> m_Stack;
 	Value m_Key;
-	boost::exception_ptr m_Exception;
+	std::exception_ptr m_Exception;
 };
 
 static int DecodeNull(void *ctx)
