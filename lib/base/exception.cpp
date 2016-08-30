@@ -243,7 +243,11 @@ String icinga::DiagnosticInformation(const std::exception& ex, bool verbose, Sta
 		}
 	}
 
-	if (boost::get_error_info<ContextTraceErrorInfo>(ex) == NULL) {
+	const ContextTrace *ct = boost::get_error_info<ContextTraceErrorInfo>(ex);
+
+	if (ct) {
+		result << *ct;
+	} else {
 		result << std::endl;
 
 		if (!context)
