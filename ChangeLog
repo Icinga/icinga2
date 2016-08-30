@@ -4,6 +4,12 @@ Please check [doc/1-about.md].
 
 ## What's New
 
+### What's New in Version 2.5.4
+
+#### Bugfixes
+
+* Bug 11932 (Checker): many check commands executed at same time when master reload
+
 ### What's New in Version 2.5.3
 
 #### Changes

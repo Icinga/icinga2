@@ -2,6 +2,10 @@
 
 Print this document.
 
+Specify the release version.
+
+    VERSION=2.5.4
+
 ## Issues
 
 Check the following issue filters:
@@ -12,9 +16,9 @@ Check the following issue filters:
 ## Backport Commits
 
     $ git checkout master
-    $ ./pick.py -V 2.5.3
+    $ ./pick.py -V $VERSION
 
-The script creates a new branch 'auto-merged-2.5.3' which is based on the
+The script creates a new branch 'auto-merged-<VERSION>' which is based on the
 current support branch. It then merges all commits from the 'master' branch which
 reference a ticket for the version that was specified.
 
@@ -43,6 +47,12 @@ Update the version number in the following files:
 * [icinga2.nuspec]: <version>(.*)</version>
 * [tools/chocolateyInstall.ps1]: Icinga2-v(.*)-{x86,x86_64}.msi
 
+Example:
+
+    gsed -i "s/Version: .*/Version: $VERSION/g" icinga2.spec
+    gsed -i "s/<version>.*<\/version>/<version>$VERSION<\/version>/g" icinga2.nuspec
+    gsed -i "s/Icinga2-v.*-/Icinga2-v$VERSION-/g" tools/chocolateyInstall.ps1
+
 ## Changelog
 
 Update the [ChangeLog](ChangeLog), [doc/1-about.md](doc/1-about.md) files using
@@ -50,21 +60,21 @@ the changelog.py script. Also generate HTML for the wordpress release announceme
 
 Changelog:
 
-    $ ./changelog.py -V 2.5.0
+    $ ./changelog.py -V $VERSION
 
 Docs:
 
-    $ ./changelog.py -V 2.5.0 -l
+    $ ./changelog.py -V $VERSION -l
 
 Wordpress:
 
-    $ ./changelog.py -V 2.5.0 -H -l
+    $ ./changelog.py -V $VERSION -H -l
 
 ## Git Tag
 
 Commit these changes to the "master" branch:
 
-    $ git commit -v -a -m "Release version <VERSION>"
+    $ git commit -v -a -m "Release version $VERSION"
 
 For minor releases: Cherry-pick this commit into the "support" branch.
 
@@ -73,11 +83,11 @@ releases) or the "support" branch (for minor releases).
 
 GB:
 
-    $ git tag -u EE8E0720 -m "Version <VERSION>" v<VERSION>
+    $ git tag -u EE8E0720 -m "Version $VERSION" v$VERSION
 
 MF:
 
-    $ git tag -u D14A1F16 -m "Version <VERSION>" v<VERSION>
+    $ git tag -u D14A1F16 -m "Version $VERSION" v$VERSION
 
 Push the tag.
 
@@ -141,7 +151,7 @@ Create the nupkg package:
 
 Install the created icinga2 package locally:
 
-    choco install icinga2 -version 2.5.3 -fdv "%cd%" -source "'%cd%;https://chocolatey.org/api/v2/'"
+    choco install icinga2 -version 2.5.4 -fdv "%cd%" -source "'%cd%;https://chocolatey.org/api/v2/'"
 
 Upload the package to [chocolatey](https://chocolatey.org/packages/upload).
 
