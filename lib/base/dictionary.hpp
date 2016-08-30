@@ -47,7 +47,7 @@ public:
 
 	typedef std::map<String, Value>::size_type SizeType;
 
-	typedef std::pair<String, Value> Pair;
+	typedef std::map<String, Value>::value_type Pair;
 
 	inline Dictionary(void)
 	{ }
