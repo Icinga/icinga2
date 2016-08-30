@@ -54,6 +54,12 @@ More details in the [Icinga FAQ](https://www.icinga.org/icinga/faq/).
 
 ## <a id="whats-new"></a> What's New
 
+### What's New in Version 2.5.4
+
+#### Bugfixes
+
+* Bug [11932](https://dev.icinga.org/issues/11932 "Bug 11932") (Checker): many check commands executed at same time when master reload
+
 ### What's New in Version 2.5.3
 
 #### Changes
