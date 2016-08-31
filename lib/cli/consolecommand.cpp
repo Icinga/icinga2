@@ -378,7 +378,7 @@ incomplete:
 				boost::mutex mutex;
 				boost::condition_variable cv;
 				bool ready = false;
-				std::exception_ptr eptr;
+				boost::exception_ptr eptr;
 
 				l_ApiClient->ExecuteScript(l_Session, command, scriptFrame.Sandboxed,
 				    boost::bind(&ConsoleCommand::ExecuteScriptCompletionHandler,
@@ -393,7 +393,7 @@ incomplete:
 				}
 
 				if (eptr)
-					std::rethrow_exception(eptr);
+					boost::rethrow_exception(eptr);
 			}
 
 			if (commandOnce.IsEmpty()) {
@@ -466,13 +466,13 @@ incomplete:
 }
 
 void ConsoleCommand::ExecuteScriptCompletionHandler(boost::mutex& mutex, boost::condition_variable& cv,
-    bool& ready, std::exception_ptr eptr, const Value& result, Value& resultOut, std::exception_ptr& eptrOut)
+    bool& ready, boost::exception_ptr eptr, const Value& result, Value& resultOut, boost::exception_ptr& eptrOut)
 {
 	if (eptr) {
 		try {
-			std::rethrow_exception(eptr);
+			boost::rethrow_exception(eptr);
 		} catch (const ScriptError& ex) {
-			eptrOut = std::current_exception();
+			eptrOut = boost::current_exception();
 		} catch (const std::exception& ex) {
 			Log(LogCritical, "ConsoleCommand")
 			    << "HTTP query failed: " << ex.what();
@@ -490,11 +490,11 @@ void ConsoleCommand::ExecuteScriptCompletionHandler(boost::mutex& mutex, boost::
 }
 
 void ConsoleCommand::AutocompleteScriptCompletionHandler(boost::mutex& mutex, boost::condition_variable& cv,
-    bool& ready, std::exception_ptr eptr, const Array::Ptr& result, Array::Ptr& resultOut)
+    bool& ready, boost::exception_ptr eptr, const Array::Ptr& result, Array::Ptr& resultOut)
 {
 	if (eptr) {
 		try {
-			std::rethrow_exception(eptr);
+			boost::rethrow_exception(eptr);
 		} catch (const std::exception& ex) {
 			Log(LogCritical, "ConsoleCommand")
 			    << "HTTP query failed: " << ex.what();

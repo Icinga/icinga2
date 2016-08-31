@@ -109,7 +109,7 @@ void IdoPgsqlConnection::Pause(void)
 	m_QueryQueue.Join();
 }
 
-void IdoPgsqlConnection::ExceptionHandler(std::exception_ptr exp)
+void IdoPgsqlConnection::ExceptionHandler(boost::exception_ptr exp)
 {
 	Log(LogWarning, "IdoPgsqlConnection", "Exception during database operation: Verify that your database is operational!");
 

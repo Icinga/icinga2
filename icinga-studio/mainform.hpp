@@ -42,9 +42,9 @@ private:
 	ApiClient::Ptr m_ApiClient;
 	std::map<String, ApiType::Ptr> m_Types;
 
-	void TypesCompletionHandler(std::exception_ptr eptr, const std::vector<ApiType::Ptr>& types, bool forward);
-	void ObjectsCompletionHandler(std::exception_ptr eptr, const std::vector<ApiObject::Ptr>& objects, bool forward);
-	void ObjectDetailsCompletionHandler(std::exception_ptr eptr, const std::vector<ApiObject::Ptr>& objects, bool forward);
+	void TypesCompletionHandler(boost::exception_ptr eptr, const std::vector<ApiType::Ptr>& types, bool forward);
+	void ObjectsCompletionHandler(boost::exception_ptr eptr, const std::vector<ApiObject::Ptr>& objects, bool forward);
+	void ObjectDetailsCompletionHandler(boost::exception_ptr eptr, const std::vector<ApiObject::Ptr>& objects, bool forward);
 
 	wxPGProperty *ValueToProperty(const String& name, const Value& value);
 };

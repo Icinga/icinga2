@@ -260,7 +260,7 @@ String icinga::DiagnosticInformation(const std::exception& ex, bool verbose, Sta
 	return result.str();
 }
 
-String icinga::DiagnosticInformation(std::exception_ptr eptr, bool verbose)
+String icinga::DiagnosticInformation(boost::exception_ptr eptr, bool verbose)
 {
 	StackTrace *pt = GetLastExceptionStack();
 	StackTrace stack;
@@ -275,7 +275,7 @@ String icinga::DiagnosticInformation(std::exception_ptr eptr, bool verbose)
 		context = *pc;
 
 	try {
-		std::rethrow_exception(eptr);
+		boost::rethrow_exception(eptr);
 	} catch (const std::exception& ex) {
 		return DiagnosticInformation(ex, verbose, pt ? &stack : NULL, pc ? &context : NULL);
 	}

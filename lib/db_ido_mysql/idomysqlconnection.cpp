@@ -105,7 +105,7 @@ void IdoMysqlConnection::Pause(void)
 	m_QueryQueue.Join();
 }
 
-void IdoMysqlConnection::ExceptionHandler(std::exception_ptr exp)
+void IdoMysqlConnection::ExceptionHandler(boost::exception_ptr exp)
 {
 	Log(LogCritical, "IdoMysqlConnection", "Exception during database operation: Verify that your database is operational!");
 

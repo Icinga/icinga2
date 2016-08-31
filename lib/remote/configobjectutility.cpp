@@ -143,7 +143,7 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 					    << boost::errinfo_file_name(path));
 				}
 
-				for (const std::exception_ptr& ex : upq.GetExceptions()) {
+				for (const boost::exception_ptr& ex : upq.GetExceptions()) {
 					errors->Add(DiagnosticInformation(ex));
 				}
 			}
