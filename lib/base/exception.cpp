@@ -93,11 +93,11 @@ extern "C" I2_EXPORT void __cxa_throw(void *obj, TYPEINFO_TYPE *pvtinfo, void (*
 
 void icinga::RethrowUncaughtException(void)
 {
-#if defined(__GLIBCXX__) && !defined(_WIN32)
+#if defined(__GLIBCXX__) || !defined(HAVE_CXXABI_H)
 	throw;
-#else /* __GLIBCXX__ || _WIN32 */
+#else /* __GLIBCXX__ || !HAVE_CXXABI_H */
 	__cxa_throw(*l_LastExceptionObj.get(), *l_LastExceptionPvtInfo.get(), *l_LastExceptionDest.get());
-#endif /* __GLIBCXX__ || _WIN32 */
+#endif /* __GLIBCXX__ || !HAVE_CXXABI_H */
 }
 
 #ifdef HAVE_CXXABI_H
