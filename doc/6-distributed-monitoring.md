@@ -290,12 +290,17 @@ object with at least the `actions/generate-ticket`.
 
     [root@icinga2-master1.localdomain /]# systemctl restart icinga2
 
-Retrieve the ticket on the client node `icinga2-client1.localdomain`  with `curl`, for example:
+Retrieve the ticket on the master node `icinga2-master1.localdomain` with `curl`, for example:
 
-     [root@icinga2-client1.localdomain /]# curl -k -s -u client-pki-ticket:bea11beb7b810ea9ce6ea -H 'Accept: application/json' \
+     [root@icinga2-master1.localdomain /]# curl -k -s -u client-pki-ticket:bea11beb7b810ea9ce6ea -H 'Accept: application/json' \
      -X POST 'https://icinga2-master1.localdomain:5665/v1/actions/generate-ticket' -d '{ "cn": "icinga2-client1.localdomain" }'
 
 Store that ticket number for the satellite/client setup below.
+
+**Note**: Never expose the ticket salt and/or ApiUser credentials to your client nodes.
+Example: Retrieve the ticket on the Puppet master node and send the compiled catalog
+to the authorized Puppet agent node which will invoke the
+[automated setup steps](6-distributed-monitoring.md#distributed-monitoring-automation-cli-node-setup).
 
 ### <a id="distributed-monitoring-setup-client-linux"></a> Client/Satellite Linux Setup
 
@@ -417,6 +422,9 @@ Requirements:
 
 The installer package includes the [NSClient++](http://www.nsclient.org/) so that Icinga 2 can
 use its built-in plugins. You can find more details in [this chapter](6-distributed-monitoring.md#distributed-monitoring-windows-nscp).
+The Windows package also installs native [monitoring plugin binaries](6-distributed-monitoring.md#distributed-monitoring-windows-plugins)
+to get you started more easily.
+
 
 ![Icinga 2 Windows Setup](images/distributed-monitoring/icinga2_windows_setup_installer_01.png)
 ![Icinga 2 Windows Setup](images/distributed-monitoring/icinga2_windows_setup_installer_02.png)
@@ -1139,7 +1147,7 @@ The zone hierarchy could look like this. It involves putting the two master node
     }
 
     object Endpoint "icinga2-master2.localdomain" {
-      host = "192.168.56.101"
+      host = "192.168.56.102"
     }
 
     object Endpoint "icinga2-client1.localdomain" {
@@ -1357,7 +1365,7 @@ using the `host` attribute.
     }
 
     object Endpoint "icinga2-master2.localdomain" {
-      host = "192.168.56.101"
+      host = "192.168.56.102"
     }
 
     object Endpoint "icinga2-satellite1.localdomain" {
@@ -1688,6 +1696,8 @@ Open Icinga Web 2 and check your newly added Windows disk check :)
 
 ![Icinga 2 Client Windows](images/distributed-monitoring/icinga2_distributed_windows_client_disk_icingaweb2.png)
 
+If you want to add your own plugins please check [this chapter](5-service-monitoring.md#service-monitoring-requirements)
+for the requirements.
 
 ### <a id="distributed-monitoring-windows-nscp"></a> Windows Client and NSClient++
 
@@ -1983,8 +1993,6 @@ These are collected best practices from various community channels.
 
 * [Silent Windows setup](6-distributed-monitoring.md#distributed-monitoring-automation-windows-silent)
 * [Node Setup CLI command](6-distributed-monitoring.md#distributed-monitoring-automation-cli-node-setup) with parameters
-* [Automation example with a Docker client](6-distributed-monitoring.md#distributed-monitoring-automation-client-docker)
-
 
 If you prefer an alternate method, we still recommend leaving all the Icinga 2 features intact (e.g. `icinga2 feature enable api`).
 You should also use well known and documented default configuration file locations (e.g. `zones.conf`).
@@ -2103,64 +2111,11 @@ Restart Icinga 2 afterwards:
 
     # service icinga2 restart
 
-**Optional**: If you don't want to deploy the configuration changes you can also
-only fetch the signed certificates. The `node setup` cli commands
-already includes that functionality with the default certificate
-location and file names.
-
-    [root@icinga2-client1.localdomain /]# icinga2 pki request --host icinga2-master1.localdomain \
-    --port 5665 \
-    --ticket ead2d570e18c78abf285d6b85524970a0f69c22d \
-    --key /etc/icinga2/pki/icinga2-client1.localdomain.key \
-    --cert /etc/icinga2/pki/icinga2-client1.localdomain.crt \
-    --trustedcert /etc/icinga2/pki/trusted-master.crt \
-    --ca /etc/icinga2/pki/ca.crt
-
-
-### <a id="distributed-monitoring-automation-client-docker"></a> Automation: Docker Client Example
-
-This example should show you how to automate the client setup
-in a few simple steps. You can use the gathered insights to create
-your own Docker containers, AWS instances, Foreman provisioned servers
-and of course inside your favorite automation tool (Puppet, Ansible, Chef, Salt, etc.).
-
-This requires the master node running and accepting connections on port `5665`.
-Furthermore the REST API is enabled and an ApiUser object with credentials has
-been configured already for [CSR auto-signing](6-distributed-monitoring.md#distributed-monitoring-setup-csr-auto-signing).
-
-Start the installation in a CentOS 7 Docker container.
-
-    $ docker run -ti centos bash
-
-    [root@d9598cce562d /]# yum install -y epel-release
-    [root@d9598cce562d /]# yum install -y http://packages.icinga.org/epel/7/release/noarch/icinga-rpm-release-7-1.el7.centos.noarch.rpm
-
-    [root@d9598cce562d /]# yum install -y icinga2 nagios-plugins-all
-
-    [root@d9598cce562d /]# mkdir -p /etc/icinga2/pki
-    [root@d9598cce562d /]# chown -R icinga:icinga /etc/icinga2/pki
-
-Generate a self-signed certificate for the initial requests.
-
-    [root@d9598cce562d /]# icinga2 pki new-cert --cn d9598cce562d --key /etc/icinga2/pki/d9598cce562d.key --cert /etc/icinga2/pki/d9598cce562d.crt
-
-Store the trusted master certificate.
-
-    [root@d9598cce562d /]# icinga2 pki save-cert --key /etc/icinga2/pki/d9598cce562d.key --cert /etc/icinga2/pki/d9598cce562d.crt --trustedcert /etc/icinga2/pki/trusted-master.crt --host 192.168.56.101
-
-Fetch the generated ticket number from the master's REST API.
-
-    [root@d9598cce562d /]# TICKET=$(curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://192.168.56.101:5665/v1/actions/generate-ticket?cn=d9598cce562d' | python -c 'import json,sys;obj=json.load(sys.stdin);print obj["results"][0]["ticket"]')
-
-Configure the client to actively connect to the master endpoint (`--endpoint icinga2-master1.localdomain,192.168.56.101`).
-
-    [root@d9598cce562d /]# icinga2 node setup --ticket $TICKET --endpoint icinga2-master1.localdomain,192.168.56.101 --zone d9598cce562d --master_host 192.168.56.101 --trustedcert /etc/icinga2/pki/trusted-master.crt  --accept-commands --accept-config
-
-You can find additional best practices below.
+**You can find additional best practices below.**
 
 Add an additional global zone. Please note the `>>` append mode.
 
-    [root@d9598cce562d /]# cat <<EOF >>/etc/icinga2/zones.conf
+    [root@icinga2-client1.localdomain /]# cat <<EOF >>/etc/icinga2/zones.conf
     object Zone "global-templates" {
       global = true
     }
@@ -2169,16 +2124,16 @@ Add an additional global zone. Please note the `>>` append mode.
 If this client node is configured as [remote command endpoint execution](6-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint)
 you can safely disable the `checker` feature. The `node setup` CLI command already disabled the `notification` feature.
 
-    [root@d9598cce562d /]# icinga2 feature disable checker
+    [root@icinga2-client1.localdomain /]# icinga2 feature disable checker
 
 Disable "conf.d" inclusion if this is a [top down](6-distributed-monitoring.md#distributed-monitoring-top-down)
 configured client.
 
-    [root@d9598cce562d /]# sed -i 's/include_recursive "conf.d"/\/\/include_recursive "conf.d"/g' /etc/icinga2/icinga2.conf
+    [root@icinga2-client1.localdomain /]# sed -i 's/include_recursive "conf.d"/\/\/include_recursive "conf.d"/g' /etc/icinga2/icinga2.conf
 
 **Optional**: Add an ApiUser object configuration for remote troubleshooting.
 
-    [root@d9598cce562d /]# cat <<EOF >/etc/icinga2/conf.d/api-users.conf
+    [root@icinga2-client1.localdomain /]# cat <<EOF >/etc/icinga2/conf.d/api-users.conf
     object ApiUser "root" {
       password = "clientsupersecretpassword"
       permissions = ["*"]
@@ -2188,24 +2143,22 @@ configured client.
 In case you've previously disabled the "conf.d" directory only
 add the file file `conf.d/api-users.conf`:
 
-    [root@d9598cce562d /]# echo 'include "conf.d/api-users.conf"' >> /etc/icinga2/icinga2.conf
+    [root@icinga2-client1.localdomain /]# echo 'include "conf.d/api-users.conf"' >> /etc/icinga2/icinga2.conf
 
-Finally start Icinga 2 inside Docker.
+Finally restart Icinga 2.
 
-    [root@d9598cce562d /]# /usr/lib/icinga2/prepare-dirs /etc/sysconfig/icinga2
-    [root@d9598cce562d /]# icinga2 daemon&
-
+    [root@icinga2-client1.localdomain /]# systemctl restart icinga2
 
 Your automation tool must then configure master node in the meantime.
 Add the global zone `global-templates` in case it did not exist.
 
     # cat <<EOF >>/etc/icinga2/zones.conf
-    object Endpoint "d9598cce562d" {
+    object Endpoint "icinga2-client1.localdomain" {
       //client connects itself
     }
 
-    object Zone "d9598cce562d" {
-      endpoints = [ "d9598cce562d" ]
+    object Zone "icinga2-client1.localdomain" {
+      endpoints = [ "icinga2-client1.localdomain" ]
       parent = "master"
     }
 
@@ -2213,25 +2166,3 @@ Add the global zone `global-templates` in case it did not exist.
       global = true
     }
     EOF
-
-Add a sample host check fired via command endpoint:
-
-    # vim /etc/icinga2/zones.d/master/docker.conf
-
-    object Host "d9598cce562d" {
-      check_command = "procs"
-      command_endpoint = "d9598cce562d"
-      check_interval = 5s
-      retry_interval = 1s
-    }
-
-Open Icinga Web 2 and enjoy the `procs` check. The Docker
-container has two processes: init and icinga2. The
-check source is `d9598cce562d` which means the check
-was executed inside the Docker client.
-
-![Icinga 2 Client Automation Docker](images/distributed-monitoring/icinga2_distributed_automation_docker_client_icingaweb2.png)
-
-**Note**: This is a volatile example using Docker. Build your own Docker
-container client using these examples.
-
