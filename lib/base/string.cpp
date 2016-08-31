@@ -29,10 +29,12 @@ REGISTER_BUILTIN_TYPE(String, String::GetPrototype());
 
 const String::SizeType String::NPos = std::string::npos;
 
+#ifndef _MSC_VER
 String::String(Value&& other)
 {
 	*this = std::move(other);
 }
+#endif /* _MSC_VER */
 
 String& String::operator=(Value&& other)
 {

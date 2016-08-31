@@ -85,7 +85,9 @@ public:
 		: m_Data(std::move(other.m_Data))
 	{ }
 
+#ifndef _MSC_VER
 	String(Value&& other);
+#endif /* _MSC_VER */
 
 	inline ~String(void)
 	{ }
