@@ -290,8 +290,6 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 	if (is_volatile && IsStateOK(old_state) && IsStateOK(new_state))
 		send_notification = false; /* Don't send notifications for volatile OK -> OK changes. */
 
-	SetLastInDowntime(in_downtime);
-
 	olock.Unlock();
 
 	if (remove_acknowledgement_comments)

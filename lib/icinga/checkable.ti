@@ -128,7 +128,6 @@ abstract class Checkable : CustomVarObject
 		default {{{ return Application::GetStartTime(); }}}
 	};
 	[state] Timestamp last_state_unreachable;
-	[state] bool last_in_downtime;
 	[state] bool force_next_check;
 	[state] int acknowledgement (AcknowledgementRaw) {
 		default {{{ return AcknowledgementNone; }}}
