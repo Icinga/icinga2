@@ -85,6 +85,8 @@ public:
 		: m_Data(std::move(other.m_Data))
 	{ }
 
+	String(Value&& other);
+
 	inline ~String(void)
 	{ }
 
@@ -104,6 +106,8 @@ public:
 		m_Data = std::move(rhs.m_Data);
 		return *this;
 	}
+
+	String& operator=(Value&& rhs);
 
 	inline String& operator=(const std::string& rhs)
 	{

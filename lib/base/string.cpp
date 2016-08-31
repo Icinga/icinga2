@@ -29,6 +29,23 @@ REGISTER_BUILTIN_TYPE(String, String::GetPrototype());
 
 const String::SizeType String::NPos = std::string::npos;
 
+String::String(Value&& other)
+{
+	*this = std::move(other);
+}
+
+String& String::operator=(Value&& other)
+{
+	const String *p = other.GetPtr<String>();
+
+	if (p)
+		m_Data = std::move(p->m_Data);
+	else
+		m_Data = other;
+
+	return *this;
+}
+
 String& String::operator+=(const Value& rhs)
 {
 	m_Data += static_cast<String>(rhs);
