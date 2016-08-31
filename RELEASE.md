@@ -41,11 +41,9 @@ Update the [.mailmap](.mailmap) and [AUTHORS](AUTHORS) files:
 
 ## Version
 
-Update the version number in the following files:
+Update the version number in the following file:
 
 * [icinga2.spec]: Version: (.*)
-* [icinga2.nuspec]: <version>(.*)</version>
-* [tools/chocolateyInstall.ps1]: Icinga2-v(.*)-{x86,x86_64}.msi
 
 Example:
 

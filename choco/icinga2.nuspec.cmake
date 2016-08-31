@@ -6,7 +6,7 @@
     <!-- Read this before publishing packages to chocolatey.org: https://github.com/chocolatey/chocolatey/wiki/CreatePackages -->
     <id>icinga2</id>
     <title>Icinga2</title>
-    <version>2.5.4</version>
+    <version>${SPEC_VERSION}</version>
     <authors>2016 - The Icinga Project</authors>
     <owners>Icinga Development Team</owners>
     <summary>icinga2 - Monitoring Agent for Windows</summary>
@@ -18,7 +18,7 @@
     <iconUrl>https://www.icinga.org/wp-content/uploads/2015/05/icinga_icon_128x128.png</iconUrl>
   </metadata>
   <files>
-    <file src="tools\chocolateyInstall.ps1" target="tools" />
-    <file src="tools\chocolateyUninstall.ps1" target="tools" />
+    <file src="${CMAKE_CURRENT_BINARY_DIR}/chocolateyInstall.ps1" target="tools" />
+    <file src="${CMAKE_CURRENT_SOURCE_DIR}/chocolateyUninstall.ps1" target="tools" />
   </files>
 </package>

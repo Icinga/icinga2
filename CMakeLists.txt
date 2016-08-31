@@ -281,6 +281,7 @@ add_subdirectory(itl)
 add_subdirectory(doc)
 add_subdirectory(agent)
 add_subdirectory(plugins)
+add_subdirectory(choco)
 
 if(MSVC)
   add_subdirectory(icinga-installer)
