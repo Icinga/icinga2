@@ -228,3 +228,8 @@ bool Dictionary::HasOwnField(const String& field) const
 {
 	return Contains(field);
 }
+
+bool Dictionary::GetOwnField(const String& field, Value *result) const
+{
+	return Get(field, result);
+}

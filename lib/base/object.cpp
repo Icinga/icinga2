@@ -109,6 +109,22 @@ bool Object::HasOwnField(const String& field) const
 	return type->GetFieldId(field) != -1;
 }
 
+bool Object::GetOwnField(const String& field, Value *result) const
+{
+	Type::Ptr type = GetReflectionType();
+
+	if (!type)
+		return false;
+
+	int tid = type->GetFieldId(field);
+
+	if (tid == -1)
+		return false;
+
+	*result = GetField(tid);
+	return true;
+}
+
 Value Object::GetFieldByName(const String& field, bool sandboxed, const DebugInfo& debugInfo) const
 {
 	Type::Ptr type = GetReflectionType();

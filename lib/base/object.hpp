@@ -127,6 +127,7 @@ public:
 	virtual Value GetFieldByName(const String& field, bool sandboxed, const DebugInfo& debugInfo) const;
 	virtual void SetFieldByName(const String& field, const Value& value, const DebugInfo& debugInfo);
 	virtual bool HasOwnField(const String& field) const;
+	virtual bool GetOwnField(const String& field, Value *result) const;
 	virtual void ValidateField(int id, const Value& value, const ValidationUtils& utils);
 	virtual void NotifyField(int id, const Value& cookie = Empty);
 	virtual Object::Ptr NavigateField(int id) const;

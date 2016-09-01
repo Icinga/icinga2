@@ -121,6 +121,7 @@ public:
 	virtual Value GetFieldByName(const String& field, bool sandboxed, const DebugInfo& debugInfo) const override;
 	virtual void SetFieldByName(const String& field, const Value& value, const DebugInfo& debugInfo) override;
 	virtual bool HasOwnField(const String& field) const override;
+	virtual bool GetOwnField(const String& field, Value *result) const override;
 
 private:
 	std::map<String, Value> m_Data; /**< The data for the dictionary. */
