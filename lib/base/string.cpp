@@ -38,10 +38,8 @@ String::String(Value&& other)
 
 String& String::operator=(Value&& other)
 {
-	const String *p = other.GetPtr<String>();
-
-	if (p)
-		m_Data = std::move(p->m_Data);
+	if (other.IsString())
+		m_Data = std::move(other.Get<String>());
 	else
 		m_Data = other;
 
