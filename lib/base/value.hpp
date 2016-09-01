@@ -286,12 +286,6 @@ public:
 		return boost::get<T>(m_Value);
 	}
 
-	template<typename T>
-	const T *GetPtr(void) const
-	{
-		return &boost::get<T>(m_Value);
-	}
-
 private:
 	boost::variant<boost::blank, double, bool, String, Object::Ptr> m_Value;
 };
