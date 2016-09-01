@@ -207,7 +207,7 @@ found_command:
 		visibleDesc.add(vdesc);
 	}
 
-	if (autocomplete)
+	if (autocomplete || !command)
 		return true;
 
 	po::options_description adesc;
