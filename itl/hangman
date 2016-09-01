@@ -31,6 +31,12 @@ hm = {
 	a_arr = null
 	misses = ""
 
+	if (irc) {
+		hangman_output = irc
+	} else {
+		hangman_output = log
+	}
+
 	function str2arr(str) { 
 		var arr = []
 
@@ -68,8 +74,8 @@ hm = {
 			ir += " "
 		}
 
-		irc(ir)
-		irc(errors + "/" + (max_errors + 1) + " errors made: " + misses)
+		hangman_output(ir)
+		hangman_output(errors + "/" + (max_errors + 1) + " errors made: " + misses)
 	}
 
 	function create_hint() {
@@ -104,21 +110,21 @@ hm = {
 
 	function winner() {
 		if (h_word) {
-			irc("Congratulations, you are a winner in " + guesses + " guesses.")
+			hangman_output("Congratulations, you are a winner in " + guesses + " guesses.")
 			h_word = null
 		}
 	}
 
 	function guess(s) {
 		if (!h_word) {
-			irc("Please set a word with hm.init(\"word\")")
+			hangman_output("Please set a word with hm.init(\"word\")")
 			return
 		}
 
 		s = s.upper()
 
 		if (s.len() != 1) {
-			irc("NEIN!")
+			hangman_output("NEIN!")
 			return
 		}	
 
@@ -145,15 +151,15 @@ hm = {
 		}
 
 		if (errors > max_errors) {
-			irc("You died...")
-			irc(" ________")
-			irc(" |/      |")
-			irc(" |      (_)")
-			irc(" |      \\|/")
-			irc(" |       |")
-			irc(" |      / \\")
-			irc(" |")
-			irc("_|___")
+			hangman_output("You died...")
+			hangman_output(" ________")
+			hangman_output(" |/      |")
+			hangman_output(" |      (_)")
+			hangman_output(" |      \\|/")
+			hangman_output(" |       |")
+			hangman_output(" |      / \\")
+			hangman_output(" |")
+			hangman_output("_|___")
 			remove("h_word")
 			return
 		}
