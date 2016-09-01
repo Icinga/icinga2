@@ -2616,6 +2616,24 @@ Name                       | Description
 ---------------------------|-------------
 running\_kernel\_use\_sudo | Whether to run the plugin with `sudo`. Defaults to false except on Ubuntu where it defaults to true.
 
+#### <a id="plugin-contrib-command-iostats"></a> iostats
+
+The plugin [check_iostats](https://github.com/dnsmichi/icinga-plugins/blob/master/scripts/check_iostats) is used to monitor I/O with `iostats` on a linux host. The default thresholds are rather high so you can use a grapher for baselining before setting your own.
+
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
+
+Name           | Description
+---------------|-----------------------------------------------------------------------------------------------------------------------
+iostats\_disk   | **Required.** The device to monitor without path. e.g. sda or vda. (default: sda)
+iostats\_wtps   | **Required.** Warning threshold for tps (default: 3000)
+iostats\_wread  | **Required.** Warning threshold for KB/s reads (default: 50000)
+iostats\_wwrite | **Required.** Warning threshold for KB/s writes (default: 10000)
+iostats\_wavgwait | **Required.** Warning threshold for % iowait (default: 50)
+iostats\_ctps   | **Required.** Critical threshold for tps (default: 5000)
+iostats\_cread  | **Required.** Critical threshold for KB/s reads (default: 80000)
+iostats\_cwrite | **Required.** Critical threshold for KB/s writes (default: 25000)
+iostats\_cavgwait | **Required.** Critical threshold for % iowait (default: 80)
+
 #### <a id="plugin-contrib-command-iostat"></a> iostat
 
 The plugin [check_iostat](https://github.com/dnsmichi/icinga-plugins/blob/master/scripts/check_iostat) is used to monitor I/O with `iostat` on a linux host. The default thresholds are rather high so you can use a grapher for baselining before setting your own.
