@@ -23,8 +23,8 @@
 
 using namespace icinga;
 
-EventQueue::EventQueue(void)
-    : m_Filter(NULL)
+EventQueue::EventQueue(const String& name)
+    : m_Name(name), m_Filter(NULL)
 { }
 
 EventQueue::~EventQueue(void)
@@ -44,8 +44,14 @@ void EventQueue::ProcessEvent(const Dictionary::Ptr& event)
 	ScriptFrame frame;
 	frame.Sandboxed = true;
 
-	if (!FilterUtility::EvaluateFilter(frame, m_Filter, event, "event"))
+	try {
+		if (!FilterUtility::EvaluateFilter(frame, m_Filter, event, "event"))
+			return;
+	} catch (const std::exception& ex) {
+		Log(LogWarning, "EventQueue")
+		    << "Error occurred while evaluating event filter for queue '" << m_Name << "': " << DiagnosticInformation(ex);
 		return;
+	}
 
 	boost::mutex::scoped_lock lock(m_Mutex);
 

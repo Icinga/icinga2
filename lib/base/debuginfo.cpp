@@ -62,7 +62,7 @@ void icinga::ShowCodeLocation(std::ostream& out, const DebugInfo& di, bool verbo
 	if (di.Path.IsEmpty())
 		return;
 
-	out << "Location: " << di << "\n";
+	out << "Location: " << di;
 
 	std::ifstream ifs;
 	ifs.open(di.Path.CStr(), std::ifstream::in);
@@ -71,6 +71,9 @@ void icinga::ShowCodeLocation(std::ostream& out, const DebugInfo& di, bool verbo
 	char line[1024];
 
 	while (ifs.good() && lineno <= di.LastLine + EXTRA_LINES) {
+		if (lineno == 0)
+			out << "\n";
+
 		lineno++;
 
 		ifs.getline(line, sizeof(line));

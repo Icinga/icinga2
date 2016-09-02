@@ -75,7 +75,7 @@ bool EventsHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request
 	EventQueue::Ptr queue = EventQueue::GetByName(queueName);
 
 	if (!queue) {
-		queue = new EventQueue();
+		queue = new EventQueue(queueName);
 		EventQueue::Register(queueName, queue);
 	}
 

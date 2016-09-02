@@ -48,6 +48,9 @@ ContextTrace::ContextTrace(void)
 
 void ContextTrace::Print(std::ostream& fp) const
 {
+	if (m_Frames.empty())
+		return;
+
 	fp << std::endl;
 
 	int i = 0;
