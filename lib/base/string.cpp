@@ -41,7 +41,7 @@ String& String::operator=(Value&& other)
 	if (other.IsString())
 		m_Data = std::move(other.Get<String>());
 	else
-		m_Data = other;
+		*this = static_cast<String>(other);
 
 	return *this;
 }
