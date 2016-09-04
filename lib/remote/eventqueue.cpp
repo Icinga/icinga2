@@ -20,6 +20,7 @@
 #include "remote/eventqueue.hpp"
 #include "remote/filterutility.hpp"
 #include "base/singleton.hpp"
+#include "base/logger.hpp"
 
 using namespace icinga;
 
