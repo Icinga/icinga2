@@ -171,6 +171,7 @@ bool CLICommand::ParseCommand(int argc, char **argv, po::options_description& vi
 
 	std::vector<String> best_match;
 	int arg_end = 0;
+	bool tried_command = false;
 
 	for (const CLIKeyValue& kv : GetRegistry()) {
 		const std::vector<String>& vname = kv.first;
@@ -178,10 +179,12 @@ bool CLICommand::ParseCommand(int argc, char **argv, po::options_description& vi
 		std::vector<String>::size_type i;
 		int k;
 		for (i = 0, k = 1; i < vname.size() && k < argc; i++, k++) {
-			if (strcmp(argv[k], "--no-stack-rlimit") == 0 || strcmp(argv[k], "--autocomplete") == 0 || strcmp(argv[k], "--scm") == 0) {
+			if (strncmp(argv[k], "--", 2) == 0) {
 				i--;
 				continue;
 			}
+
+			tried_command = true;
 
 			if (vname[i] != argv[k])
 				break;
@@ -207,7 +210,7 @@ found_command:
 		visibleDesc.add(vdesc);
 	}
 
-	if (autocomplete || !command)
+	if (autocomplete || (tried_command && !command))
 		return true;
 
 	po::options_description adesc;
