@@ -652,7 +652,7 @@ void Notification::ValidateStates(const Array::Ptr& value, const ValidationUtils
 		BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of("states"), "State filter is invalid."));
 
 	if (!GetServiceName().IsEmpty() && (filter == -1 || (filter & ~(StateFilterOK | StateFilterWarning | StateFilterCritical | StateFilterUnknown)) != 0))
-		BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of("types"), "State filter is invalid."));
+		BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of("states"), "State filter is invalid."));
 }
 
 void Notification::ValidateTypes(const Array::Ptr& value, const ValidationUtils& utils)
