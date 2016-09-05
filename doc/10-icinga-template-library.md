@@ -2624,15 +2624,15 @@ Custom attributes passed as [command parameters](3-monitoring-basics.md#command-
 
 Name           | Description
 ---------------|-----------------------------------------------------------------------------------------------------------------------
-iostats\_disk   | **Required.** The device to monitor without path. e.g. sda or vda. (default: sda)
-iostats\_wtps   | **Required.** Warning threshold for tps (default: 3000)
-iostats\_wread  | **Required.** Warning threshold for KB/s reads (default: 50000)
-iostats\_wwrite | **Required.** Warning threshold for KB/s writes (default: 10000)
-iostats\_wavgwait | **Required.** Warning threshold for % iowait (default: 50)
-iostats\_ctps   | **Required.** Critical threshold for tps (default: 5000)
-iostats\_cread  | **Required.** Critical threshold for KB/s reads (default: 80000)
-iostats\_cwrite | **Required.** Critical threshold for KB/s writes (default: 25000)
-iostats\_cavgwait | **Required.** Critical threshold for % iowait (default: 80)
+iostats\_disk           | **Required.** The device to monitor without path. e.g. sda or vda. (default: sda)
+iostats\_warning\_tps   | **Required.** Warning threshold for tps (default: 3000)
+iostats\_warning\_read  | **Required.** Warning threshold for KB/s reads (default: 50000)
+iostats\_warning\_write | **Required.** Warning threshold for KB/s writes (default: 10000)
+iostats\_warning\_wait  | **Required.** Warning threshold for % iowait (default: 50)
+iostats\_critical_tps   | **Required.** Critical threshold for tps (default: 5000)
+iostats\_critical_read  | **Required.** Critical threshold for KB/s reads (default: 80000)
+iostats\_critical_write | **Required.** Critical threshold for KB/s writes (default: 25000)
+iostats\_critical_wait  | **Required.** Critical threshold for % iowait (default: 80)
 
 #### <a id="plugin-contrib-command-iostat"></a> iostat
 
