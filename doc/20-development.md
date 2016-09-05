@@ -238,3 +238,71 @@ Breakpoint Example:
         m_Data = "/etc/icinga2/conf.d/satellite.conf"}, {static NPos = 18446744073709551615, m_Data = "/etc/icinga2/conf.d/services.conf"}, {static NPos = 18446744073709551615,
         m_Data = "/etc/icinga2/conf.d/templates.conf"}, {static NPos = 18446744073709551615, m_Data = "/etc/icinga2/conf.d/test.conf"}, {static NPos = 18446744073709551615,
         m_Data = "/etc/icinga2/conf.d/timeperiods.conf"}, {static NPos = 18446744073709551615, m_Data = "/etc/icinga2/conf.d/users.conf"}}
+
+
+## <a id="development-debug-core-dump"></a> Core Dump
+
+When the Icinga 2 daemon crashes with a `SIGSEGV` signal
+a core dump file should be written. This will help
+developers to analyze and fix the problem.
+
+### <a id="development-debug-core-dump-limit"></a> Core Dump File Size Limit
+
+This requires setting the core dump file size to `unlimited`.
+
+Example for Systemd:
+
+    vim /usr/lib/systemd/system/icinga2.service
+
+    [Service]
+    ...
+    LimitCORE=infinity
+
+    systemctl daemon-reload
+
+    systemctl restart icinga2
+
+Example for init script:
+
+    vim /etc/init.d/icinga2
+    ...
+    ulimit -c unlimited
+
+    service icinga2 restart
+
+Verify that the Icinga 2 process core file size limit is set to `unlimited`.
+
+    cat /proc/`pidof icinga2`/limits
+    ...
+    Max core file size        unlimited            unlimited            bytes
+
+
+### <a id="development-debug-core-dump-format"></a> Core Dump Kernel Format
+
+Adjust the coredump kernel format and file location.
+
+    vim /etc/sysctl.conf
+
+    kernel.core_pattern = /var/lib/cores/core.%e.%p
+
+    sysctl -p
+
+    mkdir /var/lib/cores
+
+
+### <a id="development-debug-core-dump-analysis"></a> Core Dump Analysis
+
+Once Icinga 2 crashes again a new coredump file will be written. Please
+attach this file to your bug report in addition to the general details.
+
+Simple test case for a `SIGSEGV` simulation with `sleep`:
+
+    ulimit -c unlimited
+    sleep 1800&
+    [1] <PID>
+    kill -SEGV <PID>
+    gdb `which sleep` /var/lib/cores/core.sleep.<PID>
+    (gdb) bt
+    rm /var/lib/cores/core.sleep.*
+
+
