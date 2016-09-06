@@ -120,7 +120,7 @@ Call GDB with the binary (`/usr/sbin/icinga2` is a wrapper script calling
 `/usr/lib64/icinga2/sbin/icinga2` since 2.4) and all arguments and run it in foreground.
 If VFork causes trouble, disable it inside the gdb run.
 
-    # gdb --args /usr/lib64/icinga2/sbin/icinga2 daemon -x debug -DUseVfork=0
+    # gdb --args /usr/lib64/icinga2/sbin/icinga2 daemon -x debug -DUseVfork=0 --no-stack-rlimit
 
 The exact path to the Icinga 2 binary differs on each distribution. On Ubuntu
 it is installed into `/usr/lib/x86_64-linux-gnu/icinga2/sbin/icinga2` on 64-bit systems
