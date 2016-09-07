@@ -19,7 +19,7 @@
 
 #include "base/stdiostream.hpp"
 #include "base/string.hpp"
-#include <boost/test/unit_test.hpp>
+#include <BoostTestTargetConfig.h>
 #include <sstream>
 
 using namespace icinga;

@@ -20,7 +20,7 @@
 #include "base/array.hpp"
 #include "base/objectlock.hpp"
 #include "base/json.hpp"
-#include <boost/test/unit_test.hpp>
+#include <BoostTestTargetConfig.h>
 
 using namespace icinga;
 

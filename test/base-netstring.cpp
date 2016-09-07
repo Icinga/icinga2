@@ -19,7 +19,7 @@
 
 #include "base/netstring.hpp"
 #include "base/fifo.hpp"
-#include <boost/test/unit_test.hpp>
+#include <BoostTestTargetConfig.h>
 
 using namespace icinga;
 

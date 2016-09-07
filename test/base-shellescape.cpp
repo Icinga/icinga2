@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "base/utility.hpp"
-#include <boost/test/unit_test.hpp>
+#include <BoostTestTargetConfig.h>
 #include <iostream>
 
 using namespace icinga;

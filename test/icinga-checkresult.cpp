@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "icinga/host.hpp"
-#include <boost/test/unit_test.hpp>
+#include <BoostTestTargetConfig.h>
 
 using namespace icinga;
 

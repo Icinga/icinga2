@@ -19,7 +19,7 @@
 
 #include "base/fifo.hpp"
 #include "base/objectlock.hpp"
-#include <boost/test/unit_test.hpp>
+#include <BoostTestTargetConfig.h>
 
 using namespace icinga;
 

@@ -19,7 +19,7 @@
 
 #include "base/convert.hpp"
 #include "base/object.hpp"
-#include <boost/test/unit_test.hpp>
+#include <BoostTestTargetConfig.h>
 #include <iostream>
 
 using namespace icinga;

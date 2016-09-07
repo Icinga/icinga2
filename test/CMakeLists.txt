@@ -15,6 +15,8 @@
 # along with this program; if not, write to the Free Software Foundation
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
+set(Boost_USE_STATIC_LIBS OFF)
+
 include(BoostTestTargets)
 
 set(base_test_SOURCES
@@ -31,7 +33,7 @@ if(ICINGA2_UNITY_BUILD)
 endif()
 
 add_boost_test(base
-  SOURCES base-test.cpp ${base_test_SOURCES}
+  SOURCES test-runner.cpp ${base_test_SOURCES}
   LIBRARIES base config icinga
   TESTS base_array/construct
         base_array/getset
@@ -123,7 +125,7 @@ if(ICINGA2_WITH_LIVESTATUS)
   endif()
 
   add_boost_test(livestatus
-    SOURCES livestatus-test.cpp ${livestatus_test_SOURCES}
+    SOURCES test-runner.cpp livestatus-fixture.cpp ${livestatus_test_SOURCES}
     LIBRARIES base config icinga livestatus
     DEPENDENCIES methods
     TESTS livestatus/hosts livestatus/services

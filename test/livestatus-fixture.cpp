@@ -17,32 +17,50 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#define BOOST_TEST_MAIN
-#define BOOST_TEST_MODULE icinga2_test
-
-#include "icinga/icingaapplication.hpp"
+#include "config/configcompiler.hpp"
+#include "config/configitem.hpp"
 #include "base/application.hpp"
-#include "base/timer.hpp"
+#include "base/loader.hpp"
 #include <BoostTestTargetConfig.h>
 
 using namespace icinga;
 
-struct InitLibBase
+struct LivestatusFixture
 {
-	IcingaApplication::Ptr appInst;
-
-	InitLibBase(void)
+	LivestatusFixture(void)
 	{
-		Application::InitializeBase();
+		BOOST_TEST_MESSAGE("Preparing config objects...");
 
-		appInst = new IcingaApplication();
-		static_pointer_cast<ConfigObject>(appInst)->OnConfigLoaded();
+		ConfigItem::RunWithActivationContext(new Function("CreateTestObjects", WrapFunction(CreateTestObjects)));
 	}
 
-	~InitLibBase(void)
+	static void CreateTestObjects(void)
 	{
-		Application::UninitializeBase();
+		String config = R"CONFIG(
+object CheckCommand "dummy" {
+  command = "/bin/echo"
+}
+
+object Host "test-01" {
+  address = "127.0.0.1"
+  check_command = "dummy"
+}
+
+object Host "test-02" {
+  address = "127.0.0.2"
+  check_command = "dummy"
+}
+
+apply Service "livestatus" {
+  check_command = "dummy"
+  notes = "test livestatus"
+  assign where match("test-*", host.name)
+}
+)CONFIG";
+
+		Expression *expr = ConfigCompiler::CompileText("<livestatus>", config);
+		expr->Evaluate(*ScriptFrame::GetCurrentFrame());
 	}
 };
 
-BOOST_GLOBAL_FIXTURE(InitLibBase);
+BOOST_GLOBAL_FIXTURE(LivestatusFixture);

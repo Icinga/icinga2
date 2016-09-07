@@ -20,7 +20,7 @@
 #include "base/timer.hpp"
 #include "base/utility.hpp"
 #include "base/application.hpp"
-#include <boost/test/unit_test.hpp>
+#include <BoostTestTargetConfig.h>
 
 using namespace icinga;
 

@@ -19,7 +19,7 @@
 
 #include "base/object.hpp"
 #include "base/value.hpp"
-#include <boost/test/unit_test.hpp>
+#include <BoostTestTargetConfig.h>
 
 using namespace icinga;
 
