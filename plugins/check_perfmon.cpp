@@ -337,10 +337,10 @@ BOOL QueryPerfData(printInfoStruct& pI)
 
 	switch (pI.dwRequestedType)
 	{
-	case (PDH_FMT_LONG) :
+	case (PDH_FMT_LONG):
 		pI.dValue = pDisplayValues[0].FmtValue.longValue;
 		break;
-	case (PDH_FMT_LARGE) :
+	case (PDH_FMT_LARGE):
 		pI.dValue = pDisplayValues[0].FmtValue.largeValue;
 		break;
 	default:
@@ -361,9 +361,8 @@ die:
 INT PrintOutput(CONST po::variables_map& vm, printInfoStruct& pi)
 {
 	std::wstringstream wssPerfData;
-	wssPerfData << "perfmon=" << pi.dValue << ';'
-		<< pi.tWarn.pString() << ';' << pi.tCrit.pString() << ";; "
-		<< '"' << pi.wsFullPath << "\"=" << pi.dValue;
+	wssPerfData << "\"" << pi.wsFullPath << "\"=" << pi.dValue << ';'
+		<< pi.tWarn.pString() << ';' << pi.tCrit.pString() << ";;";
 
 	if (pi.tCrit.rend(pi.dValue)) {
 		std::wcout << "PERFMON CRITICAL \"" << pi.wsFullPath << "\" = "
