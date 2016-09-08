@@ -279,16 +279,22 @@ Verify that the Icinga 2 process core file size limit is set to `unlimited`.
 
 ### <a id="development-debug-core-dump-format"></a> Core Dump Kernel Format
 
-Adjust the coredump kernel format and file location.
+The Icinga 2 daemon runs with the SUID bit set. Therefore you need
+to explicitly enable core dumps for SUID on Linux.
 
-    vim /etc/sysctl.conf
+    sysctl -w fs.suid_dumpable=1
 
-    kernel.core_pattern = /var/lib/cores/core.%e.%p
+Adjust the coredump kernel format and file location on Linux:
 
-    sysctl -p
+    sysctl -w kernel.core_pattern=/var/lib/cores/core.%e.%p
 
-    mkdir /var/lib/cores
+    install -m 1777 -d /var/lib/cores
 
+MacOS:
+
+    sysctl -w kern.corefile=/cores/core.%P
+
+    chmod 777 /cores
 
 ### <a id="development-debug-core-dump-analysis"></a> Core Dump Analysis
 
@@ -305,4 +311,8 @@ Simple test case for a `SIGSEGV` simulation with `sleep`:
     (gdb) bt
     rm /var/lib/cores/core.sleep.*
 
+Analyzing Icinga 2:
+
+    gdb /usr/lib64/icinga2/sbin/icinga2 core.icinga2.<PID>
+    (gdb) bt
 
