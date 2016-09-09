@@ -46,17 +46,23 @@ INT wmain(INT argc, WCHAR **argv)
 	response response;
 
 	WSADATA dat;
-	WORD req = MAKEWORD(1, 1);
 
-	WSAStartup(req, &dat);
+	if (WSAStartup(MAKEWORD(2, 2), &dat)) {
+		std::cout << "WSAStartup failed\n";
+		return 3;
+	}
 
 	if (parseArguments(argc, argv, vm, printInfo) != -1)
 		return 3;
-	if (printInfo.ipv4) {
-		if (check_ping4(printInfo, response) != -1)
+
+	if (!resolveHostname(printInfo.host, printInfo.ipv6, printInfo.ip))
+		return 3;
+
+	if (printInfo.ipv6) {
+		if (check_ping6(printInfo, response) != -1)
 			return 3;
 	} else {
-		if (check_ping6(printInfo, response) != -1)
+		if (check_ping4(printInfo, response) != -1)
 			return 3;
 	}
 
@@ -76,9 +82,9 @@ INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& p
 		("help,h", "Print usage message and exit")
 		("version,V", "Print version and exit")
 		("debug,d", "Verbose/Debug output")
-		("host,H", po::wvalue<std::wstring>()->required(), "Host ip to ping")
-		(",4", "--Host is an ipv4 address (default)")
-		(",6", "--Host is an ipv6 address")
+		("host,H", po::wvalue<std::wstring>()->required(), "Target hostname or IP. If an IPv6 address is given, the '-6' option must be set")
+		(",4", "--Host is an IPv4 address or if it's a hostname: Resolve it to an IPv4 address (default)")
+		(",6", "--Host is an IPv6 address or if it's a hostname: Resolve it to an IPv6 address")
 		("timeout,t", po::value<INT>(), "Specify timeout for requests in ms (default=1000)")
 		("packets,p", po::value<INT>(), "Declare ping count (default=5)")
 		("warning,w", po::wvalue<std::wstring>(), "Warning values: rtt,package loss")
@@ -154,7 +160,9 @@ INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& p
 		std::cout << "Conflicting options \"4\" and \"6\"" << '\n';
 		return 3;
 	}
-    
+	if (vm.count("-6"))
+		printInfo.ipv6 = TRUE;
+
 	if (vm.count("warning")) {
 		std::vector<std::wstring> sVec = splitMultiOptions(vm["warning"].as<std::wstring>());
 		if (sVec.size() != 2) {
@@ -196,8 +204,7 @@ INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& p
 		printInfo.timeout = vm["timeout"].as<INT>();
 	if (vm.count("packets"))
 		printInfo.num = vm["packets"].as<INT>();
-	if (vm.count("-6"))
-		printInfo.ipv4 = FALSE;
+
 
 	printInfo.host = vm["host"].as<std::wstring>();
 
@@ -247,7 +254,45 @@ INT printOutput(printInfoStruct& printInfo, response& response)
 	return state;
 }
 
-INT check_ping4(const printInfoStruct& pi, response& response)
+BOOL resolveHostname(CONST std::wstring hostname, BOOL ipv6, std::wstring& ipaddr)
+{
+	ADDRINFOW *result = NULL;
+	ADDRINFOW *ptr = NULL;
+	ADDRINFOW hints;
+	ZeroMemory(&hints, sizeof(hints));
+	wchar_t ipstringbuffer[46];
+
+	if (ipv6)
+		hints.ai_family = AF_INET6;
+	else
+		hints.ai_family = AF_INET;
+
+	if (debug)
+		std::wcout << L"Resolving hostname \"" << hostname << L"\"\n";
+
+	DWORD ret = GetAddrInfoW(hostname.c_str(), NULL, &hints, &result);
+
+	if (ret) {
+		std::cout << "Failed to resolve hostname. Winsock Error Code: " << ret << '\n';
+		return false;
+	}
+
+	if (ipv6) {
+		struct sockaddr_in6 *address6 = (struct sockaddr_in6 *) result->ai_addr;
+		InetNtop(AF_INET6, &address6->sin6_addr, ipstringbuffer, 46);
+	} else {
+		struct sockaddr_in *address4 = (struct sockaddr_in *) result->ai_addr;
+		InetNtop(AF_INET, &address4->sin_addr, ipstringbuffer, 46);
+	}
+
+	if (debug)
+		std::wcout << L"Resolved to \"" << ipstringbuffer << L"\"\n";
+
+	ipaddr = ipstringbuffer;
+	return true;
+}
+
+INT check_ping4(CONST printInfoStruct& pi, response& response)
 {
 	in_addr ipDest4;
 	HANDLE hIcmp;
@@ -261,13 +306,13 @@ INT check_ping4(const printInfoStruct& pi, response& response)
 	if (debug)
 		std::wcout << L"Parsing ip address" << '\n';
 
-	if (RtlIpv4StringToAddress(pi.host.c_str(), TRUE, &term, &ipDest4) == STATUS_INVALID_PARAMETER) {
-		std::wcout << pi.host << " is not a valid ip address\n";
+	if (RtlIpv4StringToAddress(pi.ip.c_str(), TRUE, &term, &ipDest4) == STATUS_INVALID_PARAMETER) {
+		std::wcout << pi.ip << " is not a valid ip address\n";
 		return 3;
 	}
 
 	if (*term != L'\0') {
-		std::wcout << pi.host << " is not a valid ip address\n";
+		std::wcout << pi.ip << " is not a valid ip address\n";
 		return 3;
 	}
 
@@ -346,7 +391,7 @@ die:
 	return 3;
 }
 
-INT check_ping6(const printInfoStruct& pi, response& response)
+INT check_ping6(CONST printInfoStruct& pi, response& response)
 {
 	sockaddr_in6 ipDest6, ipSource6;
 	IP_OPTION_INFORMATION ipInfo = { 30, 0, 0, 0, NULL };
@@ -361,8 +406,8 @@ INT check_ping6(const printInfoStruct& pi, response& response)
 	if (debug)
 		std::wcout << L"Parsing ip address" << '\n';
 
-	if (RtlIpv6StringToAddressEx(pi.host.c_str(), &ipDest6.sin6_addr, &ipDest6.sin6_scope_id, &ipDest6.sin6_port)) {
-		std::wcout << pi.host << " is not a valid ipv6 address" << '\n';
+	if (RtlIpv6StringToAddressEx(pi.ip.c_str(), &ipDest6.sin6_addr, &ipDest6.sin6_scope_id, &ipDest6.sin6_port)) {
+		std::wcout << pi.ip << " is not a valid ipv6 address" << '\n';
 		return 3;
 	}
 

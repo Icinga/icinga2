@@ -32,8 +32,8 @@ struct printInfoStruct
 {
 	threshold warn, crit;
 	threshold wpl, cpl;
-	std::wstring host;
-	BOOL ipv4 = TRUE;
+	std::wstring host, ip;
+	BOOL ipv6 = FALSE;
 	DWORD timeout = 1000;
 	INT num = 5;
 };
@@ -42,5 +42,6 @@ INT printOutput(printInfoStruct&, response&);
 INT parseArguments(INT, WCHAR **, boost::program_options::variables_map&, printInfoStruct&);
 INT check_ping4(CONST printInfoStruct&, response&);
 INT check_ping6(CONST printInfoStruct&, response&);
+BOOL resolveHostname(CONST std::wstring, BOOL, std::wstring&);
 
 #endif // !CHECK_PING_H
