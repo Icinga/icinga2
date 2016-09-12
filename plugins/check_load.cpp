@@ -236,6 +236,10 @@ INT check_load(printInfoStruct& printInfo)
 			if (debug)
 				std::wcout << L"Recieved Value of " << DisplayValue.doubleValue << L" (idle)" << '\n';
 			printInfo.load = 100.0 - DisplayValue.doubleValue;
+		} else {
+			if (debug)
+				std::wcout << L"Received data was not valid\n";
+			goto die;
 		}
 
 		if (debug)
