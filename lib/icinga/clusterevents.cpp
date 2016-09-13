@@ -126,13 +126,19 @@ Value ClusterEvents::CheckResultAPIHandler(const MessageOrigin::Ptr& origin, con
 	if (!params)
 		return Empty;
 
-	CheckResult::Ptr cr = new CheckResult();
+	CheckResult::Ptr cr;
+	Array::Ptr vperf;
 
-	Dictionary::Ptr vcr = params->Get("cr");
-	Array::Ptr vperf = vcr->Get("performance_data");
-	vcr->Remove("performance_data");
+	if (params->Contains("cr")) {
+		cr = new CheckResult();
+		Dictionary::Ptr vcr = params->Get("cr");
+		vperf = vcr->Get("performance_data");
+		vcr->Remove("performance_data");
+		Deserialize(cr, vcr, true);
+	}
 
-	Deserialize(cr, params->Get("cr"), true);
+	if (!cr)
+		return Empty;
 
 	Array::Ptr rperf = new Array();
 
@@ -826,13 +832,15 @@ Value ClusterEvents::SendNotificationsAPIHandler(const MessageOrigin::Ptr& origi
 		return Empty;
 	}
 
-	CheckResult::Ptr cr = new CheckResult();
+	CheckResult::Ptr cr;
 
-	Dictionary::Ptr vcr = params->Get("cr");
-	Array::Ptr vperf = vcr->Get("performance_data");
-	vcr->Remove("performance_data");
-
-	Deserialize(cr, params->Get("cr"), true);
+	if (params->Contains("cr")) {
+		cr = new CheckResult();
+		Dictionary::Ptr vcr = params->Get("cr");
+		Array::Ptr vperf = vcr->Get("performance_data");
+		vcr->Remove("performance_data");
+		Deserialize(cr, vcr, true);
+	}
 
 	NotificationType type = static_cast<NotificationType>(static_cast<int>(params->Get("type")));
 	String author = params->Get("author");
@@ -910,13 +918,15 @@ Value ClusterEvents::NotificationSentUserAPIHandler(const MessageOrigin::Ptr& or
 		return Empty;
 	}
 
-	CheckResult::Ptr cr = new CheckResult();
+	CheckResult::Ptr cr;
 
-	Dictionary::Ptr vcr = params->Get("cr");
-	Array::Ptr vperf = vcr->Get("performance_data");
-	vcr->Remove("performance_data");
-
-	Deserialize(cr, params->Get("cr"), true);
+	if (params->Contains("cr")) {
+		cr = new CheckResult();
+		Dictionary::Ptr vcr = params->Get("cr");
+		Array::Ptr vperf = vcr->Get("performance_data");
+		vcr->Remove("performance_data");
+		Deserialize(cr, vcr, true);
+	}
 
 	NotificationType type = static_cast<NotificationType>(static_cast<int>(params->Get("type")));
 	String author = params->Get("author");
@@ -1016,13 +1026,15 @@ Value ClusterEvents::NotificationSentToAllUsersAPIHandler(const MessageOrigin::P
 		return Empty;
 	}
 
-	CheckResult::Ptr cr = new CheckResult();
+	CheckResult::Ptr cr;
 
-	Dictionary::Ptr vcr = params->Get("cr");
-	Array::Ptr vperf = vcr->Get("performance_data");
-	vcr->Remove("performance_data");
-
-	Deserialize(cr, params->Get("cr"), true);
+	if (params->Contains("cr")) {
+		cr = new CheckResult();
+		Dictionary::Ptr vcr = params->Get("cr");
+		Array::Ptr vperf = vcr->Get("performance_data");
+		vcr->Remove("performance_data");
+		Deserialize(cr, vcr, true);
+	}
 
 	NotificationType type = static_cast<NotificationType>(static_cast<int>(params->Get("type")));
 	String author = params->Get("author");
