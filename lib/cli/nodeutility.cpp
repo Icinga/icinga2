@@ -242,7 +242,13 @@ Dictionary::Ptr NodeUtility::LoadNodeFile(const String& node_file)
 
 void NodeUtility::CollectNodes(const String& node_file, std::vector<Dictionary::Ptr>& nodes)
 {
-	Dictionary::Ptr node = LoadNodeFile(node_file);
+	Dictionary::Ptr node;
+
+	try {
+		node = LoadNodeFile(node_file);
+	} catch (const std::exception&) {
+		return;
+	}
 
 	if (!node)
 		return;
