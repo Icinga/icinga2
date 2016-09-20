@@ -1039,6 +1039,35 @@ procs_command        | **Optional.** Only scan for exact matches of COMMAND (wit
 procs_nokthreads     | **Optional.** Only scan for non kernel threads. Defaults to false.
 
 
+### <a id="plugin-check-command-radius"></a> radius
+
+The [check_radius](https://www.monitoring-plugins.org/doc/man/check_radius.html) plugin
+checks a RADIUS server to see if it is accepting connections.  The server to test
+must be specified in the invocation, as well as a user name and password. A configuration
+file may also be present. The format of the configuration file is described in the
+radiusclient library sources.  The password option presents a substantial security
+issue because the password can possibly be determined by careful watching of the
+command line in a process listing. This risk is exacerbated because the plugin will
+typically be executed at regular predictable intervals. Please be sure that the
+password used does not allow access to sensitive system resources.
+
+
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
+
+Name               | Description
+-------------------|--------------
+radius_address     | **Optional.** The radius server's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
+radius_config_file | **Required.** The radius configuration file.
+radius_username    | **Required.** The radius username to test.
+radius_password    | **Required.** The radius password to test.
+radius_port        | **Optional.** The radius port number (default 1645).
+radius_nas_id      | **Optional.** The NAS identifier.
+radius_nas_address | **Optional.** The NAS IP address.
+radius_expect      | **Optional.** The response string to expect from the server.
+radius_retries     | **Optional.** The number of times to retry a failed connection.
+radius_timeout     | **Optional.** The number of seconds before connection times out (default: 10).
+
+
 ### <a id="plugin-check-command-simap"></a> simap
 
 The [check_simap](https://www.monitoring-plugins.org/doc/man/check_simap.html) plugin
