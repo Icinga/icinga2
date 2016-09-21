@@ -202,7 +202,7 @@ Here is an example of a master setup for the `icinga2-master1.localdomain` node 
     
     Please specify if this is a satellite setup ('n' installs a master setup) [Y/n]: n
     Starting the Master setup routine...
-    Please specifiy the common name (CN) [icinga2-master1.localdomain]: icinga2-master1.localdomain
+    Please specify the common name (CN) [icinga2-master1.localdomain]: icinga2-master1.localdomain
     Checking for existing certificates for common name 'icinga2-master1.localdomain'...
     Certificates not yet generated. Running 'api setup' now.
     information/cli: Generating new CA.
@@ -354,7 +354,7 @@ is configured to accept configuration and commands from the master:
     
     Please specify if this is a satellite setup ('n' installs a master setup) [Y/n]:
     Starting the Node setup routine...
-    Please specifiy the common name (CN) [icinga2-client1.localdomain]: icinga2-client1.localdomain
+    Please specify the common name (CN) [icinga2-client1.localdomain]: icinga2-client1.localdomain
     Please specify the master endpoint(s) this node should connect to:
     Master Common Name (CN from your master setup): icinga2-master1.localdomain
     Do you want to establish a connection to the master from this node? [Y/n]:
