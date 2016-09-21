@@ -730,7 +730,7 @@ argument parameters already (for example `iftraffic_units`), you could also add 
 After `vars` is fully populated, all object attributes can be set calculated from
 provided host attributes. For strings, you can use string concatention with the `+` operator.
 
-You can also specifiy the display_name, check command, interval, notes, notes_url, action_url, etc.
+You can also specify the display_name, check command, interval, notes, notes_url, action_url, etc.
 attributes that way. Attribute strings can be [concatenated](17-language-reference.md#expression-operators),
 for example for adding a more detailed service `display_name`.
 

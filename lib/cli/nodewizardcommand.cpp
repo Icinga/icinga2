@@ -121,7 +121,7 @@ int NodeWizardCommand::Run(const boost::program_options::variables_map& vm,
 
 		/* CN */
 		std::cout << ConsoleColorTag(Console_Bold)
-		    << "Please specifiy the common name (CN)"
+		    << "Please specify the common name (CN)"
 		    << ConsoleColorTag(Console_Normal)
 		    << " [" << Utility::GetFQDN() << "]: ";
 
@@ -463,7 +463,7 @@ wizard_ticket:
 
 		/* CN */
 		std::cout << ConsoleColorTag(Console_Bold)
-		    << "Please specifiy the common name" << ConsoleColorTag(Console_Normal)
+		    << "Please specify the common name" << ConsoleColorTag(Console_Normal)
 		    << " (CN) [" << Utility::GetFQDN() << "]: ";
 
 		std::getline(std::cin, answer);
