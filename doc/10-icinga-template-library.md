@@ -1607,7 +1607,8 @@ Custom attributes passed as [command parameters](3-monitoring-basics.md#command-
 Name            | Description
 ----------------|--------------
 nscp_log_level  | **Optional.** The log level. Defaults to "critical".
-nscp_load_all   | **Optional.** Whether to load all modules. Defaults to true.
+nscp_load_all   | **Optional.** Whether to load all modules. Defaults to false.
+nscp_modules    | **Optional.** An array of NSClient++ modules to load. Defaults to `[ "CheckSystem" ]`.
 nscp_boot       | **Optional.** Whether to use the --boot option. Defaults to true.
 nscp_query      | **Required.** The NSClient++ query. Try `nscp client -q x` for a list.
 nscp_arguments  | **Optional.** An array of query arguments.
@@ -1685,6 +1686,7 @@ This command has the same custom attributes like the `nscp-local` check command.
 Check command object for the `check_version` NSClient++ plugin.
 
 This command has the same custom attributes like the `nscp-local` check command.
+In addition to that the default value for `nscp_modules` is set to `[ "CheckHelpers" ]`.
 
 ### <a id="nscp-check-local-disk"></a> nscp-local-disk
 
@@ -1698,6 +1700,7 @@ nscp_disk_warning      | **Optional.** Threshold for WARNING in percent or absol
 nscp_disk_critical     | **Optional.** Threshold for CRITICAL in percent or absolut (use MB, GB, ...), default to 90 (used) or 10 percent (free).
 nscp_disk_arguments    | **Optional.** Additional arguments.
 nscp_disk_showall      | **Optional.** Shows more details in plugin output, default to true.
+nscp_modules           | **Optional.** An array of NSClient++ modules to load. Defaults to `[ "CheckDisk" ]`.
 
 ### <a id="nscp-check-local-counter"></a> nscp-local-counter
 
