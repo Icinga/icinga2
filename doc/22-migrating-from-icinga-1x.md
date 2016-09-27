@@ -653,6 +653,34 @@ host and let the dependency ignore that instead of the hardcoded host name. That
 to the Icinga 1.x example and a best practice hint only.
 
 
+Another way to express the same configuration would be something like:
+
+    object Host "vmware-master" {
+      import "linux-server-template"
+      groups += [ "vmware" ]
+      address = "192.168.1.10"
+    }
+
+    object Host "vmware-vm1" {
+      import "linux-server-template"
+      groups += [ "vmware" ]
+      address = "192.168.27.1"
+      vars.parents = [ "vmware-master" ]
+    }
+
+    object Host "vmware-vm2" {
+      import "linux-server-template"
+      groups += [ "vmware" ]
+      address = "192.168.28.1"
+      vars.parents = [ "vmware-master" ]
+    }
+
+    apply Dependency "host-to-parent-" for (parent in host.vars.parents) to Host {
+      parent_host_name = parent
+    }
+
+This example allows finer grained host-to-host dependency, as well as multiple dependency support.
+
 #### <a id="manual-config-migration-hints-distributed-setup"></a> Manual Config Migration Hints for Distributed Setups
 
 * Icinga 2 does not use active/passive instances calling OSCP commands and requiring the NSCA
