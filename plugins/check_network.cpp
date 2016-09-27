@@ -32,11 +32,12 @@
 #include "check_network.h"
 #include "boost/algorithm/string/replace.hpp"
 
-#define VERSION 1.1
+#define VERSION 1.2
 
 namespace po = boost::program_options;
 
 static BOOL debug = FALSE;
+static BOOL noisatap = FALSE;
 
 INT wmain(INT argc, WCHAR **argv) 
 {
@@ -72,6 +73,7 @@ INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& p
 		("help,h", "print usage and exit")
 		("version,V", "print version and exit")
 		("debug,d", "Verbose/Debug output")
+		("noisatap,n", "Don't show isatap interfaces in output")
 		("warning,w", po::wvalue<std::wstring>(), "warning value")
 		("critical,c", po::wvalue<std::wstring>(), "critical value")
 		;
@@ -159,6 +161,9 @@ INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& p
 	if (vm.count("debug"))
 		debug = TRUE;
 
+	if (vm.count("noisatap"))
+		noisatap = TRUE;
+
 	return -1;
 }
 
@@ -189,8 +194,16 @@ INT printOutput(printInfoStruct& printInfo, CONST std::vector<nInterface>& vInte
 				std::wcout << "\tNo friendly name found, using adapter name\n";
 			wsFriendlyName = it->name;
 		}
-		boost::algorithm::replace_all(wsFriendlyName, "'", "''");
-		tss << L"netI='" << wsFriendlyName << L"';in=" << it->BytesInSec << "B;out=" << it->BytesOutSec << L"B ";
+		if(wsFriendlyName.find(L"isatap") != std::wstring::npos && noisatap) {
+			if (debug)
+				std::wcout << "\tSkipping isatap interface " << wsFriendlyName << "\n";
+			continue;
+		}
+		else
+		{
+			boost::algorithm::replace_all(wsFriendlyName, "'", "''");
+			tss << L"\'" << wsFriendlyName << L"_in\'=" << it->BytesInSec << L"B \'" << wsFriendlyName << L"_out\'=" << it->BytesOutSec << L"B ";
+		}
 	}
 
 	if (printInfo.warn.rend(tIn + tOut))
