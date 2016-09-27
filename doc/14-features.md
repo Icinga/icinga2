@@ -21,6 +21,10 @@ By default file the `mainlog` feature is enabled. When running Icinga 2
 on a terminal log messages with severity `information` or higher are
 written to the console.
 
+Packages will install a configuration file for logrotate on supported
+platforms. This configuration ensures that the `icinga2.log`, `error.log` and
+`debug.log` files are rotated on a daily basis.
+
 ## <a id="db-ido"></a> DB IDO
 
 The IDO (Icinga Data Output) modules for Icinga 2 take care of exporting all
