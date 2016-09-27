@@ -192,16 +192,22 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 		if (!children.empty())
 			OnReachabilityChanged(this, cr, children, origin);
 	} else {
-		if (old_attempt + 1 >= GetMaxCheckAttempts()) {
+		/* OK -> NOT-OK change, first SOFT state. Reset attempt counter. */
+		if (IsStateOK(old_state)) {
+			SetStateType(StateTypeSoft);
+			attempt = 1;
+		}
+
+		/* SOFT state change, increase attempt counter. */
+		if (old_stateType == StateTypeSoft && !IsStateOK(old_state)) {
+			SetStateType(StateTypeSoft);
+			attempt = old_attempt + 1;
+		}
+
+		/* HARD state change (e.g. previously 2/3 and this next attempt). Reset attempt counter. */
+		if (attempt >= GetMaxCheckAttempts()) {
 			SetStateType(StateTypeHard);
-		} else if (old_stateType == StateTypeSoft && !IsStateOK(old_state)) {
-			SetStateType(StateTypeSoft);
-			attempt = old_attempt + 1; // NOT-OK -> NOT-OK counter
-		} else if (IsStateOK(old_state)) {
-			SetStateType(StateTypeSoft);
-			attempt = 1; // OK -> NOT-OK transition, reset the counter
-		} else {
-			attempt = old_attempt;
+			attempt = 1;
 		}
 
 		if (!IsStateOK(cr->GetState())) {
