@@ -73,7 +73,7 @@ INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& p
 		("help,h", "print usage and exit")
 		("version,V", "print version and exit")
 		("debug,d", "Verbose/Debug output")
-		("noisatap,n", "Don't show isatap interfaces in output")
+		("noisatap,n", "Don't show ISATAP interfaces in output")
 		("warning,w", po::wvalue<std::wstring>(), "warning value")
 		("critical,c", po::wvalue<std::wstring>(), "critical value")
 		;

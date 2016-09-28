@@ -1456,7 +1456,7 @@ Name                | Description
 :-------------------|:------------
 network\_win\_warn  | **Optional**. The warning threshold.
 network\_win\_crit  | **Optional**. The critical threshold.
-network\_no\_iastap | **Optional**. Do not print iastap interfaces.
+network\_no\_isatap | **Optional**. Do not print ISATAP interfaces.
 
 
 ### <a id="windows-plugins-perfmon-windows"></a> perfmon-windows
