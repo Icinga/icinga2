@@ -197,7 +197,8 @@ void SetTlsProtocolminToSSLContext(const boost::shared_ptr<SSL_CTX>& context, co
 	if (tlsProtocolmin == SSL_TXT_TLSV1_1)
 		flags |= SSL_OP_NO_TLSv1;
 	else
-#elif defined(SSL_TXT_TLSV1_2)
+#endif /* SSL_TXT_TLSV1_1 */
+#ifdef SSL_TXT_TLSV1_2
 	if (tlsProtocolmin == SSL_TXT_TLSV1_2)
 		flags |= SSL_OP_NO_TLSv1 | SSL_OP_NO_TLSv1_1;
 	else
