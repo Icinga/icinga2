@@ -1452,13 +1452,14 @@ Collects the total Bytes inbount and outbound for all interfaces in one second, 
 
 Custom attributes:
 
-Name               | Description
-:------------------|:------------
-network\_win\_warn | **Optional**. The warning threshold.
-network\_win\_crit | **Optional**. The critical threshold.
+Name                | Description
+:-------------------|:------------
+network\_win\_warn  | **Optional**. The warning threshold.
+network\_win\_crit  | **Optional**. The critical threshold.
+network\_no\_iastap | **Optional**. Do not print iastap interfaces.
 
 
-### <a id="windows-plugins-permon-windows"></a> perfmon-windows
+### <a id="windows-plugins-perfmon-windows"></a> perfmon-windows
 
 Check command object for the `check_perfmon.exe` plugin.
 This plugins allows to collect data from a Performance Counter. After the first data collection a second one is done after `perfmon_win_wait` milliseconds. When you know `perfmon_win_counter` only requires one set of data to provide valid data you can set `perfmon_win_wait` to `0`.
