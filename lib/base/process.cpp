@@ -27,6 +27,7 @@
 #include "base/logger.hpp"
 #include "base/utility.hpp"
 #include "base/scriptglobal.hpp"
+#include "base/json.hpp"
 #include <boost/algorithm/string/join.hpp>
 #include <boost/thread/once.hpp>
 
@@ -53,8 +54,13 @@ static HANDLE l_Events[IOTHREADS];
 #else /* _WIN32 */
 static int l_EventFDs[IOTHREADS][2];
 static std::map<Process::ConsoleHandle, Process::ProcessHandle> l_FDs[IOTHREADS];
+
+static boost::mutex l_ProcessControlMutex;
+static int l_ProcessControlFD = -1;
+static pid_t l_ProcessControlPID;
 #endif /* _WIN32 */
-static boost::once_flag l_OnceFlag = BOOST_ONCE_INIT;
+static boost::once_flag l_ProcessOnceFlag = BOOST_ONCE_INIT;
+static boost::once_flag l_SpawnHelperOnceFlag = BOOST_ONCE_INIT;
 
 Process::Process(const Process::Arguments& arguments, const Dictionary::Ptr& extraEnvironment)
 	: m_Arguments(arguments), m_ExtraEnvironment(extraEnvironment), m_Timeout(600)
@@ -73,6 +79,375 @@ Process::~Process(void)
 	CloseHandle(m_Overlapped.hEvent);
 #endif /* _WIN32 */
 }
+
+#ifndef _WIN32
+static Value ProcessSpawnImpl(struct msghdr *msgh, const Dictionary::Ptr& request)
+{
+	struct cmsghdr *cmsg = CMSG_FIRSTHDR(msgh);
+
+	if (cmsg == NULL || cmsg->cmsg_level != SOL_SOCKET || cmsg->cmsg_len != CMSG_LEN(sizeof(int) * 3)) {
+		std::cerr << "Invalid 'spawn' request: FDs missing" << std::endl;
+		return Empty;
+	}
+
+	int *fds = (int *)CMSG_DATA(cmsg);
+
+	Array::Ptr arguments = request->Get("arguments");
+	Dictionary::Ptr extraEnvironment = request->Get("extraEnvironment");
+
+	// build argv
+	char **argv = new char *[arguments->GetLength() + 1];
+
+	for (unsigned int i = 0; i < arguments->GetLength(); i++) {
+		String arg = arguments->Get(i);
+		argv[i] = strdup(arg.CStr());
+	}
+
+	argv[arguments->GetLength()] = NULL;
+
+	// build envp
+	int envc = 0;
+
+	/* count existing environment variables */
+	while (environ[envc] != NULL)
+		envc++;
+
+	char **envp = new char *[envc + (extraEnvironment ? extraEnvironment->GetLength() : 0) + 2];
+
+	for (int i = 0; i < envc; i++)
+		envp[i] = strdup(environ[i]);
+
+	if (extraEnvironment) {
+		ObjectLock olock(extraEnvironment);
+
+		int index = envc;
+		for (const Dictionary::Pair& kv : extraEnvironment) {
+			String skv = kv.first + "=" + Convert::ToString(kv.second);
+			envp[index] = strdup(skv.CStr());
+			index++;
+		}
+	}
+
+	envp[envc + (extraEnvironment ? extraEnvironment->GetLength() : 0)] = strdup("LC_NUMERIC=C");
+	envp[envc + (extraEnvironment ? extraEnvironment->GetLength() : 0) + 1] = NULL;
+
+	extraEnvironment.reset();
+
+	pid_t pid = fork();
+
+	if (pid < 0) {
+		BOOST_THROW_EXCEPTION(posix_error()
+			<< boost::errinfo_api_function("fork")
+			<< boost::errinfo_errno(errno));
+	}
+
+	if (pid == 0) {
+		// child process
+
+		(void)close(l_ProcessControlFD);
+
+		if (setsid() < 0) {
+			perror("setsid() failed");
+			_exit(128);
+		}
+
+		if (dup2(fds[0], STDIN_FILENO) < 0 || dup2(fds[1], STDOUT_FILENO) < 0 || dup2(fds[2], STDERR_FILENO) < 0) {
+			perror("dup2() failed");
+			_exit(128);
+		}
+
+		(void)close(fds[0]);
+		(void)close(fds[1]);
+		(void)close(fds[2]);
+
+#ifdef HAVE_NICE
+		if (nice(5) < 0)
+			Log(LogWarning, "base", "Failed to renice child process.");
+#endif /* HAVE_NICE */
+
+		if (icinga2_execvpe(argv[0], argv, envp) < 0) {
+			char errmsg[512];
+			strcpy(errmsg, "execvpe(");
+			strncat(errmsg, argv[0], sizeof(errmsg) - strlen(errmsg) - 1);
+			strncat(errmsg, ") failed", sizeof(errmsg) - strlen(errmsg) - 1);
+			errmsg[sizeof(errmsg) - 1] = '\0';
+			perror(errmsg);
+			_exit(128);
+		}
+
+		_exit(128);
+	}
+
+	(void)close(fds[0]);
+	(void)close(fds[1]);
+	(void)close(fds[2]);
+
+	// free arguments
+	for (int i = 0; argv[i] != NULL; i++)
+		free(argv[i]);
+
+	delete[] argv;
+
+	// free environment
+	for (int i = 0; envp[i] != NULL; i++)
+		free(envp[i]);
+
+	delete[] envp;
+
+	Dictionary::Ptr response = new Dictionary();
+	response->Set("rc", pid);
+	return response;
+}
+
+static Value ProcessKillImpl(struct msghdr *msgh, const Dictionary::Ptr& request)
+{
+	pid_t pid = request->Get("pid");
+	int signum = request->Get("signum");
+
+	int rc = kill(pid, signum);
+
+	Dictionary::Ptr response = new Dictionary();
+	response->Set("rc", rc);
+
+	return response;
+}
+
+static Value ProcessWaitPIDImpl(struct msghdr *msgh, const Dictionary::Ptr& request)
+{
+	pid_t pid = request->Get("pid");
+
+	int status;
+	int rc = waitpid(pid, &status, 0);
+
+	Dictionary::Ptr response = new Dictionary();
+	response->Set("status", status);
+	response->Set("rc", rc);
+
+	return response;
+}
+
+static void ProcessHandler(void)
+{
+	sigset_t mask;
+	sigfillset(&mask);
+	sigprocmask(SIG_SETMASK, &mask, NULL);
+
+	rlimit rl;
+	if (getrlimit(RLIMIT_NOFILE, &rl) >= 0) {
+		rlim_t maxfds = rl.rlim_max;
+
+		if (maxfds == RLIM_INFINITY)
+			maxfds = 65536;
+
+		for (rlim_t i = 3; i < maxfds; i++)
+			if (i != static_cast<rlim_t>(l_ProcessControlFD))
+				(void)close(i);
+	}
+
+	for (;;) {
+		struct msghdr msg;
+		memset(&msg, 0, sizeof(msg));
+
+		char mbuf[4096];
+		struct iovec io;
+		io.iov_base = mbuf;
+		io.iov_len = sizeof(mbuf);
+
+		msg.msg_iov = &io;
+		msg.msg_iovlen = 1;
+
+		char cbuf[4096];
+		msg.msg_control = cbuf;
+		msg.msg_controllen = sizeof(cbuf);
+
+		int rc = recvmsg(l_ProcessControlFD, &msg, 0);
+
+		if (rc <= 0) {
+			if (rc < 0 && (errno == EINTR || errno == EAGAIN))
+				continue;
+
+			break;
+		}
+
+		String jrequest = String(mbuf, mbuf + rc);
+
+		Dictionary::Ptr request = JsonDecode(jrequest);
+
+		String command = request->Get("command");
+
+		Value response;
+
+		if (command == "spawn")
+			response = ProcessSpawnImpl(&msg, request);
+		else if (command == "waitpid")
+			response = ProcessWaitPIDImpl(&msg, request);
+		else if (command == "kill")
+			response = ProcessKillImpl(&msg, request);
+		else
+			response = Empty;
+
+		String jresponse = JsonEncode(response);
+
+		if (send(l_ProcessControlFD, jresponse.CStr(), jresponse.GetLength(), 0) < 0) {
+			BOOST_THROW_EXCEPTION(posix_error()
+			    << boost::errinfo_api_function("send")
+			    << boost::errinfo_errno(errno));
+		}
+	}
+
+	_exit(0);
+}
+
+static void StartSpawnProcessHelper(void)
+{
+	if (l_ProcessControlFD != -1) {
+		(void)close(l_ProcessControlFD);
+
+		int status;
+		(void)waitpid(l_ProcessControlPID, &status, 0);
+	}
+
+	int controlFDs[2];
+	if (socketpair(AF_UNIX, SOCK_STREAM, 0, controlFDs) < 0) {
+		BOOST_THROW_EXCEPTION(posix_error()
+		    << boost::errinfo_api_function("socketpair")
+		    << boost::errinfo_errno(errno));
+	}
+
+	pid_t pid = fork();
+
+	if (pid < 0) {
+		BOOST_THROW_EXCEPTION(posix_error()
+		    << boost::errinfo_api_function("fork")
+		    << boost::errinfo_errno(errno));
+	}
+
+	if (pid == 0) {
+		(void)close(controlFDs[1]);
+
+		l_ProcessControlFD = controlFDs[0];
+
+		ProcessHandler();
+
+		_exit(1);
+	}
+
+	(void)close(controlFDs[0]);
+
+	l_ProcessControlFD = controlFDs[1];
+	l_ProcessControlPID = pid;
+}
+
+static pid_t ProcessSpawn(const std::vector<String>& arguments, const Dictionary::Ptr& extraEnvironment, int fds[3])
+{
+	Dictionary::Ptr request = new Dictionary();
+	request->Set("command", "spawn");
+	request->Set("arguments", Array::FromVector(arguments));
+	request->Set("extraEnvironment", extraEnvironment);
+
+	String jrequest = JsonEncode(request);
+
+	boost::mutex::scoped_lock lock(l_ProcessControlMutex);
+
+	struct msghdr msg;
+	memset(&msg, 0, sizeof(msg));
+
+	struct iovec io;
+	io.iov_base = const_cast<char *>(jrequest.CStr());
+	io.iov_len = jrequest.GetLength();
+
+	msg.msg_iov = &io;
+	msg.msg_iovlen = 1;
+
+	char cbuf[CMSG_SPACE(sizeof(int) * 3)];
+	msg.msg_control = cbuf;
+	msg.msg_controllen = sizeof(cbuf);
+
+	struct cmsghdr *cmsg = CMSG_FIRSTHDR(&msg);
+	cmsg->cmsg_level = SOL_SOCKET;
+	cmsg->cmsg_type = SCM_RIGHTS;
+	cmsg->cmsg_len = CMSG_LEN(sizeof(int) * 3);
+
+	memcpy(CMSG_DATA(cmsg), fds, sizeof(int) * 3);
+
+	msg.msg_controllen = cmsg->cmsg_len;
+
+	while (sendmsg(l_ProcessControlFD, &msg, 0) < 0)
+		StartSpawnProcessHelper();
+
+	char buf[4096];
+
+	ssize_t rc = recv(l_ProcessControlFD, buf, sizeof(buf), 0);
+
+	if (rc < 0)
+		return -1;
+
+	String jresponse = String(buf, buf + rc);
+
+	Dictionary::Ptr response = JsonDecode(jresponse);
+	return response->Get("rc");
+}
+
+static int ProcessKill(pid_t pid, int signum)
+{
+	Dictionary::Ptr request = new Dictionary();
+	request->Set("command", "kill");
+	request->Set("pid", pid);
+	request->Set("signum", signum);
+
+	String jrequest = JsonEncode(request);
+
+	boost::mutex::scoped_lock lock(l_ProcessControlMutex);
+
+	while (send(l_ProcessControlFD, jrequest.CStr(), jrequest.GetLength(), 0) < 0)
+		StartSpawnProcessHelper();
+
+	char buf[4096];
+
+	ssize_t rc = recv(l_ProcessControlFD, buf, sizeof(buf), 0);
+
+	if (rc < 0)
+		return -1;
+
+	String jresponse = String(buf, buf + rc);
+
+	Dictionary::Ptr response = JsonDecode(jresponse);
+	return response->Get("rc");
+}
+
+static int ProcessWaitPID(pid_t pid, int *status)
+{
+	Dictionary::Ptr request = new Dictionary();
+	request->Set("command", "waitpid");
+	request->Set("pid", pid);
+
+	String jrequest = JsonEncode(request);
+
+	boost::mutex::scoped_lock lock(l_ProcessControlMutex);
+
+	while (send(l_ProcessControlFD, jrequest.CStr(), jrequest.GetLength(), 0) < 0)
+		StartSpawnProcessHelper();
+
+	char buf[4096];
+
+	ssize_t rc = recv(l_ProcessControlFD, buf, sizeof(buf), 0);
+
+	if (rc < 0)
+		return -1;
+
+	String jresponse = String(buf, buf + rc);
+
+	Dictionary::Ptr response = JsonDecode(jresponse);
+	*status = response->Get("status");
+	return response->Get("rc");
+}
+
+void Process::InitializeSpawnHelper(void)
+{
+	if (l_ProcessControlFD == -1)
+		StartSpawnProcessHelper();
+}
+#endif /* _WIN32 */
 
 static void InitializeProcess(void)
 {
@@ -351,7 +726,8 @@ static BOOL CreatePipeOverlapped(HANDLE *outReadPipe, HANDLE *outWritePipe,
 
 void Process::Run(const boost::function<void(const ProcessResult&)>& callback)
 {
-	boost::call_once(l_OnceFlag, &Process::ThreadInitialize);
+	boost::call_once(l_SpawnHelperOnceFlag, &Process::InitializeSpawnHelper);
+	boost::call_once(l_ProcessOnceFlag, &Process::ThreadInitialize);
 
 	m_Result.ExecutionStart = Utility::GetTime();
 
@@ -510,20 +886,20 @@ void Process::Run(const boost::function<void(const ProcessResult&)>& callback)
 	    << "Running command " << PrettyPrintArguments(m_Arguments) << ": PID " << m_PID;
 
 #else /* _WIN32 */
-	int fds[2];
+	int outfds[2];
 
 #ifdef HAVE_PIPE2
-	if (pipe2(fds, O_CLOEXEC) < 0) {
+	if (pipe2(outfds, O_CLOEXEC) < 0) {
 		if (errno == ENOSYS) {
 #endif /* HAVE_PIPE2 */
-			if (pipe(fds) < 0) {
+			if (pipe(outfds) < 0) {
 				BOOST_THROW_EXCEPTION(posix_error()
 				    << boost::errinfo_api_function("pipe")
 				    << boost::errinfo_errno(errno));
 			}
 
-			Utility::SetCloExec(fds[0]);
-			Utility::SetCloExec(fds[1]);
+			Utility::SetCloExec(outfds[0]);
+			Utility::SetCloExec(outfds[1]);
 #ifdef HAVE_PIPE2
 		} else {
 			BOOST_THROW_EXCEPTION(posix_error()
@@ -533,117 +909,22 @@ void Process::Run(const boost::function<void(const ProcessResult&)>& callback)
 	}
 #endif /* HAVE_PIPE2 */
 
-	// build argv
-	char **argv = new char *[m_Arguments.size() + 1];
+	int fds[3];
+	fds[0] = STDIN_FILENO;
+	fds[1] = outfds[1];
+	fds[2] = outfds[1];
 
-	for (unsigned int i = 0; i < m_Arguments.size(); i++)
-		argv[i] = strdup(m_Arguments[i].CStr());
-
-	argv[m_Arguments.size()] = NULL;
-
-	// build envp
-	int envc = 0;
-
-	/* count existing environment variables */
-	while (environ[envc] != NULL)
-		envc++;
-
-	char **envp = new char *[envc + (m_ExtraEnvironment ? m_ExtraEnvironment->GetLength() : 0) + 2];
-
-	for (int i = 0; i < envc; i++)
-		envp[i] = strdup(environ[i]);
-
-	if (m_ExtraEnvironment) {
-		ObjectLock olock(m_ExtraEnvironment);
-
-		int index = envc;
-		for (const Dictionary::Pair& kv : m_ExtraEnvironment) {
-			String skv = kv.first + "=" + Convert::ToString(kv.second);
-			envp[index] = strdup(skv.CStr());
-			index++;
-		}
-	}
-
-	envp[envc + (m_ExtraEnvironment ? m_ExtraEnvironment->GetLength() : 0)] = strdup("LC_NUMERIC=C");
-	envp[envc + (m_ExtraEnvironment ? m_ExtraEnvironment->GetLength() : 0) + 1] = NULL;
-
-	m_ExtraEnvironment.reset();
-
-#ifdef HAVE_VFORK
-	Value use_vfork = ScriptGlobal::Get("UseVfork");
-
-	if (use_vfork.IsEmpty() || static_cast<bool>(use_vfork))
-		m_Process = vfork();
-	else
-		m_Process = fork();
-#else /* HAVE_VFORK */
-	m_Process = fork();
-#endif /* HAVE_VFORK */
-
-	if (m_Process < 0) {
-		BOOST_THROW_EXCEPTION(posix_error()
-			<< boost::errinfo_api_function("fork")
-			<< boost::errinfo_errno(errno));
-	}
-
-	if (m_Process == 0) {
-		// child process
-
-		if (setsid() < 0) {
-			perror("setsid() failed");
-			_exit(128);
-		}
-
-		if (dup2(fds[1], STDOUT_FILENO) < 0 || dup2(fds[1], STDERR_FILENO) < 0) {
-			perror("dup2() failed");
-			_exit(128);
-		}
-
-		(void)close(fds[0]);
-		(void)close(fds[1]);
-
-#ifdef HAVE_NICE
-		if (nice(5) < 0)
-			Log(LogWarning, "base", "Failed to renice child process.");
-#endif /* HAVE_NICE */
-
-		if (icinga2_execvpe(argv[0], argv, envp) < 0) {
-			char errmsg[512];
-			strcpy(errmsg, "execvpe(");
-			strncat(errmsg, argv[0], sizeof(errmsg) - strlen(errmsg) - 1);
-			strncat(errmsg, ") failed", sizeof(errmsg) - strlen(errmsg) - 1);
-			errmsg[sizeof(errmsg) - 1] = '\0';
-			perror(errmsg);
-			_exit(128);
-		}
-
-		_exit(128);
-	}
-
-	// parent process
-
+	m_Process = ProcessSpawn(m_Arguments, m_ExtraEnvironment, fds);
 	m_PID = m_Process;
 
 	Log(LogNotice, "Process")
-	    << "Running command " << PrettyPrintArguments(m_Arguments) <<": PID " << m_PID;
+	    << "Running command " << PrettyPrintArguments(m_Arguments) << ": PID " << m_PID;
 
-	// free arguments
-	for (int i = 0; argv[i] != NULL; i++)
-		free(argv[i]);
+	(void)close(outfds[1]);
 
-	delete[] argv;
+	Utility::SetNonBlocking(outfds[0]);
 
-	// free environment
-	for (int i = 0; envp[i] != NULL; i++)
-		free(envp[i]);
-
-	delete[] envp;
-
-	(void)close(fds[1]);
-
-	Utility::SetNonBlocking(fds[0]);
-
-	m_FD = fds[0];
+	m_FD = outfds[0];
 #endif /* _WIN32 */
 
 	m_Callback = callback;
@@ -682,7 +963,7 @@ bool Process::DoEvents(void)
 #ifdef _WIN32
 			TerminateProcess(m_Process, 1);
 #else /* _WIN32 */
-			kill(-m_Process, SIGKILL);
+			ProcessKill(-m_Process, SIGKILL);
 #endif /* _WIN32 */
 
 			is_timeout = true;
@@ -728,13 +1009,12 @@ bool Process::DoEvents(void)
 	    << "PID " << m_PID << " (" << PrettyPrintArguments(m_Arguments) << ") terminated with exit code " << exitcode;
 #else /* _WIN32 */
 	int status, exitcode;
-	if (waitpid(m_Process, &status, 0) != m_Process) {
-		BOOST_THROW_EXCEPTION(posix_error()
-			<< boost::errinfo_api_function("waitpid")
-			<< boost::errinfo_errno(errno));
-	}
+	if (ProcessWaitPID(m_Process, &status) != m_Process) {
+		exitcode = 128;
 
-	if (WIFEXITED(status)) {
+		Log(LogWarning, "Process")
+		    << "PID " << m_PID << " (" << PrettyPrintArguments(m_Arguments) << ") died mysteriously: waitpid failed";
+	} else if (WIFEXITED(status)) {
 		exitcode = WEXITSTATUS(status);
 
 		Log(LogNotice, "Process")

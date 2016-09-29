@@ -31,6 +31,7 @@
 #include "base/scriptglobal.hpp"
 #include "base/context.hpp"
 #include "base/console.hpp"
+#include "base/process.hpp"
 #include "config.h"
 #include <boost/program_options.hpp>
 #include <boost/tuple/tuple.hpp>
@@ -152,13 +153,6 @@ int Main(void)
 	Application::DeclareRunAsUser(ICINGA_USER);
 	Application::DeclareRunAsGroup(ICINGA_GROUP);
 	Application::DeclareConcurrency(boost::thread::hardware_concurrency());
-
-	if (!ScriptGlobal::Exists("UseVfork"))
-#ifdef __APPLE__
-		ScriptGlobal::Set("UseVfork", false);
-#else /* __APPLE__ */
-		ScriptGlobal::Set("UseVfork", true);
-#endif /* __APPLE__ */
 
 	ScriptGlobal::Set("AttachDebugger", false);
 
@@ -454,6 +448,8 @@ int Main(void)
 				}
 			}
 		}
+
+		Process::InitializeSpawnHelper();
 #endif /* _WIN32 */
 
 		std::vector<std::string> args;
