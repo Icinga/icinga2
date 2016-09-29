@@ -985,10 +985,14 @@ Edit the `zones.conf` configuration file on the master:
 
     object Zone "icinga2-client1.localdomain" {
       endpoints = [ "icinga2-client1.localdomain" ]
+
+      parent = "master"
     }
 
     object Zone "icinga2-client2.localdomain" {
       endpoints = [ "icinga2-client2.localdomain" ]
+
+      parent = "master"
     }
 
     /* sync global commands */
@@ -1019,6 +1023,8 @@ master. Choose one connection direction.
 
     object Zone "icinga2-client1.localdomain" {
       endpoints = [ "icinga2-client1.localdomain" ]
+
+      parent = "master"
     }
 
     /* sync global commands */
@@ -1041,6 +1047,8 @@ master. Choose one connection direction.
 
     object Zone "icinga2-client2.localdomain" {
       endpoints = [ "icinga2-client2.localdomain" ]
+
+      parent = "master"
     }
 
     /* sync global commands */
@@ -1159,15 +1167,19 @@ The zone hierarchy could look like this. It involves putting the two master node
     }
 
     object Zone "master" {
-      endpoints = [ "icinga2-master1.localdomain", "icinga2-master1.localdomain" ]
+      endpoints = [ "icinga2-master1.localdomain", "icinga2-master2.localdomain" ]
     }
 
     object Zone "icinga2-client1.localdomain" {
       endpoints = [ "icinga2-client1.localdomain" ]
+
+      parent = "master"
     }
 
     object Zone "icinga2-client2.localdomain" {
       endpoints = [ "icinga2-client2.localdomain" ]
+
+      parent = "master"
     }
 
     /* sync global commands */
@@ -1202,6 +1214,8 @@ master nodes. Choose one connection direction.
 
     object Zone "icinga2-client1.localdomain" {
       endpoints = [ "icinga2-client1.localdomain" ]
+
+      parent = "master"
     }
 
     /* sync global commands */
@@ -1228,6 +1242,8 @@ master nodes. Choose one connection direction.
 
     object Zone "icinga2-client2.localdomain" {
       endpoints = [ "icinga2-client2.localdomain" ]
+
+      parent = "master"
     }
 
     /* sync global commands */
@@ -1377,11 +1393,13 @@ using the `host` attribute.
     }
 
     object Zone "master" {
-      endpoints = [ "icinga2-master1.localdomain", "icinga2-master1.localdomain" ]
+      endpoints = [ "icinga2-master1.localdomain", "icinga2-master2.localdomain" ]
     }
 
     object Zone "satellite" {
-      endpoints = [ "icinga2-satellite1.localdomain", "icinga2-satellite1.localdomain" ]
+      endpoints = [ "icinga2-satellite1.localdomain", "icinga2-satellite2.localdomain" ]
+
+      parent = "master"
     }
 
     /* sync global commands */
@@ -1406,6 +1424,8 @@ satellites where the connection information is needed as well.
 
     object Zone "icinga2-client1.localdomain" {
       endpoints = [ "icinga2-client1.localdomain" ]
+
+      parent = "satellite"
     }
 
     [root@icinga2-master1.localdomain /etc/icinga2/zones.d/satellite]# vim icinga2-client2.localdomain.conf
@@ -1416,6 +1436,8 @@ satellites where the connection information is needed as well.
 
     object Zone "icinga2-client2.localdomain" {
       endpoints = [ "icinga2-client2.localdomain" ]
+
+      parent = "satellite"
     }
 
 The two client nodes do not necessarily need to know about each other, either. The only important thing
@@ -1445,6 +1467,8 @@ master nodes. Choose one connection direction.
 
     object Zone "icinga2-client1.localdomain" {
       endpoints = [ "icinga2-client1.localdomain" ]
+
+      parent = "satellite"
     }
 
     /* sync global commands */
@@ -1471,6 +1495,8 @@ master nodes. Choose one connection direction.
 
     object Zone "icinga2-client2.localdomain" {
       endpoints = [ "icinga2-client2.localdomain" ]
+
+      parent = "satellite"
     }
 
     /* sync global commands */
