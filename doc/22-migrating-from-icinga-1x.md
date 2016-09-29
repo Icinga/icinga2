@@ -677,7 +677,6 @@ Another way to express the same configuration would be something like:
 
     apply Dependency "host-to-parent-" for (parent in host.vars.parents) to Host {
       parent_host_name = parent
-      assign where host.vars.parents
     }
 
 This example allows finer grained host-to-host dependency, as well as multiple dependency support.
