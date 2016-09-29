@@ -665,14 +665,14 @@ Another way to express the same configuration would be something like:
       import "linux-server-template"
       groups += [ "vmware" ]
       address = "192.168.27.1"
-      host.vars.parents = [ "vmware-master" ]
+      vars.parents = [ "vmware-master" ]
     }
 
     object Host "vmware-vm2" {
       import "linux-server-template"
       groups += [ "vmware" ]
       address = "192.168.28.1"
-      host.vars.parents = [ "vmware-master" ]
+      vars.parents = [ "vmware-master" ]
     }
 
     apply Dependency "host-to-parent-" for (parent in host.vars.parents) to Host {
