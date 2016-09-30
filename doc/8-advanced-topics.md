@@ -196,8 +196,36 @@ create a new timeperiod named `workhours` defining a work day from
       }
     }
 
-Use the `period` attribute to assign time periods to
-`Notification` and `Dependency` objects:
+Furthermore if you wish to specify a notification period across midnight,
+you can define it the following way:
+
+    object Timeperiod "across-midnight" {
+      import "legacy-timeperiod"
+
+      display_name = "Nightly Notification"
+      ranges = {
+        "saturday" = "22:00-24:00"
+        "sunday" = "00:00-03:00"
+      }
+    }
+
+Below you can see another example for configuring timeperiods across several
+days, weeks or months. This can be useful when taking components offline
+for a distinct period of time.
+
+    object Timeperiod "standby" {
+      import "legacy-timeperiod"
+
+      display_name = "Standby"
+      ranges = {
+        "2016-09-30 - 2016-10-30" = "00:00-24:00"
+      }
+    }
+
+Please note that the spaces before and after the dash are mandatory.
+
+Once your time period is configured you can Use the `period` attribute
+to assign time periods to `Notification` and `Dependency` objects:
 
     object Notification "mail" {
       import "generic-notification"
