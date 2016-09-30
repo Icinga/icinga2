@@ -237,7 +237,7 @@ Here is an example of a master setup for the `icinga2-master1.localdomain` node 
 As you can see, the CA public and private key are stored in the `/var/lib/icinga2/ca` directory.
 Keep this path secure and include it in your [backups](2-getting-started.md#install-backup).
 
-In case you loose the CA private key you have to generate a new CA for signing new client
+In case you lose the CA private key you have to generate a new CA for signing new client
 certificate requests. You then have to also re-create new signed certificates for all
 existing nodes.
 
