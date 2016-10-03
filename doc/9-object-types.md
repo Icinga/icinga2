@@ -195,7 +195,9 @@ Example:
 
     library "checker"
 
-    object CheckerComponent "checker" { }
+    object CheckerComponent "checker" {
+      concurrent_checks = 512
+    }
 
 Configuration Attributes:
 
