@@ -128,3 +128,33 @@ std::set<Checkable::Ptr> Checkable::GetChildren(void) const
 
 	return parents;
 }
+
+std::set<Checkable::Ptr> Checkable::GetAllChildren(void) const
+{
+	std::set<Checkable::Ptr> children = GetChildren();
+
+	GetAllChildrenInternal(children, 0);
+
+	return children;
+}
+
+void Checkable::GetAllChildrenInternal(std::set<Checkable::Ptr>& children, int level) const
+{
+	if (level > 32)
+		return;
+
+	std::set<Checkable::Ptr> localChildren;
+
+	for (const Checkable::Ptr& checkable : children) {
+		std::set<Checkable::Ptr> cChildren = checkable->GetChildren();
+
+		if (!checkable->GetChildren().empty()) {
+			GetAllChildrenInternal(cChildren, level + 1);
+			localChildren.insert(cChildren.begin(), cChildren.end());
+		}
+
+		localChildren.insert(checkable);
+	}
+
+	children.insert(localChildren.begin(), localChildren.end());
+}

@@ -74,6 +74,7 @@ public:
 
 	std::set<Checkable::Ptr> GetParents(void) const;
 	std::set<Checkable::Ptr> GetChildren(void) const;
+	std::set<Checkable::Ptr> GetAllChildren(void) const;
 
 	void AddGroup(const String& name);
 
@@ -217,6 +218,8 @@ private:
 	mutable boost::mutex m_DependencyMutex;
 	std::set<intrusive_ptr<Dependency> > m_Dependencies;
 	std::set<intrusive_ptr<Dependency> > m_ReverseDependencies;
+
+	void GetAllChildrenInternal(std::set<Checkable::Ptr>& children, int level = 0) const;
 };
 
 }

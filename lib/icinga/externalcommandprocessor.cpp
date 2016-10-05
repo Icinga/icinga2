@@ -1024,7 +1024,7 @@ void ExternalCommandProcessor::ScheduleAndPropagateHostDowntime(double, const st
 	    Convert::ToBool(is_fixed), triggeredBy, Convert::ToDouble(arguments[5]));
 
 	/* Schedule downtime for all child hosts */
-	BOOST_FOREACH(const Checkable::Ptr& child, host->GetChildren()) {
+	for (const Checkable::Ptr& child : host->GetAllChildren()) {
 		Host::Ptr host;
 		Service::Ptr service;
 		tie(host, service) = GetHostService(child);
@@ -1060,7 +1060,7 @@ void ExternalCommandProcessor::ScheduleAndPropagateTriggeredHostDowntime(double,
 	    Convert::ToBool(is_fixed), triggeredBy, Convert::ToDouble(arguments[5]));
 
 	/* Schedule downtime for all child hosts and explicitely trigger them through the parent host's downtime */
-	BOOST_FOREACH(const Checkable::Ptr& child, host->GetChildren()) {
+	for (const Checkable::Ptr& child : host->GetAllChildren()) {
 		Host::Ptr host;
 		Service::Ptr service;
 		tie(host, service) = GetHostService(child);
