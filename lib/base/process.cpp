@@ -726,7 +726,9 @@ static BOOL CreatePipeOverlapped(HANDLE *outReadPipe, HANDLE *outWritePipe,
 
 void Process::Run(const boost::function<void(const ProcessResult&)>& callback)
 {
+#ifndef _WIN32
 	boost::call_once(l_SpawnHelperOnceFlag, &Process::InitializeSpawnHelper);
+#endif /* _WIN32 */
 	boost::call_once(l_ProcessOnceFlag, &Process::ThreadInitialize);
 
 	m_Result.ExecutionStart = Utility::GetTime();
