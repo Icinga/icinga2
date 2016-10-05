@@ -136,7 +136,7 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 
 		if (!ConfigItem::CommitItems(ascope.GetContext(), upq, newItems) || !ConfigItem::ActivateItems(upq, newItems, true)) {
 			if (errors) {
-				if (unlink(path.CStr()) < 0) {
+				if (unlink(path.CStr()) < 0 && errno != ENOENT) {
 					BOOST_THROW_EXCEPTION(posix_error()
 					    << boost::errinfo_api_function("unlink")
 					    << boost::errinfo_errno(errno)
@@ -155,7 +155,7 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 	} catch (const std::exception& ex) {
 		delete expr;
 
-		if (unlink(path.CStr()) < 0) {
+		if (unlink(path.CStr()) < 0 && errno != ENOENT) {
 			BOOST_THROW_EXCEPTION(posix_error()
 			    << boost::errinfo_api_function("unlink")
 			    << boost::errinfo_errno(errno)
@@ -217,7 +217,7 @@ bool ConfigObjectUtility::DeleteObjectHelper(const ConfigObject::Ptr& object, bo
 	String path = GetObjectConfigPath(object->GetReflectionType(), object->GetName());
 
 	if (Utility::PathExists(path)) {
-		if (unlink(path.CStr()) < 0) {
+		if (unlink(path.CStr()) < 0 && errno != ENOENT) {
 			BOOST_THROW_EXCEPTION(posix_error()
 			    << boost::errinfo_api_function("unlink")
 			    << boost::errinfo_errno(errno)
