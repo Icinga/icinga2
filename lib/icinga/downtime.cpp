@@ -262,17 +262,18 @@ String Downtime::AddDowntime(const Checkable::Ptr& checkable, const String& auth
 	}
 
 	if (!triggeredBy.IsEmpty()) {
-		Downtime::Ptr triggerDowntime = Downtime::GetByName(triggeredBy);
-		Array::Ptr triggers = triggerDowntime->GetTriggers();
+		Downtime::Ptr parentDowntime = Downtime::GetByName(triggeredBy);
+		Array::Ptr triggers = parentDowntime->GetTriggers();
 
-		if (!triggers->Contains(triggeredBy))
-			triggers->Add(triggeredBy);
+		ObjectLock olock(triggers);
+		if (!triggers->Contains(fullName))
+			triggers->Add(fullName);
 	}
 
 	Downtime::Ptr downtime = Downtime::GetByName(fullName);
 
 	if (!downtime)
-		BOOST_THROW_EXCEPTION(std::runtime_error("Could not create downtime."));
+		BOOST_THROW_EXCEPTION(std::runtime_error("Could not create downtime object."));
 
 	Log(LogNotice, "Downtime")
 	    << "Added downtime '" << downtime->GetName()

@@ -76,7 +76,7 @@ class Downtime : ConfigObject < DowntimeNameComposer
 	[state] Timestamp trigger_time;
 	[config] bool fixed;
 	[config] Timestamp duration;
-	[config] name(Downtime) triggered_by;
+	[config] String triggered_by;
 	[config] String scheduled_by;
 	[state] Array::Ptr triggers {
 		default {{{ return new Array(); }}}
