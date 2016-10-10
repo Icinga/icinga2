@@ -91,6 +91,7 @@ BOOST_AUTO_TEST_CASE(format)
 
 	url = new Url("/foo/bar/index.php?blaka");
 	BOOST_CHECK(new Url(url->Format()));
+	BOOST_CHECK(url->Format() == "/foo/bar/index.php?blaka");
 
 	url = new Url("/");
 	BOOST_CHECK(url->Format() == "/");
