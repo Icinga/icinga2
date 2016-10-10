@@ -25,6 +25,7 @@
 %endif
 
 %define _libexecdir %{_prefix}/lib/
+%define plugindir %{_libdir}/nagios/plugins
 
 %if "%{_vendor}" == "redhat"
 %define apachename httpd
@@ -43,6 +44,7 @@
 %endif
 
 %if "%{_vendor}" == "suse"
+%define plugindir %{_prefix}/lib/nagios/plugins
 %define apachename apache2
 %define apacheconfdir  %{_sysconfdir}/apache2/conf.d
 %define apacheuser wwwrun
@@ -330,7 +332,7 @@ CMAKE_OPTS="$CMAKE_OPTS \
 %endif
 
 %if "%{_vendor}" != "suse"
-CMAKE_OPTS="$CMAKE_OPTS -DICINGA2_PLUGINDIR=%{_libdir}/nagios/plugins"
+CMAKE_OPTS="$CMAKE_OPTS -DICINGA2_PLUGINDIR=%{plugindir}"
 %else
 %if 0%{?suse_version} < 1310
 CMAKE_OPTS="$CMAKE_OPTS -DBOOST_LIBRARYDIR=%{_libdir}/boost153 \
@@ -340,7 +342,7 @@ CMAKE_OPTS="$CMAKE_OPTS -DBOOST_LIBRARYDIR=%{_libdir}/boost153 \
  -DBUILD_TESTING=FALSE \
  -DBoost_NO_BOOST_CMAKE=TRUE"
 %endif
-CMAKE_OPTS="$CMAKE_OPTS -DICINGA2_PLUGINDIR=%{_prefix}/lib/nagios/plugins"
+CMAKE_OPTS="$CMAKE_OPTS -DICINGA2_PLUGINDIR=%{plugindir}"
 %endif
 
 %if 0%{?use_systemd}
@@ -674,6 +676,7 @@ fi
 %{_sbindir}/%{name}
 %dir %{_libdir}/%{name}/sbin
 %{_libdir}/%{name}/sbin/%{name}
+%{plugindir}/check_nscp_api
 %{_datadir}/%{name}
 %exclude %{_datadir}/%{name}/include
 %{_mandir}/man8/%{name}.8.gz

@@ -36,7 +36,9 @@ Url::Url(const String& base_url)
 	if (url.GetLength() == 0)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid URL Empty URL."));
 
-	size_t pHelper = url.Find(":");
+	size_t pHelper = String::NPos;
+	if (url[0] != '/')
+		pHelper = url.Find(":");
 
 	if (pHelper != String::NPos) {
 		if (!ParseScheme(url.SubStr(0, pHelper)))
