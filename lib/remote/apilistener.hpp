@@ -104,6 +104,7 @@ protected:
 	virtual void OnConfigLoaded(void) override;
 	virtual void OnAllConfigLoaded(void) override;
 	virtual void Start(bool runtimeCreated) override;
+	virtual void Stop(bool runtimeDeleted) override;
 
 	virtual void ValidateTlsProtocolmin(const String& value, const ValidationUtils& utils) override;
 

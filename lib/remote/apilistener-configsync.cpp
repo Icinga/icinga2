@@ -107,7 +107,11 @@ Value ApiListener::ConfigUpdateObjectAPIHandler(const MessageOrigin::Ptr& origin
 
 	String config = params->Get("config");
 
+	bool newObject = false;
+
 	if (!object && !config.IsEmpty()) {
+		newObject = true;
+
 		/* object does not exist, create it through the API */
 		Array::Ptr errors = new Array();
 
@@ -136,8 +140,8 @@ Value ApiListener::ConfigUpdateObjectAPIHandler(const MessageOrigin::Ptr& origin
 	if (!object)
 		return Empty;
 
-	/* update object attributes if version was changed */
-	if (objVersion <= object->GetVersion()) {
+	/* update object attributes if version was changed or if this is a new object */
+	if (newObject || objVersion <= object->GetVersion()) {
 		Log(LogNotice, "ApiListener")
 		    << "Discarding config update for object '" << object->GetName()
 		    << "': Object version " << std::fixed << object->GetVersion()
@@ -337,8 +341,14 @@ void ApiListener::UpdateConfigObject(const ConfigObject::Ptr& object, const Mess
 
 	if (client)
 		JsonRpc::SendMessage(client->GetStream(), message);
-	else
+	else {
+		Zone::Ptr target = static_pointer_cast<Zone>(object->GetZone());
+
+		if (!target)
+			target = Zone::GetLocalZone();
+
 		RelayMessage(origin, object, message, false);
+	}
 }
 
 
@@ -379,8 +389,14 @@ void ApiListener::DeleteConfigObject(const ConfigObject::Ptr& object, const Mess
 
 	if (client)
 		JsonRpc::SendMessage(client->GetStream(), message);
-	else
-		RelayMessage(origin, object, message, false);
+	else {
+		Zone::Ptr target = static_pointer_cast<Zone>(object->GetZone());
+
+		if (!target)
+			target = Zone::GetLocalZone();
+
+		RelayMessage(origin, target, message, false);
+	}
 }
 
 /* Initial sync on connect for new endpoints */

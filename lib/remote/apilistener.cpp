@@ -164,6 +164,12 @@ void ApiListener::Start(bool runtimeCreated)
 	OnMasterChanged(true);
 }
 
+void ApiListener::Stop(bool runtimeDeleted)
+{
+	boost::mutex::scoped_lock lock(m_LogLock);
+	CloseLogFile();
+}
+
 ApiListener::Ptr ApiListener::GetInstance(void)
 {
 	return m_Instance;
