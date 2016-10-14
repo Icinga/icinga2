@@ -523,7 +523,7 @@ implicitely use the `icingaadmins` UserGroup defined in [users.conf](4-configuri
 More details on defining notifications and their additional attributes such as
 filters can be read in [this chapter](3-monitoring-basics.md#notifications).
 
-### <a id="commands-conf"></a> commands.conf
+#### <a id="commands-conf"></a> commands.conf
 
 This is the place where your own command configuration can be defined. By default
 only the notification commands used by the notification templates defined in [templates.conf](4-configuring-icinga-2.md#templates-conf).
@@ -531,7 +531,7 @@ only the notification commands used by the notification templates defined in [te
 You can freely customize these notification commands, and adapt them for your needs.
 Read more on that topic [here](3-monitoring-basics.md#notification-commands).
 
-### <a id="groups-conf"></a> groups.conf
+#### <a id="groups-conf"></a> groups.conf
 
 The example host defined in [hosts.conf](hosts-conf) already has the
 custom attribute `os` set to `Linux` and is therefore automatically
