@@ -467,7 +467,7 @@ Its output defaults to a file named `troubleshooting-[TIMESTAMP].log` so it won'
 
 ## <a id="cli-command-variable"></a> CLI command: Variable
 
-Lists all configured variables (constants) in a similar fasion like [object list](11-cli-commands.md#cli-command-object).
+Lists all configured variables (constants) in a similar fashion like [object list](11-cli-commands.md#cli-command-object).
 
     # icinga2 variable --help
     icinga2 - The Icinga 2 network monitoring daemon (version: v2.5.0)
