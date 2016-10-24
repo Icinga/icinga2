@@ -166,6 +166,8 @@ void ApiListener::Start(bool runtimeCreated)
 
 void ApiListener::Stop(bool runtimeDeleted)
 {
+	ObjectImpl<ApiListener>::Stop(runtimeDeleted);
+
 	boost::mutex::scoped_lock lock(m_LogLock);
 	CloseLogFile();
 }
