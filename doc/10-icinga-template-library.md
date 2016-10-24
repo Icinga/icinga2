@@ -718,6 +718,7 @@ mailq_domain_warning	| **Optional.** Min. number of messages for same domain in 
 mailq_domain_critical	| **Optional.** Min. number of messages for same domain in queue to generate critical alert ( W < C ).
 mailq_timeout		| **Optional.** Plugin timeout in seconds (default = 15).
 mailq_servertype	| **Optional.** [ sendmail \| qmail \| postfix \| exim \| nullmailer ] (default = autodetect).
+mailq_sudo		| **Optional.** Use sudo to execute the mailq command.
 
 ### <a id="plugin-check-command-mysql"></a> mysql
 
