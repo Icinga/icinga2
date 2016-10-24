@@ -476,7 +476,7 @@ void Checkable::ExecuteCheck(void)
 			   a check result from the remote instance. The check will be re-scheduled
 			   using the proper check interval once we've received a check result. */
 			SetNextCheck(Utility::GetTime() + GetCheckCommand()->GetTimeout() + 30);
-		} else if (Application::GetInstance()->GetStartTime() < Utility::GetTime() - 300) {
+		} else if (!endpoint->GetSyncing() && Application::GetInstance()->GetStartTime() < Utility::GetTime() - 300) {
 			/* fail to perform check on unconnected endpoint */
 			cr->SetState(ServiceUnknown);
 
