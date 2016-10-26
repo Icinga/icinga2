@@ -499,8 +499,8 @@ namespace Icinga
 
 		private void chkDifferentUser_CheckedChanged(object sender, EventArgs e)
 		{
-			txtUser.ReadOnly = !txtUser.ReadOnly;
-			if (txtUser.ReadOnly)
+			txtUser.Enabled = !txtUser.Enabled;
+			if (!txtUser.Enabled)
 				txtUser.Text = Icinga2User;
 		}
 	}

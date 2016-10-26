@@ -207,10 +207,10 @@
 			this.groupBox3.Text = "Advanced Options";
 			// 
 			// txtUser
-			//
+			// 
+			this.txtUser.Enabled = false;
 			this.txtUser.Location = new System.Drawing.Point(28, 111);
 			this.txtUser.Name = "txtUser";
-			this.txtUser.ReadOnly = true;
 			this.txtUser.Size = new System.Drawing.Size(267, 20);
 			this.txtUser.TabIndex = 8;
 			this.txtUser.Text = "NT AUTHORITY\\NetworkService";
@@ -381,9 +381,9 @@
 			// lvwEndpoints
 			// 
 			this.lvwEndpoints.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
-			this.colInstanceName,
-			this.colHost,
-			this.colPort});
+            this.colInstanceName,
+            this.colHost,
+            this.colPort});
 			this.lvwEndpoints.FullRowSelect = true;
 			this.lvwEndpoints.Location = new System.Drawing.Point(11, 83);
 			this.lvwEndpoints.Name = "lvwEndpoints";
@@ -522,8 +522,8 @@
 			// lvwX509Fields
 			// 
 			this.lvwX509Fields.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
-			this.colField,
-			this.colValue});
+            this.colField,
+            this.colValue});
 			this.lvwX509Fields.Location = new System.Drawing.Point(6, 19);
 			this.lvwX509Fields.Name = "lvwX509Fields";
 			this.lvwX509Fields.Size = new System.Drawing.Size(586, 172);
