@@ -4741,3 +4741,24 @@ glusterfs_disk_warning     | **Optional.** Warn if disk usage is above *DISKWARN
 glusterfs_disk_critical    | **Optional.** Return a critical error if disk usage is above *DISKCRIT*. Defaults to 95 (percent).
 glusterfs_inode_warning    | **Optional.** Warn if inode usage is above *DISKWARN*. Defaults to 90 (percent).
 glusterfs_inode_critical   | **Optional.** Return a critical error if inode usage is above *DISKCRIT*. Defaults to 95 (percent).
+
+### <a id="plugins-contrib-logmanagement"></a> Logmanagement
+
+This category includes all plugins for services dealing with logfiles and logevents
+
+#### <a id="plugins-contrib-command-logstash"></a> logstash
+
+The [logstash](https://github.com/widhalmt/check_logstash) plugin connects to the Node API of Logstash. This feature was introduced with Logstash version 5.0 so the plugin won't work with prior versions of Logstash. The Node API is not activated by default, you will have to reconfigure your Logstash installation for the plugin to connect.
+
+Name                       | Description
+---------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+logstash_hostname          | **Optional.** Hostname where Logstash is running. Defaults to `check_address`
+logstash_port              | **Optional.** Port where Logstash is listening for API requests. Defaults to 9600
+logstash_filedesc_warn     | **Optional.** Warning threshold of file descriptor usage in percent. Defaults to 85 (percent).
+logstash_filedesc_crit     | **Optional.** Critical threshold of file descriptor usage in percent. Defaults to 95 (percent).
+logstash_heap_warn         | **Optional.** Warning threshold of heap usage in percent. Defaults to 70 (percent).
+logstash_heap_crit         | **Optional.** Critical threshold of heap usage in percent Defaults to 80 (percent).
+logstash_inflight_warn     | **Optional.** Warning threshold of inflight events.
+logstash_inflight_crit     | **Optional.** Critical threshold of inflight events.
+logstash_cpu_warn          | **Optional.** Warning threshold for cpu usage in percent.
+logstash_cpu_crit          | **Optional.** Critical threshold for cpu usage in percent.
