@@ -39,7 +39,7 @@ String Convert::ToString(double val)
 	double fractional = std::modf(val, &integral);
 
 	if (fractional == 0)
-		return Convert::ToString(static_cast<long>(val));
+		return Convert::ToString(static_cast<long long>(val));
 
 	std::ostringstream msgbuf;
 	msgbuf << std::fixed << val;
