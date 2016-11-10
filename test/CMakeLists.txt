@@ -97,6 +97,8 @@ add_boost_test(base
         icinga_checkresult/service_1attempt
         icinga_checkresult/service_2attempts
         icinga_checkresult/service_3attempts
+	icinga_checkresult/host_flapping_notification
+	icinga_checkresult/service_flapping_notification
         icinga_macros/simple
         icinga_perfdata/empty
         icinga_perfdata/simple
