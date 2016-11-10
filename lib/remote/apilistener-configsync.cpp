@@ -429,4 +429,7 @@ void ApiListener::SendRuntimeConfigObjects(const JsonRpcConnection::Ptr& aclient
 			UpdateConfigObject(object, MessageOrigin::Ptr(), aclient);
 		}
 	}
+
+	Log(LogInformation, "ApiListener")
+	    << "Finished syncing runtime objects to endpoint '" << endpoint->GetName() << "'.";
 }
