@@ -347,7 +347,7 @@ void ApiListener::UpdateConfigObject(const ConfigObject::Ptr& object, const Mess
 		if (!target)
 			target = Zone::GetLocalZone();
 
-		RelayMessage(origin, object, message, false);
+		RelayMessage(origin, target, message, false);
 	}
 }
 
