@@ -417,10 +417,6 @@ void ApiListener::SendRuntimeConfigObjects(const JsonRpcConnection::Ptr& aclient
 			continue;
 
 		for (const ConfigObject::Ptr& object : dtype->GetObjects()) {
-			/* don't sync objects with an older version time than the endpoint's log position */
-			if (object->GetVersion() < endpoint->GetLocalLogPosition())
-				continue;
-
 			/* don't sync objects for non-matching parent-child zones */
 			if (!azone->CanAccessObject(object))
 				continue;
