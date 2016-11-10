@@ -132,9 +132,15 @@ Value ClusterEvents::CheckResultAPIHandler(const MessageOrigin::Ptr& origin, con
 	if (params->Contains("cr")) {
 		cr = new CheckResult();
 		Dictionary::Ptr vcr = params->Get("cr");
-		vperf = vcr->Get("performance_data");
-		vcr->Remove("performance_data");
-		Deserialize(cr, vcr, true);
+
+		if (vcr && vcr->Contains("performance_data")) {
+			vperf = vcr->Get("performance_data");
+
+			if (vperf)
+				vcr->Remove("performance_data");
+
+			Deserialize(cr, vcr, true);
+		}
 	}
 
 	if (!cr)
@@ -833,13 +839,20 @@ Value ClusterEvents::SendNotificationsAPIHandler(const MessageOrigin::Ptr& origi
 	}
 
 	CheckResult::Ptr cr;
+	Array::Ptr vperf;
 
 	if (params->Contains("cr")) {
 		cr = new CheckResult();
 		Dictionary::Ptr vcr = params->Get("cr");
-		Array::Ptr vperf = vcr->Get("performance_data");
-		vcr->Remove("performance_data");
-		Deserialize(cr, vcr, true);
+
+		if (vcr && vcr->Contains("performance_data")) {
+			vperf = vcr->Get("performance_data");
+
+			if (vperf)
+				vcr->Remove("performance_data");
+
+			Deserialize(cr, vcr, true);
+		}
 	}
 
 	NotificationType type = static_cast<NotificationType>(static_cast<int>(params->Get("type")));
@@ -919,13 +932,20 @@ Value ClusterEvents::NotificationSentUserAPIHandler(const MessageOrigin::Ptr& or
 	}
 
 	CheckResult::Ptr cr;
+	Array::Ptr vperf;
 
 	if (params->Contains("cr")) {
 		cr = new CheckResult();
 		Dictionary::Ptr vcr = params->Get("cr");
-		Array::Ptr vperf = vcr->Get("performance_data");
-		vcr->Remove("performance_data");
-		Deserialize(cr, vcr, true);
+
+		if (vcr && vcr->Contains("performance_data")) {
+			vperf = vcr->Get("performance_data");
+
+			if (vperf)
+				vcr->Remove("performance_data");
+
+			Deserialize(cr, vcr, true);
+		}
 	}
 
 	NotificationType type = static_cast<NotificationType>(static_cast<int>(params->Get("type")));
@@ -1027,13 +1047,20 @@ Value ClusterEvents::NotificationSentToAllUsersAPIHandler(const MessageOrigin::P
 	}
 
 	CheckResult::Ptr cr;
+	Array::Ptr vperf;
 
 	if (params->Contains("cr")) {
 		cr = new CheckResult();
 		Dictionary::Ptr vcr = params->Get("cr");
-		Array::Ptr vperf = vcr->Get("performance_data");
-		vcr->Remove("performance_data");
-		Deserialize(cr, vcr, true);
+
+		if (vcr && vcr->Contains("performance_data")) {
+			vperf = vcr->Get("performance_data");
+
+			if (vperf)
+				vcr->Remove("performance_data");
+
+			Deserialize(cr, vcr, true);
+		}
 	}
 
 	NotificationType type = static_cast<NotificationType>(static_cast<int>(params->Get("type")));
