@@ -1186,6 +1186,7 @@ The following event stream types are available:
   CommentRemoved         | Comment removed for hosts and services.
   DowntimeAdded          | Downtime added for hosts and services.
   DowntimeRemoved        | Downtime removed for hosts and services.
+  DowntimeStarted        | Downtime started for hosts and services.
   DowntimeTriggered      | Downtime triggered for hosts and services.
 
 Note: Each type requires [API permissions](12-icinga2-api.md#icinga2-api-permissions)

@@ -54,6 +54,7 @@ public:
 
 	static void DowntimeAddedHandler(const Downtime::Ptr& downtime);
 	static void DowntimeRemovedHandler(const Downtime::Ptr& downtime);
+	static void DowntimeStartedHandler(const Downtime::Ptr& downtime);
 	static void DowntimeTriggeredHandler(const Downtime::Ptr& downtime);
 };
 

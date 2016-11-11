@@ -36,7 +36,7 @@ boost::signals2::signal<void (const Checkable::Ptr&, const MessageOrigin::Ptr&)>
 void Checkable::StaticInitialize(void)
 {
 	/* fixed downtime start */
-	Downtime::OnDowntimeAdded.connect(boost::bind(&Checkable::NotifyFixedDowntimeStart, _1));
+	Downtime::OnDowntimeStarted.connect(boost::bind(&Checkable::NotifyFixedDowntimeStart, _1));
 	/* flexible downtime start */
 	Downtime::OnDowntimeTriggered.connect(boost::bind(&Checkable::NotifyFlexibleDowntimeStart, _1));
 	/* fixed/flexible downtime end */

@@ -44,6 +44,7 @@ void ApiEvents::StaticInitialize(void)
 
 	Downtime::OnDowntimeAdded.connect(&ApiEvents::DowntimeAddedHandler);
 	Downtime::OnDowntimeRemoved.connect(&ApiEvents::DowntimeRemovedHandler);
+	Downtime::OnDowntimeStarted.connect(&ApiEvents::DowntimeStartedHandler);
 	Downtime::OnDowntimeTriggered.connect(&ApiEvents::DowntimeTriggeredHandler);
 }
 
@@ -314,6 +315,26 @@ void ApiEvents::DowntimeRemovedHandler(const Downtime::Ptr& downtime)
 
 	Dictionary::Ptr result = new Dictionary();
 	result->Set("type", "DowntimeRemoved");
+	result->Set("timestamp", Utility::GetTime());
+
+	result->Set("downtime", Serialize(downtime, FAConfig | FAState));
+
+	for (const EventQueue::Ptr& queue : queues) {
+		queue->ProcessEvent(result);
+	}
+}
+
+void ApiEvents::DowntimeStartedHandler(const Downtime::Ptr& downtime)
+{
+	std::vector<EventQueue::Ptr> queues = EventQueue::GetQueuesForType("DowntimeStarted");
+
+	if (queues.empty())
+		return;
+
+	Log(LogDebug, "ApiEvents", "Processing event type 'DowntimeStarted'.");
+
+	Dictionary::Ptr result = new Dictionary();
+	result->Set("type", "DowntimeStarted");
 	result->Set("timestamp", Utility::GetTime());
 
 	result->Set("downtime", Serialize(downtime, FAConfig | FAState));

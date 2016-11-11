@@ -41,6 +41,7 @@ public:
 
 	static boost::signals2::signal<void (const Downtime::Ptr&)> OnDowntimeAdded;
 	static boost::signals2::signal<void (const Downtime::Ptr&)> OnDowntimeRemoved;
+	static boost::signals2::signal<void (const Downtime::Ptr&)> OnDowntimeStarted;
 	static boost::signals2::signal<void (const Downtime::Ptr&)> OnDowntimeTriggered;
 
 	intrusive_ptr<Checkable> GetCheckable(void) const;
@@ -77,6 +78,9 @@ protected:
 private:
 	ObjectImpl<Checkable>::Ptr m_Checkable;
 
+	bool CanBeTriggered(void);
+
+	static void DowntimesStartTimerHandler(void);
 	static void DowntimesExpireTimerHandler(void);
 };
 

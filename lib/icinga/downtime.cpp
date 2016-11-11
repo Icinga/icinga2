@@ -34,9 +34,11 @@ static int l_NextDowntimeID = 1;
 static boost::mutex l_DowntimeMutex;
 static std::map<int, String> l_LegacyDowntimesCache;
 static Timer::Ptr l_DowntimesExpireTimer;
+static Timer::Ptr l_DowntimesStartTimer;
 
 boost::signals2::signal<void (const Downtime::Ptr&)> Downtime::OnDowntimeAdded;
 boost::signals2::signal<void (const Downtime::Ptr&)> Downtime::OnDowntimeRemoved;
+boost::signals2::signal<void (const Downtime::Ptr&)> Downtime::OnDowntimeStarted;
 boost::signals2::signal<void (const Downtime::Ptr&)> Downtime::OnDowntimeTriggered;
 
 INITIALIZE_ONCE(&Downtime::StaticInitialize);
@@ -45,6 +47,11 @@ REGISTER_TYPE(Downtime);
 
 void Downtime::StaticInitialize(void)
 {
+	l_DowntimesStartTimer = new Timer();
+	l_DowntimesStartTimer->SetInterval(5);
+	l_DowntimesStartTimer->OnTimerExpired.connect(boost::bind(&Downtime::DowntimesStartTimerHandler));
+	l_DowntimesStartTimer->Start();
+
 	l_DowntimesExpireTimer = new Timer();
 	l_DowntimesExpireTimer->SetInterval(60);
 	l_DowntimesExpireTimer->OnTimerExpired.connect(boost::bind(&Downtime::DowntimesExpireTimerHandler));
@@ -315,27 +322,26 @@ void Downtime::RemoveDowntime(const String& id, bool cancelled, bool expired, co
 	}
 }
 
-void Downtime::TriggerDowntime(void)
+bool Downtime::CanBeTriggered(void)
 {
-	if (IsInEffect() && IsTriggered()) {
-		Log(LogDebug, "Downtime")
-		    << "Not triggering downtime '" << GetName() << "': already triggered.";
-		return;
-	}
+	if (IsInEffect() && IsTriggered())
+		return false;
 
-	if (IsExpired()) {
-		Log(LogDebug, "Downtime")
-		    << "Not triggering downtime '" << GetName() << "': expired.";
-		return;
-	}
+	if (IsExpired())
+		return false;
 
 	double now = Utility::GetTime();
 
-	if (now < GetStartTime() || now > GetEndTime()) {
-		Log(LogDebug, "Downtime")
-		    << "Not triggering downtime '" << GetName() << "': current time is outside downtime window.";
+	if (now < GetStartTime() || now > GetEndTime())
+		return false;
+
+	return true;
+}
+
+void Downtime::TriggerDowntime(void)
+{
+	if (!CanBeTriggered())
 		return;
-	}
 
 	Log(LogNotice, "Downtime")
 		<< "Triggering downtime '" << GetName() << "'.";
@@ -370,6 +376,22 @@ String Downtime::GetDowntimeIDFromLegacyID(int id)
 		return Empty;
 
 	return it->second;
+}
+
+void Downtime::DowntimesStartTimerHandler(void)
+{
+	/* Start fixed downtimes. Flexible downtimes will be triggered on-demand. */
+	for (const Downtime::Ptr& downtime : ConfigType::GetObjectsByType<Downtime>()) {
+		if (downtime->IsActive() &&
+		    downtime->CanBeTriggered() &&
+		    downtime->GetFixed()) {
+			/* Send notifications. */
+			OnDowntimeStarted(downtime);
+
+			/* Trigger fixed downtime immediately. */
+			downtime->TriggerDowntime();
+		}
+	}
 }
 
 void Downtime::DowntimesExpireTimerHandler(void)
