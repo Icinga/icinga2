@@ -46,6 +46,7 @@ make -f /usr/share/selinux/devel/Makefile icinga2.pp || exit
 sepolicy manpage -p . -d icinga2_t
 # Fixing the file context on /usr/sbin/icinga2
 /sbin/restorecon -F -R -v /usr/sbin/icinga2
+/sbin/restorecon -F -R -v /usr/lib64/icinga2/sbin/icinga2
 # Fixing the file context on /etc/rc\.d/init\.d/icinga2
 #/sbin/restorecon -F -R -v /etc/rc\.d/init\.d/icinga2
 # Fixing the file context on /usr/lib/systemd/system/icinga2.*
@@ -62,10 +63,6 @@ sepolicy manpage -p . -d icinga2_t
 /sbin/restorecon -F -R -v /var/cache/icinga2
 # Fixing the file context on /var/spool/icinga2
 /sbin/restorecon -F -R -v /var/spool/icinga2
-
-# Fix dir permissions until we have it in the package
-chown root /etc/icinga2
-chown root /etc/icinga2/init.conf
 
 # Label the port 5665
 /sbin/semanage port -a -t icinga2_port_t -p tcp 5665

@@ -432,3 +432,21 @@ interface(`icinga2adm_execstrans',`
 	allow $2 icinga2adm_t:process sigchld;
 	role_transition icinga2adm_r $1 system_r;
 ')
+
+########################################
+## <summary>
+##      Make a TCP connection to the icinga2 port.
+## </summary>
+## <param name="domain">
+##      <summary>
+##      Domain allowed access.
+##      </summary>
+## </param>
+#
+interface(`corenet_tcp_connect_icinga2_port',`
+        gen_require(`
+                type icinga2_port_t;
+        ')
+
+        allow $1 icinga2_port_t:tcp_socket name_connect;
+')
