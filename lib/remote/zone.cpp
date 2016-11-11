@@ -103,6 +103,9 @@ bool Zone::CanAccessObject(const ConfigObject::Ptr& object)
 	if (!object_zone)
 		object_zone = Zone::GetLocalZone();
 
+	if (object_zone->GetGlobal())
+		return true;
+
 	return object_zone->IsChildOf(this);
 }
 
