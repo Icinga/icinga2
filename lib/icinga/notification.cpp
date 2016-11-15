@@ -386,7 +386,7 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 	}
 
 	std::set<User::Ptr> allNotifiedUsers;
-	Array::Ptr notifiedUsers = GetNotifiedUsers();
+	Array::Ptr notifiedProblemUsers = GetNotifiedProblemUsers();
 
 	for (const User::Ptr& user : allUsers) {
 		String userName = user->GetName();
@@ -405,9 +405,9 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 
 		/* on recovery, check if user was notified before */
 		if (type == NotificationRecovery) {
-			if (!notifiedUsers->Contains(userName)) {
+			if (!notifiedProblemUsers->Contains(userName)) {
 				Log(LogNotice, "Notification")
-				    << "We did not notify user '" << userName << "' before. Not sending recovery notification.";
+				    << "We did not notify user '" << userName << "' for a problem before. Not sending recovery notification.";
 				continue;
 			}
 		}
@@ -422,13 +422,13 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 		allNotifiedUsers.insert(user);
 
 		/* store all notified users for later recovery checks */
-		if (!notifiedUsers->Contains(userName))
-			notifiedUsers->Add(userName);
+		if (type == NotificationProblem && !notifiedProblemUsers->Contains(userName))
+			notifiedProblemUsers->Add(userName);
 	}
 
 	/* if this was a recovery notification, reset all notified users */
 	if (type == NotificationRecovery)
-		notifiedUsers->Clear();
+		notifiedProblemUsers->Clear();
 
 	/* used in db_ido for notification history */
 	Service::OnNotificationSentToAllUsers(this, checkable, allNotifiedUsers, type, cr, author, text, MessageOrigin::Ptr());

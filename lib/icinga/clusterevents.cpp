@@ -1097,12 +1097,12 @@ Value ClusterEvents::NotificationSentToAllUsersAPIHandler(const MessageOrigin::P
 	notification->SetLastProblemNotification(params->Get("last_problem_notification"));
 	notification->SetNoMoreNotifications(params->Get("no_more_notifications"));
 
-	Array::Ptr notifiedUsers = new Array();
+	Array::Ptr notifiedProblemUsers = new Array();
 	for (const User::Ptr& user : users) {
-		notifiedUsers->Add(user->GetName());
+		notifiedProblemUsers->Add(user->GetName());
 	}
 
-	notification->SetNotifiedUsers(notifiedUsers);
+	notification->SetNotifiedProblemUsers(notifiedProblemUsers);
 
 	Checkable::OnNotificationSentToAllUsers(notification, checkable, users, type, cr, author, text, origin);
 
