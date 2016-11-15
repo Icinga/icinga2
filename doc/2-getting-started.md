@@ -12,8 +12,8 @@ and distribution you are running.
 
   Distribution            | Repository
   ------------------------|---------------------------
-  Debian                  | [debmon](https://debmon.org/packages/debmon-jessie/icinga2), [Icinga Repository](http://packages.icinga.org/debian/)
-  Ubuntu                  | [Icinga PPA](https://launchpad.net/~formorer/+archive/ubuntu/icinga), [Icinga Repository](http://packages.icinga.org/ubuntu/)
+  Debian                  | [Icinga Repository](http://packages.icinga.org/debian/), [debmon](https://debmon.org/packages/debmon-jessie/icinga2)
+  Ubuntu                  | [Icinga Repository](http://packages.icinga.org/ubuntu/), [Icinga PPA](https://launchpad.net/~formorer/+archive/ubuntu/icinga)
   RHEL/CentOS             | [Icinga Repository](http://packages.icinga.org/epel/)
   openSUSE                | [Icinga Repository](http://packages.icinga.org/openSUSE/), [Server Monitoring Repository](https://build.opensuse.org/package/show/server:monitoring/icinga2)
   SLES                    | [Icinga Repository](http://packages.icinga.org/SUSE/)
