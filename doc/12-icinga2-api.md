@@ -1134,31 +1134,6 @@ Example:
         ]
     }
 
-### <a id="icinga2-api-actions-evaluate-macros"></a> evaluate-macros
-
-Evaluates a macro string in the context of a specific host or service.
-
-Send a `POST` request to the URL endpoint `/v1/actions/evaluate-macros`.
-
-  Parameter     | Type      | Description
-  --------------|-----------|--------------
-  query         | string    | **Required.** The macro string that should be evaluated.
-
-Example:
-
-    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/evaluate-macros' \
-    -d '{ "host": "icinga2-client1.localdomain", "query": "$host.name$" }' | python -m json.tool
-    {
-        "results": [
-            {
-                "code": 200.0,
-                "status": "Evaluated macros.",
-                "result": "icinga2-client1.localdomain",
-            }
-        ]
-    }
-
-
 
 ## <a id="icinga2-api-event-streams"></a> Event Streams
 

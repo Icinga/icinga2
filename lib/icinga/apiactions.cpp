@@ -47,7 +47,6 @@ REGISTER_APIACTION(remove_downtime, "Service;Host;Downtime", &ApiActions::Remove
 REGISTER_APIACTION(shutdown_process, "", &ApiActions::ShutdownProcess);
 REGISTER_APIACTION(restart_process, "", &ApiActions::RestartProcess);
 REGISTER_APIACTION(generate_ticket, "", &ApiActions::GenerateTicket);
-REGISTER_APIACTION(evaluate_macros, "Service;Host", &ApiActions::EvaluateMacros);
 
 Dictionary::Ptr ApiActions::CreateResult(int code, const String& status,
     const Dictionary::Ptr& additional)
@@ -444,40 +443,4 @@ Dictionary::Ptr ApiActions::GenerateTicket(const ConfigObject::Ptr&,
 
 	return ApiActions::CreateResult(200, "Generated PKI ticket '" + ticket + "' for common name '"
 	    + cn + "'.", additional);
-}
-
-Dictionary::Ptr ApiActions::EvaluateMacros(const ConfigObject::Ptr& object,
-    const Dictionary::Ptr& params)
-{
-	Checkable::Ptr checkable = static_pointer_cast<Checkable>(object);
-
-	if (!checkable)
-		return ApiActions::CreateResult(404, "Cannot evaluate macros without a host/service object.");
-
-	if (!params->Contains("query"))
-		return ApiActions::CreateResult(403, "A macro string must be specified.");
-
-	String query = HttpUtility::GetLastParameter(params, "query");
-
-	CheckCommand::Ptr commandObj = checkable->GetCheckCommand();
-
-	Host::Ptr host;
-	Service::Ptr service;
-	tie(host, service) = GetHostService(checkable);
-
-	MacroProcessor::ResolverList resolvers;
-	if (service)
-		resolvers.push_back(std::make_pair("service", service));
-	resolvers.push_back(std::make_pair("host", host));
-	resolvers.push_back(std::make_pair("command", commandObj));
-	resolvers.push_back(std::make_pair("icinga", IcingaApplication::GetInstance()));
-
-	Dictionary::Ptr additional = new Dictionary();
-
-	CheckResult::Ptr cr = checkable->GetLastCheckResult();
-
-	additional->Set("result", MacroProcessor::ResolveMacros(query,
-	    resolvers, cr));
-
-	return ApiActions::CreateResult(200, "Evaluated macros.", additional);
 }
