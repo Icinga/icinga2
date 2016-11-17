@@ -171,7 +171,7 @@ void Application::SetResourceLimits(void)
 	rlimit rl;
 
 #	ifdef RLIMIT_NOFILE
-	rl.rlim_cur = 16 * 1024;
+	rl.rlim_cur = 64 * 1024;
 	rl.rlim_max = rl.rlim_cur;
 
 	if (setrlimit(RLIMIT_NOFILE, &rl) < 0)
@@ -181,7 +181,7 @@ void Application::SetResourceLimits(void)
 #	endif /* RLIMIT_NOFILE */
 
 #	ifdef RLIMIT_NPROC
-	rl.rlim_cur = 16 * 1024;
+	rl.rlim_cur = 64 * 1024;
 	rl.rlim_max = rl.rlim_cur;
 
 	if (setrlimit(RLIMIT_NPROC, &rl) < 0)
