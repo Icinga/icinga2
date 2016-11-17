@@ -48,14 +48,14 @@ void Checkable::SendNotifications(NotificationType type, const CheckResult::Ptr&
 
 	bool force = GetForceNextNotification();
 
+	SetForceNextNotification(false);
+
 	if (!IcingaApplication::GetInstance()->GetEnableNotifications() || !GetEnableNotifications()) {
 		if (!force) {
 			Log(LogInformation, "Checkable")
 			    << "Notifications are disabled for service '" << GetName() << "'.";
 			return;
 		}
-
-		SetForceNextNotification(false);
 	}
 
 	Log(LogInformation, "Checkable")
