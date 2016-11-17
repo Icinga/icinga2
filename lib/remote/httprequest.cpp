@@ -38,6 +38,9 @@ HttpRequest::HttpRequest(const Stream::Ptr& stream)
 
 bool HttpRequest::Parse(StreamReadContext& src, bool may_wait)
 {
+	if (!m_Stream)
+		return false;
+
 	if (m_State != HttpRequestBody) {
 		String line;
 		StreamReadStatus srs = m_Stream->ReadLine(&line, src, may_wait);
