@@ -1725,5 +1725,5 @@ CREATE INDEX idx_host_contacts_host_id on icinga_host_contacts(host_id);
 -- set dbversion
 -- -----------------------------------------
 
-SELECT updatedbversion('1.14.1');
+SELECT updatedbversion('1.14.2');
 
