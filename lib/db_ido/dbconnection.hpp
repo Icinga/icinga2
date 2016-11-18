@@ -29,8 +29,8 @@
 #include <boost/thread/once.hpp>
 #include <boost/thread/mutex.hpp>
 
-#define IDO_CURRENT_SCHEMA_VERSION "1.14.1"
-#define IDO_COMPAT_SCHEMA_VERSION "1.14.1"
+#define IDO_CURRENT_SCHEMA_VERSION "1.14.2"
+#define IDO_COMPAT_SCHEMA_VERSION "1.14.2"
 
 namespace icinga
 {
