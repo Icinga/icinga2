@@ -718,8 +718,6 @@ bool ApiListener::RelayMessageOne(const Zone::Ptr& targetZone, const MessageOrig
 	    targetZone != myZone &&
 	    targetZone != myZone->GetParent() &&
 	    targetZone->GetParent() != myZone) {
-		Log(LogCritical, "ApiListener")
-		   << "Not relaying message '" << message->Get("method") << "'. Not in the same/parent/child zone.";
 		return true;
 	}
 
