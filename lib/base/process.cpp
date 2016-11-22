@@ -165,6 +165,10 @@ static Value ProcessSpawnImpl(struct msghdr *msgh, const Dictionary::Ptr& reques
 			Log(LogWarning, "base", "Failed to renice child process.");
 #endif /* HAVE_NICE */
 
+		sigset_t mask;
+		sigemptyset(&mask);
+		sigprocmask(SIG_SETMASK, &mask, NULL);
+
 		if (icinga2_execvpe(argv[0], argv, envp) < 0) {
 			char errmsg[512];
 			strcpy(errmsg, "execvpe(");
@@ -228,6 +232,10 @@ static Value ProcessWaitPIDImpl(struct msghdr *msgh, const Dictionary::Ptr& requ
 
 static void ProcessHandler(void)
 {
+	sigset_t mask;
+	sigfillset(&mask);
+	sigprocmask(SIG_SETMASK, &mask, NULL);
+
 	rlimit rl;
 	if (getrlimit(RLIMIT_NOFILE, &rl) >= 0) {
 		rlim_t maxfds = rl.rlim_max;
