@@ -2016,6 +2016,7 @@ mysql_health_socket              | **Optional.** Specifies the database unix soc
 mysql_health_username            | **Optional.** The username for the database connection.
 mysql_health_password            | **Optional.** The password for the database connection.
 mysql_health_database            | **Optional.** The database to connect to. Defaults to information_schema.
+mysql_health_timeout		 | **Optional.** Seconds before plugin times out (default: 60s).
 mysql_health_warning             | **Optional.** The warning threshold depending on the mode.
 mysql_health_critical            | **Optional.** The critical threshold depending on the mode.
 mysql_health_warningx            | **Optional.** The extended warning thresholds depending on the mode.
