@@ -310,6 +310,9 @@ void Downtime::RemoveDowntime(const String& id, bool cancelled, bool expired, co
 	Log(LogNotice, "Downtime")
 	    << "Removed downtime '" << downtime->GetName() << "' from object '" << downtime->GetCheckable()->GetName() << "'.";
 
+	if (downtime->GetPackage() != "_api")
+		return;
+
 	Array::Ptr errors = new Array();
 
 	if (!ConfigObjectUtility::DeleteObject(downtime, false, errors)) {
