@@ -52,6 +52,11 @@ ImpersonationLevel RepositoryCommitCommand::GetImpersonationLevel(void) const
 	return ImpersonateRoot;
 }
 
+bool RepositoryCommitCommand::IsDeprecated(void) const
+{
+	return true;
+}
+
 /**
  * The entry point for the "repository commit" CLI command.
  *

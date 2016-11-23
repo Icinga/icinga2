@@ -37,6 +37,7 @@ public:
 
 	virtual String GetDescription(void) const override;
 	virtual String GetShortDescription(void) const override;
+	virtual bool IsDeprecated(void) const override;
 	virtual int GetMinArguments(void) const override;
 	virtual int GetMaxArguments(void) const override;
 	virtual std::vector<String> GetPositionalSuggestions(const String& word) const override;

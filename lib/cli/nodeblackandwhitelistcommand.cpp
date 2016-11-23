@@ -84,6 +84,11 @@ String BlackAndWhitelistCommand::GetShortDescription(void) const
 	return description;
 }
 
+bool BlackAndWhitelistCommand::IsDeprecated(void) const
+{
+	return true;
+}
+
 void BlackAndWhitelistCommand::InitParameters(boost::program_options::options_description& visibleDesc,
     boost::program_options::options_description& hiddenDesc) const
 {

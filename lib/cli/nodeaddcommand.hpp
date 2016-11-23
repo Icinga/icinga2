@@ -37,6 +37,7 @@ public:
 
 	virtual String GetDescription(void) const override;
 	virtual String GetShortDescription(void) const override;
+	virtual bool IsDeprecated(void) const override;
 	virtual int GetMinArguments(void) const override;
 	virtual int Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const override;
 };

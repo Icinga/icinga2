@@ -95,6 +95,11 @@ String RepositoryObjectCommand::GetShortDescription(void) const
 	return description;
 }
 
+bool RepositoryObjectCommand::IsDeprecated(void) const
+{
+	return true;
+}
+
 void RepositoryObjectCommand::InitParameters(boost::program_options::options_description& visibleDesc,
     boost::program_options::options_description& hiddenDesc) const
 {

@@ -321,7 +321,7 @@ int Main(void)
 
 			if ((!command || vm.count("help")) && !vm.count("version")) {
 				std::cout << "Usage:" << std::endl
-				    << "  " << argv[0] << " ";
+				    << "  " << Utility::BaseName(argv[0]) << " ";
 
 				if (cmdname.IsEmpty())
 					std::cout << "<command>";

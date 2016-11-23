@@ -512,12 +512,11 @@ checks, send notifications, etc.
 
 Two different modes are available for synchronizing the host/service object's configuration between nodes and for executing checks:
 
-* [Top down](6-distributed-monitoring.md#distributed-monitoring-top-down): This mode sends the configuration and commands from the master to the child zones.
-* [Bottom up](6-distributed-monitoring.md#distributed-monitoring-bottom-up): This mode leaves the configuration on the child nodes and requires an import on the parent nodes.
+The preferred mode is the [top down](6-distributed-monitoring.md#distributed-monitoring-top-down) approach.
+This mode sends the configuration and commands from the master to the child zones.
 
-The next sections describe the differences and how to set up the two modes.
-Read them carefully before you decide on one of the two options -- do not
-mix them, as this will make things unnecessarily complicated.
+The [bottom up](6-distributed-monitoring.md#distributed-monitoring-bottom-up) has been **deprecated in v2.6 and will be removed in future releases**.
+This mode leaves the configuration files on the child nodes and requires an import on the parent nodes.
 
 **Note**: Check results are always sent from the child nodes to the parent nodes.
 This happens automatically and is ensured by the cluster protocol.
@@ -566,6 +565,8 @@ Include the endpoint and zone configuration on **both** nodes in the file `/etc/
 
 The endpoint configuration could look like this, for example:
 
+    [root@icinga2-client1.localdomain /]# vim /etc/icinga2/zones.conf
+
     object Endpoint "icinga2-master1.localdomain" {
       host = "192.168.56.101"
     }
@@ -581,6 +582,8 @@ is to use the client's FQDN for all object names.
 
 The `master` zone is a parent of the `icinga2-client2.localdomain` zone:
 
+    [root@icinga2-client1.localdomain /]# vim /etc/icinga2/zones.conf
+
     object Zone "master" {
       endpoints = [ "icinga2-master1.localdomain" ] //array with endpoint names
     }
@@ -593,6 +596,8 @@ The `master` zone is a parent of the `icinga2-client2.localdomain` zone:
 
 In addition, add a [global zone](6-distributed-monitoring.md#distributed-monitoring-global-zone-config-sync)
 for syncing check commands later:
+
+    [root@icinga2-client1.localdomain /]# vim /etc/icinga2/zones.conf
 
     object Zone "global-templates" {
       global = true
@@ -725,6 +730,8 @@ Include the endpoint and zone configuration on **both** nodes in the file `/etc/
 
 The endpoint configuration could look like this:
 
+    [root@icinga2-client1.localdomain /]# vim /etc/icinga2/zones.conf
+
     object Endpoint "icinga2-master1.localdomain" {
       host = "192.168.56.101"
     }
@@ -739,6 +746,8 @@ Next, you need to define two zones. There is no naming convention, best practice
 is to use the client's FQDN for all object names.
 
 The `master` zone is a parent of the `icinga2-client1.localdomain` zone:
+
+    [root@icinga2-client1.localdomain /]# vim /etc/icinga2/zones.conf
 
     object Zone "master" {
       endpoints = [ "icinga2-master1.localdomain" ] //array with endpoint names
@@ -846,6 +855,13 @@ section where you can find detailed information on extending the setup.
 
 ### <a id="distributed-monitoring-bottom-up"></a> Bottom Up Import
 
+> **Warning**
+>
+> This mode has been deprecated in v2.6. You are strongly advised to
+> migrate your existing configuration files to the [top down mode](6-distributed-monitoring.md#distributed-monitoring-top-down).
+>
+> Make sure to follow the release announcements on the [Icinga website](https://www.icinga.com).
+
 This mode requires that you manage the configuration on the client itself.
 Edit the configuration files in `/etc/icinga2/conf.d` or any other
 directory included in the `icinga2.conf` file.
@@ -871,6 +887,8 @@ On the master node, you can list and import the configuration sent from all the 
 This example shows all client services on the master node `icinga2-master1.localdomain`:
 
     [root@icinga2-master1.localdomain /]# icinga2 node list
+    Warning: CLI command 'node list' is DEPRECATED! Please read the Changelog.
+
     Node 'icinga2-client1.localdomain' (last seen: Sun Aug 14 11:19:14 2016)
         * Host 'icinga2-client1.localdomain'
             * Service 'disk'
@@ -902,6 +920,8 @@ in order to receive check results from the clients. Therefore
 you need to invoke the `node update-config` command:
 
     [root@icinga2-master1.localdomain /]# icinga2 node update-config
+    Warning: CLI command 'node update-config' is DEPRECATED! Please read the Changelog.
+
     information/cli: Updating node configuration for
     ...
 
@@ -940,6 +960,226 @@ You can manually edit the configuration in `/etc/icinga2/repository.d`
 and fix it. This will help with additional notification apply rules
 or group memberships required for Icinga Web 2 and addons.
 
+
+#### <a id="distributed-monitoring-bottom-up-migration-top-down"></a> Bottom Up Migration to Top Down
+
+The bottom up mode has been deprecated and you should be prepared to migrate
+your clients to the existing [top down mode](6-distributed-monitoring.md#distributed-monitoring-top-down).
+
+The bottom up mode generates configuration files on the master node underneath
+the `/etc/icinga2/repository.d` directory. This is achieved by running the
+`node update-config` CLI command and depends on manual user interaction.
+
+Unless you are changing something on the client which requires to run the
+CLI command the configuration files in `repository.d` remain untouched.
+
+The Icinga 2 client generates an object repository from local configuration
+(usually included in `conf.d` by default) and syncs that to the master. The
+`node update-config` CLI command parses these repository files from the `/var/lib/icinga2/api/repository`
+directory and generates the `repository.d` configuration files. In addition to
+that blacklist and whitelist settings are evaluated.
+
+Those CLI commands also hide the fact that each client needs its own `Zone`
+and `Endpoint` object as described [here](6-distributed-monitoring.md#distributed-monitoring-roles).
+
+If you are certain that the master node has an up-to-date `repository.d`
+ensure that all your clients **do not include conf.d in their icinga2.conf**
+configuration file.
+
+**Steps on each client**:
+
+Comment or remove the `include recursive "conf.d"` line.
+
+    [root@icinga2-client1.localdomain /]# vim /etc/icinga2/icinga2.conf
+
+    //include_recursive "conf.d"
+
+In addition to that add a [global zone](6-distributed-monitoring.md#distributed-monitoring-global-zone-config-sync)
+for syncing check commands later:
+
+    [root@icinga2-client1.localdomain /]# vim /etc/icinga2/zones.conf
+
+    object Zone "global-templates" {
+      global = true
+    }
+
+Edit the `api` feature on the client `icinga2-client2.localdomain` in
+the `/etc/icinga2/features-enabled/api.conf` file and make sure to set
+`accept_commands` and `accept_config` to `true`:
+
+    [root@icinga2-client1.localdomain /]# vim /etc/icinga2/features-enabled/api.conf
+
+    object ApiListener "api" {
+       //...
+       accept_commands = true
+       accept_config = true
+    }
+
+Now it is time to validate the configuration and to restart the Icinga 2 daemon
+on the client host `icinga2-client1.localdomain`.
+
+Example on CentOS 7:
+
+    [root@icinga2-client1.localdomain /]# icinga2 daemon -C
+    [root@icinga2-client1.localdomain /]# systemctl restart icinga2
+
+
+**Steps on the configuration master node**:
+
+The migration strategy will guide you to use the client(s) as
+[top down command endpoint](6-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint).
+
+The `repository.d` directory is organised as a tree of object type directories.
+
+    [root@icinga2-master1.localdomain /]# tree /etc/icinga2/repository.d
+    repository.d/
+    ├── README
+    ├── endpoints
+    │   └── icinga2-client1.localdomain.conf
+    ├── hosts
+    │   ├── icinga2-client1.localdomain
+    │   │   ├── disk\ C%3A.conf
+    │   │   ├── disk.conf
+    │   │   ├── icinga.conf
+    │   │   ├── load.conf
+    │   │   ├── ping4.conf
+    │   │   ├── ping6.conf
+    │   │   ├── procs.conf
+    │   │   ├── swap.conf
+    │   │   └── users.conf
+    │   └── icinga2-client1.localdomain.conf
+    └── zones
+        └── icinga2-client1.localdomain.conf
+
+The `endpoints` and `zones` directories contain the required connection
+information for your client. Decide whether to add the configuration
+objects to your `zones.conf` file or keep them as is.
+
+The `hosts` directory contains a `.conf` file for the host object
+and a directory with the same name as the host with service configuration
+files, in this example `hosts/icinga2-client1.localdomain`.
+
+The simplest migration path is to merge the Zone, Endpoint, Host and Service
+object configuration into one new file called `<FQDN>.conf`, for example
+`icinga2-client2.localdomain.conf`.
+
+Therefore create a new file in your master's zone directory in `zones.d`.
+In this example we assume that the zone is called `master`.
+
+Use the information provided by the configuration files `/etc/icinga2/repository.d/zones/icinga2-client1.localdomain.conf`
+and `/etc/icinga2/repository.d/endpoints/icinga2-client1.localdomain.conf`.
+
+    [root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.d/master/icinga2-client1.localdomain.conf
+
+    object Zone "icinga2-client2.localdomain" {
+      endpoints = [ "icinga2-client2.localdomain" ]
+      parent = "master" //defined in zones.conf
+    }
+    
+    object Endpoint "icinga2-client2.localdomain" {
+      //set the host attribute if the master should connect to the client endpoint
+    }
+
+Now fetch the Host object information located in the `/etc/icinga2/repository.d/hosts/icinga2-client1.localdomain.conf`
+file and adopt it for your needs. One common disadvantage of the bottom up mode is that
+the host object attributes are not synced from the client to the master. Log onto your client
+and manually copy the required attributes into a new host object.
+
+Change the `check_command` attribute to `hostalive` to just ping the host. If you want to keep the
+client connection check `cluster-zone`, you need to add the `cluster_zone` custom attribute.
+
+In addition to that add a new custom attribute called `client_endpoint` which stores
+the command endpoint information. In case you need to learn more details please refer to
+the [top down command endpoint](6-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint)
+chapter.
+
+    [root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.d/master/icinga2-client1.localdomain.conf
+
+    object Host "icinga2-client1.localdomain.conf" {
+      //check_command = "hostalive"
+      check_command = "cluster-zone"
+      vars.cluster_zone = name //host name must be the same as the client's zone name
+
+      vars.client_endpoint = name //host name must be the same as the client's endpoint name
+      vars.os = "Linux" //added for group membership
+    }
+
+Extract the service objects from the configuration files in the
+`/etc/icinga2/repository.d/hosts/icinga2-client1.localdomain` directory
+and add them into the `/etc/icinga2/zones.d/master/icinga2-client1.localdomain.conf`
+file.
+
+Best practice is to use a generic [service apply rule](3-monitoring-basics.md#using-apply)
+for each service. Identify common services on your hosts and modify the apply rules for
+your own needs.
+
+Add the services to the generic `services.conf` file in `/etc/icinga2/zones.d/master`.
+
+Change the `check_command` attribute to the actual `CheckCommand` object which should
+be executed. This information is available on the client in the `conf.d` directory.
+Make sure to also extract all required custom attributes from the client and add them
+to the service object e.g. check command thresholds for [disk](10-icinga-template-library.md#plugin-check-command-disk).
+
+Remove the `zone` attribute from all services. Specify the `command_endpoint` attribute
+for all service checks which should be run locally on the client, for example `disk`.
+
+    [root@icinga2-master1.localdomain /]# mkdir -p /etc/icinga2/zones.d/master
+    [root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.d/master/services.conf
+
+    apply Service "disk" {
+      check_command = "disk" //modified
+      vars.disk_wfree = "10%" //copied from client
+      vars.disk_cfree = "5%"  //copied from client
+
+      command_endpoint = host.vars.client_endpoint
+
+      assign where host.vars.client_endpoint //create service objects for all clients with command endpoint
+    }
+
+The `ping4` service should be executed on the master node itself. That is why
+you must not add the `command_endpoint` attribute here.
+
+    [root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.d/master/services.conf
+
+    apply Service "ping4" {
+      check_command = "ping4" //modified
+      vars.ping_wrta = 200 //copied from client
+      vars.ping_crta = 500 //copied from client
+
+      assign where host.address
+    }
+
+In case you have been using custom CheckCommand definitions on your client
+you must sync them again using a global zone.
+
+Ensure that the global zone definition is already there in your `zones.conf`
+file.
+
+    [root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.conf
+
+    object Zone "global-templates" {
+      global = true
+    }
+
+Put existing CheckCommand definitions into `/etc/icinga2/zones.d/global-templates/commands.conf`.
+
+    [root@icinga2-master1.localdomain /]# mkdir -p /etc/icinga2/zones.d/global-templates
+    [root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.d/global-templates/commands.conf
+
+    object CheckCommand "my-check" {
+      //...
+    }
+
+Now validate the configuration and restart Icinga 2.
+
+    [root@icinga2-master1.localdomain /]# icinga2 daemon -C
+    [root@icinga2-master1.localdomain /]# systemctl restart icinga2
+
+In case you have additional apply rules in place and have trouble with duplicated objects please
+adopt and merge them accordingly.
+
+If you are eager to start fresh instead you might take a look into the
+[Icinga Director](https://github.com/icinga/icingaweb2-module-director).
 
 ## <a id="distributed-monitoring-scenarios"></a> Scenarios
 

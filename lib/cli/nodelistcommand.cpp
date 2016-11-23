@@ -43,6 +43,11 @@ String NodeListCommand::GetShortDescription(void) const
 	return "lists all nodes";
 }
 
+bool NodeListCommand::IsDeprecated(void) const
+{
+	return true;
+}
+
 void NodeListCommand::InitParameters(boost::program_options::options_description& visibleDesc,
     boost::program_options::options_description& hiddenDesc) const
 {

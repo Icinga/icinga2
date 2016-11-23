@@ -49,6 +49,7 @@ public:
 	virtual String GetDescription(void) const override;
 	virtual String GetShortDescription(void) const override;
 	virtual int GetMaxArguments(void) const override;
+	virtual bool IsDeprecated(void) const override;
 	virtual void InitParameters(boost::program_options::options_description& visibleDesc,
 	    boost::program_options::options_description& hiddenDesc) const override;
 	virtual ImpersonationLevel GetImpersonationLevel(void) const override;

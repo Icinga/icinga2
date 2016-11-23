@@ -19,6 +19,7 @@
 
 #include "cli/clicommand.hpp"
 #include "base/logger.hpp"
+#include "base/console.hpp"
 #include "base/type.hpp"
 #include "base/serializer.hpp"
 #include <boost/algorithm/string/join.hpp>
@@ -101,6 +102,11 @@ int CLICommand::GetMaxArguments(void) const
 }
 
 bool CLICommand::IsHidden(void) const
+{
+	return false;
+}
+
+bool CLICommand::IsDeprecated(void) const
 {
 	return false;
 }
@@ -217,6 +223,12 @@ found_command:
 	adesc.add(visibleDesc);
 	adesc.add(hiddenDesc);
 
+	if (command && command->IsDeprecated()) {
+		std::cerr << ConsoleColorTag(Console_ForegroundRed | Console_Bold)
+		    << "Warning: CLI command '" << cmdname << "' is DEPRECATED! Please read the Changelog."
+		    << ConsoleColorTag(Console_Normal) << std::endl << std::endl;
+	}
+
 	po::store(po::command_line_parser(argc - arg_end, argv + arg_end).options(adesc).positional(positionalDesc).run(), vm);
 	po::notify(vm);
 
@@ -305,8 +317,11 @@ void CLICommand::ShowCommands(int argc, char **argv, po::options_description *vi
 				if (cname.Find(aword) == 0)
 					std::cout << cname << "\n";
 			}
-		} else
-			std::cout << "  * " << boost::algorithm::join(vname, " ") << " (" << kv.second->GetShortDescription() << ")" << std::endl;
+		} else {
+			std::cout << "  * " << boost::algorithm::join(vname, " ")
+			    << " (" << kv.second->GetShortDescription() << ")"
+			    << (kv.second->IsDeprecated() ? " (DEPRECATED)" : "") << std::endl;
+		}
 	}
 
 	if (!autocomplete)

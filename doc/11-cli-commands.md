@@ -12,29 +12,30 @@ Run `icinga2` without any arguments to get a list of all available global
 options.
 
     # icinga2
-    icinga2 - The Icinga 2 network monitoring daemon (version: v2.5.0)
-
+    icinga2 - The Icinga 2 network monitoring daemon (version: v2.6.0)
+    
     Usage:
       icinga2 <command> [<arguments>]
-
+    
     Supported commands:
+      * api setup (setup for api)
       * console (Icinga console)
       * daemon (starts Icinga 2)
       * feature disable (disables specified feature)
       * feature enable (enables specified feature)
       * feature list (lists all enabled features)
-      * node add (add node)
-      * node blacklist add (adds a new blacklist filter)
-      * node blacklist list (lists all blacklist filters)
-      * node blacklist remove (removes a blacklist filter)
-      * node list (lists all nodes)
-      * node remove (removes node)
-      * node set (set node attributes)
+      * node add (add node) (DEPRECATED)
+      * node blacklist add (adds a new blacklist filter) (DEPRECATED)
+      * node blacklist list (lists all blacklist filters) (DEPRECATED)
+      * node blacklist remove (removes a blacklist filter) (DEPRECATED)
+      * node list (lists all nodes) (DEPRECATED)
+      * node remove (removes node) (DEPRECATED)
+      * node set (set node attributes) (DEPRECATED)
       * node setup (set up node)
-      * node update-config (update node config)
-      * node whitelist add (adds a new whitelist filter)
-      * node whitelist list (lists all whitelist filters)
-      * node whitelist remove (removes a whitelist filter)
+      * node update-config (update node config) (DEPRECATED)
+      * node whitelist add (adds a new whitelist filter) (DEPRECATED)
+      * node whitelist list (lists all whitelist filters) (DEPRECATED)
+      * node whitelist remove (removes a whitelist filter) (DEPRECATED)
       * node wizard (wizard for node setup)
       * object list (lists all objects)
       * pki new-ca (sets up a new CA)
@@ -43,38 +44,39 @@ options.
       * pki save-cert (saves another Icinga 2 instance's certificate)
       * pki sign-csr (signs a CSR)
       * pki ticket (generates a ticket)
-      * repository clear-changes (clear uncommitted repository changes)
-      * repository commit (commit repository changes)
-      * repository endpoint add (adds a new Endpoint object)
-      * repository endpoint list (lists all Endpoint objects)
-      * repository endpoint remove (removes a Endpoint object)
-      * repository host add (adds a new Host object)
-      * repository host list (lists all Host objects)
-      * repository host remove (removes a Host object)
-      * repository service add (adds a new Service object)
-      * repository service list (lists all Service objects)
-      * repository service remove (removes a Service object)
-      * repository zone add (adds a new Zone object)
-      * repository zone list (lists all Zone objects)
-      * repository zone remove (removes a Zone object)
+      * repository clear-changes (clear uncommitted repository changes) (DEPRECATED)
+      * repository commit (commit repository changes) (DEPRECATED)
+      * repository endpoint add (adds a new Endpoint object) (DEPRECATED)
+      * repository endpoint list (lists all Endpoint objects) (DEPRECATED)
+      * repository endpoint remove (removes a Endpoint object) (DEPRECATED)
+      * repository host add (adds a new Host object) (DEPRECATED)
+      * repository host list (lists all Host objects) (DEPRECATED)
+      * repository host remove (removes a Host object) (DEPRECATED)
+      * repository service add (adds a new Service object) (DEPRECATED)
+      * repository service list (lists all Service objects) (DEPRECATED)
+      * repository service remove (removes a Service object) (DEPRECATED)
+      * repository zone add (adds a new Zone object) (DEPRECATED)
+      * repository zone list (lists all Zone objects) (DEPRECATED)
+      * repository zone remove (removes a Zone object) (DEPRECATED)
       * troubleshoot (collect information for troubleshooting)
       * variable get (gets a variable)
       * variable list (lists all variables)
-
+    
     Global options:
-      -h [ --help ]          show this help message
-      -V [ --version ]       show version information
-      --color                use VT100 color codes even when stdout is not a
-                             terminal
-      -D [ --define ] arg    define a constant
-      -a [ --app ] arg       application library name (default: icinga)
-      -l [ --library ] arg   load a library
-      -I [ --include ] arg   add include search directory
-      -x [ --log-level ] arg specify the log level for the console log
-
-    Command options:
-
-	Report bugs at <https://dev.icinga.org/>
+      -h [ --help ]             show this help message
+      -V [ --version ]          show version information
+      --color                   use VT100 color codes even when stdout is not a
+                                terminal
+      -D [ --define ] arg       define a constant
+      -a [ --app ] arg          application library name (default: icinga)
+      -l [ --library ] arg      load a library
+      -I [ --include ] arg      add include search directory
+      -x [ --log-level ] arg    specify the log level for the console log.
+                                The valid value is either debug, notice,
+                                information (default), warning, or critical
+      -X [ --script-debugger ]  whether to enable the script debugger
+    
+    Report bugs at <https://dev.icinga.org/>
     Icinga home page: <https://www.icinga.org/>
 
 
@@ -83,8 +85,7 @@ options.
 Bash Auto-Completion (pressing `<TAB>`) is provided only for the corresponding context.
 
 While `--config` will suggest and auto-complete files and directories on disk,
-`feature enable` will only suggest disabled features. `repository` will know
-about object specific attributes, and so on. Try it yourself.
+`feature enable` will only suggest disabled features. Try it yourself.
 
 RPM and Debian packages install the bash completion files into
 `/etc/bash_completion.d/icinga2`.
@@ -102,6 +103,13 @@ SUSE:
 Debian/Ubuntu:
 
     # apt-get install bash-completion
+
+Ensure that the `bash-completion.d` directory is added to your shell
+environment. You can manually source the icinga2 bash-completion file
+into your current session and test it:
+
+    # source /etc/bash-completion.d/icinga2
+
 
 ## <a id="cli-commands-global-options"></a> Icinga 2 CLI Global Options
 
@@ -137,7 +145,7 @@ added.
 
 ## <a id="cli-command-console"></a> CLI command: Console
 
-The CLI command `console` can be used to evaluate Icinga config expressions, e.g. to test
+The CLI command `console` can be used to evaluate Icinga 2 config expressions, e.g. to test
 [functions](17-language-reference.md#functions).
 
     $ icinga2 console
@@ -167,7 +175,9 @@ are required for executing config expressions and auto-completion.
 
 You can specify the API URL using the `--connect` parameter.
 
-Although the password can be specified there process arguments on UNIX platforms are usually visible to other users (e.g. through `ps`). In order to securely specify the user credentials the console supports two environment variables:
+Although the password can be specified there process arguments on UNIX platforms are
+usually visible to other users (e.g. through `ps`). In order to securely specify the
+user credentials the console supports two environment variables:
 
   Environment variable | Description
   ---------------------|-------------
@@ -177,7 +187,7 @@ Although the password can be specified there process arguments on UNIX platforms
 Here's an example:
 
     $ ICINGA2_API_PASSWORD=icinga icinga2 console --connect 'https://root@localhost:5665/'
-    Icinga 2 (version: v2.4.0)
+    Icinga 2 (version: v2.6.0)
     <1> =>
 
 Once connected you can inspect variables and execute other expressions by entering them at the prompt:
@@ -214,9 +224,13 @@ Once connected you can inspect variables and execute other expressions by enteri
     <3> =>
 
 
-You can use the `--eval` parameter to evaluate a single expression in batch mode. Using the `--file` option you can specify a file which should be evaluated. The output format for batch mode is JSON.
+You can use the `--eval` parameter to evaluate a single expression in batch mode.
+Using the `--file` option you can specify a file which should be evaluated.
+The output format for batch mode is JSON.
 
-The `--syntax-only` option can be used in combination with `--eval` or `--file` to check a script for syntax errors. In this mode the script is parsed to identify syntax errors but not evaluated.
+The `--syntax-only` option can be used in combination with `--eval` or `--file`
+to check a script for syntax errors. In this mode the script is parsed to identify
+syntax errors but not evaluated.
 
 Here's an example that retrieves the command that was used by Icinga to check the `example.localdomain` host:
 
@@ -237,39 +251,43 @@ The CLI command `daemon` provides the functionality to start/stop Icinga 2.
 Furthermore it provides the [configuration validation](11-cli-commands.md#config-validation).
 
     # icinga2 daemon --help
-    icinga2 - The Icinga 2 network monitoring daemon (version: v2.5.0)
-
+    icinga2 - The Icinga 2 network monitoring daemon (version: v2.6.0)
+    
     Usage:
       icinga2 daemon [<arguments>]
-
+    
     Starts Icinga 2.
-
+    
     Global options:
-      -h [ --help ]          show this help message
-      -V [ --version ]       show version information
-      --color                use VT100 color codes even when stdout is not a
-                             terminal
-      -D [ --define ] arg    define a constant
-      -a [ --app ] arg       application library name (default: icinga)
-      -l [ --library ] arg   load a library
-      -I [ --include ] arg   add include search directory
-      -x [ --log-level ] arg specify the log level for the console log
-
+      -h [ --help ]             show this help message
+      -V [ --version ]          show version information
+      --color                   use VT100 color codes even when stdout is not a
+                                terminal
+      -D [ --define ] arg       define a constant
+      -a [ --app ] arg          application library name (default: icinga)
+      -l [ --library ] arg      load a library
+      -I [ --include ] arg      add include search directory
+      -x [ --log-level ] arg    specify the log level for the console log.
+                                The valid value is either debug, notice,
+                                information (default), warning, or critical
+      -X [ --script-debugger ]  whether to enable the script debugger
+    
     Command options:
-      -c [ --config ] arg   parse a configuration file
-      -z [ --no-config ]    start without a configuration file
-      -C [ --validate ]     exit after validating the configuration
-      -e [ --errorlog ] arg log fatal errors to the specified log file (only works
-                            in combination with --daemonize)
-      -d [ --daemonize ]    detach from the controlling terminal
-
+      -c [ --config ] arg       parse a configuration file
+      -z [ --no-config ]        start without a configuration file
+      -C [ --validate ]         exit after validating the configuration
+      -e [ --errorlog ] arg     log fatal errors to the specified log file (only
+                                works in combination with --daemonize)
+      -d [ --daemonize ]        detach from the controlling terminal
+    
     Report bugs at <https://dev.icinga.org/>
     Icinga home page: <https://www.icinga.org/>
+
 
 ### Config Files
 
 Using the `--config` option you can specify one or more configuration files.
-Config files are processed in the order they're specified on the command-line.
+Configuration files are processed in the order they're specified on the command-line.
 
 When no configuration file is specified and the `--no-config` is not used
 Icinga 2 automatically falls back to using the configuration file
@@ -281,67 +299,76 @@ The `--validate` option can be used to check if your configuration files
 contain errors. If any errors are found, the exit status is 1, otherwise 0
 is returned. More details in the [configuration validation](11-cli-commands.md#config-validation) chapter.
 
-
 ## <a id="cli-command-feature"></a> CLI command: Feature
 
 The `feature enable` and `feature disable` commands can be used to enable and disable features:
 
     # icinga2 feature disable <tab>
-    checker       --color       --define      --help        --include     --library     --log-level   mainlog       notification  --version
-
+    --app              --define           --include          --log-level        --version          checker            graphite           mainlog
+    --color            --help             --library          --script-debugger  api                command            ido-mysql          notification
+    
     # icinga2 feature enable <tab>
-    api           command       debuglog      graphite      icingastatus  ido-pgsql     --library     --log-level   statusdata    --version
-    --color       compatlog     --define      --help        ido-mysql     --include     livestatus    perfdata      syslog
+    --app              --define           --include          --log-level        --version          debuglog           ido-pgsql          livestatus         perfdata           syslog
+    --color            --help             --library          --script-debugger  compatlog          gelf               influxdb           opentsdb           statusdata
 
 The `feature list` command shows which features are currently enabled:
 
     # icinga2 feature list
-    Disabled features: agent command compatlog debuglog gelf graphite icingastatus notification perfdata statusdata syslog
-    Enabled features: api checker livestatus mainlog
+    Disabled features: compatlog debuglog gelf ido-pgsql influxdb livestatus opentsdb perfdata statusdata syslog
+    Enabled features: api checker command graphite ido-mysql mainlog notification
 
 
 ## <a id="cli-command-node"></a> CLI command: Node
 
+> **Warning**
+>
+> This CLI command and its sub commands except for `setup` and `wizard`
+> have been deprecated in v2.6 and will be
+> removed in future releases.
+>
+> Make sure to follow the release announcements on the [Icinga website](https://www.icinga.com).
+
 Provides the functionality to install and manage master and client
 nodes in a [distributed monitoring](6-distributed-monitoring.md#distributed-monitoring) scenario.
 
-
     # icinga2 node --help
-    icinga2 - The Icinga 2 network monitoring daemon (version: v2.5.0)
-
+    icinga2 - The Icinga 2 network monitoring daemon (version: v2.6.0)
+    
     Usage:
       icinga2 <command> [<arguments>]
-
+    
     Supported commands:
-      * node add (add node)
-      * node blacklist add (adds a new blacklist filter)
-      * node blacklist list (lists all blacklist filters)
-      * node blacklist remove (removes a blacklist filter)
-      * node list (lists all nodes)
-      * node remove (removes node)
-      * node set (set node attributes)
+      * node add (add node) (DEPRECATED)
+      * node blacklist add (adds a new blacklist filter) (DEPRECATED)
+      * node blacklist list (lists all blacklist filters) (DEPRECATED)
+      * node blacklist remove (removes a blacklist filter) (DEPRECATED)
+      * node list (lists all nodes) (DEPRECATED)
+      * node remove (removes node) (DEPRECATED)
+      * node set (set node attributes) (DEPRECATED)
       * node setup (set up node)
-      * node update-config (update node config)
-      * node whitelist add (adds a new whitelist filter)
-      * node whitelist list (lists all whitelist filters)
-      * node whitelist remove (removes a whitelist filter)
+      * node update-config (update node config) (DEPRECATED)
+      * node whitelist add (adds a new whitelist filter) (DEPRECATED)
+      * node whitelist list (lists all whitelist filters) (DEPRECATED)
+      * node whitelist remove (removes a whitelist filter) (DEPRECATED)
       * node wizard (wizard for node setup)
-
+    
     Global options:
-      -h [ --help ]          show this help message
-      -V [ --version ]       show version information
-      --color                use VT100 color codes even when stdout is not a
-                             terminal
-      -D [ --define ] arg    define a constant
-      -a [ --app ] arg       application library name (default: icinga)
-      -l [ --library ] arg   load a library
-      -I [ --include ] arg   add include search directory
-      -x [ --log-level ] arg specify the log level for the console log
-
-    Command options:
-
+      -h [ --help ]             show this help message
+      -V [ --version ]          show version information
+      --color                   use VT100 color codes even when stdout is not a
+                                terminal
+      -D [ --define ] arg       define a constant
+      -a [ --app ] arg          application library name (default: icinga)
+      -l [ --library ] arg      load a library
+      -I [ --include ] arg      add include search directory
+      -x [ --log-level ] arg    specify the log level for the console log.
+                                The valid value is either debug, notice,
+                                information (default), warning, or critical
+      -X [ --script-debugger ]  whether to enable the script debugger
+    
     Report bugs at <https://dev.icinga.org/>
     Icinga home page: <https://www.icinga.org/>
+
 
 
 ## <a id="cli-command-object"></a> CLI command: Object
@@ -353,51 +380,51 @@ That way you can also identify which objects have been created from your [apply 
 More information can be found in the [troubleshooting](15-troubleshooting.md#list-configuration-objects) section.
 
     # icinga2 object --help
-    icinga2 - The Icinga 2 network monitoring daemon (version: v2.5.0)
-
+    icinga2 - The Icinga 2 network monitoring daemon (version: v2.6.0)
+    
     Usage:
       icinga2 <command> [<arguments>]
-
+    
     Supported commands:
       * object list (lists all objects)
-
+    
     Global options:
-      -h [ --help ]          show this help message
-      -V [ --version ]       show version information
-      --color                use VT100 color codes even when stdout is not a
-                             terminal
-      -D [ --define ] arg    define a constant
-      -a [ --app ] arg       application library name (default: icinga)
-      -l [ --library ] arg   load a library
-      -I [ --include ] arg   add include search directory
-      -x [ --log-level ] arg specify the log level for the console log
-
-    Command options:
-
+      -h [ --help ]             show this help message
+      -V [ --version ]          show version information
+      --color                   use VT100 color codes even when stdout is not a
+                                terminal
+      -D [ --define ] arg       define a constant
+      -a [ --app ] arg          application library name (default: icinga)
+      -l [ --library ] arg      load a library
+      -I [ --include ] arg      add include search directory
+      -x [ --log-level ] arg    specify the log level for the console log.
+                                The valid value is either debug, notice,
+                                information (default), warning, or critical
+      -X [ --script-debugger ]  whether to enable the script debugger
+    
     Report bugs at <https://dev.icinga.org/>
     Icinga home page: <https://www.icinga.org/>
-
-
 
 ## <a id="cli-command-pki"></a> CLI command: Pki
 
 Provides the CLI commands to
 
-* generate a new local CA
+* generate a new certificate authority (CA)
 * generate a new CSR or self-signed certificate
 * sign a CSR and return a certificate
 * save a master certificate manually
 * request a signed certificate from the master
 * generate a new ticket for the client setup
 
-This functionality is used by the [node setup/wizard](11-cli-commands.md#cli-command-pki) CLI commands too.
+This functionality is used by the [node setup/wizard](11-cli-commands.md#cli-command-node) CLI commands.
+You will need them in the [distributed monitoring chapter](6-distributed-monitoring.md#distributed-monitoring).
 
     # icinga2 pki --help
-    icinga2 - The Icinga 2 network monitoring daemon (version: v2.5.0)
-
+    icinga2 - The Icinga 2 network monitoring daemon (version: v2.6.0)
+    
     Usage:
       icinga2 <command> [<arguments>]
-
+    
     Supported commands:
       * pki new-ca (sets up a new CA)
       * pki new-cert (creates a new CSR)
@@ -405,63 +432,75 @@ This functionality is used by the [node setup/wizard](11-cli-commands.md#cli-com
       * pki save-cert (saves another Icinga 2 instance's certificate)
       * pki sign-csr (signs a CSR)
       * pki ticket (generates a ticket)
-
+    
     Global options:
-      -h [ --help ]          show this help message
-      -V [ --version ]       show version information
-      --color                use VT100 color codes even when stdout is not a
-                             terminal
-      -D [ --define ] arg    define a constant
-      -a [ --app ] arg       application library name (default: icinga)
-      -l [ --library ] arg   load a library
-      -I [ --include ] arg   add include search directory
-      -x [ --log-level ] arg specify the log level for the console log
-
-    Command options:
-
+      -h [ --help ]             show this help message
+      -V [ --version ]          show version information
+      --color                   use VT100 color codes even when stdout is not a
+                                terminal
+      -D [ --define ] arg       define a constant
+      -a [ --app ] arg          application library name (default: icinga)
+      -l [ --library ] arg      load a library
+      -I [ --include ] arg      add include search directory
+      -x [ --log-level ] arg    specify the log level for the console log.
+                                The valid value is either debug, notice,
+                                information (default), warning, or critical
+      -X [ --script-debugger ]  whether to enable the script debugger
+    
     Report bugs at <https://dev.icinga.org/>
     Icinga home page: <https://www.icinga.org/>
 
-
 ## <a id="cli-command-repository"></a> CLI command: Repository
 
-This command is not supported anymore. Parts of its functionality
+> **Warning**
+>
+> This CLI command has been deprecated in v2.6 and will be
+> removed in future releases.
+>
+> Make sure to follow the release announcements on the [Icinga website](https://www.icinga.com).
+
+This command is experimental and not finished as public CLI command. Parts of its functionality
 are used in the [node update-config](11-cli-commands.md#cli-command-node) cli command.
 
 ## <a id="cli-command-troubleshoot"></a> CLI command: Troubleshoot
 
-Collects basic information like version, paths, log files and crash reports for troubleshooting purposes and prints them to a file or the console. See [troubleshooting](15-troubleshooting.md#troubleshooting-information-required).
+Collects basic information like version, paths, log files and crash reports for troubleshooting
+purposes and prints them to a file or the console. See [troubleshooting](15-troubleshooting.md#troubleshooting-information-required).
 
 Its output defaults to a file named `troubleshooting-[TIMESTAMP].log` so it won't overwrite older troubleshooting files.
 
-> **Note**
-> Keep in mind that this tool can not collect information from other icinga2 nodes, you will have to run it on
-> each of one of you instances.
-> This is only a tool to collect information to help others help you, it will not attempt to fix anything.
-
+Keep in mind that this tool can not collect information from other icinga2 nodes, you will have to run it on
+each of one of you instances.
+This is only a tool to collect information to help others help you, it will not attempt to fix anything.
 
     # icinga2 troubleshoot --help
-    icinga2 - The Icinga 2 network monitoring daemon (version: v2.2.0-551-g1d0f6ed)
-
+    icinga2 - The Icinga 2 network monitoring daemon (version: v2.6.0)
+    
     Usage:
       icinga2 troubleshoot [<arguments>]
-
+    
+    Collect logs and other relevant information for troubleshooting purposes.
+    
     Global options:
-      -h [ --help ]          show this help message
-      -V [ --version ]	     show version information
-      --color                use VT100 color codes even when stdout is not aterminal
-      -D [ --define ] arg    define a constant
-      -a [ --app ] arg       application library name (default: icinga)
-      -l [ --library ] arg   load a library
-      -I [ --include ] arg   add include search directory
-      -x [ --log-level ] arg specify the log level for the console log
-
+      -h [ --help ]             show this help message
+      -V [ --version ]          show version information
+      --color                   use VT100 color codes even when stdout is not a
+                                terminal
+      -D [ --define ] arg       define a constant
+      -a [ --app ] arg          application library name (default: icinga)
+      -l [ --library ] arg      load a library
+      -I [ --include ] arg      add include search directory
+      -x [ --log-level ] arg    specify the log level for the console log.
+                                The valid value is either debug, notice,
+                                information (default), warning, or critical
+      -X [ --script-debugger ]  whether to enable the script debugger
+    
     Command options:
-      -c [ --console ]       print to console instead of file
-      -o [ --output ] arg    path to output file
-      --include-vars         print variables to separate file
-      --inluce-objects       print object to separate file
-
+      -c [ --console ]          print to console instead of file
+      -o [ --output ] arg       path to output file
+      --include-objects         Print the whole objectfile (like `object list`)
+      --include-vars            Print all Variables (like `variable list`)
+    
     Report bugs at <https://dev.icinga.org/>
     Icinga home page: <https://www.icinga.org/>
 
@@ -470,31 +509,31 @@ Its output defaults to a file named `troubleshooting-[TIMESTAMP].log` so it won'
 Lists all configured variables (constants) in a similar fashion like [object list](11-cli-commands.md#cli-command-object).
 
     # icinga2 variable --help
-    icinga2 - The Icinga 2 network monitoring daemon (version: v2.5.0)
-
+    icinga2 - The Icinga 2 network monitoring daemon (version: v2.6.0)
+    
     Usage:
       icinga2 <command> [<arguments>]
-
+    
     Supported commands:
       * variable get (gets a variable)
       * variable list (lists all variables)
-
+    
     Global options:
-      -h [ --help ]          show this help message
-      -V [ --version ]       show version information
-      --color                use VT100 color codes even when stdout is not a
-                             terminal
-      -D [ --define ] arg    define a constant
-      -a [ --app ] arg       application library name (default: icinga)
-      -l [ --library ] arg   load a library
-      -I [ --include ] arg   add include search directory
-      -x [ --log-level ] arg specify the log level for the console log
-
-    Command options:
-
+      -h [ --help ]             show this help message
+      -V [ --version ]          show version information
+      --color                   use VT100 color codes even when stdout is not a
+                                terminal
+      -D [ --define ] arg       define a constant
+      -a [ --app ] arg          application library name (default: icinga)
+      -l [ --library ] arg      load a library
+      -I [ --include ] arg      add include search directory
+      -x [ --log-level ] arg    specify the log level for the console log.
+                                The valid value is either debug, notice,
+                                information (default), warning, or critical
+      -X [ --script-debugger ]  whether to enable the script debugger
+    
     Report bugs at <https://dev.icinga.org/>
     Icinga home page: <https://www.icinga.org/>
-
 
 ## <a id="enable-features"></a> Enabling/Disabling Features
 
@@ -616,17 +655,13 @@ Example filtered by `Service` objects with the name `ping*`:
 
 ## <a id="config-change-reload"></a> Reload on Configuration Changes
 
-Everytime you have changed your configuration you should first tell Icinga 2
+Every time you have changed your configuration you should first tell Icinga 2
 to [validate](11-cli-commands.md#config-validation). If there are no validation errors, you can
 safely reload the Icinga 2 daemon.
 
-    # /etc/init.d/icinga2 reload
+    # systemctl reload icinga2
 
-> **Note**
->
-> The `reload` action will send the `SIGHUP` signal to the Icinga 2 daemon
-> which will validate the configuration in a separate process and not stop
-> the other events like check execution, notifications, etc.
->
-> Details can be found [here](22-migrating-from-icinga-1x.md#differences-1x-2-real-reload).
+The `reload` action will send the `SIGHUP` signal to the Icinga 2 daemon
+which will validate the configuration in a separate process and not stop
+the other events like check execution, notifications, etc.
 

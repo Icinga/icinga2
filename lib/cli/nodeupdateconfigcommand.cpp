@@ -53,6 +53,11 @@ ImpersonationLevel NodeUpdateConfigCommand::GetImpersonationLevel(void) const
 	return ImpersonateRoot;
 }
 
+bool NodeUpdateConfigCommand::IsDeprecated(void) const
+{
+	return true;
+}
+
 /**
  * The entry point for the "node update-config" CLI command.
  *

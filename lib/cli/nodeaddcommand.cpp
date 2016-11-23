@@ -47,6 +47,11 @@ int NodeAddCommand::GetMinArguments(void) const
 	return 1;
 }
 
+bool NodeAddCommand::IsDeprecated(void) const
+{
+	return true;
+}
+
 /**
  * The entry point for the "node add" CLI command.
  *

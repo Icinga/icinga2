@@ -57,6 +57,11 @@ int NodeRemoveCommand::GetMaxArguments(void) const
 	return -1;
 }
 
+bool NodeRemoveCommand::IsDeprecated(void) const
+{
+	return true;
+}
+
 /**
  * The entry point for the "node remove" CLI command.
  *

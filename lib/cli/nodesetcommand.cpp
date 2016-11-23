@@ -56,6 +56,11 @@ int NodeSetCommand::GetMinArguments(void) const
 	return 1;
 }
 
+bool NodeSetCommand::IsDeprecated(void) const
+{
+	return true;
+}
+
 /**
  * The entry point for the "node set" CLI command.
  *

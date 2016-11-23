@@ -45,6 +45,11 @@ ImpersonationLevel RepositoryClearChangesCommand::GetImpersonationLevel(void) co
 	return ImpersonateRoot;
 }
 
+bool RepositoryClearChangesCommand::IsDeprecated(void) const
+{
+	return true;
+}
+
 /**
  * The entry point for the "repository clear-changes" CLI command.
  *
