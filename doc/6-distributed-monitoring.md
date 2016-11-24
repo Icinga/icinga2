@@ -1596,7 +1596,7 @@ Add the second satellite `icinga2-satellite2.localdomain` as master:
     Master endpoint port [5665]:
     Add more master endpoints? [y/N]: n
 
-Specify the master node `icinga2-master2.localdomain`with the CA private key and ticket salt:
+Specify the master node `icinga2-master2.localdomain` with the CA private key and ticket salt:
 
     Please specify the master connection for CSR auto-signing (defaults to master endpoint host):
     Host [192.168.56.106]: icinga2-master1.localdomain
@@ -1768,7 +1768,7 @@ zone and endpoint configuration for the clients.
       vars.client_endpoint = name //follows the convention that host name == endpoint name
     }
 
-Add services using command endpoint checks. Pin the apply rules to the `satellite` zone only.
+Add a service which is executed on the satellite nodes (e.g. `ping4`). Pin the apply rule to the `satellite` zone only.
 
     [root@icinga2-master1.localdomain /etc/icinga2/zones.d/satellite]# vim services.conf
 
@@ -1777,6 +1777,10 @@ Add services using command endpoint checks. Pin the apply rules to the `satellit
       //check is executed on the satellite node
       assign where host.zone == "satellite" && host.address
     }
+
+Add services using command endpoint checks. Pin the apply rules to the `satellite` zone only.
+
+    [root@icinga2-master1.localdomain /etc/icinga2/zones.d/satellite]# vim services.conf
 
     apply Service "disk" {
       check_command = "disk"
@@ -1865,28 +1869,44 @@ additional health checks.
 The `cluster` check, for example, will check if all endpoints in the current zone and the directly
 connected zones are working properly:
 
-    object Service "cluster" {
-        check_command = "cluster"
-        check_interval = 5s
-        retry_interval = 1s
+    [root@icinga2-master1.localdomain /]# mkdir -p /etc/icinga2/zones.d/master
+    [root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.d/master/icinga2-master1.localdomain.conf
 
-        host_name = "icinga2-master1.localdomain"
+    object Host "icinga2-master1.localdomain" {
+      check_command = "hostalive"
+      address = "192.168.56.101"
+    }
+
+    [root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.d/master/cluster.conf
+
+    object Service "cluster" {
+      check_command = "cluster"
+      check_interval = 5s
+      retry_interval = 1s
+
+      host_name = "icinga2-master1.localdomain"
     }
 
 The `cluster-zone` check will test whether the configured target zone is currently
-connected or not:
+connected or not. This example adds a health check for the [ha master with clients scenario](6-distributed-monitoring.md#distributed-monitoring-scenarios-ha-master-clients).
 
-    apply Service "child-health" {
+    [root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.d/master/services.conf
+
+    apply Service "cluster-health" {
       check_command = "cluster-zone"
+
+      display_name = "cluster-health-" + host.name
 
       /* This follows the convention that the client zone name is the FQDN which is the same as the host object name. */
       vars.cluster_zone = host.name
 
-      assign where host.vars.has_client
+      assign where host.vars.client_endpoint
     }
 
 In case you cannot assign the `cluster_zone` attribute, add specific
 checks to your cluster:
+
+    [root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.d/master/cluster.conf
 
     object Service "cluster-zone-satellite" {
       check_command = "cluster-zone"
@@ -1901,15 +1921,41 @@ checks to your cluster:
 If you are using top down checks with command endpoint configuration, you can
 add a dependency which prevents notifications for all other failing services:
 
+    [root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.d/master/dependencies.conf
+
     apply Dependency "health-check" to Service {
       parent_service_name = "child-health"
 
       states = [ OK ]
       disable_notifications = true
 
-      assign where host.vars.has_client
+      assign where host.vars.client_endpoint
       ignore where service.name == "child-health"
    }
+
+### <a id="distributed-monitoring-pin-checks-zone"></a> Pin Checks in a Zone
+
+In case you want to pin specific checks to their endpoints in a given zone you'll need to use
+the `command_endpoint` attribute. This is reasonable if you want to
+execute a local disk check in the `master` on a specific endpoint then.
+
+    [root@icinga2-master1.localdomain /]# mkdir -p /etc/icinga2/zones.d/master
+    [root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.d/master/icinga2-master1.localdomain.conf
+
+    object Host "icinga2-master1.localdomain" {
+      check_command = "hostalive"
+      address = "192.168.56.101"
+    }
+
+    [root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.d/master/services.conf
+
+    apply Service "disk" {
+      check_command = "disk"
+
+      command_endpoint = host.name //requires a host object matching the endpoint object name e.g. icinga2-master1.localdomain
+
+      assign where host.zone == "master" && match("icinga2-master*", host.name)
+    }
 
 ### <a id="distributed-monitoring-windows-firewall"></a> Windows Firewall
 
