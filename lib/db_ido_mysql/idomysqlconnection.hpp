@@ -39,12 +39,6 @@ struct IdoAsyncQuery
 	IdoAsyncCallback Callback;
 };
 
-struct IdoMysqlResultInfo
-{
-	IdoMysqlResult Result;
-	int AffectedRows;
-};
-
 /**
  * An IDO MySQL database connection.
  *

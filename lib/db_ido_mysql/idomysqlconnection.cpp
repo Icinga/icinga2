@@ -513,21 +513,20 @@ void IdoMysqlConnection::FinishAsyncQueries(void)
 			);
 		}
 
-		std::vector<IdoMysqlResultInfo> resultSets;
-
 		for (std::vector<IdoAsyncQuery>::size_type i = offset; i < offset + count; i++) {
 			const IdoAsyncQuery& aq = queries[i];
 
 			MYSQL_RES *result = mysql_store_result(&m_Connection);
 
-			int affectedRows = mysql_affected_rows(&m_Connection);
+			m_AffectedRows = mysql_affected_rows(&m_Connection);
+
 			IdoMysqlResult iresult;
 
 			if (!result) {
 				if (mysql_field_count(&m_Connection) > 0) {
 					std::ostringstream msgbuf;
 					String message = mysql_error(&m_Connection);
-					msgbuf << "Error \"" << message << "\" when checking field count \"" << aq.Query << "\"";
+					msgbuf << "Error \"" << message << "\" when executing query \"" << aq.Query << "\"";
 					Log(LogCritical, "IdoMysqlConnection", msgbuf.str());
 
 					BOOST_THROW_EXCEPTION(
@@ -539,11 +538,8 @@ void IdoMysqlConnection::FinishAsyncQueries(void)
 			} else
 				iresult = IdoMysqlResult(result, std::ptr_fun(mysql_free_result));
 
-			IdoMysqlResultInfo resultInfo;
-			resultInfo.Result = iresult;
-			resultInfo.AffectedRows = affectedRows;
-
-			resultSets.push_back(resultInfo);
+			if (aq.Callback)
+				aq.Callback(iresult);
 
 			if (mysql_next_result(&m_Connection) > 0) {
 				std::ostringstream msgbuf;
@@ -557,17 +553,6 @@ void IdoMysqlConnection::FinishAsyncQueries(void)
 					<< errinfo_database_query(query)
 				);
 			}
-		}
-
-		for (std::vector<IdoAsyncQuery>::size_type i = offset; i < offset + count; i++) {
-			const IdoAsyncQuery& aq = queries[i];
-
-			const IdoMysqlResultInfo ri = resultSets[i - offset];
-
-			m_AffectedRows = ri.AffectedRows;
-
-			if (aq.Callback)
-				aq.Callback(ri.Result);
 		}
 
 		offset += count;
