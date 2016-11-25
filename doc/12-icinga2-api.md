@@ -82,6 +82,10 @@ The output will be sent back as a JSON object:
         ]
     }
 
+Tip: If you are working on the CLI with curl you can also use [jq](https://stedolan.github.io/jq/)
+to format the returned JSON output in a readable manner. The documentation
+prefers `python -m json.tool` as Python is available nearly everywhere.
+
 > **Note**
 >
 > Future versions of Icinga 2 might set additional fields. Your application
@@ -182,6 +186,7 @@ which must return a boolean value.
 
 The following example allows the API user to query all hosts and services which have a
 custom attribute `os` that matches the regular expression `^Linux`.
+The [regex function](18-library-reference.md#global-functions-regex) is available as global function.
 
     permissions = [
       {
@@ -234,6 +239,9 @@ Example for a URL-encoded query string:
 Here are the exact same query parameters as a JSON object:
 
     { "filter": "match(\"example.localdomain*\",host.name)", "attrs": [ "host.name", "host.state" ] }
+
+The [match function](18-library-reference.md#global-functions-match) is available as global function
+in Icinga 2.
 
 ### <a id="icinga2-api-requests-method-override"></a> Request Method Override
 
@@ -293,7 +301,7 @@ Example matching all services in NOT-OK state:
 
     https://localhost:5665/v1/objects/services?filter=service.state!=ServiceOK
 
-Example matching all hosts by name:
+Example [matching](18-library-reference.md#global-functions-match) all hosts by a name string pattern:
 
     https://localhost:5665/v1/objects/hosts?filter=match("example.localdomain*",host.name)
 
@@ -510,6 +518,35 @@ for downtimes):
 
    https://localhost:5665/v1/objects/comments?joins=host&joins=service
 
+This is another example for listing all service objects which are unhandled problems (state is not OK
+and no downtime or acknowledgement set):
+
+   $ curl -k -s -u root:icinga -H 'X-HTTP-Method-Override: GET' -X POST 'https://127.0.0.1:5665/v1/objects/services' \
+    -d '{ "joins": [ "host.name", "host.address" ], "attrs": [ "name", "state", "downtime_depth", "acknowledgement" ], "filter": "service.state != ServiceOK && service.downtime_depth == 0.0 && service.acknowledgement == 0.0" }' | python -m json.tool
+
+    {
+        "results": [
+            {
+                "attrs": {
+                    "acknowledgement": 0.0,
+                    "downtime_depth": 0.0,
+                    "name": "10807-service",
+                    "state": 3.0
+                },
+                "joins": {
+                    "host": {
+                        "address": "",
+                        "name": "10807-host"
+                    }
+                },
+                "meta": {},
+                "name": "10807-host!10807-service",
+                "type": "Service"
+            }
+        ]
+    }
+
+
 ### <a id="icinga2-api-config-objects-create"></a> Creating Config Objects
 
 New objects must be created by sending a PUT request. The following
@@ -517,7 +554,7 @@ parameters need to be passed inside the JSON body:
 
   Parameters | Type         | Description
   -----------|--------------|--------------------------
-  templates  | string array | **Optional.** Import existing configuration templates for this object type.
+  templates  | string array | **Optional.** Import existing configuration templates for this object type. Note: These templates must either be statically configured or provided in [config packages](12-icinga2-api.md#icinga2-api-config-management)-
   attrs      | dictionary   | **Required.** Set specific object attributes for this [object type](9-object-types.md#object-types).
 
 The object name must be specified as part of the URL path. For objects with composite names (e.g. services)
@@ -586,6 +623,8 @@ In addition to these parameters a [filter](12-icinga2-api.md#icinga2-api-filters
 **Note**: Modified attributes do not trigger a re-evaluation of existing
 static [apply rules](3-monitoring-basics.md#using-apply) and [group assignments](3-monitoring-basics.md#group-assign-intro).
 Delete and re-create the objects if you require such changes.
+Furthermore you cannot modify templates which have already been resolved
+during [object creation](12-icinga2-api.md#icinga2-api-config-objects-create).
 
 
 If attributes are of the Dictionary type, you can also use the indexer format:
@@ -640,6 +679,8 @@ Provides methods to manage configuration templates:
 
 * [querying templates](12-icinga2-api.md#icinga2-api-config-templates-query)
 
+Creation, modification and deletion of templates at runtime is not supported.
+
 ### <a id="icinga2-api-config-templates-query"></a> Querying Templates
 
 You can request information about configuration templates by sending
@@ -653,9 +694,11 @@ A list of all available configuration types is available in the
 [object types](9-object-types.md#object-types) chapter.
 
 A [filter](12-icinga2-api.md#icinga2-api-filters) may be provided for this query type. The
-template object can be accessed in the filter using the `tmpl` variable:
+template object can be accessed in the filter using the `tmpl` variable. In this
+example the [match function](18-library-reference.md#global-functions-match) is used to
+check a wildcard string pattern against `tmpl.name`:
 
-    $ curl -u root:root -k 'https://localhost:5661/v1/templates/hosts' -H "Accept: application/json" -X PUT -H "X-HTTP-Method-Override: GET" \
+    $ curl -k -s -u root:icinga 'https://localhost:5661/v1/templates/hosts' -H "Accept: application/json" -X PUT -H "X-HTTP-Method-Override: GET" \
     -d '{ "filter": "match(\"g*\", tmpl.name)" }'
 
 Instead of using a filter you can optionally specify the template name in the
@@ -1180,7 +1223,8 @@ Example for the `CheckResult` type with the `exit_code` set to `2`:
 
     &types=CheckResult&filter=event.check_result.exit_status==2
 
-Example for the `CheckResult` type with the service matching the string "random":
+Example for the `CheckResult` type with the service [matching](18-library-reference.md#global-functions-match)
+the string pattern "random\*":
 
     &types=CheckResult&filter=match%28%22random*%22,event.service%29
 
@@ -1649,7 +1693,8 @@ The request method is `POST` using `X-HTTP-Method-Override: GET`
 which allows you to send a JSON request body. The examples request
 specific service attributes joined with host attributes. `attrs`
 and `joins` are therefore specified as array.
-The `filter` attribute matches on all services with `ping` in their name.
+The `filter` attribute [matches](18-library-reference.md#global-functions-match)
+on all services with `ping` in their name.
 
 #### <a id="icinga2-api-clients-programmatic-examples-python"></a> Example API Client in Python
 

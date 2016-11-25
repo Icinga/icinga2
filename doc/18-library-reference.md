@@ -2,31 +2,457 @@
 
 ## <a id="global-functions"></a> Global functions
 
-Function                        | Description
---------------------------------|-----------------------
-regex(pattern, text)            | Returns true if the regex pattern matches the text, false otherwise.
-match(pattern, text)            | Returns true if the wildcard pattern matches the text, false otherwise.
-cidr_match(pattern, ip)         | Returns true if the CIDR pattern matches the IP address, false otherwise. IPv4 addresses are converted to IPv4-mapped IPv6 addresses before being matched against the pattern.
-len(value)                      | Returns the length of the value, i.e. the number of elements for an array or dictionary, or the length of the string in bytes.
-union(array, array, ...)        | Returns an array containing all unique elements from the specified arrays.
-intersection(array, array, ...) | Returns an array containing all unique elements which are common to all specified arrays.
-keys(dict)                      | Returns an array containing the dictionary's keys.
-string(value)                   | Converts the value to a string.
-number(value)                   | Converts the value to a number.
-bool(value)                     | Converts the value to a bool.
-random()                        | Returns a random value between 0 and RAND_MAX (as defined in stdlib.h).
-log(value)                      | Writes a message to the log. Non-string values are converted to a JSON string.
-log(severity, facility, value)  | Writes a message to the log. `severity` can be one of `LogDebug`, `LogNotice`, `LogInformation`, `LogWarning`, and `LogCritical`. Non-string values are converted to a JSON string.
-typeof(value)                   | Returns the [Type](18-library-reference.md#type-type) object for a value.
-get_time()                      | Returns the current UNIX timestamp.
-parse_performance_data(pd)      | Parses a performance data string and returns an array describing the values.
-dirname(path)                   | Returns the directory portion of the specified path.
-basename(path)                  | Returns the filename portion of the specified path.
-escape\_shell\_arg(text)        | Escapes a string for use as a single shell argument.
-escape\_shell\_cmd(text)        | Escapes shell meta characters in a string.
-escape\_create\_process\_arg(text)| (Windows only) Escapes a string for use as an argument for CreateProcess().
-exit(integer)                   | Terminates the application.
-sleep(interval)                 | Sleeps for the specified amount of time (in seconds).
+These functions are globally available in [assign/ignore where expressions](3-monitoring-basics.md#using-apply-expressions),
+[functions](17-language-reference.md#functions), [API filters](12-icinga2-api.md#icinga2-api-filters)
+and the [Icinga 2 console](11-cli-commands.md#cli-command-console).
+
+You can use the [Icinga 2 console](11-cli-commands.md#cli-command-console)
+as a sandbox to test these functions before implementing
+them in your scenarios.
+
+### <a id="global-functions-regex"></a> regex
+
+Signature:
+
+    function regex(pattern, text)
+
+Returns true if the regular expression matches the text, false otherwise.
+**Tip**: In case you are looking for regular expression tests try [regex101](https://regex101.com).
+
+Example:
+
+    $ icinga2 console
+    Icinga 2 (version: v2.6.0)
+    <1> => host.vars.os_type = "Linux/Unix"
+    null
+    <2> => regex("^Linux", host.vars.os_type)
+    true
+    <3> => regex("^Linux$", host.vars.os_type)
+    false
+
+### <a id="global-functions-match"></a> match
+
+Signature:
+
+    function match(pattern, text)
+
+Returns true if the wildcard (`\*`) pattern matches the text, false otherwise.
+
+Example:
+
+    $ icinga2 console
+    Icinga 2 (version: v2.6.0)
+    <1> => host.display_name = "NUE-DB-PROD-586"
+    null
+    <2> => match("NUE-*", host.display_name)
+    true
+    <3> => match("*NUE-*", host.display_name)
+    true
+    <4> => match("NUE-*-DEV-*", host.display_name)
+    false
+
+### <a id="global-functions-cidr_match"></a> cidr_match
+
+Signature:
+
+    function cidr_match(pattern, ip)
+
+Returns true if the CIDR pattern matches the IP address, false otherwise.
+IPv4 addresses are converted to IPv4-mapped IPv6 addresses before being
+matched against the pattern.
+
+Example:
+
+    $ icinga2 console
+    Icinga 2 (version: v2.6.0)
+    <1> => host.address = "192.168.56.101"
+    null
+    <2> => cidr_match("192.168.56.0/24", host.address)
+    true
+    <3> => cidr_match("192.168.56.0/26", host.address)
+    false
+
+### <a id="global-functions-range"></a> range
+
+Signature:
+
+    function range(end)
+    function range(start, end)
+    function range(start, end, increment)
+
+Returns an array of numbers in the specified range.
+If you specify one parameter, the first element starts at `0`.
+The following array numbers are incremented by `1` and stop before
+the specified end.
+If you specify the start and end numbers, the returned array
+number are incremented by `1`. They start at the specified start
+number and stop before the end number.
+Optionally you can specify the incremented step between numbers
+as third parameter.
+
+Example:
+
+    $ icinga2 console
+    Icinga 2 (version: v2.6.0)
+    <1> => range(5)
+    [ 0.000000, 1.000000, 2.000000, 3.000000, 4.000000 ]
+    <2> => range(2,4)
+    [ 2.000000, 3.000000 ]
+    <3> => range(2,10,2)
+    [ 2.000000, 4.000000, 6.000000, 8.000000 ]
+
+### <a id="global-functions-len"></a> len
+
+Signature:
+
+    function len(value)
+
+Returns the length of the value, i.e. the number of elements for an array
+or dictionary, or the length of the string in bytes.
+
+**Note**: Instead of using this global function you are advised to use the type's
+prototype method: [Array#len](18-library-reference.md#array-len), [Dictionary#len](18-library-reference.md#dictionary-len) and
+[String#len](18-library-reference.md#string-len).
+
+Example:
+
+    $ icinga2 console
+    Icinga 2 (version: v2.6.0)
+    <1> => host.groups = [ "linux-servers", "db-servers" ]
+    null
+    <2> => host.groups.len()
+    2.000000
+    <3> => host.vars.disks["/"] = {}
+    null
+    <4> => host.vars.disks["/var"] = {}
+    null
+    <5> => host.vars.disks.len()
+    2.000000
+    <6> => host.vars.os_type = "Linux/Unix"
+    null
+    <7> => host.vars.os_type.len()
+    10.000000
+
+
+### <a id="global-functions-union"></a> union
+
+Signature:
+
+    function union(array, array, ...)
+
+Returns an array containing all unique elements from the specified arrays.
+
+Example:
+
+    $ icinga2 console
+    Icinga 2 (version: v2.6.0)
+    <1> => var dev_notification_groups = [ "devs", "slack" ]
+    null
+    <2> => var host_notification_groups = [ "slack", "noc" ]
+    null
+    <3> => union(dev_notification_groups, host_notification_groups)
+    [ "devs", "noc", "slack" ]
+
+### <a id="global-functions-intersection"></a> intersection
+
+Signature:
+
+    function intersection(array, array, ...)
+
+Returns an array containing all unique elements which are common to all
+specified arrays.
+
+Example:
+
+    $ icinga2 console
+    Icinga 2 (version: v2.6.0)
+    <1> => var dev_notification_groups = [ "devs", "slack" ]
+    null
+    <2> => var host_notification_groups = [ "slack", "noc" ]
+    null
+    <3> => intersection(dev_notification_groups, host_notification_groups)
+    [ "slack" ]
+
+### <a id="global-functions-keys"></a> keys
+
+Signature:
+
+    function keys(dict)
+
+Returns an array containing the dictionary's keys.
+
+**Note**: Instead of using this global function you are advised to use the type's
+prototype method: [Dictionary#keys](18-library-reference.md#dictionary-keys).
+
+Example:
+
+    $ icinga2 console
+    Icinga 2 (version: v2.6.0)
+    <1> => host.vars.disks["/"] = {}
+    null
+    <2> => host.vars.disks["/var"] = {}
+    null
+    <3> => host.vars.disks.keys()
+    [ "/", "/var" ]
+
+### <a id="global-functions-string"></a> string
+
+Signature:
+
+    function string(value)
+
+Converts the value to a string.
+
+**Note**: Instead of using this global function you are advised to use the type's
+prototype method:
+
+* [Number#to_string](18-library-reference.md#number-to_string)
+* [Boolean#to_string](18-library-reference.md#boolean-to_string)
+* [String#to_string](18-library-reference.md#string-to_string)
+* [Object#to_string](18-library-reference.md#object-to-string) for Array and Dictionary types
+* [DateTime#to_string](18-library-reference.md#datetime-tostring)
+
+Example:
+
+    $ icinga2 console
+    Icinga 2 (version: v2.6.0)
+    <1> => 5.to_string()
+    "5"
+    <2> => false.to_string()
+    "false"
+    <3> => "abc".to_string()
+    "abc"
+    <4> => [ "dev", "slack" ].to_string()
+    "[ \"dev\", \"slack\" ]"
+    <5> => { "/" = {}, "/var" = {} }.to_string()
+    "{\n\t\"/\" = {\n\t}\n\t\"/var\" = {\n\t}\n}"
+    <6> => DateTime(2016, 11, 25).to_string()
+    "2016-11-25 00:00:00 +0100"
+
+### <a id="global-functions-number"></a> number
+
+Signature:
+
+    function number(value)
+
+Converts the value to a number.
+
+Example:
+
+    $ icinga2 console
+    Icinga 2 (version: v2.6.0)
+    <1> => number(false)
+    0.000000
+    <2> => number("78")
+    78.000000
+
+### <a id="global-functions-bool"></a> bool
+
+Signature:
+
+    function bool(value)
+
+Converts the value to a bool.
+
+Example:
+
+    $ icinga2 console
+    Icinga 2 (version: v2.6.0)
+    <1> => bool(1)
+    true
+    <2> => bool(0)
+    false
+
+### <a id="global-functions-random"></a> random
+
+Signature:
+
+    function random()
+
+Returns a random value between 0 and RAND\_MAX (as defined in stdlib.h).
+
+    $ icinga2 console
+    Icinga 2 (version: v2.6.0)
+    <1> => random()
+    1263171996.000000
+    <2> => random()
+    108402530.000000
+
+### <a id="global-functions-log"></a> log
+
+Signature:
+
+    function log(value)
+
+Writes a message to the log. Non-string values are converted to a JSON string.
+
+Signature:
+
+    function log(severity, facility, value)
+
+Writes a message to the log. `severity` can be one of `LogDebug`, `LogNotice`,
+`LogInformation`, `LogWarning`, and `LogCritical`.
+
+Non-string values are converted to a JSON string.
+
+Example:
+
+    $ icinga2 console
+    Icinga 2 (version: v2.6.0)
+    <1> => log(LogCritical, "Console", "First line")
+    critical/Console: First line
+    null
+    <2> => var groups = [ "devs", "slack" ]
+    null
+    <3> => log(LogCritical, "Console", groups)
+    critical/Console: ["devs","slack"]
+    null
+
+### <a id="global-functions-typeof"></a> typeof
+
+Signature:
+
+    function typeof(value)
+
+Returns the [Type](18-library-reference.md#type-type) object for a value.
+
+Example:
+
+    $ icinga2 console
+    Icinga 2 (version: v2.6.0)
+    <1> => typeof(3) == Number
+    true
+    <2> => typeof("str") == String
+    true
+    <3> => typeof(true) == Boolean
+    true
+    <4> => typeof([ 1, 2, 3]) == Array
+    true
+    <5> => typeof({ a = 2, b = 3}) == Dictionary
+
+### <a id="global-functions-get_time"></a> get_time
+
+Signature:
+
+    function get_time()
+
+Returns the current UNIX timestamp as floating point number.
+
+Example:
+
+    $ icinga2 console
+    Icinga 2 (version: v2.6.0)
+    <1> => get_time()
+    1480072135.633008
+    <2> => get_time()
+    1480072140.401207
+
+### <a id="global-functions-parse_performance_data"></a> parse_performance_data
+
+Signature:
+
+    function parse_performance_data(pd)
+
+Parses a performance data string and returns an array describing the values.
+
+Example:
+
+    $ icinga2 console
+    Icinga 2 (version: v2.6.0)
+    <1> => var pd = "'time'=1480074205.197363;;;"
+    null
+    <2> => parse_performance_data(pd)
+    {
+    	counter = false
+    	crit = null
+    	label = "time"
+    	max = null
+    	min = null
+    	type = "PerfdataValue"
+    	unit = ""
+    	value = 1480074205.197363
+    	warn = null
+    }
+
+### <a id="global-functions-dirname"></a> dirname
+
+Signature:
+
+    function dirname(path)
+
+Returns the directory portion of the specified path.
+
+Example:
+
+    $ icinga2 console
+    Icinga 2 (version: v2.6.0)
+    <1> => var path = "/etc/icinga2/scripts/xmpp-notification.pl"
+    null
+    <2> => dirname(path)
+    "/etc/icinga2/scripts"
+
+### <a id="global-functions-basename"></a> basename
+
+Signature:
+
+    function basename(path)
+
+Returns the filename portion of the specified path.
+
+Example:
+
+    $ icinga2 console
+    Icinga 2 (version: v2.6.0)
+    <1> => var path = "/etc/icinga2/scripts/xmpp-notification.pl"
+    null
+    <2> => basename(path)
+    "xmpp-notification.pl"
+
+### <a id="global-functions-escape_shell_arg"></a> escape_shell_arg
+
+Signature:
+
+    function escape_shell_arg(text)
+
+Escapes a string for use as a single shell argument.
+
+Example:
+
+    $ icinga2 console
+    Icinga 2 (version: v2.6.0)
+    <1> => escape_shell_arg("'$host.name$' '$service.name$'")
+    "''\\''$host.name$'\\'' '\\''$service.name$'\\'''"
+
+### <a id="global-functions-escape_shell_cmd"></a> escape_shell_cmd
+
+Signature:
+
+    function escape_shell_cmd(text)
+
+Escapes shell meta characters in a string.
+
+Example:
+
+    $ icinga2 console
+    Icinga 2 (version: v2.6.0)
+    <1> => escape_shell_cmd("/bin/echo 'shell test' $ENV")
+    "/bin/echo 'shell test' \\$ENV"
+
+### <a id="global-functions-escape_create_process_arg"></a> escape_create_process_arg
+
+Signature:
+
+    function escape_create_process_arg(text)
+
+Escapes a string for use as an argument for CreateProcess(). Windows only.
+
+### <a id="global-functions-sleep"></a> sleep
+
+Signature:
+
+    function sleep(interval)
+
+Sleeps for the specified amount of time (in seconds).
 
 ## <a id="object-accessor-functions"></a> Object Accessor Functions
 

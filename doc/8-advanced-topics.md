@@ -317,7 +317,7 @@ The other way around you can create objects dynamically using your own global fu
 
 Tips when implementing functions:
 
-* Use [log()](18-library-reference.md#global-functions) to dump variables. You can see the output
+* Use [log()](18-library-reference.md#global-functions-log) to dump variables. You can see the output
 inside the `icinga2.log` file depending in your log severity
 * Use the `icinga2 console` to test basic functionality (e.g. iterating over a dictionary)
 * Build them step-by-step. You can always refactor your code later on.
@@ -490,7 +490,7 @@ writing your own global [functions](17-language-reference.md#functions).
 You can call them inside `assign where` and `ignore where` expressions
 for [apply rules](3-monitoring-basics.md#using-apply-expressions) or
 [group assignments](3-monitoring-basics.md#group-assign-intro) just like
-any other global functions for example [match](18-library-reference.md#global-functions).
+any other global functions for example [match](18-library-reference.md#global-functions-match).
 
 The following example requires the host `myprinter` being added
 to the host group `printers-lexmark` but only if the host uses

@@ -434,7 +434,7 @@ Before you start using the apply rules keep the following in mind:
 * Define the best match.
     * A set of unique [custom attributes](3-monitoring-basics.md#custom-attributes) for these hosts/services?
     * Or [group](3-monitoring-basics.md#groups) memberships, e.g. a host being a member of a hostgroup, applying services to it?
-    * A generic pattern [match](17-language-reference.md#function-calls) on the host/service name?
+    * A generic pattern [match](18-library-reference.md#global-functions-match) on the host/service name?
     * [Multiple expressions combined](3-monitoring-basics.md#using-apply-expressions) with `&&` or `||` [operators](17-language-reference.md#expression-operators)
 * All expressions must return a boolean value (an empty string is equal to `false` e.g.)
 
@@ -481,7 +481,7 @@ you want to be able to add more than one assign/ignore where expression which ma
 a specific condition. To achieve this you can use the logical `and` and `or` operators.
 
 
-Match all `*mysql*` patterns in the host name and (`&&`) custom attribute `prod_mysql_db`
+[Match](18-library-reference.md#global-functions-match) all `*mysql*` patterns in the host name and (`&&`) custom attribute `prod_mysql_db`
 matches the `db-*` pattern. All hosts with the custom attribute `test_server` set to `true`
 should be ignored, or any host name ending with `*internal` pattern.
 
@@ -494,7 +494,7 @@ should be ignored, or any host name ending with `*internal` pattern.
     }
 
 Similar example for advanced notification apply rule filters: If the service
-attribute `notes` contains the `has gold support 24x7` string `AND` one of the
+attribute `notes` [matches](18-library-reference.md#global-functions-match) the `has gold support 24x7` string `AND` one of the
 two condition passes, either the `customer` host custom attribute is set to `customer-xy`
 `OR` the host custom attribute `always_notify` is set to `true`.
 
@@ -651,8 +651,8 @@ Icinga 2 evaluates the `apply for` rule for all objects with the custom attribut
 `assign/ignore where` expressions. You can access the loop variable
 in these expressions, e.g. for ignoring certain values.
 In this example we'd ignore the `bgp` identifier and avoid generating an unwanted service.
-We could extend the configuration by also matching the `oid` value on certain regex/wildcard
-patterns for example.
+We could extend the configuration by also matching the `oid` value on certain
+[regex](18-library-reference.md#global-functions-regex)/[wildcard match](18-library-reference.md#global-functions-match) patterns for example.
 
 > **Note**
 >
@@ -967,9 +967,9 @@ to a group based on their attributes:
     }
 
 In this example all hosts with the `vars` attribute `mssql_port`
-will be added as members to the host group `mssql`. However, all `\*internal`
-hosts or with the `test_server` attribute set to `true` are not added to this
-group.
+will be added as members to the host group `mssql`. However, all
+hosts [matching](18-library-reference.md#global-functions-match) the string `\*internal`
+or with the `test_server` attribute set to `true` are **not** added to this group.
 
 Details on the `assign where` syntax can be found in the
 [Language Reference](17-language-reference.md#apply).
@@ -1898,8 +1898,8 @@ for the agent daemon responding to your requests, and make all other services
 querying that daemon depend on that health check.
 
 The following configuration defines two nrpe based service checks `nrpe-load`
-and `nrpe-disk` applied to the `nrpe-server`. The health check is defined as
-`nrpe-health` service.
+and `nrpe-disk` applied to the host `nrpe-server` [matched](18-library-reference.md#global-functions-match)
+by its name. The health check is defined as `nrpe-health` service.
 
     apply Service "nrpe-health" {
       import "generic-service"

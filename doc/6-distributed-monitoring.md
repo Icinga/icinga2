@@ -1957,6 +1957,11 @@ execute a local disk check in the `master` on a specific endpoint then.
       assign where host.zone == "master" && match("icinga2-master*", host.name)
     }
 
+The `host.zone` attribute check inside the expression ensures that
+the service object is only created for host objects inside the `master`
+zone. In addition to that the [match](18-library-reference.md#global-functions-match)
+function ensures to only create services for the master nodes.
+
 ### <a id="distributed-monitoring-windows-firewall"></a> Windows Firewall
 
 By default ICMP requests are disabled in the Windows firewall. You can

@@ -553,7 +553,7 @@ to previously seen [apply rules](3-monitoring-basics.md#using-apply).
     }
 
 Service groups can be grouped together by similar pattern matches.
-The [match() function](17-language-reference.md#function-calls) expects a wildcard match string
+The [match function](18-library-reference.md#global-functions-match) expects a wildcard match string
 and the attribute string to match with.
 
     object ServiceGroup "ping" {
