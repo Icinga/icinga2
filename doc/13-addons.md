@@ -147,7 +147,7 @@ These tools are currently in development and require feedback and tests:
 They work in a similar fashion for Icinga 2 and are used for 1.x web interfaces (Icinga Web 2 doesn't require
 the action url attribute in its own module).
 
-    template Service "pnp-hst" {
+    template Host "pnp-hst" {
       action_url = "/pnp4nagios/graph?host=$HOSTNAME$"
     }
 
