@@ -603,6 +603,16 @@ for syncing check commands later:
       global = true
     }
 
+You don't need any local configuration on the client except for
+CheckCommand definitions which can be synced using the global zone
+above. Therefore disable the inclusion of the `conf.d` directory
+in `/etc/icinga2/icinga2.conf`.
+
+    [root@icinga2-client1.localdomain /]# vim /etc/icinga2/icinga2.conf
+
+    // Commented out, not required on a client as command endpoint
+    //include_recursive "conf.d"
+
 Edit the `api` feature on the client `icinga2-client2.localdomain` in
 the `/etc/icinga2/features-enabled/api.conf` file and make sure to set
 `accept_commands` and `accept_config` to `true`:
@@ -988,13 +998,7 @@ configuration file.
 
 **Steps on each client**:
 
-Comment or remove the `include recursive "conf.d"` line.
-
-    [root@icinga2-client1.localdomain /]# vim /etc/icinga2/icinga2.conf
-
-    //include_recursive "conf.d"
-
-In addition to that add a [global zone](6-distributed-monitoring.md#distributed-monitoring-global-zone-config-sync)
+Add a [global zone](6-distributed-monitoring.md#distributed-monitoring-global-zone-config-sync)
 for syncing check commands later:
 
     [root@icinga2-client1.localdomain /]# vim /etc/icinga2/zones.conf
@@ -1002,6 +1006,16 @@ for syncing check commands later:
     object Zone "global-templates" {
       global = true
     }
+
+You don't need any local configuration on the client except for
+CheckCommand definitions which can be synced using the global zone
+above. Therefore disable the inclusion of the `conf.d` directory
+in `/etc/icinga2/icinga2.conf`.
+
+    [root@icinga2-client1.localdomain /]# vim /etc/icinga2/icinga2.conf
+
+    // Commented out, not required on a client as command endpoint
+    //include_recursive "conf.d"
 
 Edit the `api` feature on the client `icinga2-client2.localdomain` in
 the `/etc/icinga2/features-enabled/api.conf` file and make sure to set
@@ -1826,6 +1840,8 @@ zone. The configuration validation will terminate with an error.
 
 The zone object configuration must be deployed on all nodes which should receive
 the global configuration files:
+
+    [root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.conf
 
     object Zone "global-templates" {
       global = true
