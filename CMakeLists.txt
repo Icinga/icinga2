@@ -334,11 +334,30 @@ if(WIN32)
 
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/NSCP.msi DESTINATION ${CMAKE_INSTALL_SBINDIR})
 
-  install(
+  # OpenSSL 1.1 with target platform set to 32-bit.
+  if(CMAKE_VS_PLATFORM_NAME STREQUAL "Win32" AND EXISTS ${OPENSSL_INCLUDE_DIR}/../bin/libcrypto-1_1.dll AND EXISTS ${OPENSSL_INCLUDE_DIR}/../bin/libssl-1_1.dll)
+    install(
     PROGRAMS ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}
-      ${OPENSSL_INCLUDE_DIR}/../bin/libeay32.dll ${OPENSSL_INCLUDE_DIR}/../bin/ssleay32.dll
+      ${OPENSSL_INCLUDE_DIR}/../bin/libcrypto-1_1.dll ${OPENSSL_INCLUDE_DIR}/../bin/libssl-1_1.dll
     DESTINATION ${CMAKE_INSTALL_SBINDIR}
-  )
+    )
+  # OpenSSL 1.1 with target platform set to 64-bit.
+  elseif(CMAKE_VS_PLATFORM_NAME STREQUAL "x64" AND EXISTS ${OPENSSL_INCLUDE_DIR}/../bin/libcrypto-1_1-x64.dll AND EXISTS ${OPENSSL_INCLUDE_DIR}/../bin/libssl-1_1-x64.dll)
+    install(
+    PROGRAMS ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}
+      ${OPENSSL_INCLUDE_DIR}/../bin/libcrypto-1_1-x64.dll ${OPENSSL_INCLUDE_DIR}/../bin/libssl-1_1-x64.dll
+    DESTINATION ${CMAKE_INSTALL_SBINDIR}
+    )
+  # OpenSSL pre 1.1
+  elseif (EXISTS ${OPENSSL_INCLUDE_DIR}/../bin/libeay32.dll AND ${OPENSSL_INCLUDE_DIR}/../bin/ssleay32.dll)
+    install(
+    PROGRAMS ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}
+     ${OPENSSL_INCLUDE_DIR}/../bin/libeay32.dll ${OPENSSL_INCLUDE_DIR}/../bin/ssleay32.dll
+    DESTINATION ${CMAKE_INSTALL_SBINDIR}
+    )
+  else()
+    message( SEND_ERROR "Missing OpenSSL binaries for the targeted platform: " ${CMAKE_VS_PLATFORM_NAME})
+  endif()
 endif()
 
 include(CPack)
