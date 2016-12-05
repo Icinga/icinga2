@@ -2282,7 +2282,8 @@ This category includes all plugins using the icingacli provided by Icinga Web 2.
 
 #### <a id="plugin-contrib-icingacli-businessprocess"></a> Business Process
 
-This subcommand is provided by the [business process module](https://exchange.icinga.com/icinga/Business+Process) and executed as `icingacli-businessprocess`. The module is hosted by the Icinga project on its [project homepage](https://github.com/Icinga/icingaweb2-module-businessprocess).
+This subcommand is provided by the [business process module](https://exchange.icinga.com/icinga/Business+Process)
+and executed as `icingacli businessprocess` CLI command.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
@@ -2290,7 +2291,8 @@ Name                    	          | Description
 ------------------------------------------|-----------------------------------------------------------------------------------------
 icingacli_businessprocess_process         | **Required.** Business process to monitor.
 icingacli_businessprocess_config          | **Optional.** Configuration file containing your business process without file extension.
-icingacli_businessprocess_details         | **Optional.** Get details for root cause analyses. Defaults to false.
+icingacli_businessprocess_details         | **Optional.** Get details for root cause analysis. Defaults to false.
+icingacli_businessprocess_statetype       | **Optional.** Define which state type to look at, `soft` or `hard`. Overrides the default value inside the businessprocess module, if configured.
 
 
 ### <a id="plugin-contrib-ipmi"></a> IPMI Devices
