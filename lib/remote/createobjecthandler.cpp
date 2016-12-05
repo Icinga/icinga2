@@ -52,16 +52,22 @@ bool CreateObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 	Array::Ptr templates = params->Get("templates");
 	Dictionary::Ptr attrs = params->Get("attrs");
 
-	/* Put created objects into the local zone if not explicitely defined.
+	/* Put created objects into the local zone if not explicitly defined.
 	 * This allows additional zone members to sync the
 	 * configuration at some later point.
 	 */
 	Zone::Ptr localZone = Zone::GetLocalZone();
 	String localZoneName;
 
-	if (localZone && !attrs->Contains("zone")) {
+	if (localZone) {
 		localZoneName = localZone->GetName();
-		attrs->Set("zone", localZoneName);
+
+		if (!attrs) {
+			attrs = new Dictionary();
+			attrs->Set("zone", localZoneName);
+		} else if (attrs && !attrs->Contains("zone")) {
+			attrs->Set("zone", localZoneName);
+		}
 	}
 
 	Dictionary::Ptr result1 = new Dictionary();
