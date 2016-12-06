@@ -2045,6 +2045,7 @@ mysql_health_negate              | **Optional.** Emulate the negate plugin. --ne
 mysql_health_withmymodulesdyndir | **Optional.** Add-on modules for the my-modes will be searched in this directory."
 mysql_health_statefilesdir       | **Optional.** An alternate directory where the plugin can save files."
 mysql_health_isvalidtime         | **Optional.** Signals the plugin to return OK if now is not a valid check time."
+mysql_health_timeout           	 | **Optional.** Plugin timeout. Defaults to 60s.
 
 #### <a id="plugin-contrib-command-oracle_health"></a> oracle_health
 
