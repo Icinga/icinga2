@@ -57,7 +57,7 @@ void NodeSetupCommand::InitParameters(boost::program_options::options_descriptio
 {
 	visibleDesc.add_options()
 		("zone", po::value<std::string>(), "The name of the local zone")
-		("master_host", po::value<std::string>(), "The name of the master host for auto-signing the csr")
+		("master_host", po::value<std::string>(), "The name of the master host for auto-signing the csr; syntax: host[,port]")
 		("endpoint", po::value<std::vector<std::string> >(), "Connect to remote endpoint; syntax: cn[,host,port]")
 		("listen", po::value<std::string>(), "Listen on host,port")
 		("ticket", po::value<std::string>(), "Generated ticket number for this request")
