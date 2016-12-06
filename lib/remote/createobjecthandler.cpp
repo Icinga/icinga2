@@ -65,7 +65,7 @@ bool CreateObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 		if (!attrs) {
 			attrs = new Dictionary();
 			attrs->Set("zone", localZoneName);
-		} else if (attrs && !attrs->Contains("zone")) {
+		} else if (!attrs->Contains("zone")) {
 			attrs->Set("zone", localZoneName);
 		}
 	}
