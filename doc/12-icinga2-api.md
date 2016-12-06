@@ -245,15 +245,17 @@ in Icinga 2.
 
 ### <a id="icinga2-api-requests-method-override"></a> Request Method Override
 
-`GET` requests do not allow you to send a request body. In case you cannot pass everything as URL parameters (e.g. complex filters or JSON-encoded dictionaries) you can use the `X-HTTP-Method-Override` header. This comes in handy when you are using HTTP proxies disallowing `PUT` or `DELETE` requests too.
+`GET` requests do not allow you to send a request body. In case you cannot pass everything as URL
+parameters (e.g. complex filters or JSON-encoded dictionaries) you can use the `X-HTTP-Method-Override`
+header. This comes in handy when you are using HTTP proxies disallowing `PUT` or `DELETE` requests too.
 
 Query an existing object by sending a `POST` request with `X-HTTP-Method-Override: GET` as request header:
 
-    $ curl -k -s -u 'root:icinga' -H 'X-HTTP-Method-Override: GET' -X POST 'https://localhost:5665/v1/objects/hosts'
+    $ curl -k -s -u 'root:icinga' -H 'Accept: application/json' -X POST -H 'X-HTTP-Method-Override: GET' 'https://localhost:5665/v1/objects/hosts'
 
 Delete an existing object by sending a `POST` request with `X-HTTP-Method-Override: DELETE` as request header:
 
-    $ curl -k -s -u 'root:icinga' -H 'X-HTTP-Method-Override: DELETE' -X POST 'https://localhost:5665/v1/objects/hosts/example.localdomain'
+    $ curl -k -s -u 'root:icinga' -H 'Accept: application/json' -X POST -H 'X-HTTP-Method-Override: DELETE' 'https://localhost:5665/v1/objects/hosts/example.localdomain'
 
 ### <a id="icinga2-api-filters"></a> Filters
 
@@ -340,11 +342,11 @@ To make using the API in scripts easier you can use the `filter_vars` attribute 
 variables which should be made available to your filter expression. This way you don't have
 to worry about escaping values:
 
-    $ curl -k -s -u 'root:icinga' -H 'X-HTTP-Method-Override: GET' -X POST 'https://localhost:5665/v1/objects/hosts' \
+    $ curl -k -s -u 'root:icinga' -H 'Accept: application/json' -H 'X-HTTP-Method-Override: GET' -X POST 'https://localhost:5665/v1/objects/hosts' \
     -d '{ "filter": "host.vars.os == os", "filter_vars": { "os": "Linux" } }'
 
-We're using X-HTTP-Method-Override here because the HTTP specification does
-not allow message bodies for GET requests.
+We're using [X-HTTP-Method-Override](12-icinga2-api.md#icinga2-api-requests-method-override) here because
+the HTTP specification does not allow message bodies for GET requests.
 
 The `filters_vars` attribute can only be used inside the request body, but not as
 a URL parameter because there is no way to specify a dictionary in a URL.
@@ -519,9 +521,10 @@ for downtimes):
    https://localhost:5665/v1/objects/comments?joins=host&joins=service
 
 This is another example for listing all service objects which are unhandled problems (state is not OK
-and no downtime or acknowledgement set):
+and no downtime or acknowledgement set). We're using [X-HTTP-Method-Override](12-icinga2-api.md#icinga2-api-requests-method-override)
+here because we want to pass all query attributes in the request body.
 
-   $ curl -k -s -u root:icinga -H 'X-HTTP-Method-Override: GET' -X POST 'https://127.0.0.1:5665/v1/objects/services' \
+   $ curl -k -s -u root:icinga -H 'Accept: application/json' -H 'X-HTTP-Method-Override: GET' -X POST 'https://127.0.0.1:5665/v1/objects/services' \
     -d '{ "joins": [ "host.name", "host.address" ], "attrs": [ "name", "state", "downtime_depth", "acknowledgement" ], "filter": "service.state != ServiceOK && service.downtime_depth == 0.0 && service.acknowledgement == 0.0" }' | python -m json.tool
 
     {
@@ -696,9 +699,11 @@ A list of all available configuration types is available in the
 A [filter](12-icinga2-api.md#icinga2-api-filters) may be provided for this query type. The
 template object can be accessed in the filter using the `tmpl` variable. In this
 example the [match function](18-library-reference.md#global-functions-match) is used to
-check a wildcard string pattern against `tmpl.name`:
+check a wildcard string pattern against `tmpl.name`.
+The `filter` attribute is passed inside the request body thus requiring to use [X-HTTP-Method-Override](12-icinga2-api.md#icinga2-api-requests-method-override)
+here.
 
-    $ curl -k -s -u root:icinga 'https://localhost:5661/v1/templates/hosts' -H "Accept: application/json" -X PUT -H "X-HTTP-Method-Override: GET" \
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -H 'X-HTTP-Method-Override: GET' -X POST 'https://localhost:5661/v1/templates/hosts' \
     -d '{ "filter": "match(\"g*\", tmpl.name)" }'
 
 Instead of using a filter you can optionally specify the template name in the
@@ -722,9 +727,11 @@ a `GET` query to the `/v1/variables/` URL endpoint:
     $ curl -k -s -u root:icinga 'https://localhost:5665/v1/variables'
 
 A [filter](12-icinga2-api.md#icinga2-api-filters) may be provided for this query type. The
-variable information object can be accessed in the filter using the `variable` variable:
+variable information object can be accessed in the filter using the `variable` variable.
+The `filter` attribute is passed inside the request body thus requiring to use [X-HTTP-Method-Override](12-icinga2-api.md#icinga2-api-requests-method-override)
+here.
 
-    $ curl -u root:root -k 'https://localhost:5661/v1/variables' -H "Accept: application/json" -X PUT -H "X-HTTP-Method-Override: GET" \
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -H 'X-HTTP-Method-Override: GET' -X POST 'https://localhost:5661/v1/variables' \
     -d '{ "filter": "variable.type in [ \"String\", \"Number\" ]" }'
 
 Instead of using a filter you can optionally specify the variable name in the
@@ -1689,7 +1696,8 @@ The programmatic examples use HTTP basic authentication and SSL certificate
 verification. The CA file is expected in `pki/icinga2-ca.crt`
 but you may adjust the examples for your likings.
 
-The request method is `POST` using `X-HTTP-Method-Override: GET`
+The [request method](icinga2-api-requests) is `POST` using
+[X-HTTP-Method-Override: GET](12-icinga2-api.md#icinga2-api-requests-method-override)
 which allows you to send a JSON request body. The examples request
 specific service attributes joined with host attributes. `attrs`
 and `joins` are therefore specified as array.
