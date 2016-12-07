@@ -270,10 +270,10 @@ disk\_partition		| **Optional.** The partition. **Deprecated in 2.3.**
 disk\_partition\_excluded  | **Optional.** The excluded partition. **Deprecated in 2.3.**
 disk\_partitions 	| **Optional.** The partition(s). Multiple partitions must be defined as array.
 disk\_partitions\_excluded | **Optional.** The excluded partition(s). Multiple partitions must be defined as array.
-disk\_clear             | **Optional.** Clear thresholds.
-disk\_exact\_match      | **Optional.** For paths or partitions specified with -p, only check for exact paths.
+disk\_clear             | **Optional.** Clear thresholds. May be true or false.
+disk\_exact\_match      | **Optional.** For paths or partitions specified with -p, only check for exact paths. May be true or false.
 disk\_errors\_only      | **Optional.** Display only devices/mountpoints with errors. May be true or false.
-disk\_ignore\_reserved  | **Optional.** If set, account root-reserved blocks are not accounted for freespace in perfdata.
+disk\_ignore\_reserved  | **Optional.** If set, account root-reserved blocks are not accounted for freespace in perfdata. May be true or false.
 disk\_group             | **Optional.** Group paths. Thresholds apply to (free-)space of all partitions together.
 disk\_kilobytes         | **Optional.** Same as --units kB. May be true or false.
 disk\_local             | **Optional.** Only check local filesystems. May be true or false.
