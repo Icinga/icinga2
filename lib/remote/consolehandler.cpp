@@ -99,7 +99,7 @@ bool ConsoleHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& reques
 bool ConsoleHandler::ExecuteScriptHelper(HttpRequest& request, HttpResponse& response,
     const String& command, const String& session, bool sandboxed)
 {
-	Log(LogInformation, "Console")
+	Log(LogNotice, "Console")
 	    << "Executing expression: " << command;
 
 	ApiScriptFrame& lsf = l_ApiScriptFrames[session];
