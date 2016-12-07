@@ -403,9 +403,9 @@ In addition to these parameters a [filter](12-icinga2-api.md#icinga2-api-filters
 
 Instead of using a filter you can optionally specify the object name in the
 URL path when querying a single object. For objects with composite names
-(e.g. services) the full name (e.g. `localhost!http`) must be specified:
+(e.g. services) the full name (e.g. `example.localdomain!http`) must be specified:
 
-    $ curl -k -s -u root:icinga 'https://localhost:5665/v1/objects/services/localhost!http'
+    $ curl -k -s -u root:icinga 'https://localhost:5665/v1/objects/services/example.localdomain!http'
 
 You can limit the output to specific attributes using the `attrs` URL parameter:
 
@@ -561,7 +561,7 @@ parameters need to be passed inside the JSON body:
   attrs      | dictionary   | **Required.** Set specific object attributes for this [object type](9-object-types.md#object-types).
 
 The object name must be specified as part of the URL path. For objects with composite names (e.g. services)
-the full name (e.g. `localhost!http`) must be specified.
+the full name (e.g. `example.localdomain!http`) must be specified.
 
 If attributes are of the Dictionary type, you can also use the indexer format. This might be necessary to only override specific custom variables and keep all other existing custom variables (e.g. from templates):
 
@@ -602,7 +602,7 @@ which is required for host objects:
 
 Service objects must be created using their full name ("hostname!servicename") referencing an existing host object:
 
-    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X PUT 'https://localhost:5665/v1/objects/services/localhost!realtime-load' \
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X PUT 'https://localhost:5665/v1/objects/services/example.localdomain!realtime-load' \
     -d '{ "templates": [ "generic-service" ], "attrs": { "check_command": "load", "check_interval": 1,"retry_interval": 1 } }'
 
 
@@ -815,7 +815,7 @@ allowed for the service (`force_check=true`).
         "results": [
             {
                 "code": 200.0,
-                "status": "Successfully rescheduled check for object 'localhost!ping6'."
+                "status": "Successfully rescheduled check for object 'example.localdomain!ping6'."
             }
         ]
     }

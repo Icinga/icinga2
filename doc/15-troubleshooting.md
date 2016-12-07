@@ -123,6 +123,57 @@ for their check result containing the executed shell command.
 to fetch the checkable object, its check result and the executed shell command.
 * Alternatively enable the [debug log](15-troubleshooting.md#troubleshooting-enable-debug-output) and look for the executed command.
 
+Example for a service object query using a [regex match]() on the name:
+
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -H 'X-HTTP-Method-Override: GET' -X POST 'https://localhost:5665/v1/objects/services' \
+    -d '{ "filter": "regex(pattern, service.name)", "filter_vars": { "pattern": "^http" }, "attrs": [ "__name", "last_check_result" ] }' | python -m json.tool
+    {
+        "results": [
+            {
+                "attrs": {
+                    "__name": "example.localdomain!http",
+                    "last_check_result": {
+                        "active": true,
+                        "check_source": "example.localdomain",
+                        "command": [
+                            "/usr/local/sbin/check_http",
+                            "-I",
+                            "127.0.0.1",
+                            "-u",
+                            "/"
+                        ],
+
+      ...
+
+                    }
+                },
+                "joins": {},
+                "meta": {},
+                "name": "example.localdomain!http",
+                "type": "Service"
+            }
+        ]
+    }
+
+Example for using the `icinga2 console` CLI command evaluation functionality:
+
+    $ ICINGA2_API_PASSWORD=icinga icinga2 console --connect 'https://root@localhost:5665/' \
+    --eval 'get_service("example.localdomain", "http").last_check_result.command' | python -m json.tool
+    [
+        "/usr/local/sbin/check_http",
+        "-I",
+        "127.0.0.1",
+        "-u",
+        "/"
+    ]
+
+Example for searching the debug log:
+
+    # icinga2 feature enable debuglog
+    # systemctl restart icinga2
+    # tail -f /var/log/icinga2/debug.log | grep "notice/Process"
+
+
 ### <a id="checks-not-executed"></a> Checks are not executed
 
 * Check the [debug log](15-troubleshooting.md#troubleshooting-enable-debug-output) to see if the check command gets executed.
