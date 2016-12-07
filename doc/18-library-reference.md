@@ -36,7 +36,7 @@ Signature:
 
     function match(pattern, text)
 
-Returns true if the wildcard (`\*`) pattern matches the text, false otherwise.
+Returns true if the wildcard (`?*`) pattern matches the text, false otherwise.
 
 Example:
 
