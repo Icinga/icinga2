@@ -512,7 +512,8 @@ Value MacroProcessor::ResolveArguments(const Value& command, const Dictionary::P
 						} catch (const std::exception& ex) {
 							/* tried to convert a string */
 							Log(LogWarning, "PluginUtility")
-							    << "Error evaluating set_if value '" << set_if_resolved << "': " << ex.what();
+							    << "Error evaluating set_if value '" << set_if_resolved
+							    << "' used in argument '" << arg.Key << "': " << ex.what();
 							continue;
 						}
 					}
@@ -550,7 +551,8 @@ Value MacroProcessor::ResolveArguments(const Value& command, const Dictionary::P
 		for (const CommandArgument& arg : args) {
 
 			if (arg.AValue.IsObjectType<Dictionary>()) {
-				Log(LogWarning, "PluginUtility", "Tried to use dictionary in argument");
+				Log(LogWarning, "PluginUtility")
+				    << "Tried to use dictionary in argument '" << arg.Key << "'.";
 				continue;
 			} else if (arg.AValue.IsObjectType<Array>()) {
 				bool first = true;
