@@ -2109,6 +2109,7 @@ postgres_unixsocket  | **Optional.** If "postgres_unixsocket" is set to true, th
 postgres_query       | **Optional.** Query for "custom_query" action.
 postgres_valtype     | **Optional.** Value type of query result for "custom_query".
 postgres_reverse     | **Optional.** If "postgres_reverse" is set, warning and critical values are reversed for "custom_query" action.
+postgres_tempdir     | **Optional.** Specify directory for temporary files. The default directory is dependent on the OS. More details [here](http://perldoc.perl.org/File/Spec.html).
 
 #### <a id="plugin-contrib-command-mongodb"></a> mongodb
 
