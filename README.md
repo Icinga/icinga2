@@ -4,11 +4,12 @@
 
 #### Table of Contents
 
-1. [About](About)
-2. [Installation](Installation)
-3. [Documentation](Documentation)
-4. [Support](Support)
-5. [Development and Contributions](Development)
+1. [About][About]
+2. [License][License]
+3. [Installation][Installation]
+4. [Documentation][Documentation]
+5. [Support][Support]
+6. [Development and Contributions][Development]
 
 ## About
 
@@ -18,7 +19,10 @@ network resources, notifies users of outages, and generates performance data for
 Scalable and extensible, Icinga 2 can monitor large, complex environments across
 multiple locations.
 
-More details online at [www.icinga.org](https://www.icinga.org/icinga/icinga-2/)
+Icinga 2 as monitoring core works best with [Icinga Web 2](https://www.icinga.com/products/icinga-web-2/)
+as web interface.
+
+More information can be found at [www.icinga.com](https://www.icinga.com/products/icinga-2/)
 and inside the [documentation](doc/1-about.md).
 
 ## License
@@ -71,3 +75,10 @@ Snapshot packages from the laster development branch are available inside the
 You can help test-drive the latest Icinga 2 snapshot packages inside the
 [Icinga 2 Vagrant boxes](https://github.com/icinga/icinga-vagrant).
 
+
+[About]: #about
+[License]: #license
+[Installation]: #installation
+[Documentation]: #documentation
+[Support]: #support
+[Development]: #development
