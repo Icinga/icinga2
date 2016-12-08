@@ -418,13 +418,18 @@ Download the MSI-Installer package from [http://packages.icinga.org/windows/](ht
 Requirements:
 
 * Windows Vista/Server 2008 or higher
-* [Microsoft .NET Framework 2.0](http://www.microsoft.com/de-de/download/details.aspx?id=1639) 
+* [Microsoft .NET Framework 2.0](http://www.microsoft.com/de-de/download/details.aspx?id=1639)
 
-The installer package includes the [NSClient++](http://www.nsclient.org/) so that Icinga 2 can
-use its built-in plugins. You can find more details in [this chapter](6-distributed-monitoring.md#distributed-monitoring-windows-nscp).
+The installer package includes the [NSClient++](http://www.nsclient.org/) package
+so that Icinga 2 can use its built-in plugins. You can find more details in
+[this chapter](6-distributed-monitoring.md#distributed-monitoring-windows-nscp).
 The Windows package also installs native [monitoring plugin binaries](6-distributed-monitoring.md#distributed-monitoring-windows-plugins)
 to get you started more easily.
 
+
+#### <a id="distributed-monitoring-setup-client-windows-start"></a> Windows Client Setup Start
+
+Run the MSI-Installer package and follow the instructions shown in the screenshots.
 
 ![Icinga 2 Windows Setup](images/distributed-monitoring/icinga2_windows_setup_installer_01.png)
 ![Icinga 2 Windows Setup](images/distributed-monitoring/icinga2_windows_setup_installer_02.png)
@@ -471,10 +476,44 @@ The next step allows you to verify the CA presented by the master.
 
 ![Icinga 2 Windows Setup](images/distributed-monitoring/icinga2_windows_setup_wizard_04.png)
 
+#### <a id="distributed-monitoring-setup-client-windows-nsclient"></a> Bundled NSClient++ Setup
+
 If you have chosen to install/update the NSClient++ package, the Icinga 2 setup wizard will ask
 you to do so.
 
-![Icinga 2 Windows Setup](images/distributed-monitoring/icinga2_windows_setup_wizard_05.png)
+![Icinga 2 Windows Setup NSClient++](images/distributed-monitoring/icinga2_windows_setup_wizard_05_nsclient_01.png)
+
+Choose the `Generic` setup.
+
+![Icinga 2 Windows Setup NSClient++](images/distributed-monitoring/icinga2_windows_setup_wizard_05_nsclient_02.png)
+
+Choose the `Custom` setup type.
+
+![Icinga 2 Windows Setup NSClient++](images/distributed-monitoring/icinga2_windows_setup_wizard_05_nsclient_03.png)
+
+NSClient++ does not install a sample configuration by default. Change this as shown in the screenshot.
+
+![Icinga 2 Windows Setup NSClient++](images/distributed-monitoring/icinga2_windows_setup_wizard_05_nsclient_04.png)
+
+Generate a secure password and enable the web server module. **Note**: The webserver module is
+available starting with NSClient++ 0.5.0. Icinga 2 v2.6+ including this version is required.
+
+![Icinga 2 Windows Setup NSClient++](images/distributed-monitoring/icinga2_windows_setup_wizard_05_nsclient_05.png)
+
+Finish the installation.
+
+![Icinga 2 Windows Setup NSClient++](images/distributed-monitoring/icinga2_windows_setup_wizard_05_nsclient_06.png)
+
+Open a web browser and navigate to `https://localhost:8443`. Enter the password you've configured
+during the setup. In case you lost it, look into the `C:\Program Files\NSClient++\nsclient.ini`
+configuration file.
+
+![Icinga 2 Windows Setup NSClient++](images/distributed-monitoring/icinga2_windows_setup_wizard_05_nsclient_07.png)
+
+The NSClient++ REST API can be used to query metrics. Future Icinga 2 versions will add
+more integrations. Additional details can be found in this [blog post](https://www.icinga.com/2016/09/16/nsclient-0-5-0-rest-api-and-icinga-2-integration/).
+
+#### <a id="distributed-monitoring-setup-client-windows-finish"></a> Finish Windows Client Setup
 
 Finish the setup wizard.
 
@@ -491,19 +530,45 @@ If you click `Examine Config` in the setup wizard, it will open a new Explorer w
 
 The configuration files can be modified with your favorite editor.
 
-To validate the configuration on Windows open a terminal and enter the following command:
+In order to use the [top down](6-distributed-monitoring.md#distributed-monitoring-top-down) client
+configuration prepare the following steps.
 
-    C:> icinga2.exe daemon -C
+Add a [global zone](6-distributed-monitoring.md#distributed-monitoring-global-zone-config-sync)
+for syncing check commands later. Navigate to `C:\ProgramData\icinga2\etc\icinga2` and open
+the `zones.conf` file in your preferred editor. Add the following lines if not existing already:
+
+    object Zone "global-templates" {
+      global = true
+    }
+
+You don't need any local configuration on the client except for
+CheckCommand definitions which can be synced using the global zone
+above. Therefore disable the inclusion of the `conf.d` directory
+in the `icinga2.conf` file.
+Navigate to `C:\ProgramData\icinga2\etc\icinga2` and open
+the `icinga2.conf` file in your preferred editor. Remove or comment (`//`)
+the following line:
+
+    // Commented out, not required on a client with top down mode
+    //include_recursive "conf.d"
+
+Validate the configuration on Windows open an administrator terminal
+and run the following command:
+
+    C:\WINDOWS\system32>cd "C:\Program Files\ICINGA2\sbin"
+    C:\Program Files\ICINGA2\sbin>icinga2.exe daemon -C
 
 **Note**: You have to run this command in a shell with `administrator` privileges.
 
-In case you want to restart the Icinga 2 service, run `services.msc` and restart the
-`icinga2` service. Alternatively, you can use the `net {start,stop}` CLI commands.
+Now you need to restart the Icinga 2 service. Run `services.msc` from the start menu
+and restart the `icinga2` service. Alternatively, you can use the `net {start,stop}` CLI commands.
 
 ![Icinga 2 Windows Service Start/Stop](images/distributed-monitoring/icinga2_windows_cmd_admin_net_start_stop.png)
 
 Now that you've successfully installed a satellite/client, please proceed to
-the [configuration modes](6-distributed-monitoring.md#distributed-monitoring-configuration-modes).
+the [detailed configuration modes](6-distributed-monitoring.md#distributed-monitoring-configuration-modes).
+
+
 
 ## <a id="distributed-monitoring-configuration-modes"></a> Configuration Modes
 
