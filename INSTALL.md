@@ -7,10 +7,17 @@ of operating systems.
 Please check the documentation in the [doc/](doc/) directory for a current list
 of available packages and detailed installation instructions.
 
+The online documentation is available at [docs.icinga.com](https://docs.icinga.com)
+and will guide you step by step.
+
 There are a number of known caveats when installing from source such as
 incorrect directory and file permissions. So even if you're planning to
 not use the official packages it is advisable to build your own Debian
 or RPM packages.
+
+# Builds
+
+This information is intended for developers and packagers.
 
 ## Build Requirements
 
@@ -143,18 +150,15 @@ install requirements:
 * enable the `checker`, `notification` and `mainlog` feature by default
 * run 'icinga2 api setup' in order to enable the `api` feature and generate SSL certificates for the node
 
-
 ## Running Icinga 2
 
 Icinga 2 comes with a single binary that takes care of loading all the relevant
 components (e.g. for check execution, notifications, etc.):
 
-    # /usr/sbin/icinga2 daemon
-    [2015-03-12 13:25:56 +0100] information/cli: Icinga application loader (version: v2.3.0-20-ga4d3713; debug)
-    [2015-03-12 13:25:56 +0100] information/cli: Loading application type: icinga/IcingaApplication
-    [2015-03-12 13:25:56 +0100] information/Utility: Loading library 'libicinga.dylib'
-    [2015-03-12 13:25:56 +0100] information/ConfigCompiler: Compiling config file: /Users/gunnar/i2/etc/icinga2/icinga2.conf
-    [2015-03-12 13:25:56 +0100] information/ConfigCompiler: Compiling config file: /Users/gunnar/i2/etc/icinga2/constants.conf
+    # icinga2 daemon
+    [2016-12-08 16:44:24 +0100] information/cli: Icinga application loader (version: v2.5.4-231-gb10a6b7; debug)
+    [2016-12-08 16:44:24 +0100] information/cli: Loading configuration file(s).
+    [2016-12-08 16:44:25 +0100] information/ConfigItem: Committing config item(s).
     ...
 
 Icinga 2 can be started as a daemon using the provided init script:

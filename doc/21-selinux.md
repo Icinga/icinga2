@@ -57,7 +57,7 @@ As a prerequisite install the `git`, `selinux-policy-devel` and `audit` package.
 
 After that clone the icinga2 git repository.
 
-    # git clone git://git.icinga.org/icinga2.git
+    # git clone https://github.com/icinga/icinga2
 
 To create and install the policy package run the installation script which also labels the resources. (The script assumes Icinga 2 was started once after system startup, the labeling of the port will only happen once and fail later on.)
 
@@ -219,7 +219,9 @@ If you experience any problems while running in enforcing mode try to reproduce 
 
 For now Icinga 2 is running in a permissive domain and adds also some rules for other necessary services so no problems should occure at all. But you can help to enhance the policy by testing Icinga 2 running confined by SELinux.
 
-When filing a bug report please add the following information additionally to the [normal ones](https://www.icinga.org/icinga/faq/):
+Please add the following information to [bug reports](https://www.icinga.com/community/get-involved/):
+
+* Versions, configuration snippets, etc.
 * Output of `semodule -l | grep -e icinga2 -e nagios -e apache`
 * Output of `ps -eZ | grep icinga2`
 * Output of `semanage port -l | grep icinga2`

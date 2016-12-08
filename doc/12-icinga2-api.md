@@ -1659,7 +1659,7 @@ There are a couple of existing clients which can be used with the Icinga 2 API:
 * [curl](http://curl.haxx.se) or any other HTTP client really
 * [Icinga 2 console (CLI command)](12-icinga2-api.md#icinga2-api-clients-cli-console)
 * [Icinga Studio](12-icinga2-api.md#icinga2-api-clients-icinga-studio)
-* [Icinga Web 2 Director](https://dev.icinga.org/projects/icingaweb2-modules)
+* [Icinga Web 2 Director](https://www.icinga.com/products/icinga-web-2-modules/)
 
 Demo cases:
 

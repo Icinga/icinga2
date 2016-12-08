@@ -27,7 +27,7 @@ Configure npcd to use the performance data created by Icinga 2:
 Set `perfdata_spool_dir = /var/spool/icinga2/perfdata` and restart the `npcd` daemon.
 
 There's also an Icinga Web 2 module for direct PNP graph integration
-available at [Icinga Exchange](https://exchange.icinga.org/icinga/PNP).
+available at [Icinga Exchange](https://exchange.icinga.com/icinga/PNP).
 
 More information on [action_url as attribute](13-addons.md#addons-graphing-pnp-action-url)
 and [graph template names](13-addons.md#addons-graphing-pnp-custom-templates).
@@ -71,7 +71,7 @@ A popular frontend for InfluxDB is for example [Grafana](http://grafana.org).
 ### <a id="addons-visualization-reporting"></a> Icinga Reporting
 
 By enabling the [DB IDO](14-features.md#db-ido) feature you can use the
-[Icinga Reporting package](https://wiki.icinga.org/display/howtos/Setting+up+Icinga+with+Reporting).
+[Icinga Reporting package](https://docs.icinga.com/latest/en/reporting.html).
 
 ### <a id="addons-visualization-nagvis"></a> NagVis
 
@@ -102,7 +102,7 @@ is even simpler these days.
 * Configure the logstash `nagios` output to send passive traps to Icinga 2 using the external command pipe.
 * Execute a plugin to check Graylog alert streams.
 
-More details can be found in [this blog post](https://www.icinga.org/2014/12/02/team-icinga-at-osmc-2014/).
+More details can be found in [this blog post](https://www.icinga.com/2014/12/02/team-icinga-at-osmc-2014/).
 
 ## <a id="notification-scripts-interfaces"></a> Notification Scripts and Interfaces
 
@@ -116,23 +116,22 @@ There's a variety of resources available, for example different notification scr
 * Ticket systems
 * etc.
 
-Additionally external services can be [integrated with Icinga 2](https://www.icinga.org/icinga/integration/):
+Additionally external services can be [integrated with Icinga 2](https://www.icinga.com/products/integrations/):
 
-* [Pagerduty](https://www.icinga.org/partners/pagerduty/)
-* [VictorOps](https://www.icinga.org/partners/victorops/)
-* [StackStorm](https://www.icinga.org/partners/stackstorm/)
+* [Pagerduty](https://www.icinga.com/partners/pagerduty/)
+* [VictorOps](https://www.icinga.com/partners/victorops/)
+* [StackStorm](https://www.icinga.com/partners/stackstorm/)
 
-More information can be found on the [Icinga Website](https://www.icinga.org/)
-and the [Icinga Wiki](https://wiki.icinga.org/display/howtos/Home).
+More information can be found on the [Icinga Website](https://www.icinga.com/).
 
 ## <a id="configuration-tools"></a> Configuration Management Tools
 
 If you require your favourite configuration tool to export the Icinga 2 configuration, please get in
 touch with their developers. The Icinga project does not provide a configuration web interface
-yet. Follow the [Icinga Blog](https://www.icinga.org/blog/) for updates on this topic.
+yet. Follow the [Icinga Blog](https://www.icinga.com/blog/) for updates on this topic.
 
 If you're looking for puppet manifests, chef cookbooks, ansible recipes, etc. -- we're happy
-to integrate them upstream, so please get in touch with the [Icinga team](https://www.icinga.org/community/get-involved/).
+to integrate them upstream, so please get in touch with the [Icinga team](https://www.icinga.com/community/get-involved/).
 
 These tools are currently in development and require feedback and tests:
 

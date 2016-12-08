@@ -1264,8 +1264,8 @@ If you are eager to start fresh instead you might take a look into the
 
 The following examples should give you an idea on how to build your own
 distributed monitoring environment. We've seen them all in production
-environments and received feedback from our [community](https://www.icinga.org/community/get-help/)
-and [partner support](https://www.icinga.org/services/support/) channels:
+environments and received feedback from our [community](https://www.icinga.com/community/get-involved/)
+and [partner support](https://www.icinga.com/services/support/) channels:
 
 * Single master with clients.
 * HA master with clients as command endpoint.
@@ -1881,7 +1881,7 @@ to make sure that your cluster notifies you in case of failure.
 ## <a id="distributed-monitoring-best-practice"></a> Best Practice
 
 We've put together a collection of configuration examples from community feedback.
-If you like to share your tips and tricks with us, please join the [community channels](https://www.icinga.org/community/get-help/)!
+If you like to share your tips and tricks with us, please join the [community channels](https://www.icinga.com/community/get-involved/)!
 
 ### <a id="distributed-monitoring-global-zone-config-sync"></a> Global Zone for Config Sync
 
@@ -2413,7 +2413,7 @@ These are collected best practices from various community channels.
 
 If you prefer an alternate method, we still recommend leaving all the Icinga 2 features intact (e.g. `icinga2 feature enable api`).
 You should also use well known and documented default configuration file locations (e.g. `zones.conf`).
-This will tremendously help when someone is trying to help in the [community channels](https://www.icinga.org/community/get-help/).
+This will tremendously help when someone is trying to help in the [community channels](https://www.icinga.com/community/get-involved/).
 
 
 ### <a id="distributed-monitoring-automation-windows-silent"></a> Silent Windows Setup

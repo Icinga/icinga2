@@ -65,7 +65,7 @@ nodes? Or any specific local configuration (e.g. health checks)?
 TODO
 
 If you happen to have further questions, do not hesitate to join the
-[community support channels](https://support.icinga.org)
+[community support channels](https://www.icinga.com/community/get-involved/)
 and ask community members for their experience and best practices.
 
 ## <a id="configuring-icinga2-overview"></a> Configuration Overview

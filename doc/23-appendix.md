@@ -2,7 +2,7 @@
 
 ## <a id="external-commands-list-detail"></a> External Commands List
 
-Additional details can be found in the [Icinga 1.x Documentation](http://docs.icinga.org/latest/en/extcommands2.html)
+Additional details can be found in the [Icinga 1.x Documentation](http://docs.icinga.com/latest/en/extcommands2.html)
 
   Command name                              | Parameters                        | Description
   ------------------------------------------|-----------------------------------|--------------------------
@@ -152,7 +152,7 @@ is set as additional custom variable in `objects.cache`.
 ### <a id="schema-db-ido"></a> DB IDO Schema
 
 There is a detailed documentation for the Icinga IDOUtils 1.x
-database schema available on [http://docs.icinga.org/latest/en/db_model.html]
+database schema available on [http://docs.icinga.com/latest/en/db_model.html]
 
 #### <a id="schema-db-ido-extensions"></a> DB IDO Schema Extensions
 

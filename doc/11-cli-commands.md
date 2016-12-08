@@ -628,13 +628,13 @@ Find more on troubleshooting with `object list` in [this chapter](15-troubleshoo
 Example filtered by `Service` objects with the name `ping*`:
 
     # icinga2 object list --type Service --name *ping*
-    Object 'icinga.org!ping4' of type 'Service':
-      * __name = 'icinga.org!ping4'
+    Object 'icinga.com!ping4' of type 'Service':
+      * __name = 'icinga.com!ping4'
       * check_command = 'ping4'
         % = modified in '/etc/icinga2/conf.d/services.conf', lines 17:3-17:25
       * check_interval = 60
         % = modified in '/etc/icinga2/conf.d/templates.conf', lines 28:3-28:21
-      * host_name = 'icinga.org'
+      * host_name = 'icinga.com'
         % = modified in '/etc/icinga2/conf.d/services.conf', lines 14:1-14:21
       * max_check_attempts = 3
         % = modified in '/etc/icinga2/conf.d/templates.conf', lines 27:3-27:24

@@ -1454,7 +1454,7 @@ Examples:
     }
 
 
-Additional examples can be found [within the icinga documentation](http://docs.icinga.org/latest/en/objectdefinitions.html#objectdefinitions-timeperiod).
+Additional examples can be found [here](8-advanced-topics.md#timeperiods).
 
 Configuration Attributes:
 

@@ -109,7 +109,7 @@ a forced service check:
 A list of currently supported external commands can be found [here](23-appendix.md#external-commands-list-detail).
 
 Detailed information on the commands and their required parameters can be found
-on the [Icinga 1.x documentation](http://docs.icinga.org/latest/en/extcommands2.html).
+on the [Icinga 1.x documentation](http://docs.icinga.com/latest/en/extcommands2.html).
 
 ## <a id="performance-data"></a> Performance Data
 

@@ -795,7 +795,7 @@ negate_arguments	| **Optional.** Arguments for the negated command.
 
 ### <a id="plugin-check-command-nrpe"></a> nrpe
 
-The `check_nrpe` plugin can be used to query an [NRPE](http://docs.icinga.org/latest/en/nrpe.html)
+The `check_nrpe` plugin can be used to query an [NRPE](http://docs.icinga.com/latest/en/nrpe.html)
 server or [NSClient++](https://www.nsclient.org). **Note**: This plugin
 is considered insecure/deprecated.
 
@@ -2220,7 +2220,7 @@ This category includes all plugins using the icingacli provided by Icinga Web 2.
 
 #### <a id="plugin-contrib-icingacli-businessprocess"></a> Business Process
 
-This subcommand is provided by the [business process module](https://exchange.icinga.org/icinga/Business+Process) and executed as `icingacli-businessprocess`. The module is hosted by the Icinga project on its [project homepage](https://dev.icinga.org/projects/icingaweb2-module-businessprocess).
+This subcommand is provided by the [business process module](https://exchange.icinga.com/icinga/Business+Process) and executed as `icingacli-businessprocess`. The module is hosted by the Icinga project on its [project homepage](https://dev.icinga.com/projects/icingaweb2-module-businessprocess).
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
@@ -2384,7 +2384,7 @@ interfacetable_notype               | **Optional.** Remove the interface type fo
 
 #### <a id="plugin-contrib-command-iftraffic"></a> iftraffic
 
-The plugin [check_iftraffic](https://exchange.icinga.org/exchange/iftraffic)
+The plugin [check_iftraffic](https://exchange.icinga.com/exchange/iftraffic)
 checks the utilization of a given interface name using the SNMP protocol.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
@@ -2402,7 +2402,7 @@ iftraffic_max_counter	| **Optional.** Maximum counter value of net devices in ki
 
 #### <a id="plugin-contrib-command-iftraffic64"></a> iftraffic64
 
-The plugin [check_iftraffic64](https://exchange.icinga.org/exchange/iftraffic64)
+The plugin [check_iftraffic64](https://exchange.icinga.com/exchange/iftraffic64)
 checks the utilization of a given interface name using the SNMP protocol.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
@@ -4690,7 +4690,7 @@ jmx4perl_check               | **Optional.** Name of a check configuration as de
 
 #### <a id="plugin-contrib-command-squid"></a> squid
 
-Plugin for monitoring [Squid](https://exchange.icinga.org/exchange/check_squid).
+Plugin for monitoring [Squid](https://exchange.icinga.com/exchange/check_squid).
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 

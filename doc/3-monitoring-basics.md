@@ -790,7 +790,7 @@ The other way around you can override specific custom attributes inherited from 
 
 
 
-This example makes use of the [check_iftraffic](https://exchange.icinga.org/exchange/iftraffic) plugin.
+This example makes use of the [check_iftraffic](https://exchange.icinga.com/exchange/iftraffic) plugin.
 The `CheckCommand` definition can be found in the
 [contributed plugin check commands](10-icinga-template-library.md#plugin-contrib-command-iftraffic)
 -- make sure to include them in your [icinga2 configuration file](4-configuring-icinga-2.md#icinga2-conf).

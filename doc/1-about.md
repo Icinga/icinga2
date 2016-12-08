@@ -17,8 +17,9 @@ LICENSE file included in the source package.
 
 ## <a id="support"></a> Support
 
-Support for Icinga 2 is available in a number of ways. Please have a look at
-the [support overview page](https://support.icinga.org).
+Check the project website at https://www.icinga.com for status updates. Join the
+[community channels](https://www.icinga.com/community/get-involved/) for questions
+or ask an Icinga partner for [professional support](https://www.icinga.com/services/support/).
 
 ## <a id="contribute"></a> Contribute
 
@@ -26,31 +27,18 @@ There are many ways to contribute to Icinga -- whether it be sending patches,
 testing, reporting bugs, or reviewing and updating the documentation. Every
 contribution is appreciated!
 
-Please get in touch with the Icinga team at https://www.icinga.org/community/.
+Read the [contributing section](https://www.icinga.com/community/get-involved/) and
+get familiar with the code.
 
-If you want to help update this documentation, please read
-[this howto](https://wiki.icinga.org/display/community/Update+the+Icinga+2+documentation).
+Pull requests on [GitHub](https://github.com/Icinga/icinga2) are preferred.
 
 ### <a id="development-info"></a> Icinga 2 Development
 
-You can follow Icinga 2's development closely by checking
-out these resources:
+The Git repository is located on [GitHub](https://github.com/Icinga/icinga2).
 
-* [Development Bug Tracker](https://dev.icinga.org/projects/i2): [How to report a bug?](https://www.icinga.org/icinga/faq/)
-* Git Repositories: [main mirror on icinga.org](https://git.icinga.org/?p=icinga2.git;a=summary) [release mirror at github.com](https://github.com/Icinga/icinga2)
-* [Git Checkins Mailinglist](https://lists.icinga.org/mailman/listinfo/icinga-checkins)
-* [Development](https://lists.icinga.org/mailman/listinfo/icinga-devel) and [Users](https://lists.icinga.org/mailman/listinfo/icinga-users) Mailinglists
-* [#icinga-devel on irc.freenode.net](http://webchat.freenode.net/?channels=icinga-devel) including a Git Commit Bot
-
-For general support questions, please refer to the [community support channels](https://support.icinga.org).
-
-### <a id="how-to-report-bug-feature-requests"></a> How to Report a Bug or Feature Request
-
-More details in the [Icinga FAQ](https://www.icinga.org/icinga/faq/).
-
-* [Register](https://accounts.icinga.org/register) an Icinga account.
-* Create a new issue at the [Icinga 2 Development Tracker](https://dev.icinga.org/projects/i2).
-* When reporting a bug, please include the details described in the [Troubleshooting](15-troubleshooting.md#troubleshooting-information-required) chapter (version, configs, logs, etc.).
+Icinga 2 is written in C++ and can be built on Linux/Unix and Windows.
+Read more about development builds in the [INSTALL.md](https://github.com/Icinga/icinga2/blob/master/INSTALL.md)
+file.
 
 ## <a id="whats-new"></a> What's New
 
