@@ -497,7 +497,7 @@ namespace Icinga
 			}
 		}
 
-		private void chkDifferentUser_CheckedChanged(object sender, EventArgs e)
+		private void chkRunServiceAsThisUser_CheckedChanged(object sender, EventArgs e)
 		{
 			txtUser.Enabled = !txtUser.Enabled;
 			if (!txtUser.Enabled)
