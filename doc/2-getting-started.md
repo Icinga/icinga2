@@ -148,19 +148,21 @@ enabled and disabled.
 
 By default Icinga 2 uses the following files and directories:
 
-  Path                                | Description
-  ------------------------------------|------------------------------------
-  /etc/icinga2                        | Contains Icinga 2 configuration files.
-  /etc/init.d/icinga2                 | The Icinga 2 init script.
-  /usr/sbin/icinga2                   | The Icinga 2 binary.
-  /usr/share/doc/icinga2              | Documentation files that come with Icinga 2.
-  /usr/share/icinga2/include          | The Icinga Template Library and plugin command configuration.
-  /var/run/icinga2                    | PID file.
-  /var/run/icinga2/cmd                | Command pipe and Livestatus socket.
-  /var/cache/icinga2                  | status.dat/objects.cache, icinga2.debug files
-  /var/spool/icinga2                  | Used for performance data spool files.
-  /var/lib/icinga2                    | Icinga 2 state file, cluster log, local CA and configuration files.
-  /var/log/icinga2                    | Log file location and compat/ directory for the CompatLogger feature.
+  Path                                		| Description
+  ----------------------------------------------|------------------------------------
+  /etc/icinga2                        		| Contains Icinga 2 configuration files.
+  /usr/lib/systemd/system/icinga2.service 	| The Icinga 2 Systemd service file on systems using Systemd.
+  /etc/init.d/icinga2                 		| The Icinga 2 init script on systems using SysVinit.
+  /usr/sbin/icinga2                   		| Shell wrapper for the Icinga 2 binary.
+  /usr/lib\*/icinga2				| Libraries and the Icinga 2 binary (use `find /usr -type f -name icinga2` to locate the binary path).
+  /usr/share/doc/icinga2              		| Documentation files that come with Icinga 2.
+  /usr/share/icinga2/include          		| The Icinga Template Library and plugin command configuration.
+  /var/run/icinga2                    		| PID file.
+  /var/run/icinga2/cmd                		| Command pipe and Livestatus socket.
+  /var/cache/icinga2                  		| status.dat/objects.cache, icinga2.debug files
+  /var/spool/icinga2                  		| Used for performance data spool files.
+  /var/lib/icinga2                    		| Icinga 2 state file, cluster log, local CA and configuration files (cluster, api).
+  /var/log/icinga2                    		| Log file location and compat/ directory for the CompatLogger feature.
 
 FreeBSD uses slightly different paths:
 
@@ -170,14 +172,15 @@ By default Icinga 2 uses the following files and directories:
   ------------------------------------|------------------------------------
   /usr/local/etc/icinga2              | Contains Icinga 2 configuration files.
   /usr/local/etc/rc.d/icinga2         | The Icinga 2 init script.
-  /usr/local/sbin/icinga2             | The Icinga 2 binary.
+  /usr/local/sbin/icinga2             | Shell wrapper for the Icinga 2 binary.
+  /usr/local/lib/icinga2              | Libraries and the Icinga 2 binary.
   /usr/local/share/doc/icinga2        | Documentation files that come with Icinga 2.
   /usr/local/share/icinga2/include    | The Icinga Template Library and plugin command configuration.
   /var/run/icinga2                    | PID file.
   /var/run/icinga2/cmd                | Command pipe and Livestatus socket.
   /var/cache/icinga2                  | status.dat/objects.cache, icinga2.debug files
   /var/spool/icinga2                  | Used for performance data spool files.
-  /var/lib/icinga2                    | Icinga 2 state file, cluster log, local CA and configuration files.
+  /var/lib/icinga2                    | Icinga 2 state file, cluster log, local CA and configuration files (cluster, api).
   /var/log/icinga2                    | Log file location and compat/ directory for the CompatLogger feature.
 
 ## <a id="setting-up-check-plugins"></a> Setting up Check Plugins
