@@ -52,17 +52,17 @@ RHEL/CentOS 5:
 
     rpm -i http://packages.icinga.org/epel/5/release/noarch/icinga-rpm-release-5-1.el5.centos.noarch.rpm
 
+Fedora 25:
+
+    dnf install https://packages.icinga.org/fedora/25/release/noarch/icinga-rpm-release-25-1.fc25.noarch.rpm
+
+Fedora 24:
+
+    dnf install https://packages.icinga.org/fedora/24/release/noarch/icinga-rpm-release-24-1.fc24.noarch.rpm
+
 Fedora 23:
 
     dnf install https://packages.icinga.org/fedora/23/release/noarch/icinga-rpm-release-23-1.fc23.noarch.rpm
-
-Fedora 22:
-
-    dnf install https://packages.icinga.org/fedora/22/release/noarch/icinga-rpm-release-22-1.fc22.noarch.rpm
-
-Fedora 21:
-
-    yum install http://packages.icinga.org/fedora/21/release/noarch/icinga-rpm-release-21-1.fc21.noarch.rpm
 
 SLES 11:
 
