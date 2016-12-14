@@ -4,14 +4,14 @@ Print this document.
 
 Specify the release version.
 
-    VERSION=2.5.4
+    VERSION=2.6.0
 
 ## Issues
 
 Check the following issue filters:
 
-* [Pending backports](https://dev.icinga.org/projects/i2/issues?query_id=41)
-* [Invalid target version](https://dev.icinga.org/projects/i2/issues?query_id=55)
+* [Pending backports](https://dev.icinga.com/projects/i2/issues?query_id=41)
+* [Invalid target version](https://dev.icinga.com/projects/i2/issues?query_id=55)
 
 ## Backport Commits
 
@@ -29,8 +29,8 @@ rebase until no commits are left:
 
 After finishing the rebase the branch needs to be merged into the support branch:
 
-    $ git checkout support/2.5
-    $ git merge --ff-only auto-merged-2.5.3
+    $ git checkout support/2.6
+    $ git merge --ff-only auto-merged-2.6.0
 
 ## Authors
 
@@ -48,13 +48,12 @@ Update the version number in the following file:
 Example:
 
     gsed -i "s/Version: .*/Version: $VERSION/g" icinga2.spec
-    gsed -i "s/<version>.*<\/version>/<version>$VERSION<\/version>/g" icinga2.nuspec
-    gsed -i "s/Icinga2-v.*-/Icinga2-v$VERSION-/g" tools/chocolateyInstall.ps1
 
 ## Changelog
 
 Update the [ChangeLog](ChangeLog), [doc/1-about.md](doc/1-about.md) files using
 the changelog.py script. Also generate HTML for the wordpress release announcement.
+You need to copy and paste the output manually.
 
 Changelog:
 
@@ -94,23 +93,24 @@ Push the tag.
 For major releases: Create a new "support" branch:
 
     $ git checkout master
-    $ git checkout -b support/2.5
-    $ git push -u origin support/2.5
+    $ git checkout -b support/2.6
+    $ git push -u origin support/2.6
 
 For minor releases: Push the support branch, cherry-pick the release commit
 into master and merge the support branch:
 
-    $ git push -u origin support/2.5
+    $ git push -u origin support/2.6
     $ git checkout master
-    $ git cherry-pick support/2.5
-    $ git merge --strategy=ours support/2.5
+    $ git cherry-pick support/2.6
+    $ git merge --strategy=ours support/2.6
     $ git push origin master
 
 # External Dependencies
 
 ## Build Server
 
-* Update Git tags for the release jobs.
+* Verify package build changes for this version.
+* Test the snapshot packages for all distributions beforehand.
 * Build the newly created Git tag for Debian/RHEL/SuSE.
 * Build the newly created Git tag for Windows.
 
@@ -149,7 +149,7 @@ Create the nupkg package:
 
 Install the created icinga2 package locally:
 
-    choco install icinga2 -version 2.5.4 -fdv "%cd%" -source "'%cd%;https://chocolatey.org/api/v2/'"
+    choco install icinga2 -version 2.6.0 -fdv "%cd%" -source "'%cd%;https://chocolatey.org/api/v2/'"
 
 Upload the package to [chocolatey](https://chocolatey.org/packages/upload).
 
@@ -160,7 +160,7 @@ and pull the current support branch.
 
 ## Announcement
 
-* Create a new blog post on www.icinga.org/blog
+* Create a new blog post on www.icinga.com/blog
 * Send announcement mail to icinga-announce@lists.icinga.org
 * Social media: [Twitter](https://twitter.com/icinga), [Facebook](https://www.facebook.com/icinga), [G+](http://plus.google.com/+icinga), [Xing](https://www.xing.com/communities/groups/icinga-da4b-1060043), [LinkedIn](https://www.linkedin.com/groups/Icinga-1921830/about)
 * Update IRC channel topic
