@@ -94,7 +94,7 @@ BuildRequires: libedit-devel
 BuildRequires: ncurses-devel
 %if "%{_vendor}" == "suse" && 0%{?suse_version} < 1210
 BuildRequires: gcc48-c++
-BuildRequires: libstdc++47-devel
+BuildRequires: libstdc++48-devel
 BuildRequires: libopenssl1-devel
 %else
 BuildRequires: gcc-c++
@@ -189,7 +189,11 @@ IDOUtils schema >= 1.12
 %package ido-pgsql
 Summary:      IDO PostgreSQL database backend for Icinga 2
 Group:        Applications/System
+%if "%{_vendor}" == "suse" && 0%{?suse_version} < 1210
+BuildRequires: postgresql-devel >= 8.4
+%else
 BuildRequires: postgresql-devel
+%endif
 Requires: %{name} = %{version}-%{release}
 
 %description ido-pgsql
