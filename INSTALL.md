@@ -28,6 +28,7 @@ parentheses):
 * cmake >= 2.6
 * GNU make (make)
 * C++ compiler which supports C++11 (gcc-c++ >= 4.7 on RHEL/SUSE, build-essential on Debian, alternatively clang++)
+ * RedHat Developer Tools on RHEL5/6 (details on building below)
 * pkg-config
 * OpenSSL library and header files >= 0.9.8 (openssl-devel on RHEL, libopenssl1-devel on SLES11,
 libopenssl-devel on SLES12, libssl-dev on Debian)
@@ -133,6 +134,33 @@ repository to `rpmbuild/SOURCES`.
 Copy the icinga2.spec file to `rpmbuild/SPEC` and then run this command:
 
     $ rpmbuild -ba SPEC/icinga2.spec
+
+#### RHEL/CentOS 5 and 6
+
+The RedHat Developer Toolset is required for building Icinga 2 beforehand.
+This contains a modern version of flex and a C++ compiler which supports
+C++11 features.
+
+    cat >/etc/yum.repos.d/devtools-2.repo <<REPO
+    [testing-devtools-2-centos-\$releasever]
+    name=testing 2 devtools for CentOS $releasever
+    baseurl=http://people.centos.org/tru/devtools-2/\$releasever/\$basearch/RPMS
+    gpgcheck=0
+    REPO
+
+    yum install -y devtoolset-2-gcc devtoolset-2-gcc-c++ devtoolset-2-binutils
+
+    export LD_LIBRARY_PATH=/opt/rh/devtoolset-2/root/usr/lib:$LD_LIBRARY_PATH
+    export PATH=/opt/rh/devtoolset-2/root/usr/bin:$PATH
+    ln -sf /opt/rh/devtoolset-2/root/usr/bin/ld.bfd /opt/rh/devtoolset-2/root/usr/bin/ld
+    for file in `find /opt/rh/devtoolset-2/root/usr/include/c++ -name c++config.h`; do
+      echo '#define _GLIBCXX__PTHREADS' >> $file
+    done
+
+#### SLES 11
+
+The Icinga repository provides the required boost package version and must be
+added before building.
 
 ### Building Icinga 2 Debs
 
