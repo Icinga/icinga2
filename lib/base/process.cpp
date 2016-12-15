@@ -167,6 +167,7 @@ static Value ProcessSpawnImpl(struct msghdr *msgh, const Dictionary::Ptr& reques
 
 		sigset_t mask;
 		sigemptyset(&mask);
+		sigaddset(&mask, SIGPIPE);
 		sigprocmask(SIG_SETMASK, &mask, NULL);
 
 		if (icinga2_execvpe(argv[0], argv, envp) < 0) {
