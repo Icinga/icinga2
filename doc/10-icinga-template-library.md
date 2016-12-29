@@ -1895,6 +1895,7 @@ snmp_privpass               | **Required.** SNMP version 3 priv password. No val
 snmp_warn                   | **Optional.** The warning threshold.
 snmp_crit                   | **Optional.** The critical threshold.
 snmp_interface              | **Optional.** Network interface name. Default to regex "eth0".
+snmp_interface_inverse      | **Optional.** Inverse Interface check, down is ok. Defaults to false as it is missing.
 snmp_interface_perf         | **Optional.** Check the input/ouput bandwidth of the interface. Defaults to true.
 snmp_interface_label        | **Optional.** Add label before speed in output: in=, out=, errors-out=, etc.
 snmp_interface_bits_bytes   | **Optional.** Output performance data in bits/s or Bytes/s. **Depends** on snmp_interface_kbits set to true. Defaults to true.
