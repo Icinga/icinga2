@@ -12,11 +12,11 @@ and distribution you are running.
 
   Distribution            | Repository
   ------------------------|---------------------------
-  Debian                  | [Icinga Repository](http://packages.icinga.org/debian/), [debmon](https://debmon.org/packages/debmon-jessie/icinga2)
-  Ubuntu                  | [Icinga Repository](http://packages.icinga.org/ubuntu/), [Icinga PPA](https://launchpad.net/~formorer/+archive/ubuntu/icinga)
-  RHEL/CentOS             | [Icinga Repository](http://packages.icinga.org/epel/)
-  openSUSE                | [Icinga Repository](http://packages.icinga.org/openSUSE/), [Server Monitoring Repository](https://build.opensuse.org/package/show/server:monitoring/icinga2)
-  SLES                    | [Icinga Repository](http://packages.icinga.org/SUSE/)
+  Debian                  | [Icinga Repository](http://packages.icinga.com/debian/), [debmon](https://debmon.org/packages/debmon-jessie/icinga2)
+  Ubuntu                  | [Icinga Repository](http://packages.icinga.com/ubuntu/), [Icinga PPA](https://launchpad.net/~formorer/+archive/ubuntu/icinga)
+  RHEL/CentOS             | [Icinga Repository](http://packages.icinga.com/epel/)
+  openSUSE                | [Icinga Repository](http://packages.icinga.com/openSUSE/), [Server Monitoring Repository](https://build.opensuse.org/package/show/server:monitoring/icinga2)
+  SLES                    | [Icinga Repository](http://packages.icinga.com/SUSE/)
   Gentoo                  | [Upstream](http://packages.gentoo.org/package/net-analyzer/icinga2)
   FreeBSD                 | [Upstream](http://www.freshports.org/net-mgmt/icinga2)
   ArchLinux               | [Upstream](https://aur.archlinux.org/packages/icinga2)
@@ -31,52 +31,53 @@ Below is a list with examples for the various distributions.
 
 Debian (debmon):
 
-    # wget -O - https://debmon.org/debmon/repo.key 2>/dev/null | apt-key add -
-    # echo 'deb http://debmon.org/debmon debmon-jessie main' >/etc/apt/sources.list.d/debmon.list
+    # wget -O - http://packages.icinga.com/icinga.key | apt-key add -
+    # echo 'deb http://packages.icinga.com/debian icinga-jessie main' >/etc/apt/sources.list.d/icinga.list
     # apt-get update
 
 Ubuntu (PPA):
 
-    # add-apt-repository ppa:formorer/icinga
+    # wget -O - http://packages.icinga.com/icinga.key | apt-key add -
+    # echo 'deb http://packages.icinga.com/ubuntu icinga-xenial main' >/etc/apt/sources.list.d/icinga.list
     # apt-get update
 
 RHEL/CentOS 7:
 
-    yum install https://packages.icinga.org/epel/7/release/noarch/icinga-rpm-release-7-1.el7.centos.noarch.rpm
+    yum install https://packages.icinga.com/epel/7/release/noarch/icinga-rpm-release-7-1.el7.centos.noarch.rpm
 
 RHEL/CentOS 6:
 
-    yum install https://packages.icinga.org/epel/6/release/noarch/icinga-rpm-release-6-1.el6.noarch.rpm
+    yum install https://packages.icinga.com/epel/6/release/noarch/icinga-rpm-release-6-1.el6.noarch.rpm
 
 RHEL/CentOS 5:
 
-    rpm -i http://packages.icinga.org/epel/5/release/noarch/icinga-rpm-release-5-1.el5.centos.noarch.rpm
+    rpm -i http://packages.icinga.com/epel/5/release/noarch/icinga-rpm-release-5-1.el5.centos.noarch.rpm
 
 Fedora 25:
 
-    dnf install https://packages.icinga.org/fedora/25/release/noarch/icinga-rpm-release-25-1.fc25.noarch.rpm
+    dnf install https://packages.icinga.com/fedora/25/release/noarch/icinga-rpm-release-25-1.fc25.noarch.rpm
 
 Fedora 24:
 
-    dnf install https://packages.icinga.org/fedora/24/release/noarch/icinga-rpm-release-24-1.fc24.noarch.rpm
+    dnf install https://packages.icinga.com/fedora/24/release/noarch/icinga-rpm-release-24-1.fc24.noarch.rpm
 
 Fedora 23:
 
-    dnf install https://packages.icinga.org/fedora/23/release/noarch/icinga-rpm-release-23-1.fc23.noarch.rpm
+    dnf install https://packages.icinga.com/fedora/23/release/noarch/icinga-rpm-release-23-1.fc23.noarch.rpm
 
 SLES 11:
 
-    # zypper ar http://packages.icinga.org/SUSE/ICINGA-release-11.repo
+    # zypper ar http://packages.icinga.com/SUSE/ICINGA-release-11.repo
     # zypper ref
 
 SLES 12:
 
-    # zypper ar http://packages.icinga.org/SUSE/ICINGA-release.repo
+    # zypper ar http://packages.icinga.com/SUSE/ICINGA-release.repo
     # zypper ref
 
 openSUSE:
 
-    # zypper ar http://packages.icinga.org/openSUSE/ICINGA-release.repo
+    # zypper ar http://packages.icinga.com/openSUSE/ICINGA-release.repo
     # zypper ref
 
 
