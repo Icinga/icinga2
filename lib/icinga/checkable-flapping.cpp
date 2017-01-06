@@ -27,10 +27,12 @@ using namespace icinga;
 
 double Checkable::GetFlappingCurrent(void) const
 {
-	if (GetFlappingPositive() + GetFlappingNegative() <= 0)
-		return 0;
+        double pct;
+        if (GetFlappingPositive() + GetFlappingNegative() <= 0)
+                return 0;
 
-	return 100 * GetFlappingPositive() / (GetFlappingPositive() + GetFlappingNegative());
+        pct= 100.0 * (double)GetFlappingPositive() / (double)(GetFlappingPositive() + GetFlappingNegative());
+        return (pct <0.0) ? 0.0 : pct;
 }
 
 void Checkable::UpdateFlappingStatus(bool stateChange)
@@ -47,7 +49,7 @@ void Checkable::UpdateFlappingStatus(bool stateChange)
 	double diff = now - ts;
 
 	if (positive + negative > FLAPPING_INTERVAL) {
-		double pct = (positive + negative - FLAPPING_INTERVAL) / FLAPPING_INTERVAL;
+		double pct = (double)(positive + negative - FLAPPING_INTERVAL) / (double)FLAPPING_INTERVAL;
 		positive -= pct * positive;
 		negative -= pct * negative;
 	}
