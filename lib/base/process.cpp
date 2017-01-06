@@ -249,13 +249,14 @@ static void ProcessHandler(void)
 	}
 
 	for (;;) {
+		SizeType length;
+
 		struct msghdr msg;
 		memset(&msg, 0, sizeof(msg));
 
-		char mbuf[4096];
 		struct iovec io;
-		io.iov_base = mbuf;
-		io.iov_len = sizeof(mbuf);
+		io.iov_base = &length;
+		io.iov_len = sizeof(SizeType);
 
 		msg.msg_iov = &io;
 		msg.msg_iovlen = 1;
@@ -266,14 +267,45 @@ static void ProcessHandler(void)
 
 		int rc = recvmsg(l_ProcessControlFD, &msg, 0);
 
-		if (rc <= 0) {
-			if (rc < 0 && (errno == EINTR || errno == EAGAIN))
-				continue;
+		if (rc < 0 && (errno == EINTR || errno == EAGAIN))
+			continue;
 
-			break;
+		if (rc < 0) {
+			BOOST_THROW_EXCEPTION(posix_error()
+				<< boost::errinfo_api_function("recvmsg")
+				<< boost::errinfo_errno(errno));
 		}
 
-		String jrequest = String(mbuf, mbuf + rc);
+		if (length > 1024 * 1024 * 1024) {
+			BOOST_THROW_EXCEPTION(std::runtime_error("invalid message length"));
+		}
+
+		char *mbuf = new char[length];
+
+		SizeType count = 0;
+		while (count < length) {
+			rc = recv(l_ProcessControlFD, mbuf + count, length - count, 0);
+
+			if (rc < 0) {
+				if (errno == EINTR || errno == EAGAIN)
+				continue;
+
+				delete [] mbuf;
+
+				BOOST_THROW_EXCEPTION(posix_error()
+					<< boost::errinfo_api_function("recv")
+					<< boost::errinfo_errno(errno));
+			}
+
+			count += rc;
+
+			if (rc == 0)
+				break;
+		}
+
+		String jrequest = String(mbuf, length);
+
+		delete [] mbuf;
 
 		Dictionary::Ptr request = JsonDecode(jrequest);
 
@@ -350,6 +382,7 @@ static pid_t ProcessSpawn(const std::vector<String>& arguments, const Dictionary
 	request->Set("extraEnvironment", extraEnvironment);
 
 	String jrequest = JsonEncode(request);
+	SizeType length = jrequest.GetLength();
 
 	boost::mutex::scoped_lock lock(l_ProcessControlMutex);
 
@@ -357,8 +390,8 @@ static pid_t ProcessSpawn(const std::vector<String>& arguments, const Dictionary
 	memset(&msg, 0, sizeof(msg));
 
 	struct iovec io;
-	io.iov_base = const_cast<char *>(jrequest.CStr());
-	io.iov_len = jrequest.GetLength();
+	io.iov_base = &length;
+	io.iov_len = sizeof(SizeType);
 
 	msg.msg_iov = &io;
 	msg.msg_iovlen = 1;
@@ -378,6 +411,12 @@ static pid_t ProcessSpawn(const std::vector<String>& arguments, const Dictionary
 
 	while (sendmsg(l_ProcessControlFD, &msg, 0) < 0)
 		StartSpawnProcessHelper();
+
+	if (send(l_ProcessControlFD, jrequest.CStr(), jrequest.GetLength(), 0) < 0) {
+		BOOST_THROW_EXCEPTION(posix_error()
+		    << boost::errinfo_api_function("send")
+		    << boost::errinfo_errno(errno));
+	}
 
 	char buf[4096];
 
@@ -400,11 +439,18 @@ static int ProcessKill(pid_t pid, int signum)
 	request->Set("signum", signum);
 
 	String jrequest = JsonEncode(request);
+	SizeType length = jrequest.GetLength();
 
 	boost::mutex::scoped_lock lock(l_ProcessControlMutex);
 
-	while (send(l_ProcessControlFD, jrequest.CStr(), jrequest.GetLength(), 0) < 0)
+	while (send(l_ProcessControlFD, &length, sizeof(SizeType), 0) < 0)
 		StartSpawnProcessHelper();
+
+	if (send(l_ProcessControlFD, jrequest.CStr(), jrequest.GetLength(), 0) < 0) {
+		BOOST_THROW_EXCEPTION(posix_error()
+		    << boost::errinfo_api_function("send")
+		    << boost::errinfo_errno(errno));
+	}
 
 	char buf[4096];
 
@@ -426,11 +472,18 @@ static int ProcessWaitPID(pid_t pid, int *status)
 	request->Set("pid", pid);
 
 	String jrequest = JsonEncode(request);
+	SizeType length = jrequest.GetLength();
 
 	boost::mutex::scoped_lock lock(l_ProcessControlMutex);
 
-	while (send(l_ProcessControlFD, jrequest.CStr(), jrequest.GetLength(), 0) < 0)
+	while (send(l_ProcessControlFD, &length, sizeof(SizeType), 0) < 0)
 		StartSpawnProcessHelper();
+
+	if (send(l_ProcessControlFD, jrequest.CStr(), jrequest.GetLength(), 0) < 0) {
+		BOOST_THROW_EXCEPTION(posix_error()
+		    << boost::errinfo_api_function("send")
+		    << boost::errinfo_errno(errno));
+	}
 
 	char buf[4096];
 
@@ -711,7 +764,7 @@ static BOOL CreatePipeOverlapped(HANDLE *outReadPipe, HANDLE *outWritePipe,
 
 	*outReadPipe = CreateNamedPipe(pipeName, PIPE_ACCESS_INBOUND | readMode,
 	    PIPE_TYPE_BYTE | PIPE_WAIT, 1, size, size, 60 * 1000, securityAttributes);
-	
+
 	if (*outReadPipe == INVALID_HANDLE_VALUE)
 		return FALSE;
 
