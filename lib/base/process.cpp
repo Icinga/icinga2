@@ -303,7 +303,7 @@ static void ProcessHandler(void)
 				break;
 		}
 
-		String jrequest = String(mbuf, length);
+		String jrequest = String(mbuf, mbuf + count);
 
 		delete [] mbuf;
 
