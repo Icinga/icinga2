@@ -97,6 +97,11 @@ the [EPEL rpm package](http://fedoraproject.org/wiki/EPEL#How_can_I_use_these_ex
 The packages for SLES 11 depend on the `openssl1` package which is distributed
 as part of the [SLES 11 Security Module](https://www.suse.com/communities/conversations/introducing-the-suse-linux-enterprise-11-security-module/).
 
+#### <a id="package-sles-sdk"></a> SLES 12 SDK
+
+Icinga 2 requires the `libboost_chrono1_54_0` package from the `SLES 12 SDK` repository. Refer to the SUSE Enterprise 
+Linux documentation for further information.
+
 ### <a id="installing-icinga2"></a> Installing Icinga 2
 
 You can install Icinga 2 by using your distribution's package manager
