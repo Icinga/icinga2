@@ -1,6 +1,6 @@
 /******************************************************************************
  * Icinga 2                                                                   *
- * Copyright (C) 2012-2016 Icinga Development Team (https://www.icinga.org/)  *
+ * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
  *                                                                            *
  * This program is free software; you can redistribute it and/or              *
  * modify it under the terms of the GNU General Public License                *
@@ -28,11 +28,11 @@ BOOST_AUTO_TEST_SUITE(remote_url)
 
 BOOST_AUTO_TEST_CASE(id_and_path)
 {
-	Url::Ptr url = new Url("http://icinga.org/foo/bar/baz?hurr=durr");
+	Url::Ptr url = new Url("http://icinga.com/foo/bar/baz?hurr=durr");
 
 	BOOST_CHECK(url->GetScheme() == "http");
 
-	BOOST_CHECK(url->GetAuthority() == "icinga.org");
+	BOOST_CHECK(url->GetAuthority() == "icinga.com");
 
 	std::vector<String> PathCorrect;
 	PathCorrect.push_back("foo");
@@ -72,7 +72,7 @@ BOOST_AUTO_TEST_CASE(get_and_set)
 
 BOOST_AUTO_TEST_CASE(parameters)
 {
-	Url::Ptr url = new Url("https://icinga.org/hya/?rain=karl&rair=robert&foo[]=bar");
+	Url::Ptr url = new Url("https://icinga.com/hya/?rain=karl&rair=robert&foo[]=bar");
 
 	BOOST_CHECK(url->GetQueryElement("rair") == "robert");
 	BOOST_CHECK(url->GetQueryElement("rain") == "karl");

@@ -2,9 +2,9 @@
 -- upgrade path for Icinga 2.5.0
 --
 -- -----------------------------------------
--- Copyright (c) 2016 Icinga Development Team (http://www.icinga.org)
+-- Copyright (c) 2016 Icinga Development Team (https://www.icinga.com)
 --
--- Please check http://docs.icinga.org for upgrading information!
+-- Please check http://docs.icinga.com for upgrading information!
 -- -----------------------------------------
 
 SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";

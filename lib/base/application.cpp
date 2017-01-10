@@ -1,6 +1,6 @@
 /******************************************************************************
  * Icinga 2                                                                   *
- * Copyright (C) 2012-2016 Icinga Development Team (https://www.icinga.org/)  *
+ * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
  *                                                                            *
  * This program is free software; you can redistribute it and/or              *
  * modify it under the terms of the GNU General Public License                *
@@ -530,7 +530,7 @@ void Application::DisplayBugMessage(std::ostream& os)
 {
 	os << "***" << "\n"
 	   << "* This would indicate a runtime problem or configuration error. If you believe this is a bug in Icinga 2" << "\n"
-	   << "* please submit a bug report at https://dev.icinga.org/ and include this stack trace as well as any other" << "\n"
+	   << "* please submit a bug report at https://dev.icinga.com/ and include this stack trace as well as any other" << "\n"
 	   << "* information that might be useful in order to reproduce this problem." << "\n"
 	   << "***" << "\n";
 }

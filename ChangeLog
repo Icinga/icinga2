@@ -9,7 +9,7 @@ Please check [doc/1-about.md].
 #### Changes
 
 * Client/Satellite setup
- * The "bottom up" client configuration mode has been deprecated. Check [#13255](https://dev.icinga.org/issues/13255) for additional details and migration.
+ * The "bottom up" client configuration mode has been deprecated. Check [#13255](https://dev.icinga.com/issues/13255) for additional details and migration.
 * Linux/Unix daemon
  * Ensure that Icinga 2 does not leak file descriptors to executed commands. 
  * There are 2 processes started instead of previously just one process.
@@ -50,7 +50,7 @@ Please check [doc/1-about.md].
 * Feature 13327 (Documentation): Update API and Library Reference chapters
 * Feature 13319 (Documentation): Add a note about pinning checks w/ command_endpoint
 * Feature 13297 (Documentation): Add a note about default template import to the CheckCommand object
-* Feature 13199 (Documentation): Doc: Swap packages.icinga.org w/ DebMon
+* Feature 13199 (Documentation): Doc: Swap packages.icinga.com w/ DebMon
 * Feature 12834 (Documentation): Add more Timeperiod examples in the documentation
 * Feature 12832 (Documentation): Add an example of multi-parents configuration for the Migration chapter
 * Feature 12587 (Documentation): Update service monitoring and distributed docs
@@ -1687,7 +1687,7 @@ Please note that this version fixes the default thresholds for the disk check wh
 * Bug #8192: Feature statusdata shows wrong host notification options
 * Bug #8201: Update Icinga Web 2 uri to /icingaweb2
 * Bug #8214: Fix YAJL detection on Debian squeeze
-* Bug #8222: inconsistent URL http(s)://www.icinga.org
+* Bug #8222: inconsistent URL http(s)://www.icinga.com
 * Bug #8223: Typos in readme file for windows plugins
 * Bug #8245: check_ssmtp command does NOT support mail_from
 * Bug #8256: Restart fails after deleting a Host
@@ -2144,7 +2144,7 @@ Please note that this version fixes the default thresholds for the disk check wh
 * DB IDO - Bug #6577: icinga2-ido-pgsql snapshot package missing dependecy dbconfig-common
 * Documentation - Bug #6506: Array section confusing
 * Documentation - Bug #6592: Documentation for || and && is missing
-* Documentation - Feature #6658: change docs.icinga.org/icinga2/latest to git master
+* Documentation - Feature #6658: change docs.icinga.com/icinga2/latest to git master
 * Livestatus - Bug #6494: Thruk Panorama View cannot query Host Status
 * Livestatus - Feature #5312: OutputFormat python
 * Migration - Bug #6559: $SERVICEDESC$ isn't getting converted correctly

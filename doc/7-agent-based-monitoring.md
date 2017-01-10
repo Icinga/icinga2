@@ -95,7 +95,7 @@ feature.
 
 ## <a id="agent-based-checks-nrpe"></a> NRPE
 
-[NRPE](http://docs.icinga.org/latest/en/nrpe.html) runs as daemon on the remote client including
+[NRPE](http://docs.icinga.com/latest/en/nrpe.html) runs as daemon on the remote client including
 the required plugins and command definitions.
 Icinga 2 calls the `check_nrpe` plugin binary in order to query the configured command on the
 remote client.

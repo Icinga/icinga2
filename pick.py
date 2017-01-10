@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # Icinga 2
-# Copyright (C) 2012-2016 Icinga Development Team (https://www.icinga.org/)
+# Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -23,7 +23,7 @@ from tempfile import NamedTemporaryFile
 
 DESCRIPTION="cherry-pick commits for releases"
 VERSION="1.0.0"
-ISSUE_URL= "https://dev.icinga.org/issues/"
+ISSUE_URL= "https://dev.icinga.com/issues/"
 ISSUE_PROJECT="i2"
 
 arg_parser = ArgumentParser(description= "%s (Version: %s)" % (DESCRIPTION, VERSION))
@@ -37,7 +37,7 @@ version_name = args.version
 if args.project:
     ISSUE_PROJECT=args.project
 
-rsp = urllib2.urlopen("https://dev.icinga.org/projects/%s/versions.json" % (ISSUE_PROJECT))
+rsp = urllib2.urlopen("https://dev.icinga.com/projects/%s/versions.json" % (ISSUE_PROJECT))
 versions_data = json.loads(rsp.read())
 
 version_id = None
@@ -58,7 +58,7 @@ issues = set()
 while True:
     # We could filter using &cf_13=1, however this doesn't currently work because the custom field isn't set
     # for some of the older tickets:
-    rsp = urllib2.urlopen("https://dev.icinga.org/projects/%s/issues.json?offset=%d&status_id=closed&fixed_version_id=%d" % (ISSUE_PROJECT, offset, version_id))
+    rsp = urllib2.urlopen("https://dev.icinga.com/projects/%s/issues.json?offset=%d&status_id=closed&fixed_version_id=%d" % (ISSUE_PROJECT, offset, version_id))
     issues_data = json.loads(rsp.read())
     issues_count = len(issues_data["issues"])
     offset = offset + issues_count

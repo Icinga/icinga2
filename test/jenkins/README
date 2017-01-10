@@ -1,7 +1,7 @@
 Set of scripts to set up and test a virtual demo machine
 ========================================================
 
-This directory contains a few scripts primarily used by build.icinga.org.
+This directory contains a few scripts primarily used by build.icinga.com.
 
 * bootstrap-vm.sh
   Ensures that all required software is installed and its configuration

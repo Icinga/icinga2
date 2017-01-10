@@ -1,6 +1,6 @@
 /******************************************************************************
  * Icinga 2                                                                   *
- * Copyright (C) 2012-2016 Icinga Development Team (https://www.icinga.org/)  *
+ * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
  *                                                                            *
  * This program is free software; you can redistribute it and/or              *
  * modify it under the terms of the GNU General Public License                *
@@ -192,7 +192,7 @@ int RepositoryObjectCommand::Run(const boost::program_options::variables_map& vm
 		RepositoryUtility::RemoveObject(name, m_Type, attrs, changes);
 	} else if (m_Command == RepositoryCommandSet) {
 		Log(LogWarning, "cli")
-		    << "Not supported yet. Please check the roadmap at https://dev.icinga.org\n";
+		    << "Not supported yet. Please check the roadmap at https://dev.icinga.com\n";
 		return 1;
 	} else {
 		Log(LogCritical, "cli")

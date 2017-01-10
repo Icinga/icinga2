@@ -1,6 +1,6 @@
 #/******************************************************************************
 # * Icinga 2                                                                   *
-# * Copyright (C) 2012-2016 Icinga Development Team (https://www.icinga.org/)  *
+# * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
 # *                                                                            *
 # * This program is free software; you can redistribute it and/or              *
 # * modify it under the terms of the GNU General Public License                *
@@ -71,7 +71,7 @@ Release: %{revision}%{?dist}
 License: GPL-2.0+
 Group: Applications/System
 Source: https://github.com/Icinga/%{name}/archive/v%{version}.tar.gz
-URL: https://www.icinga.org/
+URL: https://www.icinga.com/
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 Requires: %{name}-bin = %{version}-%{release}
 
@@ -110,11 +110,11 @@ BuildRequires: wxGTK3-devel
 %endif
 
 %if 0%{?build_icinga_org} && "%{_vendor}" == "redhat" && (0%{?el5} || 0%{?rhel} == 5 || "%{?dist}" == ".el5" || 0%{?el6} || 0%{?rhel} == 6 || "%{?dist}" == ".el6")
-# el5 and el6 require packages.icinga.org
+# el5 and el6 require packages.icinga.com
 BuildRequires: boost153-devel
 %else
 %if 0%{?build_icinga_org} && "%{_vendor}" == "suse" && 0%{?suse_version} < 1310
-# sles 11 sp3 requires packages.icinga.org
+# sles 11 sp3 requires packages.icinga.com
 BuildRequires: boost153-devel
 %else
 BuildRequires: boost-devel >= 1.41
@@ -292,7 +292,7 @@ CMAKE_OPTS="$CMAKE_OPTS -DICINGA2_WITH_STUDIO=true"
 %if "%{_vendor}" == "redhat"
 %if 0%{?el5} || 0%{?rhel} == 5 || "%{?dist}" == ".el5" || 0%{?el6} || 0%{?rhel} == 6 || "%{?dist}" == ".el6"
 # Boost_VERSION 1.41.0 vs 101400 - disable build tests
-# details in https://dev.icinga.org/issues/5033
+# details in https://dev.icinga.com/issues/5033
 CMAKE_OPTS="$CMAKE_OPTS -DBOOST_LIBRARYDIR=/usr/lib/boost153 \
  -DBOOST_INCLUDEDIR=/usr/include/boost153 \
  -DBoost_ADDITIONAL_VERSIONS='1.53;1.53.0' \

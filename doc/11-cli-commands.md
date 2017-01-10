@@ -76,8 +76,8 @@ options.
                                 information (default), warning, or critical
       -X [ --script-debugger ]  whether to enable the script debugger
     
-    Report bugs at <https://dev.icinga.org/>
-    Icinga home page: <https://www.icinga.org/>
+    Report bugs at <https://dev.icinga.com/>
+    Icinga home page: <https://www.icinga.com/>
 
 
 ## <a id="cli-commands-autocompletion"></a> Icinga 2 CLI Bash Autocompletion
@@ -280,8 +280,8 @@ Furthermore it provides the [configuration validation](11-cli-commands.md#config
                                 works in combination with --daemonize)
       -d [ --daemonize ]        detach from the controlling terminal
     
-    Report bugs at <https://dev.icinga.org/>
-    Icinga home page: <https://www.icinga.org/>
+    Report bugs at <https://dev.icinga.com/>
+    Icinga home page: <https://www.icinga.com/>
 
 
 ### Config Files
@@ -366,8 +366,8 @@ nodes in a [distributed monitoring](6-distributed-monitoring.md#distributed-moni
                                 information (default), warning, or critical
       -X [ --script-debugger ]  whether to enable the script debugger
     
-    Report bugs at <https://dev.icinga.org/>
-    Icinga home page: <https://www.icinga.org/>
+    Report bugs at <https://dev.icinga.com/>
+    Icinga home page: <https://www.icinga.com/>
 
 
 
@@ -402,8 +402,8 @@ More information can be found in the [troubleshooting](15-troubleshooting.md#lis
                                 information (default), warning, or critical
       -X [ --script-debugger ]  whether to enable the script debugger
     
-    Report bugs at <https://dev.icinga.org/>
-    Icinga home page: <https://www.icinga.org/>
+    Report bugs at <https://dev.icinga.com/>
+    Icinga home page: <https://www.icinga.com/>
 
 ## <a id="cli-command-pki"></a> CLI command: Pki
 
@@ -447,8 +447,8 @@ You will need them in the [distributed monitoring chapter](6-distributed-monitor
                                 information (default), warning, or critical
       -X [ --script-debugger ]  whether to enable the script debugger
     
-    Report bugs at <https://dev.icinga.org/>
-    Icinga home page: <https://www.icinga.org/>
+    Report bugs at <https://dev.icinga.com/>
+    Icinga home page: <https://www.icinga.com/>
 
 ## <a id="cli-command-repository"></a> CLI command: Repository
 
@@ -501,8 +501,8 @@ This is only a tool to collect information to help others help you, it will not 
       --include-objects         Print the whole objectfile (like `object list`)
       --include-vars            Print all Variables (like `variable list`)
     
-    Report bugs at <https://dev.icinga.org/>
-    Icinga home page: <https://www.icinga.org/>
+    Report bugs at <https://dev.icinga.com/>
+    Icinga home page: <https://www.icinga.com/>
 
 ## <a id="cli-command-variable"></a> CLI command: Variable
 
@@ -532,8 +532,8 @@ Lists all configured variables (constants) in a similar fashion like [object lis
                                 information (default), warning, or critical
       -X [ --script-debugger ]  whether to enable the script debugger
     
-    Report bugs at <https://dev.icinga.org/>
-    Icinga home page: <https://www.icinga.org/>
+    Report bugs at <https://dev.icinga.com/>
+    Icinga home page: <https://www.icinga.com/>
 
 ## <a id="enable-features"></a> Enabling/Disabling Features
 

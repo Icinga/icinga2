@@ -413,7 +413,7 @@ the [configuration modes](6-distributed-monitoring.md#distributed-monitoring-con
 
 ### <a id="distributed-monitoring-setup-client-windows"></a> Client/Satellite Windows Setup
 
-Download the MSI-Installer package from [http://packages.icinga.org/windows/](http://packages.icinga.org/windows/).
+Download the MSI-Installer package from [http://packages.icinga.com/windows/](http://packages.icinga.com/windows/).
 
 Requirements:
 

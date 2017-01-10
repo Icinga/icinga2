@@ -1,6 +1,6 @@
 # Icinga 2
 
-![Icinga Logo](https://www.icinga.org/wp-content/uploads/2014/06/icinga_logo.png)
+![Icinga Logo](https://www.icinga.com/wp-content/uploads/2014/06/icinga_logo.png)
 
 #### Table of Contents
 
@@ -70,7 +70,7 @@ Basic unit test coverage is provided by running `make test` during package build
 Read the [INSTALL.md](INSTALL.md) file for more information about development builds.
 
 Snapshot packages from the laster development branch are available inside the
-[package repository](http://packages.icinga.org).
+[package repository](http://packages.icinga.com).
 
 You can help test-drive the latest Icinga 2 snapshot packages inside the
 [Icinga 2 Vagrant boxes](https://github.com/icinga/icinga-vagrant).

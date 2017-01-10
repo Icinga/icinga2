@@ -118,7 +118,7 @@ into master and merge the support branch:
 
 * Test DB IDO with MySQL and PostgreSQL.
 * Provision the vagrant boxes and test the release packages.
-* Test the [setup wizard](http://packages.icinga.org/windows/) inside a Windows VM.
+* Test the [setup wizard](http://packages.icinga.com/windows/) inside a Windows VM.
 
 * Start a new docker container and install/run icinga2.
 
@@ -126,7 +126,7 @@ Example for CentOS7:
 
     $ docker run -ti centos:latest bash
 
-    # yum -y install http://packages.icinga.org/epel/7/release/noarch/icinga-rpm-release-7-1.el7.centos.noarch.rpm
+    # yum -y install http://packages.icinga.com/epel/7/release/noarch/icinga-rpm-release-7-1.el7.centos.noarch.rpm
     # yum -y install icinga2
     # icinga2 daemon -C
 
