@@ -636,7 +636,7 @@ bool IdoPgsqlConnection::FieldToEscapedString(const String& key, const Value& va
 	} else if (DbValue::IsTimestamp(value)) {
 		long ts = rawvalue;
 		std::ostringstream msgbuf;
-		msgbuf << "TO_TIMESTAMP(" << ts << ")";
+		msgbuf << "TO_TIMESTAMP(" << ts << ") AT TIME ZONE 'UTC'";
 		*result = Value(msgbuf.str());
 	} else if (DbValue::IsTimestampNow(value)) {
 		*result = "NOW()";
