@@ -601,7 +601,8 @@ http_pagesize                    | **Optional.** Minimum page size required:Maxi
 http_timeout                     | **Optional.** Seconds before connection times out.
 http_ipv4                        | **Optional.** Use IPv4 connection. Defaults to false.
 http_ipv6                        | **Optional.** Use IPv6 connection. Defaults to false.
-http_verbose			 | **Optional.** Show details for command-line debugging. Defaults to false.
+http_link                        | **Optional.** Wrap output in HTML link. Defaults to false.
+http_verbose                     | **Optional.** Show details for command-line debugging. Defaults to false.
 
 
 ### <a id="plugin-check-command-icmp"></a> icmp
