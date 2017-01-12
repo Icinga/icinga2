@@ -67,6 +67,7 @@ BOOL ParseArguments(CONST INT ac, WCHAR **av, po::variables_map& vm, printInfoSt
 		("fmt-countertype", po::wvalue<std::wstring>(), "Value type of counter: 'double'(default), 'long', 'int64'")
 		("print-objects", "Prints all available objects to console")
 		("print-object-info", "Prints all available instances and counters of --performance-counter, do not use a full perfomance counter string here")
+		("perf-syntax", po::wvalue<std::wstring>(), "Use this string as name for the performance counter (graphite compatibility)")
 		;
 
 	po::basic_command_line_parser<wchar_t> parser(ac, av);
@@ -361,8 +362,14 @@ die:
 INT PrintOutput(CONST po::variables_map& vm, printInfoStruct& pi)
 {
 	std::wstringstream wssPerfData;
-	wssPerfData << "\"" << pi.wsFullPath << "\"=" << pi.dValue << ';'
-		<< pi.tWarn.pString() << ';' << pi.tCrit.pString() << ";;";
+
+	if (vm.count("perf-syntax")) {
+		wssPerfData << "\"" << vm["perf-syntax"].as<std::wstring>() << "\"=";
+	} else {
+		wssPerfData << "\"" << pi.wsFullPath << "\"=";
+	}
+
+	wssPerfData << pi.dValue << ';' << pi.tWarn.pString() << ';' << pi.tCrit.pString() << ";;";
 
 	if (pi.tCrit.rend(pi.dValue)) {
 		std::wcout << "PERFMON CRITICAL \"" << pi.wsFullPath << "\" = "

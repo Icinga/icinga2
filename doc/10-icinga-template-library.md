@@ -1509,6 +1509,7 @@ perfmon\_win\_crit    | **Optional**. The critical threshold.
 perfmon\_win\_counter | **Required**. The Performance Counter to use. Ex. `\Processor(_Total)\% Idle Time`.
 perfmon\_win\_wait    | **Optional**. Time in milliseconds to wait between data collection (default: 1000).
 perfmon\_win\_type    | **Optional**. Format in which to expect perfomance values. Possible are: long, int64 and double (default).
+perfmon\_win\_syntax  | **Optional**. Use this in the performance output instead of `perfmon\_win\_counter`. Exists for graphice compatibility reasons.
 
 
 ### <a id="windows-plugins-ping-windows"></a> ping-windows
@@ -4792,5 +4793,3 @@ rbl_server	| **Required** List of RBL servers as an array.
 rbl_warning	| **Optional** Number of blacklisting servers for a warning.
 rbl_critical	| **Optional** Number of blacklisting servers for a critical.
 tbl_timeout	| **Optional** Seconds before plugin times out (default: 15).
-
-
