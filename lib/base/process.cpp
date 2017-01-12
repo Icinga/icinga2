@@ -256,7 +256,7 @@ static void ProcessHandler(void)
 
 		struct iovec io;
 		io.iov_base = &length;
-		io.iov_len = sizeof(size_t);
+		io.iov_len = sizeof(length);
 
 		msg.msg_iov = &io;
 		msg.msg_iovlen = 1;
@@ -267,17 +267,11 @@ static void ProcessHandler(void)
 
 		int rc = recvmsg(l_ProcessControlFD, &msg, 0);
 
-		if (rc < 0 && (errno == EINTR || errno == EAGAIN))
-			continue;
+		if (rc <= 0) {
+			if (rc < 0 && (errno == EINTR || errno == EAGAIN))
+				continue;
 
-		if (rc < 0) {
-			BOOST_THROW_EXCEPTION(posix_error()
-				<< boost::errinfo_api_function("recvmsg")
-				<< boost::errinfo_errno(errno));
-		}
-
-		if (length > 1024 * 1024 * 1024) {
-			BOOST_THROW_EXCEPTION(std::runtime_error("invalid message length"));
+			break;
 		}
 
 		char *mbuf = new char[length];
@@ -286,15 +280,13 @@ static void ProcessHandler(void)
 		while (count < length) {
 			rc = recv(l_ProcessControlFD, mbuf + count, length - count, 0);
 
-			if (rc < 0) {
-				if (errno == EINTR || errno == EAGAIN)
-				continue;
+			if (rc <= 0) {
+				if (rc < 0 && (errno == EINTR || errno == EAGAIN))
+					continue;
 
 				delete [] mbuf;
 
-				BOOST_THROW_EXCEPTION(posix_error()
-					<< boost::errinfo_api_function("recv")
-					<< boost::errinfo_errno(errno));
+				_exit(0);
 			}
 
 			count += rc;
@@ -391,7 +383,7 @@ static pid_t ProcessSpawn(const std::vector<String>& arguments, const Dictionary
 
 	struct iovec io;
 	io.iov_base = &length;
-	io.iov_len = sizeof(size_t);
+	io.iov_len = sizeof(length);
 
 	msg.msg_iov = &io;
 	msg.msg_iovlen = 1;
@@ -409,14 +401,12 @@ static pid_t ProcessSpawn(const std::vector<String>& arguments, const Dictionary
 
 	msg.msg_controllen = cmsg->cmsg_len;
 
+send_message:
 	while (sendmsg(l_ProcessControlFD, &msg, 0) < 0)
 		StartSpawnProcessHelper();
 
-	if (send(l_ProcessControlFD, jrequest.CStr(), jrequest.GetLength(), 0) < 0) {
-		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("send")
-		    << boost::errinfo_errno(errno));
-	}
+	if (send(l_ProcessControlFD, jrequest.CStr(), jrequest.GetLength(), 0) < 0)
+		goto send_message;
 
 	char buf[4096];
 
@@ -443,14 +433,12 @@ static int ProcessKill(pid_t pid, int signum)
 
 	boost::mutex::scoped_lock lock(l_ProcessControlMutex);
 
-	while (send(l_ProcessControlFD, &length, sizeof(size_t), 0) < 0)
+send_message:
+	while (send(l_ProcessControlFD, &length, sizeof(length), 0) < 0)
 		StartSpawnProcessHelper();
 
-	if (send(l_ProcessControlFD, jrequest.CStr(), jrequest.GetLength(), 0) < 0) {
-		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("send")
-		    << boost::errinfo_errno(errno));
-	}
+	if (send(l_ProcessControlFD, jrequest.CStr(), jrequest.GetLength(), 0) < 0)
+		goto send_message;
 
 	char buf[4096];
 
@@ -476,14 +464,12 @@ static int ProcessWaitPID(pid_t pid, int *status)
 
 	boost::mutex::scoped_lock lock(l_ProcessControlMutex);
 
-	while (send(l_ProcessControlFD, &length, sizeof(size_t), 0) < 0)
+send_message:
+	while (send(l_ProcessControlFD, &length, sizeof(length), 0) < 0)
 		StartSpawnProcessHelper();
 
-	if (send(l_ProcessControlFD, jrequest.CStr(), jrequest.GetLength(), 0) < 0) {
-		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("send")
-		    << boost::errinfo_errno(errno));
-	}
+	if (send(l_ProcessControlFD, jrequest.CStr(), jrequest.GetLength(), 0) < 0)
+		goto send_message;
 
 	char buf[4096];
 
