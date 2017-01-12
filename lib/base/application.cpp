@@ -138,6 +138,11 @@ void Application::InitializeBase(void)
 			<< boost::errinfo_api_function("WSAStartup")
 			<< errinfo_win32_error(WSAGetLastError()));
 	}
+#else /* _WIN32 */
+	struct sigaction sa;
+	memset(&sa, 0, sizeof(sa));
+	sa.sa_handler = SIG_IGN;
+	sigaction(SIGPIPE, &sa, NULL);
 #endif /* _WIN32 */
 
 	Loader::ExecuteDeferredInitializers();
@@ -880,9 +885,6 @@ int Application::Run(void)
 	sa.sa_handler = &Application::SigIntTermHandler;
 	sigaction(SIGINT, &sa, NULL);
 	sigaction(SIGTERM, &sa, NULL);
-
-	sa.sa_handler = SIG_IGN;
-	sigaction(SIGPIPE, &sa, NULL);
 
 	sa.sa_handler = &Application::SigUsr1Handler;
 	sigaction(SIGUSR1, &sa, NULL);
