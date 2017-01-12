@@ -1958,7 +1958,6 @@ The `event_by_ssh_service` custom attribute takes care of passing the correct
 daemon name, while `test $service.state_id$ -gt 0` makes sure that the daemon
 is only restarted when the service is not in an `OK` state.
 
-
     object EventCommand "event_by_ssh_restart_service" {
       import "event_by_ssh"
 
@@ -1971,9 +1970,8 @@ is only restarted when the service is not in an `OK` state.
 Now set the `event_command` attribute to `event_by_ssh_restart_service` and tell it
 which service should be restarted using the `event_by_ssh_service` attribute.
 
-    object Service "http" {
+    apply Service "http" {
       import "generic-service"
-      host_name = "remote-http-host"
       check_command = "http"
 
       event_command = "event_by_ssh_restart_service"
@@ -1981,11 +1979,12 @@ which service should be restarted using the `event_by_ssh_service` attribute.
 
       //vars.event_by_ssh_logname = "icinga"
       //vars.event_by_ssh_identity = "/home/icinga/.ssh/id_rsa.pub"
+
+      assign where host.vars.httpd_name
     }
 
-
-Each host with this service then must define the `httpd_name` custom attribute
-(for example generated from your cmdb):
+Specify the `httpd_name` custom attribute on the host to assign the
+service and set the event handler service.
 
     object Host "remote-http-host" {
       import "generic-host"
@@ -1994,34 +1993,14 @@ Each host with this service then must define the `httpd_name` custom attribute
       vars.httpd_name = "apache2"
     }
 
-You can testdrive this example by manually stopping the `httpd` daemon
-on your `remote-http-host`. Enable the `debuglog` feature and tail the
-`/var/log/icinga2/debug.log` file.
+In order to test this configuration just stop the `httpd` on the remote host `icinga2-client1.localdomain`.
 
-Remote Host Terminal:
+    [root@icinga2-client1.localdomain /]# systemctl stop httpd
 
-    # date; service apache2 status
-    Mon Sep 15 18:57:39 CEST 2014
-    Apache2 is running (pid 23651).
-    # date; service apache2 stop
-    Mon Sep 15 18:57:47 CEST 2014
-    [ ok ] Stopping web server: apache2 ... waiting .
+You can enable the [debug log](15-troubleshooting.md#troubleshooting-enable-debug-output) and search for the
+executed command line.
 
-Icinga 2 Host Terminal:
-
-    [2014-09-15 18:58:32 +0200] notice/Process: Running command '/usr/lib64/nagios/plugins/check_http' '-I' '192.168.1.100': PID 32622
-    [2014-09-15 18:58:32 +0200] notice/Process: PID 32622 ('/usr/lib64/nagios/plugins/check_http' '-I' '192.168.1.100') terminated with exit code 2
-    [2014-09-15 18:58:32 +0200] notice/Checkable: State Change: Checkable remote-http-host!http soft state change from OK to CRITICAL detected.
-    [2014-09-15 18:58:32 +0200] notice/Checkable: Executing event handler 'event_by_ssh_restart_service' for service 'remote-http-host!http'
-    [2014-09-15 18:58:32 +0200] notice/Process: Running command '/usr/lib64/nagios/plugins/check_by_ssh' '-C' 'test 2 -gt 0 && sudo /etc/init.d/apache2 restart' '-H' '192.168.1.100': PID 32623
-    [2014-09-15 18:58:33 +0200] notice/Process: PID 32623 ('/usr/lib64/nagios/plugins/check_by_ssh' '-C' 'test 2 -gt 0 && sudo /etc/init.d/apache2 restart' '-H' '192.168.1.100') terminated with exit code 0
-
-Remote Host Terminal:
-
-    # date; service apache2 status
-    Mon Sep 15 18:58:44 CEST 2014
-    Apache2 is running (pid 24908).
-
+    [root@icinga2-client1.localdomain /]# tail -f /var/log/icinga2/debug.log | grep by_ssh
 
 ## <a id="dependencies"></a> Dependencies
 
