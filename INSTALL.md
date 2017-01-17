@@ -165,7 +165,7 @@ added before building.
 ### Building Icinga 2 Debs
 
 Setup your build environment on Debian/Ubuntu, copy the 'debian' directory from
-the Debian packaging Git repository (https://anonscm.debian.org/cgit/pkg-nagios/pkg-icinga2.git)
+the Debian packaging Git repository (https://github.com/Icinga/pkg-icinga2-debian)
 into your source tree and run the following command:
 
     $ dpkg-buildpackage -uc -us

@@ -535,7 +535,7 @@ void Application::DisplayBugMessage(std::ostream& os)
 {
 	os << "***" << "\n"
 	   << "* This would indicate a runtime problem or configuration error. If you believe this is a bug in Icinga 2" << "\n"
-	   << "* please submit a bug report at https://dev.icinga.com/ and include this stack trace as well as any other" << "\n"
+	   << "* please submit a bug report at https://github.com/Icinga/icinga2 and include this stack trace as well as any other" << "\n"
 	   << "* information that might be useful in order to reproduce this problem." << "\n"
 	   << "***" << "\n";
 }

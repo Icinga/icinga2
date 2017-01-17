@@ -2220,7 +2220,7 @@ This category includes all plugins using the icingacli provided by Icinga Web 2.
 
 #### <a id="plugin-contrib-icingacli-businessprocess"></a> Business Process
 
-This subcommand is provided by the [business process module](https://exchange.icinga.com/icinga/Business+Process) and executed as `icingacli-businessprocess`. The module is hosted by the Icinga project on its [project homepage](https://dev.icinga.com/projects/icingaweb2-module-businessprocess).
+This subcommand is provided by the [business process module](https://exchange.icinga.com/icinga/Business+Process) and executed as `icingacli-businessprocess`. The module is hosted by the Icinga project on its [project homepage](https://github.com/Icinga/icingaweb2-module-businessprocess).
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 

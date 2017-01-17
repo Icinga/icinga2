@@ -8,10 +8,7 @@ Specify the release version.
 
 ## Issues
 
-Check the following issue filters:
-
-* [Pending backports](https://dev.icinga.com/projects/i2/issues?query_id=41)
-* [Invalid target version](https://dev.icinga.com/projects/i2/issues?query_id=55)
+Check issues at https://github.com/Icinga/icinga2
 
 ## Backport Commits
 

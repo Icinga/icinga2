@@ -192,7 +192,7 @@ int RepositoryObjectCommand::Run(const boost::program_options::variables_map& vm
 		RepositoryUtility::RemoveObject(name, m_Type, attrs, changes);
 	} else if (m_Command == RepositoryCommandSet) {
 		Log(LogWarning, "cli")
-		    << "Not supported yet. Please check the roadmap at https://dev.icinga.com\n";
+		    << "Not supported yet. Please check the roadmap at https://github.com/Icinga/icinga2\n";
 		return 1;
 	} else {
 		Log(LogCritical, "cli")

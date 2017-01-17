@@ -359,7 +359,7 @@ int Main(void)
 				CLICommand::ShowCommands(argc, argv, NULL);
 
 			std::cout << visibleDesc << std::endl
-				<< "Report bugs at <https://dev.icinga.com/>" << std::endl
+				<< "Report bugs at <https://github.com/Icinga/icinga2>" << std::endl
 				<< "Icinga home page: <https://www.icinga.com/>" << std::endl;
 			return EXIT_SUCCESS;
 		}
