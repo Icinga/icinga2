@@ -933,6 +933,7 @@ Configuration Attributes:
   enable_send_metadata   | **Optional.** Whether to send check metadata e.g. states, execution time, latency etc.
   flush_interval         | **Optional.** How long to buffer data points before transfering to InfluxDB. Defaults to `10s`.
   flush_threshold        | **Optional.** How many data points to buffer before forcing a transfer to InfluxDB.  Defaults to `1024`.
+  socket_timeout         | **Optional.** How long to wait for InfluxDB to respond.  Defaults to `5s`.
 
 ### <a id="objecttype-influxdbwriter-instance-tags"></a> Instance Tagging
 

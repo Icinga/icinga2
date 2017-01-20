@@ -65,7 +65,7 @@ private:
 	static String EscapeKey(const String& str);
 	static String EscapeField(const String& str);
 
-	Stream::Ptr Connect(void);
+	Stream::Ptr Connect(TcpSocket::Ptr& socket);
 };
 
 }
