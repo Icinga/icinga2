@@ -90,6 +90,9 @@ class InfluxdbWriter : ConfigObject
 	[config] int flush_threshold {
 		default {{{ return 1024; }}}
 	};
+	[config] int socket_timeout {
+		default {{{ return 5; }}}
+	};
 };
 
 validator InfluxdbWriter {
