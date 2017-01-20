@@ -78,9 +78,9 @@ void InfluxdbWriter::Start(bool runtimeCreated)
 	Service::OnNewCheckResult.connect(boost::bind(&InfluxdbWriter::CheckResultHandler, this, _1, _2));
 }
 
-Stream::Ptr InfluxdbWriter::Connect(void)
+Stream::Ptr InfluxdbWriter::Connect(TcpSocket::Ptr& socket)
 {
-	TcpSocket::Ptr socket = new TcpSocket();
+	socket = new TcpSocket();
 
 	Log(LogNotice, "InfluxdbWriter")
 	    << "Reconnecting to InfluxDB on host '" << GetHost() << "' port '" << GetPort() << "'.";
@@ -345,7 +345,8 @@ void InfluxdbWriter::FlushTimeout(void)
 
 void InfluxdbWriter::Flush(void)
 {
-	Stream::Ptr stream = Connect();
+	TcpSocket::Ptr socket;
+	Stream::Ptr stream = Connect(socket);
 
 	// Unable to connect, play it safe and lose the data points
 	// to avoid a memory leak
@@ -390,6 +391,13 @@ void InfluxdbWriter::Flush(void)
 
 	HttpResponse resp(stream, req);
 	StreamReadContext context;
+
+	struct timeval timeout = { GetSocketTimeout(), 0 };
+	if (!socket->Poll(true, false, &timeout)) {
+		Log(LogWarning, "InfluxdbWriter")
+		    << "Response timeout of TCP socket from host '" << GetHost() << "' port '" << GetPort() << "'.";
+		return;
+	}
 
 	try {
 		resp.Parse(context, true);
