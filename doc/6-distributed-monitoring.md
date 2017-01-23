@@ -155,7 +155,7 @@ additional security:
 * SSL certificates are mandatory for communication between nodes. The CLI commands
 help you create those certs automatically.
 * Child zones only receive updates (check results, commands, etc.) for their configured objects.
-* Zones cannot interfere with other zones and influence each other. Each checkabke host or service object is assigned to **one zone** only.
+* Zones cannot interfere with other zones and influence each other. Each checkable host or service object is assigned to **one zone** only.
 * All nodes in a zone trust each other.
 * [Config sync](6-distributed-monitoring.md#distributed-monitoring-top-down-config-sync) and [remote command endpoint execution](6-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint) is disabled by default.
 
