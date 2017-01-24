@@ -1,6 +1,6 @@
 /******************************************************************************
  * Icinga 2                                                                   *
- * Copyright (C) 2012-2016 Icinga Development Team (https://www.icinga.org/)  *
+ * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
  *                                                                            *
  * This program is free software; you can redistribute it and/or              *
  * modify it under the terms of the GNU General Public License                *
@@ -39,27 +39,32 @@ namespace icinga
  */
 class LogstashWriter : public ObjectImpl<LogstashWriter>
 {
+
 public:
-        DECLARE_OBJECT(LogstashWriter);
-        DECLARE_OBJECTNAME(LogstashWriter);
+	DECLARE_OBJECT(LogstashWriter);
+	DECLARE_OBJECTNAME(LogstashWriter);
+
+	virtual void ValidateSocketType(const String& value, const ValidationUtils& utils) override;
 
 protected:
-        virtual void Start(bool runtimeCreated) override;
+	virtual void Start(bool runtimeCreated) override;
 
 private:
-        Stream::Ptr m_Stream;
+	Stream::Ptr m_Stream;
 
-        Timer::Ptr m_ReconnectTimer;
+	Timer::Ptr m_ReconnectTimer;
 
-        void CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
-        void NotificationToUserHandler(const Notification::Ptr& notification, const Checkable::Ptr& checkable,
-        const User::Ptr& user, NotificationType notification_type, CheckResult::Ptr const& cr,
-        const String& author, const String& comment_text, const String& command_name);
-        void StateChangeHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, StateType type);
-        void SendLogMessage(const String& message);
+	void CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
+	void NotificationToUserHandler(const Notification::Ptr& notification, const Checkable::Ptr& checkable,
+	const User::Ptr& user, NotificationType notification_type, CheckResult::Ptr const& cr,
+	const String& author, const String& comment_text, const String& command_name);
+	void StateChangeHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, StateType type);
+	void SendLogMessage(const String& message);
 	String ComposeLogstashMessage(const Dictionary::Ptr& fields, const String& source, double ts);
 
-        void ReconnectTimerHandler(void);
+	static String EscapeMetricLabel(const String& str);
+
+	void ReconnectTimerHandler(void);
 };
 
 }

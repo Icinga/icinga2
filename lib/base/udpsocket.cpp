@@ -27,7 +27,10 @@
 
 using namespace icinga;
 
-void UdpSocket::SocketType(){
-	socktype = SOCK_DGRAM;
-	protocol = IPPROTO_UDP;
-}
+/**
+ * Constructor for the UdpSocket class.
+ */
+UdpSocket::UdpSocket(void)
+    : Socket(SOCK_DGRAM, IPPROTO_UDP)
+{ }
+

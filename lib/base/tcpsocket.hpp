@@ -36,11 +36,10 @@ class I2_BASE_API TcpSocket : public Socket
 public:
 	DECLARE_PTR_TYPEDEFS(TcpSocket);
 
+	TcpSocket(void);
+
 	void Bind(const String& service, int family);
 	void Bind(const String& node, const String& service, int family);
-
-private:
-	void SocketType();
 };
 
 }

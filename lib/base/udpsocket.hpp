@@ -1,6 +1,6 @@
 /******************************************************************************
  * Icinga 2                                                                   *
- * Copyright (C) 2012-2016 Icinga Development Team (https://www.icinga.org/)  *
+ * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
  *                                                                            *
  * This program is free software; you can redistribute it and/or              *
  * modify it under the terms of the GNU General Public License                *
@@ -34,11 +34,11 @@ namespace icinga
 class I2_BASE_API UdpSocket : public Socket
 {
 public:
-       	DECLARE_PTR_TYPEDEFS(UdpSocket);
+	DECLARE_PTR_TYPEDEFS(UdpSocket);
 
-private: 
-	void SocketType(); 	
+	UdpSocket(void);
 };
+
 }
 
 #endif /* UDPSOCKET_H */

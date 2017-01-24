@@ -33,17 +33,13 @@ class LogstashWriter : ConfigObject
 	[config] String port {
 		default {{{ return "9201"; }}}
 	};
-	
-	[config] bool defaultProtocol {
-		default {{{ return "true"; }}}
+
+	[config] String socket_type {
+		default {{{ return "udp"; }}}
 	};
 
 	[config] String source {
 		default {{{ return "icinga2"; }}}
-	};
-
-	[config] bool enable_send_perfdata {
-		default {{{ return false; }}}
 	};
 };
 
