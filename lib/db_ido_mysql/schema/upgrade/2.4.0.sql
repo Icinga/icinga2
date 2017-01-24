@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS icinga_zonestatus (
   zonestatus_id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   instance_id bigint unsigned default 0,
   zone_object_id bigint(20) unsigned DEFAULT '0',
-  status_update_time timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
+  status_update_time timestamp NOT NULL,
   parent_zone_object_id bigint(20) unsigned DEFAULT '0',
   PRIMARY KEY  (zonestatus_id)
 ) ENGINE=InnoDB COMMENT='Zone status';
