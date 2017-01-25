@@ -178,7 +178,7 @@ void ApiEvents::FlappingChangedHandler(const Checkable::Ptr& checkable, const Me
 
 void ApiEvents::AcknowledgementSetHandler(const Checkable::Ptr& checkable,
     const String& author, const String& comment, AcknowledgementType type,
-    bool notify, double expiry, const MessageOrigin::Ptr& origin)
+    bool notify, bool persistent, double expiry, const MessageOrigin::Ptr& origin)
 {
 	std::vector<EventQueue::Ptr> queues = EventQueue::GetQueuesForType("AcknowledgementSet");
 
@@ -206,6 +206,7 @@ void ApiEvents::AcknowledgementSetHandler(const Checkable::Ptr& checkable,
 	result->Set("comment", comment);
 	result->Set("acknowledgement_type", type);
 	result->Set("notify", notify);
+	result->Set("persistent", persistent);
 	result->Set("expiry", expiry);
 
 	for (const EventQueue::Ptr& queue : queues) {

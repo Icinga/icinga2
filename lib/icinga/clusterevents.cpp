@@ -445,7 +445,7 @@ Value ClusterEvents::ForceNextNotificationChangedAPIHandler(const MessageOrigin:
 
 void ClusterEvents::AcknowledgementSetHandler(const Checkable::Ptr& checkable,
     const String& author, const String& comment, AcknowledgementType type,
-    bool notify, double expiry, const MessageOrigin::Ptr& origin)
+    bool notify, bool persistent, double expiry, const MessageOrigin::Ptr& origin)
 {
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 
@@ -510,7 +510,7 @@ Value ClusterEvents::AcknowledgementSetAPIHandler(const MessageOrigin::Ptr& orig
 
 	checkable->AcknowledgeProblem(params->Get("author"), params->Get("comment"),
 	    static_cast<AcknowledgementType>(static_cast<int>(params->Get("acktype"))),
-	    params->Get("notify"), params->Get("expiry"), origin);
+	    params->Get("notify"), params->Get("persistent"), params->Get("expiry"), origin);
 
 	return Empty;
 }
