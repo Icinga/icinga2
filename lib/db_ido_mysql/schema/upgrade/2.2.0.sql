@@ -9,8 +9,8 @@
 
 ALTER TABLE `icinga_programstatus` ADD COLUMN `program_version` varchar(64) character set latin1 collate latin1_general_cs default NULL;
 
-ALTER TABLE icinga_contacts MODIFY alias TEXT character set latin1  default '';
-ALTER TABLE icinga_hosts MODIFY alias TEXT character set latin1  default '';
+ALTER TABLE icinga_contacts MODIFY alias TEXT character set latin1;
+ALTER TABLE icinga_hosts MODIFY alias TEXT character set latin1;
 
 ALTER TABLE icinga_customvariables ADD COLUMN is_json smallint default 0;
 ALTER TABLE icinga_customvariablestatus ADD COLUMN is_json smallint default 0;
