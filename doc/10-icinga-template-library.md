@@ -628,6 +628,7 @@ icmp_target_interval | **Optional.** The maximum target interval.
 icmp_hosts_alive | **Optional.** The number of hosts which have to be alive for the check to succeed.
 icmp_data_bytes | **Optional.** Payload size for each ICMP request. Defaults to 8.
 icmp_timeout    | **Optional.** The plugin timeout in seconds. Defaults to 10 (seconds).
+icmp_ttl        | **Optional.** The TTL on outgoing packets.
 
 
 ### <a id="plugin-check-command-imap"></a> imap
