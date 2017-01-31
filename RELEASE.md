@@ -4,7 +4,7 @@ Print this document.
 
 Specify the release version.
 
-    VERSION=2.6.0
+    VERSION=2.6.1
 
 ## Issues
 
@@ -27,7 +27,7 @@ rebase until no commits are left:
 After finishing the rebase the branch needs to be merged into the support branch:
 
     $ git checkout support/2.6
-    $ git merge --ff-only auto-merged-2.6.0
+    $ git merge --ff-only auto-merged-2.6.1
 
 ## Authors
 
@@ -146,7 +146,7 @@ Create the nupkg package:
 
 Install the created icinga2 package locally:
 
-    choco install icinga2 -version 2.6.0 -fdv "%cd%" -source "'%cd%;https://chocolatey.org/api/v2/'"
+    choco install icinga2 -version 2.6.1 -fdv "%cd%" -source "'%cd%;https://chocolatey.org/api/v2/'"
 
 Upload the package to [chocolatey](https://chocolatey.org/packages/upload).
 

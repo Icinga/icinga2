@@ -4,6 +4,37 @@ Please check [doc/1-about.md].
 
 ## What's New
 
+### What's New in Version 2.6.1
+
+#### Changes
+
+This release addresses a number of bugs we have identified in version 2.6.0.
+The documentation changes
+reflect our recent move to GitHub.
+
+#### Feature
+
+* Feature 4950 (Documentation): doc/6-distributed-monitoring.md: Fix typo
+* Feature 4934 (Documentation): Update contribution section for GitHub
+* Feature 4923 (Documentation): [dev.icinga.com #14011] Migration to Github
+* Feature 4917 (Documentation): [dev.icinga.com #13969] Incorrect license file mentioned in README.md
+* Feature 4916 (Documentation): [dev.icinga.com #13967] Add travis-ci build status logo to README.md
+* Feature 4813 (libicinga): [dev.icinga.com #13345] Include argument name for log message about incorrect set_if values
+* Feature 4908 (Documentation): [dev.icinga.com #13897] Move domain to icinga.com
+* Feature 4803 (Documentation): [dev.icinga.com #13277] Update Repositories in Docs
+* Feature 4885 (Documentation): [dev.icinga.com #13671] SLES 12 SP2 libboost_thread package requires libboost_chrono
+* Feature 4868 (Documentation): [dev.icinga.com #13569] Add more build details to INSTALL.md
+* Feasture 4869 (Documentation): [dev.icinga.com #13571] Update RELEASE.md
+
+#### Bugfixes
+
+* Bug 4950 (IDO): IDO schema update is not compatible to MySQL 5.7
+* Bug 4882 (libbase): [dev.icinga.com #13655] Crash - Error: parse error: premature EOF bug High libbase
+* Bug 4867 (libbase) [dev.icinga.com #13567] SIGPIPE shutdown on config reload
+* Bug 4874 (IDO) [dev.icinga.com #13617] IDO: Timestamps in PostgreSQL may still have a time zone offset
+* Bug 4877 (IDO) [dev.icinga.com #13633] IDO MySQL schema not working on MySQL 5.7
+* Bug 4870 (Packages): [dev.icinga.com #13573] SLES11 SP4 dependency on Postgresql >= 8.4
+
 ### What's New in Version 2.6.0
 
 #### Changes
