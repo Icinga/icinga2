@@ -657,8 +657,7 @@ std::vector<ConfigItem::Ptr> ConfigItem::GetItems(const String& type)
 
 	items.reserve(it->second.size());
 
-	for (const ItemMap::value_type& kv : it->second)
-	{
+	for (const ItemMap::value_type& kv : it->second) {
 		items.push_back(kv.second);
 	}
 
@@ -678,8 +677,7 @@ std::vector<ConfigItem::Ptr> ConfigItem::GetDefaultTemplates(const String& type)
 
 	items.reserve(it->second.size());
 
-	for (const ItemMap::value_type& kv : it->second)
-	{
+	for (const ItemMap::value_type& kv : it->second) {
 		items.push_back(kv.second);
 	}
 
@@ -697,12 +695,7 @@ void ConfigItem::RemoveIgnoredItems(const String& allowedConfigPath)
 		Log(LogNotice, "ConfigItem")
 		    << "Removing ignored item path '" << path << "'.";
 
-		if (unlink(path.CStr()) < 0) {
-			BOOST_THROW_EXCEPTION(posix_error()
-			    << boost::errinfo_api_function("unlink")
-			    << boost::errinfo_errno(errno)
-			    << boost::errinfo_file_name(path));
-		}
+		(void) unlink(path.CStr());
 	}
 
 	m_IgnoredItems.clear();
