@@ -71,9 +71,7 @@ void PluginCheckTask::ProcessFinishedHandler(const Checkable::Ptr& checkable, co
 		    << pr.ExitStatus << ", output: " << pr.Output;
 	}
 
-	String output = pr.Output.Trim();
-
-	std::pair<String, String> co = PluginUtility::ParseCheckOutput(output);
+	std::pair<String, String> co = PluginUtility::ParseCheckOutput(pr.Output);
 	cr->SetCommand(commandLine);
 	cr->SetOutput(co.first);
 	cr->SetPerformanceData(PluginUtility::SplitPerfdata(co.second));
