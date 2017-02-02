@@ -69,14 +69,9 @@ Value ApiListener::ConfigUpdateObjectAPIHandler(const MessageOrigin::Ptr& origin
 	String objType = params->Get("type");
 	String objName = params->Get("name");
 
-	if (!listener->GetAcceptConfig()) {
-		Log(LogWarning, "ApiListener")
-		    << "Ignoring config update from '" << origin->FromClient->GetIdentity() << "' for object '" << objName << "' of type '" << objType << "'. '" << listener->GetName() << "' does not accept config.";
-		return Empty;
-	}
-
 	Endpoint::Ptr endpoint = origin->FromClient->GetEndpoint();
 
+	/* discard messages if the client is not configured on this node */
 	if (!endpoint) {
 		Log(LogNotice, "ApiListener")
 		    << "Discarding 'config update object' message from '" << origin->FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
@@ -85,9 +80,17 @@ Value ApiListener::ConfigUpdateObjectAPIHandler(const MessageOrigin::Ptr& origin
 
 	/* discard messages if the sender is in a child zone */
 	if (!Zone::GetLocalZone()->IsChildOf(endpoint->GetZone())) {
-		Log(LogWarning, "ApiListener")
+		Log(LogNotice, "ApiListener")
 		    << "Discarding 'config update object' message from '"
-		    << origin->FromClient->GetIdentity() << "'.";
+		    << origin->FromClient->GetIdentity() << "' for object '"
+		    << objName << "' of type '" << objType << "'. Sender is in a child zone.";
+		return Empty;
+	}
+
+	/* ignore messages if the endpoint does not accept config */
+	if (!listener->GetAcceptConfig()) {
+		Log(LogWarning, "ApiListener")
+		    << "Ignoring config update from '" << origin->FromClient->GetIdentity() << "' for object '" << objName << "' of type '" << objType << "'. '" << listener->GetName() << "' does not accept config.";
 		return Empty;
 	}
 
