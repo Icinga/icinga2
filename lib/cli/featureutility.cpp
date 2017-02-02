@@ -146,9 +146,8 @@ int FeatureUtility::DisableFeatures(const std::vector<std::string>& features)
 		String target = features_enabled_dir + "/" + feature + ".conf";
 
 		if (!Utility::PathExists(target) ) {
-			Log(LogCritical, "cli")
-			    << "Cannot disable feature '" << feature << "'. Target file '" << target << "' does not exist.";
-			errors.push_back(feature);
+			Log(LogWarning, "cli")
+			    << "Feature '" << feature << "' already disabled.";
 			continue;
 		}
 
