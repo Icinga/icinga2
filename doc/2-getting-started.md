@@ -19,7 +19,9 @@ and distribution you are running.
   SLES                    | [Icinga Repository](http://packages.icinga.com/SUSE/)
   Gentoo                  | [Upstream](http://packages.gentoo.org/package/net-analyzer/icinga2)
   FreeBSD                 | [Upstream](http://www.freshports.org/net-mgmt/icinga2)
+  OpenBSD                 | [Upstream](http://ports.su/net/icinga/core2,-main)
   ArchLinux               | [Upstream](https://aur.archlinux.org/packages/icinga2)
+  AlpineLinux             | [Upstream](https://pkgs.alpinelinux.org/package/edge/community/x86_64/icinga2)
 
 Packages for distributions other than the ones listed above may also be
 available. Please contact your distribution packagers.
