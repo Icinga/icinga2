@@ -189,3 +189,11 @@ void Checkable::ValidateCheckInterval(double value, const ValidationUtils& utils
 	if (value <= 0)
 		BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of("check_interval"), "Interval must be greater than 0."));
 }
+
+void Checkable::ValidateMaxCheckAttempts(int value, const ValidationUtils& utils)
+{
+	ObjectImpl<Checkable>::ValidateMaxCheckAttempts(value, utils);
+
+	if (value <= 0)
+		BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of("max_check_attempts"), "Value must be greater than 0."));
+}

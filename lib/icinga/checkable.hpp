@@ -177,6 +177,7 @@ public:
 	std::set<intrusive_ptr<Dependency> > GetReverseDependencies(void) const;
 
 	virtual void ValidateCheckInterval(double value, const ValidationUtils& utils) override;
+	virtual void ValidateMaxCheckAttempts(int value, const ValidationUtils& utils) override;
 
 	static void IncreasePendingChecks(void);
 	static void DecreasePendingChecks(void);
