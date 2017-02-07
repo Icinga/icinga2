@@ -777,7 +777,7 @@ Send a `POST` request to the URL endpoint `/v1/actions/process-check-result`.
 
 In addition to these parameters a [filter](12-icinga2-api.md#icinga2-api-filters) must be provided. The valid types for this action are `Host` and `Service`.
 
-Example:
+Example for the service `passive-ping6`:
 
     $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/process-check-result?service=example.localdomain!passive-ping6' \
     -d '{ "exit_status": 2, "plugin_output": "PING CRITICAL - Packet loss = 100%", "performance_data": [ "rta=5000.000000ms;3000.000000;5000.000000;0.000000", "pl=100%;80;100;0" ], "check_source": "example.localdomain" }' | python -m json.tool
@@ -790,6 +790,13 @@ Example:
             }
         ]
     }
+
+Example for using the `Host` type and filter by the host name:
+
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/process-check-result' \
+    -d '{ "filter": "host.name==\"example.localdomain\"", "type": "Host", "exit_status": 1, "plugin_output": "Host is not available." }'
+
+You can avoid URL encoding of white spaces in object names by using the `filter` attribute in the request body.
 
 ### <a id="icinga2-api-actions-reschedule-check"></a> reschedule-check
 
