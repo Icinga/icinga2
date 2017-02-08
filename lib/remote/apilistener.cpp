@@ -846,6 +846,8 @@ void ApiListener::OpenLogFile(void)
 {
 	String path = GetApiDir() + "log/current";
 
+	Utility::MkDirP(Utility::DirName(path), 0750);
+
 	std::fstream *fp = new std::fstream(path.CStr(), std::fstream::out | std::ofstream::app);
 
 	if (!fp->good()) {
