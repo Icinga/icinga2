@@ -1556,7 +1556,7 @@ static bool ReleaseHelper(String *platformName, String *platformVersion)
 	}
 
 	/* You are using a distribution which supports LSB. */
-	FILE *fp = popen("lsb_release -s -i 2>&1", "r");
+	FILE *fp = popen("type lsb_release >/dev/null 2>&1 && lsb_release -s -i 2>&1", "r");
 
 	if (fp != NULL) {
 		std::ostringstream msgbuf;
@@ -1570,7 +1570,7 @@ static bool ReleaseHelper(String *platformName, String *platformVersion)
 		}
 	}
 
-	fp = popen("lsb_release -s -r 2>&1", "r");
+	fp = popen("type lsb_release >/dev/null 2>&1 && lsb_release -s -r 2>&1", "r");
 
 	if (fp != NULL) {
 		std::ostringstream msgbuf;
@@ -1585,7 +1585,7 @@ static bool ReleaseHelper(String *platformName, String *platformVersion)
 	}
 
 	/* OS X */
-	fp = popen("sw_vers -productName 2>&1", "r");
+	fp = popen("type sw_vers >/dev/null 2>&1 && sw_vers -productName 2>&1", "r");
 
 	if (fp != NULL) {
 		std::ostringstream msgbuf;
@@ -1602,7 +1602,7 @@ static bool ReleaseHelper(String *platformName, String *platformVersion)
 		}
 	}
 
-	fp = popen("sw_vers -productVersion 2>&1", "r");
+	fp = popen("type sw_vers >/dev/null 2>&1 && sw_vers -productVersion 2>&1", "r");
 
 	if (fp != NULL) {
 		std::ostringstream msgbuf;
