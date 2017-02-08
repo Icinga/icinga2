@@ -60,7 +60,7 @@ protected:
 	static Value NumHostsDownAccessor(const Value& row);
 	static Value NumHostsUnreachAccessor(const Value& row);
 	static Value NumServicesAccessor(const Value& row);
-	static Value WorstServicesStateAccessor(const Value& row);
+	static Value WorstServiceStateAccessor(const Value& row);
 	static Value NumServicesPendingAccessor(const Value& row);
 	static Value NumServicesOkAccessor(const Value& row);
 	static Value NumServicesWarnAccessor(const Value& row);

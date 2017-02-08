@@ -47,7 +47,7 @@ void HostGroupsTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "num_hosts_down", Column(&HostGroupsTable::NumHostsDownAccessor, objectAccessor));
 	table->AddColumn(prefix + "num_hosts_unreach", Column(&HostGroupsTable::NumHostsUnreachAccessor, objectAccessor));
 	table->AddColumn(prefix + "num_services", Column(&HostGroupsTable::NumServicesAccessor, objectAccessor));
-	table->AddColumn(prefix + "worst_services_state", Column(&HostGroupsTable::WorstServicesStateAccessor, objectAccessor));
+	table->AddColumn(prefix + "worst_service_state", Column(&HostGroupsTable::WorstServiceStateAccessor, objectAccessor));
 	table->AddColumn(prefix + "num_services_pending", Column(&HostGroupsTable::NumServicesPendingAccessor, objectAccessor));
 	table->AddColumn(prefix + "num_services_ok", Column(&HostGroupsTable::NumServicesOkAccessor, objectAccessor));
 	table->AddColumn(prefix + "num_services_warn", Column(&HostGroupsTable::NumServicesWarnAccessor, objectAccessor));
@@ -278,7 +278,7 @@ Value HostGroupsTable::NumServicesAccessor(const Value& row)
 	return num_services;
 }
 
-Value HostGroupsTable::WorstServicesStateAccessor(const Value& row)
+Value HostGroupsTable::WorstServiceStateAccessor(const Value& row)
 {
 	HostGroup::Ptr hg = static_cast<HostGroup::Ptr>(row);
 
