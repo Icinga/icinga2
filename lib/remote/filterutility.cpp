@@ -174,8 +174,12 @@ void FilterUtility::CheckPermission(const ApiUser::Ptr& user, const String& perm
 		}
 	}
 
-	if (!foundPermission)
+	if (!foundPermission) {
+		Log(LogWarning, "FilterUtility")
+		    << "Missing permission: " << requiredPermission;
+
 		BOOST_THROW_EXCEPTION(ScriptError("Missing permission: " + requiredPermission));
+	}
 }
 
 std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, const Dictionary::Ptr& query, const ApiUser::Ptr& user, const String& variableName)
