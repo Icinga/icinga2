@@ -72,8 +72,19 @@ void DbConnection::Start(bool runtimeCreated)
 {
 	ObjectImpl<DbConnection>::Start(runtimeCreated);
 
+	Log(LogInformation, "DbConnection")
+	    << "'" << GetName() << "' started.";
+
 	DbObject::OnQuery.connect(boost::bind(&DbConnection::ExecuteQuery, this, _1));
 	DbObject::OnMultipleQueries.connect(boost::bind(&DbConnection::ExecuteMultipleQueries, this, _1));
+}
+
+void DbConnection::Stop(bool runtimeRemoved)
+{
+	Log(LogInformation, "DbConnection")
+	    << "'" << GetName() << "' stopped.";
+
+	ObjectImpl<DbConnection>::Stop(runtimeRemoved);
 }
 
 void DbConnection::EnableActiveChangedHandler(void)

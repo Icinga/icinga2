@@ -73,6 +73,9 @@ void StatusDataWriter::Start(bool runtimeCreated)
 {
 	ObjectImpl<StatusDataWriter>::Start(runtimeCreated);
 
+	Log(LogInformation, "StatusDataWriter")
+	    << "'" << GetName() << "' started.";
+
 	m_ObjectsCacheOutdated = true;
 
 	m_StatusTimer = new Timer();
@@ -83,6 +86,17 @@ void StatusDataWriter::Start(bool runtimeCreated)
 
 	ConfigObject::OnVersionChanged.connect(boost::bind(&StatusDataWriter::ObjectHandler, this));
 	ConfigObject::OnActiveChanged.connect(boost::bind(&StatusDataWriter::ObjectHandler, this));
+}
+
+/**
+ * Stops the component.
+ */
+void StatusDataWriter::Stop(bool runtimeRemoved)
+{
+	Log(LogInformation, "StatusDataWriter")
+	    << "'" << GetName() << "' stopped.";
+
+	ObjectImpl<StatusDataWriter>::Stop(runtimeRemoved);
 }
 
 void StatusDataWriter::DumpComments(std::ostream& fp, const Checkable::Ptr& checkable)

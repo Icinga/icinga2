@@ -61,6 +61,9 @@ void GraphiteWriter::Start(bool runtimeCreated)
 {
 	ObjectImpl<GraphiteWriter>::Start(runtimeCreated);
 
+	Log(LogInformation, "GraphiteWriter")
+	    << "'" << GetName() << "' started.";
+
 	m_ReconnectTimer = new Timer();
 	m_ReconnectTimer->SetInterval(10);
 	m_ReconnectTimer->OnTimerExpired.connect(boost::bind(&GraphiteWriter::ReconnectTimerHandler, this));
@@ -68,6 +71,14 @@ void GraphiteWriter::Start(bool runtimeCreated)
 	m_ReconnectTimer->Reschedule(0);
 
 	Service::OnNewCheckResult.connect(boost::bind(&GraphiteWriter::CheckResultHandler, this, _1, _2));
+}
+
+void GraphiteWriter::Stop(bool runtimeRemoved)
+{
+	Log(LogInformation, "GraphiteWriter")
+	    << "'" << GetName() << "' stopped.";
+
+	ObjectImpl<GraphiteWriter>::Stop(runtimeRemoved);
 }
 
 void GraphiteWriter::ReconnectTimerHandler(void)

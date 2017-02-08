@@ -48,6 +48,7 @@ public:
 
 protected:
 	virtual void Start(bool runtimeCreated) override;
+	virtual void Stop(bool runtimeRemoved) override;
 
 private:
 	Stream::Ptr m_Stream;

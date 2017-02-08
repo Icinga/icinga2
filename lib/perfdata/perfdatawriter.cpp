@@ -53,6 +53,9 @@ void PerfdataWriter::Start(bool runtimeCreated)
 {
 	ObjectImpl<PerfdataWriter>::Start(runtimeCreated);
 
+	Log(LogInformation, "PerfdataWriter")
+	    << "'" << GetName() << "' started.";
+
 	Checkable::OnNewCheckResult.connect(boost::bind(&PerfdataWriter::CheckResultHandler, this, _1, _2));
 
 	m_RotationTimer = new Timer();
@@ -62,6 +65,14 @@ void PerfdataWriter::Start(bool runtimeCreated)
 
 	RotateFile(m_ServiceOutputFile, GetServiceTempPath(), GetServicePerfdataPath());
 	RotateFile(m_HostOutputFile, GetHostTempPath(), GetHostPerfdataPath());
+}
+
+void PerfdataWriter::Stop(bool runtimeRemoved)
+{
+	Log(LogInformation, "PerfdataWriter")
+	    << "'" << GetName() << "' stopped.";
+
+	ObjectImpl<PerfdataWriter>::Stop(runtimeRemoved);
 }
 
 Value PerfdataWriter::EscapeMacroMetric(const Value& value)

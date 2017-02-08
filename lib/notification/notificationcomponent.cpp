@@ -52,6 +52,9 @@ void NotificationComponent::Start(bool runtimeCreated)
 {
 	ObjectImpl<NotificationComponent>::Start(runtimeCreated);
 
+	Log(LogInformation, "NotificationComponent")
+	    << "'" << GetName() << "' started.";
+
 	Checkable::OnNotificationsRequested.connect(boost::bind(&NotificationComponent::SendNotificationsHandler, this, _1,
 	    _2, _3, _4, _5));
 
@@ -59,6 +62,14 @@ void NotificationComponent::Start(bool runtimeCreated)
 	m_NotificationTimer->SetInterval(5);
 	m_NotificationTimer->OnTimerExpired.connect(boost::bind(&NotificationComponent::NotificationTimerHandler, this));
 	m_NotificationTimer->Start();
+}
+
+void NotificationComponent::Stop(bool runtimeRemoved)
+{
+	Log(LogInformation, "NotificationComponent")
+	    << "'" << GetName() << "' stopped.";
+
+	ObjectImpl<NotificationComponent>::Stop(runtimeRemoved);
 }
 
 /**

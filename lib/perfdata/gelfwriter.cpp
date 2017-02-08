@@ -43,6 +43,9 @@ void GelfWriter::Start(bool runtimeCreated)
 {
 	ObjectImpl<GelfWriter>::Start(runtimeCreated);
 
+	Log(LogInformation, "GelfWriter")
+	    << "'" << GetName() << "' started.";
+
 	m_ReconnectTimer = new Timer();
 	m_ReconnectTimer->SetInterval(10);
 	m_ReconnectTimer->OnTimerExpired.connect(boost::bind(&GelfWriter::ReconnectTimerHandler, this));
@@ -55,6 +58,14 @@ void GelfWriter::Start(bool runtimeCreated)
 	Service::OnNotificationSentToUser.connect(boost::bind(&GelfWriter::NotificationToUserHandler, this, _1, _2, _3, _4, _5, _6, _7, _8));
 	// Send state change
 	Service::OnStateChange.connect(boost::bind(&GelfWriter::StateChangeHandler, this, _1, _2, _3));
+}
+
+void GelfWriter::Stop(bool runtimeRemoved)
+{
+	Log(LogInformation, "GelfWriter")
+	    << "'" << GetName() << "' stopped.";
+
+	ObjectImpl<GelfWriter>::Stop(runtimeRemoved);
 }
 
 void GelfWriter::ReconnectTimerHandler(void)

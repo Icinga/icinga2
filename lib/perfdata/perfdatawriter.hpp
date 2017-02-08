@@ -47,6 +47,7 @@ public:
 
 protected:
 	virtual void Start(bool runtimeCreated) override;
+	virtual void Stop(bool runtimeRemoved) override;
 
 private:
 	void CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);

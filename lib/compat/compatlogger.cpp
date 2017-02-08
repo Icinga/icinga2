@@ -60,6 +60,9 @@ void CompatLogger::Start(bool runtimeCreated)
 {
 	ObjectImpl<CompatLogger>::Start(runtimeCreated);
 
+	Log(LogInformation, "CompatLogger")
+	    << "'" << GetName() << "' started.";
+
 	Checkable::OnNewCheckResult.connect(bind(&CompatLogger::CheckResultHandler, this, _1, _2));
 	Checkable::OnNotificationSentToUser.connect(bind(&CompatLogger::NotificationSentHandler, this, _1, _2, _3, _4, _5, _6, _7, _8));
 	Downtime::OnDowntimeTriggered.connect(boost::bind(&CompatLogger::TriggerDowntimeHandler, this, _1));
@@ -77,6 +80,17 @@ void CompatLogger::Start(bool runtimeCreated)
 
 	ReopenFile(false);
 	ScheduleNextRotation();
+}
+
+/**
+ * @threadsafety Always.
+ */
+void CompatLogger::Stop(bool runtimeRemoved)
+{
+	Log(LogInformation, "CompatLogger")
+	    << "'" << GetName() << "' stopped.";
+
+	ObjectImpl<CompatLogger>::Stop(runtimeRemoved);
 }
 
 /**

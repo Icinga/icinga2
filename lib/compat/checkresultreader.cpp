@@ -58,10 +58,26 @@ void CheckResultReader::Start(bool runtimeCreated)
 {
 	ObjectImpl<CheckResultReader>::Start(runtimeCreated);
 
+	Log(LogInformation, "CheckResultReader")
+	    << "'" << GetName() << "' started.";
+
+#ifndef _WIN32
 	m_ReadTimer = new Timer();
 	m_ReadTimer->OnTimerExpired.connect(boost::bind(&CheckResultReader::ReadTimerHandler, this));
 	m_ReadTimer->SetInterval(5);
 	m_ReadTimer->Start();
+#endif /* _WIN32 */
+}
+
+/**
+ * @threadsafety Always.
+ */
+void CheckResultReader::Stop(bool runtimeRemoved)
+{
+	Log(LogInformation, "CheckResultReader")
+	    << "'" << GetName() << "' stopped.";
+
+	ObjectImpl<CheckResultReader>::Stop(runtimeRemoved);
 }
 
 /**

@@ -81,6 +81,9 @@ void IdoPgsqlConnection::Resume(void)
 {
 	DbConnection::Resume();
 
+	Log(LogInformation, "IdoPgsqlConnection")
+	    << "'" << GetName() << "' resumed.";
+
 	SetConnected(false);
 
 	m_QueryQueue.SetExceptionCallback(boost::bind(&IdoPgsqlConnection::ExceptionHandler, this, _1));
@@ -101,6 +104,9 @@ void IdoPgsqlConnection::Resume(void)
 
 void IdoPgsqlConnection::Pause(void)
 {
+	Log(LogInformation, "IdoPgsqlConnection")
+	    << "'" << GetName() << "' paused.";
+
 	m_ReconnectTimer.reset();
 
 	DbConnection::Pause();

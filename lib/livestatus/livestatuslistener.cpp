@@ -66,6 +66,9 @@ void LivestatusListener::Start(bool runtimeCreated)
 {
 	ObjectImpl<LivestatusListener>::Start(runtimeCreated);
 
+	Log(LogInformation, "LivestatusListener")
+	    << "'" << GetName() << "' started.";
+
 	if (GetSocketType() == "tcp") {
 		TcpSocket::Ptr socket = new TcpSocket();
 
@@ -122,6 +125,9 @@ void LivestatusListener::Start(bool runtimeCreated)
 void LivestatusListener::Stop(bool runtimeRemoved)
 {
 	ObjectImpl<LivestatusListener>::Stop(runtimeRemoved);
+
+	Log(LogInformation, "LivestatusListener")
+	    << "'" << GetName() << "' stopped.";
 
 	m_Listener->Close();
 

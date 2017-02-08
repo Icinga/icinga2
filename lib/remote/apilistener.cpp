@@ -127,6 +127,9 @@ void ApiListener::OnAllConfigLoaded(void)
  */
 void ApiListener::Start(bool runtimeCreated)
 {
+	Log(LogInformation, "ApiListener")
+	    << "'" << GetName() << "' started.";
+
 	SyncZoneDirs();
 
 	ObjectImpl<ApiListener>::Start(runtimeCreated);
@@ -167,6 +170,9 @@ void ApiListener::Start(bool runtimeCreated)
 void ApiListener::Stop(bool runtimeDeleted)
 {
 	ObjectImpl<ApiListener>::Stop(runtimeDeleted);
+
+	Log(LogInformation, "ApiListener")
+	    << "'" << GetName() << "' stopped.";
 
 	boost::mutex::scoped_lock lock(m_LogLock);
 	CloseLogFile();

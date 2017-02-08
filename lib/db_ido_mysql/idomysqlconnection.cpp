@@ -77,6 +77,9 @@ void IdoMysqlConnection::Resume(void)
 {
 	DbConnection::Resume();
 
+	Log(LogInformation, "IdoMysqlConnection")
+	    << "'" << GetName() << "' resumed.";
+
 	SetConnected(false);
 
 	m_QueryQueue.SetExceptionCallback(boost::bind(&IdoMysqlConnection::ExceptionHandler, this, _1));
@@ -97,6 +100,9 @@ void IdoMysqlConnection::Resume(void)
 
 void IdoMysqlConnection::Pause(void)
 {
+	Log(LogInformation, "IdoMysqlConnection")
+	    << "'" << GetName() << "' paused.";
+
 	m_ReconnectTimer.reset();
 
 	DbConnection::Pause();

@@ -40,6 +40,7 @@ public:
 	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
 	virtual void Start(bool runtimeCreated) override;
+	virtual void Stop(bool runtimeRemoved) override;
 
 private:
 	Timer::Ptr m_NotificationTimer;

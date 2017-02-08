@@ -47,6 +47,7 @@ public:
 
 protected:
 	virtual void Start(bool runtimeCreated) override;
+	virtual void Stop(bool runtimeRemoved) override;
 
 private:
 	Timer::Ptr m_StatusTimer;

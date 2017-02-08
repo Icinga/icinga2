@@ -69,6 +69,9 @@ void InfluxdbWriter::Start(bool runtimeCreated)
 
 	ObjectImpl<InfluxdbWriter>::Start(runtimeCreated);
 
+	Log(LogInformation, "InfluxdbWriter")
+	    << "'" << GetName() << "' started.";
+
 	m_FlushTimer = new Timer();
 	m_FlushTimer->SetInterval(GetFlushInterval());
 	m_FlushTimer->OnTimerExpired.connect(boost::bind(&InfluxdbWriter::FlushTimeout, this));
@@ -76,6 +79,14 @@ void InfluxdbWriter::Start(bool runtimeCreated)
 	m_FlushTimer->Reschedule(0);
 
 	Service::OnNewCheckResult.connect(boost::bind(&InfluxdbWriter::CheckResultHandler, this, _1, _2));
+}
+
+void InfluxdbWriter::Stop(bool runtimeRemoved)
+{
+	Log(LogInformation, "InfluxdbWriter")
+	    << "'" << GetName() << "' stopped.";
+
+	ObjectImpl<InfluxdbWriter>::Stop(runtimeRemoved);
 }
 
 Stream::Ptr InfluxdbWriter::Connect(TcpSocket::Ptr& socket)
