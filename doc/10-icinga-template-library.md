@@ -2203,7 +2203,18 @@ This category includes all plugins for various hardware checks.
 
 #### <a id="plugin-contrib-command-hpasm"></a> hpasm
 
-The plugin [check_hpasm](https://labs.consol.de/de/nagios/check_hpasm/index.html) is a plugin to monitor HP hardware through the HP Insight Agent via SNMP.
+The plugin [check_hpasm](https://labs.consol.de/de/nagios/check_hpasm/index.html) is a plugin to monitor HP hardware.
+
+The plugin can run in two different ways:
+
+1. Local execution using the `hpasmcli` command line tool.
+2. Remote SNMP query which invokes the HP Insight Tools on the remote node.
+
+You can either set or omit `hpasm_hostname` custom attribute and select the corresponding node.
+
+The `hpasm_remote` attribute enables the plugin to execute remote SNMP queries if set to `true`.
+For compatibility reasons this attribute uses `true` as default value, and ensures that
+specifying the `hpasm_hostname` always enables remote checks.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
@@ -2226,6 +2237,7 @@ hpasm_privpassword		| **Optional.** The password for authPriv security level.
 hpasm_privprotocol		| **Optional.** The private protocol for SNMPv3 (des\|aes\|aes128\|3des\|3desde).
 hpasm_servertype		| **Optional.** The type of the server: proliant (default) or bladesystem.
 hpasm_eval-nics			| **Optional.** Check network interfaces (and groups). Try it and report me whyt you think about it. I need to build up some know how on this subject. If you get an error and think, it is not justified for your configuration, please tell me about it. (alwasy send the output of "snmpwalk -On .... 1.3.6.1.4.1.232" and a description how you setup your nics and why it is correct opposed to the plugins error message.
+hpasm_remote			| **Optional.** Run remote SNMP checks if enabled. Otherwise checks are executed locally using the `hpasmcli` binary. Defaults to `true`.
 
 #### <a id="plugin-contrib-command-adaptec-raid"></a> adaptec-raid
 
