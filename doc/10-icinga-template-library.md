@@ -2235,6 +2235,14 @@ Name                            | Description
 --------------------------------|-----------------------------------------------------------------------
 lsi_controller_number		| **Required.** Insert the controller number to monitor.
 
+#### <a id="plugin-contrib-command-smart-attributes"></a> smart-attributes
+
+The plugin [check_smart_attributes](https://github.com/thomas-krenn/check_smart_attributes) is a plugin to monitor the SMART values of SSDs and HDDs.
+
+Name                            | Description
+--------------------------------|-----------------------------------------------------------------------
+device				| **Required.** Insert the device name (e.g. /dev/sda) to monitor.
+
 
 ### <a id="plugin-contrib-icingacli"></a> IcingaCLI
 
