@@ -37,6 +37,7 @@ option(ICINGA2_WITH_HELLO "Build the hello module" OFF)
 option(ICINGA2_WITH_LIVESTATUS "Build the Livestatus module" ON)
 option(ICINGA2_WITH_NOTIFICATION "Build the notification module" ON)
 option(ICINGA2_WITH_PERFDATA "Build the perfdata module" ON)
+option(ICINGA2_WITH_REDIS "Build the redis module" ON)
 option(ICINGA2_WITH_STUDIO "Build the Icinga Studio application" OFF)
 option(ICINGA2_WITH_TESTS "Run unit tests" ON)
 

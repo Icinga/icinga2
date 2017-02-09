@@ -15,28 +15,39 @@
 # along with this program; if not, write to the Free Software Foundation
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
-add_library(hiredis SHARED net.c net.h hiredis.c hiredis.h sds.c sds.h async.c async.h read.c read.h)
+mkclass_target(rediswriter.ti rediswriter.tcpp rediswriter.thpp)
 
-if(HAVE_VISIBILITY_HIDDEN)
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fvisibility=default")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=default")
+set(redis_SOURCES
+  rediswriter.cpp rediswriter.thpp
+)
+
+if(ICINGA2_UNITY_BUILD)
+    mkunity_target(redis redis redis_SOURCES)
 endif()
 
+add_library(redis SHARED ${redis_SOURCES})
+
+target_link_libraries(redis ${Boost_LIBRARIES} base config icinga remote hiredis)
+
+include_directories(${icinga2_SOURCE_DIR}/third-party)
+link_directories(${icinga2_BINARY_DIR}/third-party/hiredis)
+
 set_target_properties (
-  hiredis PROPERTIES
-  FOLDER Lib
+  redis PROPERTIES
+  INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR}/icinga2
+  DEFINE_SYMBOL I2_REDIS_BUILD
+  FOLDER Components
   VERSION ${SPEC_VERSION}
 )
 
+install_if_not_exists(
+  ${PROJECT_SOURCE_DIR}/etc/icinga2/features-available/redis.conf
+  ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/features-available
+)
+
 install(
-  TARGETS hiredis
+  TARGETS redis
   RUNTIME DESTINATION ${CMAKE_INSTALL_SBINDIR}
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/icinga2
 )
 
-if(APPLE)
-  install(
-    TARGETS hiredis
-    LIBRARY DESTINATION ${CMAKE_INSTALL_BINDIR}/icinga-studio.app/Contents
-  )
-endif()
