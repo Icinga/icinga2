@@ -2195,7 +2195,12 @@ This category includes all plugins for various hardware checks.
 
 #### <a id="plugin-contrib-command-hpasm"></a> hpasm
 
-The plugin [check_hpasm](https://labs.consol.de/de/nagios/check_hpasm/index.html) is a plugin to monitor HP hardware through the HP Insight Agent via SNMP.
+The plugin [check_hpasm](https://labs.consol.de/de/nagios/check_hpasm/index.html) is a plugin to monitor HP hardware.
+It has two modes:
+1. Locally through the `hpasmcli` tool
+2. Remote through the HP Insight Agent via SNMP
+
+Choosing which mode to use is done by setting or omitting the `hpasm_hostname` which correlates to the `-H` commandline argument. If this macro is set, the plugin connects remotely.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
