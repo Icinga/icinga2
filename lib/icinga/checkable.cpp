@@ -117,9 +117,9 @@ AcknowledgementType Checkable::GetAcknowledgement(void)
 	return avalue;
 }
 
-bool Checkable::IsAcknowledged(void)
+bool Checkable::IsAcknowledged(void) const
 {
-	return GetAcknowledgement() != AcknowledgementNone;
+	return const_cast<Checkable *>(this)->GetAcknowledgement() != AcknowledgementNone;
 }
 
 void Checkable::AcknowledgeProblem(const String& author, const String& comment, AcknowledgementType type, bool notify, double expiry, const MessageOrigin::Ptr& origin)
@@ -144,6 +144,12 @@ void Checkable::ClearAcknowledgement(const MessageOrigin::Ptr& origin)
 Endpoint::Ptr Checkable::GetCommandEndpoint(void) const
 {
 	return Endpoint::GetByName(GetCommandEndpointRaw());
+}
+
+int Checkable::GetSeverity(void) const
+{
+	/* overridden in Host/Service class. */
+	return 0;
 }
 
 void Checkable::NotifyFixedDowntimeStart(const Downtime::Ptr& downtime)

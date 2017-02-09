@@ -181,6 +181,34 @@ HostState Host::GetLastHardState(void) const
 	return CalculateState(GetLastHardStateRaw());
 }
 
+/* keep in sync with Service::GetSeverity() */
+int Host::GetSeverity(void) const
+{
+	int severity = 0;
+
+	ObjectLock olock(this);
+	ServiceState state = GetStateRaw();
+
+	/* OK/Warning = Up, Critical/Unknownb = Down */
+	if (!HasBeenChecked())
+		severity |= SeverityFlagPending;
+	else if (state == ServiceUnknown)
+		severity |= SeverityFlagCritical;
+	else if (state == ServiceCritical)
+		severity |= SeverityFlagCritical;
+
+	if (IsInDowntime())
+		severity |= SeverityFlagDowntime;
+	else if (IsAcknowledged())
+		severity |= SeverityFlagAcknowledgement;
+	else
+		severity |= SeverityFlagUnhandled;
+
+	olock.Unlock();
+
+	return severity;
+}
+
 bool Host::IsStateOK(ServiceState state)
 {
 	return Host::CalculateState(state) == HostUp;
