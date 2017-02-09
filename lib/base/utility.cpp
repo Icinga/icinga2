@@ -48,6 +48,7 @@
 #	include <sys/types.h>
 #	include <pwd.h>
 #	include <grp.h>
+#	include <errno.h>
 #endif /* _WIN32 */
 
 #ifdef _WIN32
@@ -502,6 +503,16 @@ static bool GlobHelper(const String& pathSpec, int type, std::vector<String>& fi
 }
 #endif /* _WIN32 */
 
+#ifndef _WIN32
+static int GlobErrorHandler(const char *epath, int eerrno)
+{
+	if (eerrno == ENOTDIR)
+		return 0;
+
+	return eerrno;
+}
+#endif /* _WIN32 */
+
 /**
  * Calls the specified callback for each file matching the path specification.
  *
@@ -556,7 +567,7 @@ bool Utility::Glob(const String& pathSpec, const boost::function<void (const Str
 #else /* _WIN32 */
 	glob_t gr;
 
-	int rc = glob(pathSpec.CStr(), GLOB_ERR | GLOB_NOSORT, NULL, &gr);
+	int rc = glob(pathSpec.CStr(), GLOB_NOSORT, GlobErrorHandler, &gr);
 
 	if (rc < 0) {
 		if (rc == GLOB_NOMATCH)
