@@ -2241,7 +2241,9 @@ The plugin [check_smart_attributes](https://github.com/thomas-krenn/check_smart_
 
 Name                            | Description
 --------------------------------|-----------------------------------------------------------------------
-device				| **Required.** Insert the device name (e.g. /dev/sda) to monitor.
+smart_attributes_config_path	| **Required.** Path to the smart attributes config file (e.g. check_smartdb.json).
+smart_attributes_device		| **Required.** Insert the device name (e.g. /dev/sda) to monitor.
+
 
 
 ### <a id="plugin-contrib-icingacli"></a> IcingaCLI
