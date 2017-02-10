@@ -2200,7 +2200,7 @@ It has two modes:
 1. Locally through the `hpasmcli` tool
 2. Remote through the HP Insight Agent via SNMP
 
-Choosing which mode to use is done by setting or omitting the `hpasm_hostname` which correlates to the `-H` commandline argument. If this macro is set, the plugin connects remotely.
+Choosing which mode to use is done by setting or omitting the `-H` commandline argument. You can use the `hpasm_remote` attribute to select which mode you want to use. For compatibility with prior versions of this `CheckCommand` this defaults to `true` for remote mode.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
@@ -2223,6 +2223,7 @@ hpasm_privpassword		| **Optional.** The password for authPriv security level.
 hpasm_privprotocol		| **Optional.** The private protocol for SNMPv3 (des\|aes\|aes128\|3des\|3desde).
 hpasm_servertype		| **Optional.** The type of the server: proliant (default) or bladesystem.
 hpasm_eval-nics			| **Optional.** Check network interfaces (and groups). Try it and report me whyt you think about it. I need to build up some know how on this subject. If you get an error and think, it is not justified for your configuration, please tell me about it. (alwasy send the output of "snmpwalk -On .... 1.3.6.1.4.1.232" and a description how you setup your nics and why it is correct opposed to the plugins error message.
+hpasm_remote			| **Optional.** If set to false runs the plugin in local mode. Defaults to `true` for compatibility reasons.
 
 
 ### <a id="plugin-contrib-icingacli"></a> IcingaCLI
