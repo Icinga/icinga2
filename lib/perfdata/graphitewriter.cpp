@@ -127,7 +127,7 @@ void GraphiteWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 
 	double ts = cr->GetExecutionEnd();
 
-	/* new mode below. old mode in else tree with 2.4, deprecate it in 2.6 */
+	/* new mode below. old mode in else tree with 2.4, deprecate it in 2.6, remove in 2.8 TODO */
 	if (!GetEnableLegacyMode()) {
 		if (service) {
 			prefix = MacroProcessor::ResolveMacros(GetServiceNameTemplate(), resolvers, cr, NULL, boost::bind(&GraphiteWriter::EscapeMacroMetric, _1, false));
