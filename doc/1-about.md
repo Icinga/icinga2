@@ -44,6 +44,17 @@ file.
 
 ## <a id="whats-new"></a> What's New
 
+### What's New in Version 2.6.2
+
+#### Changes
+
+This is a bugfix release which addresses a crash that can occur when removing
+configuration files for objects which have been deleted via the API.
+
+#### Bugfixes
+
+* Bug 4952 (API): Icinga crashes while trying to remove configuration files for objects which no longer exist
+
 ### What's New in Version 2.6.1
 
 #### Changes

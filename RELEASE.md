@@ -4,7 +4,7 @@ Print this document.
 
 Specify the release version.
 
-    VERSION=2.6.1
+    VERSION=2.6.2
 
 ## Issues
 
@@ -12,22 +12,8 @@ Check issues at https://github.com/Icinga/icinga2
 
 ## Backport Commits
 
-    $ git checkout master
-    $ ./pick.py -V $VERSION
-
-The script creates a new branch 'auto-merged-<VERSION>' which is based on the
-current support branch. It then merges all commits from the 'master' branch which
-reference a ticket for the version that was specified.
-
-If there are any merge commits you will need to manually fix them and continue the
-rebase until no commits are left:
-
-    $ git rebase --continue
-
-After finishing the rebase the branch needs to be merged into the support branch:
-
-    $ git checkout support/2.6
-    $ git merge --ff-only auto-merged-2.6.1
+For minor versions you need to manually backports any and all commits from the
+master branch which should be part of this release.
 
 ## Authors
 
@@ -48,21 +34,8 @@ Example:
 
 ## Changelog
 
-Update the [ChangeLog](ChangeLog), [doc/1-about.md](doc/1-about.md) files using
-the changelog.py script. Also generate HTML for the wordpress release announcement.
-You need to copy and paste the output manually.
-
-Changelog:
-
-    $ ./changelog.py -V $VERSION
-
-Docs:
-
-    $ ./changelog.py -V $VERSION -l
-
-Wordpress:
-
-    $ ./changelog.py -V $VERSION -H -l
+Update the [ChangeLog](ChangeLog), [doc/1-about.md](doc/1-about.md) files. Also generate HTML
+for the wordpress release announcement.
 
 ## Git Tag
 
@@ -146,7 +119,7 @@ Create the nupkg package:
 
 Install the created icinga2 package locally:
 
-    choco install icinga2 -version 2.6.1 -fdv "%cd%" -source "'%cd%;https://chocolatey.org/api/v2/'"
+    choco install icinga2 -version 2.6.2 -fdv "%cd%" -source "'%cd%;https://chocolatey.org/api/v2/'"
 
 Upload the package to [chocolatey](https://chocolatey.org/packages/upload).
 
