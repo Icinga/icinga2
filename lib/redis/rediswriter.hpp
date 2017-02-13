@@ -40,6 +40,7 @@ public:
 	virtual void Start(bool runtimeCreated) override;
 
 private:
+	void ConnectionThreadProc(void);
 	void HandleEvents(void);
 
 	redisContext *m_Context;
