@@ -36,9 +36,13 @@ void RedisWriter::Start(bool runtimeCreated)
 	boost::thread thread(boost::bind(&RedisWriter::HandleEvents, this));
 	thread.detach();
 
+	String path = GetPath();
 	String host = GetHost();
 
-	m_Context = redisConnect(host.CStr(), GetPort());
+	if (path.IsEmpty())
+		m_Context = redisConnect(host.CStr(), GetPort());
+	else
+		m_Context = redisConnectUnix(path.CStr());
 
 	String password = GetPassword();
 

@@ -32,6 +32,7 @@ class RedisWriter : ConfigObject
 	[config] int port {
 		default {{{ return 6379; }}}
 	};
+	[config] String path;
 	[config] String password;
 };
 
