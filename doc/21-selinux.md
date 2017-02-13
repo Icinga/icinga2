@@ -2,21 +2,21 @@
 
 ## <a id="selinux-introduction"></a> Introduction
 
-SELinux is a mandatory access control (MAC) system on Linux which adds a fine granular permission system for access to all resources on the system such as files, devices, networks and inter-process communication.
+SELinux is a mandatory access control (MAC) system on Linux which adds a fine-grained permission system for access to all system resources such as files, devices, networks and inter-process communication.
 
-The most important questions are answered briefly in the [FAQ of the SELinux Project](http://selinuxproject.org/page/FAQ). For more details on SELinux and how to actually use and administrate it on your systems have a look at [Red Hat Enterprise Linux 7 - SELinux User's and Administrator's Guide](https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/7/html/SELinux_Users_and_Administrators_Guide/index.html). For a simplified (and funny) introduction download the [SELinux Coloring Book](https://github.com/mairin/selinux-coloring-book).
+The most important questions are answered briefly in the [FAQ of the SELinux Project](http://selinuxproject.org/page/FAQ). For more details on SELinux and how to actually use and administrate it on your system have a look at [Red Hat Enterprise Linux 7 - SELinux User's and Administrator's Guide](https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/7/html/SELinux_Users_and_Administrators_Guide/index.html). For a simplified (and funny) introduction download the [SELinux Coloring Book](https://github.com/mairin/selinux-coloring-book).
 
-This documentation will use a similar format like the SELinux User's and Administrator's Guide.
+This documentation will use a format similar to the SELinux User's and Administrator's Guide.
 
 ### <a id="selinux-policy"></a> Policy
 
-Icinga 2 is providing its own SELinux policy. Development target is a policy package for Red Hat Enterprise Linux 7 and its derivatives running the targeted policy which confines Icinga 2 with all features and all checks executed. All other distributions will require some tweaks.
+Icinga 2 provides its own SELinux policy. Development target is a policy package for Red Hat Enterprise Linux 7 and derivatives running the targeted policy which confines Icinga 2 with all features and all checks executed. All other distributions will require some tweaks.
 
 ### <a id="selinux-policy-installation"></a> Installation
 
-There are two ways to install the SELinux Policy for Icinga 2 on Enterprise Linux 7. Installing it from the provided package which is the preferred option and manual installation if you need some fixes not released yet or for development.
+There are two ways of installing the SELinux Policy for Icinga 2 on Enterprise Linux 7. The preferred way is to install the package. The other option involves installing the SELinux policy manually which might be necessary if you need some fixes which haven't made their way into a release yet.
 
-If the system runs in enforcing mode, you can still set icinga2 to run its domain permissive if problems occur, so please make sure to run the system in this mode.
+If the system runs in enforcing mode and you encounter problems you can set Icinga 2's domain to permissive mode.
 
     # sestatus
     SELinux status:                 enabled
@@ -37,7 +37,7 @@ Simply add the `icinga2-selinux` package to your installation.
 
     # yum install icinga2-selinux
 
-After that restart Icinga 2 and verify it running in its own domain `icinga2_t`.
+Ensure that the `icinga2` process is running in its own `icinga2_t` domain after installing the policy package:
 
     # systemctl restart icinga2.service
     # ps -eZ | grep icinga2
@@ -47,13 +47,13 @@ After that restart Icinga 2 and verify it running in its own domain `icinga2_t`.
 
 This section describes the installation to support development and testing. It assumes that Icinga 2 is already installed from packages and running on the system.
 
-As a prerequisite install the `git`, `selinux-policy-devel` and `audit` package. Enable and start the audit daemon afterwards.
+As a prerequisite install the `git`, `selinux-policy-devel` and `audit` packages. Enable and start the audit daemon afterwards:
 
     # yum install git selinux-policy-devel audit
     # systemctl enable auditd.service
     # systemctl start auditd.service
 
-After that clone the icinga2 git repository.
+After that clone the icinga2 git repository:
 
     # git clone https://github.com/icinga/icinga2
 
@@ -72,9 +72,9 @@ After that restart Icinga 2 and verify it running in its own domain `icinga2_t`.
 
 When the SELinux policy package for Icinga 2 is installed, the Icinga 2 daemon (icinga2) runs in its own domain `icinga2_t` and is separated from other confined services.
 
-Files have to be labeled correctly for allowing icinga2 access to it. For example it writes to its own log files labeled `icinga2_log_t`. Also the API port is labeled `icinga_port_t` and icinga2 is allowed to manage it. Furthermore icinga2 can open high ports and unix sockets to connect to databases and features like graphite. It executes the nagios plugins and transitions to their context if those are labeled for example `nagios_services_plugin_exec_t` or `nagios_system_plugin_exec_t`.
+Files have to be labeled correctly in order for Icinga 2 to be able to access them. For example the Icinga 2 log files have to have the `icinga2_log_t` label. Also the API port is labeled with `icinga_port_t`. Furthermore Icinga 2 can open high ports and UNIX sockets to connect to databases and features like Graphite. It executes the Nagios plugins and transitions to their context if those are labeled for example `nagios_services_plugin_exec_t` or `nagios_system_plugin_exec_t`.
 
-Additional the Apache web server is allowed to connect to the Command pipe of Icinga 2 to allow web interfaces sending commands to icinga2. This will perhaps change later on while investigating Icinga Web 2 for SELinux!
+Additionally the Apache web server is allowed to connect to Icinga 2's command pipe in order to allow web interfaces to send commands to icinga2. This will perhaps change later on while investigating Icinga Web 2 for SELinux!
 
 ### <a id="selinux-policy-types"></a> Types
 
