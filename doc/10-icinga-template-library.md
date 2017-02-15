@@ -1814,6 +1814,7 @@ snmp_v3                 | **Optional.** SNMP version to 3. Defaults to false.
 snmp_login              | **Optional.** SNMP version 3 username. Defaults to "snmpuser".
 snmp_password           | **Required.** SNMP version 3 password. No value defined as default.
 snmp_v3_use_privpass    | **Optional.** Define to use SNMP version 3 priv password. Defaults to false.
+snmp_v3_use_authprotocol| **Optional.** Define to use SNMP version 3 authentication protocol. Defaults to false.
 snmp_authprotocol       | **Optional.** SNMP version 3 authentication protocol. Defaults to "md5,des".
 snmp_privpass           | **Required.** SNMP version 3 priv password. No value defined as default.
 snmp_warn               | **Optional.** The warning threshold. Change the `snmp_load_type` var to "netsl" for using 3 values.
@@ -1839,6 +1840,7 @@ snmp_v3                 | **Optional.** SNMP version to 3. Defaults to false.
 snmp_login              | **Optional.** SNMP version 3 username. Defaults to "snmpuser".
 snmp_password           | **Required.** SNMP version 3 password. No value defined as default.
 snmp_v3_use_privpass    | **Optional.** Define to use SNMP version 3 priv password. Defaults to false.
+snmp_v3_use_authprotocol| **Optional.** Define to use SNMP version 3 authentication protocol. Defaults to false.
 snmp_authprotocol       | **Optional.** SNMP version 3 authentication protocol. Defaults to "md5,des".
 snmp_privpass           | **Required.** SNMP version 3 priv password. No value defined as default.
 snmp_warn               | **Optional.** The warning threshold.
@@ -1865,6 +1867,7 @@ snmp_v3                 | **Optional.** SNMP version to 3. Defaults to false.
 snmp_login              | **Optional.** SNMP version 3 username. Defaults to "snmpuser".
 snmp_password           | **Required.** SNMP version 3 password. No value defined as default.
 snmp_v3_use_privpass    | **Optional.** Define to use SNMP version 3 priv password. Defaults to false.
+snmp_v3_use_authprotocol| **Optional.** Define to use SNMP version 3 authentication protocol. Defaults to false.
 snmp_authprotocol       | **Optional.** SNMP version 3 authentication protocol. Defaults to "md5,des".
 snmp_privpass           | **Required.** SNMP version 3 priv password. No value defined as default.
 snmp_warn               | **Optional.** The warning threshold.
@@ -1890,6 +1893,7 @@ snmp_v3                     | **Optional.** SNMP version to 3. Defaults to false
 snmp_login                  | **Optional.** SNMP version 3 username. Defaults to "snmpuser".
 snmp_password               | **Required.** SNMP version 3 password. No value defined as default.
 snmp_v3_use_privpass        | **Optional.** Define to use SNMP version 3 priv password. Defaults to false.
+snmp_v3_use_authprotocol    | **Optional.** Define to use SNMP version 3 authentication protocol. Defaults to false.
 snmp_authprotocol           | **Optional.** SNMP version 3 authentication protocol. Defaults to "md5,des".
 snmp_privpass               | **Required.** SNMP version 3 priv password. No value defined as default.
 snmp_warn                   | **Optional.** The warning threshold.
@@ -1929,6 +1933,7 @@ snmp_v3                 | **Optional.** SNMP version to 3. Defaults to false.
 snmp_login              | **Optional.** SNMP version 3 username. Defaults to "snmpuser".
 snmp_password           | **Required.** SNMP version 3 password. No value defined as default.
 snmp_v3_use_privpass    | **Optional.** Define to use SNMP version 3 priv password. Defaults to false.
+snmp_v3_use_authprotocol| **Optional.** Define to use SNMP version 3 authentication protocol. Defaults to false.
 snmp_authprotocol       | **Optional.** SNMP version 3 authentication protocol. Defaults to "md5,des".
 snmp_privpass           | **Required.** SNMP version 3 priv password. No value defined as default..
 snmp_warn               | **Optional.** The warning threshold.
