@@ -42,7 +42,7 @@ String RepositoryClearChangesCommand::GetShortDescription(void) const
 
 ImpersonationLevel RepositoryClearChangesCommand::GetImpersonationLevel(void) const
 {
-	return ImpersonateRoot;
+	return ImpersonateIcinga;
 }
 
 bool RepositoryClearChangesCommand::IsDeprecated(void) const

@@ -49,7 +49,7 @@ void RepositoryCommitCommand::InitParameters(boost::program_options::options_des
 
 ImpersonationLevel RepositoryCommitCommand::GetImpersonationLevel(void) const
 {
-	return ImpersonateRoot;
+	return ImpersonateIcinga;
 }
 
 bool RepositoryCommitCommand::IsDeprecated(void) const

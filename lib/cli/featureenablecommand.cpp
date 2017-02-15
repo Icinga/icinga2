@@ -53,7 +53,7 @@ int FeatureEnableCommand::GetMaxArguments(void) const
 
 ImpersonationLevel FeatureEnableCommand::GetImpersonationLevel(void) const
 {
-	return ImpersonateRoot;
+	return ImpersonateIcinga;
 }
 
 /**

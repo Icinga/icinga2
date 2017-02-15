@@ -135,7 +135,7 @@ std::vector<String> RepositoryObjectCommand::GetPositionalSuggestions(const Stri
 
 ImpersonationLevel RepositoryObjectCommand::GetImpersonationLevel(void) const
 {
-	return ImpersonateRoot;
+	return ImpersonateIcinga;
 }
 
 int RepositoryObjectCommand::GetMaxArguments(void) const
