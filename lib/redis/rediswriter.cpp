@@ -33,6 +33,9 @@ void RedisWriter::Start(bool runtimeCreated)
 {
 	ObjectImpl<RedisWriter>::Start(runtimeCreated);
 
+	Log(LogInformation, "RedisWriter")
+	    << "'" << GetName() << "' started.";
+
 	boost::thread thread(boost::bind(&RedisWriter::ConnectionThreadProc, this));
 	thread.detach();
 }
@@ -140,4 +143,12 @@ void RedisWriter::HandleEvents(void)
 
 	queue->RemoveClient(this);
 	EventQueue::UnregisterIfUnused(queueName, queue);
+}
+
+void RedisWriter::Stop(bool runtimeRemoved)
+{
+	Log(LogInformation, "RedisWriter")
+	    << "'" << GetName() << "' stopped.";
+
+	ObjectImpl<RedisWriter>::Stop(runtimeRemoved);
 }
