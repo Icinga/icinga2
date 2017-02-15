@@ -38,6 +38,7 @@ public:
 	DECLARE_OBJECTNAME(RedisWriter);
 
 	virtual void Start(bool runtimeCreated) override;
+	virtual void Stop(bool runtimeRemoved) override;
 
 private:
 	void ConnectionThreadProc(void);
