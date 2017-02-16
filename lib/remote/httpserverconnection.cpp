@@ -34,26 +34,13 @@
 
 using namespace icinga;
 
-static boost::once_flag l_HttpServerConnectionOnceFlag = BOOST_ONCE_INIT;
-static Timer::Ptr l_HttpServerConnectionTimeoutTimer;
-
 HttpServerConnection::HttpServerConnection(const String& identity, bool authenticated, const TlsStream::Ptr& stream)
 	: m_Stream(stream), m_Seen(Utility::GetTime()), m_CurrentRequest(stream), m_PendingRequests(0)
 {
-	boost::call_once(l_HttpServerConnectionOnceFlag, &HttpServerConnection::StaticInitialize);
-
 	m_RequestQueue.SetName("HttpServerConnection");
 
 	if (authenticated)
 		m_ApiUser = ApiUser::GetByClientCN(identity);
-}
-
-void HttpServerConnection::StaticInitialize(void)
-{
-	l_HttpServerConnectionTimeoutTimer = new Timer();
-	l_HttpServerConnectionTimeoutTimer->OnTimerExpired.connect(boost::bind(&HttpServerConnection::TimeoutTimerHandler));
-	l_HttpServerConnectionTimeoutTimer->SetInterval(15);
-	l_HttpServerConnectionTimeoutTimer->Start();
 }
 
 void HttpServerConnection::Start(void)
@@ -247,23 +234,5 @@ void HttpServerConnection::DataAvailableHandler(void)
 
 	if (close)
 		Disconnect();
-}
-
-void HttpServerConnection::CheckLiveness(void)
-{
-	if (m_Seen < Utility::GetTime() - 10 && m_PendingRequests == 0) {
-		Log(LogInformation, "HttpServerConnection")
-		    <<  "No messages for Http connection have been received in the last 10 seconds.";
-		Disconnect();
-	}
-}
-
-void HttpServerConnection::TimeoutTimerHandler(void)
-{
-	ApiListener::Ptr listener = ApiListener::GetInstance();
-
-	for (const HttpServerConnection::Ptr& client : listener->GetHttpClients()) {
-		client->CheckLiveness();
-	}
 }
 
