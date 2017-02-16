@@ -140,6 +140,7 @@ apt_include             | **Optional.** Include only packages matching REGEXP. C
 apt_exclude             | **Optional.** Exclude packages matching REGEXP from the list of packages that would otherwise be included. Can be specified multiple times.
 apt_critical            | **Optional.** If the full package information of any of the upgradable packages match this REGEXP, the plugin will return CRITICAL status. Can be specified multiple times.
 apt_timeout             | **Optional.** Seconds before plugin times out (default: 10).
+apt_only_critical       | **Optional.** Only warn about critical upgrades.
 
 
 ### <a id="plugin-check-command-breeze"></a> breeze
