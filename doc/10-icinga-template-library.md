@@ -2506,7 +2506,7 @@ nwc_health_ifspeed		| **Optional.** Override the ifspeed oid of an interface
 nwc_health_units		| **Optional.** One of %, B, KB, MB, GB, Bit, KBi, MBi, GBi. (used for e.g. mode interface-usage)
 nwc_health_name2		| **Optional.** The secondary name of a component.
 nwc_health_role			| **Optional.** The role of this device in a hsrp group (active/standby/listen).
-nwc_health_report		| **Optional.** Can be used to shorten the output.
+nwc_health_report		| **Optional.** Can be used to shorten the output. Possible values are: 'long' (default), 'short' (to shorten if available), or 'html' (to produce some html outputs if available)
 nwc_health_lookback		| **Optional.** The amount of time you want to look back when calculating average rates. Use it for mode interface-errors or interface-usage. Without --lookback the time between two runs of check_nwc_health is the base for calculations. If you want your checkresult to be based for example on the past hour, use --lookback 3600.
 nwc_health_warning		| **Optional.** The warning threshold
 nwc_health_critical		| **Optional.** The critical threshold
