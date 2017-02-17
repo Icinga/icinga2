@@ -288,7 +288,7 @@ disk\_ignore\_eregi\_path | **Optional.** Regular expression to ignore selected 
 disk\_ignore\_ereg\_path  | **Optional.** Regular expression to ignore selected path or partition. Multiple regular expression strings must be defined as array.
 disk\_timeout             | **Optional.** Seconds before connection times out (default: 10).
 disk\_units               | **Optional.** Choose bytes, kB, MB, GB, TB (default: MB).
-disk\_exclude\_type       | **Optional.** Ignore all filesystems of indicated type. Multiple regular expression strings must be defined as array.
+disk\_exclude\_type       | **Optional.** Ignore all filesystems of indicated type. Multiple regular expression strings must be defined as array. Defaults to "none", "tmpfs", "sysfs", "proc", "devtmpfs", "devfs", "mtmfs", "tracefs", "cgroup", "fuse.gvfsd-fuse", "fuse.gvfs-fuse-daemon", "fdescfs".
 
 ### <a id="plugin-check-command-disk-smb"></a> disk_smb
 
