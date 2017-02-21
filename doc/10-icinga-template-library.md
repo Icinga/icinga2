@@ -2276,7 +2276,13 @@ ipmi_no_sel_checking             | **Optional.** Turn off system event log check
 ipmi_verbose                     | **Optional.** Be Verbose multi line output, also with additional details for warnings.
 ipmi_debug                       | **Optional.** Be Verbose debugging output, followed by normal multi line output.
 
+#### <a id="plugin-contrib-command-ipmi-alive"></a> ipmi-alive
 
+With the plugin `ipmi-alive` you can assign a PING check for the IPMI Interface.
+
+Name                             | Description
+---------------------------------|-----------------------------------------------------------------------------------------------------
+ipmi_address                     | **Required.** Specifies the remote host (IPMI device) to check.
 
 
 ### <a id="plugins-contrib-log-management"></a> Log Management
