@@ -186,15 +186,10 @@ void HttpServerConnection::ProcessMessageAsync(HttpRequest& request)
 		response.AddHeader("WWW-Authenticate", "Basic realm=\"Icinga 2\"");
 
 		if (request.Headers->Get("accept") == "application/json") {
-			Dictionary::Ptr result1 = new Dictionary();
-
-			result1->Set("info", "Unauthorized. Please check your user credentials.");
-
-			Array::Ptr results = new Array();
-			results->Add(result1);
-
 			Dictionary::Ptr result = new Dictionary();
-			result->Set("results", results);
+
+			result->Set("error", 401);
+			result->Set("status", "Unauthorized. Please check your user credentials.");
 
 			HttpUtility::SendJsonBody(response, result);
 		} else {
@@ -213,15 +208,10 @@ void HttpServerConnection::ProcessMessageAsync(HttpRequest& request)
 			String errorInfo = DiagnosticInformation(ex);
 
 			if (request.Headers->Get("accept") == "application/json") {
-				Dictionary::Ptr result1 = new Dictionary();
-
-				result1->Set("info", errorInfo);
-
-				Array::Ptr results = new Array();
-				results->Add(result1);
-
 				Dictionary::Ptr result = new Dictionary();
-				result->Set("results", results);
+
+				result->Set("error", 503);
+				result->Set("status", errorInfo);
 
 				HttpUtility::SendJsonBody(response, result);
 			} else {

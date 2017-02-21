@@ -251,6 +251,10 @@ Cache.
 
 #### <a id="graphite-carbon-cache-writer-schema-legacy"></a> Graphite Schema < 2.4
 
+> **Note**
+>
+> This legacy mode will be removed in 2.8.
+
 In order to restore the old legacy schema, you'll need to adopt the `GraphiteWriter`
 configuration:
 

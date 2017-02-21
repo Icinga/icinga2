@@ -62,4 +62,8 @@ if(ICINGA2_WITH_PERFDATA)
   add_subdirectory(perfdata)
 endif()
 
+if(ICINGA2_WITH_REDIS)
+  add_subdirectory(redis)
+endif()
+
 set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "${CPACK_NSIS_EXTRA_INSTALL_COMMANDS}" PARENT_SCOPE)

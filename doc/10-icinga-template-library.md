@@ -140,6 +140,7 @@ apt_include             | **Optional.** Include only packages matching REGEXP. C
 apt_exclude             | **Optional.** Exclude packages matching REGEXP from the list of packages that would otherwise be included. Can be specified multiple times.
 apt_critical            | **Optional.** If the full package information of any of the upgradable packages match this REGEXP, the plugin will return CRITICAL status. Can be specified multiple times.
 apt_timeout             | **Optional.** Seconds before plugin times out (default: 10).
+apt_only_critical       | **Optional.** Only warn about critical upgrades.
 
 
 ### <a id="plugin-check-command-breeze"></a> breeze
@@ -287,7 +288,7 @@ disk\_ignore\_eregi\_path | **Optional.** Regular expression to ignore selected 
 disk\_ignore\_ereg\_path  | **Optional.** Regular expression to ignore selected path or partition. Multiple regular expression strings must be defined as array.
 disk\_timeout             | **Optional.** Seconds before connection times out (default: 10).
 disk\_units               | **Optional.** Choose bytes, kB, MB, GB, TB (default: MB).
-disk\_exclude\_type       | **Optional.** Ignore all filesystems of indicated type. Multiple regular expression strings must be defined as array.
+disk\_exclude\_type       | **Optional.** Ignore all filesystems of indicated type. Multiple regular expression strings must be defined as array. Defaults to "none", "tmpfs", "sysfs", "proc", "devtmpfs", "devfs", "mtmfs", "tracefs", "cgroup", "fuse.gvfsd-fuse", "fuse.gvfs-fuse-daemon", "fdescfs".
 
 ### <a id="plugin-check-command-disk-smb"></a> disk_smb
 
@@ -321,7 +322,6 @@ Name                 | Description
 ---------------------|--------------
 dns_lookup           | **Optional.** The hostname or IP to query the DNS for. Defaults to "$host_name$".
 dns_server           | **Optional.** The DNS server to query. Defaults to the server configured in the OS.
-dns_expected_answer  | **Optional.** The answer to look for. A hostname must end with a dot. **Deprecated in 2.3.**
 dns_expected_answers | **Optional.** The answer(s) to look for. A hostname must end with a dot. Multiple answers must be defined as array.
 dns_authoritative    | **Optional.** Expect the server to send an authoritative answer.
 dns_wtime            | **Optional.** Return warning if elapsed time exceeds value.
@@ -1509,6 +1509,7 @@ perfmon\_win\_crit    | **Optional**. The critical threshold.
 perfmon\_win\_counter | **Required**. The Performance Counter to use. Ex. `\Processor(_Total)\% Idle Time`.
 perfmon\_win\_wait    | **Optional**. Time in milliseconds to wait between data collection (default: 1000).
 perfmon\_win\_type    | **Optional**. Format in which to expect perfomance values. Possible are: long, int64 and double (default).
+perfmon\_win\_syntax  | **Optional**. Use this in the performance output instead of `perfmon\_win\_counter`. Exists for graphice compatibility reasons.
 
 
 ### <a id="windows-plugins-ping-windows"></a> ping-windows
@@ -1814,6 +1815,7 @@ snmp_v3                 | **Optional.** SNMP version to 3. Defaults to false.
 snmp_login              | **Optional.** SNMP version 3 username. Defaults to "snmpuser".
 snmp_password           | **Required.** SNMP version 3 password. No value defined as default.
 snmp_v3_use_privpass    | **Optional.** Define to use SNMP version 3 priv password. Defaults to false.
+snmp_v3_use_authprotocol| **Optional.** Define to use SNMP version 3 authentication protocol. Defaults to false.
 snmp_authprotocol       | **Optional.** SNMP version 3 authentication protocol. Defaults to "md5,des".
 snmp_privpass           | **Required.** SNMP version 3 priv password. No value defined as default.
 snmp_warn               | **Optional.** The warning threshold. Change the `snmp_load_type` var to "netsl" for using 3 values.
@@ -1839,6 +1841,7 @@ snmp_v3                 | **Optional.** SNMP version to 3. Defaults to false.
 snmp_login              | **Optional.** SNMP version 3 username. Defaults to "snmpuser".
 snmp_password           | **Required.** SNMP version 3 password. No value defined as default.
 snmp_v3_use_privpass    | **Optional.** Define to use SNMP version 3 priv password. Defaults to false.
+snmp_v3_use_authprotocol| **Optional.** Define to use SNMP version 3 authentication protocol. Defaults to false.
 snmp_authprotocol       | **Optional.** SNMP version 3 authentication protocol. Defaults to "md5,des".
 snmp_privpass           | **Required.** SNMP version 3 priv password. No value defined as default.
 snmp_warn               | **Optional.** The warning threshold.
@@ -1865,6 +1868,7 @@ snmp_v3                 | **Optional.** SNMP version to 3. Defaults to false.
 snmp_login              | **Optional.** SNMP version 3 username. Defaults to "snmpuser".
 snmp_password           | **Required.** SNMP version 3 password. No value defined as default.
 snmp_v3_use_privpass    | **Optional.** Define to use SNMP version 3 priv password. Defaults to false.
+snmp_v3_use_authprotocol| **Optional.** Define to use SNMP version 3 authentication protocol. Defaults to false.
 snmp_authprotocol       | **Optional.** SNMP version 3 authentication protocol. Defaults to "md5,des".
 snmp_privpass           | **Required.** SNMP version 3 priv password. No value defined as default.
 snmp_warn               | **Optional.** The warning threshold.
@@ -1890,6 +1894,7 @@ snmp_v3                     | **Optional.** SNMP version to 3. Defaults to false
 snmp_login                  | **Optional.** SNMP version 3 username. Defaults to "snmpuser".
 snmp_password               | **Required.** SNMP version 3 password. No value defined as default.
 snmp_v3_use_privpass        | **Optional.** Define to use SNMP version 3 priv password. Defaults to false.
+snmp_v3_use_authprotocol    | **Optional.** Define to use SNMP version 3 authentication protocol. Defaults to false.
 snmp_authprotocol           | **Optional.** SNMP version 3 authentication protocol. Defaults to "md5,des".
 snmp_privpass               | **Required.** SNMP version 3 priv password. No value defined as default.
 snmp_warn                   | **Optional.** The warning threshold.
@@ -1929,6 +1934,7 @@ snmp_v3                 | **Optional.** SNMP version to 3. Defaults to false.
 snmp_login              | **Optional.** SNMP version 3 username. Defaults to "snmpuser".
 snmp_password           | **Required.** SNMP version 3 password. No value defined as default.
 snmp_v3_use_privpass    | **Optional.** Define to use SNMP version 3 priv password. Defaults to false.
+snmp_v3_use_authprotocol| **Optional.** Define to use SNMP version 3 authentication protocol. Defaults to false.
 snmp_authprotocol       | **Optional.** SNMP version 3 authentication protocol. Defaults to "md5,des".
 snmp_privpass           | **Required.** SNMP version 3 priv password. No value defined as default..
 snmp_warn               | **Optional.** The warning threshold.
@@ -4821,5 +4827,3 @@ rbl_server	| **Required** List of RBL servers as an array.
 rbl_warning	| **Optional** Number of blacklisting servers for a warning.
 rbl_critical	| **Optional** Number of blacklisting servers for a critical.
 tbl_timeout	| **Optional** Seconds before plugin times out (default: 15).
-
-

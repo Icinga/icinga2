@@ -11,6 +11,8 @@ policy_module(icinga2, 0.1.3)
 ## </p>
 ## </desc>
 gen_tunable(icinga2_can_connect_all, false)
+gen_tunable(httpd_can_connect_icinga2_api, true)
+gen_tunable(httpd_can_write_icinga2_command, true)
 
 require {
 	type nagios_admin_plugin_t; type nagios_admin_plugin_exec_t;
@@ -29,7 +31,7 @@ type icinga2_t;
 type icinga2_exec_t;
 init_daemon_domain(icinga2_t, icinga2_exec_t)
 
-permissive icinga2_t;
+#permissive icinga2_t;
 
 type icinga2_initrc_exec_t;
 init_script_file(icinga2_initrc_exec_t)
@@ -71,6 +73,7 @@ corenet_port(icinga2_port_t)
 allow icinga2_t self:capability { setgid setuid sys_resource };
 allow icinga2_t self:process { setsched signal setrlimit };
 allow icinga2_t self:fifo_file rw_fifo_file_perms;
+allow icinga2_t self:unix_dgram_socket create_socket_perms;
 allow icinga2_t self:unix_stream_socket create_stream_socket_perms;
 
 list_dirs_pattern(icinga2_t, icinga2_etc_t, icinga2_etc_t)
@@ -114,7 +117,11 @@ auth_use_nsswitch(icinga2_t)
 
 miscfiles_read_localization(icinga2_t)
 
-corecmd_check_exec_shell(icinga2_t)
+corecmd_exec_shell(icinga2_t)
+corecmd_exec_bin(icinga2_t)
+
+kernel_read_system_state(icinga2_t)
+kernel_read_network_state(icinga2_t)
 
 # should be moved to nagios_plugin_template in nagios.if
 icinga2_execstrans(nagios_admin_plugin_exec_t, nagios_admin_plugin_t)
@@ -129,6 +136,7 @@ icinga2_execstrans(nagios_openshift_plugin_exec_t, nagios_openshift_plugin_t)
 # should be moved nagios.te
 nagios_plugin_template(notification)
 icinga2_execstrans(nagios_notification_plugin_exec_t, nagios_notification_plugin_t)
+allow nagios_notification_plugin_t icinga2_etc_t:dir search;
 allow nagios_notification_plugin_t nagios_notification_plugin_exec_t:dir search;
 #permissive nagios_notification_plugin_t;
 corecmd_exec_bin(nagios_notification_plugin_t)
@@ -155,6 +163,8 @@ postgresql_tcp_connect(icinga2_t)
 # graphite is using port 2003 which is lmtp_port_t
 corenet_tcp_connect_lmtp_port(icinga2_t)
 
+# This is for other feature that do not use a confined port
+# or if you run one one with a non standard port.
 tunable_policy(`icinga2_can_connect_all',`
 	corenet_tcp_connect_all_ports(icinga2_t)
 ')
@@ -166,7 +176,16 @@ tunable_policy(`icinga2_can_connect_all',`
 
 optional_policy(`
 	# should be a boolean in apache-policy
-	icinga2_send_commands(httpd_t)
+	tunable_policy(`httpd_can_write_icinga2_command',`
+		icinga2_send_commands(httpd_t)
+	')
+')
+
+optional_policy(`
+	# should be a boolean in apache-policy
+	tunable_policy(`httpd_can_connect_icinga2_api',`
+		corenet_tcp_connect_icinga2_port(httpd_t)
+	')
 ')
 
 ########################################

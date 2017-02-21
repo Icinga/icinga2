@@ -553,7 +553,7 @@ Configuration Attributes:
   service_name_template |**Optional.** Metric prefix for service name. Defaults to "icinga2.$host.name$.services.$service.name$.$service.check_command$".
   enable_send_thresholds | **Optional.** Send additional threshold metrics. Defaults to `false`.
   enable_send_metadata 	| **Optional.** Send additional metadata metrics. Defaults to `false`.
-  enable_legacy_mode	| **Optional.** Enable legacy mode for schema < 2.4. **Note**: This will be removed in future versions.
+  enable_legacy_mode	| **Optional.** Enable legacy mode for schema < 2.4. **Note**: This will be removed in 2.8.
 
 Additional usage examples can be found [here](14-features.md#graphite-carbon-cache-writer).
 
