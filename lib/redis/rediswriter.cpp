@@ -45,7 +45,7 @@ void RedisWriter::ConnectionThreadProc(void)
 	String path = GetPath();
 	String host = GetHost();
 
-	Log(LogInformation, "RedisWriter", "Trying to connecto redis server");
+	Log(LogInformation, "RedisWriter", "Trying to connect to redis server");
 
 	if (path.IsEmpty())
 		m_Context = redisConnect(host.CStr(), GetPort());
