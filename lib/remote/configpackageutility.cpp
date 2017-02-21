@@ -201,9 +201,11 @@ void ConfigPackageUtility::TryActivateStageCallback(const ProcessResult& pr, con
 
 void ConfigPackageUtility::AsyncTryActivateStage(const String& packageName, const String& stageName)
 {
+	VERIFY(Application::GetArgC() >= 1);
+
 	// prepare arguments
 	Array::Ptr args = new Array();
-	args->Add(Application::GetExePath("icinga2"));
+	args->Add(Application::GetExePath(Application::GetArgV()[0]));
 	args->Add("daemon");
 	args->Add("--validate");
 	args->Add("--define");
