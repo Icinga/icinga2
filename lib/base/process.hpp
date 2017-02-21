@@ -73,6 +73,9 @@ public:
 	void SetTimeout(double timeout);
 	double GetTimeout(void) const;
 
+	void SetAdjustPriority(bool adjust);
+	bool GetAdjustPriority(void) const;
+
 	void Run(const boost::function<void (const ProcessResult&)>& callback = boost::function<void (const ProcessResult&)>());
 
 	pid_t GetPID(void) const;
@@ -92,6 +95,7 @@ private:
 	Dictionary::Ptr m_ExtraEnvironment;
 
 	double m_Timeout;
+	bool m_AdjustPriority;
 
 	ProcessHandle m_Process;
 	pid_t m_PID;

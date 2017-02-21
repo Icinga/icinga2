@@ -63,7 +63,7 @@ static boost::once_flag l_ProcessOnceFlag = BOOST_ONCE_INIT;
 static boost::once_flag l_SpawnHelperOnceFlag = BOOST_ONCE_INIT;
 
 Process::Process(const Process::Arguments& arguments, const Dictionary::Ptr& extraEnvironment)
-	: m_Arguments(arguments), m_ExtraEnvironment(extraEnvironment), m_Timeout(600)
+	: m_Arguments(arguments), m_ExtraEnvironment(extraEnvironment), m_Timeout(600), m_AdjustPriority(false)
 #ifdef _WIN32
 	, m_ReadPending(false), m_ReadFailed(false), m_Overlapped()
 #endif /* _WIN32 */
@@ -94,6 +94,7 @@ static Value ProcessSpawnImpl(struct msghdr *msgh, const Dictionary::Ptr& reques
 
 	Array::Ptr arguments = request->Get("arguments");
 	Dictionary::Ptr extraEnvironment = request->Get("extraEnvironment");
+	bool adjustPriority = request->Get("adjustPriority");
 
 	// build argv
 	char **argv = new char *[arguments->GetLength() + 1];
@@ -161,7 +162,7 @@ static Value ProcessSpawnImpl(struct msghdr *msgh, const Dictionary::Ptr& reques
 		(void)close(fds[2]);
 
 #ifdef HAVE_NICE
-		if (nice(5) < 0)
+		if (adjustPriority && nice(5) < 0)
 			Log(LogWarning, "base", "Failed to renice child process.");
 #endif /* HAVE_NICE */
 
@@ -366,12 +367,13 @@ static void StartSpawnProcessHelper(void)
 	l_ProcessControlPID = pid;
 }
 
-static pid_t ProcessSpawn(const std::vector<String>& arguments, const Dictionary::Ptr& extraEnvironment, int fds[3])
+static pid_t ProcessSpawn(const std::vector<String>& arguments, const Dictionary::Ptr& extraEnvironment, bool adjustPriority, int fds[3])
 {
 	Dictionary::Ptr request = new Dictionary();
 	request->Set("command", "spawn");
 	request->Set("arguments", Array::FromVector(arguments));
 	request->Set("extraEnvironment", extraEnvironment);
+	request->Set("adjustPriority", adjustPriority);
 
 	String jrequest = JsonEncode(request);
 	size_t length = jrequest.GetLength();
@@ -577,6 +579,16 @@ void Process::SetTimeout(double timeout)
 double Process::GetTimeout(void) const
 {
 	return m_Timeout;
+}
+
+void Process::SetAdjustPriority(bool adjust)
+{
+	m_AdjustPriority = adjust;
+}
+
+bool Process::GetAdjustPriority(void) const
+{
+	return m_AdjustPriority;
 }
 
 void Process::IOThreadProc(int tid)
@@ -959,7 +971,7 @@ void Process::Run(const boost::function<void(const ProcessResult&)>& callback)
 	fds[1] = outfds[1];
 	fds[2] = outfds[1];
 
-	m_Process = ProcessSpawn(m_Arguments, m_ExtraEnvironment, fds);
+	m_Process = ProcessSpawn(m_Arguments, m_ExtraEnvironment, m_AdjustPriority, fds);
 	m_PID = m_Process;
 
 	Log(LogNotice, "Process")

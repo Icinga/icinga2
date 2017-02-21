@@ -93,6 +93,8 @@ void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkab
 	else
 		process->SetTimeout(checkable->GetCheckTimeout());
 
+	process->SetAdjustPriority(true);
+
 	process->Run(boost::bind(callback, command, _1));
 }
 
