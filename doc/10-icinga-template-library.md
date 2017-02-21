@@ -2296,7 +2296,7 @@ ipmi_exclude_sensor_id           | **Optional.** Exclude sensor matching ipmi_se
 ipmi_exclude_sensor              | **Optional.** Exclude sensor based on IPMI sensor type. (Comma-separated)
 ipmi_exclude_sel                 | **Optional.** Exclude SEL entries of specific sensor types. (comma-separated list).
 ipmi_sensor_id                   | **Optional.** Include sensor matching ipmi_sensor_id.
-ipmi_protocal_lan_version        | **Optional.** Change the protocol LAN version. Defaults to "LAN_2_0".
+ipmi_protocol_lan_version        | **Optional.** Change the protocol LAN version. Defaults to "LAN_2_0".
 ipmi_number_of_active_fans       | **Optional.** Number of fans that should be active. Otherwise a WARNING state is returned.
 ipmi_show_fru                    | **Optional.** Print the product serial number if it is available in the IPMI FRU data.
 ipmi_no_sel_checking             | **Optional.** Turn off system event log checking via ipmi-sel.
