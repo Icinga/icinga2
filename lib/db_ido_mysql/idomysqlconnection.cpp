@@ -475,6 +475,9 @@ void IdoMysqlConnection::AsyncQuery(const String& query, const boost::function<v
 
 	IdoAsyncQuery aq;
 	aq.Query = query;
+	/* XXX: Important: The callback must not immediately execute a query, but enqueue it!
+	 * See https://github.com/Icinga/icinga2/issues/4603 for details.
+	 */
 	aq.Callback = callback;
 	m_AsyncQueries.push_back(aq);
 
@@ -1088,7 +1091,13 @@ void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query, int typeOver
 void IdoMysqlConnection::FinishExecuteQuery(const DbQuery& query, int type, bool upsert)
 {
 	if (upsert && GetAffectedRows() == 0) {
-		InternalExecuteQuery(query, DbQueryDelete | DbQueryInsert);
+
+#ifdef I2_DEBUG /* I2_DEBUG */
+		Log(LogDebug, "IdoMysqlConnection")
+		    << "Rescheduling DELETE/INSERT query: Upsert UPDATE did not affect rows, type " << type << ", table '" << query.Table << "'.";
+#endif /* I2_DEBUG */
+
+		m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::InternalExecuteQuery, this, query, DbQueryDelete | DbQueryInsert), query.Priority);
 
 		return;
 	}
