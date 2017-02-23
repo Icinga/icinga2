@@ -107,6 +107,11 @@ void IdoMysqlConnection::Pause(void)
 
 	DbConnection::Pause();
 
+#ifdef I2_DEBUG /* I2_DEBUG */
+	Log(LogDebug, "IdoMysqlConnection")
+	    << "Rescheduling disconnect task.";
+#endif /* I2_DEBUG */
+
 	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::Disconnect, this), PriorityHigh);
 	m_QueryQueue.Join();
 }
@@ -150,6 +155,11 @@ void IdoMysqlConnection::TxTimerHandler(void)
 
 void IdoMysqlConnection::NewTransaction(void)
 {
+#ifdef I2_DEBUG /* I2_DEBUG */
+	Log(LogDebug, "IdoMysqlConnection")
+	    << "Scheduling new transaction and finishing async queries.";
+#endif /* I2_DEBUG */
+
 	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::InternalNewTransaction, this), PriorityHigh);
 	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::FinishAsyncQueries, this), PriorityHigh);
 }
@@ -167,6 +177,11 @@ void IdoMysqlConnection::InternalNewTransaction(void)
 
 void IdoMysqlConnection::ReconnectTimerHandler(void)
 {
+#ifdef I2_DEBUG /* I2_DEBUG */
+	Log(LogDebug, "IdoMysqlConnection")
+	    << "Scheduling reconnect task.";
+#endif /* I2_DEBUG */
+
 	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::Reconnect, this), PriorityLow);
 }
 
@@ -420,6 +435,11 @@ void IdoMysqlConnection::Reconnect(void)
 
 	UpdateAllObjects();
 
+#ifdef I2_DEBUG /* I2_DEBUG */
+	Log(LogDebug, "IdoMysqlConnection")
+	    << "Scheduling session table clear and finish connect task.";
+#endif /* I2_DEBUG */
+
 	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::ClearTablesBySession, this), PriorityLow);
 
 	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::FinishConnect, this, startTime), PriorityLow);
@@ -461,6 +481,9 @@ void IdoMysqlConnection::AsyncQuery(const String& query, const boost::function<v
 
 	IdoAsyncQuery aq;
 	aq.Query = query;
+	/* XXX: Important: The callback must not immediately execute a query, but enqueue it!
+	 * See https://github.com/Icinga/icinga2/issues/4603 for details.
+	 */
 	aq.Callback = callback;
 	m_AsyncQueries.push_back(aq);
 
@@ -683,6 +706,11 @@ void IdoMysqlConnection::DiscardRows(const IdoMysqlResult& result)
 
 void IdoMysqlConnection::ActivateObject(const DbObject::Ptr& dbobj)
 {
+#ifdef I2_DEBUG /* I2_DEBUG */
+	Log(LogDebug, "IdoMysqlConnection")
+	    << "Scheduling object activation task for '" << dbobj->GetName1() << "!" << dbobj->GetName2() << "'.";
+#endif /* I2_DEBUG */
+
 	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::InternalActivateObject, this, dbobj), PriorityLow);
 }
 
@@ -717,6 +745,11 @@ void IdoMysqlConnection::InternalActivateObject(const DbObject::Ptr& dbobj)
 
 void IdoMysqlConnection::DeactivateObject(const DbObject::Ptr& dbobj)
 {
+#ifdef I2_DEBUG /* I2_DEBUG */
+	Log(LogDebug, "IdoMysqlConnection")
+	    << "Scheduling object deactivation task for '" << dbobj->GetName1() << "!" << dbobj->GetName2() << "'.";
+#endif /* I2_DEBUG */
+
 	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::InternalDeactivateObject, this, dbobj), PriorityLow);
 }
 
@@ -817,6 +850,11 @@ void IdoMysqlConnection::ExecuteQuery(const DbQuery& query)
 {
 	ASSERT(query.Category != DbCatInvalid);
 
+#ifdef I2_DEBUG /* I2_DEBUG */
+	Log(LogDebug, "IdoMysqlConnection")
+	    << "Scheduling execute query task, type " << query.Type << ", table '" << query.Table << "'.";
+#endif /* I2_DEBUG */
+
 	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::InternalExecuteQuery, this, query, -1), query.Priority, true);
 }
 
@@ -824,6 +862,11 @@ void IdoMysqlConnection::ExecuteMultipleQueries(const std::vector<DbQuery>& quer
 {
 	if (queries.empty())
 		return;
+
+#ifdef I2_DEBUG /* I2_DEBUG */
+	Log(LogDebug, "IdoMysqlConnection")
+	    << "Scheduling multiple execute query task, type " << queries[0].Type << ", table '" << queries[0].Table << "'.";
+#endif /* I2_DEBUG */
 
 	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::InternalExecuteMultipleQueries, this, queries), queries[0].Priority, true);
 }
@@ -871,6 +914,13 @@ void IdoMysqlConnection::InternalExecuteMultipleQueries(const std::vector<DbQuer
 		ASSERT(query.Type == DbQueryNewTransaction || query.Category != DbCatInvalid);
 
 		if (!CanExecuteQuery(query)) {
+
+#ifdef I2_DEBUG /* I2_DEBUG */
+			Log(LogDebug, "IdoMysqlConnection")
+			    << "Scheduling multiple execute query task again: Cannot execute query now. Type '"
+			    << query.Type << "', table '" << query.Table << "', queue size: '" << GetPendingQueryCount() << "'.";
+#endif /* I2_DEBUG */
+
 			m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::InternalExecuteMultipleQueries, this, queries), query.Priority);
 			return;
 		}
@@ -902,6 +952,13 @@ void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query, int typeOver
 
 	/* check if there are missing object/insert ids and re-enqueue the query */
 	if (!CanExecuteQuery(query)) {
+
+#ifdef I2_DEBUG /* I2_DEBUG */
+		Log(LogDebug, "IdoMysqlConnection")
+		    << "Scheduling execute query task again: Cannot execute query now. Type '"
+		    << typeOverride << "', table '" << query.Table << "', queue size: '" << GetPendingQueryCount() << "'.";
+#endif /* I2_DEBUG */
+
 		m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::InternalExecuteQuery, this, query, typeOverride), query.Priority);
 		return;
 	}
@@ -918,6 +975,13 @@ void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query, int typeOver
 
 		for (const Dictionary::Pair& kv : query.WhereCriteria) {
 			if (!FieldToEscapedString(kv.first, kv.second, &value)) {
+
+#ifdef I2_DEBUG /* I2_DEBUG */
+				Log(LogDebug, "IdoMysqlConnection")
+				    << "Scheduling execute query task again: Cannot execute query now. Type '"
+				    << typeOverride << "', table '" << query.Table << "', queue size: '" << GetPendingQueryCount() << "'.";
+#endif /* I2_DEBUG */
+
 				m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::InternalExecuteQuery, this, query, -1), query.Priority);
 				return;
 			}
@@ -990,6 +1054,13 @@ void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query, int typeOver
 				continue;
 
 			if (!FieldToEscapedString(kv.first, kv.second, &value)) {
+
+#ifdef I2_DEBUG /* I2_DEBUG */
+				Log(LogDebug, "IdoMysqlConnection")
+				    << "Scheduling execute query task again: Cannot extract required INSERT/UPDATE fields, key '"
+				    << kv.first << "', val '" << kv.second << "', type " << typeOverride << ", table '" << query.Table << "'.";
+#endif /* I2_DEBUG */
+
 				m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::InternalExecuteQuery, this, query, -1), query.Priority);
 				return;
 			}
@@ -1026,7 +1097,13 @@ void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query, int typeOver
 void IdoMysqlConnection::FinishExecuteQuery(const DbQuery& query, int type, bool upsert)
 {
 	if (upsert && GetAffectedRows() == 0) {
-		InternalExecuteQuery(query, DbQueryDelete | DbQueryInsert);
+
+#ifdef I2_DEBUG /* I2_DEBUG */
+		Log(LogDebug, "IdoMysqlConnection")
+		    << "Rescheduling DELETE/INSERT query: Upsert UPDATE did not affect rows, type " << type << ", table '" << query.Table << "'.";
+#endif /* I2_DEBUG */
+
+		m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::InternalExecuteQuery, this, query, DbQueryDelete | DbQueryInsert), query.Priority);
 
 		return;
 	}
@@ -1045,6 +1122,12 @@ void IdoMysqlConnection::FinishExecuteQuery(const DbQuery& query, int type, bool
 
 void IdoMysqlConnection::CleanUpExecuteQuery(const String& table, const String& time_column, double max_age)
 {
+#ifdef I2_DEBUG /* I2_DEBUG */
+		Log(LogDebug, "IdoMysqlConnection")
+		    << "Rescheduling cleanup query for table '" << table << "' and column '"
+		    << time_column << "'. max_age is set to '" << max_age << "'.";
+#endif /* I2_DEBUG */
+
 	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::InternalCleanUpExecuteQuery, this, table, time_column, max_age), PriorityLow, true);
 }
 
