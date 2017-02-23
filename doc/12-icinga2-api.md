@@ -905,9 +905,9 @@ Send a `POST` request to the URL endpoint `/v1/actions/acknowledge-problem`.
   ----------|-----------|--------------
   author    | string    | **Required.** Name of the author, may be empty.
   comment   | string    | **Required.** Comment text, may be empty.
-  expiry    | timestamp | **Optional.** If set, the acknowledgement will vanish after this timestamp.
-  sticky    | boolean   | **Optional.** If `true`, the default, the acknowledgement will remain until the service or host fully recovers.
-  notify    | boolean   | **Optional.** If `true`, a notification will be sent out to contacts to indicate this problem has been acknowledged. The default is false.
+  expiry    | timestamp | **Optional.** Whether the acknowledgement will be removed at the timestamp.
+  sticky    | boolean   | **Optional.** Whether the acknowledgement will be set until the service or host fully recovers. Defaults to `false`.
+  notify    | boolean   | **Optional.** Whether a notification of the `Acknowledgement` type will be sent. Defaults to `false`.
 
 In addition to these parameters a [filter](12-icinga2-api.md#icinga2-api-filters) must be provided. The valid types for this action are `Host` and `Service`.
 

@@ -196,10 +196,10 @@ Dictionary::Ptr ApiActions::AcknowledgeProblem(const ConfigObject::Ptr& object,
 	bool notify = false;
 	double timestamp = 0.0;
 
-	if (params->Contains("sticky"))
+	if (params->Contains("sticky") && HttpUtility::GetLastParameter(params, "sticky"))
 		sticky = AcknowledgementSticky;
 	if (params->Contains("notify"))
-		notify = true;
+		notify = HttpUtility::GetLastParameter(params, "notify");
 	if (params->Contains("expiry"))
 		timestamp = HttpUtility::GetLastParameter(params, "expiry");
 	else
