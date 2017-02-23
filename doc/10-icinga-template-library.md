@@ -2468,6 +2468,7 @@ interfaces_aliases        | **Optional.** Retrieves the interface description.
 interfaces_match_aliases  | **Optional.** Also match against aliases (Option --aliases automatically enabled).
 interfaces_timeout        | **Optional.** Sets the SNMP timeout (in ms).
 interfaces_sleep          | **Optional.** Sleep between every SNMP query (in ms).
+interfaces_names          | **Optional.** If set to true, use ifName instead of ifDescr.
 
 #### <a id="plugin-contrib-command-nwc_health"></a> nwc_health
 
