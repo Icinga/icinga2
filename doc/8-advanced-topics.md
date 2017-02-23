@@ -54,7 +54,7 @@ is removed (may happen before or after the actual end time!).
 ### <a id="scheduling-downtime"></a> Scheduling a downtime
 
 You can schedule a downtime either by using the Icinga 2 API action
-[schedule-downtime](#icinga2-api-actions-schedule-downtime) or
+[schedule-downtime](12-icinga2-api.md#icinga2-api-actions-schedule-downtime) or
 by sending an [external command](14-features.md#external-commands).
 
 
@@ -128,7 +128,7 @@ add useful information for others on repeating incidents (for example
 is primarily accessible using web interfaces.
 
 You can add a comment either by using the Icinga 2 API action
-[add-comment](#icinga2-api-actions-add-comment) or
+[add-comment](12-icinga2-api.md#icinga2-api-actions-add-comment) or
 by sending an [external command](14-features.md#external-commands).
 
 ## <a id="acknowledgements"></a> Acknowledgements
@@ -138,11 +138,11 @@ acknowledge the problem. That way other users will get
 a notification that you're aware of the issue and probably are
 already working on a fix.
 
-Note: Acknowledgements also add a new [comment](#comment-intro)
+Note: Acknowledgements also add a new [comment](8-advanced-topics.md#comments-intro)
 which contains the author and text fields.
 
 You can send an acknowledgement either by using the Icinga 2 API action
-[acknowledge-problem](#icinga2-api-actions-acknowledge-problem) or
+[acknowledge-problem](12-icinga2-api.md#icinga2-api-actions-acknowledge-problem) or
 by sending an [external command](14-features.md#external-commands).
 
 
