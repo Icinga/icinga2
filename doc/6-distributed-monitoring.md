@@ -317,7 +317,7 @@ ensure to collect the required information:
   --------------------|--------------------
   Common name (CN)    | **Required.** By convention this should be the host's FQDN. Defaults to the FQDN.
   Master common name  | **Required.** Use the common name you've specified for your master node before.
-  Establish connection to the master | **Optional.** Whether the client should attempt to connect the to master or not. Defaults to `y`.
+  Establish connection to the master | **Optional.** Whether the client should attempt to connect to the master or not. Defaults to `y`.
   Master endpoint host | **Required if the the client needs to connect to the master.** The master's IP address or FQDN. This information is included in the `Endpoint` object configuration in the `zones.conf` file.
   Master endpoint port | **Optional if the the client needs to connect to the master.** The master's listening port. This information is included in the `Endpoint` object configuration.
   Add more master endpoints | **Optional.** If you have multiple master nodes configured, add them here.
