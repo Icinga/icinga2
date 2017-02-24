@@ -601,8 +601,12 @@ void DbEvents::RemoveDowntimeInternal(std::vector<DbQuery>& queries, const Downt
 
 	Dictionary::Ptr fields3 = new Dictionary();
 	fields3->Set("was_cancelled", downtime->GetWasCancelled() ? 1 : 0);
-	fields3->Set("actual_end_time", DbValue::FromTimestamp(time_bag.first));
-	fields3->Set("actual_end_time_usec", time_bag.second);
+
+	if (downtime->GetFixed() || (!downtime->GetFixed() && downtime->GetTriggerTime() > 0)) {
+		fields3->Set("actual_end_time", DbValue::FromTimestamp(time_bag.first));
+		fields3->Set("actual_end_time_usec", time_bag.second);
+	}
+
 	fields3->Set("is_in_effect", 0);
 	query3.Fields = fields3;
 
