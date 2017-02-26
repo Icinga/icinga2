@@ -342,6 +342,9 @@ cd -
 make install \
 	DESTDIR="%{buildroot}"
 
+# install crash dir
+install -d %{buildroot}%{_localstatedir}/log/%{name}/crash
+
 # install classicui config
 install -D -m 0644 etc/icinga/icinga-classic.htpasswd %{buildroot}%{icingaclassicconfdir}/passwd
 install -D -m 0644 etc/icinga/cgi.cfg %{buildroot}%{icingaclassicconfdir}/cgi.cfg
