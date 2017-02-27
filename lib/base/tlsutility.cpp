@@ -231,7 +231,7 @@ void AddCRLToSSLContext(const boost::shared_ptr<SSL_CTX>& context, const String&
 		    << errinfo_openssl_error(ERR_peek_error()));
 	}
 
-	if (X509_LOOKUP_load_file(lookup, crlPath.CStr(), X509_FILETYPE_PEM) != 0) {
+	if (X509_LOOKUP_load_file(lookup, crlPath.CStr(), X509_FILETYPE_PEM) != 1) {
 		Log(LogCritical, "SSL")
 		    << "Error loading crl file '" << crlPath << "': " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
 		BOOST_THROW_EXCEPTION(openssl_error()
