@@ -68,7 +68,15 @@ bool ModifyObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 		return true;
 	}
 
-	Dictionary::Ptr attrs = params->Get("attrs");
+	Value attrsVal = params->Get("attrs");
+
+	if (attrsVal.GetReflectionType() != Dictionary::TypeInstance) {
+		HttpUtility::SendJsonError(response, 400,
+		    "Invalid type for 'attrs' attribute specified. Dictionary type is required.", Empty);
+		return true;
+	}
+
+	Dictionary::Ptr attrs = attrsVal;
 
 	Array::Ptr results = new Array();
 
