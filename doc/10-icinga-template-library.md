@@ -322,6 +322,7 @@ Name                 | Description
 ---------------------|--------------
 dns_lookup           | **Optional.** The hostname or IP to query the DNS for. Defaults to "$host_name$".
 dns_server           | **Optional.** The DNS server to query. Defaults to the server configured in the OS.
+dns_query_type       | **Optional.** The DNS record query type where TYPE =(A, AAAA, SRV, TXT, MX, ANY). The default query type is 'A' (IPv4 host entry)
 dns_expected_answers | **Optional.** The answer(s) to look for. A hostname must end with a dot. Multiple answers must be defined as array.
 dns_authoritative    | **Optional.** Expect the server to send an authoritative answer.
 dns_wtime            | **Optional.** Return warning if elapsed time exceeds value.
