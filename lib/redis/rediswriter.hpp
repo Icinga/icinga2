@@ -23,10 +23,16 @@
 #include "redis/rediswriter.thpp"
 #include "remote/messageorigin.hpp"
 #include "base/timer.hpp"
+#include "base/workqueue.hpp"
 #include <hiredis/hiredis.h>
 
 namespace icinga
 {
+
+struct RedisSubscriptionInfo
+{
+	std::set<String> EventTypes;
+};
 
 /**
  * @ingroup redis
@@ -37,14 +43,25 @@ public:
 	DECLARE_OBJECT(RedisWriter);
 	DECLARE_OBJECTNAME(RedisWriter);
 
+	RedisWriter(void);
+
 	virtual void Start(bool runtimeCreated) override;
 	virtual void Stop(bool runtimeRemoved) override;
 
 private:
-	void ConnectionThreadProc(void);
+	void ReconnectTimerHandler(void);
+	void TryToReconnect(void);
 	void HandleEvents(void);
+	void HandleEvent(const Dictionary::Ptr& event);
 
+	void UpdateSubscriptionsTimerHandler(void);
+	void UpdateSubscriptions(void);
+
+	Timer::Ptr m_ReconnectTimer;
+	Timer::Ptr m_SubscriptionTimer;
+	WorkQueue m_WorkQueue;
 	redisContext *m_Context;
+	std::map<String, RedisSubscriptionInfo> m_Subscriptions;
 };
 
 }
