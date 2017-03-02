@@ -67,6 +67,10 @@ void RedisWriter::ConnectionThreadProc(void)
 		if (!password.IsEmpty()) {
 			redisReply *reply = reinterpret_cast<redisReply *>(redisCommand(m_Context, "AUTH %s", password.CStr()));
 
+			//TODO: Verify if we can continue here.
+			if (!reply)
+				continue;
+
 			if (reply->type == REDIS_REPLY_STATUS || reply->type == REDIS_REPLY_ERROR) {
 				Log(LogInformation, "RedisWriter")
 				    << "AUTH: " << reply->str;
