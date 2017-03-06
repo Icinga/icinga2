@@ -2226,6 +2226,32 @@ hpasm_privprotocol		| **Optional.** The private protocol for SNMPv3 (des\|aes\|a
 hpasm_servertype		| **Optional.** The type of the server: proliant (default) or bladesystem.
 hpasm_eval-nics			| **Optional.** Check network interfaces (and groups). Try it and report me whyt you think about it. I need to build up some know how on this subject. If you get an error and think, it is not justified for your configuration, please tell me about it. (alwasy send the output of "snmpwalk -On .... 1.3.6.1.4.1.232" and a description how you setup your nics and why it is correct opposed to the plugins error message.
 
+#### <a id="plugin-contrib-command-adaptec-raid"></a> adaptec-raid
+
+The plugin [check_adaptec_raid](https://github.com/thomas-krenn/check_adaptec_raid) is a plugin to monitor Adaptec RAID controller through arcconf.
+
+Name                            | Description
+--------------------------------|-----------------------------------------------------------------------
+adaptec_controller_number	| **Required.** Insert the controller number to monitor.
+
+#### <a id="plugin-contrib-command-lsi-raid"></a> lsi-raid
+
+The plugin [check_lsi_raid](https://github.com/thomas-krenn/check_lsi_raid) is a plugin to monitor MegaRAID RAID controller through storcli.
+
+Name                            | Description
+--------------------------------|-----------------------------------------------------------------------
+lsi_controller_number		| **Required.** Insert the controller number to monitor.
+
+#### <a id="plugin-contrib-command-smart-attributes"></a> smart-attributes
+
+The plugin [check_smart_attributes](https://github.com/thomas-krenn/check_smart_attributes) is a plugin to monitor the SMART values of SSDs and HDDs.
+
+Name                            | Description
+--------------------------------|-----------------------------------------------------------------------
+smart_attributes_config_path	| **Required.** Path to the smart attributes config file (e.g. check_smartdb.json).
+smart_attributes_device		| **Required.** Insert the device name (e.g. /dev/sda) to monitor.
+
+
 
 ### <a id="plugin-contrib-icingacli"></a> IcingaCLI
 
@@ -2275,6 +2301,14 @@ ipmi_no_sel_checking             | **Optional.** Turn off system event log check
 ipmi_verbose                     | **Optional.** Be Verbose multi line output, also with additional details for warnings.
 ipmi_debug                       | **Optional.** Be Verbose debugging output, followed by normal multi line output.
 
+
+#### <a id="plugin-contrib-command-ipmi-alive"></a> ipmi-alive
+
+With the plugin `ipmi-alive` you can assign a PING check for the IPMI Interface.
+
+Name                             | Description
+---------------------------------|-----------------------------------------------------------------------------------------------------
+ipmi_address                     | **Required.** Specifies the remote host (IPMI device) to check.
 
 
 
