@@ -30,7 +30,7 @@ struct config {
 
     struct {
         const char *path;
-    } unix_sock;
+    } unix;
 };
 
 /* The following lines make up our testing "framework" :) */
@@ -97,10 +97,10 @@ static redisContext *connect(struct config config) {
     if (config.type == CONN_TCP) {
         c = redisConnect(config.tcp.host, config.tcp.port);
     } else if (config.type == CONN_UNIX) {
-        c = redisConnectUnix(config.unix_sock.path);
+        c = redisConnectUnix(config.unix.path);
     } else if (config.type == CONN_FD) {
         /* Create a dummy connection just to get an fd to inherit */
-        redisContext *dummy_ctx = redisConnectUnix(config.unix_sock.path);
+        redisContext *dummy_ctx = redisConnectUnix(config.unix.path);
         if (dummy_ctx) {
             int fd = disconnect(dummy_ctx, 1);
             printf("Connecting to inherited fd %d\n", fd);
@@ -224,22 +224,6 @@ static void test_format_commands(void) {
     test_cond(strncmp(cmd,"*3\r\n$3\r\nSET\r\n$7\r\nfoo\0xxx\r\n$3\r\nbar\r\n",len) == 0 &&
         len == 4+4+(3+2)+4+(7+2)+4+(3+2));
     free(cmd);
-
-    sds sds_cmd;
-
-    sds_cmd = sdsempty();
-    test("Format command into sds by passing argc/argv without lengths: ");
-    len = redisFormatSdsCommandArgv(&sds_cmd,argc,argv,NULL);
-    test_cond(strncmp(sds_cmd,"*3\r\n$3\r\nSET\r\n$3\r\nfoo\r\n$3\r\nbar\r\n",len) == 0 &&
-        len == 4+4+(3+2)+4+(3+2)+4+(3+2));
-    sdsfree(sds_cmd);
-
-    sds_cmd = sdsempty();
-    test("Format command into sds by passing argc/argv with lengths: ");
-    len = redisFormatSdsCommandArgv(&sds_cmd,argc,argv,lens);
-    test_cond(strncmp(sds_cmd,"*3\r\n$3\r\nSET\r\n$7\r\nfoo\0xxx\r\n$3\r\nbar\r\n",len) == 0 &&
-        len == 4+4+(3+2)+4+(7+2)+4+(3+2));
-    sdsfree(sds_cmd);
 }
 
 static void test_append_formatted_commands(struct config config) {
@@ -344,12 +328,12 @@ static void test_reply_reader(void) {
 }
 
 static void test_free_null(void) {
-    void *redisCtx = NULL;
+    void *redisContext = NULL;
     void *reply = NULL;
 
     test("Don't fail when redisFree is passed a NULL value: ");
-    redisFree(redisCtx);
-    test_cond(redisCtx == NULL);
+    redisFree(redisContext);
+    test_cond(redisContext == NULL);
 
     test("Don't fail when freeReplyObject is passed a NULL value: ");
     freeReplyObject(reply);
@@ -377,7 +361,7 @@ static void test_blocking_connection_errors(void) {
         strcmp(c->errstr,"Connection refused") == 0);
     redisFree(c);
 
-    test("Returns error when the unix_sock socket path doesn't accept connections: ");
+    test("Returns error when the unix socket path doesn't accept connections: ");
     c = redisConnectUnix((char*)"/tmp/idontexist.sock");
     test_cond(c->err == REDIS_ERR_IO); /* Don't care about the message... */
     redisFree(c);
@@ -498,7 +482,7 @@ static void test_blocking_connection_timeouts(struct config config) {
 
     test("Reconnect properly uses owned parameters: ");
     config.tcp.host = "foo";
-    config.unix_sock.path = "foo";
+    config.unix.path = "foo";
     redisReconnect(c);
     reply = redisCommand(c, "PING");
     test_cond(reply != NULL && reply->type == REDIS_REPLY_STATUS && strcmp(reply->str, "PONG") == 0);
@@ -568,7 +552,7 @@ static void test_invalid_timeout_errors(struct config config) {
 
     c = redisConnectWithTimeout(config.tcp.host, config.tcp.port, config.tcp.timeout);
 
-    test_cond(c->err == REDIS_ERR_IO && strcmp(c->errstr, "Invalid timeout specified") == 0);
+    test_cond(c->err == REDIS_ERR_IO);
     redisFree(c);
 
     test("Set error when an invalid timeout sec value is given to redisConnectWithTimeout: ");
@@ -578,7 +562,7 @@ static void test_invalid_timeout_errors(struct config config) {
 
     c = redisConnectWithTimeout(config.tcp.host, config.tcp.port, config.tcp.timeout);
 
-    test_cond(c->err == REDIS_ERR_IO && strcmp(c->errstr, "Invalid timeout specified") == 0);
+    test_cond(c->err == REDIS_ERR_IO);
     redisFree(c);
 }
 
@@ -752,7 +736,7 @@ int main(int argc, char **argv) {
             .host = "127.0.0.1",
             .port = 6379
         },
-        .unix_sock = {
+        .unix = {
             .path = "/tmp/redis.sock"
         }
     };
@@ -773,7 +757,7 @@ int main(int argc, char **argv) {
             cfg.tcp.port = atoi(argv[0]);
         } else if (argc >= 2 && !strcmp(argv[0],"-s")) {
             argv++; argc--;
-            cfg.unix_sock.path = argv[0];
+            cfg.unix.path = argv[0];
         } else if (argc >= 1 && !strcmp(argv[0],"--skip-throughput")) {
             throughput = 0;
         } else if (argc >= 1 && !strcmp(argv[0],"--skip-inherit-fd")) {
@@ -799,7 +783,7 @@ int main(int argc, char **argv) {
     test_append_formatted_commands(cfg);
     if (throughput) test_throughput(cfg);
 
-    printf("\nTesting against Unix socket connection (%s):\n", cfg.unix_sock.path);
+    printf("\nTesting against Unix socket connection (%s):\n", cfg.unix.path);
     cfg.type = CONN_UNIX;
     test_blocking_connection(cfg);
     test_blocking_connection_timeouts(cfg);
@@ -807,7 +791,7 @@ int main(int argc, char **argv) {
     if (throughput) test_throughput(cfg);
 
     if (test_inherit_fd) {
-        printf("\nTesting against inherited fd (%s):\n", cfg.unix_sock.path);
+        printf("\nTesting against inherited fd (%s):\n", cfg.unix.path);
         cfg.type = CONN_FD;
         test_blocking_connection(cfg);
     }

@@ -127,7 +127,7 @@ static char *seekNewline(char *s, size_t len) {
      * might not have a trailing NULL character. */
     while (pos < _len) {
         while(pos < _len && s[pos] != '\r') pos++;
-        if (pos==_len) {
+        if (s[pos] != '\r') {
             /* Not found. */
             return NULL;
         } else {
