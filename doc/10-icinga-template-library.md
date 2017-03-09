@@ -735,6 +735,7 @@ Name			| Description
 ------------------------|---------------------------------------------------------------
 mysql_hostname		| **Optional.** Host name, IP Address, or unix socket (must be an absolute path).
 mysql_port		| **Optional.** Port number (default: 3306).
+mysql_socket		| **Optional.** Use the specified socket (has no effect if `mysql_hostname` is used).
 mysql_ignore_auth	| **Optional.** Ignore authentication failure and check for mysql connectivity only.
 mysql_database		| **Optional.** Check database with indicated name.
 mysql_file		| **Optional.** Read from the specified client options file.
