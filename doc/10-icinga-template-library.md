@@ -2231,28 +2231,34 @@ hpasm_eval-nics			| **Optional.** Check network interfaces (and groups). Try it 
 
 The plugin [check_adaptec_raid](https://github.com/thomas-krenn/check_adaptec_raid) is a plugin to monitor Adaptec RAID controller through arcconf.
 
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
+
 Name                            | Description
 --------------------------------|-----------------------------------------------------------------------
-adaptec_controller_number       | **Required.** Insert the controller number to monitor.
-arcconf_path                    | **Required.** Insert the path to the arcconf binary, e.g. "/sbin/arcconf".
+adaptec_controller_number       | **Required.** Controller number to monitor.
+arcconf_path                    | **Required.** Path to the `arcconf` binary, e.g. "/sbin/arcconf".
 
 #### <a id="plugin-contrib-command-lsi-raid"></a> lsi-raid
 
 The plugin [check_lsi_raid](https://github.com/thomas-krenn/check_lsi_raid) is a plugin to monitor MegaRAID RAID controller through storcli.
 
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
+
 Name                            | Description
 --------------------------------|-----------------------------------------------------------------------
-lsi_controller_number           | **Required.** Insert the controller number to monitor.
-storcli_path                    | **Required.** Insert the path to the storcli binary, e.g. "/usr/sbin/storcli".
+lsi_controller_number           | **Required.** Controller number to monitor.
+storcli_path                    | **Required.** Path to the `storcli` binary, e.g. "/usr/sbin/storcli".
 
 #### <a id="plugin-contrib-command-smart-attributes"></a> smart-attributes
 
 The plugin [check_smart_attributes](https://github.com/thomas-krenn/check_smart_attributes) is a plugin to monitor the SMART values of SSDs and HDDs.
 
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
+
 Name                            | Description
 --------------------------------|-----------------------------------------------------------------------
 smart_attributes_config_path    | **Required.** Path to the smart attributes config file (e.g. check_smartdb.json).
-smart_attributes_device         | **Required.** Insert the device name (e.g. /dev/sda) to monitor.
+smart_attributes_device         | **Required.** Device name (e.g. /dev/sda) to monitor.
 
 
 ### <a id="plugin-contrib-icingacli"></a> IcingaCLI
@@ -2305,11 +2311,19 @@ ipmi_debug                       | **Optional.** Be Verbose debugging output, fo
 
 #### <a id="plugin-contrib-command-ipmi-alive"></a> ipmi-alive
 
-With the plugin `ipmi-alive` you can assign a PING check for the IPMI Interface.
+`ipmi-alive` allows you to create a ping check for the IPMI Interface.
+
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                             | Description
 ---------------------------------|-----------------------------------------------------------------------------------------------------
-ipmi_address                     | **Required.** Specifies the remote host (IPMI device) to check.
+ping_address                     | **Optional.** The address of the IPMI interface. Defaults to "$address$" if the IPMI interface's `address` attribute is set, "$address6$" otherwise.
+ping_wrta                        | **Optional.** The RTA warning threshold in milliseconds. Defaults to 5000.
+ping_wpl                         | **Optional.** The packet loss warning threshold in %. Defaults to 100.
+ping_crta                        | **Optional.** The RTA critical threshold in milliseconds. Defaults to 5000.
+ping_cpl                         | **Optional.** The packet loss critical threshold in %. Defaults to 100.
+ping_packets                     | **Optional.** The number of packets to send. Defaults to 1.
+ping_timeout                     | **Optional.** The plugin timeout in seconds. Defaults to 0 (no timeout).
 
 
 ### <a id="plugins-contrib-log-management"></a> Log Management
