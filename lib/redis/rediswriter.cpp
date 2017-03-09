@@ -42,13 +42,13 @@ void RedisWriter::Start(bool runtimeCreated)
 
 	m_ReconnectTimer = new Timer();
 	m_ReconnectTimer->SetInterval(15);
-	m_ReconnectTimer->OnTimerExpired.connect(boost::bind(&RedisWriter::TryToReconnect, this));
+	m_ReconnectTimer->OnTimerExpired.connect(boost::bind(&RedisWriter::ReconnectTimerHandler, this));
 	m_ReconnectTimer->Start();
 	m_ReconnectTimer->Reschedule(0);
 
 	m_SubscriptionTimer = new Timer();
 	m_SubscriptionTimer->SetInterval(15);
-	m_SubscriptionTimer->OnTimerExpired.connect(boost::bind(&RedisWriter::UpdateSubscriptions, this));
+	m_SubscriptionTimer->OnTimerExpired.connect(boost::bind(&RedisWriter::UpdateSubscriptionsTimerHandler, this));
 	m_SubscriptionTimer->Start();
 
 	boost::thread thread(boost::bind(&RedisWriter::HandleEvents, this));
@@ -98,6 +98,7 @@ void RedisWriter::TryToReconnect(void)
 
 		if (!reply) {
 			redisFree(m_Context);
+			m_Context = NULL;
 			return;
 		}
 
@@ -117,7 +118,7 @@ void RedisWriter::UpdateSubscriptionsTimerHandler(void)
 
 void RedisWriter::UpdateSubscriptions(void)
 {
-	if (m_Context == NULL)
+	if (!m_Context)
 		return;
 
 	Log(LogInformation, "RedisWriter", "Updating Redis subscriptions");
@@ -126,6 +127,7 @@ void RedisWriter::UpdateSubscriptions(void)
 
 	if (!reply) {
 		redisFree(m_Context);
+		m_Context = NULL;
 		return;
 	}
 
@@ -211,10 +213,22 @@ void RedisWriter::HandleEvents(void)
 
 void RedisWriter::HandleEvent(const Dictionary::Ptr& event)
 {
+	if (!m_Context)
+		return;
+
+	Log(LogInformation, "RedisWriter")
+	    << "Pushing event to Redis: '" << Value(event) << "'.";
+
 	redisReply *reply1 = reinterpret_cast<redisReply *>(redisCommand(m_Context, "INCR icinga:event.idx"));
 
-	if (!reply1)
+	if (!reply1) {
+		redisFree(m_Context);
+		m_Context = NULL;
 		return;
+	}
+
+	Log(LogInformation, "RedisWriter")
+	    << "Called INCR in HandleEvent";
 
 	if (reply1->type == REDIS_REPLY_STATUS || reply1->type == REDIS_REPLY_ERROR) {
 		Log(LogInformation, "RedisWriter")
@@ -236,10 +250,13 @@ void RedisWriter::HandleEvent(const Dictionary::Ptr& event)
 	String body = JsonEncode(event);
 
 	//TODO: Verify that %lld is supported
-	redisReply *reply2 = reinterpret_cast<redisReply *>(redisCommand(m_Context, "SET icinga:event.%lld %s", index, body.CStr()));
+	redisReply *reply2 = reinterpret_cast<redisReply *>(redisCommand(m_Context, "SET icinga:event.%d %s", (int)index, body.CStr()));
 
-	if (!reply2)
+	if (!reply2) {
+		redisFree(m_Context);
+		m_Context = NULL;
 		return;
+	}
 
 	if (reply2->type == REDIS_REPLY_STATUS || reply2->type == REDIS_REPLY_ERROR) {
 		Log(LogInformation, "RedisWriter")
@@ -253,10 +270,13 @@ void RedisWriter::HandleEvent(const Dictionary::Ptr& event)
 
 	freeReplyObject(reply2);
 
-	redisReply *reply3 = reinterpret_cast<redisReply *>(redisCommand(m_Context, "EXPIRE icinga:event.%lld 3600", index, body.CStr()));
+	redisReply *reply3 = reinterpret_cast<redisReply *>(redisCommand(m_Context, "EXPIRE icinga:event.%d 3600", (int)index, body.CStr()));
 
-	if (!reply3)
+	if (!reply3) {
+		redisFree(m_Context);
+		m_Context = NULL;
 		return;
+	}
 
 	if (reply3->type == REDIS_REPLY_STATUS || reply3->type == REDIS_REPLY_ERROR) {
 		Log(LogInformation, "RedisWriter")
@@ -279,10 +299,13 @@ void RedisWriter::HandleEvent(const Dictionary::Ptr& event)
 		if (rsi.EventTypes.find(type) == rsi.EventTypes.end())
 			continue;
 
-		redisReply *reply4 = reinterpret_cast<redisReply *>(redisCommand(m_Context, "LPUSH icinga:event:%s %lld", name.CStr(), index));
+		redisReply *reply4 = reinterpret_cast<redisReply *>(redisCommand(m_Context, "LPUSH icinga:event:%s %d", name.CStr(), (int)index));
 
-		if (!reply4)
+		if (!reply4) {
+			redisFree(m_Context);
+			m_Context = NULL;
 			return;
+		}
 
 		if (reply4->type == REDIS_REPLY_STATUS || reply4->type == REDIS_REPLY_ERROR) {
 			Log(LogInformation, "RedisWriter")
