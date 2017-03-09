@@ -16,6 +16,6 @@
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
 install(
-  FILES databases.conf icingacli.conf ipmi.conf logmanagement.conf network-components.conf operating-system.conf virtualization.conf vmware.conf storage.conf web.conf hardware.conf network-services.conf metrics.conf
+  FILES databases.conf hardware.conf icingacli.conf ipmi.conf logmanagement.conf metrics.conf network-components.conf network-services.conf operating-system.conf raid-controller.conf smart-attributes.conf storage.conf virtualization.conf vmware.conf web.conf
   DESTINATION ${CMAKE_INSTALL_DATADIR}/icinga2/include/plugins-contrib.d
 )
