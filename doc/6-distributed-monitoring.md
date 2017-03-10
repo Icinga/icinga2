@@ -153,15 +153,16 @@ nodes (firewalls, policies, software hardening, etc.), Icinga 2 also provides
 additional security:
 
 * SSL certificates are mandatory for communication between nodes. The CLI commands
-help you create those certs automatically.
+help you create those certificates.
 * Child zones only receive updates (check results, commands, etc.) for their configured objects.
+* Child zones are not allowed to push configuration updates to parent zones.
 * Zones cannot interfere with other zones and influence each other. Each checkable host or service object is assigned to **one zone** only.
 * All nodes in a zone trust each other.
 * [Config sync](6-distributed-monitoring.md#distributed-monitoring-top-down-config-sync) and [remote command endpoint execution](6-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint) is disabled by default.
 
-The underlying protocol is using JSON-RPC events sent over TLS secured
-connections. In case you are interested in specific details, please
-check the source code.
+The underlying protocol uses JSON-RPC event notifications exchanged by nodes.
+The connection is secured by TLS. The message protocol uses an internal API,
+and as such message types and names may change internally and are not documented.
 
 ## <a id="distributed-monitoring-setup-master"></a> Master Setup
 
