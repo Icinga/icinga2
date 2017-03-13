@@ -244,6 +244,21 @@ void RedisWriter::HandleEvent(const Dictionary::Ptr& event)
 	if (!m_Context)
 		return;
 
+	String type = event->Get("type");
+	bool atLeastOneSubscriber = false;
+
+	for (const std::pair<String, RedisSubscriptionInfo>& kv : m_Subscriptions) {
+		const auto& rsi = kv.second;
+
+		if (rsi.EventTypes.find(type) == rsi.EventTypes.end())
+			continue;
+
+		atLeastOneSubscriber = true;
+	}
+
+	if (!atLeastOneSubscriber)
+		return;
+
 	Log(LogInformation, "RedisWriter")
 	    << "Pushing event to Redis: '" << Value(event) << "'.";
 
@@ -317,8 +332,6 @@ void RedisWriter::HandleEvent(const Dictionary::Ptr& event)
 	}
 
 	freeReplyObject(reply3);
-
-	String type = event->Get("type");
 
 	for (const std::pair<String, RedisSubscriptionInfo>& kv : m_Subscriptions) {
 		const auto& name = kv.first;
