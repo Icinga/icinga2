@@ -155,6 +155,7 @@ void RedisWriter::UpdateSubscriptions(void)
 			redisReply *vreply = reinterpret_cast<redisReply *>(redisCommand(m_Context, "GET %s", keyReply->str));
 
 			if (!vreply) {
+				freeReplyObject(reply);
 				redisFree(m_Context);
 				m_Context = NULL;
 				return;
