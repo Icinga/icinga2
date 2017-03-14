@@ -202,6 +202,9 @@ void RedisWriter::UpdateSubscriptions(void)
 		}
 		//TODO
 	}
+
+	Log(LogInformation, "RedisWriter")
+	    << "Current Redis event subscriptions: " << m_Subscriptions.size();
 }
 
 void RedisWriter::HandleEvents(void)
