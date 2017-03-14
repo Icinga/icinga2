@@ -2015,6 +2015,9 @@ mssql_health_regexp              | **Optional.** If set to true, "mssql_health_n
 mssql_health_units               | **Optional.** This is used for a better output of mode=sql and for specifying thresholds for mode=tablespace-free. Possible values are "%", "KB", "MB" and "GB".
 mssql_health_offlineok           | **Optional.** Set this to true if offline databases are perfectly ok for you. Defaults to false.
 mssql_health_commit              | **Optional.** Set this to true to turn on autocommit for the dbd::sybase module. Defaults to false.
+mssql_health_notemp              | **Optional.** Set this to true to ignore temporary databases/tablespaces. Defaults to false.
+mssql_health_nooffline           | **Optional.** Set this to true to ignore offline databases. Defaults to false.
+mssql_health_lookback            | **Optional.** The amount of time you want to look back when calculating average rates.
 
 #### <a id="plugin-contrib-command-mysql_health"></a> mysql_health
 
