@@ -144,7 +144,7 @@ void RedisWriter::UpdateSubscriptions(void)
 		VERIFY(reply->elements % 2 == 0);
 
 		redisReply *cursorReply = reply->element[0];
-		cursor = cursorReply->integer;
+		cursor = Convert::ToLong(cursorReply->str);
 
 		redisReply *keysReply = reply->element[1];
 
