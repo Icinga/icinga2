@@ -57,6 +57,11 @@ private:
 	void UpdateSubscriptionsTimerHandler(void);
 	void UpdateSubscriptions(void);
 
+	/* config dump */
+	void UpdateAllConfigObjects(void);
+	void DumpConfigObject(const ConfigObject::Ptr& object, const String& typeName);
+	static Dictionary::Ptr SerializeObjectAttrs(const Object::Ptr& object, int fieldType);
+
 	Timer::Ptr m_ReconnectTimer;
 	Timer::Ptr m_SubscriptionTimer;
 	WorkQueue m_WorkQueue;

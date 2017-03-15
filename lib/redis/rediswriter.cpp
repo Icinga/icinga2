@@ -109,6 +109,9 @@ void RedisWriter::TryToReconnect(void)
 
 		freeReplyObject(reply);
 	}
+
+	/* Config dump */
+	UpdateAllConfigObjects();
 }
 
 void RedisWriter::UpdateSubscriptionsTimerHandler(void)
