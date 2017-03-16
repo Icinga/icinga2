@@ -202,7 +202,7 @@ void RedisWriter::StateChangedHandler(const ConfigObject::Ptr& object)
 	Type::Ptr type = object->GetReflectionType();
 
 	for (const RedisWriter::Ptr& rw : ConfigType::GetObjectsByType<RedisWriter>()) {
-		rw->m_WorkQueue.Enqueue(boost::bind(&RedisWriter::SendStatusUpdate, rw.get(), object, type->GetName()));
+		rw->m_WorkQueue.Enqueue(boost::bind(&RedisWriter::SendStatusUpdate, rw, object, type->GetName()));
 	}
 }
 
@@ -211,7 +211,7 @@ void RedisWriter::VarsChangedHandler(const ConfigObject::Ptr& object)
 	Type::Ptr type = object->GetReflectionType();
 
 	for (const RedisWriter::Ptr& rw : ConfigType::GetObjectsByType<RedisWriter>()) {
-		rw->m_WorkQueue.Enqueue(boost::bind(&RedisWriter::SendConfigUpdate, rw.get(), object, type->GetName()));
+		rw->m_WorkQueue.Enqueue(boost::bind(&RedisWriter::SendConfigUpdate, rw, object, type->GetName()));
 	}
 }
 
