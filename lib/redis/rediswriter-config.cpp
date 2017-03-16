@@ -63,9 +63,6 @@ void RedisWriter::UpdateAllConfigObjects(void)
 		String typeName = type->GetName();
 
 		/* replace into aka delete insert is faster than a full diff */
-		Log(LogInformation, "RedisWriter")
-		    << "Flushing icinga:config:" << typeName << " before config dump.";
-
 		redisReply *reply1 = reinterpret_cast<redisReply *>(redisCommand(m_Context, "DEL icinga:config:%s", typeName.CStr()));
 
 		if (!reply1) {
@@ -85,9 +82,6 @@ void RedisWriter::UpdateAllConfigObjects(void)
 		}
 
 		freeReplyObject(reply1);
-
-		Log(LogInformation, "RedisWriter")
-		    << "Flushing icinga:status:" << typeName << " before config dump.";
 
 		redisReply *reply2 = reinterpret_cast<redisReply *>(redisCommand(m_Context, "DEL icinga:status:%s", typeName.CStr()));
 
