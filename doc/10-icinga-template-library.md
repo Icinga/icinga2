@@ -2574,7 +2574,7 @@ nwc_health_warning		| **Optional.** The warning threshold
 nwc_health_critical		| **Optional.** The critical threshold
 nwc_health_warningx		| **Optional.** The extended warning thresholds
 nwc_health_criticalx		| **Optional.** The extended critical thresholds
-nwc_health_mitigation		| **Optional.** The parameter allows you to change a critical error to a warning.
+nwc_health_mitigation		| **Optional.** The parameter allows you to change a critical error to a warning (1) or ok (0). 
 nwc_health_selectedperfdata	| **Optional.** The parameter allows you to limit the list of performance data. It's a perl regexp. Only matching perfdata show up in the output.
 nwc_health_morphperfdata	| **Optional.** The parameter allows you to change performance data labels. It's a perl regexp and a substitution. --morphperfdata '(.*)ISATAP(.*)'='$1patasi$2'
 nwc_health_negate		| **Optional.** The parameter allows you to map exit levels, such as warning=critical.
