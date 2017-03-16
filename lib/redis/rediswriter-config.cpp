@@ -130,6 +130,9 @@ Dictionary::Ptr RedisWriter::SerializeObjectAttrs(const Object::Ptr& object, int
 	{
 		Field field = type->GetFieldInfo(fid);
 
+		if ((field.Attributes & fieldType) == 0)
+			continue;
+
 		Value val = object->GetField(fid);
 
 		/* hide attributes which shouldn't be user-visible */
@@ -140,7 +143,7 @@ Dictionary::Ptr RedisWriter::SerializeObjectAttrs(const Object::Ptr& object, int
 		if (field.Attributes & FANavigation && !(field.Attributes & (FAConfig | FAState)))
 			continue;
 
-		Value sval = Serialize(val, fieldType);
+		Value sval = Serialize(val);
 		resultAttrs->Set(field.Name, sval);
 	}
 
