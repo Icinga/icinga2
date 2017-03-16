@@ -111,12 +111,11 @@ void RedisWriter::UpdateAllConfigObjects(void)
 
 		/* fetch all objects and dump them */
 		ConfigType *ctype = dynamic_cast<ConfigType *>(type.get());
+		VERIFY(ctype);
 
-		if (ctype) {
-			for (const ConfigObject::Ptr& object : ctype->GetObjects()) {
-				SendConfigUpdate(object, typeName);
-				SendStatusUpdate(object, typeName);
-			}
+		for (const ConfigObject::Ptr& object : ctype->GetObjects()) {
+			SendConfigUpdate(object, typeName);
+			SendStatusUpdate(object, typeName);
 		}
 	}
 }
@@ -195,8 +194,7 @@ Dictionary::Ptr RedisWriter::SerializeObjectAttrs(const Object::Ptr& object, int
 
 	Dictionary::Ptr resultAttrs = new Dictionary();
 
-	for (int& fid : fids)
-	{
+	for (int& fid : fids) {
 		Field field = type->GetFieldInfo(fid);
 
 		if ((field.Attributes & fieldType) == 0)
