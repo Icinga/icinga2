@@ -146,6 +146,8 @@ void RedisWriter::UpdateSubscriptions(void)
 			Log(LogInformation, "RedisWriter")
 			    << "SCAN " << cursor << " MATCH icinga:subscription:* COUNT 1000: " << reply->str;
 
+			freeReplyObject(reply);
+
 			return;
 		}
 
@@ -173,6 +175,8 @@ void RedisWriter::UpdateSubscriptions(void)
 			if (vreply->type == REDIS_REPLY_STATUS || vreply->type == REDIS_REPLY_ERROR) {
 				Log(LogInformation, "RedisWriter")
 				    << "GET " << keyReply->str << ": " << vreply->str;
+
+				freeReplyObject(vreply);
 
 				continue;
 			}
@@ -281,6 +285,8 @@ void RedisWriter::HandleEvent(const Dictionary::Ptr& event)
 		if (reply->type == REDIS_REPLY_STATUS || reply->type == REDIS_REPLY_ERROR) {
 			Log(LogInformation, "RedisWriter")
 			    << "LPUSH icinga:event:" << kv.first << " " << body << ": " << reply->str;
+
+			freeReplyObject(reply);
 
 			continue;
 		}
