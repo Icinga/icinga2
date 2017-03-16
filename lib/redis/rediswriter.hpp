@@ -45,6 +45,8 @@ public:
 
 	RedisWriter(void);
 
+	static void ConfigStaticInitialize(void);
+
 	virtual void Start(bool runtimeCreated) override;
 	virtual void Stop(bool runtimeRemoved) override;
 
@@ -59,8 +61,13 @@ private:
 
 	/* config dump */
 	void UpdateAllConfigObjects(void);
-	void DumpConfigObject(const ConfigObject::Ptr& object, const String& typeName);
+	void SendConfigUpdate(const ConfigObject::Ptr& object, const String& typeName);
+	void SendStatusUpdate(const ConfigObject::Ptr& object, const String& typeName);
 	static Dictionary::Ptr SerializeObjectAttrs(const Object::Ptr& object, int fieldType);
+
+	static void StateChangedHandler(const ConfigObject::Ptr& object);
+	static void VarsChangedHandler(const ConfigObject::Ptr& object);
+	static void VersionChangedHandler(const ConfigObject::Ptr& object);
 
 	Timer::Ptr m_ReconnectTimer;
 	Timer::Ptr m_SubscriptionTimer;
