@@ -69,6 +69,8 @@ private:
 	static void VarsChangedHandler(const ConfigObject::Ptr& object);
 	static void VersionChangedHandler(const ConfigObject::Ptr& object);
 
+	void AssertOnWorkQueue(void);
+
 	Timer::Ptr m_ReconnectTimer;
 	Timer::Ptr m_SubscriptionTimer;
 	WorkQueue m_WorkQueue;

@@ -55,6 +55,8 @@ void RedisWriter::ConfigStaticInitialize(void)
 //TODO: OnActiveChanged handling.
 void RedisWriter::UpdateAllConfigObjects(void)
 {
+	AssertOnWorkQueue();
+
 	//TODO: Just use config types
 	for (const Type::Ptr& type : Type::GetAllTypes()) {
 		if (!ConfigObject::TypeInstance->IsAssignableFrom(type))
@@ -116,6 +118,8 @@ void RedisWriter::UpdateAllConfigObjects(void)
 
 void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, const String& typeName)
 {
+	AssertOnWorkQueue();
+
 	/* Serialize config object attributes */
 	Dictionary::Ptr objectAttrs = SerializeObjectAttrs(object, FAConfig);
 
@@ -147,6 +151,8 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, const String
 
 void RedisWriter::SendStatusUpdate(const ConfigObject::Ptr& object, const String& typeName)
 {
+	AssertOnWorkQueue();
+
 	/* Serialize config object attributes */
 	Dictionary::Ptr objectAttrs = SerializeObjectAttrs(object, FAState);
 

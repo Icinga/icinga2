@@ -62,6 +62,8 @@ void RedisWriter::ReconnectTimerHandler(void)
 
 void RedisWriter::TryToReconnect(void)
 {
+	AssertOnWorkQueue();
+
 	if (m_Context)
 		return;
 
@@ -121,6 +123,8 @@ void RedisWriter::UpdateSubscriptionsTimerHandler(void)
 
 void RedisWriter::UpdateSubscriptions(void)
 {
+	AssertOnWorkQueue();
+
 	if (!m_Context)
 		return;
 
@@ -252,6 +256,8 @@ void RedisWriter::HandleEvents(void)
 
 void RedisWriter::HandleEvent(const Dictionary::Ptr& event)
 {
+	AssertOnWorkQueue();
+
 	if (!m_Context)
 		return;
 
@@ -294,4 +300,9 @@ void RedisWriter::Stop(bool runtimeRemoved)
 	    << "'" << GetName() << "' stopped.";
 
 	ObjectImpl<RedisWriter>::Stop(runtimeRemoved);
+}
+
+void RedisWriter::AssertOnWorkQueue(void)
+{
+	ASSERT(m_WorkQueue.IsWorkerThread());
 }
