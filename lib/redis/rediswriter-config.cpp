@@ -41,9 +41,10 @@ value: JsonEncode(Serialize(object, FAState))
 //TODO: OnActiveChanged handling.
 void RedisWriter::UpdateAllConfigObjects(void)
 {
-
 	//TODO: Just use config types
 	for (const Type::Ptr& type : Type::GetAllTypes()) {
+		if (!ConfigObject::TypeInstance->IsAssignableFrom(type))
+			continue;
 
 		String typeName = type->GetName();
 
