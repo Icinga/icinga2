@@ -65,45 +65,25 @@ void RedisWriter::UpdateAllConfigObjects(void)
 		String typeName = type->GetName();
 
 		/* replace into aka delete insert is faster than a full diff */
-		redisReply *reply1 = reinterpret_cast<redisReply *>(redisCommand(m_Context, "DEL icinga:config:%s", typeName.CStr()));
+		redisReply *reply = reinterpret_cast<redisReply *>(redisCommand(m_Context, "DEL icinga:config:%s icinga:status:%s", typeName.CStr(), typeName.CStr()));
 
-		if (!reply1) {
+		if (!reply) {
 			redisFree(m_Context);
 			m_Context = NULL;
 			return;
 		}
 
-		if (reply1->type == REDIS_REPLY_STATUS || reply1->type == REDIS_REPLY_ERROR) {
+		if (reply->type == REDIS_REPLY_STATUS || reply->type == REDIS_REPLY_ERROR) {
 			Log(LogInformation, "RedisWriter")
-			    << "DEL icinga:config:" << typeName << ": " << reply1->str;
+			    << "DEL icinga:config:" << typeName << ": " << reply->str;
 		}
 
-		if (reply1->type == REDIS_REPLY_ERROR) {
-			freeReplyObject(reply1);
+		if (reply->type == REDIS_REPLY_ERROR) {
+			freeReplyObject(reply);
 			return;
 		}
 
-		freeReplyObject(reply1);
-
-		redisReply *reply2 = reinterpret_cast<redisReply *>(redisCommand(m_Context, "DEL icinga:status:%s", typeName.CStr()));
-
-		if (!reply2) {
-			redisFree(m_Context);
-			m_Context = NULL;
-			return;
-		}
-
-		if (reply2->type == REDIS_REPLY_STATUS || reply2->type == REDIS_REPLY_ERROR) {
-			Log(LogInformation, "RedisWriter")
-			    << "DEL icinga:status:" << typeName << ": " << reply2->str;
-		}
-
-		if (reply2->type == REDIS_REPLY_ERROR) {
-			freeReplyObject(reply2);
-			return;
-		}
-
-		freeReplyObject(reply2);
+		freeReplyObject(reply);
 
 		/* fetch all objects and dump them */
 		ConfigType *ctype = dynamic_cast<ConfigType *>(type.get());
