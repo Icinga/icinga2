@@ -135,6 +135,19 @@ bool Dependency::IsAvailable(DependencyType dt) const
 		return true;
 	}
 
+  /* fail if parent is in downtime  */
+  if (!GetIgnoreDowntime() && parent->IsInDowntime()) {
+      if (dt == DependencyCheckExecution && GetDisableChecks()) {
+          Log(LogNotice, "Dependency")
+            << "Dependency '" << GetName() << "' failed: Parent " << (parentService ? "service" : "host") << " '" << parent->GetName() << "' is in Downtime: Checks are disabled.";
+          return false;
+      } else if (dt == DependencyNotification && GetDisableNotifications()) {
+          Log(LogNotice, "Dependency")
+            << "Dependency '" << GetName() << "' failed: Parent " << (parentService ? "service" : "host") << " '" << parent->GetName() << "' is in Downtime: Notifications are disabled.";
+          return false;
+      }
+  }
+
 	/* ignore pending  */
 	if (!parent->GetLastCheckResult()) {
 		Log(LogNotice, "Dependency")

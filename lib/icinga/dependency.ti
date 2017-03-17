@@ -111,6 +111,9 @@ class Dependency : CustomVarObject < DependencyNameComposer
 	[config] bool disable_notifications {
 		default {{{ return true; }}}
 	};
+	[config] bool ignore_downtime {
+		default {{{ return true; }}}
+	};
 };
 
 }
