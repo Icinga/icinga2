@@ -112,6 +112,25 @@ void RedisWriter::TryToReconnect(void)
 		freeReplyObject(reply);
 	}
 
+	int dbIndex = GetDbIndex();
+
+	if (dbIndex != 0) {
+		redisReply *reply = reinterpret_cast<redisReply *>(redisCommand(m_Context, "SELECT %d", dbIndex));
+
+		if (!reply) {
+			redisFree(m_Context);
+			m_Context = NULL;
+			return;
+		}
+
+		if (reply->type == REDIS_REPLY_STATUS || reply->type == REDIS_REPLY_ERROR) {
+			Log(LogInformation, "RedisWriter")
+			    << "SELECT " << dbIndex << ": " << reply->str;
+		}
+
+		freeReplyObject(reply);
+	}
+
 	/* Config dump */
 	UpdateAllConfigObjects();
 }
