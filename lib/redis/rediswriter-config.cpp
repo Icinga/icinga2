@@ -19,9 +19,12 @@
 
 #include "redis/rediswriter.hpp"
 #include "icinga/customvarobject.hpp"
+#include "icinga/host.hpp"
+#include "icinga/service.hpp"
 #include "base/json.hpp"
 #include "base/logger.hpp"
 #include "base/serializer.hpp"
+#include "base/tlsutility.hpp"
 #include "base/initialize.hpp"
 
 using namespace icinga;
@@ -52,12 +55,10 @@ void RedisWriter::ConfigStaticInitialize(void)
 	ConfigObject::OnVersionChanged.connect(boost::bind(&RedisWriter::VersionChangedHandler, _1));
 }
 
-//TODO: OnActiveChanged handling.
 void RedisWriter::UpdateAllConfigObjects(void)
 {
 	AssertOnWorkQueue();
 
-	//TODO: Just use config types
 	for (const Type::Ptr& type : Type::GetAllTypes()) {
 		if (!ConfigObject::TypeInstance->IsAssignableFrom(type))
 			continue;
@@ -108,25 +109,62 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, const String
 	//TODO: checksum
 	String objectName = object->GetName();
 
-	redisReply *reply = reinterpret_cast<redisReply *>(redisCommand(m_Context, "HSET icinga:config:%s %s %s", typeName.CStr(), objectName.CStr(), jsonBody.CStr()));
+	redisReply *reply1 = reinterpret_cast<redisReply *>(redisCommand(m_Context, "HSET icinga:config:%s %s %s", typeName.CStr(), objectName.CStr(), jsonBody.CStr()));
 
-	if (!reply) {
+	if (!reply1) {
 		redisFree(m_Context);
 		m_Context = NULL;
 		return;
 	}
 
-	if (reply->type == REDIS_REPLY_STATUS || reply->type == REDIS_REPLY_ERROR) {
+	if (reply1->type == REDIS_REPLY_STATUS || reply1->type == REDIS_REPLY_ERROR) {
 		Log(LogInformation, "RedisWriter")
-		    << "HSET icinga:config:" << typeName << " " << objectName << " " << jsonBody << ": " << reply->str;
+		    << "HSET icinga:config:" << typeName << " " << objectName << " " << jsonBody << ": " << reply1->str;
 	}
 
-	if (reply->type == REDIS_REPLY_ERROR) {
-		freeReplyObject(reply);
+	if (reply1->type == REDIS_REPLY_ERROR) {
+		freeReplyObject(reply1);
 		return;
 	}
 
-	freeReplyObject(reply);
+	freeReplyObject(reply1);
+
+
+	/* check sums */
+	/* hset icinga:config:Host:checksums localhost { "name_checksum": "...", "properties_checksum": "...", "groups_checksum": "...", "vars_checksum": null } */
+	Dictionary::Ptr checkSum = new Dictionary();
+
+	checkSum->Set("name_checksum", CalculateCheckSumString(object->GetName()));
+
+	if (object->GetReflectionType() == Host::TypeInstance) {
+		Host::Ptr host = static_pointer_cast<Host>(object);
+		checkSum->Set("groups_checksum", CalculateCheckSumGroups(host->GetGroups()));
+	} else if (object->GetReflectionType() == Service::TypeInstance) {
+		Service::Ptr service = static_pointer_cast<Service>(object);
+		checkSum->Set("groups_checksum", CalculateCheckSumGroups(service->GetGroups()));
+	}
+
+	String checkSumBody = JsonEncode(checkSum);
+
+	redisReply *reply2 = reinterpret_cast<redisReply *>(redisCommand(m_Context, "HSET icinga:config:%s:checksum %s %s", typeName.CStr(), objectName.CStr(), checkSumBody.CStr()));
+
+	if (!reply2) {
+		redisFree(m_Context);
+		m_Context = NULL;
+		return;
+	}
+
+	if (reply2->type == REDIS_REPLY_STATUS || reply2->type == REDIS_REPLY_ERROR) {
+		Log(LogInformation, "RedisWriter")
+		    << "HSET icinga:config:" << typeName << " " << objectName << " " << jsonBody << ": " << reply2->str;
+	}
+
+	if (reply2->type == REDIS_REPLY_ERROR) {
+		freeReplyObject(reply2);
+		return;
+	}
+
+	freeReplyObject(reply2);
 }
 
 void RedisWriter::SendStatusUpdate(const ConfigObject::Ptr& object, const String& typeName)
@@ -160,41 +198,6 @@ void RedisWriter::SendStatusUpdate(const ConfigObject::Ptr& object, const String
 	}
 
 	freeReplyObject(reply);
-}
-
-Dictionary::Ptr RedisWriter::SerializeObjectAttrs(const Object::Ptr& object, int fieldType)
-{
-	Type::Ptr type = object->GetReflectionType();
-
-	std::vector<int> fids;
-
-	for (int fid = 0; fid < type->GetFieldCount(); fid++) {
-		fids.push_back(fid);
-	}
-
-	Dictionary::Ptr resultAttrs = new Dictionary();
-
-	for (int& fid : fids) {
-		Field field = type->GetFieldInfo(fid);
-
-		if ((field.Attributes & fieldType) == 0)
-			continue;
-
-		Value val = object->GetField(fid);
-
-		/* hide attributes which shouldn't be user-visible */
-		if (field.Attributes & FANoUserView)
-			continue;
-
-		/* hide internal navigation fields */
-		if (field.Attributes & FANavigation && !(field.Attributes & (FAConfig | FAState)))
-			continue;
-
-		Value sval = Serialize(val);
-		resultAttrs->Set(field.Name, sval);
-	}
-
-	return resultAttrs;
 }
 
 void RedisWriter::StateChangedHandler(const ConfigObject::Ptr& object)
