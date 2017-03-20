@@ -76,7 +76,7 @@ void RedisWriter::UpdateAllConfigObjects(void)
 
 		if (reply->type == REDIS_REPLY_STATUS || reply->type == REDIS_REPLY_ERROR) {
 			Log(LogInformation, "RedisWriter")
-			    << "DEL icinga:config:" << typeName << ": " << reply->str;
+			    << "DEL icinga:config:" << typeName << " icinga:status:" << typeName << ": " << reply->str;
 		}
 
 		if (reply->type == REDIS_REPLY_ERROR) {
