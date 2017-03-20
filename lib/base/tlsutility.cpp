@@ -622,7 +622,7 @@ String SHA1(const String& s, bool binary)
 	}
 
 	if (binary)
-		return String(reinterpret_cast<const char*>(digest));
+		return String(reinterpret_cast<const char*>(digest), reinterpret_cast<const char *>(digest + SHA_DIGEST_LENGTH));
 
 	char output[SHA_DIGEST_LENGTH*2+1];
 	for (int i = 0; i < 20; i++)
