@@ -38,25 +38,20 @@ String RedisWriter::FormatCheckSumBinary(const String& str)
 
 String RedisWriter::CalculateCheckSumString(const String& str)
 {
-	return SHA1(str, true);
+	return SHA1(str);
 }
 
 String RedisWriter::CalculateCheckSumGroups(const Array::Ptr& groups)
 {
 	String output;
 
-	bool first = true;
+	ObjectLock olock(groups);
 
 	for (const String& group : groups) {
-		if (first)
-			first = false;
-		else
-			output += ";";
-
 		output += SHA1(group, true); //binary checksum required here
 	}
 
-	return SHA1(output, false);
+	return SHA1(output);
 }
 
 String RedisWriter::CalculateCheckSumAttrs(const Dictionary::Ptr& attrs)
