@@ -59,6 +59,26 @@ void RedisWriter::UpdateAllConfigObjects(void)
 {
 	AssertOnWorkQueue();
 
+	redisReply *reply1 = reinterpret_cast<redisReply *>(redisCommand(m_Context, "MULTI"));
+
+	if (!reply1) {
+		redisFree(m_Context);
+		m_Context = NULL;
+		return;
+	}
+
+	if (reply1->type == REDIS_REPLY_ERROR) {
+		Log(LogInformation, "RedisWriter")
+		    << "MULTI: " << reply1->str;
+	}
+
+	if (reply1->type == REDIS_REPLY_ERROR) {
+		freeReplyObject(reply1);
+		return;
+	}
+
+	freeReplyObject(reply1);
+
 	for (const Type::Ptr& type : Type::GetAllTypes()) {
 		if (!ConfigObject::TypeInstance->IsAssignableFrom(type))
 			continue;
@@ -66,25 +86,25 @@ void RedisWriter::UpdateAllConfigObjects(void)
 		String typeName = type->GetName();
 
 		/* replace into aka delete insert is faster than a full diff */
-		redisReply *reply = reinterpret_cast<redisReply *>(redisCommand(m_Context, "DEL icinga:config:%s icinga:status:%s", typeName.CStr(), typeName.CStr()));
+		redisReply *reply2 = reinterpret_cast<redisReply *>(redisCommand(m_Context, "DEL icinga:config:%s icinga:status:%s", typeName.CStr(), typeName.CStr()));
 
-		if (!reply) {
+		if (!reply2) {
 			redisFree(m_Context);
 			m_Context = NULL;
 			return;
 		}
 
-		if (reply->type == REDIS_REPLY_STATUS || reply->type == REDIS_REPLY_ERROR) {
+		if (reply2->type == REDIS_REPLY_ERROR) {
 			Log(LogInformation, "RedisWriter")
-			    << "DEL icinga:config:" << typeName << " icinga:status:" << typeName << ": " << reply->str;
+			    << "DEL icinga:config:" << typeName << " icinga:status:" << typeName << ": " << reply2->str;
 		}
 
-		if (reply->type == REDIS_REPLY_ERROR) {
-			freeReplyObject(reply);
+		if (reply2->type == REDIS_REPLY_ERROR) {
+			freeReplyObject(reply2);
 			return;
 		}
 
-		freeReplyObject(reply);
+		freeReplyObject(reply2);
 
 		/* fetch all objects and dump them */
 		ConfigType *ctype = dynamic_cast<ConfigType *>(type.get());
@@ -95,6 +115,26 @@ void RedisWriter::UpdateAllConfigObjects(void)
 			SendStatusUpdate(object, typeName);
 		}
 	}
+
+	redisReply *reply3 = reinterpret_cast<redisReply *>(redisCommand(m_Context, "EXEC"));
+
+	if (!reply3) {
+		redisFree(m_Context);
+		m_Context = NULL;
+		return;
+	}
+
+	if (reply3->type == REDIS_REPLY_ERROR) {
+		Log(LogInformation, "RedisWriter")
+		    << "EXEC: " << reply3->str;
+	}
+
+	if (reply3->type == REDIS_REPLY_ERROR) {
+		freeReplyObject(reply3);
+		return;
+	}
+
+	freeReplyObject(reply3);
 }
 
 void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, const String& typeName)
@@ -117,7 +157,7 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, const String
 		return;
 	}
 
-	if (reply1->type == REDIS_REPLY_STATUS || reply1->type == REDIS_REPLY_ERROR) {
+	if (reply1->type == REDIS_REPLY_ERROR) {
 		Log(LogInformation, "RedisWriter")
 		    << "HSET icinga:config:" << typeName << " " << objectName << " " << jsonBody << ": " << reply1->str;
 	}
@@ -154,7 +194,7 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, const String
 		return;
 	}
 
-	if (reply2->type == REDIS_REPLY_STATUS || reply2->type == REDIS_REPLY_ERROR) {
+	if (reply2->type == REDIS_REPLY_ERROR) {
 		Log(LogInformation, "RedisWriter")
 		    << "HSET icinga:config:" << typeName << " " << objectName << " " << jsonBody << ": " << reply2->str;
 	}
@@ -187,7 +227,7 @@ void RedisWriter::SendStatusUpdate(const ConfigObject::Ptr& object, const String
 		return;
 	}
 
-	if (reply->type == REDIS_REPLY_STATUS || reply->type == REDIS_REPLY_ERROR) {
+	if (reply->type == REDIS_REPLY_ERROR) {
 		Log(LogInformation, "RedisWriter")
 		    << "HSET icinga:status:" << typeName << " " << objectName << " " << jsonBody << ": " << reply->str;
 	}
