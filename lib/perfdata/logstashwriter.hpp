@@ -17,33 +17,37 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef GELFWRITER_H
-#define GELFWRITER_H
+#ifndef LOGSTASHWRITER_H
+#define LOGSTASHWRITER_H
 
-#include "perfdata/gelfwriter.thpp"
+#include "perfdata/logstashwriter.thpp"
 #include "icinga/service.hpp"
 #include "base/configobject.hpp"
 #include "base/tcpsocket.hpp"
+#include "base/udpsocket.hpp"
 #include "base/timer.hpp"
 #include <fstream>
+#include <string>
 
 namespace icinga
 {
 
 /**
- * An Icinga gelf writer.
+ * An Icinga logstash writer.
  *
  * @ingroup perfdata
  */
-class GelfWriter : public ObjectImpl<GelfWriter>
+class LogstashWriter : public ObjectImpl<LogstashWriter>
 {
+
 public:
-	DECLARE_OBJECT(GelfWriter);
-	DECLARE_OBJECTNAME(GelfWriter);
+	DECLARE_OBJECT(LogstashWriter);
+	DECLARE_OBJECTNAME(LogstashWriter);
+
+	virtual void ValidateSocketType(const String& value, const ValidationUtils& utils) override;
 
 protected:
 	virtual void Start(bool runtimeCreated) override;
-	virtual void Stop(bool runtimeRemoved) override;
 
 private:
 	Stream::Ptr m_Stream;
@@ -54,14 +58,15 @@ private:
 	void NotificationToUserHandler(const Notification::Ptr& notification, const Checkable::Ptr& checkable,
 	const User::Ptr& user, NotificationType notification_type, CheckResult::Ptr const& cr,
 	const String& author, const String& comment_text, const String& command_name);
-	String ComposeGelfMessage(const Dictionary::Ptr& fields, const String& source, double ts);
 	void StateChangeHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, StateType type);
-	void SendLogMessage(const String& gelf);
+	void SendLogMessage(const String& message);
+	String ComposeLogstashMessage(const Dictionary::Ptr& fields, const String& source, double ts);
+
+	static String EscapeMetricLabel(const String& str);
 
 	void ReconnectTimerHandler(void);
 };
 
 }
 
-#endif /* GELFWRITER_H */
-
+#endif /* LOGSTASHWRITER_H */

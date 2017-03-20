@@ -51,6 +51,7 @@ public:
 	size_t Write(const void *buffer, size_t size);
 
 	void Listen(void);
+	void Connect(const String& node, const String& service);
 	Socket::Ptr Accept(void);
 
 	bool Poll(bool read, bool write, struct timeval *timeout = NULL);
@@ -60,14 +61,17 @@ public:
 	static void SocketPair(SOCKET s[2]);
 
 protected:
+	Socket(int socketType, int protocol);
+
 	void SetFD(SOCKET fd);
 
 	int GetError(void) const;
-
 	mutable boost::mutex m_SocketMutex;
 
 private:
 	SOCKET m_FD; /**< The socket descriptor. */
+	int m_SocketType;
+	int m_Protocol;
 
 	static String GetAddressFromSockaddr(sockaddr *address, socklen_t len);
 };
