@@ -77,15 +77,9 @@ Dictionary::Ptr RedisWriter::SerializeObjectAttrs(const Object::Ptr& object, int
 {
 	Type::Ptr type = object->GetReflectionType();
 
-	std::vector<int> fids;
-
-	for (int fid = 0; fid < type->GetFieldCount(); fid++) {
-		fids.push_back(fid);
-	}
-
 	Dictionary::Ptr resultAttrs = new Dictionary();
 
-	for (int& fid : fids) {
+	for (int fid = 0; fid < type->GetFieldCount(); fid++) {
 		Field field = type->GetFieldInfo(fid);
 
 		if ((field.Attributes & fieldType) == 0)
