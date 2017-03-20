@@ -384,7 +384,7 @@ Example on CentOS 7 and UDP as socket type:
 
 ```
 /usr/share/logstash/bin/logstash-plugin install logstash-input-udp
-/usr/share/logstash/bin/logstash-plugin install logstash-input-json
+/usr/share/logstash/bin/logstash-plugin install logstash-codec-json
 ```
 
 Add the Icinga 2 input and set the output to your running Elasticsearch instance.
