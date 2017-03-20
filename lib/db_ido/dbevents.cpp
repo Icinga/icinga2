@@ -693,6 +693,7 @@ void DbEvents::TriggerDowntime(const Downtime::Ptr& downtime)
 	query3.Fields = fields3;
 
 	query3.WhereCriteria = new Dictionary();
+	query3.WhereCriteria->Set("object_id", checkable);
 	query3.WhereCriteria->Set("internal_downtime_id", downtime->GetLegacyId());
 	query3.WhereCriteria->Set("entry_time", DbValue::FromTimestamp(downtime->GetEntryTime()));
 	query3.WhereCriteria->Set("scheduled_start_time", DbValue::FromTimestamp(downtime->GetStartTime()));
