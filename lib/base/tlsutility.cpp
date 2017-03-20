@@ -591,6 +591,46 @@ String PBKDF2_SHA1(const String& password, const String& salt, int iterations)
 	return output;
 }
 
+String SHA1(const String& s, bool binary)
+{
+	char errbuf[120];
+	SHA_CTX context;
+	unsigned char digest[SHA_DIGEST_LENGTH];
+
+	if (!SHA1_Init(&context)) {
+		Log(LogCritical, "SSL")
+		    << "Error on SHA Init: " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
+		BOOST_THROW_EXCEPTION(openssl_error()
+		    << boost::errinfo_api_function("SHA1_Init")
+		    << errinfo_openssl_error(ERR_peek_error()));
+	}
+
+	if (!SHA1_Update(&context, (unsigned char*)s.CStr(), s.GetLength())) {
+		Log(LogCritical, "SSL")
+		    << "Error on SHA Update: " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
+		BOOST_THROW_EXCEPTION(openssl_error()
+		    << boost::errinfo_api_function("SHA1_Update")
+		    << errinfo_openssl_error(ERR_peek_error()));
+	}
+
+	if (!SHA1_Final(digest, &context)) {
+		Log(LogCritical, "SSL")
+		    << "Error on SHA Final: " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
+		BOOST_THROW_EXCEPTION(openssl_error()
+		    << boost::errinfo_api_function("SHA1_Final")
+		    << errinfo_openssl_error(ERR_peek_error()));
+	}
+
+	if (binary)
+		return String(reinterpret_cast<const char*>(digest));
+
+	char output[SHA_DIGEST_LENGTH*2+1];
+	for (int i = 0; i < 20; i++)
+		sprintf(output + 2 * i, "%02x", digest[i]);
+
+	return output;
+}
+
 String SHA256(const String& s)
 {
 	char errbuf[120];

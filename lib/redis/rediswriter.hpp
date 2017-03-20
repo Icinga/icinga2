@@ -59,10 +59,16 @@ private:
 	void UpdateSubscriptionsTimerHandler(void);
 	void UpdateSubscriptions(void);
 
-	/* config dump */
+	/* config & status dump */
 	void UpdateAllConfigObjects(void);
 	void SendConfigUpdate(const ConfigObject::Ptr& object, const String& typeName);
 	void SendStatusUpdate(const ConfigObject::Ptr& object, const String& typeName);
+
+	/* utilities */
+	static String FormatCheckSumBinary(const String& str);
+	static String CalculateCheckSumString(const String& str);
+	static String CalculateCheckSumGroups(const Array::Ptr& groups);
+	static String CalculateCheckSumAttrs(const Dictionary::Ptr& attrs);
 	static Dictionary::Ptr SerializeObjectAttrs(const Object::Ptr& object, int fieldType);
 
 	static void StateChangedHandler(const ConfigObject::Ptr& object);
