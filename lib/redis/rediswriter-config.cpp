@@ -176,12 +176,19 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, const String
 
 	checkSum->Set("name_checksum", CalculateCheckSumString(object->GetName()));
 
-	if (object->GetReflectionType() == Host::TypeInstance) {
-		Host::Ptr host = static_pointer_cast<Host>(object);
-		checkSum->Set("groups_checksum", CalculateCheckSumGroups(host->GetGroups()));
-	} else if (object->GetReflectionType() == Service::TypeInstance) {
-		Service::Ptr service = static_pointer_cast<Service>(object);
-		checkSum->Set("groups_checksum", CalculateCheckSumGroups(service->GetGroups()));
+	// TODO: move this elsewhere
+	Checkable::Ptr checkable = dynamic_pointer_cast<Checkable>(object);
+
+	if (checkable) {
+		Host::Ptr host;
+		Service::Ptr service;
+
+		tie(host, service) = GetHostService(checkable);
+
+		if (service)
+			checkSum->Set("groups_checksum", CalculateCheckSumGroups(service->GetGroups()));
+		else
+			checkSum->Set("groups_checksum", CalculateCheckSumGroups(host->GetGroups()));
 	}
 
 	String checkSumBody = JsonEncode(checkSum);
