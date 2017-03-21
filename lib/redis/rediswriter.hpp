@@ -81,12 +81,19 @@ private:
 
 	void AssertOnWorkQueue(void);
 
+	boost::shared_ptr<redisReply> ExecuteQuery(const std::vector<String>& query);
+
 	Timer::Ptr m_ReconnectTimer;
 	Timer::Ptr m_SubscriptionTimer;
 	WorkQueue m_WorkQueue;
 	redisContext *m_Context;
 	std::map<String, RedisSubscriptionInfo> m_Subscriptions;
 };
+
+struct redis_error : virtual std::exception, virtual boost::exception { };
+
+struct errinfo_redis_query_;
+typedef boost::error_info<struct errinfo_redis_query_, std::string> errinfo_redis_query;
 
 }
 
