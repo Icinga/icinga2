@@ -59,6 +59,7 @@ void RedisWriter::UpdateAllConfigObjects(void)
 {
 	AssertOnWorkQueue();
 
+	//TODO: "Publish" the config dump by adding another event, globally or by object
 	redisReply *reply1 = reinterpret_cast<redisReply *>(redisCommand(m_Context, "MULTI"));
 
 	if (!reply1) {
@@ -86,7 +87,7 @@ void RedisWriter::UpdateAllConfigObjects(void)
 		String typeName = type->GetName();
 
 		/* replace into aka delete insert is faster than a full diff */
-		redisReply *reply2 = reinterpret_cast<redisReply *>(redisCommand(m_Context, "DEL icinga:config:%s icinga:status:%s", typeName.CStr(), typeName.CStr()));
+		redisReply *reply2 = reinterpret_cast<redisReply *>(redisCommand(m_Context, "DEL icinga:config:%s icinga:config:%s:checksum, icinga:status:%s", typeName.CStr(), typeName.CStr(), typeName.CStr()));
 
 		if (!reply2) {
 			redisFree(m_Context);
@@ -146,7 +147,6 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, const String
 
 	String jsonBody = JsonEncode(objectAttrs);
 
-	//TODO: checksum
 	String objectName = object->GetName();
 
 	redisReply *reply1 = reinterpret_cast<redisReply *>(redisCommand(m_Context, "HSET icinga:config:%s %s %s", typeName.CStr(), objectName.CStr(), jsonBody.CStr()));
@@ -190,6 +190,9 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, const String
 		else
 			checkSum->Set("groups_checksum", CalculateCheckSumGroups(host->GetGroups()));
 	}
+
+	checkSum->Set("properties_checksum", CalculateCheckSumProperties(object));
+	checkSum->Set("vars_checksum", CalculateCheckSumVars(object));
 
 	String checkSumBody = JsonEncode(checkSum);
 
