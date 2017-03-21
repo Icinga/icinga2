@@ -40,6 +40,8 @@ void RedisWriter::Start(bool runtimeCreated)
 	Log(LogInformation, "RedisWriter")
 	    << "'" << GetName() << "' started.";
 
+	m_ConfigDumpInProgress = false;
+
 	m_ReconnectTimer = new Timer();
 	m_ReconnectTimer->SetInterval(15);
 	m_ReconnectTimer->OnTimerExpired.connect(boost::bind(&RedisWriter::ReconnectTimerHandler, this));
@@ -132,7 +134,11 @@ void RedisWriter::TryToReconnect(void)
 	}
 
 	/* Config dump */
+	m_ConfigDumpInProgress = true;
+
 	UpdateAllConfigObjects();
+
+	m_ConfigDumpInProgress = false;
 }
 
 void RedisWriter::UpdateSubscriptionsTimerHandler(void)

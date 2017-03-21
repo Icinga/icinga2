@@ -61,7 +61,8 @@ private:
 
 	/* config & status dump */
 	void UpdateAllConfigObjects(void);
-	void SendConfigUpdate(const ConfigObject::Ptr& object, const String& typeName);
+	void SendConfigUpdate(const ConfigObject::Ptr& object, const String& typeName, bool runtimeUpdate = false);
+	void SendConfigDelete(const ConfigObject::Ptr& object, const String& typeName);
 	void SendStatusUpdate(const ConfigObject::Ptr& object, const String& typeName);
 
 	/* utilities */
@@ -88,6 +89,7 @@ private:
 	WorkQueue m_WorkQueue;
 	redisContext *m_Context;
 	std::map<String, RedisSubscriptionInfo> m_Subscriptions;
+	bool m_ConfigDumpInProgress;
 };
 
 struct redis_error : virtual std::exception, virtual boost::exception { };
