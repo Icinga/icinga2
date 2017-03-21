@@ -331,3 +331,36 @@ void RedisWriter::AssertOnWorkQueue(void)
 {
 	ASSERT(m_WorkQueue.IsWorkerThread());
 }
+
+boost::shared_ptr<redisReply> RedisWriter::ExecuteQuery(const std::vector<String>& query)
+{
+	const char **argv;
+	size_t *argvlen;
+
+	argv = new const char *[query.size()];
+	argvlen = new size_t[query.size()];
+
+	for (std::vector<String>::size_type i = 0; i < query.size(); i++) {
+		argv[i] = query[i].CStr();
+		argvlen[i] = query[i].GetLength();
+	}
+
+	redisReply *reply = reinterpret_cast<redisReply *>(redisCommandArgv(m_Context, query.size(), argv, argvlen));
+
+	if (reply->type == REDIS_REPLY_ERROR) {
+		Log(LogInformation, "RedisWriter")
+		    << "Redis query failed: " << reply->str;
+
+		String msg = reply->str;
+
+		freeReplyObject(reply);
+
+		BOOST_THROW_EXCEPTION(
+		    redis_error()
+			<< errinfo_message(msg)
+			<< errinfo_redis_query(Utility::Join(Array::FromVector(query), ' ', false))
+		);
+	}
+
+	return boost::shared_ptr<redisReply>(reply);
+}
