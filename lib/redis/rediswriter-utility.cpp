@@ -54,18 +54,39 @@ String RedisWriter::CalculateCheckSumGroups(const Array::Ptr& groups)
 	return SHA1(output);
 }
 
-String RedisWriter::CalculateCheckSumAttrs(const Dictionary::Ptr& attrs)
+String RedisWriter::CalculateCheckSumProperties(const ConfigObject::Ptr& object)
 {
-	String output;
+	//TODO: consider precision of 6 for double values; use specific config fields for hashing?
+	return HashValue(object);
+}
 
-	//TODO: Implement
-	for (const Dictionary::Pair& kv: attrs) {
-		if (kv.second.IsNumber()) {
-			//use a precision of 6 for floating point numbers
-		}
-	}
+String RedisWriter::CalculateCheckSumVars(const ConfigObject::Ptr& object)
+{
+	CustomVarObject::Ptr customVarObject = dynamic_pointer_cast<CustomVarObject>(object);
 
-	return output;
+	if (!customVarObject)
+		return Empty;
+
+	Dictionary::Ptr vars = customVarObject->GetVars();
+
+	if (!vars)
+		return Empty;
+
+	return HashValue(vars);
+}
+
+String RedisWriter::HashValue(const Value& value)
+{
+	Value temp;
+
+	Type::Ptr type = value.GetReflectionType();
+
+	if (ConfigObject::TypeInstance->IsAssignableFrom(type))
+		temp = Serialize(value, FAConfig);
+	else
+		temp = value;
+
+	return SHA1(JsonEncode(temp));
 }
 
 Dictionary::Ptr RedisWriter::SerializeObjectAttrs(const Object::Ptr& object, int fieldType)

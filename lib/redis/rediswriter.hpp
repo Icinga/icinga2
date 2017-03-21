@@ -66,9 +66,13 @@ private:
 
 	/* utilities */
 	static String FormatCheckSumBinary(const String& str);
+
 	static String CalculateCheckSumString(const String& str);
 	static String CalculateCheckSumGroups(const Array::Ptr& groups);
-	static String CalculateCheckSumAttrs(const Dictionary::Ptr& attrs);
+	static String CalculateCheckSumProperties(const ConfigObject::Ptr& object);
+	static String CalculateCheckSumVars(const ConfigObject::Ptr& object);
+
+	static String HashValue(const Value& value);
 	static Dictionary::Ptr SerializeObjectAttrs(const Object::Ptr& object, int fieldType);
 
 	static void StateChangedHandler(const ConfigObject::Ptr& object);
