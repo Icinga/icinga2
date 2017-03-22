@@ -65,12 +65,12 @@ String RedisWriter::CalculateCheckSumVars(const ConfigObject::Ptr& object)
 	CustomVarObject::Ptr customVarObject = dynamic_pointer_cast<CustomVarObject>(object);
 
 	if (!customVarObject)
-		return Empty;
+		return HashValue(Empty);
 
 	Dictionary::Ptr vars = customVarObject->GetVars();
 
 	if (!vars)
-		return Empty;
+		return HashValue(Empty);
 
 	return HashValue(vars);
 }
