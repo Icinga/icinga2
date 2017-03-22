@@ -97,41 +97,13 @@ void RedisWriter::TryToReconnect(void)
 
 	String password = GetPassword();
 
-	if (!password.IsEmpty()) {
-		redisReply *reply = reinterpret_cast<redisReply *>(redisCommand(m_Context, "AUTH %s", password.CStr()));
-
-		if (!reply) {
-			redisFree(m_Context);
-			m_Context = NULL;
-			return;
-		}
-
-		if (reply->type == REDIS_REPLY_STATUS || reply->type == REDIS_REPLY_ERROR) {
-			Log(LogInformation, "RedisWriter")
-			    << "AUTH: " << reply->str;
-		}
-
-		freeReplyObject(reply);
-	}
+	if (!password.IsEmpty())
+		ExecuteQuery({ "AUTH", password });
 
 	int dbIndex = GetDbIndex();
 
-	if (dbIndex != 0) {
-		redisReply *reply = reinterpret_cast<redisReply *>(redisCommand(m_Context, "SELECT %d", dbIndex));
-
-		if (!reply) {
-			redisFree(m_Context);
-			m_Context = NULL;
-			return;
-		}
-
-		if (reply->type == REDIS_REPLY_STATUS || reply->type == REDIS_REPLY_ERROR) {
-			Log(LogInformation, "RedisWriter")
-			    << "SELECT " << dbIndex << ": " << reply->str;
-		}
-
-		freeReplyObject(reply);
-	}
+	if (dbIndex != 0)
+		ExecuteQuery({ "SELECT", Convert::ToString(dbIndex) });
 
 	/* Config dump */
 	m_ConfigDumpInProgress = true;
@@ -159,22 +131,7 @@ void RedisWriter::UpdateSubscriptions(void)
 	long long cursor = 0;
 
 	do {
-		redisReply *reply = reinterpret_cast<redisReply *>(redisCommand(m_Context, "SCAN %lld MATCH icinga:subscription:* COUNT 1000", cursor));
-
-		if (!reply) {
-			redisFree(m_Context);
-			m_Context = NULL;
-			return;
-		}
-
-		if (reply->type == REDIS_REPLY_STATUS || reply->type == REDIS_REPLY_ERROR) {
-			Log(LogInformation, "RedisWriter")
-			    << "SCAN " << cursor << " MATCH icinga:subscription:* COUNT 1000: " << reply->str;
-
-			freeReplyObject(reply);
-
-			return;
-		}
+		boost::shared_ptr<redisReply> reply = ExecuteQuery({ "SCAN", Convert::ToString(cursor), "MATCH", "icinga:subscription:*" });
 
 		VERIFY(reply->type == REDIS_REPLY_ARRAY);
 		VERIFY(reply->elements % 2 == 0);
@@ -188,30 +145,10 @@ void RedisWriter::UpdateSubscriptions(void)
 			redisReply *keyReply = keysReply->element[i];
 			VERIFY(keyReply->type == REDIS_REPLY_STRING);
 
-			redisReply *vreply = reinterpret_cast<redisReply *>(redisCommand(m_Context, "GET %s", keyReply->str));
-
-			if (!vreply) {
-				freeReplyObject(reply);
-				redisFree(m_Context);
-				m_Context = NULL;
-				return;
-			}
-
-			if (vreply->type == REDIS_REPLY_STATUS || vreply->type == REDIS_REPLY_ERROR) {
-				Log(LogInformation, "RedisWriter")
-				    << "GET " << keyReply->str << ": " << vreply->str;
-
-				freeReplyObject(vreply);
-
-				continue;
-			}
+			boost::shared_ptr<redisReply> vreply = ExecuteQuery({ "GET", keyReply->str });
 
 			subscriptions[keyReply->str] = vreply->str;
-
-			freeReplyObject(vreply);
 		}
-
-		freeReplyObject(reply);
 	} while (cursor != 0);
 
 	m_Subscriptions.clear();
@@ -299,29 +236,7 @@ void RedisWriter::HandleEvent(const Dictionary::Ptr& event)
 
 		String body = JsonEncode(event);
 
-		redisReply *reply = reinterpret_cast<redisReply *>(redisCommand(m_Context, "LPUSH icinga:event:%s %s", name.CStr(), body.CStr()));
-
-		if (!reply) {
-			redisFree(m_Context);
-			m_Context = NULL;
-			return;
-		}
-
-		if (reply->type == REDIS_REPLY_STATUS || reply->type == REDIS_REPLY_ERROR) {
-			Log(LogInformation, "RedisWriter")
-			    << "LPUSH icinga:event:" << kv.first << " " << body << ": " << reply->str;
-
-			freeReplyObject(reply);
-
-			continue;
-		}
-
-		if (reply->type == REDIS_REPLY_ERROR) {
-			freeReplyObject(reply);
-			return;
-		}
-
-		freeReplyObject(reply);
+		ExecuteQuery({ "LPUSH", "icinga:event:" + name, body });
 	}
 }
 

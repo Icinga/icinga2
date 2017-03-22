@@ -61,25 +61,7 @@ void RedisWriter::UpdateAllConfigObjects(void)
 	AssertOnWorkQueue();
 
 	//TODO: "Publish" the config dump by adding another event, globally or by object
-	redisReply *reply1 = reinterpret_cast<redisReply *>(redisCommand(m_Context, "MULTI"));
-
-	if (!reply1) {
-		redisFree(m_Context);
-		m_Context = NULL;
-		return;
-	}
-
-	if (reply1->type == REDIS_REPLY_ERROR) {
-		Log(LogInformation, "RedisWriter")
-		    << "MULTI: " << reply1->str;
-	}
-
-	if (reply1->type == REDIS_REPLY_ERROR) {
-		freeReplyObject(reply1);
-		return;
-	}
-
-	freeReplyObject(reply1);
+	ExecuteQuery({ "MULTI" });
 
 	for (const Type::Ptr& type : Type::GetAllTypes()) {
 		if (!ConfigObject::TypeInstance->IsAssignableFrom(type))
@@ -88,25 +70,7 @@ void RedisWriter::UpdateAllConfigObjects(void)
 		String typeName = type->GetName();
 
 		/* replace into aka delete insert is faster than a full diff */
-		redisReply *reply2 = reinterpret_cast<redisReply *>(redisCommand(m_Context, "DEL icinga:config:%s icinga:config:%s:checksum, icinga:status:%s", typeName.CStr(), typeName.CStr(), typeName.CStr()));
-
-		if (!reply2) {
-			redisFree(m_Context);
-			m_Context = NULL;
-			return;
-		}
-
-		if (reply2->type == REDIS_REPLY_ERROR) {
-			Log(LogInformation, "RedisWriter")
-			    << "DEL icinga:config:" << typeName << " icinga:status:" << typeName << ": " << reply2->str;
-		}
-
-		if (reply2->type == REDIS_REPLY_ERROR) {
-			freeReplyObject(reply2);
-			return;
-		}
-
-		freeReplyObject(reply2);
+		ExecuteQuery({ "DEL", "icinga:config:" + typeName, "icinga:config:" + typeName + ":checksum", "icinga:status:" + typeName });
 
 		/* fetch all objects and dump them */
 		ConfigType *ctype = dynamic_cast<ConfigType *>(type.get());
@@ -118,46 +82,10 @@ void RedisWriter::UpdateAllConfigObjects(void)
 		}
 
 		/* publish config type dump finished */
-		redisReply *reply3 = reinterpret_cast<redisReply *>(redisCommand(m_Context, "PUBLISH icinga:config:dump %s", typeName.CStr()));
-
-		if (!reply3) {
-			redisFree(m_Context);
-			m_Context = NULL;
-			return;
-		}
-
-		if (reply3->type == REDIS_REPLY_ERROR) {
-			Log(LogInformation, "RedisWriter")
-			    << "PUBLISH icinga:dump:config:dump " << typeName << ": " << reply3->str;
-		}
-
-		if (reply3->type == REDIS_REPLY_ERROR) {
-			freeReplyObject(reply3);
-			return;
-		}
-
-		freeReplyObject(reply3);
+		ExecuteQuery({ "PUBLISH", "icinga:config:dump", typeName });
 	}
 
-	redisReply *reply3 = reinterpret_cast<redisReply *>(redisCommand(m_Context, "EXEC"));
-
-	if (!reply3) {
-		redisFree(m_Context);
-		m_Context = NULL;
-		return;
-	}
-
-	if (reply3->type == REDIS_REPLY_ERROR) {
-		Log(LogInformation, "RedisWriter")
-		    << "EXEC: " << reply3->str;
-	}
-
-	if (reply3->type == REDIS_REPLY_ERROR) {
-		freeReplyObject(reply3);
-		return;
-	}
-
-	freeReplyObject(reply3);
+	ExecuteQuery({ "EXEC" });
 }
 
 void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, const String& typeName, bool runtimeUpdate)
@@ -180,26 +108,7 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, const String
 
 	String objectName = object->GetName();
 
-	redisReply *reply1 = reinterpret_cast<redisReply *>(redisCommand(m_Context, "HSET icinga:config:%s %s %s", typeName.CStr(), objectName.CStr(), jsonBody.CStr()));
-
-	if (!reply1) {
-		redisFree(m_Context);
-		m_Context = NULL;
-		return;
-	}
-
-	if (reply1->type == REDIS_REPLY_ERROR) {
-		Log(LogInformation, "RedisWriter")
-		    << "HSET icinga:config:" << typeName << " " << objectName << " " << jsonBody << ": " << reply1->str;
-	}
-
-	if (reply1->type == REDIS_REPLY_ERROR) {
-		freeReplyObject(reply1);
-		return;
-	}
-
-	freeReplyObject(reply1);
-
+	ExecuteQuery({ "HSET", "icinga:config:" + typeName, objectName, jsonBody });
 
 	/* check sums */
 	/* hset icinga:config:Host:checksums localhost { "name_checksum": "...", "properties_checksum": "...", "groups_checksum": "...", "vars_checksum": null } */
@@ -227,25 +136,7 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, const String
 
 	String checkSumBody = JsonEncode(checkSum);
 
-	redisReply *reply2 = reinterpret_cast<redisReply *>(redisCommand(m_Context, "HSET icinga:config:%s:checksum %s %s", typeName.CStr(), objectName.CStr(), checkSumBody.CStr()));
-
-	if (!reply2) {
-		redisFree(m_Context);
-		m_Context = NULL;
-		return;
-	}
-
-	if (reply2->type == REDIS_REPLY_ERROR) {
-		Log(LogInformation, "RedisWriter")
-		    << "HSET icinga:config:" << typeName << " " << objectName << " " << jsonBody << ": " << reply2->str;
-	}
-
-	if (reply2->type == REDIS_REPLY_ERROR) {
-		freeReplyObject(reply2);
-		return;
-	}
-
-	freeReplyObject(reply2);
+	ExecuteQuery({ "HSET", "icinga:config:" + typeName + ":checksum", objectName, checkSumBody });
 
 	/* publish runtime updated objects immediately */
 	if (!runtimeUpdate)
@@ -257,25 +148,7 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, const String
 	PUBLISH "icinga:config:delete" "Host:__name"
 	*/
 
-	redisReply *reply3 = reinterpret_cast<redisReply *>(redisCommand(m_Context, "PUBLISH icinga:config:update %s:%s!%s", typeName.CStr(), objectName.CStr(), checkSumBody.CStr()));
-
-	if (!reply3) {
-		redisFree(m_Context);
-		m_Context = NULL;
-		return;
-	}
-
-	if (reply3->type == REDIS_REPLY_ERROR) {
-		Log(LogInformation, "RedisWriter")
-		    << "PUBLISH icinga:config:update " << typeName << ":" << objectName << "!" << checkSumBody << ": " << reply3->str;
-	}
-
-	if (reply3->type == REDIS_REPLY_ERROR) {
-		freeReplyObject(reply3);
-		return;
-	}
-
-	freeReplyObject(reply3);
+	ExecuteQuery({ "PUBLISH", "icinga:config:update", typeName + ":" + objectName + "!" + checkSumBody });
 }
 
 void RedisWriter::SendConfigDelete(const ConfigObject::Ptr& object, const String& typeName)
