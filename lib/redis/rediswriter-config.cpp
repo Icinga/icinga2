@@ -161,28 +161,9 @@ void RedisWriter::SendConfigDelete(const ConfigObject::Ptr& object, const String
 
 	String objectName = object->GetName();
 
-	redisReply *reply1 = reinterpret_cast<redisReply *>(redisCommand(m_Context, "DEL icinga:config:%s %s icinga:config:%s:checksum:%s icinga:status:%s %s",
-	    typeName.CStr(), objectName.CStr(), typeName.CStr(), objectName.CStr(), typeName.CStr(), objectName.CStr()));
-
-	if (!reply1) {
-		redisFree(m_Context);
-		m_Context = NULL;
-		return;
-	}
-
-	if (reply1->type == REDIS_REPLY_ERROR) {
-		Log(LogInformation, "RedisWriter")
-		    << "DEL icinga:config:" << typeName << " " << objectName
-		    << " icinga:config:" << typeName << ":checksum:" << objectName
-		    << " icinga:status:" << typeName << " " << objectName << ": " << reply1->str;
-	}
-
-	if (reply1->type == REDIS_REPLY_ERROR) {
-		freeReplyObject(reply1);
-		return;
-	}
-
-	freeReplyObject(reply1);
+	ExecuteQuery({ "HDEL", "icinga:config:" + typeName, objectName });
+	ExecuteQuery({ "HDEL", "icinga:config:" + typeName + ":checksum", objectName });
+	ExecuteQuery({ "HDEL", "icinga:status:" + typeName, objectName });
 
 	/*
 	PUBLISH "icinga:config:dump" "Host"
@@ -190,25 +171,7 @@ void RedisWriter::SendConfigDelete(const ConfigObject::Ptr& object, const String
 	PUBLISH "icinga:config:delete" "Host:__name"
 	*/
 
-	redisReply *reply2 = reinterpret_cast<redisReply *>(redisCommand(m_Context, "PUBLISH icinga:config:delete %s:%s", typeName.CStr(), objectName.CStr()));
-
-	if (!reply2) {
-		redisFree(m_Context);
-		m_Context = NULL;
-		return;
-	}
-
-	if (reply2->type == REDIS_REPLY_ERROR) {
-		Log(LogInformation, "RedisWriter")
-		    << "PUBLISH icinga:config:delete " << typeName << ":" << objectName << ": " << reply2->str;
-	}
-
-	if (reply2->type == REDIS_REPLY_ERROR) {
-		freeReplyObject(reply2);
-		return;
-	}
-
-	freeReplyObject(reply2);
+	ExecuteQuery({ "PUBLISH", "icinga:config:delete", typeName + ":" + objectName });
 }
 
 void RedisWriter::SendStatusUpdate(const ConfigObject::Ptr& object, const String& typeName)
@@ -222,25 +185,7 @@ void RedisWriter::SendStatusUpdate(const ConfigObject::Ptr& object, const String
 
 	String objectName = object->GetName();
 
-	redisReply *reply = reinterpret_cast<redisReply *>(redisCommand(m_Context, "HSET icinga:status:%s %s %s", typeName.CStr(), objectName.CStr(), jsonBody.CStr()));
-
-	if (!reply) {
-		redisFree(m_Context);
-		m_Context = NULL;
-		return;
-	}
-
-	if (reply->type == REDIS_REPLY_ERROR) {
-		Log(LogInformation, "RedisWriter")
-		    << "HSET icinga:status:" << typeName << " " << objectName << " " << jsonBody << ": " << reply->str;
-	}
-
-	if (reply->type == REDIS_REPLY_ERROR) {
-		freeReplyObject(reply);
-		return;
-	}
-
-	freeReplyObject(reply);
+	ExecuteQuery({ "HSET", "icinga:status:" + typeName, objectName, jsonBody });
 }
 
 void RedisWriter::StateChangedHandler(const ConfigObject::Ptr& object)
