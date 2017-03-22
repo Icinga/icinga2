@@ -268,6 +268,9 @@ boost::shared_ptr<redisReply> RedisWriter::ExecuteQuery(const std::vector<String
 
 	redisReply *reply = reinterpret_cast<redisReply *>(redisCommandArgv(m_Context, query.size(), argv, argvlen));
 
+	delete [] argv;
+	delete [] argvlen;
+
 	if (reply->type == REDIS_REPLY_ERROR) {
 		Log(LogInformation, "RedisWriter")
 		    << "Redis query failed: " << reply->str;
