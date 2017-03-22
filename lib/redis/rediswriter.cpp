@@ -131,7 +131,7 @@ void RedisWriter::UpdateSubscriptions(void)
 	long long cursor = 0;
 
 	do {
-		boost::shared_ptr<redisReply> reply = ExecuteQuery({ "SCAN", Convert::ToString(cursor), "MATCH", "icinga:subscription:*" });
+		boost::shared_ptr<redisReply> reply = ExecuteQuery({ "SCAN", Convert::ToString(cursor), "MATCH", "icinga:subscription:*", "COUNT", "1000" });
 
 		VERIFY(reply->type == REDIS_REPLY_ARRAY);
 		VERIFY(reply->elements % 2 == 0);
