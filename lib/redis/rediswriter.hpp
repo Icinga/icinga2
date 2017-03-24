@@ -82,6 +82,8 @@ private:
 
 	void AssertOnWorkQueue(void);
 
+	void ExceptionHandler(boost::exception_ptr exp);
+
 	boost::shared_ptr<redisReply> ExecuteQuery(const std::vector<String>& query);
 
 	Timer::Ptr m_ReconnectTimer;

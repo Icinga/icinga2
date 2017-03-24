@@ -42,6 +42,8 @@ void RedisWriter::Start(bool runtimeCreated)
 
 	m_ConfigDumpInProgress = false;
 
+	m_WorkQueue.SetExceptionCallback(boost::bind(&RedisWriter::ExceptionHandler, this, _1));
+
 	m_ReconnectTimer = new Timer();
 	m_ReconnectTimer->SetInterval(15);
 	m_ReconnectTimer->OnTimerExpired.connect(boost::bind(&RedisWriter::ReconnectTimerHandler, this));
@@ -55,6 +57,19 @@ void RedisWriter::Start(bool runtimeCreated)
 
 	boost::thread thread(boost::bind(&RedisWriter::HandleEvents, this));
 	thread.detach();
+}
+
+void RedisWriter::ExceptionHandler(boost::exception_ptr exp)
+{
+	Log(LogCritical, "RedisWriter", "Exception during redis query. Verify that Redis is operational.");
+
+	Log(LogDebug, "RedisWriter")
+	    << "Exception during redis operation: " << DiagnosticInformation(exp);
+
+	if (m_Context) {
+		redisFree(m_Context);
+		m_Context = NULL;
+	}
 }
 
 void RedisWriter::ReconnectTimerHandler(void)
@@ -275,7 +290,7 @@ boost::shared_ptr<redisReply> RedisWriter::ExecuteQuery(const std::vector<String
 	delete [] argvlen;
 
 	if (reply->type == REDIS_REPLY_ERROR) {
-		Log(LogInformation, "RedisWriter")
+		Log(LogCritical, "RedisWriter")
 		    << "Redis query failed: " << reply->str;
 
 		String msg = reply->str;
