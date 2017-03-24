@@ -60,6 +60,8 @@ void RedisWriter::UpdateAllConfigObjects(void)
 {
 	AssertOnWorkQueue();
 
+	double startTime = Utility::GetTime();
+
 	//TODO: "Publish" the config dump by adding another event, globally or by object
 	ExecuteQuery({ "MULTI" });
 
@@ -86,6 +88,9 @@ void RedisWriter::UpdateAllConfigObjects(void)
 	}
 
 	ExecuteQuery({ "EXEC" });
+
+	Log(LogInformation, "RedisWriter")
+	    << "Initial config/status dump finished in " << Utility::GetTime() - startTime << " seconds.";
 }
 
 void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, const String& typeName, bool runtimeUpdate)

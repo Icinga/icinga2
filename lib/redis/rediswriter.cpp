@@ -97,6 +97,9 @@ void RedisWriter::TryToReconnect(void)
 
 	String password = GetPassword();
 
+	/* TODO: exception is fired but terminates reconnect silently.
+	 * Error case: Password does not match, or even: "Client sent AUTH, but no password is set" which also results in an error.
+	 */
 	if (!password.IsEmpty())
 		ExecuteQuery({ "AUTH", password });
 
