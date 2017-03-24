@@ -178,6 +178,10 @@ void RedisWriter::SendStatusUpdate(const ConfigObject::Ptr& object, const String
 {
 	AssertOnWorkQueue();
 
+	/* during startup we might receive check results, ignore them without any connection */
+	if (!m_Context)
+		return;
+
 	/* Serialize config object attributes */
 	Dictionary::Ptr objectAttrs = SerializeObjectAttrs(object, FAState);
 
