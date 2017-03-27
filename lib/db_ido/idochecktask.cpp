@@ -32,7 +32,7 @@
 
 using namespace icinga;
 
-REGISTER_SCRIPTFUNCTION_NS(Internal, IdoCheck, &IdoCheckTask::ScriptFunc);
+REGISTER_SCRIPTFUNCTION_NS(Internal, IdoCheck, &IdoCheckTask::ScriptFunc, "checkable:cr:resolvedMacros:useResolvedMacros");
 
 void IdoCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr,
     const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)

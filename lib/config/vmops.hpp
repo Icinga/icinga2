@@ -113,7 +113,7 @@ public:
 	    std::map<String, Expression *> *closedVars, const boost::shared_ptr<Expression>& expression)
 	{
 		return new Function(name, boost::bind(&FunctionWrapper, _1, args,
-		    EvaluateClosedVars(frame, closedVars), expression));
+		    EvaluateClosedVars(frame, closedVars), expression), args);
 	}
 
 	static inline Value NewApply(ScriptFrame& frame, const String& type, const String& target, const String& name, const boost::shared_ptr<Expression>& filter,

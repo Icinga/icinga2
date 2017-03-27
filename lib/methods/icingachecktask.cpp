@@ -30,7 +30,7 @@
 
 using namespace icinga;
 
-REGISTER_SCRIPTFUNCTION_NS(Internal, IcingaCheck, &IcingaCheckTask::ScriptFunc);
+REGISTER_SCRIPTFUNCTION_NS(Internal, IcingaCheck, &IcingaCheckTask::ScriptFunc, "checkable:cr:resolvedMacros:useResolvedMacros");
 
 void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& service, const CheckResult::Ptr& cr,
     const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)

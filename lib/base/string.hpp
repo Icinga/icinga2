@@ -24,6 +24,7 @@
 #include "base/object.hpp"
 #include <boost/algorithm/string/case_conv.hpp>
 #include <boost/algorithm/string/trim.hpp>
+#include <boost/algorithm/string/split.hpp>
 #include <boost/range/iterator.hpp>
 #include <string.h>
 #include <functional>
@@ -236,6 +237,13 @@ public:
 	inline String SubStr(SizeType first, SizeType len = NPos) const
 	{
 		return m_Data.substr(first, len);
+	}
+
+	inline std::vector<String> Split(const char *separators) const
+	{
+		std::vector<String> result;
+		boost::algorithm::split(result, m_Data, boost::is_any_of(separators));
+		return result;
 	}
 
 	inline void Replace(SizeType first, SizeType second, const String& str)

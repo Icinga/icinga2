@@ -46,7 +46,7 @@ ConfigItem::TypeMap ConfigItem::m_DefaultTemplates;
 ConfigItem::ItemList ConfigItem::m_UnnamedItems;
 ConfigItem::IgnoredItemList ConfigItem::m_IgnoredItems;
 
-REGISTER_SCRIPTFUNCTION_NS(Internal, run_with_activation_context, &ConfigItem::RunWithActivationContext);
+REGISTER_SCRIPTFUNCTION_NS(Internal, run_with_activation_context, &ConfigItem::RunWithActivationContext, "func");
 
 /**
  * Constructor for the ConfigItem class.

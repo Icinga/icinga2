@@ -29,7 +29,7 @@
 
 using namespace icinga;
 
-REGISTER_SCRIPTFUNCTION_NS(Internal, ClusterZoneCheck, &ClusterZoneCheckTask::ScriptFunc);
+REGISTER_SCRIPTFUNCTION_NS(Internal, ClusterZoneCheck, &ClusterZoneCheckTask::ScriptFunc, "checkable:cr:resolvedMacros:useResolvedMacros");
 
 void ClusterZoneCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr,
     const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)

@@ -29,6 +29,7 @@ abstract class Function
 	[config] String "name";
 	[config] bool side_effect_free;
 	[config] bool deprecated;
+	[config] Array::Ptr arguments;
 };
 
 }
