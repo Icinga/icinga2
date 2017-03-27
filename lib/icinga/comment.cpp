@@ -208,14 +208,11 @@ void Comment::RemoveComment(const String& id, const MessageOrigin::Ptr& origin)
 {
 	Comment::Ptr comment = Comment::GetByName(id);
 
-	if (!comment)
+	if (!comment || comment->GetPackage() != "_api")
 		return;
 
 	Log(LogNotice, "Comment")
 	    << "Removed comment '" << comment->GetName() << "' from object '" << comment->GetCheckable()->GetName() << "'.";
-
-	if (comment->GetPackage() != "_api")
-		return;
 
 	Array::Ptr errors = new Array();
 
