@@ -214,6 +214,9 @@ void Comment::RemoveComment(const String& id, const MessageOrigin::Ptr& origin)
 	Log(LogNotice, "Comment")
 	    << "Removed comment '" << comment->GetName() << "' from object '" << comment->GetCheckable()->GetName() << "'.";
 
+	if (comment->GetPackage() != "_api")
+		return;
+
 	Array::Ptr errors = new Array();
 
 	if (!ConfigObjectUtility::DeleteObject(comment, false, errors)) {
