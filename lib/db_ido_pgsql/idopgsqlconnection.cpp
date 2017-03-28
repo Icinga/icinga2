@@ -251,7 +251,7 @@ void IdoPgsqlConnection::Reconnect(void)
 
 		Log(LogCritical, "IdoPgsqlConnection", "Schema does not provide any valid version! Verify your schema installation.");
 
-		Application::Exit(EXIT_FAILURE);
+		BOOST_THROW_EXCEPTION(std::runtime_error("Invalid schema."));
 	}
 
 	String version = row->Get("version");
@@ -266,7 +266,7 @@ void IdoPgsqlConnection::Reconnect(void)
 		    << "Schema version '" << version << "' does not match the required version '"
 		    << IDO_COMPAT_SCHEMA_VERSION << "' (or newer)! Please check the upgrade documentation.";
 
-		Application::Exit(EXIT_FAILURE);
+		BOOST_THROW_EXCEPTION(std::runtime_error("Schema version mismatch."));
 	}
 
 	String instanceName = GetInstanceName();
