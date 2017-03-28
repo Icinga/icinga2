@@ -21,6 +21,7 @@
 #include "redis/rediswriter.tcpp"
 #include "remote/eventqueue.hpp"
 #include "base/json.hpp"
+#include "base/statsfunction.hpp"
 
 using namespace icinga;
 
@@ -54,6 +55,11 @@ void RedisWriter::Start(bool runtimeCreated)
 	m_SubscriptionTimer->SetInterval(15);
 	m_SubscriptionTimer->OnTimerExpired.connect(boost::bind(&RedisWriter::UpdateSubscriptionsTimerHandler, this));
 	m_SubscriptionTimer->Start();
+
+	m_CIBTimer = new Timer();
+	m_CIBTimer->SetInterval(10);
+	m_CIBTimer->OnTimerExpired.connect(boost::bind(&RedisWriter::PublishCIBTimerHandler, this));
+	m_CIBTimer->Start();
 
 	boost::thread thread(boost::bind(&RedisWriter::HandleEvents, this));
 	thread.detach();
@@ -200,6 +206,27 @@ void RedisWriter::UpdateSubscriptions(void)
 
 	Log(LogInformation, "RedisWriter")
 	    << "Current Redis event subscriptions: " << m_Subscriptions.size();
+}
+
+void RedisWriter::PublishCIBTimerHandler(void)
+{
+	m_WorkQueue.Enqueue(boost::bind(&RedisWriter::PublishCIB, this));
+}
+
+void RedisWriter::PublishCIB(void)
+{
+	AssertOnWorkQueue();
+
+	if (!m_Context)
+		return;
+
+	StatsFunction::Ptr func = StatsFunctionRegistry::GetInstance()->GetItem("CIB");
+	Dictionary::Ptr status = new Dictionary();
+	Array::Ptr perfdata = new Array();
+	func->Invoke(status, perfdata);
+	String jsonStatus = JsonEncode(status);
+
+	ExecuteQuery({ "PUBLISH", "icinga:stats", jsonStatus });
 }
 
 void RedisWriter::HandleEvents(void)
