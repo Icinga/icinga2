@@ -58,6 +58,8 @@ private:
 
 	void UpdateSubscriptionsTimerHandler(void);
 	void UpdateSubscriptions(void);
+	void PublishStatsTimerHandler(void);
+	void PublishStats(void);
 
 	/* config & status dump */
 	void UpdateAllConfigObjects(void);
@@ -86,6 +88,7 @@ private:
 
 	boost::shared_ptr<redisReply> ExecuteQuery(const std::vector<String>& query);
 
+	Timer::Ptr m_StatsTimer;
 	Timer::Ptr m_ReconnectTimer;
 	Timer::Ptr m_SubscriptionTimer;
 	WorkQueue m_WorkQueue;
