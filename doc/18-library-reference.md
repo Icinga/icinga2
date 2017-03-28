@@ -328,7 +328,8 @@ Example:
     true
     <4> => typeof([ 1, 2, 3]) == Array
     true
-    <5> => typeof({ a = 2, b = 3}) == Dictionary
+    <5> => typeof({ a = 2, b = 3 }) == Dictionary
+    true
 
 ### <a id="global-functions-get_time"></a> get_time
 
