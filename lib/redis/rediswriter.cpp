@@ -245,6 +245,8 @@ void RedisWriter::HandleEvent(const Dictionary::Ptr& event)
 	if (!m_Context)
 		return;
 
+	String body;
+
 	for (const std::pair<String, RedisSubscriptionInfo>& kv : m_Subscriptions) {
 		const auto& name = kv.first;
 		const auto& rsi = kv.second;
@@ -252,7 +254,8 @@ void RedisWriter::HandleEvent(const Dictionary::Ptr& event)
 		if (rsi.EventTypes.find(event->Get("type")) == rsi.EventTypes.end())
 			continue;
 
-		String body = JsonEncode(event);
+		if (! body.GetLength())
+			body = JsonEncode(event);
 
 		ExecuteQuery({ "LPUSH", "icinga:event:" + name, body });
 	}
