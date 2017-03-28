@@ -217,7 +217,7 @@ Value MacroProcessor::EvaluateFunction(const Function::Ptr& func, const Resolver
 
 	resolvers_this->Set("macro", new Function("macro (temporary)", boost::bind(&MacroProcessor::InternalResolveMacrosShim,
 	    _1, boost::cref(resolvers), cr, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros,
-	    recursionLevel + 1)));
+	    recursionLevel + 1), { "str" }));
 	resolvers_this->Set("resolve_arguments", new Function("resolve_arguments (temporary)", boost::bind(&MacroProcessor::InternalResolveArgumentsShim,
 	    _1, boost::cref(resolvers), cr, resolvedMacros, useResolvedMacros,
 	    recursionLevel + 1)));

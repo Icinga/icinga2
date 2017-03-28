@@ -150,7 +150,7 @@ Object::Ptr String::GetPrototype(void)
 		prototype->Set("substr", new Function("String#substr", WrapFunction(StringSubstr), { "start", "len" }, true));
 		prototype->Set("upper", new Function("String#upper", WrapFunction(StringUpper), {}, true));
 		prototype->Set("lower", new Function("String#lower", WrapFunction(StringLower), {}, true));
-		prototype->Set("split", new Function("String#split", WrapFunction(StringSplit), {}, true));
+		prototype->Set("split", new Function("String#split", WrapFunction(StringSplit), { "delims" }, true));
 		prototype->Set("find", new Function("String#find", WrapFunction(StringFind), { "str", "start" }, true));
 		prototype->Set("contains", new Function("String#contains", WrapFunction(StringContains), { "str" }, true));
 		prototype->Set("replace", new Function("String#replace", WrapFunction(StringReplace), { "search", "replacement" }, true));
