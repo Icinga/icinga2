@@ -1958,7 +1958,7 @@ is set to the path where the user installs custom plugins and can be enabled by
 uncommenting the corresponding line in [icinga2.conf](4-configuring-icinga-2.md#icinga2-conf):
 
 ```
-# vim /etc/icinga2/icinga2.conf
+vim /etc/icinga2/icinga2.conf
 
 include <plugin-contrib>
 ```
