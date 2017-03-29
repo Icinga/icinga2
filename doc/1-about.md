@@ -44,6 +44,34 @@ file.
 
 ## <a id="whats-new"></a> What's New
 
+### What's New in Version 2.6.3
+
+#### Changes
+
+This is a bugfix release which addresses a number of bugs we've found since
+2.6.2 was released. It also contains a number of improvements for the Icinga
+documentation.
+
+#### Feature
+
+* Feature [4955](https://github.com/Icinga/icinga2/issues/4955) (Documentation): Review CheckCommand documentation including external URLs
+* Feature [5057](https://github.com/Icinga/icinga2/issues/5057) (Documentation): Update Security section in the Distributed Monitoring chapter
+* Feature [5055](https://github.com/Icinga/icinga2/issues/5055) (Documentation): mysql_socket attribute missing in the documentation for the mysql CheckCommand
+* Feature [5035](https://github.com/Icinga/icinga2/issues/5035) (Documentation): Docs: Typo in Distributed Monitoring chapter
+* Feature [5029](https://github.com/Icinga/icinga2/issues/5029) (Documentation): Advanced topics: Wrong acknowledgement notification filter
+* Feature [5030](https://github.com/Icinga/icinga2/issues/5030) (Documentation): Advanced topics: Mention the API and explain stick acks, fixed/flexible downtimes
+* Feature [3133](https://github.com/Icinga/icinga2/issues/3133) (Documentation): [dev.icinga.com #9583] Add practical examples for apply expressions
+* Feature [4996](https://github.com/Icinga/icinga2/issues/4996) (Documentation): documentation: mixed up host names in 6-distributed-monitoring.md
+* Feature [4980](https://github.com/Icinga/icinga2/issues/4980) (Documentation): Add OpenBSD and AlpineLinux package repositories to the documentation
+* Feature [4954](https://github.com/Icinga/icinga2/issues/4954) (Documentation): Add an example for /v1/actions/process-check-result which uses filter/type
+
+#### Bugfixes
+
+* Bug [5080](https://github.com/Icinga/icinga2/issues/5080) (IDO): Missing index use can cause icinga_downtimehistory queries to hang indefinitely
+* Bug [4603](https://github.com/Icinga/icinga2/issues/4603) (IDO): [dev.icinga.com #12597] With too many comments, Icinga reload process won't finish reconnecting to database
+* Bug [4989](https://github.com/Icinga/icinga2/issues/4989) (Check Execution): Icinga daemon runs with nice 5 after reload
+* Bug [4930](https://github.com/Icinga/icinga2/issues/4930) (Cluster): Change "Discarding 'config update object'" log messages to notice log level
+
 ### What's New in Version 2.6.2
 
 #### Changes
