@@ -5,9 +5,9 @@
   <metadata>
     <!-- Read this before publishing packages to chocolatey.org: https://github.com/chocolatey/chocolatey/wiki/CreatePackages -->
     <id>icinga2</id>
-    <title>Icinga2</title>
+    <title>Icinga 2</title>
     <version>${SPEC_VERSION}</version>
-    <authors>2016 - The Icinga Project</authors>
+    <authors>The Icinga Project</authors>
     <owners>Icinga Development Team</owners>
     <summary>icinga2 - Monitoring Agent for Windows</summary>
     <description>Icinga 2 is an open source monitoring platform which notifies users about host and service outages.</description>
