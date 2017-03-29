@@ -4,7 +4,7 @@ Print this document.
 
 Specify the release version.
 
-    VERSION=2.6.2
+    VERSION=2.6.3
 
 ## Issues
 
@@ -119,7 +119,7 @@ Create the nupkg package:
 
 Install the created icinga2 package locally:
 
-    choco install icinga2 -version 2.6.2 -fdv "%cd%" -source "'%cd%;https://chocolatey.org/api/v2/'"
+    choco install icinga2 -version 2.6.3 -fdv "%cd%" -source "'%cd%;https://chocolatey.org/api/v2/'"
 
 Upload the package to [chocolatey](https://chocolatey.org/packages/upload).
 
