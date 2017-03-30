@@ -80,7 +80,7 @@ Example:
       vars.nscp_crit = 80
     }
 
-For details on the `NSClient++` configuration please refer to the [official documentation](http://www.nsclient.org/nscp/wiki/doc/configuration/0.4.x).
+For details on the `NSClient++` configuration please refer to the [official documentation](https://docs.nsclient.org/).
 
 ## <a id="agent-based-checks-nsca-ng"></a> NSCA-NG
 
