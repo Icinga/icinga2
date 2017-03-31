@@ -1040,8 +1040,8 @@ Send a `POST` request to the URL endpoint `/v1/actions/schedule-downtime`.
   comment       | string    | **Required.** Comment text.
   start\_time   | timestamp | **Required.** Timestamp marking the beginning of the downtime.
   end\_time     | timestamp | **Required.** Timestamp marking the end of the downtime.
-  duration      | integer   | **Required.** Duration of the downtime in seconds if `fixed` is set to false.
   fixed         | boolean   | **Optional.** Defaults to `true`. If true, the downtime is `fixed` otherwise `flexible`. See [downtimes](8-advanced-topics.md#downtimes) for more information.
+  duration      | integer   | **Required for flexible downtimes.** Duration of the downtime in seconds if `fixed` is set to false.
   trigger\_name | string    | **Optional.** Sets the trigger for a triggered downtime. See [downtimes](8-advanced-topics.md#downtimes) for more information on triggered downtimes.
   child\_options | integer  | **Optional.** Schedule child downtimes. `0` does not do anything, `1` schedules child downtimes triggered by this downtime, `2` schedules non-triggered downtimes. Defaults to `0`.
 
