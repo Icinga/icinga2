@@ -466,6 +466,7 @@ Configuration Attributes:
 
 Command arguments can be used the same way as for [CheckCommand objects](9-object-types.md#objecttype-checkcommand-arguments).
 
+More advanced examples for event command usage can be found [here](3-monitoring-basics.md#event-commands).
 
 ## <a id="objecttype-externalcommandlistener"></a> ExternalCommandListener
 
