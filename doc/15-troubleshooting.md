@@ -48,7 +48,7 @@ is also key to identify bottlenecks and issues.
 
 Install tools which help you to do so. Opinions differ, let us know if you have any additions here!
 
-## <a id="troubleshooting-analyze-environment-linux"></a> Analyse your Linux/Unix Environment
+### <a id="troubleshooting-analyze-environment-linux"></a> Analyse your Linux/Unix Environment
 
 [htop](http://hisham.hm/htop/) is a better replacement for `top` and helps to analyze processes
 interactively.
@@ -75,9 +75,9 @@ apt-get install htop
 Example for `vmstat` (summary of memory, processes, etc.):
 
 ```
-# summary
+// summary
 vmstat -s
-# print timestamps, format in MB, stats every 1 second, 5 times
+// print timestamps, format in MB, stats every 1 second, 5 times
 vmstat -t -S M 1 5
 ```
 
@@ -99,7 +99,7 @@ sar -b //I/O
 
 If you are missing checks and metrics found in your analysis, add them to your monitoring!
 
-## <a id="troubleshooting-analyze-environment-windows"></a> Analyze your Windows Environment
+### <a id="troubleshooting-analyze-environment-windows"></a> Analyze your Windows Environment
 
 A good tip for Windows are the tools found inside the [Sysinternals Suite](https://technet.microsoft.com/en-us/sysinternals/bb842062.aspx).
 
