@@ -29,7 +29,7 @@ platforms. This configuration ensures that the `icinga2.log`, `error.log` and
 
 The IDO (Icinga Data Output) modules for Icinga 2 take care of exporting all
 configuration and status information into a database. The IDO database is used
-by a number of projects including Icinga Web 1.x and 2.
+by Icinga Web 2.
 
 Details on the installation can be found in the [Configuring DB IDO](2-getting-started.md#configuring-db-ido-mysql)
 chapter. Details on the configuration can be found in the
@@ -336,7 +336,9 @@ expects the InfluxDB daemon to listen at `127.0.0.1` on port `8086`.
 
 More configuration details can be found [here](9-object-types.md#objecttype-influxdbwriter).
 
-### <a id="gelfwriter"></a> GELF Writer
+### <a id="graylog-integration"></a> Graylog Integration
+
+#### <a id="gelfwriter"></a> GELF Writer
 
 The `Graylog Extended Log Format` (short: [GELF](http://www.graylog2.org/resources/gelf))
 can be used to send application logs directly to a TCP socket.
@@ -358,7 +360,16 @@ Currently these events are processed:
 * State changes
 * Notifications
 
-### <a id="logstash-writer"></a> Logstash Writer
+### <a id="elastic-stack-integration"></a> Elastic Stack Integration
+
+[Icingabeat](https://github.com/icinga/icingabeat) is an Elastic Beat that fetches data
+from the Icinga 2 API and sends it either directly to Elasticsearch or Logstash.
+
+More integrations in development:
+* [Logstash output](https://github.com/Icinga/logstash-output-icinga) for the Icinga 2 API.
+* [Logstash Grok Pattern](https://github.com/Icinga/logstash-grok-pattern) for Icinga 2 logs.
+
+#### <a id="logstash-writer"></a> Logstash Writer
 
 [Logstash](https://www.elastic.co/products/logstash) receives
 and processes event messages sent by Icinga 2 and the [LogstashWriter](9-object-types.md#objecttype-logstashwriter)

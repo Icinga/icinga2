@@ -4,9 +4,9 @@
 
 These functions are globally available in [assign/ignore where expressions](3-monitoring-basics.md#using-apply-expressions),
 [functions](17-language-reference.md#functions), [API filters](12-icinga2-api.md#icinga2-api-filters)
-and the [Icinga 2 console](11-cli-commands.md#cli-command-console).
+and the [Icinga 2 debug console](11-cli-commands.md#cli-command-console).
 
-You can use the [Icinga 2 console](11-cli-commands.md#cli-command-console)
+You can use the [Icinga 2 debug console](11-cli-commands.md#cli-command-console)
 as a sandbox to test these functions before implementing
 them in your scenarios.
 

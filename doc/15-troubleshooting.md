@@ -1,19 +1,111 @@
 # <a id="troubleshooting"></a> Icinga 2 Troubleshooting
 
-## <a id="troubleshooting-information-required"></a> Which information is required
+## <a id="troubleshooting-information-required"></a> Required Information
 
-* Run `icinga2 troubleshoot` to collect required troubleshooting information
-* Alternative, manual steps:
+Please ensure to provide any detail which may help reproduce and understand your issue.
+Whether you ask on the community channels or you create an issue at [GitHub](https://github.com/Icinga), make sure
+that others can follow your explanations. If necessary, draw a picture and attach it for
+better illustration. This is especially helpful if you are troubleshooting a distributed
+setup.
+
+We've come around many community questions and compiled this list. Add your own
+findings and details please.
+
+* Describe the expected behavior in your own words.
+* Describe the actual behavior in one or two sentences.
+* Ensure to provide general information such as:
+	* How was Icinga 2 installed (and which repository in case) and which distribution are you using
 	* `icinga2 --version`
 	* `icinga2 feature list`
-	* `icinga2 daemon --validate`
-	* Relevant output from your main and debug log ( `icinga2 object list --type='filelogger'` )
-	* The newest Icinga 2 crash log if relevant
-	* Your icinga2.conf and, if you run multiple Icinga 2 instances, your zones.conf
-* How was Icinga 2 installed (and which repository in case) and which distribution are you using
-* Provide complete configuration snippets explaining your problem in detail
-* If the check command failed, what's the output of your manual plugin tests?
-* In case of [debugging](20-development.md#development) Icinga 2, the full back traces and outputs
+	* `icinga2 daemon -C`
+	* [Icinga Web 2](https://www.icinga.com/products/icinga-web-2/) version (screenshot from System - About)
+	* [Icinga Web 2 modules](https://www.icinga.com/products/icinga-web-2-modules/) e.g. the Icinga Director (optional)
+* Configuration insights:
+	* Provide complete configuration snippets explaining your problem in detail
+	* Your [icinga2.conf](4-configuring-icinga-2.md#icinga2-conf) file
+	* If you run multiple Icinga 2 instances, the [zones.conf](4-configuring-icinga-2.md#zones-conf) file (or `icinga2 object list --type Endpoint` and `icinga2 object list --type Zone`) from all affected nodes.
+* Logs
+	* Relevant output from your main and [debug log](15-troubleshooting.md#troubleshooting-enable-debug-output) in `/var/log/icinga2`. Please add step-by-step explanations with timestamps if required.
+	* The newest Icinga 2 crash log if relevant, located in `/var/log/icinga2/crash`
+* Additional details
+	* If the check command failed, what's the output of your manual plugin tests?
+	* In case of [debugging](20-development.md#development) Icinga 2, the full back traces and outputs
+
+## <a id="troubleshooting-analyze-environment"></a> Analyze your Environment
+
+There are many components involved on a server running Icinga 2. When you
+analyze a problem, keep in mind that basic system administration knowledge
+is also key to identify bottlenecks and issues.
+
+> **Tip**
+>
+> [Monitor Icinga 2](8-advanced-topics.md#monitoring-icinga) and use the hints for further analysis.
+
+* Analyze the system's performance and dentify bottlenecks and issues.
+* Collect details about all applications (e.g. Icinga 2, MySQL, Apache, Graphite, Elastic, etc.).
+* If data is exchanged via network (e.g. central MySQL cluster) ensure to monitor the bandwidth capabilities too.
+* Add graphs and screenshots to your issue description
+
+Install tools which help you to do so. Opinions differ, let us know if you have any additions here!
+
+## <a id="troubleshooting-analyze-environment-linux"></a> Analyse your Linux/Unix Environment
+
+[htop](http://hisham.hm/htop/) is a better replacement for `top` and helps to analyze processes
+interactively.
+
+```
+yum install htop
+apt-get install htop
+```
+
+If you are for example experiencing performance issues, open `htop` and take a screenshot.
+Add it to your question and/or bug report.
+
+Analyse disk I/O performance in Grafana, take a screenshot and obfuscate any sensitive details.
+Attach it when posting a question to the community channels.
+
+The [sysstat](https://github.com/sysstat/sysstat) package provides a number of tools to
+analyze the performance on Linux. On FreeBSD you could use `systat` for example.
+
+```
+yum install htop
+apt-get install htop
+```
+
+Example for `vmstat` (summary of memory, processes, etc.):
+
+```
+# summary
+vmstat -s
+# print timestamps, format in MB, stats every 1 second, 5 times
+vmstat -t -S M 1 5
+```
+
+Example for `iostat`:
+
+```
+watch -n 1 iostat
+```
+
+Example for `sar`:
+```
+sar //cpu
+sar -r //ram
+sar -q //load avg
+sar -b //I/O
+```
+
+`sysstat` also provides the `iostat` binary. On FreeBSD you could use `systat` for example.
+
+If you are missing checks and metrics found in your analysis, add them to your monitoring!
+
+## <a id="troubleshooting-analyze-environment-windows"></a> Analyze your Windows Environment
+
+A good tip for Windows are the tools found inside the [Sysinternals Suite](https://technet.microsoft.com/en-us/sysinternals/bb842062.aspx).
+
+You can also start `perfmon` and analyze specific performance counters.
+Keep notes which could be important for your monitoring, and add service
+checks later on.
 
 ## <a id="troubleshooting-enable-debug-output"></a> Enable Debug Output
 
@@ -22,14 +114,14 @@ Enable the `debuglog` feature:
     # icinga2 feature enable debuglog
     # service icinga2 restart
 
-You can find the debug log file in `/var/log/icinga2/debug.log`.
+The debug log file can be found in `/var/log/icinga2/debug.log`.
 
 Alternatively you may run Icinga 2 in the foreground with debugging enabled. Specify the console
 log severity as an additional parameter argument to `-x`.
 
     # /usr/sbin/icinga2 daemon -x notice
 
-The log level can be one of `critical`, `warning`, `information`, `notice`
+The [log severity](9-object-types.md#objecttype-filelogger) can be one of `critical`, `warning`, `information`, `notice`
 and `debug`.
 
 ## <a id="list-configuration-objects"></a> List Configuration Objects
@@ -98,10 +190,16 @@ You can also filter by name and type:
 
     [2014-10-15 14:27:19 +0200] information/cli: Parsed 175 objects.
 
+Runtime modifications via the [REST API](12-icinga2-api.md#icinga2-api-config-objects)
+are not immediately updated. Furthermore there is a known issue with
+[group assign expressions](17-language-reference.md#group-assign) which are not reflected in the host object output.
+You need to restart Icinga 2 in order to update the `icinga2.debug` cache file.
+
+
 ## <a id="check-command-definitions"></a> Where are the check command definitions?
 
 Icinga 2 features a number of built-in [check command definitions](10-icinga-template-library.md#plugin-check-commands) which are
-included using
+included with
 
     include <itl>
     include <plugins>
@@ -123,7 +221,8 @@ for their check result containing the executed shell command.
 to fetch the checkable object, its check result and the executed shell command.
 * Alternatively enable the [debug log](15-troubleshooting.md#troubleshooting-enable-debug-output) and look for the executed command.
 
-Example for a service object query using a [regex match]() on the name:
+Example for a service object query using a [regex match](18-library-reference.md#global-functions-regex)
+on the name:
 
     $ curl -k -s -u root:icinga -H 'Accept: application/json' -H 'X-HTTP-Method-Override: GET' -X POST 'https://localhost:5665/v1/objects/services' \
     -d '{ "filter": "regex(pattern, service.name)", "filter_vars": { "pattern": "^http" }, "attrs": [ "__name", "last_check_result" ] }' | python -m json.tool
@@ -194,17 +293,99 @@ Fetch all check result events matching the `event.service` name `random`:
     $ curl -k -s -u root:icinga -X POST 'https://localhost:5665/v1/events?queue=debugchecks&types=CheckResult&filter=match%28%22random*%22,event.service%29'
 
 
+### <a id="late-check-results"></a> Late Check Results
+
+[Icinga Web 2](https://www.icinga.com/products/icinga-web-2/) provides
+a dashboard overview for `overdue checks`.
+
+The REST API provides the [status] URL endpoint with some generic metrics
+on Icinga and its features.
+
+    # curl -k -s -u root:icinga 'https://localhost:5665/v1/status' | python -m json.tool | less
+
+You can also calculate late check results via the REST API:
+
+* Fetch the `last_check` timestamp from each object
+* Compare the timestamp with the current time and add `check_interval` multiple times (change it to see which results are really late, like five times check_interval)
+
+You can use the [icinga2 console](11-cli-commands.md#cli-command-console) to connect to the instance, fetch all data
+and calculate the differences. More infos can be found in [this blogpost](https://www.icinga.com/2016/08/11/analyse-icinga-2-problems-using-the-console-api/).
+
+    # ICINGA2_API_USERNAME=root ICINGA2_API_PASSWORD=icinga icinga2 console --connect 'https://localhost:5665/'
+
+    <1> => var res = []; for (s in get_objects(Service).filter(s => s.last_check < get_time() - 2 * s.check_interval)) { res.add([s.__name, DateTime(s.last_check).to_string()]) }; res
+
+    [ [ "10807-host!10807-service", "2016-06-10 15:54:55 +0200" ], [ "mbmif.int.netways.de!disk /", "2016-01-26 16:32:29 +0100" ] ]
+
+Or if you are just interested in numbers, call [len](18-library-reference.md#array-len) on the result array `res`:
+
+    <2> => var res = []; for (s in get_objects(Service).filter(s => s.last_check < get_time() - 2 * s.check_interval)) { res.add([s.__name, DateTime(s.last_check).to_string()]) }; res.len()
+
+    2.000000
+
+If you need to analyze that problem multiple times, just add the current formatted timestamp
+and repeat the commands.
+
+    <23> => DateTime(get_time()).to_string()
+
+    "2017-04-04 16:09:39 +0200"
+
+    <24> => var res = []; for (s in get_objects(Service).filter(s => s.last_check < get_time() - 2 * s.check_interval)) { res.add([s.__name, DateTime(s.last_check).to_string()]) }; res.len()
+
+    8287.000000
+
+More details about the Icinga 2 DSL and its possibilities can be
+found in the [language](17-language-reference.md#language-reference) and [library](18-library-reference.md#library-reference) reference chapters.
+
+### <a id="late-check-results-distributed"></a> Late Check Results in Distributed Environments
+
+When it comes to a distributed HA setup, each node is responsible for a load-balanced amount of checks.
+Host and Service objects provide the attribute `paused`. If this is set to `false`, the current node
+actively attempts to schedule and execute checks. Otherwise the node does not feel responsible.
+
+    <3> => var res = {}; for (s in get_objects(Service).filter(s => s.last_check < get_time() - 2 * s.check_interval)) { res[s.paused] += 1 }; res
+    {
+      @false = 2.000000
+      @true = 1.000000
+    }
+
+You may ask why this analysis is important? Fair enough - if the numbers are not inverted in a HA zone
+with two members, this may give a hint that the cluster nodes are in a split-brain scenario, or you've
+found a bug in the cluster.
+
+
+If you are running a cluster setup where the master/satellite executes checks on the client via
+[top down command endpoint](6-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint) mode,
+you might want to know which zones are affected.
+
+This analysis assumes that clients which are not connected, have the string `connected` in their
+service check result output and their state is `UNKNOWN`.
+
+    <4> => var res = {}; for (s in get_objects(Service)) { if (s.state==3) { if (match("*connected*", s.last_check_result.output)) { res[s.zone] += [s.host_name] } } };  for (k => v in res) { res[k] = len(v.unique()) }; res
+
+    {
+      Asia = 31.000000
+      Europe = 214.000000
+      USA = 207.000000
+    }
+
+The result set shows the configured zones and their affected hosts in a unique list. The output also just prints the numbers
+but you can adjust this by omitting the `len()` call inside the for loop.
+
 ## <a id="notifications-not-sent"></a> Notifications are not sent
 
-* Check the debug log to see if a notification is triggered.
+* Check the [debug log](15-troubleshooting.md#troubleshooting-enable-debug-output) to see if a notification is triggered.
 * If yes, verify that all conditions are satisfied.
 * Are any errors on the notification command execution logged?
+
+Please ensure to add these details with your own description
+to any question or issue posted to the community channels.
 
 Verify the following configuration:
 
 * Is the host/service `enable_notifications` attribute set, and if so, to which value?
-* Do the notification attributes `states`, `types`, `period` match the notification conditions?
-* Do the user attributes `states`, `types`, `period` match the notification conditions?
+* Do the [notification](9-object-types.md#objecttype-notification) attributes `states`, `types`, `period` match the notification conditions?
+* Do the [user](9-object-types.md#objecttype-user) attributes `states`, `types`, `period` match the notification conditions?
 * Are there any notification `begin` and `end` times configured?
 * Make sure the [notification](11-cli-commands.md#enable-features) feature is enabled.
 * Does the referenced NotificationCommand work when executed as Icinga user on the shell?
@@ -232,17 +413,32 @@ to `features-enabled` and that the latter is included in [icinga2.conf](4-config
 * Are the feature attributes set correctly according to the documentation?
 * Any errors on the logs?
 
+Look up the [object type](9-object-types.md#object-types) for the required feature and verify it is enabled:
+
+    # icinga2 object list --type <feature object type>
+
+Example for the `graphite` feature:
+
+    # icinga2 object list --type GraphiteWriter
+
 ## <a id="configuration-ignored"></a> Configuration is ignored
 
 * Make sure that the line(s) are not [commented out](17-language-reference.md#comments) (starting with `//` or `#`, or
 encapsulated by `/* ... */`).
 * Is the configuration file included in [icinga2.conf](4-configuring-icinga-2.md#icinga2-conf)?
 
+Run the [configuration validation](11-cli-commands.md#config-validation) and add `notice` as log severity.
+Search for the file which should be included i.e. using the `grep` CLI command.
+
+    # icinga2 daemon -C -x notice | grep command
+
 ## <a id="configuration-attribute-inheritance"></a> Configuration attributes are inherited from
 
 Icinga 2 allows you to import templates using the [import](17-language-reference.md#template-imports) keyword. If these templates
 contain additional attributes, your objects will automatically inherit them. You can override
 or modify these attributes in the current object.
+
+The [object list](15-troubleshooting.md#list-configuration-objects) CLI command allows you to verify the attribute origin.
 
 ## <a id="configuration-value-dollar-sign"></a> Configuration Value with Single Dollar Sign
 
@@ -251,6 +447,9 @@ did not properly escape the single dollar sign preventing its usage as [runtime 
 
     critical/config: Error: Validation failed for Object 'ping4' (Type: 'Service') at /etc/icinga2/zones.d/global-templates/windows.conf:24: Closing $ not found in macro format string 'top-syntax=${list}'.
 
+Correct the custom attribute value to
+
+    "top-syntax=$${list}"
 
 ## <a id="troubleshooting-cluster"></a> Cluster and Clients Troubleshooting
 
@@ -261,19 +460,19 @@ done so already.
 
 > **Note**
 >
-> Some problems just exist due to wrong file permissions or packet filters applied. Make
+> Some problems just exist due to wrong file permissions or applied packet filters. Make
 > sure to check these in the first place.
 
 ### <a id="troubleshooting-cluster-connection-errors"></a> Cluster Troubleshooting Connection Errors
 
-General connection errors normally lead you to one of the following problems:
+General connection errors could be one of the following problems:
 
-* Wrong network configuration
-* Packet loss on the connection
+* Incorrect network configuration
+* Packet loss
 * Firewall rules preventing traffic
 
 Use tools like `netstat`, `tcpdump`, `nmap`, etc. to make sure that the cluster communication
-happens (default port is `5665`).
+works (default port is `5665`).
 
     # tcpdump -n port 5665 -i any
 

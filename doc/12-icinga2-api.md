@@ -1612,6 +1612,11 @@ The following parameters need to be specified (either as URL parameters or in a 
 The [API permission](12-icinga2-api.md#icinga2-api-permissions) `console` is required for executing
 expressions.
 
+> **Note**
+>
+> Runtime modifications via `execute-script` calls are not validated and might cause the Icinga 2
+> daemon to crash or behave in an unexpected way. Use these runtime changes at your own risk.
+
 If you specify a session identifier, the same script context can be reused for multiple requests. This allows you to, for example, set a local variable in a request and use that local variable in another request. Sessions automatically expire after a set period of inactivity (currently 30 minutes).
 
 Example for fetching the command line from the local host's last check result:
@@ -1695,7 +1700,9 @@ The Windows installer already includes Icinga Studio. On Debian and Ubuntu the p
 
 ### <a id="icinga2-api-clients-cli-console"></a> Icinga 2 Console
 
-By default the [console CLI command](11-cli-commands.md#cli-command-console) evaluates expressions in a local interpreter, i.e. independently from your Icinga 2 daemon. Using the `--connect` parameter you can use the Icinga 2  console to evaluate expressions via the API.
+By default the [console CLI command](11-cli-commands.md#cli-command-console) evaluates
+expressions in a local interpreter, i.e. independently from your Icinga 2 daemon.
+Add the `--connect` parameter to debug and evaluate expressions via the API.
 
 ### <a id="icinga2-api-clients-programmatic-examples"></a> API Clients Programmatic Examples
 

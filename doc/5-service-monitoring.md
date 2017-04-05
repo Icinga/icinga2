@@ -183,6 +183,8 @@ Instead, choose a plugin and configure its parameters and thresholds. The follow
 
 * [disk](10-icinga-template-library.md#plugin-check-command-disk)
 * [mem](10-icinga-template-library.md#plugin-contrib-command-mem), [swap](10-icinga-template-library.md#plugin-check-command-swap)
+* [procs](10-icinga-template-library.md#plugin-check-command-processes)
+* [users](10-icinga-template-library.md#plugin-check-command-users)
 * [running_kernel](10-icinga-template-library.md#plugin-contrib-command-running_kernel)
 * package management: [apt](10-icinga-template-library.md#plugin-check-command-apt), [yum](10-icinga-template-library.md#plugin-contrib-command-yum), etc.
 * [ssh](10-icinga-template-library.md#plugin-check-command-ssh)
@@ -269,6 +271,7 @@ check [this blog entry](http://www.claudiokuenzler.com/blog/650/slow-vmware-perl
 * [smtp](10-icinga-template-library.md#plugin-check-command-smtp), [ssmtp](10-icinga-template-library.md#plugin-check-command-ssmtp)
 * [imap](10-icinga-template-library.md#plugin-check-command-imap), [simap](10-icinga-template-library.md#plugin-check-command-simap)
 * [pop](10-icinga-template-library.md#plugin-check-command-pop), [spop](10-icinga-template-library.md#plugin-check-command-spop)
+* [mailq](10-icinga-template-library.md#plugin-check-command-mailq)
 
 ### <a id="service-monitoring-hardware"></a> Hardware Monitoring
 
