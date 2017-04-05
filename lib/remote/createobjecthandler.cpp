@@ -20,6 +20,7 @@
 #include "remote/createobjecthandler.hpp"
 #include "remote/configobjectutility.hpp"
 #include "remote/httputility.hpp"
+#include "remote/jsonrpcconnection.hpp"
 #include "remote/filterutility.hpp"
 #include "remote/apiaction.hpp"
 #include "remote/zone.hpp"
