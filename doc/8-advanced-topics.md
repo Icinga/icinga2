@@ -818,12 +818,23 @@ If the freshness checks are invalid, a new check is executed defined by the
 
 ## <a id="check-flapping"></a> Check Flapping
 
-The flapping algorithm used in Icinga 2 does not store the past states but
-calculates the flapping threshold from a single value based on counters and
-half-life values. Icinga 2 compares the value with a single flapping threshold
-configuration attribute named `flapping_threshold`.
+If a host or service repeatedly changes its state in an unexpected short time, it is considered to be flapping.
 
-Flapping detection can be enabled or disabled using the `enable_flapping` attribute.
+The problems with flapping are:
+* A host or service check seems to misbehave.
+* Usually that results in lots of (mostly useless) notifications to be sent out.
+
+If flapping detection is enabled for a host or service check (either globally in app.conf or per host / service by setting `enable_flapping = true`)
+* A single notification *can* be configured to be sent out whenever flapping starts or ends.
+* If flapping has just started, all further notifications of that check are suppressed until flapping ends.
+
+The flapping detection algorithm used in Icinga 2 calculates the current state change rate in percent and compares that value with a single flapping threshold
+configuration attribute named `flapping_threshold`.
+If `flapping_threshold` is set to 30, a state change rate above 30% means that the check is currently flapping until it falls below that threshold again.
+
+The figure below tries to show how the algorithm works in more detail.
+
+![Flapping Detection](images/advanced-topics/flapping.png)
 
 
 ## <a id="volatile-services"></a> Volatile Services
