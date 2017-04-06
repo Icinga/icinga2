@@ -72,7 +72,7 @@ bool InfoHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, 
 		result1->Set("user", user->GetName());
 		result1->Set("permissions", Array::FromVector(permInfo));
 		result1->Set("version", Application::GetAppVersion());
-		result1->Set("info", "More information about API requests is available in the documentation at http://docs.icinga.com/icinga2/latest.");
+		result1->Set("info", "More information about API requests is available in the documentation at https://docs.icinga.com/icinga2/latest.");
 
 		Array::Ptr results = new Array();
 		results->Add(result1);
@@ -98,7 +98,7 @@ bool InfoHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, 
 		} else
 			body += "Your user does not have any permissions.</p>";
 
-		body += "<p>More information about API requests is available in the <a href=\"http://docs.icinga.com/icinga2/latest\" target=\"_blank\">documentation</a>.</p></html>";
+		body += "<p>More information about API requests is available in the <a href=\"https://docs.icinga.com/icinga2/latest\" target=\"_blank\">documentation</a>.</p></html>";
 		response.WriteBody(body.CStr(), body.GetLength());
 	}
 

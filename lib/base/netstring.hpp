@@ -31,7 +31,7 @@ class String;
 /**
  * Helper functions for reading/writing messages in the netstring format.
  *
- * @see http://cr.yp.to/proto/netstrings.txt
+ * @see https://cr.yp.to/proto/netstrings.txt
  *
  * @ingroup base
  */

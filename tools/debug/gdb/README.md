@@ -37,4 +37,4 @@ You can download the one from Icinga 2 and modify all paths.
     $ vim ~/.gdbinit
 
 
-More details in the [troubleshooting debug documentation](http://docs.icinga.com/icinga2/latest/doc/module/icinga2/chapter/troubleshooting#debug).
+More details in the [troubleshooting debug documentation](https://docs.icinga.com/icinga2/latest/doc/module/icinga2/chapter/troubleshooting#debug).
