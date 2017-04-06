@@ -109,7 +109,7 @@ a forced service check:
 A list of currently supported external commands can be found [here](23-appendix.md#external-commands-list-detail).
 
 Detailed information on the commands and their required parameters can be found
-on the [Icinga 1.x documentation](http://docs.icinga.com/latest/en/extcommands2.html).
+on the [Icinga 1.x documentation](https://docs.icinga.com/latest/en/extcommands2.html).
 
 ## <a id="performance-data"></a> Performance Data
 
@@ -512,7 +512,7 @@ with the following tags
 
 ## <a id="setting-up-livestatus"></a> Livestatus
 
-The [MK Livestatus](http://mathias-kettner.de/checkmk_livestatus.html) project
+The [MK Livestatus](https://mathias-kettner.de/checkmk_livestatus.html) project
 implements a query protocol that lets users query their Icinga instance for
 status information. It can also be used to send commands.
 

@@ -50,7 +50,7 @@ Install tools which help you to do so. Opinions differ, let us know if you have 
 
 ### <a id="troubleshooting-analyze-environment-linux"></a> Analyse your Linux/Unix Environment
 
-[htop](http://hisham.hm/htop/) is a better replacement for `top` and helps to analyze processes
+[htop](https://hisham.hm/htop/) is a better replacement for `top` and helps to analyze processes
 interactively.
 
 ```
