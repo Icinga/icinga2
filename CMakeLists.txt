@@ -345,27 +345,11 @@ if(WIN32)
       list (APPEND ICINGA2_OPENSSL_DLLS ${OPENSSL_INCLUDE_DIR}/../bin/libeay32.dll ${OPENSSL_INCLUDE_DIR}/../bin/ssleay32.dll)
   endif()
 
-  message (INFO "Using " ${ICINGA2_OPENSSL_DLLS})
   install(
     PROGRAMS ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}
       ${ICINGA2_OPENSSL_DLLS}
     DESTINATION ${CMAKE_INSTALL_SBINDIR}
   )
-
-  if (OPENSSL_VERSION_MINOR GREATER_EQUAL 1)
-    install(
-      PROGRAMS ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}
-        ${OPENSSL_INCLUDE_DIR}/../bin/libcrypto-1_1-x64.dll ${OPENSSL_INCLUDE_DIR}/../bin/libssl-1_1-x64.dll
-      DESTINATION ${CMAKE_INSTALL_SBINDIR}
-    )
-  else()
-    install(
-      PROGRAMS ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}
-        ${OPENSSL_INCLUDE_DIR}/../bin/libeay32.dll ${OPENSSL_INCLUDE_DIR}/../bin/ssleay32.dll
-      DESTINATION ${CMAKE_INSTALL_SBINDIR}
-    )
-  endif()
-
 endif()
 
 include(CPack)
