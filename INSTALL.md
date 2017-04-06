@@ -51,8 +51,8 @@ libopenssl-devel on SLES12, libssl-dev on Debian)
 Note: RHEL5 ships an ancient flex version. Updated packages are available for
 example from the repoforge buildtools repository.
 
-* x86: http://mirror.hs-esslingen.de/repoforge/redhat/el5/en/i386/buildtools/
-* x86\_64: http://mirror.hs-esslingen.de/repoforge/redhat/el5/en/x86\_64/buildtools/
+* x86: https://mirror.hs-esslingen.de/repoforge/redhat/el5/en/i386/buildtools/
+* x86\_64: https://mirror.hs-esslingen.de/repoforge/redhat/el5/en/x86\_64/buildtools/
 
 ### User Requirements
 
@@ -144,7 +144,7 @@ C++11 features.
     cat >/etc/yum.repos.d/devtools-2.repo <<REPO
     [testing-devtools-2-centos-\$releasever]
     name=testing 2 devtools for CentOS $releasever
-    baseurl=http://people.centos.org/tru/devtools-2/\$releasever/\$basearch/RPMS
+    baseurl=https://people.centos.org/tru/devtools-2/\$releasever/\$basearch/RPMS
     gpgcheck=0
     REPO
 
