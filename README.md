@@ -56,7 +56,6 @@ contribution is appreciated!
 
 Please continue reading in the [Contributing chapter](CONTRIBUTING.md).
 
-
 <!-- TOC URLs -->
 [About]: #about
 [License]: #license
