@@ -4,7 +4,7 @@
 
 SELinux is a mandatory access control (MAC) system on Linux which adds a fine granular permission system for access to all resources on the system such as files, devices, networks and inter-process communication.
 
-The most important questions are answered briefly in the [FAQ of the SELinux Project](http://selinuxproject.org/page/FAQ). For more details on SELinux and how to actually use and administrate it on your systems have a look at [Red Hat Enterprise Linux 7 - SELinux User's and Administrator's Guide](https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/7/html/SELinux_Users_and_Administrators_Guide/index.html). For an simplified (and funny) introduction download the [SELinux Coloring Book](https://github.com/mairin/selinux-coloring-book).
+The most important questions are answered briefly in the [FAQ of the SELinux Project](https://selinuxproject.org/page/FAQ). For more details on SELinux and how to actually use and administrate it on your system have a look at [Red Hat Enterprise Linux 7 - SELinux User's and Administrator's Guide](https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/7/html/SELinux_Users_and_Administrators_Guide/index.html). For a simplified (and funny) introduction download the [SELinux Coloring Book](https://github.com/mairin/selinux-coloring-book).
 
 This documentation will use a similar format like the SELinux User's and Administrator's Guide.
 
@@ -114,7 +114,7 @@ Having this boolean enabled allows icinga2 to connect to all ports. This can be 
 
 Download and install a plugin, for example check_mysql_health.
 
-    # wget http://labs.consol.de/download/shinken-nagios-plugins/check_mysql_health-2.1.9.2.tar.gz
+    # wget https://labs.consol.de/download/shinken-nagios-plugins/check_mysql_health-2.1.9.2.tar.gz
     # tar xvzf check_mysql_health-2.1.9.2.tar.gz
     # cd check_mysql_health-2.1.9.2/
     # ./configure --libexecdir /usr/lib64/nagios/plugins

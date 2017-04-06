@@ -414,14 +414,14 @@ the [configuration modes](6-distributed-monitoring.md#distributed-monitoring-con
 
 ### <a id="distributed-monitoring-setup-client-windows"></a> Client/Satellite Windows Setup
 
-Download the MSI-Installer package from [http://packages.icinga.com/windows/](http://packages.icinga.com/windows/).
+Download the MSI-Installer package from [https://packages.icinga.com/windows/](https://packages.icinga.com/windows/).
 
 Requirements:
 
 * Windows Vista/Server 2008 or higher
-* [Microsoft .NET Framework 2.0](http://www.microsoft.com/de-de/download/details.aspx?id=1639)
+* [Microsoft .NET Framework 2.0](https://www.microsoft.com/de-de/download/details.aspx?id=1639)
 
-The installer package includes the [NSClient++](http://www.nsclient.org/) package
+The installer package includes the [NSClient++](https://www.nsclient.org/) package
 so that Icinga 2 can use its built-in plugins. You can find more details in
 [this chapter](6-distributed-monitoring.md#distributed-monitoring-windows-nscp).
 The Windows package also installs native [monitoring plugin binaries](6-distributed-monitoring.md#distributed-monitoring-windows-plugins)

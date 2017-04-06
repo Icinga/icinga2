@@ -259,7 +259,7 @@ Instead, choose a plugin and configure its parameters and thresholds. The follow
 * [VMware](10-icinga-template-library.md#plugin-contrib-vmware)
 
 **Tip**: If you are encountering timeouts using the VMware Perl SDK,
-check [this blog entry](http://www.claudiokuenzler.com/blog/650/slow-vmware-perl-sdk-soap-request-error-libwww-version).
+check [this blog entry](https://www.claudiokuenzler.com/blog/650/slow-vmware-perl-sdk-soap-request-error-libwww-version).
 
 ### <a id="service-monitoring-sap"></a> SAP Monitoring
 

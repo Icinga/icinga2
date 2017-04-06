@@ -796,7 +796,7 @@ negate_arguments	| **Optional.** Arguments for the negated command.
 
 ### <a id="plugin-check-command-nrpe"></a> nrpe
 
-The `check_nrpe` plugin can be used to query an [NRPE](http://docs.icinga.com/latest/en/nrpe.html)
+The `check_nrpe` plugin can be used to query an [NRPE](https://docs.icinga.com/latest/en/nrpe.html)
 server or [NSClient++](https://www.nsclient.org). **Note**: This plugin
 is considered insecure/deprecated.
 
@@ -2134,7 +2134,7 @@ postgres_unixsocket  | **Optional.** If "postgres_unixsocket" is set to true, th
 postgres_query       | **Optional.** Query for "custom_query" action.
 postgres_valtype     | **Optional.** Value type of query result for "custom_query".
 postgres_reverse     | **Optional.** If "postgres_reverse" is set, warning and critical values are reversed for "custom_query" action.
-postgres_tempdir     | **Optional.** Specify directory for temporary files. The default directory is dependent on the OS. More details [here](http://perldoc.perl.org/File/Spec.html).
+postgres_tempdir     | **Optional.** Specify directory for temporary files. The default directory is dependent on the OS. More details [here](https://perldoc.perl.org/File/Spec.html).
 
 #### <a id="plugin-contrib-command-mongodb"></a> mongodb
 
@@ -2668,8 +2668,8 @@ This category includes all plugins for various virtualization technologies.
 
 #### <a id="plugin-contrib-command-esxi-hardware"></a> esxi_hardware
 
-The [check_esxi_hardware.py](http://www.claudiokuenzler.com/nagios-plugins/check_esxi_hardware.php) plugin
-uses the [pywbem](http://pywbem.github.io/pywbem/) Python library to monitor the hardware of ESXi servers
+The [check_esxi_hardware.py](https://www.claudiokuenzler.com/nagios-plugins/check_esxi_hardware.php) plugin
+uses the [pywbem](https://pywbem.github.io/pywbem/) Python library to monitor the hardware of ESXi servers
 through the [VMWare API](https://www.vmware.com/support/pubs/sdk_pubs.html) and CIM service.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
@@ -4692,7 +4692,7 @@ This category includes all plugins for web-based checks.
 #### <a id="plugin-contrib-command-webinject"></a> webinject
 
 The [check_webinject](https://labs.consol.de/de/nagios/check_webinject/index.html) plugin
-uses [WebInject](http://www.webinject.org/manual.html) to test web applications
+uses [WebInject](https://www.webinject.org/manual.html) to test web applications
 and web services in an automated fashion.
 It can be used to test individual system components that have HTTP interfaces
 (JSP, ASP, CGI, PHP, AJAX, Servlets, HTML Forms, XML/SOAP Web Services, REST, etc),
