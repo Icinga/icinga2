@@ -12,13 +12,13 @@ and distribution you are running.
 
   Distribution            | Repository
   ------------------------|---------------------------
-  Debian                  | [Icinga Repository](http://packages.icinga.com/debian/), [debmon](https://debmon.org/packages/debmon-jessie/icinga2)
-  Ubuntu                  | [Icinga Repository](http://packages.icinga.com/ubuntu/), [Icinga PPA](https://launchpad.net/~formorer/+archive/ubuntu/icinga)
-  RHEL/CentOS             | [Icinga Repository](http://packages.icinga.com/epel/)
-  openSUSE                | [Icinga Repository](http://packages.icinga.com/openSUSE/), [Server Monitoring Repository](https://build.opensuse.org/package/show/server:monitoring/icinga2)
-  SLES                    | [Icinga Repository](http://packages.icinga.com/SUSE/)
-  Gentoo                  | [Upstream](http://packages.gentoo.org/package/net-analyzer/icinga2)
-  FreeBSD                 | [Upstream](http://www.freshports.org/net-mgmt/icinga2)
+  Debian                  | [Icinga Repository](https://packages.icinga.com/debian/), [debmon](https://debmon.org/packages/debmon-jessie/icinga2)
+  Ubuntu                  | [Icinga Repository](https://packages.icinga.com/ubuntu/), [Icinga PPA](https://launchpad.net/~formorer/+archive/ubuntu/icinga)
+  RHEL/CentOS             | [Icinga Repository](https://packages.icinga.com/epel/)
+  openSUSE                | [Icinga Repository](https://packages.icinga.com/openSUSE/), [Server Monitoring Repository](https://build.opensuse.org/package/show/server:monitoring/icinga2)
+  SLES                    | [Icinga Repository](https://packages.icinga.com/SUSE/)
+  Gentoo                  | [Upstream](https://packages.gentoo.org/package/net-analyzer/icinga2)
+  FreeBSD                 | [Upstream](https://www.freshports.org/net-mgmt/icinga2)
   OpenBSD                 | [Upstream](http://ports.su/net/icinga/core2,-main)
   ArchLinux               | [Upstream](https://aur.archlinux.org/packages/icinga2)
   AlpineLinux             | [Upstream](https://pkgs.alpinelinux.org/package/edge/community/x86_64/icinga2)
@@ -33,19 +33,19 @@ Below is a list with examples for the various distributions.
 
 Debian:
 
-    # wget -O - http://packages.icinga.com/icinga.key | apt-key add -
-    # echo 'deb http://packages.icinga.com/debian icinga-jessie main' >/etc/apt/sources.list.d/icinga.list
+    # wget -O - https://packages.icinga.com/icinga.key | apt-key add -
+    # echo 'deb https://packages.icinga.com/debian icinga-jessie main' >/etc/apt/sources.list.d/icinga.list
     # apt-get update
 
 Ubuntu:
 
-    # wget -O - http://packages.icinga.com/icinga.key | apt-key add -
-    # echo 'deb http://packages.icinga.com/ubuntu icinga-xenial main' >/etc/apt/sources.list.d/icinga.list
+    # wget -O - https://packages.icinga.com/icinga.key | apt-key add -
+    # echo 'deb https://packages.icinga.com/ubuntu icinga-xenial main' >/etc/apt/sources.list.d/icinga.list
     # apt-get update
 
 RHEL/CentOS 7:
 
-    yum install https://packages.icinga.com/epel/7/release/noarch/icinga-rpm-release-7-1.el7.centos.noarch.rpm
+    yum install httpss://packages.icinga.com/epel/7/release/noarch/icinga-rpm-release-7-1.el7.centos.noarch.rpm
 
 RHEL/CentOS 6:
 
@@ -53,7 +53,7 @@ RHEL/CentOS 6:
 
 RHEL/CentOS 5:
 
-    rpm -i http://packages.icinga.com/epel/5/release/noarch/icinga-rpm-release-5-1.el5.centos.noarch.rpm
+    rpm -i https://packages.icinga.com/epel/5/release/noarch/icinga-rpm-release-5-1.el5.centos.noarch.rpm
 
 Fedora 25:
 
@@ -69,31 +69,31 @@ Fedora 23:
 
 SLES 11:
 
-    # zypper ar http://packages.icinga.com/SUSE/ICINGA-release-11.repo
+    # zypper ar https://packages.icinga.com/SUSE/ICINGA-release-11.repo
     # zypper ref
 
 SLES 12:
 
-    # zypper ar http://packages.icinga.com/SUSE/ICINGA-release.repo
+    # zypper ar https://packages.icinga.com/SUSE/ICINGA-release.repo
     # zypper ref
 
 openSUSE:
 
-    # zypper ar http://packages.icinga.com/openSUSE/ICINGA-release.repo
+    # zypper ar https://packages.icinga.com/openSUSE/ICINGA-release.repo
     # zypper ref
 
 
 #### <a id="package-repositories-rhel-epel"></a> RHEL/CentOS EPEL Repository
 
 The packages for RHEL/CentOS depend on other packages which are distributed
-as part of the [EPEL repository](http://fedoraproject.org/wiki/EPEL).
+as part of the [EPEL repository](https://fedoraproject.org/wiki/EPEL).
 
 CentOS 7/6/5:
 
     yum install epel-release
 
 If you are using RHEL you need enable the `optional` repository and then install
-the [EPEL rpm package](http://fedoraproject.org/wiki/EPEL#How_can_I_use_these_extra_packages.3F).
+the [EPEL rpm package](https://fedoraproject.org/wiki/EPEL#How_can_I_use_these_extra_packages.3F).
 
 #### <a id="package-repositories-sles-security"></a> SLES Security Repository
 
@@ -206,11 +206,11 @@ popular operating systems/distributions:
 
 OS/Distribution        | Package Name       | Repository                | Installation Path
 -----------------------|--------------------|---------------------------|----------------------------
-RHEL/CentOS            | nagios-plugins-all | [EPEL](http://fedoraproject.org/wiki/EPEL) | /usr/lib/nagios/plugins or /usr/lib64/nagios/plugins
+RHEL/CentOS            | nagios-plugins-all | [EPEL](https://fedoraproject.org/wiki/EPEL) | /usr/lib/nagios/plugins or /usr/lib64/nagios/plugins
 SLES/OpenSUSE          | monitoring-plugins | [server:monitoring](https://build.opensuse.org/project/repositories/server:monitoring) | /usr/lib/nagios/plugins
 Debian/Ubuntu          | nagios-plugins     | -                         | /usr/lib/nagios/plugins
 FreeBSD                | monitoring-plugins | -                         | /usr/local/libexec/nagios
-OS X                   | nagios-plugins     | [MacPorts](http://www.macports.org), [Homebrew](http://brew.sh) | /opt/local/libexec or /usr/local/sbin
+OS X                   | nagios-plugins     | [MacPorts](https://www.macports.org), [Homebrew](https://brew.sh) | /opt/local/libexec or /usr/local/sbin
 
 The recommended way of installing these standard plugins is to use your
 distribution's package manager.
@@ -224,9 +224,9 @@ RHEL/CentOS:
     # yum install nagios-plugins-all
 
 The packages for RHEL/CentOS depend on other packages which are distributed
-as part of the [EPEL repository](http://fedoraproject.org/wiki/EPEL). Please
+as part of the [EPEL repository](https://fedoraproject.org/wiki/EPEL). Please
 make sure to enable this repository by following
-[these instructions](http://fedoraproject.org/wiki/EPEL#How_can_I_use_these_extra_packages.3F).
+[these instructions](https://fedoraproject.org/wiki/EPEL#How_can_I_use_these_extra_packages.3F).
 
 Fedora:
 

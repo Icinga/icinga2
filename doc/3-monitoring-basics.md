@@ -784,7 +784,7 @@ The other way around you can override specific custom attributes inherited from 
 
       /* Calculate some additional object attributes after populating the `vars` dictionary */
       notes = "Interface check for " + interface_name + " (units: '" + interface_config.iftraffic_units + "') in VLAN '" + vars.vlan + "' with ' QoS '" + vars.qos + "'"
-      notes_url = "http://foreman.company.com/hosts/" + host.name
+      notes_url = "https://foreman.company.com/hosts/" + host.name
       action_url = "http://snmp.checker.company.com/" + host.name + "/if-" + interface_name
     }
 
@@ -895,7 +895,7 @@ values for any object attribute specified in that apply rule.
 
       notes = "Support contract: " + vars.support_contract + " for Customer " + vars.customer_name + " (" + vars.customer_id + ")."
 
-      notes_url = "http://foreman.company.com/hosts/" + host.name
+      notes_url = "https://foreman.company.com/hosts/" + host.name
       action_url = "http://snmp.checker.company.com/" + host.name + "/" + vars.customer_id
     }
 
