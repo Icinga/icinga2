@@ -336,9 +336,26 @@ if(WIN32)
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/NSCP.msi DESTINATION ${CMAKE_INSTALL_SBINDIR})
 
   if (OPENSSL_VERSION_MINOR GREATER_EQUAL 1)
+    if (CMAKE_VS_PLATFORM_NAME STREQUAL "x64")
+      list (APPEND ICINGA2_OPENSSL_DLLS ${OPENSSL_INCLUDE_DIR}/../bin/libcrypto-1_1-x64.dll ${OPENSSL_INCLUDE_DIR}/../bin/libssl-1_1-x64.dll)
+    else()
+      list (APPEND ICINGA2_OPENSSL_DLLS ${OPENSSL_INCLUDE_DIR}/../bin/libcrypto-1_1.dll ${OPENSSL_INCLUDE_DIR}/../bin/libssl-1_1.dll)
+    endif()
+  else()
+      list (APPEND ICINGA2_OPENSSL_DLLS ${OPENSSL_INCLUDE_DIR}/../bin/libeay32.dll ${OPENSSL_INCLUDE_DIR}/../bin/ssleay32.dll)
+  endif()
+
+  message (INFO "Using " ${ICINGA2_OPENSSL_DLLS})
+  install(
+    PROGRAMS ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}
+      ${ICINGA2_OPENSSL_DLLS}
+    DESTINATION ${CMAKE_INSTALL_SBINDIR}
+  )
+
+  if (OPENSSL_VERSION_MINOR GREATER_EQUAL 1)
     install(
       PROGRAMS ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}
-        ${OPENSSL_INCLUDE_DIR}/../bin/libcrypto-1_1.dll ${OPENSSL_INCLUDE_DIR}/../bin/libssl-1_1.dll
+        ${OPENSSL_INCLUDE_DIR}/../bin/libcrypto-1_1-x64.dll ${OPENSSL_INCLUDE_DIR}/../bin/libssl-1_1-x64.dll
       DESTINATION ${CMAKE_INSTALL_SBINDIR}
     )
   else()
