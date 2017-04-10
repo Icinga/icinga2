@@ -1312,7 +1312,7 @@ is that they know about the parent zone and their endpoint members (and optional
 If you specify the `host` attribute in the `icinga2-master1.localdomain` endpoint object,
 the client will actively try to connect to the master node. Since we've specified the client
 endpoint's attribute on the master node already, we don't want the clients to connect to the
-master. Choose one connection direction.
+master. **Choose one [connection direction](6-distributed-monitoring.md#distributed-monitoring-advanced-hints-connection-direction).**
 
     [root@icinga2-client1.localdomain /]# vim /etc/icinga2/zones.conf
 
@@ -1502,7 +1502,7 @@ is that they know about the parent zone and their endpoint members (and optional
 If you specify the `host` attribute in the `icinga2-master1.localdomain` and `icinga2-master2.localdomain`
 endpoint objects, the client will actively try to connect to the master node. Since we've specified the client
 endpoint's attribute on the master node already, we don't want the clients to connect to the
-master nodes. Choose one connection direction.
+master nodes. **Choose one [connection direction](6-distributed-monitoring.md#distributed-monitoring-advanced-hints-connection-direction).**
 
     [root@icinga2-client1.localdomain /]# vim /etc/icinga2/zones.conf
 
@@ -1623,7 +1623,7 @@ to make sure that your cluster notifies you in case of failure.
 ![Icinga 2 Distributed Master and Satellites with Clients](images/distributed-monitoring/icinga2_distributed_scenarios_master_satellite_client.png)
 
 This scenario combines everything you've learned so far: High-availability masters,
-satellites receiving their config from the master zone, and clients checked via command
+satellites receiving their configuration from the master zone, and clients checked via command
 endpoint from the satellite zones.
 
 **Tip**: It can get complicated, so grab a pen and paper and bring your thoughts to life.
@@ -1631,7 +1631,7 @@ Play around with a test setup before using it in a production environment!
 
 Overview:
 
-* `icinga2-master1.localdomain` is the config master master node.
+* `icinga2-master1.localdomain` is the configuration master master node.
 * `icinga2-master2.localdomain` is the secondary master master node without configuration in `zones.d`.
 * `icinga2-satellite1.localdomain` and `icinga2-satellite2.localdomain` are satellite nodes in a `master` child zone.
 * `icinga2-client1.localdomain` and `icinga2-client2.localdomain` are two child nodes as clients.
@@ -1683,7 +1683,7 @@ We'll discuss the details of the required configuration below.
 The zone hierarchy can look like this. We'll define only the directly connected zones here.
 
 You can safely deploy this configuration onto all master and satellite zone
-members. You should keep in mind to control the endpoint connection direction
+members. You should keep in mind to control the endpoint [connection direction](6-distributed-monitoring.md#distributed-monitoring-advanced-hints-connection-direction)
 using the `host` attribute.
 
     [root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.conf
@@ -1719,10 +1719,12 @@ using the `host` attribute.
       global = true
     }
 
-**Note**: The master nodes do not need to know about the indirectly connected clients.
-Since we want to use command endpoint check configuration,
+Repeat the configuration step for `icinga2-master2.localdomain`, `icinga2-satellite1.localdomain`
+and `icinga2-satellite2.localdomain`.
+
+Since we want to use [top down command endpoint](6-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint) checks,
 we must configure the client endpoint and zone objects.
-In order to minimize the effort, we'll sync the client zone and endpoint config to the
+In order to minimize the effort, we'll sync the client zone and endpoint configuration to the
 satellites where the connection information is needed as well.
 
     [root@icinga2-master1.localdomain /]# mkdir -p /etc/icinga2/zones.d/{master,satellite,global-templates}
@@ -1758,7 +1760,9 @@ is that they know about the parent zone (the satellite) and their endpoint membe
 If you specify the `host` attribute in the `icinga2-satellite1.localdomain` and `icinga2-satellite2.localdomain`
 endpoint objects, the client node will actively try to connect to the satellite node. Since we've specified the client
 endpoint's attribute on the satellite node already, we don't want the client node to connect to the
-satellite nodes. Choose one connection direction.
+satellite nodes. **Choose one [connection direction](6-distributed-monitoring.md#distributed-monitoring-advanced-hints-connection-direction).**
+
+Example for `icinga2-client1.localdomain`:
 
     [root@icinga2-client1.localdomain /]# vim /etc/icinga2/zones.conf
 
@@ -1788,6 +1792,8 @@ satellite nodes. Choose one connection direction.
     object Zone "global-templates" {
       global = true
     }
+
+Example for `icinga2-client2.localdomain`:
 
     [root@icinga2-client2.localdomain /]# vim /etc/icinga2/zones.conf
 
@@ -1826,6 +1832,11 @@ We've already created the directories in `/etc/icinga2/zones.d` including the fi
 zone and endpoint configuration for the clients.
 
     [root@icinga2-master1.localdomain /]# cd /etc/icinga2/zones.d/satellite
+
+Add the host object configuration for the `icinga2-client1.localdomain` client. You should
+have created the configuration file in the previous steps and it should contain the endpoint
+and zone object configuration already.
+
     [root@icinga2-master1.localdomain /etc/icinga2/zones.d/satellite]# vim icinga2-client1.localdomain.conf
 
     object Host "icinga2-client1.localdomain" {
@@ -1833,6 +1844,8 @@ zone and endpoint configuration for the clients.
       address = "192.168.56.111"
       vars.client_endpoint = name //follows the convention that host name == endpoint name
     }
+
+Add the host object configuration for the `icinga2-client2.localdomain` client configuration file:
 
     [root@icinga2-master1.localdomain /etc/icinga2/zones.d/satellite]# vim icinga2-client2.localdomain.conf
 
@@ -1842,7 +1855,7 @@ zone and endpoint configuration for the clients.
       vars.client_endpoint = name //follows the convention that host name == endpoint name
     }
 
-Add a service which is executed on the satellite nodes (e.g. `ping4`). Pin the apply rule to the `satellite` zone only.
+Add a service object which is executed on the satellite nodes (e.g. `ping4`). Pin the apply rule to the `satellite` zone only.
 
     [root@icinga2-master1.localdomain /etc/icinga2/zones.d/satellite]# vim services.conf
 
@@ -2294,7 +2307,7 @@ keep the same history (check results, notifications, etc.) when nodes are tempor
 disconnected and then reconnect.
 
 This functionality is not needed when a master/satellite node is sending check
-execution events to a client which is purely configured for [command endpoint](distributed-monitoring-top-down-command-endpoint)
+execution events to a client which is purely configured for [command endpoint](6-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint)
 checks only.
 
 The [Endpoint](9-object-types.md#objecttype-endpoint) object attribute `log_duration` can
