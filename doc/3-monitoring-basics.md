@@ -424,36 +424,60 @@ The following macros provide global statistics:
 
 ## <a id="using-apply"></a> Apply Rules
 
-Instead of assigning each object ([Service](9-object-types.md#objecttype-service),
+Several object types require an object relation, e.g. [Service](9-object-types.md#objecttype-service),
 [Notification](9-object-types.md#objecttype-notification), [Dependency](9-object-types.md#objecttype-dependency),
-[ScheduledDowntime](9-object-types.md#objecttype-scheduleddowntime))
-based on attribute identifiers for example `host_name` objects can be [applied](17-language-reference.md#apply).
+[ScheduledDowntime](9-object-types.md#objecttype-scheduleddowntime) objects.
+If you for example create a service object you have to specify the [host_name](9-object-types.md#objecttype-service)
+attribute and reference an existing host attribute.
 
-Before you start using the apply rules keep the following in mind:
+    object "ping4" {
+      check_command = "ping4"
+      host_name = "icinga2-client1.localdomain"
+    }
+
+This isn't comfortable when managing a huge set of configuration objects which could
+[match](3-monitoring-basics.md#using-apply-expressions) on a common pattern.
+
+Instead you want to use **[apply](17-language-reference.md#apply) rules**.
+
+If you want basic monitoring for all your hosts, add a `ping4` service apply rule
+for all hosts which have the `address` attribute specified. Just one rule for 1000 hosts
+instead of 1000 service objects. Apply rules will automatically generate them for you.
+
+    apply Service "ping4" {
+      check_command = "ping4"
+      assign where host.address
+    }
+
+More explanations on assign where expressions can be found [here](3-monitoring-basics.md#using-apply-expressions).
+
+Before you start with apply rules keep the following in mind:
 
 * Define the best match.
     * A set of unique [custom attributes](3-monitoring-basics.md#custom-attributes) for these hosts/services?
-    * Or [group](3-monitoring-basics.md#groups) memberships, e.g. a host being a member of a hostgroup, applying services to it?
+    * Or [group](3-monitoring-basics.md#groups) memberships, e.g. a host being a member of a hostgroup which should have a service set?
     * A generic pattern [match](18-library-reference.md#global-functions-match) on the host/service name?
     * [Multiple expressions combined](3-monitoring-basics.md#using-apply-expressions) with `&&` or `||` [operators](17-language-reference.md#expression-operators)
 * All expressions must return a boolean value (an empty string is equal to `false` e.g.)
 
-> **Note**
->
-> You can set/override object attributes in apply rules using the respectively available
-> objects in that scope (host and/or service objects).
-
-[Custom attributes](3-monitoring-basics.md#custom-attributes) can also store nested dictionaries and arrays. That way you can use them
-for not only matching for their existance or values in apply expressions, but also assign
-("inherit") their values into the generated objected from apply rules.
+More specific object type requirements are described in these chapters:
 
 * [Apply services to hosts](3-monitoring-basics.md#using-apply-services)
 * [Apply notifications to hosts and services](3-monitoring-basics.md#using-apply-notifications)
 * [Apply dependencies to hosts and services](3-monitoring-basics.md#using-apply-dependencies)
 * [Apply scheduled downtimes to hosts and services](3-monitoring-basics.md#using-apply-scheduledowntimes)
 
-A more advanced example is using [apply with for loops on arrays or
-dictionaries](3-monitoring-basics.md#using-apply-for) for example provided by
+You can set/override object attributes in apply rules using the respectively available
+objects in that scope (host and/or service objects).
+
+    vars.application_type = host.vars.application_type
+
+[Custom attributes](3-monitoring-basics.md#custom-attributes) can also store nested dictionaries and arrays. That way you can use them
+for not only matching for their existence or values in apply expressions, but also assign
+("inherit") their values into the generated objected from apply rules.
+
+A more advanced example is to use [apply rules with for loops on arrays or
+dictionaries](3-monitoring-basics.md#using-apply-for) provided by
 [custom atttributes](3-monitoring-basics.md#custom-attributes) or groups.
 
 > **Tip**
