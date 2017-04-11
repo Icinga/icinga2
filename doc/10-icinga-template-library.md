@@ -1438,6 +1438,11 @@ Threshold    | Meaning
 Check command object for the `check_disk.exe` plugin.
 Aggregates the free disk space of all volumes and mount points it can find, or the ones defined in `disk_win_path`. Ignores removable storage like fash drives and discs (CD, DVD etc.).
 
+> **Note**
+>
+> Percentage based thresholds can be used by adding a '%' to the threshold
+> value.
+
 Custom attributes:
 
 Name                | Description
