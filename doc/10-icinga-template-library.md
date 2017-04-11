@@ -1448,6 +1448,11 @@ disk\_win\_path     | **Optional**. Check only these paths, default checks all.
 disk\_win\_unit     | **Optional**. Use this unit to display disk space, thresholds are interpreted in this unit. Defaults to "mb", possible values are: b, kb, mb, gb and tb.
 disk\_win\_exclude  | **Optional**. Exclude these drives from check.
 
+> **Note**
+>
+> Percentage based thresholds can be used by adding a '%' to the threshold
+> value.
+
 ### <a id="windows-plugins-load-windows"></a> load-windows
 
 Check command object for the `check_load.exe` plugin.
