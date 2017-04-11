@@ -1766,7 +1766,7 @@ Remote Host Terminal:
 ## <a id="dependencies"></a> Dependencies
 
 Icinga 2 uses host and service [Dependency](9-object-types.md#objecttype-dependency) objects
-for determing their network reachability.
+for determining their network reachability.
 
 A service can depend on a host, and vice versa. A service has an implicit
 dependency (parent) to its host. A host to host dependency acts implicitly
