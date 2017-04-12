@@ -230,8 +230,8 @@ BuildRequires:  checkpolicy, selinux-policy-devel, /usr/share/selinux/devel/poli
 Requires:       selinux-policy >= %{_selinux_policy_version}
 %endif
 Requires:       %{name} = %{version}-%{release}
-Requires(post):   /usr/sbin/semodule, /sbin/restorecon
-Requires(postun): /usr/sbin/semodule, /sbin/restorecon
+Requires(post):   policycoreutils-python
+Requires(postun): policycoreutils-python
 
 %description selinux
 SELinux policy module supporting icinga2
