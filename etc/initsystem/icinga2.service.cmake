@@ -1,6 +1,6 @@
 [Unit]
 Description=Icinga host/service/network monitoring system
-After=syslog.target network.target postgresql.service mariadb.service carbon-cache.service
+After=syslog.target network-online.target postgresql.service mariadb.service carbon-cache.service carbon-relay.service
 
 [Service]
 Type=forking
