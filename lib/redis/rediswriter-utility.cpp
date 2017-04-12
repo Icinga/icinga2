@@ -36,12 +36,12 @@ String RedisWriter::FormatCheckSumBinary(const String& str)
 	return output;
 }
 
-String RedisWriter::CalculateCheckSumString(const String& str)
+String RedisWriter::CalculateCheckSumString(const String& str, bool binary)
 {
-	return SHA1(str);
+	return SHA1(str, binary);
 }
 
-String RedisWriter::CalculateCheckSumGroups(const Array::Ptr& groups)
+String RedisWriter::CalculateCheckSumGroups(const Array::Ptr& groups, bool binary)
 {
 	String output;
 
@@ -51,31 +51,31 @@ String RedisWriter::CalculateCheckSumGroups(const Array::Ptr& groups)
 		output += SHA1(group, true); //binary checksum required here
 	}
 
-	return SHA1(output);
+	return SHA1(output, binary);
 }
 
-String RedisWriter::CalculateCheckSumProperties(const ConfigObject::Ptr& object)
+String RedisWriter::CalculateCheckSumProperties(const ConfigObject::Ptr& object, bool binary)
 {
 	//TODO: consider precision of 6 for double values; use specific config fields for hashing?
-	return HashValue(object);
+	return HashValue(object, binary);
 }
 
-String RedisWriter::CalculateCheckSumVars(const ConfigObject::Ptr& object)
+String RedisWriter::CalculateCheckSumVars(const ConfigObject::Ptr& object, bool binary)
 {
 	CustomVarObject::Ptr customVarObject = dynamic_pointer_cast<CustomVarObject>(object);
 
 	if (!customVarObject)
-		return HashValue(Empty);
+		return HashValue(Empty, binary);
 
 	Dictionary::Ptr vars = customVarObject->GetVars();
 
 	if (!vars)
-		return HashValue(Empty);
+		return HashValue(Empty, binary);
 
-	return HashValue(vars);
+	return HashValue(vars, binary);
 }
 
-String RedisWriter::HashValue(const Value& value)
+String RedisWriter::HashValue(const Value& value, bool binary)
 {
 	Value temp;
 
@@ -86,7 +86,7 @@ String RedisWriter::HashValue(const Value& value)
 	else
 		temp = value;
 
-	return SHA1(JsonEncode(temp));
+	return SHA1(JsonEncode(temp), binary);
 }
 
 Dictionary::Ptr RedisWriter::SerializeObjectAttrs(const Object::Ptr& object, int fieldType)
