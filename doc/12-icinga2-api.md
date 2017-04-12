@@ -623,12 +623,16 @@ parameters need to be passed inside the JSON body:
 
 In addition to these parameters a [filter](12-icinga2-api.md#icinga2-api-filters) should be provided.
 
-**Note**: Modified attributes do not trigger a re-evaluation of existing
-static [apply rules](3-monitoring-basics.md#using-apply) and [group assignments](3-monitoring-basics.md#group-assign-intro).
-Delete and re-create the objects if you require such changes.
-Furthermore you cannot modify templates which have already been resolved
-during [object creation](12-icinga2-api.md#icinga2-api-config-objects-create).
-
+> **Note**:
+>
+> Modified attributes do not trigger a re-evaluation of existing
+> static [apply rules](3-monitoring-basics.md#using-apply) and [group assignments](3-monitoring-basics.md#group-assign-intro).
+> Delete and re-create the objects if you require such changes.
+>
+> Furthermore you cannot modify templates which have already been resolved
+> during [object creation](12-icinga2-api.md#icinga2-api-config-objects-create).
+> There are attributes which can only be set for [PUT requests](12-icinga2-api.md#icinga2-api-config-objects-create) such as `groups`
+> or `zone`. A complete list of `no_user_modify` attributes can be fetched from the [types](12-icinga2-api.md#icinga2-api-types) URL endpoint.
 
 If attributes are of the Dictionary type, you can also use the indexer format:
 

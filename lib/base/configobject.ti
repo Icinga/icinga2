@@ -82,7 +82,7 @@ abstract class ConfigObject : ConfigObjectBase < ConfigType
 				return m_ShortName;
 		}}}
 	};
-	[config] name(Zone) zone (ZoneName);
+	[config, no_user_modify] name(Zone) zone (ZoneName);
 	[config, no_user_modify] String package;
 	[config, get_protected, no_user_modify] Array::Ptr templates;
 	[get_protected, no_user_modify] bool active;
