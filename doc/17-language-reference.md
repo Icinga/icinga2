@@ -78,6 +78,8 @@ Example:
 
     "Hello World!"
 
+#### <a id="string-literals-escape-sequences"></a> String Literals Escape Sequences
+
 Certain characters need to be escaped. The following escape sequences
 are supported:
 

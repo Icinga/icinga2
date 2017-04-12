@@ -504,6 +504,30 @@ You can combine multiple expressions for matching only a subset of objects. In s
 you want to be able to add more than one assign/ignore where expression which matches
 a specific condition. To achieve this you can use the logical `and` and `or` operators.
 
+#### <a id="using-apply-expressions-examples"></a> Apply Rules Expressions Examples
+
+Assign a service to a specific host in a host group [array](18-library-reference.md#array-type) using the [in operator](17-language-reference.md#expression-operators):
+
+    assign where "hostgroup-dev" in host.groups
+
+Assign an object when a custom attribute is [equal](17-language-reference.md#expression-operators) to a value:
+
+    assign where host.vars.application_type == "database"
+
+    assign where service.vars.sms_notify == true
+
+Assign an object if a dictionary [contains](18-library-reference.md#dictionary-contains) a given key:
+
+    assign where host.vars.app_dict.contains("app")
+
+Match the host name by either using a [case insensitive match](18-library-reference.md#global-functions-match):
+
+    assign where match("webserver*", host.name)
+
+Match the host name by using a [regular expression](18-library-reference.md#global-functions-regex). Please note the [escaped](17-language-reference.md#string-literals-escape-sequences) backslash character:
+
+    assign where regex("^webserver-[\\d+]", host.name)
+
 
 [Match](18-library-reference.md#global-functions-match) all `*mysql*` patterns in the host name and (`&&`) custom attribute `prod_mysql_db`
 matches the `db-*` pattern. All hosts with the custom attribute `test_server` set to `true`
@@ -554,7 +578,6 @@ attribute being defined and the custom attribute `os` set to the string `Linux` 
 
       assign where host.address && host.vars.os == "Linux"
     }
-
 
 Other detailed examples are used in their respective chapters, for example
 [apply services with custom command arguments](3-monitoring-basics.md#command-passing-parameters).
