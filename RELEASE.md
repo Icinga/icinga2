@@ -88,7 +88,7 @@ into master and merge the support branch:
 
 * Test DB IDO with MySQL and PostgreSQL.
 * Provision the vagrant boxes and test the release packages.
-* Test the [setup wizard](http://packages.icinga.com/windows/) inside a Windows VM.
+* Test the [setup wizard](https://packages.icinga.com/windows/) inside a Windows VM.
 
 * Start a new docker container and install/run icinga2.
 
@@ -96,7 +96,7 @@ Example for CentOS7:
 
     $ docker run -ti centos:latest bash
 
-    # yum -y install http://packages.icinga.com/epel/7/release/noarch/icinga-rpm-release-7-1.el7.centos.noarch.rpm
+    # yum -y install https://packages.icinga.com/epel/7/release/noarch/icinga-rpm-release-7-1.el7.centos.noarch.rpm
     # yum -y install icinga2
     # icinga2 daemon -C
 
@@ -132,7 +132,7 @@ and pull the current support branch.
 
 * Create a new blog post on www.icinga.com/blog
 * Send announcement mail to icinga-announce@lists.icinga.org
-* Social media: [Twitter](https://twitter.com/icinga), [Facebook](https://www.facebook.com/icinga), [G+](http://plus.google.com/+icinga), [Xing](https://www.xing.com/communities/groups/icinga-da4b-1060043), [LinkedIn](https://www.linkedin.com/groups/Icinga-1921830/about)
+* Social media: [Twitter](https://twitter.com/icinga), [Facebook](https://www.facebook.com/icinga), [G+](https://plus.google.com/+icinga), [Xing](https://www.xing.com/communities/groups/icinga-da4b-1060043), [LinkedIn](https://www.linkedin.com/groups/Icinga-1921830/about)
 * Update IRC channel topic
 
 # After the release
