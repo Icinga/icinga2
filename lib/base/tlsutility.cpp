@@ -691,6 +691,7 @@ String RandomString(int length)
 	String result = output;
 	delete [] bytes;
 	delete [] output;
+	delete [] bytes;
 
 	return result;
 }
