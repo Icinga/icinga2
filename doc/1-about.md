@@ -27,12 +27,7 @@ There are many ways to contribute to Icinga -- whether it be sending patches,
 testing, reporting bugs, or reviewing and updating the documentation. Every
 contribution is appreciated!
 
-Please read the [contributing section](https://www.icinga.com/community/get-involved/)
-first. Then you should have a look at the [roadmap](https://github.com/Icinga/icinga2/milestones)
-and remaining [open issues](https://github.com/Icinga/icinga2/issues).
-
-Pick issues you want to help resolve, fork the [repository on GitHub](https://github.com/Icinga/icinga2)
-and send a pull request with your changes. Thanks for your contribution!
+Please continue reading in the [Contributing chapter](https://github.com/Icinga/icinga2/blob/master/CONTRIBUTING.md).
 
 ### <a id="development-info"></a> Icinga 2 Development
 
