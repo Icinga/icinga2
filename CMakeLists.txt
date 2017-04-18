@@ -117,6 +117,22 @@ if(LOGROTATE_HAS_SU)
   set(LOGROTATE_USE_SU "\n\tsu ${ICINGA2_USER} ${ICINGA2_GROUP}")
 endif()
 
+if(NOT DEFINED LOGROTATE_HAS_SU)
+  set(LOGROTATE_HAS_SU OFF)
+  execute_process(COMMAND "/usr/sbin/logrotate" ERROR_VARIABLE LOGROTATE_OUTPUT)
+  if(LOGROTATE_OUTPUT)
+    string(REGEX REPLACE "^logrotate ([0-9.]*).*" "\\1" LOGROTATE_VERSION
+      ${LOGROTATE_OUTPUT})
+    message(STATUS "Found logrotate (found version \"${LOGROTATE_VERSION}\")")
+    if("${LOGROTATE_VERSION}" VERSION_GREATER "3.7.9")
+      set(LOGROTATE_HAS_SU ON)
+    endif()
+  endif()
+endif()
+if(LOGROTATE_HAS_SU)
+  set(LOGROTATE_USE_SU "\n\tsu ${ICINGA2_USER} ${ICINGA2_GROUP}")
+endif()
+
 find_package(Boost ${BOOST_MIN_VERSION} COMPONENTS thread system program_options regex REQUIRED)
 
 link_directories(${Boost_LIBRARY_DIRS})
