@@ -2703,11 +2703,11 @@ Name           | Description
 ---------------|-----------------------------------------------------------------------------------------------------------------------
 iostat\_disk   | **Required.** The device to monitor without path. e.g. sda or vda. (default: sda)
 iostat\_wtps   | **Required.** Warning threshold for tps (default: 100)
-iostat\_wread  | **Required.** Warning threshold for KB/s reads (default: 100)
-iostat\_wwrite | **Required.** Warning threshold for KB/s writes (default: 100)
+iostat\_wread  | **Required.** Warning threshold for MB/s reads (default: 100)
+iostat\_wwrite | **Required.** Warning threshold for MB/s writes (default: 100)
 iostat\_ctps   | **Required.** Critical threshold for tps (default: 200)
-iostat\_cread  | **Required.** Critical threshold for KB/s reads (default: 200)
-iostat\_cwrite | **Required.** Critical threshold for KB/s writes (default: 200)
+iostat\_cread  | **Required.** Critical threshold for MB/s reads (default: 200)
+iostat\_cwrite | **Required.** Critical threshold for MB/s writes (default: 200)
 
 #### <a id="plugin-contrib-command-yum"></a> yum
 
