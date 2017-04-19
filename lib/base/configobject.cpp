@@ -710,5 +710,18 @@ ConfigObject::Ptr ConfigObject::GetZone(void) const
 	return m_Zone;
 }
 
+Dictionary::Ptr ConfigObject::GetSourceLocation(void) const
+{
+	DebugInfo di = GetDebugInfo();
+
+	Dictionary::Ptr result = new Dictionary();
+	result->Set("path", di.Path);
+	result->Set("first_line", di.FirstLine);
+	result->Set("first_column", di.FirstColumn);
+	result->Set("last_line", di.LastLine);
+	result->Set("last_column", di.LastColumn);
+	return result;
+}
+
 NameComposer::~NameComposer(void)
 { }

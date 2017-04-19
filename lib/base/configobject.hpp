@@ -75,6 +75,8 @@ public:
 	virtual void OnAllConfigLoaded(void);
 	virtual void OnStateLoaded(void);
 
+	virtual Dictionary::Ptr GetSourceLocation(void) const override;
+
 	template<typename T>
 	static intrusive_ptr<T> GetObject(const String& name)
 	{
