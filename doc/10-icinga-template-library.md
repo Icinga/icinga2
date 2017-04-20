@@ -1931,26 +1931,30 @@ Check command object for the [check_snmp_process.pl](http://nagios.manubulon.com
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
-Name                    | Description
-------------------------|--------------
-snmp_address            | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
-snmp_nocrypt            | **Optional.** Define SNMP encryption. If set, **snmp_v3** needs to be set. Defaults to false.
-snmp_community          | **Optional.** The SNMP community. Defaults to "public".
-snmp_port               | **Optional.** The SNMP port connection.
-snmp_v2                 | **Optional.** SNMP version to 2c. Defaults to false.
-snmp_v3                 | **Optional.** SNMP version to 3. Defaults to false.
-snmp_login              | **Optional.** SNMP version 3 username. Defaults to "snmpuser".
-snmp_password           | **Required.** SNMP version 3 password. No value defined as default.
-snmp_v3_use_privpass    | **Optional.** Define to use SNMP version 3 priv password. Defaults to false.
-snmp_v3_use_authprotocol| **Optional.** Define to use SNMP version 3 authentication protocol. Defaults to false.
-snmp_authprotocol       | **Optional.** SNMP version 3 authentication protocol. Defaults to "md5,des".
-snmp_privpass           | **Required.** SNMP version 3 priv password. No value defined as default..
-snmp_warn               | **Optional.** The warning threshold.
-snmp_crit               | **Optional.** The critical threshold.
-snmp_process_name       | **Optional.** Name of the process (regexp). No trailing slash!. Defaults to ".*".
-snmp_perf               | **Optional.** Enable perfdata values. Defaults to true.
-snmp_timeout            | **Optional.** The command timeout in seconds. Defaults to 5 seconds.
-snmp_process_use_params | **Optional.** Add process parameters to process name for regexp matching. Example: "named.*-t /var/named/chroot" will only select named process with this parameter. Defaults to false.
+Name                       | Description
+---------------------------|--------------
+snmp_address               | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
+snmp_nocrypt               | **Optional.** Define SNMP encryption. If set, **snmp_v3** needs to be set. Defaults to false.
+snmp_community             | **Optional.** The SNMP community. Defaults to "public".
+snmp_port                  | **Optional.** The SNMP port connection.
+snmp_v2                    | **Optional.** SNMP version to 2c. Defaults to false.
+snmp_v3                    | **Optional.** SNMP version to 3. Defaults to false.
+snmp_login                 | **Optional.** SNMP version 3 username. Defaults to "snmpuser".
+snmp_password              | **Required.** SNMP version 3 password. No value defined as default.
+snmp_v3_use_privpass       | **Optional.** Define to use SNMP version 3 priv password. Defaults to false.
+snmp_v3_use_authprotocol   | **Optional.** Define to use SNMP version 3 authentication protocol. Defaults to false.
+snmp_authprotocol          | **Optional.** SNMP version 3 authentication protocol. Defaults to "md5,des".
+snmp_privpass              | **Required.** SNMP version 3 priv password. No value defined as default..
+snmp_warn                  | **Optional.** The warning threshold.
+snmp_crit                  | **Optional.** The critical threshold.
+snmp_process_name          | **Optional.** Name of the process (regexp). No trailing slash!. Defaults to ".*".
+snmp_perf                  | **Optional.** Enable perfdata values. Defaults to true.
+snmp_timeout               | **Optional.** The command timeout in seconds. Defaults to 5 seconds.
+snmp_process_use_params    | **Optional.** Add process parameters to process name for regexp matching. Example: "named.*-t /var/named/chroot" will only select named process with this parameter. Defaults to false.
+snmp_process_mem_usage     | **Optional.** Define to check memory usage for the process. Defaults to false.
+snmp_process_mem_threshold | **Optional.** Defines the warning and critical thresholds in Mb when snmp_process_mem_usage set to true. Example "512,1024". Defaults to "0,0"
+snmp_process_cpu_usage     | **Optional.** Define to check CPU usage for the process. Defaults to false.
+snmp_process_cpu_threshold | **Optional.** Defines the warning and critical thresholds in % when snmp_process_cpu_usage set to true. If more than one CPU, value can be > 100% : 100%=1 CPU. Example "15,50". Defaults to "0,0"
 
 
 
