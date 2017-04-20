@@ -360,13 +360,19 @@ If the freshness checks are invalid, a new check is executed defined by the
 
 ## <a id="check-flapping"></a> Check Flapping
 
-The flapping algorithm used in Icinga 2 does not store the past states but
-calculates the flapping threshold from a single value based on counters and
-half-life values. Icinga 2 compares the value with a single flapping threshold
-configuration attribute named `flapping_threshold`.
+Icinga 2 supports optional detection of hosts and services that are "flapping".
+
+Flapping occurs when a service or host changes state too frequently, resulting
+in a storm of problem and recovery notifications. Flapping can be the source of
+configuration problems (i.e. thresholds set too low), troublesome services,
+or real network problems.
 
 Flapping detection can be enabled or disabled using the `enable_flapping` attribute.
+The `flapping_threshold` attributes allows to specify the percentage of state changes
+when a [host](9-object-types.md#objecttype-host) or [service](objecttype-service) is considered to flap.
 
+Note: There are known issues with flapping detection. Please refrain from enabling
+flapping until [#4982](https://github.com/Icinga/icinga2/issues/4982) is fixed.
 
 ## <a id="volatile-services"></a> Volatile Services
 
