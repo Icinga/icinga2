@@ -430,7 +430,7 @@ Several object types require an object relation, e.g. [Service](9-object-types.m
 If you for example create a service object you have to specify the [host_name](9-object-types.md#objecttype-service)
 attribute and reference an existing host attribute.
 
-    object "ping4" {
+    object Service "ping4" {
       check_command = "ping4"
       host_name = "icinga2-client1.localdomain"
     }
