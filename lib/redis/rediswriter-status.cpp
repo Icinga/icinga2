@@ -221,7 +221,7 @@ void RedisWriter::SendStatusUpdate(const ConfigObject::Ptr& object, const String
 		attrs->Set("last_check", checkable->GetLastCheck());
 		attrs->Set("next_check", checkable->GetNextCheck());
 
-		attrs->Set("severity", 0); //TODO
+		attrs->Set("severity", checkable->GetSeverity());
 
 /*
         'host_checksum'    => null,
