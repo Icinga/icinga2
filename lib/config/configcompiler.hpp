@@ -127,6 +127,14 @@ public:
 
 	static bool HasZoneConfigAuthority(const String& zoneName);
 
+	static inline bool IsAbsolutePath(const String& path) {
+#ifndef _WIN32
+		return (path.GetLength() > 0 && path[0] == '/');
+#else
+		return !PathIsRelative(path.CStr());
+#endif /* _WIN32 */
+	}
+
 private:
 	boost::promise<boost::shared_ptr<Expression> > m_Promise;
 
