@@ -148,14 +148,15 @@ C++11 features.
     gpgcheck=0
     REPO
 
-    yum install -y devtoolset-2-gcc devtoolset-2-gcc-c++ devtoolset-2-binutils
+Dependencies to devtools-2 are used in the RPM SPEC, so the correct tools
+should be used for building.
 
-    export LD_LIBRARY_PATH=/opt/rh/devtoolset-2/root/usr/lib:$LD_LIBRARY_PATH
-    export PATH=/opt/rh/devtoolset-2/root/usr/bin:$PATH
-    ln -sf /opt/rh/devtoolset-2/root/usr/bin/ld.bfd /opt/rh/devtoolset-2/root/usr/bin/ld
-    for file in `find /opt/rh/devtoolset-2/root/usr/include/c++ -name c++config.h`; do
-      echo '#define _GLIBCXX__PTHREADS' >> $file
-    done
+As an alternative, you can use newer Boost packages provided on
+[packages.icinga.com](https://packages.icinga.com/epel).
+
+    cat >$HOME/.rpmmacros <<MACROS
+    %build_icinga_org 1
+    MACROS
 
 #### SLES 11
 
