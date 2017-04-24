@@ -97,8 +97,15 @@ BuildRequires: gcc48-c++
 BuildRequires: libstdc++48-devel
 BuildRequires: libopenssl1-devel
 %else
+%if "%{_vendor}" == "redhat" && (0%{?el5} || 0%{?rhel} == 5 || "%{?dist}" == ".el5" || 0%{?el6} || 0%{?rhel} == 6 || "%{?dist}" == ".el6")
+# Requires devtoolset-2 scl
+BuildRequires: devtoolset-2-gcc-c++
+BuildRequires: devtoolset-2-libstdc++-devel
+%define scl_enable scl enable devtoolset-2 --
+%else
 BuildRequires: gcc-c++
 BuildRequires: libstdc++-devel
+%endif
 BuildRequires: openssl-devel
 %endif
 BuildRequires: cmake
@@ -332,7 +339,7 @@ CMAKE_OPTS="$CMAKE_OPTS -DICINGA2_PLUGINDIR=%{_prefix}/lib/nagios/plugins"
 CMAKE_OPTS="$CMAKE_OPTS -DUSE_SYSTEMD=ON"
 %endif
 
-cmake $CMAKE_OPTS -DCMAKE_C_FLAGS:STRING="%{optflags} %{?march_flag}" -DCMAKE_CXX_FLAGS:STRING="%{optflags} %{?march_flag}" .
+%{?scl_enable} cmake $CMAKE_OPTS -DCMAKE_C_FLAGS:STRING="%{optflags} %{?march_flag}" -DCMAKE_CXX_FLAGS:STRING="%{optflags} %{?march_flag}" .
 
 make %{?_smp_mflags}
 
