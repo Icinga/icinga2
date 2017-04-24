@@ -117,7 +117,12 @@ BuildRequires: boost153-devel
 # sles 11 sp3 requires packages.icinga.com
 BuildRequires: boost153-devel
 %else
-BuildRequires: boost-devel >= 1.41
+%if (0%{?el5} || 0%{?rhel} == 5 || "%{?dist}" == ".el5" || 0%{?el6} || 0%{?rhel} == 6 || "%{?dist}" == ".el6")
+# Requires EPEL repository
+BuildRequires: boost148-devel >= 1.48
+%else
+BuildRequires: boost-devel >= 1.48
+%endif
 %endif
 %endif
 
@@ -291,17 +296,21 @@ CMAKE_OPTS="$CMAKE_OPTS -DICINGA2_WITH_STUDIO=true"
 %endif
 %if "%{_vendor}" == "redhat"
 %if 0%{?el5} || 0%{?rhel} == 5 || "%{?dist}" == ".el5" || 0%{?el6} || 0%{?rhel} == 6 || "%{?dist}" == ".el6"
+%if 0%{?build_icinga_org}
 # Boost_VERSION 1.41.0 vs 101400 - disable build tests
 # details in https://dev.icinga.com/issues/5033
-CMAKE_OPTS="$CMAKE_OPTS -DBOOST_LIBRARYDIR=/usr/lib/boost153 \
+CMAKE_OPTS="$CMAKE_OPTS -DBOOST_LIBRARYDIR=%{_libdir}/boost153 \
  -DBOOST_INCLUDEDIR=/usr/include/boost153 \
- -DBoost_ADDITIONAL_VERSIONS='1.53;1.53.0' \
+ -DBoost_ADDITIONAL_VERSIONS='1.53;1.53.0'"
+%else
+CMAKE_OPTS="$CMAKE_OPTS -DBOOST_LIBRARYDIR=%{_libdir}/boost148 \
+ -DBOOST_INCLUDEDIR=/usr/include/boost148 \
+ -DBoost_ADDITIONAL_VERSIONS='1.48;1.48.0'"
+%endif
+CMAKE_OPTS="$CMAKE_OPTS \
  -DBoost_NO_SYSTEM_PATHS=TRUE \
  -DBUILD_TESTING=FALSE \
  -DBoost_NO_BOOST_CMAKE=TRUE"
-%endif
-%if 0%{?el6} || 0%{?rhel} == 6 || "%{?dist}" == ".el6"
-CMAKE_OPTS="$CMAKE_OPTS -DBUILD_TESTING=FALSE"
 %endif
 %endif
 
@@ -309,7 +318,7 @@ CMAKE_OPTS="$CMAKE_OPTS -DBUILD_TESTING=FALSE"
 CMAKE_OPTS="$CMAKE_OPTS -DICINGA2_PLUGINDIR=%{_libdir}/nagios/plugins"
 %else
 %if 0%{?suse_version} < 1310
-CMAKE_OPTS="$CMAKE_OPTS -DBOOST_LIBRARYDIR=/usr/lib/boost153 \
+CMAKE_OPTS="$CMAKE_OPTS -DBOOST_LIBRARYDIR=%{_libdir}/boost153 \
  -DBOOST_INCLUDEDIR=/usr/include/boost153 \
  -DBoost_ADDITIONAL_VERSIONS='1.53;1.53.0' \
  -DBoost_NO_SYSTEM_PATHS=TRUE \

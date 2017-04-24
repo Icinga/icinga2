@@ -32,7 +32,7 @@ parentheses):
 * pkg-config
 * OpenSSL library and header files >= 0.9.8 (openssl-devel on RHEL, libopenssl1-devel on SLES11,
 libopenssl-devel on SLES12, libssl-dev on Debian)
-* Boost library and header files >= 1.41.0 (boost-devel on RHEL, libboost-all-dev on Debian)
+* Boost library and header files >= 1.48.0 (boost148-devel on EPEL for RHEL / CentOS, libboost-all-dev on Debian)
 * GNU bison (bison)
 * GNU flex (flex) >= 2.5.35
 * recommended: libexecinfo on FreeBSD (automatically used when Icinga 2 is
