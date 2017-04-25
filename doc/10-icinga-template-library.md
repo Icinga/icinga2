@@ -127,7 +127,7 @@ for the ITL CheckCommand itself and this documentation section.
 ### <a id="plugin-check-command-apt"></a> apt
 
 The plugin [apt](https://www.monitoring-plugins.org/doc/index.html) checks for software updates on systems that use
-package management systems based on the apt-get(8) command found in Debian based systems.
+gackage management systems based on the apt-get(8) command found in Debian based systems.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
@@ -1593,9 +1593,16 @@ Custom attributes:
 
 Name                | Description
 :-------------------|:------------
-update\_win\_warn   | If set, returns warning when important updates are available
-update\_win\_crit   | If set, return critical when important updates that require a reboot are available.
-update\_win\_reboot | Set to treat 'may need update' as 'definitely needs update'
+update\_win\_warn   | **Optional**. If set, returns warning when important updates are available.
+update\_win\_crit   | **Optional**. If set, return critical when important updates that require a reboot are available.
+update\_win\_reboot | **Optional**. Set to treat 'may need update' as 'definitely needs update'. Please Note that this is true for almost every update and is therefore not recommended.
+
+
+In contrast to most other plugins, the values of check_update's custom attributes do not set thresholds, but only enable/disable the behaviour described in the table above.  
+It is enabled/disabled for example by assigning "true" or "false" to them. "1" or "0" would also work.  
+Thresholds will always be "1".  
+**Hint**: If they are enabled, performance data will be shown in the webinterface.  
+If run without the optional parameters, the plugin will output critical if any important updates are available.
 
 
 ### <a id="windows-plugins-uptime-windows"></a> uptime-windows
