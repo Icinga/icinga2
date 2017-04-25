@@ -127,7 +127,7 @@ for the ITL CheckCommand itself and this documentation section.
 ### <a id="plugin-check-command-apt"></a> apt
 
 The plugin [apt](https://www.monitoring-plugins.org/doc/index.html) checks for software updates on systems that use
-gackage management systems based on the apt-get(8) command found in Debian based systems.
+package management systems based on the apt-get(8) command found in Debian based systems.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
