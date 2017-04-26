@@ -1592,9 +1592,12 @@ update\_win\_reboot | **Optional**. Set to treat 'may need update' as 'definitel
 
 In contrast to most other plugins, the values of check_update's custom attributes do not set thresholds, but just enable/disable the behaviour described in the table above.  
 It can be enabled/disabled for example by setting them to "true" or "false", "1" or "0" would also work.  
-Thresholds will always be "1".  
-**Hint**: If they are enabled, performance data will be shown in the webinterface.  
-If run without the optional parameters, the plugin will output critical if any important updates are available.  
+Thresholds will always be "1".
+
+> **Note**
+>
+> If they are enabled, performance data will be shown in the webinterface.  
+> If run without the optional parameters, the plugin will output critical if any important updates are available.  
 
 
 ### <a id="windows-plugins-uptime-windows"></a> uptime-windows
