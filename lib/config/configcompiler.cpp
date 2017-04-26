@@ -26,6 +26,10 @@
 #include "base/exception.hpp"
 #include <fstream>
 
+#ifdef _WIN32
+#include "Shlwapi.h"
+#endif /* _WIN32 */
+
 using namespace icinga;
 
 std::vector<String> ConfigCompiler::m_IncludeSearchDirs;
@@ -135,7 +139,7 @@ Expression *ConfigCompiler::HandleInclude(const String& relativeBase, const Stri
 {
 	String upath;
 
-	if (search || (path.GetLength() > 0 && path[0] == '/'))
+	if (search || (IsAbsolutePath(path)))
 		upath = path;
 	else
 		upath = relativeBase + "/" + path;
@@ -179,7 +183,7 @@ Expression *ConfigCompiler::HandleIncludeRecursive(const String& relativeBase, c
 {
 	String ppath;
 
-	if (path.GetLength() > 0 && path[0] == '/')
+	if (IsAbsolutePath(path))
 		ppath = path;
 	else
 		ppath = relativeBase + "/" + path;
@@ -198,7 +202,7 @@ void ConfigCompiler::HandleIncludeZone(const String& relativeBase, const String&
 
 	String ppath;
 
-	if (path.GetLength() > 0 && path[0] == '/')
+	if (IsAbsolutePath(path))
 		ppath = path;
 	else
 		ppath = relativeBase + "/" + path;
@@ -223,7 +227,7 @@ Expression *ConfigCompiler::HandleIncludeZones(const String& relativeBase, const
 	String ppath;
 	String newRelativeBase = relativeBase;
 
-	if (path.GetLength() > 0 && path[0] == '/')
+	if (IsAbsolutePath(path))
 		ppath = path;
 	else {
 		ppath = relativeBase + "/" + path;
@@ -350,4 +354,3 @@ bool ConfigCompiler::HasZoneConfigAuthority(const String& zoneName)
 
 	return !empty;
 }
-
