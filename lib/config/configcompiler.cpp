@@ -27,7 +27,7 @@
 #include <fstream>
 
 #ifdef _WIN32
-#include "Shlwapi.h"
+#	include <shlwapi.h>
 #endif /* _WIN32 */
 
 using namespace icinga;
@@ -354,3 +354,14 @@ bool ConfigCompiler::HasZoneConfigAuthority(const String& zoneName)
 
 	return !empty;
 }
+
+
+bool ConfigCompiler::IsAbsolutePath(const String& path)
+{
+#ifndef _WIN32
+	return (path.GetLength() > 0 && path[0] == '/');
+#else /* _WIN32 */
+	return !PathIsRelative(path.CStr());
+#endif /* _WIN32 */
+}
+
