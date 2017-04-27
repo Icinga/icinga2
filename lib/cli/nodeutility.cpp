@@ -406,16 +406,7 @@ bool NodeUtility::WriteNodeConfigObjects(const String& filename, const Array::Pt
 	fp << std::endl;
 	fp.close();
 
-#ifdef _WIN32
-	_unlink(filename.CStr());
-#endif /* _WIN32 */
-
-	if (rename(tempFilename.CStr(), filename.CStr()) < 0) {
-		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("rename")
-		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(tempFilename));
-	}
+	MoveFile(tempFilename, filename, true);
 
 	return true;
 }
@@ -667,14 +658,5 @@ void NodeUtility::UpdateConstant(const String& name, const String& value)
 	ifp.close();
 	ofp.close();
 
-#ifdef _WIN32
-	_unlink(constantsFile.CStr());
-#endif /* _WIN32 */
-
-	if (rename(tempFile.CStr(), constantsFile.CStr()) < 0) {
-		BOOST_THROW_EXCEPTION(posix_error()
-			<< boost::errinfo_api_function("rename")
-			<< boost::errinfo_errno(errno)
-			<< boost::errinfo_file_name(constantsFile));
-	}
+	MoveFile(tempFile, constantsFile, true);
 }

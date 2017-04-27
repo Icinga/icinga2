@@ -22,6 +22,7 @@
 #include "base/json.hpp"
 #include "base/netstring.hpp"
 #include "base/exception.hpp"
+#include "base/utility.hpp"
 
 using namespace icinga;
 
@@ -77,15 +78,6 @@ void ConfigCompilerContext::FinishObjectsFile(void)
 	delete m_ObjectsFP;
 	m_ObjectsFP = NULL;
 
-#ifdef _WIN32
-	_unlink(m_ObjectsPath.CStr());
-#endif /* _WIN32 */
-
-	if (rename(m_ObjectsTempFile.CStr(), m_ObjectsPath.CStr()) < 0) {
-		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("rename")
-		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(m_ObjectsTempFile));
-	}
+	MoveFile(m_ObjectsTempFile, m_ObjectsPath, true);
 }
 

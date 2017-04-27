@@ -169,6 +169,13 @@ private:
 	static boost::thread_specific_ptr<unsigned int> m_RandSeed;
 };
 
+/**
+ * Moves a file possibly across filesystems.
+ *
+ * @ingroup base
+ */
+void MoveFile(const String& source, const String& destination, bool overwrite_destination = false) I2_BASE_API;
+
 }
 
 #endif /* UTILITY_H */

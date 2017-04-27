@@ -32,9 +32,12 @@
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/replace.hpp>
+#include <boost/filesystem.hpp>
 #include <ios>
 #include <fstream>
 #include <iostream>
+#include <errno.h>
+#include <stdio.h>
 
 #ifdef __FreeBSD__
 #	include <pthread_np.h>
@@ -1398,16 +1401,7 @@ void Utility::SaveJsonFile(const String& path, int mode, const Value& value)
 	fp << JsonEncode(value);
 	fp.close();
 
-#ifdef _WIN32
-	_unlink(path.CStr());
-#endif /* _WIN32 */
-
-	if (rename(tempFilename.CStr(), path.CStr()) < 0) {
-		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("rename")
-		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(tempFilename));
-	}
+	MoveFile(tempFilename, path, true);
 }
 
 static void HexEncode(char ch, std::ostream& os)
@@ -1943,6 +1937,40 @@ String Utility::GetIcingaDataPath(void)
 	if (!SUCCEEDED(SHGetFolderPath(NULL, CSIDL_COMMON_APPDATA, NULL, 0, path)))
 		return "";
 	return String(path) + "\\icinga2";
+}
+
+void MoveFile(const String& source, const String& destination, bool overwrite_destination)
+{
+#ifdef _WIN32
+	if (overwrite_destination && remove(destination.CStr()) && errno != ENOENT)
+		BOOST_THROW_EXCEPTION(posix_error()
+		    << boost::errinfo_api_function("remove")
+		    << boost::errinfo_errno(errno)
+		    << boost::errinfo_file_name(source));
+#endif /* _WIN32 */
+
+	if (!rename(source.CStr(), destination.CStr()))
+		return;
+
+	if (errno != EXDEV)
+		BOOST_THROW_EXCEPTION(posix_error()
+		    << boost::errinfo_api_function("rename")
+		    << boost::errinfo_errno(errno)
+		    << boost::errinfo_file_name(source));
+
+	boost::filesystem::copy_file(
+		source,
+		destination,
+		overwrite_destination
+			? boost::filesystem::copy_option::overwrite_if_exists
+			: boost::filesystem::copy_option::fail_if_exists
+	);
+
+	if (remove(source.CStr()))
+		BOOST_THROW_EXCEPTION(posix_error()
+		    << boost::errinfo_api_function("remove")
+		    << boost::errinfo_errno(errno)
+		    << boost::errinfo_file_name(source));
 }
 
 #endif /* _WIN32 */
