@@ -26,10 +26,6 @@
 #include "base/exception.hpp"
 #include <fstream>
 
-#ifdef _WIN32
-#	include <shlwapi.h>
-#endif /* _WIN32 */
-
 using namespace icinga;
 
 std::vector<String> ConfigCompiler::m_IncludeSearchDirs;
