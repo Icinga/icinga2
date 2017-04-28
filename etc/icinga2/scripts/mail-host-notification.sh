@@ -12,7 +12,7 @@ fi
 Usage() {
 cat << EOF
 
-The following are mandatory:
+Required parameters:
   -4 HOSTADDRESS (\$address$)
   -6 HOSTADDRESS6 (\$address6$)
   -d LONGDATETIME (\$icinga.long_date_time$)
@@ -23,7 +23,7 @@ The following are mandatory:
   -s HOSTSTATE (\$host.state$)
   -t NOTIFICATIONTYPE (\$notification.type$)
 
-And these are optional:
+Optional parameters:
   -b NOTIFICATIONAUTHORNAME (\$notification.author$)
   -c NOTIFICATIONCOMMENT (\$notification.comment$)
   -i ICINGAWEB2URL (\$notification_icingaweb2url$, Default: unset)
@@ -71,20 +71,20 @@ SUBJECT="[$NOTIFICATIONTYPE] Host $HOSTDISPLAYNAME is $HOSTSTATE!"
 NOTIFICATION_MESSAGE=`cat << EOF
 ***** Icinga 2 Host Monitoring on $HOSTNAME *****
 
-==> $HOSTDISPLAYNAME ($HOSTALIAS) is $HOSTSTATE! <==
+==> $HOSTDISPLAYNAME ($HOSTNAME) is $HOSTSTATE! <==
 
-Info?    $HOSTOUTPUT
+Info:    $HOSTOUTPUT
 
-When?    $LONGDATETIME
-Host?    $HOSTALIAS (aka "$HOSTDISPLAYNAME")
-IPv4?	 $HOSTADDRESS
+When:    $LONGDATETIME
+Host:    $HOSTNAME (Display Name: "$HOSTDISPLAYNAME")
+IPv4:    $HOSTADDRESS
 EOF
 `
 
 ## Is this host IPv6 capable? Put its address into the message.
 if [ -n "$HOSTADDRESS6" ] ; then
   NOTIFICATION_MESSAGE="$NOTIFICATION_MESSAGE
-IPv6?	 $HOSTADDRESS6"
+IPv6:	 $HOSTADDRESS6"
 fi
 
 ## Are there any comments? Put them into the message.
@@ -99,7 +99,7 @@ fi
 if [ -n "$ICINGAWEB2URL" ] ; then
   NOTIFICATION_MESSAGE="$NOTIFICATION_MESSAGE
 
-Get live status:
+URL:
   $ICINGAWEB2URL/monitoring/host/show?host=$HOSTALIAS"
 fi
 
