@@ -427,7 +427,7 @@ wizard_ticket:
 
 		fp.close();
 
-		MoveFile(tempApiPath, apipath, true);
+		Utility::MoveFile(tempApiPath, apipath, true);
 
 		/* apilistener config */
 		Log(LogInformation, "cli", "Generating local zones.conf.");
@@ -537,7 +537,7 @@ wizard_ticket:
 
 		fp.close();
 
-		MoveFile(tempApiPath, apipath, true);
+		Utility::MoveFile(tempApiPath, apipath, true);
 
 		/* update constants.conf with NodeName = CN + TicketSalt = random value */
 		if (cn != Utility::GetFQDN()) {

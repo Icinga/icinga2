@@ -361,7 +361,7 @@ bool RepositoryUtility::WriteObjectToRepositoryChangeLog(const String& path, con
 	fp << JsonEncode(item);
 	fp.close();
 
-	MoveFile(tempFilename, path, true);
+	Utility::MoveFile(tempFilename, path, true);
 
 	return true;
 }
@@ -493,7 +493,7 @@ bool RepositoryUtility::WriteObjectToRepository(const String& path, const String
 	fp << std::endl;
 	fp.close();
 
-	MoveFile(tempFilename, path, true);
+	Utility::MoveFile(tempFilename, path, true);
 
 	return true;
 }

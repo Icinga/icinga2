@@ -182,7 +182,7 @@ bool ApiSetupUtility::SetupMasterApiUser(void)
 
 	fp.close();
 
-	MoveFile(tempFilename, apiUsersPath, true);
+	Utility::MoveFile(tempFilename, apiUsersPath, true);
 
 	return true;
 }

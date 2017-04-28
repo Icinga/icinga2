@@ -195,7 +195,7 @@ int NodeSetupCommand::SetupMaster(const boost::program_options::variables_map& v
 
 	fp.close();
 
-	MoveFile(tempApiPath, apipath, true);
+	Utility::MoveFile(tempApiPath, apipath, true);
 
 	/* update constants.conf with NodeName = CN + TicketSalt = random value */
 	if (cn != Utility::GetFQDN()) {
@@ -402,7 +402,7 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 
 	fp.close();
 
-	MoveFile(tempApiPath, apipath, true);
+	Utility::MoveFile(tempApiPath, apipath, true);
 
 	/* generate local zones.conf with zone+endpoint */
 

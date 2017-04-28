@@ -136,7 +136,7 @@ void PerfdataWriter::RotateFile(std::ofstream& output, const String& temp_path, 
 
 		if (Utility::PathExists(temp_path)) {
 			String finalFile = perfdata_path + "." + Convert::ToString((long)Utility::GetTime());
-			MoveFile(temp_path, finalFile);
+			Utility::MoveFile(temp_path, finalFile);
 		}
 	}
 

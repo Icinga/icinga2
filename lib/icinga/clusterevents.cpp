@@ -759,7 +759,7 @@ Value ClusterEvents::UpdateRepositoryAPIHandler(const MessageOrigin::Ptr& origin
 	fp << JsonEncode(params);
 	fp.close();
 
-	MoveFile(tempRepositoryFile, repositoryFile, true);
+	Utility::MoveFile(tempRepositoryFile, repositoryFile, true);
 
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 

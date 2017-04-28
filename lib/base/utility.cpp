@@ -1401,7 +1401,7 @@ void Utility::SaveJsonFile(const String& path, int mode, const Value& value)
 	fp << JsonEncode(value);
 	fp.close();
 
-	MoveFile(tempFilename, path, true);
+	Utility::MoveFile(tempFilename, path, true);
 }
 
 static void HexEncode(char ch, std::ostream& os)
@@ -1939,7 +1939,7 @@ String Utility::GetIcingaDataPath(void)
 	return String(path) + "\\icinga2";
 }
 
-void MoveFile(const String& source, const String& destination, bool overwrite_destination)
+void Utility::MoveFile(const String& source, const String& destination, bool overwrite_destination)
 {
 #ifdef _WIN32
 	if (overwrite_destination && remove(destination.CStr()) && errno != ENOENT)

@@ -143,6 +143,11 @@ public:
 
 	static String CreateTempFile(const String& path, int mode, std::fstream& fp);
 
+	/**
+	 * Moves a file possibly across filesystems.
+	 */
+	static void MoveFile(const String& source, const String& destination, bool overwrite_destination = false);
+
 #ifdef _WIN32
 	static String GetIcingaInstallPath(void);
 	static String GetIcingaDataPath(void);
@@ -168,13 +173,6 @@ private:
 	static boost::thread_specific_ptr<String> m_ThreadName;
 	static boost::thread_specific_ptr<unsigned int> m_RandSeed;
 };
-
-/**
- * Moves a file possibly across filesystems.
- *
- * @ingroup base
- */
-void MoveFile(const String& source, const String& destination, bool overwrite_destination = false) I2_BASE_API;
 
 }
 

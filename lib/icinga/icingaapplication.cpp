@@ -192,7 +192,7 @@ void IcingaApplication::DumpModifiedAttributes(void)
 
 	fp.close();
 
-	MoveFile(tempFilename, path, true);
+	Utility::MoveFile(tempFilename, path, true);
 }
 
 IcingaApplication::Ptr IcingaApplication::GetInstance(void)

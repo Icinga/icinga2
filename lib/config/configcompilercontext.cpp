@@ -78,6 +78,6 @@ void ConfigCompilerContext::FinishObjectsFile(void)
 	delete m_ObjectsFP;
 	m_ObjectsFP = NULL;
 
-	MoveFile(m_ObjectsTempFile, m_ObjectsPath, true);
+	Utility::MoveFile(m_ObjectsTempFile, m_ObjectsPath, true);
 }
 

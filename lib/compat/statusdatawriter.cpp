@@ -772,7 +772,7 @@ void StatusDataWriter::UpdateObjectsCache(void)
 
 	objectfp.close();
 
-	MoveFile(tempObjectsPath, objectsPath, true);
+	Utility::MoveFile(tempObjectsPath, objectsPath, true);
 }
 
 /**
@@ -845,7 +845,7 @@ void StatusDataWriter::StatusTimerHandler(void)
 
 	statusfp.close();
 
-	MoveFile(tempStatusPath, statusPath, true);
+	Utility::MoveFile(tempStatusPath, statusPath, true);
 
 	Log(LogNotice, "StatusDataWriter")
 	    << "Writing status.dat file took " << Utility::FormatDuration(Utility::GetTime() - start);

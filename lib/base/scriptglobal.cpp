@@ -125,6 +125,6 @@ void ScriptGlobal::WriteToFile(const String& filename)
 
 	fp.close();
 
-	MoveFile(tempFilename, filename, true);
+	Utility::MoveFile(tempFilename, filename, true);
 }
 

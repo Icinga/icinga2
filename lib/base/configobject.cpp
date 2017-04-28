@@ -525,7 +525,7 @@ void ConfigObject::DumpObjects(const String& filename, int attributeTypes)
 
 	fp.close();
 
-	MoveFile(tempFilename, filename, true);
+	Utility::MoveFile(tempFilename, filename, true);
 }
 
 void ConfigObject::RestoreObject(const String& message, int attributeTypes)

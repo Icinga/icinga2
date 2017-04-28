@@ -406,7 +406,7 @@ bool NodeUtility::WriteNodeConfigObjects(const String& filename, const Array::Pt
 	fp << std::endl;
 	fp.close();
 
-	MoveFile(tempFilename, filename, true);
+	Utility::MoveFile(tempFilename, filename, true);
 
 	return true;
 }
@@ -658,5 +658,5 @@ void NodeUtility::UpdateConstant(const String& name, const String& value)
 	ifp.close();
 	ofp.close();
 
-	MoveFile(tempFile, constantsFile, true);
+	Utility::MoveFile(tempFile, constantsFile, true);
 }
