@@ -339,6 +339,12 @@ CMAKE_OPTS="$CMAKE_OPTS -DICINGA2_PLUGINDIR=%{_prefix}/lib/nagios/plugins"
 CMAKE_OPTS="$CMAKE_OPTS -DUSE_SYSTEMD=ON"
 %endif
 
+%if "%{_vendor}" == "suse" && 0%{?suse_version} < 1210
+# from package gcc48-c++
+export CC=gcc-4.8
+export CXX=g++-4.8
+%endif
+
 %{?scl_enable} cmake $CMAKE_OPTS -DCMAKE_C_FLAGS:STRING="%{optflags} %{?march_flag}" -DCMAKE_CXX_FLAGS:STRING="%{optflags} %{?march_flag}" .
 
 make %{?_smp_mflags}
