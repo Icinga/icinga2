@@ -763,7 +763,7 @@ Data Categories:
   DbCatComment         | Comments               | Icinga Web 2
   DbCatDowntime        | Downtimes              | Icinga Web 2
   DbCatEventHandler    | Event handler data     | Icinga Web 2
-  DbCatExternalCommand | External commands      | Icinga Web 2
+  DbCatExternalCommand | External commands      | --
   DbCatFlapping        | Flap detection data    | Icinga Web 2
   DbCatCheck           | Check results          | --
   DbCatLog             | Log messages           | --
@@ -771,6 +771,9 @@ Data Categories:
   DbCatProgramStatus   | Program status data    | Icinga Web 2
   DbCatRetention       | Retention data         | Icinga Web 2
   DbCatStateHistory    | Historical state data  | Icinga Web 2
+
+The default value for `categories` includes everything required
+by Icinga Web 2 in the table above.
 
 In addition to the category flags listed above the `DbCatEverything`
 flag may be used as a shortcut for listing all flags.
@@ -780,9 +783,6 @@ flag may be used as a shortcut for listing all flags.
 > The previous way of defining the `categories` attribute e.g.
 > `DbCatProgramStatus | DbCatState` was deprecated in 2.5 and will
 > be removed in future versions.
-
-External interfaces like Icinga Web 2 require everything except `DbCatCheck`
-and `DbCatLog` which is the default value if `categories` is not set.
 
 ## <a id="objecttype-idopgsqlconnection"></a> IdoPgSqlConnection
 
@@ -852,7 +852,7 @@ Data Categories:
   DbCatComment         | Comments               | Icinga Web 2
   DbCatDowntime        | Downtimes              | Icinga Web 2
   DbCatEventHandler    | Event handler data     | Icinga Web 2
-  DbCatExternalCommand | External commands      | Icinga Web 2
+  DbCatExternalCommand | External commands      | --
   DbCatFlapping        | Flap detection data    | Icinga Web 2
   DbCatCheck           | Check results          | --
   DbCatLog             | Log messages           | --
@@ -860,6 +860,9 @@ Data Categories:
   DbCatProgramStatus   | Program status data    | Icinga Web 2
   DbCatRetention       | Retention data         | Icinga Web 2
   DbCatStateHistory    | Historical state data  | Icinga Web 2
+
+The default value for `categories` includes everything required
+by Icinga Web 2 in the table above.
 
 In addition to the category flags listed above the `DbCatEverything`
 flag may be used as a shortcut for listing all flags.
@@ -869,9 +872,6 @@ flag may be used as a shortcut for listing all flags.
 > The previous way of defining the `categories` attribute e.g.
 > `DbCatProgramStatus | DbCatState` was deprecated in 2.5 and will
 > be removed in future versions.
-
-External interfaces like Icinga Web 2 require everything except `DbCatCheck`
-and `DbCatLog` which is the default value if `categories` is not set.
 
 
 ## <a id="objecttype-influxdbwriter"></a> InfluxdbWriter
