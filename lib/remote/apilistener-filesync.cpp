@@ -85,17 +85,17 @@ bool ApiListener::UpdateConfigDir(const ConfigDirInformation& oldConfigInfo, con
 
 	double oldTimestamp;
 
-	if (!oldConfig->Contains(".timestamp"))
+	if (!oldConfig->Contains("/.timestamp"))
 		oldTimestamp = 0;
 	else
-		oldTimestamp = oldConfig->Get(".timestamp");
+		oldTimestamp = oldConfig->Get("/.timestamp");
 
 	double newTimestamp;
 
-	if (!newConfig->Contains(".timestamp"))
+	if (!newConfig->Contains("/.timestamp"))
 		newTimestamp = Utility::GetTime();
 	else
-		newTimestamp = newConfig->Get(".timestamp");
+		newTimestamp = newConfig->Get("/.timestamp");
 
 	/* skip update if our config is newer */
 	if (oldTimestamp >= newTimestamp)
