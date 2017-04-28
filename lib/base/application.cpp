@@ -97,6 +97,10 @@ void Application::Stop(bool runtimeRemoved)
 			Log(LogCritical, "Application", "Cannot update PID file. Aborting restart operation.");
 			return;
 		}
+
+		Log(LogDebug, "Application")
+			<< "Keeping pid  '" << m_ReloadProcess << "' open.";
+
 		ClosePidFile(false);
 	} else
 		ClosePidFile(true);
