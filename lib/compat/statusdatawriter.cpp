@@ -63,7 +63,7 @@ void StatusDataWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr
 /**
  * Hint: The reason why we're using "\n" rather than std::endl is because
  * std::endl also _flushes_ the output stream which severely degrades
- * performance (see http://gcc.gnu.org/onlinedocs/libstdc++/manual/bk01pt11ch25s02.html).
+ * performance (see https://stackoverflow.com/questions/213907/c-stdendl-vs-n).
  */
 
 /**

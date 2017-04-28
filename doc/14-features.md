@@ -5,7 +5,7 @@
 Icinga 2 supports three different types of logging:
 
 * File logging
-* Syslog (on *NIX-based operating systems)
+* Syslog (on Linux/UNIX)
 * Console logging (`STDOUT` on tty)
 
 You can enable additional loggers using the `icinga2 feature enable`
@@ -336,13 +336,13 @@ More configuration details can be found [here](9-object-types.md#objecttype-infl
 
 #### <a id="gelfwriter"></a> GELF Writer
 
-The `Graylog Extended Log Format` (short: [GELF](http://www.graylog2.org/resources/gelf))
+The `Graylog Extended Log Format` (short: [GELF](http://docs.graylog.org/en/latest/pages/gelf.html))
 can be used to send application logs directly to a TCP socket.
 
-While it has been specified by the [graylog2](http://www.graylog2.org/) project as their
-[input resource standard](http://www.graylog2.org/resources/gelf), other tools such as
-[Logstash](http://www.logstash.net) also support `GELF` as
-[input type](http://logstash.net/docs/latest/inputs/gelf).
+While it has been specified by the [Graylog](https://www.graylog.org) project as their
+[input resource standard](http://docs.graylog.org/en/latest/pages/sending_data.html), other tools such as
+[Logstash](https://www.elastic.co/products/logstash) also support `GELF` as
+[input type](https://www.elastic.co/guide/en/logstash/current/plugins-inputs-gelf.html).
 
 You can enable the feature using
 
