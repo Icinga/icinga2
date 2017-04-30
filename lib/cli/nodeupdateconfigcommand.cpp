@@ -50,7 +50,7 @@ String NodeUpdateConfigCommand::GetShortDescription(void) const
 
 ImpersonationLevel NodeUpdateConfigCommand::GetImpersonationLevel(void) const
 {
-	return ImpersonateRoot;
+	return ImpersonateIcinga;
 }
 
 bool NodeUpdateConfigCommand::IsDeprecated(void) const

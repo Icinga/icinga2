@@ -53,7 +53,7 @@ String NodeWizardCommand::GetShortDescription(void) const
 
 ImpersonationLevel NodeWizardCommand::GetImpersonationLevel(void) const
 {
-	return ImpersonateRoot;
+	return ImpersonateIcinga;
 }
 
 int NodeWizardCommand::GetMaxArguments(void) const
