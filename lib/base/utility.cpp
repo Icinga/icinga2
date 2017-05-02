@@ -32,12 +32,12 @@
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/replace.hpp>
-#include <boost/filesystem.hpp>
 #include <ios>
 #include <fstream>
 #include <iostream>
 #include <errno.h>
 #include <stdio.h>
+#include <sys/types.h>
 
 #ifdef __FreeBSD__
 #	include <pthread_np.h>
@@ -48,7 +48,6 @@
 #endif /* HAVE_CXXABI_H */
 
 #ifndef _WIN32
-#	include <sys/types.h>
 #	include <pwd.h>
 #	include <grp.h>
 #	include <errno.h>
@@ -60,6 +59,7 @@
 #	include <io.h>
 #	include <msi.h>
 #	include <shlobj.h>
+#	include <sys/stat.h>
 #endif /*_WIN32*/
 
 using namespace icinga;
@@ -1939,38 +1939,125 @@ String Utility::GetIcingaDataPath(void)
 	return String(path) + "\\icinga2";
 }
 
+#endif /* _WIN32 */
+
+static inline void boost_throw_exception_posix(const char *function, const String& file) {
+	BOOST_THROW_EXCEPTION(posix_error()
+	    << boost::errinfo_api_function(function)
+	    << boost::errinfo_errno(errno)
+	    << boost::errinfo_file_name(file));
+}
+
+template<class TFunction, class... TArgs>
+static inline auto call_nointr(TFunction function, TArgs... args) -> decltype(function(args...)) {
+	decltype(function(args...)) ret;
+
+	do {
+		errno = 0;
+		ret = function(args...);
+	} while (errno == EINTR);
+
+	return ret;
+}
+
 void Utility::MoveFile(const String& source, const String& destination, bool overwrite_destination)
 {
 #ifdef _WIN32
 	if (overwrite_destination && remove(destination.CStr()) && errno != ENOENT)
-		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("remove")
-		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(source));
+		boost_throw_exception_posix("remove", destination);
 #endif /* _WIN32 */
 
 	if (!rename(source.CStr(), destination.CStr()))
 		return;
 
 	if (errno != EXDEV)
-		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("rename")
-		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(source));
+		boost_throw_exception_posix("rename", source);
 
-	boost::filesystem::copy_file(
-		source,
-		destination,
-		overwrite_destination
-			? boost::filesystem::copy_option::overwrite_if_exists
-			: boost::filesystem::copy_option::fail_if_exists
-	);
+#ifndef _WIN32
+	if (overwrite_destination && remove(destination.CStr()) && errno != ENOENT)
+		boost_throw_exception_posix("remove", destination);
+#endif /* _WIN32 */
 
-	if (remove(source.CStr()))
-		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("remove")
-		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(source));
-}
+#define MOVEFILE_BUF_LEN 4096u
+
+#ifdef _WIN32
+
+#define MOVEFILE_FLAGS_READ (_O_BINARY | _O_RDONLY | _O_SEQUENTIAL)
+#define MOVEFILE_FLAGS_WRITE (_O_BINARY | _O_CREAT | _O_EXCL | _O_SEQUENTIAL | _O_WRONLY)
+
+#define open _open
+#define stat _stat
+#define fstat _fstat
+#define read _read
+#define write _write
+#define close _close
+
+#else /* _WIN32 */
+
+#define MOVEFILE_FLAGS_READ (O_RDONLY)
+#define MOVEFILE_FLAGS_WRITE (O_CREAT | O_EXCL | O_WRONLY)
 
 #endif /* _WIN32 */
+
+	int fd_src = -1, fd_dst = -1;
+
+	try {
+		fd_src = call_nointr(&open, source.CStr(), MOVEFILE_FLAGS_READ);
+		if (fd_src == -1)
+			boost_throw_exception_posix("open", source);
+
+		struct stat stat_src;
+		if (fstat(fd_src, &stat_src) == -1)
+			boost_throw_exception_posix("fstat", source);
+
+		fd_dst = call_nointr(&open, destination.CStr(), MOVEFILE_FLAGS_WRITE, stat_src.st_mode);
+		if (fd_dst == -1)
+			boost_throw_exception_posix("open", destination);
+
+		char buf[MOVEFILE_BUF_LEN];
+		int remain, written;
+		const char *pos;
+
+		for (;;) {
+			remain = call_nointr(&read, fd_src, (char *) buf, MOVEFILE_BUF_LEN);
+			if (remain == -1)
+				boost_throw_exception_posix("read", source);
+
+			if (remain == 0)
+				break;
+
+			pos = buf;
+			for (;;) {
+				written = call_nointr(&write, fd_dst, pos, remain);
+				if (written == -1)
+					boost_throw_exception_posix("write", destination);
+
+				remain -= written;
+				if (!remain)
+					break;
+
+				pos += written;
+			}
+		}
+
+		(void) call_nointr(&close, fd_src);
+		fd_src = -1;
+
+		if (call_nointr(&close, fd_dst)) {
+			fd_dst = -1;
+			boost_throw_exception_posix("close", destination);
+		}
+		fd_dst = -1;
+	} catch (...) {
+		if (fd_src != -1)
+			(void) call_nointr(&close, fd_src);
+
+		if (fd_dst != -1)
+			(void) call_nointr(&close, fd_dst);
+
+		throw;
+	}
+
+	if (remove(source.CStr()))
+		boost_throw_exception_posix("remove", source);
+}
