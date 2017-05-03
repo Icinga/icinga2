@@ -284,7 +284,7 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 		upq.SetName("DaemonCommand::Run");
 
 		// activate config only after daemonization: it starts threads and that is not compatible with fork()
-		if (!ConfigItem::ActivateItems(upq, newItems)) {
+		if (!ConfigItem::ActivateItems(upq, newItems, false, false, true)) {
 			Log(LogCritical, "cli", "Error activating configuration.");
 			return EXIT_FAILURE;
 		}

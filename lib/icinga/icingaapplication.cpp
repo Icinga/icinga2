@@ -103,22 +103,6 @@ int IcingaApplication::Main(void)
 	l_RetentionTimer->OnTimerExpired.connect(boost::bind(&IcingaApplication::DumpProgramState, this));
 	l_RetentionTimer->Start();
 
-	/* restore modified attributes */
-	if (Utility::PathExists(GetModAttrPath())) {
-		Expression *expression = ConfigCompiler::CompileFile(GetModAttrPath());
-
-		if (expression) {
-			try {
-				ScriptFrame frame;
-				expression->Evaluate(frame);
-			} catch (const std::exception& ex) {
-				Log(LogCritical, "config", DiagnosticInformation(ex));
-			}
-		}
-
-		delete expression;
-	}
-
 	RunEventLoop();
 
 	Log(LogInformation, "IcingaApplication", "Icinga has shut down.");
