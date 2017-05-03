@@ -21,6 +21,7 @@
 #include "config/configcompilercontext.hpp"
 #include "config/applyrule.hpp"
 #include "config/objectrule.hpp"
+#include "config/configcompiler.hpp"
 #include "base/application.hpp"
 #include "base/configtype.hpp"
 #include "base/objectlock.hpp"
@@ -573,10 +574,28 @@ bool ConfigItem::CommitItems(const ActivationContext::Ptr& context, WorkQueue& u
 	return true;
 }
 
-bool ConfigItem::ActivateItems(WorkQueue& upq, const std::vector<ConfigItem::Ptr>& newItems, bool runtimeCreated, bool silent)
+bool ConfigItem::ActivateItems(WorkQueue& upq, const std::vector<ConfigItem::Ptr>& newItems, bool runtimeCreated, bool silent, bool withModAttrs)
 {
 	static boost::mutex mtx;
 	boost::mutex::scoped_lock lock(mtx);
+
+	if (withModAttrs) {
+		/* restore modified attributes */
+		if (Utility::PathExists(Application::GetModAttrPath())) {
+			Expression *expression = ConfigCompiler::CompileFile(Application::GetModAttrPath());
+
+			if (expression) {
+				try {
+					ScriptFrame frame;
+					expression->Evaluate(frame);
+				} catch (const std::exception& ex) {
+					Log(LogCritical, "config", DiagnosticInformation(ex));
+				}
+			}
+
+			delete expression;
+		}
+	}
 
 	if (!silent)
 		Log(LogInformation, "ConfigItem", "Triggering Start signal for config items");
