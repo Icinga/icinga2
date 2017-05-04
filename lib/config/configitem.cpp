@@ -597,9 +597,6 @@ bool ConfigItem::ActivateItems(WorkQueue& upq, const std::vector<ConfigItem::Ptr
 		}
 	}
 
-	if (!silent)
-		Log(LogInformation, "ConfigItem", "Triggering Start signal for config items");
-
 	for (const ConfigItem::Ptr& item : newItems) {
 		if (!item->m_Object)
 			continue;
@@ -608,6 +605,29 @@ bool ConfigItem::ActivateItems(WorkQueue& upq, const std::vector<ConfigItem::Ptr
 
 		if (object->IsActive())
 			continue;
+
+#ifdef I2_DEBUG
+		Log(LogDebug, "ConfigItem")
+		    << "Setting 'active' to true for object '" << object->GetName() << "' of type '" << object->GetReflectionType()->GetName() << "'";
+#endif /* I2_DEBUG */
+		upq.Enqueue(boost::bind(&ConfigObject::PreActivate, object));
+	}
+
+	upq.Join();
+
+	if (upq.HasExceptions()) {
+		upq.ReportExceptions("ConfigItem");
+		return false;
+	}
+
+	if (!silent)
+		Log(LogInformation, "ConfigItem", "Triggering Start signal for config items");
+
+	for (const ConfigItem::Ptr& item : newItems) {
+		if (!item->m_Object)
+			continue;
+
+		ConfigObject::Ptr object = item->m_Object;
 
 #ifdef I2_DEBUG
 		Log(LogDebug, "ConfigItem")

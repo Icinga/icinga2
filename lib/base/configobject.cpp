@@ -374,6 +374,14 @@ void ConfigObject::Start(bool runtimeCreated)
 	SetStartCalled(true);
 }
 
+void ConfigObject::PreActivate(void)
+{
+	CONTEXT("Setting 'active' to true for object '" + GetName() + "' of type '" + GetReflectionType()->GetName() + "'");
+
+	ASSERT(!IsActive());
+	SetActive(true, true);
+}
+
 void ConfigObject::Activate(bool runtimeCreated)
 {
 	CONTEXT("Activating object '" + GetName() + "' of type '" + GetReflectionType()->GetName() + "'");
@@ -384,8 +392,6 @@ void ConfigObject::Activate(bool runtimeCreated)
 		Start(runtimeCreated);
 
 		ASSERT(GetStartCalled());
-		ASSERT(!IsActive());
-		SetActive(true, true);
 
 		if (GetHAMode() == HARunEverywhere)
 			SetAuthority(true);
