@@ -4183,6 +4183,7 @@ vmware_exclude          | **Optional.** Blacklist paths. No value defined as def
 vmware_include          | **Optional.** Whitelist paths. No value defined as default.
 vmware_isregexp         | **Optional.** Treat blacklist and whitelist expressions as regexp.
 vmware_multiline        | **Optional.** Multiline output in overview. This mean technically that a multiline output uses a HTML **\<br\>** for the GUI. No value defined as default.
+vmware_standbyok        | **Optional.** For storage systems where a standby multipath is ok and not a warning. Defaults to false.
 
 
 **vmware-esx-soap-vm-cpu**
