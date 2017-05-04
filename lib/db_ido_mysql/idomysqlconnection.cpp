@@ -248,7 +248,7 @@ void IdoMysqlConnection::Reconnect(void)
 	/* connection */
 	if (!mysql_init(&m_Connection)) {
 		Log(LogCritical, "IdoMysqlConnection")
-		    << "mysql_init() failed: \"" << mysql_error(&m_Connection) << "\"";
+		    << "mysql_init() failed: out of memory";
 
 		BOOST_THROW_EXCEPTION(std::bad_alloc());
 	}
