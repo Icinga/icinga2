@@ -236,7 +236,7 @@ INT printOutput(printInfoStruct& printInfo, response& response)
 
 	if (response.dropped == printInfo.num) {
 		std::wcout << L"PING CRITICAL ALL CONNECTIONS DROPPED | " << perf.str() << '\n';
-		return 3;
+		return 2;
 	}
 
 	switch (state) {
