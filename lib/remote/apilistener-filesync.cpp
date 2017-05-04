@@ -97,18 +97,25 @@ bool ApiListener::UpdateConfigDir(const ConfigDirInformation& oldConfigInfo, con
 	else
 		newTimestamp = newConfig->Get("/.timestamp");
 
-	/* skip update if our config is newer */
+	/* skip update if our configuration files are more recent */
 	if (oldTimestamp >= newTimestamp) {
-		/* TODO: Less ugly */
 		Log(LogInformation, "ApiListener")
-		    << "Old timestamp '" << std::setprecision(std::numeric_limits<double>::digits10 + 1)
-		    << oldTimestamp << "' is more recent than new one '"  << newTimestamp << "'.";
+		    << "Cannot apply configuration file update for path '" << configDir << "'. Current timestamp '"
+		    << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", oldTimestamp) << "' ("
+		    << std::fixed << std::setprecision(6) << oldTimestamp
+		    << ") is more recent than received timestamp '"
+		    << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", newTimestamp) << "' ("
+		    << newTimestamp << ").";
 		return false;
 	}
 
 	Log(LogInformation, "ApiListener")
-	    << "New timestamp '" << std::setprecision (std::numeric_limits<double>::digits10 + 1) << newTimestamp
-	    << "' is more recent than old one '" << oldTimestamp << "'.";
+	    << "Applying configuration file update for path '" << configDir << "'. Received timestamp '"
+	    << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", newTimestamp) << "' ("
+	    << std::fixed << std::setprecision(6) << newTimestamp
+	    << ") is more recent than current timestamp '"
+	    << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", oldTimestamp) << "' ("
+	    << oldTimestamp << ").";
 
 	{
 		ObjectLock olock(newConfig);
