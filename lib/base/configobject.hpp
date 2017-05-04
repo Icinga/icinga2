@@ -60,6 +60,7 @@ public:
 	void Register(void);
 	void Unregister(void);
 
+	void PreActivate(void);
 	void Activate(bool runtimeCreated = false);
 	void Deactivate(bool runtimeRemoved = false);
 	void SetAuthority(bool authority);
