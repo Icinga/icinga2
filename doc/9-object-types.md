@@ -886,6 +886,10 @@ Example:
       host = "127.0.0.1"
       port = 8086
       database = "icinga2"
+
+      flush_threshold = 1024
+      flush_interval = 10s
+
       host_template = {
         measurement = "$host.check_command$"
         tags = {
@@ -934,6 +938,10 @@ Configuration Attributes:
   flush_interval         | **Optional.** How long to buffer data points before transfering to InfluxDB. Defaults to `10s`.
   flush_threshold        | **Optional.** How many data points to buffer before forcing a transfer to InfluxDB.  Defaults to `1024`.
   socket_timeout         | **Optional.** How long to wait for InfluxDB to respond.  Defaults to `5s`.
+
+Note: If `flush_threshold` is set too low, this will always force the feature to flush all data
+to InfluxDB. Experiment with the setting, if you are processing more than 1024 metrics per second
+or similar.
 
 ### <a id="objecttype-influxdbwriter-instance-tags"></a> Instance Tagging
 
