@@ -374,79 +374,86 @@ int Main(void)
 	} else if (command) {
 		Logger::DisableTimestamp(true);
 #ifndef _WIN32
-		if (command->GetImpersonationLevel() == ImpersonateRoot) {
-			if (getuid() != 0) {
-				Log(LogCritical, "cli", "This command must be run as root.");
-				return 0;
-			}
-		} else if (command && command->GetImpersonationLevel() == ImpersonateIcinga) {
-			String group = Application::GetRunAsGroup();
-			String user = Application::GetRunAsUser();
-	
-			errno = 0;
-			struct group *gr = getgrnam(group.CStr());
-	
-			if (!gr) {
-				if (errno == 0) {
-					Log(LogCritical, "cli")
-					    << "Invalid group specified: " << group;
-					return EXIT_FAILURE;
-				} else {
-					Log(LogCritical, "cli")
-					    << "getgrnam() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
-					return EXIT_FAILURE;
+
+		switch (command->GetImpersonationLevel()) {
+			case ImpersonateRoot:
+#ifdef ICINGA2_REQUIRE_SUPERUSER
+				if (getuid() != 0) {
+					Log(LogCritical, "cli", "This command must be run as root.");
+					return 0;
 				}
-			}
-	
-			if (getgid() != gr->gr_gid) {
-				if (!vm.count("reload-internal") && setgroups(0, NULL) < 0) {
-					Log(LogCritical, "cli")
-					    << "setgroups() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
-					Log(LogCritical, "cli")
-					    << "Please re-run this command as a privileged user or using the \"" << user << "\" account.";
-					return EXIT_FAILURE;
+				break;
+#endif
+
+			case ImpersonateIcinga:
+				String group = Application::GetRunAsGroup();
+				String user = Application::GetRunAsUser();
+
+				errno = 0;
+				struct group *gr = getgrnam(group.CStr());
+
+				if (!gr) {
+					if (errno == 0) {
+						Log(LogCritical, "cli")
+						    << "Invalid group specified: " << group;
+						return EXIT_FAILURE;
+					} else {
+						Log(LogCritical, "cli")
+						    << "getgrnam() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+						return EXIT_FAILURE;
+					}
 				}
-	
-				if (setgid(gr->gr_gid) < 0) {
-					Log(LogCritical, "cli")
-					    << "setgid() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
-					return EXIT_FAILURE;
+
+				if (getgid() != gr->gr_gid) {
+					if (!vm.count("reload-internal") && setgroups(0, NULL) < 0) {
+						Log(LogCritical, "cli")
+						    << "setgroups() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+						Log(LogCritical, "cli")
+						    << "Please re-run this command as a privileged user or using the \"" << user << "\" account.";
+						return EXIT_FAILURE;
+					}
+
+					if (setgid(gr->gr_gid) < 0) {
+						Log(LogCritical, "cli")
+						    << "setgid() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+						return EXIT_FAILURE;
+					}
 				}
-			}
-	
-			errno = 0;
-			struct passwd *pw = getpwnam(user.CStr());
-	
-			if (!pw) {
-				if (errno == 0) {
-					Log(LogCritical, "cli")
-					    << "Invalid user specified: " << user;
-					return EXIT_FAILURE;
-				} else {
-					Log(LogCritical, "cli")
-					    << "getpwnam() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
-					return EXIT_FAILURE;
+
+				errno = 0;
+				struct passwd *pw = getpwnam(user.CStr());
+
+				if (!pw) {
+					if (errno == 0) {
+						Log(LogCritical, "cli")
+						    << "Invalid user specified: " << user;
+						return EXIT_FAILURE;
+					} else {
+						Log(LogCritical, "cli")
+						    << "getpwnam() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+						return EXIT_FAILURE;
+					}
 				}
-			}
-	
-			// also activate the additional groups the configured user is member of
-			if (getuid() != pw->pw_uid) {
-				if (!vm.count("reload-internal") && initgroups(user.CStr(), pw->pw_gid) < 0) {
-					Log(LogCritical, "cli")
-					    << "initgroups() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
-					Log(LogCritical, "cli")
-					    << "Please re-run this command as a privileged user or using the \"" << user << "\" account.";
-					return EXIT_FAILURE;
+
+				// also activate the additional groups the configured user is member of
+				if (getuid() != pw->pw_uid) {
+					if (!vm.count("reload-internal") && initgroups(user.CStr(), pw->pw_gid) < 0) {
+						Log(LogCritical, "cli")
+						    << "initgroups() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+						Log(LogCritical, "cli")
+						    << "Please re-run this command as a privileged user or using the \"" << user << "\" account.";
+						return EXIT_FAILURE;
+					}
+
+					if (setuid(pw->pw_uid) < 0) {
+						Log(LogCritical, "cli")
+						    << "setuid() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+						Log(LogCritical, "cli")
+						    << "Please re-run this command as a privileged user or using the \"" << user << "\" account.";
+						return EXIT_FAILURE;
+					}
 				}
-	
-				if (setuid(pw->pw_uid) < 0) {
-					Log(LogCritical, "cli")
-					    << "setuid() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
-					Log(LogCritical, "cli")
-					    << "Please re-run this command as a privileged user or using the \"" << user << "\" account.";
-					return EXIT_FAILURE;
-				}
-			}
+				break;
 		}
 
 		Process::InitializeSpawnHelper();

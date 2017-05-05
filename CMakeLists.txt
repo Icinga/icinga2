@@ -40,6 +40,7 @@ option(ICINGA2_WITH_PERFDATA "Build the perfdata module" ON)
 option(ICINGA2_WITH_REDIS "Build the redis module" ON)
 option(ICINGA2_WITH_STUDIO "Build the Icinga Studio application" OFF)
 option(ICINGA2_WITH_TESTS "Run unit tests" ON)
+option(ICINGA2_REQUIRE_SUPERUSER "Require superuser privileges to run Icinga 2" ON)
 
 file(STRINGS icinga2.spec VERSION_LINE REGEX "^Version: ")
 string(REPLACE "Version: " "" ICINGA2_VERSION ${VERSION_LINE})
@@ -262,6 +263,10 @@ if(NOT MSVC)
 endif()
 
 configure_file(config.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config.h ESCAPE_QUOTES)
+
+if(ICINGA2_REQUIRE_SUPERUSER)
+  add_definitions(-DICINGA2_REQUIRE_SUPERUSER)
+endif()
 
 install(
   FILES README.md COPYING COPYING.Exceptions AUTHORS ChangeLog NEWS
