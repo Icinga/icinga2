@@ -412,7 +412,7 @@ void InfluxdbWriter::SendMetric(const Dictionary::Ptr& tmpl, const String& label
 	m_DataBuffer.push_back(String(msgbuf.str()));
 
 	// Flush if we've buffered too much to prevent excessive memory use
-	if (m_DataBuffer.size() >= GetFlushThreshold()) {
+	if (static_cast<int>(m_DataBuffer.size()) >= GetFlushThreshold()) {
 		Log(LogDebug, "InfluxdbWriter")
 		    << "Data buffer overflow writing " << m_DataBuffer.size() << " data points";
 		Flush();
