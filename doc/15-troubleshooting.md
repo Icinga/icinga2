@@ -109,6 +109,8 @@ checks later on.
 
 ## <a id="troubleshooting-enable-debug-output"></a> Enable Debug Output
 
+### <a id="troubleshooting-enable-debug-output-linux"></a> Enable Debug Output on Linux/Unix
+
 Enable the `debuglog` feature:
 
     # icinga2 feature enable debuglog
@@ -123,6 +125,18 @@ log severity as an additional parameter argument to `-x`.
 
 The [log severity](9-object-types.md#objecttype-filelogger) can be one of `critical`, `warning`, `information`, `notice`
 and `debug`.
+
+### <a id="troubleshooting-enable-debug-output-windows"></a> Enable Debug Output on Windows
+
+Open a command prompt with administrative privileges and enable the debug log feature.
+
+    C:> icinga2.exe enable feature debuglog
+
+Ensure that the Icinga 2 service already writes the main log into `C:\ProgramData\icinga2\var\log\icinga2`.
+Restart the Icinga 2 service and open the newly created `debug.log` file.
+
+    C:> net stop icinga2
+    C:> net start icinga2
 
 ## <a id="list-configuration-objects"></a> List Configuration Objects
 
