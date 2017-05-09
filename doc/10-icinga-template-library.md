@@ -1278,9 +1278,9 @@ Custom attributes passed as [command parameters](3-monitoring-basics.md#command-
 Name                          | Description
 ------------------------------|--------------
 ssl_address                   | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
-ssl_port                      | **Required.** The port that should be checked.
+ssl_port                      | **Optional.** The port that should be checked. Defaults to 443.
 ssl_timeout                   | **Optional.** Timeout in seconds for the connect and handshake. The plugin default is 10 seconds.
-ssl_cert_valid_days_warn      | **Optional.** Warning threshold for days before the certificate will expire. When used, ssl_cert_valid_days_critical must also be set.
+ssl_cert_valid_days_warn      | **Optional.** Warning threshold for days before the certificate will expire. When used, the default for ssl_cert_valid_days_critical is 0.
 ssl_cert_valid_days_critical  | **Optional.** Critical threshold for days before the certificate will expire. When used, ssl_cert_valid_days_warn must also be set.
 ssl_sni                       | **Optional.** The `server_name` that is send to select the SSL certificate to check. Important if SNI is used. Defaults to "$ssl_address$".
 
@@ -4798,28 +4798,59 @@ vmware_multiline        | **Optional.** Multiline output in overview. This mean 
 
 This category includes all plugins for web-based checks.
 
-#### <a id="plugin-contrib-command-webinject"></a> webinject
+#### <a id="plugin-contrib-command-apache_status"></a> apache_status
 
-The [check_webinject](https://labs.consol.de/de/nagios/check_webinject/index.html) plugin
-uses [WebInject](https://www.webinject.org/manual.html) to test web applications
-and web services in an automated fashion.
-It can be used to test individual system components that have HTTP interfaces
-(JSP, ASP, CGI, PHP, AJAX, Servlets, HTML Forms, XML/SOAP Web Services, REST, etc),
-and can be used as a test harness to create a suite of HTTP level automated functional,
-acceptance, and regression tests. A test harness allows you to run many test cases
-and collect/report your results. WebInject offers real-time results
-display and may also be used for monitoring system response times.
+The [check_apache_status.pl](https://github.com/lbetz/check_apache_status) plugin
+uses the [/server-status](https://httpd.apache.org/docs/current/mod/mod_status.html)
+HTTP endpoint to monitor status metrics for the Apache webserver.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
-------------------------|--------------
-webinject_config_file   | **Optional.** There is a configuration file named 'config.xml' that is used to store configuration settings for your project. You can use this to specify which test case files to run and to set some constants and settings to be used by WebInject.
-webinject_output        | **Optional.** This option is followed by a directory name or a prefix to prepended to the output files. This is used to specify the location for writing output files (http.log, results.html, and results.xml). If a directory name is supplied (use either an absolute or relative path and make sure to add the trailing slash), all output files are written to this directory. If the trailing slash is ommitted, it is assumed to a prefix and this will be prepended to the output files. You may also use a combination of a directory and prefix.
-webinject_no_output     | **Optional.** Suppresses all output to STDOUT except the results summary.
-webinject_timeout       | **Optional.** The value [given in seconds] will be compared to the global time elapsed to run all the tests. If the tests have all been successful, but have taken more time than the 'globaltimeout' value, a warning message is sent back to Icinga.
-webinject_report_type   | **Optional.** This setting is used to enable output formatting that is compatible for use with specific external programs. The available values you can set this to are: nagios, mrtg, external and standard.
-webinject_testcase_file | **Optional.** When you launch WebInject in console mode, you can optionally supply an argument for a testcase file to run. It will look for this file in the directory that webinject.pl resides in. If no filename is passed from the command line, it will look in config.xml for testcasefile declarations. If no files are specified, it will look for a default file named 'testcases.xml' in the current [webinject] directory. If none of these are found, the engine will stop and give you an error.
+------------------------|----------------------------------------------------------------------------------
+apache_status_address	| **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, `address6` otherwise.
+apache_status_port	| **Optional.** the http port.
+apache_status_url	| **Optional.** URL to use, instead of the default (http://`apache_status_address`/server-status).
+apache_status_ssl	| **Optional.** set to use ssl connection
+apache_status_timeout	| **Optional.** timeout in seconds
+apache_status_warning	| **Optional.** Warning threshold (number of open slots, busy workers and idle workers that will cause a WARNING) like ':20,50,:50'.
+apache_status_critical	| **Optional.** Critical threshold (number of open slots, busy workers and idle workers that will cause a CRITICAL) like ':10,25,:20'.
+
+
+### <a id="plugin-check-command-ssl_cert"></a> cert
+
+The [check_ssl_cert](https://github.com/matteocorti/check_ssl_cert) plugin
+uses the openssl binary (and optional curl) to check a X.509 certificate.
+
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
+
+Name                      | Description
+--------------------------|--------------
+ssl_cert_address              | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
+ssl_cert_port                 | **Optional.** TCP port number (default: 443).
+ssl_cert_file                 | **Optional.** Local file path. Works only if `ssl_cert_address` is set to "localhost".
+ssl_cert_warn                 | **Optional.** Minimum number of days a certificate has to be valid.
+ssl_cert_critical             | **Optional.** Minimum number of days a certificate has to be valid to issue a critical status.
+ssl_cert_cn                   | **Optional.** Pattern to match the CN of the certificate.
+ssl_cert_issuer               | **Optional.** Pattern to match the issuer of the certificate.
+ssl_cert_org                  | **Optional.** Pattern to match the organization of the certificate.
+ssl_cert_email                | **Optional.** Pattern to match the email address contained in the certificate.
+ssl_cert_serial               | **Optional.** Pattern to match the serial number.
+ssl_cert_match_host           | **Optional.** Match CN with the host name.
+ssl_cert_selfsigned           | **Optional.** Allow self-signed certificate.
+ssl_cert_sni                  | **Optional.** Sets the TLS SNI (Server Name Indication) extension.
+ssl_cert_timeout              | **Optional.** Seconds before connection times out (default: 10)
+ssl_cert_protocol             | **Optional.** Use the specific protocol {http,smtp,pop3,imap,ftp,xmpp,irc,ldap} (default: http).
+ssl_cert_clientcert           | **Optional.** Use client certificate to authenticate.
+ssl_cert_clientpass           | **Optional.** Set passphrase for client certificate.
+ssl_cert_rootcert             | **Optional.** Root certificate or directory to be used for certficate validation.
+ssl_cert_ignore_signature     | **Optional.** Do not check if the certificate was signed with SHA1 od MD5.
+ssl_cert_ssl_version          | **Optional.** Force specific SSL version out of {ssl2,ssl3,tls1,tls1_1,tls1_2}.
+ssl_cert_disable_ssl_versions | **Optional.** Disable specific SSL versions out of {ssl2,ssl3,tls1,tls1_1,tls1_2}. Multiple versions can be given as array.
+ssl_cert_cipher               | **Optional.** Cipher selection: force {ecdsa,rsa} authentication.
+ssl_cert_ignore_expiration    | **Optional.** Ignore expiration date.
+ssl_cert_ignore_ocsp          | **Optional.** Do not check revocation with OCSP.
+
 
 #### <a id="plugin-contrib-command-jmx4perl"></a> jmx4perl
 
@@ -4868,24 +4899,20 @@ jmx4perl_config              | **Optional.** Path to configuration file.
 jmx4perl_server              | **Optional.** Symbolic name of server url to use, which needs to be configured in the configuration file.
 jmx4perl_check               | **Optional.** Name of a check configuration as defined in the configuration file, use array if you need arguments.
 
-#### <a id="plugin-contrib-command-squid"></a> squid
 
-The [check_squid](https://exchange.icinga.com/exchange/check_squid) plugin
-uses the `squidclient` binary to monitor a [Squid proxy](http://www.squid-cache.org).
+#### <a id="plugin-contrib-command-kdc"></a> kdc
+
+The [check_kdc](https://exchange.nagios.org/directory/Plugins/Security/check_kdc/details) plugin
+uses the Kerberos `kinit` binary to monitor Kerberos 5 KDC by acquiring a ticket.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
-Name                    | Description
-------------------------|----------------------------------------------------------------------------------
-squid_hostname		| **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
-squid_data		| **Optional.** Data to fetch (default: Connections) available data: Connections Cache Resources Memory FileDescriptors.
-squid_port		| **Optional.** Port number (default: 3128).
-squid_user		| **Optional.** WWW user
-squid_password		| **Optional.** WWW password
-squid_warning		| **Optional.** Warning threshold. See http://nagiosplug.sourceforge.net/developer-guidelines.html#THRESHOLDFORMAT for the threshold format.
-squid_critical		| **Optional.** Critical threshold. See http://nagiosplug.sourceforge.net/developer-guidelines.html#THRESHOLDFORMAT for the threshold format.
-squid_client		| **Optional.** Path of squidclient (default: /usr/bin/squidclient).
-squid_timeout		| **Optional.** Seconds before plugin times out (default: 15).
+Name            | Description
+----------------|--------------------------------------------------------------------------
+kdc_address	| **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, `address6` otherwise.
+kdc_port	| **Optional** Port on which KDC runs (default 88).
+kdc_principal	| **Required** Principal name to authenticate as (including realm).
+kdc_keytab	| **Required** Keytab file containing principal's key.
 
 
 #### <a id="plugin-contrib-command-nginx_status"></a> nginx_status
@@ -4913,40 +4940,6 @@ nginx_status_warn		| **Optional.** Warning threshold (number of active connectio
 nginx_status_critical		| **Optional.** Critical threshold (number of active connections, ReqPerSec or ConnPerSec that will cause a CRITICAL) like '20000,200,300'.
 
 
-#### <a id="plugin-contrib-command-apache_status"></a> apache_status
-
-The [check_apache_status.pl](https://github.com/lbetz/check_apache_status) plugin
-uses the [/server-status](https://httpd.apache.org/docs/current/mod/mod_status.html)
-HTTP endpoint to monitor status metrics for the Apache webserver.
-
-Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
-
-Name                    | Description
-------------------------|----------------------------------------------------------------------------------
-apache_status_address	| **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, `address6` otherwise.
-apache_status_port	| **Optional.** the http port.
-apache_status_url	| **Optional.** URL to use, instead of the default (http://`apache_status_address`/server-status).
-apache_status_ssl	| **Optional.** set to use ssl connection
-apache_status_timeout	| **Optional.** timeout in seconds
-apache_status_warning	| **Optional.** Warning threshold (number of open slots, busy workers and idle workers that will cause a WARNING) like ':20,50,:50'.
-apache_status_critical	| **Optional.** Critical threshold (number of open slots, busy workers and idle workers that will cause a CRITICAL) like ':10,25,:20'.
-
-
-#### <a id="plugin-contrib-command-kdc"></a> kdc
-
-The [check_kdc](https://exchange.nagios.org/directory/Plugins/Security/check_kdc/details) plugin
-uses the Kerberos `kinit` binary to monitor Kerberos 5 KDC by acquiring a ticket.
-
-Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
-
-Name            | Description
-----------------|--------------------------------------------------------------------------
-kdc_address	| **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, `address6` otherwise.
-kdc_port	| **Optional** Port on which KDC runs (default 88).
-kdc_principal	| **Required** Principal name to authenticate as (including realm).
-kdc_keytab	| **Required** Keytab file containing principal's key.
-
-
 #### <a id="plugin-contrib-command-rbl"></a> rbl
 
 The [check_rbl](https://github.com/matteocorti/check_rbl) plugin
@@ -4962,3 +4955,48 @@ rbl_server	| **Required** List of RBL servers as an array.
 rbl_warning	| **Optional** Number of blacklisting servers for a warning.
 rbl_critical	| **Optional** Number of blacklisting servers for a critical.
 tbl_timeout	| **Optional** Seconds before plugin times out (default: 15).
+
+
+#### <a id="plugin-contrib-command-squid"></a> squid
+
+The [check_squid](https://exchange.icinga.com/exchange/check_squid) plugin
+uses the `squidclient` binary to monitor a [Squid proxy](http://www.squid-cache.org).
+
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
+
+Name                    | Description
+------------------------|----------------------------------------------------------------------------------
+squid_hostname		| **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
+squid_data		| **Optional.** Data to fetch (default: Connections) available data: Connections Cache Resources Memory FileDescriptors.
+squid_port		| **Optional.** Port number (default: 3128).
+squid_user		| **Optional.** WWW user
+squid_password		| **Optional.** WWW password
+squid_warning		| **Optional.** Warning threshold. See http://nagiosplug.sourceforge.net/developer-guidelines.html#THRESHOLDFORMAT for the threshold format.
+squid_critical		| **Optional.** Critical threshold. See http://nagiosplug.sourceforge.net/developer-guidelines.html#THRESHOLDFORMAT for the threshold format.
+squid_client		| **Optional.** Path of squidclient (default: /usr/bin/squidclient).
+squid_timeout		| **Optional.** Seconds before plugin times out (default: 15).
+
+
+#### <a id="plugin-contrib-command-webinject"></a> webinject
+
+The [check_webinject](https://labs.consol.de/de/nagios/check_webinject/index.html) plugin
+uses [WebInject](http://www.webinject.org/manual.html) to test web applications
+and web services in an automated fashion.
+It can be used to test individual system components that have HTTP interfaces
+(JSP, ASP, CGI, PHP, AJAX, Servlets, HTML Forms, XML/SOAP Web Services, REST, etc),
+and can be used as a test harness to create a suite of HTTP level automated functional,
+acceptance, and regression tests. A test harness allows you to run many test cases
+and collect/report your results. WebInject offers real-time results
+display and may also be used for monitoring system response times.
+
+Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
+
+Name                    | Description
+------------------------|--------------
+webinject_config_file   | **Optional.** There is a configuration file named 'config.xml' that is used to store configuration settings for your project. You can use this to specify which test case files to run and to set some constants and settings to be used by WebInject.
+webinject_output        | **Optional.** This option is followed by a directory name or a prefix to prepended to the output files. This is used to specify the location for writing output files (http.log, results.html, and results.xml). If a directory name is supplied (use either an absolute or relative path and make sure to add the trailing slash), all output files are written to this directory. If the trailing slash is ommitted, it is assumed to a prefix and this will be prepended to the output files. You may also use a combination of a directory and prefix.
+webinject_no_output     | **Optional.** Suppresses all output to STDOUT except the results summary.
+webinject_timeout       | **Optional.** The value [given in seconds] will be compared to the global time elapsed to run all the tests. If the tests have all been successful, but have taken more time than the 'globaltimeout' value, a warning message is sent back to Icinga.
+webinject_report_type   | **Optional.** This setting is used to enable output formatting that is compatible for use with specific external programs. The available values you can set this to are: nagios, mrtg, external and standard.
+webinject_testcase_file | **Optional.** When you launch WebInject in console mode, you can optionally supply an argument for a testcase file to run. It will look for this file in the directory that webinject.pl resides in. If no filename is passed from the command line, it will look in config.xml for testcasefile declarations. If no files are specified, it will look for a default file named 'testcases.xml' in the current [webinject] directory. If none of these are found, the engine will stop and give you an error.
+
