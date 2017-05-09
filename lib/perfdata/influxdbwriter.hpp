@@ -81,8 +81,8 @@ private:
 
 	void FlushHandler(const String& body);
 
-	static String FormatInteger(const int val);
-	static String FormatBoolean(const bool val);
+	static String FormatInteger(int val);
+	static String FormatBoolean(bool val);
 
 	static String EscapeKey(const String& str);
 	static String EscapeField(const String& str);

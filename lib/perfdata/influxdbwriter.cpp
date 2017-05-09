@@ -235,19 +235,19 @@ void InfluxdbWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 			// Prevent missing macros from warning; will return an empty value
 			// which will be filtered out in SendMetric()
 			String missing_macro;
-			tags->Set(pair.first,  MacroProcessor::ResolveMacros(pair.second, resolvers, cr, &missing_macro));
+			tags->Set(pair.first, MacroProcessor::ResolveMacros(pair.second, resolvers, cr, &missing_macro));
 		}
 	}
 
 	SendPerfdata(tmpl, checkable, cr, ts);
 }
 
-String InfluxdbWriter::FormatInteger(const int val)
+String InfluxdbWriter::FormatInteger(int val)
 {
 	return Convert::ToString(val) + "i";
 }
 
-String InfluxdbWriter::FormatBoolean(const bool val)
+String InfluxdbWriter::FormatBoolean(bool val)
 {
 	return String(val);
 }
