@@ -2052,6 +2052,7 @@ mssql_health_commit              | **Optional.** Set this to true to turn on aut
 mssql_health_notemp              | **Optional.** Set this to true to ignore temporary databases/tablespaces. Defaults to false.
 mssql_health_nooffline           | **Optional.** Set this to true to ignore offline databases. Defaults to false.
 mssql_health_lookback            | **Optional.** The amount of time you want to look back when calculating average rates.
+mssql_health_report              | **Optional.** Report can be used to output only the bad news. Possible values are "short", "long", "html". Defaults to `short`.
 
 #### <a id="plugin-contrib-command-mysql_health"></a> mysql_health
 
