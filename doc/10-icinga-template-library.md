@@ -4832,17 +4832,21 @@ ssl_cert_file                 | **Optional.** Local file path. Works only if `ss
 ssl_cert_warn                 | **Optional.** Minimum number of days a certificate has to be valid.
 ssl_cert_critical             | **Optional.** Minimum number of days a certificate has to be valid to issue a critical status.
 ssl_cert_cn                   | **Optional.** Pattern to match the CN of the certificate.
+ssl_cert_altnames             | **Optional.** Matches the pattern specified in -n with alternate
 ssl_cert_issuer               | **Optional.** Pattern to match the issuer of the certificate.
 ssl_cert_org                  | **Optional.** Pattern to match the organization of the certificate.
 ssl_cert_email                | **Optional.** Pattern to match the email address contained in the certificate.
 ssl_cert_serial               | **Optional.** Pattern to match the serial number.
+ssl_cert_noauth               | **Optional.** Ignore authority warnings (expiration only)
 ssl_cert_match_host           | **Optional.** Match CN with the host name.
 ssl_cert_selfsigned           | **Optional.** Allow self-signed certificate.
 ssl_cert_sni                  | **Optional.** Sets the TLS SNI (Server Name Indication) extension.
-ssl_cert_timeout              | **Optional.** Seconds before connection times out (default: 10)
+ssl_cert_timeout              | **Optional.** Seconds before connection times out (default: 15)
 ssl_cert_protocol             | **Optional.** Use the specific protocol {http,smtp,pop3,imap,ftp,xmpp,irc,ldap} (default: http).
 ssl_cert_clientcert           | **Optional.** Use client certificate to authenticate.
 ssl_cert_clientpass           | **Optional.** Set passphrase for client certificate.
+ssl_cert_ssllabs              | **Optional.** SSL Labs assestment
+ssl_cert_ssllabs_nocache      | **Optional.** Forces a new check by SSL Labs
 ssl_cert_rootcert             | **Optional.** Root certificate or directory to be used for certficate validation.
 ssl_cert_ignore_signature     | **Optional.** Do not check if the certificate was signed with SHA1 od MD5.
 ssl_cert_ssl_version          | **Optional.** Force specific SSL version out of {ssl2,ssl3,tls1,tls1_1,tls1_2}.
