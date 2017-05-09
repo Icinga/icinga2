@@ -135,6 +135,14 @@ Copy the icinga2.spec file to `rpmbuild/SPEC` and then run this command:
 
     $ rpmbuild -ba SPEC/icinga2.spec
 
+#### SELinux policy module
+
+The following packages are required to build the SELinux policy module:
+
+* checkpolicy
+* selinux-policy (selinux-policy on CentOS 6, selinux-policy-devel on CentOS 7)
+* selinux-policy-doc
+
 #### RHEL/CentOS 5 and 6
 
 The RedHat Developer Toolset is required for building Icinga 2 beforehand.
