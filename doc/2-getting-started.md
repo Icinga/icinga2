@@ -45,7 +45,7 @@ Ubuntu:
 
 RHEL/CentOS 7:
 
-    yum install https://packages.icinga.com/epel/7/release/noarch/icinga-rpm-release-7-1.el7.centos.noarch.rpm
+    yum install httpss://packages.icinga.com/epel/7/release/noarch/icinga-rpm-release-7-1.el7.centos.noarch.rpm
 
 RHEL/CentOS 6:
 
