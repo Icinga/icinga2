@@ -1631,33 +1631,292 @@ check execution if one of these conditions matches:
 
 [EventCommand](9-object-types.md#objecttype-eventcommand) objects are referenced by
 [Host](9-object-types.md#objecttype-host) and [Service](9-object-types.md#objecttype-service) objects
-using the `event_command` attribute.
+with the `event_command` attribute.
 
 Therefore the `EventCommand` object should define a command line
 evaluating the current service state and other service runtime attributes
-available through runtime vars. Runtime macros such as `$service.state_type$`
-and `$service.state$` will be processed by Icinga 2 helping on fine-granular
-events being triggered.
+available through runtime variables. Runtime macros such as `$service.state_type$`
+and `$service.state$` will be processed by Icinga 2 and help with fine-granular
+triggered events
 
-If you are using a client as [command endpoint](6-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint)
+If the host/service is located on a client as [command endpoint](6-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint)
 the event command will be executed on the client itself (similar to the check
 command).
 
-Common use case scenarios are a failing HTTP check requiring an immediate
-restart via event command, or if an application is locked and requires
-a restart upon detection.
+Common use case scenarios are a failing HTTP check which requires an immediate
+restart via event command. Another example would be an application that is not
+responding and therefore requires a restart. You can also use event handlers
+to forward more details on state changes and events than the typical notification
+alerts provide.
 
-#### <a id="event-command-restart-service-daemon"></a> Use Event Commands to Restart Service Daemon
+#### <a id="event-command-send-information-from-master"></a> Use Event Commands to Send Information from the Master
 
-The following example will trigger a restart of the `httpd` daemon
-via ssh when the `http` service check fails. If the service state is
-`OK`, it will not trigger any event action.
+This example sends a web request from the master node to an external tool
+for every event triggered on a `businessprocess` service.
+
+Define an [EventCommand](9-object-types.md#objecttype-eventcommand)
+object `send_to_businesstool` which sends state changes to the external tool.
+
+    object EventCommand "send_to_businesstool" {
+      command = [
+        "/usr/bin/curl",
+        "-s",
+        "-X PUT"
+      ]
+
+      arguments = {
+        "-H" = {
+          value ="$businesstool_url$"
+          skip_key = true
+        }
+        "-d" = "$businesstool_message$"
+      }
+
+      vars.businesstool_url = "http://localhost:8080/businesstool"
+      vars.businesstool_message = "$host.name$ $service.name$ $service.state$ $service.state_type$ $service.check_attempt$"
+    }
+
+Set the `event_command` attribute to `send_to_businesstool` on the Service.
+
+    object Service "businessprocess" {
+      host_name = "businessprocess"
+
+      check_command = "icingacli-businessprocess"
+      vars.icingacli_businessprocess_process = "icinga"
+      vars.icingacli_businessprocess_config = "training"
+
+      event_command = "send_to_businesstool"
+    }
+
+In order to test this scenario you can run:
+
+    nc -l 8080
+
+This allows to catch the web request. You can also enable the [debug log](15-troubleshooting.md#troubleshooting-enable-debug-output)
+and search for the event command execution log message.
+
+    tail -f /var/log/icinga2/debug.log | grep EventCommand
+
+Feed in a check result via REST API action [process-check-result](12-icinga2-api.md#icinga2-api-actions-process-check-result)
+or via Icinga Web 2.
+
+Expected Result:
+
+    # nc -l 8080
+    PUT /businesstool HTTP/1.1
+    User-Agent: curl/7.29.0
+    Host: localhost:8080
+    Accept: */*
+    Content-Length: 47
+    Content-Type: application/x-www-form-urlencoded
+
+    businessprocess businessprocess CRITICAL SOFT 1
+
+
+#### <a id="event-command-restart-service-daemon-command-endpoint-linux"></a> Use Event Commands to Restart Service Daemon via Command Endpoint on Linux
+
+This example triggers a restart of the `httpd` service on the local system
+when the `procs` service check executed via Command Endpoint fails. It only
+triggers if the service state is `Critical` and attempts to restart the
+service before a notification is sent.
 
 Requirements:
 
-* ssh connection
+* Icinga 2 as client on the remote node
+* icinga user with sudo permissions to the httpd daemon
+
+Example on CentOS 7:
+
+    # visudo
+    icinga  ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart httpd
+
+Note: Distributions might use a different name. On Debian/Ubuntu the service is called `apache2`.
+
+Define an [EventCommand](9-object-types.md#objecttype-eventcommand) object `restart_service`
+which allows to trigger local service restarts. Put it into a [global zone](6-distributed-monitoring.md#distributed-monitoring-global-zone-config-sync)
+to sync its configuration to all clients.
+
+    [root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.d/global-templates/eventcommands.conf
+
+    object EventCommand "restart_service" {
+      command = [ PluginDir + "/restart_service" ]
+
+      arguments = {
+        "-s" = "$service.state$"
+        "-t" = "$service.state_type$"
+        "-a" = "$service.check_attempt$"
+        "-S" = "$restart_service$"
+      }
+
+      vars.restart_service = "$procs_command$"
+    }
+
+This event command triggers the following script which restarts the service.
+The script only is executed if the service state is `CRITICAL`. Warning and Unknown states
+are ignored as they indicate not an immediate failure.
+
+    [root@icinga2-client1.localdomain /]# vim /usr/lib64/nagios/plugins/restart_service
+
+    #!/bin/bash
+
+    while getopts "s:t:a:S:" opt; do
+      case $opt in
+        s)
+          servicestate=$OPTARG
+          ;;
+        t)
+          servicestatetype=$OPTARG
+          ;;
+        a)
+          serviceattempt=$OPTARG
+          ;;
+        S)
+          service=$OPTARG
+          ;;
+      esac
+    done
+
+    if ( [ -z $servicestate ] || [ -z $servicestatetype ] || [ -z $serviceattempt ] || [ -z $service ] ); then
+      echo "USAGE: $0 -s servicestate -z servicestatetype -a serviceattempt -S service"
+      exit 3;
+    else
+      # Only restart on the third attempt of a critical event
+      if ( [ $servicestate == "CRITICAL" ] && [ $servicestatetype == "SOFT" ] && [ $serviceattempt -eq 3 ] ); then
+        sudo /usr/bin/systemctl restart $service
+      fi
+    fi
+
+    [root@icinga2-client1.localdomain /]# chmod +x /usr/lib64/nagios/plugins/restart_service
+
+
+Add a service on the master node which is executed via command endpoint on the client.
+Set the `event_command` attribute to `restart_service`, the name of the previously defined
+EventCommand object.
+
+    [root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.d/master/icinga2-client1.localdomain.conf
+
+    object Service "Process httpd" {
+      check_command = "procs"
+      event_command = "restart_service"
+      max_check_attempts = 4
+
+      host_name = "icinga2-client1.localdomain"
+      command_endpoint = "icinga2-client1.localdomain"
+
+      vars.procs_command = "httpd"
+      vars.procs_warning = "1:10"
+      vars.procs_critical = "1:"
+    }
+
+In order to test this configuration just stop the `httpd` on the remote host `icinga2-client1.localdomain`.
+
+    [root@icinga2-client1.localdomain /]# systemctl stop httpd
+
+You can enable the [debug log](15-troubleshooting.md#troubleshooting-enable-debug-output) and search for the
+executed command line.
+
+    [root@icinga2-client1.localdomain /]# tail -f /var/log/icinga2/debug.log | grep restart_service
+
+
+#### <a id="event-command-restart-service-daemon-command-endpoint-windows"></a> Use Event Commands to Restart Service Daemon via Command Endpoint on Windows
+
+This example triggers a restart of the `httpd` service on the remote system
+when the `service-windows` service check executed via Command Endpoint fails.
+It only triggers if the service state is `Critical` and attempts to restart the
+service before a notification is sent.
+
+Requirements:
+
+* Icinga 2 as client on the remote node
+* Icinga 2 service with permissions to execute Powershell scripts (which is the default)
+
+Define an [EventCommand](9-object-types.md#objecttype-eventcommand) object `restart_service-windows`
+which allows to trigger local service restarts. Put it into a [global zone](6-distributed-monitoring.md#distributed-monitoring-global-zone-config-sync)
+to sync its configuration to all clients.
+
+    [root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.d/global-templates/eventcommands.conf
+
+    object EventCommand "restart_service-windows" {
+      command = [
+        "C:\\Windows\\SysWOW64\\WindowsPowerShell\\v1.0\\powershell.exe",
+        PluginDir + "/restart_service.ps1"
+      ]
+
+      arguments = {
+        "-ServiceState" = "$service.state$"
+        "-ServiceStateType" = "$service.state_type$"
+        "-ServiceAttempt" = "$service.check_attempt$"
+        "-Service" = "$restart_service$"
+        "; exit" = {
+            order = 99
+            value = "$$LASTEXITCODE"
+        }
+      }
+
+      vars.restart_service = "$service_win_service$"
+    }
+
+This event command triggers the following script which restarts the service.
+The script only is executed if the service state is `CRITICAL`. Warning and Unknown states
+are ignored as they indicate not an immediate failure.
+
+Add the `restart_service.ps1` Powershell script into `C:\Program Files\Icinga2\sbin`:
+
+    param(
+            [string]$Service                  = '',
+            [string]$ServiceState             = '',
+            [string]$ServiceStateType         = '',
+            [int]$ServiceAttempt              = ''
+        )
+
+    if (!$Service -Or !$ServiceState -Or !$ServiceStateType -Or !$ServiceAttempt) {
+        $scriptName = GCI $MyInvocation.PSCommandPath | Select -Expand Name;
+        Write-Host "USAGE: $scriptName -ServiceState servicestate -ServiceStateType servicestatetype -ServiceAttempt serviceattempt -Service service" -ForegroundColor red;
+        exit 3;
+    }
+
+    # Only restart on the third attempt of a critical event
+    if ($ServiceState -eq "CRITICAL" -And $ServiceStateType -eq "SOFT" -And $ServiceAttempt -eq 3) {
+        Restart-Service $Service;
+    }
+
+    exit 0;
+
+Add a service on the master node which is executed via command endpoint on the client.
+Set the `event_command` attribute to `restart_service-windows`, the name of the previously defined
+EventCommand object.
+
+    [root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.d/master/icinga2-client2.localdomain.conf
+
+    object Service "Service httpd" {
+      check_command = "service-windows"
+      event_command = "restart_service-windows"
+      max_check_attempts = 4
+
+      host_name = "icinga2-client2.localdomain"
+      command_endpoint = "icinga2-client2.localdomain"
+
+      vars.service_win_service = "httpd"
+    }
+
+In order to test this configuration just stop the `httpd` on the remote host `icinga2-client1.localdomain`.
+
+    C:> net stop httpd
+
+You can enable the [debug log](15-troubleshooting.md#troubleshooting-enable-debug-output) and search for the
+executed command line in `C:\ProgramData\icinga2\var\log\icinga2\debug.log`.
+
+
+#### <a id="event-command-restart-service-daemon-ssh"></a> Use Event Commands to Restart Service Daemon via SSH
+
+This example triggers a restart of the `httpd` daemon
+via SSH when the `http` service check fails.
+
+Requirements:
+
+* SSH connection allowed (firewall, packet filters)
 * icinga user with public key authentication
-* icinga user with sudo permissions for restarting the httpd daemon.
+* icinga user with sudo permissions to restart the httpd daemon.
 
 Example on Debian:
 
@@ -1667,9 +1926,10 @@ Example on Debian:
     # visudo
     icinga  ALL=(ALL) NOPASSWD: /etc/init.d/apache2 restart
 
-
 Define a generic [EventCommand](9-object-types.md#objecttype-eventcommand) object `event_by_ssh`
-which can be used for all event commands triggered using ssh:
+which can be used for all event commands triggered using SSH:
+
+    [root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.d/master/local_eventcommands.conf
 
     /* pass event commands through ssh */
     object EventCommand "event_by_ssh" {
@@ -1704,7 +1964,7 @@ is only restarted when the service is not in an `OK` state.
 
       //only restart the daemon if state > 0 (not-ok)
       //requires sudo permissions for the icinga user
-      vars.event_by_ssh_command = "test $service.state_id$ -gt 0 && sudo /etc/init.d/$event_by_ssh_service$ restart"
+      vars.event_by_ssh_command = "test $service.state_id$ -gt 0 && sudo systemctl restart $event_by_ssh_service$"
     }
 
 
