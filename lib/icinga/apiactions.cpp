@@ -194,12 +194,15 @@ Dictionary::Ptr ApiActions::AcknowledgeProblem(const ConfigObject::Ptr& object,
 
 	AcknowledgementType sticky = AcknowledgementNormal;
 	bool notify = false;
+	bool persistent = false;
 	double timestamp = 0.0;
 
 	if (params->Contains("sticky") && HttpUtility::GetLastParameter(params, "sticky"))
 		sticky = AcknowledgementSticky;
 	if (params->Contains("notify"))
 		notify = HttpUtility::GetLastParameter(params, "notify");
+	if (params->Contains("persistent"))
+		persistent = HttpUtility::GetLastParameter(params, "persistent");
 	if (params->Contains("expiry"))
 		timestamp = HttpUtility::GetLastParameter(params, "expiry");
 	else
@@ -218,7 +221,7 @@ Dictionary::Ptr ApiActions::AcknowledgeProblem(const ConfigObject::Ptr& object,
 	}
 
 	Comment::AddComment(checkable, CommentAcknowledgement, HttpUtility::GetLastParameter(params, "author"),
-	    HttpUtility::GetLastParameter(params, "comment"), timestamp);
+	    HttpUtility::GetLastParameter(params, "comment"), persistent, timestamp);
 	checkable->AcknowledgeProblem(HttpUtility::GetLastParameter(params, "author"),
 	    HttpUtility::GetLastParameter(params, "comment"), sticky, notify, timestamp);
 
@@ -254,7 +257,7 @@ Dictionary::Ptr ApiActions::AddComment(const ConfigObject::Ptr& object,
 
 	String commentName = Comment::AddComment(checkable, CommentUser,
 	    HttpUtility::GetLastParameter(params, "author"),
-	    HttpUtility::GetLastParameter(params, "comment"), 0);
+	    HttpUtility::GetLastParameter(params, "comment"), false, 0);
 
 	Comment::Ptr comment = Comment::GetByName(commentName);
 

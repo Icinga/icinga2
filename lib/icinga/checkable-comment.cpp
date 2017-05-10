@@ -38,6 +38,10 @@ void Checkable::RemoveAllComments(void)
 void Checkable::RemoveCommentsByType(int type)
 {
 	for (const Comment::Ptr& comment : GetComments()) {
+		/* Do not remove persistent comments from an acknowledgement */
+		if (comment->GetEntryType() == CommentAcknowledgement && comment->GetPersistent())
+			continue;
+
 		if (comment->GetEntryType() == type)
 			Comment::RemoveComment(comment->GetName());
 	}

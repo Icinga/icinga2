@@ -905,13 +905,14 @@ are disabled.
 
 Send a `POST` request to the URL endpoint `/v1/actions/acknowledge-problem`.
 
-  Parameter | Type      | Description
-  ----------|-----------|--------------
-  author    | string    | **Required.** Name of the author, may be empty.
-  comment   | string    | **Required.** Comment text, may be empty.
-  expiry    | timestamp | **Optional.** Whether the acknowledgement will be removed at the timestamp.
-  sticky    | boolean   | **Optional.** Whether the acknowledgement will be set until the service or host fully recovers. Defaults to `false`.
-  notify    | boolean   | **Optional.** Whether a notification of the `Acknowledgement` type will be sent. Defaults to `false`.
+  Parameter            | Type      | Description
+  ---------------------|-----------|--------------
+  author               | string    | **Required.** Name of the author, may be empty.
+  comment              | string    | **Required.** Comment text, may be empty.
+  expiry               | timestamp | **Optional.** Whether the acknowledgement will be removed at the timestamp.
+  sticky               | boolean   | **Optional.** Whether the acknowledgement will be set until the service or host fully recovers. Defaults to `false`.
+  notify               | boolean   | **Optional.** Whether a notification of the `Acknowledgement` type will be sent. Defaults to `false`.
+  persistent           | boolean   | **Optional.** When the comment is of type `Acknowledgement` and this is set to `true`, the comment will remain after the acknowledgement recovers or expires. Defaults to `false`.
 
 In addition to these parameters a [filter](12-icinga2-api.md#icinga2-api-filters) must be provided. The valid types for this action are `Host` and `Service`.
 

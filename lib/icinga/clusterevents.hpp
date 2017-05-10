@@ -53,7 +53,7 @@ public:
 	static Value ForceNextNotificationChangedAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
 
 	static void AcknowledgementSetHandler(const Checkable::Ptr& checkable, const String& author, const String& comment, AcknowledgementType type,
-	    bool notify, double expiry, const MessageOrigin::Ptr& origin);
+	    bool notify, bool persistent, double expiry, const MessageOrigin::Ptr& origin);
 	static Value AcknowledgementSetAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
 
 	static void AcknowledgementClearedHandler(const Checkable::Ptr& checkable, const MessageOrigin::Ptr& origin);

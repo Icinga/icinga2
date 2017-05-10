@@ -252,6 +252,7 @@ Configuration Attributes:
   entry_time      | **Optional.** The unix timestamp when this comment was added.
   entry_type      | **Optional.** The comment type (`User` = 1, `Downtime` = 2, `Flapping` = 3, `Acknowledgement` = 4).
   expire_time     | **Optional.** The comment's expire time as unix timestamp.
+  persistent      | **Optional.** Only evaluated for `entry_type` Acknowledgement. `true` does not remove the comment when the acknowledgement is removed.
 
 ## <a id="objecttype-compatlogger"></a> CompatLogger
 

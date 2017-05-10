@@ -354,7 +354,7 @@ void DbEvents::AddCommentInternal(std::vector<DbQuery>& queries, const Comment::
 	fields1->Set("comment_time", DbValue::FromTimestamp(entry_time)); /* same as entry_time */
 	fields1->Set("author_name", comment->GetAuthor());
 	fields1->Set("comment_data", comment->GetText());
-	fields1->Set("is_persistent", 1);
+	fields1->Set("is_persistent", comment->GetPersistent() ? 1 : 0);
 	fields1->Set("comment_source", 1); /* external */
 	fields1->Set("expires", (comment->GetExpireTime() > 0) ? 1 : 0);
 	fields1->Set("expiration_time", DbValue::FromTimestamp(comment->GetExpireTime()));
