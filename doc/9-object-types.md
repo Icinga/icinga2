@@ -779,12 +779,6 @@ by Icinga Web 2 in the table above.
 In addition to the category flags listed above the `DbCatEverything`
 flag may be used as a shortcut for listing all flags.
 
-> **Note**
->
-> The previous way of defining the `categories` attribute e.g.
-> `DbCatProgramStatus | DbCatState` was deprecated in 2.5 and will
-> be removed in future versions.
-
 ## <a id="objecttype-idopgsqlconnection"></a> IdoPgSqlConnection
 
 IDO database adapter for PostgreSQL.
@@ -867,13 +861,6 @@ by Icinga Web 2 in the table above.
 
 In addition to the category flags listed above the `DbCatEverything`
 flag may be used as a shortcut for listing all flags.
-
-> **Note**
->
-> The previous way of defining the `categories` attribute e.g.
-> `DbCatProgramStatus | DbCatState` was deprecated in 2.5 and will
-> be removed in future versions.
-
 
 ## <a id="objecttype-influxdbwriter"></a> InfluxdbWriter
 
