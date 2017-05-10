@@ -48,15 +48,7 @@ void DbConnection::OnConfigLoaded(void)
 
 	Value categories = GetCategories();
 
-	//TODO: Remove 'cat1 | cat2' notation in 2.6
-	if (categories.IsNumber()) {
-		SetCategoryFilter(categories);
-		Log(LogWarning, "DbConnection")
-		    << "Specifying flags using '|' for 'categories' for object '" << GetName()
-		    << "' of type '" << GetReflectionType()->GetName() << "'"
-		    << " is deprecated. This functionality will be removed in 2.6.0. Please use an array.";
-	} else
-		SetCategoryFilter(FilterArrayToInt(categories, DbQuery::GetCategoryFilterMap(), DbCatEverything));
+	SetCategoryFilter(FilterArrayToInt(categories, DbQuery::GetCategoryFilterMap(), DbCatEverything));
 
 	if (!GetEnableHa()) {
 		Log(LogDebug, "DbConnection")
@@ -496,6 +488,19 @@ void DbConnection::ValidateFailoverTimeout(double value, const ValidationUtils& 
 
 	if (value < 60)
 		BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of("failover_timeout"), "Failover timeout minimum is 60s."));
+}
+
+void DbConnection::ValidateCategories(const Array::Ptr& value, const ValidationUtils& utils)
+{
+	ObjectImpl<DbConnection>::ValidateCategories(value, utils);
+
+	int filter = FilterArrayToInt(value, DbQuery::GetCategoryFilterMap(), 0);
+
+	if (filter == -1 || (filter & ~(DbCatInvalid | DbCatEverything | DbCatConfig | DbCatState |
+	    DbCatAcknowledgement | DbCatComment | DbCatDowntime | DbCatEventHandler | DbCatExternalCommand |
+	    DbCatFlapping | DbCatLog | DbCatNotification | DbCatProgramStatus | DbCatRetention |
+	    DbCatStateHistory)) != 0)
+		BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of("categories"), "categories filter is invalid."));
 }
 
 void DbConnection::IncreaseQueryCount(void)

@@ -77,6 +77,7 @@ public:
 	virtual int GetPendingQueryCount(void) const = 0;
 
 	virtual void ValidateFailoverTimeout(double value, const ValidationUtils& utils) override;
+	virtual void ValidateCategories(const Array::Ptr& value, const ValidationUtils& utils) override;
 
 protected:
 	virtual void OnConfigLoaded(void) override;

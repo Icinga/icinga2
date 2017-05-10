@@ -35,7 +35,7 @@ abstract class DbConnection : ConfigObject
 		default {{{ return new Dictionary(); }}}
 	};
 
-	[config] Value categories {
+	[config] Array::Ptr categories {
 		default {{{
 			Array::Ptr cat = new Array();
 			cat->Add("DbCatConfig");
@@ -90,10 +90,8 @@ validator DbConnection {
 		Number systemcommands_age;
 	};
 
-	Number categories;
 	Array categories {
 		String "*";
-		Number "*";
 	};
 };
 
