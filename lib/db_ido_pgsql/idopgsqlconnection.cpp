@@ -57,13 +57,15 @@ void IdoPgsqlConnection::StatsFunc(const Dictionary::Ptr& status, const Array::P
 	Dictionary::Ptr nodes = new Dictionary();
 
 	for (const IdoPgsqlConnection::Ptr& idopgsqlconnection : ConfigType::GetObjectsByType<IdoPgsqlConnection>()) {
-		size_t items = idopgsqlconnection->m_QueryQueue.GetLength();
+		size_t queryQueueItems = idopgsqlconnection->m_QueryQueue.GetLength();
+		double queryQueueItemRate = idopgsqlconnection->m_QueryQueue.GetTaskCount(60) / 60.0;
 
 		Dictionary::Ptr stats = new Dictionary();
 		stats->Set("version", idopgsqlconnection->GetSchemaVersion());
-		stats->Set("connected", idopgsqlconnection->GetConnected());
 		stats->Set("instance_name", idopgsqlconnection->GetInstanceName());
-		stats->Set("query_queue_items", items);
+		stats->Set("connected", idopgsqlconnection->GetConnected());
+		stats->Set("query_queue_items", queryQueueItems);
+		stats->Set("query_queue_item_rate", queryQueueItemRate);
 
 		nodes->Set(idopgsqlconnection->GetName(), stats);
 
@@ -71,7 +73,8 @@ void IdoPgsqlConnection::StatsFunc(const Dictionary::Ptr& status, const Array::P
 		perfdata->Add(new PerfdataValue("idopgsqlconnection_" + idopgsqlconnection->GetName() + "_queries_1min", idopgsqlconnection->GetQueryCount(60)));
 		perfdata->Add(new PerfdataValue("idopgsqlconnection_" + idopgsqlconnection->GetName() + "_queries_5mins", idopgsqlconnection->GetQueryCount(5 * 60)));
 		perfdata->Add(new PerfdataValue("idopgsqlconnection_" + idopgsqlconnection->GetName() + "_queries_15mins", idopgsqlconnection->GetQueryCount(15 * 60)));
-		perfdata->Add(new PerfdataValue("idopgsqlconnection_" + idopgsqlconnection->GetName() + "_query_queue_items", items));
+		perfdata->Add(new PerfdataValue("idopgsqlconnection_" + idopgsqlconnection->GetName() + "_query_queue_items", queryQueueItems));
+		perfdata->Add(new PerfdataValue("idopgsqlconnection_" + idopgsqlconnection->GetName() + "_query_queue_item_rate", queryQueueItemRate));
 	}
 
 	status->Set("idopgsqlconnection", nodes);

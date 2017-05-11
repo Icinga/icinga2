@@ -70,11 +70,13 @@ void InfluxdbWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 
 	for (const InfluxdbWriter::Ptr& influxdbwriter : ConfigType::GetObjectsByType<InfluxdbWriter>()) {
 		size_t workQueueItems = influxdbwriter->m_WorkQueue.GetLength();
+		double workQueueItemRate = influxdbwriter->m_WorkQueue.GetTaskCount(60) / 60.0;
 		size_t dataBufferItems = influxdbwriter->m_DataBuffer.size();
 
 		//TODO: Collect more stats
 		Dictionary::Ptr stats = new Dictionary();
 		stats->Set("work_queue_items", workQueueItems);
+		stats->Set("work_queue_item_rate", workQueueItemRate);
 		stats->Set("data_buffer_items", dataBufferItems);
 
 		nodes->Set(influxdbwriter->GetName(), stats);

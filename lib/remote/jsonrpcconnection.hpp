@@ -71,6 +71,10 @@ public:
 	static void HeartbeatTimerHandler(void);
 	static Value HeartbeatAPIHandler(const intrusive_ptr<MessageOrigin>& origin, const Dictionary::Ptr& params);
 
+	static int GetWorkQueueCount(void);
+	static int GetWorkQueueLength(void);
+	static double GetWorkQueueRate(void);
+
 private:
 	int m_ID;
 	String m_Identity;
