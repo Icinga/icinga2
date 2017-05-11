@@ -888,7 +888,7 @@ private:
 class I2_CONFIG_API ObjectExpression : public DebuggableExpression
 {
 public:
-	ObjectExpression(bool abstract, const String& type, Expression *name, Expression *filter,
+	ObjectExpression(bool abstract, Expression *type, Expression *name, Expression *filter,
 	    const String& zone, const String& package, std::map<String, Expression *> *closedVars,
 	    bool defaultTmpl, bool ignoreOnError, Expression *expression, const DebugInfo& debugInfo = DebugInfo())
 		: DebuggableExpression(debugInfo), m_Abstract(abstract), m_Type(type),
@@ -915,7 +915,7 @@ protected:
 
 private:
 	bool m_Abstract;
-	String m_Type;
+	Expression *m_Type;
 	Expression *m_Name;
 	boost::shared_ptr<Expression> m_Filter;
 	String m_Zone;

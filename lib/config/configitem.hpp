@@ -40,14 +40,14 @@ class I2_CONFIG_API ConfigItem : public Object {
 public:
 	DECLARE_PTR_TYPEDEFS(ConfigItem);
 
-	ConfigItem(const String& type, const String& name, bool abstract,
+	ConfigItem(const Type::Ptr& type, const String& name, bool abstract,
 	    const boost::shared_ptr<Expression>& exprl,
 	    const boost::shared_ptr<Expression>& filter,
 	    bool defaultTmpl, bool ignoreOnError, const DebugInfo& debuginfo,
 	    const Dictionary::Ptr& scope, const String& zone,
 	    const String& package);
 
-	String GetType(void) const;
+	Type::Ptr GetType(void) const;
 	String GetName(void) const;
 	bool IsAbstract(void) const;
 	bool IsDefaultTemplate(void) const;
@@ -66,7 +66,7 @@ public:
 
 	ConfigObject::Ptr GetObject(void) const;
 	
-	static ConfigItem::Ptr GetByTypeAndName(const String& type,
+	static ConfigItem::Ptr GetByTypeAndName(const Type::Ptr& type,
 	    const String& name);
 
 	static bool CommitItems(const ActivationContext::Ptr& context, WorkQueue& upq, std::vector<ConfigItem::Ptr>& newItems, bool silent = false);
@@ -74,13 +74,13 @@ public:
 
 	static bool RunWithActivationContext(const Function::Ptr& function);
 
-	static std::vector<ConfigItem::Ptr> GetItems(const String& type);
-	static std::vector<ConfigItem::Ptr> GetDefaultTemplates(const String& type);
+	static std::vector<ConfigItem::Ptr> GetItems(const Type::Ptr& type);
+	static std::vector<ConfigItem::Ptr> GetDefaultTemplates(const Type::Ptr& type);
 
 	static void RemoveIgnoredItems(const String& allowedConfigPath);
 
 private:
-	String m_Type; /**< The object type. */
+	Type::Ptr m_Type; /**< The object type. */
 	String m_Name; /**< The name. */
 	bool m_Abstract; /**< Whether this is a template. */
 
@@ -99,7 +99,7 @@ private:
 	static boost::mutex m_Mutex;
 
 	typedef std::map<String, ConfigItem::Ptr> ItemMap;
-	typedef std::map<String, ItemMap> TypeMap;
+	typedef std::map<Type::Ptr, ItemMap> TypeMap;
 	static TypeMap m_Items; /**< All registered configuration items. */
 	static TypeMap m_DefaultTemplates;
 

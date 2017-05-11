@@ -50,7 +50,7 @@ bool Dependency::EvaluateApplyRuleInstance(const Checkable::Ptr& checkable, cons
 #endif /* _DEBUG */
 
 	ConfigItemBuilder::Ptr builder = new ConfigItemBuilder(di);
-	builder->SetType("Dependency");
+	builder->SetType(Dependency::TypeInstance);
 	builder->SetName(name);
 	builder->SetScope(frame.Locals->ShallowClone());
 	builder->SetIgnoreOnError(rule.GetIgnoreOnError());
