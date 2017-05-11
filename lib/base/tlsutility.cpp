@@ -405,6 +405,17 @@ int MakeX509CSR(const String& cn, const String& keyfile, const String& csrfile, 
 		X509_NAME *name = X509_REQ_get_subject_name(req);
 		X509_NAME_add_entry_by_txt(name, "CN", MBSTRING_ASC, (unsigned char *)cn.CStr(), -1, -1, 0);
 	
+		if (!cn.Contains(" ") && cn.Contains(".")) {
+			String san = "DNS:" + cn;
+			X509_EXTENSION *subjectAltNameExt = X509V3_EXT_conf_nid(NULL, NULL, NID_subject_alt_name, const_cast<char *>(san.CStr()));
+			if (subjectAltNameExt) {
+				stack_st_X509_EXTENSION *exts = sk_X509_EXTENSION_new_null();
+				sk_X509_EXTENSION_push(exts, subjectAltNameExt);
+				X509_REQ_add_extensions(req, exts);
+				sk_X509_EXTENSION_pop_free(exts, X509_EXTENSION_free);
+			}
+		}
+
 		X509_REQ_sign(req, key, EVP_sha256());
 	
 		Log(LogInformation, "base")
