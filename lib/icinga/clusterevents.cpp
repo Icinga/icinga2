@@ -181,7 +181,8 @@ Value ClusterEvents::CheckResultAPIHandler(const MessageOrigin::Ptr& origin, con
 
 	if (origin->FromZone && !origin->FromZone->CanAccessObject(checkable) && endpoint != checkable->GetCommandEndpoint()) {
 		Log(LogNotice, "ClusterEvents")
-		    << "Discarding 'check result' message from '" << origin->FromClient->GetIdentity() << "': Unauthorized access.";
+		    << "Discarding 'check result' message for checkable '" << checkable->GetName()
+		    << "' from '" << origin->FromClient->GetIdentity() << "': Unauthorized access.";
 		return Empty;
 	}
 
@@ -248,7 +249,8 @@ Value ClusterEvents::NextCheckChangedAPIHandler(const MessageOrigin::Ptr& origin
 
 	if (origin->FromZone && !origin->FromZone->CanAccessObject(checkable)) {
 		Log(LogNotice, "ClusterEvents")
-		    << "Discarding 'next check changed' message from '" << origin->FromClient->GetIdentity() << "': Unauthorized access.";
+		    << "Discarding 'next check changed' message for checkable '" << checkable->GetName()
+		    << "' from '" << origin->FromClient->GetIdentity() << "': Unauthorized access.";
 		return Empty;
 	}
 
@@ -301,7 +303,8 @@ Value ClusterEvents::NextNotificationChangedAPIHandler(const MessageOrigin::Ptr&
 
 	if (origin->FromZone && !origin->FromZone->CanAccessObject(notification)) {
 		Log(LogNotice, "ClusterEvents")
-		    << "Discarding 'next notification changed' message from '" << origin->FromClient->GetIdentity() << "': Unauthorized access.";
+		    << "Discarding 'next notification changed' message for notification '" << notification->GetName()
+		    << "' from '" << origin->FromClient->GetIdentity() << "': Unauthorized access.";
 		return Empty;
 	}
 
@@ -370,7 +373,8 @@ Value ClusterEvents::ForceNextCheckChangedAPIHandler(const MessageOrigin::Ptr& o
 
 	if (origin->FromZone && !origin->FromZone->CanAccessObject(checkable)) {
 		Log(LogNotice, "ClusterEvents")
-		    << "Discarding 'force next check' message from '" << origin->FromClient->GetIdentity() << "': Unauthorized access.";
+		    << "Discarding 'force next check' message for checkable '" << checkable->GetName()
+		    << "' from '" << origin->FromClient->GetIdentity() << "': Unauthorized access.";
 		return Empty;
 	}
 
@@ -434,7 +438,8 @@ Value ClusterEvents::ForceNextNotificationChangedAPIHandler(const MessageOrigin:
 
 	if (origin->FromZone && !origin->FromZone->CanAccessObject(checkable)) {
 		Log(LogNotice, "ClusterEvents")
-		    << "Discarding 'force next notification' message from '" << origin->FromClient->GetIdentity() << "': Unauthorized access.";
+		    << "Discarding 'force next notification' message for checkable '" << checkable->GetName()
+		    << "' from '" << origin->FromClient->GetIdentity() << "': Unauthorized access.";
 		return Empty;
 	}
 
@@ -504,7 +509,8 @@ Value ClusterEvents::AcknowledgementSetAPIHandler(const MessageOrigin::Ptr& orig
 
 	if (origin->FromZone && !origin->FromZone->CanAccessObject(checkable)) {
 		Log(LogNotice, "ClusterEvents")
-		    << "Discarding 'acknowledgement set' message from '" << origin->FromClient->GetIdentity() << "': Unauthorized access.";
+		    << "Discarding 'acknowledgement set' message for checkable '" << checkable->GetName()
+		    << "' from '" << origin->FromClient->GetIdentity() << "': Unauthorized access.";
 		return Empty;
 	}
 
@@ -569,7 +575,8 @@ Value ClusterEvents::AcknowledgementClearedAPIHandler(const MessageOrigin::Ptr& 
 
 	if (origin->FromZone && !origin->FromZone->CanAccessObject(checkable)) {
 		Log(LogNotice, "ClusterEvents")
-		    << "Discarding 'acknowledgement cleared' message from '" << origin->FromClient->GetIdentity() << "': Unauthorized access.";
+		    << "Discarding 'acknowledgement cleared' message for checkable '" << checkable->GetName()
+		    << "' from '" << origin->FromClient->GetIdentity() << "': Unauthorized access.";
 		return Empty;
 	}
 
@@ -834,7 +841,8 @@ Value ClusterEvents::SendNotificationsAPIHandler(const MessageOrigin::Ptr& origi
 
 	if (origin->FromZone && origin->FromZone != Zone::GetLocalZone()) {
 		Log(LogNotice, "ClusterEvents")
-		    << "Discarding 'send custom notification' message from '" << origin->FromClient->GetIdentity() << "': Unauthorized access.";
+		    << "Discarding 'send custom notification' message for checkable '" << checkable->GetName()
+		    << "' from '" << origin->FromClient->GetIdentity() << "': Unauthorized access.";
 		return Empty;
 	}
 
@@ -927,7 +935,8 @@ Value ClusterEvents::NotificationSentUserAPIHandler(const MessageOrigin::Ptr& or
 
 	if (origin->FromZone && origin->FromZone != Zone::GetLocalZone()) {
 		Log(LogNotice, "ClusterEvents")
-		    << "Discarding 'sent notification to user' message from '" << origin->FromClient->GetIdentity() << "': Unauthorized access.";
+		    << "Discarding 'send notification to user' message for checkable '" << checkable->GetName()
+		    << "' from '" << origin->FromClient->GetIdentity() << "': Unauthorized access.";
 		return Empty;
 	}
 
@@ -1042,7 +1051,8 @@ Value ClusterEvents::NotificationSentToAllUsersAPIHandler(const MessageOrigin::P
 
 	if (origin->FromZone && origin->FromZone != Zone::GetLocalZone()) {
 		Log(LogNotice, "ClusterEvents")
-		    << "Discarding 'sent notification to all users' message from '" << origin->FromClient->GetIdentity() << "': Unauthorized access.";
+		    << "Discarding 'sent notification to all users' message for checkable '" << checkable->GetName()
+		    << "' from '" << origin->FromClient->GetIdentity() << "': Unauthorized access.";
 		return Empty;
 	}
 
