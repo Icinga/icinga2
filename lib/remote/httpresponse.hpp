@@ -55,6 +55,7 @@ public:
 
 	bool Parse(StreamReadContext& src, bool may_wait);
 	size_t ReadBody(char *data, size_t count);
+	size_t GetBodySize(void) const;
 
 	void SetStatus(int code, const String& message);
 	void AddHeader(const String& key, const String& value);

@@ -241,6 +241,14 @@ size_t HttpResponse::ReadBody(char *data, size_t count)
 		return m_Body->Read(data, count, true);
 }
 
+size_t HttpResponse::GetBodySize(void) const
+{
+	if (!m_Body)
+		return 0;
+	else
+		return m_Body->GetAvailableBytes();
+}
+
 bool HttpResponse::IsPeerConnected(void) const
 {
 	return !m_Stream->IsEof();
