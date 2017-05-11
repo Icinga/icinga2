@@ -39,7 +39,7 @@ ConfigItemBuilder::ConfigItemBuilder(const DebugInfo& debugInfo)
 	m_DebugInfo = debugInfo;
 }
 
-void ConfigItemBuilder::SetType(const String& type)
+void ConfigItemBuilder::SetType(const Type::Ptr& type)
 {
 	m_Type = type;
 }
@@ -91,24 +91,23 @@ void ConfigItemBuilder::SetIgnoreOnError(bool ignoreOnError)
 
 ConfigItem::Ptr ConfigItemBuilder::Compile(void)
 {
-	if (m_Type.IsEmpty()) {
+	if (!m_Type) {
 		std::ostringstream msgbuf;
-		msgbuf << "The type name of an object may not be empty";
+		msgbuf << "The type of an object must be specified";
 		BOOST_THROW_EXCEPTION(ScriptError(msgbuf.str(), m_DebugInfo));
 	}
 
-	Type::Ptr ptype = Type::GetByName(m_Type);
-	ConfigType *ctype = dynamic_cast<ConfigType *>(ptype.get());
+	ConfigType *ctype = dynamic_cast<ConfigType *>(m_Type.get());
 
 	if (!ctype) {
 		std::ostringstream msgbuf;
-		msgbuf << "The type '" + m_Type + "' is unknown";
+		msgbuf << "The type '" + m_Type->GetName() + "' cannot be used for config objects";
 		BOOST_THROW_EXCEPTION(ScriptError(msgbuf.str(), m_DebugInfo));
 	}
 
 	if (m_Name.FindFirstOf("!") != String::NPos) {
 		std::ostringstream msgbuf;
-		msgbuf << "Name for object '" << m_Name << "' of type '" << m_Type << "' is invalid: Object names may not contain '!'";
+		msgbuf << "Name for object '" << m_Name << "' of type '" << m_Type->GetName() << "' is invalid: Object names may not contain '!'";
 		BOOST_THROW_EXCEPTION(ScriptError(msgbuf.str(), m_DebugInfo));
 	}
 

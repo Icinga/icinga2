@@ -195,7 +195,7 @@ bool ConfigObjectUtility::DeleteObjectHelper(const ConfigObject::Ptr& object, bo
 		DeleteObjectHelper(parentObj, cascade, errors);
 	}
 
-	ConfigItem::Ptr item = ConfigItem::GetByTypeAndName(type->GetName(), object->GetName());
+	ConfigItem::Ptr item = ConfigItem::GetByTypeAndName(type, object->GetName());
 
 	try {
 		/* mark this object for cluster delete event */
