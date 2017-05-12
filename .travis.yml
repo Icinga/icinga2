@@ -1,11 +1,9 @@
+dist: trusty
 sudo: false
 
 language: cpp
 
 cache: ccache
-
-compiler:
-  - gcc
 
 addons:
   apt_packages:
@@ -26,4 +24,8 @@ before_script:
   - cmake .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=/tmp/icinga2
 
 script:
-  - make && make test && make install && /tmp/icinga2/sbin/icinga2 --version && /tmp/icinga2/sbin/icinga2 daemon -C -DRunAsUser=$(id -u -n) -DRunAsGroup=$(id -g -n)
+  - make
+  - make test
+  - make install
+  - /tmp/icinga2/sbin/icinga2 --version
+  - /tmp/icinga2/sbin/icinga2 daemon -C -DRunAsUser=$(id -u -n) -DRunAsGroup=$(id -g -n)
