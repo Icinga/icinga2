@@ -1010,6 +1010,9 @@ void Process::Run(const boost::function<void(const ProcessResult&)>& callback)
 bool Process::DoEvents(void)
 {
 	bool is_timeout = false;
+#ifndef _WIN32
+	bool could_not_kill = false;
+#endif /* _WIN32 */
 
 	if (m_Timeout != 0) {
 		double timeout = m_Result.ExecutionStart + m_Timeout;
@@ -1024,10 +1027,12 @@ bool Process::DoEvents(void)
 			TerminateProcess(m_Process, 1);
 #else /* _WIN32 */
 			int error = ProcessKill(-m_Process, SIGKILL);
-			if (error)
+			if (error) {
 				Log(LogWarning, "Process")
 				    << "Couldn't kill the process group " << m_PID << " (" << PrettyPrintArguments(m_Arguments)
 				    << "): [errno " << error << "] " << strerror(error);
+				could_not_kill = true;
+			}
 #endif /* _WIN32 */
 
 			is_timeout = true;
@@ -1073,7 +1078,9 @@ bool Process::DoEvents(void)
 	    << "PID " << m_PID << " (" << PrettyPrintArguments(m_Arguments) << ") terminated with exit code " << exitcode;
 #else /* _WIN32 */
 	int status, exitcode;
-	if (ProcessWaitPID(m_Process, &status) != m_Process) {
+	if (could_not_kill) {
+		exitcode = 128;
+	} else if (ProcessWaitPID(m_Process, &status) != m_Process) {
 		exitcode = 128;
 
 		Log(LogWarning, "Process")
