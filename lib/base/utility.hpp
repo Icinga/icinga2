@@ -143,6 +143,8 @@ public:
 
 	static String CreateTempFile(const String& path, int mode, std::fstream& fp);
 
+	static void RenameFile(const String& source, const String& destination);
+
 #ifdef _WIN32
 	static String GetIcingaInstallPath(void);
 	static String GetIcingaDataPath(void);

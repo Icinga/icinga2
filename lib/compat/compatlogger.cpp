@@ -473,7 +473,10 @@ void CompatLogger::ReopenFile(bool rotate)
 			Log(LogNotice, "CompatLogger")
 			    << "Rotating compat log file '" << tempFile << "' -> '" << archiveFile << "'";
 
-			(void) rename(tempFile.CStr(), archiveFile.CStr());
+			try {
+				Utility::RenameFile(tempFile, archiveFile);
+			} catch (const std::exception&) {
+			}
 		}
 	}
 

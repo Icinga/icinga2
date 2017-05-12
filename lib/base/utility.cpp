@@ -35,6 +35,7 @@
 #include <ios>
 #include <fstream>
 #include <iostream>
+#include <stdio.h>
 
 #ifdef __FreeBSD__
 #	include <pthread_np.h>
@@ -1398,16 +1399,7 @@ void Utility::SaveJsonFile(const String& path, int mode, const Value& value)
 	fp << JsonEncode(value);
 	fp.close();
 
-#ifdef _WIN32
-	_unlink(path.CStr());
-#endif /* _WIN32 */
-
-	if (rename(tempFilename.CStr(), path.CStr()) < 0) {
-		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("rename")
-		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(tempFilename));
-	}
+	Utility::RenameFile(tempFilename, path);
 }
 
 static void HexEncode(char ch, std::ostream& os)
@@ -1946,3 +1938,16 @@ String Utility::GetIcingaDataPath(void)
 }
 
 #endif /* _WIN32 */
+
+void Utility::RenameFile(const String& source, const String& destination)
+{
+#ifdef _WIN32
+	_unlink(destination.CStr());
+#endif /* _WIN32 */
+
+	if (rename(source.CStr(), destination.CStr()) < 0)
+		BOOST_THROW_EXCEPTION(posix_error()
+		    << boost::errinfo_api_function("rename")
+		    << boost::errinfo_errno(errno)
+		    << boost::errinfo_file_name(source));
+}
