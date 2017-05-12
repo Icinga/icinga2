@@ -712,7 +712,7 @@ load_percpu     | **Optional.** Divide the load averages by the number of CPUs (
 ### <a id="plugin-check-command-mailq"></a> mailq
 
 The [check_mailq](https://www.monitoring-plugins.org/doc/man/check_mailq.html) plugin
-checks the number of messages in the mail queue (supports multiple sendmail queues, qmail).
+checks the number of messages in the mail queue (supports multiple sendmail/postfix queues, qmail).
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 
@@ -725,6 +725,7 @@ mailq_domain_critical	| **Optional.** Min. number of messages for same domain in
 mailq_timeout		| **Optional.** Plugin timeout in seconds (default = 15).
 mailq_servertype	| **Optional.** [ sendmail \| qmail \| postfix \| exim \| nullmailer ] (default = autodetect).
 mailq_sudo		| **Optional.** Use sudo to execute the mailq command.
+mailq_configdir	| **Optional.** Config file or directory.
 
 ### <a id="plugin-check-command-mysql"></a> mysql
 
