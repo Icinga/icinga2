@@ -1237,3 +1237,19 @@ bool ApiListener::IsHACluster(void)
 	return zone->IsSingleInstance();
 }
 
+/* Provide a helper function for zone origin name. */
+String ApiListener::GetFromZoneName(const Zone::Ptr& fromZone)
+{
+	String fromZoneName;
+
+	if (fromZone) {
+		fromZoneName = fromZone->GetName();
+	} else {
+		Zone::Ptr lzone = Zone::GetLocalZone();
+
+		if (lzone)
+			fromZoneName = lzone->GetName();
+	}
+
+	return fromZoneName;
+}

@@ -99,6 +99,7 @@ public:
 	static void UpdateObjectAuthority(void);
 
 	static bool IsHACluster(void);
+	static String GetFromZoneName(const Zone::Ptr& fromZone);
 
 protected:
 	virtual void OnConfigLoaded(void) override;

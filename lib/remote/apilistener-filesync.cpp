@@ -283,8 +283,8 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 	}
 
 	Log(LogInformation, "ApiListener")
-	    << "Applying config update from endpoint '" << origin->FromClient->GetEndpoint()->GetName() << "' of zone  '"
-	    << origin->FromZone->GetName() << "'";
+	    << "Applying config update from endpoint '" << origin->FromClient->GetEndpoint()->GetName()
+	    << "' of zone '" << GetFromZoneName(origin->FromZone) << "'.";
 
 	Dictionary::Ptr updateV1 = params->Get("update");
 	Dictionary::Ptr updateV2 = params->Get("update_v2");
