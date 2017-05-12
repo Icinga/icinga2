@@ -163,7 +163,7 @@ void GelfWriter::CheckResultHandler(const Checkable::Ptr& checkable, const Check
 					} catch (const std::exception&) {
 						Log(LogWarning, "GelfWriter")
 						    << "Ignoring invalid perfdata value: '" << val << "' for object '"
-						    << checkable-GetName() << "'.";
+						    << checkable->GetName() << "'.";
 					}
 				}
 			}
