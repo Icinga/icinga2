@@ -204,7 +204,7 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 	} catch (const std::exception& ex) {
 		if (m_IgnoreOnError) {
 			Log(LogNotice, "ConfigObject")
-			    << "Ignoring config object '" << m_Name << "' of type '" << m_Type << "' due to errors: " << DiagnosticInformation(ex);
+			    << "Ignoring config object '" << m_Name << "' of type '" << m_Type->GetName() << "' due to errors: " << DiagnosticInformation(ex);
 
 			{
 				boost::mutex::scoped_lock lock(m_Mutex);
@@ -256,7 +256,7 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 	} catch (ValidationError& ex) {
 		if (m_IgnoreOnError) {
 			Log(LogNotice, "ConfigObject")
-			    << "Ignoring config object '" << m_Name << "' of type '" << m_Type << "' due to errors: " << DiagnosticInformation(ex);
+			    << "Ignoring config object '" << m_Name << "' of type '" << m_Type->GetName() << "' due to errors: " << DiagnosticInformation(ex);
 
 			{
 				boost::mutex::scoped_lock lock(m_Mutex);
@@ -275,7 +275,7 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 	} catch (const std::exception& ex) {
 		if (m_IgnoreOnError) {
 			Log(LogNotice, "ConfigObject")
-			    << "Ignoring config object '" << m_Name << "' of type '" << m_Type << "' due to errors: " << DiagnosticInformation(ex);
+			    << "Ignoring config object '" << m_Name << "' of type '" << m_Type->GetName() << "' due to errors: " << DiagnosticInformation(ex);
 
 			{
 				boost::mutex::scoped_lock lock(m_Mutex);
@@ -290,7 +290,7 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 
 	Dictionary::Ptr persistentItem = new Dictionary();
 
-	persistentItem->Set("type", GetType());
+	persistentItem->Set("type", GetType()->GetName());
 	persistentItem->Set("name", GetName());
 	persistentItem->Set("properties", Serialize(dobj, FAConfig));
 	persistentItem->Set("debug_hints", dhint);
@@ -481,7 +481,7 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 						} catch (const std::exception& ex) {
 							if (item->m_IgnoreOnError) {
 								Log(LogNotice, "ConfigObject")
-								    << "Ignoring config object '" << item->m_Name << "' of type '" << item->m_Type << "' due to errors: " << DiagnosticInformation(ex);
+								    << "Ignoring config object '" << item->m_Name << "' of type '" << item->m_Type->GetName() << "' due to errors: " << DiagnosticInformation(ex);
 
 								item->Unregister();
 
