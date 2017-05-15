@@ -21,6 +21,7 @@ mkclass_target(datetime.ti datetime.tcpp datetime.thpp)
 mkclass_target(filelogger.ti filelogger.tcpp filelogger.thpp)
 mkclass_target(function.ti function.tcpp function.thpp)
 mkclass_target(logger.ti logger.tcpp logger.thpp)
+mkclass_target(perfdatavalue.ti perfdatavalue.tcpp perfdatavalue.thpp)
 mkclass_target(streamlogger.ti streamlogger.tcpp streamlogger.thpp)
 mkclass_target(sysloglogger.ti sysloglogger.tcpp sysloglogger.thpp)
 
@@ -33,7 +34,8 @@ set(base_SOURCES
   json-script.cpp loader.cpp logger.cpp logger.thpp math-script.cpp
   netstring.cpp networkstream.cpp number.cpp number-script.cpp object.cpp
   object-script.cpp objecttype.cpp primitivetype.cpp process.cpp ringbuffer.cpp scriptframe.cpp
-  function.cpp function.thpp function-script.cpp functionwrapper.cpp scriptglobal.cpp
+  function.cpp function.thpp function-script.cpp functionwrapper.cpp
+  perfdatavalue.cpp perfdatavalue.thpp scriptglobal.cpp
   scriptutils.cpp serializer.cpp socket.cpp socketevents.cpp socketevents-epoll.cpp socketevents-poll.cpp stacktrace.cpp
   statsfunction.cpp stdiostream.cpp stream.cpp streamlogger.cpp streamlogger.thpp string.cpp string-script.cpp
   sysloglogger.cpp sysloglogger.thpp tcpsocket.cpp udpsocket.cpp threadpool.cpp timer.cpp

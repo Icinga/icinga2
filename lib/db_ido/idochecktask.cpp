@@ -21,12 +21,12 @@
 #include "icinga/host.hpp"
 #include "icinga/checkcommand.hpp"
 #include "icinga/macroprocessor.hpp"
-#include "icinga/perfdatavalue.hpp"
 #include "remote/apilistener.hpp"
 #include "remote/endpoint.hpp"
 #include "remote/zone.hpp"
 #include "base/function.hpp"
 #include "base/utility.hpp"
+#include "base/perfdatavalue.hpp"
 #include "base/configtype.hpp"
 #include "base/convert.hpp"
 

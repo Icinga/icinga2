@@ -17,7 +17,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "icinga/perfdatavalue.hpp"
+#include "base/perfdatavalue.hpp"
 #include "icinga/pluginutility.hpp"
 #include <BoostTestTargetConfig.h>
 

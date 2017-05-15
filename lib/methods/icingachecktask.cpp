@@ -21,10 +21,10 @@
 #include "icinga/cib.hpp"
 #include "icinga/service.hpp"
 #include "icinga/icingaapplication.hpp"
-#include "icinga/perfdatavalue.hpp"
 #include "base/application.hpp"
 #include "base/objectlock.hpp"
 #include "base/utility.hpp"
+#include "base/perfdatavalue.hpp"
 #include "base/function.hpp"
 #include "base/configtype.hpp"
 

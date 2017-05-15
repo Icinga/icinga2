@@ -17,8 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "icinga/perfdatavalue.hpp"
-#include "icinga/perfdatavalue.tcpp"
+#include "base/perfdatavalue.hpp"
+#include "base/perfdatavalue.tcpp"
 #include "base/convert.hpp"
 #include "base/exception.hpp"
 #include "base/logger.hpp"
@@ -67,7 +67,7 @@ PerfdataValue::Ptr PerfdataValue::Parse(const String& perfdata)
 		spq = perfdata.GetLength();
 
 	String valueStr = perfdata.SubStr(eqp + 1, spq - eqp - 1);
-		
+
 	size_t pos = valueStr.FindFirstNotOf("+-0123456789.e");
 
 	double value = Convert::ToDouble(valueStr.SubStr(0, pos));

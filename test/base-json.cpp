@@ -17,7 +17,6 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "icinga/perfdatavalue.hpp"
 #include "base/dictionary.hpp"
 #include "base/objectlock.hpp"
 #include "base/json.hpp"

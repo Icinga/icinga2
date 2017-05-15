@@ -19,7 +19,6 @@
 
 #include "icinga/clusterevents.hpp"
 #include "icinga/service.hpp"
-#include "icinga/perfdatavalue.hpp"
 #include "remote/apilistener.hpp"
 #include "remote/endpoint.hpp"
 #include "remote/messageorigin.hpp"
@@ -29,6 +28,7 @@
 #include "base/application.hpp"
 #include "base/configtype.hpp"
 #include "base/utility.hpp"
+#include "base/perfdatavalue.hpp"
 #include "base/exception.hpp"
 #include "base/initialize.hpp"
 #include "base/serializer.hpp"
