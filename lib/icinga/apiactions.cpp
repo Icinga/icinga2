@@ -203,9 +203,12 @@ Dictionary::Ptr ApiActions::AcknowledgeProblem(const ConfigObject::Ptr& object,
 		notify = HttpUtility::GetLastParameter(params, "notify");
 	if (params->Contains("persistent"))
 		persistent = HttpUtility::GetLastParameter(params, "persistent");
-	if (params->Contains("expiry"))
+	if (params->Contains("expiry")) {
 		timestamp = HttpUtility::GetLastParameter(params, "expiry");
-	else
+
+		if (timestamp <= Utility::GetTime())
+			return ApiActions::CreateResult(409, "Acknowledgement 'expiry' timestamp must be in the future for object " + checkable->GetName());
+	} else
 		timestamp = 0;
 
 	Host::Ptr host;

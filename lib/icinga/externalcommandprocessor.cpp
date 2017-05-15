@@ -653,6 +653,9 @@ void ExternalCommandProcessor::AcknowledgeSvcProblemExpire(double, const std::ve
 	if (service->GetState() == ServiceOK)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("The service '" + arguments[1] + "' is OK."));
 
+	if (timestamp != 0 && timestamp <= Utility::GetTime())
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Acknowledgement expire time must be in the future for service '" + arguments[1] + "' on host '" + arguments[0] + "'"));
+
 	Log(LogNotice, "ExternalCommandProcessor")
 	    << "Setting timed acknowledgement for service '" << service->GetName() << "'" << (notify ? "" : ". Disabled notification");
 
@@ -716,6 +719,9 @@ void ExternalCommandProcessor::AcknowledgeHostProblemExpire(double, const std::v
 
 	if (host->GetState() == HostUp)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("The host '" + arguments[0] + "' is OK."));
+
+	if (timestamp != 0 && timestamp <= Utility::GetTime())
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Acknowledgement expire time must be in the future for host '" + arguments[0] + "'"));
 
 	Comment::AddComment(host, CommentAcknowledgement, arguments[5], arguments[6], persistent, timestamp);
 	host->AcknowledgeProblem(arguments[5], arguments[6], sticky ? AcknowledgementSticky : AcknowledgementNormal, notify, persistent, timestamp);
