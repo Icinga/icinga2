@@ -79,6 +79,18 @@ static Array::Ptr DictionaryKeys(void)
 	return keys;
 }
 
+static Array::Ptr DictionaryValues(void)
+{
+	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
+	Dictionary::Ptr self = static_cast<Dictionary::Ptr>(vframe->Self);
+	Array::Ptr keys = new Array();
+	ObjectLock olock(self);
+	for (const Dictionary::Pair& kv : self) {
+		keys->Add(kv.second);
+	}
+	return keys;
+}
+
 Object::Ptr Dictionary::GetPrototype(void)
 {
 	static Dictionary::Ptr prototype;
@@ -92,6 +104,7 @@ Object::Ptr Dictionary::GetPrototype(void)
 		prototype->Set("contains", new Function("Dictionary#contains", WrapFunction(DictionaryContains), { "key" }, true));
 		prototype->Set("shallow_clone", new Function("Dictionary#shallow_clone", WrapFunction(DictionaryShallowClone), {}, true));
 		prototype->Set("keys", new Function("Dictionary#keys", WrapFunction(DictionaryKeys), {}, true));
+		prototype->Set("values", new Function("Dictionary#values", WrapFunction(DictionaryValues), {}, true));
 	}
 
 	return prototype;

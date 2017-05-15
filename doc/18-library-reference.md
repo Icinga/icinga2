@@ -1220,6 +1220,14 @@ Signature:
 
 Returns a list of keys for all items that are currently in the dictionary.
 
+### <a id="dictionary-keys"></a> Dictionary#values
+
+Signature:
+
+    function values();
+
+Returns a list of values for all items that are currently in the dictionary.
+
 ## <a id="scriptfunction-type"></a> Function type
 
 Inherits methods from the [Object type](18-library-reference.md#object-type).
