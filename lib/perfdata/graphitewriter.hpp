@@ -25,6 +25,7 @@
 #include "base/configobject.hpp"
 #include "base/tcpsocket.hpp"
 #include "base/timer.hpp"
+#include "base/workqueue.hpp"
 #include <fstream>
 
 namespace icinga
@@ -41,21 +42,26 @@ public:
 	DECLARE_OBJECT(GraphiteWriter);
 	DECLARE_OBJECTNAME(GraphiteWriter);
 
+	GraphiteWriter(void);
+
 	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
 	virtual void ValidateHostNameTemplate(const String& value, const ValidationUtils& utils) override;
 	virtual void ValidateServiceNameTemplate(const String& value, const ValidationUtils& utils) override;
 
 protected:
+	virtual void OnConfigLoaded(void) override;
 	virtual void Start(bool runtimeCreated) override;
 	virtual void Stop(bool runtimeRemoved) override;
 
 private:
 	Stream::Ptr m_Stream;
+	WorkQueue m_WorkQueue;
 
 	Timer::Ptr m_ReconnectTimer;
 
 	void CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
+	void InternalCheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
 	void SendMetric(const String& prefix, const String& name, double value, double ts);
 	void SendPerfdata(const String& prefix, const CheckResult::Ptr& cr, double ts);
 	static String EscapeMetric(const String& str, bool legacyMode = false);
@@ -63,6 +69,13 @@ private:
 	static Value EscapeMacroMetric(const Value& value, bool legacyMode = false);
 
 	void ReconnectTimerHandler(void);
+
+	void Disconnect(void);
+	void Reconnect(void);
+
+	void AssertOnWorkQueue(void);
+
+	void ExceptionHandler(boost::exception_ptr exp);
 };
 
 }
