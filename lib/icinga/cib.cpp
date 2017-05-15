@@ -20,9 +20,9 @@
 #include "icinga/cib.hpp"
 #include "icinga/host.hpp"
 #include "icinga/service.hpp"
-#include "icinga/perfdatavalue.hpp"
 #include "base/objectlock.hpp"
 #include "base/utility.hpp"
+#include "base/perfdatavalue.hpp"
 #include "base/configtype.hpp"
 #include "base/statsfunction.hpp"
 

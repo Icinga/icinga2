@@ -19,8 +19,8 @@
 
 #include "livestatus/livestatuslistener.hpp"
 #include "livestatus/livestatuslistener.tcpp"
-#include "icinga/perfdatavalue.hpp"
 #include "base/utility.hpp"
+#include "base/perfdatavalue.hpp"
 #include "base/objectlock.hpp"
 #include "base/configtype.hpp"
 #include "base/logger.hpp"

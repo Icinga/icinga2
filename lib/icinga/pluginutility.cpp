@@ -19,9 +19,9 @@
 
 #include "icinga/pluginutility.hpp"
 #include "icinga/macroprocessor.hpp"
-#include "icinga/perfdatavalue.hpp"
 #include "base/logger.hpp"
 #include "base/utility.hpp"
+#include "base/perfdatavalue.hpp"
 #include "base/convert.hpp"
 #include "base/process.hpp"
 #include "base/objectlock.hpp"

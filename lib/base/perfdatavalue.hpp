@@ -20,13 +20,18 @@
 #ifndef PERFDATAVALUE_H
 #define PERFDATAVALUE_H
 
-#include "icinga/i2-icinga.hpp"
-#include "icinga/perfdatavalue.thpp"
+#include "base/i2-base.hpp"
+#include "base/perfdatavalue.thpp"
 
 namespace icinga
 {
 
-class I2_ICINGA_API PerfdataValue : public ObjectImpl<PerfdataValue>
+/**
+ * A performance data value.
+ *
+ * @ingroup base
+ */
+class I2_BASE_API PerfdataValue : public ObjectImpl<PerfdataValue>
 {
 public:
 	DECLARE_OBJECT(PerfdataValue);

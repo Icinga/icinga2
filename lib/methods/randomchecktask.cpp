@@ -21,9 +21,9 @@
 #	include <stdlib.h>
 #endif /* _WIN32 */
 #include "methods/randomchecktask.hpp"
-#include "icinga/perfdatavalue.hpp"
 #include "icinga/icingaapplication.hpp"
 #include "base/utility.hpp"
+#include "base/perfdatavalue.hpp"
 #include "base/convert.hpp"
 #include "base/function.hpp"
 #include "base/logger.hpp"
