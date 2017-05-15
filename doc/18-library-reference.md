@@ -1148,6 +1148,24 @@ Signature:
 Returns a copy of the array containing only the elements for which `func(element)`
 is true.
 
+### <a id="array-any"></a> Array#any
+
+Signature:
+
+    function any(func);
+
+Returns true if the array contains at least one element for which `func(element)`
+is true, false otherwise.
+
+### <a id="array-all"></a> Array#all
+
+Signature:
+
+    function all(func);
+
+Returns true if the array contains only elements for which `func(element)`
+is true, false otherwise.
+
 ### <a id="array-unique"></a> Array#unique
 
 Signature:

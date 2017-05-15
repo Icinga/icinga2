@@ -207,6 +207,43 @@ static Array::Ptr ArrayFilter(const Function::Ptr& function)
 	return result;
 }
 
+static bool ArrayAny(const Function::Ptr& function)
+{
+	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
+	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
+
+	if (vframe->Sandboxed && !function->IsSideEffectFree())
+		BOOST_THROW_EXCEPTION(ScriptError("Filter function must be side-effect free."));
+
+	ObjectLock olock(self);
+	for (const Value& item : self) {
+		std::vector<Value> args;
+		args.push_back(item);
+		if (function->Invoke(args))
+			return true;
+	}
+
+	return false;
+}
+
+static bool ArrayAll(const Function::Ptr& function)
+{
+	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
+	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
+
+	if (vframe->Sandboxed && !function->IsSideEffectFree())
+		BOOST_THROW_EXCEPTION(ScriptError("Filter function must be side-effect free."));
+
+	ObjectLock olock(self);
+	for (const Value& item : self) {
+		std::vector<Value> args;
+		args.push_back(item);
+		if (!function->Invoke(args))
+			return false;
+	}
+
+	return true;
+}
 static Array::Ptr ArrayUnique(void)
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
@@ -242,6 +279,8 @@ Object::Ptr Array::GetPrototype(void)
 		prototype->Set("map", new Function("Array#map", WrapFunction(ArrayMap), { "func" }, true));
 		prototype->Set("reduce", new Function("Array#reduce", WrapFunction(ArrayReduce), { "reduce" }, true));
 		prototype->Set("filter", new Function("Array#filter", WrapFunction(ArrayFilter), { "func" }, true));
+		prototype->Set("any", new Function("Array#any", WrapFunction(ArrayAny), { "func" }, true));
+		prototype->Set("all", new Function("Array#all", WrapFunction(ArrayAll), { "func" }, true));
 		prototype->Set("unique", new Function("Array#unique", WrapFunction(ArrayUnique), {}, true));
 	}
 
