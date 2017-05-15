@@ -16,7 +16,10 @@ Signature:
 
     function regex(pattern, text)
 
-Returns true if the regular expression matches the text, false otherwise.
+Returns true if the regular expression matches the text, false otherwise. The mode argument is
+optional and can be either MatchAll (in which case all elements for an array have to match) or MatchAny
+(in which case at least one element has to match). The default mode is MatchAll.
+
 **Tip**: In case you are looking for regular expression tests try [regex101](https://regex101.com).
 
 Example:
@@ -34,9 +37,11 @@ Example:
 
 Signature:
 
-    function match(pattern, text)
+    function match(pattern, text, mode)
 
-Returns true if the wildcard (`?*`) pattern matches the text, false otherwise.
+Returns true if the wildcard (`?*`) pattern matches the text, false otherwise. The mode argument is
+optional and can be either MatchAll (in which case all elements for an array have to match) or MatchAny
+(in which case at least one element has to match). The default mode is MatchAll.
 
 Example:
 
@@ -59,7 +64,10 @@ Signature:
 
 Returns true if the CIDR pattern matches the IP address, false otherwise.
 IPv4 addresses are converted to IPv4-mapped IPv6 addresses before being
-matched against the pattern.
+matched against the pattern. The mode argument is optional and can be
+either MatchAll (in which case all elements for an array have to match) or MatchAny
+(in which case at least one element has to match). The default mode is MatchAll.
+
 
 Example:
 
