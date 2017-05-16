@@ -163,7 +163,6 @@ void InfluxdbWriter::StatsLoggerTimerHandler(void)
 	    << timeInfo;
 }
 
->>>>>>> 3649a5a0d... InfluxdbWriter: Use a work queue for async message processing; add stats log/api
 Stream::Ptr InfluxdbWriter::Connect(TcpSocket::Ptr& socket)
 {
 	socket = new TcpSocket();
