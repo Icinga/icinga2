@@ -36,10 +36,13 @@ namespace icinga
 class I2_BASE_API ScriptUtils
 {
 public:
+	static void StaticInitialize(void);
 	static String CastString(const Value& value);
 	static double CastNumber(const Value& value);
 	static bool CastBool(const Value& value);
-	static bool Regex(const String& pattern, const String& text);
+	static bool Regex(const std::vector<Value>& args);
+	static bool Match(const std::vector<Value>& args);
+	static bool CidrMatch(const std::vector<Value>& args);
 	static double Len(const Value& value);
 	static Array::Ptr Union(const std::vector<Value>& arguments);
 	static Array::Ptr Intersection(const std::vector<Value>& arguments);
