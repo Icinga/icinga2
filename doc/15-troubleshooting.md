@@ -307,6 +307,34 @@ Fetch all check result events matching the `event.service` name `random`:
     $ curl -k -s -u root:icinga -X POST 'https://localhost:5665/v1/events?queue=debugchecks&types=CheckResult&filter=match%28%22random*%22,event.service%29'
 
 
+### <a id="check-fork-errors"></a> Check Fork Errors
+
+We've learned that newer kernel versions introduce a [fork limit for cgroups](https://lwn.net/Articles/663873/)
+which is enabled in SLES 12 SP2+ for example. The default value
+for `DefaultTasksMax` in Systemd is set to `512`.
+
+Icinga 2 relies on forking child processes to execute commands
+and might therefore hit this limit in larger setups.
+
+The error message could look like this:
+
+    2017-01-12T11:55:40.742685+01:00 icinga2-master1 kernel: [65567.582895] cgroup: fork rejected by pids controller in /system.slice/icinga2.service
+
+In order to solve the problem, increase the value for `DefaultTasksMax`
+or set it to `infinity`:
+
+
+    [root@icinga2-master1.localdomain /]# vim /usr/lib/systemd/system/icinga2.service
+
+    [Service]
+
+    DefaultTasksMax=infinity
+
+    [root@icinga2-master1.localdomain /]# systemctl daemon-reload
+    [root@icinga2-master1.localdomain /]# systemctl restart icinga2
+
+Please note that this setting is available since Systemd version 226.
+
 ### <a id="late-check-results"></a> Late Check Results
 
 [Icinga Web 2](https://www.icinga.com/products/icinga-web-2/) provides
