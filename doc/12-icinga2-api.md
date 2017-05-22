@@ -549,6 +549,33 @@ here because we want to pass all query attributes in the request body.
         ]
     }
 
+In order to list all acknowledgements without expire time, you query the `/v1/objects/comments`
+URL endpoint with `joins` and `filter` request parameters using the [X-HTTP-Method-Override](12-icinga2-api.md#icinga2-api-requests-method-override)
+method:
+
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -H 'X-HTTP-Method-Override: GET' -X POST 'https://localhost:5665/v1/objects/comments' \
+    -d '{ "joins": [ "service.name", "service.acknowledgement", "service.acknowledgement_expiry" ], "attrs": [ "author", "text" ], "filter": "service.acknowledgement!=0 && service.acknowledgement_expiry==0" }' | python -m json.tool
+
+    {
+        "results": [
+            {
+                "attrs": {
+                    "author": "icingaadmin",
+                    "text": "maintenance work"
+                },
+                "joins": {
+                    "service": {
+                        "__name": "example.localdomain!disk /",
+                        "acknowledgement": 1.0,
+                        "acknowledgement_expiry": 0.0
+                    }
+                },
+                "meta": {},
+                "name": "example.localdomain!disk /!example.localdomain-1495457222-0",
+                "type": "Comment"
+            }
+        ]
+    }
 
 ### <a id="icinga2-api-config-objects-create"></a> Creating Config Objects
 
