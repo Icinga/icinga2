@@ -27,11 +27,6 @@
 
 using namespace icinga;
 
-void TcpSocket::SocketType(){
-        socktype = SOCK_STREAM;
-        protocol = IPPROTO_TCP;
-}
-
 /**
  * Creates a socket and binds it to the specified service.
  *
