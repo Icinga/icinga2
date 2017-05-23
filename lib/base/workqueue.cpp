@@ -33,8 +33,11 @@ boost::thread_specific_ptr<WorkQueue *> l_ThreadWorkQueue;
 
 WorkQueue::WorkQueue(size_t maxItems, int threadCount)
 	: m_ID(m_NextID++), m_ThreadCount(threadCount), m_Spawned(false), m_MaxItems(maxItems), m_Stopped(false),
-	  m_Processing(0), m_NextTaskID(0)
+	  m_Processing(0), m_NextTaskID(0), m_TaskStats(15 * 60), m_PendingTasks(0), m_PendingTasksTimestamp(0)
 {
+	/* Initialize logger. */
+	m_StatusTimerTimeout = Utility::GetTime();
+
 	m_StatusTimer = new Timer();
 	m_StatusTimer->SetInterval(10);
 	m_StatusTimer->OnTimerExpired.connect(boost::bind(&WorkQueue::StatusTimerHandler, this));
@@ -192,14 +195,41 @@ void WorkQueue::StatusTimerHandler(void)
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
 
-	Log log(LogNotice, "WorkQueue");
+	ASSERT(!m_Name.IsEmpty());
 
-	log << "#" << m_ID;
+	int pending = m_Tasks.size();
 
-	if (!m_Name.IsEmpty())
-		log << " (" << m_Name << ")";
+	double now = Utility::GetTime();
+	double gradient = (pending - m_PendingTasks) / (now - m_PendingTasksTimestamp);
+	double timeToZero = pending / gradient;
 
-	log << " tasks: " << m_Tasks.size();
+	String timeInfo;
+
+	if (pending > GetTaskCount(5)) {
+		timeInfo = " empty in ";
+		if (timeToZero < 0)
+			timeInfo += "infinite time, your task handler isn't able to keep up";
+		else
+			timeInfo += Utility::FormatDuration(timeToZero);
+	}
+
+	m_PendingTasks = pending;
+	m_PendingTasksTimestamp = now;
+
+	/* Log if there are pending items, or 5 minute timeout is reached. */
+	if (pending > 0 || m_StatusTimerTimeout < now) {
+		Log(LogInformation, "WorkQueue")
+		    << "#" << m_ID << " (" << m_Name << ") "
+		    << "items: " << pending << ", "
+		    << "rate: " << std::setw(2) << GetTaskCount(60) / 60.0 << "/s "
+		    << "(" << GetTaskCount(60) << "/min " << GetTaskCount(60 * 5) << "/5min " << GetTaskCount(60 * 15) << "/15min);"
+		    << timeInfo;
+	}
+
+	/* Reschedule next log entry in 5 minutes. */
+	if (m_StatusTimerTimeout < now) {
+		m_StatusTimerTimeout = now + 60 * 5;
+	}
 }
 
 void WorkQueue::WorkerThreadProc(void)
@@ -247,6 +277,8 @@ void WorkQueue::WorkerThreadProc(void)
 		   _before_ we re-acquire the mutex */
 		task = Task();
 
+		IncreaseTaskCount();
+
 		lock.lock();
 
 		m_Processing--;
@@ -256,3 +288,16 @@ void WorkQueue::WorkerThreadProc(void)
 	}
 }
 
+void WorkQueue::IncreaseTaskCount(void)
+{
+	double now = Utility::GetTime();
+
+	boost::mutex::scoped_lock lock(m_StatsMutex);
+	m_TaskStats.InsertValue(now, 1);
+}
+
+int WorkQueue::GetTaskCount(RingBuffer::SizeType span) const
+{
+	boost::mutex::scoped_lock lock(m_StatsMutex);
+	return m_TaskStats.GetValues(span);
+}
