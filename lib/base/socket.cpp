@@ -38,21 +38,14 @@ using namespace icinga;
  * Constructor for the Socket class.
  */
 Socket::Socket(void)
-    : m_FD(INVALID_SOCKET), m_SocketType(SOCK_STREAM), m_Protocol(IPPROTO_TCP)
-{ }
-
-/**
- * Constructor for the Socket class.
- */
-Socket::Socket(int socketType, int protocol)
-    : m_FD(INVALID_SOCKET), m_SocketType(socketType), m_Protocol(protocol)
+	: m_FD(INVALID_SOCKET)
 { }
 
 /**
  * Constructor for the Socket class.
  */
 Socket::Socket(SOCKET fd)
-    : m_FD(INVALID_SOCKET)
+	: m_FD(INVALID_SOCKET)
 {
 	SetFD(fd);
 }
@@ -337,9 +330,6 @@ size_t Socket::Read(void *buffer, size_t count)
  */
 Socket::Ptr Socket::Accept(void)
 {
-	if (m_Protocol == IPPROTO_UDP)
-		BOOST_THROW_EXCEPTION(std::runtime_error("Accept cannot be used for UDP sockets."));
-
 	int fd;
 	sockaddr_storage addr;
 	socklen_t addrlen = sizeof(addr);
@@ -438,6 +428,7 @@ void Socket::SocketPair(SOCKET s[2])
  *
  * @param node The node.
  * @param service The service.
+ * @param protocol The protocol
  */
 void Socket::Connect(const String& node, const String& service)
 {
@@ -445,16 +436,16 @@ void Socket::Connect(const String& node, const String& service)
 	addrinfo *result;
 	int error;
 	const char *func;
-
+	
+	SocketType();
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_UNSPEC;
-	hints.ai_socktype = m_SocketType;
-	hints.ai_protocol = m_Protocol;
-
+	hints.ai_socktype = socktype;
+	hints.ai_protocol = protocol;	
 	int rc = getaddrinfo(node.CStr(), service.CStr(), &hints, &result);
 
 	if (rc != 0) {
-		Log(LogCritical, "Socket")
+		Log(LogCritical, protocol+"Socket")
 		    << "getaddrinfo() failed with error code " << rc << ", \"" << gai_strerror(rc) << "\"";
 
 		BOOST_THROW_EXCEPTION(socket_error()
@@ -501,7 +492,7 @@ void Socket::Connect(const String& node, const String& service)
 	freeaddrinfo(result);
 
 	if (GetFD() == INVALID_SOCKET) {
-		Log(LogCritical, "Socket")
+		Log(LogCritical, "UdpSocket")
 		    << "Invalid socket: " << Utility::FormatErrorNumber(error);
 
 #ifndef _WIN32

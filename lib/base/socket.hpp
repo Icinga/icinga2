@@ -59,19 +59,20 @@ public:
 	void MakeNonBlocking(void);
 
 	static void SocketPair(SOCKET s[2]);
-
+	
 protected:
-	Socket(int socketType, int protocol);
-
 	void SetFD(SOCKET fd);
 
 	int GetError(void) const;
+	int socktype; 
+        int protocol;
+
+	virtual void SocketType(){};
+
 	mutable boost::mutex m_SocketMutex;
 
 private:
 	SOCKET m_FD; /**< The socket descriptor. */
-	int m_SocketType;
-	int m_Protocol;
 
 	static String GetAddressFromSockaddr(sockaddr *address, socklen_t len);
 };
