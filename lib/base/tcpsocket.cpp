@@ -28,13 +28,6 @@
 using namespace icinga;
 
 /**
- * Constructor for the TcpSocket class.
- */
-TcpSocket::TcpSocket(void)
-    : Socket(SOCK_STREAM, IPPROTO_TCP)
-{ }
-
-/**
  * Creates a socket and binds it to the specified service.
  *
  * @param service The service.
@@ -110,6 +103,100 @@ void TcpSocket::Bind(const String& node, const String& service, int family)
 			error = errno;
 #endif /* _WIN32 */
 			func = "bind";
+
+			closesocket(fd);
+
+			continue;
+		}
+
+		SetFD(fd);
+
+		break;
+	}
+
+	freeaddrinfo(result);
+
+	if (GetFD() == INVALID_SOCKET) {
+		Log(LogCritical, "TcpSocket")
+		    << "Invalid socket: " << Utility::FormatErrorNumber(error);
+
+#ifndef _WIN32
+		BOOST_THROW_EXCEPTION(socket_error()
+		    << boost::errinfo_api_function(func)
+		    << boost::errinfo_errno(error));
+#else /* _WIN32 */
+		BOOST_THROW_EXCEPTION(socket_error()
+		    << boost::errinfo_api_function(func)
+		    << errinfo_win32_error(error));
+#endif /* _WIN32 */
+	}
+}
+
+/**
+ * Creates a socket and connects to the specified node and service.
+ *
+ * @param node The node.
+ * @param service The service.
+ */
+void TcpSocket::Connect(const String& node, const String& service)
+{
+	addrinfo hints;
+	addrinfo *result;
+	int error;
+	const char *func;
+
+	memset(&hints, 0, sizeof(hints));
+	hints.ai_family = AF_UNSPEC;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_protocol = IPPROTO_TCP;
+
+	int rc = getaddrinfo(node.CStr(), service.CStr(), &hints, &result);
+
+	if (rc != 0) {
+		Log(LogCritical, "TcpSocket")
+		    << "getaddrinfo() failed with error code " << rc << ", \"" << gai_strerror(rc) << "\"";
+
+		BOOST_THROW_EXCEPTION(socket_error()
+		    << boost::errinfo_api_function("getaddrinfo")
+		    << errinfo_getaddrinfo_error(rc));
+	}
+
+	int fd = INVALID_SOCKET;
+
+	for (addrinfo *info = result; info != NULL; info = info->ai_next) {
+		fd = socket(info->ai_family, info->ai_socktype, info->ai_protocol);
+
+		if (fd == INVALID_SOCKET) {
+#ifdef _WIN32
+			error = WSAGetLastError();
+#else /* _WIN32 */
+			error = errno;
+#endif /* _WIN32 */
+			func = "socket";
+
+			continue;
+		}
+
+		const int optTrue = 1;
+		if (setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, reinterpret_cast<const char *>(&optTrue), sizeof(optTrue)) != 0) {
+#ifdef _WIN32
+			error = WSAGetLastError();
+#else /* _WIN32 */
+			error = errno;
+#endif /* _WIN32 */
+			Log(LogWarning, "TcpSocket")
+			    << "setsockopt() unable to enable TCP keep-alives with error code " << rc;
+		}
+
+		rc = connect(fd, info->ai_addr, info->ai_addrlen);
+
+		if (rc < 0) {
+#ifdef _WIN32
+			error = WSAGetLastError();
+#else /* _WIN32 */
+			error = errno;
+#endif /* _WIN32 */
+			func = "connect";
 
 			closesocket(fd);
 

@@ -1006,31 +1006,6 @@ Configuration Attributes:
 >
 > UNIX sockets are not supported on Windows.
 
-## <a id="objecttype-logstashwriter"></a> LogstashWriter
-
-Writes Icinga 2 event messages to [Logstash](14-features.md#logstash-writer).
-
-Example:
-
-```
-library "perfdata"
-
-object LogstashWriter "logstash" {
-  host = "192.168.33.7"
-  port = 5555
-  socket_type = "udp"
-}
-```
-
-Configuration Attributes:
-
-  Name            	|Description
-  ----------------------|----------------------
-  host            	|**Optional.** Logstash receiver host address. Defaults to `127.0.0.1`.
-  port            	|**Optional.** Logstash receiver port. Defaults to `9201`.
-  socket_type		|**Optional.** Socket type. Can be either `udp` or `tcp`. Defaults to `udp`.
-  source		|**Optional.** Source name for this instance. Defaults to `icinga2`.
-
 
 ## <a id="objecttype-notification"></a> Notification
 
