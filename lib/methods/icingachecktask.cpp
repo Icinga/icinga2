@@ -43,7 +43,10 @@ void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& service, const CheckResul
 	if (interval > 60)
 		interval = 60;
 
-	Array::Ptr perfdata = new Array();
+	/* use feature stats perfdata */
+	std::pair<Dictionary::Ptr, Array::Ptr> feature_stats = CIB::GetFeatureStats();
+
+	Array::Ptr perfdata = feature_stats.second;
 
 	perfdata->Add(new PerfdataValue("active_host_checks", CIB::GetActiveHostChecksStatistics(interval) / interval));
 	perfdata->Add(new PerfdataValue("passive_host_checks", CIB::GetPassiveHostChecksStatistics(interval) / interval));
