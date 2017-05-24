@@ -54,7 +54,7 @@ REGISTER_STATSFUNCTION(InfluxdbWriter, &InfluxdbWriter::StatsFunc);
 
 //TODO: Evaluate whether multiple WQ threads and InfluxDB connections are possible. 10 threads will hog InfluxDB in large scale environments.
 InfluxdbWriter::InfluxdbWriter(void)
-    : m_WorkQueue(10000000, 1), m_TaskStats(15 * 60), m_PendingTasks(0), m_PendingTasksTimestamp(0)
+    : m_WorkQueue(10000000, 1)
 { }
 
 void InfluxdbWriter::OnConfigLoaded(void)
@@ -102,12 +102,6 @@ void InfluxdbWriter::Start(bool runtimeCreated)
 	m_FlushTimer->Start();
 	m_FlushTimer->Reschedule(0);
 
-	/* Timer for updating and logging work queue stats */
-	m_StatsLoggerTimer = new Timer();
-	m_StatsLoggerTimer->SetInterval(60); // don't be too noisy
-	m_StatsLoggerTimer->OnTimerExpired.connect(boost::bind(&InfluxdbWriter::StatsLoggerTimerHandler, this));
-	m_StatsLoggerTimer->Start();
-
 	/* Register for new metrics. */
 	Service::OnNewCheckResult.connect(boost::bind(&InfluxdbWriter::CheckResultHandler, this, _1, _2));
 }
@@ -135,34 +129,6 @@ void InfluxdbWriter::ExceptionHandler(boost::exception_ptr exp)
 	    << "Exception during InfluxDB operation: " << DiagnosticInformation(exp);
 
 	//TODO: Close the connection, if we keep it open.
-}
-
-void InfluxdbWriter::StatsLoggerTimerHandler(void)
-{
-	int pending = m_WorkQueue.GetLength();
-
-	double now = Utility::GetTime();
-	double gradient = (pending - m_PendingTasks) / (now - m_PendingTasksTimestamp);
-	double timeToZero = pending / gradient;
-
-	String timeInfo;
-
-	if (pending > GetTaskCount(5)) {
-		timeInfo = " empty in ";
-		if (timeToZero < 0)
-			timeInfo += "infinite time, your backend isn't able to keep up";
-		else
-			timeInfo += Utility::FormatDuration(timeToZero);
-	}
-
-	m_PendingTasks = pending;
-	m_PendingTasksTimestamp = now;
-
-	Log(LogInformation, "InfluxdbWriter")
-	    << "Work queue items: " << pending
-	    << ", rate: " << std::setw(2) << GetTaskCount(60) / 60.0 << "/s"
-	    << " (" << GetTaskCount(60) << "/min " << GetTaskCount(60 * 5) << "/5min " << GetTaskCount(60 * 15) << "/15min);"
-	    << timeInfo;
 }
 
 Stream::Ptr InfluxdbWriter::Connect(TcpSocket::Ptr& socket)
@@ -457,8 +423,6 @@ void InfluxdbWriter::FlushHandler(const String& body)
 	if (!stream)
 		return;
 
-	IncreaseTaskCount();
-
 	Url::Ptr url = new Url();
 	url->SetScheme(GetSslEnable() ? "https" : "http");
 	url->SetHost(GetHost());
@@ -542,20 +506,6 @@ void InfluxdbWriter::FlushHandler(const String& body)
 		Log(LogCritical, "InfluxdbWriter")
 		    << "InfluxDB error message:\n" << error;
 	}
-}
-
-void InfluxdbWriter::IncreaseTaskCount(void)
-{
-	double now = Utility::GetTime();
-
-	boost::mutex::scoped_lock lock(m_StatsMutex);
-	m_TaskStats.InsertValue(now, 1);
-}
-
-int InfluxdbWriter::GetTaskCount(RingBuffer::SizeType span) const
-{
-	boost::mutex::scoped_lock lock(m_StatsMutex);
-	return m_TaskStats.GetValues(span);
 }
 
 void InfluxdbWriter::ValidateHostTemplate(const Dictionary::Ptr& value, const ValidationUtils& utils)
