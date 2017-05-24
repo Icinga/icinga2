@@ -53,13 +53,15 @@ void IdoMysqlConnection::StatsFunc(const Dictionary::Ptr& status, const Array::P
 	Dictionary::Ptr nodes = new Dictionary();
 
 	for (const IdoMysqlConnection::Ptr& idomysqlconnection : ConfigType::GetObjectsByType<IdoMysqlConnection>()) {
-		size_t items = idomysqlconnection->m_QueryQueue.GetLength();
+		size_t queryQueueItems = idomysqlconnection->m_QueryQueue.GetLength();
+		double queryQueueItemRate = idomysqlconnection->m_QueryQueue.GetTaskCount(60) / 60.0;
 
 		Dictionary::Ptr stats = new Dictionary();
 		stats->Set("version", idomysqlconnection->GetSchemaVersion());
 		stats->Set("instance_name", idomysqlconnection->GetInstanceName());
 		stats->Set("connected", idomysqlconnection->GetConnected());
-		stats->Set("query_queue_items", items);
+		stats->Set("query_queue_items", queryQueueItems);
+		stats->Set("query_queue_item_rate", queryQueueItemRate);
 
 		nodes->Set(idomysqlconnection->GetName(), stats);
 
@@ -67,7 +69,8 @@ void IdoMysqlConnection::StatsFunc(const Dictionary::Ptr& status, const Array::P
 		perfdata->Add(new PerfdataValue("idomysqlconnection_" + idomysqlconnection->GetName() + "_queries_1min", idomysqlconnection->GetQueryCount(60)));
 		perfdata->Add(new PerfdataValue("idomysqlconnection_" + idomysqlconnection->GetName() + "_queries_5mins", idomysqlconnection->GetQueryCount(5 * 60)));
 		perfdata->Add(new PerfdataValue("idomysqlconnection_" + idomysqlconnection->GetName() + "_queries_15mins", idomysqlconnection->GetQueryCount(15 * 60)));
-		perfdata->Add(new PerfdataValue("idomysqlconnection_" + idomysqlconnection->GetName() + "_query_queue_items", items));
+		perfdata->Add(new PerfdataValue("idomysqlconnection_" + idomysqlconnection->GetName() + "_query_queue_items", queryQueueItems));
+		perfdata->Add(new PerfdataValue("idomysqlconnection_" + idomysqlconnection->GetName() + "_query_queue_item_rate", queryQueueItemRate));
 	}
 
 	status->Set("idomysqlconnection", nodes);
