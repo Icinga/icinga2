@@ -126,15 +126,10 @@ private:
 	static Timer::Ptr m_ProgramStatusTimer;
 	static boost::once_flag m_OnceFlag;
 
-	Timer::Ptr m_StatsLoggerTimer;
-	void StatsLoggerTimerHandler(void);
-
 	static void InsertRuntimeVariable(const String& key, const Value& value);
 
 	mutable boost::mutex m_StatsMutex;
 	RingBuffer m_QueryStats;
-	int m_PendingQueries;
-	double m_PendingQueriesTimestamp;
 	bool m_ActiveChangedHandler;
 };
 
