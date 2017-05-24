@@ -68,8 +68,8 @@ The [sysstat](https://github.com/sysstat/sysstat) package provides a number of t
 analyze the performance on Linux. On FreeBSD you could use `systat` for example.
 
 ```
-yum install htop
-apt-get install htop
+yum install sysstat
+apt-get install sysstat
 ```
 
 Example for `vmstat` (summary of memory, processes, etc.):
