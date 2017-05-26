@@ -349,7 +349,7 @@ int JsonRpcConnection::GetWorkQueueLength(void)
 {
 	size_t itemCount = 0;
 
-	for (size_t i = 0; i < l_JsonRpcConnectionWorkQueueCount; i++) {
+	for (size_t i = 0; i < GetWorkQueueCount(); i++) {
 		itemCount += l_JsonRpcConnectionWorkQueues[i].GetLength();
 	}
 
@@ -359,11 +359,16 @@ int JsonRpcConnection::GetWorkQueueLength(void)
 double JsonRpcConnection::GetWorkQueueRate(void)
 {
 	double rate = 0.0;
+	int count = GetWorkQueueCount();
 
-	for (size_t i = 0; i < l_JsonRpcConnectionWorkQueueCount; i++) {
+	/* If this is a standalone environment, we don't have any queues. */
+	if (count == 0)
+		return 0.0;
+
+	for (size_t i = 0; i < count; i++) {
 		rate += l_JsonRpcConnectionWorkQueues[i].GetTaskCount(60) / 60.0;
 	}
 
-	return rate / l_JsonRpcConnectionWorkQueueCount;
+	return rate / count;
 }
 
