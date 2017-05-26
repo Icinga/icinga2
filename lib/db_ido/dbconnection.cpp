@@ -38,8 +38,7 @@ Timer::Ptr DbConnection::m_ProgramStatusTimer;
 boost::once_flag DbConnection::m_OnceFlag = BOOST_ONCE_INIT;
 
 DbConnection::DbConnection(void)
-	: m_IDCacheValid(false), m_QueryStats(15 * 60), m_PendingQueries(0),
-	  m_PendingQueriesTimestamp(0), m_ActiveChangedHandler(false)
+	: m_IDCacheValid(false), m_QueryStats(15 * 60), m_ActiveChangedHandler(false)
 { }
 
 void DbConnection::OnConfigLoaded(void)
@@ -87,37 +86,6 @@ void DbConnection::EnableActiveChangedHandler(void)
 	}
 }
 
-void DbConnection::StatsLoggerTimerHandler(void)
-{
-	if (!GetConnected())
-		return;
-
-	int pending = GetPendingQueryCount();
-
-	double now = Utility::GetTime();
-	double gradient = (pending - m_PendingQueries) / (now - m_PendingQueriesTimestamp);
-	double timeToZero = -pending / gradient;
-
-	String timeInfo;
-
-	if (pending > GetQueryCount(5)) {
-		timeInfo = " empty in ";
-		if (timeToZero < 0)
-			timeInfo += "infinite time, your database isn't able to keep up";
-		else
-			timeInfo += Utility::FormatDuration(timeToZero);
-	}
-
-	m_PendingQueries = pending;
-	m_PendingQueriesTimestamp = now;
-
-	Log(LogInformation, GetReflectionType()->GetName())
-	    << "Query queue items: " << pending
-	    << ", query rate: " << std::setw(2) << GetQueryCount(60) / 60.0 << "/s"
-	    << " (" << GetQueryCount(60) << "/min " << GetQueryCount(5 * 60) << "/5min " << GetQueryCount(15 * 60) << "/15min);"
-	    << timeInfo;
-}
-
 void DbConnection::Resume(void)
 {
 	ConfigObject::Resume();
@@ -129,11 +97,6 @@ void DbConnection::Resume(void)
 	m_CleanUpTimer->SetInterval(60);
 	m_CleanUpTimer->OnTimerExpired.connect(boost::bind(&DbConnection::CleanUpHandler, this));
 	m_CleanUpTimer->Start();
-
-	m_StatsLoggerTimer = new Timer();
-	m_StatsLoggerTimer->SetInterval(15);
-	m_StatsLoggerTimer->OnTimerExpired.connect(boost::bind(&DbConnection::StatsLoggerTimerHandler, this));
-	m_StatsLoggerTimer->Start();
 }
 
 void DbConnection::Pause(void)

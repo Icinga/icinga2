@@ -43,6 +43,7 @@
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/replace.hpp>
+#include <boost/math/special_functions/fpclassify.hpp>
 #include <boost/regex.hpp>
 #include <boost/scoped_array.hpp>
 
@@ -52,9 +53,8 @@ REGISTER_TYPE(InfluxdbWriter);
 
 REGISTER_STATSFUNCTION(InfluxdbWriter, &InfluxdbWriter::StatsFunc);
 
-//TODO: Evaluate whether multiple WQ threads and InfluxDB connections are possible. 10 threads will hog InfluxDB in large scale environments.
 InfluxdbWriter::InfluxdbWriter(void)
-    : m_WorkQueue(10000000, 1), m_TaskStats(15 * 60), m_PendingTasks(0), m_PendingTasksTimestamp(0)
+    : m_WorkQueue(10000000, 1)
 { }
 
 void InfluxdbWriter::OnConfigLoaded(void)
@@ -64,7 +64,7 @@ void InfluxdbWriter::OnConfigLoaded(void)
 	m_WorkQueue.SetName("InfluxdbWriter, " + GetName());
 }
 
-void InfluxdbWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
+void InfluxdbWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
 {
 	Dictionary::Ptr nodes = new Dictionary();
 
@@ -73,13 +73,16 @@ void InfluxdbWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 		double workQueueItemRate = influxdbwriter->m_WorkQueue.GetTaskCount(60) / 60.0;
 		size_t dataBufferItems = influxdbwriter->m_DataBuffer.size();
 
-		//TODO: Collect more stats
 		Dictionary::Ptr stats = new Dictionary();
 		stats->Set("work_queue_items", workQueueItems);
 		stats->Set("work_queue_item_rate", workQueueItemRate);
 		stats->Set("data_buffer_items", dataBufferItems);
 
 		nodes->Set(influxdbwriter->GetName(), stats);
+
+		perfdata->Add(new PerfdataValue("influxdbwriter_" + influxdbwriter->GetName() + "_work_queue_items", workQueueItems));
+		perfdata->Add(new PerfdataValue("influxdbwriter_" + influxdbwriter->GetName() + "_work_queue_item_rate", workQueueItemRate));
+		perfdata->Add(new PerfdataValue("influxdbwriter_" + influxdbwriter->GetName() + "_data_queue_items", dataBufferItems));
 	}
 
 	status->Set("influxdbwriter", nodes);
@@ -101,12 +104,6 @@ void InfluxdbWriter::Start(bool runtimeCreated)
 	m_FlushTimer->OnTimerExpired.connect(boost::bind(&InfluxdbWriter::FlushTimeout, this));
 	m_FlushTimer->Start();
 	m_FlushTimer->Reschedule(0);
-
-	/* Timer for updating and logging work queue stats */
-	m_StatsLoggerTimer = new Timer();
-	m_StatsLoggerTimer->SetInterval(60); // don't be too noisy
-	m_StatsLoggerTimer->OnTimerExpired.connect(boost::bind(&InfluxdbWriter::StatsLoggerTimerHandler, this));
-	m_StatsLoggerTimer->Start();
 
 	/* Register for new metrics. */
 	Service::OnNewCheckResult.connect(boost::bind(&InfluxdbWriter::CheckResultHandler, this, _1, _2));
@@ -135,34 +132,6 @@ void InfluxdbWriter::ExceptionHandler(boost::exception_ptr exp)
 	    << "Exception during InfluxDB operation: " << DiagnosticInformation(exp);
 
 	//TODO: Close the connection, if we keep it open.
-}
-
-void InfluxdbWriter::StatsLoggerTimerHandler(void)
-{
-	int pending = m_WorkQueue.GetLength();
-
-	double now = Utility::GetTime();
-	double gradient = (pending - m_PendingTasks) / (now - m_PendingTasksTimestamp);
-	double timeToZero = pending / gradient;
-
-	String timeInfo;
-
-	if (pending > GetTaskCount(5)) {
-		timeInfo = " empty in ";
-		if (timeToZero < 0)
-			timeInfo += "infinite time, your backend isn't able to keep up";
-		else
-			timeInfo += Utility::FormatDuration(timeToZero);
-	}
-
-	m_PendingTasks = pending;
-	m_PendingTasksTimestamp = now;
-
-	Log(LogInformation, "InfluxdbWriter")
-	    << "Work queue items: " << pending
-	    << ", rate: " << std::setw(2) << GetTaskCount(60) / 60.0 << "/s"
-	    << " (" << GetTaskCount(60) << "/min " << GetTaskCount(60 * 5) << "/5min " << GetTaskCount(60 * 15) << "/15min);"
-	    << timeInfo;
 }
 
 Stream::Ptr InfluxdbWriter::Connect(TcpSocket::Ptr& socket)
@@ -207,6 +176,13 @@ Stream::Ptr InfluxdbWriter::Connect(TcpSocket::Ptr& socket)
 
 void InfluxdbWriter::CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
 {
+	m_WorkQueue.Enqueue(boost::bind(&InfluxdbWriter::InternalCheckResultHandler, this, checkable, cr));
+}
+
+void InfluxdbWriter::InternalCheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
+{
+	AssertOnWorkQueue();
+
 	CONTEXT("Processing check result for '" + checkable->GetName() + "'");
 
 	if (!IcingaApplication::GetInstance()->GetEnablePerfdata() || !checkable->GetEnablePerfdata())
@@ -363,6 +339,10 @@ String InfluxdbWriter::EscapeField(const String& str)
 	if (boost::regex_match(str.GetData(), boolean_false))
 		return "false";
 
+	// Handle NaNs
+	if (boost::math::isnan(str))
+		return 0;
+
 	// Otherwise it's a string and needs escaping and quoting
 	String result = str;
 	boost::algorithm::replace_all(result, "\"", "\\\"");
@@ -443,21 +423,11 @@ void InfluxdbWriter::Flush(void)
 	String body = boost::algorithm::join(m_DataBuffer, "\n");
 	m_DataBuffer.clear();
 
-	// Asynchronously flush the metric body to InfluxDB
-	m_WorkQueue.Enqueue(boost::bind(&InfluxdbWriter::FlushHandler, this, body));
-}
-
-void InfluxdbWriter::FlushHandler(const String& body)
-{
-	AssertOnWorkQueue();
-
 	TcpSocket::Ptr socket;
 	Stream::Ptr stream = Connect(socket);
 
 	if (!stream)
 		return;
-
-	IncreaseTaskCount();
 
 	Url::Ptr url = new Url();
 	url->SetScheme(GetSslEnable() ? "https" : "http");
@@ -542,20 +512,6 @@ void InfluxdbWriter::FlushHandler(const String& body)
 		Log(LogCritical, "InfluxdbWriter")
 		    << "InfluxDB error message:\n" << error;
 	}
-}
-
-void InfluxdbWriter::IncreaseTaskCount(void)
-{
-	double now = Utility::GetTime();
-
-	boost::mutex::scoped_lock lock(m_StatsMutex);
-	m_TaskStats.InsertValue(now, 1);
-}
-
-int InfluxdbWriter::GetTaskCount(RingBuffer::SizeType span) const
-{
-	boost::mutex::scoped_lock lock(m_StatsMutex);
-	return m_TaskStats.GetValues(span);
 }
 
 void InfluxdbWriter::ValidateHostTemplate(const Dictionary::Ptr& value, const ValidationUtils& utils)
