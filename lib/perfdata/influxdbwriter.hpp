@@ -62,12 +62,11 @@ private:
 	boost::mutex m_DataBufferMutex;
 
 	void CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
+	void InternalCheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
 	void SendPerfdata(const Dictionary::Ptr& tmpl, const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, double ts);
 	void SendMetric(const Dictionary::Ptr& tmpl, const String& label, const Dictionary::Ptr& fields, double ts);
 	void FlushTimeout(void);
 	void Flush(void);
-
-	void FlushHandler(const String& body);
 
 	static String FormatInteger(int val);
 	static String FormatBoolean(bool val);
