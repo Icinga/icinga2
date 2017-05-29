@@ -4,6 +4,9 @@
 # to be incorporated into your Apache web server
 # configuration file.  Customize the paths, etc. as
 # needed to fit your system.
+#
+# This has been DEPRECATED and will be removed in future releases.
+# You can manually configure the Classic UI by keeping a backup of this file.
 
 ScriptAlias /icinga/cgi-bin "@CMAKE_INSTALL_FULL_LIBDIR@/icinga/cgi"
 
