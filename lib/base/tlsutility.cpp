@@ -409,7 +409,8 @@ int MakeX509CSR(const String& cn, const String& keyfile, const String& csrfile, 
 			String san = "DNS:" + cn;
 			X509_EXTENSION *subjectAltNameExt = X509V3_EXT_conf_nid(NULL, NULL, NID_subject_alt_name, const_cast<char *>(san.CStr()));
 			if (subjectAltNameExt) {
-				stack_st_X509_EXTENSION *exts = sk_X509_EXTENSION_new_null();
+				/* OpenSSL 0.9.8 requires STACK_OF(X509_EXTENSION), otherwise we would just use stack_st_X509_EXTENSION. */
+				STACK_OF(X509_EXTENSION) *exts = sk_X509_EXTENSION_new_null();
 				sk_X509_EXTENSION_push(exts, subjectAltNameExt);
 				X509_REQ_add_extensions(req, exts);
 				sk_X509_EXTENSION_pop_free(exts, X509_EXTENSION_free);
