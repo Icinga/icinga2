@@ -347,9 +347,9 @@ int JsonRpcConnection::GetWorkQueueCount(void)
 
 int JsonRpcConnection::GetWorkQueueLength(void)
 {
-	size_t itemCount = 0;
+	int itemCount = 0;
 
-	for (size_t i = 0; i < GetWorkQueueCount(); i++) {
+	for (int i = 0; i < GetWorkQueueCount(); i++) {
 		itemCount += l_JsonRpcConnectionWorkQueues[i].GetLength();
 	}
 
@@ -365,7 +365,7 @@ double JsonRpcConnection::GetWorkQueueRate(void)
 	if (count == 0)
 		return 0.0;
 
-	for (size_t i = 0; i < count; i++) {
+	for (int i = 0; i < count; i++) {
 		rate += l_JsonRpcConnectionWorkQueues[i].GetTaskCount(60) / 60.0;
 	}
 

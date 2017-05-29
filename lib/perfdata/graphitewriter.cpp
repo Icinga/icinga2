@@ -136,8 +136,6 @@ void GraphiteWriter::Reconnect(void)
 
 	SetShouldConnect(true);
 
-	bool reconnect = false;
-
 	if (GetConnected())
 		return;
 
