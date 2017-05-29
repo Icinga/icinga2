@@ -60,6 +60,7 @@
 %define icingaweb2name icingaweb2
 %define icingaweb2version 2.0.0
 
+# DEPRECATED
 %define icingaclassicconfdir %{_sysconfdir}/icinga
 
 %define logmsg logger -t %{name}/rpm
@@ -213,6 +214,7 @@ Icinga 2 IDO PostgreSQL database backend. Compatible with Icinga 1.x
 IDOUtils schema >= 1.12
 
 
+# DEPRECATED
 %package classicui-config
 Summary:      Icinga 2 Classic UI Standalone configuration
 Group:        Applications/System
@@ -225,6 +227,7 @@ Recommends:   icinga-www
 Provides:     icinga-classicui-config
 Conflicts:    icinga-gui-config
 
+# DEPRECATED
 %description classicui-config
 Icinga 1.x Classic UI Standalone configuration with locations
 for Icinga 2.
@@ -364,6 +367,7 @@ cd -
 make install \
 	DESTDIR="%{buildroot}"
 
+# DEPRECATED
 # install classicui config
 install -D -m 0644 etc/icinga/icinga-classic.htpasswd %{buildroot}%{icingaclassicconfdir}/passwd
 install -D -m 0644 etc/icinga/cgi.cfg %{buildroot}%{icingaclassicconfdir}/cgi.cfg
@@ -595,6 +599,7 @@ fi
 
 exit 0
 
+# DEPRECATED
 %post classicui-config
 if [ ${1:-0} -eq 1 ]
 then
@@ -604,8 +609,11 @@ then
 	done
 fi
 
+%logmsg "The icinga2-classicui-config package has been deprecated and will be removed in future releases."
+
 exit 0
 
+# DEPRECATED
 %postun classicui-config
 if [ "$1" = "0" ]; then
         # deinstallation of the package - remove feature
@@ -735,6 +743,7 @@ fi
 %{_libdir}/%{name}/libdb_ido_pgsql*
 %{_datadir}/icinga2-ido-pgsql
 
+# DEPRECATED
 %files classicui-config
 %defattr(-,root,root,-)
 %attr(0751,%{icinga_user},%{icinga_group}) %dir %{icingaclassicconfdir}
