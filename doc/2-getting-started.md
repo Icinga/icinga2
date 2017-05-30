@@ -6,7 +6,7 @@ It assumes that you are familiar with the operating system you're using to insta
 
 ## <a id="setting-up-icinga2"></a> Setting up Icinga 2
 
-First off you will have to install Icinga 2. The preferred way of doing this
+First off you have to install Icinga 2. The preferred way of doing this
 is to use the official package repositories depending on which operating system
 and distribution you are running.
 
@@ -51,10 +51,6 @@ RHEL/CentOS 6:
 
     yum install https://packages.icinga.com/epel/6/release/noarch/icinga-rpm-release-6-1.el6.noarch.rpm
 
-RHEL/CentOS 5:
-
-    rpm -i https://packages.icinga.com/epel/5/release/noarch/icinga-rpm-release-5-1.el5.centos.noarch.rpm
-
 Fedora 25:
 
     dnf install https://packages.icinga.com/fedora/25/release/noarch/icinga-rpm-release-25-1.fc25.noarch.rpm
@@ -62,10 +58,6 @@ Fedora 25:
 Fedora 24:
 
     dnf install https://packages.icinga.com/fedora/24/release/noarch/icinga-rpm-release-24-1.fc24.noarch.rpm
-
-Fedora 23:
-
-    dnf install https://packages.icinga.com/fedora/23/release/noarch/icinga-rpm-release-23-1.fc23.noarch.rpm
 
 SLES 11:
 
@@ -88,7 +80,7 @@ openSUSE:
 The packages for RHEL/CentOS depend on other packages which are distributed
 as part of the [EPEL repository](https://fedoraproject.org/wiki/EPEL).
 
-CentOS 7/6/5:
+CentOS 7/6:
 
     yum install epel-release
 
@@ -114,7 +106,7 @@ Debian/Ubuntu:
 
     # apt-get install icinga2
 
-RHEL/CentOS 5/6:
+RHEL/CentOS 6:
 
     # yum install icinga2
     # chkconfig icinga2 on
@@ -428,7 +420,7 @@ Debian/Ubuntu:
 
     # apt-get install mysql-server mysql-client
 
-RHEL/CentOS 5/6:
+RHEL/CentOS 6:
 
     # yum install mysql-server mysql
     # chkconfig mysqld on
@@ -540,7 +532,7 @@ Debian/Ubuntu:
 
     # apt-get install postgresql
 
-RHEL/CentOS 5/6:
+RHEL/CentOS 6:
 
     # yum install postgresql-server postgresql
     # chkconfig postgresql on
@@ -676,7 +668,7 @@ RHEL/CentOS 6:
     # chkconfig httpd on
     # service httpd start
 
-RHEL/CentOS 7/Fedora:
+RHEL/CentOS 7, Fedora:
 
     # yum install httpd
     # systemctl enable httpd
