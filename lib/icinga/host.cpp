@@ -335,3 +335,11 @@ bool Host::ResolveMacro(const String& macro, const CheckResult::Ptr&, Value *res
 
 	return false;
 }
+
+void Host::ValidateGroups(const Array::Ptr& value, const ValidationUtils& utils)
+{
+	if (value.get() == 0)
+		BOOST_THROW_EXCEPTION(ValidationError(dynamic_cast<ConfigObject *>(this), boost::assign::list_of("groups"), "Must be an array, not null."));
+
+	ObjectImpl<Host>::ValidateGroups(value, utils);
+}
