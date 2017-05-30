@@ -126,14 +126,64 @@ overridden by creating a file called `icinga-version.h.force` in the source
 directory. Alternatively the `-DICINGA2_GIT_VERSION_INFO=OFF` option for CMake
 can be used to disable the usage of `git describe`.
 
-### Building Icinga 2 RPMs
+## Build Icinga 2 RPMs
 
-Setup your build environment on RHEL/SUSE and copy the generated tarball from your git
-repository to `rpmbuild/SOURCES`.
+### Build Environment on RHEL, CentOS, Fedora, Amazon Linux
 
-Copy the icinga2.spec file to `rpmbuild/SPEC` and then run this command:
+Setup your build environment:
 
-    $ rpmbuild -ba SPEC/icinga2.spec
+    yum -y install rpmdevtools
+
+### Build Environment on SuSE/SLES
+
+SLES:
+
+    zypper addrepo http://download.opensuse.org/repositories/devel:tools/SLE_12_SP2/devel:tools.repo
+    zypper refresh
+    zypper install rpmdevtools spectool
+
+OpenSuSE:
+
+    zypper addrepo http://download.opensuse.org/repositories/devel:tools/openSUSE_Leap_42.3/devel:tools.repo
+    zypper refresh
+    zypper install rpmdevtools spectool
+
+### Package Builds
+
+Prepare the rpmbuild directory tree:
+
+    cd $HOME
+    rpmdev-setuptree
+
+Copy the icinga2.spec file to `rpmbuild/SPEC` or fetch the latest version:
+
+    curl https://raw.githubusercontent.com/Icinga/icinga2/master/icinga2.spec -o $HOME/rpmbuild/SPECS/icinga2.spec
+
+Copy the tarball to `rpmbuild/SOURCES` e.g. by using the `spectool` binary
+provided with `rpmdevtools`:
+
+    cd $HOME/rpmbuild/SOURCES
+    spectool -g ../SPECS/icinga2.spec
+
+    cd $HOME/rpmbuild
+
+Install the build dependencies. Example for CentOS 7:
+
+    yum -y install libedit-devel ncurses-devel gcc-c++ libstdc++-devel openssl-devel \
+    cmake flex bison boost-devel systemd mysql-devel postgresql-devel httpd \
+    selinux-policy-devel checkpolicy selinux-policy selinux-policy-doc
+
+Note: If you are using Amazon Linux, systemd is not required.
+
+A shorter way is available using the `yum-builddep` command on RHEL based systems:
+
+    yum-builddep SPECS/icinga2.spec
+
+Build the RPM:
+
+    rpmbuild -ba SPEC/icinga2.spec
+
+### Additional Hints
 
 #### SELinux policy module
 
@@ -166,12 +216,17 @@ As an alternative, you can use newer Boost packages provided on
     %build_icinga_org 1
     MACROS
 
+#### Amazon Linux
+
+If you prefer to build packages offline, a suitable Vagrant box is located
+[here](https://atlas.hashicorp.com/mvbcoding/boxes/awslinux/).
+
 #### SLES 11
 
 The Icinga repository provides the required boost package version and must be
 added before building.
 
-### Building Icinga 2 Debs
+## Build Icinga 2 Debian/Ubuntu packages
 
 Setup your build environment on Debian/Ubuntu, copy the 'debian' directory from
 the Debian packaging Git repository (https://github.com/Icinga/pkg-icinga2-debian)
@@ -179,7 +234,7 @@ into your source tree and run the following command:
 
     $ dpkg-buildpackage -uc -us
 
-### Building Post Install Tasks
+## Build Post Install Tasks
 
 After building Icinga 2 yourself, your package build system should at least run the following post
 install requirements:
@@ -187,9 +242,9 @@ install requirements:
 * enable the `checker`, `notification` and `mainlog` feature by default
 * run 'icinga2 api setup' in order to enable the `api` feature and generate SSL certificates for the node
 
-## Running Icinga 2
+## Run Icinga 2
 
-Icinga 2 comes with a single binary that takes care of loading all the relevant
+Icinga 2 comes with a binary that takes care of loading all the relevant
 components (e.g. for check execution, notifications, etc.):
 
     # icinga2 daemon
