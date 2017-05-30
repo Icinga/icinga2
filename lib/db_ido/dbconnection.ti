@@ -31,7 +31,7 @@ abstract class DbConnection : ConfigObject
 		default {{{ return "icinga_"; }}}
 	};
 
-	[config] Dictionary::Ptr cleanup {
+	[config, required] Dictionary::Ptr cleanup {
 		default {{{ return new Dictionary(); }}}
 	};
 

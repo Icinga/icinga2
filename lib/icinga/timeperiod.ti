@@ -40,10 +40,10 @@ class TimePeriod : CustomVarObject
 	[config] bool prefer_includes {
 		default {{{ return true; }}}
 	};
-	[config] array(name(TimePeriod)) excludes {
+	[config, required] array(name(TimePeriod)) excludes {
 		default {{{ return new Array(); }}}
 	};
-	[config] array(name(TimePeriod)) includes {
+	[config, required] array(name(TimePeriod)) includes {
 		default {{{ return new Array(); }}}
 	};
 	[state, no_user_modify] Value valid_begin;
