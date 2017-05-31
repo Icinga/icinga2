@@ -31,7 +31,7 @@
 %define apacheconfdir %{_sysconfdir}/httpd/conf.d
 %define apacheuser apache
 %define apachegroup apache
-%if 0%{?el5}%{?el6}
+%if 0%{?el5}%{?el6}%{?amzn}
 %define use_systemd 0
 %if %(uname -m) != "x86_64"
 %define march_flag -march=i686
@@ -148,10 +148,10 @@ Provides binaries for Icinga 2 Core.
 %package common
 Summary:      Common Icinga 2 configuration
 Group:        Applications/System
-%if "%{_vendor}" == "redhat"
-Requires(pre): shadow-utils
-Requires(post): shadow-utils
-%endif
+%{?amzn:Requires(pre):          shadow-utils}
+%{?fedora:Requires(pre):        shadow-utils}
+%{?rhel:Requires(pre):          shadow-utils}
+%{?suse_version:Requires(pre):  pwdutils}
 %if "%{_vendor}" == "suse"
 Recommends:   logrotate
 %endif
@@ -213,6 +213,8 @@ Requires: %{name} = %{version}-%{release}
 Icinga 2 IDO PostgreSQL database backend. Compatible with Icinga 1.x
 IDOUtils schema >= 1.12
 
+# DEPRECATED, disable builds on Amazon
+%if !(0%{?amzn})
 
 # DEPRECATED
 %package classicui-config
@@ -231,6 +233,9 @@ Conflicts:    icinga-gui-config
 %description classicui-config
 Icinga 1.x Classic UI Standalone configuration with locations
 for Icinga 2.
+
+# DEPRECATED, disable builds on Amazon
+%endif
 
 %if "%{_vendor}" == "redhat" && !(0%{?el5} || 0%{?rhel} == 5 || "%{?dist}" == ".el5" || 0%{?el6} || 0%{?rhel} == 6 || "%{?dist}" == ".el6")
 %global selinux_variants mls targeted
@@ -367,11 +372,16 @@ cd -
 make install \
 	DESTDIR="%{buildroot}"
 
-# DEPRECATED
+# DEPRECATED, disable builds on Amazon
+%if !(0%{?amzn})
+
 # install classicui config
 install -D -m 0644 etc/icinga/icinga-classic.htpasswd %{buildroot}%{icingaclassicconfdir}/passwd
 install -D -m 0644 etc/icinga/cgi.cfg %{buildroot}%{icingaclassicconfdir}/cgi.cfg
 install -D -m 0644 etc/icinga/icinga-classic-apache.conf %{buildroot}%{apacheconfdir}/icinga.conf
+
+# DEPRECATED, disable builds on Amazon
+%endif
 
 # remove features-enabled symlinks
 rm -f %{buildroot}/%{_sysconfdir}/%{name}/features-enabled/*.conf
@@ -600,7 +610,9 @@ fi
 
 exit 0
 
-# DEPRECATED
+# DEPRECATED, disable builds on Amazon
+%if !(0%{?amzn})
+
 %post classicui-config
 if [ ${1:-0} -eq 1 ]
 then
@@ -624,6 +636,9 @@ if [ "$1" = "0" ]; then
 fi
 
 exit 0
+
+# DEPRECATED, disable builds on Amazon
+%endif
 
 %if "%{_vendor}" == "redhat" && !(0%{?el5} || 0%{?rhel} == 5 || "%{?dist}" == ".el5" || 0%{?el6} || 0%{?rhel} == 6 || "%{?dist}" == ".el6")
 %post selinux
@@ -744,13 +759,18 @@ fi
 %{_libdir}/%{name}/libdb_ido_pgsql*
 %{_datadir}/icinga2-ido-pgsql
 
-# DEPRECATED
+# DEPRECATED, disable builds on Amazon
+%if !(0%{?amzn})
+
 %files classicui-config
 %defattr(-,root,root,-)
 %attr(0751,%{icinga_user},%{icinga_group}) %dir %{icingaclassicconfdir}
 %config(noreplace) %{icingaclassicconfdir}/cgi.cfg
 %config(noreplace) %{apacheconfdir}/icinga.conf
 %config(noreplace) %attr(0640,root,%{apachegroup}) %{icingaclassicconfdir}/passwd
+
+# DEPRECATED, disable builds on Amazon
+%endif
 
 %if "%{_vendor}" == "redhat" && !(0%{?el5} || 0%{?rhel} == 5 || "%{?dist}" == ".el5" || 0%{?el6} || 0%{?rhel} == 6 || "%{?dist}" == ".el6")
 %files selinux
