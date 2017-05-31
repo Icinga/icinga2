@@ -1260,6 +1260,130 @@ Example for all downtime events:
 
     &types=DowntimeAdded&types=DowntimeRemoved&types=DowntimeTriggered
 
+#### <a id="icinga2-api-event-streams-type-checkresult"></a> Event Stream Type: CheckResult
+
+  Name 		| Type
+  --------------|---------------
+  type 		| string
+  timestamp 	| float
+  host		| string
+  service	| string, optional
+  check\_result	| serialize check result
+
+#### <a id="icinga2-api-event-streams-type-statechange"></a> Event Stream Type: StateChange
+
+  Name		| Type
+  --------------|---------------
+  type		| string
+  timestamp	| float
+  host		| string
+  service	| string, optional
+  state		| float
+  state\_type	| float
+  check\_result	| dictionary
+
+#### <a id="icinga2-api-event-streams-type-notification"></a> Event Stream Type: Notification
+
+Name | Type
+------|---------------
+type | string
+timestamp | float
+host | string
+service | string, optional
+users | array of user name strings
+notification_type | string
+author | string
+text | string
+check_result | dictionary
+
+#### <a id="icinga2-api-event-streams-type-flapping"></a> Event Stream Type: Flapping
+
+Name | Type
+------|---------------
+type | string
+timestamp | float
+host | string
+service | string, optional
+state | float
+state_type | float
+is_flapping | boolean
+
+#### <a id="icinga2-api-event-streams-type-acknowledgementset"></a> Event Stream Type: AcknowledgementSet
+
+Name | Type
+------|---------------
+type | string
+timestamp | float
+host | string
+service | string, optional
+state | float
+state_type | float
+author | string
+comment | string
+acknowledgement_type | float
+notify | boolean
+expiry | boolean
+
+#### <a id="icinga2-api-event-streams-type-acknowledgementcleared"></a> Event Stream Type: AcknowledgementCleared
+
+Name | Type
+------|---------------
+type | string
+timestamp | float
+host | string
+service | string, optional
+state | float
+state_type | float
+
+#### <a id="icinga2-api-event-streams-type-commentadded"></a> Event Stream Type: CommentAdded
+
+Name | Type
+------|---------------
+type | string
+timestamp | float
+comment | dictionary
+
+#### <a id="icinga2-api-event-streams-type-commentremoved"></a> Event Stream Type: CommentRemoved
+
+Name | Type
+------|---------------
+type | string
+timestamp | float
+comment | dictionary
+
+#### <a id="icinga2-api-event-streams-type-downtimeadded"></a> Event Stream Type: DowntimeAdded
+
+Name | Type
+------|---------------
+type | string
+timestamp | float
+downtime | dictionary
+
+#### <a id="icinga2-api-event-streams-type-downtimeremoved"></a> Event Stream Type: DowntimeRemoved
+
+Name | Type
+------|---------------
+type | string
+timestamp | float
+downtime | dictionary
+
+
+#### <a id="icinga2-api-event-streams-type-downtimestarted"></a> Event Stream Type: DowntimeStarted
+
+Name | Type
+------|---------------
+type | string
+timestamp | float
+downtime | dictionary
+
+
+#### <a id="icinga2-api-event-streams-type-downtimetriggered"></a> Event Stream Type: DowntimeTriggered
+
+Name | Type
+------|---------------
+type | string
+timestamp | float
+downtime | dictionary
 
 ### <a id="icinga2-api-event-streams-filter"></a> Event Stream Filter
 
@@ -1287,6 +1411,7 @@ Example:
     {"check_result":{ ... },"host":"example.localdomain","service":"ping4","timestamp":1445421319.7226390839,"type":"CheckResult"}
     {"check_result":{ ... },"host":"example.localdomain","service":"ping4","timestamp":1445421324.7226390839,"type":"CheckResult"}
     {"check_result":{ ... },"host":"example.localdomain","service":"ping4","timestamp":1445421329.7226390839,"type":"CheckResult"}
+
 
 
 ## <a id="icinga2-api-status"></a> Status and Statistics
