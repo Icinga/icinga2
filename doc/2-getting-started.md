@@ -412,6 +412,9 @@ or Icinga Web 1.x.
 There is a separate module for each database backend. At present support for
 both MySQL and PostgreSQL is implemented.
 
+Please choose whether to install [MySQL](2-getting-started.md#configuring-db-ido-mysql) or
+[PostgreSQL](2-getting-started.md#configuring-db-ido-postgresql).
+
 ### <a id="configuring-db-ido-mysql"></a> Configuring DB IDO MySQL
 
 #### <a id="installing-database-mysql-server"></a> Installing MySQL database server
@@ -523,6 +526,9 @@ RHEL/CentOS 7 and Fedora:
 FreeBSD:
 
     # service icinga2 restart
+
+
+Continue with the [webserver setup](2-getting-started.md#icinga2-user-interface-webserver).
 
 ### <a id="configuring-db-ido-postgresql"></a> Configuring DB IDO PostgreSQL
 
@@ -656,6 +662,8 @@ RHEL/CentOS 7 and Fedora:
     # systemctl restart icinga2
 
 
+Continue with the [webserver setup](2-getting-started.md#icinga2-user-interface-webserver).
+
 ### <a id="icinga2-user-interface-webserver"></a> Webserver
 
 Debian/Ubuntu:
@@ -708,16 +716,29 @@ FreeBSD:
 Please consult the [FreeBSD Handbook](https://www.freebsd.org/doc/en_US.ISO8859-1/books/handbook/firewalls.html) how to configure one of FreeBSD's firewalls.
 
 
-### <a id="setting-up-external-command-pipe"></a> Setting Up External Command Pipe
+### <a id="setting-up-rest-api"></a> Setting Up Icinga 2 REST API
 
-Web interfaces and other Icinga addons are able to send commands to
-Icinga 2 through the external command pipe.
+Icinga Web 2 and other web interfaces require the [REST API](12-icinga2-api.md#icinga2-api-setup)
+to send actions (reschedule check, etc.) and query object details.
 
-You can enable the External Command Pipe using the CLI:
+You can run the CLI command `icinga2 api setup` to enable the
+`api` [feature](11-cli-commands.md#enable-features) and set up
+certificates as well as a new API user `root` with an auto-generated password in the
+`/etc/icinga2/conf.d/api-users.conf` configuration file:
 
-    # icinga2 feature enable command
+    # icinga2 api setup
 
-After that you will have to restart Icinga 2:
+Edit the `api-users.conf` file and add a new ApiUser object. Specify the [permissions](12-icinga2-api.md#icinga2-api-permissions)
+attribute with minimal permissions required by Icinga Web 2.
+
+    # vim /etc/icinga2/conf.d/api-users.conf
+
+    object ApiUser "icingaweb2" {
+      password = "Wijsn8Z9eRs5E25d"
+      permissions = [ "status/query", "actions/*", "objects/modify/*", "objects/query/*" ]
+    }
+
+Make sure to restart Icinga 2 to activate the configuration.
 
 Debian/Ubuntu, RHEL/CentOS 6 and SUSE:
 
@@ -731,37 +752,13 @@ FreeBSD:
 
     # service icinga2 restart
 
-By default the command pipe file is owned by the group `icingacmd` with
-read/write permissions. Add your webserver's user to the group `icingacmd` to
-enable sending commands to Icinga 2 through your web interface:
-
-    # usermod -a -G icingacmd www-data
-
-FreeBSD:
-On FreeBSD the rw directory is owned by the group `www`. You do not need to add the
-user `icinga` to the group `www`.
-
-Debian packages use `nagios` as the default user and group name. Therefore
-change `icingacmd` to `nagios`.
-
-The webserver's user is different between distributions so you might have to
-change `www-data` to `wwwrun`, `www`, or `apache`.
-
-Change `www-data` to the user you're using to run queries.
-
-You can verify that the user has been successfully added to the `icingacmd`
-group using the `id` command:
-
-    $ id <your-webserver-user>
-
-![id command on CentOS 7](images/getting-started/id-apache-centos7.png "Confirm that the webserver's user
-(here: `apache` on a CentOS 7 system) is a member of the group `icingacmd`.")
-
 ### <a id="installing-icingaweb2"></a> Installing Icinga Web 2
 
 Please consult the [installation documentation](https://github.com/Icinga/icingaweb2/blob/master/doc/02-Installation.md)
 for further instructions on how to install Icinga Web 2.
 
+The Icinga 2 API can be defined as [command transport](https://github.com/Icinga/icingaweb2/blob/master/modules/monitoring/doc/commandtransports.md)
+in Icinga Web 2 >= 2.4.
 
 ## <a id="install-addons"></a> Addons
 
