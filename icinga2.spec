@@ -397,7 +397,8 @@ do
 done
 cd -
 
-/usr/sbin/hardlink -cv %{buildroot}%{_datadir}/selinux
+# TODO: Fix build problems on Icinga, see https://github.com/Icinga/puppet-icinga_build/issues/11
+#/usr/sbin/hardlink -cv %{buildroot}%{_datadir}/selinux
 %endif
 
 %if 0%{?fedora}
