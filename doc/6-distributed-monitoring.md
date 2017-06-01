@@ -2513,6 +2513,7 @@ Pass the following details to the `node setup` CLI command:
 
   Parameter           | Description
   --------------------|--------------------
+  Common name (CN)    | **Optional.** Specified with the `--cn` parameter. By convention this should be the host's FQDN.
   Request ticket      | **Required.** Add the previously generated [ticket number](6-distributed-monitoring.md#distributed-monitoring-setup-csr-auto-signing).
   Trusted master certicate | **Required.** Add the previously fetched trusted master certificate (this step means that you've verified its origin).
   Master endpoint     | **Required.** Specify the master's endpoint name.
@@ -2524,6 +2525,7 @@ Pass the following details to the `node setup` CLI command:
 Example:
 
     [root@icinga2-client1.localdomain /]# icinga2 node setup --ticket ead2d570e18c78abf285d6b85524970a0f69c22d \
+    --cn icinga2-client1.localdomain \
     --endpoint icinga2-master1.localdomain \
     --zone icinga2-client1.localdomain \
     --master_host icinga2-master1.localdomain \
