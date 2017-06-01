@@ -27,12 +27,12 @@ MinAggregator::MinAggregator(const String& attr)
 
 void MinAggregator::Apply(const Table::Ptr& table, const Value& row)
 {
-	Column column = table->GetColumn(m_MinAttr);
+    Column column = table->GetColumn(m_MinAttr);
 
-	Value value = column.ExtractValue(row);
+    Value value = column.ExtractValue(row);
 
-	if (value < m_Min)
-		m_Min = value;
+    if (value < m_Min)
+        m_Min = value;
 }
 
 double MinAggregator::GetResult(void) const
