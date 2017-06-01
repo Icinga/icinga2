@@ -22,20 +22,23 @@
 using namespace icinga;
 
 MinAggregator::MinAggregator(const String& attr)
-    : m_Min(0), m_MinAttr(attr)
+    : m_Min(DBL_MAX), m_MinAttr(attr)
 { }
 
 void MinAggregator::Apply(const Table::Ptr& table, const Value& row)
 {
-	Column column = table->GetColumn(m_MinAttr);
+        Column column = table->GetColumn(m_MinAttr);
 
-	Value value = column.ExtractValue(row);
+        Value value = column.ExtractValue(row);
 
-	if ((m_Min == 0) || (value < m_Min))
-		m_Min = value;
+        if (value < m_Min)
+                m_Min = value;
 }
 
 double MinAggregator::GetResult(void) const
 {
-	return m_Min;
+        if (m_Min == DBL_MAX)
+                return 0;
+        else
+                return m_Min;
 }
