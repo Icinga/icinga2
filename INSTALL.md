@@ -181,7 +181,7 @@ A shorter way is available using the `yum-builddep` command on RHEL based system
 
 Build the RPM:
 
-    rpmbuild -ba SPEC/icinga2.spec
+    rpmbuild -ba SPECS/icinga2.spec
 
 ### Additional Hints
 
