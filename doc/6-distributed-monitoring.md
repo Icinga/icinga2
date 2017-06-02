@@ -542,6 +542,8 @@ the `zones.conf` file in your preferred editor. Add the following lines if not e
       global = true
     }
 
+Note: Packages >= 2.7 provide this configuration by default.
+
 You don't need any local configuration on the client except for
 CheckCommand definitions which can be synced using the global zone
 above. Therefore disable the inclusion of the `conf.d` directory
@@ -668,6 +670,8 @@ for syncing check commands later:
     object Zone "global-templates" {
       global = true
     }
+
+Note: Packages >= 2.7 provide this configuration by default.
 
 You don't need any local configuration on the client except for
 CheckCommand definitions which can be synced using the global zone
@@ -1059,6 +1063,8 @@ for syncing check commands later:
       global = true
     }
 
+Note: Packages >= 2.7 provide this configuration by default.
+
 You don't need any local configuration on the client except for
 CheckCommand definitions which can be synced using the global zone
 above. Therefore disable the inclusion of the `conf.d` directory
@@ -1226,6 +1232,8 @@ file.
     object Zone "global-templates" {
       global = true
     }
+
+Note: Packages >= 2.7 provide this configuration by default.
 
 Put existing CheckCommand definitions into `/etc/icinga2/zones.d/global-templates/commands.conf`.
 
@@ -1923,6 +1931,8 @@ the global configuration files:
       global = true
     }
 
+Note: Packages >= 2.7 provide this configuration by default.
+
 Similar to the zone configuration sync you'll need to create a new directory in
 `/etc/icinga2/zones.d`:
 
@@ -2550,6 +2560,8 @@ Add an additional global zone. Please note the `>>` append mode.
       global = true
     }
     EOF
+
+Note: Packages >= 2.7 provide this configuration by default.
 
 If this client node is configured as [remote command endpoint execution](6-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint)
 you can safely disable the `checker` feature. The `node setup` CLI command already disabled the `notification` feature.
