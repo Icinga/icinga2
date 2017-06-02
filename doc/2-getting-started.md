@@ -200,7 +200,7 @@ OS/Distribution        | Package Name       | Repository                | Instal
 -----------------------|--------------------|---------------------------|----------------------------
 RHEL/CentOS            | nagios-plugins-all | [EPEL](https://fedoraproject.org/wiki/EPEL) | /usr/lib/nagios/plugins or /usr/lib64/nagios/plugins
 SLES/OpenSUSE          | monitoring-plugins | [server:monitoring](https://build.opensuse.org/project/repositories/server:monitoring) | /usr/lib/nagios/plugins
-Debian/Ubuntu          | nagios-plugins     | -                         | /usr/lib/nagios/plugins
+Debian/Ubuntu          | monitoring-plugins | -                         | /usr/lib/nagios/plugins
 FreeBSD                | monitoring-plugins | -                         | /usr/local/libexec/nagios
 OS X                   | nagios-plugins     | [MacPorts](https://www.macports.org), [Homebrew](https://brew.sh) | /opt/local/libexec or /usr/local/sbin
 
@@ -209,7 +209,7 @@ distribution's package manager.
 
 Debian/Ubuntu:
 
-    # apt-get install nagios-plugins
+    # apt-get install monitoring-plugins
 
 RHEL/CentOS:
 
