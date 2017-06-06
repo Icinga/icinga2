@@ -38,6 +38,11 @@ class GelfWriter : ConfigObject
 	[config] bool enable_send_perfdata {
 		default {{{ return false; }}}
 	};
+
+	[no_user_modify] bool connected;
+	[no_user_modify] bool should_connect {
+		default {{{ return true; }}}
+	};
 };
 
 }
