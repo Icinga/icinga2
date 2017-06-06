@@ -120,22 +120,32 @@ std::pair<String, String> PluginUtility::ParseCheckOutput(const String& output)
 	std::vector<String> lines;
 	boost::algorithm::split(lines, output, boost::is_any_of("\r\n"));
 
-	for (const String& line : lines) {
-		size_t delim = line.FindFirstOf("|");
+	// We only need extract performance data from the first and second last lines
+	// See: https://www.monitoring-plugins.org/doc/guidelines.html#AEN201
+
+	std::vector<String>::size_type second_last;
+	if (lines.size() > 2)
+		second_last = lines.size() - 2;
+
+	for (std::vector<String>::size_type i = 0; i < lines.size(); i++) {
+		const String& line = lines[i];
 
 		if (!text.IsEmpty())
 			text += "\n";
 
-		if (delim != String::NPos) {
+		if (i == 0 || i == second_last) {
+			size_t delim = line.FindFirstOf("|");
+
+			if (delim != String::NPos) {
+				if (!perfdata.IsEmpty())
+					perfdata += " ";
+
+				perfdata += line.SubStr(delim + 1, line.GetLength());
+			}
+
 			text += line.SubStr(0, delim);
-
-			if (!perfdata.IsEmpty())
-				perfdata += " ";
-
-			perfdata += line.SubStr(delim + 1, line.GetLength());
-		} else {
+		} else
 			text += line;
-		}
 	}
 
 	boost::algorithm::trim(perfdata);
