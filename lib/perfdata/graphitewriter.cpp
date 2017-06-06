@@ -67,6 +67,7 @@ void GraphiteWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& 
 		Dictionary::Ptr stats = new Dictionary();
 		stats->Set("work_queue_items", workQueueItems);
 		stats->Set("work_queue_item_rate", workQueueItemRate);
+		stats->Set("connected", graphitewriter->GetConnected());
 
 		nodes->Set(graphitewriter->GetName(), stats);
 
@@ -94,7 +95,8 @@ void GraphiteWriter::Start(bool runtimeCreated)
 	m_ReconnectTimer->Start();
 	m_ReconnectTimer->Reschedule(0);
 
-	Service::OnNewCheckResult.connect(boost::bind(&GraphiteWriter::CheckResultHandler, this, _1, _2));
+	/* Register event handlers. */
+	Checkable::OnNewCheckResult.connect(boost::bind(&GraphiteWriter::CheckResultHandler, this, _1, _2));
 }
 
 void GraphiteWriter::Stop(bool runtimeRemoved)
@@ -179,10 +181,10 @@ void GraphiteWriter::Disconnect(void)
 
 void GraphiteWriter::CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
 {
-	m_WorkQueue.Enqueue(boost::bind(&GraphiteWriter::InternalCheckResultHandler, this, checkable, cr));
+	m_WorkQueue.Enqueue(boost::bind(&GraphiteWriter::CheckResultHandlerInternal, this, checkable, cr));
 }
 
-void GraphiteWriter::InternalCheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
+void GraphiteWriter::CheckResultHandlerInternal(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
 {
 	AssertOnWorkQueue();
 
@@ -330,7 +332,7 @@ void GraphiteWriter::SendMetric(const String& prefix, const String& name, double
 
 	ObjectLock olock(this);
 
-	if (!m_Stream)
+	if (!GetConnected())
 		return;
 
 	try {
@@ -339,7 +341,7 @@ void GraphiteWriter::SendMetric(const String& prefix, const String& name, double
 		Log(LogCritical, "GraphiteWriter")
 		    << "Cannot write to TCP socket on host '" << GetHost() << "' port '" << GetPort() << "'.";
 
-		m_Stream.reset();
+		throw ex;
 	}
 }
 
