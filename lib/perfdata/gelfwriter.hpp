@@ -25,13 +25,14 @@
 #include "base/configobject.hpp"
 #include "base/tcpsocket.hpp"
 #include "base/timer.hpp"
+#include "base/workqueue.hpp"
 #include <fstream>
 
 namespace icinga
 {
 
 /**
- * An Icinga gelf writer.
+ * An Icinga Gelf writer for Graylog.
  *
  * @ingroup perfdata
  */
@@ -41,24 +42,43 @@ public:
 	DECLARE_OBJECT(GelfWriter);
 	DECLARE_OBJECTNAME(GelfWriter);
 
+	GelfWriter(void);
+
+	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
+
 protected:
+	virtual void OnConfigLoaded(void) override;
 	virtual void Start(bool runtimeCreated) override;
 	virtual void Stop(bool runtimeRemoved) override;
 
 private:
 	Stream::Ptr m_Stream;
+	WorkQueue m_WorkQueue;
 
 	Timer::Ptr m_ReconnectTimer;
 
 	void CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
+	void CheckResultHandlerInternal(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
 	void NotificationToUserHandler(const Notification::Ptr& notification, const Checkable::Ptr& checkable,
-	const User::Ptr& user, NotificationType notification_type, CheckResult::Ptr const& cr,
-	const String& author, const String& comment_text, const String& command_name);
-	String ComposeGelfMessage(const Dictionary::Ptr& fields, const String& source, double ts);
+	    const User::Ptr& user, NotificationType notificationType, const CheckResult::Ptr& cr,
+	    const String& author, const String& commentText, const String& commandName);
+	void NotificationToUserHandlerInternal(const Notification::Ptr& notification, const Checkable::Ptr& checkable,
+	    const User::Ptr& user, NotificationType notification_type, const CheckResult::Ptr& cr,
+	    const String& author, const String& comment_text, const String& command_name);
 	void StateChangeHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, StateType type);
-	void SendLogMessage(const String& gelf);
+	void StateChangeHandlerInternal(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, StateType type);
+
+	String ComposeGelfMessage(const Dictionary::Ptr& fields, const String& source, double ts);
+	void SendLogMessage(const String& gelfMessage);
 
 	void ReconnectTimerHandler(void);
+
+	void Disconnect(void);
+	void Reconnect(void);
+
+	void AssertOnWorkQueue(void);
+
+	void ExceptionHandler(boost::exception_ptr exp);
 };
 
 }
