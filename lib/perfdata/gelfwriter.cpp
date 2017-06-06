@@ -21,6 +21,7 @@
 #include "perfdata/gelfwriter.tcpp"
 #include "icinga/service.hpp"
 #include "icinga/notification.hpp"
+#include "icinga/checkcommand.hpp"
 #include "icinga/macroprocessor.hpp"
 #include "icinga/compatutility.hpp"
 #include "base/tcpsocket.hpp"
@@ -220,6 +221,11 @@ void GelfWriter::CheckResultHandlerInternal(const Checkable::Ptr& checkable, con
 
 	fields->Set("_reachable", checkable->IsReachable());
 
+	CheckCommand::Ptr commandObj = checkable->GetCheckCommand();
+
+	if (commandObj)
+		fields->Set("_check_command", commandObj->GetName());
+
 	double ts = Utility::GetTime();
 
 	if (cr) {
@@ -317,6 +323,7 @@ void GelfWriter::NotificationToUserHandlerInternal(const Notification::Ptr& noti
 
 	if (service) {
 		fields->Set("_type", "SERVICE NOTIFICATION");
+		//TODO: fix this to _service_name
 		fields->Set("_service", service->GetShortName());
 		fields->Set("short_message", output);
 	} else {
@@ -331,6 +338,11 @@ void GelfWriter::NotificationToUserHandlerInternal(const Notification::Ptr& noti
 	fields->Set("_command", commandName);
 	fields->Set("_notification_type", notificationTypeString);
 	fields->Set("_comment", authorComment);
+
+	CheckCommand::Ptr commandObj = checkable->GetCheckCommand();
+
+	if (commandObj)
+		fields->Set("_check_command", commandObj->GetName());
 
 	SendLogMessage(ComposeGelfMessage(fields, GetSource(), ts));
 }
@@ -370,6 +382,11 @@ void GelfWriter::StateChangeHandlerInternal(const Checkable::Ptr& checkable, con
 		fields->Set("_last_state", host->GetLastState());
 		fields->Set("_last_hard_state", host->GetLastHardState());
 	}
+
+	CheckCommand::Ptr commandObj = checkable->GetCheckCommand();
+
+	if (commandObj)
+		fields->Set("_check_command", commandObj->GetName());
 
 	double ts = Utility::GetTime();
 
