@@ -2,7 +2,7 @@
 
 This part of the Icinga 2 documentation provides an overview of all the basic
 monitoring concepts you need to know to run Icinga 2.
-Keep in mind these examples are made with a Linux server in mind. If you are
+Keep in mind these examples are made with a Linux server. If you are
 using Windows, you will need to change the services accordingly. See the [ITL reference](10-icinga-template-library.md#windows-plugins)
  for further information.
 
