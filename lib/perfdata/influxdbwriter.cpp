@@ -228,7 +228,7 @@ String InfluxdbWriter::FormatInteger(int val)
 
 String InfluxdbWriter::FormatBoolean(bool val)
 {
-	return String(val);
+	return val ? "true" : "false";
 }
 
 void InfluxdbWriter::SendPerfdata(const Dictionary::Ptr& tmpl, const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, double ts)
