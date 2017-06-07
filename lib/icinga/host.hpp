@@ -73,6 +73,8 @@ protected:
 	virtual void OnAllConfigLoaded(void) override;
 	virtual void CreateChildObjects(const Type::Ptr& childType) override;
 
+	virtual void ValidateGroups(const Array::Ptr& value, const ValidationUtils& utils) override;
+
 private:
 	mutable boost::mutex m_ServicesMutex;
 	std::map<String, intrusive_ptr<Service> > m_Services;
