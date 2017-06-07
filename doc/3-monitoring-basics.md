@@ -1544,77 +1544,90 @@ when passing credentials to database checks:
 
 ### <a id="notification-commands"></a> Notification Commands
 
-[NotificationCommand](9-object-types.md#objecttype-notificationcommand) objects define how notifications are delivered to external
-interfaces (email, XMPP, IRC, Twitter, etc.).
-
-[NotificationCommand](9-object-types.md#objecttype-notificationcommand) objects are referenced by
-[Notification](9-object-types.md#objecttype-notification) objects using the `command` attribute.
+[NotificationCommand](9-object-types.md#objecttype-notificationcommand)
+objects define how notifications are delivered to external interfaces
+(email, XMPP, IRC, Twitter, etc.).
+[NotificationCommand](9-object-types.md#objecttype-notificationcommand)
+objects are referenced by [Notification](9-object-types.md#objecttype-notification)
+objects using the `command` attribute.
 
 > **Note**
 >
 > Make sure that the [notification](11-cli-commands.md#enable-features) feature is enabled
 > in order to execute notification commands.
 
-Below is an example using runtime macros from Icinga 2 (such as `$service.output$` for
-the current check output) sending an email to the user(s) associated with the
-notification itself (`$user.email$`).
-
-If you want to specify default values for some of the custom attribute definitions,
-you can add a `vars` dictionary as shown for the `CheckCommand` object.
-
-    object NotificationCommand "mail-service-notification" {
-      command = [ SysconfDir + "/icinga2/scripts/mail-notification.sh" ]
-
-      env = {
-        NOTIFICATIONTYPE = "$notification.type$"
-        SERVICEDESC = "$service.name$"
-        HOSTALIAS = "$host.display_name$"
-        HOSTADDRESS = "$address$"
-        SERVICESTATE = "$service.state$"
-        LONGDATETIME = "$icinga.long_date_time$"
-        SERVICEOUTPUT = "$service.output$"
-        NOTIFICATIONAUTHORNAME = "$notification.author$"
-        NOTIFICATIONCOMMENT = "$notification.comment$"
-    	HOSTDISPLAYNAME = "$host.display_name$"
-        SERVICEDISPLAYNAME = "$service.display_name$"
-        USEREMAIL = "$user.email$"
-      }
-    }
-
-The command attribute in the `mail-service-notification` command refers to the following
-shell script. The macros specified in the `env` array are exported
-as environment variables and can be used in the notification script:
-
-    #!/usr/bin/env bash
-    template=$(cat <<TEMPLATE
-    ***** Icinga  *****
-
-    Notification Type: $NOTIFICATIONTYPE
-
-    Service: $SERVICEDESC
-    Host: $HOSTALIAS
-    Address: $HOSTADDRESS
-    State: $SERVICESTATE
-
-    Date/Time: $LONGDATETIME
-
-    Additional Info: $SERVICEOUTPUT
-
-    Comment: [$NOTIFICATIONAUTHORNAME] $NOTIFICATIONCOMMENT
-    TEMPLATE
-    )
-
-    /usr/bin/printf "%b" $template | mail -s "$NOTIFICATIONTYPE - $HOSTDISPLAYNAME - $SERVICEDISPLAYNAME is $SERVICESTATE" $USEREMAIL
-
-> **Note**
->
-> This example is for `exim` only. Requires changes for `sendmail` and
-> other MTAs.
-
-While it's possible to specify the entire notification command right
+While it's possible to specify an entire notification command right
 in the NotificationCommand object it is generally advisable to create a
 shell script in the `/etc/icinga2/scripts` directory and have the
 NotificationCommand object refer to that.
+
+A fresh Icinga 2 install comes with with two example scripts for host
+and service notifications by email. Based on the Icinga 2 runtime macros
+(such as `$service.output$` for the current check output) it's possible
+to send email to the user(s) associated with the notification itself
+(`$user.email$`). Feel free to take these scripts as a starting point
+for your own individual notification solution - and keep in mind that
+nearly everything is technically possible.
+
+Information needed to generate notifications is passed to the scripts as
+arguments. The NotificationCommand objects `mail-host-notification` and
+`mail-service-notification` correspond to the shell scripts
+`mail-host-notification.sh` and `mail-service-notification.sh` in
+`/etc/icinga2/scripts` and define default values for arguments. These
+defaults can always be overwritten locally.
+
+> **Note**
+>
+> This example requires the `mail` binary installed on the Icinga 2
+> master.
+
+#### <a id="mail-host-notification"></a> mail-host-notification
+
+A quick overview of the arguments that can be used. See also [host runtime
+macros](3-monitoring-basics.md#-host-runtime-macros) for further
+information.
+
+  Name                           | Description
+  -------------------------------|---------------------------------------
+  `notification_address`         | **Required.** The host's IPv4 address. Defaults to `$address$`.
+  `notification_date`            | **Required.** Date and time. Defaults to `$icinga.long_date_time$`.
+  `notification_hostname`        | **Required.** The host's `FQDN`. Defaults to `$host.name$`.
+  `notification_hostdisplayname` | **Required.** The host's display name. Defaults to `$host.display_name$`.
+  `notification_hostoutput`      | **Required.** Output from host check. Defaults to `$host.output$`.
+  `notification_useremail`       | **Required.** The notification's recipient(s). Defaults to `$user.email$`.
+  `notification_hoststate`       | **Required.** Current state of host. Defaults to `$host.state$`.
+  `notification_type`            | **Required.** Type of notification. Defaults to `$notification.type$`.
+  `notification_address6`        | **Optional.** The host's IPv6 address. Defaults to `$address6$`.
+  `notification_author`          | **Optional.** Comment author. Defaults to `$notification.author$`.
+  `notification_comment`         | **Optional.** Comment text. Defaults to `$notification.comment$`.
+  `notification_from`            | **Optional.** Define a valid From: string (e.g. `"Icinga 2 Host Monitoring <icinga@example.com>"`)
+  `notification_icingaweb2url`   | **Optional.** Define URL to your Icinga Web 2 (e.g. `"https://www.example.com/icingaweb2"`)
+  `notification_logtosyslog`     | **Optional.** Set `true` to log notification events to syslog; useful for debugging. Defaults to `false`.
+
+#### <a id="mail-service-notification"></a> mail-service-notification
+
+A quick overview of the arguments that can be used. See also [service runtime
+macros](3-monitoring-basics.md#-service-runtime-macros) for further
+information.
+
+  Name                              | Description
+  ----------------------------------|---------------------------------------
+  `notification_address`            | **Required.** The host's IPv4 address. Defaults to `$address$`.
+  `notification_date`               | **Required.** Date and time. Defaults to `$icinga.long_date_time$`.
+  `notification_hostname`           | **Required.** The host's `FQDN`. Defaults to `$host.name$`.
+  `notification_servicename`        | **Required.** The service name. Defaults to `$service.name$`.
+  `notification_hostdisplayname`    | **Required.** Host display name. Defaults to `$host.display_name$`.
+  `notification_servicedisplayname` | **Required.** Service display name. Defaults to `$service.display_name$`.
+  `notification_serviceoutput`      | **Required.** Output from service check. Defaults to `$service.output$`.
+  `notification_useremail`          | **Required.** The notification's recipient(s). Defaults to `$user.email$`.
+  `notification_servicestate`       | **Required.** Current state of host. Defaults to `$service.state$`.
+  `notification_type`               | **Required.** Type of notification. Defaults to `$notification.type$`.
+  `notification_address6`           | **Optional.** The host's IPv6 address. Defaults to `$address6$`.
+  `notification_author`             | **Optional.** Comment author. Defaults to `$notification.author$`.
+  `notification_comment`            | **Optional.** Comment text. Defaults to `$notification.comment$`.
+  `notification_from`               | **Optional.** Define a valid From: string (e.g. `"Icinga 2 Host Monitoring <icinga@example.com>"`)
+  `notification_icingaweb2url`      | **Optional.** Define URL to your Icinga Web 2 (e.g. `"https://www.example.com/icingaweb2"`)
+  `notification_logtosyslog`        | **Optional.** Set `true` to log notification events to syslog; useful for debugging. Defaults to `false`.
 
 ### <a id="event-commands"></a> Event Commands
 

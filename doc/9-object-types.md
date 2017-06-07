@@ -1094,26 +1094,75 @@ A notification command definition.
 
 Example:
 
-    object NotificationCommand "mail-service-notification" {
-      command = [
-        SysconfDir + "/icinga2/scripts/mail-notification.sh"
-      ]
+     object NotificationCommand "mail-service-notification" {
+       command = [ SysconfDir + "/icinga2/scripts/mail-service-notification.sh" ]
 
-      env = {
-        NOTIFICATIONTYPE = "$notification.type$"
-        SERVICEDESC = "$service.name$"
-        HOSTALIAS = "$host.display_name$"
-        HOSTADDRESS = "$address$"
-        SERVICESTATE = "$service.state$"
-        LONGDATETIME = "$icinga.long_date_time$"
-        SERVICEOUTPUT = "$service.output$"
-        NOTIFICATIONAUTHORNAME = "$notification.author$"
-        NOTIFICATIONCOMMENT = "$notification.comment$"
-        HOSTDISPLAYNAME = "$host.display_name$"
-        SERVICEDISPLAYNAME = "$service.display_name$"
-        USEREMAIL = "$user.email$"
-      }
-    }
+       arguments += {
+         "-4" = {
+           required = true
+           value = "$notification_address$"
+         }
+         "-6" = "$notification_address6$"
+         "-b" = "$notification_author$"
+         "-c" = "$notification_comment$"
+         "-d" = {
+           required = true
+           value = "$notification_date$"
+         }
+         "-e" = {
+           required = true
+           value = "$notification_servicename$"
+         }
+         "-f" = "$notification_from$"
+         "-i" = "$notification_icingaweb2url$"
+         "-l" = {
+           required = true
+           value = "$notification_hostname$"
+         }
+         "-n" = {
+           required = true
+           value = "$notification_hostdisplayname$"
+         }
+         "-o" = {
+           required = true
+           value = "$notification_serviceoutput$"
+         }
+         "-r" = {
+           required = true
+           value = "$notification_useremail$"
+         }
+         "-s" = {
+           required = true
+           value = "$notification_servicestate$"
+         }
+         "-t" = {
+           required = true
+           value = "$notification_type$"
+         }
+         "-u" = {
+           required = true
+           value = "$notification_servicedisplayname$"
+         }
+         "-v" = "$notification_logtosyslog$"
+       }
+
+       vars += {
+         notification_address = "$address$"
+         notification_address6 = "$address6$"
+         notification_author = "$notification.author$"
+         notification_comment = "$notification.comment$"
+         notification_type = "$notification.type$"
+         notification_date = "$icinga.long_date_time$"
+         notification_hostname = "$host.name$"
+         notification_hostdisplayname = "$host.display_name$"
+         notification_servicename = "$service.name$"
+         notification_serviceoutput = "$service.output$"
+         notification_servicestate = "$service.state$"
+         notification_useremail = "$user.email$"
+         notification_servicedisplayname = "$service.display_name$"
+       }
+     }
+
 
 Configuration Attributes:
 
@@ -1128,6 +1177,7 @@ Configuration Attributes:
 
 Command arguments can be used the same way as for [CheckCommand objects](9-object-types.md#objecttype-checkcommand-arguments).
 
+More details on specific attributes can be found in [this chapter](3-monitoring-basics.md#notification-commands).
 
 ## <a id="objecttype-notificationcomponent"></a> NotificationComponent
 
