@@ -1021,7 +1021,7 @@ or with the `test_server` attribute set to `true` are **not** added to this grou
 Details on the `assign where` syntax can be found in the
 [Language Reference](17-language-reference.md#apply).
 
-## <a id="notifications"></a> Notifications
+## <a id="alert-notifications"></a> Notifications
 
 Notifications for service and host problems are an integral part of your
 monitoring setup.
@@ -1057,10 +1057,8 @@ object, notifications for all states and types will be sent.
 
 Details on troubleshooting notification problems can be found [here](15-troubleshooting.md#troubleshooting).
 
-> **Note**
->
-> Make sure that the [notification](11-cli-commands.md#enable-features) feature is enabled
-> in order to execute notification commands.
+**Note**: Make sure that the [notification](11-cli-commands.md#enable-features) feature is enabled
+in order to execute notification commands.
 
 You should choose which information you (and your notified users) are interested in
 case of emergency, and also which information does not provide any value to you and
@@ -1102,10 +1100,8 @@ Instead of assigning users to notifications, you can also add the `user_groups`
 attribute with a list of user groups to the `Notification` object. Icinga 2 will
 send notifications to all group members.
 
-> **Note**
->
-> Only users who have been notified of a problem before  (`Warning`, `Critical`, `Unknown`
-> states for services, `Down` for hosts) will receive `Recovery` notifications.
+**Note**: Only users who have been notified of a problem before  (`Warning`, `Critical`, `Unknown`
+states for services, `Down` for hosts) will receive `Recovery` notifications.
 
 ### <a id="notification-escalations"></a> Notification Escalations
 
