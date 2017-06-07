@@ -766,16 +766,7 @@ Value ClusterEvents::UpdateRepositoryAPIHandler(const MessageOrigin::Ptr& origin
 	fp << JsonEncode(params);
 	fp.close();
 
-#ifdef _WIN32
-	_unlink(repositoryFile.CStr());
-#endif /* _WIN32 */
-
-	if (rename(tempRepositoryFile.CStr(), repositoryFile.CStr()) < 0) {
-		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("rename")
-		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(tempRepositoryFile));
-	}
+	Utility::MoveFile(tempRepositoryFile, repositoryFile, true);
 
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 

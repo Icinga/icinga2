@@ -38,6 +38,7 @@
 #include "base/application.hpp"
 #include "base/context.hpp"
 #include "base/statsfunction.hpp"
+#include "base/utility.hpp"
 #include <boost/tuple/tuple.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/replace.hpp>
@@ -771,16 +772,7 @@ void StatusDataWriter::UpdateObjectsCache(void)
 
 	objectfp.close();
 
-#ifdef _WIN32
-	_unlink(objectsPath.CStr());
-#endif /* _WIN32 */
-
-	if (rename(tempObjectsPath.CStr(), objectsPath.CStr()) < 0) {
-		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("rename")
-		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(tempObjectsPath));
-	}
+	Utility::MoveFile(tempObjectsPath, objectsPath, true);
 }
 
 /**
@@ -853,16 +845,7 @@ void StatusDataWriter::StatusTimerHandler(void)
 
 	statusfp.close();
 
-#ifdef _WIN32
-	_unlink(statusPath.CStr());
-#endif /* _WIN32 */
-
-	if (rename(tempStatusPath.CStr(), statusPath.CStr()) < 0) {
-		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("rename")
-		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(tempStatusPath));
-	}
+	Utility::MoveFile(tempStatusPath, statusPath, true);
 
 	Log(LogNotice, "StatusDataWriter")
 	    << "Writing status.dat file took " << Utility::FormatDuration(Utility::GetTime() - start);

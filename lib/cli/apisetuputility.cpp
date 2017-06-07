@@ -182,16 +182,7 @@ bool ApiSetupUtility::SetupMasterApiUser(void)
 
 	fp.close();
 
-#ifdef _WIN32
-	_unlink(apiUsersPath.CStr());
-#endif /* _WIN32 */
-
-	if (rename(tempFilename.CStr(), apiUsersPath.CStr()) < 0) {
-		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("rename")
-		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(tempFilename));
-	}
+	Utility::MoveFile(tempFilename, apiUsersPath, true);
 
 	return true;
 }

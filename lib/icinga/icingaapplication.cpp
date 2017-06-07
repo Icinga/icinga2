@@ -176,16 +176,7 @@ void IcingaApplication::DumpModifiedAttributes(void)
 
 	fp.close();
 
-#ifdef _WIN32
-	_unlink(path.CStr());
-#endif /* _WIN32 */
-
-	if (rename(tempFilename.CStr(), path.CStr()) < 0) {
-		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("rename")
-		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(tempFilename));
-	}
+	Utility::MoveFile(tempFilename, path, true);
 }
 
 IcingaApplication::Ptr IcingaApplication::GetInstance(void)

@@ -427,16 +427,7 @@ wizard_ticket:
 
 		fp.close();
 
-#ifdef _WIN32
-		_unlink(apipath.CStr());
-#endif /* _WIN32 */
-
-		if (rename(tempApiPath.CStr(), apipath.CStr()) < 0) {
-			BOOST_THROW_EXCEPTION(posix_error()
-			    << boost::errinfo_api_function("rename")
-			    << boost::errinfo_errno(errno)
-			    << boost::errinfo_file_name(tempApiPath));
-		}
+		Utility::MoveFile(tempApiPath, apipath, true);
 
 		/* apilistener config */
 		Log(LogInformation, "cli", "Generating local zones.conf.");
@@ -546,16 +537,7 @@ wizard_ticket:
 
 		fp.close();
 
-#ifdef _WIN32
-		_unlink(apipath.CStr());
-#endif /* _WIN32 */
-
-		if (rename(tempApiPath.CStr(), apipath.CStr()) < 0) {
-			BOOST_THROW_EXCEPTION(posix_error()
-			    << boost::errinfo_api_function("rename")
-			    << boost::errinfo_errno(errno)
-			    << boost::errinfo_file_name(tempApiPath));
-		}
+		Utility::MoveFile(tempApiPath, apipath, true);
 
 		/* update constants.conf with NodeName = CN + TicketSalt = random value */
 		if (cn != Utility::GetFQDN()) {

@@ -361,16 +361,7 @@ bool RepositoryUtility::WriteObjectToRepositoryChangeLog(const String& path, con
 	fp << JsonEncode(item);
 	fp.close();
 
-#ifdef _WIN32
-	_unlink(path.CStr());
-#endif /* _WIN32 */
-
-	if (rename(tempFilename.CStr(), path.CStr()) < 0) {
-		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("rename")
-		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(tempFilename));
-	}
+	Utility::MoveFile(tempFilename, path, true);
 
 	return true;
 }
@@ -502,16 +493,7 @@ bool RepositoryUtility::WriteObjectToRepository(const String& path, const String
 	fp << std::endl;
 	fp.close();
 
-#ifdef _WIN32
-	_unlink(path.CStr());
-#endif /* _WIN32 */
-
-	if (rename(tempFilename.CStr(), path.CStr()) < 0) {
-		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("rename")
-		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(tempFilename));
-	}
+	Utility::MoveFile(tempFilename, path, true);
 
 	return true;
 }
