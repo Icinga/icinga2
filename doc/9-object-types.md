@@ -1018,7 +1018,7 @@ of host and service state changes and other events.
 > usually easier to just create a `Notification` template and use the `apply` keyword
 > to assign the notification to a number of hosts or services. Use the `to` keyword
 > to set the specific target type for `Host` or `Service`.
-> Check the [notifications](3-monitoring-basics.md#notifications) chapter for detailed examples.
+> Check the [notifications](3-monitoring-basics.md#alert-notifications) chapter for detailed examples.
 
 Example:
 

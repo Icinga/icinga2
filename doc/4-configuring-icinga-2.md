@@ -294,7 +294,7 @@ in [services.conf](4-configuring-icinga-2.md#services-conf).
 * define disks (all, specific `/`) and their attributes for the `disk`
 service apply rule defined in [services.conf](4-configuring-icinga-2.md#services-conf).
 * define notification types (`mail`) and set the groups attribute. This
-will be used by notification apply rules in [notifications.conf](notifications-conf).
+will be used by notification apply rules in [notifications.conf](4-configuring-icinga-2.md#notifications-conf).
 
 If you've installed [Icinga Web 2](2-getting-started.md#setting-up-icingaweb2), you can
 uncomment the http vhost attributes and reload Icinga 2. The apply
@@ -562,7 +562,7 @@ implicitely use the `icingaadmins` UserGroup defined in [users.conf](4-configuri
     }
 
 More details on defining notifications and their additional attributes such as
-filters can be read in [this chapter](3-monitoring-basics.md#notifications).
+filters can be read in [this chapter](3-monitoring-basics.md#alert-notifications).
 
 #### <a id="commands-conf"></a> commands.conf
 

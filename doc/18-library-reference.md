@@ -1246,7 +1246,7 @@ Signature:
 
 Returns a list of keys for all items that are currently in the dictionary.
 
-### <a id="dictionary-keys"></a> Dictionary#values
+### <a id="dictionary-values"></a> Dictionary#values
 
 Signature:
 

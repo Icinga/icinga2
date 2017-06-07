@@ -108,7 +108,7 @@ More details can be found in [this blog post](https://www.icinga.com/2014/12/02/
 
 There's a variety of resources available, for example different notification scripts such as:
 
-* E-Mail ([examples](3-monitoring-basics.md#notifications) provided)
+* E-Mail ([examples](3-monitoring-basics.md#alert-notifications) provided)
 * SMS
 * Pager (XMPP, etc.)
 * Twitter
