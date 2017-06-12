@@ -1027,6 +1027,27 @@ private:
 	Expression *m_Name;
 };
 
+class I2_CONFIG_API TryExceptExpression : public DebuggableExpression
+{
+public:
+	TryExceptExpression(Expression *tryBody, Expression *exceptBody, const DebugInfo& debugInfo = DebugInfo())
+		: DebuggableExpression(debugInfo), m_TryBody(tryBody), m_ExceptBody(exceptBody)
+	{ }
+
+	~TryExceptExpression(void)
+	{
+		delete m_TryBody;
+		delete m_ExceptBody;
+	}
+
+protected:
+	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
+
+private:
+	Expression *m_TryBody;
+	Expression *m_ExceptBody;
+};
+
 }
 
 #endif /* EXPRESSION_H */
