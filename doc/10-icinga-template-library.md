@@ -1637,7 +1637,61 @@ users\_win\_crit | **Optional**. The critical threshold.
 
 ## <a id="nscp-plugin-check-commands"></a> Plugin Check Commands for NSClient++
 
-Icinga 2 can use the `nscp client` command to run arbitrary NSClient++ checks.
+There are two methods available for querying NSClient++:
+
+* Query the [HTTP API](10-icinga-template-library.md#nscp-check-api) locally or remotely (requires a running NSClient++ service)
+* Run a [local CLI check](10-icinga-template-library.md#nscp-check-local) (does not require NSClient++ as a service)
+
+Both methods have their advantages and disadvantages. One thing to
+note: If you rely on performance counter delta calculations such as
+CPU utilization, please use the HTTP API instead of the CLI sample call.
+
+### <a id="nscp-check-api"></a> nscp_api
+
+`check_nscp_api` is part of the Icinga 2 plugins. This plugin is available for
+both, Windows and Linux/Unix.
+
+Verify that the ITL CheckCommand is included:
+
+    vim /etc/icinga2/icinga2.conf
+
+    include <plugins>
+
+`check_nscp_api` runs queries against the NSClient++ API. Therefore NSClient++ needs to have
+the `webserver` module enabled, configured and loaded.
+
+You can install the webserver using the following CLI commands:
+
+    ./nscp.exe web install
+    ./nscp.exe web password — –set icinga
+
+Now you can define specific [queries](https://docs.nsclient.org/reference/check/CheckHelpers.html#queries)
+and integrate them into Icinga 2.
+
+The check plugin `check_nscp_api` can be integrated with the `nscp_api` CheckCommand object:
+
+Custom attributes:
+
+Name                   | Description
+:----------------------|:----------------------
+nscp\_api\_host       | **Required**. NSCP API host address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
+nscp\_api\_port       | **Optional**. NSCP API port. Defaults to `8443`.
+nscp\_api\_passwd     | **Required**. NSCP API password. Please check the NSCP documentation for setup details.
+nscp\_api\_query      | **Required**. NSCP API query endpoint. Refer to the NSCP documentation for possible values.
+nscp\_api\_arguments  | **Optional**. NSCP API arguments dictionary either as single strings or key-value pairs using `=`. Refer to the NSCP documentation.
+
+`nscp_api_arguments` can be used to pass required thresholds to the executed check. The example below
+checks the CPU utilization and specifies warning and critical thresholds.
+
+```
+check_nscp_api --host 10.0.10.148 --password icinga --query check_cpu --arguments show-all warning='load>40' critical='load>30'
+check_cpu CRITICAL: critical(5m: 48%, 1m: 36%), 5s: 0% | 'total 5m'=48%;40;30 'total 1m'=36%;40;30 'total 5s'=0%;40;30
+```
+
+
+### <a id="nscp-check-local"></a> nscp-local
+
+Icinga 2 can use the `nscp client` command to run arbitrary NSClient++ checks locally on the client.
 
 You can enable these check commands by adding the following the include directive in your
 [icinga2.conf](4-configuring-icinga-2.md#icinga2-conf) configuration file:
@@ -1655,9 +1709,7 @@ not be necessary to manually set this constant.
 
 Note that it is not necessary to run NSClient++ as a Windows service for these commands to work.
 
-### <a id="nscp-check-local"></a> nscp-local
-
-Check command object for NSClient++
+The check command object for NSClient++ is available as `nscp-local`.
 
 Custom attributes passed as [command parameters](3-monitoring-basics.md#command-passing-parameters):
 

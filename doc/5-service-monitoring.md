@@ -193,7 +193,7 @@ Instead, choose a plugin and configure its parameters and thresholds. The follow
 ### <a id="service-monitoring-windows"></a> Windows Monitoring
 
 * [check_wmi_plus](http://www.edcint.co.nz/checkwmiplus/)
-* [NSClient++](https://www.nsclient.org) (in combination with the Icinga 2 client as [nscp-local](10-icinga-template-library.md#nscp-plugin-check-commands) check commands)
+* [NSClient++](https://www.nsclient.org) (in combination with the Icinga 2 client and either [check_nscp_api](10-icinga-template-library.md#nscp-check-api) or [nscp-local](10-icinga-template-library.md#nscp-plugin-check-commands) check commands)
 * [Icinga 2 Windows Plugins](10-icinga-template-library.md#windows-plugins) (disk, load, memory, network, performance counters, ping, procs, service, swap, updates, uptime, users
 * vbs and Powershell scripts
 
