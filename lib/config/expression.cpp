@@ -941,3 +941,16 @@ ExpressionResult UsingExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhin
 	return Empty;
 }
 
+ExpressionResult TryExceptExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
+{
+	try {
+		ExpressionResult tryResult = m_TryBody->Evaluate(frame, dhint);
+		CHECK_RESULT(tryResult);
+	} catch (const std::exception& ex) {
+		ExpressionResult exceptResult = m_ExceptBody->Evaluate(frame, dhint);
+		CHECK_RESULT(exceptResult);
+	}
+
+	return Empty;
+}
+

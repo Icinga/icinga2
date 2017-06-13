@@ -172,6 +172,8 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %token T_ELSE "else (T_ELSE)"
 %token T_WHILE "while (T_WHILE)"
 %token T_THROW "throw (T_THROW)"
+%token T_TRY "try (T_TRY)"
+%token T_EXCEPT "except (T_EXCEPT)"
 %token T_FOLLOWS "=> (T_FOLLOWS)"
 %token T_NULLARY_LAMBDA_BEGIN "{{ (T_NULLARY_LAMBDA_BEGIN)"
 %token T_NULLARY_LAMBDA_END "}} (T_NULLARY_LAMBDA_END)"
@@ -665,6 +667,10 @@ lterm: T_LIBRARY rterm
 	| T_THROW rterm
 	{
 		$$ = new ThrowExpression($2, false, @$);
+	}
+	| T_TRY rterm_scope T_EXCEPT rterm_scope
+	{
+		$$ = new TryExceptExpression($2, $4, @$);
 	}
 	| rterm_side_effect
 	;

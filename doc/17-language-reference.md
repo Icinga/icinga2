@@ -851,7 +851,7 @@ Example:
 
     var s = String(3) /* Sets s to "3". */
 
-## <a id="throw"></a> Exceptions
+## <a id="throw"></a> Throwing Exceptions
 
 Built-in commands may throw exceptions to signal errors such as invalid arguments. User scripts can throw exceptions
 using the `throw` keyword.
@@ -860,7 +860,20 @@ Example:
 
     throw "An error occurred."
 
-There is currently no way for scripts to catch exceptions.
+## <a id="try-except"></a> Handling Exceptions
+
+Exceptions can be handled using the `try` and `except` keywords. When an exception occurs while executing code in the
+`try` clause no further statements in the `try` clause are evaluated and the `except` clause is executed instead.
+
+Example:
+
+    try {
+        throw "Test"
+
+        log("This statement won't get executed.")
+    } except {
+        log("An error occurred in the try clause.")
+    }
 
 ## <a id="breakpoints"></a> Breakpoints
 
@@ -920,7 +933,7 @@ These keywords are reserved and must not be used as constants or custom attribut
     template
     include
     include_recursive
-    ignore_on_error
+    include_zones
     library
     null
     true
@@ -928,7 +941,13 @@ These keywords are reserved and must not be used as constants or custom attribut
     const
     var
     this
+    globals
+    locals
     use
+    default
+    ignore_on_error
+    current_filename
+    current_line
     apply
     to
     where
@@ -937,12 +956,16 @@ These keywords are reserved and must not be used as constants or custom attribut
     ignore
     function
     return
+    break
+    continue
     for
     if
     else
+    while
+    throw
+    try
+    except
     in
-    current_filename
-    current_line
 
 You can escape reserved keywords using the `@` character. The following example
 tries to set `vars.include` which references a reserved keyword and generates
