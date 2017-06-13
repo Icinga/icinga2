@@ -603,14 +603,10 @@ Validate the configuration with the init script option `checkconfig`:
 
     # /etc/init.d/icinga2 checkconfig
 
-> **Note**
->
-> Using [systemd](2-getting-started.md#systemd-service) you need to manually validate the configuration using
-> the CLI command below.
+**Note**: Using [systemd](2-getting-started.md#systemd-service) you need to manually validate the configuration using
+the CLI command below.
 
-Or manually passing the `-C` argument:
-
-    # /usr/sbin/icinga2 daemon -c /etc/icinga2/icinga2.conf -C
+    # icinga2 daemon -C
 
     [2014-05-22 17:07:25 +0200] critical/ConfigItem: Location:
     /etc/icinga2/conf.d/tests/5872.conf(5): }
@@ -623,13 +619,6 @@ Or manually passing the `-C` argument:
     Config error: 'apply' is missing 'assign'
     [2014-05-22 17:07:25 +0200] critical/ConfigItem: 1 errors, 0 warnings.
     Icinga 2 detected configuration errors.
-
-> **Tip**
->
-> Icinga 2 will automatically detect the default path for `icinga2.conf`
-> in `SysconfDir + /icinga2/icinga2.conf` and you can safely omit this parameter.
->
-> `# icinga2 daemon -C`
 
 If you encounter errors during configuration validation, please make sure
 to read the [troubleshooting](15-troubleshooting.md#troubleshooting) chapter.
