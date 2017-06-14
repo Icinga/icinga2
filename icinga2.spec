@@ -307,10 +307,14 @@ CMAKE_OPTS="-DCMAKE_INSTALL_PREFIX=/usr \
          -DICINGA2_RUNDIR=%{_rundir} \
          -DICINGA2_USER=%{icinga_user} \
          -DICINGA2_GROUP=%{icinga_group} \
-         -DICINGA2_COMMAND_GROUP=%{icingacmd_group}"
+         -DICINGA2_COMMAND_GROUP=%{icingacmd_group} \
+         -DICINGA2_UNITY_BUILD=ON \
+         -DICINGA2_PLUGINDIR=%{plugindir}"
+
 %if 0%{?fedora}
 CMAKE_OPTS="$CMAKE_OPTS -DICINGA2_WITH_STUDIO=true"
 %endif
+
 %if "%{_vendor}" == "redhat"
 %if 0%{?el5} || 0%{?rhel} == 5 || "%{?dist}" == ".el5" || 0%{?el6} || 0%{?rhel} == 6 || "%{?dist}" == ".el6"
 %if 0%{?build_icinga_org}
@@ -331,9 +335,7 @@ CMAKE_OPTS="$CMAKE_OPTS \
 %endif
 %endif
 
-%if "%{_vendor}" != "suse"
-CMAKE_OPTS="$CMAKE_OPTS -DICINGA2_PLUGINDIR=%{plugindir}"
-%else
+%if "%{_vendor}" == "suse"
 %if 0%{?suse_version} < 1310
 CMAKE_OPTS="$CMAKE_OPTS -DBOOST_LIBRARYDIR=%{_libdir}/boost153 \
  -DBOOST_INCLUDEDIR=/usr/include/boost153 \
@@ -342,7 +344,6 @@ CMAKE_OPTS="$CMAKE_OPTS -DBOOST_LIBRARYDIR=%{_libdir}/boost153 \
  -DBUILD_TESTING=FALSE \
  -DBoost_NO_BOOST_CMAKE=TRUE"
 %endif
-CMAKE_OPTS="$CMAKE_OPTS -DICINGA2_PLUGINDIR=%{plugindir}"
 %endif
 
 %if 0%{?use_systemd}
