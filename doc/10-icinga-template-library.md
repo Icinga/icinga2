@@ -22,7 +22,7 @@ Command template for check plugins executed by Icinga 2.
 
 The `plugin-check-command` command does not support any vars.
 
-By default this template is automatically imported into all CheckCommand definitions.
+By default this template is automatically imported into all [CheckCommand](9-object-types.md#objecttype-checkcommand) definitions.
 
 ### <a id="itl-plugin-notification-command"></a> plugin-notification-command
 
@@ -30,7 +30,7 @@ Command template for notification scripts executed by Icinga 2.
 
 The `plugin-notification-command` command does not support any vars.
 
-By default this template is automatically imported into all CheckCommand definitions.
+By default this template is automatically imported into all [NotificationCommand](9-object-types.md#objecttype-notificationcommand) definitions.
 
 ### <a id="itl-plugin-event-command"></a> plugin-event-command
 
@@ -38,7 +38,7 @@ Command template for event handler scripts executed by Icinga 2.
 
 The `plugin-event-command` command does not support any vars.
 
-By default this template is automatically imported into all CheckCommand definitions.
+By default this template is automatically imported into all [EventCommand](9-object-types.md#objecttype-eventcommand) definitions.
 
 ### <a id="itl-legacy-timeperiod"></a> legacy-timeperiod
 
@@ -46,7 +46,7 @@ Timeperiod template for [Timeperiod objects](9-object-types.md#objecttype-timepe
 
 The `legacy-timeperiod` timeperiod does not support any vars.
 
-By default this template is automatically imported into all CheckCommand definitions.
+By default this template is automatically imported into all [TimePeriod](9-object-types.md#objecttype-timeperiod) definitions.
 
 ## <a id="itl-check-commands"></a> Check Commands
 
