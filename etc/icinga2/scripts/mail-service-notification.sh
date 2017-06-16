@@ -1,4 +1,6 @@
-#!/bin/sh
+#!/usr/bin/env bash
+#
+# Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)
 
 PROG="`basename $0`"
 HOSTNAME="`hostname`"
@@ -30,7 +32,7 @@ Optional parameters:
   -b NOTIFICATIONAUTHORNAME (\$notification.author\$)
   -c NOTIFICATIONCOMMENT (\$notification.comment\$)
   -i ICINGAWEB2URL (\$notification_icingaweb2url\$, Default: unset)
-  -f MAILFROM (\$notification_mailfrom\$, requires GNU mailutils)
+  -f MAILFROM (\$notification_mailfrom\$, requires GNU mailutils (Debian/Ubuntu) or mailx (RHEL/SUSE))
   -v (\$notification_sendtosyslog\$, Default: false)
 
 EOF
@@ -139,8 +141,17 @@ fi
 ## Send the mail using the $MAILBIN command.
 ## If an explicit sender was specified, try to set it.
 if [ -n "$MAILFROM" ] ; then
-  /usr/bin/printf "%b" "$NOTIFICATION_MESSAGE" \
-  | $MAILBIN -a "From: $MAILFROM" -s "$SUBJECT" $USEREMAIL
+
+  ## Modify this for your own needs!
+
+  ## Debian/Ubuntu use mailutils which requires `-a` to append the header
+  if [ -f /etc/debian_version ]; then
+    /usr/bin/printf "%b" "$NOTIFICATION_MESSAGE" | $MAILBIN -a "From: $MAILFROM" -s "$SUBJECT" $USEREMAIL
+  ## Other distributions (RHEL/SUSE/etc.) prefer mailx which sets a sender address with `-r`
+  else
+    /usr/bin/printf "%b" "$NOTIFICATION_MESSAGE" | $MAILBIN -r "$MAILFROM" -s "$SUBJECT" $USEREMAIL
+  fi
+
 else
   /usr/bin/printf "%b" "$NOTIFICATION_MESSAGE" \
   | $MAILBIN -s "$SUBJECT" $USEREMAIL

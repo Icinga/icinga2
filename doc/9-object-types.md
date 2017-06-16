@@ -1113,7 +1113,10 @@ Example:
            required = true
            value = "$notification_servicename$"
          }
-         "-f" = "$notification_from$"
+         "-f" = {
+           value = "$notification_from$"
+           description = "Set from address. Requires GNU mailutils (Debian/Ubuntu) or mailx (RHEL/SUSE)"
+         }
          "-i" = "$notification_icingaweb2url$"
          "-l" = {
            required = true
