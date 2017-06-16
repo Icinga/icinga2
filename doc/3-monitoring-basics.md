@@ -1583,7 +1583,10 @@ defaults can always be overwritten locally.
 
 #### <a id="mail-host-notification"></a> mail-host-notification
 
-A quick overview of the arguments that can be used. See also [host runtime
+The `mail-host-notification` NotificationCommand object uses the
+example notification script located in `/etc/icinga2/scripts/mail-host-notification.sh`.
+
+Here is a quick overview of the arguments that can be used. See also [host runtime
 macros](3-monitoring-basics.md#-host-runtime-macros) for further
 information.
 
@@ -1600,13 +1603,16 @@ information.
   `notification_address6`        | **Optional.** The host's IPv6 address. Defaults to `$address6$`.
   `notification_author`          | **Optional.** Comment author. Defaults to `$notification.author$`.
   `notification_comment`         | **Optional.** Comment text. Defaults to `$notification.comment$`.
-  `notification_from`            | **Optional.** Define a valid From: string (e.g. `"Icinga 2 Host Monitoring <icinga@example.com>"`)
+  `notification_from`            | **Optional.** Define a valid From: string (e.g. `"Icinga 2 Host Monitoring <icinga@example.com>"`). Requires `GNU mailutils` (Debian/Ubuntu) or `mailx` (RHEL/SUSE).
   `notification_icingaweb2url`   | **Optional.** Define URL to your Icinga Web 2 (e.g. `"https://www.example.com/icingaweb2"`)
   `notification_logtosyslog`     | **Optional.** Set `true` to log notification events to syslog; useful for debugging. Defaults to `false`.
 
 #### <a id="mail-service-notification"></a> mail-service-notification
 
-A quick overview of the arguments that can be used. See also [service runtime
+The `mail-service-notification` NotificationCommand object uses the
+example notification script located in `/etc/icinga2/scripts/mail-service-notification.sh`.
+
+Here is a quick overview of the arguments that can be used. See also [service runtime
 macros](3-monitoring-basics.md#-service-runtime-macros) for further
 information.
 
@@ -1625,7 +1631,7 @@ information.
   `notification_address6`           | **Optional.** The host's IPv6 address. Defaults to `$address6$`.
   `notification_author`             | **Optional.** Comment author. Defaults to `$notification.author$`.
   `notification_comment`            | **Optional.** Comment text. Defaults to `$notification.comment$`.
-  `notification_from`               | **Optional.** Define a valid From: string (e.g. `"Icinga 2 Host Monitoring <icinga@example.com>"`)
+  `notification_from`               | **Optional.** Define a valid From: string (e.g. `"Icinga 2 Host Monitoring <icinga@example.com>"`). Requires `GNU mailutils` (Debian/Ubuntu) or `mailx` (RHEL/SUSE).
   `notification_icingaweb2url`      | **Optional.** Define URL to your Icinga Web 2 (e.g. `"https://www.example.com/icingaweb2"`)
   `notification_logtosyslog`        | **Optional.** Set `true` to log notification events to syslog; useful for debugging. Defaults to `false`.
 
