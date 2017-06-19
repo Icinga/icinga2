@@ -1441,6 +1441,7 @@ Threshold    | Meaning
 
 Check command object for the `check_disk.exe` plugin.
 Aggregates the free disk space of all volumes and mount points it can find, or the ones defined in `disk_win_path`. Ignores removable storage like fash drives and discs (CD, DVD etc.).
+The data collection is instant and free disk space is used for threshold computation.
 
 > **Note**
 >
@@ -1473,7 +1474,7 @@ load\_win\_crit | **Optional**. The critical threshold.
 ### <a id="windows-plugins-memory-windows"></a> memory-windows
 
 Check command object for the `check_memory.exe` plugin.
-The memory collection is instant.
+The memory collection is instant and free memory is used for threshold computation.
 
 > **Note**
 >
