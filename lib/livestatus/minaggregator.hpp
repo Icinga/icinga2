@@ -22,6 +22,7 @@
 
 #include "livestatus/table.hpp"
 #include "livestatus/aggregator.hpp"
+#include <cfloat>
 
 namespace icinga
 {
