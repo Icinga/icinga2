@@ -459,13 +459,13 @@ You can enable Livestatus using icinga2 feature enable:
 
 After that you will have to restart Icinga 2:
 
+RHEL/CentOS 7/Fedora, SLES 12, Debian Jessie/Stretch, Ubuntu Xenial:
+
+    # systemctl restart icinga2
+
 Debian/Ubuntu, RHEL/CentOS 6 and SUSE:
 
     # service icinga2 restart
-
-RHEL/CentOS 7 and Fedora:
-
-    # systemctl restart icinga2
 
 By default the Livestatus socket is available in `/var/run/icinga2/cmd/livestatus`.
 

@@ -12,10 +12,10 @@ and distribution you are running.
 
   Distribution            | Repository
   ------------------------|---------------------------
-  Debian                  | [Icinga Repository](https://packages.icinga.com/debian/), [debmon](https://debmon.org/packages/debmon-jessie/icinga2)
-  Ubuntu                  | [Icinga Repository](https://packages.icinga.com/ubuntu/), [Icinga PPA](https://launchpad.net/~formorer/+archive/ubuntu/icinga)
+  Debian                  | [Icinga Repository](https://packages.icinga.com/debian/)
+  Ubuntu                  | [Icinga Repository](https://packages.icinga.com/ubuntu/)
   RHEL/CentOS             | [Icinga Repository](https://packages.icinga.com/epel/)
-  openSUSE                | [Icinga Repository](https://packages.icinga.com/openSUSE/), [Server Monitoring Repository](https://build.opensuse.org/package/show/server:monitoring/icinga2)
+  openSUSE                | [Icinga Repository](https://packages.icinga.com/openSUSE/)
   SLES                    | [Icinga Repository](https://packages.icinga.com/SUSE/)
   Gentoo                  | [Upstream](https://packages.gentoo.org/package/net-analyzer/icinga2)
   FreeBSD                 | [Upstream](https://www.freshports.org/net-mgmt/icinga2)
@@ -34,7 +34,7 @@ Below is a list with examples for the various distributions.
 Debian:
 
     # wget -O - https://packages.icinga.com/icinga.key | apt-key add -
-    # echo 'deb https://packages.icinga.com/debian icinga-jessie main' >/etc/apt/sources.list.d/icinga.list
+    # echo 'deb https://packages.icinga.com/debian icinga-stretch main' >/etc/apt/sources.list.d/icinga.list
     # apt-get update
 
 Ubuntu:
@@ -516,13 +516,13 @@ You can enable the `ido-mysql` feature configuration file using
 
 After enabling the ido-mysql feature you have to restart Icinga 2:
 
-Debian/Ubuntu, RHEL/CentOS 6 and SUSE:
-
-    # service icinga2 restart
-
-RHEL/CentOS 7 and Fedora:
+RHEL/CentOS 7/Fedora, SLES 12, Debian Jessie/Stretch, Ubuntu Xenial:
 
     # systemctl restart icinga2
+
+Debian/Ubuntu, RHEL/CentOS 6 and SUSE 11:
+
+    # service icinga2 restart
 
 FreeBSD:
 
@@ -654,14 +654,17 @@ You can enable the `ido-pgsql` feature configuration file using
 
 After enabling the ido-pgsql feature you have to restart Icinga 2:
 
+RHEL/CentOS 7/Fedora, SLES 12, Debian Jessie/Stretch, Ubuntu Xenial:
+
+    # systemctl restart icinga2
+
 Debian/Ubuntu, RHEL/CentOS 6, SUSE and FreeBSD:
 
     # service icinga2 restart
 
-RHEL/CentOS 7 and Fedora:
+FreeBSD:
 
-    # systemctl restart icinga2
-
+    # service icinga2 restart
 
 Continue with the [webserver setup](2-getting-started.md#icinga2-user-interface-webserver).
 
@@ -741,13 +744,13 @@ attribute with minimal permissions required by Icinga Web 2.
 
 Make sure to restart Icinga 2 to activate the configuration.
 
+RHEL/CentOS 7/Fedora, SLES 12, Debian Jessie/Stretch, Ubuntu Xenial:
+
+    # systemctl restart icinga2
+
 Debian/Ubuntu, RHEL/CentOS 6 and SUSE:
 
     # service icinga2 restart
-
-RHEL/CentOS 7 and Fedora:
-
-    # systemctl restart icinga2
 
 FreeBSD:
 
