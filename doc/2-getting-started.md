@@ -94,7 +94,7 @@ as part of the [SLES 11 Security Module](https://www.suse.com/communities/conver
 
 #### <a id="package-sles-sdk"></a> SLES 12 SDK
 
-Icinga 2 requires the `libboost_chrono1_54_0` package from the `SLES 12 SDK` repository. Refer to the SUSE Enterprise 
+Icinga 2 requires the `libboost_chrono1_54_0` package from the `SLES 12 SDK` repository. Refer to the SUSE Enterprise
 Linux documentation for further information.
 
 ### <a id="installing-icinga2"></a> Installing Icinga 2
@@ -422,6 +422,7 @@ Please choose whether to install [MySQL](2-getting-started.md#configuring-db-ido
 Debian/Ubuntu:
 
     # apt-get install mysql-server mysql-client
+    # mysql_secure_installation
 
 RHEL/CentOS 6:
 
