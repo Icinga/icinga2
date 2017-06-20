@@ -1,7 +1,5 @@
 # Icinga 2.x CHANGELOG
 
-Please check [doc/1-about.md].
-
 ## What's New
 
 ### What's New in Version 2.6.3

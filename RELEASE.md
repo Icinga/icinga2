@@ -34,7 +34,7 @@ Example:
 
 ## Changelog
 
-Update the [ChangeLog](ChangeLog), [doc/1-about.md](doc/1-about.md) files. Also generate HTML
+Update the [CHANGELOG.md](CHANGELOG.md), [doc/1-about.md](doc/1-about.md) files. Also generate HTML
 for the wordpress release announcement.
 
 ## Git Tag

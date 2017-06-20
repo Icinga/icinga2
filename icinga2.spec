@@ -668,7 +668,7 @@ fi
 
 %files bin
 %defattr(-,root,root,-)
-%doc COPYING COPYING.Exceptions README.md NEWS AUTHORS ChangeLog
+%doc COPYING COPYING.Exceptions README.md NEWS AUTHORS CHANGELOG.md
 %{_sbindir}/%{name}
 %dir %{_libdir}/%{name}/sbin
 %{_libdir}/%{name}/sbin/%{name}
@@ -689,7 +689,7 @@ fi
 
 %files libs
 %defattr(-,root,root,-)
-%doc COPYING COPYING.Exceptions README.md NEWS AUTHORS ChangeLog
+%doc COPYING COPYING.Exceptions README.md NEWS AUTHORS CHANGELOG.md
 %exclude %{_libdir}/%{name}/libdb_ido_mysql*
 %exclude %{_libdir}/%{name}/libdb_ido_pgsql*
 %dir %{_libdir}/%{name}
@@ -697,7 +697,7 @@ fi
 
 %files common
 %defattr(-,root,root,-)
-%doc COPYING COPYING.Exceptions README.md NEWS AUTHORS ChangeLog tools/syntax
+%doc COPYING COPYING.Exceptions README.md NEWS AUTHORS CHANGELOG.md tools/syntax
 %attr(0750,%{icinga_user},%{icingacmd_group}) %dir %{_localstatedir}/log/%{name}
 %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}
 %{_sysconfdir}/bash_completion.d/%{name}
@@ -746,14 +746,14 @@ fi
 
 %files ido-mysql
 %defattr(-,root,root,-)
-%doc COPYING COPYING.Exceptions README.md NEWS AUTHORS ChangeLog
+%doc COPYING COPYING.Exceptions README.md NEWS AUTHORS CHANGELOG.md
 %config(noreplace) %attr(0640,%{icinga_user},%{icinga_group}) %{_sysconfdir}/%{name}/features-available/ido-mysql.conf
 %{_libdir}/%{name}/libdb_ido_mysql*
 %{_datadir}/icinga2-ido-mysql
 
 %files ido-pgsql
 %defattr(-,root,root,-)
-%doc COPYING COPYING.Exceptions README.md NEWS AUTHORS ChangeLog
+%doc COPYING COPYING.Exceptions README.md NEWS AUTHORS CHANGELOG.md
 %config(noreplace) %attr(0640,%{icinga_user},%{icinga_group}) %{_sysconfdir}/%{name}/features-available/ido-pgsql.conf
 %{_libdir}/%{name}/libdb_ido_pgsql*
 %{_datadir}/icinga2-ido-pgsql
