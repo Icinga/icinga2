@@ -25,8 +25,4 @@ if(UNIX OR CYGWIN)
   add_subdirectory(execvpe)
 endif()
 
-if(ICINGA2_WITH_REDIS)
-  add_subdirectory(hiredis)
-endif()
-
 add_subdirectory(socketpair)
