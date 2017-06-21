@@ -126,6 +126,18 @@ public:
 	static String GetRunAsGroup(void);
 	static void DeclareRunAsGroup(const String& group);
 
+	static int GetRLimitFiles(void);
+	static int GetDefaultRLimitFiles(void);
+	static void DeclareRLimitFiles(int limit);
+
+	static int GetRLimitProcesses(void);
+	static int GetDefaultRLimitProcesses(void);
+	static void DeclareRLimitProcesses(int limit);
+
+	static int GetRLimitStack(void);
+	static int GetDefaultRLimitStack(void);
+	static void DeclareRLimitStack(int limit);
+
 	static int GetConcurrency(void);
 	static void DeclareConcurrency(int ncpus);
 
