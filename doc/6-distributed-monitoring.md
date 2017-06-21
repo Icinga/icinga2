@@ -405,7 +405,7 @@ is configured to accept configuration and commands from the master:
 
     Now restart your Icinga 2 daemon to finish the installation!
 
-    [root@icinga2-master1.localdomain /]# systemctl restart icinga2
+    [root@icinga2-client1.localdomain /]# systemctl restart icinga2
 
 As you can see, the certificate files are stored in the `/etc/icinga2/pki` directory.
 
