@@ -249,8 +249,13 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 			if (parent.get() == this)
 				continue;
 
-			ObjectLock olock(parent);
-			parent->SetNextCheck(Utility::GetTime());
+			if (!parent->GetEnableActiveChecks())
+				continue;
+
+			if (parent->GetNextCheck() >= now + parent->GetRetryInterval()) {
+				ObjectLock olock(parent);
+				parent->SetNextCheck(now);
+			}
 		}
 	}
 
