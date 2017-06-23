@@ -113,9 +113,6 @@ int Main(void)
 
 	Application::SetStartTime(Utility::GetTime());
 
-	if (!autocomplete)
-		Application::SetResourceLimits();
-
 	/* Set thread title. */
 	Utility::SetThreadName("Main Thread", false);
 
@@ -152,6 +149,11 @@ int Main(void)
 	Application::DeclareZonesDir(Application::GetSysconfDir() + "/icinga2/zones.d");
 	Application::DeclareRunAsUser(ICINGA_USER);
 	Application::DeclareRunAsGroup(ICINGA_GROUP);
+#ifdef __linux__
+	Application::DeclareRLimitFiles(Application::GetDefaultRLimitFiles());
+	Application::DeclareRLimitProcesses(Application::GetDefaultRLimitProcesses());
+	Application::DeclareRLimitStack(Application::GetDefaultRLimitStack());
+#endif /* __linux__ */
 	Application::DeclareConcurrency(boost::thread::hardware_concurrency());
 
 	ScriptGlobal::Set("AttachDebugger", false);
@@ -165,6 +167,28 @@ int Main(void)
 	ScriptGlobal::Set("BuildHostName", ICINGA_BUILD_HOST_NAME);
 	ScriptGlobal::Set("BuildCompilerName", ICINGA_BUILD_COMPILER_NAME);
 	ScriptGlobal::Set("BuildCompilerVersion", ICINGA_BUILD_COMPILER_VERSION);
+
+	String initconfig = Application::GetSysconfDir() + "/icinga2/init.conf";
+
+	if (Utility::PathExists(initconfig)) {
+		Expression *expression;
+		try {
+			expression = ConfigCompiler::CompileFile(initconfig);
+
+			ScriptFrame frame;
+			expression->Evaluate(frame);
+		} catch (const std::exception& ex) {
+			delete expression;
+
+			Log(LogCritical, "config", DiagnosticInformation(ex));
+			return EXIT_FAILURE;
+		}
+
+		delete expression;
+	}
+
+	if (!autocomplete)
+		Application::SetResourceLimits();
 
 	LogSeverity logLevel = Logger::GetConsoleLogSeverity();
 	Logger::SetConsoleLogSeverity(LogWarning);
@@ -207,25 +231,6 @@ int Main(void)
 		Log(LogCritical, "icinga-app")
 		    << "Error while parsing command-line options: " << ex.what();
 		return EXIT_FAILURE;
-	}
-
-	String initconfig = Application::GetSysconfDir() + "/icinga2/init.conf";
-
-	if (Utility::PathExists(initconfig)) {
-		Expression *expression;
-		try {
-			expression = ConfigCompiler::CompileFile(initconfig);
-
-			ScriptFrame frame;
-			expression->Evaluate(frame);
-		} catch (const std::exception& ex) {
-			delete expression;
-
-			Log(LogCritical, "config", DiagnosticInformation(ex));
-			return EXIT_FAILURE;
-		}
-
-		delete expression;
 	}
 
 #ifndef _WIN32

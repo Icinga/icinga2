@@ -368,6 +368,8 @@ Global constants can be set using the `const` keyword:
 Once defined a constant can be accessed from any file. Constants cannot be changed
 once they are set.
 
+### <a id="icinga-constants"></a> Icinga 2 Specific Constants
+
 Icinga 2 provides a number of special global constants. Some of them can be overridden using the `--define` command line parameter:
 
 Variable            |Description
@@ -383,8 +385,6 @@ ObjectsPath         |**Read-write.** Contains the path of the Icinga 2 objects f
 PidPath             |**Read-write.** Contains the path of the Icinga 2 PID file. Defaults to RunDir + "/icinga2/icinga2.pid".
 Vars                |**Read-write.** Contains a dictionary with global custom attributes. Not set by default.
 NodeName            |**Read-write.** Contains the cluster node name. Set to the local hostname by default.
-EventEngine         |**Read-write.** The name of the socket event engine, can be "poll" or "epoll". The epoll interface is only supported on Linux.
-AttachDebugger      |**Read-write.** Whether to attach a debugger when Icinga 2 crashes. Defaults to false.
 RunAsUser           |**Read-write.** Defines the user the Icinga 2 daemon is running as. Used in the `init.conf` configuration file.
 RunAsGroup          |**Read-write.** Defines the group the Icinga 2 daemon is running as. Used in the `init.conf` configuration file.
 PlatformName        |**Read-only.** The name of the operating system, e.g. "Ubuntu".
@@ -394,6 +394,17 @@ PlatformKernelVersion|**Read-only.** The version of the operating system kernel,
 BuildCompilerName   |**Read-only.** The name of the compiler Icinga was built with, e.g. "Clang".
 BuildCompilerVersion|**Read-only.** The version of the compiler Icinga was built with, e.g. "7.3.0.7030031".
 BuildHostName       |**Read-only.** The name of the host Icinga was built on, e.g. "acheron".
+
+
+Advanced runtime constants. Please only use them if advised by support or developers.
+
+Variable            |Description
+--------------------|-------------------
+EventEngine         |**Read-write.** The name of the socket event engine, can be `poll` or `epoll`. The epoll interface is only supported on Linux.
+AttachDebugger      |**Read-write.** Whether to attach a debugger when Icinga 2 crashes. Defaults to `false`.
+RLimitFiles         |**Read-write.** Defines the resource limit for RLIMIT_NOFILE that should be set at start-up. Value cannot be set lower than the default `16 * 1024`. 0 disables the setting. Used in the `init.conf` configuration file.
+RLimitProcesses     |**Read-write.** Defines the resource limit for RLIMIT_NPROC that should be set at start-up. Value cannot be set lower than the default `16 * 1024`. 0 disables the setting. Used in the `init.conf` configuration file.
+RLimitStack         |**Read-write.** Defines the resource limit for RLIMIT_STACK that should be set at start-up. Value cannot be set lower than the default `256 * 1024`. 0 disables the setting. Used in the `init.conf` configuration file.
 
 ## <a id="apply"></a> Apply
 

@@ -180,24 +180,44 @@ void Application::SetResourceLimits(void)
 	rlimit rl;
 
 #	ifdef RLIMIT_NOFILE
-	rl.rlim_cur = 16 * 1024;
-	rl.rlim_max = rl.rlim_cur;
+	rlim_t fileLimit = GetRLimitFiles();
 
-	if (setrlimit(RLIMIT_NOFILE, &rl) < 0)
-		Log(LogNotice, "Application", "Could not adjust resource limit for open file handles (RLIMIT_NOFILE)");
+	if (fileLimit != 0) {
+		if (fileLimit < GetDefaultRLimitFiles()) {
+			Log(LogWarning, "Application")
+			    << "The user-specified value for RLimitFiles cannot be smaller than the default value (" << GetDefaultRLimitFiles() << "). Using the default value instead.";
+			fileLimit = GetDefaultRLimitFiles();
+		}
+
+		rl.rlim_cur = fileLimit;
+		rl.rlim_max = rl.rlim_cur;
+
+		if (setrlimit(RLIMIT_NOFILE, &rl) < 0)
+			Log(LogNotice, "Application", "Could not adjust resource limit for open file handles (RLIMIT_NOFILE)");
 #	else /* RLIMIT_NOFILE */
-	Log(LogNotice, "Application", "System does not support adjusting the resource limit for open file handles (RLIMIT_NOFILE)");
+		Log(LogNotice, "Application", "System does not support adjusting the resource limit for open file handles (RLIMIT_NOFILE)");
 #	endif /* RLIMIT_NOFILE */
+	}
 
 #	ifdef RLIMIT_NPROC
-	rl.rlim_cur = 16 * 1024;
-	rl.rlim_max = rl.rlim_cur;
+	rlim_t processLimit = GetRLimitProcesses();
 
-	if (setrlimit(RLIMIT_NPROC, &rl) < 0)
-		Log(LogNotice, "Application", "Could not adjust resource limit for number of processes (RLIMIT_NPROC)");
+	if (processLimit != 0) {
+		if (processLimit < GetDefaultRLimitProcesses()) {
+			Log(LogWarning, "Application")
+			    << "The user-specified value for RLimitProcesses cannot be smaller than the default value (" << GetDefaultRLimitProcesses() << "). Using the default value instead.";
+			processLimit = GetDefaultRLimitProcesses();
+		}
+
+		rl.rlim_cur = processLimit;
+		rl.rlim_max = rl.rlim_cur;
+
+		if (setrlimit(RLIMIT_NPROC, &rl) < 0)
+			Log(LogNotice, "Application", "Could not adjust resource limit for number of processes (RLIMIT_NPROC)");
 #	else /* RLIMIT_NPROC */
-	Log(LogNotice, "Application", "System does not support adjusting the resource limit for number of processes (RLIMIT_NPROC)");
+		Log(LogNotice, "Application", "System does not support adjusting the resource limit for number of processes (RLIMIT_NPROC)");
 #	endif /* RLIMIT_NPROC */
+	}
 
 #	ifdef RLIMIT_STACK
 	int argc = Application::GetArgC();
@@ -216,41 +236,53 @@ void Application::SetResourceLimits(void)
 		rl.rlim_max = RLIM_INFINITY;
 	}
 
-	if (set_stack_rlimit)
-		rl.rlim_cur = 256 * 1024;
-	else
-		rl.rlim_cur = rl.rlim_max;
+	rlim_t stackLimit;
 
-	if (setrlimit(RLIMIT_STACK, &rl) < 0)
-		Log(LogNotice, "Application", "Could not adjust resource limit for stack size (RLIMIT_STACK)");
-	else if (set_stack_rlimit) {
-		char **new_argv = static_cast<char **>(malloc(sizeof(char *) * (argc + 2)));
+	stackLimit = GetRLimitStack();
 
-		if (!new_argv) {
-			perror("malloc");
-			Exit(EXIT_FAILURE);
+	if (stackLimit != 0) {
+		if (stackLimit < GetDefaultRLimitStack()) {
+			Log(LogWarning, "Application")
+			    << "The user-specified value for RLimitStack cannot be smaller than the default value (" << GetDefaultRLimitStack() << "). Using the default value instead.";
+			stackLimit = GetDefaultRLimitStack();
 		}
 
-		new_argv[0] = argv[0];
-		new_argv[1] = strdup("--no-stack-rlimit");
+		if (set_stack_rlimit)
+			rl.rlim_cur = stackLimit;
+		else
+			rl.rlim_cur = rl.rlim_max;
 
-		if (!new_argv[1]) {
-			perror("strdup");
-			exit(1);
+		if (setrlimit(RLIMIT_STACK, &rl) < 0)
+			Log(LogNotice, "Application", "Could not adjust resource limit for stack size (RLIMIT_STACK)");
+		else if (set_stack_rlimit) {
+			char **new_argv = static_cast<char **>(malloc(sizeof(char *) * (argc + 2)));
+
+			if (!new_argv) {
+				perror("malloc");
+				Exit(EXIT_FAILURE);
+			}
+
+			new_argv[0] = argv[0];
+			new_argv[1] = strdup("--no-stack-rlimit");
+
+			if (!new_argv[1]) {
+				perror("strdup");
+				exit(1);
+			}
+
+			for (int i = 1; i < argc; i++)
+				new_argv[i + 1] = argv[i];
+
+			new_argv[argc + 1] = NULL;
+
+			(void) execvp(new_argv[0], new_argv);
+			perror("execvp");
+			_exit(EXIT_FAILURE);
 		}
-
-		for (int i = 1; i < argc; i++)
-			new_argv[i + 1] = argv[i];
-
-		new_argv[argc + 1] = NULL;
-
-		(void) execvp(new_argv[0], new_argv);
-		perror("execvp");
-		_exit(EXIT_FAILURE);
-	}
 #	else /* RLIMIT_STACK */
-	Log(LogNotice, "Application", "System does not support adjusting the resource limit for stack size (RLIMIT_STACK)");
+		Log(LogNotice, "Application", "System does not support adjusting the resource limit for stack size (RLIMIT_STACK)");
 #	endif /* RLIMIT_STACK */
+	}
 #endif /* __linux__ */
 }
 
@@ -1332,6 +1364,95 @@ String Application::GetRunAsGroup(void)
 }
 
 /**
+ * Sets the name of the group.
+ *
+ * @param path The new group name.
+ */
+void Application::DeclareRunAsGroup(const String& group)
+{
+	if (!ScriptGlobal::Exists("RunAsGroup"))
+		ScriptGlobal::Set("RunAsGroup", group);
+}
+
+/**
+ * Retrieves the file rlimit.
+ *
+ * @returns The limit.
+ */
+int Application::GetRLimitFiles(void)
+{
+	return ScriptGlobal::Get("RLimitFiles");
+}
+
+int Application::GetDefaultRLimitFiles(void)
+{
+	return 16 * 1024;
+}
+
+/**
+ * Sets the file rlimit.
+ *
+ * @param path The new file rlimit.
+ */
+void Application::DeclareRLimitFiles(int limit)
+{
+	if (!ScriptGlobal::Exists("RLimitFiles"))
+		ScriptGlobal::Set("RLimitFiles", limit);
+}
+
+/**
+ * Retrieves the process rlimit.
+ *
+ * @returns The limit.
+ */
+int Application::GetRLimitProcesses(void)
+{
+	return ScriptGlobal::Get("RLimitProcesses");
+}
+
+int Application::GetDefaultRLimitProcesses(void)
+{
+	return 16 * 1024;
+}
+
+/**
+ * Sets the process rlimit.
+ *
+ * @param path The new process rlimit.
+ */
+void Application::DeclareRLimitProcesses(int limit)
+{
+	if (!ScriptGlobal::Exists("RLimitProcesses"))
+		ScriptGlobal::Set("RLimitProcesses", limit);
+}
+
+/**
+ * Retrieves the stack rlimit.
+ *
+ * @returns The limit.
+ */
+int Application::GetRLimitStack(void)
+{
+	return ScriptGlobal::Get("RLimitStack");
+}
+
+int Application::GetDefaultRLimitStack(void)
+{
+	return 256 * 1024;
+}
+
+/**
+ * Sets the stack rlimit.
+ *
+ * @param path The new stack rlimit.
+ */
+void Application::DeclareRLimitStack(int limit)
+{
+	if (!ScriptGlobal::Exists("RLimitStack"))
+		ScriptGlobal::Set("RLimitStack", limit);
+}
+
+/**
  * Sets the concurrency level.
  *
  * @param path The new concurrency level.
@@ -1351,17 +1472,6 @@ int Application::GetConcurrency(void)
 {
 	Value defaultConcurrency = boost::thread::hardware_concurrency();
 	return ScriptGlobal::Get("Concurrency", &defaultConcurrency);
-}
-
-/**
- * Sets the name of the group.
- *
- * @param path The new group name.
- */
-void Application::DeclareRunAsGroup(const String& group)
-{
-	if (!ScriptGlobal::Exists("RunAsGroup"))
-		ScriptGlobal::Set("RunAsGroup", group);
 }
 
 /**
