@@ -340,27 +340,27 @@ Install the package `vim-icinga2` with your distribution's package manager.
 
 Debian/Ubuntu:
 
-    $ apt-get install vim-icinga2 vim-addon-manager
-    $ vim-addon-manager -w install icinga2
+    # apt-get install vim-icinga2 vim-addon-manager
+    # vim-addon-manager -w install icinga2
     Info: installing removed addon 'icinga2' to /var/lib/vim/addons
 
 RHEL/CentOS/Fedora:
 
-    $ yum install vim-icinga2
+    # yum install vim-icinga2
 
 SLES/openSUSE:
 
-    $ zypper install vim-icinga2
+    # zypper install vim-icinga2
 
 Ensure that syntax highlighting is enabled e.g. by editing the user's `vimrc`
 configuration file:
 
-    $ vim ~/.vimrc
+    # vim ~/.vimrc
     syntax on
 
 Test it:
 
-    $ vim /etc/icinga2/conf.d/templates.conf
+    # vim /etc/icinga2/conf.d/templates.conf
 
 ![Vim with syntax highlighting](images/getting-started/vim-syntax.png "Vim with Icinga 2 syntax highlighting")
 
@@ -375,11 +375,11 @@ Debian/Ubuntu:
 
 RHEL/CentOS/Fedora:
 
-    $ yum install nano-icinga2
+    # yum install nano-icinga2
 
 SLES/openSUSE:
 
-    $ zypper install nano-icinga2
+    # zypper install nano-icinga2
 
 Copy the `/etc/nanorc` sample file to your home directory.
 
