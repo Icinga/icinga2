@@ -52,6 +52,12 @@
  * event handling for sockets and timers.
  */
 
+#include <boost/config.hpp>
+
+#if defined(__clang__) && __cplusplus >= 201103L
+#	undef BOOST_NO_CXX11_HDR_TUPLE
+#endif
+
 #ifdef _MSC_VER
 #	pragma warning(disable:4251)
 #	pragma warning(disable:4275)
