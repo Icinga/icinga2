@@ -2,30 +2,31 @@ site_name: Icinga 2
 docs_dir: doc
 dev_addr: 0.0.0.0:8000
 pages:
-- [1-about.md, About Icinga 2]
-- [2-getting-started.md, Getting Started]
-- [3-monitoring-basics.md, Monitoring Basics]
-- [4-configuring-icinga-2.md, Configuring Icinga 2]
-- [5-service-monitoring.md, Service Monitoring]
-- [6-distributed-monitoring.md, Distributed Monitoring]
-- [7-agent-based-monitoring.md, Agent Based Monitoring]
-- [8-advanced-topics.md, Advanced Topics]
-- [9-object-types.md, Object Types]
-- [10-icinga-template-library.md, Icinga Template Library]
-- [11-cli-commands.md, CLI Commands]
-- [12-icinga2-api.md, Icinga 2 API]
-- [13-addons.md, Addons]
-- [14-features.md, Features]
-- [15-troubleshooting.md, Troubleshooting]
-- [16-upgrading-icinga-2.md, Upgrading Icinga 2]
-- [17-language-reference.md, Language Reference]
-- [18-library-reference.md, Library Reference]
-- [19-script-debugger.md, Script Debugger]
-- [20-development.md, Development]
-- [21-selinux.md, SELinux]
-- [22-migrating-from-icinga-1x.md, Migrating from Icinga 1.x]
-- [23-appendix.md, Appendix]
+  - 'About Icinga 2': '1-about.md'
+  - 'Getting Started': '2-getting-started.md'
+  - 'Monitoring Basics': '3-monitoring-basics.md'
+  - 'Configuring Icinga 2': '4-configuring-icinga-2.md'
+  - 'Service Monitoring': '5-service-monitoring.md'
+  - 'Distributed Monitoring': '6-distributed-monitoring.md'
+  - 'Agent Based Monitoring': '7-agent-based-monitoring.md'
+  - 'Advanced Topics': '8-advanced-topics.md'
+  - 'Object Types': '9-object-types.md'
+  - 'Icinga Template Library': '10-icinga-template-library.md'
+  - 'CLI Commands': '11-cli-commands.md'
+  - 'Icinga 2 API': '12-icinga2-api.md'
+  - 'Addons': '13-addons.md'
+  - 'Features': '14-features.md'
+  - 'Troubleshooting': '15-troubleshooting.md'
+  - 'Upgrading Icinga 2': '16-upgrading-icinga-2.md'
+  - 'Language Reference': '17-language-reference.md'
+  - 'Library Reference': '18-library-reference.md'
+  - 'Script Debugger': '19-script-debugger.md'
+  - 'Development': '20-development.md'
+  - 'SELinux': '21-selinux.md'
+  - 'Migrating from Icinga 1.x': '22-migrating-from-icinga-1x.md'
+  - 'Appendix': '23-appendix.md'
 theme: readthedocs
-markdown_extensions: [smarty]
-extra_javascript: [scroll.js]
-include_search: true
+markdown_extensions:
+  - smarty
+extra_javascript:
+  - scroll.js
