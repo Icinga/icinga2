@@ -5,7 +5,7 @@
 Icinga 2 supports three different types of logging:
 
 * File logging
-* Syslog (on *NIX-based operating systems)
+* Syslog (on Linux/UNIX)
 * Console logging (`STDOUT` on tty)
 
 You can enable additional loggers using the `icinga2 feature enable`
@@ -29,7 +29,7 @@ platforms. This configuration ensures that the `icinga2.log`, `error.log` and
 
 The IDO (Icinga Data Output) modules for Icinga 2 take care of exporting all
 configuration and status information into a database. The IDO database is used
-by a number of projects including Icinga Web 1.x and 2.
+by Icinga Web 2.
 
 Details on the installation can be found in the [Configuring DB IDO](2-getting-started.md#configuring-db-ido-mysql)
 chapter. Details on the configuration can be found in the
@@ -109,7 +109,7 @@ a forced service check:
 A list of currently supported external commands can be found [here](23-appendix.md#external-commands-list-detail).
 
 Detailed information on the commands and their required parameters can be found
-on the [Icinga 1.x documentation](http://docs.icinga.com/latest/en/extcommands2.html).
+on the [Icinga 1.x documentation](https://docs.icinga.com/latest/en/extcommands2.html).
 
 ## <a id="performance-data"></a> Performance Data
 
@@ -336,15 +336,17 @@ expects the InfluxDB daemon to listen at `127.0.0.1` on port `8086`.
 
 More configuration details can be found [here](9-object-types.md#objecttype-influxdbwriter).
 
-### <a id="gelfwriter"></a> GELF Writer
+### <a id="graylog-integration"></a> Graylog Integration
 
-The `Graylog Extended Log Format` (short: [GELF](http://www.graylog2.org/resources/gelf))
+#### <a id="gelfwriter"></a> GELF Writer
+
+The `Graylog Extended Log Format` (short: [GELF](http://docs.graylog.org/en/latest/pages/gelf.html))
 can be used to send application logs directly to a TCP socket.
 
-While it has been specified by the [graylog2](http://www.graylog2.org/) project as their
-[input resource standard](http://www.graylog2.org/resources/gelf), other tools such as
-[Logstash](http://www.logstash.net) also support `GELF` as
-[input type](http://logstash.net/docs/latest/inputs/gelf).
+While it has been specified by the [Graylog](https://www.graylog.org) project as their
+[input resource standard](http://docs.graylog.org/en/latest/pages/sending_data.html), other tools such as
+[Logstash](https://www.elastic.co/products/logstash) also support `GELF` as
+[input type](https://www.elastic.co/guide/en/logstash/current/plugins-inputs-gelf.html).
 
 You can enable the feature using
 
@@ -357,6 +359,15 @@ Currently these events are processed:
 * Check results
 * State changes
 * Notifications
+
+### <a id="elastic-stack-integration"></a> Elastic Stack Integration
+
+[Icingabeat](https://github.com/icinga/icingabeat) is an Elastic Beat that fetches data
+from the Icinga 2 API and sends it either directly to Elasticsearch or Logstash.
+
+More integrations in development:
+* [Logstash output](https://github.com/Icinga/logstash-output-icinga) for the Icinga 2 API.
+* [Logstash Grok Pattern](https://github.com/Icinga/logstash-grok-pattern) for Icinga 2 logs.
 
 ### <a id="opentsdb-writer"></a> OpenTSDB Writer
 
@@ -425,7 +436,7 @@ with the following tags
 
 ## <a id="setting-up-livestatus"></a> Livestatus
 
-The [MK Livestatus](http://mathias-kettner.de/checkmk_livestatus.html) project
+The [MK Livestatus](https://mathias-kettner.de/checkmk_livestatus.html) project
 implements a query protocol that lets users query their Icinga instance for
 status information. It can also be used to send commands.
 
@@ -448,13 +459,13 @@ You can enable Livestatus using icinga2 feature enable:
 
 After that you will have to restart Icinga 2:
 
+RHEL/CentOS 7/Fedora, SLES 12, Debian Jessie/Stretch, Ubuntu Xenial:
+
+    # systemctl restart icinga2
+
 Debian/Ubuntu, RHEL/CentOS 6 and SUSE:
 
     # service icinga2 restart
-
-RHEL/CentOS 7 and Fedora:
-
-    # systemctl restart icinga2
 
 By default the Livestatus socket is available in `/var/run/icinga2/cmd/livestatus`.
 

@@ -60,6 +60,7 @@ public:
 	void Register(void);
 	void Unregister(void);
 
+	void PreActivate(void);
 	void Activate(bool runtimeCreated = false);
 	void Deactivate(bool runtimeRemoved = false);
 	void SetAuthority(bool authority);
@@ -74,6 +75,8 @@ public:
 	virtual void CreateChildObjects(const Type::Ptr& childType);
 	virtual void OnAllConfigLoaded(void);
 	virtual void OnStateLoaded(void);
+
+	virtual Dictionary::Ptr GetSourceLocation(void) const override;
 
 	template<typename T>
 	static intrusive_ptr<T> GetObject(const String& name)

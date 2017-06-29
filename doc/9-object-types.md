@@ -252,6 +252,7 @@ Configuration Attributes:
   entry_time      | **Optional.** The unix timestamp when this comment was added.
   entry_type      | **Optional.** The comment type (`User` = 1, `Downtime` = 2, `Flapping` = 3, `Acknowledgement` = 4).
   expire_time     | **Optional.** The comment's expire time as unix timestamp.
+  persistent      | **Optional.** Only evaluated for `entry_type` Acknowledgement. `true` does not remove the comment when the acknowledgement is removed.
 
 ## <a id="objecttype-compatlogger"></a> CompatLogger
 
@@ -466,6 +467,7 @@ Configuration Attributes:
 
 Command arguments can be used the same way as for [CheckCommand objects](9-object-types.md#objecttype-checkcommand-arguments).
 
+More advanced examples for event command usage can be found [here](3-monitoring-basics.md#event-commands).
 
 ## <a id="objecttype-externalcommandlistener"></a> ExternalCommandListener
 
@@ -763,7 +765,7 @@ Data Categories:
   DbCatComment         | Comments               | Icinga Web 2
   DbCatDowntime        | Downtimes              | Icinga Web 2
   DbCatEventHandler    | Event handler data     | Icinga Web 2
-  DbCatExternalCommand | External commands      | Icinga Web 2
+  DbCatExternalCommand | External commands      | --
   DbCatFlapping        | Flap detection data    | Icinga Web 2
   DbCatCheck           | Check results          | --
   DbCatLog             | Log messages           | --
@@ -772,17 +774,11 @@ Data Categories:
   DbCatRetention       | Retention data         | Icinga Web 2
   DbCatStateHistory    | Historical state data  | Icinga Web 2
 
+The default value for `categories` includes everything required
+by Icinga Web 2 in the table above.
+
 In addition to the category flags listed above the `DbCatEverything`
 flag may be used as a shortcut for listing all flags.
-
-> **Note**
->
-> The previous way of defining the `categories` attribute e.g.
-> `DbCatProgramStatus | DbCatState` was deprecated in 2.5 and will
-> be removed in future versions.
-
-External interfaces like Icinga Web 2 require everything except `DbCatCheck`
-and `DbCatLog` which is the default value if `categories` is not set.
 
 ## <a id="objecttype-idopgsqlconnection"></a> IdoPgSqlConnection
 
@@ -852,7 +848,7 @@ Data Categories:
   DbCatComment         | Comments               | Icinga Web 2
   DbCatDowntime        | Downtimes              | Icinga Web 2
   DbCatEventHandler    | Event handler data     | Icinga Web 2
-  DbCatExternalCommand | External commands      | Icinga Web 2
+  DbCatExternalCommand | External commands      | --
   DbCatFlapping        | Flap detection data    | Icinga Web 2
   DbCatCheck           | Check results          | --
   DbCatLog             | Log messages           | --
@@ -861,18 +857,11 @@ Data Categories:
   DbCatRetention       | Retention data         | Icinga Web 2
   DbCatStateHistory    | Historical state data  | Icinga Web 2
 
+The default value for `categories` includes everything required
+by Icinga Web 2 in the table above.
+
 In addition to the category flags listed above the `DbCatEverything`
 flag may be used as a shortcut for listing all flags.
-
-> **Note**
->
-> The previous way of defining the `categories` attribute e.g.
-> `DbCatProgramStatus | DbCatState` was deprecated in 2.5 and will
-> be removed in future versions.
-
-External interfaces like Icinga Web 2 require everything except `DbCatCheck`
-and `DbCatLog` which is the default value if `categories` is not set.
-
 
 ## <a id="objecttype-influxdbwriter"></a> InfluxdbWriter
 
@@ -886,6 +875,10 @@ Example:
       host = "127.0.0.1"
       port = 8086
       database = "icinga2"
+
+      flush_threshold = 1024
+      flush_interval = 10s
+
       host_template = {
         measurement = "$host.check_command$"
         tags = {
@@ -934,6 +927,10 @@ Configuration Attributes:
   flush_interval         | **Optional.** How long to buffer data points before transfering to InfluxDB. Defaults to `10s`.
   flush_threshold        | **Optional.** How many data points to buffer before forcing a transfer to InfluxDB.  Defaults to `1024`.
   socket_timeout         | **Optional.** How long to wait for InfluxDB to respond.  Defaults to `5s`.
+
+Note: If `flush_threshold` is set too low, this will always force the feature to flush all data
+to InfluxDB. Experiment with the setting, if you are processing more than 1024 metrics per second
+or similar.
 
 ### <a id="objecttype-influxdbwriter-instance-tags"></a> Instance Tagging
 
@@ -1021,7 +1018,7 @@ of host and service state changes and other events.
 > usually easier to just create a `Notification` template and use the `apply` keyword
 > to assign the notification to a number of hosts or services. Use the `to` keyword
 > to set the specific target type for `Host` or `Service`.
-> Check the [notifications](3-monitoring-basics.md#notifications) chapter for detailed examples.
+> Check the [notifications](3-monitoring-basics.md#alert-notifications) chapter for detailed examples.
 
 Example:
 
@@ -1097,26 +1094,78 @@ A notification command definition.
 
 Example:
 
-    object NotificationCommand "mail-service-notification" {
-      command = [
-        SysconfDir + "/icinga2/scripts/mail-notification.sh"
-      ]
+     object NotificationCommand "mail-service-notification" {
+       command = [ SysconfDir + "/icinga2/scripts/mail-service-notification.sh" ]
 
-      env = {
-        NOTIFICATIONTYPE = "$notification.type$"
-        SERVICEDESC = "$service.name$"
-        HOSTALIAS = "$host.display_name$"
-        HOSTADDRESS = "$address$"
-        SERVICESTATE = "$service.state$"
-        LONGDATETIME = "$icinga.long_date_time$"
-        SERVICEOUTPUT = "$service.output$"
-        NOTIFICATIONAUTHORNAME = "$notification.author$"
-        NOTIFICATIONCOMMENT = "$notification.comment$"
-        HOSTDISPLAYNAME = "$host.display_name$"
-        SERVICEDISPLAYNAME = "$service.display_name$"
-        USEREMAIL = "$user.email$"
-      }
-    }
+       arguments += {
+         "-4" = {
+           required = true
+           value = "$notification_address$"
+         }
+         "-6" = "$notification_address6$"
+         "-b" = "$notification_author$"
+         "-c" = "$notification_comment$"
+         "-d" = {
+           required = true
+           value = "$notification_date$"
+         }
+         "-e" = {
+           required = true
+           value = "$notification_servicename$"
+         }
+         "-f" = {
+           value = "$notification_from$"
+           description = "Set from address. Requires GNU mailutils (Debian/Ubuntu) or mailx (RHEL/SUSE)"
+         }
+         "-i" = "$notification_icingaweb2url$"
+         "-l" = {
+           required = true
+           value = "$notification_hostname$"
+         }
+         "-n" = {
+           required = true
+           value = "$notification_hostdisplayname$"
+         }
+         "-o" = {
+           required = true
+           value = "$notification_serviceoutput$"
+         }
+         "-r" = {
+           required = true
+           value = "$notification_useremail$"
+         }
+         "-s" = {
+           required = true
+           value = "$notification_servicestate$"
+         }
+         "-t" = {
+           required = true
+           value = "$notification_type$"
+         }
+         "-u" = {
+           required = true
+           value = "$notification_servicedisplayname$"
+         }
+         "-v" = "$notification_logtosyslog$"
+       }
+
+       vars += {
+         notification_address = "$address$"
+         notification_address6 = "$address6$"
+         notification_author = "$notification.author$"
+         notification_comment = "$notification.comment$"
+         notification_type = "$notification.type$"
+         notification_date = "$icinga.long_date_time$"
+         notification_hostname = "$host.name$"
+         notification_hostdisplayname = "$host.display_name$"
+         notification_servicename = "$service.name$"
+         notification_serviceoutput = "$service.output$"
+         notification_servicestate = "$service.state$"
+         notification_useremail = "$user.email$"
+         notification_servicedisplayname = "$service.display_name$"
+       }
+     }
+
 
 Configuration Attributes:
 
@@ -1131,6 +1180,7 @@ Configuration Attributes:
 
 Command arguments can be used the same way as for [CheckCommand objects](9-object-types.md#objecttype-checkcommand-arguments).
 
+More details on specific attributes can be found in [this chapter](3-monitoring-basics.md#notification-commands).
 
 ## <a id="objecttype-notificationcomponent"></a> NotificationComponent
 

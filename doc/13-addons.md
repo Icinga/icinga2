@@ -4,15 +4,15 @@
 
 ### <a id="addons-graphing-pnp"></a> PNP
 
-[PNP](http://www.pnp4nagios.org) is a graphing addon.
+[PNP](https://www.pnp4nagios.org) is a graphing addon.
 
-[PNP](http://www.pnp4nagios.org) is an addon which adds a graphical representation of the performance data collected
+[PNP](https://www.pnp4nagios.org) is an addon which adds a graphical representation of the performance data collected
 by the monitoring plugins. The data is stored as rrd (round robin database) files.
 
 Use your distribution's package manager to install the `pnp4nagios` package.
 
 If you're planning to use it, configure it to use the
-[bulk mode with npcd and npcdmod](http://docs.pnp4nagios.org/pnp-0.6/modes#bulk_mode_with_npcd_and_npcdmod)
+[bulk mode with npcd and npcdmod](https://docs.pnp4nagios.org/pnp-0.6/modes#bulk_mode_with_npcd_and_npcdmod)
 in combination with Icinga 2's [PerfdataWriter](14-features.md#performance-data). NPCD collects the performance
 data files which Icinga 2 generates.
 
@@ -35,7 +35,7 @@ and [graph template names](13-addons.md#addons-graphing-pnp-custom-templates).
 
 ### <a id="addons-graphing-graphite"></a> Graphite
 
-[Graphite](http://graphite.readthedocs.org/en/latest/) is a time-series database
+[Graphite](https://graphite.readthedocs.org/en/latest/) is a time-series database
 storing collected metrics and making them available through restful apis
 and web interfaces.
 
@@ -52,7 +52,7 @@ for sending real-time metrics from Icinga 2 to Graphite.
 
 There are Graphite addons available for collecting the performance data files too (e.g. `Graphios`).
 
-A popular alternative frontend for Graphite is for example [Grafana](http://grafana.org).
+A popular alternative frontend for Graphite is for example [Grafana](https://grafana.org).
 
 ### <a id="addons-graphing-influxdb"></a> InfluxDB
 
@@ -64,7 +64,7 @@ for sending real-time metrics from Icinga 2 to InfluxDB.
 
     # icinga2 feature enable influxdb
 
-A popular frontend for InfluxDB is for example [Grafana](http://grafana.org).
+A popular frontend for InfluxDB is for example [Grafana](https://grafana.org).
 
 ## <a id="addons-visualization"></a> Visualization
 
@@ -77,7 +77,7 @@ By enabling the [DB IDO](14-features.md#db-ido) feature you can use the
 
 By using either [Livestatus](14-features.md#setting-up-livestatus) or
 [DB IDO](14-features.md#db-ido) as a backend you can create your own network maps
-based on your monitoring configuration and status data using [NagVis](http://www.nagvis.org).
+based on your monitoring configuration and status data using [NagVis](https://www.nagvis.org).
 
 The configuration in nagvis.ini.php should look like this for Livestatus for example:
 
@@ -89,7 +89,7 @@ If you are planning an integration into Icinga Web 2, look at [this module](http
 
 ### <a id="addons-visualization-thruk"></a> Thruk
 
-[Thruk](http://www.thruk.org) is an alternative web interface which can be used with Icinga 2
+[Thruk](https://www.thruk.org) is an alternative web interface which can be used with Icinga 2
 and the [Livestatus](14-features.md#setting-up-livestatus) feature.
 
 ## <a id="log-monitoring"></a> Log Monitoring
@@ -108,7 +108,7 @@ More details can be found in [this blog post](https://www.icinga.com/2014/12/02/
 
 There's a variety of resources available, for example different notification scripts such as:
 
-* E-Mail ([examples](3-monitoring-basics.md#notifications) provided)
+* E-Mail ([examples](3-monitoring-basics.md#alert-notifications) provided)
 * SMS
 * Pager (XMPP, etc.)
 * Twitter

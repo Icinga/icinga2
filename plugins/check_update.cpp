@@ -190,8 +190,8 @@ INT check_update(printInfoStruct& printInfo)
 	*/
 
 	criteria = SysAllocString(CRITERIA);
-	// http://msdn.microsoft.com/en-us/library/windows/desktop/aa386526%28v=vs.85%29.aspx
-	// http://msdn.microsoft.com/en-us/library/ff357803%28v=vs.85%29.aspx
+	// https://msdn.microsoft.com/en-us/library/windows/desktop/aa386526%28v=vs.85%29.aspx
+	// https://msdn.microsoft.com/en-us/library/ff357803%28v=vs.85%29.aspx
 
 	if (debug)
 		std::wcout << L"Querrying updates from server" << '\n';

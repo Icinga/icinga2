@@ -21,16 +21,16 @@
 #	include <stdlib.h>
 #endif /* _WIN32 */
 #include "methods/randomchecktask.hpp"
-#include "icinga/perfdatavalue.hpp"
 #include "icinga/icingaapplication.hpp"
 #include "base/utility.hpp"
+#include "base/perfdatavalue.hpp"
 #include "base/convert.hpp"
 #include "base/function.hpp"
 #include "base/logger.hpp"
 
 using namespace icinga;
 
-REGISTER_SCRIPTFUNCTION_NS(Internal, RandomCheck, &RandomCheckTask::ScriptFunc);
+REGISTER_SCRIPTFUNCTION_NS(Internal, RandomCheck, &RandomCheckTask::ScriptFunc, "checkable:cr:resolvedMacros:useResolvedMacros");
 
 void RandomCheckTask::ScriptFunc(const Checkable::Ptr& service, const CheckResult::Ptr& cr,
     const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)

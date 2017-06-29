@@ -150,7 +150,7 @@ int Comment::GetNextCommentID(void)
 }
 
 String Comment::AddComment(const Checkable::Ptr& checkable, CommentType entryType, const String& author,
-    const String& text, double expireTime, const String& id, const MessageOrigin::Ptr& origin)
+    const String& text, bool persistent, double expireTime, const String& id, const MessageOrigin::Ptr& origin)
 {
 	String fullName;
 
@@ -163,6 +163,7 @@ String Comment::AddComment(const Checkable::Ptr& checkable, CommentType entryTyp
 
 	attrs->Set("author", author);
 	attrs->Set("text", text);
+	attrs->Set("persistent", persistent);
 	attrs->Set("expire_time", expireTime);
 	attrs->Set("entry_type", entryType);
 	attrs->Set("entry_time", Utility::GetTime());
@@ -208,7 +209,7 @@ void Comment::RemoveComment(const String& id, const MessageOrigin::Ptr& origin)
 {
 	Comment::Ptr comment = Comment::GetByName(id);
 
-	if (!comment)
+	if (!comment || comment->GetPackage() != "_api")
 		return;
 
 	Log(LogNotice, "Comment")
@@ -247,8 +248,13 @@ void Comment::CommentsExpireTimerHandler(void)
 	}
 
 	for (const Comment::Ptr& comment : comments) {
-		/* Only remove comment which are activated after daemon start. */
-		if (comment->IsActive() && comment->IsExpired())
+		/* Only remove comments which are activated after daemon start. */
+		if (comment->IsActive() && comment->IsExpired()) {
+			/* Do not remove persistent comments from an acknowledgement */
+			if (comment->GetEntryType() == CommentAcknowledgement && comment->GetPersistent())
+				continue;
+
 			RemoveComment(comment->GetName());
+		}
 	}
 }

@@ -4,7 +4,7 @@
 -- -----------------------------------------
 -- Copyright (c) 2015 Icinga Development Team (https://www.icinga.com)
 --
--- Please check http://docs.icinga.com for upgrading information!
+-- Please check https://docs.icinga.com for upgrading information!
 -- -----------------------------------------
 
 -- -----------------------------------------

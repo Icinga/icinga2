@@ -53,6 +53,22 @@ enum CheckableType
 	CheckableService
 };
 
+/**
+ * Severity Flags
+ *
+ * @ingroup icinga
+ */
+enum SeverityFlag
+{
+	SeverityFlagDowntime = 1,
+	SeverityFlagAcknowledgement = 2,
+	SeverityFlagUnhandled = 8,
+	SeverityFlagPending = 16,
+	SeverityFlagWarning = 32,
+	SeverityFlagUnknown = 64,
+	SeverityFlagCritical = 128,
+};
+
 class CheckCommand;
 class EventCommand;
 class Dependency;
@@ -82,8 +98,10 @@ public:
 
 	AcknowledgementType GetAcknowledgement(void);
 
-	void AcknowledgeProblem(const String& author, const String& comment, AcknowledgementType type, bool notify = true, double expiry = 0, const MessageOrigin::Ptr& origin = MessageOrigin::Ptr());
+	void AcknowledgeProblem(const String& author, const String& comment, AcknowledgementType type, bool notify = true, bool persistent = false, double expiry = 0, const MessageOrigin::Ptr& origin = MessageOrigin::Ptr());
 	void ClearAcknowledgement(const MessageOrigin::Ptr& origin = MessageOrigin::Ptr());
+
+	virtual int GetSeverity(void) const override;
 
 	/* Checks */
 	intrusive_ptr<CheckCommand> GetCheckCommand(void) const;
@@ -121,7 +139,7 @@ public:
 	    const NotificationType&, const CheckResult::Ptr&, const String&,
 	    const String&, const MessageOrigin::Ptr&)> OnNotificationSentToAllUsers;
 	static boost::signals2::signal<void (const Checkable::Ptr&, const String&, const String&, AcknowledgementType,
-					     bool, double, const MessageOrigin::Ptr&)> OnAcknowledgementSet;
+					     bool, bool, double, const MessageOrigin::Ptr&)> OnAcknowledgementSet;
 	static boost::signals2::signal<void (const Checkable::Ptr&, const MessageOrigin::Ptr&)> OnAcknowledgementCleared;
 	static boost::signals2::signal<void (const Checkable::Ptr&)> OnNextCheckUpdated;
 	static boost::signals2::signal<void (const Checkable::Ptr&)> OnEventCommandExecuted;
@@ -132,7 +150,7 @@ public:
 	void RemoveAllDowntimes(void);
 	void TriggerDowntimes(void);
 	bool IsInDowntime(void) const;
-	bool IsAcknowledged(void);
+	bool IsAcknowledged(void) const;
 
 	std::set<Downtime::Ptr> GetDowntimes(void) const;
 	void RegisterDowntime(const Downtime::Ptr& downtime);

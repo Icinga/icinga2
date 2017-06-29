@@ -32,7 +32,7 @@
 
 using namespace icinga;
 
-REGISTER_SCRIPTFUNCTION_NS(Internal, PluginNotification, &PluginNotificationTask::ScriptFunc);
+REGISTER_SCRIPTFUNCTION_NS(Internal, PluginNotification, &PluginNotificationTask::ScriptFunc, "notification:user:cr:itype:author:comment:resolvedMacros:useResolvedMacros");
 
 void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification,
     const User::Ptr& user, const CheckResult::Ptr& cr, int itype,

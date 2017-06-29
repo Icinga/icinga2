@@ -36,7 +36,7 @@ void ApiListener::ConfigGlobHandler(ConfigDirInformation& config, const String& 
 	CONTEXT("Creating config update for file '" + file + "'");
 
 	Log(LogNotice, "ApiListener")
-	    << "Creating config update for file '" << file << "'";
+	    << "Creating config update for file '" << file << "'.";
 
 	std::ifstream fp(file.CStr(), std::ifstream::binary);
 	if (!fp)
@@ -85,21 +85,37 @@ bool ApiListener::UpdateConfigDir(const ConfigDirInformation& oldConfigInfo, con
 
 	double oldTimestamp;
 
-	if (!oldConfig->Contains(".timestamp"))
+	if (!oldConfig->Contains("/.timestamp"))
 		oldTimestamp = 0;
 	else
-		oldTimestamp = oldConfig->Get(".timestamp");
+		oldTimestamp = oldConfig->Get("/.timestamp");
 
 	double newTimestamp;
 
-	if (!newConfig->Contains(".timestamp"))
+	if (!newConfig->Contains("/.timestamp"))
 		newTimestamp = Utility::GetTime();
 	else
-		newTimestamp = newConfig->Get(".timestamp");
+		newTimestamp = newConfig->Get("/.timestamp");
 
-	/* skip update if our config is newer */
-	if (oldTimestamp >= newTimestamp)
+	/* skip update if our configuration files are more recent */
+	if (oldTimestamp >= newTimestamp) {
+		Log(LogInformation, "ApiListener")
+		    << "Cannot apply configuration file update for path '" << configDir << "'. Current timestamp '"
+		    << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", oldTimestamp) << "' ("
+		    << std::fixed << std::setprecision(6) << oldTimestamp
+		    << ") is more recent than received timestamp '"
+		    << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", newTimestamp) << "' ("
+		    << newTimestamp << ").";
 		return false;
+	}
+
+	Log(LogInformation, "ApiListener")
+	    << "Applying configuration file update for path '" << configDir << "'. Received timestamp '"
+	    << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", newTimestamp) << "' ("
+	    << std::fixed << std::setprecision(6) << newTimestamp
+	    << ") is more recent than current timestamp '"
+	    << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", oldTimestamp) << "' ("
+	    << oldTimestamp << ").";
 
 	{
 		ObjectLock olock(newConfig);
@@ -265,6 +281,10 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 		    << "Ignoring config update. '" << listener->GetName() << "' does not accept config.";
 		return Empty;
 	}
+
+	Log(LogInformation, "ApiListener")
+	    << "Applying config update from endpoint '" << origin->FromClient->GetEndpoint()->GetName()
+	    << "' of zone '" << GetFromZoneName(origin->FromZone) << "'.";
 
 	Dictionary::Ptr updateV1 = params->Get("update");
 	Dictionary::Ptr updateV2 = params->Get("update_v2");

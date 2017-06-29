@@ -30,7 +30,7 @@ using namespace icinga;
 REGISTER_TYPE_WITH_PROTOTYPE(Checkable, Checkable::GetPrototype());
 INITIALIZE_ONCE(&Checkable::StaticInitialize);
 
-boost::signals2::signal<void (const Checkable::Ptr&, const String&, const String&, AcknowledgementType, bool, double, const MessageOrigin::Ptr&)> Checkable::OnAcknowledgementSet;
+boost::signals2::signal<void (const Checkable::Ptr&, const String&, const String&, AcknowledgementType, bool, bool, double, const MessageOrigin::Ptr&)> Checkable::OnAcknowledgementSet;
 boost::signals2::signal<void (const Checkable::Ptr&, const MessageOrigin::Ptr&)> Checkable::OnAcknowledgementCleared;
 
 void Checkable::StaticInitialize(void)
@@ -117,12 +117,12 @@ AcknowledgementType Checkable::GetAcknowledgement(void)
 	return avalue;
 }
 
-bool Checkable::IsAcknowledged(void)
+bool Checkable::IsAcknowledged(void) const
 {
-	return GetAcknowledgement() != AcknowledgementNone;
+	return const_cast<Checkable *>(this)->GetAcknowledgement() != AcknowledgementNone;
 }
 
-void Checkable::AcknowledgeProblem(const String& author, const String& comment, AcknowledgementType type, bool notify, double expiry, const MessageOrigin::Ptr& origin)
+void Checkable::AcknowledgeProblem(const String& author, const String& comment, AcknowledgementType type, bool notify, bool persistent, double expiry, const MessageOrigin::Ptr& origin)
 {
 	SetAcknowledgementRaw(type);
 	SetAcknowledgementExpiry(expiry);
@@ -130,7 +130,7 @@ void Checkable::AcknowledgeProblem(const String& author, const String& comment, 
 	if (notify && !IsPaused())
 		OnNotificationsRequested(this, NotificationAcknowledgement, GetLastCheckResult(), author, comment, MessageOrigin::Ptr());
 
-	OnAcknowledgementSet(this, author, comment, type, notify, expiry, origin);
+	OnAcknowledgementSet(this, author, comment, type, notify, persistent, expiry, origin);
 }
 
 void Checkable::ClearAcknowledgement(const MessageOrigin::Ptr& origin)
@@ -144,6 +144,12 @@ void Checkable::ClearAcknowledgement(const MessageOrigin::Ptr& origin)
 Endpoint::Ptr Checkable::GetCommandEndpoint(void) const
 {
 	return Endpoint::GetByName(GetCommandEndpointRaw());
+}
+
+int Checkable::GetSeverity(void) const
+{
+	/* overridden in Host/Service class. */
+	return 0;
 }
 
 void Checkable::NotifyFixedDowntimeStart(const Downtime::Ptr& downtime)

@@ -113,7 +113,7 @@ public:
 	    std::map<String, Expression *> *closedVars, const boost::shared_ptr<Expression>& expression)
 	{
 		return new Function(name, boost::bind(&FunctionWrapper, _1, args,
-		    EvaluateClosedVars(frame, closedVars), expression));
+		    EvaluateClosedVars(frame, closedVars), expression), args);
 	}
 
 	static inline Value NewApply(ScriptFrame& frame, const String& type, const String& target, const String& name, const boost::shared_ptr<Expression>& filter,
@@ -126,7 +126,7 @@ public:
 		return Empty;
 	}
 
-	static inline Value NewObject(ScriptFrame& frame, bool abstract, const String& type, const String& name, const boost::shared_ptr<Expression>& filter,
+	static inline Value NewObject(ScriptFrame& frame, bool abstract, const Type::Ptr& type, const String& name, const boost::shared_ptr<Expression>& filter,
 		const String& zone, const String& package, bool defaultTmpl, bool ignoreOnError, std::map<String, Expression *> *closedVars, const boost::shared_ptr<Expression>& expression, const DebugInfo& debugInfo = DebugInfo())
 	{
 		ConfigItemBuilder::Ptr item = new ConfigItemBuilder(debugInfo);
@@ -134,9 +134,7 @@ public:
 		String checkName = name;
 
 		if (!abstract) {
-			Type::Ptr ptype = Type::GetByName(type);
-
-			NameComposer *nc = dynamic_cast<NameComposer *>(ptype.get());
+			NameComposer *nc = dynamic_cast<NameComposer *>(type.get());
 
 			if (nc)
 				checkName = nc->MakeName(name, Dictionary::Ptr());
@@ -147,9 +145,15 @@ public:
 
 			if (oldItem) {
 				std::ostringstream msgbuf;
-				msgbuf << "Object '" << name << "' of type '" << type << "' re-defined: " << debugInfo << "; previous definition: " << oldItem->GetDebugInfo();
+				msgbuf << "Object '" << name << "' of type '" << type->GetName() << "' re-defined: " << debugInfo << "; previous definition: " << oldItem->GetDebugInfo();
 				BOOST_THROW_EXCEPTION(ScriptError(msgbuf.str(), debugInfo));
 			}
+		}
+
+		if (filter && !ObjectRule::IsValidSourceType(type->GetName())) {
+			std::ostringstream msgbuf;
+			msgbuf << "Object '" << name << "' of type '" << type->GetName() << "' must not have 'assign where' and 'ignore where' rules: " << debugInfo;
+			BOOST_THROW_EXCEPTION(ScriptError(msgbuf.str(), debugInfo));
 		}
 
 		item->SetType(type);

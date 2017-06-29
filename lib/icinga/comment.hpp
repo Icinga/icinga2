@@ -49,7 +49,7 @@ public:
 	static int GetNextCommentID(void);
 
 	static String AddComment(const intrusive_ptr<Checkable>& checkable, CommentType entryType,
-	    const String& author, const String& text, double expireTime,
+	    const String& author, const String& text, bool persistent, double expireTime,
 	    const String& id = String(), const MessageOrigin::Ptr& origin = MessageOrigin::Ptr());
 
 	static void RemoveComment(const String& id, const MessageOrigin::Ptr& origin = MessageOrigin::Ptr());

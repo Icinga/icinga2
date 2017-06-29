@@ -22,7 +22,7 @@
 using namespace icinga;
 
 MinAggregator::MinAggregator(const String& attr)
-    : m_Min(0), m_MinAttr(attr)
+    : m_Min(DBL_MAX), m_MinAttr(attr)
 { }
 
 void MinAggregator::Apply(const Table::Ptr& table, const Value& row)
@@ -37,5 +37,8 @@ void MinAggregator::Apply(const Table::Ptr& table, const Value& row)
 
 double MinAggregator::GetResult(void) const
 {
-	return m_Min;
+	if (m_Min == DBL_MAX)
+		return 0;
+	else
+		return m_Min;
 }

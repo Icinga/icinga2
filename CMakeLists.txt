@@ -37,7 +37,6 @@ option(ICINGA2_WITH_HELLO "Build the hello module" OFF)
 option(ICINGA2_WITH_LIVESTATUS "Build the Livestatus module" ON)
 option(ICINGA2_WITH_NOTIFICATION "Build the notification module" ON)
 option(ICINGA2_WITH_PERFDATA "Build the perfdata module" ON)
-option(ICINGA2_WITH_REDIS "Build the redis module" ON)
 option(ICINGA2_WITH_STUDIO "Build the Icinga Studio application" OFF)
 option(ICINGA2_WITH_TESTS "Run unit tests" ON)
 
@@ -246,8 +245,8 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     OUTPUT_VARIABLE _ICINGA2_COMPILER_VERSION
   )
 
-  if("${CMAKE_CXX_COMPILER_VERSION}" VERSION_LESS "4.6.0")
-    message(FATAL_ERROR "Your version of GCC (${CMAKE_CXX_COMPILER_VERSION}) is too old for building Icinga 2 (GCC >= 4.6.0 is required).")
+  if("${CMAKE_CXX_COMPILER_VERSION}" VERSION_LESS "4.7.0")
+    message(FATAL_ERROR "Your version of GCC (${CMAKE_CXX_COMPILER_VERSION}) is too old for building Icinga 2 (GCC >= 4.7.0 is required).")
   endif()
 endif()
 
@@ -264,7 +263,7 @@ endif()
 configure_file(config.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config.h ESCAPE_QUOTES)
 
 install(
-  FILES README.md COPYING COPYING.Exceptions AUTHORS ChangeLog NEWS
+  FILES README.md COPYING COPYING.Exceptions AUTHORS CHANGELOG.md NEWS
   DESTINATION ${CMAKE_INSTALL_DOCDIR}
 )
 
@@ -328,16 +327,26 @@ if(WIN32)
   if (EXISTS ${CMAKE_CURRENT_BINARY_DIR}/NSCP.msi)
     file(SHA256 ${CMAKE_CURRENT_BINARY_DIR}/NSCP.msi NSCP_SHA256SUM)
   endif()
-    
+
   if (NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/NSCP.msi OR NOT ${NSCP_SHA256SUM} STREQUAL ${NSCP_SHA256})
     file(DOWNLOAD ${NSCP_URL} ${CMAKE_CURRENT_BINARY_DIR}/NSCP.msi SHOW_PROGRESS)
   endif()
 
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/NSCP.msi DESTINATION ${CMAKE_INSTALL_SBINDIR})
 
+  if (OPENSSL_VERSION_MINOR GREATER_EQUAL 1)
+    if (CMAKE_VS_PLATFORM_NAME STREQUAL "x64")
+      list (APPEND ICINGA2_OPENSSL_DLLS ${OPENSSL_INCLUDE_DIR}/../bin/libcrypto-1_1-x64.dll ${OPENSSL_INCLUDE_DIR}/../bin/libssl-1_1-x64.dll)
+    else()
+      list (APPEND ICINGA2_OPENSSL_DLLS ${OPENSSL_INCLUDE_DIR}/../bin/libcrypto-1_1.dll ${OPENSSL_INCLUDE_DIR}/../bin/libssl-1_1.dll)
+    endif()
+  else()
+      list (APPEND ICINGA2_OPENSSL_DLLS ${OPENSSL_INCLUDE_DIR}/../bin/libeay32.dll ${OPENSSL_INCLUDE_DIR}/../bin/ssleay32.dll)
+  endif()
+
   install(
     PROGRAMS ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}
-      ${OPENSSL_INCLUDE_DIR}/../bin/libeay32.dll ${OPENSSL_INCLUDE_DIR}/../bin/ssleay32.dll
+      ${ICINGA2_OPENSSL_DLLS}
     DESTINATION ${CMAKE_INSTALL_SBINDIR}
   )
 endif()

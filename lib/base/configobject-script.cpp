@@ -45,8 +45,8 @@ Object::Ptr ConfigObject::GetPrototype(void)
 
 	if (!prototype) {
 		prototype = new Dictionary();
-		prototype->Set("modify_attribute", new Function("ConfigObject#modify_attribute", WrapFunction(ConfigObjectModifyAttribute), false));
-		prototype->Set("restore_attribute", new Function("ConfigObject#restore_attribute", WrapFunction(ConfigObjectRestoreAttribute), false));
+		prototype->Set("modify_attribute", new Function("ConfigObject#modify_attribute", WrapFunction(ConfigObjectModifyAttribute), { "attr", "value" }, false));
+		prototype->Set("restore_attribute", new Function("ConfigObject#restore_attribute", WrapFunction(ConfigObjectRestoreAttribute), { "attr", "value" }, false));
 	}
 
 	return prototype;

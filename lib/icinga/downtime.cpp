@@ -134,7 +134,7 @@ void Downtime::Start(bool runtimeCreated)
 	 * this downtime now *after* it has been added (important
 	 * for DB IDO, etc.)
 	 */
-	if (checkable->GetStateRaw() != ServiceOK) {
+	if (!checkable->IsStateOK(checkable->GetStateRaw())) {
 		Log(LogNotice, "Downtime")
 		    << "Checkable '" << checkable->GetName() << "' already in a NOT-OK state."
 		    << " Triggering downtime now.";
@@ -294,7 +294,7 @@ void Downtime::RemoveDowntime(const String& id, bool cancelled, bool expired, co
 {
 	Downtime::Ptr downtime = Downtime::GetByName(id);
 
-	if (!downtime)
+	if (!downtime || downtime->GetPackage() != "_api")
 		return;
 
 	String config_owner = downtime->GetConfigOwner();
@@ -309,9 +309,6 @@ void Downtime::RemoveDowntime(const String& id, bool cancelled, bool expired, co
 
 	Log(LogNotice, "Downtime")
 	    << "Removed downtime '" << downtime->GetName() << "' from object '" << downtime->GetCheckable()->GetName() << "'.";
-
-	if (downtime->GetPackage() != "_api")
-		return;
 
 	Array::Ptr errors = new Array();
 

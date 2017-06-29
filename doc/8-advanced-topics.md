@@ -53,12 +53,39 @@ is removed (may happen before or after the actual end time!).
 
 ### <a id="scheduling-downtime"></a> Scheduling a downtime
 
-This can either happen through a web interface or by sending an [external command](14-features.md#external-commands)
-to the external command pipe provided by the `ExternalCommandListener` configuration.
+You can schedule a downtime either by using the Icinga 2 API action
+[schedule-downtime](12-icinga2-api.md#icinga2-api-actions-schedule-downtime) or
+by sending an [external command](14-features.md#external-commands).
 
-Fixed downtimes require a start and end time (a duration will be ignored).
-Flexible downtimes need a start and end time for the time span, and a duration
-independent from that time span.
+
+#### <a id="fixed-downtime"></a> Fixed Downtime
+
+If the host/service changes into a NOT-OK state between the start and
+end time window, the downtime will be marked as `in effect` and
+increases the downtime depth counter.
+
+```
+   |       |         |
+start      |        end
+       trigger time
+```
+
+#### <a id="flexible-downtime"></a> Flexible Downtime
+
+A flexible downtime defines a time window where the downtime may be
+triggered from a host/service NOT-OK state change. It will then last
+until the specified time duration is reached. That way it can happen
+that the downtime end time is already gone, but the downtime ends
+at `trigger time + duration`.
+
+
+```
+   |       |         |
+start      |        end               actual end time
+           |--------------duration--------|
+       trigger time
+```
+
 
 ### <a id="triggered-downtimes"></a> Triggered Downtimes
 
@@ -100,21 +127,39 @@ add useful information for others on repeating incidents (for example
 "last time syslog at 100% cpu on 17.10.2013 due to stale nfs mount") which
 is primarily accessible using web interfaces.
 
-Adding and deleting comment actions are possible through the external command pipe
-provided with the `ExternalCommandListener` configuration. The caller must
-pass the comment id in case of manipulating an existing comment.
-
+You can add a comment either by using the Icinga 2 API action
+[add-comment](12-icinga2-api.md#icinga2-api-actions-add-comment) or
+by sending an [external command](14-features.md#external-commands).
 
 ## <a id="acknowledgements"></a> Acknowledgements
 
-If a problem is alerted and notified, you may signal the other notification
-recipients that you are aware of the problem and will handle it.
+If a problem persists and notifications have been sent, you can
+acknowledge the problem. That way other users will get
+a notification that you're aware of the issue and probably are
+already working on a fix.
 
-By sending an acknowledgement to Icinga 2 (using the external command pipe
-provided with `ExternalCommandListener` configuration) all future notifications
-are suppressed, a new comment is added with the provided description and
-a notification with the type `NotificationFilterAcknowledgement` is sent
-to all notified users.
+Note: Acknowledgements also add a new [comment](8-advanced-topics.md#comments-intro)
+which contains the author and text fields.
+
+You can send an acknowledgement either by using the Icinga 2 API action
+[acknowledge-problem](12-icinga2-api.md#icinga2-api-actions-acknowledge-problem) or
+by sending an [external command](14-features.md#external-commands).
+
+
+### <a id="sticky-acknowledgements"></a> Sticky Acknowledgements
+
+The acknowledgement is removed if a state change occurs or if the host/service
+recovers (OK/Up state).
+
+If you acknowlege a problem once you've received a `Critical` notification,
+the acknowledgement will be removed if there is a state transition to `Warning`.
+```
+OK -> WARNING -> CRITICAL -> WARNING -> OK
+```
+
+If you prefer to keep the acknowledgement until the problem is resolved (`OK`
+recovery) you need to enable the `sticky` parameter.
+
 
 ### <a id="expiring-acknowledgements"></a> Expiring Acknowledgements
 
@@ -298,8 +343,210 @@ and adds the excluded time period names as an array.
       }
     }
 
+## <a id="check-result-freshness"></a> Check Result Freshness
 
-## <a id="use-functions-object-config"></a> Use Functions in Object Configuration
+In Icinga 2 active check freshness is enabled by default. It is determined by the
+`check_interval` attribute and no incoming check results in that period of time.
+
+    threshold = last check execution time + check interval
+
+Passive check freshness is calculated from the `check_interval` attribute if set.
+
+    threshold = last check result time + check interval
+
+If the freshness checks are invalid, a new check is executed defined by the
+`check_command` attribute.
+
+
+## <a id="check-flapping"></a> Check Flapping
+
+Icinga 2 supports optional detection of hosts and services that are "flapping".
+
+Flapping occurs when a service or host changes state too frequently, resulting
+in a storm of problem and recovery notifications. Flapping can be the source of
+configuration problems (i.e. thresholds set too low), troublesome services,
+or real network problems.
+
+Flapping detection can be enabled or disabled using the `enable_flapping` attribute.
+The `flapping_threshold` attributes allows to specify the percentage of state changes
+when a [host](9-object-types.md#objecttype-host) or [service](objecttype-service) is considered to flap.
+
+Note: There are known issues with flapping detection. Please refrain from enabling
+flapping until [#4982](https://github.com/Icinga/icinga2/issues/4982) is fixed.
+
+## <a id="volatile-services"></a> Volatile Services
+
+By default all services remain in a non-volatile state. When a problem
+occurs, the `SOFT` state applies and once `max_check_attempts` attribute
+is reached with the check counter, a `HARD` state transition happens.
+Notifications are only triggered by `HARD` state changes and are then
+re-sent defined by the `interval` attribute.
+
+It may be reasonable to have a volatile service which stays in a `HARD`
+state type if the service stays in a `NOT-OK` state. That way each
+service recheck will automatically trigger a notification unless the
+service is acknowledged or in a scheduled downtime.
+
+## <a id="monitoring-icinga"></a> Monitoring Icinga 2
+
+Why should you do that? Icinga and its components run like any other
+service application on your server. There are predictable issues
+such as "disk space is running low" and your monitoring suffers from just
+that.
+
+You would also like to ensure that features and backends are running
+and storing required data. Be it the database backend where Icinga Web 2
+presents fancy dashboards, forwarded metrics to Graphite or InfluxDB or
+the entire distributed setup.
+
+This list isn't complete but should help with your own setup.
+Windows client specific checks are highlighted.
+
+Type		| Description			| Plugins and CheckCommands
+----------------|-------------------------------|-----------------------------------------------------
+System		| Filesystem			| [disk](10-icinga-template-library.md#plugin-check-command-disk), [disk-windows](10-icinga-template-library.md#windows-plugins) (Windows Client)
+System		| Memory, Swap			| [mem](10-icinga-template-library.md#plugin-contrib-command-mem), [swap](10-icinga-template-library.md#plugin-check-command-swap), [memory](10-icinga-template-library.md#windows-plugins) (Windows Client)
+System		| Hardware			| [hpasm](10-icinga-template-library.md#plugin-contrib-command-hpasm), [ipmi-sensor](10-icinga-template-library.md#plugin-contrib-command-ipmi-sensor)
+System		| Virtualization		| [VMware](10-icinga-template-library.md#plugin-contrib-vmware), [esxi_hardware](10-icinga-template-library.md#plugin-contrib-command-esxi-hardware)
+System		| Processes			| [procs](10-icinga-template-library.md#plugin-check-command-processes), [service-windows](10-icinga-template-library.md#windows-plugins) (Windows Client)
+System		| System Activity Reports	| [check_sar_perf](https://github.com/dnsmichi/icinga-plugins/blob/master/scripts/check_sar_perf.py)
+System		| I/O				| [iostat](10-icinga-template-library.md#plugin-contrib-command-iostat)
+System		| Network interfaces		| [nwc_health](10-icinga-template-library.md#plugin-contrib-command-nwc_health), [interfaces](10-icinga-template-library.md#plugin-contrib-command-interfaces)
+System		| Users				| [users](10-icinga-template-library.md#plugin-check-command-users), [users-windows](10-icinga-template-library.md#windows-plugins) (Windows Client)
+System		| Logs				| Forward them to [Elastic Stack](14-features.md#elastic-stack-integration) or [Graylog](14-features.md#graylog-integration) and add your own alerts.
+System		| NTP				| [ntp_time](10-icinga-template-library.md#plugin-check-command-ntp-time)
+System		| Updates			| [apt](10-icinga-template-library.md#plugin-check-command-apt), [yum](10-icinga-template-library.md#plugin-contrib-command-yum)
+Icinga		| Status & Stats		| [icinga](10-icinga-template-library.md#itl-icinga) (more below)
+Icinga		| Cluster & Clients		| [health checks](6-distributed-monitoring.md#distributed-monitoring-health-checks)
+Database	| MySQL				| [mysql_health](10-icinga-template-library.md#plugin-contrib-command-mysql_health)
+Database	| PostgreSQL			| [postgres](10-icinga-template-library.md#plugin-contrib-command-postgres)
+Database	| Housekeeping			| Check the database size and growth and analyse metrics to examine trends.
+Database	| DB IDO			| [ido](10-icinga-template-library.md#itl-icinga-ido) (more below)
+Webserver	| Apache2, Nginx, etc.		| [http](10-icinga-template-library.md#plugin-check-command-http), [apache_status](10-icinga-template-library.md#plugin-contrib-command-apache_status), [nginx_status](10-icinga-template-library.md#plugin-contrib-command-nginx_status)
+Webserver	| Certificates			| [http](10-icinga-template-library.md#plugin-check-command-http)
+Webserver	| Authorization			| [http](10-icinga-template-library.md#plugin-check-command-http)
+Notifications	| Mail (queue)			| [smtp](10-icinga-template-library.md#plugin-check-command-smtp), [mailq](10-icinga-template-library.md#plugin-check-command-mailq)
+Notifications	| SMS (GSM modem)		| [check_sms3_status](https://exchange.icinga.com/netways/check_sms3status)
+Notifications	| Messengers, Cloud services	| XMPP, Twitter, IRC, Telegram, PagerDuty, VictorOps, etc.
+Metrics		| PNP, RRDTool			| [check_pnp_rrds](https://github.com/lingej/pnp4nagios/tree/master/scripts) checks for stale RRD files.
+Metrics		| Graphite			| [graphite](10-icinga-template-library.md#plugin-contrib-command-graphite)
+Metrics		| InfluxDB			| [check_influxdb](https://exchange.icinga.com/Mikanoshi/InfluxDB+data+monitoring+plugin)
+Metrics		| Elastic Stack			| [elasticsearch](10-icinga-template-library.md#plugin-contrib-command-elasticsearch), [Elastic Stack integration](14-features.md#elastic-stack-integration)
+Metrics		| Graylog			| [Graylog integration](14-features.md#graylog-integration)
+
+
+The [icinga](10-icinga-template-library.md#itl-icinga) CheckCommand provides metrics for the runtime stats of
+Icinga 2. You can forward them to your preferred graphing solution.
+If you require more metrics you can also query the [REST API](12-icinga2-api.md#icinga2-api) and write
+your own custom check plugin. Or you keep using the built-in [object accessor functions](8-advanced-topics.md#access-object-attributes-at-runtime)
+to calculate stats in-memory.
+
+There is a built-in [ido](10-icinga-template-library.md#itl-icinga-ido) check available for DB IDO MySQL/PostgreSQL
+which provides additional metrics for the IDO database.
+
+```
+apply Service "ido-mysql" {
+  check_command = "ido"
+
+  vars.ido_type = "IdoMysqlConnection"
+  vars.ido_name = "ido-mysql" //the name defined in /etc/icinga2/features-enabled/ido-mysql.conf
+
+  assign where match("master*.localdomain", host.name)
+}
+```
+
+More specific database queries can be found in the [DB IDO](14-features.md#db-ido) chapter.
+
+Distributed setups should include specific [health checks](6-distributed-monitoring.md#distributed-monitoring-health-checks).
+You might also want to add additional checks for SSL certificate expiration.
+
+
+## <a id="advanced-configuration-hints"></a> Advanced Configuration Hints
+
+### <a id="advanced-use-of-apply-rules"></a> Advanced Use of Apply Rules
+
+[Apply rules](3-monitoring-basics.md#using-apply) can be used to create a rule set which is
+entirely based on host objects and their attributes.
+In addition to that [apply for and custom attribute override](3-monitoring-basics.md#using-apply-for)
+extend the possibilities.
+
+The following example defines a dictionary on the host object which contains
+configuration attributes for multiple web servers. This then used to add three checks:
+
+* A `ping4` check using the local IP `address` of the web server.
+* A `tcp` check querying the TCP port where the HTTP service is running on.
+* If the `url` key is defined, the third apply for rule will create service objects using the `http` CheckCommand.
+In addition to that you can optionally define the `ssl` attribute which enables HTTPS checks.
+
+Host definition:
+
+    object Host "webserver01" {
+      import "generic-host"
+      address = "192.168.56.200"
+      vars.os = "Linux"
+
+      vars.webserver = {
+        instance["status"] = {
+          address = "192.168.56.201"
+          port = "80"
+          url = "/status"
+        }
+        instance["tomcat"] = {
+          address = "192.168.56.202"
+          port = "8080"
+        }
+        instance["icingaweb2"] = {
+          address = "192.168.56.210"
+          port = "443"
+          url = "/icingaweb2"
+          ssl = true
+        }
+      }
+    }
+
+Service apply for definitions:
+
+    apply Service "webserver_ping" for (instance => config in host.vars.webserver.instance) {
+      display_name = "webserver_" + instance
+      check_command = "ping4"
+
+      vars.ping_address = config.address
+
+      assign where host.vars.webserver.instance
+    }
+
+    apply Service "webserver_port" for (instance => config in host.vars.webserver.instance) {
+      display_name = "webserver_" + instance + "_" + config.port
+      check_command = "tcp"
+
+      vars.tcp_address = config.address
+      vars.tcp_port = config.port
+
+      assign where host.vars.webserver.instance
+    }
+
+    apply Service "webserver_url" for (instance => config in host.vars.webserver.instance) {
+      display_name = "webserver_" + instance + "_" + config.url
+      check_command = "http"
+
+      vars.http_address = config.address
+      vars.http_port = config.port
+      vars.http_uri = config.url
+
+      if (config.ssl) {
+        vars.http_ssl = config.ssl
+      }
+
+      assign where config.url != ""
+    }
+
+The variables defined in the host dictionary are not using the typical custom attribute
+prefix recommended for CheckCommand parameters. Instead they are re-used for multiple
+service checks in this example.
+In addition to defining check parameters this way, you can also enrich the `display_name`
+attribute with more details. This will be shown in in Icinga Web 2 for example.
+
+### <a id="use-functions-object-config"></a> Use Functions in Object Configuration
 
 There is a limited scope where functions can be used as object attributes such as:
 
@@ -322,7 +569,7 @@ inside the `icinga2.log` file depending in your log severity
 * Use the `icinga2 console` to test basic functionality (e.g. iterating over a dictionary)
 * Build them step-by-step. You can always refactor your code later on.
 
-### <a id="use-functions-command-arguments-setif"></a> Use Functions in Command Arguments set_if
+#### <a id="use-functions-command-arguments-setif"></a> Use Functions in Command Arguments set_if
 
 The `set_if` attribute inside the command arguments definition in the
 [CheckCommand object definition](9-object-types.md#objecttype-checkcommand) is primarily used to
@@ -401,7 +648,7 @@ The more programmatic approach for `set_if` could look like this:
         }
 
 
-### <a id="use-functions-command-attribute"></a> Use Functions as Command Attribute
+#### <a id="use-functions-command-attribute"></a> Use Functions as Command Attribute
 
 This comes in handy for [NotificationCommands](9-object-types.md#objecttype-notificationcommand)
 or [EventCommands](9-object-types.md#objecttype-eventcommand) which does not require
@@ -455,7 +702,7 @@ You can omit the `log()` calls, they only help debugging.
       }
     }
 
-### <a id="custom-functions-as-attribute"></a> Use Custom Functions as Attribute
+#### <a id="custom-functions-as-attribute"></a> Use Custom Functions as Attribute
 
 To use custom functions as attributes, the function must be defined in a
 slightly unexpected way. The following example shows how to assign values
@@ -482,7 +729,7 @@ as value for `ping_wrta`, all other hosts use 100.
         assign where true
     }
 
-### <a id="use-functions-assign-where"></a> Use Functions in Assign Where Expressions
+#### <a id="use-functions-assign-where"></a> Use Functions in Assign Where Expressions
 
 If a simple expression for matching a name or checking if an item
 exists in an array or dictionary does not fit, you should consider
@@ -571,7 +818,7 @@ with the `vars_app` dictionary.
       assign where check_app_type(host, "ABAP")
     }
 
-## <a id="access-object-attributes-at-runtime"></a> Access Object Attributes at Runtime
+### <a id="access-object-attributes-at-runtime"></a> Access Object Attributes at Runtime
 
 The [Object Accessor Functions](18-library-reference.md#object-accessor-functions)
 can be used to retrieve references to other objects by name.
@@ -674,40 +921,3 @@ time of the day compared to the defined time period.
     }
 
 
-## <a id="check-result-freshness"></a> Check Result Freshness
-
-In Icinga 2 active check freshness is enabled by default. It is determined by the
-`check_interval` attribute and no incoming check results in that period of time.
-
-    threshold = last check execution time + check interval
-
-Passive check freshness is calculated from the `check_interval` attribute if set.
-
-    threshold = last check result time + check interval
-
-If the freshness checks are invalid, a new check is executed defined by the
-`check_command` attribute.
-
-
-## <a id="check-flapping"></a> Check Flapping
-
-The flapping algorithm used in Icinga 2 does not store the past states but
-calculates the flapping threshold from a single value based on counters and
-half-life values. Icinga 2 compares the value with a single flapping threshold
-configuration attribute named `flapping_threshold`.
-
-Flapping detection can be enabled or disabled using the `enable_flapping` attribute.
-
-
-## <a id="volatile-services"></a> Volatile Services
-
-By default all services remain in a non-volatile state. When a problem
-occurs, the `SOFT` state applies and once `max_check_attempts` attribute
-is reached with the check counter, a `HARD` state transition happens.
-Notifications are only triggered by `HARD` state changes and are then
-re-sent defined by the `interval` attribute.
-
-It may be reasonable to have a volatile service which stays in a `HARD`
-state type if the service stays in a `NOT-OK` state. That way each
-service recheck will automatically trigger a notification unless the
-service is acknowledged or in a scheduled downtime.

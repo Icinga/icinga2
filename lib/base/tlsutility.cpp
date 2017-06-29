@@ -231,7 +231,7 @@ void AddCRLToSSLContext(const boost::shared_ptr<SSL_CTX>& context, const String&
 		    << errinfo_openssl_error(ERR_peek_error()));
 	}
 
-	if (X509_LOOKUP_load_file(lookup, crlPath.CStr(), X509_FILETYPE_PEM) != 0) {
+	if (X509_LOOKUP_load_file(lookup, crlPath.CStr(), X509_FILETYPE_PEM) != 1) {
 		Log(LogCritical, "SSL")
 		    << "Error loading crl file '" << crlPath << "': " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
 		BOOST_THROW_EXCEPTION(openssl_error()
@@ -405,6 +405,18 @@ int MakeX509CSR(const String& cn, const String& keyfile, const String& csrfile, 
 		X509_NAME *name = X509_REQ_get_subject_name(req);
 		X509_NAME_add_entry_by_txt(name, "CN", MBSTRING_ASC, (unsigned char *)cn.CStr(), -1, -1, 0);
 	
+		if (!cn.Contains(" ") && cn.Contains(".")) {
+			String san = "DNS:" + cn;
+			X509_EXTENSION *subjectAltNameExt = X509V3_EXT_conf_nid(NULL, NULL, NID_subject_alt_name, const_cast<char *>(san.CStr()));
+			if (subjectAltNameExt) {
+				/* OpenSSL 0.9.8 requires STACK_OF(X509_EXTENSION), otherwise we would just use stack_st_X509_EXTENSION. */
+				STACK_OF(X509_EXTENSION) *exts = sk_X509_EXTENSION_new_null();
+				sk_X509_EXTENSION_push(exts, subjectAltNameExt);
+				X509_REQ_add_extensions(req, exts);
+				sk_X509_EXTENSION_pop_free(exts, X509_EXTENSION_free);
+			}
+		}
+
 		X509_REQ_sign(req, key, EVP_sha256());
 	
 		Log(LogInformation, "base")
@@ -586,6 +598,46 @@ String PBKDF2_SHA1(const String& password, const String& salt, int iterations)
 
 	char output[SHA_DIGEST_LENGTH*2+1];
 	for (int i = 0; i < SHA_DIGEST_LENGTH; i++)
+		sprintf(output + 2 * i, "%02x", digest[i]);
+
+	return output;
+}
+
+String SHA1(const String& s, bool binary)
+{
+	char errbuf[120];
+	SHA_CTX context;
+	unsigned char digest[SHA_DIGEST_LENGTH];
+
+	if (!SHA1_Init(&context)) {
+		Log(LogCritical, "SSL")
+		    << "Error on SHA Init: " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
+		BOOST_THROW_EXCEPTION(openssl_error()
+		    << boost::errinfo_api_function("SHA1_Init")
+		    << errinfo_openssl_error(ERR_peek_error()));
+	}
+
+	if (!SHA1_Update(&context, (unsigned char*)s.CStr(), s.GetLength())) {
+		Log(LogCritical, "SSL")
+		    << "Error on SHA Update: " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
+		BOOST_THROW_EXCEPTION(openssl_error()
+		    << boost::errinfo_api_function("SHA1_Update")
+		    << errinfo_openssl_error(ERR_peek_error()));
+	}
+
+	if (!SHA1_Final(digest, &context)) {
+		Log(LogCritical, "SSL")
+		    << "Error on SHA Final: " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
+		BOOST_THROW_EXCEPTION(openssl_error()
+		    << boost::errinfo_api_function("SHA1_Final")
+		    << errinfo_openssl_error(ERR_peek_error()));
+	}
+
+	if (binary)
+		return String(reinterpret_cast<const char*>(digest), reinterpret_cast<const char *>(digest + SHA_DIGEST_LENGTH));
+
+	char output[SHA_DIGEST_LENGTH*2+1];
+	for (int i = 0; i < 20; i++)
 		sprintf(output + 2 * i, "%02x", digest[i]);
 
 	return output;

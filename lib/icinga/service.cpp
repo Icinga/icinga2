@@ -124,6 +124,36 @@ Host::Ptr Service::GetHost(void) const
 	return m_Host;
 }
 
+/* keep in sync with Host::GetSeverity() */
+int Service::GetSeverity(void) const
+{
+	int severity = 0;
+
+	ObjectLock olock(this);
+	ServiceState state = GetStateRaw();
+
+	if (!HasBeenChecked())
+		severity |= SeverityFlagPending;
+	else if (state == ServiceWarning)
+		severity |= SeverityFlagWarning;
+	else if (state == ServiceUnknown)
+		severity |= SeverityFlagUnknown;
+	else if (state == ServiceCritical)
+		severity |= SeverityFlagCritical;
+
+	/* TODO: Add host reachability and handled */
+	if (IsInDowntime())
+		severity |= SeverityFlagDowntime;
+	else if (IsAcknowledged())
+		severity |= SeverityFlagAcknowledgement;
+	else
+		severity |= SeverityFlagUnhandled;
+
+	olock.Unlock();
+
+	return severity;
+}
+
 bool Service::IsStateOK(ServiceState state)
 {
 	return state == ServiceOK;

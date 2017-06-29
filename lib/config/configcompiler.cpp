@@ -135,7 +135,7 @@ Expression *ConfigCompiler::HandleInclude(const String& relativeBase, const Stri
 {
 	String upath;
 
-	if (search || (path.GetLength() > 0 && path[0] == '/'))
+	if (search || (IsAbsolutePath(path)))
 		upath = path;
 	else
 		upath = relativeBase + "/" + path;
@@ -179,7 +179,7 @@ Expression *ConfigCompiler::HandleIncludeRecursive(const String& relativeBase, c
 {
 	String ppath;
 
-	if (path.GetLength() > 0 && path[0] == '/')
+	if (IsAbsolutePath(path))
 		ppath = path;
 	else
 		ppath = relativeBase + "/" + path;
@@ -198,7 +198,7 @@ void ConfigCompiler::HandleIncludeZone(const String& relativeBase, const String&
 
 	String ppath;
 
-	if (path.GetLength() > 0 && path[0] == '/')
+	if (IsAbsolutePath(path))
 		ppath = path;
 	else
 		ppath = relativeBase + "/" + path;
@@ -223,7 +223,7 @@ Expression *ConfigCompiler::HandleIncludeZones(const String& relativeBase, const
 	String ppath;
 	String newRelativeBase = relativeBase;
 
-	if (path.GetLength() > 0 && path[0] == '/')
+	if (IsAbsolutePath(path))
 		ppath = path;
 	else {
 		ppath = relativeBase + "/" + path;
@@ -349,5 +349,15 @@ bool ConfigCompiler::HasZoneConfigAuthority(const String& zoneName)
 	}
 
 	return !empty;
+}
+
+
+bool ConfigCompiler::IsAbsolutePath(const String& path)
+{
+#ifndef _WIN32
+	return (path.GetLength() > 0 && path[0] == '/');
+#else /* _WIN32 */
+	return !PathIsRelative(path.CStr());
+#endif /* _WIN32 */
 }
 

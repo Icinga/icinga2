@@ -175,9 +175,12 @@ bool ConfigObjectUtility::DeleteObjectHelper(const ConfigObject::Ptr& object, bo
 {
 	std::vector<Object::Ptr> parents = DependencyGraph::GetParents(object);
 
+	Type::Ptr type = object->GetReflectionType();
+
 	if (!parents.empty() && !cascade) {
 		if (errors)
-			errors->Add("Object cannot be deleted because other objects depend on it. "
+			errors->Add("Object '" + object->GetName() + "' of type '" + type->GetName() +
+			    "' cannot be deleted because other objects depend on it. "
 			    "Use cascading delete to delete it anyway.");
 
 		return false;
@@ -192,9 +195,7 @@ bool ConfigObjectUtility::DeleteObjectHelper(const ConfigObject::Ptr& object, bo
 		DeleteObjectHelper(parentObj, cascade, errors);
 	}
 
-	Type::Ptr type = object->GetReflectionType();
-
-	ConfigItem::Ptr item = ConfigItem::GetByTypeAndName(type->GetName(), object->GetName());
+	ConfigItem::Ptr item = ConfigItem::GetByTypeAndName(type, object->GetName());
 
 	try {
 		/* mark this object for cluster delete event */

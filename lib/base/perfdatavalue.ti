@@ -17,36 +17,21 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef REDISWRITER_H
-#define REDISWRITER_H
-
-#include "redis/rediswriter.thpp"
-#include "remote/messageorigin.hpp"
-#include "base/timer.hpp"
-#include <hiredis/hiredis.h>
+library base;
 
 namespace icinga
 {
 
-/**
- * @ingroup redis
- */
-class RedisWriter : public ObjectImpl<RedisWriter>
+class PerfdataValue
 {
-public:
-	DECLARE_OBJECT(RedisWriter);
-	DECLARE_OBJECTNAME(RedisWriter);
-
-	virtual void Start(bool runtimeCreated) override;
-	virtual void Stop(bool runtimeRemoved) override;
-
-private:
-	void ConnectionThreadProc(void);
-	void HandleEvents(void);
-
-	redisContext *m_Context;
+	[state] String label;
+	[state] double value;
+	[state] bool counter;
+	[state] String unit;
+	[state] Value crit;
+	[state] Value warn;
+	[state] Value min;
+	[state] Value max;
 };
 
 }
-
-#endif /* REDISWRITER_H */

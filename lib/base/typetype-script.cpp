@@ -48,7 +48,7 @@ Object::Ptr TypeType::GetPrototype(void)
 
 	if (!prototype) {
 		prototype = new Dictionary();
-		prototype->Set("register_attribute_handler", new Function("Type#register_attribute_handler", WrapFunction(TypeRegisterAttributeHandler), false));
+		prototype->Set("register_attribute_handler", new Function("Type#register_attribute_handler", WrapFunction(TypeRegisterAttributeHandler), { "field", "callback" }, false));
 	}
 
 	return prototype;

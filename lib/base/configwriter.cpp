@@ -262,6 +262,8 @@ const std::vector<String>& ConfigWriter::GetKeywords(void)
 		keywords.push_back("else");
 		keywords.push_back("while");
 		keywords.push_back("throw");
+		keywords.push_back("try");
+		keywords.push_back("except");
 	}
 
 	return keywords;

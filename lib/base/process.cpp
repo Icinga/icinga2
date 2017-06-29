@@ -30,6 +30,7 @@
 #include "base/json.hpp"
 #include <boost/algorithm/string/join.hpp>
 #include <boost/thread/once.hpp>
+#include <iostream>
 
 #ifndef _WIN32
 #	include <execvpe.h>

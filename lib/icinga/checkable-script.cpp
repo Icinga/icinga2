@@ -39,7 +39,7 @@ Object::Ptr Checkable::GetPrototype(void)
 
 	if (!prototype) {
 		prototype = new Dictionary();
-		prototype->Set("process_check_result", new Function("Checkable#process_check_result", WrapFunction(CheckableProcessCheckResult), false));
+		prototype->Set("process_check_result", new Function("Checkable#process_check_result", WrapFunction(CheckableProcessCheckResult), { "cr" }, false));
 	}
 
 	return prototype;

@@ -38,7 +38,7 @@
 
 using namespace icinga;
 
-REGISTER_SCRIPTFUNCTION_NS(Internal, ClrCheck,  &ClrCheckTask::ScriptFunc);
+REGISTER_SCRIPTFUNCTION_NS(Internal, ClrCheck,  &ClrCheckTask::ScriptFunc, "checkable:cr:resolvedMacros:useResolvedMacros");
 
 static boost::once_flag l_OnceFlag = BOOST_ONCE_INIT;
 

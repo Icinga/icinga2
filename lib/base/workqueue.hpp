@@ -22,6 +22,7 @@
 
 #include "base/i2-base.hpp"
 #include "base/timer.hpp"
+#include "base/ringbuffer.hpp"
 #include <boost/function.hpp>
 #include <boost/thread/thread.hpp>
 #include <boost/thread/mutex.hpp>
@@ -93,12 +94,16 @@ public:
 	bool IsWorkerThread(void) const;
 
 	size_t GetLength(void) const;
+	int GetTaskCount(RingBuffer::SizeType span) const;
 
 	void SetExceptionCallback(const ExceptionCallback& callback);
 
 	bool HasExceptions(void) const;
 	std::vector<boost::exception_ptr> GetExceptions(void) const;
 	void ReportExceptions(const String& facility) const;
+
+protected:
+	void IncreaseTaskCount(void);
 
 private:
 	int m_ID;
@@ -120,6 +125,12 @@ private:
 	ExceptionCallback m_ExceptionCallback;
 	std::vector<boost::exception_ptr> m_Exceptions;
 	Timer::Ptr m_StatusTimer;
+	double m_StatusTimerTimeout;
+
+	mutable boost::mutex m_StatsMutex;
+	RingBuffer m_TaskStats;
+	int m_PendingTasks;
+	double m_PendingTasksTimestamp;
 
 	void WorkerThreadProc(void);
 	void StatusTimerHandler(void);

@@ -4,9 +4,9 @@
 
 These functions are globally available in [assign/ignore where expressions](3-monitoring-basics.md#using-apply-expressions),
 [functions](17-language-reference.md#functions), [API filters](12-icinga2-api.md#icinga2-api-filters)
-and the [Icinga 2 console](11-cli-commands.md#cli-command-console).
+and the [Icinga 2 debug console](11-cli-commands.md#cli-command-console).
 
-You can use the [Icinga 2 console](11-cli-commands.md#cli-command-console)
+You can use the [Icinga 2 debug console](11-cli-commands.md#cli-command-console)
 as a sandbox to test these functions before implementing
 them in your scenarios.
 
@@ -16,7 +16,10 @@ Signature:
 
     function regex(pattern, text)
 
-Returns true if the regular expression matches the text, false otherwise.
+Returns true if the regular expression matches the text, false otherwise. The mode argument is
+optional and can be either MatchAll (in which case all elements for an array have to match) or MatchAny
+(in which case at least one element has to match). The default mode is MatchAll.
+
 **Tip**: In case you are looking for regular expression tests try [regex101](https://regex101.com).
 
 Example:
@@ -34,9 +37,11 @@ Example:
 
 Signature:
 
-    function match(pattern, text)
+    function match(pattern, text, mode)
 
-Returns true if the wildcard (`?*`) pattern matches the text, false otherwise.
+Returns true if the wildcard (`?*`) pattern matches the text, false otherwise. The mode argument is
+optional and can be either MatchAll (in which case all elements for an array have to match) or MatchAny
+(in which case at least one element has to match). The default mode is MatchAll.
 
 Example:
 
@@ -59,7 +64,10 @@ Signature:
 
 Returns true if the CIDR pattern matches the IP address, false otherwise.
 IPv4 addresses are converted to IPv4-mapped IPv6 addresses before being
-matched against the pattern.
+matched against the pattern. The mode argument is optional and can be
+either MatchAll (in which case all elements for an array have to match) or MatchAny
+(in which case at least one element has to match). The default mode is MatchAll.
+
 
 Example:
 
@@ -328,7 +336,8 @@ Example:
     true
     <4> => typeof([ 1, 2, 3]) == Array
     true
-    <5> => typeof({ a = 2, b = 3}) == Dictionary
+    <5> => typeof({ a = 2, b = 3 }) == Dictionary
+    true
 
 ### <a id="global-functions-get_time"></a> get_time
 
@@ -1147,6 +1156,24 @@ Signature:
 Returns a copy of the array containing only the elements for which `func(element)`
 is true.
 
+### <a id="array-any"></a> Array#any
+
+Signature:
+
+    function any(func);
+
+Returns true if the array contains at least one element for which `func(element)`
+is true, false otherwise.
+
+### <a id="array-all"></a> Array#all
+
+Signature:
+
+    function all(func);
+
+Returns true if the array contains only elements for which `func(element)`
+is true, false otherwise.
+
 ### <a id="array-unique"></a> Array#unique
 
 Signature:
@@ -1218,6 +1245,14 @@ Signature:
     function keys();
 
 Returns a list of keys for all items that are currently in the dictionary.
+
+### <a id="dictionary-values"></a> Dictionary#values
+
+Signature:
+
+    function values();
+
+Returns a list of values for all items that are currently in the dictionary.
 
 ## <a id="scriptfunction-type"></a> Function type
 

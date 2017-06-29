@@ -79,19 +79,32 @@ static Array::Ptr DictionaryKeys(void)
 	return keys;
 }
 
+static Array::Ptr DictionaryValues(void)
+{
+	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
+	Dictionary::Ptr self = static_cast<Dictionary::Ptr>(vframe->Self);
+	Array::Ptr keys = new Array();
+	ObjectLock olock(self);
+	for (const Dictionary::Pair& kv : self) {
+		keys->Add(kv.second);
+	}
+	return keys;
+}
+
 Object::Ptr Dictionary::GetPrototype(void)
 {
 	static Dictionary::Ptr prototype;
 
 	if (!prototype) {
 		prototype = new Dictionary();
-		prototype->Set("len", new Function("Dictionary#len", WrapFunction(DictionaryLen), true));
-		prototype->Set("set", new Function("Dictionary#set", WrapFunction(DictionarySet)));
-		prototype->Set("get", new Function("Dictionary#get", WrapFunction(DictionaryGet)));
-		prototype->Set("remove", new Function("Dictionary#remove", WrapFunction(DictionaryRemove)));
-		prototype->Set("contains", new Function("Dictionary#contains", WrapFunction(DictionaryContains), true));
-		prototype->Set("shallow_clone", new Function("Dictionary#shallow_clone", WrapFunction(DictionaryShallowClone), true));
-		prototype->Set("keys", new Function("Dictionary#keys", WrapFunction(DictionaryKeys), true));
+		prototype->Set("len", new Function("Dictionary#len", WrapFunction(DictionaryLen), {}, true));
+		prototype->Set("set", new Function("Dictionary#set", WrapFunction(DictionarySet), { "key", "value" }));
+		prototype->Set("get", new Function("Dictionary#get", WrapFunction(DictionaryGet), { "key" }));
+		prototype->Set("remove", new Function("Dictionary#remove", WrapFunction(DictionaryRemove), { "key" }));
+		prototype->Set("contains", new Function("Dictionary#contains", WrapFunction(DictionaryContains), { "key" }, true));
+		prototype->Set("shallow_clone", new Function("Dictionary#shallow_clone", WrapFunction(DictionaryShallowClone), {}, true));
+		prototype->Set("keys", new Function("Dictionary#keys", WrapFunction(DictionaryKeys), {}, true));
+		prototype->Set("values", new Function("Dictionary#values", WrapFunction(DictionaryValues), {}, true));
 	}
 
 	return prototype;

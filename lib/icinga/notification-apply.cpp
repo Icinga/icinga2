@@ -50,7 +50,7 @@ bool Notification::EvaluateApplyRuleInstance(const Checkable::Ptr& checkable, co
 #endif /* _DEBUG */
 
 	ConfigItemBuilder::Ptr builder = new ConfigItemBuilder(di);
-	builder->SetType("Notification");
+	builder->SetType(Notification::TypeInstance);
 	builder->SetName(name);
 	builder->SetScope(frame.Locals->ShallowClone());
 	builder->SetIgnoreOnError(rule.GetIgnoreOnError());

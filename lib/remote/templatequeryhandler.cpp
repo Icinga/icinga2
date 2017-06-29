@@ -40,7 +40,7 @@ public:
 	{
 		Dictionary::Ptr target = new Dictionary();
 		target->Set("name", item->GetName());
-		target->Set("type", item->GetType());
+		target->Set("type", item->GetType()->GetName());
 
 		DebugInfo di = item->GetDebugInfo();
 		Dictionary::Ptr dinfo = new Dictionary();
@@ -57,7 +57,9 @@ public:
 	virtual void FindTargets(const String& type,
 	    const boost::function<void (const Value&)>& addTarget) const override
 	{
-		for (const ConfigItem::Ptr& item : ConfigItem::GetItems(type)) {
+		Type::Ptr ptype = Type::GetByName(type);
+
+		for (const ConfigItem::Ptr& item : ConfigItem::GetItems(ptype)) {
 			if (item->IsAbstract())
 				addTarget(GetTargetForTemplate(item));
 		}
@@ -65,7 +67,9 @@ public:
 
 	virtual Value GetTargetByName(const String& type, const String& name) const override
 	{
-		ConfigItem::Ptr item = ConfigItem::GetByTypeAndName(type, name);
+		Type::Ptr ptype = Type::GetByName(type);
+
+		ConfigItem::Ptr item = ConfigItem::GetByTypeAndName(ptype, name);
 
 		if (!item || !item->IsAbstract())
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Template does not exist."));

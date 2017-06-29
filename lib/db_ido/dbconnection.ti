@@ -31,11 +31,11 @@ abstract class DbConnection : ConfigObject
 		default {{{ return "icinga_"; }}}
 	};
 
-	[config] Dictionary::Ptr cleanup {
+	[config, required] Dictionary::Ptr cleanup {
 		default {{{ return new Dictionary(); }}}
 	};
 
-	[config] Value categories {
+	[config] Array::Ptr categories {
 		default {{{
 			Array::Ptr cat = new Array();
 			cat->Add("DbCatConfig");
@@ -44,7 +44,6 @@ abstract class DbConnection : ConfigObject
 			cat->Add("DbCatComment");
 			cat->Add("DbCatDowntime");
 			cat->Add("DbCatEventHandler");
-			cat->Add("DbCatExternalCommand");
 			cat->Add("DbCatFlapping");
 			cat->Add("DbCatNotification");
 			cat->Add("DbCatProgramStatus");
@@ -91,10 +90,8 @@ validator DbConnection {
 		Number systemcommands_age;
 	};
 
-	Number categories;
 	Array categories {
 		String "*";
-		Number "*";
 	};
 };
 

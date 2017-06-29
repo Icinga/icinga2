@@ -621,6 +621,7 @@ void ExternalCommandProcessor::AcknowledgeSvcProblem(double, const std::vector<S
 {
 	bool sticky = (Convert::ToLong(arguments[2]) == 2 ? true : false);
 	bool notify = (Convert::ToLong(arguments[3]) > 0 ? true : false);
+	bool persistent = (Convert::ToLong(arguments[4]) > 0 ? true : false);
 
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
@@ -633,14 +634,15 @@ void ExternalCommandProcessor::AcknowledgeSvcProblem(double, const std::vector<S
 	Log(LogNotice, "ExternalCommandProcessor")
 	    << "Setting acknowledgement for service '" << service->GetName() << "'" << (notify ? "" : ". Disabled notification");
 
-	Comment::AddComment(service, CommentAcknowledgement, arguments[5], arguments[6], 0);
-	service->AcknowledgeProblem(arguments[5], arguments[6], sticky ? AcknowledgementSticky : AcknowledgementNormal, notify);
+	Comment::AddComment(service, CommentAcknowledgement, arguments[5], arguments[6], persistent, 0);
+	service->AcknowledgeProblem(arguments[5], arguments[6], sticky ? AcknowledgementSticky : AcknowledgementNormal, persistent, notify);
 }
 
 void ExternalCommandProcessor::AcknowledgeSvcProblemExpire(double, const std::vector<String>& arguments)
 {
 	bool sticky = (Convert::ToLong(arguments[2]) == 2 ? true : false);
 	bool notify = (Convert::ToLong(arguments[3]) > 0 ? true : false);
+	bool persistent = (Convert::ToLong(arguments[4]) > 0 ? true : false);
 	double timestamp = Convert::ToDouble(arguments[5]);
 
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
@@ -651,11 +653,14 @@ void ExternalCommandProcessor::AcknowledgeSvcProblemExpire(double, const std::ve
 	if (service->GetState() == ServiceOK)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("The service '" + arguments[1] + "' is OK."));
 
+	if (timestamp != 0 && timestamp <= Utility::GetTime())
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Acknowledgement expire time must be in the future for service '" + arguments[1] + "' on host '" + arguments[0] + "'"));
+
 	Log(LogNotice, "ExternalCommandProcessor")
 	    << "Setting timed acknowledgement for service '" << service->GetName() << "'" << (notify ? "" : ". Disabled notification");
 
-	Comment::AddComment(service, CommentAcknowledgement, arguments[6], arguments[7], timestamp);
-	service->AcknowledgeProblem(arguments[6], arguments[7], sticky ? AcknowledgementSticky : AcknowledgementNormal, notify, timestamp);
+	Comment::AddComment(service, CommentAcknowledgement, arguments[6], arguments[7], persistent, timestamp);
+	service->AcknowledgeProblem(arguments[6], arguments[7], sticky ? AcknowledgementSticky : AcknowledgementNormal, notify, persistent, timestamp);
 }
 
 void ExternalCommandProcessor::RemoveSvcAcknowledgement(double, const std::vector<String>& arguments)
@@ -680,6 +685,7 @@ void ExternalCommandProcessor::AcknowledgeHostProblem(double, const std::vector<
 {
 	bool sticky = (Convert::ToLong(arguments[1]) == 2 ? true : false);
 	bool notify = (Convert::ToLong(arguments[2]) > 0 ? true : false);
+	bool persistent = (Convert::ToLong(arguments[3]) > 0 ? true : false);
 
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
@@ -692,14 +698,15 @@ void ExternalCommandProcessor::AcknowledgeHostProblem(double, const std::vector<
 	if (host->GetState() == HostUp)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("The host '" + arguments[0] + "' is OK."));
 
-	Comment::AddComment(host, CommentAcknowledgement, arguments[4], arguments[5], 0);
-	host->AcknowledgeProblem(arguments[4], arguments[5], sticky ? AcknowledgementSticky : AcknowledgementNormal, notify);
+	Comment::AddComment(host, CommentAcknowledgement, arguments[4], arguments[5], persistent, 0);
+	host->AcknowledgeProblem(arguments[4], arguments[5], sticky ? AcknowledgementSticky : AcknowledgementNormal, persistent, notify);
 }
 
 void ExternalCommandProcessor::AcknowledgeHostProblemExpire(double, const std::vector<String>& arguments)
 {
 	bool sticky = (Convert::ToLong(arguments[1]) == 2 ? true : false);
 	bool notify = (Convert::ToLong(arguments[2]) > 0 ? true : false);
+	bool persistent = (Convert::ToLong(arguments[3]) > 0 ? true : false);
 	double timestamp = Convert::ToDouble(arguments[4]);
 
 	Host::Ptr host = Host::GetByName(arguments[0]);
@@ -713,8 +720,11 @@ void ExternalCommandProcessor::AcknowledgeHostProblemExpire(double, const std::v
 	if (host->GetState() == HostUp)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("The host '" + arguments[0] + "' is OK."));
 
-	Comment::AddComment(host, CommentAcknowledgement, arguments[5], arguments[6], timestamp);
-	host->AcknowledgeProblem(arguments[5], arguments[6], sticky ? AcknowledgementSticky : AcknowledgementNormal, notify, timestamp);
+	if (timestamp != 0 && timestamp <= Utility::GetTime())
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Acknowledgement expire time must be in the future for host '" + arguments[0] + "'"));
+
+	Comment::AddComment(host, CommentAcknowledgement, arguments[5], arguments[6], persistent, timestamp);
+	host->AcknowledgeProblem(arguments[5], arguments[6], sticky ? AcknowledgementSticky : AcknowledgementNormal, notify, persistent, timestamp);
 }
 
 void ExternalCommandProcessor::RemoveHostAcknowledgement(double, const std::vector<String>& arguments)
@@ -1286,7 +1296,7 @@ void ExternalCommandProcessor::AddHostComment(double, const std::vector<String>&
 
 	Log(LogNotice, "ExternalCommandProcessor")
 	    << "Creating comment for host " << host->GetName();
-	(void) Comment::AddComment(host, CommentUser, arguments[2], arguments[3], 0);
+	(void) Comment::AddComment(host, CommentUser, arguments[2], arguments[3], false, 0);
 }
 
 void ExternalCommandProcessor::DelHostComment(double, const std::vector<String>& arguments)
@@ -1310,7 +1320,7 @@ void ExternalCommandProcessor::AddSvcComment(double, const std::vector<String>& 
 
 	Log(LogNotice, "ExternalCommandProcessor")
 	    << "Creating comment for service " << service->GetName();
-	(void) Comment::AddComment(service, CommentUser, arguments[3], arguments[4], 0);
+	(void) Comment::AddComment(service, CommentUser, arguments[3], arguments[4], false, 0);
 }
 
 void ExternalCommandProcessor::DelSvcComment(double, const std::vector<String>& arguments)

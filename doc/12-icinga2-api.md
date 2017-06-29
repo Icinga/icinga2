@@ -38,7 +38,7 @@ make calls to
 ### <a id="icinga2-api-requests"></a> Requests
 
 Any tool capable of making HTTP requests can communicate with
-the API, for example [curl](http://curl.haxx.se).
+the API, for example [curl](https://curl.haxx.se/).
 
 Requests are only allowed to use the HTTPS protocol so that
 traffic remains encrypted.
@@ -549,6 +549,33 @@ here because we want to pass all query attributes in the request body.
         ]
     }
 
+In order to list all acknowledgements without expire time, you query the `/v1/objects/comments`
+URL endpoint with `joins` and `filter` request parameters using the [X-HTTP-Method-Override](12-icinga2-api.md#icinga2-api-requests-method-override)
+method:
+
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -H 'X-HTTP-Method-Override: GET' -X POST 'https://localhost:5665/v1/objects/comments' \
+    -d '{ "joins": [ "service.name", "service.acknowledgement", "service.acknowledgement_expiry" ], "attrs": [ "author", "text" ], "filter": "service.acknowledgement!=0 && service.acknowledgement_expiry==0" }' | python -m json.tool
+
+    {
+        "results": [
+            {
+                "attrs": {
+                    "author": "icingaadmin",
+                    "text": "maintenance work"
+                },
+                "joins": {
+                    "service": {
+                        "__name": "example.localdomain!disk /",
+                        "acknowledgement": 1.0,
+                        "acknowledgement_expiry": 0.0
+                    }
+                },
+                "meta": {},
+                "name": "example.localdomain!disk /!example.localdomain-1495457222-0",
+                "type": "Comment"
+            }
+        ]
+    }
 
 ### <a id="icinga2-api-config-objects-create"></a> Creating Config Objects
 
@@ -623,12 +650,16 @@ parameters need to be passed inside the JSON body:
 
 In addition to these parameters a [filter](12-icinga2-api.md#icinga2-api-filters) should be provided.
 
-**Note**: Modified attributes do not trigger a re-evaluation of existing
-static [apply rules](3-monitoring-basics.md#using-apply) and [group assignments](3-monitoring-basics.md#group-assign-intro).
-Delete and re-create the objects if you require such changes.
-Furthermore you cannot modify templates which have already been resolved
-during [object creation](12-icinga2-api.md#icinga2-api-config-objects-create).
-
+> **Note**:
+>
+> Modified attributes do not trigger a re-evaluation of existing
+> static [apply rules](3-monitoring-basics.md#using-apply) and [group assignments](3-monitoring-basics.md#group-assign-intro).
+> Delete and re-create the objects if you require such changes.
+>
+> Furthermore you cannot modify templates which have already been resolved
+> during [object creation](12-icinga2-api.md#icinga2-api-config-objects-create).
+> There are attributes which can only be set for [PUT requests](12-icinga2-api.md#icinga2-api-config-objects-create) such as `groups`
+> or `zone`. A complete list of `no_user_modify` attributes can be fetched from the [types](12-icinga2-api.md#icinga2-api-types) URL endpoint.
 
 If attributes are of the Dictionary type, you can also use the indexer format:
 
@@ -901,13 +932,14 @@ are disabled.
 
 Send a `POST` request to the URL endpoint `/v1/actions/acknowledge-problem`.
 
-  Parameter | Type      | Description
-  ----------|-----------|--------------
-  author    | string    | **Required.** Name of the author, may be empty.
-  comment   | string    | **Required.** Comment text, may be empty.
-  expiry    | timestamp | **Optional.** If set, the acknowledgement will vanish after this timestamp.
-  sticky    | boolean   | **Optional.** If `true`, the default, the acknowledgement will remain until the service or host fully recovers.
-  notify    | boolean   | **Optional.** If `true`, a notification will be sent out to contacts to indicate this problem has been acknowledged. The default is false.
+  Parameter            | Type      | Description
+  ---------------------|-----------|--------------
+  author               | string    | **Required.** Name of the author, may be empty.
+  comment              | string    | **Required.** Comment text, may be empty.
+  expiry               | timestamp | **Optional.** Whether the acknowledgement will be removed at the timestamp.
+  sticky               | boolean   | **Optional.** Whether the acknowledgement will be set until the service or host fully recovers. Defaults to `false`.
+  notify               | boolean   | **Optional.** Whether a notification of the `Acknowledgement` type will be sent. Defaults to `false`.
+  persistent           | boolean   | **Optional.** When the comment is of type `Acknowledgement` and this is set to `true`, the comment will remain after the acknowledgement recovers or expires. Defaults to `false`.
 
 In addition to these parameters a [filter](12-icinga2-api.md#icinga2-api-filters) must be provided. The valid types for this action are `Host` and `Service`.
 
@@ -1040,8 +1072,8 @@ Send a `POST` request to the URL endpoint `/v1/actions/schedule-downtime`.
   comment       | string    | **Required.** Comment text.
   start\_time   | timestamp | **Required.** Timestamp marking the beginning of the downtime.
   end\_time     | timestamp | **Required.** Timestamp marking the end of the downtime.
-  duration      | integer   | **Required.** Duration of the downtime in seconds if `fixed` is set to false.
   fixed         | boolean   | **Optional.** Defaults to `true`. If true, the downtime is `fixed` otherwise `flexible`. See [downtimes](8-advanced-topics.md#downtimes) for more information.
+  duration      | integer   | **Required for flexible downtimes.** Duration of the downtime in seconds if `fixed` is set to false.
   trigger\_name | string    | **Optional.** Sets the trigger for a triggered downtime. See [downtimes](8-advanced-topics.md#downtimes) for more information on triggered downtimes.
   child\_options | integer  | **Optional.** Schedule child downtimes. `0` does not do anything, `1` schedules child downtimes triggered by this downtime, `2` schedules non-triggered downtimes. Defaults to `0`.
 
@@ -1612,6 +1644,11 @@ The following parameters need to be specified (either as URL parameters or in a 
 The [API permission](12-icinga2-api.md#icinga2-api-permissions) `console` is required for executing
 expressions.
 
+> **Note**
+>
+> Runtime modifications via `execute-script` calls are not validated and might cause the Icinga 2
+> daemon to crash or behave in an unexpected way. Use these runtime changes at your own risk.
+
 If you specify a session identifier, the same script context can be reused for multiple requests. This allows you to, for example, set a local variable in a request and use that local variable in another request. Sessions automatically expire after a set period of inactivity (currently 30 minutes).
 
 Example for fetching the command line from the local host's last check result:
@@ -1663,7 +1700,7 @@ similar fashion when pressing TAB inside the [console CLI command](11-cli-comman
 
 There are a couple of existing clients which can be used with the Icinga 2 API:
 
-* [curl](http://curl.haxx.se) or any other HTTP client really
+* [curl](https://curl.haxx.se/) or any other HTTP client really
 * [Icinga 2 console (CLI command)](12-icinga2-api.md#icinga2-api-clients-cli-console)
 * [Icinga Studio](12-icinga2-api.md#icinga2-api-clients-icinga-studio)
 * [Icinga Web 2 Director](https://www.icinga.com/products/icinga-web-2-modules/)
@@ -1695,7 +1732,9 @@ The Windows installer already includes Icinga Studio. On Debian and Ubuntu the p
 
 ### <a id="icinga2-api-clients-cli-console"></a> Icinga 2 Console
 
-By default the [console CLI command](11-cli-commands.md#cli-command-console) evaluates expressions in a local interpreter, i.e. independently from your Icinga 2 daemon. Using the `--connect` parameter you can use the Icinga 2  console to evaluate expressions via the API.
+By default the [console CLI command](11-cli-commands.md#cli-command-console) evaluates
+expressions in a local interpreter, i.e. independently from your Icinga 2 daemon.
+Add the `--connect` parameter to debug and evaluate expressions via the API.
 
 ### <a id="icinga2-api-clients-programmatic-examples"></a> API Clients Programmatic Examples
 

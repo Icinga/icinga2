@@ -374,6 +374,14 @@ void ConfigObject::Start(bool runtimeCreated)
 	SetStartCalled(true);
 }
 
+void ConfigObject::PreActivate(void)
+{
+	CONTEXT("Setting 'active' to true for object '" + GetName() + "' of type '" + GetReflectionType()->GetName() + "'");
+
+	ASSERT(!IsActive());
+	SetActive(true, true);
+}
+
 void ConfigObject::Activate(bool runtimeCreated)
 {
 	CONTEXT("Activating object '" + GetName() + "' of type '" + GetReflectionType()->GetName() + "'");
@@ -384,8 +392,6 @@ void ConfigObject::Activate(bool runtimeCreated)
 		Start(runtimeCreated);
 
 		ASSERT(GetStartCalled());
-		ASSERT(!IsActive());
-		SetActive(true, true);
 
 		if (GetHAMode() == HARunEverywhere)
 			SetAuthority(true);
@@ -708,6 +714,19 @@ ConfigObject::Ptr ConfigObject::GetObject(const String& type, const String& name
 ConfigObject::Ptr ConfigObject::GetZone(void) const
 {
 	return m_Zone;
+}
+
+Dictionary::Ptr ConfigObject::GetSourceLocation(void) const
+{
+	DebugInfo di = GetDebugInfo();
+
+	Dictionary::Ptr result = new Dictionary();
+	result->Set("path", di.Path);
+	result->Set("first_line", di.FirstLine);
+	result->Set("first_column", di.FirstColumn);
+	result->Set("last_line", di.LastLine);
+	result->Set("last_column", di.LastColumn);
+	return result;
 }
 
 NameComposer::~NameComposer(void)

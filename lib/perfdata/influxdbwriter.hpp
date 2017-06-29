@@ -25,6 +25,8 @@
 #include "base/configobject.hpp"
 #include "base/tcpsocket.hpp"
 #include "base/timer.hpp"
+#include "base/workqueue.hpp"
+#include <boost/thread/mutex.hpp>
 #include <fstream>
 
 namespace icinga
@@ -41,32 +43,42 @@ public:
 	DECLARE_OBJECT(InfluxdbWriter);
 	DECLARE_OBJECTNAME(InfluxdbWriter);
 
+	InfluxdbWriter(void);
+
 	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
 	virtual void ValidateHostTemplate(const Dictionary::Ptr& value, const ValidationUtils& utils) override;
 	virtual void ValidateServiceTemplate(const Dictionary::Ptr& value, const ValidationUtils& utils) override;
 
 protected:
+	virtual void OnConfigLoaded(void) override;
 	virtual void Start(bool runtimeCreated) override;
 	virtual void Stop(bool runtimeRemoved) override;
 
 private:
+	WorkQueue m_WorkQueue;
 	Timer::Ptr m_FlushTimer;
-	Array::Ptr m_DataBuffer;
+	std::vector<String> m_DataBuffer;
+	boost::mutex m_DataBufferMutex;
 
 	void CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
+	void InternalCheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
 	void SendPerfdata(const Dictionary::Ptr& tmpl, const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, double ts);
 	void SendMetric(const Dictionary::Ptr& tmpl, const String& label, const Dictionary::Ptr& fields, double ts);
 	void FlushTimeout(void);
 	void Flush(void);
 
-	static String FormatInteger(const int val);
-	static String FormatBoolean(const bool val);
+	static String FormatInteger(int val);
+	static String FormatBoolean(bool val);
 
 	static String EscapeKey(const String& str);
 	static String EscapeField(const String& str);
 
 	Stream::Ptr Connect(TcpSocket::Ptr& socket);
+
+	void AssertOnWorkQueue(void);
+
+	void ExceptionHandler(boost::exception_ptr exp);
 };
 
 }

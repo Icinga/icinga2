@@ -83,7 +83,7 @@ Dictionary::Ptr ObjectQueryHandler::SerializeObjectAttrs(const Object::Ptr& obje
 
 	Dictionary::Ptr resultAttrs = new Dictionary();
 
-	for (int& fid : fids)
+	for (int fid : fids)
 	{
 		Field field = type->GetFieldInfo(fid);
 

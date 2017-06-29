@@ -27,6 +27,7 @@
 #include "base/configtype.hpp"
 #include "base/application.hpp"
 #include "base/dependencygraph.hpp"
+#include "base/initialize.hpp"
 #include <boost/regex.hpp>
 #include <algorithm>
 #include <set>
@@ -36,36 +37,50 @@
 
 using namespace icinga;
 
-REGISTER_SAFE_SCRIPTFUNCTION_NS(System, regex, &ScriptUtils::Regex);
-REGISTER_SAFE_SCRIPTFUNCTION_NS(System, match, &Utility::Match);
-REGISTER_SAFE_SCRIPTFUNCTION_NS(System, cidr_match, &Utility::CidrMatch);
-REGISTER_SAFE_SCRIPTFUNCTION_NS(System, len, &ScriptUtils::Len);
-REGISTER_SAFE_SCRIPTFUNCTION_NS(System, union, &ScriptUtils::Union);
-REGISTER_SAFE_SCRIPTFUNCTION_NS(System, intersection, &ScriptUtils::Intersection);
-REGISTER_SCRIPTFUNCTION_NS(System, log, &ScriptUtils::Log);
-REGISTER_SCRIPTFUNCTION_NS(System, range, &ScriptUtils::Range);
-REGISTER_SCRIPTFUNCTION_NS(System, exit, &Application::Exit);
-REGISTER_SAFE_SCRIPTFUNCTION_NS(System, typeof, &ScriptUtils::TypeOf);
-REGISTER_SAFE_SCRIPTFUNCTION_NS(System, keys, &ScriptUtils::Keys);
-REGISTER_SAFE_SCRIPTFUNCTION_NS(System, random, &Utility::Random);
-REGISTER_SAFE_SCRIPTFUNCTION_NS(System, get_object, &ScriptUtils::GetObject);
-REGISTER_SAFE_SCRIPTFUNCTION_NS(System, get_objects, &ScriptUtils::GetObjects);
-REGISTER_SCRIPTFUNCTION_NS(System, assert, &ScriptUtils::Assert);
-REGISTER_SAFE_SCRIPTFUNCTION_NS(System, string, &ScriptUtils::CastString);
-REGISTER_SAFE_SCRIPTFUNCTION_NS(System, number, &ScriptUtils::CastNumber);
-REGISTER_SAFE_SCRIPTFUNCTION_NS(System, bool, &ScriptUtils::CastBool);
-REGISTER_SAFE_SCRIPTFUNCTION_NS(System, get_time, &Utility::GetTime);
-REGISTER_SAFE_SCRIPTFUNCTION_NS(System, basename, &Utility::BaseName);
-REGISTER_SAFE_SCRIPTFUNCTION_NS(System, dirname, &Utility::DirName);
-REGISTER_SAFE_SCRIPTFUNCTION_NS(System, msi_get_component_path, &ScriptUtils::MsiGetComponentPathShim);
-REGISTER_SAFE_SCRIPTFUNCTION_NS(System, track_parents, &ScriptUtils::TrackParents);
-REGISTER_SAFE_SCRIPTFUNCTION_NS(System, escape_shell_cmd, &Utility::EscapeShellCmd);
-REGISTER_SAFE_SCRIPTFUNCTION_NS(System, escape_shell_arg, &Utility::EscapeShellArg);
+REGISTER_SAFE_SCRIPTFUNCTION_NS(System, regex, &ScriptUtils::Regex, "pattern:text:mode");
+REGISTER_SAFE_SCRIPTFUNCTION_NS(System, match, &ScriptUtils::Match, "pattern:text:mode");
+REGISTER_SAFE_SCRIPTFUNCTION_NS(System, cidr_match, &ScriptUtils::CidrMatch, "pattern:ip:mode");
+REGISTER_SAFE_SCRIPTFUNCTION_NS(System, len, &ScriptUtils::Len, "value");
+REGISTER_SAFE_SCRIPTFUNCTION_NS(System, union, &ScriptUtils::Union, "");
+REGISTER_SAFE_SCRIPTFUNCTION_NS(System, intersection, &ScriptUtils::Intersection, "");
+REGISTER_SCRIPTFUNCTION_NS(System, log, &ScriptUtils::Log, "severity:facility:value");
+REGISTER_SCRIPTFUNCTION_NS(System, range, &ScriptUtils::Range, "start:end:increment");
+REGISTER_SCRIPTFUNCTION_NS(System, exit, &Application::Exit, "status");
+REGISTER_SAFE_SCRIPTFUNCTION_NS(System, typeof, &ScriptUtils::TypeOf, "value");
+REGISTER_SAFE_SCRIPTFUNCTION_NS(System, keys, &ScriptUtils::Keys, "value");
+REGISTER_SAFE_SCRIPTFUNCTION_NS(System, random, &Utility::Random, "");
+REGISTER_SAFE_SCRIPTFUNCTION_NS(System, get_object, &ScriptUtils::GetObject, "type:name");
+REGISTER_SAFE_SCRIPTFUNCTION_NS(System, get_objects, &ScriptUtils::GetObjects, "type");
+REGISTER_SCRIPTFUNCTION_NS(System, assert, &ScriptUtils::Assert, "value");
+REGISTER_SAFE_SCRIPTFUNCTION_NS(System, string, &ScriptUtils::CastString, "value");
+REGISTER_SAFE_SCRIPTFUNCTION_NS(System, number, &ScriptUtils::CastNumber, "value");
+REGISTER_SAFE_SCRIPTFUNCTION_NS(System, bool, &ScriptUtils::CastBool, "value");
+REGISTER_SAFE_SCRIPTFUNCTION_NS(System, get_time, &Utility::GetTime, "");
+REGISTER_SAFE_SCRIPTFUNCTION_NS(System, basename, &Utility::BaseName, "path");
+REGISTER_SAFE_SCRIPTFUNCTION_NS(System, dirname, &Utility::DirName, "path");
+REGISTER_SAFE_SCRIPTFUNCTION_NS(System, msi_get_component_path, &ScriptUtils::MsiGetComponentPathShim, "component");
+REGISTER_SAFE_SCRIPTFUNCTION_NS(System, track_parents, &ScriptUtils::TrackParents, "child");
+REGISTER_SAFE_SCRIPTFUNCTION_NS(System, escape_shell_cmd, &Utility::EscapeShellCmd, "cmd");
+REGISTER_SAFE_SCRIPTFUNCTION_NS(System, escape_shell_arg, &Utility::EscapeShellArg, "arg");
 #ifdef _WIN32
-REGISTER_SAFE_SCRIPTFUNCTION_NS(System, escape_create_process_arg, &Utility::EscapeCreateProcessArg);
+REGISTER_SAFE_SCRIPTFUNCTION_NS(System, escape_create_process_arg, &Utility::EscapeCreateProcessArg, "arg");
 #endif /* _WIN32 */
-REGISTER_SCRIPTFUNCTION_NS(System, ptr, &ScriptUtils::Ptr);
-REGISTER_SCRIPTFUNCTION_NS(System, sleep, &Utility::Sleep);
+REGISTER_SCRIPTFUNCTION_NS(System, ptr, &ScriptUtils::Ptr, "object");
+REGISTER_SCRIPTFUNCTION_NS(System, sleep, &Utility::Sleep, "interval");
+
+INITIALIZE_ONCE(&ScriptUtils::StaticInitialize);
+
+enum MatchType
+{
+	MatchAll,
+	MatchAny
+};
+
+void ScriptUtils::StaticInitialize(void)
+{
+	ScriptGlobal::Set("MatchAll", MatchAll);
+	ScriptGlobal::Set("MatchAny", MatchAny);
+}
 
 String ScriptUtils::CastString(const Value& value)
 {
@@ -81,18 +96,120 @@ bool ScriptUtils::CastBool(const Value& value)
 {
 	return value.ToBool();
 }
-bool ScriptUtils::Regex(const String& pattern, const String& text)
+
+bool ScriptUtils::Regex(const std::vector<Value>& args)
 {
-	bool res = false;
-	try {
-		boost::regex expr(pattern.GetData());
-		boost::smatch what;
-		res = boost::regex_search(text.GetData(), what, expr);
-	} catch (boost::exception&) {
-		res = false; /* exception means something went terribly wrong */
+	if (args.size() < 2)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Regular expression and text must be specified."));
+
+	Array::Ptr texts = new Array();
+
+	String pattern = args[0];
+	Value argTexts = args[1];
+	MatchType mode;
+
+	if (args.size() > 2)
+		mode = static_cast<MatchType>(static_cast<int>(args[2]));
+	else
+		mode = MatchAll;
+
+	if (argTexts.IsObjectType<Array>())
+		texts = argTexts;
+	else {
+		texts = new Array();
+		texts->Add(argTexts);
 	}
 
-	return res;
+	ObjectLock olock(texts);
+	for (const String& text : texts) {
+		bool res = false;
+		try {
+			boost::regex expr(pattern.GetData());
+			boost::smatch what;
+			res = boost::regex_search(text.GetData(), what, expr);
+		} catch (boost::exception&) {
+			res = false; /* exception means something went terribly wrong */
+		}
+
+		if (mode == MatchAny && res)
+			return true;
+		else if (mode == MatchAll && !res)
+			return false;
+	}
+
+	return mode == MatchAll;
+}
+
+bool ScriptUtils::Match(const std::vector<Value>& args)
+{
+	if (args.size() < 2)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Pattern and text must be specified."));
+
+	Array::Ptr texts = new Array();
+
+	String pattern = args[0];
+	Value argTexts = args[1];
+	MatchType mode;
+
+	if (args.size() > 2)
+		mode = static_cast<MatchType>(static_cast<int>(args[2]));
+	else
+		mode = MatchAll;
+
+	if (argTexts.IsObjectType<Array>())
+		texts = argTexts;
+	else {
+		texts = new Array();
+		texts->Add(argTexts);
+	}
+
+	ObjectLock olock(texts);
+	for (const String& text : texts) {
+		bool res = Utility::Match(pattern, text);
+
+		if (mode == MatchAny && res)
+			return true;
+		else if (mode == MatchAll && !res)
+			return false;
+	}
+
+	return mode == MatchAll;
+}
+
+bool ScriptUtils::CidrMatch(const std::vector<Value>& args)
+{
+	if (args.size() < 2)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("CIDR and IP address must be specified."));
+
+	Array::Ptr ips = new Array();
+
+	String pattern = args[0];
+	Value argIps = args[1];
+	MatchType mode;
+
+	if (args.size() > 2)
+		mode = static_cast<MatchType>(static_cast<int>(args[2]));
+	else
+		mode = MatchAll;
+
+	if (argIps.IsObjectType<Array>())
+		ips = argIps;
+	else {
+		ips = new Array();
+		ips->Add(argIps);
+	}
+
+	ObjectLock olock(ips);
+	for (const String& ip : ips) {
+		bool res = Utility::CidrMatch(pattern, ip);
+
+		if (mode == MatchAny && res)
+			return true;
+		else if (mode == MatchAll && !res)
+			return false;
+	}
+
+	return mode == MatchAll;
 }
 
 double ScriptUtils::Len(const Value& value)

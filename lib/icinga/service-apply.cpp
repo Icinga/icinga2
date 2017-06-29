@@ -48,7 +48,7 @@ bool Service::EvaluateApplyRuleInstance(const Host::Ptr& host, const String& nam
 #endif /* _DEBUG */
 
 	ConfigItemBuilder::Ptr builder = new ConfigItemBuilder(di);
-	builder->SetType("Service");
+	builder->SetType(Service::TypeInstance);
 	builder->SetName(name);
 	builder->SetScope(frame.Locals->ShallowClone());
 	builder->SetIgnoreOnError(rule.GetIgnoreOnError());

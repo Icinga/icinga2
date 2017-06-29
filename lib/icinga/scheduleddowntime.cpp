@@ -199,6 +199,8 @@ void ScheduledDowntime::CreateNextDowntime(void)
 
 void ScheduledDowntime::ValidateRanges(const Dictionary::Ptr& value, const ValidationUtils& utils)
 {
+	ObjectImpl<ScheduledDowntime>::ValidateRanges(value, utils);
+
 	if (!value)
 		return;
 

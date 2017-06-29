@@ -5,15 +5,20 @@
   <metadata>
     <!-- Read this before publishing packages to chocolatey.org: https://github.com/chocolatey/chocolatey/wiki/CreatePackages -->
     <id>icinga2</id>
-    <title>Icinga2</title>
+    <title>Icinga 2</title>
     <version>${SPEC_VERSION}</version>
-    <authors>2016 - The Icinga Project</authors>
+    <authors>The Icinga Project</authors>
     <owners>Icinga Development Team</owners>
     <summary>icinga2 - Monitoring Agent for Windows</summary>
     <description>Icinga 2 is an open source monitoring platform which notifies users about host and service outages.</description>
     <projectUrl>https://www.icinga.com/</projectUrl>
-    <tags>icinga2 agent monitoring</tags>
+    <tags>icinga2 agent monitoring admin</tags>
     <licenseUrl>https://www.icinga.com/resources/faq/</licenseUrl>
+    <releaseNotes>https://github.com/Icinga/icinga2/blob/master/ChangeLog</releaseNotes>
+    <docsUrl>https://docs.icinga.com/icinga2/</docsUrl>
+    <bugTrackerUrl>https://github.com/Icinga/icinga2/issues</bugTrackerUrl>
+    <packageSourceUrl>https://github.com/Icinga/icinga2</packageSourceUrl>
+    <projectSourceUrl>https://github.com/Icinga/icinga2</projectSourceUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <iconUrl>https://www.icinga.com/wp-content/uploads/2015/05/icinga_icon_128x128.png</iconUrl>
   </metadata>

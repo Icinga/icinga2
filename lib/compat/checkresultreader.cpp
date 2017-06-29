@@ -165,8 +165,16 @@ void CheckResultReader::ProcessCheckResultFile(const String& path) const
 	result->SetOutput(co.first);
 	result->SetPerformanceData(PluginUtility::SplitPerfdata(co.second));
 	result->SetState(PluginUtility::ExitStatusToState(Convert::ToLong(attrs["return_code"])));
-	result->SetExecutionStart(Convert::ToDouble(attrs["start_time"]));
-	result->SetExecutionEnd(Convert::ToDouble(attrs["finish_time"]));
+
+	if (attrs.find("start_time") != attrs.end())
+		result->SetExecutionStart(Convert::ToDouble(attrs["start_time"]));
+	else
+		result->SetExecutionStart(Utility::GetTime());
+
+	if (attrs.find("finish_time") != attrs.end())
+		result->SetExecutionEnd(Convert::ToDouble(attrs["finish_time"]));
+	else
+		result->SetExecutionEnd(result->GetExecutionStart());
 
 	checkable->ProcessCheckResult(result);
 

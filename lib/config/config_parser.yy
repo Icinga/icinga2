@@ -172,6 +172,8 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %token T_ELSE "else (T_ELSE)"
 %token T_WHILE "while (T_WHILE)"
 %token T_THROW "throw (T_THROW)"
+%token T_TRY "try (T_TRY)"
+%token T_EXCEPT "except (T_EXCEPT)"
 %token T_FOLLOWS "=> (T_FOLLOWS)"
 %token T_NULLARY_LAMBDA_BEGIN "{{ (T_NULLARY_LAMBDA_BEGIN)"
 %token T_NULLARY_LAMBDA_END "}} (T_NULLARY_LAMBDA_END)"
@@ -372,7 +374,7 @@ object:
 		context->m_Assign.push(0);
 		context->m_Ignore.push(0);
 	}
-	object_declaration identifier optional_rterm use_specifier default_specifier ignore_specifier
+	object_declaration rterm optional_rterm use_specifier default_specifier ignore_specifier
 	{
 		BeginFlowControlBlock(context, FlowControlReturn, false);
 	}
@@ -387,9 +389,6 @@ object:
 
 		if (!abstract && defaultTmpl)
 			BOOST_THROW_EXCEPTION(ScriptError("'default' keyword is invalid for object definitions", DebugInfoRange(@2, @4)));
-
-		String type = *$3;
-		delete $3;
 
 		bool seen_assign = context->m_SeenAssign.top();
 		context->m_SeenAssign.pop();
@@ -406,9 +405,6 @@ object:
 		Expression *filter = NULL;
 
 		if (seen_assign) {
-			if (!ObjectRule::IsValidSourceType(type))
-				BOOST_THROW_EXCEPTION(ScriptError("object rule 'assign' cannot be used for type '" + type + "'", DebugInfoRange(@2, @4)));
-
 			if (ignore) {
 				Expression *rex = new LogicalNegateExpression(ignore, DebugInfoRange(@2, @5));
 
@@ -416,13 +412,10 @@ object:
 			} else
 				filter = assign;
 		} else if (seen_ignore) {
-			if (!ObjectRule::IsValidSourceType(type))
-				BOOST_THROW_EXCEPTION(ScriptError("object rule 'ignore' cannot be used for type '" + type + "'", DebugInfoRange(@2, @4)));
-			else
-				BOOST_THROW_EXCEPTION(ScriptError("object rule 'ignore' is missing 'assign' for type '" + type + "'", DebugInfoRange(@2, @4)));
+			BOOST_THROW_EXCEPTION(ScriptError("object rule 'ignore where' cannot be used without 'assign where'", DebugInfoRange(@2, @4)));
 		}
 
-		$$ = new ObjectExpression(abstract, type, $4, filter, context->GetZone(), context->GetPackage(), $5, $6, $7, $9, DebugInfoRange(@2, @7));
+		$$ = new ObjectExpression(abstract, $3, $4, filter, context->GetZone(), context->GetPackage(), $5, $6, $7, $9, DebugInfoRange(@2, @7));
 	}
 	;
 
@@ -674,6 +667,10 @@ lterm: T_LIBRARY rterm
 	| T_THROW rterm
 	{
 		$$ = new ThrowExpression($2, false, @$);
+	}
+	| T_TRY rterm_scope T_EXCEPT rterm_scope
+	{
+		$$ = new TryExceptExpression($2, $4, @$);
 	}
 	| rterm_side_effect
 	;

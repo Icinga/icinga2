@@ -29,16 +29,16 @@
 
 using namespace icinga;
 
-REGISTER_SCRIPTFUNCTION_NS(System, get_host, &Host::GetByName);
-REGISTER_SCRIPTFUNCTION_NS(System, get_service, &ObjectUtils::GetService);
-REGISTER_SCRIPTFUNCTION_NS(System, get_user, &User::GetByName);
-REGISTER_SCRIPTFUNCTION_NS(System, get_check_command, &CheckCommand::GetByName);
-REGISTER_SCRIPTFUNCTION_NS(System, get_event_command, &EventCommand::GetByName);
-REGISTER_SCRIPTFUNCTION_NS(System, get_notification_command, &NotificationCommand::GetByName);
-REGISTER_SCRIPTFUNCTION_NS(System, get_host_group, &HostGroup::GetByName);
-REGISTER_SCRIPTFUNCTION_NS(System, get_service_group, &ServiceGroup::GetByName);
-REGISTER_SCRIPTFUNCTION_NS(System, get_user_group, &UserGroup::GetByName);
-REGISTER_SCRIPTFUNCTION_NS(System, get_time_period, &TimePeriod::GetByName);
+REGISTER_SCRIPTFUNCTION_NS(System, get_host, &Host::GetByName, "name");
+REGISTER_SCRIPTFUNCTION_NS(System, get_service, &ObjectUtils::GetService, "host:name");
+REGISTER_SCRIPTFUNCTION_NS(System, get_user, &User::GetByName, "name");
+REGISTER_SCRIPTFUNCTION_NS(System, get_check_command, &CheckCommand::GetByName, "name");
+REGISTER_SCRIPTFUNCTION_NS(System, get_event_command, &EventCommand::GetByName, "name");
+REGISTER_SCRIPTFUNCTION_NS(System, get_notification_command, &NotificationCommand::GetByName, "name");
+REGISTER_SCRIPTFUNCTION_NS(System, get_host_group, &HostGroup::GetByName, "name");
+REGISTER_SCRIPTFUNCTION_NS(System, get_service_group, &ServiceGroup::GetByName, "name");
+REGISTER_SCRIPTFUNCTION_NS(System, get_user_group, &UserGroup::GetByName, "name");
+REGISTER_SCRIPTFUNCTION_NS(System, get_time_period, &TimePeriod::GetByName, "name");
 
 Service::Ptr ObjectUtils::GetService(const String& host, const String& name)
 {

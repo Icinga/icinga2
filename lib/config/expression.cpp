@@ -745,7 +745,7 @@ ExpressionResult ImportExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhi
 	if (!name.IsString())
 		BOOST_THROW_EXCEPTION(ScriptError("Template/object name must be a string", m_DebugInfo));
 
-	ConfigItem::Ptr item = ConfigItem::GetByTypeAndName(type, name);
+	ConfigItem::Ptr item = ConfigItem::GetByTypeAndName(Type::GetByName(type), name);
 
 	if (!item)
 		BOOST_THROW_EXCEPTION(ScriptError("Import references unknown template: '" + name + "'", m_DebugInfo));
@@ -767,8 +767,9 @@ ExpressionResult ImportDefaultTemplatesExpression::DoEvaluate(ScriptFrame& frame
 		BOOST_THROW_EXCEPTION(ScriptError("Imports are not allowed in sandbox mode.", m_DebugInfo));
 
 	String type = VMOps::GetField(frame.Self, "type", frame.Sandboxed, m_DebugInfo);
+	Type::Ptr ptype = Type::GetByName(type);
 
-	for (const ConfigItem::Ptr& item : ConfigItem::GetDefaultTemplates(type)) {
+	for (const ConfigItem::Ptr& item : ConfigItem::GetDefaultTemplates(ptype)) {
 		Dictionary::Ptr scope = item->GetScope();
 
 		if (scope)
@@ -803,6 +804,10 @@ ExpressionResult ObjectExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhi
 	if (frame.Sandboxed)
 		BOOST_THROW_EXCEPTION(ScriptError("Object definitions are not allowed in sandbox mode.", m_DebugInfo));
 
+	ExpressionResult typeres = m_Type->Evaluate(frame, dhint);
+	CHECK_RESULT(typeres);
+	Type::Ptr type = typeres.GetValue();
+
 	String name;
 
 	if (m_Name) {
@@ -812,7 +817,7 @@ ExpressionResult ObjectExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhi
 		name = nameres.GetValue();
 	}
 
-	return VMOps::NewObject(frame, m_Abstract, m_Type, name, m_Filter, m_Zone,
+	return VMOps::NewObject(frame, m_Abstract, type, name, m_Filter, m_Zone,
 	    m_Package, m_DefaultTmpl, m_IgnoreOnError, m_ClosedVars, m_Expression, m_DebugInfo);
 }
 
@@ -932,6 +937,19 @@ ExpressionResult UsingExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhin
 		BOOST_THROW_EXCEPTION(ScriptError("The parameter must resolve to an object of type 'Dictionary'", m_DebugInfo));
 
 	ScriptFrame::AddImport(import);
+
+	return Empty;
+}
+
+ExpressionResult TryExceptExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
+{
+	try {
+		ExpressionResult tryResult = m_TryBody->Evaluate(frame, dhint);
+		CHECK_RESULT(tryResult);
+	} catch (const std::exception& ex) {
+		ExpressionResult exceptResult = m_ExceptBody->Evaluate(frame, dhint);
+		CHECK_RESULT(exceptResult);
+	}
 
 	return Empty;
 }

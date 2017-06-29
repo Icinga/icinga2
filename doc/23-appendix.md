@@ -2,7 +2,7 @@
 
 ## <a id="external-commands-list-detail"></a> External Commands List
 
-Additional details can be found in the [Icinga 1.x Documentation](http://docs.icinga.com/latest/en/extcommands2.html)
+Additional details can be found in the [Icinga 1.x Documentation](https://docs.icinga.com/latest/en/extcommands2.html)
 
   Command name                              | Parameters                        | Description
   ------------------------------------------|-----------------------------------|--------------------------
@@ -152,7 +152,7 @@ is set as additional custom variable in `objects.cache`.
 ### <a id="schema-db-ido"></a> DB IDO Schema
 
 There is a detailed documentation for the Icinga IDOUtils 1.x
-database schema available on [http://docs.icinga.com/latest/en/db_model.html]
+database schema available on [https://docs.icinga.com/latest/en/db_model.html]
 
 #### <a id="schema-db-ido-extensions"></a> DB IDO Schema Extensions
 
@@ -692,16 +692,16 @@ Not supported: `debug_info`.
 
 #### <a id="schema-livestatus-hostsbygroup-table-attributes"></a> Livestatus Hostsbygroup Table Attributes
 
-All (hosts)[19-appendix.md#schema-livestatus-hosts-table-attributes] table attributes grouped with
-the (hostgroups)[19-appendix.md#schema-livestatus-hostgroups-table-attributes] table prefixed with `hostgroup_`.
+All [hosts](23-appendix.md#schema-livestatus-hosts-table-attributes) table attributes grouped with
+the [hostgroups](23-appendix.md#schema-livestatus-hostgroups-table-attributes) table prefixed with `hostgroup_`.
 
 #### <a id="schema-livestatus-servicesbygroup-table-attributes"></a> Livestatus Servicesbygroup Table Attributes
 
-All (services)[19-appendix.md#schema-livestatus-services-table-attributes] table attributes grouped with
-the (servicegroups)[19-appendix.md#schema-livestatus-servicegroups-table-attributes] table prefixed with `servicegroup_`.
+All [services](23-appendix.md#schema-livestatus-services-table-attributes) table attributes grouped with
+the [servicegroups](23-appendix.md#schema-livestatus-servicegroups-table-attributes) table prefixed with `servicegroup_`.
 
 #### <a id="schema-livestatus-servicesbyhostgroup-table-attributes"></a> Livestatus Servicesbyhostgroup Table Attributes
 
-All (services)[19-appendix.md#schema-livestatus-services-table-attributes] table attributes grouped with
-the (hostgroups)[19-appendix.md#schema-livestatus-hostgroups-table-attributes] table prefixed with `hostgroup_`.
+All [services](23-appendix.md#schema-livestatus-services-table-attributes) table attributes grouped with
+the [hostgroups](23-appendix.md#schema-livestatus-hostgroups-table-attributes) table prefixed with `hostgroup_`.
 

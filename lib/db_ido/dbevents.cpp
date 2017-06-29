@@ -354,7 +354,7 @@ void DbEvents::AddCommentInternal(std::vector<DbQuery>& queries, const Comment::
 	fields1->Set("comment_time", DbValue::FromTimestamp(entry_time)); /* same as entry_time */
 	fields1->Set("author_name", comment->GetAuthor());
 	fields1->Set("comment_data", comment->GetText());
-	fields1->Set("is_persistent", 1);
+	fields1->Set("is_persistent", comment->GetPersistent() ? 1 : 0);
 	fields1->Set("comment_source", 1); /* external */
 	fields1->Set("expires", (comment->GetExpireTime() > 0) ? 1 : 0);
 	fields1->Set("expiration_time", DbValue::FromTimestamp(comment->GetExpireTime()));
@@ -601,8 +601,12 @@ void DbEvents::RemoveDowntimeInternal(std::vector<DbQuery>& queries, const Downt
 
 	Dictionary::Ptr fields3 = new Dictionary();
 	fields3->Set("was_cancelled", downtime->GetWasCancelled() ? 1 : 0);
-	fields3->Set("actual_end_time", DbValue::FromTimestamp(time_bag.first));
-	fields3->Set("actual_end_time_usec", time_bag.second);
+
+	if (downtime->GetFixed() || (!downtime->GetFixed() && downtime->GetTriggerTime() > 0)) {
+		fields3->Set("actual_end_time", DbValue::FromTimestamp(time_bag.first));
+		fields3->Set("actual_end_time_usec", time_bag.second);
+	}
+
 	fields3->Set("is_in_effect", 0);
 	query3.Fields = fields3;
 
@@ -689,6 +693,7 @@ void DbEvents::TriggerDowntime(const Downtime::Ptr& downtime)
 	query3.Fields = fields3;
 
 	query3.WhereCriteria = new Dictionary();
+	query3.WhereCriteria->Set("object_id", checkable);
 	query3.WhereCriteria->Set("internal_downtime_id", downtime->GetLegacyId());
 	query3.WhereCriteria->Set("entry_time", DbValue::FromTimestamp(downtime->GetEntryTime()));
 	query3.WhereCriteria->Set("scheduled_start_time", DbValue::FromTimestamp(downtime->GetStartTime()));

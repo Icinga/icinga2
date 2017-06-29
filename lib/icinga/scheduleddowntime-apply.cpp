@@ -49,7 +49,7 @@ bool ScheduledDowntime::EvaluateApplyRuleInstance(const Checkable::Ptr& checkabl
 #endif /* _DEBUG */
 
 	ConfigItemBuilder::Ptr builder = new ConfigItemBuilder(di);
-	builder->SetType("ScheduledDowntime");
+	builder->SetType(ScheduledDowntime::TypeInstance);
 	builder->SetName(name);
 	builder->SetScope(frame.Locals->ShallowClone());
 	builder->SetIgnoreOnError(rule.GetIgnoreOnError());

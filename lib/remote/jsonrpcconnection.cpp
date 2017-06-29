@@ -340,3 +340,35 @@ void JsonRpcConnection::TimeoutTimerHandler(void)
 	}
 }
 
+int JsonRpcConnection::GetWorkQueueCount(void)
+{
+	return l_JsonRpcConnectionWorkQueueCount;
+}
+
+int JsonRpcConnection::GetWorkQueueLength(void)
+{
+	int itemCount = 0;
+
+	for (int i = 0; i < GetWorkQueueCount(); i++) {
+		itemCount += l_JsonRpcConnectionWorkQueues[i].GetLength();
+	}
+
+	return itemCount;
+}
+
+double JsonRpcConnection::GetWorkQueueRate(void)
+{
+	double rate = 0.0;
+	int count = GetWorkQueueCount();
+
+	/* If this is a standalone environment, we don't have any queues. */
+	if (count == 0)
+		return 0.0;
+
+	for (int i = 0; i < count; i++) {
+		rate += l_JsonRpcConnectionWorkQueues[i].GetTaskCount(60) / 60.0;
+	}
+
+	return rate / count;
+}
+

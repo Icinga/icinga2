@@ -183,6 +183,8 @@ Instead, choose a plugin and configure its parameters and thresholds. The follow
 
 * [disk](10-icinga-template-library.md#plugin-check-command-disk)
 * [mem](10-icinga-template-library.md#plugin-contrib-command-mem), [swap](10-icinga-template-library.md#plugin-check-command-swap)
+* [procs](10-icinga-template-library.md#plugin-check-command-processes)
+* [users](10-icinga-template-library.md#plugin-check-command-users)
 * [running_kernel](10-icinga-template-library.md#plugin-contrib-command-running_kernel)
 * package management: [apt](10-icinga-template-library.md#plugin-check-command-apt), [yum](10-icinga-template-library.md#plugin-contrib-command-yum), etc.
 * [ssh](10-icinga-template-library.md#plugin-check-command-ssh)
@@ -191,7 +193,7 @@ Instead, choose a plugin and configure its parameters and thresholds. The follow
 ### <a id="service-monitoring-windows"></a> Windows Monitoring
 
 * [check_wmi_plus](http://www.edcint.co.nz/checkwmiplus/)
-* [NSClient++](https://www.nsclient.org) (in combination with the Icinga 2 client as [nscp-local](10-icinga-template-library.md#nscp-plugin-check-commands) check commands)
+* [NSClient++](https://www.nsclient.org) (in combination with the Icinga 2 client and either [check_nscp_api](10-icinga-template-library.md#nscp-check-api) or [nscp-local](10-icinga-template-library.md#nscp-plugin-check-commands) check commands)
 * [Icinga 2 Windows Plugins](10-icinga-template-library.md#windows-plugins) (disk, load, memory, network, performance counters, ping, procs, service, swap, updates, uptime, users
 * vbs and Powershell scripts
 
@@ -257,7 +259,7 @@ Instead, choose a plugin and configure its parameters and thresholds. The follow
 * [VMware](10-icinga-template-library.md#plugin-contrib-vmware)
 
 **Tip**: If you are encountering timeouts using the VMware Perl SDK,
-check [this blog entry](http://www.claudiokuenzler.com/blog/650/slow-vmware-perl-sdk-soap-request-error-libwww-version).
+check [this blog entry](https://www.claudiokuenzler.com/blog/650/slow-vmware-perl-sdk-soap-request-error-libwww-version).
 
 ### <a id="service-monitoring-sap"></a> SAP Monitoring
 
@@ -269,6 +271,7 @@ check [this blog entry](http://www.claudiokuenzler.com/blog/650/slow-vmware-perl
 * [smtp](10-icinga-template-library.md#plugin-check-command-smtp), [ssmtp](10-icinga-template-library.md#plugin-check-command-ssmtp)
 * [imap](10-icinga-template-library.md#plugin-check-command-imap), [simap](10-icinga-template-library.md#plugin-check-command-simap)
 * [pop](10-icinga-template-library.md#plugin-check-command-pop), [spop](10-icinga-template-library.md#plugin-check-command-spop)
+* [mailq](10-icinga-template-library.md#plugin-check-command-mailq)
 
 ### <a id="service-monitoring-hardware"></a> Hardware Monitoring
 

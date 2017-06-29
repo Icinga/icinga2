@@ -29,7 +29,6 @@ mkclass_target(icingaapplication.ti icingaapplication.tcpp icingaapplication.thp
 mkclass_target(customvarobject.ti customvarobject.tcpp customvarobject.thpp)
 mkclass_target(notificationcommand.ti notificationcommand.tcpp notificationcommand.thpp)
 mkclass_target(notification.ti notification.tcpp notification.thpp)
-mkclass_target(perfdatavalue.ti perfdatavalue.tcpp perfdatavalue.thpp)
 mkclass_target(scheduleddowntime.ti scheduleddowntime.tcpp scheduleddowntime.thpp)
 mkclass_target(servicegroup.ti servicegroup.tcpp servicegroup.thpp)
 mkclass_target(service.ti service.tcpp service.thpp)
@@ -47,7 +46,7 @@ set(icinga_SOURCES
   externalcommandprocessor.cpp host.cpp host.thpp hostgroup.cpp hostgroup.thpp icingaapplication.cpp icingaapplication.thpp
   icinga-itl.cpp customvarobject.cpp customvarobject.thpp
   legacytimeperiod.cpp macroprocessor.cpp notificationcommand.cpp notificationcommand.thpp notification.cpp notification.thpp
-  notification-apply.cpp objectutils.cpp perfdatavalue.cpp perfdatavalue.thpp pluginutility.cpp scheduleddowntime.cpp scheduleddowntime.thpp
+  notification-apply.cpp objectutils.cpp pluginutility.cpp scheduleddowntime.cpp scheduleddowntime.thpp
   scheduleddowntime-apply.cpp service-apply.cpp checkable-check.cpp checkable-comment.cpp
   service.cpp service.thpp servicegroup.cpp servicegroup.thpp checkable-notification.cpp timeperiod.cpp timeperiod.thpp
   user.cpp user.thpp usergroup.cpp usergroup.thpp

@@ -57,7 +57,7 @@ requires the `check_by_ssh` check plugin which is available in the [Monitoring P
 
 ## <a id="agent-based-checks-nsclient"></a> NSClient++
 
-[NSClient++](http://nsclient.org) works on both Windows and Linux platforms and is well
+[NSClient++](https://nsclient.org/) works on both Windows and Linux platforms and is well
 known for its magnificent Windows support. There are alternatives like the WMI interface,
 but using `NSClient++` will allow you to run local scripts similar to check plugins fetching
 the required output and performance counters.
@@ -80,7 +80,7 @@ Example:
       vars.nscp_crit = 80
     }
 
-For details on the `NSClient++` configuration please refer to the [official documentation](http://www.nsclient.org/nscp/wiki/doc/configuration/0.4.x).
+For details on the `NSClient++` configuration please refer to the [official documentation](https://docs.nsclient.org/).
 
 ## <a id="agent-based-checks-nsca-ng"></a> NSCA-NG
 
@@ -95,7 +95,7 @@ feature.
 
 ## <a id="agent-based-checks-nrpe"></a> NRPE
 
-[NRPE](http://docs.icinga.com/latest/en/nrpe.html) runs as daemon on the remote client including
+[NRPE](https://docs.icinga.com/latest/en/nrpe.html) runs as daemon on the remote client including
 the required plugins and command definitions.
 Icinga 2 calls the `check_nrpe` plugin binary in order to query the configured command on the
 remote client.

@@ -5,8 +5,8 @@
 #
 ### BEGIN INIT INFO
 # Provides:          icinga2
-# Required-Start:    $remote_fs $syslog
-# Required-Stop:     $remote_fs $syslog
+# Required-Start:    $remote_fs $syslog $network
+# Required-Stop:     $remote_fs $syslog $network
 # Should-Start:      mysql postgresql
 # Should-Stop:       mysql postgresql
 # Default-Start:     2 3 5

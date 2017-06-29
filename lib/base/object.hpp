@@ -165,8 +165,8 @@ private:
 
 I2_BASE_API Value GetPrototypeField(const Value& context, const String& field, bool not_found_error, const DebugInfo& debugInfo);
 
-void TypeAddObject(Object *object);
-void TypeRemoveObject(Object *object);
+I2_BASE_API void TypeAddObject(Object *object);
+I2_BASE_API void TypeRemoveObject(Object *object);
 
 inline void intrusive_ptr_add_ref(Object *object)
 {

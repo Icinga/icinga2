@@ -87,6 +87,7 @@ class Comment : ConfigObject < CommentNameComposer
 	};
 	[config, required] String author;
 	[config, required] String text;
+	[config] bool persistent;
 	[config] Timestamp expire_time;
 	[state] int legacy_id;
 };

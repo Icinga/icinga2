@@ -139,8 +139,8 @@ bool HttpResponse::Parse(StreamReadContext& src, bool may_wait)
 			boost::algorithm::split(tokens, line, boost::is_any_of(" "));
 			Log(LogDebug, "HttpRequest")
 				<< "line: " << line << ", tokens: " << tokens.size();
-			if (tokens.size() < 3)
-				BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid HTTP request"));
+			if (tokens.size() < 2)
+				BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid HTTP response (Status line)"));
 
 			if (tokens[0] == "HTTP/1.0")
 				ProtocolVersion = HttpVersion10;
@@ -150,7 +150,9 @@ bool HttpResponse::Parse(StreamReadContext& src, bool may_wait)
 				BOOST_THROW_EXCEPTION(std::invalid_argument("Unsupported HTTP version"));
 
 			StatusCode = Convert::ToLong(tokens[1]);
-			StatusMessage = tokens[2]; // TODO: Join tokens[2..end]
+
+			if (tokens.size() >= 3)
+				StatusMessage = tokens[2]; // TODO: Join tokens[2..end]
 
 			m_State = HttpResponseHeaders;
 		} else if (m_State == HttpResponseHeaders) {
@@ -239,6 +241,14 @@ size_t HttpResponse::ReadBody(char *data, size_t count)
 		return 0;
 	else
 		return m_Body->Read(data, count, true);
+}
+
+size_t HttpResponse::GetBodySize(void) const
+{
+	if (!m_Body)
+		return 0;
+	else
+		return m_Body->GetAvailableBytes();
 }
 
 bool HttpResponse::IsPeerConnected(void) const

@@ -54,6 +54,7 @@ public:
 	virtual HostState GetState(void) const override;
 	virtual HostState GetLastState(void) const override;
 	virtual HostState GetLastHardState(void) const override;
+	virtual int GetSeverity(void) const override;
 
 	virtual bool IsStateOK(ServiceState state) override;
 	virtual void SaveLastState(ServiceState state, double timestamp) override;

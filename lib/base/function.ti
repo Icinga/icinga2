@@ -26,9 +26,10 @@ namespace icinga
 
 abstract class Function
 {
-	String "name";
-	bool side_effect_free;
-	bool deprecated;
+	[config] String "name";
+	[config] bool side_effect_free;
+	[config] bool deprecated;
+	[config] Array::Ptr arguments;
 };
 
 }

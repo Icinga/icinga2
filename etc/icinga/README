@@ -1,2 +1,5 @@
+# This has been DEPRECATED and will be removed in future releases.
+# You can manually configure the Classic UI by keeping a backup of this file.
+
 This directory contains Icinga 1.x Classic UI configuration
 used by packages.

@@ -21,6 +21,7 @@
 #include "config/configcompilercontext.hpp"
 #include "config/applyrule.hpp"
 #include "config/objectrule.hpp"
+#include "config/configcompiler.hpp"
 #include "base/application.hpp"
 #include "base/configtype.hpp"
 #include "base/objectlock.hpp"
@@ -46,7 +47,7 @@ ConfigItem::TypeMap ConfigItem::m_DefaultTemplates;
 ConfigItem::ItemList ConfigItem::m_UnnamedItems;
 ConfigItem::IgnoredItemList ConfigItem::m_IgnoredItems;
 
-REGISTER_SCRIPTFUNCTION_NS(Internal, run_with_activation_context, &ConfigItem::RunWithActivationContext);
+REGISTER_SCRIPTFUNCTION_NS(Internal, run_with_activation_context, &ConfigItem::RunWithActivationContext, "func");
 
 /**
  * Constructor for the ConfigItem class.
@@ -58,7 +59,7 @@ REGISTER_SCRIPTFUNCTION_NS(Internal, run_with_activation_context, &ConfigItem::R
  * @param exprl Expression list for the item.
  * @param debuginfo Debug information.
  */
-ConfigItem::ConfigItem(const String& type, const String& name,
+ConfigItem::ConfigItem(const Type::Ptr& type, const String& name,
     bool abstract, const boost::shared_ptr<Expression>& exprl,
     const boost::shared_ptr<Expression>& filter, bool defaultTmpl, bool ignoreOnError,
     const DebugInfo& debuginfo, const Dictionary::Ptr& scope,
@@ -76,7 +77,7 @@ ConfigItem::ConfigItem(const String& type, const String& name,
  *
  * @returns The type.
  */
-String ConfigItem::GetType(void) const
+Type::Ptr ConfigItem::GetType(void) const
 {
 	return m_Type;
 }
@@ -156,7 +157,7 @@ class DefaultValidationUtils : public ValidationUtils
 public:
 	virtual bool ValidateName(const String& type, const String& name) const override
 	{
-		ConfigItem::Ptr item = ConfigItem::GetByTypeAndName(type, name);
+		ConfigItem::Ptr item = ConfigItem::GetByTypeAndName(Type::GetByName(type), name);
 
 		if (!item || (item && item->IsAbstract()))
 			return false;
@@ -179,7 +180,7 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 #endif /* I2_DEBUG */
 
 	/* Make sure the type is valid. */
-	Type::Ptr type = Type::GetByName(GetType());
+	Type::Ptr type = GetType();
 	if (!type || !ConfigObject::TypeInstance->IsAssignableFrom(type))
 		BOOST_THROW_EXCEPTION(ScriptError("Type '" + GetType() + "' does not exist.", m_DebugInfo));
 
@@ -203,7 +204,7 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 	} catch (const std::exception& ex) {
 		if (m_IgnoreOnError) {
 			Log(LogNotice, "ConfigObject")
-			    << "Ignoring config object '" << m_Name << "' of type '" << m_Type << "' due to errors: " << DiagnosticInformation(ex);
+			    << "Ignoring config object '" << m_Name << "' of type '" << m_Type->GetName() << "' due to errors: " << DiagnosticInformation(ex);
 
 			{
 				boost::mutex::scoped_lock lock(m_Mutex);
@@ -255,7 +256,7 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 	} catch (ValidationError& ex) {
 		if (m_IgnoreOnError) {
 			Log(LogNotice, "ConfigObject")
-			    << "Ignoring config object '" << m_Name << "' of type '" << m_Type << "' due to errors: " << DiagnosticInformation(ex);
+			    << "Ignoring config object '" << m_Name << "' of type '" << m_Type->GetName() << "' due to errors: " << DiagnosticInformation(ex);
 
 			{
 				boost::mutex::scoped_lock lock(m_Mutex);
@@ -274,7 +275,7 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 	} catch (const std::exception& ex) {
 		if (m_IgnoreOnError) {
 			Log(LogNotice, "ConfigObject")
-			    << "Ignoring config object '" << m_Name << "' of type '" << m_Type << "' due to errors: " << DiagnosticInformation(ex);
+			    << "Ignoring config object '" << m_Name << "' of type '" << m_Type->GetName() << "' due to errors: " << DiagnosticInformation(ex);
 
 			{
 				boost::mutex::scoped_lock lock(m_Mutex);
@@ -289,7 +290,7 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 
 	Dictionary::Ptr persistentItem = new Dictionary();
 
-	persistentItem->Set("type", GetType());
+	persistentItem->Set("type", GetType()->GetName());
 	persistentItem->Set("name", GetName());
 	persistentItem->Set("properties", Serialize(dobj, FAConfig));
 	persistentItem->Set("debug_hints", dhint);
@@ -319,15 +320,13 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
  */
 void ConfigItem::Register(void)
 {
-	Type::Ptr type = Type::GetByName(m_Type);
-
 	m_ActivationContext = ActivationContext::GetCurrentContext();
 
 	boost::mutex::scoped_lock lock(m_Mutex);
 
 	/* If this is a non-abstract object with a composite name
 	 * we register it in m_UnnamedItems instead of m_Items. */
-	if (!m_Abstract && dynamic_cast<NameComposer *>(type.get()))
+	if (!m_Abstract && dynamic_cast<NameComposer *>(m_Type.get()))
 		m_UnnamedItems.push_back(this);
 	else {
 		auto& items = m_Items[m_Type];
@@ -336,7 +335,7 @@ void ConfigItem::Register(void)
 
 		if (it != items.end()) {
 			std::ostringstream msgbuf;
-			msgbuf << "A configuration item of type '" << GetType()
+			msgbuf << "A configuration item of type '" << m_Type->GetName()
 			       << "' and name '" << GetName() << "' already exists ("
 			       << it->second->GetDebugInfo() << "), new declaration: " << GetDebugInfo();
 			BOOST_THROW_EXCEPTION(ScriptError(msgbuf.str()));
@@ -372,7 +371,7 @@ void ConfigItem::Unregister(void)
  * @param name The name of the ConfigItem that is to be looked up.
  * @returns The configuration item.
  */
-ConfigItem::Ptr ConfigItem::GetByTypeAndName(const String& type, const String& name)
+ConfigItem::Ptr ConfigItem::GetByTypeAndName(const Type::Ptr& type, const String& name)
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
 
@@ -441,26 +440,26 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 	if (upq.HasExceptions())
 		return false;
 
-	std::set<String> types;
+	std::set<Type::Ptr> types;
 
 	for (const Type::Ptr& type : Type::GetAllTypes()) {
 		if (ConfigObject::TypeInstance->IsAssignableFrom(type))
-			types.insert(type->GetName());
+			types.insert(type);
 	}
 
-	std::set<String> completed_types;
+	std::set<Type::Ptr> completed_types;
 
 	while (types.size() != completed_types.size()) {
-		for (const String& type : types) {
+		for (const Type::Ptr& type : types) {
 			if (completed_types.find(type) != completed_types.end())
 				continue;
 
-			Type::Ptr ptype = Type::GetByName(type);
 			bool unresolved_dep = false;
 
 			/* skip this type (for now) if there are unresolved load dependencies */
-			for (const String& loadDep : ptype->GetLoadDependencies()) {
-				if (types.find(loadDep) != types.end() && completed_types.find(loadDep) == completed_types.end()) {
+			for (const String& loadDep : type->GetLoadDependencies()) {
+				Type::Ptr pLoadDep = Type::GetByName(loadDep);
+				if (types.find(pLoadDep) != types.end() && completed_types.find(pLoadDep) == completed_types.end()) {
 					unresolved_dep = true;
 					break;
 				}
@@ -482,7 +481,7 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 						} catch (const std::exception& ex) {
 							if (item->m_IgnoreOnError) {
 								Log(LogNotice, "ConfigObject")
-								    << "Ignoring config object '" << item->m_Name << "' of type '" << item->m_Type << "' due to errors: " << DiagnosticInformation(ex);
+								    << "Ignoring config object '" << item->m_Name << "' of type '" << item->m_Type->GetName() << "' due to errors: " << DiagnosticInformation(ex);
 
 								item->Unregister();
 
@@ -507,17 +506,17 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 			if (upq.HasExceptions())
 				return false;
 
-			for (const String& loadDep : ptype->GetLoadDependencies()) {
+			for (const String& loadDep : type->GetLoadDependencies()) {
 				for (const ItemPair& ip : items) {
 					const ConfigItem::Ptr& item = ip.first;
 
 					if (!item->m_Object)
 						continue;
 
-					if (item->m_Type == loadDep) {
+					if (item->m_Type->GetName() == loadDep) {
 						upq.Enqueue([&]() {
 							ActivationScope ascope(item->m_ActivationContext);
-							item->m_Object->CreateChildObjects(ptype);
+							item->m_Object->CreateChildObjects(type);
 						});
 					}
 				}
@@ -573,13 +572,28 @@ bool ConfigItem::CommitItems(const ActivationContext::Ptr& context, WorkQueue& u
 	return true;
 }
 
-bool ConfigItem::ActivateItems(WorkQueue& upq, const std::vector<ConfigItem::Ptr>& newItems, bool runtimeCreated, bool silent)
+bool ConfigItem::ActivateItems(WorkQueue& upq, const std::vector<ConfigItem::Ptr>& newItems, bool runtimeCreated, bool silent, bool withModAttrs)
 {
 	static boost::mutex mtx;
 	boost::mutex::scoped_lock lock(mtx);
 
-	if (!silent)
-		Log(LogInformation, "ConfigItem", "Triggering Start signal for config items");
+	if (withModAttrs) {
+		/* restore modified attributes */
+		if (Utility::PathExists(Application::GetModAttrPath())) {
+			Expression *expression = ConfigCompiler::CompileFile(Application::GetModAttrPath());
+
+			if (expression) {
+				try {
+					ScriptFrame frame;
+					expression->Evaluate(frame);
+				} catch (const std::exception& ex) {
+					Log(LogCritical, "config", DiagnosticInformation(ex));
+				}
+			}
+
+			delete expression;
+		}
+	}
 
 	for (const ConfigItem::Ptr& item : newItems) {
 		if (!item->m_Object)
@@ -589,6 +603,29 @@ bool ConfigItem::ActivateItems(WorkQueue& upq, const std::vector<ConfigItem::Ptr
 
 		if (object->IsActive())
 			continue;
+
+#ifdef I2_DEBUG
+		Log(LogDebug, "ConfigItem")
+		    << "Setting 'active' to true for object '" << object->GetName() << "' of type '" << object->GetReflectionType()->GetName() << "'";
+#endif /* I2_DEBUG */
+		upq.Enqueue(boost::bind(&ConfigObject::PreActivate, object));
+	}
+
+	upq.Join();
+
+	if (upq.HasExceptions()) {
+		upq.ReportExceptions("ConfigItem");
+		return false;
+	}
+
+	if (!silent)
+		Log(LogInformation, "ConfigItem", "Triggering Start signal for config items");
+
+	for (const ConfigItem::Ptr& item : newItems) {
+		if (!item->m_Object)
+			continue;
+
+		ConfigObject::Ptr object = item->m_Object;
 
 #ifdef I2_DEBUG
 		Log(LogDebug, "ConfigItem")
@@ -644,7 +681,7 @@ bool ConfigItem::RunWithActivationContext(const Function::Ptr& function)
 	return true;
 }
 
-std::vector<ConfigItem::Ptr> ConfigItem::GetItems(const String& type)
+std::vector<ConfigItem::Ptr> ConfigItem::GetItems(const Type::Ptr& type)
 {
 	std::vector<ConfigItem::Ptr> items;
 
@@ -664,7 +701,7 @@ std::vector<ConfigItem::Ptr> ConfigItem::GetItems(const String& type)
 	return items;
 }
 
-std::vector<ConfigItem::Ptr> ConfigItem::GetDefaultTemplates(const String& type)
+std::vector<ConfigItem::Ptr> ConfigItem::GetDefaultTemplates(const Type::Ptr& type)
 {
 	std::vector<ConfigItem::Ptr> items;
 

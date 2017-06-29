@@ -19,18 +19,21 @@
 
 #include "base/function.hpp"
 #include "base/function.tcpp"
+#include "base/array.hpp"
 #include "base/scriptframe.hpp"
 
 using namespace icinga;
 
 REGISTER_TYPE_WITH_PROTOTYPE(Function, Function::GetPrototype());
 
-Function::Function(const String& name, const Callback& function, bool side_effect_free, bool deprecated)
+Function::Function(const String& name, const Callback& function, const std::vector<String>& args,
+    bool side_effect_free, bool deprecated)
 	: m_Callback(function)
 {
 	SetName(name, true);
 	SetSideEffectFree(side_effect_free, true);
 	SetDeprecated(deprecated, true);
+	SetArguments(Array::FromVector(args), true);
 }
 
 Value Function::Invoke(const std::vector<Value>& arguments)

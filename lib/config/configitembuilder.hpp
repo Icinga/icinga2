@@ -42,7 +42,7 @@ public:
 	ConfigItemBuilder(void);
 	explicit ConfigItemBuilder(const DebugInfo& debugInfo);
 
-	void SetType(const String& type);
+	void SetType(const Type::Ptr& type);
 	void SetName(const String& name);
 	void SetAbstract(bool abstract);
 	void SetScope(const Dictionary::Ptr& scope);
@@ -57,7 +57,7 @@ public:
 	ConfigItem::Ptr Compile(void);
 
 private:
-	String m_Type; /**< The object type. */
+	Type::Ptr m_Type; /**< The object type. */
 	String m_Name; /**< The name. */
 	bool m_Abstract; /**< Whether the item is abstract. */
 	std::vector<Expression *> m_Expressions; /**< Expressions for this item. */

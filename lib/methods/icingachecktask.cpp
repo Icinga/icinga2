@@ -21,16 +21,16 @@
 #include "icinga/cib.hpp"
 #include "icinga/service.hpp"
 #include "icinga/icingaapplication.hpp"
-#include "icinga/perfdatavalue.hpp"
 #include "base/application.hpp"
 #include "base/objectlock.hpp"
 #include "base/utility.hpp"
+#include "base/perfdatavalue.hpp"
 #include "base/function.hpp"
 #include "base/configtype.hpp"
 
 using namespace icinga;
 
-REGISTER_SCRIPTFUNCTION_NS(Internal, IcingaCheck, &IcingaCheckTask::ScriptFunc);
+REGISTER_SCRIPTFUNCTION_NS(Internal, IcingaCheck, &IcingaCheckTask::ScriptFunc, "checkable:cr:resolvedMacros:useResolvedMacros");
 
 void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& service, const CheckResult::Ptr& cr,
     const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
@@ -43,7 +43,10 @@ void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& service, const CheckResul
 	if (interval > 60)
 		interval = 60;
 
-	Array::Ptr perfdata = new Array();
+	/* use feature stats perfdata */
+	std::pair<Dictionary::Ptr, Array::Ptr> feature_stats = CIB::GetFeatureStats();
+
+	Array::Ptr perfdata = feature_stats.second;
 
 	perfdata->Add(new PerfdataValue("active_host_checks", CIB::GetActiveHostChecksStatistics(interval) / interval));
 	perfdata->Add(new PerfdataValue("passive_host_checks", CIB::GetPassiveHostChecksStatistics(interval) / interval));
