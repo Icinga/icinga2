@@ -115,7 +115,7 @@ exist.
 
 Common best practices when creating a new plugin are for example:
 
-* Choose the pragramming language wisely
+* Choose the programming language wisely
  * Scripting languages (Bash, Python, Perl, Ruby, PHP, etc.) are easier to write and setup but their check execution might take longer (invoking the script interpreter as overhead, etc.).
  * Plugins written in C/C++, Go, etc. improve check execution time but may generate an overhead with installation and packaging.
 * Use a modern VCS such as Git for developing the plugin (e.g. share your plugin on GitHub).
