@@ -2088,25 +2088,42 @@ Custom attributes passed as [command parameters](3-monitoring-basics.md#command-
 Name                             | Description
 ---------------------------------|------------------------------------------------------------------------------------------------------------------------------
 mssql_health_hostname            | **Optional.** Specifies the database hostname or address. No default because you typically use "mssql_health_server".
+mssql_health_username            | **Optional.** The username for the database connection.
+mssql_health_password            | **Optional.** The password for the database connection.
 mssql_health_port                | **Optional.** Specifies the database port. No default because you typically use "mssql_health_server".
 mssql_health_server              | **Optional.** The name of a predefined connection (in freetds.conf).
 mssql_health_currentdb           | **Optional.** The name of a database which is used as the current database for the connection.
-mssql_health_username            | **Optional.** The username for the database connection.
-mssql_health_password            | **Optional.** The password for the database connection.
+mssql_health_offlineok           | **Optional.** Set this to true if offline databases are perfectly ok for you. Defaults to false.
+mssql_health_nooffline           | **Optional.** Set this to true to ignore offline databases. Defaults to false.
+mssql_health_dbthresholds        | **Optional.** With this parameter thresholds are read from the database table check_mssql_health_thresholds.
+mssql_health_notemp              | **Optional.** Set this to true to ignore temporary databases/tablespaces. Defaults to false.
+mssql_health_commit              | **Optional.** Set this to true to turn on autocommit for the dbd::sybase module. Defaults to false.
+mssql_health_method              | **Optional.** How the plugin should connect to the database (dbi for the perl module `DBD::Sybase` (default) and `sqlrelay` for the SQLRelay proxy).
+mssql_health_mode                | **Required.** The mode uses predefined keywords for the different checks. For example "connection-time", "database-free" or "sql".
+mssql_health_regexp              | **Optional.** If set to true, "mssql_health_name" will be interpreted as a regular expression. Defaults to false.
 mssql_health_warning             | **Optional.** The warning threshold depending on the mode.
 mssql_health_critical            | **Optional.** The critical threshold depending on the mode.
-mssql_health_mode                | **Required.** The mode uses predefined keywords for the different checks. For example "connection-time", "database-free" or "sql".
-mssql_health_method              | **Optional.** How the plugin should connect to the database (dbi for the perl module `DBD::Sybase` (default) and `sqlrelay` for the SQLRelay proxy).
+mssql_health_warningx            | **Optional.** A possible override for the warning threshold.
+mssql_health_criticalx           | **Optional.** A possible override for the critical threshold.
+mssql_health_units               | **Optional.** This is used for a better output of mode=sql and for specifying thresholds for mode=tablespace-free. Possible values are "%", "KB", "MB" and "GB".
 mssql_health_name                | **Optional.** Depending on the mode this could be the database name or a SQL statement.
 mssql_health_name2               | **Optional.** If "mssql_health_name" is a sql statement, "mssql_health_name2" can be used to appear in the output and the performance data.
-mssql_health_regexp              | **Optional.** If set to true, "mssql_health_name" will be interpreted as a regular expression. Defaults to false.
-mssql_health_units               | **Optional.** This is used for a better output of mode=sql and for specifying thresholds for mode=tablespace-free. Possible values are "%", "KB", "MB" and "GB".
-mssql_health_offlineok           | **Optional.** Set this to true if offline databases are perfectly ok for you. Defaults to false.
-mssql_health_commit              | **Optional.** Set this to true to turn on autocommit for the dbd::sybase module. Defaults to false.
-mssql_health_notemp              | **Optional.** Set this to true to ignore temporary databases/tablespaces. Defaults to false.
-mssql_health_nooffline           | **Optional.** Set this to true to ignore offline databases. Defaults to false.
+mssql_health_name3               | **Optional.** Additional argument used for 'database-file-free' mode for example.
+mssql_health_extraopts           | **Optional.** Read command line arguments from an external file.
+mssql_health_blacklist           | **Optional.** Blacklist some (missing/failed) components"
+mssql_health_mitigation          | **Optional.** "The parameter allows you to change a critical error to a warning."
 mssql_health_lookback            | **Optional.** The amount of time you want to look back when calculating average rates.
+mssql_health_environment         | **Optional.** Add a variable to the plugin's environment."
+mssql_health_negate              | **Optional.** Emulate the negate plugin. --negate warning=critical --negate unknown=critical."
+mssql_health_morphmessage        | **Optional.** Modify the final output message."
+mssql_health_morphperfdata       | **Optional.** The parameter allows you to change performance data labels."
+mssql_health_selectedperfdata    | **Optional.** The parameter allows you to limit the list of performance data."
 mssql_health_report              | **Optional.** Report can be used to output only the bad news. Possible values are "short", "long", "html". Defaults to `short`.
+mssql_health_multiline           | **Optional.** Multiline output."
+mssql_health_withmymodulesdyndir | **Optional.** Add-on modules for the my-modes will be searched in this directory."
+mssql_health_statefilesdir       | **Optional.** An alternate directory where the plugin can save files."
+mssql_health_isvalidtime         | **Optional.** Signals the plugin to return OK if now is not a valid check time."
+mssql_health_timeout           	 | **Optional.** Plugin timeout. Defaults to 15s.
 
 #### <a id="plugin-contrib-command-mysql_health"></a> mysql_health
 
