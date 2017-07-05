@@ -1872,6 +1872,33 @@ You can enable these plugin check commands by adding the following the include d
   Cisco CSS               |   Yes      |   ??     |   Yes     | Yes |   No     | ??  | check_snmp_css.pl
 
 
+### snmp-env <a id="plugin-check-command-snmp-env"></a>
+
+Check command object for the [check_snmp_env.pl](http://nagios.manubulon.com/snmp_env.html) plugin.
+
+Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+
+Name                    | Description
+------------------------|--------------
+snmp_address            | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
+snmp_nocrypt            | **Optional.** Define SNMP encryption. If set, **snmp_v3** needs to be set. Defaults to false.
+snmp_community          | **Optional.** The SNMP community. Defaults to "public".
+snmp_port               | **Optional.** The SNMP port connection.
+snmp_v2                 | **Optional.** SNMP version to 2c. Defaults to false.
+snmp_v3                 | **Optional.** SNMP version to 3. Defaults to false.
+snmp_login              | **Optional.** SNMP version 3 username. Defaults to "snmpuser".
+snmp_password           | **Required.** SNMP version 3 password. No value defined as default.
+snmp_v3_use_privpass    | **Optional.** Define to use SNMP version 3 priv password. Defaults to false.
+snmp_v3_use_authprotocol| **Optional.** Define to use SNMP version 3 authentication protocol. Defaults to false.
+snmp_authprotocol       | **Optional.** SNMP version 3 authentication protocol. Defaults to "md5,des".
+snmp_privpass           | **Required.** SNMP version 3 priv password. No value defined as default.
+snmp_env_type           | **Optional.** Environment Type [cisco|nokia|bc|iron|foundry|linux]. Defaults to "cisco".
+snmp_env_fan            | **Optional.** Minimum fan rpm value (only needed for 'iron' & 'linux')
+snmp_env_celsius        | **Optional.** Maximum temp in degrees celsius (only needed for 'iron' & 'linux')
+snmp_perf               | **Optional.** Enable perfdata values. Defaults to true.
+snmp_timeout            | **Optional.** The command timeout in seconds. Defaults to 5 seconds.
+
 ### snmp-load <a id="plugin-check-command-snmp-load"></a>
 
 Check command object for the [check_snmp_load.pl](http://nagios.manubulon.com/snmp_load.html) plugin.
