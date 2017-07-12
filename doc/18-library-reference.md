@@ -1,8 +1,8 @@
-# <a id="library-reference"></a> Library Reference
+# Library Reference <a id="library-reference"></a>
 
-## <a id="global-functions"></a> Global functions
+## Global functions <a id="global-functions"></a>
 
-These functions are globally available in [assign/ignore where expressions](3-monitoring-basics.md#using-apply-expressions),
+These functions are globally available in [assign/ignore where expressions](03-monitoring-basics.md#using-apply-expressions),
 [functions](17-language-reference.md#functions), [API filters](12-icinga2-api.md#icinga2-api-filters)
 and the [Icinga 2 debug console](11-cli-commands.md#cli-command-console).
 
@@ -10,7 +10,7 @@ You can use the [Icinga 2 debug console](11-cli-commands.md#cli-command-console)
 as a sandbox to test these functions before implementing
 them in your scenarios.
 
-### <a id="global-functions-regex"></a> regex
+### regex <a id="global-functions-regex"></a>
 
 Signature:
 
@@ -33,7 +33,7 @@ Example:
     <3> => regex("^Linux$", host.vars.os_type)
     false
 
-### <a id="global-functions-match"></a> match
+### match <a id="global-functions-match"></a>
 
 Signature:
 
@@ -56,7 +56,7 @@ Example:
     <4> => match("NUE-*-DEV-*", host.display_name)
     false
 
-### <a id="global-functions-cidr_match"></a> cidr_match
+### cidr_match <a id="global-functions-cidr_match"></a>
 
 Signature:
 
@@ -80,7 +80,7 @@ Example:
     <3> => cidr_match("192.168.56.0/26", host.address)
     false
 
-### <a id="global-functions-range"></a> range
+### range <a id="global-functions-range"></a>
 
 Signature:
 
@@ -109,7 +109,7 @@ Example:
     <3> => range(2,10,2)
     [ 2.000000, 4.000000, 6.000000, 8.000000 ]
 
-### <a id="global-functions-len"></a> len
+### len <a id="global-functions-len"></a>
 
 Signature:
 
@@ -142,7 +142,7 @@ Example:
     10.000000
 
 
-### <a id="global-functions-union"></a> union
+### union <a id="global-functions-union"></a>
 
 Signature:
 
@@ -161,7 +161,7 @@ Example:
     <3> => union(dev_notification_groups, host_notification_groups)
     [ "devs", "noc", "slack" ]
 
-### <a id="global-functions-intersection"></a> intersection
+### intersection <a id="global-functions-intersection"></a>
 
 Signature:
 
@@ -181,7 +181,7 @@ Example:
     <3> => intersection(dev_notification_groups, host_notification_groups)
     [ "slack" ]
 
-### <a id="global-functions-keys"></a> keys
+### keys <a id="global-functions-keys"></a>
 
 Signature:
 
@@ -203,7 +203,7 @@ Example:
     <3> => host.vars.disks.keys()
     [ "/", "/var" ]
 
-### <a id="global-functions-string"></a> string
+### string <a id="global-functions-string"></a>
 
 Signature:
 
@@ -237,7 +237,7 @@ Example:
     <6> => DateTime(2016, 11, 25).to_string()
     "2016-11-25 00:00:00 +0100"
 
-### <a id="global-functions-number"></a> number
+### number <a id="global-functions-number"></a>
 
 Signature:
 
@@ -254,7 +254,7 @@ Example:
     <2> => number("78")
     78.000000
 
-### <a id="global-functions-bool"></a> bool
+### bool <a id="global-functions-bool"></a>
 
 Signature:
 
@@ -271,7 +271,7 @@ Example:
     <2> => bool(0)
     false
 
-### <a id="global-functions-random"></a> random
+### random <a id="global-functions-random"></a>
 
 Signature:
 
@@ -286,7 +286,7 @@ Returns a random value between 0 and RAND\_MAX (as defined in stdlib.h).
     <2> => random()
     108402530.000000
 
-### <a id="global-functions-log"></a> log
+### log <a id="global-functions-log"></a>
 
 Signature:
 
@@ -316,7 +316,7 @@ Example:
     critical/Console: ["devs","slack"]
     null
 
-### <a id="global-functions-typeof"></a> typeof
+### typeof <a id="global-functions-typeof"></a>
 
 Signature:
 
@@ -339,7 +339,7 @@ Example:
     <5> => typeof({ a = 2, b = 3 }) == Dictionary
     true
 
-### <a id="global-functions-get_time"></a> get_time
+### get_time <a id="global-functions-get_time"></a>
 
 Signature:
 
@@ -356,7 +356,7 @@ Example:
     <2> => get_time()
     1480072140.401207
 
-### <a id="global-functions-parse_performance_data"></a> parse_performance_data
+### parse_performance_data <a id="global-functions-parse_performance_data"></a>
 
 Signature:
 
@@ -383,7 +383,7 @@ Example:
     	warn = null
     }
 
-### <a id="global-functions-dirname"></a> dirname
+### dirname <a id="global-functions-dirname"></a>
 
 Signature:
 
@@ -400,7 +400,7 @@ Example:
     <2> => dirname(path)
     "/etc/icinga2/scripts"
 
-### <a id="global-functions-basename"></a> basename
+### basename <a id="global-functions-basename"></a>
 
 Signature:
 
@@ -417,7 +417,7 @@ Example:
     <2> => basename(path)
     "xmpp-notification.pl"
 
-### <a id="global-functions-escape_shell_arg"></a> escape_shell_arg
+### escape_shell_arg <a id="global-functions-escape_shell_arg"></a>
 
 Signature:
 
@@ -432,7 +432,7 @@ Example:
     <1> => escape_shell_arg("'$host.name$' '$service.name$'")
     "''\\''$host.name$'\\'' '\\''$service.name$'\\'''"
 
-### <a id="global-functions-escape_shell_cmd"></a> escape_shell_cmd
+### escape_shell_cmd <a id="global-functions-escape_shell_cmd"></a>
 
 Signature:
 
@@ -447,7 +447,7 @@ Example:
     <1> => escape_shell_cmd("/bin/echo 'shell test' $ENV")
     "/bin/echo 'shell test' \\$ENV"
 
-### <a id="global-functions-escape_create_process_arg"></a> escape_create_process_arg
+### escape_create_process_arg <a id="global-functions-escape_create_process_arg"></a>
 
 Signature:
 
@@ -455,7 +455,7 @@ Signature:
 
 Escapes a string for use as an argument for CreateProcess(). Windows only.
 
-### <a id="global-functions-sleep"></a> sleep
+### sleep <a id="global-functions-sleep"></a>
 
 Signature:
 
@@ -463,11 +463,11 @@ Signature:
 
 Sleeps for the specified amount of time (in seconds).
 
-## <a id="object-accessor-functions"></a> Object Accessor Functions
+## Object Accessor Functions <a id="object-accessor-functions"></a>
 
 These functions can be used to retrieve a reference to another object by name.
 
-### <a id="objref-get_check_command"></a> get_check_command
+### get_check_command <a id="objref-get_check_command"></a>
 
 Signature:
 
@@ -475,7 +475,7 @@ Signature:
 
 Returns the CheckCommand object with the specified name, or `null` if no such CheckCommand object exists.
 
-### <a id="objref-get_event_command"></a> get_event_command
+### get_event_command <a id="objref-get_event_command"></a>
 
 Signature:
 
@@ -483,7 +483,7 @@ Signature:
 
 Returns the EventCommand object with the specified name, or `null` if no such EventCommand object exists.
 
-### <a id="objref-get_notification_command"></a> get_notification_command
+### get_notification_command <a id="objref-get_notification_command"></a>
 
 Signature:
 
@@ -491,7 +491,7 @@ Signature:
 
 Returns the NotificationCommand object with the specified name, or `null` if no such NotificationCommand object exists.
 
-### <a id="objref-get_host"></a> get_host
+### get_host <a id="objref-get_host"></a>
 
 Signature:
 
@@ -500,7 +500,7 @@ Signature:
 Returns the Host object with the specified name, or `null` if no such Host object exists.
 
 
-### <a id="objref-get_service"></a> get_service
+### get_service <a id="objref-get_service"></a>
 
 Signature:
 
@@ -509,7 +509,7 @@ Signature:
 Returns the Service object with the specified name, or `null` if no such Service object exists.
 
 
-### <a id="objref-get_user"></a> get_user
+### get_user <a id="objref-get_user"></a>
 
 Signature:
 
@@ -517,7 +517,7 @@ Signature:
 
 Returns the User object with the specified name, or `null` if no such User object exists.
 
-### <a id="objref-get_host_group"></a> get_host_group
+### get_host_group <a id="objref-get_host_group"></a>
 
 Signature:
 
@@ -526,7 +526,7 @@ Signature:
 Returns the HostGroup object with the specified name, or `null` if no such HostGroup object exists.
 
 
-### <a id="objref-get_service_group"></a> get_service_group
+### get_service_group <a id="objref-get_service_group"></a>
 
 Signature:
 
@@ -534,7 +534,7 @@ Signature:
 
 Returns the ServiceGroup object with the specified name, or `null` if no such ServiceGroup object exists.
 
-### <a id="objref-get_user_group"></a> get_user_group
+### get_user_group <a id="objref-get_user_group"></a>
 
 Signature:
 
@@ -543,7 +543,7 @@ Signature:
 Returns the UserGroup object with the specified name, or `null` if no such UserGroup object exists.
 
 
-### <a id="objref-get_time_period"></a> get_time_period
+### get_time_period <a id="objref-get_time_period"></a>
 
 Signature:
 
@@ -552,7 +552,7 @@ Signature:
 Returns the TimePeriod object with the specified name, or `null` if no such TimePeriod object exists.
 
 
-### <a id="objref-get_object"></a> get_object
+### get_object <a id="objref-get_object"></a>
 
 Signature:
 
@@ -562,7 +562,7 @@ Returns the object with the specified type and name, or `null` if no such object
 to a type object.
 
 
-### <a id="objref-get_objects"></a> get_objects
+### get_objects <a id="objref-get_objects"></a>
 
 Signature:
 
@@ -572,40 +572,40 @@ Returns an array of objects whose type matches the specified type. `type` must r
 to a type object.
 
 
-## <a id="math-object"></a> Math object
+## Math object <a id="math-object"></a>
 
 The global `Math` object can be used to access a number of mathematical constants
 and functions.
 
-### <a id="math-e"></a> Math.E
+### Math.E <a id="math-e"></a>
 
 Euler's constant.
 
-### <a id="math-ln2"></a> Math.LN2
+### Math.LN2 <a id="math-ln2"></a>
 
 Natural logarithm of 2.
 
-### <a id="math-ln10"></a> Math.LN10
+### Math.LN10 <a id="math-ln10"></a>
 
 Natural logarithm of 10.
 
-### <a id="math-log2e"></a> Math.LOG2E
+### Math.LOG2E <a id="math-log2e"></a>
 
 Base 2 logarithm of E.
 
-### <a id="math-pi"></a> Math.PI
+### Math.PI <a id="math-pi"></a>
 
 The mathematical constant Pi.
 
-### <a id="math-sqrt1_2"></a> Math.SQRT1_2
+### Math.SQRT1_2 <a id="math-sqrt1_2"></a>
 
 Square root of 1/2.
 
-### <a id="math-sqrt2"></a> Math.SQRT2
+### Math.SQRT2 <a id="math-sqrt2"></a>
 
 Square root of 2.
 
-### <a id="math-abs"></a> Math.abs
+### Math.abs <a id="math-abs"></a>
 
 Signature:
 
@@ -613,7 +613,7 @@ Signature:
 
 Returns the absolute value of `x`.
 
-### <a id="math-acos"></a> Math.acos
+### Math.acos <a id="math-acos"></a>
 
 Signature:
 
@@ -621,7 +621,7 @@ Signature:
 
 Returns the arccosine of `x`.
 
-### <a id="math-asin"></a> Math.asin
+### Math.asin <a id="math-asin"></a>
 
 Signature:
 
@@ -629,7 +629,7 @@ Signature:
 
 Returns the arcsine of `x`.
 
-### <a id="math-atan"></a> Math.atan
+### Math.atan <a id="math-atan"></a>
 
 Signature:
 
@@ -637,7 +637,7 @@ Signature:
 
 Returns the arctangent of `x`.
 
-### <a id="math-atan2"></a> Math.atan2
+### Math.atan2 <a id="math-atan2"></a>
 
 Signature:
 
@@ -645,7 +645,7 @@ Signature:
 
 Returns the arctangent of the quotient of `y` and `x`.
 
-### <a id="math-ceil"></a> Math.ceil
+### Math.ceil <a id="math-ceil"></a>
 
 Signature:
 
@@ -653,7 +653,7 @@ Signature:
 
 Returns the smallest integer value not less than `x`.
 
-### <a id="math-cos"></a> Math.cos
+### Math.cos <a id="math-cos"></a>
 
 Signature:
 
@@ -661,7 +661,7 @@ Signature:
 
 Returns the cosine of `x`.
 
-### <a id="math-exp"></a> Math.exp
+### Math.exp <a id="math-exp"></a>
 
 Signature:
 
@@ -669,7 +669,7 @@ Signature:
 
 Returns E raised to the `x`th power.
 
-### <a id="math-floor"></a> Math.floor
+### Math.floor <a id="math-floor"></a>
 
 Signature:
 
@@ -677,7 +677,7 @@ Signature:
 
 Returns the largest integer value not greater than `x`.
 
-### <a id="math-isinf"></a> Math.isinf
+### Math.isinf <a id="math-isinf"></a>
 
 Signature:
 
@@ -685,7 +685,7 @@ Signature:
 
 Returns whether `x` is infinite.
 
-### <a id="math-isnan"></a> Math.isnan
+### Math.isnan <a id="math-isnan"></a>
 
 Signature:
 
@@ -693,7 +693,7 @@ Signature:
 
 Returns whether `x` is NaN (not-a-number).
 
-### <a id="math-log"></a> Math.log
+### Math.log <a id="math-log"></a>
 
 Signature:
 
@@ -701,7 +701,7 @@ Signature:
 
 Returns the natural logarithm of `x`.
 
-### <a id="math-max"></a> Math.max
+### Math.max <a id="math-max"></a>
 
 Signature:
 
@@ -710,7 +710,7 @@ Signature:
 Returns the largest argument. A variable number of arguments can be specified.
 If no arguments are given, -Infinity is returned.
 
-### <a id="math-min"></a> Math.min
+### Math.min <a id="math-min"></a>
 
 Signature:
 
@@ -719,7 +719,7 @@ Signature:
 Returns the smallest argument. A variable number of arguments can be specified.
 If no arguments are given, +Infinity is returned.
 
-### <a id="math-pow"></a> Math.pow
+### Math.pow <a id="math-pow"></a>
 
 Signature:
 
@@ -727,7 +727,7 @@ Signature:
 
 Returns `x` raised to the `y`th power.
 
-### <a id="math-random"></a> Math.random
+### Math.random <a id="math-random"></a>
 
 Signature:
 
@@ -735,7 +735,7 @@ Signature:
 
 Returns a pseudo-random number between 0 and 1.
 
-### <a id="math-round"></a> Math.round
+### Math.round <a id="math-round"></a>
 
 Signature:
 
@@ -743,7 +743,7 @@ Signature:
 
 Returns `x` rounded to the nearest integer value.
 
-### <a id="math-sign"></a> Math.sign
+### Math.sign <a id="math-sign"></a>
 
 Signature:
 
@@ -752,7 +752,7 @@ Signature:
 Returns -1 if `x` is negative, 1 if `x` is positive
 and 0 if `x` is 0.
 
-### <a id="math-sin"></a> Math.sin
+### Math.sin <a id="math-sin"></a>
 
 Signature:
 
@@ -760,7 +760,7 @@ Signature:
 
 Returns the sine of `x`.
 
-### <a id="math-sqrt"></a> Math.sqrt
+### Math.sqrt <a id="math-sqrt"></a>
 
 Signature:
 
@@ -768,7 +768,7 @@ Signature:
 
 Returns the square root of `x`.
 
-### <a id="math-tan"></a> Math.tan
+### Math.tan <a id="math-tan"></a>
 
 Signature:
 
@@ -776,11 +776,11 @@ Signature:
 
 Returns the tangent of `x`.
 
-## <a id="json-object"></a> Json object
+## Json object <a id="json-object"></a>
 
 The global `Json` object can be used to encode and decode JSON.
 
-### <a id="json-encode"></a> Json.encode
+### Json.encode <a id="json-encode"></a>
 
 Signature:
 
@@ -788,7 +788,7 @@ Signature:
 
 Encodes an arbitrary value into JSON.
 
-### <a id="json-decode"></a> Json.decode
+### Json.decode <a id="json-decode"></a>
 
 Signature:
 
@@ -796,9 +796,9 @@ Signature:
 
 Decodes a JSON string.
 
-## <a id="number-type"></a> Number type
+## Number type <a id="number-type"></a>
 
-### <a id="number-to_string"></a> Number#to_string
+### Number#to_string <a id="number-to_string"></a>
 
 Signature:
 
@@ -811,9 +811,9 @@ Example:
     var example = 7
 	example.to_string() /* Returns "7" */
 
-## <a id="boolean-type"></a> Boolean type
+## Boolean type <a id="boolean-type"></a>
 
-### <a id="boolean-to_string"></a> Boolean#to_string
+### Boolean#to_string <a id="boolean-to_string"></a>
 
 Signature:
 
@@ -826,9 +826,9 @@ Example:
     var example = true
 	example.to_string() /* Returns "true" */
 
-## <a id="string-type"></a> String type
+## String type <a id="string-type"></a>
 
-### <a id="string-find"></a> String#find
+### String#find <a id="string-find"></a>
 
 Signature:
 
@@ -842,7 +842,7 @@ Example:
 
     "Hello World".find("World") /* Returns 6 */
 
-### <a id="string-contains"></a> String#contains
+### String#contains <a id="string-contains"></a>
 
 Signature:
 
@@ -856,7 +856,7 @@ Example:
 
     "Hello World".contains("World") /* Returns true */
 
-### <a id="string-len"></a> String#len
+### String#len <a id="string-len"></a>
 
 Signature
 
@@ -869,7 +869,7 @@ Example:
 
     "Hello World".len() /* Returns 11 */
 
-### <a id="string-lower"></a> String#lower
+### String#lower <a id="string-lower"></a>
 
 Signature:
 
@@ -881,7 +881,7 @@ Example:
 
     "Hello World".lower() /* Returns "hello world" */
 
-### <a id="string-upper"></a> String#upper
+### String#upper <a id="string-upper"></a>
 
 Signature:
 
@@ -893,7 +893,7 @@ Example:
 
     "Hello World".upper() /* Returns "HELLO WORLD" */
 
-### <a id="string-replace"></a> String#replace
+### String#replace <a id="string-replace"></a>
 
 Signature:
 
@@ -902,7 +902,7 @@ Signature:
 Returns a copy of the string with all occurences of the string specified in `search` replaced
 with the string specified in `replacement`.
 
-### <a id="string-split"></a> String#split
+### String#split <a id="string-split"></a>
 
 Signature:
 
@@ -915,7 +915,7 @@ Example:
 
     "x-7,y".split("-,") /* Returns [ "x", "7", "y" ] */
 
-### <a id="string-substr"></a> String#substr
+### String#substr <a id="string-substr"></a>
 
 Signature:
 
@@ -928,7 +928,7 @@ Example:
 
     "Hello World".substr(6) /* Returns "World" */
 
-### <a id="string-to_string"></a> String#to_string
+### String#to_string <a id="string-to_string"></a>
 
 Signature:
 
@@ -936,7 +936,7 @@ Signature:
 
 Returns a copy of the string.
 
-### <a id="string-reverse"></a> String#reverse
+### String#reverse <a id="string-reverse"></a>
 
 Signature:
 
@@ -944,7 +944,7 @@ Signature:
 
 Returns a copy of the string in reverse order.
 
-### <a id="string-trim"></a> String#trim
+### String#trim <a id="string-trim"></a>
 
 Signature:
 
@@ -952,11 +952,11 @@ Signature:
 
 Removes trailing whitespaces and returns the string.
 
-## <a id="object-type"></a> Object type
+## Object type <a id="object-type"></a>
 
 This is the base type for all types in the Icinga application.
 
-### <a id="object-clone"></a> Object#clone
+### Object#clone <a id="object-clone"></a>
 
 Signature:
 
@@ -966,7 +966,7 @@ Returns a copy of the object. Note that for object elements which are
 reference values (e.g. objects such as arrays or dictionaries) the entire
 object is recursively copied.
 
-### <a id="object-to-string"></a> Object#to_string
+### Object#to_string <a id="object-to-string"></a>
 
 Signature:
 
@@ -980,7 +980,7 @@ Example:
 
     [ 3, true ].to_string() /* Returns "[ 3.000000, true ]" */
 
-### <a id="object-type-field"></a> Object#type
+### Object#type <a id="object-type-field"></a>
 
 Signature:
 
@@ -992,7 +992,7 @@ Example:
 
     get_host("localhost").type /* Returns "Host" */
 
-## <a id="type-type"></a> Type type
+## Type type <a id="type-type"></a>
 
 Inherits methods from the [Object type](18-library-reference.md#object-type).
 
@@ -1000,7 +1000,7 @@ The `Type` type provides information about the underlying type of an object or s
 
 All types are registered as global variables. For example, in order to obtain a reference to the `String` type the global variable `String` can be used.
 
-### <a id="type-base"></a> Type#base
+### Type#base <a id="type-base"></a>
 
 Signature:
 
@@ -1012,7 +1012,7 @@ Example:
 
     Dictionary.base == Object /* Returns true, because the Dictionary type inherits directly from the Object type. */
 
-### <a id="type-name"></a> Type#name
+### Type#name <a id="type-name"></a>
 
 Signature:
 
@@ -1020,7 +1020,7 @@ Signature:
 
 Returns the name of the type.
 
-### <a id="type-prototype"></a> Type#prototype
+### Type#prototype <a id="type-prototype"></a>
 
 Signature:
 
@@ -1034,11 +1034,11 @@ Example:
 
     3.to_string() /* Even though '3' does not have a to_string property the Number type's prototype object does. */
 
-## <a id="array-type"></a> Array type
+## Array type <a id="array-type"></a>
 
 Inherits methods from the [Object type](18-library-reference.md#object-type).
 
-### <a id="array-add"></a> Array#add
+### Array#add <a id="array-add"></a>
 
 Signature:
 
@@ -1046,7 +1046,7 @@ Signature:
 
 Adds a new value after the last element in the array.
 
-### <a id="array-clear"></a> Array#clear
+### Array#clear <a id="array-clear"></a>
 
 Signature:
 
@@ -1054,14 +1054,14 @@ Signature:
 
 Removes all elements from the array.
 
-### <a id="array-shallow-clone"></a> Array#shallow_clone
+### Array#shallow_clone <a id="array-shallow-clone"></a>
 
     function shallow_clone();
 
 Returns a copy of the array. Note that for elements which are reference values (e.g. objects such
 as arrays and dictionaries) only the references are copied.
 
-### <a id="array-contains"></a> Array#contains
+### Array#contains <a id="array-contains"></a>
 
 Signature:
 
@@ -1069,7 +1069,7 @@ Signature:
 
 Returns true if the array contains the specified value, false otherwise.
 
-### <a id="array-len"></a> Array#len
+### Array#len <a id="array-len"></a>
 
 Signature:
 
@@ -1077,7 +1077,7 @@ Signature:
 
 Returns the number of elements contained in the array.
 
-### <a id="array-remove"></a> Array#remove
+### Array#remove <a id="array-remove"></a>
 
 Signature:
 
@@ -1085,7 +1085,7 @@ Signature:
 
 Removes the element at the specified zero-based index.
 
-### <a id="array-set"></a> Array#set
+### Array#set <a id="array-set"></a>
 
 Signature:
 
@@ -1094,7 +1094,7 @@ Signature:
 Sets the element at the zero-based index to the specified value. The `index` must refer to an element
 which already exists in the array.
 
-### <a id="array-get"></a> Array#get
+### Array#get <a id="array-get"></a>
 
 Signature:
 
@@ -1102,7 +1102,7 @@ Signature:
 
 Retrieves the element at the specified zero-based index.
 
-### <a id="array-sort"></a> Array#sort
+### Array#sort <a id="array-sort"></a>
 
 Signature:
 
@@ -1112,7 +1112,7 @@ Returns a copy of the array where all items are sorted. The items are
 compared using the `<` (less-than) operator. A custom comparator function
 can be specified with the `less_cmp` argument.
 
-### <a id="array-join"></a> Array#join
+### Array#join <a id="array-join"></a>
 
 Signature:
 
@@ -1120,7 +1120,7 @@ Signature:
 
 Joins all elements of the array using the specified separator.
 
-### <a id="array-reverse"></a> Array#reverse
+### Array#reverse <a id="array-reverse"></a>
 
 Signature:
 
@@ -1128,7 +1128,7 @@ Signature:
 
 Returns a new array with all elements of the current array in reverse order.
 
-### <a id="array-map"></a> Array#map
+### Array#map <a id="array-map"></a>
 
 Signature:
 
@@ -1137,7 +1137,7 @@ Signature:
 Calls `func(element)` for each of the elements in the array and returns
 a new array containing the return values of these function calls.
 
-### <a id="array-reduce"></a> Array#reduce
+### Array#reduce <a id="array-reduce"></a>
 
 Signature:
 
@@ -1147,7 +1147,7 @@ Reduces the elements of the array into a single value by calling the provided
 function `func` as `func(a, b)` repeatedly where `a` and `b` are elements of the array
 or results from previous function calls.
 
-### <a id="array-filter"></a> Array#filter
+### Array#filter <a id="array-filter"></a>
 
 Signature:
 
@@ -1156,7 +1156,7 @@ Signature:
 Returns a copy of the array containing only the elements for which `func(element)`
 is true.
 
-### <a id="array-any"></a> Array#any
+### Array#any <a id="array-any"></a>
 
 Signature:
 
@@ -1165,7 +1165,7 @@ Signature:
 Returns true if the array contains at least one element for which `func(element)`
 is true, false otherwise.
 
-### <a id="array-all"></a> Array#all
+### Array#all <a id="array-all"></a>
 
 Signature:
 
@@ -1174,7 +1174,7 @@ Signature:
 Returns true if the array contains only elements for which `func(element)`
 is true, false otherwise.
 
-### <a id="array-unique"></a> Array#unique
+### Array#unique <a id="array-unique"></a>
 
 Signature:
 
@@ -1183,11 +1183,11 @@ Signature:
 Returns a copy of the array with all duplicate elements removed. The original order
 of the array is not preserved.
 
-## <a id="dictionary-type"></a> Dictionary type
+## Dictionary type <a id="dictionary-type"></a>
 
 Inherits methods from the [Object type](18-library-reference.md#object-type).
 
-### <a id="dictionary-shallow-clone"></a> Dictionary#shallow_clone
+### Dictionary#shallow_clone <a id="dictionary-shallow-clone"></a>
 
 Signature:
 
@@ -1196,7 +1196,7 @@ Signature:
 Returns a copy of the dictionary. Note that for elements which are reference values (e.g. objects such
 as arrays and dictionaries) only the references are copied.
 
-### <a id="dictionary-contains"></a> Dictionary#contains
+### Dictionary#contains <a id="dictionary-contains"></a>
 
 Signature:
 
@@ -1204,7 +1204,7 @@ Signature:
 
 Returns true if a dictionary item with the specified `key` exists, false otherwise.
 
-### <a id="dictionary-len"></a> Dictionary#len
+### Dictionary#len <a id="dictionary-len"></a>
 
 Signature:
 
@@ -1212,7 +1212,7 @@ Signature:
 
 Returns the number of items contained in the dictionary.
 
-### <a id="dictionary-remove"></a> Dictionary#remove
+### Dictionary#remove <a id="dictionary-remove"></a>
 
 Signature:
 
@@ -1221,7 +1221,7 @@ Signature:
 Removes the item with the specified `key`. Trying to remove an item which does not exist
 is a no-op.
 
-### <a id="dictionary-set"></a> Dictionary#set
+### Dictionary#set <a id="dictionary-set"></a>
 
 Signature:
 
@@ -1229,7 +1229,7 @@ Signature:
 
 Creates or updates an item with the specified `key` and `value`.
 
-### <a id="dictionary-get"></a> Dictionary#get
+### Dictionary#get <a id="dictionary-get"></a>
 
 Signature:
 
@@ -1238,7 +1238,7 @@ Signature:
 Retrieves the value for the specified `key`. Returns `null` if they `key` does not exist
 in the dictionary.
 
-### <a id="dictionary-keys"></a> Dictionary#keys
+### Dictionary#keys <a id="dictionary-keys"></a>
 
 Signature:
 
@@ -1246,7 +1246,7 @@ Signature:
 
 Returns a list of keys for all items that are currently in the dictionary.
 
-### <a id="dictionary-values"></a> Dictionary#values
+### Dictionary#values <a id="dictionary-values"></a>
 
 Signature:
 
@@ -1254,11 +1254,11 @@ Signature:
 
 Returns a list of values for all items that are currently in the dictionary.
 
-## <a id="scriptfunction-type"></a> Function type
+## Function type <a id="scriptfunction-type"></a>
 
 Inherits methods from the [Object type](18-library-reference.md#object-type).
 
-### <a id="scriptfunction-call"></a> Function#call
+### Function#call <a id="scriptfunction-call"></a>
 
 Signature:
 
@@ -1277,7 +1277,7 @@ Example:
 	
 	set_x.call(dict, 7) /* Invokes set_x using `dict` as `this` */
 
-### <a id="scriptfunction-callv"></a> Function#callv
+### Function#callv <a id="scriptfunction-callv"></a>
 
 Signature:
 
@@ -1298,11 +1298,11 @@ Example:
 
 	set_x.callv(dict, args) /* Invokes set_x using `dict` as `this` */
 
-## <a id="datetime-type"></a> DateTime type
+## DateTime type <a id="datetime-type"></a>
 
 Inherits methods from the [Object type](18-library-reference.md#object-type).
 
-### <a id="datetime-ctor"></a> DateTime constructor
+### DateTime constructor <a id="datetime-ctor"></a>
 
 Signature:
 
@@ -1319,7 +1319,7 @@ Example:
     var d1 = DateTime() /* current time */
     var d2 = DateTime(2016, 5, 21) /* midnight April 21st, 2016 (local time) */
 
-### <a id="datetime-arithmetic"></a> DateTime arithmetic
+### DateTime arithmetic <a id="datetime-arithmetic"></a>
 
 Subtracting two DateTime objects yields the interval between them, in seconds.
 
@@ -1339,7 +1339,7 @@ Example:
 
     var dt = DateTime() + 24 * 60 60 /* Current time plus 24 hours */
 
-### <a id="datetime-format"></a> DateTime#format
+### DateTime#format <a id="datetime-format"></a>
 
 Signature:
 
@@ -1352,7 +1352,7 @@ Example:
 
     var s = DateTime(2016, 4, 21).format("%A") /* Sets s to "Thursday". */
 
-### <a id="datetime-tostring"></a> DateTime#to_string
+### DateTime#to_string <a id="datetime-tostring"></a>
 
 Signature:
 

@@ -1,10 +1,10 @@
-# <a id="getting-started"></a> Getting Started
+# Getting Started <a id="getting-started"></a>
 
-This tutorial is a step-by-step introduction to installing [Icinga 2](2-getting-started.md#setting-up-icinga2)
-and [Icinga Web 2](2-getting-started.md#setting-up-icingaweb2).
+This tutorial is a step-by-step introduction to installing [Icinga 2](02-getting-started.md#setting-up-icinga2)
+and [Icinga Web 2](02-getting-started.md#setting-up-icingaweb2).
 It assumes that you are familiar with the operating system you're using to install Icinga 2.
 
-## <a id="setting-up-icinga2"></a> Setting up Icinga 2
+## Setting up Icinga 2 <a id="setting-up-icinga2"></a>
 
 First off you have to install Icinga 2. The preferred way of doing this
 is to use the official package repositories depending on which operating system
@@ -26,7 +26,7 @@ and distribution you are running.
 Packages for distributions other than the ones listed above may also be
 available. Please contact your distribution packagers.
 
-### <a id="package-repositories"></a> Package Repositories
+### Package Repositories <a id="package-repositories"></a>
 
 You need to add the Icinga repository to your package management configuration.
 Below is a list with examples for the various distributions.
@@ -75,7 +75,7 @@ openSUSE:
     # zypper ref
 
 
-#### <a id="package-repositories-rhel-epel"></a> RHEL/CentOS EPEL Repository
+#### RHEL/CentOS EPEL Repository <a id="package-repositories-rhel-epel"></a>
 
 The packages for RHEL/CentOS depend on other packages which are distributed
 as part of the [EPEL repository](https://fedoraproject.org/wiki/EPEL).
@@ -87,17 +87,17 @@ CentOS 7/6:
 If you are using RHEL you need enable the `optional` repository and then install
 the [EPEL rpm package](https://fedoraproject.org/wiki/EPEL#How_can_I_use_these_extra_packages.3F).
 
-#### <a id="package-repositories-sles-security"></a> SLES Security Repository
+#### SLES Security Repository <a id="package-repositories-sles-security"></a>
 
 The packages for SLES 11 depend on the `openssl1` package which is distributed
 as part of the [SLES 11 Security Module](https://www.suse.com/communities/conversations/introducing-the-suse-linux-enterprise-11-security-module/).
 
-#### <a id="package-sles-sdk"></a> SLES 12 SDK
+#### SLES 12 SDK <a id="package-sles-sdk"></a>
 
 Icinga 2 requires the `libboost_chrono1_54_0` package from the `SLES 12 SDK` repository. Refer to the SUSE Enterprise
 Linux documentation for further information.
 
-### <a id="installing-icinga2"></a> Installing Icinga 2
+### Installing Icinga 2 <a id="installing-icinga2"></a>
 
 You can install Icinga 2 by using your distribution's package manager
 to install the `icinga2` package.
@@ -126,7 +126,7 @@ FreeBSD:
 
     # pkg install icinga2
 
-### <a id="installation-enabled-features"></a> Enabled Features during Installation
+### Enabled Features during Installation <a id="installation-enabled-features"></a>
 
 The default installation will enable three features required for a basic
 Icinga 2 installation:
@@ -144,7 +144,7 @@ enabled and disabled.
     Enabled features: checker mainlog notification
 
 
-### <a id="installation-paths"></a> Installation Paths
+### Installation Paths <a id="installation-paths"></a>
 
 By default Icinga 2 uses the following files and directories:
 
@@ -183,14 +183,14 @@ By default Icinga 2 uses the following files and directories:
   /var/lib/icinga2                    | Icinga 2 state file, cluster log, local CA and configuration files (cluster, api).
   /var/log/icinga2                    | Log file location and compat/ directory for the CompatLogger feature.
 
-## <a id="setting-up-check-plugins"></a> Setting up Check Plugins
+## Setting up Check Plugins <a id="setting-up-check-plugins"></a>
 
 Without plugins Icinga 2 does not know how to check external services. The
 [Monitoring Plugins Project](https://www.monitoring-plugins.org/) provides
 an extensive set of plugins which can be used with Icinga 2 to check whether
 services are working properly.
 
-These plugins are required to make the [example configuration](4-configuring-icinga-2.md#configuring-icinga2-overview)
+These plugins are required to make the [example configuration](04-configuring-icinga-2.md#configuring-icinga2-overview)
 work out-of-the-box.
 
 For your convenience here is a list of package names for some of the more
@@ -237,18 +237,18 @@ FreeBSD:
     # pkg install monitoring-plugins
 
 Depending on which directory your plugins are installed into you may need to
-update the global `PluginDir` constant in your [Icinga 2 configuration](4-configuring-icinga-2.md#constants-conf).
+update the global `PluginDir` constant in your [Icinga 2 configuration](04-configuring-icinga-2.md#constants-conf).
 This constant is used by the check command definitions contained in the Icinga Template Library
 to determine where to find the plugin binaries.
 
 > **Note**
 >
-> Please refer to the [service monitoring](5-service-monitoring.md#service-monitoring-plugins) chapter for details about how to integrate
+> Please refer to the [service monitoring](05-service-monitoring.md#service-monitoring-plugins) chapter for details about how to integrate
 > additional check plugins into your Icinga 2 setup.
 
-## <a id="running-icinga2"></a> Running Icinga 2
+## Running Icinga 2 <a id="running-icinga2"></a>
 
-### <a id="init-script"></a> Init Script
+### Init Script <a id="init-script"></a>
 
 Icinga 2's init script is installed in `/etc/init.d/icinga2` (`/usr/local/etc/rc.d/icinga2` on FreeBSD) by default:
 
@@ -270,7 +270,7 @@ By default the Icinga 2 daemon is running as `icinga` user and group
 using the init script. Using Debian packages the user and group are set to
 `nagios` for historical reasons.
 
-### <a id="systemd-service"></a> systemd Service
+### systemd Service <a id="systemd-service"></a>
 
 Some distributions (e.g. Fedora, openSUSE and RHEL/CentOS 7) use systemd. The
 Icinga 2 packages automatically install the necessary systemd unit files.
@@ -326,7 +326,7 @@ On FreeBSD you need to enable icinga2 in your rc.conf
 
     # service icinga2 restart
 
-## <a id="configuration-syntax-highlighting"></a> Configuration Syntax Highlighting
+## Configuration Syntax Highlighting <a id="configuration-syntax-highlighting"></a>
 
 Icinga 2 ships configuration examples for syntax highlighting using the `vim` and `nano` editors.
 The RHEL and SUSE package `icinga2-common` installs these files into `/usr/share/doc/icinga2-common-[x.x.x]/syntax`
@@ -334,7 +334,7 @@ The RHEL and SUSE package `icinga2-common` installs these files into `/usr/share
 On Debian systems the `icinga2-common` package provides only the Nano configuration file (`/usr/share/nano/icinga2.nanorc`);
 to obtain the Vim configuration, please install the extra package `vim-icinga2`. The files are located in `/usr/share/vim/addons`.
 
-### <a id="configuration-syntax-highlighting-vim"></a> Configuration Syntax Highlighting using Vim
+### Configuration Syntax Highlighting using Vim <a id="configuration-syntax-highlighting-vim"></a>
 
 Install the package `vim-icinga2` with your distribution's package manager.
 
@@ -365,7 +365,7 @@ Test it:
 ![Vim with syntax highlighting](images/getting-started/vim-syntax.png "Vim with Icinga 2 syntax highlighting")
 
 
-### <a id="configuration-syntax-highlighting-nano"></a> Configuration Syntax Highlighting using Nano
+### Configuration Syntax Highlighting using Nano <a id="configuration-syntax-highlighting-nano"></a>
 
 Install the package `nano-icinga2` with your distribution's package manager.
 
@@ -398,7 +398,7 @@ Test it:
 
 ![Nano with syntax highlighting](images/getting-started/nano-syntax.png "Nano with Icinga 2 syntax highlighting")
 
-## <a id="setting-up-icingaweb2"></a> Setting up Icinga Web 2
+## Setting up Icinga Web 2 <a id="setting-up-icingaweb2"></a>
 
 Icinga 2 can be used with Icinga Web 2 and a number of other web interfaces.
 This chapter explains how to set up Icinga Web 2.
@@ -406,18 +406,18 @@ This chapter explains how to set up Icinga Web 2.
 The DB IDO (Database Icinga Data Output) modules for Icinga 2 take care of
 exporting all configuration and status information into a database. The IDO
 database is used by a number of projects including
-[Icinga Web 2](2-getting-started.md#setting-up-icingaweb2), Icinga Reporting
+[Icinga Web 2](02-getting-started.md#setting-up-icingaweb2), Icinga Reporting
 or Icinga Web 1.x.
 
 There is a separate module for each database backend. At present support for
 both MySQL and PostgreSQL is implemented.
 
-Please choose whether to install [MySQL](2-getting-started.md#configuring-db-ido-mysql) or
-[PostgreSQL](2-getting-started.md#configuring-db-ido-postgresql).
+Please choose whether to install [MySQL](02-getting-started.md#configuring-db-ido-mysql) or
+[PostgreSQL](02-getting-started.md#configuring-db-ido-postgresql).
 
-### <a id="configuring-db-ido-mysql"></a> Configuring DB IDO MySQL
+### Configuring DB IDO MySQL <a id="configuring-db-ido-mysql"></a>
 
-#### <a id="installing-database-mysql-server"></a> Installing MySQL database server
+#### Installing MySQL database server <a id="installing-database-mysql-server"></a>
 
 Debian/Ubuntu:
 
@@ -451,7 +451,7 @@ FreeBSD:
     # service mysql-server restart
     # mysql_secure_installation
 
-#### <a id="installing-database-mysql-modules"></a> Installing the IDO modules for MySQL
+#### Installing the IDO modules for MySQL <a id="installing-database-mysql-modules"></a>
 
 The next step is to install the `icinga2-ido-mysql` package using your
 distribution's package manager.
@@ -479,7 +479,7 @@ and located at /usr/local/share/icinga2-ido-mysql/schema/mysql.sql
 > default. You can skip the automated setup and install/upgrade the
 > database manually if you prefer that.
 
-#### <a id="setting-up-mysql-db"></a> Setting up the MySQL database
+#### Setting up the MySQL database <a id="setting-up-mysql-db"></a>
 
 Set up a MySQL database for Icinga 2:
 
@@ -497,14 +497,14 @@ following command:
     # mysql -u root -p icinga < /usr/share/icinga2-ido-mysql/schema/mysql.sql
 
 
-#### <a id="enabling-ido-mysql"></a> Enabling the IDO MySQL module
+#### Enabling the IDO MySQL module <a id="enabling-ido-mysql"></a>
 
 The package provides a new configuration file that is installed in
 `/etc/icinga2/features-available/ido-mysql.conf`. You will need to
 update the database credentials in this file.
 
 All available attributes are explained in the
-[IdoMysqlConnection object](9-object-types.md#objecttype-idomysqlconnection)
+[IdoMysqlConnection object](09-object-types.md#objecttype-idomysqlconnection)
 chapter.
 
 You can enable the `ido-mysql` feature configuration file using
@@ -529,11 +529,11 @@ FreeBSD:
     # service icinga2 restart
 
 
-Continue with the [webserver setup](2-getting-started.md#icinga2-user-interface-webserver).
+Continue with the [webserver setup](02-getting-started.md#icinga2-user-interface-webserver).
 
-### <a id="configuring-db-ido-postgresql"></a> Configuring DB IDO PostgreSQL
+### Configuring DB IDO PostgreSQL <a id="configuring-db-ido-postgresql"></a>
 
-#### <a id="installing-database-postgresql-server"></a> Installing PostgreSQL database server
+#### Installing PostgreSQL database server <a id="installing-database-postgresql-server"></a>
 
 Debian/Ubuntu:
 
@@ -564,7 +564,7 @@ FreeBSD:
     # sysrc postgresql_enable=yes
     # service postgresql start
 
-#### <a id="installing-database-postgresql-modules"></a> Installing the IDO modules for PostgreSQL
+#### Installing the IDO modules for PostgreSQL <a id="installing-database-postgresql-modules"></a>
 
 The next step is to install the `icinga2-ido-pgsql` package using your
 distribution's package manager.
@@ -635,14 +635,14 @@ schema using the following command:
 ![importing the Icinga 2 IDO schema](images/getting-started/postgr-import-ido.png "Importing the Icinga 2 IDO schema on Debian Jessie")
 
 
-#### <a id="enabling-ido-postgresql"></a> Enabling the IDO PostgreSQL module
+#### Enabling the IDO PostgreSQL module <a id="enabling-ido-postgresql"></a>
 
 The package provides a new configuration file that is installed in
 `/etc/icinga2/features-available/ido-pgsql.conf`. You will need to update
 the database credentials in this file.
 
 All available attributes are explained in the
-[IdoPgsqlConnection object](9-object-types.md#objecttype-idopgsqlconnection)
+[IdoPgsqlConnection object](09-object-types.md#objecttype-idopgsqlconnection)
 chapter.
 
 You can enable the `ido-pgsql` feature configuration file using
@@ -666,9 +666,9 @@ FreeBSD:
 
     # service icinga2 restart
 
-Continue with the [webserver setup](2-getting-started.md#icinga2-user-interface-webserver).
+Continue with the [webserver setup](02-getting-started.md#icinga2-user-interface-webserver).
 
-### <a id="icinga2-user-interface-webserver"></a> Webserver
+### Webserver <a id="icinga2-user-interface-webserver"></a>
 
 Debian/Ubuntu:
 
@@ -704,7 +704,7 @@ FreeBSD (nginx, but you could also use the apache24 package):
     # service php-fpm start
     # service nginx start
 
-### <a id="icinga2-user-interface-firewall-rules"></a> Firewall Rules
+### Firewall Rules <a id="icinga2-user-interface-firewall-rules"></a>
 
 Example:
 
@@ -720,7 +720,7 @@ FreeBSD:
 Please consult the [FreeBSD Handbook](https://www.freebsd.org/doc/en_US.ISO8859-1/books/handbook/firewalls.html) how to configure one of FreeBSD's firewalls.
 
 
-### <a id="setting-up-rest-api"></a> Setting Up Icinga 2 REST API
+### Setting Up Icinga 2 REST API <a id="setting-up-rest-api"></a>
 
 Icinga Web 2 and other web interfaces require the [REST API](12-icinga2-api.md#icinga2-api-setup)
 to send actions (reschedule check, etc.) and query object details.
@@ -756,7 +756,7 @@ FreeBSD:
 
     # service icinga2 restart
 
-### <a id="installing-icingaweb2"></a> Installing Icinga Web 2
+### Installing Icinga Web 2 <a id="installing-icingaweb2"></a>
 
 Please consult the [installation documentation](https://github.com/Icinga/icingaweb2/blob/master/doc/02-Installation.md)
 for further instructions on how to install Icinga Web 2.
@@ -764,13 +764,13 @@ for further instructions on how to install Icinga Web 2.
 The Icinga 2 API can be defined as [command transport](https://github.com/Icinga/icingaweb2/blob/master/modules/monitoring/doc/commandtransports.md)
 in Icinga Web 2 >= 2.4.
 
-## <a id="install-addons"></a> Addons
+## Addons <a id="install-addons"></a>
 
 A number of additional features are available in the form of addons. A list of
 popular addons is available in the
 [Addons and Plugins](13-addons.md#addons) chapter.
 
-## <a id="install-backup"></a> Backup
+## Backup <a id="install-backup"></a>
 
 Ensure to include the following in your backups:
 

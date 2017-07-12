@@ -1,4 +1,4 @@
-# <a id="object-types"></a> Config Object Types
+# Config Object Types <a id="object-types"></a>
 
 This chapter provides an overview of all available config object types which can be
 instantiated using the `object` keyword.
@@ -16,18 +16,18 @@ the [Icinga 2 API](12-icinga2-api.md#icinga2-api-config-objects).
   type                      | Object type.
   original_attributes       | Original values of object attributes modified at runtime.
   active                    | Object is active (e.g. a service being checked).
-  paused                    | Object has been paused at runtime (e.g. [IdoMysqlConnection](9-object-types.md#objecttype-idomysqlconnection). Defaults to `false`.
+  paused                    | Object has been paused at runtime (e.g. [IdoMysqlConnection](09-object-types.md#objecttype-idomysqlconnection). Defaults to `false`.
   templates                 | Templates imported on object compilation.
   package                   | [Configuration package name](12-icinga2-api.md#icinga2-api-config-management) this object belongs to. Local configuration is set to `_etc`, runtime created objects use `_api`.
 
 
-## <a id="objecttype-apilistener"></a> ApiListener
+## ApiListener <a id="objecttype-apilistener"></a>
 
 ApiListener objects are used for distributed monitoring setups
 and API usage specifying the certificate files used for ssl
 authorization and additional restrictions.
 
-The `NodeName` constant must be defined in [constants.conf](4-configuring-icinga-2.md#constants-conf).
+The `NodeName` constant must be defined in [constants.conf](04-configuring-icinga-2.md#constants-conf).
 
 Example:
 
@@ -53,7 +53,7 @@ Configuration Attributes:
   cipher\_list		    |**Optional.** Cipher list that is allowed.
   tls\_protocolmin          |**Optional.** Minimum TLS protocol version. Must be one of `TLSv1`, `TLSv1.1` or `TLSv1.2`. Defaults to `TLSv1`.
 
-## <a id="objecttype-apiuser"></a> ApiUser
+## ApiUser <a id="objecttype-apiuser"></a>
 
 ApiUser objects are used for authentication against the Icinga 2 API.
 
@@ -76,7 +76,7 @@ Configuration Attributes:
 Available permissions are described in the [API permissions](12-icinga2-api.md#icinga2-api-permissions)
 chapter.
 
-## <a id="objecttype-checkcommand"></a> CheckCommand
+## CheckCommand <a id="objecttype-checkcommand"></a>
 
 A check command definition. Additional default command custom attributes can be
 defined here.
@@ -132,7 +132,7 @@ Configuration Attributes:
   arguments       |**Optional.** A dictionary of command arguments.
 
 
-### <a id="objecttype-checkcommand-arguments"></a> CheckCommand Arguments
+### CheckCommand Arguments <a id="objecttype-checkcommand-arguments"></a>
 
 Command arguments can be defined as key-value-pairs in the `arguments`
 dictionary. If the argument requires additional configuration, for example
@@ -191,7 +191,7 @@ Argument array `repeat_key = false`:
 
     `'key' 'value[0]' 'value[1]' 'value[2]'`
 
-## <a id="objecttype-checkcomponent"></a> CheckerComponent
+## CheckerComponent <a id="objecttype-checkcomponent"></a>
 
 The checker component is responsible for scheduling active checks.
 
@@ -209,7 +209,7 @@ Configuration Attributes:
   --------------------|----------------
   concurrent\_checks  |**Optional.** The maximum number of concurrent checks. Defaults to 512.
 
-## <a id="objecttype-checkresultreader"></a> CheckResultReader
+## CheckResultReader <a id="objecttype-checkresultreader"></a>
 
 Reads Icinga 1.x check results from a directory. This functionality is provided
 to help existing Icinga 1.x users and might be useful for certain cluster
@@ -229,7 +229,7 @@ Configuration Attributes:
   ----------------|----------------
   spool\_dir      |**Optional.** The directory which contains the check result files. Defaults to LocalStateDir + "/lib/icinga2/spool/checkresults/".
 
-## <a id="objecttype-comment"></a> Comment
+## Comment <a id="objecttype-comment"></a>
 
 Comments created at runtime are represented as objects.
 
@@ -254,7 +254,7 @@ Configuration Attributes:
   expire_time     | **Optional.** The comment's expire time as unix timestamp.
   persistent      | **Optional.** Only evaluated for `entry_type` Acknowledgement. `true` does not remove the comment when the acknowledgement is removed.
 
-## <a id="objecttype-compatlogger"></a> CompatLogger
+## CompatLogger <a id="objecttype-compatlogger"></a>
 
 Writes log files in a format that's compatible with Icinga 1.x.
 
@@ -276,7 +276,7 @@ Configuration Attributes:
 
 
 
-## <a id="objecttype-dependency"></a> Dependency
+## Dependency <a id="objecttype-dependency"></a>
 
 Dependency objects are used to specify dependencies between hosts and services. Dependencies
 can be defined as Host-to-Host, Service-to-Service, Service-to-Host, or Host-to-Service
@@ -288,7 +288,7 @@ relations.
 > to just create a `Dependency` template and use the `apply` keyword to assign the
 > dependency to a number of hosts or services. Use the `to` keyword to set the specific target
 > type for `Host` or `Service`.
-> Check the [dependencies](3-monitoring-basics.md#dependencies) chapter for detailed examples.
+> Check the [dependencies](03-monitoring-basics.md#dependencies) chapter for detailed examples.
 
 Service-to-Service Example:
 
@@ -339,7 +339,7 @@ Available state filters:
     Up
     Down
 
-When using [apply rules](3-monitoring-basics.md#using-apply) for dependencies, you can leave out certain attributes which will be
+When using [apply rules](03-monitoring-basics.md#using-apply) for dependencies, you can leave out certain attributes which will be
 automatically determined by Icinga 2.
 
 Service-to-Host Dependency Example:
@@ -372,7 +372,7 @@ Dependency objects have composite names, i.e. their names are based on the `chil
 name you specified. This means you can define more than one object with the same (short) name as long as one of the `child_host_name` and
 `child_service_name` attributes has a different value.
 
-## <a id="objecttype-downtime"></a> Downtime
+## Downtime <a id="objecttype-downtime"></a>
 
 Downtimes created at runtime are represented as objects.
 
@@ -396,7 +396,7 @@ Configuration Attributes:
   end_time        | **Required.** The end time as unix timestamp.
   duration        | **Required.** The duration as number.
   entry_time      | **Optional.** The unix timestamp when this downtime was added.
-  fixed           | **Optional.** Whether the downtime is fixed (true) or flexible (false). Defaults to flexible. Details in the [advanced topics chapter](8-advanced-topics.md#fixed-flexible-downtimes).
+  fixed           | **Optional.** Whether the downtime is fixed (true) or flexible (false). Defaults to flexible. Details in the [advanced topics chapter](08-advanced-topics.md#fixed-flexible-downtimes).
   triggers        | **Optional.** List of downtimes which should be triggered by this downtime.
 
 Runtime Attributes:
@@ -408,7 +408,7 @@ Runtime Attributes:
 
 
 
-## <a id="objecttype-endpoint"></a> Endpoint
+## Endpoint <a id="objecttype-endpoint"></a>
 
 Endpoint objects are used to specify connection information for remote
 Icinga 2 instances.
@@ -439,7 +439,7 @@ Configuration Attributes:
 
 Endpoint objects cannot currently be created with the API.
 
-## <a id="objecttype-eventcommand"></a> EventCommand
+## EventCommand <a id="objecttype-eventcommand"></a>
 
 An event command definition.
 
@@ -465,11 +465,11 @@ Configuration Attributes:
   timeout         |**Optional.** The command timeout in seconds. Defaults to 60 seconds.
   arguments       |**Optional.** A dictionary of command arguments.
 
-Command arguments can be used the same way as for [CheckCommand objects](9-object-types.md#objecttype-checkcommand-arguments).
+Command arguments can be used the same way as for [CheckCommand objects](09-object-types.md#objecttype-checkcommand-arguments).
 
-More advanced examples for event command usage can be found [here](3-monitoring-basics.md#event-commands).
+More advanced examples for event command usage can be found [here](03-monitoring-basics.md#event-commands).
 
-## <a id="objecttype-externalcommandlistener"></a> ExternalCommandListener
+## ExternalCommandListener <a id="objecttype-externalcommandlistener"></a>
 
 Implements the Icinga 1.x command pipe which can be used to send commands to Icinga.
 
@@ -489,7 +489,7 @@ Configuration Attributes:
 
 
 
-## <a id="objecttype-filelogger"></a> FileLogger
+## FileLogger <a id="objecttype-filelogger"></a>
 
 Specifies Icinga 2 logging to a file.
 
@@ -508,7 +508,7 @@ Configuration Attributes:
   severity        |**Optional.** The minimum severity for this log. Can be "debug", "notice", "information", "warning" or "critical". Defaults to "information".
 
 
-## <a id="objecttype-gelfwriter"></a> GelfWriter
+## GelfWriter <a id="objecttype-gelfwriter"></a>
 
 Writes event log entries to a defined GELF receiver host (Graylog2, Logstash).
 
@@ -531,7 +531,7 @@ Configuration Attributes:
   enable_send_perfdata  |**Optional.** Enable performance data for 'CHECK RESULT' events.
 
 
-## <a id="objecttype-graphitewriter"></a> GraphiteWriter
+## GraphiteWriter <a id="objecttype-graphitewriter"></a>
 
 Writes check result metrics and performance data to a defined
 Graphite Carbon host.
@@ -561,7 +561,7 @@ Additional usage examples can be found [here](14-features.md#graphite-carbon-cac
 
 
 
-## <a id="objecttype-host"></a> Host
+## Host <a id="objecttype-host"></a>
 
 A host.
 
@@ -644,7 +644,7 @@ Runtime Attributes:
 
 
 
-## <a id="objecttype-hostgroup"></a> HostGroup
+## HostGroup <a id="objecttype-hostgroup"></a>
 
 A group of hosts.
 
@@ -665,7 +665,7 @@ Configuration Attributes:
   display_name    |**Optional.** A short description of the host group.
   groups          |**Optional.** An array of nested group names.
 
-## <a id="objecttype-icingaapplication"></a> IcingaApplication
+## IcingaApplication <a id="objecttype-icingaapplication"></a>
 
 The IcingaApplication object is required to start Icinga 2.
 The object name must be `app`. If the object configuration
@@ -690,7 +690,7 @@ Configuration Attributes:
   enable_perfdata       |**Optional.** Whether performance data processing is globally enabled. Defaults to true.
   vars                  |**Optional.** A dictionary containing custom attributes that are available globally.
 
-## <a id="objecttype-idomysqlconnection"></a> IdoMySqlConnection
+## IdoMySqlConnection <a id="objecttype-idomysqlconnection"></a>
 
 IDO database adapter for MySQL.
 
@@ -730,8 +730,8 @@ Configuration Attributes:
   table\_prefix   |**Optional.** MySQL database table prefix. Defaults to "icinga\_".
   instance\_name  |**Optional.** Unique identifier for the local Icinga 2 instance. Defaults to "default".
   instance\_description|**Optional.** Description for the Icinga 2 instance.
-  enable_ha       |**Optional.** Enable the high availability functionality. Only valid in a [cluster setup](6-distributed-monitoring.md#distributed-monitoring-high-availability-db-ido). Defaults to "true".
-  failover_timeout | **Optional.** Set the failover timeout in a [HA cluster](6-distributed-monitoring.md#distributed-monitoring-high-availability-db-ido). Must not be lower than 60s. Defaults to "60s".
+  enable_ha       |**Optional.** Enable the high availability functionality. Only valid in a [cluster setup](06-distributed-monitoring.md#distributed-monitoring-high-availability-db-ido). Defaults to "true".
+  failover_timeout | **Optional.** Set the failover timeout in a [HA cluster](06-distributed-monitoring.md#distributed-monitoring-high-availability-db-ido). Must not be lower than 60s. Defaults to "60s".
   cleanup         |**Optional.** Dictionary with items for historical table cleanup.
   categories      |**Optional.** Array of information types that should be written to the database.
 
@@ -780,7 +780,7 @@ by Icinga Web 2 in the table above.
 In addition to the category flags listed above the `DbCatEverything`
 flag may be used as a shortcut for listing all flags.
 
-## <a id="objecttype-idopgsqlconnection"></a> IdoPgSqlConnection
+## IdoPgSqlConnection <a id="objecttype-idopgsqlconnection"></a>
 
 IDO database adapter for PostgreSQL.
 
@@ -813,8 +813,8 @@ Configuration Attributes:
   table\_prefix   |**Optional.** PostgreSQL database table prefix. Defaults to "icinga\_".
   instance\_name  |**Optional.** Unique identifier for the local Icinga 2 instance. Defaults to "default".
   instance\_description|**Optional.** Description for the Icinga 2 instance.
-  enable_ha       |**Optional.** Enable the high availability functionality. Only valid in a [cluster setup](6-distributed-monitoring.md#distributed-monitoring-high-availability-db-ido). Defaults to "true".
-  failover_timeout | **Optional.** Set the failover timeout in a [HA cluster](6-distributed-monitoring.md#distributed-monitoring-high-availability-db-ido). Must not be lower than 60s. Defaults to "60s".
+  enable_ha       |**Optional.** Enable the high availability functionality. Only valid in a [cluster setup](06-distributed-monitoring.md#distributed-monitoring-high-availability-db-ido). Defaults to "true".
+  failover_timeout | **Optional.** Set the failover timeout in a [HA cluster](06-distributed-monitoring.md#distributed-monitoring-high-availability-db-ido). Must not be lower than 60s. Defaults to "60s".
   cleanup         |**Optional.** Dictionary with items for historical table cleanup.
   categories      |**Optional.** Array of information types that should be written to the database.
 
@@ -863,7 +863,7 @@ by Icinga Web 2 in the table above.
 In addition to the category flags listed above the `DbCatEverything`
 flag may be used as a shortcut for listing all flags.
 
-## <a id="objecttype-influxdbwriter"></a> InfluxdbWriter
+## InfluxdbWriter <a id="objecttype-influxdbwriter"></a>
 
 Writes check result metrics and performance data to a defined InfluxDB host.
 
@@ -932,7 +932,7 @@ Note: If `flush_threshold` is set too low, this will always force the feature to
 to InfluxDB. Experiment with the setting, if you are processing more than 1024 metrics per second
 or similar.
 
-### <a id="objecttype-influxdbwriter-instance-tags"></a> Instance Tagging
+### Instance Tagging <a id="objecttype-influxdbwriter-instance-tags"></a>
 
 Consider the following service check:
 
@@ -971,10 +971,10 @@ is associated with the service:
       ...
     }
 
-## <a id="objecttype-livestatuslistener"></a> LiveStatusListener
+## LiveStatusListener <a id="objecttype-livestatuslistener"></a>
 
 Livestatus API interface available as TCP or UNIX socket. Historical table queries
-require the [CompatLogger](9-object-types.md#objecttype-compatlogger) feature enabled
+require the [CompatLogger](09-object-types.md#objecttype-compatlogger) feature enabled
 pointing to the log files using the `compat_log_path` configuration attribute.
 
 Example:
@@ -1007,7 +1007,7 @@ Configuration Attributes:
 > UNIX sockets are not supported on Windows.
 
 
-## <a id="objecttype-notification"></a> Notification
+## Notification <a id="objecttype-notification"></a>
 
 Notification objects are used to specify how users should be notified in case
 of host and service state changes and other events.
@@ -1018,7 +1018,7 @@ of host and service state changes and other events.
 > usually easier to just create a `Notification` template and use the `apply` keyword
 > to assign the notification to a number of hosts or services. Use the `to` keyword
 > to set the specific target type for `Host` or `Service`.
-> Check the [notifications](3-monitoring-basics.md#alert-notifications) chapter for detailed examples.
+> Check the [notifications](03-monitoring-basics.md#alert-notifications) chapter for detailed examples.
 
 Example:
 
@@ -1044,7 +1044,7 @@ Configuration Attributes:
   user_groups               | **Optional.** A list of user group names who should be notified.
   times                     | **Optional.** A dictionary containing `begin` and `end` attributes for the notification.
   command                   | **Required.** The name of the notification command which should be executed when the notification is triggered.
-  interval                  | **Optional.** The notification interval (in seconds). This interval is used for active notifications. Defaults to 30 minutes. If set to 0, [re-notifications](3-monitoring-basics.md#disable-renotification) are disabled.
+  interval                  | **Optional.** The notification interval (in seconds). This interval is used for active notifications. Defaults to 30 minutes. If set to 0, [re-notifications](03-monitoring-basics.md#disable-renotification) are disabled.
   period                    | **Optional.** The name of a time period which determines when this notification should be triggered. Not set by default.
   zone		            |**Optional.** The zone this object is a member of.
   types                     | **Optional.** A list of type filters when this notification should be triggered. By default everything is matched.
@@ -1084,7 +1084,7 @@ Runtime Attributes:
   last\_problem\_notification | Number      | When the last notification was sent for a problem (as a UNIX timestamp).
 
 
-## <a id="objecttype-notificationcommand"></a> NotificationCommand
+## NotificationCommand <a id="objecttype-notificationcommand"></a>
 
 A notification command definition.
 
@@ -1178,11 +1178,11 @@ Configuration Attributes:
   timeout         |**Optional.** The command timeout in seconds. Defaults to 60 seconds.
   arguments       |**Optional.** A dictionary of command arguments.
 
-Command arguments can be used the same way as for [CheckCommand objects](9-object-types.md#objecttype-checkcommand-arguments).
+Command arguments can be used the same way as for [CheckCommand objects](09-object-types.md#objecttype-checkcommand-arguments).
 
-More details on specific attributes can be found in [this chapter](3-monitoring-basics.md#notification-commands).
+More details on specific attributes can be found in [this chapter](03-monitoring-basics.md#notification-commands).
 
-## <a id="objecttype-notificationcomponent"></a> NotificationComponent
+## NotificationComponent <a id="objecttype-notificationcomponent"></a>
 
 The notification component is responsible for sending notifications. There are no configurable options.
 
@@ -1196,9 +1196,9 @@ Configuration Attributes:
 
   Name            |Description
   ----------------|----------------
-  enable\_ha      |**Optional.** Enable the high availability functionality. Only valid in a [cluster setup](6-distributed-monitoring.md#distributed-monitoring-high-availability-notifications). Disabling this currently only affects reminder notifications. Defaults to "true".
+  enable\_ha      |**Optional.** Enable the high availability functionality. Only valid in a [cluster setup](06-distributed-monitoring.md#distributed-monitoring-high-availability-notifications). Disabling this currently only affects reminder notifications. Defaults to "true".
 
-## <a id="objecttype-opentsdbwriter"></a> OpenTsdbWriter
+## OpenTsdbWriter <a id="objecttype-opentsdbwriter"></a>
 
 Writes check result metrics and performance data to [OpenTSDB](http://opentsdb.net).
 
@@ -1219,7 +1219,7 @@ Configuration Attributes:
   port            	|**Optional.** OpenTSDB port. Defaults to 4242.
 
 
-## <a id="objecttype-perfdatawriter"></a> PerfdataWriter
+## PerfdataWriter <a id="objecttype-perfdatawriter"></a>
 
 Writes check result performance data to a defined path using macro
 pattern consisting of custom attributes and runtime macros.
@@ -1255,7 +1255,7 @@ When rotating the performance data file the current UNIX timestamp is appended t
 in `host_perfdata_path` and `service_perfdata_path` to generate a unique filename.
 
 
-## <a id="objecttype-scheduleddowntime"></a> ScheduledDowntime
+## ScheduledDowntime <a id="objecttype-scheduleddowntime"></a>
 
 ScheduledDowntime objects can be used to set up recurring downtimes for hosts/services.
 
@@ -1265,7 +1265,7 @@ ScheduledDowntime objects can be used to set up recurring downtimes for hosts/se
 > to just create a `ScheduledDowntime` template and use the `apply` keyword to assign the
 > scheduled downtime to a number of hosts or services. Use the `to` keyword to set the specific target
 > type for `Host` or `Service`.
-> Check the [recurring downtimes](8-advanced-topics.md#recurring-downtimes) example for details.
+> Check the [recurring downtimes](08-advanced-topics.md#recurring-downtimes) example for details.
 
 Example:
 
@@ -1303,7 +1303,7 @@ with the same (short) name as long as one of the `host_name` and
 `service_name` attributes has a different value.
 
 
-## <a id="objecttype-service"></a> Service
+## Service <a id="objecttype-service"></a>
 
 Service objects describe network services and how they should be checked
 by Icinga 2.
@@ -1313,7 +1313,7 @@ by Icinga 2.
 > Rather than creating a `Service` object for a specific host it is usually easier
 > to just create a `Service` template and use the `apply` keyword to assign the
 > service to a number of hosts.
-> Check the [apply](3-monitoring-basics.md#using-apply) chapter for details.
+> Check the [apply](03-monitoring-basics.md#using-apply) chapter for details.
 
 Example:
 
@@ -1399,7 +1399,7 @@ Runtime Attributes:
   last_state_unknown        | Number        | When the last UNKNOWN state occurred (as a UNIX timestamp).
 
 
-## <a id="objecttype-servicegroup"></a> ServiceGroup
+## ServiceGroup <a id="objecttype-servicegroup"></a>
 
 A group of services.
 
@@ -1421,7 +1421,7 @@ Configuration Attributes:
   groups          |**Optional.** An array of nested group names.
 
 
-## <a id="objecttype-statusdatawriter"></a> StatusDataWriter
+## StatusDataWriter <a id="objecttype-statusdatawriter"></a>
 
 Periodically writes status data files which are used by the Classic UI and other third-party tools.
 
@@ -1444,7 +1444,7 @@ Configuration Attributes:
   update\_interval|**Optional.** The interval in which the status files are updated. Defaults to 15 seconds.
 
 
-## <a id="objecttype-sysloglogger"></a> SyslogLogger
+## SyslogLogger <a id="objecttype-sysloglogger"></a>
 
 Specifies Icinga 2 logging to syslog.
 
@@ -1461,7 +1461,7 @@ Configuration Attributes:
   severity        |**Optional.** The minimum severity for this log. Can be "debug", "notice", "information", "warning" or "critical". Defaults to "warning".
 
 
-## <a id="objecttype-timeperiod"></a> TimePeriod
+## TimePeriod <a id="objecttype-timeperiod"></a>
 
 Time periods can be used to specify when hosts/services should be checked or to limit
 when notifications should be sent out.
@@ -1505,7 +1505,7 @@ Examples:
     }
 
 
-Additional examples can be found [here](8-advanced-topics.md#timeperiods).
+Additional examples can be found [here](08-advanced-topics.md#timeperiods).
 
 Configuration Attributes:
 
@@ -1528,7 +1528,7 @@ Runtime Attributes:
   is\_inside                | Boolean       | Whether we're currently inside this timeperiod.
 
 
-## <a id="objecttype-user"></a> User
+## User <a id="objecttype-user"></a>
 
 A user.
 
@@ -1589,7 +1589,7 @@ Runtime Attributes:
   --------------------------|---------------|-----------------
   last\_notification        | Number        | When the last notification was sent for this user (as a UNIX timestamp).
 
-## <a id="objecttype-usergroup"></a> UserGroup
+## UserGroup <a id="objecttype-usergroup"></a>
 
 A user group.
 
@@ -1611,7 +1611,7 @@ Configuration Attributes:
   groups          |**Optional.** An array of nested group names.
 
 
-## <a id="objecttype-zone"></a> Zone
+## Zone <a id="objecttype-zone"></a>
 
 Zone objects are used to specify which Icinga 2 instances are located in a zone.
 
@@ -1637,17 +1637,17 @@ Configuration Attributes:
 
 Zone objects cannot currently be created with the API.
 
-# <a id="value-types"></a> Value Types
+# Value Types <a id="value-types"></a>
 
-In addition to [configuration objects](9-object-types.md#object-types) Icinga 2 also uses a few other types to represent its internal state. The following types are exposed via the [API](12-icinga2-api.md#icinga2-api).
+In addition to [configuration objects](09-object-types.md#object-types) Icinga 2 also uses a few other types to represent its internal state. The following types are exposed via the [API](12-icinga2-api.md#icinga2-api).
 
-## <a id="value-types-checkresult"></a> CheckResult
+## CheckResult <a id="value-types-checkresult"></a>
 
   Name                      | Type          | Description
   --------------------------|---------------|-----------------
   exit_status               | Number        | The exit status returned by the check execution.
   output                    | String        | The check output.
-  performance_data          | Array         | Array of [performance data values](9-object-types.md#value-types-perfdatavalue).
+  performance_data          | Array         | Array of [performance data values](09-object-types.md#value-types-perfdatavalue).
   check_source              | String        | Name of the node executing the check.
   state                     | Number        | The current state (0 = OK, 1 = WARNING, 2 = CRITICAL, 3 = UNKNOWN).
   command                   | Value         | Array of command with shell-escaped arguments or command line string.
@@ -1659,16 +1659,16 @@ In addition to [configuration objects](9-object-types.md#object-types) Icinga 2 
   vars_before               | Dictionary    | Internal attribute used for calculations.
   vars_after                | Dictionary    | Internal attribute used for calculations.
 
-## <a id="value-types-perfdatavalue"></a> PerfdataValue
+## PerfdataValue <a id="value-types-perfdatavalue"></a>
 
-Icinga 2 parses performance data strings returned by check plugins and makes the information available to external interfaces (e.g. [GraphiteWriter](9-object-types.md#objecttype-graphitewriter) or the [Icinga 2 API](12-icinga2-api.md#icinga2-api)).
+Icinga 2 parses performance data strings returned by check plugins and makes the information available to external interfaces (e.g. [GraphiteWriter](09-object-types.md#objecttype-graphitewriter) or the [Icinga 2 API](12-icinga2-api.md#icinga2-api)).
 
   Name                      | Type          | Description
   --------------------------|---------------|-----------------
   label                     | String        | Performance data label.
   value                     | Number        | Normalized performance data value without unit.
   counter                   | Boolean       | Enabled if the original value contains `c` as unit. Defaults to `false`.
-  unit                      | String        | Unit of measurement (`seconds`, `bytes`. `percent`) according to the [plugin API](5-service-monitoring.md#service-monitoring-plugin-api).
+  unit                      | String        | Unit of measurement (`seconds`, `bytes`. `percent`) according to the [plugin API](05-service-monitoring.md#service-monitoring-plugin-api).
   crit                      | Value         | Critical threshold value.
   warn                      | Value         | Warning threshold value.
   min                       | Value         | Minimum value returned by the check.

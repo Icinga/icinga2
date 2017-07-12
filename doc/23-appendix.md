@@ -1,6 +1,6 @@
-# <a id="appendix"></a> Appendix
+# Appendix <a id="appendix"></a>
 
-## <a id="external-commands-list-detail"></a> External Commands List
+## External Commands List <a id="external-commands-list-detail"></a>
 
 Additional details can be found in the [Icinga 1.x Documentation](https://docs.icinga.com/latest/en/extcommands2.html)
 
@@ -125,7 +125,7 @@ Additional details can be found in the [Icinga 1.x Documentation](https://docs.i
   DISABLE_SERVICEGROUP_SVC_NOTIFICATIONS    | ;&lt;servicegroup_name&gt; (1)  | -
 
 
-## <a id="schemas"></a> Schemas
+## Schemas <a id="schemas"></a>
 
 By convention `CheckCommand`, `EventCommand`, and `NotificationCommand` objects
 are exported using a prefix. This is mandatory for unique objects in the
@@ -137,7 +137,7 @@ CheckCommand            | check_
 EventCommand            | event_
 NotificationCommand     | notification_
 
-### <a id="schema-status-files"></a> Status Files
+### Status Files <a id="schema-status-files"></a>
 
 Status files used by Icinga 1.x Classic UI: `status.dat`, `objects.cache`.
 
@@ -149,12 +149,12 @@ Icinga 2 specific extensions:
 * 2.2 adds custom attributes with arrays and dictionaries. They are dumped as JSON encoded string and `_is_json`
 is set as additional custom variable in `objects.cache`.
 
-### <a id="schema-db-ido"></a> DB IDO Schema
+### DB IDO Schema <a id="schema-db-ido"></a>
 
 There is a detailed documentation for the Icinga IDOUtils 1.x
 database schema available on [https://docs.icinga.com/latest/en/db_model.html]
 
-#### <a id="schema-db-ido-extensions"></a> DB IDO Schema Extensions
+#### DB IDO Schema Extensions <a id="schema-db-ido-extensions"></a>
 
 Icinga 2 specific extensions are shown below:
 
@@ -207,9 +207,9 @@ New columns:
 Additional command custom variables populated from 'vars' dictionary.
 Additional global custom variables populated from 'Vars' constant (object_id is NULL).
 
-### <a id="schema-livestatus"></a> Livestatus Schema
+### Livestatus Schema <a id="schema-livestatus"></a>
 
-#### <a id="schema-livestatus-extensions"></a> Livestatus Schema Extensions
+#### Livestatus Schema Extensions <a id="schema-livestatus-extensions"></a>
 
 Icinga 2 specific extensions are shown below:
 
@@ -259,7 +259,7 @@ New columns:
 Command custom variables reflect the local 'vars' dictionary.
 Status custom variables reflect the global 'Vars' constant.
 
-#### <a id="schema-livestatus-hosts-table-attributes"></a> Livestatus Hosts Table Attributes
+#### Livestatus Hosts Table Attributes <a id="schema-livestatus-hosts-table-attributes"></a>
 
   Key                   | Type      | Note
   ----------------------|-----------|-------------------------
@@ -364,7 +364,7 @@ Not supported: `initial_state`, `pending_flex_downtime`, `check_flapping_recover
 `is_executing`, `check_options`, `obsess_over_host`, `first_notification_delay`, `x_3d`, `y_3d`, `z_3d`,
 `x_2d`, `y_2d`, `filename`, `pnpgraph_present`.
 
-#### <a id="schema-livestatus-hostgroups-table-attributes"></a> Livestatus Hostgroups Table Attributes
+#### Livestatus Hostgroups Table Attributes <a id="schema-livestatus-hostgroups-table-attributes"></a>
 
   Key                   | Type      | Note
   ----------------------|-----------|-------------------------
@@ -394,7 +394,7 @@ Not supported: `initial_state`, `pending_flex_downtime`, `check_flapping_recover
   num_services_hard_crit | int      | .
   num_services_hard_unknown | int   | .
 
-#### <a id="schema-livestatus-services-table-attributes"></a> Livestatus Services Table Attributes
+#### Livestatus Services Table Attributes <a id="schema-livestatus-services-table-attributes"></a>
 
   Key                   | Type      | Note
   ----------------------|-----------|-------------------------
@@ -481,7 +481,7 @@ Not supported: `initial_state`, `pending_flex_downtime`, `check_flapping_recover
 Not supported: `initial_state`, `is_executing`, `check_options`, `obsess_over_service`, `first_notification_delay`,
 `pnpgraph_present`.
 
-#### <a id="schema-livestatus-servicegroups-table-attributes"></a> Livestatus Servicegroups Table Attributes
+#### Livestatus Servicegroups Table Attributes <a id="schema-livestatus-servicegroups-table-attributes"></a>
 
   Key                   | Type      | Note
   ----------------------|-----------|-------------------------
@@ -504,7 +504,7 @@ Not supported: `initial_state`, `is_executing`, `check_options`, `obsess_over_se
   num_services_hard_crit | int      | .
   num_services_hard_unknown | int   | .
 
-#### <a id="schema-livestatus-contacts-table-attributes"></a> Livestatus Contacts Table Attributes
+#### Livestatus Contacts Table Attributes <a id="schema-livestatus-contacts-table-attributes"></a>
 
   Key                   | Type      | Note
   ----------------------|-----------|-------------------------
@@ -527,7 +527,7 @@ Not supported: `initial_state`, `is_executing`, `check_options`, `obsess_over_se
 
 Not supported: `can_submit_commands`.
 
-#### <a id="schema-livestatus-contactgroups-table-attributes"></a> Livestatus Contactgroups Table Attributes
+#### Livestatus Contactgroups Table Attributes <a id="schema-livestatus-contactgroups-table-attributes"></a>
 
   Key                   | Type      | Note
   ----------------------|-----------|-------------------------
@@ -536,7 +536,7 @@ Not supported: `can_submit_commands`.
   members               | array     | .
 
 
-#### <a id="schema-livestatus-commands-table-attributes"></a> Livestatus Commands Table Attributes
+#### Livestatus Commands Table Attributes <a id="schema-livestatus-commands-table-attributes"></a>
 
   Key                   | Type      | Note
   ----------------------|-----------|-------------------------
@@ -544,7 +544,7 @@ Not supported: `can_submit_commands`.
   line                  | string    | .
 
 
-#### <a id="schema-livestatus-status-table-attributes"></a> Livestatus Status Table Attributes
+#### Livestatus Status Table Attributes <a id="schema-livestatus-status-table-attributes"></a>
 
   Key                   | Type      | Note
   ----------------------|-----------|-------------------------
@@ -583,7 +583,7 @@ Not supported: `neb_callbacks`, `neb_callbacks_rate`, `requests`, `requests_rate
 `cached_log_messages`, `livestatus_queued_connections`, `livestatus_threads`.
 
 
-#### <a id="schema-livestatus-comments-table-attributes"></a> Livestatus Comments Table Attributes
+#### Livestatus Comments Table Attributes <a id="schema-livestatus-comments-table-attributes"></a>
 
   Key                   | Type      | Note
   ----------------------|-----------|-------------------------
@@ -602,7 +602,7 @@ Not supported: `neb_callbacks`, `neb_callbacks_rate`, `requests`, `requests_rate
   host_                 | join      | Prefix for attributes from implicit join with hosts table.
 
 
-#### <a id="schema-livestatus-downtimes-table-attributes"></a> Livestatus Downtimes Table Attributes
+#### Livestatus Downtimes Table Attributes <a id="schema-livestatus-downtimes-table-attributes"></a>
 
   Key                   | Type      | Note
   ----------------------|-----------|-------------------------
@@ -623,7 +623,7 @@ Not supported: `neb_callbacks`, `neb_callbacks_rate`, `requests`, `requests_rate
   host_                 | join      | Prefix for attributes from implicit join with hosts table.
 
 
-#### <a id="schema-livestatus-timeperiod-table-attributes"></a> Livestatus Timeperiod Table Attributes
+#### Livestatus Timeperiod Table Attributes <a id="schema-livestatus-timeperiod-table-attributes"></a>
 
   Key                   | Type      | Note
   ----------------------|-----------|-------------------------
@@ -631,7 +631,7 @@ Not supported: `neb_callbacks`, `neb_callbacks_rate`, `requests`, `requests_rate
   alias                 | string    | `display_name` attribute.
   in                    | int       | Current time is in timeperiod or not.
 
-#### <a id="schema-livestatus-log-table-attributes"></a> Livestatus Log Table Attributes
+#### Livestatus Log Table Attributes <a id="schema-livestatus-log-table-attributes"></a>
 
   Key                   | Type      | Note
   ----------------------|-----------|-------------------------
@@ -655,7 +655,7 @@ Not supported: `neb_callbacks`, `neb_callbacks_rate`, `requests`, `requests_rate
   current_contact_      | join      | Prefix for attributes from implicit join with contacts table.
   current_command_      | join      | Prefix for attributes from implicit join with commands table.
 
-#### <a id="schema-livestatus-statehist-table-attributes"></a> Livestatus Statehist Table Attributes
+#### Livestatus Statehist Table Attributes <a id="schema-livestatus-statehist-table-attributes"></a>
 
   Key                   | Type      | Note
   ----------------------|-----------|-------------------------
@@ -690,17 +690,17 @@ Not supported: `neb_callbacks`, `neb_callbacks_rate`, `requests`, `requests_rate
 
 Not supported: `debug_info`.
 
-#### <a id="schema-livestatus-hostsbygroup-table-attributes"></a> Livestatus Hostsbygroup Table Attributes
+#### Livestatus Hostsbygroup Table Attributes <a id="schema-livestatus-hostsbygroup-table-attributes"></a>
 
 All [hosts](23-appendix.md#schema-livestatus-hosts-table-attributes) table attributes grouped with
 the [hostgroups](23-appendix.md#schema-livestatus-hostgroups-table-attributes) table prefixed with `hostgroup_`.
 
-#### <a id="schema-livestatus-servicesbygroup-table-attributes"></a> Livestatus Servicesbygroup Table Attributes
+#### Livestatus Servicesbygroup Table Attributes <a id="schema-livestatus-servicesbygroup-table-attributes"></a>
 
 All [services](23-appendix.md#schema-livestatus-services-table-attributes) table attributes grouped with
 the [servicegroups](23-appendix.md#schema-livestatus-servicegroups-table-attributes) table prefixed with `servicegroup_`.
 
-#### <a id="schema-livestatus-servicesbyhostgroup-table-attributes"></a> Livestatus Servicesbyhostgroup Table Attributes
+#### Livestatus Servicesbyhostgroup Table Attributes <a id="schema-livestatus-servicesbyhostgroup-table-attributes"></a>
 
 All [services](23-appendix.md#schema-livestatus-services-table-attributes) table attributes grouped with
 the [hostgroups](23-appendix.md#schema-livestatus-hostgroups-table-attributes) table prefixed with `hostgroup_`.

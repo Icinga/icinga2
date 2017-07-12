@@ -1,6 +1,6 @@
-# <a id="about-icinga2"></a> About Icinga 2
+# About Icinga 2 <a id="about-icinga2"></a>
 
-## <a id="what-is-icinga2"></a> What is Icinga 2?
+## What is Icinga 2?  <a id="what-is-icinga2"></a>
 
 Icinga 2 is an open source monitoring system which checks the availability of
 your network resources, notifies users of outages, and generates performance
@@ -9,19 +9,19 @@ data for reporting.
 Scalable and extensible, Icinga 2 can monitor large, complex environments across
 multiple locations.
 
-## <a id="licensing"></a> Licensing
+## Licensing  <a id="licensing"></a>
 
 Icinga 2 and the Icinga 2 documentation are licensed under the terms of the GNU
 General Public License Version 2, you will find a copy of this license in the
 LICENSE file included in the source package.
 
-## <a id="support"></a> Support
+## Support  <a id="support"></a>
 
 Check the project website at https://www.icinga.com for status updates. Join the
 [community channels](https://www.icinga.com/community/get-involved/) for questions
 or ask an Icinga partner for [professional support](https://www.icinga.com/services/support/).
 
-## <a id="contribute"></a> Contribute
+## Contribute  <a id="contribute"></a>
 
 There are many ways to contribute to Icinga -- whether it be sending patches,
 testing, reporting bugs, or reviewing and updating the documentation. Every
@@ -29,7 +29,7 @@ contribution is appreciated!
 
 Please continue reading in the [Contributing chapter](https://github.com/Icinga/icinga2/blob/master/CONTRIBUTING.md).
 
-### <a id="development-info"></a> Icinga 2 Development
+### Icinga 2 Development <a id="development-info"></a>
 
 The Git repository is located on [GitHub](https://github.com/Icinga/icinga2).
 
@@ -37,7 +37,7 @@ Icinga 2 is written in C++ and can be built on Linux/Unix and Windows.
 Read more about development builds in the [INSTALL.md](https://github.com/Icinga/icinga2/blob/master/INSTALL.md)
 file.
 
-## <a id="whats-new"></a> What's New
+## What's New <a id="whats-new"></a>
 
 ### What's New in Version 2.6.3
 
@@ -56,7 +56,7 @@ documentation.
 * Feature [5029](https://github.com/Icinga/icinga2/issues/5029) (Documentation): Advanced topics: Wrong acknowledgement notification filter
 * Feature [5030](https://github.com/Icinga/icinga2/issues/5030) (Documentation): Advanced topics: Mention the API and explain stick acks, fixed/flexible downtimes
 * Feature [3133](https://github.com/Icinga/icinga2/issues/3133) (Documentation): [dev.icinga.com #9583] Add practical examples for apply expressions
-* Feature [4996](https://github.com/Icinga/icinga2/issues/4996) (Documentation): documentation: mixed up host names in 6-distributed-monitoring.md
+* Feature [4996](https://github.com/Icinga/icinga2/issues/4996) (Documentation): documentation: mixed up host names in 06-distributed-monitoring.md
 * Feature [4980](https://github.com/Icinga/icinga2/issues/4980) (Documentation): Add OpenBSD and AlpineLinux package repositories to the documentation
 * Feature [4954](https://github.com/Icinga/icinga2/issues/4954) (Documentation): Add an example for /v1/actions/process-check-result which uses filter/type
 
@@ -87,7 +87,7 @@ reflect our recent move to GitHub.
 
 #### Feature
 
-* Feature [4950](https://github.com/Icinga/icinga2/issues/4950) (Documentation): doc/6-distributed-monitoring.md: Fix typo
+* Feature [4950](https://github.com/Icinga/icinga2/issues/4950) (Documentation): doc/06-distributed-monitoring.md: Fix typo
 * Feature [4934](https://github.com/Icinga/icinga2/issues/4934) (Documentation): Update contribution section for GitHub
 * Feature [4923](https://github.com/Icinga/icinga2/issues/4923) (Documentation): [dev.icinga.com #14011] Migration to Github
 * Feature [4917](https://github.com/Icinga/icinga2/issues/4917) (Documentation): [dev.icinga.com #13969] Incorrect license file mentioned in README.md
