@@ -1,4 +1,4 @@
-# <a id="development"></a> Develop Icinga 2
+# Develop Icinga 2 <a id="development"></a>
 
 This chapter provides hints on Icinga 2 development
 especially for debugging purposes.
@@ -8,7 +8,7 @@ especially for debugging purposes.
 > If you are planning to build your own development environment,
 > please consult the `INSTALL.md` file from the source tree.
 
-## <a id="debug-requirements"></a> Debug Requirements
+## Debug Requirements <a id="debug-requirements"></a>
 
 Make sure that the debug symbols are available for Icinga 2.
 The Icinga 2 packages provide a debug package which must be
@@ -34,7 +34,7 @@ If you're building your own binaries, you should use the `-DCMAKE_BUILD_TYPE=Deb
 build flag for debug builds.
 
 
-## <a id="development-debug-gdb"></a> GDB
+## GDB <a id="development-debug-gdb"></a>
 
 Install gdb:
 
@@ -114,7 +114,7 @@ the duplicate import in your `~/.gdbinit` file.
 
     RuntimeError: pretty-printer already registered: libstdc++-v6
 
-### <a id="development-debug-gdb-run"></a> GDB Run
+### GDB Run <a id="development-debug-gdb-run"></a>
 
 Call GDB with the binary (`/usr/sbin/icinga2` is a wrapper script calling
 `/usr/lib64/icinga2/sbin/icinga2` since 2.4) and all arguments and run it in foreground.
@@ -142,7 +142,7 @@ Continue after breakpoint.
 
     (gdb) c
 
-### <a id="development-debug-gdb-coredump"></a> GDB Core Dump
+### GDB Core Dump <a id="development-debug-gdb-coredump"></a>
 
 Either attach to the running process using `gdb -p PID` or start
 a new gdb run.
@@ -150,7 +150,7 @@ a new gdb run.
     (gdb) r
     (gdb) generate-core-file
 
-### <a id="development-debug-gdb-backtrace"></a> GDB Backtrace
+### GDB Backtrace <a id="development-debug-gdb-backtrace"></a>
 
 If Icinga 2 aborted its operation abnormally, generate a backtrace.
 
@@ -166,14 +166,14 @@ running Icinga 2.
 If you create a [bug report](https://www.icinga.com/community/get-involved/),
 make sure to attach as much detail as possible.
 
-### <a id="development-debug-gdb-backtrace-running"></a> GDB Backtrace from Running Process
+### GDB Backtrace from Running Process <a id="development-debug-gdb-backtrace-running"></a>
 
 If Icinga 2 is still running, generate a full backtrace from the running
 process and store it into a new file (e.g. for debugging dead locks):
 
     # gdb -p $(pidof icinga2) -batch -ex "thread apply all bt full" -ex "detach" -ex "q" > gdb_bt.log
 
-### <a id="development-debug-gdb-backtrace-stepping"></a> GDB Backtrace Stepping
+### GDB Backtrace Stepping <a id="development-debug-gdb-backtrace-stepping"></a>
 
 Identifying the problem may require stepping into the backtrace, analysing
 the current scope, attributes, and possible unmet requirements. `p` prints
@@ -185,7 +185,7 @@ the value of the selected variable or function call result.
     (gdb) p checkable.px->m_Name
 
 
-### <a id="development-debug-gdb-breakpoint"></a> GDB Breakpoints
+### GDB Breakpoints <a id="development-debug-gdb-breakpoint"></a>
 
 To set a breakpoint to a specific function call, or file specific line.
 
@@ -239,13 +239,13 @@ Breakpoint Example:
         m_Data = "/etc/icinga2/conf.d/timeperiods.conf"}, {static NPos = 18446744073709551615, m_Data = "/etc/icinga2/conf.d/users.conf"}}
 
 
-## <a id="development-debug-core-dump"></a> Core Dump
+## Core Dump <a id="development-debug-core-dump"></a>
 
 When the Icinga 2 daemon crashes with a `SIGSEGV` signal
 a core dump file should be written. This will help
 developers to analyze and fix the problem.
 
-### <a id="development-debug-core-dump-limit"></a> Core Dump File Size Limit
+### Core Dump File Size Limit <a id="development-debug-core-dump-limit"></a>
 
 This requires setting the core dump file size to `unlimited`.
 
@@ -276,7 +276,7 @@ Verify that the Icinga 2 process core file size limit is set to `unlimited`.
     Max core file size        unlimited            unlimited            bytes
 
 
-### <a id="development-debug-core-dump-format"></a> Core Dump Kernel Format
+### Core Dump Kernel Format <a id="development-debug-core-dump-format"></a>
 
 The Icinga 2 daemon runs with the SUID bit set. Therefore you need
 to explicitly enable core dumps for SUID on Linux.
@@ -295,7 +295,7 @@ MacOS:
 
     chmod 777 /cores
 
-### <a id="development-debug-core-dump-analysis"></a> Core Dump Analysis
+### Core Dump Analysis <a id="development-debug-core-dump-analysis"></a>
 
 Once Icinga 2 crashes again a new coredump file will be written. Please
 attach this file to your bug report in addition to the general details.

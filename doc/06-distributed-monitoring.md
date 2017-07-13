@@ -1,10 +1,10 @@
-# <a id="distributed-monitoring"></a> Distributed Monitoring with Master, Satellites, and Clients
+# Distributed Monitoring with Master, Satellites, and Clients <a id="distributed-monitoring"></a>
 
 This chapter will guide you through the setup of a distributed monitoring
 environment, including high-availability clustering and setup details
 for the Icinga 2 client.
 
-## <a id="distributed-monitoring-roles"></a> Roles: Master, Satellites, and Clients
+## Roles: Master, Satellites, and Clients <a id="distributed-monitoring-roles"></a>
 
 Icinga 2 nodes can be given names for easier understanding:
 
@@ -36,16 +36,16 @@ In case you are planning a huge cluster setup with multiple levels and
 lots of clients, read on -- we'll deal with these cases later on.
 
 The installation on each system is the same: You need to install the
-[Icinga 2 package](2-getting-started.md#setting-up-icinga2) and the required [plugins](2-getting-started.md#setting-up-check-plugins).
+[Icinga 2 package](02-getting-started.md#setting-up-icinga2) and the required [plugins](02-getting-started.md#setting-up-check-plugins).
 
 The required configuration steps are mostly happening
-on the command line. You can also [automate the setup](6-distributed-monitoring.md#distributed-monitoring-automation).
+on the command line. You can also [automate the setup](06-distributed-monitoring.md#distributed-monitoring-automation).
 
 The first thing you need learn about a distributed setup is the hierarchy of the single components.
 
-## <a id="distributed-monitoring-zones"></a> Zones
+## Zones <a id="distributed-monitoring-zones"></a>
 
-The Icinga 2 hierarchy consists of so-called [zone](9-object-types.md#objecttype-zone) objects.
+The Icinga 2 hierarchy consists of so-called [zone](09-object-types.md#objecttype-zone) objects.
 Zones depend on a parent-child relationship in order to trust each other.
 
 ![Icinga 2 Distributed Zones](images/distributed-monitoring/icinga2_distributed_zones.png)
@@ -70,14 +70,14 @@ There are certain limitations for child zones, e.g. their members are not allowe
 to send configuration commands to the parent zone members. Vice versa, the
 trust hierarchy allows for example the `master` zone to send
 configuration files to the `satellite` zone. Read more about this
-in the [security section](6-distributed-monitoring.md#distributed-monitoring-security).
+in the [security section](06-distributed-monitoring.md#distributed-monitoring-security).
 
 `client` nodes also have their own unique zone. By convention you
 can use the FQDN for the zone name.
 
-## <a id="distributed-monitoring-endpoints"></a> Endpoints
+## Endpoints <a id="distributed-monitoring-endpoints"></a>
 
-Nodes which are a member of a zone are so-called [Endpoint](9-object-types.md#objecttype-endpoint) objects.
+Nodes which are a member of a zone are so-called [Endpoint](09-object-types.md#objecttype-endpoint) objects.
 
 ![Icinga 2 Distributed Endpoints](images/distributed-monitoring/icinga2_distributed_endpoints.png)
 
@@ -110,13 +110,13 @@ The zone membership is defined inside the `Zone` object definition using
 the `endpoints` attribute with an array of `Endpoint` names.
 
 If you want to check the availability (e.g. ping checks) of the node
-you still need a [Host](9-object-types.md#objecttype-host) object.
+you still need a [Host](09-object-types.md#objecttype-host) object.
 
-## <a id="distributed-monitoring-apilistener"></a> ApiListener
+## ApiListener <a id="distributed-monitoring-apilistener"></a>
 
 In case you are using the CLI commands later, you don't have to write
 this configuration from scratch in a text editor.
-The [ApiListener](9-object-types.md#objecttype-apilistener)
+The [ApiListener](09-object-types.md#objecttype-apilistener)
 object is used to load the SSL certificates and specify restrictions, e.g.
 for accepting configuration commands.
 
@@ -131,7 +131,7 @@ In order to use the `api` feature you need to enable it and restart Icinga 2.
 
     icinga2 feature enable api
 
-## <a id="distributed-monitoring-conventions"></a> Conventions
+## Conventions <a id="distributed-monitoring-conventions"></a>
 
 By convention all nodes should be configured using their FQDN.
 
@@ -146,7 +146,7 @@ Setting this up on the command line will help you to minimize the effort.
 Just keep in mind that you need to use the FQDN for endpoints and for
 common names when asked.
 
-## <a id="distributed-monitoring-security"></a> Security
+## Security <a id="distributed-monitoring-security"></a>
 
 While there are certain mechanisms to ensure a secure communication between all
 nodes (firewalls, policies, software hardening, etc.), Icinga 2 also provides
@@ -158,20 +158,20 @@ help you create those certificates.
 * Child zones are not allowed to push configuration updates to parent zones.
 * Zones cannot interfere with other zones and influence each other. Each checkable host or service object is assigned to **one zone** only.
 * All nodes in a zone trust each other.
-* [Config sync](6-distributed-monitoring.md#distributed-monitoring-top-down-config-sync) and [remote command endpoint execution](6-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint) is disabled by default.
+* [Config sync](06-distributed-monitoring.md#distributed-monitoring-top-down-config-sync) and [remote command endpoint execution](06-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint) is disabled by default.
 
 The underlying protocol uses JSON-RPC event notifications exchanged by nodes.
 The connection is secured by TLS. The message protocol uses an internal API,
 and as such message types and names may change internally and are not documented.
 
-## <a id="distributed-monitoring-setup-master"></a> Master Setup
+## Master Setup <a id="distributed-monitoring-setup-master"></a>
 
 This section explains how to install a central single master node using
 the `node wizard` command. If you prefer to do an automated installation, please
-refer to the [automated setup](6-distributed-monitoring.md#distributed-monitoring-automation) section.
+refer to the [automated setup](06-distributed-monitoring.md#distributed-monitoring-automation) section.
 
-Install the [Icinga 2 package](2-getting-started.md#setting-up-icinga2) and setup
-the required [plugins](2-getting-started.md#setting-up-check-plugins) if you haven't done
+Install the [Icinga 2 package](02-getting-started.md#setting-up-icinga2) and setup
+the required [plugins](02-getting-started.md#setting-up-check-plugins) if you haven't done
 so already.
 
 **Note**: Windows is not supported for a master node setup.
@@ -236,24 +236,24 @@ Here is an example of a master setup for the `icinga2-master1.localdomain` node 
     [root@icinga2-master1.localdomain /]# systemctl restart icinga2
 
 As you can see, the CA public and private key are stored in the `/var/lib/icinga2/ca` directory.
-Keep this path secure and include it in your [backups](2-getting-started.md#install-backup).
+Keep this path secure and include it in your [backups](02-getting-started.md#install-backup).
 
 In case you lose the CA private key you have to generate a new CA for signing new client
 certificate requests. You then have to also re-create new signed certificates for all
 existing nodes.
 
-Once the master setup is complete, you can also use this node as primary [CSR auto-signing](6-distributed-monitoring.md#distributed-monitoring-setup-csr-auto-signing)
+Once the master setup is complete, you can also use this node as primary [CSR auto-signing](06-distributed-monitoring.md#distributed-monitoring-setup-csr-auto-signing)
 master. The following section will explain how to use the CLI commands in order to fetch their
 signed certificate from this master node.
 
-## <a id="distributed-monitoring-setup-satellite-client"></a> Client/Satellite Setup
+## Client/Satellite Setup <a id="distributed-monitoring-setup-satellite-client"></a>
 
 This section describes the setup of a satellite and/or client connected to an
-existing master node setup. If you haven't done so already, please [run the master setup](6-distributed-monitoring.md#distributed-monitoring-setup-master).
+existing master node setup. If you haven't done so already, please [run the master setup](06-distributed-monitoring.md#distributed-monitoring-setup-master).
 
 Icinga 2 on the master node must be running and accepting connections on port `5665`.
 
-### <a id="distributed-monitoring-setup-csr-auto-signing"></a> CSR Auto-Signing
+### CSR Auto-Signing <a id="distributed-monitoring-setup-csr-auto-signing"></a>
 
 The `node wizard` command will set up a satellite/client using CSR auto-signing. This
 involves that the setup wizard sends a certificate signing request (CSR) to the
@@ -261,7 +261,7 @@ master node.
 There is a security mechanism in place which requires the client to send in a valid
 ticket for CSR auto-signing.
 
-This ticket must be generated beforehand. The `ticket_salt` attribute for the [ApiListener](9-object-types.md#objecttype-apilistener)
+This ticket must be generated beforehand. The `ticket_salt` attribute for the [ApiListener](09-object-types.md#objecttype-apilistener)
 must be configured in order to make this work.
 
 There are two possible ways to retrieve the ticket:
@@ -301,14 +301,14 @@ Store that ticket number for the satellite/client setup below.
 **Note**: Never expose the ticket salt and/or ApiUser credentials to your client nodes.
 Example: Retrieve the ticket on the Puppet master node and send the compiled catalog
 to the authorized Puppet agent node which will invoke the
-[automated setup steps](6-distributed-monitoring.md#distributed-monitoring-automation-cli-node-setup).
+[automated setup steps](06-distributed-monitoring.md#distributed-monitoring-automation-cli-node-setup).
 
-### <a id="distributed-monitoring-setup-client-linux"></a> Client/Satellite Linux Setup
+### Client/Satellite Linux Setup <a id="distributed-monitoring-setup-client-linux"></a>
 
-Please ensure that you've run all the steps mentioned in the [client/satellite section](6-distributed-monitoring.md#distributed-monitoring-setup-satellite-client).
+Please ensure that you've run all the steps mentioned in the [client/satellite section](06-distributed-monitoring.md#distributed-monitoring-setup-satellite-client).
 
-Install the [Icinga 2 package](2-getting-started.md#setting-up-icinga2) and setup
-the required [plugins](2-getting-started.md#setting-up-check-plugins) if you haven't done
+Install the [Icinga 2 package](02-getting-started.md#setting-up-icinga2) and setup
+the required [plugins](02-getting-started.md#setting-up-check-plugins) if you haven't done
 so already.
 
 The next step is to run the `node wizard` CLI command. Prior to that
@@ -324,11 +324,11 @@ ensure to collect the required information:
   Add more master endpoints | **Optional.** If you have multiple master nodes configured, add them here.
   Master connection for CSR auto-signing | **Required.** The master node's IP address or FQDN and port where the client should request a certificate from. Defaults to the master endpoint host.
   Certificate information | **Required.** Verify that the connecting host really is the requested master node.
-  Request ticket      | **Required.** Paste the previously generated [ticket number](6-distributed-monitoring.md#distributed-monitoring-setup-csr-auto-signing).
+  Request ticket      | **Required.** Paste the previously generated [ticket number](06-distributed-monitoring.md#distributed-monitoring-setup-csr-auto-signing).
   API bind host       | **Optional.** Allows to specify the address the ApiListener is bound to. For advanced usage only.
   API bind port       | **Optional.** Allows to specify the port the ApiListener is bound to. For advanced usage only (requires changing the default port 5665 everywhere).
-  Accept config       | **Optional.** Whether this node accepts configuration sync from the master node (required for [config sync mode](6-distributed-monitoring.md#distributed-monitoring-top-down-config-sync)). For [security reasons](6-distributed-monitoring.md#distributed-monitoring-security) this defaults to `n`.
-  Accept commands     | **Optional.** Whether this node accepts command execution messages from the master node (required for [command endpoint mode](6-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint)). For [security reasons](6-distributed-monitoring.md#distributed-monitoring-security) this defaults to `n`.
+  Accept config       | **Optional.** Whether this node accepts configuration sync from the master node (required for [config sync mode](06-distributed-monitoring.md#distributed-monitoring-top-down-config-sync)). For [security reasons](06-distributed-monitoring.md#distributed-monitoring-security) this defaults to `n`.
+  Accept commands     | **Optional.** Whether this node accepts command execution messages from the master node (required for [command endpoint mode](06-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint)). For [security reasons](06-distributed-monitoring.md#distributed-monitoring-security) this defaults to `n`.
 
 The setup wizard will ensure that the following steps are taken:
 
@@ -410,9 +410,9 @@ is configured to accept configuration and commands from the master:
 As you can see, the certificate files are stored in the `/etc/icinga2/pki` directory.
 
 Now that you've successfully installed a satellite/client, please proceed to
-the [configuration modes](6-distributed-monitoring.md#distributed-monitoring-configuration-modes).
+the [configuration modes](06-distributed-monitoring.md#distributed-monitoring-configuration-modes).
 
-### <a id="distributed-monitoring-setup-client-windows"></a> Client/Satellite Windows Setup
+### Client/Satellite Windows Setup <a id="distributed-monitoring-setup-client-windows"></a>
 
 Download the MSI-Installer package from [https://packages.icinga.com/windows/](https://packages.icinga.com/windows/).
 
@@ -423,12 +423,12 @@ Requirements:
 
 The installer package includes the [NSClient++](https://www.nsclient.org/) package
 so that Icinga 2 can use its built-in plugins. You can find more details in
-[this chapter](6-distributed-monitoring.md#distributed-monitoring-windows-nscp).
-The Windows package also installs native [monitoring plugin binaries](6-distributed-monitoring.md#distributed-monitoring-windows-plugins)
+[this chapter](06-distributed-monitoring.md#distributed-monitoring-windows-nscp).
+The Windows package also installs native [monitoring plugin binaries](06-distributed-monitoring.md#distributed-monitoring-windows-plugins)
 to get you started more easily.
 
 
-#### <a id="distributed-monitoring-setup-client-windows-start"></a> Windows Client Setup Start
+#### Windows Client Setup Start <a id="distributed-monitoring-setup-client-windows-start"></a>
 
 Run the MSI-Installer package and follow the instructions shown in the screenshots.
 
@@ -447,7 +447,7 @@ You'll need the following configuration details:
   Parameter           | Description
   --------------------|--------------------
   Common name (CN)    | **Required.** By convention this should be the host's FQDN. Defaults to the FQDN.
-  Request ticket      | **Required.** Paste the previously generated [ticket number](6-distributed-monitoring.md#distributed-monitoring-setup-csr-auto-signing).
+  Request ticket      | **Required.** Paste the previously generated [ticket number](06-distributed-monitoring.md#distributed-monitoring-setup-csr-auto-signing).
 
 Fill in the required information and click `Add` to add a new master connection.
 
@@ -467,9 +467,9 @@ Optionally, you can enable the following settings:
 
   Parameter           | Description
   --------------------|--------------------
-  Accept config       | **Optional.** Whether this node accepts configuration sync from the master node (required for [config sync mode](6-distributed-monitoring.md#distributed-monitoring-top-down-config-sync)). For [security reasons](6-distributed-monitoring.md#distributed-monitoring-security) this is disabled by default.
-  Accept commands     | **Optional.** Whether this node accepts command execution messages from the master node (required for [command endpoint mode](6-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint)). For [security reasons](6-distributed-monitoring.md#distributed-monitoring-security) this is disabled by default.
-  Install NSClient++  | **Optional.** The Windows installer bundles the NSClient++ installer for additional [plugin checks](6-distributed-monitoring.md#distributed-monitoring-windows-nscp).
+  Accept config       | **Optional.** Whether this node accepts configuration sync from the master node (required for [config sync mode](06-distributed-monitoring.md#distributed-monitoring-top-down-config-sync)). For [security reasons](06-distributed-monitoring.md#distributed-monitoring-security) this is disabled by default.
+  Accept commands     | **Optional.** Whether this node accepts command execution messages from the master node (required for [command endpoint mode](06-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint)). For [security reasons](06-distributed-monitoring.md#distributed-monitoring-security) this is disabled by default.
+  Install NSClient++  | **Optional.** The Windows installer bundles the NSClient++ installer for additional [plugin checks](06-distributed-monitoring.md#distributed-monitoring-windows-nscp).
 
 ![Icinga 2 Windows Setup](images/distributed-monitoring/icinga2_windows_setup_wizard_03.png)
 
@@ -477,7 +477,7 @@ The next step allows you to verify the CA presented by the master.
 
 ![Icinga 2 Windows Setup](images/distributed-monitoring/icinga2_windows_setup_wizard_04.png)
 
-#### <a id="distributed-monitoring-setup-client-windows-nsclient"></a> Bundled NSClient++ Setup
+#### Bundled NSClient++ Setup <a id="distributed-monitoring-setup-client-windows-nsclient"></a>
 
 If you have chosen to install/update the NSClient++ package, the Icinga 2 setup wizard will ask
 you to do so.
@@ -514,7 +514,7 @@ configuration file.
 The NSClient++ REST API can be used to query metrics. Future Icinga 2 versions will add
 more integrations. Additional details can be found in this [blog post](https://www.icinga.com/2016/09/16/nsclient-0-5-0-rest-api-and-icinga-2-integration/).
 
-#### <a id="distributed-monitoring-setup-client-windows-finish"></a> Finish Windows Client Setup
+#### Finish Windows Client Setup <a id="distributed-monitoring-setup-client-windows-finish"></a>
 
 Finish the setup wizard.
 
@@ -531,10 +531,10 @@ If you click `Examine Config` in the setup wizard, it will open a new Explorer w
 
 The configuration files can be modified with your favorite editor.
 
-In order to use the [top down](6-distributed-monitoring.md#distributed-monitoring-top-down) client
+In order to use the [top down](06-distributed-monitoring.md#distributed-monitoring-top-down) client
 configuration prepare the following steps.
 
-Add a [global zone](6-distributed-monitoring.md#distributed-monitoring-global-zone-config-sync)
+Add a [global zone](06-distributed-monitoring.md#distributed-monitoring-global-zone-config-sync)
 for syncing check commands later. Navigate to `C:\ProgramData\icinga2\etc\icinga2` and open
 the `zones.conf` file in your preferred editor. Add the following lines if not existing already:
 
@@ -569,27 +569,27 @@ and restart the `icinga2` service. Alternatively, you can use the `net {start,st
 ![Icinga 2 Windows Service Start/Stop](images/distributed-monitoring/icinga2_windows_cmd_admin_net_start_stop.png)
 
 Now that you've successfully installed a satellite/client, please proceed to
-the [detailed configuration modes](6-distributed-monitoring.md#distributed-monitoring-configuration-modes).
+the [detailed configuration modes](06-distributed-monitoring.md#distributed-monitoring-configuration-modes).
 
 
 
-## <a id="distributed-monitoring-configuration-modes"></a> Configuration Modes
+## Configuration Modes <a id="distributed-monitoring-configuration-modes"></a>
 
 There are different ways to ensure that the Icinga 2 cluster nodes execute
 checks, send notifications, etc.
 
 Two different modes are available for synchronizing the host/service object's configuration between nodes and for executing checks:
 
-The preferred mode is the [top down](6-distributed-monitoring.md#distributed-monitoring-top-down) approach.
+The preferred mode is the [top down](06-distributed-monitoring.md#distributed-monitoring-top-down) approach.
 This mode sends the configuration and commands from the master to the child zones.
 
-The [bottom up](6-distributed-monitoring.md#distributed-monitoring-bottom-up) has been **deprecated in v2.6 and will be removed in future releases**.
+The [bottom up](06-distributed-monitoring.md#distributed-monitoring-bottom-up) has been **deprecated in v2.6 and will be removed in future releases**.
 This mode leaves the configuration files on the child nodes and requires an import on the parent nodes.
 
 **Note**: Check results are always sent from the child nodes to the parent nodes.
 This happens automatically and is ensured by the cluster protocol.
 
-### <a id="distributed-monitoring-top-down"></a> Top Down
+### Top Down <a id="distributed-monitoring-top-down"></a>
 
 According to feedback that we've received from the community, this is the most commonly used mode.
 
@@ -601,7 +601,7 @@ There are two different behaviors with check execution:
 Again, technically it does not matter whether this is a `client` or a `satellite`
 which is receiving configuration or command execution events.
 
-### <a id="distributed-monitoring-top-down-command-endpoint"></a> Top Down Command Endpoint
+### Top Down Command Endpoint <a id="distributed-monitoring-top-down-command-endpoint"></a>
 
 This mode will force the Icinga 2 node to execute commands remotely on a specified endpoint.
 The host/service object configuration is located on the master/satellite and the client only
@@ -613,14 +613,14 @@ Advantages:
 
 * No local checks need to be defined on the child node (client).
 * Light-weight remote check execution (asynchronous events).
-* No [replay log](6-distributed-monitoring.md#distributed-monitoring-advanced-hints-command-endpoint-log-duration) is necessary for the child node.
+* No [replay log](06-distributed-monitoring.md#distributed-monitoring-advanced-hints-command-endpoint-log-duration) is necessary for the child node.
 * Pin checks to specific endpoints (if the child zone consists of 2 endpoints).
 
 Disadvantages:
 
 * If the child node is not connected, no more checks are executed.
 * Requires additional configuration attribute specified in host/service objects.
-* Requires local `CheckCommand` object configuration. Best practice is to use a [global config zone](6-distributed-monitoring.md#distributed-monitoring-global-zone-config-sync).
+* Requires local `CheckCommand` object configuration. Best practice is to use a [global config zone](06-distributed-monitoring.md#distributed-monitoring-global-zone-config-sync).
 
 To make sure that all nodes involved will accept configuration and/or
 commands, you need to configure the `Zone` and `Endpoint` hierarchy
@@ -662,7 +662,7 @@ The `master` zone is a parent of the `icinga2-client1.localdomain` zone:
       parent = "master" //establish zone hierarchy
     }
 
-In addition, add a [global zone](6-distributed-monitoring.md#distributed-monitoring-global-zone-config-sync)
+In addition, add a [global zone](06-distributed-monitoring.md#distributed-monitoring-global-zone-config-sync)
 for syncing check commands later:
 
     [root@icinga2-client1.localdomain /]# vim /etc/icinga2/zones.conf
@@ -772,11 +772,11 @@ The following steps will happen:
 As you can see, no interaction from your side is required on the client itself, and it's not necessary to reload the Icinga 2 service on the client.
 
 You have learned the basics about command endpoint checks. Proceed with
-the [scenarios](6-distributed-monitoring.md#distributed-monitoring-scenarios)
+the [scenarios](06-distributed-monitoring.md#distributed-monitoring-scenarios)
 section where you can find detailed information on extending the setup.
 
 
-### <a id="distributed-monitoring-top-down-config-sync"></a> Top Down Config Sync
+### Top Down Config Sync <a id="distributed-monitoring-top-down-config-sync"></a>
 
 This mode syncs the object configuration files within specified zones.
 It comes in handy if you want to configure everything on the master node
@@ -862,7 +862,7 @@ Example on CentOS 7:
     [root@icinga2-master1.localdomain /]# systemctl restart icinga2
 
 
-**Tip**: Best practice is to use a [global zone](6-distributed-monitoring.md#distributed-monitoring-global-zone-config-sync)
+**Tip**: Best practice is to use a [global zone](06-distributed-monitoring.md#distributed-monitoring-global-zone-config-sync)
 for common configuration items (check commands, templates, groups, etc.).
 
 Once the clients have connected successfully, it's time for the next step: **execute
@@ -929,16 +929,16 @@ Multiple nodes with configuration files in the `zones.d` directory are
 **not supported**.
 
 Now that you've learned the basics about the configuration sync, proceed with
-the [scenarios](6-distributed-monitoring.md#distributed-monitoring-scenarios)
+the [scenarios](06-distributed-monitoring.md#distributed-monitoring-scenarios)
 section where you can find detailed information on extending the setup.
 
 
-### <a id="distributed-monitoring-bottom-up"></a> Bottom Up Import
+### Bottom Up Import <a id="distributed-monitoring-bottom-up"></a>
 
 > **Warning**
 >
 > This mode has been deprecated in v2.6. You are strongly advised to
-> migrate your existing configuration files to the [top down mode](6-distributed-monitoring.md#distributed-monitoring-top-down).
+> migrate your existing configuration files to the [top down mode](06-distributed-monitoring.md#distributed-monitoring-top-down).
 >
 > Make sure to follow the release announcements on the [Icinga website](https://www.icinga.com).
 
@@ -996,7 +996,7 @@ If you have accidentally added specific hosts or services, you can safely purge
 them from this directory and restart Icinga 2.
 
 The generated host object uses the `cluster-zone` check command as
-[health check](6-distributed-monitoring.md#distributed-monitoring-health-checks).
+[health check](06-distributed-monitoring.md#distributed-monitoring-health-checks).
 
 **Tip**: In case you want to blacklist or whitelist certain hosts and/or services
 on the master, use the `icinga2 node {black,white}list`
@@ -1027,10 +1027,10 @@ and fix it. This will help with additional notification apply rules
 or group memberships required for Icinga Web 2 and addons.
 
 
-#### <a id="distributed-monitoring-bottom-up-migration-top-down"></a> Bottom Up Migration to Top Down
+#### Bottom Up Migration to Top Down <a id="distributed-monitoring-bottom-up-migration-top-down"></a>
 
 The bottom up mode has been deprecated and you should be prepared to migrate
-your clients to the existing [top down mode](6-distributed-monitoring.md#distributed-monitoring-top-down).
+your clients to the existing [top down mode](06-distributed-monitoring.md#distributed-monitoring-top-down).
 
 The bottom up mode generates configuration files on the master node underneath
 the `/etc/icinga2/repository.d` directory. This is achieved by running the
@@ -1046,7 +1046,7 @@ directory and generates the `repository.d` configuration files. In addition to
 that blacklist and whitelist settings are evaluated.
 
 Those CLI commands also hide the fact that each client needs its own `Zone`
-and `Endpoint` object as described [here](6-distributed-monitoring.md#distributed-monitoring-roles).
+and `Endpoint` object as described [here](06-distributed-monitoring.md#distributed-monitoring-roles).
 
 If you are certain that the master node has an up-to-date `repository.d`
 ensure that all your clients **do not include conf.d in their icinga2.conf**
@@ -1054,7 +1054,7 @@ configuration file.
 
 **Steps on each client**:
 
-Add a [global zone](6-distributed-monitoring.md#distributed-monitoring-global-zone-config-sync)
+Add a [global zone](06-distributed-monitoring.md#distributed-monitoring-global-zone-config-sync)
 for syncing check commands later:
 
     [root@icinga2-client3.localdomain /]# vim /etc/icinga2/zones.conf
@@ -1099,7 +1099,7 @@ Example on CentOS 7:
 **Steps on the configuration master node**:
 
 The migration strategy will guide you to use the client(s) as
-[top down command endpoint](6-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint).
+[top down command endpoint](06-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint).
 
 The `repository.d` directory is organised as a tree of object type directories.
 
@@ -1162,7 +1162,7 @@ client connection check `cluster-zone`, you need to add the `cluster_zone` custo
 
 In addition to that add a new custom attribute called `client_endpoint` which stores
 the command endpoint information. In case you need to learn more details please refer to
-the [top down command endpoint](6-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint)
+the [top down command endpoint](06-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint)
 chapter.
 
     [root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.d/master/icinga2-client3.localdomain.conf
@@ -1181,7 +1181,7 @@ Extract the service objects from the configuration files in the
 and add them into the `/etc/icinga2/zones.d/master/icinga2-client3.localdomain.conf`
 file.
 
-Best practice is to use a generic [service apply rule](3-monitoring-basics.md#using-apply)
+Best practice is to use a generic [service apply rule](03-monitoring-basics.md#using-apply)
 for each service. Identify common services on your hosts and modify the apply rules for
 your own needs.
 
@@ -1255,7 +1255,7 @@ adopt and merge them accordingly.
 If you are eager to start fresh instead you might take a look into the
 [Icinga Director](https://github.com/icinga/icingaweb2-module-director).
 
-## <a id="distributed-monitoring-scenarios"></a> Scenarios
+## Scenarios <a id="distributed-monitoring-scenarios"></a>
 
 The following examples should give you an idea on how to build your own
 distributed monitoring environment. We've seen them all in production
@@ -1266,7 +1266,7 @@ and [partner support](https://www.icinga.com/services/support/) channels:
 * HA master with clients as command endpoint.
 * Three level cluster with config HA masters, satellites receiving config sync, and clients checked using command endpoint.
 
-### <a id="distributed-monitoring-master-clients"></a> Master with Clients
+### Master with Clients <a id="distributed-monitoring-master-clients"></a>
 
 ![Icinga 2 Distributed Master with Clients](images/distributed-monitoring/icinga2_distributed_scenarios_master_clients.png)
 
@@ -1275,8 +1275,8 @@ and [partner support](https://www.icinga.com/services/support/) channels:
 
 Setup requirements:
 
-* Set up `icinga2-master1.localdomain` as [master](6-distributed-monitoring.md#distributed-monitoring-setup-master).
-* Set up `icinga2-client1.localdomain` and `icinga2-client2.localdomain` as [client](6-distributed-monitoring.md#distributed-monitoring-setup-satellite-client).
+* Set up `icinga2-master1.localdomain` as [master](06-distributed-monitoring.md#distributed-monitoring-setup-master).
+* Set up `icinga2-client1.localdomain` and `icinga2-client2.localdomain` as [client](06-distributed-monitoring.md#distributed-monitoring-setup-satellite-client).
 
 Edit the `zones.conf` configuration file on the master:
 
@@ -1320,7 +1320,7 @@ is that they know about the parent zone and their endpoint members (and optional
 If you specify the `host` attribute in the `icinga2-master1.localdomain` endpoint object,
 the client will actively try to connect to the master node. Since we've specified the client
 endpoint's attribute on the master node already, we don't want the clients to connect to the
-master. **Choose one [connection direction](6-distributed-monitoring.md#distributed-monitoring-advanced-hints-connection-direction).**
+master. **Choose one [connection direction](06-distributed-monitoring.md#distributed-monitoring-advanced-hints-connection-direction).**
 
     [root@icinga2-client1.localdomain /]# vim /etc/icinga2/zones.conf
 
@@ -1422,11 +1422,11 @@ Validate the configuration and restart Icinga 2 on the master node `icinga2-mast
 Open Icinga Web 2 and check the two newly created client hosts with two new services
 -- one executed locally (`ping4`) and one using command endpoint (`disk`).
 
-### <a id="distributed-monitoring-scenarios-ha-master-clients"></a> High-Availability Master with Clients
+### High-Availability Master with Clients <a id="distributed-monitoring-scenarios-ha-master-clients"></a>
 
 ![Icinga 2 Distributed High Availability Master with Clients](images/distributed-monitoring/icinga2_distributed_scenarios_ha_master_clients.png)
 
-This scenario is similar to the one in the [previous section](6-distributed-monitoring.md#distributed-monitoring-master-clients). The only difference is that we will now set up two master nodes in a high-availablity setup.
+This scenario is similar to the one in the [previous section](06-distributed-monitoring.md#distributed-monitoring-master-clients). The only difference is that we will now set up two master nodes in a high-availablity setup.
 These nodes must be configured as zone and endpoints objects.
 
 The setup uses the capabilities of the Icinga 2 cluster. All zone members
@@ -1443,15 +1443,15 @@ Overview:
 
 Setup requirements:
 
-* Set up `icinga2-master1.localdomain` as [master](6-distributed-monitoring.md#distributed-monitoring-setup-master).
-* Set up `icinga2-master2.localdomain` as [client](6-distributed-monitoring.md#distributed-monitoring-setup-satellite-client) (we will modify the generated configuration).
-* Set up `icinga2-client1.localdomain` and `icinga2-client2.localdomain` as [clients](6-distributed-monitoring.md#distributed-monitoring-setup-satellite-client) (when asked for adding multiple masters, set to `y` and add the secondary master `icinga2-master2.localdomain`).
+* Set up `icinga2-master1.localdomain` as [master](06-distributed-monitoring.md#distributed-monitoring-setup-master).
+* Set up `icinga2-master2.localdomain` as [client](06-distributed-monitoring.md#distributed-monitoring-setup-satellite-client) (we will modify the generated configuration).
+* Set up `icinga2-client1.localdomain` and `icinga2-client2.localdomain` as [clients](06-distributed-monitoring.md#distributed-monitoring-setup-satellite-client) (when asked for adding multiple masters, set to `y` and add the secondary master `icinga2-master2.localdomain`).
 
 In case you don't want to use the CLI commands, you can also manually create and sync the
 required SSL certificates. We will modify and discuss all the details of the automatically generated configuration here.
 
 Since there are now two nodes in the same zone, we must consider the
-[high-availability features](6-distributed-monitoring.md#distributed-monitoring-high-availability-features).
+[high-availability features](06-distributed-monitoring.md#distributed-monitoring-high-availability-features).
 
 * Checks and notifiations are balanced between the two master nodes. That's fine, but it requires check plugins and notification scripts to exist on both nodes.
 * The IDO feature will only be active on one node by default. Since all events are replicated between both nodes, it is easier to just have one central database.
@@ -1510,7 +1510,7 @@ is that they know about the parent zone and their endpoint members (and optional
 If you specify the `host` attribute in the `icinga2-master1.localdomain` and `icinga2-master2.localdomain`
 endpoint objects, the client will actively try to connect to the master node. Since we've specified the client
 endpoint's attribute on the master node already, we don't want the clients to connect to the
-master nodes. **Choose one [connection direction](6-distributed-monitoring.md#distributed-monitoring-advanced-hints-connection-direction).**
+master nodes. **Choose one [connection direction](06-distributed-monitoring.md#distributed-monitoring-advanced-hints-connection-direction).**
 
     [root@icinga2-client1.localdomain /]# vim /etc/icinga2/zones.conf
 
@@ -1574,7 +1574,7 @@ config sync mode here.
 
 Create a new configuration directory on the master node `icinga2-master1.localdomain`.
 **Note**: The secondary master node `icinga2-master2.localdomain` receives the
-configuration using the [config sync mode](6-distributed-monitoring.md#distributed-monitoring-top-down-config-sync).
+configuration using the [config sync mode](06-distributed-monitoring.md#distributed-monitoring-top-down-config-sync).
 
     [root@icinga2-master1.localdomain /]# mkdir -p /etc/icinga2/zones.d/master
 
@@ -1622,11 +1622,11 @@ Validate the configuration and restart Icinga 2 on the master node `icinga2-mast
 Open Icinga Web 2 and check the two newly created client hosts with two new services
 -- one executed locally (`ping4`) and one using command endpoint (`disk`).
 
-**Tip**: It's a good idea to add [health checks](6-distributed-monitoring.md#distributed-monitoring-health-checks)
+**Tip**: It's a good idea to add [health checks](06-distributed-monitoring.md#distributed-monitoring-health-checks)
 to make sure that your cluster notifies you in case of failure.
 
 
-### <a id="distributed-monitoring-scenarios-master-satellite-client"></a> Three Levels with Master, Satellites, and Clients
+### Three Levels with Master, Satellites, and Clients <a id="distributed-monitoring-scenarios-master-satellite-client"></a>
 
 ![Icinga 2 Distributed Master and Satellites with Clients](images/distributed-monitoring/icinga2_distributed_scenarios_master_satellite_client.png)
 
@@ -1646,9 +1646,9 @@ Overview:
 
 Setup requirements:
 
-* Set up `icinga2-master1.localdomain` as [master](6-distributed-monitoring.md#distributed-monitoring-setup-master).
-* Set up `icinga2-master2.localdomain`, `icinga2-satellite1.localdomain` and `icinga2-satellite2.localdomain` as [clients](6-distributed-monitoring.md#distributed-monitoring-setup-satellite-client) (we will modify the generated configuration).
-* Set up `icinga2-client1.localdomain` and `icinga2-client2.localdomain` as [clients](6-distributed-monitoring.md#distributed-monitoring-setup-satellite-client).
+* Set up `icinga2-master1.localdomain` as [master](06-distributed-monitoring.md#distributed-monitoring-setup-master).
+* Set up `icinga2-master2.localdomain`, `icinga2-satellite1.localdomain` and `icinga2-satellite2.localdomain` as [clients](06-distributed-monitoring.md#distributed-monitoring-setup-satellite-client) (we will modify the generated configuration).
+* Set up `icinga2-client1.localdomain` and `icinga2-client2.localdomain` as [clients](06-distributed-monitoring.md#distributed-monitoring-setup-satellite-client).
 
 When being asked for the master endpoint providing CSR auto-signing capabilities,
 please add the master node which holds the CA and has the `ApiListener` feature configured and enabled.
@@ -1683,7 +1683,7 @@ Specify the master node `icinga2-master2.localdomain` with the CA private key an
     Port [5665]:
 
 In case you cannot connect to the master node from your clients, you'll manually need
-to [generate the SSL certificates](6-distributed-monitoring.md#distributed-monitoring-advanced-hints-certificates)
+to [generate the SSL certificates](06-distributed-monitoring.md#distributed-monitoring-advanced-hints-certificates)
 and modify the configuration accordingly.
 
 We'll discuss the details of the required configuration below.
@@ -1691,7 +1691,7 @@ We'll discuss the details of the required configuration below.
 The zone hierarchy can look like this. We'll define only the directly connected zones here.
 
 You can safely deploy this configuration onto all master and satellite zone
-members. You should keep in mind to control the endpoint [connection direction](6-distributed-monitoring.md#distributed-monitoring-advanced-hints-connection-direction)
+members. You should keep in mind to control the endpoint [connection direction](06-distributed-monitoring.md#distributed-monitoring-advanced-hints-connection-direction)
 using the `host` attribute.
 
     [root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.conf
@@ -1730,7 +1730,7 @@ using the `host` attribute.
 Repeat the configuration step for `icinga2-master2.localdomain`, `icinga2-satellite1.localdomain`
 and `icinga2-satellite2.localdomain`.
 
-Since we want to use [top down command endpoint](6-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint) checks,
+Since we want to use [top down command endpoint](06-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint) checks,
 we must configure the client endpoint and zone objects.
 In order to minimize the effort, we'll sync the client zone and endpoint configuration to the
 satellites where the connection information is needed as well.
@@ -1768,7 +1768,7 @@ is that they know about the parent zone (the satellite) and their endpoint membe
 If you specify the `host` attribute in the `icinga2-satellite1.localdomain` and `icinga2-satellite2.localdomain`
 endpoint objects, the client node will actively try to connect to the satellite node. Since we've specified the client
 endpoint's attribute on the satellite node already, we don't want the client node to connect to the
-satellite nodes. **Choose one [connection direction](6-distributed-monitoring.md#distributed-monitoring-advanced-hints-connection-direction).**
+satellite nodes. **Choose one [connection direction](06-distributed-monitoring.md#distributed-monitoring-advanced-hints-connection-direction).**
 
 Example for `icinga2-client1.localdomain`:
 
@@ -1894,15 +1894,15 @@ Validate the configuration and restart Icinga 2 on the master node `icinga2-mast
 Open Icinga Web 2 and check the two newly created client hosts with two new services
 -- one executed locally (`ping4`) and one using command endpoint (`disk`).
 
-**Tip**: It's a good idea to add [health checks](6-distributed-monitoring.md#distributed-monitoring-health-checks)
+**Tip**: It's a good idea to add [health checks](06-distributed-monitoring.md#distributed-monitoring-health-checks)
 to make sure that your cluster notifies you in case of failure.
 
-## <a id="distributed-monitoring-best-practice"></a> Best Practice
+## Best Practice <a id="distributed-monitoring-best-practice"></a>
 
 We've put together a collection of configuration examples from community feedback.
 If you like to share your tips and tricks with us, please join the [community channels](https://www.icinga.com/community/get-involved/)!
 
-### <a id="distributed-monitoring-global-zone-config-sync"></a> Global Zone for Config Sync
+### Global Zone for Config Sync <a id="distributed-monitoring-global-zone-config-sync"></a>
 
 Global zones can be used to sync generic configuration objects
 to all nodes depending on them. Common examples are:
@@ -1959,7 +1959,7 @@ Example:
     [root@icinga2-master1.localdomain /]# cd /etc/icinga2/conf.d
     [root@icinga2-master1.localdomain /etc/icinga2/conf.d]# cp {commands,downtimes,groups,notifications,templates,timeperiods,users}.conf /etc/icinga2/zones.d/global-templates
 
-### <a id="distributed-monitoring-health-checks"></a> Health Checks
+### Health Checks <a id="distributed-monitoring-health-checks"></a>
 
 In case of network failures or other problems, your monitoring might
 either have late check results or just send out mass alarms for unknown
@@ -1990,7 +1990,7 @@ connected zones are working properly:
     }
 
 The `cluster-zone` check will test whether the configured target zone is currently
-connected or not. This example adds a health check for the [ha master with clients scenario](6-distributed-monitoring.md#distributed-monitoring-scenarios-ha-master-clients).
+connected or not. This example adds a health check for the [ha master with clients scenario](06-distributed-monitoring.md#distributed-monitoring-scenarios-ha-master-clients).
 
     [root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.d/master/services.conf
 
@@ -2035,7 +2035,7 @@ add a dependency which prevents notifications for all other failing services:
       ignore where service.name == "child-health"
    }
 
-### <a id="distributed-monitoring-pin-checks-zone"></a> Pin Checks in a Zone
+### Pin Checks in a Zone <a id="distributed-monitoring-pin-checks-zone"></a>
 
 In case you want to pin specific checks to their endpoints in a given zone you'll need to use
 the `command_endpoint` attribute. This is reasonable if you want to
@@ -2064,7 +2064,7 @@ the service object is only created for host objects inside the `master`
 zone. In addition to that the [match](18-library-reference.md#global-functions-match)
 function ensures to only create services for the master nodes.
 
-### <a id="distributed-monitoring-windows-firewall"></a> Windows Firewall
+### Windows Firewall <a id="distributed-monitoring-windows-firewall"></a>
 
 By default ICMP requests are disabled in the Windows firewall. You can
 change that by [adding a new rule](https://support.microsoft.com/en-us/kb/947709).
@@ -2077,7 +2077,7 @@ you'll also need to ensure that port `5665` is enabled.
     C:\WINDOWS\system32>netsh advfirewall firewall add rule name="Open port 5665 (Icinga 2)" dir=in action=allow protocol=TCP localport=5665
 
 
-### <a id="distributed-monitoring-windows-plugins"></a> Windows Client and Plugins
+### Windows Client and Plugins <a id="distributed-monitoring-windows-plugins"></a>
 
 The Icinga 2 package on Windows already provides several plugins.
 Detailed [documentation](10-icinga-template-library.md#windows-plugins) is available for all check command definitions.
@@ -2088,7 +2088,7 @@ Add the following `include` statement on all your nodes (master, satellite, clie
 
     include <windows-plugins>
 
-Based on the [master with clients](6-distributed-monitoring.md#distributed-monitoring-master-clients)
+Based on the [master with clients](06-distributed-monitoring.md#distributed-monitoring-master-clients)
 scenario we'll now add a local disk check.
 
 First, add the client node as host object:
@@ -2128,30 +2128,30 @@ Open Icinga Web 2 and check your newly added Windows disk check :)
 
 ![Icinga 2 Client Windows](images/distributed-monitoring/icinga2_distributed_windows_client_disk_icingaweb2.png)
 
-If you want to add your own plugins please check [this chapter](5-service-monitoring.md#service-monitoring-requirements)
+If you want to add your own plugins please check [this chapter](05-service-monitoring.md#service-monitoring-requirements)
 for the requirements.
 
-### <a id="distributed-monitoring-windows-nscp"></a> Windows Client and NSClient++
+### Windows Client and NSClient++ <a id="distributed-monitoring-windows-nscp"></a>
 
 There are two methods available for querying NSClient++:
 
-* Query the [HTTP API](6-distributed-monitoring.md#distributed-monitoring-windows-nscp-check-api) locally or remotely (requires a running NSClient++ service)
-* Run a [local CLI check](6-distributed-monitoring.md#distributed-monitoring-windows-nscp-check-local) (does not require NSClient++ as a service)
+* Query the [HTTP API](06-distributed-monitoring.md#distributed-monitoring-windows-nscp-check-api) locally or remotely (requires a running NSClient++ service)
+* Run a [local CLI check](06-distributed-monitoring.md#distributed-monitoring-windows-nscp-check-local) (does not require NSClient++ as a service)
 
 Both methods have their advantages and disadvantages. One thing to
 note: If you rely on performance counter delta calculations such as
 CPU utilization, please use the HTTP API instead of the CLI sample call.
 
-#### <a id="distributed-monitoring-windows-nscp-check-api"></a> NSCLient++ with check_nscp_api
+#### NSCLient++ with check_nscp_api <a id="distributed-monitoring-windows-nscp-check-api"></a>
 
-The [Windows setup](6-distributed-monitoring.md#distributed-monitoring-setup-client-windows) already allows
+The [Windows setup](06-distributed-monitoring.md#distributed-monitoring-setup-client-windows) already allows
 you to install the NSClient++ package. In addition to the Windows plugins you can
 use the [nscp_api command](10-icinga-template-library.md#nscp-check-api) provided by the Icinga Template Library (ITL).
 
 The initial setup for the NSClient++ API and the required arguments
 is the described in the ITL chapter for the [nscp_api](10-icinga-template-library.md#nscp-check-api) CheckCommand.
 
-Based on the [master with clients](6-distributed-monitoring.md#distributed-monitoring-master-clients)
+Based on the [master with clients](06-distributed-monitoring.md#distributed-monitoring-master-clients)
 scenario we'll now add a local nscp check which queries the NSClient++ API to check the free disk space.
 
 Define a host object called `icinga2-client2.localdomain` on the master. Add the `nscp_api_password`
@@ -2169,7 +2169,7 @@ custom attribute and specify the drives to check.
         vars.drives = [ "C:", "D:" ]
     }
 
-The service checks are generated using an [apply for](3-monitoring-basics.md#using-apply-for)
+The service checks are generated using an [apply for](03-monitoring-basics.md#using-apply-for)
 rule based on `host.vars.drives`:
 
     [root@icinga2-master1.localdomain /etc/icinga2/zones.d/master]# vim services.conf
@@ -2210,9 +2210,9 @@ which defaults to `host.address`.
 You can verify the check execution by looking at the `Check Source` attribute
 in Icinga Web 2 or the REST API.
 
-#### <a id="distributed-monitoring-windows-nscp-check-local"></a> NSCLient++ with nscp-local
+#### NSCLient++ with nscp-local <a id="distributed-monitoring-windows-nscp-check-local"></a>
 
-The [Windows setup](6-distributed-monitoring.md#distributed-monitoring-setup-client-windows) already allows
+The [Windows setup](06-distributed-monitoring.md#distributed-monitoring-setup-client-windows) already allows
 you to install the NSClient++ package. In addition to the Windows plugins you can
 use the [nscp-local commands](10-icinga-template-library.md#nscp-plugin-check-commands)
 provided by the Icinga Template Library (ITL).
@@ -2228,7 +2228,7 @@ Add the following `include` statement on all your nodes (master, satellite, clie
 The CheckCommand definitions will automatically determine the installed path
 to the `nscp.exe` binary.
 
-Based on the [master with clients](6-distributed-monitoring.md#distributed-monitoring-master-clients)
+Based on the [master with clients](06-distributed-monitoring.md#distributed-monitoring-master-clients)
 scenario we'll now add a local nscp check querying a given performance counter.
 
 First, add the client node as host object:
@@ -2271,22 +2271,22 @@ Open Icinga Web 2 and check your newly added Windows NSClient++ check :)
 
 ![Icinga 2 Distributed Monitoring Windows Client with NSClient++ nscp-local](images/distributed-monitoring/icinga2_distributed_windows_nscp_counter_icingaweb2.png)
 
-## <a id="distributed-monitoring-advanced-hints"></a> Advanced Hints
+## Advanced Hints <a id="distributed-monitoring-advanced-hints"></a>
 
 You can find additional hints in this section if you prefer to go your own route
 with automating setups (setup, certificates, configuration).
 
-### <a id="distributed-monitoring-high-availability-features"></a> High-Availability for Icinga 2 Features
+### High-Availability for Icinga 2 Features <a id="distributed-monitoring-high-availability-features"></a>
 
 All nodes in the same zone require that you enable the same features for high-availability (HA).
 
 By default, the following features provide advanced HA functionality:
 
-* [Checks](6-distributed-monitoring.md#distributed-monitoring-high-availability-checks) (load balanced, automated failover).
-* [Notifications](6-distributed-monitoring.md#distributed-monitoring-high-availability-notifications) (load balanced, automated failover).
-* [DB IDO](6-distributed-monitoring.md#distributed-monitoring-high-availability-db-ido) (Run-Once, automated failover).
+* [Checks](06-distributed-monitoring.md#distributed-monitoring-high-availability-checks) (load balanced, automated failover).
+* [Notifications](06-distributed-monitoring.md#distributed-monitoring-high-availability-notifications) (load balanced, automated failover).
+* [DB IDO](06-distributed-monitoring.md#distributed-monitoring-high-availability-db-ido) (Run-Once, automated failover).
 
-#### <a id="distributed-monitoring-high-availability-checks"></a> High-Availability with Checks
+#### High-Availability with Checks <a id="distributed-monitoring-high-availability-checks"></a>
 
 All instances within the same zone (e.g. the `master` zone as HA cluster) must
 have the `checker` feature enabled.
@@ -2298,7 +2298,7 @@ Example:
 All nodes in the same zone load-balance the check execution. If one instance shuts down,
 the other nodes will automatically take over the remaining checks.
 
-#### <a id="distributed-monitoring-high-availability-notifications"></a> High-Availability with Notifications
+#### High-Availability with Notifications <a id="distributed-monitoring-high-availability-notifications"></a>
 
 All instances within the same zone (e.g. the `master` zone as HA cluster) must
 have the `notification` feature enabled.
@@ -2311,9 +2311,9 @@ Notifications are load-balanced amongst all nodes in a zone. By default this fun
 is enabled.
 If your nodes should send out notifications independently from any other nodes (this will cause
 duplicated notifications if not properly handled!), you can set `enable_ha = false`
-in the [NotificationComponent](9-object-types.md#objecttype-notificationcomponent) feature.
+in the [NotificationComponent](09-object-types.md#objecttype-notificationcomponent) feature.
 
-#### <a id="distributed-monitoring-high-availability-db-ido"></a> High-Availability with DB IDO
+#### High-Availability with DB IDO <a id="distributed-monitoring-high-availability-db-ido"></a>
 
 All instances within the same zone (e.g. the `master` zone as HA cluster) must
 have the DB IDO feature enabled.
@@ -2327,8 +2327,8 @@ the active IDO database connection at runtime. The node with the active DB IDO c
 not necessarily the zone master.
 
 **Note**: The DB IDO HA feature can be disabled by setting the `enable_ha` attribute to `false`
-for the [IdoMysqlConnection](9-object-types.md#objecttype-idomysqlconnection) or
-[IdoPgsqlConnection](9-object-types.md#objecttype-idopgsqlconnection) object on **all** nodes in the
+for the [IdoMysqlConnection](09-object-types.md#objecttype-idomysqlconnection) or
+[IdoPgsqlConnection](09-object-types.md#objecttype-idopgsqlconnection) object on **all** nodes in the
 **same** zone.
 
 All endpoints will enable the DB IDO feature and connect to the configured
@@ -2351,9 +2351,9 @@ This is useful when the cluster connection between endpoints breaks, and prevent
 data duplication in split-brain-scenarios. The failover timeout can be set for the
 `failover_timeout` attribute, but not lower than 60 seconds.
 
-### <a id="distributed-monitoring-advanced-hints-connection-direction"></a> Endpoint Connection Direction
+### Endpoint Connection Direction <a id="distributed-monitoring-advanced-hints-connection-direction"></a>
 
-Nodes will attempt to connect to another node when its local [Endpoint](9-object-types.md#objecttype-endpoint) object
+Nodes will attempt to connect to another node when its local [Endpoint](09-object-types.md#objecttype-endpoint) object
 configuration specifies a valid `host` attribute (FQDN or IP address).
 
 Example for the master node `icinga2-master1.localdomain` actively connecting
@@ -2388,17 +2388,17 @@ and close the second connection if established.
 or vice versa.
 
 
-### <a id="distributed-monitoring-advanced-hints-command-endpoint-log-duration"></a> Disable Log Duration for Command Endpoints
+### Disable Log Duration for Command Endpoints <a id="distributed-monitoring-advanced-hints-command-endpoint-log-duration"></a>
 
 The replay log is a built-in mechanism to ensure that nodes in a distributed setup
 keep the same history (check results, notifications, etc.) when nodes are temporarily
 disconnected and then reconnect.
 
 This functionality is not needed when a master/satellite node is sending check
-execution events to a client which is purely configured for [command endpoint](6-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint)
+execution events to a client which is purely configured for [command endpoint](06-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint)
 checks only.
 
-The [Endpoint](9-object-types.md#objecttype-endpoint) object attribute `log_duration` can
+The [Endpoint](09-object-types.md#objecttype-endpoint) object attribute `log_duration` can
 be lower or set to 0 to fully disable any log replay updates when the
 client is not connected.
 
@@ -2434,7 +2434,7 @@ Configuration on the client `icinga2-client1.localdomain`:
       log_duration = 0
     }
 
-### <a id="distributed-monitoring-advanced-hints-csr-autosigning-ha-satellites"></a> CSR auto-signing with HA and multiple Level Cluster
+### CSR auto-signing with HA and multiple Level Cluster <a id="distributed-monitoring-advanced-hints-csr-autosigning-ha-satellites"></a>
 
 If you are using two masters in a High-Availability setup it can be necessary
 to allow both to sign requested certificates. Ensure to safely sync the following
@@ -2443,14 +2443,14 @@ details in private:
 * `TicketSalt` constant in `constants.conf`.
 * `var/lib/icinga2/ca` directory.
 
-This also helps if you are using a [three level cluster](6-distributed-monitoring.md#distributed-monitoring-scenarios-master-satellite-client)
+This also helps if you are using a [three level cluster](06-distributed-monitoring.md#distributed-monitoring-scenarios-master-satellite-client)
 and your client nodes are not able to reach the CSR auto-signing master node(s).
 Make sure that the directory permissions for `/var/lib/icinga2/ca` are secure
 (not world readable).
 
 **Do not expose these private keys to anywhere else. This is a matter of security.**
 
-### <a id="distributed-monitoring-advanced-hints-certificates"></a> Manual Certificate Creation
+### Manual Certificate Creation <a id="distributed-monitoring-advanced-hints-certificates"></a>
 
 Choose the host which should store the certificate authority (one of the master nodes).
 
@@ -2500,22 +2500,22 @@ Example for creating multiple certificates at once:
     information/pki: Writing certificate to file 'icinga2-satellite1.localdomain.crt'.
 
 
-## <a id="distributed-monitoring-automation"></a> Automation
+## Automation <a id="distributed-monitoring-automation"></a>
 
 These hints should get you started with your own automation tools (Puppet, Ansible, Chef, Salt, etc.)
 or custom scripts for automated setup.
 
 These are collected best practices from various community channels.
 
-* [Silent Windows setup](6-distributed-monitoring.md#distributed-monitoring-automation-windows-silent)
-* [Node Setup CLI command](6-distributed-monitoring.md#distributed-monitoring-automation-cli-node-setup) with parameters
+* [Silent Windows setup](06-distributed-monitoring.md#distributed-monitoring-automation-windows-silent)
+* [Node Setup CLI command](06-distributed-monitoring.md#distributed-monitoring-automation-cli-node-setup) with parameters
 
 If you prefer an alternate method, we still recommend leaving all the Icinga 2 features intact (e.g. `icinga2 feature enable api`).
 You should also use well known and documented default configuration file locations (e.g. `zones.conf`).
 This will tremendously help when someone is trying to help in the [community channels](https://www.icinga.com/community/get-involved/).
 
 
-### <a id="distributed-monitoring-automation-windows-silent"></a> Silent Windows Setup
+### Silent Windows Setup <a id="distributed-monitoring-automation-windows-silent"></a>
 
 If you want to install the client silently/unattended, use the `/qn` modifier. The
 installation should not trigger a restart, but if you want to be completly sure, you can use the `/norestart` modifier.
@@ -2524,7 +2524,7 @@ installation should not trigger a restart, but if you want to be completly sure,
 
 Once the setup is completed you can use the `node setup` cli command too.
 
-### <a id="distributed-monitoring-automation-cli-node-setup"></a> Node Setup using CLI Parameters
+### Node Setup using CLI Parameters <a id="distributed-monitoring-automation-cli-node-setup"></a>
 
 Instead of using the `node wizard` CLI command, there is an alternative `node setup`
 command available which has some prerequisites.
@@ -2532,7 +2532,7 @@ command available which has some prerequisites.
 **Note**: The CLI command can be used on Linux/Unix and Windows operating systems.
 The graphical Windows setup wizard actively uses these CLI commands.
 
-#### <a id="distributed-monitoring-automation-cli-node-setup-master"></a> Node Setup on the Master Node
+#### Node Setup on the Master Node <a id="distributed-monitoring-automation-cli-node-setup-master"></a>
 
 In case you want to setup a master node you must add the `--master` parameter
 to the `node setup` CLI command. In addition to that the `--cn` can optionally
@@ -2553,7 +2553,7 @@ host/port you can specify it like this:
     --listen 192.68.56.101,5665
 
 
-#### <a id="distributed-monitoring-automation-cli-node-setup-satellite-client"></a> Node Setup with Satellites/Clients
+#### Node Setup with Satellites/Clients <a id="distributed-monitoring-automation-cli-node-setup-satellite-client"></a>
 
 Make sure that the `/etc/icinga2/pki` exists and is owned by the `icinga`
 user (or the user Icinga 2 is running as).
@@ -2602,13 +2602,13 @@ Pass the following details to the `node setup` CLI command:
   Parameter           | Description
   --------------------|--------------------
   Common name (CN)    | **Optional.** Specified with the `--cn` parameter. By convention this should be the host's FQDN.
-  Request ticket      | **Required.** Add the previously generated [ticket number](6-distributed-monitoring.md#distributed-monitoring-setup-csr-auto-signing).
+  Request ticket      | **Required.** Add the previously generated [ticket number](06-distributed-monitoring.md#distributed-monitoring-setup-csr-auto-signing).
   Trusted master certicate | **Required.** Add the previously fetched trusted master certificate (this step means that you've verified its origin).
   Master endpoint     | **Required.** Specify the master's endpoint name.
   Client zone name    | **Required.** Specify the client's zone name.
   Master host         | **Required.** FQDN or IP address of the master host.
-  Accept config       | **Optional.** Whether this node accepts configuration sync from the master node (required for [config sync mode](6-distributed-monitoring.md#distributed-monitoring-top-down-config-sync)).
-  Accept commands     | **Optional.** Whether this node accepts command execution messages from the master node (required for [command endpoint mode](6-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint)).
+  Accept config       | **Optional.** Whether this node accepts configuration sync from the master node (required for [config sync mode](06-distributed-monitoring.md#distributed-monitoring-top-down-config-sync)).
+  Accept commands     | **Optional.** Whether this node accepts command execution messages from the master node (required for [command endpoint mode](06-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint)).
 
 Example:
 
@@ -2641,12 +2641,12 @@ Add an additional global zone. Please note the `>>` append mode.
 
 Note: Packages >= 2.7 provide this configuration by default.
 
-If this client node is configured as [remote command endpoint execution](6-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint)
+If this client node is configured as [remote command endpoint execution](06-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint)
 you can safely disable the `checker` feature. The `node setup` CLI command already disabled the `notification` feature.
 
     [root@icinga2-client1.localdomain /]# icinga2 feature disable checker
 
-Disable "conf.d" inclusion if this is a [top down](6-distributed-monitoring.md#distributed-monitoring-top-down)
+Disable "conf.d" inclusion if this is a [top down](06-distributed-monitoring.md#distributed-monitoring-top-down)
 configured client.
 
     [root@icinga2-client1.localdomain /]# sed -i 's/include_recursive "conf.d"/\/\/include_recursive "conf.d"/g' /etc/icinga2/icinga2.conf

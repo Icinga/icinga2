@@ -1,4 +1,4 @@
-# <a id="script-debugger"></a> Script Debugger
+# Script Debugger <a id="script-debugger"></a>
 
 You can run the Icinga 2 daemon with the `-X` (`--script-debugger`)
 parameter to enable the script debugger:
@@ -14,9 +14,9 @@ Here is a list of common errors which can be diagnosed with the script debugger:
 * Configuration errors (apply)
 * Errors in user-defined functions
 
-## <a id="script-debugger-config-errors"></a> Debugging Configuration Errors
+## Debugging Configuration Errors <a id="script-debugger-config-errors"></a>
 
-The following example illustrates the problem of a service [apply rule](3-monitoring-basics.md#using-apply-for)
+The following example illustrates the problem of a service [apply rule](03-monitoring-basics.md#using-apply-for)
 which expects a dictionary value for `config`, but the host custom attribute only
 provides a string value:
 
@@ -76,7 +76,7 @@ you can inspect attributes of the service object:
 
 Additionally you can view the service object attributes by printing the value of `this`.
 
-## <a id="script-debugger-breakpoints"></a> Using Breakpoints
+## Using Breakpoints <a id="script-debugger-breakpoints"></a>
 
 In order to halt execution in a script you can use the `debugger` keyword:
 

@@ -1,6 +1,6 @@
-# <a id="troubleshooting"></a> Icinga 2 Troubleshooting
+# Icinga 2 Troubleshooting <a id="troubleshooting"></a>
 
-## <a id="troubleshooting-information-required"></a> Required Information
+## Required Information <a id="troubleshooting-information-required"></a>
 
 Please ensure to provide any detail which may help reproduce and understand your issue.
 Whether you ask on the community channels or you create an issue at [GitHub](https://github.com/Icinga), make sure
@@ -22,8 +22,8 @@ findings and details please.
 	* [Icinga Web 2 modules](https://www.icinga.com/products/icinga-web-2-modules/) e.g. the Icinga Director (optional)
 * Configuration insights:
 	* Provide complete configuration snippets explaining your problem in detail
-	* Your [icinga2.conf](4-configuring-icinga-2.md#icinga2-conf) file
-	* If you run multiple Icinga 2 instances, the [zones.conf](4-configuring-icinga-2.md#zones-conf) file (or `icinga2 object list --type Endpoint` and `icinga2 object list --type Zone`) from all affected nodes.
+	* Your [icinga2.conf](04-configuring-icinga-2.md#icinga2-conf) file
+	* If you run multiple Icinga 2 instances, the [zones.conf](04-configuring-icinga-2.md#zones-conf) file (or `icinga2 object list --type Endpoint` and `icinga2 object list --type Zone`) from all affected nodes.
 * Logs
 	* Relevant output from your main and [debug log](15-troubleshooting.md#troubleshooting-enable-debug-output) in `/var/log/icinga2`. Please add step-by-step explanations with timestamps if required.
 	* The newest Icinga 2 crash log if relevant, located in `/var/log/icinga2/crash`
@@ -31,7 +31,7 @@ findings and details please.
 	* If the check command failed, what's the output of your manual plugin tests?
 	* In case of [debugging](20-development.md#development) Icinga 2, the full back traces and outputs
 
-## <a id="troubleshooting-analyze-environment"></a> Analyze your Environment
+## Analyze your Environment <a id="troubleshooting-analyze-environment"></a>
 
 There are many components involved on a server running Icinga 2. When you
 analyze a problem, keep in mind that basic system administration knowledge
@@ -39,7 +39,7 @@ is also key to identify bottlenecks and issues.
 
 > **Tip**
 >
-> [Monitor Icinga 2](8-advanced-topics.md#monitoring-icinga) and use the hints for further analysis.
+> [Monitor Icinga 2](08-advanced-topics.md#monitoring-icinga) and use the hints for further analysis.
 
 * Analyze the system's performance and dentify bottlenecks and issues.
 * Collect details about all applications (e.g. Icinga 2, MySQL, Apache, Graphite, Elastic, etc.).
@@ -48,7 +48,7 @@ is also key to identify bottlenecks and issues.
 
 Install tools which help you to do so. Opinions differ, let us know if you have any additions here!
 
-### <a id="troubleshooting-analyze-environment-linux"></a> Analyse your Linux/Unix Environment
+### Analyse your Linux/Unix Environment <a id="troubleshooting-analyze-environment-linux"></a>
 
 [htop](https://hisham.hm/htop/) is a better replacement for `top` and helps to analyze processes
 interactively.
@@ -99,7 +99,7 @@ sar -b //I/O
 
 If you are missing checks and metrics found in your analysis, add them to your monitoring!
 
-### <a id="troubleshooting-analyze-environment-windows"></a> Analyze your Windows Environment
+### Analyze your Windows Environment <a id="troubleshooting-analyze-environment-windows"></a>
 
 A good tip for Windows are the tools found inside the [Sysinternals Suite](https://technet.microsoft.com/en-us/sysinternals/bb842062.aspx).
 
@@ -107,9 +107,9 @@ You can also start `perfmon` and analyze specific performance counters.
 Keep notes which could be important for your monitoring, and add service
 checks later on.
 
-## <a id="troubleshooting-enable-debug-output"></a> Enable Debug Output
+## Enable Debug Output <a id="troubleshooting-enable-debug-output"></a>
 
-### <a id="troubleshooting-enable-debug-output-linux"></a> Enable Debug Output on Linux/Unix
+### Enable Debug Output on Linux/Unix <a id="troubleshooting-enable-debug-output-linux"></a>
 
 Enable the `debuglog` feature:
 
@@ -123,10 +123,10 @@ log severity as an additional parameter argument to `-x`.
 
     # /usr/sbin/icinga2 daemon -x notice
 
-The [log severity](9-object-types.md#objecttype-filelogger) can be one of `critical`, `warning`, `information`, `notice`
+The [log severity](09-object-types.md#objecttype-filelogger) can be one of `critical`, `warning`, `information`, `notice`
 and `debug`.
 
-### <a id="troubleshooting-enable-debug-output-windows"></a> Enable Debug Output on Windows
+### Enable Debug Output on Windows <a id="troubleshooting-enable-debug-output-windows"></a>
 
 Open a command prompt with administrative privileges and enable the debug log feature.
 
@@ -138,7 +138,7 @@ Restart the Icinga 2 service and open the newly created `debug.log` file.
     C:> net stop icinga2
     C:> net start icinga2
 
-## <a id="list-configuration-objects"></a> List Configuration Objects
+## List Configuration Objects <a id="list-configuration-objects"></a>
 
 The `icinga2 object list` CLI command can be used to list all configuration objects and their
 attributes. The tool also shows where each of the attributes was modified.
@@ -210,7 +210,7 @@ are not immediately updated. Furthermore there is a known issue with
 You need to restart Icinga 2 in order to update the `icinga2.debug` cache file.
 
 
-## <a id="check-command-definitions"></a> Where are the check command definitions?
+## Where are the check command definitions? <a id="check-command-definitions"></a>
 
 Icinga 2 features a number of built-in [check command definitions](10-icinga-template-library.md#plugin-check-commands) which are
 included with
@@ -218,16 +218,16 @@ included with
     include <itl>
     include <plugins>
 
-in the [icinga2.conf](4-configuring-icinga-2.md#icinga2-conf) configuration file. These files are not considered configuration files and will be overridden
+in the [icinga2.conf](04-configuring-icinga-2.md#icinga2-conf) configuration file. These files are not considered configuration files and will be overridden
 on upgrade, so please send modifications as proposed patches upstream. The default include path is set to
 `LocalStateDir + "/share/icinga2/includes"`.
 
 You should add your own command definitions to a new file in `conf.d/` called `commands.conf`
 or similar.
 
-## <a id="troubleshooting-checks"></a> Checks
+## Checks <a id="troubleshooting-checks"></a>
 
-### <a id="checks-executed-command"></a> Executed Command for Checks
+### Executed Command for Checks <a id="checks-executed-command"></a>
 
 * Use the Icinga 2 API to [query](12-icinga2-api.md#icinga2-api-config-objects-query) host/service objects
 for their check result containing the executed shell command.
@@ -287,7 +287,7 @@ Example for searching the debug log:
     # tail -f /var/log/icinga2/debug.log | grep "notice/Process"
 
 
-### <a id="checks-not-executed"></a> Checks are not executed
+### Checks are not executed <a id="checks-not-executed"></a>
 
 * Check the [debug log](15-troubleshooting.md#troubleshooting-enable-debug-output) to see if the check command gets executed.
 * Verify that failed depedencies do not prevent command execution.
@@ -307,7 +307,7 @@ Fetch all check result events matching the `event.service` name `random`:
     $ curl -k -s -u root:icinga -X POST 'https://localhost:5665/v1/events?queue=debugchecks&types=CheckResult&filter=match%28%22random*%22,event.service%29'
 
 
-### <a id="check-fork-errors"></a> Check Fork Errors
+### Check Fork Errors <a id="check-fork-errors"></a>
 
 We've learned that newer kernel versions introduce a [fork limit for cgroups](https://lwn.net/Articles/663873/)
 which is enabled in SLES 12 SP2+ for example. The default value
@@ -335,7 +335,7 @@ or set it to `infinity`:
 
 Please note that this setting is available since Systemd version 226.
 
-### <a id="late-check-results"></a> Late Check Results
+### Late Check Results <a id="late-check-results"></a>
 
 [Icinga Web 2](https://www.icinga.com/products/icinga-web-2/) provides
 a dashboard overview for `overdue checks`.
@@ -379,7 +379,7 @@ and repeat the commands.
 More details about the Icinga 2 DSL and its possibilities can be
 found in the [language](17-language-reference.md#language-reference) and [library](18-library-reference.md#library-reference) reference chapters.
 
-### <a id="late-check-results-distributed"></a> Late Check Results in Distributed Environments
+### Late Check Results in Distributed Environments <a id="late-check-results-distributed"></a>
 
 When it comes to a distributed HA setup, each node is responsible for a load-balanced amount of checks.
 Host and Service objects provide the attribute `paused`. If this is set to `false`, the current node
@@ -397,7 +397,7 @@ found a bug in the cluster.
 
 
 If you are running a cluster setup where the master/satellite executes checks on the client via
-[top down command endpoint](6-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint) mode,
+[top down command endpoint](06-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint) mode,
 you might want to know which zones are affected.
 
 This analysis assumes that clients which are not connected, have the string `connected` in their
@@ -414,7 +414,7 @@ service check result output and their state is `UNKNOWN`.
 The result set shows the configured zones and their affected hosts in a unique list. The output also just prints the numbers
 but you can adjust this by omitting the `len()` call inside the for loop.
 
-## <a id="notifications-not-sent"></a> Notifications are not sent
+## Notifications are not sent <a id="notifications-not-sent"></a>
 
 * Check the [debug log](15-troubleshooting.md#troubleshooting-enable-debug-output) to see if a notification is triggered.
 * If yes, verify that all conditions are satisfied.
@@ -426,14 +426,14 @@ to any question or issue posted to the community channels.
 Verify the following configuration:
 
 * Is the host/service `enable_notifications` attribute set, and if so, to which value?
-* Do the [notification](9-object-types.md#objecttype-notification) attributes `states`, `types`, `period` match the notification conditions?
-* Do the [user](9-object-types.md#objecttype-user) attributes `states`, `types`, `period` match the notification conditions?
+* Do the [notification](09-object-types.md#objecttype-notification) attributes `states`, `types`, `period` match the notification conditions?
+* Do the [user](09-object-types.md#objecttype-user) attributes `states`, `types`, `period` match the notification conditions?
 * Are there any notification `begin` and `end` times configured?
 * Make sure the [notification](11-cli-commands.md#enable-features) feature is enabled.
 * Does the referenced NotificationCommand work when executed as Icinga user on the shell?
 
 If notifications are to be sent via mail, make sure that the mail program specified inside the
-[NotificationCommand object](9-object-types.md#objecttype-notificationcommand) exists.
+[NotificationCommand object](09-object-types.md#objecttype-notificationcommand) exists.
 The name and location depends on the distribution so the preconfigured setting might have to be
 changed on your system.
 
@@ -448,14 +448,14 @@ You can use the Icinga 2 API [event streams](12-icinga2-api.md#icinga2-api-event
     $ curl -k -s -u root:icinga -X POST 'https://localhost:5665/v1/events?queue=debugnotifications&types=Notification'
 
 
-## <a id="feature-not-working"></a> Feature is not working
+## Feature is not working <a id="feature-not-working"></a>
 
 * Make sure that the feature configuration is enabled by symlinking from `features-available/`
-to `features-enabled` and that the latter is included in [icinga2.conf](4-configuring-icinga-2.md#icinga2-conf).
+to `features-enabled` and that the latter is included in [icinga2.conf](04-configuring-icinga-2.md#icinga2-conf).
 * Are the feature attributes set correctly according to the documentation?
 * Any errors on the logs?
 
-Look up the [object type](9-object-types.md#object-types) for the required feature and verify it is enabled:
+Look up the [object type](09-object-types.md#object-types) for the required feature and verify it is enabled:
 
     # icinga2 object list --type <feature object type>
 
@@ -463,18 +463,18 @@ Example for the `graphite` feature:
 
     # icinga2 object list --type GraphiteWriter
 
-## <a id="configuration-ignored"></a> Configuration is ignored
+## Configuration is ignored <a id="configuration-ignored"></a>
 
 * Make sure that the line(s) are not [commented out](17-language-reference.md#comments) (starting with `//` or `#`, or
 encapsulated by `/* ... */`).
-* Is the configuration file included in [icinga2.conf](4-configuring-icinga-2.md#icinga2-conf)?
+* Is the configuration file included in [icinga2.conf](04-configuring-icinga-2.md#icinga2-conf)?
 
 Run the [configuration validation](11-cli-commands.md#config-validation) and add `notice` as log severity.
 Search for the file which should be included i.e. using the `grep` CLI command.
 
     # icinga2 daemon -C -x notice | grep command
 
-## <a id="configuration-attribute-inheritance"></a> Configuration attributes are inherited from
+## Configuration attributes are inherited from <a id="configuration-attribute-inheritance"></a>
 
 Icinga 2 allows you to import templates using the [import](17-language-reference.md#template-imports) keyword. If these templates
 contain additional attributes, your objects will automatically inherit them. You can override
@@ -482,10 +482,10 @@ or modify these attributes in the current object.
 
 The [object list](15-troubleshooting.md#list-configuration-objects) CLI command allows you to verify the attribute origin.
 
-## <a id="configuration-value-dollar-sign"></a> Configuration Value with Single Dollar Sign
+## Configuration Value with Single Dollar Sign <a id="configuration-value-dollar-sign"></a>
 
 In case your configuration validation fails with a missing closing dollar sign error message, you
-did not properly escape the single dollar sign preventing its usage as [runtime macro](3-monitoring-basics.md#runtime-macros).
+did not properly escape the single dollar sign preventing its usage as [runtime macro](03-monitoring-basics.md#runtime-macros).
 
     critical/config: Error: Validation failed for Object 'ping4' (Type: 'Service') at /etc/icinga2/zones.d/global-templates/windows.conf:24: Closing $ not found in macro format string 'top-syntax=${list}'.
 
@@ -493,11 +493,11 @@ Correct the custom attribute value to
 
     "top-syntax=$${list}"
 
-## <a id="troubleshooting-cluster"></a> Cluster and Clients Troubleshooting
+## Cluster and Clients Troubleshooting <a id="troubleshooting-cluster"></a>
 
-This applies to any Icinga 2 node in a [distributed monitoring setup](6-distributed-monitoring.md#distributed-monitoring-scenarios).
+This applies to any Icinga 2 node in a [distributed monitoring setup](06-distributed-monitoring.md#distributed-monitoring-scenarios).
 
-You should configure the [cluster health checks](6-distributed-monitoring.md#distributed-monitoring-health-checks) if you haven't
+You should configure the [cluster health checks](06-distributed-monitoring.md#distributed-monitoring-health-checks) if you haven't
 done so already.
 
 > **Note**
@@ -505,7 +505,7 @@ done so already.
 > Some problems just exist due to wrong file permissions or applied packet filters. Make
 > sure to check these in the first place.
 
-### <a id="troubleshooting-cluster-connection-errors"></a> Cluster Troubleshooting Connection Errors
+### Cluster Troubleshooting Connection Errors <a id="troubleshooting-cluster-connection-errors"></a>
 
 General connection errors could be one of the following problems:
 
@@ -522,7 +522,7 @@ works (default port is `5665`).
 
     # nmap yourclusternode.localdomain
 
-### <a id="troubleshooting-cluster-ssl-errors"></a> Cluster Troubleshooting SSL Errors
+### Cluster Troubleshooting SSL Errors <a id="troubleshooting-cluster-ssl-errors"></a>
 
 If the cluster communication fails with SSL error messages, make sure to check
 the following
@@ -565,7 +565,7 @@ Try to manually connect from `icinga2-node2.localdomain` to the master node `ici
 
 If the connection attempt fails or your CA does not match, [verify the master and client certificates](15-troubleshooting.md#troubleshooting-cluster-ssl-certificate-verification).
 
-#### <a id="troubleshooting-cluster-unauthenticated-clients"></a> Cluster Troubleshooting Unauthenticated Clients
+#### Cluster Troubleshooting Unauthenticated Clients <a id="troubleshooting-cluster-unauthenticated-clients"></a>
 
 Unauthenticated nodes are able to connect. This is required for client setups.
 
@@ -579,7 +579,7 @@ Client as command execution bridge:
 
 If these messages do not go away, make sure to [verify the master and client certificates](15-troubleshooting.md#troubleshooting-cluster-ssl-certificate-verification).
 
-#### <a id="troubleshooting-cluster-ssl-certificate-verification"></a> Cluster Troubleshooting SSL Certificate Verification
+#### Cluster Troubleshooting SSL Certificate Verification <a id="troubleshooting-cluster-ssl-certificate-verification"></a>
 
 Make sure to verify the client's certificate and its received `ca.crt` in `/etc/icinga2/pki` and ensure that
 both instances are signed by the **same CA**.
@@ -597,7 +597,7 @@ Fetch the `ca.crt` file from the client node and compare it to your master's `ca
 
 On SLES11 you'll need to use the `openssl1` command instead of `openssl`.
 
-### <a id="troubleshooting-cluster-message-errors"></a> Cluster Troubleshooting Message Errors
+### Cluster Troubleshooting Message Errors <a id="troubleshooting-cluster-message-errors"></a>
 
 At some point, when the network connection is broken or gone, the Icinga 2 instances
 will be disconnected. If the connection can't be re-established between endpoints in the same HA zone,
@@ -606,16 +606,16 @@ they remain in a Split-Brain-mode and history may differ.
 Although the Icinga 2 cluster protocol stores historical events in a [replay log](15-troubleshooting.md#troubleshooting-cluster-replay-log)
 for later synchronisation, you should make sure to check why the network connection failed.
 
-### <a id="troubleshooting-cluster-command-endpoint-errors"></a> Cluster Troubleshooting Command Endpoint Errors
+### Cluster Troubleshooting Command Endpoint Errors <a id="troubleshooting-cluster-command-endpoint-errors"></a>
 
-Command endpoints can be used [for clients](6-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint)
-as well as inside an [High-Availability cluster](6-distributed-monitoring.md#distributed-monitoring-scenarios).
+Command endpoints can be used [for clients](06-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint)
+as well as inside an [High-Availability cluster](06-distributed-monitoring.md#distributed-monitoring-scenarios).
 
 There is no cli command for manually executing the check, but you can verify
 the following (e.g. by invoking a forced check from the web interface):
 
 * `/var/log/icinga2/icinga2.log` contains connection and execution errors.
- * The ApiListener is not enabled to [accept commands](6-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint).
+ * The ApiListener is not enabled to [accept commands](06-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint).
  * `CheckCommand` definition not found on the remote client.
  * Referenced check plugin not found on the remote client.
  * Runtime warnings and errors, e.g. unresolved runtime macros or configuration problems.
@@ -631,7 +631,7 @@ Fetch all check result events matching the `event.service` name `remote-client`:
 
 
 
-### <a id="troubleshooting-cluster-config-sync"></a> Cluster Troubleshooting Config Sync
+### Cluster Troubleshooting Config Sync <a id="troubleshooting-cluster-config-sync"></a>
 
 If the cluster zones do not sync their configuration, make sure to check the following:
 
@@ -639,24 +639,24 @@ If the cluster zones do not sync their configuration, make sure to check the fol
 ** The master syncs the configuration to `/var/lib/icinga2/api/zones/` during startup and only syncs valid configuration to the other nodes.
 ** The other nodes receive the configuration into `/var/lib/icinga2/api/zones/`.
 * The `icinga2.log` log file in `/var/log/icinga2` will indicate whether this ApiListener
-[accepts config](6-distributed-monitoring.md#distributed-monitoring-top-down-config-sync), or not.
+[accepts config](06-distributed-monitoring.md#distributed-monitoring-top-down-config-sync), or not.
 
-Verify the object's [version](9-object-types.md#object-types) attribute on all nodes to
+Verify the object's [version](09-object-types.md#object-types) attribute on all nodes to
 check whether the config update and reload was succesful or not.
 
-### <a id="troubleshooting-cluster-check-results"></a> Cluster Troubleshooting Overdue Check Results
+### Cluster Troubleshooting Overdue Check Results <a id="troubleshooting-cluster-check-results"></a>
 
 If your master does not receive check results (or any other events) from the child zones
 (satellite, clients, etc.), make sure to check whether the client sending in events
 is allowed to do so.
 
-The [distributed monitoring conventions](6-distributed-monitoring.md#distributed-monitoring-conventions)
+The [distributed monitoring conventions](06-distributed-monitoring.md#distributed-monitoring-conventions)
 apply. So, if there's a mismatch between your client node's endpoint name and its provided
 certificate's CN, the master will deny all events.
 
 > **Tip**
 >
-> [Icinga Web 2](2-getting-started.md#setting-up-icingaweb2) provides a dashboard view
+> [Icinga Web 2](02-getting-started.md#setting-up-icingaweb2) provides a dashboard view
 > for overdue check results.
 
 Enable the [debug log](15-troubleshooting.md#troubleshooting-enable-debug-output) on the master
@@ -674,7 +674,7 @@ in on the master:
     Discarding 'check result' message from 'icinga2b': Unauthorized access.
 
 
-### <a id="troubleshooting-cluster-replay-log"></a> Cluster Troubleshooting Replay Log
+### Cluster Troubleshooting Replay Log <a id="troubleshooting-cluster-replay-log"></a>
 
 If your `/var/lib/icinga2/api/log` directory grows, it generally means that your cluster
 cannot replay the log on connection loss and re-establishment. A master node for example
@@ -682,7 +682,7 @@ will store all events for not connected endpoints in the same and child zones.
 
 Check the following:
 
-* All clients are connected? (e.g. [cluster health check](6-distributed-monitoring.md#distributed-monitoring-health-checks)).
+* All clients are connected? (e.g. [cluster health check](06-distributed-monitoring.md#distributed-monitoring-health-checks)).
 * Check your [connection](15-troubleshooting.md#troubleshooting-cluster-connection-errors) in general.
 * Does the log replay work, e.g. are all events processed and the directory gets cleared up over time?
-* Decrease the `log_duration` attribute value for that specific [endpoint](9-object-types.md#objecttype-endpoint).
+* Decrease the `log_duration` attribute value for that specific [endpoint](09-object-types.md#objecttype-endpoint).

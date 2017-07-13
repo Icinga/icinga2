@@ -1,6 +1,6 @@
-# <a id="selinux"></a> SELinux
+# SELinux <a id="selinux"></a>
 
-## <a id="selinux-introduction"></a> Introduction
+## Introduction <a id="selinux-introduction"></a>
 
 SELinux is a mandatory access control (MAC) system on Linux which adds a fine-grained permission system for access to all system resources such as files, devices, networks and inter-process communication.
 
@@ -8,11 +8,11 @@ The most important questions are answered briefly in the [FAQ of the SELinux Pro
 
 This documentation will use a format similar to the SELinux User's and Administrator's Guide.
 
-### <a id="selinux-policy"></a> Policy
+### Policy <a id="selinux-policy"></a>
 
 Icinga 2 provides its own SELinux policy. Development target is a policy package for Red Hat Enterprise Linux 7 and derivatives running the targeted policy which confines Icinga 2 with all features and all checks executed. All other distributions will require some tweaks.
 
-### <a id="selinux-policy-installation"></a> Installation
+### Installation <a id="selinux-policy-installation"></a>
 
 There are two ways of installing the SELinux Policy for Icinga 2 on Enterprise Linux 7. The preferred way is to install the package. The other option involves installing the SELinux policy manually which might be necessary if you need some fixes which haven't made their way into a release yet.
 
@@ -31,7 +31,7 @@ If the system runs in enforcing mode and you encounter problems you can set Icin
 
 You can change the configured mode by editing `/etc/selinux/config` and the current mode by executing `setenforce 0`.
 
-#### <a id="selinux-policy-installation-package"></a> Package installation
+#### Package installation <a id="selinux-policy-installation-package"></a>
 
 Simply add the `icinga2-selinux` package to your installation.
 
@@ -43,7 +43,7 @@ Ensure that the `icinga2` process is running in its own `icinga2_t` domain after
     # ps -eZ | grep icinga2
     system_u:system_r:icinga2_t:s0   2825 ?        00:00:00 icinga2
 
-#### <a id="selinux-policy-installation-manual"></a> Manual installation
+#### Manual installation <a id="selinux-policy-installation-manual"></a>
 
 This section describes the installation to support development and testing. It assumes that Icinga 2 is already installed from packages and running on the system.
 
@@ -68,7 +68,7 @@ After that restart Icinga 2 and verify it running in its own domain `icinga2_t`.
     # ps -eZ | grep icinga2
     system_u:system_r:icinga2_t:s0   2825 ?        00:00:00 icinga2
 
-### <a id="selinux-policy-general"></a> General
+### General <a id="selinux-policy-general"></a>
 
 When the SELinux policy package for Icinga 2 is installed, the Icinga 2 daemon (icinga2) runs in its own domain `icinga2_t` and is separated from other confined services.
 
@@ -76,7 +76,7 @@ Files have to be labeled correctly in order for Icinga 2 to be able to access th
 
 Additionally the Apache web server is allowed to connect to Icinga 2's command pipe in order to allow web interfaces to send commands to icinga2. This will perhaps change later on while investigating Icinga Web 2 for SELinux!
 
-### <a id="selinux-policy-types"></a> Types
+### Types <a id="selinux-policy-types"></a>
 
 The command pipe is labeled `icinga2_command_t` and other services can request access to it by using the interface `icinga2_send_commands`.
 
@@ -98,7 +98,7 @@ If one of those plugin domains causes problems you can set it to permissive by e
 
 The policy provides a role `icinga2adm_r` for confining an user which enables an administrative user managing only Icinga 2 on the system. This user will also execute the plugins in their domain instead of the users one, so you can verify their execution with the same restrictions like they have when executed by icinga2.
 
-### <a id="selinux-policy-booleans"></a> Booleans
+### Booleans <a id="selinux-policy-booleans"></a>
 
 SELinux is based on the least level of access required for a service to run. Using booleans you can grant more access in a defined way. The Icinga 2 policy package provides the following booleans.
 
@@ -114,15 +114,15 @@ Having this boolean enabled allows httpd to write to the command pipe of icinga2
 
 Having this boolean enabled allows httpd to connect to the API of icinga2 (Ports labeled icinga2_port_t). This is enabled by default, if not needed you can disable it for more security.
 
-### <a id="selinux-policy-examples"></a> Configuration Examples
+### Configuration Examples <a id="selinux-policy-examples"></a>
 
-#### <a id="selinux-policy-examples-permissive"></a> Run the icinga2 service permissive
+#### Run the icinga2 service permissive <a id="selinux-policy-examples-permissive"></a>
 
 If problems occur while running the system in enforcing mode and those problems are only caused by the policy of the icinga2 domain, you can set this domain to permissive instead of the complete system. This can be done by executing `semanage permissive -a icinga2_t`.
 
 Make sure to report the bugs in the policy afterwards.
 
-#### <a id="selinux-policy-examples-plugin"></a> Confining a plugin
+#### Confining a plugin <a id="selinux-policy-examples-plugin"></a>
 
 Download and install a plugin, for example check_mysql_health.
 
@@ -146,7 +146,7 @@ In this case the plugin is monitoring a service, so it should be labeled `nagios
 
 The plugin still runs fine but if someone changes the script to do weird stuff it will fail to do so.
 
-#### <a id="selinux-policy-examples-connectall"></a> Allow icinga to connect to all ports.
+#### Allow icinga to connect to all ports. <a id="selinux-policy-examples-connectall"></a>
 
 You are running graphite on a different port than `2003` and want `icinga2` to connect to it.
 
@@ -174,7 +174,7 @@ Before you restart the icinga2 service allow it to connect to all ports by enabl
 
 If you restart the daemon now it will successfully connect to graphite.
 
-#### <a id="selinux-policy-examples-user"></a> Confining a user
+#### Confining a user <a id="selinux-policy-examples-user"></a>
 
 If you want to have an administrative account capable of only managing icinga2 and not the complete system, you can restrict the privileges by confining
 this user. This is completly optional!
@@ -225,7 +225,7 @@ Now try the commands again without providing the role and type and they will wor
     $ sudo systemctl reload httpd.service
     Failed to issue method call: Access denied
 
-## <a id="selinux-bugreports"></a> Bugreports
+## Bugreports <a id="selinux-bugreports"></a>
 
 If you experience any problems while running in enforcing mode try to reproduce it in permissive mode. If the problem persists it is not related to SELinux because in permissive mode SELinux will not deny anything.
 
