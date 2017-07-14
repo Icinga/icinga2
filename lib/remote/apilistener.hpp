@@ -82,7 +82,7 @@ public:
 
 	void AddHttpClient(const HttpServerConnection::Ptr& aclient);
 	void RemoveHttpClient(const HttpServerConnection::Ptr& aclient);
-	std::set<HttpServerConnection::Ptr> GetHttpClients(void) const;
+	void CheckHttpLiveness(void);
 
 	static double CalculateZoneLag(const Endpoint::Ptr& endpoint);
 
