@@ -1241,7 +1241,7 @@ void ApiListener::RemoveHttpClient(const HttpServerConnection::Ptr& aclient)
 	m_HttpClients.erase(aclient);
 }
 
-void ApiListener::CheckLiveness(void)
+void ApiListener::CheckHttpLiveness(void)
 {
         boost::mutex::scoped_lock(m_HttpLock);
         for (const HttpServerConnection::Ptr& client : m_HttpClients) {
