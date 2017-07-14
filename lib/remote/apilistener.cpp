@@ -1231,24 +1231,24 @@ std::set<JsonRpcConnection::Ptr> ApiListener::GetAnonymousClients(void) const
 
 void ApiListener::AddHttpClient(const HttpServerConnection::Ptr& aclient)
 {
-//	ObjectLock olock(this);                      // SR Locks API when stressed
 	boost::mutex::scoped_lock(m_HttpLock);
 	m_HttpClients.insert(aclient);
 }
 
+/* must hold m_HttpLock */
 void ApiListener::RemoveHttpClient(const HttpServerConnection::Ptr& aclient)
 {
-//	ObjectLock olock(this);			     // SR Locks API when stressed
-	boost::mutex::scoped_lock(m_HttpLock);
 	m_HttpClients.erase(aclient);
 }
 
-std::set<HttpServerConnection::Ptr> ApiListener::GetHttpClients(void) const
+void ApiListener::CheckLiveness(void)
 {
-//	ObjectLock olock(this);			    // SR Locks API when stressed
-	boost::mutex::scoped_lock(m_HttpLock);
-	return m_HttpClients;
+        boost::mutex::scoped_lock(m_HttpLock);
+        for (const HttpServerConnection::Ptr& client : m_HttpClients) {
+              client->CheckLiveness();
+        }
 }
+
 
 Value ApiListener::HelloAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
 {
