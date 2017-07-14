@@ -82,7 +82,7 @@ public:
 
 	void AddHttpClient(const HttpServerConnection::Ptr& aclient);
 	void RemoveHttpClient(const HttpServerConnection::Ptr& aclient);
-	std::set<HttpServerConnection::Ptr> GetHttpClients(void) const;
+	void CheckHttpLiveness(void);
 
 	static double CalculateZoneLag(const Endpoint::Ptr& endpoint);
 
@@ -133,7 +133,8 @@ private:
 
 	WorkQueue m_RelayQueue;
 	WorkQueue m_SyncQueue;
-
+	
+	boost::mutex m_HttpLock;
 	boost::mutex m_LogLock;
 	Stream::Ptr m_LogFile;
 	size_t m_LogMessageCount;
