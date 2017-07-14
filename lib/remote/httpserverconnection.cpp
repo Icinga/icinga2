@@ -261,7 +261,6 @@ void HttpServerConnection::CheckLiveness(void)
 void HttpServerConnection::TimeoutTimerHandler(void)
 {
 	ApiListener::Ptr listener = ApiListener::GetInstance();
-
 	listener->CheckLiveness();
 }
 
