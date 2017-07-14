@@ -46,6 +46,7 @@ public:
 	ApiUser::Ptr GetApiUser(void) const;
 	bool IsAuthenticated(void) const;
 	TlsStream::Ptr GetStream(void) const;
+	void CheckLiveness(void);
 
 	void Disconnect(void);
 
@@ -65,7 +66,6 @@ private:
 
 	static void StaticInitialize(void);
 	static void TimeoutTimerHandler(void);
-	void CheckLiveness(void);
 
 	void ProcessMessageAsync(HttpRequest& request);
 };
