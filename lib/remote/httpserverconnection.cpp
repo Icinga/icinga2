@@ -94,9 +94,6 @@ void HttpServerConnection::Disconnect(void)
 	m_CurrentRequest.~HttpRequest();
 	new (&m_CurrentRequest) HttpRequest(Stream::Ptr());
 
-	Log(LogDebug, "HttpServerConnection") 
-		<< "Http client " << m_Stream->GetSocket()->GetPeerAddress() << " disconnected";
-
 }
 
 bool HttpServerConnection::ProcessMessage(void)
