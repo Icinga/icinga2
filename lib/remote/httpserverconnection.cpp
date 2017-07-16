@@ -59,7 +59,9 @@ void HttpServerConnection::StaticInitialize(void)
 void HttpServerConnection::Start(void)
 {
 	/* the stream holds an owning reference to this object through the callback we're registering here */
-	m_Stream->RegisterDataHandler(boost::bind(&HttpServerConnection::DataAvailableHandler, HttpServerConnection::Ptr(this)));
+	m_Stream->RegisterDataHandler(boost::bind(&HttpServerConnection::DataAvailableHandler, 
+		HttpServerConnection::Ptr(this)));
+
 	if (m_Stream->IsDataAvailable())
 		DataAvailableHandler();
 }
@@ -84,13 +86,16 @@ void HttpServerConnection::Disconnect(void)
 	while(m_PendingRequests){ 
 		/* Wait more, we are still busy let the eventshandler die in piece first */
 		/* TODO: Please make this work with some waitlock or something */
-		Log(LogWarning, "HttpServerConnection", "Http client " << m_Stream->GetSocket()->GetPeerAddress() << " disconnect delayed for 15 seconds...");
+		Log(LogWarning, "HttpServerConnection") 
+			<< "Http client " << m_Stream->GetSocket()->GetPeerAddress() 
+			<< " disconnect delayed for 15 seconds...";
 		boost::this_thread::sleep_for(boost::chrono::seconds(15));
         }
 	m_CurrentRequest.~HttpRequest();
 	new (&m_CurrentRequest) HttpRequest(Stream::Ptr());
 
-	Log(LogDebug, "HttpServerConnection", "Http client " << m_Stream->GetSocket()->GetPeerAddress() << " disconnected");
+	Log(LogDebug, "HttpServerConnection") 
+		<< "Http client " << m_Stream->GetSocket()->GetPeerAddress() << " disconnected";
 
 }
 
@@ -174,7 +179,8 @@ void HttpServerConnection::ProcessMessageAsync(HttpRequest& request)
 
 	Log(LogInformation, "HttpServerConnection")
 	    << "Request: " << request.RequestMethod << " " << requestUrl
-	    << " (from " << m_Stream->GetSocket()->GetPeerAddress() << ", user: " << (user ? user->GetName() : "<unauthenticated>") << ")";
+	    << " (from " << m_Stream->GetSocket()->GetPeerAddress() 
+	    << ", user: " << (user ? user->GetName() : "<unauthenticated>") << ")";
 
 	HttpResponse response(m_Stream, request);
 
@@ -260,7 +266,8 @@ void HttpServerConnection::CheckLiveness(void)
 {
 	if (m_Seen < Utility::GetTime() - 10 && m_PendingRequests == 0) {
 		Log(LogInformation, "HttpServerConnection")
-		    <<  "No messages for Http connection " <<  m_Stream->GetSocket()->GetPeerAddress() << " have been received in the last 10 seconds.";
+		    <<  "No messages for Http connection " <<  m_Stream->GetSocket()->GetPeerAddress() 
+		    << " have been received in the last 10 seconds.";
 		Disconnect();
 	}
 }
