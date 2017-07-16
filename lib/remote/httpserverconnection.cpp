@@ -38,7 +38,7 @@ static boost::once_flag l_HttpServerConnectionOnceFlag = BOOST_ONCE_INIT;
 static Timer::Ptr l_HttpServerConnectionTimeoutTimer;
 
 HttpServerConnection::HttpServerConnection(const String& identity, bool authenticated, const TlsStream::Ptr& stream)
-	: m_Stream(stream), m_Seen(Utility::GetTime()), m_CurrentRequest(stream), m_PendingRequests(0)
+	: m_Stream(stream), m_Seen(Utility::GetTime()), m_CurrentRequest(stream), m_PendingRequests(0), m_Connected(true)
 {
 	boost::call_once(l_HttpServerConnectionOnceFlag, &HttpServerConnection::StaticInitialize);
 
@@ -76,15 +76,25 @@ TlsStream::Ptr HttpServerConnection::GetStream(void) const
 
 void HttpServerConnection::Disconnect(void)
 {
-	Log(LogDebug, "HttpServerConnection", "Http client disconnected");
+	if(!m_Connected)
+		return;
+
+	m_Connected=false;
+
+	Log(LogDebug, "HttpServerConnection", "Http client " << m_Stream->GetSocket()->GetPeerAddress() << " disconnected");
 
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 	listener->RemoveHttpClient(this);
 
+	m_Stream->Close();
+	if(m_PendingRequests && !m_CurrentRequest.Complete){ 
+		/* Wait more, we are still busy let the eventshandler die in piece first */
+		/* TODO: Please make this work with some waitlock or something */
+		boost::this_thread::sleep_for(boost::chrono::seconds(15));
+        }
 	m_CurrentRequest.~HttpRequest();
 	new (&m_CurrentRequest) HttpRequest(Stream::Ptr());
 
-	m_Stream->Close();
 }
 
 bool HttpServerConnection::ProcessMessage(void)
