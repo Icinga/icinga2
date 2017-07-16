@@ -83,14 +83,11 @@ void HttpServerConnection::Disconnect(void)
 	listener->RemoveHttpClient(this);
 
 	m_Stream->Close();
-	while(m_PendingRequests){ 
-		/* Wait more, we are still busy let the eventshandler die in piece first */
-		/* TODO: Please make this work with some waitlock or something */
-		Log(LogWarning, "HttpServerConnection") 
-			<< "Http client " << m_Stream->GetSocket()->GetPeerAddress() 
-			<< " disconnect delayed for 15 seconds...";
-		boost::this_thread::sleep_for(boost::chrono::seconds(15));
-        }
+
+	boost::mutex::scoped_lock lock(m_ProcessMutex);
+	if(m_PendingRequests)
+		CV_done.wait(lock);	// Wait until last request is done..
+
 	m_CurrentRequest.~HttpRequest();
 	new (&m_CurrentRequest) HttpRequest(Stream::Ptr());
 
@@ -127,8 +124,10 @@ bool HttpServerConnection::ProcessMessage(void)
 		    HttpServerConnection::Ptr(this), m_CurrentRequest));
 
 		m_Seen = Utility::GetTime();
-		m_PendingRequests++;
-
+		{
+			boost::mutex::scoped_lock lock(m_ProcessMutex);
+			m_PendingRequests++;
+		}
 		m_CurrentRequest.~HttpRequest();
 		new (&m_CurrentRequest) HttpRequest(m_Stream);
 
@@ -233,7 +232,10 @@ void HttpServerConnection::ProcessMessageAsync(HttpRequest& request)
 
 	response.Finish();
 
-	m_PendingRequests--;
+	boost::mutex::scoped_lock lock(m_ProcessMutex);
+	if(!--m_PendingRequests)
+		CV_done.notify_all();
+	
 }
 
 void HttpServerConnection::DataAvailableHandler(void)
