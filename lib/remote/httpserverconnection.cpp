@@ -38,7 +38,7 @@ static boost::once_flag l_HttpServerConnectionOnceFlag = BOOST_ONCE_INIT;
 static Timer::Ptr l_HttpServerConnectionTimeoutTimer;
 
 HttpServerConnection::HttpServerConnection(const String& identity, bool authenticated, const TlsStream::Ptr& stream)
-	: m_Stream(stream), m_Seen(Utility::GetTime()), m_CurrentRequest(stream), m_PendingRequests(0), m_Connected(true)
+	: m_Stream(stream), m_Seen(Utility::GetTime()), m_CurrentRequest(stream), m_PendingRequests(0)
 {
 	boost::call_once(l_HttpServerConnectionOnceFlag, &HttpServerConnection::StaticInitialize);
 
@@ -76,24 +76,21 @@ TlsStream::Ptr HttpServerConnection::GetStream(void) const
 
 void HttpServerConnection::Disconnect(void)
 {
-	if(!m_Connected)
-		return;
-
-	m_Connected=false;
-
-	Log(LogDebug, "HttpServerConnection", "Http client " << m_Stream->GetSocket()->GetPeerAddress() << " disconnected");
-
+	
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 	listener->RemoveHttpClient(this);
 
 	m_Stream->Close();
-	if(m_PendingRequests && !m_CurrentRequest.Complete){ 
+	while(m_PendingRequests){ 
 		/* Wait more, we are still busy let the eventshandler die in piece first */
 		/* TODO: Please make this work with some waitlock or something */
+		Log(LogWarning, "HttpServerConnection", "Http client " << m_Stream->GetSocket()->GetPeerAddress() << " disconnect delayed for 15 seconds...");
 		boost::this_thread::sleep_for(boost::chrono::seconds(15));
         }
 	m_CurrentRequest.~HttpRequest();
 	new (&m_CurrentRequest) HttpRequest(Stream::Ptr());
+
+	Log(LogDebug, "HttpServerConnection", "Http client " << m_Stream->GetSocket()->GetPeerAddress() << " disconnected");
 
 }
 
@@ -263,7 +260,7 @@ void HttpServerConnection::CheckLiveness(void)
 {
 	if (m_Seen < Utility::GetTime() - 10 && m_PendingRequests == 0) {
 		Log(LogInformation, "HttpServerConnection")
-		    <<  "No messages for Http connection have been received in the last 10 seconds.";
+		    <<  "No messages for Http connection " <<  m_Stream->GetSocket()->GetPeerAddress() << " have been received in the last 10 seconds.";
 		Disconnect();
 	}
 }
