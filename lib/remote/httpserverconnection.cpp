@@ -52,7 +52,7 @@ void HttpServerConnection::StaticInitialize(void)
 {
 	l_HttpServerConnectionTimeoutTimer = new Timer();
 	l_HttpServerConnectionTimeoutTimer->OnTimerExpired.connect(boost::bind(&HttpServerConnection::TimeoutTimerHandler));
-	l_HttpServerConnectionTimeoutTimer->SetInterval(15);
+	l_HttpServerConnectionTimeoutTimer->SetInterval(60);
 	l_HttpServerConnectionTimeoutTimer->Start();
 }
 
@@ -263,10 +263,10 @@ void HttpServerConnection::DataAvailableHandler(void)
 
 void HttpServerConnection::CheckLiveness(void)
 {
-	if (m_Seen < Utility::GetTime() - 10 && m_PendingRequests == 0) {
+	if (m_Seen < Utility::GetTime() - 30 && m_PendingRequests == 0) {
 		Log(LogInformation, "HttpServerConnection")
 		    <<  "No messages for Http connection " <<  m_Stream->GetSocket()->GetPeerAddress() 
-		    << " have been received in the last 10 seconds.";
+		    << " have been received in the last 30 seconds.";
 		Disconnect();
 	}
 }
