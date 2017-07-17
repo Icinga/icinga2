@@ -55,6 +55,9 @@ private:
 	double m_Seen;
 	HttpRequest m_CurrentRequest;
 	boost::mutex m_DataHandlerMutex;
+	boost::mutex m_ProcessMutex;
+        boost::condition_variable CV_done;
+
 	WorkQueue m_RequestQueue;
 	int m_PendingRequests;
 
