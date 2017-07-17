@@ -38,7 +38,7 @@ static boost::once_flag l_HttpServerConnectionOnceFlag = BOOST_ONCE_INIT;
 static Timer::Ptr l_HttpServerConnectionTimeoutTimer;
 
 HttpServerConnection::HttpServerConnection(const String& identity, bool authenticated, const TlsStream::Ptr& stream)
-	: m_Stream(stream), m_Seen(Utility::GetTime()), m_CurrentRequest(stream), m_PendingRequests(0)
+	: m_Stream(stream), m_Seen(Utility::GetTime()), m_CurrentRequest(stream), m_PendingRequests(0), m_Connected(true)
 {
 	boost::call_once(l_HttpServerConnectionOnceFlag, &HttpServerConnection::StaticInitialize);
 
@@ -78,6 +78,10 @@ TlsStream::Ptr HttpServerConnection::GetStream(void) const
 
 void HttpServerConnection::Disconnect(void)
 {
+	if(!m_Connected) 
+		return;
+        
+	m_Connected=false;
 	
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 	listener->RemoveHttpClient(this);
