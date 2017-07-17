@@ -1213,19 +1213,19 @@ double ApiListener::CalculateZoneLag(const Endpoint::Ptr& endpoint)
 
 void ApiListener::AddAnonymousClient(const JsonRpcConnection::Ptr& aclient)
 {
-	ObjectLock olock(this);
+	boost::mutex::scoped_lock(m_JsonLock);
 	m_AnonymousClients.insert(aclient);
 }
 
 void ApiListener::RemoveAnonymousClient(const JsonRpcConnection::Ptr& aclient)
 {
-	ObjectLock olock(this);
+	boost::mutex::scoped_lock(m_JsonLock);
 	m_AnonymousClients.erase(aclient);
 }
 
 std::set<JsonRpcConnection::Ptr> ApiListener::GetAnonymousClients(void) const
 {
-	ObjectLock olock(this);
+	boost::mutex::scoped_lock(m_JsonLock);
 	return m_AnonymousClients;
 }
 
@@ -1243,7 +1243,7 @@ void ApiListener::RemoveHttpClient(const HttpServerConnection::Ptr& aclient)
 
 std::set<HttpServerConnection::Ptr> ApiListener::GetHttpClients(void) const
 {
-	ObjectLock olock(this);
+	boost::mutex::scoped_lock(m_HttpLock);
 	return m_HttpClients;
 }
 
