@@ -124,15 +124,18 @@ bool ObjectQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 	qd.Permission = "objects/query/" + type->GetName();
 
 	Array::Ptr uattrs;
+	Array::Ptr ujoins;
+	Array::Ptr umetas;
+	
 	try {
 		uattrs = params->Get("attrs");
+		ujoins = params->Get("joins");
+		umetas = params->Get("meta");
 	}catch(...){
 		HttpUtility::SendJsonError(response, 503, "Invalid parameters");
                 return true;	
 	}
 	
-	Array::Ptr ujoins = params->Get("joins");
-	Array::Ptr umetas = params->Get("meta");
 	bool allJoins = HttpUtility::GetLastParameter(params, "all_joins");
 
 	params->Set("type", type->GetName());
