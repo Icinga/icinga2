@@ -61,6 +61,8 @@ private:
 	WorkQueue m_RequestQueue;
 	int m_PendingRequests;
 
+	bool m_Connected;
+
 	StreamReadContext m_Context;
 
 	bool ProcessMessage(void);
