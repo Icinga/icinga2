@@ -134,7 +134,6 @@ private:
 	WorkQueue m_RelayQueue;
 	WorkQueue m_SyncQueue;
 
-	boost::mutex m_SSLLock;
 	boost::mutex m_HttpLock;
 	boost::mutex m_JsonLock;
 	
