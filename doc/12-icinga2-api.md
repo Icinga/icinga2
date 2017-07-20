@@ -518,13 +518,13 @@ In case you want to fetch all [comments](09-object-types.md#objecttype-comment)
 for hosts and services, you can use the following query URL (similar example
 for downtimes):
 
-   https://localhost:5665/v1/objects/comments?joins=host&joins=service
+    https://localhost:5665/v1/objects/comments?joins=host&joins=service
 
 This is another example for listing all service objects which are unhandled problems (state is not OK
 and no downtime or acknowledgement set). We're using [X-HTTP-Method-Override](12-icinga2-api.md#icinga2-api-requests-method-override)
 here because we want to pass all query attributes in the request body.
 
-   $ curl -k -s -u root:icinga -H 'Accept: application/json' -H 'X-HTTP-Method-Override: GET' -X POST 'https://127.0.0.1:5665/v1/objects/services' \
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -H 'X-HTTP-Method-Override: GET' -X POST 'https://127.0.0.1:5665/v1/objects/services' \
     -d '{ "joins": [ "host.name", "host.address" ], "attrs": [ "name", "state", "downtime_depth", "acknowledgement" ], "filter": "service.state != ServiceOK && service.downtime_depth == 0.0 && service.acknowledgement == 0.0" }' | python -m json.tool
 
     {
