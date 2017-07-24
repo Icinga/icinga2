@@ -185,10 +185,7 @@ static INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoSt
 			printInfo.unit = BunitB;
 	}
 
-	if (vm.count("show-used"))
-		printInfo.showUsed = true;
-	else
-		printInfo.showUsed = false;
+	printInfo.showUsed = vm.count("show-used");
 
 	if (vm.count("debug"))
 		debug = TRUE;
@@ -208,9 +205,8 @@ static INT printOutput(printInfoStruct& printInfo, std::vector<drive>& vDrives)
 
 	std::wstring output = L"DISK OK - free space:";
 
-	if (printInfo.showUsed) {
+	if (printInfo.showUsed)
 		output = L"DISK OK - used space:";
-	}
 	
 	double tCap = 0, tFree = 0, tUsed = 0;
 
@@ -267,14 +263,15 @@ static INT printOutput(printInfoStruct& printInfo, std::vector<drive>& vDrives)
 	std::wcout << output;
 
 	if (vDrives.size() > 1) {
-		if (printInfo.showUsed)
-			std::wcout << "Total " << tUsed << unit << " (" << removeZero(std::round(tUsed / tCap * 100.0)) << "%); ";
-
-		std::wcout << "Total " << tFree << unit << " (" << removeZero(std::round(tFree / tCap * 100.0)) << "%); ";
+		if (printInfo.showUsed) {
+			std::wcout << "Total " << (printInfo.showUsed ? tUsed : tFree) << unit
+			    << " (" << removeZero(std::round(tUsed / tCap * 100.0)) << "%); ";
+		}
 	}
 
 	for (std::vector<std::wstring>::const_iterator it = wsDrives.begin(); it != wsDrives.end(); it++)
 		std::wcout << *it;
+
 	std::wcout << "|";
 
 	for (std::vector<std::wstring>::const_iterator it = wsPerf.begin(); it != wsPerf.end(); it++)
@@ -433,7 +430,7 @@ static BOOL getDriveSpaceValues(drive& drive, const Bunit& unit)
 
 	if (debug)
 		std::wcout << "\tAfter conversion: " << drive.free << '\n' 
-		<< "\tused: " << tempUsed.QuadPart << '\n';
+		    << "\tused: " << tempUsed.QuadPart << '\n';
 
 	drive.used = round((tempUsed.QuadPart / pow(1024.0, unit)));
 
