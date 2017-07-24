@@ -1440,8 +1440,8 @@ Threshold    | Meaning
 ### disk-windows <a id="windows-plugins-disk-windows"></a>
 
 Check command object for the `check_disk.exe` plugin.
-Aggregates the free disk space of all volumes and mount points it can find, or the ones defined in `disk_win_path`. Ignores removable storage like fash drives and discs (CD, DVD etc.).
-The data collection is instant and free disk space is used for threshold computation.
+Aggregates the disk space of all volumes and mount points it can find, or the ones defined in `disk_win_path`. Ignores removable storage like fash drives and discs (CD, DVD etc.).
+The data collection is instant and free disk space (default, see `disk_win_show_used`) is used for threshold computation.
 
 > **Note**
 >
@@ -1450,13 +1450,14 @@ The data collection is instant and free disk space is used for threshold computa
 
 Custom attributes:
 
-Name                | Description
-:-------------------|:------------
-disk\_win\_warn     | **Optional**. The warning threshold.
-disk\_win\_crit     | **Optional**. The critical threshold.
-disk\_win\_path     | **Optional**. Check only these paths, default checks all.
-disk\_win\_unit     | **Optional**. Use this unit to display disk space, thresholds are interpreted in this unit. Defaults to "mb", possible values are: b, kb, mb, gb and tb.
-disk\_win\_exclude  | **Optional**. Exclude these drives from check.
+Name                  | Description
+:---------------------|:------------
+disk\_win\_warn       | **Optional**. The warning threshold.
+disk\_win\_crit       | **Optional**. The critical threshold.
+disk\_win\_path       | **Optional**. Check only these paths, default checks all.
+disk\_win\_unit       | **Optional**. Use this unit to display disk space, thresholds are interpreted in this unit. Defaults to "mb", possible values are: b, kb, mb, gb and tb.
+disk\_win\_exclude    | **Optional**. Exclude these drives from check.
+disk\_win\_show\_used | **Optional**. Use used instead of free space.
 
 ### load-windows <a id="windows-plugins-load-windows"></a>
 
@@ -5057,4 +5058,3 @@ webinject_no_output     | **Optional.** Suppresses all output to STDOUT except t
 webinject_timeout       | **Optional.** The value [given in seconds] will be compared to the global time elapsed to run all the tests. If the tests have all been successful, but have taken more time than the 'globaltimeout' value, a warning message is sent back to Icinga.
 webinject_report_type   | **Optional.** This setting is used to enable output formatting that is compatible for use with specific external programs. The available values you can set this to are: nagios, mrtg, external and standard.
 webinject_testcase_file | **Optional.** When you launch WebInject in console mode, you can optionally supply an argument for a testcase file to run. It will look for this file in the directory that webinject.pl resides in. If no filename is passed from the command line, it will look in config.xml for testcasefile declarations. If no files are specified, it will look for a default file named 'testcases.xml' in the current [webinject] directory. If none of these are found, the engine will stop and give you an error.
-

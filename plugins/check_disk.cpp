@@ -55,7 +55,7 @@ INT wmain(INT argc, WCHAR **argv)
 		return ret;
 
 	for (std::vector<drive>::iterator it = vDrives.begin(); it != vDrives.end(); ++it) {
-		if (!getFreeAndCap(*it, printInfo.unit)) {
+		if (!getDriveSpaceValues(*it, printInfo.unit)) {
 			std::wcout << "Failed to access drive at " << it->name << '\n';
 			return 3;
 		}
@@ -83,7 +83,8 @@ static INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoSt
 		("exclude-type,X", po::wvalue<std::vector<std::wstring>>()->multitoken(), "Exclude partition types (ignored)")
 		("iwarning,W", po::wvalue<std::wstring>(), "Warning threshold for inodes (ignored)")
 		("icritical,K", po::wvalue<std::wstring>(), "Critical threshold for inodes (ignored)")
-		("unit,u", po::wvalue<std::wstring>(), "Assign unit possible are: B, kB, MB, GB, TB")\
+		("unit,u", po::wvalue<std::wstring>(), "Assign unit possible are: B, kB, MB, GB, TB")
+		("show-used,U", "Show used space instead of the free space")
 		("megabytes,m", "use megabytes, overridden by -unit")
 		;
 
@@ -107,7 +108,7 @@ static INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoSt
 	if (vm.count("help")) {
 		std::wcout << progName << " Help\n\tVersion: " << VERSION << '\n';
 		wprintf(
-			L"%s is a simple program to check a machines free disk space.\n"
+			L"%s is a simple program to check a machines disk space usage.\n"
 			L"You can use the following options to define its behaviour:\n\n", progName);
 		std::cout << desc;
 		wprintf(
@@ -184,6 +185,8 @@ static INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoSt
 			printInfo.unit = BunitB;
 	}
 
+	printInfo.showUsed = vm.count("show-used");
+
 	if (vm.count("debug"))
 		debug = TRUE;
 
@@ -199,35 +202,76 @@ static INT printOutput(printInfoStruct& printInfo, std::vector<drive>& vDrives)
 	std::wstring unit = BunitStr(printInfo.unit);
 
 	state state = OK;
+
 	std::wstring output = L"DISK OK - free space:";
 
-	double tCap = 0, tFree = 0;
+	if (printInfo.showUsed)
+		output = L"DISK OK - used space:";
+	
+	double tCap = 0, tFree = 0, tUsed = 0;
+
 	for (std::vector<drive>::iterator it = vDrives.begin(); it != vDrives.end(); it++) {
 		tCap += it->cap;
 		tFree += it->free;
-		wsDrives.push_back(it->name + L" " + removeZero(it->free) + L" " + unit + L" (" + 
-						   removeZero(std::round(it->free/it->cap * 100.0)) + L"%); ");
-		wsPerf.push_back(L" " + it->name + L"=" + removeZero(it->free) + unit + L";" + 
-						 printInfo.warn.pString(it->cap) + L";" + printInfo.crit.pString(it->cap) + L";0;"
-						 + removeZero(it->cap));
-		if (printInfo.crit.rend(it->free, it->cap))
-			state = CRITICAL;
-		if (state == OK && printInfo.warn.rend(it->free, it->cap))
-			state = WARNING;
+		tUsed += it->used;
+
+		if (printInfo.showUsed)
+		{
+			wsDrives.push_back(it->name + L" " + removeZero(it->used) + L" " + unit + L" (" +
+				removeZero(std::round(it->used / it->cap * 100.0)) + L"%); ");
+
+			wsPerf.push_back(L" " + it->name + L"=" + removeZero(it->used) + unit + L";" +
+				printInfo.warn.pString(it->cap) + L";" + printInfo.crit.pString(it->cap) + L";0;"
+				+ removeZero(it->cap));
+
+			if (printInfo.crit.set && !printInfo.crit.rend(it->used, it->cap))
+				state = CRITICAL;
+
+			if (state == OK && printInfo.warn.set && !printInfo.warn.rend(it->used, it->cap))
+				state = WARNING;
+		}
+		else {
+			wsDrives.push_back(it->name + L" " + removeZero(it->free) + L" " + unit + L" (" +
+				removeZero(std::round(it->free / it->cap * 100.0)) + L"%); ");
+
+			wsPerf.push_back(L" " + it->name + L"=" + removeZero(it->free) + unit + L";" +
+				printInfo.warn.pString(it->cap) + L";" + printInfo.crit.pString(it->cap) + L";0;"
+				+ removeZero(it->cap));
+
+			if ( printInfo.crit.rend(it->free, it->cap))
+				state = CRITICAL;
+
+			if (state == OK && printInfo.warn.rend(it->free, it->cap))
+				state = WARNING;
+		}
 	}
 
-	if (state == WARNING)
+	if (state == WARNING) {
 		output = L"DISK WARNING - free space:";
+		
+		if (printInfo.showUsed)
+			output = L"DISK WARNING - used space:";
+	}
 
-	if (state == CRITICAL)
+	if (state == CRITICAL) {
 		output = L"DISK CRITICAL - free space:";
 
+		if (printInfo.showUsed)
+			output = L"DISK CRITICAL - used space:";
+	}
+
 	std::wcout << output;
-	if (vDrives.size() > 1)
-		std::wcout << "Total " << tFree << unit << " (" << removeZero(std::round(tFree/tCap * 100.0)) << "%); ";
+
+	if (vDrives.size() > 1) {
+		if (printInfo.showUsed) {
+			std::wcout << "Total " << (printInfo.showUsed ? tUsed : tFree) << unit
+			    << " (" << removeZero(std::round(tUsed / tCap * 100.0)) << "%); ";
+		}
+	}
 
 	for (std::vector<std::wstring>::const_iterator it = wsDrives.begin(); it != wsDrives.end(); it++)
 		std::wcout << *it;
+
 	std::wcout << "|";
 
 	for (std::vector<std::wstring>::const_iterator it = wsPerf.begin(); it != wsPerf.end(); it++)
@@ -330,8 +374,6 @@ die:
 	return 3;
 }
 
-
-
 static INT check_drives(std::vector<drive>& vDrives, printInfoStruct& printInfo) 
 {
 	if (!printInfo.exclude_drives.empty()) {
@@ -362,23 +404,38 @@ static INT check_drives(std::vector<drive>& vDrives, printInfoStruct& printInfo)
 	return -1;
 }
 
-static BOOL getFreeAndCap(drive& drive, const Bunit& unit) 
+static BOOL getDriveSpaceValues(drive& drive, const Bunit& unit)
 {
 	if (debug)
-		std::wcout << "Getting free disk space for drive " << drive.name << '\n';
-	ULARGE_INTEGER tempFree, tempTotal;
+		std::wcout << "Getting free and used disk space for drive " << drive.name << '\n';
+
+	ULARGE_INTEGER tempFree, tempTotal, tempUsed;
+
 	if (!GetDiskFreeSpaceEx(drive.name.c_str(), NULL, &tempTotal, &tempFree)) {
 		return FALSE;
 	}
+
+	tempUsed.QuadPart = tempTotal.QuadPart - tempFree.QuadPart;
+
 	if (debug)
 		std::wcout << "\tcap: " << tempFree.QuadPart << '\n';
+
 	drive.cap = round((tempTotal.QuadPart / pow(1024.0, unit)));
+
 	if (debug)
 		std::wcout << "\tAfter conversion: " << drive.cap << '\n'
-		    << "\tfree: " << tempFree.QuadPart << '\n';
+		<< "\tfree: " << tempFree.QuadPart << '\n';
+
 	drive.free = round((tempFree.QuadPart / pow(1024.0, unit)));
+
 	if (debug)
-		std::wcout << "\tAfter conversion: " << drive.free << '\n' << '\n';
+		std::wcout << "\tAfter conversion: " << drive.free << '\n' 
+		    << "\tused: " << tempUsed.QuadPart << '\n';
+
+	drive.used = round((tempUsed.QuadPart / pow(1024.0, unit)));
+
+	if (debug)
+		std::wcout << "\tAfter conversion: " << drive.used << '\n' << '\n';
 
 	return TRUE;
 }

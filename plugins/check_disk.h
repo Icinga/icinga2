@@ -29,7 +29,7 @@
 struct drive
 {
 	std::wstring name;
-	double cap, free;
+	double cap, free, used;
 	drive(std::wstring p)
 		: name(p)
 	{
@@ -41,12 +41,13 @@ struct printInfoStruct
 	threshold warn, crit;
 	std::vector<std::wstring> drives, exclude_drives;
 	Bunit unit;
+	BOOL showUsed;
 };
 
 static INT parseArguments(int, wchar_t **, boost::program_options::variables_map&, printInfoStruct&);
 static INT printOutput(printInfoStruct&, std::vector<drive>&);
 static INT check_drives(std::vector<drive>&, std::vector<std::wstring>&);
 static INT check_drives(std::vector<drive>&, printInfoStruct&);
-static BOOL getFreeAndCap(drive&, const Bunit&);
+static BOOL getDriveSpaceValues(drive&, const Bunit&);
 static bool checkName(const drive& d, const std::wstring& s);
 #endif /*CHECK_DISK_H*/
