@@ -108,7 +108,7 @@ static INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoSt
 	if (vm.count("help")) {
 		std::wcout << progName << " Help\n\tVersion: " << VERSION << '\n';
 		wprintf(
-			L"%s is a simple program to check a machines free disk space.\n"
+			L"%s is a simple program to check a machines disk space usage.\n"
 			L"You can use the following options to define its behaviour:\n\n", progName);
 		std::cout << desc;
 		wprintf(
