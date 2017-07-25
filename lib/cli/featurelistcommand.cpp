@@ -32,12 +32,12 @@ REGISTER_CLICOMMAND("feature/list", FeatureListCommand);
 
 String FeatureListCommand::GetDescription(void) const
 {
-	return "Lists all enabled Icinga 2 features.";
+	return "Lists all available Icinga 2 features.";
 }
 
 String FeatureListCommand::GetShortDescription(void) const
 {
-	return "lists all enabled features";
+	return "lists all available features";
 }
 
 /**
