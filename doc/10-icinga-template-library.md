@@ -374,6 +374,34 @@ Name               | Description
 flexlm_licensefile | **Required.** Name of license file (usually license.dat).
 flexlm_timeout     | **Optional.** Plugin time out in seconds. Defaults to 15.
 
+### fortinet <a id="plugin-check-command-fortinet"></a>
+The [check_fortigate.pl] (https://github.com/riskersen/Monitoring) plugin checks Fortinet devices.
+
+This CheckCommand expects an IPv4 address.
+
+Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name                     | Description
+-------------------------|-------------------------
+fortinet_address         | **Optional.** The host's IPv4 address. Defaults to "$address$".
+fortinet_community       | **Optional.** The host's SNMP community. Defaults to public
+fortinet_snmpversion     | **Optional.** The host's SNMP version. Defaults to version 2 (community bsaed, v2c)
+fortinet_check           | **Optional.** What to check. Defaults to status
+fortinet_snmpv3user      | **Optional.** Applies for SNMPv3 only. Login user
+fortinet_snmpv3authpass  | **Optional.** Applies for SNMPv3 only. Authentication password
+fortinet_snmpv3authprot  | **Optional.** Applies for SNMPv3 only. Authentication protocol
+fortinet_snmpv3privpass  | **Optional.** Applies for SNMPv3 only. Privacy password
+fortinet_snmpv3privprot  | **Optional.** Applies for SNMPv3 only. Privacy protocol
+fortinet_serial          | **Optional.** Used to check if preferred master is actually master
+fortinet_slave           | **Optional.** Used to check slave node of a cluster
+fortinet_warn            | **Optional.** Warning threshold. Defaults to 75, UOM depends on the check type
+fortinet_crit            | **Optional.** Critical threshold. Defaults to 95, UOM depends on the check type
+fortinet_nosync          | **Optional.** Exclude in sync check from cluster status check
+fortinet_vpnoutput       | **Optional.** Applies for VPN check. Output-Mode: 0 => just print, 1 => print and show failed tunnel, 2 => critical 
+fortinet_vpnmode         | **Optional.** Applies for VPN check. VPN-Mode: both => IPSec & SSL/OpenVPN, ipsec => IPSec only, ssl => SSL/OpenVPN only"
+fortinet_vpnwhitelist    | **Optional.** Applies for VPN IPSEC check. Include only entries matching a regular expression (applies before --blacklist)"
+fortinet_vpnblacklist    | **Optional.** Applies for VPN IPSEC check. Include only entries matching a regular expression (applies before --blacklist)"
+fortinet_filehelper      | **Optional.** Path to store helper files. Defaults to $TEMPPATH$"
 
 ### fping4 <a id="plugin-check-command-fping4"></a>
 
