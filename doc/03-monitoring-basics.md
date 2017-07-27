@@ -1245,7 +1245,7 @@ Available state and type filters for notifications are:
 
     template Notification "generic-notification" {
 
-      states = [ Warning, Critical, Unknown ]
+      states = [ OK, Warning, Critical, Unknown ]
       types = [ Problem, Acknowledgement, Recovery, Custom, FlappingStart,
                 FlappingEnd, DowntimeStart, DowntimeEnd, DowntimeRemoved ]
     }
