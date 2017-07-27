@@ -43,19 +43,23 @@ object ApiListener "api" {
 
 Configuration Attributes:
 
-  Name                      |Description
-  --------------------------|--------------------------
-  cert\_path                |**Required.** Path to the public key.
-  key\_path                 |**Required.** Path to the private key.
-  ca\_path                  |**Required.** Path to the CA certificate file.
-  ticket\_salt              |**Optional.** Private key for auto-signing. **Required** for a signing master instance.
-  crl\_path                 |**Optional.** Path to the CRL file.
-  bind\_host                |**Optional.** The IP address the api listener should be bound to. Defaults to `0.0.0.0`.
-  bind\_port                |**Optional.** The port the api listener should be bound to. Defaults to `5665`.
-  accept\_config            |**Optional.** Accept zone configuration. Defaults to `false`.
-  accept\_commands          |**Optional.** Accept remote commands. Defaults to `false`.
-  cipher\_list		    |**Optional.** Cipher list that is allowed.
-  tls\_protocolmin          |**Optional.** Minimum TLS protocol version. Must be one of `TLSv1`, `TLSv1.1` or `TLSv1.2`. Defaults to `TLSv1`.
+  Name                                  |Description
+  --------------------------------------|--------------------------------------
+  cert\_path                            |**Required.** Path to the public key.
+  key\_path                             |**Required.** Path to the private key.
+  ca\_path                              |**Required.** Path to the CA certificate file.
+  ticket\_salt                          |**Optional.** Private key for auto-signing. **Required** for a signing master instance.
+  crl\_path                             |**Optional.** Path to the CRL file.
+  bind\_host                            |**Optional.** The IP address the api listener should be bound to. Defaults to `0.0.0.0`.
+  bind\_port                            |**Optional.** The port the api listener should be bound to. Defaults to `5665`.
+  accept\_config                        |**Optional.** Accept zone configuration. Defaults to `false`.
+  accept\_commands                      |**Optional.** Accept remote commands. Defaults to `false`.
+  cipher\_list		                |**Optional.** Cipher list that is allowed.
+  tls\_protocolmin                      |**Optional.** Minimum TLS protocol version. Must be one of `TLSv1`, `TLSv1.1` or `TLSv1.2`. Defaults to `TLSv1`.
+  access\_control\_allow\_origin        |**Optional.** Specifies an array of origin URLs that may access the API. [(MDN docs)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS#Access-Control-Allow-Origin)
+  access\_control\_allow\_credentials   |**Optional.** Indicates whether or not the actual request can be made using credentials. Defaults to `true`. [(MDN docs)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS#Access-Control-Allow-Credentials)
+  access\_control\_allow\_headers       |**Optional.** Used in response to a preflight request to indicate which HTTP headers can be used when making the actual request. Defaults to `Authorization`. [(MDN docs)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS#Access-Control-Allow-Headers)
+  access\_control\_allow\_methods       |**Optional.** Used in response to a preflight request to indicate which HTTP methods can be used when making the actual request. Defaults to `GET, POST, PUT, DELETE`. [(MDN docs)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS#Access-Control-Allow-Methods)
 
 ## ApiUser <a id="objecttype-apiuser"></a>
 
