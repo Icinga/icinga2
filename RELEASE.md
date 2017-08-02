@@ -28,6 +28,7 @@ Update the version number in the following file:
 
 Example:
 
+    wget -O icinga2.spec https://raw.githubusercontent.com/Icinga/icinga-packaging/rpm/snapshot/icinga2/icinga2.spec
     gsed -i "s/Version: .*/Version: $VERSION/g" icinga2.spec
 
 ## Changelog

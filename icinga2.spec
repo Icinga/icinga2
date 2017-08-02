@@ -69,7 +69,7 @@
 
 Summary: Network monitoring application
 Name: icinga2
-Version: 2.6.3
+Version: 2.7.0
 Release: %{revision}%{?dist}
 License: GPL-2.0+
 Group: Applications/System
@@ -150,11 +150,16 @@ Provides binaries for Icinga 2 Core.
 %package common
 Summary:      Common Icinga 2 configuration
 Group:        Applications/System
-%{?amzn:Requires(pre):          shadow-utils}
-%{?fedora:Requires(pre):        shadow-utils}
-%{?rhel:Requires(pre):          shadow-utils}
-%{?suse_version:Requires(pre):  pwdutils}
+%if (0%{?amzn} || 0%{?fedora} || 0%{?rhel})
+Requires(pre):          shadow-utils
+Requires(post):         shadow-utils
+%endif
 %if "%{_vendor}" == "suse"
+Requires(pre):          shadow
+Requires(post):         shadow
+# Coreutils is added because of autoyast problems reported
+Requires(pre):          coreutils
+Requires(post):         coreutils
 Recommends:   logrotate
 %endif
 
@@ -806,3 +811,5 @@ fi
 %{_datadir}/nano/%{name}.nanorc
 
 %changelog
+* Tue Jun 20 2017 Markus Frosch <markus.frosch@icinga.com> 2.7.0-1
+- Update to 2.7.0
