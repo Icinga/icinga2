@@ -30,7 +30,6 @@
 #include "base/function.hpp"
 #include "base/configtype.hpp"
 #include <boost/algorithm/string/join.hpp>
-#include <boost/algorithm/string.hpp>
 
 using namespace icinga;
 
