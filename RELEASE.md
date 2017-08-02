@@ -1,10 +1,8 @@
 # Release Workflow
 
-Print this document.
-
 Specify the release version.
 
-    VERSION=2.6.3
+    VERSION=2.7.0
 
 ## Issues
 
@@ -34,8 +32,7 @@ Example:
 
 ## Changelog
 
-Update the [CHANGELOG.md](CHANGELOG.md), [doc/1-about.md](doc/1-about.md) files. Also generate HTML
-for the wordpress release announcement.
+Update the [CHANGELOG.md](CHANGELOG.md) file.
 
 ## Git Tag
 
@@ -63,16 +60,16 @@ Push the tag.
 For major releases: Create a new "support" branch:
 
     $ git checkout master
-    $ git checkout -b support/2.6
-    $ git push -u origin support/2.6
+    $ git checkout -b support/2.7
+    $ git push -u origin support/2.7
 
 For minor releases: Push the support branch, cherry-pick the release commit
 into master and merge the support branch:
 
-    $ git push -u origin support/2.6
+    $ git push -u origin support/2.7
     $ git checkout master
-    $ git cherry-pick support/2.6
-    $ git merge --strategy=ours support/2.6
+    $ git cherry-pick support/2.7
+    $ git merge --strategy=ours support/2.7
     $ git push origin master
 
 # External Dependencies
@@ -96,7 +93,7 @@ Example for CentOS7:
 
     $ docker run -ti centos:latest bash
 
-    # yum -y install https://packages.icinga.com/epel/7/release/noarch/icinga-rpm-release-7-1.el7.centos.noarch.rpm
+    # yum -y install https://packages.icinga.com/epel/7/release/noarch/icinga-rpm-release-7-2.el7.centos.noarch.rpm
     # yum -y install icinga2
     # icinga2 daemon -C
 
@@ -119,7 +116,7 @@ Create the nupkg package:
 
 Install the created icinga2 package locally:
 
-    choco install icinga2 -version 2.6.3 -fdv "%cd%" -source "'%cd%;https://chocolatey.org/api/v2/'"
+    choco install icinga2 -version 2.7.0 -fdv "%cd%" -source "'%cd%;https://chocolatey.org/api/v2/'"
 
 Upload the package to [chocolatey](https://chocolatey.org/packages/upload).
 
@@ -137,6 +134,5 @@ and pull the current support branch.
 
 # After the release
 
-* Add new minor version
-* Close the released version
-* Update Redmine filters for the next major/minor version
+* Add new minor version on [GitHub](https://github.com/Icinga/icinga2/milestones).
+* Close the released version on [GitHub](https://github.com/Icinga/icinga2/milestones).

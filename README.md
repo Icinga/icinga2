@@ -54,7 +54,7 @@ There are many ways to contribute to Icinga -- whether it be sending patches,
 testing, reporting bugs, or reviewing and updating the documentation. Every
 contribution is appreciated!
 
-Please continue reading in the [Contributing chapter](CONTRIBUTING.md).
+Please continue reading in the [contributing chapter](CONTRIBUTING.md).
 
 <!-- TOC URLs -->
 [About]: #about
