@@ -58,17 +58,17 @@ void ClusterCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRe
 	std::pair<Dictionary::Ptr, Array::Ptr> feature_stats = CIB::GetFeatureStats();
 	cr->SetPerformanceData(feature_stats.second);
 
-	String connected_endpoints = FormatArrayToList(status->Get("conn_endpoints"));
-	String not_connected_endpoints = FormatArrayToList(status->Get("not_conn_endpoints"));
+	String connected_endpoints = FormatArray(status->Get("conn_endpoints"));
+	String not_connected_endpoints = FormatArray(status->Get("not_conn_endpoints"));
 
 	if (status->Get("num_not_conn_endpoints") > 0) {
 		cr->SetState(ServiceCritical);
-		cr->SetOutput("Icinga 2 Cluster Problem: " + Convert::ToString(status->Get("num_not_conn_endpoints")) + "\n" +
+		cr->SetOutput("Icinga 2 Cluster Problem: Not Connected Endpoints: " + Convert::ToString(status->Get("num_not_conn_endpoints")) + "\n" +
 			"Not connected Endpoints:\n" +
 			not_connected_endpoints);
 	} else {
 		cr->SetState(ServiceOK);
-		cr->SetOutput("Icinga 2 Cluster is running: Connected Endpoints: "+ Convert::ToString(status->Get("num_conn_endpoints")) + "\n" +
+		cr->SetOutput("Icinga 2 Cluster is running: Connected Endpoints: " + Convert::ToString(status->Get("num_conn_endpoints")) + "\n" +
 		    "Connected Endpoints:\n" +
 			connected_endpoints);
 	}
@@ -76,16 +76,21 @@ void ClusterCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRe
 	checkable->ProcessCheckResult(cr);
 }
 
-String ClusterCheckTask::FormatArrayToList(const Array::Ptr& arr)
+String ClusterCheckTask::FormatArray(const Array::Ptr& arr)
 {
 	bool first = true;
 	String str;
 
 	if (arr) {
 		ObjectLock olock(arr);
+		for (const Value& value : arr) {
+			if (first)
+				first = false;
+			else
+				str += ", ";
 
-		for (const Value& value : arr)
-			str += "- " + Convert::ToString(value) + "\n";
+			str += Convert::ToString(value);
+		}
 	}
 
 	return str;
