@@ -789,17 +789,17 @@ Additional switches can be used to control which state becomes what.
 
 Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
 
-Name			| Description
-------------------------|---------------------------------------------------------------
-negate_timeout		| **Optional.** Seconds before plugin times out (default: 11).
-negate_timeout_result	| **Optional.** Custom result on Negate timeouts, default to UNKNOWN.
-negate_ok		| **Optional.** OK, WARNING, CRITICAL or UNKNOWN.
-negate_warning		|               Numeric values are accepted.
-negate_critical		|               If nothing is specified, 
-negate_unknown		|               permutes OK and CRITICAL.
-negate_substitute	| **Optional.** Substitute output text as well. Will only substitute text in CAPITALS.
-negate_command		| **Required.** Command to be negated.
-negate_arguments	| **Optional.** Arguments for the negated command.
+Name                  | Description
+----------------------|---------------------------------------------------------------
+negate_timeout        | **Optional.** Seconds before plugin times out (default: 11).
+negate_timeout_result | **Optional.** Custom result on Negate timeouts, default to UNKNOWN.
+negate_ok             | **Optional.** OK, WARNING, CRITICAL or UNKNOWN.
+negate_warning        |               Numeric values are accepted.
+negate_critical       |               If nothing is specified,
+negate_unknown        |               permutes OK and CRITICAL.
+negate_substitute     | **Optional.** Substitute output text as well. Will only substitute text in CAPITALS.
+negate_command        | **Required.** Command to be negated.
+negate_arguments      | **Optional.** Arguments for the negated command.
 
 ### nrpe <a id="plugin-check-command-nrpe"></a>
 
