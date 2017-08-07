@@ -760,7 +760,6 @@ void DbEvents::AddAcknowledgementHistory(const Checkable::Ptr& checkable, const 
 	fields1->Set("entry_time_usec", time_bag.second);
 	fields1->Set("acknowledgement_type", type);
 	fields1->Set("object_id", checkable);
-	fields1->Set("state", service ? static_cast<int>(service->GetState()) : static_cast<int>(host->GetState()));
 	fields1->Set("author_name", author);
 	fields1->Set("comment_data", comment);
 	fields1->Set("persistent_comment", 1); //always persistent
@@ -768,6 +767,12 @@ void DbEvents::AddAcknowledgementHistory(const Checkable::Ptr& checkable, const 
 	fields1->Set("is_sticky", type == AcknowledgementSticky ? 1 : 0);
 	fields1->Set("end_time", DbValue::FromTimestamp(end_time));
 	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
+
+	if (service) {
+		fields1->Set("state", service->GetState());
+	} else {
+		fields1->Set("state", CompatUtility::GetHostCurrentState(host));
+	}
 
 	String node = IcingaApplication::GetInstance()->GetNodeName();
 
@@ -857,7 +862,12 @@ void DbEvents::AddNotificationHistory(const Notification::Ptr& notification, con
 	fields1->Set("start_time_usec", time_bag.second);
 	fields1->Set("end_time", DbValue::FromTimestamp(time_bag.first));
 	fields1->Set("end_time_usec", time_bag.second);
-	fields1->Set("state", service ? static_cast<int>(service->GetState()) : static_cast<int>(host->GetState()));
+
+	if (service) {
+		fields1->Set("state", service->GetState());
+	} else {
+		fields1->Set("state", CompatUtility::GetHostCurrentState(host));
+	}
 
 	if (cr) {
 		fields1->Set("output", CompatUtility::GetCheckResultOutput(cr));
@@ -928,15 +938,16 @@ void DbEvents::AddStateChangeHistory(const Checkable::Ptr& checkable, const Chec
 	fields1->Set("state_time_usec", state_time_bag.second);
 	fields1->Set("object_id", checkable);
 	fields1->Set("state_change", 1); /* service */
-	fields1->Set("state", service ? static_cast<int>(service->GetState()) : static_cast<int>(host->GetState()));
 	fields1->Set("state_type", checkable->GetStateType());
 	fields1->Set("current_check_attempt", checkable->GetCheckAttempt());
 	fields1->Set("max_check_attempts", checkable->GetMaxCheckAttempts());
 
 	if (service) {
+		fields1->Set("state", service->GetState());
 		fields1->Set("last_state", service->GetLastState());
 		fields1->Set("last_hard_state", service->GetLastHardState());
 	} else {
+		fields1->Set("state", CompatUtility::GetHostCurrentState(host));
 		fields1->Set("last_state", host->GetLastState());
 		fields1->Set("last_hard_state", host->GetLastHardState());
 	}
@@ -1424,7 +1435,7 @@ void DbEvents::AddCheckableCheckHistory(const Checkable::Ptr& checkable, const C
 		fields1->Set("state", service->GetState());
 	} else {
 		fields1->Set("host_object_id", host);
-		fields1->Set("state", host->GetState());
+		fields1->Set("state", CompatUtility::GetHostCurrentState(host));
 	}
 
 	String node = IcingaApplication::GetInstance()->GetNodeName();
@@ -1457,9 +1468,16 @@ void DbEvents::AddEventHandlerHistory(const Checkable::Ptr& checkable)
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
 
-	fields1->Set("eventhandler_type", service ? 1 : 0);
 	fields1->Set("object_id", checkable);
-	fields1->Set("state", service ? static_cast<int>(service->GetState()) : static_cast<int>(host->GetState()));
+
+	if (service) {
+		fields1->Set("state", service->GetState());
+		fields1->Set("eventhandler_type", 1);
+	} else {
+		fields1->Set("state", CompatUtility::GetHostCurrentState(host));
+		fields1->Set("eventhandler_type", 0);
+	}
+
 	fields1->Set("state_type", checkable->GetStateType());
 
 	fields1->Set("start_time", DbValue::FromTimestamp(time_bag.first));
