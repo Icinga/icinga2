@@ -122,14 +122,13 @@ git push origin master
 
 Example for CentOS7:
 
-    $ docker run -ti centos:latest bash
+```
+docker run -ti centos:latest bash
 
-    # yum -y install https://packages.icinga.com/epel/7/release/noarch/icinga-rpm-release-7-2.el7.centos.noarch.rpm
-    # yum -y install icinga2
-    # icinga2 daemon -C
-
-    # systemctl start icinga2
-    # tail -f /var/log/icinga2/icinga2.log
+yum -y install https://packages.icinga.com/epel/icinga-rpm-release-7-latest.noarch.rpm
+yum -y install icinga2
+icinga2 daemon -C
+```
 
 ## GitHub Release
 
