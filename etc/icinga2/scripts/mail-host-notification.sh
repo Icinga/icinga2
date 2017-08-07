@@ -93,14 +93,14 @@ SUBJECT="[$NOTIFICATIONTYPE] Host $HOSTDISPLAYNAME is $HOSTSTATE!"
 
 ## Build the notification message
 NOTIFICATION_MESSAGE=`cat << EOF
-***** Icinga 2 Host Monitoring on $HOSTNAME *****
+***** Host Monitoring on $HOSTNAME *****
 
-==> $HOSTDISPLAYNAME ($HOSTNAME) is $HOSTSTATE! <==
+$HOSTDISPLAYNAME is $HOSTSTATE!
 
 Info:    $HOSTOUTPUT
 
 When:    $LONGDATETIME
-Host:    $HOSTNAME (Display Name: "$HOSTDISPLAYNAME")
+Host:    $HOSTNAME
 EOF
 `
 
@@ -128,8 +128,7 @@ fi
 if [ -n "$ICINGAWEB2URL" ] ; then
   NOTIFICATION_MESSAGE="$NOTIFICATION_MESSAGE
 
-URL:
-  $ICINGAWEB2URL/monitoring/host/show?host=$HOSTNAME"
+$ICINGAWEB2URL/monitoring/host/show?host=$HOSTNAME"
 fi
 
 ## Check whether verbose mode was enabled and log to syslog.
