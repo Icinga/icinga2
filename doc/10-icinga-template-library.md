@@ -1562,10 +1562,11 @@ This checks thresholds work different since the binary decision whether a servic
 
 Custom attributes:
 
-Name                  | Description
-:---------------------|:------------
-service\_win\_warn    | **Optional**. Warn when service is not running.
-service\_win\_service | **Required**. The critical threshold.
+Name                      | Description
+:-------------------------|:------------
+service\_win\_warn        | **Optional**. Warn when service is not running.
+service\_win\_description | **Optional**. If this is set, `service\_win\_service` looks at the service description.
+service\_win\_service     | **Required**. Name of the service to check.
 
 
 ### swap-windows <a id="windows-plugins-swap-windows"></a>

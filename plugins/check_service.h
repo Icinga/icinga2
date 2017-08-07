@@ -31,6 +31,7 @@ struct printInfoStruct
 
 INT parseArguments(INT, WCHAR **, boost::program_options::variables_map&, printInfoStruct&);
 INT printOutput(CONST printInfoStruct&);
+std::wstring GetServiceByDescription(CONST std::wstring&);
 DWORD ServiceStatus(CONST printInfoStruct&);
 
 #endif // !CHECK_SERVICE_H
