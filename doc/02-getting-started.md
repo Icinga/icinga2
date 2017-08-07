@@ -45,19 +45,19 @@ Ubuntu:
 
 RHEL/CentOS 7:
 
-    yum install https://packages.icinga.com/epel/7/release/noarch/icinga-rpm-release-7-1.el7.centos.noarch.rpm
+    yum install https://packages.icinga.com/epel/icinga-rpm-release-7-latest.noarch.rpm
 
 RHEL/CentOS 6:
 
-    yum install https://packages.icinga.com/epel/6/release/noarch/icinga-rpm-release-6-1.el6.noarch.rpm
+    yum install https://packages.icinga.com/epel/icinga-rpm-release-6-latest.noarch.rpm
+
+Fedora 26:
+
+    dnf install https://packages.icinga.com/fedora/icinga-rpm-release-26-latest.noarch.rpm
 
 Fedora 25:
 
-    dnf install https://packages.icinga.com/fedora/25/release/noarch/icinga-rpm-release-25-1.fc25.noarch.rpm
-
-Fedora 24:
-
-    dnf install https://packages.icinga.com/fedora/24/release/noarch/icinga-rpm-release-24-1.fc24.noarch.rpm
+    dnf install https://packages.icinga.com/fedora/icinga-rpm-release-25-latest.noarch.rpm
 
 SLES 11:
 
