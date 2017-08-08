@@ -192,7 +192,7 @@ By default, you need to make sure to set these constants:
 
 * The `PluginDir` constant must be set to the path where the [Monitoring Project plugins](02-getting-started.md#setting-up-check-plugins) are installed.
 This constant is used by a number of
-[built-in check command definitions](10-icinga-template-library.md#plugin-check-commands).
+[built-in check command definitions](10-icinga-template-library.md#icinga-template-library).
 * The `NodeName` constant defines your local node name. Should be set to FQDN which is the default
 if not set. This constant is required for local host configuration, monitoring remote clients and
 cluster setup.
@@ -281,7 +281,7 @@ takes care of setting up the host check command to `hostalive`. If you
 require a different check command, you can override it in the object definition.
 
 The `vars` attribute can be used to define custom attributes which are available
-for check and notification commands. Most of the [Plugin Check Commands](10-icinga-template-library.md#plugin-check-commands)
+for check and notification commands. Most of the [Plugin Check Commands](10-icinga-template-library.md#icinga-template-library)
 in the Icinga Template Library require an `address` attribute.
 
 The custom attribute `os` is evaluated by the `linux-servers` group in
@@ -386,7 +386,7 @@ The Debian packages also include an additional `apt` service check applied to th
 
 The command object `icinga` for the embedded health check is provided by the
 [Icinga Template Library (ITL)](10-icinga-template-library.md#icinga-template-library) while `http_ip`, `ssh`, `load`, `processes`,
-`users` and `disk` are all provided by the [Plugin Check Commands](10-icinga-template-library.md#plugin-check-commands)
+`users` and `disk` are all provided by the [Plugin Check Commands](10-icinga-template-library.md#icinga-template-library)
 which we enabled earlier by including the `itl` and `plugins` configuration file.
 
 
@@ -636,7 +636,7 @@ default:
     }
 
 The `hostalive` check command is part of the
-[Plugin Check Commands](10-icinga-template-library.md#plugin-check-commands).
+[Plugin Check Commands](10-icinga-template-library.md#icinga-template-library).
 
 
     template Notification "mail-host-notification" {

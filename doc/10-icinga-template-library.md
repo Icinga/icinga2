@@ -1,13 +1,31 @@
 # Icinga Template Library <a id="icinga-template-library"></a>
 
-The Icinga Template Library (ITL) implements standard templates and object
-definitions for commonly used services.
+The Icinga Template Library (ITL) implements standard templates
+and object definitions.
 
-By default the ITL is included in the `icinga2.conf` configuration file:
+There is a subset of templates and object definitions available:
 
-    include <itl>
+* [Generic ITL templates](10-icinga-template-library.md#itl-generic-templates)
+* [CheckCommand definitions for Icinga 2](10-icinga-template-library.md#itl-check-commands) (this includes [icinga](10-icinga-template-library.md#itl-icinga),
+[cluster](10-icinga-template-library.md#itl-icinga-cluster), [cluster-zone](10-icinga-template-library.md#itl-icinga-cluster-zone), [ido](10-icinga-template-library.md#itl-icinga-ido), etc.)
+* [CheckCommand definitions for Monitoring Plugins](10-icinga-template-library.md#plugin-check-commands-monitoring-plugins)
+* [CheckCommand definitions for Icinga 2 Windows Plugins](10-icinga-template-library.md#windows-plugins)
+* [CheckCommand definitions for NSClient++](10-icinga-template-library.md#nscp-plugin-check-commands)
+* [CheckCommand definitions for Manubulon SNMP](10-icinga-template-library.md#snmp-manubulon-plugin-check-commands)
+* [Contributed CheckCommand definitions](10-icinga-template-library.md#plugin-contrib)
+
+The ITL content is updated with new releases. Please do not modify
+templates and/or objects as changes will be overridden without
+further notice.
+
+You are advised to create your own CheckCommand definitions in
+`/etc/icinga2`.
 
 ## Generic Templates <a id="itl-generic-templates"></a>
+
+By default the generic templates are included in the [icinga2.conf](04-configuring-icinga-2.md#icinga2-conf) configuration file:
+
+    include <itl>
 
 These templates are imported by the provided example configuration.
 
@@ -105,14 +123,15 @@ Check command for the built-in `exception` check. This check throws an exception
 For test and demo purposes only. The `exception` check command does not support
 any vars.
 
-# Plugin Check Commands <a id="plugin-check-commands"></a>
+<!-- keep this anchor for URL link history only -->
+<a id="plugin-check-commands"></a>
 
 ## Plugin Check Commands for Monitoring Plugins <a id="plugin-check-commands-monitoring-plugins"></a>
 
 The Plugin Check Commands provides example configuration for plugin check commands
 provided by the [Monitoring Plugins](https://www.monitoring-plugins.org) project.
 
-By default the Plugin Check Commands are included in the `icinga2.conf` configuration
+By default the Plugin Check Commands are included in the [icinga2.conf](04-configuring-icinga-2.md#icinga2-conf) configuration
 file:
 
     include <plugins>
@@ -1415,6 +1434,8 @@ Name            | Description
 users_wgreater  | **Optional.** The user count warning threshold. Defaults to 20.
 users_cgreater  | **Optional.** The user count critical threshold. Defaults to 50.
 
+
+
 ## Windows Plugins for Icinga 2 <a id="windows-plugins"></a>
 
 To allow a basic monitoring of Windows clients Icinga 2 comes with a set of Windows only plugins. While trying to mirror the functionalities of their linux cousins from the monitoring-plugins package, the differences between Windows and Linux are too big to be able use the same CheckCommands for both systems.
@@ -1655,7 +1676,7 @@ CPU utilization, please use the HTTP API instead of the CLI sample call.
 `check_nscp_api` is part of the Icinga 2 plugins. This plugin is available for
 both, Windows and Linux/Unix.
 
-Verify that the ITL CheckCommand is included:
+Verify that the ITL CheckCommand is included in the [icinga2.conf](04-configuring-icinga-2.md#icinga2-conf) configuration file:
 
     vim /etc/icinga2/icinga2.conf
 

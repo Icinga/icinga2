@@ -96,7 +96,7 @@ The `hostalive` command is one of several built-in check commands. It sends ICMP
 echo requests to the IP address specified in the `address` attribute to determine
 whether a host is online.
 
-A number of other [built-in check commands](10-icinga-template-library.md#plugin-check-commands) are also
+A number of other [built-in check commands](10-icinga-template-library.md#icinga-template-library) are also
 available. In addition to these commands the next few chapters will explain in
 detail how to set up your own check commands.
 
@@ -1310,7 +1310,7 @@ Check command parameters are defined as custom attributes which can be accessed 
 by the executed check command.
 
 The check command parameters for ITL provided plugin check command definitions are documented
-[here](10-icinga-template-library.md#plugin-check-commands), for example
+[here](10-icinga-template-library.md#icinga-template-library), for example
 [disk](10-icinga-template-library.md#plugin-check-command-disk).
 
 In order to practice passing command parameters you should [integrate your own plugin](03-monitoring-basics.md#command-plugin-integration).
