@@ -4,7 +4,7 @@
 
 ### Notes
 
-* New mail notification scripts
+* New mail notification scripts. Please note that this requires a configuration update to NotificationCommand objects, Notification apply rules for specific settings and of course the notification scripts. More can be found [here](https://github.com/Icinga/icinga2/pull/5475).
 * check_nscp_api plugin for NSClient++ REST API checks
 * Work queues for features including logs & metrics
 * More metrics for the "icinga" check
