@@ -1581,6 +1581,53 @@ defaults can always be overwritten locally.
 > This example requires the `mail` binary installed on the Icinga 2
 > master.
 
+#### Notification Commands in 2.7 <a id="notification-command-2-7"></a>
+
+Icinga 2 v2.7.0 introduced new notification scripts which support both
+environment variables and command line parameters.
+
+Therefore the `NotificationCommand` objects inside the [commands.conf](04-configuring-icinga-2.md#commands-conf)
+and `Notification` apply rules inside the [notifications.conf](04-configuring-icinga-2.md#notifications-conf)
+configuration files have been updated. Your configuration needs to be
+updated next to the notification scripts themselves.
+
+> **Note**
+>
+> Several parameters have been changed. Please review the notification
+> script parameters and configuration objects before updating your production
+> environment.
+
+The safest way is to incorporate the configuration updates from
+v2.7.0 inside the [commands.conf](04-configuring-icinga-2.md#commands-conf) and [notifications.conf](04-configuring-icinga-2.md#notifications-conf)
+configuration files.
+
+A quick-fix is shown below:
+
+@@ -5,7 +5,8 @@ object NotificationCommand "mail-host-notification" {
+
+   env = {
+     NOTIFICATIONTYPE = "$notification.type$"
+-    HOSTALIAS = "$host.display_name$"
++    HOSTNAME = "$host.name$"
++    HOSTDISPLAYNAME = "$host.display_name$"
+     HOSTADDRESS = "$address$"
+     HOSTSTATE = "$host.state$"
+     LONGDATETIME = "$icinga.long_date_time$"
+@@ -22,8 +23,9 @@ object NotificationCommand "mail-service-notification" {
+
+   env = {
+     NOTIFICATIONTYPE = "$notification.type$"
+-    SERVICEDESC = "$service.name$"
+-    HOSTALIAS = "$host.display_name$"
++    SERVICENAME = "$service.name$"
++    HOSTNAME = "$host.name$"
++    HOSTDISPLAYNAME = "$host.display_name$"
+     HOSTADDRESS = "$address$"
+     SERVICESTATE = "$service.state$"
+     LONGDATETIME = "$icinga.long_date_time$"
+```
+
+
 #### mail-host-notification <a id="mail-host-notification"></a>
 
 The `mail-host-notification` NotificationCommand object uses the
