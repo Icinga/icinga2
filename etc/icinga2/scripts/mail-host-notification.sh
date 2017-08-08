@@ -16,7 +16,6 @@ Usage() {
 cat << EOF
 
 Required parameters:
-  -4 HOSTADDRESS (\$address\$)
   -d LONGDATETIME (\$icinga.long_date_time\$)
   -l HOSTNAME (\$host.name\$)
   -n HOSTDISPLAYNAME (\$host.display_name\$)
@@ -26,6 +25,7 @@ Required parameters:
   -t NOTIFICATIONTYPE (\$notification.type\$)
 
 Optional parameters:
+  -4 HOSTADDRESS (\$address\$)
   -6 HOSTADDRESS6 (\$address6\$)
   -b NOTIFICATIONAUTHORNAME (\$notification.author\$)
   -c NOTIFICATIONCOMMENT (\$notification.comment\$)
@@ -53,7 +53,7 @@ Error() {
 while getopts 4:6::b:c:d:f:hi:l:n:o:r:s:t:v: opt
 do
   case "$opt" in
-    4) HOSTADDRESS=$OPTARG ;; # required
+    4) HOSTADDRESS=$OPTARG ;;
     6) HOSTADDRESS6=$OPTARG ;;
     b) NOTIFICATIONAUTHORNAME=$OPTARG ;;
     c) NOTIFICATIONCOMMENT=$OPTARG ;;
@@ -81,7 +81,7 @@ shift $((OPTIND - 1))
 
 ## Check required parameters (TODO: better error message)
 ## Keep formatting in sync with mail-service-notification.sh
-if [ ! "$HOSTADDRESS" ] || [ ! "$LONGDATETIME" ] \
+if [ ! "$LONGDATETIME" ] \
 || [ ! "$HOSTNAME" ] || [ ! "$HOSTDISPLAYNAME" ] \
 || [ ! "$HOSTOUTPUT" ] || [ ! "$HOSTSTATE" ] \
 || [ ! "$USEREMAIL" ] || [ ! "$NOTIFICATIONTYPE" ]; then
@@ -101,9 +101,14 @@ Info:    $HOSTOUTPUT
 
 When:    $LONGDATETIME
 Host:    $HOSTNAME (Display Name: "$HOSTDISPLAYNAME")
-IPv4:    $HOSTADDRESS
 EOF
 `
+
+## Check whether IPv4 was specified.
+if [ -n "$HOSTADDRESS" ] ; then
+  NOTIFICATION_MESSAGE="$NOTIFICATION_MESSAGE
+IPv4:	 $HOSTADDRESS"
+fi
 
 ## Check whether IPv6 was specified.
 if [ -n "$HOSTADDRESS6" ] ; then
