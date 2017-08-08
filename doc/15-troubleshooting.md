@@ -324,7 +324,8 @@ In order to solve the problem, increase the value for `DefaultTasksMax`
 or set it to `infinity`:
 
 
-    [root@icinga2-master1.localdomain /]# vim /usr/lib/systemd/system/icinga2.service
+    [root@icinga2-master1.localdomain /]# cp /usr/lib/systemd/system/icinga2.service /etc/systemd/system/icinga2.service
+    [root@icinga2-master1.localdomain /]# vim /etc/systemd/system/icinga2.service
 
     [Service]
 
@@ -334,6 +335,10 @@ or set it to `infinity`:
     [root@icinga2-master1.localdomain /]# systemctl restart icinga2
 
 Please note that this setting is available since Systemd version 226.
+
+> **Note**
+>
+> Future versions of Icinga 2 will add the setting as default.
 
 ### Late Check Results <a id="late-check-results"></a>
 
