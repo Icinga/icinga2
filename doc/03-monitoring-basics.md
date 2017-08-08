@@ -1603,6 +1603,7 @@ configuration files.
 
 A quick-fix is shown below:
 
+```
 @@ -5,7 +5,8 @@ object NotificationCommand "mail-host-notification" {
 
    env = {
