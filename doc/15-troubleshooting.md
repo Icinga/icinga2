@@ -212,7 +212,7 @@ You need to restart Icinga 2 in order to update the `icinga2.debug` cache file.
 
 ## Where are the check command definitions? <a id="check-command-definitions"></a>
 
-Icinga 2 features a number of built-in [check command definitions](10-icinga-template-library.md#plugin-check-commands) which are
+Icinga 2 features a number of built-in [check command definitions](10-icinga-template-library.md#icinga-template-library) which are
 included with
 
     include <itl>

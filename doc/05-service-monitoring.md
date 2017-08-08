@@ -49,7 +49,7 @@ configuration which can be used in the [Service](09-object-types.md#objecttype-s
 [Host](09-object-types.md#objecttype-host) object definition.
 
 Please check if the Icinga 2 package already provides an
-[existing CheckCommand definition](10-icinga-template-library.md#plugin-check-commands).
+[existing CheckCommand definition](10-icinga-template-library.md#icinga-template-library).
 If that's the case, throroughly check the required parameters and integrate the check command
 into your host and service objects.
 
