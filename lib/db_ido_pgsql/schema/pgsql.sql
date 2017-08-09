@@ -2,7 +2,7 @@
 -- pgsql.sql
 -- DB definition for IDO Postgresql
 --
--- Copyright (c) 2009-2016 Icinga Development Team (https://www.icinga.com/)
+-- Copyright (c) 2009-2017 Icinga Development Team (https://www.icinga.com/)
 --
 -- --------------------------------------------------------
 
@@ -1721,9 +1721,13 @@ CREATE INDEX idx_hostdependencies_dependent_host_object_id on icinga_hostdepende
 CREATE INDEX idx_service_contacts_service_id on icinga_service_contacts(service_id);
 CREATE INDEX idx_host_contacts_host_id on icinga_host_contacts(host_id);
 
+-- #5458
+CREATE INDEX idx_downtimehistory_remove ON icinga_downtimehistory (object_id, entry_time, scheduled_start_time, scheduled_end_time);
+CREATE INDEX idx_scheduleddowntime_remove ON icinga_scheduleddowntime (object_id, entry_time, scheduled_start_time, scheduled_end_time);
+
 -- -----------------------------------------
 -- set dbversion
 -- -----------------------------------------
 
-SELECT updatedbversion('1.14.2');
+SELECT updatedbversion('1.14.3');
 

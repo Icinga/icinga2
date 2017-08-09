@@ -586,6 +586,7 @@ void DbEvents::RemoveDowntimeInternal(std::vector<DbQuery>& queries, const Downt
 	query1.Type = DbQueryDelete;
 	query1.Category = DbCatDowntime;
 	query1.WhereCriteria = new Dictionary();
+
 	query1.WhereCriteria->Set("object_id", checkable);
 	query1.WhereCriteria->Set("entry_time", DbValue::FromTimestamp(downtime->GetEntryTime()));
 	query1.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
