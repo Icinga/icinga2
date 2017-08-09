@@ -51,3 +51,7 @@ if type restorecon >/dev/null 2>&1; then
 	restorecon -R $ICINGA2_RUN_DIR/icinga2/
 fi
 chmod 2750 $ICINGA2_RUN_DIR/icinga2/cmd
+
+mkdir -p $ICINGA2_CACHE_DIR
+chown $ICINGA2_USER:$ICINGA2_GROUP $ICINGA2_CACHE_DIR
+chmod 750 $ICINGA2_CACHE_DIR
