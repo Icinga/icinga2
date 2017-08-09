@@ -40,7 +40,6 @@ class GraphiteWriter : ConfigObject
 	};
         [config] bool enable_send_thresholds;
         [config] bool enable_send_metadata;
-        [config] bool enable_legacy_mode;
 
 	[no_user_modify] bool connected;
 	[no_user_modify] bool should_connect {

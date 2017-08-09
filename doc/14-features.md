@@ -165,8 +165,8 @@ expects the Graphite Carbon Cache to listen at `127.0.0.1` on TCP port `2003`.
 
 #### Current Graphite Schema <a id="graphite-carbon-cache-writer-schema"></a>
 
-The current naming schema is defined as follows. The official Icinga Web 2 Graphite
-module will use that schema too.
+The current naming schema is defined as follows. The [Icinga Web 2 Graphite module](https://github.com/icinga/icingaweb2-module-graphite)
+depends on this schema.
 
 The default prefix for hosts and services is configured using
 [runtime macros](03-monitoring-basics.md#runtime-macros)like this:
@@ -249,78 +249,6 @@ Cache.
     pattern = ^icinga2\.
     retentions = 1m:2d,5m:10d,30m:90d,360m:4y
 
-#### Graphite Schema < 2.4 <a id="graphite-carbon-cache-writer-schema-legacy"></a>
-
-> **Note**
->
-> This legacy mode will be removed in 2.8.
-
-In order to restore the old legacy schema, you'll need to adopt the `GraphiteWriter`
-configuration:
-
-    object GraphiteWriter "graphite" {
-
-      enable_legacy_mode = true
-
-      host_name_template = "icinga.$host.name$"
-      service_name_template = "icinga.$host.name$.$service.name$"
-    }
-
-The old legacy naming schema is
-
-    icinga.<hostname>.<metricname>
-    icinga.<hostname>.<servicename>.<metricname>
-
-You can customize the metric prefix name by using the `host_name_template` and
-`service_name_template` configuration attributes.
-
-The example below uses [runtime macros](03-monitoring-basics.md#runtime-macros) and a
-[global constant](17-language-reference.md#constants) named `GraphiteEnv`. The constant name
-is freely definable and should be put in the [constants.conf](04-configuring-icinga-2.md#constants-conf) file.
-
-    const GraphiteEnv = "icinga.env1"
-
-    object GraphiteWriter "graphite" {
-      host_name_template = GraphiteEnv + ".$host.name$"
-      service_name_template = GraphiteEnv + ".$host.name$.$service.name$"
-    }
-
-To make sure Icinga 2 writes a valid label into Graphite some characters are replaced
-with `_` in the target name:
-
-    \/.-  (and space)
-
-The resulting name in Graphite might look like:
-
-    www-01 / http-cert / response time
-    icinga.www_01.http_cert.response_time
-
-In addition to the performance data retrieved from the check plugin, Icinga 2 sends
-internal check statistic data to Graphite:
-
-  metric             | description
-  -------------------|------------------------------------------
-  current_attempt    | current check attempt
-  max_check_attempts | maximum check attempts until the hard state is reached
-  reachable          | checked object is reachable
-  downtime_depth     | number of downtimes this object is in
-  acknowledgement    | whether the object is acknowledged or not
-  execution_time     | check execution time
-  latency            | check latency
-  state              | current state of the checked object
-  state_type         | 0=SOFT, 1=HARD state
-
-The following example illustrates how to configure the storage-schemas for Graphite Carbon
-Cache. Please make sure that the order is correct because the first match wins.
-
-    [icinga_internals]
-    pattern = ^icinga\..*\.(max_check_attempts|reachable|current_attempt|execution_time|latency|state|state_type)
-    retentions = 5m:7d
-
-    [icinga_default]
-    # intervals like PNP4Nagios uses them per default
-    pattern = ^icinga\.
-    retentions = 1m:2d,5m:10d,30m:90d,360m:4y
 
 ### InfluxDB Writer <a id="influxdb-writer"></a>
 
