@@ -307,6 +307,132 @@ Fetch all check result events matching the `event.service` name `random`:
     $ curl -k -s -u root:icinga -X POST 'https://localhost:5665/v1/events?queue=debugchecks&types=CheckResult&filter=match%28%22random*%22,event.service%29'
 
 
+
+### Analyze Check Source <a id="checks-check-source"></a>
+
+Sometimes checks are not executed on the remote host, but on the master and so on.
+This could lead into unwanted results or NOT-OK states.
+
+The `check_source` attribute is the best indication where a check command
+was actually executed. This could be a satellite with synced configuration
+or a client as remote command bridge -- both will return the check source
+as where the plugin is called.
+
+Example for retrieving the check source from all `disk` services using a
+[regex match](18-library-reference.md#global-functions-regex) on the name:
+
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -H 'X-HTTP-Method-Override: GET' -X POST 'https://localhost:5665/v1/objects/services' \
+    -d '{ "filter": "regex(pattern, service.name)", "filter_vars": { "pattern": "^disk" }, "attrs": [ "__name", "last_check_result" ] }' | python -m json.tool
+    {
+        "results": [
+            {
+                "attrs": {
+                    "__name": "icinga2-client1.localdomain!disk",
+                    "last_check_result": {
+                        "active": true,
+                        "check_source": "icinga2-client1.localdomain",
+
+      ...
+
+                    }
+                },
+                "joins": {},
+                "meta": {},
+                "name": "icinga2-client1.localdomain!disk",
+                "type": "Service"
+            }
+        ]
+    }
+
+Example for using the `icinga2 console` CLI command evaluation functionality:
+
+    $ ICINGA2_API_PASSWORD=icinga icinga2 console --connect 'https://root@localhost:5665/' \
+    --eval 'get_service("icinga2-client1.localdomain", "disk").last_check_result.check_source' | python -m json.tool
+
+    "icinga2-client1.localdomain"
+
+
+### NSClient++ Check Errors with nscp-local <a id="nsclient-check-errors-nscp-local"></a>
+
+The [nscp-local](10-icinga-template-library.md#nscp-check-local) CheckCommand object definitions call the local `nscp.exe` command.
+If a Windows client service check fails to find the `nscp.exe` command, the log output would look like this:
+
+```
+Command ".\nscp.exe" "client" "-a" "drive=d" "-a" "show-all" "-b" "-q" "check_drivesize" failed to execute: 2, "The system cannot find the file specified."
+```
+
+or
+
+```
+Command ".
+scp.exe" "client" "-a" "drive=d" "-a" "show-all" "-b" "-q" "check_drivesize" failed to execute: 2, "The system cannot find the file specified."
+```
+
+The above actually prints `.\\nscp.exe` where the escaped `\n` character gets interpreted as new line.
+
+Both errors lead to the assumption that the `NscpPath` constant is empty or set to a `.` character.
+This could mean the following:
+
+* The command is **not executed on the Windows client**. Check the [check_source](15-troubleshooting.md#checks-check-source) attribute from the check result.
+* You are using an outdated NSClient++ version (0.3.x or 0.4.x) which is not compatible with Icinga 2.
+* You are using a custom NSClient++ installer which does not register the correct GUID for NSClient++
+
+More troubleshooting:
+
+Retrieve the `NscpPath` constant on your Windows client:
+
+```
+C:\Program Files\ICINGA2\sbin\icinga2.exe variable get NscpPath
+```
+
+If the variable is returned empty, manually test how Icinga 2 would resolve
+its path (this can be found inside the ITL):
+
+```
+C:\Program Files\ICINGA2\sbin\icinga2.exe console --eval "dirname(msi_get_component_path(\"{5C45463A-4AE9-4325-96DB-6E239C034F93}\"))"
+```
+
+If this command does not return anything, NSClient++ is not properly installed.
+Verify that inside the `Programs and Features` (`appwiz.cpl`) control panel.
+
+You can run the bundled NSClient++ installer from the Icinga 2 Windows package.
+The msi package is located in `C:\Program Files\ICINGA2\sbin`.
+
+The bundled NSClient++ version has properly been tested with Icinga 2. Keep that
+in mind when using a different package.
+
+
+### Check Thresholds Not Applied <a id="check-thresholds-not-applied"></a>
+
+This could happen with [clients as command endpoint execution](06-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint).
+
+If you have for example a client host `icinga2-client1.localdomain`
+and a service `disk` check defined on the master, the warning and
+critical thresholds are sometimes to applied and unwanted notification
+alerts are raised.
+
+This happens because the client itself includes a host object with
+its `NodeName` and a basic set of checks in the [conf.d](04-configuring-icinga-2.md#conf-d)
+directory, i.e. `disk` with the default thresholds.
+
+Clients which have the `checker` feature enabled will attempt
+to execute checks for local services and send their results
+back to the master.
+
+> **Note**
+>
+> This is part of the deprecated client bottom up mode.
+
+If you now have the same host and service objects on the
+master you will receive wrong check results from the client.
+
+Solution:
+
+* Disable the `checker` feature on clients: `icinga2 feature disable checker`.
+* Remove the inclusion of [conf.d](04-configuring-icinga-2.md#conf-d) as suggested in the [client setup docs](06-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint).
+
+
+
 ### Check Fork Errors <a id="check-fork-errors"></a>
 
 We've learned that newer kernel versions introduce a [fork limit for cgroups](https://lwn.net/Articles/663873/)
