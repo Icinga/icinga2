@@ -459,7 +459,7 @@ void DbConnection::ValidateCategories(const Array::Ptr& value, const ValidationU
 
 	int filter = FilterArrayToInt(value, DbQuery::GetCategoryFilterMap(), 0);
 
-	if (filter == -1 || (filter & ~(DbCatInvalid | DbCatEverything | DbCatConfig | DbCatState |
+	if (filter != DbCatEverything && (filter & ~(DbCatInvalid | DbCatEverything | DbCatConfig | DbCatState |
 	    DbCatAcknowledgement | DbCatComment | DbCatDowntime | DbCatEventHandler | DbCatExternalCommand |
 	    DbCatFlapping | DbCatLog | DbCatNotification | DbCatProgramStatus | DbCatRetention |
 	    DbCatStateHistory)) != 0)
