@@ -21,7 +21,7 @@ and distribution you are running.
   FreeBSD                 | [Upstream](https://www.freshports.org/net-mgmt/icinga2)
   OpenBSD                 | [Upstream](http://ports.su/net/icinga/core2,-main)
   ArchLinux               | [Upstream](https://aur.archlinux.org/packages/icinga2)
-  AlpineLinux             | [Upstream](https://pkgs.alpinelinux.org/package/edge/community/x86_64/icinga2)
+  Alpine Linux            | [Upstream](https://pkgs.alpinelinux.org/package/edge/community/x86_64/icinga2)
 
 Packages for distributions other than the ones listed above may also be
 available. Please contact your distribution packagers.
@@ -75,6 +75,11 @@ openSUSE:
     # zypper ref
 
 
+Alpine Linux:
+
+    # echo "http://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories
+    # apk update
+
 #### RHEL/CentOS EPEL Repository <a id="package-repositories-rhel-epel"></a>
 
 The packages for RHEL/CentOS depend on other packages which are distributed
@@ -96,6 +101,13 @@ as part of the [SLES 11 Security Module](https://www.suse.com/communities/conver
 
 Icinga 2 requires the `libboost_chrono1_54_0` package from the `SLES 12 SDK` repository. Refer to the SUSE Enterprise
 Linux documentation for further information.
+
+#### Alpine Linux Notes  <a id="package-repositories-alpine-notes"></a>
+
+The example provided suppose that you are running Alpine edge, which is the -dev branch and is a rolling release.
+If you are using a stable version please "pin" the edge repository on the latest Icinga 2 package version.
+In order to correctly manage your repository, please follow
+[these instructions](https://wiki.alpinelinux.org/wiki/Alpine_Linux_package_management)
 
 ### Installing Icinga 2 <a id="installing-icinga2"></a>
 
@@ -126,6 +138,11 @@ FreeBSD:
 
     # pkg install icinga2
 
+
+Alpine Linux:
+
+    # apk add icinga2
+
 ### Enabled Features during Installation <a id="installation-enabled-features"></a>
 
 The default installation will enable three features required for a basic
@@ -152,7 +169,7 @@ By default Icinga 2 uses the following files and directories:
   ----------------------------------------------|------------------------------------
   /etc/icinga2                        		| Contains Icinga 2 configuration files.
   /usr/lib/systemd/system/icinga2.service 	| The Icinga 2 Systemd service file on systems using Systemd.
-  /etc/init.d/icinga2                 		| The Icinga 2 init script on systems using SysVinit.
+  /etc/init.d/icinga2                 		| The Icinga 2 init script on systems using SysVinit or OpenRC
   /usr/sbin/icinga2                   		| Shell wrapper for the Icinga 2 binary.
   /usr/lib\*/icinga2				| Libraries and the Icinga 2 binary (use `find /usr -type f -name icinga2` to locate the binary path).
   /usr/share/doc/icinga2              		| Documentation files that come with Icinga 2.
@@ -202,6 +219,7 @@ RHEL/CentOS            | nagios-plugins-all | [EPEL](https://fedoraproject.org/w
 SLES/OpenSUSE          | monitoring-plugins | [server:monitoring](https://build.opensuse.org/project/repositories/server:monitoring) | /usr/lib/nagios/plugins
 Debian/Ubuntu          | monitoring-plugins | -                         | /usr/lib/nagios/plugins
 FreeBSD                | monitoring-plugins | -                         | /usr/local/libexec/nagios
+Alpine Linux           | monitoring-plugins | -                         | /usr/lib/monitoring-plugins
 OS X                   | nagios-plugins     | [MacPorts](https://www.macports.org), [Homebrew](https://brew.sh) | /opt/local/libexec or /usr/local/sbin
 
 The recommended way of installing these standard plugins is to use your
@@ -235,6 +253,13 @@ Please make sure to enable this repository beforehand.
 FreeBSD:
 
     # pkg install monitoring-plugins
+
+Alpine Linux:
+
+    # apk add monitoring-plugins
+
+Note: For Alpine you don't need to explicitly add the `monitoring-plugins` package since it is a dependency of
+`icinga2` and is pulled automatically.
 
 Depending on which directory your plugins are installed into you may need to
 update the global `PluginDir` constant in your [Icinga 2 configuration](04-configuring-icinga-2.md#constants-conf).
@@ -352,6 +377,10 @@ SLES/openSUSE:
 
     # zypper install vim-icinga2
 
+Alpine Linux:
+
+   # apk add icinga2-vim
+
 Ensure that syntax highlighting is enabled e.g. by editing the user's `vimrc`
 configuration file:
 
@@ -451,6 +480,13 @@ FreeBSD:
     # service mysql-server restart
     # mysql_secure_installation
 
+Alpine Linux:
+
+    # apk add mariadb
+    # rc-service mariadb setup
+    # rc-update add mariadb default
+    # rc-service mariadb start
+
 #### Installing the IDO modules for MySQL <a id="installing-database-mysql-modules"></a>
 
 The next step is to install the `icinga2-ido-mysql` package using your
@@ -472,6 +508,11 @@ FreeBSD:
 
 On FreeBSD the IDO modules for MySQL are included with the icinga2 package
 and located at /usr/local/share/icinga2-ido-mysql/schema/mysql.sql
+
+Alpine Linux:
+
+On Alpine Linux the IDO modules for MySQL are included with the `icinga2` package
+and located at /usr/share/icinga2-ido-mysql/schema/mysql.sql
 
 > **Note**
 >
@@ -528,6 +569,9 @@ FreeBSD:
 
     # service icinga2 restart
 
+Alpine Linux:
+
+   # rc-service icinga2 restart
 
 Continue with the [webserver setup](02-getting-started.md#icinga2-user-interface-webserver).
 
@@ -564,6 +608,13 @@ FreeBSD:
     # sysrc postgresql_enable=yes
     # service postgresql start
 
+Alpine Linux:
+
+   # apk add postgresql
+   # rc-update add postgresql default
+   # rc-service postgresql setup
+   # rc-service postgresql start
+
 #### Installing the IDO modules for PostgreSQL <a id="installing-database-postgresql-modules"></a>
 
 The next step is to install the `icinga2-ido-pgsql` package using your
@@ -585,6 +636,11 @@ FreeBSD:
 
 On FreeBSD the IDO modules for PostgreSQL are included with the icinga2 package
 and located at /usr/local/share/icinga2-ido-pgsql/schema/pgsql.sql
+
+Alpine Linux:
+
+On Alpine Linux the IDO modules for PostgreSQL are included with the `icinga2` package
+and located at /usr/share/icinga2-ido-pgsql/schema/pgsql.sql
 
 > **Note**
 >
@@ -666,6 +722,10 @@ FreeBSD:
 
     # service icinga2 restart
 
+Alpine Linux:
+
+    # rc-service icinga2 restart
+
 Continue with the [webserver setup](02-getting-started.md#icinga2-user-interface-webserver).
 
 ### Webserver <a id="icinga2-user-interface-webserver"></a>
@@ -703,6 +763,13 @@ FreeBSD (nginx, but you could also use the apache24 package):
     # sed -i '' "s/;listen.mode/listen.mode/" /usr/local/etc/php-fpm.conf
     # service php-fpm start
     # service nginx start
+
+Alpine Linux:
+
+    # apk add apache2 php7-apache2
+    # sed -i -e "s/^#LoadModule rewrite_module/LoadModule rewrite_module/" /etc/apache2/httpd.conf
+    # rc-update add apache2 default
+    # rc-service apache2 start
 
 ### Firewall Rules <a id="icinga2-user-interface-firewall-rules"></a>
 
@@ -755,6 +822,10 @@ Debian/Ubuntu, RHEL/CentOS 6 and SUSE:
 FreeBSD:
 
     # service icinga2 restart
+
+Alpine Linux:
+
+    # rc-service icinga2 restart
 
 ### Installing Icinga Web 2 <a id="installing-icingaweb2"></a>
 
