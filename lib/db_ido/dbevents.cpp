@@ -409,7 +409,7 @@ void DbEvents::RemoveCommentInternal(std::vector<DbQuery>& queries, const Commen
 	query1.Category = DbCatComment;
 	query1.WhereCriteria = new Dictionary();
 	query1.WhereCriteria->Set("object_id", checkable);
-	query1.WhereCriteria->Set("comment_time", DbValue::FromTimestamp(entry_time));
+	query1.WhereCriteria->Set("entry_time", DbValue::FromTimestamp(entry_time));
 	query1.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
 	query1.WhereCriteria->Set("name", comment->GetName());
 	queries.push_back(query1);
@@ -430,7 +430,7 @@ void DbEvents::RemoveCommentInternal(std::vector<DbQuery>& queries, const Commen
 
 	query2.WhereCriteria = new Dictionary();
 	query2.WhereCriteria->Set("object_id", checkable);
-	query2.WhereCriteria->Set("comment_time", DbValue::FromTimestamp(entry_time));
+	query2.WhereCriteria->Set("entry_time", DbValue::FromTimestamp(entry_time));
 	query2.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
 	query2.WhereCriteria->Set("name", comment->GetName());
 	queries.push_back(query2);

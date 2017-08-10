@@ -1725,6 +1725,10 @@ CREATE INDEX idx_host_contacts_host_id on icinga_host_contacts(host_id);
 CREATE INDEX idx_downtimehistory_remove ON icinga_downtimehistory (object_id, entry_time, scheduled_start_time, scheduled_end_time);
 CREATE INDEX idx_scheduleddowntime_remove ON icinga_scheduleddowntime (object_id, entry_time, scheduled_start_time, scheduled_end_time);
 
+-- #5492
+CREATE INDEX idx_commenthistory_remove ON icinga_commenthistory (object_id, entry_time);
+CREATE INDEX idx_comments_remove ON icinga_comments (object_id, entry_time);
+
 -- -----------------------------------------
 -- set dbversion
 -- -----------------------------------------

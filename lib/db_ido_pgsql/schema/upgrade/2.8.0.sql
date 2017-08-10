@@ -15,6 +15,12 @@ CREATE INDEX idx_downtimehistory_remove ON icinga_downtimehistory (object_id, en
 CREATE INDEX idx_scheduleddowntime_remove ON icinga_scheduleddowntime (object_id, entry_time, scheduled_start_time, scheduled_end_time);
 
 -- -----------------------------------------
+-- #5492
+-- -----------------------------------------
+
+CREATE INDEX idx_commenthistory_remove ON icinga_commenthistory (object_id, entry_time);
+CREATE INDEX idx_comments_remove ON icinga_comments (object_id, entry_time);
+-- -----------------------------------------
 -- set dbversion
 -- -----------------------------------------
 
