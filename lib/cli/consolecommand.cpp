@@ -82,6 +82,42 @@ extern "C" void dbg_eval(const char *text)
 	delete expr;
 }
 
+extern "C" void dbg_eval_with_value(const Value& value, const char *text)
+{
+	Expression *expr = NULL;
+
+	try {
+		ScriptFrame frame;
+		frame.Locals = new Dictionary();
+		frame.Locals->Set("arg", value);
+		expr = ConfigCompiler::CompileText("<dbg>", text);
+		Value result = Serialize(expr->Evaluate(frame), 0);
+		dbg_inspect_value(result);
+	} catch (const std::exception& ex) {
+		std::cout << "Error: " << DiagnosticInformation(ex) << "\n";
+	}
+
+	delete expr;
+}
+
+extern "C" void dbg_eval_with_object(Object *object, const char *text)
+{
+	Expression *expr = NULL;
+
+	try {
+		ScriptFrame frame;
+		frame.Locals = new Dictionary();
+		frame.Locals->Set("arg", object);
+		expr = ConfigCompiler::CompileText("<dbg>", text);
+		Value result = Serialize(expr->Evaluate(frame), 0);
+		dbg_inspect_value(result);
+	} catch (const std::exception& ex) {
+		std::cout << "Error: " << DiagnosticInformation(ex) << "\n";
+	}
+
+	delete expr;
+}
+
 void ConsoleCommand::BreakpointHandler(ScriptFrame& frame, ScriptError *ex, const DebugInfo& di)
 {
 	static boost::mutex mutex;
