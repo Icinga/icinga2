@@ -36,7 +36,7 @@ String ApiSetupCommand::GetDescription() const
 
 String ApiSetupCommand::GetShortDescription() const
 {
-	return "setup for api";
+	return "setup for API";
 }
 
 ImpersonationLevel ApiSetupCommand::GetImpersonationLevel() const

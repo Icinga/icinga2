@@ -21,6 +21,25 @@ If you prefer to set up the API manually, you will have to perform the following
 
 The next chapter provides a quick overview of how you can use the API.
 
+### Creating ApiUsers
+
+The CLI command `icinga2 api user` allows you to create an ApiUser object with a hashed password string, ready to be
+added to your configuration. Example:
+
+```
+$ icinga2 api user --user icingaweb2 --passwd icinga
+object ApiUser "icingaweb2" {
+  password_hash ="$5$d5f1a17ea308acb6$9e9fd5d24a9373a16e8811765cc5a5939687faf9ef8ed496db6e7f1d0ae9b2a9"
+  // client_cn = ""
+
+  permissions = [ "*" ]
+}
+```
+
+Optionally a salt can be provided with `--salt`, otherwise a random value will be used. When ApiUsers are stored this
+way, even somebody able to read the configuration files won't be able to authenticate using this information. There is
+no way to recover your password should you forget it, you'd need to create it anew.
+
 ## Introduction <a id="icinga2-api-introduction"></a>
 
 The Icinga 2 API allows you to manage configuration objects

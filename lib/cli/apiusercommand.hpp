@@ -1,6 +1,6 @@
 /******************************************************************************
  * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
+ * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
  *                                                                            *
  * This program is free software; you can redistribute it and/or              *
  * modify it under the terms of the GNU General Public License                *
@@ -17,32 +17,31 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/configobject.hpp"
-#include "base/function.hpp"
+#ifndef APIUSERCOMMAND_H
+#define APIUSERCOMMAND_H
 
-library remote;
+#include "cli/clicommand.hpp"
 
 namespace icinga
 {
 
-class ApiUser : ConfigObject
+/**
+ * The "api user" command.
+ *
+ * @ingroup cli
+ */
+class ApiUserCommand : public CLICommand
 {
-	/* No show config */
-	[no_user_view, no_user_modify] String password;
-	[config, no_user_view] String password_hash;
-	[config] String client_cn (ClientCN);
-	[config] array(Value) permissions;
-};
+public:
+	DECLARE_PTR_TYPEDEFS(ApiUserCommand);
 
-validator ApiUser {
-	Array permissions {
-		String "*";
-		Dictionary "*" {
-			required permission;
-			String permission;
-			Function filter;
-		};
-	};
+	virtual String GetDescription(void) const override;
+	virtual String GetShortDescription(void) const override;
+	virtual void InitParameters(boost::program_options::options_description& visibleDesc,
+		boost::program_options::options_description& hiddenDesc) const override;
+	virtual int Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const override;
 };
 
 }
+
+#endif /* APIUSERCOMMAND_H */

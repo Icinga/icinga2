@@ -658,6 +658,19 @@ String PBKDF2_SHA1(const String& password, const String& salt, int iterations)
 	return output;
 }
 
+String PBKDF2_SHA256(const String& password, const String& salt, int iterations)
+{
+	unsigned char digest[SHA256_DIGEST_LENGTH];
+	PKCS5_PBKDF2_HMAC(password.CStr(), password.GetLength(), reinterpret_cast<const unsigned char *>(salt.CStr()),
+		salt.GetLength(), iterations, EVP_sha256(), SHA256_DIGEST_LENGTH, digest);
+
+	char output[SHA256_DIGEST_LENGTH*2+1];
+	for (int i = 0; i < SHA256_DIGEST_LENGTH; i++)
+		sprintf(output + 2 * i, "%02x", digest[i]);
+
+	return output;
+}
+
 String SHA1(const String& s, bool binary)
 {
 	char errbuf[120];

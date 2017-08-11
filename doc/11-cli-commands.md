@@ -19,7 +19,8 @@ Usage:
   icinga2 <command> [<arguments>]
 
 Supported commands:
-  * api setup (setup for api)
+  * api setup (setup for API)
+  * api user (API user creation helper)
   * ca list (lists all certificate signing requests)
   * ca sign (signs an outstanding certificate request)
   * console (Icinga console)
@@ -135,8 +136,9 @@ added.
 
 ## CLI command: Api <a id="cli-command-api"></a>
 
-Provides the setup CLI command to enable the REST API. More details
-in the [Icinga 2 API](12-icinga2-api.md#icinga2-api-setup) chapter.
+Provides the helper functions `api setup` and `api user`. The first to enable the REST API, the second to create
+ApiUser objects with hashed password strings.
+More details in the [Icinga 2 API](12-icinga2-api.md#icinga2-api-setup) chapter.
 
 ```
 # icinga2 api --help
@@ -146,7 +148,8 @@ Usage:
   icinga2 <command> [<arguments>]
 
 Supported commands:
-  * api setup (setup for api)
+  * api setup (setup for API)
+  * api user (API user creation helper)
 
 Global options:
   -h [ --help ]             show this help message

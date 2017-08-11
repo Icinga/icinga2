@@ -51,6 +51,7 @@ std::shared_ptr<X509> StringToCertificate(const String& cert);
 std::shared_ptr<X509> CreateCertIcingaCA(EVP_PKEY *pubkey, X509_NAME *subject);
 std::shared_ptr<X509> CreateCertIcingaCA(const std::shared_ptr<X509>& cert);
 String PBKDF2_SHA1(const String& password, const String& salt, int iterations);
+String PBKDF2_SHA256(const String& password, const String& salt, int iterations);
 String SHA1(const String& s, bool binary = false);
 String SHA256(const String& s);
 String RandomString(int length);
