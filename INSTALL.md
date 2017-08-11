@@ -27,23 +27,23 @@ parentheses):
 
 * cmake >= 2.6
 * GNU make (make)
-* C++ compiler which supports C++11 (gcc-c++ >= 4.7 on RHEL/SUSE, build-essential on Debian, alternatively clang++)
+* C++ compiler which supports C++11 (gcc-c++ >= 4.7 on RHEL/SUSE, build-essential on Debian, alternatively clang++, build-base on Alpine)
  * RedHat Developer Tools on RHEL5/6 (details on building below)
 * pkg-config
 * OpenSSL library and header files >= 0.9.8 (openssl-devel on RHEL, libopenssl1-devel on SLES11,
-libopenssl-devel on SLES12, libssl-dev on Debian)
-* Boost library and header files >= 1.48.0 (boost148-devel on EPEL for RHEL / CentOS, libboost-all-dev on Debian)
+libopenssl-devel on SLES12, libssl-dev on Debian, libressl-dev on Alpine)
+* Boost library and header files >= 1.48.0 (boost148-devel on EPEL for RHEL / CentOS, libboost-all-dev on Debian, boost-dev on Alpine)
 * GNU bison (bison)
 * GNU flex (flex) >= 2.5.35
 * recommended: libexecinfo on FreeBSD (automatically used when Icinga 2 is
                installed via port or package)
-* optional: MySQL (mysql-devel on RHEL, libmysqlclient-devel on SUSE, libmysqlclient-dev on Debian);
+* optional: MySQL (mysql-devel on RHEL, libmysqlclient-devel on SUSE, libmysqlclient-dev on Debian, mariadb-dev on Alpine);
             set CMake variable `ICINGA2_WITH_MYSQL` to `OFF` to disable this module
-* optional: PostgreSQL (postgresql-devel on RHEL, libpq-dev on Debian); set CMake
+* optional: PostgreSQL (postgresql-devel on RHEL, libpq-dev on Debian, postgresql-dev on Alpine); set CMake
             variable `ICINGA2_WITH_PGSQL` to `OFF` to disable this module
-* optional: YAJL (yajl-devel on RHEL, libyajl-dev on Debian)
+* optional: YAJL (yajl-devel on RHEL, libyajl-dev on Debian, yajl-dev on Alpine)
 * optional: libedit (libedit-devel on CentOS (RHEL requires rhel-7-server-optional-rpms
-            repository for el7 e.g.), libedit-dev on Debian)
+            repository for el7 e.g.), libedit-dev on Debian and Alpine)
 * optional: Termcap (libtermcap-devel on RHEL, not necessary on Debian) - only
             required if libedit doesn't already link against termcap/ncurses
 * optional: libwxgtk2.8-dev or newer (wxGTK-devel and wxBase) - only required when building the Icinga 2 Studio
@@ -64,6 +64,13 @@ using the `ICINGA2_USER`, `ICINGA2_GROUP` and `ICINGA2_COMMAND_GROUP` variables.
     # groupadd icinga
     # groupadd icingacmd
     # useradd -c "icinga" -s /sbin/nologin -G icingacmd -g icinga icinga
+
+On Alpine (which uses ash busybox) you can run:
+
+    # addgroup -S icinga
+    # addgroup -S icingacmd
+    # adduser -S -D -H -h /var/spool/icinga2 -s /sbin/nologin -G icinga -g icinga icinga
+    # adduser icinga icingacmd
 
 Add the web server user to the icingacmd group in order to grant it write
 permissions to the external command pipe and livestatus socket:
@@ -234,6 +241,18 @@ into your source tree and run the following command:
 
     $ dpkg-buildpackage -uc -us
 
+
+## Build Alpine Linux packages
+
+A simple way to setup a build environment is installing Alpine in a chroot.
+In this way, you can set up an Alpine build environment in a chroot under a
+different Linux distro.
+There is a script that simplifies these steps with just two commands, and
+can be found [here](https://github.com/alpinelinux/alpine-chroot-install).
+
+Once the build environment is installed, you can setup the system to build
+the packages by following [this document](https://wiki.alpinelinux.org/wiki/Creating_an_Alpine_package).
+
 ## Build Post Install Tasks
 
 After building Icinga 2 yourself, your package build system should at least run the following post
@@ -258,9 +277,22 @@ Icinga 2 can be started as a daemon using the provided init script:
     # /etc/init.d/icinga2
     Usage: /etc/init.d/icinga2 {start|stop|restart|reload|checkconfig|status}
 
-Or if your distribution uses systemd:
+If your distribution uses systemd:
 
     # systemctl {start|stop|reload|status|enable|disable} icinga2
+
+Or if your distribution uses openrc (like Alpine):
+
+    # rc-service icinga2
+	Usage: /etc/init.d/icinga2 {start|stop|restart|reload|checkconfig|status}
+
+Note: the openrc's init.d is not shipped by default.
+A working init.d with openrc can be found here: (https://git.alpinelinux.org/cgit/aports/plain/community/icinga2/icinga2.initd). If you have customized some path, edit the file and adjust it according with your setup. 
+Those few steps can be followed:
+
+    # wget https://git.alpinelinux.org/cgit/aports/plain/community/icinga2/icinga2.initd
+    # mv icinga2.initd /etc/init.d/icinga2
+	# chmod +x /etc/init.d/icinga2
 
 Icinga 2 reads a single configuration file which is used to specify all
 configuration settings (global settings, hosts, services, etc.). The
