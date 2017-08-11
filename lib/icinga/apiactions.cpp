@@ -226,7 +226,7 @@ Dictionary::Ptr ApiActions::AcknowledgeProblem(const ConfigObject::Ptr& object,
 	Comment::AddComment(checkable, CommentAcknowledgement, HttpUtility::GetLastParameter(params, "author"),
 	    HttpUtility::GetLastParameter(params, "comment"), persistent, timestamp);
 	checkable->AcknowledgeProblem(HttpUtility::GetLastParameter(params, "author"),
-	    HttpUtility::GetLastParameter(params, "comment"), sticky, notify, timestamp);
+	    HttpUtility::GetLastParameter(params, "comment"), sticky, notify, persistent, timestamp);
 
 	return ApiActions::CreateResult(200, "Successfully acknowledged problem for object '" + checkable->GetName() + "'.");
 }
