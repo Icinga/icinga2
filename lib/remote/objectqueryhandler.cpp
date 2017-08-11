@@ -123,9 +123,32 @@ bool ObjectQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 	qd.Types.insert(type->GetName());
 	qd.Permission = "objects/query/" + type->GetName();
 
-	Array::Ptr uattrs = params->Get("attrs");
-	Array::Ptr ujoins = params->Get("joins");
-	Array::Ptr umetas = params->Get("meta");
+	Array::Ptr uattrs, ujoins, umetas;
+
+	try {
+		uattrs = params->Get("attrs");
+	} catch (const std::exception&) {
+		HttpUtility::SendJsonError(response, 400,
+                    "Invalid type for 'attrs' attribute specified. Array type is required.", Empty);
+                return true;
+	}
+
+	try {
+		ujoins = params->Get("joins");
+	} catch (const std::exception&) {
+		HttpUtility::SendJsonError(response, 400,
+                    "Invalid type for 'joins' attribute specified. Array type is required.", Empty);
+                return true;
+	}
+
+	try {
+		umetas = params->Get("meta");
+	} catch (const std::exception&) {
+		HttpUtility::SendJsonError(response, 400,
+                    "Invalid type for 'meta' attribute specified. Array type is required.", Empty);
+		return true;
+	}
+
 	bool allJoins = HttpUtility::GetLastParameter(params, "all_joins");
 
 	params->Set("type", type->GetName());
