@@ -27,7 +27,9 @@ namespace icinga
 
 class ApiUser : ConfigObject
 {
-	[config, no_user_view] String password;
+	/* No show config */
+	[no_user_view, no_user_modify] String password;
+	[config, no_user_view] String password_hash;
 	[config] String client_cn (ClientCN);
 	[config] array(Value) permissions;
 };

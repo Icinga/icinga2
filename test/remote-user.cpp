@@ -17,34 +17,36 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef APIUSER_H
-#define APIUSER_H
+#include "remote/apiuser.hpp"
+#include "base/tlsutility.hpp"
+#include <BoostTestTargetConfig.h>
 
-#include "remote/i2-remote.hpp"
-#include "remote/apiuser.thpp"
+#include <iostream>
 
-namespace icinga
+using namespace icinga;
+
+BOOST_AUTO_TEST_SUITE(api_user)
+
+BOOST_AUTO_TEST_CASE(password)
 {
+#ifndef I2_DEBUG
+	std::cout << "Only enabled in Debug builds..." << std::endl;
+#else
+	ApiUser::Ptr user = new ApiUser();
+	String passwd = RandomString(16);
+	String salt = RandomString(8);
+	user->SetPassword("ThisShouldBeIgnored");
+	user->SetPasswordHash(ApiUser::CreateHashedPasswordString(passwd, salt, true));
 
-/**
- * @ingroup remote
- */
-class I2_REMOTE_API ApiUser : public ObjectImpl<ApiUser>
-{
-public:
-	DECLARE_OBJECT(ApiUser);
-	DECLARE_OBJECTNAME(ApiUser);
+	BOOST_CHECK(user->GetPasswordHash() != passwd);
 
-	virtual void OnConfigLoaded(void) override;
+	Dictionary::Ptr passwdd = user->GetPasswordDict();
 
-	static ApiUser::Ptr GetByClientCN(const String& cn);
-	static ApiUser::Ptr GetByAuthHeader(const String& auth_header);
-	static String CreateHashedPasswordString(const String& password, const String& salt, const bool shadow = false);
-
-	Dictionary::Ptr GetPasswordDict(void) const;
-	bool ComparePassword(String password) const;
-};
-
+	BOOST_CHECK(passwdd);
+	BOOST_CHECK(passwdd->Get("salt") == salt);
+	BOOST_CHECK(user->ComparePassword(passwd));
+	BOOST_CHECK(!user->ComparePassword("wrong password uwu!"));
+#endif
 }
 
-#endif /* APIUSER_H */
+BOOST_AUTO_TEST_SUITE_END()

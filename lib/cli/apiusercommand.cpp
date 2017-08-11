@@ -17,52 +17,66 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "cli/apisetupcommand.hpp"
-#include "cli/apisetuputility.hpp"
-#include "cli/variableutility.hpp"
+#include "cli/apiusercommand.hpp"
 #include "base/logger.hpp"
-#include "base/console.hpp"
+#include "base/tlsutility.hpp"
+#include "remote/apiuser.hpp"
 #include <iostream>
 
 using namespace icinga;
 namespace po = boost::program_options;
 
-REGISTER_CLICOMMAND("api/setup", ApiSetupCommand);
+REGISTER_CLICOMMAND("api/user", ApiUserCommand);
 
-String ApiSetupCommand::GetDescription(void) const
+String ApiUserCommand::GetDescription(void) const
 {
-	return "Setup for Icinga 2 API.";
+	return "Create a hashed user and password string for the Icinga 2 API";
 }
 
-String ApiSetupCommand::GetShortDescription(void) const
+String ApiUserCommand::GetShortDescription(void) const
 {
-	return "setup for API";
+	return "API user creation helper";
 }
 
-ImpersonationLevel ApiSetupCommand::GetImpersonationLevel(void) const
+void ApiUserCommand::InitParameters(boost::program_options::options_description& visibleDesc,
+    boost::program_options::options_description& hiddenDesc) const
 {
-	return ImpersonateRoot;
-}
-
-int ApiSetupCommand::GetMaxArguments(void) const
-{
-	return -1;
+	visibleDesc.add_options()
+		("user", po::value<std::string>(), "API username")
+		("passwd", po::value<std::string>(), "Password in clear text")
+		("salt", po::value<std::string>(), "Optional salt (default: 8 random chars)");
 }
 
 /**
- * The entry point for the "api setup" CLI command.
+ * The entry point for the "api user" CLI command.
  *
  * @returns An exit status.
  */
-int ApiSetupCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
+int ApiUserCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {
-	String cn = VariableUtility::GetVariable("NodeName");
-
-	if (cn.IsEmpty())
-		cn = Utility::GetFQDN();
-
-	if (!ApiSetupUtility::SetupMaster(cn, true))
+	if (!vm.count("user")) {
+		Log(LogCritical, "cli", "Username (--user) must be specified.");
 		return 1;
+	}
+
+	if (!vm.count("passwd")) {
+		Log(LogCritical, "cli", "Password (--passwd) must be specified.");
+		return 1;
+	}
+
+	String user = vm["user"].as<std::string>();
+	String passwd = vm["passwd"].as<std::string>();
+	String salt = vm.count("salt") ? String(vm["salt"].as<std::string>()) : RandomString(8);
+
+	String hashedPassword = ApiUser::CreateHashedPasswordString(passwd, salt, true);
+
+	std::cout
+		<< "object ApiUser \"" << user << "\" {\n"
+		<< "  password_hash =\"" << hashedPassword << "\"\n"
+		<< "  // client_cn = \"\"\n"
+		<< "\n"
+		<< "  permissions = [ \"*\" ]\n"
+		<< "}\n";
 
 	return 0;
 }

@@ -26,7 +26,7 @@ set(cli_SOURCES
   objectlistcommand.cpp objectlistutility.cpp
   pkinewcacommand.cpp pkinewcertcommand.cpp pkisigncsrcommand.cpp pkirequestcommand.cpp pkisavecertcommand.cpp pkiticketcommand.cpp
   variablegetcommand.cpp variablelistcommand.cpp variableutility.cpp
-  troubleshootcommand.cpp
+  apiusercommand.cpp troubleshootcommand.cpp
 )
 
 if(ICINGA2_UNITY_BUILD)
