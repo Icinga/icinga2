@@ -14,18 +14,22 @@ them in your scenarios.
 
 Signature:
 
-    function regex(pattern, text)
+    function regex(pattern, value, mode)
 
-Returns true if the regular expression matches the text, false otherwise. The mode argument is
-optional and can be either MatchAll (in which case all elements for an array have to match) or MatchAny
-(in which case at least one element has to match). The default mode is MatchAll.
+Returns true if the regular expression `pattern` matches the `value`, false otherwise.
+The `value` can be of the type [String](#string-type) or [Array](#array-type) (which
+contains string elements).
+
+The `mode` argument is optional and can be either `MatchAll` (in which case all elements
+for an array have to match) or `MatchAny` (in which case at least one element has to match).
+The default mode is `MatchAll`.
 
 **Tip**: In case you are looking for regular expression tests try [regex101](https://regex101.com).
 
-Example:
+Example for string values:
 
     $ icinga2 console
-    Icinga 2 (version: v2.6.0)
+    Icinga 2 (version: v2.7.0)
     <1> => host.vars.os_type = "Linux/Unix"
     null
     <2> => regex("^Linux", host.vars.os_type)
@@ -33,52 +37,90 @@ Example:
     <3> => regex("^Linux$", host.vars.os_type)
     false
 
+Example for an array of string values:
+
+    $ icinga2 console
+    Icinga 2 (version: v2.7.0)
+    <1> => host.vars.databases = [ "db-prod1", "db-prod2", "db-dev" ]
+    null
+    <2> => regex("^db-prod\\d+", host.vars.databases, MatchAny)
+    true
+    <3> => regex("^db-prod\\d+", host.vars.databases, MatchAll)
+    false
+
+
 ### match <a id="global-functions-match"></a>
 
 Signature:
 
     function match(pattern, text, mode)
 
-Returns true if the wildcard (`?*`) pattern matches the text, false otherwise. The mode argument is
-optional and can be either MatchAll (in which case all elements for an array have to match) or MatchAny
-(in which case at least one element has to match). The default mode is MatchAll.
+Returns true if the wildcard (`?*`) `pattern` matches the `value`, false otherwise.
+The `value` can be of the type [String](#string-type) or [Array](#array-type) (which
+contains string elements).
 
-Example:
+The `mode` argument is optional and can be either `MatchAll` (in which case all elements
+for an array have to match) or `MatchAny` (in which case at least one element has to match).
+The default mode is `MatchAll`.
+
+Example for string values:
 
     $ icinga2 console
-    Icinga 2 (version: v2.6.0)
-    <1> => host.display_name = "NUE-DB-PROD-586"
+    Icinga 2 (version: v2.7.0)
+    <1> => var name = "db-prod-sfo-657"
     null
-    <2> => match("NUE-*", host.display_name)
+    <2> => match("*prod-sfo*", name)
     true
-    <3> => match("*NUE-*", host.display_name)
-    true
-    <4> => match("NUE-*-DEV-*", host.display_name)
+    <3> => match("*-dev-*", name)
     false
+
+Example for an array of string values:
+
+    $ icinga2 console
+    Icinga 2 (version: v2.7.0-28)
+    <1> => host.vars.application_types = [ "web-wp", "web-rt", "db-local" ]
+    null
+    <2> => match("web-*", host.vars.application_types, MatchAll)
+    false
+    <3> => match("web-*", host.vars.application_types, MatchAny)
+    true
+
 
 ### cidr_match <a id="global-functions-cidr_match"></a>
 
 Signature:
 
-    function cidr_match(pattern, ip)
+    function cidr_match(pattern, ip, mode)
 
 Returns true if the CIDR pattern matches the IP address, false otherwise.
+
 IPv4 addresses are converted to IPv4-mapped IPv6 addresses before being
-matched against the pattern. The mode argument is optional and can be
-either MatchAll (in which case all elements for an array have to match) or MatchAny
-(in which case at least one element has to match). The default mode is MatchAll.
+matched against the pattern. The `mode` argument is optional and can be
+either `MatchAll` (in which case all elements for an array have to match) or `MatchAny`
+(in which case at least one element has to match). The default mode is `MatchAll`.
 
 
-Example:
+Example for a single IP address:
 
     $ icinga2 console
-    Icinga 2 (version: v2.6.0)
+    Icinga 2 (version: v2.7.0)
     <1> => host.address = "192.168.56.101"
     null
     <2> => cidr_match("192.168.56.0/24", host.address)
     true
     <3> => cidr_match("192.168.56.0/26", host.address)
     false
+
+Example for an array of IP addresses:
+
+    $ icinga2 console
+    Icinga 2 (version: v2.7.0)
+    <1> => host.vars.vhost_ips = [ "192.168.56.101", "192.168.56.102", "10.0.10.99" ]
+    null
+    <2> => cidr_match("192.168.56.0/24", host.vars.vhost_ips, MatchAll)
+    false
+    <3> => cidr_match("192.168.56.0/24", host.vars.vhost_ips, MatchAny)
+    true
 
 ### range <a id="global-functions-range"></a>
 
@@ -101,7 +143,7 @@ as third parameter.
 Example:
 
     $ icinga2 console
-    Icinga 2 (version: v2.6.0)
+    Icinga 2 (version: v2.7.0)
     <1> => range(5)
     [ 0.000000, 1.000000, 2.000000, 3.000000, 4.000000 ]
     <2> => range(2,4)
@@ -125,7 +167,7 @@ prototype method: [Array#len](18-library-reference.md#array-len), [Dictionary#le
 Example:
 
     $ icinga2 console
-    Icinga 2 (version: v2.6.0)
+    Icinga 2 (version: v2.7.0)
     <1> => host.groups = [ "linux-servers", "db-servers" ]
     null
     <2> => host.groups.len()
@@ -153,7 +195,7 @@ Returns an array containing all unique elements from the specified arrays.
 Example:
 
     $ icinga2 console
-    Icinga 2 (version: v2.6.0)
+    Icinga 2 (version: v2.7.0)
     <1> => var dev_notification_groups = [ "devs", "slack" ]
     null
     <2> => var host_notification_groups = [ "slack", "noc" ]
@@ -173,7 +215,7 @@ specified arrays.
 Example:
 
     $ icinga2 console
-    Icinga 2 (version: v2.6.0)
+    Icinga 2 (version: v2.7.0)
     <1> => var dev_notification_groups = [ "devs", "slack" ]
     null
     <2> => var host_notification_groups = [ "slack", "noc" ]
@@ -195,7 +237,7 @@ prototype method: [Dictionary#keys](18-library-reference.md#dictionary-keys).
 Example:
 
     $ icinga2 console
-    Icinga 2 (version: v2.6.0)
+    Icinga 2 (version: v2.7.0)
     <1> => host.vars.disks["/"] = {}
     null
     <2> => host.vars.disks["/var"] = {}
@@ -223,7 +265,7 @@ prototype method:
 Example:
 
     $ icinga2 console
-    Icinga 2 (version: v2.6.0)
+    Icinga 2 (version: v2.7.0)
     <1> => 5.to_string()
     "5"
     <2> => false.to_string()
@@ -248,7 +290,7 @@ Converts the value to a number.
 Example:
 
     $ icinga2 console
-    Icinga 2 (version: v2.6.0)
+    Icinga 2 (version: v2.7.0)
     <1> => number(false)
     0.000000
     <2> => number("78")
@@ -265,7 +307,7 @@ Converts the value to a bool.
 Example:
 
     $ icinga2 console
-    Icinga 2 (version: v2.6.0)
+    Icinga 2 (version: v2.7.0)
     <1> => bool(1)
     true
     <2> => bool(0)
@@ -280,7 +322,7 @@ Signature:
 Returns a random value between 0 and RAND\_MAX (as defined in stdlib.h).
 
     $ icinga2 console
-    Icinga 2 (version: v2.6.0)
+    Icinga 2 (version: v2.7.0)
     <1> => random()
     1263171996.000000
     <2> => random()
@@ -306,7 +348,7 @@ Non-string values are converted to a JSON string.
 Example:
 
     $ icinga2 console
-    Icinga 2 (version: v2.6.0)
+    Icinga 2 (version: v2.7.0)
     <1> => log(LogCritical, "Console", "First line")
     critical/Console: First line
     null
@@ -327,7 +369,7 @@ Returns the [Type](18-library-reference.md#type-type) object for a value.
 Example:
 
     $ icinga2 console
-    Icinga 2 (version: v2.6.0)
+    Icinga 2 (version: v2.7.0)
     <1> => typeof(3) == Number
     true
     <2> => typeof("str") == String
@@ -350,7 +392,7 @@ Returns the current UNIX timestamp as floating point number.
 Example:
 
     $ icinga2 console
-    Icinga 2 (version: v2.6.0)
+    Icinga 2 (version: v2.7.0)
     <1> => get_time()
     1480072135.633008
     <2> => get_time()
@@ -367,7 +409,7 @@ Parses a performance data string and returns an array describing the values.
 Example:
 
     $ icinga2 console
-    Icinga 2 (version: v2.6.0)
+    Icinga 2 (version: v2.7.0)
     <1> => var pd = "'time'=1480074205.197363;;;"
     null
     <2> => parse_performance_data(pd)
@@ -394,7 +436,7 @@ Returns the directory portion of the specified path.
 Example:
 
     $ icinga2 console
-    Icinga 2 (version: v2.6.0)
+    Icinga 2 (version: v2.7.0)
     <1> => var path = "/etc/icinga2/scripts/xmpp-notification.pl"
     null
     <2> => dirname(path)
@@ -411,7 +453,7 @@ Returns the filename portion of the specified path.
 Example:
 
     $ icinga2 console
-    Icinga 2 (version: v2.6.0)
+    Icinga 2 (version: v2.7.0)
     <1> => var path = "/etc/icinga2/scripts/xmpp-notification.pl"
     null
     <2> => basename(path)
@@ -428,7 +470,7 @@ Escapes a string for use as a single shell argument.
 Example:
 
     $ icinga2 console
-    Icinga 2 (version: v2.6.0)
+    Icinga 2 (version: v2.7.0)
     <1> => escape_shell_arg("'$host.name$' '$service.name$'")
     "''\\''$host.name$'\\'' '\\''$service.name$'\\'''"
 
@@ -443,7 +485,7 @@ Escapes shell meta characters in a string.
 Example:
 
     $ icinga2 console
-    Icinga 2 (version: v2.6.0)
+    Icinga 2 (version: v2.7.0)
     <1> => escape_shell_cmd("/bin/echo 'shell test' $ENV")
     "/bin/echo 'shell test' \\$ENV"
 
