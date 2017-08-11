@@ -141,6 +141,56 @@ You can also import existing non-template objects. Note that templates
 and objects share the same namespace, i.e. you can't define a template
 that has the same name like an object.
 
+### Multiple Templates <a id="object-inheritance-using-multiple-templates"></a>
+
+The following example uses [custom attributes](03-monitoring-basics.md#custom-attributes) which
+are provided in each template. The `web-server` template is used as the
+base template for any host providing web services. In addition to that it
+specifies the custom attribute `webserver_type`, e.g. `apache`. Since this
+template is also the base template, we import the `generic-host` template here.
+This provides the `check_command` attribute by default and we don't need
+to set it anywhere later on.
+
+    template Host "web-server" {
+      import "generic-host"
+      vars = {
+        webserver_type = "apache"
+      }
+    }
+
+The `wp-server` host template specifies a Wordpress instance and sets
+the `application_type` custom attribute. Please note the `+=` [operator](17-language-reference.md#dictionary-operators)
+which adds [dictionary](17-language-reference.md#dictionary) items,
+but does not override any previous `vars` attribute.
+
+    template Host "wp-server" {
+      vars += {
+        application_type = "wordpress"
+      }
+    }
+
+The final host object imports both templates. The order is important here:
+First the base template `web-server` is added to the object, then additional
+attributes are imported from the `wp-server` object.
+
+    object Host "wp.example.com" {
+      import "web-server"
+      import "wp-server"
+
+      address = "192.168.56.200"
+    }
+
+If you want to override specific attributes inherited from templates, you can
+specify them on the host object.
+
+    object Host "wp1.example.com" {
+      import "web-server"
+      import "wp-server"
+
+      vars.webserver_type = "nginx" //overrides attribute from base template
+
+      address = "192.168.56.201"
+    }
 
 ## Custom Attributes <a id="custom-attributes"></a>
 
