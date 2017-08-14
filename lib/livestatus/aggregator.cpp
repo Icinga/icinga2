@@ -33,3 +33,6 @@ Filter::Ptr Aggregator::GetFilter(void) const
 {
 	return m_Filter;
 }
+
+AggregatorState::~AggregatorState(void)
+{ }

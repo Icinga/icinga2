@@ -22,20 +22,34 @@
 using namespace icinga;
 
 InvAvgAggregator::InvAvgAggregator(const String& attr)
-    : m_InvAvg(0), m_InvAvgCount(0), m_InvAvgAttr(attr)
+    : m_InvAvgAttr(attr)
 { }
 
-void InvAvgAggregator::Apply(const Table::Ptr& table, const Value& row)
+InvAvgAggregatorState *InvAvgAggregator::EnsureState(AggregatorState **state)
+{
+	if (!*state)
+		*state = new InvAvgAggregatorState();
+
+	return static_cast<InvAvgAggregatorState *>(*state);
+}
+
+void InvAvgAggregator::Apply(const Table::Ptr& table, const Value& row, AggregatorState **state)
 {
 	Column column = table->GetColumn(m_InvAvgAttr);
 
 	Value value = column.ExtractValue(row);
 
-	m_InvAvg += (1.0 / value);
-	m_InvAvgCount++;
+	InvAvgAggregatorState *pstate = EnsureState(state);
+
+	pstate->InvAvg += (1.0 / value);
+	pstate->InvAvgCount++;
 }
 
-double InvAvgAggregator::GetResult(void) const
+double InvAvgAggregator::GetResultAndFreeState(AggregatorState *state) const
 {
-	return (m_InvAvg / m_InvAvgCount);
+	InvAvgAggregatorState *pstate = EnsureState(&state);
+	double result = pstate->InvAvg / pstate->InvAvgCount;
+	delete pstate;
+
+	return result;
 }

@@ -30,6 +30,18 @@ namespace icinga
 /**
  * @ingroup livestatus
  */
+struct I2_LIVESTATUS_API MinAggregatorState : public AggregatorState
+{
+	MinAggregatorState(void)
+	    : Min(DBL_MAX)
+	{ }
+
+	double Min;
+};
+
+/**
+ * @ingroup livestatus
+ */
 class I2_LIVESTATUS_API MinAggregator : public Aggregator
 {
 public:
@@ -37,12 +49,13 @@ public:
 
 	MinAggregator(const String& attr);
 
-	virtual void Apply(const Table::Ptr& table, const Value& row) override;
-	virtual double GetResult(void) const override;
+	virtual void Apply(const Table::Ptr& table, const Value& row, AggregatorState **state) override;
+	virtual double GetResultAndFreeState(AggregatorState *state) const override;
 
 private:
-	double m_Min;
 	String m_MinAttr;
+
+	static MinAggregatorState *EnsureState(AggregatorState **state);
 };
 
 }

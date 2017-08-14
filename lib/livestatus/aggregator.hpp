@@ -30,13 +30,21 @@ namespace icinga
 /**
  * @ingroup livestatus
  */
+struct I2_LIVESTATUS_API AggregatorState
+{
+	virtual ~AggregatorState(void);
+};
+
+/**
+ * @ingroup livestatus
+ */
 class I2_LIVESTATUS_API Aggregator : public Object
 {
 public:
 	DECLARE_PTR_TYPEDEFS(Aggregator);
 
-	virtual void Apply(const Table::Ptr& table, const Value& row) = 0;
-	virtual double GetResult(void) const = 0;
+	virtual void Apply(const Table::Ptr& table, const Value& row, AggregatorState **state) = 0;
+	virtual double GetResultAndFreeState(AggregatorState *state) const = 0;
 	void SetFilter(const Filter::Ptr& filter);
 
 protected:

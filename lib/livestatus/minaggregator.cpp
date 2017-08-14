@@ -22,23 +22,41 @@
 using namespace icinga;
 
 MinAggregator::MinAggregator(const String& attr)
-    : m_Min(DBL_MAX), m_MinAttr(attr)
+    : m_MinAttr(attr)
 { }
 
-void MinAggregator::Apply(const Table::Ptr& table, const Value& row)
+MinAggregatorState *MinAggregator::EnsureState(AggregatorState **state)
+{
+	if (!*state)
+		*state = new MinAggregatorState();
+
+	return static_cast<MinAggregatorState *>(*state);
+}
+
+void MinAggregator::Apply(const Table::Ptr& table, const Value& row, AggregatorState **state)
 {
 	Column column = table->GetColumn(m_MinAttr);
 
 	Value value = column.ExtractValue(row);
 
-	if (value < m_Min)
-		m_Min = value;
+	MinAggregatorState *pstate = EnsureState(state);
+
+	if (value < pstate->Min)
+		pstate->Min = value;
 }
 
-double MinAggregator::GetResult(void) const
+double MinAggregator::GetResultAndFreeState(AggregatorState *state) const
 {
-	if (m_Min == DBL_MAX)
-		return 0;
+	MinAggregatorState *pstate = EnsureState(&state);
+
+	double result;
+
+	if (pstate->Min == DBL_MAX)
+		result = 0;
 	else
-		return m_Min;
+		result = pstate->Min;
+
+	delete pstate;
+
+	return result;
 }
