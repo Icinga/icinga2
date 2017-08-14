@@ -29,6 +29,18 @@ namespace icinga
 /**
  * @ingroup livestatus
  */
+struct I2_LIVESTATUS_API SumAggregatorState : public AggregatorState
+{
+	SumAggregatorState(void)
+	    : Sum(0)
+	{ }
+
+	double Sum;
+};
+
+/**
+ * @ingroup livestatus
+ */
 class I2_LIVESTATUS_API SumAggregator : public Aggregator
 {
 public:
@@ -36,12 +48,13 @@ public:
 
 	SumAggregator(const String& attr);
 
-	virtual void Apply(const Table::Ptr& table, const Value& row) override;
-	virtual double GetResult(void) const override;
+	virtual void Apply(const Table::Ptr& table, const Value& row, AggregatorState **state) override;
+	virtual double GetResultAndFreeState(AggregatorState *state) const override;
 
 private:
-	double m_Sum;
 	String m_SumAttr;
+
+	static SumAggregatorState *EnsureState(AggregatorState **state);
 };
 
 }

@@ -21,17 +21,27 @@
 
 using namespace icinga;
 
-CountAggregator::CountAggregator(void)
-    : m_Count(0)
-{ }
-
-void CountAggregator::Apply(const Table::Ptr& table, const Value& row)
+CountAggregatorState *CountAggregator::EnsureState(AggregatorState **state)
 {
-	if (GetFilter()->Apply(table, row))
-		m_Count++;
+	if (!*state)
+		*state = new CountAggregatorState();
+
+	return static_cast<CountAggregatorState *>(*state);
 }
 
-double CountAggregator::GetResult(void) const
+void CountAggregator::Apply(const Table::Ptr& table, const Value& row, AggregatorState **state)
 {
-	return m_Count;
+	CountAggregatorState *pstate = EnsureState(state);
+
+	if (GetFilter()->Apply(table, row))
+		pstate->Count++;
+}
+
+double CountAggregator::GetResultAndFreeState(AggregatorState *state) const
+{
+	CountAggregatorState *pstate = EnsureState(&state);
+	double result = pstate->Count;
+	delete pstate;
+
+	return result;
 }

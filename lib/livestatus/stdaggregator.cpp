@@ -23,21 +23,35 @@
 using namespace icinga;
 
 StdAggregator::StdAggregator(const String& attr)
-    : m_StdSum(0), m_StdQSum(0), m_StdCount(0), m_StdAttr(attr)
+    : m_StdAttr(attr)
 { }
 
-void StdAggregator::Apply(const Table::Ptr& table, const Value& row)
+StdAggregatorState *StdAggregator::EnsureState(AggregatorState **state)
+{
+	if (!*state)
+		*state = new StdAggregatorState();
+
+	return static_cast<StdAggregatorState *>(*state);
+}
+
+void StdAggregator::Apply(const Table::Ptr& table, const Value& row, AggregatorState **state)
 {
 	Column column = table->GetColumn(m_StdAttr);
 
 	Value value = column.ExtractValue(row);
 
-	m_StdSum += value;
-	m_StdQSum += pow(value, 2);
-	m_StdCount++;
+	StdAggregatorState *pstate = EnsureState(state);
+
+	pstate->StdSum += value;
+	pstate->StdQSum += pow(value, 2);
+	pstate->StdCount++;
 }
 
-double StdAggregator::GetResult(void) const
+double StdAggregator::GetResultAndFreeState(AggregatorState *state) const
 {
-	return sqrt((m_StdQSum - (1 / m_StdCount) * pow(m_StdSum, 2)) / (m_StdCount - 1));
+	StdAggregatorState *pstate = EnsureState(&state);
+	double result = sqrt((pstate->StdQSum - (1 / pstate->StdCount) * pow(pstate->StdSum, 2)) / (pstate->StdCount - 1));
+	delete pstate;
+
+	return result;
 }

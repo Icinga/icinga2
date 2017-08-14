@@ -22,20 +22,34 @@
 using namespace icinga;
 
 MaxAggregator::MaxAggregator(const String& attr)
-    : m_Max(0), m_MaxAttr(attr)
+    : m_MaxAttr(attr)
 { }
 
-void MaxAggregator::Apply(const Table::Ptr& table, const Value& row)
+MaxAggregatorState *MaxAggregator::EnsureState(AggregatorState **state)
+{
+	if (!*state)
+		*state = new MaxAggregatorState();
+
+	return static_cast<MaxAggregatorState *>(*state);
+}
+
+void MaxAggregator::Apply(const Table::Ptr& table, const Value& row, AggregatorState **state)
 {
 	Column column = table->GetColumn(m_MaxAttr);
 
 	Value value = column.ExtractValue(row);
 
-	if (value > m_Max)
-		m_Max = value;
+	MaxAggregatorState *pstate = EnsureState(state);
+
+	if (value > pstate->Max)
+		pstate->Max = value;
 }
 
-double MaxAggregator::GetResult(void) const
+double MaxAggregator::GetResultAndFreeState(AggregatorState *state) const
 {
-	return m_Max;
+	MaxAggregatorState *pstate = EnsureState(&state);
+	double result = pstate->Max;
+	delete pstate;
+
+	return result;
 }

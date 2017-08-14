@@ -29,18 +29,28 @@ namespace icinga
 /**
  * @ingroup livestatus
  */
+struct CountAggregatorState : public AggregatorState
+{
+	CountAggregatorState(void)
+	    : Count(0)
+	{ }
+
+	int Count;
+};
+
+/**
+ * @ingroup livestatus
+ */
 class I2_LIVESTATUS_API CountAggregator : public Aggregator
 {
 public:
 	DECLARE_PTR_TYPEDEFS(CountAggregator);
 
-	CountAggregator(void);
+	virtual void Apply(const Table::Ptr& table, const Value& row, AggregatorState **) override;
+	virtual double GetResultAndFreeState(AggregatorState *state) const override;
 
-	virtual void Apply(const Table::Ptr& table, const Value& row) override;
-	virtual double GetResult(void) const override;
-	
 private:
-	int m_Count;
+	static CountAggregatorState *EnsureState(AggregatorState **state);
 };
 
 }
