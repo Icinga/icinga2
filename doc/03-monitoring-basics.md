@@ -1690,7 +1690,6 @@ information.
 
   Name                           | Description
   -------------------------------|---------------------------------------
-  `notification_address`         | **Required.** The host's IPv4 address. Defaults to `$address$`.
   `notification_date`            | **Required.** Date and time. Defaults to `$icinga.long_date_time$`.
   `notification_hostname`        | **Required.** The host's `FQDN`. Defaults to `$host.name$`.
   `notification_hostdisplayname` | **Required.** The host's display name. Defaults to `$host.display_name$`.
@@ -1698,6 +1697,7 @@ information.
   `notification_useremail`       | **Required.** The notification's recipient(s). Defaults to `$user.email$`.
   `notification_hoststate`       | **Required.** Current state of host. Defaults to `$host.state$`.
   `notification_type`            | **Required.** Type of notification. Defaults to `$notification.type$`.
+  `notification_address`         | **Optional.** The host's IPv4 address. Defaults to `$address$`.
   `notification_address6`        | **Optional.** The host's IPv6 address. Defaults to `$address6$`.
   `notification_author`          | **Optional.** Comment author. Defaults to `$notification.author$`.
   `notification_comment`         | **Optional.** Comment text. Defaults to `$notification.comment$`.
@@ -1716,7 +1716,6 @@ information.
 
   Name                              | Description
   ----------------------------------|---------------------------------------
-  `notification_address`            | **Required.** The host's IPv4 address. Defaults to `$address$`.
   `notification_date`               | **Required.** Date and time. Defaults to `$icinga.long_date_time$`.
   `notification_hostname`           | **Required.** The host's `FQDN`. Defaults to `$host.name$`.
   `notification_servicename`        | **Required.** The service name. Defaults to `$service.name$`.
@@ -1726,6 +1725,7 @@ information.
   `notification_useremail`          | **Required.** The notification's recipient(s). Defaults to `$user.email$`.
   `notification_servicestate`       | **Required.** Current state of host. Defaults to `$service.state$`.
   `notification_type`               | **Required.** Type of notification. Defaults to `$notification.type$`.
+  `notification_address`            | **Optional.** The host's IPv4 address. Defaults to `$address$`.
   `notification_address6`           | **Optional.** The host's IPv6 address. Defaults to `$address6$`.
   `notification_author`             | **Optional.** Comment author. Defaults to `$notification.author$`.
   `notification_comment`            | **Optional.** Comment text. Defaults to `$notification.comment$`.
