@@ -67,7 +67,7 @@ void Checkable::UpdateNextCheck(const MessageOrigin::Ptr& origin)
 {
 	double interval;
 
-	if (GetStateType() == StateTypeSoft && GetLastCheckResult() != NULL)
+	if (GetStateType() == StateTypeSoft && HasBeenChecked())
 		interval = GetRetryInterval();
 	else
 		interval = GetCheckInterval();
@@ -80,7 +80,10 @@ void Checkable::UpdateNextCheck(const MessageOrigin::Ptr& origin)
 
 	adj = std::min(0.5 + fmod(GetSchedulingOffset(), interval * 5) / 100.0, adj);
 
-	SetNextCheck(now - adj + interval, false, origin);
+	if (HasBeenChecked())
+		SetNextCheck(now - adj + interval, false, origin);
+	else
+		SetNextCheck(now + adj, false, origin);
 }
 
 bool Checkable::HasBeenChecked(void) const
