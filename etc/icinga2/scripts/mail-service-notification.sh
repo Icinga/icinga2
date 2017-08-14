@@ -98,15 +98,15 @@ SUBJECT="[$NOTIFICATIONTYPE] $SERVICEDISPLAYNAME on $HOSTDISPLAYNAME is $SERVICE
 
 ## Build the notification message
 NOTIFICATION_MESSAGE=`cat << EOF
-***** Icinga 2 Service Monitoring on $HOSTNAME *****
+***** Service Monitoring on $HOSTNAME *****
 
-==> $SERVICEDISPLAYNAME on $HOSTDISPLAYNAME is $SERVICESTATE! <==
+$SERVICEDISPLAYNAME on $HOSTDISPLAYNAME is $SERVICESTATE!
 
 Info:    $SERVICEOUTPUT
 
 When:    $LONGDATETIME
-Service: $SERVICENAME (Display Name: "$SERVICEDISPLAYNAME")
-Host:    $HOSTNAME (Display Name: "$HOSTDISPLAYNAME")
+Service: $SERVICENAME
+Host:    $HOSTNAME
 EOF
 `
 
@@ -134,8 +134,7 @@ fi
 if [ -n "$ICINGAWEB2URL" ] ; then
   NOTIFICATION_MESSAGE="$NOTIFICATION_MESSAGE
 
-URL:
-  $ICINGAWEB2URL/monitoring/service/show?host=$HOSTNAME&service=$SERVICENAME"
+$ICINGAWEB2URL/monitoring/service/show?host=$HOSTNAME&service=$SERVICENAME"
 fi
 
 ## Check whether verbose mode was enabled and log to syslog.
