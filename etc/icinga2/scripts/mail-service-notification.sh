@@ -3,7 +3,7 @@
 # Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)
 
 PROG="`basename $0`"
-HOSTNAME="`hostname`"
+ICINGA2HOST="`hostname`"
 MAILBIN="mail"
 
 if [ -z "`which $MAILBIN`" ] ; then
@@ -98,7 +98,7 @@ SUBJECT="[$NOTIFICATIONTYPE] $SERVICEDISPLAYNAME on $HOSTDISPLAYNAME is $SERVICE
 
 ## Build the notification message
 NOTIFICATION_MESSAGE=`cat << EOF
-***** Service Monitoring on $HOSTNAME *****
+***** Service Monitoring on $ICINGA2HOST *****
 
 $SERVICEDISPLAYNAME on $HOSTDISPLAYNAME is $SERVICESTATE!
 
