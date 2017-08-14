@@ -74,7 +74,7 @@ private:
 	static String EscapeKey(const String& str);
 	static String EscapeField(const String& str);
 
-	Stream::Ptr Connect(TcpSocket::Ptr& socket);
+	Stream::Ptr Connect();
 
 	void AssertOnWorkQueue(void);
 
