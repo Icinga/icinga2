@@ -1198,6 +1198,9 @@ snmp_rate_multiplier | **Optional.** Converts rate per second. For example, set 
 snmp_rate           | **Optional.** Boolean. Enable rate calculation.
 snmp_getnext        | **Optional.** Boolean. Use SNMP GETNEXT. Defaults to false.
 snmp_timeout        | **Optional.** The command timeout in seconds. Defaults to 10 seconds.
+snmp_offset         | **Optional.** Add/substract the specified OFFSET to numeric sensor data.
+snmp_output_delimiter | **Optional.** Separates output on multiple OID requests.
+snmp_perf_oids      | **Optional.** Label performance data with OIDs instead of --label's.
 
 ### snmpv3 <a id="plugin-check-command-snmpv3"></a>
 
