@@ -1,4 +1,4 @@
-policy_module(icinga2, 0.1.3)
+policy_module(icinga2, 0.1.4)
 
 ########################################
 #
@@ -140,6 +140,7 @@ allow nagios_notification_plugin_t icinga2_etc_t:dir search;
 allow nagios_notification_plugin_t nagios_notification_plugin_exec_t:dir search;
 #permissive nagios_notification_plugin_t;
 corecmd_exec_bin(nagios_notification_plugin_t)
+hostname_exec(nagios_notification_plugin_t)
 type nagios_notification_plugin_tmp_t;
 files_tmp_file(nagios_notification_plugin_tmp_t)
 manage_files_pattern(nagios_notification_plugin_t, nagios_notification_plugin_tmp_t, nagios_notification_plugin_tmp_t)
@@ -154,6 +155,7 @@ icinga2_dontaudit_leaks_fifo(system_mail_t)
 
 allow icinga2_t icinga2_port_t:tcp_socket name_bind;
 allow icinga2_t self:tcp_socket create_stream_socket_perms;
+corenet_tcp_connect_icinga2_port(icinga2_t)
 
 mysql_stream_connect(icinga2_t)
 mysql_tcp_connect(icinga2_t)
