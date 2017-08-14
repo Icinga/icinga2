@@ -29,6 +29,19 @@ namespace icinga
 /**
  * @ingroup livestatus
  */
+struct InvAvgAggregatorState : public AggregatorState
+{
+	InvAvgAggregatorState(void)
+	    : InvAvg(0), InvAvgCount(0)
+	{ }
+
+	double InvAvg;
+	double InvAvgCount;
+};
+
+/**
+ * @ingroup livestatus
+ */
 class I2_LIVESTATUS_API InvAvgAggregator : public Aggregator
 {
 public:
@@ -36,13 +49,13 @@ public:
 
 	InvAvgAggregator(const String& attr);
 
-	virtual void Apply(const Table::Ptr& table, const Value& row) override;
-	virtual double GetResult(void) const override;
+	virtual void Apply(const Table::Ptr& table, const Value& row, AggregatorState **state) override;
+	virtual double GetResultAndFreeState(AggregatorState *state) const override;
 
 private:
-	double m_InvAvg;
-	double m_InvAvgCount;
 	String m_InvAvgAttr;
+
+	static InvAvgAggregatorState *EnsureState(AggregatorState **state);
 };
 
 }

@@ -22,19 +22,33 @@
 using namespace icinga;
 
 SumAggregator::SumAggregator(const String& attr)
-    : m_Sum(0), m_SumAttr(attr)
+    : m_SumAttr(attr)
 { }
 
-void SumAggregator::Apply(const Table::Ptr& table, const Value& row)
+SumAggregatorState *SumAggregator::EnsureState(AggregatorState **state)
+{
+	if (!*state)
+		*state = new SumAggregatorState();
+
+	return static_cast<SumAggregatorState *>(*state);
+}
+
+void SumAggregator::Apply(const Table::Ptr& table, const Value& row, AggregatorState **state)
 {
 	Column column = table->GetColumn(m_SumAttr);
 
 	Value value = column.ExtractValue(row);
 
-	m_Sum += value;
+	SumAggregatorState *pstate = EnsureState(state);
+
+	pstate->Sum += value;
 }
 
-double SumAggregator::GetResult(void) const
+double SumAggregator::GetResultAndFreeState(AggregatorState *state) const
 {
-	return m_Sum;
+	SumAggregatorState *pstate = EnsureState(&state);
+	double result = pstate->Sum;
+	delete pstate;
+
+	return result;
 }

@@ -22,19 +22,33 @@
 using namespace icinga;
 
 InvSumAggregator::InvSumAggregator(const String& attr)
-    : m_InvSum(0), m_InvSumAttr(attr)
+    : m_InvSumAttr(attr)
 { }
 
-void InvSumAggregator::Apply(const Table::Ptr& table, const Value& row)
+InvSumAggregatorState *InvSumAggregator::EnsureState(AggregatorState **state)
+{
+	if (!*state)
+		*state = new InvSumAggregatorState();
+
+	return static_cast<InvSumAggregatorState *>(*state);
+}
+
+void InvSumAggregator::Apply(const Table::Ptr& table, const Value& row, AggregatorState **state)
 {
 	Column column = table->GetColumn(m_InvSumAttr);
 
 	Value value = column.ExtractValue(row);
 
-	m_InvSum += (1.0 / value);
+	InvSumAggregatorState *pstate = EnsureState(state);
+
+	pstate->InvSum += (1.0 / value);
 }
 
-double InvSumAggregator::GetResult(void) const
+double InvSumAggregator::GetResultAndFreeState(AggregatorState *state) const
 {
-	return m_InvSum;
+	InvSumAggregatorState *pstate = EnsureState(&state);
+	double result = pstate->InvSum;
+	delete pstate;
+
+	return result;
 }

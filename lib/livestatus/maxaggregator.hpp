@@ -29,6 +29,18 @@ namespace icinga
 /**
  * @ingroup livestatus
  */
+struct I2_LIVESTATUS_API MaxAggregatorState : public AggregatorState
+{
+	MaxAggregatorState(void)
+	    : Max(0)
+	{ }
+
+	double Max;
+};
+
+/**
+ * @ingroup livestatus
+ */
 class I2_LIVESTATUS_API MaxAggregator : public Aggregator
 {
 public:
@@ -36,12 +48,13 @@ public:
 
 	MaxAggregator(const String& attr);
 
-	virtual void Apply(const Table::Ptr& table, const Value& row) override;
-	virtual double GetResult(void) const override;
+	virtual void Apply(const Table::Ptr& table, const Value& row, AggregatorState **state) override;
+	virtual double GetResultAndFreeState(AggregatorState *state) const override;
 
 private:
-	double m_Max;
 	String m_MaxAttr;
+
+	static MaxAggregatorState *EnsureState(AggregatorState **state);
 };
 
 }

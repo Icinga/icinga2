@@ -29,6 +29,20 @@ namespace icinga
 /**
  * @ingroup livestatus
  */
+struct I2_LIVESTATUS_API StdAggregatorState : public AggregatorState
+{
+	StdAggregatorState(void)
+	    : StdSum(0), StdQSum(0), StdCount(0)
+	{ }
+
+	double StdSum;
+	double StdQSum;
+	double StdCount;
+};
+
+/**
+ * @ingroup livestatus
+ */
 class I2_LIVESTATUS_API StdAggregator : public Aggregator
 {
 public:
@@ -36,14 +50,13 @@ public:
 
 	StdAggregator(const String& attr);
 
-	virtual void Apply(const Table::Ptr& table, const Value& row) override;
-	virtual double GetResult(void) const override;
+	virtual void Apply(const Table::Ptr& table, const Value& row, AggregatorState **state) override;
+	virtual double GetResultAndFreeState(AggregatorState *state) const override;
 
 private:
-	double m_StdSum;
-	double m_StdQSum;
-	double m_StdCount;
 	String m_StdAttr;
+
+	static StdAggregatorState *EnsureState(AggregatorState **state);
 };
 
 }

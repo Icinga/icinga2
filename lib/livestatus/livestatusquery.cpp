@@ -512,17 +512,34 @@ void LivestatusQuery::ExecuteGetHelper(const Stream::Ptr& stream)
 			AppendResultRow(result, row, first_row);
 		}
 	} else {
-		std::vector<double> stats(m_Aggregators.size(), 0);
-		int index = 0;
+		std::map<std::vector<Value>, std::vector<AggregatorState *> > allStats;
 
 		/* add aggregated stats */
-		for (const Aggregator::Ptr aggregator : m_Aggregators) {
-			for (const LivestatusRowValue& object : objects) {
-				aggregator->Apply(table, object.Row);
+		for (const LivestatusRowValue& object : objects) {
+			Column column = table->GetColumn(m_Columns[0]);
+
+			std::vector<Value> statsKey;
+
+			for (const String& columnName : m_Columns) {
+				Column column = table->GetColumn(columnName);
+				statsKey.push_back(column.ExtractValue(object.Row, object.GroupByType, object.GroupByObject));
 			}
 
-			stats[index] = aggregator->GetResult();
-			index++;
+			auto it = allStats.find(statsKey);
+
+			if (it == allStats.end()) {
+				std::vector<AggregatorState *> newStats(m_Aggregators.size(), NULL);
+				it = allStats.insert(std::make_pair(statsKey, newStats)).first;
+			}
+
+			auto& stats = it->second;
+
+			int index = 0;
+
+			for (const Aggregator::Ptr aggregator : m_Aggregators) {
+				aggregator->Apply(table, object.Row, &stats[index]);
+				index++;
+			}
 		}
 
 		/* add column headers both for raw and aggregated data */
@@ -540,28 +557,22 @@ void LivestatusQuery::ExecuteGetHelper(const Stream::Ptr& stream)
 			AppendResultRow(result, header, first_row);
 		}
 
-		Array::Ptr row = new Array();
+		for (const auto& kv : allStats) {
+			Array::Ptr row = new Array();
 
-		row->Reserve(m_Columns.size() + m_Aggregators.size());
+			row->Reserve(m_Columns.size() + m_Aggregators.size());
 
-		/*
-		 * add selected columns next to stats
-		 * may not be accurate for grouping!
-		 */
-		if (objects.size() > 0 && m_Columns.size() > 0) {
-			for (const String& columnName : m_Columns) {
-				Column column = table->GetColumn(columnName);
-
-				LivestatusRowValue object = objects[0]; //first object wins
-
-				row->Add(column.ExtractValue(object.Row, object.GroupByType, object.GroupByObject));
+			for (const Value& keyPart : kv.first) {
+				row->Add(keyPart);
 			}
+
+			auto& stats = kv.second;
+
+			for (size_t i = 0; i < m_Aggregators.size(); i++)
+				row->Add(m_Aggregators[i]->GetResultAndFreeState(stats[i]));
+
+			AppendResultRow(result, row, first_row);
 		}
-
-		for (size_t i = 0; i < m_Aggregators.size(); i++)
-			row->Add(stats[i]);
-
-		AppendResultRow(result, row, first_row);
 	}
 
 	EndResultSet(result);
