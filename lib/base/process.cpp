@@ -415,7 +415,7 @@ send_message:
 
 	ssize_t rc = recv(l_ProcessControlFD, buf, sizeof(buf), 0);
 
-	if (rc < 0)
+	if (rc <= 0)
 		return -1;
 
 	String jresponse = String(buf, buf + rc);
@@ -447,7 +447,7 @@ send_message:
 
 	ssize_t rc = recv(l_ProcessControlFD, buf, sizeof(buf), 0);
 
-	if (rc < 0)
+	if (rc <= 0)
 		return -1;
 
 	String jresponse = String(buf, buf + rc);
@@ -478,7 +478,7 @@ send_message:
 
 	ssize_t rc = recv(l_ProcessControlFD, buf, sizeof(buf), 0);
 
-	if (rc < 0)
+	if (rc <= 0)
 		return -1;
 
 	String jresponse = String(buf, buf + rc);
