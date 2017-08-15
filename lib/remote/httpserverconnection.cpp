@@ -38,7 +38,7 @@ static boost::once_flag l_HttpServerConnectionOnceFlag = BOOST_ONCE_INIT;
 static Timer::Ptr l_HttpServerConnectionTimeoutTimer;
 
 HttpServerConnection::HttpServerConnection(const String& identity, bool authenticated, const TlsStream::Ptr& stream)
-	: m_Stream(stream), m_Seen(Utility::GetTime()), m_CurrentRequest(stream), m_PendingRequests(0)
+	: m_Stream(stream), m_Seen(Utility::GetTime()), m_CurrentRequest(stream), m_PendingRequests(0), m_Connected(true)
 {
 	boost::call_once(l_HttpServerConnectionOnceFlag, &HttpServerConnection::StaticInitialize);
 
@@ -52,14 +52,16 @@ void HttpServerConnection::StaticInitialize(void)
 {
 	l_HttpServerConnectionTimeoutTimer = new Timer();
 	l_HttpServerConnectionTimeoutTimer->OnTimerExpired.connect(boost::bind(&HttpServerConnection::TimeoutTimerHandler));
-	l_HttpServerConnectionTimeoutTimer->SetInterval(15);
+	l_HttpServerConnectionTimeoutTimer->SetInterval(600);
 	l_HttpServerConnectionTimeoutTimer->Start();
 }
 
 void HttpServerConnection::Start(void)
 {
 	/* the stream holds an owning reference to this object through the callback we're registering here */
-	m_Stream->RegisterDataHandler(boost::bind(&HttpServerConnection::DataAvailableHandler, HttpServerConnection::Ptr(this)));
+	m_Stream->RegisterDataHandler(boost::bind(&HttpServerConnection::DataAvailableHandler, 
+		HttpServerConnection::Ptr(this)));
+
 	if (m_Stream->IsDataAvailable())
 		DataAvailableHandler();
 }
@@ -76,15 +78,23 @@ TlsStream::Ptr HttpServerConnection::GetStream(void) const
 
 void HttpServerConnection::Disconnect(void)
 {
-	Log(LogDebug, "HttpServerConnection", "Http client disconnected");
-
+	if(!m_Connected) 
+		return;
+        
+	m_Connected=false;
+	
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 	listener->RemoveHttpClient(this);
+
+	m_Stream->Close();
+
+	boost::mutex::scoped_lock lock(m_ProcessMutex);
+	if(m_PendingRequests)
+		CV_done.wait(lock);	// Wait until last request is done..
 
 	m_CurrentRequest.~HttpRequest();
 	new (&m_CurrentRequest) HttpRequest(Stream::Ptr());
 
-	m_Stream->Close();
 }
 
 bool HttpServerConnection::ProcessMessage(void)
@@ -118,8 +128,10 @@ bool HttpServerConnection::ProcessMessage(void)
 		    HttpServerConnection::Ptr(this), m_CurrentRequest));
 
 		m_Seen = Utility::GetTime();
-		m_PendingRequests++;
-
+		{
+			boost::mutex::scoped_lock lock(m_ProcessMutex);
+			m_PendingRequests++;
+		}
 		m_CurrentRequest.~HttpRequest();
 		new (&m_CurrentRequest) HttpRequest(m_Stream);
 
@@ -167,7 +179,8 @@ void HttpServerConnection::ProcessMessageAsync(HttpRequest& request)
 
 	Log(LogInformation, "HttpServerConnection")
 	    << "Request: " << request.RequestMethod << " " << requestUrl
-	    << " (from " << m_Stream->GetSocket()->GetPeerAddress() << ", user: " << (user ? user->GetName() : "<unauthenticated>") << ")";
+	    << " (from " << m_Stream->GetSocket()->GetPeerAddress() 
+	    << ", user: " << (user ? user->GetName() : "<unauthenticated>") << ")";
 
 	HttpResponse response(m_Stream, request);
 
@@ -223,7 +236,10 @@ void HttpServerConnection::ProcessMessageAsync(HttpRequest& request)
 
 	response.Finish();
 
-	m_PendingRequests--;
+	boost::mutex::scoped_lock lock(m_ProcessMutex);
+	if(!--m_PendingRequests)
+		CV_done.notify_all();
+	
 }
 
 void HttpServerConnection::DataAvailableHandler(void)
@@ -251,9 +267,10 @@ void HttpServerConnection::DataAvailableHandler(void)
 
 void HttpServerConnection::CheckLiveness(void)
 {
-	if (m_Seen < Utility::GetTime() - 10 && m_PendingRequests == 0) {
-		Log(LogInformation, "HttpServerConnection")
-		    <<  "No messages for Http connection have been received in the last 10 seconds.";
+	if (m_Seen < Utility::GetTime() - 3600 && m_PendingRequests == 0) {
+		Log(LogWarning, "HttpServerConnection")
+		    <<  "No messages for Http connection " <<  m_Stream->GetSocket()->GetPeerAddress() 
+		    << " have been received in the last 3600 seconds.";
 		Disconnect();
 	}
 }

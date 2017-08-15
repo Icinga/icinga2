@@ -134,6 +134,9 @@ private:
 	WorkQueue m_RelayQueue;
 	WorkQueue m_SyncQueue;
 
+	mutable boost::mutex m_HttpLock;
+	mutable boost::mutex m_JsonLock;
+	
 	boost::mutex m_LogLock;
 	Stream::Ptr m_LogFile;
 	size_t m_LogMessageCount;
