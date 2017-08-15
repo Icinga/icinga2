@@ -1699,7 +1699,7 @@ Name                   | Description
 :----------------------|:----------------------
 nscp\_api\_host       | **Required**. NSCP API host address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
 nscp\_api\_port       | **Optional**. NSCP API port. Defaults to `8443`.
-nscp\_api\_passwd     | **Required**. NSCP API password. Please check the NSCP documentation for setup details.
+nscp\_api\_password   | **Required**. NSCP API password. Please check the NSCP documentation for setup details.
 nscp\_api\_query      | **Required**. NSCP API query endpoint. Refer to the NSCP documentation for possible values.
 nscp\_api\_arguments  | **Optional**. NSCP API arguments dictionary either as single strings or key-value pairs using `=`. Refer to the NSCP documentation.
 
