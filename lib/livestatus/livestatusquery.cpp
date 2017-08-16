@@ -516,8 +516,6 @@ void LivestatusQuery::ExecuteGetHelper(const Stream::Ptr& stream)
 
 		/* add aggregated stats */
 		for (const LivestatusRowValue& object : objects) {
-			Column column = table->GetColumn(m_Columns[0]);
-
 			std::vector<Value> statsKey;
 
 			for (const String& columnName : m_Columns) {
