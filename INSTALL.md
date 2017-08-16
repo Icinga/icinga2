@@ -37,7 +37,7 @@ libopenssl-devel on SLES12, libssl-dev on Debian, libressl-dev on Alpine)
 * GNU flex (flex) >= 2.5.35
 * recommended: libexecinfo on FreeBSD (automatically used when Icinga 2 is
                installed via port or package)
-* optional: MySQL (mysql-devel on RHEL, libmysqlclient-devel on SUSE, libmysqlclient-dev on Debian, mariadb-dev on Alpine);
+* optional: MySQL (mysql-devel on RHEL, libmysqlclient-devel on SUSE, libmysqlclient-dev until Debian 8 jessie / default-libmysqlclient-dev from Debian 9 stretch, mariadb-dev on Alpine);
             set CMake variable `ICINGA2_WITH_MYSQL` to `OFF` to disable this module
 * optional: PostgreSQL (postgresql-devel on RHEL, libpq-dev on Debian, postgresql-dev on Alpine); set CMake
             variable `ICINGA2_WITH_PGSQL` to `OFF` to disable this module
