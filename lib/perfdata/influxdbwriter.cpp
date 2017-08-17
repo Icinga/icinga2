@@ -134,9 +134,9 @@ void InfluxdbWriter::ExceptionHandler(boost::exception_ptr exp)
 	//TODO: Close the connection, if we keep it open.
 }
 
-Stream::Ptr InfluxdbWriter::Connect(TcpSocket::Ptr& socket)
+Stream::Ptr InfluxdbWriter::Connect()
 {
-	socket = new TcpSocket();
+	TcpSocket::Ptr socket = new TcpSocket();
 
 	Log(LogNotice, "InfluxdbWriter")
 	    << "Reconnecting to InfluxDB on host '" << GetHost() << "' port '" << GetPort() << "'.";
@@ -423,8 +423,7 @@ void InfluxdbWriter::Flush(void)
 	String body = boost::algorithm::join(m_DataBuffer, "\n");
 	m_DataBuffer.clear();
 
-	TcpSocket::Ptr socket;
-	Stream::Ptr stream = Connect(socket);
+	Stream::Ptr stream = Connect();
 
 	if (!stream)
 		return;
@@ -461,14 +460,6 @@ void InfluxdbWriter::Flush(void)
 	//TODO: Evaluate whether waiting for the result makes sense here. KeepAlive and close are options.
 	HttpResponse resp(stream, req);
 	StreamReadContext context;
-
-	struct timeval timeout = { GetSocketTimeout(), 0 };
-
-	if (!socket->Poll(true, false, &timeout)) {
-		Log(LogWarning, "InfluxdbWriter")
-		    << "Response timeout of TCP socket from host '" << GetHost() << "' port '" << GetPort() << "'.";
-		return;
-	}
 
 	try {
 		resp.Parse(context, true);
