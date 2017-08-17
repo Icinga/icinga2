@@ -541,3 +541,7 @@ void InfluxdbWriter::ValidateServiceTemplate(const Dictionary::Ptr& value, const
 	}
 }
 
+void InfluxdbWriter::ValidateSocketTimeout(int, const ValidationUtils&)
+{
+	Log(LogWarning, "InfluxdbWriter", "'socket_timeout' option has no effect and will be removed in Icinga 2 v2.8");
+}

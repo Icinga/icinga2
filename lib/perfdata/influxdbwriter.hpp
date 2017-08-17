@@ -49,6 +49,7 @@ public:
 
 	virtual void ValidateHostTemplate(const Dictionary::Ptr& value, const ValidationUtils& utils) override;
 	virtual void ValidateServiceTemplate(const Dictionary::Ptr& value, const ValidationUtils& utils) override;
+	virtual void ValidateSocketTimeout(int value, const ValidationUtils& utils) override;
 
 protected:
 	virtual void OnConfigLoaded(void) override;
