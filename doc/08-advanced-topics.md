@@ -343,7 +343,7 @@ and adds the excluded time period names as an array.
       }
     }
 
-### External Check Results <a id="external-check-results"></a>
+## External Check Results <a id="external-check-results"></a>
 
 Hosts or services which do not actively execute a check plugin to receive
 the state and output are called "passive checks" or "external check results".
