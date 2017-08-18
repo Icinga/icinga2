@@ -343,19 +343,69 @@ and adds the excluded time period names as an array.
       }
     }
 
+### External Check Results <a id="external-check-results"></a>
+
+Hosts or services which do not actively execute a check plugin to receive
+the state and output are called "passive checks" or "external check results".
+In this scenario an external client or script is sending in check results.
+
+You can feed check results into Icinga 2 with the following transport methods:
+
+* [process-check-result action](12-icinga2-api.md#icinga2-api-actions-process-check-result) available with the [REST API](12-icinga2-api.md#icinga2-api) (remote and local)
+* External command sent via command pipe (local only)
+
+Each time a new check result is received, the next expected check time
+is updated. This means that if there are no check result received from
+the external source, Icinga 2 will execute [freshness checks](08-advanced-topics.md#check-result-freshness).
+
+> **Note**
+>
+> The REST API action allows to specify the `check_source` attribute
+> which helps identifying the external sender. This is also visible
+> in Icinga Web 2 and the REST API queries.
+
 ## Check Result Freshness <a id="check-result-freshness"></a>
 
 In Icinga 2 active check freshness is enabled by default. It is determined by the
 `check_interval` attribute and no incoming check results in that period of time.
 
-    threshold = last check execution time + check interval
+The threshold is calculated based on the last check execution time for actively executed checks:
 
-Passive check freshness is calculated from the `check_interval` attribute if set.
+    (last check execution time + check interval) > current time
 
-    threshold = last check result time + check interval
+If this host/service receives check results from an [external source](08-advanced-topics.md#external-check-results),
+the threshold is based on the last time a check result was received:
 
-If the freshness checks are invalid, a new check is executed defined by the
-`check_command` attribute.
+    (last check result time + check interval) > current time
+
+If the freshness checks fail, Icinga 2 will execute the defined check command.
+
+Best practice is to define a [dummy](10-icinga-template-library.md#plugin-check-command-dummy) `check_command` which gets
+executed when freshness checks fail.
+
+```
+apply Service "external-check" {
+  check_command = "dummy"
+  check_interval = 1m
+
+  /* Set the state to UNKNOWN (3) if freshness checks fail. */
+  vars.dummy_state = 3
+
+  /* Use a runtime function to retrieve the last check time and more details. */
+  vars.dummy_text = {{
+    var service = get_service(macro("$host.name$"), macro("$service.name$"))
+    var lastCheck = DateTime(service.last_check).to_string()
+
+    return "No check results received. Last result time: " + lastCheck
+  }}
+
+  assign where "external" in host.vars.services
+}
+```
+
+Example output in Icinga Web 2:
+
+![Icinga 2 Freshness Checks](images/advanced-topics/icinga2_external_checks_freshness_icingaweb2.png)
 
 
 ## Check Flapping <a id="check-flapping"></a>

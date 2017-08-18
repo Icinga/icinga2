@@ -17,7 +17,7 @@ Signature:
     function regex(pattern, value, mode)
 
 Returns true if the regular expression `pattern` matches the `value`, false otherwise.
-The `value` can be of the type [String](#string-type) or [Array](#array-type) (which
+The `value` can be of the type [String](18-library-reference.md#string-type) or [Array](18-library-reference.md#array-type) (which
 contains string elements).
 
 The `mode` argument is optional and can be either `MatchAll` (in which case all elements
@@ -56,7 +56,7 @@ Signature:
     function match(pattern, text, mode)
 
 Returns true if the wildcard (`?*`) `pattern` matches the `value`, false otherwise.
-The `value` can be of the type [String](#string-type) or [Array](#array-type) (which
+The `value` can be of the type [String](18-library-reference.md#string-type) or [Array](18-library-reference.md#array-type) (which
 contains string elements).
 
 The `mode` argument is optional and can be either `MatchAll` (in which case all elements
