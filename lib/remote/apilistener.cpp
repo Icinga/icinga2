@@ -294,7 +294,7 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 	String port = endpoint->GetPort();
 
 	Log(LogInformation, "ApiListener")
-	    << "Reconnecting to API endpoint '" << endpoint->GetName() << "' via host '" << host << "' and port '" << port << "'";
+	    << "Reconnecting to endpoint '" << endpoint->GetName() << "' via host '" << host << "' and port '" << port << "'";
 
 	TcpSocket::Ptr client = new TcpSocket();
 
@@ -313,6 +313,9 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 		Log(LogDebug, "ApiListener")
 		    << info.str() << "\n" << DiagnosticInformation(ex);
 	}
+
+	Log(LogInformation, "ApiListener")
+	    << "Finished reconnecting to endpoint '" << endpoint->GetName() << "' via host '" << host << "' and port '" << port << "'";
 }
 
 void ApiListener::NewClientHandler(const Socket::Ptr& client, const String& hostname, ConnectionRole role)
@@ -321,6 +324,9 @@ void ApiListener::NewClientHandler(const Socket::Ptr& client, const String& host
 		NewClientHandlerInternal(client, hostname, role);
 	} catch (const std::exception& ex) {
 		Log(LogCritical, "ApiListener")
+		    << "Exception while handling new API client connection: " << DiagnosticInformation(ex, false);
+
+		Log(LogDebug, "ApiListener")
 		    << "Exception while handling new API client connection: " << DiagnosticInformation(ex);
 	}
 }
@@ -463,6 +469,8 @@ void ApiListener::NewClientHandlerInternal(const Socket::Ptr& client, const Stri
 
 void ApiListener::SyncClient(const JsonRpcConnection::Ptr& aclient, const Endpoint::Ptr& endpoint, bool needSync)
 {
+	Zone::Ptr eZone = endpoint->GetZone();
+
 	try {
 		{
 			ObjectLock olock(endpoint);
@@ -475,15 +483,19 @@ void ApiListener::SyncClient(const JsonRpcConnection::Ptr& aclient, const Endpoi
 		 */
 
 		Log(LogInformation, "ApiListener")
-		    << "Sending config updates for endpoint '" << endpoint->GetName() << "'.";
+		    << "Sending config updates for endpoint '" << endpoint->GetName() << "' in zone '" << eZone->GetName() << "'.";
 
 		/* sync zone file config */
 		SendConfigUpdate(aclient);
+
+		Log(LogInformation, "ApiListener")
+		    << "Finished sending config file updates for endpoint '" << endpoint->GetName() << "' in zone '" << eZone->GetName() << "'.";
+
 		/* sync runtime config */
 		SendRuntimeConfigObjects(aclient);
 
 		Log(LogInformation, "ApiListener")
-		    << "Finished sending config updates for endpoint '" << endpoint->GetName() << "'.";
+		    << "Finished sending runtime config updates for endpoint '" << endpoint->GetName() << "' in zone '" << eZone->GetName() << "'.";
 
 		if (!needSync) {
 			ObjectLock olock2(endpoint);
@@ -492,22 +504,30 @@ void ApiListener::SyncClient(const JsonRpcConnection::Ptr& aclient, const Endpoi
 		}
 
 		Log(LogInformation, "ApiListener")
-		    << "Sending replay log for endpoint '" << endpoint->GetName() << "'.";
+		    << "Sending replay log for endpoint '" << endpoint->GetName() << "' in zone '" << eZone->GetName() << "'.";
 
 		ReplayLog(aclient);
 
-		if (endpoint->GetZone() == Zone::GetLocalZone())
+		if (eZone == Zone::GetLocalZone())
 			UpdateObjectAuthority();
 
 		Log(LogInformation, "ApiListener")
-		    << "Finished sending replay log for endpoint '" << endpoint->GetName() << "'.";
+		    << "Finished sending replay log for endpoint '" << endpoint->GetName() << "' in zone '" << eZone->GetName() << "'.";
 	} catch (const std::exception& ex) {
-		ObjectLock olock2(endpoint);
-		endpoint->SetSyncing(false);
+		{
+			ObjectLock olock2(endpoint);
+			endpoint->SetSyncing(false);
+		}
 
 		Log(LogCritical, "ApiListener")
+		    << "Error while syncing endpoint '" << endpoint->GetName() << "': " << DiagnosticInformation(ex, false);
+
+		Log(LogDebug, "ApiListener")
 		    << "Error while syncing endpoint '" << endpoint->GetName() << "': " << DiagnosticInformation(ex);
 	}
+
+	Log(LogInformation, "ApiListener")
+	    << "Finished syncing endpoint '" << endpoint->GetName() << "' in zone '" << eZone->GetName() << "'.";
 }
 
 void ApiListener::ApiTimerHandler(void)
@@ -1011,7 +1031,11 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 					count++;
 				} catch (const std::exception& ex) {
 					Log(LogWarning, "ApiListener")
+					    << "Error while replaying log for endpoint '" << endpoint->GetName() << "': " << DiagnosticInformation(ex, false);
+
+					Log(LogDebug, "ApiListener")
 					    << "Error while replaying log for endpoint '" << endpoint->GetName() << "': " << DiagnosticInformation(ex);
+
 					break;
 				}
 
