@@ -109,13 +109,7 @@ bool ApiListener::UpdateConfigDir(const ConfigDirInformation& oldConfigInfo, con
 		return false;
 	}
 
-	Log(LogInformation, "ApiListener")
-	    << "Applying configuration file update for path '" << configDir << "'. Received timestamp '"
-	    << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", newTimestamp) << "' ("
-	    << std::fixed << std::setprecision(6) << newTimestamp
-	    << ") is more recent than current timestamp '"
-	    << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", oldTimestamp) << "' ("
-	    << oldTimestamp << ").";
+	size_t numBytes = 0;
 
 	{
 		ObjectLock olock(newConfig);
@@ -128,14 +122,27 @@ bool ApiListener::UpdateConfigDir(const ConfigDirInformation& oldConfigInfo, con
 				Log(LogInformation, "ApiListener")
 				    << "Updating configuration file: " << path;
 
-				//pass the directory and generate a dir tree, if not existing already
+				/* Sync string content only. */
+				String content = kv.second;
+
+				/* Generate a directory tree (zones/1/2/3 might not exist yet). */
 				Utility::MkDirP(Utility::DirName(path), 0755);
 				std::ofstream fp(path.CStr(), std::ofstream::out | std::ostream::binary | std::ostream::trunc);
-				fp << kv.second;
+				fp << content;
 				fp.close();
+
+				numBytes += content.GetLength();
 			}
 		}
 	}
+
+	Log(LogInformation, "ApiListener")
+	    << "Applying configuration file update for path '" << configDir << "' (" << numBytes << " Bytes). Received timestamp '"
+	    << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", newTimestamp) << "' ("
+	    << std::fixed << std::setprecision(6) << newTimestamp
+	    << "), Current timestamp '"
+	    << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", oldTimestamp) << "' ("
+	    << oldTimestamp << ").";
 
 	ObjectLock xlock(oldConfig);
 	for (const Dictionary::Pair& kv : oldConfig) {
