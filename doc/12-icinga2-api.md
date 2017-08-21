@@ -805,6 +805,8 @@ Send a `POST` request to the URL endpoint `/v1/actions/process-check-result`.
   performance\_data | string array | **Optional.** The performance data.
   check\_command    | string array | **Optional.** The first entry should be the check commands path, then one entry for each command line option followed by an entry for each of its argument.
   check\_source     | string       | **Optional.** Usually the name of the `command_endpoint`
+  execution\_start  | timestamp    | **Optional.** The timestamp where a script/process started its execution.
+  execution\_end    | timestamp    | **Optional.** The timestamp where a script/process ended its execution. This timestamp is used in features to determine e.g. the metric timestamp.
 
 In addition to these parameters a [filter](12-icinga2-api.md#icinga2-api-filters) must be provided. The valid types for this action are `Host` and `Service`.
 

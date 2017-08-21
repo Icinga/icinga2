@@ -103,6 +103,12 @@ Dictionary::Ptr ApiActions::ProcessCheckResult(const ConfigObject::Ptr& object,
 	cr->SetOutput(HttpUtility::GetLastParameter(params, "plugin_output"));
 	cr->SetState(state);
 
+	if (params->Contains("execution_start"))
+		cr->SetExecutionStart(HttpUtility::GetLastParameter(params, "execution_start"));
+
+	if (params->Contains("execution_end"))
+		cr->SetExecutionEnd(HttpUtility::GetLastParameter(params, "execution_end"));
+
 	cr->SetCheckSource(HttpUtility::GetLastParameter(params, "check_source"));
 	cr->SetPerformanceData(params->Get("performance_data"));
 	cr->SetCommand(params->Get("check_command"));
