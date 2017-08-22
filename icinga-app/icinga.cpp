@@ -40,6 +40,11 @@
 #	include <sys/types.h>
 #	include <pwd.h>
 #	include <grp.h>
+#else
+#	include <windows.h>
+#	include <Lmcons.h>
+#	include <Shellapi.h>
+#	include <tchar.h>
 #endif /* _WIN32 */
 
 using namespace icinga;
@@ -232,6 +237,74 @@ int Main(void)
 		    << "Error while parsing command-line options: " << ex.what();
 		return EXIT_FAILURE;
 	}
+
+#ifdef _WIN32
+	char username[UNLEN + 1];
+	DWORD usernameLen = UNLEN + 1;
+	GetUserName(username, &usernameLen);
+
+	std::ifstream userFile;
+	userFile.open(Application::GetSysconfDir() + "/icinga2/user");
+
+	if (userFile && command && !Application::IsProcessElevated()) {
+		std::string userLine;
+		if (std::getline(userFile, userLine)) {
+			userFile.close();
+
+			std::vector<std::string> strs;
+			boost::split(strs, userLine, boost::is_any_of("\\"));
+
+			if (username != strs[1] && command->GetImpersonationLevel() == ImpersonationLevel::ImpersonateIcinga
+				|| command->GetImpersonationLevel() == ImpersonationLevel::ImpersonateRoot) {
+				TCHAR szPath[MAX_PATH];
+
+				if (GetModuleFileName(NULL, szPath, ARRAYSIZE(szPath))) { 
+					SHELLEXECUTEINFO sei = { sizeof(sei) };
+					sei.lpVerb = _T("runas");
+					sei.lpFile = "cmd.exe";
+					sei.fMask = SEE_MASK_NOCLOSEPROCESS | SEE_MASK_NOASYNC | SEE_MASK_FLAG_NO_UI;
+					sei.nShow = SW_SHOW;
+
+					std::stringstream parameters;
+
+					parameters << "/C " << "\"" << szPath << "\"" << " ";
+
+					for (int i = 1; i < argc; i++) {
+						if (i != 1)
+							parameters << " ";
+						parameters << argv[i];
+					}
+
+					parameters << " & SET exitcode=%errorlevel%";
+					parameters << " & pause";
+					parameters << " & EXIT /B %exitcode%";
+
+					std::string str = parameters.str();
+					LPCSTR cstr = str.c_str();
+
+					sei.lpParameters = cstr;
+
+					if (!ShellExecuteEx(&sei)) {
+						DWORD dwError = GetLastError();
+						if (dwError == ERROR_CANCELLED)
+							Application::Exit(0);
+					} else {
+						WaitForSingleObject(sei.hProcess, INFINITE);
+
+						DWORD exitCode;
+						GetExitCodeProcess(sei.hProcess, &exitCode);
+
+						CloseHandle(sei.hProcess);
+
+						Application::Exit(exitCode);
+					}
+				}
+			}
+		} else {
+			userFile.close();
+		}
+	}
+#endif /* _WIN32 */
 
 #ifndef _WIN32
 	if (vm.count("color")) {
