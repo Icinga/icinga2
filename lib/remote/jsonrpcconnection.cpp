@@ -33,8 +33,6 @@ using namespace icinga;
 
 static Value SetLogPositionHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
 REGISTER_APIFUNCTION(SetLogPosition, log, &SetLogPositionHandler);
-static Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
-REGISTER_APIFUNCTION(RequestCertificate, pki, &RequestCertificateHandler);
 
 static boost::once_flag l_JsonRpcConnectionOnceFlag = BOOST_ONCE_INIT;
 static Timer::Ptr l_JsonRpcConnectionTimeoutTimer;
@@ -274,46 +272,6 @@ Value SetLogPositionHandler(const MessageOrigin::Ptr& origin, const Dictionary::
 		endpoint->SetLocalLogPosition(log_position);
 
 	return Empty;
-}
-
-Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
-{
-	if (!params)
-		return Empty;
-
-	Dictionary::Ptr result = new Dictionary();
-
-	if (!origin->FromClient->IsAuthenticated()) {
-		ApiListener::Ptr listener = ApiListener::GetInstance();
-		String salt = listener->GetTicketSalt();
-
-		if (salt.IsEmpty()) {
-			result->Set("error", "Ticket salt is not configured.");
-			return result;
-		}
-
-		String ticket = params->Get("ticket");
-		String realTicket = PBKDF2_SHA1(origin->FromClient->GetIdentity(), salt, 50000);
-
-		if (ticket != realTicket) {
-			result->Set("error", "Invalid ticket.");
-			return result;
-		}
-	}
-
-	boost::shared_ptr<X509> cert = origin->FromClient->GetStream()->GetPeerCertificate();
-
-	EVP_PKEY *pubkey = X509_get_pubkey(cert.get());
-	X509_NAME *subject = X509_get_subject_name(cert.get());
-
-	boost::shared_ptr<X509> newcert = CreateCertIcingaCA(pubkey, subject);
-	result->Set("cert", CertificateToString(newcert));
-
-	String cacertfile = GetIcingaCADir() + "/ca.crt";
-	boost::shared_ptr<X509> cacert = GetX509Certificate(cacertfile);
-	result->Set("ca", CertificateToString(cacert));
-
-	return result;
 }
 
 void JsonRpcConnection::CheckLiveness(void)

@@ -46,7 +46,7 @@ public:
 	static int GenTicket(const String& cn, const String& salt, std::ostream& ticketfp);
 	static int RequestCertificate(const String& host, const String& port, const String& keyfile,
 	    const String& certfile, const String& cafile, const boost::shared_ptr<X509>& trustedcert,
-	    const String& ticket);
+	    const String& ticket = String());
 	static String GetCertificateInformation(const boost::shared_ptr<X509>& certificate);
 
 private:

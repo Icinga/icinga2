@@ -590,6 +590,21 @@ String CertificateToString(const boost::shared_ptr<X509>& cert)
 	return result;
 }
 
+boost::shared_ptr<X509> StringToCertificate(const String& cert)
+{
+	BIO *bio = BIO_new(BIO_s_mem());
+	BIO_write(bio, (const void *)cert.CStr(), cert.GetLength());
+
+	X509 *rawCert = PEM_read_bio_X509_AUX(bio, NULL, NULL, NULL);
+
+	BIO_free(bio);
+
+	if (!rawCert)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("The specified X509 certificate is invalid."));
+
+	return boost::shared_ptr<X509>(rawCert, X509_free);
+}
+
 String PBKDF2_SHA1(const String& password, const String& salt, int iterations)
 {
 	unsigned char digest[SHA_DIGEST_LENGTH];

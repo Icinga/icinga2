@@ -259,7 +259,39 @@ int PkiUtility::RequestCertificate(const String& host, const String& port, const
 	Dictionary::Ptr result = response->Get("result");
 
 	if (result->Contains("error")) {
-		Log(LogCritical, "cli", result->Get("error"));
+		LogSeverity severity;
+
+		if (result->Get("status_code") == 1)
+			severity = LogCritical;
+		else {
+			severity = LogInformation;
+			Log(severity, "cli", "!!!!!!");
+		}
+
+		Log(severity, "cli")
+		    << "!!! " << result->Get("error");
+
+		if (result->Get("status_code") == 1)
+			return 1;
+		else {
+			Log(severity, "cli", "!!!!!!");
+			return 0;
+		}
+	}
+
+	try {
+		StringToCertificate(result->Get("cert"));
+	} catch (const std::exception& ex) {
+		Log(LogCritical, "cli")
+		    << "Could not write certificate file: " << DiagnosticInformation(ex, false);
+		return 1;
+	}
+
+	try {
+		StringToCertificate(result->Get("ca"));
+	} catch (const std::exception& ex) {
+		Log(LogCritical, "cli")
+		    << "Could not write CA file: " << DiagnosticInformation(ex, false);
 		return 1;
 	}
 
