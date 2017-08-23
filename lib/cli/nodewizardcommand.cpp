@@ -91,7 +91,7 @@ int NodeWizardCommand::Run(const boost::program_options::variables_map& vm,
 	 * 5. Local CA
 	 * 6. New self signed certificate
 	 * 7. Request signed certificate from master
-	 * 8. copy key information to /etc/icinga2/pki
+	 * 8. copy key information to /var/lib/icinga2/pki
 	 * 9. enable ApiListener feature
 	 * 10. generate zones.conf with endpoints and zone objects
 	 * 11. set NodeName = cn in constants.conf
@@ -409,9 +409,9 @@ wizard_ticket:
 		    << " * The API listener is used for distributed monitoring setups.\n"
 		    << " */\n"
 		    << "object ApiListener \"api\" {\n"
-		    << "  cert_path = SysconfDir + \"/icinga2/pki/\" + NodeName + \".crt\"\n"
-		    << "  key_path = SysconfDir + \"/icinga2/pki/\" + NodeName + \".key\"\n"
-		    << "  ca_path = SysconfDir + \"/icinga2/pki/ca.crt\"\n"
+		    << "  cert_path = LocalStateDir + \"/lib/icinga2/pki/\" + NodeName + \".crt\"\n"
+		    << "  key_path = LocalStateDir + \"/lib/icinga2/pki/\" + NodeName + \".key\"\n"
+		    << "  ca_path = LocalStateDir + \"/lib/icinga2/pki/ca.crt\"\n"
 		    << "\n"
 		    << "  accept_config = " << accept_config << "\n"
 		    << "  accept_commands = " << accept_commands << "\n";
@@ -531,9 +531,9 @@ wizard_ticket:
 		    << " * The API listener is used for distributed monitoring setups.\n"
 		    << " */\n"
 		    << "object ApiListener \"api\" {\n"
-		    << "  cert_path = SysconfDir + \"/icinga2/pki/\" + NodeName + \".crt\"\n"
-		    << "  key_path = SysconfDir + \"/icinga2/pki/\" + NodeName + \".key\"\n"
-		    << "  ca_path = SysconfDir + \"/icinga2/pki/ca.crt\"\n";
+		    << "  cert_path = LocalStateDir + \"/lib/icinga2/pki/\" + NodeName + \".crt\"\n"
+		    << "  key_path = LocalStateDir + \"/lib/icinga2/pki/\" + NodeName + \".key\"\n"
+		    << "  ca_path = LocalStateDir + \"/lib/icinga2/pki/ca.crt\"\n";
 
 		if (!bind_host.IsEmpty())
 			fp << "  bind_host = \"" << bind_host << "\"\n";

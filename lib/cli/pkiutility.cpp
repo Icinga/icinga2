@@ -36,7 +36,7 @@ using namespace icinga;
 
 String PkiUtility::GetPkiPath(void)
 {
-	return Application::GetSysconfDir() + "/icinga2/pki";
+	return Application::GetLocalStateDir() + "/lib/icinga2/pki";
 }
 
 String PkiUtility::GetLocalCaPath(void)

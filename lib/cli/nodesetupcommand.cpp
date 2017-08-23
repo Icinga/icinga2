@@ -175,9 +175,9 @@ int NodeSetupCommand::SetupMaster(const boost::program_options::variables_map& v
 	    << " * The API listener is used for distributed monitoring setups.\n"
 	    << " */\n"
 	    << "object ApiListener \"api\" {\n"
-	    << "  cert_path = SysconfDir + \"/icinga2/pki/\" + NodeName + \".crt\"\n"
-	    << "  key_path = SysconfDir + \"/icinga2/pki/\" + NodeName + \".key\"\n"
-	    << "  ca_path = SysconfDir + \"/icinga2/pki/ca.crt\"\n";
+	    << "  cert_path = LocalStateDir + \"/lib/icinga2/pki/\" + NodeName + \".crt\"\n"
+	    << "  key_path = LocalStateDir + \"/lib/icinga2/pki/\" + NodeName + \".key\"\n"
+	    << "  ca_path = LocalStateDir + \"/lib/icinga2/pki/ca.crt\"\n";
 
 	if (vm.count("listen")) {
 		std::vector<String> tokens;
@@ -379,9 +379,9 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 	    << " * The API listener is used for distributed monitoring setups.\n"
 	    << " */\n"
 	    << "object ApiListener \"api\" {\n"
-	    << "  cert_path = SysconfDir + \"/icinga2/pki/\" + NodeName + \".crt\"\n"
-	    << "  key_path = SysconfDir + \"/icinga2/pki/\" + NodeName + \".key\"\n"
-	    << "  ca_path = SysconfDir + \"/icinga2/pki/ca.crt\"\n";
+	    << "  cert_path = LocalStateDir + \"/lib/icinga2/pki/\" + NodeName + \".crt\"\n"
+	    << "  key_path = LocalStateDir + \"/lib/icinga2/pki/\" + NodeName + \".key\"\n"
+	    << "  ca_path = LocalStateDir + \"/lib/icinga2/pki/ca.crt\"\n";
 
 	if (vm.count("listen")) {
 		std::vector<String> tokens;
