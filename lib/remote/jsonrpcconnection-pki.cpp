@@ -94,10 +94,11 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 	if (!origin->FromClient->IsAuthenticated()) {
 		String salt = listener->GetTicketSalt();
 
-		if (salt.IsEmpty())
+		String ticket = params->Get("ticket");
+
+		if (salt.IsEmpty() || ticket.IsEmpty())
 			goto delayed_request;
 
-		String ticket = params->Get("ticket");
 		String realTicket = PBKDF2_SHA1(origin->FromClient->GetIdentity(), salt, 50000);
 
 		if (ticket != realTicket) {

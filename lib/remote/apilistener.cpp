@@ -478,6 +478,15 @@ void ApiListener::SyncClient(const JsonRpcConnection::Ptr& aclient, const Endpoi
 			endpoint->SetSyncing(true);
 		}
 
+		Zone::Ptr myZone = Zone::GetLocalZone();
+
+		if (myZone->GetParent() == eZone) {
+			Log(LogInformation, "ApiListener")
+			    << "Requesting new certificate for this Icinga instance from endpoint '" << endpoint->GetName() << "'.";
+
+			SendCertificateRequest(aclient);
+		}
+
 		/* Make sure that the config updates are synced
 		 * before the logs are replayed.
 		 */
@@ -528,6 +537,19 @@ void ApiListener::SyncClient(const JsonRpcConnection::Ptr& aclient, const Endpoi
 
 	Log(LogInformation, "ApiListener")
 	    << "Finished syncing endpoint '" << endpoint->GetName() << "' in zone '" << eZone->GetName() << "'.";
+}
+
+void ApiListener::SendCertificateRequest(const JsonRpcConnection::Ptr& aclient)
+{
+	Dictionary::Ptr message = new Dictionary();
+	message->Set("jsonrpc", "2.0");
+	message->Set("method", "pki::RequestCertificate");
+
+	Dictionary::Ptr params = new Dictionary();
+
+	message->Set("params", params);
+
+	JsonRpc::SendMessage(aclient->GetStream(), message);
 }
 
 void ApiListener::ApiTimerHandler(void)
