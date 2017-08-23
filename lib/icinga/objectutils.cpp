@@ -31,6 +31,7 @@ using namespace icinga;
 
 REGISTER_SCRIPTFUNCTION_NS(System, get_host, &Host::GetByName, "name");
 REGISTER_SCRIPTFUNCTION_NS(System, get_service, &ObjectUtils::GetService, "host:name");
+REGISTER_SCRIPTFUNCTION_NS(System, get_services, &ObjectUtils::GetServices, "host");
 REGISTER_SCRIPTFUNCTION_NS(System, get_user, &User::GetByName, "name");
 REGISTER_SCRIPTFUNCTION_NS(System, get_check_command, &CheckCommand::GetByName, "name");
 REGISTER_SCRIPTFUNCTION_NS(System, get_event_command, &EventCommand::GetByName, "name");
@@ -40,13 +41,32 @@ REGISTER_SCRIPTFUNCTION_NS(System, get_service_group, &ServiceGroup::GetByName, 
 REGISTER_SCRIPTFUNCTION_NS(System, get_user_group, &UserGroup::GetByName, "name");
 REGISTER_SCRIPTFUNCTION_NS(System, get_time_period, &TimePeriod::GetByName, "name");
 
-Service::Ptr ObjectUtils::GetService(const String& host, const String& name)
+Service::Ptr ObjectUtils::GetService(const Value& host, const String& name)
 {
-	Host::Ptr host_obj = Host::GetByName(host);
+	Host::Ptr hostObj;
 
-	if (!host_obj)
+	if (host.IsObjectType<Host>())
+		hostObj = host;
+	else
+		hostObj = Host::GetByName(host);
+
+	if (!hostObj)
 		return Service::Ptr();
 
-	return host_obj->GetServiceByShortName(name);
+	return hostObj->GetServiceByShortName(name);
 }
 
+Array::Ptr ObjectUtils::GetServices(const Value& host)
+{
+	Host::Ptr hostObj;
+
+	if (host.IsObjectType<Host>())
+		hostObj = host;
+	else
+		hostObj = Host::GetByName(host);
+
+	if (!hostObj)
+		return Array::Ptr();
+
+	return Array::FromVector(hostObj->GetServices());
+}

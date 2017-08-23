@@ -22,6 +22,7 @@
 
 #include "base/i2-base.hpp"
 #include "base/string.hpp"
+#include "base/array.hpp"
 #include "icinga/service.hpp"
 
 namespace icinga
@@ -33,7 +34,8 @@ namespace icinga
 class I2_ICINGA_API ObjectUtils
 {
 public:
-	static Service::Ptr GetService(const String& host, const String& name);
+	static Service::Ptr GetService(const Value& host, const String& name);
+	static Array::Ptr GetServices(const Value& host);
 
 private:
 	ObjectUtils(void);
