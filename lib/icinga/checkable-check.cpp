@@ -354,13 +354,13 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 	if (hardChange || (is_volatile && !(IsStateOK(old_state) && IsStateOK(new_state)))) {
 		OnStateChange(this, cr, StateTypeHard, origin);
 		Log(LogNotice, "Checkable")
-		    << "State Change: Checkable " << GetName() << " hard state change from " << old_state_str << " to " << new_state_str << " detected." << (is_volatile ? " Checkable is volatile." : "");
+		    << "State Change: Checkable '" << GetName() << "' hard state change from " << old_state_str << " to " << new_state_str << " detected." << (is_volatile ? " Checkable is volatile." : "");
 	}
 	/* Whether a state change happened or the state type is SOFT (must be logged too). */
 	else if (stateChange || GetStateType() == StateTypeSoft) {
 		OnStateChange(this, cr, StateTypeSoft, origin);
 		Log(LogNotice, "Checkable")
-		    << "State Change: Checkable " << GetName() << " soft state change from " << old_state_str << " to " << new_state_str << " detected.";
+		    << "State Change: Checkable '" << GetName() << "' soft state change from " << old_state_str << " to " << new_state_str << " detected.";
 	}
 
 	if (GetStateType() == StateTypeSoft || hardChange || recovery ||
