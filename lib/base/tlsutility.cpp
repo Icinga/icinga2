@@ -575,6 +575,11 @@ boost::shared_ptr<X509> CreateCertIcingaCA(EVP_PKEY *pubkey, X509_NAME *subject)
 	return CreateCert(pubkey, subject, X509_get_subject_name(cacert.get()), privkey, false);
 }
 
+boost::shared_ptr<X509> CreateCertIcingaCA(const boost::shared_ptr<X509>& cert)
+{
+	return CreateCertIcingaCA(X509_get_pubkey(cert.get()), X509_get_subject_name(cert.get()));
+}
+
 String CertificateToString(const boost::shared_ptr<X509>& cert)
 {
 	BIO *mem = BIO_new(BIO_s_mem());

@@ -17,6 +17,7 @@
 
 set(cli_SOURCES
   apisetupcommand.cpp apisetuputility.cpp
+  calistcommand.cpp casigncommand.cpp
   nodeaddcommand.cpp nodeblackandwhitelistcommand.cpp nodelistcommand.cpp noderemovecommand.cpp
   nodesetcommand.cpp nodesetupcommand.cpp nodeupdateconfigcommand.cpp nodewizardcommand.cpp nodeutility.cpp
   clicommand.cpp

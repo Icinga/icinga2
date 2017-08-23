@@ -50,6 +50,7 @@ String I2_BASE_API GetIcingaCADir(void);
 String I2_BASE_API CertificateToString(const boost::shared_ptr<X509>& cert);
 boost::shared_ptr<X509> I2_BASE_API StringToCertificate(const String& cert);
 boost::shared_ptr<X509> I2_BASE_API CreateCertIcingaCA(EVP_PKEY *pubkey, X509_NAME *subject);
+boost::shared_ptr<X509> I2_BASE_API CreateCertIcingaCA(const boost::shared_ptr<X509>& cert);
 String I2_BASE_API PBKDF2_SHA1(const String& password, const String& salt, int iterations);
 String I2_BASE_API SHA1(const String& s, bool binary = false);
 String I2_BASE_API SHA256(const String& s);
