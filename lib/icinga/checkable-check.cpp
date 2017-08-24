@@ -374,7 +374,7 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 			OnNotificationsRequested(this, NotificationFlappingStart, cr, "", "", MessageOrigin::Ptr());
 
 		Log(LogNotice, "Checkable")
-			<< "Flapping: Checkable " << GetName() << " started flapping (" << GetFlappingThreshold() << "% < " << GetFlappingCurrent() << "%).";
+			<< "Flapping: Checkable '" << GetName() << "' started flapping (" << GetFlappingThreshold() << "% < " << GetFlappingCurrent() << "%).";
 
 		NotifyFlapping(origin);
 	} else if (!in_downtime && was_flapping && !is_flapping) {
@@ -383,7 +383,7 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 			OnNotificationsRequested(this, NotificationFlappingEnd, cr, "", "", MessageOrigin::Ptr());
 
 		Log(LogNotice, "Checkable")
-			<< "Flapping: Checkable " << GetName() << " stopped flapping (" << GetFlappingThreshold() << "% >= " << GetFlappingCurrent() << "%).";
+			<< "Flapping: Checkable '" << GetName() << "' stopped flapping (" << GetFlappingThreshold() << "% >= " << GetFlappingCurrent() << "%).";
 
 		NotifyFlapping(origin);
 	}
