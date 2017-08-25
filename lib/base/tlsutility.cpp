@@ -336,7 +336,28 @@ int MakeX509CSR(const String& cn, const String& keyfile, const String& csrfile, 
 
 	InitializeOpenSSL();
 
-	RSA *rsa = RSA_generate_key(4096, RSA_F4, nullptr, nullptr);
+	RSA *rsa = RSA_new();
+	BIGNUM *e = BN_new();
+
+	if (rsa == NULL || e == NULL) {
+		Log(LogCritical, "SSL")
+			<< "Error while creating RSA key: " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
+		BOOST_THROW_EXCEPTION(openssl_error()
+			<< boost::errinfo_api_function("RSA_generate_key")
+			<< errinfo_openssl_error(ERR_peek_error()));
+	}
+
+	BN_set_word(e, RSA_F4);
+
+	if (RSA_generate_key_ex(rsa, 4096, e, NULL) == NULL) {
+		Log(LogCritical, "SSL")
+			<< "Error while creating RSA key: " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
+		BOOST_THROW_EXCEPTION(openssl_error()
+			<< boost::errinfo_api_function("RSA_generate_key")
+			<< errinfo_openssl_error(ERR_peek_error()));
+	}
+
+	BN_free(e);
 
 	Log(LogInformation, "base")
 		<< "Writing private key to '" << keyfile << "'.";
