@@ -266,8 +266,10 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 
 	bool is_volatile = GetVolatile();
 
+	if (old_stateType == StateTypeHard || is_volatile) {
+		SetLastHardStateRaw(old_state);
+	}
 	if (hardChange || is_volatile) {
-		SetLastHardStateRaw(new_state);
 		SetLastHardStateChange(now);
 	}
 
