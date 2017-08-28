@@ -547,9 +547,57 @@ Returns the Host object with the specified name, or `null` if no such Host objec
 Signature:
 
     function get_service(host_name, service_name);
+    function get_service(host, service_name);
 
-Returns the Service object with the specified name, or `null` if no such Service object exists.
+Returns the Service object with the specified host name or object and service name pair,
+or `null` if no such Service object exists.
 
+Example in the [debug console](11-cli-commands.md#cli-command-console)
+which fetches the `disk` service object from the current Icinga 2 node:
+
+```
+$ ICINGA2_API_PASSWORD=icinga icinga2 console --connect 'https://root@localhost:5665/'
+Icinga 2 (version: v2.7.0)
+
+<1> => get_service(NodeName, "disk")
+<2> => get_service(NodeName, "disk").__name
+"icinga2-master1.localdomain!disk"
+
+<3> => get_service(get_host(NodeName), "disk").__name
+"icinga2-master1.localdomain!disk"
+```
+
+### get_services <a id="objref-get_services"></a>
+
+Signature:
+
+    function get_services(host_name);
+    function get_services(host);
+
+Returns an [array](17-language-reference.md#array) of service objects for the specified host name or object,
+or `null` if no such host object exists.
+
+Example in the [debug console](11-cli-commands.md#cli-command-console)
+which fetches all service objects from the current Icinga 2 node:
+
+```
+$ ICINGA2_API_PASSWORD=icinga icinga2 console --connect 'https://root@localhost:5665/'
+Icinga 2 (version: v2.7.0)
+
+<1> => get_services(NodeName).map(s => s.name)
+[ "disk", "disk /", "http", "icinga", "load", "ping4", "ping6", "procs", "ssh", "users" ]
+```
+
+Note: [map](18-library-reference.md#array-map) takes a [lambda function](17-language-reference.md#lambdas) as argument. In this example
+we only want to collect and print the `name` attribute with `s => s.name`.
+
+This works in a similar fashion for a host object where you can extract all service states
+in using the [map](18-library-reference.md#array-map) functionality:
+
+```
+<2> => get_services(get_host(NodeName)).map(s => s.state)
+[ 2.000000, 2.000000, 2.000000, 0.000000, 0.000000, 0.000000, 2.000000, 0.000000, 0.000000, 1.000000, 0.000000, 0.000000 ]
+```
 
 ### get_user <a id="objref-get_user"></a>
 
