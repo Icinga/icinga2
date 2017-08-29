@@ -216,35 +216,17 @@ wizard_endpoint_loop_start:
 		if (choice.Contains("y"))
 			goto wizard_endpoint_loop_start;
 
-		std::cout << ConsoleColorTag(Console_Bold)
-		    << "Please specify the master connection for CSR auto-signing"
-		    << ConsoleColorTag(Console_Normal) << " (defaults to master endpoint host):\n";
+		String master_host, master_port;
 
-wizard_master_host:
-		std::cout << ConsoleColorTag(Console_Bold) << "Host"
-		    << ConsoleColorTag(Console_Normal) << " [" << master_endpoint_name << "]: ";
+		for (const String& endpoint : endpoints) {
+			std::vector<String> tokens = endpoint.Split(",");
 
-		std::getline(std::cin, answer);
+			if (tokens.size() > 1)
+				master_host = tokens[1];
 
-		if (answer.empty() && !master_endpoint_name.IsEmpty())
-			answer = master_endpoint_name;
-
-		if (answer.empty() && master_endpoint_name.IsEmpty())
-			goto wizard_master_host;
-
-		String master_host = answer;
-		master_host = master_host.Trim();
-
-		std::cout << ConsoleColorTag(Console_Bold) << "Port"
-		    << ConsoleColorTag(Console_Normal) << " [" << tmpPort << "]: ";
-
-		std::getline(std::cin, answer);
-
-		if (!answer.empty())
-			tmpPort = answer;
-
-		String master_port = tmpPort;
-		master_port = master_port.Trim();
+			if (tokens.size() > 2)
+				master_port = tokens[2];
+		}
 
 		/* workaround for fetching the master cert */
 		String pki_path = PkiUtility::GetPkiPath();
@@ -283,70 +265,85 @@ wizard_master_host:
 			    << "' on file '" << node_key << "'. Verify it yourself!";
 		}
 
-		//save-cert and store the master certificate somewhere
-		Log(LogInformation, "cli")
-		    << "Fetching public certificate from master ("
-		    << master_host << ", " << master_port << "):\n";
+		boost::shared_ptr<X509> trustedcert;
 
-		boost::shared_ptr<X509> trustedcert = PkiUtility::FetchCert(master_host, master_port);
-		if (!trustedcert) {
-			Log(LogCritical, "cli", "Peer did not present a valid certificate.");
-			return 1;
+		if (!master_host.IsEmpty()) {
+			//save-cert and store the master certificate somewhere
+			Log(LogInformation, "cli")
+			    << "Fetching public certificate from master ("
+			    << master_host << ", " << master_port << "):\n";
+
+			trustedcert = PkiUtility::FetchCert(master_host, master_port);
+			if (!trustedcert) {
+				Log(LogCritical, "cli", "Peer did not present a valid certificate.");
+				return 1;
+			}
+
+			std::cout << ConsoleColorTag(Console_Bold) << "Certificate information:\n"
+			    << ConsoleColorTag(Console_Normal) << PkiUtility::GetCertificateInformation(trustedcert)
+			    << ConsoleColorTag(Console_Bold) << "\nIs this information correct?"
+			    << ConsoleColorTag(Console_Normal) << " [y/N]: ";
+
+			std::getline (std::cin, answer);
+			boost::algorithm::to_lower(answer);
+			if (answer != "y") {
+				Log(LogWarning, "cli", "Process aborted.");
+				return 1;
+			}
+
+			Log(LogInformation, "cli", "Received trusted master certificate.\n");
 		}
-
-		std::cout << ConsoleColorTag(Console_Bold) << "Certificate information:\n"
-		    << ConsoleColorTag(Console_Normal) << PkiUtility::GetCertificateInformation(trustedcert)
-		    << ConsoleColorTag(Console_Bold) << "\nIs this information correct?"
-		    << ConsoleColorTag(Console_Normal) << " [y/N]: ";
-
-		std::getline (std::cin, answer);
-		boost::algorithm::to_lower(answer);
-		if (answer != "y") {
-			Log(LogWarning, "cli", "Process aborted.");
-			return 1;
-		}
-
-		Log(LogInformation, "cli", "Received trusted master certificate.\n");
 
 wizard_ticket:
 		std::cout << ConsoleColorTag(Console_Bold)
-		    << "Please specify the request ticket generated on your Icinga 2 master."
+		    << "Please specify the request ticket generated on your Icinga 2 master (optional)."
 		    << ConsoleColorTag(Console_Normal) << "\n"
 		    << " (Hint: # icinga2 pki ticket --cn '" << cn << "'): ";
 
 		std::getline(std::cin, answer);
 
-		if (answer.empty())
-			goto wizard_ticket;
+		if (answer.empty()) {
+			std::cout << ConsoleColorTag(Console_Bold) << "\n"
+			    << "No ticket was specified. Please approve the certificate signing request manually\n"
+			    << "on the master (see 'icinga2 ca list' and 'icinga2 ca sign --help' for details)."
+			    << ConsoleColorTag(Console_Normal) << "\n\n";
+		}
 
 		String ticket = answer;
 		ticket = ticket.Trim();
 
-		Log(LogInformation, "cli")
-		    << "Requesting certificate with ticket '" << ticket << "'.\n";
+		if (!master_host.IsEmpty()) {
+			if (ticket.IsEmpty()) {
+				Log(LogInformation, "cli")
+				    << "Requesting certificate without a ticket.";
+			} else {
+				Log(LogInformation, "cli")
+				    << "Requesting certificate with ticket '" << ticket << "'.";
+			}
 
-		String target_ca = pki_path + "/ca.crt";
+			String target_ca = pki_path + "/ca.crt";
 
-		if (Utility::PathExists(target_ca))
-			NodeUtility::CreateBackupFile(target_ca);
-		if (Utility::PathExists(node_cert))
-			NodeUtility::CreateBackupFile(node_cert);
+			if (Utility::PathExists(target_ca))
+				NodeUtility::CreateBackupFile(target_ca);
+			if (Utility::PathExists(node_cert))
+				NodeUtility::CreateBackupFile(node_cert);
 
-		if (PkiUtility::RequestCertificate(master_host, master_port, node_key,
-		    node_cert, target_ca, trustedcert, ticket) > 0) {
-			Log(LogCritical, "cli")
-			    << "Failed to fetch signed certificate from master '"
-			    << master_host << ", "
-			    << master_port <<"'. Please try again.";
-			goto wizard_ticket;
-		}
+			if (PkiUtility::RequestCertificate(master_host, master_port, node_key,
+			    node_cert, target_ca, trustedcert, ticket) > 0) {
+				Log(LogCritical, "cli")
+				    << "Failed to fetch signed certificate from master '"
+				    << master_host << ", "
+				    << master_port <<"'. Please try again.";
+				goto wizard_ticket;
+			}
 
-		/* fix permissions (again) when updating the signed certificate */
-		if (!Utility::SetFileOwnership(node_cert, user, group)) {
-			Log(LogWarning, "cli")
-			    << "Cannot set ownership for user '" << user
-			    << "' group '" << group << "' on file '"
-			    << node_cert << "'. Verify it yourself!";
+			/* fix permissions (again) when updating the signed certificate */
+			if (!Utility::SetFileOwnership(node_cert, user, group)) {
+				Log(LogWarning, "cli")
+				    << "Cannot set ownership for user '" << user
+				    << "' group '" << group << "' on file '"
+				    << node_cert << "'. Verify it yourself!";
+			}
 		}
 
 		/* apilistener config */
