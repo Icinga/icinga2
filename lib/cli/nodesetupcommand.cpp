@@ -406,7 +406,6 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 		fp << "  accept_commands = false\n";
 
 	fp << "\n"
-	    << "  ticket_salt = TicketSalt\n"
 	    << "}\n";
 
 	fp.close();
@@ -441,8 +440,33 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 	NodeUtility::UpdateConstant("NodeName", cn);
 	NodeUtility::UpdateConstant("ZoneName", vm["zone"].as<std::string>());
 
-	/* tell the user to reload icinga2 */
+	String ticketPath = Application::GetLocalStateDir() + "/lib/icinga2/pki/ticket";
 
+	String tempTicketPath = Utility::CreateTempFile(ticketPath + ".XXXXXX", 0600, fp);
+
+	if (!Utility::SetFileOwnership(tempTicketPath, user, group)) {
+		Log(LogWarning, "cli")
+		    << "Cannot set ownership for user '" << user
+		    << "' group '" << group
+		    << "' on file '" << tempTicketPath << "'. Verify it yourself!";
+	}
+
+	fp << ticket;
+
+	fp.close();
+
+#ifdef _WIN32
+	_unlink(ticketPath.CStr());
+#endif /* _WIN32 */
+
+	if (rename(tempTicketPath.CStr(), ticketPath.CStr()) < 0) {
+		BOOST_THROW_EXCEPTION(posix_error()
+		    << boost::errinfo_api_function("rename")
+		    << boost::errinfo_errno(errno)
+		    << boost::errinfo_file_name(tempTicketPath));
+	}
+
+	/* tell the user to reload icinga2 */
 	Log(LogInformation, "cli", "Make sure to restart Icinga 2.");
 
 	return 0;

@@ -419,7 +419,6 @@ wizard_ticket:
 			fp << "  bind_port = " << bind_port << "\n";
 
 		fp << "\n"
-		    << "  ticket_salt = TicketSalt\n"
 		    << "}\n";
 
 		fp.close();
@@ -454,6 +453,32 @@ wizard_ticket:
 
 		NodeUtility::UpdateConstant("NodeName", cn);
 		NodeUtility::UpdateConstant("ZoneName", cn);
+
+		String ticketPath = Application::GetLocalStateDir() + "/lib/icinga2/pki/ticket";
+
+		String tempTicketPath = Utility::CreateTempFile(ticketPath + ".XXXXXX", 0600, fp);
+
+		if (!Utility::SetFileOwnership(tempTicketPath, user, group)) {
+			Log(LogWarning, "cli")
+			    << "Cannot set ownership for user '" << user
+			    << "' group '" << group
+			    << "' on file '" << tempTicketPath << "'. Verify it yourself!";
+		}
+
+		fp << ticket;
+
+		fp.close();
+
+#ifdef _WIN32
+		_unlink(ticketPath.CStr());
+#endif /* _WIN32 */
+
+		if (rename(tempTicketPath.CStr(), ticketPath.CStr()) < 0) {
+			BOOST_THROW_EXCEPTION(posix_error()
+			    << boost::errinfo_api_function("rename")
+			    << boost::errinfo_errno(errno)
+			    << boost::errinfo_file_name(tempTicketPath));
+		}
 	} else {
 		/* master setup */
 		std::cout << ConsoleColorTag(Console_Bold) << "Starting the Master setup routine...\n";
@@ -519,7 +544,6 @@ wizard_ticket:
 		/* api feature is always enabled, check above */
 		String apipath = FeatureUtility::GetFeaturesAvailablePath() + "/api.conf";
 		NodeUtility::CreateBackupFile(apipath);
-
 
 		std::fstream fp;
 		String tempApiPath = Utility::CreateTempFile(apipath + ".XXXXXX", 0644, fp);

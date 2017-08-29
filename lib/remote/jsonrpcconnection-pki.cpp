@@ -158,8 +158,15 @@ void JsonRpcConnection::SendCertificateRequest(void)
 
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 
-	if (listener)
-		params->Set("ticket", listener->GetClientTicket());
+	if (listener) {
+		String ticketPath = Application::GetLocalStateDir() + "/lib/icinga2/pki/ticket";
+
+		std::ifstream fp(ticketPath.CStr());
+		String ticket((std::istreambuf_iterator<char>(fp)), std::istreambuf_iterator<char>());
+		fp.close();
+
+		params->Set("ticket", ticket);
+	}
 
 	message->Set("params", params);
 
