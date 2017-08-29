@@ -79,7 +79,7 @@ int NodeWizardCommand::Run(const boost::program_options::variables_map& vm,
 	    << "\n"
 	    << "We'll guide you through all required configuration details.\n"
 	    << "\n"
-	    << "\n\n" << ConsoleColorTag(Console_Normal);
+	    << ConsoleColorTag(Console_Normal);
 
 	//TODO: Add sort of bash completion to path input?
 
@@ -368,7 +368,7 @@ wizard_ticket:
 		String bind_port = answer;
 		bind_port = bind_port.Trim();
 
-		std::cout << ConsoleColorTag(Console_Bold)
+		std::cout << ConsoleColorTag(Console_Bold) << "\n"
 		    << "Accept config from master?" << ConsoleColorTag(Console_Normal)
 		    << " [y/N]: ";
 		std::getline(std::cin, answer);
@@ -393,7 +393,7 @@ wizard_ticket:
 		disable.push_back("notification");
 		FeatureUtility::DisableFeatures(disable);
 
-		Log(LogInformation, "cli", "Enabling the Apilistener feature.");
+		Log(LogInformation, "cli", "Enabling the ApiListener feature.");
 
 		std::vector<std::string> enable;
 		enable.push_back("api");
