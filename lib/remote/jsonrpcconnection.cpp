@@ -184,7 +184,30 @@ void JsonRpcConnection::MessageHandler(const String& jsonString)
 			origin->FromZone = Zone::GetByName(message->Get("originZone"));
 	}
 
-	String method = message->Get("method");
+	Value vmethod;
+
+	if (!message->Get("method", &vmethod)) {
+		Value vid;
+
+		if (!message->Get("id", &vid))
+			return;
+
+		String id = vid;
+
+		auto it = m_ApiCallbacks.find(id);
+
+		if (it == m_ApiCallbacks.end())
+			return;
+
+		ApiCallbackInfo aci = it->second;
+		m_ApiCallbacks.erase(it);
+
+		aci.Callback(message);
+
+		return;
+	}
+
+	String method = vmethod;
 
 	Log(LogNotice, "JsonRpcConnection")
 	    << "Received '" << method << "' message from '" << m_Identity << "'";
@@ -330,3 +353,11 @@ double JsonRpcConnection::GetWorkQueueRate(void)
 	return rate / count;
 }
 
+void JsonRpcConnection::RegisterCallback(const String& id, const boost::function<void (const Dictionary::Ptr&)>& callback)
+{
+	ApiCallbackInfo aci;
+	aci.Timestamp = Utility::GetTime();
+	aci.Callback = callback;
+
+	m_ApiCallbacks[id] = aci;
+}

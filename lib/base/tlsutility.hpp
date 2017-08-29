@@ -55,6 +55,7 @@ String I2_BASE_API PBKDF2_SHA1(const String& password, const String& salt, int i
 String I2_BASE_API SHA1(const String& s, bool binary = false);
 String I2_BASE_API SHA256(const String& s);
 String I2_BASE_API RandomString(int length);
+bool I2_BASE_API VerifyCertificate(const boost::shared_ptr<X509>& caCertificate, const boost::shared_ptr<X509>& certificate);
 
 class I2_BASE_API openssl_error : virtual public std::exception, virtual public boost::exception { };
 

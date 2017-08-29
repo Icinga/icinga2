@@ -727,4 +727,24 @@ String RandomString(int length)
 	return result;
 }
 
+bool VerifyCertificate(const boost::shared_ptr<X509>& caCertificate, const boost::shared_ptr<X509>& certificate)
+{
+	X509_STORE *store = X509_STORE_new();
+
+	if (!store)
+		return false;
+
+	X509_STORE_add_cert(store, caCertificate.get());
+
+	X509_STORE_CTX *csc = X509_STORE_CTX_new();
+	X509_STORE_CTX_init(csc, store, certificate.get(), NULL);
+
+	int rc = X509_verify_cert(csc);
+
+	X509_STORE_CTX_free(csc);
+	X509_STORE_free(store);
+
+	return rc == 1;
+}
+
 }

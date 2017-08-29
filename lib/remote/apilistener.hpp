@@ -158,7 +158,6 @@ private:
 
 	static void ConfigGlobHandler(ConfigDirInformation& config, const String& path, const String& file);
 	void SendConfigUpdate(const JsonRpcConnection::Ptr& aclient);
-	void SendCertificateRequest(const JsonRpcConnection::Ptr& aclient);
 
 	/* configsync */
 	void UpdateConfigObject(const ConfigObject::Ptr& object, const MessageOrigin::Ptr& origin,

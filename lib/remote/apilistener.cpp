@@ -395,7 +395,6 @@ void ApiListener::NewClientHandlerInternal(const Socket::Ptr& client, const Stri
 				Log(LogWarning, "ApiListener")
 					<< "Certificate validation failed for endpoint '" << hostname
 					<< "': " << tlsStream->GetVerifyError();
-				return;
 			}
 		}
 
@@ -484,7 +483,7 @@ void ApiListener::SyncClient(const JsonRpcConnection::Ptr& aclient, const Endpoi
 			Log(LogInformation, "ApiListener")
 			    << "Requesting new certificate for this Icinga instance from endpoint '" << endpoint->GetName() << "'.";
 
-			SendCertificateRequest(aclient);
+			aclient->SendCertificateRequest();
 		}
 
 		/* Make sure that the config updates are synced
@@ -537,19 +536,6 @@ void ApiListener::SyncClient(const JsonRpcConnection::Ptr& aclient, const Endpoi
 
 	Log(LogInformation, "ApiListener")
 	    << "Finished syncing endpoint '" << endpoint->GetName() << "' in zone '" << eZone->GetName() << "'.";
-}
-
-void ApiListener::SendCertificateRequest(const JsonRpcConnection::Ptr& aclient)
-{
-	Dictionary::Ptr message = new Dictionary();
-	message->Set("jsonrpc", "2.0");
-	message->Set("method", "pki::RequestCertificate");
-
-	Dictionary::Ptr params = new Dictionary();
-
-	message->Set("params", params);
-
-	JsonRpc::SendMessage(aclient->GetStream(), message);
 }
 
 void ApiListener::ApiTimerHandler(void)

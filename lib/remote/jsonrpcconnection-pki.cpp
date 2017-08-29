@@ -20,6 +20,7 @@
 #include "remote/jsonrpcconnection.hpp"
 #include "remote/apilistener.hpp"
 #include "remote/apifunction.hpp"
+#include "remote/jsonrpc.hpp"
 #include "base/configtype.hpp"
 #include "base/objectlock.hpp"
 #include "base/utility.hpp"
@@ -27,6 +28,7 @@
 #include "base/exception.hpp"
 #include "base/convert.hpp"
 #include <boost/thread/once.hpp>
+#include <fstream>
 
 using namespace icinga;
 
@@ -67,8 +69,7 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 
-	String cacertfile = listener->GetCaPath();
-	boost::shared_ptr<X509> cacert = GetX509Certificate(cacertfile);
+	boost::shared_ptr<X509> cacert = GetX509Certificate(listener->GetCaPath());
 	result->Set("ca", CertificateToString(cacert));
 
 	if (Utility::PathExists(requestPath)) {
@@ -112,6 +113,18 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 	subject = X509_get_subject_name(cert.get());
 
 	newcert = CreateCertIcingaCA(pubkey, subject);
+
+	/* verify that the new cert matches the CA we're using for the ApiListener;
+	 * this ensures that the CA we have in /var/lib/icinga2/ca matches the one
+	 * we're using for cluster connections (there's no point in sending a client
+	 * a certificate it wouldn't be able to use to connect to us anyway) */
+	if (!VerifyCertificate(cacert, newcert)) {
+		Log(LogWarning, "JsonRpcConnection")
+		    << "The CA in '" << listener->GetCaPath() << "' does not match the CA which Icinga uses "
+		    << "for its own cluster connections. This is most likely a configuration problem.";
+		goto delayed_request;
+	}
+
 	result->Set("cert", CertificateToString(newcert));
 
 	result->Set("status_code", 0);
@@ -132,3 +145,82 @@ delayed_request:
 	return result;
 }
 
+void JsonRpcConnection::SendCertificateRequest(void)
+{
+	Dictionary::Ptr message = new Dictionary();
+	message->Set("jsonrpc", "2.0");
+	message->Set("method", "pki::RequestCertificate");
+
+	String id = Utility::NewUniqueID();
+	message->Set("id", id);
+
+	Dictionary::Ptr params = new Dictionary();
+
+	ApiListener::Ptr listener = ApiListener::GetInstance();
+
+	if (listener)
+		params->Set("ticket", listener->GetClientTicket());
+
+	message->Set("params", params);
+
+	RegisterCallback(id, boost::bind(&JsonRpcConnection::CertificateRequestResponseHandler, this, _1));
+
+	JsonRpc::SendMessage(GetStream(), message);
+}
+
+void JsonRpcConnection::CertificateRequestResponseHandler(const Dictionary::Ptr& message)
+{
+	Log(LogWarning, "JsonRpcConnection")
+	    << message->ToString();
+
+	Dictionary::Ptr result = message->Get("result");
+
+	if (!result)
+		return;
+
+	String ca = result->Get("ca");
+	String cert = result->Get("cert");
+	int status = result->Get("status_code");
+
+	/* TODO: make sure the cert's public key matches ours */
+
+	if (status != 0) {
+		/* TODO: log error */
+		return;
+	}
+
+	ApiListener::Ptr listener = ApiListener::GetInstance();
+
+	if (!listener)
+		return;
+
+	String caPath = listener->GetCaPath();
+
+	std::fstream cafp;
+	String tempCaPath = Utility::CreateTempFile(caPath + ".XXXXXX", 0644, cafp);
+	cafp << ca;
+	cafp.close();
+
+	if (rename(tempCaPath.CStr(), caPath.CStr()) < 0) {
+		BOOST_THROW_EXCEPTION(posix_error()
+		    << boost::errinfo_api_function("rename")
+		    << boost::errinfo_errno(errno)
+		    << boost::errinfo_file_name(tempCaPath));
+	}
+
+	String certPath = listener->GetCertPath();
+
+	std::fstream certfp;
+	String tempCertPath = Utility::CreateTempFile(certPath + ".XXXXXX", 0644, certfp);
+	certfp << cert;
+	certfp.close();
+
+	if (rename(tempCertPath.CStr(), certPath.CStr()) < 0) {
+		BOOST_THROW_EXCEPTION(posix_error()
+		    << boost::errinfo_api_function("rename")
+		    << boost::errinfo_errno(errno)
+		    << boost::errinfo_file_name(tempCertPath));
+	}
+
+	/* Update ApiListener's SSL_CTX */
+}
