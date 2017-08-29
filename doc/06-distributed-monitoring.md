@@ -2174,7 +2174,7 @@ rule based on `host.vars.drives`:
 
     [root@icinga2-master1.localdomain /etc/icinga2/zones.d/master]# vim services.conf
 
-    apply Service for "nscp-api-" (drive in host.vars.drives) {
+    apply Service "nscp-api-" for (drive in host.vars.drives) {
       import "generic-service"
 
       check_command = "nscp_api"
