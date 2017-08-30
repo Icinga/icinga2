@@ -202,7 +202,12 @@ void JsonRpcConnection::MessageHandler(const String& jsonString)
 		ApiCallbackInfo aci = it->second;
 		m_ApiCallbacks.erase(it);
 
-		aci.Callback(message);
+		try {
+			aci.Callback(message);
+		} catch (const std::exception& ex) {
+			Log(LogWarning, "JsonRpcConnection")
+			    << "Error while processing message for identity '" << m_Identity << "'\n" << DiagnosticInformation(ex);
+		}
 
 		return;
 	}
@@ -223,11 +228,10 @@ void JsonRpcConnection::MessageHandler(const String& jsonString)
 		resultMessage->Set("result", afunc->Invoke(origin, message->Get("params")));
 	} catch (const std::exception& ex) {
 		/* TODO: Add a user readable error message for the remote caller */
-		resultMessage->Set("error", DiagnosticInformation(ex));
-		std::ostringstream info;
-		info << "Error while processing message for identity '" << m_Identity << "'";
+		String diagInfo = DiagnosticInformation(ex);
+		resultMessage->Set("error", diagInfo);
 		Log(LogWarning, "JsonRpcConnection")
-		    << info.str() << "\n" << DiagnosticInformation(ex);
+		    << "Error while processing message for identity '" << m_Identity << "'\n" << diagInfo;
 	}
 
 	if (message->Contains("id")) {
