@@ -239,11 +239,11 @@ int main(int argc, char **argv)
 		("help,h", "Print usage message and exit")
 		("version,V", "Print version and exit")
 		("debug,d", "Verbose/Debug output")
-		("host,H", po::value<String>()->required(), "REQUIRED: NSCP API Host")
-		("port,P", po::value<String>()->default_value("8443"), "NSCP API Port (Default: 8443)")
-		("password", po::value<String>()->required(), "REQUIRED: NSCP API Password")
-		("query,q", po::value<String>()->required(), "REQUIRED: NSCP API Query endpoint")
-		("arguments,a", po::value<std::vector<String>>()->multitoken(), "NSCP API Query arguments for the endpoint");
+		("host,H", po::value<std::string>()->required(), "REQUIRED: NSCP API Host")
+		("port,P", po::value<std::string>()->default_value("8443"), "NSCP API Port (Default: 8443)")
+		("password", po::value<std::string>()->required(), "REQUIRED: NSCP API Password")
+		("query,q", po::value<std::string>()->required(), "REQUIRED: NSCP API Query endpoint")
+		("arguments,a", po::value<std::vector<std::string>>()->multitoken(), "NSCP API Query arguments for the endpoint");
 
 	po::basic_command_line_parser<char> parser(argc, argv);
 
@@ -281,12 +281,12 @@ int main(int argc, char **argv)
 	}
 
 	// Create the URL string and escape certain characters since Url() follows RFC 3986
-	String endpoint = "/query/" + vm["query"].as<String>();
+	String endpoint = "/query/" + vm["query"].as<std::string>();
 	if (!vm.count("arguments"))
 		endpoint += '/';
 	else {
 		endpoint += '?';
-		for (String argument : vm["arguments"].as<std::vector<String>>()) {
+		for (const String& argument : vm["arguments"].as<std::vector<std::string>>()) {
 			String::SizeType pos = argument.FindFirstOf("=");
 			if (pos == String::NPos)
 				endpoint += Utility::EscapeString(argument, ACQUERY_ENCODE, false);
@@ -302,8 +302,8 @@ int main(int argc, char **argv)
 	// This needs to happen for HttpRequest to work
 	Application::InitializeBase();
 
-	Dictionary::Ptr result = QueryEndpoint(vm["host"].as<String>(), vm["port"].as<String>(),
-	    vm["password"].as<String>(), endpoint);
+	Dictionary::Ptr result = QueryEndpoint(vm["host"].as<std::string>(), vm["port"].as<std::string>(),
+	    vm["password"].as<std::string>(), endpoint);
 
 	// Application::Exit() is the clean way to exit after calling InitializeBase()
 	Application::Exit(FormatOutput(result));
