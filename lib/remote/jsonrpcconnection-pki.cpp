@@ -208,6 +208,10 @@ void JsonRpcConnection::CertificateRequestResponseHandler(const Dictionary::Ptr&
 	cafp << ca;
 	cafp.close();
 
+#ifdef _WIN32
+	_unlink(caPath.CStr());
+#endif /* _WIN32 */
+
 	if (rename(tempCaPath.CStr(), caPath.CStr()) < 0) {
 		BOOST_THROW_EXCEPTION(posix_error()
 		    << boost::errinfo_api_function("rename")
@@ -221,6 +225,10 @@ void JsonRpcConnection::CertificateRequestResponseHandler(const Dictionary::Ptr&
 	String tempCertPath = Utility::CreateTempFile(certPath + ".XXXXXX", 0644, certfp);
 	certfp << cert;
 	certfp.close();
+
+#ifdef _WIN32
+	_unlink(certPath.CStr());
+#endif /* _WIN32 */
 
 	if (rename(tempCertPath.CStr(), certPath.CStr()) < 0) {
 		BOOST_THROW_EXCEPTION(posix_error()
