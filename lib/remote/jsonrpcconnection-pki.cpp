@@ -92,7 +92,7 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 	if (!Utility::PathExists(GetIcingaCADir() + "/ca.key"))
 		goto delayed_request;
 
-	if (!origin->FromClient->IsAuthenticated()) {
+	if (!VerifyCertificate(cacert, cert)) {
 		String salt = listener->GetTicketSalt();
 
 		String ticket = params->Get("ticket");
@@ -107,7 +107,18 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 			result->Set("error", "Invalid ticket.");
 			return result;
 		}
+	} else {
+		time_t renewalStart;
+		time(&renewalStart);
+		renewalStart += 30 * 24 * 60 * 60;
+
+		if (X509_cmp_time(X509_get_notAfter(cert.get()), &renewalStart)) {
+			result->Set("status_code", 1);
+			result->Set("error", "The certificate cannot be renewed yet.");
+			return result;
+		}
 	}
+
 
 	pubkey = X509_get_pubkey(cert.get());
 	subject = X509_get_subject_name(cert.get());
