@@ -229,6 +229,15 @@ void JsonRpcConnection::CertificateRequestResponseHandler(const Dictionary::Ptr&
 		    << boost::errinfo_file_name(tempCertPath));
 	}
 
+	String ticketPath = Application::GetLocalStateDir() + "/lib/icinga2/pki/ticket";
+
+	if (unlink(ticketPath.CStr()) < 0 && errno != ENOENT) {
+		BOOST_THROW_EXCEPTION(posix_error()
+		    << boost::errinfo_api_function("unlink")
+		    << boost::errinfo_errno(errno)
+		    << boost::errinfo_file_name(ticketPath));
+	}
+
 	Log(LogInformation, "JsonRpcConnection", "Updating the client certificate for the ApiListener object");
 	listener->UpdateSSLContext();
 }
