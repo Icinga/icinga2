@@ -122,6 +122,16 @@ void ApiListener::UpdateSSLContext(void)
 	}
 
 	m_SSLContext = context;
+
+	for (const Endpoint::Ptr& endpoint : ConfigType::GetObjectsByType<Endpoint>()) {
+		for (const JsonRpcConnection::Ptr& client : endpoint->GetClients()) {
+			client->Disconnect();
+		}
+	}
+
+	for (const JsonRpcConnection::Ptr& client : m_AnonymousClients) {
+		client->Disconnect();
+	}
 }
 
 void ApiListener::OnAllConfigLoaded(void)
