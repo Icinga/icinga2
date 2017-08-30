@@ -81,8 +81,15 @@ void ApiListener::OnConfigLoaded(void)
 	Log(LogInformation, "ApiListener")
 	    << "My API identity: " << GetIdentity();
 
+	UpdateSSLContext();
+}
+
+void ApiListener::UpdateSSLContext(void)
+{
+	boost::shared_ptr<SSL_CTX> context;
+
 	try {
-		m_SSLContext = MakeSSLContext(GetCertPath(), GetKeyPath(), GetCaPath());
+		context = MakeSSLContext(GetCertPath(), GetKeyPath(), GetCaPath());
 	} catch (const std::exception&) {
 		BOOST_THROW_EXCEPTION(ScriptError("Cannot make SSL context for cert path: '"
 		    + GetCertPath() + "' key path: '" + GetKeyPath() + "' ca path: '" + GetCaPath() + "'.", GetDebugInfo()));
@@ -90,7 +97,7 @@ void ApiListener::OnConfigLoaded(void)
 
 	if (!GetCrlPath().IsEmpty()) {
 		try {
-			AddCRLToSSLContext(m_SSLContext, GetCrlPath());
+			AddCRLToSSLContext(context, GetCrlPath());
 		} catch (const std::exception&) {
 			BOOST_THROW_EXCEPTION(ScriptError("Cannot add certificate revocation list to SSL context for crl path: '"
 			    + GetCrlPath() + "'.", GetDebugInfo()));
@@ -99,7 +106,7 @@ void ApiListener::OnConfigLoaded(void)
 
 	if (!GetCipherList().IsEmpty()) {
 		try {
-			SetCipherListToSSLContext(m_SSLContext, GetCipherList());
+			SetCipherListToSSLContext(context, GetCipherList());
 		} catch (const std::exception&) {
 			BOOST_THROW_EXCEPTION(ScriptError("Cannot set cipher list to SSL context for cipher list: '"
 			    + GetCipherList() + "'.", GetDebugInfo()));
@@ -108,11 +115,13 @@ void ApiListener::OnConfigLoaded(void)
 
 	if (!GetTlsProtocolmin().IsEmpty()){
 		try {
-			SetTlsProtocolminToSSLContext(m_SSLContext, GetTlsProtocolmin());
+			SetTlsProtocolminToSSLContext(context, GetTlsProtocolmin());
 		} catch (const std::exception&) {
 			BOOST_THROW_EXCEPTION(ScriptError("Cannot set minimum TLS protocol version to SSL context with tls_protocolmin: '" + GetTlsProtocolmin() + "'.", GetDebugInfo()));
 		}
 	}
+
+	m_SSLContext = context;
 }
 
 void ApiListener::OnAllConfigLoaded(void)
@@ -182,11 +191,6 @@ void ApiListener::Stop(bool runtimeDeleted)
 ApiListener::Ptr ApiListener::GetInstance(void)
 {
 	return m_Instance;
-}
-
-boost::shared_ptr<SSL_CTX> ApiListener::GetSSLContext(void) const
-{
-	return m_SSLContext;
 }
 
 Endpoint::Ptr ApiListener::GetMaster(void) const

@@ -61,7 +61,7 @@ public:
 
 	static ApiListener::Ptr GetInstance(void);
 
-	boost::shared_ptr<SSL_CTX> GetSSLContext(void) const;
+	void UpdateSSLContext(void);
 
 	Endpoint::Ptr GetMaster(void) const;
 	bool IsMaster(void) const;

@@ -222,5 +222,6 @@ void JsonRpcConnection::CertificateRequestResponseHandler(const Dictionary::Ptr&
 		    << boost::errinfo_file_name(tempCertPath));
 	}
 
-	/* Update ApiListener's SSL_CTX */
+	Log(LogInformation, "JsonRpcConnection", "Updating the client certificate for the ApiListener object");
+	listener->UpdateSSLContext();
 }
