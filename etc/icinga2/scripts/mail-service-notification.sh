@@ -134,7 +134,7 @@ fi
 if [ -n "$ICINGAWEB2URL" ] ; then
   NOTIFICATION_MESSAGE="$NOTIFICATION_MESSAGE
 
-$ICINGAWEB2URL/monitoring/service/show?host=$HOSTNAME&service=$SERVICENAME"
+$ICINGAWEB2URL/monitoring/service/show?host=$HOSTNAME&service=${SERVICENAME// /%20}"
 fi
 
 ## Check whether verbose mode was enabled and log to syslog.
