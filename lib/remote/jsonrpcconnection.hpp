@@ -47,6 +47,8 @@ struct ApiCallbackInfo
 {
 	double Timestamp;
 	boost::function<void (const Dictionary::Ptr&)> Callback;
+
+	bool IsExpired(void) const;
 };
 
 /**
@@ -96,6 +98,7 @@ private:
 	double m_HeartbeatTimeout;
 	boost::mutex m_DataHandlerMutex;
 	std::map<String, ApiCallbackInfo> m_ApiCallbacks;
+	boost::mutex m_ApiCallbacksMutex;
 
 	StreamReadContext m_Context;
 

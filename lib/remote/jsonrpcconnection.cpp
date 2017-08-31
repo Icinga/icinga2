@@ -194,13 +194,18 @@ void JsonRpcConnection::MessageHandler(const String& jsonString)
 
 		String id = vid;
 
-		auto it = m_ApiCallbacks.find(id);
+		ApiCallbackInfo aci;
 
-		if (it == m_ApiCallbacks.end())
-			return;
+		{
+			boost::mutex::scoped_lock lock(m_ApiCallbacksMutex);
+			auto it = m_ApiCallbacks.find(id);
 
-		ApiCallbackInfo aci = it->second;
-		m_ApiCallbacks.erase(it);
+			if (it == m_ApiCallbacks.end())
+				return;
+
+			aci = it->second;
+			m_ApiCallbacks.erase(it);
+		}
 
 		try {
 			aci.Callback(message);
@@ -301,12 +306,29 @@ Value SetLogPositionHandler(const MessageOrigin::Ptr& origin, const Dictionary::
 	return Empty;
 }
 
+bool ApiCallbackInfo::IsExpired(void) const
+{
+	return Timestamp < Utility::GetTime() - 300;
+}
+
 void JsonRpcConnection::CheckLiveness(void)
 {
 	if (m_Seen < Utility::GetTime() - 60 && (!m_Endpoint || !m_Endpoint->GetSyncing())) {
 		Log(LogInformation, "JsonRpcConnection")
 		    <<  "No messages for identity '" << m_Identity << "' have been received in the last 60 seconds.";
 		Disconnect();
+	}
+
+	{
+		boost::mutex::scoped_lock lock(m_ApiCallbacksMutex);
+
+		for (auto it = m_ApiCallbacks.begin(), last = m_ApiCallbacks.end(); it != last; ) {
+			if (it->second.IsExpired()) {
+				it = m_ApiCallbacks.erase(it);
+			} else {
+				++it;
+			}
+		}
 	}
 }
 
@@ -363,5 +385,8 @@ void JsonRpcConnection::RegisterCallback(const String& id, const boost::function
 	aci.Timestamp = Utility::GetTime();
 	aci.Callback = callback;
 
-	m_ApiCallbacks[id] = aci;
+	{
+		boost::mutex::scoped_lock lock(m_ApiCallbacksMutex);
+		m_ApiCallbacks[id] = aci;
+	}
 }
