@@ -98,6 +98,10 @@ void ConfigStagesHandler::HandlePost(const ApiUser::Ptr& user, HttpRequest& requ
 	if (!ConfigPackageUtility::ValidateName(packageName))
 		return HttpUtility::SendJsonError(response, 400, "Invalid package name.");
 
+	bool reload = true;
+	if (params->Contains("reload"))
+		reload = HttpUtility::GetLastParameter(params, "reload");
+
 	Dictionary::Ptr files = params->Get("files");
 
 	String stageName;
@@ -109,7 +113,7 @@ void ConfigStagesHandler::HandlePost(const ApiUser::Ptr& user, HttpRequest& requ
 		stageName = ConfigPackageUtility::CreateStage(packageName, files);
 
 		/* validate the config. on success, activate stage and reload */
-		ConfigPackageUtility::AsyncTryActivateStage(packageName, stageName);
+		ConfigPackageUtility::AsyncTryActivateStage(packageName, stageName, reload);
 	} catch (const std::exception& ex) {
 		return HttpUtility::SendJsonError(response, 500,
 				"Stage creation failed.",
@@ -118,10 +122,13 @@ void ConfigStagesHandler::HandlePost(const ApiUser::Ptr& user, HttpRequest& requ
 
 	Dictionary::Ptr result1 = new Dictionary();
 
+	String responseStatus = "Created stage. ";
+	responseStatus += (reload ? " Icinga2 will reload." : " Icinga2 reload skipped.");
+
 	result1->Set("package", packageName);
 	result1->Set("stage", stageName);
 	result1->Set("code", 200);
-	result1->Set("status", "Created stage.");
+	result1->Set("status", responseStatus);
 
 	Array::Ptr results = new Array();
 	results->Add(result1);

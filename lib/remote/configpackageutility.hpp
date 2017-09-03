@@ -51,7 +51,7 @@ public:
 	static std::vector<String> GetStages(const String& packageName);
 	static String GetActiveStage(const String& packageName);
 	static void ActivateStage(const String& packageName, const String& stageName);
-	static void AsyncTryActivateStage(const String& packageName, const String& stageName);
+	static void AsyncTryActivateStage(const String& packageName, const String& stageName, bool reload);
 
 	static std::vector<std::pair<String, bool> > GetFiles(const String& packageName, const String& stageName);
 
@@ -65,7 +65,7 @@ private:
 	static void WritePackageConfig(const String& packageName);
 	static void WriteStageConfig(const String& packageName, const String& stageName);
 
-	static void TryActivateStageCallback(const ProcessResult& pr, const String& packageName, const String& stageName);
+	static void TryActivateStageCallback(const ProcessResult& pr, const String& packageName, const String& stageName, bool reload);
 };
 
 }
