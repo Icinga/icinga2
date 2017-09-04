@@ -577,7 +577,8 @@ boost::shared_ptr<X509> CreateCertIcingaCA(EVP_PKEY *pubkey, X509_NAME *subject)
 
 boost::shared_ptr<X509> CreateCertIcingaCA(const boost::shared_ptr<X509>& cert)
 {
-	return CreateCertIcingaCA(X509_get_pubkey(cert.get()), X509_get_subject_name(cert.get()));
+	boost::shared_ptr<EVP_PKEY> pkey = boost::shared_ptr<EVP_PKEY>(X509_get_pubkey(cert.get()), EVP_PKEY_free);
+	return CreateCertIcingaCA(pkey.get(), X509_get_subject_name(cert.get()));
 }
 
 String CertificateToString(const boost::shared_ptr<X509>& cert)

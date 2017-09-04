@@ -497,9 +497,10 @@ void ApiListener::SyncClient(const JsonRpcConnection::Ptr& aclient, const Endpoi
 			Log(LogInformation, "ApiListener")
 			    << "Requesting new certificate for this Icinga instance from endpoint '" << endpoint->GetName() << "'.";
 
-			aclient->SendCertificateRequest();
+			JsonRpcConnection::SendCertificateRequest(aclient, MessageOrigin::Ptr(), String());
 
-			Utility::Glob(Application::GetLocalStateDir() + "/lib/icinga2/pki-requests/*.json", boost::bind(&JsonRpcConnection::SyncCertificateRequest, aclient, MessageOrigin::Ptr(), _1), GlobFile);
+			if (Utility::PathExists(Application::GetLocalStateDir() + "/lib/icinga2/pki-requests"))
+				Utility::Glob(Application::GetLocalStateDir() + "/lib/icinga2/pki-requests/*.json", boost::bind(&JsonRpcConnection::SendCertificateRequest, aclient, MessageOrigin::Ptr(), _1), GlobFile);
 		}
 
 		/* Make sure that the config updates are synced

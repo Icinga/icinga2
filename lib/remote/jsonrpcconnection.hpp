@@ -83,9 +83,7 @@ public:
 	static int GetWorkQueueLength(void);
 	static double GetWorkQueueRate(void);
 
-	void SendCertificateRequest(void);
-
-	static void SyncCertificateRequest(const JsonRpcConnection::Ptr& aclient, const intrusive_ptr<MessageOrigin>& origin, const String& path);
+	static void SendCertificateRequest(const JsonRpcConnection::Ptr& aclient, const intrusive_ptr<MessageOrigin>& origin, const String& path);
 
 private:
 	int m_ID;

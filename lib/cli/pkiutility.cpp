@@ -91,7 +91,8 @@ int PkiUtility::SignCsr(const String& csrfile, const String& certfile)
 
 	BIO_free(csrbio);
 
-	boost::shared_ptr<X509> cert = CreateCertIcingaCA(X509_REQ_get_pubkey(req), X509_REQ_get_subject_name(req));
+	boost::shared_ptr<EVP_PKEY> pubkey = boost::shared_ptr<EVP_PKEY>(X509_REQ_get_pubkey(req), EVP_PKEY_free);
+	boost::shared_ptr<X509> cert = CreateCertIcingaCA(pubkey.get(), X509_REQ_get_subject_name(req));
 
 	X509_REQ_free(req);
 
