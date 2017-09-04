@@ -151,6 +151,8 @@ delayed_request:
 
 	Utility::SaveJsonFile(requestPath, 0600, request);
 
+	JsonRpcConnection::SyncCertificateRequest(JsonRpcConnection::Ptr(), origin, requestPath);
+
 	result->Set("status_code", 2);
 	result->Set("error", "Certificate request is pending. Waiting for approval from the parent Icinga instance.");
 	return result;
@@ -259,4 +261,33 @@ void JsonRpcConnection::CertificateRequestResponseHandler(const Dictionary::Ptr&
 
 	Log(LogInformation, "JsonRpcConnection", "Updating the client certificate for the ApiListener object");
 	listener->UpdateSSLContext();
+}
+
+void JsonRpcConnection::SyncCertificateRequest(const JsonRpcConnection::Ptr& aclient, const MessageOrigin::Ptr& origin, const String& path)
+{
+	Dictionary::Ptr request = Utility::LoadJsonFile(path);
+
+	if (request->Contains("cert_response"))
+		return;
+
+	Dictionary::Ptr message = new Dictionary();
+	message->Set("jsonrpc", "2.0");
+	message->Set("method", "pki::RequestCertificate");
+
+	Dictionary::Ptr params = new Dictionary();
+	params->Set("cert_request", request->Get("cert_request"));
+	params->Set("ticket", request->Get("ticket"));
+
+	message->Set("params", params);
+
+	if (aclient)
+		JsonRpc::SendMessage(aclient->GetStream(), message);
+	else {
+		ApiListener::Ptr listener = ApiListener::GetInstance();
+
+		if (!listener)
+			return;
+
+		listener->RelayMessage(origin, Zone::GetLocalZone(), message, false);
+	}
 }

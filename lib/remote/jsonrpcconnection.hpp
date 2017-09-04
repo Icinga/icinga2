@@ -85,6 +85,8 @@ public:
 
 	void SendCertificateRequest(void);
 
+	static void SyncCertificateRequest(const JsonRpcConnection::Ptr& aclient, const intrusive_ptr<MessageOrigin>& origin, const String& path);
+
 private:
 	int m_ID;
 	String m_Identity;

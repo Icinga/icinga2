@@ -498,6 +498,8 @@ void ApiListener::SyncClient(const JsonRpcConnection::Ptr& aclient, const Endpoi
 			    << "Requesting new certificate for this Icinga instance from endpoint '" << endpoint->GetName() << "'.";
 
 			aclient->SendCertificateRequest();
+
+			Utility::Glob(Application::GetLocalStateDir() + "/lib/icinga2/pki-requests/*.json", boost::bind(&JsonRpcConnection::SyncCertificateRequest, aclient, MessageOrigin::Ptr(), _1), GlobFile);
 		}
 
 		/* Make sure that the config updates are synced
