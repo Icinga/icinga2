@@ -22,6 +22,7 @@
 #include "cli/pkiutility.hpp"
 #include "cli/featureutility.hpp"
 #include "cli/apisetuputility.hpp"
+#include "remote/apilistener.hpp"
 #include "base/logger.hpp"
 #include "base/console.hpp"
 #include "base/application.hpp"
@@ -229,7 +230,7 @@ wizard_endpoint_loop_start:
 		}
 
 		/* workaround for fetching the master cert */
-		String pki_path = PkiUtility::GetPkiPath();
+		String pki_path = ApiListener::GetPkiDir();
 		Utility::MkDirP(pki_path, 0700);
 
 		String user = ScriptGlobal::Get("RunAsUser");
@@ -497,7 +498,7 @@ wizard_ticket:
 		cn = cn.Trim();
 
 		/* check whether the user wants to generate a new certificate or not */
-		String existing_path = PkiUtility::GetPkiPath() + "/" + cn + ".crt";
+		String existing_path = ApiListener::GetPkiDir() + "/" + cn + ".crt";
 
 		std::cout << ConsoleColorTag(Console_Normal)
 		    << "Checking for existing certificates for common name '" << cn << "'...\n";

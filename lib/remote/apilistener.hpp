@@ -59,16 +59,19 @@ public:
 
 	ApiListener(void);
 
-	static ApiListener::Ptr GetInstance(void);
+	static String GetApiDir(void);
+	static String GetPkiDir(void);
+	static String GetCaDir(void);
+	static String GetPkiRequestsDir(void);
 
 	void UpdateSSLContext(void);
+
+	static ApiListener::Ptr GetInstance(void);
 
 	Endpoint::Ptr GetMaster(void) const;
 	bool IsMaster(void) const;
 
 	Endpoint::Ptr GetLocalEndpoint(void) const;
-
-	static String GetApiDir(void);
 
 	void SyncSendMessage(const Endpoint::Ptr& endpoint, const Dictionary::Ptr& message);
 	void RelayMessage(const MessageOrigin::Ptr& origin, const ConfigObject::Ptr& secobj, const Dictionary::Ptr& message, bool log);

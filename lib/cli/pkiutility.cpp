@@ -19,6 +19,7 @@
 
 #include "cli/pkiutility.hpp"
 #include "cli/clicommand.hpp"
+#include "remote/apilistener.hpp"
 #include "base/logger.hpp"
 #include "base/application.hpp"
 #include "base/tlsutility.hpp"
@@ -34,19 +35,9 @@
 
 using namespace icinga;
 
-String PkiUtility::GetPkiPath(void)
-{
-	return Application::GetLocalStateDir() + "/lib/icinga2/pki";
-}
-
-String PkiUtility::GetLocalCaPath(void)
-{
-	return Application::GetLocalStateDir() + "/lib/icinga2/ca";
-}
-
 int PkiUtility::NewCa(void)
 {
-	String caDir = GetLocalCaPath();
+	String caDir = ApiListener::GetCaDir();
 	String caCertFile = caDir + "/ca.crt";
 	String caKeyFile = caDir + "/ca.key";
 

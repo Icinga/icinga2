@@ -91,7 +91,7 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 
 	result->Set("fingerprint_request", certFingerprint);
 
-	String requestDir = Application::GetLocalStateDir() + "/lib/icinga2/pki-requests";
+	String requestDir = ApiListener::GetPkiRequestsDir();
 	String requestPath = requestDir + "/" + certFingerprint + ".json";
 
 	result->Set("ca", CertificateToString(cacert));
@@ -265,7 +265,7 @@ Value UpdateCertificateHandler(const MessageOrigin::Ptr& origin, const Dictionar
 			return Empty;
 		}
 
-		String requestDir = Application::GetLocalStateDir() + "/lib/icinga2/pki-requests";
+		String requestDir = ApiListener::GetPkiRequestsDir();
 		String requestPath = requestDir + "/" + certFingerprint + ".json";
 
 		std::cout << requestPath << "\n";

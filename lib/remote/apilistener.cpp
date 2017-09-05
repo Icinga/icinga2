@@ -55,6 +55,26 @@ ApiListener::ApiListener(void)
 	m_SyncQueue.SetName("ApiListener, SyncQueue");
 }
 
+String ApiListener::GetApiDir(void)
+{
+	return Application::GetLocalStateDir() + "/lib/icinga2/api/";
+}
+
+String ApiListener::GetPkiDir(void)
+{
+	return Application::GetLocalStateDir() + "/lib/icinga2/pki/";
+}
+
+String ApiListener::GetCaDir(void)
+{
+	return Application::GetLocalStateDir() + "/lib/icinga2/ca/";
+}
+
+String ApiListener::GetPkiRequestsDir(void)
+{
+	return Application::GetLocalStateDir() + "/lib/icinga2/pki-requests/";
+}
+
 void ApiListener::OnConfigLoaded(void)
 {
 	if (m_Instance)
@@ -499,8 +519,8 @@ void ApiListener::SyncClient(const JsonRpcConnection::Ptr& aclient, const Endpoi
 
 			JsonRpcConnection::SendCertificateRequest(aclient, MessageOrigin::Ptr(), String());
 
-			if (Utility::PathExists(Application::GetLocalStateDir() + "/lib/icinga2/pki-requests"))
-				Utility::Glob(Application::GetLocalStateDir() + "/lib/icinga2/pki-requests/*.json", boost::bind(&JsonRpcConnection::SendCertificateRequest, aclient, MessageOrigin::Ptr(), _1), GlobFile);
+			if (Utility::PathExists(ApiListener::GetPkiRequestsDir()))
+				Utility::Glob(ApiListener::GetPkiRequestsDir() + "/*.json", boost::bind(&JsonRpcConnection::SendCertificateRequest, aclient, MessageOrigin::Ptr(), _1), GlobFile);
 		}
 
 		/* Make sure that the config updates are synced
@@ -886,11 +906,6 @@ void ApiListener::SyncRelayMessage(const MessageOrigin::Ptr& origin,
 
 	if (log && need_log)
 		PersistMessage(message, secobj);
-}
-
-String ApiListener::GetApiDir(void)
-{
-	return Application::GetLocalStateDir() + "/lib/icinga2/api/";
 }
 
 /* must hold m_LogLock */

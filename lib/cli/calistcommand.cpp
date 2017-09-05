@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "cli/calistcommand.hpp"
+#include "remote/apilistener.hpp"
 #include "base/logger.hpp"
 #include "base/application.hpp"
 #include "base/tlsutility.hpp"
@@ -100,7 +101,7 @@ int CAListCommand::Run(const boost::program_options::variables_map& vm, const st
 {
 	Dictionary::Ptr requests = new Dictionary();
 
-	String requestDir = Application::GetLocalStateDir() + "/lib/icinga2/pki-requests";
+	String requestDir = ApiListener::GetPkiRequestsDir();
 
 	if (Utility::PathExists(requestDir))
 		Utility::Glob(requestDir + "/*.json", boost::bind(&CollectRequestHandler, requests, _1), GlobFile);

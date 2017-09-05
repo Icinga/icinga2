@@ -35,9 +35,6 @@ namespace icinga
 class I2_CLI_API PkiUtility
 {
 public:
-	static String GetPkiPath(void);
-	static String GetLocalCaPath(void);
-
 	static int NewCa(void);
 	static int NewCert(const String& cn, const String& keyfile, const String& csrfile, const String& certfile);
 	static int SignCsr(const String& csrfile, const String& certfile);

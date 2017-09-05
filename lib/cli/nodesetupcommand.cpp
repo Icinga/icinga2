@@ -22,6 +22,7 @@
 #include "cli/featureutility.hpp"
 #include "cli/pkiutility.hpp"
 #include "cli/apisetuputility.hpp"
+#include "remote/apilistener.hpp"
 #include "base/logger.hpp"
 #include "base/console.hpp"
 #include "base/application.hpp"
@@ -130,7 +131,7 @@ int NodeSetupCommand::SetupMaster(const boost::program_options::variables_map& v
                 cn = vm["cn"].as<std::string>();
 
 	/* check whether the user wants to generate a new certificate or not */
-	String existing_path = PkiUtility::GetPkiPath() + "/" + cn + ".crt";
+	String existing_path = ApiListener::GetPkiDir() + "/" + cn + ".crt";
 
 	Log(LogInformation, "cli")
 	    << "Checking for existing certificates for common name '" << cn << "'...";
@@ -305,7 +306,7 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 
 	/* pki request a signed certificate from the master */
 
-	String pki_path = PkiUtility::GetPkiPath();
+	String pki_path = ApiListener::GetPkiDir();
 	Utility::MkDirP(pki_path, 0700);
 
 	String user = ScriptGlobal::Get("RunAsUser");
@@ -440,7 +441,7 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 	NodeUtility::UpdateConstant("NodeName", cn);
 	NodeUtility::UpdateConstant("ZoneName", vm["zone"].as<std::string>());
 
-	String ticketPath = Application::GetLocalStateDir() + "/lib/icinga2/pki/ticket";
+	String ticketPath = ApiListener::GetPkiDir() + "/ticket";
 
 	String tempTicketPath = Utility::CreateTempFile(ticketPath + ".XXXXXX", 0600, fp);
 
