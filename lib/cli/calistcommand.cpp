@@ -19,6 +19,7 @@
 
 #include "cli/calistcommand.hpp"
 #include "remote/apilistener.hpp"
+#include "remote/pkiutility.hpp"
 #include "base/logger.hpp"
 #include "base/application.hpp"
 #include "base/tlsutility.hpp"
@@ -46,51 +47,6 @@ void CAListCommand::InitParameters(boost::program_options::options_description& 
 		("json", "encode output as JSON")
 	;
 }
-static void CollectRequestHandler(const Dictionary::Ptr& requests, const String& requestFile)
-{
-	Dictionary::Ptr request = Utility::LoadJsonFile(requestFile);
-
-	if (!request)
-		return;
-
-	Dictionary::Ptr result = new Dictionary();
-
-	String fingerprint = Utility::BaseName(requestFile);
-	fingerprint = fingerprint.SubStr(0, fingerprint.GetLength() - 5);
-
-	String certRequestText = request->Get("cert_request");
-	result->Set("cert_request", certRequestText);
-
-	Value vcertResponseText;
-
-	if (request->Get("cert_response", &vcertResponseText)) {
-		String certResponseText = vcertResponseText;
-		result->Set("cert_response", certResponseText);
-	}
-
-	boost::shared_ptr<X509> certRequest = StringToCertificate(certRequestText);
-
-	time_t now;
-	time(&now);
-	ASN1_TIME *tm = ASN1_TIME_adj(NULL, now, 0, 0);
-
-	int day, sec;
-	ASN1_TIME_diff(&day, &sec, tm, X509_get_notBefore(certRequest.get()));
-
-	result->Set("timestamp",  static_cast<double>(now) + day * 24 * 60 * 60 + sec);
-
-	BIO *out = BIO_new(BIO_s_mem());
-	X509_NAME_print_ex(out, X509_get_subject_name(certRequest.get()), 0, XN_FLAG_ONELINE & ~ASN1_STRFLGS_ESC_MSB);
-
-	char *data;
-	long length;
-	length = BIO_get_mem_data(out, &data);
-
-	result->Set("subject", String(data, data + length));
-	BIO_free(out);
-
-	requests->Set(fingerprint, result);
-}
 
 /**
  * The entry point for the "ca list" CLI command.
@@ -99,12 +55,7 @@ static void CollectRequestHandler(const Dictionary::Ptr& requests, const String&
  */
 int CAListCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {
-	Dictionary::Ptr requests = new Dictionary();
-
-	String requestDir = ApiListener::GetPkiRequestsDir();
-
-	if (Utility::PathExists(requestDir))
-		Utility::Glob(requestDir + "/*.json", boost::bind(&CollectRequestHandler, requests, _1), GlobFile);
+	Dictionary::Ptr requests = PkiUtility::GetCertificateRequests();
 
 	if (vm.count("json"))
 		std::cout << JsonEncode(requests);

@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "cli/pkirequestcommand.hpp"
-#include "cli/pkiutility.hpp"
+#include "remote/pkiutility.hpp"
 #include "base/logger.hpp"
 #include "base/tlsutility.hpp"
 #include <iostream>

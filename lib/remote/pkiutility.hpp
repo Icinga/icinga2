@@ -20,8 +20,7 @@
 #ifndef PKIUTILITY_H
 #define PKIUTILITY_H
 
-#include "base/i2-base.hpp"
-#include "cli/i2-cli.hpp"
+#include "remote/i2-remote.hpp"
 #include "base/dictionary.hpp"
 #include "base/string.hpp"
 #include <openssl/x509v3.h>
@@ -30,9 +29,9 @@ namespace icinga
 {
 
 /**
- * @ingroup cli
+ * @ingroup remote
  */
-class I2_CLI_API PkiUtility
+class I2_REMOTE_API PkiUtility
 {
 public:
 	static int NewCa(void);
@@ -45,6 +44,7 @@ public:
 	    const String& certfile, const String& cafile, const boost::shared_ptr<X509>& trustedcert,
 	    const String& ticket = String());
 	static String GetCertificateInformation(const boost::shared_ptr<X509>& certificate);
+	static Dictionary::Ptr GetCertificateRequests(void);
 
 private:
 	PkiUtility(void);

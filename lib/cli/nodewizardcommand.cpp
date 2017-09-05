@@ -19,10 +19,10 @@
 
 #include "cli/nodewizardcommand.hpp"
 #include "cli/nodeutility.hpp"
-#include "cli/pkiutility.hpp"
 #include "cli/featureutility.hpp"
 #include "cli/apisetuputility.hpp"
 #include "remote/apilistener.hpp"
+#include "remote/pkiutility.hpp"
 #include "base/logger.hpp"
 #include "base/console.hpp"
 #include "base/application.hpp"

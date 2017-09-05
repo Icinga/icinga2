@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "cli/pkiticketcommand.hpp"
-#include "cli/pkiutility.hpp"
+#include "remote/pkiutility.hpp"
 #include "cli/variableutility.hpp"
 #include "base/logger.hpp"
 #include <iostream>

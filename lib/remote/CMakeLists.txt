@@ -30,6 +30,7 @@ set(remote_SOURCES
   httpchunkedencoding.cpp httpclientconnection.cpp httpserverconnection.cpp httphandler.cpp httprequest.cpp httpresponse.cpp
   httputility.cpp infohandler.cpp jsonrpc.cpp jsonrpcconnection.cpp jsonrpcconnection-heartbeat.cpp jsonrpcconnection-pki.cpp
   messageorigin.cpp modifyobjecthandler.cpp statushandler.cpp objectqueryhandler.cpp templatequeryhandler.cpp
+  pkiutility.cpp
   typequeryhandler.cpp url.cpp variablequeryhandler.cpp zone.cpp zone.thpp
 )
 

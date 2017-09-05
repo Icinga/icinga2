@@ -27,6 +27,7 @@
 #include "icinga/notificationcommand.hpp"
 #include "remote/apiaction.hpp"
 #include "remote/apilistener.hpp"
+#include "remote/pkiutility.hpp"
 #include "remote/httputility.hpp"
 #include "base/utility.hpp"
 #include "base/convert.hpp"
@@ -47,6 +48,8 @@ REGISTER_APIACTION(remove_downtime, "Service;Host;Downtime", &ApiActions::Remove
 REGISTER_APIACTION(shutdown_process, "", &ApiActions::ShutdownProcess);
 REGISTER_APIACTION(restart_process, "", &ApiActions::RestartProcess);
 REGISTER_APIACTION(generate_ticket, "", &ApiActions::GenerateTicket);
+REGISTER_APIACTION(list_ca_requests, "", &ApiActions::ListCARequests);
+REGISTER_APIACTION(sign_ca_request, "", &ApiActions::SignCARequest);
 
 Dictionary::Ptr ApiActions::CreateResult(int code, const String& status,
     const Dictionary::Ptr& additional)
@@ -455,4 +458,22 @@ Dictionary::Ptr ApiActions::GenerateTicket(const ConfigObject::Ptr&,
 
 	return ApiActions::CreateResult(200, "Generated PKI ticket '" + ticket + "' for common name '"
 	    + cn + "'.", additional);
+}
+
+Dictionary::Ptr ApiActions::ListCARequests(const ConfigObject::Ptr&,
+    const Dictionary::Ptr& params)
+{
+	Dictionary::Ptr additional = new Dictionary();
+	additional->Set("requests", PkiUtility::GetCertificateRequests());
+
+	return ApiActions::CreateResult(200, "Listing all CA requests.", additional);
+}
+
+Dictionary::Ptr ApiActions::SignCARequest(const ConfigObject::Ptr&,
+    const Dictionary::Ptr& params)
+{
+	if (!params->Contains("fingerprint"))
+		return ApiActions::CreateResult(400, "Option 'fingerprint' is required.");
+
+	
 }

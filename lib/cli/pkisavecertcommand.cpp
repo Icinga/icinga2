@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "cli/pkisavecertcommand.hpp"
-#include "cli/pkiutility.hpp"
+#include "remote/pkiutility.hpp"
 #include "base/logger.hpp"
 #include "base/tlsutility.hpp"
 
