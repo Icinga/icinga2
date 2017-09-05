@@ -367,6 +367,9 @@ String PkiUtility::GetCertificateInformation(const boost::shared_ptr<X509>& cert
 
 	std::stringstream info;
 	info << String(data, data + length);
+
+	BIO_free(out);
+
 	for (unsigned int i = 0; i < diglen; i++) {
 		info << std::setfill('0') << std::setw(2) << std::uppercase
 		    << std::hex << static_cast<int>(md[i]) << ' ';

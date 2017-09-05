@@ -54,6 +54,28 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 	else
 		cert = StringToCertificate(certText);
 
+	ApiListener::Ptr listener = ApiListener::GetInstance();
+	boost::shared_ptr<X509> cacert = GetX509Certificate(listener->GetCaPath());
+
+	bool signedByCA = VerifyCertificate(cacert, cert);
+
+	if (signedByCA) {
+		time_t now;
+		time(&now);
+
+		/* auto-renew all certificates which were created before 2017 to force an update of the CA,
+		 * because Icinga versions older than 2.4 sometimes create certificates with an invalid
+		 * serial number. */
+		time_t forceRenewalEnd = 1483228800; /* January 1st, 2017 */
+		time_t renewalStart = now + 30 * 24 * 60 * 60;
+
+		if (X509_cmp_time(X509_get_notBefore(cert.get()), &forceRenewalEnd) != -1 && X509_cmp_time(X509_get_notAfter(cert.get()), &renewalStart) != -1) {
+			result->Set("status_code", 1);
+			result->Set("error", "The certificate cannot be renewed yet.");
+			return result;
+		}
+	}
+
 	unsigned int n;
 	unsigned char digest[EVP_MAX_MD_SIZE];
 
@@ -72,9 +94,6 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 	String requestDir = Application::GetLocalStateDir() + "/lib/icinga2/pki-requests";
 	String requestPath = requestDir + "/" + certFingerprint + ".json";
 
-	ApiListener::Ptr listener = ApiListener::GetInstance();
-
-	boost::shared_ptr<X509> cacert = GetX509Certificate(listener->GetCaPath());
 	result->Set("ca", CertificateToString(cacert));
 
 	if (Utility::PathExists(requestPath)) {
@@ -104,7 +123,7 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 	if (!Utility::PathExists(GetIcingaCADir() + "/ca.key"))
 		goto delayed_request;
 
-	if (!VerifyCertificate(cacert, cert)) {
+	if (!signedByCA) {
 		String salt = listener->GetTicketSalt();
 
 		String ticket = params->Get("ticket");
@@ -119,18 +138,7 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 			result->Set("error", "Invalid ticket.");
 			return result;
 		}
-	} else {
-		time_t renewalStart;
-		time(&renewalStart);
-		renewalStart += 30 * 24 * 60 * 60;
-
-		if (X509_cmp_time(X509_get_notAfter(cert.get()), &renewalStart)) {
-			result->Set("status_code", 1);
-			result->Set("error", "The certificate cannot be renewed yet.");
-			return result;
-		}
 	}
-
 
 	pubkey = boost::shared_ptr<EVP_PKEY>(X509_get_pubkey(cert.get()), EVP_PKEY_free);
 	subject = X509_get_subject_name(cert.get());
