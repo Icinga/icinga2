@@ -35,6 +35,7 @@
 #include "base/context.hpp"
 #include "base/statsfunction.hpp"
 #include "base/exception.hpp"
+#include "base/utility.hpp"
 #include <fstream>
 
 using namespace icinga;
@@ -908,7 +909,10 @@ void ApiListener::RotateLogFile(void)
 
 	String oldpath = GetApiDir() + "log/current";
 	String newpath = GetApiDir() + "log/" + Convert::ToString(static_cast<int>(ts)+1);
-	(void) rename(oldpath.CStr(), newpath.CStr());
+	try {
+		Utility::RenameFile(oldpath, newpath);
+	} catch (const std::exception&) {
+	}
 }
 
 void ApiListener::LogGlobHandler(std::vector<int>& files, const String& file)

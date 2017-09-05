@@ -136,12 +136,7 @@ void PerfdataWriter::RotateFile(std::ofstream& output, const String& temp_path, 
 
 		if (Utility::PathExists(temp_path)) {
 			String finalFile = perfdata_path + "." + Convert::ToString((long)Utility::GetTime());
-			if (rename(temp_path.CStr(), finalFile.CStr()) < 0) {
-				BOOST_THROW_EXCEPTION(posix_error()
-				    << boost::errinfo_api_function("rename")
-				    << boost::errinfo_errno(errno)
-				    << boost::errinfo_file_name(temp_path));
-			}
+			Utility::RenameFile(temp_path, finalFile);
 		}
 	}
 

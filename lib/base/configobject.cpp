@@ -531,16 +531,7 @@ void ConfigObject::DumpObjects(const String& filename, int attributeTypes)
 
 	fp.close();
 
-#ifdef _WIN32
-	_unlink(filename.CStr());
-#endif /* _WIN32 */
-
-	if (rename(tempFilename.CStr(), filename.CStr()) < 0) {
-		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("rename")
-		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(tempFilename));
-	}
+	Utility::RenameFile(tempFilename, filename);
 }
 
 void ConfigObject::RestoreObject(const String& message, int attributeTypes)
