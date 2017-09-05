@@ -130,7 +130,7 @@ and `debug`.
 
 Open a command prompt with administrative privileges and enable the debug log feature.
 
-    C:> icinga2.exe enable feature debuglog
+    C:> icinga2.exe feature enable debuglog
 
 Ensure that the Icinga 2 service already writes the main log into `C:\ProgramData\icinga2\var\log\icinga2`.
 Restart the Icinga 2 service and open the newly created `debug.log` file.
