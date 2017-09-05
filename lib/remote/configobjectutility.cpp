@@ -29,6 +29,12 @@
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/case_conv.hpp>
+#include <sys/types.h>
+#include <sys/stat.h>
+
+#ifndef _WIN32
+#include <unistd.h>
+#endif /* _WIN32 */
 
 using namespace icinga;
 
@@ -112,9 +118,24 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 	String path = GetObjectConfigPath(type, fullName);
 	Utility::MkDirP(Utility::DirName(path), 0700);
 
-	if (Utility::PathExists(path)) {
-		errors->Add("Configuration file '" + path + "' already exists.");
-		return false;
+	{
+
+#ifdef _WIN32
+#define stat _stat
+#endif /* _WIN32 */
+
+		struct stat stats;
+
+		if (stat(path.CStr(), &stats)) {
+			if (errno != ENOENT)
+				BOOST_THROW_EXCEPTION(posix_error()
+				    << boost::errinfo_api_function("stat")
+				    << boost::errinfo_errno(errno)
+				    << boost::errinfo_file_name(path));
+		} else if (stats.st_size) {
+			errors->Add("Configuration file '" + path + "' already exists.");
+			return false;
+		}
 	}
 
 	std::ofstream fp(path.CStr(), std::ofstream::out | std::ostream::trunc);
