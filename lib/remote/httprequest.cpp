@@ -165,7 +165,7 @@ void HttpRequest::AddHeader(const String& key, const String& value)
 void HttpRequest::FinishHeaders(void)
 {
 	if (m_State == HttpRequestStart) {
-		String rqline = RequestMethod + " " + RequestUrl->Format() + " HTTP/1." + (ProtocolVersion == HttpVersion10 ? "0" : "1") + "\n";
+		String rqline = RequestMethod + " " + RequestUrl->Format(true) + " HTTP/1." + (ProtocolVersion == HttpVersion10 ? "0" : "1") + "\n";
 		m_Stream->Write(rqline.CStr(), rqline.GetLength());
 		m_State = HttpRequestHeaders;
 	}

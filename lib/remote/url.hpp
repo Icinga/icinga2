@@ -44,7 +44,7 @@ public:
 	Url();
 	Url(const String& url);
 
-	String Format(bool print_credentials = false) const;
+	String Format(bool onlyPathAndQuery = false, bool printCredentials = false) const;
 
 	String GetScheme(void) const;
 	String GetAuthority(void) const;
