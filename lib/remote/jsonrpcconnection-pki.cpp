@@ -118,10 +118,13 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 	boost::shared_ptr<X509> newcert;
 	boost::shared_ptr<EVP_PKEY> pubkey;
 	X509_NAME *subject;
+	String cn;
 	Dictionary::Ptr message;
 
 	if (!Utility::PathExists(GetIcingaCADir() + "/ca.key"))
 		goto delayed_request;
+
+	cn = GetCertificateCN(cert);
 
 	if (!signedByCA) {
 		String salt = listener->GetTicketSalt();
@@ -131,9 +134,12 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 		if (salt.IsEmpty() || ticket.IsEmpty())
 			goto delayed_request;
 
-		String realTicket = PBKDF2_SHA1(origin->FromClient->GetIdentity(), salt, 50000);
+		String realTicket = PBKDF2_SHA1(cn, salt, 50000);
 
 		if (ticket != realTicket) {
+			Log(LogWarning, "JsonRpcConnection")
+			    << "Ticket for identity '" << cn << "' is invalid.";
+
 			result->Set("status_code", 1);
 			result->Set("error", "Invalid ticket.");
 			return result;
