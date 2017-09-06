@@ -324,7 +324,8 @@ Value UpdateCertificateHandler(const MessageOrigin::Ptr& origin, const Dictionar
 		    << boost::errinfo_file_name(tempCertPath));
 	}
 
-	String ticketPath = Application::GetLocalStateDir() + "/lib/icinga2/pki/ticket";
+	/* Remove ticket for successful signing request. */
+	String ticketPath = ApiListener::GetCertsDir() + "/ticket";
 
 	if (unlink(ticketPath.CStr()) < 0 && errno != ENOENT) {
 		BOOST_THROW_EXCEPTION(posix_error()
