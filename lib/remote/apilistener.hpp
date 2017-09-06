@@ -60,9 +60,9 @@ public:
 	ApiListener(void);
 
 	static String GetApiDir(void);
-	static String GetPkiDir(void);
+	static String GetCertsDir(void);
 	static String GetCaDir(void);
-	static String GetPkiRequestsDir(void);
+	static String GetCertificateRequestsDir(void);
 
 	void UpdateSSLContext(void);
 

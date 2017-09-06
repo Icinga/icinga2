@@ -230,7 +230,7 @@ wizard_endpoint_loop_start:
 		}
 
 		/* workaround for fetching the master cert */
-		String pki_path = ApiListener::GetPkiDir();
+		String pki_path = ApiListener::GetCertsDir();
 		Utility::MkDirP(pki_path, 0700);
 
 		String user = ScriptGlobal::Get("RunAsUser");
@@ -498,7 +498,7 @@ wizard_ticket:
 		cn = cn.Trim();
 
 		/* check whether the user wants to generate a new certificate or not */
-		String existing_path = ApiListener::GetPkiDir() + "/" + cn + ".crt";
+		String existing_path = ApiListener::GetCertsDir() + "/" + cn + ".crt";
 
 		std::cout << ConsoleColorTag(Console_Normal)
 		    << "Checking for existing certificates for common name '" << cn << "'...\n";

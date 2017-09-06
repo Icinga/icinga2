@@ -54,7 +54,7 @@ ImpersonationLevel CASignCommand::GetImpersonationLevel(void) const
  */
 int CASignCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {
-	String requestFile = ApiListener::GetPkiRequestsDir() + "/" + ap[0] + ".json";
+	String requestFile = ApiListener::GetCertificateRequestsDir() + "/" + ap[0] + ".json";
 
 	if (!Utility::PathExists(requestFile)) {
 		Log(LogCritical, "cli")

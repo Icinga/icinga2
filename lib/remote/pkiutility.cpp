@@ -419,7 +419,7 @@ Dictionary::Ptr PkiUtility::GetCertificateRequests(void)
 {
 	Dictionary::Ptr requests = new Dictionary();
 
-	String requestDir = ApiListener::GetPkiRequestsDir();
+	String requestDir = ApiListener::GetCertificateRequestsDir();
 
 	if (Utility::PathExists(requestDir))
 		Utility::Glob(requestDir + "/*.json", boost::bind(&CollectRequestHandler, requests, _1), GlobFile);

@@ -69,7 +69,7 @@ bool ApiSetupUtility::SetupMasterCertificates(const String& cn)
 	if (PkiUtility::NewCa() > 0)
 		Log(LogWarning, "cli", "Found CA, skipping and using the existing one.");
 
-	String pki_path = ApiListener::GetPkiDir();
+	String pki_path = ApiListener::GetCertsDir();
 	Utility::MkDirP(pki_path, 0700);
 
 	String user = ScriptGlobal::Get("RunAsUser");
