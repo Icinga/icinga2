@@ -227,17 +227,19 @@ void Url::SetFragment(const String& fragment) {
 	m_Fragment = fragment;
 }
 
-String Url::Format(bool print_credentials) const
+String Url::Format(bool onlyPathAndQuery, bool printCredentials) const
 {
 	String url;
 
-	if (!m_Scheme.IsEmpty())
-		url += m_Scheme + ":";
+	if (!onlyPathAndQuery) {
+		if (!m_Scheme.IsEmpty())
+			url += m_Scheme + ":";
 
-	if (print_credentials && !GetAuthority().IsEmpty())
-		url += "//" + GetAuthority();
-	else if (!GetHost().IsEmpty())
-		url += "//" + GetHost() + (!GetPort().IsEmpty() ? ":" + GetPort() : "");
+		if (printCredentials && !GetAuthority().IsEmpty())
+			url += "//" + GetAuthority();
+		else if (!GetHost().IsEmpty())
+			url += "//" + GetHost() + (!GetPort().IsEmpty() ? ":" + GetPort() : "");
+	}
 
 	if (m_Path.empty())
 		url += "/";
