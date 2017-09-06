@@ -405,7 +405,7 @@ int MakeX509CSR(const String& cn, const String& keyfile, const String& csrfile, 
 		X509_NAME *name = X509_REQ_get_subject_name(req);
 		X509_NAME_add_entry_by_txt(name, "CN", MBSTRING_ASC, (unsigned char *)cn.CStr(), -1, -1, 0);
 	
-		if (!cn.Contains(" ") && cn.Contains(".")) {
+		if (!ca) {
 			String san = "DNS:" + cn;
 			X509_EXTENSION *subjectAltNameExt = X509V3_EXT_conf_nid(NULL, NULL, NID_subject_alt_name, const_cast<char *>(san.CStr()));
 			if (subjectAltNameExt) {
@@ -518,7 +518,7 @@ boost::shared_ptr<X509> CreateCert(EVP_PKEY *pubkey, X509_NAME *subject, X509_NA
 
 	String cn = GetX509NameCN(subject);
 
-	if (!cn.Contains(" ") && cn.Contains(".")) {
+	if (!ca) {
 		String san = "DNS:" + cn;
 		X509_EXTENSION *subjectAltNameExt = X509V3_EXT_conf_nid(NULL, &ctx, NID_subject_alt_name, const_cast<char *>(san.CStr()));
 		if (subjectAltNameExt) {
