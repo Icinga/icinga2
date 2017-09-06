@@ -40,6 +40,10 @@ public:
 	virtual int GetMaxArguments(void) const override;
 	virtual int Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const override;
 	virtual ImpersonationLevel GetImpersonationLevel(void) const override;
+
+private:
+	int ClientSetup(void) const;
+	int MasterSetup(void) const;
 };
 
 }

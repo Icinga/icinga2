@@ -131,14 +131,14 @@ int NodeSetupCommand::SetupMaster(const boost::program_options::variables_map& v
                 cn = vm["cn"].as<std::string>();
 
 	/* check whether the user wants to generate a new certificate or not */
-	String existing_path = ApiListener::GetCertsDir() + "/" + cn + ".crt";
+	String existingPath = ApiListener::GetCertsDir() + "/" + cn + ".crt";
 
 	Log(LogInformation, "cli")
-	    << "Checking for existing certificates for common name '" << cn << "'...";
+	    << "Checking in existing certificates for common name '" << cn << "'...";
 
-	if (Utility::PathExists(existing_path)) {
+	if (Utility::PathExists(existingPath)) {
 		Log(LogWarning, "cli")
-		    << "Certificate '" << existing_path << "' for CN '" << cn << "' already exists. Not generating new certificate.";
+		    << "Certificate '" << existingPath << "' for CN '" << cn << "' already exists. Not generating new certificate.";
 	} else {
 		Log(LogInformation, "cli")
 		    << "Certificates not yet generated. Running 'api setup' now.";
@@ -157,13 +157,11 @@ int NodeSetupCommand::SetupMaster(const boost::program_options::variables_map& v
 	}
 
 	/* write zones.conf and update with zone + endpoint information */
-
 	Log(LogInformation, "cli", "Generating zone and object configuration.");
 
 	NodeUtility::GenerateNodeMasterIcingaConfig();
 
 	/* update the ApiListener config - SetupMaster() will always enable it */
-
 	Log(LogInformation, "cli", "Updating the APIListener feature.");
 
 	String apipath = FeatureUtility::GetFeaturesAvailablePath() + "/api.conf";
@@ -263,7 +261,8 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 	/* require master host information for auto-signing requests */
 
 	if (!vm.count("master_host")) {
-		Log(LogCritical, "cli", "Please pass the master host connection information for auto-signing using '--master_host <host>'");
+		Log(LogCritical, "cli", "Please pass the master host connection information for auto-signing using '--master_host <host>'. This can also be a direct parent satellite since 2.8.");
+
 		return 1;
 	}
 
@@ -279,13 +278,13 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 		master_port = tokens[1];
 
 	Log(LogInformation, "cli")
-	    << "Verifying master host connection information: host '" << master_host << "', port '" << master_port << "'.";
+	    << "Verifying parent host connection information: host '" << master_host << "', port '" << master_port << "'.";
 
 	/* trusted cert must be passed (retrieved by the user with 'pki save-cert' before) */
 
 	if (!vm.count("trustedcert")) {
 		Log(LogCritical, "cli")
-		    << "Please pass the trusted cert retrieved from the master\n"
+		    << "Please pass the trusted cert retrieved from the parent node (master or satellite)\n"
 		    << "(Hint: 'icinga2 pki save-cert --host <masterhost> --port <5665> --key local.key --cert local.crt --trustedcert master.crt').";
 		return 1;
 	}
@@ -337,10 +336,10 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 		    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << key << "'. Verify it yourself!";
 	}
 
-	Log(LogInformation, "cli", "Requesting a signed certificate from the master.");
+	Log(LogInformation, "cli", "Requesting a signed certificate from the parent Icinga node.");
 
 	if (PkiUtility::RequestCertificate(master_host, master_port, key, cert, ca, trustedcert, ticket) != 0) {
-		Log(LogCritical, "cli", "Failed to request certificate from Icinga 2 master.");
+		Log(LogCritical, "cli", "Failed to request certificate from parent Icinga node.");
 		return 1;
 	}
 
@@ -431,7 +430,7 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 	/* update constants.conf with NodeName = CN */
 	if (cn != Utility::GetFQDN()) {
 		Log(LogWarning, "cli")
-		    << "CN '" << cn << "' does not match the default FQDN '" << Utility::GetFQDN() << "'. Requires update for NodeName constant in constants.conf!";
+		    << "CN '" << cn << "' does not match the default FQDN '" << Utility::GetFQDN() << "'. Requires an update for the NodeName constant in constants.conf!";
 	}
 
 	Log(LogInformation, "cli", "Updating constants.conf.");
