@@ -81,6 +81,7 @@
             this.txtError = new System.Windows.Forms.TextBox();
             this.lblError = new System.Windows.Forms.Label();
             this.picBanner = new System.Windows.Forms.PictureBox();
+            this.btnEditEndpoint = new System.Windows.Forms.Button();
             this.tabFinish.SuspendLayout();
             this.tabConfigure.SuspendLayout();
             this.tabParameters.SuspendLayout();
@@ -345,6 +346,7 @@
             // 
             // groupBox1
             // 
+            this.groupBox1.Controls.Add(this.btnEditEndpoint);
             this.groupBox1.Controls.Add(this.btnRemoveEndpoint);
             this.groupBox1.Controls.Add(this.btnAddEndpoint);
             this.groupBox1.Controls.Add(this.lvwEndpoints);
@@ -360,7 +362,7 @@
             // btnRemoveEndpoint
             // 
             this.btnRemoveEndpoint.Enabled = false;
-            this.btnRemoveEndpoint.Location = new System.Drawing.Point(520, 112);
+            this.btnRemoveEndpoint.Location = new System.Drawing.Point(520, 141);
             this.btnRemoveEndpoint.Name = "btnRemoveEndpoint";
             this.btnRemoveEndpoint.Size = new System.Drawing.Size(75, 23);
             this.btnRemoveEndpoint.TabIndex = 6;
@@ -626,6 +628,17 @@
             this.picBanner.TabIndex = 1;
             this.picBanner.TabStop = false;
             // 
+            // btnEditEndpoint
+            // 
+            this.btnEditEndpoint.Enabled = false;
+            this.btnEditEndpoint.Location = new System.Drawing.Point(520, 112);
+            this.btnEditEndpoint.Name = "btnEditEndpoint";
+            this.btnEditEndpoint.Size = new System.Drawing.Size(75, 23);
+            this.btnEditEndpoint.TabIndex = 7;
+            this.btnEditEndpoint.Text = "Edit";
+            this.btnEditEndpoint.UseVisualStyleBackColor = true;
+            this.btnEditEndpoint.Click += new System.EventHandler(this.btnEditEndpoint_Click);
+            // 
             // SetupWizard
             // 
             this.AcceptButton = this.btnNext;
@@ -723,6 +736,7 @@
 		private System.Windows.Forms.CheckBox chkInstallNSCP;
 		private System.Windows.Forms.TextBox txtUser;
 		private System.Windows.Forms.CheckBox chkRunServiceAsThisUser;
-	}
+        private System.Windows.Forms.Button btnEditEndpoint;
+    }
 }
 
