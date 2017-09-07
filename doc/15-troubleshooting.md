@@ -666,9 +666,9 @@ the following
 
 Steps on the client `icinga2-node2.localdomain`:
 
-    # ls -la /etc/icinga2/pki
+    # ls -la /var/lib/icinga2/certs
 
-    # cd /etc/icinga2/pki/
+    # cd /var/lib/icinga2/certs/
     # openssl x509 -in icinga2-node2.localdomain.crt -text
     Certificate:
         Data:
@@ -688,7 +688,7 @@ Steps on the client `icinga2-node2.localdomain`:
 
 Try to manually connect from `icinga2-node2.localdomain` to the master node `icinga2-node1.localdomain`:
 
-    # openssl s_client -CAfile /etc/icinga2/pki/ca.crt -cert /etc/icinga2/pki/icinga2-node2.localdomain.crt -key /etc/icinga2/pki/icinga2-node2.localdomain.key -connect icinga2-node1.localdomain:5665
+    # openssl s_client -CAfile /var/lib/icinga2/certs/ca.crt -cert /var/lib/icinga2/certs/icinga2-node2.localdomain.crt -key /var/lib/icinga2/certs/icinga2-node2.localdomain.key -connect icinga2-node1.localdomain:5665
 
     CONNECTED(00000003)
     ---
@@ -712,19 +712,19 @@ If these messages do not go away, make sure to [verify the master and client cer
 
 #### Cluster Troubleshooting SSL Certificate Verification <a id="troubleshooting-cluster-ssl-certificate-verification"></a>
 
-Make sure to verify the client's certificate and its received `ca.crt` in `/etc/icinga2/pki` and ensure that
+Make sure to verify the client's certificate and its received `ca.crt` in `/var/lib/icinga2/certs` and ensure that
 both instances are signed by the **same CA**.
 
-    # openssl verify -verbose -CAfile /etc/icinga2/pki/ca.crt /etc/icinga2/pki/icinga2-node1.localdomain.crt
+    # openssl verify -verbose -CAfile /var/lib/icinga2/certs/ca.crt /var/lib/icinga2/certs/icinga2-node1.localdomain.crt
     icinga2-node1.localdomain.crt: OK
 
-    # openssl verify -verbose -CAfile /etc/icinga2/pki/ca.crt /etc/icinga2/pki/icinga2-node2.localdomain.crt
+    # openssl verify -verbose -CAfile /var/lib/icinga2/certs/ca.crt /var/lib/icinga2/certs/icinga2-node2.localdomain.crt
     icinga2-node2.localdomain.crt: OK
 
 Fetch the `ca.crt` file from the client node and compare it to your master's `ca.crt` file:
 
-    # scp icinga2-node2:/etc/icinga2/pki/ca.crt test-client-ca.crt
-    # diff -ur /etc/icinga2/pki/ca.crt test-client-ca.crt
+    # scp icinga2-node2:/var/lib/icinga2/certs/ca.crt test-client-ca.crt
+    # diff -ur /var/lib/icinga2/certs/ca.crt test-client-ca.crt
 
 On SLES11 you'll need to use the `openssl1` command instead of `openssl`.
 

@@ -190,7 +190,7 @@ The setup wizard will ensure that the following steps are taken:
 * Enable the `api` feature.
 * Generate a new certificate authority (CA) in `/var/lib/icinga2/ca` if it doesn't exist.
 * Create a certificate signing request (CSR) for the local node.
-* Sign the CSR with the local CA and copy all files to the `/etc/icinga2/pki` directory.
+* Sign the CSR with the local CA and copy all files to the `/var/lib/icinga2/certs` directory.
 * Update the `zones.conf` file with the new zone hierarchy.
 * Update `/etc/icinga2/features-enabled/api.conf` and `constants.conf`.
 
@@ -209,11 +209,11 @@ Here is an example of a master setup for the `icinga2-master1.localdomain` node 
     information/cli: Generating new CA.
     information/base: Writing private key to '/var/lib/icinga2/ca/ca.key'.
     information/base: Writing X509 certificate to '/var/lib/icinga2/ca/ca.crt'.
-    information/cli: Generating new CSR in '/etc/icinga2/pki/icinga2-master1.localdomain.csr'.
-    information/base: Writing private key to '/etc/icinga2/pki/icinga2-master1.localdomain.key'.
-    information/base: Writing certificate signing request to '/etc/icinga2/pki/icinga2-master1.localdomain.csr'.
-    information/cli: Signing CSR with CA and writing certificate to '/etc/icinga2/pki/icinga2-master1.localdomain.crt'.
-    information/cli: Copying CA certificate to '/etc/icinga2/pki/ca.crt'.
+    information/cli: Generating new CSR in '/var/lib/icinga2/certs/icinga2-master1.localdomain.csr'.
+    information/base: Writing private key to '/var/lib/icinga2/certs/icinga2-master1.localdomain.key'.
+    information/base: Writing certificate signing request to '/var/lib/icinga2/certs/icinga2-master1.localdomain.csr'.
+    information/cli: Signing CSR with CA and writing certificate to '/var/lib/icinga2/certs/icinga2-master1.localdomain.crt'.
+    information/cli: Copying CA certificate to '/var/lib/icinga2/certs/ca.crt'.
     Generating master configuration for Icinga 2.
     information/cli: Adding new ApiUser 'root' in '/etc/icinga2/conf.d/api-users.conf'.
     information/cli: Enabling the 'api' feature.
@@ -336,7 +336,7 @@ The setup wizard will ensure that the following steps are taken:
 * Create a certificate signing request (CSR) for the local node.
 * Request a signed certificate with the provided ticket number on the master node.
 * Allow to verify the master's certificate.
-* Store the signed client certificate and ca.crt in `/etc/icinga2/pki`.
+* Store the signed client certificate and ca.crt in `/var/lib/icinga2/certs`.
 * Update the `zones.conf` file with the new zone hierarchy.
 * Update `/etc/icinga2/features-enabled/api.conf` (`accept_config`, `accept_commands`) and `constants.conf`.
 
@@ -366,8 +366,8 @@ is configured to accept configuration and commands from the master:
     Please specify the master connection for CSR auto-signing (defaults to master endpoint host):
     Host [192.168.56.101]: 192.168.2.101
     Port [5665]:
-    information/base: Writing private key to '/etc/icinga2/pki/icinga2-client1.localdomain.key'.
-    information/base: Writing X509 certificate to '/etc/icinga2/pki/icinga2-client1.localdomain.crt'.
+    information/base: Writing private key to '/var/lib/icinga2/certs/icinga2-client1.localdomain.key'.
+    information/base: Writing X509 certificate to '/var/lib/icinga2/certs/icinga2-client1.localdomain.crt'.
     information/cli: Fetching public certificate from master (192.168.56.101, 5665):
 
     Certificate information:
@@ -385,9 +385,9 @@ is configured to accept configuration and commands from the master:
      (Hint: # icinga2 pki ticket --cn 'icinga2-client1.localdomain'): 4f75d2ecd253575fe9180938ebff7cbca262f96e
     information/cli: Requesting certificate with ticket '4f75d2ecd253575fe9180938ebff7cbca262f96e'.
 
-    information/cli: Created backup file '/etc/icinga2/pki/icinga2-client1.localdomain.crt.orig'.
-    information/cli: Writing signed certificate to file '/etc/icinga2/pki/icinga2-client1.localdomain.crt'.
-    information/cli: Writing CA certificate to file '/etc/icinga2/pki/ca.crt'.
+    information/cli: Created backup file '/var/lib/icinga2/certs/icinga2-client1.localdomain.crt.orig'.
+    information/cli: Writing signed certificate to file '/var/lib/icinga2/certs/icinga2-client1.localdomain.crt'.
+    information/cli: Writing CA certificate to file '/var/lib/icinga2/certs/ca.crt'.
     Please specify the API bind host/port (optional):
     Bind Host []:
     Bind Port []:
@@ -407,7 +407,7 @@ is configured to accept configuration and commands from the master:
 
     [root@icinga2-client1.localdomain /]# systemctl restart icinga2
 
-As you can see, the certificate files are stored in the `/etc/icinga2/pki` directory.
+As you can see, the certificate files are stored in the `/var/lib/icinga2/certs` directory.
 
 Now that you've successfully installed a satellite/client, please proceed to
 the [configuration modes](06-distributed-monitoring.md#distributed-monitoring-configuration-modes).
@@ -2469,24 +2469,24 @@ Sign the CSR with the previously created CA:
 
     [root@icinga2-master1.localdomain /root]# icinga2 pki sign-csr --csr icinga2-master1.localdomain.csr --cert icinga2-master1.localdomain
 
-Copy the host's certificate files and the public CA certificate to `/etc/icinga2/pki`:
+Copy the host's certificate files and the public CA certificate to `/var/lib/icinga2/certs`:
 
-    [root@icinga2-master1.localdomain /root]# mkdir -p /etc/icinga2/pki
-    [root@icinga2-master1.localdomain /root]# cp icinga2-master1.localdomain.{crt,key} /etc/icinga2/pki
-    [root@icinga2-master1.localdomain /root]# cp /var/lib/icinga2/ca/ca.crt /etc/icinga2/pki
+    [root@icinga2-master1.localdomain /root]# mkdir -p /var/lib/icinga2/certs
+    [root@icinga2-master1.localdomain /root]# cp icinga2-master1.localdomain.{crt,key} /var/lib/icinga2/certs
+    [root@icinga2-master1.localdomain /root]# cp /var/lib/icinga2/ca/ca.crt /var/lib/icinga2/certs
 
 Ensure that proper permissions are set (replace `icinga` with the Icinga 2 daemon user):
 
-    [root@icinga2-master1.localdomain /root]# chown -R icinga:icinga /etc/icinga2/pki
-    [root@icinga2-master1.localdomain /root]# chmod 600 /etc/icinga2/pki/*.key
-    [root@icinga2-master1.localdomain /root]# chmod 644 /etc/icinga2/pki/*.crt
+    [root@icinga2-master1.localdomain /root]# chown -R icinga:icinga /var/lib/icinga2/certs
+    [root@icinga2-master1.localdomain /root]# chmod 600 /var/lib/icinga2/certs/*.key
+    [root@icinga2-master1.localdomain /root]# chmod 644 /var/lib/icinga2/certs/*.crt
 
 The CA public and private key are stored in the `/var/lib/icinga2/ca` directory. Keep this path secure and include
 it in your backups.
 
 Example for creating multiple certificates at once:
 
-    [root@icinga2-master1.localdomain /etc/icinga2/pki]# for node in icinga2-master1.localdomain icinga2-master2.localdomain icinga2-satellite1.localdomain; do icinga2 pki new-cert --cn $node --csr $node.csr --key $node.key; done
+    [root@icinga2-master1.localdomain /var/lib/icinga2/certs]# for node in icinga2-master1.localdomain icinga2-master2.localdomain icinga2-satellite1.localdomain; do icinga2 pki new-cert --cn $node --csr $node.csr --key $node.key; done
     information/base: Writing private key to 'icinga2-master1.localdomain.key'.
     information/base: Writing certificate signing request to 'icinga2-master1.localdomain.csr'.
     information/base: Writing private key to 'icinga2-master2.localdomain.key'.
@@ -2494,7 +2494,7 @@ Example for creating multiple certificates at once:
     information/base: Writing private key to 'icinga2-satellite1.localdomain.key'.
     information/base: Writing certificate signing request to 'icinga2-satellite1.localdomain.csr'.
 
-    [root@icinga2-master1.localdomain /etc/icinga2/pki]# for node in icinga2-master1.localdomain icinga2-master2.localdomain icinga2-satellite1.localdomain; do sudo icinga2 pki sign-csr --csr $node.csr --cert $node.crt; done
+    [root@icinga2-master1.localdomain /var/lib/icinga2/certs]# for node in icinga2-master1.localdomain icinga2-master2.localdomain icinga2-satellite1.localdomain; do sudo icinga2 pki sign-csr --csr $node.csr --cert $node.crt; done
     information/pki: Writing certificate to file 'icinga2-master1.localdomain.crt'.
     information/pki: Writing certificate to file 'icinga2-master2.localdomain.crt'.
     information/pki: Writing certificate to file 'icinga2-satellite1.localdomain.crt'.
@@ -2555,11 +2555,11 @@ host/port you can specify it like this:
 
 #### Node Setup with Satellites/Clients <a id="distributed-monitoring-automation-cli-node-setup-satellite-client"></a>
 
-Make sure that the `/etc/icinga2/pki` exists and is owned by the `icinga`
+Make sure that the `/var/lib/icinga2/certs` exists and is owned by the `icinga`
 user (or the user Icinga 2 is running as).
 
-    [root@icinga2-client1.localdomain /]# mkdir -p /etc/icinga2/pki
-    [root@icinga2-client1.localdomain /]# chown -R icinga:icinga /etc/icinga2/pki
+    [root@icinga2-client1.localdomain /]# mkdir -p /var/lib/icinga2/certs
+    [root@icinga2-client1.localdomain /]# chown -R icinga:icinga /var/lib/icinga2/certs
 
 First you'll need to generate a new local self-signed certificate.
 Pass the following details to the `pki new-cert` CLI command:
@@ -2567,13 +2567,13 @@ Pass the following details to the `pki new-cert` CLI command:
   Parameter           | Description
   --------------------|--------------------
   Common name (CN)    | **Required.** By convention this should be the host's FQDN. Defaults to the FQDN.
-  Client certificate files   | **Required.** These generated files will be put into the specified location (--key and --file). By convention this should be using `/etc/icinga2/pki` as directory.
+  Client certificate files   | **Required.** These generated files will be put into the specified location (--key and --file). By convention this should be using `/var/lib/icinga2/certs` as directory.
 
 Example:
 
     [root@icinga2-client1.localdomain /]# icinga2 pki new-cert --cn icinga2-client1.localdomain \
-    --key /etc/icinga2/pki/icinga2-client1.localdomain.key \
-    --cert /etc/icinga2/pki/icinga2-client1.localdomain.crt
+    --key /var/lib/icinga2/certs/icinga2-client1.localdomain.key \
+    --cert /var/lib/icinga2/certs/icinga2-client1.localdomain.crt
 
 Request the master certificate from the master host (`icinga2-master1.localdomain`)
 and store it as `trusted-master.crt`. Review it and continue.
@@ -2588,9 +2588,9 @@ Pass the following details to the `pki save-cert` CLI command:
 
 Example:
 
-    [root@icinga2-client1.localdomain /]# icinga2 pki save-cert --key /etc/icinga2/pki/icinga2-client1.localdomain.key \
-    --cert /etc/icinga2/pki/icinga2-client1.localdomain.crt \
-    --trustedcert /etc/icinga2/pki/trusted-master.crt \
+    [root@icinga2-client1.localdomain /]# icinga2 pki save-cert --key /var/lib/icinga2/certs/icinga2-client1.localdomain.key \
+    --cert /var/lib/icinga2/certs/icinga2-client1.localdomain.crt \
+    --trustedcert /var/lib/icinga2/certs/trusted-master.crt \
     --host icinga2-master1.localdomain
 
 Continue with the additional node setup step. Specify a local endpoint and zone name (`icinga2-client1.localdomain`)
@@ -2617,7 +2617,7 @@ Example:
     --endpoint icinga2-master1.localdomain \
     --zone icinga2-client1.localdomain \
     --master_host icinga2-master1.localdomain \
-    --trustedcert /etc/icinga2/pki/trusted-master.crt \
+    --trustedcert /var/lib/icinga2/certs/trusted-master.crt \
     --accept-commands --accept-config
 
 In case the client should connect to the master node, you'll
