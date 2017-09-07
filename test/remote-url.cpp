@@ -52,7 +52,8 @@ BOOST_AUTO_TEST_CASE(get_and_set)
 	url->SetPort("1918");
 	std::vector<String> p = boost::assign::list_of("path")("to")("münchen");
 	url->SetPath(p);
-	BOOST_CHECK(url->Format(true) == "ftp://Horst:Seehofer@koenigreich.bayern:1918/path/to/m%C3%BCnchen");
+
+	BOOST_CHECK(url->Format(false, true) == "ftp://Horst:Seehofer@koenigreich.bayern:1918/path/to/m%C3%BCnchen");
 
 	std::map<String, std::vector<String> > m;
 	std::vector<String> v1 = boost::assign::list_of("hip")("hip")("hurra");
@@ -84,17 +85,17 @@ BOOST_AUTO_TEST_CASE(parameters)
 BOOST_AUTO_TEST_CASE(format)
 {
 	Url::Ptr url = new Url("http://foo.bar/baz/?hop=top&flop=sop#iLIKEtrains");
-	BOOST_CHECK(new Url(url->Format()));
+	BOOST_CHECK(new Url(url->Format(false, false)));
 
 	url = new Url("//main.args/////////?k[]=one&k[]=two#three");
-	BOOST_CHECK(new Url(url->Format()));
+	BOOST_CHECK(new Url(url->Format(false, false)));
 
 	url = new Url("/foo/bar/index.php?blaka");
-	BOOST_CHECK(new Url(url->Format()));
-	BOOST_CHECK(url->Format() == "/foo/bar/index.php?blaka");
+	BOOST_CHECK(new Url(url->Format(false, false)));
+	BOOST_CHECK(url->Format(false, false) == "/foo/bar/index.php?blaka");
 
 	url = new Url("/");
-	BOOST_CHECK(url->Format() == "/");
+	BOOST_CHECK(url->Format(false, false) == "/");
 }
 
 BOOST_AUTO_TEST_CASE(illegal_legal_strings)
