@@ -1,0 +1,31 @@
+#include "base/configobject.hpp"
+
+library perfdata;
+
+namespace icinga
+{
+
+class ElasticWriter : ConfigObject
+{
+	[config, required] String host {
+		default {{{ return "127.0.0.1"; }}}
+	};
+	[config, required] String port {
+		default {{{ return "9200"; }}}
+	};
+	[config, required] String index {
+		default {{{ return "icinga2"; }}}
+	};
+	[config] bool enable_send_perfdata {
+		default {{{ return false; }}}
+	};
+
+	[config] int flush_interval {
+		default {{{ return 10; }}}
+	};
+	[config] int flush_threshold {
+		default {{{ return 1024; }}}
+	};
+};
+
+}
