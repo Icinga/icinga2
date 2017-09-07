@@ -189,53 +189,38 @@ The setup wizard will ensure that the following steps are taken:
 
 * Enable the `api` feature.
 * Generate a new certificate authority (CA) in `/var/lib/icinga2/ca` if it doesn't exist.
-* Create a certificate signing request (CSR) for the local node.
-* Sign the CSR with the local CA and copy all files to the `/var/lib/icinga2/certs` directory.
-* Update the `zones.conf` file with the new zone hierarchy.
-* Update `/etc/icinga2/features-enabled/api.conf` and `constants.conf`.
+* Create a certificate for this node signed by the CA key.
+* Update the [zones.conf](04-configuring-icinga-2.md#zones-conf) file with the new zone hierarchy.
+* Update the [ApiListener](06-distributed-monitoring.md#distributed-monitoring-apilistener) and [constants](04-configuring-icinga-2.md#constants-conf) configuration.
 
 Here is an example of a master setup for the `icinga2-master1.localdomain` node on CentOS 7:
 
-    [root@icinga2-master1.localdomain /]# icinga2 node wizard
-    Welcome to the Icinga 2 Setup Wizard!
+```
+[root@icinga2-master1.localdomain /]# icinga2 node wizard
 
-    We'll guide you through all required configuration details.
+Welcome to the Icinga 2 Setup Wizard!
 
-    Please specify if this is a satellite setup ('n' installs a master setup) [Y/n]: n
-    Starting the Master setup routine...
-    Please specify the common name (CN) [icinga2-master1.localdomain]: icinga2-master1.localdomain
-    Checking for existing certificates for common name 'icinga2-master1.localdomain'...
-    Certificates not yet generated. Running 'api setup' now.
-    information/cli: Generating new CA.
-    information/base: Writing private key to '/var/lib/icinga2/ca/ca.key'.
-    information/base: Writing X509 certificate to '/var/lib/icinga2/ca/ca.crt'.
-    information/cli: Generating new CSR in '/var/lib/icinga2/certs/icinga2-master1.localdomain.csr'.
-    information/base: Writing private key to '/var/lib/icinga2/certs/icinga2-master1.localdomain.key'.
-    information/base: Writing certificate signing request to '/var/lib/icinga2/certs/icinga2-master1.localdomain.csr'.
-    information/cli: Signing CSR with CA and writing certificate to '/var/lib/icinga2/certs/icinga2-master1.localdomain.crt'.
-    information/cli: Copying CA certificate to '/var/lib/icinga2/certs/ca.crt'.
-    Generating master configuration for Icinga 2.
-    information/cli: Adding new ApiUser 'root' in '/etc/icinga2/conf.d/api-users.conf'.
-    information/cli: Enabling the 'api' feature.
-    Enabling feature api. Make sure to restart Icinga 2 for these changes to take effect.
-    information/cli: Dumping config items to file '/etc/icinga2/zones.conf'.
-    information/cli: Created backup file '/etc/icinga2/zones.conf.orig'.
-    Please specify the API bind host/port (optional):
-    Bind Host []:
-    Bind Port []:
-    information/cli: Created backup file '/etc/icinga2/features-available/api.conf.orig'.
-    information/cli: Updating constants.conf.
-    information/cli: Created backup file '/etc/icinga2/constants.conf.orig'.
-    information/cli: Updating constants file '/etc/icinga2/constants.conf'.
-    information/cli: Updating constants file '/etc/icinga2/constants.conf'.
-    information/cli: Updating constants file '/etc/icinga2/constants.conf'.
-    Done.
+We will guide you through all required configuration details.
 
-    Now restart your Icinga 2 daemon to finish the installation!
+Please specify if this is a satellite/client setup ('n' installs a master setup) [Y/n]: n
 
-    [root@icinga2-master1.localdomain /]# systemctl restart icinga2
+Starting the Master setup routine...
 
-As you can see, the CA public and private key are stored in the `/var/lib/icinga2/ca` directory.
+Please specify the common name (CN) [icinga2-master1.localdomain]: icinga2-master1.localdomain
+Reconfiguring Icinga...
+Checking for existing certificates for common name 'master1'...
+Generating master configuration for Icinga 2.
+
+Please specify the API bind host/port (optional):
+Bind Host []:
+Bind Port []:
+
+Done.
+
+Now restart your Icinga 2 daemon to finish the installation!
+```
+
+You can verify that the CA public and private keys are stored in the `/var/lib/icinga2/ca` directory.
 Keep this path secure and include it in your [backups](02-getting-started.md#install-backup).
 
 In case you lose the CA private key you have to generate a new CA for signing new client
@@ -246,23 +231,53 @@ Once the master setup is complete, you can also use this node as primary [CSR au
 master. The following section will explain how to use the CLI commands in order to fetch their
 signed certificate from this master node.
 
-## Client/Satellite Setup <a id="distributed-monitoring-setup-satellite-client"></a>
+## Signing Certificates on the Master <a id="distributed-monitoring-setup-sign-certificates-master"></a>
 
-This section describes the setup of a satellite and/or client connected to an
-existing master node setup. If you haven't done so already, please [run the master setup](06-distributed-monitoring.md#distributed-monitoring-setup-master).
+All certificates must be signed by the same certificate authority (CA). This ensures
+that all nodes trust each other in a distributed monitoring environment.
 
-Icinga 2 on the master node must be running and accepting connections on port `5665`.
+This CA is generated during the [master setup](06-distributed-monitoring.md#distributed-monitoring-setup-master)
+and should be the same on all master instances.
+
+You can avoid signing and deploying certificates [manually](#06-distributed-monitoring.md#distributed-monitoring-advanced-hints-certificates)
+by using built-in methods for auto-signing certificate signing requests (CSR):
+
+* [CSR Auto-Signing](06-distributed-monitoring.md#distributed-monitoring-setup-csr-auto-signing) which uses a client ticket generated on the master as trust identifier.
+* [On-Demand CSR Signing](06-distributed-monitoring.md#distributed-monitoring-setup-on-demand-csr-signing) which allows to sign pending certificate requests on the master.
+
+Both methods are described in detail below.
+
+> **Note**
+>
+> [On-Demand CSR Signing](06-distributed-monitoring.md#distributed-monitoring-setup-on-demand-csr-signing) is available in Icinga 2 v2.8+.
 
 ### CSR Auto-Signing <a id="distributed-monitoring-setup-csr-auto-signing"></a>
 
-The `node wizard` command will set up a satellite/client using CSR auto-signing. This
-involves that the setup wizard sends a certificate signing request (CSR) to the
-master node.
-There is a security mechanism in place which requires the client to send in a valid
-ticket for CSR auto-signing.
+A client which sends a certificate signing request (CSR) must authenticate itself
+in a trusted way. The master generates a client ticket which is included in this request.
+That way the master can verify that the request matches the previously trusted ticket
+and sign the request.
 
-This ticket must be generated beforehand. The `ticket_salt` attribute for the [ApiListener](09-object-types.md#objecttype-apilistener)
-must be configured in order to make this work.
+> **Note**
+>
+> Icinga 2 v2.8 adds the possibility to forward signing requests on a satellite
+> to the master node. This helps with the setup of [three level clusters](#06-distributed-monitoring.md#distributed-monitoring-scenarios-master-satellite-client)
+> and more.
+
+Advantages:
+
+* Nodes can be installed by different users who have received the client ticket.
+* No manual interaction necessary on the master node.
+* Automation tools like Puppet, Ansible, etc. can retrieve the pre-generated ticket in their client catalog
+and run the node setup directly.
+
+Disadvantages:
+
+* Tickets need to be generated on the master and copied to client setup wizards.
+* No central signing management.
+
+
+Setup wizards for satellite/client nodes will ask you for this specific client ticket.
 
 There are two possible ways to retrieve the ticket:
 
@@ -280,7 +295,7 @@ The following example shows how to generate a ticket on the master node `icinga2
     [root@icinga2-master1.localdomain /]# icinga2 pki ticket --cn icinga2-client1.localdomain
 
 Querying the [Icinga 2 API](12-icinga2-api.md#icinga2-api) on the master requires an [ApiUser](12-icinga2-api.md#icinga2-api-authentication)
-object with at least the `actions/generate-ticket`.
+object with at least the `actions/generate-ticket` permission.
 
     [root@icinga2-master1.localdomain /]# vim /etc/icinga2/conf.d/api-users.conf
 
@@ -303,6 +318,55 @@ Example: Retrieve the ticket on the Puppet master node and send the compiled cat
 to the authorized Puppet agent node which will invoke the
 [automated setup steps](06-distributed-monitoring.md#distributed-monitoring-automation-cli-node-setup).
 
+### On-Demand CSR Signing <a id="distributed-monitoring-setup-on-demand-csr-signing"></a>
+
+Icinga 2 v2.8 adds the possibility to sign certificates from clients without
+requiring a client ticket for auto-signing.
+
+Instead, the client sends a certificate signing request to specified parent node.
+This could either be directly the master, or a satellite which forwards the request
+to the signing master.
+
+Advantages:
+
+* Central certificate request signing management.
+* No pre-generated ticket is required for client setups.
+
+Disadvantages:
+
+* Asynchronous step for automated deployments.
+* Needs client verification on the master.
+
+
+You can list certificate requests by using the `ca list` CLI command. This also shows
+which requests already have been signed.
+
+```
+[root@icinga2-master1.localdomain /]# icinga2 ca list
+Fingerprint                                                      | Timestamp           | Signed | Subject
+-----------------------------------------------------------------|---------------------|--------|--------
+403da5b228df384f07f980f45ba50202529cded7c8182abf96740660caa09727 | 2017/09/06 17:02:40 | *      | CN = icinga2-client1.localdomain
+71700c28445109416dd7102038962ac3fd421fbb349a6e7303b6033ec1772850 | 2017/09/06 17:20:02 |        | CN = icinga2-client2.localdomain
+```
+
+**Tip**: Add `--json` to the CLI command to retrieve the details in JSON format.
+
+If you want to sign a specific request, you need to use the `ca sign` CLI command
+and pass its fingerprint as argument.
+
+```
+[root@icinga2-master1.localdomain /]# icinga2 ca sign 71700c28445109416dd7102038962ac3fd421fbb349a6e7303b6033ec1772850
+information/cli: Signed certificate for 'CN = icinga2-client2.localdomain'.
+```
+
+## Client/Satellite Setup <a id="distributed-monitoring-setup-satellite-client"></a>
+
+This section describes the setup of a satellite and/or client connected to an
+existing master node setup. If you haven't done so already, please [run the master setup](06-distributed-monitoring.md#distributed-monitoring-setup-master).
+
+Icinga 2 on the master node must be running and accepting connections on port `5665`.
+
+
 ### Client/Satellite Linux Setup <a id="distributed-monitoring-setup-client-linux"></a>
 
 Please ensure that you've run all the steps mentioned in the [client/satellite section](06-distributed-monitoring.md#distributed-monitoring-setup-satellite-client).
@@ -311,20 +375,166 @@ Install the [Icinga 2 package](02-getting-started.md#setting-up-icinga2) and set
 the required [plugins](02-getting-started.md#setting-up-check-plugins) if you haven't done
 so already.
 
-The next step is to run the `node wizard` CLI command. Prior to that
-ensure to collect the required information:
+The next step is to run the `node wizard` CLI command.
+
+In this example we're generating a ticket on the master node `icinga2-master1.localdomain` for the client `icinga2-client1.localdomain`:
+
+    [root@icinga2-master1.localdomain /]# icinga2 pki ticket --cn icinga2-client1.localdomain
+    4f75d2ecd253575fe9180938ebff7cbca262f96e
+
+Note: You don't need this step if you have chosen to use [On-Demand CSR Signing](06-distributed-monitoring.md#distributed-monitoring-setup-on-demand-csr-signing).
+
+Start the wizard on the client `icinga2-client1.localdomain`:
+
+```
+[root@icinga2-client1.localdomain /]# icinga2 node wizard
+
+Welcome to the Icinga 2 Setup Wizard!
+
+We will guide you through all required configuration details.
+```
+
+Press `Enter` or add `y` to start a satellite or client setup.
+
+```
+Please specify if this is a satellite/client setup ('n' installs a master setup) [Y/n]:
+```
+
+Press `Enter` to use the proposed name in brackets, or add a specific common name (CN). By convention
+this should be the FQDN.
+
+```
+Starting the Client/Satellite setup routine...
+
+Please specify the common name (CN) [icinga2-client1.localdomain]: icinga2-client1.localdomain
+```
+
+Specify the direct parent for this node. This could be your primary master `icinga2-master1.localdomain`
+or a satellite node in a multi level cluster scenario.
+
+```
+Please specify the parent endpoint(s) (master or satellite) where this node should connect to:
+Master/Satellite Common Name (CN from your master/satellite node): icinga2-master1.localdomain
+```
+
+Press `Enter` or choose `y` to establish a connection to the parent node.
+
+```
+Do you want to establish a connection to the parent node from this node? [Y/n]:
+```
+
+> **Note:**
+>
+> If this node cannot connect to the parent node, choose `n`. The setup
+> wizard will provide instructions for this scenario -- signing questions are disabled then.
+
+Add the connection details for `icinga2-master1.localdomain`.
+
+```
+Please specify the master/satellite connection information:
+Master/Satellite endpoint host (IP address or FQDN): 192.168.56.101
+Master/Satellite endpoint port [5665]: 5665
+```
+
+You can add more parent nodes if necessary. Press `Enter` or choose `n`
+if you don't want to add any. This comes in handy if you have more than one
+parent node, e.g. two masters or two satellites.
+
+```
+Add more master/satellite endpoints? [y/N]:
+```
+
+Verify the parent node's certificate:
+
+```
+Parent certificate information:
+
+ Subject:     CN = icinga2-master1.localdomain
+ Issuer:      CN = Icinga CA
+ Valid From:  Sep  7 13:41:24 2017 GMT
+ Valid Until: Sep  3 13:41:24 2032 GMT
+ Fingerprint: AC 99 8B 2B 3D B0 01 00 E5 21 FA 05 2E EC D5 A9 EF 9E AA E3
+
+Is this information correct? [y/N]: y
+```
+
+The setup wizard fetches the parent node's certificate and ask
+you to verify this information. This is to prevent MITM attacks or
+any kind of untrusted parent relationship.
+
+Note: The certificate is not fetched if you have chosen not to connect
+to the parent node.
+
+Proceed with adding the optional client ticket for [CSR auto-signing](06-distributed-monitoring.md#distributed-monitoring-setup-csr-auto-signing):
+
+```
+Please specify the request ticket generated on your Icinga 2 master (optional).
+ (Hint: # icinga2 pki ticket --cn 'icinga2-client1.localdomain'):
+4f75d2ecd253575fe9180938ebff7cbca262f96e
+```
+
+In case you've chosen to use [On-Demand CSR Signing](06-distributed-monitoring.md#distributed-monitoring-setup-on-demand-csr-signing)
+you can leave the ticket question blank.
+
+Instead, Icinga 2 tells you to approve the request later on the master node.
+
+```
+No ticket was specified. Please approve the certificate signing request manually
+on the master (see 'icinga2 ca list' and 'icinga2 ca sign --help' for details).
+```
+
+You can optionally specify a different bind host and/or port.
+
+```
+Please specify the API bind host/port (optional):
+Bind Host []:
+Bind Port []:
+```
+
+The next step asks you to accept configuration (required for [config sync mode](06-distributed-monitoring.md#distributed-monitoring-top-down-config-sync))
+and commands (required for [command endpoint mode](06-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint)).
+
+```
+Accept config from parent node? [y/N]: y
+Accept commands from parent node? [y/N]: y
+```
+
+The wizard proceeds and you are good to go.
+
+```
+Reconfiguring Icinga...
+
+Done.
+
+Now restart your Icinga 2 daemon to finish the installation!
+```
+
+> **Note**
+>
+> If you have chosen not to connect to the parent node, you cannot start
+> Icinga 2 yet. The wizard asked you to manually copy the master's public
+> CA certificate file into `/var/lib/icinga2/certs/ca.crt`.
+>
+> You need to manually sign the CSR on the master node.
+
+Restart Icinga 2 as requested.
+
+```
+[root@icinga2-client1.localdomain /]# systemctl restart icinga2
+```
+
+Here is an overview of all parameters in detail:
 
   Parameter           | Description
   --------------------|--------------------
   Common name (CN)    | **Required.** By convention this should be the host's FQDN. Defaults to the FQDN.
   Master common name  | **Required.** Use the common name you've specified for your master node before.
-  Establish connection to the master | **Optional.** Whether the client should attempt to connect to the master or not. Defaults to `y`.
-  Master endpoint host | **Required if the the client needs to connect to the master.** The master's IP address or FQDN. This information is included in the `Endpoint` object configuration in the `zones.conf` file.
-  Master endpoint port | **Optional if the the client needs to connect to the master.** The master's listening port. This information is included in the `Endpoint` object configuration.
-  Add more master endpoints | **Optional.** If you have multiple master nodes configured, add them here.
-  Master connection for CSR auto-signing | **Required.** The master node's IP address or FQDN and port where the client should request a certificate from. Defaults to the master endpoint host.
-  Certificate information | **Required.** Verify that the connecting host really is the requested master node.
-  Request ticket      | **Required.** Paste the previously generated [ticket number](06-distributed-monitoring.md#distributed-monitoring-setup-csr-auto-signing).
+  Establish connection to the parent node | **Optional.** Whether the node should attempt to connect to the parent node or not. Defaults to `y`.
+  Master/Satellite endpoint host | **Required if the the client needs to connect to the master/satellite.** The parent endpoint's IP address or FQDN. This information is included in the `Endpoint` object configuration in the `zones.conf` file.
+  Master/Satellite endpoint port | **Optional if the the client needs to connect to the master/satellite.** The parent endpoints's listening port. This information is included in the `Endpoint` object configuration.
+  Add more master/satellite endpoints | **Optional.** If you have multiple master/satellite nodes configured, add them here.
+  Parent Certificate information | **Required.** Verify that the connecting host really is the requested master node.
+  Request ticket      | **Optional.** Add the [ticket](06-distributed-monitoring.md#distributed-monitoring-setup-csr-auto-signing) generated on the master.
   API bind host       | **Optional.** Allows to specify the address the ApiListener is bound to. For advanced usage only.
   API bind port       | **Optional.** Allows to specify the port the ApiListener is bound to. For advanced usage only (requires changing the default port 5665 everywhere).
   Accept config       | **Optional.** Whether this node accepts configuration sync from the master node (required for [config sync mode](06-distributed-monitoring.md#distributed-monitoring-top-down-config-sync)). For [security reasons](06-distributed-monitoring.md#distributed-monitoring-security) this defaults to `n`.
@@ -334,83 +544,27 @@ The setup wizard will ensure that the following steps are taken:
 
 * Enable the `api` feature.
 * Create a certificate signing request (CSR) for the local node.
-* Request a signed certificate with the provided ticket number on the master node.
-* Allow to verify the master's certificate.
+* Request a signed certificate i(optional with the provided ticket number) on the master node.
+* Allow to verify the parent node's certificate.
 * Store the signed client certificate and ca.crt in `/var/lib/icinga2/certs`.
 * Update the `zones.conf` file with the new zone hierarchy.
 * Update `/etc/icinga2/features-enabled/api.conf` (`accept_config`, `accept_commands`) and `constants.conf`.
 
-In this example we're generating a ticket on the master node `icinga2-master1.localdomain` for the client `icinga2-client1.localdomain`:
 
-    [root@icinga2-master1.localdomain /]# icinga2 pki ticket --cn icinga2-client1.localdomain
-    4f75d2ecd253575fe9180938ebff7cbca262f96e
+You can verify that the certificate files are stored in the `/var/lib/icinga2/certs` directory.
 
-The following example shows a client setup for the `icinga2-client1.localdomain` node on CentOS 7. This client
-is configured to accept configuration and commands from the master:
-
-    [root@icinga2-client1.localdomain /]# icinga2 node wizard
-    Welcome to the Icinga 2 Setup Wizard!
-
-    We'll guide you through all required configuration details.
-
-    Please specify if this is a satellite setup ('n' installs a master setup) [Y/n]:
-    Starting the Node setup routine...
-    Please specify the common name (CN) [icinga2-client1.localdomain]: icinga2-client1.localdomain
-    Please specify the master endpoint(s) this node should connect to:
-    Master Common Name (CN from your master setup): icinga2-master1.localdomain
-    Do you want to establish a connection to the master from this node? [Y/n]:
-    Please fill out the master connection information:
-    Master endpoint host (Your master's IP address or FQDN): 192.168.56.101
-    Master endpoint port [5665]:
-    Add more master endpoints? [y/N]:
-    Please specify the master connection for CSR auto-signing (defaults to master endpoint host):
-    Host [192.168.56.101]: 192.168.2.101
-    Port [5665]:
-    information/base: Writing private key to '/var/lib/icinga2/certs/icinga2-client1.localdomain.key'.
-    information/base: Writing X509 certificate to '/var/lib/icinga2/certs/icinga2-client1.localdomain.crt'.
-    information/cli: Fetching public certificate from master (192.168.56.101, 5665):
-
-    Certificate information:
-
-     Subject:     CN = icinga2-master1.localdomain
-     Issuer:      CN = Icinga CA
-     Valid From:  Feb 23 14:45:32 2016 GMT
-     Valid Until: Feb 19 14:45:32 2031 GMT
-     Fingerprint: AC 99 8B 2B 3D B0 01 00 E5 21 FA 05 2E EC D5 A9 EF 9E AA E3
-
-    Is this information correct? [y/N]: y
-    information/cli: Received trusted master certificate.
-
-    Please specify the request ticket generated on your Icinga 2 master.
-     (Hint: # icinga2 pki ticket --cn 'icinga2-client1.localdomain'): 4f75d2ecd253575fe9180938ebff7cbca262f96e
-    information/cli: Requesting certificate with ticket '4f75d2ecd253575fe9180938ebff7cbca262f96e'.
-
-    information/cli: Created backup file '/var/lib/icinga2/certs/icinga2-client1.localdomain.crt.orig'.
-    information/cli: Writing signed certificate to file '/var/lib/icinga2/certs/icinga2-client1.localdomain.crt'.
-    information/cli: Writing CA certificate to file '/var/lib/icinga2/certs/ca.crt'.
-    Please specify the API bind host/port (optional):
-    Bind Host []:
-    Bind Port []:
-    Accept config from master? [y/N]: y
-    Accept commands from master? [y/N]: y
-    information/cli: Disabling the Notification feature.
-    Disabling feature notification. Make sure to restart Icinga 2 for these changes to take effect.
-    information/cli: Enabling the Apilistener feature.
-    information/cli: Generating local zones.conf.
-    information/cli: Dumping config items to file '/etc/icinga2/zones.conf'.
-    information/cli: Updating constants.conf.
-    information/cli: Updating constants file '/etc/icinga2/constants.conf'.
-    information/cli: Updating constants file '/etc/icinga2/constants.conf'.
-    Done.
-
-    Now restart your Icinga 2 daemon to finish the installation!
-
-    [root@icinga2-client1.localdomain /]# systemctl restart icinga2
-
-As you can see, the certificate files are stored in the `/var/lib/icinga2/certs` directory.
+> **Note**
+>
+> If the client is not directly connected to the certificate signing master,
+> signing requests and responses might need some minutes to fully update the client certificates.
+>
+> If you have chosen to use [On-Demand CSR Signing](06-distributed-monitoring.md#distributed-monitoring-setup-on-demand-csr-signing)
+> certificates need to be signed on the master first.
 
 Now that you've successfully installed a satellite/client, please proceed to
 the [configuration modes](06-distributed-monitoring.md#distributed-monitoring-configuration-modes).
+
+
 
 ### Client/Satellite Windows Setup <a id="distributed-monitoring-setup-client-windows"></a>
 
@@ -2275,6 +2429,13 @@ Open Icinga Web 2 and check your newly added Windows NSClient++ check :)
 
 You can find additional hints in this section if you prefer to go your own route
 with automating setups (setup, certificates, configuration).
+
+### Certificate Auto-Renewal <a id="distributed-monitoring-certificate-auto-renewal"></a>
+
+Icinga 2 v2.8+ adds the possibility that nodes request certificate updates
+on their own. If their expiration date is soon enough, they automatically
+renew their already signed certificate by sending a signing request to the
+parent node.
 
 ### High-Availability for Icinga 2 Features <a id="distributed-monitoring-high-availability-features"></a>
 
