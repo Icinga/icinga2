@@ -43,14 +43,6 @@ enum ClientType
 
 class MessageOrigin;
 
-struct ApiCallbackInfo
-{
-	double Timestamp;
-	boost::function<void (const Dictionary::Ptr&)> Callback;
-
-	bool IsExpired(void) const;
-};
-
 /**
  * An API client connection.
  *
@@ -97,8 +89,6 @@ private:
 	double m_NextHeartbeat;
 	double m_HeartbeatTimeout;
 	boost::mutex m_DataHandlerMutex;
-	std::map<String, ApiCallbackInfo> m_ApiCallbacks;
-	boost::mutex m_ApiCallbacksMutex;
 
 	StreamReadContext m_Context;
 
@@ -110,8 +100,6 @@ private:
 	static void StaticInitialize(void);
 	static void TimeoutTimerHandler(void);
 	void CheckLiveness(void);
-
-	void RegisterCallback(const String& id, const boost::function<void (const Dictionary::Ptr&)>& callback);
 
 	void CertificateRequestResponseHandler(const Dictionary::Ptr& message);
 };
