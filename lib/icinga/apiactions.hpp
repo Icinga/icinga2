@@ -46,8 +46,6 @@ public:
 	static Dictionary::Ptr ShutdownProcess(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
 	static Dictionary::Ptr RestartProcess(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
 	static Dictionary::Ptr GenerateTicket(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
-	static Dictionary::Ptr ListCARequests(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
-	static Dictionary::Ptr SignCARequest(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);
 
 private:
 	static Dictionary::Ptr CreateResult(int code, const String& status, const Dictionary::Ptr& additional = Dictionary::Ptr());
