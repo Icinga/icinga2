@@ -148,9 +148,10 @@ if [ -n "$MAILFROM" ] ; then
 
   ## Modify this for your own needs!
 
-  ## Debian/Ubuntu use mailutils which requires `-a` to append the header
-  if [ -f /etc/debian_version ]; then
-    /usr/bin/printf "%b" "$NOTIFICATION_MESSAGE" | $MAILBIN -s "$SUBJECT" $USEREMAIL
+  ## Debian use mailutils which requires `-a` to append the header
+  dist=`grep DISTRIB_ID /etc/*-release | awk -F '=' '{print $2}'`
+  if [ -f /etc/debian_version && "$dist" != "Ubuntu" ]; then
+    /usr/bin/printf "%b" "$NOTIFICATION_MESSAGE" | $MAILBIN -a "From: $MAILFROM" -s "$SUBJECT" $USEREMAIL
   ## Other distributions (RHEL/SUSE/etc.) prefer mailx which sets a sender address with `-r`
   else
     /usr/bin/printf "%b" "$NOTIFICATION_MESSAGE" | $MAILBIN -r "$MAILFROM" -s "$SUBJECT" $USEREMAIL
