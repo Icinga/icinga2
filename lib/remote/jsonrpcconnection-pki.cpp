@@ -187,7 +187,6 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 		goto delayed_request;
 	}
 
-
 	/* Send the signed certificate update. */
 	Log(LogInformation, "JsonRpcConnection")
 	    << "Sending certificate response for CN '" << cn << "' to endpoint '" << client->GetIdentity() << "'.";

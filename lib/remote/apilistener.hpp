@@ -120,12 +120,14 @@ private:
 	Timer::Ptr m_Timer;
 	Timer::Ptr m_ReconnectTimer;
 	Timer::Ptr m_AuthorityTimer;
+	Timer::Ptr m_CleanupCertificateRequestsTimer;
 	Endpoint::Ptr m_LocalEndpoint;
 
 	static ApiListener::Ptr m_Instance;
 
 	void ApiTimerHandler(void);
 	void ApiReconnectTimerHandler(void);
+	void CleanupCertificateRequestsTimerHandler(void);
 
 	bool AddListener(const String& node, const String& service);
 	void AddConnection(const Endpoint::Ptr& endpoint);

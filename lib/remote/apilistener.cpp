@@ -204,6 +204,12 @@ void ApiListener::Start(bool runtimeCreated)
 	m_AuthorityTimer->SetInterval(30);
 	m_AuthorityTimer->Start();
 
+	m_CleanupCertificateRequestsTimer = new Timer();
+	m_CleanupCertificateRequestsTimer->OnTimerExpired.connect(boost::bind(&ApiListener::CleanupCertificateRequestsTimerHandler, this));
+	m_CleanupCertificateRequestsTimer->SetInterval(3600);
+	m_CleanupCertificateRequestsTimer->Start();
+	m_CleanupCertificateRequestsTimer->Reschedule(0);
+
 	OnMasterChanged(true);
 }
 
@@ -642,7 +648,6 @@ void ApiListener::ApiTimerHandler(void)
 		    << "Setting log position for identity '" << endpoint->GetName() << "': "
 		    << Utility::FormatDateTime("%Y/%m/%d %H:%M:%S", ts);
 	}
-
 }
 
 void ApiListener::ApiReconnectTimerHandler(void)
@@ -712,6 +717,33 @@ void ApiListener::ApiReconnectTimerHandler(void)
 
 	Log(LogNotice, "ApiListener")
 	    << "Connected endpoints: " << Utility::NaturalJoin(names);
+}
+
+static void CleanupCertificateRequest(const String& path, double expiryTime)
+{
+#ifndef _WIN32
+	struct stat statbuf;
+	if (lstat(path.CStr(), &statbuf) < 0)
+		return;
+#else /* _WIN32 */
+	struct _stat statbuf;
+	if (_stat(path.CStr(), &statbuf) < 0)
+		return;
+#endif /* _WIN32 */
+
+	if (statbuf.st_mtime < expiryTime)
+		(void) unlink(path.CStr());
+}
+
+void ApiListener::CleanupCertificateRequestsTimerHandler(void)
+{
+	String requestsDir = GetCertificateRequestsDir();
+
+	if (Utility::PathExists(requestsDir)) {
+		/* remove certificate requests that are older than a week */
+		double expiryTime = Utility::GetTime() - 7 * 24 * 60 * 60;
+		Utility::Glob(requestsDir + "/*.json", boost::bind(&CleanupCertificateRequest, _1, expiryTime), GlobFile);
+	}
 }
 
 void ApiListener::RelayMessage(const MessageOrigin::Ptr& origin,
