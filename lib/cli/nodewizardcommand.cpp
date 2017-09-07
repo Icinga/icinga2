@@ -147,6 +147,7 @@ int NodeWizardCommand::ClientSetup(void) const
 {
 	std::string answer;
 	String choice;
+	bool connectToParent = false;
 
 	std::cout << "Starting the Client/Satellite setup routine...\n\n";
 
@@ -200,9 +201,15 @@ wizard_endpoint_loop_start:
 	String parentEndpointPort = "5665";
 
 	if (choice.Contains("n")) {
+		connectToParent = false;
+
 		Log(LogWarning, "cli", "Node to master/satellite connection setup skipped");
-		std::cout << "Connection setup skipped. Please configure your parent node to connect to this node by setting the 'host' attribute for the node Endpoint object.\n";
+		std::cout << "Connection setup skipped. Please configure your parent node to\n"
+		    << "connect to this node by setting the 'host' attribute for the node Endpoint object.\n";
+
 	} else  {
+		connectToParent = true;
+
 		std::cout << ConsoleColorTag(Console_Bold)
 		    << "Please specify the master/satellite connection information:"
 		    << ConsoleColorTag(Console_Normal) << "\n"
@@ -298,7 +305,8 @@ wizard_endpoint_loop_start:
 
 	boost::shared_ptr<X509> trustedParentCert;
 
-	if (!parentHost.IsEmpty()) {
+	/* Check whether we should connect to the parent node and present its trusted certificate. */
+	if (connectToParent) {
 		//save-cert and store the master certificate somewhere
 		Log(LogInformation, "cli")
 		    << "Fetching public certificate from master ("
@@ -326,24 +334,28 @@ wizard_endpoint_loop_start:
 	}
 
 wizard_ticket:
-	std::cout << ConsoleColorTag(Console_Bold)
-	    << "\nPlease specify the request ticket generated on your Icinga 2 master (optional)."
-	    << ConsoleColorTag(Console_Normal) << "\n"
-	    << " (Hint: # icinga2 pki ticket --cn '" << cn << "'): ";
+	String nodeCA = certsDir + "/ca.crt";
+	String ticket;
 
-	std::getline(std::cin, answer);
+	/* Check whether we can connect to the parent node and fetch the client and CA certificate. */
+	if (connectToParent) {
+		std::cout << ConsoleColorTag(Console_Bold)
+		    << "\nPlease specify the request ticket generated on your Icinga 2 master (optional)."
+		    << ConsoleColorTag(Console_Normal) << "\n"
+		    << " (Hint: # icinga2 pki ticket --cn '" << cn << "'): ";
 
-	if (answer.empty()) {
-		std::cout << ConsoleColorTag(Console_Bold) << "\n"
-		    << "No ticket was specified. Please approve the certificate signing request manually\n"
-		    << "on the master (see 'icinga2 ca list' and 'icinga2 ca sign --help' for details)."
-		    << ConsoleColorTag(Console_Normal) << "\n";
-	}
+		std::getline(std::cin, answer);
 
-	String ticket = answer;
-	ticket = ticket.Trim();
+		if (answer.empty()) {
+			std::cout << ConsoleColorTag(Console_Bold) << "\n"
+			    << "No ticket was specified. Please approve the certificate signing request manually\n"
+			    << "on the master (see 'icinga2 ca list' and 'icinga2 ca sign --help' for details)."
+			    << ConsoleColorTag(Console_Normal) << "\n";
+		}
 
-	if (!parentHost.IsEmpty()) {
+		ticket = answer;
+		ticket = ticket.Trim();
+
 		if (ticket.IsEmpty()) {
 			Log(LogInformation, "cli")
 			    << "Requesting certificate without a ticket.";
@@ -351,8 +363,6 @@ wizard_ticket:
 			Log(LogInformation, "cli")
 			    << "Requesting certificate with ticket '" << ticket << "'.";
 		}
-
-		String nodeCA = certsDir + "/ca.crt";
 
 		if (Utility::PathExists(nodeCA))
 			NodeUtility::CreateBackupFile(nodeCA);
@@ -375,6 +385,25 @@ wizard_ticket:
 			    << "' group '" << group << "' on file '"
 			    << nodeCert << "'. Verify it yourself!";
 		}
+	} else {
+		/* We cannot retrieve the parent certificate.
+		 * Tell the user to manually copy the ca.crt file
+		 * into LocalStateDir + "/lib/icinga2/certs"
+		 */
+
+		std::cout <<  ConsoleColorTag(Console_Bold)
+		    << "\nNo connection to the parent node was specified.\n\n"
+		    << "Please copy the public CA certificate from your master/satellite\n"
+		    << "into '" << nodeCA << "' before starting Icinga 2.\n"
+		    << ConsoleColorTag(Console_Normal);
+
+		if (Utility::PathExists(nodeCA)) {
+			std::cout <<  ConsoleColorTag(Console_Bold)
+			    << "\nFound public CA certificate in '" << nodeCA << "'.\n"
+			    << "Please verify that it is the same as on your master/satellite.\n"
+			    << ConsoleColorTag(Console_Normal);
+		}
+
 	}
 
 	/* apilistener config */
@@ -490,30 +519,32 @@ wizard_ticket:
 	NodeUtility::UpdateConstant("NodeName", cn);
 	NodeUtility::UpdateConstant("ZoneName", cn);
 
-	String ticketPath = ApiListener::GetCertsDir() + "/ticket";
+	if (!ticket.IsEmpty()) {
+		String ticketPath = ApiListener::GetCertsDir() + "/ticket";
 
-	String tempTicketPath = Utility::CreateTempFile(ticketPath + ".XXXXXX", 0600, fp);
+		String tempTicketPath = Utility::CreateTempFile(ticketPath + ".XXXXXX", 0600, fp);
 
-	if (!Utility::SetFileOwnership(tempTicketPath, user, group)) {
-		Log(LogWarning, "cli")
-		    << "Cannot set ownership for user '" << user
-		    << "' group '" << group
-		    << "' on file '" << tempTicketPath << "'. Verify it yourself!";
-	}
+		if (!Utility::SetFileOwnership(tempTicketPath, user, group)) {
+			Log(LogWarning, "cli")
+			    << "Cannot set ownership for user '" << user
+			    << "' group '" << group
+			    << "' on file '" << tempTicketPath << "'. Verify it yourself!";
+		}
 
-	fp << ticket;
+		fp << ticket;
 
-	fp.close();
+		fp.close();
 
 #ifdef _WIN32
-	_unlink(ticketPath.CStr());
+		_unlink(ticketPath.CStr());
 #endif /* _WIN32 */
 
-	if (rename(tempTicketPath.CStr(), ticketPath.CStr()) < 0) {
-		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("rename")
-		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(tempTicketPath));
+		if (rename(tempTicketPath.CStr(), ticketPath.CStr()) < 0) {
+			BOOST_THROW_EXCEPTION(posix_error()
+			    << boost::errinfo_api_function("rename")
+			    << boost::errinfo_errno(errno)
+			    << boost::errinfo_file_name(tempTicketPath));
+		}
 	}
 
 	return 0;
