@@ -62,6 +62,13 @@ int NodeWizardCommand::GetMaxArguments(void) const
 	return -1;
 }
 
+void NodeWizardCommand::InitParameters(boost::program_options::options_description& visibleDesc,
+    boost::program_options::options_description& hiddenDesc) const
+{
+	visibleDesc.add_options()
+		("verbose", "increase log level");
+}
+
 /**
  * The entry point for the "node wizard" CLI command.
  *
@@ -70,6 +77,9 @@ int NodeWizardCommand::GetMaxArguments(void) const
 int NodeWizardCommand::Run(const boost::program_options::variables_map& vm,
     const std::vector<std::string>& ap) const
 {
+	if (!vm.count("verbose"))
+		Logger::SetConsoleLogSeverity(LogCritical);
+
 	/*
 	 * The wizard will get all information from the user,
 	 * and then call all required functions.
@@ -127,7 +137,7 @@ int NodeWizardCommand::Run(const boost::program_options::variables_map& vm,
 	    << ConsoleColorTag(Console_Normal);
 
 	std::cout << ConsoleColorTag(Console_Bold | Console_ForegroundRed)
-	    << "Now restart your Icinga 2 daemon to finish the installation!\n\n"
+	    << "Now restart your Icinga 2 daemon to finish the installation!\n"
 	    << ConsoleColorTag(Console_Normal);
 
 	return 0;
@@ -138,7 +148,7 @@ int NodeWizardCommand::ClientSetup(void) const
 	std::string answer;
 	String choice;
 
-	std::cout << "Starting the Client/Satellite setup routine...\n";
+	std::cout << "Starting the Client/Satellite setup routine...\n\n";
 
 	/* CN */
 	std::cout << ConsoleColorTag(Console_Bold)
@@ -159,7 +169,7 @@ int NodeWizardCommand::ClientSetup(void) const
 	String endpointBuffer;
 
 	std::cout << ConsoleColorTag(Console_Bold)
-	    << "Please specify the parent endpoint(s) (master or satellite) where this node should connect to:"
+	    << "\nPlease specify the parent endpoint(s) (master or satellite) where this node should connect to:"
 	    << ConsoleColorTag(Console_Normal) << "\n";
 	String parentEndpointName;
 
@@ -179,7 +189,7 @@ wizard_endpoint_loop_start:
 	endpointBuffer = answer;
 	endpointBuffer = endpointBuffer.Trim();
 
-	std::cout << "Do you want to establish a connection to the parent node "
+	std::cout << "\nDo you want to establish a connection to the parent node "
 	    << ConsoleColorTag(Console_Bold) << "from this node?"
 	    << ConsoleColorTag(Console_Normal) << " [Y/n]: ";
 
@@ -226,7 +236,7 @@ wizard_endpoint_loop_start:
 
 	endpoints.push_back(endpointBuffer);
 
-	std::cout << ConsoleColorTag(Console_Bold) << "Add more master/satellite endpoints?"
+	std::cout << ConsoleColorTag(Console_Bold) << "\nAdd more master/satellite endpoints?"
 	    << ConsoleColorTag(Console_Normal) << " [y/N]: ";
 	std::getline (std::cin, answer);
 
@@ -317,7 +327,7 @@ wizard_endpoint_loop_start:
 
 wizard_ticket:
 	std::cout << ConsoleColorTag(Console_Bold)
-	    << "Please specify the request ticket generated on your Icinga 2 master (optional)."
+	    << "\nPlease specify the request ticket generated on your Icinga 2 master (optional)."
 	    << ConsoleColorTag(Console_Normal) << "\n"
 	    << " (Hint: # icinga2 pki ticket --cn '" << cn << "'): ";
 
@@ -327,7 +337,7 @@ wizard_ticket:
 		std::cout << ConsoleColorTag(Console_Bold) << "\n"
 		    << "No ticket was specified. Please approve the certificate signing request manually\n"
 		    << "on the master (see 'icinga2 ca list' and 'icinga2 ca sign --help' for details)."
-		    << ConsoleColorTag(Console_Normal) << "\n\n";
+		    << ConsoleColorTag(Console_Normal) << "\n";
 	}
 
 	String ticket = answer;
@@ -367,11 +377,9 @@ wizard_ticket:
 		}
 	}
 
-	std::cout << "\n";
-
 	/* apilistener config */
 	std::cout << ConsoleColorTag(Console_Bold)
-	    << "Please specify the API bind host/port"
+	    << "\nPlease specify the API bind host/port"
 	    << ConsoleColorTag(Console_Normal) << " (optional):\n"
 	    << ConsoleColorTag(Console_Bold) << "Bind Host"
 	    << ConsoleColorTag(Console_Normal) << " []: ";
@@ -407,6 +415,10 @@ wizard_ticket:
 	String acceptCommands = choice.Contains("y") ? "true" : "false";
 
 	std::cout << "\n";
+
+	std::cout << ConsoleColorTag(Console_Bold | Console_ForegroundGreen)
+	    << "Reconfiguring Icinga...\n"
+	    << ConsoleColorTag(Console_Normal);
 
 	/* disable the notifications feature on client nodes */
 	Log(LogInformation, "cli", "Disabling the Notification feature.");
@@ -512,7 +524,7 @@ int NodeWizardCommand::MasterSetup(void) const
 	std::string answer;
 	String choice;
 
-	std::cout << ConsoleColorTag(Console_Bold) << "Starting the Master setup routine...\n";
+	std::cout << ConsoleColorTag(Console_Bold) << "Starting the Master setup routine...\n\n";
 
 	/* CN */
 	std::cout << ConsoleColorTag(Console_Bold)
@@ -526,6 +538,10 @@ int NodeWizardCommand::MasterSetup(void) const
 
 	String cn = answer;
 	cn = cn.Trim();
+
+	std::cout << ConsoleColorTag(Console_Bold | Console_ForegroundGreen)
+	    << "Reconfiguring Icinga...\n"
+	    << ConsoleColorTag(Console_Normal);
 
 	/* check whether the user wants to generate a new certificate or not */
 	String existing_path = ApiListener::GetCertsDir() + "/" + cn + ".crt";
