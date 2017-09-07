@@ -20,8 +20,37 @@
 #include "remote/jsonrpc.hpp"
 #include "base/netstring.hpp"
 #include "base/json.hpp"
+#include "base/console.hpp"
+#include "base/scriptglobal.hpp"
+#include "base/convert.hpp"
 
 using namespace icinga;
+
+#ifdef I2_DEBUG
+static bool GetDebugJsonRpcCached(void)
+{
+	static int debugJsonRpc = -1;
+
+	if (debugJsonRpc != -1)
+		return debugJsonRpc;
+
+	debugJsonRpc = false;
+
+	Dictionary::Ptr internal = ScriptGlobal::Get("Internal", &Empty);
+
+	if (!internal)
+		return false;
+
+	Value vdebug;
+
+	if (!internal->Get("DebugJsonRpc", &vdebug))
+		return false;
+
+	debugJsonRpc = Convert::ToLong(vdebug);
+
+	return debugJsonRpc;
+}
+#endif /* I2_DEBUG */
 
 /**
  * Sends a message to the connected peer.
@@ -31,6 +60,12 @@ using namespace icinga;
 void JsonRpc::SendMessage(const Stream::Ptr& stream, const Dictionary::Ptr& message)
 {
 	String json = JsonEncode(message);
+
+#ifdef I2_DEBUG
+	if (GetDebugJsonRpcCached())
+		std::cerr << ConsoleColorTag(Console_ForegroundBlue) << ">> " << json << ConsoleColorTag(Console_Normal) << "\n";
+#endif /* I2_DEBUG */
+
 	NetString::WriteStringToStream(stream, json);
 }
 
@@ -43,6 +78,11 @@ StreamReadStatus JsonRpc::ReadMessage(const Stream::Ptr& stream, String *message
 		return srs;
 
 	*message = jsonString;
+
+#ifdef I2_DEBUG
+	if (GetDebugJsonRpcCached())
+		std::cerr << ConsoleColorTag(Console_ForegroundBlue) << "<< " << jsonString << ConsoleColorTag(Console_Normal) << "\n";
+#endif /* I2_DEBUG */
 
 	return StatusNewItem;
 }
