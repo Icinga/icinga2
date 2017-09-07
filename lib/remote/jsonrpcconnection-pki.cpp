@@ -216,10 +216,10 @@ delayed_request:
 	JsonRpcConnection::SendCertificateRequest(JsonRpcConnection::Ptr(), origin, requestPath);
 
 	result->Set("status_code", 2);
-	result->Set("error", "Certificate request is pending. Waiting for approval from the parent Icinga instance.");
+	result->Set("error", "Certificate request for CN '" + cn + "' is pending. Waiting for approval from the parent Icinga instance.");
 
 	Log(LogInformation, "JsonRpcConnection")
-	    << "Certificate request is pending. Waiting for approval.";
+	    << "Certificate request for CN '" << cn << "' is pending. Waiting for approval.";
 
 	return result;
 }
@@ -240,7 +240,7 @@ void JsonRpcConnection::SendCertificateRequest(const JsonRpcConnection::Ptr& acl
 
 	/* Path is empty if this is our own request. */
 	if (path.IsEmpty()) {
-		String ticketPath = Application::GetLocalStateDir() + "/lib/icinga2/pki/ticket";
+		String ticketPath = ApiListener::GetCertsDir() + "/ticket";
 
 		std::ifstream fp(ticketPath.CStr());
 		String ticket((std::istreambuf_iterator<char>(fp)), std::istreambuf_iterator<char>());
@@ -274,9 +274,6 @@ Value UpdateCertificateHandler(const MessageOrigin::Ptr& origin, const Dictionar
 
 		return Empty;
 	}
-
-	Log(LogWarning, "JsonRpcConnection")
-	    << params->ToString();
 
 	String ca = params->Get("ca");
 	String cert = params->Get("cert");
@@ -314,8 +311,6 @@ Value UpdateCertificateHandler(const MessageOrigin::Ptr& origin, const Dictionar
 
 		String requestDir = ApiListener::GetCertificateRequestsDir();
 		String requestPath = requestDir + "/" + certFingerprint + ".json";
-
-		std::cout << requestPath << "\n";
 
 		/* Save the received signed certificate request to disk. */
 		if (Utility::PathExists(requestPath)) {
@@ -385,7 +380,8 @@ Value UpdateCertificateHandler(const MessageOrigin::Ptr& origin, const Dictionar
 	}
 
 	/* Update the certificates at runtime and reconnect all endpoints. */
-	Log(LogInformation, "JsonRpcConnection", "Updating the client certificate at runtime and reconnecting the endpoints.");
+	Log(LogInformation, "JsonRpcConnection")
+	    << "Updating the client certificate for CN '" << cn << "' at runtime and reconnecting the endpoints.";
 	listener->UpdateSSLContext();
 
 	return Empty;
