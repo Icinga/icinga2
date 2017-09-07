@@ -98,7 +98,7 @@ bool ApiListener::UpdateConfigDir(const ConfigDirInformation& oldConfigInfo, con
 		newTimestamp = newConfig->Get("/.timestamp");
 
 	/* skip update if our configuration files are more recent */
-	if (oldTimestamp >= newTimestamp) {
+	if (oldTimestamp > newTimestamp) {
 		Log(LogInformation, "ApiListener")
 		    << "Cannot apply configuration file update for path '" << configDir << "'. Current timestamp '"
 		    << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", oldTimestamp) << "' ("
