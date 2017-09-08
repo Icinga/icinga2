@@ -78,10 +78,15 @@ Example for PostgreSQL:
     (1 Zeile)
 
 
-A detailed list on the available table attributes can be found in the [DB IDO Schema documentation](23-appendix.md#schema-db-ido).
+A detailed list on the available table attributes can be found in the [DB IDO Schema documentation](24-appendix.md#schema-db-ido).
 
 
 ## External Commands <a id="external-commands"></a>
+
+> **Note**
+>
+> Please use the [REST API](12-icinga2-api.md#icinga2-api) as modern and secure alternative
+> for external actions.
 
 Icinga 2 provides an external command pipe for processing commands
 triggering specific actions (for example rescheduling a service check
@@ -106,7 +111,7 @@ a forced service check:
     Oct 17 15:01:25 icinga-server icinga2: Executing external command: [1382014885] SCHEDULE_FORCED_SVC_CHECK;localhost;ping4;1382014885
     Oct 17 15:01:25 icinga-server icinga2: Rescheduling next check for service 'ping4'
 
-A list of currently supported external commands can be found [here](23-appendix.md#external-commands-list-detail).
+A list of currently supported external commands can be found [here](24-appendix.md#external-commands-list-detail).
 
 Detailed information on the commands and their required parameters can be found
 on the [Icinga 1.x documentation](https://docs.icinga.com/latest/en/extcommands2.html).
@@ -441,7 +446,7 @@ re-implementation of the Livestatus protocol which is compatible with MK
 Livestatus.
 
 Details on the available tables and attributes with Icinga 2 can be found
-in the [Livestatus Schema](23-appendix.md#schema-livestatus) section.
+in the [Livestatus Schema](24-appendix.md#schema-livestatus) section.
 
 You can enable Livestatus using icinga2 feature enable:
 
@@ -517,7 +522,7 @@ Example using the tcp socket listening on port `6558`:
 
 ### Livestatus COMMAND Queries <a id="livestatus-command-queries"></a>
 
-A list of available external commands and their parameters can be found [here](23-appendix.md#external-commands-list-detail)
+A list of available external commands and their parameters can be found [here](24-appendix.md#external-commands-list-detail)
 
     $ echo -e 'COMMAND <externalcommandstring>' | netcat 127.0.0.1 6558
 
@@ -618,7 +623,7 @@ Default separators.
 
 The `commands` table is populated with `CheckCommand`, `EventCommand` and `NotificationCommand` objects.
 
-A detailed list on the available table attributes can be found in the [Livestatus Schema documentation](23-appendix.md#schema-livestatus).
+A detailed list on the available table attributes can be found in the [Livestatus Schema documentation](24-appendix.md#schema-livestatus).
 
 
 ## Status Data Files <a id="status-data"></a>

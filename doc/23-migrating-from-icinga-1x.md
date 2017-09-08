@@ -11,7 +11,7 @@ on your migration requirements.
 For a long-term migration of your configuration you should consider re-creating
 your configuration based on the proposed Icinga 2 configuration paradigm.
 
-Please read the [next chapter](22-migrating-from-icinga-1x.md#differences-1x-2) to find out more about the differences
+Please read the [next chapter](23-migrating-from-icinga-1x.md#differences-1x-2) to find out more about the differences
 between 1.x and 2.
 
 ### Manual Config Migration Hints <a id="manual-config-migration-hints"></a>
@@ -24,7 +24,7 @@ The examples are taken from Icinga 1.x test and production environments and conv
 straight into a possible Icinga 2 format. If you found a different strategy, please
 let us know!
 
-If you require in-depth explanations, please check the [next chapter](22-migrating-from-icinga-1x.md#differences-1x-2).
+If you require in-depth explanations, please check the [next chapter](23-migrating-from-icinga-1x.md#differences-1x-2).
 
 #### Manual Config Migration Hints for Intervals <a id="manual-config-migration-hints-Intervals"></a>
 
@@ -185,7 +185,7 @@ While you could manually migrate this like (please note the new generic command 
 
 #### Manual Config Migration Hints for Runtime Macros <a id="manual-config-migration-hints-runtime-macros"></a>
 
-Runtime macros have been renamed. A detailed comparison table can be found [here](22-migrating-from-icinga-1x.md#differences-1x-2-runtime-macros).
+Runtime macros have been renamed. A detailed comparison table can be found [here](23-migrating-from-icinga-1x.md#differences-1x-2-runtime-macros).
 
 For example, accessing the service check output looks like the following in Icinga 1.x:
 
@@ -257,7 +257,7 @@ while the service check command resolves its value to the service attribute attr
 #### Manual Config Migration Hints for Contacts (Users) <a id="manual-config-migration-hints-contacts-users"></a>
 
 Contacts in Icinga 1.x act as users in Icinga 2, but do not have any notification commands specified.
-This migration part is explained in the [next chapter](22-migrating-from-icinga-1x.md#manual-config-migration-hints-notifications).
+This migration part is explained in the [next chapter](23-migrating-from-icinga-1x.md#manual-config-migration-hints-notifications).
 
     define contact{
       contact_name                    testconfig-user
@@ -267,7 +267,7 @@ This migration part is explained in the [next chapter](22-migrating-from-icinga-
       email                           icinga@localhost
     }
 
-The `service_notification_options` can be [mapped](22-migrating-from-icinga-1x.md#manual-config-migration-hints-notification-filters)
+The `service_notification_options` can be [mapped](23-migrating-from-icinga-1x.md#manual-config-migration-hints-notification-filters)
 into generic `state` and `type` filters, if additional notification filtering is required. `alias` gets
 renamed to `display_name`.
 
@@ -319,7 +319,7 @@ Assign it to the host or service and set the newly generated notification comman
 
 
 Convert the `notification_options` attribute from Icinga 1.x to Icinga 2 `states` and `types`. Details
-[here](22-migrating-from-icinga-1x.md#manual-config-migration-hints-notification-filters). Add the notification period.
+[here](23-migrating-from-icinga-1x.md#manual-config-migration-hints-notification-filters). Add the notification period.
 
       states = [ OK, Warning, Critical ]
       types = [ Recovery, Problem, Custom ]
@@ -556,7 +556,7 @@ enabled.
       assign where "hg_svcdep2" in host.groups
     }
 
-Host dependencies are explained in the [next chapter](22-migrating-from-icinga-1x.md#manual-config-migration-hints-host-parents).
+Host dependencies are explained in the [next chapter](23-migrating-from-icinga-1x.md#manual-config-migration-hints-host-parents).
 
 
 
@@ -955,7 +955,7 @@ In Icinga 1.x arguments are specified in the `check_command` attribute and
 are separated from the command name using an exclamation mark (`!`).
 
 Please check the migration hints for a detailed
-[migration example](22-migrating-from-icinga-1x.md#manual-config-migration-hints-check-command-arguments).
+[migration example](23-migrating-from-icinga-1x.md#manual-config-migration-hints-check-command-arguments).
 
 > **Note**
 >

@@ -29,7 +29,7 @@ findings and details please.
 	* The newest Icinga 2 crash log if relevant, located in `/var/log/icinga2/crash`
 * Additional details
 	* If the check command failed, what's the output of your manual plugin tests?
-	* In case of [debugging](20-development.md#development) Icinga 2, the full back traces and outputs
+	* In case of [debugging](21-development.md#development) Icinga 2, the full back traces and outputs
 
 ## Analyze your Environment <a id="troubleshooting-analyze-environment"></a>
 
