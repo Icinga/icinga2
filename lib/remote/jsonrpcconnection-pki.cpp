@@ -81,7 +81,7 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 			Log(LogInformation, "JsonRpcConnection")
 			    << "The certificate for CN '" << cn << "' cannot be renewed yet.";
 			result->Set("status_code", 1);
-			result->Set("error", "The certificate cannot be renewed yet.");
+			result->Set("error", "The certificate for CN '" + cn + "' cannot be renewed yet.");
 			return result;
 		}
 	}
@@ -91,7 +91,7 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 
 	if (!X509_digest(cert.get(), EVP_sha256(), digest, &n)) {
 		result->Set("status_code", 1);
-		result->Set("error", "Could not calculate fingerprint for the X509 certificate.");
+		result->Set("error", "Could not calculate fingerprint for the X509 certificate for CN '" + cn + "'.");
 
 		Log(LogWarning, "JsonRpcConnection")
 		    << "Could not calculate fingerprint for the X509 certificate requested for CN '"
@@ -141,6 +141,7 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 	boost::shared_ptr<EVP_PKEY> pubkey;
 	X509_NAME *subject;
 	Dictionary::Ptr message;
+	String ticket;
 
 	/* Check whether we are a signing instance or we
 	 * must delay the signing request.
@@ -151,7 +152,7 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 	if (!signedByCA) {
 		String salt = listener->GetTicketSalt();
 
-		String ticket = params->Get("ticket");
+		ticket = params->Get("ticket");
 
 		/* Auto-signing is disabled by either a) no TicketSalt
 		 * or b) the client did not include a ticket in its request.
@@ -166,7 +167,7 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 			    << "Ticket for CN '" << cn << "' is invalid.";
 
 			result->Set("status_code", 1);
-			result->Set("error", "Invalid ticket.");
+			result->Set("error", "Invalid ticket for CN '" + cn + "'.");
 			return result;
 		}
 	}
@@ -189,7 +190,8 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 
 	/* Send the signed certificate update. */
 	Log(LogInformation, "JsonRpcConnection")
-	    << "Sending certificate response for CN '" << cn << "' to endpoint '" << client->GetIdentity() << "'.";
+	    << "Sending certificate response for CN '" << cn << "' to endpoint '"
+	    << client->GetIdentity() << "'" << (!ticket.IsEmpty() ? " (auto-signing ticket)" : "" ) << ".";
 
 	result->Set("cert", CertificateToString(newcert));
 
@@ -382,6 +384,7 @@ Value UpdateCertificateHandler(const MessageOrigin::Ptr& origin, const Dictionar
 	/* Update the certificates at runtime and reconnect all endpoints. */
 	Log(LogInformation, "JsonRpcConnection")
 	    << "Updating the client certificate for CN '" << cn << "' at runtime and reconnecting the endpoints.";
+
 	listener->UpdateSSLContext();
 
 	return Empty;
