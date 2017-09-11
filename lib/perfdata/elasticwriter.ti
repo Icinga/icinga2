@@ -19,6 +19,8 @@ class ElasticWriter : ConfigObject
 	[config] bool enable_send_perfdata {
 		default {{{ return false; }}}
 	};
+	[config] String username;
+	[config] String password;
 
 	[config] int flush_interval {
 		default {{{ return 10; }}}

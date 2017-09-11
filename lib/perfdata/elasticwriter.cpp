@@ -27,6 +27,7 @@
 #include "icinga/checkcommand.hpp"
 #include "base/tcpsocket.hpp"
 #include "base/stream.hpp"
+#include "base/base64.hpp"
 #include "base/json.hpp"
 #include "base/utility.hpp"
 #include "base/networkstream.hpp"
@@ -422,12 +423,19 @@ void ElasticWriter::SendRequest(const String& body)
 	req.AddHeader("Accept", "application/json");
 	req.AddHeader("Content-Type", "application/json");
 
+	/* Send authentication if configured. */
+	String username = GetUsername();
+	String password = GetPassword();
+
+	if (!username.IsEmpty() && !password.IsEmpty())
+		req.AddHeader("Authorization", "Basic " + Base64::Encode(username + ":" + password));
+
 	req.RequestMethod = "POST";
 	req.RequestUrl = url;
 
 #ifdef I2_DEBUG /* I2_DEBUG */
 	Log(LogDebug, "ElasticWriter")
-	    << "Sending body: " << body;
+	    << "Sending request" << ((!username.IsEmpty() && !password.IsEmpty()) ? " with basic auth " : "" )  << body;
 #endif /* I2_DEBUG */
 
 	try {
@@ -451,6 +459,20 @@ void ElasticWriter::SendRequest(const String& body)
 	}
 
 	if (resp.StatusCode > 299) {
+		if (resp.StatusCode == 401) {
+			/* More verbose error logging with Elasticsearch is hidden behind a proxy. */
+			if (!username.IsEmpty() && !password.IsEmpty()) {
+				Log(LogCritical, "ElasticWriter")
+				    << "401 Unauthorized. Please ensure that the user '" << username
+				    << "' is able to authenticate against the HTTP API/Proxy.";
+			} else {
+				Log(LogCritical, "ElasticWriter")
+				    << "401 Unauthorized. The HTTP API requires authentication but no username/password has been configured.";
+			}
+
+			return;
+		}
+
 		Log(LogWarning, "ElasticWriter")
 		    << "Unexpected response code " << resp.StatusCode;
 
@@ -459,6 +481,7 @@ void ElasticWriter::SendRequest(const String& body)
 			resp.Parse(context, true);
 
 		String contentType = resp.Headers->Get("content-type");
+
 		if (contentType != "application/json") {
 			Log(LogWarning, "ElasticWriter")
 			    << "Unexpected Content-Type: " << contentType;

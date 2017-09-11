@@ -1000,6 +1000,8 @@ Configuration Attributes:
   enable_send_perfdata   | **Optional.** Send parsed performance data metrics for check results. Defaults to `false`.
   flush_interval         | **Optional.** How long to buffer data points before transfering to Elasticsearch. Defaults to `10`.
   flush_threshold        | **Optional.** How many data points to buffer before forcing a transfer to Elasticsearch.  Defaults to `1024`.
+  username               | **Optional.** Basic auth username if Elasticsearch is hidden behind an HTTP proxy.
+  password               | **Optional.** Basic auth password if Elasticsearch is hidden behind an HTTP proxy.
 
 Note: If `flush_threshold` is set too low, this will force the feature to flush all data to Elasticsearch too often.
 Experiment with the setting, if you are processing more than 1024 metrics per second or similar.
