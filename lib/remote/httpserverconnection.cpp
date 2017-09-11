@@ -23,7 +23,7 @@
 #include "remote/apilistener.hpp"
 #include "remote/apifunction.hpp"
 #include "remote/jsonrpc.hpp"
-#include "remote/base64.hpp"
+#include "base/base64.hpp"
 #include "base/configtype.hpp"
 #include "base/objectlock.hpp"
 #include "base/utility.hpp"
