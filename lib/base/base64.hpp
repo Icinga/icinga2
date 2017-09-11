@@ -31,7 +31,7 @@ namespace icinga
  *
  * @ingroup remote
  */
-struct I2_REMOTE_API Base64
+struct I2_BASE_API Base64
 {
 	static String Decode(const String& data);
 	static String Encode(const String& data);

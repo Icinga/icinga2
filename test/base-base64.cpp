@@ -17,12 +17,12 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "remote/base64.hpp"
+#include "base/base64.hpp"
 #include <BoostTestTargetConfig.h>
 
 using namespace icinga;
 
-BOOST_AUTO_TEST_SUITE(remote_base64)
+BOOST_AUTO_TEST_SUITE(base_base64)
 
 BOOST_AUTO_TEST_CASE(base64)
 {

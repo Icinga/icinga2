@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "remote/apiclient.hpp"
-#include "remote/base64.hpp"
+#include "base/base64.hpp"
 #include "base/json.hpp"
 #include "base/logger.hpp"
 #include "base/exception.hpp"

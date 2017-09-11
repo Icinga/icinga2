@@ -27,7 +27,7 @@ mkclass_target(sysloglogger.ti sysloglogger.tcpp sysloglogger.thpp)
 
 set(base_SOURCES
   application.cpp application.thpp application-version.cpp array.cpp
-  array-script.cpp boolean.cpp boolean-script.cpp console.cpp context.cpp
+  array-script.cpp boolean.cpp boolean-script.cpp base64.cpp console.cpp context.cpp
   convert.cpp datetime.cpp datetime.thpp datetime-script.cpp debuginfo.cpp dictionary.cpp dictionary-script.cpp
   configobject.cpp configobject.thpp configobject-script.cpp configtype.cpp configwriter.cpp dependencygraph.cpp
   exception.cpp fifo.cpp filelogger.cpp filelogger.thpp initialize.cpp json.cpp
