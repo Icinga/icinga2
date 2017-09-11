@@ -264,6 +264,74 @@ expects the InfluxDB daemon to listen at `127.0.0.1` on port `8086`.
 
 More configuration details can be found [here](09-object-types.md#objecttype-influxdbwriter).
 
+### Elastic Stack Integration <a id="elastic-stack-integration"></a>
+
+[Icingabeat](https://github.com/icinga/icingabeat) is an Elastic Beat that fetches data
+from the Icinga 2 API and sends it either directly to [Elasticsearch](https://www.elastic.co/products/elasticsearch)
+or [Logstash](https://www.elastic.co/products/logstash).
+
+More integrations:
+
+* [Logstash output](https://github.com/Icinga/logstash-output-icinga) for the Icinga 2 API.
+* [Logstash Grok Pattern](https://github.com/Icinga/logstash-grok-pattern) for Icinga 2 logs.
+
+#### Elastic Writer <a id="elastic-writer"></a>
+
+This feature forwards check results, state changes and notification events
+to an [Elasticsearch](https://www.elastic.co/products/elasticsearch) installation over its HTTP API.
+
+The check results include parsed performance data metrics if enabled.
+
+> **Note**
+>
+> Elasticsearch 5.x+ is required.
+
+Enable the feature and restart Icinga 2.
+
+    # icinga2 feature enable elastic
+
+The default configuration expects an Elasticsearch instance running on `localhost` on port `9200
+ and writes to an index called `icinga2`.
+
+More configuration details can be found [here](09-object-types.md#objecttype-elasticwriter).
+
+#### Current Elasticsearch Schema <a id="elastic-writer-schema"></a>
+
+The following event types are written to Elasticsearch:
+
+* icinga2.event.checkresult
+* icinga2.event.statechange
+* icinga2.event.notification
+
+Performance data metrics must be explicitly enabled with the `enable_send_perfdata`
+attribute.
+
+Metric values are stored like this:
+
+    check_result.perfdata.<perfdata-label>.value
+
+The following characters are escaped in perfdata labels:
+
+  Character	| Escaped character
+  --------------|--------------------------
+  whitespace	| _
+  \		| _
+  /		| _
+  ::		| .
+
+Note that perfdata labels may contain dots (`.`) allowing to
+add more subsequent levels inside the tree.
+`::` adds support for [multi performance labels](http://my-plugin.de/wiki/projects/check_multi/configuration/performance)
+and is therefore replaced by `.`.
+
+Icinga 2 automatically adds the following threshold metrics
+if existing:
+
+    check_result.perfdata.<perfdata-label>.min
+    check_result.perfdata.<perfdata-label>.max
+    check_result.perfdata.<perfdata-label>.warn
+    check_result.perfdata.<perfdata-label>.crit
+
 ### Graylog Integration <a id="graylog-integration"></a>
 
 #### GELF Writer <a id="gelfwriter"></a>
@@ -288,14 +356,6 @@ Currently these events are processed:
 * State changes
 * Notifications
 
-### Elastic Stack Integration <a id="elastic-stack-integration"></a>
-
-[Icingabeat](https://github.com/icinga/icingabeat) is an Elastic Beat that fetches data
-from the Icinga 2 API and sends it either directly to Elasticsearch or Logstash.
-
-More integrations in development:
-* [Logstash output](https://github.com/Icinga/logstash-output-icinga) for the Icinga 2 API.
-* [Logstash Grok Pattern](https://github.com/Icinga/logstash-grok-pattern) for Icinga 2 logs.
 
 ### OpenTSDB Writer <a id="opentsdb-writer"></a>
 
