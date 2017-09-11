@@ -22,6 +22,13 @@ class ElasticWriter : ConfigObject
 	[config] String username;
 	[config] String password;
 
+	[config] bool enable_tls {
+		default {{{ return false; }}}
+	};
+	[config] String ca_path;
+	[config] String cert_path;
+	[config] String key_path;
+
 	[config] int flush_interval {
 		default {{{ return 10; }}}
 	};

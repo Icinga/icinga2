@@ -356,12 +356,13 @@ void ElasticWriter::Enqueue(String type, const Dictionary::Ptr& fields, double t
 	 * We do it this way to avoid problems with a near full queue.
 	 */
 
-	String data;
+	String indexBody = "{ \"index\" : { \"_type\" : \"" + eventType + "\" } }\n";
+	String fieldsBody = JsonEncode(fields);
 
-	data += "{ \"index\" : { \"_type\" : \"" + eventType + "\" } }\n";
-	data += JsonEncode(fields);
+	Log(LogDebug, "ElasticWriter")
+	    << "Add to fields to message list: '" << fieldsBody << "'.";
 
-	m_DataBuffer.push_back(data);
+	m_DataBuffer.push_back(indexBody + fieldsBody);
 
 	/* Flush if we've buffered too much to prevent excessive memory use. */
 	if (static_cast<int>(m_DataBuffer.size()) >= GetFlushThreshold()) {
@@ -400,7 +401,8 @@ void ElasticWriter::Flush(void)
 void ElasticWriter::SendRequest(const String& body)
 {
 	Url::Ptr url = new Url();
-	url->SetScheme("http");
+
+	url->SetScheme(GetEnableTls() ? "https" : "http");
 	url->SetHost(GetHost());
 	url->SetPort(GetPort());
 
@@ -433,10 +435,10 @@ void ElasticWriter::SendRequest(const String& body)
 	req.RequestMethod = "POST";
 	req.RequestUrl = url;
 
-#ifdef I2_DEBUG /* I2_DEBUG */
+	/* Don't log the request body to debug log, this is already done above. */
 	Log(LogDebug, "ElasticWriter")
-	    << "Sending request" << ((!username.IsEmpty() && !password.IsEmpty()) ? " with basic auth " : "" )  << body;
-#endif /* I2_DEBUG */
+	    << "Sending " << req.RequestMethod << " request" << ((!username.IsEmpty() && !password.IsEmpty()) ? " with basic auth" : "" )
+	    << " to '" << url->Format() << "'.";
 
 	try {
 		req.WriteBody(body.CStr(), body.GetLength());
@@ -523,7 +525,32 @@ Stream::Ptr ElasticWriter::Connect(void)
 		    << "Can't connect to Elasticsearch on host '" << GetHost() << "' port '" << GetPort() << "'.";
 		throw ex;
 	}
-	return new NetworkStream(socket);
+
+	if (GetEnableTls()) {
+		boost::shared_ptr<SSL_CTX> sslContext;
+
+		try {
+			sslContext = MakeSSLContext(GetCertPath(), GetKeyPath(), GetCaPath());
+		} catch (const std::exception& ex) {
+			Log(LogWarning, "ElasticWriter")
+			    << "Unable to create SSL context.";
+			throw ex;
+		}
+
+		TlsStream::Ptr tlsStream = new TlsStream(socket, GetHost(), RoleClient, sslContext);
+
+		try {
+			tlsStream->Handshake();
+		} catch (const std::exception& ex) {
+			Log(LogWarning, "ElasticWriter")
+			    << "TLS handshake with host '" << GetHost() << "' on port " << GetPort() << " failed.";
+			throw ex;
+		}
+
+		return tlsStream;
+	} else {
+		return new NetworkStream(socket);
+	}
 }
 
 void ElasticWriter::AssertOnWorkQueue(void)
