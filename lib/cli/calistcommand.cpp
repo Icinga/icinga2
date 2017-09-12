@@ -62,15 +62,16 @@ int CAListCommand::Run(const boost::program_options::variables_map& vm, const st
 	else {
 		ObjectLock olock(requests);
 
-		std::cout << "Fingerprint                                                      | Timestamp           | Signed | Subject\n";
-		std::cout << "-----------------------------------------------------------------|---------------------|--------|--------\n";
+		std::cout << "Fingerprint                                                      | Timestamp                | Signed | Subject\n";
+		std::cout << "-----------------------------------------------------------------|--------------------------|--------|--------\n";
 
 		for (auto& kv : requests) {
 			Dictionary::Ptr request = kv.second;
 
 			std::cout << kv.first
 			    << " | "
-			    << Utility::FormatDateTime("%Y/%m/%d %H:%M:%S", request->Get("timestamp"))
+/*			    << Utility::FormatDateTime("%Y/%m/%d %H:%M:%S", request->Get("timestamp")) */
+			    << request->Get("timestamp")
 			    << " | "
 			    << (request->Contains("cert_response") ? "*" : " ") << "     "
 			    << " | "

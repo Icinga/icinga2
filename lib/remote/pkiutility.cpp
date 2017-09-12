@@ -393,6 +393,7 @@ static void CollectRequestHandler(const Dictionary::Ptr& requests, const String&
 
 	boost::shared_ptr<X509> certRequest = StringToCertificate(certRequestText);
 
+/* XXX (requires OpenSSL >= 1.0.0)
 	time_t now;
 	time(&now);
 	ASN1_TIME *tm = ASN1_TIME_adj(NULL, now, 0, 0);
@@ -400,13 +401,21 @@ static void CollectRequestHandler(const Dictionary::Ptr& requests, const String&
 	int day, sec;
 	ASN1_TIME_diff(&day, &sec, tm, X509_get_notBefore(certRequest.get()));
 
-	result->Set("timestamp",  static_cast<double>(now) + day * 24 * 60 * 60 + sec);
+	result->Set("timestamp",  static_cast<double>(now) + day * 24 * 60 * 60 + sec); */
 
 	BIO *out = BIO_new(BIO_s_mem());
-	X509_NAME_print_ex(out, X509_get_subject_name(certRequest.get()), 0, XN_FLAG_ONELINE & ~ASN1_STRFLGS_ESC_MSB);
+	ASN1_TIME_print(out, X509_get_notBefore(certRequest.get()));
 
 	char *data;
 	long length;
+	length = BIO_get_mem_data(out, &data);
+
+	result->Set("timestamp", String(data, data + length));
+	BIO_free(out);
+
+	out = BIO_new(BIO_s_mem());
+	X509_NAME_print_ex(out, X509_get_subject_name(certRequest.get()), 0, XN_FLAG_ONELINE & ~ASN1_STRFLGS_ESC_MSB);
+
 	length = BIO_get_mem_data(out, &data);
 
 	result->Set("subject", String(data, data + length));
