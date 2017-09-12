@@ -20,13 +20,13 @@ set(Boost_USE_STATIC_LIBS OFF)
 include(BoostTestTargets)
 
 set(base_test_SOURCES
-  base-array.cpp base-convert.cpp base-dictionary.cpp base-fifo.cpp
+  base-array.cpp base-base64.cpp base-convert.cpp base-dictionary.cpp base-fifo.cpp
   base-json.cpp base-match.cpp base-netstring.cpp base-object.cpp
   base-serialize.cpp base-shellescape.cpp base-stacktrace.cpp
   base-stream.cpp base-string.cpp base-timer.cpp base-type.cpp
   base-value.cpp config-ops.cpp icinga-checkresult.cpp icinga-macros.cpp
   icinga-notification.cpp
-  icinga-perfdata.cpp remote-base64.cpp remote-url.cpp
+  icinga-perfdata.cpp remote-url.cpp
 )
 
 if(ICINGA2_UNITY_BUILD)
@@ -44,6 +44,7 @@ add_boost_test(base
         base_array/foreach
         base_array/clone
         base_array/json
+        base_base64/base64
         base_convert/tolong
         base_convert/todouble
         base_convert/tostring
@@ -112,7 +113,6 @@ add_boost_test(base
         icinga_perfdata/ignore_invalid_warn_crit_min_max
         icinga_perfdata/invalid
         icinga_perfdata/multi
-        remote_base64/base64
         remote_url/id_and_path
         remote_url/parameters
         remote_url/get_and_set

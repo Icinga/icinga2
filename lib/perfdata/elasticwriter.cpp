@@ -27,6 +27,7 @@
 #include "icinga/checkcommand.hpp"
 #include "base/tcpsocket.hpp"
 #include "base/stream.hpp"
+#include "base/base64.hpp"
 #include "base/json.hpp"
 #include "base/utility.hpp"
 #include "base/networkstream.hpp"
@@ -355,12 +356,13 @@ void ElasticWriter::Enqueue(String type, const Dictionary::Ptr& fields, double t
 	 * We do it this way to avoid problems with a near full queue.
 	 */
 
-	String data;
+	String indexBody = "{ \"index\" : { \"_type\" : \"" + eventType + "\" } }\n";
+	String fieldsBody = JsonEncode(fields);
 
-	data += "{ \"index\" : { \"_type\" : \"" + eventType + "\" } }\n";
-	data += JsonEncode(fields);
+	Log(LogDebug, "ElasticWriter")
+	    << "Add to fields to message list: '" << fieldsBody << "'.";
 
-	m_DataBuffer.push_back(data);
+	m_DataBuffer.push_back(indexBody + fieldsBody);
 
 	/* Flush if we've buffered too much to prevent excessive memory use. */
 	if (static_cast<int>(m_DataBuffer.size()) >= GetFlushThreshold()) {
@@ -399,7 +401,8 @@ void ElasticWriter::Flush(void)
 void ElasticWriter::SendRequest(const String& body)
 {
 	Url::Ptr url = new Url();
-	url->SetScheme("http");
+
+	url->SetScheme(GetEnableTls() ? "https" : "http");
 	url->SetHost(GetHost());
 	url->SetPort(GetPort());
 
@@ -422,13 +425,20 @@ void ElasticWriter::SendRequest(const String& body)
 	req.AddHeader("Accept", "application/json");
 	req.AddHeader("Content-Type", "application/json");
 
+	/* Send authentication if configured. */
+	String username = GetUsername();
+	String password = GetPassword();
+
+	if (!username.IsEmpty() && !password.IsEmpty())
+		req.AddHeader("Authorization", "Basic " + Base64::Encode(username + ":" + password));
+
 	req.RequestMethod = "POST";
 	req.RequestUrl = url;
 
-#ifdef I2_DEBUG /* I2_DEBUG */
+	/* Don't log the request body to debug log, this is already done above. */
 	Log(LogDebug, "ElasticWriter")
-	    << "Sending body: " << body;
-#endif /* I2_DEBUG */
+	    << "Sending " << req.RequestMethod << " request" << ((!username.IsEmpty() && !password.IsEmpty()) ? " with basic auth" : "" )
+	    << " to '" << url->Format() << "'.";
 
 	try {
 		req.WriteBody(body.CStr(), body.GetLength());
@@ -451,6 +461,20 @@ void ElasticWriter::SendRequest(const String& body)
 	}
 
 	if (resp.StatusCode > 299) {
+		if (resp.StatusCode == 401) {
+			/* More verbose error logging with Elasticsearch is hidden behind a proxy. */
+			if (!username.IsEmpty() && !password.IsEmpty()) {
+				Log(LogCritical, "ElasticWriter")
+				    << "401 Unauthorized. Please ensure that the user '" << username
+				    << "' is able to authenticate against the HTTP API/Proxy.";
+			} else {
+				Log(LogCritical, "ElasticWriter")
+				    << "401 Unauthorized. The HTTP API requires authentication but no username/password has been configured.";
+			}
+
+			return;
+		}
+
 		Log(LogWarning, "ElasticWriter")
 		    << "Unexpected response code " << resp.StatusCode;
 
@@ -459,6 +483,7 @@ void ElasticWriter::SendRequest(const String& body)
 			resp.Parse(context, true);
 
 		String contentType = resp.Headers->Get("content-type");
+
 		if (contentType != "application/json") {
 			Log(LogWarning, "ElasticWriter")
 			    << "Unexpected Content-Type: " << contentType;
@@ -500,7 +525,32 @@ Stream::Ptr ElasticWriter::Connect(void)
 		    << "Can't connect to Elasticsearch on host '" << GetHost() << "' port '" << GetPort() << "'.";
 		throw ex;
 	}
-	return new NetworkStream(socket);
+
+	if (GetEnableTls()) {
+		boost::shared_ptr<SSL_CTX> sslContext;
+
+		try {
+			sslContext = MakeSSLContext(GetCertPath(), GetKeyPath(), GetCaPath());
+		} catch (const std::exception& ex) {
+			Log(LogWarning, "ElasticWriter")
+			    << "Unable to create SSL context.";
+			throw ex;
+		}
+
+		TlsStream::Ptr tlsStream = new TlsStream(socket, GetHost(), RoleClient, sslContext);
+
+		try {
+			tlsStream->Handshake();
+		} catch (const std::exception& ex) {
+			Log(LogWarning, "ElasticWriter")
+			    << "TLS handshake with host '" << GetHost() << "' on port " << GetPort() << " failed.";
+			throw ex;
+		}
+
+		return tlsStream;
+	} else {
+		return new NetworkStream(socket);
+	}
 }
 
 void ElasticWriter::AssertOnWorkQueue(void)

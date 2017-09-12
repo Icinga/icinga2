@@ -288,7 +288,9 @@ The check results include parsed performance data metrics if enabled.
 
 Enable the feature and restart Icinga 2.
 
-    # icinga2 feature enable elastic
+```
+# icinga2 feature enable elastic
+```
 
 The default configuration expects an Elasticsearch instance running on `localhost` on port `9200
  and writes to an index called `icinga2`.

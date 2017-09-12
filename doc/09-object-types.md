@@ -997,12 +997,24 @@ Configuration Attributes:
   host                   | **Required.** Elasticsearch host address. Defaults to `127.0.0.1`.
   port                   | **Required.** Elasticsearch port. Defaults to `9200`.
   index                  | **Required.** Elasticsearch index name. Defaults to `icinga2`.
-  enable_send_perfdata   | **Optional.** Send parsed performance data metrics for check results. Defaults to `false`.
-  flush_interval         | **Optional.** How long to buffer data points before transfering to Elasticsearch. Defaults to `10`.
-  flush_threshold        | **Optional.** How many data points to buffer before forcing a transfer to Elasticsearch.  Defaults to `1024`.
+  enable\_send\_perfdata | **Optional.** Send parsed performance data metrics for check results. Defaults to `false`.
+  flush\_interval        | **Optional.** How long to buffer data points before transfering to Elasticsearch. Defaults to `10`.
+  flush\_threshold       | **Optional.** How many data points to buffer before forcing a transfer to Elasticsearch.  Defaults to `1024`.
+  username               | **Optional.** Basic auth username if Elasticsearch is hidden behind an HTTP proxy.
+  password               | **Optional.** Basic auth password if Elasticsearch is hidden behind an HTTP proxy.
+  enable\_tls            | **Optional.** Whether to use a TLS stream. Defaults to `false`. Requires an HTTP proxy.
+  ca\_path               | **Optional.** CA certificate to validate the remote host. Requires `enable_tls` set to `true`.
+  cert\_path             | **Optional.** Host certificate to present to the remote host for mutual verification. Requires `enable_tls` set to `true`.
+  key\_path              | **Optional.** Host key to accompany the cert\_path. Requires `enable_tls` set to `true`.
 
 Note: If `flush_threshold` is set too low, this will force the feature to flush all data to Elasticsearch too often.
 Experiment with the setting, if you are processing more than 1024 metrics per second or similar.
+
+Basic auth is supported with the `username` and `password` attributes. This requires an
+HTTP proxy (Nginx, etc.) in front of the Elasticsearch instance.
+
+TLS for the HTTP proxy can be enabled with `enable_tls`. In addition to that
+you can specify the certificates with the `ca_path`, `cert_path` and `cert_key` attributes.
 
 ## LiveStatusListener <a id="objecttype-livestatuslistener"></a>
 

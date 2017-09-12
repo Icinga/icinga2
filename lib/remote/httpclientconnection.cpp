@@ -18,9 +18,9 @@
  ******************************************************************************/
 
 #include "remote/httpclientconnection.hpp"
-#include "remote/base64.hpp"
 #include "base/configtype.hpp"
 #include "base/objectlock.hpp"
+#include "base/base64.hpp"
 #include "base/utility.hpp"
 #include "base/logger.hpp"
 #include "base/exception.hpp"
