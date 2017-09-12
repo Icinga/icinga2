@@ -2922,6 +2922,7 @@ esxi_hardware_novolts   | **Optional.** Do not collect voltage performance data,
 esxi_hardware_nocurrent | **Optional.** Do not collect current performance data, when **esxi_hardware_perfdata** is set to true. Defaults to false.
 esxi_hardware_notemp    | **Optional.** Do not collect temperature performance data, when **esxi_hardware_perfdata** is set to true. Defaults to false.
 esxi_hardware_nofan     | **Optional.** Do not collect fan performance data, when **esxi_hardware_perfdata** is set to true. Defaults to false.
+esxi_hardware_nolcd     | **Optional.** Do not collect lcd/display status data. Defaults to false.
 
 #### VMware <a id="plugin-contrib-vmware"></a>
 
