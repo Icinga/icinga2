@@ -17,56 +17,68 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "cli/pkiticketcommand.hpp"
+#include "cli/calistcommand.hpp"
+#include "remote/apilistener.hpp"
 #include "remote/pkiutility.hpp"
-#include "cli/variableutility.hpp"
 #include "base/logger.hpp"
-#include <iostream>
+#include "base/application.hpp"
+#include "base/tlsutility.hpp"
+#include "base/json.hpp"
 
 using namespace icinga;
 namespace po = boost::program_options;
 
-REGISTER_CLICOMMAND("pki/ticket", PKITicketCommand);
+REGISTER_CLICOMMAND("ca/list", CAListCommand);
 
-String PKITicketCommand::GetDescription(void) const
+String CAListCommand::GetDescription(void) const
 {
-	return "Generates an Icinga 2 ticket";
+	return "Lists all certificate signing requests.";
 }
 
-String PKITicketCommand::GetShortDescription(void) const
+String CAListCommand::GetShortDescription(void) const
 {
-	return "generates a ticket";
+	return "lists all certificate signing requests";
 }
 
-void PKITicketCommand::InitParameters(boost::program_options::options_description& visibleDesc,
+void CAListCommand::InitParameters(boost::program_options::options_description& visibleDesc,
     boost::program_options::options_description& hiddenDesc) const
 {
 	visibleDesc.add_options()
-	    ("cn", po::value<std::string>(), "Certificate common name")
-	    ("salt", po::value<std::string>(), "Ticket salt");
+		("json", "encode output as JSON")
+	;
 }
 
 /**
- * The entry point for the "pki ticket" CLI command.
+ * The entry point for the "ca list" CLI command.
  *
  * @returns An exit status.
  */
-int PKITicketCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
+int CAListCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {
-	if (!vm.count("cn")) {
-		Log(LogCritical, "cli", "Common name (--cn) must be specified.");
-		return 1;
+	Dictionary::Ptr requests = PkiUtility::GetCertificateRequests();
+
+	if (vm.count("json"))
+		std::cout << JsonEncode(requests);
+	else {
+		ObjectLock olock(requests);
+
+		std::cout << "Fingerprint                                                      | Timestamp                | Signed | Subject\n";
+		std::cout << "-----------------------------------------------------------------|--------------------------|--------|--------\n";
+
+		for (auto& kv : requests) {
+			Dictionary::Ptr request = kv.second;
+
+			std::cout << kv.first
+			    << " | "
+/*			    << Utility::FormatDateTime("%Y/%m/%d %H:%M:%S", request->Get("timestamp")) */
+			    << request->Get("timestamp")
+			    << " | "
+			    << (request->Contains("cert_response") ? "*" : " ") << "     "
+			    << " | "
+			    << request->Get("subject")
+			    << "\n";
+		}
 	}
 
-	String salt = VariableUtility::GetVariable("TicketSalt");
-
-	if (vm.count("salt"))
-		salt = vm["salt"].as<std::string>();
-
-	if (salt.IsEmpty()) {
-		Log(LogCritical, "cli", "Ticket salt (--salt) must be specified.");
-		return 1;
-	}
-
-	return PkiUtility::GenTicket(vm["cn"].as<std::string>(), salt, std::cout);
+	return 0;
 }

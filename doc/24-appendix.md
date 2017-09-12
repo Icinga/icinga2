@@ -692,16 +692,16 @@ Not supported: `debug_info`.
 
 #### Livestatus Hostsbygroup Table Attributes <a id="schema-livestatus-hostsbygroup-table-attributes"></a>
 
-All [hosts](23-appendix.md#schema-livestatus-hosts-table-attributes) table attributes grouped with
-the [hostgroups](23-appendix.md#schema-livestatus-hostgroups-table-attributes) table prefixed with `hostgroup_`.
+All [hosts](24-appendix.md#schema-livestatus-hosts-table-attributes) table attributes grouped with
+the [hostgroups](24-appendix.md#schema-livestatus-hostgroups-table-attributes) table prefixed with `hostgroup_`.
 
 #### Livestatus Servicesbygroup Table Attributes <a id="schema-livestatus-servicesbygroup-table-attributes"></a>
 
-All [services](23-appendix.md#schema-livestatus-services-table-attributes) table attributes grouped with
-the [servicegroups](23-appendix.md#schema-livestatus-servicegroups-table-attributes) table prefixed with `servicegroup_`.
+All [services](24-appendix.md#schema-livestatus-services-table-attributes) table attributes grouped with
+the [servicegroups](24-appendix.md#schema-livestatus-servicegroups-table-attributes) table prefixed with `servicegroup_`.
 
 #### Livestatus Servicesbyhostgroup Table Attributes <a id="schema-livestatus-servicesbyhostgroup-table-attributes"></a>
 
-All [services](23-appendix.md#schema-livestatus-services-table-attributes) table attributes grouped with
-the [hostgroups](23-appendix.md#schema-livestatus-hostgroups-table-attributes) table prefixed with `hostgroup_`.
+All [services](24-appendix.md#schema-livestatus-services-table-attributes) table attributes grouped with
+the [hostgroups](24-appendix.md#schema-livestatus-hostgroups-table-attributes) table prefixed with `hostgroup_`.
 

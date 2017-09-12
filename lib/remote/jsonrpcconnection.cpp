@@ -33,8 +33,6 @@ using namespace icinga;
 
 static Value SetLogPositionHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
 REGISTER_APIFUNCTION(SetLogPosition, log, &SetLogPositionHandler);
-static Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
-REGISTER_APIFUNCTION(RequestCertificate, pki, &RequestCertificateHandler);
 
 static boost::once_flag l_JsonRpcConnectionOnceFlag = BOOST_ONCE_INIT;
 static Timer::Ptr l_JsonRpcConnectionTimeoutTimer;
@@ -186,7 +184,21 @@ void JsonRpcConnection::MessageHandler(const String& jsonString)
 			origin->FromZone = Zone::GetByName(message->Get("originZone"));
 	}
 
-	String method = message->Get("method");
+	Value vmethod;
+
+	if (!message->Get("method", &vmethod)) {
+		Value vid;
+
+		if (!message->Get("id", &vid))
+			return;
+
+		Log(LogWarning, "JsonRpcConnection",
+		    "We received a JSON-RPC response message. This should never happen because we're only ever sending notifications.");
+
+		return;
+	}
+
+	String method = vmethod;
 
 	Log(LogNotice, "JsonRpcConnection")
 	    << "Received '" << method << "' message from '" << m_Identity << "'";
@@ -202,11 +214,10 @@ void JsonRpcConnection::MessageHandler(const String& jsonString)
 		resultMessage->Set("result", afunc->Invoke(origin, message->Get("params")));
 	} catch (const std::exception& ex) {
 		/* TODO: Add a user readable error message for the remote caller */
-		resultMessage->Set("error", DiagnosticInformation(ex));
-		std::ostringstream info;
-		info << "Error while processing message for identity '" << m_Identity << "'";
+		String diagInfo = DiagnosticInformation(ex);
+		resultMessage->Set("error", diagInfo);
 		Log(LogWarning, "JsonRpcConnection")
-		    << info.str() << "\n" << DiagnosticInformation(ex);
+		    << "Error while processing message for identity '" << m_Identity << "'\n" << diagInfo;
 	}
 
 	if (message->Contains("id")) {
@@ -274,46 +285,6 @@ Value SetLogPositionHandler(const MessageOrigin::Ptr& origin, const Dictionary::
 		endpoint->SetLocalLogPosition(log_position);
 
 	return Empty;
-}
-
-Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
-{
-	if (!params)
-		return Empty;
-
-	Dictionary::Ptr result = new Dictionary();
-
-	if (!origin->FromClient->IsAuthenticated()) {
-		ApiListener::Ptr listener = ApiListener::GetInstance();
-		String salt = listener->GetTicketSalt();
-
-		if (salt.IsEmpty()) {
-			result->Set("error", "Ticket salt is not configured.");
-			return result;
-		}
-
-		String ticket = params->Get("ticket");
-		String realTicket = PBKDF2_SHA1(origin->FromClient->GetIdentity(), salt, 50000);
-
-		if (ticket != realTicket) {
-			result->Set("error", "Invalid ticket.");
-			return result;
-		}
-	}
-
-	boost::shared_ptr<X509> cert = origin->FromClient->GetStream()->GetPeerCertificate();
-
-	EVP_PKEY *pubkey = X509_get_pubkey(cert.get());
-	X509_NAME *subject = X509_get_subject_name(cert.get());
-
-	boost::shared_ptr<X509> newcert = CreateCertIcingaCA(pubkey, subject);
-	result->Set("cert", CertificateToString(newcert));
-
-	String cacertfile = GetIcingaCADir() + "/ca.crt";
-	boost::shared_ptr<X509> cacert = GetX509Certificate(cacertfile);
-	result->Set("ca", CertificateToString(cacert));
-
-	return result;
 }
 
 void JsonRpcConnection::CheckLiveness(void)

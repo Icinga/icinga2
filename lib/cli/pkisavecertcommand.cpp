@@ -18,9 +18,10 @@
  ******************************************************************************/
 
 #include "cli/pkisavecertcommand.hpp"
-#include "cli/pkiutility.hpp"
+#include "remote/pkiutility.hpp"
 #include "base/logger.hpp"
 #include "base/tlsutility.hpp"
+#include "base/console.hpp"
 
 using namespace icinga;
 namespace po = boost::program_options;
@@ -77,13 +78,26 @@ int PKISaveCertCommand::Run(const boost::program_options::variables_map& vm, con
 		return 1;
 	}
 
-	boost::shared_ptr<X509> cert =
-	    PkiUtility::FetchCert(vm["host"].as<std::string>(), vm["port"].as<std::string>());
+	String host = vm["host"].as<std::string>();
+	String port = vm["port"].as<std::string>();
+
+	Log(LogInformation, "cli")
+	    << "Retrieving X.509 certificate for '" << host << ":" << port << "'.";
+
+	boost::shared_ptr<X509> cert = PkiUtility::FetchCert(host, port);
 
 	if (!cert) {
-		Log(LogCritical, "cli", "Failed to fetch certificate from host");
+		Log(LogCritical, "cli", "Failed to fetch certificate from host.");
 		return 1;
 	}
+
+	std::cout << PkiUtility::GetCertificateInformation(cert) << "\n";
+	std::cout << ConsoleColorTag(Console_ForegroundRed)
+	    << "***\n"
+	    << "*** You have to ensure that this certificate actually matches the parent\n"
+	    << "*** instance's certificate in order to avoid man-in-the-middle attacks.\n"
+	    << "***\n\n"
+	    << ConsoleColorTag(Console_Normal);
 
 	return PkiUtility::WriteCert(cert, vm["trustedcert"].as<std::string>());
 }

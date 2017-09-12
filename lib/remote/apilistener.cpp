@@ -55,6 +55,26 @@ ApiListener::ApiListener(void)
 	m_SyncQueue.SetName("ApiListener, SyncQueue");
 }
 
+String ApiListener::GetApiDir(void)
+{
+	return Application::GetLocalStateDir() + "/lib/icinga2/api/";
+}
+
+String ApiListener::GetCertsDir(void)
+{
+	return Application::GetLocalStateDir() + "/lib/icinga2/certs/";
+}
+
+String ApiListener::GetCaDir(void)
+{
+	return Application::GetLocalStateDir() + "/lib/icinga2/ca/";
+}
+
+String ApiListener::GetCertificateRequestsDir(void)
+{
+	return Application::GetLocalStateDir() + "/lib/icinga2/certificate-requests/";
+}
+
 void ApiListener::OnConfigLoaded(void)
 {
 	if (m_Instance)
@@ -81,8 +101,15 @@ void ApiListener::OnConfigLoaded(void)
 	Log(LogInformation, "ApiListener")
 	    << "My API identity: " << GetIdentity();
 
+	UpdateSSLContext();
+}
+
+void ApiListener::UpdateSSLContext(void)
+{
+	boost::shared_ptr<SSL_CTX> context;
+
 	try {
-		m_SSLContext = MakeSSLContext(GetCertPath(), GetKeyPath(), GetCaPath());
+		context = MakeSSLContext(GetCertPath(), GetKeyPath(), GetCaPath());
 	} catch (const std::exception&) {
 		BOOST_THROW_EXCEPTION(ScriptError("Cannot make SSL context for cert path: '"
 		    + GetCertPath() + "' key path: '" + GetKeyPath() + "' ca path: '" + GetCaPath() + "'.", GetDebugInfo()));
@@ -90,7 +117,7 @@ void ApiListener::OnConfigLoaded(void)
 
 	if (!GetCrlPath().IsEmpty()) {
 		try {
-			AddCRLToSSLContext(m_SSLContext, GetCrlPath());
+			AddCRLToSSLContext(context, GetCrlPath());
 		} catch (const std::exception&) {
 			BOOST_THROW_EXCEPTION(ScriptError("Cannot add certificate revocation list to SSL context for crl path: '"
 			    + GetCrlPath() + "'.", GetDebugInfo()));
@@ -99,7 +126,7 @@ void ApiListener::OnConfigLoaded(void)
 
 	if (!GetCipherList().IsEmpty()) {
 		try {
-			SetCipherListToSSLContext(m_SSLContext, GetCipherList());
+			SetCipherListToSSLContext(context, GetCipherList());
 		} catch (const std::exception&) {
 			BOOST_THROW_EXCEPTION(ScriptError("Cannot set cipher list to SSL context for cipher list: '"
 			    + GetCipherList() + "'.", GetDebugInfo()));
@@ -108,10 +135,22 @@ void ApiListener::OnConfigLoaded(void)
 
 	if (!GetTlsProtocolmin().IsEmpty()){
 		try {
-			SetTlsProtocolminToSSLContext(m_SSLContext, GetTlsProtocolmin());
+			SetTlsProtocolminToSSLContext(context, GetTlsProtocolmin());
 		} catch (const std::exception&) {
 			BOOST_THROW_EXCEPTION(ScriptError("Cannot set minimum TLS protocol version to SSL context with tls_protocolmin: '" + GetTlsProtocolmin() + "'.", GetDebugInfo()));
 		}
+	}
+
+	m_SSLContext = context;
+
+	for (const Endpoint::Ptr& endpoint : ConfigType::GetObjectsByType<Endpoint>()) {
+		for (const JsonRpcConnection::Ptr& client : endpoint->GetClients()) {
+			client->Disconnect();
+		}
+	}
+
+	for (const JsonRpcConnection::Ptr& client : m_AnonymousClients) {
+		client->Disconnect();
 	}
 }
 
@@ -165,6 +204,12 @@ void ApiListener::Start(bool runtimeCreated)
 	m_AuthorityTimer->SetInterval(30);
 	m_AuthorityTimer->Start();
 
+	m_CleanupCertificateRequestsTimer = new Timer();
+	m_CleanupCertificateRequestsTimer->OnTimerExpired.connect(boost::bind(&ApiListener::CleanupCertificateRequestsTimerHandler, this));
+	m_CleanupCertificateRequestsTimer->SetInterval(3600);
+	m_CleanupCertificateRequestsTimer->Start();
+	m_CleanupCertificateRequestsTimer->Reschedule(0);
+
 	OnMasterChanged(true);
 }
 
@@ -182,11 +227,6 @@ void ApiListener::Stop(bool runtimeDeleted)
 ApiListener::Ptr ApiListener::GetInstance(void)
 {
 	return m_Instance;
-}
-
-boost::shared_ptr<SSL_CTX> ApiListener::GetSSLContext(void) const
-{
-	return m_SSLContext;
 }
 
 Endpoint::Ptr ApiListener::GetMaster(void) const
@@ -395,7 +435,6 @@ void ApiListener::NewClientHandlerInternal(const Socket::Ptr& client, const Stri
 				Log(LogWarning, "ApiListener")
 					<< "Certificate validation failed for endpoint '" << hostname
 					<< "': " << tlsStream->GetVerifyError();
-				return;
 			}
 		}
 
@@ -476,6 +515,18 @@ void ApiListener::SyncClient(const JsonRpcConnection::Ptr& aclient, const Endpoi
 			ObjectLock olock(endpoint);
 
 			endpoint->SetSyncing(true);
+		}
+
+		Zone::Ptr myZone = Zone::GetLocalZone();
+
+		if (myZone->GetParent() == eZone) {
+			Log(LogInformation, "ApiListener")
+			    << "Requesting new certificate for this Icinga instance from endpoint '" << endpoint->GetName() << "'.";
+
+			JsonRpcConnection::SendCertificateRequest(aclient, MessageOrigin::Ptr(), String());
+
+			if (Utility::PathExists(ApiListener::GetCertificateRequestsDir()))
+				Utility::Glob(ApiListener::GetCertificateRequestsDir() + "/*.json", boost::bind(&JsonRpcConnection::SendCertificateRequest, aclient, MessageOrigin::Ptr(), _1), GlobFile);
 		}
 
 		/* Make sure that the config updates are synced
@@ -597,7 +648,6 @@ void ApiListener::ApiTimerHandler(void)
 		    << "Setting log position for identity '" << endpoint->GetName() << "': "
 		    << Utility::FormatDateTime("%Y/%m/%d %H:%M:%S", ts);
 	}
-
 }
 
 void ApiListener::ApiReconnectTimerHandler(void)
@@ -667,6 +717,33 @@ void ApiListener::ApiReconnectTimerHandler(void)
 
 	Log(LogNotice, "ApiListener")
 	    << "Connected endpoints: " << Utility::NaturalJoin(names);
+}
+
+static void CleanupCertificateRequest(const String& path, double expiryTime)
+{
+#ifndef _WIN32
+	struct stat statbuf;
+	if (lstat(path.CStr(), &statbuf) < 0)
+		return;
+#else /* _WIN32 */
+	struct _stat statbuf;
+	if (_stat(path.CStr(), &statbuf) < 0)
+		return;
+#endif /* _WIN32 */
+
+	if (statbuf.st_mtime < expiryTime)
+		(void) unlink(path.CStr());
+}
+
+void ApiListener::CleanupCertificateRequestsTimerHandler(void)
+{
+	String requestsDir = GetCertificateRequestsDir();
+
+	if (Utility::PathExists(requestsDir)) {
+		/* remove certificate requests that are older than a week */
+		double expiryTime = Utility::GetTime() - 7 * 24 * 60 * 60;
+		Utility::Glob(requestsDir + "/*.json", boost::bind(&CleanupCertificateRequest, _1, expiryTime), GlobFile);
+	}
 }
 
 void ApiListener::RelayMessage(const MessageOrigin::Ptr& origin,
@@ -861,11 +938,6 @@ void ApiListener::SyncRelayMessage(const MessageOrigin::Ptr& origin,
 
 	if (log && need_log)
 		PersistMessage(message, secobj);
-}
-
-String ApiListener::GetApiDir(void)
-{
-	return Application::GetLocalStateDir() + "/lib/icinga2/api/";
 }
 
 /* must hold m_LogLock */

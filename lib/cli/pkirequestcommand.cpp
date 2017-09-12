@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "cli/pkirequestcommand.hpp"
-#include "cli/pkiutility.hpp"
+#include "remote/pkiutility.hpp"
 #include "base/logger.hpp"
 #include "base/tlsutility.hpp"
 #include <iostream>
@@ -95,17 +95,16 @@ int PKIRequestCommand::Run(const boost::program_options::variables_map& vm, cons
 		return 1;
 	}
 
-	if (!vm.count("ticket")) {
-		Log(LogCritical, "cli", "Ticket (--ticket) must be specified.");
-		return 1;
-	}
-
 	String port = "5665";
+	String ticket;
 
 	if (vm.count("port"))
 		port = vm["port"].as<std::string>();
 
+	if (vm.count("ticket"))
+		ticket = vm["ticket"].as<std::string>();
+
 	return PkiUtility::RequestCertificate(vm["host"].as<std::string>(), port, vm["key"].as<std::string>(),
 	    vm["cert"].as<std::string>(), vm["ca"].as<std::string>(), GetX509Certificate(vm["trustedcert"].as<std::string>()),
-	    vm["ticket"].as<std::string>());
+	    ticket);
 }

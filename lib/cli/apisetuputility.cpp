@@ -18,9 +18,10 @@
  ******************************************************************************/
 
 #include "cli/apisetuputility.hpp"
-#include "cli/pkiutility.hpp"
 #include "cli/nodeutility.hpp"
 #include "cli/featureutility.hpp"
+#include "remote/apilistener.hpp"
+#include "remote/pkiutility.hpp"
 #include "base/logger.hpp"
 #include "base/console.hpp"
 #include "base/application.hpp"
@@ -68,7 +69,7 @@ bool ApiSetupUtility::SetupMasterCertificates(const String& cn)
 	if (PkiUtility::NewCa() > 0)
 		Log(LogWarning, "cli", "Found CA, skipping and using the existing one.");
 
-	String pki_path = PkiUtility::GetPkiPath();
+	String pki_path = ApiListener::GetCertsDir();
 	Utility::MkDirP(pki_path, 0700);
 
 	String user = ScriptGlobal::Get("RunAsUser");
@@ -116,7 +117,7 @@ bool ApiSetupUtility::SetupMasterCertificates(const String& cn)
 	}
 
 	/* Copy CA certificate to /etc/icinga2/pki */
-	String ca_path = PkiUtility::GetLocalCaPath();
+	String ca_path = ApiListener::GetCaDir();
 	String ca = ca_path + "/ca.crt";
 	String ca_key = ca_path + "/ca.key";
 	String target_ca = pki_path + "/ca.crt";

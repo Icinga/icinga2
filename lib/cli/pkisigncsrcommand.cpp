@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "cli/pkisigncsrcommand.hpp"
-#include "cli/pkiutility.hpp"
+#include "remote/pkiutility.hpp"
 #include "base/logger.hpp"
 
 using namespace icinga;

@@ -1,7 +1,19 @@
-#  Upgrading Icinga 2 <a id="upgrading-icinga-2"></a>
+# Upgrading Icinga 2 <a id="upgrading-icinga-2"></a>
 
 Upgrading Icinga 2 is usually quite straightforward. Ordinarily the only manual steps involved
 are scheme updates for the IDO database.
+
+## Upgrading to v2.8 <a id="upgrading-to-2-8"></a>
+
+The default certificate path was changed from `/etc/icinga2/pki` to
+`/var/lib/icinga2/certs`.
+
+This applies to Windows clients in the same way: `%ProgramData%\etc\icinga2\pki`
+was moved to `%ProgramData%`\var\lib\icinga2\certs`.
+
+The [setup CLI commands](06-distributed-monitoring.md#distributed-monitoring-setup-master) and the
+default [ApiListener configuration](06-distributed-monitoring.md#distributed-monitoring-apilistener)
+have been adjusted to these paths too.
 
 ## Upgrading the MySQL database <a id="upgrading-mysql-db"></a>
 

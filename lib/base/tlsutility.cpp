@@ -575,6 +575,12 @@ boost::shared_ptr<X509> CreateCertIcingaCA(EVP_PKEY *pubkey, X509_NAME *subject)
 	return CreateCert(pubkey, subject, X509_get_subject_name(cacert.get()), privkey, false);
 }
 
+boost::shared_ptr<X509> CreateCertIcingaCA(const boost::shared_ptr<X509>& cert)
+{
+	boost::shared_ptr<EVP_PKEY> pkey = boost::shared_ptr<EVP_PKEY>(X509_get_pubkey(cert.get()), EVP_PKEY_free);
+	return CreateCertIcingaCA(pkey.get(), X509_get_subject_name(cert.get()));
+}
+
 String CertificateToString(const boost::shared_ptr<X509>& cert)
 {
 	BIO *mem = BIO_new(BIO_s_mem());
@@ -588,6 +594,21 @@ String CertificateToString(const boost::shared_ptr<X509>& cert)
 	BIO_free(mem);
 
 	return result;
+}
+
+boost::shared_ptr<X509> StringToCertificate(const String& cert)
+{
+	BIO *bio = BIO_new(BIO_s_mem());
+	BIO_write(bio, (const void *)cert.CStr(), cert.GetLength());
+
+	X509 *rawCert = PEM_read_bio_X509_AUX(bio, NULL, NULL, NULL);
+
+	BIO_free(bio);
+
+	if (!rawCert)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("The specified X509 certificate is invalid."));
+
+	return boost::shared_ptr<X509>(rawCert, X509_free);
 }
 
 String PBKDF2_SHA1(const String& password, const String& salt, int iterations)
@@ -705,6 +726,26 @@ String RandomString(int length)
 	delete [] output;
 
 	return result;
+}
+
+bool VerifyCertificate(const boost::shared_ptr<X509>& caCertificate, const boost::shared_ptr<X509>& certificate)
+{
+	X509_STORE *store = X509_STORE_new();
+
+	if (!store)
+		return false;
+
+	X509_STORE_add_cert(store, caCertificate.get());
+
+	X509_STORE_CTX *csc = X509_STORE_CTX_new();
+	X509_STORE_CTX_init(csc, store, certificate.get(), NULL);
+
+	int rc = X509_verify_cert(csc);
+
+	X509_STORE_CTX_free(csc);
+	X509_STORE_free(store);
+
+	return rc == 1;
 }
 
 }

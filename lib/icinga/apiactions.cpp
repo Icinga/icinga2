@@ -27,6 +27,7 @@
 #include "icinga/notificationcommand.hpp"
 #include "remote/apiaction.hpp"
 #include "remote/apilistener.hpp"
+#include "remote/pkiutility.hpp"
 #include "remote/httputility.hpp"
 #include "base/utility.hpp"
 #include "base/convert.hpp"

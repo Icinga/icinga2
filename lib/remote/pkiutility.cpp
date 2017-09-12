@@ -17,8 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "cli/pkiutility.hpp"
-#include "cli/clicommand.hpp"
+#include "remote/pkiutility.hpp"
+#include "remote/apilistener.hpp"
 #include "base/logger.hpp"
 #include "base/application.hpp"
 #include "base/tlsutility.hpp"
@@ -34,19 +34,9 @@
 
 using namespace icinga;
 
-String PkiUtility::GetPkiPath(void)
-{
-	return Application::GetSysconfDir() + "/icinga2/pki";
-}
-
-String PkiUtility::GetLocalCaPath(void)
-{
-	return Application::GetLocalStateDir() + "/lib/icinga2/ca";
-}
-
 int PkiUtility::NewCa(void)
 {
-	String caDir = GetLocalCaPath();
+	String caDir = ApiListener::GetCaDir();
 	String caCertFile = caDir + "/ca.crt";
 	String caKeyFile = caDir + "/ca.key";
 
@@ -91,7 +81,8 @@ int PkiUtility::SignCsr(const String& csrfile, const String& certfile)
 
 	BIO_free(csrbio);
 
-	boost::shared_ptr<X509> cert = CreateCertIcingaCA(X509_REQ_get_pubkey(req), X509_REQ_get_subject_name(req));
+	boost::shared_ptr<EVP_PKEY> pubkey = boost::shared_ptr<EVP_PKEY>(X509_REQ_get_pubkey(req), EVP_PKEY_free);
+	boost::shared_ptr<X509> cert = CreateCertIcingaCA(pubkey.get(), X509_REQ_get_subject_name(req));
 
 	X509_REQ_free(req);
 
@@ -258,10 +249,68 @@ int PkiUtility::RequestCertificate(const String& host, const String& port, const
 
 	Dictionary::Ptr result = response->Get("result");
 
+	if (result->Contains("ca")) {
+		try {
+			StringToCertificate(result->Get("ca"));
+		} catch (const std::exception& ex) {
+			Log(LogCritical, "cli")
+			    << "Could not write CA file: " << DiagnosticInformation(ex, false);
+			return 1;
+		}
+
+		Log(LogInformation, "cli")
+		    << "Writing CA certificate to file '" << cafile << "'.";
+
+		std::ofstream fpca;
+		fpca.open(cafile.CStr());
+		fpca << result->Get("ca");
+		fpca.close();
+
+		if (fpca.fail()) {
+			Log(LogCritical, "cli")
+			    << "Could not open CA certificate file '" << cafile << "' for writing.";
+			return 1;
+		}
+	}
+
 	if (result->Contains("error")) {
-		Log(LogCritical, "cli", result->Get("error"));
+		LogSeverity severity;
+
+		Value vstatus;
+
+		if (!result->Get("status_code", &vstatus))
+			vstatus = 1;
+
+		int status = vstatus;
+
+		if (status == 1)
+			severity = LogCritical;
+		else {
+			severity = LogInformation;
+			Log(severity, "cli", "!!!!!!");
+		}
+
+		Log(severity, "cli")
+		    << "!!! " << result->Get("error");
+
+		if (status == 1)
+			return 1;
+		else {
+			Log(severity, "cli", "!!!!!!");
+			return 0;
+		}
+	}
+
+	try {
+		StringToCertificate(result->Get("cert"));
+	} catch (const std::exception& ex) {
+		Log(LogCritical, "cli")
+		    << "Could not write certificate file: " << DiagnosticInformation(ex, false);
 		return 1;
 	}
+
+	Log(LogInformation, "cli")
+	    << "Writing signed certificate to file '" << certfile << "'.";
 
 	std::ofstream fpcert;
 	fpcert.open(certfile.CStr());
@@ -273,23 +322,6 @@ int PkiUtility::RequestCertificate(const String& host, const String& port, const
 		    << "Could not write certificate to file '" << certfile << "'.";
 		return 1;
 	}
-
-	Log(LogInformation, "cli")
-	    << "Writing signed certificate to file '" << certfile << "'.";
-
-	std::ofstream fpca;
-	fpca.open(cafile.CStr());
-	fpca << result->Get("ca");
-	fpca.close();
-
-	if (fpca.fail()) {
-		Log(LogCritical, "cli")
-		    << "Could not open CA certificate file '" << cafile << "' for writing.";
-		return 1;
-	}
-
-	Log(LogInformation, "cli")
-	    << "Writing CA certificate to file '" << cafile << "'.";
 
 	return 0;
 }
@@ -325,6 +357,9 @@ String PkiUtility::GetCertificateInformation(const boost::shared_ptr<X509>& cert
 
 	std::stringstream info;
 	info << String(data, data + length);
+
+	BIO_free(out);
+
 	for (unsigned int i = 0; i < diglen; i++) {
 		info << std::setfill('0') << std::setw(2) << std::uppercase
 		    << std::hex << static_cast<int>(md[i]) << ' ';
@@ -332,4 +367,71 @@ String PkiUtility::GetCertificateInformation(const boost::shared_ptr<X509>& cert
 	info << '\n';
 
 	return info.str();
+}
+
+static void CollectRequestHandler(const Dictionary::Ptr& requests, const String& requestFile)
+{
+	Dictionary::Ptr request = Utility::LoadJsonFile(requestFile);
+
+	if (!request)
+		return;
+
+	Dictionary::Ptr result = new Dictionary();
+
+	String fingerprint = Utility::BaseName(requestFile);
+	fingerprint = fingerprint.SubStr(0, fingerprint.GetLength() - 5);
+
+	String certRequestText = request->Get("cert_request");
+	result->Set("cert_request", certRequestText);
+
+	Value vcertResponseText;
+
+	if (request->Get("cert_response", &vcertResponseText)) {
+		String certResponseText = vcertResponseText;
+		result->Set("cert_response", certResponseText);
+	}
+
+	boost::shared_ptr<X509> certRequest = StringToCertificate(certRequestText);
+
+/* XXX (requires OpenSSL >= 1.0.0)
+	time_t now;
+	time(&now);
+	ASN1_TIME *tm = ASN1_TIME_adj(NULL, now, 0, 0);
+
+	int day, sec;
+	ASN1_TIME_diff(&day, &sec, tm, X509_get_notBefore(certRequest.get()));
+
+	result->Set("timestamp",  static_cast<double>(now) + day * 24 * 60 * 60 + sec); */
+
+	BIO *out = BIO_new(BIO_s_mem());
+	ASN1_TIME_print(out, X509_get_notBefore(certRequest.get()));
+
+	char *data;
+	long length;
+	length = BIO_get_mem_data(out, &data);
+
+	result->Set("timestamp", String(data, data + length));
+	BIO_free(out);
+
+	out = BIO_new(BIO_s_mem());
+	X509_NAME_print_ex(out, X509_get_subject_name(certRequest.get()), 0, XN_FLAG_ONELINE & ~ASN1_STRFLGS_ESC_MSB);
+
+	length = BIO_get_mem_data(out, &data);
+
+	result->Set("subject", String(data, data + length));
+	BIO_free(out);
+
+	requests->Set(fingerprint, result);
+}
+
+Dictionary::Ptr PkiUtility::GetCertificateRequests(void)
+{
+	Dictionary::Ptr requests = new Dictionary();
+
+	String requestDir = ApiListener::GetCertificateRequestsDir();
+
+	if (Utility::PathExists(requestDir))
+		Utility::Glob(requestDir + "/*.json", boost::bind(&CollectRequestHandler, requests, _1), GlobFile);
+
+	return requests;
 }

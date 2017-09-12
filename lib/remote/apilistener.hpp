@@ -59,16 +59,19 @@ public:
 
 	ApiListener(void);
 
-	static ApiListener::Ptr GetInstance(void);
+	static String GetApiDir(void);
+	static String GetCertsDir(void);
+	static String GetCaDir(void);
+	static String GetCertificateRequestsDir(void);
 
-	boost::shared_ptr<SSL_CTX> GetSSLContext(void) const;
+	void UpdateSSLContext(void);
+
+	static ApiListener::Ptr GetInstance(void);
 
 	Endpoint::Ptr GetMaster(void) const;
 	bool IsMaster(void) const;
 
 	Endpoint::Ptr GetLocalEndpoint(void) const;
-
-	static String GetApiDir(void);
 
 	void SyncSendMessage(const Endpoint::Ptr& endpoint, const Dictionary::Ptr& message);
 	void RelayMessage(const MessageOrigin::Ptr& origin, const ConfigObject::Ptr& secobj, const Dictionary::Ptr& message, bool log);
@@ -117,12 +120,14 @@ private:
 	Timer::Ptr m_Timer;
 	Timer::Ptr m_ReconnectTimer;
 	Timer::Ptr m_AuthorityTimer;
+	Timer::Ptr m_CleanupCertificateRequestsTimer;
 	Endpoint::Ptr m_LocalEndpoint;
 
 	static ApiListener::Ptr m_Instance;
 
 	void ApiTimerHandler(void);
 	void ApiReconnectTimerHandler(void);
+	void CleanupCertificateRequestsTimerHandler(void);
 
 	bool AddListener(const String& node, const String& service);
 	void AddConnection(const Endpoint::Ptr& endpoint);

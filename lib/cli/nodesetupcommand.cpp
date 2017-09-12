@@ -20,8 +20,9 @@
 #include "cli/nodesetupcommand.hpp"
 #include "cli/nodeutility.hpp"
 #include "cli/featureutility.hpp"
-#include "cli/pkiutility.hpp"
 #include "cli/apisetuputility.hpp"
+#include "remote/apilistener.hpp"
+#include "remote/pkiutility.hpp"
 #include "base/logger.hpp"
 #include "base/console.hpp"
 #include "base/application.hpp"
@@ -130,14 +131,14 @@ int NodeSetupCommand::SetupMaster(const boost::program_options::variables_map& v
                 cn = vm["cn"].as<std::string>();
 
 	/* check whether the user wants to generate a new certificate or not */
-	String existing_path = PkiUtility::GetPkiPath() + "/" + cn + ".crt";
+	String existingPath = ApiListener::GetCertsDir() + "/" + cn + ".crt";
 
 	Log(LogInformation, "cli")
-	    << "Checking for existing certificates for common name '" << cn << "'...";
+	    << "Checking in existing certificates for common name '" << cn << "'...";
 
-	if (Utility::PathExists(existing_path)) {
+	if (Utility::PathExists(existingPath)) {
 		Log(LogWarning, "cli")
-		    << "Certificate '" << existing_path << "' for CN '" << cn << "' already exists. Not generating new certificate.";
+		    << "Certificate '" << existingPath << "' for CN '" << cn << "' already exists. Not generating new certificate.";
 	} else {
 		Log(LogInformation, "cli")
 		    << "Certificates not yet generated. Running 'api setup' now.";
@@ -156,13 +157,11 @@ int NodeSetupCommand::SetupMaster(const boost::program_options::variables_map& v
 	}
 
 	/* write zones.conf and update with zone + endpoint information */
-
 	Log(LogInformation, "cli", "Generating zone and object configuration.");
 
 	NodeUtility::GenerateNodeMasterIcingaConfig();
 
 	/* update the ApiListener config - SetupMaster() will always enable it */
-
 	Log(LogInformation, "cli", "Updating the APIListener feature.");
 
 	String apipath = FeatureUtility::GetFeaturesAvailablePath() + "/api.conf";
@@ -175,9 +174,9 @@ int NodeSetupCommand::SetupMaster(const boost::program_options::variables_map& v
 	    << " * The API listener is used for distributed monitoring setups.\n"
 	    << " */\n"
 	    << "object ApiListener \"api\" {\n"
-	    << "  cert_path = SysconfDir + \"/icinga2/pki/\" + NodeName + \".crt\"\n"
-	    << "  key_path = SysconfDir + \"/icinga2/pki/\" + NodeName + \".key\"\n"
-	    << "  ca_path = SysconfDir + \"/icinga2/pki/ca.crt\"\n";
+	    << "  cert_path = LocalStateDir + \"/lib/icinga2/certs/\" + NodeName + \".crt\"\n"
+	    << "  key_path = LocalStateDir + \"/lib/icinga2/certs/\" + NodeName + \".key\"\n"
+	    << "  ca_path = LocalStateDir + \"/lib/icinga2/certs/ca.crt\"\n";
 
 	if (vm.count("listen")) {
 		std::vector<String> tokens;
@@ -262,7 +261,8 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 	/* require master host information for auto-signing requests */
 
 	if (!vm.count("master_host")) {
-		Log(LogCritical, "cli", "Please pass the master host connection information for auto-signing using '--master_host <host>'");
+		Log(LogCritical, "cli", "Please pass the master host connection information for auto-signing using '--master_host <host>'. This can also be a direct parent satellite since 2.8.");
+
 		return 1;
 	}
 
@@ -278,13 +278,13 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 		master_port = tokens[1];
 
 	Log(LogInformation, "cli")
-	    << "Verifying master host connection information: host '" << master_host << "', port '" << master_port << "'.";
+	    << "Verifying parent host connection information: host '" << master_host << "', port '" << master_port << "'.";
 
 	/* trusted cert must be passed (retrieved by the user with 'pki save-cert' before) */
 
 	if (!vm.count("trustedcert")) {
 		Log(LogCritical, "cli")
-		    << "Please pass the trusted cert retrieved from the master\n"
+		    << "Please pass the trusted cert retrieved from the parent node (master or satellite)\n"
 		    << "(Hint: 'icinga2 pki save-cert --host <masterhost> --port <5665> --key local.key --cert local.crt --trustedcert master.crt').";
 		return 1;
 	}
@@ -305,7 +305,7 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 
 	/* pki request a signed certificate from the master */
 
-	String pki_path = PkiUtility::GetPkiPath();
+	String pki_path = ApiListener::GetCertsDir();
 	Utility::MkDirP(pki_path, 0700);
 
 	String user = ScriptGlobal::Get("RunAsUser");
@@ -336,10 +336,10 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 		    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << key << "'. Verify it yourself!";
 	}
 
-	Log(LogInformation, "cli", "Requesting a signed certificate from the master.");
+	Log(LogInformation, "cli", "Requesting a signed certificate from the parent Icinga node.");
 
 	if (PkiUtility::RequestCertificate(master_host, master_port, key, cert, ca, trustedcert, ticket) != 0) {
-		Log(LogCritical, "cli", "Failed to request certificate from Icinga 2 master.");
+		Log(LogCritical, "cli", "Failed to request certificate from parent Icinga node.");
 		return 1;
 	}
 
@@ -379,9 +379,9 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 	    << " * The API listener is used for distributed monitoring setups.\n"
 	    << " */\n"
 	    << "object ApiListener \"api\" {\n"
-	    << "  cert_path = SysconfDir + \"/icinga2/pki/\" + NodeName + \".crt\"\n"
-	    << "  key_path = SysconfDir + \"/icinga2/pki/\" + NodeName + \".key\"\n"
-	    << "  ca_path = SysconfDir + \"/icinga2/pki/ca.crt\"\n";
+	    << "  cert_path = LocalStateDir + \"/lib/icinga2/certs/\" + NodeName + \".crt\"\n"
+	    << "  key_path = LocalStateDir + \"/lib/icinga2/certs/\" + NodeName + \".key\"\n"
+	    << "  ca_path = LocalStateDir + \"/lib/icinga2/certs/ca.crt\"\n";
 
 	if (vm.count("listen")) {
 		std::vector<String> tokens;
@@ -406,7 +406,6 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 		fp << "  accept_commands = false\n";
 
 	fp << "\n"
-	    << "  ticket_salt = TicketSalt\n"
 	    << "}\n";
 
 	fp.close();
@@ -431,7 +430,7 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 	/* update constants.conf with NodeName = CN */
 	if (cn != Utility::GetFQDN()) {
 		Log(LogWarning, "cli")
-		    << "CN '" << cn << "' does not match the default FQDN '" << Utility::GetFQDN() << "'. Requires update for NodeName constant in constants.conf!";
+		    << "CN '" << cn << "' does not match the default FQDN '" << Utility::GetFQDN() << "'. Requires an update for the NodeName constant in constants.conf!";
 	}
 
 	Log(LogInformation, "cli", "Updating constants.conf.");
@@ -441,8 +440,33 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 	NodeUtility::UpdateConstant("NodeName", cn);
 	NodeUtility::UpdateConstant("ZoneName", vm["zone"].as<std::string>());
 
-	/* tell the user to reload icinga2 */
+	String ticketPath = ApiListener::GetCertsDir() + "/ticket";
 
+	String tempTicketPath = Utility::CreateTempFile(ticketPath + ".XXXXXX", 0600, fp);
+
+	if (!Utility::SetFileOwnership(tempTicketPath, user, group)) {
+		Log(LogWarning, "cli")
+		    << "Cannot set ownership for user '" << user
+		    << "' group '" << group
+		    << "' on file '" << tempTicketPath << "'. Verify it yourself!";
+	}
+
+	fp << ticket;
+
+	fp.close();
+
+#ifdef _WIN32
+	_unlink(ticketPath.CStr());
+#endif /* _WIN32 */
+
+	if (rename(tempTicketPath.CStr(), ticketPath.CStr()) < 0) {
+		BOOST_THROW_EXCEPTION(posix_error()
+		    << boost::errinfo_api_function("rename")
+		    << boost::errinfo_errno(errno)
+		    << boost::errinfo_file_name(tempTicketPath));
+	}
+
+	/* tell the user to reload icinga2 */
 	Log(LogInformation, "cli", "Make sure to restart Icinga 2.");
 
 	return 0;

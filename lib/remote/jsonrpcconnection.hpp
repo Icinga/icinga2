@@ -75,6 +75,8 @@ public:
 	static int GetWorkQueueLength(void);
 	static double GetWorkQueueRate(void);
 
+	static void SendCertificateRequest(const JsonRpcConnection::Ptr& aclient, const intrusive_ptr<MessageOrigin>& origin, const String& path);
+
 private:
 	int m_ID;
 	String m_Identity;
@@ -98,6 +100,8 @@ private:
 	static void StaticInitialize(void);
 	static void TimeoutTimerHandler(void);
 	void CheckLiveness(void);
+
+	void CertificateRequestResponseHandler(const Dictionary::Ptr& message);
 };
 
 }
