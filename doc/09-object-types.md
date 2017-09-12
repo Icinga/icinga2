@@ -48,7 +48,7 @@ Configuration Attributes:
   cert\_path                |**Required.** Path to the public key.
   key\_path                 |**Required.** Path to the private key.
   ca\_path                  |**Required.** Path to the CA certificate file.
-  ticket\_salt              |**Optional.** Private key for auto-signing. **Required** for a signing master instance. Defaults to the `TicketSalt` constant defined in [constants.conf](04-configuring-icinga-2.md#constants-conf).
+  ticket\_salt              |**Optional.** Private key for auto-signing. **Required** for a signing master instance.
   crl\_path                 |**Optional.** Path to the CRL file.
   bind\_host                |**Optional.** The IP address the api listener should be bound to. Defaults to `0.0.0.0`.
   bind\_port                |**Optional.** The port the api listener should be bound to. Defaults to `5665`.
