@@ -385,7 +385,9 @@ Example:
     object Downtime "localhost!my-downtime" {
       host_name = "localhost"
       author = "icingaadmin"
-      text = "This is a comment."
+      comment = "This is a downtime."
+      start_time = 1505312869
+      end_time = 1505312924
     }
 
 Configuration Attributes:
@@ -398,7 +400,7 @@ Configuration Attributes:
   comment         | **Required.** The comment text.
   start_time      | **Required.** The start time as unix timestamp.
   end_time        | **Required.** The end time as unix timestamp.
-  duration        | **Required.** The duration as number.
+  duration        | **Optional.** The duration as number.
   entry_time      | **Optional.** The unix timestamp when this downtime was added.
   fixed           | **Optional.** Whether the downtime is fixed (true) or flexible (false). Defaults to flexible. Details in the [advanced topics chapter](08-advanced-topics.md#fixed-flexible-downtimes).
   triggers        | **Optional.** List of downtimes which should be triggered by this downtime.
