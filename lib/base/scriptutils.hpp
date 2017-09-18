@@ -56,6 +56,8 @@ public:
 	static String MsiGetComponentPathShim(const String& component);
 	static Array::Ptr TrackParents(const Object::Ptr& parent);
 	static double Ptr(const Object::Ptr& object);
+	static Value Glob(const std::vector<Value>& args);
+	static Value GlobRecursive(const std::vector<Value>& args);
 
 private:
 	ScriptUtils(void);

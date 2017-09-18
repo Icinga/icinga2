@@ -459,6 +459,65 @@ Example:
     <2> => basename(path)
     "xmpp-notification.pl"
 
+### path\_exists <a id="global-functions-path-exists"></a>
+
+Signature:
+
+    function path_exists(path)
+
+Returns true if the specified path exists, false otherwise.
+
+Example:
+
+    $ icinga2 console
+    Icinga 2 (version: v2.7.0)
+    <1> => var path = "/etc/icinga2/scripts/xmpp-notification.pl"
+    null
+    <2> => path_exists(path)
+    true
+
+### glob <a id="global-functions-glob"></a>
+
+Signature:
+
+    function glob(pathSpec, type)
+
+Returns an array containing all paths which match the
+`pathSpec` argument.
+
+The `type` argument is optional and specifies which types
+of paths are matched. This can be a combination of the `GlobFile`
+and `GlobDirectory` constants. The default value is `GlobFile | GlobDirectory`.
+
+    $ icinga2 console
+    Icinga 2 (version: v2.7.0)
+    <1> => var pathSpec = "/etc/icinga2/conf.d/*.conf"
+    null
+    <2> => glob(pathSpec)
+    [ "/etc/icinga2/conf.d/app.conf", "/etc/icinga2/conf.d/commands.conf", ... ]
+
+### glob\_recursive <a id="global-functions-glob-recursive"></a>
+
+Signature:
+
+    function glob_recursive(path, pattern, type)
+
+Recursively descends into the specified directory and returns an array containing
+all paths which match the `pattern` argument.
+
+The `type` argument is optional and specifies which types
+of paths are matched. This can be a combination of the `GlobFile`
+and `GlobDirectory` constants. The default value is `GlobFile | GlobDirectory`.
+
+    $ icinga2 console
+    Icinga 2 (version: v2.7.0)
+    <1> => var path = "/etc/icinga2/zones.d/"
+    null
+    <2> => var pattern = "*.conf"
+    null
+    <3> => glob_recursive(path, pattern)
+    [ "/etc/icinga2/zones.d/global-templates/templates.conf", "/etc/icinga2/zones.d/master/hosts.conf", ... ]
+
 ### escape_shell_arg <a id="global-functions-escape_shell_arg"></a>
 
 Signature:
