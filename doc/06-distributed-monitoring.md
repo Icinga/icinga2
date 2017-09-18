@@ -2066,16 +2066,26 @@ function ensures to only create services for the master nodes.
 
 ### Windows Firewall <a id="distributed-monitoring-windows-firewall"></a>
 
+#### ICMP Requests <a id="distributed-monitoring-windows-firewall-icmp"></a>
+
 By default ICMP requests are disabled in the Windows firewall. You can
 change that by [adding a new rule](https://support.microsoft.com/en-us/kb/947709).
 
     C:\WINDOWS\system32>netsh advfirewall firewall add rule name="ICMP Allow incoming V4 echo request" protocol=icmpv4:8,any dir=in action=allow
+
+#### Icinga 2 <a id="distributed-monitoring-windows-firewall-icinga2"></a>
 
 If your master/satellite nodes should actively connect to the Windows client
 you'll also need to ensure that port `5665` is enabled.
 
     C:\WINDOWS\system32>netsh advfirewall firewall add rule name="Open port 5665 (Icinga 2)" dir=in action=allow protocol=TCP localport=5665
 
+#### NSClient++ API <a id="distributed-monitoring-windows-firewall-nsclient-api"></a>
+
+If the [check_nscp_api](06-distributed-monitoring.md#distributed-monitoring-windows-nscp-check-api)
+plugin is used to query NSClient++ remotely, you need to ensure that its port is enabled.
+
+    C:\WINDOWS\system32>netsh advfirewall firewall add rule name="Open port 8443 (NSClient++ API)" dir=in action=allow protocol=TCP localport=8443
 
 ### Windows Client and Plugins <a id="distributed-monitoring-windows-plugins"></a>
 
