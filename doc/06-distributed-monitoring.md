@@ -2220,6 +2220,38 @@ which defaults to `host.address`.
 You can verify the check execution by looking at the `Check Source` attribute
 in Icinga Web 2 or the REST API.
 
+If you want to monitor specific Windows services, you could use the following example:
+
+    [root@icinga2-master1.localdomain /]# cd /etc/icinga2/zones.d/master
+    [root@icinga2-master1.localdomain /etc/icinga2/zones.d/master]# vim hosts.conf
+
+    object Host "icinga2-client1.localdomain" {
+        check_command = "hostalive"
+        address = "192.168.56.111"
+        vars.client_endpoint = name //follows the convention that host name == endpoint name
+        vars.os_type = "Windows"
+        vars.nscp_api_password = "icinga"
+        vars.services = [ "Windows Update", "wscsvc" ]
+    }
+
+    [root@icinga2-master1.localdomain /etc/icinga2/zones.d/master]# vim services.conf
+
+    apply Service "nscp-api-" for (svc in host.vars.services) {
+      import "generic-service"
+
+      check_command = "nscp_api"
+      command_endpoint = host.vars.client_endpoint
+
+      //display_name = "nscp-service-" + svc
+
+      vars.nscp_api_host = "localhost"
+      vars.nscp_api_query = "check_service"
+      vars.nscp_api_password = host.vars.nscp_api_password
+      vars.nscp_api_arguments = [ "service=" + svc ]
+
+      ignore where host.vars.os_type != "Windows"
+    }
+
 #### NSCLient++ with nscp-local <a id="distributed-monitoring-windows-nscp-check-local"></a>
 
 The [Windows setup](06-distributed-monitoring.md#distributed-monitoring-setup-client-windows) already allows
