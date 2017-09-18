@@ -581,5 +581,5 @@ String ElasticWriter::FormatTimestamp(double ts)
 	 */
 	int milliSeconds = static_cast<int>((ts - static_cast<int>(ts)) * 1000);
 
-	return Utility::FormatDateTime("%Y-%m-%dT%H:%M:%S", ts) + "." + String(milliSeconds) + Utility::FormatDateTime("%z", ts);
+	return Utility::FormatDateTime("%Y-%m-%dT%H:%M:%S", ts) + "." + Convert::ToString(milliSeconds) + Utility::FormatDateTime("%z", ts);
 }
