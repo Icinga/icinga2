@@ -19,6 +19,8 @@
 
 #include "base/scriptutils.hpp"
 #include "base/function.hpp"
+#include "base/scriptframe.hpp"
+#include "base/exception.hpp"
 #include "base/utility.hpp"
 #include "base/convert.hpp"
 #include "base/json.hpp"
@@ -67,6 +69,9 @@ REGISTER_SAFE_SCRIPTFUNCTION_NS(System, escape_create_process_arg, &Utility::Esc
 #endif /* _WIN32 */
 REGISTER_SCRIPTFUNCTION_NS(System, ptr, &ScriptUtils::Ptr, "object");
 REGISTER_SCRIPTFUNCTION_NS(System, sleep, &Utility::Sleep, "interval");
+REGISTER_SCRIPTFUNCTION_NS(System, path_exists, &Utility::PathExists, "path");
+REGISTER_SCRIPTFUNCTION_NS(System, glob, &ScriptUtils::Glob, "pathspec:callback:type");
+REGISTER_SCRIPTFUNCTION_NS(System, glob_recursive, &ScriptUtils::GlobRecursive, "pathspec:callback:type");
 
 INITIALIZE_ONCE(&ScriptUtils::StaticInitialize);
 
@@ -80,6 +85,9 @@ void ScriptUtils::StaticInitialize(void)
 {
 	ScriptGlobal::Set("MatchAll", MatchAll);
 	ScriptGlobal::Set("MatchAny", MatchAny);
+
+	ScriptGlobal::Set("GlobFile", GlobFile);
+	ScriptGlobal::Set("GlobDirectory", GlobDirectory);
 }
 
 String ScriptUtils::CastString(const Value& value)
@@ -441,4 +449,45 @@ Array::Ptr ScriptUtils::TrackParents(const Object::Ptr& child)
 double ScriptUtils::Ptr(const Object::Ptr& object)
 {
 	return reinterpret_cast<intptr_t>(object.get());
+}
+
+static void GlobCallbackHelper(std::vector<String>& paths, const String& path)
+{
+	paths.push_back(path);
+}
+
+Value ScriptUtils::Glob(const std::vector<Value>& args)
+{
+	if (args.size() < 1)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Path must be specified."));
+
+	String pathSpec = args[0];
+	int type = GlobFile | GlobDirectory;
+
+	if (args.size() > 1)
+		type = args[1];
+
+	std::vector<String> paths;
+	Utility::Glob(pathSpec, boost::bind(&GlobCallbackHelper, boost::ref(paths), _1), type);
+
+	return Array::FromVector(paths);
+}
+
+Value ScriptUtils::GlobRecursive(const std::vector<Value>& args)
+{
+	if (args.size() < 2)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Path and pattern must be specified."));
+
+	String path = args[0];
+	String pattern = args[1];
+
+	int type = GlobFile | GlobDirectory;
+
+	if (args.size() > 2)
+		type = args[2];
+
+	std::vector<String> paths;
+	Utility::GlobRecursive(path, pattern, boost::bind(&GlobCallbackHelper, boost::ref(paths), _1), type);
+
+	return Array::FromVector(paths);
 }
