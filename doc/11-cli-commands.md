@@ -391,7 +391,7 @@ are not immediately updated. Furthermore there is a known issue with
 [group assign expressions](17-language-reference.md#group-assign) which are not reflected in the host object output.
 You need to restart Icinga 2 in order to update the `icinga2.debug` cache file.
 
-More information can be found in the [troubleshooting](15-troubleshooting.md#list-configuration-objects) section.
+More information can be found in the [troubleshooting](15-troubleshooting.md#troubleshooting-list-configuration-objects) section.
 
     # icinga2 object --help
     icinga2 - The Icinga 2 network monitoring daemon (version: v2.6.0)
@@ -626,7 +626,7 @@ to read the [troubleshooting](15-troubleshooting.md#troubleshooting) chapter.
 You can also use the [CLI command](11-cli-commands.md#cli-command-object) `icinga2 object list`
 after validation passes to analyze object attributes, inheritance or created
 objects by apply rules.
-Find more on troubleshooting with `object list` in [this chapter](15-troubleshooting.md#list-configuration-objects).
+Find more on troubleshooting with `object list` in [this chapter](15-troubleshooting.md#troubleshooting-list-configuration-objects).
 
 Example filtered by `Service` objects with the name `ping*`:
 
