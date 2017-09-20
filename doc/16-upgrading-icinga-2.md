@@ -15,6 +15,15 @@ The [setup CLI commands](06-distributed-monitoring.md#distributed-monitoring-set
 default [ApiListener configuration](06-distributed-monitoring.md#distributed-monitoring-apilistener)
 have been adjusted to these paths too.
 
+## Upgrading to v2.7 <a id="upgrading-to-2-7"></a>
+
+v2.7.0 provided new notification scripts and commands. Please ensure to
+update your configuration accordingly. An advisory has been published [here](https://www.icinga.com/2017/08/23/advisory-for-icinga-2-v2-7-update-and-mail-notification-scripts/).
+
+In case are having troubles with OpenSSL 1.1.0 and the
+public CA certificates, please read [this advisory](https://www.icinga.com/2017/08/30/advisory-for-ssl-problems-with-leading-zeros-on-openssl-1-1-0/)
+and check the [troubleshooting chapter](15-troubleshooting.md#troubleshooting).
+
 ## Upgrading the MySQL database <a id="upgrading-mysql-db"></a>
 
 If you're upgrading an existing Icinga 2 instance, you should check the
