@@ -1381,7 +1381,8 @@ Stages provide a way to maintain multiple configuration versions for a package.
 Send a `POST` request to the URL endpoint `/v1/config/stages` and add the name of an existing
 configuration package to the URL path (e.g. `example-cmdb`).
 The request body must contain the `files` attribute with the value being
-a dictionary of file targets and their content.
+a dictionary of file targets and their content. You can also specify an optional `reload` attribute
+that will tell icinga2 to reload after stage config validation. By default this is set to `true`.
 
 The file path requires one of these two directories inside its path:
 
@@ -1412,7 +1413,7 @@ intentional.
                 "code": 200.0,
                 "package": "example-cmdb",
                 "stage": "example.localdomain-1441625839-0",
-                "status": "Created stage."
+                "status": "Created stage. Icinga2 will reload."
             }
         ]
     }
@@ -1420,9 +1421,10 @@ intentional.
 The Icinga 2 API returns the `package` name this stage was created for, and also
 generates a unique name for the `stage` attribute you'll need for later requests.
 
-Icinga 2 automatically restarts the daemon in order to activate the new config stage.
-If the validation for the new config stage failed, the old stage and its configuration objects
-will remain active.
+Icinga 2 automatically restarts the daemon in order to activate the new config stage. This
+can be disabled by setting `reload` to `false` in the request.
+If the validation for the new config stage failed, the old stage
+and its configuration objects will remain active.
 
 > **Note**
 >

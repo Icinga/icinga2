@@ -176,7 +176,7 @@ void ConfigPackageUtility::ActivateStage(const String& packageName, const String
 	WritePackageConfig(packageName);
 }
 
-void ConfigPackageUtility::TryActivateStageCallback(const ProcessResult& pr, const String& packageName, const String& stageName)
+void ConfigPackageUtility::TryActivateStageCallback(const ProcessResult& pr, const String& packageName, const String& stageName, bool reload)
 {
 	String logFile = GetPackageDir() + "/" + packageName + "/" + stageName + "/startup.log";
 	std::ofstream fpLog(logFile.CStr(), std::ofstream::out | std::ostream::binary | std::ostream::trunc);
@@ -191,7 +191,9 @@ void ConfigPackageUtility::TryActivateStageCallback(const ProcessResult& pr, con
 	/* validation went fine, activate stage and reload */
 	if (pr.ExitStatus == 0) {
 		ActivateStage(packageName, stageName);
-		Application::RequestRestart();
+
+		if (reload)
+			Application::RequestRestart();
 	} else {
 		Log(LogCritical, "ConfigPackageUtility")
 		    << "Config validation failed for package '"
@@ -199,7 +201,7 @@ void ConfigPackageUtility::TryActivateStageCallback(const ProcessResult& pr, con
 	}
 }
 
-void ConfigPackageUtility::AsyncTryActivateStage(const String& packageName, const String& stageName)
+void ConfigPackageUtility::AsyncTryActivateStage(const String& packageName, const String& stageName, bool reload)
 {
 	VERIFY(Application::GetArgC() >= 1);
 
@@ -213,7 +215,7 @@ void ConfigPackageUtility::AsyncTryActivateStage(const String& packageName, cons
 
 	Process::Ptr process = new Process(Process::PrepareCommand(args));
 	process->SetTimeout(300);
-	process->Run(boost::bind(&TryActivateStageCallback, _1, packageName, stageName));
+	process->Run(boost::bind(&TryActivateStageCallback, _1, packageName, stageName, reload));
 }
 
 void ConfigPackageUtility::DeleteStage(const String& packageName, const String& stageName)
