@@ -102,11 +102,14 @@ String ConfigObjectUtility::CreateObjectConfig(const Type::Ptr& type, const Stri
 bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& fullName,
     const String& config, const Array::Ptr& errors)
 {
-	if (!ConfigPackageUtility::PackageExists("_api")) {
-		ConfigPackageUtility::CreatePackage("_api");
+	{
+		boost::mutex::scoped_lock lock(ConfigPackageUtility::GetStaticMutex());
+		if (!ConfigPackageUtility::PackageExists("_api")) {
+			ConfigPackageUtility::CreatePackage("_api");
 
-		String stage = ConfigPackageUtility::CreateStage("_api");
-		ConfigPackageUtility::ActivateStage("_api", stage);
+			String stage = ConfigPackageUtility::CreateStage("_api");
+			ConfigPackageUtility::ActivateStage("_api", stage);
+		}
 	}
 
 	String path = GetObjectConfigPath(type, fullName);
@@ -240,4 +243,3 @@ bool ConfigObjectUtility::DeleteObject(const ConfigObject::Ptr& object, bool cas
 
 	return DeleteObjectHelper(object, cascade, errors);
 }
-
