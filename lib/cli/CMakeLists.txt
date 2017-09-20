@@ -18,15 +18,13 @@
 set(cli_SOURCES
   apisetupcommand.cpp apisetuputility.cpp
   calistcommand.cpp casigncommand.cpp
-  nodeaddcommand.cpp nodeblackandwhitelistcommand.cpp nodelistcommand.cpp noderemovecommand.cpp
-  nodesetcommand.cpp nodesetupcommand.cpp nodeupdateconfigcommand.cpp nodewizardcommand.cpp nodeutility.cpp
+  nodesetupcommand.cpp nodewizardcommand.cpp nodeutility.cpp
   clicommand.cpp
   consolecommand.cpp
   daemoncommand.cpp daemonutility.cpp
   featureenablecommand.cpp featuredisablecommand.cpp featurelistcommand.cpp featureutility.cpp
   objectlistcommand.cpp objectlistutility.cpp
   pkinewcacommand.cpp pkinewcertcommand.cpp pkisigncsrcommand.cpp pkirequestcommand.cpp pkisavecertcommand.cpp pkiticketcommand.cpp
-  repositoryclearchangescommand.cpp repositorycommitcommand.cpp repositoryobjectcommand.cpp repositoryutility.cpp
   variablegetcommand.cpp variablelistcommand.cpp variableutility.cpp
   troubleshootcommand.cpp
 )
