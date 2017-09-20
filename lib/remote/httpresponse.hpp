@@ -23,6 +23,7 @@
 #include "remote/httprequest.hpp"
 #include "base/stream.hpp"
 #include "base/fifo.hpp"
+#include <vector>
 
 namespace icinga
 {
@@ -70,6 +71,7 @@ private:
 	const HttpRequest& m_Request;
 	Stream::Ptr m_Stream;
 	FIFO::Ptr m_Body;
+	std::vector<String> m_Headers;
 
 	void FinishHeaders(void);
 };

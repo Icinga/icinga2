@@ -171,6 +171,46 @@ void HttpServerConnection::ProcessMessageAsync(HttpRequest& request)
 
 	HttpResponse response(m_Stream, request);
 
+	ApiListener::Ptr listener = ApiListener::GetInstance();
+
+	if (!listener)
+		return;
+
+	Array::Ptr headerAllowOrigin = listener->GetAccessControlAllowOrigin();
+
+	if (headerAllowOrigin->GetLength() != 0) {
+		String origin = request.Headers->Get("origin");
+
+		{
+			ObjectLock olock(headerAllowOrigin);
+
+			for (const String& allowedOrigin : headerAllowOrigin) {
+				if (allowedOrigin == origin)
+					response.AddHeader("Access-Control-Allow-Origin", origin);
+			}
+		}
+
+		if (listener->GetAccessControlAllowCredentials())
+			response.AddHeader("Access-Control-Allow-Credentials", "true");
+
+		String accessControlRequestMethodHeader = request.Headers->Get("access-control-request-method");
+
+		if (!accessControlRequestMethodHeader.IsEmpty()) {
+			response.SetStatus(200, "OK");
+
+			response.AddHeader("Access-Control-Allow-Methods", listener->GetAccessControlAllowMethods());
+			response.AddHeader("Access-Control-Allow-Headers", listener->GetAccessControlAllowHeaders());
+
+			String msg = "Preflight OK";
+			response.WriteBody(msg.CStr(), msg.GetLength());
+
+			response.Finish();
+			m_PendingRequests--;
+
+			return;
+		}
+	}
+
 	String accept_header = request.Headers->Get("accept");
 
 	if (request.RequestMethod != "GET" && accept_header != "application/json") {

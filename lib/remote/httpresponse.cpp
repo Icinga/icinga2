@@ -58,13 +58,7 @@ void HttpResponse::SetStatus(int code, const String& message)
 
 void HttpResponse::AddHeader(const String& key, const String& value)
 {
-	if (m_State != HttpResponseHeaders) {
-		Log(LogWarning, "HttpResponse", "Tried to add header after headers had already been sent.");
-		return;
-	}
-
-	String header = key + ": " + value + "\r\n";
-	m_Stream->Write(header.CStr(), header.GetLength());
+	m_Headers.push_back(key + ": " + value + "\r\n");
 }
 
 void HttpResponse::FinishHeaders(void)
@@ -74,6 +68,10 @@ void HttpResponse::FinishHeaders(void)
 			AddHeader("Transfer-Encoding", "chunked");
 
 		AddHeader("Server", "Icinga/" + Application::GetAppVersion());
+
+		for (const String& header : m_Headers)
+			m_Stream->Write(header.CStr(), header.GetLength());
+
 		m_Stream->Write("\r\n", 2);
 		m_State = HttpResponseBody;
 	}
