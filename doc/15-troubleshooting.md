@@ -113,15 +113,19 @@ checks later on.
 
 Enable the `debuglog` feature:
 
-    # icinga2 feature enable debuglog
-    # service icinga2 restart
+```
+# icinga2 feature enable debuglog
+# service icinga2 restart
+```
 
 The debug log file can be found in `/var/log/icinga2/debug.log`.
 
 Alternatively you may run Icinga 2 in the foreground with debugging enabled. Specify the console
 log severity as an additional parameter argument to `-x`.
 
-    # /usr/sbin/icinga2 daemon -x notice
+```
+# /usr/sbin/icinga2 daemon -x notice
+```
 
 The [log severity](09-object-types.md#objecttype-filelogger) can be one of `critical`, `warning`, `information`, `notice`
 and `debug`.
@@ -130,15 +134,21 @@ and `debug`.
 
 Open a command prompt with administrative privileges and enable the debug log feature.
 
-    C:> icinga2.exe feature enable debuglog
+```
+C:> icinga2.exe feature enable debuglog
+```
 
 Ensure that the Icinga 2 service already writes the main log into `C:\ProgramData\icinga2\var\log\icinga2`.
 Restart the Icinga 2 service and open the newly created `debug.log` file.
 
-    C:> net stop icinga2
-    C:> net start icinga2
+```
+C:> net stop icinga2
+C:> net start icinga2
+```
 
-## List Configuration Objects <a id="list-configuration-objects"></a>
+## Configuration Troubleshooting <a id="troubleshooting-configuration"></a>
+
+### List Configuration Objects <a id="troubleshooting-list-configuration-objects"></a>
 
 The `icinga2 object list` CLI command can be used to list all configuration objects and their
 attributes. The tool also shows where each of the attributes was modified.
@@ -149,74 +159,83 @@ attributes. The tool also shows where each of the attributes was modified.
 
 That way you can also identify which objects have been created from your [apply rules](17-language-reference.md#apply).
 
-    # icinga2 object list
+```
+# icinga2 object list
 
-    Object 'localhost!ssh' of type 'Service':
-      * __name = 'localhost!ssh'
-      * check_command = 'ssh'
-        % = modified in '/etc/icinga2/conf.d/hosts/localhost/ssh.conf', lines 5:3-5:23
-      * check_interval = 60
-        % = modified in '/etc/icinga2/conf.d/templates.conf', lines 24:3-24:21
-      * host_name = 'localhost'
-        % = modified in '/etc/icinga2/conf.d/hosts/localhost/ssh.conf', lines 4:3-4:25
-      * max_check_attempts = 3
-        % = modified in '/etc/icinga2/conf.d/templates.conf', lines 23:3-23:24
-      * name = 'ssh'
-      * retry_interval = 30
-        % = modified in '/etc/icinga2/conf.d/templates.conf', lines 25:3-25:22
-      * templates = [ 'ssh', 'generic-service' ]
-        % += modified in '/etc/icinga2/conf.d/hosts/localhost/ssh.conf', lines 1:0-7:1
-        % += modified in '/etc/icinga2/conf.d/templates.conf', lines 22:1-26:1
-      * type = 'Service'
-      * vars
-        % += modified in '/etc/icinga2/conf.d/hosts/localhost/ssh.conf', lines 6:3-6:19
-        * sla = '24x7'
-          % = modified in '/etc/icinga2/conf.d/hosts/localhost/ssh.conf', lines 6:3-6:19
+Object 'localhost!ssh' of type 'Service':
+  * __name = 'localhost!ssh'
+  * check_command = 'ssh'
+    % = modified in '/etc/icinga2/conf.d/hosts/localhost/ssh.conf', lines 5:3-5:23
+  * check_interval = 60
+    % = modified in '/etc/icinga2/conf.d/templates.conf', lines 24:3-24:21
+  * host_name = 'localhost'
+    % = modified in '/etc/icinga2/conf.d/hosts/localhost/ssh.conf', lines 4:3-4:25
+  * max_check_attempts = 3
+    % = modified in '/etc/icinga2/conf.d/templates.conf', lines 23:3-23:24
+  * name = 'ssh'
+  * retry_interval = 30
+    % = modified in '/etc/icinga2/conf.d/templates.conf', lines 25:3-25:22
+  * templates = [ 'ssh', 'generic-service' ]
+    % += modified in '/etc/icinga2/conf.d/hosts/localhost/ssh.conf', lines 1:0-7:1
+    % += modified in '/etc/icinga2/conf.d/templates.conf', lines 22:1-26:1
+  * type = 'Service'
+  * vars
+    % += modified in '/etc/icinga2/conf.d/hosts/localhost/ssh.conf', lines 6:3-6:19
+    * sla = '24x7'
+      % = modified in '/etc/icinga2/conf.d/hosts/localhost/ssh.conf', lines 6:3-6:19
 
-    [...]
+[...]
+```
 
 You can also filter by name and type:
 
-    # icinga2 object list --name *ssh* --type Service
-    Object 'localhost!ssh' of type 'Service':
-      * __name = 'localhost!ssh'
-      * check_command = 'ssh'
-        % = modified in '/etc/icinga2/conf.d/hosts/localhost/ssh.conf', lines 5:3-5:23
-      * check_interval = 60
-        % = modified in '/etc/icinga2/conf.d/templates.conf', lines 24:3-24:21
-      * host_name = 'localhost'
-        % = modified in '/etc/icinga2/conf.d/hosts/localhost/ssh.conf', lines 4:3-4:25
-      * max_check_attempts = 3
-        % = modified in '/etc/icinga2/conf.d/templates.conf', lines 23:3-23:24
-      * name = 'ssh'
-      * retry_interval = 30
-        % = modified in '/etc/icinga2/conf.d/templates.conf', lines 25:3-25:22
-      * templates = [ 'ssh', 'generic-service' ]
-        % += modified in '/etc/icinga2/conf.d/hosts/localhost/ssh.conf', lines 1:0-7:1
-        % += modified in '/etc/icinga2/conf.d/templates.conf', lines 22:1-26:1
-      * type = 'Service'
-      * vars
-        % += modified in '/etc/icinga2/conf.d/hosts/localhost/ssh.conf', lines 6:3-6:19
-        * sla = '24x7'
-          % = modified in '/etc/icinga2/conf.d/hosts/localhost/ssh.conf', lines 6:3-6:19
+```
+# icinga2 object list --name *ssh* --type Service
+Object 'localhost!ssh' of type 'Service':
+  * __name = 'localhost!ssh'
+  * check_command = 'ssh'
+    % = modified in '/etc/icinga2/conf.d/hosts/localhost/ssh.conf', lines 5:3-5:23
+  * check_interval = 60
+    % = modified in '/etc/icinga2/conf.d/templates.conf', lines 24:3-24:21
+  * host_name = 'localhost'
+    % = modified in '/etc/icinga2/conf.d/hosts/localhost/ssh.conf', lines 4:3-4:25
+  * max_check_attempts = 3
+    % = modified in '/etc/icinga2/conf.d/templates.conf', lines 23:3-23:24
+  * name = 'ssh'
+  * retry_interval = 30
+    % = modified in '/etc/icinga2/conf.d/templates.conf', lines 25:3-25:22
+  * templates = [ 'ssh', 'generic-service' ]
+    % += modified in '/etc/icinga2/conf.d/hosts/localhost/ssh.conf', lines 1:0-7:1
+    % += modified in '/etc/icinga2/conf.d/templates.conf', lines 22:1-26:1
+  * type = 'Service'
+  * vars
+    % += modified in '/etc/icinga2/conf.d/hosts/localhost/ssh.conf', lines 6:3-6:19
+    * sla = '24x7'
+      % = modified in '/etc/icinga2/conf.d/hosts/localhost/ssh.conf', lines 6:3-6:19
 
-    Found 1 Service objects.
+Found 1 Service objects.
 
-    [2014-10-15 14:27:19 +0200] information/cli: Parsed 175 objects.
+[2014-10-15 14:27:19 +0200] information/cli: Parsed 175 objects.
+```
 
 Runtime modifications via the [REST API](12-icinga2-api.md#icinga2-api-config-objects)
 are not immediately updated. Furthermore there is a known issue with
 [group assign expressions](17-language-reference.md#group-assign) which are not reflected in the host object output.
 You need to restart Icinga 2 in order to update the `icinga2.debug` cache file.
 
+### Apply rules do not match <a id="apply-rules-do-not-match"></a>
 
-## Where are the check command definitions? <a id="check-command-definitions"></a>
+You can analyze apply rules and matching objects by using the [script debugger](20-script-debugger.md#script-debugger).
+
+### Where are the check command definitions? <a id="check-command-definitions"></a>
 
 Icinga 2 features a number of built-in [check command definitions](10-icinga-template-library.md#icinga-template-library) which are
 included with
 
-    include <itl>
-    include <plugins>
+```
+include <itl>
+include <plugins>
+```
 
 in the [icinga2.conf](04-configuring-icinga-2.md#icinga2-conf) configuration file. These files are not considered configuration files and will be overridden
 on upgrade, so please send modifications as proposed patches upstream. The default include path is set to
@@ -225,7 +244,44 @@ on upgrade, so please send modifications as proposed patches upstream. The defau
 You should add your own command definitions to a new file in `conf.d/` called `commands.conf`
 or similar.
 
-## Checks <a id="troubleshooting-checks"></a>
+### Configuration is ignored <a id="configuration-ignored"></a>
+
+* Make sure that the line(s) are not [commented out](17-language-reference.md#comments) (starting with `//` or `#`, or
+encapsulated by `/* ... */`).
+* Is the configuration file included in [icinga2.conf](04-configuring-icinga-2.md#icinga2-conf)?
+
+Run the [configuration validation](11-cli-commands.md#config-validation) and add `notice` as log severity.
+Search for the file which should be included i.e. using the `grep` CLI command.
+
+```
+# icinga2 daemon -C -x notice | grep command
+```
+
+### Configuration attributes are inherited from <a id="configuration-attribute-inheritance"></a>
+
+Icinga 2 allows you to import templates using the [import](17-language-reference.md#template-imports) keyword. If these templates
+contain additional attributes, your objects will automatically inherit them. You can override
+or modify these attributes in the current object.
+
+The [object list](15-troubleshooting.md#troubleshooting-list-configuration-objects) CLI command allows you to verify the attribute origin.
+
+### Configuration Value with Single Dollar Sign <a id="configuration-value-dollar-sign"></a>
+
+In case your configuration validation fails with a missing closing dollar sign error message, you
+did not properly escape the single dollar sign preventing its usage as [runtime macro](03-monitoring-basics.md#runtime-macros).
+
+```
+critical/config: Error: Validation failed for Object 'ping4' (Type: 'Service') at /etc/icinga2/zones.d/global-templates/windows.conf:24: Closing $ not found in macro format string 'top-syntax=${list}'.
+```
+
+Correct the custom attribute value to
+
+```
+"top-syntax=$${list}"
+```
+
+
+## Checks Troubleshooting <a id="troubleshooting-checks"></a>
 
 ### Executed Command for Checks <a id="checks-executed-command"></a>
 
@@ -238,53 +294,59 @@ to fetch the checkable object, its check result and the executed shell command.
 Example for a service object query using a [regex match](18-library-reference.md#global-functions-regex)
 on the name:
 
-    $ curl -k -s -u root:icinga -H 'Accept: application/json' -H 'X-HTTP-Method-Override: GET' -X POST 'https://localhost:5665/v1/objects/services' \
-    -d '{ "filter": "regex(pattern, service.name)", "filter_vars": { "pattern": "^http" }, "attrs": [ "__name", "last_check_result" ] }' | python -m json.tool
-    {
-        "results": [
-            {
-                "attrs": {
-                    "__name": "example.localdomain!http",
-                    "last_check_result": {
-                        "active": true,
-                        "check_source": "example.localdomain",
-                        "command": [
-                            "/usr/local/sbin/check_http",
-                            "-I",
-                            "127.0.0.1",
-                            "-u",
-                            "/"
-                        ],
+```
+$ curl -k -s -u root:icinga -H 'Accept: application/json' -H 'X-HTTP-Method-Override: GET' -X POST 'https://localhost:5665/v1/objects/services' \
+-d '{ "filter": "regex(pattern, service.name)", "filter_vars": { "pattern": "^http" }, "attrs": [ "__name", "last_check_result" ] }' | python -m json.tool
+{
+    "results": [
+        {
+            "attrs": {
+                "__name": "example.localdomain!http",
+                "last_check_result": {
+                    "active": true,
+                    "check_source": "example.localdomain",
+                    "command": [
+                        "/usr/local/sbin/check_http",
+                        "-I",
+                        "127.0.0.1",
+                        "-u",
+                        "/"
+                    ],
 
-      ...
+  ...
 
-                    }
-                },
-                "joins": {},
-                "meta": {},
-                "name": "example.localdomain!http",
-                "type": "Service"
-            }
-        ]
-    }
+                }
+            },
+            "joins": {},
+            "meta": {},
+            "name": "example.localdomain!http",
+            "type": "Service"
+        }
+    ]
+}
+```
 
 Example for using the `icinga2 console` CLI command evaluation functionality:
 
-    $ ICINGA2_API_PASSWORD=icinga icinga2 console --connect 'https://root@localhost:5665/' \
-    --eval 'get_service("example.localdomain", "http").last_check_result.command' | python -m json.tool
-    [
-        "/usr/local/sbin/check_http",
-        "-I",
-        "127.0.0.1",
-        "-u",
-        "/"
-    ]
+```
+$ ICINGA2_API_PASSWORD=icinga icinga2 console --connect 'https://root@localhost:5665/' \
+--eval 'get_service("example.localdomain", "http").last_check_result.command' | python -m json.tool
+[
+    "/usr/local/sbin/check_http",
+    "-I",
+    "127.0.0.1",
+    "-u",
+    "/"
+]
+```
 
 Example for searching the debug log:
 
-    # icinga2 feature enable debuglog
-    # systemctl restart icinga2
-    # tail -f /var/log/icinga2/debug.log | grep "notice/Process"
+```
+# icinga2 feature enable debuglog
+# systemctl restart icinga2
+# tail -f /var/log/icinga2/debug.log | grep "notice/Process"
+```
 
 
 ### Checks are not executed <a id="checks-not-executed"></a>
@@ -297,15 +359,18 @@ Example for searching the debug log:
 
 Examples:
 
-    # sudo -u icinga /usr/lib/nagios/plugins/check_ping -4 -H 127.0.0.1 -c 5000,100% -w 3000,80%
+```
+# sudo -u icinga /usr/lib/nagios/plugins/check_ping -4 -H 127.0.0.1 -c 5000,100% -w 3000,80%
 
-    # icinga2 feature enable checker
-    The feature 'checker' is already enabled.
+# icinga2 feature enable checker
+The feature 'checker' is already enabled.
+```
 
 Fetch all check result events matching the `event.service` name `random`:
 
-    $ curl -k -s -u root:icinga -X POST 'https://localhost:5665/v1/events?queue=debugchecks&types=CheckResult&filter=match%28%22random*%22,event.service%29'
-
+```
+$ curl -k -s -u root:icinga -X POST 'https://localhost:5665/v1/events?queue=debugchecks&types=CheckResult&filter=match%28%22random*%22,event.service%29'
+```
 
 
 ### Analyze Check Source <a id="checks-check-source"></a>
@@ -321,35 +386,39 @@ as where the plugin is called.
 Example for retrieving the check source from all `disk` services using a
 [regex match](18-library-reference.md#global-functions-regex) on the name:
 
-    $ curl -k -s -u root:icinga -H 'Accept: application/json' -H 'X-HTTP-Method-Override: GET' -X POST 'https://localhost:5665/v1/objects/services' \
-    -d '{ "filter": "regex(pattern, service.name)", "filter_vars": { "pattern": "^disk" }, "attrs": [ "__name", "last_check_result" ] }' | python -m json.tool
-    {
-        "results": [
-            {
-                "attrs": {
-                    "__name": "icinga2-client1.localdomain!disk",
-                    "last_check_result": {
-                        "active": true,
-                        "check_source": "icinga2-client1.localdomain",
+```
+$ curl -k -s -u root:icinga -H 'Accept: application/json' -H 'X-HTTP-Method-Override: GET' -X POST 'https://localhost:5665/v1/objects/services' \
+-d '{ "filter": "regex(pattern, service.name)", "filter_vars": { "pattern": "^disk" }, "attrs": [ "__name", "last_check_result" ] }' | python -m json.tool
+{
+    "results": [
+        {
+            "attrs": {
+                "__name": "icinga2-client1.localdomain!disk",
+                "last_check_result": {
+                    "active": true,
+                    "check_source": "icinga2-client1.localdomain",
 
-      ...
+  ...
 
-                    }
-                },
-                "joins": {},
-                "meta": {},
-                "name": "icinga2-client1.localdomain!disk",
-                "type": "Service"
-            }
-        ]
-    }
+                }
+            },
+            "joins": {},
+            "meta": {},
+            "name": "icinga2-client1.localdomain!disk",
+            "type": "Service"
+        }
+    ]
+}
+```
 
 Example for using the `icinga2 console` CLI command evaluation functionality:
 
-    $ ICINGA2_API_PASSWORD=icinga icinga2 console --connect 'https://root@localhost:5665/' \
-    --eval 'get_service("icinga2-client1.localdomain", "disk").last_check_result.check_source' | python -m json.tool
+```
+$ ICINGA2_API_PASSWORD=icinga icinga2 console --connect 'https://root@localhost:5665/' \
+--eval 'get_service("icinga2-client1.localdomain", "disk").last_check_result.check_source' | python -m json.tool
 
-    "icinga2-client1.localdomain"
+"icinga2-client1.localdomain"
+```
 
 
 ### NSClient++ Check Errors with nscp-local <a id="nsclient-check-errors-nscp-local"></a>
@@ -444,37 +513,42 @@ and might therefore hit this limit in larger setups.
 
 The error message could look like this:
 
-    2017-01-12T11:55:40.742685+01:00 icinga2-master1 kernel: [65567.582895] cgroup: fork rejected by pids controller in /system.slice/icinga2.service
+```
+2017-01-12T11:55:40.742685+01:00 icinga2-master1 kernel: [65567.582895] cgroup: fork rejected by pids controller in /system.slice/icinga2.service
+```
 
 In order to solve the problem, increase the value for `DefaultTasksMax`
 or set it to `infinity`:
 
+```
+[root@icinga2-master1.localdomain /]# cp /usr/lib/systemd/system/icinga2.service /etc/systemd/system/icinga2.service
+[root@icinga2-master1.localdomain /]# vim /etc/systemd/system/icinga2.service
 
-    [root@icinga2-master1.localdomain /]# cp /usr/lib/systemd/system/icinga2.service /etc/systemd/system/icinga2.service
-    [root@icinga2-master1.localdomain /]# vim /etc/systemd/system/icinga2.service
+[Service]
 
-    [Service]
+DefaultTasksMax=infinity
 
-    DefaultTasksMax=infinity
-
-    [root@icinga2-master1.localdomain /]# systemctl daemon-reload
-    [root@icinga2-master1.localdomain /]# systemctl restart icinga2
+[root@icinga2-master1.localdomain /]# systemctl daemon-reload
+[root@icinga2-master1.localdomain /]# systemctl restart icinga2
+```
 
 Please note that this setting is available since Systemd version 226.
 
 > **Note**
 >
-> Future versions of Icinga 2 will add the setting as default.
+> Icinga 2 v2.7.1 adds the setting as default.
 
 ### Late Check Results <a id="late-check-results"></a>
 
 [Icinga Web 2](https://www.icinga.com/products/icinga-web-2/) provides
 a dashboard overview for `overdue checks`.
 
-The REST API provides the [status] URL endpoint with some generic metrics
+The REST API provides the [status](12-icinga2-api.md#icinga2-api-status) URL endpoint with some generic metrics
 on Icinga and its features.
 
-    # curl -k -s -u root:icinga 'https://localhost:5665/v1/status' | python -m json.tool | less
+```
+# curl -k -s -u root:icinga 'https://localhost:5665/v1/status' | python -m json.tool | less
+```
 
 You can also calculate late check results via the REST API:
 
@@ -484,28 +558,34 @@ You can also calculate late check results via the REST API:
 You can use the [icinga2 console](11-cli-commands.md#cli-command-console) to connect to the instance, fetch all data
 and calculate the differences. More infos can be found in [this blogpost](https://www.icinga.com/2016/08/11/analyse-icinga-2-problems-using-the-console-api/).
 
-    # ICINGA2_API_USERNAME=root ICINGA2_API_PASSWORD=icinga icinga2 console --connect 'https://localhost:5665/'
+```
+# ICINGA2_API_USERNAME=root ICINGA2_API_PASSWORD=icinga icinga2 console --connect 'https://localhost:5665/'
 
-    <1> => var res = []; for (s in get_objects(Service).filter(s => s.last_check < get_time() - 2 * s.check_interval)) { res.add([s.__name, DateTime(s.last_check).to_string()]) }; res
+<1> => var res = []; for (s in get_objects(Service).filter(s => s.last_check < get_time() - 2 * s.check_interval)) { res.add([s.__name, DateTime(s.last_check).to_string()]) }; res
 
-    [ [ "10807-host!10807-service", "2016-06-10 15:54:55 +0200" ], [ "mbmif.int.netways.de!disk /", "2016-01-26 16:32:29 +0100" ] ]
+[ [ "10807-host!10807-service", "2016-06-10 15:54:55 +0200" ], [ "mbmif.int.netways.de!disk /", "2016-01-26 16:32:29 +0100" ] ]
+```
 
 Or if you are just interested in numbers, call [len](18-library-reference.md#array-len) on the result array `res`:
 
-    <2> => var res = []; for (s in get_objects(Service).filter(s => s.last_check < get_time() - 2 * s.check_interval)) { res.add([s.__name, DateTime(s.last_check).to_string()]) }; res.len()
+```
+<2> => var res = []; for (s in get_objects(Service).filter(s => s.last_check < get_time() - 2 * s.check_interval)) { res.add([s.__name, DateTime(s.last_check).to_string()]) }; res.len()
 
-    2.000000
+2.000000
+```
 
 If you need to analyze that problem multiple times, just add the current formatted timestamp
 and repeat the commands.
 
-    <23> => DateTime(get_time()).to_string()
+```
+<23> => DateTime(get_time()).to_string()
 
-    "2017-04-04 16:09:39 +0200"
+"2017-04-04 16:09:39 +0200"
 
-    <24> => var res = []; for (s in get_objects(Service).filter(s => s.last_check < get_time() - 2 * s.check_interval)) { res.add([s.__name, DateTime(s.last_check).to_string()]) }; res.len()
+<24> => var res = []; for (s in get_objects(Service).filter(s => s.last_check < get_time() - 2 * s.check_interval)) { res.add([s.__name, DateTime(s.last_check).to_string()]) }; res.len()
 
-    8287.000000
+8287.000000
+```
 
 More details about the Icinga 2 DSL and its possibilities can be
 found in the [language](17-language-reference.md#language-reference) and [library](18-library-reference.md#library-reference) reference chapters.
@@ -516,11 +596,13 @@ When it comes to a distributed HA setup, each node is responsible for a load-bal
 Host and Service objects provide the attribute `paused`. If this is set to `false`, the current node
 actively attempts to schedule and execute checks. Otherwise the node does not feel responsible.
 
-    <3> => var res = {}; for (s in get_objects(Service).filter(s => s.last_check < get_time() - 2 * s.check_interval)) { res[s.paused] += 1 }; res
-    {
-      @false = 2.000000
-      @true = 1.000000
-    }
+```
+<3> => var res = {}; for (s in get_objects(Service).filter(s => s.last_check < get_time() - 2 * s.check_interval)) { res[s.paused] += 1 }; res
+{
+  @false = 2.000000
+  @true = 1.000000
+}
+```
 
 You may ask why this analysis is important? Fair enough - if the numbers are not inverted in a HA zone
 with two members, this may give a hint that the cluster nodes are in a split-brain scenario, or you've
@@ -534,18 +616,22 @@ you might want to know which zones are affected.
 This analysis assumes that clients which are not connected, have the string `connected` in their
 service check result output and their state is `UNKNOWN`.
 
-    <4> => var res = {}; for (s in get_objects(Service)) { if (s.state==3) { if (match("*connected*", s.last_check_result.output)) { res[s.zone] += [s.host_name] } } };  for (k => v in res) { res[k] = len(v.unique()) }; res
+```
+<4> => var res = {}; for (s in get_objects(Service)) { if (s.state==3) { if (match("*connected*", s.last_check_result.output)) { res[s.zone] += [s.host_name] } } };  for (k => v in res) { res[k] = len(v.unique()) }; res
 
-    {
-      Asia = 31.000000
-      Europe = 214.000000
-      USA = 207.000000
-    }
+{
+  Asia = 31.000000
+  Europe = 214.000000
+  USA = 207.000000
+}
+```
 
 The result set shows the configured zones and their affected hosts in a unique list. The output also just prints the numbers
 but you can adjust this by omitting the `len()` call inside the for loop.
 
-## Notifications are not sent <a id="notifications-not-sent"></a>
+## Notifications Troubleshooting <a id="troubleshooting-notifications"></a>
+
+### Notifications are not sent <a id="notifications-not-sent"></a>
 
 * Check the [debug log](15-troubleshooting.md#troubleshooting-enable-debug-output) to see if a notification is triggered.
 * If yes, verify that all conditions are satisfied.
@@ -571,15 +657,27 @@ changed on your system.
 
 Examples:
 
-    # icinga2 feature enable notification
-    The feature 'notification' is already enabled.
+```
+# icinga2 feature enable notification
+The feature 'notification' is already enabled.
+```
+
+```
+# icinga2 feature enable debuglog
+# systemctl restart icinga2
+
+# grep Notification /var/log/icinga2/debug.log > /root/analyze_notification_problem.log
+```
 
 You can use the Icinga 2 API [event streams](12-icinga2-api.md#icinga2-api-event-streams) to receive live notification streams:
 
-    $ curl -k -s -u root:icinga -X POST 'https://localhost:5665/v1/events?queue=debugnotifications&types=Notification'
+```
+$ curl -k -s -u root:icinga -X POST 'https://localhost:5665/v1/events?queue=debugnotifications&types=Notification'
+```
 
+## Feature Troubleshooting <a id="troubleshooting-features"></a>
 
-## Feature is not working <a id="feature-not-working"></a>
+### Feature is not working <a id="feature-not-working"></a>
 
 * Make sure that the feature configuration is enabled by symlinking from `features-available/`
 to `features-enabled` and that the latter is included in [icinga2.conf](04-configuring-icinga-2.md#icinga2-conf).
@@ -588,41 +686,146 @@ to `features-enabled` and that the latter is included in [icinga2.conf](04-confi
 
 Look up the [object type](09-object-types.md#object-types) for the required feature and verify it is enabled:
 
-    # icinga2 object list --type <feature object type>
+```
+# icinga2 object list --type <feature object type>
+```
 
 Example for the `graphite` feature:
 
-    # icinga2 object list --type GraphiteWriter
+```
+# icinga2 object list --type GraphiteWriter
+```
 
-## Configuration is ignored <a id="configuration-ignored"></a>
+Look into the log and check whether the feature logs anything specific for this matter.
 
-* Make sure that the line(s) are not [commented out](17-language-reference.md#comments) (starting with `//` or `#`, or
-encapsulated by `/* ... */`).
-* Is the configuration file included in [icinga2.conf](04-configuring-icinga-2.md#icinga2-conf)?
+```
+grep GraphiteWriter /var/log/icinga2/icinga2.log
+```
 
-Run the [configuration validation](11-cli-commands.md#config-validation) and add `notice` as log severity.
-Search for the file which should be included i.e. using the `grep` CLI command.
 
-    # icinga2 daemon -C -x notice | grep command
+## Certificate Troubleshooting <a id="troubleshooting-certificate"></a>
 
-## Configuration attributes are inherited from <a id="configuration-attribute-inheritance"></a>
+### Certificate Verification <a id="troubleshooting-certificate-verification"></a>
 
-Icinga 2 allows you to import templates using the [import](17-language-reference.md#template-imports) keyword. If these templates
-contain additional attributes, your objects will automatically inherit them. You can override
-or modify these attributes in the current object.
+If the TLS handshake fails when a client connects to the cluster or the REST API,
+ensure to verify the used certificates.
 
-The [object list](15-troubleshooting.md#list-configuration-objects) CLI command allows you to verify the attribute origin.
+Print the CA and client certificate and ensure that the following attributes are set:
 
-## Configuration Value with Single Dollar Sign <a id="configuration-value-dollar-sign"></a>
+* Version must be 3.
+* Serial number is a hex-encoded string.
+* Issuer should be your certificate authority (defaults to `Icinga CA` for all CLI commands).
+* Validity, meaning to say the certificate is not expired.
+* Subject with the common name (CN) matches the client endpoint name and its FQDN.
+* v3 extensions must set the basic constraint for `CA:TRUE` (ca.crt) or `CA:FALSE` (client certificate).
+* Subject Alternative Name is set to a proper DNS name (required for REST API and browsers).
 
-In case your configuration validation fails with a missing closing dollar sign error message, you
-did not properly escape the single dollar sign preventing its usage as [runtime macro](03-monitoring-basics.md#runtime-macros).
 
-    critical/config: Error: Validation failed for Object 'ping4' (Type: 'Service') at /etc/icinga2/zones.d/global-templates/windows.conf:24: Closing $ not found in macro format string 'top-syntax=${list}'.
+```
+# cd /etc/icinga2/pki/
+```
 
-Correct the custom attribute value to
+CA certificate:
 
-    "top-syntax=$${list}"
+```
+# openssl x509 -in ca.crt -text
+
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number: 1 (0x1)
+    Signature Algorithm: sha256WithRSAEncryption
+        Issuer: CN=Icinga CA
+        Validity
+            Not Before: Feb 23 14:45:32 2016 GMT
+            Not After : Feb 19 14:45:32 2031 GMT
+        Subject: CN=Icinga CA
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+                Public-Key: (4096 bit)
+                Modulus:
+...
+                Exponent: 65537 (0x10001)
+        X509v3 extensions:
+            X509v3 Basic Constraints: critical
+                CA:TRUE
+    Signature Algorithm: sha256WithRSAEncryption
+...
+```
+
+Client public certificate:
+
+```
+# openssl x509 -in icinga2-client1.localdomain.crt -text
+
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number:
+            86:47:44:65:49:c6:65:6b:5e:6d:4f:a5:fe:6c:76:05:0b:1a:cf:34
+    Signature Algorithm: sha256WithRSAEncryption
+        Issuer: CN=Icinga CA
+        Validity
+            Not Before: Aug 20 16:20:05 2016 GMT
+            Not After : Aug 17 16:20:05 2031 GMT
+        Subject: CN=icinga2-client1.localdomain
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+                Public-Key: (4096 bit)
+                Modulus:
+...
+                Exponent: 65537 (0x10001)
+        X509v3 extensions:
+            X509v3 Basic Constraints: critical
+                CA:FALSE
+            X509v3 Subject Alternative Name:
+                DNS:icinga2-client1.localdomain
+    Signature Algorithm: sha256WithRSAEncryption
+...
+```
+
+Make sure to verify the client's certificate and its received `ca.crt` in `/etc/icinga2/pki` and ensure that
+both instances are signed by the **same CA**.
+
+```
+# openssl verify -verbose -CAfile /etc/icinga2/pki/ca.crt /etc/icinga2/pki/icinga2-master1.localdomain.crt
+icinga2-master1.localdomain.crt: OK
+
+# openssl verify -verbose -CAfile /etc/icinga2/pki/ca.crt /etc/icinga2/pki/icinga2-client1.localdomain.crt
+icinga2-client1.localdomain.crt: OK
+```
+
+Fetch the `ca.crt` file from the client node and compare it to your master's `ca.crt` file:
+
+```
+# scp icinga2-client1:/etc/icinga2/pki/ca.crt test-client-ca.crt
+# diff -ur /etc/icinga2/pki/ca.crt test-client-ca.crt
+```
+
+On SLES11 you'll need to use the `openssl1` command instead of `openssl`.
+
+<!--
+### Certificate Signing <a id="troubleshooting-certificate-signing"></a>
+-->
+
+
+### Certificate Problems with OpenSSL 1.1.0 <a id="troubleshooting-certificate-openssl-1-1-0"></a>
+
+Users have reported problems with SSL certificates inside a distributed monitoring setup when they
+
+* updated their Icinga 2 package to 2.7.0 on Windows or
+* upgraded their distribution which included an update to OpenSSL 1.1.0.
+
+Example during startup on a Windows client:
+
+```
+critical/SSL: Error loading and verifying locations in ca key file 'C:\ProgramData\icinga2\etc/icinga2/pki/ca.crt': 219029726, "error:0D0E20DE:asn1 encoding routines:c2i_ibuf:illegal zero content"
+critical/config: Error: Cannot make SSL context for cert path: 'C:\ProgramData\icinga2\etc/icinga2/pki/client.crt' key path: 'C:\ProgramData\icinga2\etc/icinga2/pki/client.key' ca path: 'C:\ProgramData\icinga2\etc/icinga2/pki/ca.crt'.
+```
+
+A technical analysis and solution for re-creating the public CA certificate is
+available in [this advisory](https://www.icinga.com/2017/08/30/advisory-for-ssl-problems-with-leading-zeros-on-openssl-1-1-0/).
+
 
 ## Cluster and Clients Troubleshooting <a id="troubleshooting-cluster"></a>
 
@@ -647,11 +850,13 @@ General connection errors could be one of the following problems:
 Use tools like `netstat`, `tcpdump`, `nmap`, etc. to make sure that the cluster communication
 works (default port is `5665`).
 
-    # tcpdump -n port 5665 -i any
+```
+# tcpdump -n port 5665 -i any
 
-    # netstat -tulpen | grep icinga
+# netstat -tulpen | grep icinga
 
-    # nmap yourclusternode.localdomain
+# nmap icinga2-client1.localdomain
+```
 
 ### Cluster Troubleshooting SSL Errors <a id="troubleshooting-cluster-ssl-errors"></a>
 
@@ -664,37 +869,18 @@ the following
   * Verify the `Subject` containing your endpoint's common name (CN)
   * Check the validity of the certificate itself
 
-Steps on the client `icinga2-node2.localdomain`:
+Try to manually connect from `icinga2-client1.localdomain` to the master node `icinga2-master1.localdomain`:
 
-    # ls -la /etc/icinga2/pki
+```
+# openssl s_client -CAfile /etc/icinga2/pki/ca.crt -cert /etc/icinga2/pki/icinga2-client1.localdomain.crt -key /etc/icinga2/pki/icinga2-client1.localdomain.key -connect icinga2-master1.localdomain:5665
 
-    # cd /etc/icinga2/pki/
-    # openssl x509 -in icinga2-node2.localdomain.crt -text
-    Certificate:
-        Data:
-            Version: 1 (0x0)
-            Serial Number: 2 (0x2)
-        Signature Algorithm: sha1WithRSAEncryption
-            Issuer: C=DE, ST=Bavaria, L=Nuremberg, O=NETWAYS GmbH, OU=Monitoring, CN=Icinga CA
-            Validity
-                Not Before: Jan  7 13:17:38 2014 GMT
-                Not After : Jan  5 13:17:38 2024 GMT
-            Subject: C=DE, ST=Bavaria, L=Nuremberg, O=NETWAYS GmbH, OU=Monitoring, CN=icinga2-node2.localdomain
-            Subject Public Key Info:
-                Public Key Algorithm: rsaEncryption
-                    Public-Key: (4096 bit)
-                    Modulus:
-                    ...
+CONNECTED(00000003)
+---
+...
+```
 
-Try to manually connect from `icinga2-node2.localdomain` to the master node `icinga2-node1.localdomain`:
+If the connection attempt fails or your CA does not match, [verify the certificates](15-troubleshooting.md#troubleshooting-certificate-verification).
 
-    # openssl s_client -CAfile /etc/icinga2/pki/ca.crt -cert /etc/icinga2/pki/icinga2-node2.localdomain.crt -key /etc/icinga2/pki/icinga2-node2.localdomain.key -connect icinga2-node1.localdomain:5665
-
-    CONNECTED(00000003)
-    ---
-    ...
-
-If the connection attempt fails or your CA does not match, [verify the master and client certificates](15-troubleshooting.md#troubleshooting-cluster-ssl-certificate-verification).
 
 #### Cluster Troubleshooting Unauthenticated Clients <a id="troubleshooting-cluster-unauthenticated-clients"></a>
 
@@ -702,40 +888,29 @@ Unauthenticated nodes are able to connect. This is required for client setups.
 
 Master:
 
-    [2015-07-13 18:29:25 +0200] information/ApiListener: New client connection for identity 'icinga-client' (unauthenticated)
+```
+[2015-07-13 18:29:25 +0200] information/ApiListener: New client connection for identity 'icinga2-client1.localdomain' (unauthenticated)
+```
 
 Client as command execution bridge:
 
-    [2015-07-13 18:29:26 +1000] notice/ApiEvents: Discarding 'execute command' message from 'icinga-master': Invalid endpoint origin (client not allowed).
+```
+[2015-07-13 18:29:26 +1000] notice/ClusterEvents: Discarding 'execute command' message from 'icinga2-master1.localdomain': Invalid endpoint origin (client not allowed).
+```
 
-If these messages do not go away, make sure to [verify the master and client certificates](15-troubleshooting.md#troubleshooting-cluster-ssl-certificate-verification).
-
-#### Cluster Troubleshooting SSL Certificate Verification <a id="troubleshooting-cluster-ssl-certificate-verification"></a>
-
-Make sure to verify the client's certificate and its received `ca.crt` in `/etc/icinga2/pki` and ensure that
-both instances are signed by the **same CA**.
-
-    # openssl verify -verbose -CAfile /etc/icinga2/pki/ca.crt /etc/icinga2/pki/icinga2-node1.localdomain.crt
-    icinga2-node1.localdomain.crt: OK
-
-    # openssl verify -verbose -CAfile /etc/icinga2/pki/ca.crt /etc/icinga2/pki/icinga2-node2.localdomain.crt
-    icinga2-node2.localdomain.crt: OK
-
-Fetch the `ca.crt` file from the client node and compare it to your master's `ca.crt` file:
-
-    # scp icinga2-node2:/etc/icinga2/pki/ca.crt test-client-ca.crt
-    # diff -ur /etc/icinga2/pki/ca.crt test-client-ca.crt
-
-On SLES11 you'll need to use the `openssl1` command instead of `openssl`.
+If these messages do not go away, make sure to [verify the master and client certificates](15-troubleshooting.md#troubleshooting-certificate-verification).
 
 ### Cluster Troubleshooting Message Errors <a id="troubleshooting-cluster-message-errors"></a>
 
-At some point, when the network connection is broken or gone, the Icinga 2 instances
-will be disconnected. If the connection can't be re-established between endpoints in the same HA zone,
+When the network connection is broken or gone, the Icinga 2 instances will be disconnected.
+If the connection can't be re-established between endpoints in the same HA zone,
 they remain in a Split-Brain-mode and history may differ.
 
 Although the Icinga 2 cluster protocol stores historical events in a [replay log](15-troubleshooting.md#troubleshooting-cluster-replay-log)
 for later synchronisation, you should make sure to check why the network connection failed.
+
+Ensure to setup [cluster health checks](06-distributed-monitoring.md#distributed-monitoring-health-checks)
+to monitor all endpoints and zones connectivity.
 
 ### Cluster Troubleshooting Command Endpoint Errors <a id="troubleshooting-cluster-command-endpoint-errors"></a>
 
@@ -758,7 +933,9 @@ the following (e.g. by invoking a forced check from the web interface):
 
 Fetch all check result events matching the `event.service` name `remote-client`:
 
-    $ curl -k -s -u root:icinga -X POST 'https://localhost:5665/v1/events?queue=debugcommandendpoint&types=CheckResult&filter=match%28%22remote-client*%22,event.service%29'
+```
+$ curl -k -s -u root:icinga -X POST 'https://localhost:5665/v1/events?queue=debugcommandendpoint&types=CheckResult&filter=match%28%22remote-client*%22,event.service%29'
+```
 
 
 
@@ -773,13 +950,18 @@ If the cluster zones do not sync their configuration, make sure to check the fol
 [accepts config](06-distributed-monitoring.md#distributed-monitoring-top-down-config-sync), or not.
 
 Verify the object's [version](09-object-types.md#object-types) attribute on all nodes to
-check whether the config update and reload was succesful or not.
+check whether the config update and reload was successful or not.
+
 
 ### Cluster Troubleshooting Overdue Check Results <a id="troubleshooting-cluster-check-results"></a>
 
 If your master does not receive check results (or any other events) from the child zones
 (satellite, clients, etc.), make sure to check whether the client sending in events
 is allowed to do so.
+
+> **Tip**
+>
+> General troubleshooting hints on late check results are documented [here](15-troubleshooting.md#late-check-results).
 
 The [distributed monitoring conventions](06-distributed-monitoring.md#distributed-monitoring-conventions)
 apply. So, if there's a mismatch between your client node's endpoint name and its provided
@@ -797,12 +979,16 @@ If the client cannot authenticate, it's a more general [problem](15-troubleshoot
 
 The client's endpoint is not configured on nor trusted by the master node:
 
-    Discarding 'check result' message from 'icinga2b': Invalid endpoint origin (client not allowed).
+```
+Discarding 'check result' message from 'icinga2-client1.localdomain': Invalid endpoint origin (client not allowed).
+```
 
 The check result message sent by the client does not belong to the zone the checkable object is
 in on the master:
 
-    Discarding 'check result' message from 'icinga2b': Unauthorized access.
+```
+Discarding 'check result' message from 'icinga2-client1.localdomain': Unauthorized access.
+```
 
 
 ### Cluster Troubleshooting Replay Log <a id="troubleshooting-cluster-replay-log"></a>

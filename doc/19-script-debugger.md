@@ -9,10 +9,14 @@ When an exception occurs or the [debugger](17-language-reference.md#breakpoints)
 keyword is encountered in a user script, Icinga 2 launches a console that
 allows the user to debug the script.
 
+You can also attach the script debugger to the [configuration validation](11-cli-commands.md#config-validation):
+
+    # icinga2 daemon -C -X
+
 Here is a list of common errors which can be diagnosed with the script debugger:
 
-* Configuration errors (apply)
-* Errors in user-defined functions
+* Configuration errors e.g. [apply rules](03-monitoring-basics.md#using-apply)
+* Errors in user-defined [functions](17-language-reference.md#functions)
 
 ## Debugging Configuration Errors <a id="script-debugger-config-errors"></a>
 
