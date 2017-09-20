@@ -99,7 +99,7 @@ bool ApiListener::UpdateConfigDir(const ConfigDirInformation& oldConfigInfo, con
 
 	/* skip update if our configuration files are more recent */
 	if (oldTimestamp >= newTimestamp) {
-		Log(LogInformation, "ApiListener")
+		Log(LogNotice, "ApiListener")
 		    << "Our configuration is more recent than the received configuration update."
 		    << " Ignoring configuration file update for path '" << configDir << "'. Current timestamp '"
 		    << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", oldTimestamp) << "' ("
