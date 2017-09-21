@@ -254,11 +254,7 @@ String ConfigPackageUtility::GetActiveStage(const String& packageName)
 	fp.close();
 
 	if (fp.fail())
-		stage = "";
-
-	if (stage.IsEmpty())
-		Log(LogWarning, "ConfigPackageUtility")
-			<< "Could not determinate the active stage, does \"" << path << "\" exist?";
+		return "";
 
 	return stage.Trim();
 }
