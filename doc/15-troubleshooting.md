@@ -225,7 +225,7 @@ You need to restart Icinga 2 in order to update the `icinga2.debug` cache file.
 
 ### Apply rules do not match <a id="apply-rules-do-not-match"></a>
 
-You can analyze apply rules and matching objects by using the [script debugger](20-script-debugger.md#script-debugger).
+You can analyze apply rules and matching objects by using the [script debugger](19-script-debugger.md#script-debugger).
 
 ### Where are the check command definitions? <a id="check-command-definitions"></a>
 
