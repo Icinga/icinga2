@@ -1,5 +1,77 @@
 # Icinga 2.x CHANGELOG
 
+## 2.7.1 (2017-09-21)
+
+### Notes
+
+* Fixes and upgrade documentation for notificatication scripts introduced in 2.7.0
+* InfluxdbWriter attribute `socket_timeout` introduced in 2.7.0 was deprecated (will be removed in 2.8.0). Details in #5469 and #5460
+* Livestatus bygroup table stats fixes for NagVis
+* DB IDO: Fixes for downtime/comment history queries not correctly updating the end time
+* check_nscp_api allows white spaces in arguments
+* Bugfixes
+* Documentation updates
+
+### Enhancement
+
+* [#5594](https://github.com/icinga/icinga2/issues/5594) (Documentation): Docs: Enhance certificate and configuration troubleshooting chapter
+* [#5593](https://github.com/icinga/icinga2/issues/5593) (Documentation): Docs: Add a note for upgrading to 2.7
+* [#5583](https://github.com/icinga/icinga2/issues/5583) (Documentation): Docs: Add example for Windows service monitoring with check\_nscp\_api
+* [#5582](https://github.com/icinga/icinga2/issues/5582) (Documentation): Docs: Add firewall details for check\_nscp\_api
+* [#5523](https://github.com/icinga/icinga2/issues/5523) (Cluster, Log): Enhance client connect/sync logging and include bytes/zone in logs
+* [#5522](https://github.com/icinga/icinga2/issues/5522) (Documentation): Docs: Update freshness checks; add chapter for external check results
+* [#5496](https://github.com/icinga/icinga2/issues/5496) (Documentation): Docs: Update examples for match/regex/cidr\_match and mode for arrays \(Match{All,Any}\)
+* [#5494](https://github.com/icinga/icinga2/issues/5494) (Documentation): Docs: Add section for multiple template imports
+* [#5491](https://github.com/icinga/icinga2/issues/5491) (Documentation): Update "Getting Started" documentation with Alpine Linux
+* [#5487](https://github.com/icinga/icinga2/issues/5487) (Documentation): Docs: Enhance Troubleshooting with nscp-local, check\_source, wrong thresholds
+* [#5476](https://github.com/icinga/icinga2/issues/5476) (Documentation): Docs: Fix ITL chapter TOC; add introduction with mini TOC
+* [#5475](https://github.com/icinga/icinga2/issues/5475) (Documentation): Docs: Add a note on required configuration updates for new notification scripts in v2.7.0
+* [#5474](https://github.com/icinga/icinga2/issues/5474) (Notifications): Notification scripts - make HOSTADDRESS optional
+* [#5468](https://github.com/icinga/icinga2/issues/5468) (Notifications): Make notification mails more readable. Remove redundancy and cruft.
+* [#5461](https://github.com/icinga/icinga2/issues/5461) (Documentation): Update Icinga repository release rpm location
+
+### Bug
+
+* [#5585](https://github.com/icinga/icinga2/issues/5585) (DB IDO): Fix where clause for non-matching {downtime,comment}history IDO database updates
+* [#5566](https://github.com/icinga/icinga2/issues/5566) (Cluster, Log): Logs: Change config sync update to highlight an information, not an error
+* [#5549](https://github.com/icinga/icinga2/issues/5549) (Documentation): Fix cli command used to enable debuglog feature on windows
+* [#5543](https://github.com/icinga/icinga2/issues/5543) (ITL): ITL: Correct arguments for ipmi-sensor CheckCommand
+* [#5539](https://github.com/icinga/icinga2/issues/5539) (Plugins, Windows): check\_nscp\_api: Allow arguments containing spaces
+* [#5537](https://github.com/icinga/icinga2/issues/5537) (Plugins): check\_nscp\_api: support spaces in query arguments
+* [#5536](https://github.com/icinga/icinga2/issues/5536) (Documentation): Fixed nscp-disk service example
+* [#5524](https://github.com/icinga/icinga2/issues/5524) (Cluster): Change FIFO::Optimize\(\) frequency for large messages
+* [#5513](https://github.com/icinga/icinga2/issues/5513) (Cluster): Node in Cluster loses connection
+* [#5506](https://github.com/icinga/icinga2/issues/5506) (Documentation): Docs: Fix wrong parameter for ITL CheckCommand nscp\_api
+* [#5504](https://github.com/icinga/icinga2/issues/5504) (InfluxDB): Fix TLS Race Connecting to InfluxDB
+* [#5503](https://github.com/icinga/icinga2/issues/5503) (Livestatus): Fix grouping for Livestatus queries with 'Stats'
+* [#5502](https://github.com/icinga/icinga2/issues/5502) (Notifications): Fix duplicate variable in notification scripts
+* [#5501](https://github.com/icinga/icinga2/issues/5501) (Installation, Packages): SELinux: fixes for 2.7.0
+* [#5495](https://github.com/icinga/icinga2/issues/5495) (Notifications): Fix parameter order for AcknowledgeSvcProblem / AcknowledgeHostProblem / apiactions:AcknowledgeProblem
+* [#5492](https://github.com/icinga/icinga2/issues/5492) (DB IDO): Comments may not be removed correctly
+* [#5484](https://github.com/icinga/icinga2/issues/5484) (Log): Timestamp comparison of config files logs a wrong message
+* [#5483](https://github.com/icinga/icinga2/issues/5483) (DB IDO): Fix config validation for DB IDO categories 'DbCatEverything'
+* [#5479](https://github.com/icinga/icinga2/issues/5479) (Packages): Icinga2 2.7.0 requires SELinux boolean icinga2\_can\_connect\_all on CentOS 7 even for default port
+* [#5477](https://github.com/icinga/icinga2/issues/5477) (Installation, Packages): Systemd: Add DefaultTasksMax=infinity to service file
+* [#5469](https://github.com/icinga/icinga2/issues/5469) (InfluxDB): Failure to connect to InfluxDB increases CPU utilisation by 100%  for every failure
+* [#5466](https://github.com/icinga/icinga2/issues/5466) (DB IDO): DB IDO: Fix host's unreachable state in history tables
+* [#5460](https://github.com/icinga/icinga2/issues/5460) (InfluxDB): Icinga 2.7 InfluxdbWriter fails to write metrics to InfluxDB over HTTPS
+* [#5458](https://github.com/icinga/icinga2/issues/5458) (DB IDO): IDO donwtimehistory records orphaned from scheduleddowntime records following restart
+* [#5428](https://github.com/icinga/icinga2/issues/5428) (Documentation): "Plugin Check Commands" section inside ITL docs needs adjustments
+* [#5405](https://github.com/icinga/icinga2/issues/5405) (DB IDO): IDO statehistory table does not show hosts going to "UNREACHABLE" state.
+* [#5392](https://github.com/icinga/icinga2/issues/5392) (Packages): Ensure the cache directory exists
+* [#5078](https://github.com/icinga/icinga2/issues/5078) (Compat, Livestatus): Livestatus hostsbygroup and servicesbyhostgroup do not work
+* [#4918](https://github.com/icinga/icinga2/issues/4918) (Packages): cgroup: fork rejected by pids controller in /system.slice/icinga2.service
+* [#4414](https://github.com/icinga/icinga2/issues/4414) (Packages): /usr/lib/icinga2/prepare-dirs does not create /var/cache/icinga2
+
+### Support
+
+* [#5599](https://github.com/icinga/icinga2/issues/5599): changelog.py: Add "backported" to the list of ignored labels
+* [#5590](https://github.com/icinga/icinga2/issues/5590) (Cluster, Log): Silence log level for configuration file updates
+* [#5529](https://github.com/icinga/icinga2/issues/5529) (Log): Change two more loglines for checkables so checkable is quoted
+* [#5528](https://github.com/icinga/icinga2/issues/5528) (Log): Change loglines for checkables so checkable is quoted
+* [#5516](https://github.com/icinga/icinga2/issues/5516) (Documentation): Updates the install dependencies for Debian 9 'stretch'
+* [#5457](https://github.com/icinga/icinga2/issues/5457) (Documentation): Add Changelog generation script for GitHub API
+
 ## 2.7.0 (2017-08-02)
 
 ### Notes
