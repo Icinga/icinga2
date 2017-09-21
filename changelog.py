@@ -30,6 +30,8 @@ except:
 changelog_file = "CHANGELOG.md" # TODO: config param
 debug = 1
 
+ignored_labels = ["high", "low", "bug", "enhancement", "feedback", "question", "backported"]
+
 #################################
 ## Helpers
 
@@ -87,7 +89,7 @@ def escape_markdown(text):
     return re.sub("([<>*_()\[\]#])", r"\\\1", tmp)
 
 def format_labels(issue):
-    labels = filter(lambda label: label not in ["high", "low", "bug", "enhancement", "feedback", "question"], [label["name"] for label in issue["labels"]])
+    labels = filter(lambda label: label not in ignored_labels, [label["name"] for label in issue["labels"]])
 
     if len(labels):
         return " (" + ", ".join(labels) + ")"
