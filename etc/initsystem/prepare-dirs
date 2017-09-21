@@ -29,6 +29,10 @@ getent passwd $ICINGA2_USER >/dev/null 2>&1 || (echo "Icinga user '$ICINGA2_USER
 getent group $ICINGA2_GROUP >/dev/null 2>&1 || (echo "Icinga group '$ICINGA2_GROUP' does not exist. Exiting." && exit 6)
 getent group $ICINGA2_COMMAND_GROUP >/dev/null 2>&1 || (echo "Icinga command group '$ICINGA2_COMMAND_GROUP' does not exist. Exiting." && exit 6)
 
+mkdir -p $ICINGA2_STATE_DIR
+chown -R $ICINGA2_USER:$ICINGA2_GROUP $ICINGA2_STATE_DIR
+chmod 750 $ICINGA2_STATE_DIR
+
 mkdir -p $(dirname -- $ICINGA2_PID_FILE)
 chown $ICINGA2_USER:$ICINGA2_COMMAND_GROUP $(dirname -- $ICINGA2_PID_FILE)
 if [ -f $ICINGA2_PID_FILE ]; then
