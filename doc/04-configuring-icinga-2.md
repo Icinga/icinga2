@@ -160,21 +160,6 @@ the features which have been enabled with `icinga2 feature enable`. See
 [Enabling/Disabling Features](11-cli-commands.md#enable-features) for more details.
 
     /**
-     * The repository.d directory contains all configuration objects
-     * managed by the 'icinga2 repository' CLI commands.
-     */
-    include_recursive "repository.d"
-
-This `include_recursive` directive is used for discovery of services on remote clients
-and their generated configuration described in
-[this chapter](06-distributed-monitoring.md#distributed-monitoring-bottom-up).
-
-**Note**: This has been DEPRECATED in Icinga 2 v2.6 and is **not** required for
-satellites and clients using the [top down approach](#06-distributed-monitoring.md#distributed-monitoring-top-down).
-You can safely disable/remove it.
-
-
-    /**
      * Although in theory you could define all your objects in this file
      * the preferred way is to create separate directories and files in the conf.d
      * directory. Each of these files must have the file extension ".conf".
