@@ -12,6 +12,22 @@ In case are having troubles with OpenSSL 1.1.0 and the
 public CA certificates, please read [this advisory](https://www.icinga.com/2017/08/30/advisory-for-ssl-problems-with-leading-zeros-on-openssl-1-1-0/)
 and check the [troubleshooting chapter](15-troubleshooting.md#troubleshooting).
 
+If Icinga 2 fails to start with an empty reference to `$ICINGA2_CACHE_DIR`
+ensure to set it inside `/etc/sysconfig/icinga2` (RHEL) or `/etc/default/icinga2` (Debian).
+
+RPM packages will put a file called `/etc/sysconfig/icinga2.rpmnew`
+if you have modified the original file.
+
+Example on CentOS 7:
+
+```
+vim /etc/sysconfig/icinga2
+
+ICINGA2_CACHE_DIR=/var/cache/icinga2
+
+systemctl restart icinga2
+```
+
 ## Upgrading the MySQL database <a id="upgrading-mysql-db"></a>
 
 If you're upgrading an existing Icinga 2 instance, you should check the
