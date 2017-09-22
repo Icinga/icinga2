@@ -246,7 +246,8 @@ static int InstallIcinga(void)
 
 		MkDirP(dataDir + "/etc/icinga2/pki");
 		MkDirP(dataDir + "/var/cache/icinga2");
-		MkDirP(dataDir + "/var/lib/icinga2/pki");
+		MkDirP(dataDir + "/var/lib/icinga2/certs");
+		MkDirP(dataDir + "/var/lib/icinga2/certificate-requests");
 		MkDirP(dataDir + "/var/lib/icinga2/agent/inventory");
 		MkDirP(dataDir + "/var/lib/icinga2/api/config");
 		MkDirP(dataDir + "/var/lib/icinga2/api/log");
