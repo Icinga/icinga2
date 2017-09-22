@@ -16,8 +16,9 @@ default [ApiListener configuration](06-distributed-monitoring.md#distributed-mon
 have been adjusted to these paths too.
 
 The config meta package `classicui-config` and the configuration files
-have been removed. You can keep old packages or manually configure
-this legacy interface.
+have been removed. You need to manually configure
+this legacy interface. Create a backup of the configuration
+before upgrading.
 
 ## Upgrading to v2.7 <a id="upgrading-to-2-7"></a>
 
