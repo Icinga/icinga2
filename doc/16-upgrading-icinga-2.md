@@ -15,6 +15,10 @@ The [setup CLI commands](06-distributed-monitoring.md#distributed-monitoring-set
 default [ApiListener configuration](06-distributed-monitoring.md#distributed-monitoring-apilistener)
 have been adjusted to these paths too.
 
+The config meta package `classicui-config` and the configuration files
+have been removed. You can keep old packages or manually configure
+this legacy interface.
+
 ## Upgrading to v2.7 <a id="upgrading-to-2-7"></a>
 
 v2.7.0 provided new notification scripts and commands. Please ensure to

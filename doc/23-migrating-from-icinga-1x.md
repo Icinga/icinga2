@@ -959,7 +959,7 @@ Please check the migration hints for a detailed
 
 > **Note**
 >
-> The Classic UI feature named `Command Expander` does not work with Icinga 2.
+> The Icinga 1.x feature named `Command Expander` does not work with Icinga 2.
 
 #### Environment Macros <a id="differences-1x-2-environment-macros"></a>
 
@@ -1252,7 +1252,7 @@ notification configuration problem in Icinga 1.x:
 * Service A should notify contact X via SMS
 * Service B should notify contact X via Mail
 * Service C should notify contact Y via Mail and SMS
-* Contact X and Y should also be used for authorization (e.g. in Classic UI)
+* Contact X and Y should also be used for authorization
 
 The only way achieving a semi-clean solution is to
 
@@ -1421,11 +1421,11 @@ The format is **not** compatible with Icinga 1.x.
 ### Logging <a id="differences-1x-2-logging"></a>
 
 Icinga 1.x supports syslog facilities and writes its own `icinga.log` log file
-and archives. These logs are used in Icinga 1.x Classic UI to generate
+and archives. These logs are used in Icinga 1.x to generate
 historical reports.
 
 Icinga 2 compat library provides the CompatLogger object which writes the icinga.log and archive
-in Icinga 1.x format in order to stay compatible with Classic UI and other addons.
+in Icinga 1.x format in order to stay compatible with addons.
 
 The native Icinga 2 logging facilities are split into three configuration objects: SyslogLogger,
 FileLogger, StreamLogger. Each of them has their own severity and target configuration.

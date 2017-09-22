@@ -435,15 +435,16 @@ The [MK Livestatus](https://mathias-kettner.de/checkmk_livestatus.html) project
 implements a query protocol that lets users query their Icinga instance for
 status information. It can also be used to send commands.
 
-> **Tip**
->
-> Only install the Livestatus feature if your web interface or addon requires
-> you to do so (for example, [Icinga Web 2](02-getting-started.md#setting-up-icingaweb2)).
-> Icinga Classic UI 1.x and Icinga Web 1.x do not use Livestatus as backend.
-
 The Livestatus component that is distributed as part of Icinga 2 is a
 re-implementation of the Livestatus protocol which is compatible with MK
 Livestatus.
+
+> **Tip**
+>
+> Only install the Livestatus feature if your web interface or addon requires
+> you to do so.
+> [Icinga Web 2](02-getting-started.md#setting-up-icingaweb2) does not need
+> Livestatus.
 
 Details on the available tables and attributes with Icinga 2 can be found
 in the [Livestatus Schema](24-appendix.md#schema-livestatus) section.
@@ -454,13 +455,7 @@ You can enable Livestatus using icinga2 feature enable:
 
 After that you will have to restart Icinga 2:
 
-RHEL/CentOS 7/Fedora, SLES 12, Debian Jessie/Stretch, Ubuntu Xenial:
-
     # systemctl restart icinga2
-
-Debian/Ubuntu, RHEL/CentOS 6 and SUSE:
-
-    # service icinga2 restart
 
 By default the Livestatus socket is available in `/var/run/icinga2/cmd/livestatus`.
 
@@ -635,12 +630,8 @@ status updates in a regular interval.
 
     # icinga2 feature enable statusdata
 
-Icinga 1.x Classic UI requires this data set as part of its backend.
-
-> **Note**
->
-> If you are not using any web interface or addon which uses these files,
-> you can safely disable this feature.
+If you are not using any web interface or addon which uses these files,
+you can safely disable this feature.
 
 
 ## Compat Log Files <a id="compat-logging"></a>
@@ -648,11 +639,11 @@ Icinga 1.x Classic UI requires this data set as part of its backend.
 The Icinga 1.x log format is considered being the `Compat Log`
 in Icinga 2 provided with the `CompatLogger` object.
 
-These logs are not only used for informational representation in
+These logs are used for informational representation in
 external web interfaces parsing the logs, but also to generate
-SLA reports and trends in Icinga 1.x Classic UI. Furthermore the
-[Livestatus](14-features.md#setting-up-livestatus) feature uses these logs for answering queries to
-historical tables.
+SLA reports and trends.
+The [Livestatus](14-features.md#setting-up-livestatus) feature uses these logs
+for answering queries to historical tables.
 
 The `CompatLogger` object can be enabled with
 
@@ -661,34 +652,6 @@ The `CompatLogger` object can be enabled with
 By default, the Icinga 1.x log file called `icinga.log` is located
 in `/var/log/icinga2/compat`. Rotated log files are moved into
 `var/log/icinga2/compat/archives`.
-
-The format cannot be changed without breaking compatibility to
-existing log parsers.
-
-    # tail -f /var/log/icinga2/compat/icinga.log
-
-    [1382115688] LOG ROTATION: HOURLY
-    [1382115688] LOG VERSION: 2.0
-    [1382115688] HOST STATE: CURRENT;localhost;UP;HARD;1;
-    [1382115688] SERVICE STATE: CURRENT;localhost;disk;WARNING;HARD;1;
-    [1382115688] SERVICE STATE: CURRENT;localhost;http;OK;HARD;1;
-    [1382115688] SERVICE STATE: CURRENT;localhost;load;OK;HARD;1;
-    [1382115688] SERVICE STATE: CURRENT;localhost;ping4;OK;HARD;1;
-    [1382115688] SERVICE STATE: CURRENT;localhost;ping6;OK;HARD;1;
-    [1382115688] SERVICE STATE: CURRENT;localhost;processes;WARNING;HARD;1;
-    [1382115688] SERVICE STATE: CURRENT;localhost;ssh;OK;HARD;1;
-    [1382115688] SERVICE STATE: CURRENT;localhost;users;OK;HARD;1;
-    [1382115706] EXTERNAL COMMAND: SCHEDULE_FORCED_SVC_CHECK;localhost;disk;1382115705
-    [1382115706] EXTERNAL COMMAND: SCHEDULE_FORCED_SVC_CHECK;localhost;http;1382115705
-    [1382115706] EXTERNAL COMMAND: SCHEDULE_FORCED_SVC_CHECK;localhost;load;1382115705
-    [1382115706] EXTERNAL COMMAND: SCHEDULE_FORCED_SVC_CHECK;localhost;ping4;1382115705
-    [1382115706] EXTERNAL COMMAND: SCHEDULE_FORCED_SVC_CHECK;localhost;ping6;1382115705
-    [1382115706] EXTERNAL COMMAND: SCHEDULE_FORCED_SVC_CHECK;localhost;processes;1382115705
-    [1382115706] EXTERNAL COMMAND: SCHEDULE_FORCED_SVC_CHECK;localhost;ssh;1382115705
-    [1382115706] EXTERNAL COMMAND: SCHEDULE_FORCED_SVC_CHECK;localhost;users;1382115705
-    [1382115731] EXTERNAL COMMAND: PROCESS_SERVICE_CHECK_RESULT;localhost;ping6;2;critical test|
-    [1382115731] SERVICE ALERT: localhost;ping6;CRITICAL;SOFT;2;critical test
-
 
 ## Check Result Files <a id="check-result-files"></a>
 

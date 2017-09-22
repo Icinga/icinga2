@@ -15,7 +15,6 @@
 # along with this program; if not, write to the Free Software Foundation
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
-configure_file(icinga/icinga-classic-apache.conf.cmake ${CMAKE_CURRENT_BINARY_DIR}/icinga/icinga-classic-apache.conf @ONLY)
 configure_file(icinga2/init.conf.cmake ${CMAKE_CURRENT_BINARY_DIR}/icinga2/init.conf @ONLY)
 
 if(NOT WIN32)
