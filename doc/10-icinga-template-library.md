@@ -2644,7 +2644,7 @@ interfacetable_noifloadgradient     | **Optional.** Disable color gradient from 
 interfacetable_nohuman              | **Optional.** Do not translate bandwidth usage in human readable format. Defaults to false.
 interfacetable_snapshot             | **Optional.** Force the plugin to run like if it was the first launch. Defaults to false.
 interfacetable_timeout              | **Optional.** Define the global timeout limit of the plugin in seconds. Defaults to "15s".
-interfacetable_css                  | **Optional.** Define the css stylesheet used by the generated html files. Possible values are "classic", "icinga", "icinga-alternate1" or "nagiosxi".
+interfacetable_css                  | **Optional.** Define the css stylesheet used by the generated html files. Possible values are "classic", "icinga" or "icinga-alternate1".
 interfacetable_config               | **Optional.** Specify a config file to load.
 interfacetable_noconfigtable        | **Optional.** Disable configuration table on the generated HTML page. Defaults to false.
 interfacetable_notips               | **Optional.** Disable the tips in the generated html tables. Defaults to false.

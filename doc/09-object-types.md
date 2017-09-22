@@ -1478,7 +1478,7 @@ Configuration Attributes:
 
 ## StatusDataWriter <a id="objecttype-statusdatawriter"></a>
 
-Periodically writes status data files which are used by the Classic UI and other third-party tools.
+Periodically writes status and configuration data files which are used by third-party tools.
 
 Example:
 
@@ -1494,8 +1494,8 @@ Configuration Attributes:
 
   Name            |Description
   ----------------|----------------
-  status\_path    |**Optional.** Path to the status.dat file. Defaults to LocalStateDir + "/cache/icinga2/status.dat".
-  objects\_path   |**Optional.** Path to the objects.cache file. Defaults to LocalStateDir + "/cache/icinga2/objects.cache".
+  status\_path    |**Optional.** Path to the `status.dat` file. Defaults to LocalStateDir + "/cache/icinga2/status.dat".
+  objects\_path   |**Optional.** Path to the `objects.cache` file. Defaults to LocalStateDir + "/cache/icinga2/objects.cache".
   update\_interval|**Optional.** The interval in which the status files are updated. Defaults to 15 seconds.
 
 
