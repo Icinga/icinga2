@@ -250,7 +250,6 @@ Available configuration files which are installed by default:
 * [templates.conf](04-configuring-icinga-2.md#templates-conf)
 * [downtimes.conf](04-configuring-icinga-2.md#downtimes-conf)
 * [timeperiods.conf](04-configuring-icinga-2.md#timeperiods-conf)
-* [satellite.conf](04-configuring-icinga-2.md#satellite-conf)
 * [api-users.conf](04-configuring-icinga-2.md#api-users-conf)
 * [app.conf](04-configuring-icinga-2.md#app-conf)
 
@@ -681,18 +680,6 @@ This file contains the default timeperiod definitions for `24x7`, `9to5`
 and `never`. TimePeriod objects are referenced by `*period`
 objects such as hosts, services or notifications.
 
-
-#### satellite.conf <a id="satellite-conf"></a>
-
-Includes default templates and dependencies for
-[monitoring remote clients](06-distributed-monitoring.md#distributed-monitoring)
-using service discovery and
-[config generation](06-distributed-monitoring.md#distributed-monitoring-bottom-up)
-on the master. Can be ignored/removed on setups not using this feature.
-
-
-Further details on the monitoring configuration can be found in the
-[monitoring basics](03-monitoring-basics.md#monitoring-basics) chapter.
 
 #### api-users.conf <a id="api-users-conf"></a>
 
