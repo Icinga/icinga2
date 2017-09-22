@@ -488,10 +488,6 @@ Clients which have the `checker` feature enabled will attempt
 to execute checks for local services and send their results
 back to the master.
 
-> **Note**
->
-> This is part of the deprecated client bottom up mode.
-
 If you now have the same host and service objects on the
 master you will receive wrong check results from the client.
 

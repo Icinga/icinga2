@@ -160,21 +160,6 @@ the features which have been enabled with `icinga2 feature enable`. See
 [Enabling/Disabling Features](11-cli-commands.md#enable-features) for more details.
 
     /**
-     * The repository.d directory contains all configuration objects
-     * managed by the 'icinga2 repository' CLI commands.
-     */
-    include_recursive "repository.d"
-
-This `include_recursive` directive is used for discovery of services on remote clients
-and their generated configuration described in
-[this chapter](06-distributed-monitoring.md#distributed-monitoring-bottom-up).
-
-**Note**: This has been DEPRECATED in Icinga 2 v2.6 and is **not** required for
-satellites and clients using the [top down approach](#06-distributed-monitoring.md#distributed-monitoring-top-down).
-You can safely disable/remove it.
-
-
-    /**
      * Although in theory you could define all your objects in this file
      * the preferred way is to create separate directories and files in the conf.d
      * directory. Each of these files must have the file extension ".conf".
@@ -265,7 +250,6 @@ Available configuration files which are installed by default:
 * [templates.conf](04-configuring-icinga-2.md#templates-conf)
 * [downtimes.conf](04-configuring-icinga-2.md#downtimes-conf)
 * [timeperiods.conf](04-configuring-icinga-2.md#timeperiods-conf)
-* [satellite.conf](04-configuring-icinga-2.md#satellite-conf)
 * [api-users.conf](04-configuring-icinga-2.md#api-users-conf)
 * [app.conf](04-configuring-icinga-2.md#app-conf)
 
@@ -696,18 +680,6 @@ This file contains the default timeperiod definitions for `24x7`, `9to5`
 and `never`. TimePeriod objects are referenced by `*period`
 objects such as hosts, services or notifications.
 
-
-#### satellite.conf <a id="satellite-conf"></a>
-
-Includes default templates and dependencies for
-[monitoring remote clients](06-distributed-monitoring.md#distributed-monitoring)
-using service discovery and
-[config generation](06-distributed-monitoring.md#distributed-monitoring-bottom-up)
-on the master. Can be ignored/removed on setups not using this feature.
-
-
-Further details on the monitoring configuration can be found in the
-[monitoring basics](03-monitoring-basics.md#monitoring-basics) chapter.
 
 #### api-users.conf <a id="api-users-conf"></a>
 

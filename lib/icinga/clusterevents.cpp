@@ -46,13 +46,10 @@ REGISTER_APIFUNCTION(SetForceNextCheck, event, &ClusterEvents::ForceNextCheckCha
 REGISTER_APIFUNCTION(SetForceNextNotification, event, &ClusterEvents::ForceNextNotificationChangedAPIHandler);
 REGISTER_APIFUNCTION(SetAcknowledgement, event, &ClusterEvents::AcknowledgementSetAPIHandler);
 REGISTER_APIFUNCTION(ClearAcknowledgement, event, &ClusterEvents::AcknowledgementClearedAPIHandler);
-REGISTER_APIFUNCTION(UpdateRepository, event, &ClusterEvents::UpdateRepositoryAPIHandler);
 REGISTER_APIFUNCTION(ExecuteCommand, event, &ClusterEvents::ExecuteCommandAPIHandler);
 REGISTER_APIFUNCTION(SendNotifications, event, &ClusterEvents::SendNotificationsAPIHandler);
 REGISTER_APIFUNCTION(NotificationSentUser, event, &ClusterEvents::NotificationSentUserAPIHandler);
 REGISTER_APIFUNCTION(NotificationSentToAllUsers, event, &ClusterEvents::NotificationSentToAllUsersAPIHandler);
-
-static Timer::Ptr l_RepositoryTimer;
 
 void ClusterEvents::StaticInitialize(void)
 {
@@ -67,12 +64,6 @@ void ClusterEvents::StaticInitialize(void)
 
 	Checkable::OnAcknowledgementSet.connect(&ClusterEvents::AcknowledgementSetHandler);
 	Checkable::OnAcknowledgementCleared.connect(&ClusterEvents::AcknowledgementClearedHandler);
-
-	l_RepositoryTimer = new Timer();
-	l_RepositoryTimer->SetInterval(30);
-	l_RepositoryTimer->OnTimerExpired.connect(boost::bind(&ClusterEvents::RepositoryTimerHandler));
-	l_RepositoryTimer->Start();
-	l_RepositoryTimer->Reschedule(0);
 }
 
 Dictionary::Ptr ClusterEvents::MakeCheckResultMessage(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
@@ -693,101 +684,6 @@ Value ClusterEvents::ExecuteCommandAPIHandler(const MessageOrigin::Ptr& origin, 
 	} else if (command_type == "event_command") {
 		host->ExecuteEventHandler(macros, true);
 	}
-
-	return Empty;
-}
-
-void ClusterEvents::RepositoryTimerHandler(void)
-{
-	ApiListener::Ptr listener = ApiListener::GetInstance();
-
-	if (!listener)
-		return;
-
-	Dictionary::Ptr repository = new Dictionary();
-
-	for (const Host::Ptr& host : ConfigType::GetObjectsByType<Host>()) {
-		Array::Ptr services = new Array();
-
-		for (const Service::Ptr& service : host->GetServices()) {
-			services->Add(service->GetShortName());
-		}
-
-		repository->Set(host->GetName(), services);
-	}
-
-	Endpoint::Ptr my_endpoint = Endpoint::GetLocalEndpoint();
-
-	if (!my_endpoint) {
-		Log(LogWarning, "ClusterEvents", "No local endpoint defined. Bailing out.");
-		return;
-	}
-
-	Zone::Ptr my_zone = my_endpoint->GetZone();
-
-	if (!my_zone)
-		return;
-
-	Dictionary::Ptr params = new Dictionary();
-	params->Set("seen", Utility::GetTime());
-	params->Set("endpoint", my_endpoint->GetName());
-	params->Set("zone", my_zone->GetName());
-	params->Set("repository", repository);
-
-	Dictionary::Ptr message = new Dictionary();
-	message->Set("jsonrpc", "2.0");
-	message->Set("method", "event::UpdateRepository");
-	message->Set("params", params);
-
-	listener->RelayMessage(MessageOrigin::Ptr(), my_zone, message, false);
-}
-
-String ClusterEvents::GetRepositoryDir(void)
-{
-	return Application::GetLocalStateDir() + "/lib/icinga2/api/repository/";
-}
-
-Value ClusterEvents::UpdateRepositoryAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
-{
-	if (!params)
-		return Empty;
-
-	Value vrepository = params->Get("repository");
-	if (vrepository.IsEmpty() || !vrepository.IsObjectType<Dictionary>())
-		return Empty;
-
-	Utility::MkDirP(GetRepositoryDir(), 0755);
-
-	String repositoryFile = GetRepositoryDir() + SHA256(params->Get("endpoint")) + ".repo";
-
-	std::fstream fp;
-	String tempRepositoryFile = Utility::CreateTempFile(repositoryFile + ".XXXXXX", 0644, fp);
-
-	fp << JsonEncode(params);
-	fp.close();
-
-#ifdef _WIN32
-	_unlink(repositoryFile.CStr());
-#endif /* _WIN32 */
-
-	if (rename(tempRepositoryFile.CStr(), repositoryFile.CStr()) < 0) {
-		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("rename")
-		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(tempRepositoryFile));
-	}
-
-	ApiListener::Ptr listener = ApiListener::GetInstance();
-
-	if (!listener)
-		return Empty;
-
-	Dictionary::Ptr message = new Dictionary();
-	message->Set("jsonrpc", "2.0");
-	message->Set("method", "event::UpdateRepository");
-	message->Set("params", params);
-
-	listener->RelayMessage(origin, Zone::GetLocalZone(), message, true);
 
 	return Empty;
 }

@@ -37,21 +37,6 @@ namespace icinga
 class I2_CLI_API NodeUtility
 {
 public:
-	static String GetRepositoryPath(void);
-	static String GetNodeRepositoryFile(const String& name);
-	static String GetNodeSettingsFile(const String& name);
-	static void CreateRepositoryPath(const String& path = GetRepositoryPath());
-	static std::vector<String> GetNodeCompletionSuggestions(const String& word);
-
-	static void PrintNodes(std::ostream& fp);
-	static void PrintNodesJson(std::ostream& fp);
-	static void PrintNodeRepository(std::ostream& fp, const Dictionary::Ptr& repository);
-	static void AddNode(const String& name);
-	static void AddNodeSettings(const String& name, const String& host, const String& port, double log_duration);
-	static void RemoveNode(const String& name);
-
-	static std::vector<Dictionary::Ptr> GetNodes(void);
-
 	static bool CreateBackupFile(const String& target, bool is_private = false);
 
 	static bool WriteNodeConfigObjects(const String& filename, const Array::Ptr& objects);
@@ -62,22 +47,8 @@ public:
 	static int GenerateNodeIcingaConfig(const std::vector<std::string>& endpoints);
 	static int GenerateNodeMasterIcingaConfig(void);
 
-	/* black/whitelist */
-	static String GetBlackAndWhiteListPath(const String& type);
-	static Array::Ptr GetBlackAndWhiteList(const String& type);
-	static int UpdateBlackAndWhiteList(const String& type, const String& node_filter,
-	    const String& host_filter, const String& service_filter);
-	static int RemoveBlackAndWhiteList(const String& type, const String& node_filter,
-	    const String& host_filter, const String& service_filter);
-	static int PrintBlackAndWhiteList(std::ostream& fp, const String& type);
-
-	static bool CheckAgainstBlackAndWhiteList(const String& type, const String& node, const String& host, const String& service);
-
 private:
 	NodeUtility(void);
-	static bool RemoveNodeFile(const String& path);
-	static Dictionary::Ptr LoadNodeFile(const String& node_file);
-	static void CollectNodes(const String& node_file, std::vector<Dictionary::Ptr>& nodes);
 
 	static void SerializeObject(std::ostream& fp, const Dictionary::Ptr& object);
 };

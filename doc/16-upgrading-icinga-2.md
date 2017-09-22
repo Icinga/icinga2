@@ -5,6 +5,8 @@ are scheme updates for the IDO database.
 
 ## Upgrading to v2.8 <a id="upgrading-to-2-8"></a>
 
+### Changed Certificate Paths <a id="upgrading-to-2-8-certificate-paths"></a>
+
 The default certificate path was changed from `/etc/icinga2/pki` to
 `/var/lib/icinga2/certs`.
 
@@ -14,6 +16,22 @@ was moved to `%ProgramData%`\var\lib\icinga2\certs`.
 The [setup CLI commands](06-distributed-monitoring.md#distributed-monitoring-setup-master) and the
 default [ApiListener configuration](06-distributed-monitoring.md#distributed-monitoring-apilistener)
 have been adjusted to these paths too.
+
+### Removed Bottom Up Client Mode <a id="upgrading-to-2-8-removed-bottom-up-client-mode"></a>
+
+This client mode was deprecated in 2.6 and was removed in 2.8.
+
+The node CLI command does not provide `list` or `update-config` anymore.
+
+The clients don't need to have a local `conf.d` directory included.
+The setup wizards for Linux and Windows attempt to disable this by default.
+
+Icinga 2 continues to run with the generated and imported configuration.
+You are advised to [migrate](https://github.com/Icinga/icinga2/issues/4798)
+any existing configuration to the "top down" mode with the help of the
+Icinga Director or config management tools such as Puppet, Ansible, etc.
+
+### Removed Classic UI Config Package <a id="upgrading-to-2-8-removed-classicui-config-package"></a>
 
 The config meta package `classicui-config` and the configuration files
 have been removed. You need to manually configure

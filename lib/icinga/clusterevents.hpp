@@ -61,10 +61,6 @@ public:
 
 	static Value ExecuteCommandAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
 
-	static String GetRepositoryDir(void);
-	static void RepositoryTimerHandler(void);
-	static Value UpdateRepositoryAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
-
 	static Dictionary::Ptr MakeCheckResultMessage(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
 
 	static void SendNotificationsHandler(const Checkable::Ptr& checkable, NotificationType type,

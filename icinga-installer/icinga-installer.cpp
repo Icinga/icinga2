@@ -250,7 +250,6 @@ static int InstallIcinga(void)
 		MkDirP(dataDir + "/var/lib/icinga2/agent/inventory");
 		MkDirP(dataDir + "/var/lib/icinga2/api/config");
 		MkDirP(dataDir + "/var/lib/icinga2/api/log");
-		MkDirP(dataDir + "/var/lib/icinga2/api/repository");
 		MkDirP(dataDir + "/var/lib/icinga2/api/zones");
 		MkDirP(dataDir + "/var/log/icinga2/compat/archive");
 		MkDirP(dataDir + "/var/log/icinga2/crash");
