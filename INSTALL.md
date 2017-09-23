@@ -272,14 +272,24 @@ components (e.g. for check execution, notifications, etc.):
     [2016-12-08 16:44:25 +0100] information/ConfigItem: Committing config item(s).
     ...
 
+### Init Script
+
 Icinga 2 can be started as a daemon using the provided init script:
 
     # /etc/init.d/icinga2
     Usage: /etc/init.d/icinga2 {start|stop|restart|reload|checkconfig|status}
 
-If your distribution uses systemd:
+### Systemd
+
+If your distribution uses Systemd:
 
     # systemctl {start|stop|reload|status|enable|disable} icinga2
+
+In case the distribution is running Systemd >227, you'll also
+need to package and install the `etc/initsystem/icinga2.service.limits.conf`
+file into `/etc/systemd/system/icinga2.service.d`.
+
+### openrc
 
 Or if your distribution uses openrc (like Alpine):
 

@@ -496,16 +496,18 @@ Solution:
 * Disable the `checker` feature on clients: `icinga2 feature disable checker`.
 * Remove the inclusion of [conf.d](04-configuring-icinga-2.md#conf-d) as suggested in the [client setup docs](06-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint).
 
-
-
 ### Check Fork Errors <a id="check-fork-errors"></a>
 
-We've learned that newer kernel versions introduce a [fork limit for cgroups](https://lwn.net/Articles/663873/)
-which is enabled in SLES 12 SP2+ for example. The default value
-for `DefaultTasksMax` in Systemd is set to `512`.
+Newer versions of Systemd on Linux limit spawned processes for
+services.
 
-Icinga 2 relies on forking child processes to execute commands
-and might therefore hit this limit in larger setups.
+* v227 introduces the `TasksMax` setting to units which allows to specify the spawned process limit.
+* v228 adds `DefaultTasksMax` in the global `systemd-system.conf` with a default setting of 512 processes.
+* v231 changes the default value to 15%
+
+This can cause problems with Icinga 2 in large environments with many
+commands executed in parallel starting with Systemd v228. Some distributions
+also may have changed the defaults.
 
 The error message could look like this:
 
@@ -514,25 +516,27 @@ The error message could look like this:
 ```
 
 In order to solve the problem, increase the value for `DefaultTasksMax`
-or set it to `infinity`:
+or set it to `infinity`.
 
 ```
-[root@icinga2-master1.localdomain /]# cp /usr/lib/systemd/system/icinga2.service /etc/systemd/system/icinga2.service
-[root@icinga2-master1.localdomain /]# vim /etc/systemd/system/icinga2.service
-
+mkdir /etc/systemd/system/icinga2.service.d
+cat >/etc/systemd/system/icinga2.service.d/limits.conf <<EOF
 [Service]
-
 DefaultTasksMax=infinity
+EOF
 
-[root@icinga2-master1.localdomain /]# systemctl daemon-reload
-[root@icinga2-master1.localdomain /]# systemctl restart icinga2
+systemctl daemon-reload
+systemctl restart icinga2
 ```
 
-Please note that this setting is available since Systemd version 226.
+An example is available inside the GitHub repository in [etc/initsystem](https://github.com/Icinga/icinga2/tree/master/etc/initsystem).
 
-> **Note**
->
-> Icinga 2 v2.7.1 adds the setting as default.
+External Resources:
+
+* [Fork limit for cgroups](https://lwn.net/Articles/663873/)
+* [Systemd changelog](https://github.com/systemd/systemd/blob/master/NEWS)
+* [Icinga 2 upstream issue](https://github.com/Icinga/icinga2/issues/5611)
+* [Systemd upstream discussion](https://github.com/systemd/systemd/issues/3211)
 
 ### Late Check Results <a id="late-check-results"></a>
 
