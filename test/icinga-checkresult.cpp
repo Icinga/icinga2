@@ -19,6 +19,7 @@
 
 #include "icinga/host.hpp"
 #include <BoostTestTargetConfig.h>
+#include <iostream>
 
 using namespace icinga;
 
