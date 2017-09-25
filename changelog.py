@@ -52,8 +52,8 @@ def fetch_github_resources(uri, params = {}):
         resp = requests.get(url, auth=(github_auth_username, github_auth_token), params=params)
         try:
             resp.raise_for_status()
-        except:
-            break
+        except requests.exceptions.HTTPError as e:
+            raise e
 
         data = resp.json()
 
@@ -115,13 +115,21 @@ def format_title(title):
 
 milestones = {}
 issues = defaultdict(lambda: defaultdict(list))
+project_name = "icinga2"
 
-log(1, "Fetching data from GitHub API for " + project_name)
+log(1, "Fetching data from GitHub API for project " + project_name)
+
+try:
+    tickets = fetch_github_resources("/issues", { "state": "all" })
+except requests.exceptions.HTTPError as e:
+    log(1, "ERROR " + str(e.response.status_code) + ": " + e.response.text)
+
+    sys.exit(1)
 
 clfp = open(changelog_file, "w+")
 
 with open('tickets.pickle', 'wb') as fp:
-    pickle.dump(fetch_github_resources("/issues", { "state": "all" }), fp)
+    pickle.dump(tickets, fp)
 
 with open('tickets.pickle', 'rb') as fp:
     cached_issues = pickle.load(fp)
