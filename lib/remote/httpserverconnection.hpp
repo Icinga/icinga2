@@ -63,10 +63,6 @@ private:
 	bool ProcessMessage(void);
 	void DataAvailableHandler(void);
 
-	static void StaticInitialize(void);
-	static void TimeoutTimerHandler(void);
-	void CheckLiveness(void);
-
 	void ProcessMessageAsync(HttpRequest& request);
 };
 
