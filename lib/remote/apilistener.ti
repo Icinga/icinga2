@@ -49,7 +49,7 @@ class ApiListener : ConfigObject
 
 	[config] String ticket_salt;
 
-	[config] array(String) access_control_allow_origin {
+	[config] Array::Ptr access_control_allow_origin {
 		default {{{ return new Array(); }}}
 	};
 	[config] bool access_control_allow_credentials
