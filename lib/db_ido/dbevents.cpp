@@ -377,7 +377,8 @@ void DbEvents::AddCommentInternal(std::vector<DbQuery>& queries, const Comment::
 		query1.WhereCriteria->Set("object_id", checkable);
 		query1.WhereCriteria->Set("comment_time", DbValue::FromTimestamp(entry_time));
 		query1.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
-		query1.WhereCriteria->Set("name", comment->GetName());
+		/* Match the unique constraint. */
+		query1.WhereCriteria->Set("internal_comment_id", comment->GetLegacyId());
 	} else {
 		query1.Table = "commenthistory";
 		query1.Type = DbQueryInsert;
@@ -522,9 +523,8 @@ void DbEvents::AddDowntimeInternal(std::vector<DbQuery>& queries, const Downtime
 		query1.WhereCriteria->Set("object_id", checkable);
 		query1.WhereCriteria->Set("entry_time", DbValue::FromTimestamp(downtime->GetEntryTime()));
 		query1.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
-		query1.WhereCriteria->Set("scheduled_start_time", DbValue::FromTimestamp(downtime->GetStartTime()));
-		query1.WhereCriteria->Set("scheduled_end_time", DbValue::FromTimestamp(downtime->GetEndTime()));
-		query1.WhereCriteria->Set("name", downtime->GetName());
+		/* Match the unique constraint. */
+		query1.WhereCriteria->Set("internal_downtime_id", downtime->GetLegacyId());
 	} else {
 		query1.Table = "downtimehistory";
 		query1.Type = DbQueryInsert;
