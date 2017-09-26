@@ -19,6 +19,7 @@
 
 #include "icinga/notification.hpp"
 #include <BoostTestTargetConfig.h>
+#include <iostream>
 
 using namespace icinga;
 
