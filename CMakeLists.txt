@@ -148,6 +148,13 @@ set(CMAKE_MACOSX_RPATH 1)
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Qunused-arguments -g")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Qunused-arguments -g")
+
+  # Clang on Fedora requires -pthread, Apple Clang does not
+  # AppleClang is available since CMake 3.0.0
+  if (NOT CMAKE_CXX_COMPILER_ID MATCHES "AppleClang")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pthread")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
+  endif()
 endif()
 
 if(CMAKE_C_COMPILER_ID STREQUAL "SunPro")
