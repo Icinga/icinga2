@@ -115,7 +115,6 @@ def format_title(title):
 
 milestones = {}
 issues = defaultdict(lambda: defaultdict(list))
-project_name = "icinga2"
 
 log(1, "Fetching data from GitHub API for project " + project_name)
 
@@ -153,6 +152,7 @@ for issue in cached_issues: #fetch_github_resources("/issues", { "state": "all" 
     ms_tickets = issues[ms_title][issue_type(issue)]
     ms_tickets.append(issue)
 
+# TODO: Generic header based on project_name
 write_changelog("# Icinga 2.x CHANGELOG")
 write_changelog("")
 
