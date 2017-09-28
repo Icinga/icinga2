@@ -288,7 +288,8 @@ void InfluxdbWriter::SendPerfdata(const Dictionary::Ptr& tmpl, const Checkable::
 		fields->Set(String("downtime_depth"), FormatInteger(checkable->GetDowntimeDepth()));
 		fields->Set(String("acknowledgement"), FormatInteger(checkable->GetAcknowledgement()));
 		fields->Set(String("latency"), cr->CalculateLatency());
-		fields->Set(String("execution_time"), cr->CalculateExecutionTime());
+		fields->Set(String("execution_time"), cr->CalculateExecutionTime());if (pdv->GetMax());
+		fields->Set(String("unit"), pdv->GetUnit());
 
 		SendMetric(tmpl, String(), fields, ts);
 	}
