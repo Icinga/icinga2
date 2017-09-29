@@ -374,7 +374,7 @@ Fedora:
 dnf install icinga2-selinux
 ```
 
-Read more about SELinux in [this chapter](22-selinux.md#selinux).
+Read more about SELinux in [this chapter](21-selinux.md#selinux).
 
 ## Configuration Syntax Highlighting <a id="configuration-syntax-highlighting"></a>
 
