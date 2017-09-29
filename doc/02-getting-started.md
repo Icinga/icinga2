@@ -343,13 +343,38 @@ Examples:
 If you're stuck with configuration errors, you can manually invoke the
 [configuration validation](11-cli-commands.md#config-validation).
 
-### FreeBSD
+### FreeBSD <a id="running-icinga2-freebsd"></a>
 
 On FreeBSD you need to enable icinga2 in your rc.conf
 
     # sysrc icinga2_enable=yes
 
     # service icinga2 restart
+
+
+### SELinux <a id="running-icinga2-selinux"></a>
+
+SELinux is a mandatory access control (MAC) system on Linux which adds
+a fine-grained permission system for access to all system resources such
+as files, devices, networks and inter-process communication.
+
+Icinga 2 provides its own SELinux policy. `icinga2-selinux` is a policy package
+for Red Hat Enterprise Linux 7 and derivatives. The package runs the targeted policy
+which confines Icinga 2 including enabled features and running commands.
+
+RHEL/CentOS 7:
+
+```
+yum install icinga2-selinux
+```
+
+Fedora:
+
+```
+dnf install icinga2-selinux
+```
+
+Read more about SELinux in [this chapter](22-selinux.md#selinux).
 
 ## Configuration Syntax Highlighting <a id="configuration-syntax-highlighting"></a>
 
@@ -379,7 +404,7 @@ SLES/openSUSE:
 
 Alpine Linux:
 
-   # apk add icinga2-vim
+    # apk add icinga2-vim
 
 Ensure that syntax highlighting is enabled e.g. by editing the user's `vimrc`
 configuration file:
