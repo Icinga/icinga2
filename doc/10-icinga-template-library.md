@@ -2331,7 +2331,7 @@ Custom attributes passed as [command parameters](03-monitoring-basics.md#command
 
 Name                             | Description
 ---------------------------------|------------------------------------------------------------------------------------------------------------------------------
-mongodb_host                     | **Required.** Specifies the hostname or address.
+mongodb_host                     | **Required.** Specifies the hostname or address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
 mongodb_port                     | **Required.** The port mongodb is running on.
 mongodb_user                     | **Optional.** The username you want to login as.
 mongodb_passwd                   | **Optional.** The password you want to use for that user.
@@ -2359,8 +2359,8 @@ Custom attributes passed as [command parameters](03-monitoring-basics.md#command
 
 Name                         | Description
 -----------------------------|-------------------------------------------------------------------------------------------------------
+elasticsearch_host           | **Optional.** Hostname or network address to probe. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
 elasticsearch_failuredomain  | **Optional.** A comma-separated list of ElasticSearch attributes that make up your cluster's failure domain.
-elasticsearch_host           | **Optional.** Hostname or network address to probe. Defaults to 'localhost'.
 elasticsearch_masternodes    | **Optional.** Issue a warning if the number of master-eligible nodes in the cluster drops below this number. By default, do not monitor the number of nodes in the cluster.
 elasticsearch_port           | **Optional.** TCP port to probe.  The ElasticSearch API should be listening here. Defaults to 9200.
 elasticsearch_prefix         | **Optional.** Optional prefix (e.g. 'es') for the ElasticSearch API. Defaults to ''.
@@ -2377,7 +2377,7 @@ Custom attributes passed as [command parameters](03-monitoring-basics.md#command
 
 Name                     | Description
 -------------------------|--------------------------------------------------------------------------------------------------------------
-redis_hostname           | **Required.** Hostname or IP Address to check. Defaults to "127.0.0.1".
+redis_hostname           | **Required.** Hostname or IP Address to check. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
 redis_port               | **Optional.** Port number to query. Default to "6379".
 redis_database           | **Optional.** Database name (usually a number) to query, needed for **redis_query**.
 redis_password           | **Optional.** Password for Redis authentication. Safer alternative is to put them in a file and use **redis_credentials**.
