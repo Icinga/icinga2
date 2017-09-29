@@ -128,6 +128,9 @@ bool ScriptUtils::Regex(const std::vector<Value>& args)
 		texts->Add(argTexts);
 	}
 
+	if (texts->GetLength() == 0)
+		return false;
+
 	ObjectLock olock(texts);
 	for (const String& text : texts) {
 		bool res = false;
@@ -171,6 +174,9 @@ bool ScriptUtils::Match(const std::vector<Value>& args)
 		texts->Add(argTexts);
 	}
 
+	if (texts->GetLength() == 0)
+		return false;
+
 	ObjectLock olock(texts);
 	for (const String& text : texts) {
 		bool res = Utility::Match(pattern, text);
@@ -206,6 +212,9 @@ bool ScriptUtils::CidrMatch(const std::vector<Value>& args)
 		ips = new Array();
 		ips->Add(argIps);
 	}
+
+	if (ips->GetLength() == 0)
+		return false;
 
 	ObjectLock olock(ips);
 	for (const String& ip : ips) {
