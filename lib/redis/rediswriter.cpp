@@ -61,6 +61,8 @@ void RedisWriter::Start(bool runtimeCreated)
 	m_StatsTimer->OnTimerExpired.connect(boost::bind(&RedisWriter::PublishStatsTimerHandler, this));
 	m_StatsTimer->Start();
 
+	m_WorkQueue.SetName("RedisWriter");
+
 	boost::thread thread(boost::bind(&RedisWriter::HandleEvents, this));
 	thread.detach();
 }
