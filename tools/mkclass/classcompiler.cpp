@@ -247,8 +247,6 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		 << "public:" << std::endl
 		 << "\t" << "DECLARE_PTR_TYPEDEFS(TypeImpl<" << klass.Name << ">);" << std::endl << std::endl;
 
-	m_Impl << "template class TypeImpl<" << klass.Name << ">;" << std::endl << std::endl;
-
 	/* GetName */
 	m_Header << "\t" << "virtual String GetName(void) const;" << std::endl;
 
@@ -473,8 +471,6 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		 << "{" << std::endl
 		 << "public:" << std::endl
 		 << "\t" << "DECLARE_PTR_TYPEDEFS(ObjectImpl<" << klass.Name << ">);" << std::endl << std::endl;
-
-	m_Impl << "template class ObjectImpl<" << klass.Name << ">;" << std::endl << std::endl;
 
 	/* Validate */
 	m_Header << "\t" << "virtual void Validate(int types, const ValidationUtils& utils) override;" << std::endl;
