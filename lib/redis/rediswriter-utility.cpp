@@ -36,46 +36,43 @@ String RedisWriter::FormatCheckSumBinary(const String& str)
 	return output;
 }
 
-String RedisWriter::CalculateCheckSumString(const String& str, bool binary)
+String RedisWriter::CalculateCheckSumString(const String& str)
 {
-	return SHA1(str, binary);
+	return SHA1(str);
 }
 
-String RedisWriter::CalculateCheckSumGroups(const Array::Ptr& groups, bool binary)
+String RedisWriter::CalculateCheckSumGroups(const Array::Ptr& groups)
 {
 	String output;
 
-	ObjectLock olock(groups);
+	{
+		ObjectLock olock(groups);
 
-	for (const String& group : groups) {
-		output += SHA1(group, true); //binary checksum required here
+		for (const String& group : groups) {
+			output += SHA1(group);
+		}
 	}
 
-	return SHA1(output, binary);
+	return SHA1(output);
 }
 
-String RedisWriter::CalculateCheckSumProperties(const ConfigObject::Ptr& object, bool binary)
+String RedisWriter::CalculateCheckSumProperties(const ConfigObject::Ptr& object)
 {
 	//TODO: consider precision of 6 for double values; use specific config fields for hashing?
-	return HashValue(object, binary);
+	return HashValue(object);
 }
 
-String RedisWriter::CalculateCheckSumVars(const ConfigObject::Ptr& object, bool binary)
+String RedisWriter::CalculateCheckSumVars(const CustomVarObject::Ptr& object)
 {
-	CustomVarObject::Ptr customVarObject = dynamic_pointer_cast<CustomVarObject>(object);
-
-	if (!customVarObject)
-		return HashValue(Empty, binary);
-
-	Dictionary::Ptr vars = customVarObject->GetVars();
+	Dictionary::Ptr vars = object->GetVars();
 
 	if (!vars)
-		return HashValue(Empty, binary);
+		return HashValue(Empty);
 
-	return HashValue(vars, binary);
+	return HashValue(vars);
 }
 
-String RedisWriter::HashValue(const Value& value, bool binary)
+String RedisWriter::HashValue(const Value& value)
 {
 	Value temp;
 
@@ -86,7 +83,7 @@ String RedisWriter::HashValue(const Value& value, bool binary)
 	else
 		temp = value;
 
-	return SHA1(JsonEncode(temp), binary);
+	return SHA1(JsonEncode(temp));
 }
 
 Dictionary::Ptr RedisWriter::SerializeObjectAttrs(const Object::Ptr& object, int fieldType)
