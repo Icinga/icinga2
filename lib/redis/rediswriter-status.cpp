@@ -135,7 +135,11 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, const String
 	}
 
 	checkSum->Set("properties_checksum", CalculateCheckSumProperties(object));
-	checkSum->Set("vars_checksum", CalculateCheckSumVars(object));
+
+	CustomVarObject::Ptr customVarObject = dynamic_pointer_cast<CustomVarObject>(object);
+
+	if (customVarObject)
+		checkSum->Set("vars_checksum", CalculateCheckSumVars(customVarObject));
 
 	String checkSumBody = JsonEncode(checkSum);
 
@@ -188,7 +192,7 @@ void RedisWriter::SendStatusUpdate(const ConfigObject::Ptr& object, const String
 	if (checkable) {
 		Dictionary::Ptr attrs = new Dictionary();
 		String tableName;
-		String objectCheckSum = CalculateCheckSumString(objectName, true); //store binary checksum here
+		String objectCheckSum = CalculateCheckSumString(objectName);
 
 		Host::Ptr host;
 		Service::Ptr service;
@@ -198,7 +202,7 @@ void RedisWriter::SendStatusUpdate(const ConfigObject::Ptr& object, const String
 		if (service) {
 			tableName = "servicestate";
 			attrs->Set("service_checksum", objectCheckSum);
-			attrs->Set("host_checksum", CalculateCheckSumString(host->GetName(), true));
+			attrs->Set("host_checksum", CalculateCheckSumString(host->GetName()));
 		} else {
 			tableName = "hoststate";
 			attrs->Set("host_checksum", objectCheckSum);
