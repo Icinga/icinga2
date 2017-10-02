@@ -24,6 +24,7 @@
 #include "base/application.hpp"
 #include "base/tlsutility.hpp"
 #include "base/json.hpp"
+#include <iostream>
 
 using namespace icinga;
 namespace po = boost::program_options;

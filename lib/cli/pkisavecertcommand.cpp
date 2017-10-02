@@ -22,6 +22,7 @@
 #include "base/logger.hpp"
 #include "base/tlsutility.hpp"
 #include "base/console.hpp"
+#include <iostream>
 
 using namespace icinga;
 namespace po = boost::program_options;
