@@ -23,6 +23,7 @@
 #include "base/array.hpp"
 #include "base/objectlock.hpp"
 #include "base/convert.hpp"
+#include "base/utility.hpp"
 #include <boost/exception_ptr.hpp>
 #include <yajl/yajl_version.h>
 #include <yajl/yajl_gen.h>
@@ -77,7 +78,10 @@ static void Encode(yajl_gen handle, const Value& value)
 
 			break;
 		case ValueString:
-			yajl_gen_string(handle, reinterpret_cast<const unsigned char *>(value.Get<String>().CStr()), value.Get<String>().GetLength());
+			{
+				String utf8ed = Utility::ValidateUTF8(value.Get<String>());
+				yajl_gen_string(handle, reinterpret_cast<const unsigned char *>(utf8ed.CStr()), utf8ed.GetLength());
+			}
 
 			break;
 		case ValueObject:
