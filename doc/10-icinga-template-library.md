@@ -1903,7 +1903,7 @@ Custom attributes passed as [command parameters](03-monitoring-basics.md#command
 Name                    | Description
 ------------------------|--------------
 snmp_address            | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
-snmp_nocrypt            | **Optional.** Define SNMP encryption. If set, **snmp_v3** needs to be set. Defaults to false.
+snmp_nocrypt            | **Optional.** Define SNMP encryption. If set to `false`, `snmp_v3` needs to be enabled. Defaults to `true` (no encryption).
 snmp_community          | **Optional.** The SNMP community. Defaults to "public".
 snmp_port               | **Optional.** The SNMP port connection.
 snmp_v2                 | **Optional.** SNMP version to 2c. Defaults to false.
@@ -1929,7 +1929,7 @@ Custom attributes passed as [command parameters](03-monitoring-basics.md#command
 Name                    | Description
 ------------------------|--------------
 snmp_address            | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
-snmp_nocrypt            | **Optional.** Define SNMP encryption. If set, **snmp_v3** needs to be set. Defaults to false.
+snmp_nocrypt            | **Optional.** Define SNMP encryption. If set to `false`, `snmp_v3` needs to be enabled. Defaults to `true` (no encryption).
 snmp_community          | **Optional.** The SNMP community. Defaults to "public".
 snmp_port               | **Optional.** The SNMP port connection.
 snmp_v2                 | **Optional.** SNMP version to 2c. Defaults to false.
@@ -1956,7 +1956,7 @@ Custom attributes passed as [command parameters](03-monitoring-basics.md#command
 Name                    | Description
 ------------------------|--------------
 snmp_address            | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
-snmp_nocrypt            | **Optional.** Define SNMP encryption. If set, **snmp_v3** needs to be set. Defaults to false.
+snmp_nocrypt            | **Optional.** Define SNMP encryption. If set to `false`, `snmp_v3` needs to be enabled. Defaults to `true` (no encryption).
 snmp_community          | **Optional.** The SNMP community. Defaults to "public".
 snmp_port               | **Optional.** The SNMP port connection.
 snmp_v2                 | **Optional.** SNMP version to 2c. Defaults to false.
@@ -1982,7 +1982,7 @@ Custom attributes passed as [command parameters](03-monitoring-basics.md#command
 Name                        | Description
 ----------------------------|--------------
 snmp_address                | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
-snmp_nocrypt                | **Optional.** Define SNMP encryption. If set, **snmp_v3** needs to be set. Defaults to false.
+snmp_nocrypt                | **Optional.** Define SNMP encryption. If set to `false`, `snmp_v3` needs to be enabled. Defaults to `true` (no encryption).
 snmp_community              | **Optional.** The SNMP community. Defaults to "public".
 snmp_port                   | **Optional.** The SNMP port connection.
 snmp_v2                     | **Optional.** SNMP version to 2c. Defaults to false.
@@ -2022,7 +2022,7 @@ Custom attributes passed as [command parameters](03-monitoring-basics.md#command
 Name                       | Description
 ---------------------------|--------------
 snmp_address               | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
-snmp_nocrypt               | **Optional.** Define SNMP encryption. If set, **snmp_v3** needs to be set. Defaults to false.
+snmp_nocrypt               | **Optional.** Define SNMP encryption. If set to `false`, `snmp_v3` needs to be enabled. Defaults to `true` (no encryption).
 snmp_community             | **Optional.** The SNMP community. Defaults to "public".
 snmp_port                  | **Optional.** The SNMP port connection.
 snmp_v2                    | **Optional.** SNMP version to 2c. Defaults to false.
