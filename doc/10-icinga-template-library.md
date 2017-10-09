@@ -91,11 +91,11 @@ Check command for the built-in `cluster-zone` check.
 
 Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
 
-Name                 | Description
----------------------|---------------
-cluster_zone         | **Required.** The zone name.
-cluster_lag_warning  | **Optional.** Warning threshold for log lag in seconds. Applies if the log lag is greater than the threshold.
-cluster_lag_critical | **Optional.** Critical threshold for log lag in seconds. Applies if the log lag is greater than the threshold.
+Name                   | Description
+-----------------------|---------------
+cluster\_zone          | **Required.** The zone name. Defaults to `$host.name$`.
+cluster\_lag\_warning  | **Optional.** Warning threshold for log lag in seconds. Applies if the log lag is greater than the threshold.
+cluster\_lag\_critical | **Optional.** Critical threshold for log lag in seconds. Applies if the log lag is greater than the threshold.
 
 ### ido <a id="itl-icinga-ido"></a>
 
@@ -105,8 +105,8 @@ Custom attributes passed as [command parameters](03-monitoring-basics.md#command
 
 Name         | Description
 -------------|---------------
-ido_type     | **Required.** The type of the IDO connection object. Can be either "IdoMysqlConnection" or "IdoPgsqlConnection".
-ido_name     | **Required.** The name of the IDO connection object.
+ido\_type    | **Required.** The type of the IDO connection object. Can be either "IdoMysqlConnection" or "IdoPgsqlConnection".
+ido\_name    | **Required.** The name of the IDO connection object.
 
 ### random <a id="itl-random"></a>
 
