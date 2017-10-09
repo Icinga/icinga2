@@ -1996,6 +1996,8 @@ snmp_crit               | **Optional.** The critical threshold.
 snmp_is_cisco		| **Optional.** Change OIDs for Cisco switches. Defaults to false.
 snmp_is_hp              | **Optional.** Change OIDs for HP/Procurve switches. Defaults to false.
 snmp_perf               | **Optional.** Enable perfdata values. Defaults to true.
+snmp_memcached          | **Optional.** Include cached memory in used memory, Defaults to false.
+snmp_membuffer          | **Optional.** Exclude buffered memory in used memory, Defaults to false.
 snmp_timeout            | **Optional.** The command timeout in seconds. Defaults to 5 seconds.
 
 ### snmp-storage <a id="plugin-check-command-snmp-storage"></a>
