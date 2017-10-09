@@ -6,6 +6,22 @@ Keep in mind these examples are made with a Linux server. If you are
 using Windows, you will need to change the services accordingly. See the [ITL reference](10-icinga-template-library.md#windows-plugins)
  for further information.
 
+## Attribute Value Types <a id="attribute-value-types"></a>
+
+The Icinga 2 configuration uses different value types for attributes.
+
+  Type                                                   | Example
+  -------------------------------------------------------|---------------------------------------------------------
+  [Number](17-language-reference.md#numeric-literals)    | `5`
+  [Duration](17-language-reference.md#duration-literals) | `1m`
+  [String](17-language-reference.md#string-literals)     | `"These are notes"`
+  [Boolean](17-language-reference.md#boolean-literals)   | `true`
+  [Array](17-language-reference.md#array)                | `[ "value1", "value2" ]`)
+  [Dictionary](17-language-reference.md#dictionary)      | `{ "key1" = "value1", "key2" = false }` )
+
+It is important to use the correct value type for object attributes
+as otherwise the [configuration validation](11-cli-commands.md#config-validation) will fail.
+
 ## Hosts and Services <a id="hosts-services"></a>
 
 Icinga 2 can be used to monitor the availability of hosts and services. Hosts
@@ -67,6 +83,19 @@ Services can be in any of the following states:
   WARNING     | The service is experiencing some problems but is still considered to be in working condition.
   CRITICAL    | The service is in a critical state.
   UNKNOWN     | The check could not determine the service's state.
+
+### Check Result State Mapping <a id="check-result-state-mapping"></a>
+
+[Check plugins](05-service-monitoring.md#service-monitoring-plugins) return with an exit code which is interpreted a state number.
+Services map the states directly while hosts will treat `0` or `1` as `UP`
+for example.
+
+  Value | Host State | Service State
+  ------|------------|--------------
+  0     | Up         | OK
+  1     | Up         | Warning
+  2     | Down       | Critical
+  3     | Down       | Unknown
 
 ### Hard and Soft States <a id="hard-soft-states"></a>
 

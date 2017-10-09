@@ -136,7 +136,7 @@ added.
 ## CLI command: Api <a id="cli-command-api"></a>
 
 Provides the setup CLI command to enable the REST API. More details
-in the [Icinga 2 API](#icinga2-api-setup) chapter.
+in the [Icinga 2 API](12-icinga2-api.md#icinga2-api-setup) chapter.
 
 ```
 # icinga2 api --help
@@ -169,7 +169,7 @@ Icinga home page: <https://www.icinga.com/>
 ## CLI command: Ca <a id="cli-command-ca"></a>
 
 List and manage incoming certificate signing requests. More details
-can be found in the [signing methods](#distributed-monitoring-setup-sign-certificates-master)
+can be found in the [signing methods](06-distributed-monitoring.md#distributed-monitoring-setup-sign-certificates-master)
 chapter. This CLI command is available since v2.8.
 
 ```

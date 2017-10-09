@@ -395,9 +395,9 @@ The following URL parameters are available:
 
   Parameters | Type         | Description
   -----------|--------------|----------------------------
-  attrs      | string array | **Optional.** Limits attributes in the output.
-  joins      | string array | **Optional.** Join related object types and their attributes (`?joins=host` for the entire set, or selectively by `?joins=host.name`).
-  meta       | string array | **Optional.** Enable meta information using `?meta=used_by` (references from other objects) and/or `?meta=location` (location information). Defaults to disabled.
+  attrs      | Array        | **Optional.** Limited attribute list in the output.
+  joins      | Array        | **Optional.** Join related object types and their attributes specified as list (`?joins=host` for the entire set, or selectively by `?joins=host.name`).
+  meta       | Array        | **Optional.** Enable meta information using `?meta=used_by` (references from other objects) and/or `?meta=location` (location information) specified as list. Defaults to disabled.
 
 In addition to these parameters a [filter](12-icinga2-api.md#icinga2-api-filters) may be provided.
 
@@ -431,11 +431,11 @@ Each response entry in the results array contains the following attributes:
 
   Attribute  | Type       | Description
   -----------|------------|--------------
-  name       | string     | Full object name.
-  type       | string     | Object type.
-  attrs      | dictionary | Object attributes (can be filtered using the URL parameter `attrs`).
-  joins      | dictionary | [Joined object types](12-icinga2-api.md#icinga2-api-config-objects-query-joins) as key, attributes as nested dictionary. Disabled by default.
-  meta       | dictionary | Contains `used_by` object references. Disabled by default, enable it using `?meta=used_by` as URL parameter.
+  name       | String     | Full object name.
+  type       | String     | Object type.
+  attrs      | Dictionary | Object attributes (can be filtered using the URL parameter `attrs`).
+  joins      | Dictionary | [Joined object types](12-icinga2-api.md#icinga2-api-config-objects-query-joins) as key, attributes as nested dictionary. Disabled by default.
+  meta       | Dictionary | Contains `used_by` object references. Disabled by default, enable it using `?meta=used_by` as URL parameter.
 
 #### Object Query Joins <a id="icinga2-api-config-objects-query-joins"></a>
 
@@ -584,8 +584,8 @@ parameters need to be passed inside the JSON body:
 
   Parameters | Type         | Description
   -----------|--------------|--------------------------
-  templates  | string array | **Optional.** Import existing configuration templates for this object type. Note: These templates must either be statically configured or provided in [config packages](12-icinga2-api.md#icinga2-api-config-management)-
-  attrs      | dictionary   | **Required.** Set specific object attributes for this [object type](09-object-types.md#object-types).
+  templates  | Array        | **Optional.** Import existing configuration templates for this object type. Note: These templates must either be statically configured or provided in [config packages](12-icinga2-api.md#icinga2-api-config-management)-
+  attrs      | Dictionary   | **Required.** Set specific object attributes for this [object type](09-object-types.md#object-types).
 
 The object name must be specified as part of the URL path. For objects with composite names (e.g. services)
 the full name (e.g. `example.localdomain!http`) must be specified.
@@ -646,7 +646,7 @@ parameters need to be passed inside the JSON body:
 
   Parameters | Type       | Description
   -----------|------------|---------------------------
-  attrs      | dictionary | **Required.** Set specific object attributes for this [object type](09-object-types.md#object-types).
+  attrs      | Dictionary | **Required.** Set specific object attributes for this [object type](09-object-types.md#object-types).
 
 In addition to these parameters a [filter](12-icinga2-api.md#icinga2-api-filters) should be provided.
 
@@ -689,7 +689,7 @@ request.
 
   Parameters | Type    | Description
   -----------|---------|---------------
-  cascade    | boolean |  **Optional.** Delete objects depending on the deleted objects (e.g. services on a host).
+  cascade    | Boolean |  **Optional.** Delete objects depending on the deleted objects (e.g. services on a host).
 
 In addition to these parameters a [filter](12-icinga2-api.md#icinga2-api-filters) should be provided.
 
@@ -800,13 +800,13 @@ Send a `POST` request to the URL endpoint `/v1/actions/process-check-result`.
 
   Parameter         | Type         | Description
   ------------------|--------------|--------------
-  exit\_status      | integer      | **Required.** For services: 0=OK, 1=WARNING, 2=CRITICAL, 3=UNKNOWN, for hosts: 0=OK, 1=CRITICAL.
-  plugin\_output    | string       | **Required.** The plugins main output. Does **not** contain the performance data.
-  performance\_data | string array | **Optional.** The performance data.
-  check\_command    | string array | **Optional.** The first entry should be the check commands path, then one entry for each command line option followed by an entry for each of its argument.
-  check\_source     | string       | **Optional.** Usually the name of the `command_endpoint`
-  execution\_start  | timestamp    | **Optional.** The timestamp where a script/process started its execution.
-  execution\_end    | timestamp    | **Optional.** The timestamp where a script/process ended its execution. This timestamp is used in features to determine e.g. the metric timestamp.
+  exit\_status      | Number       | **Required.** For services: 0=OK, 1=WARNING, 2=CRITICAL, 3=UNKNOWN, for hosts: 0=OK, 1=CRITICAL.
+  plugin\_output    | String       | **Required.** The plugins main output. Does **not** contain the performance data.
+  performance\_data | Array        | **Optional.** The performance data.
+  check\_command    | Array        | **Optional.** The first entry should be the check commands path, then one entry for each command line option followed by an entry for each of its argument.
+  check\_source     | String       | **Optional.** Usually the name of the `command_endpoint`
+  execution\_start  | Timestamp    | **Optional.** The timestamp where a script/process started its execution.
+  execution\_end    | Timestamp    | **Optional.** The timestamp where a script/process ended its execution. This timestamp is used in features to determine e.g. the metric timestamp.
 
 In addition to these parameters a [filter](12-icinga2-api.md#icinga2-api-filters) must be provided. The valid types for this action are `Host` and `Service`.
 
@@ -839,8 +839,8 @@ Send a `POST` request to the URL endpoint `/v1/actions/reschedule-check`.
 
   Parameter    | Type      | Description
   -------------|-----------|--------------
-  next\_check  | timestamp | **Optional.** The next check will be run at this time. If omitted, the current time is used.
-  force\_check | boolean   | **Optional.** Defaults to `false`. If enabled, the checks are executed regardless of time period restrictions and checks being disabled per object or on a global basis.
+  next\_check  | Timestamp | **Optional.** The next check will be run at this time. If omitted, the current time is used.
+  force\_check | Boolean   | **Optional.** Defaults to `false`. If enabled, the checks are executed regardless of time period restrictions and checks being disabled per object or on a global basis.
 
 In addition to these parameters a [filter](12-icinga2-api.md#icinga2-api-filters) must be provided. The valid types for this action are `Host` and `Service`.
 
@@ -870,9 +870,9 @@ Send a `POST` request to the URL endpoint `/v1/actions/send-custom-notification`
 
   Parameter | Type    | Description
   ----------|---------|--------------
-  author    | string  | **Required.** Name of the author, may be empty.
-  comment   | string  | **Required.** Comment text, may be empty.
-  force     | boolean | **Optional.** Default: false. If true, the notification is sent regardless of downtimes or whether notifications are enabled or not.
+  author    | String  | **Required.** Name of the author, may be empty.
+  comment   | String  | **Required.** Comment text, may be empty.
+  force     | Boolean | **Optional.** Default: false. If true, the notification is sent regardless of downtimes or whether notifications are enabled or not.
 
 In addition to these parameters a [filter](12-icinga2-api.md#icinga2-api-filters) must be provided. The valid types for this action are `Host` and `Service`.
 
@@ -905,7 +905,7 @@ Send a `POST` request to the URL endpoint `/v1/actions/delay-notification`.
 
   Parameter | Type      | Description
   ----------|-----------|--------------
-  timestamp | timestamp | **Required.** Delay notifications until this timestamp.
+  timestamp | Timestamp | **Required.** Delay notifications until this timestamp.
 
 In addition to these parameters a [filter](12-icinga2-api.md#icinga2-api-filters) must be provided. The valid types for this action are `Host` and `Service`.
 
@@ -936,12 +936,12 @@ Send a `POST` request to the URL endpoint `/v1/actions/acknowledge-problem`.
 
   Parameter            | Type      | Description
   ---------------------|-----------|--------------
-  author               | string    | **Required.** Name of the author, may be empty.
-  comment              | string    | **Required.** Comment text, may be empty.
-  expiry               | timestamp | **Optional.** Whether the acknowledgement will be removed at the timestamp.
-  sticky               | boolean   | **Optional.** Whether the acknowledgement will be set until the service or host fully recovers. Defaults to `false`.
-  notify               | boolean   | **Optional.** Whether a notification of the `Acknowledgement` type will be sent. Defaults to `false`.
-  persistent           | boolean   | **Optional.** When the comment is of type `Acknowledgement` and this is set to `true`, the comment will remain after the acknowledgement recovers or expires. Defaults to `false`.
+  author               | String    | **Required.** Name of the author, may be empty.
+  comment              | String    | **Required.** Comment text, may be empty.
+  expiry               | Timestamp | **Optional.** Whether the acknowledgement will be removed at the timestamp.
+  sticky               | Boolean   | **Optional.** Whether the acknowledgement will be set until the service or host fully recovers. Defaults to `false`.
+  notify               | Boolean   | **Optional.** Whether a notification of the `Acknowledgement` type will be sent. Defaults to `false`.
+  persistent           | Boolean   | **Optional.** When the comment is of type `Acknowledgement` and this is set to `true`, the comment will remain after the acknowledgement recovers or expires. Defaults to `false`.
 
 In addition to these parameters a [filter](12-icinga2-api.md#icinga2-api-filters) must be provided. The valid types for this action are `Host` and `Service`.
 
@@ -1070,14 +1070,14 @@ Send a `POST` request to the URL endpoint `/v1/actions/schedule-downtime`.
 
   Parameter     | Type      | Description
   --------------|-----------|--------------
-  author        | string    | **Required.** Name of the author.
-  comment       | string    | **Required.** Comment text.
-  start\_time   | timestamp | **Required.** Timestamp marking the beginning of the downtime.
-  end\_time     | timestamp | **Required.** Timestamp marking the end of the downtime.
-  fixed         | boolean   | **Optional.** Defaults to `true`. If true, the downtime is `fixed` otherwise `flexible`. See [downtimes](08-advanced-topics.md#downtimes) for more information.
-  duration      | integer   | **Required for flexible downtimes.** Duration of the downtime in seconds if `fixed` is set to false.
-  trigger\_name | string    | **Optional.** Sets the trigger for a triggered downtime. See [downtimes](08-advanced-topics.md#downtimes) for more information on triggered downtimes.
-  child\_options | integer  | **Optional.** Schedule child downtimes. `0` does not do anything, `1` schedules child downtimes triggered by this downtime, `2` schedules non-triggered downtimes. Defaults to `0`.
+  author        | String    | **Required.** Name of the author.
+  comment       | String    | **Required.** Comment text.
+  start\_time   | Timestamp | **Required.** Timestamp marking the beginning of the downtime.
+  end\_time     | Timestamp | **Required.** Timestamp marking the end of the downtime.
+  fixed         | Boolean   | **Optional.** Defaults to `true`. If true, the downtime is `fixed` otherwise `flexible`. See [downtimes](08-advanced-topics.md#downtimes) for more information.
+  duration      | Number    | **Required for flexible downtimes.** Duration of the downtime in seconds if `fixed` is set to false.
+  trigger\_name | String    | **Optional.** Sets the trigger for a triggered downtime. See [downtimes](08-advanced-topics.md#downtimes) for more information on triggered downtimes.
+  child\_options | Number   | **Optional.** Schedule child downtimes. `0` does not do anything, `1` schedules child downtimes triggered by this downtime, `2` schedules non-triggered downtimes. Defaults to `0`.
 
 In addition to these parameters a [filter](12-icinga2-api.md#icinga2-api-filters) must be provided. The valid types for this action are `Host` and `Service`.
 
@@ -1209,7 +1209,7 @@ Send a `POST` request to the URL endpoint `/v1/actions/generate-ticket`.
 
   Parameter     | Type      | Description
   --------------|-----------|--------------
-  cn            | string    | **Required.** The host's common name for which the ticket should be geenerated.
+  cn            | String    | **Required.** The host's common name for which the ticket should be geenerated.
 
 Example:
 
@@ -1233,9 +1233,9 @@ The following parameters need to be specified (either as URL parameters or in a 
 
   Parameter  | Type         | Description
   -----------|--------------|-------------
-  types      | string array | **Required.** Event type(s). Multiple types as URL parameters are supported.
-  queue      | string       | **Required.** Unique queue name. Multiple HTTP clients can use the same queue as long as they use the same event types and filter.
-  filter     | string       | **Optional.** Filter for specific event attributes using [filter expressions](12-icinga2-api.md#icinga2-api-filters).
+  types      | Array        | **Required.** Event type(s). Multiple types as URL parameters are supported.
+  queue      | String       | **Required.** Unique queue name. Multiple HTTP clients can use the same queue as long as they use the same event types and filter.
+  filter     | String       | **Optional.** Filter for specific event attributes using [filter expressions](12-icinga2-api.md#icinga2-api-filters).
 
 ### Event Stream Types <a id="icinga2-api-event-streams-types"></a>
 
@@ -1261,6 +1261,131 @@ being set.
 Example for all downtime events:
 
     &types=DowntimeAdded&types=DowntimeRemoved&types=DowntimeTriggered
+
+#### <a id="icinga2-api-event-streams-type-checkresult"></a> Event Stream Type: CheckResult
+
+  Name 		| Type          | Description
+  --------------|---------------|--------------------------
+  type 	        | String        | Event type `CheckResult`.
+  timestamp     | Timestamp     | Unix timestamp when the event happened.
+  host	        | String        | [Host](09-object-types.md#objecttype-host) name.
+  service       | String        | [Service](09-object-types.md#objecttype-service) name. Optional if this is a host check result.
+  check\_result	| CheckResult   | Serialized [CheckResult](08-advanced-topics.md#advanced-value-types-checkresult) value type.
+
+#### <a id="icinga2-api-event-streams-type-statechange"></a> Event Stream Type: StateChange
+
+  Name 		| Type          | Description
+  --------------|---------------|--------------------------
+  type 	        | String        | Event type `StateChange`.
+  timestamp     | Timestamp     | Unix timestamp when the event happened.
+  host	        | String        | [Host](09-object-types.md#objecttype-host) name.
+  service       | String        | [Service](09-object-types.md#objecttype-service) name. Optional if this is a host state change.
+  state	        | Number        | [Host](09-object-types.md#objecttype-host) or [service](09-object-types.md#objecttype-service) state.
+  state\_type   | Number        | [Host](09-object-types.md#objecttype-host) or [service](09-object-types.md#objecttype-service) state type.
+  check\_result	| CheckResult   | Serialized [CheckResult](08-advanced-topics.md#advanced-value-types-checkresult) value type.
+
+#### <a id="icinga2-api-event-streams-type-notification"></a> Event Stream Type: Notification
+
+  Name 		| Type          | Description
+  --------------|---------------|--------------------------
+  type 	        | String        | Event type `Notification`.
+  timestamp     | Timestamp     | Unix timestamp when the event happened.
+  host	        | String        | [Host](09-object-types.md#objecttype-host) name.
+  service       | String        | [Service](09-object-types.md#objecttype-service) name. Optional if this is a host notification.
+  users         | Array         | List of notified [user](09-object-types.md#objecttype-user) names.
+  notification\_type | String   | [$notification.type$](03-monitoring-basics.md#notification-runtime-macros) runtime macro value.
+  author        | String        | [$notification.author$](03-monitoring-basics.md#notification-runtime-macros) runtime macro value.
+  text          | String        | [$notification.comment$](03-monitoring-basics.md#notification-runtime-macros) runtime macro value.
+  check\_result	| CheckResult   | Serialized [CheckResult](08-advanced-topics.md#advanced-value-types-checkresult) value type.
+
+#### <a id="icinga2-api-event-streams-type-flapping"></a> Event Stream Type: Flapping
+
+  Name 		| Type          | Description
+  --------------|---------------|--------------------------
+  type 	        | String        | Event type `Flapping`.
+  timestamp     | Timestamp     | Unix timestamp when the event happened.
+  host	        | String        | [Host](09-object-types.md#objecttype-host) name.
+  service       | String        | [Service](09-object-types.md#objecttype-service) name. Optional if this is a host flapping event.
+  state	        | Number        | [Host](09-object-types.md#objecttype-host) or [service](09-object-types.md#objecttype-service) state.
+  state\_type   | Number        | [Host](09-object-types.md#objecttype-host) or [service](09-object-types.md#objecttype-service) state type.
+  is\_flapping  | Boolean       | Whether this object is flapping.
+
+#### <a id="icinga2-api-event-streams-type-acknowledgementset"></a> Event Stream Type: AcknowledgementSet
+
+  Name 		| Type          | Description
+  --------------|---------------|--------------------------
+  type 	        | String        | Event type `AcknowledgementSet`.
+  timestamp     | Timestamp     | Unix timestamp when the event happened.
+  host	        | String        | [Host](09-object-types.md#objecttype-host) name.
+  service       | String        | [Service](09-object-types.md#objecttype-service) name. Optional if this is a host acknowledgement.
+  state	        | Number        | [Host](09-object-types.md#objecttype-host) or [service](09-object-types.md#objecttype-service) state.
+  state\_type   | Number        | [Host](09-object-types.md#objecttype-host) or [service](09-object-types.md#objecttype-service) state type.
+  author        | String        | Acknowledgement author set via [acknowledge-problem](12-icinga2-api.md#icinga2-api-actions-acknowledge-problem) action.
+  comment       | String        | Acknowledgement comment set via [acknowledge-problem](12-icinga2-api.md#icinga2-api-actions-acknowledge-problem) action.
+  acknowledgement\_type | Number | 0 = None, 1 = Normal, 2 = Sticky. `sticky` can be set via [acknowledge-problem](12-icinga2-api.md#icinga2-api-actions-acknowledge-problem) action.
+  notify        | Boolean       | Notifications were enabled via [acknowledge-problem](12-icinga2-api.md#icinga2-api-actions-acknowledge-problem) action.
+  expiry        | Timestamp     | Acknowledgement expire time set via [acknowledge-problem](12-icinga2-api.md#icinga2-api-actions-acknowledge-problem) action.
+
+#### <a id="icinga2-api-event-streams-type-acknowledgementcleared"></a> Event Stream Type: AcknowledgementCleared
+
+  Name 		| Type          | Description
+  --------------|---------------|--------------------------
+  type 	        | String        | Event type `AcknowledgementCleared`.
+  timestamp     | Timestamp     | Unix timestamp when the event happened.
+  host	        | String        | [Host](09-object-types.md#objecttype-host) name.
+  service       | String        | [Service](09-object-types.md#objecttype-service) name. Optional if this is a host acknowledgement.
+  state	        | Number        | [Host](09-object-types.md#objecttype-host) or [service](09-object-types.md#objecttype-service) state.
+  state\_type   | Number        | [Host](09-object-types.md#objecttype-host) or [service](09-object-types.md#objecttype-service) state type.
+
+#### <a id="icinga2-api-event-streams-type-commentadded"></a> Event Stream Type: CommentAdded
+
+  Name 		| Type          | Description
+  --------------|---------------|--------------------------
+  type 	        | String        | Event type `CommentAdded`.
+  timestamp     | Timestamp     | Unix timestamp when the event happened.
+  comment       | Dictionary    | Serialized [Comment](09-object-types.md#objecttype-comment) object.
+
+#### <a id="icinga2-api-event-streams-type-commentremoved"></a> Event Stream Type: CommentRemoved
+
+  Name 		| Type          | Description
+  --------------|---------------|--------------------------
+  type 	        | String        | Event type `CommentRemoved`.
+  timestamp     | Timestamp     | Unix timestamp when the event happened.
+  comment       | Dictionary    | Serialized [Comment](09-object-types.md#objecttype-comment) object.
+
+#### <a id="icinga2-api-event-streams-type-downtimeadded"></a> Event Stream Type: DowntimeAdded
+
+  Name 		| Type          | Description
+  --------------|---------------|--------------------------
+  type 	        | String        | Event type `DowntimeAdded`.
+  timestamp     | Timestamp     | Unix timestamp when the event happened.
+  downtime      | Dictionary    | Serialized [Comment](09-object-types.md#objecttype-downtime) object.
+
+#### <a id="icinga2-api-event-streams-type-downtimeremoved"></a> Event Stream Type: DowntimeRemoved
+
+  Name 		| Type          | Description
+  --------------|---------------|--------------------------
+  type 	        | String        | Event type `DowntimeRemoved`.
+  timestamp     | Timestamp     | Unix timestamp when the event happened.
+  downtime      | Dictionary    | Serialized [Comment](09-object-types.md#objecttype-downtime) object.
+
+
+#### <a id="icinga2-api-event-streams-type-downtimestarted"></a> Event Stream Type: DowntimeStarted
+
+  Name 		| Type          | Description
+  --------------|---------------|--------------------------
+  type 	        | String        | Event type `DowntimeStarted`.
+  timestamp     | Timestamp     | Unix timestamp when the event happened.
+  downtime      | Dictionary    | Serialized [Comment](09-object-types.md#objecttype-downtime) object.
+
+
+#### <a id="icinga2-api-event-streams-type-downtimetriggered"></a> Event Stream Type: DowntimeTriggered
+
+  Name 		| Type          | Description
+  --------------|---------------|--------------------------
+  type 	        | String        | Event type `DowntimeTriggered`.
+  timestamp     | Timestamp     | Unix timestamp when the event happened.
+  downtime      | Dictionary    | Serialized [Comment](09-object-types.md#objecttype-downtime) object.
 
 
 ### Event Stream Filter <a id="icinga2-api-event-streams-filter"></a>
@@ -1589,14 +1714,14 @@ endpoint `/v1/types`.
 
 Each response entry in the results array contains the following attributes:
 
-  Attribute      | Type         | Description
-  ---------------|--------------|---------------------
-  name           | string       | The type name.
-  plural_name    | string       | The plural type name.
-  fields         | dictionary   | Available fields including details on e.g. the type and attribute accessibility.
-  abstract       | boolean      | Whether objects can be instantiated for this type.
-  base           | boolean      | The base type (e.g. `Service` inherits fields and prototype methods from `Checkable`).
-  prototype_keys | string array | Available prototype methods.
+  Attribute       | Type         | Description
+  ----------------|--------------|---------------------
+  name            | String       | The type name.
+  plural\_name    | String       | The plural type name.
+  fields          | Dictionary   | Available fields including details on e.g. the type and attribute accessibility.
+  abstract        | Boolean      | Whether objects can be instantiated for this type.
+  base            | Boolean      | The base type (e.g. `Service` inherits fields and prototype methods from `Checkable`).
+  prototype\_keys | Array        | Available prototype methods.
 
 In order to view a specific configuration object type specify its name inside the URL path:
 
@@ -1641,9 +1766,9 @@ The following parameters need to be specified (either as URL parameters or in a 
 
   Parameter  | Type         | Description
   -----------|--------------|-------------
-  session    | string       | **Optional.** The session ID. Ideally this should be a GUID or some other unique identifier.
-  command    | string       | **Required.** Command expression for execution or auto-completion.
-  sandboxed  | number       | **Optional.** Whether runtime changes are allowed or forbidden. Defaults to disabled.
+  session    | String       | **Optional.** The session ID. Ideally this should be a GUID or some other unique identifier.
+  command    | String       | **Required.** Command expression for execution or auto-completion.
+  sandboxed  | Number       | **Optional.** Whether runtime changes are allowed or forbidden. Defaults to disabled.
 
 The [API permission](12-icinga2-api.md#icinga2-api-permissions) `console` is required for executing
 expressions.

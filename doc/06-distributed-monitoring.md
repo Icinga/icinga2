@@ -747,7 +747,7 @@ configuration:
 * [Puppet Module](https://github.com/Icinga/puppet-icinga2)
 * [Chef Cookbook](https://github.com/Icinga/chef-icinga2)
 
-More details can be found [here](#configuration-tools).
+More details can be found [here](13-addons.md#configuration-tools).
 
 ### Top Down <a id="distributed-monitoring-top-down"></a>
 
