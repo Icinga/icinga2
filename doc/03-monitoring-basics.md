@@ -38,20 +38,22 @@ on the same physical device.
 
 Here is an example of a host object which defines two child services:
 
-    object Host "my-server1" {
-      address = "10.0.0.1"
-      check_command = "hostalive"
-    }
+```
+object Host "my-server1" {
+  address = "10.0.0.1"
+  check_command = "hostalive"
+}
 
-    object Service "ping4" {
-      host_name = "my-server1"
-      check_command = "ping4"
-    }
+object Service "ping4" {
+  host_name = "my-server1"
+  check_command = "ping4"
+}
 
-    object Service "http" {
-      host_name = "my-server1"
-      check_command = "http"
-    }
+object Service "http" {
+  host_name = "my-server1"
+  check_command = "http"
+}
+```
 
 The example creates two services `ping4` and `http` which belong to the
 host `my-server1`.
@@ -86,7 +88,8 @@ Services can be in any of the following states:
 
 ### Check Result State Mapping <a id="check-result-state-mapping"></a>
 
-[Check plugins](05-service-monitoring.md#service-monitoring-plugins) return with an exit code which is interpreted a state number.
+[Check plugins](05-service-monitoring.md#service-monitoring-plugins) return
+with an exit code which is interpreted a state number.
 Services map the states directly while hosts will treat `0` or `1` as `UP`
 for example.
 
@@ -109,25 +112,52 @@ state the host/service switches to a `HARD` state and notifications are sent.
 
   Name        | Description
   ------------|--------------
-  HARD        | The host/service's state hasn't recently changed.
-  SOFT        | The host/service has recently changed state and is being re-checked.
+  HARD        | The host/service's state hasn't recently changed. `check_interval` applies here.
+  SOFT        | The host/service has recently changed state and is being re-checked with `retry_interval`.
 
 ### Host and Service Checks <a id="host-service-checks"></a>
 
 Hosts and services determine their state by running checks in a regular interval.
 
-    object Host "router" {
-      check_command = "hostalive"
-      address = "10.0.0.1"
-    }
+```
+object Host "router" {
+  check_command = "hostalive"
+  address = "10.0.0.1"
+}
+```
 
 The `hostalive` command is one of several built-in check commands. It sends ICMP
 echo requests to the IP address specified in the `address` attribute to determine
 whether a host is online.
 
+> **Tip**
+>
+> `hostalive` is the same as `ping` but with different default thresholds.
+> Both use the `ping` CLI command to execute sequential checks.
+>
+> If you need faster ICMP checks, look into the [icmp](10-icinga-template-library.md#plugin-check-command-icmp) CheckCommand.
+
 A number of other [built-in check commands](10-icinga-template-library.md#icinga-template-library) are also
 available. In addition to these commands the next few chapters will explain in
 detail how to set up your own check commands.
+
+#### Host Check Alternatives <a id="host-check-alternatives"></a>
+
+If the host is not reachable with ICMP, HTTP, etc. you can
+also use the [dummy](10-icinga-template-library.md#plugin-check-command-dummy) CheckCommand to set a default state.
+
+```
+object Host "dummy-host" {
+  check_command = "dummy"
+  vars.dummy_state = 0 //Up
+  vars.dummy_text = "Everything OK."
+}
+```
+
+This method is also used when you send in [external check results](08-advanced-topics.md#external-check-results).
+
+A more advanced technique is to calculate an overall state
+based on all services. This is described in [here](08-advanced-topics.md#access-object-attributes-at-runtime-cluster-check).
 
 
 ## Templates <a id="object-inheritance-using-templates"></a>
@@ -135,28 +165,30 @@ detail how to set up your own check commands.
 Templates may be used to apply a set of identical attributes to more than one
 object:
 
-    template Service "generic-service" {
-      max_check_attempts = 3
-      check_interval = 5m
-      retry_interval = 1m
-      enable_perfdata = true
-    }
+```
+template Service "generic-service" {
+  max_check_attempts = 3
+  check_interval = 5m
+  retry_interval = 1m
+  enable_perfdata = true
+}
 
-    apply Service "ping4" {
-      import "generic-service"
+apply Service "ping4" {
+  import "generic-service"
 
-      check_command = "ping4"
+  check_command = "ping4"
 
-      assign where host.address
-    }
+  assign where host.address
+}
 
-    apply Service "ping6" {
-      import "generic-service"
+apply Service "ping6" {
+  import "generic-service"
 
-      check_command = "ping6"
+  check_command = "ping6"
 
-      assign where host.address6
-    }
+  assign where host.address6
+}
+```
 
 
 In this example the `ping4` and `ping6` services inherit properties from the
@@ -166,9 +198,13 @@ Objects as well as templates themselves can import an arbitrary number of
 other templates. Attributes inherited from a template can be overridden in the
 object if necessary.
 
-You can also import existing non-template objects. Note that templates
-and objects share the same namespace, i.e. you can't define a template
-that has the same name like an object.
+You can also import existing non-template objects.
+
+> **Note**
+>
+> Templates and objects share the same namespace, i.e. you can't define a template
+> that has the same name like an object.
+
 
 ### Multiple Templates <a id="object-inheritance-using-multiple-templates"></a>
 
@@ -180,54 +216,86 @@ template is also the base template, we import the `generic-host` template here.
 This provides the `check_command` attribute by default and we don't need
 to set it anywhere later on.
 
-    template Host "web-server" {
-      import "generic-host"
-      vars = {
-        webserver_type = "apache"
-      }
-    }
+```
+template Host "web-server" {
+  import "generic-host"
+  vars = {
+    webserver_type = "apache"
+  }
+}
+```
 
 The `wp-server` host template specifies a Wordpress instance and sets
 the `application_type` custom attribute. Please note the `+=` [operator](17-language-reference.md#dictionary-operators)
 which adds [dictionary](17-language-reference.md#dictionary) items,
 but does not override any previous `vars` attribute.
 
-    template Host "wp-server" {
-      vars += {
-        application_type = "wordpress"
-      }
-    }
+```
+template Host "wp-server" {
+  vars += {
+    application_type = "wordpress"
+  }
+}
+```
 
 The final host object imports both templates. The order is important here:
 First the base template `web-server` is added to the object, then additional
 attributes are imported from the `wp-server` object.
 
-    object Host "wp.example.com" {
-      import "web-server"
-      import "wp-server"
+```
+object Host "wp.example.com" {
+  import "web-server"
+  import "wp-server"
 
-      address = "192.168.56.200"
-    }
+  address = "192.168.56.200"
+}
+```
 
 If you want to override specific attributes inherited from templates, you can
 specify them on the host object.
 
-    object Host "wp1.example.com" {
-      import "web-server"
-      import "wp-server"
+```
+object Host "wp1.example.com" {
+  import "web-server"
+  import "wp-server"
 
-      vars.webserver_type = "nginx" //overrides attribute from base template
+  vars.webserver_type = "nginx" //overrides attribute from base template
 
-      address = "192.168.56.201"
-    }
+  address = "192.168.56.201"
+}
+```
 
 ## Custom Attributes <a id="custom-attributes"></a>
 
-In addition to built-in attributes you can define your own attributes:
+In addition to built-in attributes you can define your own attributes
+inside the `vars` attribute:
 
-    object Host "localhost" {
-      vars.ssh_port = 2222
-    }
+```
+object Host "localhost" {
+  check_command = "ssh"
+  vars.ssh_port = 2222
+}
+```
+
+`vars` is a [dictionary](17-language-reference.md#dictionary) where you
+can set specific keys to values. The example above uses the shorter
+[indexer](17-language-reference.md#indexer) syntax.
+
+An alternative representation can be written like this:
+
+```
+  vars = {
+    ssh_port = 2222
+  }
+```
+
+or
+
+```
+  vars["ssh_port"] = 2222
+```
+
+### Custom Attribute Values <a id="custom-attributes-values"></a>
 
 Valid values for custom attributes include:
 
@@ -235,17 +303,71 @@ Valid values for custom attributes include:
 * [Arrays](17-language-reference.md#array) and [dictionaries](17-language-reference.md#dictionary)
 * [Functions](03-monitoring-basics.md#custom-attributes-functions)
 
+You can also define nested values such as dictionaries in dictionaries.
+
+This example defines the custom attribute `disks` as dictionary.
+The first key is set to `disk /` is itself set to a dictionary
+with one key-value pair.
+
+```
+  vars.disks["disk /"] = {
+    disk_partitions = "/"
+  }
+```
+
+This can be written as resolved structure like this:
+
+```
+  vars = {
+    disks = {
+      "disk /" = {
+        disk_partitions = "/"
+      }
+    }
+  }
+```
+
+Keep this in mind when trying to access specific sub-keys
+in apply rules or functions.
+
+Another example which is shown in the example configuration:
+
+```
+  vars.notification["mail"] = {
+    groups = [ "icingaadmins" ]
+  }
+```
+
+This defines the `notification` custom attribute as dictionary
+with the key `mail`. Its value is a dictionary with the key `groups`
+which itself has an array as value. Note: This array is the exact
+same as the `user_groups` attribute for [notification apply rules](#03-monitoring-basics.md#using-apply-notifications)
+expects.
+
+```
+  vars.notification = {
+    mail = {
+      groups = [
+        "icingaadmins"
+      ]
+    }
+  }
+```
+
+
 ### Functions as Custom Attributes <a id="custom-attributes-functions"></a>
 
 Icinga 2 lets you specify [functions](17-language-reference.md#functions) for custom attributes.
 The special case here is that whenever Icinga 2 needs the value for such a custom attribute it runs
 the function and uses whatever value the function returns:
 
-    object CheckCommand "random-value" {
-      command = [ PluginDir + "/check_dummy", "0", "$text$" ]
+```
+object CheckCommand "random-value" {
+  command = [ PluginDir + "/check_dummy", "0", "$text$" ]
 
-      vars.text = {{ Math.random() * 100 }}
-    }
+  vars.text = {{ Math.random() * 100 }}
+}
+```
 
 This example uses the [abbreviated lambda syntax](17-language-reference.md#nullary-lambdas).
 
@@ -260,44 +382,51 @@ These functions have access to a number of variables:
 
 Here's an example:
 
-    vars.text = {{ host.check_interval }}
+```
+vars.text = {{ host.check_interval }}
+```
 
-In addition to these variables the `macro` function can be used to retrieve the
+In addition to these variables the [macro](18-library-reference.md#scoped-functions-macro) function can be used to retrieve the
 value of arbitrary macro expressions:
 
-    vars.text = {{
-      if (macro("$address$") == "127.0.0.1") {
-        log("Running a check for localhost!")
-      }
+```
+vars.text = {{
+  if (macro("$address$") == "127.0.0.1") {
+    log("Running a check for localhost!")
+  }
 
-      return "Some text"
-    }}
+  return "Some text"
+}}
+```
 
-The `resolve_arguments` can be used to resolve a command and its arguments much in
+The `resolve_arguments` function can be used to resolve a command and its arguments much in
 the same fashion Icinga does this for the `command` and `arguments` attributes for
 commands. The `by_ssh` command uses this functionality to let users specify a
 command and arguments that should be executed via SSH:
 
-    arguments = {
-      "-C" = {{
-        var command = macro("$by_ssh_command$")
-        var arguments = macro("$by_ssh_arguments$")
+```
+arguments = {
+  "-C" = {{
+    var command = macro("$by_ssh_command$")
+    var arguments = macro("$by_ssh_arguments$")
 
-        if (typeof(command) == String && !arguments) {
-          return command
-        }
-
-        var escaped_args = []
-        for (arg in resolve_arguments(command, arguments)) {
-          escaped_args.add(escape_shell_arg(arg))
-        }
-        return escaped_args.join(" ")
-      }}
-      ...
+    if (typeof(command) == String && !arguments) {
+      return command
     }
 
-Acessing object attributes at runtime inside these functions is described in the
+    var escaped_args = []
+    for (arg in resolve_arguments(command, arguments)) {
+      escaped_args.add(escape_shell_arg(arg))
+    }
+    return escaped_args.join(" ")
+  }}
+  ...
+}
+```
+
+Accessing object attributes at runtime inside these functions is described in the
 [advanced topics](08-advanced-topics.md#access-object-attributes-at-runtime) chapter.
+
 
 ## Runtime Macros <a id="runtime-macros"></a>
 
@@ -305,30 +434,32 @@ Macros can be used to access other objects' attributes at runtime. For example t
 are used in command definitions to figure out which IP address a check should be
 run against:
 
-    object CheckCommand "my-ping" {
-      command = [ PluginDir + "/check_ping", "-H", "$ping_address$" ]
+```
+object CheckCommand "my-ping" {
+  command = [ PluginDir + "/check_ping", "-H", "$ping_address$" ]
 
-      arguments = {
-        "-w" = "$ping_wrta$,$ping_wpl$%"
-        "-c" = "$ping_crta$,$ping_cpl$%"
-        "-p" = "$ping_packets$"
-      }
+  arguments = {
+    "-w" = "$ping_wrta$,$ping_wpl$%"
+    "-c" = "$ping_crta$,$ping_cpl$%"
+    "-p" = "$ping_packets$"
+  }
 
-      vars.ping_address = "$address$"
+  vars.ping_address = "$address$"
 
-      vars.ping_wrta = 100
-      vars.ping_wpl = 5
+  vars.ping_wrta = 100
+  vars.ping_wpl = 5
 
-      vars.ping_crta = 250
-      vars.ping_cpl = 10
+  vars.ping_crta = 250
+  vars.ping_cpl = 10
 
-      vars.ping_packets = 5
-    }
+  vars.ping_packets = 5
+}
 
-    object Host "router" {
-      check_command = "my-ping"
-      address = "10.0.0.1"
-    }
+object Host "router" {
+  check_command = "my-ping"
+  address = "10.0.0.1"
+}
+```
 
 In this example we are using the `$address$` macro to refer to the host's `address`
 attribute.
@@ -360,12 +491,14 @@ in your command objects.
 Here's how you can override the custom attribute `ping_packets` from the previous
 example:
 
-    object Service "ping" {
-      host_name = "localhost"
-      check_command = "my-ping"
+```
+object Service "ping" {
+  host_name = "localhost"
+  check_command = "my-ping"
 
-      vars.ping_packets = 10 // Overrides the default value of 5 given in the command
-    }
+  vars.ping_packets = 10 // Overrides the default value of 5 given in the command
+}
+```
 
 If a custom attribute isn't defined anywhere, an empty value is used and a warning is
 written to the Icinga 2 log.
@@ -373,7 +506,9 @@ written to the Icinga 2 log.
 You can also directly refer to a specific attribute -- thereby ignoring these evaluation
 rules -- by specifying the full attribute name:
 
-    $service.vars.ping_wrta$
+```
+$service.vars.ping_wrta$
+```
 
 This retrieves the value of the `ping_wrta` custom attribute for the service. This
 returns an empty value if the service does not have such a custom attribute no matter
@@ -388,57 +523,63 @@ hosts or services:
   Name                         | Description
   -----------------------------|--------------
   host.name                    | The name of the host object.
-  host.display_name            | The value of the `display_name` attribute.
+  host.display\_name           | The value of the `display_name` attribute.
   host.state                   | The host's current state. Can be one of `UNREACHABLE`, `UP` and `DOWN`.
-  host.state_id                | The host's current state. Can be one of `0` (up), `1` (down) and `2` (unreachable).
-  host.state_type              | The host's current state type. Can be one of `SOFT` and `HARD`.
-  host.check_attempt           | The current check attempt number.
-  host.max_check_attempts      | The maximum number of checks which are executed before changing to a hard state.
-  host.last_state              | The host's previous state. Can be one of `UNREACHABLE`, `UP` and `DOWN`.
-  host.last_state_id           | The host's previous state. Can be one of `0` (up), `1` (down) and `2` (unreachable).
-  host.last_state_type         | The host's previous state type. Can be one of `SOFT` and `HARD`.
-  host.last_state_change       | The last state change's timestamp.
-  host.downtime_depth	       | The number of active downtimes.
-  host.duration_sec            | The time since the last state change.
+  host.state\_id               | The host's current state. Can be one of `0` (up), `1` (down) and `2` (unreachable).
+  host.state\_type             | The host's current state type. Can be one of `SOFT` and `HARD`.
+  host.check\_attempt          | The current check attempt number.
+  host.max\_check\_attempts    | The maximum number of checks which are executed before changing to a hard state.
+  host.last\_state             | The host's previous state. Can be one of `UNREACHABLE`, `UP` and `DOWN`.
+  host.last\_state\_id         | The host's previous state. Can be one of `0` (up), `1` (down) and `2` (unreachable).
+  host.last\_state\_type       | The host's previous state type. Can be one of `SOFT` and `HARD`.
+  host.last\_state\_change     | The last state change's timestamp.
+  host.downtime\_depth	       | The number of active downtimes.
+  host.duration\_sec           | The time since the last state change.
   host.latency                 | The host's check latency.
-  host.execution_time          | The host's check execution time.
+  host.execution\_time         | The host's check execution time.
   host.output                  | The last check's output.
   host.perfdata                | The last check's performance data.
-  host.last_check              | The timestamp when the last check was executed.
-  host.check_source            | The monitoring instance that performed the last check.
-  host.num_services            | Number of services associated with the host.
-  host.num_services_ok         | Number of services associated with the host which are in an `OK` state.
-  host.num_services_warning    | Number of services associated with the host which are in a `WARNING` state.
-  host.num_services_unknown    | Number of services associated with the host which are in an `UNKNOWN` state.
-  host.num_services_critical   | Number of services associated with the host which are in a `CRITICAL` state.
+  host.last\_check             | The timestamp when the last check was executed.
+  host.check\_source           | The monitoring instance that performed the last check.
+  host.num\_services           | Number of services associated with the host.
+  host.num\_services\_ok       | Number of services associated with the host which are in an `OK` state.
+  host.num\_services\_warning  | Number of services associated with the host which are in a `WARNING` state.
+  host.num\_services\_unknown  | Number of services associated with the host which are in an `UNKNOWN` state.
+  host.num\_services\_critical | Number of services associated with the host which are in a `CRITICAL` state.
+
+In addition to these specific runtime macros [host object](09-object-types.md#objecttype-host)
+attributes can be accessed too.
 
 ### Service Runtime Macros <a id="service-runtime-macros"></a>
 
 The following service macros are available in all commands that are executed for
 services:
 
-  Name                       | Description
-  ---------------------------|--------------
-  service.name               | The short name of the service object.
-  service.display_name       | The value of the `display_name` attribute.
-  service.check_command      | The short name of the command along with any arguments to be used for the check.
-  service.state              | The service's current state. Can be one of `OK`, `WARNING`, `CRITICAL` and `UNKNOWN`.
-  service.state_id           | The service's current state. Can be one of `0` (ok), `1` (warning), `2` (critical) and `3` (unknown).
-  service.state_type         | The service's current state type. Can be one of `SOFT` and `HARD`.
-  service.check_attempt      | The current check attempt number.
-  service.max_check_attempts | The maximum number of checks which are executed before changing to a hard state.
-  service.last_state         | The service's previous state. Can be one of `OK`, `WARNING`, `CRITICAL` and `UNKNOWN`.
-  service.last_state_id      | The service's previous state. Can be one of `0` (ok), `1` (warning), `2` (critical) and `3` (unknown).
-  service.last_state_type    | The service's previous state type. Can be one of `SOFT` and `HARD`.
-  service.last_state_change  | The last state change's timestamp.
-  service.downtime_depth     | The number of active downtimes.
-  service.duration_sec       | The time since the last state change.
-  service.latency            | The service's check latency.
-  service.execution_time     | The service's check execution time.
-  service.output             | The last check's output.
-  service.perfdata           | The last check's performance data.
-  service.last_check         | The timestamp when the last check was executed.
-  service.check_source       | The monitoring instance that performed the last check.
+  Name                         | Description
+  -----------------------------|--------------
+  service.name                 | The short name of the service object.
+  service.display\_name        | The value of the `display_name` attribute.
+  service.check\_command       | The short name of the command along with any arguments to be used for the check.
+  service.state                | The service's current state. Can be one of `OK`, `WARNING`, `CRITICAL` and `UNKNOWN`.
+  service.state\_id            | The service's current state. Can be one of `0` (ok), `1` (warning), `2` (critical) and `3` (unknown).
+  service.state\_type          | The service's current state type. Can be one of `SOFT` and `HARD`.
+  service.check\_attempt       | The current check attempt number.
+  service.max\_check\_attempts | The maximum number of checks which are executed before changing to a hard state.
+  service.last\_state          | The service's previous state. Can be one of `OK`, `WARNING`, `CRITICAL` and `UNKNOWN`.
+  service.last\_state\_id      | The service's previous state. Can be one of `0` (ok), `1` (warning), `2` (critical) and `3` (unknown).
+  service.last\_state\_type    | The service's previous state type. Can be one of `SOFT` and `HARD`.
+  service.last\_state\_change  | The last state change's timestamp.
+  service.downtime\_depth      | The number of active downtimes.
+  service.duration\_sec        | The time since the last state change.
+  service.latency              | The service's check latency.
+  service.execution\_time      | The service's check execution time.
+  service.output               | The last check's output.
+  service.perfdata             | The last check's performance data.
+  service.last\_check          | The timestamp when the last check was executed.
+  service.check\_source        | The monitoring instance that performed the last check.
+
+In addition to these specific runtime macros [service object](09-object-types.md#objecttype-service)
+attributes can be accessed too.
 
 ### Command Runtime Macros <a id="command-runtime-macros"></a>
 
@@ -456,7 +597,10 @@ users:
   Name                   | Description
   -----------------------|--------------
   user.name              | The name of the user object.
-  user.display_name      | The value of the display_name attribute.
+  user.display\_name     | The value of the `display_name` attribute.
+
+In addition to these specific runtime macros [user object](09-object-types.md#objecttype-user)
+attributes can be accessed too.
 
 ### Notification Runtime Macros <a id="notification-runtime-macros"></a>
 
@@ -466,53 +610,60 @@ users:
   notification.author    | The author of the notification comment if existing.
   notification.comment   | The comment of the notification if existing.
 
+In addition to these specific runtime macros [notification object](09-object-types.md#objecttype-notification)
+attributes can be accessed too.
+
 ### Global Runtime Macros <a id="global-runtime-macros"></a>
 
 The following macros are available in all executed commands:
 
-  Name                   | Description
-  -----------------------|--------------
-  icinga.timet           | Current UNIX timestamp.
-  icinga.long_date_time  | Current date and time including timezone information. Example: `2014-01-03 11:23:08 +0000`
-  icinga.short_date_time | Current date and time. Example: `2014-01-03 11:23:08`
-  icinga.date            | Current date. Example: `2014-01-03`
-  icinga.time            | Current time including timezone information. Example: `11:23:08 +0000`
-  icinga.uptime          | Current uptime of the Icinga 2 process.
+  Name                     | Description
+  -------------------------|--------------
+  icinga.timet             | Current UNIX timestamp.
+  icinga.long\_date\_time  | Current date and time including timezone information. Example: `2014-01-03 11:23:08 +0000`
+  icinga.short\_date\_time | Current date and time. Example: `2014-01-03 11:23:08`
+  icinga.date              | Current date. Example: `2014-01-03`
+  icinga.time              | Current time including timezone information. Example: `11:23:08 +0000`
+  icinga.uptime            | Current uptime of the Icinga 2 process.
 
 The following macros provide global statistics:
 
-  Name                              | Description
-  ----------------------------------|--------------
-  icinga.num_services_ok            | Current number of services in state 'OK'.
-  icinga.num_services_warning       | Current number of services in state 'Warning'.
-  icinga.num_services_critical      | Current number of services in state 'Critical'.
-  icinga.num_services_unknown       | Current number of services in state 'Unknown'.
-  icinga.num_services_pending       | Current number of pending services.
-  icinga.num_services_unreachable   | Current number of unreachable services.
-  icinga.num_services_flapping      | Current number of flapping services.
-  icinga.num_services_in_downtime   | Current number of services in downtime.
-  icinga.num_services_acknowledged  | Current number of acknowledged service problems.
-  icinga.num_hosts_up               | Current number of hosts in state 'Up'.
-  icinga.num_hosts_down             | Current number of hosts in state 'Down'.
-  icinga.num_hosts_unreachable      | Current number of unreachable hosts.
-  icinga.num_hosts_pending          | Current number of pending hosts.
-  icinga.num_hosts_flapping         | Current number of flapping hosts.
-  icinga.num_hosts_in_downtime      | Current number of hosts in downtime.
-  icinga.num_hosts_acknowledged     | Current number of acknowledged host problems.
+  Name                                | Description
+  ------------------------------------|------------------------------------
+  icinga.num\_services\_ok            | Current number of services in state 'OK'.
+  icinga.num\_services\_warning       | Current number of services in state 'Warning'.
+  icinga.num\_services\_critical      | Current number of services in state 'Critical'.
+  icinga.num\_services\_unknown       | Current number of services in state 'Unknown'.
+  icinga.num\_services\_pending       | Current number of pending services.
+  icinga.num\_services\_unreachable   | Current number of unreachable services.
+  icinga.num\_services\_flapping      | Current number of flapping services.
+  icinga.num\_services\_in\_downtime  | Current number of services in downtime.
+  icinga.num\_services\_acknowledged  | Current number of acknowledged service problems.
+  icinga.num\_hosts\_up               | Current number of hosts in state 'Up'.
+  icinga.num\_hosts\_down             | Current number of hosts in state 'Down'.
+  icinga.num\_hosts\_unreachable      | Current number of unreachable hosts.
+  icinga.num\_hosts\_pending          | Current number of pending hosts.
+  icinga.num\_hosts\_flapping         | Current number of flapping hosts.
+  icinga.num\_hosts\_in\_downtime     | Current number of hosts in downtime.
+  icinga.num\_hosts\_acknowledged     | Current number of acknowledged host problems.
 
 
 ## Apply Rules <a id="using-apply"></a>
 
 Several object types require an object relation, e.g. [Service](09-object-types.md#objecttype-service),
 [Notification](09-object-types.md#objecttype-notification), [Dependency](09-object-types.md#objecttype-dependency),
-[ScheduledDowntime](09-object-types.md#objecttype-scheduleddowntime) objects.
+[ScheduledDowntime](09-object-types.md#objecttype-scheduleddowntime) objects. The
+object relations are documented in the linked chapters.
+
 If you for example create a service object you have to specify the [host_name](09-object-types.md#objecttype-service)
 attribute and reference an existing host attribute.
 
-    object Service "ping4" {
-      check_command = "ping4"
-      host_name = "icinga2-client1.localdomain"
-    }
+```
+object Service "ping4" {
+  check_command = "ping4"
+  host_name = "icinga2-client1.localdomain"
+}
+```
 
 This isn't comfortable when managing a huge set of configuration objects which could
 [match](03-monitoring-basics.md#using-apply-expressions) on a common pattern.
@@ -523,12 +674,16 @@ If you want basic monitoring for all your hosts, add a `ping4` service apply rul
 for all hosts which have the `address` attribute specified. Just one rule for 1000 hosts
 instead of 1000 service objects. Apply rules will automatically generate them for you.
 
-    apply Service "ping4" {
-      check_command = "ping4"
-      assign where host.address
-    }
+```
+apply Service "ping4" {
+  check_command = "ping4"
+  assign where host.address
+}
+```
 
 More explanations on assign where expressions can be found [here](03-monitoring-basics.md#using-apply-expressions).
+
+### Apply Rules: Prerequisites <a id="using-apply-prerquisites"></a>
 
 Before you start with apply rules keep the following in mind:
 
@@ -546,18 +701,71 @@ More specific object type requirements are described in these chapters:
 * [Apply dependencies to hosts and services](03-monitoring-basics.md#using-apply-dependencies)
 * [Apply scheduled downtimes to hosts and services](03-monitoring-basics.md#using-apply-scheduledowntimes)
 
+### Apply Rules: Usage Examples <a id="using-apply-usage-examples"></a>
+
 You can set/override object attributes in apply rules using the respectively available
 objects in that scope (host and/or service objects).
 
-    vars.application_type = host.vars.application_type
+```
+vars.application_type = host.vars.application_type
+```
 
-[Custom attributes](03-monitoring-basics.md#custom-attributes) can also store nested dictionaries and arrays. That way you can use them
-for not only matching for their existence or values in apply expressions, but also assign
+[Custom attributes](03-monitoring-basics.md#custom-attributes) can also store
+nested dictionaries and arrays. That way you can use them for not only matching
+for their existence or values in apply expressions, but also assign
 ("inherit") their values into the generated objected from apply rules.
+
+Remember the examples shown for [custom attribute values](03-monitoring-basics.md#custom-attributes-values):
+
+```
+  vars.notification["mail"] = {
+    groups = [ "icingaadmins" ]
+  }
+```
+
+You can do two things here:
+
+* Check for the existence of the `notification` custom attribute and its nested dictionary key `mail`.
+If this is boolean true, the notification object will be generated.
+* Assign the value of the `groups` key to the `user_groups` attribute.
+
+```
+apply Notification "mail-icingaadmin" to Host {
+  [...]
+
+  user_groups = host.vars.notification.mail.groups
+
+  assign where host.vars.notification.mail
+}
+
+```
 
 A more advanced example is to use [apply rules with for loops on arrays or
 dictionaries](03-monitoring-basics.md#using-apply-for) provided by
 [custom atttributes](03-monitoring-basics.md#custom-attributes) or groups.
+
+Remember the examples shown for [custom attribute values](03-monitoring-basics.md#custom-attributes-values):
+
+```
+  vars.disks["disk /"] = {
+    disk_partitions = "/"
+  }
+```
+
+You can iterate over all dictionary keys defined in `disks`.
+You can optionally use the value to specify additional object attributes.
+
+```
+apply Service for (disk => config in host.vars.disks) {
+  [...]
+
+  vars.disk_partitions = config.disk_partitions
+}
+```
+
+Please read the [apply for chapter](03-monitoring-basics.md#using-apply-for)
+for more specific insights.
+
 
 > **Tip**
 >
@@ -575,7 +783,9 @@ attributes will return `false`.
 
 Returns `false`:
 
-    assign where host.vars.attribute_does_not_exist
+```
+assign where host.vars.attribute_does_not_exist
+```
 
 Multiple `assign where` condition rows are evaluated as `OR` condition.
 
@@ -587,38 +797,49 @@ a specific condition. To achieve this you can use the logical `and` and `or` ope
 
 Assign a service to a specific host in a host group [array](18-library-reference.md#array-type) using the [in operator](17-language-reference.md#expression-operators):
 
-    assign where "hostgroup-dev" in host.groups
+```
+assign where "hostgroup-dev" in host.groups
+```
 
 Assign an object when a custom attribute is [equal](17-language-reference.md#expression-operators) to a value:
 
-    assign where host.vars.application_type == "database"
+```
+assign where host.vars.application_type == "database"
 
-    assign where service.vars.sms_notify == true
+assign where service.vars.sms_notify == true
+```
 
 Assign an object if a dictionary [contains](18-library-reference.md#dictionary-contains) a given key:
 
-    assign where host.vars.app_dict.contains("app")
+```
+assign where host.vars.app_dict.contains("app")
+```
 
 Match the host name by either using a [case insensitive match](18-library-reference.md#global-functions-match):
 
-    assign where match("webserver*", host.name)
+```
+assign where match("webserver*", host.name)
+```
 
 Match the host name by using a [regular expression](18-library-reference.md#global-functions-regex). Please note the [escaped](17-language-reference.md#string-literals-escape-sequences) backslash character:
 
-    assign where regex("^webserver-[\\d+]", host.name)
-
+```
+assign where regex("^webserver-[\\d+]", host.name)
+```
 
 [Match](18-library-reference.md#global-functions-match) all `*mysql*` patterns in the host name and (`&&`) custom attribute `prod_mysql_db`
 matches the `db-*` pattern. All hosts with the custom attribute `test_server` set to `true`
 should be ignored, or any host name ending with `*internal` pattern.
 
-    object HostGroup "mysql-server" {
-      display_name = "MySQL Server"
+```
+object HostGroup "mysql-server" {
+  display_name = "MySQL Server"
 
-      assign where match("*mysql*", host.name) && match("db-*", host.vars.prod_mysql_db)
-      ignore where host.vars.test_server == true
-      ignore where match("*internal", host.name)
-    }
+  assign where match("*mysql*", host.name) && match("db-*", host.vars.prod_mysql_db)
+  ignore where host.vars.test_server == true
+  ignore where match("*internal", host.name)
+}
+```
 
 Similar example for advanced notification apply rule filters: If the service
 attribute `notes` [matches](18-library-reference.md#global-functions-match) the `has gold support 24x7` string `AND` one of the
@@ -628,17 +849,19 @@ two condition passes, either the `customer` host custom attribute is set to `cus
 The notification is ignored for services whose host name ends with `*internal`
 `OR` the `priority` custom attribute is [less than](17-language-reference.md#expression-operators) `2`.
 
-    template Notification "cust-xy-notification" {
-      users = [ "noc-xy", "mgmt-xy" ]
-      command = "mail-service-notification"
-    }
+```
+template Notification "cust-xy-notification" {
+  users = [ "noc-xy", "mgmt-xy" ]
+  command = "mail-service-notification"
+}
 
-    apply Notification "notify-cust-xy-mysql" to Service {
-      import "cust-xy-notification"
+apply Notification "notify-cust-xy-mysql" to Service {
+  import "cust-xy-notification"
 
-      assign where match("*has gold support 24x7*", service.notes) && (host.vars.customer == "customer-xy" || host.vars.always_notify == true)
-      ignore where match("*internal", host.name) || (service.vars.priority < 2 && host.vars.is_clustered == true)
-    }
+  assign where match("*has gold support 24x7*", service.notes) && (host.vars.customer == "customer-xy" || host.vars.always_notify == true)
+  ignore where match("*internal", host.name) || (service.vars.priority < 2 && host.vars.is_clustered == true)
+}
+```
 
 More advanced examples are covered [here](08-advanced-topics.md#use-functions-assign-where).
 
@@ -650,13 +873,15 @@ and [services.conf](04-configuring-icinga-2.md#services-conf) for this use case.
 The example for `ssh` applies a service object to all hosts with the `address`
 attribute being defined and the custom attribute `os` set to the string `Linux` in `vars`.
 
-    apply Service "ssh" {
-      import "generic-service"
+```
+apply Service "ssh" {
+  import "generic-service"
 
-      check_command = "ssh"
+  check_command = "ssh"
 
-      assign where host.address && host.vars.os == "Linux"
-    }
+  assign where host.address && host.vars.os == "Linux"
+}
+```
 
 Other detailed examples are used in their respective chapters, for example
 [apply services with custom command arguments](03-monitoring-basics.md#command-passing-parameters).
@@ -666,15 +891,15 @@ Other detailed examples are used in their respective chapters, for example
 Notifications are applied to specific targets (`Host` or `Service`) and work in a similar
 manner:
 
+```
+apply Notification "mail-noc" to Service {
+  import "mail-service-notification"
 
-    apply Notification "mail-noc" to Service {
-      import "mail-service-notification"
+  user_groups = [ "noc" ]
 
-      user_groups = [ "noc" ]
-
-      assign where host.vars.notification.mail
-    }
-
+  assign where host.vars.notification.mail
+}
+```
 
 In this example the `mail-noc` notification will be created as object for all services having the
 `notification.mail` custom attribute defined. The notification command is set to `mail-service-notification`
@@ -683,48 +908,55 @@ and all members of the user group `noc` will get notified.
 It is also possible to generally apply a notification template and dynamically overwrite values from
 the template by checking for custom attributes. This can be achieved by using [conditional statements](17-language-reference.md#conditional-statements):
 
-    apply Notification "host-mail-noc" to Host {
-      import "mail-host-notification"
+```
+apply Notification "host-mail-noc" to Host {
+  import "mail-host-notification"
 
-      // replace interval inherited from `mail-host-notification` template with new notfication interval set by a host custom attribute
-      if (host.vars.notification_interval) {
-        interval = host.vars.notification_interval
-      }
+  // replace interval inherited from `mail-host-notification` template with new notfication interval set by a host custom attribute
+  if (host.vars.notification_interval) {
+    interval = host.vars.notification_interval
+  }
 
-      // same with notification period
-      if (host.vars.notification_period) {
-        period = host.vars.notification_period
-      }
+  // same with notification period
+  if (host.vars.notification_period) {
+    period = host.vars.notification_period
+  }
 
-      // Send SMS instead of email if the host's custom attribute `notification_type` is set to `sms`
-      if (host.vars.notification_type == "sms") {
-        command = "sms-host-notification"
-      } else {
-        command = "mail-host-notification"
-      }
+  // Send SMS instead of email if the host's custom attribute `notification_type` is set to `sms`
+  if (host.vars.notification_type == "sms") {
+    command = "sms-host-notification"
+  } else {
+    command = "mail-host-notification"
+  }
 
-      user_groups = [ "noc" ]
+  user_groups = [ "noc" ]
 
-      assign where host.address
-    }
+  assign where host.address
+}
+```
 
-In the example above, the notification template `mail-host-notification`, which contains all relevant
-notification settings, is applied on all host objects where the `host.address` is defined.
-Each host object is then checked for custom attributes (`host.vars.notification_interval`,
-`host.vars.notification_period` and `host.vars.notification_type`). Depending if the custom
-attibute is set or which value it has, the value from the notification template is dynamically
-overwritten.
+In the example above the notification template `mail-host-notification`
+contains all relevant notification settings.
+The apply rule is applied on all host objects where the `host.address` is defined.
+
+If the host object as a specific custom attributed set, its value is inherited
+into the local notification object scope, e.g. `host.vars.notification_interval`,
+`host.vars.notification_period` and `host.vars.notification_type`.
+This overwrites attributes already specified in the imported `mail-host-notification`
+template.
 
 The corresponding host object could look like this:
 
-    object Host "host1" {
-      import "host-linux-prod"
-      display_name = "host1"
-      address = "192.168.1.50"
-      vars.notification_interval = 1h
-      vars.notification_period = "24x7"
-      vars.notification_type = "sms"
-    }
+```
+object Host "host1" {
+  import "host-linux-prod"
+  display_name = "host1"
+  address = "192.168.1.50"
+  vars.notification_interval = 1h
+  vars.notification_period = "24x7"
+  vars.notification_type = "sms"
+}
+```
 
 ### Apply Dependencies to Hosts and Services <a id="using-apply-dependencies"></a>
 
@@ -749,44 +981,55 @@ and [services.conf](04-configuring-icinga-2.md#services-conf) for this use case.
 Take the following example: A host provides the snmp oids for different service check
 types. This could look like the following example:
 
-    object Host "router-v6" {
-      check_command = "hostalive"
-      address6 = "::1"
+```
+object Host "router-v6" {
+  check_command = "hostalive"
+  address6 = "::1"
 
-      vars.oids["if01"] = "1.1.1.1.1"
-      vars.oids["temp"] = "1.1.1.1.2"
-      vars.oids["bgp"] = "1.1.1.1.5"
-    }
+  vars.oids["if01"] = "1.1.1.1.1"
+  vars.oids["temp"] = "1.1.1.1.2"
+  vars.oids["bgp"] = "1.1.1.1.5"
+}
+```
 
-Now we want to create service checks for `if01` and `temp`, but not `bgp`.
-Furthermore we want to pass the snmp oid stored as dictionary value to the
-custom attribute called `vars.snmp_oid` -- this is the command argument required
-by the [snmp](10-icinga-template-library.md#plugin-check-command-snmp) check command.
-The service's `display_name` should be set to the identifier inside the dictionary.
+The idea is to create service objects for `if01` and `temp` but not `bgp`.
+The oid value should also be used as service custom attribute `snmp_oid`.
+This is the command argument required by the [snmp](10-icinga-template-library.md#plugin-check-command-snmp)
+check command.
+The service's `display_name` should be set to the identifier inside the dictionary,
+e.g. `if01`.
 
-    apply Service for (identifier => oid in host.vars.oids) {
-      check_command = "snmp"
-      display_name = identifier
-      vars.snmp_oid = oid
+```
+apply Service for (identifier => oid in host.vars.oids) {
+  check_command = "snmp"
+  display_name = identifier
+  vars.snmp_oid = oid
 
-      ignore where identifier == "bgp" //don't generate service for bgp checks
-    }
+  ignore where identifier == "bgp" //don't generate service for bgp checks
+}
+```
 
 Icinga 2 evaluates the `apply for` rule for all objects with the custom attribute
-`oids` set. It then iterates over all list items inside the `for` loop and evaluates the
+`oids` set.
+It iterates over all dictionary items inside the `for` loop and evaluates the
 `assign/ignore where` expressions. You can access the loop variable
-in these expressions, e.g. for ignoring certain values.
-In this example we'd ignore the `bgp` identifier and avoid generating an unwanted service.
-We could extend the configuration by also matching the `oid` value on certain
-[regex](18-library-reference.md#global-functions-regex)/[wildcard match](18-library-reference.md#global-functions-match) patterns for example.
+in these expressions, e.g. to ignore specific values.
+
+In this example the `bgp` identifier is ignored. This avoids to generate
+unwanted services. A different approach would be to match the `oid` value with a
+[regex](18-library-reference.md#global-functions-regex)/[wildcard match](18-library-reference.md#global-functions-match) pattern for example.
+
+```
+  ignore where regex("^\d.\d.\d.\d.5$", oid)
+```
 
 > **Note**
 >
-> You don't need an `assign where` expression only checking for existance
-> of the custom attribute.
+> You don't need an `assign where` expression which checks for the existence of the
+> `oids` custom attribute.
 
-That way you'll save duplicated apply rules by combining them into one
-generic `apply for` rule generating the object name with or without a prefix.
+This method saves you from creating multiple apply rules. It also moves
+the attribute specification logic from the service to the host.
 
 
 #### Apply For and Custom Attribute Override <a id="using-apply-for-custom-attribute-override"></a>
@@ -794,133 +1037,172 @@ generic `apply for` rule generating the object name with or without a prefix.
 Imagine a different more advanced example: You are monitoring your network device (host)
 with many interfaces (services). The following requirements/problems apply:
 
-* Each interface service check should be named with a prefix and a name defined in your host object (which could be generated from your CMDB, etc.)
-* Each interface has its own vlan tag
+* Each interface service should be named with a prefix and a name defined in your host object (which could be generated from your CMDB, etc.)
+* Each interface has its own VLAN tag
 * Some interfaces have QoS enabled
 * Additional attributes such as `display_name` or `notes`, `notes_url` and `action_url` must be
-dynamically generated
+dynamically generated.
 
 
-Tip: Define the snmp community as global constant in your [constants.conf](04-configuring-icinga-2.md#constants-conf) file.
+> **Tip**
+>
+> Define the SNMP community as global constant in your [constants.conf](04-configuring-icinga-2.md#constants-conf) file.
 
-    const IftrafficSnmpCommunity = "public"
+```
+const IftrafficSnmpCommunity = "public"
+```
 
-By defining the `interfaces` dictionary with three example interfaces on the `cisco-catalyst-6509-34`
-host object, you'll make sure to pass the [custom attribute](03-monitoring-basics.md#custom-attributes)
-storage required by the for loop in the service apply rule.
+Define the `interfaces` [custom attribute](03-monitoring-basics.md#custom-attributes)
+on the `cisco-catalyst-6509-34` host object and add three example interfaces as dictionary keys.
 
-    object Host "cisco-catalyst-6509-34" {
-      import "generic-host"
-      display_name = "Catalyst 6509 #34 VIE21"
-      address = "127.0.1.4"
+Specify additional attributes inside the nested dictionary
+as learned with [custom attribute values](03-monitoring-basics.md#custom-attributes-values):
 
-      /* "GigabitEthernet0/2" is the interface name,
-       * and key name in service apply for later on
-       */
-      vars.interfaces["GigabitEthernet0/2"] = {
-         /* define all custom attributes with the
-          * same name required for command parameters/arguments
-          * in service apply (look into your CheckCommand definition)
-          */
-         iftraffic_units = "g"
-         iftraffic_community = IftrafficSnmpCommunity
-	 iftraffic_bandwidth = 1
-         vlan = "internal"
-         qos = "disabled"
-      }
-      vars.interfaces["GigabitEthernet0/4"] = {
-         iftraffic_units = "g"
-         //iftraffic_community = IftrafficSnmpCommunity
-	 iftraffic_bandwidth = 1
-         vlan = "renote"
-         qos = "enabled"
-      }
-      vars.interfaces["MgmtInterface1"] = {
-         iftraffic_community = IftrafficSnmpCommunity
-         vlan = "mgmt"
-         interface_address = "127.99.0.100" #special management ip
-      }
-    }
+```
+object Host "cisco-catalyst-6509-34" {
+  import "generic-host"
+  display_name = "Catalyst 6509 #34 VIE21"
+  address = "127.0.1.4"
 
-You can also omit the `"if-"` string, then all generated service names are directly
-taken from the `if_name` variable value.
+  /* "GigabitEthernet0/2" is the interface name,
+   * and key name in service apply for later on
+   */
+  vars.interfaces["GigabitEthernet0/2"] = {
+     /* define all custom attributes with the
+      * same name required for command parameters/arguments
+      * in service apply (look into your CheckCommand definition)
+      */
+     iftraffic_units = "g"
+     iftraffic_community = IftrafficSnmpCommunity
+     iftraffic_bandwidth = 1
+     vlan = "internal"
+     qos = "disabled"
+  }
+  vars.interfaces["GigabitEthernet0/4"] = {
+     iftraffic_units = "g"
+     //iftraffic_community = IftrafficSnmpCommunity
+     iftraffic_bandwidth = 1
+     vlan = "renote"
+     qos = "enabled"
+  }
+  vars.interfaces["MgmtInterface1"] = {
+     iftraffic_community = IftrafficSnmpCommunity
+     vlan = "mgmt"
+     interface_address = "127.99.0.100" #special management ip
+  }
+}
+```
 
-The config dictionary contains all key-value pairs for the specific interface in one
-loop cycle, like `iftraffic_units`, `vlan`, and `qos` for the specified interface.
+Start with the apply for definition and iterate over `host.vars.interfaces`.
+This is a dictionary and should use the variables `interface_name` as key
+and `interface_config` as value for each generated object scope.
 
-You can either map the custom attributes from the `interface_config` dictionary to
-local custom attributes stashed into `vars`. If the names match the required command
-argument parameters already (for example `iftraffic_units`), you could also add the
-`interface_config` dictionary to the `vars` dictionary using the `+=` operator.
+`"if-"` specifies the object name prefix for each service which results
+in `if-<interface_name>` for each iteration.
 
-After `vars` is fully populated, all object attributes can be set calculated from
-provided host attributes. For strings, you can use string concatention with the `+` operator.
+```
+/* loop over the host.vars.interfaces dictionary
+ * for (key => value in dict) means `interface_name` as key
+ * and `interface_config` as value. Access config attributes
+ * with the indexer (`.`) character.
+ */
+apply Service "if-" for (interface_name => interface_config in host.vars.interfaces) {
+```
 
-You can also specify the display_name, check command, interval, notes, notes_url, action_url, etc.
-attributes that way. Attribute strings can be [concatenated](17-language-reference.md#expression-operators),
-for example for adding a more detailed service `display_name`.
+Import the `generic-service` template, assign the [iftraffic](10-icinga-template-library.md#plugin-contrib-command-iftraffic)
+`check_command`. Use the dictionary key `interface_name` to set a proper `display_name`
+string for external interfaces.
 
-This example also uses [if conditions](17-language-reference.md#conditional-statements)
-if specific values are not set, adding a local default value.
-The other way around you can override specific custom attributes inherited from a service template if set.
+```
+  import "generic-service"
+  check_command = "iftraffic"
+  display_name = "IF-" + interface_name
+```
 
-    /* loop over the host.vars.interfaces dictionary
-     * for (key => value in dict) means `interface_name` as key
-     * and `interface_config` as value. Access config attributes
-     * with the indexer (`.`) character.
-     */
-    apply Service "if-" for (interface_name => interface_config in host.vars.interfaces) {
-      import "generic-service"
-      check_command = "iftraffic"
-      display_name = "IF-" + interface_name
+The `interface_name` key's value is the same string used as command parameter for
+`iftraffic`:
 
-      /* use the key as command argument (no duplication of values in host.vars.interfaces) */
-      vars.iftraffic_interface = interface_name
+```
+  /* use the key as command argument (no duplication of values in host.vars.interfaces) */
+  vars.iftraffic_interface = interface_name
+```
 
-      /* map the custom attributes as command arguments */
-      vars.iftraffic_units = interface_config.iftraffic_units
-      vars.iftraffic_community = interface_config.iftraffic_community
+Remember that `interface_config` is a nested dictionary. In the first iteration it looks
+like this:
 
-      /* the above can be achieved in a shorter fashion if the names inside host.vars.interfaces
-       * are the _exact_ same as required as command parameter by the check command
-       * definition.
-       */
-      vars += interface_config
+```
+interface_config = {
+  iftraffic_units = "g"
+  iftraffic_community = IftrafficSnmpCommunity
+  iftraffic_bandwidth = 1
+  vlan = "internal"
+  qos = "disabled"
+}
+```
 
-      /* set a default value for units and bandwidth */
-      if (interface_config.iftraffic_units == "") {
-        vars.iftraffic_units = "m"
-      }
-      if (interface_config.iftraffic_bandwidth == "") {
-        vars.iftraffic_bandwidth = 1
-      }
-      if (interface_config.vlan == "") {
-        vars.vlan = "not set"
-      }
-      if (interface_config.qos == "") {
-        vars.qos = "not set"
-      }
+Access the dictionary keys with the [indexer](17-language-reference.md#indexer) syntax
+and assign them to custom attributes used as command parameters for the `iftraffic`
+check command.
 
-      /* set the global constant if not explicitely
-       * not provided by the `interfaces` dictionary on the host
-       */
-      if (len(interface_config.iftraffic_community) == 0 || len(vars.iftraffic_community) == 0) {
-        vars.iftraffic_community = IftrafficSnmpCommunity
-      }
+```
+  /* map the custom attributes as command arguments */
+  vars.iftraffic_units = interface_config.iftraffic_units
+  vars.iftraffic_community = interface_config.iftraffic_community
+```
 
-      /* Calculate some additional object attributes after populating the `vars` dictionary */
-      notes = "Interface check for " + interface_name + " (units: '" + interface_config.iftraffic_units + "') in VLAN '" + vars.vlan + "' with ' QoS '" + vars.qos + "'"
-      notes_url = "https://foreman.company.com/hosts/" + host.name
-      action_url = "http://snmp.checker.company.com/" + host.name + "/if-" + interface_name
-    }
+If you just want to inherit all attributes specified inside the `interface_config`
+dictionary, add it to the generated service custom attributes like this:
 
+```
+  /* the above can be achieved in a shorter fashion if the names inside host.vars.interfaces
+   * are the _exact_ same as required as command parameter by the check command
+   * definition.
+   */
+  vars += interface_config
+```
 
+If the user did not specify default values for required service custom attributes,
+add them here. This also helps to avoid unwanted configuration validation errors or
+runtime failures. Please read more about conditional statements [here](17-language-reference.md#conditional-statements).
 
-This example makes use of the [check_iftraffic](https://exchange.icinga.com/exchange/iftraffic) plugin.
-The `CheckCommand` definition can be found in the
-[contributed plugin check commands](10-icinga-template-library.md#plugin-contrib-command-iftraffic)
--- make sure to include them in your [icinga2 configuration file](04-configuring-icinga-2.md#icinga2-conf).
+```
+  /* set a default value for units and bandwidth */
+  if (interface_config.iftraffic_units == "") {
+    vars.iftraffic_units = "m"
+  }
+  if (interface_config.iftraffic_bandwidth == "") {
+    vars.iftraffic_bandwidth = 1
+  }
+  if (interface_config.vlan == "") {
+    vars.vlan = "not set"
+  }
+  if (interface_config.qos == "") {
+    vars.qos = "not set"
+  }
+```
 
+If the host object did not specify a custom SNMP community,
+set a default value specified by the [global constant](17-language-reference.md#constants) `IftrafficSnmpCommunity`.
+
+```
+  /* set the global constant if not explicitely
+   * not provided by the `interfaces` dictionary on the host
+   */
+  if (len(interface_config.iftraffic_community) == 0 || len(vars.iftraffic_community) == 0) {
+    vars.iftraffic_community = IftrafficSnmpCommunity
+  }
+```
+
+Use the provided values to [calculate](17-language-reference.md#expression-operators)
+more object attributes which can be e.g. seen in external interfaces.
+
+```
+  /* Calculate some additional object attributes after populating the `vars` dictionary */
+  notes = "Interface check for " + interface_name + " (units: '" + interface_config.iftraffic_units + "') in VLAN '" + vars.vlan + "' with ' QoS '" + vars.qos + "'"
+  notes_url = "https://foreman.company.com/hosts/" + host.name
+  action_url = "http://snmp.checker.company.com/" + host.name + "/if-" + interface_name
+}
+```
 
 > **Tip**
 >
@@ -931,57 +1213,58 @@ The `CheckCommand` definition can be found in the
 Verify that the apply-for-rule successfully created the service objects with the
 inherited custom attributes:
 
-    # icinga2 daemon -C
-    # icinga2 object list --type Service --name *catalyst*
+```
+# icinga2 daemon -C
+# icinga2 object list --type Service --name *catalyst*
 
-    Object 'cisco-catalyst-6509-34!if-GigabitEthernet0/2' of type 'Service':
-    ......
-      * vars
-        % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 59:3-59:26
-        * iftraffic_bandwidth = 1
-        * iftraffic_community = "public"
-          % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 53:3-53:65
-        * iftraffic_interface = "GigabitEthernet0/2"
-          % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 49:3-49:43
-        * iftraffic_units = "g"
-          % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 52:3-52:57
-        * qos = "disabled"
-        * vlan = "internal"
+Object 'cisco-catalyst-6509-34!if-GigabitEthernet0/2' of type 'Service':
+......
+  * vars
+    % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 59:3-59:26
+    * iftraffic_bandwidth = 1
+    * iftraffic_community = "public"
+      % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 53:3-53:65
+    * iftraffic_interface = "GigabitEthernet0/2"
+      % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 49:3-49:43
+    * iftraffic_units = "g"
+      % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 52:3-52:57
+    * qos = "disabled"
+    * vlan = "internal"
 
 
-    Object 'cisco-catalyst-6509-34!if-GigabitEthernet0/4' of type 'Service':
-    ...
-      * vars
-        % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 59:3-59:26
-        * iftraffic_bandwidth = 1
-        * iftraffic_community = "public"
-          % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 53:3-53:65
-          % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 79:5-79:53
-        * iftraffic_interface = "GigabitEthernet0/4"
-          % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 49:3-49:43
-        * iftraffic_units = "g"
-          % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 52:3-52:57
-        * qos = "enabled"
-        * vlan = "renote"
+Object 'cisco-catalyst-6509-34!if-GigabitEthernet0/4' of type 'Service':
+...
+  * vars
+    % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 59:3-59:26
+    * iftraffic_bandwidth = 1
+    * iftraffic_community = "public"
+      % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 53:3-53:65
+      % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 79:5-79:53
+    * iftraffic_interface = "GigabitEthernet0/4"
+      % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 49:3-49:43
+    * iftraffic_units = "g"
+      % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 52:3-52:57
+    * qos = "enabled"
+    * vlan = "renote"
 
-    Object 'cisco-catalyst-6509-34!if-MgmtInterface1' of type 'Service':
-    ...
-      * vars
-        % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 59:3-59:26
-        * iftraffic_bandwidth = 1
-          % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 66:5-66:32
-        * iftraffic_community = "public"
-          % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 53:3-53:65
-        * iftraffic_interface = "MgmtInterface1"
-          % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 49:3-49:43
-        * iftraffic_units = "m"
-          % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 52:3-52:57
-          % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 63:5-63:30
-        * interface_address = "127.99.0.100"
-        * qos = "not set"
-          % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 72:5-72:24
-        * vlan = "mgmt"
-
+Object 'cisco-catalyst-6509-34!if-MgmtInterface1' of type 'Service':
+...
+  * vars
+    % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 59:3-59:26
+    * iftraffic_bandwidth = 1
+      % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 66:5-66:32
+    * iftraffic_community = "public"
+      % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 53:3-53:65
+    * iftraffic_interface = "MgmtInterface1"
+      % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 49:3-49:43
+    * iftraffic_units = "m"
+      % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 52:3-52:57
+      % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 63:5-63:30
+    * interface_address = "127.99.0.100"
+    * qos = "not set"
+      % = modified in '/etc/icinga2/conf.d/iftraffic.conf', lines 72:5-72:24
+    * vlan = "mgmt"
+```
 
 ### Use Object Attributes in Apply Rules <a id="using-apply-object-attributes"></a>
 
@@ -989,41 +1272,110 @@ Since apply rules are evaluated after the generic objects, you
 can reference existing host and/or service object attributes as
 values for any object attribute specified in that apply rule.
 
-    object Host "opennebula-host" {
-      import "generic-host"
-      address = "10.1.1.2"
+```
+object Host "opennebula-host" {
+  import "generic-host"
+  address = "10.1.1.2"
 
-      vars.hosting["xyz"] = {
-        http_uri = "/shop"
-        customer_name = "Customer xyz"
-        customer_id = "7568"
-        support_contract = "gold"
-      }
-      vars.hosting["abc"] = {
-        http_uri = "/shop"
-        customer_name = "Customer xyz"
-        customer_id = "7568"
-        support_contract = "silver"
-      }
-    }
+  vars.hosting["cust1"] = {
+    http_uri = "/shop"
+    customer_name = "Customer 1"
+    customer_id = "7568"
+    support_contract = "gold"
+  }
+  vars.hosting["cust2"] = {
+    http_uri = "/"
+    customer_name = "Customer 2"
+    customer_id = "7569"
+    support_contract = "silver"
+  }
+}
+```
 
-    apply Service for (customer => config in host.vars.hosting) {
-      import "generic-service"
-      check_command = "ping4"
+`hosting` is a custom attribute with the Dictionary value type.
+This is mandatory to iterate with the `key => value` notation
+in the below apply for rule.
 
-      vars.qos = "disabled"
+```
+apply Service for (customer => config in host.vars.hosting) {
+  import "generic-service"
+  check_command = "ping4"
 
-      vars += config
+  vars.qos = "disabled"
 
-      vars.http_uri = "/" + vars.customer + "/" + config.http_uri
+  vars += config
 
-      display_name = "Shop Check for " + vars.customer_name + "-" + vars.customer_id
+  vars.http_uri = "/" + customer + "/" + config.http_uri
 
-      notes = "Support contract: " + vars.support_contract + " for Customer " + vars.customer_name + " (" + vars.customer_id + ")."
+  display_name = "Shop Check for " + vars.customer_name + "-" + vars.customer_id
 
-      notes_url = "https://foreman.company.com/hosts/" + host.name
-      action_url = "http://snmp.checker.company.com/" + host.name + "/" + vars.customer_id
-    }
+  notes = "Support contract: " + vars.support_contract + " for Customer " + vars.customer_name + " (" + vars.customer_id + ")."
+
+  notes_url = "https://foreman.company.com/hosts/" + host.name
+  action_url = "http://snmp.checker.company.com/" + host.name + "/" + vars.customer_id
+}
+```
+
+Each loop iteration has different values for `customer` and config`
+in the local scope.
+
+1.
+
+```
+customer = "cust 1"
+config = {
+  http_uri = "/shop"
+  customer_name = "Customer 1"
+  customer_id = "7568"
+  support_contract = "gold"
+}
+```
+
+2.
+
+```
+customer = "cust2"
+config = {
+  http_uri = "/"
+  customer_name = "Customer 2"
+  customer_id = "7569"
+  support_contract = "silver"
+}
+```
+
+You can now add the `config` dictionary into `vars`.
+
+```
+vars += config
+```
+
+Now it looks like the following in the first iteration:
+
+```
+customer = "cust 1"
+vars = {
+  http_uri = "/shop"
+  customer_name = "Customer 1"
+  customer_id = "7568"
+  support_contract = "gold"
+}
+```
+
+Remember, you know this structure already. Custom
+attributes can also be accessed by using the [indexer](17-language-reference.md#indexer)
+syntax.
+
+```
+  vars.http_uri = ... + config.http_uri
+```
+
+can also be written as
+
+```
+  vars += config
+  vars.http_uri = ... + vars.http_uri
+```
+
 
 ## Groups <a id="groups"></a>
 
@@ -1035,62 +1387,70 @@ you have a hostgroup name `windows` for example, and want to assign
 specific hosts to this group for later viewing the group on your
 alert dashboard, first create a HostGroup object:
 
-    object HostGroup "windows" {
-      display_name = "Windows Servers"
-    }
+```
+object HostGroup "windows" {
+  display_name = "Windows Servers"
+}
+```
 
 Then add your hosts to this group:
 
-    template Host "windows-server" {
-      groups += [ "windows" ]
-    }
+```
+template Host "windows-server" {
+  groups += [ "windows" ]
+}
 
-    object Host "mssql-srv1" {
-      import "windows-server"
+object Host "mssql-srv1" {
+  import "windows-server"
 
-      vars.mssql_port = 1433
-    }
+  vars.mssql_port = 1433
+}
 
-    object Host "mssql-srv2" {
-      import "windows-server"
+object Host "mssql-srv2" {
+  import "windows-server"
 
-      vars.mssql_port = 1433
-    }
+  vars.mssql_port = 1433
+}
+```
 
 This can be done for service and user groups the same way:
 
-    object UserGroup "windows-mssql-admins" {
-      display_name = "Windows MSSQL Admins"
-    }
+```
+object UserGroup "windows-mssql-admins" {
+  display_name = "Windows MSSQL Admins"
+}
 
-    template User "generic-windows-mssql-users" {
-      groups += [ "windows-mssql-admins" ]
-    }
+template User "generic-windows-mssql-users" {
+  groups += [ "windows-mssql-admins" ]
+}
 
-    object User "win-mssql-noc" {
-      import "generic-windows-mssql-users"
+object User "win-mssql-noc" {
+  import "generic-windows-mssql-users"
 
-      email = "noc@example.com"
-    }
+  email = "noc@example.com"
+}
 
-    object User "win-mssql-ops" {
-      import "generic-windows-mssql-users"
+object User "win-mssql-ops" {
+  import "generic-windows-mssql-users"
 
-      email = "ops@example.com"
-    }
+  email = "ops@example.com"
+}
+```
 
 ### Group Membership Assign <a id="group-assign-intro"></a>
 
 Instead of manually assigning each object to a group you can also assign objects
 to a group based on their attributes:
 
-    object HostGroup "prod-mssql" {
-      display_name = "Production MSSQL Servers"
+```
+object HostGroup "prod-mssql" {
+  display_name = "Production MSSQL Servers"
 
-      assign where host.vars.mssql_port && host.vars.prod_mysql_db
-      ignore where host.vars.test_server == true
-      ignore where match("*internal", host.name)
-    }
+  assign where host.vars.mssql_port && host.vars.prod_mysql_db
+  ignore where host.vars.test_server == true
+  ignore where match("*internal", host.name)
+}
+```
 
 In this example all hosts with the `vars` attribute `mssql_port`
 will be added as members to the host group `mssql`. However, all
@@ -1120,24 +1480,29 @@ A notification specification requires one or more users (and/or user groups)
 who will be notified in case of problems. These users must have all custom
 attributes defined which will be used in the `NotificationCommand` on execution.
 
-The user `icingaadmin` in the example below will get notified only on `WARNING` and
-`CRITICAL` states and `problem` and `recovery` notification types.
+The user `icingaadmin` in the example below will get notified only on `Warning` and
+`Critical` problems. In addition to that `Recovery` notifications are sent (they require
+the `OK` state).
 
-    object User "icingaadmin" {
-      display_name = "Icinga 2 Admin"
-      enable_notifications = true
-      states = [ OK, Warning, Critical ]
-      types = [ Problem, Recovery ]
-      email = "icinga@localhost"
-    }
+```
+object User "icingaadmin" {
+  display_name = "Icinga 2 Admin"
+  enable_notifications = true
+  states = [ OK, Warning, Critical ]
+  types = [ Problem, Recovery ]
+  email = "icinga@localhost"
+}
+```
 
 If you don't set the `states` and `types` configuration attributes for the `User`
 object, notifications for all states and types will be sent.
 
 Details on troubleshooting notification problems can be found [here](15-troubleshooting.md#troubleshooting).
 
-**Note**: Make sure that the [notification](11-cli-commands.md#enable-features) feature is enabled
-in order to execute notification commands.
+> **Note**
+>
+> Make sure that the [notification](11-cli-commands.md#enable-features) feature is enabled
+> in order to execute notification commands.
 
 You should choose which information you (and your notified users) are interested in
 case of emergency, and also which information does not provide any value to you and
@@ -1149,38 +1514,174 @@ You can add all shared attributes to a `Notification` template which is inherite
 to the defined notifications. That way you'll save duplicated attributes in each
 `Notification` object. Attributes can be overridden locally.
 
-    template Notification "generic-notification" {
-      interval = 15m
+```
+template Notification "generic-notification" {
+  interval = 15m
 
-      command = "mail-service-notification"
+  command = "mail-service-notification"
 
-      states = [ Warning, Critical, Unknown ]
-      types = [ Problem, Acknowledgement, Recovery, Custom, FlappingStart,
-                FlappingEnd, DowntimeStart, DowntimeEnd, DowntimeRemoved ]
+  states = [ Warning, Critical, Unknown ]
+  types = [ Problem, Acknowledgement, Recovery, Custom, FlappingStart,
+            FlappingEnd, DowntimeStart, DowntimeEnd, DowntimeRemoved ]
 
-      period = "24x7"
-    }
+  period = "24x7"
+}
+```
 
 The time period `24x7` is included as example configuration with Icinga 2.
 
 Use the `apply` keyword to create `Notification` objects for your services:
 
-    apply Notification "notify-cust-xy-mysql" to Service {
-      import "generic-notification"
+```
+apply Notification "notify-cust-xy-mysql" to Service {
+  import "generic-notification"
 
-      users = [ "noc-xy", "mgmt-xy" ]
+  users = [ "noc-xy", "mgmt-xy" ]
 
-      assign where match("*has gold support 24x7*", service.notes) && (host.vars.customer == "customer-xy" || host.vars.always_notify == true
-      ignore where match("*internal", host.name) || (service.vars.priority < 2 && host.vars.is_clustered == true)
-    }
+  assign where match("*has gold support 24x7*", service.notes) && (host.vars.customer == "customer-xy" || host.vars.always_notify == true
+  ignore where match("*internal", host.name) || (service.vars.priority < 2 && host.vars.is_clustered == true)
+}
+```
 
 
 Instead of assigning users to notifications, you can also add the `user_groups`
 attribute with a list of user groups to the `Notification` object. Icinga 2 will
 send notifications to all group members.
 
-**Note**: Only users who have been notified of a problem before  (`Warning`, `Critical`, `Unknown`
+> **Note**
+>
+> Only users who have been notified of a problem before  (`Warning`, `Critical`, `Unknown`
 states for services, `Down` for hosts) will receive `Recovery` notifications.
+
+### Notifications: Users from Host/Service <a id="alert-notifications-users-host-service"></a>
+
+A common pattern is to store the users and user groups
+on the host or service objects instead of the notification
+object itself.
+
+The sample configuration provided in [hosts.conf](04-configuring-icinga-2.md#hosts-conf) and [notifications.conf](notifications-conf)
+already provides an example for this question.
+
+> **Tip**
+>
+> Please make sure to read the [apply](03-monitoring-basics.md#using-apply) and
+> [custom attribute values](03-monitoring-basics.md#custom-attributes-values) chapter to
+> fully understand these examples.
+
+
+Specify the user and groups as nested custom attribute on the host object:
+
+```
+object Host "icinga2-client1.localdomain" {
+  [...]
+
+  vars.notification["mail"] = {
+    groups = [ "icingaadmins" ]
+    users = [ "icingaadmin" ]
+  }
+  vars.notification["sms"] = {
+    users = [ "icingaadmin" ]
+  }
+}
+```
+
+As you can see, there is the option to use two different notification
+apply rules here: One for `mail` and one for `sms`.
+
+This example assigns the `users` and `groups` nested keys from the `notification`
+custom attribute to the actual notification object attributes.
+
+Since errors are hard to debug if host objects don't specify the required
+configuration attributes, you can add a safety condition which logs which
+host object is affected.
+
+```
+critical/config: Host 'icinga2-client3.localdomain' does not specify required user/user_groups configuration attributes for notification 'mail-icingaadmin'.
+```
+
+You can also use the [script debugger](20-script-debugger.md#script-debugger) for more advanced insights.
+
+```
+apply Notification "mail-host-notification" to Host {
+  [...]
+
+  /* Log which host does not specify required user/user_groups attributes. This will fail immediately during config validation and help a lot. */
+  if (len(host.vars.notification.mail.users) == 0 && len(host.vars.notification.mail.user_groups) == 0) {
+    log(LogCritical, "config", "Host '" + host.name + "' does not specify required user/user_groups configuration attributes for notification '" + name + "'.")
+  }
+
+  users = host.vars.notification.mail.users
+  user_groups = host.vars.notification.mail.groups
+
+  assign where host.vars.notification.mail && typeof(host.vars.notification.mail) == Dictionary
+}
+
+apply Notification "sms-host-notification" to Host {
+  [...]
+
+  /* Log which host does not specify required user/user_groups attributes. This will fail immediately during config validation and help a lot. */
+  if (len(host.vars.notification.sms.users) == 0 && len(host.vars.notification.sms.user_groups) == 0) {
+    log(LogCritical, "config", "Host '" + host.name + "' does not specify required user/user_groups configuration attributes for notification '" + name + "'.")
+  }
+
+  users = host.vars.notification.sms.users
+  user_groups = host.vars.notification.sms.groups
+
+  assign where host.vars.notification.sms && typeof(host.vars.notification.sms) == Dictionary
+}
+```
+
+The example above uses [typeof](18-library-reference.md#global-functions-typeof) as safety function to ensure that
+the `mail` key really provides a dictionary as value. Otherwise
+the configuration validation could fail if an admin adds something
+like this on another host:
+
+```
+  vars.notification.mail = "yes"
+```
+
+
+You can also do a more fine granular assignment on the service object:
+
+```
+apply Service "http" {
+  [...]
+
+  vars.notification["mail"] = {
+    groups = [ "icingaadmins" ]
+    users = [ "icingaadmin" ]
+  }
+
+  [...]
+}
+```
+
+This notification apply rule is different to the one above. The service
+notification users and groups are inherited from the service and if not set,
+from the host object. A default user is set too.
+
+```
+apply Notification "mail-host-notification" to Service {
+  [...]
+
+  if (service.vars.notification.mail.users) {
+    users = service.vars.notification.mail.users
+  } else if (host.vars.notification.mail.users) {
+    users = host.vars.notification.mail.users
+  } else {
+    /* Default user who receives everything. */
+    users = [ "icingaadmin" ]
+  }
+
+  if (service.vars.notification.mail.groups) {
+    user_groups = service.vars.notification.mail.groups
+  } else {host.vars.notification.mail.groups) {
+    user_groups = host.vars.notification.mail.groups
+  }
+
+  assign where host.vars.notification.mail && typeof(host.vars.notification.mail) == Dictionary
+}
+```
 
 ### Notification Escalations <a id="notification-escalations"></a>
 
@@ -1197,17 +1698,19 @@ Using templates you can share the basic notification attributes such as users or
 Using the example from above, you can define additional users being escalated for SMS
 notifications between start and end time.
 
-    object User "icinga-oncall-2nd-level" {
-      display_name = "Icinga 2nd Level"
+```
+object User "icinga-oncall-2nd-level" {
+  display_name = "Icinga 2nd Level"
 
-      vars.mobile = "+1 555 424642"
-    }
+  vars.mobile = "+1 555 424642"
+}
 
-    object User "icinga-oncall-1st-level" {
-      display_name = "Icinga 1st Level"
+object User "icinga-oncall-1st-level" {
+  display_name = "Icinga 1st Level"
 
-      vars.mobile = "+1 555 424642"
-    }
+  vars.mobile = "+1 555 424642"
+}
+```
 
 Define an additional [NotificationCommand](03-monitoring-basics.md#notification-commands) for SMS notifications.
 
@@ -1217,12 +1720,14 @@ Define an additional [NotificationCommand](03-monitoring-basics.md#notification-
 > Please note that sending SMS notifications will require an SMS provider
 > or local hardware with an active SIM card.
 
-    object NotificationCommand "sms-notification" {
-       command = [
-         PluginDir + "/send_sms_notification",
-         "$mobile$",
-         "..."
-    }
+```
+object NotificationCommand "sms-notification" {
+   command = [
+     PluginDir + "/send_sms_notification",
+     "$mobile$",
+     "..."
+}
+```
 
 The two new notification escalations are added onto the local host
 and its service `ping4` using the `generic-notification` template.
@@ -1240,42 +1745,44 @@ If the problem does not get resolved nor acknowledged preventing further notific
 the `escalation-sms-1st-level` user will be escalated `1h` after the initial problem was
 notified, but only for one hour (`2h` as `end` key for the `times` dictionary).
 
-    apply Notification "mail" to Service {
-      import "generic-notification"
+```
+apply Notification "mail" to Service {
+  import "generic-notification"
 
-      command = "mail-notification"
-      users = [ "icingaadmin" ]
+  command = "mail-notification"
+  users = [ "icingaadmin" ]
 
-      assign where service.name == "ping4"
-    }
+  assign where service.name == "ping4"
+}
 
-    apply Notification "escalation-sms-2nd-level" to Service {
-      import "generic-notification"
+apply Notification "escalation-sms-2nd-level" to Service {
+  import "generic-notification"
 
-      command = "sms-notification"
-      users = [ "icinga-oncall-2nd-level" ]
+  command = "sms-notification"
+  users = [ "icinga-oncall-2nd-level" ]
 
-      times = {
-        begin = 30m
-        end = 1h
-      }
+  times = {
+    begin = 30m
+    end = 1h
+  }
 
-      assign where service.name == "ping4"
-    }
+  assign where service.name == "ping4"
+}
 
-    apply Notification "escalation-sms-1st-level" to Service {
-      import "generic-notification"
+apply Notification "escalation-sms-1st-level" to Service {
+  import "generic-notification"
 
-      command = "sms-notification"
-      users = [ "icinga-oncall-1st-level" ]
+  command = "sms-notification"
+  users = [ "icinga-oncall-1st-level" ]
 
-      times = {
-        begin = 1h
-        end = 2h
-      }
+  times = {
+    begin = 1h
+    end = 2h
+  }
 
-      assign where service.name == "ping4"
-    }
+  assign where service.name == "ping4"
+}
+```
 
 ### Notification Delay <a id="notification-delay"></a>
 
@@ -1286,34 +1793,38 @@ postpone the notification window for 15 minutes. Leave out the `end` key -- if n
 Icinga 2 will not check against any end time for this notification. Make sure to
 specify a relatively low notification `interval` to get notified soon enough again.
 
-    apply Notification "mail" to Service {
-      import "generic-notification"
+```
+apply Notification "mail" to Service {
+  import "generic-notification"
 
-      command = "mail-notification"
-      users = [ "icingaadmin" ]
+  command = "mail-notification"
+  users = [ "icingaadmin" ]
 
-      interval = 5m
+  interval = 5m
 
-      times.begin = 15m // delay notification window
+  times.begin = 15m // delay notification window
 
-      assign where service.name == "ping4"
-    }
+  assign where service.name == "ping4"
+}
+```
 
 ### Disable Re-notifications <a id="disable-renotification"></a>
 
 If you prefer to be notified only once, you can disable re-notifications by setting the
 `interval` attribute to `0`.
 
-    apply Notification "notify-once" to Service {
-      import "generic-notification"
+```
+apply Notification "notify-once" to Service {
+  import "generic-notification"
 
-      command = "mail-notification"
-      users = [ "icingaadmin" ]
+  command = "mail-notification"
+  users = [ "icingaadmin" ]
 
-      interval = 0 // disable re-notification
+  interval = 0 // disable re-notification
 
-      assign where service.name == "ping4"
-    }
+  assign where service.name == "ping4"
+}
+```
 
 ### Notification Filters by State and Type <a id="notification-filters-state-type"></a>
 
@@ -1322,16 +1833,14 @@ or `User` object, Icinga 2 assumes that all states and types are being notified.
 
 Available state and type filters for notifications are:
 
-    template Notification "generic-notification" {
+```
+template Notification "generic-notification" {
 
-      states = [ OK, Warning, Critical, Unknown ]
-      types = [ Problem, Acknowledgement, Recovery, Custom, FlappingStart,
-                FlappingEnd, DowntimeStart, DowntimeEnd, DowntimeRemoved ]
-    }
-
-If you are familiar with Icinga 1.x `notification_options`, please note that they have been split
-into type and state to allow more fine granular filtering for example on downtimes and flapping.
-You can filter for acknowledgements and custom notifications too.
+  states = [ OK, Warning, Critical, Unknown ]
+  types = [ Problem, Acknowledgement, Recovery, Custom, FlappingStart,
+            FlappingEnd, DowntimeStart, DowntimeEnd, DowntimeRemoved ]
+}
+```
 
 
 ## Commands <a id="commands"></a>
@@ -1368,14 +1877,16 @@ all available options. Our example defines warning (`-w`) and
 critical (`-c`) thresholds for the disk usage. Without any
 partition defined (`-p`) it will check all local partitions.
 
-    icinga@icinga2 $ /usr/lib64/nagios/plugins/check_mysql --help
-    ...
-    This program tests connections to a MySQL server
-        
-    Usage:
-    check_mysql [-d database] [-H host] [-P port] [-s socket]
-    [-u user] [-p password] [-S] [-l] [-a cert] [-k key]
-    [-C ca-cert] [-D ca-dir] [-L ciphers] [-f optfile] [-g group]
+```
+icinga@icinga2 $ /usr/lib64/nagios/plugins/check_mysql --help
+...
+This program tests connections to a MySQL server
+
+Usage:
+check_mysql [-d database] [-H host] [-P port] [-s socket]
+[-u user] [-p password] [-S] [-l] [-a cert] [-k key]
+[-C ca-cert] [-D ca-dir] [-L ciphers] [-f optfile] [-g group]
+```
 
 Next step is to understand how [command parameters](03-monitoring-basics.md#command-passing-parameters)
 are being passed from a host or service object, and add a [CheckCommand](09-object-types.md#objecttype-checkcommand)
@@ -1411,42 +1922,44 @@ The default custom attributes can be overridden by the custom attributes
 defined in the host or service using the check command `my-mysql`. The custom attributes
 can also be inherited from a parent template using additive inheritance (`+=`).
 
-    # vim /etc/icinga2/conf.d/commands.conf
+```
+# vim /etc/icinga2/conf.d/commands.conf
 
-    object CheckCommand "my-mysql" {
-      command = [ PluginDir + "/check_mysql" ] //constants.conf -> const PluginDir
+object CheckCommand "my-mysql" {
+  command = [ PluginDir + "/check_mysql" ] //constants.conf -> const PluginDir
 
-      arguments = {
-        "-H" = "$mysql_host$"
-        "-u" = {
-          required = true
-          value = "$mysql_user$"
-        }
-        "-p" = "$mysql_password$"
-        "-P" = "$mysql_port$"
-        "-s" = "$mysql_socket$"
-        "-a" = "$mysql_cert$"
-        "-d" = "$mysql_database$"
-        "-k" = "$mysql_key$"
-        "-C" = "$mysql_ca_cert$"
-        "-D" = "$mysql_ca_dir$"
-        "-L" = "$mysql_ciphers$"
-        "-f" = "$mysql_optfile$"
-        "-g" = "$mysql_group$"
-        "-S" = {
-          set_if = "$mysql_check_slave$"
-          description = "Check if the slave thread is running properly."
-        }
-        "-l" = {
-          set_if = "$mysql_ssl$"
-          description = "Use ssl encryption"
-        }
-      }
-
-      vars.mysql_check_slave = false
-      vars.mysql_ssl = false
-      vars.mysql_host = "$address$"
+  arguments = {
+    "-H" = "$mysql_host$"
+    "-u" = {
+      required = true
+      value = "$mysql_user$"
     }
+    "-p" = "$mysql_password$"
+    "-P" = "$mysql_port$"
+    "-s" = "$mysql_socket$"
+    "-a" = "$mysql_cert$"
+    "-d" = "$mysql_database$"
+    "-k" = "$mysql_key$"
+    "-C" = "$mysql_ca_cert$"
+    "-D" = "$mysql_ca_dir$"
+    "-L" = "$mysql_ciphers$"
+    "-f" = "$mysql_optfile$"
+    "-g" = "$mysql_group$"
+    "-S" = {
+      set_if = "$mysql_check_slave$"
+      description = "Check if the slave thread is running properly."
+    }
+    "-l" = {
+      set_if = "$mysql_ssl$"
+      description = "Use ssl encryption"
+    }
+  }
+
+  vars.mysql_check_slave = false
+  vars.mysql_ssl = false
+  vars.mysql_host = "$address$"
+}
+```
 
 The check command definition also sets `mysql_host` to the `$address$` default value. You can override
 this command parameter if for example your MySQL host is not running on the same server's ip address.
@@ -1455,22 +1968,24 @@ Make sure pass all required command parameters, such as `mysql_user`, `mysql_pas
 `MysqlUsername` and `MysqlPassword` are specified as [global constants](04-configuring-icinga-2.md#constants-conf)
 in this example.
 
-    # vim /etc/icinga2/conf.d/services.conf
+```
+# vim /etc/icinga2/conf.d/services.conf
 
-    apply Service "mysql-icinga-db-health" {
-      import "generic-service"
+apply Service "mysql-icinga-db-health" {
+  import "generic-service"
 
-      check_command = "my-mysql"
+  check_command = "my-mysql"
 
-      vars.mysql_user = MysqlUsername
-      vars.mysql_password = MysqlPassword
+  vars.mysql_user = MysqlUsername
+  vars.mysql_password = MysqlPassword
 
-      vars.mysql_database = "icinga"
-      vars.mysql_host = "192.168.33.11"
+  vars.mysql_database = "icinga"
+  vars.mysql_host = "192.168.33.11"
 
-      assign where match("icinga2*", host.name)
-      ignore where host.vars.no_health_check == true
-    }
+  assign where match("icinga2*", host.name)
+  ignore where host.vars.no_health_check == true
+}
+```
 
 
 Take a different example: The example host configuration in [hosts.conf](04-configuring-icinga-2.md#hosts-conf)
@@ -1478,22 +1993,26 @@ also applies an `ssh` service check. Your host's ssh port is not the default `22
 You can pass the command parameter as custom attribute `ssh_port` directly inside the service apply rule
 inside [services.conf](04-configuring-icinga-2.md#services-conf):
 
-    apply Service "ssh" {
-      import "generic-service"
+```
+apply Service "ssh" {
+  import "generic-service"
 
-      check_command = "ssh"
-      vars.ssh_port = 2022 //custom command parameter
+  check_command = "ssh"
+  vars.ssh_port = 2022 //custom command parameter
 
-      assign where (host.address || host.address6) && host.vars.os == "Linux"
-    }
+  assign where (host.address || host.address6) && host.vars.os == "Linux"
+}
+```
 
 If you prefer this being configured at the host instead of the service, modify the host configuration
 object instead. The runtime macro resolving order is described [here](03-monitoring-basics.md#macro-evaluation-order).
 
-    object Host NodeName {
-    ...
-      vars.ssh_port = 2022
-    }
+```
+object Host "icinga2-client1.localdomain {
+...
+  vars.ssh_port = 2022
+}
+```
 
 #### Passing Check Command Parameters Using Apply For <a id="command-passing-parameters-apply-for"></a>
 
@@ -1505,25 +2024,27 @@ free disk space).
 The custom attribute `disk_partition` can either hold a single string or an array of
 string values for passing multiple partitions to the `check_disk` check plugin.
 
-    object Host "my-server" {
-      import "generic-host"
-      address = "127.0.0.1"
-      address6 = "::1"
+```
+object Host "my-server" {
+  import "generic-host"
+  address = "127.0.0.1"
+  address6 = "::1"
 
-      vars.local_disks["basic-partitions"] = {
-        disk_partitions = [ "/", "/tmp", "/var", "/home" ]
-      }
-    }
+  vars.local_disks["basic-partitions"] = {
+    disk_partitions = [ "/", "/tmp", "/var", "/home" ]
+  }
+}
 
-    apply Service for (disk => config in host.vars.local_disks) {
-      import "generic-service"
-      check_command = "my-disk"
+apply Service for (disk => config in host.vars.local_disks) {
+  import "generic-service"
+  check_command = "my-disk"
 
-      vars += config
+  vars += config
 
-      vars.disk_wfree = "10%"
-      vars.disk_cfree = "5%"
-    }
+  vars.disk_wfree = "10%"
+  vars.disk_cfree = "5%"
+}
+```
 
 
 More details on using arrays in custom attributes can be found in
@@ -1538,40 +2059,42 @@ required to extend the arguments list based on a met condition evaluated
 at command execution. Or making arguments optional -- only set if the
 macro value can be resolved by Icinga 2.
 
-    object CheckCommand "check_http" {
-      command = [ PluginDir + "/check_http" ]
+```
+object CheckCommand "http" {
+  command = [ PluginDir + "/check_http" ]
 
-      arguments = {
-        "-H" = "$http_vhost$"
-        "-I" = "$http_address$"
-        "-u" = "$http_uri$"
-        "-p" = "$http_port$"
-        "-S" = {
-          set_if = "$http_ssl$"
-        }
-        "--sni" = {
-          set_if = "$http_sni$"
-        }
-        "-a" = {
-          value = "$http_auth_pair$"
-          description = "Username:password on sites with basic authentication"
-        }
-        "--no-body" = {
-          set_if = "$http_ignore_body$"
-        }
-        "-r" = "$http_expect_body_regex$"
-        "-w" = "$http_warn_time$"
-        "-c" = "$http_critical_time$"
-        "-e" = "$http_expect$"
-      }
-
-      vars.http_address = "$address$"
-      vars.http_ssl = false
-      vars.http_sni = false
+  arguments = {
+    "-H" = "$http_vhost$"
+    "-I" = "$http_address$"
+    "-u" = "$http_uri$"
+    "-p" = "$http_port$"
+    "-S" = {
+      set_if = "$http_ssl$"
     }
+    "--sni" = {
+      set_if = "$http_sni$"
+    }
+    "-a" = {
+      value = "$http_auth_pair$"
+      description = "Username:password on sites with basic authentication"
+    }
+    "--no-body" = {
+      set_if = "$http_ignore_body$"
+    }
+    "-r" = "$http_expect_body_regex$"
+    "-w" = "$http_warn_time$"
+    "-c" = "$http_critical_time$"
+    "-e" = "$http_expect$"
+  }
+
+  vars.http_address = "$address$"
+  vars.http_ssl = false
+  vars.http_sni = false
+}
+```
 
 The example shows the `check_http` check command defining the most common
-arguments. Each of them is optional by default and will be omitted if
+arguments. Each of them is optional by default and is omitted if
 the value is not set. For example, if the service calling the check command
 does not have `vars.http_port` set, it won't get added to the command
 line.
@@ -1590,6 +2113,50 @@ without SSL enabled checks saving you duplicated command definitions.
 Details on all available options can be found in the
 [CheckCommand object definition](09-object-types.md#objecttype-checkcommand).
 
+##### Command Arguments: set_if <a id="command-arguments-set-if"></a>
+
+The `set_if` attribute in command arguments can be used to only add
+this parameter if the runtime macro value is boolean `true`.
+
+Best practice is to define and pass only [boolean](17-language-reference.md#boolean-literals) values here.
+[Numeric](17-language-reference.md#numeric-literals) values are allowed too.
+
+Examples:
+
+```
+vars.test_b = true
+vars.test_n = 3.0
+
+arguments = {
+  "-x" = {
+    set_if = "$test_b$"
+  }
+  "-y" = {
+    set_if = "$test_n$"
+  }
+}
+```
+
+If you accidentally used a [String](17-language-reference.md#string-literals) value, this could lead into
+an undefined behaviour.
+
+If you still want to work with String values and other variants, you can also
+use runtime evaluated functions for `set_if`.
+
+```
+vars.test_s = "1.1.2.1"
+arguments = {
+  "-z" = {
+    set_if = {{
+      var str = macro("$test_s$")
+
+      return regex("^\d.\d.\d.\d$", str)
+    }}
+  }
+```
+
+References: [abbreviated lambda syntax](17-language-reference.md#nullary-lambdas), [macro](18-library-reference.md#scoped-functions-macro), [regex](18-library-reference.md#global-functions-regex).
+
 
 #### Environment Variables <a id="command-environment-variables"></a>
 
@@ -1600,25 +2167,26 @@ prior to executing the command.
 This is useful for example for hiding sensitive information on the command line output
 when passing credentials to database checks:
 
-    object CheckCommand "mysql-health" {
-      command = [
-        PluginDir + "/check_mysql"
-      ]
+```
+object CheckCommand "mysql-health" {
+  command = [
+    PluginDir + "/check_mysql"
+  ]
 
-      arguments = {
-        "-H" = "$mysql_address$"
-        "-d" = "$mysql_database$"
-      }
+  arguments = {
+    "-H" = "$mysql_address$"
+    "-d" = "$mysql_database$"
+  }
 
-      vars.mysql_address = "$address$"
-      vars.mysql_database = "icinga"
-      vars.mysql_user = "icinga_check"
-      vars.mysql_pass = "password"
+  vars.mysql_address = "$address$"
+  vars.mysql_database = "icinga"
+  vars.mysql_user = "icinga_check"
+  vars.mysql_pass = "password"
 
-      env.MYSQLUSER = "$mysql_user$"
-      env.MYSQLPASS = "$mysql_pass$"
-    }
-
+  env.MYSQLUSER = "$mysql_user$"
+  env.MYSQLPASS = "$mysql_pass$"
+}
+```
 
 
 ### Notification Commands <a id="notification-commands"></a>
@@ -1762,6 +2330,258 @@ information.
   `notification_icingaweb2url`      | **Optional.** Define URL to your Icinga Web 2 (e.g. `"https://www.example.com/icingaweb2"`)
   `notification_logtosyslog`        | **Optional.** Set `true` to log notification events to syslog; useful for debugging. Defaults to `false`.
 
+
+## Dependencies <a id="dependencies"></a>
+
+Icinga 2 uses host and service [Dependency](09-object-types.md#objecttype-dependency) objects
+for determining their network reachability.
+
+A service can depend on a host, and vice versa. A service has an implicit
+dependency (parent) to its host. A host to host dependency acts implicitly
+as host parent relation.
+When dependencies are calculated, not only the immediate parent is taken into
+account but all parents are inherited.
+
+The `parent_host_name` and `parent_service_name` attributes are mandatory for
+service dependencies, `parent_host_name` is required for host dependencies.
+[Apply rules](03-monitoring-basics.md#using-apply) will allow you to
+[determine these attributes](03-monitoring-basics.md#dependencies-apply-custom-attributes) in a more
+dynamic fashion if required.
+
+```
+parent_host_name = "core-router"
+parent_service_name = "uplink-port"
+```
+
+Notifications are suppressed by default if a host or service becomes unreachable.
+You can control that option by defining the `disable_notifications` attribute.
+
+```
+disable_notifications = false
+```
+
+If the dependency should be triggered in the parent object's soft state, you
+need to set `ignore_soft_states` to `false`.
+
+The dependency state filter must be defined based on the parent object being
+either a host (`Up`, `Down`) or a service (`OK`, `Warning`, `Critical`, `Unknown`).
+
+The following example will make the dependency fail and trigger it if the parent
+object is **not** in one of these states:
+
+```
+states = [ OK, Critical, Unknown ]
+```
+
+> **In other words**
+>
+> If the parent service object changes into the `Warning` state, this
+> dependency will fail and render all child objects (hosts or services) unreachable.
+
+You can determine the child's reachability by querying the `is_reachable` attribute
+in for example [DB IDO](24-appendix.md#schema-db-ido-extensions).
+
+### Implicit Dependencies for Services on Host <a id="dependencies-implicit-host-service"></a>
+
+Icinga 2 automatically adds an implicit dependency for services on their host. That way
+service notifications are suppressed when a host is `DOWN` or `UNREACHABLE`. This dependency
+does not overwrite other dependencies and implicitely sets `disable_notifications = true` and
+`states = [ Up ]` for all service objects.
+
+Service checks are still executed. If you want to prevent them from happening, you can
+apply the following dependency to all services setting their host as `parent_host_name`
+and disabling the checks. `assign where true` matches on all `Service` objects.
+
+```
+apply Dependency "disable-host-service-checks" to Service {
+  disable_checks = true
+  assign where true
+}
+```
+
+### Dependencies for Network Reachability <a id="dependencies-network-reachability"></a>
+
+A common scenario is the Icinga 2 server behind a router. Checking internet
+access by pinging the Google DNS server `google-dns` is a common method, but
+will fail in case the `dsl-router` host is down. Therefore the example below
+defines a host dependency which acts implicitly as parent relation too.
+
+Furthermore the host may be reachable but ping probes are dropped by the
+router's firewall. In case the `dsl-router`'s `ping4` service check fails, all
+further checks for the `ping4` service on host `google-dns` service should
+be suppressed. This is achieved by setting the `disable_checks` attribute to `true`.
+
+```
+object Host "dsl-router" {
+  import "generic-host"
+  address = "192.168.1.1"
+}
+
+object Host "google-dns" {
+  import "generic-host"
+  address = "8.8.8.8"
+}
+
+apply Service "ping4" {
+  import "generic-service"
+
+  check_command = "ping4"
+
+  assign where host.address
+}
+
+apply Dependency "internet" to Host {
+  parent_host_name = "dsl-router"
+  disable_checks = true
+  disable_notifications = true
+
+  assign where host.name != "dsl-router"
+}
+
+apply Dependency "internet" to Service {
+  parent_host_name = "dsl-router"
+  parent_service_name = "ping4"
+  disable_checks = true
+
+  assign where host.name != "dsl-router"
+}
+```
+
+### Apply Dependencies based on Custom Attributes <a id="dependencies-apply-custom-attributes"></a>
+
+You can use [apply rules](03-monitoring-basics.md#using-apply) to set parent or
+child attributes, e.g. `parent_host_name` to other objects'
+attributes.
+
+A common example are virtual machines hosted on a master. The object
+name of that master is auto-generated from your CMDB or VMWare inventory
+into the host's custom attributes (or a generic template for your
+cloud).
+
+Define your master host object:
+
+```
+/* your master */
+object Host "master.example.com" {
+  import "generic-host"
+}
+```
+
+Add a generic template defining all common host attributes:
+
+```
+/* generic template for your virtual machines */
+template Host "generic-vm" {
+  import "generic-host"
+}
+```
+
+Add a template for all hosts on your example.com cloud setting
+custom attribute `vm_parent` to `master.example.com`:
+
+```
+template Host "generic-vm-example.com" {
+  import "generic-vm"
+  vars.vm_parent = "master.example.com"
+}
+```
+
+Define your guest hosts:
+
+```
+object Host "www.example1.com" {
+  import "generic-vm-master.example.com"
+}
+
+object Host "www.example2.com" {
+  import "generic-vm-master.example.com"
+}
+```
+
+Apply the host dependency to all child hosts importing the
+`generic-vm` template and set the `parent_host_name`
+to the previously defined custom attribute `host.vars.vm_parent`.
+
+```
+apply Dependency "vm-host-to-parent-master" to Host {
+  parent_host_name = host.vars.vm_parent
+  assign where "generic-vm" in host.templates
+}
+```
+
+You can extend this example, and make your services depend on the
+`master.example.com` host too. Their local scope allows you to use
+`host.vars.vm_parent` similar to the example above.
+
+```
+apply Dependency "vm-service-to-parent-master" to Service {
+  parent_host_name = host.vars.vm_parent
+  assign where "generic-vm" in host.templates
+}
+```
+
+That way you don't need to wait for your guest hosts becoming
+unreachable when the master host goes down. Instead the services
+will detect their reachability immediately when executing checks.
+
+> **Note**
+>
+> This method with setting locally scoped variables only works in
+> apply rules, but not in object definitions.
+
+
+### Dependencies for Agent Checks <a id="dependencies-agent-checks"></a>
+
+Another classic example are agent based checks. You would define a health check
+for the agent daemon responding to your requests, and make all other services
+querying that daemon depend on that health check.
+
+The following configuration defines two nrpe based service checks `nrpe-load`
+and `nrpe-disk` applied to the host `nrpe-server` [matched](18-library-reference.md#global-functions-match)
+by its name. The health check is defined as `nrpe-health` service.
+
+```
+apply Service "nrpe-health" {
+  import "generic-service"
+  check_command = "nrpe"
+  assign where match("nrpe-*", host.name)
+}
+
+apply Service "nrpe-load" {
+  import "generic-service"
+  check_command = "nrpe"
+  vars.nrpe_command = "check_load"
+  assign where match("nrpe-*", host.name)
+}
+
+apply Service "nrpe-disk" {
+  import "generic-service"
+  check_command = "nrpe"
+  vars.nrpe_command = "check_disk"
+  assign where match("nrpe-*", host.name)
+}
+
+object Host "nrpe-server" {
+  import "generic-host"
+  address = "192.168.1.5"
+}
+
+apply Dependency "disable-nrpe-checks" to Service {
+  parent_service_name = "nrpe-health"
+
+  states = [ OK ]
+  disable_checks = true
+  disable_notifications = true
+  assign where service.check_command == "nrpe"
+  ignore where service.name == "nrpe-health"
+}
+```
+
+The `disable-nrpe-checks` dependency is applied to all services
+on the `nrpe-service` host using the `nrpe` check_command attribute
+but not the `nrpe-health` service itself.
+
+
 ### Event Commands <a id="event-commands"></a>
 
 Unlike notifications, event commands for hosts/services are called on every
@@ -1799,61 +2619,70 @@ for every event triggered on a `businessprocess` service.
 Define an [EventCommand](09-object-types.md#objecttype-eventcommand)
 object `send_to_businesstool` which sends state changes to the external tool.
 
-    object EventCommand "send_to_businesstool" {
-      command = [
-        "/usr/bin/curl",
-        "-s",
-        "-X PUT"
-      ]
+```
+object EventCommand "send_to_businesstool" {
+  command = [
+    "/usr/bin/curl",
+    "-s",
+    "-X PUT"
+  ]
 
-      arguments = {
-        "-H" = {
-          value ="$businesstool_url$"
-          skip_key = true
-        }
-        "-d" = "$businesstool_message$"
-      }
-
-      vars.businesstool_url = "http://localhost:8080/businesstool"
-      vars.businesstool_message = "$host.name$ $service.name$ $service.state$ $service.state_type$ $service.check_attempt$"
+  arguments = {
+    "-H" = {
+      value ="$businesstool_url$"
+      skip_key = true
     }
+    "-d" = "$businesstool_message$"
+  }
+
+  vars.businesstool_url = "http://localhost:8080/businesstool"
+  vars.businesstool_message = "$host.name$ $service.name$ $service.state$ $service.state_type$ $service.check_attempt$"
+}
+```
 
 Set the `event_command` attribute to `send_to_businesstool` on the Service.
 
-    object Service "businessprocess" {
-      host_name = "businessprocess"
+```
+object Service "businessprocess" {
+  host_name = "businessprocess"
 
-      check_command = "icingacli-businessprocess"
-      vars.icingacli_businessprocess_process = "icinga"
-      vars.icingacli_businessprocess_config = "training"
+  check_command = "icingacli-businessprocess"
+  vars.icingacli_businessprocess_process = "icinga"
+  vars.icingacli_businessprocess_config = "training"
 
-      event_command = "send_to_businesstool"
-    }
+  event_command = "send_to_businesstool"
+}
+```
 
 In order to test this scenario you can run:
 
-    nc -l 8080
+```
+nc -l 8080
+```
 
 This allows to catch the web request. You can also enable the [debug log](15-troubleshooting.md#troubleshooting-enable-debug-output)
 and search for the event command execution log message.
 
-    tail -f /var/log/icinga2/debug.log | grep EventCommand
+```
+tail -f /var/log/icinga2/debug.log | grep EventCommand
+```
 
 Feed in a check result via REST API action [process-check-result](12-icinga2-api.md#icinga2-api-actions-process-check-result)
 or via Icinga Web 2.
 
 Expected Result:
 
-    # nc -l 8080
-    PUT /businesstool HTTP/1.1
-    User-Agent: curl/7.29.0
-    Host: localhost:8080
-    Accept: */*
-    Content-Length: 47
-    Content-Type: application/x-www-form-urlencoded
+```
+# nc -l 8080
+PUT /businesstool HTTP/1.1
+User-Agent: curl/7.29.0
+Host: localhost:8080
+Accept: */*
+Content-Length: 47
+Content-Type: application/x-www-form-urlencoded
 
-    businessprocess businessprocess CRITICAL SOFT 1
-
+businessprocess businessprocess CRITICAL SOFT 1
+```
 
 #### Use Event Commands to Restart Service Daemon via Command Endpoint on Linux <a id="event-command-restart-service-daemon-command-endpoint-linux"></a>
 
@@ -1869,8 +2698,10 @@ Requirements:
 
 Example on CentOS 7:
 
-    # visudo
-    icinga  ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart httpd
+```
+# visudo
+icinga  ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart httpd
+```
 
 Note: Distributions might use a different name. On Debian/Ubuntu the service is called `apache2`.
 
@@ -1878,87 +2709,95 @@ Define an [EventCommand](09-object-types.md#objecttype-eventcommand) object `res
 which allows to trigger local service restarts. Put it into a [global zone](06-distributed-monitoring.md#distributed-monitoring-global-zone-config-sync)
 to sync its configuration to all clients.
 
-    [root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.d/global-templates/eventcommands.conf
+```
+[root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.d/global-templates/eventcommands.conf
 
-    object EventCommand "restart_service" {
-      command = [ PluginDir + "/restart_service" ]
+object EventCommand "restart_service" {
+  command = [ PluginDir + "/restart_service" ]
 
-      arguments = {
-        "-s" = "$service.state$"
-        "-t" = "$service.state_type$"
-        "-a" = "$service.check_attempt$"
-        "-S" = "$restart_service$"
-      }
+  arguments = {
+    "-s" = "$service.state$"
+    "-t" = "$service.state_type$"
+    "-a" = "$service.check_attempt$"
+    "-S" = "$restart_service$"
+  }
 
-      vars.restart_service = "$procs_command$"
-    }
+  vars.restart_service = "$procs_command$"
+}
+```
 
 This event command triggers the following script which restarts the service.
 The script only is executed if the service state is `CRITICAL`. Warning and Unknown states
 are ignored as they indicate not an immediate failure.
 
-    [root@icinga2-client1.localdomain /]# vim /usr/lib64/nagios/plugins/restart_service
+```
+[root@icinga2-client1.localdomain /]# vim /usr/lib64/nagios/plugins/restart_service
 
-    #!/bin/bash
+#!/bin/bash
 
-    while getopts "s:t:a:S:" opt; do
-      case $opt in
-        s)
-          servicestate=$OPTARG
-          ;;
-        t)
-          servicestatetype=$OPTARG
-          ;;
-        a)
-          serviceattempt=$OPTARG
-          ;;
-        S)
-          service=$OPTARG
-          ;;
-      esac
-    done
+while getopts "s:t:a:S:" opt; do
+  case $opt in
+    s)
+      servicestate=$OPTARG
+      ;;
+    t)
+      servicestatetype=$OPTARG
+      ;;
+    a)
+      serviceattempt=$OPTARG
+      ;;
+    S)
+      service=$OPTARG
+      ;;
+  esac
+done
 
-    if ( [ -z $servicestate ] || [ -z $servicestatetype ] || [ -z $serviceattempt ] || [ -z $service ] ); then
-      echo "USAGE: $0 -s servicestate -z servicestatetype -a serviceattempt -S service"
-      exit 3;
-    else
-      # Only restart on the third attempt of a critical event
-      if ( [ $servicestate == "CRITICAL" ] && [ $servicestatetype == "SOFT" ] && [ $serviceattempt -eq 3 ] ); then
-        sudo /usr/bin/systemctl restart $service
-      fi
-    fi
+if ( [ -z $servicestate ] || [ -z $servicestatetype ] || [ -z $serviceattempt ] || [ -z $service ] ); then
+  echo "USAGE: $0 -s servicestate -z servicestatetype -a serviceattempt -S service"
+  exit 3;
+else
+  # Only restart on the third attempt of a critical event
+  if ( [ $servicestate == "CRITICAL" ] && [ $servicestatetype == "SOFT" ] && [ $serviceattempt -eq 3 ] ); then
+    sudo /usr/bin/systemctl restart $service
+  fi
+fi
 
-    [root@icinga2-client1.localdomain /]# chmod +x /usr/lib64/nagios/plugins/restart_service
-
+[root@icinga2-client1.localdomain /]# chmod +x /usr/lib64/nagios/plugins/restart_service
+```
 
 Add a service on the master node which is executed via command endpoint on the client.
 Set the `event_command` attribute to `restart_service`, the name of the previously defined
 EventCommand object.
 
-    [root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.d/master/icinga2-client1.localdomain.conf
+```
+[root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.d/master/icinga2-client1.localdomain.conf
 
-    object Service "Process httpd" {
-      check_command = "procs"
-      event_command = "restart_service"
-      max_check_attempts = 4
+object Service "Process httpd" {
+  check_command = "procs"
+  event_command = "restart_service"
+  max_check_attempts = 4
 
-      host_name = "icinga2-client1.localdomain"
-      command_endpoint = "icinga2-client1.localdomain"
+  host_name = "icinga2-client1.localdomain"
+  command_endpoint = "icinga2-client1.localdomain"
 
-      vars.procs_command = "httpd"
-      vars.procs_warning = "1:10"
-      vars.procs_critical = "1:"
-    }
+  vars.procs_command = "httpd"
+  vars.procs_warning = "1:10"
+  vars.procs_critical = "1:"
+}
+```
 
 In order to test this configuration just stop the `httpd` on the remote host `icinga2-client1.localdomain`.
 
-    [root@icinga2-client1.localdomain /]# systemctl stop httpd
+```
+[root@icinga2-client1.localdomain /]# systemctl stop httpd
+```
 
 You can enable the [debug log](15-troubleshooting.md#troubleshooting-enable-debug-output) and search for the
 executed command line.
 
-    [root@icinga2-client1.localdomain /]# tail -f /var/log/icinga2/debug.log | grep restart_service
-
+```
+[root@icinga2-client1.localdomain /]# tail -f /var/log/icinga2/debug.log | grep restart_service
+```
 
 #### Use Event Commands to Restart Service Daemon via Command Endpoint on Windows <a id="event-command-restart-service-daemon-command-endpoint-windows"></a>
 
@@ -1976,27 +2815,29 @@ Define an [EventCommand](09-object-types.md#objecttype-eventcommand) object `res
 which allows to trigger local service restarts. Put it into a [global zone](06-distributed-monitoring.md#distributed-monitoring-global-zone-config-sync)
 to sync its configuration to all clients.
 
-    [root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.d/global-templates/eventcommands.conf
+```
+[root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.d/global-templates/eventcommands.conf
 
-    object EventCommand "restart_service-windows" {
-      command = [
-        "C:\\Windows\\SysWOW64\\WindowsPowerShell\\v1.0\\powershell.exe",
-        PluginDir + "/restart_service.ps1"
-      ]
+object EventCommand "restart_service-windows" {
+  command = [
+    "C:\\Windows\\SysWOW64\\WindowsPowerShell\\v1.0\\powershell.exe",
+    PluginDir + "/restart_service.ps1"
+  ]
 
-      arguments = {
-        "-ServiceState" = "$service.state$"
-        "-ServiceStateType" = "$service.state_type$"
-        "-ServiceAttempt" = "$service.check_attempt$"
-        "-Service" = "$restart_service$"
-        "; exit" = {
-            order = 99
-            value = "$$LASTEXITCODE"
-        }
-      }
-
-      vars.restart_service = "$service_win_service$"
+  arguments = {
+    "-ServiceState" = "$service.state$"
+    "-ServiceStateType" = "$service.state_type$"
+    "-ServiceAttempt" = "$service.check_attempt$"
+    "-Service" = "$restart_service$"
+    "; exit" = {
+        order = 99
+        value = "$$LASTEXITCODE"
     }
+  }
+
+  vars.restart_service = "$service_win_service$"
+}
+```
 
 This event command triggers the following script which restarts the service.
 The script only is executed if the service state is `CRITICAL`. Warning and Unknown states
@@ -2004,46 +2845,52 @@ are ignored as they indicate not an immediate failure.
 
 Add the `restart_service.ps1` Powershell script into `C:\Program Files\Icinga2\sbin`:
 
-    param(
-            [string]$Service                  = '',
-            [string]$ServiceState             = '',
-            [string]$ServiceStateType         = '',
-            [int]$ServiceAttempt              = ''
-        )
+```
+param(
+        [string]$Service                  = '',
+        [string]$ServiceState             = '',
+        [string]$ServiceStateType         = '',
+        [int]$ServiceAttempt              = ''
+    )
 
-    if (!$Service -Or !$ServiceState -Or !$ServiceStateType -Or !$ServiceAttempt) {
-        $scriptName = GCI $MyInvocation.PSCommandPath | Select -Expand Name;
-        Write-Host "USAGE: $scriptName -ServiceState servicestate -ServiceStateType servicestatetype -ServiceAttempt serviceattempt -Service service" -ForegroundColor red;
-        exit 3;
-    }
+if (!$Service -Or !$ServiceState -Or !$ServiceStateType -Or !$ServiceAttempt) {
+    $scriptName = GCI $MyInvocation.PSCommandPath | Select -Expand Name;
+    Write-Host "USAGE: $scriptName -ServiceState servicestate -ServiceStateType servicestatetype -ServiceAttempt serviceattempt -Service service" -ForegroundColor red;
+    exit 3;
+}
 
-    # Only restart on the third attempt of a critical event
-    if ($ServiceState -eq "CRITICAL" -And $ServiceStateType -eq "SOFT" -And $ServiceAttempt -eq 3) {
-        Restart-Service $Service;
-    }
+# Only restart on the third attempt of a critical event
+if ($ServiceState -eq "CRITICAL" -And $ServiceStateType -eq "SOFT" -And $ServiceAttempt -eq 3) {
+    Restart-Service $Service;
+}
 
-    exit 0;
+exit 0;
+```
 
 Add a service on the master node which is executed via command endpoint on the client.
 Set the `event_command` attribute to `restart_service-windows`, the name of the previously defined
 EventCommand object.
 
-    [root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.d/master/icinga2-client2.localdomain.conf
+```
+[root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.d/master/icinga2-client2.localdomain.conf
 
-    object Service "Service httpd" {
-      check_command = "service-windows"
-      event_command = "restart_service-windows"
-      max_check_attempts = 4
+object Service "Service httpd" {
+  check_command = "service-windows"
+  event_command = "restart_service-windows"
+  max_check_attempts = 4
 
-      host_name = "icinga2-client2.localdomain"
-      command_endpoint = "icinga2-client2.localdomain"
+  host_name = "icinga2-client2.localdomain"
+  command_endpoint = "icinga2-client2.localdomain"
 
-      vars.service_win_service = "httpd"
-    }
+  vars.service_win_service = "httpd"
+}
+```
 
 In order to test this configuration just stop the `httpd` on the remote host `icinga2-client1.localdomain`.
 
-    C:> net stop httpd
+```
+C:> net stop httpd
+```
 
 You can enable the [debug log](15-troubleshooting.md#troubleshooting-enable-debug-output) and search for the
 executed command line in `C:\ProgramData\icinga2\var\log\icinga2\debug.log`.
@@ -2062,308 +2909,99 @@ Requirements:
 
 Example on Debian:
 
-    # ls /home/icinga/.ssh/
-    authorized_keys
+```
+# ls /home/icinga/.ssh/
+authorized_keys
 
-    # visudo
-    icinga  ALL=(ALL) NOPASSWD: /etc/init.d/apache2 restart
+# visudo
+icinga  ALL=(ALL) NOPASSWD: /etc/init.d/apache2 restart
+```
 
 Define a generic [EventCommand](09-object-types.md#objecttype-eventcommand) object `event_by_ssh`
 which can be used for all event commands triggered using SSH:
 
-    [root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.d/master/local_eventcommands.conf
+```
+[root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.d/master/local_eventcommands.conf
 
-    /* pass event commands through ssh */
-    object EventCommand "event_by_ssh" {
-      command = [ PluginDir + "/check_by_ssh" ]
+/* pass event commands through ssh */
+object EventCommand "event_by_ssh" {
+  command = [ PluginDir + "/check_by_ssh" ]
 
-      arguments = {
-        "-H" = "$event_by_ssh_address$"
-        "-p" = "$event_by_ssh_port$"
-        "-C" = "$event_by_ssh_command$"
-        "-l" = "$event_by_ssh_logname$"
-        "-i" = "$event_by_ssh_identity$"
-        "-q" = {
-          set_if = "$event_by_ssh_quiet$"
-        }
-        "-w" = "$event_by_ssh_warn$"
-        "-c" = "$event_by_ssh_crit$"
-        "-t" = "$event_by_ssh_timeout$"
-      }
-
-      vars.event_by_ssh_address = "$address$"
-      vars.event_by_ssh_quiet = false
+  arguments = {
+    "-H" = "$event_by_ssh_address$"
+    "-p" = "$event_by_ssh_port$"
+    "-C" = "$event_by_ssh_command$"
+    "-l" = "$event_by_ssh_logname$"
+    "-i" = "$event_by_ssh_identity$"
+    "-q" = {
+      set_if = "$event_by_ssh_quiet$"
     }
+    "-w" = "$event_by_ssh_warn$"
+    "-c" = "$event_by_ssh_crit$"
+    "-t" = "$event_by_ssh_timeout$"
+  }
+
+  vars.event_by_ssh_address = "$address$"
+  vars.event_by_ssh_quiet = false
+}
+```
 
 The actual event command only passes the `event_by_ssh_command` attribute.
 The `event_by_ssh_service` custom attribute takes care of passing the correct
 daemon name, while `test $service.state_id$ -gt 0` makes sure that the daemon
 is only restarted when the service is not in an `OK` state.
 
-    object EventCommand "event_by_ssh_restart_service" {
-      import "event_by_ssh"
+```
+object EventCommand "event_by_ssh_restart_service" {
+  import "event_by_ssh"
 
-      //only restart the daemon if state > 0 (not-ok)
-      //requires sudo permissions for the icinga user
-      vars.event_by_ssh_command = "test $service.state_id$ -gt 0 && sudo systemctl restart $event_by_ssh_service$"
-    }
+  //only restart the daemon if state > 0 (not-ok)
+  //requires sudo permissions for the icinga user
+  vars.event_by_ssh_command = "test $service.state_id$ -gt 0 && sudo systemctl restart $event_by_ssh_service$"
+}
+```
 
 
 Now set the `event_command` attribute to `event_by_ssh_restart_service` and tell it
 which service should be restarted using the `event_by_ssh_service` attribute.
 
-    apply Service "http" {
-      import "generic-service"
-      check_command = "http"
+```
+apply Service "http" {
+  import "generic-service"
+  check_command = "http"
 
-      event_command = "event_by_ssh_restart_service"
-      vars.event_by_ssh_service = "$host.vars.httpd_name$"
+  event_command = "event_by_ssh_restart_service"
+  vars.event_by_ssh_service = "$host.vars.httpd_name$"
 
-      //vars.event_by_ssh_logname = "icinga"
-      //vars.event_by_ssh_identity = "/home/icinga/.ssh/id_rsa.pub"
+  //vars.event_by_ssh_logname = "icinga"
+  //vars.event_by_ssh_identity = "/home/icinga/.ssh/id_rsa.pub"
 
-      assign where host.vars.httpd_name
-    }
+  assign where host.vars.httpd_name
+}
+```
 
 Specify the `httpd_name` custom attribute on the host to assign the
 service and set the event handler service.
 
-    object Host "remote-http-host" {
-      import "generic-host"
-      address = "192.168.1.100"
+```
+object Host "remote-http-host" {
+  import "generic-host"
+  address = "192.168.1.100"
 
-      vars.httpd_name = "apache2"
-    }
+  vars.httpd_name = "apache2"
+}
+```
 
 In order to test this configuration just stop the `httpd` on the remote host `icinga2-client1.localdomain`.
 
-    [root@icinga2-client1.localdomain /]# systemctl stop httpd
+```
+[root@icinga2-client1.localdomain /]# systemctl stop httpd
+```
 
 You can enable the [debug log](15-troubleshooting.md#troubleshooting-enable-debug-output) and search for the
 executed command line.
 
-    [root@icinga2-client1.localdomain /]# tail -f /var/log/icinga2/debug.log | grep by_ssh
+```
+[root@icinga2-client1.localdomain /]# tail -f /var/log/icinga2/debug.log | grep by_ssh
+```
 
-## Dependencies <a id="dependencies"></a>
-
-Icinga 2 uses host and service [Dependency](09-object-types.md#objecttype-dependency) objects
-for determining their network reachability.
-
-A service can depend on a host, and vice versa. A service has an implicit
-dependency (parent) to its host. A host to host dependency acts implicitly
-as host parent relation.
-When dependencies are calculated, not only the immediate parent is taken into
-account but all parents are inherited.
-
-The `parent_host_name` and `parent_service_name` attributes are mandatory for
-service dependencies, `parent_host_name` is required for host dependencies.
-[Apply rules](03-monitoring-basics.md#using-apply) will allow you to
-[determine these attributes](03-monitoring-basics.md#dependencies-apply-custom-attributes) in a more
-dynamic fashion if required.
-
-    parent_host_name = "core-router"
-    parent_service_name = "uplink-port"
-
-Notifications are suppressed by default if a host or service becomes unreachable.
-You can control that option by defining the `disable_notifications` attribute.
-
-    disable_notifications = false
-
-If the dependency should be triggered in the parent object's soft state, you
-need to set `ignore_soft_states` to `false`.
-
-The dependency state filter must be defined based on the parent object being
-either a host (`Up`, `Down`) or a service (`OK`, `Warning`, `Critical`, `Unknown`).
-
-The following example will make the dependency fail and trigger it if the parent
-object is **not** in one of these states:
-
-    states = [ OK, Critical, Unknown ]
-
-Rephrased: If the parent service object changes into the `Warning` state, this
-dependency will fail and render all child objects (hosts or services) unreachable.
-
-You can determine the child's reachability by querying the `is_reachable` attribute
-in for example [DB IDO](24-appendix.md#schema-db-ido-extensions).
-
-### Implicit Dependencies for Services on Host <a id="dependencies-implicit-host-service"></a>
-
-Icinga 2 automatically adds an implicit dependency for services on their host. That way
-service notifications are suppressed when a host is `DOWN` or `UNREACHABLE`. This dependency
-does not overwrite other dependencies and implicitely sets `disable_notifications = true` and
-`states = [ Up ]` for all service objects.
-
-Service checks are still executed. If you want to prevent them from happening, you can
-apply the following dependency to all services setting their host as `parent_host_name`
-and disabling the checks. `assign where true` matches on all `Service` objects.
-
-    apply Dependency "disable-host-service-checks" to Service {
-      disable_checks = true
-      assign where true
-    }
-
-### Dependencies for Network Reachability <a id="dependencies-network-reachability"></a>
-
-A common scenario is the Icinga 2 server behind a router. Checking internet
-access by pinging the Google DNS server `google-dns` is a common method, but
-will fail in case the `dsl-router` host is down. Therefore the example below
-defines a host dependency which acts implicitly as parent relation too.
-
-Furthermore the host may be reachable but ping probes are dropped by the
-router's firewall. In case the `dsl-router`'s `ping4` service check fails, all
-further checks for the `ping4` service on host `google-dns` service should
-be suppressed. This is achieved by setting the `disable_checks` attribute to `true`.
-
-    object Host "dsl-router" {
-      import "generic-host"
-      address = "192.168.1.1"
-    }
-
-    object Host "google-dns" {
-      import "generic-host"
-      address = "8.8.8.8"
-    }
-
-    apply Service "ping4" {
-      import "generic-service"
-
-      check_command = "ping4"
-
-      assign where host.address
-    }
-
-    apply Dependency "internet" to Host {
-      parent_host_name = "dsl-router"
-      disable_checks = true
-      disable_notifications = true
-
-      assign where host.name != "dsl-router"
-    }
-
-    apply Dependency "internet" to Service {
-      parent_host_name = "dsl-router"
-      parent_service_name = "ping4"
-      disable_checks = true
-
-      assign where host.name != "dsl-router"
-    }
-
-### Apply Dependencies based on Custom Attributes <a id="dependencies-apply-custom-attributes"></a>
-
-You can use [apply rules](03-monitoring-basics.md#using-apply) to set parent or
-child attributes, e.g. `parent_host_name` to other objects'
-attributes.
-
-A common example are virtual machines hosted on a master. The object
-name of that master is auto-generated from your CMDB or VMWare inventory
-into the host's custom attributes (or a generic template for your
-cloud).
-
-Define your master host object:
-
-    /* your master */
-    object Host "master.example.com" {
-      import "generic-host"
-    }
-
-Add a generic template defining all common host attributes:
-
-    /* generic template for your virtual machines */
-    template Host "generic-vm" {
-      import "generic-host"
-    }
-
-Add a template for all hosts on your example.com cloud setting
-custom attribute `vm_parent` to `master.example.com`:
-
-    template Host "generic-vm-example.com" {
-      import "generic-vm"
-      vars.vm_parent = "master.example.com"
-    }
-
-Define your guest hosts:
-
-    object Host "www.example1.com" {
-      import "generic-vm-master.example.com"
-    }
-
-    object Host "www.example2.com" {
-      import "generic-vm-master.example.com"
-    }
-
-Apply the host dependency to all child hosts importing the
-`generic-vm` template and set the `parent_host_name`
-to the previously defined custom attribute `host.vars.vm_parent`.
-
-    apply Dependency "vm-host-to-parent-master" to Host {
-      parent_host_name = host.vars.vm_parent
-      assign where "generic-vm" in host.templates
-    }
-
-You can extend this example, and make your services depend on the
-`master.example.com` host too. Their local scope allows you to use
-`host.vars.vm_parent` similar to the example above.
-
-    apply Dependency "vm-service-to-parent-master" to Service {
-      parent_host_name = host.vars.vm_parent
-      assign where "generic-vm" in host.templates
-    }
-
-That way you don't need to wait for your guest hosts becoming
-unreachable when the master host goes down. Instead the services
-will detect their reachability immediately when executing checks.
-
-> **Note**
->
-> This method with setting locally scoped variables only works in
-> apply rules, but not in object definitions.
-
-
-### Dependencies for Agent Checks <a id="dependencies-agent-checks"></a>
-
-Another classic example are agent based checks. You would define a health check
-for the agent daemon responding to your requests, and make all other services
-querying that daemon depend on that health check.
-
-The following configuration defines two nrpe based service checks `nrpe-load`
-and `nrpe-disk` applied to the host `nrpe-server` [matched](18-library-reference.md#global-functions-match)
-by its name. The health check is defined as `nrpe-health` service.
-
-    apply Service "nrpe-health" {
-      import "generic-service"
-      check_command = "nrpe"
-      assign where match("nrpe-*", host.name)
-    }
-
-    apply Service "nrpe-load" {
-      import "generic-service"
-      check_command = "nrpe"
-      vars.nrpe_command = "check_load"
-      assign where match("nrpe-*", host.name)
-    }
-
-    apply Service "nrpe-disk" {
-      import "generic-service"
-      check_command = "nrpe"
-      vars.nrpe_command = "check_disk"
-      assign where match("nrpe-*", host.name)
-    }
-
-    object Host "nrpe-server" {
-      import "generic-host"
-      address = "192.168.1.5"
-    }
-
-    apply Dependency "disable-nrpe-checks" to Service {
-      parent_service_name = "nrpe-health"
-
-      states = [ OK ]
-      disable_checks = true
-      disable_notifications = true
-      assign where service.check_command == "nrpe"
-      ignore where service.name == "nrpe-health"
-    }
-
-The `disable-nrpe-checks` dependency is applied to all services
-on the `nrpe-service` host using the `nrpe` check_command attribute
-but not the `nrpe-health` service itself.

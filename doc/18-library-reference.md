@@ -564,6 +564,48 @@ Signature:
 
 Sleeps for the specified amount of time (in seconds).
 
+
+## Scoped Functions <a id="scoped-functions"></a>
+
+This chapter describes functions which are only available
+in a specific scope.
+
+### macro <a id="scoped-functions-macro"></a>
+
+Signature:
+
+```
+function macro("$macro_name$")
+```
+
+The `macro` function can be used to resolve [runtime macro](03-monitoring-basics.md#runtime-macros)
+strings into their values.
+The returned value depends on the attribute value which is resolved
+from the specified runtime macro.
+
+This function is only available in runtime evaluated functions, e.g.
+for [custom attributes](03-monitoring-basics.md#custom-attributes-functions) which
+use the [abbreviated lambda syntax](17-language-reference.md#nullary-lambdas).
+
+This example sets the `snmp_address` custom attribute
+based on `$address$` and `$address6`.
+
+```
+  vars.snmp_address = {{
+    var addr_v4 = macro("$address$")
+    var addr_v6 = macro("$address6$")
+
+    if (addr_v4) {
+    	return addr_v4
+    } else {
+    	return "udp6:[" + addr_v6 + "]"
+    }
+  }}
+```
+
+More reference examples are available inside the [Icinga Template Library](10-icinga-template-library.md#icinga-template-library)
+and the [object accessors chapter](08-advanced-topics.md#access-object-attributes-at-runtime).
+
 ## Object Accessor Functions <a id="object-accessor-functions"></a>
 
 These functions can be used to retrieve a reference to another object by name.
