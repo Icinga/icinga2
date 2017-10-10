@@ -876,98 +876,144 @@ can be used to retrieve references to other objects by name.
 This allows you to access configuration and runtime object attributes. A detailed
 list can be found [here](09-object-types.md#object-types).
 
-Simple cluster example for accessing two host object states and calculating a virtual
+#### Access Object Attributes at Runtime: Cluster Check <a id="access-object-attributes-at-runtime-cluster-check"></a>
+
+This is a simple cluster example for accessing two host object states and calculating a virtual
 cluster state and output:
 
-    object Host "cluster-host-01" {
-      check_command = "dummy"
-      vars.dummy_state = 2
-      vars.dummy_text = "This host is down."
+```
+object Host "cluster-host-01" {
+  check_command = "dummy"
+  vars.dummy_state = 2
+  vars.dummy_text = "This host is down."
+}
+
+object Host "cluster-host-02" {
+  check_command = "dummy"
+  vars.dummy_state = 0
+  vars.dummy_text = "This host is up."
+}
+
+object Host "cluster" {
+  check_command = "dummy"
+  vars.cluster_nodes = [ "cluster-host-01", "cluster-host-02" ]
+
+  vars.dummy_state = {{
+    var up_count = 0
+    var down_count = 0
+    var cluster_nodes = macro("$cluster_nodes$")
+
+    for (node in cluster_nodes) {
+      if (get_host(node).state > 0) {
+        down_count += 1
+      } else {
+        up_count += 1
+      }
     }
 
-    object Host "cluster-host-02" {
-      check_command = "dummy"
-      vars.dummy_state = 0
-      vars.dummy_text = "This host is up."
+    if (up_count >= down_count) {
+      return 0 //same up as down -> UP
+    } else {
+      return 2 //something is broken
+    }
+  }}
+
+  vars.dummy_text = {{
+    var output = "Cluster hosts:\n"
+    var cluster_nodes = macro("$cluster_nodes$")
+
+    for (node in cluster_nodes) {
+      output += node + ": " + get_host(node).last_check_result.output + "\n"
     }
 
-    object Host "cluster" {
-      check_command = "dummy"
-      vars.cluster_nodes = [ "cluster-host-01", "cluster-host-02" ]
+    return output
+  }}
+}
+```
 
-      vars.dummy_state = {{
-        var up_count = 0
-        var down_count = 0
-        var cluster_nodes = macro("$cluster_nodes$")
-
-        for (node in cluster_nodes) {
-          if (get_host(node).state > 0) {
-            down_count += 1
-          } else {
-            up_count += 1
-          }
-        }
-
-        if (up_count >= down_count) {
-          return 0 //same up as down -> UP
-        } else {
-          return 2 //something is broken
-        }
-      }}
-
-      vars.dummy_text = {{
-        var output = "Cluster hosts:\n"
-        var cluster_nodes = macro("$cluster_nodes$")
-
-        for (node in cluster_nodes) {
-          output += node + ": " + get_host(node).last_check_result.output + "\n"
-        }
-
-        return output
-      }}
-    }
-
+#### Time Dependent Thresholds <a id="access-object-attributes-at-runtime-time-dependent-thresholds"></a>
 
 The following example sets time dependent thresholds for the load check based on the current
 time of the day compared to the defined time period.
 
-    object TimePeriod "backup" {
-      import "legacy-timeperiod"
+```
+object TimePeriod "backup" {
+  import "legacy-timeperiod"
 
-      ranges = {
-        monday = "02:00-03:00"
-        tuesday = "02:00-03:00"
-        wednesday = "02:00-03:00"
-        thursday = "02:00-03:00"
-        friday = "02:00-03:00"
-        saturday = "02:00-03:00"
-        sunday = "02:00-03:00"
-      }
+  ranges = {
+    monday = "02:00-03:00"
+    tuesday = "02:00-03:00"
+    wednesday = "02:00-03:00"
+    thursday = "02:00-03:00"
+    friday = "02:00-03:00"
+    saturday = "02:00-03:00"
+    sunday = "02:00-03:00"
+  }
+}
+
+object Host "webserver-with-backup" {
+  check_command = "hostalive"
+  address = "127.0.0.1"
+}
+
+object Service "webserver-backup-load" {
+  check_command = "load"
+  host_name = "webserver-with-backup"
+
+  vars.load_wload1 = {{
+    if (get_time_period("backup").is_inside) {
+      return 20
+    } else {
+      return 5
     }
-
-    object Host "webserver-with-backup" {
-      check_command = "hostalive"
-      address = "127.0.0.1"
+  }}
+  vars.load_cload1 = {{
+    if (get_time_period("backup").is_inside) {
+      return 40
+    } else {
+      return 10
     }
+  }}
+}
+```
 
-    object Service "webserver-backup-load" {
-      check_command = "load"
-      host_name = "webserver-with-backup"
 
-      vars.load_wload1 = {{
-        if (get_time_period("backup").is_inside) {
-          return 20
-        } else {
-          return 5
-        }
-      }}
-      vars.load_cload1 = {{
-        if (get_time_period("backup").is_inside) {
-          return 40
-        } else {
-          return 10
-        }
-      }}
-    }
+## Advanced Value Types <a id="advanced-value-types"></a>
+
+In addition to the default value types Icinga 2 also uses a few other types
+to represent its internal state. The following types are exposed via the [API](12-icinga2-api.md#icinga2-api).
+
+### CheckResult <a id="advanced-value-types-checkresult"></a>
+
+  Name                      | Type                  | Description
+  --------------------------|-----------------------|----------------------------------
+  exit\_status              | Number                | The exit status returned by the check execution.
+  output                    | String                | The check output.
+  performance\_data         | Array                 | Array of [performance data values](08-advanced-topics.md#advanced-value-types-perfdatavalue).
+  check\_source             | String                | Name of the node executing the check.
+  state                     | Number                | The current state (0 = OK, 1 = WARNING, 2 = CRITICAL, 3 = UNKNOWN).
+  command                   | Value                 | Array of command with shell-escaped arguments or command line string.
+  execution\_start          | Timestamp             | Check execution start time (as a UNIX timestamp).
+  execution\_end            | Timestamp             | Check execution end time (as a UNIX timestamp).
+  schedule\_start           | Timestamp             | Scheduled check execution start time (as a UNIX timestamp).
+  schedule\_end             | Timestamp             | Scheduled check execution end time (as a UNIX timestamp).
+  active                    | Boolean               | Whether the result is from an active or passive check.
+  vars\_before              | Dictionary            | Internal attribute used for calculations.
+  vars\_after               | Dictionary            | Internal attribute used for calculations.
+
+### PerfdataValue <a id="advanced-value-types-perfdatavalue"></a>
+
+Icinga 2 parses performance data strings returned by check plugins and makes the information available to external interfaces (e.g. [GraphiteWriter](09-object-types.md#objecttype-graphitewriter) or the [Icinga 2 API](12-icinga2-api.md#icinga2-api)).
+
+  Name                      | Type                  | Description
+  --------------------------|-----------------------|----------------------------------
+  label                     | String                | Performance data label.
+  value                     | Number                | Normalized performance data value without unit.
+  counter                   | Boolean               | Enabled if the original value contains `c` as unit. Defaults to `false`.
+  unit                      | String                | Unit of measurement (`seconds`, `bytes`. `percent`) according to the [plugin API](05-service-monitoring.md#service-monitoring-plugin-api).
+  crit                      | Value                 | Critical threshold value.
+  warn                      | Value                 | Warning threshold value.
+  min                       | Value                 | Minimum value returned by the check.
+  max                       | Value                 | Maximum value returned by the check.
 
 

@@ -4,21 +4,28 @@ This chapter provides an overview of all available config object types which can
 instantiated using the `object` keyword.
 
 Additional details on configuration and runtime attributes and their
-description are explained as well.
+description are explained here too.
 
-Config objects share these runtime attributes which cannot be
+The attributes need to have a specific type value. Many of them are
+explained in [this chapter](03-monitoring-basics.md#attribute-value-types) already.
+You should note that the `Timestamp` type is a `Number`.
+In addition to that `Object name` is an object reference to
+an existing object name as `String` type.
+
+Configuration objects share these runtime attributes which cannot be
 modified by the user. You can access these attributes using
 the [Icinga 2 API](12-icinga2-api.md#icinga2-api-config-objects).
 
-  Name                      |Description
-  --------------------------|--------------------------
-  version                   | Timestamp when the object was created or modified. Synced throughout cluster nodes.
-  type                      | Object type.
-  original_attributes       | Original values of object attributes modified at runtime.
-  active                    | Object is active (e.g. a service being checked).
-  paused                    | Object has been paused at runtime (e.g. [IdoMysqlConnection](09-object-types.md#objecttype-idomysqlconnection). Defaults to `false`.
-  templates                 | Templates imported on object compilation.
-  package                   | [Configuration package name](12-icinga2-api.md#icinga2-api-config-management) this object belongs to. Local configuration is set to `_etc`, runtime created objects use `_api`.
+  Name                      | Type                  | Description
+  --------------------------|-----------------------|----------------------------------
+  version                   | Number                | Timestamp when the object was created or modified. Synced throughout cluster nodes.
+  type                      | String                | Object type.
+  original\_attributes      | Dictionary            | Original values of object attributes modified at runtime.
+  active                    | Boolean               | Object is active (e.g. a service being checked).
+  paused                    | Boolean               | Object has been paused at runtime (e.g. [IdoMysqlConnection](09-object-types.md#objecttype-idomysqlconnection). Defaults to `false`.
+  templates                 | Array                 | Templates imported on object compilation.
+  package                   | String                | [Configuration package name](12-icinga2-api.md#icinga2-api-config-management) this object belongs to. Local configuration is set to `_etc`, runtime created objects use `_api`.
+  source\_location          | Dictionary            | Location information where the configuration files are stored.
 
 
 ## ApiListener <a id="objecttype-apilistener"></a>
@@ -26,6 +33,7 @@ the [Icinga 2 API](12-icinga2-api.md#icinga2-api-config-objects).
 ApiListener objects are used for distributed monitoring setups
 and API usage specifying the certificate files used for ssl
 authorization and additional restrictions.
+This configuration object is available as [api feature](11-cli-commands.md#cli-command-feature).
 
 The `NodeName` constant must be defined in [constants.conf](04-configuring-icinga-2.md#constants-conf).
 
@@ -43,45 +51,46 @@ object ApiListener "api" {
 
 Configuration Attributes:
 
-  Name                                  |Description
-  --------------------------------------|--------------------------------------
-  cert\_path                            |**Required.** Path to the public key.
-  key\_path                             |**Required.** Path to the private key.
-  ca\_path                              |**Required.** Path to the CA certificate file.
-  ticket\_salt                          |**Optional.** Private key for auto-signing. **Required** for a signing master instance.
-  crl\_path                             |**Optional.** Path to the CRL file.
-  bind\_host                            |**Optional.** The IP address the api listener should be bound to. Defaults to `0.0.0.0`.
-  bind\_port                            |**Optional.** The port the api listener should be bound to. Defaults to `5665`.
-  accept\_config                        |**Optional.** Accept zone configuration. Defaults to `false`.
-  accept\_commands                      |**Optional.** Accept remote commands. Defaults to `false`.
-  cipher\_list		                |**Optional.** Cipher list that is allowed.
-  tls\_protocolmin                      |**Optional.** Minimum TLS protocol version. Must be one of `TLSv1`, `TLSv1.1` or `TLSv1.2`. Defaults to `TLSv1`.
-  access\_control\_allow\_origin        |**Optional.** Specifies an array of origin URLs that may access the API. [(MDN docs)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS#Access-Control-Allow-Origin)
-  access\_control\_allow\_credentials   |**Optional.** Indicates whether or not the actual request can be made using credentials. Defaults to `true`. [(MDN docs)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS#Access-Control-Allow-Credentials)
-  access\_control\_allow\_headers       |**Optional.** Used in response to a preflight request to indicate which HTTP headers can be used when making the actual request. Defaults to `Authorization`. [(MDN docs)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS#Access-Control-Allow-Headers)
-  access\_control\_allow\_methods       |**Optional.** Used in response to a preflight request to indicate which HTTP methods can be used when making the actual request. Defaults to `GET, POST, PUT, DELETE`. [(MDN docs)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS#Access-Control-Allow-Methods)
+  Name                                  | Type                  | Description
+  --------------------------------------|-----------------------|----------------------------------
+  cert\_path                            | String                | **Required.** Path to the public key.
+  key\_path                             | String                | **Required.** Path to the private key.
+  ca\_path                              | String                | **Required.** Path to the CA certificate file.
+  ticket\_salt                          | String                | **Optional.** Private key for [CSR auto-signing](06-distributed-monitoring.md#distributed-monitoring-setup-csr-auto-signing). **Required** for a signing master instance.
+  crl\_path                             | String                | **Optional.** Path to the CRL file.
+  bind\_host                            | String                | **Optional.** The IP address the api listener should be bound to. Defaults to `0.0.0.0`.
+  bind\_port                            | Number                | **Optional.** The port the api listener should be bound to. Defaults to `5665`.
+  accept\_config                        | Boolean               | **Optional.** Accept zone configuration. Defaults to `false`.
+  accept\_commands                      | Boolean               | **Optional.** Accept remote commands. Defaults to `false`.
+  cipher\_list		                | String                | **Optional.** Cipher list that is allowed.
+  tls\_protocolmin                      | String                | **Optional.** Minimum TLS protocol version. Must be one of `TLSv1`, `TLSv1.1` or `TLSv1.2`. Defaults to `TLSv1`.
+  access\_control\_allow\_origin        | Array                 | **Optional.** Specifies an array of origin URLs that may access the API. [(MDN docs)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS#Access-Control-Allow-Origin)
+  access\_control\_allow\_credentials   | Boolean               | **Optional.** Indicates whether or not the actual request can be made using credentials. Defaults to `true`. [(MDN docs)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS#Access-Control-Allow-Credentials)
+  access\_control\_allow\_headers       | String                | **Optional.** Used in response to a preflight request to indicate which HTTP headers can be used when making the actual request. Defaults to `Authorization`. [(MDN docs)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS#Access-Control-Allow-Headers)
+  access\_control\_allow\_methods       | String                | **Optional.** Used in response to a preflight request to indicate which HTTP methods can be used when making the actual request. Defaults to `GET, POST, PUT, DELETE`. [(MDN docs)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS#Access-Control-Allow-Methods)
 
 ## ApiUser <a id="objecttype-apiuser"></a>
 
-ApiUser objects are used for authentication against the Icinga 2 API.
+ApiUser objects are used for authentication against the [Icinga 2 API](12-icinga2-api.md#icinga2-api-authentication).
 
 Example:
 
-    object ApiUser "root" {
-      password = "mysecretapipassword"
-      permissions = [ "*" ]
-    }
-
+```
+object ApiUser "root" {
+  password = "mysecretapipassword"
+  permissions = [ "*" ]
+}
+```
 
 Configuration Attributes:
 
-  Name                      |Description
-  --------------------------|--------------------------
-  password                  |**Optional.** Password string.
-  client\_cn                |**Optional.** Client Common Name (CN).
-  permissions		    |**Required.** Array of permissions. Either as string or dictionary with the keys `permission` and `filter`. The latter must be specified as function.
+  Name                      | Type                  | Description
+  --------------------------|-----------------------|----------------------------------
+  password                  | String                | **Optional.** Password string. Note: This attribute is hidden in API responses.
+  client\_cn                | String                | **Optional.** Client Common Name (CN).
+  permissions		    | Array                 | **Required.** Array of permissions. Either as string or dictionary with the keys `permission` and `filter`. The latter must be specified as function.
 
-Available permissions are described in the [API permissions](12-icinga2-api.md#icinga2-api-permissions)
+Available permissions are explained in the [API permissions](12-icinga2-api.md#icinga2-api-permissions)
 chapter.
 
 ## CheckCommand <a id="objecttype-checkcommand"></a>
@@ -95,49 +104,49 @@ defined here.
 
 Example:
 
-    object CheckCommand "check_http" {
-      command = [ PluginDir + "/check_http" ]
+```
+object CheckCommand "http" {
+  command = [ PluginDir + "/check_http" ]
 
-      arguments = {
-        "-H" = "$http_vhost$"
-        "-I" = "$http_address$"
-        "-u" = "$http_uri$"
-        "-p" = "$http_port$"
-        "-S" = {
-          set_if = "$http_ssl$"
-        }
-        "--sni" = {
-          set_if = "$http_sni$"
-        }
-        "-a" = {
-          value = "$http_auth_pair$"
-          description = "Username:password on sites with basic authentication"
-        }
-        "--no-body" = {
-          set_if = "$http_ignore_body$"
-        }
-        "-r" = "$http_expect_body_regex$"
-        "-w" = "$http_warn_time$"
-        "-c" = "$http_critical_time$"
-        "-e" = "$http_expect$"
-      }
-
-      vars.http_address = "$address$"
-      vars.http_ssl = false
-      vars.http_sni = false
+  arguments = {
+    "-H" = "$http_vhost$"
+    "-I" = "$http_address$"
+    "-u" = "$http_uri$"
+    "-p" = "$http_port$"
+    "-S" = {
+      set_if = "$http_ssl$"
     }
+    "--sni" = {
+      set_if = "$http_sni$"
+    }
+    "-a" = {
+      value = "$http_auth_pair$"
+      description = "Username:password on sites with basic authentication"
+    }
+    "--no-body" = {
+      set_if = "$http_ignore_body$"
+    }
+    "-r" = "$http_expect_body_regex$"
+    "-w" = "$http_warn_time$"
+    "-c" = "$http_critical_time$"
+    "-e" = "$http_expect$"
+  }
 
+  vars.http_address = "$address$"
+  vars.http_ssl = false
+  vars.http_sni = false
+}
+```
 
 Configuration Attributes:
 
-  Name            |Description
-  ----------------|----------------
-  execute         |**Required.** The "execute" script method takes care of executing the check. The default template "plugin-check-command" which is imported into all CheckCommand objects takes care of this setting.
-  command         |**Required.** The command. This can either be an array of individual command arguments. Alternatively a string can be specified in which case the shell interpreter (usually /bin/sh) takes care of parsing the command. When using the "arguments" attribute this must be an array. Can be specified as function for advanced implementations.
-  env             |**Optional.** A dictionary of macros which should be exported as environment variables prior to executing the command.
-  vars            |**Optional.** A dictionary containing custom attributes that are specific to this command.
-  timeout         |**Optional.** The command timeout in seconds. Defaults to 60 seconds.
-  arguments       |**Optional.** A dictionary of command arguments.
+  Name                      | Type                  | Description
+  --------------------------|-----------------------|----------------------------------
+  command                   | Array                 | **Required.** The command. This can either be an array of individual command arguments. Alternatively a string can be specified in which case the shell interpreter (usually /bin/sh) takes care of parsing the command. When using the "arguments" attribute this must be an array. Can be specified as function for advanced implementations.
+  env                       | Dictionary            | **Optional.** A dictionary of macros which should be exported as environment variables prior to executing the command.
+  vars                      | Dictionary            | **Optional.** A dictionary containing custom attributes that are specific to this command.
+  timeout                   | Duration              | **Optional.** The command timeout in seconds. Defaults to `1m`.
+  arguments                 | Dictionary            | **Optional.** A dictionary of command arguments.
 
 
 ### CheckCommand Arguments <a id="objecttype-checkcommand-arguments"></a>
@@ -149,139 +158,159 @@ as dictionary specifying additional options.
 
 Service:
 
-    vars.x_val = "My command argument value."
-    vars.have_x = "true"
+```
+vars.x_val = "My command argument value."
+vars.have_x = "true"
+```
 
 CheckCommand:
 
-    arguments = {
-      "-X" = {
-        value = "$x_val$"
-        key = "-Xnew"	    /* optional, set a new key identifier */
-        description = "My plugin requires this argument for doing X."
-        required = false    /* optional, no error if not set */
-        skip_key = false    /* always use "-X <value>" */
-        set_if = "$have_x$" /* only set if variable defined and resolves to a numeric value. String values are not supported */
-        order = -1          /* first position */
-        repeat_key = true   /* if `value` is an array, repeat the key as parameter: ... 'key' 'value[0]' 'key' 'value[1]' 'key' 'value[2]' ... */
-      }
-      "-Y" = {
-        value = "$y_val$"
-        description = "My plugin requires this argument for doing Y."
-        required = false    /* optional, no error if not set */
-        skip_key = true     /* don't prefix "-Y" only use "<value>" */
-        set_if = "$have_y$" /* only set if variable defined and resolves to a numeric value. String values are not supported */
-        order = 0           /* second position */
-        repeat_key = false  /* if `value` is an array, do not repeat the key as parameter: ... 'key' 'value[0]' 'value[1]' 'value[2]' ... */
-      }
-    }
+```
+arguments = {
+  "-X" = {
+    value = "$x_val$"
+    key = "-Xnew"	    /* optional, set a new key identifier */
+    description = "My plugin requires this argument for doing X."
+    required = false    /* optional, no error if not set */
+    skip_key = false    /* always use "-X <value>" */
+    set_if = "$have_x$" /* only set if variable defined and resolves to a numeric value. String values are not supported */
+    order = -1          /* first position */
+    repeat_key = true   /* if `value` is an array, repeat the key as parameter: ... 'key' 'value[0]' 'key' 'value[1]' 'key' 'value[2]' ... */
+  }
+  "-Y" = {
+    value = "$y_val$"
+    description = "My plugin requires this argument for doing Y."
+    required = false    /* optional, no error if not set */
+    skip_key = true     /* don't prefix "-Y" only use "<value>" */
+    set_if = "$have_y$" /* only set if variable defined and resolves to a numeric value. String values are not supported */
+    order = 0           /* second position */
+    repeat_key = false  /* if `value` is an array, do not repeat the key as parameter: ... 'key' 'value[0]' 'value[1]' 'value[2]' ... */
+  }
+}
+```
 
-  Option      | Description
-  ------------|--------------
-  value       | Optional argument value set by a macro string or a function call.
-  key 	      | Optional argument key overriding the key identifier.
-  description | Optional argument description.
-  required    | Required argument. Execution error if not set. Defaults to false (optional).
-  skip_key    | Use the value as argument and skip the key.
-  set_if      | Argument is added if the macro resolves to a defined numeric or boolean value. String values are not supported. Function calls returning a value are supported too.
-  order       | Set if multiple arguments require a defined argument order.
-  repeat_key  | If the argument value is an array, repeat the argument key, or not. Defaults to true (repeat).
+  Name                      | Type                  | Description
+  --------------------------|-----------------------|----------------------------------
+  value                     | String/Function       | Optional argument value set by a [runtime macro string](03-monitoring-basics.md#runtime-macros) or a [function call](17-language-reference.md#functions).
+  key 	                    | String                | Optional argument key overriding the key identifier.
+  description               | String                | Optional argument description.
+  required                  | Boolean               | Required argument. Execution error if not set. Defaults to false (optional).
+  skip\_key                 | Boolean               | Use the value as argument and skip the key.
+  set\_if                   | String/Function       | Argument is added if the [runtime macro string](03-monitoring-basics.md#runtime-macros) resolves to a defined numeric or boolean value. String values are not supported. [Function calls](17-language-reference.md#functions) returning a value are supported too.
+  order                     | Number                | Set if multiple arguments require a defined argument order.
+  repeat\_key               | Boolean               | If the argument value is an array, repeat the argument key, or not. Defaults to true (repeat).
 
 Argument order:
 
-    `..., -3, -2, -1, <un-ordered keys>, 1, 2, 3, ...`
+```
+..., -3, -2, -1, <un-ordered keys>, 1, 2, 3, ...
+```
 
-Argument array `repeat_key = true`:
+Argument array with `repeat_key = true`:
 
-    `'key' 'value[0]' 'key' 'value[1]' 'key' 'value[2]'`
+```
+'key' 'value[0]' 'key' 'value[1]' 'key' 'value[2]'
+```
 
-Argument array `repeat_key = false`:
+Argument array with `repeat_key = false`:
 
-    `'key' 'value[0]' 'value[1]' 'value[2]'`
+```
+'key' 'value[0]' 'value[1]' 'value[2]'
+```
 
 ## CheckerComponent <a id="objecttype-checkcomponent"></a>
 
 The checker component is responsible for scheduling active checks.
+This configuration object is available as [checker feature](11-cli-commands.md#cli-command-feature).
 
 Example:
 
-    library "checker"
+```
+library "checker"
 
-    object CheckerComponent "checker" {
-      concurrent_checks = 512
-    }
+object CheckerComponent "checker" {
+  concurrent_checks = 512
+}
+```
 
 Configuration Attributes:
 
-  Name                |Description
-  --------------------|----------------
-  concurrent\_checks  |**Optional.** The maximum number of concurrent checks. Defaults to 512.
+  Name                      | Type                  | Description
+  --------------------------|-----------------------|----------------------------------
+  concurrent\_checks        | Number                | **Optional.** The maximum number of concurrent checks. Defaults to 512.
 
 ## CheckResultReader <a id="objecttype-checkresultreader"></a>
 
-Reads Icinga 1.x check results from a directory. This functionality is provided
-to help existing Icinga 1.x users and might be useful for certain cluster
-scenarios.
+Reads Icinga 1.x check result files from a directory. This functionality is provided
+to help existing Icinga 1.x users and might be useful for migration scenarios.
 
 Example:
 
-    library "compat"
+```
+library "compat"
 
-    object CheckResultReader "reader" {
-      spool_dir = "/data/check-results"
-    }
+object CheckResultReader "reader" {
+  spool_dir = "/data/check-results"
+}
+```
 
 Configuration Attributes:
 
-  Name            |Description
-  ----------------|----------------
-  spool\_dir      |**Optional.** The directory which contains the check result files. Defaults to LocalStateDir + "/lib/icinga2/spool/checkresults/".
+  Name                      | Type                  | Description
+  --------------------------|-----------------------|----------------------------------
+  spool\_dir                | String                | **Optional.** The directory which contains the check result files. Defaults to LocalStateDir + "/lib/icinga2/spool/checkresults/".
 
 ## Comment <a id="objecttype-comment"></a>
 
 Comments created at runtime are represented as objects.
+Note: This is for reference only. You can create comments
+with the [add-comment](12-icinga2-api.md#icinga2-api-actions-add-comment) API action.
 
 Example:
 
-    object Comment "localhost!my-comment" {
-      host_name = "localhost"
-      author = "icingaadmin"
-      text = "This is a comment."
-    }
+```
+object Comment "localhost!my-comment" {
+  host_name = "localhost"
+  author = "icingaadmin"
+  text = "This is a comment."
+}
+```
 
 Configuration Attributes:
 
-  Name            |Description
-  ----------------|----------------
-  host_name       | **Required.** The name of the host this comment belongs to.
-  service_name    | **Optional.** The short name of the service this comment belongs to. If omitted, this comment object is treated as host comment.
-  author          | **Required.** The author's name.
-  text            | **Required.** The comment text.
-  entry_time      | **Optional.** The unix timestamp when this comment was added.
-  entry_type      | **Optional.** The comment type (`User` = 1, `Downtime` = 2, `Flapping` = 3, `Acknowledgement` = 4).
-  expire_time     | **Optional.** The comment's expire time as unix timestamp.
-  persistent      | **Optional.** Only evaluated for `entry_type` Acknowledgement. `true` does not remove the comment when the acknowledgement is removed.
+  Name                      | Type                  | Description
+  --------------------------|-----------------------|----------------------------------
+  host\_name                | Object name           | **Required.** The name of the host this comment belongs to.
+  service\_name             | Object name           | **Optional.** The short name of the service this comment belongs to. If omitted, this comment object is treated as host comment.
+  author                    | String                | **Required.** The author's name.
+  text                      | String                | **Required.** The comment text.
+  entry\_time               | Timestamp             | **Optional.** The UNIX timestamp when this comment was added.
+  entry\_type               | Number                | **Optional.** The comment type (`User` = 1, `Downtime` = 2, `Flapping` = 3, `Acknowledgement` = 4).
+  expire\_time              | Timestamp             | **Optional.** The comment's expire time as UNIX timestamp.
+  persistent                | Boolean               | **Optional.** Only evaluated for `entry_type` Acknowledgement. `true` does not remove the comment when the acknowledgement is removed.
 
 ## CompatLogger <a id="objecttype-compatlogger"></a>
 
 Writes log files in a format that's compatible with Icinga 1.x.
+This configuration object is available as [compatlog feature](14-features.md#compat-logging).
 
 Example:
 
-    library "compat"
+```
+library "compat"
 
-    object CompatLogger "my-log" {
-      log_dir = "/var/log/icinga2/compat"
-      rotation_method = "HOURLY"
-    }
+object CompatLogger "compatlog" {
+  log_dir = "/var/log/icinga2/compat"
+  rotation_method = "DAILY"
+}
+```
 
 Configuration Attributes:
 
-  Name            |Description
-  ----------------|----------------
-  log\_dir        |**Optional.** Path to the compat log directory. Defaults to LocalStateDir + "/log/icinga2/compat".
-  rotation\_method|**Optional.** Specifies when to rotate log files. Can be one of "HOURLY", "DAILY", "WEEKLY" or "MONTHLY". Defaults to "HOURLY".
-
+  Name                      | Type                  | Description
+  --------------------------|-----------------------|----------------------------------
+  log\_dir                  | String                | **Optional.** Path to the compat log directory. Defaults to LocalStateDir + "/log/icinga2/compat".
+  rotation\_method          | String                | **Optional.** Specifies when to rotate log files. Can be one of "HOURLY", "DAILY", "WEEKLY" or "MONTHLY". Defaults to "HOURLY".
 
 
 ## Dependency <a id="objecttype-dependency"></a>
@@ -300,43 +329,47 @@ relations.
 
 Service-to-Service Example:
 
-    object Dependency "webserver-internet" {
-      parent_host_name = "internet"
-      parent_service_name = "ping4"
+```
+object Dependency "webserver-internet" {
+  parent_host_name = "internet"
+  parent_service_name = "ping4"
 
-      child_host_name = "webserver"
-      child_service_name = "ping4"
+  child_host_name = "webserver"
+  child_service_name = "ping4"
 
-      states = [ OK, Warning ]
+  states = [ OK, Warning ]
 
-      disable_checks = true
-    }
+  disable_checks = true
+}
+```
 
 Host-to-Host Example:
 
-    object Dependency "webserver-internet" {
-      parent_host_name = "internet"
+```
+object Dependency "webserver-internet" {
+  parent_host_name = "internet"
 
-      child_host_name = "webserver"
+  child_host_name = "webserver"
 
-      states = [ Up ]
+  states = [ Up ]
 
-      disable_checks = true
-    }
+  disable_checks = true
+}
+```
 
 Configuration Attributes:
 
-  Name                  |Description
-  ----------------------|----------------
-  parent_host_name      |**Required.** The parent host.
-  parent_service_name   |**Optional.** The parent service. If omitted, this dependency object is treated as host dependency.
-  child_host_name       |**Required.** The child host.
-  child_service_name    |**Optional.** The child service. If omitted, this dependency object is treated as host dependency.
-  disable_checks        |**Optional.** Whether to disable checks when this dependency fails. Defaults to false.
-  disable_notifications |**Optional.** Whether to disable notifications when this dependency fails. Defaults to true.
-  ignore_soft_states    |**Optional.** Whether to ignore soft states for the reachability calculation. Defaults to true.
-  period                |**Optional.** Time period during which this dependency is enabled.
-  states    	        |**Optional.** A list of state filters when this dependency should be OK. Defaults to [ OK, Warning ] for services and [ Up ] for hosts.
+  Name                      | Type                  | Description
+  --------------------------|-----------------------|----------------------------------
+  parent\_host\_name        | Object name           | **Required.** The parent host.
+  parent\_service\_name     | Object name           | **Optional.** The parent service. If omitted, this dependency object is treated as host dependency.
+  child\_host\_name         | Object name           | **Required.** The child host.
+  child\_service\_name      | Object name           | **Optional.** The child service. If omitted, this dependency object is treated as host dependency.
+  disable\_checks           | Boolean               | **Optional.** Whether to disable checks when this dependency fails. Defaults to false.
+  disable\_notifications    | Boolean               | **Optional.** Whether to disable notifications when this dependency fails. Defaults to true.
+  ignore\_soft\_states      | Boolean               | **Optional.** Whether to ignore soft states for the reachability calculation. Defaults to true.
+  period                    | Object name           | **Optional.** Time period object during which this dependency is enabled.
+  states    	            | Array                 | **Optional.** A list of state filters when this dependency should be OK. Defaults to [ OK, Warning ] for services and [ Up ] for hosts.
 
 Available state filters:
 
@@ -352,24 +385,28 @@ automatically determined by Icinga 2.
 
 Service-to-Host Dependency Example:
 
-    apply Dependency "internet" to Service {
-      parent_host_name = "dsl-router"
-      disable_checks = true
+```
+apply Dependency "internet" to Service {
+  parent_host_name = "dsl-router"
+  disable_checks = true
 
-      assign where host.name != "dsl-router"
-    }
+  assign where host.name != "dsl-router"
+}
+```
 
 This example sets all service objects matching the assign condition into a dependency relation to
 the parent host object `dsl-router` as implicit child services.
 
 Service-to-Service-on-the-same-Host Dependency Example:
 
-    apply Dependency "disable-nrpe-checks" to Service {
-      parent_service_name = "nrpe-health"
+```
+apply Dependency "disable-agent-checks" to Service {
+  parent_service_name = "agent-health"
 
-      assign where service.check_command == "nrpe"
-      ignore where service.name == "nrpe-health"
-    }
+  assign where service.check_command == "ssh"
+  ignore where service.name == "agent-health"
+}
+```
 
 This example omits the `parent_host_name` attribute and Icinga 2 automatically sets its value to the name of the
 host object matched by the apply rule condition. All services where apply matches are made implicit child services
@@ -383,69 +420,126 @@ name you specified. This means you can define more than one object with the same
 ## Downtime <a id="objecttype-downtime"></a>
 
 Downtimes created at runtime are represented as objects.
+You can create downtimes with the [schedule-downtime](12-icinga2-api.md#icinga2-api-actions-schedule-downtime) API action.
 
 Example:
 
-    object Downtime "localhost!my-downtime" {
-      host_name = "localhost"
-      author = "icingaadmin"
-      comment = "This is a downtime."
-      start_time = 1505312869
-      end_time = 1505312924
-    }
+```
+object Downtime "localhost!my-downtime" {
+  host_name = "localhost"
+  author = "icingaadmin"
+  comment = "This is a downtime."
+  start_time = 1505312869
+  end_time = 1505312924
+}
+```
 
 Configuration Attributes:
 
-  Name            |Description
-  ----------------|----------------
-  host_name       | **Required.** The name of the host this comment belongs to.
-  service_name    | **Optional.** The short name of the service this comment belongs to. If omitted, this comment object is treated as host comment.
-  author          | **Required.** The author's name.
-  comment         | **Required.** The comment text.
-  start_time      | **Required.** The start time as unix timestamp.
-  end_time        | **Required.** The end time as unix timestamp.
-  duration        | **Optional.** The duration as number.
-  entry_time      | **Optional.** The unix timestamp when this downtime was added.
-  fixed           | **Optional.** Whether the downtime is fixed (true) or flexible (false). Defaults to flexible. Details in the [advanced topics chapter](08-advanced-topics.md#fixed-flexible-downtimes).
-  triggers        | **Optional.** List of downtimes which should be triggered by this downtime.
+  Name                      | Type                  | Description
+  --------------------------|-----------------------|----------------------------------
+  host\_name                | Object name           | **Required.** The name of the host this comment belongs to.
+  service\_name             | Object name           | **Optional.** The short name of the service this comment belongs to. If omitted, this comment object is treated as host comment.
+  author                    | String                | **Required.** The author's name.
+  comment                   | String                | **Required.** The comment text.
+  start\_time               | Timestamp             | **Required.** The start time as UNIX timestamp.
+  end\_time                 | Timestamp             | **Required.** The end time as UNIX timestamp.
+  duration                  | Number                | **Optional.** The duration as number.
+  entry\_time               | Timestamp             | **Optional.** The UNIX timestamp when this downtime was added.
+  fixed                     | Boolean               | **Optional.** Whether the downtime is fixed (true) or flexible (false). Defaults to flexible. Details in the [advanced topics chapter](08-advanced-topics.md#fixed-flexible-downtimes).
+  triggers                  | Array of object names | **Optional.** List of downtimes which should be triggered by this downtime.
 
 Runtime Attributes:
 
-  Name            |Description
-  ----------------|----------------
-  trigger_time    | The unix timestamp when this downtime was triggered.
-  triggered_by    | The name of the downtime this downtime was triggered by.
+  Name                      | Type                  | Description
+  --------------------------|-----------------------|----------------------------------
+  trigger\_time             | Timestamp             | The UNIX timestamp when this downtime was triggered.
+  triggered\_by             | Object name           | The name of the downtime this downtime was triggered by.
 
 
+## ElasticWriter <a id="objecttype-elasticwriter"></a>
+
+Writes check result metrics and performance data to an Elasticsearch instance.
+This configuration object is available as [elastic feature](14-features.md#elastic-writer).
+
+Example:
+
+```
+library "perfdata"
+
+object ElasticWriter "elastic" {
+  host = "127.0.0.1"
+  port = 9200
+  index = "icinga2"
+
+  enable_send_perfdata = true
+
+  flush_threshold = 1024
+  flush_interval = 10
+}
+```
+
+The index is rotated daily, as is recommended by Elastic, meaning the index will be renamed to `$index-$d.$M.$y`.
+
+Configuration Attributes:
+
+  Name                      | Type                  | Description
+  --------------------------|-----------------------|----------------------------------
+  host                      | String                | **Required.** Elasticsearch host address. Defaults to `127.0.0.1`.
+  port                      | Number                | **Required.** Elasticsearch port. Defaults to `9200`.
+  index                     | String                | **Required.** Elasticsearch index name. Defaults to `icinga2`.
+  enable\_send\_perfdata    | Boolean               | **Optional.** Send parsed performance data metrics for check results. Defaults to `false`.
+  flush\_interval           | Duration              | **Optional.** How long to buffer data points before transfering to Elasticsearch. Defaults to `10s`.
+  flush\_threshold          | Number                | **Optional.** How many data points to buffer before forcing a transfer to Elasticsearch.  Defaults to `1024`.
+  username                  | String                | **Optional.** Basic auth username if Elasticsearch is hidden behind an HTTP proxy.
+  password                  | String                | **Optional.** Basic auth password if Elasticsearch is hidden behind an HTTP proxy.
+  enable\_tls               | Boolean               | **Optional.** Whether to use a TLS stream. Defaults to `false`. Requires an HTTP proxy.
+  ca\_path                  | String                | **Optional.** Path to CA certificate to validate the remote host. Requires `enable_tls` set to `true`.
+  cert\_path                | String                | **Optional.** Path to host certificate to present to the remote host for mutual verification. Requires `enable_tls` set to `true`.
+  key\_path                 | String                | **Optional.** Path to host key to accompany the cert\_path. Requires `enable_tls` set to `true`.
+
+Note: If `flush_threshold` is set too low, this will force the feature to flush all data to Elasticsearch too often.
+Experiment with the setting, if you are processing more than 1024 metrics per second or similar.
+
+Basic auth is supported with the `username` and `password` attributes. This requires an
+HTTP proxy (Nginx, etc.) in front of the Elasticsearch instance. Check [this blogpost](https://blog.netways.de/2017/09/14/secure-elasticsearch-and-kibana-with-an-nginx-http-proxy/)
+for an example.
+
+TLS for the HTTP proxy can be enabled with `enable_tls`. In addition to that
+you can specify the certificates with the `ca_path`, `cert_path` and `cert_key` attributes.
 
 ## Endpoint <a id="objecttype-endpoint"></a>
 
 Endpoint objects are used to specify connection information for remote
-Icinga 2 instances.
+Icinga 2 instances. More details can be found in the [distributed monitoring chapter](06-distributed-monitoring.md#distributed-monitoring).
 
 Example:
 
-    object Endpoint "icinga2b" {
-      host = "192.168.5.46"
-      port = 5665
-      log_duration = 1d
-    }
+```
+object Endpoint "icinga2-client1.localdomain" {
+  host = "192.168.56.111"
+  port = 5665
+  log_duration = 1d
+}
+```
 
 Example (disable replay log):
 
-    object Endpoint "icinga2b" {
-      host = "192.168.5.46"
-      port = 5665
-      log_duration = 0
-    }
+```
+object Endpoint "icinga2-client1.localdomain" {
+  host = "192.168.5.111"
+  port = 5665
+  log_duration = 0
+}
+```
 
 Configuration Attributes:
 
-  Name            |Description
-  ----------------|----------------
-  host            |**Optional.** The hostname/IP address of the remote Icinga 2 instance.
-  port            |**Optional.** The service name/port of the remote Icinga 2 instance. Defaults to `5665`.
-  log_duration    |**Optional.** Duration for keeping replay logs on connection loss. Defaults to `1d` (86400 seconds). Attribute is specified in seconds. If log_duration is set to 0, replaying logs is disabled. You could also specify the value in human readable format like `10m` for 10 minutes or `1h` for one hour.
+  Name                      | Type                  | Description
+  --------------------------|-----------------------|----------------------------------
+  host                      | String                | **Optional.** The hostname/IP address of the remote Icinga 2 instance.
+  port                      | Number                | **Optional.** The service name/port of the remote Icinga 2 instance. Defaults to `5665`.
+  log\_duration             | Duration              | **Optional.** Duration for keeping replay logs on connection loss. Defaults to `1d` (86400 seconds). Attribute is specified in seconds. If log_duration is set to 0, replaying logs is disabled. You could also specify the value in human readable format like `10m` for 10 minutes or `1h` for one hour.
 
 Endpoint objects cannot currently be created with the API.
 
@@ -459,21 +553,22 @@ An event command definition.
 
 Example:
 
-    object EventCommand "restart-httpd-event" {
-      command = "/opt/bin/restart-httpd.sh"
-    }
+```
+object EventCommand "restart-httpd-event" {
+  command = "/opt/bin/restart-httpd.sh"
+}
+```
 
 
 Configuration Attributes:
 
-  Name            |Description
-  ----------------|----------------
-  execute         |**Required.** The "execute" script method takes care of executing the event handler. The default template "plugin-event-command" which is imported into all CheckCommand objects takes care of this setting.
-  command         |**Required.** The command. This can either be an array of individual command arguments. Alternatively a string can be specified in which case the shell interpreter (usually /bin/sh) takes care of parsing the command.
-  env             |**Optional.** A dictionary of macros which should be exported as environment variables prior to executing the command.
-  vars            |**Optional.** A dictionary containing custom attributes that are specific to this command.
-  timeout         |**Optional.** The command timeout in seconds. Defaults to 60 seconds.
-  arguments       |**Optional.** A dictionary of command arguments.
+  Name                      | Type                  | Description
+  --------------------------|-----------------------|----------------------------------
+  command                   | Array                 | **Required.** The command. This can either be an array of individual command arguments. Alternatively a string can be specified in which case the shell interpreter (usually /bin/sh) takes care of parsing the command. When using the "arguments" attribute this must be an array. Can be specified as function for advanced implementations.
+  env                       | Dictionary            | **Optional.** A dictionary of macros which should be exported as environment variables prior to executing the command.
+  vars                      | Dictionary            | **Optional.** A dictionary containing custom attributes that are specific to this command.
+  timeout                   | Duration              | **Optional.** The command timeout in seconds. Defaults to `1m`.
+  arguments                 | Dictionary            | **Optional.** A dictionary of command arguments.
 
 Command arguments can be used the same way as for [CheckCommand objects](09-object-types.md#objecttype-checkcommand-arguments).
 
@@ -482,89 +577,101 @@ More advanced examples for event command usage can be found [here](03-monitoring
 ## ExternalCommandListener <a id="objecttype-externalcommandlistener"></a>
 
 Implements the Icinga 1.x command pipe which can be used to send commands to Icinga.
+This configuration object is available as [command feature](14-features.md#external-commands).
 
 Example:
 
-    library "compat"
+```
+library "compat"
 
-    object ExternalCommandListener "external" {
-        command_path = "/var/run/icinga2/cmd/icinga2.cmd"
-    }
+object ExternalCommandListener "command" {
+    command_path = "/var/run/icinga2/cmd/icinga2.cmd"
+}
+```
 
 Configuration Attributes:
 
-  Name            |Description
-  ----------------|----------------
-  command\_path   |**Optional.** Path to the command pipe. Defaults to RunDir + "/icinga2/cmd/icinga2.cmd".
+  Name                      | Type                  | Description
+  --------------------------|-----------------------|----------------------------------
+  command\_path             | String                | **Optional.** Path to the command pipe. Defaults to RunDir + "/icinga2/cmd/icinga2.cmd".
 
 
 
 ## FileLogger <a id="objecttype-filelogger"></a>
 
 Specifies Icinga 2 logging to a file.
+This configuration object is available as `mainlog` and `debuglog` [logging feature](14-features.md#logging).
 
 Example:
 
-    object FileLogger "debug-file" {
-      severity = "debug"
-      path = "/var/log/icinga2/debug.log"
-    }
+```
+object FileLogger "debug-file" {
+  severity = "debug"
+  path = "/var/log/icinga2/debug.log"
+}
+```
 
 Configuration Attributes:
 
-  Name            |Description
-  ----------------|----------------
-  path            |**Required.** The log path.
-  severity        |**Optional.** The minimum severity for this log. Can be "debug", "notice", "information", "warning" or "critical". Defaults to "information".
+  Name                      | Type                  | Description
+  --------------------------|-----------------------|----------------------------------
+  path                      | String                | **Required.** The log path.
+  severity                  | String                | **Optional.** The minimum severity for this log. Can be "debug", "notice", "information", "warning" or "critical". Defaults to "information".
 
 
 ## GelfWriter <a id="objecttype-gelfwriter"></a>
 
-Writes event log entries to a defined GELF receiver host (Graylog2, Logstash).
+Writes event log entries to a defined GELF receiver host (Graylog, Logstash).
+This configuration object is available as [gelf feature](14-features.md#gelfwriter).
 
 Example:
 
-    library "perfdata"
+```
+library "perfdata"
 
-    object GelfWriter "gelf" {
-      host = "127.0.0.1"
-      port = 12201
-    }
+object GelfWriter "gelf" {
+  host = "127.0.0.1"
+  port = 12201
+}
+```
 
 Configuration Attributes:
 
-  Name            	|Description
-  ----------------------|----------------------
-  host            	|**Optional.** GELF receiver host address. Defaults to '127.0.0.1'.
-  port            	|**Optional.** GELF receiver port. Defaults to `12201`.
-  source		|**Optional.** Source name for this instance. Defaults to `icinga2`.
-  enable_send_perfdata  |**Optional.** Enable performance data for 'CHECK RESULT' events.
+  Name                      | Type                  | Description
+  --------------------------|-----------------------|----------------------------------
+  host                      | String                | **Optional.** GELF receiver host address. Defaults to `127.0.0.1`.
+  port                      | Number                | **Optional.** GELF receiver port. Defaults to `12201`.
+  source                    | String                | **Optional.** Source name for this instance. Defaults to `icinga2`.
+  enable\_send\_perfdata    | Boolean               | **Optional.** Enable performance data for 'CHECK RESULT' events.
 
 
 ## GraphiteWriter <a id="objecttype-graphitewriter"></a>
 
 Writes check result metrics and performance data to a defined
 Graphite Carbon host.
+This configuration object is available as [graphite feature](14-features.md#graphite-carbon-cache-writer).
 
 Example:
 
-    library "perfdata"
+```
+library "perfdata"
 
-    object GraphiteWriter "graphite" {
-      host = "127.0.0.1"
-      port = 2003
-    }
+object GraphiteWriter "graphite" {
+  host = "127.0.0.1"
+  port = 2003
+}
+```
 
 Configuration Attributes:
 
-  Name            	|Description
-  ----------------------|----------------------
-  host            	|**Optional.** Graphite Carbon host address. Defaults to '127.0.0.1'.
-  port            	|**Optional.** Graphite Carbon port. Defaults to 2003.
-  host_name_template 	|**Optional.** Metric prefix for host name. Defaults to "icinga2.$host.name$.host.$host.check_command$".
-  service_name_template |**Optional.** Metric prefix for service name. Defaults to "icinga2.$host.name$.services.$service.name$.$service.check_command$".
-  enable_send_thresholds | **Optional.** Send additional threshold metrics. Defaults to `false`.
-  enable_send_metadata 	| **Optional.** Send additional metadata metrics. Defaults to `false`.
+  Name                      | Type                  | Description
+  --------------------------|-----------------------|----------------------------------
+  host                      | String                | **Optional.** Graphite Carbon host address. Defaults to `127.0.0.1`.
+  port                      | Number                | **Optional.** Graphite Carbon port. Defaults to `2003`.
+  host\_name\_template      | String                | **Optional.** Metric prefix for host name. Defaults to `icinga2.$host.name$.host.$host.check_command$`.
+  service\_name\_template   | String                | **Optional.** Metric prefix for service name. Defaults to `icinga2.$host.name$.services.$service.name$.$service.check_command$`.
+  enable\_send\_thresholds  | Boolean               | **Optional.** Send additional threshold metrics. Defaults to `false`.
+  enable\_send\_metadata    | Boolean               | **Optional.** Send additional metadata metrics. Defaults to `false`.
 
 Additional usage examples can be found [here](14-features.md#graphite-carbon-cache-writer).
 
@@ -576,47 +683,49 @@ A host.
 
 Example:
 
-    object Host NodeName {
-      display_name = "Local host on this node"
-      address = "127.0.0.1"
-      address6 = "::1"
+```
+object Host "icinga2-client1.localdomain" {
+  display_name = "Linux Client 1"
+  address = "192.168.56.111"
+  address6 = "2a00:1450:4001:815::2003"
 
-      groups = [ "all-hosts" ]
+  groups = [ "linux-servers" ]
 
-      check_command = "hostalive"
-    }
+  check_command = "hostalive"
+}
+```
 
 Configuration Attributes:
 
-  Name            |Description
-  ----------------|----------------
-  display_name    |**Optional.** A short description of the host (e.g. displayed by external interfaces instead of the name if set).
-  address         |**Optional.** The host's address. Available as command runtime macro `$address$` if set.
-  address6        |**Optional.** The host's address. Available as command runtime macro `$address6$` if set.
-  groups          |**Optional.** A list of host groups this host belongs to.
-  vars            |**Optional.** A dictionary containing custom attributes that are specific to this host.
-  check\_command  |**Required.** The name of the check command.
-  max\_check\_attempts|**Optional.** The number of times a host is re-checked before changing into a hard state. Defaults to 3.
-  check\_period   |**Optional.** The name of a time period which determines when this host should be checked. Not set by default.
-  check\_timeout  |**Optional.** Check command timeout in seconds. Overrides the CheckCommand's `timeout` attribute.
-  check\_interval |**Optional.** The check interval (in seconds). This interval is used for checks when the host is in a `HARD` state. Defaults to 5 minutes.
-  retry\_interval |**Optional.** The retry interval (in seconds). This interval is used for checks when the host is in a `SOFT` state. Defaults to 1 minute.
-  enable\_notifications|**Optional.** Whether notifications are enabled. Defaults to true.
-  enable\_active\_checks|**Optional.** Whether active checks are enabled. Defaults to true.
-  enable\_passive\_checks|**Optional.** Whether passive checks are enabled. Defaults to true.
-  enable\_event\_handler|**Optional.** Enables event handlers for this host. Defaults to true.
-  enable\_flapping|**Optional.** Whether flap detection is enabled. Defaults to false.
-  enable\_perfdata|**Optional.** Whether performance data processing is enabled. Defaults to true.
-  event\_command  |**Optional.** The name of an event command that should be executed every time the host's state changes or the host is in a `SOFT` state.
-  flapping\_threshold|**Optional.** The flapping threshold in percent when a host is considered to be flapping.
-  volatile        |**Optional.** The volatile setting enables always `HARD` state types if `NOT-OK` state changes occur.
-  zone		  |**Optional.** The zone this object is a member of.
-  command\_endpoint|**Optional.** The endpoint where commands are executed on.
-  notes           |**Optional.** Notes for the host.
-  notes\_url      |**Optional.** Url for notes for the host (for example, in notification commands).
-  action\_url     |**Optional.** Url for actions for the host (for example, an external graphing tool).
-  icon\_image     |**Optional.** Icon image for the host. Used by external interfaces only.
-  icon\_image\_alt|**Optional.** Icon image description for the host. Used by external interface only.
+  Name                      | Type                  | Description
+  --------------------------|-----------------------|----------------------------------
+  display\_name             | String                | **Optional.** A short description of the host (e.g. displayed by external interfaces instead of the name if set).
+  address                   | String                | **Optional.** The host's IPv4 address. Available as command runtime macro `$address$` if set.
+  address6                  | String                | **Optional.** The host's IPv6 address. Available as command runtime macro `$address6$` if set.
+  groups                    | Array of object names | **Optional.** A list of host groups this host belongs to.
+  vars                      | Dictionary            | **Optional.** A dictionary containing custom attributes that are specific to this host.
+  check\_command            | Object name           | **Required.** The name of the check command.
+  max\_check\_attempts      | Number                | **Optional.** The number of times a host is re-checked before changing into a hard state. Defaults to 3.
+  check\_period             | Object name           | **Optional.** The name of a time period which determines when this host should be checked. Not set by default.
+  check\_timeout            | Duration              | **Optional.** Check command timeout in seconds. Overrides the CheckCommand's `timeout` attribute.
+  check\_interval           | Duration              | **Optional.** The check interval (in seconds). This interval is used for checks when the host is in a `HARD` state. Defaults to `5m`.
+  retry\_interval           | Duration              | **Optional.** The retry interval (in seconds). This interval is used for checks when the host is in a `SOFT` state. Defaults to `1m`.
+  enable\_notifications     | Boolean               | **Optional.** Whether notifications are enabled. Defaults to true.
+  enable\_active\_checks    | Boolean               | **Optional.** Whether active checks are enabled. Defaults to true.
+  enable\_passive\_checks   | Boolean               | **Optional.** Whether passive checks are enabled. Defaults to true.
+  enable\_event\_handler    | Boolean               | **Optional.** Enables event handlers for this host. Defaults to true.
+  enable\_flapping          | Boolean               | **Optional.** Whether flap detection is enabled. Defaults to false.
+  enable\_perfdata          | Boolean               | **Optional.** Whether performance data processing is enabled. Defaults to true.
+  event\_command            | Object name           | **Optional.** The name of an event command that should be executed every time the host's state changes or the host is in a `SOFT` state.
+  flapping\_threshold       | Number                | **Optional.** The flapping threshold in percent when a host is considered to be flapping.
+  volatile                  | Boolean               | **Optional.** The volatile setting enables always `HARD` state types if `NOT-OK` state changes occur. Defaults to false.
+  zone		            | Object name           | **Optional.** The zone this object is a member of. Please read the [distributed monitoring](06-distributed-monitoring.md#distributed-monitoring) chapter for details.
+  command\_endpoint         | Object name           | **Optional.** The endpoint where commands are executed on.
+  notes                     | String                | **Optional.** Notes for the host.
+  notes\_url                | String                | **Optional.** URL for notes for the host (for example, in notification commands).
+  action\_url               | String                | **Optional.** URL for actions for the host (for example, an external graphing tool).
+  icon\_image               | String                | **Optional.** Icon image for the host. Used by external interfaces only.
+  icon\_image\_alt          | String                | **Optional.** Icon image description for the host. Used by external interface only.
 
 The actual check interval might deviate slightly from the configured values due to the fact that Icinga tries
 to evenly distribute all checks over a certain period of time, i.e. to avoid load spikes.
@@ -628,28 +737,28 @@ to evenly distribute all checks over a certain period of time, i.e. to avoid loa
 
 Runtime Attributes:
 
-  Name                      | Type          | Description
-  --------------------------|---------------|-----------------
-  next\_check               | Number        | When the next check occurs (as a UNIX timestamp).
-  last\_check               | Number        | When the last check occured (as a UNIX timestamp).
-  check\_attempt            | Number        | The current check attempt number.
-  state\_type               | Number        | The current state type (0 = SOFT, 1 = HARD).
-  last\_state\_type         | Number        | The previous state type (0 = SOFT, 1 = HARD).
-  last\_reachable           | Boolean       | Whether the host was reachable when the last check occurred.
-  last\_check\_result       | CheckResult   | The current check result.
-  last\_state\_change       | Number        | When the last state change occurred (as a UNIX timestamp).
-  last\_hard\_state\_change | Number        | When the last hard state change occurred (as a UNIX timestamp).
-  last\_in\_downtime        | Boolean       | Whether the host was in a downtime when the last check occurred.
-  acknowledgement           | Number        | The acknowledgement type (0 = NONE, 1 = NORMAL, 2 = STICKY).
-  acknowledgement_expiry    | Number        | When the acknowledgement expires (as a UNIX timestamp; 0 = no expiry).
-  downtime\_depth           | Number        | Whether the host has one or more active downtimes.
-  flapping_last_change      | Number        | When the last flapping change occurred (as a UNIX timestamp).
-  flapping                  | Boolean       | Whether the host is flapping between states.
-  state                     | Number        | The current state (0 = UP, 1 = DOWN).
-  last\_state               | Number        | The previous state (0 = UP, 1 = DOWN).
-  last\_hard\_state         | Number        | The last hard state (0 = UP, 1 = DOWN).
-  last_state_up             | Number        | When the last UP state occurred (as a UNIX timestamp).
-  last_state_down           | Number        | When the last DOWN state occurred (as a UNIX timestamp).
+  Name                      | Type                  | Description
+  --------------------------|-----------------------|----------------------------------
+  next\_check               | Timestamp             | When the next check occurs (as a UNIX timestamp).
+  last\_check               | Timestamp             | When the last check occured (as a UNIX timestamp).
+  check\_attempt            | Number                | The current check attempt number.
+  state\_type               | Number                | The current state type (0 = SOFT, 1 = HARD).
+  last\_state\_type         | Number                | The previous state type (0 = SOFT, 1 = HARD).
+  last\_reachable           | Boolean               | Whether the host was reachable when the last check occurred.
+  last\_check\_result       | CheckResult           | The current [check result](08-advanced-topics.md#advanced-value-types-checkresult).
+  last\_state\_change       | Timestamp             | When the last state change occurred (as a UNIX timestamp).
+  last\_hard\_state\_change | Timestamp             | When the last hard state change occurred (as a UNIX timestamp).
+  last\_in\_downtime        | Boolean               | Whether the host was in a downtime when the last check occurred.
+  acknowledgement           | Number                | The acknowledgement type (0 = NONE, 1 = NORMAL, 2 = STICKY).
+  acknowledgement\_expiry   | Timestamp             | When the acknowledgement expires (as a UNIX timestamp; 0 = no expiry).
+  downtime\_depth           | Number                | Whether the host has one or more active downtimes.
+  flapping\_last\_change    | Timestamp             | When the last flapping change occurred (as a UNIX timestamp).
+  flapping                  | Boolean               | Whether the host is flapping between states.
+  state                     | Number                | The current state (0 = UP, 1 = DOWN).
+  last\_state               | Number                | The previous state (0 = UP, 1 = DOWN).
+  last\_hard\_state         | Number                | The last hard state (0 = UP, 1 = DOWN).
+  last\_state\_up           | Timestamp             | When the last UP state occurred (as a UNIX timestamp).
+  last\_state\_down         | Timestamp             | When the last DOWN state occurred (as a UNIX timestamp).
 
 
 
@@ -663,16 +772,20 @@ A group of hosts.
 
 Example:
 
-    object HostGroup "my-hosts" {
-      display_name = "My hosts"
-    }
+```
+object HostGroup "linux-servers" {
+  display_name = "Linux Servers"
+
+  assign where host.vars.os == "Linux"
+}
+```
 
 Configuration Attributes:
 
-  Name            |Description
-  ----------------|----------------
-  display_name    |**Optional.** A short description of the host group.
-  groups          |**Optional.** An array of nested group names.
+  Name                      | Type                  | Description
+  --------------------------|-----------------------|----------------------------------
+  display\_name             | String                | **Optional.** A short description of the host group.
+  groups                    | Array of object names | **Optional.** An array of nested group names.
 
 ## IcingaApplication <a id="objecttype-icingaapplication"></a>
 
@@ -683,86 +796,91 @@ object.
 
 Example:
 
-    object IcingaApplication "app" {
-      enable_perfdata = false
-    }
+```
+object IcingaApplication "app" {
+  enable_perfdata = false
+}
+```
 
 Configuration Attributes:
 
-  Name                  |Description
-  ----------------------|--------------------------
-  enable_notifications  |**Optional.** Whether notifications are globally enabled. Defaults to true.
-  enable_event_handlers |**Optional.** Whether event handlers are globally enabled. Defaults to true.
-  enable_flapping       |**Optional.** Whether flap detection is globally enabled. Defaults to true.
-  enable_host_checks    |**Optional.** Whether active host checks are globally enabled. Defaults to true.
-  enable_service_checks |**Optional.** Whether active service checks are globally enabled. Defaults to true.
-  enable_perfdata       |**Optional.** Whether performance data processing is globally enabled. Defaults to true.
-  vars                  |**Optional.** A dictionary containing custom attributes that are available globally.
+  Name                      | Type                  | Description
+  --------------------------|-----------------------|----------------------------------
+  enable\_notifications     | Boolean               | **Optional.** Whether notifications are globally enabled. Defaults to true.
+  enable\_event\_handlers   | Boolean               | **Optional.** Whether event handlers are globally enabled. Defaults to true.
+  enable\_flapping          | Boolean               | **Optional.** Whether flap detection is globally enabled. Defaults to true.
+  enable\_host\_checks      | Boolean               | **Optional.** Whether active host checks are globally enabled. Defaults to true.
+  enable\_service\_checks   | Boolean               | **Optional.** Whether active service checks are globally enabled. Defaults to true.
+  enable\_perfdata          | Boolean               | **Optional.** Whether performance data processing is globally enabled. Defaults to true.
+  vars                      | Dictionary            | **Optional.** A dictionary containing custom attributes that are available globally.
 
 ## IdoMySqlConnection <a id="objecttype-idomysqlconnection"></a>
 
 IDO database adapter for MySQL.
+This configuration object is available as [ido-mysql feature](14-features.md#db-ido).
 
 Example:
 
-    library "db_ido_mysql"
+```
+library "db_ido_mysql"
 
-    object IdoMysqlConnection "mysql-ido" {
-      host = "127.0.0.1"
-      port = 3306
-      user = "icinga"
-      password = "icinga"
-      database = "icinga"
+object IdoMysqlConnection "mysql-ido" {
+  host = "127.0.0.1"
+  port = 3306
+  user = "icinga"
+  password = "icinga"
+  database = "icinga"
 
-      cleanup = {
-        downtimehistory_age = 48h
-        contactnotifications_age = 31d
-      }
-    }
+  cleanup = {
+    downtimehistory_age = 48h
+    contactnotifications_age = 31d
+  }
+}
+```
 
 Configuration Attributes:
 
-  Name            |Description
-  ----------------|----------------
-  host            |**Optional.** MySQL database host address. Defaults to "localhost".
-  port            |**Optional.** MySQL database port. Defaults to 3306.
-  socket_path     |**Optional.** MySQL socket path.
-  user            |**Optional.** MySQL database user with read/write permission to the icinga database. Defaults to "icinga".
-  password        |**Optional.** MySQL database user's password. Defaults to "icinga".
-  database        |**Optional.** MySQL database name. Defaults to "icinga".
-  enable\_ssl     |**Optional.** Use SSL. Defaults to false. Change to `true` in case you want to use any of the SSL options.
-  ssl\_key        |**Optional.** MySQL SSL client key file path.
-  ssl\_cert       |**Optional.** MySQL SSL certificate file path.
-  ssl\_ca         |**Optional.** MySQL SSL certificate authority certificate file path.
-  ssl\_capath     |**Optional.** MySQL SSL trusted SSL CA certificates in PEM format directory path.
-  ssl\_cipher     |**Optional.** MySQL SSL list of allowed ciphers.
-  table\_prefix   |**Optional.** MySQL database table prefix. Defaults to "icinga\_".
-  instance\_name  |**Optional.** Unique identifier for the local Icinga 2 instance. Defaults to "default".
-  instance\_description|**Optional.** Description for the Icinga 2 instance.
-  enable_ha       |**Optional.** Enable the high availability functionality. Only valid in a [cluster setup](06-distributed-monitoring.md#distributed-monitoring-high-availability-db-ido). Defaults to "true".
-  failover_timeout | **Optional.** Set the failover timeout in a [HA cluster](06-distributed-monitoring.md#distributed-monitoring-high-availability-db-ido). Must not be lower than 60s. Defaults to "60s".
-  cleanup         |**Optional.** Dictionary with items for historical table cleanup.
-  categories      |**Optional.** Array of information types that should be written to the database.
+  Name                      | Type                  | Description
+  --------------------------|-----------------------|----------------------------------
+  host                      | String                | **Optional.** MySQL database host address. Defaults to `localhost`.
+  port                      | Number                | **Optional.** MySQL database port. Defaults to `3306`.
+  socket\_path              | String                | **Optional.** MySQL socket path.
+  user                      | String                | **Optional.** MySQL database user with read/write permission to the icinga database. Defaults to `icinga`.
+  password                  | String                | **Optional.** MySQL database user's password. Defaults to `icinga`.
+  database                  | String                | **Optional.** MySQL database name. Defaults to `icinga`.
+  enable\_ssl               | Boolean               | **Optional.** Use SSL. Defaults to false. Change to `true` in case you want to use any of the SSL options.
+  ssl\_key                  | String                | **Optional.** MySQL SSL client key file path.
+  ssl\_cert                 | String                | **Optional.** MySQL SSL certificate file path.
+  ssl\_ca                   | String                | **Optional.** MySQL SSL certificate authority certificate file path.
+  ssl\_capath               | String                | **Optional.** MySQL SSL trusted SSL CA certificates in PEM format directory path.
+  ssl\_cipher               | String                | **Optional.** MySQL SSL list of allowed ciphers.
+  table\_prefix             | String                | **Optional.** MySQL database table prefix. Defaults to `icinga_`.
+  instance\_name            | String                | **Optional.** Unique identifier for the local Icinga 2 instance. Defaults to `default`.
+  instance\_description     | String                | **Optional.** Description for the Icinga 2 instance.
+  enable\_ha                | Boolean               | **Optional.** Enable the high availability functionality. Only valid in a [cluster setup](06-distributed-monitoring.md#distributed-monitoring-high-availability-db-ido). Defaults to "true".
+  failover\_timeout         | Duration              | **Optional.** Set the failover timeout in a [HA cluster](06-distributed-monitoring.md#distributed-monitoring-high-availability-db-ido). Must not be lower than 60s. Defaults to `60s`.
+  cleanup                   | Dictionary            | **Optional.** Dictionary with items for historical table cleanup.
+  categories                | Array                 | **Optional.** Array of information types that should be written to the database.
 
 Cleanup Items:
 
-  Name            | Description
-  ----------------|----------------
-  acknowledgements_age |**Optional.** Max age for acknowledgements table rows (entry_time). Defaults to 0 (never).
-  commenthistory_age |**Optional.** Max age for commenthistory table rows (entry_time). Defaults to 0 (never).
-  contactnotifications_age |**Optional.** Max age for contactnotifications table rows (start_time). Defaults to 0 (never).
-  contactnotificationmethods_age |**Optional.** Max age for contactnotificationmethods table rows (start_time). Defaults to 0 (never).
-  downtimehistory_age |**Optional.** Max age for downtimehistory table rows (entry_time). Defaults to 0 (never).
-  eventhandlers_age |**Optional.** Max age for eventhandlers table rows (start_time). Defaults to 0 (never).
-  externalcommands_age |**Optional.** Max age for externalcommands table rows (entry_time). Defaults to 0 (never).
-  flappinghistory_age |**Optional.** Max age for flappinghistory table rows (event_time). Defaults to 0 (never).
-  hostchecks_age |**Optional.** Max age for hostalives table rows (start_time). Defaults to 0 (never).
-  logentries_age |**Optional.** Max age for logentries table rows (logentry_time). Defaults to 0 (never).
-  notifications_age |**Optional.** Max age for notifications table rows (start_time). Defaults to 0 (never).
-  processevents_age |**Optional.** Max age for processevents table rows (event_time). Defaults to 0 (never).
-  statehistory_age |**Optional.** Max age for statehistory table rows (state_time). Defaults to 0 (never).
-  servicechecks_age |**Optional.** Max age for servicechecks table rows (start_time). Defaults to 0 (never).
-  systemcommands_age |**Optional.** Max age for systemcommands table rows (start_time). Defaults to 0 (never).
+  Name                            | Type                  | Description
+  --------------------------------|-----------------------|----------------------------------
+  acknowledgements\_age           | Duration              | **Optional.** Max age for acknowledgements table rows (entry\_time). Defaults to 0 (never).
+  commenthistory\_age             | Duration              | **Optional.** Max age for commenthistory table rows (entry\_time). Defaults to 0 (never).
+  contactnotifications\_age       | Duration              | **Optional.** Max age for contactnotifications table rows (start\_time). Defaults to 0 (never).
+  contactnotificationmethods\_age | Duration              | **Optional.** Max age for contactnotificationmethods table rows (start\_time). Defaults to 0 (never).
+  downtimehistory\_age            | Duration              | **Optional.** Max age for downtimehistory table rows (entry\_time). Defaults to 0 (never).
+  eventhandlers\_age              | Duration              | **Optional.** Max age for eventhandlers table rows (start\_time). Defaults to 0 (never).
+  externalcommands\_age           | Duration              | **Optional.** Max age for externalcommands table rows (entry\_time). Defaults to 0 (never).
+  flappinghistory\_age            | Duration              | **Optional.** Max age for flappinghistory table rows (event\_time). Defaults to 0 (never).
+  hostchecks\_age                 | Duration              | **Optional.** Max age for hostalives table rows (start\_time). Defaults to 0 (never).
+  logentries\_age                 | Duration              | **Optional.** Max age for logentries table rows (logentry\_time). Defaults to 0 (never).
+  notifications\_age              | Duration              | **Optional.** Max age for notifications table rows (start\_time). Defaults to 0 (never).
+  processevents\_age              | Duration              | **Optional.** Max age for processevents table rows (event\_time). Defaults to 0 (never).
+  statehistory\_age               | Duration              | **Optional.** Max age for statehistory table rows (state\_time). Defaults to 0 (never).
+  servicechecks\_age              | Duration              | **Optional.** Max age for servicechecks table rows (start\_time). Defaults to 0 (never).
+  systemcommands\_age             | Duration              | **Optional.** Max age for systemcommands table rows (start\_time). Defaults to 0 (never).
 
 Data Categories:
 
@@ -789,63 +907,66 @@ by Icinga Web 2 in the table above.
 In addition to the category flags listed above the `DbCatEverything`
 flag may be used as a shortcut for listing all flags.
 
-## IdoPgSqlConnection <a id="objecttype-idopgsqlconnection"></a>
+## IdoPgsqlConnection <a id="objecttype-idopgsqlconnection"></a>
 
 IDO database adapter for PostgreSQL.
+This configuration object is available as [ido-pgsql feature](14-features.md#db-ido).
 
 Example:
 
-    library "db_ido_pgsql"
+```
+library "db_ido_pgsql"
 
-    object IdoPgsqlConnection "pgsql-ido" {
-      host = "127.0.0.1"
-      port = 5432
-      user = "icinga"
-      password = "icinga"
-      database = "icinga"
+object IdoPgsqlConnection "pgsql-ido" {
+  host = "127.0.0.1"
+  port = 5432
+  user = "icinga"
+  password = "icinga"
+  database = "icinga"
 
-      cleanup = {
-        downtimehistory_age = 48h
-        contactnotifications_age = 31d
-      }
-    }
+  cleanup = {
+    downtimehistory_age = 48h
+    contactnotifications_age = 31d
+  }
+}
+```
 
 Configuration Attributes:
 
-  Name            |Description
-  ----------------|----------------
-  host            |**Optional.** PostgreSQL database host address. Defaults to "localhost".
-  port            |**Optional.** PostgreSQL database port. Defaults to "5432".
-  user            |**Optional.** PostgreSQL database user with read/write permission to the icinga database. Defaults to "icinga".
-  password        |**Optional.** PostgreSQL database user's password. Defaults to "icinga".
-  database        |**Optional.** PostgreSQL database name. Defaults to "icinga".
-  table\_prefix   |**Optional.** PostgreSQL database table prefix. Defaults to "icinga\_".
-  instance\_name  |**Optional.** Unique identifier for the local Icinga 2 instance. Defaults to "default".
-  instance\_description|**Optional.** Description for the Icinga 2 instance.
-  enable_ha       |**Optional.** Enable the high availability functionality. Only valid in a [cluster setup](06-distributed-monitoring.md#distributed-monitoring-high-availability-db-ido). Defaults to "true".
-  failover_timeout | **Optional.** Set the failover timeout in a [HA cluster](06-distributed-monitoring.md#distributed-monitoring-high-availability-db-ido). Must not be lower than 60s. Defaults to "60s".
-  cleanup         |**Optional.** Dictionary with items for historical table cleanup.
-  categories      |**Optional.** Array of information types that should be written to the database.
+  Name                      | Type                  | Description
+  --------------------------|-----------------------|----------------------------------
+  host                      | String                | **Optional.** PostgreSQL database host address. Defaults to `localhost`.
+  port                      | Number                | **Optional.** PostgreSQL database port. Defaults to `5432`.
+  user                      | String                | **Optional.** PostgreSQL database user with read/write permission to the icinga database. Defaults to `icinga`.
+  password                  | String                | **Optional.** PostgreSQL database user's password. Defaults to `icinga`.
+  database                  | String                | **Optional.** PostgreSQL database name. Defaults to `icinga`.
+  table\_prefix             | String                | **Optional.** PostgreSQL database table prefix. Defaults to `icinga_`.
+  instance\_name            | String                | **Optional.** Unique identifier for the local Icinga 2 instance. Defaults to `default`.
+  instance\_description     | String                | **Optional.** Description for the Icinga 2 instance.
+  enable\_ha                | Boolean               | **Optional.** Enable the high availability functionality. Only valid in a [cluster setup](06-distributed-monitoring.md#distributed-monitoring-high-availability-db-ido). Defaults to "true".
+  failover\_timeout         | Duration              | **Optional.** Set the failover timeout in a [HA cluster](06-distributed-monitoring.md#distributed-monitoring-high-availability-db-ido). Must not be lower than 60s. Defaults to `60s`.
+  cleanup                   | Dictionary            | **Optional.** Dictionary with items for historical table cleanup.
+  categories                | Array                 | **Optional.** Array of information types that should be written to the database.
 
 Cleanup Items:
 
-  Name            | Description
-  ----------------|----------------
-  acknowledgements_age |**Optional.** Max age for acknowledgements table rows (entry_time). Defaults to 0 (never).
-  commenthistory_age |**Optional.** Max age for commenthistory table rows (entry_time). Defaults to 0 (never).
-  contactnotifications_age |**Optional.** Max age for contactnotifications table rows (start_time). Defaults to 0 (never).
-  contactnotificationmethods_age |**Optional.** Max age for contactnotificationmethods table rows (start_time). Defaults to 0 (never).
-  downtimehistory_age |**Optional.** Max age for downtimehistory table rows (entry_time). Defaults to 0 (never).
-  eventhandlers_age |**Optional.** Max age for eventhandlers table rows (start_time). Defaults to 0 (never).
-  externalcommands_age |**Optional.** Max age for externalcommands table rows (entry_time). Defaults to 0 (never).
-  flappinghistory_age |**Optional.** Max age for flappinghistory table rows (event_time). Defaults to 0 (never).
-  hostchecks_age |**Optional.** Max age for hostalives table rows (start_time). Defaults to 0 (never).
-  logentries_age |**Optional.** Max age for logentries table rows (logentry_time). Defaults to 0 (never).
-  notifications_age |**Optional.** Max age for notifications table rows (start_time). Defaults to 0 (never).
-  processevents_age |**Optional.** Max age for processevents table rows (event_time). Defaults to 0 (never).
-  statehistory_age |**Optional.** Max age for statehistory table rows (state_time). Defaults to 0 (never).
-  servicechecks_age |**Optional.** Max age for servicechecks table rows (start_time). Defaults to 0 (never).
-  systemcommands_age |**Optional.** Max age for systemcommands table rows (start_time). Defaults to 0 (never).
+  Name                            | Type                  | Description
+  --------------------------------|-----------------------|----------------------------------
+  acknowledgements\_age           | Duration              | **Optional.** Max age for acknowledgements table rows (entry\_time). Defaults to 0 (never).
+  commenthistory\_age             | Duration              | **Optional.** Max age for commenthistory table rows (entry\_time). Defaults to 0 (never).
+  contactnotifications\_age       | Duration              | **Optional.** Max age for contactnotifications table rows (start\_time). Defaults to 0 (never).
+  contactnotificationmethods\_age | Duration              | **Optional.** Max age for contactnotificationmethods table rows (start\_time). Defaults to 0 (never).
+  downtimehistory\_age            | Duration              | **Optional.** Max age for downtimehistory table rows (entry\_time). Defaults to 0 (never).
+  eventhandlers\_age              | Duration              | **Optional.** Max age for eventhandlers table rows (start\_time). Defaults to 0 (never).
+  externalcommands\_age           | Duration              | **Optional.** Max age for externalcommands table rows (entry\_time). Defaults to 0 (never).
+  flappinghistory\_age            | Duration              | **Optional.** Max age for flappinghistory table rows (event\_time). Defaults to 0 (never).
+  hostchecks\_age                 | Duration              | **Optional.** Max age for hostalives table rows (start\_time). Defaults to 0 (never).
+  logentries\_age                 | Duration              | **Optional.** Max age for logentries table rows (logentry\_time). Defaults to 0 (never).
+  notifications\_age              | Duration              | **Optional.** Max age for notifications table rows (start\_time). Defaults to 0 (never).
+  processevents\_age              | Duration              | **Optional.** Max age for processevents table rows (event\_time). Defaults to 0 (never).
+  statehistory\_age               | Duration              | **Optional.** Max age for statehistory table rows (state\_time). Defaults to 0 (never).
+  servicechecks\_age              | Duration              | **Optional.** Max age for servicechecks table rows (start\_time). Defaults to 0 (never).
+  systemcommands\_age             | Duration              | **Optional.** Max age for systemcommands table rows (start\_time). Defaults to 0 (never).
 
 Data Categories:
 
@@ -875,187 +996,96 @@ flag may be used as a shortcut for listing all flags.
 ## InfluxdbWriter <a id="objecttype-influxdbwriter"></a>
 
 Writes check result metrics and performance data to a defined InfluxDB host.
+This configuration object is available as [influxdb feature](14-features.md#influxdb-writer).
 
 Example:
 
-    library "perfdata"
+```
+library "perfdata"
 
-    object InfluxdbWriter "influxdb" {
-      host = "127.0.0.1"
-      port = 8086
-      database = "icinga2"
+object InfluxdbWriter "influxdb" {
+  host = "127.0.0.1"
+  port = 8086
+  database = "icinga2"
 
-      flush_threshold = 1024
-      flush_interval = 10s
+  flush_threshold = 1024
+  flush_interval = 10s
 
-      host_template = {
-        measurement = "$host.check_command$"
-        tags = {
-          hostname = "$host.name$"
-        }
-      }
-      service_template = {
-        measurement = "$service.check_command$"
-        tags = {
-          hostname = "$host.name$"
-          service = "$service.name$"
-        }
-      }
+  host_template = {
+    measurement = "$host.check_command$"
+    tags = {
+      hostname = "$host.name$"
     }
-
-Measurement names and tags are fully configurable by the end user. The InfluxdbWriter
-object will automatically add a `metric` tag to each data point. This correlates to the
-perfdata label. Fields (value, warn, crit, min, max) are created from data if available
-and the configuration allows it.  If a value associated with a tag is not able to be
-resolved, it will be dropped and not sent to the target host.
-
-Backslashes are allowed in tag keys, tag values and field keys, however they are also
-escape characters when followed by a space or comma, but cannot be escaped themselves.
-As a result all trailling slashes in these fields are replaced with an underscore.  This
-predominantly affects Windows paths e.g. `C:\` becomes `C:_`.
-
-The database is assumed to exist so this object will make no attempt to create it currently.
+  }
+  service_template = {
+    measurement = "$service.check_command$"
+    tags = {
+      hostname = "$host.name$"
+      service = "$service.name$"
+    }
+  }
+}
+```
 
 Configuration Attributes:
 
-  Name                   |Description
-  -----------------------|---------------------------------------------------------------------------------------------------------
-  host                   | **Required.** InfluxDB host address. Defaults to `127.0.0.1`.
-  port                   | **Required.** InfluxDB HTTP port. Defaults to `8086`.
-  database               | **Required.** InfluxDB database name. Defaults to `icinga2`.
-  username               | **Optional.** InfluxDB user name. Defaults to `none`.
-  password               | **Optional.** InfluxDB user password.  Defaults to `none`.
-  ssl_enable             | **Optional.** Whether to use a TLS stream.  Defaults to `false`.
-  ssl_ca_cert            | **Optional.** CA certificate to validate the remote host.
-  ssl_cert               | **Optional.** Host certificate to present to the remote host for mutual verification.
-  ssl_key                | **Optional.** Host key to accompany the ssl_cert
-  host_template          | **Required.** Host template to define the InfluxDB line protocol.
-  service_template       | **Required.** Service template to define the influxDB line protocol.
-  enable_send_thresholds | **Optional.** Whether to send warn, crit, min & max tagged data.
-  enable_send_metadata   | **Optional.** Whether to send check metadata e.g. states, execution time, latency etc.
-  flush_interval         | **Optional.** How long to buffer data points before transfering to InfluxDB. Defaults to `10s`.
-  flush_threshold        | **Optional.** How many data points to buffer before forcing a transfer to InfluxDB.  Defaults to `1024`.
+  Name                      | Type                  | Description
+  --------------------------|-----------------------|----------------------------------
+  host                      | String                | **Required.** InfluxDB host address. Defaults to `127.0.0.1`.
+  port                      | Number                | **Required.** InfluxDB HTTP port. Defaults to `8086`.
+  database                  | String                | **Required.** InfluxDB database name. Defaults to `icinga2`.
+  username                  | String                | **Optional.** InfluxDB user name. Defaults to `none`.
+  password                  | String                | **Optional.** InfluxDB user password.  Defaults to `none`.
+  ssl\_enable               | Boolean               | **Optional.** Whether to use a TLS stream. Defaults to `false`.
+  ssl\_ca\_cert             | String                | **Optional.** Path to CA certificate to validate the remote host.
+  ssl\_cert                 | String                | **Optional.** Path to host certificate to present to the remote host for mutual verification.
+  ssl\_key                  | String                | **Optional.** Path to host key to accompany the ssl\_cert.
+  host\_template            | String                | **Required.** Host template to define the InfluxDB line protocol.
+  service\_template         | String                | **Required.** Service template to define the influxDB line protocol.
+  enable\_send\_thresholds  | Boolean               | **Optional.** Whether to send warn, crit, min & max tagged data.
+  enable\_send\_metadata    | Boolean               | **Optional.** Whether to send check metadata e.g. states, execution time, latency etc.
+  flush\_interval           | Duration              | **Optional.** How long to buffer data points before transfering to InfluxDB. Defaults to `10s`.
+  flush\_threshold          | Number                | **Optional.** How many data points to buffer before forcing a transfer to InfluxDB.  Defaults to `1024`.
 
 Note: If `flush_threshold` is set too low, this will always force the feature to flush all data
 to InfluxDB. Experiment with the setting, if you are processing more than 1024 metrics per second
 or similar.
 
-### Instance Tagging <a id="objecttype-influxdbwriter-instance-tags"></a>
 
-Consider the following service check:
-
-    apply Service "disk" for (disk => attributes in host.vars.disks) {
-      import "generic-service"
-      check_command = "disk"
-      display_name = "Disk " + disk
-      vars.disk_partitions = disk
-      assign where host.vars.disks
-    }
-
-This is a typical pattern for checking individual disks, NICs, SSL certificates etc associated
-with a host.  What would be useful is to have the data points tagged with the specific instance
-for that check.  This would allow you to query time series data for a check on a host and for a
-specific instance e.g. /dev/sda.  To do this quite simply add the instance to the service variables:
-
-    apply Service "disk" for (disk => attributes in host.vars.disks) {
-      ...
-      vars.instance = disk
-      ...
-    }
-
-Then modify your writer configuration to add this tag to your data points if the instance variable
-is associated with the service:
-
-    object InfluxdbWriter "influxdb" {
-      ...
-      service_template = {
-        measurement = "$service.check_command$"
-        tags = {
-          hostname = "$host.name$"
-          service = "$service.name$"
-          instance = "$service.vars.instance$"
-        }
-      }
-      ...
-    }
-
-## ElasticWriter <a id="objecttype-elasticwriter"></a>
-
-Writes check result metrics and performance data to an Elasticsearch instance.
-
-Example:
-
-    library "perfdata"
-
-    object ElasticWriter "elastic" {
-      host = "127.0.0.1"
-      port = 9200
-      index = "icinga2"
-
-      enable_send_perfdata = true
-
-      flush_threshold = 1024
-      flush_interval = 10
-    }
-
-The index is rotated daily, as is recommended by Elastic, meaning the index will be renamed to `$index-$d.$M.$y`.
-
-Configuration Attributes:
-
-  Name                   |Description
-  -----------------------|---------------------------------------------------------------------------------------------------------
-  host                   | **Required.** Elasticsearch host address. Defaults to `127.0.0.1`.
-  port                   | **Required.** Elasticsearch port. Defaults to `9200`.
-  index                  | **Required.** Elasticsearch index name. Defaults to `icinga2`.
-  enable\_send\_perfdata | **Optional.** Send parsed performance data metrics for check results. Defaults to `false`.
-  flush\_interval        | **Optional.** How long to buffer data points before transfering to Elasticsearch. Defaults to `10`.
-  flush\_threshold       | **Optional.** How many data points to buffer before forcing a transfer to Elasticsearch.  Defaults to `1024`.
-  username               | **Optional.** Basic auth username if Elasticsearch is hidden behind an HTTP proxy.
-  password               | **Optional.** Basic auth password if Elasticsearch is hidden behind an HTTP proxy.
-  enable\_tls            | **Optional.** Whether to use a TLS stream. Defaults to `false`. Requires an HTTP proxy.
-  ca\_path               | **Optional.** CA certificate to validate the remote host. Requires `enable_tls` set to `true`.
-  cert\_path             | **Optional.** Host certificate to present to the remote host for mutual verification. Requires `enable_tls` set to `true`.
-  key\_path              | **Optional.** Host key to accompany the cert\_path. Requires `enable_tls` set to `true`.
-
-Note: If `flush_threshold` is set too low, this will force the feature to flush all data to Elasticsearch too often.
-Experiment with the setting, if you are processing more than 1024 metrics per second or similar.
-
-Basic auth is supported with the `username` and `password` attributes. This requires an
-HTTP proxy (Nginx, etc.) in front of the Elasticsearch instance.
-
-TLS for the HTTP proxy can be enabled with `enable_tls`. In addition to that
-you can specify the certificates with the `ca_path`, `cert_path` and `cert_key` attributes.
 
 ## LiveStatusListener <a id="objecttype-livestatuslistener"></a>
 
 Livestatus API interface available as TCP or UNIX socket. Historical table queries
 require the [CompatLogger](09-object-types.md#objecttype-compatlogger) feature enabled
 pointing to the log files using the `compat_log_path` configuration attribute.
+This configuration object is available as [livestatus feature](14-features.md#setting-up-livestatus).
 
-Example:
+Examples:
 
-    library "livestatus"
+```
+library "livestatus"
 
-    object LivestatusListener "livestatus-tcp" {
-      socket_type = "tcp"
-      bind_host = "127.0.0.1"
-      bind_port = "6558"
-    }
+object LivestatusListener "livestatus-tcp" {
+  socket_type = "tcp"
+  bind_host = "127.0.0.1"
+  bind_port = "6558"
+}
 
-    object LivestatusListener "livestatus-unix" {
-      socket_type = "unix"
-      socket_path = "/var/run/icinga2/cmd/livestatus"
-    }
+object LivestatusListener "livestatus-unix" {
+  socket_type = "unix"
+  socket_path = "/var/run/icinga2/cmd/livestatus"
+}
+```
 
 Configuration Attributes:
 
-  Name            |Description
-  ----------------|----------------
-  socket\_type      |**Optional.** Specifies the socket type. Can be either "tcp" or "unix". Defaults to "unix".
-  bind\_host        |**Optional.** Only valid when socket\_type is "tcp". Host address to listen on for connections. Defaults to "127.0.0.1".
-  bind\_port        |**Optional.** Only valid when `socket_type` is "tcp". Port to listen on for connections. Defaults to 6558.
-  socket\_path      |**Optional.** Only valid when `socket_type` is "unix". Specifies the path to the UNIX socket file. Defaults to RunDir + "/icinga2/cmd/livestatus".
-  compat\_log\_path |**Optional.** Required for historical table queries. Requires `CompatLogger` feature enabled. Defaults to LocalStateDir + "/log/icinga2/compat"
+  Name                      | Type                  | Description
+  --------------------------|-----------------------|----------------------------------
+  socket\_type              | String                | **Optional.** Specifies the socket type. Can be either `tcp` or `unix`. Defaults to `unix`.
+  bind\_host                | String                | **Optional.** Only valid when `socket_type` is set to `tcp`. Host address to listen on for connections. Defaults to `127.0.0.1`.
+  bind\_port                | Number                | **Optional.** Only valid when `socket_type` is set to `tcp`. Port to listen on for connections. Defaults to `6558`.
+  socket\_path              | String                | **Optional.** Only valid when `socket_type` is set to `unix`. Specifies the path to the UNIX socket file. Defaults to RunDir + "/icinga2/cmd/livestatus".
+  compat\_log\_path         | String                | **Optional.** Path to Icinga 1.x log files. Required for historical table queries. Requires `CompatLogger` feature enabled. Defaults to LocalStateDir + "/log/icinga2/compat"
 
 > **Note**
 >
@@ -1077,33 +1107,35 @@ of host and service state changes and other events.
 
 Example:
 
-    object Notification "localhost-ping-notification" {
-      host_name = "localhost"
-      service_name = "ping4"
+```
+object Notification "localhost-ping-notification" {
+  host_name = "localhost"
+  service_name = "ping4"
 
-      command = "mail-notification"
+  command = "mail-notification"
 
-      users = [ "user1", "user2" ]
+  users = [ "user1", "user2" ]
 
-      types = [ Problem, Recovery ]
-    }
+  types = [ Problem, Recovery ]
+}
+```
 
 Configuration Attributes:
 
-  Name                      | Description
-  --------------------------|----------------
-  host_name                 | **Required.** The name of the host this notification belongs to.
-  service_name              | **Optional.** The short name of the service this notification belongs to. If omitted, this notification object is treated as host notification.
-  vars                      | **Optional.** A dictionary containing custom attributes that are specific to this notification object.
-  users                     | **Optional.** A list of user names who should be notified.
-  user_groups               | **Optional.** A list of user group names who should be notified.
-  times                     | **Optional.** A dictionary containing `begin` and `end` attributes for the notification.
-  command                   | **Required.** The name of the notification command which should be executed when the notification is triggered.
-  interval                  | **Optional.** The notification interval (in seconds). This interval is used for active notifications. Defaults to 30 minutes. If set to 0, [re-notifications](03-monitoring-basics.md#disable-renotification) are disabled.
-  period                    | **Optional.** The name of a time period which determines when this notification should be triggered. Not set by default.
-  zone		            |**Optional.** The zone this object is a member of.
-  types                     | **Optional.** A list of type filters when this notification should be triggered. By default everything is matched.
-  states                    | **Optional.** A list of state filters when this notification should be triggered. By default everything is matched.
+  Name                      | Type                  | Description
+  --------------------------|-----------------------|----------------------------------
+  host\_name                | Object name           | **Required.** The name of the host this notification belongs to.
+  service\_name             | Object name           | **Optional.** The short name of the service this notification belongs to. If omitted, this notification object is treated as host notification.
+  vars                      | Dictionary            | **Optional.** A dictionary containing custom attributes that are specific to this notification object.
+  users                     | Array of object names | **Optional.** A list of user names who should be notified.
+  user\_groups              | Array of object names | **Optional.** A list of user group names who should be notified.
+  times                     | Dictionary            | **Optional.** A dictionary containing `begin` and `end` attributes for the notification.
+  command                   | Object name           | **Required.** The name of the notification command which should be executed when the notification is triggered.
+  interval                  | Duration              | **Optional.** The notification interval (in seconds). This interval is used for active notifications. Defaults to 30 minutes. If set to 0, [re-notifications](03-monitoring-basics.md#disable-renotification) are disabled.
+  period                    | Object name           | **Optional.** The name of a time period which determines when this notification should be triggered. Not set by default.
+  zone		            | Object name           | **Optional.** The zone this object is a member of. Please read the [distributed monitoring](06-distributed-monitoring.md#distributed-monitoring) chapter for details.
+  types                     | Array                 | **Optional.** A list of type filters when this notification should be triggered. By default everything is matched.
+  states                    | Array                 | **Optional.** A list of state filters when this notification should be triggered. By default everything is matched.
 
 Available notification state filters for Service:
 
@@ -1131,12 +1163,12 @@ Available notification type filters:
 
 Runtime Attributes:
 
-  Name                      | Type          | Description
-  --------------------------|---------------|-----------------
-  last\_notification        | Number        | When the last notification was sent for this Notification object (as a UNIX timestamp).
-  next\_notification         | Number        | When the next notification is going to be sent for this assuming the associated host/service is still in a non-OK state (as a UNIX timestamp).
-  notification\_number      | Number        | The notification number
-  last\_problem\_notification | Number      | When the last notification was sent for a problem (as a UNIX timestamp).
+  Name                        | Type                  | Description
+  ----------------------------|-----------------------|-----------------
+  last\_notification          | Timestamp             | When the last notification was sent for this Notification object (as a UNIX timestamp).
+  next\_notification          | Timestamp             | When the next notification is going to be sent for this assuming the associated host/service is still in a non-OK state (as a UNIX timestamp).
+  notification\_number        | Number                | The notification number.
+  last\_problem\_notification | Timestamp             | When the last notification was sent for a problem (as a UNIX timestamp).
 
 
 ## NotificationCommand <a id="objecttype-notificationcommand"></a>
@@ -1149,89 +1181,89 @@ A notification command definition.
 
 Example:
 
-     object NotificationCommand "mail-service-notification" {
-       command = [ SysconfDir + "/icinga2/scripts/mail-service-notification.sh" ]
+```
+object NotificationCommand "mail-service-notification" {
+  command = [ SysconfDir + "/icinga2/scripts/mail-service-notification.sh" ]
 
-       arguments += {
-         "-4" = {
-           required = true
-           value = "$notification_address$"
-         }
-         "-6" = "$notification_address6$"
-         "-b" = "$notification_author$"
-         "-c" = "$notification_comment$"
-         "-d" = {
-           required = true
-           value = "$notification_date$"
-         }
-         "-e" = {
-           required = true
-           value = "$notification_servicename$"
-         }
-         "-f" = {
-           value = "$notification_from$"
-           description = "Set from address. Requires GNU mailutils (Debian/Ubuntu) or mailx (RHEL/SUSE)"
-         }
-         "-i" = "$notification_icingaweb2url$"
-         "-l" = {
-           required = true
-           value = "$notification_hostname$"
-         }
-         "-n" = {
-           required = true
-           value = "$notification_hostdisplayname$"
-         }
-         "-o" = {
-           required = true
-           value = "$notification_serviceoutput$"
-         }
-         "-r" = {
-           required = true
-           value = "$notification_useremail$"
-         }
-         "-s" = {
-           required = true
-           value = "$notification_servicestate$"
-         }
-         "-t" = {
-           required = true
-           value = "$notification_type$"
-         }
-         "-u" = {
-           required = true
-           value = "$notification_servicedisplayname$"
-         }
-         "-v" = "$notification_logtosyslog$"
-       }
+  arguments += {
+    "-4" = {
+      required = true
+      value = "$notification_address$"
+    }
+    "-6" = "$notification_address6$"
+    "-b" = "$notification_author$"
+    "-c" = "$notification_comment$"
+    "-d" = {
+      required = true
+      value = "$notification_date$"
+    }
+    "-e" = {
+      required = true
+      value = "$notification_servicename$"
+    }
+    "-f" = {
+      value = "$notification_from$"
+      description = "Set from address. Requires GNU mailutils (Debian/Ubuntu) or mailx (RHEL/SUSE)"
+    }
+    "-i" = "$notification_icingaweb2url$"
+    "-l" = {
+      required = true
+      value = "$notification_hostname$"
+    }
+    "-n" = {
+      required = true
+      value = "$notification_hostdisplayname$"
+    }
+    "-o" = {
+      required = true
+      value = "$notification_serviceoutput$"
+    }
+    "-r" = {
+      required = true
+      value = "$notification_useremail$"
+    }
+    "-s" = {
+      required = true
+      value = "$notification_servicestate$"
+    }
+    "-t" = {
+      required = true
+      value = "$notification_type$"
+    }
+    "-u" = {
+      required = true
+      value = "$notification_servicedisplayname$"
+    }
+    "-v" = "$notification_logtosyslog$"
+  }
 
-       vars += {
-         notification_address = "$address$"
-         notification_address6 = "$address6$"
-         notification_author = "$notification.author$"
-         notification_comment = "$notification.comment$"
-         notification_type = "$notification.type$"
-         notification_date = "$icinga.long_date_time$"
-         notification_hostname = "$host.name$"
-         notification_hostdisplayname = "$host.display_name$"
-         notification_servicename = "$service.name$"
-         notification_serviceoutput = "$service.output$"
-         notification_servicestate = "$service.state$"
-         notification_useremail = "$user.email$"
-         notification_servicedisplayname = "$service.display_name$"
-       }
-     }
-
+  vars += {
+    notification_address = "$address$"
+    notification_address6 = "$address6$"
+    notification_author = "$notification.author$"
+    notification_comment = "$notification.comment$"
+    notification_type = "$notification.type$"
+    notification_date = "$icinga.long_date_time$"
+    notification_hostname = "$host.name$"
+    notification_hostdisplayname = "$host.display_name$"
+    notification_servicename = "$service.name$"
+    notification_serviceoutput = "$service.output$"
+    notification_servicestate = "$service.state$"
+    notification_useremail = "$user.email$"
+    notification_servicedisplayname = "$service.display_name$"
+  }
+}
+```
 
 Configuration Attributes:
 
-  Name            |Description
-  ----------------|----------------
-  execute         |**Required.** The "execute" script method takes care of executing the notification. The default template "plugin-notification-command" which is imported into all CheckCommand objects takes care of this setting.
-  command         |**Required.** The command. This can either be an array of individual command arguments. Alternatively a string can be specified in which case the shell interpreter (usually /bin/sh) takes care of parsing the command.
-  env             |**Optional.** A dictionary of macros which should be exported as environment variables prior to executing the command.
-  vars            |**Optional.** A dictionary containing custom attributes that are specific to this command.
-  timeout         |**Optional.** The command timeout in seconds. Defaults to 60 seconds.
-  arguments       |**Optional.** A dictionary of command arguments.
+  Name                      | Type                  | Description
+  --------------------------|-----------------------|----------------------------------
+  command                   | Array                 | **Required.** The command. This can either be an array of individual command arguments. Alternatively a string can be specified in which case the shell interpreter (usually /bin/sh) takes care of parsing the command. When using the "arguments" attribute this must be an array. Can be specified as function for advanced implementations.
+  env                       | Dictionary            | **Optional.** A dictionary of macros which should be exported as environment variables prior to executing the command.
+  vars                      | Dictionary            | **Optional.** A dictionary containing custom attributes that are specific to this command.
+  timeout                   | Duration              | **Optional.** The command timeout in seconds. Defaults to `1m`.
+  arguments                 | Dictionary            | **Optional.** A dictionary of command arguments.
 
 Command arguments can be used the same way as for [CheckCommand objects](09-object-types.md#objecttype-checkcommand-arguments).
 
@@ -1239,72 +1271,81 @@ More details on specific attributes can be found in [this chapter](03-monitoring
 
 ## NotificationComponent <a id="objecttype-notificationcomponent"></a>
 
-The notification component is responsible for sending notifications. There are no configurable options.
+The notification component is responsible for sending notifications.
+This configuration object is available as [notification feature](11-cli-commands.md#cli-command-feature).
 
 Example:
 
-    library "notification"
+```
+library "notification"
 
-    object NotificationComponent "notification" { }
+object NotificationComponent "notification" { }
+```
 
 Configuration Attributes:
 
-  Name            |Description
-  ----------------|----------------
-  enable\_ha      |**Optional.** Enable the high availability functionality. Only valid in a [cluster setup](06-distributed-monitoring.md#distributed-monitoring-high-availability-notifications). Disabling this currently only affects reminder notifications. Defaults to "true".
+  Name                      | Type                  | Description
+  --------------------------|-----------------------|----------------------------------
+  enable\_ha                | Boolean               | **Optional.** Enable the high availability functionality. Only valid in a [cluster setup](06-distributed-monitoring.md#distributed-monitoring-high-availability-notifications). Disabling this currently only affects reminder notifications. Defaults to "true".
 
 ## OpenTsdbWriter <a id="objecttype-opentsdbwriter"></a>
 
 Writes check result metrics and performance data to [OpenTSDB](http://opentsdb.net).
+This configuration object is available as [opentsdb feature](14-features.md#opentsdb-writer).
 
 Example:
 
-    library "perfdata"
+```
+library "perfdata"
 
-    object OpenTsdbWriter "opentsdb" {
-      host = "127.0.0.1"
-      port = 4242
-    }
+object OpenTsdbWriter "opentsdb" {
+  host = "127.0.0.1"
+  port = 4242
+
+```
 
 Configuration Attributes:
 
-  Name            	|Description
-  ----------------------|----------------------
-  host            	|**Optional.** OpenTSDB host address. Defaults to '127.0.0.1'.
-  port            	|**Optional.** OpenTSDB port. Defaults to 4242.
+  Name                      | Type                  | Description
+  --------------------------|-----------------------|----------------------------------
+  host            	    | String                | **Optional.** OpenTSDB host address. Defaults to `127.0.0.1`.
+  port            	    | Number                | **Optional.** OpenTSDB port. Defaults to `4242`.
 
 
 ## PerfdataWriter <a id="objecttype-perfdatawriter"></a>
 
 Writes check result performance data to a defined path using macro
 pattern consisting of custom attributes and runtime macros.
+This configuration object is available as [perfdata feature](14-features.md#writing-performance-data-files).
 
 Example:
 
-    library "perfdata"
+```
+library "perfdata"
 
-    object PerfdataWriter "pnp" {
-      host_perfdata_path = "/var/spool/icinga2/perfdata/host-perfdata"
+object PerfdataWriter "perfdata" {
+  host_perfdata_path = "/var/spool/icinga2/perfdata/host-perfdata"
 
-      service_perfdata_path = "/var/spool/icinga2/perfdata/service-perfdata"
+  service_perfdata_path = "/var/spool/icinga2/perfdata/service-perfdata"
 
-      host_format_template = "DATATYPE::HOSTPERFDATA\tTIMET::$icinga.timet$\tHOSTNAME::$host.name$\tHOSTPERFDATA::$host.perfdata$\tHOSTCHECKCOMMAND::$host.check_command$\tHOSTSTATE::$host.state$\tHOSTSTATETYPE::$host.state_type$"
-      service_format_template = "DATATYPE::SERVICEPERFDATA\tTIMET::$icinga.timet$\tHOSTNAME::$host.name$\tSERVICEDESC::$service.name$\tSERVICEPERFDATA::$service.perfdata$\tSERVICECHECKCOMMAND::$service.check_command$\tHOSTSTATE::$host.state$\tHOSTSTATETYPE::$host.state_type$\tSERVICESTATE::$service.state$\tSERVICESTATETYPE::$service.state_type$"
+  host_format_template = "DATATYPE::HOSTPERFDATA\tTIMET::$icinga.timet$\tHOSTNAME::$host.name$\tHOSTPERFDATA::$host.perfdata$\tHOSTCHECKCOMMAND::$host.check_command$\tHOSTSTATE::$host.state$\tHOSTSTATETYPE::$host.state_type$"
+  service_format_template = "DATATYPE::SERVICEPERFDATA\tTIMET::$icinga.timet$\tHOSTNAME::$host.name$\tSERVICEDESC::$service.name$\tSERVICEPERFDATA::$service.perfdata$\tSERVICECHECKCOMMAND::$service.check_command$\tHOSTSTATE::$host.state$\tHOSTSTATETYPE::$host.state_type$\tSERVICESTATE::$service.state$\tSERVICESTATETYPE::$service.state_type$"
 
-      rotation_interval = 15s
-    }
+  rotation_interval = 15s
+}
+```
 
 Configuration Attributes:
 
-  Name                    |Description
-  ------------------------|----------------
-  host_perfdata\_path     |**Optional.** Path to the host performance data file. Defaults to LocalStateDir + "/spool/icinga2/perfdata/host-perfdata".
-  service_perfdata\_path  |**Optional.** Path to the service performance data file. Defaults to LocalStateDir + "/spool/icinga2/perfdata/service-perfdata".
-  host_temp\_path         |**Optional.** Path to the temporary host file. Defaults to LocalStateDir + "/spool/icinga2/tmp/host-perfdata".
-  service_temp\_path      |**Optional.** Path to the temporary service file. Defaults to LocalStateDir + "/spool/icinga2/tmp/service-perfdata".
-  host_format\_template   |**Optional.** Host Format template for the performance data file. Defaults to a template that's suitable for use with PNP4Nagios.
-  service_format\_template|**Optional.** Service Format template for the performance data file. Defaults to a template that's suitable for use with PNP4Nagios.
-  rotation\_interval      |**Optional.** Rotation interval for the files specified in `{host,service}_perfdata_path`. Defaults to 30 seconds.
+  Name                      | Type                  | Description
+  --------------------------|-----------------------|----------------------------------
+  host\_perfdata\_path      | String                | **Optional.** Path to the host performance data file. Defaults to LocalStateDir + "/spool/icinga2/perfdata/host-perfdata".
+  service\_perfdata\_path   | String                | **Optional.** Path to the service performance data file. Defaults to LocalStateDir + "/spool/icinga2/perfdata/service-perfdata".
+  host\_temp\_path          | String                | **Optional.** Path to the temporary host file. Defaults to LocalStateDir + "/spool/icinga2/tmp/host-perfdata".
+  service\_temp\_path       | String                | **Optional.** Path to the temporary service file. Defaults to LocalStateDir + "/spool/icinga2/tmp/service-perfdata".
+  host\_format\_template    | String                | **Optional.** Host Format template for the performance data file. Defaults to a template that's suitable for use with PNP4Nagios.
+  service\_format\_template | String                | **Optional.** Service Format template for the performance data file. Defaults to a template that's suitable for use with PNP4Nagios.
+  rotation\_interval        | Duration              | **Optional.** Rotation interval for the files specified in `{host,service}_perfdata_path`. Defaults to `30s`.
 
 When rotating the performance data file the current UNIX timestamp is appended to the path specified
 in `host_perfdata_path` and `service_perfdata_path` to generate a unique filename.
@@ -1324,32 +1365,34 @@ ScheduledDowntime objects can be used to set up recurring downtimes for hosts/se
 
 Example:
 
-    object ScheduledDowntime "some-downtime" {
-      host_name = "localhost"
-      service_name = "ping4"
+```
+object ScheduledDowntime "some-downtime" {
+  host_name = "localhost"
+  service_name = "ping4"
 
-      author = "icingaadmin"
-      comment = "Some comment"
+  author = "icingaadmin"
+  comment = "Some comment"
 
-      fixed = false
-      duration = 30m
+  fixed = false
+  duration = 30m
 
-      ranges = {
-        "sunday" = "02:00-03:00"
-      }
-    }
+  ranges = {
+    "sunday" = "02:00-03:00"
+  }
+}
+```
 
 Configuration Attributes:
 
-  Name            |Description
-  ----------------|----------------
-  host_name       |**Required.** The name of the host this scheduled downtime belongs to.
-  service_name    |**Optional.** The short name of the service this scheduled downtime belongs to. If omitted, this downtime object is treated as host downtime.
-  author          |**Required.** The author of the downtime.
-  comment         |**Required.** A comment for the downtime.
-  fixed           |**Optional.** Whether this is a fixed downtime. Defaults to true.
-  duration        |**Optional.** How long the downtime lasts. Only has an effect for flexible (non-fixed) downtimes.
-  ranges          |**Required.** A dictionary containing information which days and durations apply to this timeperiod.
+  Name                      | Type                  | Description
+  --------------------------|-----------------------|----------------------------------
+  host\_name                | Object name           | **Required.** The name of the host this scheduled downtime belongs to.
+  service\_name             | Object name           | **Optional.** The short name of the service this scheduled downtime belongs to. If omitted, this downtime object is treated as host downtime.
+  author                    | String                | **Required.** The author of the downtime.
+  comment                   | String                | **Required.** A comment for the downtime.
+  fixed                     | Boolean               | **Optional.** Whether this is a fixed downtime. Defaults to `true`.
+  duration                  | Duration              | **Optional.** How long the downtime lasts. Only has an effect for flexible (non-fixed) downtimes.
+  ranges                    | Dictionary            | **Required.** A dictionary containing information which days and durations apply to this timeperiod.
 
 ScheduledDowntime objects have composite names, i.e. their names are based
 on the `host_name` and `service_name` attributes and the
@@ -1372,55 +1415,57 @@ by Icinga 2.
 
 Example:
 
-    object Service "uptime" {
-      host_name = "localhost"
+```
+object Service "uptime" {
+  host_name = "localhost"
 
-      display_name = "localhost Uptime"
+  display_name = "localhost Uptime"
 
-      check_command = "check_snmp"
+  check_command = "snmp"
 
-      vars.community = "public"
-      vars.oid = "DISMAN-EVENT-MIB::sysUpTimeInstance"
+  vars.snmp_community = "public"
+  vars.snmp_oid = "DISMAN-EVENT-MIB::sysUpTimeInstance"
 
-      check_interval = 60s
-      retry_interval = 15s
+  check_interval = 60s
+  retry_interval = 15s
 
-      groups = [ "all-services", "snmp" ]
-    }
+  groups = [ "all-services", "snmp" ]
+}
+```
 
 Configuration Attributes:
 
-  Name            |Description
-  ----------------|----------------
-  display_name    |**Optional.** A short description of the service.
-  host_name       |**Required.** The host this service belongs to. There must be a `Host` object with that name.
-  name            |**Required.** The service name. Must be unique on a per-host basis (Similar to the service_description attribute in Icinga 1.x).
-  groups          |**Optional.** The service groups this service belongs to.
-  vars            |**Optional.** A dictionary containing custom attributes that are specific to this service.
-  check\_command  |**Required.** The name of the check command.
-  max\_check\_attempts|**Optional.** The number of times a service is re-checked before changing into a hard state. Defaults to 3.
-  check\_period   |**Optional.** The name of a time period which determines when this service should be checked. Not set by default.
-  check\_timeout  |**Optional.** Check command timeout in seconds. Overrides the CheckCommand's `timeout` attribute.
-  check\_interval |**Optional.** The check interval (in seconds). This interval is used for checks when the service is in a `HARD` state. Defaults to 5 minutes.
-  retry\_interval |**Optional.** The retry interval (in seconds). This interval is used for checks when the service is in a `SOFT` state. Defaults to 1 minute.
-  enable\_notifications|**Optional.** Whether notifications are enabled. Defaults to true.
-  enable\_active\_checks|**Optional.** Whether active checks are enabled. Defaults to true.
-  enable\_passive\_checks|**Optional.** Whether passive checks are enabled. Defaults to true.
-  enable\_event\_handler|**Optional.** Enables event handlers for this host. Defaults to true.
-  enable\_flapping|**Optional.** Whether flap detection is enabled. Defaults to false.
-  enable\_perfdata|**Optional.** Whether performance data processing is enabled. Defaults to true.
-  event\_command  |**Optional.** The name of an event command that should be executed every time the service's state changes or the service is in a `SOFT` state.
-  flapping\_threshold|**Optional.** The flapping threshold in percent when a service is considered to be flapping.
-  volatile        |**Optional.** The volatile setting enables always `HARD` state types if `NOT-OK` state changes occur.
-  zone		  |**Optional.** The zone this object is a member of.
-  command\_endpoint|**Optional.** The endpoint where commands are executed on.
-  notes           |**Optional.** Notes for the service.
-  notes\_url      |**Optional.** Url for notes for the service (for example, in notification commands).
-  action_url      |**Optional.** Url for actions for the service (for example, an external graphing tool).
-  icon\_image     |**Optional.** Icon image for the service. Used by external interfaces only.
-  icon\_image\_alt|**Optional.** Icon image description for the service. Used by external interface only.
+  Name                      | Type                  | Description
+  --------------------------|-----------------------|----------------------------------
+  display\_name             | String                | **Optional.** A short description of the service.
+  host\_name                | Object name           | **Required.** The host this service belongs to. There must be a `Host` object with that name.
+  groups                    | Array of object names | **Optional.** The service groups this service belongs to.
+  vars                      | Dictionary            | **Optional.** A dictionary containing custom attributes that are specific to this service.
+  check\_command            | Object name           | **Required.** The name of the check command.
+  max\_check\_attempts      | Number                | **Optional.** The number of times a service is re-checked before changing into a hard state. Defaults to 3.
+  check\_period             | Object name           | **Optional.** The name of a time period which determines when this service should be checked. Not set by default.
+  check\_timeout            | Duration              | **Optional.** Check command timeout in seconds. Overrides the CheckCommand's `timeout` attribute.
+  check\_interval           | Duration              | **Optional.** The check interval (in seconds). This interval is used for checks when the service is in a `HARD` state. Defaults to `5m`.
+  retry\_interval           | Duration              | **Optional.** The retry interval (in seconds). This interval is used for checks when the service is in a `SOFT` state. Defaults to `1m`.
+  enable\_notifications     | Boolean               | **Optional.** Whether notifications are enabled. Defaults to `true`.
+  enable\_active\_checks    | Boolean               | **Optional.** Whether active checks are enabled. Defaults to `true`.
+  enable\_passive\_checks   | Boolean               | **Optional.** Whether passive checks are enabled. Defaults to `true`.
+  enable\_event\_handler    | Boolean               | **Optional.** Enables event handlers for this host. Defaults to `true`.
+  enable\_flapping          | Boolean               | **Optional.** Whether flap detection is enabled. Defaults to `false`.
+  enable\_perfdata          | Boolean               | **Optional.** Whether performance data processing is enabled. Defaults to `true`.
+  event\_command            | Object name           | **Optional.** The name of an event command that should be executed every time the service's state changes or the service is in a `SOFT` state.
+  flapping\_threshold       | Number                | **Optional.** The flapping threshold in percent when a service is considered to be flapping.
+  volatile                  | Boolean               | **Optional.** The volatile setting enables always `HARD` state types if `NOT-OK` state changes occur. Defaults to `false`.
+  zone		            | Object name           | **Optional.** The zone this object is a member of. Please read the [distributed monitoring](06-distributed-monitoring.md#distributed-monitoring) chapter for details.
+  name                      | String                | **Required.** The service name. Must be unique on a per-host basis. For advanced usage in [apply rules](03-monitoring-basics.md#using-apply) only.
+  command\_endpoint         | Object name           | **Optional.** The endpoint where commands are executed on.
+  notes                     | String                | **Optional.** Notes for the service.
+  notes\_url                | String                | **Optional.** URL for notes for the service (for example, in notification commands).
+  action\_url               | String                | **Optional.** URL for actions for the service (for example, an external graphing tool).
+  icon\_image               | String                | **Optional.** Icon image for the service. Used by external interfaces only.
+  icon\_image\_alt          | String                | **Optional.** Icon image description for the service. Used by external interface only.
 
-Service objects have composite names, i.e. their names are based on the host_name attribute and the name you specified. This means
+Service objects have composite names, i.e. their names are based on the host\_name attribute and the name you specified. This means
 you can define more than one object with the same (short) name as long as the `host_name` attribute has a different value.
 
 The actual check interval might deviate slightly from the configured values due to the fact that Icinga tries
@@ -1428,30 +1473,30 @@ to evenly distribute all checks over a certain period of time, i.e. to avoid loa
 
 Runtime Attributes:
 
-  Name                      | Type          | Description
-  --------------------------|---------------|-----------------
-  next\_check               | Number        | When the next check occurs (as a UNIX timestamp).
-  last\_check               | Number        | When the last check occured (as a UNIX timestamp).
-  check\_attempt            | Number        | The current check attempt number.
-  state\_type               | Number        | The current state type (0 = SOFT, 1 = HARD).
-  last\_state\_type         | Number        | The previous state type (0 = SOFT, 1 = HARD).
-  last\_reachable           | Boolean       | Whether the service was reachable when the last check occurred.
-  last\_check\_result       | CheckResult   | The current check result.
-  last\_state\_change       | Number        | When the last state change occurred (as a UNIX timestamp).
-  last\_hard\_state\_change | Number        | When the last hard state change occurred (as a UNIX timestamp).
-  last\_in\_downtime        | Boolean       | Whether the service was in a downtime when the last check occurred.
-  acknowledgement           | Number        | The acknowledgement type (0 = NONE, 1 = NORMAL, 2 = STICKY).
-  acknowledgement_expiry    | Number        | When the acknowledgement expires (as a UNIX timestamp; 0 = no expiry).
-  downtime\_depth           | Number        | Whether the service has one or more active downtimes.
-  flapping_last_change      | Number        | When the last flapping change occurred (as a UNIX timestamp).
-  flapping                  | Boolean       | Whether the host is flapping between states.
-  state                     | Number        | The current state (0 = OK, 1 = WARNING, 2 = CRITICAL, 3 = UNKNOWN).
-  last\_state               | Number        | The previous state (0 = OK, 1 = WARNING, 2 = CRITICAL, 3 = UNKNOWN).
-  last\_hard\_state         | Number        | The last hard state (0 = OK, 1 = WARNING, 2 = CRITICAL, 3 = UNKNOWN).
-  last_state_ok             | Number        | When the last OK state occurred (as a UNIX timestamp).
-  last_state_warning        | Number        | When the last WARNING state occurred (as a UNIX timestamp).
-  last_state_critical       | Number        | When the last CRITICAL state occurred (as a UNIX timestamp).
-  last_state_unknown        | Number        | When the last UNKNOWN state occurred (as a UNIX timestamp).
+  Name                      | Type                  | Description
+  --------------------------|-----------------------|----------------------------------
+  next\_check               | Timestamp             | When the next check occurs (as a UNIX timestamp).
+  last\_check               | Timestamp             | When the last check occurred (as a UNIX timestamp).
+  check\_attempt            | Number                | The current check attempt number.
+  state\_type               | Number                | The current state type (0 = SOFT, 1 = HARD).
+  last\_state\_type         | Number                | The previous state type (0 = SOFT, 1 = HARD).
+  last\_reachable           | Boolean               | Whether the service was reachable when the last check occurred.
+  last\_check\_result       | CheckResult           | The current [check result](08-advanced-topics.md#advanced-value-types-checkresult).
+  last\_state\_change       | Timestamp             | When the last state change occurred (as a UNIX timestamp).
+  last\_hard\_state\_change | Timestamp             | When the last hard state change occurred (as a UNIX timestamp).
+  last\_in\_downtime        | Boolean               | Whether the service was in a downtime when the last check occurred.
+  acknowledgement           | Number                | The acknowledgement type (0 = NONE, 1 = NORMAL, 2 = STICKY).
+  acknowledgement\_expiry   | Timestamp             | When the acknowledgement expires (as a UNIX timestamp; 0 = no expiry).
+  downtime\_depth           | Number                | Whether the service has one or more active downtimes.
+  flapping\_last\_change    | Timestamp             | When the last flapping change occurred (as a UNIX timestamp).
+  flapping                  | Boolean               | Whether the host is flapping between states.
+  state                     | Number                | The current state (0 = OK, 1 = WARNING, 2 = CRITICAL, 3 = UNKNOWN).
+  last\_state               | Number                | The previous state (0 = OK, 1 = WARNING, 2 = CRITICAL, 3 = UNKNOWN).
+  last\_hard\_state         | Number                | The last hard state (0 = OK, 1 = WARNING, 2 = CRITICAL, 3 = UNKNOWN).
+  last\_state\_ok           | Timestamp             | When the last OK state occurred (as a UNIX timestamp).
+  last\_state\_warning      | Timestamp             | When the last WARNING state occurred (as a UNIX timestamp).
+  last\_state\_critical     | Timestamp             | When the last CRITICAL state occurred (as a UNIX timestamp).
+  last\_state\_unknown      | Timestamp             | When the last UNKNOWN state occurred (as a UNIX timestamp).
 
 
 ## ServiceGroup <a id="objecttype-servicegroup"></a>
@@ -1464,57 +1509,65 @@ A group of services.
 
 Example:
 
-    object ServiceGroup "snmp" {
-      display_name = "SNMP services"
-    }
+```
+object ServiceGroup "snmp" {
+  display_name = "SNMP services"
+}
+```
 
 Configuration Attributes:
 
-  Name            |Description
-  ----------------|----------------
-  display_name    |**Optional.** A short description of the service group.
-  groups          |**Optional.** An array of nested group names.
+  Name                      | Type                  | Description
+  --------------------------|-----------------------|----------------------------------
+  display\_name             | String                | **Optional.** A short description of the service group.
+  groups                    | Array of object names | **Optional.** An array of nested group names.
 
 
 ## StatusDataWriter <a id="objecttype-statusdatawriter"></a>
 
 Periodically writes status and configuration data files which are used by third-party tools.
+This configuration object is available as [statusdata feature](14-features.md#status-data).
 
 Example:
 
-    library "compat"
+```
+library "compat"
 
-    object StatusDataWriter "status" {
-        status_path = "/var/cache/icinga2/status.dat"
-        objects_path = "/var/cache/icinga2/objects.cache"
-        update_interval = 30s
-    }
+object StatusDataWriter "status" {
+    status_path = "/var/cache/icinga2/status.dat"
+    objects_path = "/var/cache/icinga2/objects.cache"
+    update_interval = 30s
+}
+```
 
 Configuration Attributes:
 
-  Name            |Description
-  ----------------|----------------
-  status\_path    |**Optional.** Path to the `status.dat` file. Defaults to LocalStateDir + "/cache/icinga2/status.dat".
-  objects\_path   |**Optional.** Path to the `objects.cache` file. Defaults to LocalStateDir + "/cache/icinga2/objects.cache".
-  update\_interval|**Optional.** The interval in which the status files are updated. Defaults to 15 seconds.
+  Name                      | Type                  | Description
+  --------------------------|-----------------------|----------------------------------
+  status\_path              | String                | **Optional.** Path to the `status.dat` file. Defaults to LocalStateDir + "/cache/icinga2/status.dat".
+  objects\_path             | String                | **Optional.** Path to the `objects.cache` file. Defaults to LocalStateDir + "/cache/icinga2/objects.cache".
+  update\_interval          | Duration              | **Optional.** The interval in which the status files are updated. Defaults to `15s`.
 
 
 ## SyslogLogger <a id="objecttype-sysloglogger"></a>
 
 Specifies Icinga 2 logging to syslog.
+This configuration object is available as `syslog` [logging feature](14-features.md#logging).
 
 Example:
 
-    object SyslogLogger "crit-syslog" {
-      severity = "critical"
-    }
+```
+object SyslogLogger "syslog" {
+  severity = "warning"
+}
+```
 
 Configuration Attributes:
 
-  Name            |Description
-  ----------------|----------------
-  severity        |**Optional.** The minimum severity for this log. Can be "debug", "notice", "information", "warning" or "critical". Defaults to "warning".
-  facility        |**Optional.** Defines the facility to use for syslog entries. This can be a facility constant like `FacilityDaemon`. Defaults to `FacilityUser`.
+  Name                      | Type                  | Description
+  --------------------------|-----------------------|----------------------------------
+  severity                  | String                | **Optional.** The minimum severity for this log. Can be "debug", "notice", "information", "warning" or "critical". Defaults to "warning".
+  facility                  | String                | **Optional.** Defines the facility to use for syslog entries. This can be a facility constant like `FacilityDaemon`. Defaults to `FacilityUser`.
 
 Facility Constants:
 
@@ -1546,66 +1599,64 @@ Facility Constants:
 Time periods can be used to specify when hosts/services should be checked or to limit
 when notifications should be sent out.
 
+> **Note**
+>
+> Icinga 2 versions < 2.6.0 require the import of the [legacy-timeperiod](10-icinga-template-library.md#itl-legacy-timeperiod) template.
+
 Examples:
 
-    object TimePeriod "nonworkhours" {
-      import "legacy-timeperiod"
+```
+object TimePeriod "nonworkhours" {
+  display_name = "Icinga 2 TimePeriod for non working hours"
 
-      display_name = "Icinga 2 TimePeriod for non working hours"
+  ranges = {
+    monday = "00:00-8:00,17:00-24:00"
+    tuesday = "00:00-8:00,17:00-24:00"
+    wednesday = "00:00-8:00,17:00-24:00"
+    thursday = "00:00-8:00,17:00-24:00"
+    friday = "00:00-8:00,16:00-24:00"
+    saturday = "00:00-24:00"
+    sunday = "00:00-24:00"
+  }
+}
 
-      ranges = {
-        monday = "00:00-8:00,17:00-24:00"
-        tuesday = "00:00-8:00,17:00-24:00"
-        wednesday = "00:00-8:00,17:00-24:00"
-        thursday = "00:00-8:00,17:00-24:00"
-        friday = "00:00-8:00,16:00-24:00"
-        saturday = "00:00-24:00"
-        sunday = "00:00-24:00"
-      }
+object TimePeriod "exampledays" {
+    display_name = "Icinga 2 TimePeriod for random example days"
+
+    ranges = {
+        //We still believe in Santa, no peeking!
+        //Applies every 25th of December every year
+        "december 25" = "00:00-24:00"
+
+        //Any point in time can be specified,
+        //but you still have to use a range
+        "2038-01-19" = "03:13-03:15"
+
+        //Evey 3rd day from the second monday of February
+        //to 8th of November
+        "monday 2 february - november 8 / 3" = "00:00-24:00"
     }
-
-    object TimePeriod "exampledays" {
-        import "legacy-timeperiod"
-
-        display_name = "Icinga 2 TimePeriod for random example days"
-
-        ranges = {
-            //We still believe in Santa, no peeking!
-            //Applies every 25th of December every year
-            "december 25" = "00:00-24:00"
-
-            //Any point in time can be specified,
-            //but you still have to use a range
-            "2038-01-19" = "03:13-03:15"
-
-            //Evey 3rd day from the second monday of February
-            //to 8th of November
-            "monday 2 february - november 8 / 3" = "00:00-24:00"
-        }
-    }
-
+}
+```
 
 Additional examples can be found [here](08-advanced-topics.md#timeperiods).
 
 Configuration Attributes:
 
-  Name            |Description
-  ----------------|----------------
-  display_name    |**Optional.** A short description of the time period.
-  update          |**Required.** The "update" script method takes care of updating the internal representation of the time period. In virtually all cases you should import the "legacy-timeperiod" template to take care of this setting.
-  ranges          |**Required.** A dictionary containing information which days and durations apply to this timeperiod.
-  prefer_includes |**Optional.** Boolean whether to prefer timeperiods `includes` or `excludes`. Default to true.
-  excludes        |**Optional.** An array of timeperiods, which should exclude from your timerange.
-  includes        |**Optional.** An array of timeperiods, which should include into your timerange
+  Name                      | Type                  | Description
+  --------------------------|-----------------------|----------------------------------
+  display\_name             | String                | **Optional.** A short description of the time period.
+  ranges                    | Dictionary            | **Required.** A dictionary containing information which days and durations apply to this timeperiod.
+  prefer\_includes          | Boolean               | **Optional.** Whether to prefer timeperiods `includes` or `excludes`. Default to true.
+  excludes                  | Array of object names | **Optional.** An array of timeperiods, which should exclude from your timerange.
+  includes                  | Array of object names | **Optional.** An array of timeperiods, which should include into your timerange
 
-The `/etc/icinga2/conf.d/timeperiods.conf` file is usually used to define
-timeperiods including this one.
 
 Runtime Attributes:
 
-  Name                      | Type          | Description
-  --------------------------|---------------|-----------------
-  is\_inside                | Boolean       | Whether we're currently inside this timeperiod.
+  Name                      | Type                  | Description
+  --------------------------|-----------------------|----------------------------------
+  is\_inside                | Boolean               | Whether we're currently inside this timeperiod.
 
 
 ## User <a id="objecttype-user"></a>
@@ -1614,19 +1665,21 @@ A user.
 
 Example:
 
-    object User "icingaadmin" {
-      display_name = "Icinga 2 Admin"
-      groups = [ "icingaadmins" ]
-      email = "icinga@localhost"
-      pager = "icingaadmin@localhost.localdomain"
+```
+object User "icingaadmin" {
+  display_name = "Icinga 2 Admin"
+  groups = [ "icingaadmins" ]
+  email = "icinga@localhost"
+  pager = "icingaadmin@localhost.localdomain"
 
-      period = "24x7"
+  period = "24x7"
 
-      states = [ OK, Warning, Critical, Unknown ]
-      types = [ Problem, Recovery ]
+  states = [ OK, Warning, Critical, Unknown ]
+  types = [ Problem, Recovery ]
 
-      vars.additional_notes = "This is the Icinga 2 Admin account."
-    }
+  vars.additional_notes = "This is the Icinga 2 Admin account."
+}
+```
 
 Available notification state filters:
 
@@ -1651,23 +1704,23 @@ Available notification type filters:
 
 Configuration Attributes:
 
-  Name            |Description
-  ----------------|----------------
-  display_name    |**Optional.** A short description of the user.
-  email           |**Optional.** An email string for this user. Useful for notification commands.
-  pager           |**Optional.** A pager string for this user. Useful for notification commands.
-  vars            |**Optional.** A dictionary containing custom attributes that are specific to this user.
-  groups          |**Optional.** An array of group names.
-  enable_notifications|**Optional.** Whether notifications are enabled for this user.
-  period          |**Optional.** The name of a time period which determines when a notification for this user should be triggered. Not set by default.
-  types           |**Optional.** A set of type filters when this notification should be triggered. By default everything is matched.
-  states          |**Optional.** A set of state filters when this notification should be triggered. By default everything is matched.
+  Name                      | Type                  | Description
+  --------------------------|-----------------------|----------------------------------
+  display\_name             | String                | **Optional.** A short description of the user.
+  email                     | String                | **Optional.** An email string for this user. Useful for notification commands.
+  pager                     | String                | **Optional.** A pager string for this user. Useful for notification commands.
+  vars                      | Dictionary            | **Optional.** A dictionary containing custom attributes that are specific to this user.
+  groups                    | Array of object names | **Optional.** An array of group names.
+  enable\_notifications     | Boolean               | **Optional.** Whether notifications are enabled for this user.
+  period                    | Object name           | **Optional.** The name of a time period which determines when a notification for this user should be triggered. Not set by default.
+  types                     | Array                 | **Optional.** A set of type filters when this notification should be triggered. By default everything is matched.
+  states                    | Array                 | **Optional.** A set of state filters when this notification should be triggered. By default everything is matched.
 
 Runtime Attributes:
 
-  Name                      | Type          | Description
-  --------------------------|---------------|-----------------
-  last\_notification        | Number        | When the last notification was sent for this user (as a UNIX timestamp).
+  Name                      | Type                  | Description
+  --------------------------|-----------------------|----------------------------------
+  last\_notification        | Timestamp             | When the last notification was sent for this user (as a UNIX timestamp).
 
 ## UserGroup <a id="objecttype-usergroup"></a>
 
@@ -1679,79 +1732,45 @@ A user group.
 
 Example:
 
-    object UserGroup "icingaadmins" {
-        display_name = "Icinga 2 Admin Group"
-    }
+```
+object UserGroup "icingaadmins" {
+    display_name = "Icinga 2 Admin Group"
+}
+```
 
 Configuration Attributes:
 
-  Name            |Description
-  ----------------|----------------
-  display_name    |**Optional.** A short description of the user group.
-  groups          |**Optional.** An array of nested group names.
+  Name                      | Type                  | Description
+  --------------------------|-----------------------|----------------------------------
+  display\_name             | String                | **Optional.** A short description of the user group.
+  groups                    | Array of object names | **Optional.** An array of nested group names.
 
 
 ## Zone <a id="objecttype-zone"></a>
 
 Zone objects are used to specify which Icinga 2 instances are located in a zone.
-
+Please read the [distributed monitoring chapter](06-distributed-monitoring.md#distributed-monitoring) for additional details.
 Example:
 
-    object Zone "config-ha-master" {
-      endpoints = [ "icinga2a", "icinga2b" ]
+```
+object Zone "master" {
+  endpoints = [ "icinga2-master1.localdomain", "icinga2-master2.localdomain" ]
 
-    }
+}
 
-    object Zone "check-satellite" {
-      endpoints = [ "icinga2c" ]
-      parent = "config-ha-master"
-    }
+object Zone "satellite" {
+  endpoints = [ "icinga2-satellite1.localdomain" ]
+  parent = "master"
+}
+```
 
 Configuration Attributes:
 
-  Name            |Description
-  ----------------|----------------
-  endpoints       |**Optional.** Array of endpoint names located in this zone.
-  parent          |**Optional.** The name of the parent zone.
-  global          |**Optional.** Whether configuration files for this zone should be synced to all endpoints. Defaults to false.
+  Name                      | Type                  | Description
+  --------------------------|-----------------------|----------------------------------
+  endpoints                 | Array of object names | **Optional.** Array of endpoint names located in this zone.
+  parent                    | Object name           | **Optional.** The name of the parent zone.
+  global                    | Boolean               | **Optional.** Whether configuration files for this zone should be [synced](06-distributed-monitoring.md#distributed-monitoring-global-zone-config-sync) to all endpoints. Defaults to `false`.
 
 Zone objects cannot currently be created with the API.
-
-# Value Types <a id="value-types"></a>
-
-In addition to [configuration objects](09-object-types.md#object-types) Icinga 2 also uses a few other types to represent its internal state. The following types are exposed via the [API](12-icinga2-api.md#icinga2-api).
-
-## CheckResult <a id="value-types-checkresult"></a>
-
-  Name                      | Type          | Description
-  --------------------------|---------------|-----------------
-  exit_status               | Number        | The exit status returned by the check execution.
-  output                    | String        | The check output.
-  performance_data          | Array         | Array of [performance data values](09-object-types.md#value-types-perfdatavalue).
-  check_source              | String        | Name of the node executing the check.
-  state                     | Number        | The current state (0 = OK, 1 = WARNING, 2 = CRITICAL, 3 = UNKNOWN).
-  command                   | Value         | Array of command with shell-escaped arguments or command line string.
-  execution_start           | Number        | Check execution start time (as a UNIX timestamp).
-  execution_end             | Number        | Check execution end time (as a UNIX timestamp).
-  schedule_start            | Number        | Scheduled check execution start time (as a UNIX timestamp).
-  schedule_end              | Number        | Scheduled check execution end time (as a UNIX timestamp).
-  active                    | Boolean       | Whether the result is from an active or passive check.
-  vars_before               | Dictionary    | Internal attribute used for calculations.
-  vars_after                | Dictionary    | Internal attribute used for calculations.
-
-## PerfdataValue <a id="value-types-perfdatavalue"></a>
-
-Icinga 2 parses performance data strings returned by check plugins and makes the information available to external interfaces (e.g. [GraphiteWriter](09-object-types.md#objecttype-graphitewriter) or the [Icinga 2 API](12-icinga2-api.md#icinga2-api)).
-
-  Name                      | Type          | Description
-  --------------------------|---------------|-----------------
-  label                     | String        | Performance data label.
-  value                     | Number        | Normalized performance data value without unit.
-  counter                   | Boolean       | Enabled if the original value contains `c` as unit. Defaults to `false`.
-  unit                      | String        | Unit of measurement (`seconds`, `bytes`. `percent`) according to the [plugin API](05-service-monitoring.md#service-monitoring-plugin-api).
-  crit                      | Value         | Critical threshold value.
-  warn                      | Value         | Warning threshold value.
-  min                       | Value         | Minimum value returned by the check.
-  max                       | Value         | Maximum value returned by the check.
-
 
