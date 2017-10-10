@@ -325,7 +325,28 @@ int MakeX509CSR(const String& cn, const String& keyfile, const String& csrfile, 
 
 	InitializeOpenSSL();
 
-	RSA *rsa = RSA_generate_key(4096, RSA_F4, NULL, NULL);
+	RSA *rsa = RSA_new();
+	BIGNUM *e = BN_new();
+
+	if (rsa == NULL || e == NULL) {
+		Log(LogCritical, "SSL")
+		    << "Error while creating RSA key: " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
+		BOOST_THROW_EXCEPTION(openssl_error()
+		    << boost::errinfo_api_function("RSA_generate_key")
+		    << errinfo_openssl_error(ERR_peek_error()));
+	}
+
+	BN_set_word(e, RSA_F4);
+
+	if (RSA_generate_key_ex(rsa, 4096, e, NULL) == NULL) {
+		Log(LogCritical, "SSL")
+		    << "Error while creating RSA key: " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
+		BOOST_THROW_EXCEPTION(openssl_error()
+		    << boost::errinfo_api_function("RSA_generate_key")
+		    << errinfo_openssl_error(ERR_peek_error()));
+	}
+
+	BN_free(e);
 
 	Log(LogInformation, "base")
 	    << "Writing private key to '" << keyfile << "'.";
@@ -355,10 +376,10 @@ int MakeX509CSR(const String& cn, const String& keyfile, const String& csrfile, 
 #ifndef _WIN32
 	chmod(keyfile.CStr(), 0600);
 #endif /* _WIN32 */
-	
+
 	EVP_PKEY *key = EVP_PKEY_new();
 	EVP_PKEY_assign_RSA(key, rsa);
-	
+
 	if (!certfile.IsEmpty()) {
 		X509_NAME *subject = X509_NAME_new();
 		X509_NAME_add_entry_by_txt(subject, "CN", MBSTRING_ASC, (unsigned char *)cn.CStr(), -1, -1, 0);
@@ -401,10 +422,10 @@ int MakeX509CSR(const String& cn, const String& keyfile, const String& csrfile, 
 
 		X509_REQ_set_version(req, 0);
 		X509_REQ_set_pubkey(req, key);
-	
+
 		X509_NAME *name = X509_REQ_get_subject_name(req);
 		X509_NAME_add_entry_by_txt(name, "CN", MBSTRING_ASC, (unsigned char *)cn.CStr(), -1, -1, 0);
-	
+
 		if (!cn.Contains(" ") && cn.Contains(".")) {
 			String san = "DNS:" + cn;
 			X509_EXTENSION *subjectAltNameExt = X509V3_EXT_conf_nid(NULL, NULL, NID_subject_alt_name, const_cast<char *>(san.CStr()));
@@ -418,10 +439,10 @@ int MakeX509CSR(const String& cn, const String& keyfile, const String& csrfile, 
 		}
 
 		X509_REQ_sign(req, key, EVP_sha256());
-	
+
 		Log(LogInformation, "base")
 		    << "Writing certificate signing request to '" << csrfile << "'.";
-	
+
 		bio = BIO_new_file(const_cast<char *>(csrfile.CStr()), "w");
 
 		if (!bio) {
@@ -443,7 +464,7 @@ int MakeX509CSR(const String& cn, const String& keyfile, const String& csrfile, 
 		}
 
 		BIO_free(bio);
-	
+
 		X509_REQ_free(req);
 	}
 
