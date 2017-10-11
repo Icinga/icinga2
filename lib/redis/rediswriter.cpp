@@ -156,7 +156,7 @@ void RedisWriter::UpdateSubscriptions(void)
 
 	Log(LogInformation, "RedisWriter", "Updating Redis subscriptions");
 
-	std::map<String, String> subscriptions;
+	Array::Ptr keys = new Array();
 	long long cursor = 0;
 
 	do {
@@ -173,42 +173,36 @@ void RedisWriter::UpdateSubscriptions(void)
 		for (size_t i = 0; i < keysReply->elements; i++) {
 			redisReply *keyReply = keysReply->element[i];
 			VERIFY(keyReply->type == REDIS_REPLY_STRING);
-
-			boost::shared_ptr<redisReply> vreply = ExecuteQuery({ "GET", keyReply->str });
-
-			subscriptions[keyReply->str] = vreply->str;
+			keys->Add(keyReply->str);
 		}
 	} while (cursor != 0);
 
 	m_Subscriptions.clear();
 
-	for (const std::pair<String, String>& kv : subscriptions) {
-		const String& key = kv.first.SubStr(20); /* removes the "icinga:subscription: prefix */
-		const String& value = kv.second;
-
+	ObjectLock olock(keys);
+	for (String key : keys) {
 		try {
-			Dictionary::Ptr subscriptionInfo = JsonDecode(value);
-
-			Log(LogInformation, "RedisWriter")
-			    << "Subscriber Info - Key: " << key << " Value: " << Value(subscriptionInfo);
+			boost::shared_ptr<redisReply> redisReply = ExecuteQuery({ "LRANGE", key, "0", "-1" });
+			VERIFY(redisReply->type == REDIS_REPLY_ARRAY);
 
 			RedisSubscriptionInfo rsi;
+			Array::Ptr printer = new Array();
+			for (size_t j = 0; j < redisReply->elements; j++) {
+				rsi.EventTypes.insert(redisReply->element[j]->str);
+				printer->Add(redisReply->element[j]->str);
+			}
+			Log(LogInformation, "RedisWriter")
+				<< "Subscriber Info - Key: " << key << " Value: " << printer->ToString();
 
-			Array::Ptr types = subscriptionInfo->Get("types");
+			m_Subscriptions[key.SubStr(20)] = rsi;
 
-			if (types)
-				rsi.EventTypes = types->ToSet<String>();
-
-			m_Subscriptions[key] = rsi;
 		} catch (const std::exception& ex) {
 			Log(LogWarning, "RedisWriter")
-			    << "Invalid Redis subscriber info for subscriber '" << key << "': " << DiagnosticInformation(ex);
+				<< "Invalid Redis subscriber info for subscriber '" << key << "': " << DiagnosticInformation(ex);
 
 			continue;
 		}
-		//TODO
 	}
-
 	Log(LogInformation, "RedisWriter")
 	    << "Current Redis event subscriptions: " << m_Subscriptions.size();
 }
@@ -289,7 +283,7 @@ void RedisWriter::HandleEvent(const Dictionary::Ptr& event)
 
 		ExecuteQuery({ "MULTI" });
 		ExecuteQuery({ "LPUSH", "icinga:event:" + name, body });
-		ExecuteQuery({ "LTRIM", "icinga:event:" + name, 0, MAX_EVENTS - 1 });
+		ExecuteQuery({ "LTRIM", "icinga:event:" + name, "0", String(MAX_EVENTS - 1)});
 		ExecuteQuery({ "EXEC" });
 	}
 }
