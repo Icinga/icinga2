@@ -25,6 +25,9 @@
 
 using namespace icinga;
 
+//TODO Make configurable and figure out a sane default
+#define MAX_EVENTS 5000
+
 REGISTER_TYPE(RedisWriter);
 
 RedisWriter::RedisWriter(void)
@@ -284,7 +287,10 @@ void RedisWriter::HandleEvent(const Dictionary::Ptr& event)
 
 		String body = JsonEncode(event);
 
+		ExecuteQuery({ "MULTI" });
 		ExecuteQuery({ "LPUSH", "icinga:event:" + name, body });
+		ExecuteQuery({ "LTRIM", "icinga:event:" + name, 0, MAX_EVENTS - 1 });
+		ExecuteQuery({ "EXEC" });
 	}
 }
 
