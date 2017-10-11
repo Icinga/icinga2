@@ -403,6 +403,8 @@ apply Service "external-check" {
 }
 ```
 
+References: [get_service](18-library-reference.md#objref-get_service), [nacro](18-library-reference.md#scoped-functions-macro), [DateTime](18-library-reference.md#datetime-type).
+
 Example output in Icinga Web 2:
 
 ![Icinga 2 Freshness Checks](images/advanced-topics/icinga2_external_checks_freshness_icingaweb2.png)
