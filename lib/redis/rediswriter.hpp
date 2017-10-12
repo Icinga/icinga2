@@ -59,6 +59,7 @@ private:
 
 	void UpdateSubscriptionsTimerHandler(void);
 	void UpdateSubscriptions(void);
+	int  GetSubscriptionTypes(String key, RedisSubscriptionInfo& rsi);
 	void PublishStatsTimerHandler(void);
 	void PublishStats(void);
 
