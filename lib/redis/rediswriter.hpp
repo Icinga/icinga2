@@ -64,9 +64,10 @@ private:
 
 	/* config & status dump */
 	void UpdateAllConfigObjects(void);
-	void SendConfigUpdate(const ConfigObject::Ptr& object, const String& typeName, bool runtimeUpdate = false);
-	void SendConfigDelete(const ConfigObject::Ptr& object, const String& typeName);
-	void SendStatusUpdate(const ConfigObject::Ptr& object, const String& typeName);
+	void SendConfigUpdate(const ConfigObject::Ptr& object, bool useTransaction, bool runtimeUpdate = false);
+	void SendConfigDelete(const ConfigObject::Ptr& object);
+	void SendStatusUpdate(const ConfigObject::Ptr& object, bool useTransaction);
+	void UpdateObjectAttrs(const String& keyPrefix, const ConfigObject::Ptr& object, int fieldType);
 
 	/* utilities */
 	static String FormatCheckSumBinary(const String& str);
@@ -77,10 +78,8 @@ private:
 	static String CalculateCheckSumVars(const CustomVarObject::Ptr& object);
 
 	static String HashValue(const Value& value);
-	static Dictionary::Ptr SerializeObjectAttrs(const Object::Ptr& object, int fieldType);
 
 	static void StateChangedHandler(const ConfigObject::Ptr& object);
-	static void VarsChangedHandler(const ConfigObject::Ptr& object);
 	static void VersionChangedHandler(const ConfigObject::Ptr& object);
 
 	void AssertOnWorkQueue(void);

@@ -86,11 +86,18 @@ String RedisWriter::HashValue(const Value& value)
 	return SHA1(JsonEncode(temp));
 }
 
-Dictionary::Ptr RedisWriter::SerializeObjectAttrs(const Object::Ptr& object, int fieldType)
+void RedisWriter::UpdateObjectAttrs(const String& keyPrefix, const ConfigObject::Ptr& object, int fieldType)
 {
 	Type::Ptr type = object->GetReflectionType();
 
-	Dictionary::Ptr resultAttrs = new Dictionary();
+	String typeName = type->GetName();
+	String objectName = object->GetName();
+
+	std::vector<std::vector<String> > queries;
+
+	queries.push_back({ "DEL", keyPrefix + object->GetName() });
+
+	std::vector<String> hmsetCommand({ "HMSET", keyPrefix + typeName + ":" + objectName });
 
 	for (int fid = 0; fid < type->GetFieldCount(); fid++) {
 		Field field = type->GetFieldInfo(fid);
@@ -108,10 +115,14 @@ Dictionary::Ptr RedisWriter::SerializeObjectAttrs(const Object::Ptr& object, int
 		if (field.Attributes & FANavigation && !(field.Attributes & (FAConfig | FAState)))
 			continue;
 
+		hmsetCommand.push_back(field.Name);
+
 		Value sval = Serialize(val);
-		resultAttrs->Set(field.Name, sval);
+		hmsetCommand.push_back(JsonEncode(sval));
 	}
 
-	return resultAttrs;
+	queries.push_back(hmsetCommand);
+
+	ExecuteQueries(queries);
 }
 
