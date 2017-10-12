@@ -252,17 +252,17 @@ void InfluxdbWriter::SendPerfdata(const Dictionary::Ptr& tmpl, const Checkable::
 			}
 
 			Dictionary::Ptr fields = new Dictionary();
-			fields->Set(String("value"), pdv->GetValue());
+			fields->Set("value", pdv->GetValue());
 
 			if (GetEnableSendThresholds()) {
 				if (pdv->GetCrit())
-					fields->Set(String("crit"), pdv->GetCrit());
+					fields->Set("crit", pdv->GetCrit());
 				if (pdv->GetWarn())
-					fields->Set(String("warn"), pdv->GetWarn());
+					fields->Set("warn", pdv->GetWarn());
 				if (pdv->GetMin())
-					fields->Set(String("min"), pdv->GetMin());
+					fields->Set("min", pdv->GetMin());
 				if (pdv->GetMax())
-					fields->Set(String("max"), pdv->GetMax());
+					fields->Set("max", pdv->GetMax());
 			}
 
 			SendMetric(tmpl, pdv->GetLabel(), fields, ts);
@@ -277,20 +277,20 @@ void InfluxdbWriter::SendPerfdata(const Dictionary::Ptr& tmpl, const Checkable::
 		Dictionary::Ptr fields = new Dictionary();
 
 		if (service)
-			fields->Set(String("state"), FormatInteger(service->GetState()));
+			fields->Set("state", FormatInteger(service->GetState()));
 		else
-			fields->Set(String("state"), FormatInteger(host->GetState()));
+			fields->Set("state", FormatInteger(host->GetState()));
 
-		fields->Set(String("current_attempt"), FormatInteger(checkable->GetCheckAttempt()));
-		fields->Set(String("max_check_attempts"), FormatInteger(checkable->GetMaxCheckAttempts()));
-		fields->Set(String("state_type"), FormatInteger(checkable->GetStateType()));
-		fields->Set(String("reachable"), FormatBoolean(checkable->IsReachable()));
-		fields->Set(String("downtime_depth"), FormatInteger(checkable->GetDowntimeDepth()));
-		fields->Set(String("acknowledgement"), FormatInteger(checkable->GetAcknowledgement()));
-		fields->Set(String("latency"), cr->CalculateLatency());
-		fields->Set(String("execution_time"), cr->CalculateExecutionTime());
+		fields->Set("current_attempt", FormatInteger(checkable->GetCheckAttempt()));
+		fields->Set("max_check_attempts", FormatInteger(checkable->GetMaxCheckAttempts()));
+		fields->Set("state_type", FormatInteger(checkable->GetStateType()));
+		fields->Set("reachable", FormatBoolean(checkable->IsReachable()));
+		fields->Set("downtime_depth", FormatInteger(checkable->GetDowntimeDepth()));
+		fields->Set("acknowledgement", FormatInteger(checkable->GetAcknowledgement()));
+		fields->Set("latency", cr->CalculateLatency());
+		fields->Set("execution_time", cr->CalculateExecutionTime());
 
-		SendMetric(tmpl, String(), fields, ts);
+		SendMetric(tmpl, Empty, fields, ts);
 	}
 }
 
