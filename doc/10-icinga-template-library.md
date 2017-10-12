@@ -2077,6 +2077,32 @@ snmp_process_mem_threshold | **Optional.** Defines the warning and critical thre
 snmp_process_cpu_usage     | **Optional.** Define to check CPU usage for the process. Defaults to false.
 snmp_process_cpu_threshold | **Optional.** Defines the warning and critical thresholds in % when snmp_process_cpu_usage set to true. If more than one CPU, value can be > 100% : 100%=1 CPU. Example "15,50". Defaults to "0,0".
 
+### snmp-service <a id="plugin-check-command-snmp-service"></a>
+
+Check command object for the [check_snmp_win.pl](http://nagios.manubulon.com/snmp_windows.html) plugin.
+
+Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name                       | Description
+---------------------------|--------------
+snmp_address               | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
+snmp_nocrypt               | **Optional.** Define SNMP encryption. If set to `false`, `snmp_v3` needs to be enabled. Defaults to `true` (no encryption).
+snmp_community             | **Optional.** The SNMP community. Defaults to "public".
+snmp_port                  | **Optional.** The SNMP port connection.
+snmp_v2                    | **Optional.** SNMP version to 2c. Defaults to false.
+snmp_v3                    | **Optional.** SNMP version to 3. Defaults to false.
+snmp_login                 | **Optional.** SNMP version 3 username. Defaults to "snmpuser".
+snmp_password              | **Required.** SNMP version 3 password. No value defined as default.
+snmp_v3_use_privpass       | **Optional.** Define to use SNMP version 3 priv password. Defaults to false.
+snmp_v3_use_authprotocol   | **Optional.** Define to use SNMP version 3 authentication protocol. Defaults to false.
+snmp_authprotocol          | **Optional.** SNMP version 3 authentication protocol. Defaults to "md5,des".
+snmp_privpass              | **Required.** SNMP version 3 priv password. No value defined as default..
+snmp_timeout               | **Optional.** The command timeout in seconds. Defaults to 5 seconds.
+snmp_service_name          | **Optional.** Comma separated names of services (perl regular expressions can be used for every one). By default, it is not case sensitive. eg. ^dns$. Defaults to ".*".
+snmp_service_count         | **Optional.** Compare matching services with a specified number instead of the number of names provided.
+snmp_service_showall       | **Optional.** Show all services in the output, instead of only the non-active ones. Defaults to false.
+snmp_service_noregexp      | **Optional.** Do not use regexp to match NAME in service description. Defaults to false.
+
 
 ## Contributed Plugin Check Commands <a id="plugin-contrib"></a>
 
