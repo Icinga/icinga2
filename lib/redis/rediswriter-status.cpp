@@ -26,6 +26,7 @@
 #include "base/serializer.hpp"
 #include "base/tlsutility.hpp"
 #include "base/initialize.hpp"
+#include "base/convert.hpp"
 
 using namespace icinga;
 
@@ -49,7 +50,6 @@ void RedisWriter::ConfigStaticInitialize(void)
 {
 	/* triggered in ProcessCheckResult(), requires UpdateNextCheck() to be called before */
 	ConfigObject::OnStateChanged.connect(boost::bind(&RedisWriter::StateChangedHandler, _1));
-	CustomVarObject::OnVarsChanged.connect(boost::bind(&RedisWriter::VarsChangedHandler, _1));
 
 	/* triggered on create, update and delete objects */
 	ConfigObject::OnActiveChanged.connect(boost::bind(&RedisWriter::VersionChangedHandler, _1));
@@ -62,8 +62,57 @@ void RedisWriter::UpdateAllConfigObjects(void)
 
 	double startTime = Utility::GetTime();
 
-	//TODO: "Publish" the config dump by adding another event, globally or by object
-	ExecuteQuery({ "MULTI" });
+	std::vector<String> deleteQuery({ "DEL" });
+	long long cursor = 0;
+
+	const String keyPrefix = "icinga:config:";
+
+	do {
+		boost::shared_ptr<redisReply> reply = ExecuteQuery({ "SCAN", Convert::ToString(cursor), "MATCH", keyPrefix + "*", "COUNT", "1000" });
+
+		VERIFY(reply->type == REDIS_REPLY_ARRAY);
+		VERIFY(reply->elements % 2 == 0);
+
+		redisReply *cursorReply = reply->element[0];
+		cursor = Convert::ToLong(cursorReply->str);
+
+		redisReply *keysReply = reply->element[1];
+
+		for (size_t i = 0; i < keysReply->elements; i++) {
+			redisReply *keyReply = keysReply->element[i];
+			VERIFY(keyReply->type == REDIS_REPLY_STRING);
+
+			String key = keyReply->str;
+			String namePair = key.SubStr(keyPrefix.GetLength());
+
+			String::SizeType pos = namePair.FindFirstOf(":");
+
+			if (pos == String::NPos)
+				continue;
+
+			String type = namePair.SubStr(0, pos);
+			String name = namePair.SubStr(pos + 1);
+
+			Type::Ptr ptype = Type::GetByName(type);
+
+			if (!ptype)
+				continue;
+
+			ConfigType *ctype = dynamic_cast<ConfigType *>(ptype.get());
+
+			if (!ctype)
+				continue;
+
+			if (ctype->GetObject(name))
+				continue;
+
+			deleteQuery.push_back("icinga:config:" + type + ":" + name);
+			deleteQuery.push_back("icinga:status:" + type + ":" + name);
+		}
+	} while (cursor != 0);
+
+	if (deleteQuery.size() > 1)
+		ExecuteQuery(deleteQuery);
 
 	for (const Type::Ptr& type : Type::GetAllTypes()) {
 		ConfigType *ctype = dynamic_cast<ConfigType *>(type.get());
@@ -77,21 +126,19 @@ void RedisWriter::UpdateAllConfigObjects(void)
 
 		/* fetch all objects and dump them */
 		for (const ConfigObject::Ptr& object : ctype->GetObjects()) {
-			SendConfigUpdate(object, typeName);
-			SendStatusUpdate(object, typeName);
+			SendConfigUpdate(object, false);
+			SendStatusUpdate(object, false);
 		}
 
 		/* publish config type dump finished */
 		ExecuteQuery({ "PUBLISH", "icinga:config:dump", typeName });
 	}
 
-	ExecuteQuery({ "EXEC" });
-
 	Log(LogInformation, "RedisWriter")
 	    << "Initial config/status dump finished in " << Utility::GetTime() - startTime << " seconds.";
 }
 
-void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, const String& typeName, bool runtimeUpdate)
+void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, bool useTransaction, bool runtimeUpdate)
 {
 	AssertOnWorkQueue();
 
@@ -104,55 +151,62 @@ void RedisWriter::SendConfigUpdate(const ConfigObject::Ptr& object, const String
 		return;
 	*/
 
-	/* Serialize config object attributes */
-	Dictionary::Ptr objectAttrs = SerializeObjectAttrs(object, FAConfig);
+	if (useTransaction)
+		ExecuteQuery({ "MULTI" });
 
-	String jsonBody = JsonEncode(objectAttrs);
+	UpdateObjectAttrs("icinga:config:", object, FAConfig);
 
-	String objectName = object->GetName();
+//	/* Serialize config object attributes */
+//	Dictionary::Ptr objectAttrs = SerializeObjectAttrs(object, FAConfig);
+//
+//	String jsonBody = JsonEncode(objectAttrs);
+//
+//	String objectName = object->GetName();
+//
+//	ExecuteQuery({ "HSET", "icinga:config:" + typeName, objectName, jsonBody });
+//
+//	/* check sums */
+//	/* hset icinga:config:Host:checksums localhost { "name_checksum": "...", "properties_checksum": "...", "groups_checksum": "...", "vars_checksum": null } */
+//	Dictionary::Ptr checkSum = new Dictionary();
+//
+//	checkSum->Set("name_checksum", CalculateCheckSumString(object->GetName()));
+//
+//	// TODO: move this elsewhere
+//	Checkable::Ptr checkable = dynamic_pointer_cast<Checkable>(object);
+//
+//	if (checkable) {
+//		Host::Ptr host;
+//		Service::Ptr service;
+//
+//		tie(host, service) = GetHostService(checkable);
+//
+//		if (service)
+//			checkSum->Set("groups_checksum", CalculateCheckSumGroups(service->GetGroups()));
+//		else
+//			checkSum->Set("groups_checksum", CalculateCheckSumGroups(host->GetGroups()));
+//	}
+//
+//	checkSum->Set("properties_checksum", CalculateCheckSumProperties(object));
+//
+//	CustomVarObject::Ptr customVarObject = dynamic_pointer_cast<CustomVarObject>(object);
+//
+//	if (customVarObject)
+//		checkSum->Set("vars_checksum", CalculateCheckSumVars(customVarObject));
+//
+//	String checkSumBody = JsonEncode(checkSum);
+//
+//	ExecuteQuery({ "HSET", "icinga:config:" + typeName + ":checksum", objectName, checkSumBody });
 
-	ExecuteQuery({ "HSET", "icinga:config:" + typeName, objectName, jsonBody });
-
-	/* check sums */
-	/* hset icinga:config:Host:checksums localhost { "name_checksum": "...", "properties_checksum": "...", "groups_checksum": "...", "vars_checksum": null } */
-	Dictionary::Ptr checkSum = new Dictionary();
-
-	checkSum->Set("name_checksum", CalculateCheckSumString(object->GetName()));
-
-	// TODO: move this elsewhere
-	Checkable::Ptr checkable = dynamic_pointer_cast<Checkable>(object);
-
-	if (checkable) {
-		Host::Ptr host;
-		Service::Ptr service;
-
-		tie(host, service) = GetHostService(checkable);
-
-		if (service)
-			checkSum->Set("groups_checksum", CalculateCheckSumGroups(service->GetGroups()));
-		else
-			checkSum->Set("groups_checksum", CalculateCheckSumGroups(host->GetGroups()));
+	if (runtimeUpdate) {
+		Type::Ptr type = object->GetReflectionType();
+		ExecuteQuery({ "PUBLISH", "icinga:config:update", type->GetName() + ":" + object->GetName() });
 	}
 
-	checkSum->Set("properties_checksum", CalculateCheckSumProperties(object));
-
-	CustomVarObject::Ptr customVarObject = dynamic_pointer_cast<CustomVarObject>(object);
-
-	if (customVarObject)
-		checkSum->Set("vars_checksum", CalculateCheckSumVars(customVarObject));
-
-	String checkSumBody = JsonEncode(checkSum);
-
-	ExecuteQuery({ "HSET", "icinga:config:" + typeName + ":checksum", objectName, checkSumBody });
-
-	/* publish runtime updated objects immediately */
-	if (!runtimeUpdate)
-		return;
-
-	ExecuteQuery({ "PUBLISH", "icinga:config:update", typeName + ":" + objectName + "!" + checkSumBody });
+	if (useTransaction)
+		ExecuteQuery({ "EXEC" });
 }
 
-void RedisWriter::SendConfigDelete(const ConfigObject::Ptr& object, const String& typeName)
+void RedisWriter::SendConfigDelete(const ConfigObject::Ptr& object)
 {
 	AssertOnWorkQueue();
 
@@ -160,16 +214,18 @@ void RedisWriter::SendConfigDelete(const ConfigObject::Ptr& object, const String
 	if (!m_Context)
 		return;
 
+	String typeName = object->GetReflectionType()->GetName();
 	String objectName = object->GetName();
 
-	ExecuteQuery({ "HDEL", "icinga:config:" + typeName, objectName });
-	ExecuteQuery({ "HDEL", "icinga:config:" + typeName + ":checksum", objectName });
-	ExecuteQuery({ "HDEL", "icinga:status:" + typeName, objectName });
+	ExecuteQueries({
+	    { "DEL", "icinga:config:" + typeName, objectName },
+	    { "DEL", "icinga:status:" + typeName, objectName },
+	    { "PUBLISH", "icinga:config:delete", typeName + ":" + objectName }
+	});
 
-	ExecuteQuery({ "PUBLISH", "icinga:config:delete", typeName + ":" + objectName });
 }
 
-void RedisWriter::SendStatusUpdate(const ConfigObject::Ptr& object, const String& typeName)
+void RedisWriter::SendStatusUpdate(const ConfigObject::Ptr& object, bool useTransaction)
 {
 	AssertOnWorkQueue();
 
@@ -177,82 +233,90 @@ void RedisWriter::SendStatusUpdate(const ConfigObject::Ptr& object, const String
 	if (!m_Context)
 		return;
 
-	/* Serialize config object attributes */
-	Dictionary::Ptr objectAttrs = SerializeObjectAttrs(object, FAState);
+	if (useTransaction)
+		ExecuteQuery({ "MULTI" });
 
-	String jsonBody = JsonEncode(objectAttrs);
+	UpdateObjectAttrs("icinga:status:", object, FAState);
 
-	String objectName = object->GetName();
+	if (useTransaction)
+		ExecuteQuery({ "EXEC" });
 
-	ExecuteQuery({ "HSET", "icinga:status:" + typeName, objectName, jsonBody });
-
-	/* Icinga DB part for Icinga Web 2 */
-	Checkable::Ptr checkable = dynamic_pointer_cast<Checkable>(object);
-
-	if (checkable) {
-		Dictionary::Ptr attrs = new Dictionary();
-		String tableName;
-		String objectCheckSum = CalculateCheckSumString(objectName);
-
-		Host::Ptr host;
-		Service::Ptr service;
-
-		tie(host, service) = GetHostService(checkable);
-
-		if (service) {
-			tableName = "servicestate";
-			attrs->Set("service_checksum", objectCheckSum);
-			attrs->Set("host_checksum", CalculateCheckSumString(host->GetName()));
-		} else {
-			tableName = "hoststate";
-			attrs->Set("host_checksum", objectCheckSum);
-		}
-
-		attrs->Set("last_check", checkable->GetLastCheck());
-		attrs->Set("next_check", checkable->GetNextCheck());
-
-		attrs->Set("severity", checkable->GetSeverity());
-
-/*
-        'host_checksum'    => null,
-        'command'          => null, // JSON, array
-        'execution_start'  => null,
-        'execution_end'    => null,
-        'schedule_start'   => null,
-        'schedule_end'     => null,
-        'exit_status'      => null,
-        'output'           => null,
-        'performance_data' => null, // JSON, array
-
-
-10.0.3.12:6379> keys icinga:hoststate.*
-1) "icinga:hoststate.~\xf5a\x91+\x03\x97\x99\xb5(\x16 CYm\xb1\xdf\x85\xa2\xcb"
-10.0.3.12:6379> get "icinga:hoststate.~\xf5a\x91+\x03\x97\x99\xb5(\x16 CYm\xb1\xdf\x85\xa2\xcb"
-"{\"command\":[\"\\/usr\\/lib\\/nagios\\/plugins\\/check_ping\",\"-H\",\"127.0.0.1\",\"-c\",\"5000,100%\",\"-w\",\"3000,80%\"],\"execution_start\":1492007581.7624,\"execution_end\":1492007585.7654,\"schedule_start\":1492007581.7609,\"schedule_end\":1492007585.7655,\"exit_status\":0,\"output\":\"PING OK - Packet loss = 0%, RTA = 0.08 ms\",\"performance_data\":[\"rta=0.076000ms;3000.000000;5000.000000;0.000000\",\"pl=0%;80;100;0\"]}"
-
-*/
-
-		CheckResult::Ptr cr = checkable->GetLastCheckResult();
-
-		if (cr) {
-			attrs->Set("command", JsonEncode(cr->GetCommand()));
-			attrs->Set("execution_start", cr->GetExecutionStart());
-			attrs->Set("execution_end", cr->GetExecutionEnd());
-			attrs->Set("schedule_start", cr->GetScheduleStart());
-			attrs->Set("schedule_end", cr->GetScheduleStart());
-			attrs->Set("exit_status", cr->GetExitStatus());
-			attrs->Set("output", cr->GetOutput());
-			attrs->Set("performance_data", JsonEncode(cr->GetPerformanceData()));
-		}
-
-		String jsonAttrs = JsonEncode(attrs);
-		String key = "icinga:" + tableName + "." + objectCheckSum;
-		ExecuteQuery({ "SET", key, jsonAttrs });
-
-		/* expire in check_interval * attempts + timeout + some more seconds */
-		double expireTime = checkable->GetCheckInterval() * checkable->GetMaxCheckAttempts() + 60;
-		ExecuteQuery({ "EXPIRE", key, String(expireTime) });
-	}
+//	/* Serialize config object attributes */
+//	Dictionary::Ptr objectAttrs = SerializeObjectAttrs(object, FAState);
+//
+//	String jsonBody = JsonEncode(objectAttrs);
+//
+//	String objectName = object->GetName();
+//
+//	ExecuteQuery({ "HSET", "icinga:status:" + typeName, objectName, jsonBody });
+//
+//	/* Icinga DB part for Icinga Web 2 */
+//	Checkable::Ptr checkable = dynamic_pointer_cast<Checkable>(object);
+//
+//	if (checkable) {
+//		Dictionary::Ptr attrs = new Dictionary();
+//		String tableName;
+//		String objectCheckSum = CalculateCheckSumString(objectName);
+//
+//		Host::Ptr host;
+//		Service::Ptr service;
+//
+//		tie(host, service) = GetHostService(checkable);
+//
+//		if (service) {
+//			tableName = "servicestate";
+//			attrs->Set("service_checksum", objectCheckSum);
+//			attrs->Set("host_checksum", CalculateCheckSumString(host->GetName()));
+//		} else {
+//			tableName = "hoststate";
+//			attrs->Set("host_checksum", objectCheckSum);
+//		}
+//
+//		attrs->Set("last_check", checkable->GetLastCheck());
+//		attrs->Set("next_check", checkable->GetNextCheck());
+//
+//		attrs->Set("severity", checkable->GetSeverity());
+//
+///*
+//        'host_checksum'    => null,
+//        'command'          => null, // JSON, array
+//        'execution_start'  => null,
+//        'execution_end'    => null,
+//        'schedule_start'   => null,
+//        'schedule_end'     => null,
+//        'exit_status'      => null,
+//        'output'           => null,
+//        'performance_data' => null, // JSON, array
+//
+//
+//10.0.3.12:6379> keys icinga:hoststate.*
+//1) "icinga:hoststate.~\xf5a\x91+\x03\x97\x99\xb5(\x16 CYm\xb1\xdf\x85\xa2\xcb"
+//10.0.3.12:6379> get "icinga:hoststate.~\xf5a\x91+\x03\x97\x99\xb5(\x16 CYm\xb1\xdf\x85\xa2\xcb"
+//"{\"command\":[\"\\/usr\\/lib\\/nagios\\/plugins\\/check_ping\",\"-H\",\"127.0.0.1\",\"-c\",\"5000,100%\",\"-w\",\"3000,80%\"],\"execution_start\":1492007581.7624,\"execution_end\":1492007585.7654,\"schedule_start\":1492007581.7609,\"schedule_end\":1492007585.7655,\"exit_status\":0,\"output\":\"PING OK - Packet loss = 0%, RTA = 0.08 ms\",\"performance_data\":[\"rta=0.076000ms;3000.000000;5000.000000;0.000000\",\"pl=0%;80;100;0\"]}"
+//
+//*/
+//
+//		CheckResult::Ptr cr = checkable->GetLastCheckResult();
+//
+//		if (cr) {
+//			attrs->Set("command", JsonEncode(cr->GetCommand()));
+//			attrs->Set("execution_start", cr->GetExecutionStart());
+//			attrs->Set("execution_end", cr->GetExecutionEnd());
+//			attrs->Set("schedule_start", cr->GetScheduleStart());
+//			attrs->Set("schedule_end", cr->GetScheduleStart());
+//			attrs->Set("exit_status", cr->GetExitStatus());
+//			attrs->Set("output", cr->GetOutput());
+//			attrs->Set("performance_data", JsonEncode(cr->GetPerformanceData()));
+//		}
+//
+//		String jsonAttrs = JsonEncode(attrs);
+//		String key = "icinga:" + tableName + "." + objectCheckSum;
+//		ExecuteQuery({ "SET", key, jsonAttrs });
+//
+//		/* expire in check_interval * attempts + timeout + some more seconds */
+//		double expireTime = checkable->GetCheckInterval() * checkable->GetMaxCheckAttempts() + 60;
+//		ExecuteQuery({ "EXPIRE", key, String(expireTime) });
+//	}
 }
 
 void RedisWriter::StateChangedHandler(const ConfigObject::Ptr& object)
@@ -260,16 +324,7 @@ void RedisWriter::StateChangedHandler(const ConfigObject::Ptr& object)
 	Type::Ptr type = object->GetReflectionType();
 
 	for (const RedisWriter::Ptr& rw : ConfigType::GetObjectsByType<RedisWriter>()) {
-		rw->m_WorkQueue.Enqueue(boost::bind(&RedisWriter::SendStatusUpdate, rw, object, type->GetName()));
-	}
-}
-
-void RedisWriter::VarsChangedHandler(const ConfigObject::Ptr& object)
-{
-	Type::Ptr type = object->GetReflectionType();
-
-	for (const RedisWriter::Ptr& rw : ConfigType::GetObjectsByType<RedisWriter>()) {
-		rw->m_WorkQueue.Enqueue(boost::bind(&RedisWriter::SendConfigUpdate, rw, object, type->GetName(), true));
+		rw->m_WorkQueue.Enqueue(boost::bind(&RedisWriter::SendStatusUpdate, rw, object, true));
 	}
 }
 
@@ -280,12 +335,12 @@ void RedisWriter::VersionChangedHandler(const ConfigObject::Ptr& object)
 	if (object->IsActive()) {
 		/* Create or update the object config */
 		for (const RedisWriter::Ptr& rw : ConfigType::GetObjectsByType<RedisWriter>()) {
-			rw->m_WorkQueue.Enqueue(boost::bind(&RedisWriter::SendConfigUpdate, rw.get(), object, type->GetName(), true));
+			rw->m_WorkQueue.Enqueue(boost::bind(&RedisWriter::SendConfigUpdate, rw.get(), object, true, true));
 		}
 	} else if (!object->IsActive() && object->GetExtension("ConfigObjectDeleted")) { /* same as in apilistener-configsync.cpp */
 		/* Delete object config */
 		for (const RedisWriter::Ptr& rw : ConfigType::GetObjectsByType<RedisWriter>()) {
-			rw->m_WorkQueue.Enqueue(boost::bind(&RedisWriter::SendConfigDelete, rw.get(), object, type->GetName()));
+			rw->m_WorkQueue.Enqueue(boost::bind(&RedisWriter::SendConfigDelete, rw.get(), object));
 		}
 	}
 }
