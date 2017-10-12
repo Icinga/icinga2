@@ -88,6 +88,7 @@ private:
 	void ExceptionHandler(boost::exception_ptr exp);
 
 	boost::shared_ptr<redisReply> ExecuteQuery(const std::vector<String>& query);
+	std::vector<boost::shared_ptr<redisReply> > ExecuteQueries(const std::vector<std::vector<String> >& queries);
 
 	Timer::Ptr m_StatsTimer;
 	Timer::Ptr m_ReconnectTimer;

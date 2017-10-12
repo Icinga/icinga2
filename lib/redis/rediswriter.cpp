@@ -334,5 +334,62 @@ boost::shared_ptr<redisReply> RedisWriter::ExecuteQuery(const std::vector<String
 		);
 	}
 
-	return boost::shared_ptr<redisReply>(reply);
+	return boost::shared_ptr<redisReply>(reply, freeReplyObject);
+}
+
+std::vector<boost::shared_ptr<redisReply> > RedisWriter::ExecuteQueries(const std::vector<std::vector<String> >& queries)
+{
+	const char **argv;
+	size_t *argvlen;
+
+	for (const auto& query : queries) {
+		argv = new const char *[query.size()];
+		argvlen = new size_t[query.size()];
+
+		for (std::vector<String>::size_type i = 0; i < query.size(); i++) {
+			argv[i] = query[i].CStr();
+			argvlen[i] = query[i].GetLength();
+		}
+
+		redisAppendCommandArgv(m_Context, query.size(), argv, argvlen);
+
+		delete [] argv;
+		delete [] argvlen;
+	}
+
+	std::vector<boost::shared_ptr<redisReply> > replies;
+
+	for (size_t i = 0; i < queries.size(); i++) {
+		redisReply *rawReply;
+
+		if (redisGetReply(m_Context, reinterpret_cast<void **>(&rawReply)) == REDIS_ERR) {
+			BOOST_THROW_EXCEPTION(
+			    redis_error()
+				<< errinfo_message("redisGetReply() failed")
+			);
+		}
+
+		boost::shared_ptr<redisReply> reply(rawReply, freeReplyObject);
+		replies.push_back(reply);
+	}
+
+	for (size_t i = 0; i < queries.size(); i++) {
+		const auto& query = queries[i];
+		const auto& reply = replies[i];
+
+		if (reply->type == REDIS_REPLY_ERROR) {
+			Log(LogCritical, "RedisWriter")
+			    << "Redis query failed: " << reply->str;
+
+			String msg = reply->str;
+
+			BOOST_THROW_EXCEPTION(
+			    redis_error()
+				<< errinfo_message(msg)
+				<< errinfo_redis_query(Utility::Join(Array::FromVector(query), ' ', false))
+			);
+		}
+	}
+
+	return replies;
 }
