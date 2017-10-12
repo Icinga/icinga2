@@ -115,8 +115,12 @@ protected:
 private:
 	boost::shared_ptr<SSL_CTX> m_SSLContext;
 	std::set<TcpSocket::Ptr> m_Servers;
+
+	mutable boost::mutex m_AnonymousClientsLock;
+	mutable boost::mutex m_HttpClientsLock;
 	std::set<JsonRpcConnection::Ptr> m_AnonymousClients;
 	std::set<HttpServerConnection::Ptr> m_HttpClients;
+
 	Timer::Ptr m_Timer;
 	Timer::Ptr m_ReconnectTimer;
 	Timer::Ptr m_AuthorityTimer;
