@@ -22,6 +22,7 @@
 #include "base/json.hpp"
 #include "base/netstring.hpp"
 #include "base/exception.hpp"
+#include "base/application.hpp"
 
 using namespace icinga;
 
@@ -39,7 +40,12 @@ void ConfigCompilerContext::OpenObjectsFile(const String& filename)
 	m_ObjectsPath = filename;
 
 	std::fstream *fp = new std::fstream();
-	m_ObjectsTempFile = Utility::CreateTempFile(filename + ".XXXXXX", 0600, *fp);
+	try {
+		m_ObjectsTempFile = Utility::CreateTempFile(filename + ".XXXXXX", 0600, *fp);
+	} catch (const std::exception& ex) {
+		Log(LogCritical, "cli", "Could not create temporary objects file: " + DiagnosticInformation(ex, false));
+		Application::Exit(1);
+	}
 
 	if (!*fp)
 		BOOST_THROW_EXCEPTION(std::runtime_error("Could not open '" + m_ObjectsTempFile + "' file"));

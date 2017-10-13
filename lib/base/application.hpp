@@ -126,6 +126,10 @@ public:
 	static String GetRunAsGroup(void);
 	static void DeclareRunAsGroup(const String& group);
 
+#ifdef _WIN32
+	static bool IsProcessElevated(void);
+#endif /* _WIN32 */
+
 	static int GetRLimitFiles(void);
 	static int GetDefaultRLimitFiles(void);
 	static void DeclareRLimitFiles(int limit);

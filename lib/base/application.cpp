@@ -44,6 +44,10 @@
 #include <sys/prctl.h>
 #endif /* __linux__ */
 
+#ifdef _WIN32
+#include <windows.h>
+#endif /* _win32 */
+
 using namespace icinga;
 
 REGISTER_TYPE(Application);
@@ -779,6 +783,40 @@ BOOL WINAPI Application::CtrlHandler(DWORD type)
 
 	SetConsoleCtrlHandler(NULL, FALSE);
 	return TRUE;
+}
+
+bool Application::IsProcessElevated(void) {
+	BOOL fIsElevated = FALSE;
+	DWORD dwError = ERROR_SUCCESS;
+	HANDLE hToken = NULL;
+
+	if (!OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &hToken))
+		dwError = GetLastError();
+	else {
+		TOKEN_ELEVATION elevation;
+		DWORD dwSize;
+
+		if (!GetTokenInformation(hToken, TokenElevation, &elevation, sizeof(elevation), &dwSize))
+			dwError = GetLastError();
+		else
+			fIsElevated = elevation.TokenIsElevated;
+	}
+
+	if (hToken) {
+		CloseHandle(hToken);
+		hToken = NULL;
+	}
+
+	if (ERROR_SUCCESS != dwError) {
+		LPSTR mBuf = NULL;
+		if (!FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+			NULL, dwError, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), mBuf, 0, NULL))
+			BOOST_THROW_EXCEPTION(std::runtime_error("Failed to format error message, last error was: " + dwError));
+		else
+			BOOST_THROW_EXCEPTION(std::runtime_error(mBuf));
+	}
+
+	return fIsElevated;
 }
 #endif /* _WIN32 */
 
