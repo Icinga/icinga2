@@ -2531,6 +2531,7 @@ ipmi_protocol_lan_version        | **Optional.** Change the protocol LAN version
 ipmi_number_of_active_fans       | **Optional.** Number of fans that should be active. Otherwise a WARNING state is returned.
 ipmi_show_fru                    | **Optional.** Print the product serial number if it is available in the IPMI FRU data.
 ipmi_no_sel_checking             | **Optional.** Turn off system event log checking via ipmi-sel.
+ipmi_no_thresholds               | **Optional.** Turn off performance data thresholds from output-sensor-thresholds.
 ipmi_verbose                     | **Optional.** Be Verbose multi line output, also with additional details for warnings.
 ipmi_debug                       | **Optional.** Be Verbose debugging output, followed by normal multi line output.
 
