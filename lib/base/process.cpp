@@ -35,6 +35,7 @@
 #ifndef _WIN32
 #	include <execvpe.h>
 #	include <poll.h>
+#	include <string.h>
 
 #	ifndef __APPLE__
 extern char **environ;
@@ -210,10 +211,12 @@ static Value ProcessKillImpl(struct msghdr *msgh, const Dictionary::Ptr& request
 	pid_t pid = request->Get("pid");
 	int signum = request->Get("signum");
 
-	int rc = kill(pid, signum);
+	errno = 0;
+	kill(pid, signum);
+	int error = errno;
 
 	Dictionary::Ptr response = new Dictionary();
-	response->Set("rc", rc);
+	response->Set("errno", error);
 
 	return response;
 }
@@ -453,7 +456,7 @@ send_message:
 	String jresponse = String(buf, buf + rc);
 
 	Dictionary::Ptr response = JsonDecode(jresponse);
-	return response->Get("rc");
+	return response->Get("errno");
 }
 
 static int ProcessWaitPID(pid_t pid, int *status)
@@ -1008,6 +1011,9 @@ void Process::Run(const boost::function<void(const ProcessResult&)>& callback)
 bool Process::DoEvents(void)
 {
 	bool is_timeout = false;
+#ifndef _WIN32
+	bool could_not_kill = false;
+#endif /* _WIN32 */
 
 	if (m_Timeout != 0) {
 		double timeout = m_Result.ExecutionStart + m_Timeout;
@@ -1021,7 +1027,13 @@ bool Process::DoEvents(void)
 #ifdef _WIN32
 			TerminateProcess(m_Process, 1);
 #else /* _WIN32 */
-			ProcessKill(-m_Process, SIGKILL);
+			int error = ProcessKill(-m_Process, SIGKILL);
+			if (error) {
+				Log(LogWarning, "Process")
+				    << "Couldn't kill the process group " << m_PID << " (" << PrettyPrintArguments(m_Arguments)
+				    << "): [errno " << error << "] " << strerror(error);
+				could_not_kill = true;
+			}
 #endif /* _WIN32 */
 
 			is_timeout = true;
@@ -1067,7 +1079,9 @@ bool Process::DoEvents(void)
 	    << "PID " << m_PID << " (" << PrettyPrintArguments(m_Arguments) << ") terminated with exit code " << exitcode;
 #else /* _WIN32 */
 	int status, exitcode;
-	if (ProcessWaitPID(m_Process, &status) != m_Process) {
+	if (could_not_kill) {
+		exitcode = 128;
+	} else if (ProcessWaitPID(m_Process, &status) != m_Process) {
 		exitcode = 128;
 
 		Log(LogWarning, "Process")
