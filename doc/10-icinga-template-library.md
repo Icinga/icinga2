@@ -1458,7 +1458,7 @@ Threshold    | Meaning
 :------------|:----------
 "29"         | The threshold is 29.
 "!29"        | The threshold is 29, but the negative of the result is returned.
-"[10-40]"    | The threshold is a range from (including) 20 to 40, a value inside means the threshold has been exceeded.
+"[10-40]"    | The threshold is a range from (including) 10 to 40, a value inside means the threshold has been exceeded.
 "![10-40]"   | Same as above, but the result is inverted.
 
 
