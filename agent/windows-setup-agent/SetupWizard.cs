@@ -189,9 +189,6 @@ namespace Icinga
 
 			string args = "";
 
-			if (rdoNewMaster.Checked)
-				args += " --master";
-
 			Invoke((MethodInvoker)delegate
 			{
 				string master_host, master_port;
@@ -216,7 +213,9 @@ namespace Icinga
 			if (chkAcceptCommands.Checked)
 				args += " --accept-commands";
 
-			args += " --ticket \"" + txtTicket.Text + "\"";
+			if (txtTicket.Text != "")
+				args += " --ticket \"" + txtTicket.Text + "\"";
+
 			args += " --trustedcert \"" + _TrustedFile + "\"";
 			args += " --cn \"" + txtInstanceName.Text + "\"";
 			args += " --zone \"" + txtInstanceName.Text + "\"";
@@ -311,22 +310,15 @@ namespace Icinga
 					return;
 				}
 
-				if (txtTicket.Text.Length == 0) {
-					Warning("Please enter an agent ticket.");
+				if (lvwEndpoints.Items.Count == 0) {
+					Warning("You need to add at least one master/satellite endpoint.");
 					return;
 				}
 
-				if (rdoNoMaster.Checked) {
-					if (lvwEndpoints.Items.Count == 0) {
-						Warning("You need to add at least one master endpoint.");
-						return;
-					}
-
-					string host, port;
-					if (!GetMasterHostPort(out host, out port)) {
-						Warning("Please enter a remote host and port for at least one of your endpoints.");
-						return;
-					}
+				string host, port;
+				if (!GetMasterHostPort(out host, out port)) {
+					Warning("Please enter a remote host and port for at least one of your endpoints.");
+					return;
 				}
 
 				if (rdoListener.Checked && (txtListenerPort.Text == "")) {
@@ -335,7 +327,7 @@ namespace Icinga
 				}
 
 				if (txtUser.Text.Length == 0) {
-					Warning("Icinga2 user may not be empty.");
+					Warning("Icinga 2 user may not be empty.");
 					return;
 				}
 			}
@@ -373,33 +365,10 @@ namespace Icinga
 				thread.Start();
 			}
 
-			/*if (tbcPages.SelectedTab == tabParameters &&
-				!File.Exists(Icinga2DataDir + "\\etc\\icinga2\\pki\\agent\\agent.crt")) {
-				byte[] bytes = Convert.FromBase64String(txtBundle.Text);
-				MemoryStream ms = new MemoryStream(bytes);
-				GZipStream gz = new GZipStream(ms, CompressionMode.Decompress);
-				MemoryStream ms2 = new MemoryStream();
-
-				byte[] buffer = new byte[512];
-				int rc;
-				while ((rc = gz.Read(buffer, 0, buffer.Length)) > 0)
-					ms2.Write(buffer, 0, rc);
-				ms2.Position = 0;
-				TarReader tr = new TarReader(ms2);
-				tr.ReadToEnd(Icinga2DataDir + "\\etc\\icinga2\\pki\\agent");
-			}*/
-
 			if (tbcPages.SelectedTab == tabConfigure) {
 				Thread thread = new Thread(ConfigureService);
 				thread.Start();
 			}
-		}
-
-		private void RadioMaster_CheckedChanged(object sender, EventArgs e)
-		{
-			lvwEndpoints.Enabled = !rdoNewMaster.Checked;
-			btnAddEndpoint.Enabled = !rdoNewMaster.Checked;
-			btnRemoveEndpoint.Enabled = !rdoNewMaster.Checked && lvwEndpoints.SelectedItems.Count > 0;
 		}
 
 		private void RadioListener_CheckedChanged(object sender, EventArgs e)
