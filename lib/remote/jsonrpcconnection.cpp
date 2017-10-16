@@ -289,9 +289,11 @@ Value SetLogPositionHandler(const MessageOrigin::Ptr& origin, const Dictionary::
 
 void JsonRpcConnection::CheckLiveness(void)
 {
-	if (m_Seen < Utility::GetTime() - 60 && (!m_Endpoint || !m_Endpoint->GetSyncing())) {
+	int offset = 300;
+
+	if (m_Seen < Utility::GetTime() - offset && (!m_Endpoint || !m_Endpoint->GetSyncing())) {
 		Log(LogInformation, "JsonRpcConnection")
-		    <<  "No messages for identity '" << m_Identity << "' have been received in the last 60 seconds.";
+		    <<  "No messages for identity '" << m_Identity << "' have been received in the last " << offset << " seconds.";
 		Disconnect();
 	}
 }
