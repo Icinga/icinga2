@@ -147,6 +147,7 @@ void RedisWriter::TryToReconnect(void)
 	m_ConfigDumpInProgress = false;
 }
 
+/*
 void RedisWriter::UpdateSubscriptionsTimerHandler(void)
 {
 	m_WorkQueue.Enqueue(boost::bind(&RedisWriter::UpdateSubscriptions, this));
@@ -218,6 +219,7 @@ int RedisWriter::GetSubscriptionTypes(String key, RedisSubscriptionInfo& rsi)
 			<< "Invalid Redis subscriber info for subscriber '" << key << "': " << DiagnosticInformation(ex);
 	}
 }
+*/
 
 void RedisWriter::PublishStatsTimerHandler(void)
 {
@@ -270,13 +272,14 @@ void RedisWriter::HandleEvents(void)
 		if (!event)
 			continue;
 
-		m_WorkQueue.Enqueue(boost::bind(&RedisWriter::HandleEvent, this, event));
+		m_WorkQueue.Enqueue(boost::bind(&RedisWriter::SendEvent, this, event));
 	}
 
 	queue->RemoveClient(this);
 	EventQueue::UnregisterIfUnused(queueName, queue);
 }
 
+/*
 void RedisWriter::HandleEvent(const Dictionary::Ptr& event)
 {
 	AssertOnWorkQueue();
@@ -308,6 +311,22 @@ void RedisWriter::HandleEvent(const Dictionary::Ptr& event)
 		ExecuteQuery({ "LTRIM", "icinga:event:" + name, "0", String(maxEvents - 1)});
 		ExecuteQuery({ "EXEC" });
 	}
+}
+*/
+
+void RedisWriter::HandleEvent(const Dictionary::Ptr& event)
+{
+	AssertOnWorkQueue();
+
+	if (!m_Context)
+		return;
+
+	String body = JsonEncode(event);
+
+	Log(LogInformation, "RedisWriter")
+	    << "Sending event \"" << body << "\"";
+	ExecuteQuery({ "PUBLISH", "icinga:event:all", body });
+	ExecuteQuery({ "PUBLISH", "icinga:event:" + event->Get("type"), body });
 }
 
 void RedisWriter::Stop(bool runtimeRemoved)
