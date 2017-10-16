@@ -56,6 +56,7 @@ private:
 	void TryToReconnect(void);
 	void HandleEvents(void);
 	void HandleEvent(const Dictionary::Ptr& event);
+	void SendEvent(const Dictionary::Ptr& event);
 
 	void UpdateSubscriptionsTimerHandler(void);
 	void UpdateSubscriptions(void);
