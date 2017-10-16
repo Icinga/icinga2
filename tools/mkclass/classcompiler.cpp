@@ -510,6 +510,15 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 			m_Impl << "\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_cast<ConfigObject *>(this), boost::assign::list_of(\"" << field.Name << "\"), \"Attribute must not be empty.\"));" << std::endl << std::endl;
 		}
 
+		if (field.Attributes & FADeprecated) {
+			if (field.Type.GetRealType().find("::Ptr") != std::string::npos)
+				m_Impl << "\t" << "if (" << argName << ")" << std::endl;
+			else
+				m_Impl << "\t" << "if (!" << argName << ".IsEmpty())" << std::endl;
+
+			m_Impl << "\t\t" << "Log(LogWarning, \"" << klass.Name << "\") << \"Attribute '" << field.Name << "' for object '\" << dynamic_cast<ConfigObject *>(this)->GetName() << \"' of type '\" << dynamic_cast<ConfigObject *>(this)->GetReflectionType()->GetName() << \"' is deprecated and should not be used.\";" << std::endl;
+		}
+
 		if (field.Type.ArrayRank > 0) {
 			m_Impl << "\t" << "if (avalue) {" << std::endl
 			       << "\t\t" << "ObjectLock olock(avalue);" << std::endl

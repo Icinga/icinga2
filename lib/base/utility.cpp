@@ -816,6 +816,10 @@ void Utility::CollectPaths(const String& path, std::vector<String>& paths)
 	paths.push_back(path);
 }
 
+/*
+ * Copies a source file to a target location.
+ * Caller must ensure that the target's base directory exists and is writable.
+ */
 void Utility::CopyFile(const String& source, const String& target)
 {
 	std::ifstream ifs(source.CStr(), std::ios::binary);

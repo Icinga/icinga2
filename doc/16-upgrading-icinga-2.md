@@ -10,18 +10,102 @@ are scheme updates for the IDO database.
 The default certificate path was changed from `/etc/icinga2/pki` to
 `/var/lib/icinga2/certs`.
 
+  Old Path                                           | New Path
+  ---------------------------------------------------|---------------------------------------------------
+  `/etc/icinga2/pki/icinga2-client1.localdomain.crt` | `/var/lib/icinga2/certs/icinga2-client1.localdomain.crt`
+  `/etc/icinga2/pki/icinga2-client1.localdomain.key` | `/var/lib/icinga2/certs/icinga2-client1.localdomain.key`
+  `/etc/icinga2/pki/ca.crt`                          | `/var/lib/icinga2/certs/ca.crt`
+
 This applies to Windows clients in the same way: `%ProgramData%\etc\icinga2\pki`
-was moved to `%ProgramData%`\var\lib\icinga2\certs`.
+was moved to `%ProgramData%\var\lib\icinga2\certs`.
+
+  Old Path                                                        | New Path
+  ----------------------------------------------------------------|----------------------------------------------------------------
+  `%ProgramData%\etc\icinga2\pki\icinga2-client1.localdomain.crt` | `%ProgramData%\var\lib\icinga2\certs\icinga2-client1.localdomain.crt`
+  `%ProgramData%\etc\icinga2\pki\icinga2-client1.localdomain.key` | `%ProgramData%\var\lib\icinga2\certs\icinga2-client1.localdomain.key`
+  `%ProgramData%\etc\icinga2\pki\ca.crt`                          | `%ProgramData%\var\lib\icinga2\certs\ca.crt`
+
+
+> **Note**
+>
+> The default expected path for client certificates is `/var/lib/icinga2/certs/ + NodeName + {.crt,.key}`.
+> The `NodeName` constant is usually the FQDN and certificate common name (CN). Check the [conventions](06-distributed-monitoring.md#distributed-monitoring-conventions)
+> section inside the Distributed Monitoring chapter.
 
 The [setup CLI commands](06-distributed-monitoring.md#distributed-monitoring-setup-master) and the
 default [ApiListener configuration](06-distributed-monitoring.md#distributed-monitoring-apilistener)
 have been adjusted to these paths too.
+
+The [ApiListener](09-object-types.md#objecttype-apilistener) object attributes `cert_path`, `key_path`
+and `ca_path` have been deprecated and removed from the example configuration.
+
+#### Migration Path <a id="upgrading-to-2-8-certificate-paths-migration-path"></a>
+
+> **Note**
+>
+> Icinga 2 automatically migrates the certificates to the new default location if they
+> are configured and detected in `/etc/icinga2/pki`.
+
+During startup, the migration kicks in and ensures to copy the certificates to the new
+location. This will also happen if someone updates the certificate files in `/etc/icinga2/pki`
+to ensure that the new certificate location always has the latest files.
+
+This has been implemented in the Icinga 2 binary to ensure it works on both Linux/Unix
+and the Windows platform.
+
+If you are not using the built-in CLI commands and setup wizards to deploy the client certificates,
+please ensure to update your deployment tools/scripts. This mainly affects
+
+* Puppet modules
+* Ansible playbooks
+* Chef cookbooks
+* Salt recipes
+* Custom scripts, e.g. Windows Powershell or self-made implementations
+
+In order to support a smooth migration between versions older than 2.8 and future releases,
+the built-in certificate migration path is planned to exist as long as the deprecated
+`ApiListener` object attributes exist.
+
+You are safe to use the existing configuration paths inside the `api` feature. If you plan your migration,
+look at the following example taken from the Director Linux deployment script for clients.
+
+* Ensure that the default certificate path is changed from `/etc/icinga2/pki` to `/var/lib/icinga2/certs`.
+
+```
+-ICINGA2_SSL_DIR="${ICINGA2_CONF_DIR}/pki"
++ICINGA2_SSL_DIR="${ICINGA2_STATE_DIR}/lib/icinga2/certs"
+```
+
+* Remove the ApiListener configuration attributes.
+
+```
+object ApiListener "api" {
+-  cert_path = SysconfDir + "/icinga2/pki/${ICINGA2_NODENAME}.crt"
+-  key_path = SysconfDir + "/icinga2/pki/${ICINGA2_NODENAME}.key"
+-  ca_path = SysconfDir + "/icinga2/pki/ca.crt"
+  accept_commands = true
+  accept_config = true
+}
+```
+
+Test the script with a fresh client installation before putting it into production.
+
+> **Tip**
+>
+> Please support module and script developers in their migration. If you find
+> any project which would require these changes, create an issue or a patchset in a PR
+> and help them out. Thanks in advance!
+
 
 ### Removed Bottom Up Client Mode <a id="upgrading-to-2-8-removed-bottom-up-client-mode"></a>
 
 This client mode was deprecated in 2.6 and was removed in 2.8.
 
 The node CLI command does not provide `list` or `update-config` anymore.
+
+> **Note**
+>
+> The old migration guide can be found on [GitHub](https://github.com/Icinga/icinga2/blob/v2.7.0/doc/06-distributed-monitoring.md#bottom-up-migration-to-top-down-).
 
 The clients don't need to have a local `conf.d` directory included.
 The setup wizards for Linux and Windows attempt to disable this by default.
@@ -30,6 +114,7 @@ Icinga 2 continues to run with the generated and imported configuration.
 You are advised to [migrate](https://github.com/Icinga/icinga2/issues/4798)
 any existing configuration to the "top down" mode with the help of the
 Icinga Director or config management tools such as Puppet, Ansible, etc.
+
 
 ### Removed Classic UI Config Package <a id="upgrading-to-2-8-removed-classicui-config-package"></a>
 

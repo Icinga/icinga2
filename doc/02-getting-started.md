@@ -175,11 +175,11 @@ By default Icinga 2 uses the following files and directories:
   /usr/lib\*/icinga2				| Libraries and the Icinga 2 binary (use `find /usr -type f -name icinga2` to locate the binary path).
   /usr/share/doc/icinga2              		| Documentation files that come with Icinga 2.
   /usr/share/icinga2/include          		| The Icinga Template Library and plugin command configuration.
+  /var/lib/icinga2                    		| Icinga 2 state file, cluster log, master CA, node certificates and configuration files (cluster, api).
   /var/run/icinga2                    		| PID file.
   /var/run/icinga2/cmd                		| Command pipe and Livestatus socket.
   /var/cache/icinga2                  		| status.dat/objects.cache, icinga2.debug files
   /var/spool/icinga2                  		| Used for performance data spool files.
-  /var/lib/icinga2                    		| Icinga 2 state file, cluster log, local CA and configuration files (cluster, api).
   /var/log/icinga2                    		| Log file location and compat/ directory for the CompatLogger feature.
 
 FreeBSD uses slightly different paths:
@@ -194,11 +194,11 @@ By default Icinga 2 uses the following files and directories:
   /usr/local/lib/icinga2              | Libraries and the Icinga 2 binary.
   /usr/local/share/doc/icinga2        | Documentation files that come with Icinga 2.
   /usr/local/share/icinga2/include    | The Icinga Template Library and plugin command configuration.
+  /var/lib/icinga2                    | Icinga 2 state file, cluster log, master CA, node certificates and configuration files (cluster, api).
   /var/run/icinga2                    | PID file.
   /var/run/icinga2/cmd                | Command pipe and Livestatus socket.
   /var/cache/icinga2                  | status.dat/objects.cache, icinga2.debug files
   /var/spool/icinga2                  | Used for performance data spool files.
-  /var/lib/icinga2                    | Icinga 2 state file, cluster log, local CA and configuration files (cluster, api).
   /var/log/icinga2                    | Log file location and compat/ directory for the CompatLogger feature.
 
 ## Setting up Check Plugins <a id="setting-up-check-plugins"></a>
@@ -877,5 +877,6 @@ popular addons is available in the
 Ensure to include the following in your backups:
 
 * Configuration files in `/etc/icinga2`
-* Runtime files in `/var/lib/icinga2` (the master's CA is stored here as well)
+* Certificate files in `/var/lib/icinga2/ca` (Master CA key pair) and `/var/lib/icinga2/certs` (node certificates)
+* Runtime files in `/var/lib/icinga2`
 * Optional: IDO database backup

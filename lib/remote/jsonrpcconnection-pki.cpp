@@ -56,7 +56,7 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 		cert = StringToCertificate(certText);
 
 	ApiListener::Ptr listener = ApiListener::GetInstance();
-	boost::shared_ptr<X509> cacert = GetX509Certificate(listener->GetCaPath());
+	boost::shared_ptr<X509> cacert = GetX509Certificate(listener->GetDefaultCaPath());
 
 	String cn = GetCertificateCN(cert);
 
@@ -183,7 +183,7 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 	 * a certificate it wouldn't be able to use to connect to us anyway) */
 	if (!VerifyCertificate(cacert, newcert)) {
 		Log(LogWarning, "JsonRpcConnection")
-		    << "The CA in '" << listener->GetCaPath() << "' does not match the CA which Icinga uses "
+		    << "The CA in '" << listener->GetDefaultCaPath() << "' does not match the CA which Icinga uses "
 		    << "for its own cluster connections. This is most likely a configuration problem.";
 		goto delayed_request;
 	}
@@ -285,7 +285,7 @@ Value UpdateCertificateHandler(const MessageOrigin::Ptr& origin, const Dictionar
 	if (!listener)
 		return Empty;
 
-	boost::shared_ptr<X509> oldCert = GetX509Certificate(listener->GetCertPath());
+	boost::shared_ptr<X509> oldCert = GetX509Certificate(listener->GetDefaultCertPath());
 	boost::shared_ptr<X509> newCert = StringToCertificate(cert);
 
 	String cn = GetCertificateCN(newCert);
@@ -328,7 +328,7 @@ Value UpdateCertificateHandler(const MessageOrigin::Ptr& origin, const Dictionar
 	}
 
 	/* Update CA certificate. */
-	String caPath = listener->GetCaPath();
+	String caPath = listener->GetDefaultCaPath();
 
 	Log(LogInformation, "JsonRpcConnection")
 	    << "Updating CA certificate in '" << caPath << "'.";
@@ -350,7 +350,7 @@ Value UpdateCertificateHandler(const MessageOrigin::Ptr& origin, const Dictionar
 	}
 
 	/* Update signed certificate. */
-	String certPath = listener->GetCertPath();
+	String certPath = listener->GetDefaultCertPath();
 
 	Log(LogInformation, "JsonRpcConnection")
 	    << "Updating client certificate for CN '" << cn << "' in '" << certPath << "'.";

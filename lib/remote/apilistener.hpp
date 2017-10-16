@@ -104,6 +104,10 @@ public:
 	static bool IsHACluster(void);
 	static String GetFromZoneName(const Zone::Ptr& fromZone);
 
+	static String GetDefaultCertPath(void);
+	static String GetDefaultKeyPath(void);
+	static String GetDefaultCaPath(void);
+
 protected:
 	virtual void OnConfigLoaded(void) override;
 	virtual void OnAllConfigLoaded(void) override;
@@ -156,6 +160,8 @@ private:
 	void CloseLogFile(void);
 	static void LogGlobHandler(std::vector<int>& files, const String& file);
 	void ReplayLog(const JsonRpcConnection::Ptr& client);
+
+	static void CopyCertificateFile(const String& oldCertPath, const String& newCertPath);
 
 	/* filesync */
 	static ConfigDirInformation LoadConfigDir(const String& dir);
