@@ -259,7 +259,7 @@ namespace Icinga
 				"--scm-install --scm-user \"" + txtUser.Text + "\" daemon",
 				out output)) {
 				ShowErrorText("\nRunning command 'icinga2.exe --scm-install --scm-user \"" +
-				    txtUser.Text + "\" daemon' produced the following output:\n" + output);
+					txtUser.Text + "\" daemon' produced the following output:\n" + output);
 				return;
 			}
 
@@ -478,7 +478,7 @@ namespace Icinga
 		private void lvwEndpoints_SelectedIndexChanged(object sender, EventArgs e)
 		{
 			btnRemoveEndpoint.Enabled = lvwEndpoints.SelectedItems.Count > 0;
-            btnEditEndpoint.Enabled = lvwEndpoints.SelectedItems.Count > 0;
+			btnEditEndpoint.Enabled = lvwEndpoints.SelectedItems.Count > 0;
 		}
 
 		private void lvwX509Fields_SelectedIndexChanged(object sender, EventArgs e)
@@ -497,43 +497,43 @@ namespace Icinga
 				lvwEndpoints.Items.Remove(lvwEndpoints.SelectedItems[0]);
 			}
 		}
-    
-        private void chkRunServiceAsThisUser_CheckedChanged(object sender, EventArgs e)
+
+		private void chkRunServiceAsThisUser_CheckedChanged(object sender, EventArgs e)
 		{
 			txtUser.Enabled = !txtUser.Enabled;
 			if (!txtUser.Enabled)
 				txtUser.Text = Icinga2User;
 		}
-    
-        private void btnEditEndpoint_Click(object sender, EventArgs e)
-        {
-            ListViewItem lvi = lvwEndpoints.SelectedItems[0];
-            EndpointInputBox eib = new EndpointInputBox();
 
-            eib.Text = "Edit Endpoint";
-            eib.txtInstanceName.Text = lvi.SubItems[0].Text;
+		private void btnEditEndpoint_Click(object sender, EventArgs e)
+		{
+			ListViewItem lvi = lvwEndpoints.SelectedItems[0];
+			EndpointInputBox eib = new EndpointInputBox();
 
-            if (lvi.SubItems.Count >= 2) {
-                eib.txtHost.Text = lvi.SubItems[1].Text;
-                eib.txtPort.Text = lvi.SubItems[2].Text;
-                eib.chkConnect.Checked = true;
-            }
+			eib.Text = "Edit Endpoint";
+			eib.txtInstanceName.Text = lvi.SubItems[0].Text;
 
-            if (eib.ShowDialog(this) == DialogResult.Cancel)
-                return;
+			if (lvi.SubItems.Count >= 2) {
+				eib.txtHost.Text = lvi.SubItems[1].Text;
+				eib.txtPort.Text = lvi.SubItems[2].Text;
+				eib.chkConnect.Checked = true;
+			}
 
-            lvwEndpoints.Items.Remove(lvi);
+			if (eib.ShowDialog(this) == DialogResult.Cancel)
+				return;
 
-            ListViewItem lvi2 = new ListViewItem();
-            lvi2.Text = eib.txtInstanceName.Text;
+			lvwEndpoints.Items.Remove(lvi);
 
-            if (eib.chkConnect.Checked) {
-                lvi2.SubItems.Add(eib.txtHost.Text);
-                lvi2.SubItems.Add(eib.txtPort.Text);
-            }
+			ListViewItem lvi2 = new ListViewItem();
+			lvi2.Text = eib.txtInstanceName.Text;
 
-            lvwEndpoints.Items.Add(lvi2);
-        }
-    }
+			if (eib.chkConnect.Checked) {
+				lvi2.SubItems.Add(eib.txtHost.Text);
+				lvi2.SubItems.Add(eib.txtPort.Text);
+			}
+
+			lvwEndpoints.Items.Add(lvi2);
+		}
+	}
 }
 
