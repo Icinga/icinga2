@@ -61,7 +61,7 @@ void NodeSetupCommand::InitParameters(boost::program_options::options_descriptio
 		("master_host", po::value<std::string>(), "The name of the master host for auto-signing the csr; syntax: host[,port]")
 		("endpoint", po::value<std::vector<std::string> >(), "Connect to remote endpoint; syntax: cn[,host,port]")
 		("listen", po::value<std::string>(), "Listen on host,port")
-		("ticket", po::value<std::string>(), "Generated ticket number for this request")
+		("ticket", po::value<std::string>(), "Generated ticket number for this request (optional)")
 		("trustedcert", po::value<std::string>(), "Trusted master certificate file")
 		("cn", po::value<std::string>(), "The certificate's common name")
 		("accept-config", "Accept config from master")
@@ -236,15 +236,7 @@ int NodeSetupCommand::SetupMaster(const boost::program_options::variables_map& v
 
 int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap)
 {
-	/* require ticket number (generated on master) and at least one endpoint */
-
-	if (!vm.count("ticket")) {
-		Log(LogCritical, "cli")
-		    << "Please pass the ticket number generated on master\n"
-		    << "(Hint: 'icinga2 pki ticket --cn " << Utility::GetFQDN() << "').";
-		return 1;
-	}
-
+	/* require at least one endpoint. Ticket is optional. */
 	if (!vm.count("endpoint")) {
 		Log(LogCritical, "cli", "You need to specify at least one endpoint (--endpoint).");
 		return 1;
@@ -255,10 +247,18 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 		return 1;
 	}
 
-	String ticket = vm["ticket"].as<std::string>();
+	String ticket;
 
-	Log(LogInformation, "cli")
-	    << "Verifying ticket '" << ticket << "'.";
+	if (vm.count("ticket"))
+		ticket = vm["ticket"].as<std::string>();
+
+	if (ticket.IsEmpty()) {
+		Log(LogInformation, "cli")
+		    << "Requesting certificate without a ticket.";
+	} else {
+		Log(LogInformation, "cli")
+		    << "Requesting certificate with ticket '" << ticket << "'.";
+	}
 
 	/* require master host information for auto-signing requests */
 
@@ -340,8 +340,11 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 
 	Log(LogInformation, "cli", "Requesting a signed certificate from the parent Icinga node.");
 
-	if (PkiUtility::RequestCertificate(master_host, master_port, key, cert, ca, trustedcert, ticket) != 0) {
-		Log(LogCritical, "cli", "Failed to request certificate from parent Icinga node.");
+	if (PkiUtility::RequestCertificate(master_host, master_port, key, cert, ca, trustedcert, ticket) > 0) {
+		Log(LogCritical, "cli")
+		    << "Failed to fetch signed certificate from parent Icinga node '"
+		    << master_host << ", "
+		    << master_port << "'. Please try again.";
 		return 1;
 	}
 
@@ -444,30 +447,32 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 	NodeUtility::UpdateConstant("NodeName", cn);
 	NodeUtility::UpdateConstant("ZoneName", vm["zone"].as<std::string>());
 
-	String ticketPath = ApiListener::GetCertsDir() + "/ticket";
+	if (!ticket.IsEmpty()) {
+		String ticketPath = ApiListener::GetCertsDir() + "/ticket";
 
-	String tempTicketPath = Utility::CreateTempFile(ticketPath + ".XXXXXX", 0600, fp);
+		String tempTicketPath = Utility::CreateTempFile(ticketPath + ".XXXXXX", 0600, fp);
 
-	if (!Utility::SetFileOwnership(tempTicketPath, user, group)) {
-		Log(LogWarning, "cli")
-		    << "Cannot set ownership for user '" << user
-		    << "' group '" << group
-		    << "' on file '" << tempTicketPath << "'. Verify it yourself!";
-	}
+		if (!Utility::SetFileOwnership(tempTicketPath, user, group)) {
+			Log(LogWarning, "cli")
+			    << "Cannot set ownership for user '" << user
+			    << "' group '" << group
+			    << "' on file '" << tempTicketPath << "'. Verify it yourself!";
+		}
 
-	fp << ticket;
+		fp << ticket;
 
-	fp.close();
+		fp.close();
 
 #ifdef _WIN32
-	_unlink(ticketPath.CStr());
+		_unlink(ticketPath.CStr());
 #endif /* _WIN32 */
 
-	if (rename(tempTicketPath.CStr(), ticketPath.CStr()) < 0) {
-		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("rename")
-		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(tempTicketPath));
+		if (rename(tempTicketPath.CStr(), ticketPath.CStr()) < 0) {
+			BOOST_THROW_EXCEPTION(posix_error()
+			    << boost::errinfo_api_function("rename")
+			    << boost::errinfo_errno(errno)
+			    << boost::errinfo_file_name(tempTicketPath));
+		}
 	}
 
 	/* tell the user to reload icinga2 */

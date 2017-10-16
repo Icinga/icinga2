@@ -374,7 +374,7 @@ wizard_ticket:
 			Log(LogCritical, "cli")
 			    << "Failed to fetch signed certificate from master '"
 			    << parentHost << ", "
-			    << parentPort <<"'. Please try again.";
+			    << parentPort << "'. Please try again.";
 			goto wizard_ticket;
 		}
 
