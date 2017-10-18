@@ -398,7 +398,7 @@ flexlm_timeout     | **Optional.** Plugin time out in seconds. Defaults to 15.
 
 The [check_fping](https://www.monitoring-plugins.org/doc/man/check_fping.html) plugin
 uses the `fping` command to ping the specified host for a fast check. Note that it is
-necessary to set the suid flag on fping.
+necessary to set the `suid` flag on `fping`.
 
 This CheckCommand expects an IPv4 address.
 
@@ -423,7 +423,7 @@ fping_source_interface | **Optional.** The source interface name.
 
 The [check_fping](https://www.monitoring-plugins.org/doc/man/check_fping.html) plugin
 will use the `fping` command to ping the specified host for a fast check. Note that it is
-necessary to set the suid flag on fping.
+necessary to set the `suid` flag on `fping`.
 
 This CheckCommand expects an IPv6 address.
 
@@ -601,11 +601,11 @@ http_ignore_body                 | **Optional.** Don't download the body, just t
 http_linespan                    | **Optional.** Allow regex to span newline.
 http_expect_body_regex           | **Optional.** A regular expression which the body must match against. Incompatible with http_ignore_body.
 http_expect_body_eregi           | **Optional.** A case-insensitive expression which the body must match against. Incompatible with http_ignore_body.
-http_invertregex                 | **Optional.** Changes behaviour of http_expect_body_regex and http_expect_body_eregi to return CRITICAL if found, OK if not.
+http_invertregex                 | **Optional.** Changes behavior of http_expect_body_regex and http_expect_body_eregi to return CRITICAL if found, OK if not.
 http_warn_time                   | **Optional.** The warning threshold.
 http_critical_time               | **Optional.** The critical threshold.
 http_expect                      | **Optional.** Comma-delimited list of strings, at least one of them is expected in the first (status) line of the server response. Default: HTTP/1.
-http_certificate                 | **Optional.** Minimum number of days a certificate has to be valid. This parameter explicitely sets the port to 443 and ignores the URL if passed.
+http_certificate                 | **Optional.** Minimum number of days a certificate has to be valid. This parameter explicitly sets the port to 443 and ignores the URL if passed.
 http_clientcert                  | **Optional.** Name of file contains the client certificate (PEM format).
 http_privatekey                  | **Optional.** Name of file contains the private key (PEM format).
 http_headerstring                | **Optional.** String to expect in the response headers.
@@ -631,8 +631,8 @@ http_verbose                     | **Optional.** Show details for command-line d
 The [check_icmp](https://www.monitoring-plugins.org/doc/man/check_icmp.html) plugin
 check_icmp allows for checking multiple hosts at once compared to `check_ping`.
 The main difference is that check_ping executes the system's ping(1) command and
-parses its output while check_icmp talks ICMP itself. check_icmp must be installed
-setuid root.
+parses its output while `check_icmp` talks ICMP itself. `check_icmp` must be installed with
+`setuid` root.
 
 Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
 
@@ -974,7 +974,7 @@ The [check_ping](https://www.monitoring-plugins.org/doc/man/check_ping.html) plu
 uses the ping command to probe the specified host for packet loss (percentage) and
 round trip average (milliseconds).
 
-This command uses the host's `address` attribute if not explicitely specified using
+This command uses the host's `address` attribute if not explicitly specified using
 the `ping_address` attribute.
 
 Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
@@ -995,7 +995,7 @@ The [check_ping](https://www.monitoring-plugins.org/doc/man/check_ping.html) plu
 uses the ping command to probe the specified host for packet loss (percentage) and
 round trip average (milliseconds).
 
-This command uses the host's `address6` attribute if not explicitely specified using
+This command uses the host's `address6` attribute if not explicitly specified using
 the `ping_address` attribute.
 
 Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
@@ -1443,7 +1443,7 @@ users_cgreater  | **Optional.** The user count critical threshold. Defaults to 5
 
 To allow a basic monitoring of Windows clients Icinga 2 comes with a set of Windows only plugins. While trying to mirror the functionalities of their linux cousins from the monitoring-plugins package, the differences between Windows and Linux are too big to be able use the same CheckCommands for both systems.
 
-A check-commands-windows.conf comes with Icinga 2, it asumes that the Windows Plugins are installed in the PluginDir set in your constants.conf. To enable them the following include directive is needed in you icinga2.conf:
+A check-commands-windows.conf comes with Icinga 2, it assumes that the Windows Plugins are installed in the PluginDir set in your constants.conf. To enable them the following include directive is needed in you icinga2.conf:
 
 	include <windows-plugins>
 
@@ -1465,7 +1465,7 @@ Threshold    | Meaning
 ### disk-windows <a id="windows-plugins-disk-windows"></a>
 
 Check command object for the `check_disk.exe` plugin.
-Aggregates the disk space of all volumes and mount points it can find, or the ones defined in `disk_win_path`. Ignores removable storage like fash drives and discs (CD, DVD etc.).
+Aggregates the disk space of all volumes and mount points it can find, or the ones defined in `disk_win_path`. Ignores removable storage like flash drives and discs (CD, DVD etc.).
 The data collection is instant and free disk space (default, see `disk_win_show_used`) is used for threshold computation.
 
 > **Note**
@@ -1514,13 +1514,13 @@ Name              | Description
 :-----------------|:------------
 memory\_win\_warn | **Optional**. The warning threshold.
 memory\_win\_crit | **Optional**. The critical threshold.
-memory\_win\_unit | **Optional**. The unit to display the received value in, thresholds are interpreted in this unit. Defaults to "mb" (megabye), possible values are: b, kb, mb, gb and tb.
+memory\_win\_unit | **Optional**. The unit to display the received value in, thresholds are interpreted in this unit. Defaults to "mb" (megabyte), possible values are: b, kb, mb, gb and tb.
 
 
 ### network-windows <a id="windows-plugins-network-windows"></a>
 
 Check command object for the `check_network.exe` plugin.
-Collects the total Bytes inbount and outbound for all interfaces in one second, to itemise interfaces or use a different collection interval use [`perfmon-windows`](10-icinga-template-library.md#windows-plugins-load-windows).
+Collects the total Bytes inbound and outbound for all interfaces in one second, to itemise interfaces or use a different collection interval use [`perfmon-windows`](10-icinga-template-library.md#windows-plugins-load-windows).
 
 Custom attributes:
 
@@ -1546,14 +1546,14 @@ perfmon\_win\_warn    | **Optional**. The warning threshold.
 perfmon\_win\_crit    | **Optional**. The critical threshold.
 perfmon\_win\_counter | **Required**. The Performance Counter to use. Ex. `\Processor(_Total)\% Idle Time`.
 perfmon\_win\_wait    | **Optional**. Time in milliseconds to wait between data collection (default: 1000).
-perfmon\_win\_type    | **Optional**. Format in which to expect perfomance values. Possible are: long, int64 and double (default).
-perfmon\_win\_syntax  | **Optional**. Use this in the performance output instead of `perfmon\_win\_counter`. Exists for graphice compatibility reasons.
+perfmon\_win\_type    | **Optional**. Format in which to expect performance values. Possible are: long, int64 and double (default).
+perfmon\_win\_syntax  | **Optional**. Use this in the performance output instead of `perfmon\_win\_counter`. Exists for graphics compatibility reasons.
 
 
 ### ping-windows <a id="windows-plugins-ping-windows"></a>
 
 Check command object for the `check_ping.exe` plugin.
-ping-windows should automaticly detect whether `ping_win_address` is an IPv4 or IPv6 address. If not, use ping4-windows and ping6-windows. Also note that check\_ping.exe waits at least `ping_win_timeout` milliseconds between the pings.
+ping-windows should automatically detect whether `ping_win_address` is an IPv4 or IPv6 address. If not, use ping4-windows and ping6-windows. Also note that check\_ping.exe waits at least `ping_win_timeout` milliseconds between the pings.
 
 Custom attributes:
 
@@ -1561,7 +1561,7 @@ Name               | Description
 :------------------|:------------
 ping\_win\_warn    | **Optional**. The warning threshold. RTA and package loss separated by comma.
 ping\_win\_crit    | **Optional**. The critical threshold. RTA and package loss separated by comma.
-ping\_win\_address | **Required**. An IPv4 or IPv6 address
+ping\_win\_address | **Required**. An IPv4 or IPv6 address.
 ping\_win\_packets | **Optional**. Number of packages to send. Default: 5.
 ping\_win\_timeout | **Optional**. The timeout in milliseconds. Default: 1000
 
@@ -1569,7 +1569,7 @@ ping\_win\_timeout | **Optional**. The timeout in milliseconds. Default: 1000
 ### procs-windows <a id="windows-plugins-procs-windows"></a>
 
 Check command object for `check_procs.exe` plugin.
-When useing `procs_win_user` this plugins needs adminstratice privileges to access the processes of other users, to just enumerate them no additional privileges are required.
+When using `procs_win_user` this plugins needs administrative privileges to access the processes of other users, to just enumerate them no additional privileges are required.
 
 Custom attributes:
 
@@ -1577,7 +1577,7 @@ Name             | Description
 :----------------|:------------
 procs\_win\_warn | **Optional**. The warning threshold.
 procs\_win\_crit | **Optional**. The critical threshold.
-procs\_win\_user | **Optional**. Count this useres processes.
+procs\_win\_user | **Optional**. Count this users processes.
 
 
 ### service-windows <a id="windows-plugins-service-windows"></a>
@@ -1627,19 +1627,19 @@ update\_win\_crit   | **Optional**. If set, return critical when important updat
 update\_win\_reboot | **Optional**. Set to treat 'may need update' as 'definitely needs update'. Please Note that this is true for almost every update and is therefore not recommended.
 
 
-In contrast to most other plugins, the values of check_update's custom attributes do not set thresholds, but just enable/disable the behaviour described in the table above.  
+In contrast to most other plugins, the values of check_update's custom attributes do not set thresholds, but just enable/disable the behavior described in the table above.  
 It can be enabled/disabled for example by setting them to "true" or "false", "1" or "0" would also work.  
 Thresholds will always be "1".
 
 > **Note**
 >
-> If they are enabled, performance data will be shown in the webinterface.  
+> If they are enabled, performance data will be shown in the web interface.  
 > If run without the optional parameters, the plugin will output critical if any important updates are available.  
 
 
 ### uptime-windows <a id="windows-plugins-uptime-windows"></a>
 
-Check command opject for `check_uptime.exe` plugin.
+Check command object for `check_uptime.exe` plugin.
 Uses GetTickCount64 to get the uptime, so boot time is not included.
 
 Custom attributes:
@@ -1757,7 +1757,7 @@ Check command object for the `check_cpu` NSClient++ plugin.
 
 Name                | Description
 --------------------|------------------
-nscp_cpu_time       | **Optional.** Calculate avarage usage for the given time intervals. Value has to be an array, default to [ "1m", "5m", "15m" ].
+nscp_cpu_time       | **Optional.** Calculate average usage for the given time intervals. Value has to be an array, default to [ "1m", "5m", "15m" ].
 nscp_cpu_warning    | **Optional.** Threshold for WARNING state in percent, default to 80.
 nscp_cpu_critical   | **Optional.** Threshold for CRITICAL state in percent, default to 90.
 nscp_cpu_arguments  | **Optional.** Additional arguments.
@@ -1772,8 +1772,8 @@ Name                  | Description
 nscp_memory_committed | **Optional.** Check for committed memory, default to false.
 nscp_memory_physical  | **Optional.** Check for physical memory, default to true.
 nscp_memory_free      | **Optional.** Switch between checking free (true) or used memory (false), default to false.
-nscp_memory_warning   | **Optional.** Threshold for WARNING state in percent or absolut (use MB, GB, ...), default to 80 (free=false) or 20 (free=true).
-nscp_memory_critical  | **Optional.** Threshold for CRITICAL state in percent or absolut (use MB, GB, ...), default to 90 (free=false) or 10 (free=true).
+nscp_memory_warning   | **Optional.** Threshold for WARNING state in percent or absolute (use MB, GB, ...), default to 80 (free=false) or 20 (free=true).
+nscp_memory_critical  | **Optional.** Threshold for CRITICAL state in percent or absolute (use MB, GB, ...), default to 90 (free=false) or 10 (free=true).
 nscp_memory_arguments | **Optional.** Additional arguments.
 nscp_memory_showall   | **Optional.** Shows more details in plugin output, default to false.
 
@@ -1833,8 +1833,8 @@ Name                   | Description
 -----------------------|------------------
 nscp_disk_drive        | **Optional.** Drive character, default to all drives.
 nscp_disk_free         | **Optional.** Switch between checking free space (free=true) or used space (free=false), default to false.
-nscp_disk_warning      | **Optional.** Threshold for WARNING in percent or absolut (use MB, GB, ...), default to 80 (used) or 20 percent (free).
-nscp_disk_critical     | **Optional.** Threshold for CRITICAL in percent or absolut (use MB, GB, ...), default to 90 (used) or 10 percent (free).
+nscp_disk_warning      | **Optional.** Threshold for WARNING in percent or absolute (use MB, GB, ...), default to 80 (used) or 20 percent (free).
+nscp_disk_critical     | **Optional.** Threshold for CRITICAL in percent or absolute (use MB, GB, ...), default to 90 (used) or 10 percent (free).
 nscp_disk_arguments    | **Optional.** Additional arguments.
 nscp_disk_showall      | **Optional.** Shows more details in plugin output, default to true.
 nscp_modules           | **Optional.** An array of NSClient++ modules to load. Defaults to `[ "CheckDisk" ]`.
@@ -2096,7 +2096,7 @@ snmp_password              | **Required.** SNMP version 3 password. No value def
 snmp_v3_use_privpass       | **Optional.** Define to use SNMP version 3 priv password. Defaults to false.
 snmp_v3_use_authprotocol   | **Optional.** Define to use SNMP version 3 authentication protocol. Defaults to false.
 snmp_authprotocol          | **Optional.** SNMP version 3 authentication protocol. Defaults to "md5,des".
-snmp_privpass              | **Required.** SNMP version 3 priv password. No value defined as default..
+snmp_privpass              | **Required.** SNMP version 3 priv password. No value defined as default.
 snmp_timeout               | **Optional.** The command timeout in seconds. Defaults to 5 seconds.
 snmp_service_name          | **Optional.** Comma separated names of services (perl regular expressions can be used for every one). By default, it is not case sensitive. eg. ^dns$. Defaults to ".*".
 snmp_service_count         | **Optional.** Compare matching services with a specified number instead of the number of names provided.
@@ -2332,23 +2332,23 @@ Custom attributes passed as [command parameters](03-monitoring-basics.md#command
 Name                             | Description
 ---------------------------------|------------------------------------------------------------------------------------------------------------------------------
 mongodb_host                     | **Required.** Specifies the hostname or address.
-mongodb_port                     | **Required.** The port mongodb is runnung on.
-mongodb_user                     | **Optional.** The username you want to login as
-mongodb_passwd                   | **Optional.** The password you want to use for that user
-mongodb_warning                  | **Optional.** The warning threshold we want to set
-mongodb_critical                 | **Optional.** The critical threshold we want to set
-mongodb_action                   | **Required.** The action you want to take
-mongodb_maxlag                   | **Optional.** Get max replication lag (for replication_lag action only)
-mongodb_mappedmemory             | **Optional.** Get mapped memory instead of resident (if resident memory can not be read)
-mongodb_perfdata                 | **Optional.** Enable output of Nagios performance data
-mongodb_database                 | **Optional.** Specify the database to check
-mongodb_alldatabases             | **Optional.** Check all databases (action database_size)
-mongodb_ssl                      | **Optional.** Connect using SSL
-mongodb_replicaset               | **Optional.** Connect to replicaset
-mongodb_replcheck                | **Optional.** If set to true, will enable the mongodb_replicaset value needed for "replica_primary" check
-mongodb_querytype                | **Optional.** The query type to check [query\|insert\|update\|delete\|getmore\|command] from queries_per_second
-mongodb_collection               | **Optional.** Specify the collection to check
-mongodb_sampletime               | **Optional.** Time used to sample number of pages faults
+mongodb_port                     | **Required.** The port mongodb is running on.
+mongodb_user                     | **Optional.** The username you want to login as.
+mongodb_passwd                   | **Optional.** The password you want to use for that user.
+mongodb_warning                  | **Optional.** The warning threshold we want to set.
+mongodb_critical                 | **Optional.** The critical threshold we want to set.
+mongodb_action                   | **Required.** The action you want to take.
+mongodb_maxlag                   | **Optional.** Get max replication lag (for replication_lag action only).
+mongodb_mappedmemory             | **Optional.** Get mapped memory instead of resident (if resident memory can not be read).
+mongodb_perfdata                 | **Optional.** Enable output of Nagios performance data.
+mongodb_database                 | **Optional.** Specify the database to check.
+mongodb_alldatabases             | **Optional.** Check all databases (action database_size).
+mongodb_ssl                      | **Optional.** Connect using SSL.
+mongodb_replicaset               | **Optional.** Connect to replicaset.
+mongodb_replcheck                | **Optional.** If set to true, will enable the mongodb_replicaset value needed for "replica_primary" check.
+mongodb_querytype                | **Optional.** The query type to check [query\|insert\|update\|delete\|getmore\|command] from queries_per_second.
+mongodb_collection               | **Optional.** Specify the collection to check.
+mongodb_sampletime               | **Optional.** Time used to sample number of pages faults.
 
 #### elasticsearch <a id="plugin-contrib-command-elasticsearch"></a>
 
@@ -2433,7 +2433,7 @@ hpasm_blacklist			| **Optional.** Blacklist some (missing/failed) components.
 hpasm_ignore-dimms		| **Optional.** Ignore "N/A"-DIMM status on misc. servers (e.g. older DL320).
 hpasm_ignore-fan-redundancy	| **Optional.** Ignore missing redundancy partners.
 hpasm_customthresholds		| **Optional.** Use custom thresholds for certain temperatures.
-hpasm_eventrange		| **Optional.** Period of time before critical IML events respecively become warnings or vanish. A range is descibed as a number and a unit (s, m, h, d), e.g. --eventrange 1h/20m.
+hpasm_eventrange		| **Optional.** Period of time before critical IML events respecively become warnings or vanish. A range is described as a number and a unit (s, m, h, d), e.g. --eventrange 1h/20m.
 hpasm_perfdata			| **Optional.** Output performance data. If your performance data string becomes too long and is truncated by Nagios, then you can use --perfdata=short instead. This will output temperature tags without location information.
 hpasm_username			| **Optional.** The securityName for the USM security model (SNMPv3 only).
 hpasm_authpassword		| **Optional.** The authentication password for SNMPv3.
@@ -2441,7 +2441,7 @@ hpasm_authprotocol		| **Optional.** The authentication protocol for SNMPv3 (md5\
 hpasm_privpassword		| **Optional.** The password for authPriv security level.
 hpasm_privprotocol		| **Optional.** The private protocol for SNMPv3 (des\|aes\|aes128\|3des\|3desde).
 hpasm_servertype		| **Optional.** The type of the server: proliant (default) or bladesystem.
-hpasm_eval-nics			| **Optional.** Check network interfaces (and groups). Try it and report me whyt you think about it. I need to build up some know how on this subject. If you get an error and think, it is not justified for your configuration, please tell me about it. (alwasy send the output of "snmpwalk -On .... 1.3.6.1.4.1.232" and a description how you setup your nics and why it is correct opposed to the plugins error message.
+hpasm_eval-nics			| **Optional.** Check network interfaces (and groups). Try it and report me whyt you think about it. I need to build up some know how on this subject. If you get an error and think, it is not justified for your configuration, please tell me about it. (always send the output of "snmpwalk -On .... 1.3.6.1.4.1.232" and a description how you setup your nics and why it is correct opposed to the plugins error message.
 hpasm_remote			| **Optional.** Run remote SNMP checks if enabled. Otherwise checks are executed locally using the `hpasmcli` binary. Defaults to `true`.
 
 #### adaptec-raid <a id="plugin-contrib-command-adaptec-raid"></a>
@@ -2665,7 +2665,7 @@ interfacetable_noipinfo             | **Optional.** Remove the ip information fo
 interfacetable_alias                | **Optional.** Add the alias information for each interface in the interface table. Defaults to false.
 interfacetable_accessmethod         | **Optional.** Access method for a shortcut to the host in the HTML page. Format is : <method>[:<target>] Where method can be: ssh, telnet, http or https.
 interfacetable_htmltablelinktarget  | **Optional.** Specifies the windows or the frame where the [details] link will load the generated html page. Possible values are: "_blank", "_self" (default), "_parent", "_top", or a frame name.
-interfacetable_delta                | **Optional.** Set the delta used for interface throuput calculation in seconds.
+interfacetable_delta                | **Optional.** Set the delta used for interface throughput calculation in seconds.
 interfacetable_ifs                  | **Optional.** Input field separator. Defaults to ",".
 interfacetable_cache                | **Optional.** Define the retention time of the cached data in seconds.
 interfacetable_noifloadgradient     | **Optional.** Disable color gradient from green over yellow to red for the load percentage. Defaults to false.
@@ -2852,15 +2852,15 @@ Custom attributes passed as [command parameters](03-monitoring-basics.md#command
 
 Name           | Description
 ---------------|-----------------------------------------------------------------------------------------------------------------------
-iostats\_disk            | **Required.** The device to monitor without path. e.g. sda or vda. (default: sda)
-iostats\_warning\_tps    | **Required.** Warning threshold for tps (default: 3000)
-iostats\_warning\_read   | **Required.** Warning threshold for KB/s reads (default: 50000)
-iostats\_warning\_write  | **Required.** Warning threshold for KB/s writes (default: 10000)
-iostats\_warning\_wait   | **Required.** Warning threshold for % iowait (default: 50)
-iostats\_critical\_tps   | **Required.** Critical threshold for tps (default: 5000)
-iostats\_critical\_read  | **Required.** Critical threshold for KB/s reads (default: 80000)
-iostats\_critical\_write | **Required.** Critical threshold for KB/s writes (default: 25000)
-iostats\_critical\_wait  | **Required.** Critical threshold for % iowait (default: 80)
+iostats\_disk            | **Required.** The device to monitor without path. e.g. sda or vda. (default: sda).
+iostats\_warning\_tps    | **Required.** Warning threshold for tps (default: 3000).
+iostats\_warning\_read   | **Required.** Warning threshold for KB/s reads (default: 50000).
+iostats\_warning\_write  | **Required.** Warning threshold for KB/s writes (default: 10000).
+iostats\_warning\_wait   | **Required.** Warning threshold for % iowait (default: 50).
+iostats\_critical\_tps   | **Required.** Critical threshold for tps (default: 5000).
+iostats\_critical\_read  | **Required.** Critical threshold for KB/s reads (default: 80000).
+iostats\_critical\_write | **Required.** Critical threshold for KB/s writes (default: 25000).
+iostats\_critical\_wait  | **Required.** Critical threshold for % iowait (default: 80).
 
 #### iostat <a id="plugin-contrib-command-iostat"></a>
 
@@ -2872,13 +2872,13 @@ Custom attributes passed as [command parameters](03-monitoring-basics.md#command
 
 Name           | Description
 ---------------|-----------------------------------------------------------------------------------------------------------------------
-iostat\_disk   | **Required.** The device to monitor without path. e.g. sda or vda. (default: sda)
-iostat\_wtps   | **Required.** Warning threshold for tps (default: 100)
-iostat\_wread  | **Required.** Warning threshold for KB/s reads (default: 100)
-iostat\_wwrite | **Required.** Warning threshold for KB/s writes (default: 100)
-iostat\_ctps   | **Required.** Critical threshold for tps (default: 200)
-iostat\_cread  | **Required.** Critical threshold for KB/s reads (default: 200)
-iostat\_cwrite | **Required.** Critical threshold for KB/s writes (default: 200)
+iostat\_disk   | **Required.** The device to monitor without path. e.g. sda or vda. (default: sda).
+iostat\_wtps   | **Required.** Warning threshold for tps (default: 100).
+iostat\_wread  | **Required.** Warning threshold for KB/s reads (default: 100).
+iostat\_wwrite | **Required.** Warning threshold for KB/s writes (default: 100).
+iostat\_ctps   | **Required.** Critical threshold for tps (default: 200).
+iostat\_cread  | **Required.** Critical threshold for KB/s reads (default: 200).
+iostat\_cwrite | **Required.** Critical threshold for KB/s writes (default: 200).
 
 #### yum <a id="plugin-contrib-command-yum"></a>
 
@@ -2895,8 +2895,8 @@ yum_warn_on_any_update  | **Optional.** Set to true to warn if there are any (no
 yum_cache_only          | **Optional.** If set to true, plugin runs entirely from cache and does not update the cache when running YUM. Useful if you have `yum makecache` cronned. Defaults to false.
 yum_no_warn_on_lock     | **Optional.** If set to true, returns OK instead of WARNING when YUM is locked and fails to check for updates due to another instance running. Defaults to false.
 yum_no_warn_on_updates  | **Optional.** If set to true, returns OK instead of WARNING even when updates are available. The plugin output still shows the number of available updates. Defaults to false.
-yum_enablerepo          | **Optional.** Explicitly enables a reposity when calling YUM. Can take a comma separated list of repositories. Note that enabling repositories can lead to unexpected results, for example when protected repositories are enabled.
-yum_disablerepo         | **Optional.** Explicitly disables a reposity when calling YUM. Can take a comma separated list of repositories. Note that enabling repositories can lead to unexpected results, for example when protected repositories are enabled.
+yum_enablerepo          | **Optional.** Explicitly enables a repository when calling YUM. Can take a comma separated list of repositories. Note that enabling repositories can lead to unexpected results, for example when protected repositories are enabled.
+yum_disablerepo         | **Optional.** Explicitly disables a repository when calling YUM. Can take a comma separated list of repositories. Note that enabling repositories can lead to unexpected results, for example when protected repositories are enabled.
 yum_installroot         | **Optional.** Specifies another installation root directory (for example a chroot).
 yum_timeout             | **Optional.** Set a timeout in seconds after which the plugin will exit (defaults to 55 seconds).
 
@@ -4999,9 +4999,9 @@ ssl_cert_timeout              | **Optional.** Seconds before connection times ou
 ssl_cert_protocol             | **Optional.** Use the specific protocol {http,smtp,pop3,imap,ftp,xmpp,irc,ldap} (default: http).
 ssl_cert_clientcert           | **Optional.** Use client certificate to authenticate.
 ssl_cert_clientpass           | **Optional.** Set passphrase for client certificate.
-ssl_cert_ssllabs              | **Optional.** SSL Labs assestment
+ssl_cert_ssllabs              | **Optional.** SSL Labs assessment
 ssl_cert_ssllabs_nocache      | **Optional.** Forces a new check by SSL Labs
-ssl_cert_rootcert             | **Optional.** Root certificate or directory to be used for certficate validation.
+ssl_cert_rootcert             | **Optional.** Root certificate or directory to be used for certificate validation.
 ssl_cert_ignore_signature     | **Optional.** Do not check if the certificate was signed with SHA1 od MD5.
 ssl_cert_ssl_version          | **Optional.** Force specific SSL version out of {ssl2,ssl3,tls1,tls1_1,tls1_2}.
 ssl_cert_disable_ssl_versions | **Optional.** Disable specific SSL versions out of {ssl2,ssl3,tls1,tls1_1,tls1_2}. Multiple versions can be given as array.
@@ -5023,8 +5023,8 @@ Custom attributes passed as [command parameters](03-monitoring-basics.md#command
 Name                         | Description
 -----------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------
 jmx4perl_url                 | **Required.** URL to agent web application. Defaults to "http://$address$:8080/jolokia".
-jmx4perl_product             | **Optional.** Name of app server product (e.g. jboss), by default is uses an autodetection facility.
-jmx4perl_alias               | **Optional.** Alias name for attribute (e.g. MEMORY_HEAP_USED). All availables aliases can be viewed by executing `jmx4perl aliases` on the command line.
+jmx4perl_product             | **Optional.** Name of app server product (e.g. jboss), by default is uses an auto detection facility.
+jmx4perl_alias               | **Optional.** Alias name for attribute (e.g. MEMORY_HEAP_USED). All available aliases can be viewed by executing `jmx4perl aliases` on the command line.
 jmx4perl_mbean               | **Optional.** MBean name (e.g. java.lang:type=Memory).
 jmx4perl_attribute           | **Optional.** Attribute name (e.g. HeapMemoryUsage).
 jmx4perl_operation           | **Optional.** Operation to execute.
@@ -5043,7 +5043,7 @@ jmx4perl_base                | **Optional.** Base name, which when given, interp
 jmx4perl_base_mbean          | **Optional.** Base MBean name, interprets critical and warning values as relative in the range 0 .. 100%. Requires "jmx4perl_base_attribute".
 jmx4perl_base_attribute      | **Optional.** Base attribute for a relative check. Requires "jmx4perl_base_mbean".
 jmx4perl_base_path           | **Optional.** Base path for relative checks, where this path is used on the base attribute's value.
-jmx4perl_unit                | **Optional.** Unit of measurement of the data retreived. Recognized values are [B\|KB\|MN\|GB\|TB] for memory values and [us\|ms\|s\|m\|h\|d] for time values.
+jmx4perl_unit                | **Optional.** Unit of measurement of the data retrieved. Recognized values are [B\|KB\|MN\|GB\|TB] for memory values and [us\|ms\|s\|m\|h\|d] for time values.
 jmx4perl_null                | **Optional.** Value which should be used in case of a null return value of an operation or attribute. Defaults to null.
 jmx4perl_string              | **Optional.** Force string comparison for critical and warning checks. Defaults to false.
 jmx4perl_numeric             | **Optional.** Force numeric comparison for critical and warning checks. Defaults to false.
@@ -5152,7 +5152,7 @@ Custom attributes passed as [command parameters](03-monitoring-basics.md#command
 Name                    | Description
 ------------------------|--------------
 webinject_config_file   | **Optional.** There is a configuration file named 'config.xml' that is used to store configuration settings for your project. You can use this to specify which test case files to run and to set some constants and settings to be used by WebInject.
-webinject_output        | **Optional.** This option is followed by a directory name or a prefix to prepended to the output files. This is used to specify the location for writing output files (http.log, results.html, and results.xml). If a directory name is supplied (use either an absolute or relative path and make sure to add the trailing slash), all output files are written to this directory. If the trailing slash is ommitted, it is assumed to a prefix and this will be prepended to the output files. You may also use a combination of a directory and prefix.
+webinject_output        | **Optional.** This option is followed by a directory name or a prefix to prepended to the output files. This is used to specify the location for writing output files (http.log, results.html, and results.xml). If a directory name is supplied (use either an absolute or relative path and make sure to add the trailing slash), all output files are written to this directory. If the trailing slash is omitted, it is assumed to a prefix and this will be prepended to the output files. You may also use a combination of a directory and prefix.
 webinject_no_output     | **Optional.** Suppresses all output to STDOUT except the results summary.
 webinject_timeout       | **Optional.** The value [given in seconds] will be compared to the global time elapsed to run all the tests. If the tests have all been successful, but have taken more time than the 'globaltimeout' value, a warning message is sent back to Icinga.
 webinject_report_type   | **Optional.** This setting is used to enable output formatting that is compatible for use with specific external programs. The available values you can set this to are: nagios, mrtg, external and standard.
