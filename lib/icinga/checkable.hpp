@@ -180,8 +180,6 @@ public:
 	intrusive_ptr<EventCommand> GetEventCommand(void) const;
 
 	/* Flapping Detection */
-	double GetFlappingCurrent(void) const;
-
 	bool IsFlapping(void) const;
 	void UpdateFlappingStatus(bool stateChange);
 

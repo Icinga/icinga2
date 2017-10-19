@@ -296,8 +296,8 @@ void StatusDataWriter::DumpHostObject(std::ostream& fp, const Host::Ptr& host)
 	fp << "\n";
 
 	fp << "\t" << "initial_state" "\t" "o" "\n"
-	      "\t" "low_flap_threshold" "\t" << host->GetFlappingThreshold() << "\n"
-	      "\t" "high_flap_threshold" "\t" << host->GetFlappingThreshold() << "\n"
+	      "\t" "low_flap_threshold" "\t" << host->GetFlappingThresholdLow() << "\n"
+	      "\t" "high_flap_threshold" "\t" << host->GetFlappingThresholdHigh() << "\n"
 	      "\t" "process_perf_data" "\t" << CompatUtility::GetCheckableProcessPerformanceData(host) << "\n"
 	      "\t" "check_freshness" "\t" "1" "\n";
 
@@ -470,8 +470,8 @@ void StatusDataWriter::DumpServiceObject(std::ostream& fp, const Service::Ptr& s
 		String icon_image_alt = service->GetIconImageAlt();
 
 		fp << "\t" "initial_state" "\t" "o" "\n"
-		      "\t" "low_flap_threshold" "\t" << service->GetFlappingThreshold() << "\n"
-		      "\t" "high_flap_threshold" "\t" << service->GetFlappingThreshold() << "\n"
+		      "\t" "low_flap_threshold" "\t" << service->GetFlappingThresholdLow() << "\n"
+		      "\t" "high_flap_threshold" "\t" << service->GetFlappingThresholdHigh() << "\n"
 		      "\t" "process_perf_data" "\t" << CompatUtility::GetCheckableProcessPerformanceData(service) << "\n"
 		      "\t" "check_freshness" << "\t" "1" "\n";
 		if (!notes.IsEmpty())

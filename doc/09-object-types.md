@@ -730,7 +730,8 @@ Configuration Attributes:
   enable\_flapping          | Boolean               | **Optional.** Whether flap detection is enabled. Defaults to false.
   enable\_perfdata          | Boolean               | **Optional.** Whether performance data processing is enabled. Defaults to true.
   event\_command            | Object name           | **Optional.** The name of an event command that should be executed every time the host's state changes or the host is in a `SOFT` state.
-  flapping\_threshold       | Number                | **Optional.** The flapping threshold in percent when a host is considered to be flapping.
+  flapping\_threshold\_high | Number                | **Optional.** Flapping upper bound in percent for a host to be considered flapping. Default `30.0`
+  flapping\_threshold\_low  | Number                | **Optional.** Flapping lower bound in percent for a host to be considered  not flapping. Default `25.0`
   volatile                  | Boolean               | **Optional.** The volatile setting enables always `HARD` state types if `NOT-OK` state changes occur. Defaults to false.
   zone		            | Object name           | **Optional.** The zone this object is a member of. Please read the [distributed monitoring](06-distributed-monitoring.md#distributed-monitoring) chapter for details.
   command\_endpoint         | Object name           | **Optional.** The endpoint where commands are executed on.
@@ -767,6 +768,7 @@ Runtime Attributes:
   downtime\_depth           | Number                | Whether the host has one or more active downtimes.
   flapping\_last\_change    | Timestamp             | When the last flapping change occurred (as a UNIX timestamp).
   flapping                  | Boolean               | Whether the host is flapping between states.
+  flapping\_current         | Number                | Current flapping value in percent (see flapping\_thresholds)
   state                     | Number                | The current state (0 = UP, 1 = DOWN).
   last\_state               | Number                | The previous state (0 = UP, 1 = DOWN).
   last\_hard\_state         | Number                | The last hard state (0 = UP, 1 = DOWN).
@@ -1465,9 +1467,10 @@ Configuration Attributes:
   enable\_passive\_checks   | Boolean               | **Optional.** Whether passive checks are enabled. Defaults to `true`.
   enable\_event\_handler    | Boolean               | **Optional.** Enables event handlers for this host. Defaults to `true`.
   enable\_flapping          | Boolean               | **Optional.** Whether flap detection is enabled. Defaults to `false`.
+  flapping\_threshold\_high | Number                | **Optional.** Flapping upper bound in percent for a service to be considered flapping. `30.0`
+  flapping\_threshold\_low  | Number                | **Optional.** Flapping lower bound in percent for a service to be considered  not flapping. `25.0`
   enable\_perfdata          | Boolean               | **Optional.** Whether performance data processing is enabled. Defaults to `true`.
   event\_command            | Object name           | **Optional.** The name of an event command that should be executed every time the service's state changes or the service is in a `SOFT` state.
-  flapping\_threshold       | Number                | **Optional.** The flapping threshold in percent when a service is considered to be flapping.
   volatile                  | Boolean               | **Optional.** The volatile setting enables always `HARD` state types if `NOT-OK` state changes occur. Defaults to `false`.
   zone		            | Object name           | **Optional.** The zone this object is a member of. Please read the [distributed monitoring](06-distributed-monitoring.md#distributed-monitoring) chapter for details.
   name                      | String                | **Required.** The service name. Must be unique on a per-host basis. For advanced usage in [apply rules](03-monitoring-basics.md#using-apply) only.
@@ -1502,6 +1505,7 @@ Runtime Attributes:
   acknowledgement\_expiry   | Timestamp             | When the acknowledgement expires (as a UNIX timestamp; 0 = no expiry).
   downtime\_depth           | Number                | Whether the service has one or more active downtimes.
   flapping\_last\_change    | Timestamp             | When the last flapping change occurred (as a UNIX timestamp).
+  flapping\_current         | Number                | Current flapping value in percent (see flapping\_thresholds)
   flapping                  | Boolean               | Whether the host is flapping between states.
   state                     | Number                | The current state (0 = OK, 1 = WARNING, 2 = CRITICAL, 3 = UNKNOWN).
   last\_state               | Number                | The previous state (0 = OK, 1 = WARNING, 2 = CRITICAL, 3 = UNKNOWN).

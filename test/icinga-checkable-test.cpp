@@ -1,6 +1,6 @@
 /******************************************************************************
  * Icinga 2                                                                   *
- * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
+ * Copyright (C) 2012-2016 Icinga Development Team (https://www.icinga.org/)  *
  *                                                                            *
  * This program is free software; you can redistribute it and/or              *
  * modify it under the terms of the GNU General Public License                *
@@ -17,49 +17,50 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include <bitset>
-#include "icinga/checkable.hpp"
-#include "icinga/icingaapplication.hpp"
-#include "base/utility.hpp"
+#define BOOST_TEST_MAIN
+#define BOOST_TEST_MODULE icinga2_test
+
+#include "cli/daemonutility.hpp"
+#include "base/application.hpp"
+#include "base/loader.hpp"
+#include <BoostTestTargetConfig.h>
+#include <fstream>
 
 using namespace icinga;
 
-void Checkable::UpdateFlappingStatus(bool stateChange)
+struct IcingaCheckableFixture
 {
-	std::bitset<20> stateChangeBuf = GetFlappingBuffer();
-	int oldestIndex = (GetFlappingBuffer() & 0xFF00000) >> 20;
+	IcingaCheckableFixture(void)
+	{
+		BOOST_TEST_MESSAGE("setup running Icinga 2 core");
 
-	stateChangeBuf[oldestIndex] = stateChange;
-	oldestIndex = (oldestIndex + 1) % 20;
+		Application::InitializeBase();
 
-	double stateChanges = 0;
+		/* start the Icinga application and load the configuration */
+		Application::DeclareSysconfDir("etc");
+		Application::DeclareLocalStateDir("var");
 
-	for (int i = 0; i < 20; i++) {
-		if (stateChangeBuf[(oldestIndex + i) % 20])
-			stateChanges += 0.8 + (0.02 * i);
+		ActivationScope ascope;
+
+		Loader::LoadExtensionLibrary("icinga");
+		Loader::LoadExtensionLibrary("methods"); //loaded by ITL
+
+		std::vector<std::string> configs;
+		std::vector<ConfigItem::Ptr> newItems;
+
+		DaemonUtility::LoadConfigFiles(configs, newItems, "icinga2.debug", "icinga2.vars");
+
+		/* ignore config errors */
+		WorkQueue upq;
+		ConfigItem::ActivateItems(upq, newItems);
 	}
 
-	double flappingValue = 100.0 * stateChanges / 20.0;
+	~IcingaCheckableFixture(void)
+	{
+		BOOST_TEST_MESSAGE("cleanup Icinga 2 core");
+		Application::UninitializeBase();
+	}
+};
 
-	bool flapping;
+BOOST_GLOBAL_FIXTURE(IcingaCheckableFixture);
 
-	if (GetFlapping())
-		flapping = flappingValue > GetFlappingThresholdLow();
-	else
-		flapping = flappingValue > GetFlappingThresholdHigh();
-
-	if (flapping != GetFlapping())
-		SetFlappingLastChange(Utility::GetTime());
-
-	SetFlappingBuffer((stateChangeBuf.to_ulong() | (oldestIndex << 20)));
-	SetFlappingCurrent(flappingValue);
-	SetFlapping(flapping);
-}
-
-bool Checkable::IsFlapping(void) const
-{
-	if (!GetEnableFlapping() || !IcingaApplication::GetInstance()->GetEnableFlapping())
-		return false;
-	else
-		return GetFlapping();
-}

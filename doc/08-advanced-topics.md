@@ -414,19 +414,42 @@ Example output in Icinga Web 2:
 
 Icinga 2 supports optional detection of hosts and services that are "flapping".
 
-Flapping occurs when a service or host changes state too frequently, resulting
-in a storm of problem and recovery notifications. Flapping can be the source of
-configuration problems (i.e. thresholds set too low), troublesome services,
-or real network problems.
+Flapping occurs when a service or host changes state too frequently, which would result in a storm of problem and
+recovery notifications. With flapping enabled a flapping notification will be sent while other notifications are
+suppresed until it calms down after receiving the same status from checks a few times. flapping can help detecting 
+configuration problems (wrong thresholds), troublesome services, or network problems.
 
 Flapping detection can be enabled or disabled using the `enable_flapping` attribute.
-The `flapping_threshold` attributes allows to specify the percentage of state changes
-when a [host](09-object-types.md#objecttype-host) or [service](objecttype-service) is considered to flap.
+The `flapping_threshold_high` and `flapping_threshold_low` attributes allows to specify the thresholds that control
+when a [host](09-object-types.md#objecttype-host) or [service](objecttype-service) is considered to be flapping.
 
-Note: There are known issues with flapping detection. Please refrain from enabling
-flapping until [#4982](https://github.com/Icinga/icinga2/issues/4982) is fixed.
+The default thresholds are 30% for high and 25% for low. If the computed flapping value excedes the high threshold a
+host or service is considered flapping until it drops below the low flapping threshold.
 
-## Volatile Services <a id="volatile-services"></a>
+`FlappingStart` and `FlappingEnd` notifications will be sent out accordingly, if configured. See the chapter on
+[notifications](alert-notifications) for details
+
+> Note: There is no distinctions between hard and soft states with flapping. All state changes count and notifications
+> will be sent out regardless of the objects state.
+
+### How it works <a id="how-it-works"></a>
+
+Icinga 2 saves the last 20 state changes for every host and service. See the graphic below:
+
+![Icinga 2 Flapping State Timeline](images/advanced-topics/flapping-state-graph.png)
+
+All the states ware weighted, with the most recent one being worth the most (1.15) and the 20th the least (0.8). The
+states inbetween are fairly distributed. The final flapping value are the weightened state changes divided by the total
+count of 20.
+
+In the example above, the added states would have a total value of 7.82 (`0.84 + 0.86 + 0.88 + 0.9 + 0.98 + 1.06 + 1.12 + 1.18`).
+This yiels a flapping percentage of 39.1% (`7.82 / 20 * 100`). As the default upper flapping threshold is 30%, it would be
+considered flapping.
+
+If the next seven check results then would not be state changes, the flapping percentage would fall below the lower threshold
+of 25% and therefore the host or service would recover from flapping.
+
+# Volatile Services <a id="volatile-services"></a>
 
 By default all services remain in a non-volatile state. When a problem
 occurs, the `SOFT` state applies and once `max_check_attempts` attribute

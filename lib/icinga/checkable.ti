@@ -70,9 +70,7 @@ abstract class Checkable : CustomVarObject
 		}}}
 	};
 	[config] bool volatile;
-	[config] double flapping_threshold {
-		default {{{ return 30; }}}
-	};
+
 	[config] bool enable_active_checks {
 		default {{{ return true; }}}
 	};
@@ -90,6 +88,16 @@ abstract class Checkable : CustomVarObject
 	};
 	[config] bool enable_perfdata {
 		default {{{ return true; }}}
+	};
+
+	[config, deprecated] double flapping_threshold;
+
+	[config] double flapping_threshold_low {
+		default {{{ return 25; }}}
+	};
+
+	[config] double flapping_threshold_high{
+		default {{{ return 30; }}}
 	};
 
 	[config] String notes;
@@ -139,18 +147,19 @@ abstract class Checkable : CustomVarObject
 	};
 	[state] Timestamp acknowledgement_expiry;
 	[state] bool force_next_notification;
-	[state] int flapping_positive;
-	[state] int flapping_negative;
-	[state] Timestamp flapping_last_change;
-	[no_storage, protected] bool flapping {
-		get {{{ return false; }}}
-	};
 	[no_storage] Timestamp last_check {
 		get;
 	};
 	[no_storage] int downtime_depth {
 		get;
 	};
+
+	[state] double flapping_current {
+		default {{{ return 0; }}}
+	};
+	[state] Timestamp flapping_last_change;
+	[state, no_user_view, no_user_modify] int flapping_buffer;
+	[state, protected] bool flapping;
 
 	[config, navigation] name(Endpoint) command_endpoint (CommandEndpointRaw) {
 		navigate {{{

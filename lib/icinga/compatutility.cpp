@@ -300,12 +300,12 @@ int CompatUtility::GetCheckableIsVolatile(const Checkable::Ptr& checkable)
 
 double CompatUtility::GetCheckableLowFlapThreshold(const Checkable::Ptr& checkable)
 {
-	return checkable->GetFlappingThreshold();
+	return checkable->GetFlappingThresholdLow();
 }
 
 double CompatUtility::GetCheckableHighFlapThreshold(const Checkable::Ptr& checkable)
 {
-	return checkable->GetFlappingThreshold();
+	return checkable->GetFlappingThresholdHigh();
 }
 
 int CompatUtility::GetCheckableFreshnessChecksEnabled(const Checkable::Ptr& checkable)
