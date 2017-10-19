@@ -697,7 +697,7 @@ Name            	| Description
 ------------------------|--------------
 ldap_address    	| **Optional.** Host name, IP Address, or unix socket (must be an absolute path). Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
 ldap_port       	| **Optional.** Port number. Defaults to 389.
-ldap_attr		| **Optional.** LDAP attribute to search for (default: "(objectclass=*)"
+ldap_attr		| **Optional.** LDAP attribute to search for (default: "(objectclass=*)")
 ldap_base       	| **Required.** LDAP base (eg. ou=myunit,o=myorg,c=at).
 ldap_bind       	| **Optional.** LDAP bind DN (if required).
 ldap_pass       	| **Optional.** LDAP password (if required).
@@ -2191,19 +2191,19 @@ mssql_health_name                | **Optional.** Depending on the mode this coul
 mssql_health_name2               | **Optional.** If "mssql_health_name" is a sql statement, "mssql_health_name2" can be used to appear in the output and the performance data.
 mssql_health_name3               | **Optional.** Additional argument used for 'database-file-free' mode for example.
 mssql_health_extraopts           | **Optional.** Read command line arguments from an external file.
-mssql_health_blacklist           | **Optional.** Blacklist some (missing/failed) components"
-mssql_health_mitigation          | **Optional.** "The parameter allows you to change a critical error to a warning."
+mssql_health_blacklist           | **Optional.** Blacklist some (missing/failed) components
+mssql_health_mitigation          | **Optional.** The parameter allows you to change a critical error to a warning.
 mssql_health_lookback            | **Optional.** The amount of time you want to look back when calculating average rates.
-mssql_health_environment         | **Optional.** Add a variable to the plugin's environment."
-mssql_health_negate              | **Optional.** Emulate the negate plugin. --negate warning=critical --negate unknown=critical."
-mssql_health_morphmessage        | **Optional.** Modify the final output message."
-mssql_health_morphperfdata       | **Optional.** The parameter allows you to change performance data labels."
-mssql_health_selectedperfdata    | **Optional.** The parameter allows you to limit the list of performance data."
+mssql_health_environment         | **Optional.** Add a variable to the plugin's environment.
+mssql_health_negate              | **Optional.** Emulate the negate plugin. --negate warning=critical --negate unknown=critical.
+mssql_health_morphmessage        | **Optional.** Modify the final output message.
+mssql_health_morphperfdata       | **Optional.** The parameter allows you to change performance data labels.
+mssql_health_selectedperfdata    | **Optional.** The parameter allows you to limit the list of performance data.
 mssql_health_report              | **Optional.** Report can be used to output only the bad news. Possible values are "short", "long", "html". Defaults to `short`.
-mssql_health_multiline           | **Optional.** Multiline output."
-mssql_health_withmymodulesdyndir | **Optional.** Add-on modules for the my-modes will be searched in this directory."
-mssql_health_statefilesdir       | **Optional.** An alternate directory where the plugin can save files."
-mssql_health_isvalidtime         | **Optional.** Signals the plugin to return OK if now is not a valid check time."
+mssql_health_multiline           | **Optional.** Multiline output.
+mssql_health_withmymodulesdyndir | **Optional.** Add-on modules for the my-modes will be searched in this directory.
+mssql_health_statefilesdir       | **Optional.** An alternate directory where the plugin can save files.
+mssql_health_isvalidtime         | **Optional.** Signals the plugin to return OK if now is not a valid check time.
 mssql_health_timeout           	 | **Optional.** Plugin timeout. Defaults to 15s.
 
 #### mysql_health <a id="plugin-contrib-command-mysql_health"></a>
@@ -2230,7 +2230,7 @@ mysql_health_warningx            | **Optional.** The extended warning thresholds
 mysql_health_criticalx           | **Optional.** The extended critical thresholds depending on the mode.
 mysql_health_mode                | **Required.** The mode uses predefined keywords for the different checks. For example "connection-time", "slave-lag" or "sql".
 mysql_health_method              | **Optional.** How the plugin should connect to the database (`dbi` for using DBD::Mysql (default), `mysql` for using the mysql-Tool).
-mysql_health_commit              | **Optional.** Turns on autocommit for the dbd::* module.
+mysql_health_commit              | **Optional.** Turns on autocommit for the dbd::\* module.
 mysql_health_notemp              | **Optional.** Ignore temporary databases/tablespaces.
 mysql_health_nooffline           | **Optional.** Skip the offline databases.
 mysql_health_regexp              | **Optional.** Parameter name/name2/name3 will be interpreted as (perl) regular expression.
@@ -2240,19 +2240,19 @@ mysql_health_name3               | **Optional.** The tertiary name of a componen
 mysql_health_units               | **Optional.** This is used for a better output of mode=sql and for specifying thresholds for mode=tablespace-free. Possible values are "%", "KB", "MB" and "GB".
 mysql_health_labelformat         | **Optional.** One of those formats pnp4nagios or groundwork. Defaults to pnp4nagios.
 mysql_health_extraopts           | **Optional.** Read command line arguments from an external file.
-mysql_health_blacklist           | **Optional.** Blacklist some (missing/failed) components"
-mysql_health_mitigation          | **Optional.** "The parameter allows you to change a critical error to a warning."
-mysql_health_lookback            | **Optional.** The amount of time you want to look back when calculating average rates."
-mysql_health_environment         | **Optional.** Add a variable to the plugin's environment."
-mysql_health_morphmessage        | **Optional.** Modify the final output message."
-mysql_health_morphperfdata       | **Optional.** The parameter allows you to change performance data labels."
-mysql_health_selectedperfdata    | **Optional.** The parameter allows you to limit the list of performance data."
-mysql_health_report              | **Optional.** Can be used to shorten the output."
-mysql_health_multiline           | **Optional.** Multiline output."
-mysql_health_negate              | **Optional.** Emulate the negate plugin. --negate warning=critical --negate unknown=critical."
-mysql_health_withmymodulesdyndir | **Optional.** Add-on modules for the my-modes will be searched in this directory."
-mysql_health_statefilesdir       | **Optional.** An alternate directory where the plugin can save files."
-mysql_health_isvalidtime         | **Optional.** Signals the plugin to return OK if now is not a valid check time."
+mysql_health_blacklist           | **Optional.** Blacklist some (missing/failed) components
+mysql_health_mitigation          | **Optional.** The parameter allows you to change a critical error to a warning.
+mysql_health_lookback            | **Optional.** The amount of time you want to look back when calculating average rates.
+mysql_health_environment         | **Optional.** Add a variable to the plugin's environment.
+mysql_health_morphmessage        | **Optional.** Modify the final output message.
+mysql_health_morphperfdata       | **Optional.** The parameter allows you to change performance data labels.
+mysql_health_selectedperfdata    | **Optional.** The parameter allows you to limit the list of performance data.
+mysql_health_report              | **Optional.** Can be used to shorten the output.
+mysql_health_multiline           | **Optional.** Multiline output.
+mysql_health_negate              | **Optional.** Emulate the negate plugin. --negate warning=critical --negate unknown=critical.
+mysql_health_withmymodulesdyndir | **Optional.** Add-on modules for the my-modes will be searched in this directory.
+mysql_health_statefilesdir       | **Optional.** An alternate directory where the plugin can save files.
+mysql_health_isvalidtime         | **Optional.** Signals the plugin to return OK if now is not a valid check time.
 mysql_health_timeout           	 | **Optional.** Plugin timeout. Defaults to 60s.
 
 #### oracle_health <a id="plugin-contrib-command-oracle_health"></a>
@@ -2331,7 +2331,7 @@ Custom attributes passed as [command parameters](03-monitoring-basics.md#command
 
 Name                             | Description
 ---------------------------------|------------------------------------------------------------------------------------------------------------------------------
-mongodb_host                     | **Required.** Specifies the hostname or address.
+mongodb_host                     | **Required.** Specifies the hostname or address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
 mongodb_port                     | **Required.** The port mongodb is running on.
 mongodb_user                     | **Optional.** The username you want to login as.
 mongodb_passwd                   | **Optional.** The password you want to use for that user.
@@ -2359,8 +2359,8 @@ Custom attributes passed as [command parameters](03-monitoring-basics.md#command
 
 Name                         | Description
 -----------------------------|-------------------------------------------------------------------------------------------------------
+elasticsearch_host           | **Optional.** Hostname or network address to probe. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
 elasticsearch_failuredomain  | **Optional.** A comma-separated list of ElasticSearch attributes that make up your cluster's failure domain.
-elasticsearch_host           | **Optional.** Hostname or network address to probe. Defaults to 'localhost'.
 elasticsearch_masternodes    | **Optional.** Issue a warning if the number of master-eligible nodes in the cluster drops below this number. By default, do not monitor the number of nodes in the cluster.
 elasticsearch_port           | **Optional.** TCP port to probe.  The ElasticSearch API should be listening here. Defaults to 9200.
 elasticsearch_prefix         | **Optional.** Optional prefix (e.g. 'es') for the ElasticSearch API. Defaults to ''.
@@ -2377,7 +2377,7 @@ Custom attributes passed as [command parameters](03-monitoring-basics.md#command
 
 Name                     | Description
 -------------------------|--------------------------------------------------------------------------------------------------------------
-redis_hostname           | **Required.** Hostname or IP Address to check. Defaults to "127.0.0.1".
+redis_hostname           | **Required.** Hostname or IP Address to check. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
 redis_port               | **Optional.** Port number to query. Default to "6379".
 redis_database           | **Optional.** Database name (usually a number) to query, needed for **redis_query**.
 redis_password           | **Optional.** Password for Redis authentication. Safer alternative is to put them in a file and use **redis_credentials**.
