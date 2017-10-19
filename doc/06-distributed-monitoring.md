@@ -1873,7 +1873,7 @@ add a dependency which prevents notifications for all other failing services:
 
       assign where host.vars.client_endpoint
       ignore where service.name == "child-health"
-   }
+    }
 
 ### Pin Checks in a Zone <a id="distributed-monitoring-pin-checks-zone"></a>
 
