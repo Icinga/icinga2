@@ -173,10 +173,7 @@ int NodeSetupCommand::SetupMaster(const boost::program_options::variables_map& v
 	fp << "/**\n"
 	    << " * The API listener is used for distributed monitoring setups.\n"
 	    << " */\n"
-	    << "object ApiListener \"api\" {\n"
-	    << "  cert_path = LocalStateDir + \"/lib/icinga2/certs/\" + NodeName + \".crt\"\n"
-	    << "  key_path = LocalStateDir + \"/lib/icinga2/certs/\" + NodeName + \".key\"\n"
-	    << "  ca_path = LocalStateDir + \"/lib/icinga2/certs/ca.crt\"\n";
+	    << "object ApiListener \"api\" {\n";
 
 	if (vm.count("listen")) {
 		std::vector<String> tokens;
@@ -378,10 +375,7 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 	fp << "/**\n"
 	    << " * The API listener is used for distributed monitoring setups.\n"
 	    << " */\n"
-	    << "object ApiListener \"api\" {\n"
-	    << "  cert_path = LocalStateDir + \"/lib/icinga2/certs/\" + NodeName + \".crt\"\n"
-	    << "  key_path = LocalStateDir + \"/lib/icinga2/certs/\" + NodeName + \".key\"\n"
-	    << "  ca_path = LocalStateDir + \"/lib/icinga2/certs/ca.crt\"\n";
+	    << "object ApiListener \"api\" {\n";
 
 	if (vm.count("listen")) {
 		std::vector<String> tokens;

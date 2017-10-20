@@ -39,7 +39,8 @@ enum FieldAttribute
 	FARequired = 256,
 	FANavigation = 512,
 	FANoUserModify = 1024,
-	FANoUserView = 2048
+	FANoUserView = 2048,
+	FADeprecated = 4096,
 };
 
 class Type;

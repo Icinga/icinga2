@@ -149,6 +149,7 @@ bool TypeQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& requ
 			attributeInfo->Set("navigation", static_cast<bool>(field.Attributes & FANavigation));
 			attributeInfo->Set("no_user_modify", static_cast<bool>(field.Attributes & FANoUserModify));
 			attributeInfo->Set("no_user_view", static_cast<bool>(field.Attributes & FANoUserView));
+			attributeInfo->Set("deprecated", static_cast<bool>(field.Attributes & FADeprecated));
 		}
 	}
 

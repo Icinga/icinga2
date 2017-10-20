@@ -472,10 +472,6 @@ wizard_ticket:
 	    << " * The API listener is used for distributed monitoring setups.\n"
 	    << " */\n"
 	    << "object ApiListener \"api\" {\n"
-	    << "  cert_path = LocalStateDir + \"/lib/icinga2/certs/\" + NodeName + \".crt\"\n"
-	    << "  key_path = LocalStateDir + \"/lib/icinga2/certs/\" + NodeName + \".key\"\n"
-	    << "  ca_path = LocalStateDir + \"/lib/icinga2/certs/ca.crt\"\n"
-	    << "\n"
 	    << "  accept_config = " << acceptConfig << "\n"
 	    << "  accept_commands = " << acceptCommands << "\n";
 
@@ -629,10 +625,7 @@ int NodeWizardCommand::MasterSetup(void) const
 	fp << "/**\n"
 	    << " * The API listener is used for distributed monitoring setups.\n"
 	    << " */\n"
-	    << "object ApiListener \"api\" {\n"
-	    << "  cert_path = LocalStateDir + \"/lib/icinga2/certs/\" + NodeName + \".crt\"\n"
-	    << "  key_path = LocalStateDir + \"/lib/icinga2/certs/\" + NodeName + \".key\"\n"
-	    << "  ca_path = LocalStateDir + \"/lib/icinga2/certs/ca.crt\"\n";
+	    << "object ApiListener \"api\" {\n";
 
 	if (!bindHost.IsEmpty())
 		fp << "  bind_host = \"" << bindHost << "\"\n";

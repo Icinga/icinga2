@@ -75,6 +75,34 @@ String ApiListener::GetCertificateRequestsDir(void)
 	return Application::GetLocalStateDir() + "/lib/icinga2/certificate-requests/";
 }
 
+String ApiListener::GetDefaultCertPath(void)
+{
+	return GetCertsDir() + "/" + ScriptGlobal::Get("NodeName") + ".crt";
+}
+
+String ApiListener::GetDefaultKeyPath(void)
+{
+	return GetCertsDir() + "/" + ScriptGlobal::Get("NodeName") + ".key";
+}
+
+String ApiListener::GetDefaultCaPath(void)
+{
+	return GetCertsDir() + "/ca.crt";
+}
+
+void ApiListener::CopyCertificateFile(const String& oldCertPath, const String& newCertPath)
+{
+	struct stat st1, st2;
+
+	if (!oldCertPath.IsEmpty() && stat(oldCertPath.CStr(), &st1) >= 0 && (stat(newCertPath.CStr(), &st2) < 0 || st1.st_mtime > st2.st_mtime)) {
+		Log(LogWarning, "ApiListener")
+		    << "Copying '" << oldCertPath << "' certificate file to '" << newCertPath << "'";
+
+		Utility::MkDirP(Utility::DirName(newCertPath), 0700);
+		Utility::CopyFile(oldCertPath, newCertPath);
+	}
+}
+
 void ApiListener::OnConfigLoaded(void)
 {
 	if (m_Instance)
@@ -82,20 +110,37 @@ void ApiListener::OnConfigLoaded(void)
 
 	m_Instance = this;
 
+	String defaultCertPath = GetDefaultCertPath();
+	String defaultKeyPath = GetDefaultKeyPath();
+	String defaultCaPath = GetDefaultCaPath();
+
+	/* Migrate certificate location < 2.8 to the new default path. */
+	String oldCertPath = GetCertPath();
+	String oldKeyPath = GetKeyPath();
+	String oldCaPath = GetCaPath();
+
+	CopyCertificateFile(oldCertPath, defaultCertPath);
+	CopyCertificateFile(oldKeyPath, defaultKeyPath);
+	CopyCertificateFile(oldCaPath, defaultCaPath);
+
+	if (!oldCertPath.IsEmpty() && !oldKeyPath.IsEmpty() && !oldCaPath.IsEmpty()) {
+		Log(LogWarning, "ApiListener", "Please read the upgrading documentation for v2.8: https://www.icinga.com/docs/icinga2/latest/doc/16-upgrading-icinga-2/");
+	}
+
 	/* set up SSL context */
 	boost::shared_ptr<X509> cert;
 	try {
-		cert = GetX509Certificate(GetCertPath());
+		cert = GetX509Certificate(defaultCertPath);
 	} catch (const std::exception&) {
 		BOOST_THROW_EXCEPTION(ScriptError("Cannot get certificate from cert path: '"
-		    + GetCertPath() + "'.", GetDebugInfo()));
+		    + defaultCertPath + "'.", GetDebugInfo()));
 	}
 
 	try {
 		SetIdentity(GetCertificateCN(cert));
 	} catch (const std::exception&) {
 		BOOST_THROW_EXCEPTION(ScriptError("Cannot get certificate common name from cert path: '"
-		    + GetCertPath() + "'.", GetDebugInfo()));
+		    + defaultCertPath + "'.", GetDebugInfo()));
 	}
 
 	Log(LogInformation, "ApiListener")
@@ -109,10 +154,10 @@ void ApiListener::UpdateSSLContext(void)
 	boost::shared_ptr<SSL_CTX> context;
 
 	try {
-		context = MakeSSLContext(GetCertPath(), GetKeyPath(), GetCaPath());
+		context = MakeSSLContext(GetDefaultCertPath(), GetDefaultKeyPath(), GetDefaultCaPath());
 	} catch (const std::exception&) {
 		BOOST_THROW_EXCEPTION(ScriptError("Cannot make SSL context for cert path: '"
-		    + GetCertPath() + "' key path: '" + GetKeyPath() + "' ca path: '" + GetCaPath() + "'.", GetDebugInfo()));
+		    + GetDefaultCertPath() + "' key path: '" + GetDefaultKeyPath() + "' ca path: '" + GetDefaultCaPath() + "'.", GetDebugInfo()));
 	}
 
 	if (!GetCrlPath().IsEmpty()) {
@@ -420,7 +465,7 @@ void ApiListener::NewClientHandlerInternal(const Socket::Ptr& client, const Stri
 			identity = GetCertificateCN(cert);
 		} catch (const std::exception&) {
 			Log(LogCritical, "ApiListener")
-			    << "Cannot get certificate common name from cert path: '" << GetCertPath() << "'.";
+			    << "Cannot get certificate common name from cert path: '" << GetDefaultCertPath() << "'.";
 			return;
 		}
 

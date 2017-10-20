@@ -555,6 +555,11 @@ You can verify that the certificate files are stored in the `/var/lib/icinga2/ce
 
 > **Note**
 >
+> The certificate location changed in v2.8 to `/var/lib/icinga2/certs`. Please read the [upgrading chapter](16-upgrading-icinga-2.md#upgrading-to-2-8-certificate-paths)
+> for more details.
+
+> **Note**
+>
 > If the client is not directly connected to the certificate signing master,
 > signing requests and responses might need some minutes to fully update the client certificates.
 >
@@ -2358,6 +2363,11 @@ Sign the CSR with the previously created CA:
 
     [root@icinga2-master1.localdomain /root]# icinga2 pki sign-csr --csr icinga2-master1.localdomain.csr --cert icinga2-master1.localdomain
 
+> **Note**
+>
+> The certificate location changed in v2.8 to `/var/lib/icinga2/certs`. Please read the [upgrading chapter](16-upgrading-icinga-2.md#upgrading-to-2-8-certificate-paths)
+> for more details.
+
 Copy the host's certificate files and the public CA certificate to `/var/lib/icinga2/certs`:
 
     [root@icinga2-master1.localdomain /root]# mkdir -p /var/lib/icinga2/certs
@@ -2444,7 +2454,12 @@ host/port you can specify it like this:
 
 #### Node Setup with Satellites/Clients <a id="distributed-monitoring-automation-cli-node-setup-satellite-client"></a>
 
-Make sure that the `/var/lib/icinga2/certs` exists and is owned by the `icinga`
+> **Note**
+>
+> The certificate location changed in v2.8 to `/var/lib/icinga2/certs`. Please read the [upgrading chapter](16-upgrading-icinga-2.md#upgrading-to-2-8-certificate-paths)
+> for more details.
+
+Make sure that the `/var/lib/icinga2/certs` directory exists and is owned by the `icinga`
 user (or the user Icinga 2 is running as).
 
     [root@icinga2-client1.localdomain /]# mkdir -p /var/lib/icinga2/certs
@@ -2499,7 +2514,7 @@ Pass the following details to the `node setup` CLI command:
   Accept config       | **Optional.** Whether this node accepts configuration sync from the master node (required for [config sync mode](06-distributed-monitoring.md#distributed-monitoring-top-down-config-sync)).
   Accept commands     | **Optional.** Whether this node accepts command execution messages from the master node (required for [command endpoint mode](06-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint)).
 
-Example:
+Example for Icinga 2 v2.8:
 
     [root@icinga2-client1.localdomain /]# icinga2 node setup --ticket ead2d570e18c78abf285d6b85524970a0f69c22d \
     --cn icinga2-client1.localdomain \

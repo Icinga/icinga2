@@ -147,6 +147,7 @@ protected			{ yylval->num = FAGetProtected | FASetProtected; return T_FIELD_ATTR
 no_storage			{ yylval->num = FANoStorage; return T_FIELD_ATTRIBUTE; }
 no_user_modify			{ yylval->num = FANoUserModify; return T_FIELD_ATTRIBUTE; }
 no_user_view			{ yylval->num = FANoUserView; return T_FIELD_ATTRIBUTE; }
+deprecated			{ yylval->num = FADeprecated; return T_FIELD_ATTRIBUTE; }
 navigation			{ return T_NAVIGATION; }
 validator			{ return T_VALIDATOR; }
 required			{ return T_REQUIRED; }

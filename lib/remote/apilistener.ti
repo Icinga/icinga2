@@ -28,9 +28,9 @@ namespace icinga
 
 class ApiListener : ConfigObject
 {
-	[config, required] String cert_path;
-	[config, required] String key_path;
-	[config, required] String ca_path;
+	[config, deprecated] String cert_path;
+	[config, deprecated] String key_path;
+	[config, deprecated] String ca_path;
 	[config] String crl_path;
 	[config] String cipher_list {
 		default {{{ return "ALL:!LOW:!WEAK:!MEDIUM:!EXP:!NULL"; }}}

@@ -41,9 +41,8 @@ Example:
 
 ```
 object ApiListener "api" {
-  cert_path = LocalStateDir + "/lib/icinga2/certs/" + NodeName + ".crt"
-  key_path = LocalStateDir + "/lib/icinga2/certs/" + NodeName + ".key"
-  ca_path = LocalStateDir + "/lib/icinga2/certs/ca.crt"
+  accept_commands = true
+  accept_config = true
 
   ticket_salt = TicketSalt
 }
@@ -53,9 +52,9 @@ Configuration Attributes:
 
   Name                                  | Type                  | Description
   --------------------------------------|-----------------------|----------------------------------
-  cert\_path                            | String                | **Required.** Path to the public key.
-  key\_path                             | String                | **Required.** Path to the private key.
-  ca\_path                              | String                | **Required.** Path to the CA certificate file.
+  cert\_path                            | String                | **Deprecated.** Path to the public key.
+  key\_path                             | String                | **Deprecated.** Path to the private key.
+  ca\_path                              | String                | **Deprecated.** Path to the CA certificate file.
   ticket\_salt                          | String                | **Optional.** Private key for [CSR auto-signing](06-distributed-monitoring.md#distributed-monitoring-setup-csr-auto-signing). **Required** for a signing master instance.
   crl\_path                             | String                | **Optional.** Path to the CRL file.
   bind\_host                            | String                | **Optional.** The IP address the api listener should be bound to. Defaults to `0.0.0.0`.
@@ -68,6 +67,20 @@ Configuration Attributes:
   access\_control\_allow\_credentials   | Boolean               | **Optional.** Indicates whether or not the actual request can be made using credentials. Defaults to `true`. [(MDN docs)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS#Access-Control-Allow-Credentials)
   access\_control\_allow\_headers       | String                | **Optional.** Used in response to a preflight request to indicate which HTTP headers can be used when making the actual request. Defaults to `Authorization`. [(MDN docs)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS#Access-Control-Allow-Headers)
   access\_control\_allow\_methods       | String                | **Optional.** Used in response to a preflight request to indicate which HTTP methods can be used when making the actual request. Defaults to `GET, POST, PUT, DELETE`. [(MDN docs)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS#Access-Control-Allow-Methods)
+
+The ApiListener type expects its certificate files to be in the following locations:
+
+  Type                 | Location
+  ---------------------|-------------------------------------
+  Private key          | `LocalStateDir + "/lib/icinga2/certs/" + NodeName + ".key"`
+  Certificate file     | `LocalStateDir + "/lib/icinga2/certs/" + NodeName + ".crt"`
+  CA certificate file  | `LocalStateDir + "/lib/icinga2/certs/ca.crt"`
+
+If the deprecated attributes `cert_path`, `key_path` and/or `ca_path` are specified Icinga 2
+copies those files to the new location in `LocalStateDir + "/lib/icinga2/certs"` unless the
+file(s) there are newer.
+
+Please check the [upgrading chapter](16-upgrading-icinga-2.md#upgrading-to-2-8-certificate-paths) for more details.
 
 ## ApiUser <a id="objecttype-apiuser"></a>
 
