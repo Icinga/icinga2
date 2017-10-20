@@ -164,6 +164,25 @@ The underlying protocol uses JSON-RPC event notifications exchanged by nodes.
 The connection is secured by TLS. The message protocol uses an internal API,
 and as such message types and names may change internally and are not documented.
 
+Zones build the trust relationship in a distributed environment. If you do not specify
+a zone for a client and specify the parent zone, its zone members e.g. the master instance
+won't trust the client.
+
+Building this trust is key in your distributed environment. That way the parent node
+knows that it is able to send messages to the child zone, e.g. configuration objects,
+configuration in global zones, commands to be executed in this zone/for this endpoint.
+It also receives check results from the child zone for checkable objects (host/service).
+
+Vice versa, the client trusts the master and accepts configuration and commands if enabled
+in the api feature. If the client would send configuration to the parent zone, the parent nodes
+will deny it. The parent zone is the configuration entity, and does not trust clients in this matter.
+A client could attempt to modify a different client for example, or inject a check command
+with malicious code.
+
+While it may sound complicated for client setups, it removes the problem with different roles
+and configurations for a master and a client. Both of them work the same way, are configured
+in the same way (Zone, Endpoint, ApiListener), and you can troubleshoot and debug them in just one go.
+
 ## Master Setup <a id="distributed-monitoring-setup-master"></a>
 
 This section explains how to install a central single master node using
