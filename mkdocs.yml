@@ -20,11 +20,12 @@ pages:
   - 'Upgrading Icinga 2': '16-upgrading-icinga-2.md'
   - 'Language Reference': '17-language-reference.md'
   - 'Library Reference': '18-library-reference.md'
-  - 'Script Debugger': '19-script-debugger.md'
-  - 'Development': '20-development.md'
-  - 'SELinux': '21-selinux.md'
-  - 'Migrating from Icinga 1.x': '22-migrating-from-icinga-1x.md'
-  - 'Appendix': '23-appendix.md'
+  - 'Technical Concepts': '19-technical-concepts.md'
+  - 'Script Debugger': '20-script-debugger.md'
+  - 'Development': '21-development.md'
+  - 'SELinux': '22-selinux.md'
+  - 'Migrating from Icinga 1.x': '23-migrating-from-icinga-1x.md'
+  - 'Appendix': '24-appendix.md'
 theme: readthedocs
 markdown_extensions:
   - smarty
