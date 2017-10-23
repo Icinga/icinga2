@@ -164,8 +164,8 @@ static Value ProcessSpawnImpl(struct msghdr *msgh, const Dictionary::Ptr& reques
 		(void)close(fds[2]);
 
 #ifdef HAVE_NICE
-		if (adjustPriority && nice(5) < 0)
-			Log(LogWarning, "base", "Failed to renice child process.");
+		if (adjustPriority)
+			nice(5);
 #endif /* HAVE_NICE */
 
 		sigset_t mask;
