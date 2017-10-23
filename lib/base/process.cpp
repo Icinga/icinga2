@@ -138,11 +138,10 @@ static Value ProcessSpawnImpl(struct msghdr *msgh, const Dictionary::Ptr& reques
 
 	pid_t pid = fork();
 
-	if (pid < 0) {
-		BOOST_THROW_EXCEPTION(posix_error()
-			<< boost::errinfo_api_function("fork")
-			<< boost::errinfo_errno(errno));
-	}
+	int errorCode = 0;
+
+	if (pid < 0)
+		errorCode = errno;
 
 	if (pid == 0) {
 		// child process
@@ -203,6 +202,8 @@ static Value ProcessSpawnImpl(struct msghdr *msgh, const Dictionary::Ptr& reques
 
 	Dictionary::Ptr response = new Dictionary();
 	response->Set("rc", pid);
+	if (errorCode)
+		response->Set("errno", errorCode);
 	return response;
 }
 
@@ -424,6 +425,10 @@ send_message:
 	String jresponse = String(buf, buf + rc);
 
 	Dictionary::Ptr response = JsonDecode(jresponse);
+
+	if (response->Get("rc") == -1)
+		errno = response->Get("errno");
+
 	return response->Get("rc");
 }
 
@@ -978,6 +983,11 @@ void Process::Run(const boost::function<void(const ProcessResult&)>& callback)
 	m_Process = ProcessSpawn(m_Arguments, m_ExtraEnvironment, m_AdjustPriority, fds);
 	m_PID = m_Process;
 
+	if (m_PID == -1) {
+		m_OutputStream << "Fork failed with error code " << errno << " (" << Utility::FormatErrorNumber(errno) << ")";
+		Log(LogCritical, "Process", m_OutputStream.str());
+	}
+
 	Log(LogNotice, "Process")
 	    << "Running command " << PrettyPrintArguments(m_Arguments) << ": PID " << m_PID;
 
@@ -1079,7 +1089,7 @@ bool Process::DoEvents(void)
 	    << "PID " << m_PID << " (" << PrettyPrintArguments(m_Arguments) << ") terminated with exit code " << exitcode;
 #else /* _WIN32 */
 	int status, exitcode;
-	if (could_not_kill) {
+	if (could_not_kill || m_PID == -1) {
 		exitcode = 128;
 	} else if (ProcessWaitPID(m_Process, &status) != m_Process) {
 		exitcode = 128;
