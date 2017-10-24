@@ -59,20 +59,16 @@ private:
 	WorkQueue m_WorkQueue;
 	Timer::Ptr m_FlushTimer;
 	std::vector<String> m_DataBuffer;
-	boost::mutex m_DataBufferMutex;
 
 	void CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
-	void InternalCheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
-	void SendPerfdata(const Dictionary::Ptr& tmpl, const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, double ts);
+	void CheckResultHandlerWQ(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
 	void SendMetric(const Dictionary::Ptr& tmpl, const String& label, const Dictionary::Ptr& fields, double ts);
 	void FlushTimeout(void);
+	void FlushTimeoutWQ(void);
 	void Flush(void);
 
-	static String FormatInteger(int val);
-	static String FormatBoolean(bool val);
-
-	static String EscapeKey(const String& str);
-	static String EscapeField(const String& str);
+	static String EscapeKeyOrTagValue(const String& str);
+	static String EscapeValue(const Value& value);
 
 	Stream::Ptr Connect();
 
