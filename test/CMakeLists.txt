@@ -99,10 +99,10 @@ add_boost_test(base
         icinga_checkresult/service_1attempt
         icinga_checkresult/service_2attempts
         icinga_checkresult/service_3attempts
-	icinga_checkresult/host_flapping_notification
-	icinga_checkresult/service_flapping_notification
-	icinga_notification/state_filter
-	icinga_notification/type_filter
+        icinga_checkresult/host_flapping_notification
+        icinga_checkresult/service_flapping_notification
+        icinga_notification/state_filter
+        icinga_notification/type_filter
         icinga_macros/simple
         icinga_perfdata/empty
         icinga_perfdata/simple
@@ -136,3 +136,17 @@ if(ICINGA2_WITH_LIVESTATUS)
     TESTS livestatus/hosts livestatus/services
   )
 endif()
+
+set(icinga_checkable_test_SOURCES
+    icinga-checkable-flapping.cpp
+)
+
+add_boost_test(icinga_checkable
+  SOURCES icinga-checkable-test.cpp ${icinga_checkable_test_SOURCES}
+  LIBRARIES base config icinga cli
+  TESTS icinga_checkable_flapping/host_not_flapping
+        icinga_checkable_flapping/host_flapping
+        icinga_checkable_flapping/host_flapping_recover
+        icinga_checkable_flapping/host_flapping_docs_example
+)
+

@@ -1194,10 +1194,10 @@ void DbEvents::AddFlappingChangedLogHistory(const Checkable::Ptr& checkable)
 	String flapping_output;
 	
 	if (checkable->IsFlapping()) {
-		flapping_output = "Service appears to have started flapping (" + Convert::ToString(checkable->GetFlappingCurrent()) + "% change >= " + Convert::ToString(checkable->GetFlappingThreshold()) + "% threshold)";
+		flapping_output = "Service appears to have started flapping (" + Convert::ToString(checkable->GetFlappingCurrent()) + "% change >= " + Convert::ToString(checkable->GetFlappingThresholdHigh()) + "% threshold)";
 		flapping_state_str = "STARTED";
 	} else {
-		flapping_output = "Service appears to have stopped flapping (" + Convert::ToString(checkable->GetFlappingCurrent()) + "% change < " + Convert::ToString(checkable->GetFlappingThreshold()) + "% threshold)";
+		flapping_output = "Service appears to have stopped flapping (" + Convert::ToString(checkable->GetFlappingCurrent()) + "% change < " + Convert::ToString(checkable->GetFlappingThresholdLow()) + "% threshold)";
 		flapping_state_str = "STOPPED";
 	}
 
@@ -1323,8 +1323,8 @@ void DbEvents::AddFlappingChangedHistory(const Checkable::Ptr& checkable)
 	fields1->Set("flapping_type", service ? 1 : 0);
 	fields1->Set("object_id", checkable);
 	fields1->Set("percent_state_change", checkable->GetFlappingCurrent());
-	fields1->Set("low_threshold", checkable->GetFlappingThreshold());
-	fields1->Set("high_threshold", checkable->GetFlappingThreshold());
+	fields1->Set("low_threshold", checkable->GetFlappingThresholdLow());
+	fields1->Set("high_threshold", checkable->GetFlappingThresholdHigh());
 
 	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
@@ -1369,8 +1369,8 @@ void DbEvents::AddEnableFlappingChangedHistory(const Checkable::Ptr& checkable)
 	fields1->Set("flapping_type", service ? 1 : 0);
 	fields1->Set("object_id", checkable);
 	fields1->Set("percent_state_change", checkable->GetFlappingCurrent());
-	fields1->Set("low_threshold", checkable->GetFlappingThreshold());
-	fields1->Set("high_threshold", checkable->GetFlappingThreshold());
+	fields1->Set("low_threshold", checkable->GetFlappingThresholdLow());
+	fields1->Set("high_threshold", checkable->GetFlappingThresholdHigh());
 
 	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
 

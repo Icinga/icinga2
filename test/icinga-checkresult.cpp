@@ -395,11 +395,9 @@ BOOST_AUTO_TEST_CASE(host_flapping_notification)
 #else /* I2_DEBUG */
 	boost::signals2::connection c = Checkable::OnNotificationsRequested.connect(boost::bind(&NotificationHandler, _1, _2));
 
-	int softStateCount = 20;
 	int timeStepInterval = 60;
 
 	Host::Ptr host = new Host();
-	host->SetMaxCheckAttempts(softStateCount);
 	host->Activate();
 	host->SetAuthority(true);
 	host->SetStateRaw(ServiceOK);
@@ -418,18 +416,25 @@ BOOST_AUTO_TEST_CASE(host_flapping_notification)
 
 	std::cout << "Inserting flapping check results" << std::endl;
 
-	for (int i = 0; i < softStateCount; i++) {
+	for (int i = 0; i < 10; i++) {
 		ServiceState state = (i % 2 == 0 ? ServiceOK : ServiceCritical);
 		host->ProcessCheckResult(MakeCheckResult(state));
 		Utility::IncrementTime(timeStepInterval);
 	}
 
-	std::cout << "Checking host state (must be flapping in SOFT state)" << std::endl;
-	BOOST_CHECK(host->GetStateType() == StateTypeSoft);
 	BOOST_CHECK(host->IsFlapping() == true);
 
-	std::cout << "No FlappingStart notification type must have been triggered in a SOFT state" << std::endl;
-	CheckNotification(host, false, NotificationFlappingStart);
+	CheckNotification(host, true, NotificationFlappingStart);
+
+	std::cout << "Now calm down..." << std::endl;
+
+	for (int i = 0; i < 20; i++) {
+		host->ProcessCheckResult(MakeCheckResult(ServiceOK));
+		Utility::IncrementTime(timeStepInterval);
+	}
+
+	CheckNotification(host, true, NotificationFlappingEnd);
+
 
 	c.disconnect();
 
@@ -443,11 +448,9 @@ BOOST_AUTO_TEST_CASE(service_flapping_notification)
 #else /* I2_DEBUG */
 	boost::signals2::connection c = Checkable::OnNotificationsRequested.connect(boost::bind(&NotificationHandler, _1, _2));
 
-	int softStateCount = 20;
 	int timeStepInterval = 60;
 
 	Host::Ptr service = new Host();
-	service->SetMaxCheckAttempts(softStateCount);
 	service->Activate();
 	service->SetAuthority(true);
 	service->SetStateRaw(ServiceOK);
@@ -466,18 +469,24 @@ BOOST_AUTO_TEST_CASE(service_flapping_notification)
 
 	std::cout << "Inserting flapping check results" << std::endl;
 
-	for (int i = 0; i < softStateCount; i++) {
+	for (int i = 0; i < 10; i++) {
 		ServiceState state = (i % 2 == 0 ? ServiceOK : ServiceCritical);
 		service->ProcessCheckResult(MakeCheckResult(state));
 		Utility::IncrementTime(timeStepInterval);
 	}
 
-	std::cout << "Checking service state (must be flapping in SOFT state)" << std::endl;
-	BOOST_CHECK(service->GetStateType() == StateTypeSoft);
 	BOOST_CHECK(service->IsFlapping() == true);
 
-	std::cout << "No FlappingStart notification type must have been triggered in a SOFT state" << std::endl;
-	CheckNotification(service, false, NotificationFlappingStart);
+	CheckNotification(service, true, NotificationFlappingStart);
+
+	std::cout << "Now calm down..." << std::endl;
+
+	for (int i = 0; i < 20; i++) {
+		service->ProcessCheckResult(MakeCheckResult(ServiceOK));
+		Utility::IncrementTime(timeStepInterval);
+	}
+
+	CheckNotification(service, true, NotificationFlappingEnd);
 
 	c.disconnect();
 

@@ -315,14 +315,11 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 	olock.Lock();
 	SetLastCheckResult(cr);
 
-	bool was_flapping, is_flapping;
+	bool was_flapping = IsFlapping();
 
-	was_flapping = IsFlapping();
+	UpdateFlappingStatus(old_state != cr->GetState());
 
-	if (GetStateType() == StateTypeHard)
-		UpdateFlappingStatus(stateChange);
-
-	is_flapping = IsFlapping();
+	bool is_flapping = IsFlapping();
 
 	if (cr->GetActive()) {
 		UpdateNextCheck(origin);
@@ -368,13 +365,13 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 		ExecuteEventHandler();
 
 	/* Flapping start/end notifications */
-	if (send_notification && !was_flapping && is_flapping) {
+	if (!in_downtime && !was_flapping && is_flapping) {
 		/* FlappingStart notifications happen on state changes, not in downtimes */
 		if (!IsPaused())
 			OnNotificationsRequested(this, NotificationFlappingStart, cr, "", "", MessageOrigin::Ptr());
 
 		Log(LogNotice, "Checkable")
-			<< "Flapping: Checkable '" << GetName() << "' started flapping (" << GetFlappingThreshold() << "% < " << GetFlappingCurrent() << "%).";
+			<< "Flapping: Checkable '" << GetName() << "' started flapping (Current flapping value " << GetFlappingCurrent() << "% > threshold " << GetFlappingThresholdHigh() << "%).";
 
 		NotifyFlapping(origin);
 	} else if (!in_downtime && was_flapping && !is_flapping) {
@@ -383,7 +380,7 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 			OnNotificationsRequested(this, NotificationFlappingEnd, cr, "", "", MessageOrigin::Ptr());
 
 		Log(LogNotice, "Checkable")
-			<< "Flapping: Checkable '" << GetName() << "' stopped flapping (" << GetFlappingThreshold() << "% >= " << GetFlappingCurrent() << "%).";
+			<< "Flapping: Checkable '" << GetName() << "' stopped flapping (Current flapping value " << GetFlappingCurrent() << "% < threshold " << GetFlappingThresholdLow() << "%).";
 
 		NotifyFlapping(origin);
 	}
