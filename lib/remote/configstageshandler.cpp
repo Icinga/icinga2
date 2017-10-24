@@ -110,6 +110,7 @@ void ConfigStagesHandler::HandlePost(const ApiUser::Ptr& user, HttpRequest& requ
 		if (!files)
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Parameter 'files' must be specified."));
 
+		boost::mutex::scoped_lock lock(ConfigPackageUtility::GetStaticMutex());
 		stageName = ConfigPackageUtility::CreateStage(packageName, files);
 
 		/* validate the config. on success, activate stage and reload */

@@ -190,7 +190,10 @@ void ConfigPackageUtility::TryActivateStageCallback(const ProcessResult& pr, con
 
 	/* validation went fine, activate stage and reload */
 	if (pr.ExitStatus == 0) {
-		ActivateStage(packageName, stageName);
+		{
+			boost::mutex::scoped_lock lock(GetStaticMutex());
+			ActivateStage(packageName, stageName);
+		}
 
 		if (reload)
 			Application::RequestRestart();
@@ -317,3 +320,8 @@ bool ConfigPackageUtility::ValidateName(const String& name)
 	return (!boost::regex_search(name.GetData(), what, expr));
 }
 
+boost::mutex& ConfigPackageUtility::GetStaticMutex(void)
+{
+	static boost::mutex mutex;
+	return mutex;
+}
