@@ -7,6 +7,11 @@
 -- Please check https://docs.icinga.com for upgrading information!
 -- -----------------------------------------
 
+ALTER TABLE icinga_downtimehistory DROP CONSTRAINT IF EXISTS UQ_downtimehistory;
+ALTER TABLE icinga_scheduleddowntime DROP CONSTRAINT IF EXISTS UQ_scheduleddowntime;
+ALTER TABLE icinga_commenthistory DROP CONSTRAINT IF EXISTS UQ_commenthistory;
+ALTER TABLE icinga_comments DROP CONSTRAINT IF EXISTS UQ_comments;
+
 -- -----------------------------------------
 -- #5458 IDO: Improve downtime removal/cancel
 -- -----------------------------------------
