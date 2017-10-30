@@ -210,10 +210,10 @@ Value ContactsTable::CustomVariableNamesAccessor(const Value& row)
 		vars = CompatUtility::GetCustomAttributeConfig(user);
 	}
 
-	if (!vars)
-		return Empty;
-
 	Array::Ptr cv = new Array();
+
+	if (!vars)
+		return cv;
 
 	ObjectLock olock(vars);
 	for (const Dictionary::Pair& kv : vars) {
@@ -237,10 +237,10 @@ Value ContactsTable::CustomVariableValuesAccessor(const Value& row)
 		vars = CompatUtility::GetCustomAttributeConfig(user);
 	}
 
-	if (!vars)
-		return Empty;
-
 	Array::Ptr cv = new Array();
+
+	if (!vars)
+		return cv;
 
 	ObjectLock olock(vars);
 	for (const Dictionary::Pair& kv : vars) {
@@ -267,10 +267,10 @@ Value ContactsTable::CustomVariablesAccessor(const Value& row)
 		vars = CompatUtility::GetCustomAttributeConfig(user);
 	}
 
-	if (!vars)
-		return Empty;
-
 	Array::Ptr cv = new Array();
+
+	if (!vars)
+		return cv;
 
 	ObjectLock olock(vars);
 	for (const Dictionary::Pair& kv : vars) {

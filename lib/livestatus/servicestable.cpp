@@ -1055,10 +1055,10 @@ Value ServicesTable::CustomVariableNamesAccessor(const Value& row)
 		vars = CompatUtility::GetCustomAttributeConfig(service);
 	}
 
-	if (!vars)
-		return Empty;
-
 	Array::Ptr cv = new Array();
+
+	if (!vars)
+		return cv;
 
 	ObjectLock olock(vars);
 	for (const Dictionary::Pair& kv : vars) {
@@ -1082,10 +1082,10 @@ Value ServicesTable::CustomVariableValuesAccessor(const Value& row)
 		vars = CompatUtility::GetCustomAttributeConfig(service);
 	}
 
-	if (!vars)
-		return Empty;
-
 	Array::Ptr cv = new Array();
+
+	if (!vars)
+		return cv;
 
 	ObjectLock olock(vars);
 	for (const Dictionary::Pair& kv : vars) {
@@ -1112,10 +1112,10 @@ Value ServicesTable::CustomVariablesAccessor(const Value& row)
 		vars = CompatUtility::GetCustomAttributeConfig(service);
 	}
 
-	if (!vars)
-		return Empty;
-
 	Array::Ptr cv = new Array();
+
+	if (!vars)
+		return cv;
 
 	ObjectLock olock(vars);
 	for (const Dictionary::Pair& kv : vars) {

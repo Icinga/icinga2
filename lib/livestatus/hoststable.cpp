@@ -1016,10 +1016,10 @@ Value HostsTable::CustomVariableNamesAccessor(const Value& row)
 		vars = CompatUtility::GetCustomAttributeConfig(host);
 	}
 
-	if (!vars)
-		return Empty;
-
 	Array::Ptr cv = new Array();
+
+	if (!vars)
+		return cv;
 
 	ObjectLock olock(vars);
 	for (const Dictionary::Pair& kv : vars) {
@@ -1043,10 +1043,10 @@ Value HostsTable::CustomVariableValuesAccessor(const Value& row)
 		vars = CompatUtility::GetCustomAttributeConfig(host);
 	}
 
-	if (!vars)
-		return Empty;
-
 	Array::Ptr cv = new Array();
+
+	if (!vars)
+		return cv;
 
 	ObjectLock olock(vars);
 	for (const Dictionary::Pair& kv : vars) {
@@ -1073,10 +1073,10 @@ Value HostsTable::CustomVariablesAccessor(const Value& row)
 		vars = CompatUtility::GetCustomAttributeConfig(host);
 	}
 
-	if (!vars)
-		return Empty;
-
 	Array::Ptr cv = new Array();
+
+	if (!vars)
+		return cv;
 
 	ObjectLock olock(vars);
 	for (const Dictionary::Pair& kv : vars) {

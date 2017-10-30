@@ -106,10 +106,10 @@ Value CommandsTable::CustomVariableNamesAccessor(const Value& row)
 		vars = CompatUtility::GetCustomAttributeConfig(command);
 	}
 
-	if (!vars)
-		return Empty;
-
 	Array::Ptr cv = new Array();
+
+	if (!vars)
+		return cv;
 
 	{
 		ObjectLock xlock(vars);
@@ -135,10 +135,10 @@ Value CommandsTable::CustomVariableValuesAccessor(const Value& row)
 		vars = CompatUtility::GetCustomAttributeConfig(command);
 	}
 
-	if (!vars)
-		return Empty;
-
 	Array::Ptr cv = new Array();
+
+	if (!vars)
+		return cv;
 
 	{
 		ObjectLock xlock(vars);
@@ -164,10 +164,10 @@ Value CommandsTable::CustomVariablesAccessor(const Value& row)
 		vars = CompatUtility::GetCustomAttributeConfig(command);
 	}
 
-	if (!vars)
-		return Empty;
-
 	Array::Ptr cv = new Array();
+
+	if (!vars)
+		return cv;
 
 	{
 		ObjectLock xlock(vars);
