@@ -68,7 +68,7 @@ Details on troubleshooting check problems can be found [here](15-troubleshooting
 
 ### Host States <a id="host-states"></a>
 
-Hosts can be in any of the following states:
+Hosts can be in any one of the following states:
 
   Name        | Description
   ------------|--------------
@@ -77,7 +77,7 @@ Hosts can be in any of the following states:
 
 ### Service States <a id="service-states"></a>
 
-Services can be in any of the following states:
+Services can be in any one of the following states:
 
   Name        | Description
   ------------|--------------
@@ -89,7 +89,7 @@ Services can be in any of the following states:
 ### Check Result State Mapping <a id="check-result-state-mapping"></a>
 
 [Check plugins](05-service-monitoring.md#service-monitoring-plugins) return
-with an exit code which is interpreted a state number.
+with an exit code which is converted into a state number.
 Services map the states directly while hosts will treat `0` or `1` as `UP`
 for example.
 
@@ -102,13 +102,13 @@ for example.
 
 ### Hard and Soft States <a id="hard-soft-states"></a>
 
-When detecting a problem with a host/service Icinga re-checks the object a number of
+When detecting a problem with a host/service, Icinga re-checks the object a number of
 times (based on the `max_check_attempts` and `retry_interval` settings) before sending
 notifications. This ensures that no unnecessary notifications are sent for
 transient failures. During this time the object is in a `SOFT` state.
 
 After all re-checks have been executed and the object is still in a non-OK
-state the host/service switches to a `HARD` state and notifications are sent.
+state, the host/service switches to a `HARD` state and notifications are sent.
 
   Name        | Description
   ------------|--------------
@@ -157,7 +157,7 @@ object Host "dummy-host" {
 This method is also used when you send in [external check results](08-advanced-topics.md#external-check-results).
 
 A more advanced technique is to calculate an overall state
-based on all services. This is described in [here](08-advanced-topics.md#access-object-attributes-at-runtime-cluster-check).
+based on all services. This is described  [here](08-advanced-topics.md#access-object-attributes-at-runtime-cluster-check).
 
 
 ## Templates <a id="object-inheritance-using-templates"></a>
@@ -3004,4 +3004,3 @@ executed command line.
 ```
 [root@icinga2-client1.localdomain /]# tail -f /var/log/icinga2/debug.log | grep by_ssh
 ```
-

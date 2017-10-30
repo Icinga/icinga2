@@ -1,6 +1,6 @@
 # Configuring Icinga 2: First Steps <a id="configuring-icinga2-first-steps"></a>
 
-This chapter provides an introduction into best practices with your Icinga 2 configuration.
+This chapter provides an introduction into best practices for your Icinga 2 configuration.
 The configuration files which are automatically created when installing the Icinga 2 packages
 are a good way to start with Icinga 2.
 
@@ -271,7 +271,7 @@ in the Icinga Template Library require an `address` attribute.
 The custom attribute `os` is evaluated by the `linux-servers` group in
 [groups.conf](04-configuring-icinga-2.md#groups-conf) making the local host a member.
 
-The example host will show you how to
+The example host will show you how to:
 
 * define http vhost attributes for the `http` service apply rule defined
 in [services.conf](04-configuring-icinga-2.md#services-conf).
@@ -360,11 +360,11 @@ By default, the local host will be monitored by the following services
 
 Service(s)                                  | Applied on host(s)
 --------------------------------------------|------------------------
-`load`, `procs`, `swap`, `users`, `icinga`  | The `NodeName` host only
-`ping4`, `ping6`                            | All hosts with `address` resp. `address6` attribute
+`load`, `procs`, `swap`, `users`, `icinga`  | The `NodeName` host only.
+`ping4`, `ping6`                            | All hosts with `address` resp. `address6` attribute.
 `ssh`                                       | All hosts with `address` and `vars.os` set to `Linux`
-`http`, optional: `Icinga Web 2`            | All hosts with custom attribute `http_vhosts` defined as dictionary
-`disk`, `disk /`                            | All hosts with custom attribute `disks` defined as dictionary
+`http`, optional: `Icinga Web 2`            | All hosts with custom attribute `http_vhosts` defined as dictionary.
+`disk`, `disk /`                            | All hosts with custom attribute `disks` defined as dictionary.
 
 The Debian packages also include an additional `apt` service check applied to the local host.
 
@@ -391,7 +391,7 @@ The `apply` keyword can be used to create new objects which are associated with
 another group of objects. You can `import` existing templates, define (custom)
 attributes.
 
-The custom attribe `backup_downtime` is defined to a specific timerange string.
+The custom attribute `backup_downtime` is defined to a specific timerange string.
 This variable value will be used for applying a `ScheduledDowntime` object to
 these services in [downtimes.conf](04-configuring-icinga-2.md#downtimes-conf).
 
@@ -414,7 +414,7 @@ as shown in the `ssh` example:
 In this example, the service `ssh` is applied to all hosts having the `address`
 attribute defined `AND` having the custom attribute `os` set to the string
 `Linux`.
-You can modify this condition to match multiple expressions by combinding `AND`
+You can modify this condition to match multiple expressions by combining `AND`
 and `OR` using `&&` and `||` [operators](17-language-reference.md#expression-operators), for example
 `assign where host.address && (vars.os == "Linux" || vars.os == "Windows")`.
 

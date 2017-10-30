@@ -502,7 +502,7 @@ Configuration Attributes:
   port                      | Number                | **Required.** Elasticsearch port. Defaults to `9200`.
   index                     | String                | **Required.** Elasticsearch index name. Defaults to `icinga2`.
   enable\_send\_perfdata    | Boolean               | **Optional.** Send parsed performance data metrics for check results. Defaults to `false`.
-  flush\_interval           | Duration              | **Optional.** How long to buffer data points before transfering to Elasticsearch. Defaults to `10s`.
+  flush\_interval           | Duration              | **Optional.** How long to buffer data points before transferring to Elasticsearch. Defaults to `10s`.
   flush\_threshold          | Number                | **Optional.** How many data points to buffer before forcing a transfer to Elasticsearch.  Defaults to `1024`.
   username                  | String                | **Optional.** Basic auth username if Elasticsearch is hidden behind an HTTP proxy.
   password                  | String                | **Optional.** Basic auth password if Elasticsearch is hidden behind an HTTP proxy.
@@ -754,7 +754,7 @@ Runtime Attributes:
   Name                      | Type                  | Description
   --------------------------|-----------------------|----------------------------------
   next\_check               | Timestamp             | When the next check occurs (as a UNIX timestamp).
-  last\_check               | Timestamp             | When the last check occured (as a UNIX timestamp).
+  last\_check               | Timestamp             | When the last check occurred (as a UNIX timestamp).
   check\_attempt            | Number                | The current check attempt number.
   state\_type               | Number                | The current state type (0 = SOFT, 1 = HARD).
   last\_state\_type         | Number                | The previous state type (0 = SOFT, 1 = HARD).
@@ -1059,7 +1059,7 @@ Configuration Attributes:
   service\_template         | String                | **Required.** Service template to define the influxDB line protocol.
   enable\_send\_thresholds  | Boolean               | **Optional.** Whether to send warn, crit, min & max tagged data.
   enable\_send\_metadata    | Boolean               | **Optional.** Whether to send check metadata e.g. states, execution time, latency etc.
-  flush\_interval           | Duration              | **Optional.** How long to buffer data points before transfering to InfluxDB. Defaults to `10s`.
+  flush\_interval           | Duration              | **Optional.** How long to buffer data points before transferring to InfluxDB. Defaults to `10s`.
   flush\_threshold          | Number                | **Optional.** How many data points to buffer before forcing a transfer to InfluxDB.  Defaults to `1024`.
 
 Note: If `flush_threshold` is set too low, this will always force the feature to flush all data
@@ -1790,4 +1790,3 @@ Configuration Attributes:
   global                    | Boolean               | **Optional.** Whether configuration files for this zone should be [synced](06-distributed-monitoring.md#distributed-monitoring-global-zone-config-sync) to all endpoints. Defaults to `false`.
 
 Zone objects cannot currently be created with the API.
-

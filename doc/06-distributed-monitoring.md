@@ -766,7 +766,7 @@ Once you are familiar with Icinga 2 and distributed monitoring, you
 can start with additional integrations to manage and deploy your
 configuration:
 
-* [Icinga Director](https://github.com/icinga/icingaweb2-module-director) provides a web interface to manage configuration and also allows to sync imported resouces (CMDB, PuppetDB, etc.)
+* [Icinga Director](https://github.com/icinga/icingaweb2-module-director) provides a web interface to manage configuration and also allows to sync imported resources (CMDB, PuppetDB, etc.)
 * [Ansible Roles](https://github.com/Icinga/icinga2-ansible)
 * [Puppet Module](https://github.com/Icinga/puppet-icinga2)
 * [Chef Cookbook](https://github.com/Icinga/chef-icinga2)
@@ -1290,7 +1290,7 @@ Open Icinga Web 2 and check the two newly created client hosts with two new serv
 
 ![Icinga 2 Distributed High Availability Master with Clients](images/distributed-monitoring/icinga2_distributed_scenarios_ha_master_clients.png)
 
-This scenario is similar to the one in the [previous section](06-distributed-monitoring.md#distributed-monitoring-master-clients). The only difference is that we will now set up two master nodes in a high-availablity setup.
+This scenario is similar to the one in the [previous section](06-distributed-monitoring.md#distributed-monitoring-master-clients). The only difference is that we will now set up two master nodes in a high-availability setup.
 These nodes must be configured as zone and endpoints objects.
 
 The setup uses the capabilities of the Icinga 2 cluster. All zone members
@@ -1317,7 +1317,7 @@ required SSL certificates. We will modify and discuss all the details of the aut
 Since there are now two nodes in the same zone, we must consider the
 [high-availability features](06-distributed-monitoring.md#distributed-monitoring-high-availability-features).
 
-* Checks and notifiations are balanced between the two master nodes. That's fine, but it requires check plugins and notification scripts to exist on both nodes.
+* Checks and notifications are balanced between the two master nodes. That's fine, but it requires check plugins and notification scripts to exist on both nodes.
 * The IDO feature will only be active on one node by default. Since all events are replicated between both nodes, it is easier to just have one central database.
 
 One possibility is to use a dedicated MySQL cluster VIP (external application cluster)
@@ -2436,7 +2436,7 @@ This will tremendously help when someone is trying to help in the [community cha
 ### Silent Windows Setup <a id="distributed-monitoring-automation-windows-silent"></a>
 
 If you want to install the client silently/unattended, use the `/qn` modifier. The
-installation should not trigger a restart, but if you want to be completly sure, you can use the `/norestart` modifier.
+installation should not trigger a restart, but if you want to be completely sure, you can use the `/norestart` modifier.
 
     C:> msiexec /i C:\Icinga2-v2.5.0-x86.msi /qn /norestart
 
@@ -2506,7 +2506,7 @@ Pass the following details to the `pki save-cert` CLI command:
   Parameter           | Description
   --------------------|--------------------
   Client certificate files | **Required.** Pass the previously generated files using the `--key` and `--cert` parameters.
-  Trusted master certicate | **Required.** Store the master's certificate file. Manually verify that you're trusting it.
+  Trusted master certificate | **Required.** Store the master's certificate file. Manually verify that you're trusting it.
   Master host         | **Required.** FQDN or IP address of the master host.
 
 Example:
@@ -2526,7 +2526,7 @@ Pass the following details to the `node setup` CLI command:
   --------------------|--------------------
   Common name (CN)    | **Optional.** Specified with the `--cn` parameter. By convention this should be the host's FQDN.
   Request ticket      | **Required.** Add the previously generated [ticket number](06-distributed-monitoring.md#distributed-monitoring-setup-csr-auto-signing).
-  Trusted master certicate | **Required.** Add the previously fetched trusted master certificate (this step means that you've verified its origin).
+  Trusted master certificate | **Required.** Add the previously fetched trusted master certificate (this step means that you've verified its origin).
   Master endpoint     | **Required.** Specify the master's endpoint name.
   Client zone name    | **Required.** Specify the client's zone name.
   Master host         | **Required.** FQDN or IP address of the master host.

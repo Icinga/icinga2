@@ -151,7 +151,7 @@ by sending an [external command](14-features.md#external-commands).
 The acknowledgement is removed if a state change occurs or if the host/service
 recovers (OK/Up state).
 
-If you acknowlege a problem once you've received a `Critical` notification,
+If you acknowledge a problem once you've received a `Critical` notification,
 the acknowledgement will be removed if there is a state transition to `Warning`.
 ```
 OK -> WARNING -> CRITICAL -> WARNING -> OK
@@ -295,11 +295,11 @@ provides the `includes` and `excludes` attributes to solve this issue.
 preferred.
 
 The following example defines a time period called `holidays` where
-notifications should be supressed:
+notifications should be suppressed:
 
     object TimePeriod "holidays" {
       import "legacy-timeperiod"
-    
+
       ranges = {
         "january 1" = "00:00-24:00"                 //new year's day
         "july 4" = "00:00-24:00"                    //independence day
@@ -317,7 +317,7 @@ time window which should be excluded from notifications:
 
     object TimePeriod "weekends-excluded" {
       import "legacy-timeperiod"
-    
+
       ranges = {
         "saturday"  = "00:00-09:00,18:00-24:00"
         "sunday"    = "00:00-09:00,18:00-24:00"
@@ -329,9 +329,9 @@ and adds the excluded time period names as an array.
 
     object TimePeriod "prod-notification" {
       import "legacy-timeperiod"
-    
+
       excludes = [ "holidays", "weekends-excluded" ]
-    
+
       ranges = {
         "monday"    = "00:00-24:00"
         "tuesday"   = "00:00-24:00"
@@ -416,14 +416,14 @@ Icinga 2 supports optional detection of hosts and services that are "flapping".
 
 Flapping occurs when a service or host changes state too frequently, which would result in a storm of problem and
 recovery notifications. With flapping enabled a flapping notification will be sent while other notifications are
-suppresed until it calms down after receiving the same status from checks a few times. flapping can help detecting 
+suppressed until it calms down after receiving the same status from checks a few times. flapping can help detecting
 configuration problems (wrong thresholds), troublesome services, or network problems.
 
 Flapping detection can be enabled or disabled using the `enable_flapping` attribute.
 The `flapping_threshold_high` and `flapping_threshold_low` attributes allows to specify the thresholds that control
 when a [host](09-object-types.md#objecttype-host) or [service](objecttype-service) is considered to be flapping.
 
-The default thresholds are 30% for high and 25% for low. If the computed flapping value excedes the high threshold a
+The default thresholds are 30% for high and 25% for low. If the computed flapping value exceeds the high threshold a
 host or service is considered flapping until it drops below the low flapping threshold.
 
 `FlappingStart` and `FlappingEnd` notifications will be sent out accordingly, if configured. See the chapter on
@@ -439,11 +439,11 @@ Icinga 2 saves the last 20 state changes for every host and service. See the gra
 ![Icinga 2 Flapping State Timeline](images/advanced-topics/flapping-state-graph.png)
 
 All the states ware weighted, with the most recent one being worth the most (1.15) and the 20th the least (0.8). The
-states inbetween are fairly distributed. The final flapping value are the weightened state changes divided by the total
+states in between are fairly distributed. The final flapping value are the weighted state changes divided by the total
 count of 20.
 
 In the example above, the added states would have a total value of 7.82 (`0.84 + 0.86 + 0.88 + 0.9 + 0.98 + 1.06 + 1.12 + 1.18`).
-This yiels a flapping percentage of 39.1% (`7.82 / 20 * 100`). As the default upper flapping threshold is 30%, it would be
+This yields a flapping percentage of 39.1% (`7.82 / 20 * 100`). As the default upper flapping threshold is 30%, it would be
 considered flapping.
 
 If the next seven check results then would not be state changes, the flapping percentage would fall below the lower threshold
@@ -735,11 +735,11 @@ script to call based on that.
 
     object User "short-dummy" {
     }
-    
+
     object UserGroup "short-dummy-group" {
       assign where user.name == "short-dummy"
     }
-    
+
     apply Notification "mail-admins-short" to Host {
        import "mail-host-notification"
        command = "mail-host-notification-test"
@@ -767,12 +767,12 @@ You can omit the `log()` calls, they only help debugging.
         }
         log("Running command")
         log(mailscript)
-    
+
         var cmd = [ SysconfDir + "/icinga2/scripts/" + mailscript ]
         log(LogCritical, "me", cmd)
         return cmd
       }}
-    
+
       env = {
       }
     }
@@ -793,14 +793,14 @@ as value for `ping_wrta`, all other hosts use 100.
             }
         }
     }
-    
+
     apply Service "ping4" {
         import "generic-service"
         check_command = "ping4"
-    
+
         vars.ping_wrta = group_specific_value("slow-lan", 300, 100)
         vars.ping_crta = group_specific_value("slow-lan", 500, 200)
-    
+
         assign where true
     }
 
@@ -1040,5 +1040,3 @@ Icinga 2 parses performance data strings returned by check plugins and makes the
   warn                      | Value                 | Warning threshold value.
   min                       | Value                 | Minimum value returned by the check.
   max                       | Value                 | Maximum value returned by the check.
-
-
