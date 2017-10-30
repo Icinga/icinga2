@@ -233,10 +233,10 @@ Value StatusTable::CustomVariableNamesAccessor(const Value&)
 {
 	Dictionary::Ptr vars = IcingaApplication::GetInstance()->GetVars();
 
-	if (!vars)
-		return Empty;
-
 	Array::Ptr cv = new Array();
+
+	if (!vars)
+		return cv;
 
 	{
 		ObjectLock olock(vars);
@@ -252,10 +252,10 @@ Value StatusTable::CustomVariableValuesAccessor(const Value&)
 {
 	Dictionary::Ptr vars = IcingaApplication::GetInstance()->GetVars();
 
-	if (!vars)
-		return Empty;
-
 	Array::Ptr cv = new Array();
+
+	if (!vars)
+		return cv;
 
 	{
 		ObjectLock olock(vars);
@@ -271,10 +271,10 @@ Value StatusTable::CustomVariablesAccessor(const Value&)
 {
 	Dictionary::Ptr vars = IcingaApplication::GetInstance()->GetVars();
 
-	if (!vars)
-		return Empty;
-
 	Array::Ptr cv = new Array();
+
+	if (!vars)
+		return cv;
 
 	{
 		ObjectLock olock(vars);
