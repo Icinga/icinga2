@@ -71,14 +71,15 @@ void LogTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "state_type", Column(&LogTable::StateTypeAccessor, objectAccessor));
 	table->AddColumn(prefix + "attempt", Column(&LogTable::AttemptAccessor, objectAccessor));
 	table->AddColumn(prefix + "service_description", Column(&LogTable::ServiceDescriptionAccessor, objectAccessor));
-	table->AddColumn(prefix + "host_name", Column(&LogTable::HostNameAccessor, objectAccessor));
-	table->AddColumn(prefix + "contact_name", Column(&LogTable::ContactNameAccessor, objectAccessor));
-	table->AddColumn(prefix + "command_name", Column(&LogTable::CommandNameAccessor, objectAccessor));
 
 	HostsTable::AddColumns(table, "current_host_", std::bind(&LogTable::HostAccessor, _1, objectAccessor));
 	ServicesTable::AddColumns(table, "current_service_", std::bind(&LogTable::ServiceAccessor, _1, objectAccessor));
 	ContactsTable::AddColumns(table, "current_contact_", std::bind(&LogTable::ContactAccessor, _1, objectAccessor));
 	CommandsTable::AddColumns(table, "current_command_", std::bind(&LogTable::CommandAccessor, _1, objectAccessor));
+
+	table->AddColumn(prefix + "host_name", Column(&LogTable::HostNameAccessor, objectAccessor));
+	table->AddColumn(prefix + "contact_name", Column(&LogTable::ContactNameAccessor, objectAccessor));
+	table->AddColumn(prefix + "command_name", Column(&LogTable::CommandNameAccessor, objectAccessor));
 }
 
 String LogTable::GetName(void) const
