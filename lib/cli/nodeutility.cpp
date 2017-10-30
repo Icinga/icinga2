@@ -47,7 +47,7 @@ using namespace icinga;
  * Node Setup helpers
  */
 
-int NodeUtility::GenerateNodeIcingaConfig(const std::vector<std::string>& endpoints)
+int NodeUtility::GenerateNodeIcingaConfig(const std::vector<std::string>& endpoints, const std::vector<String>& globalZones)
 {
 	Array::Ptr my_config = new Array();
 
@@ -111,6 +111,16 @@ int NodeUtility::GenerateNodeIcingaConfig(const std::vector<std::string>& endpoi
 
 	my_zone->Set("endpoints", my_zone_members);
 
+	for (const String& globalzone : globalZones) {
+		Dictionary::Ptr myGlobalZone = new Dictionary();
+
+		myGlobalZone->Set("__name", globalzone);
+		myGlobalZone->Set("__type", "Zone");
+		myGlobalZone->Set("global", true);
+
+		my_config->Add(myGlobalZone);
+    }
+
 	/* store the local config */
 	my_config->Add(my_endpoint);
 	my_config->Add(my_zone);
@@ -123,13 +133,14 @@ int NodeUtility::GenerateNodeIcingaConfig(const std::vector<std::string>& endpoi
 	return 0;
 }
 
-int NodeUtility::GenerateNodeMasterIcingaConfig(void)
+int NodeUtility::GenerateNodeMasterIcingaConfig(const std::vector<String>& globalZones)
 {
 	Array::Ptr my_config = new Array();
 
 	/* store the local generated node master configuration */
 	Dictionary::Ptr my_master_endpoint = new Dictionary();
 	Dictionary::Ptr my_master_zone = new Dictionary();
+
 	Array::Ptr my_master_zone_members = new Array();
 
 	my_master_endpoint->Set("__name", new ConfigIdentifier("NodeName"));
@@ -144,6 +155,16 @@ int NodeUtility::GenerateNodeMasterIcingaConfig(void)
 	/* store the local config */
 	my_config->Add(my_master_endpoint);
 	my_config->Add(my_master_zone);
+
+	for (const String& globalzone : globalZones) {
+		Dictionary::Ptr myGlobalZone = new Dictionary();
+
+		myGlobalZone->Set("__name", globalzone);
+		myGlobalZone->Set("__type", "Zone");
+		myGlobalZone->Set("global", true);
+
+		my_config->Add(myGlobalZone);
+	}
 
 	/* write the newly generated configuration */
 	String zones_path = Application::GetSysconfDir() + "/icinga2/zones.conf";
