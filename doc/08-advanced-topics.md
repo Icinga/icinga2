@@ -415,8 +415,9 @@ Example output in Icinga Web 2:
 Icinga 2 supports optional detection of hosts and services that are "flapping".
 
 Flapping occurs when a service or host changes state too frequently, which would result in a storm of problem and
-recovery notifications. With flapping enabled a flapping notification will be sent while other notifications are
-suppressed until it calms down after receiving the same status from checks a few times. flapping can help detecting
+recovery notifications. With flapping detection enabled a flapping notification will be sent while other notifications are
+suppresed until it calms down after receiving the same status from checks a few times. Flapping detection can help detect
+
 configuration problems (wrong thresholds), troublesome services, or network problems.
 
 Flapping detection can be enabled or disabled using the `enable_flapping` attribute.
