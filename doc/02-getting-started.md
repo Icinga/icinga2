@@ -89,7 +89,7 @@ CentOS 7/6:
 
     yum install epel-release
 
-If you are using RHEL you need enable the `optional` repository and then install
+If you are using RHEL you need to enable the `optional` repository and then install
 the [EPEL rpm package](https://fedoraproject.org/wiki/EPEL#How_can_I_use_these_extra_packages.3F).
 
 #### SLES Security Repository <a id="package-repositories-sles-security"></a>
@@ -104,7 +104,7 @@ Linux documentation for further information.
 
 #### Alpine Linux Notes  <a id="package-repositories-alpine-notes"></a>
 
-The example provided suppose that you are running Alpine edge, which is the -dev branch and is a rolling release.
+The example provided assumes that you are running Alpine edge, which is the -dev branch and is a rolling release.
 If you are using a stable version please "pin" the edge repository on the latest Icinga 2 package version.
 In order to correctly manage your repository, please follow
 [these instructions](https://wiki.alpinelinux.org/wiki/Alpine_Linux_package_management)
@@ -170,7 +170,7 @@ By default Icinga 2 uses the following files and directories:
   /etc/icinga2                        		| Contains Icinga 2 configuration files.
   /usr/lib/systemd/system/icinga2.service 	| The Icinga 2 Systemd service file on systems using Systemd.
   /etc/systemd/system/icinga2.service.d/limits.conf | On distributions with Systemd >227, additional service limits are required.
-  /etc/init.d/icinga2                 		| The Icinga 2 init script on systems using SysVinit or OpenRC
+  /etc/init.d/icinga2                 		| The Icinga 2 init script on systems using SysVinit or OpenRC.
   /usr/sbin/icinga2                   		| Shell wrapper for the Icinga 2 binary.
   /usr/lib\*/icinga2				| Libraries and the Icinga 2 binary (use `find /usr -type f -name icinga2` to locate the binary path).
   /usr/share/doc/icinga2              		| Documentation files that come with Icinga 2.
@@ -178,7 +178,7 @@ By default Icinga 2 uses the following files and directories:
   /var/lib/icinga2                    		| Icinga 2 state file, cluster log, master CA, node certificates and configuration files (cluster, api).
   /var/run/icinga2                    		| PID file.
   /var/run/icinga2/cmd                		| Command pipe and Livestatus socket.
-  /var/cache/icinga2                  		| status.dat/objects.cache, icinga2.debug files
+  /var/cache/icinga2                  		| status.dat/objects.cache, icinga2.debug files.
   /var/spool/icinga2                  		| Used for performance data spool files.
   /var/log/icinga2                    		| Log file location and compat/ directory for the CompatLogger feature.
 
@@ -197,7 +197,7 @@ By default Icinga 2 uses the following files and directories:
   /var/lib/icinga2                    | Icinga 2 state file, cluster log, master CA, node certificates and configuration files (cluster, api).
   /var/run/icinga2                    | PID file.
   /var/run/icinga2/cmd                | Command pipe and Livestatus socket.
-  /var/cache/icinga2                  | status.dat/objects.cache, icinga2.debug files
+  /var/cache/icinga2                  | status.dat/objects.cache, icinga2.debug files.
   /var/spool/icinga2                  | Used for performance data spool files.
   /var/log/icinga2                    | Log file location and compat/ directory for the CompatLogger feature.
 
@@ -292,7 +292,7 @@ The init script supports the following actions:
   checkconfig         | The `checkconfig` action checks if the `/etc/icinga2/icinga2.conf` configuration file contains any errors.
   status              | The `status` action checks if Icinga 2 is running.
 
-By default the Icinga 2 daemon is running as `icinga` user and group
+By default, the Icinga 2 daemon is running as `icinga` user and group
 using the init script. Using Debian packages the user and group are set to
 `nagios` for historical reasons.
 
@@ -470,7 +470,7 @@ database is used by a number of projects including
 or Icinga Web 1.x.
 
 There is a separate module for each database backend. At present support for
-both MySQL and PostgreSQL is implemented.
+both MySQL and PostgreSQL has been implemented.
 
 Please choose whether to install [MySQL](02-getting-started.md#configuring-db-ido-mysql) or
 [PostgreSQL](02-getting-started.md#configuring-db-ido-postgresql).
