@@ -44,8 +44,8 @@ public:
 	static void UpdateConstant(const String& name, const String& value);
 
 	/* node setup helpers */
-	static int GenerateNodeIcingaConfig(const std::vector<std::string>& endpoints);
-	static int GenerateNodeMasterIcingaConfig(void);
+	static int GenerateNodeIcingaConfig(const std::vector<std::string>& endpoints, const std::vector<String>& globalZones);
+	static int GenerateNodeMasterIcingaConfig(const std::vector<String>& globalZones);
 
 private:
 	NodeUtility(void);
