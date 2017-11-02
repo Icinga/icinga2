@@ -801,7 +801,7 @@ Send a `POST` request to the URL endpoint `/v1/actions/process-check-result`.
   Parameter         | Type         | Description
   ------------------|--------------|--------------
   exit\_status      | Number       | **Required.** For services: 0=OK, 1=WARNING, 2=CRITICAL, 3=UNKNOWN, for hosts: 0=OK, 1=CRITICAL.
-  plugin\_output    | String       | **Required.** The plugins main output. Does **not** contain the performance data.
+  plugin\_output    | String       | **Required.** One or more lines of the plugin main output. Does **not** contain the performance data.
   performance\_data | Array        | **Optional.** The performance data.
   check\_command    | Array        | **Optional.** The first entry should be the check commands path, then one entry for each command line option followed by an entry for each of its argument.
   check\_source     | String       | **Optional.** Usually the name of the `command_endpoint`
@@ -830,6 +830,12 @@ Example for using the `Host` type and filter by the host name:
     -d '{ "filter": "host.name==\"example.localdomain\"", "type": "Host", "exit_status": 1, "plugin_output": "Host is not available." }'
 
 You can avoid URL encoding of white spaces in object names by using the `filter` attribute in the request body.
+
+> **Note**
+>
+> Multi-line plugin output requires the following format: The first line is treated as `short` plugin output corresponding
+> to the first line of the plugin output. Subsequent lines are treated as `long` plugin output. Please note that the
+> performance data is separated from the plugin output and has to be passed as `performance_data` attribute.
 
 ### reschedule-check <a id="icinga2-api-actions-reschedule-check"></a>
 
