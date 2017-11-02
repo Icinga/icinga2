@@ -897,6 +897,7 @@ Name            | Description
 ----------------|--------------
 ntp_address     | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
 ntp_port        | **Optional.** The port to use. Default to 123.
+ntp_quiet       | **Optional.** Returns UNKNOWN instead of CRITICAL or WARNING if server isn't synchronized.
 ntp_warning     | **Optional.** Offset to result in warning status (seconds).
 ntp_critical    | **Optional.** Offset to result in critical status (seconds).
 ntp_wstratum    | **Optional.** Warning threshold for stratum of server's synchronization peer.
