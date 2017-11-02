@@ -274,6 +274,14 @@ namespace Icinga
 
 			SetConfigureStatus(100, "Finished.");
 
+			// Override the completed text
+			lblSetupCompleted.Text = "The Icinga 2 Windows client was set up successfully.";
+
+			// Add a note for the user for ticket-less signing
+			if (txtTicket.Text == "") {
+				lblSetupCompleted.Text += "\n\nTicket was not specified. Please sign the certificate request on the Icinga 2 master node (requires v2.8+).";
+			}
+
 			FinishConfigure();
 		}
 

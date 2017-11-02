@@ -144,7 +144,7 @@
 			this.lblSetupCompleted.Name = "lblSetupCompleted";
 			this.lblSetupCompleted.Size = new System.Drawing.Size(214, 13);
 			this.lblSetupCompleted.TabIndex = 0;
-			this.lblSetupCompleted.Text = "The Icinga 2 agent was set up successfully.";
+			this.lblSetupCompleted.Text = "The Icinga 2 Windows client was set up successfully.";
 			// 
 			// tabConfigure
 			// 
