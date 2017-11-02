@@ -450,7 +450,7 @@ BOOST_AUTO_TEST_CASE(service_flapping_notification)
 
 	int timeStepInterval = 60;
 
-	Host::Ptr service = new Host();
+	Service::Ptr service = new Service();
 	service->Activate();
 	service->SetAuthority(true);
 	service->SetStateRaw(ServiceOK);
@@ -461,7 +461,7 @@ BOOST_AUTO_TEST_CASE(service_flapping_notification)
 	Utility::SetTime(0);
 
 	std::cout << "Before first check result (ok, hard)" << std::endl;
-	BOOST_CHECK(service->GetState() == HostUp);
+	BOOST_CHECK(service->GetState() == ServiceOK);
 	BOOST_CHECK(service->GetStateType() == StateTypeHard);
 	BOOST_CHECK(service->GetCheckAttempt() == 1);
 
@@ -479,6 +479,8 @@ BOOST_AUTO_TEST_CASE(service_flapping_notification)
 
 	CheckNotification(service, true, NotificationFlappingStart);
 
+
+
 	std::cout << "Now calm down..." << std::endl;
 
 	for (int i = 0; i < 20; i++) {
@@ -487,6 +489,261 @@ BOOST_AUTO_TEST_CASE(service_flapping_notification)
 	}
 
 	CheckNotification(service, true, NotificationFlappingEnd);
+
+	c.disconnect();
+
+#endif /* I2_DEBUG */
+}
+
+BOOST_AUTO_TEST_CASE(service_flapping_problem_notifications)
+{
+#ifndef I2_DEBUG
+	BOOST_WARN_MESSAGE(false, "This test can only be run in a debug build!");
+#else /* I2_DEBUG */
+	boost::signals2::connection c = Checkable::OnNotificationsRequested.connect(boost::bind(&NotificationHandler, _1, _2));
+
+	int timeStepInterval = 60;
+
+	Service::Ptr service = new Service();
+	service->Activate();
+	service->SetAuthority(true);
+	service->SetStateRaw(ServiceOK);
+	service->SetStateType(StateTypeHard);
+	service->SetEnableFlapping(true);
+	service->SetMaxCheckAttempts(3);
+
+	/* Initialize start time */
+	Utility::SetTime(0);
+
+	std::cout << "Before first check result (ok, hard)" << std::endl;
+	BOOST_CHECK(service->GetState() == ServiceOK);
+	BOOST_CHECK(service->GetStateType() == StateTypeHard);
+	BOOST_CHECK(service->GetCheckAttempt() == 1);
+
+	Utility::IncrementTime(timeStepInterval);
+
+	std::cout << "Inserting flapping check results" << std::endl;
+
+	for (int i = 0; i < 10; i++) {
+		ServiceState state = (i % 2 == 0 ? ServiceOK : ServiceCritical);
+		service->ProcessCheckResult(MakeCheckResult(state));
+		Utility::IncrementTime(timeStepInterval);
+	}
+
+	BOOST_CHECK(service->IsFlapping() == true);
+
+	CheckNotification(service, true, NotificationFlappingStart);
+
+	//Insert enough check results to get into hard problem state but staying flapping
+
+	service->ProcessCheckResult(MakeCheckResult(ServiceCritical));
+	Utility::IncrementTime(timeStepInterval);
+	service->ProcessCheckResult(MakeCheckResult(ServiceCritical));
+	Utility::IncrementTime(timeStepInterval);
+	service->ProcessCheckResult(MakeCheckResult(ServiceCritical));
+	Utility::IncrementTime(timeStepInterval);
+
+
+	BOOST_CHECK(service->IsFlapping() == true);
+	BOOST_CHECK(service->GetStateType() == StateTypeHard);
+	BOOST_CHECK(service->GetState() == ServiceCritical);
+
+	CheckNotification(service, false, NotificationProblem);
+
+	// Calm down
+	while (service->IsFlapping()) {
+		service->ProcessCheckResult(MakeCheckResult(ServiceCritical));
+		Utility::IncrementTime(timeStepInterval);
+	}
+
+	CheckNotification(service, true, NotificationFlappingEnd);
+
+	/* Intended behaviour is a Problem notification being sent as well, but there are is a Problem:
+	 * We don't know whether the Object was Critical before we started flapping and sent out a Notification.
+	 * A notification will not be sent, no matter how many criticals follow.
+	 *
+	 * service->ProcessCheckResult(MakeCheckResult(ServiceCritical));
+	 * CheckNotification(service, true, NotificationProblem);
+	 * ^ This fails, no notification will be sent
+	 *
+	 * There is also a different issue, when we receive a OK check result, a Recovery Notification will be sent
+	 * since the service went from hard critical into soft ok. Yet there is no fitting critical notification.
+	 * This should not happen:
+	 *
+	 * service->ProcessCheckResult(MakeCheckResult(ServiceOK));
+	 * CheckNotification(service, false, NotificationRecovery);
+	 * ^ This fails, recovery is sent
+	 */
+
+	BOOST_CHECK(service->IsFlapping() == false);
+	BOOST_CHECK(service->GetStateType() == StateTypeHard);
+	BOOST_CHECK(service->GetState() == ServiceCritical);
+
+	// Known failure, see #5713
+	// CheckNotification(service, true, NotificationProblem);
+
+	service->ProcessCheckResult(MakeCheckResult(ServiceOK));
+	Utility::IncrementTime(timeStepInterval);
+
+	// Known failure, see #5713
+	// CheckNotification(service, true, NotificationRecovery);
+
+	c.disconnect();
+
+#endif /* I2_DEBUG */
+}
+
+BOOST_AUTO_TEST_CASE(service_flapping_ok_into_bad)
+{
+#ifndef I2_DEBUG
+	BOOST_WARN_MESSAGE(false, "This test can only be run in a debug build!");
+#else /* I2_DEBUG */
+	boost::signals2::connection c = Checkable::OnNotificationsRequested.connect(boost::bind(&NotificationHandler, _1, _2));
+
+	int timeStepInterval = 60;
+
+	Service::Ptr service = new Service();
+	service->Activate();
+	service->SetAuthority(true);
+	service->SetStateRaw(ServiceOK);
+	service->SetStateType(StateTypeHard);
+	service->SetEnableFlapping(true);
+	service->SetMaxCheckAttempts(3);
+
+	/* Initialize start time */
+	Utility::SetTime(0);
+
+	std::cout << "Before first check result (ok, hard)" << std::endl;
+	BOOST_CHECK(service->GetState() == ServiceOK);
+	BOOST_CHECK(service->GetStateType() == StateTypeHard);
+	BOOST_CHECK(service->GetCheckAttempt() == 1);
+
+	Utility::IncrementTime(timeStepInterval);
+
+	std::cout << "Inserting flapping check results" << std::endl;
+
+	for (int i = 0; i < 10; i++) {
+		ServiceState state = (i % 2 == 0 ? ServiceOK : ServiceCritical);
+		service->ProcessCheckResult(MakeCheckResult(state));
+		Utility::IncrementTime(timeStepInterval);
+	}
+
+	BOOST_CHECK(service->IsFlapping() == true);
+
+	CheckNotification(service, true, NotificationFlappingStart);
+
+	//Insert enough check results to get into hard problem state but staying flapping
+
+	service->ProcessCheckResult(MakeCheckResult(ServiceCritical));
+	Utility::IncrementTime(timeStepInterval);
+	service->ProcessCheckResult(MakeCheckResult(ServiceCritical));
+	Utility::IncrementTime(timeStepInterval);
+	service->ProcessCheckResult(MakeCheckResult(ServiceCritical));
+	Utility::IncrementTime(timeStepInterval);
+
+
+	BOOST_CHECK(service->IsFlapping() == true);
+	BOOST_CHECK(service->GetStateType() == StateTypeHard);
+	BOOST_CHECK(service->GetState() == ServiceCritical);
+
+	CheckNotification(service, false, NotificationProblem);
+
+	// Calm down
+	while (service->IsFlapping()) {
+		service->ProcessCheckResult(MakeCheckResult(ServiceCritical));
+		Utility::IncrementTime(timeStepInterval);
+	}
+
+	CheckNotification(service, true, NotificationFlappingEnd);
+
+	service->ProcessCheckResult(MakeCheckResult(ServiceCritical));
+	Utility::IncrementTime(timeStepInterval);
+
+	BOOST_CHECK(service->IsFlapping() == false);
+	BOOST_CHECK(service->GetStateType() == StateTypeHard);
+	BOOST_CHECK(service->GetState() == ServiceCritical);
+
+	// We expect a problem notification here
+	// Known failure, see #5713
+	// CheckNotification(service, true, NotificationProblem);
+
+	c.disconnect();
+
+#endif /* I2_DEBUG */
+}
+BOOST_AUTO_TEST_CASE(service_flapping_ok_over_bad_into_ok)
+{
+#ifndef I2_DEBUG
+	BOOST_WARN_MESSAGE(false, "This test can only be run in a debug build!");
+#else /* I2_DEBUG */
+	boost::signals2::connection c = Checkable::OnNotificationsRequested.connect(boost::bind(&NotificationHandler, _1, _2));
+
+	int timeStepInterval = 60;
+
+	Service::Ptr service = new Service();
+	service->Activate();
+	service->SetAuthority(true);
+	service->SetStateRaw(ServiceOK);
+	service->SetStateType(StateTypeHard);
+	service->SetEnableFlapping(true);
+	service->SetMaxCheckAttempts(3);
+
+	/* Initialize start time */
+	Utility::SetTime(0);
+
+	std::cout << "Before first check result (ok, hard)" << std::endl;
+	BOOST_CHECK(service->GetState() == ServiceOK);
+	BOOST_CHECK(service->GetStateType() == StateTypeHard);
+	BOOST_CHECK(service->GetCheckAttempt() == 1);
+
+	Utility::IncrementTime(timeStepInterval);
+
+	std::cout << "Inserting flapping check results" << std::endl;
+
+	for (int i = 0; i < 10; i++) {
+		ServiceState state = (i % 2 == 0 ? ServiceOK : ServiceCritical);
+		service->ProcessCheckResult(MakeCheckResult(state));
+		Utility::IncrementTime(timeStepInterval);
+	}
+
+	BOOST_CHECK(service->IsFlapping() == true);
+
+	CheckNotification(service, true, NotificationFlappingStart);
+
+	//Insert enough check results to get into hard problem state but staying flapping
+
+	service->ProcessCheckResult(MakeCheckResult(ServiceCritical));
+	Utility::IncrementTime(timeStepInterval);
+	service->ProcessCheckResult(MakeCheckResult(ServiceCritical));
+	Utility::IncrementTime(timeStepInterval);
+	service->ProcessCheckResult(MakeCheckResult(ServiceCritical));
+	Utility::IncrementTime(timeStepInterval);
+
+
+	BOOST_CHECK(service->IsFlapping() == true);
+	BOOST_CHECK(service->GetStateType() == StateTypeHard);
+	BOOST_CHECK(service->GetState() == ServiceCritical);
+
+	CheckNotification(service, false, NotificationProblem);
+
+	// Calm down
+	while (service->IsFlapping()) {
+		service->ProcessCheckResult(MakeCheckResult(ServiceCritical));
+		Utility::IncrementTime(timeStepInterval);
+	}
+
+	CheckNotification(service, true, NotificationFlappingEnd);
+
+	service->ProcessCheckResult(MakeCheckResult(ServiceOK));
+	Utility::IncrementTime(timeStepInterval);
+
+	BOOST_CHECK(service->IsFlapping() == false);
+	BOOST_CHECK(service->GetStateType() == StateTypeHard);
+	BOOST_CHECK(service->GetState() == ServiceOK);
+
+	// There should be no recovery
+	// Known failure, see #5713
+	// CheckNotification(service, false, NotificationRecovery);
 
 	c.disconnect();
 
