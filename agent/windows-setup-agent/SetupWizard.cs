@@ -473,7 +473,7 @@ namespace Icinga
 
 			ListViewItem lvi = lvwX509Fields.SelectedItems[0];
 
-			txtX509Field.Text = (string)lvi.Tag;
+			txtX509Field.Text = Convert.ToString(lvi.Tag);
 		}
 
 		private void btnRemoveEndpoint_Click(object sender, EventArgs e)

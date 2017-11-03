@@ -80,6 +80,7 @@
 			this.txtError = new System.Windows.Forms.TextBox();
 			this.lblError = new System.Windows.Forms.Label();
 			this.picBanner = new System.Windows.Forms.PictureBox();
+			this.introduction1 = new System.Windows.Forms.Label();
 			this.tabFinish.SuspendLayout();
 			this.tabConfigure.SuspendLayout();
 			this.tabParameters.SuspendLayout();
@@ -142,7 +143,7 @@
 			this.lblSetupCompleted.AutoSize = true;
 			this.lblSetupCompleted.Location = new System.Drawing.Point(34, 35);
 			this.lblSetupCompleted.Name = "lblSetupCompleted";
-			this.lblSetupCompleted.Size = new System.Drawing.Size(214, 13);
+			this.lblSetupCompleted.Size = new System.Drawing.Size(259, 13);
 			this.lblSetupCompleted.TabIndex = 0;
 			this.lblSetupCompleted.Text = "The Icinga 2 Windows client was set up successfully.";
 			// 
@@ -176,6 +177,7 @@
 			// 
 			// tabParameters
 			// 
+			this.tabParameters.Controls.Add(this.introduction1);
 			this.tabParameters.Controls.Add(this.groupBox3);
 			this.tabParameters.Controls.Add(this.txtTicket);
 			this.tabParameters.Controls.Add(this.lblTicket);
@@ -210,7 +212,7 @@
 			this.txtUser.Enabled = false;
 			this.txtUser.Location = new System.Drawing.Point(28, 88);
 			this.txtUser.Name = "txtUser";
-			this.txtUser.Size = new System.Drawing.Size(267, 20);
+			this.txtUser.Size = new System.Drawing.Size(178, 20);
 			this.txtUser.TabIndex = 8;
 			this.txtUser.Text = "NT AUTHORITY\\NetworkService";
 			// 
@@ -240,9 +242,9 @@
 			this.chkAcceptConfig.AutoSize = true;
 			this.chkAcceptConfig.Location = new System.Drawing.Point(9, 42);
 			this.chkAcceptConfig.Name = "chkAcceptConfig";
-			this.chkAcceptConfig.Size = new System.Drawing.Size(230, 17);
+			this.chkAcceptConfig.Size = new System.Drawing.Size(284, 17);
 			this.chkAcceptConfig.TabIndex = 1;
-			this.chkAcceptConfig.Text = "Accept config updates from master/satellite";
+			this.chkAcceptConfig.Text = "Accept config updates from master/satellite instance(s)";
 			this.chkAcceptConfig.UseVisualStyleBackColor = true;
 			// 
 			// chkAcceptCommands
@@ -250,22 +252,22 @@
 			this.chkAcceptCommands.AutoSize = true;
 			this.chkAcceptCommands.Location = new System.Drawing.Point(9, 19);
 			this.chkAcceptCommands.Name = "chkAcceptCommands";
-			this.chkAcceptCommands.Size = new System.Drawing.Size(211, 17);
+			this.chkAcceptCommands.Size = new System.Drawing.Size(265, 17);
 			this.chkAcceptCommands.TabIndex = 0;
-			this.chkAcceptCommands.Text = "Accept commands from master/satellite";
+			this.chkAcceptCommands.Text = "Accept commands from master/satellite instance(s)";
 			this.chkAcceptCommands.UseVisualStyleBackColor = true;
 			// 
 			// txtTicket
 			// 
-			this.txtTicket.Location = new System.Drawing.Point(144, 45);
+			this.txtTicket.Location = new System.Drawing.Point(136, 56);
 			this.txtTicket.Name = "txtTicket";
-			this.txtTicket.Size = new System.Drawing.Size(459, 20);
+			this.txtTicket.Size = new System.Drawing.Size(378, 20);
 			this.txtTicket.TabIndex = 1;
 			// 
 			// lblTicket
 			// 
 			this.lblTicket.AutoSize = true;
-			this.lblTicket.Location = new System.Drawing.Point(9, 48);
+			this.lblTicket.Location = new System.Drawing.Point(9, 59);
 			this.lblTicket.Name = "lblTicket";
 			this.lblTicket.Size = new System.Drawing.Size(117, 13);
 			this.lblTicket.TabIndex = 4;
@@ -273,15 +275,15 @@
 			// 
 			// txtInstanceName
 			// 
-			this.txtInstanceName.Location = new System.Drawing.Point(144, 16);
+			this.txtInstanceName.Location = new System.Drawing.Point(136, 27);
 			this.txtInstanceName.Name = "txtInstanceName";
-			this.txtInstanceName.Size = new System.Drawing.Size(459, 20);
+			this.txtInstanceName.Size = new System.Drawing.Size(378, 20);
 			this.txtInstanceName.TabIndex = 0;
 			// 
 			// lblInstanceName
 			// 
 			this.lblInstanceName.AutoSize = true;
-			this.lblInstanceName.Location = new System.Drawing.Point(9, 20);
+			this.lblInstanceName.Location = new System.Drawing.Point(11, 30);
 			this.lblInstanceName.Name = "lblInstanceName";
 			this.lblInstanceName.Size = new System.Drawing.Size(121, 13);
 			this.lblInstanceName.TabIndex = 3;
@@ -293,9 +295,9 @@
 			this.groupBox2.Controls.Add(this.txtListenerPort);
 			this.groupBox2.Controls.Add(this.lblListenerPort);
 			this.groupBox2.Controls.Add(this.rdoListener);
-			this.groupBox2.Location = new System.Drawing.Point(12, 291);
+			this.groupBox2.Location = new System.Drawing.Point(8, 291);
 			this.groupBox2.Name = "groupBox2";
-			this.groupBox2.Size = new System.Drawing.Size(294, 188);
+			this.groupBox2.Size = new System.Drawing.Size(298, 188);
 			this.groupBox2.TabIndex = 2;
 			this.groupBox2.TabStop = false;
 			this.groupBox2.Text = "TCP Listener";
@@ -316,7 +318,7 @@
 			// txtListenerPort
 			// 
 			this.txtListenerPort.Enabled = false;
-			this.txtListenerPort.Location = new System.Drawing.Point(132, 51);
+			this.txtListenerPort.Location = new System.Drawing.Point(66, 47);
 			this.txtListenerPort.Name = "txtListenerPort";
 			this.txtListenerPort.Size = new System.Drawing.Size(84, 20);
 			this.txtListenerPort.TabIndex = 8;
@@ -325,7 +327,7 @@
 			// lblListenerPort
 			// 
 			this.lblListenerPort.AutoSize = true;
-			this.lblListenerPort.Location = new System.Drawing.Point(43, 55);
+			this.lblListenerPort.Location = new System.Drawing.Point(31, 51);
 			this.lblListenerPort.Name = "lblListenerPort";
 			this.lblListenerPort.Size = new System.Drawing.Size(29, 13);
 			this.lblListenerPort.TabIndex = 1;
@@ -336,9 +338,9 @@
 			this.rdoListener.AutoSize = true;
 			this.rdoListener.Location = new System.Drawing.Point(11, 24);
 			this.rdoListener.Name = "rdoListener";
-			this.rdoListener.Size = new System.Drawing.Size(247, 17);
+			this.rdoListener.Size = new System.Drawing.Size(283, 17);
 			this.rdoListener.TabIndex = 7;
-			this.rdoListener.Text = "Listen for connections from the master/satellite:";
+			this.rdoListener.Text = "Listen for connections from master/satellite instance(s):";
 			this.rdoListener.UseVisualStyleBackColor = true;
 			this.rdoListener.CheckedChanged += new System.EventHandler(this.RadioListener_CheckedChanged);
 			// 
@@ -348,12 +350,12 @@
 			this.groupBox1.Controls.Add(this.btnRemoveEndpoint);
 			this.groupBox1.Controls.Add(this.btnAddEndpoint);
 			this.groupBox1.Controls.Add(this.lvwEndpoints);
-			this.groupBox1.Location = new System.Drawing.Point(8, 77);
+			this.groupBox1.Location = new System.Drawing.Point(8, 94);
 			this.groupBox1.Name = "groupBox1";
-			this.groupBox1.Size = new System.Drawing.Size(601, 208);
+			this.groupBox1.Size = new System.Drawing.Size(601, 191);
 			this.groupBox1.TabIndex = 1;
 			this.groupBox1.TabStop = false;
-			this.groupBox1.Text = "Master/Satellite Instance(s)";
+			this.groupBox1.Text = "Parent master/satellite instance(s) for this client";
 			// 
 			// btnEditEndpoint
 			// 
@@ -394,9 +396,9 @@
 			this.colHost,
 			this.colPort});
 			this.lvwEndpoints.FullRowSelect = true;
-			this.lvwEndpoints.Location = new System.Drawing.Point(11, 19);
+			this.lvwEndpoints.Location = new System.Drawing.Point(6, 19);
 			this.lvwEndpoints.Name = "lvwEndpoints";
-			this.lvwEndpoints.Size = new System.Drawing.Size(500, 176);
+			this.lvwEndpoints.Size = new System.Drawing.Size(500, 166);
 			this.lvwEndpoints.TabIndex = 4;
 			this.lvwEndpoints.UseCompatibleStateImageBehavior = false;
 			this.lvwEndpoints.View = System.Windows.Forms.View.Details;
@@ -566,7 +568,7 @@
 			this.lblX509Prompt.Name = "lblX509Prompt";
 			this.lblX509Prompt.Size = new System.Drawing.Size(201, 13);
 			this.lblX509Prompt.TabIndex = 0;
-			this.lblX509Prompt.Text = "Please verify the master\'s SSL certificate:";
+			this.lblX509Prompt.Text = "Please verify the master/satellite\'s SSL certificate:";
 			// 
 			// tabError
 			// 
@@ -608,6 +610,15 @@
 			this.picBanner.Size = new System.Drawing.Size(625, 77);
 			this.picBanner.TabIndex = 1;
 			this.picBanner.TabStop = false;
+			// 
+			// introduction1
+			// 
+			this.introduction1.AutoSize = true;
+			this.introduction1.Location = new System.Drawing.Point(11, 3);
+			this.introduction1.Name = "introduction1";
+			this.introduction1.Size = new System.Drawing.Size(269, 13);
+			this.introduction1.TabIndex = 6;
+			this.introduction1.Text = "Welcome to the Icinga 2 Windows Client Setup Wizard!";
 			// 
 			// SetupWizard
 			// 
@@ -704,6 +715,7 @@
 		private System.Windows.Forms.TextBox txtUser;
 		private System.Windows.Forms.CheckBox chkRunServiceAsThisUser;
 		private System.Windows.Forms.Button btnEditEndpoint;
+		private System.Windows.Forms.Label introduction1;
 	}
 }
 
