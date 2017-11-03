@@ -386,7 +386,7 @@ existing master node setup. If you haven't done so already, please [run the mast
 Icinga 2 on the master node must be running and accepting connections on port `5665`.
 
 
-### Client/Satellite Linux Setup <a id="distributed-monitoring-setup-client-linux"></a>
+### Client/Satellite Setup on Linux <a id="distributed-monitoring-setup-client-linux"></a>
 
 Please ensure that you've run all the steps mentioned in the [client/satellite section](06-distributed-monitoring.md#distributed-monitoring-setup-satellite-client).
 
@@ -583,21 +583,21 @@ You can verify that the certificate files are stored in the `/var/lib/icinga2/ce
 > signing requests and responses might need some minutes to fully update the client certificates.
 >
 > If you have chosen to use [On-Demand CSR Signing](06-distributed-monitoring.md#distributed-monitoring-setup-on-demand-csr-signing)
-> certificates need to be signed on the master first.
+> certificates need to be signed on the master first. Ticket-less setups require at least Icinga 2 v2.8+ on all involved instances.
 
-Now that you've successfully installed a satellite/client, please proceed to
+Now that you've successfully installed a Linux/Unix satellite/client instance, please proceed to
 the [configuration modes](06-distributed-monitoring.md#distributed-monitoring-configuration-modes).
 
 
 
-### Client/Satellite Windows Setup <a id="distributed-monitoring-setup-client-windows"></a>
+### Client Setup on Windows <a id="distributed-monitoring-setup-client-windows"></a>
 
 Download the MSI-Installer package from [https://packages.icinga.com/windows/](https://packages.icinga.com/windows/).
 
 Requirements:
 
 * Windows Vista/Server 2008 or higher
-* [Microsoft .NET Framework 2.0](https://www.microsoft.com/de-de/download/details.aspx?id=1639)
+* [Microsoft .NET Framework 2.0](https://www.microsoft.com/de-de/download/details.aspx?id=1639) for the setup wizard
 
 The installer package includes the [NSClient++](https://www.nsclient.org/) package
 so that Icinga 2 can use its built-in plugins. You can find more details in
@@ -605,6 +605,10 @@ so that Icinga 2 can use its built-in plugins. You can find more details in
 The Windows package also installs native [monitoring plugin binaries](06-distributed-monitoring.md#distributed-monitoring-windows-plugins)
 to get you started more easily.
 
+> **Note**
+>
+> Please note that Icinga 2 was designed to run as light-weight client on Windows.
+> There is no support for satellite instances.
 
 #### Windows Client Setup Start <a id="distributed-monitoring-setup-client-windows-start"></a>
 
@@ -616,16 +620,22 @@ Run the MSI-Installer package and follow the instructions shown in the screensho
 ![Icinga 2 Windows Setup](images/distributed-monitoring/icinga2_windows_setup_installer_04.png)
 ![Icinga 2 Windows Setup](images/distributed-monitoring/icinga2_windows_setup_installer_05.png)
 
-The graphical installer will offer to run the Icinga 2 setup wizard after the installation.
-You can also manually run the Icinga 2 setup wizard from the Start menu.
+The graphical installer offers to run the Icinga 2 setup wizard after the installation. Select
+the check box to proceed.
 
-On a fresh installation the setup wizard will guide you through the initial configuration and offer to use CSR auto-signing for generating the SSL certificate.
-You'll need the following configuration details:
+> **Tip**
+>
+> You can also run the Icinga 2 setup wizard from the Start menu later.
+
+On a fresh installation the setup wizard guides you through the initial configuration.
+It also provides a mechanism to send a certificate request to the [CSR signing master](distributed-monitoring-setup-sign-certificates-master).
+
+The following configuration details are required:
 
   Parameter           | Description
   --------------------|--------------------
-  Common name (CN)    | **Required.** By convention this should be the host's FQDN. Defaults to the FQDN.
-  Request ticket      | **Required.** Paste the previously generated [ticket number](06-distributed-monitoring.md#distributed-monitoring-setup-csr-auto-signing).
+  Instance name       | **Required.** By convention this should be the host's FQDN. Defaults to the FQDN.
+  Setup ticket        | **Optional.** Paste the previously generated [ticket number](06-distributed-monitoring.md#distributed-monitoring-setup-csr-auto-signing). If left blank, the certificate request must be [signed on the master node](06-distributed-monitoring.md#distributed-monitoring-setup-on-demand-csr-signing).
 
 Fill in the required information and click `Add` to add a new master connection.
 
@@ -633,31 +643,33 @@ Fill in the required information and click `Add` to add a new master connection.
 
 Add the following details:
 
-  Parameter            | Description
-  ---------------------|--------------------
-  Instance name        | **Required.** The master endpoint name.
-  Master endpoint host | **Required if the the client needs to connect to the master.** The master's IP address or FQDN. This information is included in the `Endpoint` object configuration in the `zones.conf` file.
-  Master endpoint port | **Optional if the the client needs to connect to the master.** The master's listening port. This information is included in the `Endpoint` object configuration.
+  Parameter                      | Description
+  -------------------------------|-------------------------------
+  Instance name                  | **Required.** The master/satellite endpoint name where this client is a direct child of.
+  Master/Satellite endpoint host | **Required.** The master or satellite's IP address or FQDN. This information is included in the `Endpoint` object configuration in the `zones.conf` file.
+  Master/Satellite endpoint port | **Optional.** The master or satellite's listening port. This information is included in the `Endpoint` object configuration.
 
 ![Icinga 2 Windows Setup](images/distributed-monitoring/icinga2_windows_setup_wizard_02.png)
 
-Optionally, you can enable the following settings:
+Optionally enable the following settings:
 
-  Parameter           | Description
-  --------------------|--------------------
-  Accept config       | **Optional.** Whether this node accepts configuration sync from the master node (required for [config sync mode](06-distributed-monitoring.md#distributed-monitoring-top-down-config-sync)). For [security reasons](06-distributed-monitoring.md#distributed-monitoring-security) this is disabled by default.
-  Accept commands     | **Optional.** Whether this node accepts command execution messages from the master node (required for [command endpoint mode](06-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint)). For [security reasons](06-distributed-monitoring.md#distributed-monitoring-security) this is disabled by default.
-  Install NSClient++  | **Optional.** The Windows installer bundles the NSClient++ installer for additional [plugin checks](06-distributed-monitoring.md#distributed-monitoring-windows-nscp).
+  Parameter                         | Description
+  ----------------------------------|----------------------------------
+  Accept config                     | **Optional.** Whether this node accepts configuration sync from the master node (required for [config sync mode](06-distributed-monitoring.md#distributed-monitoring-top-down-config-sync)). For [security reasons](06-distributed-monitoring.md#distributed-monitoring-security) this is disabled by default.
+  Accept commands                   | **Optional.** Whether this node accepts command execution messages from the master node (required for [command endpoint mode](06-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint)). For [security reasons](06-distributed-monitoring.md#distributed-monitoring-security) this is disabled by default.
+  Run Icinga 2 service as this user | **Optional.** Specify a different Windows user. This defaults to `NT AUTHORITY\Network Service` and is required for more privileged service checks.
+  Install NSClient++                | **Optional.** The Windows installer bundles the NSClient++ installer for additional [plugin checks](06-distributed-monitoring.md#distributed-monitoring-windows-nscp).
 
 ![Icinga 2 Windows Setup](images/distributed-monitoring/icinga2_windows_setup_wizard_03.png)
 
-The next step allows you to verify the CA presented by the master.
+Verify the certificate from the master/satellite instance where this node should connect to.
 
 ![Icinga 2 Windows Setup](images/distributed-monitoring/icinga2_windows_setup_wizard_04.png)
 
+
 #### Bundled NSClient++ Setup <a id="distributed-monitoring-setup-client-windows-nsclient"></a>
 
-If you have chosen to install/update the NSClient++ package, the Icinga 2 setup wizard will ask
+If you have chosen to install/update the NSClient++ package, the Icinga 2 setup wizard asks
 you to do so.
 
 ![Icinga 2 Windows Setup NSClient++](images/distributed-monitoring/icinga2_windows_setup_wizard_05_nsclient_01.png)
@@ -675,7 +687,7 @@ NSClient++ does not install a sample configuration by default. Change this as sh
 ![Icinga 2 Windows Setup NSClient++](images/distributed-monitoring/icinga2_windows_setup_wizard_05_nsclient_04.png)
 
 Generate a secure password and enable the web server module. **Note**: The webserver module is
-available starting with NSClient++ 0.5.0. Icinga 2 v2.6+ including this version is required.
+available starting with NSClient++ 0.5.0. Icinga 2 v2.6+ is required which includes this version.
 
 ![Icinga 2 Windows Setup NSClient++](images/distributed-monitoring/icinga2_windows_setup_wizard_05_nsclient_05.png)
 
@@ -689,25 +701,37 @@ configuration file.
 
 ![Icinga 2 Windows Setup NSClient++](images/distributed-monitoring/icinga2_windows_setup_wizard_05_nsclient_07.png)
 
-The NSClient++ REST API can be used to query metrics. Future Icinga 2 versions will add
-more integrations. Additional details can be found in this [blog post](https://www.icinga.com/2016/09/16/nsclient-0-5-0-rest-api-and-icinga-2-integration/).
+The NSClient++ REST API can be used to query metrics. [check_nscp_api](06-distributed-monitoring.md#distributed-monitoring-windows-nscp-check-api)
+uses this transport method.
+
 
 #### Finish Windows Client Setup <a id="distributed-monitoring-setup-client-windows-finish"></a>
 
-Finish the setup wizard.
+Finish the Windows setup wizard.
 
-![Icinga 2 Windows Setup](images/distributed-monitoring/icinga2_windows_setup_wizard_06.png)
+![Icinga 2 Windows Setup](images/distributed-monitoring/icinga2_windows_setup_wizard_06_finish_with_ticket.png)
 
-After the installation and configuration Icinga 2 is automatically started as a Windows service.
+If you did not provide a setup ticket, you need to sign the certificate request on the master.
+The setup wizards tells you to do so. The Icinga 2 service is running at this point already
+and will automatically receive and update a signed client certificate.
+
+> **Note**
+>
+> Ticket-less setups require at least Icinga 2 v2.8+ on all involved instances.
+
+
+![Icinga 2 Windows Setup](images/distributed-monitoring/icinga2_windows_setup_wizard_06_finish_no_ticket.png)
+
+Icinga 2 is automatically started as a Windows service.
 
 ![Icinga 2 Windows Setup](images/distributed-monitoring/icinga2_windows_running_service.png)
 
 The Icinga 2 configuration is stored inside the `C:\ProgramData\icinga2` directory.
-If you click `Examine Config` in the setup wizard, it will open a new Explorer window.
+Click `Examine Config` in the setup wizard to open a new Explorer window.
 
 ![Icinga 2 Windows Setup](images/distributed-monitoring/icinga2_windows_setup_wizard_examine_config.png)
 
-The configuration files can be modified with your favorite editor.
+The configuration files can be modified with your favorite editor e.g. Notepad.
 
 In order to use the [top down](06-distributed-monitoring.md#distributed-monitoring-top-down) client
 configuration prepare the following steps.
@@ -720,7 +744,7 @@ the `zones.conf` file in your preferred editor. Add the following lines if not e
       global = true
     }
 
-Note: Packages >= 2.7 provide this configuration by default.
+Note: Packages >= 2.8 provide this configuration by default.
 
 You don't need any local configuration on the client except for
 CheckCommand definitions which can be synced using the global zone
@@ -746,10 +770,14 @@ and restart the `icinga2` service. Alternatively, you can use the `net {start,st
 
 ![Icinga 2 Windows Service Start/Stop](images/distributed-monitoring/icinga2_windows_cmd_admin_net_start_stop.png)
 
-Now that you've successfully installed a satellite/client, please proceed to
+Now that you've successfully installed a Windows client, please proceed to
 the [detailed configuration modes](06-distributed-monitoring.md#distributed-monitoring-configuration-modes).
 
-
+> **Note**
+>
+> The certificate location changed in v2.8 to `%ProgramData%\var\lib\icinga2\certs`.
+> Please read the [upgrading chapter](16-upgrading-icinga-2.md#upgrading-to-2-8-certificate-paths)
+> for more details.
 
 ## Configuration Modes <a id="distributed-monitoring-configuration-modes"></a>
 
@@ -853,7 +881,7 @@ for syncing check commands later:
       global = true
     }
 
-Note: Packages >= 2.7 provide this configuration by default.
+Note: Packages >= 2.8 provide this configuration by default.
 
 You don't need any local configuration on the client except for
 CheckCommand definitions which can be synced using the global zone
@@ -1795,7 +1823,7 @@ the global configuration files:
       global = true
     }
 
-Note: Packages >= 2.7 provide this configuration by default.
+Note: Packages >= 2.8 provide this configuration by default.
 
 Similar to the zone configuration sync you'll need to create a new directory in
 `/etc/icinga2/zones.d`:
@@ -2562,7 +2590,7 @@ Add an additional global zone. Please note the `>>` append mode.
     }
     EOF
 
-Note: Packages >= 2.7 provide this configuration by default.
+Note: Packages >= 2.8 provide this configuration by default.
 
 If this client node is configured as [remote command endpoint execution](06-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint)
 you can safely disable the `checker` feature. The `node setup` CLI command already disabled the `notification` feature.

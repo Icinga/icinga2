@@ -258,14 +258,14 @@ You can help test-drive the latest Icinga 2 snapshot packages inside the
 Icinga 2 is written in C++ and uses the Boost libraries. We are also using the C++11 standard where applicable (please
 note the minimum required compiler versions in the [INSTALL.md](INSTALL.md) file.
 
-Icinga 2 can be built on Linux/Unix and Windows clients. In order to develop patches for Icinga 2,
+Icinga 2 can be built on Linux/Unix nodes and Windows clients. In order to develop patches for Icinga 2,
 you should prepare your own local build environment and know how to work with C++.
 
 More tips:
 
-* Requirements and source code installation is explained inside the [INSTALL.md](INSTALL.md) file.
+* Requirements and source code installation for Linux/Unix is explained inside the [INSTALL.md](INSTALL.md) file.
 * Debug requirements and GDB instructions can be found in the [documentation](https://github.com/Icinga/icinga2/blob/master/doc/20-development.md).
-* If you are planning to debug a Windows client, setup a Windows environment with [Visual Studio](https://www.visualstudio.com/vs/community/). An example can be found in [this blogpost](https://blog.netways.de/2015/08/24/developing-icinga-2-on-windows-10-using-visual-studio-2015/).
+* If you are planning to develop and debug the Windows client, setup a Windows environment with [Visual Studio](https://www.visualstudio.com/vs/community/). An example can be found in [this blogpost](https://blog.netways.de/2015/08/24/developing-icinga-2-on-windows-10-using-visual-studio-2015/).
 
 ## <a id="contributing-patches-documentation"></a> Documentation Patches
 
@@ -403,7 +403,7 @@ Edit the documentation file in the `doc/` directory. More details on documentati
 updates can be found [here](CONTRIBUTING.md#contributing-documentation).
 
 ```
-vim doc/7-icinga-template-library.md
+vim doc/10-icinga-template-library.md
 ```
 
 The CheckCommand documentation should be located in the same chapter

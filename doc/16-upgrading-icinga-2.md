@@ -108,7 +108,6 @@ The node CLI command does not provide `list` or `update-config` anymore.
 > The old migration guide can be found on [GitHub](https://github.com/Icinga/icinga2/blob/v2.7.0/doc/06-distributed-monitoring.md#bottom-up-migration-to-top-down-).
 
 The clients don't need to have a local `conf.d` directory included.
-The setup wizards for Linux and Windows attempt to disable this by default.
 
 Icinga 2 continues to run with the generated and imported configuration.
 You are advised to [migrate](https://github.com/Icinga/icinga2/issues/4798)
