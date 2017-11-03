@@ -181,7 +181,6 @@ public:
 
 	/* Flapping Detection */
 	bool IsFlapping(void) const;
-	void UpdateFlappingStatus(bool stateChange);
 
 	/* Dependencies */
 	void AddDependency(const intrusive_ptr<Dependency>& dep);
@@ -237,6 +236,10 @@ private:
 	std::set<intrusive_ptr<Dependency> > m_ReverseDependencies;
 
 	void GetAllChildrenInternal(std::set<Checkable::Ptr>& children, int level = 0) const;
+
+	/* Flapping */
+	void UpdateFlappingStatus(bool stateChange);
+	bool SuppressEvent(void) const;
 };
 
 }

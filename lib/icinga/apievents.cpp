@@ -170,6 +170,9 @@ void ApiEvents::FlappingChangedHandler(const Checkable::Ptr& checkable, const Me
 	result->Set("state", service ? static_cast<int>(service->GetState()) : static_cast<int>(host->GetState()));
 	result->Set("state_type", checkable->GetStateType());
 	result->Set("is_flapping", checkable->IsFlapping());
+	result->Set("flapping_current", checkable->GetFlappingCurrent());
+	result->Set("threshold_low", checkable->GetFlappingThresholdLow());
+	result->Set("threshold_high", checkable->GetFlappingThresholdHigh());
 
 	for (const EventQueue::Ptr& queue : queues) {
 		queue->ProcessEvent(result);
