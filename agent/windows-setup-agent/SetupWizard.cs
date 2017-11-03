@@ -194,18 +194,21 @@ namespace Icinga
 				string master_host, master_port;
 				GetMasterHostPort(out master_host, out master_port);
 
-				args += " --master_host " + master_host + "," + master_port;
+				args += " --master_host " + Convert.ToString(master_host).Trim()
+				    + "," + Convert.ToString(master_port).Trim();
 
 				foreach (ListViewItem lvi in lvwEndpoints.Items) {
-					args += " --endpoint " + lvi.SubItems[0].Text;
+					args += " --endpoint " + Convert.ToString(lvi.SubItems[0].Text).Trim();
 
-					if (lvi.SubItems.Count > 1)
-						args += "," + lvi.SubItems[1].Text + "," + lvi.SubItems[2].Text;
+					if (lvi.SubItems.Count > 1) {
+						args += "," + Convert.ToString(lvi.SubItems[1].Text).Trim()
+						    + "," + Convert.ToString(lvi.SubItems[2].Text).Trim();
+					}
 				}
 			});
 
 			if (rdoListener.Checked)
-				args += " --listen ::," + txtListenerPort.Text;
+				args += " --listen ::," + Convert.ToString(txtListenerPort.Text).Trim();
 
 			if (chkAcceptConfig.Checked)
 				args += " --accept-config";
@@ -213,12 +216,14 @@ namespace Icinga
 			if (chkAcceptCommands.Checked)
 				args += " --accept-commands";
 
-			if (txtTicket.Text != "")
-				args += " --ticket \"" + txtTicket.Text + "\"";
+			string ticket = Convert.ToString(txtTicket.Text).Trim();
+
+			if (ticket.Length > 0)
+				args += " --ticket \"" + ticket + "\"";
 
 			args += " --trustedcert \"" + _TrustedFile + "\"";
-			args += " --cn \"" + txtInstanceName.Text + "\"";
-			args += " --zone \"" + txtInstanceName.Text + "\"";
+			args += " --cn \"" + Convert.ToString(txtInstanceName.Text).Trim() + "\"";
+			args += " --zone \"" + Convert.ToString(txtInstanceName.Text) + "\"";
 
 			if (!RunProcess(Program.Icinga2InstallDir + "\\sbin\\icinga2.exe",
 				"node setup" + args,
@@ -228,16 +233,19 @@ namespace Icinga
 			}
 
 			SetConfigureStatus(50, "Setting ACLs for the Icinga 2 directory...");
+
+			string serviceUser = Convert.ToString(txtUser.Text).Trim();
+
 			DirectoryInfo di = new DirectoryInfo(Program.Icinga2InstallDir);
 			DirectorySecurity ds = di.GetAccessControl();
-			FileSystemAccessRule rule = new FileSystemAccessRule(txtUser.Text,
+			FileSystemAccessRule rule = new FileSystemAccessRule(serviceUser,
 				FileSystemRights.Modify,
 				InheritanceFlags.ObjectInherit | InheritanceFlags.ContainerInherit, PropagationFlags.None, AccessControlType.Allow);
 			try {
 				ds.AddAccessRule(rule);
 				di.SetAccessControl(ds);
 			} catch (System.Security.Principal.IdentityNotMappedException) {
-				ShowErrorText("Could not set ACLs for \"" + txtUser.Text + "\". Identitiy is not mapped.\n");
+				ShowErrorText("Could not set ACLs for user \"" + serviceUser + "\". Identitiy is not mapped.\n");
 				return;
 			}
 
@@ -255,10 +263,10 @@ namespace Icinga
 			}
 
 			if (!RunProcess(Program.Icinga2InstallDir + "\\sbin\\icinga2.exe",
-				"--scm-install --scm-user \"" + txtUser.Text + "\" daemon",
+				"--scm-install --scm-user \"" + serviceUser + "\" daemon",
 				out output)) {
 				ShowErrorText("\nRunning command 'icinga2.exe --scm-install --scm-user \"" +
-					txtUser.Text + "\" daemon' produced the following output:\n" + output);
+					serviceUser + "\" daemon' produced the following output:\n" + output);
 				return;
 			}
 
@@ -278,7 +286,7 @@ namespace Icinga
 			lblSetupCompleted.Text = "The Icinga 2 Windows client was set up successfully.";
 
 			// Add a note for the user for ticket-less signing
-			if (txtTicket.Text == "") {
+			if (ticket.Length == 0) {
 				lblSetupCompleted.Text += "\n\nTicket was not specified. Please sign the certificate request on the Icinga 2 master node (requires v2.8+).";
 			}
 
@@ -335,7 +343,7 @@ namespace Icinga
 				}
 
 				if (txtUser.Text.Length == 0) {
-					Warning("Icinga 2 user may not be empty.");
+					Warning("Icinga 2 service user may not be empty.");
 					return;
 				}
 			}
