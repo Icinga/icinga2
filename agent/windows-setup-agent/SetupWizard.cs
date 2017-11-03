@@ -189,26 +189,26 @@ namespace Icinga
 
 			string args = "";
 
-			if (rdoNewMaster.Checked)
-				args += " --master";
-
 			Invoke((MethodInvoker)delegate
 			{
 				string master_host, master_port;
 				GetMasterHostPort(out master_host, out master_port);
 
-				args += " --master_host " + master_host + "," + master_port;
+				args += " --master_host " + Convert.ToString(master_host).Trim()
+				    + "," + Convert.ToString(master_port).Trim();
 
 				foreach (ListViewItem lvi in lvwEndpoints.Items) {
-					args += " --endpoint " + lvi.SubItems[0].Text;
+					args += " --endpoint " + Convert.ToString(lvi.SubItems[0].Text).Trim();
 
-					if (lvi.SubItems.Count > 1)
-						args += "," + lvi.SubItems[1].Text + "," + lvi.SubItems[2].Text;
+					if (lvi.SubItems.Count > 1) {
+						args += "," + Convert.ToString(lvi.SubItems[1].Text).Trim()
+						    + "," + Convert.ToString(lvi.SubItems[2].Text).Trim();
+					}
 				}
 			});
 
 			if (rdoListener.Checked)
-				args += " --listen ::," + txtListenerPort.Text;
+				args += " --listen ::," + Convert.ToString(txtListenerPort.Text).Trim();
 
 			if (chkAcceptConfig.Checked)
 				args += " --accept-config";
@@ -216,10 +216,14 @@ namespace Icinga
 			if (chkAcceptCommands.Checked)
 				args += " --accept-commands";
 
-			args += " --ticket \"" + txtTicket.Text + "\"";
+			string ticket = Convert.ToString(txtTicket.Text).Trim();
+
+			if (ticket.Length > 0)
+				args += " --ticket \"" + ticket + "\"";
+
 			args += " --trustedcert \"" + _TrustedFile + "\"";
-			args += " --cn \"" + txtInstanceName.Text + "\"";
-			args += " --zone \"" + txtInstanceName.Text + "\"";
+			args += " --cn \"" + Convert.ToString(txtInstanceName.Text).Trim() + "\"";
+			args += " --zone \"" + Convert.ToString(txtInstanceName.Text) + "\"";
 
 			if (!RunProcess(Program.Icinga2InstallDir + "\\sbin\\icinga2.exe",
 				"node setup" + args,
@@ -229,16 +233,19 @@ namespace Icinga
 			}
 
 			SetConfigureStatus(50, "Setting ACLs for the Icinga 2 directory...");
+
+			string serviceUser = Convert.ToString(txtUser.Text).Trim();
+
 			DirectoryInfo di = new DirectoryInfo(Program.Icinga2InstallDir);
 			DirectorySecurity ds = di.GetAccessControl();
-			FileSystemAccessRule rule = new FileSystemAccessRule(txtUser.Text,
+			FileSystemAccessRule rule = new FileSystemAccessRule(serviceUser,
 				FileSystemRights.Modify,
 				InheritanceFlags.ObjectInherit | InheritanceFlags.ContainerInherit, PropagationFlags.None, AccessControlType.Allow);
 			try {
 				ds.AddAccessRule(rule);
 				di.SetAccessControl(ds);
 			} catch (System.Security.Principal.IdentityNotMappedException) {
-				ShowErrorText("Could not set ACLs for \"" + txtUser.Text + "\". Identitiy is not mapped.\n");
+				ShowErrorText("Could not set ACLs for user \"" + serviceUser + "\". Identitiy is not mapped.\n");
 				return;
 			}
 
@@ -256,10 +263,10 @@ namespace Icinga
 			}
 
 			if (!RunProcess(Program.Icinga2InstallDir + "\\sbin\\icinga2.exe",
-				"--scm-install --scm-user \"" + txtUser.Text + "\" daemon",
+				"--scm-install --scm-user \"" + serviceUser + "\" daemon",
 				out output)) {
 				ShowErrorText("\nRunning command 'icinga2.exe --scm-install --scm-user \"" +
-					txtUser.Text + "\" daemon' produced the following output:\n" + output);
+					serviceUser + "\" daemon' produced the following output:\n" + output);
 				return;
 			}
 
@@ -274,6 +281,14 @@ namespace Icinga
 			}
 
 			SetConfigureStatus(100, "Finished.");
+
+			// Override the completed text
+			lblSetupCompleted.Text = "The Icinga 2 Windows client was set up successfully.";
+
+			// Add a note for the user for ticket-less signing
+			if (ticket.Length == 0) {
+				lblSetupCompleted.Text += "\n\nTicket was not specified. Please sign the certificate request on the Icinga 2 master node (requires v2.8+).";
+			}
 
 			FinishConfigure();
 		}
@@ -311,22 +326,15 @@ namespace Icinga
 					return;
 				}
 
-				if (txtTicket.Text.Length == 0) {
-					Warning("Please enter an agent ticket.");
+				if (lvwEndpoints.Items.Count == 0) {
+					Warning("You need to add at least one master/satellite endpoint.");
 					return;
 				}
 
-				if (rdoNoMaster.Checked) {
-					if (lvwEndpoints.Items.Count == 0) {
-						Warning("You need to add at least one master endpoint.");
-						return;
-					}
-
-					string host, port;
-					if (!GetMasterHostPort(out host, out port)) {
-						Warning("Please enter a remote host and port for at least one of your endpoints.");
-						return;
-					}
+				string host, port;
+				if (!GetMasterHostPort(out host, out port)) {
+					Warning("Please enter a remote host and port for at least one of your endpoints.");
+					return;
 				}
 
 				if (rdoListener.Checked && (txtListenerPort.Text == "")) {
@@ -335,7 +343,7 @@ namespace Icinga
 				}
 
 				if (txtUser.Text.Length == 0) {
-					Warning("Icinga2 user may not be empty.");
+					Warning("Icinga 2 service user may not be empty.");
 					return;
 				}
 			}
@@ -373,33 +381,10 @@ namespace Icinga
 				thread.Start();
 			}
 
-			/*if (tbcPages.SelectedTab == tabParameters &&
-				!File.Exists(Icinga2DataDir + "\\etc\\icinga2\\pki\\agent\\agent.crt")) {
-				byte[] bytes = Convert.FromBase64String(txtBundle.Text);
-				MemoryStream ms = new MemoryStream(bytes);
-				GZipStream gz = new GZipStream(ms, CompressionMode.Decompress);
-				MemoryStream ms2 = new MemoryStream();
-
-				byte[] buffer = new byte[512];
-				int rc;
-				while ((rc = gz.Read(buffer, 0, buffer.Length)) > 0)
-					ms2.Write(buffer, 0, rc);
-				ms2.Position = 0;
-				TarReader tr = new TarReader(ms2);
-				tr.ReadToEnd(Icinga2DataDir + "\\etc\\icinga2\\pki\\agent");
-			}*/
-
 			if (tbcPages.SelectedTab == tabConfigure) {
 				Thread thread = new Thread(ConfigureService);
 				thread.Start();
 			}
-		}
-
-		private void RadioMaster_CheckedChanged(object sender, EventArgs e)
-		{
-			lvwEndpoints.Enabled = !rdoNewMaster.Checked;
-			btnAddEndpoint.Enabled = !rdoNewMaster.Checked;
-			btnRemoveEndpoint.Enabled = !rdoNewMaster.Checked && lvwEndpoints.SelectedItems.Count > 0;
 		}
 
 		private void RadioListener_CheckedChanged(object sender, EventArgs e)
@@ -488,7 +473,7 @@ namespace Icinga
 
 			ListViewItem lvi = lvwX509Fields.SelectedItems[0];
 
-			txtX509Field.Text = (string)lvi.Tag;
+			txtX509Field.Text = Convert.ToString(lvi.Tag);
 		}
 
 		private void btnRemoveEndpoint_Click(object sender, EventArgs e)
