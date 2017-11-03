@@ -79,7 +79,7 @@ Dictionary::Ptr ApiActions::ProcessCheckResult(const ConfigObject::Ptr& object,
 	tie(host, service) = GetHostService(checkable);
 
 	if (!params->Contains("exit_status"))
-		return ApiActions::CreateResult(403, "Parameter 'exit_status' is required.");
+		return ApiActions::CreateResult(400, "Parameter 'exit_status' is required.");
 
 	int exitStatus = HttpUtility::GetLastParameter(params, "exit_status");
 
@@ -91,14 +91,14 @@ Dictionary::Ptr ApiActions::ProcessCheckResult(const ConfigObject::Ptr& object,
 		else if (exitStatus == 1)
 			state = ServiceCritical;
 		else
-			return ApiActions::CreateResult(403, "Invalid 'exit_status' for Host "
+			return ApiActions::CreateResult(400, "Invalid 'exit_status' for Host "
 			    + checkable->GetName() + ".");
 	} else {
 		state = PluginUtility::ExitStatusToState(exitStatus);
 	}
 
 	if (!params->Contains("plugin_output"))
-		return ApiActions::CreateResult(403, "Parameter 'plugin_output' is required");
+		return ApiActions::CreateResult(400, "Parameter 'plugin_output' is required");
 
 	CheckResult::Ptr cr = new CheckResult();
 	cr->SetOutput(HttpUtility::GetLastParameter(params, "plugin_output"));
@@ -156,10 +156,10 @@ Dictionary::Ptr ApiActions::SendCustomNotification(const ConfigObject::Ptr& obje
 		return ApiActions::CreateResult(404, "Cannot send notification for non-existent object.");
 
 	if (!params->Contains("author"))
-		return ApiActions::CreateResult(403, "Parameter 'author' is required.");
+		return ApiActions::CreateResult(400, "Parameter 'author' is required.");
 
 	if (!params->Contains("comment"))
-		return ApiActions::CreateResult(403, "Parameter 'comment' is required.");
+		return ApiActions::CreateResult(400, "Parameter 'comment' is required.");
 
 	if (Convert::ToBool(HttpUtility::GetLastParameter(params, "force")))
 		checkable->SetForceNextNotification(true);
@@ -179,7 +179,7 @@ Dictionary::Ptr ApiActions::DelayNotification(const ConfigObject::Ptr& object,
 		return ApiActions::CreateResult(404, "Cannot delay notifications for non-existent object");
 
 	if (!params->Contains("timestamp"))
-		return ApiActions::CreateResult(403, "A timestamp is required to delay notifications");
+		return ApiActions::CreateResult(400, "A timestamp is required to delay notifications");
 
 	for (const Notification::Ptr& notification : checkable->GetNotifications()) {
 		notification->SetNextNotification(HttpUtility::GetLastParameter(params, "timestamp"));
@@ -197,7 +197,7 @@ Dictionary::Ptr ApiActions::AcknowledgeProblem(const ConfigObject::Ptr& object,
 		return ApiActions::CreateResult(404, "Cannot acknowledge problem for non-existent object.");
 
 	if (!params->Contains("author") || !params->Contains("comment"))
-		return ApiActions::CreateResult(403, "Acknowledgements require author and comment.");
+		return ApiActions::CreateResult(400, "Acknowledgements require author and comment.");
 
 	AcknowledgementType sticky = AcknowledgementNormal;
 	bool notify = false;
@@ -263,7 +263,7 @@ Dictionary::Ptr ApiActions::AddComment(const ConfigObject::Ptr& object,
 		return ApiActions::CreateResult(404, "Cannot add comment for non-existent object");
 
 	if (!params->Contains("author") || !params->Contains("comment"))
-		return ApiActions::CreateResult(403, "Comments require author and comment.");
+		return ApiActions::CreateResult(400, "Comments require author and comment.");
 
 	String commentName = Comment::AddComment(checkable, CommentUser,
 	    HttpUtility::GetLastParameter(params, "author"),
@@ -318,7 +318,7 @@ Dictionary::Ptr ApiActions::ScheduleDowntime(const ConfigObject::Ptr& object,
 	if (!params->Contains("start_time") || !params->Contains("end_time") ||
 	    !params->Contains("author") || !params->Contains("comment")) {
 
-		return ApiActions::CreateResult(404, "Options 'start_time', 'end_time', 'author' and 'comment' are required");
+		return ApiActions::CreateResult(400, "Options 'start_time', 'end_time', 'author' and 'comment' are required");
 	}
 
 	bool fixed = true;
@@ -326,7 +326,7 @@ Dictionary::Ptr ApiActions::ScheduleDowntime(const ConfigObject::Ptr& object,
 		fixed = HttpUtility::GetLastParameter(params, "fixed");
 
 	if (!fixed && !params->Contains("duration"))
-		return ApiActions::CreateResult(404, "Option 'duration' is required for flexible downtime");
+		return ApiActions::CreateResult(400, "Option 'duration' is required for flexible downtime");
 
 	double duration = 0.0;
 	if (params->Contains("duration"))
@@ -439,7 +439,7 @@ Dictionary::Ptr ApiActions::GenerateTicket(const ConfigObject::Ptr&,
     const Dictionary::Ptr& params)
 {
 	if (!params->Contains("cn"))
-		return ApiActions::CreateResult(404, "Option 'cn' is required");
+		return ApiActions::CreateResult(400, "Option 'cn' is required");
 
 	String cn = HttpUtility::GetLastParameter(params, "cn");
 
