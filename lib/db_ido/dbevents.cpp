@@ -375,10 +375,8 @@ void DbEvents::AddCommentInternal(std::vector<DbQuery>& queries, const Comment::
 
 		query1.WhereCriteria = new Dictionary();
 		query1.WhereCriteria->Set("object_id", checkable);
+		query1.WhereCriteria->Set("name", comment->GetName());
 		query1.WhereCriteria->Set("comment_time", DbValue::FromTimestamp(entry_time));
-		query1.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
-		/* Match the unique constraint. */
-		query1.WhereCriteria->Set("internal_comment_id", comment->GetLegacyId());
 	} else {
 		query1.Table = "commenthistory";
 		query1.Type = DbQueryInsert;
@@ -410,7 +408,6 @@ void DbEvents::RemoveCommentInternal(std::vector<DbQuery>& queries, const Commen
 	query1.WhereCriteria = new Dictionary();
 	query1.WhereCriteria->Set("object_id", checkable);
 	query1.WhereCriteria->Set("entry_time", DbValue::FromTimestamp(entry_time));
-	query1.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
 	query1.WhereCriteria->Set("name", comment->GetName());
 	queries.push_back(query1);
 
@@ -431,7 +428,6 @@ void DbEvents::RemoveCommentInternal(std::vector<DbQuery>& queries, const Commen
 	query2.WhereCriteria = new Dictionary();
 	query2.WhereCriteria->Set("object_id", checkable);
 	query2.WhereCriteria->Set("entry_time", DbValue::FromTimestamp(entry_time));
-	query2.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
 	query2.WhereCriteria->Set("name", comment->GetName());
 	queries.push_back(query2);
 }
@@ -521,10 +517,8 @@ void DbEvents::AddDowntimeInternal(std::vector<DbQuery>& queries, const Downtime
 
 		query1.WhereCriteria = new Dictionary();
 		query1.WhereCriteria->Set("object_id", checkable);
+		query1.WhereCriteria->Set("name", downtime->GetName());
 		query1.WhereCriteria->Set("entry_time", DbValue::FromTimestamp(downtime->GetEntryTime()));
-		query1.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
-		/* Match the unique constraint. */
-		query1.WhereCriteria->Set("internal_downtime_id", downtime->GetLegacyId());
 	} else {
 		query1.Table = "downtimehistory";
 		query1.Type = DbQueryInsert;
