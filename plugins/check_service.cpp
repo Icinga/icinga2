@@ -38,7 +38,7 @@ INT wmain(INT argc, WCHAR **argv)
 	if (ret != -1)
 		return ret;
 
-	if (vm.count("description"));
+	if (vm.count("description"))
 		printInfo.service = GetServiceByDescription(vm["service"].as<std::wstring>());
 
 	if (printInfo.service.empty()) {
