@@ -3,13 +3,17 @@
 Upgrading Icinga 2 is usually quite straightforward. Ordinarily the only manual steps involved
 are scheme updates for the IDO database.
 
+Specific version upgrades are described below. Please note that version
+updates are incremental. An upgrade from v2.6 to v2.8 requires to
+follow the instructions for v2.7 too.
+
 ## Upgrading to v2.8 <a id="upgrading-to-2-8"></a>
 
 ### DB IDO Schema Update to 2.8.0 <a id="upgrading-to-2-8-db-ido"></a>
 
 There are additional indexes and schema fixes which require an update.
 
-Please proceed here for [MySQL](16-upgrading-icinga-2.md#upgrading-mysql-db) for [PostgreSQL](16-upgrading-icinga-2.md#upgrading-postgresql-db).
+Please proceed here for [MySQL](16-upgrading-icinga-2.md#upgrading-mysql-db) or [PostgreSQL](16-upgrading-icinga-2.md#upgrading-postgresql-db).
 
 ### Changed Certificate Paths <a id="upgrading-to-2-8-certificate-paths"></a>
 
@@ -102,6 +106,16 @@ Test the script with a fresh client installation before putting it into producti
 > any project which would require these changes, create an issue or a patchset in a PR
 > and help them out. Thanks in advance!
 
+### On-Demand Signing and CA Proxy <a id="upgrading-to-2-8-on-demand-signing-ca-proxy"></a>
+
+Icinga 2 v2.8 supports the following features inside the cluster:
+
+* Forward signing requests from clients through a satellite instance to a signing master ("CA Proxy").
+* Signing requests without a ticket. The master instance allows to list and sign CSRs ("On-Demand Signing").
+
+In order to use these features, **all instances must be upgraded to v2.8**.
+
+More details in [this chapter](06-distributed-monitoring.md#distributed-monitoring-setup-sign-certificates-master).
 
 ### Removed Bottom Up Client Mode <a id="upgrading-to-2-8-removed-bottom-up-client-mode"></a>
 
@@ -126,7 +140,29 @@ Icinga Director or config management tools such as Puppet, Ansible, etc.
 The config meta package `classicui-config` and the configuration files
 have been removed. You need to manually configure
 this legacy interface. Create a backup of the configuration
-before upgrading.
+before upgrading and re-configure it afterwards.
+
+
+### Flapping Configuration <a id="upgrading-to-2-8-flapping-configuration"></a>
+
+Icinga 2 v2.8 implements a new flapping detection algorithm which splits the
+threshold configuration into low and high settings.
+
+`flapping_threshold` is deprecated and does not have any effect when flapping
+is enabled. Please remove `flapping_threshold` from your configuration. This
+attribute will be removed in v2.9.
+
+Instead you need to use the `flapping_threshold_low` and `flapping_threshold_high`
+attributes. More details can be found [here](08-advanced-topics.md#check-flapping).
+
+### Deprecated Configuration Attributes <a id="upgrading-to-2-8-deprecated-configuration"></a>
+
+  Object        | Attribute
+  --------------|------------------
+  ApiListener   | cert\_path (migration happens)
+  ApiListener   | key\_path (migration happens)
+  ApiListener   | ca\_path (migration happens)
+  Host, Service | flapping\_threshold (has no effect)
 
 ## Upgrading to v2.7 <a id="upgrading-to-2-7"></a>
 

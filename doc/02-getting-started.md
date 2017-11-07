@@ -4,6 +4,9 @@ This tutorial is a step-by-step introduction to installing [Icinga 2](02-getting
 and [Icinga Web 2](02-getting-started.md#setting-up-icingaweb2).
 It assumes that you are familiar with the operating system you're using to install Icinga 2.
 
+In case you are upgrading an existing setup, please ensure to
+follow the [upgrade documentation](16-upgrading-icinga-2.md#upgrading-icinga-2).
+
 ## Setting up Icinga 2 <a id="setting-up-icinga2"></a>
 
 First off you have to install Icinga 2. The preferred way of doing this
