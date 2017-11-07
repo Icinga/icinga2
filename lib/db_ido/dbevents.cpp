@@ -376,7 +376,7 @@ void DbEvents::AddCommentInternal(std::vector<DbQuery>& queries, const Comment::
 		query1.WhereCriteria = new Dictionary();
 		query1.WhereCriteria->Set("object_id", checkable);
 		query1.WhereCriteria->Set("name", comment->GetName());
-		query1.WhereCriteria->Set("comment_time", DbValue::FromTimestamp(entry_time));
+		query1.WhereCriteria->Set("entry_time", DbValue::FromTimestamp(entry_time));
 	} else {
 		query1.Table = "commenthistory";
 		query1.Type = DbQueryInsert;
