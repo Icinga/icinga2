@@ -5,6 +5,12 @@ are scheme updates for the IDO database.
 
 ## Upgrading to v2.8 <a id="upgrading-to-2-8"></a>
 
+### DB IDO Schema Update to 2.8.0 <a id="upgrading-to-2-8-db-ido"></a>
+
+There are additional indexes and schema fixes which require an update.
+
+Please proceed here for [MySQL](16-upgrading-icinga-2.md#upgrading-mysql-db) for [PostgreSQL](16-upgrading-icinga-2.md#upgrading-postgresql-db).
+
 ### Changed Certificate Paths <a id="upgrading-to-2-8-certificate-paths"></a>
 
 The default certificate path was changed from `/etc/icinga2/pki` to
@@ -149,8 +155,8 @@ systemctl restart icinga2
 
 ## Upgrading the MySQL database <a id="upgrading-mysql-db"></a>
 
-If you're upgrading an existing Icinga 2 instance, you should check the
-`/usr/share/icinga2-ido-mysql/schema/upgrade` directory for an incremental schema upgrade file.
+If you want to upgrade an existing Icinga 2 instance, check the
+`/usr/share/icinga2-ido-mysql/schema/upgrade` directory for incremental schema upgrade file(s).
 
 > **Note**
 >
@@ -158,25 +164,35 @@ If you're upgrading an existing Icinga 2 instance, you should check the
 
 Apply all database schema upgrade files incrementally.
 
-    # mysql -u root -p icinga < /usr/share/icinga2-ido-mysql/schema/upgrade/<version>.sql
+```
+# mysql -u root -p icinga < /usr/share/icinga2-ido-mysql/schema/upgrade/<version>.sql
+```
 
-The Icinga 2 DB IDO module will check for the required database schema version on startup
-and generate an error message if not satisfied.
+The Icinga 2 DB IDO feature checks the required database schema version on startup
+and generates an log message if not satisfied.
 
 
-**Example:** You are upgrading Icinga 2 from version `2.0.2` to `2.3.0`. Look into
-the *upgrade* directory:
+**Example:** You are upgrading Icinga 2 from version `2.4.0` to `2.8.0`. Look into
+the `upgrade` directory:
 
-    $ ls /usr/share/icinga2-ido-mysql/schema/upgrade/
-    2.0.2.sql  2.1.0.sql 2.2.0.sql 2.3.0.sql
+```
+$ ls /usr/share/icinga2-ido-mysql/schema/upgrade/
+2.0.2.sql 2.1.0.sql 2.2.0.sql 2.3.0.sql 2.4.0.sql 2.5.0.sql 2.6.0.sql 2.8.0.sql
+```
 
-There are two new upgrade files called `2.1.0.sql`, `2.2.0.sql` and `2.3.0.sql`
+There are two new upgrade files called `2.5.0.sql`, `2.6.0.sql` and `2.8.0.sql`
 which must be applied incrementally to your IDO database.
+
+```
+# mysql -u root -p icinga < /usr/share/icinga2-ido-mysql/schema/upgrade/2.5.0.sql
+# mysql -u root -p icinga < /usr/share/icinga2-ido-mysql/schema/upgrade/2.6.0.sql
+# mysql -u root -p icinga < /usr/share/icinga2-ido-mysql/schema/upgrade/2.8.0.sql
+```
 
 ## Upgrading the PostgreSQL database <a id="upgrading-postgresql-db"></a>
 
-If you're updating an existing Icinga 2 instance, you should check the
-`/usr/share/icinga2-ido-pgsql/schema/upgrade` directory for an incremental schema upgrade file.
+If you want to upgrade an existing Icinga 2 instance, check the
+`/usr/share/icinga2-ido-mysql/schema/upgrade` directory for incremental schema upgrade file(s).
 
 > **Note**
 >
@@ -184,17 +200,28 @@ If you're updating an existing Icinga 2 instance, you should check the
 
 Apply all database schema upgrade files incrementally.
 
-    # export PGPASSWORD=icinga
-    # psql -U icinga -d icinga < /usr/share/icinga2-ido-pgsql/schema/upgrade/<version>.sql
+```
+# export PGPASSWORD=icinga
+# psql -U icinga -d icinga < /usr/share/icinga2-ido-pgsql/schema/upgrade/<version>.sql
+```
 
-The Icinga 2 DB IDO module will check for the required database schema version on startup
-and generate an error message if not satisfied.
+The Icinga 2 DB IDO feature checks the required database schema version on startup
+and generates an log message if not satisfied.
 
-**Example:** You are upgrading Icinga 2 from version `2.0.2` to `2.3.0`. Look into
-the *upgrade* directory:
+**Example:** You are upgrading Icinga 2 from version `2.4.0` to `2.8.0`. Look into
+the `upgrade` directory:
 
-    $ ls /usr/share/icinga2-ido-pgsql/schema/upgrade/
-    2.0.2.sql  2.1.0.sql 2.2.0.sql 2.3.0.sql
+```
+$ ls /usr/share/icinga2-ido-pgsql/schema/upgrade/
+2.0.2.sql 2.1.0.sql 2.2.0.sql 2.3.0.sql 2.4.0.sql 2.5.0.sql 2.6.0.sql 2.8.0.sql
+```
 
-There are two new upgrade files called `2.1.0.sql`, `2.2.0.sql` and `2.3.0.sql`
+There are two new upgrade files called `2.5.0.sql`, `2.6.0.sql` and `2.8.0.sql`
 which must be applied incrementally to your IDO database.
+
+```
+# export PGPASSWORD=icinga
+# psql -U icinga -d icinga < /usr/share/icinga2-ido-pgsql/schema/upgrade/2.5.0.sql
+# psql -U icinga -d icinga < /usr/share/icinga2-ido-pgsql/schema/upgrade/2.6.0.sql
+# psql -U icinga -d icinga < /usr/share/icinga2-ido-pgsql/schema/upgrade/2.8.0.sql
+```
