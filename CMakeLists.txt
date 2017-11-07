@@ -16,7 +16,7 @@
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
 cmake_minimum_required(VERSION 2.6)
-set(BOOST_MIN_VERSION "1.41.0")
+set(BOOST_MIN_VERSION "1.48.0")
 
 project(icinga2)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
