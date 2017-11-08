@@ -1306,15 +1306,18 @@ Example for all downtime events:
 
 #### <a id="icinga2-api-event-streams-type-flapping"></a> Event Stream Type: Flapping
 
-  Name 		| Type          | Description
-  --------------|---------------|--------------------------
-  type 	        | String        | Event type `Flapping`.
-  timestamp     | Timestamp     | Unix timestamp when the event happened.
-  host	        | String        | [Host](09-object-types.md#objecttype-host) name.
-  service       | String        | [Service](09-object-types.md#objecttype-service) name. Optional if this is a host flapping event.
-  state	        | Number        | [Host](09-object-types.md#objecttype-host) or [service](09-object-types.md#objecttype-service) state.
-  state\_type   | Number        | [Host](09-object-types.md#objecttype-host) or [service](09-object-types.md#objecttype-service) state type.
-  is\_flapping  | Boolean       | Whether this object is flapping.
+  Name              | Type          | Description
+  ------------------|---------------|--------------------------
+  type              | String        | Event type `Flapping`.
+  timestamp         | Timestamp     | Unix timestamp when the event happened.
+  host              | String        | [Host](09-object-types.md#objecttype-host) name.
+  service           | String        | [Service](09-object-types.md#objecttype-service) name. Optional if this is a host flapping event.
+  state             | Number        | [Host](09-object-types.md#objecttype-host) or [service](09-object-types.md#objecttype-service) state.
+  state\_type       | Number        | [Host](09-object-types.md#objecttype-host) or [service](09-object-types.md#objecttype-service) state type.
+  is\_flapping      | Boolean       | Whether this object is flapping.
+  current\_flapping | Number        | Current flapping value in percent (added in 2.8).
+  threshold\_low    | Number        | Low threshold in percent (added in 2.8).
+  threshold\_high   | Number        | High threshold in percent (added in 2.8).
 
 #### <a id="icinga2-api-event-streams-type-acknowledgementset"></a> Event Stream Type: AcknowledgementSet
 

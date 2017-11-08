@@ -158,7 +158,9 @@ abstract class Checkable : CustomVarObject
 		default {{{ return 0; }}}
 	};
 	[state] Timestamp flapping_last_change;
+
 	[state, no_user_view, no_user_modify] int flapping_buffer;
+	[state, no_user_view, no_user_modify] int flapping_index;
 	[state, protected] bool flapping;
 
 	[config, navigation] name(Endpoint) command_endpoint (CommandEndpointRaw) {
