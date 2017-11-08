@@ -239,7 +239,6 @@ private:
 
 	/* Flapping */
 	void UpdateFlappingStatus(bool stateChange);
-	bool SuppressEvent(void) const;
 };
 
 }

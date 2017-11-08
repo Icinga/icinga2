@@ -332,12 +332,15 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 
 	olock.Unlock();
 
-//	Log(LogDebug, "Checkable")
-//	    << "Flapping: Checkable " << GetName()
-//	    << " was: " << (was_flapping)
-//	    << " is: " << is_flapping)
-//	    << " threshold: " << GetFlappingThreshold()
-//	    << "% current: " + GetFlappingCurrent()) << "%.";
+#ifdef I2_DEBUG /* I2_DEBUG */
+	Log(LogDebug, "Checkable")
+	    << "Flapping: Checkable " << GetName()
+	    << " was: " << was_flapping
+	    << " is: " << is_flapping
+	    << " threshold low: " << GetFlappingThresholdLow()
+	    << " threshold high: " << GetFlappingThresholdHigh()
+	    << "% current: " << GetFlappingCurrent() << "%.";
+#endif /* I2_DEBUG */
 
 	OnNewCheckResult(this, cr, origin);
 
@@ -371,7 +374,8 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 			OnNotificationsRequested(this, NotificationFlappingStart, cr, "", "", MessageOrigin::Ptr());
 
 		Log(LogNotice, "Checkable")
-			<< "Flapping: Checkable '" << GetName() << "' started flapping (Current flapping value " << GetFlappingCurrent() << "% > threshold " << GetFlappingThresholdHigh() << "%).";
+		    << "Flapping Start: Checkable '" << GetName() << "' started flapping (Current flapping value "
+		    << GetFlappingCurrent() << "% > high threshold " << GetFlappingThresholdHigh() << "%).";
 
 		NotifyFlapping(origin);
 	} else if (!in_downtime && was_flapping && !is_flapping) {
@@ -380,7 +384,8 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 			OnNotificationsRequested(this, NotificationFlappingEnd, cr, "", "", MessageOrigin::Ptr());
 
 		Log(LogNotice, "Checkable")
-			<< "Flapping: Checkable '" << GetName() << "' stopped flapping (Current flapping value " << GetFlappingCurrent() << "% < threshold " << GetFlappingThresholdLow() << "%).";
+		    << "Flapping Stop: Checkable '" << GetName() << "' stopped flapping (Current flapping value "
+		    << GetFlappingCurrent() << "% < low threshold " << GetFlappingThresholdLow() << "%).";
 
 		NotifyFlapping(origin);
 	}
