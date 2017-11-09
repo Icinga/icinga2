@@ -2391,7 +2391,9 @@ Make sure that the directory permissions for `/var/lib/icinga2/ca` are secure
 
 **Do not expose these private keys to anywhere else. This is a matter of security.**
 
-### Manual Certificate Creation <a id="distributed-monitoring-advanced-hints-certificates"></a>
+### Manual Certificate Creation <a id="distributed-monitoring-advanced-hints-certificates-manual"></a>
+
+#### Create CA on the Master <a id="distributed-monitoring-advanced-hints-certificates-manual-ca"></a>
 
 Choose the host which should store the certificate authority (one of the master nodes).
 
@@ -2400,51 +2402,70 @@ as root user:
 
     [root@icinga2-master1.localdomain /root]# icinga2 pki new-ca
 
-Create a certificate signing request (CSR) for each node:
+#### Create CSR and Certificate <a id="distributed-monitoring-advanced-hints-certificates-manual-create"></a>
 
-    [root@icinga2-master1.localdomain /root]# icinga2 pki new-cert --cn icinga2-master1.localdomain \
-      --key icinga2-master1.localdomain.key \
-      --csr icinga2-master1.localdomain.csr
+Create a certificate signing request (CSR) for the local instance:
+
+```
+[root@icinga2-master1.localdomain /root]# icinga2 pki new-cert --cn icinga2-master1.localdomain \
+  --key icinga2-master1.localdomain.key \
+  --csr icinga2-master1.localdomain.csr
+```
 
 Sign the CSR with the previously created CA:
 
-    [root@icinga2-master1.localdomain /root]# icinga2 pki sign-csr --csr icinga2-master1.localdomain.csr --cert icinga2-master1.localdomain
+```
+[root@icinga2-master1.localdomain /root]# icinga2 pki sign-csr --csr icinga2-master1.localdomain.csr --cert icinga2-master1.localdomain
+```
+
+Repeat the steps for all instances in your setup.
 
 > **Note**
 >
 > The certificate location changed in v2.8 to `/var/lib/icinga2/certs`. Please read the [upgrading chapter](16-upgrading-icinga-2.md#upgrading-to-2-8-certificate-paths)
 > for more details.
 
+#### Copy Certificates <a id="distributed-monitoring-advanced-hints-certificates-manual-copy"></a>
+
 Copy the host's certificate files and the public CA certificate to `/var/lib/icinga2/certs`:
 
-    [root@icinga2-master1.localdomain /root]# mkdir -p /var/lib/icinga2/certs
-    [root@icinga2-master1.localdomain /root]# cp icinga2-master1.localdomain.{crt,key} /var/lib/icinga2/certs
-    [root@icinga2-master1.localdomain /root]# cp /var/lib/icinga2/ca/ca.crt /var/lib/icinga2/certs
+```
+[root@icinga2-master1.localdomain /root]# mkdir -p /var/lib/icinga2/certs
+[root@icinga2-master1.localdomain /root]# cp icinga2-master1.localdomain.{crt,key} /var/lib/icinga2/certs
+[root@icinga2-master1.localdomain /root]# cp /var/lib/icinga2/ca/ca.crt /var/lib/icinga2/certs
+```
 
 Ensure that proper permissions are set (replace `icinga` with the Icinga 2 daemon user):
 
-    [root@icinga2-master1.localdomain /root]# chown -R icinga:icinga /var/lib/icinga2/certs
-    [root@icinga2-master1.localdomain /root]# chmod 600 /var/lib/icinga2/certs/*.key
-    [root@icinga2-master1.localdomain /root]# chmod 644 /var/lib/icinga2/certs/*.crt
+```
+[root@icinga2-master1.localdomain /root]# chown -R icinga:icinga /var/lib/icinga2/certs
+[root@icinga2-master1.localdomain /root]# chmod 600 /var/lib/icinga2/certs/*.key
+[root@icinga2-master1.localdomain /root]# chmod 644 /var/lib/icinga2/certs/*.crt
+```
 
 The CA public and private key are stored in the `/var/lib/icinga2/ca` directory. Keep this path secure and include
 it in your backups.
 
-Example for creating multiple certificates at once:
+#### Create Multiple Certificates <a id="distributed-monitoring-advanced-hints-certificates-manual-multiple"></a>
 
-    [root@icinga2-master1.localdomain /var/lib/icinga2/certs]# for node in icinga2-master1.localdomain icinga2-master2.localdomain icinga2-satellite1.localdomain; do icinga2 pki new-cert --cn $node --csr $node.csr --key $node.key; done
-    information/base: Writing private key to 'icinga2-master1.localdomain.key'.
-    information/base: Writing certificate signing request to 'icinga2-master1.localdomain.csr'.
-    information/base: Writing private key to 'icinga2-master2.localdomain.key'.
-    information/base: Writing certificate signing request to 'icinga2-master2.localdomain.csr'.
-    information/base: Writing private key to 'icinga2-satellite1.localdomain.key'.
-    information/base: Writing certificate signing request to 'icinga2-satellite1.localdomain.csr'.
+Use your preferred method to automate the certificate generation process.
 
-    [root@icinga2-master1.localdomain /var/lib/icinga2/certs]# for node in icinga2-master1.localdomain icinga2-master2.localdomain icinga2-satellite1.localdomain; do sudo icinga2 pki sign-csr --csr $node.csr --cert $node.crt; done
-    information/pki: Writing certificate to file 'icinga2-master1.localdomain.crt'.
-    information/pki: Writing certificate to file 'icinga2-master2.localdomain.crt'.
-    information/pki: Writing certificate to file 'icinga2-satellite1.localdomain.crt'.
+```
+[root@icinga2-master1.localdomain /var/lib/icinga2/certs]# for node in icinga2-master1.localdomain icinga2-master2.localdomain icinga2-satellite1.localdomain; do icinga2 pki new-cert --cn $node --csr $node.csr --key $node.key; done
+information/base: Writing private key to 'icinga2-master1.localdomain.key'.
+information/base: Writing certificate signing request to 'icinga2-master1.localdomain.csr'.
+information/base: Writing private key to 'icinga2-master2.localdomain.key'.
+information/base: Writing certificate signing request to 'icinga2-master2.localdomain.csr'.
+information/base: Writing private key to 'icinga2-satellite1.localdomain.key'.
+information/base: Writing certificate signing request to 'icinga2-satellite1.localdomain.csr'.
 
+[root@icinga2-master1.localdomain /var/lib/icinga2/certs]# for node in icinga2-master1.localdomain icinga2-master2.localdomain icinga2-satellite1.localdomain; do sudo icinga2 pki sign-csr --csr $node.csr --cert $node.crt; done
+information/pki: Writing certificate to file 'icinga2-master1.localdomain.crt'.
+information/pki: Writing certificate to file 'icinga2-master2.localdomain.crt'.
+information/pki: Writing certificate to file 'icinga2-satellite1.localdomain.crt'.
+```
+
+Copy and move these certificates to the respective instances e.g. with SSH/SCP.
 
 ## Automation <a id="distributed-monitoring-automation"></a>
 
