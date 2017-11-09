@@ -54,8 +54,8 @@ namespace Icinga
 		{
 			foreach (ListViewItem lvi in lvwEndpoints.Items) {
 				if (lvi.SubItems.Count > 1) {
-					host = lvi.SubItems[1].Text;
-					port = lvi.SubItems[2].Text;
+					host = lvi.SubItems[1].Text.Trim();
+					port = lvi.SubItems[2].Text.Trim();
 					return true;
 				}
 			}
@@ -194,8 +194,8 @@ namespace Icinga
 				string master_host, master_port;
 				GetMasterHostPort(out master_host, out master_port);
 
-				args += " --master_host " + master_host.Trim()
-				    + "," + master_port.Trim();
+				args += " --master_host " + master_host
+				    + "," + master_port;
 
 				foreach (ListViewItem lvi in lvwEndpoints.Items) {
 					args += " --endpoint " + lvi.SubItems[0].Text.Trim();
