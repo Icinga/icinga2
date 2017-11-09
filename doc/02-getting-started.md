@@ -863,10 +863,10 @@ Alpine Linux:
 
 ### Installing Icinga Web 2 <a id="installing-icingaweb2"></a>
 
-Please consult the [installation documentation](https://github.com/Icinga/icingaweb2/blob/master/doc/02-Installation.md)
+Please consult the [installation documentation](https://www.icinga.com/docs/icingaweb2/latest/doc/02-Installation/)
 for further instructions on how to install Icinga Web 2.
 
-The Icinga 2 API can be defined as [command transport](https://github.com/Icinga/icingaweb2/blob/master/modules/monitoring/doc/commandtransports.md)
+The Icinga 2 API can be defined as [command transport](https://www.icinga.com/docs/icingaweb2/latest/modules/monitoring/doc/05-Command-Transports/)
 in Icinga Web 2 >= 2.4.
 
 ## Addons <a id="install-addons"></a>
