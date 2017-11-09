@@ -1,5 +1,28 @@
 # Icinga 2.x CHANGELOG
 
+## 2.7.2 (2017-11-09)
+
+### Notes
+
+* Fixed invalid attribute names in the systemd unit file
+* Fixed incorrect unique constraint for IDO DB
+* Moved spec file to the icinga-packaging Git repository
+* Documentation updates
+
+### Enhancement
+
+* [#5736](https://github.com/icinga/icinga2/issues/5736) (Packages): Remove spec file
+* [#5632](https://github.com/icinga/icinga2/issues/5632) (Documentation): Docs: Mention SELinux in Getting Started chapter
+
+### Bug
+
+* [#5653](https://github.com/icinga/icinga2/issues/5653) (Documentation): Docs: Fix default value for `snmp\_nocrypt` for Manubulon CheckCommand definitions
+* [#5652](https://github.com/icinga/icinga2/issues/5652) (Documentation): Docs: Fix missing default value for cluster-zone checks
+* [#5636](https://github.com/icinga/icinga2/issues/5636) (DB IDO): Fix unique constraint matching for UPDATE downtime/comment runtime tables in DB IDO
+* [#5623](https://github.com/icinga/icinga2/issues/5623) (DB IDO): Duplicate Key on MySQL after upgrading to v2.7.1
+* [#5612](https://github.com/icinga/icinga2/issues/5612) (Documentation, Packages): Improve documentation and systemd config on TaskMax
+* [#5603](https://github.com/icinga/icinga2/issues/5603) (DB IDO): Icinga 2.7.1 IDO Unique Key Constraint Violation with PostgreSQL
+
 ## 2.7.1 (2017-09-21)
 
 ### Notes
@@ -55,7 +78,7 @@
 * [#5469](https://github.com/icinga/icinga2/issues/5469) (InfluxDB): Failure to connect to InfluxDB increases CPU utilisation by 100%  for every failure
 * [#5466](https://github.com/icinga/icinga2/issues/5466) (DB IDO): DB IDO: Fix host's unreachable state in history tables
 * [#5460](https://github.com/icinga/icinga2/issues/5460) (InfluxDB): Icinga 2.7 InfluxdbWriter fails to write metrics to InfluxDB over HTTPS
-* [#5458](https://github.com/icinga/icinga2/issues/5458) (DB IDO): IDO donwtimehistory records orphaned from scheduleddowntime records following restart
+* [#5458](https://github.com/icinga/icinga2/issues/5458) (DB IDO, needs-feedback): IDO donwtimehistory records orphaned from scheduleddowntime records following restart
 * [#5428](https://github.com/icinga/icinga2/issues/5428) (Documentation): "Plugin Check Commands" section inside ITL docs needs adjustments
 * [#5405](https://github.com/icinga/icinga2/issues/5405) (DB IDO): IDO statehistory table does not show hosts going to "UNREACHABLE" state.
 * [#5392](https://github.com/icinga/icinga2/issues/5392) (Packages): Ensure the cache directory exists
@@ -150,7 +173,7 @@
 * [#1880](https://github.com/icinga/icinga2/issues/1880) (Documentation): add a section for 'monitoring the icinga2 node'
 * [#123](https://github.com/icinga/icinga2/issues/123) (ITL): ITL: Update ipmi CheckCommand attributes 
 * [#120](https://github.com/icinga/icinga2/issues/120) (ITL): Add new parameter for check\_http: -L: Wrap output in HTML link
-* [#117](https://github.com/icinga/icinga2/issues/117) (ITL): Support --only-critical for check\_apt
+* [#117](https://github.com/icinga/icinga2/issues/117) (ITL, needs-feedback): Support --only-critical for check\_apt
 * [#115](https://github.com/icinga/icinga2/issues/115) (ITL): Inverse Interface Switch for snmp-interface
 * [#114](https://github.com/icinga/icinga2/issues/114) (ITL): Adding -A to snmp interfaces check
 
@@ -188,7 +211,7 @@
 * [#5132](https://github.com/icinga/icinga2/issues/5132) (Graphite): GraphiteWriter can slow down Icinga's check result processing
 * [#5101](https://github.com/icinga/icinga2/issues/5101) (Packages, Windows): Fix incorrect metadata for the Chocolatey package
 * [#5075](https://github.com/icinga/icinga2/issues/5075) (ITL): fix mitigation for nwc\_health
-* [#5062](https://github.com/icinga/icinga2/issues/5062) (Compat): icinga2 checkresults error
+* [#5062](https://github.com/icinga/icinga2/issues/5062) (Compat, needs-feedback): icinga2 checkresults error
 * [#5043](https://github.com/icinga/icinga2/issues/5043) (API): API POST request with 'attrs' as array returns bad\_cast error
 * [#5040](https://github.com/icinga/icinga2/issues/5040) (Cluster): CRL loading fails due to incorrect return code check
 * [#5033](https://github.com/icinga/icinga2/issues/5033) (DB IDO): Flexible downtimes which are not triggered must not update DB IDO's actual\_end\_time in downtimehistory table
@@ -209,7 +232,7 @@
 * [#4778](https://github.com/icinga/icinga2/issues/4778): Fix for traditional glob\(3\) behaviour
 * [#4777](https://github.com/icinga/icinga2/issues/4777): NetBSD execvpe.c fix
 * [#4776](https://github.com/icinga/icinga2/issues/4776) (Installation): NetBSD install path fixes
-* [#4709](https://github.com/icinga/icinga2/issues/4709) (API): Posting config stage fails on FreeBSD
+* [#4709](https://github.com/icinga/icinga2/issues/4709) (API, needs-feedback): Posting config stage fails on FreeBSD
 * [#4696](https://github.com/icinga/icinga2/issues/4696) (Notifications): Notifications are sent when reloading Icinga 2 even though they're deactivated via modified attributes
 * [#4666](https://github.com/icinga/icinga2/issues/4666) (Graylog, Performance Data): GelfWriter with enable\_send\_perfdata breaks checks
 * [#4621](https://github.com/icinga/icinga2/issues/4621) (Configuration, Notifications, Packages): notifications always enabled after update
@@ -254,7 +277,7 @@
 * [#5237](https://github.com/icinga/icinga2/issues/5237) (Documentation): Docs: Add a note for Windows debuglog to the troubleshooting chapter
 * [#5229](https://github.com/icinga/icinga2/issues/5229) (Installation): CMake: require a GCC version according to INSTALL.md
 * [#5227](https://github.com/icinga/icinga2/issues/5227) (Documentation, ITL): feature/itl-vmware-esx-storage-path-standbyok
-* [#5226](https://github.com/icinga/icinga2/issues/5226) (Packages): RPM spec: don't enable features after an upgrade
+* [#5226](https://github.com/icinga/icinga2/issues/5226) (needs-feedback, Packages): RPM spec: don't enable features after an upgrade
 * [#5225](https://github.com/icinga/icinga2/issues/5225) (DB IDO): Don't call mysql\_error\(\) after a failure of mysql\_init\(\)
 * [#5218](https://github.com/icinga/icinga2/issues/5218) (Packages): icinga2.spec: Allow selecting g++ compiler on older SUSE release builds
 * [#5216](https://github.com/icinga/icinga2/issues/5216): Remove "... is is ..." in CONTRIBUTING.md
@@ -265,14 +288,14 @@
 * [#5184](https://github.com/icinga/icinga2/issues/5184) (Documentation): Doc/appendix: fix malformed markdown links
 * [#5181](https://github.com/icinga/icinga2/issues/5181) (Documentation): List SELinux packages required for building RPMs
 * [#5178](https://github.com/icinga/icinga2/issues/5178) (Documentation, Windows): Documentation vague on "update-windows" check plugin
-* [#5177](https://github.com/icinga/icinga2/issues/5177) (Packages): Issues Packing icinga 2.6.3 tar.gz to RPM
+* [#5177](https://github.com/icinga/icinga2/issues/5177) (needs-feedback, Packages): Issues Packing icinga 2.6.3 tar.gz to RPM
 * [#5175](https://github.com/icinga/icinga2/issues/5175) (Documentation): Add a note about flapping problems to the docs
 * [#5174](https://github.com/icinga/icinga2/issues/5174) (Documentation): Add missing object type to Apply Rules doc example
 * [#5173](https://github.com/icinga/icinga2/issues/5173) (Documentation): Object type missing from ping Service example in docs
 * [#5166](https://github.com/icinga/icinga2/issues/5166) (API, Documentation): Set zone attribute to no\_user\_modify for API POST requests
 * [#5165](https://github.com/icinga/icinga2/issues/5165) (Documentation): Syntax error In Dependencies chapter
 * [#5161](https://github.com/icinga/icinga2/issues/5161) (Documentation): ITL documentation - disk-windows usage note with % thresholds
-* [#5157](https://github.com/icinga/icinga2/issues/5157) (Documentation): "Three Levels with master, Satellites, and Clients" chapter is not clear about client config
+* [#5157](https://github.com/icinga/icinga2/issues/5157) (Documentation, needs-feedback): "Three Levels with master, Satellites, and Clients" chapter is not clear about client config
 * [#5156](https://github.com/icinga/icinga2/issues/5156) (Documentation): Add CONTRIBUTING.md
 * [#5155](https://github.com/icinga/icinga2/issues/5155) (Documentation): 3.5. Apply Rules topic in the docs needs work.
 * [#5153](https://github.com/icinga/icinga2/issues/5153) (Packages): Changed dependency of selinux subpackage
