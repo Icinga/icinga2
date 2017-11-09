@@ -17,10 +17,10 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef ELASTICWRITER_H
-#define ELASTICWRITER_H
+#ifndef ELASTICSEARCHWRITER_H
+#define ELASTICSEARCHWRITER_H
 
-#include "perfdata/elasticwriter.thpp"
+#include "perfdata/elasticsearchwriter.thpp"
 #include "icinga/service.hpp"
 #include "base/configobject.hpp"
 #include "base/workqueue.hpp"
@@ -29,13 +29,13 @@
 namespace icinga
 {
 
-class ElasticWriter : public ObjectImpl<ElasticWriter>
+class ElasticsearchWriter : public ObjectImpl<ElasticsearchWriter>
 {
 public:
-	DECLARE_OBJECT(ElasticWriter);
-	DECLARE_OBJECTNAME(ElasticWriter);
+	DECLARE_OBJECT(ElasticsearchWriter);
+	DECLARE_OBJECTNAME(ElasticsearchWriter);
 
-	ElasticWriter(void);
+	ElasticsearchWriter(void);
 
 	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
@@ -78,4 +78,4 @@ private:
 
 }
 
-#endif /* ELASTICWRITER_H */
+#endif /* ELASTICSEARCHWRITER_H */

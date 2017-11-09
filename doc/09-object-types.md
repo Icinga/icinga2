@@ -470,17 +470,17 @@ Runtime Attributes:
   triggered\_by             | Object name           | The name of the downtime this downtime was triggered by.
 
 
-## ElasticWriter <a id="objecttype-elasticwriter"></a>
+## ElasticsearchWriter <a id="objecttype-elasticsearchwriter"></a>
 
 Writes check result metrics and performance data to an Elasticsearch instance.
-This configuration object is available as [elastic feature](14-features.md#elastic-writer).
+This configuration object is available as [elasticsearch feature](14-features.md#elasticsearch-writer).
 
 Example:
 
 ```
 library "perfdata"
 
-object ElasticWriter "elastic" {
+object ElasticsearchWriter "elasticsearch" {
   host = "127.0.0.1"
   port = 9200
   index = "icinga2"
