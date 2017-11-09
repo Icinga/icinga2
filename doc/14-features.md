@@ -338,7 +338,7 @@ More integrations:
 * [Logstash output](https://github.com/Icinga/logstash-output-icinga) for the Icinga 2 API.
 * [Logstash Grok Pattern](https://github.com/Icinga/logstash-grok-pattern) for Icinga 2 logs.
 
-#### Elastic Writer <a id="elastic-writer"></a>
+#### Elasticsearch Writer <a id="elasticsearch-writer"></a>
 
 This feature forwards check results, state changes and notification events
 to an [Elasticsearch](https://www.elastic.co/products/elasticsearch) installation over its HTTP API.
@@ -352,13 +352,13 @@ The check results include parsed performance data metrics if enabled.
 Enable the feature and restart Icinga 2.
 
 ```
-# icinga2 feature enable elastic
+# icinga2 feature enable elasticsearch
 ```
 
 The default configuration expects an Elasticsearch instance running on `localhost` on port `9200
  and writes to an index called `icinga2`.
 
-More configuration details can be found [here](09-object-types.md#objecttype-elasticwriter).
+More configuration details can be found [here](09-object-types.md#objecttype-elasticsearchwriter).
 
 #### Current Elasticsearch Schema <a id="elastic-writer-schema"></a>
 

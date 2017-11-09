@@ -18,12 +18,12 @@
 mkclass_target(gelfwriter.ti gelfwriter.tcpp gelfwriter.thpp)
 mkclass_target(graphitewriter.ti graphitewriter.tcpp graphitewriter.thpp)
 mkclass_target(influxdbwriter.ti influxdbwriter.tcpp influxdbwriter.thpp)
-mkclass_target(elasticwriter.ti elasticwriter.tcpp elasticwriter.thpp)
+mkclass_target(elasticsearchwriter.ti elasticsearchwriter.tcpp elasticsearchwriter.thpp)
 mkclass_target(opentsdbwriter.ti opentsdbwriter.tcpp opentsdbwriter.thpp)
 mkclass_target(perfdatawriter.ti perfdatawriter.tcpp perfdatawriter.thpp)
 
 set(perfdata_SOURCES
-  gelfwriter.cpp gelfwriter.thpp graphitewriter.cpp graphitewriter.thpp influxdbwriter.cpp influxdbwriter.thpp elasticwriter.cpp elasticwriter.thpp opentsdbwriter.cpp opentsdbwriter.thpp perfdatawriter.cpp perfdatawriter.thpp
+  gelfwriter.cpp gelfwriter.thpp graphitewriter.cpp graphitewriter.thpp influxdbwriter.cpp influxdbwriter.thpp elasticsearchwriter.cpp elasticsearchwriter.thpp opentsdbwriter.cpp opentsdbwriter.thpp perfdatawriter.cpp perfdatawriter.thpp
 )
 
 if(ICINGA2_UNITY_BUILD)
@@ -58,7 +58,7 @@ install_if_not_exists(
 )
 
 install_if_not_exists(
-  ${PROJECT_SOURCE_DIR}/etc/icinga2/features-available/elastic.conf
+  ${PROJECT_SOURCE_DIR}/etc/icinga2/features-available/elasticsearch.conf
   ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/features-available
 )
 
