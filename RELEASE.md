@@ -3,7 +3,7 @@
 Specify the release version.
 
 ```
-VERSION=2.7.1
+VERSION=2.7.2
 ```
 
 ## Issues
@@ -21,16 +21,14 @@ Update the [.mailmap](.mailmap) and [AUTHORS](AUTHORS) files:
 
 ```
 git checkout master
-git log --use-mailmap | grep ^Author: | cut -f2- -d' ' | sort | uniq > AUTHORS
+git log --use-mailmap | grep '^Author:' | cut -f2- -d' ' | sort | uniq > AUTHORS
 ```
 
 ## Version
 
-Fetch the latest spec file from the [icinga-packaging](https://github.com/icinga/icinga-packaging)
-repository and verify that the latest version is set.
+Update the version in the spec file:
 
 ```
-wget -O icinga2.spec https://raw.githubusercontent.com/Icinga/icinga-packaging/rpm/snapshot/icinga2/icinga2.spec
 gsed -i "s/Version: .*/Version: $VERSION/g" icinga2.spec
 ```
 
@@ -78,6 +76,11 @@ MF:
 git tag -u D14A1F16 -m "Version $VERSION" v$VERSION
 ```
 
+NH:
+
+```
+git tag -u 630F89D9 -m "Version $VERSION" v$VERSION
+```
 Push the tag.
 
 ```

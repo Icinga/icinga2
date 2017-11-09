@@ -19,5 +19,5 @@
 
 # The spec file was moved to https://github.com/Icinga/icinga-packaging
 
-%define revision 2
-Version: 2.7.1
+%define revision 1
+Version: 2.7.2
