@@ -1931,7 +1931,7 @@ add a dependency which prevents notifications for all other failing services:
 
 In case you want to pin specific checks to their endpoints in a given zone you'll need to use
 the `command_endpoint` attribute. This is reasonable if you want to
-execute a local disk check in the `master` on a specific endpoint then.
+execute a local disk check in the `master` Zone on a specific endpoint then.
 
     [root@icinga2-master1.localdomain /]# mkdir -p /etc/icinga2/zones.d/master
     [root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.d/master/icinga2-master1.localdomain.conf
