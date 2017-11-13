@@ -43,7 +43,7 @@ public:
 
 	SizeType GetLength(void) const;
 	void InsertValue(SizeType tv, int num);
-	int GetValues(SizeType span) const;
+	int UpdateAndGetValues(SizeType tv, SizeType span);
 
 private:
 	std::vector<int> m_Slots;

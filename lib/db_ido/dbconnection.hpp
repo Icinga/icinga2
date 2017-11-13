@@ -73,7 +73,7 @@ public:
 	void SetStatusUpdate(const DbObject::Ptr& dbobj, bool hasupdate);
 	bool GetStatusUpdate(const DbObject::Ptr& dbobj) const;
 
-	int GetQueryCount(RingBuffer::SizeType span) const;
+	int GetQueryCount(RingBuffer::SizeType span);
 	virtual int GetPendingQueryCount(void) const = 0;
 
 	virtual void ValidateFailoverTimeout(double value, const ValidationUtils& utils) override;

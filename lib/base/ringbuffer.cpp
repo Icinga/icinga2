@@ -19,6 +19,7 @@
 
 #include "base/ringbuffer.hpp"
 #include "base/objectlock.hpp"
+#include "base/utility.hpp"
 
 using namespace icinga;
 
@@ -58,8 +59,10 @@ void RingBuffer::InsertValue(RingBuffer::SizeType tv, int num)
 	m_Slots[offsetTarget] += num;
 }
 
-int RingBuffer::GetValues(RingBuffer::SizeType span) const
+int RingBuffer::UpdateAndGetValues(RingBuffer::SizeType tv, RingBuffer::SizeType span)
 {
+	InsertValue(tv, 0);
+
 	ObjectLock olock(this);
 
 	if (span > m_Slots.size())

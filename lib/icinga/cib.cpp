@@ -45,12 +45,12 @@ void CIB::UpdateActiveServiceChecksStatistics(long tv, int num)
 
 int CIB::GetActiveHostChecksStatistics(long timespan)
 {
-	return m_ActiveHostChecksStatistics.GetValues(timespan);
+	return m_ActiveHostChecksStatistics.UpdateAndGetValues(Utility::GetTime(), timespan);
 }
 
 int CIB::GetActiveServiceChecksStatistics(long timespan)
 {
-	return m_ActiveServiceChecksStatistics.GetValues(timespan);
+	return m_ActiveServiceChecksStatistics.UpdateAndGetValues(Utility::GetTime(), timespan);
 }
 
 void CIB::UpdatePassiveHostChecksStatistics(long tv, int num)
@@ -65,12 +65,12 @@ void CIB::UpdatePassiveServiceChecksStatistics(long tv, int num)
 
 int CIB::GetPassiveHostChecksStatistics(long timespan)
 {
-	return m_PassiveHostChecksStatistics.GetValues(timespan);
+	return m_PassiveHostChecksStatistics.UpdateAndGetValues(Utility::GetTime(), timespan);
 }
 
 int CIB::GetPassiveServiceChecksStatistics(long timespan)
 {
-	return m_PassiveServiceChecksStatistics.GetValues(timespan);
+	return m_PassiveServiceChecksStatistics.UpdateAndGetValues(Utility::GetTime(), timespan);
 }
 
 CheckableCheckStatistics CIB::CalculateHostCheckStats(void)
