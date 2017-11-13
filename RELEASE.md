@@ -59,7 +59,12 @@ Commit these changes to the "master" branch:
 git commit -v -a -m "Release version $VERSION"
 ```
 
-For minor releases: Cherry-pick this commit into the "support" branch.
+For minor releases: Cherry-pick this commit into the "support" branch:
+
+```
+git checkout support/2.7
+git cherry-pick master
+```
 
 Create a signed tag (tags/v<VERSION>) on the "master" branch (for major
 releases) or the "support" branch (for minor releases).
@@ -81,7 +86,8 @@ NH:
 ```
 git tag -u 630F89D9 -m "Version $VERSION" v$VERSION
 ```
-Push the tag.
+
+Push the tag:
 
 ```
 git push --tags
@@ -159,23 +165,7 @@ Upload the package to [chocolatey](https://chocolatey.org/packages/upload).
 
 ## Online Documentation
 
-Edit `config.yml` in the [icinga-docs-tools](https://github.com/Icinga/icinga-docs-tools) repository:
-
-```
-git clone git@github.com:Icinga/icinga-docs-tools.git
-cd icinga-docs-tools/
-vim config.yml
-
-git commit -av -m "Update to Icinga 2 v$VERSION"
-git push
-```
-
-SSH into the web VM and build the docs:
-
-```
-cd /var/www/docs/icinga-docs/latest/
-/usr/bin/bundle exec ./build-docs.rb
-```
+Ask @bobapple to update the documentation at docs.icinga.com.
 
 ## Announcement
 
