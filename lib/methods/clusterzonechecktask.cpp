@@ -91,6 +91,13 @@ void ClusterZoneCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const Che
 	bool connected = false;
 	double zoneLag = 0;
 
+	double lastMessageSent = 0;
+	double lastMessageReceived = 0;
+	double messagesSentPerSecond = 0;
+	double messagesReceivedPerSecond = 0;
+	double bytesSentPerSecond = 0;
+	double bytesReceivedPerSecond = 0;
+
 	for (const Endpoint::Ptr& endpoint : zone->GetEndpoints()) {
 		if (endpoint->GetConnected())
 			connected = true;
@@ -99,6 +106,17 @@ void ClusterZoneCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const Che
 
 		if (eplag > 0 && eplag > zoneLag)
 			zoneLag = eplag;
+
+		if (endpoint->GetLastMessageSent() > lastMessageSent)
+			lastMessageSent = endpoint->GetLastMessageSent();
+
+		if (endpoint->GetLastMessageReceived() > lastMessageReceived)
+			lastMessageReceived = endpoint->GetLastMessageReceived();
+
+		messagesSentPerSecond += endpoint->GetMessagesSentPerSecond();
+		messagesReceivedPerSecond += endpoint->GetMessagesReceivedPerSecond();
+		bytesSentPerSecond += endpoint->GetBytesSentPerSecond();
+		bytesReceivedPerSecond += endpoint->GetBytesReceivedPerSecond();
 	}
 
 	if (!connected) {
@@ -122,6 +140,12 @@ void ClusterZoneCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const Che
 
 	Array::Ptr perfdata = new Array();
 	perfdata->Add(new PerfdataValue("slave_lag", zoneLag, false, "s", lagWarning, lagCritical));
+	perfdata->Add(new PerfdataValue("last_messages_sent", lastMessageSent));
+	perfdata->Add(new PerfdataValue("last_messages_received", lastMessageReceived));
+	perfdata->Add(new PerfdataValue("sum_messages_sent_per_second", messagesSentPerSecond));
+	perfdata->Add(new PerfdataValue("sum_messages_received_per_second", messagesReceivedPerSecond));
+	perfdata->Add(new PerfdataValue("sum_bytes_sent_per_second", bytesSentPerSecond));
+	perfdata->Add(new PerfdataValue("sum_bytes_received_per_second", bytesReceivedPerSecond));
 	cr->SetPerformanceData(perfdata);
 
 	checkable->ProcessCheckResult(cr);

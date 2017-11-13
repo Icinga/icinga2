@@ -22,6 +22,7 @@
 
 #include "remote/i2-remote.hpp"
 #include "remote/endpoint.thpp"
+#include "base/ringbuffer.hpp"
 #include <set>
 
 namespace icinga
@@ -41,6 +42,8 @@ public:
 	DECLARE_OBJECT(Endpoint);
 	DECLARE_OBJECTNAME(Endpoint);
 
+	Endpoint(void);
+
 	static boost::signals2::signal<void(const Endpoint::Ptr&, const intrusive_ptr<JsonRpcConnection>&)> OnConnected;
 	static boost::signals2::signal<void(const Endpoint::Ptr&, const intrusive_ptr<JsonRpcConnection>&)> OnDisconnected;
 
@@ -56,6 +59,15 @@ public:
 
 	void SetCachedZone(const intrusive_ptr<Zone>& zone);
 
+	void AddMessageSent(int bytes);
+	void AddMessageReceived(int bytes);
+
+	double GetMessagesSentPerSecond(void) const override;
+	double GetMessagesReceivedPerSecond(void) const override;
+
+	double GetBytesSentPerSecond(void) const override;
+	double GetBytesReceivedPerSecond(void) const override;
+
 protected:
 	virtual void OnAllConfigLoaded(void) override;
 
@@ -63,6 +75,11 @@ private:
 	mutable boost::mutex m_ClientsLock;
 	std::set<intrusive_ptr<JsonRpcConnection> > m_Clients;
 	intrusive_ptr<Zone> m_Zone;
+
+	mutable RingBuffer m_MessagesSent;
+	mutable RingBuffer m_MessagesReceived;
+	mutable RingBuffer m_BytesSent;
+	mutable RingBuffer m_BytesReceived;
 };
 
 }

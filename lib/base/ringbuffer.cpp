@@ -68,9 +68,9 @@ void RingBuffer::InsertValue(RingBuffer::SizeType tv, int num)
 
 int RingBuffer::UpdateAndGetValues(RingBuffer::SizeType tv, RingBuffer::SizeType span)
 {
-	InsertValue(tv, 0);
-
 	ObjectLock olock(this);
+
+	InsertValue(tv, 0);
 
 	if (span > m_Slots.size())
 		span = m_Slots.size();

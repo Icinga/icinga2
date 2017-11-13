@@ -111,7 +111,8 @@ void JsonRpcConnection::SendMessage(const Dictionary::Ptr& message)
 		ObjectLock olock(m_Stream);
 		if (m_Stream->IsEof())
 			return;
-		JsonRpc::SendMessage(m_Stream, message);
+		size_t bytesSent = JsonRpc::SendMessage(m_Stream, message);
+		m_Endpoint->AddMessageSent(bytesSent);
 	} catch (const std::exception& ex) {
 		std::ostringstream info;
 		info << "Error while sending JSON-RPC message for identity '" << m_Identity << "'";
@@ -182,6 +183,8 @@ void JsonRpcConnection::MessageHandler(const String& jsonString)
 			origin->FromZone = m_Endpoint->GetZone();
 		else
 			origin->FromZone = Zone::GetByName(message->Get("originZone"));
+
+		m_Endpoint->AddMessageReceived(jsonString.GetLength());
 	}
 
 	Value vmethod;
