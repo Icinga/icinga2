@@ -369,7 +369,7 @@ The feature 'checker' is already enabled.
 Fetch all check result events matching the `event.service` name `random`:
 
 ```
-$ curl -k -s -u root:icinga -X POST 'https://localhost:5665/v1/events?queue=debugchecks&types=CheckResult&filter=match%28%22random*%22,event.service%29'
+$ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/events?queue=debugchecks&types=CheckResult&filter=match%28%22random*%22,event.service%29'
 ```
 
 
@@ -672,7 +672,7 @@ The feature 'notification' is already enabled.
 You can use the Icinga 2 API [event streams](12-icinga2-api.md#icinga2-api-event-streams) to receive live notification streams:
 
 ```
-$ curl -k -s -u root:icinga -X POST 'https://localhost:5665/v1/events?queue=debugnotifications&types=Notification'
+$ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/events?queue=debugnotifications&types=Notification'
 ```
 
 ## Feature Troubleshooting <a id="troubleshooting-features"></a>
@@ -934,7 +934,7 @@ the following (e.g. by invoking a forced check from the web interface):
 Fetch all check result events matching the `event.service` name `remote-client`:
 
 ```
-$ curl -k -s -u root:icinga -X POST 'https://localhost:5665/v1/events?queue=debugcommandendpoint&types=CheckResult&filter=match%28%22remote-client*%22,event.service%29'
+$ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/events?queue=debugcommandendpoint&types=CheckResult&filter=match%28%22remote-client*%22,event.service%29'
 ```
 
 
