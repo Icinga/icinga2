@@ -20,11 +20,12 @@
 #include "base/ringbuffer.hpp"
 #include "base/objectlock.hpp"
 #include "base/utility.hpp"
+#include <algorithm>
 
 using namespace icinga;
 
 RingBuffer::RingBuffer(RingBuffer::SizeType slots)
-	: Object(), m_Slots(slots, 0), m_TimeValue(0)
+	: Object(), m_Slots(slots, 0), m_TimeValue(0), m_InsertedValues(0)
 { }
 
 RingBuffer::SizeType RingBuffer::GetLength(void) const
@@ -40,6 +41,9 @@ void RingBuffer::InsertValue(RingBuffer::SizeType tv, int num)
 
 	RingBuffer::SizeType offsetTarget = tv % m_Slots.size();
 
+	if (m_TimeValue == 0)
+		m_InsertedValues = 1;
+
 	if (tv > m_TimeValue) {
 		RingBuffer::SizeType offset = m_TimeValue % m_Slots.size();
 
@@ -51,6 +55,9 @@ void RingBuffer::InsertValue(RingBuffer::SizeType tv, int num)
 				offset = 0;
 
 			m_Slots[offset] = 0;
+
+			if (m_TimeValue != 0 && m_InsertedValues < m_Slots.size())
+				m_InsertedValues++;
 		}
 
 		m_TimeValue = tv;
@@ -68,7 +75,7 @@ int RingBuffer::UpdateAndGetValues(RingBuffer::SizeType tv, RingBuffer::SizeType
 	if (span > m_Slots.size())
 		span = m_Slots.size();
 
-	int off = m_TimeValue % m_Slots.size();;
+	int off = m_TimeValue % m_Slots.size();
 	int sum = 0;
 	while (span > 0) {
 		sum += m_Slots[off];
@@ -81,4 +88,11 @@ int RingBuffer::UpdateAndGetValues(RingBuffer::SizeType tv, RingBuffer::SizeType
 	}
 
 	return sum;
+}
+
+double RingBuffer::CalculateRate(RingBuffer::SizeType tv, RingBuffer::SizeType span)
+{
+	ObjectLock olock(this);
+	int sum = UpdateAndGetValues(tv, span);
+	return sum / static_cast<double>(std::min(span, m_InsertedValues));
 }
