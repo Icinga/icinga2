@@ -66,7 +66,8 @@ void NodeSetupCommand::InitParameters(boost::program_options::options_descriptio
 		("cn", po::value<std::string>(), "The certificate's common name")
 		("accept-config", "Accept config from master")
 		("accept-commands", "Accept commands from master")
-		("master", "Use setup for a master instance");
+		("master", "Use setup for a master instance")
+		("global_zones", po::value<std::vector<String> >(), "The names of the additional global zones.");
 
 	hiddenDesc.add_options()
 		("master_zone", po::value<std::string>(), "The name of the master zone");
@@ -159,7 +160,26 @@ int NodeSetupCommand::SetupMaster(const boost::program_options::variables_map& v
 	/* write zones.conf and update with zone + endpoint information */
 	Log(LogInformation, "cli", "Generating zone and object configuration.");
 
-	NodeUtility::GenerateNodeMasterIcingaConfig({ "global-templates", "director-global" });
+	std::vector<String> globalZones;
+	std::vector<String> setupGlobalZones;
+
+	if (vm.count("global_zones"))
+		setupGlobalZones = vm["global_zones"].as<std::vector<String> >();
+
+	globalZones.push_back("global-templates");
+	globalZones.push_back("director-global");
+
+	for (int i = 0; i < setupGlobalZones.size(); i++) {
+		if (std::find(globalZones.begin(), globalZones.end(), setupGlobalZones[i]) != globalZones.end()) {
+			Log(LogCritical, "cli")
+				<< "The global zone '" << setupGlobalZones[i] << "' is already specified.";
+			return 1;
+		}
+	}
+
+	globalZones.insert(globalZones.end(), setupGlobalZones.begin(), setupGlobalZones.end());
+
+	NodeUtility::GenerateNodeMasterIcingaConfig(globalZones);
 
 	/* update the ApiListener config - SetupMaster() will always enable it */
 	Log(LogInformation, "cli", "Updating the APIListener feature.");
@@ -418,7 +438,26 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 
 	Log(LogInformation, "cli", "Generating zone and object configuration.");
 
-	NodeUtility::GenerateNodeIcingaConfig(vm["endpoint"].as<std::vector<std::string> >(), { "global-templates", "director-global" });
+	std::vector<String> globalZones;
+	std::vector<String> setupGlobalZones;
+
+	if (vm.count("global_zones"))
+		setupGlobalZones = vm["global_zones"].as<std::vector<String> >();
+
+	globalZones.push_back("global-templates");
+	globalZones.push_back("director-global");
+
+	for (int i = 0; i < setupGlobalZones.size(); i++) {
+		if (std::find(globalZones.begin(), globalZones.end(), setupGlobalZones[i]) != globalZones.end()) {
+			Log(LogCritical, "cli")
+				<< "The global zone '" << setupGlobalZones[i] << "' is already specified.";
+			return 1;
+		}
+	}
+
+	globalZones.insert(globalZones.end(), setupGlobalZones.begin(), setupGlobalZones.end());
+
+	NodeUtility::GenerateNodeIcingaConfig(vm["endpoint"].as<std::vector<std::string> >(), globalZones);
 
 	/* update constants.conf with NodeName = CN */
 	if (cn != Utility::GetFQDN()) {

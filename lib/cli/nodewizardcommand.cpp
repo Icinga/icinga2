@@ -499,7 +499,51 @@ wizard_ticket:
 	/* apilistener config */
 	Log(LogInformation, "cli", "Generating local zones.conf.");
 
-	NodeUtility::GenerateNodeIcingaConfig(endpoints, { "global-templates", "director-global" });
+	std::vector<String> globalZones;
+
+	globalZones.push_back("global-templates");
+	globalZones.push_back("director-global");
+
+	std::cout << "\nDo you want to specify additional global zones? [y/N]: ";
+
+	std::getline(std::cin, answer);
+	boost::algorithm::to_lower(answer);
+	choice = answer;
+
+wizard_global_zone_loop_start:
+	if (choice.Contains("y")) {
+		std::cout << "\nPlease specify the name of the global Zone: ";
+
+		std::getline(std::cin, answer);
+
+		if (answer.empty()) {
+			std::cout << "\nName of the global Zone is required! Please retry.";
+			goto wizard_global_zone_loop_start;
+		}
+
+		String globalZoneName = answer;
+		globalZoneName = globalZoneName.Trim();
+
+		if (std::find(globalZones.begin(), globalZones.end(), globalZoneName) != globalZones.end()) {
+			std::cout << "The global zone '" << globalZoneName << "' is already specified."
+				<< " Please retry.";
+			goto wizard_global_zone_loop_start;
+		}
+
+		globalZones.push_back(globalZoneName);
+
+		std::cout << "\nDo you want to specify another global zone? [y/N]: ";
+
+		std::getline(std::cin, answer);
+		boost::algorithm::to_lower(answer);
+		choice = answer;
+
+		if (choice.Contains("y"))
+			goto wizard_global_zone_loop_start;
+	} else
+		Log(LogInformation, "cli", "No additional global Zones have been specified");
+
+	NodeUtility::GenerateNodeIcingaConfig(endpoints, globalZones);
 
 	if (cn != Utility::GetFQDN()) {
 		Log(LogWarning, "cli")
@@ -595,7 +639,51 @@ int NodeWizardCommand::MasterSetup(void) const
 	else
 		std::cout << "'api' feature already enabled.\n";
 
-	NodeUtility::GenerateNodeMasterIcingaConfig({ "global-templates", "director-global" });
+	std::vector<String> globalZones;
+
+	globalZones.push_back("global-templates");
+	globalZones.push_back("director-global");
+
+	std::cout << "\nDo you want to specify additional global zones? [y/N]: ";
+
+	std::getline(std::cin, answer);
+	boost::algorithm::to_lower(answer);
+	choice = answer;
+
+wizard_global_zone_loop_start:
+	if (choice.Contains("y")) {
+		std::cout << "\nPlease specify the name of the global Zone: ";
+
+		std::getline(std::cin, answer);
+
+		if (answer.empty()) {
+			std::cout << "\nName of the global Zone is required! Please retry.";
+			goto wizard_global_zone_loop_start;
+		}
+
+		String globalZoneName = answer;
+		globalZoneName = globalZoneName.Trim();
+
+		if (std::find(globalZones.begin(), globalZones.end(), globalZoneName) != globalZones.end()) {
+			std::cout << "The global zone '" << globalZoneName << "' is already specified."
+				<< " Please retry.";
+			goto wizard_global_zone_loop_start;
+		}
+
+		globalZones.push_back(globalZoneName);
+
+		std::cout << "\nDo you want to specify another global zone? [y/N]: ";
+
+		std::getline(std::cin, answer);
+		boost::algorithm::to_lower(answer);
+		choice = answer;
+
+		if (choice.Contains("y"))
+			goto wizard_global_zone_loop_start;
+	} else
+		Log(LogInformation, "cli", "No additional global Zones have been specified");
+
+	NodeUtility::GenerateNodeMasterIcingaConfig(globalZones);
 
 	/* apilistener config */
 	std::cout << ConsoleColorTag(Console_Bold)
