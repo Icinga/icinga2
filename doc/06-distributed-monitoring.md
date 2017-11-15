@@ -258,7 +258,7 @@ that all nodes trust each other in a distributed monitoring environment.
 This CA is generated during the [master setup](06-distributed-monitoring.md#distributed-monitoring-setup-master)
 and should be the same on all master instances.
 
-You can avoid signing and deploying certificates [manually](#06-distributed-monitoring.md#distributed-monitoring-advanced-hints-certificates)
+You can avoid signing and deploying certificates [manually](06-distributed-monitoring.md#distributed-monitoring-advanced-hints-certificates-manual)
 by using built-in methods for auto-signing certificate signing requests (CSR):
 
 * [CSR Auto-Signing](06-distributed-monitoring.md#distributed-monitoring-setup-csr-auto-signing) which uses a client ticket generated on the master as trust identifier.
@@ -1575,7 +1575,7 @@ Specify the master node `icinga2-master2.localdomain` with the CA private key an
     Port [5665]:
 
 In case you cannot connect to the master node from your clients, you'll manually need
-to [generate the SSL certificates](06-distributed-monitoring.md#distributed-monitoring-advanced-hints-certificates)
+to [generate the SSL certificates](06-distributed-monitoring.md#distributed-monitoring-advanced-hints-certificates-manual)
 and modify the configuration accordingly.
 
 We'll discuss the details of the required configuration below.

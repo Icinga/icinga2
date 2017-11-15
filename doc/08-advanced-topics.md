@@ -433,7 +433,7 @@ host or service is considered flapping until it drops below the low flapping thr
 > Note: There is no distinctions between hard and soft states with flapping. All state changes count and notifications
 > will be sent out regardless of the objects state.
 
-### How it works <a id="how-it-works"></a>
+### How it works <a id="check-flapping-how-it-works"></a>
 
 Icinga 2 saves the last 20 state changes for every host and service. See the graphic below:
 
@@ -450,7 +450,7 @@ considered flapping.
 If the next seven check results then would not be state changes, the flapping percentage would fall below the lower threshold
 of 25% and therefore the host or service would recover from flapping.
 
-# Volatile Services <a id="volatile-services"></a>
+## Volatile Services <a id="volatile-services"></a>
 
 By default all services remain in a non-volatile state. When a problem
 occurs, the `SOFT` state applies and once `max_check_attempts` attribute
