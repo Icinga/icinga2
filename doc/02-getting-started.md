@@ -347,6 +347,24 @@ Examples:
 If you're stuck with configuration errors, you can manually invoke the
 [configuration validation](11-cli-commands.md#config-validation).
 
+Usually Icinga 2 is a mission critical part of infrastructure and should be
+online at all times. In case of a recoverable crash (e.g. OOM) you may want to
+restart Icinga 2 automatically. With Systemd it is as easy as overriding some
+settings of the Icinga 2 Systemd service by creating
+`/etc/systemd/system/icinga2.service.d/override.conf` with the following
+content:
+
+    [Service]
+    Restart=always
+    RestartSec=1
+    StartLimitInterval=10
+    StartLimitBurst=3
+
+Run `systemctl daemon-reload && systemctl restart icinga2` to apply the changes.
+Now Systemd will always try to restart Icinga 2 (except if you run
+`systemctl stop icinga2`). After three failures in ten seconds it will stop
+trying because you probably have a problem that requires manual intervention.
+
 > **Tip**
 >
 > If you are running into fork errors with Systemd enabled distributions,
