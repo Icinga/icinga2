@@ -1,5 +1,146 @@
 # Icinga 2.x CHANGELOG
 
+## 2.8.0 (2017-11-16)
+
+### Notes
+
+* Certificate path changed to /var/lib/icinga2/certs - check the upgrading docs!
+* DB IDO 2.8.0 schema upgrade
+* Cluster/Clients: Forward certificate signing requests over multiple levels
+* Cluster/Clients: Support on-demand signing next to ticket based certificate request signing
+* New flapping detection algorithm
+* Add ElasticsearchWriter feature with HTTP proxy support
+* Add CORS support for the REST API
+* Deprecate `flapping_threshold` config option
+* Remove client configuration mode "bottom up"
+* Remove classicui meta configuration package
+* Remove deprecated `enable_legacy_mode` in Graphite feature
+* Spec file was moved to https://github.com/icinga/icinga-packaging
+* ITL CheckCommand definition updates
+* Documentation updates
+
+### Enhancement
+
+* [#5754](https://github.com/icinga/icinga2/issues/5754) (Documentation): Improve documentation of cipher\_list
+* [#5738](https://github.com/icinga/icinga2/issues/5738) (Documentation): Update release docs
+* [#5719](https://github.com/icinga/icinga2/issues/5719) (Cluster, Documentation, Installation, Windows): Update Windows Wizard for 2.8 and new signing methods
+* [#5695](https://github.com/icinga/icinga2/issues/5695) (Documentation): Enhance Security chapter for Distributed Monitoring documentation
+* [#5690](https://github.com/icinga/icinga2/issues/5690) (Documentation): Improve documentation of cipher\_list
+* [#5682](https://github.com/icinga/icinga2/issues/5682) (Cluster, Configuration, Documentation): Implement support for migrating certificates to /var/lib/icinga2/certs
+* [#5681](https://github.com/icinga/icinga2/issues/5681) (CLI, Cluster, Windows): Update Windows wizard from enhanced CSR signing \(optional ticket\)
+* [#5680](https://github.com/icinga/icinga2/issues/5680) (Documentation): Review documentation for enhanced CSR signing and update migration chapter for 2.8
+* [#5679](https://github.com/icinga/icinga2/issues/5679) (CLI, Cluster): Migration path for improved certificate signing in the cluster
+* [#5678](https://github.com/icinga/icinga2/issues/5678) (ITL): Added missing "-q" parameter to check\_ntp\_peer
+* [#5668](https://github.com/icinga/icinga2/issues/5668) (Documentation): Enhance Monitoring Basics in the documentation
+* [#5667](https://github.com/icinga/icinga2/issues/5667) (Documentation): Explain which values can be used for set\_if in command arguments
+* [#5666](https://github.com/icinga/icinga2/issues/5666) (Documentation): Explain the notification with users defined on host/service in a dedicated docs chapter
+* [#5665](https://github.com/icinga/icinga2/issues/5665) (Documentation): Better explanations and iteration details for "apply for" documentation
+* [#5664](https://github.com/icinga/icinga2/issues/5664) (Documentation): Add usage examples to the "apply" chapter based on custom attribute values
+* [#5663](https://github.com/icinga/icinga2/issues/5663) (Documentation): Explain custom attribute value types and nested dictionaries
+* [#5662](https://github.com/icinga/icinga2/issues/5662) (Documentation): Explain how to use a different host check command
+* [#5655](https://github.com/icinga/icinga2/issues/5655) (Documentation): Enhance documentation with more details on value types for object attributes
+* [#5647](https://github.com/icinga/icinga2/issues/5647) (ITL): Allow to disable thresholds for ipmi CheckCommand
+* [#5640](https://github.com/icinga/icinga2/issues/5640) (ITL): ITL: Support weathermap data in snmp\_interface CheckCommand
+* [#5638](https://github.com/icinga/icinga2/issues/5638) (ITL): Add support for check\_address as default in database CheckCommand objects
+* [#5606](https://github.com/icinga/icinga2/issues/5606) (Cluster): Remove bottom-up client mode
+* [#5602](https://github.com/icinga/icinga2/issues/5602) (Windows): Add windows process elevation and log message if user does not have privileges to read/write files
+* [#5587](https://github.com/icinga/icinga2/issues/5587) (Log): SyslogLogger: Implement option to set syslog facility
+* [#5580](https://github.com/icinga/icinga2/issues/5580) (Configuration, Documentation): Implement new script functions: path\_exists, glob and glob\_recursive
+* [#5571](https://github.com/icinga/icinga2/issues/5571) (CLI, Cluster, Documentation): Implement support for forwarding certificate signing requests in the cluster
+* [#5570](https://github.com/icinga/icinga2/issues/5570) (ITL): check\_esxi\_hardware.py with new --no-lcd parameter
+* [#5569](https://github.com/icinga/icinga2/issues/5569) (Performance Data): ElasticWriter: Add basic auth and TLS support for Elasticsearch behind an HTTP proxy
+* [#5568](https://github.com/icinga/icinga2/issues/5568) (Documentation): Add documentation for multi-line plugin output for API actions
+* [#5559](https://github.com/icinga/icinga2/issues/5559) (ITL): Exclude configfs from disk checks
+* [#5554](https://github.com/icinga/icinga2/issues/5554) (API, Cluster): Add subjectAltName extension for all non-CA certificates
+* [#5547](https://github.com/icinga/icinga2/issues/5547) (API): Add optional reload parameter to config stage upload
+* [#5545](https://github.com/icinga/icinga2/issues/5545) (Installation, Windows): Add Edit button to Windows Setup Wizard
+* [#5538](https://github.com/icinga/icinga2/issues/5538) (Performance Data): Add ElasticsearchWriter feature
+* [#5534](https://github.com/icinga/icinga2/issues/5534) (Configuration): Implement get\_services\(host {name,object}\) and add host object support for get\_service\(\)
+* [#5527](https://github.com/icinga/icinga2/issues/5527) (API): API: Add execution\_{start,end} attribute to 'process-check-result' action
+* [#5488](https://github.com/icinga/icinga2/issues/5488): Implement additional functions for printing values with LLDB/GDB
+* [#5450](https://github.com/icinga/icinga2/issues/5450) (CLI, Cluster): Enhance CSR Autosigning \(CA proxy, etc.\)
+* [#5443](https://github.com/icinga/icinga2/issues/5443) (API): Add CORS support and set response header 'Access-Control-Allow-Origin'
+* [#5435](https://github.com/icinga/icinga2/issues/5435) (Plugins, Windows): Add -d option to check\_service
+* [#5427](https://github.com/icinga/icinga2/issues/5427) (ITL): Update negate CheckCommand definition
+* [#5401](https://github.com/icinga/icinga2/issues/5401) (ITL): itl: Add manubulon/check\_snmp\_env.pl as CheckCommand snmp-env
+* [#5394](https://github.com/icinga/icinga2/issues/5394) (ITL): itl: add additional mssql\_health arguments
+* [#5387](https://github.com/icinga/icinga2/issues/5387) (ITL): Add missing options to snmp CheckCommand definition
+* [#5186](https://github.com/icinga/icinga2/issues/5186) (Documentation): Document boolean values understood by set\_if
+* [#5060](https://github.com/icinga/icinga2/issues/5060) (Documentation): Missing documentation for macro\(\)
+* [#5002](https://github.com/icinga/icinga2/issues/5002) (API, wishlist): API process-check-result allow setting timestamp
+* [#4912](https://github.com/icinga/icinga2/issues/4912) (Configuration): new function get\_services\(host\_name\)
+* [#4799](https://github.com/icinga/icinga2/issues/4799) (Cluster): Remove cluster/client mode "bottom up" w/ repository.d and node update-config
+* [#4769](https://github.com/icinga/icinga2/issues/4769) (API): Validate and activate config package stages without triggering a reload
+* [#4326](https://github.com/icinga/icinga2/issues/4326) (API): API should provide CORS Header
+* [#3891](https://github.com/icinga/icinga2/issues/3891) (Plugins): Add option to specify ServiceDescription instead of ServiceName with check\_service.exe
+
+### Bug
+
+* [#5755](https://github.com/icinga/icinga2/issues/5755) (Documentation): Fix missing Accept header in troubleshooting docs
+* [#5748](https://github.com/icinga/icinga2/issues/5748) (Documentation): Fix missing word in pin checks in a zone doc chapter
+* [#5728](https://github.com/icinga/icinga2/issues/5728) (Plugins, Windows): Fix check\_service not working with names
+* [#5720](https://github.com/icinga/icinga2/issues/5720) (Check Execution): Flapping tests and bugs
+* [#5710](https://github.com/icinga/icinga2/issues/5710) (CLI, Configuration): Include default global zones during node wizard/setup
+* [#5707](https://github.com/icinga/icinga2/issues/5707) (CLI): node wizard/setup override zones.conf but do not include default global zones \(director-global, global-templates\)
+* [#5696](https://github.com/icinga/icinga2/issues/5696): Fix fork error handling
+* [#5691](https://github.com/icinga/icinga2/issues/5691) (Documentation): Fixed doc formatting
+* [#5677](https://github.com/icinga/icinga2/issues/5677) (Documentation): Fix typo in threshold syntax documentation
+* [#5641](https://github.com/icinga/icinga2/issues/5641): Fix compiler warnings on macOS 10.13
+* [#5635](https://github.com/icinga/icinga2/issues/5635) (Configuration): Fix match\(\), regex\(\), cidr\_match\(\) behaviour with MatchAll and empty arrays
+* [#5634](https://github.com/icinga/icinga2/issues/5634) (Configuration): match\(\) for arrays returns boolean true if array is empty
+* [#5620](https://github.com/icinga/icinga2/issues/5620) (API): Ensure that the REST API config package/stage creation is atomic
+* [#5617](https://github.com/icinga/icinga2/issues/5617): Crash with premature EOF on resource limited OS
+* [#5614](https://github.com/icinga/icinga2/issues/5614): Fixed missing include statement in unit tests
+* [#5601](https://github.com/icinga/icinga2/issues/5601) (Installation, Packages): Ensure that the cache directory always is set and add a note to upgrading docs
+* [#5584](https://github.com/icinga/icinga2/issues/5584) (Windows): Build error on Windows
+* [#5581](https://github.com/icinga/icinga2/issues/5581) (API, Cluster, Crash): Fix possible race condition in ApiListener locking
+* [#5578](https://github.com/icinga/icinga2/issues/5578) (ITL): ITL: Re-Add ssl\_sni attribute for check\_tcp
+* [#5577](https://github.com/icinga/icinga2/issues/5577) (ITL): ssl CheckCommand does not support SNI
+* [#5558](https://github.com/icinga/icinga2/issues/5558) (API): Don't sent scheme and hostname in request
+* [#5515](https://github.com/icinga/icinga2/issues/5515) (Windows): Config validation fails on Windows with unprivileged account
+* [#5500](https://github.com/icinga/icinga2/issues/5500) (Crash): Process: Fix JSON parsing error on process helper crash
+* [#5497](https://github.com/icinga/icinga2/issues/5497) (API): API: Fix requested attrs/joins/meta type errors in object query response
+* [#5485](https://github.com/icinga/icinga2/issues/5485) (DB IDO): Ensure that expired/removed downtimes/comments are correctly updated in DB IDO
+* [#5377](https://github.com/icinga/icinga2/issues/5377) (API, Log): Sending wrong value for key causes ugly stacktrace
+* [#5231](https://github.com/icinga/icinga2/issues/5231) (Check Execution): Report failure to kill check command after exceeding timeout
+* [#4982](https://github.com/icinga/icinga2/issues/4982) (Notifications, Tests): Verify and fix flapping detection
+* [#4981](https://github.com/icinga/icinga2/issues/4981) (Check Execution): Failure to kill check command after exceeding timeout is not reported
+* [#4015](https://github.com/icinga/icinga2/issues/4015) (Documentation): Add documentation for host state calculation from plugin exit codes
+
+### Support
+
+* [#5765](https://github.com/icinga/icinga2/issues/5765) (Configuration): Fix default configuration example for ElasticsearchWriter
+* [#5761](https://github.com/icinga/icinga2/issues/5761) (Documentation): Fix wrong anchors in the documentation
+* [#5752](https://github.com/icinga/icinga2/issues/5752) (Documentation): Add Noah Hilverling to .mailmap
+* [#5741](https://github.com/icinga/icinga2/issues/5741) (Documentation): Fix manual certificate creation chapter in the docs
+* [#5739](https://github.com/icinga/icinga2/issues/5739) (Performance Data): Rename ElasticWriter to ElasticsearchWriter
+* [#5734](https://github.com/icinga/icinga2/issues/5734) (Documentation): Fix broken links inside the documentation
+* [#5732](https://github.com/icinga/icinga2/issues/5732) (Check Execution, DB IDO): Fix flapping calculation and events
+* [#5730](https://github.com/icinga/icinga2/issues/5730): Add missing trims to GetMasterHostPort and remove Convert.ToString from variables that are strings already
+* [#5727](https://github.com/icinga/icinga2/issues/5727) (Documentation): Update upgrading documentation for 2.8
+* [#5708](https://github.com/icinga/icinga2/issues/5708) (Documentation): Fixed grammar and spelling mistakes
+* [#5703](https://github.com/icinga/icinga2/issues/5703) (Documentation): Minor documentation typos in flapping detection description
+* [#5688](https://github.com/icinga/icinga2/issues/5688) (Documentation): Fixed typos and punctuation
+* [#5687](https://github.com/icinga/icinga2/issues/5687) (Cluster, Log): Improve error message for unknown cluster message functions
+* [#5686](https://github.com/icinga/icinga2/issues/5686) (Log): Ugly stacktrace with mismatching versions in cluster
+* [#5672](https://github.com/icinga/icinga2/issues/5672) (Documentation, ITL): add itl snmp-service for manubulon plugin check\_snmp\_win.pl
+* [#5643](https://github.com/icinga/icinga2/issues/5643): Fix debug builds on Apple Clang 9.0.0 \(macOS High Sierra\)
+* [#5637](https://github.com/icinga/icinga2/issues/5637) (InfluxDB): Fix unnecessary String\(\) casts in InfluxdbWriter
+* [#5629](https://github.com/icinga/icinga2/issues/5629) (InfluxDB, Performance Data): Remove the unnecessary String\(\) casts in influxdbwriter.cpp
+* [#5624](https://github.com/icinga/icinga2/issues/5624): Fixed missing include statement in unit test
+* [#5619](https://github.com/icinga/icinga2/issues/5619) (Packages): Exit early in changelog.py if GitHub API fetch fails
+* [#5616](https://github.com/icinga/icinga2/issues/5616): Fix a build warning
+* [#5608](https://github.com/icinga/icinga2/issues/5608) (CLI, Cluster): Fix certificate paths for installers
+* [#5604](https://github.com/icinga/icinga2/issues/5604) (Packages): Remove the icinga2-classicui-package and update documentation
+* [#5576](https://github.com/icinga/icinga2/issues/5576) (Documentation): Fixed downtime example in documentation
+* [#5563](https://github.com/icinga/icinga2/issues/5563) (Cluster): Implement additional logging for the JsonRpc class
+* [#5511](https://github.com/icinga/icinga2/issues/5511) (Cluster, Documentation, Windows): SSL errors with leading zeros in certificate serials \(created \< v2.4\) with OpenSSL 1.1.0
+* [#5486](https://github.com/icinga/icinga2/issues/5486) (Graphite): Graphite: Remove deprecated legacy schema mode
+* [#5379](https://github.com/icinga/icinga2/issues/5379) (Documentation): Set shell prompt for commands to be \#
+* [#5301](https://github.com/icinga/icinga2/issues/5301) (Installation, Packages): Remove the icinga2-classicui-config package
+* [#5258](https://github.com/icinga/icinga2/issues/5258) (Installation): Fix clang compiler detection on Fedora and macOS
+* [#4992](https://github.com/icinga/icinga2/issues/4992) (Graphite): Remove deprecated GraphiteWriter feature enable\_legacy\_mode
+
 ## 2.7.2 (2017-11-09)
 
 ### Notes
