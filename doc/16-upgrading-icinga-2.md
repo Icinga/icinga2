@@ -117,6 +117,10 @@ In order to use these features, **all instances must be upgraded to v2.8**.
 
 More details in [this chapter](06-distributed-monitoring.md#distributed-monitoring-setup-sign-certificates-master).
 
+### Windows Client <a id="upgrading-to-2-8-windows-client"></a>
+
+Windows versions older than Windows 10/Server 2016 require the [Universal C Runtime for Windows](https://support.microsoft.com/en-us/help/2999226/update-for-universal-c-runtime-in-windows).
+
 ### Removed Bottom Up Client Mode <a id="upgrading-to-2-8-removed-bottom-up-client-mode"></a>
 
 This client mode was deprecated in 2.6 and was removed in 2.8.

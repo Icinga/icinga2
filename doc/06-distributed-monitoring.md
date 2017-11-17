@@ -597,6 +597,7 @@ Download the MSI-Installer package from [https://packages.icinga.com/windows/](h
 Requirements:
 
 * Windows Vista/Server 2008 or higher
+* Versions older than Windows 10/Server 2016 require the [Universal C Runtime for Windows](https://support.microsoft.com/en-us/help/2999226/update-for-universal-c-runtime-in-windows)
 * [Microsoft .NET Framework 2.0](https://www.microsoft.com/de-de/download/details.aspx?id=1639) for the setup wizard
 
 The installer package includes the [NSClient++](https://www.nsclient.org/) package
