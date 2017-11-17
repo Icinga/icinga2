@@ -26,6 +26,8 @@ using namespace icinga;
 
 void Checkable::UpdateFlappingStatus(bool stateChange)
 {
+/* TODO: Add support for Windows satellites/masters. */
+#ifndef _WIN32 /* _WIN32 */
 	std::bitset<20> stateChangeBuf = GetFlappingBuffer();
 	int oldestIndex = GetFlappingIndex();
 
@@ -56,6 +58,8 @@ void Checkable::UpdateFlappingStatus(bool stateChange)
 
 	if (flapping != GetFlapping())
 		SetFlappingLastChange(Utility::GetTime());
+
+#endif /* _WIN32 */
 }
 
 bool Checkable::IsFlapping(void) const
