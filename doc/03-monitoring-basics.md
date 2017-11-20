@@ -16,8 +16,8 @@ The Icinga 2 configuration uses different value types for attributes.
   [Duration](17-language-reference.md#duration-literals) | `1m`
   [String](17-language-reference.md#string-literals)     | `"These are notes"`
   [Boolean](17-language-reference.md#boolean-literals)   | `true`
-  [Array](17-language-reference.md#array)                | `[ "value1", "value2" ]`)
-  [Dictionary](17-language-reference.md#dictionary)      | `{ "key1" = "value1", "key2" = false }` )
+  [Array](17-language-reference.md#array)                | `[ "value1", "value2" ]`
+  [Dictionary](17-language-reference.md#dictionary)      | `{ "key1" = "value1", "key2" = false }`
 
 It is important to use the correct value type for object attributes
 as otherwise the [configuration validation](11-cli-commands.md#config-validation) will fail.
