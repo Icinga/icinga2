@@ -35,7 +35,7 @@ and API usage specifying the certificate files used for ssl
 authorization and additional restrictions.
 This configuration object is available as [api feature](11-cli-commands.md#cli-command-feature).
 
-The `NodeName` constant must be defined in [constants.conf](04-configuring-icinga-2.md#constants-conf).
+The `TicketSalt` constant must be defined in [constants.conf](04-configuring-icinga-2.md#constants-conf).
 
 Example:
 
