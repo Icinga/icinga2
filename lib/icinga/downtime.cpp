@@ -27,6 +27,7 @@
 #include "base/timer.hpp"
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
+#include <boost/thread/once.hpp>
 
 using namespace icinga;
 
@@ -41,22 +42,7 @@ boost::signals2::signal<void (const Downtime::Ptr&)> Downtime::OnDowntimeRemoved
 boost::signals2::signal<void (const Downtime::Ptr&)> Downtime::OnDowntimeStarted;
 boost::signals2::signal<void (const Downtime::Ptr&)> Downtime::OnDowntimeTriggered;
 
-INITIALIZE_ONCE(&Downtime::StaticInitialize);
-
 REGISTER_TYPE(Downtime);
-
-void Downtime::StaticInitialize(void)
-{
-	l_DowntimesStartTimer = new Timer();
-	l_DowntimesStartTimer->SetInterval(5);
-	l_DowntimesStartTimer->OnTimerExpired.connect(std::bind(&Downtime::DowntimesStartTimerHandler));
-	l_DowntimesStartTimer->Start();
-
-	l_DowntimesExpireTimer = new Timer();
-	l_DowntimesExpireTimer->SetInterval(60);
-	l_DowntimesExpireTimer->OnTimerExpired.connect(std::bind(&Downtime::DowntimesExpireTimerHandler));
-	l_DowntimesExpireTimer->Start();
-}
 
 String DowntimeNameComposer::MakeName(const String& shortName, const Object::Ptr& context) const
 {
@@ -114,6 +100,20 @@ void Downtime::OnAllConfigLoaded(void)
 void Downtime::Start(bool runtimeCreated)
 {
 	ObjectImpl<Downtime>::Start(runtimeCreated);
+
+	static boost::once_flag once = BOOST_ONCE_INIT;
+
+	boost::call_once(once, []() {
+		l_DowntimesStartTimer = new Timer();
+		l_DowntimesStartTimer->SetInterval(5);
+		l_DowntimesStartTimer->OnTimerExpired.connect(std::bind(&Downtime::DowntimesStartTimerHandler));
+		l_DowntimesStartTimer->Start();
+
+		l_DowntimesExpireTimer = new Timer();
+		l_DowntimesExpireTimer->SetInterval(60);
+		l_DowntimesExpireTimer->OnTimerExpired.connect(std::bind(&Downtime::DowntimesExpireTimerHandler));
+		l_DowntimesExpireTimer->Start();
+	});
 
 	{
 		boost::mutex::scoped_lock lock(l_DowntimeMutex);

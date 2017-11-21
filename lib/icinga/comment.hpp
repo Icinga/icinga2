@@ -56,8 +56,6 @@ public:
 
 	static String GetCommentIDFromLegacyID(int id);
 
-	static void StaticInitialize(void);
-
 protected:
 	virtual void OnAllConfigLoaded(void) override;
 	virtual void Start(bool runtimeCreated) override;

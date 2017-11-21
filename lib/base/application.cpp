@@ -158,8 +158,6 @@ void Application::InitializeBase(void)
 
 	/* make sure the thread pool gets initialized */
 	GetTP().Start();
-
-	Timer::Initialize();
 }
 
 void Application::UninitializeBase(void)
@@ -317,8 +315,6 @@ void Application::SetArgV(char **argv)
  */
 void Application::RunEventLoop(void)
 {
-	Timer::Initialize();
-
 	double lastLoop = Utility::GetTime();
 
 mainloop:

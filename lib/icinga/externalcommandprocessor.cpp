@@ -39,6 +39,7 @@
 #include <fstream>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
+#include <boost/thread/once.hpp>
 
 using namespace icinga;
 
@@ -110,6 +111,12 @@ void ExternalCommandProcessor::Execute(const String& line)
 void ExternalCommandProcessor::Execute(double time, const String& command, const std::vector<String>& arguments)
 {
 	ExternalCommandInfo eci;
+
+	static boost::once_flag once = BOOST_ONCE_INIT;
+
+	boost::call_once(once, []() {
+		RegisterCommands();
+	});
 
 	{
 		boost::mutex::scoped_lock lock(GetMutex());

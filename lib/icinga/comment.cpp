@@ -26,6 +26,7 @@
 #include "base/timer.hpp"
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
+#include <boost/thread/once.hpp>
 
 using namespace icinga;
 
@@ -37,17 +38,7 @@ static Timer::Ptr l_CommentsExpireTimer;
 boost::signals2::signal<void (const Comment::Ptr&)> Comment::OnCommentAdded;
 boost::signals2::signal<void (const Comment::Ptr&)> Comment::OnCommentRemoved;
 
-INITIALIZE_ONCE(&Comment::StaticInitialize);
-
 REGISTER_TYPE(Comment);
-
-void Comment::StaticInitialize(void)
-{
-	l_CommentsExpireTimer = new Timer();
-	l_CommentsExpireTimer->SetInterval(60);
-	l_CommentsExpireTimer->OnTimerExpired.connect(std::bind(&Comment::CommentsExpireTimerHandler));
-	l_CommentsExpireTimer->Start();
-}
 
 String CommentNameComposer::MakeName(const String& shortName, const Object::Ptr& context) const
 {
@@ -105,6 +96,15 @@ void Comment::OnAllConfigLoaded(void)
 void Comment::Start(bool runtimeCreated)
 {
 	ObjectImpl<Comment>::Start(runtimeCreated);
+
+	static boost::once_flag once = BOOST_ONCE_INIT;
+
+	boost::call_once(once, []() {
+		l_CommentsExpireTimer = new Timer();
+		l_CommentsExpireTimer->SetInterval(60);
+		l_CommentsExpireTimer->OnTimerExpired.connect(std::bind(&Comment::CommentsExpireTimerHandler));
+		l_CommentsExpireTimer->Start();
+	});
 
 	{
 		boost::mutex::scoped_lock lock(l_CommentMutex);

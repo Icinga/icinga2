@@ -41,6 +41,8 @@ public:
 	Timer(void);
 	~Timer(void);
 
+	static void Uninitialize(void);
+
 	void SetInterval(double interval);
 	double GetInterval(void) const;
 
@@ -65,10 +67,6 @@ private:
 
 	static void TimerThreadProc(void);
 
-	static void Initialize(void);
-	static void Uninitialize(void);
-
-	friend class Application;
 	friend class TimerHolder;
 };
 

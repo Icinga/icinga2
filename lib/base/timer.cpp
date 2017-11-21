@@ -71,6 +71,7 @@ static boost::condition_variable l_TimerCV;
 static std::thread l_TimerThread;
 static bool l_StopTimerThread;
 static TimerSet l_Timers;
+static int l_AliveTimers;
 
 /**
  * Constructor for the Timer class.
@@ -87,29 +88,16 @@ Timer::~Timer(void)
 	Stop(true);
 }
 
-/**
- * Initializes the timer sub-system.
- */
-void Timer::Initialize(void)
-{
-	boost::mutex::scoped_lock lock(l_TimerMutex);
-	l_StopTimerThread = false;
-	l_TimerThread = std::thread(&Timer::TimerThreadProc);
-}
-
-/**
- * Disables the timer sub-system.
- */
 void Timer::Uninitialize(void)
 {
-	{
-		boost::mutex::scoped_lock lock(l_TimerMutex);
-		l_StopTimerThread = true;
-		l_TimerCV.notify_all();
-	}
+       {
+	       boost::mutex::scoped_lock lock(l_TimerMutex);
+	       l_StopTimerThread = true;
+	       l_TimerCV.notify_all();
+       }
 
-	if (l_TimerThread.joinable())
-		l_TimerThread.join();
+       if (l_TimerThread.joinable())
+	       l_TimerThread.join();
 }
 
 /**
@@ -158,6 +146,11 @@ void Timer::Start(void)
 	{
 		boost::mutex::scoped_lock lock(l_TimerMutex);
 		m_Started = true;
+
+		if (l_AliveTimers++ == 0) {
+			l_StopTimerThread = false;
+			l_TimerThread = std::thread(&Timer::TimerThreadProc);
+		}
 	}
 
 	InternalReschedule(false);
@@ -172,6 +165,18 @@ void Timer::Stop(bool wait)
 		return;
 
 	boost::mutex::scoped_lock lock(l_TimerMutex);
+
+	if (m_Started && --l_AliveTimers == 0) {
+		l_StopTimerThread = true;
+		l_TimerCV.notify_all();
+
+		lock.unlock();
+
+		if (l_TimerThread.joinable() && l_TimerThread.get_id() != std::this_thread::get_id())
+			l_TimerThread.join();
+
+		lock.lock();
+	}
 
 	m_Started = false;
 	l_Timers.erase(this);

@@ -24,7 +24,6 @@
 #include "icinga/service.hpp"
 #include "base/timer.hpp"
 #include "base/configtype.hpp"
-#include "base/initialize.hpp"
 #include "base/utility.hpp"
 #include "base/objectlock.hpp"
 #include "base/convert.hpp"
@@ -32,12 +31,11 @@
 #include "base/exception.hpp"
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
+#include <boost/thread/once.hpp>
 
 using namespace icinga;
 
 REGISTER_TYPE(ScheduledDowntime);
-
-INITIALIZE_ONCE(&ScheduledDowntime::StaticInitialize);
 
 static Timer::Ptr l_Timer;
 
@@ -79,14 +77,6 @@ Dictionary::Ptr ScheduledDowntimeNameComposer::ParseName(const String& name) con
 	return result;
 }
 
-void ScheduledDowntime::StaticInitialize(void)
-{
-	l_Timer = new Timer();
-	l_Timer->SetInterval(60);
-	l_Timer->OnTimerExpired.connect(std::bind(&ScheduledDowntime::TimerProc));
-	l_Timer->Start();
-}
-
 void ScheduledDowntime::OnAllConfigLoaded(void)
 {
 	ObjectImpl<ScheduledDowntime>::OnAllConfigLoaded();
@@ -98,6 +88,15 @@ void ScheduledDowntime::OnAllConfigLoaded(void)
 void ScheduledDowntime::Start(bool runtimeCreated)
 {
 	ObjectImpl<ScheduledDowntime>::Start(runtimeCreated);
+
+	static boost::once_flag once = BOOST_ONCE_INIT;
+
+	boost::call_once(once, []() {
+		l_Timer = new Timer();
+		l_Timer->SetInterval(60);
+		l_Timer->OnTimerExpired.connect(std::bind(&ScheduledDowntime::TimerProc));
+		l_Timer->Start();
+	});
 
 	Utility::QueueAsyncCallback(std::bind(&ScheduledDowntime::CreateNextDowntime, this));
 }
