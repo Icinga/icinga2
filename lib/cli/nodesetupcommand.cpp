@@ -291,7 +291,7 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 		return 1;
 	}
 
-	boost::shared_ptr<X509> trustedcert = GetX509Certificate(vm["trustedcert"].as<std::string>());
+	std::shared_ptr<X509> trustedcert = GetX509Certificate(vm["trustedcert"].as<std::string>());
 
 	Log(LogInformation, "cli")
 	    << "Verifying trusted certificate file '" << vm["trustedcert"].as<std::string>() << "'.";

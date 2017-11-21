@@ -28,7 +28,6 @@
 #include "base/tcpsocket.hpp"
 #include "base/tlsstream.hpp"
 #include "base/networkstream.hpp"
-#include <boost/smart_ptr/make_shared.hpp>
 
 using namespace icinga;
 
@@ -104,14 +103,14 @@ bool HttpClientConnection::ProcessMessage(void)
 		return false;
 	}
 
-	const std::pair<boost::shared_ptr<HttpRequest>, HttpCompletionCallback>& currentRequest = *m_Requests.begin();
+	const std::pair<std::shared_ptr<HttpRequest>, HttpCompletionCallback>& currentRequest = *m_Requests.begin();
 	HttpRequest& request = *currentRequest.first.get();
 	const HttpCompletionCallback& callback = currentRequest.second;
 
 	if (!m_CurrentResponse)
-		m_CurrentResponse = boost::make_shared<HttpResponse>(m_Stream, request);
+		m_CurrentResponse = std::make_shared<HttpResponse>(m_Stream, request);
 
-	boost::shared_ptr<HttpResponse> currentResponse = m_CurrentResponse;
+	std::shared_ptr<HttpResponse> currentResponse = m_CurrentResponse;
 	HttpResponse& response = *currentResponse.get();
 
 	try {
@@ -161,13 +160,13 @@ void HttpClientConnection::DataAvailableHandler(const Stream::Ptr& stream)
 		m_Stream->Close();
 }
 
-boost::shared_ptr<HttpRequest> HttpClientConnection::NewRequest(void)
+std::shared_ptr<HttpRequest> HttpClientConnection::NewRequest(void)
 {
 	Reconnect();
-	return boost::make_shared<HttpRequest>(m_Stream);
+	return std::make_shared<HttpRequest>(m_Stream);
 }
 
-void HttpClientConnection::SubmitRequest(const boost::shared_ptr<HttpRequest>& request,
+void HttpClientConnection::SubmitRequest(const std::shared_ptr<HttpRequest>& request,
     const HttpCompletionCallback& callback)
 {
 	m_Requests.push_back(std::make_pair(request, callback));

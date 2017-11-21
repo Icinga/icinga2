@@ -128,7 +128,7 @@ void ApiListener::OnConfigLoaded(void)
 	}
 
 	/* set up SSL context */
-	boost::shared_ptr<X509> cert;
+	std::shared_ptr<X509> cert;
 	try {
 		cert = GetX509Certificate(defaultCertPath);
 	} catch (const std::exception&) {
@@ -151,7 +151,7 @@ void ApiListener::OnConfigLoaded(void)
 
 void ApiListener::UpdateSSLContext(void)
 {
-	boost::shared_ptr<SSL_CTX> context;
+	std::shared_ptr<SSL_CTX> context;
 
 	try {
 		context = MakeSSLContext(GetDefaultCertPath(), GetDefaultKeyPath(), GetDefaultCaPath());
@@ -312,7 +312,7 @@ bool ApiListener::AddListener(const String& node, const String& service)
 {
 	ObjectLock olock(this);
 
-	boost::shared_ptr<SSL_CTX> sslContext = m_SSLContext;
+	std::shared_ptr<SSL_CTX> sslContext = m_SSLContext;
 
 	if (!sslContext) {
 		Log(LogCritical, "ApiListener", "SSL context is required for AddListener()");
@@ -367,7 +367,7 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 	{
 		ObjectLock olock(this);
 
-		boost::shared_ptr<SSL_CTX> sslContext = m_SSLContext;
+		std::shared_ptr<SSL_CTX> sslContext = m_SSLContext;
 
 		if (!sslContext) {
 			Log(LogCritical, "ApiListener", "SSL context is required for AddConnection()");
@@ -455,7 +455,7 @@ void ApiListener::NewClientHandlerInternal(const Socket::Ptr& client, const Stri
 		return;
 	}
 
-	boost::shared_ptr<X509> cert = tlsStream->GetPeerCertificate();
+	std::shared_ptr<X509> cert = tlsStream->GetPeerCertificate();
 	String identity;
 	Endpoint::Ptr endpoint;
 	bool verify_ok = false;

@@ -216,7 +216,7 @@ I2_CONFIG_API Expression *MakeIndexer(ScopeSpecifier scopeSpec, const String& in
 class I2_CONFIG_API OwnedExpression : public Expression
 {
 public:
-	OwnedExpression(const boost::shared_ptr<Expression>& expression)
+	OwnedExpression(const std::shared_ptr<Expression>& expression)
 		: m_Expression(expression)
 	{ }
 
@@ -232,7 +232,7 @@ protected:
 	}
 
 private:
-	boost::shared_ptr<Expression> m_Expression;
+	std::shared_ptr<Expression> m_Expression;
 };
 
 class I2_CONFIG_API LiteralExpression : public Expression
@@ -837,7 +837,7 @@ private:
 	String m_Name;
 	std::vector<String> m_Args;
 	std::map<String, Expression *> *m_ClosedVars;
-	boost::shared_ptr<Expression> m_Expression;
+	std::shared_ptr<Expression> m_Expression;
 };
 
 class I2_CONFIG_API ApplyExpression : public DebuggableExpression
@@ -874,14 +874,14 @@ private:
 	String m_Type;
 	String m_Target;
 	Expression *m_Name;
-	boost::shared_ptr<Expression> m_Filter;
+	std::shared_ptr<Expression> m_Filter;
 	String m_Package;
 	String m_FKVar;
 	String m_FVVar;
-	boost::shared_ptr<Expression> m_FTerm;
+	std::shared_ptr<Expression> m_FTerm;
 	bool m_IgnoreOnError;
 	std::map<String, Expression *> *m_ClosedVars;
-	boost::shared_ptr<Expression> m_Expression;
+	std::shared_ptr<Expression> m_Expression;
 };
 
 class I2_CONFIG_API ObjectExpression : public DebuggableExpression
@@ -916,13 +916,13 @@ private:
 	bool m_Abstract;
 	Expression *m_Type;
 	Expression *m_Name;
-	boost::shared_ptr<Expression> m_Filter;
+	std::shared_ptr<Expression> m_Filter;
 	String m_Zone;
 	String m_Package;
 	bool m_DefaultTmpl;
 	bool m_IgnoreOnError;
 	std::map<String, Expression *> *m_ClosedVars;
-	boost::shared_ptr<Expression> m_Expression;
+	std::shared_ptr<Expression> m_Expression;
 };
 	
 class I2_CONFIG_API ForExpression : public DebuggableExpression

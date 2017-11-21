@@ -303,7 +303,7 @@ wizard_endpoint_loop_start:
 		    << "' on file '" << nodeKey << "'. Verify it yourself!";
 	}
 
-	boost::shared_ptr<X509> trustedParentCert;
+	std::shared_ptr<X509> trustedParentCert;
 
 	/* Check whether we should connect to the parent node and present its trusted certificate. */
 	if (connectToParent) {

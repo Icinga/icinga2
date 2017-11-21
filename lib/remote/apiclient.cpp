@@ -46,7 +46,7 @@ void ApiClient::GetTypes(const TypesCompletionCallback& callback) const
 	url->SetPath(path);
 
 	try {
-		boost::shared_ptr<HttpRequest> req = m_Connection->NewRequest();
+		std::shared_ptr<HttpRequest> req = m_Connection->NewRequest();
 		req->RequestMethod = "GET";
 		req->RequestUrl = url;
 		req->AddHeader("Authorization", "Basic " + Base64::Encode(m_User + ":" + m_Password));
@@ -136,7 +136,7 @@ void ApiClient::GetObjects(const String& pluralType, const ObjectsCompletionCall
 	url->SetQuery(params);
 
 	try {
-		boost::shared_ptr<HttpRequest> req = m_Connection->NewRequest();
+		std::shared_ptr<HttpRequest> req = m_Connection->NewRequest();
 		req->RequestMethod = "GET";
 		req->RequestUrl = url;
 		req->AddHeader("Authorization", "Basic " + Base64::Encode(m_User + ":" + m_Password));
@@ -250,7 +250,7 @@ void ApiClient::ExecuteScript(const String& session, const String& command, bool
 	url->SetQuery(params);
 
 	try {
-		boost::shared_ptr<HttpRequest> req = m_Connection->NewRequest();
+		std::shared_ptr<HttpRequest> req = m_Connection->NewRequest();
 		req->RequestMethod = "POST";
 		req->RequestUrl = url;
 		req->AddHeader("Authorization", "Basic " + Base64::Encode(m_User + ":" + m_Password));
@@ -334,7 +334,7 @@ void ApiClient::AutocompleteScript(const String& session, const String& command,
 	url->SetQuery(params);
 
 	try {
-		boost::shared_ptr<HttpRequest> req = m_Connection->NewRequest();
+		std::shared_ptr<HttpRequest> req = m_Connection->NewRequest();
 		req->RequestMethod = "POST";
 		req->RequestUrl = url;
 		req->AddHeader("Authorization", "Basic " + Base64::Encode(m_User + ":" + m_Password));

@@ -69,14 +69,14 @@ int CASignCommand::Run(const boost::program_options::variables_map& vm, const st
 
 	String certRequestText = request->Get("cert_request");
 
-	boost::shared_ptr<X509> certRequest = StringToCertificate(certRequestText);
+	std::shared_ptr<X509> certRequest = StringToCertificate(certRequestText);
 
 	if (!certRequest) {
 		Log(LogCritical, "cli", "Certificate request is invalid. Could not parse X.509 certificate for the 'cert_request' attribute.");
 		return 1;
 	}
 
-	boost::shared_ptr<X509> certResponse = CreateCertIcingaCA(certRequest);
+	std::shared_ptr<X509> certResponse = CreateCertIcingaCA(certRequest);
 
 	BIO *out = BIO_new(BIO_s_mem());
 	X509_NAME_print_ex(out, X509_get_subject_name(certRequest.get()), 0, XN_FLAG_ONELINE & ~ASN1_STRFLGS_ESC_MSB);

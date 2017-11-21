@@ -81,8 +81,8 @@ int PkiUtility::SignCsr(const String& csrfile, const String& certfile)
 
 	BIO_free(csrbio);
 
-	boost::shared_ptr<EVP_PKEY> pubkey = boost::shared_ptr<EVP_PKEY>(X509_REQ_get_pubkey(req), EVP_PKEY_free);
-	boost::shared_ptr<X509> cert = CreateCertIcingaCA(pubkey.get(), X509_REQ_get_subject_name(req));
+	std::shared_ptr<EVP_PKEY> pubkey = std::shared_ptr<EVP_PKEY>(X509_REQ_get_pubkey(req), EVP_PKEY_free);
+	std::shared_ptr<X509> cert = CreateCertIcingaCA(pubkey.get(), X509_REQ_get_subject_name(req));
 
 	X509_REQ_free(req);
 
@@ -91,7 +91,7 @@ int PkiUtility::SignCsr(const String& csrfile, const String& certfile)
 	return 0;
 }
 
-boost::shared_ptr<X509> PkiUtility::FetchCert(const String& host, const String& port)
+std::shared_ptr<X509> PkiUtility::FetchCert(const String& host, const String& port)
 {
 	TcpSocket::Ptr client = new TcpSocket();
 
@@ -102,10 +102,10 @@ boost::shared_ptr<X509> PkiUtility::FetchCert(const String& host, const String& 
 		    << "Cannot connect to host '" << host << "' on port '" << port << "'";
 		Log(LogDebug, "pki")
 		    << "Cannot connect to host '" << host << "' on port '" << port << "':\n" << DiagnosticInformation(ex);
-		return boost::shared_ptr<X509>();
+		return std::shared_ptr<X509>();
 	}
 
-	boost::shared_ptr<SSL_CTX> sslContext;
+	std::shared_ptr<SSL_CTX> sslContext;
 
 	try {
 		sslContext = MakeSSLContext();
@@ -114,7 +114,7 @@ boost::shared_ptr<X509> PkiUtility::FetchCert(const String& host, const String& 
 		    << "Cannot make SSL context.";
 		Log(LogDebug, "pki")
 		    << "Cannot make SSL context:\n"  << DiagnosticInformation(ex);
-		return boost::shared_ptr<X509>();
+		return std::shared_ptr<X509>();
 	}
 
 	TlsStream::Ptr stream = new TlsStream(client, host, RoleClient, sslContext);
@@ -128,7 +128,7 @@ boost::shared_ptr<X509> PkiUtility::FetchCert(const String& host, const String& 
 	return stream->GetPeerCertificate();
 }
 
-int PkiUtility::WriteCert(const boost::shared_ptr<X509>& cert, const String& trustedfile)
+int PkiUtility::WriteCert(const std::shared_ptr<X509>& cert, const String& trustedfile)
 {
 	std::ofstream fpcert;
 	fpcert.open(trustedfile.CStr());
@@ -155,7 +155,7 @@ int PkiUtility::GenTicket(const String& cn, const String& salt, std::ostream& ti
 }
 
 int PkiUtility::RequestCertificate(const String& host, const String& port, const String& keyfile,
-    const String& certfile, const String& cafile, const boost::shared_ptr<X509>& trustedCert, const String& ticket)
+    const String& certfile, const String& cafile, const std::shared_ptr<X509>& trustedCert, const String& ticket)
 {
 	TcpSocket::Ptr client = new TcpSocket();
 
@@ -169,7 +169,7 @@ int PkiUtility::RequestCertificate(const String& host, const String& port, const
 		return 1;
 	}
 
-	boost::shared_ptr<SSL_CTX> sslContext;
+	std::shared_ptr<SSL_CTX> sslContext;
 
 	try {
 		sslContext = MakeSSLContext(certfile, keyfile);
@@ -190,7 +190,7 @@ int PkiUtility::RequestCertificate(const String& host, const String& port, const
 		return 1;
 	}
 
-	boost::shared_ptr<X509> peerCert = stream->GetPeerCertificate();
+	std::shared_ptr<X509> peerCert = stream->GetPeerCertificate();
 
 	if (X509_cmp(peerCert.get(), trustedCert.get())) {
 		Log(LogCritical, "cli", "Peer certificate does not match trusted certificate.");
@@ -326,7 +326,7 @@ int PkiUtility::RequestCertificate(const String& host, const String& port, const
 	return 0;
 }
 
-String PkiUtility::GetCertificateInformation(const boost::shared_ptr<X509>& cert) {
+String PkiUtility::GetCertificateInformation(const std::shared_ptr<X509>& cert) {
 	BIO *out = BIO_new(BIO_s_mem());
 	String pre;
 
@@ -391,7 +391,7 @@ static void CollectRequestHandler(const Dictionary::Ptr& requests, const String&
 		result->Set("cert_response", certResponseText);
 	}
 
-	boost::shared_ptr<X509> certRequest = StringToCertificate(certRequestText);
+	std::shared_ptr<X509> certRequest = StringToCertificate(certRequestText);
 
 /* XXX (requires OpenSSL >= 1.0.0)
 	time_t now;

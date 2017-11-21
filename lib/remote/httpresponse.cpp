@@ -24,7 +24,6 @@
 #include <boost/algorithm/string/classification.hpp>
 #include "base/application.hpp"
 #include "base/convert.hpp"
-#include <boost/smart_ptr/make_shared.hpp>
 
 using namespace icinga;
 
@@ -183,7 +182,7 @@ bool HttpResponse::Parse(StreamReadContext& src, bool may_wait)
 	} else if (m_State == HttpResponseBody) {
 		if (Headers->Get("transfer-encoding") == "chunked") {
 			if (!m_ChunkContext)
-				m_ChunkContext = boost::make_shared<ChunkReadContext>(boost::ref(src));
+				m_ChunkContext = std::make_shared<ChunkReadContext>(boost::ref(src));
 
 			char *data;
 			size_t size;

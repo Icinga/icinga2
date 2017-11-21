@@ -29,7 +29,7 @@
 namespace icinga
 {
 
-typedef boost::shared_ptr<MYSQL_RES> IdoMysqlResult;
+typedef std::shared_ptr<MYSQL_RES> IdoMysqlResult;
 
 typedef std::function<void (const IdoMysqlResult&)> IdoAsyncCallback;
 

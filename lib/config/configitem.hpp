@@ -41,8 +41,8 @@ public:
 	DECLARE_PTR_TYPEDEFS(ConfigItem);
 
 	ConfigItem(const Type::Ptr& type, const String& name, bool abstract,
-	    const boost::shared_ptr<Expression>& exprl,
-	    const boost::shared_ptr<Expression>& filter,
+	    const std::shared_ptr<Expression>& exprl,
+	    const std::shared_ptr<Expression>& filter,
 	    bool defaultTmpl, bool ignoreOnError, const DebugInfo& debuginfo,
 	    const Dictionary::Ptr& scope, const String& zone,
 	    const String& package);
@@ -55,8 +55,8 @@ public:
 
 	std::vector<ConfigItem::Ptr> GetParents(void) const;
 
-	boost::shared_ptr<Expression> GetExpression(void) const;
-	boost::shared_ptr<Expression> GetFilter(void) const;
+	std::shared_ptr<Expression> GetExpression(void) const;
+	std::shared_ptr<Expression> GetFilter(void) const;
 
 	void Register(void);
 	void Unregister(void);
@@ -84,8 +84,8 @@ private:
 	String m_Name; /**< The name. */
 	bool m_Abstract; /**< Whether this is a template. */
 
-	boost::shared_ptr<Expression> m_Expression;
-	boost::shared_ptr<Expression> m_Filter;
+	std::shared_ptr<Expression> m_Expression;
+	std::shared_ptr<Expression> m_Filter;
 	bool m_DefaultTmpl;
 	bool m_IgnoreOnError;
 	DebugInfo m_DebugInfo; /**< Debug information. */

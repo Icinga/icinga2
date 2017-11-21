@@ -528,7 +528,7 @@ Stream::Ptr ElasticsearchWriter::Connect(void)
 	}
 
 	if (GetEnableTls()) {
-		boost::shared_ptr<SSL_CTX> sslContext;
+		std::shared_ptr<SSL_CTX> sslContext;
 
 		try {
 			sslContext = MakeSSLContext(GetCertPath(), GetKeyPath(), GetCaPath());

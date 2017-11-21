@@ -128,7 +128,7 @@ public:
 	static bool HasZoneConfigAuthority(const String& zoneName);
 
 private:
-	std::promise<boost::shared_ptr<Expression> > m_Promise;
+	std::promise<std::shared_ptr<Expression> > m_Promise;
 
 	String m_Path;
 	std::istream *m_Input;

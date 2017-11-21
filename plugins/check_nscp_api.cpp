@@ -83,7 +83,7 @@ static Dictionary::Ptr QueryEndpoint(const String& host, const String& port, con
 		boost::condition_variable cv;
 		boost::mutex mtx;
 		Dictionary::Ptr result;
-		boost::shared_ptr<HttpRequest> req = m_Connection->NewRequest();
+		std::shared_ptr<HttpRequest> req = m_Connection->NewRequest();
 		req->RequestMethod = "GET";
 
 		// Url() will call Utillity::UnescapeString() which will thrown an exception if it finds a lonely %

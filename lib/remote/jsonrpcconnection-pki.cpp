@@ -45,7 +45,7 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 
 	String certText = params->Get("cert_request");
 
-	boost::shared_ptr<X509> cert;
+	std::shared_ptr<X509> cert;
 
 	Dictionary::Ptr result = new Dictionary();
 
@@ -56,7 +56,7 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 		cert = StringToCertificate(certText);
 
 	ApiListener::Ptr listener = ApiListener::GetInstance();
-	boost::shared_ptr<X509> cacert = GetX509Certificate(listener->GetDefaultCaPath());
+	std::shared_ptr<X509> cacert = GetX509Certificate(listener->GetDefaultCaPath());
 
 	String cn = GetCertificateCN(cert);
 
@@ -137,8 +137,8 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 		}
 	}
 
-	boost::shared_ptr<X509> newcert;
-	boost::shared_ptr<EVP_PKEY> pubkey;
+	std::shared_ptr<X509> newcert;
+	std::shared_ptr<EVP_PKEY> pubkey;
 	X509_NAME *subject;
 	Dictionary::Ptr message;
 	String ticket;
@@ -172,7 +172,7 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 		}
 	}
 
-	pubkey = boost::shared_ptr<EVP_PKEY>(X509_get_pubkey(cert.get()), EVP_PKEY_free);
+	pubkey = std::shared_ptr<EVP_PKEY>(X509_get_pubkey(cert.get()), EVP_PKEY_free);
 	subject = X509_get_subject_name(cert.get());
 
 	newcert = CreateCertIcingaCA(pubkey.get(), subject);
@@ -285,8 +285,8 @@ Value UpdateCertificateHandler(const MessageOrigin::Ptr& origin, const Dictionar
 	if (!listener)
 		return Empty;
 
-	boost::shared_ptr<X509> oldCert = GetX509Certificate(listener->GetDefaultCertPath());
-	boost::shared_ptr<X509> newCert = StringToCertificate(cert);
+	std::shared_ptr<X509> oldCert = GetX509Certificate(listener->GetDefaultCertPath());
+	std::shared_ptr<X509> newCert = StringToCertificate(cert);
 
 	String cn = GetCertificateCN(newCert);
 
@@ -294,8 +294,8 @@ Value UpdateCertificateHandler(const MessageOrigin::Ptr& origin, const Dictionar
 	    << "Received certificate update message for CN '" << cn << "'";
 
 	/* Check if this is a certificate update for a subordinate instance. */
-	boost::shared_ptr<EVP_PKEY> oldKey = boost::shared_ptr<EVP_PKEY>(X509_get_pubkey(oldCert.get()), EVP_PKEY_free);
-	boost::shared_ptr<EVP_PKEY> newKey = boost::shared_ptr<EVP_PKEY>(X509_get_pubkey(newCert.get()), EVP_PKEY_free);
+	std::shared_ptr<EVP_PKEY> oldKey = std::shared_ptr<EVP_PKEY>(X509_get_pubkey(oldCert.get()), EVP_PKEY_free);
+	std::shared_ptr<EVP_PKEY> newKey = std::shared_ptr<EVP_PKEY>(X509_get_pubkey(newCert.get()), EVP_PKEY_free);
 
 	if (X509_NAME_cmp(X509_get_subject_name(oldCert.get()), X509_get_subject_name(newCert.get())) != 0 ||
 	    EVP_PKEY_cmp(oldKey.get(), newKey.get()) != 1) {

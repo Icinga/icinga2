@@ -60,8 +60,8 @@ REGISTER_SCRIPTFUNCTION_NS(Internal, run_with_activation_context, &ConfigItem::R
  * @param debuginfo Debug information.
  */
 ConfigItem::ConfigItem(const Type::Ptr& type, const String& name,
-    bool abstract, const boost::shared_ptr<Expression>& exprl,
-    const boost::shared_ptr<Expression>& filter, bool defaultTmpl, bool ignoreOnError,
+    bool abstract, const std::shared_ptr<Expression>& exprl,
+    const std::shared_ptr<Expression>& filter, bool defaultTmpl, bool ignoreOnError,
     const DebugInfo& debuginfo, const Dictionary::Ptr& scope,
     const String& zone, const String& package)
 	: m_Type(type), m_Name(name), m_Abstract(abstract),
@@ -137,7 +137,7 @@ ConfigObject::Ptr ConfigItem::GetObject(void) const
  *
  * @returns The expression list.
  */
-boost::shared_ptr<Expression> ConfigItem::GetExpression(void) const
+std::shared_ptr<Expression> ConfigItem::GetExpression(void) const
 {
 	return m_Expression;
 }
@@ -147,7 +147,7 @@ boost::shared_ptr<Expression> ConfigItem::GetExpression(void) const
 *
 * @returns The filter expression.
 */
-boost::shared_ptr<Expression> ConfigItem::GetFilter(void) const
+std::shared_ptr<Expression> ConfigItem::GetFilter(void) const
 {
 	return m_Filter;
 }

@@ -50,18 +50,18 @@ public:
 
 	void Disconnect(void);
 
-	boost::shared_ptr<HttpRequest> NewRequest(void);
+	std::shared_ptr<HttpRequest> NewRequest(void);
 
 	typedef std::function<void(HttpRequest&, HttpResponse&)> HttpCompletionCallback;
-	void SubmitRequest(const boost::shared_ptr<HttpRequest>& request, const HttpCompletionCallback& callback);
+	void SubmitRequest(const std::shared_ptr<HttpRequest>& request, const HttpCompletionCallback& callback);
 
 private:
 	String m_Host;
 	String m_Port;
 	bool m_Tls;
 	Stream::Ptr m_Stream;
-	std::deque<std::pair<boost::shared_ptr<HttpRequest>, HttpCompletionCallback> > m_Requests;
-	boost::shared_ptr<HttpResponse> m_CurrentResponse;
+	std::deque<std::pair<std::shared_ptr<HttpRequest>, HttpCompletionCallback> > m_Requests;
+	std::shared_ptr<HttpResponse> m_CurrentResponse;
 	boost::mutex m_DataHandlerMutex;
 
 	StreamReadContext m_Context;

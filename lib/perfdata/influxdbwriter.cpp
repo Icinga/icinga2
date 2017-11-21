@@ -150,7 +150,7 @@ Stream::Ptr InfluxdbWriter::Connect()
 	}
 
 	if (GetSslEnable()) {
-		boost::shared_ptr<SSL_CTX> sslContext;
+		std::shared_ptr<SSL_CTX> sslContext;
 		try {
 			sslContext = MakeSSLContext(GetSslCert(), GetSslKey(), GetSslCaCert());
 		} catch (const std::exception& ex) {

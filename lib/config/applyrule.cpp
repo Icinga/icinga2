@@ -26,8 +26,8 @@ using namespace icinga;
 ApplyRule::RuleMap ApplyRule::m_Rules;
 ApplyRule::TypeMap ApplyRule::m_Types;
 
-ApplyRule::ApplyRule(const String& targetType, const String& name, const boost::shared_ptr<Expression>& expression,
-    const boost::shared_ptr<Expression>& filter, const String& package, const String& fkvar, const String& fvvar, const boost::shared_ptr<Expression>& fterm,
+ApplyRule::ApplyRule(const String& targetType, const String& name, const std::shared_ptr<Expression>& expression,
+    const std::shared_ptr<Expression>& filter, const String& package, const String& fkvar, const String& fvvar, const std::shared_ptr<Expression>& fterm,
     bool ignoreOnError, const DebugInfo& di, const Dictionary::Ptr& scope)
 	: m_TargetType(targetType), m_Name(name), m_Expression(expression), m_Filter(filter), m_Package(package), m_FKVar(fkvar),
 	  m_FVVar(fvvar), m_FTerm(fterm), m_IgnoreOnError(ignoreOnError), m_DebugInfo(di), m_Scope(scope), m_HasMatches(false)
@@ -43,12 +43,12 @@ String ApplyRule::GetName(void) const
 	return m_Name;
 }
 
-boost::shared_ptr<Expression> ApplyRule::GetExpression(void) const
+std::shared_ptr<Expression> ApplyRule::GetExpression(void) const
 {
 	return m_Expression;
 }
 
-boost::shared_ptr<Expression> ApplyRule::GetFilter(void) const
+std::shared_ptr<Expression> ApplyRule::GetFilter(void) const
 {
 	return m_Filter;
 }
@@ -68,7 +68,7 @@ String ApplyRule::GetFVVar(void) const
 	return m_FVVar;
 }
 
-boost::shared_ptr<Expression> ApplyRule::GetFTerm(void) const
+std::shared_ptr<Expression> ApplyRule::GetFTerm(void) const
 {
 	return m_FTerm;
 }
@@ -89,8 +89,8 @@ Dictionary::Ptr ApplyRule::GetScope(void) const
 }
 
 void ApplyRule::AddRule(const String& sourceType, const String& targetType, const String& name,
-    const boost::shared_ptr<Expression>& expression, const boost::shared_ptr<Expression>& filter, const String& package, const String& fkvar,
-    const String& fvvar, const boost::shared_ptr<Expression>& fterm, bool ignoreOnError, const DebugInfo& di, const Dictionary::Ptr& scope)
+    const std::shared_ptr<Expression>& expression, const std::shared_ptr<Expression>& filter, const String& package, const String& fkvar,
+    const String& fvvar, const std::shared_ptr<Expression>& fterm, bool ignoreOnError, const DebugInfo& di, const Dictionary::Ptr& scope)
 {
 	m_Rules[sourceType].push_back(ApplyRule(targetType, name, expression, filter, package, fkvar, fvvar, fterm, ignoreOnError, di, scope));
 }
