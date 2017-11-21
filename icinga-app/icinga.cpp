@@ -94,7 +94,7 @@ static std::vector<String> GlobalArgumentCompletion(const String& argument, cons
 		return std::vector<String>();
 }
 
-int Main(void)
+static int Main(void)
 {
 	int argc = Application::GetArgC();
 	char **argv = Application::GetArgV();
@@ -701,7 +701,7 @@ static int SetupService(bool install, int argc, char **argv)
 	return 0;
 }
 
-VOID ReportSvcStatus(DWORD dwCurrentState,
+static VOID ReportSvcStatus(DWORD dwCurrentState,
 	DWORD dwWin32ExitCode,
 	DWORD dwWaitHint)
 {
@@ -725,7 +725,7 @@ VOID ReportSvcStatus(DWORD dwCurrentState,
 	SetServiceStatus(l_SvcStatusHandle, &l_SvcStatus);
 }
 
-VOID WINAPI ServiceControlHandler(DWORD dwCtrl)
+static VOID WINAPI ServiceControlHandler(DWORD dwCtrl)
 {
 	if (dwCtrl == SERVICE_CONTROL_STOP) {
 		ReportSvcStatus(SERVICE_STOP_PENDING, NO_ERROR, 0);
@@ -733,7 +733,7 @@ VOID WINAPI ServiceControlHandler(DWORD dwCtrl)
 	}
 }
 
-VOID WINAPI ServiceMain(DWORD argc, LPSTR *argv)
+static VOID WINAPI ServiceMain(DWORD argc, LPSTR *argv)
 {
 	l_SvcStatusHandle = RegisterServiceCtrlHandler(
 		"icinga2",
