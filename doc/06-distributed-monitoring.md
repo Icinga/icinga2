@@ -599,6 +599,7 @@ Requirements:
 * Windows Vista/Server 2008 or higher
 * Versions older than Windows 10/Server 2016 require the [Universal C Runtime for Windows](https://support.microsoft.com/en-us/help/2999226/update-for-universal-c-runtime-in-windows)
 * [Microsoft .NET Framework 2.0](https://www.microsoft.com/de-de/download/details.aspx?id=1639) for the setup wizard
+* [Microsoft Visual C++ Redistributable 2013](https://www.microsoft.com/en-us/download/details.aspx?id=40784) for the Icinga 2 daemon
 
 The installer package includes the [NSClient++](https://www.nsclient.org/) package
 so that Icinga 2 can use its built-in plugins. You can find more details in
