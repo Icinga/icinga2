@@ -446,7 +446,7 @@ You can create downtimes with the [schedule-downtime](12-icinga2-api.md#icinga2-
 Example:
 
 ```
-object Downtime "localhost!my-downtime" {
+object Downtime "my-downtime" {
   host_name = "localhost"
   author = "icingaadmin"
   comment = "This is a downtime."
