@@ -29,11 +29,40 @@
 
 using namespace icinga;
 
+namespace icinga {
+
+class TimerHolder {
+public:
+	TimerHolder(Timer *timer)
+		: m_Timer(timer)
+	{ }
+
+	inline Timer *GetObject(void) const
+	{
+		return m_Timer;
+	}
+
+	inline double GetNextUnlocked(void) const
+	{
+		return m_Timer->m_Next;
+	}
+
+	operator Timer *(void) const
+	{
+		return m_Timer;
+	}
+
+private:
+	Timer *m_Timer;
+};
+
+}
+
 typedef boost::multi_index_container<
-	Timer::Holder,
+	TimerHolder,
 	boost::multi_index::indexed_by<
-		boost::multi_index::ordered_unique<boost::multi_index::const_mem_fun<Timer::Holder, Timer *, &Timer::Holder::GetObject> >,
-		boost::multi_index::ordered_non_unique<boost::multi_index::const_mem_fun<Timer::Holder, double, &Timer::Holder::GetNextUnlocked> >
+		boost::multi_index::ordered_unique<boost::multi_index::const_mem_fun<TimerHolder, Timer *, &TimerHolder::GetObject> >,
+		boost::multi_index::ordered_non_unique<boost::multi_index::const_mem_fun<TimerHolder, double, &TimerHolder::GetNextUnlocked> >
 	>
 > TimerSet;
 
