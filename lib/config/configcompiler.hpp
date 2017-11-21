@@ -26,6 +26,7 @@
 #include "base/registry.hpp"
 #include "base/initialize.hpp"
 #include "base/singleton.hpp"
+#include <future>
 #include <iostream>
 #include <stack>
 
@@ -127,7 +128,7 @@ public:
 	static bool HasZoneConfigAuthority(const String& zoneName);
 
 private:
-	boost::promise<boost::shared_ptr<Expression> > m_Promise;
+	std::promise<boost::shared_ptr<Expression> > m_Promise;
 
 	String m_Path;
 	std::istream *m_Input;

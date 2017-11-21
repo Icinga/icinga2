@@ -28,7 +28,6 @@
 #include "base/exception.hpp"
 #include "base/scriptframe.hpp"
 #include "base/convert.hpp"
-#include <boost/thread/future.hpp>
 #include <map>
 
 namespace icinga
