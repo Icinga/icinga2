@@ -1307,7 +1307,7 @@ ssl_port                      | **Optional.** The port that should be checked. D
 ssl_timeout                   | **Optional.** Timeout in seconds for the connect and handshake. The plugin default is 10 seconds.
 ssl_cert_valid_days_warn      | **Optional.** Warning threshold for days before the certificate will expire. When used, the default for ssl_cert_valid_days_critical is 0.
 ssl_cert_valid_days_critical  | **Optional.** Critical threshold for days before the certificate will expire. When used, ssl_cert_valid_days_warn must also be set.
-ssl_sni                       | **Optional.** The `server_name` that is send to select the SSL certificate to check. Important if SNI is used. Defaults to "$ssl_address$".
+ssl_sni                       | **Optional.** The `server_name` that is send to select the SSL certificate to check. Important if SNI is used.
 
 
 ### ssmtp <a id="plugin-check-command-ssmtp"></a>
