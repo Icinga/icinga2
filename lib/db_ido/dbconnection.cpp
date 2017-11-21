@@ -66,8 +66,8 @@ void DbConnection::Start(bool runtimeCreated)
 	Log(LogInformation, "DbConnection")
 	    << "'" << GetName() << "' started.";
 
-	DbObject::OnQuery.connect(boost::bind(&DbConnection::ExecuteQuery, this, _1));
-	DbObject::OnMultipleQueries.connect(boost::bind(&DbConnection::ExecuteMultipleQueries, this, _1));
+	DbObject::OnQuery.connect(std::bind(&DbConnection::ExecuteQuery, this, _1));
+	DbObject::OnMultipleQueries.connect(std::bind(&DbConnection::ExecuteMultipleQueries, this, _1));
 }
 
 void DbConnection::Stop(bool runtimeRemoved)
@@ -81,7 +81,7 @@ void DbConnection::Stop(bool runtimeRemoved)
 void DbConnection::EnableActiveChangedHandler(void)
 {
 	if (!m_ActiveChangedHandler) {
-		ConfigObject::OnActiveChanged.connect(boost::bind(&DbConnection::UpdateObject, this, _1));
+		ConfigObject::OnActiveChanged.connect(std::bind(&DbConnection::UpdateObject, this, _1));
 		m_ActiveChangedHandler = true;
 	}
 }
@@ -95,7 +95,7 @@ void DbConnection::Resume(void)
 
 	m_CleanUpTimer = new Timer();
 	m_CleanUpTimer->SetInterval(60);
-	m_CleanUpTimer->OnTimerExpired.connect(boost::bind(&DbConnection::CleanUpHandler, this));
+	m_CleanUpTimer->OnTimerExpired.connect(std::bind(&DbConnection::CleanUpHandler, this));
 	m_CleanUpTimer->Start();
 }
 
@@ -131,7 +131,7 @@ void DbConnection::InitializeDbTimer(void)
 {
 	m_ProgramStatusTimer = new Timer();
 	m_ProgramStatusTimer->SetInterval(10);
-	m_ProgramStatusTimer->OnTimerExpired.connect(boost::bind(&DbConnection::UpdateProgramStatus));
+	m_ProgramStatusTimer->OnTimerExpired.connect(std::bind(&DbConnection::UpdateProgramStatus));
 	m_ProgramStatusTimer->Start();
 }
 

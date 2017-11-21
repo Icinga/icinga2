@@ -35,8 +35,7 @@ struct LivestatusRowValue {
 	Value GroupByObject;
 };
 
-
-typedef boost::function<bool (const Value&, LivestatusGroupByType, const Object::Ptr&)> AddRowFunction;
+typedef std::function<bool (const Value&, LivestatusGroupByType, const Object::Ptr&)> AddRowFunction;
 
 class Filter;
 

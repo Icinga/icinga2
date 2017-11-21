@@ -59,7 +59,7 @@ static void ScriptFrameCleanupHandler(void)
 
 INITIALIZE_ONCE([]() {
 	l_FrameCleanupTimer = new Timer();
-	l_FrameCleanupTimer->OnTimerExpired.connect(boost::bind(ScriptFrameCleanupHandler));
+	l_FrameCleanupTimer->OnTimerExpired.connect(std::bind(ScriptFrameCleanupHandler));
 	l_FrameCleanupTimer->SetInterval(30);
 	l_FrameCleanupTimer->Start();
 });

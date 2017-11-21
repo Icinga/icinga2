@@ -52,7 +52,7 @@ public:
 
 	boost::shared_ptr<HttpRequest> NewRequest(void);
 
-	typedef boost::function<void(HttpRequest&, HttpResponse&)> HttpCompletionCallback;
+	typedef std::function<void(HttpRequest&, HttpResponse&)> HttpCompletionCallback;
 	void SubmitRequest(const boost::shared_ptr<HttpRequest>& request, const HttpCompletionCallback& callback);
 
 private:

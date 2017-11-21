@@ -131,7 +131,7 @@ public:
 
 	virtual bool IsDataAvailable(void) const;
 
-	void RegisterDataHandler(const boost::function<void(const Stream::Ptr&)>& handler);
+	void RegisterDataHandler(const std::function<void(const Stream::Ptr&)>& handler);
 
 	StreamReadStatus ReadLine(String *line, StreamReadContext& context, bool may_wait = false);
 

@@ -38,7 +38,6 @@
 #include "base/dictionary.hpp"
 #include <boost/algorithm/string/case_conv.hpp>
 #include <boost/tuple/tuple.hpp>
-#include <boost/bind.hpp>
 
 using namespace icinga;
 
@@ -129,7 +128,7 @@ std::vector<LivestatusRowValue> Table::FilterRows(const Filter::Ptr& filter, int
 {
 	std::vector<LivestatusRowValue> rs;
 
-	FetchRows(boost::bind(&Table::FilteredAddRow, this, boost::ref(rs), filter, limit, _1, _2, _3));
+	FetchRows(std::bind(&Table::FilteredAddRow, this, boost::ref(rs), filter, limit, _1, _2, _3));
 
 	return rs;
 }

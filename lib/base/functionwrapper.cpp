@@ -35,7 +35,7 @@ Value icinga::FunctionWrapperVA(void (*function)(const std::vector<Value>&), con
 	return Empty;
 }
 
-boost::function<Value (const std::vector<Value>& arguments)> icinga::WrapFunction(void (*function)(void))
+std::function<Value (const std::vector<Value>& arguments)> icinga::WrapFunction(void (*function)(void))
 {
-	return boost::bind(&FunctionWrapperVV, function, _1);
+	return std::bind(&FunctionWrapperVV, function, _1);
 }

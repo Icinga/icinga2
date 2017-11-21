@@ -80,12 +80,12 @@ void StatusDataWriter::Start(bool runtimeCreated)
 
 	m_StatusTimer = new Timer();
 	m_StatusTimer->SetInterval(GetUpdateInterval());
-	m_StatusTimer->OnTimerExpired.connect(boost::bind(&StatusDataWriter::StatusTimerHandler, this));
+	m_StatusTimer->OnTimerExpired.connect(std::bind(&StatusDataWriter::StatusTimerHandler, this));
 	m_StatusTimer->Start();
 	m_StatusTimer->Reschedule(0);
 
-	ConfigObject::OnVersionChanged.connect(boost::bind(&StatusDataWriter::ObjectHandler, this));
-	ConfigObject::OnActiveChanged.connect(boost::bind(&StatusDataWriter::ObjectHandler, this));
+	ConfigObject::OnVersionChanged.connect(std::bind(&StatusDataWriter::ObjectHandler, this));
+	ConfigObject::OnActiveChanged.connect(std::bind(&StatusDataWriter::ObjectHandler, this));
 }
 
 /**

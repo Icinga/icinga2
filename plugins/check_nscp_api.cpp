@@ -94,7 +94,7 @@ static Dictionary::Ptr QueryEndpoint(const String& host, const String& port, con
 
 		// Submits the request. The 'ResultHttpCompletionCallback' is called once the HttpRequest receives an answer,
 		// which then sets 'ready' to true
-		m_Connection->SubmitRequest(req, boost::bind(ResultHttpCompletionCallback, _1, _2,
+		m_Connection->SubmitRequest(req, std::bind(ResultHttpCompletionCallback, _1, _2,
 			boost::ref(ready), boost::ref(cv), boost::ref(mtx), boost::ref(result)));
 
 		// We need to spinlock here because our 'HttpRequest' works asynchronous

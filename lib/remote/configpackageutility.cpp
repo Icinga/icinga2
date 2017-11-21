@@ -59,7 +59,7 @@ void ConfigPackageUtility::DeletePackage(const String& name)
 std::vector<String> ConfigPackageUtility::GetPackages(void)
 {
 	std::vector<String> packages;
-	Utility::Glob(GetPackageDir() + "/*", boost::bind(&ConfigPackageUtility::CollectDirNames,
+	Utility::Glob(GetPackageDir() + "/*", std::bind(&ConfigPackageUtility::CollectDirNames,
 	    _1, boost::ref(packages)), GlobDirectory);
 	return packages;
 }
@@ -218,7 +218,7 @@ void ConfigPackageUtility::AsyncTryActivateStage(const String& packageName, cons
 
 	Process::Ptr process = new Process(Process::PrepareCommand(args));
 	process->SetTimeout(300);
-	process->Run(boost::bind(&TryActivateStageCallback, _1, packageName, stageName, reload));
+	process->Run(std::bind(&TryActivateStageCallback, _1, packageName, stageName, reload));
 }
 
 void ConfigPackageUtility::DeleteStage(const String& packageName, const String& stageName)
@@ -237,7 +237,7 @@ void ConfigPackageUtility::DeleteStage(const String& packageName, const String& 
 std::vector<String> ConfigPackageUtility::GetStages(const String& packageName)
 {
 	std::vector<String> stages;
-	Utility::Glob(GetPackageDir() + "/" + packageName + "/*", boost::bind(&ConfigPackageUtility::CollectDirNames, _1, boost::ref(stages)), GlobDirectory);
+	Utility::Glob(GetPackageDir() + "/" + packageName + "/*", std::bind(&ConfigPackageUtility::CollectDirNames, _1, boost::ref(stages)), GlobDirectory);
 	return stages;
 }
 
@@ -263,7 +263,7 @@ String ConfigPackageUtility::GetActiveStage(const String& packageName)
 std::vector<std::pair<String, bool> > ConfigPackageUtility::GetFiles(const String& packageName, const String& stageName)
 {
 	std::vector<std::pair<String, bool> > paths;
-	Utility::GlobRecursive(GetPackageDir() + "/" + packageName + "/" + stageName, "*", boost::bind(&ConfigPackageUtility::CollectPaths, _1, boost::ref(paths)), GlobDirectory | GlobFile);
+	Utility::GlobRecursive(GetPackageDir() + "/" + packageName + "/" + stageName, "*", std::bind(&ConfigPackageUtility::CollectPaths, _1, boost::ref(paths)), GlobDirectory | GlobFile);
 
 	return paths;
 }

@@ -39,7 +39,7 @@ void TimePeriod::StaticInitialize(void)
 {
 	l_UpdateTimer = new Timer();
 	l_UpdateTimer->SetInterval(300);
-	l_UpdateTimer->OnTimerExpired.connect(boost::bind(&TimePeriod::UpdateTimerHandler));
+	l_UpdateTimer->OnTimerExpired.connect(std::bind(&TimePeriod::UpdateTimerHandler));
 	l_UpdateTimer->Start();
 }
 

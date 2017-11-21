@@ -26,7 +26,6 @@
 #include "base/registry.hpp"
 #include "base/initialize.hpp"
 #include "base/singleton.hpp"
-#include <boost/function.hpp>
 #include <iostream>
 #include <stack>
 

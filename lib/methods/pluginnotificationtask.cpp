@@ -66,7 +66,7 @@ void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification,
 
 	PluginUtility::ExecuteCommand(commandObj, checkable, cr, resolvers,
 	    resolvedMacros, useResolvedMacros,
-	    boost::bind(&PluginNotificationTask::ProcessFinishedHandler, checkable, _1, _2));
+	    std::bind(&PluginNotificationTask::ProcessFinishedHandler, checkable, _1, _2));
 }
 
 void PluginNotificationTask::ProcessFinishedHandler(const Checkable::Ptr& checkable, const Value& commandLine, const ProcessResult& pr)

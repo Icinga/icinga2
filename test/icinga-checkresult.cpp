@@ -60,7 +60,7 @@ static void CheckNotification(const Checkable::Ptr& checkable, bool expected, No
 
 BOOST_AUTO_TEST_CASE(host_1attempt)
 {
-	boost::signals2::connection c = Checkable::OnNotificationsRequested.connect(boost::bind(&NotificationHandler, _1, _2));
+	boost::signals2::connection c = Checkable::OnNotificationsRequested.connect(std::bind(&NotificationHandler, _1, _2));
 
 	Host::Ptr host = new Host();
 	host->SetMaxCheckAttempts(1);
@@ -108,7 +108,7 @@ BOOST_AUTO_TEST_CASE(host_1attempt)
 
 BOOST_AUTO_TEST_CASE(host_2attempts)
 {
-	boost::signals2::connection c = Checkable::OnNotificationsRequested.connect(boost::bind(&NotificationHandler, _1, _2));
+	boost::signals2::connection c = Checkable::OnNotificationsRequested.connect(std::bind(&NotificationHandler, _1, _2));
 
 	Host::Ptr host = new Host();
 	host->SetMaxCheckAttempts(2);
@@ -163,7 +163,7 @@ BOOST_AUTO_TEST_CASE(host_2attempts)
 
 BOOST_AUTO_TEST_CASE(host_3attempts)
 {
-	boost::signals2::connection c = Checkable::OnNotificationsRequested.connect(boost::bind(&NotificationHandler, _1, _2));
+	boost::signals2::connection c = Checkable::OnNotificationsRequested.connect(std::bind(&NotificationHandler, _1, _2));
 
 	Host::Ptr host = new Host();
 	host->SetMaxCheckAttempts(3);
@@ -225,7 +225,7 @@ BOOST_AUTO_TEST_CASE(host_3attempts)
 
 BOOST_AUTO_TEST_CASE(service_1attempt)
 {
-	boost::signals2::connection c = Checkable::OnNotificationsRequested.connect(boost::bind(&NotificationHandler, _1, _2));
+	boost::signals2::connection c = Checkable::OnNotificationsRequested.connect(std::bind(&NotificationHandler, _1, _2));
 
 	Service::Ptr service = new Service();
 	service->SetMaxCheckAttempts(1);
@@ -273,7 +273,7 @@ BOOST_AUTO_TEST_CASE(service_1attempt)
 
 BOOST_AUTO_TEST_CASE(service_2attempts)
 {
-	boost::signals2::connection c = Checkable::OnNotificationsRequested.connect(boost::bind(&NotificationHandler, _1, _2));
+	boost::signals2::connection c = Checkable::OnNotificationsRequested.connect(std::bind(&NotificationHandler, _1, _2));
 
 	Service::Ptr service = new Service();
 	service->SetMaxCheckAttempts(2);
@@ -328,7 +328,7 @@ BOOST_AUTO_TEST_CASE(service_2attempts)
 
 BOOST_AUTO_TEST_CASE(service_3attempts)
 {
-	boost::signals2::connection c = Checkable::OnNotificationsRequested.connect(boost::bind(&NotificationHandler, _1, _2));
+	boost::signals2::connection c = Checkable::OnNotificationsRequested.connect(std::bind(&NotificationHandler, _1, _2));
 
 	Service::Ptr service = new Service();
 	service->SetMaxCheckAttempts(3);
@@ -393,7 +393,7 @@ BOOST_AUTO_TEST_CASE(host_flapping_notification)
 #ifndef I2_DEBUG
 	BOOST_WARN_MESSAGE(false, "This test can only be run in a debug build!");
 #else /* I2_DEBUG */
-	boost::signals2::connection c = Checkable::OnNotificationsRequested.connect(boost::bind(&NotificationHandler, _1, _2));
+	boost::signals2::connection c = Checkable::OnNotificationsRequested.connect(std::bind(&NotificationHandler, _1, _2));
 
 	int timeStepInterval = 60;
 
@@ -446,7 +446,7 @@ BOOST_AUTO_TEST_CASE(service_flapping_notification)
 #ifndef I2_DEBUG
 	BOOST_WARN_MESSAGE(false, "This test can only be run in a debug build!");
 #else /* I2_DEBUG */
-	boost::signals2::connection c = Checkable::OnNotificationsRequested.connect(boost::bind(&NotificationHandler, _1, _2));
+	boost::signals2::connection c = Checkable::OnNotificationsRequested.connect(std::bind(&NotificationHandler, _1, _2));
 
 	int timeStepInterval = 60;
 
@@ -500,7 +500,7 @@ BOOST_AUTO_TEST_CASE(service_flapping_problem_notifications)
 #ifndef I2_DEBUG
 	BOOST_WARN_MESSAGE(false, "This test can only be run in a debug build!");
 #else /* I2_DEBUG */
-	boost::signals2::connection c = Checkable::OnNotificationsRequested.connect(boost::bind(&NotificationHandler, _1, _2));
+	boost::signals2::connection c = Checkable::OnNotificationsRequested.connect(std::bind(&NotificationHandler, _1, _2));
 
 	int timeStepInterval = 60;
 
@@ -598,7 +598,7 @@ BOOST_AUTO_TEST_CASE(service_flapping_ok_into_bad)
 #ifndef I2_DEBUG
 	BOOST_WARN_MESSAGE(false, "This test can only be run in a debug build!");
 #else /* I2_DEBUG */
-	boost::signals2::connection c = Checkable::OnNotificationsRequested.connect(boost::bind(&NotificationHandler, _1, _2));
+	boost::signals2::connection c = Checkable::OnNotificationsRequested.connect(std::bind(&NotificationHandler, _1, _2));
 
 	int timeStepInterval = 60;
 
@@ -676,7 +676,7 @@ BOOST_AUTO_TEST_CASE(service_flapping_ok_over_bad_into_ok)
 #ifndef I2_DEBUG
 	BOOST_WARN_MESSAGE(false, "This test can only be run in a debug build!");
 #else /* I2_DEBUG */
-	boost::signals2::connection c = Checkable::OnNotificationsRequested.connect(boost::bind(&NotificationHandler, _1, _2));
+	boost::signals2::connection c = Checkable::OnNotificationsRequested.connect(std::bind(&NotificationHandler, _1, _2));
 
 	int timeStepInterval = 60;
 

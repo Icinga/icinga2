@@ -539,7 +539,7 @@ void Process::ThreadInitialize(void)
 {
 	/* Note to self: Make sure this runs _after_ we've daemonized. */
 	for (int tid = 0; tid < IOTHREADS; tid++) {
-		boost::thread t(boost::bind(&Process::IOThreadProc, tid));
+		boost::thread t(std::bind(&Process::IOThreadProc, tid));
 		t.detach();
 	}
 }
@@ -788,7 +788,7 @@ static BOOL CreatePipeOverlapped(HANDLE *outReadPipe, HANDLE *outWritePipe,
 }
 #endif /* _WIN32 */
 
-void Process::Run(const boost::function<void(const ProcessResult&)>& callback)
+void Process::Run(const std::function<void(const ProcessResult&)>& callback)
 {
 #ifndef _WIN32
 	boost::call_once(l_SpawnHelperOnceFlag, &Process::InitializeSpawnHelper);
@@ -930,7 +930,7 @@ void Process::Run(const boost::function<void(const ProcessResult&)>& callback)
 		delete [] args;
 
 		if (callback)
-			Utility::QueueAsyncCallback(boost::bind(callback, m_Result));
+			Utility::QueueAsyncCallback(std::bind(callback, m_Result));
 
 		return;
 	}
@@ -1131,7 +1131,7 @@ bool Process::DoEvents(void)
 	m_Result.Output = output;
 
 	if (m_Callback)
-		Utility::QueueAsyncCallback(boost::bind(m_Callback, m_Result));
+		Utility::QueueAsyncCallback(std::bind(m_Callback, m_Result));
 
 	return false;
 }

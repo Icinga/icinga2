@@ -48,8 +48,8 @@ void DowntimesTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "triggered_by", Column(&DowntimesTable::TriggeredByAccessor, objectAccessor));
 
 	/* order is important - host w/o services must not be empty */
-	ServicesTable::AddColumns(table, "service_", boost::bind(&DowntimesTable::ServiceAccessor, _1, objectAccessor));
-	HostsTable::AddColumns(table, "host_", boost::bind(&DowntimesTable::HostAccessor, _1, objectAccessor));
+	ServicesTable::AddColumns(table, "service_", std::bind(&DowntimesTable::ServiceAccessor, _1, objectAccessor));
+	HostsTable::AddColumns(table, "host_", std::bind(&DowntimesTable::HostAccessor, _1, objectAccessor));
 }
 
 String DowntimesTable::GetName(void) const

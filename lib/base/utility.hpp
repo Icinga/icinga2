@@ -24,7 +24,6 @@
 #include "base/string.hpp"
 #include "base/array.hpp"
 #include "base/threadpool.hpp"
-#include <boost/function.hpp>
 #include <boost/thread/tss.hpp>
 #include <typeinfo>
 #include <vector>
@@ -80,8 +79,8 @@ public:
 
 	static String NewUniqueID(void);
 
-	static bool Glob(const String& pathSpec, const boost::function<void (const String&)>& callback, int type = GlobFile | GlobDirectory);
-	static bool GlobRecursive(const String& path, const String& pattern, const boost::function<void (const String&)>& callback, int type = GlobFile | GlobDirectory);
+	static bool Glob(const String& pathSpec, const std::function<void (const String&)>& callback, int type = GlobFile | GlobDirectory);
+	static bool GlobRecursive(const String& path, const String& pattern, const std::function<void (const String&)>& callback, int type = GlobFile | GlobDirectory);
 	static void MkDir(const String& path, int mode);
 	static void MkDirP(const String& path, int mode);
 	static bool SetFileOwnership(const String& file, const String& user, const String& group);

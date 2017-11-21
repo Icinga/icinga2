@@ -55,12 +55,12 @@ void NotificationComponent::Start(bool runtimeCreated)
 	Log(LogInformation, "NotificationComponent")
 	    << "'" << GetName() << "' started.";
 
-	Checkable::OnNotificationsRequested.connect(boost::bind(&NotificationComponent::SendNotificationsHandler, this, _1,
+	Checkable::OnNotificationsRequested.connect(std::bind(&NotificationComponent::SendNotificationsHandler, this, _1,
 	    _2, _3, _4, _5));
 
 	m_NotificationTimer = new Timer();
 	m_NotificationTimer->SetInterval(5);
-	m_NotificationTimer->OnTimerExpired.connect(boost::bind(&NotificationComponent::NotificationTimerHandler, this));
+	m_NotificationTimer->OnTimerExpired.connect(std::bind(&NotificationComponent::NotificationTimerHandler, this));
 	m_NotificationTimer->Start();
 }
 

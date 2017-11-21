@@ -55,7 +55,7 @@ JsonRpcConnection::JsonRpcConnection(const String& identity, bool authenticated,
 void JsonRpcConnection::StaticInitialize(void)
 {
 	l_JsonRpcConnectionTimeoutTimer = new Timer();
-	l_JsonRpcConnectionTimeoutTimer->OnTimerExpired.connect(boost::bind(&JsonRpcConnection::TimeoutTimerHandler));
+	l_JsonRpcConnectionTimeoutTimer->OnTimerExpired.connect(std::bind(&JsonRpcConnection::TimeoutTimerHandler));
 	l_JsonRpcConnectionTimeoutTimer->SetInterval(15);
 	l_JsonRpcConnectionTimeoutTimer->Start();
 
@@ -70,7 +70,7 @@ void JsonRpcConnection::StaticInitialize(void)
 void JsonRpcConnection::Start(void)
 {
 	/* the stream holds an owning reference to this object through the callback we're registering here */
-	m_Stream->RegisterDataHandler(boost::bind(&JsonRpcConnection::DataAvailableHandler, JsonRpcConnection::Ptr(this)));
+	m_Stream->RegisterDataHandler(std::bind(&JsonRpcConnection::DataAvailableHandler, JsonRpcConnection::Ptr(this)));
 	if (m_Stream->IsDataAvailable())
 		DataAvailableHandler();
 }
@@ -237,7 +237,7 @@ bool JsonRpcConnection::ProcessMessage(void)
 	if (srs != StatusNewItem)
 		return false;
 
-	l_JsonRpcConnectionWorkQueues[m_ID % l_JsonRpcConnectionWorkQueueCount].Enqueue(boost::bind(&JsonRpcConnection::MessageHandlerWrapper, JsonRpcConnection::Ptr(this), message));
+	l_JsonRpcConnectionWorkQueues[m_ID % l_JsonRpcConnectionWorkQueueCount].Enqueue(std::bind(&JsonRpcConnection::MessageHandlerWrapper, JsonRpcConnection::Ptr(this), message));
 
 	return true;
 }

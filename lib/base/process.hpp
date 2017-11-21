@@ -22,7 +22,6 @@
 
 #include "base/i2-base.hpp"
 #include "base/dictionary.hpp"
-#include <boost/function.hpp>
 #include <sstream>
 #include <deque>
 #include <vector>
@@ -76,7 +75,7 @@ public:
 	void SetAdjustPriority(bool adjust);
 	bool GetAdjustPriority(void) const;
 
-	void Run(const boost::function<void (const ProcessResult&)>& callback = boost::function<void (const ProcessResult&)>());
+	void Run(const std::function<void (const ProcessResult&)>& callback = std::function<void (const ProcessResult&)>());
 
 	pid_t GetPID(void) const;
 
@@ -109,7 +108,7 @@ private:
 #endif /* _WIN32 */
 
 	std::ostringstream m_OutputStream;
-	boost::function<void (const ProcessResult&)> m_Callback;
+	std::function<void (const ProcessResult&)> m_Callback;
 	ProcessResult m_Result;
 
 	static void IOThreadProc(int tid);

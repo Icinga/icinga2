@@ -36,8 +36,8 @@ INITIALIZE_ONCE(&EndpointDbObject::StaticInitialize);
 
 void EndpointDbObject::StaticInitialize(void)
 {
-	Endpoint::OnConnected.connect(boost::bind(&EndpointDbObject::UpdateConnectedStatus, _1));
-	Endpoint::OnDisconnected.connect(boost::bind(&EndpointDbObject::UpdateConnectedStatus, _1));
+	Endpoint::OnConnected.connect(std::bind(&EndpointDbObject::UpdateConnectedStatus, _1));
+	Endpoint::OnDisconnected.connect(std::bind(&EndpointDbObject::UpdateConnectedStatus, _1));
 }
 
 EndpointDbObject::EndpointDbObject(const DbType::Ptr& type, const String& name1, const String& name2)

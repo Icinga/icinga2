@@ -50,7 +50,7 @@ void SocketEventEngine::Start(void)
 
 		InitializeThread(tid);
 
-		m_Threads[tid] = boost::thread(boost::bind(&SocketEventEngine::ThreadProc, this, tid));
+		m_Threads[tid] = boost::thread(std::bind(&SocketEventEngine::ThreadProc, this, tid));
 	}
 }
 

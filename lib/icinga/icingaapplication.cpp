@@ -100,7 +100,7 @@ int IcingaApplication::Main(void)
 	/* periodically dump the program state */
 	l_RetentionTimer = new Timer();
 	l_RetentionTimer->SetInterval(300);
-	l_RetentionTimer->OnTimerExpired.connect(boost::bind(&IcingaApplication::DumpProgramState, this));
+	l_RetentionTimer->OnTimerExpired.connect(std::bind(&IcingaApplication::DumpProgramState, this));
 	l_RetentionTimer->Start();
 
 	RunEventLoop();
@@ -166,7 +166,7 @@ void IcingaApplication::DumpModifiedAttributes(void)
 	fp.exceptions(std::ofstream::failbit | std::ofstream::badbit);
 
 	ConfigObject::Ptr previousObject;
-	ConfigObject::DumpModifiedAttributes(boost::bind(&PersistModAttrHelper, boost::ref(fp), boost::ref(previousObject), _1, _2, _3));
+	ConfigObject::DumpModifiedAttributes(std::bind(&PersistModAttrHelper, boost::ref(fp), boost::ref(previousObject), _1, _2, _3));
 
 	if (previousObject) {
 		ConfigWriter::EmitRaw(fp, "\tobj.version = ");

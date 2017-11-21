@@ -52,11 +52,11 @@ DbObject::DbObject(const intrusive_ptr<DbType>& type, const String& name1, const
 void DbObject::StaticInitialize(void)
 {
 	/* triggered in ProcessCheckResult(), requires UpdateNextCheck() to be called before */
-	ConfigObject::OnStateChanged.connect(boost::bind(&DbObject::StateChangedHandler, _1));
-	CustomVarObject::OnVarsChanged.connect(boost::bind(&DbObject::VarsChangedHandler, _1));
+	ConfigObject::OnStateChanged.connect(std::bind(&DbObject::StateChangedHandler, _1));
+	CustomVarObject::OnVarsChanged.connect(std::bind(&DbObject::VarsChangedHandler, _1));
 
 	/* triggered on create, update and delete objects */
-	ConfigObject::OnVersionChanged.connect(boost::bind(&DbObject::VersionChangedHandler, _1));
+	ConfigObject::OnVersionChanged.connect(std::bind(&DbObject::VersionChangedHandler, _1));
 }
 
 void DbObject::SetObject(const ConfigObject::Ptr& object)

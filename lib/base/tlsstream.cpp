@@ -21,7 +21,6 @@
 #include "base/utility.hpp"
 #include "base/exception.hpp"
 #include "base/logger.hpp"
-#include <boost/bind.hpp>
 #include <iostream>
 
 #ifndef _WIN32

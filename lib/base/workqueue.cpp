@@ -23,7 +23,6 @@
 #include "base/convert.hpp"
 #include "base/application.hpp"
 #include "base/exception.hpp"
-#include <boost/bind.hpp>
 #include <boost/thread/tss.hpp>
 
 using namespace icinga;
@@ -40,7 +39,7 @@ WorkQueue::WorkQueue(size_t maxItems, int threadCount)
 
 	m_StatusTimer = new Timer();
 	m_StatusTimer->SetInterval(10);
-	m_StatusTimer->OnTimerExpired.connect(boost::bind(&WorkQueue::StatusTimerHandler, this));
+	m_StatusTimer->OnTimerExpired.connect(std::bind(&WorkQueue::StatusTimerHandler, this));
 	m_StatusTimer->Start();
 }
 
@@ -67,7 +66,7 @@ String WorkQueue::GetName(void) const
  * allowInterleaved is true in which case the new task might be run
  * immediately if it's being enqueued from within the WorkQueue thread.
  */
-void WorkQueue::Enqueue(boost::function<void (void)>&& function, WorkQueuePriority priority,
+void WorkQueue::Enqueue(std::function<void (void)>&& function, WorkQueuePriority priority,
     bool allowInterleaved)
 {
 	bool wq_thread = IsWorkerThread();
@@ -85,7 +84,7 @@ void WorkQueue::Enqueue(boost::function<void (void)>&& function, WorkQueuePriori
 		    << "Spawning WorkQueue threads for '" << m_Name << "'";
 
 		for (int i = 0; i < m_ThreadCount; i++) {
-			m_Threads.create_thread(boost::bind(&WorkQueue::WorkerThreadProc, this));
+			m_Threads.create_thread(std::bind(&WorkQueue::WorkerThreadProc, this));
 		}
 
 		m_Spawned = true;

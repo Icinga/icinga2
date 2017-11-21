@@ -56,10 +56,10 @@ void PerfdataWriter::Start(bool runtimeCreated)
 	Log(LogInformation, "PerfdataWriter")
 	    << "'" << GetName() << "' started.";
 
-	Checkable::OnNewCheckResult.connect(boost::bind(&PerfdataWriter::CheckResultHandler, this, _1, _2));
+	Checkable::OnNewCheckResult.connect(std::bind(&PerfdataWriter::CheckResultHandler, this, _1, _2));
 
 	m_RotationTimer = new Timer();
-	m_RotationTimer->OnTimerExpired.connect(boost::bind(&PerfdataWriter::RotationTimerHandler, this));
+	m_RotationTimer->OnTimerExpired.connect(std::bind(&PerfdataWriter::RotationTimerHandler, this));
 	m_RotationTimer->SetInterval(GetRotationInterval());
 	m_RotationTimer->Start();
 

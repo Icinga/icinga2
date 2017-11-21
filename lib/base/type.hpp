@@ -24,7 +24,6 @@
 #include "base/string.hpp"
 #include "base/object.hpp"
 #include "base/initialize.hpp"
-#include <boost/function.hpp>
 #include <vector>
 
 namespace icinga
@@ -105,7 +104,7 @@ public:
 
 	virtual std::vector<String> GetLoadDependencies(void) const;
 	
-	typedef boost::function<void (const Object::Ptr&, const Value&)> AttributeHandler;
+	typedef std::function<void (const Object::Ptr&, const Value&)> AttributeHandler;
 	virtual void RegisterAttributeHandler(int fieldId, const AttributeHandler& callback);
 
 protected:

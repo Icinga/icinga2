@@ -82,7 +82,7 @@ void LivestatusListener::Start(bool runtimeCreated)
 
 		m_Listener = socket;
 
-		m_Thread = boost::thread(boost::bind(&LivestatusListener::ServerThreadProc, this));
+		m_Thread = boost::thread(std::bind(&LivestatusListener::ServerThreadProc, this));
 
 		Log(LogInformation, "LivestatusListener")
 		    << "Created TCP socket listening on host '" << GetBindHost() << "' port '" << GetBindPort() << "'.";
@@ -110,7 +110,7 @@ void LivestatusListener::Start(bool runtimeCreated)
 
 		m_Listener = socket;
 
-		m_Thread = boost::thread(boost::bind(&LivestatusListener::ServerThreadProc, this));
+		m_Thread = boost::thread(std::bind(&LivestatusListener::ServerThreadProc, this));
 
 		Log(LogInformation, "LivestatusListener")
 		    << "Created UNIX socket in '" << GetSocketPath() << "'.";
@@ -160,7 +160,7 @@ void LivestatusListener::ServerThreadProc(void)
 			if (m_Listener->Poll(true, false, &tv)) {
 				Socket::Ptr client = m_Listener->Accept();
 				Log(LogNotice, "LivestatusListener", "Client connected");
-				Utility::QueueAsyncCallback(boost::bind(&LivestatusListener::ClientHandler, this, client), LowLatencyScheduler);
+				Utility::QueueAsyncCallback(std::bind(&LivestatusListener::ClientHandler, this, client), LowLatencyScheduler);
 			}
 
 			if (!IsActive())

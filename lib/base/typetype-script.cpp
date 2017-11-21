@@ -39,7 +39,7 @@ static void TypeRegisterAttributeHandler(const String& fieldName, const Function
 	Type::Ptr self = static_cast<Type::Ptr>(vframe->Self);
 	
 	int fid = self->GetFieldId(fieldName);
-	self->RegisterAttributeHandler(fid, boost::bind(&InvokeAttributeHandlerHelper, callback, _1, _2));
+	self->RegisterAttributeHandler(fid, std::bind(&InvokeAttributeHandlerHelper, callback, _1, _2));
 }
 
 Object::Ptr TypeType::GetPrototype(void)

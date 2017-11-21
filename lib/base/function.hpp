@@ -26,7 +26,6 @@
 #include "base/functionwrapper.hpp"
 #include "base/scriptglobal.hpp"
 #include <vector>
-#include <boost/function.hpp>
 
 namespace icinga
 {
@@ -41,7 +40,7 @@ class I2_BASE_API Function : public ObjectImpl<Function>
 public:
 	DECLARE_OBJECT(Function);
 
-	typedef boost::function<Value (const std::vector<Value>& arguments)> Callback;
+	typedef std::function<Value (const std::vector<Value>& arguments)> Callback;
 
 	Function(const String& name, const Callback& function, const std::vector<String>& args = std::vector<String>(),
 	    bool side_effect_free = false, bool deprecated = false);

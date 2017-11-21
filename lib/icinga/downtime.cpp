@@ -49,12 +49,12 @@ void Downtime::StaticInitialize(void)
 {
 	l_DowntimesStartTimer = new Timer();
 	l_DowntimesStartTimer->SetInterval(5);
-	l_DowntimesStartTimer->OnTimerExpired.connect(boost::bind(&Downtime::DowntimesStartTimerHandler));
+	l_DowntimesStartTimer->OnTimerExpired.connect(std::bind(&Downtime::DowntimesStartTimerHandler));
 	l_DowntimesStartTimer->Start();
 
 	l_DowntimesExpireTimer = new Timer();
 	l_DowntimesExpireTimer->SetInterval(60);
-	l_DowntimesExpireTimer->OnTimerExpired.connect(boost::bind(&Downtime::DowntimesExpireTimerHandler));
+	l_DowntimesExpireTimer->OnTimerExpired.connect(std::bind(&Downtime::DowntimesExpireTimerHandler));
 	l_DowntimesExpireTimer->Start();
 }
 

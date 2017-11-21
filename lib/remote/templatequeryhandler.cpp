@@ -55,7 +55,7 @@ public:
 	}
 
 	virtual void FindTargets(const String& type,
-	    const boost::function<void (const Value&)>& addTarget) const override
+	    const std::function<void (const Value&)>& addTarget) const override
 	{
 		Type::Ptr ptype = Type::GetByName(type);
 

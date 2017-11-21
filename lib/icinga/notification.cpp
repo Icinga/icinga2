@@ -416,7 +416,7 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 		    << "Sending " << (reminder ? "reminder " : "") << "'" << NotificationTypeToStringInternal(type) << "' notification '"
 		    << GetName() << "' for user '" << userName << "'";
 
-		Utility::QueueAsyncCallback(boost::bind(&Notification::ExecuteNotificationHelper, this, type, user, cr, force, author, text));
+		Utility::QueueAsyncCallback(std::bind(&Notification::ExecuteNotificationHelper, this, type, user, cr, force, author, text));
 
 		/* collect all notified users */
 		allNotifiedUsers.insert(user);

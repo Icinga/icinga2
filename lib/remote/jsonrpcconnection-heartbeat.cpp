@@ -33,7 +33,7 @@ static Timer::Ptr l_HeartbeatTimer;
 
 INITIALIZE_ONCE([]() {
 	l_HeartbeatTimer = new Timer();
-	l_HeartbeatTimer->OnTimerExpired.connect(boost::bind(&JsonRpcConnection::HeartbeatTimerHandler));
+	l_HeartbeatTimer->OnTimerExpired.connect(std::bind(&JsonRpcConnection::HeartbeatTimerHandler));
 	l_HeartbeatTimer->SetInterval(10);
 	l_HeartbeatTimer->Start();
 });

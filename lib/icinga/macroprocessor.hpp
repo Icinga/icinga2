@@ -23,7 +23,6 @@
 #include "icinga/i2-icinga.hpp"
 #include "icinga/checkable.hpp"
 #include "base/value.hpp"
-#include <boost/function.hpp>
 #include <vector>
 
 namespace icinga
@@ -37,7 +36,7 @@ namespace icinga
 class I2_ICINGA_API MacroProcessor
 {
 public:
-	typedef boost::function<Value (const Value&)> EscapeCallback;
+	typedef std::function<Value (const Value&)> EscapeCallback;
 	typedef std::pair<String, Object::Ptr> ResolverSpec;
 	typedef std::vector<ResolverSpec> ResolverList;
 

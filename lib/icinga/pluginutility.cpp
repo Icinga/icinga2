@@ -35,7 +35,7 @@ using namespace icinga;
 void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkable::Ptr& checkable,
     const CheckResult::Ptr& cr, const MacroProcessor::ResolverList& macroResolvers,
     const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros,
-    const boost::function<void(const Value& commandLine, const ProcessResult&)>& callback)
+    const std::function<void(const Value& commandLine, const ProcessResult&)>& callback)
 {
 	Value raw_command = commandObj->GetCommandLine();
 	Dictionary::Ptr raw_arguments = commandObj->GetArguments();
@@ -95,7 +95,7 @@ void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkab
 
 	process->SetAdjustPriority(true);
 
-	process->Run(boost::bind(callback, command, _1));
+	process->Run(std::bind(callback, command, _1));
 }
 
 ServiceState PluginUtility::ExitStatusToState(int exitStatus)

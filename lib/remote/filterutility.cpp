@@ -44,7 +44,7 @@ Type::Ptr FilterUtility::TypeFromPluralName(const String& pluralName)
 	return Type::Ptr();
 }
 
-void ConfigObjectTargetProvider::FindTargets(const String& type, const boost::function<void (const Value&)>& addTarget) const
+void ConfigObjectTargetProvider::FindTargets(const String& type, const std::function<void (const Value&)>& addTarget) const
 {
 	Type::Ptr ptype = Type::GetByName(type);
 	ConfigType *ctype = dynamic_cast<ConfigType *>(ptype.get());
@@ -268,7 +268,7 @@ std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, c
 		frame.Self = uvars;
 
 		try {
-			provider->FindTargets(type, boost::bind(&FilteredAddTarget,
+			provider->FindTargets(type, std::bind(&FilteredAddTarget,
 			    boost::ref(permissionFrame), permissionFilter,
 			    boost::ref(frame), ufilter, boost::ref(result), variableName, _1));
 		} catch (const std::exception& ex) {
