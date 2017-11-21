@@ -40,6 +40,7 @@
 #include <sstream>
 #include <iostream>
 #include <fstream>
+#include <thread>
 #ifdef __linux__
 #include <sys/prctl.h>
 #endif /* __linux__ */
@@ -394,7 +395,7 @@ static void ReloadProcessCallback(const ProcessResult& pr)
 {
 	l_Restarting = false;
 
-	boost::thread t(std::bind(&ReloadProcessCallbackInternal, pr));
+	std::thread t(std::bind(&ReloadProcessCallbackInternal, pr));
 	t.detach();
 }
 
@@ -1508,7 +1509,7 @@ void Application::DeclareConcurrency(int ncpus)
  */
 int Application::GetConcurrency(void)
 {
-	Value defaultConcurrency = boost::thread::hardware_concurrency();
+	Value defaultConcurrency = std::thread::hardware_concurrency();
 	return ScriptGlobal::Get("Concurrency", &defaultConcurrency);
 }
 

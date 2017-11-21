@@ -35,6 +35,7 @@
 #include "config.h"
 #include <boost/program_options.hpp>
 #include <boost/tuple/tuple.hpp>
+#include <thread>
 
 #ifndef _WIN32
 #	include <sys/types.h>
@@ -159,7 +160,7 @@ int Main(void)
 	Application::DeclareRLimitProcesses(Application::GetDefaultRLimitProcesses());
 	Application::DeclareRLimitStack(Application::GetDefaultRLimitStack());
 #endif /* __linux__ */
-	Application::DeclareConcurrency(boost::thread::hardware_concurrency());
+	Application::DeclareConcurrency(std::thread::hardware_concurrency());
 
 	ScriptGlobal::Set("AttachDebugger", false);
 

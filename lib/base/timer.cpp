@@ -20,12 +20,12 @@
 #include "base/timer.hpp"
 #include "base/debug.hpp"
 #include "base/utility.hpp"
-#include <boost/thread/thread.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition_variable.hpp>
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/ordered_index.hpp>
 #include <boost/multi_index/key_extractors.hpp>
+#include <thread>
 
 using namespace icinga;
 
@@ -39,7 +39,7 @@ typedef boost::multi_index_container<
 
 static boost::mutex l_TimerMutex;
 static boost::condition_variable l_TimerCV;
-static boost::thread l_TimerThread;
+static std::thread l_TimerThread;
 static bool l_StopTimerThread;
 static TimerSet l_Timers;
 
@@ -65,7 +65,7 @@ void Timer::Initialize(void)
 {
 	boost::mutex::scoped_lock lock(l_TimerMutex);
 	l_StopTimerThread = false;
-	l_TimerThread = boost::thread(&Timer::TimerThreadProc);
+	l_TimerThread = std::thread(&Timer::TimerThreadProc);
 }
 
 /**

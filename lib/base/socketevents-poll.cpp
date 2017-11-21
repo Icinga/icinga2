@@ -192,7 +192,7 @@ void SocketEventEnginePoll::ChangeEvents(SocketEvents *se, int events)
 
 		it->second.Events = events;
 
-		if (se->m_EnginePrivate && boost::this_thread::get_id() == m_Threads[tid].get_id())
+		if (se->m_EnginePrivate && std::this_thread::get_id() == m_Threads[tid].get_id())
 			((pollfd *)se->m_EnginePrivate)->events = events;
 		else
 			m_FDChanged[tid] = true;

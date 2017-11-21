@@ -22,7 +22,7 @@
 
 #include "base/i2-base.hpp"
 #include "base/socket.hpp"
-#include <boost/thread.hpp>
+#include <thread>
 
 #ifndef _WIN32
 #	include <poll.h>
@@ -109,7 +109,7 @@ protected:
 	virtual void Unregister(SocketEvents *se) = 0;
 	virtual void ChangeEvents(SocketEvents *se, int events) = 0;
 
-	boost::thread m_Threads[SOCKET_IOTHREADS];
+	std::thread m_Threads[SOCKET_IOTHREADS];
 	SOCKET m_EventFDs[SOCKET_IOTHREADS][2];
 	bool m_FDChanged[SOCKET_IOTHREADS];
 	boost::mutex m_EventMutex[SOCKET_IOTHREADS];

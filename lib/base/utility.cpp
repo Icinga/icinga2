@@ -28,6 +28,7 @@
 #include "base/objectlock.hpp"
 #include <mmatch.h>
 #include <boost/lexical_cast.hpp>
+#include <boost/thread/tss.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/trim.hpp>
@@ -1221,7 +1222,7 @@ String Utility::GetThreadName(void)
 
 	if (!name) {
 		std::ostringstream idbuf;
-		idbuf << boost::this_thread::get_id();
+		idbuf << std::this_thread::get_id();
 		return idbuf.str();
 	}
 
