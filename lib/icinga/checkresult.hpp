@@ -38,8 +38,6 @@ public:
 
 	double CalculateExecutionTime(void) const;
 	double CalculateLatency(void) const;
-
-	static void StaticInitialize(void);
 };
 
 }
