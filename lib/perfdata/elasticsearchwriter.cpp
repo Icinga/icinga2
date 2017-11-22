@@ -190,7 +190,7 @@ void ElasticsearchWriter::InternalCheckResultHandler(const Checkable::Ptr& check
 
 	Host::Ptr host;
 	Service::Ptr service;
-	boost::tie(host, service) = GetHostService(checkable);
+	tie(host, service) = GetHostService(checkable);
 
 	Dictionary::Ptr fields = new Dictionary();
 

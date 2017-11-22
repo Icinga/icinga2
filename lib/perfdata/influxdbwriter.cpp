@@ -190,7 +190,7 @@ void InfluxdbWriter::InternalCheckResultHandler(const Checkable::Ptr& checkable,
 
 	Host::Ptr host;
 	Service::Ptr service;
-	boost::tie(host, service) = GetHostService(checkable);
+	tie(host, service) = GetHostService(checkable);
 
 	MacroProcessor::ResolverList resolvers;
 	if (service)
@@ -275,7 +275,7 @@ void InfluxdbWriter::SendPerfdata(const Dictionary::Ptr& tmpl, const Checkable::
 	if (GetEnableSendMetadata()) {
 		Host::Ptr host;
 		Service::Ptr service;
-		boost::tie(host, service) = GetHostService(checkable);
+		tie(host, service) = GetHostService(checkable);
 
 		Dictionary::Ptr fields = new Dictionary();
 

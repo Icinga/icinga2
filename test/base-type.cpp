@@ -23,7 +23,6 @@
 #include "base/application.hpp"
 #include "base/type.hpp"
 #include <BoostTestTargetConfig.h>
-#include <boost/tuple/tuple.hpp>
 
 using namespace icinga;
 

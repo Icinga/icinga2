@@ -21,7 +21,6 @@
 #include "base/objectlock.hpp"
 #include "base/json.hpp"
 #include <BoostTestTargetConfig.h>
-#include <boost/tuple/tuple.hpp>
 
 using namespace icinga;
 

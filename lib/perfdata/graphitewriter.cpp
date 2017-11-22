@@ -195,7 +195,7 @@ void GraphiteWriter::CheckResultHandlerInternal(const Checkable::Ptr& checkable,
 
 	Host::Ptr host;
 	Service::Ptr service;
-	boost::tie(host, service) = GetHostService(checkable);
+	tie(host, service) = GetHostService(checkable);
 
 	MacroProcessor::ResolverList resolvers;
 	if (service)

@@ -34,7 +34,6 @@
 #include "base/process.hpp"
 #include "config.h"
 #include <boost/program_options.hpp>
-#include <boost/tuple/tuple.hpp>
 #include <thread>
 
 #ifndef _WIN32
