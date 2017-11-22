@@ -20,6 +20,7 @@ mkclass_target(configobject.ti configobject-ti.cpp configobject-ti.hpp)
 mkclass_target(datetime.ti datetime-ti.cpp datetime-ti.hpp)
 mkclass_target(filelogger.ti filelogger-ti.cpp filelogger-ti.hpp)
 mkclass_target(function.ti function-ti.cpp function-ti.hpp)
+mkclass_target(future.ti future.tcpp future.thpp)
 mkclass_target(logger.ti logger-ti.cpp logger-ti.hpp)
 mkclass_target(perfdatavalue.ti perfdatavalue-ti.cpp perfdatavalue-ti.hpp)
 mkclass_target(streamlogger.ti streamlogger-ti.cpp streamlogger-ti.hpp)
@@ -46,6 +47,7 @@ set(base_SOURCES
   fifo.cpp fifo.hpp
   filelogger.cpp filelogger.hpp filelogger-ti.hpp
   function.cpp function.hpp function-ti.hpp function-script.cpp functionwrapper.hpp
+  future.cpp future.thpp future-script.cpp
   initialize.cpp initialize.hpp
   json.cpp json.hpp json-script.cpp
   library.cpp library.hpp

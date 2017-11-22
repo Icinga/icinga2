@@ -122,6 +122,17 @@ Example for an array of IP addresses:
     <3> => cidr_match("192.168.56.0/24", host.vars.vhost_ips, MatchAny)
     true
 
+### call\_async <a id="global-functions-call_async"></a>
+
+Signature:
+
+    function call_async(callback, ...)
+
+Asynchronously calls the specified callback and passes any additional arguments to
+the callback as its arguments.
+
+Returns a `Future` object which represents the callback's return value.
+
 ### range <a id="global-functions-range"></a>
 
 Signature:
@@ -1504,6 +1515,50 @@ Example:
 	var args = [ 7 ]
 
 	set_x.callv(dict, args) /* Invokes set_x using `dict` as `this` */
+
+## Future type <a id="future-type"></a>
+
+Inherits methods from the [Object type](18-library-reference.md#object-type).
+
+### Function#get <a id="future-get"></a>
+
+Signature:
+
+    function get();
+
+Waits for and retrieves the value that is made available through the `Future` object.
+
+Example:
+
+    function fn() {
+        return 7
+    }
+
+    var fut = call_async(fn)
+    log(fut.get()) /* Waits until the `fn` call is completed and gets its result. */
+
+### Future#continue\_with <a id="function-continue_with"></a>
+
+Signature:
+
+    function continue_with(callback);
+
+Invokes the specified callback once the result for the `Future` object is available. The future's value
+is passed to the callback function as its only argument.
+
+Returns a new `Future` object that corresponds with the callback's return value.
+
+Example:
+
+    function fn() {
+        return 7
+    }
+
+    function result_handler(result) {
+        log("Result for fn has become available: " + result)
+    }
+
+    call_async(fn).continue_with(result_handler)
 
 ## DateTime type <a id="datetime-type"></a>
 

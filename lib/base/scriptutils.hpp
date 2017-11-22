@@ -26,6 +26,8 @@
 #include "base/dictionary.hpp"
 #include "base/type.hpp"
 #include "base/configobject.hpp"
+#include "base/function.hpp"
+#include "base/future.hpp"
 
 namespace icinga
 {
@@ -58,6 +60,7 @@ public:
 	static double Ptr(const Object::Ptr& object);
 	static Value Glob(const std::vector<Value>& args);
 	static Value GlobRecursive(const std::vector<Value>& args);
+	static Future::Ptr CallAsync(const std::vector<Value>& args);
 
 private:
 	ScriptUtils();

@@ -72,6 +72,7 @@ REGISTER_SCRIPTFUNCTION_NS(System, sleep, &Utility::Sleep, "interval");
 REGISTER_SCRIPTFUNCTION_NS(System, path_exists, &Utility::PathExists, "path");
 REGISTER_SCRIPTFUNCTION_NS(System, glob, &ScriptUtils::Glob, "pathspec:callback:type");
 REGISTER_SCRIPTFUNCTION_NS(System, glob_recursive, &ScriptUtils::GlobRecursive, "pathspec:callback:type");
+REGISTER_SCRIPTFUNCTION_NS(System, call_async, &ScriptUtils::CallAsync, "callback");
 
 INITIALIZE_ONCE(&ScriptUtils::StaticInitialize);
 
@@ -503,3 +504,25 @@ Value ScriptUtils::GlobRecursive(const std::vector<Value>& args)
 
 	return Array::FromVector(paths);
 }
+
+Future::Ptr ScriptUtils::CallAsync(const std::vector<Value>& args)
+{
+	if (args.size() < 1)
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for call_async()"));
+
+	Function::Ptr callback = args[0];
+	std::vector<Value> uargs(args.begin() + 1, args.end());
+
+	auto task = std::make_shared<std::packaged_task<Value(void)>>([callback, uargs]() {
+		return callback->Invoke(uargs);
+	});
+
+	std::thread t([task]() {
+		(*task)();
+	});
+
+	t.detach();
+
+	return new Future(task->get_future());
+}
+
