@@ -182,7 +182,7 @@ bool HttpResponse::Parse(StreamReadContext& src, bool may_wait)
 	} else if (m_State == HttpResponseBody) {
 		if (Headers->Get("transfer-encoding") == "chunked") {
 			if (!m_ChunkContext)
-				m_ChunkContext = std::make_shared<ChunkReadContext>(boost::ref(src));
+				m_ChunkContext = std::make_shared<ChunkReadContext>(std::ref(src));
 
 			char *data;
 			size_t size;

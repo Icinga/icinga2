@@ -269,8 +269,8 @@ std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, c
 
 		try {
 			provider->FindTargets(type, std::bind(&FilteredAddTarget,
-			    boost::ref(permissionFrame), permissionFilter,
-			    boost::ref(frame), ufilter, boost::ref(result), variableName, _1));
+			    std::ref(permissionFrame), permissionFilter,
+			    std::ref(frame), ufilter, std::ref(result), variableName, _1));
 		} catch (const std::exception& ex) {
 			delete ufilter;
 			throw;

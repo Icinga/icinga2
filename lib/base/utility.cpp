@@ -770,7 +770,7 @@ void Utility::MkDirP(const String& path, int mode)
 void Utility::RemoveDirRecursive(const String& path)
 {
 	std::vector<String> paths;
-	Utility::GlobRecursive(path, "*", std::bind(&Utility::CollectPaths, _1, boost::ref(paths)), GlobFile | GlobDirectory);
+	Utility::GlobRecursive(path, "*", std::bind(&Utility::CollectPaths, _1, std::ref(paths)), GlobFile | GlobDirectory);
 
 	/* This relies on the fact that GlobRecursive lists the parent directory
 	   first before recursing into subdirectories. */

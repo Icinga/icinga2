@@ -128,7 +128,7 @@ std::vector<LivestatusRowValue> Table::FilterRows(const Filter::Ptr& filter, int
 {
 	std::vector<LivestatusRowValue> rs;
 
-	FetchRows(std::bind(&Table::FilteredAddRow, this, boost::ref(rs), filter, limit, _1, _2, _3));
+	FetchRows(std::bind(&Table::FilteredAddRow, this, std::ref(rs), filter, limit, _1, _2, _3));
 
 	return rs;
 }

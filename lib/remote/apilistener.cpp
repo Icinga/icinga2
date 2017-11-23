@@ -631,7 +631,7 @@ void ApiListener::ApiTimerHandler(void)
 	double now = Utility::GetTime();
 
 	std::vector<int> files;
-	Utility::Glob(GetApiDir() + "log/*", std::bind(&ApiListener::LogGlobHandler, boost::ref(files), _1), GlobFile);
+	Utility::Glob(GetApiDir() + "log/*", std::bind(&ApiListener::LogGlobHandler, std::ref(files), _1), GlobFile);
 	std::sort(files.begin(), files.end());
 
 	for (int ts : files) {
@@ -1090,7 +1090,7 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 		count = 0;
 
 		std::vector<int> files;
-		Utility::Glob(GetApiDir() + "log/*", std::bind(&ApiListener::LogGlobHandler, boost::ref(files), _1), GlobFile);
+		Utility::Glob(GetApiDir() + "log/*", std::bind(&ApiListener::LogGlobHandler, std::ref(files), _1), GlobFile);
 		std::sort(files.begin(), files.end());
 
 		for (int ts : files) {

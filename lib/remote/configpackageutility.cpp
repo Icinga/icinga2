@@ -60,7 +60,7 @@ std::vector<String> ConfigPackageUtility::GetPackages(void)
 {
 	std::vector<String> packages;
 	Utility::Glob(GetPackageDir() + "/*", std::bind(&ConfigPackageUtility::CollectDirNames,
-	    _1, boost::ref(packages)), GlobDirectory);
+	    _1, std::ref(packages)), GlobDirectory);
 	return packages;
 }
 
@@ -237,7 +237,7 @@ void ConfigPackageUtility::DeleteStage(const String& packageName, const String& 
 std::vector<String> ConfigPackageUtility::GetStages(const String& packageName)
 {
 	std::vector<String> stages;
-	Utility::Glob(GetPackageDir() + "/" + packageName + "/*", std::bind(&ConfigPackageUtility::CollectDirNames, _1, boost::ref(stages)), GlobDirectory);
+	Utility::Glob(GetPackageDir() + "/" + packageName + "/*", std::bind(&ConfigPackageUtility::CollectDirNames, _1, std::ref(stages)), GlobDirectory);
 	return stages;
 }
 
@@ -263,7 +263,7 @@ String ConfigPackageUtility::GetActiveStage(const String& packageName)
 std::vector<std::pair<String, bool> > ConfigPackageUtility::GetFiles(const String& packageName, const String& stageName)
 {
 	std::vector<std::pair<String, bool> > paths;
-	Utility::GlobRecursive(GetPackageDir() + "/" + packageName + "/" + stageName, "*", std::bind(&ConfigPackageUtility::CollectPaths, _1, boost::ref(paths)), GlobDirectory | GlobFile);
+	Utility::GlobRecursive(GetPackageDir() + "/" + packageName + "/" + stageName, "*", std::bind(&ConfigPackageUtility::CollectPaths, _1, std::ref(paths)), GlobDirectory | GlobFile);
 
 	return paths;
 }

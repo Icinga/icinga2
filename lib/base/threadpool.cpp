@@ -23,7 +23,6 @@
 #include "base/utility.hpp"
 #include "base/exception.hpp"
 #include "base/application.hpp"
-#include <boost/bind.hpp>
 #include <iostream>
 
 using namespace icinga;
@@ -337,7 +336,7 @@ void ThreadPool::Queue::SpawnWorker(boost::thread_group& group)
 			Log(LogDebug, "ThreadPool", "Spawning worker thread.");
 
 			Threads[i] = WorkerThread(ThreadIdle);
-			Threads[i].Thread = group.create_thread(boost::bind(&ThreadPool::WorkerThread::ThreadProc, boost::ref(Threads[i]), boost::ref(*this)));
+			Threads[i].Thread = group.create_thread(std::bind(&ThreadPool::WorkerThread::ThreadProc, std::ref(Threads[i]), std::ref(*this)));
 
 			break;
 		}
