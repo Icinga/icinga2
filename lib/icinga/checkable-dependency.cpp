@@ -35,10 +35,10 @@ void Checkable::RemoveDependency(const Dependency::Ptr& dep)
 	m_Dependencies.erase(dep);
 }
 
-std::set<Dependency::Ptr> Checkable::GetDependencies(void) const
+std::vector<Dependency::Ptr> Checkable::GetDependencies(void) const
 {
 	boost::mutex::scoped_lock lock(m_DependencyMutex);
-	return m_Dependencies;
+	return std::vector<Dependency::Ptr>(m_Dependencies.begin(), m_Dependencies.end());
 }
 
 void Checkable::AddReverseDependency(const Dependency::Ptr& dep)
@@ -53,10 +53,10 @@ void Checkable::RemoveReverseDependency(const Dependency::Ptr& dep)
 	m_ReverseDependencies.erase(dep);
 }
 
-std::set<Dependency::Ptr> Checkable::GetReverseDependencies(void) const
+std::vector<Dependency::Ptr> Checkable::GetReverseDependencies(void) const
 {
 	boost::mutex::scoped_lock lock(m_DependencyMutex);
-	return m_ReverseDependencies;
+	return std::vector<Dependency::Ptr>(m_ReverseDependencies.begin(), m_ReverseDependencies.end());
 }
 
 bool Checkable::IsReachable(DependencyType dt, Dependency::Ptr *failedDependency, int rstack) const
@@ -148,7 +148,7 @@ void Checkable::GetAllChildrenInternal(std::set<Checkable::Ptr>& children, int l
 	for (const Checkable::Ptr& checkable : children) {
 		std::set<Checkable::Ptr> cChildren = checkable->GetChildren();
 
-		if (!checkable->GetChildren().empty()) {
+		if (!cChildren.empty()) {
 			GetAllChildrenInternal(cChildren, level + 1);
 			localChildren.insert(cChildren.begin(), cChildren.end());
 		}

@@ -185,11 +185,11 @@ public:
 	/* Dependencies */
 	void AddDependency(const intrusive_ptr<Dependency>& dep);
 	void RemoveDependency(const intrusive_ptr<Dependency>& dep);
-	std::set<intrusive_ptr<Dependency> > GetDependencies(void) const;
+	std::vector<intrusive_ptr<Dependency> > GetDependencies(void) const;
 
 	void AddReverseDependency(const intrusive_ptr<Dependency>& dep);
 	void RemoveReverseDependency(const intrusive_ptr<Dependency>& dep);
-	std::set<intrusive_ptr<Dependency> > GetReverseDependencies(void) const;
+	std::vector<intrusive_ptr<Dependency> > GetReverseDependencies(void) const;
 
 	virtual void ValidateCheckInterval(double value, const ValidationUtils& utils) override;
 	virtual void ValidateMaxCheckAttempts(int value, const ValidationUtils& utils) override;
