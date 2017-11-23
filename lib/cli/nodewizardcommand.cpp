@@ -457,15 +457,11 @@ wizard_ticket:
 	/* disable the notifications feature on client nodes */
 	Log(LogInformation, "cli", "Disabling the Notification feature.");
 
-	std::vector<std::string> disable;
-	disable.push_back("notification");
-	FeatureUtility::DisableFeatures(disable);
+	FeatureUtility::DisableFeatures({ "notification" });
 
 	Log(LogInformation, "cli", "Enabling the ApiListener feature.");
 
-	std::vector<std::string> enable;
-	enable.push_back("api");
-	FeatureUtility::EnableFeatures(enable);
+	FeatureUtility::EnableFeatures({ "api" });
 
 	String apiConfPath = FeatureUtility::GetFeaturesAvailablePath() + "/api.conf";
 	NodeUtility::CreateBackupFile(apiConfPath);
@@ -503,12 +499,7 @@ wizard_ticket:
 	/* apilistener config */
 	Log(LogInformation, "cli", "Generating local zones.conf.");
 
-	std::vector<String> globalZones;
-
-	globalZones.push_back("global-templates");
-	globalZones.push_back("director-global");
-
-	NodeUtility::GenerateNodeIcingaConfig(endpoints, globalZones);
+	NodeUtility::GenerateNodeIcingaConfig(endpoints, { "global-templates", "director-global" });
 
 	if (cn != Utility::GetFQDN()) {
 		Log(LogWarning, "cli")
@@ -604,12 +595,7 @@ int NodeWizardCommand::MasterSetup(void) const
 	else
 		std::cout << "'api' feature already enabled.\n";
 
-	std::vector<String> globalZones;
-
-	globalZones.push_back("global-templates");
-	globalZones.push_back("director-global");
-
-	NodeUtility::GenerateNodeMasterIcingaConfig(globalZones);
+	NodeUtility::GenerateNodeMasterIcingaConfig({ "global-templates", "director-global" });
 
 	/* apilistener config */
 	std::cout << ConsoleColorTag(Console_Bold)

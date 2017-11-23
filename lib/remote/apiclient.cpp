@@ -39,11 +39,7 @@ void ApiClient::GetTypes(const TypesCompletionCallback& callback) const
 	url->SetScheme("https");
 	url->SetHost(m_Connection->GetHost());
 	url->SetPort(m_Connection->GetPort());
-
-	std::vector<String> path;
-	path.push_back("v1");
-	path.push_back("types");
-	url->SetPath(path);
+	url->SetPath({ "v1", "types" });
 
 	try {
 		std::shared_ptr<HttpRequest> req = m_Connection->NewRequest();
@@ -110,12 +106,7 @@ void ApiClient::GetObjects(const String& pluralType, const ObjectsCompletionCall
 	url->SetScheme("https");
 	url->SetHost(m_Connection->GetHost());
 	url->SetPort(m_Connection->GetPort());
-
-	std::vector<String> path;
-	path.push_back("v1");
-	path.push_back("objects");
-	path.push_back(pluralType);
-	url->SetPath(path);
+	url->SetPath({ "v1", "objects", pluralType });
 
 	std::map<String, std::vector<String> > params;
 
@@ -236,12 +227,7 @@ void ApiClient::ExecuteScript(const String& session, const String& command, bool
 	url->SetScheme("https");
 	url->SetHost(m_Connection->GetHost());
 	url->SetPort(m_Connection->GetPort());
-
-	std::vector<String> path;
-	path.push_back("v1");
-	path.push_back("console");
-	path.push_back("execute-script");
-	url->SetPath(path);
+	url->SetPath({ "v1", "console", "execute-script" });
 
 	std::map<String, std::vector<String> > params;
 	params["session"].push_back(session);
@@ -320,12 +306,7 @@ void ApiClient::AutocompleteScript(const String& session, const String& command,
 	url->SetScheme("https");
 	url->SetHost(m_Connection->GetHost());
 	url->SetPort(m_Connection->GetPort());
-
-	std::vector<String> path;
-	path.push_back("v1");
-	path.push_back("console");
-	path.push_back("auto-complete-script");
-	url->SetPath(path);
+	url->SetPath({ "v1", "console", "auto-complete-script" });
 
 	std::map<String, std::vector<String> > params;
 	params["session"].push_back(session);

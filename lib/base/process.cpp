@@ -574,10 +574,7 @@ Process::Arguments Process::PrepareCommand(const Value& command)
 #ifdef _WIN32
 	return command;
 #else /* _WIN32 */
-	args.push_back("sh");
-	args.push_back("-c");
-	args.push_back(command);
-	return args;
+	return { "sh", "-c", command };
 #endif
 }
 
