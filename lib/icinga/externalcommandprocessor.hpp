@@ -29,12 +29,19 @@
 namespace icinga
 {
 
+typedef std::function<void (double, const std::vector<String>& arguments)> ExternalCommandCallback;
+
+struct ExternalCommandInfo
+{
+	ExternalCommandCallback Callback;
+	size_t MinArgs;
+	size_t MaxArgs;
+};
+
 class I2_ICINGA_API ExternalCommandProcessor {
 public:
 	static void Execute(const String& line);
 	static void Execute(double time, const String& command, const std::vector<String>& arguments);
-
-	static void StaticInitialize(void);
 
 	static boost::signals2::signal<void(double, const String&, const std::vector<String>&)> OnNewExternalCommand;
 
@@ -165,6 +172,13 @@ private:
 
 private:
 	static void ChangeCustomCommandVarInternal(const Command::Ptr& command, const String& name, const Value& value);
+
+	static void RegisterCommand(const String& command, const ExternalCommandCallback& callback, size_t minArgs = 0, size_t maxArgs = UINT_MAX);
+	static void RegisterCommands(void);
+
+	static boost::mutex& GetMutex(void);
+	static std::map<String, ExternalCommandInfo>& GetCommands(void);
+
 };
 
 }

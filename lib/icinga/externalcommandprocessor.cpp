@@ -43,39 +43,7 @@
 
 using namespace icinga;
 
-INITIALIZE_ONCE(&ExternalCommandProcessor::StaticInitialize);
-
-typedef std::function<void (double, const std::vector<String>& arguments)> ExternalCommandCallback;
-
-struct ExternalCommandInfo
-{
-	ExternalCommandCallback Callback;
-	size_t MinArgs;
-	size_t MaxArgs;
-};
-
-static boost::mutex& GetMutex(void)
-{
-	static boost::mutex mtx;
-	return mtx;
-}
-static std::map<String, ExternalCommandInfo>& GetCommands(void)
-{
-	static std::map<String, ExternalCommandInfo> commands;
-	return commands;
-}
-
-boost::signals2::signal<void (double, const String&, const std::vector<String>&)> ExternalCommandProcessor::OnNewExternalCommand;
-
-static void RegisterCommand(const String& command, const ExternalCommandCallback& callback, size_t minArgs = 0, size_t maxArgs = UINT_MAX)
-{
-	boost::mutex::scoped_lock lock(GetMutex());
-	ExternalCommandInfo eci;
-	eci.Callback = callback;
-	eci.MinArgs = minArgs;
-	eci.MaxArgs = (maxArgs == UINT_MAX) ? minArgs : maxArgs;
-	GetCommands()[command] = eci;
-}
+boost::signals2::signal<void(double, const String&, const std::vector<String>&)> ExternalCommandProcessor::OnNewExternalCommand;
 
 void ExternalCommandProcessor::Execute(const String& line)
 {
@@ -156,7 +124,17 @@ void ExternalCommandProcessor::Execute(double time, const String& command, const
 	eci.Callback(time, realArguments);
 }
 
-void ExternalCommandProcessor::StaticInitialize(void)
+void ExternalCommandProcessor::RegisterCommand(const String& command, const ExternalCommandCallback& callback, size_t minArgs, size_t maxArgs)
+{
+	boost::mutex::scoped_lock lock(GetMutex());
+	ExternalCommandInfo eci;
+	eci.Callback = callback;
+	eci.MinArgs = minArgs;
+	eci.MaxArgs = (maxArgs == UINT_MAX) ? minArgs : maxArgs;
+	GetCommands()[command] = eci;
+}
+
+void ExternalCommandProcessor::RegisterCommands(void)
 {
 	RegisterCommand("PROCESS_HOST_CHECK_RESULT", &ExternalCommandProcessor::ProcessHostCheckResult, 3);
 	RegisterCommand("PROCESS_SERVICE_CHECK_RESULT", &ExternalCommandProcessor::ProcessServiceCheckResult, 4);
@@ -2254,3 +2232,16 @@ void ExternalCommandProcessor::DisableServicegroupSvcNotifications(double, const
 		service->ModifyAttribute("enable_notifications", false);
 	}
 }
+
+boost::mutex& ExternalCommandProcessor::GetMutex(void)
+{
+	static boost::mutex mtx;
+	return mtx;
+}
+
+std::map<String, ExternalCommandInfo>& ExternalCommandProcessor::GetCommands(void)
+{
+	static std::map<String, ExternalCommandInfo> commands;
+	return commands;
+}
+
