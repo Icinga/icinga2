@@ -264,25 +264,27 @@ int ConsoleCommand::Run(const po::variables_map& vm, const std::vector<std::stri
 		}
 	}
 
+	String commandFileName;
+
 	if (vm.count("eval"))
 		command = vm["eval"].as<std::string>();
 	else if (vm.count("file")) {
-		std::string fname = vm["file"].as<std::string>();
+		commandFileName = vm["file"].as<std::string>();
 
 		try {
-			std::ifstream fp(fname.c_str());
+			std::ifstream fp(commandFileName.CStr());
 			fp.exceptions(std::ifstream::failbit | std::ifstream::badbit);
 			command = String(std::istreambuf_iterator<char>(fp), std::istreambuf_iterator<char>());
 		} catch (const std::exception&) {
-			std::cerr << "Could not read file '" << fname << "'." << std::endl;
+			std::cerr << "Could not read file '" << commandFileName << "'." << std::endl;
 			return EXIT_FAILURE;
 		}
 	}
 
-	return RunScriptConsole(scriptFrame, addr, session, command, syntaxOnly);
+	return RunScriptConsole(scriptFrame, addr, session, command, commandFileName, syntaxOnly);
 }
 
-int ConsoleCommand::RunScriptConsole(ScriptFrame& scriptFrame, const String& addr, const String& session, const String& commandOnce, bool syntaxOnly)
+int ConsoleCommand::RunScriptConsole(ScriptFrame& scriptFrame, const String& addr, const String& session, const String& commandOnce, const String& commandOnceFileName, bool syntaxOnly)
 {
 	std::map<String, String> lines;
 	int next_line = 1;
@@ -329,7 +331,13 @@ int ConsoleCommand::RunScriptConsole(ScriptFrame& scriptFrame, const String& add
 	}
 
 	while (std::cin.good()) {
-		String fileName = "<" + Convert::ToString(next_line) + ">";
+		String fileName;
+
+		if (commandOnceFileName.IsEmpty())
+			fileName = "<" + Convert::ToString(next_line) + ">";
+		else
+			fileName = commandOnceFileName;
+
 		next_line++;
 
 		bool continuation = false;
@@ -448,7 +456,7 @@ incomplete:
 
 			DebugInfo di = ex.GetDebugInfo();
 
-			if (lines.find(di.Path) != lines.end()) {
+			if (commandOnceFileName.IsEmpty() && lines.find(di.Path) != lines.end()) {
 				String text = lines[di.Path];
 
 				std::vector<String> ulines;

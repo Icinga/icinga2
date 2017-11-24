@@ -47,7 +47,8 @@ public:
 	virtual int Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const override;
 
 	static int RunScriptConsole(ScriptFrame& scriptFrame, const String& addr = String(),
-	    const String& session = String(), const String& commandOnce = String(), bool syntaxOnly = false);
+	    const String& session = String(), const String& commandOnce = String(), const String& commandOnceFileName = String(),
+	    bool syntaxOnly = false);
 
 private:
 	mutable boost::mutex m_Mutex;
