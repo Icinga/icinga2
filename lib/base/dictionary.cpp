@@ -209,14 +209,14 @@ String Dictionary::ToString(void) const
 	return msgbuf.str();
 }
 
-Value Dictionary::GetFieldByName(const String& field, bool, const DebugInfo& debugInfo) const
+Value Dictionary::GetFieldByName(const String& field, bool sandboxed, const DebugInfo& debugInfo) const
 {
 	Value value;
 
 	if (Get(field, &value))
 		return value;
 	else
-		return GetPrototypeField(const_cast<Dictionary *>(this), field, false, debugInfo);
+		return Object::GetFieldByName(field, sandboxed, debugInfo);
 }
 
 void Dictionary::SetFieldByName(const String& field, const Value& value, const DebugInfo&)
