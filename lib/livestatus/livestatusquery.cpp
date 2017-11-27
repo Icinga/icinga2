@@ -571,6 +571,17 @@ void LivestatusQuery::ExecuteGetHelper(const Stream::Ptr& stream)
 
 			AppendResultRow(result, row, first_row);
 		}
+
+		/* add a bogus zero value if aggregated is empty*/
+		if (allStats.empty()) {
+			Array::Ptr row = new Array();
+
+			for (size_t i = 1; i <= m_Aggregators.size(); i++) {
+				row->Add(0);
+			}
+
+			AppendResultRow(result, row, first_row);
+		}
 	}
 
 	EndResultSet(result);
