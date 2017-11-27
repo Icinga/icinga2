@@ -340,7 +340,9 @@ wizard_ticket:
 	/* Check whether we can connect to the parent node and fetch the client and CA certificate. */
 	if (connectToParent) {
 		std::cout << ConsoleColorTag(Console_Bold)
-		    << "\nPlease specify the request ticket generated on your Icinga 2 master (optional)."
+		    << "\nPlease specify the request ticket generated on your Icinga 2 master "
+		    << ConsoleColorTag(Console_Normal) << "(optional)"
+		    << ConsoleColorTag(Console_Bold) << "."
 		    << ConsoleColorTag(Console_Normal) << "\n"
 		    << " (Hint: # icinga2 pki ticket --cn '" << cn << "'): ";
 
@@ -408,17 +410,20 @@ wizard_ticket:
 
 	/* apilistener config */
 	std::cout << ConsoleColorTag(Console_Bold)
-	    << "\nPlease specify the API bind host/port"
-	    << ConsoleColorTag(Console_Normal) << " (optional):\n"
-	    << ConsoleColorTag(Console_Bold) << "Bind Host"
-	    << ConsoleColorTag(Console_Normal) << " []: ";
+	    << "Please specify the API bind host/port "
+	    << ConsoleColorTag(Console_Normal) << "(optional)"
+	    << ConsoleColorTag(Console_Bold) << ":\n";
+
+	std::cout << ConsoleColorTag(Console_Bold)
+	    << "Bind Host" << ConsoleColorTag(Console_Normal) << " []: ";
 
 	std::getline(std::cin, answer);
 
 	String bindHost = answer;
 	bindHost = bindHost.Trim();
 
-	std::cout << "Bind Port []: ";
+	std::cout << ConsoleColorTag(Console_Bold)
+	    << "Bind Port" << ConsoleColorTag(Console_Normal) << " []: ";
 
 	std::getline(std::cin, answer);
 
@@ -608,7 +613,10 @@ int NodeWizardCommand::MasterSetup(void) const
 
 	/* apilistener config */
 	std::cout << ConsoleColorTag(Console_Bold)
-	    << "Please specify the API bind host/port (optional):\n";
+	    << "Please specify the API bind host/port "
+	    << ConsoleColorTag(Console_Normal) << "(optional)"
+	    << ConsoleColorTag(Console_Bold) << ":\n";
+
 	std::cout << ConsoleColorTag(Console_Bold)
 	    << "Bind Host" << ConsoleColorTag(Console_Normal) << " []: ";
 
