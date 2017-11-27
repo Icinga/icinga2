@@ -264,6 +264,9 @@ void InfluxdbWriter::SendPerfdata(const Dictionary::Ptr& tmpl, const Checkable::
 				if (pdv->GetMax())
 					fields->Set("max", pdv->GetMax());
 			}
+			if (!pdv->GetUnit().IsEmpty()) {
+ 				fields->Set("unit", pdv->GetUnit());
+ 			}
 
 			SendMetric(tmpl, pdv->GetLabel(), fields, ts);
 		}

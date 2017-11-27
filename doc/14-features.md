@@ -269,7 +269,7 @@ expects the InfluxDB daemon to listen at `127.0.0.1` on port `8086`.
 
 Measurement names and tags are fully configurable by the end user. The InfluxdbWriter
 object will automatically add a `metric` tag to each data point. This correlates to the
-perfdata label. Fields (value, warn, crit, min, max) are created from data if available
+perfdata label. Fields (value, warn, crit, min, max, unit) are created from data if available
 and the configuration allows it.  If a value associated with a tag is not able to be
 resolved, it will be dropped and not sent to the target host.
 
