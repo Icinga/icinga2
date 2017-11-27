@@ -35,7 +35,7 @@ and API usage specifying the certificate files used for ssl
 authorization and additional restrictions.
 This configuration object is available as [api feature](11-cli-commands.md#cli-command-feature).
 
-The `NodeName` constant must be defined in [constants.conf](04-configuring-icinga-2.md#constants-conf).
+The `TicketSalt` constant must be defined in [constants.conf](04-configuring-icinga-2.md#constants-conf).
 
 Example:
 
@@ -446,7 +446,7 @@ You can create downtimes with the [schedule-downtime](12-icinga2-api.md#icinga2-
 Example:
 
 ```
-object Downtime "localhost!my-downtime" {
+object Downtime "my-downtime" {
   host_name = "localhost"
   author = "icingaadmin"
   comment = "This is a downtime."
