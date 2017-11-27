@@ -1100,6 +1100,22 @@ radius_expect      | **Optional.** The response string to expect from the server
 radius_retries     | **Optional.** The number of times to retry a failed connection.
 radius_timeout     | **Optional.** The number of seconds before connection times out (default: 10).
 
+### rpc <a id="plugin-check-command-rpc"></a>
+
+The [check_rpc](https://www.monitoring-plugins.org/doc/man/check_rpc.html)
+plugin tests if a service is registered and running using `rpcinfo -H host -C rpc_command`.
+
+Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name        | Description
+---         | ---
+rpc_address | **Optional.** The rpc host address. Defaults to "$address$ if the host `address` attribute is set, "$address6$" otherwise.
+rpc_command | **Required.** The programm name (or number).
+rpc_port    | **Optional.** The port that should be checked.
+rpc_version | **Optional.** The version you want to check for (one or more).
+rpc_udp     | **Optional.** Use UDP test. Defaults to false.
+rpc_tcp     | **Optional.** Use TCP test. Defaults to false.
+rpc_verbose | **Optional.** Show verbose output. Defaults to false.
 
 ### simap <a id="plugin-check-command-simap"></a>
 
