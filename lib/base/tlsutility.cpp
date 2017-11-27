@@ -89,6 +89,17 @@ boost::shared_ptr<SSL_CTX> MakeSSLContext(const String& pubkey, const String& pr
 
 	boost::shared_ptr<SSL_CTX> sslContext = boost::shared_ptr<SSL_CTX>(SSL_CTX_new(SSLv23_method()), SSL_CTX_free);
 
+	EC_KEY *ecdh = EC_KEY_new_by_curve_name(NID_secp384r1);
+
+	if (!ecdh)
+		Log(LogWarning, "SSL", "Failed to generate EC private key using EC_KEY_new_by_curve_name().");
+	else {
+		if (SSL_CTX_set_tmp_ecdh(sslContext.get(), ecdh) != 1)
+			Log(LogWarning, "SSL", "Failed to set ECDH parameters for SSL context using SSL_CTX_set_tmp_ecdh.");
+	}
+
+	EC_KEY_free(ecdh);
+
 	long flags = SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_CIPHER_SERVER_PREFERENCE;
 
 #ifdef SSL_OP_NO_COMPRESSION
@@ -325,7 +336,31 @@ int MakeX509CSR(const String& cn, const String& keyfile, const String& csrfile, 
 
 	InitializeOpenSSL();
 
-	RSA *rsa = RSA_generate_key(4096, RSA_F4, NULL, NULL);
+	EC_KEY *eckey = EC_KEY_new_by_curve_name(NID_secp384r1);
+	EC_KEY_set_asn1_flag(eckey, OPENSSL_EC_NAMED_CURVE);
+
+	if (!EC_KEY_generate_key(eckey)) {
+		EC_KEY_free(eckey);
+
+		Log(LogCritical, "SSL")
+		    << "Error while generating EC key pair: " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
+		BOOST_THROW_EXCEPTION(openssl_error()
+		    << boost::errinfo_api_function("EC_KEY_generate_key")
+		    << errinfo_openssl_error(ERR_peek_error()));
+	}
+
+	EVP_PKEY *key = EVP_PKEY_new();
+
+	if (!EVP_PKEY_assign_EC_KEY(key, eckey)) {
+		EVP_PKEY_free(key);
+		EC_KEY_free(eckey);
+
+		Log(LogCritical, "SSL")
+		    << "Error while assigning EC key to EVP_PKEY structure: " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
+		BOOST_THROW_EXCEPTION(openssl_error()
+		    << boost::errinfo_api_function("EC_KEY_generate_key")
+		    << errinfo_openssl_error(ERR_peek_error()));
+	}
 
 	Log(LogInformation, "base")
 	    << "Writing private key to '" << keyfile << "'.";
@@ -333,19 +368,26 @@ int MakeX509CSR(const String& cn, const String& keyfile, const String& csrfile, 
 	BIO *bio = BIO_new_file(const_cast<char *>(keyfile.CStr()), "w");
 
 	if (!bio) {
+		EVP_PKEY_free(key);
+		EC_KEY_free(eckey);
+
 		Log(LogCritical, "SSL")
-		    << "Error while opening private RSA key file '" << keyfile << "': " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
+		    << "Error while opening private key file '" << keyfile << "': " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
 		BOOST_THROW_EXCEPTION(openssl_error()
 		    << boost::errinfo_api_function("BIO_new_file")
 		    << errinfo_openssl_error(ERR_peek_error())
 		    << boost::errinfo_file_name(keyfile));
 	}
 
-	if (!PEM_write_bio_RSAPrivateKey(bio, rsa, NULL, NULL, 0, NULL, NULL)) {
+	if (!PEM_write_bio_PrivateKey(bio, key, NULL, NULL, 0, 0, NULL)) {
+		EVP_PKEY_free(key);
+		EC_KEY_free(eckey);
+		BIO_free(bio);
+
 		Log(LogCritical, "SSL")
-		    << "Error while writing private RSA key to file '" << keyfile << "': " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
+		    << "Error while writing private key to file '" << keyfile << "': " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
 		BOOST_THROW_EXCEPTION(openssl_error()
-		    << boost::errinfo_api_function("PEM_write_bio_RSAPrivateKey")
+		    << boost::errinfo_api_function("PEM_write_bio_PrivateKey")
 		    << errinfo_openssl_error(ERR_peek_error())
 		    << boost::errinfo_file_name(keyfile));
 	}
@@ -355,10 +397,7 @@ int MakeX509CSR(const String& cn, const String& keyfile, const String& csrfile, 
 #ifndef _WIN32
 	chmod(keyfile.CStr(), 0600);
 #endif /* _WIN32 */
-	
-	EVP_PKEY *key = EVP_PKEY_new();
-	EVP_PKEY_assign_RSA(key, rsa);
-	
+
 	if (!certfile.IsEmpty()) {
 		X509_NAME *subject = X509_NAME_new();
 		X509_NAME_add_entry_by_txt(subject, "CN", MBSTRING_ASC, (unsigned char *)cn.CStr(), -1, -1, 0);
@@ -545,8 +584,6 @@ boost::shared_ptr<X509> CreateCertIcingaCA(EVP_PKEY *pubkey, X509_NAME *subject)
 
 	String cakeyfile = cadir + "/ca.key";
 
-	RSA *rsa;
-
 	BIO *cakeybio = BIO_new_file(const_cast<char *>(cakeyfile.CStr()), "r");
 
 	if (!cakeybio) {
@@ -555,11 +592,11 @@ boost::shared_ptr<X509> CreateCertIcingaCA(EVP_PKEY *pubkey, X509_NAME *subject)
 		return boost::shared_ptr<X509>();
 	}
 
-	rsa = PEM_read_bio_RSAPrivateKey(cakeybio, NULL, NULL, NULL);
+	EVP_PKEY *privkey = PEM_read_bio_PrivateKey(cakeybio, NULL, NULL, NULL);
 
-	if (!rsa) {
+	if (!privkey) {
 		Log(LogCritical, "SSL")
-		    << "Could not read RSA key from CA key file '" << cakeyfile << "': " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
+		    << "Could not read private key from CA key file '" << cakeyfile << "': " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
 		return boost::shared_ptr<X509>();
 	}
 
@@ -568,9 +605,6 @@ boost::shared_ptr<X509> CreateCertIcingaCA(EVP_PKEY *pubkey, X509_NAME *subject)
 	String cacertfile = cadir + "/ca.crt";
 
 	boost::shared_ptr<X509> cacert = GetX509Certificate(cacertfile);
-
-	EVP_PKEY *privkey = EVP_PKEY_new();
-	EVP_PKEY_assign_RSA(privkey, rsa);
 
 	return CreateCert(pubkey, subject, X509_get_subject_name(cacert.get()), privkey, false);
 }
