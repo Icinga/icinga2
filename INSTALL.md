@@ -30,7 +30,7 @@ parentheses):
 * C++ compiler which supports C++11 (gcc-c++ >= 4.7 on RHEL/SUSE, build-essential on Debian, alternatively clang++, build-base on Alpine)
  * RedHat Developer Tools on RHEL5/6 (details on building below)
 * pkg-config
-* OpenSSL library and header files >= 0.9.8 (openssl-devel on RHEL, libopenssl1-devel on SLES11,
+* OpenSSL library and header files >= 1.0.1 (openssl-devel on RHEL, libopenssl1-devel on SLES11,
 libopenssl-devel on SLES12, libssl-dev on Debian, libressl-dev on Alpine)
 * Boost library and header files >= 1.48.0 (boost148-devel on EPEL for RHEL / CentOS, libboost-all-dev on Debian, boost-dev on Alpine)
 * GNU bison (bison)
