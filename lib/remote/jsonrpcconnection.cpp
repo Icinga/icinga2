@@ -208,11 +208,12 @@ void JsonRpcConnection::MessageHandler(const String& jsonString)
 	try {
 		ApiFunction::Ptr afunc = ApiFunction::GetByName(method);
 
-		if (!afunc)
-			Log(LogWarning, "JsonRpcConnection")
+		if (!afunc) {
+			Log(LogNotice, "JsonRpcConnection")
 			    << "Call to non-existent function '" << method << "' from endpoint '" << m_Identity << "'.";
-		else
+		} else {
 			resultMessage->Set("result", afunc->Invoke(origin, message->Get("params")));
+		}
 	} catch (const std::exception& ex) {
 		/* TODO: Add a user readable error message for the remote caller */
 		String diagInfo = DiagnosticInformation(ex);
