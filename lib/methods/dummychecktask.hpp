@@ -17,31 +17,31 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-object CheckCommand "icinga" {
-	import "icinga-check-command"
+#ifndef DUMMYCHECKTASK_H
+#define DUMMYCHECKTASK_H
+
+#include "methods/i2-methods.hpp"
+#include "icinga/service.hpp"
+#include "base/dictionary.hpp"
+
+namespace icinga
+{
+
+/**
+ * Test class for additional check types. Implements the "dummy" check type.
+ *
+ * @ingroup methods
+ */
+class I2_METHODS_API DummyCheckTask
+{
+public:
+	static void ScriptFunc(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr,
+	    const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros);
+
+private:
+	DummyCheckTask(void);
+};
+
 }
 
-object CheckCommand "cluster" {
-	import "cluster-check-command"
-}
-
-object CheckCommand "cluster-zone" {
-	import "cluster-zone-check-command"
-
-	vars.cluster_zone = "$host.name$"
-}
-
-object CheckCommand "dummy" {
-	import "dummy-check-command"
-
-	vars.dummy_state = 0
-	vars.dummy_text = "Check was successful."
-}
-
-object CheckCommand "random" {
-	import "random-check-command"
-}
-
-object CheckCommand "exception" {
-	import "exception-check-command"
-}
+#endif /* DUMMYCHECKTASK_H */

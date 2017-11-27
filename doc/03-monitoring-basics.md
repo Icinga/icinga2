@@ -144,7 +144,7 @@ detail how to set up your own check commands.
 #### Host Check Alternatives <a id="host-check-alternatives"></a>
 
 If the host is not reachable with ICMP, HTTP, etc. you can
-also use the [dummy](10-icinga-template-library.md#plugin-check-command-dummy) CheckCommand to set a default state.
+also use the [dummy](10-icinga-template-library.md#itl-dummy) CheckCommand to set a default state.
 
 ```
 object Host "dummy-host" {

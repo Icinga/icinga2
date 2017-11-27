@@ -108,6 +108,21 @@ Name         | Description
 ido\_type    | **Required.** The type of the IDO connection object. Can be either "IdoMysqlConnection" or "IdoPgsqlConnection".
 ido\_name    | **Required.** The name of the IDO connection object.
 
+### dummy <a id="itl-dummy"></a>
+
+Check command for the built-in `dummy` check. This allows to set
+a check result state and output and can be used in [freshness checks](08-advanced-topics.md#check-result-freshness)
+or [runtime object checks](08-advanced-topics.md#access-object-attributes-at-runtime).
+In contrast to the [check_dummy](https://www.monitoring-plugins.org/doc/man/check_dummy.html)
+plugin, Icinga 2 implements a light-weight in memory check with 2.9+.
+
+Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name            | Description
+----------------|--------------
+dummy\_state     | **Optional.** The state. Can be one of 0 (ok), 1 (warning), 2 (critical) and 3 (unknown). Defaults to 0.
+dummy\_text      | **Optional.** Plugin output. Defaults to "Check was successful.".
+
 ### random <a id="itl-random"></a>
 
 Check command for the built-in `random` check. This check returns random states
@@ -349,19 +364,6 @@ dns_wtime            | **Optional.** Return warning if elapsed time exceeds valu
 dns_ctime            | **Optional.** Return critical if elapsed time exceeds value.
 dns_timeout          | **Optional.** Seconds before connection times out. Defaults to 10.
 
-
-### dummy <a id="plugin-check-command-dummy"></a>
-
-The [check_dummy](https://www.monitoring-plugins.org/doc/man/check_dummy.html) plugin
-will simply return the state corresponding to the numeric value of the `dummy_state`
-argument with optional text.
-
-Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
-
-Name            | Description
-----------------|--------------
-dummy_state     | **Optional.** The state. Can be one of 0 (ok), 1 (warning), 2 (critical) and 3 (unknown). Defaults to 0.
-dummy_text      | **Optional.** Plugin output. Defaults to "Check was successful.".
 
 
 ### file_age <a id="plugin-check-command-file-age"></a>

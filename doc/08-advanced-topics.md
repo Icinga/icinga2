@@ -380,7 +380,7 @@ the threshold is based on the last time a check result was received:
 
 If the freshness checks fail, Icinga 2 will execute the defined check command.
 
-Best practice is to define a [dummy](10-icinga-template-library.md#plugin-check-command-dummy) `check_command` which gets
+Best practice is to define a [dummy](10-icinga-template-library.md#itl-dummy) `check_command` which gets
 executed when freshness checks fail.
 
 ```
