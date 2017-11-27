@@ -32,6 +32,7 @@
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/replace.hpp>
+#include <boost/uuid/uuid_io.hpp>
 #include <ios>
 #include <fstream>
 #include <iostream>
@@ -438,27 +439,8 @@ void Utility::Sleep(double timeout)
  */
 String Utility::NewUniqueID(void)
 {
-	static boost::mutex mutex;
-	static int next_id = 0;
-
-	/* I'd much rather use UUIDs but RHEL is way too cool to have
-	 * a semi-recent version of boost. Yay. */
-
-	String id;
-
-	char buf[128];
-	if (gethostname(buf, sizeof(buf)) == 0)
-		id = String(buf) + "-";
-
-	id += Convert::ToString((long)Utility::GetTime()) + "-";
-
-	{
-		boost::mutex::scoped_lock lock(mutex);
-		id += Convert::ToString(next_id);
-		next_id++;
-	}
-
-	return id;
+	boost::uuids::uuid u;
+	return boost::lexical_cast<std::string>(u);
 }
 
 #ifdef _WIN32
