@@ -1354,37 +1354,37 @@ double ApiListener::CalculateZoneLag(const Endpoint::Ptr& endpoint)
 
 void ApiListener::AddAnonymousClient(const JsonRpcConnection::Ptr& aclient)
 {
-	boost::mutex::scoped_lock(m_AnonymousClientsLock);
+	boost::mutex::scoped_lock lock(m_AnonymousClientsLock);
 	m_AnonymousClients.insert(aclient);
 }
 
 void ApiListener::RemoveAnonymousClient(const JsonRpcConnection::Ptr& aclient)
 {
-	boost::mutex::scoped_lock(m_AnonymousClientsLock);
+	boost::mutex::scoped_lock lock(m_AnonymousClientsLock);
 	m_AnonymousClients.erase(aclient);
 }
 
 std::set<JsonRpcConnection::Ptr> ApiListener::GetAnonymousClients(void) const
 {
-	boost::mutex::scoped_lock(m_AnonymousClientsLock);
+	boost::mutex::scoped_lock lock(m_AnonymousClientsLock);
 	return m_AnonymousClients;
 }
 
 void ApiListener::AddHttpClient(const HttpServerConnection::Ptr& aclient)
 {
-	boost::mutex::scoped_lock(m_HttpClientsLock);
+	boost::mutex::scoped_lock lock(m_HttpClientsLock);
 	m_HttpClients.insert(aclient);
 }
 
 void ApiListener::RemoveHttpClient(const HttpServerConnection::Ptr& aclient)
 {
-	boost::mutex::scoped_lock(m_HttpClientsLock);
+	boost::mutex::scoped_lock lock(m_HttpClientsLock);
 	m_HttpClients.erase(aclient);
 }
 
 std::set<HttpServerConnection::Ptr> ApiListener::GetHttpClients(void) const
 {
-	boost::mutex::scoped_lock(m_HttpClientsLock);
+	boost::mutex::scoped_lock lock(m_HttpClientsLock);
 	return m_HttpClients;
 }
 
