@@ -73,7 +73,9 @@ enum FieldAttribute
 	FANavigation = 512,
 	FANoUserModify = 1024,
 	FANoUserView = 2048,
-	FADeprecated = 4096
+	FADeprecated = 4096,
+	FAGetVirtual = 8192,
+	FASetVirtual = 16384
 };
 
 struct FieldType
