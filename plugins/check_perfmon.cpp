@@ -372,19 +372,19 @@ INT PrintOutput(CONST po::variables_map& vm, printInfoStruct& pi)
 	wssPerfData << pi.dValue << ';' << pi.tWarn.pString() << ';' << pi.tCrit.pString() << ";;";
 
 	if (pi.tCrit.rend(pi.dValue)) {
-		std::wcout << "PERFMON CRITICAL \"" << pi.wsFullPath << "\" = "
-			<< pi.dValue << " | " << wssPerfData.str() << '\n';
+		std::wcout << "PERFMON CRITICAL \"" << (vm.count("perf-syntax") ? vm["perf-syntax"].as<std::wstring>() : pi.wsFullPath)
+		    << "\" = " << pi.dValue << " | " << wssPerfData.str() << '\n';
 		return 2;
 	}
 
 	if (pi.tWarn.rend(pi.dValue)) {
-		std::wcout << "PERFMON WARNING \"" << pi.wsFullPath << "\" = "
-			<< pi.dValue << " | " << wssPerfData.str() << '\n';
+		std::wcout << "PERFMON WARNING \"" << (vm.count("perf-syntax") ? vm["perf-syntax"].as<std::wstring>() : pi.wsFullPath)
+		    << "\" = " << pi.dValue << " | " << wssPerfData.str() << '\n';
 		return 1;
 	}
 
-	std::wcout << "PERFMON OK \"" << pi.wsFullPath << "\" = "
-		<< pi.dValue << " | " << wssPerfData.str() << '\n';
+	std::wcout << "PERFMON OK \"" << (vm.count("perf-syntax") ? vm["perf-syntax"].as<std::wstring>() : pi.wsFullPath)
+	    << "\" = " << pi.dValue << " | " << wssPerfData.str() << '\n';
 	return 0;
 }
 
