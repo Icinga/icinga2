@@ -213,10 +213,6 @@ int NodeSetupCommand::SetupMaster(const boost::program_options::variables_map& v
 			<< "CN '" << cn << "' does not match the default FQDN '" << Utility::GetFQDN() << "'. Requires update for NodeName constant in constants.conf!";
 	}
 
-	Log(LogInformation, "cli", "Updating constants.conf.");
-
-	NodeUtility::CreateBackupFile(Application::GetSysconfDir() + "/icinga2/constants.conf");
-
 	NodeUtility::UpdateConstant("NodeName", cn);
 	NodeUtility::UpdateConstant("ZoneName", cn);
 
@@ -439,10 +435,6 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 		Log(LogWarning, "cli")
 		    << "CN '" << cn << "' does not match the default FQDN '" << Utility::GetFQDN() << "'. Requires an update for the NodeName constant in constants.conf!";
 	}
-
-	Log(LogInformation, "cli", "Updating constants.conf.");
-
-	NodeUtility::CreateBackupFile(Application::GetSysconfDir() + "/icinga2/constants.conf");
 
 	NodeUtility::UpdateConstant("NodeName", cn);
 	NodeUtility::UpdateConstant("ZoneName", vm["zone"].as<std::string>());
