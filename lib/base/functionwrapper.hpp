@@ -17,390 +17,115 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef SCRIPTFUNCTIONWRAPPER_H
-#define SCRIPTFUNCTIONWRAPPER_H
+#ifndef FUNCTIONWRAPPER_H
+#define FUNCTIONWRAPPER_H
 
 #include "base/i2-base.hpp"
 #include "base/value.hpp"
 #include <vector>
+#include <type_traits>
 
 using namespace std::placeholders;
 
 namespace icinga
 {
 
-Value FunctionWrapperVV(void (*function)(void), const std::vector<Value>& arguments);
-Value FunctionWrapperVA(void (*function)(const std::vector<Value>&), const std::vector<Value>& arguments);
-
-std::function<Value (const std::vector<Value>& arguments)> I2_BASE_API WrapFunction(void (*function)(void));
-
-template<typename TR>
-Value FunctionWrapperR(TR (*function)(void), const std::vector<Value>&)
+inline std::function<Value (const std::vector<Value>&)> WrapFunction(const std::function<Value(const std::vector<Value>&)>& function)
 {
-	return function();
+	return function;
 }
 
-template<typename TR>
-std::function<Value (const std::vector<Value>& arguments)> WrapFunction(TR (*function)(void))
+inline std::function<Value (const std::vector<Value>&)> WrapFunction(void (*function)(const std::vector<Value>&))
 {
-	return std::bind(&FunctionWrapperR<TR>, function, _1);
+	return [function](const std::vector<Value>& arguments) {
+		function(arguments);
+		return Empty;
+	};
 }
-
-template<typename T0>
-Value FunctionWrapperV(void (*function)(T0), const std::vector<Value>& arguments)
+template<typename Return>
+std::function<Value (const std::vector<Value>&)> WrapFunction(Return (*function)(const std::vector<Value>&))
 {
-	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function."));
-	else if (arguments.size() > 1)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Too many arguments for function."));
-
-	function(static_cast<T0>(arguments[0]));
-
-	return Empty;
+	return [function](const std::vector<Value>& arguments) {
+		return static_cast<Value>(function(arguments));
+	};
 }
 
-template<typename T0>
-std::function<Value (const std::vector<Value>& arguments)> WrapFunction(void (*function)(T0))
+template <std::size_t... Indices>
+struct indices {
+	using next = indices<Indices..., sizeof...(Indices)>;
+};
+
+template <std::size_t N>
+struct build_indices {
+	using type = typename build_indices<N-1>::type::next;
+};
+
+template <>
+struct build_indices<0> {
+	using type = indices<>;
+};
+
+template <std::size_t N>
+using BuildIndices = typename build_indices<N>::type;
+
+struct unpack_caller
 {
-	return std::bind(&FunctionWrapperV<T0>, function, _1);
-}
+private:
+	template <typename FuncType, size_t... I>
+	auto call(FuncType f, const std::vector<Value>& args, indices<I...>) -> decltype(f(args[I]...))
+	{
+		return f(args[I]...);
+	}
 
-template<typename TR, typename T0>
-Value FunctionWrapperR(TR (*function)(T0), const std::vector<Value>& arguments)
+public:
+	template <typename FuncType>
+	auto operator () (FuncType f, const std::vector<Value>& args)
+	    -> decltype(call(f, args, BuildIndices<boost::function_traits<typename boost::remove_pointer<FuncType>::type>::arity>{}))
+	{
+		return call(f, args, BuildIndices<boost::function_traits<typename boost::remove_pointer<FuncType>::type>::arity>{});
+	}
+};
+
+enum class enabler_t {};
+
+template<bool T>
+using EnableIf = typename std::enable_if<T, enabler_t>::type;
+
+template<typename FuncType>
+std::function<Value (const std::vector<Value>&)> WrapFunction(FuncType function,
+    EnableIf<std::is_same<decltype(unpack_caller()(FuncType(), std::vector<Value>())), void>::value>* = 0)
 {
-	if (arguments.size() < 1)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function."));
-	else if (arguments.size() > 1)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Too many arguments for function."));
+	return [function](const std::vector<Value>& arguments) {
+		constexpr int arity = boost::function_traits<typename boost::remove_pointer<FuncType>::type>::arity;
 
-	return function(static_cast<T0>(arguments[0]));
+		if (arguments.size() < arity)
+			BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function."));
+		else if (arguments.size() > arity)
+			BOOST_THROW_EXCEPTION(std::invalid_argument("Too many arguments for function."));
+
+		unpack_caller()(function, arguments);
+		return Empty;
+	};
 }
 
-template<typename TR, typename T0>
-std::function<Value (const std::vector<Value>& arguments)> WrapFunction(TR (*function)(T0))
+template<typename FuncType>
+std::function<Value (const std::vector<Value>&)> WrapFunction(FuncType function,
+		EnableIf<!std::is_same<decltype(unpack_caller()(FuncType(), std::vector<Value>())), void>::value>* = 0)
 {
-	return std::bind(&FunctionWrapperR<TR, T0>, function, _1);
-}
+	return [function](const std::vector<Value>& arguments) {
+		constexpr int arity = boost::function_traits<typename boost::remove_pointer<FuncType>::type>::arity;
 
-template<typename T0, typename T1>
-Value FunctionWrapperV(void (*function)(T0, T1), const std::vector<Value>& arguments)
-{
-	if (arguments.size() < 2)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function."));
-	else if (arguments.size() > 2)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Too many arguments for function."));
+		if (arity > 0) {
+			if (arguments.size() < arity)
+				BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function."));
+			else if (arguments.size() > arity)
+				BOOST_THROW_EXCEPTION(std::invalid_argument("Too many arguments for function."));
+		}
 
-	function(static_cast<T0>(arguments[0]),
-	    static_cast<T1>(arguments[1]));
-
-	return Empty;
-}
-
-template<typename T0, typename T1>
-std::function<Value (const std::vector<Value>& arguments)> WrapFunction(void (*function)(T0, T1))
-{
-	return std::bind(&FunctionWrapperV<T0, T1>, function, _1);
-}
-
-template<typename TR, typename T0, typename T1>
-Value FunctionWrapperR(TR (*function)(T0, T1), const std::vector<Value>& arguments)
-{
-	if (arguments.size() < 2)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function."));
-	else if (arguments.size() > 2)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Too many arguments for function."));
-
-	return function(static_cast<T0>(arguments[0]),
-	    static_cast<T1>(arguments[1]));
-}
-
-template<typename TR, typename T0, typename T1>
-std::function<Value (const std::vector<Value>& arguments)> WrapFunction(TR (*function)(T0, T1))
-{
-	return std::bind(&FunctionWrapperR<TR, T0, T1>, function, _1);
-}
-
-template<typename T0, typename T1, typename T2>
-Value FunctionWrapperV(void (*function)(T0, T1, T2), const std::vector<Value>& arguments)
-{
-	if (arguments.size() < 3)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function."));
-	else if (arguments.size() > 3)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Too many arguments for function."));
-
-	function(static_cast<T0>(arguments[0]),
-	    static_cast<T1>(arguments[1]),
-	    static_cast<T2>(arguments[2]));
-
-	return Empty;
-}
-
-template<typename T0, typename T1, typename T2>
-std::function<Value (const std::vector<Value>& arguments)> WrapFunction(void (*function)(T0, T1, T2))
-{
-	return std::bind(&FunctionWrapperV<T0, T1, T2>, function, _1);
-}
-
-template<typename TR, typename T0, typename T1, typename T2>
-Value FunctionWrapperR(TR (*function)(T0, T1, T2), const std::vector<Value>& arguments)
-{
-	if (arguments.size() < 3)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function."));
-	else if (arguments.size() > 3)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Too many arguments for function."));
-
-	return function(static_cast<T0>(arguments[0]),
-	    static_cast<T1>(arguments[1]),
-	    static_cast<T2>(arguments[2]));
-}
-
-template<typename TR, typename T0, typename T1, typename T2>
-std::function<Value (const std::vector<Value>& arguments)> WrapFunction(TR (*function)(T0, T1, T2))
-{
-	return std::bind(&FunctionWrapperR<TR, T0, T1, T2>, function, _1);
-}
-
-template<typename T0, typename T1, typename T2, typename T3>
-Value FunctionWrapperV(void (*function)(T0, T1, T2, T3), const std::vector<Value>& arguments)
-{
-	if (arguments.size() < 4)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function."));
-	else if (arguments.size() > 4)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Too many arguments for function."));
-
-	function(static_cast<T0>(arguments[0]),
-	    static_cast<T1>(arguments[1]),
-	    static_cast<T2>(arguments[2]),
-	    static_cast<T3>(arguments[3]));
-
-	return Empty;
-}
-
-template<typename T0, typename T1, typename T2, typename T3>
-std::function<Value (const std::vector<Value>& arguments)> WrapFunction(void (*function)(T0, T1, T2, T3))
-{
-	return std::bind(&FunctionWrapperV<T0, T1, T2, T3>, function, _1);
-}
-
-template<typename TR, typename T0, typename T1, typename T2, typename T3>
-Value FunctionWrapperR(TR (*function)(T0, T1, T2, T3), const std::vector<Value>& arguments)
-{
-	if (arguments.size() < 4)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function."));
-	else if (arguments.size() > 4)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Too many arguments for function."));
-
-	return function(static_cast<T0>(arguments[0]),
-	    static_cast<T1>(arguments[1]),
-	    static_cast<T2>(arguments[2]),
-	    static_cast<T3>(arguments[3]));
-}
-
-template<typename TR, typename T0, typename T1, typename T2, typename T3>
-std::function<Value (const std::vector<Value>& arguments)> WrapFunction(TR (*function)(T0, T1, T2, T3))
-{
-	return std::bind(&FunctionWrapperR<TR, T0, T1, T2, T3>, function, _1);
-}
-
-template<typename T0, typename T1, typename T2, typename T3, typename T4>
-Value FunctionWrapperV(void (*function)(T0, T1, T2, T3, T4), const std::vector<Value>& arguments)
-{
-	if (arguments.size() < 5)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function."));
-	else if (arguments.size() > 5)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Too many arguments for function."));
-
-	function(static_cast<T0>(arguments[0]),
-	    static_cast<T1>(arguments[1]),
-	    static_cast<T2>(arguments[2]),
-	    static_cast<T3>(arguments[3]),
-	    static_cast<T4>(arguments[4]));
-
-	return Empty;
-}
-
-template<typename T0, typename T1, typename T2, typename T3, typename T4>
-std::function<Value (const std::vector<Value>& arguments)> WrapFunction(void (*function)(T0, T1, T2, T3, T4))
-{
-	return std::bind(&FunctionWrapperV<T0, T1, T2, T3, T4>, function, _1);
-}
-
-template<typename TR, typename T0, typename T1, typename T2, typename T3, typename T4>
-Value FunctionWrapperR(TR (*function)(T0, T1, T2, T3, T4), const std::vector<Value>& arguments)
-{
-	if (arguments.size() < 5)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function."));
-	else if (arguments.size() > 5)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Too many arguments for function."));
-
-	return function(static_cast<T0>(arguments[0]),
-	    static_cast<T1>(arguments[1]),
-	    static_cast<T2>(arguments[2]),
-	    static_cast<T3>(arguments[3]),
-	    static_cast<T4>(arguments[4]));
-}
-
-template<typename TR, typename T0, typename T1, typename T2, typename T3, typename T4>
-std::function<Value (const std::vector<Value>& arguments)> WrapFunction(TR (*function)(T0, T1, T2, T3, T4))
-{
-	return std::bind(&FunctionWrapperR<TR, T0, T1, T2, T3, T4>, function, _1);
-}
-
-template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5>
-Value FunctionWrapperV(void (*function)(T0, T1, T2, T3, T4, T5), const std::vector<Value>& arguments)
-{
-	if (arguments.size() < 6)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function."));
-	else if (arguments.size() > 6)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Too many arguments for function."));
-
-	function(static_cast<T0>(arguments[0]),
-	    static_cast<T1>(arguments[1]),
-	    static_cast<T2>(arguments[2]),
-	    static_cast<T3>(arguments[3]),
-	    static_cast<T4>(arguments[4]),
-	    static_cast<T5>(arguments[5]));
-
-	return Empty;
-}
-
-template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5>
-std::function<Value (const std::vector<Value>& arguments)> WrapFunction(void (*function)(T0, T1, T2, T3, T4, T5))
-{
-	return std::bind(&FunctionWrapperV<T0, T1, T2, T3, T4, T5>, function, _1);
-}
-
-template<typename TR, typename T0, typename T1, typename T2, typename T3, typename T4, typename T5>
-Value FunctionWrapperR(TR (*function)(T0, T1, T2, T3, T4, T5), const std::vector<Value>& arguments)
-{
-	if (arguments.size() < 6)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function."));
-	else if (arguments.size() > 6)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Too many arguments for function."));
-
-	return function(static_cast<T0>(arguments[0]),
-	    static_cast<T1>(arguments[1]),
-	    static_cast<T2>(arguments[2]),
-	    static_cast<T3>(arguments[3]),
-	    static_cast<T4>(arguments[4]),
-	    static_cast<T5>(arguments[5]));
-}
-
-template<typename TR, typename T0, typename T1, typename T2, typename T3, typename T4, typename T5>
-std::function<Value (const std::vector<Value>& arguments)> WrapFunction(TR (*function)(T0, T1, T2, T3, T4, T5))
-{
-	return std::bind(&FunctionWrapperR<TR, T0, T1, T2, T3, T4, T5>, function, _1);
-}
-
-template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
-Value FunctionWrapperV(void (*function)(T0, T1, T2, T3, T4, T5, T6), const std::vector<Value>& arguments)
-{
-	if (arguments.size() < 7)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function."));
-	else if (arguments.size() > 7)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Too many arguments for function."));
-
-	function(static_cast<T0>(arguments[0]),
-	    static_cast<T1>(arguments[1]),
-	    static_cast<T2>(arguments[2]),
-	    static_cast<T3>(arguments[3]),
-	    static_cast<T4>(arguments[4]),
-	    static_cast<T5>(arguments[5]),
-	    static_cast<T6>(arguments[6]));
-
-	return Empty;
-}
-
-template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
-std::function<Value (const std::vector<Value>& arguments)> WrapFunction(void (*function)(T0, T1, T2, T3, T4, T5, T6))
-{
-	return std::bind(&FunctionWrapperV<T0, T1, T2, T3, T4, T5, T6>, function, _1);
-}
-
-template<typename TR, typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
-Value FunctionWrapperR(TR (*function)(T0, T1, T2, T3, T4, T5, T6), const std::vector<Value>& arguments)
-{
-	if (arguments.size() < 7)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function."));
-	else if (arguments.size() > 7)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Too many arguments for function."));
-
-	return function(static_cast<T0>(arguments[0]),
-	    static_cast<T1>(arguments[1]),
-	    static_cast<T2>(arguments[2]),
-	    static_cast<T3>(arguments[3]),
-	    static_cast<T4>(arguments[4]),
-	    static_cast<T5>(arguments[5]),
-	    static_cast<T6>(arguments[6]));
-}
-
-template<typename TR, typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
-std::function<Value (const std::vector<Value>& arguments)> WrapFunction(TR (*function)(T0, T1, T2, T3, T4, T5, T6))
-{
-	return std::bind(&FunctionWrapperR<TR, T0, T1, T2, T3, T4, T5, T6>, function, _1);
-}
-
-template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7>
-Value FunctionWrapperV(void (*function)(T0, T1, T2, T3, T4, T5, T6, T7), const std::vector<Value>& arguments)
-{
-	if (arguments.size() < 8)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function."));
-	else if (arguments.size() > 8)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Too many arguments for function."));
-
-	function(static_cast<T0>(arguments[0]),
-	    static_cast<T1>(arguments[1]),
-	    static_cast<T2>(arguments[2]),
-	    static_cast<T3>(arguments[3]),
-	    static_cast<T4>(arguments[4]),
-	    static_cast<T5>(arguments[5]),
-	    static_cast<T6>(arguments[6]),
-	    static_cast<T7>(arguments[7]));
-
-	return Empty;
-}
-
-template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7>
-std::function<Value (const std::vector<Value>& arguments)> WrapFunction(void (*function)(T0, T1, T2, T3, T4, T5, T6, T7))
-{
-	return std::bind(&FunctionWrapperV<T0, T1, T2, T3, T4, T5, T6, T7>, function, _1);
-}
-
-template<typename TR, typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7>
-Value FunctionWrapperR(TR (*function)(T0, T1, T2, T3, T4, T5, T6, T7), const std::vector<Value>& arguments)
-{
-	if (arguments.size() < 8)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function."));
-	else if (arguments.size() > 8)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Too many arguments for function."));
-
-	return function(static_cast<T0>(arguments[0]),
-	    static_cast<T1>(arguments[1]),
-	    static_cast<T2>(arguments[2]),
-	    static_cast<T3>(arguments[3]),
-	    static_cast<T4>(arguments[4]),
-	    static_cast<T5>(arguments[5]),
-	    static_cast<T6>(arguments[6]),
-	    static_cast<T7>(arguments[7]));
-}
-
-template<typename TR, typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7>
-std::function<Value (const std::vector<Value>& arguments)> WrapFunction(TR (*function)(T0, T1, T2, T3, T4, T5, T6, T7))
-{
-	return std::bind(&FunctionWrapperR<TR, T0, T1, T2, T3, T4, T5, T6, T7>, function, _1);
-}
-
-template<typename TR>
-std::function<TR (const std::vector<Value>& arguments)> WrapFunction(TR (*function)(const std::vector<Value>&))
-{
-	return std::bind<TR>(function, _1);
-}
-
-inline std::function<Value (const std::vector<Value>& arguments)> WrapFunction(void (*function)(const std::vector<Value>&))
-{
-	return std::bind(&FunctionWrapperVA, function, _1);
+		return unpack_caller()(function, arguments);
+	};
 }
 
 }
 
-#endif /* SCRIPTFUNCTION_H */
+#endif /* FUNCTIONWRAPPER_H */

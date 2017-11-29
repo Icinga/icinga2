@@ -35,8 +35,8 @@ INITIALIZE_ONCE([]() {
 	Dictionary::Ptr jsonObj = new Dictionary();
 
 	/* Methods */
-	jsonObj->Set("encode", new Function("Json#encode", WrapFunction(JsonEncodeShim), { "value" }, true));
-	jsonObj->Set("decode", new Function("Json#decode", WrapFunction(JsonDecode), { "value" }, true));
+	jsonObj->Set("encode", new Function("Json#encode", JsonEncodeShim, { "value" }, true));
+	jsonObj->Set("decode", new Function("Json#decode", JsonDecode, { "value" }, true));
 
 	ScriptGlobal::Set("Json", jsonObj);
 });

@@ -39,7 +39,7 @@ Object::Ptr DateTime::GetPrototype(void)
 
 	if (!prototype) {
 		prototype = new Dictionary();
-		prototype->Set("format", new Function("DateTime#format", WrapFunction(DateTimeFormat), { "format" }));
+		prototype->Set("format", new Function("DateTime#format", DateTimeFormat, { "format" }));
 	}
 
 	return prototype;

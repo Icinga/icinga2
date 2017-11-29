@@ -31,7 +31,7 @@ struct LivestatusFixture
 	{
 		BOOST_TEST_MESSAGE("Preparing config objects...");
 
-		ConfigItem::RunWithActivationContext(new Function("CreateTestObjects", WrapFunction(CreateTestObjects)));
+		ConfigItem::RunWithActivationContext(new Function("CreateTestObjects", CreateTestObjects));
 	}
 
 	static void CreateTestObjects(void)

@@ -145,17 +145,17 @@ Object::Ptr String::GetPrototype(void)
 
 	if (!prototype) {
 		prototype = new Dictionary();
-		prototype->Set("len", new Function("String#len", WrapFunction(StringLen), {}, true));
-		prototype->Set("to_string", new Function("String#to_string", WrapFunction(StringToString), {}, true));
-		prototype->Set("substr", new Function("String#substr", WrapFunction(StringSubstr), { "start", "len" }, true));
-		prototype->Set("upper", new Function("String#upper", WrapFunction(StringUpper), {}, true));
-		prototype->Set("lower", new Function("String#lower", WrapFunction(StringLower), {}, true));
-		prototype->Set("split", new Function("String#split", WrapFunction(StringSplit), { "delims" }, true));
-		prototype->Set("find", new Function("String#find", WrapFunction(StringFind), { "str", "start" }, true));
-		prototype->Set("contains", new Function("String#contains", WrapFunction(StringContains), { "str" }, true));
-		prototype->Set("replace", new Function("String#replace", WrapFunction(StringReplace), { "search", "replacement" }, true));
-		prototype->Set("reverse", new Function("String#reverse", WrapFunction(StringReverse), {}, true));
-		prototype->Set("trim", new Function("String#trim", WrapFunction(StringTrim), {}, true));
+		prototype->Set("len", new Function("String#len", StringLen, {}, true));
+		prototype->Set("to_string", new Function("String#to_string", StringToString, {}, true));
+		prototype->Set("substr", new Function("String#substr", StringSubstr, { "start", "len" }, true));
+		prototype->Set("upper", new Function("String#upper", StringUpper, {}, true));
+		prototype->Set("lower", new Function("String#lower", StringLower, {}, true));
+		prototype->Set("split", new Function("String#split", StringSplit, { "delims" }, true));
+		prototype->Set("find", new Function("String#find", StringFind, { "str", "start" }, true));
+		prototype->Set("contains", new Function("String#contains", StringContains, { "str" }, true));
+		prototype->Set("replace", new Function("String#replace", StringReplace, { "search", "replacement" }, true));
+		prototype->Set("reverse", new Function("String#reverse", StringReverse, {}, true));
+		prototype->Set("trim", new Function("String#trim", StringTrim, {}, true));
 	}
 
 	return prototype;
