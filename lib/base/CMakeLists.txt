@@ -34,7 +34,7 @@ set(base_SOURCES
   json-script.cpp loader.cpp logger.cpp logger.thpp math-script.cpp
   netstring.cpp networkstream.cpp number.cpp number-script.cpp object.cpp
   object-script.cpp objecttype.cpp primitivetype.cpp process.cpp ringbuffer.cpp scriptframe.cpp
-  function.cpp function.thpp function-script.cpp functionwrapper.cpp
+  function.cpp function.thpp function-script.cpp
   perfdatavalue.cpp perfdatavalue.thpp scriptglobal.cpp
   scriptutils.cpp serializer.cpp socket.cpp socketevents.cpp socketevents-epoll.cpp socketevents-poll.cpp stacktrace.cpp
   statsfunction.cpp stdiostream.cpp stream.cpp streamlogger.cpp streamlogger.thpp string.cpp string-script.cpp

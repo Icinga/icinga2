@@ -109,11 +109,27 @@ public:
 
 	}
 
-	static inline Value NewFunction(ScriptFrame& frame, const String& name, const std::vector<String>& args,
+	static inline Value NewFunction(ScriptFrame& frame, const String& name, const std::vector<String>& argNames,
 	    std::map<String, Expression *> *closedVars, const boost::shared_ptr<Expression>& expression)
 	{
-		return new Function(name, std::bind(&FunctionWrapper, _1, args,
-		    EvaluateClosedVars(frame, closedVars), expression), args);
+		auto evaluatedClosedVars = EvaluateClosedVars(frame, closedVars);
+
+		auto wrapper = [argNames, evaluatedClosedVars, expression](const std::vector<Value>& arguments) {
+			if (arguments.size() < argNames.size())
+				BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function"));
+
+			ScriptFrame *frame = ScriptFrame::GetCurrentFrame();
+
+			if (evaluatedClosedVars)
+				evaluatedClosedVars->CopyTo(frame->Locals);
+
+			for (std::vector<Value>::size_type i = 0; i < std::min(arguments.size(), argNames.size()); i++)
+				frame->Locals->Set(argNames[i], arguments[i]);
+
+			return expression->Evaluate(*frame);
+		};
+
+		return new Function(name, wrapper, argNames);
 	}
 
 	static inline Value NewApply(ScriptFrame& frame, const String& type, const String& target, const String& name, const boost::shared_ptr<Expression>& filter,
@@ -236,23 +252,6 @@ public:
 	}
 
 private:
-	static inline Value FunctionWrapper(const std::vector<Value>& arguments,
-	    const std::vector<String>& funcargs, const Dictionary::Ptr& closedVars, const boost::shared_ptr<Expression>& expr)
-	{
-		if (arguments.size() < funcargs.size())
-			BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function"));
-
-		ScriptFrame *frame = ScriptFrame::GetCurrentFrame();
-
-		if (closedVars)
-			closedVars->CopyTo(frame->Locals);
-
-		for (std::vector<Value>::size_type i = 0; i < std::min(arguments.size(), funcargs.size()); i++)
-			frame->Locals->Set(funcargs[i], arguments[i]);
-
-		return expr->Evaluate(*frame);
-	}
-
 	static inline Dictionary::Ptr EvaluateClosedVars(ScriptFrame& frame, std::map<String, Expression *> *closedVars)
 	{
 		Dictionary::Ptr locals;

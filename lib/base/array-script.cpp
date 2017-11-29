@@ -265,23 +265,23 @@ Object::Ptr Array::GetPrototype(void)
 
 	if (!prototype) {
 		prototype = new Dictionary();
-		prototype->Set("len", new Function("Array#len", WrapFunction(ArrayLen), {}, true));
-		prototype->Set("set", new Function("Array#set", WrapFunction(ArraySet), { "index", "value" }));
-		prototype->Set("get", new Function("Array#get", WrapFunction(ArrayGet), { "index" }));
-		prototype->Set("add", new Function("Array#add", WrapFunction(ArrayAdd), { "value" }));
-		prototype->Set("remove", new Function("Array#remove", WrapFunction(ArrayRemove), { "index" }));
-		prototype->Set("contains", new Function("Array#contains", WrapFunction(ArrayContains), { "value" }, true));
-		prototype->Set("clear", new Function("Array#clear", WrapFunction(ArrayClear)));
-		prototype->Set("sort", new Function("Array#sort", WrapFunction(ArraySort), { "less_cmp" }, true));
-		prototype->Set("shallow_clone", new Function("Array#shallow_clone", WrapFunction(ArrayShallowClone), {}, true));
-		prototype->Set("join", new Function("Array#join", WrapFunction(ArrayJoin), { "separator" }, true));
-		prototype->Set("reverse", new Function("Array#reverse", WrapFunction(ArrayReverse), {}, true));
-		prototype->Set("map", new Function("Array#map", WrapFunction(ArrayMap), { "func" }, true));
-		prototype->Set("reduce", new Function("Array#reduce", WrapFunction(ArrayReduce), { "reduce" }, true));
-		prototype->Set("filter", new Function("Array#filter", WrapFunction(ArrayFilter), { "func" }, true));
-		prototype->Set("any", new Function("Array#any", WrapFunction(ArrayAny), { "func" }, true));
-		prototype->Set("all", new Function("Array#all", WrapFunction(ArrayAll), { "func" }, true));
-		prototype->Set("unique", new Function("Array#unique", WrapFunction(ArrayUnique), {}, true));
+		prototype->Set("len", new Function("Array#len", ArrayLen, {}, true));
+		prototype->Set("set", new Function("Array#set", ArraySet, { "index", "value" }));
+		prototype->Set("get", new Function("Array#get", ArrayGet, { "index" }));
+		prototype->Set("add", new Function("Array#add", ArrayAdd, { "value" }));
+		prototype->Set("remove", new Function("Array#remove", ArrayRemove, { "index" }));
+		prototype->Set("contains", new Function("Array#contains", ArrayContains, { "value" }, true));
+		prototype->Set("clear", new Function("Array#clear", ArrayClear));
+		prototype->Set("sort", new Function("Array#sort", ArraySort, { "less_cmp" }, true));
+		prototype->Set("shallow_clone", new Function("Array#shallow_clone", ArrayShallowClone, {}, true));
+		prototype->Set("join", new Function("Array#join", ArrayJoin, { "separator" }, true));
+		prototype->Set("reverse", new Function("Array#reverse", ArrayReverse, {}, true));
+		prototype->Set("map", new Function("Array#map", ArrayMap, { "func" }, true));
+		prototype->Set("reduce", new Function("Array#reduce", ArrayReduce, { "reduce" }, true));
+		prototype->Set("filter", new Function("Array#filter", ArrayFilter, { "func" }, true));
+		prototype->Set("any", new Function("Array#any", ArrayAny, { "func" }, true));
+		prototype->Set("all", new Function("Array#all", ArrayAll, { "func" }, true));
+		prototype->Set("unique", new Function("Array#unique", ArrayUnique, {}, true));
 	}
 
 	return prototype;
