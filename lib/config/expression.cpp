@@ -428,6 +428,7 @@ ExpressionResult FunctionCallExpression::DoEvaluate(ScriptFrame& frame, DebugHin
 
 	if (vfunc.IsObjectType<Type>()) {
 		std::vector<Value> arguments;
+		arguments.reserve(m_Args.size());
 		for (Expression *arg : m_Args) {
 			ExpressionResult argres = arg->Evaluate(frame);
 			CHECK_RESULT(argres);
@@ -447,6 +448,7 @@ ExpressionResult FunctionCallExpression::DoEvaluate(ScriptFrame& frame, DebugHin
 		BOOST_THROW_EXCEPTION(ScriptError("Function is not marked as safe for sandbox mode.", m_DebugInfo));
 
 	std::vector<Value> arguments;
+	arguments.reserve(m_Args.size());
 	for (Expression *arg : m_Args) {
 		ExpressionResult argres = arg->Evaluate(frame);
 		CHECK_RESULT(argres);
