@@ -375,7 +375,7 @@ bool TroubleshootCommand::PrintCrashReports(InfoLog& log)
 	String bestFilename;
 
 	try {
-		Utility::Glob(spath, boost::bind(&GetLatestReport, _1, boost::ref(bestTimestamp),
+		Utility::Glob(spath, std::bind(&GetLatestReport, _1, boost::ref(bestTimestamp),
 		    boost::ref(bestFilename)), GlobFile);
 	}
 #ifdef _WIN32

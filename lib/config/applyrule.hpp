@@ -23,7 +23,6 @@
 #include "config/i2-config.hpp"
 #include "config/expression.hpp"
 #include "base/debuginfo.hpp"
-#include <boost/function.hpp>
 
 namespace icinga
 {

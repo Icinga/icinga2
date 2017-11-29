@@ -22,7 +22,6 @@
 
 #include "livestatus/i2-livestatus.hpp"
 #include "base/value.hpp"
-#include <boost/function.hpp>
 
 using namespace icinga;
 
@@ -38,8 +37,8 @@ enum LivestatusGroupByType {
 class I2_LIVESTATUS_API Column
 {
 public:
-	typedef boost::function<Value (const Value&)> ValueAccessor;
-	typedef boost::function<Value (const Value&, LivestatusGroupByType, const Object::Ptr&)> ObjectAccessor;
+	typedef std::function<Value (const Value&)> ValueAccessor;
+	typedef std::function<Value (const Value&, LivestatusGroupByType, const Object::Ptr&)> ObjectAccessor;
 
 	Column(const ValueAccessor& valueAccessor, const ObjectAccessor& objectAccessor);
 

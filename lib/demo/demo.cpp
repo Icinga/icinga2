@@ -39,7 +39,7 @@ void Demo::Start(bool runtimeCreated)
 
 	m_DemoTimer = new Timer();
 	m_DemoTimer->SetInterval(5);
-	m_DemoTimer->OnTimerExpired.connect(boost::bind(&Demo::DemoTimerHandler, this));
+	m_DemoTimer->OnTimerExpired.connect(std::bind(&Demo::DemoTimerHandler, this));
 	m_DemoTimer->Start();
 }
 

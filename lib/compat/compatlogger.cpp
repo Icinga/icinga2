@@ -63,19 +63,19 @@ void CompatLogger::Start(bool runtimeCreated)
 	Log(LogInformation, "CompatLogger")
 	    << "'" << GetName() << "' started.";
 
-	Checkable::OnNewCheckResult.connect(bind(&CompatLogger::CheckResultHandler, this, _1, _2));
-	Checkable::OnNotificationSentToUser.connect(bind(&CompatLogger::NotificationSentHandler, this, _1, _2, _3, _4, _5, _6, _7, _8));
-	Downtime::OnDowntimeTriggered.connect(boost::bind(&CompatLogger::TriggerDowntimeHandler, this, _1));
-	Downtime::OnDowntimeRemoved.connect(boost::bind(&CompatLogger::RemoveDowntimeHandler, this, _1));
-	Checkable::OnEventCommandExecuted.connect(bind(&CompatLogger::EventCommandHandler, this, _1));
+	Checkable::OnNewCheckResult.connect(std::bind(&CompatLogger::CheckResultHandler, this, _1, _2));
+	Checkable::OnNotificationSentToUser.connect(std::bind(&CompatLogger::NotificationSentHandler, this, _1, _2, _3, _4, _5, _6, _7, _8));
+	Downtime::OnDowntimeTriggered.connect(std::bind(&CompatLogger::TriggerDowntimeHandler, this, _1));
+	Downtime::OnDowntimeRemoved.connect(std::bind(&CompatLogger::RemoveDowntimeHandler, this, _1));
+	Checkable::OnEventCommandExecuted.connect(std::bind(&CompatLogger::EventCommandHandler, this, _1));
 	
-	Checkable::OnFlappingChanged.connect(boost::bind(&CompatLogger::FlappingChangedHandler, this, _1));
-	Checkable::OnEnableFlappingChanged.connect(boost::bind(&CompatLogger::EnableFlappingChangedHandler, this, _1));
+	Checkable::OnFlappingChanged.connect(std::bind(&CompatLogger::FlappingChangedHandler, this, _1));
+	Checkable::OnEnableFlappingChanged.connect(std::bind(&CompatLogger::EnableFlappingChangedHandler, this, _1));
 	
-	ExternalCommandProcessor::OnNewExternalCommand.connect(boost::bind(&CompatLogger::ExternalCommandHandler, this, _2, _3));
+	ExternalCommandProcessor::OnNewExternalCommand.connect(std::bind(&CompatLogger::ExternalCommandHandler, this, _2, _3));
 
 	m_RotationTimer = new Timer();
-	m_RotationTimer->OnTimerExpired.connect(boost::bind(&CompatLogger::RotationTimerHandler, this));
+	m_RotationTimer->OnTimerExpired.connect(std::bind(&CompatLogger::RotationTimerHandler, this));
 	m_RotationTimer->Start();
 
 	ReopenFile(false);

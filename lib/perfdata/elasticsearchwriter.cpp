@@ -35,6 +35,7 @@
 #include "base/exception.hpp"
 #include "base/statsfunction.hpp"
 #include <boost/algorithm/string.hpp>
+#include <boost/scoped_array.hpp>
 
 using namespace icinga;
 
@@ -83,19 +84,19 @@ void ElasticsearchWriter::Start(bool runtimeCreated)
  	Log(LogInformation, "ElasticsearchWriter")
 	    << "'" << GetName() << "' started.";
 
-	m_WorkQueue.SetExceptionCallback(boost::bind(&ElasticsearchWriter::ExceptionHandler, this, _1));
+	m_WorkQueue.SetExceptionCallback(std::bind(&ElasticsearchWriter::ExceptionHandler, this, _1));
 
 	/* Setup timer for periodically flushing m_DataBuffer */
 	m_FlushTimer = new Timer();
 	m_FlushTimer->SetInterval(GetFlushInterval());
-	m_FlushTimer->OnTimerExpired.connect(boost::bind(&ElasticsearchWriter::FlushTimeout, this));
+	m_FlushTimer->OnTimerExpired.connect(std::bind(&ElasticsearchWriter::FlushTimeout, this));
 	m_FlushTimer->Start();
 	m_FlushTimer->Reschedule(0);
 
 	/* Register for new metrics. */
-	Checkable::OnNewCheckResult.connect(boost::bind(&ElasticsearchWriter::CheckResultHandler, this, _1, _2));
-	Checkable::OnStateChange.connect(boost::bind(&ElasticsearchWriter::StateChangeHandler, this, _1, _2, _3));
-	Checkable::OnNotificationSentToAllUsers.connect(boost::bind(&ElasticsearchWriter::NotificationSentToAllUsersHandler, this, _1, _2, _3, _4, _5, _6, _7));
+	Checkable::OnNewCheckResult.connect(std::bind(&ElasticsearchWriter::CheckResultHandler, this, _1, _2));
+	Checkable::OnStateChange.connect(std::bind(&ElasticsearchWriter::StateChangeHandler, this, _1, _2, _3));
+	Checkable::OnNotificationSentToAllUsers.connect(std::bind(&ElasticsearchWriter::NotificationSentToAllUsersHandler, this, _1, _2, _3, _4, _5, _6, _7));
 }
 
 void ElasticsearchWriter::Stop(bool runtimeRemoved)
@@ -175,7 +176,7 @@ void ElasticsearchWriter::AddCheckResult(const Dictionary::Ptr& fields, const Ch
 
 void ElasticsearchWriter::CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
 {
-	m_WorkQueue.Enqueue(boost::bind(&ElasticsearchWriter::InternalCheckResultHandler, this, checkable, cr));
+	m_WorkQueue.Enqueue(std::bind(&ElasticsearchWriter::InternalCheckResultHandler, this, checkable, cr));
 }
 
 void ElasticsearchWriter::InternalCheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
@@ -229,7 +230,7 @@ void ElasticsearchWriter::InternalCheckResultHandler(const Checkable::Ptr& check
 
 void ElasticsearchWriter::StateChangeHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, StateType type)
 {
-	m_WorkQueue.Enqueue(boost::bind(&ElasticsearchWriter::StateChangeHandlerInternal, this, checkable, cr, type));
+	m_WorkQueue.Enqueue(std::bind(&ElasticsearchWriter::StateChangeHandlerInternal, this, checkable, cr, type));
 }
 
 void ElasticsearchWriter::StateChangeHandlerInternal(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, StateType type)
@@ -278,7 +279,7 @@ void ElasticsearchWriter::NotificationSentToAllUsersHandler(const Notification::
     const Checkable::Ptr& checkable, const std::set<User::Ptr>& users, NotificationType type,
     const CheckResult::Ptr& cr, const String& author, const String& text)
 {
-	m_WorkQueue.Enqueue(boost::bind(&ElasticsearchWriter::NotificationSentToAllUsersHandlerInternal, this,
+	m_WorkQueue.Enqueue(std::bind(&ElasticsearchWriter::NotificationSentToAllUsersHandlerInternal, this,
 	    notification, checkable, users, type, cr, author, text));
 }
 

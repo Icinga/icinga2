@@ -85,16 +85,16 @@ void IdoMysqlConnection::Resume(void)
 
 	SetConnected(false);
 
-	m_QueryQueue.SetExceptionCallback(boost::bind(&IdoMysqlConnection::ExceptionHandler, this, _1));
+	m_QueryQueue.SetExceptionCallback(std::bind(&IdoMysqlConnection::ExceptionHandler, this, _1));
 
 	m_TxTimer = new Timer();
 	m_TxTimer->SetInterval(1);
-	m_TxTimer->OnTimerExpired.connect(boost::bind(&IdoMysqlConnection::TxTimerHandler, this));
+	m_TxTimer->OnTimerExpired.connect(std::bind(&IdoMysqlConnection::TxTimerHandler, this));
 	m_TxTimer->Start();
 
 	m_ReconnectTimer = new Timer();
 	m_ReconnectTimer->SetInterval(10);
-	m_ReconnectTimer->OnTimerExpired.connect(boost::bind(&IdoMysqlConnection::ReconnectTimerHandler, this));
+	m_ReconnectTimer->OnTimerExpired.connect(std::bind(&IdoMysqlConnection::ReconnectTimerHandler, this));
 	m_ReconnectTimer->Start();
 	m_ReconnectTimer->Reschedule(0);
 
@@ -115,7 +115,7 @@ void IdoMysqlConnection::Pause(void)
 	    << "Rescheduling disconnect task.";
 #endif /* I2_DEBUG */
 
-	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::Disconnect, this), PriorityHigh);
+	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::Disconnect, this), PriorityHigh);
 	m_QueryQueue.Join();
 }
 
@@ -163,8 +163,8 @@ void IdoMysqlConnection::NewTransaction(void)
 	    << "Scheduling new transaction and finishing async queries.";
 #endif /* I2_DEBUG */
 
-	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::InternalNewTransaction, this), PriorityHigh);
-	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::FinishAsyncQueries, this), PriorityHigh);
+	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::InternalNewTransaction, this), PriorityHigh);
+	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::FinishAsyncQueries, this), PriorityHigh);
 }
 
 void IdoMysqlConnection::InternalNewTransaction(void)
@@ -185,7 +185,7 @@ void IdoMysqlConnection::ReconnectTimerHandler(void)
 	    << "Scheduling reconnect task.";
 #endif /* I2_DEBUG */
 
-	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::Reconnect, this), PriorityLow);
+	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::Reconnect, this), PriorityLow);
 }
 
 void IdoMysqlConnection::Reconnect(void)
@@ -444,9 +444,9 @@ void IdoMysqlConnection::Reconnect(void)
 	    << "Scheduling session table clear and finish connect task.";
 #endif /* I2_DEBUG */
 
-	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::ClearTablesBySession, this), PriorityLow);
+	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::ClearTablesBySession, this), PriorityLow);
 
-	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::FinishConnect, this, startTime), PriorityLow);
+	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::FinishConnect, this, startTime), PriorityLow);
 }
 
 void IdoMysqlConnection::FinishConnect(double startTime)
@@ -479,7 +479,7 @@ void IdoMysqlConnection::ClearTableBySession(const String& table)
 	    Convert::ToString(GetSessionToken()));
 }
 
-void IdoMysqlConnection::AsyncQuery(const String& query, const boost::function<void (const IdoMysqlResult&)>& callback)
+void IdoMysqlConnection::AsyncQuery(const String& query, const std::function<void (const IdoMysqlResult&)>& callback)
 {
 	AssertOnWorkQueue();
 
@@ -715,7 +715,7 @@ void IdoMysqlConnection::ActivateObject(const DbObject::Ptr& dbobj)
 	    << "Scheduling object activation task for '" << dbobj->GetName1() << "!" << dbobj->GetName2() << "'.";
 #endif /* I2_DEBUG */
 
-	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::InternalActivateObject, this, dbobj), PriorityLow);
+	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::InternalActivateObject, this, dbobj), PriorityLow);
 }
 
 void IdoMysqlConnection::InternalActivateObject(const DbObject::Ptr& dbobj)
@@ -754,7 +754,7 @@ void IdoMysqlConnection::DeactivateObject(const DbObject::Ptr& dbobj)
 	    << "Scheduling object deactivation task for '" << dbobj->GetName1() << "!" << dbobj->GetName2() << "'.";
 #endif /* I2_DEBUG */
 
-	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::InternalDeactivateObject, this, dbobj), PriorityLow);
+	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::InternalDeactivateObject, this, dbobj), PriorityLow);
 }
 
 void IdoMysqlConnection::InternalDeactivateObject(const DbObject::Ptr& dbobj)
@@ -859,7 +859,7 @@ void IdoMysqlConnection::ExecuteQuery(const DbQuery& query)
 	    << "Scheduling execute query task, type " << query.Type << ", table '" << query.Table << "'.";
 #endif /* I2_DEBUG */
 
-	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::InternalExecuteQuery, this, query, -1), query.Priority, true);
+	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::InternalExecuteQuery, this, query, -1), query.Priority, true);
 }
 
 void IdoMysqlConnection::ExecuteMultipleQueries(const std::vector<DbQuery>& queries)
@@ -872,7 +872,7 @@ void IdoMysqlConnection::ExecuteMultipleQueries(const std::vector<DbQuery>& quer
 	    << "Scheduling multiple execute query task, type " << queries[0].Type << ", table '" << queries[0].Table << "'.";
 #endif /* I2_DEBUG */
 
-	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::InternalExecuteMultipleQueries, this, queries), queries[0].Priority, true);
+	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::InternalExecuteMultipleQueries, this, queries), queries[0].Priority, true);
 }
 
 bool IdoMysqlConnection::CanExecuteQuery(const DbQuery& query)
@@ -925,7 +925,7 @@ void IdoMysqlConnection::InternalExecuteMultipleQueries(const std::vector<DbQuer
 			    << query.Type << "', table '" << query.Table << "', queue size: '" << GetPendingQueryCount() << "'.";
 #endif /* I2_DEBUG */
 
-			m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::InternalExecuteMultipleQueries, this, queries), query.Priority);
+			m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::InternalExecuteMultipleQueries, this, queries), query.Priority);
 			return;
 		}
 	}
@@ -963,7 +963,7 @@ void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query, int typeOver
 		    << typeOverride << "', table '" << query.Table << "', queue size: '" << GetPendingQueryCount() << "'.";
 #endif /* I2_DEBUG */
 
-		m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::InternalExecuteQuery, this, query, typeOverride), query.Priority);
+		m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::InternalExecuteQuery, this, query, typeOverride), query.Priority);
 		return;
 	}
 
@@ -986,7 +986,7 @@ void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query, int typeOver
 				    << typeOverride << "', table '" << query.Table << "', queue size: '" << GetPendingQueryCount() << "'.";
 #endif /* I2_DEBUG */
 
-				m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::InternalExecuteQuery, this, query, -1), query.Priority);
+				m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::InternalExecuteQuery, this, query, -1), query.Priority);
 				return;
 			}
 
@@ -1065,7 +1065,7 @@ void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query, int typeOver
 				    << kv.first << "', val '" << kv.second << "', type " << typeOverride << ", table '" << query.Table << "'.";
 #endif /* I2_DEBUG */
 
-				m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::InternalExecuteQuery, this, query, -1), query.Priority);
+				m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::InternalExecuteQuery, this, query, -1), query.Priority);
 				return;
 			}
 
@@ -1095,7 +1095,7 @@ void IdoMysqlConnection::InternalExecuteQuery(const DbQuery& query, int typeOver
 	if (type != DbQueryInsert)
 		qbuf << where.str();
 
-	AsyncQuery(qbuf.str(), boost::bind(&IdoMysqlConnection::FinishExecuteQuery, this, query, type, upsert));
+	AsyncQuery(qbuf.str(), std::bind(&IdoMysqlConnection::FinishExecuteQuery, this, query, type, upsert));
 }
 
 void IdoMysqlConnection::FinishExecuteQuery(const DbQuery& query, int type, bool upsert)
@@ -1107,7 +1107,7 @@ void IdoMysqlConnection::FinishExecuteQuery(const DbQuery& query, int type, bool
 		    << "Rescheduling DELETE/INSERT query: Upsert UPDATE did not affect rows, type " << type << ", table '" << query.Table << "'.";
 #endif /* I2_DEBUG */
 
-		m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::InternalExecuteQuery, this, query, DbQueryDelete | DbQueryInsert), query.Priority);
+		m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::InternalExecuteQuery, this, query, DbQueryDelete | DbQueryInsert), query.Priority);
 
 		return;
 	}
@@ -1132,7 +1132,7 @@ void IdoMysqlConnection::CleanUpExecuteQuery(const String& table, const String& 
 		    << time_column << "'. max_age is set to '" << max_age << "'.";
 #endif /* I2_DEBUG */
 
-	m_QueryQueue.Enqueue(boost::bind(&IdoMysqlConnection::InternalCleanUpExecuteQuery, this, table, time_column, max_age), PriorityLow, true);
+	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::InternalCleanUpExecuteQuery, this, table, time_column, max_age), PriorityLow, true);
 }
 
 void IdoMysqlConnection::InternalCleanUpExecuteQuery(const String& table, const String& time_column, double max_age)

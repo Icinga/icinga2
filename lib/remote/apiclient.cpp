@@ -51,7 +51,7 @@ void ApiClient::GetTypes(const TypesCompletionCallback& callback) const
 		req->RequestUrl = url;
 		req->AddHeader("Authorization", "Basic " + Base64::Encode(m_User + ":" + m_Password));
 		req->AddHeader("Accept", "application/json");
-		m_Connection->SubmitRequest(req, boost::bind(TypesHttpCompletionCallback, _1, _2, callback));
+		m_Connection->SubmitRequest(req, std::bind(TypesHttpCompletionCallback, _1, _2, callback));
 	} catch (const std::exception& ex) {
 		callback(boost::current_exception(), std::vector<ApiType::Ptr>());
 	}
@@ -141,7 +141,7 @@ void ApiClient::GetObjects(const String& pluralType, const ObjectsCompletionCall
 		req->RequestUrl = url;
 		req->AddHeader("Authorization", "Basic " + Base64::Encode(m_User + ":" + m_Password));
 		req->AddHeader("Accept", "application/json");
-		m_Connection->SubmitRequest(req, boost::bind(ObjectsHttpCompletionCallback, _1, _2, callback));
+		m_Connection->SubmitRequest(req, std::bind(ObjectsHttpCompletionCallback, _1, _2, callback));
 	} catch (const std::exception& ex) {
 		callback(boost::current_exception(), std::vector<ApiObject::Ptr>());
 	}
@@ -255,7 +255,7 @@ void ApiClient::ExecuteScript(const String& session, const String& command, bool
 		req->RequestUrl = url;
 		req->AddHeader("Authorization", "Basic " + Base64::Encode(m_User + ":" + m_Password));
 		req->AddHeader("Accept", "application/json");
-		m_Connection->SubmitRequest(req, boost::bind(ExecuteScriptHttpCompletionCallback, _1, _2, callback));
+		m_Connection->SubmitRequest(req, std::bind(ExecuteScriptHttpCompletionCallback, _1, _2, callback));
 	} catch (const std::exception& ex) {
 		callback(boost::current_exception(), Empty);
 	}
@@ -339,7 +339,7 @@ void ApiClient::AutocompleteScript(const String& session, const String& command,
 		req->RequestUrl = url;
 		req->AddHeader("Authorization", "Basic " + Base64::Encode(m_User + ":" + m_Password));
 		req->AddHeader("Accept", "application/json");
-		m_Connection->SubmitRequest(req, boost::bind(AutocompleteScriptHttpCompletionCallback, _1, _2, callback));
+		m_Connection->SubmitRequest(req, std::bind(AutocompleteScriptHttpCompletionCallback, _1, _2, callback));
 	} catch (const std::exception& ex) {
 		callback(boost::current_exception(), Array::Ptr());
 	}

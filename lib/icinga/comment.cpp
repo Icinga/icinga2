@@ -45,7 +45,7 @@ void Comment::StaticInitialize(void)
 {
 	l_CommentsExpireTimer = new Timer();
 	l_CommentsExpireTimer->SetInterval(60);
-	l_CommentsExpireTimer->OnTimerExpired.connect(boost::bind(&Comment::CommentsExpireTimerHandler));
+	l_CommentsExpireTimer->OnTimerExpired.connect(std::bind(&Comment::CommentsExpireTimerHandler));
 	l_CommentsExpireTimer->Start();
 }
 

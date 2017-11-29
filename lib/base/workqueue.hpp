@@ -23,7 +23,6 @@
 #include "base/i2-base.hpp"
 #include "base/timer.hpp"
 #include "base/ringbuffer.hpp"
-#include <boost/function.hpp>
 #include <boost/thread/thread.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition_variable.hpp>
@@ -47,11 +46,11 @@ struct Task
 	    : Priority(PriorityNormal), ID(-1)
 	{ }
 
-	Task(boost::function<void (void)>&& function, WorkQueuePriority priority, int id)
+	Task(std::function<void (void)>&& function, WorkQueuePriority priority, int id)
 	    : Function(std::move(function)), Priority(priority), ID(id)
 	{ }
 
-	boost::function<void (void)> Function;
+	std::function<void (void)> Function;
 	WorkQueuePriority Priority;
 	int ID;
 };
@@ -79,7 +78,7 @@ inline bool operator<(const Task& a, const Task& b)
 class I2_BASE_API WorkQueue
 {
 public:
-	typedef boost::function<void (boost::exception_ptr)> ExceptionCallback;
+	typedef std::function<void (boost::exception_ptr)> ExceptionCallback;
 
 	WorkQueue(size_t maxItems = 0, int threadCount = 1);
 	~WorkQueue(void);
@@ -87,7 +86,7 @@ public:
 	void SetName(const String& name);
 	String GetName(void) const;
 
-	void Enqueue(boost::function<void (void)>&& function, WorkQueuePriority priority = PriorityNormal,
+	void Enqueue(std::function<void (void)>&& function, WorkQueuePriority priority = PriorityNormal,
 	    bool allowInterleaved = false);
 	void Join(bool stop = false);
 

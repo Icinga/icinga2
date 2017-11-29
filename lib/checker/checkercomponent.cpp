@@ -65,10 +65,10 @@ CheckerComponent::CheckerComponent(void)
 
 void CheckerComponent::OnConfigLoaded(void)
 {
-	ConfigObject::OnActiveChanged.connect(bind(&CheckerComponent::ObjectHandler, this, _1));
-	ConfigObject::OnPausedChanged.connect(bind(&CheckerComponent::ObjectHandler, this, _1));
+	ConfigObject::OnActiveChanged.connect(std::bind(&CheckerComponent::ObjectHandler, this, _1));
+	ConfigObject::OnPausedChanged.connect(std::bind(&CheckerComponent::ObjectHandler, this, _1));
 
-	Checkable::OnNextCheckChanged.connect(bind(&CheckerComponent::NextCheckChangedHandler, this, _1));
+	Checkable::OnNextCheckChanged.connect(std::bind(&CheckerComponent::NextCheckChangedHandler, this, _1));
 }
 
 void CheckerComponent::Start(bool runtimeCreated)
@@ -79,11 +79,11 @@ void CheckerComponent::Start(bool runtimeCreated)
 	    << "'" << GetName() << "' started.";
 
 
-	m_Thread = boost::thread(boost::bind(&CheckerComponent::CheckThreadProc, this));
+	m_Thread = boost::thread(std::bind(&CheckerComponent::CheckThreadProc, this));
 
 	m_ResultTimer = new Timer();
 	m_ResultTimer->SetInterval(5);
-	m_ResultTimer->OnTimerExpired.connect(boost::bind(&CheckerComponent::ResultTimerHandler, this));
+	m_ResultTimer->OnTimerExpired.connect(std::bind(&CheckerComponent::ResultTimerHandler, this));
 	m_ResultTimer->Start();
 }
 
@@ -200,7 +200,7 @@ void CheckerComponent::CheckThreadProc(void)
 
 		Checkable::IncreasePendingChecks();
 
-		Utility::QueueAsyncCallback(boost::bind(&CheckerComponent::ExecuteCheckHelper, CheckerComponent::Ptr(this), checkable));
+		Utility::QueueAsyncCallback(std::bind(&CheckerComponent::ExecuteCheckHelper, CheckerComponent::Ptr(this), checkable));
 
 		lock.lock();
 	}

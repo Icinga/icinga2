@@ -138,19 +138,19 @@ void ServicesTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "cv_is_json", Column(&ServicesTable::CVIsJsonAccessor, objectAccessor));
 	table->AddColumn(prefix + "original_attributes", Column(&ServicesTable::OriginalAttributesAccessor, objectAccessor));
 
-	HostsTable::AddColumns(table, "host_", boost::bind(&ServicesTable::HostAccessor, _1, objectAccessor));
+	HostsTable::AddColumns(table, "host_", std::bind(&ServicesTable::HostAccessor, _1, objectAccessor));
 
 	/* add additional group by values received through the object accessor */
 	if (table->GetGroupByType() == LivestatusGroupByServiceGroup) {
 		/* _1 = row, _2 = groupByType, _3 = groupByObject */
 		Log(LogDebug, "Livestatus")
 		    << "Processing services group by servicegroup table.";
-		ServiceGroupsTable::AddColumns(table, "servicegroup_", boost::bind(&ServicesTable::ServiceGroupAccessor, _1, _2, _3));
+		ServiceGroupsTable::AddColumns(table, "servicegroup_", std::bind(&ServicesTable::ServiceGroupAccessor, _1, _2, _3));
 	} else if (table->GetGroupByType() == LivestatusGroupByHostGroup) {
 		/* _1 = row, _2 = groupByType, _3 = groupByObject */
 		Log(LogDebug, "Livestatus")
 		    << "Processing services group by hostgroup table.";
-		HostGroupsTable::AddColumns(table, "hostgroup_", boost::bind(&ServicesTable::HostGroupAccessor, _1, _2, _3));
+		HostGroupsTable::AddColumns(table, "hostgroup_", std::bind(&ServicesTable::HostGroupAccessor, _1, _2, _3));
 	}
 }
 

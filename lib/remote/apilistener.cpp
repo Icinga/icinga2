@@ -233,24 +233,24 @@ void ApiListener::Start(bool runtimeCreated)
 	}
 
 	m_Timer = new Timer();
-	m_Timer->OnTimerExpired.connect(boost::bind(&ApiListener::ApiTimerHandler, this));
+	m_Timer->OnTimerExpired.connect(std::bind(&ApiListener::ApiTimerHandler, this));
 	m_Timer->SetInterval(5);
 	m_Timer->Start();
 	m_Timer->Reschedule(0);
 
 	m_ReconnectTimer = new Timer();
-	m_ReconnectTimer->OnTimerExpired.connect(boost::bind(&ApiListener::ApiReconnectTimerHandler, this));
+	m_ReconnectTimer->OnTimerExpired.connect(std::bind(&ApiListener::ApiReconnectTimerHandler, this));
 	m_ReconnectTimer->SetInterval(60);
 	m_ReconnectTimer->Start();
 	m_ReconnectTimer->Reschedule(0);
 
 	m_AuthorityTimer = new Timer();
-	m_AuthorityTimer->OnTimerExpired.connect(boost::bind(&ApiListener::UpdateObjectAuthority));
+	m_AuthorityTimer->OnTimerExpired.connect(std::bind(&ApiListener::UpdateObjectAuthority));
 	m_AuthorityTimer->SetInterval(30);
 	m_AuthorityTimer->Start();
 
 	m_CleanupCertificateRequestsTimer = new Timer();
-	m_CleanupCertificateRequestsTimer->OnTimerExpired.connect(boost::bind(&ApiListener::CleanupCertificateRequestsTimerHandler, this));
+	m_CleanupCertificateRequestsTimer->OnTimerExpired.connect(std::bind(&ApiListener::CleanupCertificateRequestsTimerHandler, this));
 	m_CleanupCertificateRequestsTimer->SetInterval(3600);
 	m_CleanupCertificateRequestsTimer->Start();
 	m_CleanupCertificateRequestsTimer->Reschedule(0);
@@ -332,7 +332,7 @@ bool ApiListener::AddListener(const String& node, const String& service)
 		return false;
 	}
 
-	boost::thread thread(boost::bind(&ApiListener::ListenerThreadProc, this, server));
+	boost::thread thread(std::bind(&ApiListener::ListenerThreadProc, this, server));
 	thread.detach();
 
 	m_Servers.insert(server);
@@ -349,7 +349,7 @@ void ApiListener::ListenerThreadProc(const Socket::Ptr& server)
 	for (;;) {
 		try {
 			Socket::Ptr client = server->Accept();
-			boost::thread thread(boost::bind(&ApiListener::NewClientHandler, this, client, String(), RoleServer));
+			boost::thread thread(std::bind(&ApiListener::NewClientHandler, this, client, String(), RoleServer));
 			thread.detach();
 		} catch (const std::exception&) {
 			Log(LogCritical, "ApiListener", "Cannot accept new connection.");
@@ -539,7 +539,7 @@ void ApiListener::NewClientHandlerInternal(const Socket::Ptr& client, const Stri
 
 			endpoint->AddClient(aclient);
 
-			m_SyncQueue.Enqueue(boost::bind(&ApiListener::SyncClient, this, aclient, endpoint, needSync));
+			m_SyncQueue.Enqueue(std::bind(&ApiListener::SyncClient, this, aclient, endpoint, needSync));
 		} else
 			AddAnonymousClient(aclient);
 	} else {
@@ -571,7 +571,7 @@ void ApiListener::SyncClient(const JsonRpcConnection::Ptr& aclient, const Endpoi
 			JsonRpcConnection::SendCertificateRequest(aclient, MessageOrigin::Ptr(), String());
 
 			if (Utility::PathExists(ApiListener::GetCertificateRequestsDir()))
-				Utility::Glob(ApiListener::GetCertificateRequestsDir() + "/*.json", boost::bind(&JsonRpcConnection::SendCertificateRequest, aclient, MessageOrigin::Ptr(), _1), GlobFile);
+				Utility::Glob(ApiListener::GetCertificateRequestsDir() + "/*.json", std::bind(&JsonRpcConnection::SendCertificateRequest, aclient, MessageOrigin::Ptr(), _1), GlobFile);
 		}
 
 		/* Make sure that the config updates are synced
@@ -631,7 +631,7 @@ void ApiListener::ApiTimerHandler(void)
 	double now = Utility::GetTime();
 
 	std::vector<int> files;
-	Utility::Glob(GetApiDir() + "log/*", boost::bind(&ApiListener::LogGlobHandler, boost::ref(files), _1), GlobFile);
+	Utility::Glob(GetApiDir() + "log/*", std::bind(&ApiListener::LogGlobHandler, boost::ref(files), _1), GlobFile);
 	std::sort(files.begin(), files.end());
 
 	for (int ts : files) {
@@ -744,7 +744,7 @@ void ApiListener::ApiReconnectTimerHandler(void)
 				continue;
 			}
 
-			boost::thread thread(boost::bind(&ApiListener::AddConnection, this, endpoint));
+			boost::thread thread(std::bind(&ApiListener::AddConnection, this, endpoint));
 			thread.detach();
 		}
 	}
@@ -787,7 +787,7 @@ void ApiListener::CleanupCertificateRequestsTimerHandler(void)
 	if (Utility::PathExists(requestsDir)) {
 		/* remove certificate requests that are older than a week */
 		double expiryTime = Utility::GetTime() - 7 * 24 * 60 * 60;
-		Utility::Glob(requestsDir + "/*.json", boost::bind(&CleanupCertificateRequest, _1, expiryTime), GlobFile);
+		Utility::Glob(requestsDir + "/*.json", std::bind(&CleanupCertificateRequest, _1, expiryTime), GlobFile);
 	}
 }
 
@@ -797,7 +797,7 @@ void ApiListener::RelayMessage(const MessageOrigin::Ptr& origin,
 	if (!IsActive())
 		return;
 
-	m_RelayQueue.Enqueue(boost::bind(&ApiListener::SyncRelayMessage, this, origin, secobj, message, log), PriorityNormal, true);
+	m_RelayQueue.Enqueue(std::bind(&ApiListener::SyncRelayMessage, this, origin, secobj, message, log), PriorityNormal, true);
 }
 
 void ApiListener::PersistMessage(const Dictionary::Ptr& message, const ConfigObject::Ptr& secobj)
@@ -1090,7 +1090,7 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 		count = 0;
 
 		std::vector<int> files;
-		Utility::Glob(GetApiDir() + "log/*", boost::bind(&ApiListener::LogGlobHandler, boost::ref(files), _1), GlobFile);
+		Utility::Glob(GetApiDir() + "log/*", std::bind(&ApiListener::LogGlobHandler, boost::ref(files), _1), GlobFile);
 		std::sort(files.begin(), files.end());
 
 		for (int ts : files) {

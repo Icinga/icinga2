@@ -86,17 +86,17 @@ void GraphiteWriter::Start(bool runtimeCreated)
 	    << "'" << GetName() << "' started.";
 
 	/* Register exception handler for WQ tasks. */
-	m_WorkQueue.SetExceptionCallback(boost::bind(&GraphiteWriter::ExceptionHandler, this, _1));
+	m_WorkQueue.SetExceptionCallback(std::bind(&GraphiteWriter::ExceptionHandler, this, _1));
 
 	/* Timer for reconnecting */
 	m_ReconnectTimer = new Timer();
 	m_ReconnectTimer->SetInterval(10);
-	m_ReconnectTimer->OnTimerExpired.connect(boost::bind(&GraphiteWriter::ReconnectTimerHandler, this));
+	m_ReconnectTimer->OnTimerExpired.connect(std::bind(&GraphiteWriter::ReconnectTimerHandler, this));
 	m_ReconnectTimer->Start();
 	m_ReconnectTimer->Reschedule(0);
 
 	/* Register event handlers. */
-	Checkable::OnNewCheckResult.connect(boost::bind(&GraphiteWriter::CheckResultHandler, this, _1, _2));
+	Checkable::OnNewCheckResult.connect(std::bind(&GraphiteWriter::CheckResultHandler, this, _1, _2));
 }
 
 void GraphiteWriter::Stop(bool runtimeRemoved)
@@ -164,7 +164,7 @@ void GraphiteWriter::Reconnect(void)
 
 void GraphiteWriter::ReconnectTimerHandler(void)
 {
-	m_WorkQueue.Enqueue(boost::bind(&GraphiteWriter::Reconnect, this), PriorityNormal);
+	m_WorkQueue.Enqueue(std::bind(&GraphiteWriter::Reconnect, this), PriorityNormal);
 }
 
 void GraphiteWriter::Disconnect(void)
@@ -181,7 +181,7 @@ void GraphiteWriter::Disconnect(void)
 
 void GraphiteWriter::CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
 {
-	m_WorkQueue.Enqueue(boost::bind(&GraphiteWriter::CheckResultHandlerInternal, this, checkable, cr));
+	m_WorkQueue.Enqueue(std::bind(&GraphiteWriter::CheckResultHandlerInternal, this, checkable, cr));
 }
 
 void GraphiteWriter::CheckResultHandlerInternal(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
@@ -206,9 +206,9 @@ void GraphiteWriter::CheckResultHandlerInternal(const Checkable::Ptr& checkable,
 	String prefix;
 
 	if (service) {
-		prefix = MacroProcessor::ResolveMacros(GetServiceNameTemplate(), resolvers, cr, NULL, boost::bind(&GraphiteWriter::EscapeMacroMetric, _1));
+		prefix = MacroProcessor::ResolveMacros(GetServiceNameTemplate(), resolvers, cr, NULL, std::bind(&GraphiteWriter::EscapeMacroMetric, _1));
 	} else {
-		prefix = MacroProcessor::ResolveMacros(GetHostNameTemplate(), resolvers, cr, NULL, boost::bind(&GraphiteWriter::EscapeMacroMetric, _1));
+		prefix = MacroProcessor::ResolveMacros(GetHostNameTemplate(), resolvers, cr, NULL, std::bind(&GraphiteWriter::EscapeMacroMetric, _1));
 	}
 
 	String prefixPerfdata = prefix + ".perfdata";

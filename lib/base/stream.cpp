@@ -22,7 +22,7 @@
 
 using namespace icinga;
 
-void Stream::RegisterDataHandler(const boost::function<void(const Stream::Ptr&)>& handler)
+void Stream::RegisterDataHandler(const std::function<void(const Stream::Ptr&)>& handler)
 {
 	if (SupportsWaiting())
 		OnDataAvailable.connect(handler);
@@ -85,7 +85,7 @@ void Stream::Close(void)
 
 	/* Force signals2 to remove the slots, see https://stackoverflow.com/questions/2049291/force-deletion-of-slot-in-boostsignals2
 	 * for details. */
-	OnDataAvailable.connect(boost::bind(&StreamDummyCallback));
+	OnDataAvailable.connect(std::bind(&StreamDummyCallback));
 }
 
 StreamReadStatus Stream::ReadLine(String *line, StreamReadContext& context, bool may_wait)

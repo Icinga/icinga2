@@ -25,7 +25,6 @@
 #include "remote/apiuser.hpp"
 #include "base/registry.hpp"
 #include <vector>
-#include <boost/function.hpp>
 
 namespace icinga
 {

@@ -20,7 +20,6 @@
 #include "base/timer.hpp"
 #include "base/debug.hpp"
 #include "base/utility.hpp"
-#include <boost/bind.hpp>
 #include <boost/thread/thread.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition_variable.hpp>
@@ -282,6 +281,6 @@ void Timer::TimerThreadProc(void)
 		lock.unlock();
 
 		/* Asynchronously call the timer. */
-		Utility::QueueAsyncCallback(boost::bind(&Timer::Call, ptimer));
+		Utility::QueueAsyncCallback(std::bind(&Timer::Call, ptimer));
 	}
 }

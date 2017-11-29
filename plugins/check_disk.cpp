@@ -362,7 +362,7 @@ static INT check_drives(std::vector<drive>& vDrives, std::vector<std::wstring>& 
 		BOOST_FOREACH(const std::wstring wsDriveName, vExclude_Drives)
 		{
 			vDrives.erase(std::remove_if(vDrives.begin(), vDrives.end(), 
-			    boost::bind(checkName, _1, wsDriveName + L'\\')), vDrives.end());
+			    std::bind(checkName, _1, wsDriveName + L'\\')), vDrives.end());
 		}
 	}
 	return -1;

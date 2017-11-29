@@ -42,7 +42,7 @@ public:
 	static void ExecuteCommand(const Command::Ptr& commandObj, const Checkable::Ptr& checkable,
 	    const CheckResult::Ptr& cr, const MacroProcessor::ResolverList& macroResolvers,
 	    const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros,
-	    const boost::function<void(const Value& commandLine, const ProcessResult&)>& callback = boost::function<void(const Value& commandLine, const ProcessResult&)>());
+	    const std::function<void(const Value& commandLine, const ProcessResult&)>& callback = std::function<void(const Value& commandLine, const ProcessResult&)>());
 
 	static ServiceState ExitStatusToState(int exitStatus);
 	static std::pair<String, String> ParseCheckOutput(const String& output);

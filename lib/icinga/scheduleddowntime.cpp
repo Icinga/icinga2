@@ -83,7 +83,7 @@ void ScheduledDowntime::StaticInitialize(void)
 {
 	l_Timer = new Timer();
 	l_Timer->SetInterval(60);
-	l_Timer->OnTimerExpired.connect(boost::bind(&ScheduledDowntime::TimerProc));
+	l_Timer->OnTimerExpired.connect(std::bind(&ScheduledDowntime::TimerProc));
 	l_Timer->Start();
 }
 
@@ -99,7 +99,7 @@ void ScheduledDowntime::Start(bool runtimeCreated)
 {
 	ObjectImpl<ScheduledDowntime>::Start(runtimeCreated);
 
-	Utility::QueueAsyncCallback(boost::bind(&ScheduledDowntime::CreateNextDowntime, this));
+	Utility::QueueAsyncCallback(std::bind(&ScheduledDowntime::CreateNextDowntime, this));
 }
 
 void ScheduledDowntime::TimerProc(void)

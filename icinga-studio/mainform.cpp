@@ -39,7 +39,7 @@ MainForm::MainForm(wxWindow *parent, const Url::Ptr& url)
 		port = "5665";
 
 	m_ApiClient = new ApiClient(url->GetHost(), port, url->GetUsername(), url->GetPassword());
-	m_ApiClient->GetTypes(boost::bind(&MainForm::TypesCompletionHandler, this, _1, _2, true));
+	m_ApiClient->GetTypes(std::bind(&MainForm::TypesCompletionHandler, this, _1, _2, true));
 
 	std::string title = url->Format() + " - Icinga Studio";
 	SetTitle(title);
@@ -52,7 +52,7 @@ MainForm::MainForm(wxWindow *parent, const Url::Ptr& url)
 void MainForm::TypesCompletionHandler(boost::exception_ptr eptr, const std::vector<ApiType::Ptr>& types, bool forward)
 {
 	if (forward) {
-		CallAfter(boost::bind(&MainForm::TypesCompletionHandler, this, eptr, types, false));
+		CallAfter(std::bind(&MainForm::TypesCompletionHandler, this, eptr, types, false));
 		return;
 	}
 
@@ -113,7 +113,7 @@ void MainForm::OnTypeSelected(wxTreeEvent& event)
 	std::vector<String> attrs;
 	attrs.push_back("__name");
 
-	m_ApiClient->GetObjects(type->PluralName, boost::bind(&MainForm::ObjectsCompletionHandler, this, _1, _2, true),
+	m_ApiClient->GetObjects(type->PluralName, std::bind(&MainForm::ObjectsCompletionHandler, this, _1, _2, true),
 	    std::vector<String>(), attrs);
 }
 
@@ -125,7 +125,7 @@ static bool ApiObjectLessComparer(const ApiObject::Ptr& o1, const ApiObject::Ptr
 void MainForm::ObjectsCompletionHandler(boost::exception_ptr eptr, const std::vector<ApiObject::Ptr>& objects, bool forward)
 {
 	if (forward) {
-		CallAfter(boost::bind(&MainForm::ObjectsCompletionHandler, this, eptr, objects, false));
+		CallAfter(std::bind(&MainForm::ObjectsCompletionHandler, this, eptr, objects, false));
 		return;
 	}
 
@@ -172,7 +172,7 @@ void MainForm::OnObjectSelected(wxListEvent& event)
 	std::vector<String> names;
 	names.push_back(objectName);
 
-	m_ApiClient->GetObjects(type->PluralName, boost::bind(&MainForm::ObjectDetailsCompletionHandler, this, _1, _2, true),
+	m_ApiClient->GetObjects(type->PluralName, std::bind(&MainForm::ObjectDetailsCompletionHandler, this, _1, _2, true),
 	    names, std::vector<String>(), std::vector<String>(), true);
 }
 
@@ -239,7 +239,7 @@ wxPGProperty *MainForm::ValueToProperty(const String& name, const Value& value)
 void MainForm::ObjectDetailsCompletionHandler(boost::exception_ptr eptr, const std::vector<ApiObject::Ptr>& objects, bool forward)
 {
 	if (forward) {
-		CallAfter(boost::bind(&MainForm::ObjectDetailsCompletionHandler, this, eptr, objects, false));
+		CallAfter(std::bind(&MainForm::ObjectDetailsCompletionHandler, this, eptr, objects, false));
 		return;
 	}
 

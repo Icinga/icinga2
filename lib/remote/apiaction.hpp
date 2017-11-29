@@ -26,7 +26,6 @@
 #include "base/dictionary.hpp"
 #include "base/configobject.hpp"
 #include <vector>
-#include <boost/function.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
@@ -44,7 +43,7 @@ class I2_REMOTE_API ApiAction : public Object
 public:
 	DECLARE_PTR_TYPEDEFS(ApiAction);
 
-	typedef boost::function<Value(const ConfigObject::Ptr& target, const Dictionary::Ptr& params)> Callback;
+	typedef std::function<Value(const ConfigObject::Ptr& target, const Dictionary::Ptr& params)> Callback;
 
 	ApiAction(const std::vector<String>& registerTypes, const Callback& function);
 

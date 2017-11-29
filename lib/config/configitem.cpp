@@ -608,7 +608,7 @@ bool ConfigItem::ActivateItems(WorkQueue& upq, const std::vector<ConfigItem::Ptr
 		Log(LogDebug, "ConfigItem")
 		    << "Setting 'active' to true for object '" << object->GetName() << "' of type '" << object->GetReflectionType()->GetName() << "'";
 #endif /* I2_DEBUG */
-		upq.Enqueue(boost::bind(&ConfigObject::PreActivate, object));
+		upq.Enqueue(std::bind(&ConfigObject::PreActivate, object));
 	}
 
 	upq.Join();
@@ -631,7 +631,7 @@ bool ConfigItem::ActivateItems(WorkQueue& upq, const std::vector<ConfigItem::Ptr
 		Log(LogDebug, "ConfigItem")
 		    << "Activating object '" << object->GetName() << "' of type '" << object->GetReflectionType()->GetName() << "'";
 #endif /* I2_DEBUG */
-		upq.Enqueue(boost::bind(&ConfigObject::Activate, object, runtimeCreated));
+		upq.Enqueue(std::bind(&ConfigObject::Activate, object, runtimeCreated));
 	}
 
 	upq.Join();

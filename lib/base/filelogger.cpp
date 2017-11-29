@@ -50,7 +50,7 @@ void FileLogger::Start(bool runtimeCreated)
 
 	ReopenLogFile();
 
-	Application::OnReopenLogs.connect(boost::bind(&FileLogger::ReopenLogFile, this));
+	Application::OnReopenLogs.connect(std::bind(&FileLogger::ReopenLogFile, this));
 }
 
 void FileLogger::ReopenLogFile(void)

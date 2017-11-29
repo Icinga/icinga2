@@ -23,8 +23,8 @@
 #include "base/i2-base.hpp"
 #include "base/value.hpp"
 #include <vector>
-#include <boost/function.hpp>
-#include <boost/bind.hpp>
+
+using namespace std::placeholders;
 
 namespace icinga
 {
@@ -32,7 +32,7 @@ namespace icinga
 Value FunctionWrapperVV(void (*function)(void), const std::vector<Value>& arguments);
 Value FunctionWrapperVA(void (*function)(const std::vector<Value>&), const std::vector<Value>& arguments);
 
-boost::function<Value (const std::vector<Value>& arguments)> I2_BASE_API WrapFunction(void (*function)(void));
+std::function<Value (const std::vector<Value>& arguments)> I2_BASE_API WrapFunction(void (*function)(void));
 
 template<typename TR>
 Value FunctionWrapperR(TR (*function)(void), const std::vector<Value>&)
@@ -41,9 +41,9 @@ Value FunctionWrapperR(TR (*function)(void), const std::vector<Value>&)
 }
 
 template<typename TR>
-boost::function<Value (const std::vector<Value>& arguments)> WrapFunction(TR (*function)(void))
+std::function<Value (const std::vector<Value>& arguments)> WrapFunction(TR (*function)(void))
 {
-	return boost::bind(&FunctionWrapperR<TR>, function, _1);
+	return std::bind(&FunctionWrapperR<TR>, function, _1);
 }
 
 template<typename T0>
@@ -60,9 +60,9 @@ Value FunctionWrapperV(void (*function)(T0), const std::vector<Value>& arguments
 }
 
 template<typename T0>
-boost::function<Value (const std::vector<Value>& arguments)> WrapFunction(void (*function)(T0))
+std::function<Value (const std::vector<Value>& arguments)> WrapFunction(void (*function)(T0))
 {
-	return boost::bind(&FunctionWrapperV<T0>, function, _1);
+	return std::bind(&FunctionWrapperV<T0>, function, _1);
 }
 
 template<typename TR, typename T0>
@@ -77,9 +77,9 @@ Value FunctionWrapperR(TR (*function)(T0), const std::vector<Value>& arguments)
 }
 
 template<typename TR, typename T0>
-boost::function<Value (const std::vector<Value>& arguments)> WrapFunction(TR (*function)(T0))
+std::function<Value (const std::vector<Value>& arguments)> WrapFunction(TR (*function)(T0))
 {
-	return boost::bind(&FunctionWrapperR<TR, T0>, function, _1);
+	return std::bind(&FunctionWrapperR<TR, T0>, function, _1);
 }
 
 template<typename T0, typename T1>
@@ -97,9 +97,9 @@ Value FunctionWrapperV(void (*function)(T0, T1), const std::vector<Value>& argum
 }
 
 template<typename T0, typename T1>
-boost::function<Value (const std::vector<Value>& arguments)> WrapFunction(void (*function)(T0, T1))
+std::function<Value (const std::vector<Value>& arguments)> WrapFunction(void (*function)(T0, T1))
 {
-	return boost::bind(&FunctionWrapperV<T0, T1>, function, _1);
+	return std::bind(&FunctionWrapperV<T0, T1>, function, _1);
 }
 
 template<typename TR, typename T0, typename T1>
@@ -115,9 +115,9 @@ Value FunctionWrapperR(TR (*function)(T0, T1), const std::vector<Value>& argumen
 }
 
 template<typename TR, typename T0, typename T1>
-boost::function<Value (const std::vector<Value>& arguments)> WrapFunction(TR (*function)(T0, T1))
+std::function<Value (const std::vector<Value>& arguments)> WrapFunction(TR (*function)(T0, T1))
 {
-	return boost::bind(&FunctionWrapperR<TR, T0, T1>, function, _1);
+	return std::bind(&FunctionWrapperR<TR, T0, T1>, function, _1);
 }
 
 template<typename T0, typename T1, typename T2>
@@ -136,9 +136,9 @@ Value FunctionWrapperV(void (*function)(T0, T1, T2), const std::vector<Value>& a
 }
 
 template<typename T0, typename T1, typename T2>
-boost::function<Value (const std::vector<Value>& arguments)> WrapFunction(void (*function)(T0, T1, T2))
+std::function<Value (const std::vector<Value>& arguments)> WrapFunction(void (*function)(T0, T1, T2))
 {
-	return boost::bind(&FunctionWrapperV<T0, T1, T2>, function, _1);
+	return std::bind(&FunctionWrapperV<T0, T1, T2>, function, _1);
 }
 
 template<typename TR, typename T0, typename T1, typename T2>
@@ -155,9 +155,9 @@ Value FunctionWrapperR(TR (*function)(T0, T1, T2), const std::vector<Value>& arg
 }
 
 template<typename TR, typename T0, typename T1, typename T2>
-boost::function<Value (const std::vector<Value>& arguments)> WrapFunction(TR (*function)(T0, T1, T2))
+std::function<Value (const std::vector<Value>& arguments)> WrapFunction(TR (*function)(T0, T1, T2))
 {
-	return boost::bind(&FunctionWrapperR<TR, T0, T1, T2>, function, _1);
+	return std::bind(&FunctionWrapperR<TR, T0, T1, T2>, function, _1);
 }
 
 template<typename T0, typename T1, typename T2, typename T3>
@@ -177,9 +177,9 @@ Value FunctionWrapperV(void (*function)(T0, T1, T2, T3), const std::vector<Value
 }
 
 template<typename T0, typename T1, typename T2, typename T3>
-boost::function<Value (const std::vector<Value>& arguments)> WrapFunction(void (*function)(T0, T1, T2, T3))
+std::function<Value (const std::vector<Value>& arguments)> WrapFunction(void (*function)(T0, T1, T2, T3))
 {
-	return boost::bind(&FunctionWrapperV<T0, T1, T2, T3>, function, _1);
+	return std::bind(&FunctionWrapperV<T0, T1, T2, T3>, function, _1);
 }
 
 template<typename TR, typename T0, typename T1, typename T2, typename T3>
@@ -197,9 +197,9 @@ Value FunctionWrapperR(TR (*function)(T0, T1, T2, T3), const std::vector<Value>&
 }
 
 template<typename TR, typename T0, typename T1, typename T2, typename T3>
-boost::function<Value (const std::vector<Value>& arguments)> WrapFunction(TR (*function)(T0, T1, T2, T3))
+std::function<Value (const std::vector<Value>& arguments)> WrapFunction(TR (*function)(T0, T1, T2, T3))
 {
-	return boost::bind(&FunctionWrapperR<TR, T0, T1, T2, T3>, function, _1);
+	return std::bind(&FunctionWrapperR<TR, T0, T1, T2, T3>, function, _1);
 }
 
 template<typename T0, typename T1, typename T2, typename T3, typename T4>
@@ -220,9 +220,9 @@ Value FunctionWrapperV(void (*function)(T0, T1, T2, T3, T4), const std::vector<V
 }
 
 template<typename T0, typename T1, typename T2, typename T3, typename T4>
-boost::function<Value (const std::vector<Value>& arguments)> WrapFunction(void (*function)(T0, T1, T2, T3, T4))
+std::function<Value (const std::vector<Value>& arguments)> WrapFunction(void (*function)(T0, T1, T2, T3, T4))
 {
-	return boost::bind(&FunctionWrapperV<T0, T1, T2, T3, T4>, function, _1);
+	return std::bind(&FunctionWrapperV<T0, T1, T2, T3, T4>, function, _1);
 }
 
 template<typename TR, typename T0, typename T1, typename T2, typename T3, typename T4>
@@ -241,9 +241,9 @@ Value FunctionWrapperR(TR (*function)(T0, T1, T2, T3, T4), const std::vector<Val
 }
 
 template<typename TR, typename T0, typename T1, typename T2, typename T3, typename T4>
-boost::function<Value (const std::vector<Value>& arguments)> WrapFunction(TR (*function)(T0, T1, T2, T3, T4))
+std::function<Value (const std::vector<Value>& arguments)> WrapFunction(TR (*function)(T0, T1, T2, T3, T4))
 {
-	return boost::bind(&FunctionWrapperR<TR, T0, T1, T2, T3, T4>, function, _1);
+	return std::bind(&FunctionWrapperR<TR, T0, T1, T2, T3, T4>, function, _1);
 }
 
 template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5>
@@ -265,9 +265,9 @@ Value FunctionWrapperV(void (*function)(T0, T1, T2, T3, T4, T5), const std::vect
 }
 
 template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5>
-boost::function<Value (const std::vector<Value>& arguments)> WrapFunction(void (*function)(T0, T1, T2, T3, T4, T5))
+std::function<Value (const std::vector<Value>& arguments)> WrapFunction(void (*function)(T0, T1, T2, T3, T4, T5))
 {
-	return boost::bind(&FunctionWrapperV<T0, T1, T2, T3, T4, T5>, function, _1);
+	return std::bind(&FunctionWrapperV<T0, T1, T2, T3, T4, T5>, function, _1);
 }
 
 template<typename TR, typename T0, typename T1, typename T2, typename T3, typename T4, typename T5>
@@ -287,9 +287,9 @@ Value FunctionWrapperR(TR (*function)(T0, T1, T2, T3, T4, T5), const std::vector
 }
 
 template<typename TR, typename T0, typename T1, typename T2, typename T3, typename T4, typename T5>
-boost::function<Value (const std::vector<Value>& arguments)> WrapFunction(TR (*function)(T0, T1, T2, T3, T4, T5))
+std::function<Value (const std::vector<Value>& arguments)> WrapFunction(TR (*function)(T0, T1, T2, T3, T4, T5))
 {
-	return boost::bind(&FunctionWrapperR<TR, T0, T1, T2, T3, T4, T5>, function, _1);
+	return std::bind(&FunctionWrapperR<TR, T0, T1, T2, T3, T4, T5>, function, _1);
 }
 
 template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
@@ -312,9 +312,9 @@ Value FunctionWrapperV(void (*function)(T0, T1, T2, T3, T4, T5, T6), const std::
 }
 
 template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
-boost::function<Value (const std::vector<Value>& arguments)> WrapFunction(void (*function)(T0, T1, T2, T3, T4, T5, T6))
+std::function<Value (const std::vector<Value>& arguments)> WrapFunction(void (*function)(T0, T1, T2, T3, T4, T5, T6))
 {
-	return boost::bind(&FunctionWrapperV<T0, T1, T2, T3, T4, T5, T6>, function, _1);
+	return std::bind(&FunctionWrapperV<T0, T1, T2, T3, T4, T5, T6>, function, _1);
 }
 
 template<typename TR, typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
@@ -335,9 +335,9 @@ Value FunctionWrapperR(TR (*function)(T0, T1, T2, T3, T4, T5, T6), const std::ve
 }
 
 template<typename TR, typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
-boost::function<Value (const std::vector<Value>& arguments)> WrapFunction(TR (*function)(T0, T1, T2, T3, T4, T5, T6))
+std::function<Value (const std::vector<Value>& arguments)> WrapFunction(TR (*function)(T0, T1, T2, T3, T4, T5, T6))
 {
-	return boost::bind(&FunctionWrapperR<TR, T0, T1, T2, T3, T4, T5, T6>, function, _1);
+	return std::bind(&FunctionWrapperR<TR, T0, T1, T2, T3, T4, T5, T6>, function, _1);
 }
 
 template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7>
@@ -361,9 +361,9 @@ Value FunctionWrapperV(void (*function)(T0, T1, T2, T3, T4, T5, T6, T7), const s
 }
 
 template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7>
-boost::function<Value (const std::vector<Value>& arguments)> WrapFunction(void (*function)(T0, T1, T2, T3, T4, T5, T6, T7))
+std::function<Value (const std::vector<Value>& arguments)> WrapFunction(void (*function)(T0, T1, T2, T3, T4, T5, T6, T7))
 {
-	return boost::bind(&FunctionWrapperV<T0, T1, T2, T3, T4, T5, T6, T7>, function, _1);
+	return std::bind(&FunctionWrapperV<T0, T1, T2, T3, T4, T5, T6, T7>, function, _1);
 }
 
 template<typename TR, typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7>
@@ -385,20 +385,20 @@ Value FunctionWrapperR(TR (*function)(T0, T1, T2, T3, T4, T5, T6, T7), const std
 }
 
 template<typename TR, typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7>
-boost::function<Value (const std::vector<Value>& arguments)> WrapFunction(TR (*function)(T0, T1, T2, T3, T4, T5, T6, T7))
+std::function<Value (const std::vector<Value>& arguments)> WrapFunction(TR (*function)(T0, T1, T2, T3, T4, T5, T6, T7))
 {
-	return boost::bind(&FunctionWrapperR<TR, T0, T1, T2, T3, T4, T5, T6, T7>, function, _1);
+	return std::bind(&FunctionWrapperR<TR, T0, T1, T2, T3, T4, T5, T6, T7>, function, _1);
 }
 
 template<typename TR>
-boost::function<TR (const std::vector<Value>& arguments)> WrapFunction(TR (*function)(const std::vector<Value>&))
+std::function<TR (const std::vector<Value>& arguments)> WrapFunction(TR (*function)(const std::vector<Value>&))
 {
-	return boost::bind<TR>(function, _1);
+	return std::bind<TR>(function, _1);
 }
 
-inline boost::function<Value (const std::vector<Value>& arguments)> WrapFunction(void (*function)(const std::vector<Value>&))
+inline std::function<Value (const std::vector<Value>& arguments)> WrapFunction(void (*function)(const std::vector<Value>&))
 {
-	return boost::bind(&FunctionWrapperVA, function, _1);
+	return std::bind(&FunctionWrapperVA, function, _1);
 }
 
 }

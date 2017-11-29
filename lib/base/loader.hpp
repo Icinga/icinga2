@@ -23,7 +23,6 @@
 #include "base/i2-base.hpp"
 #include "base/string.hpp"
 #include <boost/thread/tss.hpp>
-#include <boost/function.hpp>
 #include <queue>
 
 namespace icinga
@@ -32,7 +31,7 @@ namespace icinga
 struct DeferredInitializer
 {
 public:
-	DeferredInitializer(const boost::function<void (void)>& callback, int priority)
+	DeferredInitializer(const std::function<void (void)>& callback, int priority)
 	    : m_Callback(callback), m_Priority(priority)
 	{ }
 
@@ -47,7 +46,7 @@ public:
 	}
 
 private:
-	boost::function<void (void)> m_Callback;
+	std::function<void (void)> m_Callback;
 	int m_Priority;
 };
 
@@ -61,7 +60,7 @@ class I2_BASE_API Loader
 public:
 	static void LoadExtensionLibrary(const String& library);
 
-	static void AddDeferredInitializer(const boost::function<void(void)>& callback, int priority = 0);
+	static void AddDeferredInitializer(const std::function<void(void)>& callback, int priority = 0);
 	static void ExecuteDeferredInitializers(void);
 
 private:

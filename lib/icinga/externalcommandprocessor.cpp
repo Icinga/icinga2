@@ -44,7 +44,7 @@ using namespace icinga;
 
 INITIALIZE_ONCE(&ExternalCommandProcessor::StaticInitialize);
 
-typedef boost::function<void (double, const std::vector<String>& arguments)> ExternalCommandCallback;
+typedef std::function<void (double, const std::vector<String>& arguments)> ExternalCommandCallback;
 
 struct ExternalCommandInfo
 {

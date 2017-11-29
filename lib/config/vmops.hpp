@@ -112,7 +112,7 @@ public:
 	static inline Value NewFunction(ScriptFrame& frame, const String& name, const std::vector<String>& args,
 	    std::map<String, Expression *> *closedVars, const boost::shared_ptr<Expression>& expression)
 	{
-		return new Function(name, boost::bind(&FunctionWrapper, _1, args,
+		return new Function(name, std::bind(&FunctionWrapper, _1, args,
 		    EvaluateClosedVars(frame, closedVars), expression), args);
 	}
 

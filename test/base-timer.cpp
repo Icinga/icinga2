@@ -48,7 +48,7 @@ BOOST_AUTO_TEST_CASE(invoke)
 {
 	int counter;
 	Timer::Ptr timer = new Timer();
-	timer->OnTimerExpired.connect(boost::bind(&Callback, &counter));
+	timer->OnTimerExpired.connect(std::bind(&Callback, &counter));
 	timer->SetInterval(1);
 
 	counter = 0;
@@ -63,7 +63,7 @@ BOOST_AUTO_TEST_CASE(scope)
 {
 	int counter;
 	Timer::Ptr timer = new Timer();
-	timer->OnTimerExpired.connect(boost::bind(&Callback, &counter));
+	timer->OnTimerExpired.connect(std::bind(&Callback, &counter));
 	timer->SetInterval(1);
 
 	counter = 0;

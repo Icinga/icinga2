@@ -75,10 +75,10 @@ void LogTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "contact_name", Column(&LogTable::ContactNameAccessor, objectAccessor));
 	table->AddColumn(prefix + "command_name", Column(&LogTable::CommandNameAccessor, objectAccessor));
 
-	HostsTable::AddColumns(table, "current_host_", boost::bind(&LogTable::HostAccessor, _1, objectAccessor));
-	ServicesTable::AddColumns(table, "current_service_", boost::bind(&LogTable::ServiceAccessor, _1, objectAccessor));
-	ContactsTable::AddColumns(table, "current_contact_", boost::bind(&LogTable::ContactAccessor, _1, objectAccessor));
-	CommandsTable::AddColumns(table, "current_command_", boost::bind(&LogTable::CommandAccessor, _1, objectAccessor));
+	HostsTable::AddColumns(table, "current_host_", std::bind(&LogTable::HostAccessor, _1, objectAccessor));
+	ServicesTable::AddColumns(table, "current_service_", std::bind(&LogTable::ServiceAccessor, _1, objectAccessor));
+	ContactsTable::AddColumns(table, "current_contact_", std::bind(&LogTable::ContactAccessor, _1, objectAccessor));
+	CommandsTable::AddColumns(table, "current_command_", std::bind(&LogTable::CommandAccessor, _1, objectAccessor));
 }
 
 String LogTable::GetName(void) const

@@ -92,20 +92,20 @@ public:
 	ApiClient(const String& host, const String& port,
 	    const String& user, const String& password);
 
-	typedef boost::function<void(boost::exception_ptr, const std::vector<ApiType::Ptr>&)> TypesCompletionCallback;
+	typedef std::function<void(boost::exception_ptr, const std::vector<ApiType::Ptr>&)> TypesCompletionCallback;
 	void GetTypes(const TypesCompletionCallback& callback) const;
 
-	typedef boost::function<void(boost::exception_ptr, const std::vector<ApiObject::Ptr>&)> ObjectsCompletionCallback;
+	typedef std::function<void(boost::exception_ptr, const std::vector<ApiObject::Ptr>&)> ObjectsCompletionCallback;
 	void GetObjects(const String& pluralType, const ObjectsCompletionCallback& callback,
 	    const std::vector<String>& names = std::vector<String>(),
 	    const std::vector<String>& attrs = std::vector<String>(),
 	    const std::vector<String>& joins = std::vector<String>(), bool all_joins = false) const;
 
-	typedef boost::function<void(boost::exception_ptr, const Value&)> ExecuteScriptCompletionCallback;
+	typedef std::function<void(boost::exception_ptr, const Value&)> ExecuteScriptCompletionCallback;
 	void ExecuteScript(const String& session, const String& command, bool sandboxed,
 	    const ExecuteScriptCompletionCallback& callback) const;
 	
-	typedef boost::function<void(boost::exception_ptr, const Array::Ptr&)> AutocompleteScriptCompletionCallback;
+	typedef std::function<void(boost::exception_ptr, const Array::Ptr&)> AutocompleteScriptCompletionCallback;
 	void AutocompleteScript(const String& session, const String& command, bool sandboxed,
 	    const AutocompleteScriptCompletionCallback& callback) const;
 

@@ -26,7 +26,6 @@
 #include "base/value.hpp"
 #include "base/dictionary.hpp"
 #include <vector>
-#include <boost/function.hpp>
 
 namespace icinga
 {
@@ -41,7 +40,7 @@ class I2_REMOTE_API ApiFunction : public Object
 public:
 	DECLARE_PTR_TYPEDEFS(ApiFunction);
 
-	typedef boost::function<Value(const MessageOrigin::Ptr& origin, const Dictionary::Ptr&)> Callback;
+	typedef std::function<Value(const MessageOrigin::Ptr& origin, const Dictionary::Ptr&)> Callback;
 
 	ApiFunction(const Callback& function);
 

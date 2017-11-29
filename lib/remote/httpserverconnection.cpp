@@ -51,7 +51,7 @@ HttpServerConnection::HttpServerConnection(const String& identity, bool authenti
 void HttpServerConnection::StaticInitialize(void)
 {
 	l_HttpServerConnectionTimeoutTimer = new Timer();
-	l_HttpServerConnectionTimeoutTimer->OnTimerExpired.connect(boost::bind(&HttpServerConnection::TimeoutTimerHandler));
+	l_HttpServerConnectionTimeoutTimer->OnTimerExpired.connect(std::bind(&HttpServerConnection::TimeoutTimerHandler));
 	l_HttpServerConnectionTimeoutTimer->SetInterval(15);
 	l_HttpServerConnectionTimeoutTimer->Start();
 }
@@ -59,7 +59,7 @@ void HttpServerConnection::StaticInitialize(void)
 void HttpServerConnection::Start(void)
 {
 	/* the stream holds an owning reference to this object through the callback we're registering here */
-	m_Stream->RegisterDataHandler(boost::bind(&HttpServerConnection::DataAvailableHandler, HttpServerConnection::Ptr(this)));
+	m_Stream->RegisterDataHandler(std::bind(&HttpServerConnection::DataAvailableHandler, HttpServerConnection::Ptr(this)));
 	if (m_Stream->IsDataAvailable())
 		DataAvailableHandler();
 }
@@ -114,7 +114,7 @@ bool HttpServerConnection::ProcessMessage(void)
 	}
 
 	if (m_CurrentRequest.Complete) {
-		m_RequestQueue.Enqueue(boost::bind(&HttpServerConnection::ProcessMessageAsync,
+		m_RequestQueue.Enqueue(std::bind(&HttpServerConnection::ProcessMessageAsync,
 		    HttpServerConnection::Ptr(this), m_CurrentRequest));
 
 		m_Seen = Utility::GetTime();

@@ -81,7 +81,7 @@ void Loader::ExecuteDeferredInitializers(void)
 	}
 }
 
-void Loader::AddDeferredInitializer(const boost::function<void(void)>& callback, int priority)
+void Loader::AddDeferredInitializer(const std::function<void(void)>& callback, int priority)
 {
 	if (!GetDeferredInitializers().get())
 		GetDeferredInitializers().reset(new std::priority_queue<DeferredInitializer>());

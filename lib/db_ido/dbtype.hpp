@@ -41,7 +41,7 @@ class I2_DB_IDO_API DbType : public Object
 public:
 	DECLARE_PTR_TYPEDEFS(DbType);
 
-	typedef boost::function<intrusive_ptr<DbObject> (const intrusive_ptr<DbType>&, const String&, const String&)> ObjectFactory;
+	typedef std::function<intrusive_ptr<DbObject> (const intrusive_ptr<DbType>&, const String&, const String&)> ObjectFactory;
 	typedef std::map<String, DbType::Ptr> TypeMap;
 	typedef std::map<std::pair<String, String>, intrusive_ptr<DbObject> > ObjectMap;
 

@@ -51,7 +51,7 @@ void PluginEventTask::ScriptFunc(const Checkable::Ptr& checkable,
 
 	PluginUtility::ExecuteCommand(commandObj, checkable, checkable->GetLastCheckResult(),
 	    resolvers, resolvedMacros, useResolvedMacros,
-	    boost::bind(&PluginEventTask::ProcessFinishedHandler, checkable, _1, _2));
+	    std::bind(&PluginEventTask::ProcessFinishedHandler, checkable, _1, _2));
 }
 
 void PluginEventTask::ProcessFinishedHandler(const Checkable::Ptr& checkable, const Value& commandLine, const ProcessResult& pr)

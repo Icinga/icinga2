@@ -36,6 +36,7 @@
 #include <ios>
 #include <fstream>
 #include <iostream>
+#include <future>
 
 #ifdef __FreeBSD__
 #	include <pthread_np.h>
@@ -502,7 +503,7 @@ static int GlobErrorHandler(const char *epath, int eerrno)
  * @param callback The callback which is invoked for each matching file.
  * @param type The file type (a combination of GlobFile and GlobDirectory)
  */
-bool Utility::Glob(const String& pathSpec, const boost::function<void (const String&)>& callback, int type)
+bool Utility::Glob(const String& pathSpec, const std::function<void (const String&)>& callback, int type)
 {
 	std::vector<String> files, dirs;
 
@@ -609,7 +610,7 @@ bool Utility::Glob(const String& pathSpec, const boost::function<void (const Str
  * @param callback The callback which is invoked for each matching file.
  * @param type The file type (a combination of GlobFile and GlobDirectory)
  */
-bool Utility::GlobRecursive(const String& path, const String& pattern, const boost::function<void (const String&)>& callback, int type)
+bool Utility::GlobRecursive(const String& path, const String& pattern, const std::function<void (const String&)>& callback, int type)
 {
 	std::vector<String> files, dirs, alldirs;
 
@@ -768,7 +769,7 @@ void Utility::MkDirP(const String& path, int mode)
 void Utility::RemoveDirRecursive(const String& path)
 {
 	std::vector<String> paths;
-	Utility::GlobRecursive(path, "*", boost::bind(&Utility::CollectPaths, _1, boost::ref(paths)), GlobFile | GlobDirectory);
+	Utility::GlobRecursive(path, "*", std::bind(&Utility::CollectPaths, _1, boost::ref(paths)), GlobFile | GlobDirectory);
 
 	/* This relies on the fact that GlobRecursive lists the parent directory
 	   first before recursing into subdirectories. */

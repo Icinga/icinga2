@@ -96,17 +96,17 @@ void InfluxdbWriter::Start(bool runtimeCreated)
 	    << "'" << GetName() << "' started.";
 
 	/* Register exception handler for WQ tasks. */
-	m_WorkQueue.SetExceptionCallback(boost::bind(&InfluxdbWriter::ExceptionHandler, this, _1));
+	m_WorkQueue.SetExceptionCallback(std::bind(&InfluxdbWriter::ExceptionHandler, this, _1));
 
 	/* Setup timer for periodically flushing m_DataBuffer */
 	m_FlushTimer = new Timer();
 	m_FlushTimer->SetInterval(GetFlushInterval());
-	m_FlushTimer->OnTimerExpired.connect(boost::bind(&InfluxdbWriter::FlushTimeout, this));
+	m_FlushTimer->OnTimerExpired.connect(std::bind(&InfluxdbWriter::FlushTimeout, this));
 	m_FlushTimer->Start();
 	m_FlushTimer->Reschedule(0);
 
 	/* Register for new metrics. */
-	Service::OnNewCheckResult.connect(boost::bind(&InfluxdbWriter::CheckResultHandler, this, _1, _2));
+	Service::OnNewCheckResult.connect(std::bind(&InfluxdbWriter::CheckResultHandler, this, _1, _2));
 }
 
 void InfluxdbWriter::Stop(bool runtimeRemoved)
@@ -176,7 +176,7 @@ Stream::Ptr InfluxdbWriter::Connect()
 
 void InfluxdbWriter::CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
 {
-	m_WorkQueue.Enqueue(boost::bind(&InfluxdbWriter::InternalCheckResultHandler, this, checkable, cr));
+	m_WorkQueue.Enqueue(std::bind(&InfluxdbWriter::InternalCheckResultHandler, this, checkable, cr));
 }
 
 void InfluxdbWriter::InternalCheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)

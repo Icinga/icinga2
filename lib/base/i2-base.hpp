@@ -105,5 +105,10 @@
 #	define unlikely(x) (x)
 #endif
 
+#define BOOST_BIND_NO_PLACEHOLDERS
+
+#include <functional>
+
+using namespace std::placeholders;
 
 #endif /* I2BASE_H */

@@ -29,7 +29,7 @@ Value Column::ExtractValue(const Value& urow, LivestatusGroupByType groupByType,
 {
 	Value row;
 
-	if (!m_ObjectAccessor.empty())
+	if (m_ObjectAccessor)
 		row = m_ObjectAccessor(urow, groupByType, groupByObject);
 	else
 		row = urow;

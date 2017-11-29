@@ -100,7 +100,7 @@ static Array::Ptr ArraySort(const std::vector<Value>& args)
 			BOOST_THROW_EXCEPTION(ScriptError("Sort function must be side-effect free."));
 
 		ObjectLock olock(arr);
-		std::sort(arr->Begin(), arr->End(), boost::bind(ArraySortCmp, args[0], _1, _2));
+		std::sort(arr->Begin(), arr->End(), std::bind(ArraySortCmp, args[0], _1, _2));
 	}
 
 	return arr;

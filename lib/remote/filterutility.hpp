@@ -35,7 +35,7 @@ class TargetProvider : public Object
 public:
 	DECLARE_PTR_TYPEDEFS(TargetProvider);
 
-	virtual void FindTargets(const String& type, const boost::function<void (const Value&)>& addTarget) const = 0;
+	virtual void FindTargets(const String& type, const std::function<void (const Value&)>& addTarget) const = 0;
 	virtual Value GetTargetByName(const String& type, const String& name) const = 0;
 	virtual bool IsValidType(const String& type) const = 0;
 	virtual String GetPluralName(const String& type) const = 0;
@@ -46,7 +46,7 @@ class ConfigObjectTargetProvider : public TargetProvider
 public:
 	DECLARE_PTR_TYPEDEFS(ConfigObjectTargetProvider);
 
-	virtual void FindTargets(const String& type, const boost::function<void (const Value&)>& addTarget) const override;
+	virtual void FindTargets(const String& type, const std::function<void (const Value&)>& addTarget) const override;
 	virtual Value GetTargetByName(const String& type, const String& name) const override;
 	virtual bool IsValidType(const String& type) const override;
 	virtual String GetPluralName(const String& type) const override;

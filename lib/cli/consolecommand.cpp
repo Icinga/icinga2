@@ -195,7 +195,7 @@ char *ConsoleCommand::ConsoleCompleteHelper(const char *word, int state)
 			Array::Ptr suggestions;
 
 			l_ApiClient->AutocompleteScript(l_Session, word, l_ScriptFrame->Sandboxed,
-			    boost::bind(&ConsoleCommand::AutocompleteScriptCompletionHandler,
+			    std::bind(&ConsoleCommand::AutocompleteScriptCompletionHandler,
 			    boost::ref(mutex), boost::ref(cv), boost::ref(ready),
 			    _1, _2,
 			    boost::ref(suggestions)));
@@ -425,7 +425,7 @@ incomplete:
 				boost::exception_ptr eptr;
 
 				l_ApiClient->ExecuteScript(l_Session, command, scriptFrame.Sandboxed,
-				    boost::bind(&ConsoleCommand::ExecuteScriptCompletionHandler,
+				    std::bind(&ConsoleCommand::ExecuteScriptCompletionHandler,
 				    boost::ref(mutex), boost::ref(cv), boost::ref(ready),
 				    _1, _2,
 				    boost::ref(result), boost::ref(eptr)));

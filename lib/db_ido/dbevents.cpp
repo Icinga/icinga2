@@ -42,49 +42,49 @@ INITIALIZE_ONCE(&DbEvents::StaticInitialize);
 void DbEvents::StaticInitialize(void)
 {
 	/* Status */
-	Comment::OnCommentAdded.connect(boost::bind(&DbEvents::AddComment, _1));
-	Comment::OnCommentRemoved.connect(boost::bind(&DbEvents::RemoveComment, _1));
-	Downtime::OnDowntimeAdded.connect(boost::bind(&DbEvents::AddDowntime, _1));
-	Downtime::OnDowntimeRemoved.connect(boost::bind(&DbEvents::RemoveDowntime, _1));
-	Downtime::OnDowntimeTriggered.connect(boost::bind(&DbEvents::TriggerDowntime, _1));
-	Checkable::OnAcknowledgementSet.connect(boost::bind(&DbEvents::AddAcknowledgement, _1, _4));
-	Checkable::OnAcknowledgementCleared.connect(boost::bind(&DbEvents::RemoveAcknowledgement, _1));
+	Comment::OnCommentAdded.connect(std::bind(&DbEvents::AddComment, _1));
+	Comment::OnCommentRemoved.connect(std::bind(&DbEvents::RemoveComment, _1));
+	Downtime::OnDowntimeAdded.connect(std::bind(&DbEvents::AddDowntime, _1));
+	Downtime::OnDowntimeRemoved.connect(std::bind(&DbEvents::RemoveDowntime, _1));
+	Downtime::OnDowntimeTriggered.connect(std::bind(&DbEvents::TriggerDowntime, _1));
+	Checkable::OnAcknowledgementSet.connect(std::bind(&DbEvents::AddAcknowledgement, _1, _4));
+	Checkable::OnAcknowledgementCleared.connect(std::bind(&DbEvents::RemoveAcknowledgement, _1));
 
-	Checkable::OnNextCheckUpdated.connect(boost::bind(&DbEvents::NextCheckUpdatedHandler, _1));
-	Checkable::OnFlappingChanged.connect(boost::bind(&DbEvents::FlappingChangedHandler, _1));
-	Checkable::OnNotificationSentToAllUsers.connect(boost::bind(&DbEvents::LastNotificationChangedHandler, _1, _2));
+	Checkable::OnNextCheckUpdated.connect(std::bind(&DbEvents::NextCheckUpdatedHandler, _1));
+	Checkable::OnFlappingChanged.connect(std::bind(&DbEvents::FlappingChangedHandler, _1));
+	Checkable::OnNotificationSentToAllUsers.connect(std::bind(&DbEvents::LastNotificationChangedHandler, _1, _2));
 
-	Checkable::OnEnableActiveChecksChanged.connect(boost::bind(&DbEvents::EnableActiveChecksChangedHandler, _1));
-	Checkable::OnEnablePassiveChecksChanged.connect(boost::bind(&DbEvents::EnablePassiveChecksChangedHandler, _1));
-	Checkable::OnEnableNotificationsChanged.connect(boost::bind(&DbEvents::EnableNotificationsChangedHandler, _1));
-	Checkable::OnEnablePerfdataChanged.connect(boost::bind(&DbEvents::EnablePerfdataChangedHandler, _1));
-	Checkable::OnEnableFlappingChanged.connect(boost::bind(&DbEvents::EnableFlappingChangedHandler, _1));
+	Checkable::OnEnableActiveChecksChanged.connect(std::bind(&DbEvents::EnableActiveChecksChangedHandler, _1));
+	Checkable::OnEnablePassiveChecksChanged.connect(std::bind(&DbEvents::EnablePassiveChecksChangedHandler, _1));
+	Checkable::OnEnableNotificationsChanged.connect(std::bind(&DbEvents::EnableNotificationsChangedHandler, _1));
+	Checkable::OnEnablePerfdataChanged.connect(std::bind(&DbEvents::EnablePerfdataChangedHandler, _1));
+	Checkable::OnEnableFlappingChanged.connect(std::bind(&DbEvents::EnableFlappingChangedHandler, _1));
 
-	Checkable::OnReachabilityChanged.connect(boost::bind(&DbEvents::ReachabilityChangedHandler, _1, _2, _3));
+	Checkable::OnReachabilityChanged.connect(std::bind(&DbEvents::ReachabilityChangedHandler, _1, _2, _3));
 
 	/* History */
-	Comment::OnCommentAdded.connect(boost::bind(&DbEvents::AddCommentHistory, _1));
-	Downtime::OnDowntimeAdded.connect(boost::bind(&DbEvents::AddDowntimeHistory, _1));
-	Checkable::OnAcknowledgementSet.connect(boost::bind(&DbEvents::AddAcknowledgementHistory, _1, _2, _3, _4, _5, _6));
+	Comment::OnCommentAdded.connect(std::bind(&DbEvents::AddCommentHistory, _1));
+	Downtime::OnDowntimeAdded.connect(std::bind(&DbEvents::AddDowntimeHistory, _1));
+	Checkable::OnAcknowledgementSet.connect(std::bind(&DbEvents::AddAcknowledgementHistory, _1, _2, _3, _4, _5, _6));
 
-	Checkable::OnNotificationSentToAllUsers.connect(boost::bind(&DbEvents::AddNotificationHistory, _1, _2, _3, _4, _5, _6, _7));
+	Checkable::OnNotificationSentToAllUsers.connect(std::bind(&DbEvents::AddNotificationHistory, _1, _2, _3, _4, _5, _6, _7));
 
-	Checkable::OnStateChange.connect(boost::bind(&DbEvents::AddStateChangeHistory, _1, _2, _3));
+	Checkable::OnStateChange.connect(std::bind(&DbEvents::AddStateChangeHistory, _1, _2, _3));
 
-	Checkable::OnNewCheckResult.connect(boost::bind(&DbEvents::AddCheckResultLogHistory, _1, _2));
-	Checkable::OnNotificationSentToUser.connect(boost::bind(&DbEvents::AddNotificationSentLogHistory, _1, _2, _3, _4, _5, _6, _7));
-	Checkable::OnFlappingChanged.connect(boost::bind(&DbEvents::AddFlappingChangedLogHistory, _1));
-	Checkable::OnEnableFlappingChanged.connect(boost::bind(&DbEvents::AddEnableFlappingChangedLogHistory, _1));
-	Downtime::OnDowntimeTriggered.connect(boost::bind(&DbEvents::AddTriggerDowntimeLogHistory, _1));
-	Downtime::OnDowntimeRemoved.connect(boost::bind(&DbEvents::AddRemoveDowntimeLogHistory, _1));
+	Checkable::OnNewCheckResult.connect(std::bind(&DbEvents::AddCheckResultLogHistory, _1, _2));
+	Checkable::OnNotificationSentToUser.connect(std::bind(&DbEvents::AddNotificationSentLogHistory, _1, _2, _3, _4, _5, _6, _7));
+	Checkable::OnFlappingChanged.connect(std::bind(&DbEvents::AddFlappingChangedLogHistory, _1));
+	Checkable::OnEnableFlappingChanged.connect(std::bind(&DbEvents::AddEnableFlappingChangedLogHistory, _1));
+	Downtime::OnDowntimeTriggered.connect(std::bind(&DbEvents::AddTriggerDowntimeLogHistory, _1));
+	Downtime::OnDowntimeRemoved.connect(std::bind(&DbEvents::AddRemoveDowntimeLogHistory, _1));
 
-	Checkable::OnFlappingChanged.connect(boost::bind(&DbEvents::AddFlappingChangedHistory, _1));
-	Checkable::OnEnableFlappingChanged.connect(boost::bind(&DbEvents::AddEnableFlappingChangedHistory, _1));
-	Checkable::OnNewCheckResult.connect(boost::bind(&DbEvents::AddCheckableCheckHistory, _1, _2));
+	Checkable::OnFlappingChanged.connect(std::bind(&DbEvents::AddFlappingChangedHistory, _1));
+	Checkable::OnEnableFlappingChanged.connect(std::bind(&DbEvents::AddEnableFlappingChangedHistory, _1));
+	Checkable::OnNewCheckResult.connect(std::bind(&DbEvents::AddCheckableCheckHistory, _1, _2));
 
-	Checkable::OnEventCommandExecuted.connect(boost::bind(&DbEvents::AddEventHandlerHistory, _1));
+	Checkable::OnEventCommandExecuted.connect(std::bind(&DbEvents::AddEventHandlerHistory, _1));
 
-	ExternalCommandProcessor::OnNewExternalCommand.connect(boost::bind(&DbEvents::AddExternalCommandHistory, _1, _2, _3));
+	ExternalCommandProcessor::OnNewExternalCommand.connect(std::bind(&DbEvents::AddExternalCommandHistory, _1, _2, _3));
 }
 
 /* check events */

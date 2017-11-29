@@ -594,7 +594,7 @@ void ConfigObject::RestoreObjects(const String& filename, int attributeTypes)
 		if (srs != StatusNewItem)
 			continue;
 
-		upq.Enqueue(boost::bind(&ConfigObject::RestoreObject, message, attributeTypes));
+		upq.Enqueue(std::bind(&ConfigObject::RestoreObject, message, attributeTypes));
 		restored++;
 	}
 
@@ -638,7 +638,7 @@ void ConfigObject::StopObjects(void)
 	}
 }
 
-void ConfigObject::DumpModifiedAttributes(const boost::function<void(const ConfigObject::Ptr&, const String&, const Value&)>& callback)
+void ConfigObject::DumpModifiedAttributes(const std::function<void(const ConfigObject::Ptr&, const String&, const Value&)>& callback)
 {
 	for (const Type::Ptr& type : Type::GetAllTypes()) {
 		ConfigType *dtype = dynamic_cast<ConfigType *>(type.get());
