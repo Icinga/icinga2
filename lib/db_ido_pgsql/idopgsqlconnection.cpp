@@ -522,7 +522,7 @@ Dictionary::Ptr IdoPgsqlConnection::FetchRow(const IdoPgsqlResult& result, int r
 	AssertOnWorkQueue();
 
 	if (row >= PQntuples(result.get()))
-		return Dictionary::Ptr();
+		return nullptr;
 
 	int columns = PQnfields(result.get());
 

@@ -23,7 +23,6 @@
 #include "remote/httphandler.hpp"
 #include "base/object.hpp"
 #include "config/expression.hpp"
-#include <boost/thread/thread.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition_variable.hpp>
 #include <set>

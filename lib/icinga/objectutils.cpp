@@ -51,7 +51,7 @@ Service::Ptr ObjectUtils::GetService(const Value& host, const String& name)
 		hostObj = Host::GetByName(host);
 
 	if (!hostObj)
-		return Service::Ptr();
+		return nullptr;
 
 	return hostObj->GetServiceByShortName(name);
 }
@@ -66,7 +66,7 @@ Array::Ptr ObjectUtils::GetServices(const Value& host)
 		hostObj = Host::GetByName(host);
 
 	if (!hostObj)
-		return Array::Ptr();
+		return nullptr;
 
 	return Array::FromVector(hostObj->GetServices());
 }

@@ -451,7 +451,7 @@ Dictionary::Ptr LegacyTimePeriod::FindNextSegment(const String& daydef, const St
 		} while (tsiter < tsend);
 	}
 
-	return Dictionary::Ptr();
+	return nullptr;
 }
 
 Array::Ptr LegacyTimePeriod::ScriptFunc(const TimePeriod::Ptr& tp, double begin, double end)

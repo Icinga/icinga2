@@ -30,9 +30,7 @@
 using namespace icinga;
 
 INITIALIZE_ONCE([]() {
-	std::vector<String> targets;
-	targets.push_back("Host");
-	ApplyRule::RegisterType("Service", targets);
+	ApplyRule::RegisterType("Service", { "Host" });
 });
 
 bool Service::EvaluateApplyRuleInstance(const Host::Ptr& host, const String& name, ScriptFrame& frame, const ApplyRule& rule)

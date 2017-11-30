@@ -181,13 +181,12 @@ void DbConnection::UpdateProgramStatus(void)
 	query1.Fields->Set("process_performance_data", (IcingaApplication::GetInstance()->GetEnablePerfdata() ? 1 : 0));
 	query1.WhereCriteria = new Dictionary();
 	query1.WhereCriteria->Set("instance_id", 0);  /* DbConnection class fills in real ID */
-
 	query1.Priority = PriorityHigh;
-	queries.push_back(query1);
+	queries.emplace_back(std::move(query1));
 
 	DbQuery query2;
 	query2.Type = DbQueryNewTransaction;
-	queries.push_back(query2);
+	queries.emplace_back(std::move(query2));
 
 	DbObject::OnMultipleQueries(queries);
 

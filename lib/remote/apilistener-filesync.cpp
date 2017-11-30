@@ -72,7 +72,7 @@ ConfigDirInformation ApiListener::LoadConfigDir(const String& dir)
 	ConfigDirInformation config;
 	config.UpdateV1 = new Dictionary();
 	config.UpdateV2 = new Dictionary();
-	Utility::GlobRecursive(dir, "*", std::bind(&ApiListener::ConfigGlobHandler, boost::ref(config), dir, _1), GlobFile);
+	Utility::GlobRecursive(dir, "*", std::bind(&ApiListener::ConfigGlobHandler, std::ref(config), dir, _1), GlobFile);
 	return config;
 }
 

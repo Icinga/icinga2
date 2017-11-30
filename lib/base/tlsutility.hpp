@@ -31,31 +31,30 @@
 #include <openssl/x509v3.h>
 #include <openssl/evp.h>
 #include <openssl/rand.h>
-#include <boost/smart_ptr/shared_ptr.hpp>
 #include <boost/exception/info.hpp>
 
 namespace icinga
 {
 
 void I2_BASE_API InitializeOpenSSL(void);
-boost::shared_ptr<SSL_CTX> I2_BASE_API MakeSSLContext(const String& pubkey = String(), const String& privkey = String(), const String& cakey = String());
-void I2_BASE_API AddCRLToSSLContext(const boost::shared_ptr<SSL_CTX>& context, const String& crlPath);
-void I2_BASE_API SetCipherListToSSLContext(const boost::shared_ptr<SSL_CTX>& context, const String& cipherList);
-void I2_BASE_API SetTlsProtocolminToSSLContext(const boost::shared_ptr<SSL_CTX>& context, const String& tlsProtocolmin);
-String I2_BASE_API GetCertificateCN(const boost::shared_ptr<X509>& certificate);
-boost::shared_ptr<X509> I2_BASE_API GetX509Certificate(const String& pemfile);
+std::shared_ptr<SSL_CTX> I2_BASE_API MakeSSLContext(const String& pubkey = String(), const String& privkey = String(), const String& cakey = String());
+void I2_BASE_API AddCRLToSSLContext(const std::shared_ptr<SSL_CTX>& context, const String& crlPath);
+void I2_BASE_API SetCipherListToSSLContext(const std::shared_ptr<SSL_CTX>& context, const String& cipherList);
+void I2_BASE_API SetTlsProtocolminToSSLContext(const std::shared_ptr<SSL_CTX>& context, const String& tlsProtocolmin);
+String I2_BASE_API GetCertificateCN(const std::shared_ptr<X509>& certificate);
+std::shared_ptr<X509> I2_BASE_API GetX509Certificate(const String& pemfile);
 int I2_BASE_API MakeX509CSR(const String& cn, const String& keyfile, const String& csrfile = String(), const String& certfile = String(), bool ca = false);
-boost::shared_ptr<X509> I2_BASE_API CreateCert(EVP_PKEY *pubkey, X509_NAME *subject, X509_NAME *issuer, EVP_PKEY *cakey, bool ca);
+std::shared_ptr<X509> I2_BASE_API CreateCert(EVP_PKEY *pubkey, X509_NAME *subject, X509_NAME *issuer, EVP_PKEY *cakey, bool ca);
 String I2_BASE_API GetIcingaCADir(void);
-String I2_BASE_API CertificateToString(const boost::shared_ptr<X509>& cert);
-boost::shared_ptr<X509> I2_BASE_API StringToCertificate(const String& cert);
-boost::shared_ptr<X509> I2_BASE_API CreateCertIcingaCA(EVP_PKEY *pubkey, X509_NAME *subject);
-boost::shared_ptr<X509> I2_BASE_API CreateCertIcingaCA(const boost::shared_ptr<X509>& cert);
+String I2_BASE_API CertificateToString(const std::shared_ptr<X509>& cert);
+std::shared_ptr<X509> I2_BASE_API StringToCertificate(const String& cert);
+std::shared_ptr<X509> I2_BASE_API CreateCertIcingaCA(EVP_PKEY *pubkey, X509_NAME *subject);
+std::shared_ptr<X509> I2_BASE_API CreateCertIcingaCA(const std::shared_ptr<X509>& cert);
 String I2_BASE_API PBKDF2_SHA1(const String& password, const String& salt, int iterations);
 String I2_BASE_API SHA1(const String& s, bool binary = false);
 String I2_BASE_API SHA256(const String& s);
 String I2_BASE_API RandomString(int length);
-bool I2_BASE_API VerifyCertificate(const boost::shared_ptr<X509>& caCertificate, const boost::shared_ptr<X509>& certificate);
+bool I2_BASE_API VerifyCertificate(const std::shared_ptr<X509>& caCertificate, const std::shared_ptr<X509>& certificate);
 
 class I2_BASE_API openssl_error : virtual public std::exception, virtual public boost::exception { };
 

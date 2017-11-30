@@ -26,6 +26,7 @@
 #include "base/logger.hpp"
 #include "base/timer.hpp"
 #include "base/utility.hpp"
+#include <boost/thread/once.hpp>
 
 using namespace icinga;
 
@@ -33,19 +34,18 @@ REGISTER_TYPE(TimePeriod);
 
 static Timer::Ptr l_UpdateTimer;
 
-INITIALIZE_ONCE(&TimePeriod::StaticInitialize);
-
-void TimePeriod::StaticInitialize(void)
-{
-	l_UpdateTimer = new Timer();
-	l_UpdateTimer->SetInterval(300);
-	l_UpdateTimer->OnTimerExpired.connect(std::bind(&TimePeriod::UpdateTimerHandler));
-	l_UpdateTimer->Start();
-}
-
 void TimePeriod::Start(bool runtimeCreated)
 {
 	ObjectImpl<TimePeriod>::Start(runtimeCreated);
+
+	static boost::once_flag once = BOOST_ONCE_INIT;
+
+	boost::call_once(once, []() {
+		l_UpdateTimer = new Timer();
+		l_UpdateTimer->SetInterval(300);
+		l_UpdateTimer->OnTimerExpired.connect(std::bind(&TimePeriod::UpdateTimerHandler));
+		l_UpdateTimer->Start();
+	});
 
 	/* Pre-fill the time period for the next 24 hours. */
 	double now = Utility::GetTime();
@@ -244,12 +244,7 @@ void TimePeriod::UpdateRegion(double begin, double end, bool clearExisting)
 			return;
 	}
 
-	std::vector<Value> arguments;
-	arguments.push_back(this);
-	arguments.push_back(begin);
-	arguments.push_back(end);
-
-	Array::Ptr segments = GetUpdate()->Invoke(arguments);
+	Array::Ptr segments = GetUpdate()->Invoke({ this, begin, end });
 
 	{
 		ObjectLock olock(this);

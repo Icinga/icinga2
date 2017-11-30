@@ -49,12 +49,12 @@ Type::Ptr Type::GetByName(const String& name)
 	Dictionary::Ptr typesNS = ScriptGlobal::Get("Types", &Empty);
 
 	if (!typesNS)
-		return Type::Ptr();
+		return nullptr;
 
 	Value ptype = typesNS->Get(name);
 
 	if (!ptype.IsObjectType<Type>())
-		return Type::Ptr();
+		return nullptr;
 
 	return ptype;
 }

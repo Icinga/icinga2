@@ -28,7 +28,6 @@
 #include "icinga/compatutility.hpp"
 #include "base/timer.hpp"
 #include "base/utility.hpp"
-#include <boost/thread/thread.hpp>
 #include <iostream>
 
 namespace icinga

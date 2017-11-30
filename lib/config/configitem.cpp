@@ -60,8 +60,8 @@ REGISTER_SCRIPTFUNCTION_NS(Internal, run_with_activation_context, &ConfigItem::R
  * @param debuginfo Debug information.
  */
 ConfigItem::ConfigItem(const Type::Ptr& type, const String& name,
-    bool abstract, const boost::shared_ptr<Expression>& exprl,
-    const boost::shared_ptr<Expression>& filter, bool defaultTmpl, bool ignoreOnError,
+    bool abstract, const std::shared_ptr<Expression>& exprl,
+    const std::shared_ptr<Expression>& filter, bool defaultTmpl, bool ignoreOnError,
     const DebugInfo& debuginfo, const Dictionary::Ptr& scope,
     const String& zone, const String& package)
 	: m_Type(type), m_Name(name), m_Abstract(abstract),
@@ -137,7 +137,7 @@ ConfigObject::Ptr ConfigItem::GetObject(void) const
  *
  * @returns The expression list.
  */
-boost::shared_ptr<Expression> ConfigItem::GetExpression(void) const
+std::shared_ptr<Expression> ConfigItem::GetExpression(void) const
 {
 	return m_Expression;
 }
@@ -147,7 +147,7 @@ boost::shared_ptr<Expression> ConfigItem::GetExpression(void) const
 *
 * @returns The filter expression.
 */
-boost::shared_ptr<Expression> ConfigItem::GetFilter(void) const
+std::shared_ptr<Expression> ConfigItem::GetFilter(void) const
 {
 	return m_Filter;
 }
@@ -185,7 +185,7 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 		BOOST_THROW_EXCEPTION(ScriptError("Type '" + GetType() + "' does not exist.", m_DebugInfo));
 
 	if (IsAbstract())
-		return ConfigObject::Ptr();
+		return nullptr;
 
 	ConfigObject::Ptr dobj = static_pointer_cast<ConfigObject>(type->Instantiate(std::vector<Value>()));
 
@@ -211,7 +211,7 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 				m_IgnoredItems.push_back(m_DebugInfo.Path);
 			}
 
-			return ConfigObject::Ptr();
+			return nullptr;
 		}
 
 		throw;
@@ -263,7 +263,7 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 				m_IgnoredItems.push_back(m_DebugInfo.Path);
 			}
 
-			return ConfigObject::Ptr();
+			return nullptr;
 		}
 
 		ex.SetDebugHint(dhint);
@@ -282,7 +282,7 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 				m_IgnoredItems.push_back(m_DebugInfo.Path);
 			}
 
-			return ConfigObject::Ptr();
+			return nullptr;
 		}
 
 		throw;
@@ -378,12 +378,12 @@ ConfigItem::Ptr ConfigItem::GetByTypeAndName(const Type::Ptr& type, const String
 	auto it = m_Items.find(type);
 
 	if (it == m_Items.end())
-		return ConfigItem::Ptr();
+		return nullptr;
 
 	auto it2 = it->second.find(name);
 
 	if (it2 == it->second.end())
-		return ConfigItem::Ptr();
+		return nullptr;
 
 	return it2->second;
 }
@@ -404,7 +404,7 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 				if (kv2.second->m_ActivationContext != context)
 					continue;
 
-				items.push_back(std::make_pair(kv2.second, false));
+				items.emplace_back(kv2.second, false);
 			}
 		}
 
@@ -419,7 +419,7 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 			if (item->m_Abstract || item->m_Object)
 				continue;
 
-			items.push_back(std::make_pair(item, true));
+			items.emplace_back(item, true);
 		}
 
 		m_UnnamedItems.swap(newUnnamedItems);

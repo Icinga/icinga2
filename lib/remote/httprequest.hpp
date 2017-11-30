@@ -71,7 +71,7 @@ public:
 
 private:
 	Stream::Ptr m_Stream;
-	boost::shared_ptr<ChunkReadContext> m_ChunkContext;
+	std::shared_ptr<ChunkReadContext> m_ChunkContext;
 	HttpRequestState m_State;
 	FIFO::Ptr m_Body;
 

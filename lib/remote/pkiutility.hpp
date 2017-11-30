@@ -37,13 +37,13 @@ public:
 	static int NewCa(void);
 	static int NewCert(const String& cn, const String& keyfile, const String& csrfile, const String& certfile);
 	static int SignCsr(const String& csrfile, const String& certfile);
-	static boost::shared_ptr<X509> FetchCert(const String& host, const String& port);
-	static int WriteCert(const boost::shared_ptr<X509>& cert, const String& trustedfile);
+	static std::shared_ptr<X509> FetchCert(const String& host, const String& port);
+	static int WriteCert(const std::shared_ptr<X509>& cert, const String& trustedfile);
 	static int GenTicket(const String& cn, const String& salt, std::ostream& ticketfp);
 	static int RequestCertificate(const String& host, const String& port, const String& keyfile,
-	    const String& certfile, const String& cafile, const boost::shared_ptr<X509>& trustedcert,
+	    const String& certfile, const String& cafile, const std::shared_ptr<X509>& trustedcert,
 	    const String& ticket = String());
-	static String GetCertificateInformation(const boost::shared_ptr<X509>& certificate);
+	static String GetCertificateInformation(const std::shared_ptr<X509>& certificate);
 	static Dictionary::Ptr GetCertificateRequests(void);
 
 private:

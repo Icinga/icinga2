@@ -77,10 +77,7 @@ static void ArrayClear(void)
 
 static bool ArraySortCmp(const Function::Ptr& cmp, const Value& a, const Value& b)
 {
-	std::vector<Value> args;
-	args.push_back(a);
-	args.push_back(b);
-	return cmp->Invoke(args);
+	return cmp->Invoke({ a, b });
 }
 
 static Array::Ptr ArraySort(const std::vector<Value>& args)
@@ -154,9 +151,7 @@ static Array::Ptr ArrayMap(const Function::Ptr& function)
 
 	ObjectLock olock(self);
 	for (const Value& item : self) {
-		std::vector<Value> args;
-		args.push_back(item);
-		result->Add(function->Invoke(args));
+		result->Add(function->Invoke({ item }));
 	}
 
 	return result;
@@ -177,10 +172,7 @@ static Value ArrayReduce(const Function::Ptr& function)
 
 	ObjectLock olock(self);
 	for (size_t i = 1; i < self->GetLength(); i++) {
-		std::vector<Value> args;
-		args.push_back(result);
-		args.push_back(self->Get(i));
-		result = function->Invoke(args);
+		result = function->Invoke({ result, self->Get(i) });
 	}
 
 	return result;
@@ -198,9 +190,7 @@ static Array::Ptr ArrayFilter(const Function::Ptr& function)
 
 	ObjectLock olock(self);
 	for (const Value& item : self) {
-		std::vector<Value> args;
-		args.push_back(item);
-		if (function->Invoke(args))
+		if (function->Invoke({ item }))
 			result->Add(item);
 	}
 
@@ -217,9 +207,7 @@ static bool ArrayAny(const Function::Ptr& function)
 
 	ObjectLock olock(self);
 	for (const Value& item : self) {
-		std::vector<Value> args;
-		args.push_back(item);
-		if (function->Invoke(args))
+		if (function->Invoke({ item }))
 			return true;
 	}
 
@@ -236,9 +224,7 @@ static bool ArrayAll(const Function::Ptr& function)
 
 	ObjectLock olock(self);
 	for (const Value& item : self) {
-		std::vector<Value> args;
-		args.push_back(item);
-		if (!function->Invoke(args))
+		if (!function->Invoke({ item }))
 			return false;
 	}
 

@@ -26,6 +26,8 @@
 
 namespace icinga {
 
+class TimerHolder;
+
 /**
  * A timer that periodically triggers an event.
  *
@@ -38,6 +40,8 @@ public:
 
 	Timer(void);
 	~Timer(void);
+
+	static void Uninitialize(void);
 
 	void SetInterval(double interval);
 	double GetInterval(void) const;
@@ -52,31 +56,6 @@ public:
 
 	boost::signals2::signal<void(const Timer::Ptr&)> OnTimerExpired;
 
-	class Holder {
-	public:
-		Holder(Timer *timer)
-			: m_Timer(timer)
-		{ }
-
-		inline Timer *GetObject(void) const
-		{
-			return m_Timer;
-		}
-
-		inline double GetNextUnlocked(void) const
-		{
-			return m_Timer->m_Next;
-		}
-
-		operator Timer *(void) const
-		{
-			return m_Timer;
-		}
-
-	private:
-		Timer *m_Timer;
-	};
-
 private:
 	double m_Interval; /**< The interval of the timer. */
 	double m_Next; /**< When the next event should happen. */
@@ -88,10 +67,7 @@ private:
 
 	static void TimerThreadProc(void);
 
-	static void Initialize(void);
-	static void Uninitialize(void);
-
-	friend class Application;
+	friend class TimerHolder;
 };
 
 }

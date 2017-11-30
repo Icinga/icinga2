@@ -34,7 +34,7 @@ static Value FunctionCall(const std::vector<Value>& args)
 	Function::Ptr self = static_cast<Function::Ptr>(vframe->Self);
 
 	std::vector<Value> uargs(args.begin() + 1, args.end());
-	return self->Invoke(args[0], uargs);
+	return self->InvokeThis(args[0], uargs);
 }
 
 static Value FunctionCallV(const Value& thisArg, const Array::Ptr& args)
@@ -49,7 +49,7 @@ static Value FunctionCallV(const Value& thisArg, const Array::Ptr& args)
 		uargs = std::vector<Value>(args->Begin(), args->End());
 	}
 
-	return self->Invoke(thisArg, uargs);
+	return self->InvokeThis(thisArg, uargs);
 }
 
 

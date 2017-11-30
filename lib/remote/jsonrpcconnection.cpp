@@ -39,6 +39,7 @@ static Timer::Ptr l_JsonRpcConnectionTimeoutTimer;
 static WorkQueue *l_JsonRpcConnectionWorkQueues;
 static size_t l_JsonRpcConnectionWorkQueueCount;
 static int l_JsonRpcConnectionNextID;
+static Timer::Ptr l_HeartbeatTimer;
 
 JsonRpcConnection::JsonRpcConnection(const String& identity, bool authenticated,
     const TlsStream::Ptr& stream, ConnectionRole role)
@@ -65,6 +66,11 @@ void JsonRpcConnection::StaticInitialize(void)
 	for (size_t i = 0; i < l_JsonRpcConnectionWorkQueueCount; i++) {
 		l_JsonRpcConnectionWorkQueues[i].SetName("JsonRpcConnection, #" + Convert::ToString(i));
 	}
+
+	l_HeartbeatTimer = new Timer();
+	l_HeartbeatTimer->OnTimerExpired.connect(std::bind(&JsonRpcConnection::HeartbeatTimerHandler));
+	l_HeartbeatTimer->SetInterval(10);
+	l_HeartbeatTimer->Start();
 }
 
 void JsonRpcConnection::Start(void)

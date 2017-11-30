@@ -155,7 +155,7 @@ Expression *ConfigCompiler::HandleInclude(const String& relativeBase, const Stri
 
 	std::vector<Expression *> expressions;
 
-	if (!Utility::Glob(includePath, std::bind(&ConfigCompiler::CollectIncludes, boost::ref(expressions), _1, zone, package), GlobFile) && includePath.FindFirstOf("*?") == String::NPos) {
+	if (!Utility::Glob(includePath, std::bind(&ConfigCompiler::CollectIncludes, std::ref(expressions), _1, zone, package), GlobFile) && includePath.FindFirstOf("*?") == String::NPos) {
 		std::ostringstream msgbuf;
 		msgbuf << "Include file '" + path + "' does not exist";
 		BOOST_THROW_EXCEPTION(ScriptError(msgbuf.str(), debuginfo));
@@ -185,7 +185,7 @@ Expression *ConfigCompiler::HandleIncludeRecursive(const String& relativeBase, c
 		ppath = relativeBase + "/" + path;
 
 	std::vector<Expression *> expressions;
-	Utility::GlobRecursive(ppath, pattern, std::bind(&ConfigCompiler::CollectIncludes, boost::ref(expressions), _1, zone, package), GlobFile);
+	Utility::GlobRecursive(ppath, pattern, std::bind(&ConfigCompiler::CollectIncludes, std::ref(expressions), _1, zone, package), GlobFile);
 
 	DictExpression *dict = new DictExpression(expressions);
 	dict->MakeInline();
@@ -205,7 +205,7 @@ void ConfigCompiler::HandleIncludeZone(const String& relativeBase, const String&
 
 	RegisterZoneDir(tag, ppath, zoneName);
 
-	Utility::GlobRecursive(ppath, pattern, std::bind(&ConfigCompiler::CollectIncludes, boost::ref(expressions), _1, zoneName, package), GlobFile);
+	Utility::GlobRecursive(ppath, pattern, std::bind(&ConfigCompiler::CollectIncludes, std::ref(expressions), _1, zoneName, package), GlobFile);
 }
 
 /**
@@ -231,7 +231,7 @@ Expression *ConfigCompiler::HandleIncludeZones(const String& relativeBase, const
 	}
 
 	std::vector<Expression *> expressions;
-	Utility::Glob(ppath + "/*", std::bind(&ConfigCompiler::HandleIncludeZone, newRelativeBase, tag, _1, pattern, package, boost::ref(expressions)), GlobDirectory);
+	Utility::Glob(ppath + "/*", std::bind(&ConfigCompiler::HandleIncludeZone, newRelativeBase, tag, _1, pattern, package, std::ref(expressions)), GlobDirectory);
 	return new DictExpression(expressions);
 }
 

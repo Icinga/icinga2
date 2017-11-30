@@ -54,7 +54,7 @@ void Demo::DemoTimerHandler(void)
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 	if (listener) {
 		MessageOrigin::Ptr origin = new MessageOrigin();
-		listener->RelayMessage(origin, ConfigObject::Ptr(), message, true);
+		listener->RelayMessage(origin, nullptr, message, true);
 		Log(LogInformation, "Demo", "Sent demo::HelloWorld message");
 	}
 }

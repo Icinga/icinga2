@@ -60,14 +60,13 @@ std::vector<String> ConfigPackageUtility::GetPackages(void)
 {
 	std::vector<String> packages;
 	Utility::Glob(GetPackageDir() + "/*", std::bind(&ConfigPackageUtility::CollectDirNames,
-	    _1, boost::ref(packages)), GlobDirectory);
+	    _1, std::ref(packages)), GlobDirectory);
 	return packages;
 }
 
 void ConfigPackageUtility::CollectDirNames(const String& path, std::vector<String>& dirs)
 {
-	String name = Utility::BaseName(path);
-	dirs.push_back(name);
+	dirs.emplace_back(Utility::BaseName(path));
 }
 
 bool ConfigPackageUtility::PackageExists(const String& name)
@@ -237,7 +236,7 @@ void ConfigPackageUtility::DeleteStage(const String& packageName, const String& 
 std::vector<String> ConfigPackageUtility::GetStages(const String& packageName)
 {
 	std::vector<String> stages;
-	Utility::Glob(GetPackageDir() + "/" + packageName + "/*", std::bind(&ConfigPackageUtility::CollectDirNames, _1, boost::ref(stages)), GlobDirectory);
+	Utility::Glob(GetPackageDir() + "/" + packageName + "/*", std::bind(&ConfigPackageUtility::CollectDirNames, _1, std::ref(stages)), GlobDirectory);
 	return stages;
 }
 
@@ -263,7 +262,7 @@ String ConfigPackageUtility::GetActiveStage(const String& packageName)
 std::vector<std::pair<String, bool> > ConfigPackageUtility::GetFiles(const String& packageName, const String& stageName)
 {
 	std::vector<std::pair<String, bool> > paths;
-	Utility::GlobRecursive(GetPackageDir() + "/" + packageName + "/" + stageName, "*", std::bind(&ConfigPackageUtility::CollectPaths, _1, boost::ref(paths)), GlobDirectory | GlobFile);
+	Utility::GlobRecursive(GetPackageDir() + "/" + packageName + "/" + stageName, "*", std::bind(&ConfigPackageUtility::CollectPaths, _1, std::ref(paths)), GlobDirectory | GlobFile);
 
 	return paths;
 }
@@ -279,7 +278,7 @@ void ConfigPackageUtility::CollectPaths(const String& path, std::vector<std::pai
 		    << boost::errinfo_errno(errno)
 		    << boost::errinfo_file_name(path));
 
-	paths.push_back(std::make_pair(path, S_ISDIR(statbuf.st_mode)));
+	paths.emplace_back(path, S_ISDIR(statbuf.st_mode));
 #else /* _WIN32 */
 	struct _stat statbuf;
 	int rc = _stat(path.CStr(), &statbuf);
@@ -289,7 +288,7 @@ void ConfigPackageUtility::CollectPaths(const String& path, std::vector<std::pai
 		    << boost::errinfo_errno(errno)
 		    << boost::errinfo_file_name(path));
 
-	paths.push_back(std::make_pair(path, ((statbuf.st_mode & S_IFMT) == S_IFDIR)));
+	paths.emplace_back(path, ((statbuf.st_mode & S_IFMT) == S_IFDIR));
 #endif /* _WIN32 */
 }
 

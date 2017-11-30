@@ -29,6 +29,7 @@
 #include "base/timer.hpp"
 #include "base/initialize.hpp"
 #include <boost/algorithm/string.hpp>
+#include <boost/thread/once.hpp>
 #include <set>
 
 using namespace icinga;
@@ -57,12 +58,17 @@ static void ScriptFrameCleanupHandler(void)
 		l_ApiScriptFrames.erase(key);
 }
 
-INITIALIZE_ONCE([]() {
-	l_FrameCleanupTimer = new Timer();
-	l_FrameCleanupTimer->OnTimerExpired.connect(std::bind(ScriptFrameCleanupHandler));
-	l_FrameCleanupTimer->SetInterval(30);
-	l_FrameCleanupTimer->Start();
-});
+static void EnsureFrameCleanupTimer(void)
+{
+	static boost::once_flag once = BOOST_ONCE_INIT;
+
+	boost::call_once(once, []() {
+		l_FrameCleanupTimer = new Timer();
+		l_FrameCleanupTimer->OnTimerExpired.connect(std::bind(ScriptFrameCleanupHandler));
+		l_FrameCleanupTimer->SetInterval(30);
+		l_FrameCleanupTimer->Start();
+	});
+}
 
 bool ConsoleHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response, const Dictionary::Ptr& params)
 {
@@ -101,6 +107,8 @@ bool ConsoleHandler::ExecuteScriptHelper(HttpRequest& request, HttpResponse& res
 {
 	Log(LogNotice, "Console")
 	    << "Executing expression: " << command;
+
+	EnsureFrameCleanupTimer();
 
 	ApiScriptFrame& lsf = l_ApiScriptFrames[session];
 	lsf.Seen = Utility::GetTime();
@@ -174,6 +182,8 @@ bool ConsoleHandler::AutocompleteScriptHelper(HttpRequest& request, HttpResponse
 {
 	Log(LogInformation, "Console")
 	    << "Auto-completing expression: " << command;
+
+	EnsureFrameCleanupTimer();
 
 	ApiScriptFrame& lsf = l_ApiScriptFrames[session];
 	lsf.Seen = Utility::GetTime();

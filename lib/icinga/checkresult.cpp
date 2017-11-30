@@ -24,10 +24,8 @@
 using namespace icinga;
 
 REGISTER_TYPE(CheckResult);
-INITIALIZE_ONCE(&CheckResult::StaticInitialize);
 
-void CheckResult::StaticInitialize(void)
-{
+INITIALIZE_ONCE([]() {
 	ScriptGlobal::Set("ServiceOK", ServiceOK);
 	ScriptGlobal::Set("ServiceWarning", ServiceWarning);
 	ScriptGlobal::Set("ServiceCritical", ServiceCritical);
@@ -35,7 +33,7 @@ void CheckResult::StaticInitialize(void)
 
 	ScriptGlobal::Set("HostUp", HostUp);
 	ScriptGlobal::Set("HostDown", HostDown);
-}
+})
 
 double CheckResult::CalculateExecutionTime(void) const
 {

@@ -190,7 +190,7 @@ void ElasticsearchWriter::InternalCheckResultHandler(const Checkable::Ptr& check
 
 	Host::Ptr host;
 	Service::Ptr service;
-	boost::tie(host, service) = GetHostService(checkable);
+	tie(host, service) = GetHostService(checkable);
 
 	Dictionary::Ptr fields = new Dictionary();
 
@@ -363,7 +363,7 @@ void ElasticsearchWriter::Enqueue(String type, const Dictionary::Ptr& fields, do
 	Log(LogDebug, "ElasticsearchWriter")
 	    << "Add to fields to message list: '" << fieldsBody << "'.";
 
-	m_DataBuffer.push_back(indexBody + fieldsBody);
+	m_DataBuffer.emplace_back(indexBody + fieldsBody);
 
 	/* Flush if we've buffered too much to prevent excessive memory use. */
 	if (static_cast<int>(m_DataBuffer.size()) >= GetFlushThreshold()) {
@@ -412,10 +412,10 @@ void ElasticsearchWriter::SendRequest(const String& body)
 	/* Specify the index path. Best practice is a daily rotation.
 	 * Example: http://localhost:9200/icinga2-2017.09.11?pretty=1
 	 */
-	path.push_back(GetIndex() + "-" + Utility::FormatDateTime("%Y.%m.%d", Utility::GetTime()));
+	path.emplace_back(GetIndex() + "-" + Utility::FormatDateTime("%Y.%m.%d", Utility::GetTime()));
 
 	/* Use the bulk message format. */
-	path.push_back("_bulk");
+	path.emplace_back("_bulk");
 
 	url->SetPath(path);
 
@@ -528,7 +528,7 @@ Stream::Ptr ElasticsearchWriter::Connect(void)
 	}
 
 	if (GetEnableTls()) {
-		boost::shared_ptr<SSL_CTX> sslContext;
+		std::shared_ptr<SSL_CTX> sslContext;
 
 		try {
 			sslContext = MakeSSLContext(GetCertPath(), GetKeyPath(), GetCaPath());

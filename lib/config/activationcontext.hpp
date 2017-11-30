@@ -49,7 +49,7 @@ private:
 class I2_CONFIG_API ActivationScope
 {
 public:
-	ActivationScope(const ActivationContext::Ptr& context = ActivationContext::Ptr());
+	ActivationScope(const ActivationContext::Ptr& context = nullptr);
 	~ActivationScope(void);
 
 	ActivationContext::Ptr GetContext(void) const;

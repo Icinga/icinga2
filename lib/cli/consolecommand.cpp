@@ -196,9 +196,9 @@ char *ConsoleCommand::ConsoleCompleteHelper(const char *word, int state)
 
 			l_ApiClient->AutocompleteScript(l_Session, word, l_ScriptFrame->Sandboxed,
 			    std::bind(&ConsoleCommand::AutocompleteScriptCompletionHandler,
-			    boost::ref(mutex), boost::ref(cv), boost::ref(ready),
+			    std::ref(mutex), std::ref(cv), std::ref(ready),
 			    _1, _2,
-			    boost::ref(suggestions)));
+			    std::ref(suggestions)));
 
 			{
 				boost::mutex::scoped_lock lock(mutex);
@@ -426,9 +426,9 @@ incomplete:
 
 				l_ApiClient->ExecuteScript(l_Session, command, scriptFrame.Sandboxed,
 				    std::bind(&ConsoleCommand::ExecuteScriptCompletionHandler,
-				    boost::ref(mutex), boost::ref(cv), boost::ref(ready),
+				    std::ref(mutex), std::ref(cv), std::ref(ready),
 				    _1, _2,
-				    boost::ref(result), boost::ref(eptr)));
+				    std::ref(result), std::ref(eptr)));
 
 				{
 					boost::mutex::scoped_lock lock(mutex);

@@ -48,13 +48,13 @@ class I2_BASE_API TlsStream : public Stream, private SocketEvents
 public:
 	DECLARE_PTR_TYPEDEFS(TlsStream);
 
-	TlsStream(const Socket::Ptr& socket, const String& hostname, ConnectionRole role, const boost::shared_ptr<SSL_CTX>& sslContext = MakeSSLContext());
+	TlsStream(const Socket::Ptr& socket, const String& hostname, ConnectionRole role, const std::shared_ptr<SSL_CTX>& sslContext = MakeSSLContext());
 	~TlsStream(void);
 
 	Socket::Ptr GetSocket(void) const;
 
-	boost::shared_ptr<X509> GetClientCertificate(void) const;
-	boost::shared_ptr<X509> GetPeerCertificate(void) const;
+	std::shared_ptr<X509> GetClientCertificate(void) const;
+	std::shared_ptr<X509> GetPeerCertificate(void) const;
 
 	void Handshake(void);
 
@@ -74,7 +74,7 @@ public:
 	String GetVerifyError(void) const;
 
 private:
-	boost::shared_ptr<SSL> m_SSL;
+	std::shared_ptr<SSL> m_SSL;
 	bool m_Eof;
 	mutable boost::mutex m_Mutex;
 	mutable boost::condition_variable m_CV;

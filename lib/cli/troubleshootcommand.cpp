@@ -375,8 +375,8 @@ bool TroubleshootCommand::PrintCrashReports(InfoLog& log)
 	String bestFilename;
 
 	try {
-		Utility::Glob(spath, std::bind(&GetLatestReport, _1, boost::ref(bestTimestamp),
-		    boost::ref(bestFilename)), GlobFile);
+		Utility::Glob(spath, std::bind(&GetLatestReport, _1, std::ref(bestTimestamp),
+		    std::ref(bestFilename)), GlobFile);
 	}
 #ifdef _WIN32
 	catch (win32_error &ex) {
@@ -444,10 +444,7 @@ bool TroubleshootCommand::PrintFile(InfoLog& log, const String& path)
 
 bool TroubleshootCommand::CheckConfig(void)
 {
-	std::vector<std::string> configs;
-	configs.push_back(Application::GetSysconfDir() + "/icinga2/icinga2.conf");
-
-	return DaemonUtility::ValidateConfigFiles(configs, Application::GetObjectsPath());
+	return DaemonUtility::ValidateConfigFiles({ Application::GetSysconfDir() + "/icinga2/icinga2.conf" }, Application::GetObjectsPath());
 }
 
 //print is supposed allow the user to print the object file

@@ -54,7 +54,7 @@ void ExternalCommandListener::Start(bool runtimeCreated)
 	    << "'" << GetName() << "' started.";
 
 #ifndef _WIN32
-	m_CommandThread = boost::thread(std::bind(&ExternalCommandListener::CommandPipeThread, this, GetCommandPath()));
+	m_CommandThread = std::thread(std::bind(&ExternalCommandListener::CommandPipeThread, this, GetCommandPath()));
 	m_CommandThread.detach();
 #endif /* _WIN32 */
 }

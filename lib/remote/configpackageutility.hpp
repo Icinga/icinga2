@@ -46,7 +46,7 @@ public:
 	static std::vector<String> GetPackages(void);
 	static bool PackageExists(const String& name);
 
-	static String CreateStage(const String& packageName, const Dictionary::Ptr& files = Dictionary::Ptr());
+	static String CreateStage(const String& packageName, const Dictionary::Ptr& files = nullptr);
 	static void DeleteStage(const String& packageName, const String& stageName);
 	static std::vector<String> GetStages(const String& packageName);
 	static String GetActiveStage(const String& packageName);

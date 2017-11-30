@@ -116,7 +116,7 @@ void SocketEventEngineEpoll::ThreadProc(int tid)
 				event.LifesupportReference = event.Descriptor.LifesupportObject;
 				VERIFY(event.LifesupportReference);
 
-				events.push_back(event);
+				events.emplace_back(std::move(event));
 			}
 		}
 

@@ -216,14 +216,13 @@ Value MacroProcessor::EvaluateFunction(const Function::Ptr& func, const Resolver
 	}
 
 	resolvers_this->Set("macro", new Function("macro (temporary)", std::bind(&MacroProcessor::InternalResolveMacrosShim,
-	    _1, boost::cref(resolvers), cr, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros,
+	    _1, std::cref(resolvers), cr, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros,
 	    recursionLevel + 1), { "str" }));
 	resolvers_this->Set("resolve_arguments", new Function("resolve_arguments (temporary)", std::bind(&MacroProcessor::InternalResolveArgumentsShim,
-	    _1, boost::cref(resolvers), cr, resolvedMacros, useResolvedMacros,
+	    _1, std::cref(resolvers), cr, resolvedMacros, useResolvedMacros,
 	    recursionLevel + 1)));
 
-	std::vector<Value> args;
-	return func->Invoke(resolvers_this, args);
+	return func->InvokeThis(resolvers_this);
 }
 
 Value MacroProcessor::InternalResolveMacros(const String& str, const ResolverList& resolvers,
@@ -292,7 +291,7 @@ Value MacroProcessor::InternalResolveMacros(const String& str, const ResolverLis
 				for (const Value& value : arr) {
 					if (value.IsScalar()) {
 						resolved_arr->Add(InternalResolveMacros(value,
-							resolvers, cr, missingMacro, EscapeCallback(), Dictionary::Ptr(),
+							resolvers, cr, missingMacro, EscapeCallback(), nullptr,
 							false, recursionLevel + 1));
 					} else
 						resolved_arr->Add(value);
@@ -301,7 +300,7 @@ Value MacroProcessor::InternalResolveMacros(const String& str, const ResolverLis
 				resolved_macro = resolved_arr;
 			} else if (resolved_macro.IsString()) {
 				resolved_macro = InternalResolveMacros(resolved_macro,
-					resolvers, cr, missingMacro, EscapeCallback(), Dictionary::Ptr(),
+					resolvers, cr, missingMacro, EscapeCallback(), nullptr,
 					false, recursionLevel + 1);
 			}
 		}
@@ -542,7 +541,7 @@ Value MacroProcessor::ResolveArguments(const Value& command, const Dictionary::P
 				continue;
 			}
 
-			args.push_back(arg);
+			args.emplace_back(std::move(arg));
 		}
 
 		std::sort(args.begin(), args.end());

@@ -113,7 +113,7 @@ Endpoint::Ptr Endpoint::GetLocalEndpoint(void)
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 
 	if (!listener)
-		return Endpoint::Ptr();
+		return nullptr;
 
 	return listener->GetLocalEndpoint();
 }

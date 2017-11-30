@@ -33,7 +33,7 @@ Type::Ptr FilterUtility::TypeFromPluralName(const String& pluralName)
 	String uname = pluralName;
 	boost::algorithm::to_lower(uname);
 
-	for (const Type::Ptr&type : Type::GetAllTypes()) {
+	for (const Type::Ptr& type : Type::GetAllTypes()) {
 		String pname = type->GetPluralName();
 		boost::algorithm::to_lower(pname);
 
@@ -41,7 +41,7 @@ Type::Ptr FilterUtility::TypeFromPluralName(const String& pluralName)
 			return type;
 	}
 
-	return Type::Ptr();
+	return nullptr;
 }
 
 void ConfigObjectTargetProvider::FindTargets(const String& type, const std::function<void (const Value&)>& addTarget) const
@@ -212,7 +212,7 @@ std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, c
 			if (!FilterUtility::EvaluateFilter(permissionFrame, permissionFilter, target, variableName))
 				BOOST_THROW_EXCEPTION(ScriptError("Access denied to object '" + name + "' of type '" + type + "'"));
 
-			result.push_back(target);
+			result.emplace_back(std::move(target));
 		}
 
 		attr = provider->GetPluralName(type);
@@ -228,7 +228,7 @@ std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, c
 					if (!FilterUtility::EvaluateFilter(permissionFrame, permissionFilter, target, variableName))
 						BOOST_THROW_EXCEPTION(ScriptError("Access denied to object '" + name + "' of type '" + type + "'"));
 
-					result.push_back(target);
+					result.emplace_back(std::move(target));
 				}
 			}
 		}
@@ -269,8 +269,8 @@ std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, c
 
 		try {
 			provider->FindTargets(type, std::bind(&FilteredAddTarget,
-			    boost::ref(permissionFrame), permissionFilter,
-			    boost::ref(frame), ufilter, boost::ref(result), variableName, _1));
+			    std::ref(permissionFrame), permissionFilter,
+			    std::ref(frame), ufilter, std::ref(result), variableName, _1));
 		} catch (const std::exception& ex) {
 			delete ufilter;
 			throw;

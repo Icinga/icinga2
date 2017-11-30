@@ -20,28 +20,58 @@
 #include "base/timer.hpp"
 #include "base/debug.hpp"
 #include "base/utility.hpp"
-#include <boost/thread/thread.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition_variable.hpp>
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/ordered_index.hpp>
 #include <boost/multi_index/key_extractors.hpp>
+#include <thread>
 
 using namespace icinga;
 
+namespace icinga {
+
+class TimerHolder {
+public:
+	TimerHolder(Timer *timer)
+		: m_Timer(timer)
+	{ }
+
+	inline Timer *GetObject(void) const
+	{
+		return m_Timer;
+	}
+
+	inline double GetNextUnlocked(void) const
+	{
+		return m_Timer->m_Next;
+	}
+
+	operator Timer *(void) const
+	{
+		return m_Timer;
+	}
+
+private:
+	Timer *m_Timer;
+};
+
+}
+
 typedef boost::multi_index_container<
-	Timer::Holder,
+	TimerHolder,
 	boost::multi_index::indexed_by<
-		boost::multi_index::ordered_unique<boost::multi_index::const_mem_fun<Timer::Holder, Timer *, &Timer::Holder::GetObject> >,
-		boost::multi_index::ordered_non_unique<boost::multi_index::const_mem_fun<Timer::Holder, double, &Timer::Holder::GetNextUnlocked> >
+		boost::multi_index::ordered_unique<boost::multi_index::const_mem_fun<TimerHolder, Timer *, &TimerHolder::GetObject> >,
+		boost::multi_index::ordered_non_unique<boost::multi_index::const_mem_fun<TimerHolder, double, &TimerHolder::GetNextUnlocked> >
 	>
 > TimerSet;
 
 static boost::mutex l_TimerMutex;
 static boost::condition_variable l_TimerCV;
-static boost::thread l_TimerThread;
+static std::thread l_TimerThread;
 static bool l_StopTimerThread;
 static TimerSet l_Timers;
+static int l_AliveTimers;
 
 /**
  * Constructor for the Timer class.
@@ -58,29 +88,16 @@ Timer::~Timer(void)
 	Stop(true);
 }
 
-/**
- * Initializes the timer sub-system.
- */
-void Timer::Initialize(void)
-{
-	boost::mutex::scoped_lock lock(l_TimerMutex);
-	l_StopTimerThread = false;
-	l_TimerThread = boost::thread(&Timer::TimerThreadProc);
-}
-
-/**
- * Disables the timer sub-system.
- */
 void Timer::Uninitialize(void)
 {
-	{
-		boost::mutex::scoped_lock lock(l_TimerMutex);
-		l_StopTimerThread = true;
-		l_TimerCV.notify_all();
-	}
+       {
+	       boost::mutex::scoped_lock lock(l_TimerMutex);
+	       l_StopTimerThread = true;
+	       l_TimerCV.notify_all();
+       }
 
-	if (l_TimerThread.joinable())
-		l_TimerThread.join();
+       if (l_TimerThread.joinable())
+	       l_TimerThread.join();
 }
 
 /**
@@ -129,6 +146,11 @@ void Timer::Start(void)
 	{
 		boost::mutex::scoped_lock lock(l_TimerMutex);
 		m_Started = true;
+
+		if (l_AliveTimers++ == 0) {
+			l_StopTimerThread = false;
+			l_TimerThread = std::thread(&Timer::TimerThreadProc);
+		}
 	}
 
 	InternalReschedule(false);
@@ -143,6 +165,18 @@ void Timer::Stop(bool wait)
 		return;
 
 	boost::mutex::scoped_lock lock(l_TimerMutex);
+
+	if (m_Started && --l_AliveTimers == 0) {
+		l_StopTimerThread = true;
+		l_TimerCV.notify_all();
+
+		lock.unlock();
+
+		if (l_TimerThread.joinable() && l_TimerThread.get_id() != std::this_thread::get_id())
+			l_TimerThread.join();
+
+		lock.lock();
+	}
 
 	m_Started = false;
 	l_Timers.erase(this);

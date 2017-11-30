@@ -98,8 +98,8 @@ public:
 
 	AcknowledgementType GetAcknowledgement(void);
 
-	void AcknowledgeProblem(const String& author, const String& comment, AcknowledgementType type, bool notify = true, bool persistent = false, double expiry = 0, const MessageOrigin::Ptr& origin = MessageOrigin::Ptr());
-	void ClearAcknowledgement(const MessageOrigin::Ptr& origin = MessageOrigin::Ptr());
+	void AcknowledgeProblem(const String& author, const String& comment, AcknowledgementType type, bool notify = true, bool persistent = false, double expiry = 0, const MessageOrigin::Ptr& origin = nullptr);
+	void ClearAcknowledgement(const MessageOrigin::Ptr& origin = nullptr);
 
 	virtual int GetSeverity(void) const override;
 
@@ -110,7 +110,7 @@ public:
 	long GetSchedulingOffset(void);
 	void SetSchedulingOffset(long offset);
 
-	void UpdateNextCheck(const MessageOrigin::Ptr& origin = MessageOrigin::Ptr());
+	void UpdateNextCheck(const MessageOrigin::Ptr& origin = nullptr);
 
 	bool HasBeenChecked(void) const;
 	virtual bool IsStateOK(ServiceState state) = 0;
@@ -121,9 +121,9 @@ public:
 
 	static void UpdateStatistics(const CheckResult::Ptr& cr, CheckableType type);
 
-	void ExecuteRemoteCheck(const Dictionary::Ptr& resolvedMacros = Dictionary::Ptr());
+	void ExecuteRemoteCheck(const Dictionary::Ptr& resolvedMacros = nullptr);
 	void ExecuteCheck();
-	void ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrigin::Ptr& origin = MessageOrigin::Ptr());
+	void ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrigin::Ptr& origin = nullptr);
 
 	Endpoint::Ptr GetCommandEndpoint(void) const;
 
@@ -174,7 +174,7 @@ public:
 	void ResetNotificationNumbers(void);
 
 	/* Event Handler */
-	void ExecuteEventHandler(const Dictionary::Ptr& resolvedMacros = Dictionary::Ptr(),
+	void ExecuteEventHandler(const Dictionary::Ptr& resolvedMacros = nullptr,
 	    bool useResolvedMacros = false);
 
 	intrusive_ptr<EventCommand> GetEventCommand(void) const;
@@ -185,11 +185,11 @@ public:
 	/* Dependencies */
 	void AddDependency(const intrusive_ptr<Dependency>& dep);
 	void RemoveDependency(const intrusive_ptr<Dependency>& dep);
-	std::set<intrusive_ptr<Dependency> > GetDependencies(void) const;
+	std::vector<intrusive_ptr<Dependency> > GetDependencies(void) const;
 
 	void AddReverseDependency(const intrusive_ptr<Dependency>& dep);
 	void RemoveReverseDependency(const intrusive_ptr<Dependency>& dep);
-	std::set<intrusive_ptr<Dependency> > GetReverseDependencies(void) const;
+	std::vector<intrusive_ptr<Dependency> > GetReverseDependencies(void) const;
 
 	virtual void ValidateCheckInterval(double value, const ValidationUtils& utils) override;
 	virtual void ValidateMaxCheckAttempts(int value, const ValidationUtils& utils) override;

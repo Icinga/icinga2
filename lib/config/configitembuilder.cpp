@@ -20,7 +20,6 @@
 #include "config/configitembuilder.hpp"
 #include "base/configtype.hpp"
 #include <sstream>
-#include <boost/smart_ptr/make_shared.hpp>
 
 using namespace icinga;
 
@@ -74,7 +73,7 @@ void ConfigItemBuilder::AddExpression(Expression *expr)
 	m_Expressions.push_back(expr);
 }
 
-void ConfigItemBuilder::SetFilter(const boost::shared_ptr<Expression>& filter)
+void ConfigItemBuilder::SetFilter(const std::shared_ptr<Expression>& filter)
 {
 	m_Filter = filter;
 }
@@ -138,7 +137,7 @@ ConfigItem::Ptr ConfigItemBuilder::Compile(void)
 	}
 #endif /* I2_DEBUG */
 
-	boost::shared_ptr<DictExpression> exprl = boost::make_shared<DictExpression>(exprs, m_DebugInfo);
+	std::shared_ptr<DictExpression> exprl = std::make_shared<DictExpression>(exprs, m_DebugInfo);
 	exprl->MakeInline();
 
 	return new ConfigItem(m_Type, m_Name, m_Abstract, exprl, m_Filter,

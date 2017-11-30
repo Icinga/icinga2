@@ -85,7 +85,7 @@ int PKISaveCertCommand::Run(const boost::program_options::variables_map& vm, con
 	Log(LogInformation, "cli")
 	    << "Retrieving X.509 certificate for '" << host << ":" << port << "'.";
 
-	boost::shared_ptr<X509> cert = PkiUtility::FetchCert(host, port);
+	std::shared_ptr<X509> cert = PkiUtility::FetchCert(host, port);
 
 	if (!cert) {
 		Log(LogCritical, "cli", "Failed to fetch certificate from host.");

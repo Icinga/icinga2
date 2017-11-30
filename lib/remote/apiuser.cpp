@@ -32,5 +32,5 @@ ApiUser::Ptr ApiUser::GetByClientCN(const String& cn)
 			return user;
 	}
 
-	return ApiUser::Ptr();
+	return nullptr;
 }

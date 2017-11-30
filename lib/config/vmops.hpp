@@ -33,7 +33,6 @@
 #include "base/exception.hpp"
 #include "base/convert.hpp"
 #include "base/objectlock.hpp"
-#include <boost/smart_ptr/make_shared.hpp>
 #include <map>
 #include <vector>
 
@@ -103,14 +102,14 @@ public:
 	static inline Value FunctionCall(ScriptFrame& frame, const Value& self, const Function::Ptr& func, const std::vector<Value>& arguments)
 	{
 		if (!self.IsEmpty() || self.IsString())
-			return func->Invoke(self, arguments);
+			return func->InvokeThis(self, arguments);
 		else
 			return func->Invoke(arguments);
 
 	}
 
 	static inline Value NewFunction(ScriptFrame& frame, const String& name, const std::vector<String>& argNames,
-	    std::map<String, Expression *> *closedVars, const boost::shared_ptr<Expression>& expression)
+	    std::map<String, Expression *> *closedVars, const std::shared_ptr<Expression>& expression)
 	{
 		auto evaluatedClosedVars = EvaluateClosedVars(frame, closedVars);
 
@@ -132,9 +131,9 @@ public:
 		return new Function(name, wrapper, argNames);
 	}
 
-	static inline Value NewApply(ScriptFrame& frame, const String& type, const String& target, const String& name, const boost::shared_ptr<Expression>& filter,
-		const String& package, const String& fkvar, const String& fvvar, const boost::shared_ptr<Expression>& fterm, std::map<String, Expression *> *closedVars,
-		bool ignoreOnError, const boost::shared_ptr<Expression>& expression, const DebugInfo& debugInfo = DebugInfo())
+	static inline Value NewApply(ScriptFrame& frame, const String& type, const String& target, const String& name, const std::shared_ptr<Expression>& filter,
+		const String& package, const String& fkvar, const String& fvvar, const std::shared_ptr<Expression>& fterm, std::map<String, Expression *> *closedVars,
+		bool ignoreOnError, const std::shared_ptr<Expression>& expression, const DebugInfo& debugInfo = DebugInfo())
 	{
 		ApplyRule::AddRule(type, target, name, expression, filter, package, fkvar,
 		    fvvar, fterm, ignoreOnError, debugInfo, EvaluateClosedVars(frame, closedVars));
@@ -142,8 +141,8 @@ public:
 		return Empty;
 	}
 
-	static inline Value NewObject(ScriptFrame& frame, bool abstract, const Type::Ptr& type, const String& name, const boost::shared_ptr<Expression>& filter,
-		const String& zone, const String& package, bool defaultTmpl, bool ignoreOnError, std::map<String, Expression *> *closedVars, const boost::shared_ptr<Expression>& expression, const DebugInfo& debugInfo = DebugInfo())
+	static inline Value NewObject(ScriptFrame& frame, bool abstract, const Type::Ptr& type, const String& name, const std::shared_ptr<Expression>& filter,
+		const String& zone, const String& package, bool defaultTmpl, bool ignoreOnError, std::map<String, Expression *> *closedVars, const std::shared_ptr<Expression>& expression, const DebugInfo& debugInfo = DebugInfo())
 	{
 		ConfigItemBuilder::Ptr item = new ConfigItemBuilder(debugInfo);
 
@@ -153,7 +152,7 @@ public:
 			NameComposer *nc = dynamic_cast<NameComposer *>(type.get());
 
 			if (nc)
-				checkName = nc->MakeName(name, Dictionary::Ptr());
+				checkName = nc->MakeName(name, nullptr);
 		}
 
 		if (!checkName.IsEmpty()) {

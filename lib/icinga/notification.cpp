@@ -431,7 +431,7 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 		notifiedProblemUsers->Clear();
 
 	/* used in db_ido for notification history */
-	Service::OnNotificationSentToAllUsers(this, checkable, allNotifiedUsers, type, cr, author, text, MessageOrigin::Ptr());
+	Service::OnNotificationSentToAllUsers(this, checkable, allNotifiedUsers, type, cr, author, text, nullptr);
 }
 
 bool Notification::CheckNotificationUserFilters(NotificationType type, const User::Ptr& user, bool force, bool reminder)
@@ -518,7 +518,7 @@ void Notification::ExecuteNotificationHelper(NotificationType type, const User::
 		command->Execute(this, user, cr, type, author, text);
 
 		/* required by compatlogger */
-		Service::OnNotificationSentToUser(this, GetCheckable(), user, type, cr, author, text, command->GetName(), MessageOrigin::Ptr());
+		Service::OnNotificationSentToUser(this, GetCheckable(), user, type, cr, author, text, command->GetName(), nullptr);
 
 		Log(LogInformation, "Notification")
 		    << "Completed sending '" << NotificationTypeToStringInternal(type)

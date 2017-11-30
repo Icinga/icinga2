@@ -150,7 +150,7 @@ Stream::Ptr InfluxdbWriter::Connect()
 	}
 
 	if (GetSslEnable()) {
-		boost::shared_ptr<SSL_CTX> sslContext;
+		std::shared_ptr<SSL_CTX> sslContext;
 		try {
 			sslContext = MakeSSLContext(GetSslCert(), GetSslKey(), GetSslCaCert());
 		} catch (const std::exception& ex) {
@@ -190,13 +190,13 @@ void InfluxdbWriter::InternalCheckResultHandler(const Checkable::Ptr& checkable,
 
 	Host::Ptr host;
 	Service::Ptr service;
-	boost::tie(host, service) = GetHostService(checkable);
+	tie(host, service) = GetHostService(checkable);
 
 	MacroProcessor::ResolverList resolvers;
 	if (service)
-		resolvers.push_back(std::make_pair("service", service));
-	resolvers.push_back(std::make_pair("host", host));
-	resolvers.push_back(std::make_pair("icinga", IcingaApplication::GetInstance()));
+		resolvers.emplace_back("service", service);
+	resolvers.emplace_back("host", host);
+	resolvers.emplace_back("icinga", IcingaApplication::GetInstance());
 
 	String prefix;
 
@@ -275,7 +275,7 @@ void InfluxdbWriter::SendPerfdata(const Dictionary::Ptr& tmpl, const Checkable::
 	if (GetEnableSendMetadata()) {
 		Host::Ptr host;
 		Service::Ptr service;
-		boost::tie(host, service) = GetHostService(checkable);
+		tie(host, service) = GetHostService(checkable);
 
 		Dictionary::Ptr fields = new Dictionary();
 

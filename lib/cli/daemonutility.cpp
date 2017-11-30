@@ -52,7 +52,7 @@ static void IncludeZoneDirRecursive(const String& path, const String& package, b
 	ConfigCompiler::RegisterZoneDir("_etc", path, zoneName);
 
 	std::vector<Expression *> expressions;
-	Utility::GlobRecursive(path, "*.conf", std::bind(&ConfigCompiler::CollectIncludes, boost::ref(expressions), _1, zoneName, package), GlobFile);
+	Utility::GlobRecursive(path, "*.conf", std::bind(&ConfigCompiler::CollectIncludes, std::ref(expressions), _1, zoneName, package), GlobFile);
 	DictExpression expr(expressions);
 	if (!ExecuteExpression(&expr))
 		success = false;
@@ -75,7 +75,7 @@ static void IncludeNonLocalZone(const String& zonePath, const String& package, b
 	}
 
 	std::vector<Expression *> expressions;
-	Utility::GlobRecursive(zonePath, "*.conf", std::bind(&ConfigCompiler::CollectIncludes, boost::ref(expressions), _1, zoneName, package), GlobFile);
+	Utility::GlobRecursive(zonePath, "*.conf", std::bind(&ConfigCompiler::CollectIncludes, std::ref(expressions), _1, zoneName, package), GlobFile);
 	DictExpression expr(expressions);
 	if (!ExecuteExpression(&expr))
 		success = false;
@@ -126,7 +126,7 @@ bool DaemonUtility::ValidateConfigFiles(const std::vector<std::string>& configs,
 
 	String zonesEtcDir = Application::GetZonesDir();
 	if (!zonesEtcDir.IsEmpty() && Utility::PathExists(zonesEtcDir))
-		Utility::Glob(zonesEtcDir + "/*", std::bind(&IncludeZoneDirRecursive, _1, "_etc", boost::ref(success)), GlobDirectory);
+		Utility::Glob(zonesEtcDir + "/*", std::bind(&IncludeZoneDirRecursive, _1, "_etc", std::ref(success)), GlobDirectory);
 
 	if (!success)
 		return false;
@@ -135,7 +135,7 @@ bool DaemonUtility::ValidateConfigFiles(const std::vector<std::string>& configs,
 	 * are authoritative on this node and are checked in HasZoneConfigAuthority(). */
 	String packagesVarDir = Application::GetLocalStateDir() + "/lib/icinga2/api/packages";
 	if (Utility::PathExists(packagesVarDir))
-		Utility::Glob(packagesVarDir + "/*", std::bind(&IncludePackage, _1, boost::ref(success)), GlobDirectory);
+		Utility::Glob(packagesVarDir + "/*", std::bind(&IncludePackage, _1, std::ref(success)), GlobDirectory);
 
 	if (!success)
 		return false;
@@ -143,7 +143,7 @@ bool DaemonUtility::ValidateConfigFiles(const std::vector<std::string>& configs,
 	/* Load cluster synchronized configuration files */
 	String zonesVarDir = Application::GetLocalStateDir() + "/lib/icinga2/api/zones";
 	if (Utility::PathExists(zonesVarDir))
-		Utility::Glob(zonesVarDir + "/*", std::bind(&IncludeNonLocalZone, _1, "_cluster", boost::ref(success)), GlobDirectory);
+		Utility::Glob(zonesVarDir + "/*", std::bind(&IncludeNonLocalZone, _1, "_cluster", std::ref(success)), GlobDirectory);
 
 	if (!success)
 		return false;

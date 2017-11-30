@@ -128,7 +128,7 @@ void Checkable::AcknowledgeProblem(const String& author, const String& comment, 
 	SetAcknowledgementExpiry(expiry);
 
 	if (notify && !IsPaused())
-		OnNotificationsRequested(this, NotificationAcknowledgement, GetLastCheckResult(), author, comment, MessageOrigin::Ptr());
+		OnNotificationsRequested(this, NotificationAcknowledgement, GetLastCheckResult(), author, comment, nullptr);
 
 	OnAcknowledgementSet(this, author, comment, type, notify, persistent, expiry, origin);
 }
@@ -173,7 +173,7 @@ void Checkable::NotifyDowntimeInternal(const Downtime::Ptr& downtime)
 	Checkable::Ptr checkable = downtime->GetCheckable();
 
 	if (!checkable->IsPaused())
-		OnNotificationsRequested(checkable, NotificationDowntimeStart, checkable->GetLastCheckResult(), downtime->GetAuthor(), downtime->GetComment(), MessageOrigin::Ptr());
+		OnNotificationsRequested(checkable, NotificationDowntimeStart, checkable->GetLastCheckResult(), downtime->GetAuthor(), downtime->GetComment(), nullptr);
 }
 
 void Checkable::NotifyDowntimeEnd(const Downtime::Ptr& downtime)
@@ -185,7 +185,7 @@ void Checkable::NotifyDowntimeEnd(const Downtime::Ptr& downtime)
 	Checkable::Ptr checkable = downtime->GetCheckable();
 
 	if (!checkable->IsPaused())
-		OnNotificationsRequested(checkable, NotificationDowntimeEnd, checkable->GetLastCheckResult(), downtime->GetAuthor(), downtime->GetComment(), MessageOrigin::Ptr());
+		OnNotificationsRequested(checkable, NotificationDowntimeEnd, checkable->GetLastCheckResult(), downtime->GetAuthor(), downtime->GetComment(), nullptr);
 }
 
 void Checkable::ValidateCheckInterval(double value, const ValidationUtils& utils)

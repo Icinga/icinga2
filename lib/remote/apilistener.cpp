@@ -128,7 +128,7 @@ void ApiListener::OnConfigLoaded(void)
 	}
 
 	/* set up SSL context */
-	boost::shared_ptr<X509> cert;
+	std::shared_ptr<X509> cert;
 	try {
 		cert = GetX509Certificate(defaultCertPath);
 	} catch (const std::exception&) {
@@ -151,7 +151,7 @@ void ApiListener::OnConfigLoaded(void)
 
 void ApiListener::UpdateSSLContext(void)
 {
-	boost::shared_ptr<SSL_CTX> context;
+	std::shared_ptr<SSL_CTX> context;
 
 	try {
 		context = MakeSSLContext(GetDefaultCertPath(), GetDefaultKeyPath(), GetDefaultCaPath());
@@ -279,7 +279,7 @@ Endpoint::Ptr ApiListener::GetMaster(void) const
 	Zone::Ptr zone = Zone::GetLocalZone();
 
 	if (!zone)
-		return Endpoint::Ptr();
+		return nullptr;
 
 	std::vector<String> names;
 
@@ -312,7 +312,7 @@ bool ApiListener::AddListener(const String& node, const String& service)
 {
 	ObjectLock olock(this);
 
-	boost::shared_ptr<SSL_CTX> sslContext = m_SSLContext;
+	std::shared_ptr<SSL_CTX> sslContext = m_SSLContext;
 
 	if (!sslContext) {
 		Log(LogCritical, "ApiListener", "SSL context is required for AddListener()");
@@ -332,7 +332,7 @@ bool ApiListener::AddListener(const String& node, const String& service)
 		return false;
 	}
 
-	boost::thread thread(std::bind(&ApiListener::ListenerThreadProc, this, server));
+	std::thread thread(std::bind(&ApiListener::ListenerThreadProc, this, server));
 	thread.detach();
 
 	m_Servers.insert(server);
@@ -349,7 +349,7 @@ void ApiListener::ListenerThreadProc(const Socket::Ptr& server)
 	for (;;) {
 		try {
 			Socket::Ptr client = server->Accept();
-			boost::thread thread(std::bind(&ApiListener::NewClientHandler, this, client, String(), RoleServer));
+			std::thread thread(std::bind(&ApiListener::NewClientHandler, this, client, String(), RoleServer));
 			thread.detach();
 		} catch (const std::exception&) {
 			Log(LogCritical, "ApiListener", "Cannot accept new connection.");
@@ -367,7 +367,7 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 	{
 		ObjectLock olock(this);
 
-		boost::shared_ptr<SSL_CTX> sslContext = m_SSLContext;
+		std::shared_ptr<SSL_CTX> sslContext = m_SSLContext;
 
 		if (!sslContext) {
 			Log(LogCritical, "ApiListener", "SSL context is required for AddConnection()");
@@ -455,7 +455,7 @@ void ApiListener::NewClientHandlerInternal(const Socket::Ptr& client, const Stri
 		return;
 	}
 
-	boost::shared_ptr<X509> cert = tlsStream->GetPeerCertificate();
+	std::shared_ptr<X509> cert = tlsStream->GetPeerCertificate();
 	String identity;
 	Endpoint::Ptr endpoint;
 	bool verify_ok = false;
@@ -568,10 +568,10 @@ void ApiListener::SyncClient(const JsonRpcConnection::Ptr& aclient, const Endpoi
 			Log(LogInformation, "ApiListener")
 			    << "Requesting new certificate for this Icinga instance from endpoint '" << endpoint->GetName() << "'.";
 
-			JsonRpcConnection::SendCertificateRequest(aclient, MessageOrigin::Ptr(), String());
+			JsonRpcConnection::SendCertificateRequest(aclient, nullptr, String());
 
 			if (Utility::PathExists(ApiListener::GetCertificateRequestsDir()))
-				Utility::Glob(ApiListener::GetCertificateRequestsDir() + "/*.json", std::bind(&JsonRpcConnection::SendCertificateRequest, aclient, MessageOrigin::Ptr(), _1), GlobFile);
+				Utility::Glob(ApiListener::GetCertificateRequestsDir() + "/*.json", std::bind(&JsonRpcConnection::SendCertificateRequest, aclient, nullptr, _1), GlobFile);
 		}
 
 		/* Make sure that the config updates are synced
@@ -631,7 +631,7 @@ void ApiListener::ApiTimerHandler(void)
 	double now = Utility::GetTime();
 
 	std::vector<int> files;
-	Utility::Glob(GetApiDir() + "log/*", std::bind(&ApiListener::LogGlobHandler, boost::ref(files), _1), GlobFile);
+	Utility::Glob(GetApiDir() + "log/*", std::bind(&ApiListener::LogGlobHandler, std::ref(files), _1), GlobFile);
 	std::sort(files.begin(), files.end());
 
 	for (int ts : files) {
@@ -744,7 +744,7 @@ void ApiListener::ApiReconnectTimerHandler(void)
 				continue;
 			}
 
-			boost::thread thread(std::bind(&ApiListener::AddConnection, this, endpoint));
+			std::thread thread(std::bind(&ApiListener::AddConnection, this, endpoint));
 			thread.detach();
 		}
 	}
@@ -758,7 +758,7 @@ void ApiListener::ApiReconnectTimerHandler(void)
 	std::vector<String> names;
 	for (const Endpoint::Ptr& endpoint : ConfigType::GetObjectsByType<Endpoint>())
 		if (endpoint->GetConnected())
-			names.push_back(endpoint->GetName() + " (" + Convert::ToString(endpoint->GetClients().size()) + ")");
+			names.emplace_back(endpoint->GetName() + " (" + Convert::ToString(endpoint->GetClients().size()) + ")");
 
 	Log(LogNotice, "ApiListener")
 	    << "Connected endpoints: " << Utility::NaturalJoin(names);
@@ -1090,7 +1090,7 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 		count = 0;
 
 		std::vector<int> files;
-		Utility::Glob(GetApiDir() + "log/*", std::bind(&ApiListener::LogGlobHandler, boost::ref(files), _1), GlobFile);
+		Utility::Glob(GetApiDir() + "log/*", std::bind(&ApiListener::LogGlobHandler, std::ref(files), _1), GlobFile);
 		std::sort(files.begin(), files.end());
 
 		for (int ts : files) {

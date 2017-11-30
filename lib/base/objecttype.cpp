@@ -39,7 +39,7 @@ String ObjectType::GetName(void) const
 
 Type::Ptr ObjectType::GetBaseType(void) const
 {
-	return Type::Ptr();
+	return nullptr;
 }
 
 int ObjectType::GetAttributes(void) const

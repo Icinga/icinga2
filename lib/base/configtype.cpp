@@ -33,7 +33,7 @@ ConfigObject::Ptr ConfigType::GetObject(const String& name) const
 	auto nt = m_ObjectMap.find(name);
 
 	if (nt == m_ObjectMap.end())
-		return ConfigObject::Ptr();
+		return nullptr;
 
 	return nt->second;
 }

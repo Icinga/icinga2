@@ -29,7 +29,7 @@
 namespace icinga
 {
 
-typedef boost::shared_ptr<PGresult> IdoPgsqlResult;
+typedef std::shared_ptr<PGresult> IdoPgsqlResult;
 
 /**
  * An IDO pgSQL database connection.

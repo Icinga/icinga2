@@ -44,10 +44,10 @@ void DummyCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResu
 
 	MacroProcessor::ResolverList resolvers;
 	if (service)
-		resolvers.push_back(std::make_pair("service", service));
-	resolvers.push_back(std::make_pair("host", host));
-	resolvers.push_back(std::make_pair("command", commandObj));
-	resolvers.push_back(std::make_pair("icinga", IcingaApplication::GetInstance()));
+		resolvers.emplace_back("service", service);
+	resolvers.emplace_back("host", host);
+	resolvers.emplace_back("command", commandObj);
+	resolvers.emplace_back("icinga", IcingaApplication::GetInstance());
 
 	int dummyState = MacroProcessor::ResolveMacros("$dummy_state$", resolvers, checkable->GetLastCheckResult(),
 	    NULL, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);

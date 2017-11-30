@@ -41,9 +41,9 @@ public:
 	typedef std::vector<ResolverSpec> ResolverList;
 
 	static Value ResolveMacros(const Value& str, const ResolverList& resolvers,
-	    const CheckResult::Ptr& cr = CheckResult::Ptr(), String *missingMacro = NULL,
+	    const CheckResult::Ptr& cr = nullptr, String *missingMacro = NULL,
 	    const EscapeCallback& escapeFn = EscapeCallback(),
-	    const Dictionary::Ptr& resolvedMacros = Dictionary::Ptr(),
+	    const Dictionary::Ptr& resolvedMacros = nullptr,
 	    bool useResolvedMacros = false, int recursionLevel = 0);
 
 	static Value ResolveArguments(const Value& command, const Dictionary::Ptr& arguments,
