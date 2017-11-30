@@ -185,7 +185,7 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 		BOOST_THROW_EXCEPTION(ScriptError("Type '" + GetType() + "' does not exist.", m_DebugInfo));
 
 	if (IsAbstract())
-		return ConfigObject::Ptr();
+		return nullptr;
 
 	ConfigObject::Ptr dobj = static_pointer_cast<ConfigObject>(type->Instantiate(std::vector<Value>()));
 
@@ -211,7 +211,7 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 				m_IgnoredItems.push_back(m_DebugInfo.Path);
 			}
 
-			return ConfigObject::Ptr();
+			return nullptr;
 		}
 
 		throw;
@@ -263,7 +263,7 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 				m_IgnoredItems.push_back(m_DebugInfo.Path);
 			}
 
-			return ConfigObject::Ptr();
+			return nullptr;
 		}
 
 		ex.SetDebugHint(dhint);
@@ -282,7 +282,7 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 				m_IgnoredItems.push_back(m_DebugInfo.Path);
 			}
 
-			return ConfigObject::Ptr();
+			return nullptr;
 		}
 
 		throw;
@@ -378,12 +378,12 @@ ConfigItem::Ptr ConfigItem::GetByTypeAndName(const Type::Ptr& type, const String
 	auto it = m_Items.find(type);
 
 	if (it == m_Items.end())
-		return ConfigItem::Ptr();
+		return nullptr;
 
 	auto it2 = it->second.find(name);
 
 	if (it2 == it->second.end())
-		return ConfigItem::Ptr();
+		return nullptr;
 
 	return it2->second;
 }

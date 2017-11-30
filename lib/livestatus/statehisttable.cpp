@@ -281,7 +281,7 @@ Object::Ptr StateHistTable::HostAccessor(const Value& row, const Column::ObjectA
 	String host_name = static_cast<Dictionary::Ptr>(row)->Get("host_name");
 
 	if (host_name.IsEmpty())
-		return Object::Ptr();
+		return nullptr;
 
 	return Host::GetByName(host_name);
 }
@@ -292,7 +292,7 @@ Object::Ptr StateHistTable::ServiceAccessor(const Value& row, const Column::Obje
 	String service_description = static_cast<Dictionary::Ptr>(row)->Get("service_description");
 
 	if (service_description.IsEmpty() || host_name.IsEmpty())
-		return Object::Ptr();
+		return nullptr;
 
 	return Service::GetByNamePair(host_name, service_description);
 }

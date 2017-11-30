@@ -80,7 +80,7 @@ bool Checkable::IsReachable(DependencyType dt, Dependency::Ptr *failedDependency
 
 		if (host && host->GetState() != HostUp && host->GetStateType() == StateTypeHard) {
 			if (failedDependency)
-				*failedDependency = Dependency::Ptr();
+				*failedDependency = nullptr;
 
 			return false;
 		}
@@ -96,7 +96,7 @@ bool Checkable::IsReachable(DependencyType dt, Dependency::Ptr *failedDependency
 	}
 
 	if (failedDependency)
-		*failedDependency = Dependency::Ptr();
+		*failedDependency = nullptr;
 
 	return true;
 }

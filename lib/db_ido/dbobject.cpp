@@ -354,7 +354,7 @@ DbObject::Ptr DbObject::GetOrCreateByObject(const ConfigObject::Ptr& object)
 	DbType::Ptr dbtype = DbType::GetByName(object->GetReflectionType()->GetName());
 
 	if (!dbtype)
-		return DbObject::Ptr();
+		return nullptr;
 
 	Service::Ptr service;
 	String name1, name2;

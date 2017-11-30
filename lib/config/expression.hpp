@@ -36,7 +36,7 @@ namespace icinga
 struct DebugHint
 {
 public:
-	DebugHint(const Dictionary::Ptr& hints = Dictionary::Ptr())
+	DebugHint(const Dictionary::Ptr& hints = nullptr)
 		: m_Hints(hints)
 	{ }
 

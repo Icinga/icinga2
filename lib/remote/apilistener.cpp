@@ -279,7 +279,7 @@ Endpoint::Ptr ApiListener::GetMaster(void) const
 	Zone::Ptr zone = Zone::GetLocalZone();
 
 	if (!zone)
-		return Endpoint::Ptr();
+		return nullptr;
 
 	std::vector<String> names;
 
@@ -568,10 +568,10 @@ void ApiListener::SyncClient(const JsonRpcConnection::Ptr& aclient, const Endpoi
 			Log(LogInformation, "ApiListener")
 			    << "Requesting new certificate for this Icinga instance from endpoint '" << endpoint->GetName() << "'.";
 
-			JsonRpcConnection::SendCertificateRequest(aclient, MessageOrigin::Ptr(), String());
+			JsonRpcConnection::SendCertificateRequest(aclient, nullptr, String());
 
 			if (Utility::PathExists(ApiListener::GetCertificateRequestsDir()))
-				Utility::Glob(ApiListener::GetCertificateRequestsDir() + "/*.json", std::bind(&JsonRpcConnection::SendCertificateRequest, aclient, MessageOrigin::Ptr(), _1), GlobFile);
+				Utility::Glob(ApiListener::GetCertificateRequestsDir() + "/*.json", std::bind(&JsonRpcConnection::SendCertificateRequest, aclient, nullptr, _1), GlobFile);
 		}
 
 		/* Make sure that the config updates are synced

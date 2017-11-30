@@ -322,7 +322,7 @@ void ApiClient::AutocompleteScript(const String& session, const String& command,
 		req->AddHeader("Accept", "application/json");
 		m_Connection->SubmitRequest(req, std::bind(AutocompleteScriptHttpCompletionCallback, _1, _2, callback));
 	} catch (const std::exception& ex) {
-		callback(boost::current_exception(), Array::Ptr());
+		callback(boost::current_exception(), nullptr);
 	}
 }
 
@@ -363,6 +363,6 @@ void ApiClient::AutocompleteScriptHttpCompletionCallback(HttpRequest& request,
 
 		callback(boost::exception_ptr(), suggestions);
 	} catch (const std::exception& ex) {
-		callback(boost::current_exception(), Array::Ptr());
+		callback(boost::current_exception(), nullptr);
 	}
 }

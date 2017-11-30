@@ -130,7 +130,7 @@ CLICommand::Ptr CLICommand::GetByName(const std::vector<String>& name)
 	auto it = GetRegistry().find(name);
 
 	if (it == GetRegistry().end())
-		return CLICommand::Ptr();
+		return nullptr;
 
 	return it->second;
 }

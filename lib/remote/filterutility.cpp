@@ -33,7 +33,7 @@ Type::Ptr FilterUtility::TypeFromPluralName(const String& pluralName)
 	String uname = pluralName;
 	boost::algorithm::to_lower(uname);
 
-	for (const Type::Ptr&type : Type::GetAllTypes()) {
+	for (const Type::Ptr& type : Type::GetAllTypes()) {
 		String pname = type->GetPluralName();
 		boost::algorithm::to_lower(pname);
 
@@ -41,7 +41,7 @@ Type::Ptr FilterUtility::TypeFromPluralName(const String& pluralName)
 			return type;
 	}
 
-	return Type::Ptr();
+	return nullptr;
 }
 
 void ConfigObjectTargetProvider::FindTargets(const String& type, const std::function<void (const Value&)>& addTarget) const

@@ -55,6 +55,9 @@ public:
 	inline Value(void)
 	{ }
 
+	inline Value(std::nullptr_t)
+	{ }
+
 	inline Value(int value)
 		: m_Value(double(value))
 	{ }

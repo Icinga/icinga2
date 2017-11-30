@@ -176,9 +176,9 @@ private:
 
 	/* configsync */
 	void UpdateConfigObject(const ConfigObject::Ptr& object, const MessageOrigin::Ptr& origin,
-	    const JsonRpcConnection::Ptr& client = JsonRpcConnection::Ptr());
+	    const JsonRpcConnection::Ptr& client = nullptr);
 	void DeleteConfigObject(const ConfigObject::Ptr& object, const MessageOrigin::Ptr& origin,
-	    const JsonRpcConnection::Ptr& client = JsonRpcConnection::Ptr());
+	    const JsonRpcConnection::Ptr& client = nullptr);
 	void SendRuntimeConfigObjects(const JsonRpcConnection::Ptr& aclient);
 
 	void SyncClient(const JsonRpcConnection::Ptr& aclient, const Endpoint::Ptr& endpoint, bool needSync);

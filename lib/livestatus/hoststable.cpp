@@ -211,7 +211,7 @@ Object::Ptr HostsTable::HostGroupAccessor(const Value& row, LivestatusGroupByTyp
 	if (groupByType == LivestatusGroupByHostGroup)
 		return groupByObject;
 
-	return Object::Ptr();
+	return nullptr;
 }
 
 Value HostsTable::NameAccessor(const Value& row)
@@ -328,7 +328,7 @@ Value HostsTable::NotesExpandedAccessor(const Value& row)
 	    { "icinga", IcingaApplication::GetInstance() }
 	};
 
-	return MacroProcessor::ResolveMacros(host->GetNotes(), resolvers, CheckResult::Ptr());
+	return MacroProcessor::ResolveMacros(host->GetNotes(), resolvers);
 }
 
 Value HostsTable::NotesUrlAccessor(const Value& row)

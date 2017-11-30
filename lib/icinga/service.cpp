@@ -111,7 +111,7 @@ Service::Ptr Service::GetByNamePair(const String& hostName, const String& servic
 		Host::Ptr host = Host::GetByName(hostName);
 
 		if (!host)
-			return Service::Ptr();
+			return nullptr;
 
 		return host->GetServiceByShortName(serviceName);
 	} else {
@@ -274,6 +274,6 @@ std::pair<Host::Ptr, Service::Ptr> icinga::GetHostService(const Checkable::Ptr& 
 	if (service)
 		return std::make_pair(service->GetHost(), service);
 	else
-		return std::make_pair(static_pointer_cast<Host>(checkable), Service::Ptr());
+		return std::make_pair(static_pointer_cast<Host>(checkable), nullptr);
 }
 

@@ -50,9 +50,9 @@ public:
 
 	static String AddComment(const intrusive_ptr<Checkable>& checkable, CommentType entryType,
 	    const String& author, const String& text, bool persistent, double expireTime,
-	    const String& id = String(), const MessageOrigin::Ptr& origin = MessageOrigin::Ptr());
+	    const String& id = String(), const MessageOrigin::Ptr& origin = nullptr);
 
-	static void RemoveComment(const String& id, const MessageOrigin::Ptr& origin = MessageOrigin::Ptr());
+	static void RemoveComment(const String& id, const MessageOrigin::Ptr& origin = nullptr);
 
 	static String GetCommentIDFromLegacyID(int id);
 

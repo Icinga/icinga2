@@ -215,7 +215,7 @@ delayed_request:
 
 	Utility::SaveJsonFile(requestPath, 0600, request);
 
-	JsonRpcConnection::SendCertificateRequest(JsonRpcConnection::Ptr(), origin, requestPath);
+	JsonRpcConnection::SendCertificateRequest(nullptr, origin, requestPath);
 
 	result->Set("status_code", 2);
 	result->Set("error", "Certificate request for CN '" + cn + "' is pending. Waiting for approval from the parent Icinga instance.");

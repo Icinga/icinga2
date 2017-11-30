@@ -206,7 +206,7 @@ Object::Ptr ServicesTable::HostAccessor(const Value& row, const Column::ObjectAc
 	Service::Ptr svc = static_cast<Service::Ptr>(service);
 
 	if (!svc)
-		return Object::Ptr();
+		return nullptr;
 
 	return svc->GetHost();
 }
@@ -220,7 +220,7 @@ Object::Ptr ServicesTable::ServiceGroupAccessor(const Value& row, LivestatusGrou
 	if (groupByType == LivestatusGroupByServiceGroup)
 		return groupByObject;
 
-	return Object::Ptr();
+	return nullptr;
 }
 
 Object::Ptr ServicesTable::HostGroupAccessor(const Value& row, LivestatusGroupByType groupByType, const Object::Ptr& groupByObject)
@@ -232,7 +232,7 @@ Object::Ptr ServicesTable::HostGroupAccessor(const Value& row, LivestatusGroupBy
 	if (groupByType == LivestatusGroupByHostGroup)
 		return groupByObject;
 
-	return Object::Ptr();
+	return nullptr;
 }
 
 Value ServicesTable::ShortNameAccessor(const Value& row)

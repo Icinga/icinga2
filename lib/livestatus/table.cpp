@@ -84,7 +84,7 @@ Table::Ptr Table::GetByName(const String& name, const String& compat_log_path, c
 	else if (name == "zones")
 		return new ZonesTable();
 
-	return Table::Ptr();
+	return nullptr;
 }
 
 void Table::AddColumn(const String& name, const Column& column)

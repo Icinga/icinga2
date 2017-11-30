@@ -115,10 +115,9 @@ Dictionary::Ptr EventQueue::WaitForEvent(void *client, double timeout)
 		}
 
 		if (!m_CV.timed_wait(lock, boost::posix_time::milliseconds(timeout * 1000)))
-			return Dictionary::Ptr();
+			return nullptr;
 	}
 }
-
 
 std::vector<EventQueue::Ptr> EventQueue::GetQueuesForType(const String& type)
 {

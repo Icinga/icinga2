@@ -368,7 +368,7 @@ Dictionary::Ptr CompatUtility::GetCustomAttributeConfig(const CustomVarObject::P
 	Dictionary::Ptr vars = object->GetVars();
 
 	if (!vars)
-		return Dictionary::Ptr();
+		return nullptr;
 
 	return vars;
 }

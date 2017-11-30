@@ -684,12 +684,12 @@ Dictionary::Ptr IdoMysqlConnection::FetchRow(const IdoMysqlResult& result)
 	row = mysql_fetch_row(result.get());
 
 	if (!row)
-		return Dictionary::Ptr();
+		return nullptr;
 
 	lengths = mysql_fetch_lengths(result.get());
 
 	if (!lengths)
-		return Dictionary::Ptr();
+		return nullptr;
 
 	Dictionary::Ptr dict = new Dictionary();
 

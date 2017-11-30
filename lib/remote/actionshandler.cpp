@@ -69,7 +69,7 @@ bool ActionsHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& reques
 		}
 	} else {
 		FilterUtility::CheckPermission(user, permission);
-		objs.push_back(ConfigObject::Ptr());
+		objs.push_back(nullptr);
 	}
 
 	Array::Ptr results = new Array();

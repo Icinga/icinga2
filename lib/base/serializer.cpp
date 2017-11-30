@@ -55,7 +55,7 @@ static Object::Ptr SerializeObject(const Object::Ptr& input, int attributeTypes)
 	Type::Ptr type = input->GetReflectionType();
 
 	if (!type)
-		return Object::Ptr();
+		return nullptr;
 
 	Dictionary::Ptr fields = new Dictionary();
 
@@ -168,7 +168,7 @@ Value icinga::Serialize(const Value& value, int attributeTypes)
 
 Value icinga::Deserialize(const Value& value, bool safe_mode, int attributeTypes)
 {
-	return Deserialize(Object::Ptr(), value, safe_mode, attributeTypes);
+	return Deserialize(nullptr, value, safe_mode, attributeTypes);
 }
 
 Value icinga::Deserialize(const Object::Ptr& object, const Value& value, bool safe_mode, int attributeTypes)

@@ -57,9 +57,9 @@ public:
 	    const String& comment, double startTime, double endTime, bool fixed,
 	    const String& triggeredBy, double duration, const String& scheduledDowntime = String(),
 	    const String& scheduledBy = String(), const String& id = String(),
-	    const MessageOrigin::Ptr& origin = MessageOrigin::Ptr());
+	    const MessageOrigin::Ptr& origin = nullptr);
 
-	static void RemoveDowntime(const String& id, bool cancelled, bool expired = false, const MessageOrigin::Ptr& origin = MessageOrigin::Ptr());
+	static void RemoveDowntime(const String& id, bool cancelled, bool expired = false, const MessageOrigin::Ptr& origin = nullptr);
 
 	void TriggerDowntime(void);
 

@@ -320,7 +320,7 @@ Filter::Ptr LivestatusQuery::ParseFilter(const String& params, unsigned long& fr
 		tokens.push_back("");
 
 	if (tokens.size() < 3)
-		return Filter::Ptr();
+		return nullptr;
 
 	bool negate = false;
 	String attr = tokens[0];
