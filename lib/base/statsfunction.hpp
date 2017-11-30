@@ -21,50 +21,13 @@
 #define STATSFUNCTION_H
 
 #include "base/i2-base.hpp"
-#include "base/registry.hpp"
-#include "base/value.hpp"
-#include "base/dictionary.hpp"
-#include "base/array.hpp"
+#include "base/function.hpp"
 
 namespace icinga
 {
 
-/**
- * A stats function that can be used to execute a stats task.
- *
- * @ingroup base
- */
-class I2_BASE_API StatsFunction : public Object
-{
-public:
-	DECLARE_PTR_TYPEDEFS(StatsFunction);
-
-	typedef std::function<void (const Dictionary::Ptr& status, const Array::Ptr& perfdata)> Callback;
-
-	StatsFunction(const Callback& function);
-
-	void Invoke(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
-
-private:
-	Callback m_Callback;
-};
-
-/**
- * A registry for script functions.
- *
- * @ingroup base
- */
-class I2_BASE_API StatsFunctionRegistry : public Registry<StatsFunctionRegistry, StatsFunction::Ptr>
-{
-public:
-	static StatsFunctionRegistry *GetInstance(void);
-};
-
 #define REGISTER_STATSFUNCTION(name, callback) \
-	INITIALIZE_ONCE([]() { \
-		StatsFunction::Ptr stf = new StatsFunction(callback); \
-		StatsFunctionRegistry::GetInstance()->Register(#name, stf); \
-	})
+	REGISTER_SCRIPTFUNCTION_NS(StatsFunctions, name, callback, "status:perfdata")
 
 }
 

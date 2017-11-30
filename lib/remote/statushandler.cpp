@@ -35,15 +35,24 @@ public:
 	virtual void FindTargets(const String& type,
 	    const std::function<void (const Value&)>& addTarget) const override
 	{
-		typedef std::pair<String, StatsFunction::Ptr> kv_pair;
-		for (const kv_pair& kv : StatsFunctionRegistry::GetInstance()->GetItems()) {
-			addTarget(GetTargetByName("Status", kv.first));
+		Dictionary::Ptr statsFunctions = ScriptGlobal::Get("StatsFunctions", &Empty);
+
+		if (statsFunctions) {
+			ObjectLock olock(statsFunctions);
+
+			for (const Dictionary::Pair& kv : statsFunctions)
+				addTarget(GetTargetByName("Status", kv.first));
 		}
 	}
 
 	virtual Value GetTargetByName(const String& type, const String& name) const override
 	{
-		StatsFunction::Ptr func = StatsFunctionRegistry::GetInstance()->GetItem(name);
+		Dictionary::Ptr statsFunctions = ScriptGlobal::Get("StatsFunctions", &Empty);
+
+		if (!statsFunctions)
+			BOOST_THROW_EXCEPTION(std::invalid_argument("No status functions are available."));
+
+		Function::Ptr func = statsFunctions->Get(name);
 
 		if (!func)
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid status function name."));
@@ -52,7 +61,7 @@ public:
 
 		Dictionary::Ptr status = new Dictionary();
 		Array::Ptr perfdata = new Array();
-		func->Invoke(status, perfdata);
+		func->Invoke({ status, perfdata });
 
 		result->Set("name", name);
 		result->Set("status", status);
