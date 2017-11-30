@@ -20,7 +20,6 @@
 #include "base/array.hpp"
 #include "remote/url.hpp"
 #include <BoostTestTargetConfig.h>
-#include <boost/assign/list_of.hpp>
 
 using namespace icinga;
 
@@ -50,17 +49,16 @@ BOOST_AUTO_TEST_CASE(get_and_set)
 	url->SetPassword("Seehofer");
 	url->SetHost("koenigreich.bayern");
 	url->SetPort("1918");
-	std::vector<String> p = boost::assign::list_of("path")("to")("münchen");
-	url->SetPath(p);
+	url->SetPath({ "path", "to", "münchen" });
 
 	BOOST_CHECK(url->Format(false, true) == "ftp://Horst:Seehofer@koenigreich.bayern:1918/path/to/m%C3%BCnchen");
 
 	std::map<String, std::vector<String> > m;
-	std::vector<String> v1 = boost::assign::list_of("hip")("hip")("hurra");
-	std::vector<String> v2 = boost::assign::list_of("äü^ä+#ül-");
-	std::vector<String> v3 = boost::assign::list_of("1")("2");
-	m.insert(std::pair<String, std::vector<String> >("shout", v1));
-	m.insert(std::pair<String, std::vector<String> >("sonderzeichen", v2));
+	std::vector<String> v1 { "hip", "hip", "hurra" };
+	std::vector<String> v2 { "äü^ä+#ül-" };
+	std::vector<String> v3 { "1", "2" };
+	m.emplace("shout", v1);
+	m.emplace("sonderzeichen", v2);
 	url->SetQuery(m);
 	url->SetQueryElements("count", v3);
 	url->AddQueryElement("count", "3");

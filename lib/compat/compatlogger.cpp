@@ -604,6 +604,6 @@ void CompatLogger::ValidateRotationMethod(const String& value, const ValidationU
 
 	if (value != "HOURLY" && value != "DAILY" &&
 	    value != "WEEKLY" && value != "MONTHLY" && value != "NONE") {
-		BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of("rotation_method"), "Rotation method '" + value + "' is invalid."));
+		BOOST_THROW_EXCEPTION(ValidationError(this, { "rotation_method" }, "Rotation method '" + value + "' is invalid."));
 	}
 }

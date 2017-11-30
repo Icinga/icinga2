@@ -38,7 +38,7 @@ void Command::Validate(int types, const ValidationUtils& utils)
 
 	if (arguments) {
 		if (!GetCommandLine().IsObjectType<Array>())
-			BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of("command"), "Attribute 'command' must be an array if the 'arguments' attribute is set."));
+			BOOST_THROW_EXCEPTION(ValidationError(this, { "command" }, "Attribute 'command' must be an array if the 'arguments' attribute is set."));
 
 		ObjectLock olock(arguments);
 		for (const Dictionary::Pair& kv : arguments) {
@@ -52,18 +52,18 @@ void Command::Validate(int types, const ValidationUtils& utils)
 					Value argvalue = argdict->Get("value");
 
 					if (argvalue.IsString() && !MacroProcessor::ValidateMacroString(argvalue))
-						BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of<String>("arguments")(kv.first)("value"), "Validation failed: Closing $ not found in macro format string '" + argvalue + "'."));
+						BOOST_THROW_EXCEPTION(ValidationError(this, { "arguments", kv.first, "value" }, "Validation failed: Closing $ not found in macro format string '" + argvalue + "'."));
 				}
 
 				if (argdict->Contains("set_if")) {
 					Value argsetif = argdict->Get("set_if");
 
 					if (argsetif.IsString() && !MacroProcessor::ValidateMacroString(argsetif))
-						BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of<String>("arguments")(kv.first)("set_if"), "Closing $ not found in macro format string '" + argsetif + "'."));
+						BOOST_THROW_EXCEPTION(ValidationError(this, { "arguments", kv.first, "set_if" }, "Closing $ not found in macro format string '" + argsetif + "'."));
 				}
 			} else if (arginfo.IsString()) {
 				if (!MacroProcessor::ValidateMacroString(arginfo))
-					BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of<String>("arguments")(kv.first), "Closing $ not found in macro format string '" + arginfo + "'."));
+					BOOST_THROW_EXCEPTION(ValidationError(this, { "arguments", kv.first }, "Closing $ not found in macro format string '" + arginfo + "'."));
 			}
 		}
 	}
@@ -79,7 +79,7 @@ void Command::Validate(int types, const ValidationUtils& utils)
 				continue;
 
 			if (!MacroProcessor::ValidateMacroString(envval))
-				BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of<String>("env")(kv.first), "Closing $ not found in macro format string '" + envval + "'."));
+				BOOST_THROW_EXCEPTION(ValidationError(this, { "env", kv.first }, "Closing $ not found in macro format string '" + envval + "'."));
 		}
 	}
 }

@@ -649,10 +649,10 @@ void Notification::ValidateStates(const Array::Ptr& value, const ValidationUtils
 	int filter = FilterArrayToInt(value, GetStateFilterMap(), 0);
 
 	if (GetServiceName().IsEmpty() && (filter == -1 || (filter & ~(StateFilterUp | StateFilterDown)) != 0))
-		BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of("states"), "State filter is invalid."));
+		BOOST_THROW_EXCEPTION(ValidationError(this, { "states" }, "State filter is invalid."));
 
 	if (!GetServiceName().IsEmpty() && (filter == -1 || (filter & ~(StateFilterOK | StateFilterWarning | StateFilterCritical | StateFilterUnknown)) != 0))
-		BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of("states"), "State filter is invalid."));
+		BOOST_THROW_EXCEPTION(ValidationError(this, { "states" }, "State filter is invalid."));
 }
 
 void Notification::ValidateTypes(const Array::Ptr& value, const ValidationUtils& utils)
@@ -664,7 +664,7 @@ void Notification::ValidateTypes(const Array::Ptr& value, const ValidationUtils&
 	if (filter == -1 || (filter & ~(NotificationDowntimeStart | NotificationDowntimeEnd | NotificationDowntimeRemoved |
 	    NotificationCustom | NotificationAcknowledgement | NotificationProblem | NotificationRecovery |
 	    NotificationFlappingStart | NotificationFlappingEnd)) != 0)
-		BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of("types"), "Type filter is invalid."));
+		BOOST_THROW_EXCEPTION(ValidationError(this, { "types" }, "Type filter is invalid."));
 }
 
 Endpoint::Ptr Notification::GetCommandEndpoint(void) const

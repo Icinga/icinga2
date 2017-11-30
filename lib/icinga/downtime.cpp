@@ -414,7 +414,7 @@ void Downtime::ValidateStartTime(const Timestamp& value, const ValidationUtils& 
 	ObjectImpl<Downtime>::ValidateStartTime(value, utils);
 
 	if (value <= 0)
-		BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of("start_time"), "Start time must be greater than 0."));
+		BOOST_THROW_EXCEPTION(ValidationError(this, { "start_time" }, "Start time must be greater than 0."));
 }
 
 void Downtime::ValidateEndTime(const Timestamp& value, const ValidationUtils& utils)
@@ -422,5 +422,5 @@ void Downtime::ValidateEndTime(const Timestamp& value, const ValidationUtils& ut
 	ObjectImpl<Downtime>::ValidateEndTime(value, utils);
 
 	if (value <= 0)
-		BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of("end_time"), "End time must be greater than 0."));
+		BOOST_THROW_EXCEPTION(ValidationError(this, { "end_time" }, "End time must be greater than 0."));
 }

@@ -163,7 +163,7 @@ void PerfdataWriter::ValidateHostFormatTemplate(const String& value, const Valid
 	ObjectImpl<PerfdataWriter>::ValidateHostFormatTemplate(value, utils);
 
 	if (!MacroProcessor::ValidateMacroString(value))
-		BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of("host_format_template"), "Closing $ not found in macro format string '" + value + "'."));
+		BOOST_THROW_EXCEPTION(ValidationError(this, { "host_format_template" }, "Closing $ not found in macro format string '" + value + "'."));
 }
 
 void PerfdataWriter::ValidateServiceFormatTemplate(const String& value, const ValidationUtils& utils)
@@ -171,5 +171,5 @@ void PerfdataWriter::ValidateServiceFormatTemplate(const String& value, const Va
 	ObjectImpl<PerfdataWriter>::ValidateServiceFormatTemplate(value, utils);
 
 	if (!MacroProcessor::ValidateMacroString(value))
-		BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of("service_format_template"), "Closing $ not found in macro format string '" + value + "'."));
+		BOOST_THROW_EXCEPTION(ValidationError(this, { "service_format_template" }, "Closing $ not found in macro format string '" + value + "'."));
 }
