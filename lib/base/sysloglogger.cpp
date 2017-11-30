@@ -111,7 +111,7 @@ void SyslogLogger::ValidateFacility(const String& value, const ValidationUtils& 
 		try {
 			Convert::ToLong(value);
 		} catch (const std::exception&) {
-			BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of("facility"), "Invalid facility specified."));
+			BOOST_THROW_EXCEPTION(ValidationError(this, { "facility" }, "Invalid facility specified."));
 		}
 	}
 }

@@ -1413,7 +1413,7 @@ void ApiListener::ValidateTlsProtocolmin(const String& value, const ValidationUt
 		message += ", '" SSL_TXT_TLSV1_1 "' or '" SSL_TXT_TLSV1_2 "'";
 #endif /* SSL_TXT_TLSV1_1 */
 
-		BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of("tls_protocolmin"), message));
+		BOOST_THROW_EXCEPTION(ValidationError(this, { "tls_protocolmin" }, message));
 	}
 }
 

@@ -1568,5 +1568,5 @@ void Application::ValidateName(const String& value, const ValidationUtils& utils
 	ObjectImpl<Application>::ValidateName(value, utils);
 
 	if (value != "app")
-		BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of("name"), "Application object must be named 'app'."));
+		BOOST_THROW_EXCEPTION(ValidationError(this, { "name" }, "Application object must be named 'app'."));
 }

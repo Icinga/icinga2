@@ -450,7 +450,7 @@ void DbConnection::ValidateFailoverTimeout(double value, const ValidationUtils& 
 	ObjectImpl<DbConnection>::ValidateFailoverTimeout(value, utils);
 
 	if (value < 60)
-		BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of("failover_timeout"), "Failover timeout minimum is 60s."));
+		BOOST_THROW_EXCEPTION(ValidationError(this, { "failover_timeout" }, "Failover timeout minimum is 60s."));
 }
 
 void DbConnection::ValidateCategories(const Array::Ptr& value, const ValidationUtils& utils)
@@ -463,7 +463,7 @@ void DbConnection::ValidateCategories(const Array::Ptr& value, const ValidationU
 	    DbCatAcknowledgement | DbCatComment | DbCatDowntime | DbCatEventHandler | DbCatExternalCommand |
 	    DbCatFlapping | DbCatLog | DbCatNotification | DbCatProgramStatus | DbCatRetention |
 	    DbCatStateHistory)) != 0)
-		BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of("categories"), "categories filter is invalid."));
+		BOOST_THROW_EXCEPTION(ValidationError(this, { "categories" }, "categories filter is invalid."));
 }
 
 void DbConnection::IncreaseQueryCount(void)

@@ -28,7 +28,6 @@
 #include "base/scriptframe.hpp"
 #include "base/convert.hpp"
 #include "base/exception.hpp"
-#include <boost/assign.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/classification.hpp>
@@ -376,7 +375,7 @@ void MacroProcessor::ValidateCustomVars(const ConfigObject::Ptr& object, const D
 					continue;
 
 				if (!ValidateMacroString(kv_var.second))
-					BOOST_THROW_EXCEPTION(ValidationError(object.get(), boost::assign::list_of<String>("vars")(kv.first)(kv_var.first), "Closing $ not found in macro format string '" + kv_var.second + "'."));
+					BOOST_THROW_EXCEPTION(ValidationError(object.get(), { "vars", kv.first, kv_var.first }, "Closing $ not found in macro format string '" + kv_var.second + "'."));
 			}
 		} else if (varval.IsObjectType<Array>()) {
 			/* check all array entries */
@@ -388,7 +387,7 @@ void MacroProcessor::ValidateCustomVars(const ConfigObject::Ptr& object, const D
 					continue;
 
 				if (!ValidateMacroString(arrval)) {
-					BOOST_THROW_EXCEPTION(ValidationError(object.get(), boost::assign::list_of<String>("vars")(kv.first), "Closing $ not found in macro format string '" + arrval + "'."));
+					BOOST_THROW_EXCEPTION(ValidationError(object.get(), { "vars", kv.first }, "Closing $ not found in macro format string '" + arrval + "'."));
 				}
 			}
 		} else {
@@ -396,7 +395,7 @@ void MacroProcessor::ValidateCustomVars(const ConfigObject::Ptr& object, const D
 				continue;
 
 			if (!ValidateMacroString(varval))
-				BOOST_THROW_EXCEPTION(ValidationError(object.get(), boost::assign::list_of<String>("vars")(kv.first), "Closing $ not found in macro format string '" + varval + "'."));
+				BOOST_THROW_EXCEPTION(ValidationError(object.get(), { "vars", kv.first }, "Closing $ not found in macro format string '" + varval + "'."));
 		}
 	}
 }

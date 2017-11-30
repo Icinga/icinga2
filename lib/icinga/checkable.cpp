@@ -64,7 +64,7 @@ void Checkable::OnAllConfigLoaded(void)
 		Zone::Ptr cmdZone = endpoint->GetZone();
 
 		if (checkableZone && cmdZone != checkableZone && cmdZone->GetParent() != checkableZone) {
-			BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of("command_endpoint"),
+			BOOST_THROW_EXCEPTION(ValidationError(this, { "command_endpoint" },
 			    "Command endpoint must be in zone '" + checkableZone->GetName() + "' or in a direct child zone thereof."));
 		}
 	}
@@ -193,7 +193,7 @@ void Checkable::ValidateCheckInterval(double value, const ValidationUtils& utils
 	ObjectImpl<Checkable>::ValidateCheckInterval(value, utils);
 
 	if (value <= 0)
-		BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of("check_interval"), "Interval must be greater than 0."));
+		BOOST_THROW_EXCEPTION(ValidationError(this, { "check_interval" }, "Interval must be greater than 0."));
 }
 
 void Checkable::ValidateMaxCheckAttempts(int value, const ValidationUtils& utils)
@@ -201,5 +201,5 @@ void Checkable::ValidateMaxCheckAttempts(int value, const ValidationUtils& utils
 	ObjectImpl<Checkable>::ValidateMaxCheckAttempts(value, utils);
 
 	if (value <= 0)
-		BOOST_THROW_EXCEPTION(ValidationError(this, boost::assign::list_of("max_check_attempts"), "Value must be greater than 0."));
+		BOOST_THROW_EXCEPTION(ValidationError(this, { "max_check_attempts" }, "Value must be greater than 0."));
 }
