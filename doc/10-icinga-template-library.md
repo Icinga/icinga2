@@ -2307,6 +2307,7 @@ Environment Macros:
 Name                | Description
 --------------------|------------------------------------------------------------------------------------------------------------------------------------------
 ORACLE_HOME         | **Required.** Specifies the location of the oracle instant client libraries. Defaults to "/usr/lib/oracle/11.2/client64/lib". Can be overridden by setting "oracle_home".
+LD_LIBRARY_PATH     | **Required.** Specifies the location of the oracle instant client libraries for the run-time shared library loader. Defaults to "/usr/lib/oracle/11.2/client64/lib". Can be overridden by setting "oracle_home".
 TNS_ADMIN           | **Required.** Specifies the location of the tnsnames.ora including the database connection strings. Defaults to "/etc/icinga2/plugin-configs". Can be overridden by setting "oracle_tns_admin".
 
 #### postgres <a id="plugin-contrib-command-postgres"></a>
