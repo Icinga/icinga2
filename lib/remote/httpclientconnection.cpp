@@ -169,7 +169,7 @@ std::shared_ptr<HttpRequest> HttpClientConnection::NewRequest(void)
 void HttpClientConnection::SubmitRequest(const std::shared_ptr<HttpRequest>& request,
     const HttpCompletionCallback& callback)
 {
-	m_Requests.push_back(std::make_pair(request, callback));
+	m_Requests.emplace_back(request, callback);
 	request->Finish();
 }
 

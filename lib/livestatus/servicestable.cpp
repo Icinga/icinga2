@@ -375,10 +375,11 @@ Value ServicesTable::NotesExpandedAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	MacroProcessor::ResolverList resolvers;
-	resolvers.push_back(std::make_pair("service", service));
-	resolvers.push_back(std::make_pair("host", service->GetHost()));
-	resolvers.push_back(std::make_pair("icinga", IcingaApplication::GetInstance()));
+	MacroProcessor::ResolverList resolvers {
+	    { "service", service },
+	    { "host", service->GetHost() },
+	    { "icinga", IcingaApplication::GetInstance() }
+	};
 
 	return MacroProcessor::ResolveMacros(service->GetNotes(), resolvers);
 }
@@ -400,10 +401,11 @@ Value ServicesTable::NotesUrlExpandedAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	MacroProcessor::ResolverList resolvers;
-	resolvers.push_back(std::make_pair("service", service));
-	resolvers.push_back(std::make_pair("host", service->GetHost()));
-	resolvers.push_back(std::make_pair("icinga", IcingaApplication::GetInstance()));
+	MacroProcessor::ResolverList resolvers {
+	    { "service", service },
+	    { "host", service->GetHost() },
+	    { "icinga", IcingaApplication::GetInstance() }
+	};
 
 	return MacroProcessor::ResolveMacros(service->GetNotesUrl(), resolvers);
 }
@@ -425,10 +427,11 @@ Value ServicesTable::ActionUrlExpandedAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	MacroProcessor::ResolverList resolvers;
-	resolvers.push_back(std::make_pair("service", service));
-	resolvers.push_back(std::make_pair("host", service->GetHost()));
-	resolvers.push_back(std::make_pair("icinga", IcingaApplication::GetInstance()));
+	MacroProcessor::ResolverList resolvers {
+	    { "service", service },
+	    { "host", service->GetHost() },
+	    { "icinga", IcingaApplication::GetInstance() }
+	};
 
 	return MacroProcessor::ResolveMacros(service->GetActionUrl(), resolvers);
 }
@@ -450,10 +453,11 @@ Value ServicesTable::IconImageExpandedAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	MacroProcessor::ResolverList resolvers;
-	resolvers.push_back(std::make_pair("service", service));
-	resolvers.push_back(std::make_pair("host", service->GetHost()));
-	resolvers.push_back(std::make_pair("icinga", IcingaApplication::GetInstance()));
+	MacroProcessor::ResolverList resolvers {
+	    { "service", service },
+	    { "host", service->GetHost() },
+	    { "icinga", IcingaApplication::GetInstance() }
+	};
 
 	return MacroProcessor::ResolveMacros(service->GetIconImage(), resolvers);
 }

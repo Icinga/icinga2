@@ -309,12 +309,12 @@ Filter::Ptr LivestatusQuery::ParseFilter(const String& params, unsigned long& fr
 			break;
 		}
 
-		tokens.push_back(temp_buffer.SubStr(0, sp_index));
+		tokens.emplace_back(temp_buffer.SubStr(0, sp_index));
 		temp_buffer = temp_buffer.SubStr(sp_index + 1);
 	}
 
 	/* add the rest as value */
-	tokens.push_back(temp_buffer);
+	tokens.emplace_back(std::move(temp_buffer));
 
 	if (tokens.size() == 2)
 		tokens.push_back("");
@@ -490,7 +490,7 @@ void LivestatusQuery::ExecuteGetHelper(const Stream::Ptr& stream)
 		column_objs.reserve(columns.size());
 
 		for (const String& columnName : columns)
-			column_objs.push_back(std::make_pair(columnName, table->GetColumn(columnName)));
+			column_objs.emplace_back(columnName, table->GetColumn(columnName));
 
 		for (const LivestatusRowValue& object : objects) {
 			Array::Ptr row = new Array();
@@ -520,7 +520,7 @@ void LivestatusQuery::ExecuteGetHelper(const Stream::Ptr& stream)
 
 			for (const String& columnName : m_Columns) {
 				Column column = table->GetColumn(columnName);
-				statsKey.push_back(column.ExtractValue(object.Row, object.GroupByType, object.GroupByObject));
+				statsKey.emplace_back(column.ExtractValue(object.Row, object.GroupByType, object.GroupByObject));
 			}
 
 			auto it = allStats.find(statsKey);

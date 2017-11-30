@@ -66,8 +66,7 @@ std::vector<String> ConfigPackageUtility::GetPackages(void)
 
 void ConfigPackageUtility::CollectDirNames(const String& path, std::vector<String>& dirs)
 {
-	String name = Utility::BaseName(path);
-	dirs.push_back(name);
+	dirs.emplace_back(Utility::BaseName(path));
 }
 
 bool ConfigPackageUtility::PackageExists(const String& name)
@@ -279,7 +278,7 @@ void ConfigPackageUtility::CollectPaths(const String& path, std::vector<std::pai
 		    << boost::errinfo_errno(errno)
 		    << boost::errinfo_file_name(path));
 
-	paths.push_back(std::make_pair(path, S_ISDIR(statbuf.st_mode)));
+	paths.emplace_back(path, S_ISDIR(statbuf.st_mode));
 #else /* _WIN32 */
 	struct _stat statbuf;
 	int rc = _stat(path.CStr(), &statbuf);
@@ -289,7 +288,7 @@ void ConfigPackageUtility::CollectPaths(const String& path, std::vector<std::pai
 		    << boost::errinfo_errno(errno)
 		    << boost::errinfo_file_name(path));
 
-	paths.push_back(std::make_pair(path, ((statbuf.st_mode & S_IFMT) == S_IFDIR)));
+	paths.emplace_back(path, ((statbuf.st_mode & S_IFMT) == S_IFDIR));
 #endif /* _WIN32 */
 }
 

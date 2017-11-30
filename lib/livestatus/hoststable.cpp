@@ -323,9 +323,10 @@ Value HostsTable::NotesExpandedAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	MacroProcessor::ResolverList resolvers;
-	resolvers.push_back(std::make_pair("host", host));
-	resolvers.push_back(std::make_pair("icinga", IcingaApplication::GetInstance()));
+	MacroProcessor::ResolverList resolvers {
+	    { "host", host },
+	    { "icinga", IcingaApplication::GetInstance() }
+	};
 
 	return MacroProcessor::ResolveMacros(host->GetNotes(), resolvers, CheckResult::Ptr());
 }
@@ -347,9 +348,10 @@ Value HostsTable::NotesUrlExpandedAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	MacroProcessor::ResolverList resolvers;
-	resolvers.push_back(std::make_pair("host", host));
-	resolvers.push_back(std::make_pair("icinga", IcingaApplication::GetInstance()));
+	MacroProcessor::ResolverList resolvers {
+	    { "host", host },
+	    { "icinga", IcingaApplication::GetInstance() }
+	};
 
 	return MacroProcessor::ResolveMacros(host->GetNotesUrl(), resolvers);
 }
@@ -371,9 +373,10 @@ Value HostsTable::ActionUrlExpandedAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	MacroProcessor::ResolverList resolvers;
-	resolvers.push_back(std::make_pair("host", host));
-	resolvers.push_back(std::make_pair("icinga", IcingaApplication::GetInstance()));
+	MacroProcessor::ResolverList resolvers {
+	    { "host", host },
+	    { "icinga", IcingaApplication::GetInstance() }
+	};
 
 	return MacroProcessor::ResolveMacros(host->GetActionUrl(), resolvers);
 }
@@ -427,9 +430,10 @@ Value HostsTable::IconImageExpandedAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	MacroProcessor::ResolverList resolvers;
-	resolvers.push_back(std::make_pair("host", host));
-	resolvers.push_back(std::make_pair("icinga", IcingaApplication::GetInstance()));
+	MacroProcessor::ResolverList resolvers {
+	    { "host", host },
+	    { "icinga", IcingaApplication::GetInstance() }
+	};
 
 	return MacroProcessor::ResolveMacros(host->GetIconImage(), resolvers);
 }

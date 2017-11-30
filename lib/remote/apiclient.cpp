@@ -87,7 +87,7 @@ void ApiClient::TypesHttpCompletionCallback(HttpRequest& request, HttpResponse& 
 			type->Name = typeInfo->Get("name");
 			type->PluralName = typeInfo->Get("plural_name");
 			// TODO: attributes
-			types.push_back(type);
+			types.emplace_back(std::move(type));
 		}
 
 		callback(boost::exception_ptr(), types);
@@ -204,7 +204,7 @@ void ApiClient::ObjectsHttpCompletionCallback(HttpRequest& request,
 						ApiObjectReference ref;
 						ref.Name = refInfo->Get("name");
 						ref.Type = refInfo->Get("type");
-						object->UsedBy.push_back(ref);
+						object->UsedBy.emplace_back(std::move(ref));
 					}
 				}
 

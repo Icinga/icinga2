@@ -212,7 +212,7 @@ bool ThreadPool::Post(const ThreadPool::WorkFunction& callback, SchedulerPolicy 
 		if (policy == LowLatencyScheduler)
 			queue.SpawnWorker(m_ThreadGroup);
 
-		queue.Items.push_back(wi);
+		queue.Items.emplace_back(std::move(wi));
 		queue.CV.notify_one();
 	}
 

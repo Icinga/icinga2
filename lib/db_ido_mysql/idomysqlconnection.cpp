@@ -420,7 +420,7 @@ void IdoMysqlConnection::Reconnect(void)
 		SetObjectActive(dbobj, active);
 
 		if (active)
-			activeDbObjs.push_back(dbobj);
+			activeDbObjs.emplace_back(std::move(dbobj));
 	}
 
 	SetIDCacheValid(true);
@@ -489,7 +489,7 @@ void IdoMysqlConnection::AsyncQuery(const String& query, const std::function<voi
 	 * See https://github.com/Icinga/icinga2/issues/4603 for details.
 	 */
 	aq.Callback = callback;
-	m_AsyncQueries.push_back(aq);
+	m_AsyncQueries.emplace_back(std::move(aq));
 
 	if (m_AsyncQueries.size() > 25000) {
 		FinishAsyncQueries();

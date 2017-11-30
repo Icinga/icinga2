@@ -404,7 +404,7 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 				if (kv2.second->m_ActivationContext != context)
 					continue;
 
-				items.push_back(std::make_pair(kv2.second, false));
+				items.emplace_back(kv2.second, false);
 			}
 		}
 
@@ -419,7 +419,7 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 			if (item->m_Abstract || item->m_Object)
 				continue;
 
-			items.push_back(std::make_pair(item, true));
+			items.emplace_back(item, true);
 		}
 
 		m_UnnamedItems.swap(newUnnamedItems);

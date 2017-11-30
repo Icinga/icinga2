@@ -144,8 +144,7 @@ bool Table::FilteredAddRow(std::vector<LivestatusRowValue>& rs, const Filter::Pt
 		rval.GroupByType = groupByType;
 		rval.GroupByObject = groupByObject;
 
-		rs.push_back(rval);
-
+		rs.emplace_back(std::move(rval));
 	}
 
 	return true;

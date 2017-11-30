@@ -976,31 +976,31 @@ String Utility::FormatDuration(double duration)
 
 	if (duration >= 86400) {
 		int days = duration / 86400;
-		tokens.push_back(Convert::ToString(days) + (days != 1 ? " days" : " day"));
+		tokens.emplace_back(Convert::ToString(days) + (days != 1 ? " days" : " day"));
 		duration = static_cast<int>(duration) % 86400;
 	}
 
 	if (duration >= 3600) {
 		int hours = duration / 3600;
-		tokens.push_back(Convert::ToString(hours) + (hours != 1 ? " hours" : " hour"));
+		tokens.emplace_back(Convert::ToString(hours) + (hours != 1 ? " hours" : " hour"));
 		duration = static_cast<int>(duration) % 3600;
 	}
 
 	if (duration >= 60) {
 		int minutes = duration / 60;
-		tokens.push_back(Convert::ToString(minutes) + (minutes != 1 ? " minutes" : " minute"));
+		tokens.emplace_back(Convert::ToString(minutes) + (minutes != 1 ? " minutes" : " minute"));
 		duration = static_cast<int>(duration) % 60;
 	}
 
 	if (duration >= 1) {
 		int seconds = duration;
-		tokens.push_back(Convert::ToString(seconds) + (seconds != 1 ? " seconds" : " second"));
+		tokens.emplace_back(Convert::ToString(seconds) + (seconds != 1 ? " seconds" : " second"));
 	}
 
 	if (tokens.size() == 0) {
 		int milliseconds = std::floor(duration * 1000);
 		if (milliseconds >= 1)
-			tokens.push_back(Convert::ToString(milliseconds) + (milliseconds != 1 ? " milliseconds" : " millisecond"));
+			tokens.emplace_back(Convert::ToString(milliseconds) + (milliseconds != 1 ? " milliseconds" : " millisecond"));
 		else
 			tokens.push_back("less than 1 millisecond");
 	}

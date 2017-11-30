@@ -217,8 +217,7 @@ void DbObject::SendVarsConfigUpdateHeavy(void)
 	query1.Category = DbCatConfig;
 	query1.WhereCriteria = new Dictionary();
 	query1.WhereCriteria->Set("object_id", obj);
-
-	queries.push_back(query1);
+	queries.emplace_back(std::move(query1));
 
 	DbQuery query2;
 	query2.Table = "customvariablestatus";
@@ -226,8 +225,7 @@ void DbObject::SendVarsConfigUpdateHeavy(void)
 	query2.Category = DbCatConfig;
 	query2.WhereCriteria = new Dictionary();
 	query2.WhereCriteria->Set("object_id", obj);
-
-	queries.push_back(query2);
+	queries.emplace_back(std::move(query2));
 
 	Dictionary::Ptr vars = CompatUtility::GetCustomAttributeConfig(custom_var_object);
 
@@ -260,8 +258,7 @@ void DbObject::SendVarsConfigUpdateHeavy(void)
 			query3.Type = DbQueryInsert;
 			query3.Category = DbCatConfig;
 			query3.Fields = fields;
-
-			queries.push_back(query3);
+			queries.emplace_back(std::move(query3));
 		}
 	}
 
@@ -313,8 +310,7 @@ void DbObject::SendVarsStatusUpdate(void)
 			query.WhereCriteria = new Dictionary();
 			query.WhereCriteria->Set("object_id", obj);
 			query.WhereCriteria->Set("varname", kv.first);
-
-			queries.push_back(query);
+			queries.emplace_back(std::move(query));
 		}
 
 		OnMultipleQueries(queries);

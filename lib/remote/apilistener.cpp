@@ -758,7 +758,7 @@ void ApiListener::ApiReconnectTimerHandler(void)
 	std::vector<String> names;
 	for (const Endpoint::Ptr& endpoint : ConfigType::GetObjectsByType<Endpoint>())
 		if (endpoint->GetConnected())
-			names.push_back(endpoint->GetName() + " (" + Convert::ToString(endpoint->GetClients().size()) + ")");
+			names.emplace_back(endpoint->GetName() + " (" + Convert::ToString(endpoint->GetClients().size()) + ")");
 
 	Log(LogNotice, "ApiListener")
 	    << "Connected endpoints: " << Utility::NaturalJoin(names);

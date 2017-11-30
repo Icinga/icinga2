@@ -244,12 +244,7 @@ void TimePeriod::UpdateRegion(double begin, double end, bool clearExisting)
 			return;
 	}
 
-	std::vector<Value> arguments;
-	arguments.push_back(this);
-	arguments.push_back(begin);
-	arguments.push_back(end);
-
-	Array::Ptr segments = GetUpdate()->Invoke(arguments);
+	Array::Ptr segments = GetUpdate()->Invoke({ this, begin, end });
 
 	{
 		ObjectLock olock(this);

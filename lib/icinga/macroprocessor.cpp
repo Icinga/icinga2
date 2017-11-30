@@ -222,8 +222,7 @@ Value MacroProcessor::EvaluateFunction(const Function::Ptr& func, const Resolver
 	    _1, std::cref(resolvers), cr, resolvedMacros, useResolvedMacros,
 	    recursionLevel + 1)));
 
-	std::vector<Value> args;
-	return func->Invoke(resolvers_this, args);
+	return func->InvokeThis(resolvers_this);
 }
 
 Value MacroProcessor::InternalResolveMacros(const String& str, const ResolverList& resolvers,
@@ -542,7 +541,7 @@ Value MacroProcessor::ResolveArguments(const Value& command, const Dictionary::P
 				continue;
 			}
 
-			args.push_back(arg);
+			args.emplace_back(std::move(arg));
 		}
 
 		std::sort(args.begin(), args.end());

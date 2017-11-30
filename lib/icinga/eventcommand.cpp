@@ -27,9 +27,9 @@ REGISTER_TYPE(EventCommand);
 void EventCommand::Execute(const Checkable::Ptr& checkable,
     const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
 {
-	std::vector<Value> arguments;
-	arguments.push_back(checkable);
-	arguments.push_back(resolvedMacros);
-	arguments.push_back(useResolvedMacros);
-	GetExecute()->Invoke(arguments);
+	GetExecute()->Invoke({
+	    checkable,
+	    resolvedMacros,
+	    useResolvedMacros
+	});
 }

@@ -55,14 +55,14 @@ void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification,
 	tie(host, service) = GetHostService(checkable);
 
 	MacroProcessor::ResolverList resolvers;
-	resolvers.push_back(std::make_pair("user", user));
-	resolvers.push_back(std::make_pair("notification", notificationExtra));
-	resolvers.push_back(std::make_pair("notification", notification));
+	resolvers.emplace_back("user", user);
+	resolvers.emplace_back("notification", notificationExtra);
+	resolvers.emplace_back("notification", notification);
 	if (service)
-		resolvers.push_back(std::make_pair("service", service));
-	resolvers.push_back(std::make_pair("host", host));
-	resolvers.push_back(std::make_pair("command", commandObj));
-	resolvers.push_back(std::make_pair("icinga", IcingaApplication::GetInstance()));
+		resolvers.emplace_back("service", service);
+	resolvers.emplace_back("host", host);
+	resolvers.emplace_back("command", commandObj);
+	resolvers.emplace_back("icinga", IcingaApplication::GetInstance());
 
 	PluginUtility::ExecuteCommand(commandObj, checkable, cr, resolvers,
 	    resolvedMacros, useResolvedMacros,

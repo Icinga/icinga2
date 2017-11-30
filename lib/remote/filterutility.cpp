@@ -212,7 +212,7 @@ std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, c
 			if (!FilterUtility::EvaluateFilter(permissionFrame, permissionFilter, target, variableName))
 				BOOST_THROW_EXCEPTION(ScriptError("Access denied to object '" + name + "' of type '" + type + "'"));
 
-			result.push_back(target);
+			result.emplace_back(std::move(target));
 		}
 
 		attr = provider->GetPluralName(type);
@@ -228,7 +228,7 @@ std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, c
 					if (!FilterUtility::EvaluateFilter(permissionFrame, permissionFilter, target, variableName))
 						BOOST_THROW_EXCEPTION(ScriptError("Access denied to object '" + name + "' of type '" + type + "'"));
 
-					result.push_back(target);
+					result.emplace_back(std::move(target));
 				}
 			}
 		}

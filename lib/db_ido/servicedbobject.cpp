@@ -185,8 +185,7 @@ void ServiceDbObject::OnConfigUpdateHeavy(void)
 	query1.Category = DbCatConfig;
 	query1.WhereCriteria = new Dictionary();
 	query1.WhereCriteria->Set("service_object_id", service);
-
-	queries.push_back(query1);
+	queries.emplace_back(std::move(query1));
 
 	if (groups) {
 		ObjectLock olock(groups);
@@ -205,8 +204,7 @@ void ServiceDbObject::OnConfigUpdateHeavy(void)
 			query2.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
 			query2.WhereCriteria->Set("servicegroup_id", DbValue::FromObjectInsertID(group));
 			query2.WhereCriteria->Set("service_object_id", service);
-
-			queries.push_back(query2);
+			queries.emplace_back(std::move(query2));
 		}
 	}
 
@@ -224,8 +222,7 @@ void ServiceDbObject::OnConfigUpdateHeavy(void)
 	query2.Category = DbCatConfig;
 	query2.WhereCriteria = new Dictionary();
 	query2.WhereCriteria->Set("dependent_service_object_id", service);
-
-	queries.push_back(query2);
+	queries.emplace_back(std::move(query2));
 
 	for (const Dependency::Ptr& dep : service->GetDependencies()) {
 		Checkable::Ptr parent = dep->GetParent();
@@ -258,8 +255,7 @@ void ServiceDbObject::OnConfigUpdateHeavy(void)
 		query1.Type = DbQueryInsert;
 		query1.Category = DbCatConfig;
 		query1.Fields = fields1;
-
-		queries.push_back(query1);
+		queries.emplace_back(std::move(query1));
 	}
 
 	DbObject::OnMultipleQueries(queries);
@@ -276,8 +272,7 @@ void ServiceDbObject::OnConfigUpdateHeavy(void)
 	query3.Category = DbCatConfig;
 	query3.WhereCriteria = new Dictionary();
 	query3.WhereCriteria->Set("service_id", DbValue::FromObjectInsertID(service));
-
-	queries.push_back(query3);
+	queries.emplace_back(std::move(query3));
 
 	for (const User::Ptr& user : CompatUtility::GetCheckableNotificationUsers(service)) {
 		Log(LogDebug, "ServiceDbObject")
@@ -293,8 +288,7 @@ void ServiceDbObject::OnConfigUpdateHeavy(void)
 		query_contact.Type = DbQueryInsert;
 		query_contact.Category = DbCatConfig;
 		query_contact.Fields = fields_contact;
-
-		queries.push_back(query_contact);
+		queries.emplace_back(std::move(query_contact));
 	}
 
 	DbObject::OnMultipleQueries(queries);
@@ -310,8 +304,7 @@ void ServiceDbObject::OnConfigUpdateHeavy(void)
 	query4.Category = DbCatConfig;
 	query4.WhereCriteria = new Dictionary();
 	query4.WhereCriteria->Set("service_id", DbValue::FromObjectInsertID(service));
-
-	queries.push_back(query4);
+	queries.emplace_back(std::move(query4));
 
 	for (const UserGroup::Ptr& usergroup : CompatUtility::GetCheckableNotificationUserGroups(service)) {
 		Log(LogDebug, "ServiceDbObject")
@@ -327,8 +320,7 @@ void ServiceDbObject::OnConfigUpdateHeavy(void)
 		query_contact.Type = DbQueryInsert;
 		query_contact.Category = DbCatConfig;
 		query_contact.Fields = fields_contact;
-
-		queries.push_back(query_contact);
+		queries.emplace_back(std::move(query_contact));
 	}
 
 	DbObject::OnMultipleQueries(queries);

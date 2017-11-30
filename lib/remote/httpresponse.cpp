@@ -57,7 +57,7 @@ void HttpResponse::SetStatus(int code, const String& message)
 
 void HttpResponse::AddHeader(const String& key, const String& value)
 {
-	m_Headers.push_back(key + ": " + value + "\r\n");
+	m_Headers.emplace_back(key + ": " + value + "\r\n");
 }
 
 void HttpResponse::FinishHeaders(void)

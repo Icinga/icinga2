@@ -328,13 +328,13 @@ lterm_items_inner: lterm %dprec 2
 	{
 		$$ = new std::vector<std::pair<Expression *, EItemInfo> >();
 		EItemInfo info = { true, @1 };
-		$$->push_back(std::make_pair($1, info));
+		$$->emplace_back($1, info);
 	}
 	| rterm_no_side_effect
 	{
 		$$ = new std::vector<std::pair<Expression *, EItemInfo> >();
 		EItemInfo info = { false, @1 };
-		$$->push_back(std::make_pair($1, info));
+		$$->emplace_back($1, info);
 	}
 	| lterm_items_inner sep lterm %dprec 1
 	{
@@ -345,7 +345,7 @@ lterm_items_inner: lterm %dprec 2
 
 		if ($3) {
 			EItemInfo info = { true, @3 };
-			$$->push_back(std::make_pair($3, info));
+			$$->emplace_back($3, info);
 		}
 	}
 	| lterm_items_inner sep rterm_no_side_effect %dprec 1
@@ -357,7 +357,7 @@ lterm_items_inner: lterm %dprec 2
 
 		if ($3) {
 			EItemInfo info = { false, @3 };
-			$$->push_back(std::make_pair($3, info));
+			$$->emplace_back($3, info);
 		}
 	}
 	;
