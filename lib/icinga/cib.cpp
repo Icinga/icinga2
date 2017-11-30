@@ -267,9 +267,13 @@ std::pair<Dictionary::Ptr, Array::Ptr> CIB::GetFeatureStats(void)
 	Dictionary::Ptr status = new Dictionary();
 	Array::Ptr perfdata = new Array();
 
-	String name;
-	for (const auto& kv : StatsFunctionRegistry::GetInstance()->GetItems()) {
-		kv.second->Invoke(status, perfdata);
+	Dictionary::Ptr statsFunctions = ScriptGlobal::Get("StatsFunctions", &Empty);
+
+	if (statsFunctions) {
+		ObjectLock olock(statsFunctions);
+
+		for (const Dictionary::Pair& kv : statsFunctions)
+			static_cast<Function::Ptr>(kv.second)->Invoke({ status, perfdata });
 	}
 
 	return std::make_pair(status, perfdata);
