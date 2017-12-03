@@ -880,6 +880,6 @@ popular addons is available in the
 Ensure to include the following in your backups:
 
 * Configuration files in `/etc/icinga2`
-* Certificate files in `/var/lib/icinga2/ca` (Master CA key pair) and `/var/lib/icinga2/certs` (node certificates)
+* Certificate files in `/var/lib/icinga2/ca` (Master CA key pair) and `/etc/icinga2/pki` (node certificates)
 * Runtime files in `/var/lib/icinga2`
 * Optional: IDO database backup
