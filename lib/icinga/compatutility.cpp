@@ -96,14 +96,6 @@ String CompatUtility::GetHostStateString(const Host::Ptr& host)
 	return Host::StateToString(host->GetState());
 }
 
-String CompatUtility::GetHostAlias(const Host::Ptr& host)
-{
-	if (!host->GetDisplayName().IsEmpty())
-		return host->GetName();
-	else
-		return host->GetDisplayName();
-}
-
 int CompatUtility::GetHostNotifyOnDown(const Host::Ptr& host)
 {
 	unsigned long notification_state_filter = GetCheckableNotificationStateFilter(host);

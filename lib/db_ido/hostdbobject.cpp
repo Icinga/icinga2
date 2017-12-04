@@ -47,8 +47,16 @@ Dictionary::Ptr HostDbObject::GetConfigFields() const
 	Dictionary::Ptr fields = new Dictionary();
 	Host::Ptr host = static_pointer_cast<Host>(GetObject());
 
-	fields->Set("alias", CompatUtility::GetHostAlias(host));
-	fields->Set("display_name", host->GetDisplayName());
+	/* Compatibility fallback. */
+	String displayName = host->GetDisplayName();
+
+	if (!displayName.IsEmpty()) {
+		fields->Set("alias", displayName);
+	} else {
+		fields->Set("alias", host->GetName());
+	}
+
+	fields->Set("display_name", displayName);
 	fields->Set("address", host->GetAddress());
 	fields->Set("address6", host->GetAddress6());
 

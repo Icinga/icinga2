@@ -46,7 +46,6 @@ public:
 	/* host */
 	static int GetHostCurrentState(const Host::Ptr& host);
 	static String GetHostStateString(const Host::Ptr& host);
-	static String GetHostAlias(const Host::Ptr& host);
 	static int GetHostNotifyOnDown(const Host::Ptr& host);
 	static int GetHostNotifyOnUnreachable(const Host::Ptr& host);
 
