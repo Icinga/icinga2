@@ -128,7 +128,7 @@ Dictionary::Ptr ServiceDbObject::GetStatusFields() const
 		fields->Set("last_check", DbValue::FromTimestamp(cr->GetScheduleEnd()));
 
 	fields->Set("next_check", DbValue::FromTimestamp(service->GetNextCheck()));
-	fields->Set("check_type", CompatUtility::GetCheckableCheckType(service));
+	fields->Set("check_type", !service->GetEnableActiveChecks()); /* 0 .. active, 1 .. passive */
 	fields->Set("last_state_change", DbValue::FromTimestamp(service->GetLastStateChange()));
 	fields->Set("last_hard_state_change", DbValue::FromTimestamp(service->GetLastHardStateChange()));
 	fields->Set("last_hard_state", service->GetLastHardState());

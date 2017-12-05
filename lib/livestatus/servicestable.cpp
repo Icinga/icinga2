@@ -549,7 +549,7 @@ Value ServicesTable::CheckTypeAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return CompatUtility::GetCheckableCheckType(service);
+	return (service->GetEnableActiveChecks() ? 0 : 1); /* 0 .. active, 1 .. passive */
 }
 
 Value ServicesTable::AcknowledgedAccessor(const Value& row)

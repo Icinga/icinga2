@@ -1395,7 +1395,7 @@ void DbEvents::AddCheckableCheckHistory(const Checkable::Ptr& checkable, const C
 	query1.Category = DbCatCheck;
 
 	Dictionary::Ptr fields1 = new Dictionary();
-	fields1->Set("check_type", CompatUtility::GetCheckableCheckType(checkable));
+	fields1->Set("check_type", !checkable->GetEnableActiveChecks()); /* 0 .. active, 1 .. passive */
 	fields1->Set("current_check_attempt", checkable->GetCheckAttempt());
 	fields1->Set("max_check_attempts", checkable->GetMaxCheckAttempts());
 	fields1->Set("state_type", checkable->GetStateType());

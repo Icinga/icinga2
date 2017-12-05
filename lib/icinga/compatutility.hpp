@@ -51,7 +51,6 @@ public:
 
 	/* service */
 	static String GetCheckableCommandArgs(const Checkable::Ptr& checkable);
-	static int GetCheckableCheckType(const Checkable::Ptr& checkable);
 	static double GetCheckableCheckInterval(const Checkable::Ptr& checkable);
 	static double GetCheckableRetryInterval(const Checkable::Ptr& checkable);
 	static String GetCheckableCheckPeriod(const Checkable::Ptr& checkable);

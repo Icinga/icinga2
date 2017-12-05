@@ -522,7 +522,7 @@ Value HostsTable::CheckTypeAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	return CompatUtility::GetCheckableCheckType(host);
+	return (host->GetEnableActiveChecks() ? 0 : 1); /* 0 .. active, 1 .. passive */
 }
 
 Value HostsTable::LastStateAccessor(const Value& row)

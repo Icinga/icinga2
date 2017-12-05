@@ -141,7 +141,7 @@ Dictionary::Ptr HostDbObject::GetStatusFields() const
 		fields->Set("last_check", DbValue::FromTimestamp(cr->GetScheduleEnd()));
 
 	fields->Set("next_check", DbValue::FromTimestamp(host->GetNextCheck()));
-	fields->Set("check_type", CompatUtility::GetCheckableCheckType(host));
+	fields->Set("check_type", !host->GetEnableActiveChecks()); /* 0 .. active, 1 .. passive */
 	fields->Set("last_state_change", DbValue::FromTimestamp(host->GetLastStateChange()));
 	fields->Set("last_hard_state_change", DbValue::FromTimestamp(host->GetLastHardStateChange()));
 	fields->Set("last_hard_state", host->GetLastHardState());

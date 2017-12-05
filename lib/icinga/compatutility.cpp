@@ -183,11 +183,6 @@ String CompatUtility::GetCheckableCommandArgs(const Checkable::Ptr& checkable)
 	return Empty;
 }
 
-int CompatUtility::GetCheckableCheckType(const Checkable::Ptr& checkable)
-{
-	return (checkable->GetEnableActiveChecks() ? 0 : 1);
-}
-
 double CompatUtility::GetCheckableCheckInterval(const Checkable::Ptr& checkable)
 {
 	return checkable->GetCheckInterval() / 60.0;
