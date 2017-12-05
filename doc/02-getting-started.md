@@ -644,10 +644,10 @@ FreeBSD:
 
 Alpine Linux:
 
-   # apk add postgresql
-   # rc-update add postgresql default
-   # rc-service postgresql setup
-   # rc-service postgresql start
+    # apk add postgresql
+    # rc-update add postgresql default
+    # rc-service postgresql setup
+    # rc-service postgresql start
 
 #### Installing the IDO modules for PostgreSQL <a id="installing-database-postgresql-modules"></a>
 
