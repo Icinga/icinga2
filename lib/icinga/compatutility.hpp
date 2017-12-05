@@ -54,14 +54,9 @@ public:
 	static double GetCheckableCheckInterval(const Checkable::Ptr& checkable);
 	static double GetCheckableRetryInterval(const Checkable::Ptr& checkable);
 	static String GetCheckableCheckPeriod(const Checkable::Ptr& checkable);
-	static int GetCheckablePassiveChecksEnabled(const Checkable::Ptr& checkable);
-	static int GetCheckableActiveChecksEnabled(const Checkable::Ptr& checkable);
-	static int GetCheckableEventHandlerEnabled(const Checkable::Ptr& checkable);
-	static int GetCheckableFlapDetectionEnabled(const Checkable::Ptr& checkable);
 	static int GetCheckableIsFlapping(const Checkable::Ptr& checkable);
 	static int GetCheckableIsReachable(const Checkable::Ptr& checkable);
 	static double GetCheckablePercentStateChange(const Checkable::Ptr& checkable);
-	static int GetCheckableProcessPerformanceData(const Checkable::Ptr& checkable);
 
 	static String GetCheckableEventHandler(const Checkable::Ptr& checkable);
 	static String GetCheckableCheckCommand(const Checkable::Ptr& checkable);

@@ -202,26 +202,6 @@ String CompatUtility::GetCheckableCheckPeriod(const Checkable::Ptr& checkable)
 		return "24x7";
 }
 
-int CompatUtility::GetCheckablePassiveChecksEnabled(const Checkable::Ptr& checkable)
-{
-	return (checkable->GetEnablePassiveChecks() ? 1 : 0);
-}
-
-int CompatUtility::GetCheckableActiveChecksEnabled(const Checkable::Ptr& checkable)
-{
-	return (checkable->GetEnableActiveChecks() ? 1 : 0);
-}
-
-int CompatUtility::GetCheckableEventHandlerEnabled(const Checkable::Ptr& checkable)
-{
-	return (checkable->GetEnableEventHandler() ? 1 : 0);
-}
-
-int CompatUtility::GetCheckableFlapDetectionEnabled(const Checkable::Ptr& checkable)
-{
-	return (checkable->GetEnableFlapping() ? 1 : 0);
-}
-
 int CompatUtility::GetCheckableIsFlapping(const Checkable::Ptr& checkable)
 {
 	return (checkable->IsFlapping() ? 1 : 0);
@@ -235,11 +215,6 @@ int CompatUtility::GetCheckableIsReachable(const Checkable::Ptr& checkable)
 double CompatUtility::GetCheckablePercentStateChange(const Checkable::Ptr& checkable)
 {
 	return checkable->GetFlappingCurrent();
-}
-
-int CompatUtility::GetCheckableProcessPerformanceData(const Checkable::Ptr& checkable)
-{
-	return (checkable->GetEnablePerfdata() ? 1 : 0);
 }
 
 String CompatUtility::GetCheckableEventHandler(const Checkable::Ptr& checkable)
@@ -355,11 +330,6 @@ String CompatUtility::GetCustomAttributeConfig(const CustomVarObject::Ptr& objec
 }
 
 /* notifications */
-int CompatUtility::GetCheckableNotificationsEnabled(const Checkable::Ptr& checkable)
-{
-	return (checkable->GetEnableNotifications() ? 1 : 0);
-}
-
 int CompatUtility::GetCheckableNotificationLastNotification(const Checkable::Ptr& checkable)
 {
 	double last_notification = 0.0;

@@ -266,12 +266,12 @@ void StatusDataWriter::DumpHostObject(std::ostream& fp, const Host::Ptr& host)
 	fp << "\t" "check_interval" "\t" << CompatUtility::GetCheckableCheckInterval(host) << "\n"
 		"\t" "retry_interval" "\t" << CompatUtility::GetCheckableRetryInterval(host) << "\n"
 		"\t" "max_check_attempts" "\t" << host->GetMaxCheckAttempts() << "\n"
-		"\t" "active_checks_enabled" "\t" << CompatUtility::GetCheckableActiveChecksEnabled(host) << "\n"
-		"\t" "passive_checks_enabled" "\t" << CompatUtility::GetCheckablePassiveChecksEnabled(host) << "\n"
-		"\t" "notifications_enabled" "\t" << CompatUtility::GetCheckableNotificationsEnabled(host) << "\n"
+		"\t" "active_checks_enabled" "\t" << Convert::ToLong(host->GetEnableActiveChecks()) << "\n"
+		"\t" "passive_checks_enabled" "\t" << Convert::ToLong(host->GetEnablePassiveChecks()) << "\n"
+		"\t" "notifications_enabled" "\t" << Convert::ToLong(host->GetEnableNotifications()) << "\n"
 		"\t" "notification_options" "\t" << CompatUtility::GetCheckableNotificationNotificationOptions(host) << "\n"
 		"\t" "notification_interval" "\t" << CompatUtility::GetCheckableNotificationNotificationInterval(host) << "\n"
-		"\t" "event_handler_enabled" "\t" << CompatUtility::GetCheckableEventHandlerEnabled(host) << "\n";
+		"\t" "event_handler_enabled" "\t" << Convert::ToLong(host->GetEnableEventHandler()) << "\n";
 
 	CheckCommand::Ptr checkcommand = host->GetCheckCommand();
 	if (checkcommand)
@@ -294,7 +294,7 @@ void StatusDataWriter::DumpHostObject(std::ostream& fp, const Host::Ptr& host)
 	fp << "\t" << "initial_state" "\t" "o" "\n"
 		"\t" "low_flap_threshold" "\t" << host->GetFlappingThresholdLow() << "\n"
 		"\t" "high_flap_threshold" "\t" << host->GetFlappingThresholdHigh() << "\n"
-		"\t" "process_perf_data" "\t" << CompatUtility::GetCheckableProcessPerformanceData(host) << "\n"
+		"\t" "process_perf_data" "\t" << Convert::ToLong(host->GetEnablePerfdata()) << "\n"
 		"\t" "check_freshness" "\t" "1" "\n";
 
 	fp << "\t" "host_groups" "\t";
@@ -338,9 +338,9 @@ void StatusDataWriter::DumpCheckableStatusAttrs(std::ostream& fp, const Checkabl
 		"\t" "check_period=" << CompatUtility::GetCheckableCheckPeriod(checkable) << "\n"
 		"\t" "check_interval=" << CompatUtility::GetCheckableCheckInterval(checkable) << "\n"
 		"\t" "retry_interval=" << CompatUtility::GetCheckableRetryInterval(checkable) << "\n"
-		"\t" "has_been_checked=" << (checkable->HasBeenChecked() ? 1 : 0) << "\n"
+		"\t" "has_been_checked=" << Convert::ToLong(checkable->HasBeenChecked()) << "\n"
 		"\t" "should_be_scheduled=" << checkable->GetEnableActiveChecks() << "\n"
-		"\t" "event_handler_enabled=" << CompatUtility::GetCheckableEventHandlerEnabled(checkable) << "\n";
+		"\t" "event_handler_enabled=" << Convert::ToLong(checkable->GetEnableEventHandler()) << "\n";
 
 	if (cr) {
 		fp << "\t" << "check_execution_time=" << Convert::ToString(cr->CalculateExecutionTime()) << "\n"
@@ -381,10 +381,10 @@ void StatusDataWriter::DumpCheckableStatusAttrs(std::ostream& fp, const Checkabl
 		"\t" "last_state_change=" << static_cast<long>(checkable->GetLastStateChange()) << "\n"
 		"\t" "last_hard_state_change=" << static_cast<long>(checkable->GetLastHardStateChange()) << "\n"
 		"\t" "last_update=" << static_cast<long>(time(NULL)) << "\n"
-		"\t" "notifications_enabled=" << CompatUtility::GetCheckableNotificationsEnabled(checkable) << "\n"
-		"\t" "active_checks_enabled=" << CompatUtility::GetCheckableActiveChecksEnabled(checkable) << "\n"
-		"\t" "passive_checks_enabled=" << CompatUtility::GetCheckablePassiveChecksEnabled(checkable) << "\n"
-		"\t" "flap_detection_enabled=" << CompatUtility::GetCheckableFlapDetectionEnabled(checkable) << "\n"
+		"\t" "notifications_enabled" "\t" << Convert::ToLong(checkable->GetEnableNotifications()) << "\n"
+		"\t" "active_checks_enabled=" << Convert::ToLong(checkable->GetEnableActiveChecks()) << "\n"
+		"\t" "passive_checks_enabled=" << Convert::ToLong(checkable->GetEnablePassiveChecks()) << "\n"
+		"\t" "flap_detection_enabled=" << Convert::ToLong(checkable->GetEnableFlapping()) << "\n"
 		"\t" "is_flapping=" << CompatUtility::GetCheckableIsFlapping(checkable) << "\n"
 		"\t" "percent_state_change=" << CompatUtility::GetCheckablePercentStateChange(checkable) << "\n"
 		"\t" "problem_has_been_acknowledged=" << (checkable->GetAcknowledgement() != AcknowledgementNone ? 1 : 0) << "\n"
@@ -431,15 +431,15 @@ void StatusDataWriter::DumpServiceObject(std::ostream& fp, const Service::Ptr& s
 			"\t" "check_interval" "\t" << CompatUtility::GetCheckableCheckInterval(service) << "\n"
 			"\t" "retry_interval" "\t" << CompatUtility::GetCheckableRetryInterval(service) << "\n"
 			"\t" "max_check_attempts" "\t" << service->GetMaxCheckAttempts() << "\n"
-			"\t" "active_checks_enabled" "\t" << CompatUtility::GetCheckableActiveChecksEnabled(service) << "\n"
-			"\t" "passive_checks_enabled" "\t" << CompatUtility::GetCheckablePassiveChecksEnabled(service) << "\n"
-			"\t" "flap_detection_enabled" "\t" << CompatUtility::GetCheckableFlapDetectionEnabled(service) << "\n"
+			"\t" "active_checks_enabled" "\t" << Convert::ToLong(service->GetEnableActiveChecks()) << "\n"
+			"\t" "passive_checks_enabled" "\t" << Convert::ToLong(service->GetEnablePassiveChecks()) << "\n"
+			"\t" "flap_detection_enabled" "\t" << Convert::ToLong(service->GetEnableFlapping()) << "\n"
 			"\t" "is_volatile" "\t" << CompatUtility::GetCheckableIsVolatile(service) << "\n"
-			"\t" "notifications_enabled" "\t" << CompatUtility::GetCheckableNotificationsEnabled(service) << "\n"
+			"\t" "notifications_enabled" "\t" << Convert::ToLong(service->GetEnableNotifications()) << "\n"
 			"\t" "notification_options" "\t" << CompatUtility::GetCheckableNotificationNotificationOptions(service) << "\n"
 			"\t" "notification_interval" "\t" << CompatUtility::GetCheckableNotificationNotificationInterval(service) << "\n"
 			"\t" "notification_period" "\t" << "" << "\n"
-			"\t" "event_handler_enabled" "\t" << CompatUtility::GetCheckableEventHandlerEnabled(service) << "\n";
+			"\t" "event_handler_enabled" "\t" << Convert::ToLong(service->GetEnableEventHandler()) << "\n";
 
 		CheckCommand::Ptr checkcommand = service->GetCheckCommand();
 		if (checkcommand)
@@ -466,8 +466,9 @@ void StatusDataWriter::DumpServiceObject(std::ostream& fp, const Service::Ptr& s
 		fp << "\t" "initial_state" "\t" "o" "\n"
 			"\t" "low_flap_threshold" "\t" << service->GetFlappingThresholdLow() << "\n"
 			"\t" "high_flap_threshold" "\t" << service->GetFlappingThresholdHigh() << "\n"
-			"\t" "process_perf_data" "\t" << CompatUtility::GetCheckableProcessPerformanceData(service) << "\n"
+			"\t" "process_perf_data" "\t" << Convert::ToLong(service->GetEnablePerfdata()) << "\n"
 			"\t" "check_freshness" << "\t" "1" "\n";
+
 		if (!notes.IsEmpty())
 			fp << "\t" "notes" "\t" << notes << "\n";
 		if (!notes_url.IsEmpty())
@@ -740,23 +741,23 @@ void StatusDataWriter::UpdateObjectsCache()
 		/* Icinga 1.x only allows host->host, service->service dependencies */
 		if (!child_service && !parent_service) {
 			objectfp << "define hostdependency {" "\n"
-					"\t" "dependent_host_name" "\t" << child_host->GetName() << "\n"
-					"\t" "host_name" "\t" << parent_host->GetName() << "\n"
-					"\t" "execution_failure_criteria" "\t" << criteria << "\n"
-					"\t" "notification_failure_criteria" "\t" << criteria << "\n"
-					"\t" "}" "\n"
-					"\n";
+				"\t" "dependent_host_name" "\t" << child_host->GetName() << "\n"
+				"\t" "host_name" "\t" << parent_host->GetName() << "\n"
+				"\t" "execution_failure_criteria" "\t" << criteria << "\n"
+				"\t" "notification_failure_criteria" "\t" << criteria << "\n"
+				"\t" "}" "\n"
+				"\n";
 		} else if (child_service && parent_service){
 
 			objectfp << "define servicedependency {" "\n"
-					"\t" "dependent_host_name" "\t" << child_service->GetHost()->GetName() << "\n"
-					"\t" "dependent_service_description" "\t" << child_service->GetShortName() << "\n"
-					"\t" "host_name" "\t" << parent_service->GetHost()->GetName() << "\n"
-					"\t" "service_description" "\t" << parent_service->GetShortName() << "\n"
-					"\t" "execution_failure_criteria" "\t" << criteria << "\n"
-					"\t" "notification_failure_criteria" "\t" << criteria << "\n"
-					"\t" "}" "\n"
-					"\n";
+				"\t" "dependent_host_name" "\t" << child_service->GetHost()->GetName() << "\n"
+				"\t" "dependent_service_description" "\t" << child_service->GetShortName() << "\n"
+				"\t" "host_name" "\t" << parent_service->GetHost()->GetName() << "\n"
+				"\t" "service_description" "\t" << parent_service->GetShortName() << "\n"
+				"\t" "execution_failure_criteria" "\t" << criteria << "\n"
+				"\t" "notification_failure_criteria" "\t" << criteria << "\n"
+				"\t" "}" "\n"
+				"\n";
 		}
 	}
 
@@ -798,32 +799,32 @@ void StatusDataWriter::StatusTimerHandler()
 			"\n";
 
 	statusfp << "info {" "\n"
-			"\t" "created=" << Utility::GetTime() << "\n"
-			"\t" "version=" << Application::GetAppVersion() << "\n"
-			"\t" "}" "\n"
-			"\n";
+		"\t" "created=" << Utility::GetTime() << "\n"
+		"\t" "version=" << Application::GetAppVersion() << "\n"
+		"\t" "}" "\n"
+		"\n";
 
 	statusfp << "programstatus {" "\n"
-			"\t" "icinga_pid=" << Utility::GetPid() << "\n"
-			"\t" "daemon_mode=1" "\n"
-			"\t" "program_start=" << static_cast<long>(Application::GetStartTime()) << "\n"
-			"\t" "active_host_checks_enabled=" << (IcingaApplication::GetInstance()->GetEnableHostChecks() ? 1 : 0) << "\n"
-			"\t" "passive_host_checks_enabled=1" "\n"
-			"\t" "active_service_checks_enabled=" << (IcingaApplication::GetInstance()->GetEnableServiceChecks() ? 1 : 0) << "\n"
-			"\t" "passive_service_checks_enabled=1" "\n"
-			"\t" "check_service_freshness=1" "\n"
-			"\t" "check_host_freshness=1" "\n"
-			"\t" "enable_notifications=" << (IcingaApplication::GetInstance()->GetEnableNotifications() ? 1 : 0) << "\n"
-			"\t" "enable_event_handlers=" << (IcingaApplication::GetInstance()->GetEnableEventHandlers() ? 1 : 0) << "\n"
-			"\t" "enable_flap_detection=" << (IcingaApplication::GetInstance()->GetEnableFlapping() ? 1 : 0) << "\n"
-			"\t" "enable_failure_prediction=0" "\n"
-			"\t" "process_performance_data=" << (IcingaApplication::GetInstance()->GetEnablePerfdata() ? 1 : 0) << "\n"
-			"\t" "active_scheduled_host_check_stats=" << CIB::GetActiveHostChecksStatistics(60) << "," << CIB::GetActiveHostChecksStatistics(5 * 60) << "," << CIB::GetActiveHostChecksStatistics(15 * 60) << "\n"
-			"\t" "passive_host_check_stats=" << CIB::GetPassiveHostChecksStatistics(60) << "," << CIB::GetPassiveHostChecksStatistics(5 * 60) << "," << CIB::GetPassiveHostChecksStatistics(15 * 60) << "\n"
-			"\t" "active_scheduled_service_check_stats=" << CIB::GetActiveServiceChecksStatistics(60) << "," << CIB::GetActiveServiceChecksStatistics(5 * 60) << "," << CIB::GetActiveServiceChecksStatistics(15 * 60) << "\n"
-			"\t" "passive_service_check_stats=" << CIB::GetPassiveServiceChecksStatistics(60) << "," << CIB::GetPassiveServiceChecksStatistics(5 * 60) << "," << CIB::GetPassiveServiceChecksStatistics(15 * 60) << "\n"
-			"\t" "next_downtime_id=" << Downtime::GetNextDowntimeID() << "\n"
-			"\t" "next_comment_id=" << Comment::GetNextCommentID() << "\n";
+		"\t" "icinga_pid=" << Utility::GetPid() << "\n"
+		"\t" "daemon_mode=1" "\n"
+		"\t" "program_start=" << static_cast<long>(Application::GetStartTime()) << "\n"
+		"\t" "active_host_checks_enabled=" << Convert::ToLong(IcingaApplication::GetInstance()->GetEnableHostChecks()) << "\n"
+		"\t" "passive_host_checks_enabled=1" "\n"
+		"\t" "active_service_checks_enabled=" << Convert::ToLong(IcingaApplication::GetInstance()->GetEnableServiceChecks()) << "\n"
+		"\t" "passive_service_checks_enabled=1" "\n"
+		"\t" "check_service_freshness=1" "\n"
+		"\t" "check_host_freshness=1" "\n"
+		"\t" "enable_notifications=" << Convert::ToLong(IcingaApplication::GetInstance()->GetEnableNotifications()) << "\n"
+		"\t" "enable_event_handlers=" << Convert::ToLong(IcingaApplication::GetInstance()->GetEnableEventHandlers()) << "\n"
+		"\t" "enable_flap_detection=" << Convert::ToLong(IcingaApplication::GetInstance()->GetEnableFlapping()) << "\n"
+		"\t" "enable_failure_prediction=0" "\n"
+		"\t" "process_performance_data=" << Convert::ToLong(IcingaApplication::GetInstance()->GetEnablePerfdata()) << "\n"
+		"\t" "active_scheduled_host_check_stats=" << CIB::GetActiveHostChecksStatistics(60) << "," << CIB::GetActiveHostChecksStatistics(5 * 60) << "," << CIB::GetActiveHostChecksStatistics(15 * 60) << "\n"
+		"\t" "passive_host_check_stats=" << CIB::GetPassiveHostChecksStatistics(60) << "," << CIB::GetPassiveHostChecksStatistics(5 * 60) << "," << CIB::GetPassiveHostChecksStatistics(15 * 60) << "\n"
+		"\t" "active_scheduled_service_check_stats=" << CIB::GetActiveServiceChecksStatistics(60) << "," << CIB::GetActiveServiceChecksStatistics(5 * 60) << "," << CIB::GetActiveServiceChecksStatistics(15 * 60) << "\n"
+		"\t" "passive_service_check_stats=" << CIB::GetPassiveServiceChecksStatistics(60) << "," << CIB::GetPassiveServiceChecksStatistics(5 * 60) << "," << CIB::GetPassiveServiceChecksStatistics(15 * 60) << "\n"
+		"\t" "next_downtime_id=" << Downtime::GetNextDowntimeID() << "\n"
+		"\t" "next_comment_id=" << Comment::GetNextCommentID() << "\n";
 
 	statusfp << "\t" "}" "\n"
 			"\n";

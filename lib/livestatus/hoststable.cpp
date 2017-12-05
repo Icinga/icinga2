@@ -76,7 +76,7 @@ void HostsTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "max_check_attempts", Column(&HostsTable::MaxCheckAttemptsAccessor, objectAccessor));
 	table->AddColumn(prefix + "flap_detection_enabled", Column(&HostsTable::FlapDetectionEnabledAccessor, objectAccessor));
 	table->AddColumn(prefix + "check_freshness", Column(&Table::OneAccessor, objectAccessor));
-	table->AddColumn(prefix + "process_performance_data", Column(&Table::ZeroAccessor, objectAccessor));
+	table->AddColumn(prefix + "process_performance_data", Column(&HostsTable::ProcessPerformanceDataAccessor, objectAccessor));
 	table->AddColumn(prefix + "accept_passive_checks", Column(&HostsTable::AcceptPassiveChecksAccessor, objectAccessor));
 	table->AddColumn(prefix + "event_handler_enabled", Column(&HostsTable::EventHandlerEnabledAccessor, objectAccessor));
 	table->AddColumn(prefix + "acknowledgement_type", Column(&HostsTable::AcknowledgementTypeAccessor, objectAccessor));
@@ -481,7 +481,7 @@ Value HostsTable::FlapDetectionEnabledAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	return CompatUtility::GetCheckableFlapDetectionEnabled(host);
+	return Convert::ToLong(host->GetEnableFlapping());
 }
 
 Value HostsTable::AcceptPassiveChecksAccessor(const Value& row)
@@ -491,7 +491,7 @@ Value HostsTable::AcceptPassiveChecksAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	return CompatUtility::GetCheckablePassiveChecksEnabled(host);
+	return Convert::ToLong(host->GetEnablePassiveChecks());
 }
 
 Value HostsTable::EventHandlerEnabledAccessor(const Value& row)
@@ -501,7 +501,7 @@ Value HostsTable::EventHandlerEnabledAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	return CompatUtility::GetCheckableEventHandlerEnabled(host);
+	return Convert::ToLong(host->GetEnableEventHandler());
 }
 
 Value HostsTable::AcknowledgementTypeAccessor(const Value& row)
@@ -632,7 +632,7 @@ Value HostsTable::ChecksEnabledAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	return CompatUtility::GetCheckableActiveChecksEnabled(host);
+	return Convert::ToLong(host->GetEnableActiveChecks());
 }
 
 Value HostsTable::NotificationsEnabledAccessor(const Value& row)
@@ -642,7 +642,17 @@ Value HostsTable::NotificationsEnabledAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	return CompatUtility::GetCheckableNotificationsEnabled(host);
+	return Convert::ToLong(host->GetEnableNotifications());
+}
+
+Value HostsTable::ProcessPerformanceDataAccessor(const Value& row)
+{
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+
+	if (!host)
+		return Empty;
+
+	return Convert::ToLong(host->GetEnablePerfdata());
 }
 
 Value HostsTable::AcknowledgedAccessor(const Value& row)
@@ -763,7 +773,7 @@ Value HostsTable::ActiveChecksEnabledAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	return CompatUtility::GetCheckableActiveChecksEnabled(host);
+	return Convert::ToLong(host->GetEnableActiveChecks());
 }
 
 Value HostsTable::CheckOptionsAccessor(const Value&)

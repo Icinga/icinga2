@@ -721,7 +721,7 @@ Value ServicesTable::ChecksEnabledAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return CompatUtility::GetCheckableActiveChecksEnabled(service);
+	return Convert::ToLong(service->GetEnableActiveChecks());
 }
 
 Value ServicesTable::AcceptPassiveChecksAccessor(const Value& row)
@@ -731,7 +731,7 @@ Value ServicesTable::AcceptPassiveChecksAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return CompatUtility::GetCheckablePassiveChecksEnabled(service);
+	return Convert::ToLong(service->GetEnablePassiveChecks());
 }
 
 Value ServicesTable::EventHandlerEnabledAccessor(const Value& row)
@@ -741,7 +741,7 @@ Value ServicesTable::EventHandlerEnabledAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return CompatUtility::GetCheckableEventHandlerEnabled(service);
+	return Convert::ToLong(service->GetEnableEventHandler());
 }
 
 Value ServicesTable::NotificationsEnabledAccessor(const Value& row)
@@ -751,7 +751,7 @@ Value ServicesTable::NotificationsEnabledAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return CompatUtility::GetCheckableNotificationsEnabled(service);
+	return Convert::ToLong(service->GetEnableNotifications());
 }
 
 Value ServicesTable::ProcessPerformanceDataAccessor(const Value& row)
@@ -761,7 +761,7 @@ Value ServicesTable::ProcessPerformanceDataAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return CompatUtility::GetCheckableProcessPerformanceData(service);
+	return Convert::ToLong(service->GetEnablePerfdata());
 }
 
 Value ServicesTable::ActiveChecksEnabledAccessor(const Value& row)
@@ -771,7 +771,7 @@ Value ServicesTable::ActiveChecksEnabledAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return CompatUtility::GetCheckableActiveChecksEnabled(service);
+	return Convert::ToLong(service->GetEnableActiveChecks());
 }
 
 Value ServicesTable::CheckOptionsAccessor(const Value& row)
@@ -787,7 +787,7 @@ Value ServicesTable::FlapDetectionEnabledAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return CompatUtility::GetCheckableFlapDetectionEnabled(service);
+	return Convert::ToLong(service->GetEnableFlapping());
 }
 
 Value ServicesTable::CheckFreshnessAccessor(const Value& row)

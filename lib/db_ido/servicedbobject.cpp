@@ -78,22 +78,22 @@ Dictionary::Ptr ServiceDbObject::GetConfigFields() const
 	fields->Set("stalk_on_unknown", 0);
 	fields->Set("stalk_on_critical", 0);
 	fields->Set("is_volatile", CompatUtility::GetCheckableIsVolatile(service));
-	fields->Set("flap_detection_enabled", CompatUtility::GetCheckableFlapDetectionEnabled(service));
+	fields->Set("flap_detection_enabled", service->GetEnableFlapping());
 	fields->Set("flap_detection_on_ok", Empty);
 	fields->Set("flap_detection_on_warning", Empty);
 	fields->Set("flap_detection_on_unknown", Empty);
 	fields->Set("flap_detection_on_critical", Empty);
 	fields->Set("low_flap_threshold", CompatUtility::GetCheckableLowFlapThreshold(service));
 	fields->Set("high_flap_threshold", CompatUtility::GetCheckableHighFlapThreshold(service));
-	fields->Set("process_performance_data", CompatUtility::GetCheckableProcessPerformanceData(service));
+	fields->Set("process_performance_data", service->GetEnablePerfdata());
 	fields->Set("freshness_checks_enabled", CompatUtility::GetCheckableFreshnessChecksEnabled(service));
 	fields->Set("freshness_threshold", CompatUtility::GetCheckableFreshnessThreshold(service));
-	fields->Set("passive_checks_enabled", CompatUtility::GetCheckablePassiveChecksEnabled(service));
-	fields->Set("event_handler_enabled", CompatUtility::GetCheckableEventHandlerEnabled(service));
-	fields->Set("active_checks_enabled", CompatUtility::GetCheckableActiveChecksEnabled(service));
+	fields->Set("event_handler_enabled", service->GetEnableEventHandler());
+	fields->Set("passive_checks_enabled", service->GetEnablePassiveChecks());
+	fields->Set("active_checks_enabled", service->GetEnableActiveChecks());
 	fields->Set("retain_status_information", Empty);
 	fields->Set("retain_nonstatus_information", Empty);
-	fields->Set("notifications_enabled", CompatUtility::GetCheckableNotificationsEnabled(service));
+	fields->Set("notifications_enabled", service->GetEnableNotifications());
 	fields->Set("obsess_over_service", Empty);
 	fields->Set("failure_prediction_enabled", Empty);
 	fields->Set("notes", service->GetNotes());
@@ -140,14 +140,14 @@ Dictionary::Ptr ServiceDbObject::GetStatusFields() const
 	fields->Set("last_notification", DbValue::FromTimestamp(CompatUtility::GetCheckableNotificationLastNotification(service)));
 	fields->Set("next_notification", DbValue::FromTimestamp(CompatUtility::GetCheckableNotificationNextNotification(service)));
 	fields->Set("no_more_notifications", Empty);
-	fields->Set("notifications_enabled", CompatUtility::GetCheckableNotificationsEnabled(service));
+	fields->Set("notifications_enabled", service->GetEnableNotifications());
 	fields->Set("problem_has_been_acknowledged", service->GetAcknowledgement() != AcknowledgementNone);
 	fields->Set("acknowledgement_type", service->GetAcknowledgement());
 	fields->Set("current_notification_number", CompatUtility::GetCheckableNotificationNotificationNumber(service));
-	fields->Set("passive_checks_enabled", CompatUtility::GetCheckablePassiveChecksEnabled(service));
-	fields->Set("active_checks_enabled", CompatUtility::GetCheckableActiveChecksEnabled(service));
-	fields->Set("event_handler_enabled", CompatUtility::GetCheckableEventHandlerEnabled(service));
-	fields->Set("flap_detection_enabled", CompatUtility::GetCheckableFlapDetectionEnabled(service));
+	fields->Set("passive_checks_enabled", service->GetEnablePassiveChecks());
+	fields->Set("active_checks_enabled", service->GetEnableActiveChecks());
+	fields->Set("event_handler_enabled", service->GetEnableEventHandler());
+	fields->Set("flap_detection_enabled", service->GetEnableFlapping());
 	fields->Set("is_flapping", CompatUtility::GetCheckableIsFlapping(service));
 	fields->Set("percent_state_change", CompatUtility::GetCheckablePercentStateChange(service));
 
@@ -157,7 +157,7 @@ Dictionary::Ptr ServiceDbObject::GetStatusFields() const
 	}
 
 	fields->Set("scheduled_downtime_depth", service->GetDowntimeDepth());
-	fields->Set("process_performance_data", CompatUtility::GetCheckableProcessPerformanceData(service));
+	fields->Set("process_performance_data", service->GetEnablePerfdata());
 	fields->Set("event_handler", CompatUtility::GetCheckableEventHandler(service));
 	fields->Set("check_command", CompatUtility::GetCheckableCheckCommand(service));
 	fields->Set("normal_check_interval", CompatUtility::GetCheckableCheckInterval(service));

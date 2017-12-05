@@ -85,25 +85,25 @@ Dictionary::Ptr HostDbObject::GetConfigFields() const
 	fields->Set("stalk_on_down", Empty);
 	fields->Set("stalk_on_unreachable", Empty);
 
-	fields->Set("flap_detection_enabled", CompatUtility::GetCheckableFlapDetectionEnabled(host));
+	fields->Set("flap_detection_enabled", host->GetEnableFlapping());
 	fields->Set("flap_detection_on_up", Empty);
 	fields->Set("flap_detection_on_down", Empty);
 	fields->Set("flap_detection_on_unreachable", Empty);
 	fields->Set("low_flap_threshold", CompatUtility::GetCheckableLowFlapThreshold(host));
 	fields->Set("high_flap_threshold", CompatUtility::GetCheckableHighFlapThreshold(host));
 
-	fields->Set("process_performance_data", CompatUtility::GetCheckableProcessPerformanceData(host));
+	fields->Set("process_performance_data", host->GetEnablePerfdata());
 
 	fields->Set("freshness_checks_enabled", CompatUtility::GetCheckableFreshnessChecksEnabled(host));
 	fields->Set("freshness_threshold", CompatUtility::GetCheckableFreshnessThreshold(host));
-	fields->Set("passive_checks_enabled", CompatUtility::GetCheckablePassiveChecksEnabled(host));
-	fields->Set("event_handler_enabled", CompatUtility::GetCheckableEventHandlerEnabled(host));
-	fields->Set("active_checks_enabled", CompatUtility::GetCheckableActiveChecksEnabled(host));
+	fields->Set("event_handler_enabled", host->GetEnableEventHandler());
+	fields->Set("passive_checks_enabled", host->GetEnablePassiveChecks());
+	fields->Set("active_checks_enabled", host->GetEnableActiveChecks());
 
 	fields->Set("retain_status_information", 1);
 	fields->Set("retain_nonstatus_information", 1);
 
-	fields->Set("notifications_enabled", CompatUtility::GetCheckableNotificationsEnabled(host));
+	fields->Set("notifications_enabled", host->GetEnableNotifications());
 
 	fields->Set("obsess_over_host", 0);
 	fields->Set("failure_prediction_enabled", 0);
@@ -152,14 +152,14 @@ Dictionary::Ptr HostDbObject::GetStatusFields() const
 	fields->Set("last_notification", DbValue::FromTimestamp(CompatUtility::GetCheckableNotificationLastNotification(host)));
 	fields->Set("next_notification", DbValue::FromTimestamp(CompatUtility::GetCheckableNotificationNextNotification(host)));
 	fields->Set("no_more_notifications", Empty);
-	fields->Set("notifications_enabled", CompatUtility::GetCheckableNotificationsEnabled(host));
+	fields->Set("notifications_enabled", host->GetEnableNotifications());
 	fields->Set("problem_has_been_acknowledged", host->GetAcknowledgement() != AcknowledgementNone);
 	fields->Set("acknowledgement_type", host->GetAcknowledgement());
 	fields->Set("current_notification_number", CompatUtility::GetCheckableNotificationNotificationNumber(host));
-	fields->Set("passive_checks_enabled", CompatUtility::GetCheckablePassiveChecksEnabled(host));
-	fields->Set("active_checks_enabled", CompatUtility::GetCheckableActiveChecksEnabled(host));
-	fields->Set("event_handler_enabled", CompatUtility::GetCheckableEventHandlerEnabled(host));
-	fields->Set("flap_detection_enabled", CompatUtility::GetCheckableFlapDetectionEnabled(host));
+	fields->Set("passive_checks_enabled", host->GetEnablePassiveChecks());
+	fields->Set("active_checks_enabled", host->GetEnableActiveChecks());
+	fields->Set("event_handler_enabled", host->GetEnableEventHandler());
+	fields->Set("flap_detection_enabled", host->GetEnableFlapping());
 	fields->Set("is_flapping", CompatUtility::GetCheckableIsFlapping(host));
 	fields->Set("percent_state_change", CompatUtility::GetCheckablePercentStateChange(host));
 
@@ -170,7 +170,7 @@ Dictionary::Ptr HostDbObject::GetStatusFields() const
 
 	fields->Set("scheduled_downtime_depth", host->GetDowntimeDepth());
 	fields->Set("failure_prediction_enabled", Empty);
-	fields->Set("process_performance_data", CompatUtility::GetCheckableProcessPerformanceData(host));
+	fields->Set("process_performance_data", host->GetEnablePerfdata());
 	fields->Set("obsess_over_host", Empty);
 	fields->Set("event_handler", CompatUtility::GetCheckableEventHandler(host));
 	fields->Set("check_command", CompatUtility::GetCheckableCheckCommand(host));
