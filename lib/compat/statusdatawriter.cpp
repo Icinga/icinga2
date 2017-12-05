@@ -385,8 +385,8 @@ void StatusDataWriter::DumpCheckableStatusAttrs(std::ostream& fp, const Checkabl
 		"\t" "active_checks_enabled=" << Convert::ToLong(checkable->GetEnableActiveChecks()) << "\n"
 		"\t" "passive_checks_enabled=" << Convert::ToLong(checkable->GetEnablePassiveChecks()) << "\n"
 		"\t" "flap_detection_enabled=" << Convert::ToLong(checkable->GetEnableFlapping()) << "\n"
-		"\t" "is_flapping=" << CompatUtility::GetCheckableIsFlapping(checkable) << "\n"
-		"\t" "percent_state_change=" << CompatUtility::GetCheckablePercentStateChange(checkable) << "\n"
+		"\t" "is_flapping=" << Convert::ToLong(checkable->IsFlapping()) << "\n"
+		"\t" "percent_state_change=" << checkable->GetFlappingCurrent() << "\n"
 		"\t" "problem_has_been_acknowledged=" << (checkable->GetAcknowledgement() != AcknowledgementNone ? 1 : 0) << "\n"
 		"\t" "acknowledgement_type=" << checkable->GetAcknowledgement() << "\n"
 		"\t" "acknowledgement_end_time=" << checkable->GetAcknowledgementExpiry() << "\n"
@@ -394,7 +394,7 @@ void StatusDataWriter::DumpCheckableStatusAttrs(std::ostream& fp, const Checkabl
 		"\t" "last_notification=" << CompatUtility::GetCheckableNotificationLastNotification(checkable) << "\n"
 		"\t" "next_notification=" << CompatUtility::GetCheckableNotificationNextNotification(checkable) << "\n"
 		"\t" "current_notification_number=" << CompatUtility::GetCheckableNotificationNotificationNumber(checkable) << "\n"
-		"\t" "is_reachable=" << CompatUtility::GetCheckableIsReachable(checkable) << "\n";
+		"\t" "is_reachable=" << Convert::ToLong(checkable->IsReachable()) << "\n";
 }
 
 void StatusDataWriter::DumpServiceStatus(std::ostream& fp, const Service::Ptr& service)

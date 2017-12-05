@@ -98,7 +98,6 @@ protected:
 	static Value NotificationsEnabledAccessor(const Value& row);
 	static Value ProcessPerformanceDataAccessor(const Value& row);
 	static Value ActiveChecksEnabledAccessor(const Value& row);
-	static Value CheckOptionsAccessor(const Value& row);
 	static Value FlapDetectionEnabledAccessor(const Value& row);
 	static Value CheckFreshnessAccessor(const Value& row);
 	static Value StalenessAccessor(const Value& row);

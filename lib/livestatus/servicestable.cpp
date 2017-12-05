@@ -103,7 +103,7 @@ void ServicesTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "process_performance_data", Column(&ServicesTable::ProcessPerformanceDataAccessor, objectAccessor));
 	table->AddColumn(prefix + "is_executing", Column(&Table::ZeroAccessor, objectAccessor));
 	table->AddColumn(prefix + "active_checks_enabled", Column(&ServicesTable::ActiveChecksEnabledAccessor, objectAccessor));
-	table->AddColumn(prefix + "check_options", Column(&ServicesTable::CheckOptionsAccessor, objectAccessor));
+	table->AddColumn(prefix + "check_options", Column(&Table::EmptyStringAccessor, objectAccessor));
 	table->AddColumn(prefix + "flap_detection_enabled", Column(&ServicesTable::FlapDetectionEnabledAccessor, objectAccessor));
 	table->AddColumn(prefix + "check_freshness", Column(&ServicesTable::CheckFreshnessAccessor, objectAccessor));
 	table->AddColumn(prefix + "obsess_over_service", Column(&Table::ZeroAccessor, objectAccessor));
@@ -774,12 +774,6 @@ Value ServicesTable::ActiveChecksEnabledAccessor(const Value& row)
 	return Convert::ToLong(service->GetEnableActiveChecks());
 }
 
-Value ServicesTable::CheckOptionsAccessor(const Value& row)
-{
-	/* TODO - forcexec, freshness, orphan, none */
-	return Empty;
-}
-
 Value ServicesTable::FlapDetectionEnabledAccessor(const Value& row)
 {
 	Service::Ptr service = static_cast<Service::Ptr>(row);
@@ -897,7 +891,7 @@ Value ServicesTable::PercentStateChangeAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return CompatUtility::GetCheckablePercentStateChange(service);
+	return service->GetFlappingCurrent();
 }
 
 Value ServicesTable::InCheckPeriodAccessor(const Value& row)

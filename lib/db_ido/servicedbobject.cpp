@@ -148,8 +148,8 @@ Dictionary::Ptr ServiceDbObject::GetStatusFields() const
 	fields->Set("active_checks_enabled", service->GetEnableActiveChecks());
 	fields->Set("event_handler_enabled", service->GetEnableEventHandler());
 	fields->Set("flap_detection_enabled", service->GetEnableFlapping());
-	fields->Set("is_flapping", CompatUtility::GetCheckableIsFlapping(service));
-	fields->Set("percent_state_change", CompatUtility::GetCheckablePercentStateChange(service));
+	fields->Set("is_flapping", service->IsFlapping());
+	fields->Set("percent_state_change", service->GetFlappingCurrent());
 
 	if (cr) {
 		fields->Set("latency", Convert::ToString(cr->CalculateLatency()));
@@ -163,7 +163,7 @@ Dictionary::Ptr ServiceDbObject::GetStatusFields() const
 	fields->Set("normal_check_interval", CompatUtility::GetCheckableCheckInterval(service));
 	fields->Set("retry_check_interval", CompatUtility::GetCheckableRetryInterval(service));
 	fields->Set("check_timeperiod_object_id", service->GetCheckPeriod());
-	fields->Set("is_reachable", CompatUtility::GetCheckableIsReachable(service));
+	fields->Set("is_reachable", service->IsReachable());
 
 	fields->Set("original_attributes", JsonEncode(service->GetOriginalAttributes()));
 
