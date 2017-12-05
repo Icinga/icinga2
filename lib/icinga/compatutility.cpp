@@ -207,11 +207,6 @@ int CompatUtility::GetCheckableHasBeenChecked(const Checkable::Ptr& checkable)
 	return (checkable->GetLastCheckResult() ? 1 : 0);
 }
 
-int CompatUtility::GetCheckableAcknowledgementType(const Checkable::Ptr& checkable)
-{
-	return static_cast<int>(checkable->GetAcknowledgement());
-}
-
 int CompatUtility::GetCheckablePassiveChecksEnabled(const Checkable::Ptr& checkable)
 {
 	return (checkable->GetEnablePassiveChecks() ? 1 : 0);

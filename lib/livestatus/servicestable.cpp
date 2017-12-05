@@ -571,7 +571,7 @@ Value ServicesTable::AcknowledgementTypeAccessor(const Value& row)
 		return Empty;
 
 	ObjectLock olock(service);
-	return CompatUtility::GetCheckableAcknowledgementType(service);
+	return service->GetAcknowledgement();
 }
 
 Value ServicesTable::NoMoreNotificationsAccessor(const Value& row)

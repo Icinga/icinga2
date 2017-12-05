@@ -512,7 +512,7 @@ Value HostsTable::AcknowledgementTypeAccessor(const Value& row)
 		return Empty;
 
 	ObjectLock olock(host);
-	return CompatUtility::GetCheckableAcknowledgementType(host);
+	return host->GetAcknowledgement();
 }
 
 Value HostsTable::CheckTypeAccessor(const Value& row)
