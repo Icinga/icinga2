@@ -89,8 +89,8 @@ Dictionary::Ptr HostDbObject::GetConfigFields() const
 	fields->Set("flap_detection_on_up", Empty);
 	fields->Set("flap_detection_on_down", Empty);
 	fields->Set("flap_detection_on_unreachable", Empty);
-	fields->Set("low_flap_threshold", CompatUtility::GetCheckableLowFlapThreshold(host));
-	fields->Set("high_flap_threshold", CompatUtility::GetCheckableHighFlapThreshold(host));
+	fields->Set("low_flap_threshold", host->GetFlappingThresholdLow());
+	fields->Set("high_flap_threshold", host->GetFlappingThresholdLow());
 
 	fields->Set("process_performance_data", host->GetEnablePerfdata());
 

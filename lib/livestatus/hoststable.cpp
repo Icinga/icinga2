@@ -663,7 +663,7 @@ Value HostsTable::AcknowledgedAccessor(const Value& row)
 		return Empty;
 
 	ObjectLock olock(host);
-	return CompatUtility::GetCheckableIsAcknowledged(host);
+	return host->IsAcknowledged();
 }
 
 Value HostsTable::StateAccessor(const Value& row)
@@ -813,7 +813,7 @@ Value HostsTable::LowFlapThresholdAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	return CompatUtility::GetCheckableLowFlapThreshold(host);
+	return host->GetFlappingThresholdLow();
 }
 
 Value HostsTable::HighFlapThresholdAccessor(const Value& row)
@@ -823,7 +823,7 @@ Value HostsTable::HighFlapThresholdAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	return CompatUtility::GetCheckableHighFlapThreshold(host);
+	return host->GetFlappingThresholdHigh();
 }
 
 Value HostsTable::LatencyAccessor(const Value& row)
@@ -1394,7 +1394,10 @@ Value HostsTable::StalenessAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	return CompatUtility::GetCheckableStaleness(host);
+	if (host->HasBeenChecked() && host->GetLastCheck() > 0)
+		return (Utility::GetTime() - host->GetLastCheck()) / (host->GetCheckInterval() * 3600);
+
+	return 0.0;
 }
 
 Value HostsTable::GroupsAccessor(const Value& row)

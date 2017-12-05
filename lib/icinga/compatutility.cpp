@@ -202,21 +202,6 @@ String CompatUtility::GetCheckableCheckPeriod(const Checkable::Ptr& checkable)
 		return "24x7";
 }
 
-int CompatUtility::GetCheckableIsVolatile(const Checkable::Ptr& checkable)
-{
-	return (checkable->GetVolatile() ? 1 : 0);
-}
-
-double CompatUtility::GetCheckableLowFlapThreshold(const Checkable::Ptr& checkable)
-{
-	return checkable->GetFlappingThresholdLow();
-}
-
-double CompatUtility::GetCheckableHighFlapThreshold(const Checkable::Ptr& checkable)
-{
-	return checkable->GetFlappingThresholdHigh();
-}
-
 int CompatUtility::GetCheckableFreshnessChecksEnabled(const Checkable::Ptr& checkable)
 {
 	return (checkable->GetCheckInterval() > 0 ? 1 : 0);
@@ -225,19 +210,6 @@ int CompatUtility::GetCheckableFreshnessChecksEnabled(const Checkable::Ptr& chec
 int CompatUtility::GetCheckableFreshnessThreshold(const Checkable::Ptr& checkable)
 {
 	return static_cast<int>(checkable->GetCheckInterval());
-}
-
-double CompatUtility::GetCheckableStaleness(const Checkable::Ptr& checkable)
-{
-	if (checkable->HasBeenChecked() && checkable->GetLastCheck() > 0)
-		return (Utility::GetTime() - checkable->GetLastCheck()) / (checkable->GetCheckInterval() * 3600);
-
-	return 0.0;
-}
-
-int CompatUtility::GetCheckableIsAcknowledged(const Checkable::Ptr& checkable)
-{
-	return (checkable->IsAcknowledged() ? 1 : 0);
 }
 
 int CompatUtility::GetCheckableNoMoreNotifications(const Checkable::Ptr& checkable)

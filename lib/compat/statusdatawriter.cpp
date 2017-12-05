@@ -434,7 +434,7 @@ void StatusDataWriter::DumpServiceObject(std::ostream& fp, const Service::Ptr& s
 			"\t" "active_checks_enabled" "\t" << Convert::ToLong(service->GetEnableActiveChecks()) << "\n"
 			"\t" "passive_checks_enabled" "\t" << Convert::ToLong(service->GetEnablePassiveChecks()) << "\n"
 			"\t" "flap_detection_enabled" "\t" << Convert::ToLong(service->GetEnableFlapping()) << "\n"
-			"\t" "is_volatile" "\t" << CompatUtility::GetCheckableIsVolatile(service) << "\n"
+			"\t" "is_volatile" "\t" << Convert::ToLong(service->GetVolatile()) << "\n"
 			"\t" "notifications_enabled" "\t" << Convert::ToLong(service->GetEnableNotifications()) << "\n"
 			"\t" "notification_options" "\t" << CompatUtility::GetCheckableNotificationNotificationOptions(service) << "\n"
 			"\t" "notification_interval" "\t" << CompatUtility::GetCheckableNotificationNotificationInterval(service) << "\n"

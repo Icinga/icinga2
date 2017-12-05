@@ -560,7 +560,7 @@ Value ServicesTable::AcknowledgedAccessor(const Value& row)
 		return Empty;
 
 	ObjectLock olock(service);
-	return CompatUtility::GetCheckableIsAcknowledged(service);
+	return service->IsAcknowledged();
 }
 
 Value ServicesTable::AcknowledgementTypeAccessor(const Value& row)
@@ -801,7 +801,10 @@ Value ServicesTable::StalenessAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return CompatUtility::GetCheckableStaleness(service);
+	if (service->HasBeenChecked() && service->GetLastCheck() > 0)
+		return (Utility::GetTime() - service->GetLastCheck()) / (service->GetCheckInterval() * 3600);
+
+	return 0.0;
 }
 
 Value ServicesTable::CheckIntervalAccessor(const Value& row)
@@ -841,7 +844,7 @@ Value ServicesTable::LowFlapThresholdAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return CompatUtility::GetCheckableLowFlapThreshold(service);
+	return service->GetFlappingThresholdLow();
 }
 
 Value ServicesTable::HighFlapThresholdAccessor(const Value& row)
@@ -851,7 +854,7 @@ Value ServicesTable::HighFlapThresholdAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return CompatUtility::GetCheckableHighFlapThreshold(service);
+	return service->GetFlappingThresholdHigh();
 }
 
 Value ServicesTable::LatencyAccessor(const Value& row)

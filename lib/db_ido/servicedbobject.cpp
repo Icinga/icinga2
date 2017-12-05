@@ -77,14 +77,14 @@ Dictionary::Ptr ServiceDbObject::GetConfigFields() const
 	fields->Set("stalk_on_warning", 0);
 	fields->Set("stalk_on_unknown", 0);
 	fields->Set("stalk_on_critical", 0);
-	fields->Set("is_volatile", CompatUtility::GetCheckableIsVolatile(service));
+	fields->Set("is_volatile", service->GetVolatile());
 	fields->Set("flap_detection_enabled", service->GetEnableFlapping());
 	fields->Set("flap_detection_on_ok", Empty);
 	fields->Set("flap_detection_on_warning", Empty);
 	fields->Set("flap_detection_on_unknown", Empty);
 	fields->Set("flap_detection_on_critical", Empty);
-	fields->Set("low_flap_threshold", CompatUtility::GetCheckableLowFlapThreshold(service));
-	fields->Set("high_flap_threshold", CompatUtility::GetCheckableHighFlapThreshold(service));
+	fields->Set("low_flap_threshold", service->GetFlappingThresholdLow());
+	fields->Set("high_flap_threshold", service->GetFlappingThresholdLow());
 	fields->Set("process_performance_data", service->GetEnablePerfdata());
 	fields->Set("freshness_checks_enabled", CompatUtility::GetCheckableFreshnessChecksEnabled(service));
 	fields->Set("freshness_threshold", CompatUtility::GetCheckableFreshnessThreshold(service));
