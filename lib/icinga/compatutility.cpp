@@ -202,11 +202,6 @@ String CompatUtility::GetCheckableCheckPeriod(const Checkable::Ptr& checkable)
 		return "24x7";
 }
 
-int CompatUtility::GetCheckableHasBeenChecked(const Checkable::Ptr& checkable)
-{
-	return (checkable->GetLastCheckResult() ? 1 : 0);
-}
-
 int CompatUtility::GetCheckablePassiveChecksEnabled(const Checkable::Ptr& checkable)
 {
 	return (checkable->GetEnablePassiveChecks() ? 1 : 0);

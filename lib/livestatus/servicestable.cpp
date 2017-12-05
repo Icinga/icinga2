@@ -509,7 +509,7 @@ Value ServicesTable::HasBeenCheckedAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return CompatUtility::GetCheckableHasBeenChecked(service);
+	return Convert::ToLong(service->HasBeenChecked());
 }
 
 Value ServicesTable::LastStateAccessor(const Value& row)

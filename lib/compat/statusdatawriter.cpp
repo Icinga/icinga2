@@ -338,7 +338,7 @@ void StatusDataWriter::DumpCheckableStatusAttrs(std::ostream& fp, const Checkabl
 		"\t" "check_period=" << CompatUtility::GetCheckableCheckPeriod(checkable) << "\n"
 		"\t" "check_interval=" << CompatUtility::GetCheckableCheckInterval(checkable) << "\n"
 		"\t" "retry_interval=" << CompatUtility::GetCheckableRetryInterval(checkable) << "\n"
-		"\t" "has_been_checked=" << CompatUtility::GetCheckableHasBeenChecked(checkable) << "\n"
+		"\t" "has_been_checked=" << (checkable->HasBeenChecked() ? 1 : 0) << "\n"
 		"\t" "should_be_scheduled=" << checkable->GetEnableActiveChecks() << "\n"
 		"\t" "event_handler_enabled=" << CompatUtility::GetCheckableEventHandlerEnabled(checkable) << "\n";
 

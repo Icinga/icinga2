@@ -602,7 +602,7 @@ Value HostsTable::HasBeenCheckedAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	return CompatUtility::GetCheckableHasBeenChecked(host);
+	return Convert::ToLong(host->HasBeenChecked());
 }
 
 Value HostsTable::CurrentNotificationNumberAccessor(const Value& row)

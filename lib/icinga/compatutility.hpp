@@ -54,7 +54,6 @@ public:
 	static double GetCheckableCheckInterval(const Checkable::Ptr& checkable);
 	static double GetCheckableRetryInterval(const Checkable::Ptr& checkable);
 	static String GetCheckableCheckPeriod(const Checkable::Ptr& checkable);
-	static int GetCheckableHasBeenChecked(const Checkable::Ptr& checkable);
 	static int GetCheckablePassiveChecksEnabled(const Checkable::Ptr& checkable);
 	static int GetCheckableActiveChecksEnabled(const Checkable::Ptr& checkable);
 	static int GetCheckableEventHandlerEnabled(const Checkable::Ptr& checkable);
