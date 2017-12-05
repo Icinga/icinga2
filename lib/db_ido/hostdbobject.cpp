@@ -153,7 +153,7 @@ Dictionary::Ptr HostDbObject::GetStatusFields() const
 	fields->Set("next_notification", DbValue::FromTimestamp(CompatUtility::GetCheckableNotificationNextNotification(host)));
 	fields->Set("no_more_notifications", Empty);
 	fields->Set("notifications_enabled", CompatUtility::GetCheckableNotificationsEnabled(host));
-	fields->Set("problem_has_been_acknowledged", CompatUtility::GetCheckableProblemHasBeenAcknowledged(host));
+	fields->Set("problem_has_been_acknowledged", host->GetAcknowledgement() != AcknowledgementNone);
 	fields->Set("acknowledgement_type", CompatUtility::GetCheckableAcknowledgementType(host));
 	fields->Set("current_notification_number", CompatUtility::GetCheckableNotificationNotificationNumber(host));
 	fields->Set("passive_checks_enabled", CompatUtility::GetCheckablePassiveChecksEnabled(host));

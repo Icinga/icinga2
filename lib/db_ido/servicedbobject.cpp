@@ -141,7 +141,7 @@ Dictionary::Ptr ServiceDbObject::GetStatusFields() const
 	fields->Set("next_notification", DbValue::FromTimestamp(CompatUtility::GetCheckableNotificationNextNotification(service)));
 	fields->Set("no_more_notifications", Empty);
 	fields->Set("notifications_enabled", CompatUtility::GetCheckableNotificationsEnabled(service));
-	fields->Set("problem_has_been_acknowledged", CompatUtility::GetCheckableProblemHasBeenAcknowledged(service));
+	fields->Set("problem_has_been_acknowledged", service->GetAcknowledgement() != AcknowledgementNone);
 	fields->Set("acknowledgement_type", CompatUtility::GetCheckableAcknowledgementType(service));
 	fields->Set("current_notification_number", CompatUtility::GetCheckableNotificationNotificationNumber(service));
 	fields->Set("passive_checks_enabled", CompatUtility::GetCheckablePassiveChecksEnabled(service));

@@ -372,7 +372,7 @@ void StatusDataWriter::DumpCheckableStatusAttrs(std::ostream& fp, const Checkabl
 
 	if (cr) {
 		fp << "\t" << "check_source=" << cr->GetCheckSource() << "\n"
-		"\t" "last_check=" << static_cast<long>(cr->GetScheduleEnd()) << "\n";
+			"\t" "last_check=" << static_cast<long>(cr->GetScheduleEnd()) << "\n";
 	}
 
 	fp << "\t" << "next_check=" << static_cast<long>(checkable->GetNextCheck()) << "\n"
@@ -380,14 +380,14 @@ void StatusDataWriter::DumpCheckableStatusAttrs(std::ostream& fp, const Checkabl
 		"\t" "max_attempts=" << checkable->GetMaxCheckAttempts() << "\n"
 		"\t" "last_state_change=" << static_cast<long>(checkable->GetLastStateChange()) << "\n"
 		"\t" "last_hard_state_change=" << static_cast<long>(checkable->GetLastHardStateChange()) << "\n"
-		"\t" "last_update=" << static_cast<long>(time(nullptr)) << "\n"
+		"\t" "last_update=" << static_cast<long>(time(NULL)) << "\n"
 		"\t" "notifications_enabled=" << CompatUtility::GetCheckableNotificationsEnabled(checkable) << "\n"
 		"\t" "active_checks_enabled=" << CompatUtility::GetCheckableActiveChecksEnabled(checkable) << "\n"
 		"\t" "passive_checks_enabled=" << CompatUtility::GetCheckablePassiveChecksEnabled(checkable) << "\n"
 		"\t" "flap_detection_enabled=" << CompatUtility::GetCheckableFlapDetectionEnabled(checkable) << "\n"
 		"\t" "is_flapping=" << CompatUtility::GetCheckableIsFlapping(checkable) << "\n"
 		"\t" "percent_state_change=" << CompatUtility::GetCheckablePercentStateChange(checkable) << "\n"
-		"\t" "problem_has_been_acknowledged=" << CompatUtility::GetCheckableProblemHasBeenAcknowledged(checkable) << "\n"
+		"\t" "problem_has_been_acknowledged=" << (checkable->GetAcknowledgement() != AcknowledgementNone ? 1 : 0) << "\n"
 		"\t" "acknowledgement_type=" << CompatUtility::GetCheckableAcknowledgementType(checkable) << "\n"
 		"\t" "acknowledgement_end_time=" << checkable->GetAcknowledgementExpiry() << "\n"
 		"\t" "scheduled_downtime_depth=" << checkable->GetDowntimeDepth() << "\n"
