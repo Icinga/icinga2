@@ -158,14 +158,22 @@ Dictionary::Ptr ServiceDbObject::GetStatusFields() const
 
 	fields->Set("scheduled_downtime_depth", service->GetDowntimeDepth());
 	fields->Set("process_performance_data", service->GetEnablePerfdata());
-	fields->Set("event_handler", CompatUtility::GetCheckableEventHandler(service));
-	fields->Set("check_command", CompatUtility::GetCheckableCheckCommand(service));
 	fields->Set("normal_check_interval", CompatUtility::GetCheckableCheckInterval(service));
 	fields->Set("retry_check_interval", CompatUtility::GetCheckableRetryInterval(service));
 	fields->Set("check_timeperiod_object_id", service->GetCheckPeriod());
 	fields->Set("is_reachable", service->IsReachable());
 
 	fields->Set("original_attributes", JsonEncode(service->GetOriginalAttributes()));
+
+	EventCommand::Ptr eventCommand = service->GetEventCommand();
+
+	if (eventCommand)
+		fields->Set("event_handler", eventCommand->GetName());
+
+	CheckCommand::Ptr checkCommand = service->GetCheckCommand();
+
+	if (checkCommand)
+		fields->Set("check_command", checkCommand->GetName());
 
 	return fields;
 }

@@ -172,14 +172,22 @@ Dictionary::Ptr HostDbObject::GetStatusFields() const
 	fields->Set("failure_prediction_enabled", Empty);
 	fields->Set("process_performance_data", host->GetEnablePerfdata());
 	fields->Set("obsess_over_host", Empty);
-	fields->Set("event_handler", CompatUtility::GetCheckableEventHandler(host));
-	fields->Set("check_command", CompatUtility::GetCheckableCheckCommand(host));
 	fields->Set("normal_check_interval", CompatUtility::GetCheckableCheckInterval(host));
 	fields->Set("retry_check_interval", CompatUtility::GetCheckableRetryInterval(host));
 	fields->Set("check_timeperiod_object_id", host->GetCheckPeriod());
 	fields->Set("is_reachable", host->IsReachable());
 
 	fields->Set("original_attributes", JsonEncode(host->GetOriginalAttributes()));
+
+	EventCommand::Ptr eventCommand = host->GetEventCommand();
+
+	if (eventCommand)
+		fields->Set("event_handler", eventCommand->GetName());
+
+	CheckCommand::Ptr checkCommand = host->GetCheckCommand();
+
+	if (checkCommand)
+		fields->Set("check_command", checkCommand->GetName());
 
 	return fields;
 }

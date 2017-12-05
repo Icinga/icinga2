@@ -202,28 +202,6 @@ String CompatUtility::GetCheckableCheckPeriod(const Checkable::Ptr& checkable)
 		return "24x7";
 }
 
-String CompatUtility::GetCheckableEventHandler(const Checkable::Ptr& checkable)
-{
-	String event_command_str;
-	EventCommand::Ptr eventcommand = checkable->GetEventCommand();
-
-	if (eventcommand)
-		event_command_str = eventcommand->GetName();
-
-	return event_command_str;
-}
-
-String CompatUtility::GetCheckableCheckCommand(const Checkable::Ptr& checkable)
-{
-	String check_command_str;
-	CheckCommand::Ptr checkcommand = checkable->GetCheckCommand();
-
-	if (checkcommand)
-		check_command_str = checkcommand->GetName();
-
-	return check_command_str;
-}
-
 int CompatUtility::GetCheckableIsVolatile(const Checkable::Ptr& checkable)
 {
 	return (checkable->GetVolatile() ? 1 : 0);

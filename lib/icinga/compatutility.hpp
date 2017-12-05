@@ -55,9 +55,6 @@ public:
 	static double GetCheckableRetryInterval(const Checkable::Ptr& checkable);
 	static String GetCheckableCheckPeriod(const Checkable::Ptr& checkable);
 
-	static String GetCheckableEventHandler(const Checkable::Ptr& checkable);
-	static String GetCheckableCheckCommand(const Checkable::Ptr& checkable);
-
 	static int GetCheckableIsVolatile(const Checkable::Ptr& checkable);
 	static double GetCheckableLowFlapThreshold(const Checkable::Ptr& checkable);
 	static double GetCheckableHighFlapThreshold(const Checkable::Ptr& checkable);
