@@ -99,7 +99,6 @@ protected:
 	static Value ProcessPerformanceDataAccessor(const Value& row);
 	static Value ActiveChecksEnabledAccessor(const Value& row);
 	static Value FlapDetectionEnabledAccessor(const Value& row);
-	static Value CheckFreshnessAccessor(const Value& row);
 	static Value StalenessAccessor(const Value& row);
 	static Value CheckIntervalAccessor(const Value& row);
 	static Value RetryIntervalAccessor(const Value& row);

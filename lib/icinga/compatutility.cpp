@@ -202,16 +202,6 @@ String CompatUtility::GetCheckableCheckPeriod(const Checkable::Ptr& checkable)
 		return "24x7";
 }
 
-int CompatUtility::GetCheckableFreshnessChecksEnabled(const Checkable::Ptr& checkable)
-{
-	return (checkable->GetCheckInterval() > 0 ? 1 : 0);
-}
-
-int CompatUtility::GetCheckableFreshnessThreshold(const Checkable::Ptr& checkable)
-{
-	return static_cast<int>(checkable->GetCheckInterval());
-}
-
 int CompatUtility::GetCheckableNoMoreNotifications(const Checkable::Ptr& checkable)
 {
 	if (CompatUtility::GetCheckableNotificationNotificationInterval(checkable) == 0 && !checkable->GetVolatile())

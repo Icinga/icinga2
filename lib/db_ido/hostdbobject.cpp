@@ -94,8 +94,8 @@ Dictionary::Ptr HostDbObject::GetConfigFields() const
 
 	fields->Set("process_performance_data", host->GetEnablePerfdata());
 
-	fields->Set("freshness_checks_enabled", CompatUtility::GetCheckableFreshnessChecksEnabled(host));
-	fields->Set("freshness_threshold", CompatUtility::GetCheckableFreshnessThreshold(host));
+	fields->Set("freshness_checks_enabled", 1);
+	fields->Set("freshness_threshold", Convert::ToLong(host->GetCheckInterval()));
 	fields->Set("event_handler_enabled", host->GetEnableEventHandler());
 	fields->Set("passive_checks_enabled", host->GetEnablePassiveChecks());
 	fields->Set("active_checks_enabled", host->GetEnableActiveChecks());

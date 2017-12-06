@@ -86,8 +86,8 @@ Dictionary::Ptr ServiceDbObject::GetConfigFields() const
 	fields->Set("low_flap_threshold", service->GetFlappingThresholdLow());
 	fields->Set("high_flap_threshold", service->GetFlappingThresholdLow());
 	fields->Set("process_performance_data", service->GetEnablePerfdata());
-	fields->Set("freshness_checks_enabled", CompatUtility::GetCheckableFreshnessChecksEnabled(service));
-	fields->Set("freshness_threshold", CompatUtility::GetCheckableFreshnessThreshold(service));
+	fields->Set("freshness_checks_enabled", 1);
+	fields->Set("freshness_threshold", Convert::ToLong(service->GetCheckInterval()));
 	fields->Set("event_handler_enabled", service->GetEnableEventHandler());
 	fields->Set("passive_checks_enabled", service->GetEnablePassiveChecks());
 	fields->Set("active_checks_enabled", service->GetEnableActiveChecks());
