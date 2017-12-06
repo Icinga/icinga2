@@ -282,57 +282,6 @@ double CompatUtility::GetCheckableNotificationNotificationInterval(const Checkab
 	return notification_interval / 60.0;
 }
 
-String CompatUtility::GetCheckableNotificationNotificationOptions(const Checkable::Ptr& checkable)
-{
-
-	Host::Ptr host;
-	Service::Ptr service;
-	tie(host, service) = GetHostService(checkable);
-
-	unsigned long notification_type_filter = 0;
-	unsigned long notification_state_filter = 0;
-
-	for (const Notification::Ptr& notification : checkable->GetNotifications()) {
-		notification_type_filter |= notification->GetTypeFilter();
-		notification_state_filter |= notification->GetStateFilter();
-	}
-
-	std::vector<String> notification_options;
-
-	/* notification state filters */
-	if (service) {
-		if (notification_state_filter & ServiceWarning) {
-			notification_options.emplace_back("w");
-		}
-		if (notification_state_filter & ServiceUnknown) {
-			notification_options.emplace_back("u");
-		}
-		if (notification_state_filter & ServiceCritical) {
-			notification_options.emplace_back("c");
-		}
-	} else {
-		if (notification_state_filter & HostDown) {
-			notification_options.emplace_back("d");
-		}
-	}
-
-	/* notification type filters */
-	if (notification_type_filter & NotificationRecovery) {
-		notification_options.emplace_back("r");
-	}
-	if ((notification_type_filter & NotificationFlappingStart) ||
-		(notification_type_filter & NotificationFlappingEnd)) {
-		notification_options.emplace_back("f");
-	}
-	if ((notification_type_filter & NotificationDowntimeStart) ||
-		(notification_type_filter & NotificationDowntimeEnd) ||
-		(notification_type_filter & NotificationDowntimeRemoved)) {
-		notification_options.emplace_back("s");
-	}
-
-	return boost::algorithm::join(notification_options, ",");
-}
-
 int CompatUtility::GetCheckableNotificationTypeFilter(const Checkable::Ptr& checkable)
 {
 	unsigned long notification_type_filter = 0;
