@@ -232,7 +232,7 @@ which must be applied incrementally to your IDO database.
 ## Upgrading the PostgreSQL database <a id="upgrading-postgresql-db"></a>
 
 If you want to upgrade an existing Icinga 2 instance, check the
-`/usr/share/icinga2-ido-mysql/schema/upgrade` directory for incremental schema upgrade file(s).
+`/usr/share/icinga2-ido-pgsql/schema/upgrade` directory for incremental schema upgrade file(s).
 
 > **Note**
 >
