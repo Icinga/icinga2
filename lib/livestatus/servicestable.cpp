@@ -895,7 +895,13 @@ Value ServicesTable::InCheckPeriodAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return CompatUtility::GetCheckableInCheckPeriod(service);
+	TimePeriod::Ptr timeperiod = service->GetCheckPeriod();
+
+	/* none set means always checked */
+	if (!timeperiod)
+		return 1;
+
+	return Convert::ToLong(timeperiod->IsInside(Utility::GetTime()));
 }
 
 Value ServicesTable::InNotificationPeriodAccessor(const Value& row)

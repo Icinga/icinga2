@@ -884,7 +884,13 @@ Value HostsTable::InCheckPeriodAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	return CompatUtility::GetCheckableInCheckPeriod(host);
+	TimePeriod::Ptr timeperiod = host->GetCheckPeriod();
+
+	/* none set means always checked */
+	if (!timeperiod)
+		return 1;
+
+	return Convert::ToLong(timeperiod->IsInside(Utility::GetTime()));
 }
 
 Value HostsTable::ContactsAccessor(const Value& row)

@@ -210,17 +210,6 @@ int CompatUtility::GetCheckableNoMoreNotifications(const Checkable::Ptr& checkab
 	return 0;
 }
 
-int CompatUtility::GetCheckableInCheckPeriod(const Checkable::Ptr& checkable)
-{
-	TimePeriod::Ptr timeperiod = checkable->GetCheckPeriod();
-
-	/* none set means always checked */
-	if (!timeperiod)
-		return 1;
-
-	return (timeperiod->IsInside(Utility::GetTime()) ? 1 : 0);
-}
-
 int CompatUtility::GetCheckableInNotificationPeriod(const Checkable::Ptr& checkable)
 {
 	for (const Notification::Ptr& notification : checkable->GetNotifications()) {

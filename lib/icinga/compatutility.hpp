@@ -56,7 +56,6 @@ public:
 	static String GetCheckableCheckPeriod(const Checkable::Ptr& checkable);
 
 	static int GetCheckableNoMoreNotifications(const Checkable::Ptr& checkable);
-	static int GetCheckableInCheckPeriod(const Checkable::Ptr& checkable);
 	static int GetCheckableInNotificationPeriod(const Checkable::Ptr& checkable);
 
 	/* notification */
