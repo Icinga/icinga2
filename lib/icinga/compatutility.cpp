@@ -244,16 +244,6 @@ Dictionary::Ptr CompatUtility::GetCustomAttributeConfig(const CustomVarObject::P
 	return vars;
 }
 
-String CompatUtility::GetCustomAttributeConfig(const CustomVarObject::Ptr& object, const String& name)
-{
-	Dictionary::Ptr vars = object->GetVars();
-
-	if (!vars)
-		return Empty;
-
-	return vars->Get(name);
-}
-
 /* notifications */
 int CompatUtility::GetCheckableNotificationLastNotification(const Checkable::Ptr& checkable)
 {
