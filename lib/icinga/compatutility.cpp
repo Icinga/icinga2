@@ -193,15 +193,6 @@ double CompatUtility::GetCheckableRetryInterval(const Checkable::Ptr& checkable)
 	return checkable->GetRetryInterval() / 60.0;
 }
 
-String CompatUtility::GetCheckableCheckPeriod(const Checkable::Ptr& checkable)
-{
-	TimePeriod::Ptr check_period = checkable->GetCheckPeriod();
-	if (check_period)
-		return check_period->GetName();
-	else
-		return "24x7";
-}
-
 int CompatUtility::GetCheckableNoMoreNotifications(const Checkable::Ptr& checkable)
 {
 	if (CompatUtility::GetCheckableNotificationNotificationInterval(checkable) == 0 && !checkable->GetVolatile())

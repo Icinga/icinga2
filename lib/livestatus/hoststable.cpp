@@ -304,7 +304,12 @@ Value HostsTable::CheckPeriodAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	return CompatUtility::GetCheckableCheckPeriod(host);
+	TimePeriod::Ptr checkPeriod = host->GetCheckPeriod();
+
+	if (!checkPeriod)
+		return Empty;
+
+	return checkPeriod->GetName();
 }
 
 Value HostsTable::NotesAccessor(const Value& row)

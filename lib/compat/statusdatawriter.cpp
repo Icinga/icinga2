@@ -282,7 +282,9 @@ void StatusDataWriter::DumpHostObject(std::ostream& fp, const Host::Ptr& host)
 	if (eventcommand && host->GetEnableEventHandler())
 		fp << "\t" "event_handler" "\t" << CompatUtility::GetCommandName(eventcommand) << "\n";
 
-	fp << "\t" "check_period" "\t" << CompatUtility::GetCheckableCheckPeriod(host) << "\n";
+	TimePeriod::Ptr checkPeriod = host->GetCheckPeriod();
+	if (checkPeriod)
+		fp << "\t" "check_period" "\t" << checkPeriod->GetName() << "\n";
 
 	fp << "\t" "contacts" "\t";
 	DumpNameList(fp, CompatUtility::GetCheckableNotificationUsers(host));
@@ -336,12 +338,15 @@ void StatusDataWriter::DumpCheckableStatusAttrs(std::ostream& fp, const Checkabl
 
 	fp << "\t" << "check_command=" << CompatUtility::GetCommandName(checkcommand) << "!" << CompatUtility::GetCheckableCommandArgs(checkable) << "\n"
 		"\t" "event_handler=" << CompatUtility::GetCommandName(eventcommand) << "\n"
-		"\t" "check_period=" << CompatUtility::GetCheckableCheckPeriod(checkable) << "\n"
 		"\t" "check_interval=" << CompatUtility::GetCheckableCheckInterval(checkable) << "\n"
 		"\t" "retry_interval=" << CompatUtility::GetCheckableRetryInterval(checkable) << "\n"
 		"\t" "has_been_checked=" << Convert::ToLong(checkable->HasBeenChecked()) << "\n"
 		"\t" "should_be_scheduled=" << checkable->GetEnableActiveChecks() << "\n"
 		"\t" "event_handler_enabled=" << Convert::ToLong(checkable->GetEnableEventHandler()) << "\n";
+
+	TimePeriod::Ptr checkPeriod = checkable->GetCheckPeriod();
+	if (checkPeriod)
+		fp << "\t" "check_period" "\t" << checkPeriod->GetName() << "\n";
 
 	if (cr) {
 		fp << "\t" << "check_execution_time=" << Convert::ToString(cr->CalculateExecutionTime()) << "\n"
@@ -427,7 +432,6 @@ void StatusDataWriter::DumpServiceObject(std::ostream& fp, const Service::Ptr& s
 			"\t" "host_name" "\t" << host->GetName() << "\n"
 			"\t" "service_description" "\t" << service->GetShortName() << "\n"
 			"\t" "display_name" "\t" << service->GetDisplayName() << "\n"
-			"\t" "check_period" "\t" << CompatUtility::GetCheckableCheckPeriod(service) << "\n"
 			"\t" "check_interval" "\t" << CompatUtility::GetCheckableCheckInterval(service) << "\n"
 			"\t" "retry_interval" "\t" << CompatUtility::GetCheckableRetryInterval(service) << "\n"
 			"\t" "max_check_attempts" "\t" << service->GetMaxCheckAttempts() << "\n"
@@ -448,6 +452,10 @@ void StatusDataWriter::DumpServiceObject(std::ostream& fp, const Service::Ptr& s
 		EventCommand::Ptr eventcommand = service->GetEventCommand();
 		if (eventcommand && service->GetEnableEventHandler())
 			fp << "\t" "event_handler" "\t" << CompatUtility::GetCommandName(eventcommand) << "\n";
+
+		TimePeriod::Ptr checkPeriod = service->GetCheckPeriod();
+		if (checkPeriod)
+			fp << "\t" "check_period" "\t" << checkPeriod->GetName() << "\n";
 
 		fp << "\t" "contacts" "\t";
 		DumpNameList(fp, CompatUtility::GetCheckableNotificationUsers(service));

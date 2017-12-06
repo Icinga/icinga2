@@ -356,7 +356,12 @@ Value ServicesTable::CheckPeriodAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return CompatUtility::GetCheckableCheckPeriod(service);
+	TimePeriod::Ptr checkPeriod = service->GetCheckPeriod();
+
+	if (!checkPeriod)
+		return Empty;
+
+	return checkPeriod->GetName();
 }
 
 Value ServicesTable::NotesAccessor(const Value& row)
