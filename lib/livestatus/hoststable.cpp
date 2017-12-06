@@ -1021,7 +1021,7 @@ Value HostsTable::CustomVariableNamesAccessor(const Value& row)
 
 	{
 		ObjectLock olock(host);
-		vars = CompatUtility::GetCustomAttributeConfig(host);
+		vars = host->GetVars();
 	}
 
 	Array::Ptr cv = new Array();
@@ -1048,7 +1048,7 @@ Value HostsTable::CustomVariableValuesAccessor(const Value& row)
 
 	{
 		ObjectLock olock(host);
-		vars = CompatUtility::GetCustomAttributeConfig(host);
+		vars = host->GetVars();
 	}
 
 	Array::Ptr cv = new Array();
@@ -1078,7 +1078,7 @@ Value HostsTable::CustomVariablesAccessor(const Value& row)
 
 	{
 		ObjectLock olock(host);
-		vars = CompatUtility::GetCustomAttributeConfig(host);
+		vars = host->GetVars();
 	}
 
 	Array::Ptr cv = new Array();
@@ -1113,7 +1113,7 @@ Value HostsTable::CVIsJsonAccessor(const Value& row)
 
 	{
 		ObjectLock olock(host);
-		vars = CompatUtility::GetCustomAttributeConfig(host);
+		vars = host->GetVars();
 	}
 
 	if (!vars)

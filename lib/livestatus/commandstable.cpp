@@ -103,7 +103,7 @@ Value CommandsTable::CustomVariableNamesAccessor(const Value& row)
 
 	{
 		ObjectLock olock(command);
-		vars = CompatUtility::GetCustomAttributeConfig(command);
+		vars = command->GetVars();
 	}
 
 	Array::Ptr cv = new Array();
@@ -132,7 +132,7 @@ Value CommandsTable::CustomVariableValuesAccessor(const Value& row)
 
 	{
 		ObjectLock olock(command);
-		vars = CompatUtility::GetCustomAttributeConfig(command);
+		vars = command->GetVars();
 	}
 
 	Array::Ptr cv = new Array();
@@ -161,7 +161,7 @@ Value CommandsTable::CustomVariablesAccessor(const Value& row)
 
 	{
 		ObjectLock olock(command);
-		vars = CompatUtility::GetCustomAttributeConfig(command);
+		vars = command->GetVars();
 	}
 
 	Array::Ptr cv = new Array();

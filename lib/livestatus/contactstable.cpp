@@ -207,7 +207,7 @@ Value ContactsTable::CustomVariableNamesAccessor(const Value& row)
 
 	{
 		ObjectLock olock(user);
-		vars = CompatUtility::GetCustomAttributeConfig(user);
+		vars = user->GetVars();
 	}
 
 	Array::Ptr cv = new Array();
@@ -234,7 +234,7 @@ Value ContactsTable::CustomVariableValuesAccessor(const Value& row)
 
 	{
 		ObjectLock olock(user);
-		vars = CompatUtility::GetCustomAttributeConfig(user);
+		vars = user->GetVars();
 	}
 
 	Array::Ptr cv = new Array();
@@ -264,7 +264,7 @@ Value ContactsTable::CustomVariablesAccessor(const Value& row)
 
 	{
 		ObjectLock olock(user);
-		vars = CompatUtility::GetCustomAttributeConfig(user);
+		vars = user->GetVars();
 	}
 
 	Array::Ptr cv = new Array();
@@ -299,7 +299,7 @@ Value ContactsTable::CVIsJsonAccessor(const Value& row)
 
 	{
 		ObjectLock olock(user);
-		vars = CompatUtility::GetCustomAttributeConfig(user);
+		vars = user->GetVars();
 	}
 
 	if (!vars)

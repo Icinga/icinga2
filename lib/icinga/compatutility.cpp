@@ -233,17 +233,6 @@ int CompatUtility::GetCheckableInNotificationPeriod(const Checkable::Ptr& checka
 	return 0;
 }
 
-/* vars attr */
-Dictionary::Ptr CompatUtility::GetCustomAttributeConfig(const CustomVarObject::Ptr& object)
-{
-	Dictionary::Ptr vars = object->GetVars();
-
-	if (!vars)
-		return nullptr;
-
-	return vars;
-}
-
 /* notifications */
 int CompatUtility::GetCheckableNotificationLastNotification(const Checkable::Ptr& checkable)
 {

@@ -1043,7 +1043,7 @@ Value ServicesTable::CustomVariableNamesAccessor(const Value& row)
 
 	{
 		ObjectLock olock(service);
-		vars = CompatUtility::GetCustomAttributeConfig(service);
+		vars = service->GetVars();
 	}
 
 	Array::Ptr cv = new Array();
@@ -1070,7 +1070,7 @@ Value ServicesTable::CustomVariableValuesAccessor(const Value& row)
 
 	{
 		ObjectLock olock(service);
-		vars = CompatUtility::GetCustomAttributeConfig(service);
+		vars = service->GetVars();
 	}
 
 	Array::Ptr cv = new Array();
@@ -1100,7 +1100,7 @@ Value ServicesTable::CustomVariablesAccessor(const Value& row)
 
 	{
 		ObjectLock olock(service);
-		vars = CompatUtility::GetCustomAttributeConfig(service);
+		vars = service->GetVars();
 	}
 
 	Array::Ptr cv = new Array();
@@ -1135,7 +1135,7 @@ Value ServicesTable::CVIsJsonAccessor(const Value& row)
 
 	{
 		ObjectLock olock(service);
-		vars = CompatUtility::GetCustomAttributeConfig(service);
+		vars = service->GetVars();
 	}
 
 	if (!vars)

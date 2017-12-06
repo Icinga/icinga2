@@ -78,9 +78,6 @@ public:
 	static std::set<User::Ptr> GetCheckableNotificationUsers(const Checkable::Ptr& checkable);
 	static std::set<UserGroup::Ptr> GetCheckableNotificationUserGroups(const Checkable::Ptr& checkable);
 
-	/* custom attribute */
-	static Dictionary::Ptr GetCustomAttributeConfig(const CustomVarObject::Ptr& object);
-
 	/* check result */
 	static String GetCheckResultOutput(const CheckResult::Ptr& cr);
 	static String GetCheckResultLongOutput(const CheckResult::Ptr& cr);
