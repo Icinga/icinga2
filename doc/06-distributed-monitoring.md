@@ -1850,7 +1850,7 @@ into your global zone.
 Example:
 
     [root@icinga2-master1.localdomain /]# cd /etc/icinga2/conf.d
-    [root@icinga2-master1.localdomain /etc/icinga2/conf.d]# cp {commands,downtimes,groups,notifications,templates,timeperiods,users}.conf /etc/icinga2/zones.d/global-templates
+    [root@icinga2-master1.localdomain /etc/icinga2/conf.d]# cp {commands,downtimes,groups,notifications,services,templates,timeperiods,users}.conf /etc/icinga2/zones.d/global-templates
 
 ### Health Checks <a id="distributed-monitoring-health-checks"></a>
 
