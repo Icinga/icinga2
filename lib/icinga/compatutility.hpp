@@ -84,9 +84,6 @@ public:
 	static String GetCheckResultPerfdata(const CheckResult::Ptr& cr);
 
 	/* misc */
-	static int MapNotificationReasonType(NotificationType type);
-	static int MapExternalCommandType(const String& name);
-
 	static String EscapeString(const String& str);
 	static String UnEscapeString(const String& str);
 

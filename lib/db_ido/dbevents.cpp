@@ -844,7 +844,7 @@ void DbEvents::AddNotificationHistory(const Notification::Ptr& notification, con
 
 	Dictionary::Ptr fields1 = new Dictionary();
 	fields1->Set("notification_type", 1); /* service */
-	fields1->Set("notification_reason", CompatUtility::MapNotificationReasonType(type));
+	fields1->Set("notification_reason", MapNotificationReasonType(type));
 	fields1->Set("object_id", checkable);
 	fields1->Set("start_time", DbValue::FromTimestamp(time_bag.first));
 	fields1->Set("start_time_usec", time_bag.second);
@@ -1495,7 +1495,7 @@ void DbEvents::AddExternalCommandHistory(double time, const String& command, con
 	Dictionary::Ptr fields1 = new Dictionary();
 
 	fields1->Set("entry_time", DbValue::FromTimestamp(static_cast<long>(time)));
-	fields1->Set("command_type", CompatUtility::MapExternalCommandType(command));
+	fields1->Set("command_type", MapExternalCommandType(command));
 	fields1->Set("command_name", command);
 	fields1->Set("command_args", boost::algorithm::join(arguments, ";"));
 
@@ -1519,3 +1519,384 @@ std::pair<unsigned long, unsigned long> DbEvents::ConvertTimestamp(double time)
 	return std::make_pair(time_sec, time_usec);
 }
 
+int DbEvents::MapNotificationReasonType(NotificationType type)
+{
+	switch (type) {
+		case NotificationDowntimeStart:
+			return 5;
+		case NotificationDowntimeEnd:
+			return 6;
+		case NotificationDowntimeRemoved:
+			return 7;
+		case NotificationCustom:
+			return 8;
+		case NotificationAcknowledgement:
+			return 1;
+		case NotificationProblem:
+			return 0;
+		case NotificationRecovery:
+			return 0;
+		case NotificationFlappingStart:
+			return 2;
+		case NotificationFlappingEnd:
+			return 3;
+		default:
+			return 0;
+	}
+}
+
+int DbEvents::MapExternalCommandType(const String& name)
+{
+	if (name == "NONE")
+		return 0;
+	if (name == "ADD_HOST_COMMENT")
+		return 1;
+	if (name == "DEL_HOST_COMMENT")
+		return 2;
+	if (name == "ADD_SVC_COMMENT")
+		return 3;
+	if (name == "DEL_SVC_COMMENT")
+		return 4;
+	if (name == "ENABLE_SVC_CHECK")
+		return 5;
+	if (name == "DISABLE_SVC_CHECK")
+		return 6;
+	if (name == "SCHEDULE_SVC_CHECK")
+		return 7;
+	if (name == "DELAY_SVC_NOTIFICATION")
+		return 9;
+	if (name == "DELAY_HOST_NOTIFICATION")
+		return 10;
+	if (name == "DISABLE_NOTIFICATIONS")
+		return 11;
+	if (name == "ENABLE_NOTIFICATIONS")
+		return 12;
+	if (name == "RESTART_PROCESS")
+		return 13;
+	if (name == "SHUTDOWN_PROCESS")
+		return 14;
+	if (name == "ENABLE_HOST_SVC_CHECKS")
+		return 15;
+	if (name == "DISABLE_HOST_SVC_CHECKS")
+		return 16;
+	if (name == "SCHEDULE_HOST_SVC_CHECKS")
+		return 17;
+	if (name == "DELAY_HOST_SVC_NOTIFICATIONS")
+		return 19;
+	if (name == "DEL_ALL_HOST_COMMENTS")
+		return 20;
+	if (name == "DEL_ALL_SVC_COMMENTS")
+		return 21;
+	if (name == "ENABLE_SVC_NOTIFICATIONS")
+		return 22;
+	if (name == "DISABLE_SVC_NOTIFICATIONS")
+		return 23;
+	if (name == "ENABLE_HOST_NOTIFICATIONS")
+		return 24;
+	if (name == "DISABLE_HOST_NOTIFICATIONS")
+		return 25;
+	if (name == "ENABLE_ALL_NOTIFICATIONS_BEYOND_HOST")
+		return 26;
+	if (name == "DISABLE_ALL_NOTIFICATIONS_BEYOND_HOST")
+		return 27;
+	if (name == "ENABLE_HOST_SVC_NOTIFICATIONS")
+		return 28;
+	if (name == "DISABLE_HOST_SVC_NOTIFICATIONS")
+		return 29;
+	if (name == "PROCESS_SERVICE_CHECK_RESULT")
+		return 30;
+	if (name == "SAVE_STATE_INFORMATION")
+		return 31;
+	if (name == "READ_STATE_INFORMATION")
+		return 32;
+	if (name == "ACKNOWLEDGE_HOST_PROBLEM")
+		return 33;
+	if (name == "ACKNOWLEDGE_SVC_PROBLEM")
+		return 34;
+	if (name == "START_EXECUTING_SVC_CHECKS")
+		return 35;
+	if (name == "STOP_EXECUTING_SVC_CHECKS")
+		return 36;
+	if (name == "START_ACCEPTING_PASSIVE_SVC_CHECKS")
+		return 37;
+	if (name == "STOP_ACCEPTING_PASSIVE_SVC_CHECKS")
+		return 38;
+	if (name == "ENABLE_PASSIVE_SVC_CHECKS")
+		return 39;
+	if (name == "DISABLE_PASSIVE_SVC_CHECKS")
+		return 40;
+	if (name == "ENABLE_EVENT_HANDLERS")
+		return 41;
+	if (name == "DISABLE_EVENT_HANDLERS")
+		return 42;
+	if (name == "ENABLE_HOST_EVENT_HANDLER")
+		return 43;
+	if (name == "DISABLE_HOST_EVENT_HANDLER")
+		return 44;
+	if (name == "ENABLE_SVC_EVENT_HANDLER")
+		return 45;
+	if (name == "DISABLE_SVC_EVENT_HANDLER")
+		return 46;
+	if (name == "ENABLE_HOST_CHECK")
+		return 47;
+	if (name == "DISABLE_HOST_CHECK")
+		return 48;
+	if (name == "START_OBSESSING_OVER_SVC_CHECKS")
+		return 49;
+	if (name == "STOP_OBSESSING_OVER_SVC_CHECKS")
+		return 50;
+	if (name == "REMOVE_HOST_ACKNOWLEDGEMENT")
+		return 51;
+	if (name == "REMOVE_SVC_ACKNOWLEDGEMENT")
+		return 52;
+	if (name == "SCHEDULE_FORCED_HOST_SVC_CHECKS")
+		return 53;
+	if (name == "SCHEDULE_FORCED_SVC_CHECK")
+		return 54;
+	if (name == "SCHEDULE_HOST_DOWNTIME")
+		return 55;
+	if (name == "SCHEDULE_SVC_DOWNTIME")
+		return 56;
+	if (name == "ENABLE_HOST_FLAP_DETECTION")
+		return 57;
+	if (name == "DISABLE_HOST_FLAP_DETECTION")
+		return 58;
+	if (name == "ENABLE_SVC_FLAP_DETECTION")
+		return 59;
+	if (name == "DISABLE_SVC_FLAP_DETECTION")
+		return 60;
+	if (name == "ENABLE_FLAP_DETECTION")
+		return 61;
+	if (name == "DISABLE_FLAP_DETECTION")
+		return 62;
+	if (name == "ENABLE_HOSTGROUP_SVC_NOTIFICATIONS")
+		return 63;
+	if (name == "DISABLE_HOSTGROUP_SVC_NOTIFICATIONS")
+		return 64;
+	if (name == "ENABLE_HOSTGROUP_HOST_NOTIFICATIONS")
+		return 65;
+	if (name == "DISABLE_HOSTGROUP_HOST_NOTIFICATIONS")
+		return 66;
+	if (name == "ENABLE_HOSTGROUP_SVC_CHECKS")
+		return 67;
+	if (name == "DISABLE_HOSTGROUP_SVC_CHECKS")
+		return 68;
+	if (name == "CANCEL_HOST_DOWNTIME")
+		return 69;
+	if (name == "CANCEL_SVC_DOWNTIME")
+		return 70;
+	if (name == "CANCEL_ACTIVE_HOST_DOWNTIME")
+		return 71;
+	if (name == "CANCEL_PENDING_HOST_DOWNTIME")
+		return 72;
+	if (name == "CANCEL_ACTIVE_SVC_DOWNTIME")
+		return 73;
+	if (name == "CANCEL_PENDING_SVC_DOWNTIME")
+		return 74;
+	if (name == "CANCEL_ACTIVE_HOST_SVC_DOWNTIME")
+		return 75;
+	if (name == "CANCEL_PENDING_HOST_SVC_DOWNTIME")
+		return 76;
+	if (name == "FLUSH_PENDING_COMMANDS")
+		return 77;
+	if (name == "DEL_HOST_DOWNTIME")
+		return 78;
+	if (name == "DEL_SVC_DOWNTIME")
+		return 79;
+	if (name == "ENABLE_FAILURE_PREDICTION")
+		return 80;
+	if (name == "DISABLE_FAILURE_PREDICTION")
+		return 81;
+	if (name == "ENABLE_PERFORMANCE_DATA")
+		return 82;
+	if (name == "DISABLE_PERFORMANCE_DATA")
+		return 83;
+	if (name == "SCHEDULE_HOSTGROUP_HOST_DOWNTIME")
+		return 84;
+	if (name == "SCHEDULE_HOSTGROUP_SVC_DOWNTIME")
+		return 85;
+	if (name == "SCHEDULE_HOST_SVC_DOWNTIME")
+		return 86;
+	if (name == "PROCESS_HOST_CHECK_RESULT")
+		return 87;
+	if (name == "START_EXECUTING_HOST_CHECKS")
+		return 88;
+	if (name == "STOP_EXECUTING_HOST_CHECKS")
+		return 89;
+	if (name == "START_ACCEPTING_PASSIVE_HOST_CHECKS")
+		return 90;
+	if (name == "STOP_ACCEPTING_PASSIVE_HOST_CHECKS")
+		return 91;
+	if (name == "ENABLE_PASSIVE_HOST_CHECKS")
+		return 92;
+	if (name == "DISABLE_PASSIVE_HOST_CHECKS")
+		return 93;
+	if (name == "START_OBSESSING_OVER_HOST_CHECKS")
+		return 94;
+	if (name == "STOP_OBSESSING_OVER_HOST_CHECKS")
+		return 95;
+	if (name == "SCHEDULE_HOST_CHECK")
+		return 96;
+	if (name == "SCHEDULE_FORCED_HOST_CHECK")
+		return 98;
+	if (name == "START_OBSESSING_OVER_SVC")
+		return 99;
+	if (name == "STOP_OBSESSING_OVER_SVC")
+		return 100;
+	if (name == "START_OBSESSING_OVER_HOST")
+		return 101;
+	if (name == "STOP_OBSESSING_OVER_HOST")
+		return 102;
+	if (name == "ENABLE_HOSTGROUP_HOST_CHECKS")
+		return 103;
+	if (name == "DISABLE_HOSTGROUP_HOST_CHECKS")
+		return 104;
+	if (name == "ENABLE_HOSTGROUP_PASSIVE_SVC_CHECKS")
+		return 105;
+	if (name == "DISABLE_HOSTGROUP_PASSIVE_SVC_CHECKS")
+		return 106;
+	if (name == "ENABLE_HOSTGROUP_PASSIVE_HOST_CHECKS")
+		return 107;
+	if (name == "DISABLE_HOSTGROUP_PASSIVE_HOST_CHECKS")
+		return 108;
+	if (name == "ENABLE_SERVICEGROUP_SVC_NOTIFICATIONS")
+		return 109;
+	if (name == "DISABLE_SERVICEGROUP_SVC_NOTIFICATIONS")
+		return 110;
+	if (name == "ENABLE_SERVICEGROUP_HOST_NOTIFICATIONS")
+		return 111;
+	if (name == "DISABLE_SERVICEGROUP_HOST_NOTIFICATIONS")
+		return 112;
+	if (name == "ENABLE_SERVICEGROUP_SVC_CHECKS")
+		return 113;
+	if (name == "DISABLE_SERVICEGROUP_SVC_CHECKS")
+		return 114;
+	if (name == "ENABLE_SERVICEGROUP_HOST_CHECKS")
+		return 115;
+	if (name == "DISABLE_SERVICEGROUP_HOST_CHECKS")
+		return 116;
+	if (name == "ENABLE_SERVICEGROUP_PASSIVE_SVC_CHECKS")
+		return 117;
+	if (name == "DISABLE_SERVICEGROUP_PASSIVE_SVC_CHECKS")
+		return 118;
+	if (name == "ENABLE_SERVICEGROUP_PASSIVE_HOST_CHECKS")
+		return 119;
+	if (name == "DISABLE_SERVICEGROUP_PASSIVE_HOST_CHECKS")
+		return 120;
+	if (name == "SCHEDULE_SERVICEGROUP_HOST_DOWNTIME")
+		return 121;
+	if (name == "SCHEDULE_SERVICEGROUP_SVC_DOWNTIME")
+		return 122;
+	if (name == "CHANGE_GLOBAL_HOST_EVENT_HANDLER")
+		return 123;
+	if (name == "CHANGE_GLOBAL_SVC_EVENT_HANDLER")
+		return 124;
+	if (name == "CHANGE_HOST_EVENT_HANDLER")
+		return 125;
+	if (name == "CHANGE_SVC_EVENT_HANDLER")
+		return 126;
+	if (name == "CHANGE_HOST_CHECK_COMMAND")
+		return 127;
+	if (name == "CHANGE_SVC_CHECK_COMMAND")
+		return 128;
+	if (name == "CHANGE_NORMAL_HOST_CHECK_INTERVAL")
+		return 129;
+	if (name == "CHANGE_NORMAL_SVC_CHECK_INTERVAL")
+		return 130;
+	if (name == "CHANGE_RETRY_SVC_CHECK_INTERVAL")
+		return 131;
+	if (name == "CHANGE_MAX_HOST_CHECK_ATTEMPTS")
+		return 132;
+	if (name == "CHANGE_MAX_SVC_CHECK_ATTEMPTS")
+		return 133;
+	if (name == "SCHEDULE_AND_PROPAGATE_TRIGGERED_HOST_DOWNTIME")
+		return 134;
+	if (name == "ENABLE_HOST_AND_CHILD_NOTIFICATIONS")
+		return 135;
+	if (name == "DISABLE_HOST_AND_CHILD_NOTIFICATIONS")
+		return 136;
+	if (name == "SCHEDULE_AND_PROPAGATE_HOST_DOWNTIME")
+		return 137;
+	if (name == "ENABLE_SERVICE_FRESHNESS_CHECKS")
+		return 138;
+	if (name == "DISABLE_SERVICE_FRESHNESS_CHECKS")
+		return 139;
+	if (name == "ENABLE_HOST_FRESHNESS_CHECKS")
+		return 140;
+	if (name == "DISABLE_HOST_FRESHNESS_CHECKS")
+		return 141;
+	if (name == "SET_HOST_NOTIFICATION_NUMBER")
+		return 142;
+	if (name == "SET_SVC_NOTIFICATION_NUMBER")
+		return 143;
+	if (name == "CHANGE_HOST_CHECK_TIMEPERIOD")
+		return 144;
+	if (name == "CHANGE_SVC_CHECK_TIMEPERIOD")
+		return 145;
+	if (name == "PROCESS_FILE")
+		return 146;
+	if (name == "CHANGE_CUSTOM_HOST_VAR")
+		return 147;
+	if (name == "CHANGE_CUSTOM_SVC_VAR")
+		return 148;
+	if (name == "CHANGE_CUSTOM_CONTACT_VAR")
+		return 149;
+	if (name == "ENABLE_CONTACT_HOST_NOTIFICATIONS")
+		return 150;
+	if (name == "DISABLE_CONTACT_HOST_NOTIFICATIONS")
+		return 151;
+	if (name == "ENABLE_CONTACT_SVC_NOTIFICATIONS")
+		return 152;
+	if (name == "DISABLE_CONTACT_SVC_NOTIFICATIONS")
+		return 153;
+	if (name == "ENABLE_CONTACTGROUP_HOST_NOTIFICATIONS")
+		return 154;
+	if (name == "DISABLE_CONTACTGROUP_HOST_NOTIFICATIONS")
+		return 155;
+	if (name == "ENABLE_CONTACTGROUP_SVC_NOTIFICATIONS")
+		return 156;
+	if (name == "DISABLE_CONTACTGROUP_SVC_NOTIFICATIONS")
+		return 157;
+	if (name == "CHANGE_RETRY_HOST_CHECK_INTERVAL")
+		return 158;
+	if (name == "SEND_CUSTOM_HOST_NOTIFICATION")
+		return 159;
+	if (name == "SEND_CUSTOM_SVC_NOTIFICATION")
+		return 160;
+	if (name == "CHANGE_HOST_NOTIFICATION_TIMEPERIOD")
+		return 161;
+	if (name == "CHANGE_SVC_NOTIFICATION_TIMEPERIOD")
+		return 162;
+	if (name == "CHANGE_CONTACT_HOST_NOTIFICATION_TIMEPERIOD")
+		return 163;
+	if (name == "CHANGE_CONTACT_SVC_NOTIFICATION_TIMEPERIOD")
+		return 164;
+	if (name == "CHANGE_HOST_MODATTR")
+		return 165;
+	if (name == "CHANGE_SVC_MODATTR")
+		return 166;
+	if (name == "CHANGE_CONTACT_MODATTR")
+		return 167;
+	if (name == "CHANGE_CONTACT_MODHATTR")
+		return 168;
+	if (name == "CHANGE_CONTACT_MODSATTR")
+		return 169;
+	if (name == "SYNC_STATE_INFORMATION")
+		return 170;
+	if (name == "DEL_DOWNTIME_BY_HOST_NAME")
+		return 171;
+	if (name == "DEL_DOWNTIME_BY_HOSTGROUP_NAME")
+		return 172;
+	if (name == "DEL_DOWNTIME_BY_START_TIME_COMMENT")
+		return 173;
+	if (name == "ACKNOWLEDGE_HOST_PROBLEM_EXPIRE")
+		return 174;
+	if (name == "ACKNOWLEDGE_SVC_PROBLEM_EXPIRE")
+		return 175;
+	if (name == "DISABLE_NOTIFICATIONS_EXPIRE_TIME")
+		return 176;
+	if (name == "CUSTOM_COMMAND")
+		return 999;
+
+	return 0;
+}

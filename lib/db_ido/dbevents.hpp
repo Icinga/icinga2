@@ -134,6 +134,8 @@ private:
 	static void EnableChangedHandlerInternal(const Checkable::Ptr& checkable, const String& fieldName, bool enabled);
 
 	static std::pair<unsigned long, unsigned long> ConvertTimestamp(double time);
+	static int MapNotificationReasonType(NotificationType type);
+	static int MapExternalCommandType(const String& name);
 };
 
 }
