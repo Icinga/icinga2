@@ -32,6 +32,7 @@
 #include "icinga/eventcommand.hpp"
 #include "icinga/externalcommandprocessor.hpp"
 #include "icinga/compatutility.hpp"
+#include "icinga/pluginutility.hpp"
 #include "icinga/icingaapplication.hpp"
 #include <boost/algorithm/string/join.hpp>
 
@@ -1411,7 +1412,7 @@ void DbEvents::AddCheckableCheckHistory(const Checkable::Ptr& checkable, const C
 	fields1->Set("return_code", cr->GetExitStatus());
 	fields1->Set("output", CompatUtility::GetCheckResultOutput(cr));
 	fields1->Set("long_output", CompatUtility::GetCheckResultLongOutput(cr));
-	fields1->Set("perfdata", CompatUtility::GetCheckResultPerfdata(cr));
+	fields1->Set("perfdata", PluginUtility::FormatPerfdata(cr->GetPerformanceData()));
 
 	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
 

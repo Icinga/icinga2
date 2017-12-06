@@ -29,6 +29,7 @@
 #include "icinga/macroprocessor.hpp"
 #include "icinga/icingaapplication.hpp"
 #include "icinga/compatutility.hpp"
+#include "icinga/pluginutility.hpp"
 #include "base/configtype.hpp"
 #include "base/objectlock.hpp"
 #include "base/json.hpp"
@@ -407,10 +408,10 @@ Value HostsTable::PerfDataAccessor(const Value& row)
 	String perfdata;
 	CheckResult::Ptr cr = host->GetLastCheckResult();
 
-	if (cr)
-		perfdata = CompatUtility::GetCheckResultPerfdata(cr);
+	if (!cr)
+		return Empty;
 
-	return perfdata;
+	return PluginUtility::FormatPerfdata(cr->GetPerformanceData());
 }
 
 Value HostsTable::IconImageAccessor(const Value& row)

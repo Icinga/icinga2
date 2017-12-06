@@ -28,6 +28,7 @@
 #include "icinga/eventcommand.hpp"
 #include "icinga/externalcommandprocessor.hpp"
 #include "icinga/compatutility.hpp"
+#include "icinga/pluginutility.hpp"
 #include "icinga/icingaapplication.hpp"
 #include "remote/endpoint.hpp"
 #include "base/convert.hpp"
@@ -114,7 +115,7 @@ Dictionary::Ptr ServiceDbObject::GetStatusFields() const
 	if (cr) {
 		fields->Set("output", CompatUtility::GetCheckResultOutput(cr));
 		fields->Set("long_output", CompatUtility::GetCheckResultLongOutput(cr));
-		fields->Set("perfdata", CompatUtility::GetCheckResultPerfdata(cr));
+		fields->Set("perfdata", PluginUtility::FormatPerfdata(cr->GetPerformanceData()));
 		fields->Set("check_source", cr->GetCheckSource());
 	}
 

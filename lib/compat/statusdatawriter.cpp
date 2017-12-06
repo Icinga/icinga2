@@ -28,6 +28,7 @@
 #include "icinga/timeperiod.hpp"
 #include "icinga/notificationcommand.hpp"
 #include "icinga/compatutility.hpp"
+#include "icinga/pluginutility.hpp"
 #include "icinga/dependency.hpp"
 #include "base/configtype.hpp"
 #include "base/objectlock.hpp"
@@ -366,13 +367,12 @@ void StatusDataWriter::DumpCheckableStatusAttrs(std::ostream& fp, const Checkabl
 	}
 
 	fp << "\t" "state_type=" << checkable->GetStateType() << "\n"
-		"\t" "plugin_output=" << CompatUtility::GetCheckResultOutput(cr) << "\n"
-		"\t" "long_plugin_output=" << CompatUtility::GetCheckResultLongOutput(cr) << "\n"
-		"\t" "performance_data=" << CompatUtility::GetCheckResultPerfdata(cr) << "\n";
+		"\t" "last_check=" << static_cast<long>(host->GetLastCheck()) << "\n";
 
 	if (cr) {
-		fp << "\t" << "check_source=" << cr->GetCheckSource() << "\n"
-			"\t" "last_check=" << static_cast<long>(cr->GetScheduleEnd()) << "\n";
+		fp << "\t" "plugin_output=" << CompatUtility::GetCheckResultOutput(cr) << "\n"
+			"\t" "long_plugin_output=" << CompatUtility::GetCheckResultLongOutput(cr) << "\n"
+			"\t" "performance_data=" << PluginUtility::FormatPerfdata(cr->GetPerformanceData()) << "\n"
 	}
 
 	fp << "\t" << "next_check=" << static_cast<long>(checkable->GetNextCheck()) << "\n"

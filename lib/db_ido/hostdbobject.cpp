@@ -29,6 +29,7 @@
 #include "icinga/checkcommand.hpp"
 #include "icinga/eventcommand.hpp"
 #include "icinga/compatutility.hpp"
+#include "icinga/pluginutility.hpp"
 #include "base/convert.hpp"
 #include "base/objectlock.hpp"
 #include "base/logger.hpp"
@@ -127,7 +128,7 @@ Dictionary::Ptr HostDbObject::GetStatusFields() const
 	if (cr) {
 		fields->Set("output", CompatUtility::GetCheckResultOutput(cr));
 		fields->Set("long_output", CompatUtility::GetCheckResultLongOutput(cr));
-		fields->Set("perfdata", CompatUtility::GetCheckResultPerfdata(cr));
+		fields->Set("perfdata", PluginUtility::FormatPerfdata(cr->GetPerformanceData()));
 		fields->Set("check_source", cr->GetCheckSource());
 	}
 

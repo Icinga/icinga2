@@ -485,14 +485,6 @@ String CompatUtility::GetCheckResultLongOutput(const CheckResult::Ptr& cr)
 	return Empty;
 }
 
-String CompatUtility::GetCheckResultPerfdata(const CheckResult::Ptr& cr)
-{
-	if (!cr)
-		return String();
-
-	return PluginUtility::FormatPerfdata(cr->GetPerformanceData());
-}
-
 String CompatUtility::EscapeString(const String& str)
 {
 	String result = str;
