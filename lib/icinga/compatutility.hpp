@@ -84,8 +84,6 @@ public:
 	static String GetCheckResultPerfdata(const CheckResult::Ptr& cr);
 
 	/* misc */
-	static std::pair<unsigned long, unsigned long> ConvertTimestamp(double time);
-
 	static int MapNotificationReasonType(NotificationType type);
 	static int MapExternalCommandType(const String& name);
 

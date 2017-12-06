@@ -132,6 +132,8 @@ private:
 	static void AddDowntimeInternal(std::vector<DbQuery>& queries, const Downtime::Ptr& downtime, bool historical);
 	static void RemoveDowntimeInternal(std::vector<DbQuery>& queries, const Downtime::Ptr& downtime);
 	static void EnableChangedHandlerInternal(const Checkable::Ptr& checkable, const String& fieldName, bool enabled);
+
+	static std::pair<unsigned long, unsigned long> ConvertTimestamp(double time);
 };
 
 }

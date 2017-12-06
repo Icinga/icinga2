@@ -507,14 +507,6 @@ String CompatUtility::UnEscapeString(const String& str)
 	return result;
 }
 
-std::pair<unsigned long, unsigned long> CompatUtility::ConvertTimestamp(double time)
-{
-	unsigned long time_sec = static_cast<long>(time);
-	unsigned long time_usec = (time - time_sec) * 1000 * 1000;
-
-	return std::make_pair(time_sec, time_usec);
-}
-
 int CompatUtility::MapNotificationReasonType(NotificationType type)
 {
 	switch (type) {

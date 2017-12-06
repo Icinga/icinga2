@@ -155,9 +155,8 @@ void DbEvents::FlappingChangedHandler(const Checkable::Ptr& checkable)
 
 void DbEvents::LastNotificationChangedHandler(const Notification::Ptr& notification, const Checkable::Ptr& checkable)
 {
-	double now = Utility::GetTime();
-	std::pair<unsigned long, unsigned long> now_bag = CompatUtility::ConvertTimestamp(now);
-	std::pair<unsigned long, unsigned long> time_bag = CompatUtility::ConvertTimestamp(notification->GetNextNotification());
+	std::pair<unsigned long, unsigned long> now_bag = ConvertTimestamp(Utility::GetTime());
+	std::pair<unsigned long, unsigned long> time_bag = ConvertTimestamp(notification->GetNextNotification());
 
 	Host::Ptr host;
 	Service::Ptr service;
@@ -411,8 +410,7 @@ void DbEvents::RemoveCommentInternal(std::vector<DbQuery>& queries, const Commen
 	queries.emplace_back(std::move(query1));
 
 	/* History - update deletion time for service/host */
-	double now = Utility::GetTime();
-	std::pair<unsigned long, unsigned long> time_bag = CompatUtility::ConvertTimestamp(now);
+	std::pair<unsigned long, unsigned long> time_bag = ConvertTimestamp(Utility::GetTime());
 
 	DbQuery query2;
 	query2.Table = "commenthistory";
@@ -490,7 +488,7 @@ void DbEvents::AddDowntimeInternal(std::vector<DbQuery>& queries, const Downtime
 
 	/* flexible downtimes are started at trigger time */
 	if (downtime->GetFixed()) {
-		std::pair<unsigned long, unsigned long> time_bag = CompatUtility::ConvertTimestamp(downtime->GetStartTime());
+		std::pair<unsigned long, unsigned long> time_bag = ConvertTimestamp(downtime->GetStartTime());
 		fields1->Set("actual_start_time", DbValue::FromTimestamp(time_bag.first));
 		fields1->Set("actual_start_time_usec", time_bag.second);
 		fields1->Set("was_started", ((downtime->GetStartTime() <= Utility::GetTime()) ? 1 : 0));
@@ -587,8 +585,7 @@ void DbEvents::RemoveDowntimeInternal(std::vector<DbQuery>& queries, const Downt
 	queries.emplace_back(std::move(query1));
 
 	/* History - update actual_end_time, was_cancelled for service (and host in case) */
-	double now = Utility::GetTime();
-	std::pair<unsigned long, unsigned long> time_bag = CompatUtility::ConvertTimestamp(now);
+	std::pair<unsigned long, unsigned long> time_bag = ConvertTimestamp(Utility::GetTime());
 
 	DbQuery query3;
 	query3.Table = "downtimehistory";
@@ -650,8 +647,7 @@ void DbEvents::TriggerDowntime(const Downtime::Ptr& downtime)
 {
 	Checkable::Ptr checkable = downtime->GetCheckable();
 
-	double now = Utility::GetTime();
-	std::pair<unsigned long, unsigned long> time_bag = CompatUtility::ConvertTimestamp(now);
+	std::pair<unsigned long, unsigned long> time_bag = ConvertTimestamp(Utility::GetTime());
 
 	/* Status */
 	DbQuery query1;
@@ -735,8 +731,7 @@ void DbEvents::AddAcknowledgementHistory(const Checkable::Ptr& checkable, const 
 	Log(LogDebug, "DbEvents")
 		<< "add acknowledgement history for '" << checkable->GetName() << "'";
 
-	double now = Utility::GetTime();
-	std::pair<unsigned long, unsigned long> time_bag = CompatUtility::ConvertTimestamp(now);
+	std::pair<unsigned long, unsigned long> time_bag = ConvertTimestamp(Utility::GetTime());
 
 	unsigned long end_time = static_cast<long>(expiry);
 
@@ -835,8 +830,7 @@ void DbEvents::AddNotificationHistory(const Notification::Ptr& notification, con
 		<< "add notification history for '" << checkable->GetName() << "'";
 
 	/* start and end happen at the same time */
-	double now = Utility::GetTime();
-	std::pair<unsigned long, unsigned long> time_bag = CompatUtility::ConvertTimestamp(now);
+	std::pair<unsigned long, unsigned long> time_bag = ConvertTimestamp(Utility::GetTime());
 
 	DbQuery query1;
 	query1.Table = "notifications";
@@ -916,7 +910,7 @@ void DbEvents::AddStateChangeHistory(const Checkable::Ptr& checkable, const Chec
 		<< "add state change history for '" << checkable->GetName() << "'";
 
 	double ts = cr->GetExecutionEnd();
-	std::pair<unsigned long, unsigned long> state_time_bag = CompatUtility::ConvertTimestamp(ts);
+	std::pair<unsigned long, unsigned long> state_time_bag = ConvertTimestamp(ts);
 
 	DbQuery query1;
 	query1.Table = "statehistory";
@@ -1252,8 +1246,7 @@ void DbEvents::AddLogHistory(const Checkable::Ptr& checkable, const String& buff
 	Log(LogDebug, "DbEvents")
 		<< "add log entry history for '" << checkable->GetName() << "'";
 
-	double now = Utility::GetTime();
-	std::pair<unsigned long, unsigned long> time_bag = CompatUtility::ConvertTimestamp(now);
+	std::pair<unsigned long, unsigned long> time_bag = ConvertTimestamp(Utility::GetTime());
 
 	DbQuery query1;
 	query1.Table = "logentries";
@@ -1286,8 +1279,7 @@ void DbEvents::AddFlappingChangedHistory(const Checkable::Ptr& checkable)
 	Log(LogDebug, "DbEvents")
 		<< "add flapping history for '" << checkable->GetName() << "'";
 
-	double now = Utility::GetTime();
-	std::pair<unsigned long, unsigned long> time_bag = CompatUtility::ConvertTimestamp(now);
+	std::pair<unsigned long, unsigned long> time_bag = ConvertTimestamp(Utility::GetTime());
 
 	DbQuery query1;
 	query1.Table = "flappinghistory";
@@ -1333,8 +1325,7 @@ void DbEvents::AddEnableFlappingChangedHistory(const Checkable::Ptr& checkable)
 	Log(LogDebug, "DbEvents")
 		<< "add flapping history for '" << checkable->GetName() << "'";
 
-	double now = Utility::GetTime();
-	std::pair<unsigned long, unsigned long> time_bag = CompatUtility::ConvertTimestamp(now);
+	std::pair<unsigned long, unsigned long> time_bag = ConvertTimestamp(Utility::GetTime());
 
 	DbQuery query1;
 	query1.Table = "flappinghistory";
@@ -1401,10 +1392,10 @@ void DbEvents::AddCheckableCheckHistory(const Checkable::Ptr& checkable, const C
 	fields1->Set("state_type", checkable->GetStateType());
 
 	double start = cr->GetExecutionStart();
-	std::pair<unsigned long, unsigned long> time_bag_start = CompatUtility::ConvertTimestamp(start);
+	std::pair<unsigned long, unsigned long> time_bag_start = ConvertTimestamp(start);
 
 	double end = cr->GetExecutionEnd();
-	std::pair<unsigned long, unsigned long> time_bag_end = CompatUtility::ConvertTimestamp(end);
+	std::pair<unsigned long, unsigned long> time_bag_end = ConvertTimestamp(end);
 
 	double execution_time = cr->CalculateExecutionTime();
 
@@ -1448,8 +1439,7 @@ void DbEvents::AddEventHandlerHistory(const Checkable::Ptr& checkable)
 	Log(LogDebug, "DbEvents")
 		<< "add eventhandler history for '" << checkable->GetName() << "'";
 
-	double now = Utility::GetTime();
-	std::pair<unsigned long, unsigned long> time_bag = CompatUtility::ConvertTimestamp(now);
+	std::pair<unsigned long, unsigned long> time_bag = ConvertTimestamp(Utility::GetTime());
 
 	DbQuery query1;
 	query1.Table = "eventhandlers";
@@ -1520,3 +1510,12 @@ void DbEvents::AddExternalCommandHistory(double time, const String& command, con
 	query1.Fields = fields1;
 	DbObject::OnQuery(query1);
 }
+
+std::pair<unsigned long, unsigned long> DbEvents::ConvertTimestamp(double time)
+{
+	unsigned long time_sec = static_cast<long>(time);
+	unsigned long time_usec = (time - time_sec) * 1000 * 1000;
+
+	return std::make_pair(time_sec, time_usec);
+}
+
