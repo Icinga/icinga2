@@ -21,12 +21,8 @@
 #define COMPATUTILITY_H
 
 #include "icinga/i2-icinga.hpp"
-#include "icinga/customvarobject.hpp"
 #include "icinga/host.hpp"
 #include "icinga/command.hpp"
-#include "base/dictionary.hpp"
-#include "base/array.hpp"
-#include <vector>
 
 namespace icinga
 {
