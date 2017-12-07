@@ -58,7 +58,6 @@
 #	include <VersionHelpers.h>
 #	include <windows.h>
 #	include <io.h>
-#	include <msi.h>
 #	include <shlobj.h>
 #endif /*_WIN32*/
 
@@ -1905,21 +1904,18 @@ int Utility::MksTemp(char *tmpl)
 
 String Utility::GetIcingaInstallPath(void)
 {
-	char szProduct[39];
+	char result[ MAX_PATH ];
 
-	for (int i = 0; MsiEnumProducts(i, szProduct) == ERROR_SUCCESS; i++) {
-		char szName[128];
-		DWORD cbName = sizeof(szName);
-		if (MsiGetProductInfo(szProduct, INSTALLPROPERTY_INSTALLEDPRODUCTNAME, szName, &cbName) != ERROR_SUCCESS)
-			continue;
+	/* Get the full path of the runnin executable */
+	std::string path = std::string( result, GetModuleFileName( NULL, result, MAX_PATH ) );
 
-		if (strcmp(szName, "Icinga 2") != 0)
-			continue;
+	/* Pattern that expects sbin\*.exe */
+	boost::regex pattern ("(.+\\\\)*(sbin.+)\.exe$");
+	boost::smatch installpath;
 
-		char szLocation[1024];
-		DWORD cbLocation = sizeof(szLocation);
-		if (MsiGetProductInfo(szProduct, INSTALLPROPERTY_INSTALLLOCATION, szLocation, &cbLocation) == ERROR_SUCCESS)
-			return szLocation;
+	if (boost::regex_search(path, installpath, pattern)) {
+		/* Return the string before sbin\*.exe */
+		return std::string(installpath[1]);
 	}
 
 	return "";

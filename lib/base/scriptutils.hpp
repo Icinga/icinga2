@@ -54,6 +54,7 @@ public:
 	static Array::Ptr GetObjects(const Type::Ptr& type);
 	static void Assert(const Value& arg);
 	static String MsiGetComponentPathShim(const String& component);
+	static String WindowsGetProgramPath(void);
 	static Array::Ptr TrackParents(const Object::Ptr& parent);
 	static double Ptr(const Object::Ptr& object);
 	static Value Glob(const std::vector<Value>& args);
