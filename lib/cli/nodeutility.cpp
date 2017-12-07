@@ -43,6 +43,11 @@
 
 using namespace icinga;
 
+String NodeUtility::GetConstantsConfPath(void)
+{
+	return Application::GetSysconfDir() + "/icinga2/constants.conf";
+}
+
 /*
  * Node Setup helpers
  */
@@ -240,7 +245,7 @@ bool NodeUtility::CreateBackupFile(const String& target, bool is_private)
 	String backup = target + ".orig";
 
 	if (Utility::PathExists(backup)) {
-		Log(LogWarning, "cli")
+		Log(LogInformation, "cli")
 		    << "Backup file '" << backup << "' already exists. Skipping backup.";
 		return false;
 	}
@@ -283,16 +288,18 @@ void NodeUtility::SerializeObject(std::ostream& fp, const Dictionary::Ptr& objec
 
 void NodeUtility::UpdateConstant(const String& name, const String& value)
 {
-	String constantsFile = Application::GetSysconfDir() + "/icinga2/constants.conf";
-
-	std::ifstream ifp(constantsFile.CStr());
-	std::fstream ofp;
-	String tempFile = Utility::CreateTempFile(constantsFile + ".XXXXXX", 0644, ofp);
-
-	bool found = false;
+	String constantsConfPath = NodeUtility::GetConstantsConfPath();
 
 	Log(LogInformation, "cli")
-	    << "Updating constants file '" << constantsFile << "'.";
+	    << "Updating '" << name << "' constant in '" << constantsConfPath << "'.";
+
+	NodeUtility::CreateBackupFile(constantsConfPath);
+
+	std::ifstream ifp(constantsConfPath.CStr());
+	std::fstream ofp;
+	String tempFile = Utility::CreateTempFile(constantsConfPath + ".XXXXXX", 0644, ofp);
+
+	bool found = false;
 
 	std::string line;
 	while (std::getline(ifp, line)) {
@@ -310,13 +317,13 @@ void NodeUtility::UpdateConstant(const String& name, const String& value)
 	ofp.close();
 
 #ifdef _WIN32
-	_unlink(constantsFile.CStr());
+	_unlink(constantsConfPath.CStr());
 #endif /* _WIN32 */
 
-	if (rename(tempFile.CStr(), constantsFile.CStr()) < 0) {
+	if (rename(tempFile.CStr(), constantsConfPath.CStr()) < 0) {
 		BOOST_THROW_EXCEPTION(posix_error()
 			<< boost::errinfo_api_function("rename")
 			<< boost::errinfo_errno(errno)
-			<< boost::errinfo_file_name(constantsFile));
+			<< boost::errinfo_file_name(constantsConfPath));
 	}
 }

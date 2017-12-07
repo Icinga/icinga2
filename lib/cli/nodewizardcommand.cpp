@@ -507,12 +507,6 @@ wizard_ticket:
 		    << Utility::GetFQDN() << "'. Requires update for NodeName constant in constants.conf!";
 	}
 
-	Log(LogInformation, "cli", "Updating constants.conf.");
-
-	String constants_file = Application::GetSysconfDir() + "/icinga2/constants.conf";
-
-	NodeUtility::CreateBackupFile(constants_file);
-
 	NodeUtility::UpdateConstant("NodeName", cn);
 	NodeUtility::UpdateConstant("ZoneName", cn);
 
@@ -659,12 +653,6 @@ int NodeWizardCommand::MasterSetup(void) const
 		    << "CN '" << cn << "' does not match the default FQDN '"
 		    << Utility::GetFQDN() << "'. Requires an update for the NodeName constant in constants.conf!";
 	}
-
-	Log(LogInformation, "cli", "Updating constants.conf.");
-
-	String constants_file = Application::GetSysconfDir() + "/icinga2/constants.conf";
-
-	NodeUtility::CreateBackupFile(constants_file);
 
 	NodeUtility::UpdateConstant("NodeName", cn);
 	NodeUtility::UpdateConstant("ZoneName", cn);

@@ -54,6 +54,9 @@ bool ApiSetupUtility::SetupMaster(const String& cn, bool prompt_restart)
 	if (!SetupMasterEnableApi())
 		return false;
 
+	if (!SetupMasterUpdateConstants(cn))
+		return false;
+
 	if (prompt_restart) {
 		std::cout << "Done.\n\n";
 		std::cout << "Now restart your Icinga 2 daemon to finish the installation!\n\n";
@@ -195,4 +198,10 @@ bool ApiSetupUtility::SetupMasterEnableApi(void)
 	FeatureUtility::EnableFeatures({ "api" });
 
 	return true;
+}
+
+bool ApiSetupUtility::SetupMasterUpdateConstants(const String& cn)
+{
+	NodeUtility::UpdateConstant("NodeName", cn);
+	NodeUtility::UpdateConstant("ZoneName", cn);
 }
