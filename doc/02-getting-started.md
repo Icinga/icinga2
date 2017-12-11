@@ -869,11 +869,31 @@ for further instructions on how to install Icinga Web 2.
 The Icinga 2 API can be defined as [command transport](https://www.icinga.com/docs/icingaweb2/latest/modules/monitoring/doc/05-Command-Transports/)
 in Icinga Web 2 >= 2.4.
 
+## Setting up Icinga Classic UI <a id="setting-up-classicui"></a>
+Although the installation of [Icinga Web 2](https://www.icinga.com/docs/icingaweb2/latest/doc/02-Installation/) is nowadays the recommended 
+user interface, the classic user interface is still available and still works with current Icinga2 packages. 
+
+Before you install the package for the classic ui, make sure you have Apache2 web server installed and that the user 
+running the web server (e.g. www-data or wwwrun) is member of the nagios group. 
+
+Debian/Ubuntu:
+
+    # sudo usermod -a -G nagios www-data 
+    # sudo service apache2 restart
+    # sudo apt-get install icinga2-classicui
+
+During the installation an admin user will be created using http basic authentication (default path: /etc/icinga2-classicui/htpasswd.users). 
+After the installation is finished, you can access the classic user interface on your monitoring servers IP/DNS 
+and URI path "/icinga2-classicui", e.g. "http://icinga2.example.com/icinga2-classicui".
+
+
 ## Addons <a id="install-addons"></a>
 
 A number of additional features are available in the form of addons. A list of
 popular addons is available in the
 [Addons and Plugins](13-addons.md#addons) chapter.
+
+
 
 ## Backup <a id="install-backup"></a>
 
