@@ -204,4 +204,6 @@ bool ApiSetupUtility::SetupMasterUpdateConstants(const String& cn)
 {
 	NodeUtility::UpdateConstant("NodeName", cn);
 	NodeUtility::UpdateConstant("ZoneName", cn);
+
+	return true;
 }
