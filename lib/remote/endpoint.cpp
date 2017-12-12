@@ -35,7 +35,7 @@ boost::signals2::signal<void(const Endpoint::Ptr&, const JsonRpcConnection::Ptr&
 boost::signals2::signal<void(const Endpoint::Ptr&, const JsonRpcConnection::Ptr&)> Endpoint::OnDisconnected;
 
 Endpoint::Endpoint(void)
-    : m_MessagesSent(60), m_BytesSent(60), m_MessagesReceived(60), m_BytesReceived(60)
+    : m_MessagesSent(60), m_MessagesReceived(60), m_BytesSent(60), m_BytesReceived(60)
 { }
 
 void Endpoint::OnAllConfigLoaded(void)
