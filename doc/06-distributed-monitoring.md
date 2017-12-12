@@ -207,7 +207,7 @@ ensure to collect the required information:
 The setup wizard will ensure that the following steps are taken:
 
 * Enable the `api` feature.
-* Generate a new certificate authority (CA) in `/var/lib/icinga2/ca` if it doesn't exist.
+* Generate a new certificate authority (CA) in `/var/lib/icinga2/certs` if it doesn't exist.
 * Create a certificate for this node signed by the CA key.
 * Update the [zones.conf](04-configuring-icinga-2.md#zones-conf) file with the new zone hierarchy.
 * Update the [ApiListener](06-distributed-monitoring.md#distributed-monitoring-apilistener) and [constants](04-configuring-icinga-2.md#constants-conf) configuration.
