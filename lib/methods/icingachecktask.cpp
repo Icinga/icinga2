@@ -100,6 +100,36 @@ void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& service, const CheckResul
 	perfdata->Add(new PerfdataValue("num_hosts_in_downtime", hs.hosts_in_downtime));
 	perfdata->Add(new PerfdataValue("num_hosts_acknowledged", hs.hosts_acknowledged));
 
+	std::vector<Endpoint::Ptr> endpoints = ConfigType::GetObjectsByType<Endpoint>();
+
+	double lastMessageSent = 0;
+	double lastMessageReceived = 0;
+	double messagesSentPerSecond = 0;
+	double messagesReceivedPerSecond = 0;
+	double bytesSentPerSecond = 0;
+	double bytesReceivedPerSecond = 0;
+
+	for (Endpoint::Ptr endpoint : endpoints)
+	{
+		if (endpoint->GetLastMessageSent() > lastMessageSent)
+			lastMessageSent = endpoint->GetLastMessageSent();
+
+		if (endpoint->GetLastMessageReceived() > lastMessageReceived)
+			lastMessageReceived = endpoint->GetLastMessageReceived();
+
+		messagesSentPerSecond += endpoint->GetMessagesSentPerSecond();
+		messagesReceivedPerSecond += endpoint->GetMessagesReceivedPerSecond();
+		bytesSentPerSecond += endpoint->GetBytesSentPerSecond();
+		bytesReceivedPerSecond += endpoint->GetBytesReceivedPerSecond();
+	}
+
+	perfdata->Add(new PerfdataValue("last_messages_sent", lastMessageSent));
+	perfdata->Add(new PerfdataValue("last_messages_received", lastMessageReceived));
+	perfdata->Add(new PerfdataValue("sum_messages_sent_per_second", messagesSentPerSecond));
+	perfdata->Add(new PerfdataValue("sum_messages_received_per_second", messagesReceivedPerSecond));
+	perfdata->Add(new PerfdataValue("sum_bytes_sent_per_second", bytesSentPerSecond));
+	perfdata->Add(new PerfdataValue("sum_bytes_received_per_second", bytesReceivedPerSecond));
+
 	cr->SetOutput("Icinga 2 has been running for " + Utility::FormatDuration(uptime) +
 	    ". Version: " + Application::GetAppVersion());
 	cr->SetPerformanceData(perfdata);

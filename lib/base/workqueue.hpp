@@ -93,7 +93,7 @@ public:
 	bool IsWorkerThread(void) const;
 
 	size_t GetLength(void) const;
-	int GetTaskCount(RingBuffer::SizeType span) const;
+	int GetTaskCount(RingBuffer::SizeType span);
 
 	void SetExceptionCallback(const ExceptionCallback& callback);
 

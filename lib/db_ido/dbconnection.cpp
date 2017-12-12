@@ -473,10 +473,10 @@ void DbConnection::IncreaseQueryCount(void)
 	m_QueryStats.InsertValue(now, 1);
 }
 
-int DbConnection::GetQueryCount(RingBuffer::SizeType span) const
+int DbConnection::GetQueryCount(RingBuffer::SizeType span)
 {
 	boost::mutex::scoped_lock lock(m_StatsMutex);
-	return m_QueryStats.GetValues(span);
+	return m_QueryStats.UpdateAndGetValues(Utility::GetTime(), span);
 }
 
 bool DbConnection::IsIDCacheValid(void) const

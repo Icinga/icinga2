@@ -295,8 +295,8 @@ void WorkQueue::IncreaseTaskCount(void)
 	m_TaskStats.InsertValue(now, 1);
 }
 
-int WorkQueue::GetTaskCount(RingBuffer::SizeType span) const
+int WorkQueue::GetTaskCount(RingBuffer::SizeType span)
 {
 	boost::mutex::scoped_lock lock(m_StatsMutex);
-	return m_TaskStats.GetValues(span);
+	return m_TaskStats.UpdateAndGetValues(Utility::GetTime(), span);
 }

@@ -45,6 +45,25 @@ class Endpoint : ConfigObject
 	[no_user_modify, no_storage] bool connected {
 		get;
 	};
+
+	Timestamp last_message_sent;
+	Timestamp last_message_received;
+
+	[no_user_modify, no_storage] double messages_sent_per_second {
+		get;
+	};
+
+	[no_user_modify, no_storage] double messages_received_per_second {
+		get;
+	};
+
+	[no_user_modify, no_storage] double bytes_sent_per_second {
+		get;
+	};
+
+	[no_user_modify, no_storage] double bytes_received_per_second {
+		get;
+	};
 };
 
 }

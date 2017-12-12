@@ -34,6 +34,10 @@ REGISTER_TYPE(Endpoint);
 boost::signals2::signal<void(const Endpoint::Ptr&, const JsonRpcConnection::Ptr&)> Endpoint::OnConnected;
 boost::signals2::signal<void(const Endpoint::Ptr&, const JsonRpcConnection::Ptr&)> Endpoint::OnDisconnected;
 
+Endpoint::Endpoint(void)
+    : m_MessagesSent(60), m_BytesSent(60), m_MessagesReceived(60), m_BytesReceived(60)
+{ }
+
 void Endpoint::OnAllConfigLoaded(void)
 {
 	ObjectImpl<Endpoint>::OnAllConfigLoaded();
@@ -116,4 +120,40 @@ Endpoint::Ptr Endpoint::GetLocalEndpoint(void)
 		return nullptr;
 
 	return listener->GetLocalEndpoint();
+}
+
+void Endpoint::AddMessageSent(int bytes)
+{
+	double time = Utility::GetTime();
+	m_MessagesSent.InsertValue(time, 1);
+	m_BytesSent.InsertValue(time, bytes);
+	SetLastMessageSent(time);
+}
+
+void Endpoint::AddMessageReceived(int bytes)
+{
+	double time = Utility::GetTime();
+	m_MessagesReceived.InsertValue(time, 1);
+	m_BytesReceived.InsertValue(time, bytes);
+	SetLastMessageReceived(time);
+}
+
+double Endpoint::GetMessagesSentPerSecond(void) const
+{
+	return m_MessagesSent.CalculateRate(Utility::GetTime(), 60);
+}
+
+double Endpoint::GetMessagesReceivedPerSecond(void) const
+{
+	return m_MessagesReceived.CalculateRate(Utility::GetTime(), 60);
+}
+
+double Endpoint::GetBytesSentPerSecond(void) const
+{
+	return m_BytesSent.CalculateRate(Utility::GetTime(), 60);
+}
+
+double Endpoint::GetBytesReceivedPerSecond(void) const
+{
+	return m_BytesReceived.CalculateRate(Utility::GetTime(), 60);
 }

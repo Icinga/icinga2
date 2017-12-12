@@ -1144,7 +1144,8 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 				}
 
 				try  {
-					NetString::WriteStringToStream(client->GetStream(), pmessage->Get("message"));
+					size_t bytesSent = NetString::WriteStringToStream(client->GetStream(), pmessage->Get("message"));
+					endpoint->AddMessageSent(bytesSent);
 					count++;
 				} catch (const std::exception& ex) {
 					Log(LogWarning, "ApiListener")
@@ -1169,7 +1170,8 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 					lmessage->Set("method", "log::SetLogPosition");
 					lmessage->Set("params", lparams);
 
-					JsonRpc::SendMessage(client->GetStream(), lmessage);
+					size_t bytesSent = JsonRpc::SendMessage(client->GetStream(), lmessage);
+					endpoint->AddMessageSent(bytesSent);
 				}
 			}
 
