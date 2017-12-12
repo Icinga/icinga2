@@ -20,10 +20,11 @@
 #include <Shlwapi.h>
 #include <iostream>
 #include <math.h>
-#include <boost/foreach.hpp>
-#include <boost/bind.hpp>
+#include <functional>
 
 #include "check_disk.h"
+
+using namespace std::placeholders;
 
 #define VERSION 1.1
 
@@ -359,7 +360,7 @@ static INT check_drives(std::vector<drive>& vDrives, std::vector<std::wstring>& 
 		if (debug)
 			std::wcout << "Removing excluded drives\n";
 
-		BOOST_FOREACH(const std::wstring wsDriveName, vExclude_Drives)
+		for (const std::wstring& wsDriveName : vExclude_Drives)
 		{
 			vDrives.erase(std::remove_if(vDrives.begin(), vDrives.end(), 
 			    std::bind(checkName, _1, wsDriveName + L'\\')), vDrives.end());
@@ -379,7 +380,7 @@ static INT check_drives(std::vector<drive>& vDrives, printInfoStruct& printInfo)
 	if (!printInfo.exclude_drives.empty()) {
 		if (debug)
 			std::wcout << "Removing excluded drives from user input drives\n";
-		BOOST_FOREACH(std::wstring wsDrive, printInfo.exclude_drives)
+		for (std::wstring& wsDrive : printInfo.exclude_drives)
 		{
 			printInfo.drives.erase(std::remove(printInfo.drives.begin(), printInfo.drives.end(), wsDrive),
 			    printInfo.drives.end());
