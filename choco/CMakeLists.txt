@@ -24,6 +24,6 @@ if(WIN32)
   add_custom_target(choco-pkg ALL
     COMMAND choco pack
     COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_CURRENT_BINARY_DIR}/icinga2.${SPEC_VERSION}.nupkg ${CMAKE_CURRENT_BINARY_DIR}/icinga2.nupkg
-    DEPENDS icinga2.nuspec ${CMAKE_CURRENT_BINARY_DIR}/chocolateyInstall.ps1 chocolateyUninstall.ps1
+    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/icinga2.nuspec ${CMAKE_CURRENT_BINARY_DIR}/chocolateyInstall.ps1 chocolateyUninstall.ps1
   )
 endif()

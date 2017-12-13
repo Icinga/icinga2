@@ -141,8 +141,12 @@ set(icinga_checkable_test_SOURCES
     icinga-checkable-flapping.cpp
 )
 
+if(ICINGA2_UNITY_BUILD)
+    mkunity_target(icinga_checkable test icinga_checkable_test_SOURCES)
+endif()
+
 add_boost_test(icinga_checkable
-  SOURCES icinga-checkable-test.cpp ${icinga_checkable_test_SOURCES}
+  SOURCES test-runner.cpp icinga-checkable-test.cpp ${icinga_checkable_test_SOURCES}
   LIBRARIES base config icinga cli
   TESTS icinga_checkable_flapping/host_not_flapping
         icinga_checkable_flapping/host_flapping

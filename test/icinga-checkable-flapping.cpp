@@ -17,10 +17,10 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include <boost/test/unit_test.hpp>
-#include <bitset>
 #include "icinga/host.hpp"
+#include <bitset>
 #include <iostream>
+#include <BoostTestTargetConfig.h>
 
 using namespace icinga;
 
@@ -48,7 +48,7 @@ static void LogFlapping(const Checkable::Ptr& obj)
 	int oldestIndex = (obj->GetFlappingBuffer() & 0xFF00000) >> 20;
 
     std::cout << "Flapping: " << obj->IsFlapping() << "\nHT: " << obj->GetFlappingThresholdHigh() << " LT: " << obj->GetFlappingThresholdLow()
-       << "\nOur value: " << obj->GetFlappingCurrent() << "\nPtr: " << oldestIndex << " Buf: " << stateChangeBuf << '\n';
+       << "\nOur value: " << obj->GetFlappingCurrent() << "\nPtr: " << oldestIndex << " Buf: " << stateChangeBuf.to_ulong() << '\n';
 }
 
 
