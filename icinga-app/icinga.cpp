@@ -106,7 +106,7 @@ static int Main(void)
 
 		try {
 			autoindex = Convert::ToLong(argv[2]);
-		} catch (const std::invalid_argument& ex) {
+		} catch (const std::invalid_argument&) {
 			Log(LogCritical, "icinga-app")
 			    << "Invalid index for --autocomplete: " << argv[2];
 			return EXIT_FAILURE;

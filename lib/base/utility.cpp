@@ -1780,7 +1780,7 @@ String Utility::CreateTempFile(const String& path, int mode, std::fstream& fp)
 
 	try {
 		fp.open(&targetPath[0], std::ios_base::trunc | std::ios_base::out);
-	} catch (const std::fstream::failure& e) {
+	} catch (const std::fstream::failure&) {
 		close(fd);
 		throw;
 	}

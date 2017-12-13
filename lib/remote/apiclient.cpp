@@ -48,7 +48,7 @@ void ApiClient::GetTypes(const TypesCompletionCallback& callback) const
 		req->AddHeader("Authorization", "Basic " + Base64::Encode(m_User + ":" + m_Password));
 		req->AddHeader("Accept", "application/json");
 		m_Connection->SubmitRequest(req, std::bind(TypesHttpCompletionCallback, _1, _2, callback));
-	} catch (const std::exception& ex) {
+	} catch (const std::exception&) {
 		callback(boost::current_exception(), std::vector<ApiType::Ptr>());
 	}
 }
@@ -133,7 +133,7 @@ void ApiClient::GetObjects(const String& pluralType, const ObjectsCompletionCall
 		req->AddHeader("Authorization", "Basic " + Base64::Encode(m_User + ":" + m_Password));
 		req->AddHeader("Accept", "application/json");
 		m_Connection->SubmitRequest(req, std::bind(ObjectsHttpCompletionCallback, _1, _2, callback));
-	} catch (const std::exception& ex) {
+	} catch (const std::exception&) {
 		callback(boost::current_exception(), std::vector<ApiObject::Ptr>());
 	}
 }
@@ -242,7 +242,7 @@ void ApiClient::ExecuteScript(const String& session, const String& command, bool
 		req->AddHeader("Authorization", "Basic " + Base64::Encode(m_User + ":" + m_Password));
 		req->AddHeader("Accept", "application/json");
 		m_Connection->SubmitRequest(req, std::bind(ExecuteScriptHttpCompletionCallback, _1, _2, callback));
-	} catch (const std::exception& ex) {
+	} catch (const std::exception&) {
 		callback(boost::current_exception(), Empty);
 	}
 }

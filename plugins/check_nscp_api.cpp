@@ -146,7 +146,7 @@ static int FormatOutput(const Dictionary::Ptr& result)
 	Dictionary::Ptr payload;
 	try {
 		payload = payloads->Get(0);
-	} catch (const std::exception& ex) {
+	} catch (const std::exception&) {
 		std::cout << "UNKNOWN: Answer format error: 'payload' was not a Dictionary.\n";
 		return 3;
 	}
@@ -171,7 +171,7 @@ static int FormatOutput(const Dictionary::Ptr& result)
 		Dictionary::Ptr line;
 		try {
 			line = vline;
-		} catch (const std::exception& ex) {
+		} catch (const std::exception&) {
 			std::cout << "UNKNOWN: Answer format error: 'lines' entry was not a Dictionary.\n";
 			return 3;
 		}

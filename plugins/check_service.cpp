@@ -255,7 +255,7 @@ DWORD ServiceStatus(CONST printInfoStruct& printInfo)
 {
 	SC_HANDLE hSCM;
 	SC_HANDLE hService;
-	DWORD cbBufSize, lpServicesReturned, pcbBytesNeeded;
+	DWORD cbBufSize;
 	DWORD lpResumeHandle = 0;
 	LPBYTE lpBuf = NULL;
 
