@@ -126,9 +126,7 @@ INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& p
 
 	printInfo.service = vm["service"].as<std::wstring>();
 
-	if (vm.count("warn")) {
-		printInfo.warn = true;
-	}
+	printInfo.warn = vm.count("warn");
 
 	if (vm.count("D"))
 		debug = TRUE;
@@ -157,10 +155,10 @@ INT printOutput(CONST printInfoStruct& printInfo)
 		std::wcout << L"SERVICE \"" << printInfo.service << "\" OK RUNNING | service=4;;;1;7" << '\n';
 		break;
 	case WARNING:
-		std::wcout << L"SERVICE \"" << printInfo.service << "\"WARNING NOT RUNNING | service=" << printInfo.ServiceState << ";;;1;7" << '\n';
+		std::wcout << L"SERVICE \"" << printInfo.service << "\" WARNING NOT RUNNING | service=" << printInfo.ServiceState << ";;;1;7" << '\n';
 		break;
 	case CRITICAL:
-		std::wcout << L"SERVICE \"" << printInfo.service << "\"CRITICAL NOT RUNNING | service=" << printInfo.ServiceState << ";;;1;7" << '\n';
+		std::wcout << L"SERVICE \"" << printInfo.service << "\" CRITICAL NOT RUNNING | service=" << printInfo.ServiceState << ";;;1;7" << '\n';
 		break;
 	}
 
