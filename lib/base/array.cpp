@@ -207,12 +207,12 @@ Array::Ptr Array::ShallowClone(void) const
 Object::Ptr Array::Clone(void) const
 {
 	Array::Ptr arr = new Array();
-	
+
 	ObjectLock olock(this);
 	for (const Value& val : m_Data) {
 		arr->Add(val.Clone());
 	}
-	
+
 	return arr;
 }
 

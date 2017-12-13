@@ -40,7 +40,7 @@ INT wmain(INT argc, WCHAR **argv)
 	INT ret = parseArguments(argc, argv, vm, printInfo);
 	if (ret != -1)
 		return ret;
-	
+
 	ret = check_update(printInfo);
 	if (ret != -1)
 		return ret;

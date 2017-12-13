@@ -1182,7 +1182,7 @@ void DbEvents::AddFlappingChangedLogHistory(const Checkable::Ptr& checkable)
 {
 	String flapping_state_str;
 	String flapping_output;
-	
+
 	if (checkable->IsFlapping()) {
 		flapping_output = "Service appears to have started flapping (" + Convert::ToString(checkable->GetFlappingCurrent()) + "% change >= " + Convert::ToString(checkable->GetFlappingThresholdHigh()) + "% threshold)";
 		flapping_state_str = "STARTED";
@@ -1219,7 +1219,7 @@ void DbEvents::AddEnableFlappingChangedLogHistory(const Checkable::Ptr& checkabl
 {
 	if (!checkable->GetEnableFlapping())
 		return;
-		
+
 	String flapping_output = "Flap detection has been disabled";
 	String flapping_state_str = "DISABLED";
 
@@ -1348,7 +1348,7 @@ void DbEvents::AddEnableFlappingChangedHistory(const Checkable::Ptr& checkable)
 
 	if (!checkable->GetEnableFlapping())
 		return;
-		
+
 	fields1->Set("event_type", 1001);
 	fields1->Set("reason_type", 2);
 

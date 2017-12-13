@@ -122,7 +122,7 @@ std::wstring threshold::pString(CONST DOUBLE max)
 		.append(upperStr).append(L"]");
 	} else 
 		s.append(lowerStr);
-	
+
 	return s;
 }
 

@@ -68,10 +68,10 @@ void CompatLogger::Start(bool runtimeCreated)
 	Downtime::OnDowntimeTriggered.connect(std::bind(&CompatLogger::TriggerDowntimeHandler, this, _1));
 	Downtime::OnDowntimeRemoved.connect(std::bind(&CompatLogger::RemoveDowntimeHandler, this, _1));
 	Checkable::OnEventCommandExecuted.connect(std::bind(&CompatLogger::EventCommandHandler, this, _1));
-	
+
 	Checkable::OnFlappingChanged.connect(std::bind(&CompatLogger::FlappingChangedHandler, this, _1));
 	Checkable::OnEnableFlappingChanged.connect(std::bind(&CompatLogger::EnableFlappingChangedHandler, this, _1));
-	
+
 	ExternalCommandProcessor::OnNewExternalCommand.connect(std::bind(&CompatLogger::ExternalCommandHandler, this, _2, _3));
 
 	m_RotationTimer = new Timer();
@@ -315,7 +315,7 @@ void CompatLogger::FlappingChangedHandler(const Checkable::Ptr& checkable)
 
 	String flapping_state_str;
 	String flapping_output;
-	
+
 	if (checkable->IsFlapping()) {
 		flapping_output = "Checkable appears to have started flapping (" + Convert::ToString(checkable->GetFlappingCurrent()) + "% change >= " + Convert::ToString(checkable->GetFlappingThresholdHigh()) + "% threshold)";
 		flapping_state_str = "STARTED";
@@ -356,7 +356,7 @@ void CompatLogger::EnableFlappingChangedHandler(const Checkable::Ptr& checkable)
 
 	if (checkable->GetEnableFlapping())
 		return;
-		
+
 	String flapping_output = "Flap detection has been disabled";
 	String flapping_state_str = "DISABLED";
 

@@ -132,7 +132,7 @@ INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& p
 
 	if (vm.count("D"))
 		debug = TRUE;
-	
+
 	return -1;
 }
 
@@ -269,7 +269,7 @@ DWORD ServiceStatus(CONST printInfoStruct& printInfo)
 	hService = OpenService(hSCM, printInfo.service.c_str(), SERVICE_QUERY_STATUS);
 	if (hService == NULL)
 		goto die;
-	
+
 	QueryServiceStatusEx(hService, SC_STATUS_PROCESS_INFO, NULL, 0, &cbBufSize);
 	if (GetLastError() != ERROR_INSUFFICIENT_BUFFER)
 		goto die;

@@ -134,7 +134,7 @@ public:
 #endif /* I2_DEBUG */
 
 	static Object::Ptr GetPrototype(void);
-	
+
 	virtual Object::Ptr Clone(void) const;
 
 	static intrusive_ptr<Type> TypeInstance;

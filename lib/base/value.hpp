@@ -280,7 +280,7 @@ public:
 	String GetTypeName(void) const;
 
 	Type::Ptr GetReflectionType(void) const;
-	
+
 	Value Clone(void) const;
 
 	template<typename T>

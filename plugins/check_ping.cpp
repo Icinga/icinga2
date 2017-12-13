@@ -454,7 +454,7 @@ INT check_ping6(CONST printInfoStruct& pi, response& response)
 				std::wcout << L"Dropped: echo reply status " << pEchoReply->Status << '\n';
 			continue;
 		}
-		
+
 		rtt += pEchoReply->RoundTripTime;
 
 		if (debug)

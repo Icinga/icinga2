@@ -103,7 +103,7 @@ public:
 	virtual Value GetField(int id) const override;
 
 	virtual std::vector<String> GetLoadDependencies(void) const;
-	
+
 	typedef std::function<void (const Object::Ptr&, const Value&)> AttributeHandler;
 	virtual void RegisterAttributeHandler(int fieldId, const AttributeHandler& callback);
 
@@ -125,7 +125,7 @@ public:
 	virtual int GetFieldId(const String& name) const override;
 	virtual Field GetFieldInfo(int id) const override;
 	virtual int GetFieldCount(void) const override;
-	
+
 	static Object::Ptr GetPrototype(void);
 
 protected:
