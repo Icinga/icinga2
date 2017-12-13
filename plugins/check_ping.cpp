@@ -119,9 +119,9 @@ INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& p
 		wprintf(
 			L"\nIt will take at least timeout times number of pings to run\n"
 			L"Then it will output a string looking something like this:\n\n"
-			L"\tPING WARNING RTA: 72ms Packet loss: 20% | ping=72ms;40;80;71;77 pl=20%;20;50;0;100\n\n"
+			L"\tPING WARNING RTA: 72ms Packet loss: 20%% | ping=72ms;40;80;71;77 pl=20%%;20;50;0;100\n\n"
 			L"\"PING\" being the type of the check, \"WARNING\" the returned status\n"
-			L"and \"RTA: 72ms Packet loss: 20%\" the relevant information.\n"
+			L"and \"RTA: 72ms Packet loss: 20%%\" the relevant information.\n"
 			L"The performance data is found behind the \"|\", in order:\n"
 			L"returned value, warning threshold, critical threshold, minimal value and,\n"
 			L"if applicable, the maximal value. \n\n"
@@ -145,8 +145,8 @@ INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& p
 			L"Does nothing if the plugin does not accept percentages, or only uses\n"
 			L"percentage thresholds. Ranges can be used with \"%%\", but both range values need\n"
 			L"to end with a percentage sign.\n\n"
-			L"All of these options work with the critical threshold \"-c\" too."
-			, progName);
+			L"All of these options work with the critical threshold \"-c\" too.",
+			progName);
 		std::cout << '\n';
 		return 0;
 	}

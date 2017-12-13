@@ -684,14 +684,15 @@ static int SetupService(bool install, int argc, char **argv)
 			return 1;
 		}
 
-		printf("Service successfully installed for user '%s'\n", scmUser);
+		std::cout << "Service successfully installed for user '" << scmUser << "'\n";
 
-		std::ofstream fuser(Utility::GetIcingaDataPath() + "\\etc\\icinga2\\user", std::ios::out | std::ios::trunc);
+		String userFilePath = Utility::GetIcingaDataPath() + "\\etc\\icinga2\\user";
+
+		std::ofstream fuser(userFilePath.CStr(), std::ios::out | std::ios::trunc);
 		if (fuser)
 			fuser << scmUser;
 		else
-			printf("Could not write user to %s\\etc\\icinga2\\user", Utility::GetIcingaDataPath());
-		fuser.close();
+			std::cout << "Could not write user to " << userFilePath << "\n";
 	}
 
 	CloseServiceHandle(schService);
