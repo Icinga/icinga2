@@ -77,14 +77,33 @@ void LivestatusLogUtility::CreateLogCache(std::map<time_t, String> index, Histor
     time_t from, time_t until, const AddRowFunction& addRowFn)
 {
 	ASSERT(table);
-
+	
 	/* m_LogFileIndex map tells which log files are involved ordered by their start timestamp */
 	unsigned long line_count = 0;
-	for (const auto& kv : index) {
+
+	//protect against endless loops
+	if (index.empty())
+		return;
+
+	//need foran iterator pointing last index element
+	std::map<time_t, String>::const_iterator last = index.end();
+	--last;
+
+	for ( std::map<time_t, String>::const_iterator iter = index.begin() ; iter !=index.end() ; ++iter) {
+		const std::pair<time_t, String>& kv = *iter;
 		unsigned int ts = kv.first;
+		unsigned int ets;
+
+		/* using previous next start as end of this log or now if last entry, aka current log*/
+		if ( iter == last ) {
+			ets=Utility::GetTime();
+		} else {
+			const auto& nkv = *std::next(iter,1);
+			ets = nkv.first;
+		}
 
 		/* skip log files not in range (performance optimization) */
-		if (ts < from || ts > until)
+		if (ets < from || ts > until)
 			continue;
 
 		String log_file = index[ts];
