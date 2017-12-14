@@ -294,7 +294,7 @@ void ApiClient::ExecuteScriptHttpCompletionCallback(HttpRequest& request,
 		}
 
 		callback(boost::exception_ptr(), result);
-	} catch (const std::exception& ex) {
+	} catch (const std::exception&) {
 		callback(boost::current_exception(), Empty);
 	}
 }
@@ -321,7 +321,7 @@ void ApiClient::AutocompleteScript(const String& session, const String& command,
 		req->AddHeader("Authorization", "Basic " + Base64::Encode(m_User + ":" + m_Password));
 		req->AddHeader("Accept", "application/json");
 		m_Connection->SubmitRequest(req, std::bind(AutocompleteScriptHttpCompletionCallback, _1, _2, callback));
-	} catch (const std::exception& ex) {
+	} catch (const std::exception&) {
 		callback(boost::current_exception(), nullptr);
 	}
 }
@@ -362,7 +362,7 @@ void ApiClient::AutocompleteScriptHttpCompletionCallback(HttpRequest& request,
 		}
 
 		callback(boost::exception_ptr(), suggestions);
-	} catch (const std::exception& ex) {
+	} catch (const std::exception&) {
 		callback(boost::current_exception(), nullptr);
 	}
 }

@@ -29,9 +29,4 @@
 #	define I2_HIDDEN
 #endif /* _WIN32 */
 
-#define TOKENPASTE(x, y) x ## y
-#define TOKENPASTE2(x, y) TOKENPASTE(x, y)
-
-#define UNIQUE_NAME(prefix) TOKENPASTE2(prefix, __COUNTER__)
-
 #endif /* VISIBILITY_H */

@@ -129,7 +129,7 @@ std::wstring threshold::pString(CONST DOUBLE max)
 std::wstring removeZero(DOUBLE val)
 {
 	std::wstring ret = boost::lexical_cast<std::wstring>(val);
-	INT pos = ret.length();
+	std::wstring::size_type pos = ret.length();
 	if (ret.find_first_of(L".") == std::string::npos)
 		return ret;
 	for (std::wstring::reverse_iterator rit = ret.rbegin(); rit != ret.rend(); ++rit) {

@@ -186,7 +186,7 @@ static INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoSt
 			printInfo.unit = BunitB;
 	}
 
-	printInfo.showUsed = vm.count("show-used");
+	printInfo.showUsed = vm.count("show-used") > 0;
 
 	if (vm.count("debug"))
 		debug = TRUE;

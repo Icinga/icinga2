@@ -36,7 +36,7 @@ REGISTER_PRIMITIVE_TYPE(Array, Object, Array::GetPrototype());
  * @param index The index.
  * @returns The value.
  */
-Value Array::Get(unsigned int index) const
+Value Array::Get(SizeType index) const
 {
 	ObjectLock olock(this);
 
@@ -49,7 +49,7 @@ Value Array::Get(unsigned int index) const
  * @param index The index.
  * @param value The value.
  */
-void Array::Set(unsigned int index, const Value& value)
+void Array::Set(SizeType index, const Value& value)
 {
 	ObjectLock olock(this);
 
@@ -62,7 +62,7 @@ void Array::Set(unsigned int index, const Value& value)
  * @param index The index.
  * @param value The value.
  */
-void Array::Set(unsigned int index, Value&& value)
+void Array::Set(SizeType index, Value&& value)
 {
 	ObjectLock olock(this);
 
@@ -124,7 +124,7 @@ bool Array::Contains(const Value& value) const
  * @param index The index
  * @param value The value to add
  */
-void Array::Insert(unsigned int index, const Value& value)
+void Array::Insert(SizeType index, const Value& value)
 {
 	ObjectLock olock(this);
 
@@ -138,7 +138,7 @@ void Array::Insert(unsigned int index, const Value& value)
  *
  * @param index The index.
  */
-void Array::Remove(unsigned int index)
+void Array::Remove(SizeType index)
 {
 	ObjectLock olock(this);
 
@@ -157,11 +157,11 @@ void Array::Remove(Array::Iterator it)
 	m_Data.erase(it);
 }
 
-void Array::Resize(size_t new_size)
+void Array::Resize(SizeType newSize)
 {
 	ObjectLock olock(this);
 
-	m_Data.resize(new_size);
+	m_Data.resize(newSize);
 }
 
 void Array::Clear(void)
@@ -171,11 +171,11 @@ void Array::Clear(void)
 	m_Data.clear();
 }
 
-void Array::Reserve(size_t new_size)
+void Array::Reserve(SizeType newSize)
 {
 	ObjectLock olock(this);
 
-	m_Data.reserve(new_size);
+	m_Data.reserve(newSize);
 }
 
 void Array::CopyTo(const Array::Ptr& dest) const

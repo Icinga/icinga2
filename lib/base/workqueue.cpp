@@ -27,7 +27,7 @@
 
 using namespace icinga;
 
-int WorkQueue::m_NextID = 1;
+std::atomic<int> WorkQueue::m_NextID(1);
 boost::thread_specific_ptr<WorkQueue *> l_ThreadWorkQueue;
 
 WorkQueue::WorkQueue(size_t maxItems, int threadCount)
@@ -196,7 +196,7 @@ void WorkQueue::StatusTimerHandler(void)
 
 	ASSERT(!m_Name.IsEmpty());
 
-	int pending = m_Tasks.size();
+	size_t pending = m_Tasks.size();
 
 	double now = Utility::GetTime();
 	double gradient = (pending - m_PendingTasks) / (now - m_PendingTasksTimestamp);
@@ -295,7 +295,7 @@ void WorkQueue::IncreaseTaskCount(void)
 	m_TaskStats.InsertValue(now, 1);
 }
 
-int WorkQueue::GetTaskCount(RingBuffer::SizeType span)
+size_t WorkQueue::GetTaskCount(RingBuffer::SizeType span)
 {
 	boost::mutex::scoped_lock lock(m_StatsMutex);
 	return m_TaskStats.UpdateAndGetValues(Utility::GetTime(), span);
