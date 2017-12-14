@@ -91,7 +91,7 @@ void Dependency::OnAllConfigLoaded(void)
 		else
 			m_Child = childHost->GetServiceByShortName(GetChildServiceName());
 	}
-	
+
 	if (!m_Child)
 		BOOST_THROW_EXCEPTION(ScriptError("Dependency '" + GetName() + "' references a child host/service which doesn't exist.", GetDebugInfo()));
 
@@ -105,7 +105,7 @@ void Dependency::OnAllConfigLoaded(void)
 		else
 			m_Parent = parentHost->GetServiceByShortName(GetParentServiceName());
 	}
-	
+
 	if (!m_Parent)
 		BOOST_THROW_EXCEPTION(ScriptError("Dependency '" + GetName() + "' references a parent host/service which doesn't exist.", GetDebugInfo()));
 

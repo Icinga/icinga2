@@ -105,7 +105,7 @@ public:
 
 	void SetZone(const String& zone);
 	String GetZone(void) const;
-	
+
 	void SetPackage(const String& package);
 	String GetPackage(void) const;
 

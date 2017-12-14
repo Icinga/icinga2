@@ -59,7 +59,7 @@ static HANDLE l_Job;
 static std::vector<String> GetLogLevelCompletionSuggestions(const String& arg)
 {
 	std::vector<String> result;
-	
+
 	String debugLevel = "debug";
 	if (debugLevel.Find(arg) == 0)
 		result.push_back(debugLevel);
@@ -106,7 +106,7 @@ static int Main(void)
 
 		try {
 			autoindex = Convert::ToLong(argv[2]);
-		} catch (const std::invalid_argument& ex) {
+		} catch (const std::invalid_argument&) {
 			Log(LogCritical, "icinga-app")
 			    << "Invalid index for --autocomplete: " << argv[2];
 			return EXIT_FAILURE;
@@ -460,10 +460,10 @@ static int Main(void)
 		} else if (command && command->GetImpersonationLevel() == ImpersonateIcinga) {
 			String group = Application::GetRunAsGroup();
 			String user = Application::GetRunAsUser();
-	
+
 			errno = 0;
 			struct group *gr = getgrnam(group.CStr());
-	
+
 			if (!gr) {
 				if (errno == 0) {
 					Log(LogCritical, "cli")
@@ -475,7 +475,7 @@ static int Main(void)
 					return EXIT_FAILURE;
 				}
 			}
-	
+
 			if (getgid() != gr->gr_gid) {
 				if (!vm.count("reload-internal") && setgroups(0, NULL) < 0) {
 					Log(LogCritical, "cli")
@@ -484,17 +484,17 @@ static int Main(void)
 					    << "Please re-run this command as a privileged user or using the \"" << user << "\" account.";
 					return EXIT_FAILURE;
 				}
-	
+
 				if (setgid(gr->gr_gid) < 0) {
 					Log(LogCritical, "cli")
 					    << "setgid() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 					return EXIT_FAILURE;
 				}
 			}
-	
+
 			errno = 0;
 			struct passwd *pw = getpwnam(user.CStr());
-	
+
 			if (!pw) {
 				if (errno == 0) {
 					Log(LogCritical, "cli")
@@ -506,7 +506,7 @@ static int Main(void)
 					return EXIT_FAILURE;
 				}
 			}
-	
+
 			// also activate the additional groups the configured user is member of
 			if (getuid() != pw->pw_uid) {
 				if (!vm.count("reload-internal") && initgroups(user.CStr(), pw->pw_gid) < 0) {
@@ -516,7 +516,7 @@ static int Main(void)
 					    << "Please re-run this command as a privileged user or using the \"" << user << "\" account.";
 					return EXIT_FAILURE;
 				}
-	
+
 				if (setuid(pw->pw_uid) < 0) {
 					Log(LogCritical, "cli")
 					    << "setuid() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
@@ -684,14 +684,15 @@ static int SetupService(bool install, int argc, char **argv)
 			return 1;
 		}
 
-		printf("Service successfully installed for user '%s'\n", scmUser);
+		std::cout << "Service successfully installed for user '" << scmUser << "'\n";
 
-		std::ofstream fuser(Utility::GetIcingaDataPath() + "\\etc\\icinga2\\user", std::ios::out | std::ios::trunc);
+		String userFilePath = Utility::GetIcingaDataPath() + "\\etc\\icinga2\\user";
+
+		std::ofstream fuser(userFilePath.CStr(), std::ios::out | std::ios::trunc);
 		if (fuser)
 			fuser << scmUser;
 		else
-			printf("Could not write user to %s\\etc\\icinga2\\user", Utility::GetIcingaDataPath());
-		fuser.close();
+			std::cout << "Could not write user to " << userFilePath << "\n";
 	}
 
 	CloseServiceHandle(schService);
@@ -779,7 +780,7 @@ static VOID WINAPI ServiceMain(DWORD argc, LPSTR *argv)
 			break;
 
 		DWORD exitStatus;
-		
+
 		if (!GetExitCodeProcess(pi.hProcess, &exitStatus))
 			break;
 

@@ -65,7 +65,7 @@ public:
 	Dictionary::Ptr GetScope(void) const;
 
 	ConfigObject::Ptr GetObject(void) const;
-	
+
 	static ConfigItem::Ptr GetByTypeAndName(const Type::Ptr& type,
 	    const String& name);
 

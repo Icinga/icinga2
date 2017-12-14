@@ -29,6 +29,7 @@
 #include <boost/exception_ptr.hpp>
 #include <queue>
 #include <deque>
+#include <atomic>
 
 namespace icinga
 {
@@ -93,7 +94,7 @@ public:
 	bool IsWorkerThread(void) const;
 
 	size_t GetLength(void) const;
-	int GetTaskCount(RingBuffer::SizeType span);
+	size_t GetTaskCount(RingBuffer::SizeType span);
 
 	void SetExceptionCallback(const ExceptionCallback& callback);
 
@@ -107,7 +108,7 @@ protected:
 private:
 	int m_ID;
 	String m_Name;
-	static int m_NextID;
+	static std::atomic<int> m_NextID;
 	int m_ThreadCount;
 	bool m_Spawned;
 
@@ -128,7 +129,7 @@ private:
 
 	mutable boost::mutex m_StatsMutex;
 	RingBuffer m_TaskStats;
-	int m_PendingTasks;
+	size_t m_PendingTasks;
 	double m_PendingTasksTimestamp;
 
 	void WorkerThreadProc(void);

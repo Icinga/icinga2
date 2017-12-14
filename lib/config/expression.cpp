@@ -948,7 +948,7 @@ ExpressionResult TryExceptExpression::DoEvaluate(ScriptFrame& frame, DebugHint *
 	try {
 		ExpressionResult tryResult = m_TryBody->Evaluate(frame, dhint);
 		CHECK_RESULT(tryResult);
-	} catch (const std::exception& ex) {
+	} catch (const std::exception&) {
 		ExpressionResult exceptResult = m_ExceptBody->Evaluate(frame, dhint);
 		CHECK_RESULT(exceptResult);
 	}

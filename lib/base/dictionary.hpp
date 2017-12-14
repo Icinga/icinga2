@@ -113,7 +113,7 @@ public:
 	std::vector<String> GetKeys(void) const;
 
 	static Object::Ptr GetPrototype(void);
-	
+
 	virtual Object::Ptr Clone(void) const override;
 
 	virtual String ToString(void) const override;

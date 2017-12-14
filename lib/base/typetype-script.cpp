@@ -35,7 +35,7 @@ static void TypeRegisterAttributeHandler(const String& fieldName, const Function
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Type::Ptr self = static_cast<Type::Ptr>(vframe->Self);
-	
+
 	int fid = self->GetFieldId(fieldName);
 	self->RegisterAttributeHandler(fid, std::bind(&InvokeAttributeHandlerHelper, callback, _1, _2));
 }

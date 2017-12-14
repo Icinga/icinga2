@@ -115,7 +115,7 @@ static Object::Ptr DeserializeObject(const Object::Ptr& object, const Dictionary
 		return object;
 
 	Object::Ptr instance;
-	
+
 	if (object)
 		instance = object;
 	else
@@ -127,7 +127,7 @@ static Object::Ptr DeserializeObject(const Object::Ptr& object, const Dictionary
 			continue;
 
 		int fid = type->GetFieldId(kv.first);
-	
+
 		if (fid < 0)
 			continue;
 

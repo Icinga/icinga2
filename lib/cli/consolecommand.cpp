@@ -515,7 +515,7 @@ void ConsoleCommand::ExecuteScriptCompletionHandler(boost::mutex& mutex, boost::
 	if (eptr) {
 		try {
 			boost::rethrow_exception(eptr);
-		} catch (const ScriptError& ex) {
+		} catch (const ScriptError&) {
 			eptrOut = boost::current_exception();
 		} catch (const std::exception& ex) {
 			Log(LogCritical, "ConsoleCommand")

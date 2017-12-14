@@ -264,7 +264,7 @@ static void AddSuggestions(std::vector<String>& matches, const String& word, con
 }
 
 std::vector<String> ConsoleHandler::GetAutocompletionSuggestions(const String& word, ScriptFrame& frame)
-{	
+{
 	std::vector<String> matches;
 
 	for (const String& keyword : ConfigWriter::GetKeywords()) {

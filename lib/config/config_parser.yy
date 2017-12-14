@@ -674,7 +674,7 @@ lterm: T_LIBRARY rterm
 	}
 	| rterm_side_effect
 	;
-	
+
 rterm_items: /* empty */
 	{
 		$$ = new std::vector<Expression *>();

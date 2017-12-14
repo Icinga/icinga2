@@ -291,7 +291,7 @@ static int DecodeEndMapOrArray(void *ctx)
 static int DecodeStartArray(void *ctx)
 {
 	JsonContext *context = static_cast<JsonContext *>(ctx);
-	
+
 	try {
 		context->Push(new Array());
 	} catch (...) {

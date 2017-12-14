@@ -104,7 +104,7 @@ public:
 	typedef std::function<void(boost::exception_ptr, const Value&)> ExecuteScriptCompletionCallback;
 	void ExecuteScript(const String& session, const String& command, bool sandboxed,
 	    const ExecuteScriptCompletionCallback& callback) const;
-	
+
 	typedef std::function<void(boost::exception_ptr, const Array::Ptr&)> AutocompleteScriptCompletionCallback;
 	void AutocompleteScript(const String& session, const String& command, bool sandboxed,
 	    const AutocompleteScriptCompletionCallback& callback) const;

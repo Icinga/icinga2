@@ -115,7 +115,7 @@ bool HttpClientConnection::ProcessMessage(void)
 
 	try {
 		res = response.Parse(m_Context, false);
-	} catch (const std::exception& ex) {
+	} catch (const std::exception&) {
 		callback(request, response);
 
 		m_Stream->Shutdown();

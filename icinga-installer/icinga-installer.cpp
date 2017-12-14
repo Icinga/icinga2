@@ -54,7 +54,7 @@ static bool ExecuteCommand(const std::string& app, const std::string& arguments)
 	sei.nShow = SW_HIDE;
 	if (!ShellExecuteEx(&sei))
 		return false;
-	
+
 	if (!sei.hProcess)
 		return false;
 
@@ -221,7 +221,7 @@ static int UpgradeNSIS(void)
 			return 1;
 
 		_rmdir(installPath.c_str());
-	}	
+	}
 
 	return 0;
 }

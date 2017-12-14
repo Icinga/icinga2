@@ -51,7 +51,7 @@ INT wmain(INT argc, WCHAR **argv)
 		ret = check_drives(vDrives, printInfo.exclude_drives);
 	else
 		ret = check_drives(vDrives, printInfo);
-	
+
 	if (ret != -1)
 		return ret;
 
@@ -165,7 +165,7 @@ static INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoSt
 			return 3;
 		}
 	}
-	
+
 	if (vm.count("path")) 
 		printInfo.drives = vm["path"].as<std::vector<std::wstring>>();
 
@@ -186,7 +186,7 @@ static INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoSt
 			printInfo.unit = BunitB;
 	}
 
-	printInfo.showUsed = vm.count("show-used");
+	printInfo.showUsed = vm.count("show-used") > 0;
 
 	if (vm.count("debug"))
 		debug = TRUE;
@@ -208,7 +208,7 @@ static INT printOutput(printInfoStruct& printInfo, std::vector<drive>& vDrives)
 
 	if (printInfo.showUsed)
 		output = L"DISK OK - used space:";
-	
+
 	double tCap = 0, tFree = 0, tUsed = 0;
 
 	for (std::vector<drive>::iterator it = vDrives.begin(); it != vDrives.end(); it++) {
@@ -249,7 +249,7 @@ static INT printOutput(printInfoStruct& printInfo, std::vector<drive>& vDrives)
 
 	if (state == WARNING) {
 		output = L"DISK WARNING - free space:";
-		
+
 		if (printInfo.showUsed)
 			output = L"DISK WARNING - used space:";
 	}

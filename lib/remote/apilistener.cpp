@@ -449,7 +449,7 @@ void ApiListener::NewClientHandlerInternal(const Socket::Ptr& client, const Stri
 
 	try {
 		tlsStream->Handshake();
-	} catch (const std::exception& ex) {
+	} catch (const std::exception&) {
 		Log(LogCritical, "ApiListener")
 		    << "Client TLS handshake failed (" << conninfo << ")";
 		return;

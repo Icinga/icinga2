@@ -185,7 +185,7 @@ INT check_users(printInfoStruct& printInfo)
 
 	if (debug) 
 		std::wcout << L"Trying to enumerate terminal sessions" << '\n';
-	
+
 	if (!WTSEnumerateSessions(WTS_CURRENT_SERVER_HANDLE, 0, 1, &pSessionInfo, &count)) {
 		std::wcout << L"Failed to enumerate terminal sessions" << '\n';
 		die();
@@ -218,7 +218,7 @@ INT check_users(printInfoStruct& printInfo)
 
 		if (!len)
 			continue;
-		
+
 		if (pSessionInfo[index].State == WTSActive || pSessionInfo[index].State == WTSDisconnected) {
 			users++;
 			if (debug)

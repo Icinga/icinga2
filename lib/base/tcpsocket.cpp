@@ -161,7 +161,7 @@ void TcpSocket::Connect(const String& node, const String& service)
 		    << errinfo_getaddrinfo_error(rc));
 	}
 
-	int fd = INVALID_SOCKET;
+	SOCKET fd = INVALID_SOCKET;
 
 	for (addrinfo *info = result; info != NULL; info = info->ai_next) {
 		fd = socket(info->ai_family, info->ai_socktype, info->ai_protocol);
