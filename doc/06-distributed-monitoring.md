@@ -19,7 +19,7 @@ Rephrasing this picture into more details:
 * A `master` node has no parent node.
   * A `master`node is where you usually install Icinga Web 2.
   * A `master` node can combine executed checks from child nodes into backends and notifications.
-* A `satellite` node has a parent and a child node.
+* A `satellite` node has a parent and one or more child node(s).
   * A `satellite` node may execute checks on its own or delegate check execution to child nodes.
   * A `satellite` node can receive configuration for hosts/services, etc. from the parent node.
   * A `satellite` node continues to run even if the master node is temporarily unavailable.
