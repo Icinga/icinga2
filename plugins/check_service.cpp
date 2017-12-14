@@ -126,9 +126,7 @@ INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& p
 
 	printInfo.service = vm["service"].as<std::wstring>();
 
-	if (vm.count("warn")) {
-		printInfo.warn = true;
-	}
+	printInfo.warn = vm.count("warn");
 
 	if (vm.count("D"))
 		debug = TRUE;
