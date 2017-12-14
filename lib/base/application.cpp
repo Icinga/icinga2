@@ -634,7 +634,10 @@ void Application::AttachDebugger(const String& filename, bool interactive)
 				my_pid_str,
 				NULL
 			};
+
 			argv = const_cast<char **>(uargv);
+
+			(void) execvp(argv[0], argv);
 		} else {
 			const char *uargv[] = {
 				"gdb",
@@ -649,10 +652,12 @@ void Application::AttachDebugger(const String& filename, bool interactive)
 				"quit",
 				NULL
 			};
+
 			argv = const_cast<char **>(uargv);
+
+			(void) execvp(argv[0], argv);
 		}
 
-		(void)execvp(argv[0], argv);
 		perror("Failed to launch GDB");
 		free(my_pid_str);
 		_exit(0);
