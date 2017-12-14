@@ -58,7 +58,7 @@ void ClusterZoneCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const Che
 	resolvers.emplace_back("icinga", IcingaApplication::GetInstance());
 
 	String zoneName = MacroProcessor::ResolveMacros("$cluster_zone$", resolvers, checkable->GetLastCheckResult(),
-	    NULL, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
+	    nullptr, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
 
 	String missingLagWarning;
 	String missingLagCritical;

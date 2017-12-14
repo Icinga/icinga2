@@ -108,7 +108,7 @@ void HttpResponse::Finish(void)
 			m_Stream->Write(buffer, rc);
 		}
 	} else {
-		WriteBody(NULL, 0);
+		WriteBody(nullptr, 0);
 		m_Stream->Write("\r\n", 2);
 	}
 

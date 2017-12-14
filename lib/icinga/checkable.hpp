@@ -94,7 +94,7 @@ public:
 
 	void AddGroup(const String& name);
 
-	bool IsReachable(DependencyType dt = DependencyState, intrusive_ptr<Dependency> *failedDependency = NULL, int rstack = 0) const;
+	bool IsReachable(DependencyType dt = DependencyState, intrusive_ptr<Dependency> *failedDependency = nullptr, int rstack = 0) const;
 
 	AcknowledgementType GetAcknowledgement(void);
 

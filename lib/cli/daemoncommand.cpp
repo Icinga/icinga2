@@ -306,7 +306,7 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 	struct sigaction sa;
 	memset(&sa, 0, sizeof(sa));
 	sa.sa_handler = &SigHupHandler;
-	sigaction(SIGHUP, &sa, NULL);
+	sigaction(SIGHUP, &sa, nullptr);
 #endif /* _WIN32 */
 
 	ApiListener::UpdateObjectAuthority();

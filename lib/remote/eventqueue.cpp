@@ -25,7 +25,7 @@
 using namespace icinga;
 
 EventQueue::EventQueue(const String& name)
-    : m_Name(name), m_Filter(NULL)
+    : m_Name(name), m_Filter(nullptr)
 { }
 
 EventQueue::~EventQueue(void)

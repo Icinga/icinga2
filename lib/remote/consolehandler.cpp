@@ -123,7 +123,7 @@ bool ConsoleHandler::ExecuteScriptHelper(HttpRequest& request, HttpResponse& res
 
 	Array::Ptr results = new Array();
 	Dictionary::Ptr resultInfo = new Dictionary();
-	Expression *expr = NULL;
+	Expression *expr = nullptr;
 	Value exprResult;
 
 	try {

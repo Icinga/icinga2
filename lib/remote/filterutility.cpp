@@ -133,7 +133,7 @@ static void FilteredAddTarget(ScriptFrame& permissionFrame, Expression *permissi
 void FilterUtility::CheckPermission(const ApiUser::Ptr& user, const String& permission, Expression **permissionFilter)
 {
 	if (permissionFilter)
-		*permissionFilter = NULL;
+		*permissionFilter = nullptr;
 
 	if (permission.IsEmpty())
 		return;
@@ -250,7 +250,7 @@ std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, c
 		frame.Sandboxed = true;
 		Dictionary::Ptr uvars = new Dictionary();
 
-		Expression *ufilter = NULL;
+		Expression *ufilter = nullptr;
 
 		if (query->Contains("filter")) {
 			String filter = HttpUtility::GetLastParameter(query, "filter");

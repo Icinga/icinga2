@@ -259,7 +259,7 @@ public:
 		if (!IsObject())
 			return false;
 
-		return (dynamic_cast<T *>(boost::get<Object::Ptr>(m_Value).get()) != NULL);
+		return dynamic_cast<T *>(boost::get<Object::Ptr>(m_Value).get());
 	}
 
 	/**

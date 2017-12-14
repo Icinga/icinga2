@@ -454,7 +454,7 @@ Value MacroProcessor::ResolveArguments(const Value& command, const Dictionary::P
 {
 	Value resolvedCommand;
 	if (!arguments || command.IsObjectType<Array>() || command.IsObjectType<Function>())
-		resolvedCommand = MacroProcessor::ResolveMacros(command, resolvers, cr, NULL,
+		resolvedCommand = MacroProcessor::ResolveMacros(command, resolvers, cr, nullptr,
 		    EscapeMacroShellArg, resolvedMacros, useResolvedMacros, recursionLevel + 1);
 	else {
 		Array::Ptr arr = new Array();

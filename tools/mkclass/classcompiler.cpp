@@ -226,7 +226,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 			 << "{" << std::endl
 			 << "\t" << "static ObjectFactory GetFactory(void)" << std::endl
 			 << "\t" << "{" << std::endl
-			 << "\t\t" << "return NULL;" << std::endl
+			 << "\t\t" << "return nullptr;" << std::endl
 			 << "\t" << "}" << std::endl
 			 << "};" << std::endl << std::endl;
 	}
@@ -374,7 +374,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 			if (field.Type.IsName)
 				nameref = "\"" + field.Type.TypeName + "\"";
 			else
-				nameref = "NULL";
+				nameref = "nullptr";
 
 			m_Impl << "\t\t" << "case " << num << ":" << std::endl
 				 << "\t\t\t" << "return Field(" << num << ", \"" << ftype << "\", \"" << field.Name << "\", \"" << (field.NavigationName.empty() ? field.Name : field.NavigationName) << "\", "  << nameref << ", " << field.Attributes << ", " << field.Type.ArrayRank << ");" << std::endl;
@@ -1411,7 +1411,7 @@ std::string ClassCompiler::BaseName(const std::string& path)
 	char *dir = strdup(path.c_str());
 	std::string result;
 
-	if (dir == NULL)
+	if (!dir)
 		throw std::bad_alloc();
 
 #ifndef _WIN32

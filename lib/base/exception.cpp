@@ -56,7 +56,7 @@ inline void *cast_exception(void *obj, const std::type_info *src, const std::typ
 	if (dst->__do_catch(src, &thrown_ptr, 1))
 		return thrown_ptr;
 	else
-		return NULL;
+		return nullptr;
 #else /* __GLIBCXX__ */
 	const libcxx_type_info *srcInfo = static_cast<const libcxx_type_info *>(src);
 	const libcxx_type_info *dstInfo = static_cast<const libcxx_type_info *>(dst);
@@ -66,7 +66,7 @@ inline void *cast_exception(void *obj, const std::type_info *src, const std::typ
 	if (dstInfo->can_catch(srcInfo, adj))
 		return adj;
 	else
-		return NULL;
+		return nullptr;
 #endif /* __GLIBCXX__ */
 
 }
@@ -128,7 +128,7 @@ void __cxa_throw(void *obj, TYPEINFO_TYPE *pvtinfo, void (*dest)(void *))
 		SetLastExceptionStack(stack);
 
 #ifndef NO_CAST_EXCEPTION
-		if (ex && boost::get_error_info<StackTraceErrorInfo>(*ex) == NULL)
+		if (ex && !boost::get_error_info<StackTraceErrorInfo>(*ex))
 			*ex << StackTraceErrorInfo(stack);
 	}
 #endif /* NO_CAST_EXCEPTION */
@@ -137,7 +137,7 @@ void __cxa_throw(void *obj, TYPEINFO_TYPE *pvtinfo, void (*dest)(void *))
 	SetLastExceptionContext(context);
 
 #ifndef NO_CAST_EXCEPTION
-	if (ex && boost::get_error_info<ContextTraceErrorInfo>(*ex) == NULL)
+	if (ex && !boost::get_error_info<ContextTraceErrorInfo>(*ex))
 		*ex << ContextTraceErrorInfo(context);
 #endif /* NO_CAST_EXCEPTION */
 
@@ -277,7 +277,7 @@ String icinga::DiagnosticInformation(boost::exception_ptr eptr, bool verbose)
 	try {
 		boost::rethrow_exception(eptr);
 	} catch (const std::exception& ex) {
-		return DiagnosticInformation(ex, verbose, pt ? &stack : NULL, pc ? &context : NULL);
+		return DiagnosticInformation(ex, verbose, pt ? &stack : nullptr, pc ? &context : nullptr);
 	}
 
 	return boost::diagnostic_information(eptr);
@@ -320,7 +320,7 @@ void ScriptError::SetHandledByDebugger(bool handled)
 }
 
 posix_error::posix_error(void)
-	: m_Message(NULL)
+	: m_Message(nullptr)
 { }
 
 posix_error::~posix_error(void) throw()

@@ -69,7 +69,7 @@ inline std::string to_string(const errinfo_openssl_error& e)
 
 	const char *message = ERR_error_string(code, errbuf);
 
-	if (message == NULL)
+	if (!message)
 		message = "Unknown error.";
 
 	tmp << code << ", \"" << message << "\"";

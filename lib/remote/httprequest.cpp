@@ -226,7 +226,7 @@ void HttpRequest::Finish(void)
 		if (m_State == HttpRequestStart || m_State == HttpRequestHeaders)
 			FinishHeaders();
 
-		WriteBody(NULL, 0);
+		WriteBody(nullptr, 0);
 		m_Stream->Write("\r\n", 2);
 	}
 

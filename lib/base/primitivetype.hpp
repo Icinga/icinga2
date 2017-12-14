@@ -71,7 +71,7 @@ private:
 	REGISTER_PRIMITIVE_TYPE_FACTORY(type, base, prototype, DefaultObjectFactoryVA<type>)
 
 #define REGISTER_PRIMITIVE_TYPE_NOINST(type, base, prototype)			\
-	REGISTER_PRIMITIVE_TYPE_FACTORY(type, base, prototype, NULL)
+	REGISTER_PRIMITIVE_TYPE_FACTORY(type, base, prototype, nullptr)
 
 }
 

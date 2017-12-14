@@ -67,7 +67,7 @@ void Checkable::UpdateNextCheck(const MessageOrigin::Ptr& origin)
 {
 	double interval;
 
-	if (GetStateType() == StateTypeSoft && GetLastCheckResult() != NULL)
+	if (GetStateType() == StateTypeSoft && GetLastCheckResult() != nullptr)
 		interval = GetRetryInterval();
 	else
 		interval = GetCheckInterval();
@@ -85,7 +85,7 @@ void Checkable::UpdateNextCheck(const MessageOrigin::Ptr& origin)
 
 bool Checkable::HasBeenChecked(void) const
 {
-	return GetLastCheckResult() != NULL;
+	return GetLastCheckResult() != nullptr;
 }
 
 double Checkable::GetLastCheck(void) const
@@ -445,7 +445,7 @@ void Checkable::ExecuteCheck(void)
 	bool local = !endpoint || endpoint == Endpoint::GetLocalEndpoint();
 
 	if (local) {
-		GetCheckCommand()->Execute(this, cr, NULL, false);
+		GetCheckCommand()->Execute(this, cr, nullptr, false);
 	} else {
 		Dictionary::Ptr macros = new Dictionary();
 		GetCheckCommand()->Execute(this, cr, macros, false);

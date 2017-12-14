@@ -142,7 +142,7 @@ std::shared_ptr<SSL_CTX> MakeSSLContext(const String& pubkey, const String& priv
 	}
 
 	if (!cakey.IsEmpty()) {
-		if (!SSL_CTX_load_verify_locations(sslContext.get(), cakey.CStr(), NULL)) {
+		if (!SSL_CTX_load_verify_locations(sslContext.get(), cakey.CStr(), nullptr)) {
 			Log(LogCritical, "SSL")
 			    << "Error loading and verifying locations in ca key file '" << cakey << "': " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
 			BOOST_THROW_EXCEPTION(openssl_error()
@@ -154,7 +154,7 @@ std::shared_ptr<SSL_CTX> MakeSSLContext(const String& pubkey, const String& priv
 		STACK_OF(X509_NAME) *cert_names;
 
 		cert_names = SSL_load_client_CA_file(cakey.CStr());
-		if (cert_names == NULL) {
+		if (!cert_names) {
 			Log(LogCritical, "SSL")
 			    << "Error loading client ca key file '" << cakey << "': " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
 			BOOST_THROW_EXCEPTION(openssl_error()
@@ -298,7 +298,7 @@ std::shared_ptr<X509> GetX509Certificate(const String& pemfile)
 	X509 *cert;
 	BIO *fpcert = BIO_new(BIO_s_file());
 
-	if (fpcert == NULL) {
+	if (!fpcert) {
 		Log(LogCritical, "SSL")
 		    << "Error creating new BIO: " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
 		BOOST_THROW_EXCEPTION(openssl_error()
@@ -315,8 +315,8 @@ std::shared_ptr<X509> GetX509Certificate(const String& pemfile)
 		    << boost::errinfo_file_name(pemfile));
 	}
 
-	cert = PEM_read_bio_X509_AUX(fpcert, NULL, NULL, NULL);
-	if (cert == NULL) {
+	cert = PEM_read_bio_X509_AUX(fpcert, nullptr, nullptr, nullptr);
+	if (!cert) {
 		Log(LogCritical, "SSL")
 		    << "Error on bio X509 AUX reading pem file '" << pemfile << "': " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
 		BOOST_THROW_EXCEPTION(openssl_error()
@@ -379,7 +379,7 @@ int MakeX509CSR(const String& cn, const String& keyfile, const String& csrfile, 
 		    << boost::errinfo_file_name(keyfile));
 	}
 
-	if (!PEM_write_bio_PrivateKey(bio, key, NULL, NULL, 0, 0, NULL)) {
+	if (!PEM_write_bio_PrivateKey(bio, key, nullptr, nullptr, 0, 0, nullptr)) {
 		EVP_PKEY_free(key);
 		EC_KEY_free(eckey);
 		BIO_free(bio);
@@ -446,7 +446,7 @@ int MakeX509CSR(const String& cn, const String& keyfile, const String& csrfile, 
 
 		if (!ca) {
 			String san = "DNS:" + cn;
-			X509_EXTENSION *subjectAltNameExt = X509V3_EXT_conf_nid(NULL, NULL, NID_subject_alt_name, const_cast<char *>(san.CStr()));
+			X509_EXTENSION *subjectAltNameExt = X509V3_EXT_conf_nid(nullptr, nullptr, NID_subject_alt_name, const_cast<char *>(san.CStr()));
 			if (subjectAltNameExt) {
 				/* OpenSSL 0.9.8 requires STACK_OF(X509_EXTENSION), otherwise we would just use stack_st_X509_EXTENSION. */
 				STACK_OF(X509_EXTENSION) *exts = sk_X509_EXTENSION_new_null();
@@ -539,7 +539,7 @@ std::shared_ptr<X509> CreateCert(EVP_PKEY *pubkey, X509_NAME *subject, X509_NAME
 
 	X509V3_CTX ctx;
 	X509V3_set_ctx_nodb(&ctx);
-	X509V3_set_ctx(&ctx, cert, cert, NULL, NULL, 0);
+	X509V3_set_ctx(&ctx, cert, cert, nullptr, nullptr, 0);
 
 	const char *attr;
 
@@ -548,7 +548,7 @@ std::shared_ptr<X509> CreateCert(EVP_PKEY *pubkey, X509_NAME *subject, X509_NAME
 	else
 		attr = "critical,CA:FALSE";
 
-	X509_EXTENSION *basicConstraintsExt = X509V3_EXT_conf_nid(NULL, &ctx, NID_basic_constraints, const_cast<char *>(attr));
+	X509_EXTENSION *basicConstraintsExt = X509V3_EXT_conf_nid(nullptr, &ctx, NID_basic_constraints, const_cast<char *>(attr));
 
 	if (basicConstraintsExt) {
 		X509_add_ext(cert, basicConstraintsExt, -1);
@@ -559,7 +559,7 @@ std::shared_ptr<X509> CreateCert(EVP_PKEY *pubkey, X509_NAME *subject, X509_NAME
 
 	if (!ca) {
 		String san = "DNS:" + cn;
-		X509_EXTENSION *subjectAltNameExt = X509V3_EXT_conf_nid(NULL, &ctx, NID_subject_alt_name, const_cast<char *>(san.CStr()));
+		X509_EXTENSION *subjectAltNameExt = X509V3_EXT_conf_nid(nullptr, &ctx, NID_subject_alt_name, const_cast<char *>(san.CStr()));
 		if (subjectAltNameExt) {
 			X509_add_ext(cert, subjectAltNameExt, -1);
 			X509_EXTENSION_free(subjectAltNameExt);
@@ -592,7 +592,7 @@ std::shared_ptr<X509> CreateCertIcingaCA(EVP_PKEY *pubkey, X509_NAME *subject)
 		return std::shared_ptr<X509>();
 	}
 
-	EVP_PKEY *privkey = PEM_read_bio_PrivateKey(cakeybio, NULL, NULL, NULL);
+	EVP_PKEY *privkey = PEM_read_bio_PrivateKey(cakeybio, nullptr, nullptr, nullptr);
 
 	if (!privkey) {
 		Log(LogCritical, "SSL")
@@ -635,7 +635,7 @@ std::shared_ptr<X509> StringToCertificate(const String& cert)
 	BIO *bio = BIO_new(BIO_s_mem());
 	BIO_write(bio, (const void *)cert.CStr(), cert.GetLength());
 
-	X509 *rawCert = PEM_read_bio_X509_AUX(bio, NULL, NULL, NULL);
+	X509 *rawCert = PEM_read_bio_X509_AUX(bio, nullptr, nullptr, nullptr);
 
 	BIO_free(bio);
 
@@ -772,7 +772,7 @@ bool VerifyCertificate(const std::shared_ptr<X509>& caCertificate, const std::sh
 	X509_STORE_add_cert(store, caCertificate.get());
 
 	X509_STORE_CTX *csc = X509_STORE_CTX_new();
-	X509_STORE_CTX_init(csc, store, certificate.get(), NULL);
+	X509_STORE_CTX_init(csc, store, certificate.get(), nullptr);
 
 	int rc = X509_verify_cert(csc);
 

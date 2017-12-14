@@ -85,7 +85,7 @@ String Utility::DemangleSymbolName(const String& sym)
 	int status;
 	char *realname = abi::__cxa_demangle(sym.CStr(), 0, 0, &status);
 
-	if (realname != NULL) {
+	if (realname) {
 		result = String(realname);
 		free(realname);
 	}
@@ -277,7 +277,7 @@ String Utility::DirName(const String& path)
 	dir = strdup(path.CStr());
 #endif /* _WIN32 */
 
-	if (dir == NULL)
+	if (!dir)
 		BOOST_THROW_EXCEPTION(std::bad_alloc());
 
 	String result;
@@ -315,7 +315,7 @@ String Utility::BaseName(const String& path)
 	char *dir = strdup(path.CStr());
 	String result;
 
-	if (dir == NULL)
+	if (!dir)
 		BOOST_THROW_EXCEPTION(std::bad_alloc());
 
 #ifndef _WIN32
@@ -395,7 +395,7 @@ double Utility::GetTime(void)
 #else /* _WIN32 */
 	struct timeval tv;
 
-	int rc = gettimeofday(&tv, NULL);
+	int rc = gettimeofday(&tv, nullptr);
 	VERIFY(rc >= 0);
 
 	return tv.tv_sec + tv.tv_usec / 1000000.0;
@@ -664,7 +664,7 @@ bool Utility::GlobRecursive(const String& path, const String& pattern, const std
 
 	dirp = opendir(path.CStr());
 
-	if (dirp == NULL)
+	if (!dirp)
 		BOOST_THROW_EXCEPTION(posix_error()
 		    << boost::errinfo_api_function("opendir")
 		    << boost::errinfo_errno(errno)
@@ -1017,7 +1017,7 @@ String Utility::FormatDateTime(const char *format, double ts)
 #ifdef _MSC_VER
 	tm *temp = localtime(&tempts);
 
-	if (temp == NULL) {
+	if (!temp) {
 		BOOST_THROW_EXCEPTION(posix_error()
 		    << boost::errinfo_api_function("localtime")
 		    << boost::errinfo_errno(errno));
@@ -1025,7 +1025,7 @@ String Utility::FormatDateTime(const char *format, double ts)
 
 	tmthen = *temp;
 #else /* _MSC_VER */
-	if (localtime_r(&tempts, &tmthen) == NULL) {
+	if (!localtime_r(&tempts, &tmthen)) {
 		BOOST_THROW_EXCEPTION(posix_error()
 		    << boost::errinfo_api_function("localtime_r")
 		    << boost::errinfo_errno(errno));
@@ -1045,8 +1045,8 @@ String Utility::FormatErrorNumber(int code) {
 	String result = "Unknown error.";
 
 	DWORD rc = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER |
-		FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, code, 0, (char *)&message,
-		0, NULL);
+		FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, nullptr, code, 0, (char *)&message,
+		0, nullptr);
 
 	if (rc != 0) {
 		result = String(message);
@@ -1295,10 +1295,10 @@ String Utility::GetFQDN(void)
 	hints.ai_flags = AI_CANONNAME;
 
 	addrinfo *result;
-	int rc = getaddrinfo(hostname.CStr(), NULL, &hints, &result);
+	int rc = getaddrinfo(hostname.CStr(), nullptr, &hints, &result);
 
 	if (rc != 0)
-		result = NULL;
+		result = nullptr;
 
 	if (result) {
 		if (strcmp(result->ai_canonname, "localhost") != 0)
@@ -1331,7 +1331,7 @@ tm Utility::LocalTime(time_t ts)
 #ifdef _MSC_VER
 	tm *result = localtime(&ts);
 
-	if (result == NULL) {
+	if (!result) {
 		BOOST_THROW_EXCEPTION(posix_error()
 		    << boost::errinfo_api_function("localtime")
 		    << boost::errinfo_errno(errno));
@@ -1341,7 +1341,7 @@ tm Utility::LocalTime(time_t ts)
 #else /* _MSC_VER */
 	tm result;
 
-	if (localtime_r(&ts, &result) == NULL) {
+	if (!localtime_r(&ts, &result)) {
 		BOOST_THROW_EXCEPTION(posix_error()
 		    << boost::errinfo_api_function("localtime_r")
 		    << boost::errinfo_errno(errno));
@@ -1479,7 +1479,7 @@ static String UnameHelper(char type)
 	char line[1024];
 	std::ostringstream msgbuf;
 
-	while (fgets(line, sizeof(line), fp) != NULL)
+	while (fgets(line, sizeof(line), fp))
 		msgbuf << line;
 
 	pclose(fp);
@@ -1557,10 +1557,10 @@ static bool ReleaseHelper(String *platformName, String *platformVersion)
 	/* You are using a distribution which supports LSB. */
 	FILE *fp = popen("type lsb_release >/dev/null 2>&1 && lsb_release -s -i 2>&1", "r");
 
-	if (fp != NULL) {
+	if (fp) {
 		std::ostringstream msgbuf;
 		char line[1024];
-		while (fgets(line, sizeof(line), fp) != NULL)
+		while (fgets(line, sizeof(line), fp))
 			msgbuf << line;
 		int status = pclose(fp);
 		if (WEXITSTATUS(status) == 0) {
@@ -1571,10 +1571,10 @@ static bool ReleaseHelper(String *platformName, String *platformVersion)
 
 	fp = popen("type lsb_release >/dev/null 2>&1 && lsb_release -s -r 2>&1", "r");
 
-	if (fp != NULL) {
+	if (fp) {
 		std::ostringstream msgbuf;
 		char line[1024];
-		while (fgets(line, sizeof(line), fp) != NULL)
+		while (fgets(line, sizeof(line), fp))
 			msgbuf << line;
 		int status = pclose(fp);
 		if (WEXITSTATUS(status) == 0) {
@@ -1586,10 +1586,10 @@ static bool ReleaseHelper(String *platformName, String *platformVersion)
 	/* OS X */
 	fp = popen("type sw_vers >/dev/null 2>&1 && sw_vers -productName 2>&1", "r");
 
-	if (fp != NULL) {
+	if (fp) {
 		std::ostringstream msgbuf;
 		char line[1024];
-		while (fgets(line, sizeof(line), fp) != NULL)
+		while (fgets(line, sizeof(line), fp))
 			msgbuf << line;
 		int status = pclose(fp);
 		if (WEXITSTATUS(status) == 0) {
@@ -1603,10 +1603,10 @@ static bool ReleaseHelper(String *platformName, String *platformVersion)
 
 	fp = popen("type sw_vers >/dev/null 2>&1 && sw_vers -productVersion 2>&1", "r");
 
-	if (fp != NULL) {
+	if (fp) {
 		std::ostringstream msgbuf;
 		char line[1024];
-		while (fgets(line, sizeof(line), fp) != NULL)
+		while (fgets(line, sizeof(line), fp))
 			msgbuf << line;
 		int status = pclose(fp);
 		if (WEXITSTATUS(status) == 0) {
@@ -1690,7 +1690,7 @@ String Utility::GetPlatformKernelVersion(void)
 String Utility::GetPlatformName(void)
 {
 	String platformName;
-	if (!ReleaseHelper(&platformName, NULL))
+	if (!ReleaseHelper(&platformName, nullptr))
 		return "Unknown";
 	return platformName;
 }
@@ -1698,7 +1698,7 @@ String Utility::GetPlatformName(void)
 String Utility::GetPlatformVersion(void)
 {
 	String platformVersion;
-	if (!ReleaseHelper(NULL, &platformVersion))
+	if (!ReleaseHelper(nullptr, &platformVersion))
 		return "Unknown";
 	return platformVersion;
 }
@@ -1928,7 +1928,7 @@ String Utility::GetIcingaInstallPath(void)
 String Utility::GetIcingaDataPath(void)
 {
 	char path[MAX_PATH];
-	if (!SUCCEEDED(SHGetFolderPath(NULL, CSIDL_COMMON_APPDATA, NULL, 0, path)))
+	if (!SUCCEEDED(SHGetFolderPath(nullptr, CSIDL_COMMON_APPDATA, nullptr, 0, path)))
 		return "";
 	return String(path) + "\\icinga2";
 }

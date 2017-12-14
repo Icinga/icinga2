@@ -50,10 +50,10 @@ void DummyCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResu
 	resolvers.emplace_back("icinga", IcingaApplication::GetInstance());
 
 	int dummyState = MacroProcessor::ResolveMacros("$dummy_state$", resolvers, checkable->GetLastCheckResult(),
-	    NULL, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
+	    nullptr, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
 
 	String dummyText = MacroProcessor::ResolveMacros("$dummy_text$", resolvers, checkable->GetLastCheckResult(),
-	    NULL, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
+	    nullptr, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
 
 	if (resolvedMacros && !useResolvedMacros)
 		return;

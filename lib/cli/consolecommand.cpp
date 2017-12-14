@@ -68,7 +68,7 @@ extern "C" void dbg_inspect_object(Object *obj)
 
 extern "C" void dbg_eval(const char *text)
 {
-	Expression *expr = NULL;
+	Expression *expr = nullptr;
 
 	try {
 		ScriptFrame frame;
@@ -84,7 +84,7 @@ extern "C" void dbg_eval(const char *text)
 
 extern "C" void dbg_eval_with_value(const Value& value, const char *text)
 {
-	Expression *expr = NULL;
+	Expression *expr = nullptr;
 
 	try {
 		ScriptFrame frame;
@@ -102,7 +102,7 @@ extern "C" void dbg_eval_with_value(const Value& value, const char *text)
 
 extern "C" void dbg_eval_with_object(Object *object, const char *text)
 {
-	Expression *expr = NULL;
+	Expression *expr = nullptr;
 
 	try {
 		ScriptFrame frame;
@@ -214,7 +214,7 @@ char *ConsoleCommand::ConsoleCompleteHelper(const char *word, int state)
 	}
 
 	if (state >= static_cast<int>(matches.size()))
-		return NULL;
+		return nullptr;
 
 	return strdup(matches[state].CStr());
 }
@@ -400,7 +400,7 @@ incomplete:
 
 		command += line;
 
-		Expression *expr = NULL;
+		Expression *expr = nullptr;
 
 		try {
 			lines[fileName] = command;

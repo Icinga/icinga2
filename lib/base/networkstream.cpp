@@ -35,7 +35,7 @@ void NetworkStream::Close(void)
 /**
  * Reads data from the stream.
  *
- * @param buffer The buffer where data should be stored. May be NULL if you're
+ * @param buffer The buffer where data should be stored. May be nullptr if you're
  *		 not actually interested in the data.
  * @param count The number of bytes to read from the queue.
  * @returns The number of bytes actually read.

@@ -25,7 +25,7 @@ using namespace icinga;
  * Constructor for the FIFO class.
  */
 FIFO::FIFO(void)
-	: m_Buffer(NULL), m_DataSize(0), m_AllocSize(0), m_Offset(0)
+	: m_Buffer(nullptr), m_DataSize(0), m_AllocSize(0), m_Offset(0)
 { }
 
 /**
@@ -53,7 +53,7 @@ void FIFO::ResizeBuffer(size_t newSize, bool decrease)
 
 	char *newBuffer = static_cast<char *>(realloc(m_Buffer, newSize));
 
-	if (newBuffer == NULL)
+	if (!newBuffer)
 		BOOST_THROW_EXCEPTION(std::bad_alloc());
 
 	m_Buffer = newBuffer;
@@ -85,7 +85,7 @@ size_t FIFO::Peek(void *buffer, size_t count, bool allow_partial)
 	if (count > m_DataSize)
 		count = m_DataSize;
 
-	if (buffer != NULL)
+	if (buffer)
 		std::memcpy(buffer, m_Buffer + m_Offset, count);
 
 	return count;
@@ -101,7 +101,7 @@ size_t FIFO::Read(void *buffer, size_t count, bool allow_partial)
 	if (count > m_DataSize)
 		count = m_DataSize;
 
-	if (buffer != NULL)
+	if (buffer)
 		std::memcpy(buffer, m_Buffer + m_Offset, count);
 
 	m_DataSize -= count;

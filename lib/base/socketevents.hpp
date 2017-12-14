@@ -82,7 +82,7 @@ struct SocketEventDescriptor
 	Object *LifesupportObject;
 
 	SocketEventDescriptor(void)
-		: Events(POLLIN), EventInterface(NULL), LifesupportObject(NULL)
+		: Events(POLLIN), EventInterface(nullptr), LifesupportObject(nullptr)
 	{ }
 };
 

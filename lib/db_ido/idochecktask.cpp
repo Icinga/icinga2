@@ -52,10 +52,10 @@ void IdoCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult
 	resolvers.emplace_back("icinga", IcingaApplication::GetInstance());
 
 	String idoType = MacroProcessor::ResolveMacros("$ido_type$", resolvers, checkable->GetLastCheckResult(),
-	    NULL, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
+	    nullptr, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
 
 	String idoName = MacroProcessor::ResolveMacros("$ido_name$", resolvers, checkable->GetLastCheckResult(),
-	    NULL, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
+	    nullptr, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
 
 	if (resolvedMacros && !useResolvedMacros)
 		return;

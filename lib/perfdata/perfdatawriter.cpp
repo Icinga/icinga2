@@ -105,7 +105,7 @@ void PerfdataWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 	resolvers.emplace_back("icinga", IcingaApplication::GetInstance());
 
 	if (service) {
-		String line = MacroProcessor::ResolveMacros(GetServiceFormatTemplate(), resolvers, cr, NULL, &PerfdataWriter::EscapeMacroMetric);
+		String line = MacroProcessor::ResolveMacros(GetServiceFormatTemplate(), resolvers, cr, nullptr, &PerfdataWriter::EscapeMacroMetric);
 
 		{
 			ObjectLock olock(this);
@@ -115,7 +115,7 @@ void PerfdataWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 			m_ServiceOutputFile << line << "\n";
 		}
 	} else {
-		String line = MacroProcessor::ResolveMacros(GetHostFormatTemplate(), resolvers, cr, NULL, &PerfdataWriter::EscapeMacroMetric);
+		String line = MacroProcessor::ResolveMacros(GetHostFormatTemplate(), resolvers, cr, nullptr, &PerfdataWriter::EscapeMacroMetric);
 
 		{
 			ObjectLock olock(this);
