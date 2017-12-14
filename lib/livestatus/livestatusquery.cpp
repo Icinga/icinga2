@@ -526,7 +526,7 @@ void LivestatusQuery::ExecuteGetHelper(const Stream::Ptr& stream)
 			auto it = allStats.find(statsKey);
 
 			if (it == allStats.end()) {
-				std::vector<AggregatorState *> newStats(m_Aggregators.size(), NULL);
+				std::vector<AggregatorState *> newStats(m_Aggregators.size(), nullptr);
 				it = allStats.insert(std::make_pair(statsKey, newStats)).first;
 			}
 

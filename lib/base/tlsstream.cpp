@@ -58,7 +58,7 @@ TlsStream::TlsStream(const Socket::Ptr& socket, const String& hostname, Connecti
 	}
 
 	if (!m_SSLIndexInitialized) {
-		m_SSLIndex = SSL_get_ex_new_index(0, const_cast<char *>("TlsStream"), NULL, NULL, NULL);
+		m_SSLIndex = SSL_get_ex_new_index(0, const_cast<char *>("TlsStream"), nullptr, nullptr, nullptr);
 		m_SSLIndexInitialized = true;
 	}
 
@@ -187,7 +187,7 @@ void TlsStream::OnEvent(int revents)
 			rc = SSL_write(m_SSL.get(), buffer, count);
 
 			if (rc > 0) {
-				m_SendQ->Read(NULL, rc, true);
+				m_SendQ->Read(nullptr, rc, true);
 				success = true;
 			}
 
@@ -232,7 +232,7 @@ void TlsStream::OnEvent(int revents)
 
 				if (m_ErrorCode != 0) {
 					Log(LogWarning, "TlsStream")
-						<< "OpenSSL error: " << ERR_error_string(m_ErrorCode, NULL);
+						<< "OpenSSL error: " << ERR_error_string(m_ErrorCode, nullptr);
 				} else {
 					Log(LogWarning, "TlsStream", "TLS stream was disconnected.");
 				}

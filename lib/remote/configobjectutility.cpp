@@ -132,7 +132,7 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 		ScriptFrame frame;
 		expr->Evaluate(frame);
 		delete expr;
-		expr = NULL;
+		expr = nullptr;
 
 		WorkQueue upq;
 		std::vector<ConfigItem::Ptr> newItems;

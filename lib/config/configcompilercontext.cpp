@@ -32,7 +32,7 @@ ConfigCompilerContext *ConfigCompilerContext::GetInstance(void)
 }
 
 ConfigCompilerContext::ConfigCompilerContext(void)
-    : m_ObjectsFP(NULL)
+    : m_ObjectsFP(nullptr)
 { }
 
 void ConfigCompilerContext::OpenObjectsFile(const String& filename)
@@ -69,7 +69,7 @@ void ConfigCompilerContext::WriteObject(const Dictionary::Ptr& object)
 void ConfigCompilerContext::CancelObjectsFile(void)
 {
 	delete m_ObjectsFP;
-	m_ObjectsFP = NULL;
+	m_ObjectsFP = nullptr;
 
 #ifdef _WIN32
 	_unlink(m_ObjectsTempFile.CStr());
@@ -81,7 +81,7 @@ void ConfigCompilerContext::CancelObjectsFile(void)
 void ConfigCompilerContext::FinishObjectsFile(void)
 {
 	delete m_ObjectsFP;
-	m_ObjectsFP = NULL;
+	m_ObjectsFP = nullptr;
 
 #ifdef _WIN32
 	_unlink(m_ObjectsPath.CStr());

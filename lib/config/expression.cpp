@@ -137,7 +137,7 @@ bool VariableExpression::GetReference(ScriptFrame& frame, bool init_dict, Value 
 		*parent = frame.Locals;
 
 		if (dhint)
-			*dhint = NULL;
+			*dhint = nullptr;
 	} else if (frame.Self.IsObject() && frame.Locals != frame.Self.Get<Object::Ptr>() && frame.Self.Get<Object::Ptr>()->HasOwnField(m_Variable)) {
 		*parent = frame.Self;
 
@@ -149,7 +149,7 @@ bool VariableExpression::GetReference(ScriptFrame& frame, bool init_dict, Value 
 		*parent = ScriptGlobal::GetGlobals();
 
 		if (dhint)
-			*dhint = NULL;
+			*dhint = nullptr;
 	} else
 		*parent = frame.Self;
 
@@ -487,7 +487,7 @@ ExpressionResult DictExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint
 
 	try {
 		for (Expression *aexpr : m_Expressions) {
-			ExpressionResult element = aexpr->Evaluate(frame, m_Inline ? dhint : NULL);
+			ExpressionResult element = aexpr->Evaluate(frame, m_Inline ? dhint : nullptr);
 			CHECK_RESULT(element);
 			result = element.GetValue();
 		}
@@ -643,7 +643,7 @@ bool IndexerExpression::GetReference(ScriptFrame& frame, bool init_dict, Value *
 {
 	Value vparent;
 	String vindex;
-	DebugHint *psdhint = NULL;
+	DebugHint *psdhint = nullptr;
 	bool free_psd = false;
 
 	if (dhint)
@@ -674,7 +674,7 @@ bool IndexerExpression::GetReference(ScriptFrame& frame, bool init_dict, Value *
 		if (psdhint)
 			*dhint = new DebugHint(psdhint->GetChild(*index));
 		else
-			*dhint = NULL;
+			*dhint = nullptr;
 	}
 
 	if (free_psd)
@@ -921,7 +921,7 @@ ExpressionResult IncludeExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dh
 
 ExpressionResult BreakpointExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
-	ScriptBreakpoint(frame, NULL, GetDebugInfo());
+	ScriptBreakpoint(frame, nullptr, GetDebugInfo());
 
 	return Empty;
 }

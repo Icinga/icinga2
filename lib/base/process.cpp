@@ -72,7 +72,7 @@ Process::Process(const Process::Arguments& arguments, const Dictionary::Ptr& ext
 #endif /* _WIN32 */
 {
 #ifdef _WIN32
-	m_Overlapped.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
+	m_Overlapped.hEvent = CreateEvent(nullptr, TRUE, FALSE, nullptr);
 #endif /* _WIN32 */
 }
 
@@ -88,7 +88,7 @@ static Value ProcessSpawnImpl(struct msghdr *msgh, const Dictionary::Ptr& reques
 {
 	struct cmsghdr *cmsg = CMSG_FIRSTHDR(msgh);
 
-	if (cmsg == NULL || cmsg->cmsg_level != SOL_SOCKET || cmsg->cmsg_len != CMSG_LEN(sizeof(int) * 3)) {
+	if (cmsg == nullptr || cmsg->cmsg_level != SOL_SOCKET || cmsg->cmsg_len != CMSG_LEN(sizeof(int) * 3)) {
 		std::cerr << "Invalid 'spawn' request: FDs missing" << std::endl;
 		return Empty;
 	}
@@ -107,13 +107,13 @@ static Value ProcessSpawnImpl(struct msghdr *msgh, const Dictionary::Ptr& reques
 		argv[i] = strdup(arg.CStr());
 	}
 
-	argv[arguments->GetLength()] = NULL;
+	argv[arguments->GetLength()] = nullptr;
 
 	// build envp
 	int envc = 0;
 
 	/* count existing environment variables */
-	while (environ[envc] != NULL)
+	while (environ[envc])
 		envc++;
 
 	char **envp = new char *[envc + (extraEnvironment ? extraEnvironment->GetLength() : 0) + 2];
@@ -133,7 +133,7 @@ static Value ProcessSpawnImpl(struct msghdr *msgh, const Dictionary::Ptr& reques
 	}
 
 	envp[envc + (extraEnvironment ? extraEnvironment->GetLength() : 0)] = strdup("LC_NUMERIC=C");
-	envp[envc + (extraEnvironment ? extraEnvironment->GetLength() : 0) + 1] = NULL;
+	envp[envc + (extraEnvironment ? extraEnvironment->GetLength() : 0) + 1] = nullptr;
 
 	extraEnvironment.reset();
 
@@ -170,7 +170,7 @@ static Value ProcessSpawnImpl(struct msghdr *msgh, const Dictionary::Ptr& reques
 
 		sigset_t mask;
 		sigemptyset(&mask);
-		sigprocmask(SIG_SETMASK, &mask, NULL);
+		sigprocmask(SIG_SETMASK, &mask, nullptr);
 
 		if (icinga2_execvpe(argv[0], argv, envp) < 0) {
 			char errmsg[512];
@@ -190,13 +190,13 @@ static Value ProcessSpawnImpl(struct msghdr *msgh, const Dictionary::Ptr& reques
 	(void)close(fds[2]);
 
 	// free arguments
-	for (int i = 0; argv[i] != NULL; i++)
+	for (int i = 0; argv[i]; i++)
 		free(argv[i]);
 
 	delete[] argv;
 
 	// free environment
-	for (int i = 0; envp[i] != NULL; i++)
+	for (int i = 0; envp[i]; i++)
 		free(envp[i]);
 
 	delete[] envp;
@@ -241,7 +241,7 @@ static void ProcessHandler(void)
 {
 	sigset_t mask;
 	sigfillset(&mask);
-	sigprocmask(SIG_SETMASK, &mask, NULL);
+	sigprocmask(SIG_SETMASK, &mask, nullptr);
 
 	rlimit rl;
 	if (getrlimit(RLIMIT_NOFILE, &rl) >= 0) {
@@ -508,7 +508,7 @@ static void InitializeProcess(void)
 {
 	for (int tid = 0; tid < IOTHREADS; tid++) {
 #ifdef _WIN32
-		l_Events[tid] = CreateEvent(NULL, TRUE, FALSE, NULL);
+		l_Events[tid] = CreateEvent(nullptr, TRUE, FALSE, nullptr);
 #else /* _WIN32 */
 #	ifdef HAVE_PIPE2
 		if (pipe2(l_EventFDs[tid], O_CLOEXEC) < 0) {
@@ -601,10 +601,10 @@ bool Process::GetAdjustPriority(void) const
 void Process::IOThreadProc(int tid)
 {
 #ifdef _WIN32
-	HANDLE *handles = NULL;
-	HANDLE *fhandles = NULL;
+	HANDLE *handles = nullptr;
+	HANDLE *fhandles = nullptr;
 #else /* _WIN32 */
-	pollfd *pfds = NULL;
+	pollfd *pfds = nullptr;
 #endif /* _WIN32 */
 	int count = 0;
 	double now;
@@ -773,7 +773,7 @@ static BOOL CreatePipeOverlapped(HANDLE *outReadPipe, HANDLE *outWritePipe,
 	if (*outReadPipe == INVALID_HANDLE_VALUE)
 		return FALSE;
 
-	*outWritePipe = CreateFile(pipeName, GENERIC_WRITE, 0, securityAttributes, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | writeMode, NULL);
+	*outWritePipe = CreateFile(pipeName, GENERIC_WRITE, 0, securityAttributes, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | writeMode, nullptr);
 
 	if (*outWritePipe == INVALID_HANDLE_VALUE) {
 		DWORD error = GetLastError();
@@ -821,7 +821,7 @@ void Process::Run(const std::function<void(const ProcessResult&)>& callback)
 /*	LPPROC_THREAD_ATTRIBUTE_LIST lpAttributeList;
 	SIZE_T cbSize;
 
-	if (!InitializeProcThreadAttributeList(NULL, 1, 0, &cbSize) && GetLastError() != ERROR_INSUFFICIENT_BUFFER)
+	if (!InitializeProcThreadAttributeList(nullptr, 1, 0, &cbSize) && GetLastError() != ERROR_INSUFFICIENT_BUFFER)
 		BOOST_THROW_EXCEPTION(win32_error()
 		<< boost::errinfo_api_function("InitializeProcThreadAttributeList")
 		<< errinfo_win32_error(GetLastError()));
@@ -839,7 +839,7 @@ void Process::Run(const std::function<void(const ProcessResult&)>& callback)
 	rgHandles[2] = GetStdHandle(STD_INPUT_HANDLE);
 
 	if (!UpdateProcThreadAttribute(lpAttributeList, 0, PROC_THREAD_ATTRIBUTE_HANDLE_LIST,
-	    rgHandles, sizeof(rgHandles), NULL, NULL))
+	    rgHandles, sizeof(rgHandles), nullptr, nullptr))
 		BOOST_THROW_EXCEPTION(win32_error()
 			<< boost::errinfo_api_function("UpdateProcThreadAttribute")
 			<< errinfo_win32_error(GetLastError()));
@@ -862,7 +862,7 @@ void Process::Run(const std::function<void(const ProcessResult&)>& callback)
 	LPCH pEnvironment = GetEnvironmentStrings();
 	size_t ioffset = 0, offset = 0;
 
-	char *envp = NULL;
+	char *envp = nullptr;
 
 	for (;;) {
 		size_t len = strlen(pEnvironment + ioffset);
@@ -878,7 +878,7 @@ void Process::Run(const std::function<void(const ProcessResult&)>& callback)
 
 		envp = static_cast<char *>(realloc(envp, offset + len + 1));
 
-		if (envp == NULL)
+		if (!envp)
 			BOOST_THROW_EXCEPTION(std::bad_alloc());
 
 		strcpy(envp + offset, pEnvironment + ioffset);
@@ -896,7 +896,7 @@ void Process::Run(const std::function<void(const ProcessResult&)>& callback)
 
 			envp = static_cast<char *>(realloc(envp, offset + skv.GetLength() + 1));
 
-			if (envp == NULL)
+			if (!envp)
 				BOOST_THROW_EXCEPTION(std::bad_alloc());
 
 			strcpy(envp + offset, skv.CStr());
@@ -906,13 +906,13 @@ void Process::Run(const std::function<void(const ProcessResult&)>& callback)
 
 	envp = static_cast<char *>(realloc(envp, offset + 1));
 
-	if (envp == NULL)
+	if (!envp)
 		BOOST_THROW_EXCEPTION(std::bad_alloc());
 
 	envp[offset] = '\0';
 
-	if (!CreateProcess(NULL, args, NULL, NULL, TRUE,
-	    0 /*EXTENDED_STARTUPINFO_PRESENT*/, envp, NULL, &si.StartupInfo, &pi)) {
+	if (!CreateProcess(nullptr, args, nullptr, nullptr, TRUE,
+	    0 /*EXTENDED_STARTUPINFO_PRESENT*/, envp, nullptr, &si.StartupInfo, &pi)) {
 		DWORD error = GetLastError();
 		CloseHandle(outWritePipe);
 		CloseHandle(outWritePipeDup);

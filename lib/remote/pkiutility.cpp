@@ -71,7 +71,7 @@ int PkiUtility::SignCsr(const String& csrfile, const String& certfile)
 	InitializeOpenSSL();
 
 	BIO *csrbio = BIO_new_file(csrfile.CStr(), "r");
-	X509_REQ *req = PEM_read_bio_X509_REQ(csrbio, NULL, NULL, NULL);
+	X509_REQ *req = PEM_read_bio_X509_REQ(csrbio, nullptr, nullptr, nullptr);
 
 	if (!req) {
 		Log(LogCritical, "SSL")
@@ -396,7 +396,7 @@ static void CollectRequestHandler(const Dictionary::Ptr& requests, const String&
 /* XXX (requires OpenSSL >= 1.0.0)
 	time_t now;
 	time(&now);
-	ASN1_TIME *tm = ASN1_TIME_adj(NULL, now, 0, 0);
+	ASN1_TIME *tm = ASN1_TIME_adj(nullptr, now, 0, 0);
 
 	int day, sec;
 	ASN1_TIME_diff(&day, &sec, tm, X509_get_notBefore(certRequest.get()));

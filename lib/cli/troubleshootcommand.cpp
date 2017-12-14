@@ -185,7 +185,7 @@ bool TroubleshootCommand::ObjectInfo(InfoLog& log, const boost::program_options:
 		    << "FAILED: This probably means you have a fault configuration.\n";
 		return false;
 	} else {
-		InfoLog *OFile = NULL;
+		InfoLog *OFile = nullptr;
 		bool OConsole = false;
 		if (vm.count("include-objects")) {
 			if (vm.count("console"))
@@ -196,7 +196,7 @@ bool TroubleshootCommand::ObjectInfo(InfoLog& log, const boost::program_options:
 					InfoLogLine(log, 0, LogWarning)
 					    << "Failed to open Object-write-stream, not printing objects\n\n";
 					delete OFile;
-					OFile = NULL;
+					OFile = nullptr;
 				} else
 					InfoLogLine(log)
 				        << "Printing all objects to " << path+"-objects\n";

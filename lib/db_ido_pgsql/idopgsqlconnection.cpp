@@ -210,13 +210,13 @@ void IdoPgsqlConnection::Reconnect(void)
 	ipasswd = GetPassword();
 	idb = GetDatabase();
 
-	host = (!ihost.IsEmpty()) ? ihost.CStr() : NULL;
-	port = (!iport.IsEmpty()) ? iport.CStr() : NULL;
-	user = (!iuser.IsEmpty()) ? iuser.CStr() : NULL;
-	passwd = (!ipasswd.IsEmpty()) ? ipasswd.CStr() : NULL;
-	db = (!idb.IsEmpty()) ? idb.CStr() : NULL;
+	host = (!ihost.IsEmpty()) ? ihost.CStr() : nullptr;
+	port = (!iport.IsEmpty()) ? iport.CStr() : nullptr;
+	user = (!iuser.IsEmpty()) ? iuser.CStr() : nullptr;
+	passwd = (!ipasswd.IsEmpty()) ? ipasswd.CStr() : nullptr;
+	db = (!idb.IsEmpty()) ? idb.CStr() : nullptr;
 
-	m_Connection = PQsetdbLogin(host, port, NULL, NULL, db, user, passwd);
+	m_Connection = PQsetdbLogin(host, port, nullptr, nullptr, db, user, passwd);
 
 	if (!m_Connection)
 		return;
@@ -508,7 +508,7 @@ String IdoPgsqlConnection::Escape(const String& s)
 	size_t length = utf8s.GetLength();
 	char *to = new char[utf8s.GetLength() * 2 + 1];
 
-	PQescapeStringConn(m_Connection, to, utf8s.CStr(), length, NULL);
+	PQescapeStringConn(m_Connection, to, utf8s.CStr(), length, nullptr);
 
 	String result = String(to);
 

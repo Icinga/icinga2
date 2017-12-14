@@ -83,7 +83,7 @@ private:
 		boost::thread *Thread;
 
 		WorkerThread(ThreadState state = ThreadDead)
-			: State(state), Zombie(false), Utilization(0), LastUpdate(0), Thread(NULL)
+			: State(state), Zombie(false), Utilization(0), LastUpdate(0), Thread(nullptr)
 		{ }
 
 		void UpdateUtilization(ThreadState state = ThreadUnspecified);

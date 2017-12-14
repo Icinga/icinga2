@@ -292,7 +292,7 @@ void LegacyTimePeriod::ParseTimeRange(const String& timerange, tm *begin, tm *en
 
 		String second = def.SubStr(pos + 1).Trim();
 
-		ParseTimeSpec(first, begin, NULL, reference);
+		ParseTimeSpec(first, begin, nullptr, reference);
 
 		/* If the second definition starts with a number we need
 		 * to add the first word from the first definition, e.g.:
@@ -313,7 +313,7 @@ void LegacyTimePeriod::ParseTimeRange(const String& timerange, tm *begin, tm *en
 			second = first.SubStr(0, xpos + 1) + second;
 		}
 
-		ParseTimeSpec(second, NULL, end, reference);
+		ParseTimeSpec(second, nullptr, end, reference);
 	} else {
 		ParseTimeSpec(def, begin, end, reference);
 	}

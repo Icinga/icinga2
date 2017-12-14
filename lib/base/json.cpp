@@ -102,9 +102,9 @@ String icinga::JsonEncode(const Value& value, bool pretty_print)
 {
 #if YAJL_MAJOR < 2
 	yajl_gen_config conf = { pretty_print, "" };
-	yajl_gen handle = yajl_gen_alloc(&conf, NULL);
+	yajl_gen handle = yajl_gen_alloc(&conf, nullptr);
 #else /* YAJL_MAJOR */
-	yajl_gen handle = yajl_gen_alloc(NULL);
+	yajl_gen handle = yajl_gen_alloc(nullptr);
 	if (pretty_print)
 		yajl_gen_config(handle, yajl_gen_beautify, 1);
 #endif /* YAJL_MAJOR */
@@ -307,8 +307,8 @@ Value icinga::JsonDecode(const String& data)
 	static const yajl_callbacks callbacks = {
 		DecodeNull,
 		DecodeBoolean,
-		NULL,
-		NULL,
+		nullptr,
+		nullptr,
 		DecodeNumber,
 		DecodeString,
 		DecodeStartMap,
@@ -325,9 +325,9 @@ Value icinga::JsonDecode(const String& data)
 	JsonContext context;
 
 #if YAJL_MAJOR < 2
-	handle = yajl_alloc(&callbacks, &cfg, NULL, &context);
+	handle = yajl_alloc(&callbacks, &cfg, nullptr, &context);
 #else /* YAJL_MAJOR */
-	handle = yajl_alloc(&callbacks, NULL, &context);
+	handle = yajl_alloc(&callbacks, nullptr, &context);
 	yajl_config(handle, yajl_dont_validate_strings, 1);
 	yajl_config(handle, yajl_allow_comments, 1);
 #endif /* YAJL_MAJOR */

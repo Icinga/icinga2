@@ -66,7 +66,7 @@ bool EventsHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request
 
 	String filter = HttpUtility::GetLastParameter(params, "filter");
 
-	Expression *ufilter = NULL;
+	Expression *ufilter = nullptr;
 
 	if (!filter.IsEmpty())
 		ufilter = ConfigCompiler::CompileText("<API query>", filter);

@@ -174,7 +174,7 @@ void SocketEventEngineEpoll::Unregister(SocketEvents *se)
 		m_Sockets[tid].erase(se->m_FD);
 		m_FDChanged[tid] = true;
 
-		epoll_ctl(m_PollFDs[tid], EPOLL_CTL_DEL, se->m_FD, NULL);
+		epoll_ctl(m_PollFDs[tid], EPOLL_CTL_DEL, se->m_FD, nullptr);
 
 		se->m_FD = INVALID_SOCKET;
 		se->m_Events = false;

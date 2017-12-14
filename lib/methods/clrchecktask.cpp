@@ -51,7 +51,7 @@ static void InitializeClr(void)
 {
 	ICorRuntimeHost *runtimeHost;
 
-	if (FAILED(CorBindToRuntimeEx(NULL, NULL,
+	if (FAILED(CorBindToRuntimeEx(nullptr, nullptr,
 	    STARTUP_LOADER_OPTIMIZATION_SINGLE_DOMAIN | STARTUP_CONCURRENT_GC,
 	    CLSID_CorRuntimeHost, IID_ICorRuntimeHost, (void **)&runtimeHost))) {
 		return;
@@ -59,7 +59,7 @@ static void InitializeClr(void)
 
 	runtimeHost->Start();
 
-	IUnknownPtr punkAppDomain = NULL;
+	IUnknownPtr punkAppDomain = nullptr;
 	runtimeHost->GetDefaultDomain(&punkAppDomain);
 
 	punkAppDomain->QueryInterface(__uuidof(mscorlib::_AppDomain), (void **)&l_AppDomain);
@@ -87,7 +87,7 @@ static variant_t InvokeClrMethod(const variant_t& vtObject, const String& method
 	HRESULT hr = CLSIDFromProgID(L"System.Collections.Hashtable", &clsid);
 
 	mscorlib::IDictionaryPtr pHashtable;
-	CoCreateInstance(clsid, NULL, CLSCTX_ALL, __uuidof(mscorlib::IDictionary), (void **)&pHashtable);
+	CoCreateInstance(clsid, nullptr, CLSCTX_ALL, __uuidof(mscorlib::IDictionary), (void **)&pHashtable);
 
 	ObjectLock olock(args);
 	for (const Dictionary::Pair& kv : args) {
@@ -107,7 +107,7 @@ static variant_t InvokeClrMethod(const variant_t& vtObject, const String& method
 
 	variant_t result = pType->InvokeMember_3(methodName.CStr(),
 		mscorlib::BindingFlags_InvokeMethod,
-		NULL,
+		nullptr,
 		vtObject,
 		psa);
 
@@ -125,19 +125,19 @@ static void FillCheckResult(const CheckResult::Ptr& cr, variant_t vtResult)
 	SAFEARRAY *psa = SafeArrayCreateVector(VT_VARIANT, 0, 0);
 	int lState = pType->InvokeMember_3("State",
 		mscorlib::BindingFlags_GetField,
-		NULL,
+		nullptr,
 		vtResult,
 		psa);
 	cr->SetState(static_cast<ServiceState>(lState));
 	bstr_t sOutput = pType->InvokeMember_3("Output",
 		mscorlib::BindingFlags_GetField,
-		NULL,
+		nullptr,
 		vtResult,
 		psa);
 	cr->SetOutput(static_cast<const char *>(sOutput));
 	bstr_t sPerformanceData = pType->InvokeMember_3("PerformanceData",
 		mscorlib::BindingFlags_GetField,
-		NULL,
+		nullptr,
 		vtResult,
 		psa);
 	SafeArrayDestroy(psa);
@@ -171,7 +171,7 @@ void ClrCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult
 			String name = kv.second;
 
 			Value value = MacroProcessor::ResolveMacros(name, resolvers, checkable->GetLastCheckResult(),
-			    NULL, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
+			    nullptr, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
 
 			envMacros->Set(kv.first, value);
 		}
@@ -188,9 +188,9 @@ void ClrCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult
 			vtObject = it->second;
 		} else {
 			String clr_assembly = MacroProcessor::ResolveMacros("$clr_assembly$", resolvers, checkable->GetLastCheckResult(),
-			    NULL, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
+			    nullptr, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
 			String clr_type = MacroProcessor::ResolveMacros("$clr_type$", resolvers, checkable->GetLastCheckResult(),
-			    NULL, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
+			    nullptr, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
 
 			if (resolvedMacros && !useResolvedMacros)
 				return;

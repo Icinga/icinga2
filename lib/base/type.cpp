@@ -39,7 +39,7 @@ String Type::ToString(void) const
 
 void Type::Register(const Type::Ptr& type)
 {
-	VERIFY(GetByName(type->GetName()) == NULL);
+	VERIFY(!GetByName(type->GetName()));
 
 	ScriptGlobal::Set("Types." + type->GetName(), type);
 }
@@ -195,11 +195,11 @@ Field TypeType::GetFieldInfo(int id) const
 		return GetBaseType()->GetFieldInfo(id);
 
 	if (real_id == 0)
-		return Field(0, "String", "name", "", NULL, 0, 0);
+		return Field(0, "String", "name", "", nullptr, 0, 0);
 	else if (real_id == 1)
-		return Field(1, "Object", "prototype", "", NULL, 0, 0);
+		return Field(1, "Object", "prototype", "", nullptr, 0, 0);
 	else if (real_id == 2)
-		return Field(2, "Type", "base", "", NULL, 0, 0);
+		return Field(2, "Type", "base", "", nullptr, 0, 0);
 
 	throw std::runtime_error("Invalid field ID.");
 }
@@ -211,6 +211,6 @@ int TypeType::GetFieldCount(void) const
 
 ObjectFactory TypeType::GetFactory(void) const
 {
-	return NULL;
+	return nullptr;
 }
 

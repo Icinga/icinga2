@@ -541,7 +541,7 @@ void CompatLogger::ScheduleNextRotation(void)
 #ifdef _MSC_VER
 	tm *temp = localtime(&now);
 
-	if (temp == NULL) {
+	if (!temp) {
 		BOOST_THROW_EXCEPTION(posix_error()
 		    << boost::errinfo_api_function("localtime")
 		    << boost::errinfo_errno(errno));
@@ -549,7 +549,7 @@ void CompatLogger::ScheduleNextRotation(void)
 
 	tmthen = *temp;
 #else /* _MSC_VER */
-	if (localtime_r(&now, &tmthen) == NULL) {
+	if (!localtime_r(&now, &tmthen)) {
 		BOOST_THROW_EXCEPTION(posix_error()
 		    << boost::errinfo_api_function("localtime_r")
 		    << boost::errinfo_errno(errno));

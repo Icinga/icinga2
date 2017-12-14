@@ -258,7 +258,7 @@ static int Main(void)
 				|| command->GetImpersonationLevel() == ImpersonationLevel::ImpersonateRoot) {
 				TCHAR szPath[MAX_PATH];
 
-				if (GetModuleFileName(NULL, szPath, ARRAYSIZE(szPath))) { 
+				if (GetModuleFileName(nullptr, szPath, ARRAYSIZE(szPath))) {
 					SHELLEXECUTEINFO sei = { sizeof(sei) };
 					sei.lpVerb = _T("runas");
 					sei.lpFile = "cmd.exe";
@@ -434,7 +434,7 @@ static int Main(void)
 
 		if (!command || vm.count("help")) {
 			if (!command)
-				CLICommand::ShowCommands(argc, argv, NULL);
+				CLICommand::ShowCommands(argc, argv, nullptr);
 
 			std::cout << visibleDesc << std::endl
 				<< "Report bugs at <https://github.com/Icinga/icinga2>" << std::endl
@@ -477,7 +477,7 @@ static int Main(void)
 			}
 
 			if (getgid() != gr->gr_gid) {
-				if (!vm.count("reload-internal") && setgroups(0, NULL) < 0) {
+				if (!vm.count("reload-internal") && setgroups(0, nullptr) < 0) {
 					Log(LogCritical, "cli")
 					    << "setgroups() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 					Log(LogCritical, "cli")
@@ -567,19 +567,16 @@ static int Main(void)
 #ifdef _WIN32
 static int SetupService(bool install, int argc, char **argv)
 {
-	SC_HANDLE schSCManager = OpenSCManager(
-		NULL,
-		NULL,
-		SC_MANAGER_ALL_ACCESS);
+	SC_HANDLE schSCManager = OpenSCManager(nullptr, nullptr, SC_MANAGER_ALL_ACCESS);
 
-	if (NULL == schSCManager) {
+	if (!schSCManager) {
 		printf("OpenSCManager failed (%d)\n", GetLastError());
 		return 1;
 	}
 
 	TCHAR szPath[MAX_PATH];
 
-	if (!GetModuleFileName(NULL, szPath, MAX_PATH)) {
+	if (!GetModuleFileName(nullptr, szPath, MAX_PATH)) {
 		printf("Cannot install service (%d)\n", GetLastError());
 		return 1;
 	}
@@ -604,7 +601,7 @@ static int SetupService(bool install, int argc, char **argv)
 
 	SC_HANDLE schService = OpenService(schSCManager, "icinga2", SERVICE_ALL_ACCESS);
 
-	if (schService != NULL) {
+	if (schService) {
 		SERVICE_STATUS status;
 		ControlService(schService, SERVICE_CONTROL_STOP, &status);
 
@@ -634,13 +631,13 @@ static int SetupService(bool install, int argc, char **argv)
 			SERVICE_DEMAND_START,
 			SERVICE_ERROR_NORMAL,
 			szArgs.CStr(),
-			NULL,
-			NULL,
-			NULL,
+			nullptr,
+			nullptr,
+			nullptr,
 			scmUser.c_str(),
-			NULL);
+			nullptr);
 
-		if (schService == NULL) {
+		if (!schService) {
 			printf("CreateService failed (%d)\n", GetLastError());
 			CloseServiceHandle(schSCManager);
 			return 1;
@@ -662,7 +659,7 @@ static int SetupService(bool install, int argc, char **argv)
 		printf("Service uninstalled successfully\n");
 	} else {
 		if (!ChangeServiceConfig(schService, SERVICE_NO_CHANGE, SERVICE_AUTO_START,
-			SERVICE_ERROR_NORMAL, szArgs.CStr(), NULL, NULL, NULL, scmUser.c_str(), NULL, NULL)) {
+			SERVICE_ERROR_NORMAL, szArgs.CStr(), nullptr, nullptr, nullptr, scmUser.c_str(), nullptr, nullptr)) {
 			printf("ChangeServiceConfig failed (%d)\n", GetLastError());
 			CloseServiceHandle(schService);
 			CloseServiceHandle(schSCManager);
@@ -677,7 +674,7 @@ static int SetupService(bool install, int argc, char **argv)
 			return 1;
 		}
 
-		if (!StartService(schService, 0, NULL)) {
+		if (!StartService(schService, 0, nullptr)) {
 			printf("StartService failed (%d)\n", GetLastError());
 			CloseServiceHandle(schService);
 			CloseServiceHandle(schSCManager);
@@ -743,7 +740,7 @@ static VOID WINAPI ServiceMain(DWORD argc, LPSTR *argv)
 	l_SvcStatus.dwServiceSpecificExitCode = 0;
 
 	ReportSvcStatus(SERVICE_RUNNING, NO_ERROR, 0);
-	l_Job = CreateJobObject(NULL, NULL);
+	l_Job = CreateJobObject(nullptr, nullptr);
 
 	for (;;) {
 		LPSTR arg = argv[0];
@@ -765,7 +762,7 @@ static VOID WINAPI ServiceMain(DWORD argc, LPSTR *argv)
 
 		char *uargs = strdup(args.CStr());
 
-		BOOL res = CreateProcess(NULL, uargs, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi);
+		BOOL res = CreateProcess(nullptr, uargs, nullptr, nullptr, FALSE, 0, nullptr, nullptr, &si, &pi);
 
 		free(uargs);
 
@@ -847,7 +844,7 @@ int main(int argc, char **argv)
 	if (argc > 1 && strcmp(argv[1], "--scm") == 0) {
 		SERVICE_TABLE_ENTRY dispatchTable[] = {
 			{ "icinga2", ServiceMain },
-			{ NULL, NULL }
+			{ nullptr, nullptr }
 		};
 
 		StartServiceCtrlDispatcher(dispatchTable);

@@ -53,7 +53,7 @@ public:
 	void Listen(void);
 	Socket::Ptr Accept(void);
 
-	bool Poll(bool read, bool write, struct timeval *timeout = NULL);
+	bool Poll(bool read, bool write, struct timeval *timeout = nullptr);
 
 	void MakeNonBlocking(void);
 

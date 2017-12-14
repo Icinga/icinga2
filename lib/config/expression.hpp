@@ -200,8 +200,8 @@ class I2_CONFIG_API Expression
 public:
 	virtual ~Expression(void);
 
-	ExpressionResult Evaluate(ScriptFrame& frame, DebugHint *dhint = NULL) const;
-	virtual bool GetReference(ScriptFrame& frame, bool init_dict, Value *parent, String *index, DebugHint **dhint = NULL) const;
+	ExpressionResult Evaluate(ScriptFrame& frame, DebugHint *dhint = nullptr) const;
+	virtual bool GetReference(ScriptFrame& frame, bool init_dict, Value *parent, String *index, DebugHint **dhint = nullptr) const;
 	virtual const DebugInfo& GetDebugInfo(void) const;
 
 	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const = 0;

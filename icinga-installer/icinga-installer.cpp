@@ -31,7 +31,7 @@
 static std::string GetIcingaInstallPath(void)
 {
 	char szFileName[MAX_PATH];
-	if (!GetModuleFileName(NULL, szFileName, sizeof(szFileName)))
+	if (!GetModuleFileName(nullptr, szFileName, sizeof(szFileName)))
 		return "";
 
 	if (!PathRemoveFileSpec(szFileName))
@@ -100,7 +100,7 @@ static bool PathExists(const std::string& path)
 static std::string GetIcingaDataPath(void)
 {
 	char path[MAX_PATH];
-	if (!SUCCEEDED(SHGetFolderPath(NULL, CSIDL_COMMON_APPDATA, NULL, 0, path)))
+	if (!SUCCEEDED(SHGetFolderPath(nullptr, CSIDL_COMMON_APPDATA, nullptr, 0, path)))
 		throw std::runtime_error("SHGetFolderPath failed");
 	return std::string(path) + "\\icinga2";
 }
@@ -133,7 +133,7 @@ static std::string GetNSISInstallPath(void)
 		BYTE pvData[MAX_PATH];
 		DWORD cbData = sizeof(pvData) - 1;
 		DWORD lType;
-		if (RegQueryValueEx(hKey, NULL, NULL, &lType, pvData, &cbData) == ERROR_SUCCESS && lType == REG_SZ) {
+		if (RegQueryValueEx(hKey, nullptr, nullptr, &lType, pvData, &cbData) == ERROR_SUCCESS && lType == REG_SZ) {
 			pvData[cbData] = '\0';
 
 			return (char *)pvData;
@@ -279,7 +279,7 @@ static int UninstallIcinga(void)
 */
 int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
-	CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+	CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
 
 	//AllocConsole();
 	int rc;
@@ -291,7 +291,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	} else if (strcmp(lpCmdLine, "upgrade-nsis") == 0) {
 		rc = UpgradeNSIS();
 	} else {
-		MessageBox(NULL, "This application should only be run by the MSI installer package.", "Icinga 2 Installer", MB_ICONWARNING);
+		MessageBox(nullptr, "This application should only be run by the MSI installer package.", "Icinga 2 Installer", MB_ICONWARNING);
 		rc = 1;
 	}
 
