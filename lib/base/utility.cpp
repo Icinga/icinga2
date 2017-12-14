@@ -553,7 +553,7 @@ bool Utility::Glob(const String& pathSpec, const std::function<void (const Strin
 
 	int rc = glob(pathSpec.CStr(), GLOB_NOSORT, GlobErrorHandler, &gr);
 
-	if (rc < 0) {
+	if (rc) {
 		if (rc == GLOB_NOMATCH)
 			return false;
 
