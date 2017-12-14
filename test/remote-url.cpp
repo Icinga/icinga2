@@ -83,13 +83,14 @@ BOOST_AUTO_TEST_CASE(parameters)
 BOOST_AUTO_TEST_CASE(format)
 {
 	Url::Ptr url = new Url("http://foo.bar/baz/?hop=top&flop=sop#iLIKEtrains");
-	BOOST_CHECK(new Url(url->Format(false, false)));
+	Url::Ptr url2;
+	BOOST_CHECK(url2 = new Url(url->Format(false, false)));
 
 	url = new Url("//main.args/////////?k[]=one&k[]=two#three");
-	BOOST_CHECK(new Url(url->Format(false, false)));
+	BOOST_CHECK(url2 = new Url(url->Format(false, false)));
 
 	url = new Url("/foo/bar/index.php?blaka");
-	BOOST_CHECK(new Url(url->Format(false, false)));
+	BOOST_CHECK(url2 = new Url(url->Format(false, false)));
 	BOOST_CHECK(url->Format(false, false) == "/foo/bar/index.php?blaka");
 
 	url = new Url("/");
@@ -98,19 +99,20 @@ BOOST_AUTO_TEST_CASE(format)
 
 BOOST_AUTO_TEST_CASE(illegal_legal_strings)
 {
-	BOOST_CHECK(new Url("/?foo=barr&foo[]=bazz"));
-	BOOST_CHECK_THROW(new Url("/?]=gar"), std::invalid_argument);
-	BOOST_CHECK_THROW(new Url("/#?[]"), std::invalid_argument);
-	BOOST_CHECK(new Url("/?foo=bar&foo=ba"));
-	BOOST_CHECK_THROW(new Url("/?foo=bar&[]=d"), std::invalid_argument);
-	BOOST_CHECK(new Url("/?fo=&bar=garOA"));
-	BOOST_CHECK(new Url("https://127.0.0.1:5665/demo?type=Service&filter=service.state%3E0"));
-	BOOST_CHECK(new Url("/?foo=baz??&\?\?=/?"));
-	BOOST_CHECK(new Url("/"));
-	BOOST_CHECK(new Url("///////"));
-	BOOST_CHECK(new Url("/??[]=?#?=?"));
-	BOOST_CHECK(new Url("http://foo/#bar"));
-	BOOST_CHECK(new Url("//foo/"));
+	Url::Ptr url;
+	BOOST_CHECK(url = new Url("/?foo=barr&foo[]=bazz"));
+	BOOST_CHECK_THROW(url = new Url("/?]=gar"), std::invalid_argument);
+	BOOST_CHECK_THROW(url = new Url("/#?[]"), std::invalid_argument);
+	BOOST_CHECK(url = new Url("/?foo=bar&foo=ba"));
+	BOOST_CHECK_THROW(url = new Url("/?foo=bar&[]=d"), std::invalid_argument);
+	BOOST_CHECK(url = new Url("/?fo=&bar=garOA"));
+	BOOST_CHECK(url = new Url("https://127.0.0.1:5665/demo?type=Service&filter=service.state%3E0"));
+	BOOST_CHECK(url = new Url("/?foo=baz??&\?\?=/?"));
+	BOOST_CHECK(url = new Url("/"));
+	BOOST_CHECK(url = new Url("///////"));
+	BOOST_CHECK(url = new Url("/??[]=?#?=?"));
+	BOOST_CHECK(url = new Url("http://foo/#bar"));
+	BOOST_CHECK(url = new Url("//foo/"));
 }
 
 BOOST_AUTO_TEST_SUITE_END()
