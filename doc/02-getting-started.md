@@ -617,6 +617,7 @@ RHEL/CentOS 6:
 
     # yum install postgresql-server postgresql
     # chkconfig postgresql on
+    # service postgresql initdb
     # service postgresql start
 
 RHEL/CentOS 7:
@@ -630,12 +631,14 @@ SUSE:
 
     # zypper install postgresql postgresql-server
     # chkconfig postgresql on
+    # service postgresql initdb
     # service postgresql start
 
 FreeBSD:
 
     # pkg install postgresql93-server
     # sysrc postgresql_enable=yes
+    # service postgresql initdb
     # service postgresql start
 
 Alpine Linux:
