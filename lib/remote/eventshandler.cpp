@@ -66,7 +66,7 @@ bool EventsHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request
 
 	String filter = HttpUtility::GetLastParameter(params, "filter");
 
-	Expression *ufilter = nullptr;
+	std::unique_ptr<Expression> ufilter;
 
 	if (!filter.IsEmpty())
 		ufilter = ConfigCompiler::CompileText("<API query>", filter);
@@ -80,7 +80,7 @@ bool EventsHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request
 	}
 
 	queue->SetTypes(types->ToSet<String>());
-	queue->SetFilter(ufilter);
+	queue->SetFilter(std::move(ufilter));
 
 	queue->AddClient(&request);
 

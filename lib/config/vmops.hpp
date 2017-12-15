@@ -109,7 +109,7 @@ public:
 	}
 
 	static inline Value NewFunction(ScriptFrame& frame, const String& name, const std::vector<String>& argNames,
-	    std::map<String, Expression *> *closedVars, const std::shared_ptr<Expression>& expression)
+	    const std::map<String, std::unique_ptr<Expression> >& closedVars, const std::shared_ptr<Expression>& expression)
 	{
 		auto evaluatedClosedVars = EvaluateClosedVars(frame, closedVars);
 
@@ -132,7 +132,7 @@ public:
 	}
 
 	static inline Value NewApply(ScriptFrame& frame, const String& type, const String& target, const String& name, const std::shared_ptr<Expression>& filter,
-		const String& package, const String& fkvar, const String& fvvar, const std::shared_ptr<Expression>& fterm, std::map<String, Expression *> *closedVars,
+		const String& package, const String& fkvar, const String& fvvar, const std::shared_ptr<Expression>& fterm, const std::map<String, std::unique_ptr<Expression> >& closedVars,
 		bool ignoreOnError, const std::shared_ptr<Expression>& expression, const DebugInfo& debugInfo = DebugInfo())
 	{
 		ApplyRule::AddRule(type, target, name, expression, filter, package, fkvar,
@@ -142,7 +142,7 @@ public:
 	}
 
 	static inline Value NewObject(ScriptFrame& frame, bool abstract, const Type::Ptr& type, const String& name, const std::shared_ptr<Expression>& filter,
-		const String& zone, const String& package, bool defaultTmpl, bool ignoreOnError, std::map<String, Expression *> *closedVars, const std::shared_ptr<Expression>& expression, const DebugInfo& debugInfo = DebugInfo())
+		const String& zone, const String& package, bool defaultTmpl, bool ignoreOnError, const std::map<String, std::unique_ptr<Expression> >& closedVars, const std::shared_ptr<Expression>& expression, const DebugInfo& debugInfo = DebugInfo())
 	{
 		ConfigItemBuilder::Ptr item = new ConfigItemBuilder(debugInfo);
 
@@ -190,7 +190,7 @@ public:
 		return Empty;
 	}
 
-	static inline ExpressionResult For(ScriptFrame& frame, const String& fkvar, const String& fvvar, const Value& value, Expression *expression, const DebugInfo& debugInfo = DebugInfo())
+	static inline ExpressionResult For(ScriptFrame& frame, const String& fkvar, const String& fvvar, const Value& value, const std::unique_ptr<Expression>& expression, const DebugInfo& debugInfo = DebugInfo())
 	{
 		if (value.IsObjectType<Array>()) {
 			if (!fvvar.IsEmpty())
@@ -251,15 +251,14 @@ public:
 	}
 
 private:
-	static inline Dictionary::Ptr EvaluateClosedVars(ScriptFrame& frame, std::map<String, Expression *> *closedVars)
+	static inline Dictionary::Ptr EvaluateClosedVars(ScriptFrame& frame, const std::map<String, std::unique_ptr<Expression> >& closedVars)
 	{
 		Dictionary::Ptr locals;
 
-		if (closedVars) {
+		if (!closedVars.empty()) {
 			locals = new Dictionary();
 
-			typedef std::pair<String, Expression *> ClosedVar;
-			for (const ClosedVar& cvar : *closedVars) {
+			for (const auto& cvar : closedVars) {
 				locals->Set(cvar.first, cvar.second->Evaluate(frame));
 			}
 		}

@@ -109,12 +109,11 @@ String ConfigCompiler::GetPackage(void) const
 	return m_Package;
 }
 
-void ConfigCompiler::CollectIncludes(std::vector<Expression *>& expressions,
+void ConfigCompiler::CollectIncludes(std::vector<std::unique_ptr<Expression> >& expressions,
     const String& file, const String& zone, const String& package)
 {
 	try {
-		Expression *expr = CompileFile(file, zone, package);
-		expressions.push_back(expr);
+		expressions.emplace_back(CompileFile(file, zone, package));
 	} catch (const std::exception& ex) {
 		Log(LogWarning, "ConfigCompiler")
 		    << "Cannot compile file '"
@@ -130,7 +129,7 @@ void ConfigCompiler::CollectIncludes(std::vector<Expression *>& expressions,
  * @param search Whether to search global include dirs.
  * @param debuginfo Debug information.
  */
-Expression *ConfigCompiler::HandleInclude(const String& relativeBase, const String& path,
+std::unique_ptr<Expression> ConfigCompiler::HandleInclude(const String& relativeBase, const String& path,
     bool search, const String& zone, const String& package, const DebugInfo& debuginfo)
 {
 	String upath;
@@ -153,7 +152,7 @@ Expression *ConfigCompiler::HandleInclude(const String& relativeBase, const Stri
 		}
 	}
 
-	std::vector<Expression *> expressions;
+	std::vector<std::unique_ptr<Expression> > expressions;
 
 	if (!Utility::Glob(includePath, std::bind(&ConfigCompiler::CollectIncludes, std::ref(expressions), _1, zone, package), GlobFile) && includePath.FindFirstOf("*?") == String::NPos) {
 		std::ostringstream msgbuf;
@@ -161,9 +160,9 @@ Expression *ConfigCompiler::HandleInclude(const String& relativeBase, const Stri
 		BOOST_THROW_EXCEPTION(ScriptError(msgbuf.str(), debuginfo));
 	}
 
-	DictExpression *expr = new DictExpression(expressions);
+	std::unique_ptr<DictExpression> expr{new DictExpression(std::move(expressions))};
 	expr->MakeInline();
-	return expr;
+	return std::move(expr);
 }
 
 /**
@@ -174,7 +173,7 @@ Expression *ConfigCompiler::HandleInclude(const String& relativeBase, const Stri
  * @param pattern The file pattern.
  * @param debuginfo Debug information.
  */
-Expression *ConfigCompiler::HandleIncludeRecursive(const String& relativeBase, const String& path,
+std::unique_ptr<Expression> ConfigCompiler::HandleIncludeRecursive(const String& relativeBase, const String& path,
     const String& pattern, const String& zone, const String& package, const DebugInfo&)
 {
 	String ppath;
@@ -184,15 +183,15 @@ Expression *ConfigCompiler::HandleIncludeRecursive(const String& relativeBase, c
 	else
 		ppath = relativeBase + "/" + path;
 
-	std::vector<Expression *> expressions;
+	std::vector<std::unique_ptr<Expression> > expressions;
 	Utility::GlobRecursive(ppath, pattern, std::bind(&ConfigCompiler::CollectIncludes, std::ref(expressions), _1, zone, package), GlobFile);
 
-	DictExpression *dict = new DictExpression(expressions);
+	std::unique_ptr<DictExpression> dict{new DictExpression(std::move(expressions))};
 	dict->MakeInline();
-	return dict;
+	return std::move(dict);
 }
 
-void ConfigCompiler::HandleIncludeZone(const String& relativeBase, const String& tag, const String& path, const String& pattern, const String& package, std::vector<Expression *>& expressions)
+void ConfigCompiler::HandleIncludeZone(const String& relativeBase, const String& tag, const String& path, const String& pattern, const String& package, std::vector<std::unique_ptr<Expression> >& expressions)
 {
 	String zoneName = Utility::BaseName(path);
 
@@ -217,7 +216,7 @@ void ConfigCompiler::HandleIncludeZone(const String& relativeBase, const String&
  * @param pattern The file pattern.
  * @param debuginfo Debug information.
  */
-Expression *ConfigCompiler::HandleIncludeZones(const String& relativeBase, const String& tag,
+std::unique_ptr<Expression> ConfigCompiler::HandleIncludeZones(const String& relativeBase, const String& tag,
     const String& path, const String& pattern, const String& package, const DebugInfo&)
 {
 	String ppath;
@@ -230,9 +229,9 @@ Expression *ConfigCompiler::HandleIncludeZones(const String& relativeBase, const
 		newRelativeBase = ".";
 	}
 
-	std::vector<Expression *> expressions;
+	std::vector<std::unique_ptr<Expression> > expressions;
 	Utility::Glob(ppath + "/*", std::bind(&ConfigCompiler::HandleIncludeZone, newRelativeBase, tag, _1, pattern, package, std::ref(expressions)), GlobDirectory);
-	return new DictExpression(expressions);
+	return std::unique_ptr<Expression>(new DictExpression(std::move(expressions)));
 }
 
 /**
@@ -242,7 +241,7 @@ Expression *ConfigCompiler::HandleIncludeZones(const String& relativeBase, const
  * @param stream The input stream.
  * @returns Configuration items.
  */
-Expression *ConfigCompiler::CompileStream(const String& path,
+std::unique_ptr<Expression> ConfigCompiler::CompileStream(const String& path,
     std::istream *stream, const String& zone, const String& package)
 {
 	CONTEXT("Compiling configuration stream with name '" + path + "'");
@@ -254,9 +253,9 @@ Expression *ConfigCompiler::CompileStream(const String& path,
 	try {
 		return ctx.Compile();
 	} catch (const ScriptError& ex) {
-		return new ThrowExpression(MakeLiteral(ex.what()), ex.IsIncompleteExpression(), ex.GetDebugInfo());
+		return std::unique_ptr<Expression>(new ThrowExpression(MakeLiteral(ex.what()), ex.IsIncompleteExpression(), ex.GetDebugInfo()));
 	} catch (const std::exception& ex) {
-		return new ThrowExpression(MakeLiteral(DiagnosticInformation(ex)), false);
+		return std::unique_ptr<Expression>(new ThrowExpression(MakeLiteral(DiagnosticInformation(ex)), false));
 	}
 }
 
@@ -266,7 +265,7 @@ Expression *ConfigCompiler::CompileStream(const String& path,
  * @param path The path.
  * @returns Configuration items.
  */
-Expression *ConfigCompiler::CompileFile(const String& path, const String& zone,
+std::unique_ptr<Expression> ConfigCompiler::CompileFile(const String& path, const String& zone,
     const String& package)
 {
 	CONTEXT("Compiling configuration file '" + path + "'");
@@ -292,7 +291,7 @@ Expression *ConfigCompiler::CompileFile(const String& path, const String& zone,
  * @param text The text.
  * @returns Configuration items.
  */
-Expression *ConfigCompiler::CompileText(const String& path, const String& text,
+std::unique_ptr<Expression> ConfigCompiler::CompileText(const String& path, const String& text,
     const String& zone, const String& package)
 {
 	std::stringstream stream(text);

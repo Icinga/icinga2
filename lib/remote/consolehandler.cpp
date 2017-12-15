@@ -123,7 +123,7 @@ bool ConsoleHandler::ExecuteScriptHelper(HttpRequest& request, HttpResponse& res
 
 	Array::Ptr results = new Array();
 	Dictionary::Ptr resultInfo = new Dictionary();
-	Expression *expr = nullptr;
+	std::unique_ptr<Expression> expr;
 	Value exprResult;
 
 	try {
@@ -160,11 +160,7 @@ bool ConsoleHandler::ExecuteScriptHelper(HttpRequest& request, HttpResponse& res
 		debugInfo->Set("last_line", di.LastLine);
 		debugInfo->Set("last_column", di.LastColumn);
 		resultInfo->Set("debug_info", debugInfo);
-	} catch (...) {
-		delete expr;
-		throw;
 	}
-	delete expr;
 
 	results->Add(resultInfo);
 
@@ -301,13 +297,12 @@ std::vector<String> ConsoleHandler::GetAutocompletionSuggestions(const String& w
 		Value value;
 
 		try {
-			Expression *expr = ConfigCompiler::CompileText("temp", pword);
+			std::unique_ptr<Expression> expr = ConfigCompiler::CompileText("temp", pword);
 
 			if (expr)
 				value = expr->Evaluate(frame);
 
 			AddSuggestions(matches, word, pword, true, value);
-
 		} catch (...) { /* Ignore the exception */ }
 	}
 

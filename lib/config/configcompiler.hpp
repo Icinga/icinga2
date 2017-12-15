@@ -90,13 +90,13 @@ public:
 	    const String& zone = String(), const String& package = String());
 	virtual ~ConfigCompiler(void);
 
-	Expression *Compile(void);
+	std::unique_ptr<Expression> Compile(void);
 
-	static Expression *CompileStream(const String& path, std::istream *stream,
+	static std::unique_ptr<Expression>CompileStream(const String& path, std::istream *stream,
 	    const String& zone = String(), const String& package = String());
-	static Expression *CompileFile(const String& path, const String& zone = String(),
+	static std::unique_ptr<Expression>CompileFile(const String& path, const String& zone = String(),
 	    const String& package = String());
-	static Expression *CompileText(const String& path, const String& text,
+	static std::unique_ptr<Expression>CompileText(const String& path, const String& text,
 	    const String& zone = String(), const String& package = String());
 
 	static void AddIncludeSearchDir(const String& dir);
@@ -109,14 +109,14 @@ public:
 	void SetPackage(const String& package);
 	String GetPackage(void) const;
 
-	static void CollectIncludes(std::vector<Expression *>& expressions,
+	static void CollectIncludes(std::vector<std::unique_ptr<Expression> >& expressions,
 	    const String& file, const String& zone, const String& package);
 
-	static Expression *HandleInclude(const String& relativeBase, const String& path, bool search,
+	static std::unique_ptr<Expression> HandleInclude(const String& relativeBase, const String& path, bool search,
 	    const String& zone, const String& package, const DebugInfo& debuginfo = DebugInfo());
-	static Expression *HandleIncludeRecursive(const String& relativeBase, const String& path,
+	static std::unique_ptr<Expression> HandleIncludeRecursive(const String& relativeBase, const String& path,
 	    const String& pattern, const String& zone, const String& package, const DebugInfo& debuginfo = DebugInfo());
-	static Expression *HandleIncludeZones(const String& relativeBase, const String& tag,
+	static std::unique_ptr<Expression> HandleIncludeZones(const String& relativeBase, const String& tag,
 	    const String& path, const String& pattern, const String& package, const DebugInfo& debuginfo = DebugInfo());
 
 	size_t ReadInput(char *buffer, size_t max_bytes);
@@ -144,7 +144,7 @@ private:
 	void InitializeScanner(void);
 	void DestroyScanner(void);
 
-	static void HandleIncludeZone(const String& relativeBase, const String& tag, const String& path, const String& pattern, const String& package, std::vector<Expression *>& expressions);
+	static void HandleIncludeZone(const String& relativeBase, const String& tag, const String& path, const String& pattern, const String& package, std::vector<std::unique_ptr<Expression> >& expressions);
 
 	static bool IsAbsolutePath(const String& path);
 

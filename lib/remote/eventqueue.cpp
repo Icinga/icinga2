@@ -25,13 +25,8 @@
 using namespace icinga;
 
 EventQueue::EventQueue(const String& name)
-    : m_Name(name), m_Filter(nullptr)
+    : m_Name(name)
 { }
-
-EventQueue::~EventQueue(void)
-{
-	delete m_Filter;
-}
 
 bool EventQueue::CanProcessEvent(const String& type) const
 {
@@ -46,7 +41,7 @@ void EventQueue::ProcessEvent(const Dictionary::Ptr& event)
 	frame.Sandboxed = true;
 
 	try {
-		if (!FilterUtility::EvaluateFilter(frame, m_Filter, event, "event"))
+		if (!FilterUtility::EvaluateFilter(frame, &*m_Filter, event, "event"))
 			return;
 	} catch (const std::exception& ex) {
 		Log(LogWarning, "EventQueue")
@@ -93,11 +88,10 @@ void EventQueue::SetTypes(const std::set<String>& types)
 	m_Types = types;
 }
 
-void EventQueue::SetFilter(Expression *filter)
+void EventQueue::SetFilter(std::unique_ptr<Expression> filter)
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
-	delete m_Filter;
-	m_Filter = filter;
+	m_Filter.swap(filter);
 }
 
 Dictionary::Ptr EventQueue::WaitForEvent(void *client, double timeout)

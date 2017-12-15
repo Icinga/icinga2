@@ -124,15 +124,14 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 	fp << config;
 	fp.close();
 
-	Expression *expr = ConfigCompiler::CompileFile(path, String(), "_api");
+	std::unique_ptr<Expression> expr = ConfigCompiler::CompileFile(path, String(), "_api");
 
 	try {
 		ActivationScope ascope;
 
 		ScriptFrame frame;
 		expr->Evaluate(frame);
-		delete expr;
-		expr = nullptr;
+		expr.reset();
 
 		WorkQueue upq;
 		std::vector<ConfigItem::Ptr> newItems;
@@ -156,8 +155,6 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 
 		ApiListener::UpdateObjectAuthority();
 	} catch (const std::exception& ex) {
-		delete expr;
-
 		if (unlink(path.CStr()) < 0 && errno != ENOENT) {
 			BOOST_THROW_EXCEPTION(posix_error()
 			    << boost::errinfo_api_function("unlink")

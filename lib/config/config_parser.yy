@@ -68,7 +68,7 @@ using namespace icinga;
 template<typename T>
 static void MakeRBinaryOp(Expression** result, Expression *left, Expression *right, const DebugInfo& diLeft, const DebugInfo& diRight)
 {
-	*result = new T(left, right, DebugInfoRange(diLeft, diRight));
+	*result = new T(std::unique_ptr<Expression>(left), std::unique_ptr<Expression>(right), DebugInfoRange(diLeft, diRight));
 }
 
 %}
@@ -80,7 +80,7 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 %error-verbose
 %glr-parser
 
-%parse-param { std::vector<std::pair<Expression *, EItemInfo> > *llist }
+%parse-param { std::vector<std::pair<std::unique_ptr<Expression>, EItemInfo> > *llist }
 %parse-param { ConfigCompiler *context }
 %lex-param { void *scanner }
 
@@ -92,12 +92,12 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 	icinga::DictExpression *dexpr;
 	CombinedSetOp csop;
 	std::vector<String> *slist;
-	std::vector<std::pair<Expression *, EItemInfo> > *llist;
-	std::vector<Expression *> *elist;
-	std::vector<std::pair<Expression *, Expression *> > *ebranchlist;
-	std::pair<Expression *, Expression *> *ebranch;
-	std::pair<String, Expression *> *cvitem;
-	std::map<String, Expression *> *cvlist;
+	std::vector<std::pair<std::unique_ptr<Expression>, EItemInfo> > *llist;
+	std::vector<std::unique_ptr<Expression> > *elist;
+	std::vector<std::pair<std::unique_ptr<Expression>, std::unique_ptr<Expression> > > *ebranchlist;
+	std::pair<std::unique_ptr<Expression>, std::unique_ptr<Expression> > *ebranch;
+	std::pair<String, std::unique_ptr<Expression> > *cvitem;
+	std::map<String, std::unique_ptr<Expression> > *cvlist;
 	icinga::ScopeSpecifier scope;
 }
 
@@ -238,13 +238,13 @@ int yylex(YYSTYPE *lvalp, YYLTYPE *llocp, void *scanner);
 
 extern int yydebug;
 
-void yyerror(const YYLTYPE *locp, std::vector<std::pair<Expression *, EItemInfo> > *, ConfigCompiler *context, const char *err)
+void yyerror(const YYLTYPE *locp, std::vector<std::pair<std::unique_ptr<Expression>, EItemInfo> > *, ConfigCompiler *context, const char *err)
 {
 	bool incomplete = context && context->m_Eof && (context->m_OpenBraces > 0);
 	BOOST_THROW_EXCEPTION(ScriptError(err, *locp, incomplete));
 }
 
-int yyparse(std::vector<std::pair<Expression *, EItemInfo> > *llist, ConfigCompiler *context);
+int yyparse(std::vector<std::pair<std::unique_ptr<Expression>, EItemInfo> > *llist, ConfigCompiler *context);
 
 static void BeginFlowControlBlock(ConfigCompiler *compiler, int allowedTypes, bool inherit)
 {
@@ -267,9 +267,9 @@ static void UseFlowControl(ConfigCompiler *compiler, FlowControlType type, const
 		BOOST_THROW_EXCEPTION(ScriptError("Invalid flow control statement.", location));
 }
 
-Expression *ConfigCompiler::Compile(void)
+std::unique_ptr<Expression> ConfigCompiler::Compile(void)
 {
-	std::vector<std::pair<Expression *, EItemInfo> > llist;
+	std::vector<std::pair<std::unique_ptr<Expression>, EItemInfo> > llist;
 
 	//yydebug = 1;
 
@@ -282,19 +282,19 @@ Expression *ConfigCompiler::Compile(void)
 	EndFlowControlBlock(this);
 	m_IgnoreNewlines.pop();
 
-	std::vector<Expression *> dlist;
-	std::vector<std::pair<Expression *, EItemInfo> >::size_type num = 0;
-	for (const auto& litem : llist) {
+	std::vector<std::unique_ptr<Expression> > dlist;
+	decltype(llist.size()) num = 0;
+	for (auto& litem : llist) {
 		if (!litem.second.SideEffect && num != llist.size() - 1) {
 			yyerror(&litem.second.DebugInfo, NULL, NULL, "Value computed is not used.");
 		}
-		dlist.push_back(litem.first);
+		dlist.push_back(std::move(litem.first));
 		num++;
 	}
 
-	DictExpression *expr = new DictExpression(dlist);
+	std::unique_ptr<DictExpression> expr{new DictExpression(std::move(dlist))};
 	expr->MakeInline();
-	return expr;
+	return std::move(expr);
 }
 
 #define scanner (context->GetScanner())
@@ -318,7 +318,7 @@ statements: newlines lterm_items
 
 lterm_items: /* empty */
 	{
-		$$ = new std::vector<std::pair<Expression *, EItemInfo> >();
+		$$ = new std::vector<std::pair<std::unique_ptr<Expression>, EItemInfo> >();
 	}
 	| lterm_items_inner
 	| lterm_items_inner sep
@@ -326,26 +326,26 @@ lterm_items: /* empty */
 
 lterm_items_inner: lterm %dprec 2
 	{
-		$$ = new std::vector<std::pair<Expression *, EItemInfo> >();
+		$$ = new std::vector<std::pair<std::unique_ptr<Expression>, EItemInfo> >();
 		EItemInfo info = { true, @1 };
-		$$->emplace_back($1, info);
+		$$->emplace_back(std::unique_ptr<Expression>($1), info);
 	}
 	| rterm_no_side_effect
 	{
-		$$ = new std::vector<std::pair<Expression *, EItemInfo> >();
+		$$ = new std::vector<std::pair<std::unique_ptr<Expression>, EItemInfo> >();
 		EItemInfo info = { false, @1 };
-		$$->emplace_back($1, info);
+		$$->emplace_back(std::unique_ptr<Expression>($1), info);
 	}
 	| lterm_items_inner sep lterm %dprec 1
 	{
 		if ($1)
 			$$ = $1;
 		else
-			$$ = new std::vector<std::pair<Expression *, EItemInfo> >();
+			$$ = new std::vector<std::pair<std::unique_ptr<Expression>, EItemInfo> >();
 
 		if ($3) {
 			EItemInfo info = { true, @3 };
-			$$->emplace_back($3, info);
+			$$->emplace_back(std::unique_ptr<Expression>($3), info);
 		}
 	}
 	| lterm_items_inner sep rterm_no_side_effect %dprec 1
@@ -353,11 +353,11 @@ lterm_items_inner: lterm %dprec 2
 		if ($1)
 			$$ = $1;
 		else
-			$$ = new std::vector<std::pair<Expression *, EItemInfo> >();
+			$$ = new std::vector<std::pair<std::unique_ptr<Expression>, EItemInfo> >();
 
 		if ($3) {
 			EItemInfo info = { false, @3 };
-			$$->emplace_back($3, info);
+			$$->emplace_back(std::unique_ptr<Expression>($3), info);
 		}
 	}
 	;
@@ -396,26 +396,28 @@ object:
 		bool seen_ignore = context->m_SeenIgnore.top();
 		context->m_SeenIgnore.pop();
 
-		Expression *ignore = context->m_Ignore.top();
+		std::unique_ptr<Expression> ignore{std::move(context->m_Ignore.top())};
 		context->m_Ignore.pop();
 
-		Expression *assign = context->m_Assign.top();
+		std::unique_ptr<Expression> assign{std::move(context->m_Assign.top())};
 		context->m_Assign.pop();
 
-		Expression *filter = NULL;
+		std::unique_ptr<Expression> filter;
 
 		if (seen_assign) {
 			if (ignore) {
-				Expression *rex = new LogicalNegateExpression(ignore, DebugInfoRange(@2, @5));
+				std::unique_ptr<Expression> rex{new LogicalNegateExpression(std::move(ignore), DebugInfoRange(@2, @5))};
 
-				filter = new LogicalAndExpression(assign, rex, DebugInfoRange(@2, @5));
+				filter.reset(new LogicalAndExpression(std::move(assign), std::move(rex), DebugInfoRange(@2, @5)));
 			} else
-				filter = assign;
+				filter.swap(assign);
 		} else if (seen_ignore) {
 			BOOST_THROW_EXCEPTION(ScriptError("object rule 'ignore where' cannot be used without 'assign where'", DebugInfoRange(@2, @4)));
 		}
 
-		$$ = new ObjectExpression(abstract, $3, $4, filter, context->GetZone(), context->GetPackage(), $5, $6, $7, $9, DebugInfoRange(@2, @7));
+		$$ = new ObjectExpression(abstract, std::unique_ptr<Expression>($3), std::unique_ptr<Expression>($4),
+		    std::move(filter), context->GetZone(), context->GetPackage(), std::move(*$5), $6, $7, std::unique_ptr<Expression>($9), DebugInfoRange(@2, @7));
+		delete $5;
 	}
 	;
 
@@ -468,15 +470,15 @@ combined_set_op: T_SET
 
 lterm: T_LIBRARY rterm
 	{
-		$$ = new LibraryExpression($2, @$);
+		$$ = new LibraryExpression(std::unique_ptr<Expression>($2), @$);
 	}
 	| rterm combined_set_op rterm
 	{
-		$$ = new SetExpression($1, $2, $3, @$);
+		$$ = new SetExpression(std::unique_ptr<Expression>($1), $2, std::unique_ptr<Expression>($3), @$);
 	}
 	| T_INCLUDE rterm
 	{
-		$$ = new IncludeExpression(Utility::DirName(context->GetPath()), $2, NULL, NULL, IncludeRegular, false, context->GetZone(), context->GetPackage(), @$);
+		$$ = new IncludeExpression(Utility::DirName(context->GetPath()), std::unique_ptr<Expression>($2), NULL, NULL, IncludeRegular, false, context->GetZone(), context->GetPackage(), @$);
 	}
 	| T_INCLUDE T_STRING_ANGLE
 	{
@@ -485,23 +487,23 @@ lterm: T_LIBRARY rterm
 	}
 	| T_INCLUDE_RECURSIVE rterm
 	{
-		$$ = new IncludeExpression(Utility::DirName(context->GetPath()), $2, MakeLiteral("*.conf"), NULL, IncludeRecursive, false, context->GetZone(), context->GetPackage(), @$);
+		$$ = new IncludeExpression(Utility::DirName(context->GetPath()), std::unique_ptr<Expression>($2), MakeLiteral("*.conf"), NULL, IncludeRecursive, false, context->GetZone(), context->GetPackage(), @$);
 	}
 	| T_INCLUDE_RECURSIVE rterm ',' rterm
 	{
-		$$ = new IncludeExpression(Utility::DirName(context->GetPath()), $2, $4, NULL, IncludeRecursive, false, context->GetZone(), context->GetPackage(), @$);
+		$$ = new IncludeExpression(Utility::DirName(context->GetPath()), std::unique_ptr<Expression>($2), std::unique_ptr<Expression>($4), NULL, IncludeRecursive, false, context->GetZone(), context->GetPackage(), @$);
 	}
 	| T_INCLUDE_ZONES rterm ',' rterm
 	{
-		$$ = new IncludeExpression(Utility::DirName(context->GetPath()), $4, MakeLiteral("*.conf"), $2, IncludeZones, false, context->GetZone(), context->GetPackage(), @$);
+		$$ = new IncludeExpression(Utility::DirName(context->GetPath()), std::unique_ptr<Expression>($4), MakeLiteral("*.conf"), std::unique_ptr<Expression>($2), IncludeZones, false, context->GetZone(), context->GetPackage(), @$);
 	}
 	| T_INCLUDE_ZONES rterm ',' rterm ',' rterm
 	{
-		$$ = new IncludeExpression(Utility::DirName(context->GetPath()), $4, $6, $2, IncludeZones, false, context->GetZone(), context->GetPackage(), @$);
+		$$ = new IncludeExpression(Utility::DirName(context->GetPath()), std::unique_ptr<Expression>($4), std::unique_ptr<Expression>($6), std::unique_ptr<Expression>($2), IncludeZones, false, context->GetZone(), context->GetPackage(), @$);
 	}
 	| T_IMPORT rterm
 	{
-		$$ = new ImportExpression($2, @$);
+		$$ = new ImportExpression(std::unique_ptr<Expression>($2), @$);
 	}
 	| T_ASSIGN T_WHERE
 	{
@@ -517,11 +519,11 @@ lterm: T_LIBRARY rterm
 		context->m_SeenAssign.top() = true;
 
 		if (context->m_Assign.top())
-			context->m_Assign.top() = new LogicalOrExpression(context->m_Assign.top(), $4, @$);
+			context->m_Assign.top() = new LogicalOrExpression(std::unique_ptr<Expression>(context->m_Assign.top()), std::unique_ptr<Expression>($4), @$);
 		else
 			context->m_Assign.top() = $4;
 
-		$$ = MakeLiteral();
+		$$ = MakeLiteralRaw();
 	}
 	| T_ASSIGN T_WHERE rterm %dprec 1
 	{
@@ -533,11 +535,11 @@ lterm: T_LIBRARY rterm
 		context->m_SeenAssign.top() = true;
 
 		if (context->m_Assign.top())
-			context->m_Assign.top() = new LogicalOrExpression(context->m_Assign.top(), $3, @$);
+			context->m_Assign.top() = new LogicalOrExpression(std::unique_ptr<Expression>(context->m_Assign.top()), std::unique_ptr<Expression>($3), @$);
 		else
 			context->m_Assign.top() = $3;
 
-		$$ = MakeLiteral();
+		$$ = MakeLiteralRaw();
 	}
 	| T_IGNORE T_WHERE
 	{
@@ -553,11 +555,11 @@ lterm: T_LIBRARY rterm
 		context->m_SeenIgnore.top() = true;
 
 		if (context->m_Ignore.top())
-			context->m_Ignore.top() = new LogicalOrExpression(context->m_Ignore.top(), $4, @$);
+			context->m_Ignore.top() = new LogicalOrExpression(std::unique_ptr<Expression>(context->m_Ignore.top()), std::unique_ptr<Expression>($4), @$);
 		else
 			context->m_Ignore.top() = $4;
 
-		$$ = MakeLiteral();
+		$$ = MakeLiteralRaw();
 	}
 	| T_IGNORE T_WHERE rterm %dprec 1
 	{
@@ -569,16 +571,16 @@ lterm: T_LIBRARY rterm
 		context->m_SeenIgnore.top() = true;
 
 		if (context->m_Ignore.top())
-			context->m_Ignore.top() = new LogicalOrExpression(context->m_Ignore.top(), $3, @$);
+			context->m_Ignore.top() = new LogicalOrExpression(std::unique_ptr<Expression>(context->m_Ignore.top()), std::unique_ptr<Expression>($3), @$);
 		else
 			context->m_Ignore.top() = $3;
 
-		$$ = MakeLiteral();
+		$$ = MakeLiteralRaw();
 	}
 	| T_RETURN optional_rterm
 	{
 		UseFlowControl(context, FlowControlReturn, @$);
-		$$ = new ReturnExpression($2, @$);
+		$$ = new ReturnExpression(std::unique_ptr<Expression>($2), @$);
 	}
 	| T_BREAK
 	{
@@ -596,7 +598,7 @@ lterm: T_LIBRARY rterm
 	}
 	| T_USING rterm
 	{
-		$$ = new UsingExpression($2, @$);
+		$$ = new UsingExpression(std::unique_ptr<Expression>($2), @$);
 	}
 	| apply
 	| object
@@ -608,7 +610,7 @@ lterm: T_LIBRARY rterm
 	{
 		EndFlowControlBlock(context);
 
-		$$ = new ForExpression(*$3, *$5, $7, $10, @$);
+		$$ = new ForExpression(*$3, *$5, std::unique_ptr<Expression>($7), std::unique_ptr<Expression>($10), @$);
 		delete $3;
 		delete $5;
 	}
@@ -620,7 +622,7 @@ lterm: T_LIBRARY rterm
 	{
 		EndFlowControlBlock(context);
 
-		$$ = new ForExpression(*$3, "", $5, $8, @$);
+		$$ = new ForExpression(*$3, "", std::unique_ptr<Expression>($5), std::unique_ptr<Expression>($8), @$);
 		delete $3;
 	}
 	| T_FUNCTION identifier '(' identifier_items ')' use_specifier
@@ -631,28 +633,29 @@ lterm: T_LIBRARY rterm
 	{
 		EndFlowControlBlock(context);
 
-		FunctionExpression *fexpr = new FunctionExpression(*$2, *$4, $6, $8, @$);
+		std::unique_ptr<FunctionExpression> fexpr{new FunctionExpression(*$2, *$4, std::move(*$6), std::unique_ptr<Expression>($8), @$)};
 		delete $4;
+		delete $6;
 
-		$$ = new SetExpression(MakeIndexer(ScopeThis, *$2), OpSetLiteral, fexpr, @$);
+		$$ = new SetExpression(MakeIndexer(ScopeThis, *$2), OpSetLiteral, std::move(fexpr), @$);
 		delete $2;
 	}
 	| T_CONST T_IDENTIFIER T_SET rterm
 	{
-		$$ = new SetExpression(MakeIndexer(ScopeGlobal, *$2), OpSetLiteral, $4);
+		$$ = new SetExpression(MakeIndexer(ScopeGlobal, *$2), OpSetLiteral, std::unique_ptr<Expression>($4));
 		delete $2;
 	}
 	| T_VAR rterm
 	{
-		Expression *expr = $2;
+		std::unique_ptr<Expression> expr{$2};
 		BindToScope(expr, ScopeLocal);
-		$$ = new SetExpression(expr, OpSetLiteral, MakeLiteral(), @$);
+		$$ = new SetExpression(std::move(expr), OpSetLiteral, MakeLiteral(), @$);
 	}
 	| T_VAR rterm combined_set_op rterm
 	{
-		Expression *expr = $2;
+		std::unique_ptr<Expression> expr{$2};
 		BindToScope(expr, ScopeLocal);
-		$$ = new SetExpression(expr, $3, $4, @$);
+		$$ = new SetExpression(std::move(expr), $3, std::unique_ptr<Expression>($4), @$);
 	}
 	| T_WHILE '(' rterm ')'
 	{
@@ -662,22 +665,22 @@ lterm: T_LIBRARY rterm
 	{
 		EndFlowControlBlock(context);
 
-		$$ = new WhileExpression($3, $6, @$);
+		$$ = new WhileExpression(std::unique_ptr<Expression>($3), std::unique_ptr<Expression>($6), @$);
 	}
 	| T_THROW rterm
 	{
-		$$ = new ThrowExpression($2, false, @$);
+		$$ = new ThrowExpression(std::unique_ptr<Expression>($2), false, @$);
 	}
 	| T_TRY rterm_scope T_EXCEPT rterm_scope
 	{
-		$$ = new TryExceptExpression($2, $4, @$);
+		$$ = new TryExceptExpression(std::unique_ptr<Expression>($2), std::unique_ptr<Expression>($4), @$);
 	}
 	| rterm_side_effect
 	;
 
 rterm_items: /* empty */
 	{
-		$$ = new std::vector<Expression *>();
+		$$ = new std::vector<std::unique_ptr<Expression> >();
 	}
 	| rterm_items_inner
 	| rterm_items_inner ','
@@ -687,13 +690,13 @@ rterm_items: /* empty */
 
 rterm_items_inner: rterm
 	{
-		$$ = new std::vector<Expression *>();
-		$$->push_back($1);
+		$$ = new std::vector<std::unique_ptr<Expression> >();
+		$$->emplace_back($1);
 	}
 	| rterm_items_inner arraysep rterm
 	{
 		$$ = $1;
-		$$->push_back($3);
+		$$->emplace_back($3);
 	}
 	;
 
@@ -704,7 +707,7 @@ rterm_array: '['
 	newlines rterm_items ']'
 	{
 		context->m_OpenBraces--;
-		$$ = new ArrayExpression(*$4, @$);
+		$$ = new ArrayExpression(std::move(*$4), @$);
 		delete $4;
 	}
 	| '['
@@ -714,7 +717,7 @@ rterm_array: '['
 	rterm_items ']'
 	{
 		context->m_OpenBraces--;
-		$$ = new ArrayExpression(*$3, @$);
+		$$ = new ArrayExpression(std::move(*$3), @$);
 		delete $3;
 	}
 	;
@@ -730,17 +733,14 @@ rterm_dict: '{'
 		EndFlowControlBlock(context);
 		context->m_OpenBraces--;
 		context->m_IgnoreNewlines.pop();
-		std::vector<Expression *> dlist;
-		typedef std::pair<Expression *, EItemInfo> EListItem;
-		int num = 0;
-		for (const EListItem& litem : *$3) {
+		std::vector<std::unique_ptr<Expression> > dlist;
+		for (auto& litem : *$3) {
 			if (!litem.second.SideEffect)
 				yyerror(&litem.second.DebugInfo, NULL, NULL, "Value computed is not used.");
-			dlist.push_back(litem.first);
-			num++;
+			dlist.push_back(std::move(litem.first));
 		}
 		delete $3;
-		$$ = new DictExpression(dlist, @$);
+		$$ = new DictExpression(std::move(dlist), @$);
 	}
 	;
 
@@ -753,17 +753,14 @@ rterm_scope_require_side_effect: '{'
 	{
 		context->m_OpenBraces--;
 		context->m_IgnoreNewlines.pop();
-		std::vector<Expression *> dlist;
-		typedef std::pair<Expression *, EItemInfo> EListItem;
-		int num = 0;
-		for (const EListItem& litem : *$3) {
+		std::vector<std::unique_ptr<Expression> > dlist;
+		for (auto& litem : *$3) {
 			if (!litem.second.SideEffect)
 				yyerror(&litem.second.DebugInfo, NULL, NULL, "Value computed is not used.");
-			dlist.push_back(litem.first);
-			num++;
+			dlist.push_back(std::move(litem.first));
 		}
 		delete $3;
-		$$ = new DictExpression(dlist, @$);
+		$$ = new DictExpression(std::move(dlist), @$);
 		$$->MakeInline();
 	}
 	;
@@ -777,101 +774,102 @@ rterm_scope: '{'
 	{
 		context->m_OpenBraces--;
 		context->m_IgnoreNewlines.pop();
-		std::vector<Expression *> dlist;
-		typedef std::pair<Expression *, EItemInfo> EListItem;
-		std::vector<std::pair<Expression *, EItemInfo> >::size_type num = 0;
-		for (const EListItem& litem : *$3) {
+		std::vector<std::unique_ptr<Expression> > dlist;
+		decltype($3->size()) num = 0;
+		for (auto& litem : *$3) {
 			if (!litem.second.SideEffect && num != $3->size() - 1)
 				yyerror(&litem.second.DebugInfo, NULL, NULL, "Value computed is not used.");
-			dlist.push_back(litem.first);
+			dlist.push_back(std::move(litem.first));
 			num++;
 		}
 		delete $3;
-		$$ = new DictExpression(dlist, @$);
+		$$ = new DictExpression(std::move(dlist), @$);
 		$$->MakeInline();
 	}
 	;
 
 else_if_branch: T_ELSE T_IF '(' rterm ')' rterm_scope
 	{
-		$$ = new std::pair<Expression *, Expression *>($4, $6);
+		$$ = new std::pair<std::unique_ptr<Expression>, std::unique_ptr<Expression> >(std::unique_ptr<Expression>($4), std::unique_ptr<Expression>($6));
 	}
 	;
 
 else_if_branches: /* empty */
 	{
-		$$ = new std::vector<std::pair<Expression *, Expression *> >();
+		$$ = new std::vector<std::pair<std::unique_ptr<Expression>, std::unique_ptr<Expression> > >();
 	}
 	| else_if_branches else_if_branch
 	{
 		$$ = $1;
-		$$->push_back(*$2);
+		$$->push_back(std::move(*$2));
 		delete $2;
 	}
 	;
 
 rterm_side_effect: rterm '(' rterm_items ')'
 	{
-		$$ = new FunctionCallExpression($1, *$3, @$);
+		$$ = new FunctionCallExpression(std::unique_ptr<Expression>($1), std::move(*$3), @$);
 		delete $3;
 	}
 	| T_IF '(' rterm ')' rterm_scope else_if_branches
 	{
-		std::vector<std::pair<Expression *, Expression *> > ebranches = *$6;
+		std::vector<std::pair<std::unique_ptr<Expression>, std::unique_ptr<Expression> > > ebranches;
+		$6->swap(ebranches);
 		delete $6;
 
-		Expression *afalse = NULL;
+		std::unique_ptr<Expression> afalse;
 
 		for (int i = ebranches.size() - 1; i >= 0; i--) {
-			const std::pair<Expression *, Expression *>& ebranch = ebranches[i];
-			afalse = new ConditionalExpression(ebranch.first, ebranch.second, afalse, @6);
+			auto& ebranch = ebranches[i];
+			afalse.reset(new ConditionalExpression(std::move(ebranch.first), std::move(ebranch.second), std::move(afalse), @6));
 		}
 
-		$$ = new ConditionalExpression($3, $5, afalse, @$);
+		$$ = new ConditionalExpression(std::unique_ptr<Expression>($3), std::unique_ptr<Expression>($5), std::move(afalse), @$);
 	}
 	| T_IF '(' rterm ')' rterm_scope else_if_branches T_ELSE rterm_scope
 	{
-		std::vector<std::pair<Expression *, Expression *> > ebranches = *$6;
+		std::vector<std::pair<std::unique_ptr<Expression>, std::unique_ptr<Expression> > > ebranches;
+		$6->swap(ebranches);
 		delete $6;
 
 		$8->MakeInline();
 
-		Expression *afalse = $8;
+		std::unique_ptr<Expression> afalse{$8};
 
 		for (int i = ebranches.size() - 1; i >= 0; i--) {
-			const std::pair<Expression *, Expression *>& ebranch = ebranches[i];
-			afalse = new ConditionalExpression(ebranch.first, ebranch.second, afalse, @6);
+			auto& ebranch = ebranches[i];
+			afalse.reset(new ConditionalExpression(std::move(ebranch.first), std::move(ebranch.second), std::move(afalse), @6));
 		}
 
-		$$ = new ConditionalExpression($3, $5, afalse, @$);
+		$$ = new ConditionalExpression(std::unique_ptr<Expression>($3), std::unique_ptr<Expression>($5), std::move(afalse), @$);
 	}
 	;
 
 rterm_no_side_effect_no_dict: T_STRING
 	{
-		$$ = MakeLiteral(*$1);
+		$$ = MakeLiteralRaw(*$1);
 		delete $1;
 	}
 	| T_NUMBER
 	{
-		$$ = MakeLiteral($1);
+		$$ = MakeLiteralRaw($1);
 	}
 	| T_BOOLEAN
 	{
-		$$ = MakeLiteral($1);
+		$$ = MakeLiteralRaw($1);
 	}
 	| T_NULL
 	{
-		$$ = MakeLiteral();
+		$$ = MakeLiteralRaw();
 	}
 	| rterm '.' T_IDENTIFIER %dprec 2
 	{
-		$$ = new IndexerExpression($1, MakeLiteral(*$3), @$);
+		$$ = new IndexerExpression(std::unique_ptr<Expression>($1), MakeLiteral(*$3), @$);
 		delete $3;
 	}
 	| rterm '[' rterm ']'
 	{
-		$$ = new IndexerExpression($1, $3, @$);
+		$$ = new IndexerExpression(std::unique_ptr<Expression>($1), std::unique_ptr<Expression>($3), @$);
 	}
 	| T_IDENTIFIER
 	{
@@ -880,11 +878,11 @@ rterm_no_side_effect_no_dict: T_STRING
 	}
 	| '!' rterm
 	{
-		$$ = new LogicalNegateExpression($2, @$);
+		$$ = new LogicalNegateExpression(std::unique_ptr<Expression>($2), @$);
 	}
 	| '~' rterm
 	{
-		$$ = new NegateExpression($2, @$);
+		$$ = new NegateExpression(std::unique_ptr<Expression>($2), @$);
 	}
 	| T_PLUS rterm %prec UNARY_PLUS
 	{
@@ -892,7 +890,7 @@ rterm_no_side_effect_no_dict: T_STRING
 	}
 	| T_MINUS rterm %prec UNARY_MINUS
 	{
-		$$ = new SubtractExpression(MakeLiteral(0), $2, @$);
+		$$ = new SubtractExpression(MakeLiteral(0), std::unique_ptr<Expression>($2), @$);
 	}
 	| T_THIS
 	{
@@ -908,11 +906,11 @@ rterm_no_side_effect_no_dict: T_STRING
 	}
 	| T_CURRENT_FILENAME
 	{
-		$$ = MakeLiteral(@$.Path);
+		$$ = MakeLiteralRaw(@$.Path);
 	}
 	| T_CURRENT_LINE
 	{
-		$$ = MakeLiteral(@$.FirstLine);
+		$$ = MakeLiteralRaw(@$.FirstLine);
 	}
 	| identifier T_FOLLOWS
 	{
@@ -926,7 +924,7 @@ rterm_no_side_effect_no_dict: T_STRING
 		args.push_back(*$1);
 		delete $1;
 
-		$$ = new FunctionExpression("<anonymous>", args, new std::map<String, Expression *>(), $4, @$);
+		$$ = new FunctionExpression("<anonymous>", args, {}, std::unique_ptr<Expression>($4), @$);
 	}
 	| identifier T_FOLLOWS rterm %dprec 1
 	{
@@ -936,7 +934,7 @@ rterm_no_side_effect_no_dict: T_STRING
 		args.push_back(*$1);
 		delete $1;
 
-		$$ = new FunctionExpression("<anonymous>", args, new std::map<String, Expression *>(), $3, @$);
+		$$ = new FunctionExpression("<anonymous>", args, {}, std::unique_ptr<Expression>($3), @$);
 	}
 	| '(' identifier_items ')' T_FOLLOWS
 	{
@@ -946,14 +944,14 @@ rterm_no_side_effect_no_dict: T_STRING
 	{
 		EndFlowControlBlock(context);
 
-		$$ = new FunctionExpression("<anonymous>", *$2, new std::map<String, Expression *>(), $6, @$);
+		$$ = new FunctionExpression("<anonymous>", *$2, {}, std::unique_ptr<Expression>($6), @$);
 		delete $2;
 	}
 	| '(' identifier_items ')' T_FOLLOWS rterm %dprec 1
 	{
 		ASSERT(!dynamic_cast<DictExpression *>($5));
 
-		$$ = new FunctionExpression("<anonymous>", *$2, new std::map<String, Expression *>(), $5, @$);
+		$$ = new FunctionExpression("<anonymous>", *$2, {}, std::unique_ptr<Expression>($5), @$);
 		delete $2;
 	}
 	| rterm_array
@@ -994,8 +992,9 @@ rterm_no_side_effect_no_dict: T_STRING
 	{
 		EndFlowControlBlock(context);
 
-		$$ = new FunctionExpression("<anonymous>", *$3, $5, $7, @$);
+		$$ = new FunctionExpression("<anonymous>", *$3, std::move(*$5), std::unique_ptr<Expression>($7), @$);
 		delete $3;
+		delete $5;
 	}
 	| T_NULLARY_LAMBDA_BEGIN
 	{
@@ -1005,20 +1004,19 @@ rterm_no_side_effect_no_dict: T_STRING
 	{
 		EndFlowControlBlock(context);
 
-		std::vector<Expression *> dlist;
-		typedef std::pair<Expression *, EItemInfo> EListItem;
-		std::vector<std::pair<Expression *, EItemInfo> >::size_type num = 0;
-		for (const EListItem& litem : *$3) {
+		std::vector<std::unique_ptr<Expression> > dlist;
+		decltype(dlist.size()) num = 0;
+		for (auto& litem : *$3) {
 			if (!litem.second.SideEffect && num != $3->size() - 1)
 				yyerror(&litem.second.DebugInfo, NULL, NULL, "Value computed is not used.");
-			dlist.push_back(litem.first);
+			dlist.push_back(std::move(litem.first));
 			num++;
 		}
 		delete $3;
-		DictExpression *aexpr = new DictExpression(dlist, @$);
+		std::unique_ptr<DictExpression> aexpr{new DictExpression(std::move(dlist), @$)};
 		aexpr->MakeInline();
 
-		$$ = new FunctionExpression("<anonymous>", std::vector<String>(), NULL, aexpr, @$);
+		$$ = new FunctionExpression("<anonymous>", {}, {}, std::move(aexpr), @$);
 	}
 	;
 
@@ -1026,9 +1024,9 @@ rterm_no_side_effect:
 	rterm_no_side_effect_no_dict %dprec 1
 	| rterm_dict %dprec 2
 	{
-		Expression *expr = $1;
+		std::unique_ptr<Expression> expr{$1};
 		BindToScope(expr, ScopeThis);
-		$$ = expr;
+		$$ = expr.release();
 	}
 	;
 
@@ -1069,7 +1067,7 @@ ignore_specifier: /* empty */
 
 use_specifier: /* empty */
 	{
-		$$ = NULL;
+		$$ = new std::map<String, std::unique_ptr<Expression> >();
 	}
 	| T_USE '(' use_specifier_items ')'
 	{
@@ -1079,26 +1077,26 @@ use_specifier: /* empty */
 
 use_specifier_items: use_specifier_item
 	{
-		$$ = new std::map<String, Expression *>();
-		$$->insert(*$1);
+		$$ = new std::map<String, std::unique_ptr<Expression> >();
+		$$->insert(std::move(*$1));
 		delete $1;
 	}
 	| use_specifier_items ',' use_specifier_item
 	{
 		$$ = $1;
-		$$->insert(*$3);
+		$$->insert(std::move(*$3));
 		delete $3;
 	}
 	;
 
 use_specifier_item: identifier
 	{
-		$$ = new std::pair<String, Expression *>(*$1, new VariableExpression(*$1, @1));
+		$$ = new std::pair<String, std::unique_ptr<Expression> >(*$1, std::unique_ptr<Expression>(new VariableExpression(*$1, @1)));
 		delete $1;
 	}
 	| identifier T_SET rterm
 	{
-		$$ = new std::pair<String, Expression *>(*$1, $3);
+		$$ = new std::pair<String, std::unique_ptr<Expression> >(*$1, std::unique_ptr<Expression>($3));
 		delete $1;
 	}
 	;
@@ -1127,7 +1125,7 @@ apply_for_specifier: /* empty */
 
 optional_rterm: /* empty */
 	{
-		$$ = MakeLiteral();
+		$$ = MakeLiteralRaw();
 	}
 	| rterm
 	;
@@ -1189,26 +1187,26 @@ apply:
 		if (!seen_assign && !context->m_FTerm.top())
 			BOOST_THROW_EXCEPTION(ScriptError("'apply' is missing 'assign'/'for'", DebugInfoRange(@2, @3)));
 
-		Expression *ignore = context->m_Ignore.top();
+		std::unique_ptr<Expression> ignore{context->m_Ignore.top()};
 		context->m_Ignore.pop();
 
-		Expression *assign;
+		std::unique_ptr<Expression> assign;
 
 		if (!seen_assign)
 			assign = MakeLiteral(true);
 		else
-			assign = context->m_Assign.top();
+			assign.reset(context->m_Assign.top());
 
 		context->m_Assign.pop();
 
-		Expression *filter;
+		std::unique_ptr<Expression> filter;
 
 		if (ignore) {
-			Expression *rex = new LogicalNegateExpression(ignore, DebugInfoRange(@2, @5));
+			std::unique_ptr<Expression>rex{new LogicalNegateExpression(std::move(ignore), DebugInfoRange(@2, @5))};
 
-			filter = new LogicalAndExpression(assign, rex, DebugInfoRange(@2, @5));
+			filter.reset(new LogicalAndExpression(std::move(assign), std::move(rex), DebugInfoRange(@2, @5)));
 		} else
-			filter = assign;
+			filter.swap(assign);
 
 		String fkvar = context->m_FKVar.top();
 		context->m_FKVar.pop();
@@ -1216,10 +1214,11 @@ apply:
 		String fvvar = context->m_FVVar.top();
 		context->m_FVVar.pop();
 
-		Expression *fterm = context->m_FTerm.top();
+		std::unique_ptr<Expression> fterm{context->m_FTerm.top()};
 		context->m_FTerm.pop();
 
-		$$ = new ApplyExpression(type, target, $4, filter, context->GetPackage(), fkvar, fvvar, fterm, $7, $8, $10, DebugInfoRange(@2, @8));
+		$$ = new ApplyExpression(type, target, std::unique_ptr<Expression>($4), std::move(filter), context->GetPackage(), fkvar, fvvar, std::move(fterm), std::move(*$7), $8, std::unique_ptr<Expression>($10), DebugInfoRange(@2, @8));
+		delete $7;
 	}
 	;
 
