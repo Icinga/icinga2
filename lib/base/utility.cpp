@@ -34,6 +34,7 @@
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/uuid/uuid_io.hpp>
+#include <boost/uuid/uuid_generators.hpp>
 #include <ios>
 #include <fstream>
 #include <iostream>
@@ -441,8 +442,7 @@ void Utility::Sleep(double timeout)
  */
 String Utility::NewUniqueID(void)
 {
-	boost::uuids::uuid u;
-	return boost::lexical_cast<std::string>(u);
+	return boost::lexical_cast<std::string>(boost::uuids::random_generator()());
 }
 
 #ifdef _WIN32
