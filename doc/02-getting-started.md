@@ -595,11 +595,7 @@ RHEL/CentOS 7/Fedora, SLES 12, Debian Jessie/Stretch, Ubuntu Xenial:
 
     # systemctl restart icinga2
 
-Debian/Ubuntu, RHEL/CentOS 6 and SUSE 11:
-
-    # service icinga2 restart
-
-FreeBSD:
+Debian/Ubuntu, RHEL/CentOS 6, SUSE 11 and FreeBSD:
 
     # service icinga2 restart
 
@@ -748,11 +744,7 @@ RHEL/CentOS 7/Fedora, SLES 12, Debian Jessie/Stretch, Ubuntu Xenial:
 
     # systemctl restart icinga2
 
-Debian/Ubuntu, RHEL/CentOS 6, SUSE and FreeBSD:
-
-    # service icinga2 restart
-
-FreeBSD:
+Debian/Ubuntu, RHEL/CentOS 6, SUSE 11 and FreeBSD:
 
     # service icinga2 restart
 
@@ -849,11 +841,7 @@ RHEL/CentOS 7/Fedora, SLES 12, Debian Jessie/Stretch, Ubuntu Xenial:
 
     # systemctl restart icinga2
 
-Debian/Ubuntu, RHEL/CentOS 6 and SUSE:
-
-    # service icinga2 restart
-
-FreeBSD:
+Debian/Ubuntu, RHEL/CentOS 6, SUSE 11 and FreeBSD:
 
     # service icinga2 restart
 
