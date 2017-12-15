@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "icinga/legacytimeperiod.hpp"
-#include <boost/test/unit_test.hpp>
+#include <BoostTestTargetConfig.h>
 
 using namespace icinga;
 
@@ -31,16 +31,27 @@ struct GlobalTimezoneFixture
 	GlobalTimezoneFixture(void)
 	{
 		tz = getenv("TZ");
+#ifdef _WIN32
+		_putenv_s("TZ", "UTC");
+#else
 		setenv("TZ", "", 1);
+#endif
 		tzset();
 	}
 
 	~GlobalTimezoneFixture(void)
 	{
+#ifdef _WIN32
+		if (tz)
+			_putenv_s("TZ", tz);
+		else
+			_putenv_s("TZ", "");
+#else
 		if (tz)
 			setenv("TZ", tz, 1);
 		else
 			unsetenv("TZ");
+#endif
 		tzset();
 	}
 };
@@ -50,7 +61,6 @@ BOOST_GLOBAL_FIXTURE(GlobalTimezoneFixture);
 BOOST_AUTO_TEST_CASE(simple)
 {
 	tm beg, end, ref;
-	timegm(&ref);
 
 	// check parsing of "YYYY-MM-DD" specs
 	LegacyTimePeriod::ParseTimeSpec("2016-01-01", &beg, &end, &ref);
