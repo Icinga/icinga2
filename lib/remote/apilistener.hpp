@@ -73,6 +73,8 @@ public:
 
 	Endpoint::Ptr GetLocalEndpoint(void) const;
 
+	bool HasUpstream(void) const;
+
 	void SyncSendMessage(const Endpoint::Ptr& endpoint, const Dictionary::Ptr& message);
 	void RelayMessage(const MessageOrigin::Ptr& origin, const ConfigObject::Ptr& secobj, const Dictionary::Ptr& message, bool log);
 
