@@ -46,11 +46,11 @@ void FileLogger::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
  */
 void FileLogger::Start(bool runtimeCreated)
 {
-	ObjectImpl<FileLogger>::Start(runtimeCreated);
-
 	ReopenLogFile();
 
 	Application::OnReopenLogs.connect(boost::bind(&FileLogger::ReopenLogFile, this));
+
+	ObjectImpl<FileLogger>::Start(runtimeCreated);
 }
 
 void FileLogger::ReopenLogFile(void)
