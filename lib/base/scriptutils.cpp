@@ -110,10 +110,8 @@ bool ScriptUtils::Regex(const std::vector<Value>& args)
 	if (args.size() < 2)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Regular expression and text must be specified."));
 
-	Array::Ptr texts = new Array();
-
 	String pattern = args[0];
-	Value argTexts = args[1];
+	const Value& argTexts = args[1];
 	MatchType mode;
 
 	if (args.size() > 2)
@@ -121,34 +119,40 @@ bool ScriptUtils::Regex(const std::vector<Value>& args)
 	else
 		mode = MatchAll;
 
-	if (argTexts.IsObjectType<Array>())
+	boost::regex expr(pattern.GetData());
+
+	Array::Ptr texts;
+
+	if (argTexts.IsObject())
 		texts = argTexts;
-	else {
-		texts = new Array();
-		texts->Add(argTexts);
-	}
 
-	if (texts->GetLength() == 0)
-		return false;
+	if (texts) {
+		ObjectLock olock(texts);
 
-	ObjectLock olock(texts);
-	for (const String& text : texts) {
-		bool res = false;
-		try {
-			boost::regex expr(pattern.GetData());
-			boost::smatch what;
-			res = boost::regex_search(text.GetData(), what, expr);
-		} catch (boost::exception&) {
-			res = false; /* exception means something went terribly wrong */
+		if (texts->GetLength() == 0)
+			return false;
+
+		for (const String& text : texts) {
+			bool res = false;
+			try {
+				boost::smatch what;
+				res = boost::regex_search(text.GetData(), what, expr);
+			} catch (boost::exception&) {
+				res = false; /* exception means something went terribly wrong */
+			}
+
+			if (mode == MatchAny && res)
+				return true;
+			else if (mode == MatchAll && !res)
+				return false;
 		}
 
-		if (mode == MatchAny && res)
-			return true;
-		else if (mode == MatchAll && !res)
-			return false;
+		return true;
+	} else {
+		String text = argTexts;
+		boost::smatch what;
+		return boost::regex_search(text.GetData(), what, expr);
 	}
-
-	return mode == MatchAll;
 }
 
 bool ScriptUtils::Match(const std::vector<Value>& args)
@@ -156,10 +160,8 @@ bool ScriptUtils::Match(const std::vector<Value>& args)
 	if (args.size() < 2)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Pattern and text must be specified."));
 
-	Array::Ptr texts = new Array();
-
 	String pattern = args[0];
-	Value argTexts = args[1];
+	const Value& argTexts = args[1];
 	MatchType mode;
 
 	if (args.size() > 2)
@@ -167,27 +169,31 @@ bool ScriptUtils::Match(const std::vector<Value>& args)
 	else
 		mode = MatchAll;
 
-	if (argTexts.IsObjectType<Array>())
+	Array::Ptr texts;
+
+	if (argTexts.IsObject())
 		texts = argTexts;
-	else {
-		texts = new Array();
-		texts->Add(argTexts);
-	}
 
-	if (texts->GetLength() == 0)
-		return false;
+	if (texts) {
+		ObjectLock olock(texts);
 
-	ObjectLock olock(texts);
-	for (const String& text : texts) {
-		bool res = Utility::Match(pattern, text);
-
-		if (mode == MatchAny && res)
-			return true;
-		else if (mode == MatchAll && !res)
+		if (texts->GetLength() == 0)
 			return false;
-	}
 
-	return mode == MatchAll;
+		for (const String& text : texts) {
+			bool res = Utility::Match(pattern, text);
+
+			if (mode == MatchAny && res)
+				return true;
+			else if (mode == MatchAll && !res)
+				return false;
+		}
+
+		return true;
+	} else {
+		String text = argTexts;
+		return Utility::Match(pattern, argTexts);
+	}
 }
 
 bool ScriptUtils::CidrMatch(const std::vector<Value>& args)
@@ -195,10 +201,8 @@ bool ScriptUtils::CidrMatch(const std::vector<Value>& args)
 	if (args.size() < 2)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("CIDR and IP address must be specified."));
 
-	Array::Ptr ips = new Array();
-
 	String pattern = args[0];
-	Value argIps = args[1];
+	const Value& argIps = args[1];
 	MatchType mode;
 
 	if (args.size() > 2)
@@ -206,27 +210,31 @@ bool ScriptUtils::CidrMatch(const std::vector<Value>& args)
 	else
 		mode = MatchAll;
 
-	if (argIps.IsObjectType<Array>())
+	Array::Ptr ips;
+
+	if (argIps.IsObject())
 		ips = argIps;
-	else {
-		ips = new Array();
-		ips->Add(argIps);
-	}
 
-	if (ips->GetLength() == 0)
-		return false;
+	if (ips) {
+		ObjectLock olock(ips);
 
-	ObjectLock olock(ips);
-	for (const String& ip : ips) {
-		bool res = Utility::CidrMatch(pattern, ip);
-
-		if (mode == MatchAny && res)
-			return true;
-		else if (mode == MatchAll && !res)
+		if (ips->GetLength() == 0)
 			return false;
-	}
 
-	return mode == MatchAll;
+		for (const String& ip : ips) {
+			bool res = Utility::CidrMatch(pattern, ip);
+
+			if (mode == MatchAny && res)
+				return true;
+			else if (mode == MatchAll && !res)
+				return false;
+		}
+
+		return true;
+	} else {
+		String ip = argIps;
+		return Utility::CidrMatch(pattern, ip);
+	}
 }
 
 double ScriptUtils::Len(const Value& value)
