@@ -1684,14 +1684,16 @@ users\_win\_crit | **Optional**. The critical threshold.
 
 ## Plugin Check Commands for NSClient++ <a id="nscp-plugin-check-commands"></a>
 
-There are two methods available for querying NSClient++:
+There are three methods available for querying NSClient++:
 
 * Query the [HTTP API](10-icinga-template-library.md#nscp-check-api) locally or remotely (requires a running NSClient++ service)
+* Query the [NRPE Server](10-icinga-template-library.md#nscp-check-nrpe) locally (requires a running NSClient++ service)
 * Run a [local CLI check](10-icinga-template-library.md#nscp-check-local) (does not require NSClient++ as a service)
 
-Both methods have their advantages and disadvantages. One thing to
+These methods have their advantages and disadvantages. One thing to
 note: If you rely on performance counter delta calculations such as
-CPU utilization, please use the HTTP API instead of the CLI sample call.
+CPU utilization, please use the HTTP API or the NRPE Server instead of the CLI sample call.
+
 
 ### nscp_api <a id="nscp-check-api"></a>
 
@@ -1734,6 +1736,79 @@ checks the CPU utilization and specifies warning and critical thresholds.
 check_nscp_api --host 10.0.10.148 --password icinga --query check_cpu --arguments show-all warning='load>40' critical='load>30'
 check_cpu CRITICAL: critical(5m: 48%, 1m: 36%), 5s: 0% | 'total 5m'=48%;40;30 'total 1m'=36%;40;30 'total 5s'=0%;40;30
 ```
+
+
+### nscp_nrpe <a id="nscp-check-nrpe"></a>
+
+`check_nrpe.exe` is part of the NSClient++ installation, and can be found in its installation path.
+
+Although it is possible to query the NSCP NRPE Server remotely using the check_nrpe official plugin, so from an Icinga2 master/satellite, we won't cover this possibility, as:
+
+* the NRPE protocol v1/v2 are not secure and the v3 available with nagios-plugins is currently not supported by NSCP
+* checking locally using the check_nrpe.exe plugin provided by the NSCP package itself is more secure as no other communications other than the ones between the icinga2 client and master/satellite are established
+
+Verify that the ITL CheckCommand is included in the [icinga2.conf](04-configuring-icinga-2.md#icinga2-conf) configuration file:
+
+You can enable the nscp_nrpe check commands by adding the following include directive in your
+[icinga2.conf](04-configuring-icinga-2.md#icinga2-conf) configuration file:
+
+    include <nscp>
+
+You can also optionally specify an alternative installation directory for NSClient++ by adding
+the NscpPath constant in your [constants.conf](04-configuring-icinga-2.md#constants-conf) configuration
+file:
+
+    const NscpPath = "C:\\Program Files (x86)\\NSClient++"
+
+`check_nrpe.exe` runs queries against the NSClient++ NRPEServer. Therefore NSClient++ needs to have
+the `NRPEServer` module enabled, configured and loaded.
+
+The nsclient.ini configuration file can be manually edited OR you can execute commands in a command prompt to make the required changes in
+the configuration file. So, enable and configure the NRPEServer using the following CLI commands:
+
+Log onto your remote windows machine as an administrator.
+Open a command prompt with administrative rights and run the following commands:
+
+    cd "C:\Program Files\NSClient++"
+    ./nscp settings --activate-module NRPEServer --add-defaults
+    ./nscp settings --path /settings/NRPE/server --key "allow arguments" --set true
+    ./nscp settings --path /settings/NRPE/server --key "allow nasty characters" --set true
+    ./nscp settings --path /settings/NRPE/server --key insecure --set false
+    ./nscp settings --path /settings/NRPE/server --key "allowed hosts" --set "127.0.0.1"
+    ./nscp settings --path /settings/NRPE/server --key "port" --set "5666"
+
+Then, restart the nscp service to apply the changes.
+
+In the same way, depending on what you would like to check, you will need to enable some other NSCP modules, like CheckSystem (the most important one), CheckDisk, CheckNet, CheckTaskSched, CheckWMI, CheckEventLog, ...
+
+Let's test the NRPE server and the check_nrpe.exe binary by sending a query:
+
+```
+C:\Program Files\NSClient++>./check_nrpe.exe host=127.0.0.1 port=5666 command=check_cpu argument="time=1m" argument="time=5m" argument="time=15m" argument="warn=(load>70)" argument="crit=(load>90)" argument="show-all" ssl=1
+OK: 1m: 3%, 5m: 0%, 15m: 0%|'total 1m'=3%;70;90 'total 5m'=0%;70;90 'total 15m'=0%;70;90
+```
+    
+Note:
+
+* to be able to use the check_cpu command, you will need CheckSystem to be enabled.
+
+The `check_nrpe.exe` program can be integrated with the `nscp_nrpe` CheckCommand object:
+
+Custom attributes:
+
+Name                       | Description
+:---------------------------|:----------------------
+nscp\_nrpe\_host           | **Optional**. The hostname/IP of the host running the NRPE daemon. Defaults to "127.0.0.1".
+nscp\_nrpe\_port           | **Optional**. The port of the host running the NRPE daemon. Defaults to `5666`.
+nscp\_nrpe\_timeout        | **Optional**. Number of seconds before connection times out. Defaults to 10.
+nscp\_nrpe\_command        | **Required**. The name of the command that the remote daemon should run. Refer to the NSCP documentation for the available commands.
+nscp\_nrpe\_arguments      | **Optional**. The command line argument(s). Refer to the NSCP documentation for the arguments available for the specified command.
+nscp\_nrpe\_ssl            | **Optional**. Initiate a ssl handshake with the NRPE server. Defaults to true.
+nscp\_nrpe\_insecure       | **Optional**. Use the insecure legacy mode. Refer to the NSCP documentation.
+nscp\_nrpe\_payload\_length | **Optional**. Length of payload (has to be same as on the server). Refer to the NSCP documentation.
+nscp\_nrpe\_buffer\_length  | **Optional**. Length of payload to/from the NRPE agent. This is a hard specific value so you have to 'configure' (read recompile) your NRPE agent to use the same value for it to work. Refer to the NSCP documentation.
+
+`nscp_nrpe_arguments` can be used to pass required thresholds and filters to the executed check. Usually, it takes the format of an array of arguments.
 
 
 ### nscp-local <a id="nscp-check-local"></a>

@@ -2036,14 +2036,15 @@ for the requirements.
 
 ### Windows Client and NSClient++ <a id="distributed-monitoring-windows-nscp"></a>
 
-There are two methods available for querying NSClient++:
+There are three methods available for querying NSClient++:
 
 * Query the [HTTP API](06-distributed-monitoring.md#distributed-monitoring-windows-nscp-check-api) locally or remotely (requires a running NSClient++ service)
+* Query the [NRPE Server](06-distributed-monitoring.md#distributed-monitoring-windows-nscp-check-nrpe) locally (requires a running NSClient++ service)
 * Run a [local CLI check](06-distributed-monitoring.md#distributed-monitoring-windows-nscp-check-local) (does not require NSClient++ as a service)
 
-Both methods have their advantages and disadvantages. One thing to
+These methods have their advantages and disadvantages. One thing to
 note: If you rely on performance counter delta calculations such as
-CPU utilization, please use the HTTP API instead of the CLI sample call.
+CPU utilization, please use the HTTP API or the NRPE Server instead of the CLI sample call.
 
 #### NSCLient++ with check_nscp_api <a id="distributed-monitoring-windows-nscp-check-api"></a>
 
@@ -2144,6 +2145,74 @@ If you want to monitor specific Windows services, you could use the following ex
 
       ignore where host.vars.os_type != "Windows"
     }
+
+#### NSCLient++ with its own local check_nrpe <a id="distributed-monitoring-windows-nscp-nrpe"></a>
+
+The [Windows setup](06-distributed-monitoring.md#distributed-monitoring-setup-client-windows) already allows
+you to install the NSClient++ package. In addition to the Windows plugins you can
+use the [nscp_nrpe command](10-icinga-template-library.md#nscp-check-nrpe) provided by the Icinga Template Library (ITL).
+
+The initial setup for the NSClient++ NRPE Server and the required arguments
+is the described in the ITL chapter for the [nscp_nrpe](10-icinga-template-library.md#nscp-check-nrpe) CheckCommand.
+
+Although it is possible to query the NSCP NRPE Server remotely, so from an Icinga2 master/satellite, we won't cover this possibility, as:
+
+* the NRPE protocol v1/v2 are not secure and the v3 available with nagios-plugins is currently not supported by NSCP
+* checking locally using the check_nrpe.exe plugin provided by the NSCP package itself is more secure as no other communications other than the ones between the icinga2 client and master/satellite are established
+
+![Icinga 2 Distributed Monitoring Windows Client with NSClient++ and nscp-nrpe](images/distributed-monitoring/icinga2_distributed_windows_nscp_nrpe.png)
+
+Add the following `include` statement on all your nodes (master, satellite, client):
+
+    vim /etc/icinga2/icinga2.conf
+
+    include <nscp-local>
+
+The CheckCommand definitions will automatically determine the installed path to the `check_nrpe.exe` binary.
+
+Based on the [master with clients](06-distributed-monitoring.md#distributed-monitoring-master-clients)
+scenario we'll now add a local nscp check which queries the NSClient++ NRPE Server to check the cpu usage.
+
+Define a host object called `icinga2-client3.localdomain` on the master.
+
+    [root@icinga2-master1.localdomain /]# cd /etc/icinga2/zones.d/master
+    [root@icinga2-master1.localdomain /etc/icinga2/zones.d/master]# vim hosts.conf
+
+    object Host "icinga2-client3.localdomain" {
+        check_command = "hostalive"
+        address = "1.2.3.4"
+        vars.client_endpoint = name //follows the convention that host name == endpoint name
+        vars.os_type = "Windows"
+    }
+
+The service checks are generated using a classic service definition:
+
+    [root@icinga2-master1.localdomain /etc/icinga2/zones.d/master]# vim services.conf
+
+    apply Service "Cpu usage" {
+      import "generic-service"
+      check_command = "nscp_nrpe"
+      vars.nscp_nrpe_command = "check_cpu"
+      command_endpoint = host.vars.client_endpoint
+      vars.nscp_nrpe_arguments += [
+       "time=1m",
+       "time=5m",
+       "time=15m",
+       "warn=(load>80)",
+       "crit=(load>90)",
+       "show-all",
+      ]
+      assign where host.vars.client_endpoint && host.vars.os_type == "Windows"
+    }
+
+Validate the configuration and restart Icinga 2.
+
+    [root@icinga2-master1.localdomain /]# icinga2 daemon -C
+    [root@icinga2-master1.localdomain /]# systemctl restart icinga2
+
+The new service "Cpu usage" will be visible in Icinga Web 2.
+
+![Icinga 2 Distributed Monitoring Windows Client with NSClient++ nscp-nrpe icingaweb2](images/distributed-monitoring/icinga2_distributed_windows_nscp_nrpe_check_cpu_icingaweb2.png)
 
 #### NSCLient++ with nscp-local <a id="distributed-monitoring-windows-nscp-check-local"></a>
 
