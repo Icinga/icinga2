@@ -791,6 +791,16 @@ void ApiListener::CleanupCertificateRequestsTimerHandler(void)
 	}
 }
 
+bool ApiListener::HasUpstream(void) const
+{
+	Zone::Ptr localZone = Zone::GetLocalZone();
+
+	if (!localZone)
+		return false;
+
+	return localZone->GetParent() || !localZone->IsSingleInstance();
+}
+
 void ApiListener::RelayMessage(const MessageOrigin::Ptr& origin,
     const ConfigObject::Ptr& secobj, const Dictionary::Ptr& message, bool log)
 {

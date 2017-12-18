@@ -97,7 +97,7 @@ void ClusterEvents::CheckResultHandler(const Checkable::Ptr& checkable, const Ch
 {
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 
-	if (!listener)
+	if (!listener || !listener->HasUpstream())
 		return;
 
 	Dictionary::Ptr message = MakeCheckResultMessage(checkable, cr);
@@ -189,7 +189,7 @@ void ClusterEvents::NextCheckChangedHandler(const Checkable::Ptr& checkable, con
 {
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 
-	if (!listener)
+	if (!listener || !listener->HasUpstream())
 		return;
 
 	Host::Ptr host;
@@ -259,7 +259,7 @@ void ClusterEvents::NextNotificationChangedHandler(const Notification::Ptr& noti
 {
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 
-	if (!listener)
+	if (!listener || !listener->HasUpstream())
 		return;
 
 	Dictionary::Ptr params = new Dictionary();
@@ -313,7 +313,7 @@ void ClusterEvents::ForceNextCheckChangedHandler(const Checkable::Ptr& checkable
 {
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 
-	if (!listener)
+	if (!listener || !listener->HasUpstream())
 		return;
 
 	Host::Ptr host;
@@ -378,7 +378,7 @@ void ClusterEvents::ForceNextNotificationChangedHandler(const Checkable::Ptr& ch
 {
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 
-	if (!listener)
+	if (!listener || !listener->HasUpstream())
 		return;
 
 	Host::Ptr host;
@@ -445,7 +445,7 @@ void ClusterEvents::AcknowledgementSetHandler(const Checkable::Ptr& checkable,
 {
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 
-	if (!listener)
+	if (!listener || !listener->HasUpstream())
 		return;
 
 	Host::Ptr host;
@@ -516,7 +516,7 @@ void ClusterEvents::AcknowledgementClearedHandler(const Checkable::Ptr& checkabl
 {
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 
-	if (!listener)
+	if (!listener || !listener->HasUpstream())
 		return;
 
 	Host::Ptr host;
@@ -693,7 +693,7 @@ void ClusterEvents::SendNotificationsHandler(const Checkable::Ptr& checkable, No
 {
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 
-	if (!listener)
+	if (!listener || !listener->HasUpstream())
 		return;
 
 	Dictionary::Ptr message = MakeCheckResultMessage(checkable, cr);
@@ -774,7 +774,7 @@ void ClusterEvents::NotificationSentUserHandler(const Notification::Ptr& notific
 {
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 
-	if (!listener)
+	if (!listener || !listener->HasUpstream())
 		return;
 
 	Host::Ptr host;
@@ -879,7 +879,7 @@ void ClusterEvents::NotificationSentToAllUsersHandler(const Notification::Ptr& n
 {
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 
-	if (!listener)
+	if (!listener || !listener->HasUpstream())
 		return;
 
 	Host::Ptr host;
