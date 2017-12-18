@@ -119,6 +119,8 @@ public:
 
 			ScriptFrame *frame = ScriptFrame::GetCurrentFrame();
 
+			frame->Locals = new Dictionary();
+
 			if (evaluatedClosedVars)
 				evaluatedClosedVars->CopyTo(frame->Locals);
 
