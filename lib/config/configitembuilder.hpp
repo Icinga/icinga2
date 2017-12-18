@@ -60,7 +60,7 @@ private:
 	Type::Ptr m_Type; /**< The object type. */
 	String m_Name; /**< The name. */
 	bool m_Abstract; /**< Whether the item is abstract. */
-	std::vector<Expression *> m_Expressions; /**< Expressions for this item. */
+	std::vector<std::unique_ptr<Expression> > m_Expressions; /**< Expressions for this item. */
 	std::shared_ptr<Expression> m_Filter; /**< Filter expression. */
 	DebugInfo m_DebugInfo; /**< Debug information. */
 	Dictionary::Ptr m_Scope; /**< variable scope. */

@@ -176,20 +176,16 @@ static int Main(void)
 	String initconfig = Application::GetSysconfDir() + "/icinga2/init.conf";
 
 	if (Utility::PathExists(initconfig)) {
-		Expression *expression;
+		std::unique_ptr<Expression> expression;
 		try {
 			expression = ConfigCompiler::CompileFile(initconfig);
 
 			ScriptFrame frame;
 			expression->Evaluate(frame);
 		} catch (const std::exception& ex) {
-			delete expression;
-
 			Log(LogCritical, "config", DiagnosticInformation(ex));
 			return EXIT_FAILURE;
 		}
-
-		delete expression;
 	}
 
 	if (!autocomplete)

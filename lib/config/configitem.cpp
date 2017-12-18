@@ -580,7 +580,7 @@ bool ConfigItem::ActivateItems(WorkQueue& upq, const std::vector<ConfigItem::Ptr
 	if (withModAttrs) {
 		/* restore modified attributes */
 		if (Utility::PathExists(Application::GetModAttrPath())) {
-			Expression *expression = ConfigCompiler::CompileFile(Application::GetModAttrPath());
+			std::unique_ptr<Expression> expression = ConfigCompiler::CompileFile(Application::GetModAttrPath());
 
 			if (expression) {
 				try {
@@ -590,8 +590,6 @@ bool ConfigItem::ActivateItems(WorkQueue& upq, const std::vector<ConfigItem::Ptr
 					Log(LogCritical, "config", DiagnosticInformation(ex));
 				}
 			}
-
-			delete expression;
 		}
 	}
 

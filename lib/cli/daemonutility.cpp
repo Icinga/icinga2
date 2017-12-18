@@ -51,9 +51,9 @@ static void IncludeZoneDirRecursive(const String& path, const String& package, b
 	/* register this zone path for cluster config sync */
 	ConfigCompiler::RegisterZoneDir("_etc", path, zoneName);
 
-	std::vector<Expression *> expressions;
+	std::vector<std::unique_ptr<Expression> > expressions;
 	Utility::GlobRecursive(path, "*.conf", std::bind(&ConfigCompiler::CollectIncludes, std::ref(expressions), _1, zoneName, package), GlobFile);
-	DictExpression expr(expressions);
+	DictExpression expr(std::move(expressions));
 	if (!ExecuteExpression(&expr))
 		success = false;
 }
@@ -74,9 +74,9 @@ static void IncludeNonLocalZone(const String& zonePath, const String& package, b
 		return;
 	}
 
-	std::vector<Expression *> expressions;
+	std::vector<std::unique_ptr<Expression> > expressions;
 	Utility::GlobRecursive(zonePath, "*.conf", std::bind(&ConfigCompiler::CollectIncludes, std::ref(expressions), _1, zoneName, package), GlobFile);
-	DictExpression expr(expressions);
+	DictExpression expr(std::move(expressions));
 	if (!ExecuteExpression(&expr))
 		success = false;
 }
@@ -88,13 +88,11 @@ static void IncludePackage(const String& packagePath, bool& success)
 	String packageName = Utility::BaseName(packagePath);
 
 	if (Utility::PathExists(packagePath + "/include.conf")) {
-		Expression *expr = ConfigCompiler::CompileFile(packagePath + "/include.conf",
+		std::unique_ptr<Expression> expr = ConfigCompiler::CompileFile(packagePath + "/include.conf",
 		    String(), packageName);
 
-		if (!ExecuteExpression(expr))
+		if (!ExecuteExpression(&*expr))
 			success = false;
-
-		delete expr;
 	}
 }
 
@@ -107,9 +105,8 @@ bool DaemonUtility::ValidateConfigFiles(const std::vector<std::string>& configs,
 	if (!configs.empty()) {
 		for (const String& configPath : configs) {
 			try {
-				Expression *expression = ConfigCompiler::CompileFile(configPath, String(), "_etc");
-				success = ExecuteExpression(expression);
-				delete expression;
+				std::unique_ptr<Expression> expression = ConfigCompiler::CompileFile(configPath, String(), "_etc");
+				success = ExecuteExpression(&*expression);
 				if (!success)
 					return false;
 			} catch (const std::exception& ex) {

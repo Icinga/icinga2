@@ -162,14 +162,15 @@ void FilterUtility::CheckPermission(const ApiUser::Ptr& user, const String& perm
 			foundPermission = true;
 
 			if (filter && permissionFilter) {
-				std::vector<Expression *> args;
-				args.push_back(new GetScopeExpression(ScopeLocal));
-				FunctionCallExpression *fexpr = new FunctionCallExpression(new IndexerExpression(MakeLiteral(filter), MakeLiteral("call")), args);
+				std::vector<std::unique_ptr<Expression> > args;
+				args.emplace_back(new GetScopeExpression(ScopeLocal));
+				std::unique_ptr<Expression> indexer{new IndexerExpression(std::unique_ptr<Expression>(MakeLiteral(filter)), std::unique_ptr<Expression>(MakeLiteral("call")))};
+				FunctionCallExpression *fexpr = new FunctionCallExpression(std::move(indexer), std::move(args));
 
 				if (!*permissionFilter)
 					*permissionFilter = fexpr;
 				else
-					*permissionFilter = new LogicalOrExpression(*permissionFilter, fexpr);
+					*permissionFilter = new LogicalOrExpression(std::unique_ptr<Expression>(*permissionFilter), std::unique_ptr<Expression>(fexpr));
 			}
 		}
 	}
@@ -250,7 +251,7 @@ std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, c
 		frame.Sandboxed = true;
 		Dictionary::Ptr uvars = new Dictionary();
 
-		Expression *ufilter = nullptr;
+		std::unique_ptr<Expression> ufilter;
 
 		if (query->Contains("filter")) {
 			String filter = HttpUtility::GetLastParameter(query, "filter");
@@ -267,16 +268,9 @@ std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, c
 
 		frame.Self = uvars;
 
-		try {
-			provider->FindTargets(type, std::bind(&FilteredAddTarget,
-			    std::ref(permissionFrame), permissionFilter,
-			    std::ref(frame), ufilter, std::ref(result), variableName, _1));
-		} catch (const std::exception&) {
-			delete ufilter;
-			throw;
-		}
-
-		delete ufilter;
+		provider->FindTargets(type, std::bind(&FilteredAddTarget,
+		    std::ref(permissionFrame), permissionFilter,
+		    std::ref(frame), &*ufilter, std::ref(result), variableName, _1));
 	}
 
 	return result;

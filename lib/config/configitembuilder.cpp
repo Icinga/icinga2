@@ -70,7 +70,7 @@ void ConfigItemBuilder::SetPackage(const String& package)
 
 void ConfigItemBuilder::AddExpression(Expression *expr)
 {
-	m_Expressions.push_back(expr);
+	m_Expressions.emplace_back(expr);
 }
 
 void ConfigItemBuilder::SetFilter(const std::shared_ptr<Expression>& filter)
@@ -110,24 +110,20 @@ ConfigItem::Ptr ConfigItemBuilder::Compile(void)
 		BOOST_THROW_EXCEPTION(ScriptError(msgbuf.str(), m_DebugInfo));
 	}
 
-	std::vector<Expression *> exprs;
+	std::vector<std::unique_ptr<Expression> > exprs;
 
 	Array::Ptr templateArray = new Array();
 	templateArray->Add(m_Name);
 
-	exprs.push_back(new SetExpression(MakeIndexer(ScopeThis, "templates"), OpSetAdd,
-	    new LiteralExpression(templateArray), m_DebugInfo));
-
-	DictExpression *dexpr = new DictExpression(m_Expressions, m_DebugInfo);
-	dexpr->MakeInline();
-	exprs.push_back(dexpr);
+	exprs.emplace_back(new SetExpression(MakeIndexer(ScopeThis, "templates"), OpSetAdd,
+	    std::unique_ptr<LiteralExpression>(new LiteralExpression(templateArray)), m_DebugInfo));
 
 #ifdef I2_DEBUG
 	if (!m_Abstract) {
 		bool foundDefaultImport = false;
 
-		for (Expression *expr : m_Expressions) {
-			if (dynamic_cast<ImportDefaultTemplatesExpression *>(expr)) {
+		for (const std::unique_ptr<Expression>& expr : m_Expressions) {
+			if (dynamic_cast<ImportDefaultTemplatesExpression *>(expr.get())) {
 				foundDefaultImport = true;
 				break;
 			}
@@ -137,7 +133,11 @@ ConfigItem::Ptr ConfigItemBuilder::Compile(void)
 	}
 #endif /* I2_DEBUG */
 
-	std::shared_ptr<DictExpression> exprl = std::make_shared<DictExpression>(exprs, m_DebugInfo);
+	DictExpression *dexpr = new DictExpression(std::move(m_Expressions), m_DebugInfo);
+	dexpr->MakeInline();
+	exprs.emplace_back(dexpr);
+
+	std::shared_ptr<DictExpression> exprl = std::make_shared<DictExpression>(std::move(exprs), m_DebugInfo);
 	exprl->MakeInline();
 
 	return new ConfigItem(m_Type, m_Name, m_Abstract, exprl, m_Filter,

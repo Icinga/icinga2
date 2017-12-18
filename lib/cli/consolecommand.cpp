@@ -68,7 +68,7 @@ extern "C" void dbg_inspect_object(Object *obj)
 
 extern "C" void dbg_eval(const char *text)
 {
-	Expression *expr = nullptr;
+	std::unique_ptr<Expression> expr;
 
 	try {
 		ScriptFrame frame;
@@ -78,13 +78,11 @@ extern "C" void dbg_eval(const char *text)
 	} catch (const std::exception& ex) {
 		std::cout << "Error: " << DiagnosticInformation(ex) << "\n";
 	}
-
-	delete expr;
 }
 
 extern "C" void dbg_eval_with_value(const Value& value, const char *text)
 {
-	Expression *expr = nullptr;
+	std::unique_ptr<Expression> expr;
 
 	try {
 		ScriptFrame frame;
@@ -96,13 +94,11 @@ extern "C" void dbg_eval_with_value(const Value& value, const char *text)
 	} catch (const std::exception& ex) {
 		std::cout << "Error: " << DiagnosticInformation(ex) << "\n";
 	}
-
-	delete expr;
 }
 
 extern "C" void dbg_eval_with_object(Object *object, const char *text)
 {
-	Expression *expr = nullptr;
+	std::unique_ptr<Expression> expr;
 
 	try {
 		ScriptFrame frame;
@@ -114,8 +110,6 @@ extern "C" void dbg_eval_with_object(Object *object, const char *text)
 	} catch (const std::exception& ex) {
 		std::cout << "Error: " << DiagnosticInformation(ex) << "\n";
 	}
-
-	delete expr;
 }
 
 void ConsoleCommand::BreakpointHandler(ScriptFrame& frame, ScriptError *ex, const DebugInfo& di)
@@ -400,7 +394,7 @@ incomplete:
 
 		command += line;
 
-		Expression *expr = nullptr;
+		std::unique_ptr<Expression> expr;
 
 		try {
 			lines[fileName] = command;
@@ -412,7 +406,7 @@ incomplete:
 
 				/* This relies on the fact that - for syntax errors - CompileText()
 				 * returns an AST where the top-level expression is a 'throw'. */
-				if (!syntaxOnly || dynamic_cast<ThrowExpression *>(expr)) {
+				if (!syntaxOnly || dynamic_cast<ThrowExpression *>(expr.get())) {
 					if (syntaxOnly)
 						std::cerr << "    => " << command << std::endl;
 					result = Serialize(expr->Evaluate(scriptFrame), 0);
@@ -502,8 +496,6 @@ incomplete:
 			if (!commandOnce.IsEmpty())
 				return EXIT_FAILURE;
 		}
-
-		delete expr;
 	}
 
 	return EXIT_SUCCESS;
