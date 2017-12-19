@@ -32,7 +32,7 @@ namespace icinga
 struct I2_LIVESTATUS_API InvSumAggregatorState : public AggregatorState
 {
 	InvSumAggregatorState(void)
-	    : InvSum(0)
+		: InvSum(0)
 	{ }
 
 	double InvSum;

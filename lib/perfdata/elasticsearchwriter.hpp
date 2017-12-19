@@ -60,11 +60,11 @@ private:
 	void CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
 	void InternalCheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
 	void NotificationSentToAllUsersHandler(const Notification::Ptr& notification,
-	    const Checkable::Ptr& checkable, const std::set<User::Ptr>& users, NotificationType type,
-	    const CheckResult::Ptr& cr, const String& author, const String& text);
+		const Checkable::Ptr& checkable, const std::set<User::Ptr>& users, NotificationType type,
+		const CheckResult::Ptr& cr, const String& author, const String& text);
 	void NotificationSentToAllUsersHandlerInternal(const Notification::Ptr& notification,
-	    const Checkable::Ptr& checkable, const std::set<User::Ptr>& users, NotificationType type,
-	    const CheckResult::Ptr& cr, const String& author, const String& text);
+		const Checkable::Ptr& checkable, const std::set<User::Ptr>& users, NotificationType type,
+		const CheckResult::Ptr& cr, const String& author, const String& text);
 
 	void Enqueue(String type, const Dictionary::Ptr& fields, double ts);
 

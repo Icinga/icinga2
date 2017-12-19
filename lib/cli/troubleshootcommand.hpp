@@ -41,7 +41,7 @@ public:
 	virtual String GetShortDescription(void) const override;
 	virtual int Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const override;
 	virtual void InitParameters(boost::program_options::options_description& visibleDesc,
-	    boost::program_options::options_description& hiddenDesc) const override;
+		boost::program_options::options_description& hiddenDesc) const override;
 
 private:
 	class InfoLog;
@@ -49,9 +49,9 @@ private:
 	static bool GeneralInfo(InfoLog& log, const boost::program_options::variables_map& vm);
 	static bool FeatureInfo(InfoLog& log, const boost::program_options::variables_map& vm);
 	static bool ObjectInfo(InfoLog& log, const boost::program_options::variables_map& vm,
-	    Dictionary::Ptr& logs, const String& path);
+		Dictionary::Ptr& logs, const String& path);
 	static bool ReportInfo(InfoLog& log, const boost::program_options::variables_map& vm,
-	    Dictionary::Ptr& logs);
+		Dictionary::Ptr& logs);
 	static bool ConfigInfo(InfoLog& log, const boost::program_options::variables_map& vm);
 
 	static int Tail(const String& file, const int numLines, InfoLog& log);
@@ -61,7 +61,7 @@ private:
 	static bool PrintFile(InfoLog& log, const String& path);
 	static bool CheckConfig(void);
 	static void CheckObjectFile(const String& objectfile, InfoLog& log, InfoLog *OFile, const bool objectConsole,
-	    Dictionary::Ptr& logs, std::set<String>& configs);
+		Dictionary::Ptr& logs, std::set<String>& configs);
 	static bool PrintVarsFile(const String& path, const bool console);
 	static void PrintLoggers(InfoLog& log, Dictionary::Ptr& logs);
 	static void PrintObjectOrigin(InfoLog& log, const std::set<String>& configSet);

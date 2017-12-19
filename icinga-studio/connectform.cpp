@@ -59,7 +59,7 @@ ConnectForm::ConnectForm(wxWindow *parent, const Url::Ptr& url)
 Url::Ptr ConnectForm::GetUrl(void) const
 {
 	wxString url = "https://" + m_UserText->GetValue() + ":" + m_PasswordText->GetValue()
-	    + "@" + m_HostText->GetValue() + ":" + m_PortText->GetValue() + "/";
+		+ "@" + m_HostText->GetValue() + ":" + m_PortText->GetValue() + "/";
 
 	return new Url(url.ToStdString());
 }

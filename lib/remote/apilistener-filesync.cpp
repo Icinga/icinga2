@@ -36,7 +36,7 @@ void ApiListener::ConfigGlobHandler(ConfigDirInformation& config, const String& 
 	CONTEXT("Creating config update for file '" + file + "'");
 
 	Log(LogNotice, "ApiListener")
-	    << "Creating config update for file '" << file << "'.";
+		<< "Creating config update for file '" << file << "'.";
 
 	std::ifstream fp(file.CStr(), std::ifstream::binary);
 	if (!fp)
@@ -100,13 +100,13 @@ bool ApiListener::UpdateConfigDir(const ConfigDirInformation& oldConfigInfo, con
 	/* skip update if our configuration files are more recent */
 	if (oldTimestamp >= newTimestamp) {
 		Log(LogNotice, "ApiListener")
-		    << "Our configuration is more recent than the received configuration update."
-		    << " Ignoring configuration file update for path '" << configDir << "'. Current timestamp '"
-		    << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", oldTimestamp) << "' ("
-		    << std::fixed << std::setprecision(6) << oldTimestamp
-		    << ") >= received timestamp '"
-		    << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", newTimestamp) << "' ("
-		    << newTimestamp << ").";
+			<< "Our configuration is more recent than the received configuration update."
+			<< " Ignoring configuration file update for path '" << configDir << "'. Current timestamp '"
+			<< Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", oldTimestamp) << "' ("
+			<< std::fixed << std::setprecision(6) << oldTimestamp
+			<< ") >= received timestamp '"
+			<< Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", newTimestamp) << "' ("
+			<< newTimestamp << ").";
 		return false;
 	}
 
@@ -121,7 +121,7 @@ bool ApiListener::UpdateConfigDir(const ConfigDirInformation& oldConfigInfo, con
 
 				String path = configDir + "/" + kv.first;
 				Log(LogInformation, "ApiListener")
-				    << "Updating configuration file: " << path;
+					<< "Updating configuration file: " << path;
 
 				/* Sync string content only. */
 				String content = kv.second;
@@ -138,12 +138,12 @@ bool ApiListener::UpdateConfigDir(const ConfigDirInformation& oldConfigInfo, con
 	}
 
 	Log(LogInformation, "ApiListener")
-	    << "Applying configuration file update for path '" << configDir << "' (" << numBytes << " Bytes). Received timestamp '"
-	    << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", newTimestamp) << "' ("
-	    << std::fixed << std::setprecision(6) << newTimestamp
-	    << "), Current timestamp '"
-	    << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", oldTimestamp) << "' ("
-	    << oldTimestamp << ").";
+		<< "Applying configuration file update for path '" << configDir << "' (" << numBytes << " Bytes). Received timestamp '"
+		<< Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", newTimestamp) << "' ("
+		<< std::fixed << std::setprecision(6) << newTimestamp
+		<< "), Current timestamp '"
+		<< Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", oldTimestamp) << "' ("
+		<< oldTimestamp << ").";
 
 	ObjectLock xlock(oldConfig);
 	for (const Dictionary::Pair& kv : oldConfig) {
@@ -205,7 +205,7 @@ void ApiListener::SyncZoneDir(const Zone::Ptr& zone) const
 	String oldDir = Application::GetLocalStateDir() + "/lib/icinga2/api/zones/" + zone->GetName();
 
 	Log(LogInformation, "ApiListener")
-	    << "Copying " << sumUpdates << " zone configuration files for zone '" << zone->GetName() << "' to '" << oldDir << "'.";
+		<< "Copying " << sumUpdates << " zone configuration files for zone '" << zone->GetName() << "' to '" << oldDir << "'.";
 
 	Utility::MkDirP(oldDir, 0700);
 
@@ -252,8 +252,8 @@ void ApiListener::SendConfigUpdate(const JsonRpcConnection::Ptr& aclient)
 			continue;
 
 		Log(LogInformation, "ApiListener")
-		    << "Syncing configuration files for " << (zone->IsGlobal() ? "global " : "")
-		    << "zone '" << zone->GetName() << "' to endpoint '" << endpoint->GetName() << "'.";
+			<< "Syncing configuration files for " << (zone->IsGlobal() ? "global " : "")
+			<< "zone '" << zone->GetName() << "' to endpoint '" << endpoint->GetName() << "'.";
 
 		ConfigDirInformation config = LoadConfigDir(zonesDir + "/" + zone->GetName());
 		configUpdateV1->Set(zone->GetName(), config.UpdateV1);
@@ -286,13 +286,13 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 
 	if (!listener->GetAcceptConfig()) {
 		Log(LogWarning, "ApiListener")
-		    << "Ignoring config update. '" << listener->GetName() << "' does not accept config.";
+			<< "Ignoring config update. '" << listener->GetName() << "' does not accept config.";
 		return Empty;
 	}
 
 	Log(LogInformation, "ApiListener")
-	    << "Applying config update from endpoint '" << origin->FromClient->GetEndpoint()->GetName()
-	    << "' of zone '" << GetFromZoneName(origin->FromZone) << "'.";
+		<< "Applying config update from endpoint '" << origin->FromClient->GetEndpoint()->GetName()
+		<< "' of zone '" << GetFromZoneName(origin->FromZone) << "'.";
 
 	Dictionary::Ptr updateV1 = params->Get("update");
 	Dictionary::Ptr updateV2 = params->Get("update_v2");
@@ -305,13 +305,13 @@ Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const D
 
 		if (!zone) {
 			Log(LogWarning, "ApiListener")
-			    << "Ignoring config update for unknown zone '" << kv.first << "'.";
+				<< "Ignoring config update for unknown zone '" << kv.first << "'.";
 			continue;
 		}
 
 		if (ConfigCompiler::HasZoneConfigAuthority(kv.first)) {
 			Log(LogWarning, "ApiListener")
-			    << "Ignoring config update for zone '" << kv.first << "' because we have an authoritative version of the zone's config.";
+				<< "Ignoring config update for zone '" << kv.first << "' because we have an authoritative version of the zone's config.";
 			continue;
 		}
 

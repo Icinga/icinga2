@@ -70,7 +70,7 @@ static void IncludeNonLocalZone(const String& zonePath, const String& package, b
 	 */
 	if (ConfigCompiler::HasZoneConfigAuthority(zoneName) || Utility::PathExists(zonePath + "/.authoritative")) {
 		Log(LogNotice, "config")
-		    << "Ignoring non local config include for zone '" << zoneName << "': We already have an authoritative copy included.";
+			<< "Ignoring non local config include for zone '" << zoneName << "': We already have an authoritative copy included.";
 		return;
 	}
 
@@ -89,7 +89,7 @@ static void IncludePackage(const String& packagePath, bool& success)
 
 	if (Utility::PathExists(packagePath + "/include.conf")) {
 		std::unique_ptr<Expression> expr = ConfigCompiler::CompileFile(packagePath + "/include.conf",
-		    String(), packageName);
+			String(), packageName);
 
 		if (!ExecuteExpression(&*expr))
 			success = false;
@@ -160,8 +160,8 @@ bool DaemonUtility::ValidateConfigFiles(const std::vector<std::string>& configs,
 }
 
 bool DaemonUtility::LoadConfigFiles(const std::vector<std::string>& configs,
-    std::vector<ConfigItem::Ptr>& newItems,
-    const String& objectsFile, const String& varsfile)
+	std::vector<ConfigItem::Ptr>& newItems,
+	const String& objectsFile, const String& varsfile)
 {
 	ActivationScope ascope;
 

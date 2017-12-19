@@ -81,7 +81,7 @@ std::set<Logger::Ptr> Logger::GetLoggers(void)
  * @param message The message.
  */
 void icinga::IcingaLog(LogSeverity severity, const String& facility,
-    const String& message)
+	const String& message)
 {
 	LogEntry entry;
 	entry.Timestamp = Utility::GetTime();

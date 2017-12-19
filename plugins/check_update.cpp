@@ -32,7 +32,7 @@ namespace po = boost::program_options;
 
 static BOOL debug = FALSE;
 
-INT wmain(INT argc, WCHAR **argv) 
+INT wmain(INT argc, WCHAR **argv)
 {
 	printInfoStruct printInfo = { FALSE, FALSE, 0, FALSE, FALSE, FALSE };
 	po::variables_map vm;
@@ -48,7 +48,7 @@ INT wmain(INT argc, WCHAR **argv)
 	return printOutput(printInfo);
 }
 
-INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& printInfo) 
+INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& printInfo)
 {
 	WCHAR namePath[MAX_PATH];
 	GetModuleFileName(NULL, namePath, MAX_PATH);
@@ -166,7 +166,7 @@ INT printOutput(const printInfoStruct& printInfo)
 	return state;
 }
 
-INT check_update(printInfoStruct& printInfo) 
+INT check_update(printInfoStruct& printInfo)
 {
 	if (debug)
 		std::wcout << "Initializing COM library" << '\n';
@@ -183,11 +183,11 @@ INT check_update(printInfoStruct& printInfo)
 	pSession->CreateUpdateSearcher(&pSearcher);
 
 	/*
-	 IsInstalled = 0: All updates, including languagepacks and features
-	 BrowseOnly = 0: No features or languagepacks, security and unnamed
-	 BrowseOnly = 1: Nothing, broken
-	 RebootRequired = 1: Reboot required
-	*/
+	 * IsInstalled = 0: All updates, including languagepacks and features
+	 * BrowseOnly = 0: No features or languagepacks, security and unnamed
+	 * BrowseOnly = 1: Nothing, broken
+	 * RebootRequired = 1: Reboot required
+	 */
 
 	criteria = SysAllocString(CRITERIA);
 	// https://msdn.microsoft.com/en-us/library/windows/desktop/aa386526%28v=vs.85%29.aspx

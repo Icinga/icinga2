@@ -150,7 +150,7 @@ int Comment::GetNextCommentID(void)
 }
 
 String Comment::AddComment(const Checkable::Ptr& checkable, CommentType entryType, const String& author,
-    const String& text, bool persistent, double expireTime, const String& id, const MessageOrigin::Ptr& origin)
+	const String& text, bool persistent, double expireTime, const String& id, const MessageOrigin::Ptr& origin)
 {
 	String fullName;
 
@@ -200,7 +200,7 @@ String Comment::AddComment(const Checkable::Ptr& checkable, CommentType entryTyp
 		BOOST_THROW_EXCEPTION(std::runtime_error("Could not create comment."));
 
 	Log(LogNotice, "Comment")
-	    << "Added comment '" << comment->GetName() << "'.";
+		<< "Added comment '" << comment->GetName() << "'.";
 
 	return fullName;
 }
@@ -213,7 +213,7 @@ void Comment::RemoveComment(const String& id, const MessageOrigin::Ptr& origin)
 		return;
 
 	Log(LogNotice, "Comment")
-	    << "Removed comment '" << comment->GetName() << "' from object '" << comment->GetCheckable()->GetName() << "'.";
+		<< "Removed comment '" << comment->GetName() << "' from object '" << comment->GetCheckable()->GetName() << "'.";
 
 	Array::Ptr errors = new Array();
 

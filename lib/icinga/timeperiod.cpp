@@ -60,8 +60,8 @@ void TimePeriod::AddSegment(double begin, double end)
 	ASSERT(OwnsLock());
 
 	Log(LogDebug, "TimePeriod")
-	    << "Adding segment '" << Utility::FormatDateTime("%c", begin) << "' <-> '"
-	    << Utility::FormatDateTime("%c", end) << "' to TimePeriod '" << GetName() << "'";
+		<< "Adding segment '" << Utility::FormatDateTime("%c", begin) << "' <-> '"
+		<< Utility::FormatDateTime("%c", end) << "' to TimePeriod '" << GetName() << "'";
 
 	if (GetValidBegin().IsEmpty() || begin < GetValidBegin())
 		SetValidBegin(begin);
@@ -120,8 +120,8 @@ void TimePeriod::RemoveSegment(double begin, double end)
 	ASSERT(OwnsLock());
 
 	Log(LogDebug, "TimePeriod")
-	    << "Removing segment '" << Utility::FormatDateTime("%c", begin) << "' <-> '"
-	    << Utility::FormatDateTime("%c", end) << "' from TimePeriod '" << GetName() << "'";
+		<< "Removing segment '" << Utility::FormatDateTime("%c", begin) << "' <-> '"
+		<< Utility::FormatDateTime("%c", end) << "' from TimePeriod '" << GetName() << "'";
 
 	if (GetValidBegin().IsEmpty() || begin < GetValidBegin())
 		SetValidBegin(begin);
@@ -192,8 +192,8 @@ void TimePeriod::PurgeSegments(double end)
 	ASSERT(OwnsLock());
 
 	Log(LogDebug, "TimePeriod")
-	    << "Purging segments older than '" << Utility::FormatDateTime("%c", end)
-	    << "' from TimePeriod '" << GetName() << "'";
+		<< "Purging segments older than '" << Utility::FormatDateTime("%c", end)
+		<< "' from TimePeriod '" << GetName() << "'";
 
 	if (GetValidBegin().IsEmpty() || end < GetValidBegin())
 		return;
@@ -220,8 +220,8 @@ void TimePeriod::PurgeSegments(double end)
 void TimePeriod::Merge(const TimePeriod::Ptr& timeperiod, bool include)
 {
 	Log(LogDebug, "TimePeriod")
-	    << "Merge TimePeriod '" << GetName() << "' with '" << timeperiod->GetName() << "' "
-	    << "Method: " << (include ? "include" : "exclude");
+		<< "Merge TimePeriod '" << GetName() << "' with '" << timeperiod->GetName() << "' "
+		<< "Method: " << (include ? "include" : "exclude");
 
 	Array::Ptr segments = timeperiod->GetSegments();
 
@@ -363,18 +363,18 @@ void TimePeriod::Dump(void)
 	Array::Ptr segments = GetSegments();
 
 	Log(LogDebug, "TimePeriod")
-	    << "Dumping TimePeriod '" << GetName() << "'";
+		<< "Dumping TimePeriod '" << GetName() << "'";
 
 	Log(LogDebug, "TimePeriod")
-	    << "Valid from '" << Utility::FormatDateTime("%c", GetValidBegin())
-	    << "' until '" << Utility::FormatDateTime("%c", GetValidEnd());
+		<< "Valid from '" << Utility::FormatDateTime("%c", GetValidBegin())
+		<< "' until '" << Utility::FormatDateTime("%c", GetValidEnd());
 
 	if (segments) {
 		ObjectLock dlock(segments);
 		for (const Dictionary::Ptr& segment : segments) {
 			Log(LogDebug, "TimePeriod")
-			    << "Segment: " << Utility::FormatDateTime("%c", segment->Get("begin")) << " <-> "
-			    << Utility::FormatDateTime("%c", segment->Get("end"));
+				<< "Segment: " << Utility::FormatDateTime("%c", segment->Get("begin")) << " <-> "
+				<< Utility::FormatDateTime("%c", segment->Get("end"));
 		}
 	}
 

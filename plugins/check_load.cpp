@@ -34,7 +34,7 @@ namespace po = boost::program_options;
 static BOOL debug = FALSE;
 
 
-INT wmain(INT argc, WCHAR **argv) 
+INT wmain(INT argc, WCHAR **argv)
 {
 	printInfoStruct printInfo{ };
 	po::variables_map vm;
@@ -154,7 +154,7 @@ INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& p
 	return -1;
 }
 
-INT printOutput(printInfoStruct& printInfo) 
+INT printOutput(printInfoStruct& printInfo)
 {
 	if (debug)
 		std::wcout << L"Constructing output string" << '\n';
@@ -168,7 +168,7 @@ INT printOutput(printInfoStruct& printInfo)
 		state = CRITICAL;
 
 	std::wstringstream perf;
-	perf << L"% | load=" << printInfo.load << L"%;" << printInfo.warn.pString() << L";" 
+	perf << L"% | load=" << printInfo.load << L"%;" << printInfo.warn.pString() << L";"
 		<< printInfo.crit.pString() << L";0;100" << '\n';
 
 	switch (state) {
@@ -186,7 +186,7 @@ INT printOutput(printInfoStruct& printInfo)
 	return state;
 }
 
-INT check_load(printInfoStruct& printInfo) 
+INT check_load(printInfoStruct& printInfo)
 {
 	PDH_HQUERY phQuery = NULL;
 	PDH_HCOUNTER phCounter;

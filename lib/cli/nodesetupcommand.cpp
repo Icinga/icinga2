@@ -54,7 +54,7 @@ String NodeSetupCommand::GetShortDescription(void) const
 }
 
 void NodeSetupCommand::InitParameters(boost::program_options::options_description& visibleDesc,
-    boost::program_options::options_description& hiddenDesc) const
+	boost::program_options::options_description& hiddenDesc) const
 {
 	visibleDesc.add_options()
 		("zone", po::value<std::string>(), "The name of the local zone")
@@ -98,7 +98,7 @@ int NodeSetupCommand::Run(const boost::program_options::variables_map& vm, const
 {
 	if (!ap.empty()) {
 		Log(LogWarning, "cli")
-		    << "Ignoring parameters: " << boost::algorithm::join(ap, " ");
+			<< "Ignoring parameters: " << boost::algorithm::join(ap, " ");
 	}
 
 	if (vm.count("master"))
@@ -125,23 +125,23 @@ int NodeSetupCommand::SetupMaster(const boost::program_options::variables_map& v
 	if (vm.count("accept-commands"))
 		Log(LogWarning, "cli", "Master for Node setup: Ignoring --accept-commands");
 
-        String cn = Utility::GetFQDN();
+	String cn = Utility::GetFQDN();
 
-        if (vm.count("cn"))
-                cn = vm["cn"].as<std::string>();
+	if (vm.count("cn"))
+		cn = vm["cn"].as<std::string>();
 
 	/* check whether the user wants to generate a new certificate or not */
 	String existingPath = ApiListener::GetCertsDir() + "/" + cn + ".crt";
 
 	Log(LogInformation, "cli")
-	    << "Checking in existing certificates for common name '" << cn << "'...";
+		<< "Checking in existing certificates for common name '" << cn << "'...";
 
 	if (Utility::PathExists(existingPath)) {
 		Log(LogWarning, "cli")
-		    << "Certificate '" << existingPath << "' for CN '" << cn << "' already exists. Not generating new certificate.";
+			<< "Certificate '" << existingPath << "' for CN '" << cn << "' already exists. Not generating new certificate.";
 	} else {
 		Log(LogInformation, "cli")
-		    << "Certificates not yet generated. Running 'api setup' now.";
+			<< "Certificates not yet generated. Running 'api setup' now.";
 
 		ApiSetupUtility::SetupMasterCertificates(cn);
 	}
@@ -153,7 +153,7 @@ int NodeSetupCommand::SetupMaster(const boost::program_options::variables_map& v
 		ApiSetupUtility::SetupMasterEnableApi();
 	} else {
 		Log(LogInformation, "cli")
-		    << "'api' feature already enabled.\n";
+			<< "'api' feature already enabled.\n";
 	}
 
 	/* write zones.conf and update with zone + endpoint information */
@@ -171,9 +171,9 @@ int NodeSetupCommand::SetupMaster(const boost::program_options::variables_map& v
 	String tempApiPath = Utility::CreateTempFile(apipath + ".XXXXXX", 0644, fp);
 
 	fp << "/**\n"
-	    << " * The API listener is used for distributed monitoring setups.\n"
-	    << " */\n"
-	    << "object ApiListener \"api\" {\n";
+		<< " * The API listener is used for distributed monitoring setups.\n"
+		<< " */\n"
+		<< "object ApiListener \"api\" {\n";
 
 	if (vm.count("listen")) {
 		std::vector<String> tokens;
@@ -186,8 +186,8 @@ int NodeSetupCommand::SetupMaster(const boost::program_options::variables_map& v
 	}
 
 	fp << "\n"
-	    << "  ticket_salt = TicketSalt\n"
-	    << "}\n";
+		<< "  ticket_salt = TicketSalt\n"
+		<< "}\n";
 
 	fp.close();
 
@@ -197,9 +197,9 @@ int NodeSetupCommand::SetupMaster(const boost::program_options::variables_map& v
 
 	if (rename(tempApiPath.CStr(), apipath.CStr()) < 0) {
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("rename")
-		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(tempApiPath));
+			<< boost::errinfo_api_function("rename")
+			<< boost::errinfo_errno(errno)
+			<< boost::errinfo_file_name(tempApiPath));
 	}
 
 	/* update constants.conf with NodeName = CN + TicketSalt = random value */
@@ -216,7 +216,7 @@ int NodeSetupCommand::SetupMaster(const boost::program_options::variables_map& v
 	NodeUtility::UpdateConstant("TicketSalt", salt);
 
 	Log(LogInformation, "cli")
-	    << "Edit the api feature config file '" << apipath << "' and set a secure 'ticket_salt' attribute.";
+		<< "Edit the api feature config file '" << apipath << "' and set a secure 'ticket_salt' attribute.";
 
 	/* tell the user to reload icinga2 */
 
@@ -245,10 +245,10 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 
 	if (ticket.IsEmpty()) {
 		Log(LogInformation, "cli")
-		    << "Requesting certificate without a ticket.";
+			<< "Requesting certificate without a ticket.";
 	} else {
 		Log(LogInformation, "cli")
-		    << "Requesting certificate with ticket '" << ticket << "'.";
+			<< "Requesting certificate with ticket '" << ticket << "'.";
 	}
 
 	/* require master host information for auto-signing requests */
@@ -271,21 +271,21 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 		master_port = tokens[1];
 
 	Log(LogInformation, "cli")
-	    << "Verifying parent host connection information: host '" << master_host << "', port '" << master_port << "'.";
+		<< "Verifying parent host connection information: host '" << master_host << "', port '" << master_port << "'.";
 
 	/* trusted cert must be passed (retrieved by the user with 'pki save-cert' before) */
 
 	if (!vm.count("trustedcert")) {
 		Log(LogCritical, "cli")
-		    << "Please pass the trusted cert retrieved from the parent node (master or satellite)\n"
-		    << "(Hint: 'icinga2 pki save-cert --host <masterhost> --port <5665> --key local.key --cert local.crt --trustedcert master.crt').";
+			<< "Please pass the trusted cert retrieved from the parent node (master or satellite)\n"
+			<< "(Hint: 'icinga2 pki save-cert --host <masterhost> --port <5665> --key local.key --cert local.crt --trustedcert master.crt').";
 		return 1;
 	}
 
 	std::shared_ptr<X509> trustedcert = GetX509Certificate(vm["trustedcert"].as<std::string>());
 
 	Log(LogInformation, "cli")
-	    << "Verifying trusted certificate file '" << vm["trustedcert"].as<std::string>() << "'.";
+		<< "Verifying trusted certificate file '" << vm["trustedcert"].as<std::string>() << "'.";
 
 	/* retrieve CN and pass it (defaults to FQDN) */
 	String cn = Utility::GetFQDN();
@@ -294,7 +294,7 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 		cn = vm["cn"].as<std::string>();
 
 	Log(LogInformation, "cli")
-	    << "Using the following CN (defaults to FQDN): '" << cn << "'.";
+		<< "Using the following CN (defaults to FQDN): '" << cn << "'.";
 
 	/* pki request a signed certificate from the master */
 
@@ -306,7 +306,7 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 
 	if (!Utility::SetFileOwnership(pki_path, user, group)) {
 		Log(LogWarning, "cli")
-		    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << pki_path << "'. Verify it yourself!";
+			<< "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << pki_path << "'. Verify it yourself!";
 	}
 
 	String key = pki_path + "/" + cn + ".key";
@@ -326,28 +326,28 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 	/* fix permissions: root -> icinga daemon user */
 	if (!Utility::SetFileOwnership(key, user, group)) {
 		Log(LogWarning, "cli")
-		    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << key << "'. Verify it yourself!";
+			<< "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << key << "'. Verify it yourself!";
 	}
 
 	Log(LogInformation, "cli", "Requesting a signed certificate from the parent Icinga node.");
 
 	if (PkiUtility::RequestCertificate(master_host, master_port, key, cert, ca, trustedcert, ticket) > 0) {
 		Log(LogCritical, "cli")
-		    << "Failed to fetch signed certificate from parent Icinga node '"
-		    << master_host << ", "
-		    << master_port << "'. Please try again.";
+			<< "Failed to fetch signed certificate from parent Icinga node '"
+			<< master_host << ", "
+			<< master_port << "'. Please try again.";
 		return 1;
 	}
 
 	if (!Utility::SetFileOwnership(ca, user, group)) {
 		Log(LogWarning, "cli")
-		    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << ca << "'. Verify it yourself!";
+			<< "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << ca << "'. Verify it yourself!";
 	}
 
 	/* fix permissions (again) when updating the signed certificate */
 	if (!Utility::SetFileOwnership(cert, user, group)) {
 		Log(LogWarning, "cli")
-		    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << cert << "'. Verify it yourself!";
+			<< "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << cert << "'. Verify it yourself!";
 	}
 
 	/* disable the notifications feature */
@@ -368,9 +368,9 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 	String tempApiPath = Utility::CreateTempFile(apipath + ".XXXXXX", 0644, fp);
 
 	fp << "/**\n"
-	    << " * The API listener is used for distributed monitoring setups.\n"
-	    << " */\n"
-	    << "object ApiListener \"api\" {\n";
+		<< " * The API listener is used for distributed monitoring setups.\n"
+		<< " */\n"
+		<< "object ApiListener \"api\" {\n";
 
 	if (vm.count("listen")) {
 		std::vector<String> tokens;
@@ -395,7 +395,7 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 		fp << "  accept_commands = false\n";
 
 	fp << "\n"
-	    << "}\n";
+		<< "}\n";
 
 	fp.close();
 
@@ -405,9 +405,9 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 
 	if (rename(tempApiPath.CStr(), apipath.CStr()) < 0) {
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("rename")
-		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(tempApiPath));
+			<< boost::errinfo_api_function("rename")
+			<< boost::errinfo_errno(errno)
+			<< boost::errinfo_file_name(tempApiPath));
 	}
 
 	/* generate local zones.conf with zone+endpoint */
@@ -419,7 +419,7 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 	/* update constants.conf with NodeName = CN */
 	if (cn != Utility::GetFQDN()) {
 		Log(LogWarning, "cli")
-		    << "CN '" << cn << "' does not match the default FQDN '" << Utility::GetFQDN() << "'. Requires an update for the NodeName constant in constants.conf!";
+			<< "CN '" << cn << "' does not match the default FQDN '" << Utility::GetFQDN() << "'. Requires an update for the NodeName constant in constants.conf!";
 	}
 
 	NodeUtility::UpdateConstant("NodeName", cn);
@@ -432,9 +432,9 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 
 		if (!Utility::SetFileOwnership(tempTicketPath, user, group)) {
 			Log(LogWarning, "cli")
-			    << "Cannot set ownership for user '" << user
-			    << "' group '" << group
-			    << "' on file '" << tempTicketPath << "'. Verify it yourself!";
+				<< "Cannot set ownership for user '" << user
+				<< "' group '" << group
+				<< "' on file '" << tempTicketPath << "'. Verify it yourself!";
 		}
 
 		fp << ticket;
@@ -447,9 +447,9 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 
 		if (rename(tempTicketPath.CStr(), ticketPath.CStr()) < 0) {
 			BOOST_THROW_EXCEPTION(posix_error()
-			    << boost::errinfo_api_function("rename")
-			    << boost::errinfo_errno(errno)
-			    << boost::errinfo_file_name(tempTicketPath));
+				<< boost::errinfo_api_function("rename")
+				<< boost::errinfo_errno(errno)
+				<< boost::errinfo_file_name(tempTicketPath));
 		}
 	}
 

@@ -50,7 +50,7 @@ bool UserGroup::EvaluateObjectRule(const User::Ptr& user, const ConfigItem::Ptr&
 		return false;
 
 	Log(LogDebug, "UserGroup")
-	    << "Assigning membership for group '" << group_name << "' to user '" << user->GetName() << "'";
+		<< "Assigning membership for group '" << group_name << "' to user '" << user->GetName() << "'";
 
 	Array::Ptr groups = user->GetGroups();
 	groups->Add(group_name);
@@ -95,8 +95,8 @@ bool UserGroup::ResolveGroupMembership(const User::Ptr& user, bool add, int rsta
 
 	if (add && rstack > 20) {
 		Log(LogWarning, "UserGroup")
-		    << "Too many nested groups for group '" << GetName() << "': User '"
-		    << user->GetName() << "' membership assignment failed.";
+			<< "Too many nested groups for group '" << GetName() << "': User '"
+			<< user->GetName() << "' membership assignment failed.";
 
 		return false;
 	}

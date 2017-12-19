@@ -44,8 +44,8 @@ public:
 
 	template<typename F>
 	Function(const String& name, F function, const std::vector<String>& args = std::vector<String>(),
-	    bool side_effect_free = false, bool deprecated = false)
-	    : Function(name, WrapFunction(function), args, side_effect_free, deprecated)
+		bool side_effect_free = false, bool deprecated = false)
+		: Function(name, WrapFunction(function), args, side_effect_free, deprecated)
 	{ }
 
 	Value Invoke(const std::vector<Value>& arguments = std::vector<Value>());
@@ -69,7 +69,7 @@ private:
 	Callback m_Callback;
 
 	Function(const String& name, const Callback& function, const std::vector<String>& args,
-	    bool side_effect_free, bool deprecated);
+		bool side_effect_free, bool deprecated);
 };
 
 #define REGISTER_SCRIPTFUNCTION_NS(ns, name, callback, args) \

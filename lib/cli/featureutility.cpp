@@ -62,13 +62,13 @@ int FeatureUtility::EnableFeatures(const std::vector<std::string>& features)
 
 	if (!Utility::PathExists(features_available_dir) ) {
 		Log(LogCritical, "cli")
-		    << "Cannot parse available features. Path '" << features_available_dir << "' does not exist.";
+			<< "Cannot parse available features. Path '" << features_available_dir << "' does not exist.";
 		return 1;
 	}
 
 	if (!Utility::PathExists(features_enabled_dir) ) {
 		Log(LogCritical, "cli")
-		    << "Cannot enable features. Path '" << features_enabled_dir << "' does not exist.";
+			<< "Cannot enable features. Path '" << features_enabled_dir << "' does not exist.";
 		return 1;
 	}
 
@@ -79,7 +79,7 @@ int FeatureUtility::EnableFeatures(const std::vector<std::string>& features)
 
 		if (!Utility::PathExists(source) ) {
 			Log(LogCritical, "cli")
-			    << "Cannot enable feature '" << feature << "'. Source file '" << source + "' does not exist.";
+				<< "Cannot enable feature '" << feature << "'. Source file '" << source + "' does not exist.";
 			errors.push_back(feature);
 			continue;
 		}
@@ -88,20 +88,20 @@ int FeatureUtility::EnableFeatures(const std::vector<std::string>& features)
 
 		if (Utility::PathExists(target) ) {
 			Log(LogWarning, "cli")
-			    << "Feature '" << feature << "' already enabled.";
+				<< "Feature '" << feature << "' already enabled.";
 			continue;
 		}
 
 		std::cout << "Enabling feature " << ConsoleColorTag(Console_ForegroundMagenta | Console_Bold) << feature
-		    << ConsoleColorTag(Console_Normal) << ". Make sure to restart Icinga 2 for these changes to take effect.\n";
+			<< ConsoleColorTag(Console_Normal) << ". Make sure to restart Icinga 2 for these changes to take effect.\n";
 
 #ifndef _WIN32
 		String relativeSource = "../features-available/" + feature + ".conf";
 
 		if (symlink(relativeSource.CStr(), target.CStr()) < 0) {
 			Log(LogCritical, "cli")
-			    << "Cannot enable feature '" << feature << "'. Linking source '" << relativeSource << "' to target file '" << target
-			    << "' failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\".";
+				<< "Cannot enable feature '" << feature << "'. Linking source '" << relativeSource << "' to target file '" << target
+				<< "' failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\".";
 			errors.push_back(feature);
 			continue;
 		}
@@ -113,7 +113,7 @@ int FeatureUtility::EnableFeatures(const std::vector<std::string>& features)
 
 		if (fp.fail()) {
 			Log(LogCritical, "cli")
-			    << "Cannot enable feature '" << feature << "'. Failed to open file '" << target << "'.";
+				<< "Cannot enable feature '" << feature << "'. Failed to open file '" << target << "'.";
 			errors.push_back(feature);
 			continue;
 		}
@@ -122,7 +122,7 @@ int FeatureUtility::EnableFeatures(const std::vector<std::string>& features)
 
 	if (!errors.empty()) {
 		Log(LogCritical, "cli")
-		    << "Cannot enable feature(s): " << boost::algorithm::join(errors, " ");
+			<< "Cannot enable feature(s): " << boost::algorithm::join(errors, " ");
 		errors.clear();
 		return 1;
 	}
@@ -136,7 +136,7 @@ int FeatureUtility::DisableFeatures(const std::vector<std::string>& features)
 
 	if (!Utility::PathExists(features_enabled_dir) ) {
 		Log(LogCritical, "cli")
-		    << "Cannot disable features. Path '" << features_enabled_dir << "' does not exist.";
+			<< "Cannot disable features. Path '" << features_enabled_dir << "' does not exist.";
 		return 0;
 	}
 
@@ -147,25 +147,25 @@ int FeatureUtility::DisableFeatures(const std::vector<std::string>& features)
 
 		if (!Utility::PathExists(target) ) {
 			Log(LogWarning, "cli")
-			    << "Feature '" << feature << "' already disabled.";
+				<< "Feature '" << feature << "' already disabled.";
 			continue;
 		}
 
 		if (unlink(target.CStr()) < 0) {
 			Log(LogCritical, "cli")
-			    << "Cannot disable feature '" << feature << "'. Unlinking target file '" << target
-			    << "' failed with error code " << errno << ", \"" + Utility::FormatErrorNumber(errno) << "\".";
+				<< "Cannot disable feature '" << feature << "'. Unlinking target file '" << target
+				<< "' failed with error code " << errno << ", \"" + Utility::FormatErrorNumber(errno) << "\".";
 			errors.push_back(feature);
 			continue;
 		}
 
 		std::cout << "Disabling feature " << ConsoleColorTag(Console_ForegroundMagenta | Console_Bold) << feature
-		    << ConsoleColorTag(Console_Normal) << ". Make sure to restart Icinga 2 for these changes to take effect.\n";
+			<< ConsoleColorTag(Console_Normal) << ". Make sure to restart Icinga 2 for these changes to take effect.\n";
 	}
 
 	if (!errors.empty()) {
 		Log(LogCritical, "cli")
-		    << "Cannot disable feature(s): " << boost::algorithm::join(errors, " ");
+			<< "Cannot disable feature(s): " << boost::algorithm::join(errors, " ");
 		errors.clear();
 		return 1;
 	}
@@ -182,13 +182,13 @@ int FeatureUtility::ListFeatures(std::ostream& os)
 		return 1;
 
 	os << ConsoleColorTag(Console_ForegroundRed | Console_Bold) << "Disabled features: " << ConsoleColorTag(Console_Normal)
-	    << boost::algorithm::join(disabled_features, " ") << "\n";
+		<< boost::algorithm::join(disabled_features, " ") << "\n";
 
 	if (!FeatureUtility::GetFeatures(enabled_features, false))
 		return 1;
 
 	os << ConsoleColorTag(Console_ForegroundGreen | Console_Bold) << "Enabled features: " << ConsoleColorTag(Console_Normal)
-	    << boost::algorithm::join(enabled_features, " ") << "\n";
+		<< boost::algorithm::join(enabled_features, " ") << "\n";
 
 	return 0;
 }
@@ -254,6 +254,6 @@ void FeatureUtility::CollectFeatures(const String& feature_file, std::vector<Str
 	boost::algorithm::replace_all(feature, ".conf", "");
 
 	Log(LogDebug, "cli")
-	    << "Adding feature: " << feature;
+		<< "Adding feature: " << feature;
 	features.push_back(feature);
 }

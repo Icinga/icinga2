@@ -60,15 +60,15 @@ REGISTER_SCRIPTFUNCTION_NS(Internal, run_with_activation_context, &ConfigItem::R
  * @param debuginfo Debug information.
  */
 ConfigItem::ConfigItem(const Type::Ptr& type, const String& name,
-    bool abstract, const std::shared_ptr<Expression>& exprl,
-    const std::shared_ptr<Expression>& filter, bool defaultTmpl, bool ignoreOnError,
-    const DebugInfo& debuginfo, const Dictionary::Ptr& scope,
-    const String& zone, const String& package)
+	bool abstract, const std::shared_ptr<Expression>& exprl,
+	const std::shared_ptr<Expression>& filter, bool defaultTmpl, bool ignoreOnError,
+	const DebugInfo& debuginfo, const Dictionary::Ptr& scope,
+	const String& zone, const String& package)
 	: m_Type(type), m_Name(name), m_Abstract(abstract),
-	  m_Expression(exprl), m_Filter(filter),
-	  m_DefaultTmpl(defaultTmpl), m_IgnoreOnError(ignoreOnError),
-	  m_DebugInfo(debuginfo), m_Scope(scope), m_Zone(zone),
-	  m_Package(package)
+	m_Expression(exprl), m_Filter(filter),
+	m_DefaultTmpl(defaultTmpl), m_IgnoreOnError(ignoreOnError),
+	m_DebugInfo(debuginfo), m_Scope(scope), m_Zone(zone),
+	m_Package(package)
 {
 }
 
@@ -176,7 +176,7 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 {
 #ifdef I2_DEBUG
 	Log(LogDebug, "ConfigItem")
-	    << "Commit called for ConfigItem Type=" << GetType() << ", Name=" << GetName();
+		<< "Commit called for ConfigItem Type=" << GetType() << ", Name=" << GetName();
 #endif /* I2_DEBUG */
 
 	/* Make sure the type is valid. */
@@ -204,7 +204,7 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 	} catch (const std::exception& ex) {
 		if (m_IgnoreOnError) {
 			Log(LogNotice, "ConfigObject")
-			    << "Ignoring config object '" << m_Name << "' of type '" << m_Type->GetName() << "' due to errors: " << DiagnosticInformation(ex);
+				<< "Ignoring config object '" << m_Name << "' of type '" << m_Type->GetName() << "' due to errors: " << DiagnosticInformation(ex);
 
 			{
 				boost::mutex::scoped_lock lock(m_Mutex);
@@ -256,7 +256,7 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 	} catch (ValidationError& ex) {
 		if (m_IgnoreOnError) {
 			Log(LogNotice, "ConfigObject")
-			    << "Ignoring config object '" << m_Name << "' of type '" << m_Type->GetName() << "' due to errors: " << DiagnosticInformation(ex);
+				<< "Ignoring config object '" << m_Name << "' of type '" << m_Type->GetName() << "' due to errors: " << DiagnosticInformation(ex);
 
 			{
 				boost::mutex::scoped_lock lock(m_Mutex);
@@ -275,7 +275,7 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 	} catch (const std::exception& ex) {
 		if (m_IgnoreOnError) {
 			Log(LogNotice, "ConfigObject")
-			    << "Ignoring config object '" << m_Name << "' of type '" << m_Type->GetName() << "' due to errors: " << DiagnosticInformation(ex);
+				<< "Ignoring config object '" << m_Name << "' of type '" << m_Type->GetName() << "' due to errors: " << DiagnosticInformation(ex);
 
 			{
 				boost::mutex::scoped_lock lock(m_Mutex);
@@ -336,8 +336,8 @@ void ConfigItem::Register(void)
 		if (it != items.end()) {
 			std::ostringstream msgbuf;
 			msgbuf << "A configuration item of type '" << m_Type->GetName()
-			       << "' and name '" << GetName() << "' already exists ("
-			       << it->second->GetDebugInfo() << "), new declaration: " << GetDebugInfo();
+					<< "' and name '" << GetName() << "' already exists ("
+					<< it->second->GetDebugInfo() << "), new declaration: " << GetDebugInfo();
 			BOOST_THROW_EXCEPTION(ScriptError(msgbuf.str()));
 		}
 
@@ -481,7 +481,7 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 						} catch (const std::exception& ex) {
 							if (item->m_IgnoreOnError) {
 								Log(LogNotice, "ConfigObject")
-								    << "Ignoring config object '" << item->m_Name << "' of type '" << item->m_Type->GetName() << "' due to errors: " << DiagnosticInformation(ex);
+									<< "Ignoring config object '" << item->m_Name << "' of type '" << item->m_Type->GetName() << "' due to errors: " << DiagnosticInformation(ex);
 
 								item->Unregister();
 
@@ -565,7 +565,7 @@ bool ConfigItem::CommitItems(const ActivationContext::Ptr& context, WorkQueue& u
 
 		for (const ItemCountMap::value_type& kv : itemCounts) {
 			Log(LogInformation, "ConfigItem")
-			    << "Instantiated " << kv.second << " " << (kv.second != 1 ? kv.first->GetPluralName() : kv.first->GetName()) << ".";
+				<< "Instantiated " << kv.second << " " << (kv.second != 1 ? kv.first->GetPluralName() : kv.first->GetName()) << ".";
 		}
 	}
 
@@ -604,7 +604,7 @@ bool ConfigItem::ActivateItems(WorkQueue& upq, const std::vector<ConfigItem::Ptr
 
 #ifdef I2_DEBUG
 		Log(LogDebug, "ConfigItem")
-		    << "Setting 'active' to true for object '" << object->GetName() << "' of type '" << object->GetReflectionType()->GetName() << "'";
+			<< "Setting 'active' to true for object '" << object->GetName() << "' of type '" << object->GetReflectionType()->GetName() << "'";
 #endif /* I2_DEBUG */
 		upq.Enqueue(std::bind(&ConfigObject::PreActivate, object));
 	}
@@ -627,7 +627,7 @@ bool ConfigItem::ActivateItems(WorkQueue& upq, const std::vector<ConfigItem::Ptr
 
 #ifdef I2_DEBUG
 		Log(LogDebug, "ConfigItem")
-		    << "Activating object '" << object->GetName() << "' of type '" << object->GetReflectionType()->GetName() << "'";
+			<< "Activating object '" << object->GetName() << "' of type '" << object->GetReflectionType()->GetName() << "'";
 #endif /* I2_DEBUG */
 		upq.Enqueue(std::bind(&ConfigObject::Activate, object, runtimeCreated));
 	}
@@ -728,7 +728,7 @@ void ConfigItem::RemoveIgnoredItems(const String& allowedConfigPath)
 			continue;
 
 		Log(LogNotice, "ConfigItem")
-		    << "Removing ignored item path '" << path << "'.";
+			<< "Removing ignored item path '" << path << "'.";
 
 		(void) unlink(path.CStr());
 	}

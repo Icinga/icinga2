@@ -25,18 +25,18 @@ using namespace icinga;
 REGISTER_TYPE(NotificationCommand);
 
 Dictionary::Ptr NotificationCommand::Execute(const Notification::Ptr& notification,
-    const User::Ptr& user, const CheckResult::Ptr& cr, const NotificationType& type,
-    const String& author, const String& comment, const Dictionary::Ptr& resolvedMacros,
-    bool useResolvedMacros)
+	const User::Ptr& user, const CheckResult::Ptr& cr, const NotificationType& type,
+	const String& author, const String& comment, const Dictionary::Ptr& resolvedMacros,
+	bool useResolvedMacros)
 {
 	return GetExecute()->Invoke({
-	    notification,
-	    user,
-	    cr,
-	    type,
-	    author,
-	    comment,
-	    resolvedMacros,
-	    useResolvedMacros,
+		notification,
+		user,
+		cr,
+		type,
+		author,
+		comment,
+		resolvedMacros,
+		useResolvedMacros,
 	});
 }

@@ -63,8 +63,8 @@ bool ModifyObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 		objs = FilterUtility::GetFilterTargets(qd, params, user);
 	} catch (const std::exception& ex) {
 		HttpUtility::SendJsonError(response, 404,
-		    "No objects found.",
-		    HttpUtility::GetLastParameter(params, "verboseErrors") ? DiagnosticInformation(ex) : "");
+			"No objects found.",
+			HttpUtility::GetLastParameter(params, "verboseErrors") ? DiagnosticInformation(ex) : "");
 		return true;
 	}
 
@@ -72,7 +72,7 @@ bool ModifyObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 
 	if (attrsVal.GetReflectionType() != Dictionary::TypeInstance) {
 		HttpUtility::SendJsonError(response, 400,
-		    "Invalid type for 'attrs' attribute specified. Dictionary type is required.", Empty);
+			"Invalid type for 'attrs' attribute specified. Dictionary type is required.", Empty);
 		return true;
 	}
 

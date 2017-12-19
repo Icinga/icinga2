@@ -63,7 +63,7 @@ int NodeWizardCommand::GetMaxArguments(void) const
 }
 
 void NodeWizardCommand::InitParameters(boost::program_options::options_description& visibleDesc,
-    boost::program_options::options_description& hiddenDesc) const
+	boost::program_options::options_description& hiddenDesc) const
 {
 	visibleDesc.add_options()
 		("verbose", "increase log level");
@@ -75,7 +75,7 @@ void NodeWizardCommand::InitParameters(boost::program_options::options_descripti
  * @returns An exit status.
  */
 int NodeWizardCommand::Run(const boost::program_options::variables_map& vm,
-    const std::vector<std::string>& ap) const
+	const std::vector<std::string>& ap) const
 {
 	if (!vm.count("verbose"))
 		Logger::SetConsoleLogSeverity(LogCritical);
@@ -86,11 +86,11 @@ int NodeWizardCommand::Run(const boost::program_options::variables_map& vm,
 	 */
 
 	std::cout << ConsoleColorTag(Console_Bold | Console_ForegroundBlue)
-	    << "Welcome to the Icinga 2 Setup Wizard!\n"
-	    << "\n"
-	    << "We will guide you through all required configuration details.\n"
-	    << "\n"
-	    << ConsoleColorTag(Console_Normal);
+		<< "Welcome to the Icinga 2 Setup Wizard!\n"
+		<< "\n"
+		<< "We will guide you through all required configuration details.\n"
+		<< "\n"
+		<< ConsoleColorTag(Console_Normal);
 
 	/* 0. master or node setup?
 	 * 1. Ticket
@@ -110,9 +110,9 @@ int NodeWizardCommand::Run(const boost::program_options::variables_map& vm,
 	std::string answer;
 	/* master or satellite/client setup */
 	std::cout << ConsoleColorTag(Console_Bold)
-	    << "Please specify if this is a satellite/client setup "
-	    << "('n' installs a master setup)" << ConsoleColorTag(Console_Normal)
-	    << " [Y/n]: ";
+		<< "Please specify if this is a satellite/client setup "
+		<< "('n' installs a master setup)" << ConsoleColorTag(Console_Normal)
+		<< " [Y/n]: ";
 	std::getline (std::cin, answer);
 
 	boost::algorithm::to_lower(answer);
@@ -133,12 +133,12 @@ int NodeWizardCommand::Run(const boost::program_options::variables_map& vm,
 
 	std::cout << "\n";
 	std::cout << ConsoleColorTag(Console_Bold | Console_ForegroundGreen)
-	    << "Done.\n\n"
-	    << ConsoleColorTag(Console_Normal);
+		<< "Done.\n\n"
+		<< ConsoleColorTag(Console_Normal);
 
 	std::cout << ConsoleColorTag(Console_Bold | Console_ForegroundRed)
-	    << "Now restart your Icinga 2 daemon to finish the installation!\n"
-	    << ConsoleColorTag(Console_Normal);
+		<< "Now restart your Icinga 2 daemon to finish the installation!\n"
+		<< ConsoleColorTag(Console_Normal);
 
 	return 0;
 }
@@ -153,9 +153,9 @@ int NodeWizardCommand::ClientSetup(void) const
 
 	/* CN */
 	std::cout << ConsoleColorTag(Console_Bold)
-	    << "Please specify the common name (CN)"
-	    << ConsoleColorTag(Console_Normal)
-	    << " [" << Utility::GetFQDN() << "]: ";
+		<< "Please specify the common name (CN)"
+		<< ConsoleColorTag(Console_Normal)
+		<< " [" << Utility::GetFQDN() << "]: ";
 
 	std::getline(std::cin, answer);
 
@@ -170,15 +170,15 @@ int NodeWizardCommand::ClientSetup(void) const
 	String endpointBuffer;
 
 	std::cout << ConsoleColorTag(Console_Bold)
-	    << "\nPlease specify the parent endpoint(s) (master or satellite) where this node should connect to:"
-	    << ConsoleColorTag(Console_Normal) << "\n";
+		<< "\nPlease specify the parent endpoint(s) (master or satellite) where this node should connect to:"
+		<< ConsoleColorTag(Console_Normal) << "\n";
 	String parentEndpointName;
 
 wizard_endpoint_loop_start:
 
 	std::cout << ConsoleColorTag(Console_Bold)
-	    << "Master/Satellite Common Name" << ConsoleColorTag(Console_Normal)
-	    << " (CN from your master/satellite node): ";
+		<< "Master/Satellite Common Name" << ConsoleColorTag(Console_Normal)
+		<< " (CN from your master/satellite node): ";
 
 	std::getline(std::cin, answer);
 
@@ -191,8 +191,8 @@ wizard_endpoint_loop_start:
 	endpointBuffer = endpointBuffer.Trim();
 
 	std::cout << "\nDo you want to establish a connection to the parent node "
-	    << ConsoleColorTag(Console_Bold) << "from this node?"
-	    << ConsoleColorTag(Console_Normal) << " [Y/n]: ";
+		<< ConsoleColorTag(Console_Bold) << "from this node?"
+		<< ConsoleColorTag(Console_Normal) << " [Y/n]: ";
 
 	std::getline (std::cin, answer);
 	boost::algorithm::to_lower(answer);
@@ -205,16 +205,16 @@ wizard_endpoint_loop_start:
 
 		Log(LogWarning, "cli", "Node to master/satellite connection setup skipped");
 		std::cout << "Connection setup skipped. Please configure your parent node to\n"
-		    << "connect to this node by setting the 'host' attribute for the node Endpoint object.\n";
+			<< "connect to this node by setting the 'host' attribute for the node Endpoint object.\n";
 
 	} else  {
 		connectToParent = true;
 
 		std::cout << ConsoleColorTag(Console_Bold)
-		    << "Please specify the master/satellite connection information:"
-		    << ConsoleColorTag(Console_Normal) << "\n"
-		    << ConsoleColorTag(Console_Bold) << "Master/Satellite endpoint host"
-		    << ConsoleColorTag(Console_Normal) << " (IP address or FQDN): ";
+			<< "Please specify the master/satellite connection information:"
+			<< ConsoleColorTag(Console_Normal) << "\n"
+			<< ConsoleColorTag(Console_Bold) << "Master/Satellite endpoint host"
+			<< ConsoleColorTag(Console_Normal) << " (IP address or FQDN): ";
 
 		std::getline(std::cin, answer);
 
@@ -230,8 +230,8 @@ wizard_endpoint_loop_start:
 		parentEndpointName = tmp;
 
 		std::cout << ConsoleColorTag(Console_Bold)
-		     << "Master/Satellite endpoint port" << ConsoleColorTag(Console_Normal)
-		     << " [" << parentEndpointPort << "]: ";
+			<< "Master/Satellite endpoint port" << ConsoleColorTag(Console_Normal)
+			<< " [" << parentEndpointPort << "]: ";
 
 		std::getline(std::cin, answer);
 
@@ -244,7 +244,7 @@ wizard_endpoint_loop_start:
 	endpoints.push_back(endpointBuffer);
 
 	std::cout << ConsoleColorTag(Console_Bold) << "\nAdd more master/satellite endpoints?"
-	    << ConsoleColorTag(Console_Normal) << " [y/N]: ";
+		<< ConsoleColorTag(Console_Normal) << " [y/N]: ";
 	std::getline (std::cin, answer);
 
 	boost::algorithm::to_lower(answer);
@@ -275,9 +275,9 @@ wizard_endpoint_loop_start:
 
 	if (!Utility::SetFileOwnership(certsDir, user, group)) {
 		Log(LogWarning, "cli")
-		    << "Cannot set ownership for user '" << user
-		    << "' group '" << group
-		    << "' on file '" << certsDir << "'. Verify it yourself!";
+			<< "Cannot set ownership for user '" << user
+			<< "' group '" << group
+			<< "' on file '" << certsDir << "'. Verify it yourself!";
 	}
 
 	String nodeCert = certsDir + "/" + cn + ".crt";
@@ -290,17 +290,17 @@ wizard_endpoint_loop_start:
 
 	if (PkiUtility::NewCert(cn, nodeKey, Empty, nodeCert) > 0) {
 		Log(LogCritical, "cli")
-		    << "Failed to create new self-signed certificate for CN '"
-		    << cn << "'. Please try again.";
+			<< "Failed to create new self-signed certificate for CN '"
+			<< cn << "'. Please try again.";
 		return 1;
 	}
 
 	/* fix permissions: root -> icinga daemon user */
 	if (!Utility::SetFileOwnership(nodeKey, user, group)) {
 		Log(LogWarning, "cli")
-		    << "Cannot set ownership for user '" << user
-		    << "' group '" << group
-		    << "' on file '" << nodeKey << "'. Verify it yourself!";
+			<< "Cannot set ownership for user '" << user
+			<< "' group '" << group
+			<< "' on file '" << nodeKey << "'. Verify it yourself!";
 	}
 
 	std::shared_ptr<X509> trustedParentCert;
@@ -309,8 +309,8 @@ wizard_endpoint_loop_start:
 	if (connectToParent) {
 		//save-cert and store the master certificate somewhere
 		Log(LogInformation, "cli")
-		    << "Fetching public certificate from master ("
-		    << parentHost << ", " << parentPort << "):\n";
+			<< "Fetching public certificate from master ("
+			<< parentHost << ", " << parentPort << "):\n";
 
 		trustedParentCert = PkiUtility::FetchCert(parentHost, parentPort);
 		if (!trustedParentCert) {
@@ -319,9 +319,9 @@ wizard_endpoint_loop_start:
 		}
 
 		std::cout << ConsoleColorTag(Console_Bold) << "Parent certificate information:\n"
-		    << ConsoleColorTag(Console_Normal) << PkiUtility::GetCertificateInformation(trustedParentCert)
-		    << ConsoleColorTag(Console_Bold) << "\nIs this information correct?"
-		    << ConsoleColorTag(Console_Normal) << " [y/N]: ";
+			<< ConsoleColorTag(Console_Normal) << PkiUtility::GetCertificateInformation(trustedParentCert)
+			<< ConsoleColorTag(Console_Bold) << "\nIs this information correct?"
+			<< ConsoleColorTag(Console_Normal) << " [y/N]: ";
 
 		std::getline (std::cin, answer);
 		boost::algorithm::to_lower(answer);
@@ -340,19 +340,19 @@ wizard_ticket:
 	/* Check whether we can connect to the parent node and fetch the client and CA certificate. */
 	if (connectToParent) {
 		std::cout << ConsoleColorTag(Console_Bold)
-		    << "\nPlease specify the request ticket generated on your Icinga 2 master "
-		    << ConsoleColorTag(Console_Normal) << "(optional)"
-		    << ConsoleColorTag(Console_Bold) << "."
-		    << ConsoleColorTag(Console_Normal) << "\n"
-		    << " (Hint: # icinga2 pki ticket --cn '" << cn << "'): ";
+			<< "\nPlease specify the request ticket generated on your Icinga 2 master "
+			<< ConsoleColorTag(Console_Normal) << "(optional)"
+			<< ConsoleColorTag(Console_Bold) << "."
+			<< ConsoleColorTag(Console_Normal) << "\n"
+			<< " (Hint: # icinga2 pki ticket --cn '" << cn << "'): ";
 
 		std::getline(std::cin, answer);
 
 		if (answer.empty()) {
 			std::cout << ConsoleColorTag(Console_Bold) << "\n"
-			    << "No ticket was specified. Please approve the certificate signing request manually\n"
-			    << "on the master (see 'icinga2 ca list' and 'icinga2 ca sign --help' for details)."
-			    << ConsoleColorTag(Console_Normal) << "\n";
+				<< "No ticket was specified. Please approve the certificate signing request manually\n"
+				<< "on the master (see 'icinga2 ca list' and 'icinga2 ca sign --help' for details)."
+				<< ConsoleColorTag(Console_Normal) << "\n";
 		}
 
 		ticket = answer;
@@ -360,10 +360,10 @@ wizard_ticket:
 
 		if (ticket.IsEmpty()) {
 			Log(LogInformation, "cli")
-			    << "Requesting certificate without a ticket.";
+				<< "Requesting certificate without a ticket.";
 		} else {
 			Log(LogInformation, "cli")
-			    << "Requesting certificate with ticket '" << ticket << "'.";
+				<< "Requesting certificate with ticket '" << ticket << "'.";
 		}
 
 		if (Utility::PathExists(nodeCA))
@@ -372,20 +372,20 @@ wizard_ticket:
 			NodeUtility::CreateBackupFile(nodeCert);
 
 		if (PkiUtility::RequestCertificate(parentHost, parentPort, nodeKey,
-		    nodeCert, nodeCA, trustedParentCert, ticket) > 0) {
+			nodeCert, nodeCA, trustedParentCert, ticket) > 0) {
 			Log(LogCritical, "cli")
-			    << "Failed to fetch signed certificate from master '"
-			    << parentHost << ", "
-			    << parentPort << "'. Please try again.";
+				<< "Failed to fetch signed certificate from master '"
+				<< parentHost << ", "
+				<< parentPort << "'. Please try again.";
 			goto wizard_ticket;
 		}
 
 		/* fix permissions (again) when updating the signed certificate */
 		if (!Utility::SetFileOwnership(nodeCert, user, group)) {
 			Log(LogWarning, "cli")
-			    << "Cannot set ownership for user '" << user
-			    << "' group '" << group << "' on file '"
-			    << nodeCert << "'. Verify it yourself!";
+				<< "Cannot set ownership for user '" << user
+				<< "' group '" << group << "' on file '"
+				<< nodeCert << "'. Verify it yourself!";
 		}
 	} else {
 		/* We cannot retrieve the parent certificate.
@@ -394,28 +394,28 @@ wizard_ticket:
 		 */
 
 		std::cout <<  ConsoleColorTag(Console_Bold)
-		    << "\nNo connection to the parent node was specified.\n\n"
-		    << "Please copy the public CA certificate from your master/satellite\n"
-		    << "into '" << nodeCA << "' before starting Icinga 2.\n"
-		    << ConsoleColorTag(Console_Normal);
+			<< "\nNo connection to the parent node was specified.\n\n"
+			<< "Please copy the public CA certificate from your master/satellite\n"
+			<< "into '" << nodeCA << "' before starting Icinga 2.\n"
+			<< ConsoleColorTag(Console_Normal);
 
 		if (Utility::PathExists(nodeCA)) {
 			std::cout <<  ConsoleColorTag(Console_Bold)
-			    << "\nFound public CA certificate in '" << nodeCA << "'.\n"
-			    << "Please verify that it is the same as on your master/satellite.\n"
-			    << ConsoleColorTag(Console_Normal);
+				<< "\nFound public CA certificate in '" << nodeCA << "'.\n"
+				<< "Please verify that it is the same as on your master/satellite.\n"
+				<< ConsoleColorTag(Console_Normal);
 		}
 
 	}
 
 	/* apilistener config */
 	std::cout << ConsoleColorTag(Console_Bold)
-	    << "Please specify the API bind host/port "
-	    << ConsoleColorTag(Console_Normal) << "(optional)"
-	    << ConsoleColorTag(Console_Bold) << ":\n";
+		<< "Please specify the API bind host/port "
+		<< ConsoleColorTag(Console_Normal) << "(optional)"
+		<< ConsoleColorTag(Console_Bold) << ":\n";
 
 	std::cout << ConsoleColorTag(Console_Bold)
-	    << "Bind Host" << ConsoleColorTag(Console_Normal) << " []: ";
+		<< "Bind Host" << ConsoleColorTag(Console_Normal) << " []: ";
 
 	std::getline(std::cin, answer);
 
@@ -423,7 +423,7 @@ wizard_ticket:
 	bindHost = bindHost.Trim();
 
 	std::cout << ConsoleColorTag(Console_Bold)
-	    << "Bind Port" << ConsoleColorTag(Console_Normal) << " []: ";
+		<< "Bind Port" << ConsoleColorTag(Console_Normal) << " []: ";
 
 	std::getline(std::cin, answer);
 
@@ -431,8 +431,8 @@ wizard_ticket:
 	bindPort = bindPort.Trim();
 
 	std::cout << ConsoleColorTag(Console_Bold) << "\n"
-	    << "Accept config from parent node?" << ConsoleColorTag(Console_Normal)
-	    << " [y/N]: ";
+		<< "Accept config from parent node?" << ConsoleColorTag(Console_Normal)
+		<< " [y/N]: ";
 	std::getline(std::cin, answer);
 	boost::algorithm::to_lower(answer);
 	choice = answer;
@@ -440,8 +440,8 @@ wizard_ticket:
 	String acceptConfig = choice.Contains("y") ? "true" : "false";
 
 	std::cout << ConsoleColorTag(Console_Bold)
-	    << "Accept commands from parent node?" << ConsoleColorTag(Console_Normal)
-	    << " [y/N]: ";
+		<< "Accept commands from parent node?" << ConsoleColorTag(Console_Normal)
+		<< " [y/N]: ";
 	std::getline(std::cin, answer);
 	boost::algorithm::to_lower(answer);
 	choice = answer;
@@ -451,8 +451,8 @@ wizard_ticket:
 	std::cout << "\n";
 
 	std::cout << ConsoleColorTag(Console_Bold | Console_ForegroundGreen)
-	    << "Reconfiguring Icinga...\n"
-	    << ConsoleColorTag(Console_Normal);
+		<< "Reconfiguring Icinga...\n"
+		<< ConsoleColorTag(Console_Normal);
 
 	/* disable the notifications feature on client nodes */
 	Log(LogInformation, "cli", "Disabling the Notification feature.");
@@ -470,11 +470,11 @@ wizard_ticket:
 	String tempApiConfPath = Utility::CreateTempFile(apiConfPath + ".XXXXXX", 0644, fp);
 
 	fp << "/**\n"
-	    << " * The API listener is used for distributed monitoring setups.\n"
-	    << " */\n"
-	    << "object ApiListener \"api\" {\n"
-	    << "  accept_config = " << acceptConfig << "\n"
-	    << "  accept_commands = " << acceptCommands << "\n";
+		<< " * The API listener is used for distributed monitoring setups.\n"
+		<< " */\n"
+		<< "object ApiListener \"api\" {\n"
+		<< "  accept_config = " << acceptConfig << "\n"
+		<< "  accept_commands = " << acceptCommands << "\n";
 
 	if (!bindHost.IsEmpty())
 		fp << "  bind_host = \"" << bindHost << "\"\n";
@@ -491,9 +491,9 @@ wizard_ticket:
 
 	if (rename(tempApiConfPath.CStr(), apiConfPath.CStr()) < 0) {
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("rename")
-		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(tempApiConfPath));
+			<< boost::errinfo_api_function("rename")
+			<< boost::errinfo_errno(errno)
+			<< boost::errinfo_file_name(tempApiConfPath));
 	}
 
 	/* apilistener config */
@@ -503,8 +503,8 @@ wizard_ticket:
 
 	if (cn != Utility::GetFQDN()) {
 		Log(LogWarning, "cli")
-		    << "CN '" << cn << "' does not match the default FQDN '"
-		    << Utility::GetFQDN() << "'. Requires update for NodeName constant in constants.conf!";
+			<< "CN '" << cn << "' does not match the default FQDN '"
+			<< Utility::GetFQDN() << "'. Requires update for NodeName constant in constants.conf!";
 	}
 
 	NodeUtility::UpdateConstant("NodeName", cn);
@@ -517,9 +517,9 @@ wizard_ticket:
 
 		if (!Utility::SetFileOwnership(tempTicketPath, user, group)) {
 			Log(LogWarning, "cli")
-			    << "Cannot set ownership for user '" << user
-			    << "' group '" << group
-			    << "' on file '" << tempTicketPath << "'. Verify it yourself!";
+				<< "Cannot set ownership for user '" << user
+				<< "' group '" << group
+				<< "' on file '" << tempTicketPath << "'. Verify it yourself!";
 		}
 
 		fp << ticket;
@@ -532,9 +532,9 @@ wizard_ticket:
 
 		if (rename(tempTicketPath.CStr(), ticketPath.CStr()) < 0) {
 			BOOST_THROW_EXCEPTION(posix_error()
-			    << boost::errinfo_api_function("rename")
-			    << boost::errinfo_errno(errno)
-			    << boost::errinfo_file_name(tempTicketPath));
+				<< boost::errinfo_api_function("rename")
+				<< boost::errinfo_errno(errno)
+				<< boost::errinfo_file_name(tempTicketPath));
 		}
 	}
 
@@ -550,8 +550,8 @@ int NodeWizardCommand::MasterSetup(void) const
 
 	/* CN */
 	std::cout << ConsoleColorTag(Console_Bold)
-	    << "Please specify the common name" << ConsoleColorTag(Console_Normal)
-	    << " (CN) [" << Utility::GetFQDN() << "]: ";
+		<< "Please specify the common name" << ConsoleColorTag(Console_Normal)
+		<< " (CN) [" << Utility::GetFQDN() << "]: ";
 
 	std::getline(std::cin, answer);
 
@@ -562,26 +562,26 @@ int NodeWizardCommand::MasterSetup(void) const
 	cn = cn.Trim();
 
 	std::cout << ConsoleColorTag(Console_Bold | Console_ForegroundGreen)
-	    << "Reconfiguring Icinga...\n"
-	    << ConsoleColorTag(Console_Normal);
+		<< "Reconfiguring Icinga...\n"
+		<< ConsoleColorTag(Console_Normal);
 
 	/* check whether the user wants to generate a new certificate or not */
 	String existing_path = ApiListener::GetCertsDir() + "/" + cn + ".crt";
 
 	std::cout << ConsoleColorTag(Console_Normal)
-	    << "Checking for existing certificates for common name '" << cn << "'...\n";
+		<< "Checking for existing certificates for common name '" << cn << "'...\n";
 
 	if (Utility::PathExists(existing_path)) {
 		std::cout << "Certificate '" << existing_path << "' for CN '"
-		    << cn << "' already existing. Skipping certificate generation.\n";
+			<< cn << "' already existing. Skipping certificate generation.\n";
 	} else {
 		std::cout << "Certificates not yet generated. Running 'api setup' now.\n";
 		ApiSetupUtility::SetupMasterCertificates(cn);
 	}
 
 	std::cout << ConsoleColorTag(Console_Bold)
-	    << "Generating master configuration for Icinga 2.\n"
-	    << ConsoleColorTag(Console_Normal);
+		<< "Generating master configuration for Icinga 2.\n"
+		<< ConsoleColorTag(Console_Normal);
 	ApiSetupUtility::SetupMasterApiUser();
 
 	if (!FeatureUtility::CheckFeatureEnabled("api"))
@@ -593,12 +593,12 @@ int NodeWizardCommand::MasterSetup(void) const
 
 	/* apilistener config */
 	std::cout << ConsoleColorTag(Console_Bold)
-	    << "Please specify the API bind host/port "
-	    << ConsoleColorTag(Console_Normal) << "(optional)"
-	    << ConsoleColorTag(Console_Bold) << ":\n";
+		<< "Please specify the API bind host/port "
+		<< ConsoleColorTag(Console_Normal) << "(optional)"
+		<< ConsoleColorTag(Console_Bold) << ":\n";
 
 	std::cout << ConsoleColorTag(Console_Bold)
-	    << "Bind Host" << ConsoleColorTag(Console_Normal) << " []: ";
+		<< "Bind Host" << ConsoleColorTag(Console_Normal) << " []: ";
 
 	std::getline(std::cin, answer);
 
@@ -606,7 +606,7 @@ int NodeWizardCommand::MasterSetup(void) const
 	bindHost = bindHost.Trim();
 
 	std::cout << ConsoleColorTag(Console_Bold)
-	    << "Bind Port" << ConsoleColorTag(Console_Normal) << " []: ";
+		<< "Bind Port" << ConsoleColorTag(Console_Normal) << " []: ";
 
 	std::getline(std::cin, answer);
 
@@ -621,9 +621,9 @@ int NodeWizardCommand::MasterSetup(void) const
 	String tempApiConfPath = Utility::CreateTempFile(apiConfPath + ".XXXXXX", 0644, fp);
 
 	fp << "/**\n"
-	    << " * The API listener is used for distributed monitoring setups.\n"
-	    << " */\n"
-	    << "object ApiListener \"api\" {\n";
+		<< " * The API listener is used for distributed monitoring setups.\n"
+		<< " */\n"
+		<< "object ApiListener \"api\" {\n";
 
 	if (!bindHost.IsEmpty())
 		fp << "  bind_host = \"" << bindHost << "\"\n";
@@ -631,8 +631,8 @@ int NodeWizardCommand::MasterSetup(void) const
 		fp << "  bind_port = " << bindPort << "\n";
 
 	fp << "\n"
-	    << "  ticket_salt = TicketSalt\n"
-	    << "}\n";
+		<< "  ticket_salt = TicketSalt\n"
+		<< "}\n";
 
 	fp.close();
 
@@ -642,16 +642,16 @@ int NodeWizardCommand::MasterSetup(void) const
 
 	if (rename(tempApiConfPath.CStr(), apiConfPath.CStr()) < 0) {
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("rename")
-		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(tempApiConfPath));
+			<< boost::errinfo_api_function("rename")
+			<< boost::errinfo_errno(errno)
+			<< boost::errinfo_file_name(tempApiConfPath));
 	}
 
 	/* update constants.conf with NodeName = CN + TicketSalt = random value */
 	if (cn != Utility::GetFQDN()) {
 		Log(LogWarning, "cli")
-		    << "CN '" << cn << "' does not match the default FQDN '"
-		    << Utility::GetFQDN() << "'. Requires an update for the NodeName constant in constants.conf!";
+			<< "CN '" << cn << "' does not match the default FQDN '"
+			<< Utility::GetFQDN() << "'. Requires an update for the NodeName constant in constants.conf!";
 	}
 
 	NodeUtility::UpdateConstant("NodeName", cn);

@@ -46,7 +46,7 @@ int main(int argc, char **argv)
 	}
 
 	fprintf(outfp, "/* This file has been automatically generated\n"
-	    "   from the input file \"%s\". */\n\n", argv[1]);
+		"   from the input file \"%s\". */\n\n", argv[1]);
 	fputs("#include \"config/configfragment.hpp\"\n\nnamespace {\n\nconst char *fragment = R\"CONFIG_FRAGMENT(", outfp);
 
 	while (!feof(infp)) {

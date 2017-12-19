@@ -73,7 +73,7 @@ ExpressionResult Expression::Evaluate(ScriptFrame& frame, DebugHint *dhint) cons
 		frame.DecreaseStackDepth();
 
 		BOOST_THROW_EXCEPTION(ScriptError("Error while evaluating expression: " + String(ex.what()), GetDebugInfo())
-		    << boost::errinfo_nested_exception(boost::current_exception()));
+			<< boost::errinfo_nested_exception(boost::current_exception()));
 	}
 
 	frame.DecreaseStackDepth();
@@ -796,7 +796,7 @@ ExpressionResult ApplyExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhin
 	CHECK_RESULT(nameres);
 
 	return VMOps::NewApply(frame, m_Type, m_Target, nameres.GetValue(), m_Filter,
-	    m_Package, m_FKVar, m_FVVar, m_FTerm, m_ClosedVars, m_IgnoreOnError, m_Expression, m_DebugInfo);
+		m_Package, m_FKVar, m_FVVar, m_FTerm, m_ClosedVars, m_IgnoreOnError, m_Expression, m_DebugInfo);
 }
 
 ExpressionResult ObjectExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
@@ -818,7 +818,7 @@ ExpressionResult ObjectExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhi
 	}
 
 	return VMOps::NewObject(frame, m_Abstract, type, name, m_Filter, m_Zone,
-	    m_Package, m_DefaultTmpl, m_IgnoreOnError, m_ClosedVars, m_Expression, m_DebugInfo);
+		m_Package, m_DefaultTmpl, m_IgnoreOnError, m_ClosedVars, m_Expression, m_DebugInfo);
 }
 
 ExpressionResult ForExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const

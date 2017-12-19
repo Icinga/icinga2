@@ -51,7 +51,7 @@ public:
 	{ }
 
 	Array(std::initializer_list<Value> init)
-	    : m_Data(init)
+		: m_Data(init)
 	{ }
 
 	~Array(void)

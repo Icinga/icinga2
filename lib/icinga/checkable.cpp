@@ -65,7 +65,7 @@ void Checkable::OnAllConfigLoaded(void)
 
 		if (checkableZone && cmdZone != checkableZone && cmdZone->GetParent() != checkableZone) {
 			BOOST_THROW_EXCEPTION(ValidationError(this, { "command_endpoint" },
-			    "Command endpoint must be in zone '" + checkableZone->GetName() + "' or in a direct child zone thereof."));
+				"Command endpoint must be in zone '" + checkableZone->GetName() + "' or in a direct child zone thereof."));
 		}
 	}
 }

@@ -23,7 +23,7 @@
 using namespace icinga;
 
 StdAggregator::StdAggregator(const String& attr)
-    : m_StdAttr(attr)
+	: m_StdAttr(attr)
 { }
 
 StdAggregatorState *StdAggregator::EnsureState(AggregatorState **state)

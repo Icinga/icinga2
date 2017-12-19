@@ -37,15 +37,15 @@ class I2_METHODS_API PluginNotificationTask
 {
 public:
 	static void ScriptFunc(const Notification::Ptr& notification,
-	    const User::Ptr& user, const CheckResult::Ptr& cr, int itype,
-	    const String& author, const String& comment,
-	    const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros);
+		const User::Ptr& user, const CheckResult::Ptr& cr, int itype,
+		const String& author, const String& comment,
+		const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros);
 
 private:
 	PluginNotificationTask(void);
 
 	static void ProcessFinishedHandler(const Checkable::Ptr& checkable,
-	    const Value& commandLine, const ProcessResult& pr);
+		const Value& commandLine, const ProcessResult& pr);
 };
 
 }

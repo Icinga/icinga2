@@ -368,8 +368,8 @@ DbObject::Ptr DbObject::GetOrCreateByObject(const ConfigObject::Ptr& object)
 		name2 = service->GetShortName();
 	} else {
 		if (object->GetReflectionType() == CheckCommand::TypeInstance ||
-		    object->GetReflectionType() == EventCommand::TypeInstance ||
-		    object->GetReflectionType() == NotificationCommand::TypeInstance) {
+			object->GetReflectionType() == EventCommand::TypeInstance ||
+			object->GetReflectionType() == NotificationCommand::TypeInstance) {
 			Command::Ptr command = dynamic_pointer_cast<Command>(object);
 			name1 = CompatUtility::GetCommandName(command);
 		}

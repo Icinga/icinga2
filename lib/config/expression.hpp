@@ -41,7 +41,7 @@ public:
 	{ }
 
 	DebugHint(Dictionary::Ptr&& hints)
-	    : m_Hints(std::move(hints))
+		: m_Hints(std::move(hints))
 	{ }
 
 	void AddMessage(const String& message, const DebugInfo& di)
@@ -155,7 +155,7 @@ struct ExpressionResult
 public:
 	template<typename T>
 	ExpressionResult(const T& value, ExpressionResultCode code = ResultOK)
-	    : m_Value(value), m_Code(code)
+		: m_Value(value), m_Code(code)
 	{ }
 
 	operator const Value&(void) const
@@ -769,7 +769,7 @@ class I2_CONFIG_API FunctionExpression : public DebuggableExpression
 {
 public:
 	FunctionExpression(const String& name, const std::vector<String>& args,
-	    std::map<String, std::unique_ptr<Expression> >&& closedVars, std::unique_ptr<Expression> expression, const DebugInfo& debugInfo = DebugInfo())
+		std::map<String, std::unique_ptr<Expression> >&& closedVars, std::unique_ptr<Expression> expression, const DebugInfo& debugInfo = DebugInfo())
 		: DebuggableExpression(debugInfo), m_Name(name), m_Args(args), m_ClosedVars(std::move(closedVars)), m_Expression(std::move(expression))
 	{ }
 
@@ -787,13 +787,13 @@ class I2_CONFIG_API ApplyExpression : public DebuggableExpression
 {
 public:
 	ApplyExpression(const String& type, const String& target, std::unique_ptr<Expression> name,
-	    std::unique_ptr<Expression> filter, const String& package, const String& fkvar, const String& fvvar,
-	    std::unique_ptr<Expression> fterm, std::map<String, std::unique_ptr<Expression> >&& closedVars, bool ignoreOnError,
-	    std::unique_ptr<Expression> expression, const DebugInfo& debugInfo = DebugInfo())
+		std::unique_ptr<Expression> filter, const String& package, const String& fkvar, const String& fvvar,
+		std::unique_ptr<Expression> fterm, std::map<String, std::unique_ptr<Expression> >&& closedVars, bool ignoreOnError,
+		std::unique_ptr<Expression> expression, const DebugInfo& debugInfo = DebugInfo())
 		: DebuggableExpression(debugInfo), m_Type(type), m_Target(target),
-		    m_Name(std::move(name)), m_Filter(std::move(filter)), m_Package(package), m_FKVar(fkvar), m_FVVar(fvvar),
-		    m_FTerm(std::move(fterm)), m_IgnoreOnError(ignoreOnError), m_ClosedVars(std::move(closedVars)),
-		    m_Expression(std::move(expression))
+			m_Name(std::move(name)), m_Filter(std::move(filter)), m_Package(package), m_FKVar(fkvar), m_FVVar(fvvar),
+			m_FTerm(std::move(fterm)), m_IgnoreOnError(ignoreOnError), m_ClosedVars(std::move(closedVars)),
+			m_Expression(std::move(expression))
 	{ }
 
 protected:
@@ -817,11 +817,11 @@ class I2_CONFIG_API ObjectExpression : public DebuggableExpression
 {
 public:
 	ObjectExpression(bool abstract, std::unique_ptr<Expression> type, std::unique_ptr<Expression> name, std::unique_ptr<Expression> filter,
-	    const String& zone, const String& package, std::map<String, std::unique_ptr<Expression> >&& closedVars,
-	    bool defaultTmpl, bool ignoreOnError, std::unique_ptr<Expression> expression, const DebugInfo& debugInfo = DebugInfo())
+		const String& zone, const String& package, std::map<String, std::unique_ptr<Expression> >&& closedVars,
+		bool defaultTmpl, bool ignoreOnError, std::unique_ptr<Expression> expression, const DebugInfo& debugInfo = DebugInfo())
 		: DebuggableExpression(debugInfo), m_Abstract(abstract), m_Type(std::move(type)),
-		  m_Name(std::move(name)), m_Filter(std::move(filter)), m_Zone(zone), m_Package(package), m_DefaultTmpl(defaultTmpl),
-		  m_IgnoreOnError(ignoreOnError), m_ClosedVars(std::move(closedVars)), m_Expression(std::move(expression))
+		m_Name(std::move(name)), m_Filter(std::move(filter)), m_Zone(zone), m_Package(package), m_DefaultTmpl(defaultTmpl),
+		m_IgnoreOnError(ignoreOnError), m_ClosedVars(std::move(closedVars)), m_Expression(std::move(expression))
 	{ }
 
 protected:
@@ -879,9 +879,9 @@ class I2_CONFIG_API IncludeExpression : public DebuggableExpression
 {
 public:
 	IncludeExpression(const String& relativeBase, std::unique_ptr<Expression> path, std::unique_ptr<Expression> pattern, std::unique_ptr<Expression> name,
-	    IncludeType type, bool searchIncludes, const String& zone, const String& package, const DebugInfo& debugInfo = DebugInfo())
+		IncludeType type, bool searchIncludes, const String& zone, const String& package, const DebugInfo& debugInfo = DebugInfo())
 		: DebuggableExpression(debugInfo), m_RelativeBase(relativeBase), m_Path(std::move(path)), m_Pattern(std::move(pattern)),
-		  m_Name(std::move(name)), m_Type(type), m_SearchIncludes(searchIncludes), m_Zone(zone), m_Package(package)
+		m_Name(std::move(name)), m_Type(type), m_SearchIncludes(searchIncludes), m_Zone(zone), m_Package(package)
 	{ }
 
 protected:
@@ -902,7 +902,7 @@ class I2_CONFIG_API BreakpointExpression : public DebuggableExpression
 {
 public:
 	BreakpointExpression(const DebugInfo& debugInfo = DebugInfo())
-	    : DebuggableExpression(debugInfo)
+		: DebuggableExpression(debugInfo)
 	{ }
 
 protected:

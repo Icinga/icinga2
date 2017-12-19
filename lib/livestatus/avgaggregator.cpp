@@ -22,7 +22,7 @@
 using namespace icinga;
 
 AvgAggregator::AvgAggregator(const String& attr)
-    : m_AvgAttr(attr)
+	: m_AvgAttr(attr)
 { }
 
 AvgAggregatorState *AvgAggregator::EnsureState(AggregatorState **state)

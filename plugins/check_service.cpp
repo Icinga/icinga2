@@ -134,7 +134,7 @@ INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& p
 	return -1;
 }
 
-INT printOutput(CONST printInfoStruct& printInfo) 
+INT printOutput(CONST printInfoStruct& printInfo)
 {
 	if (debug)
 		std::wcout << L"Constructing output string" << '\n';
@@ -147,7 +147,7 @@ INT printOutput(CONST printInfoStruct& printInfo)
 		return 3;
 	}
 
-	if (printInfo.ServiceState != 0x04) 
+	if (printInfo.ServiceState != 0x04)
 		printInfo.warn ? state = WARNING : state = CRITICAL;
 
 	switch (state) {
@@ -249,7 +249,7 @@ die:
 	return L"";
 }
 
-DWORD ServiceStatus(CONST printInfoStruct& printInfo) 
+DWORD ServiceStatus(CONST printInfoStruct& printInfo)
 {
 	SC_HANDLE hSCM;
 	SC_HANDLE hService;

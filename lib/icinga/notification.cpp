@@ -264,7 +264,7 @@ String Notification::NotificationTypeToString(NotificationType type)
 void Notification::BeginExecuteNotification(NotificationType type, const CheckResult::Ptr& cr, bool force, bool reminder, const String& author, const String& text)
 {
 	Log(LogNotice, "Notification")
-	    << "Attempting to send " << (reminder ? "reminder " : " ") << "notifications for notification object '" << GetName() << "'.";
+		<< "Attempting to send " << (reminder ? "reminder " : " ") << "notifications for notification object '" << GetName() << "'.";
 
 	Checkable::Ptr checkable = GetCheckable();
 
@@ -273,8 +273,8 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 
 		if (tp && !tp->IsInside(Utility::GetTime())) {
 			Log(LogNotice, "Notification")
-			    << "Not sending " << (reminder ? "reminder " : " ") << "notifications for notification object '" << GetName()
-			    << "': not in timeperiod '" << tp->GetName() << "'";
+				<< "Not sending " << (reminder ? "reminder " : " ") << "notifications for notification object '" << GetName()
+				<< "': not in timeperiod '" << tp->GetName() << "'";
 			return;
 		}
 
@@ -287,8 +287,8 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 
 			if (timesBegin != Empty && timesBegin >= 0 && now < checkable->GetLastHardStateChange() + timesBegin) {
 				Log(LogNotice, "Notification")
-				    << "Not sending " << (reminder ? "reminder " : " ") << "notifications for notification object '" << GetName()
-				    << "': before specified begin time (" << Utility::FormatDuration(timesBegin) << ")";
+					<< "Not sending " << (reminder ? "reminder " : " ") << "notifications for notification object '" << GetName()
+					<< "': before specified begin time (" << Utility::FormatDuration(timesBegin) << ")";
 
 				/* we need to adjust the next notification time
 				 * to now + begin delaying the first notification
@@ -302,8 +302,8 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 
 			if (timesEnd != Empty && timesEnd >= 0 && now > checkable->GetLastHardStateChange() + timesEnd) {
 				Log(LogNotice, "Notification")
-				    << "Not sending " << (reminder ? "reminder " : " ") << "notifications for notification object '" << GetName()
-				    << "': after specified end time (" << Utility::FormatDuration(timesEnd) << ")";
+					<< "Not sending " << (reminder ? "reminder " : " ") << "notifications for notification object '" << GetName()
+					<< "': after specified end time (" << Utility::FormatDuration(timesEnd) << ")";
 				return;
 			}
 		}
@@ -311,15 +311,15 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 		unsigned long ftype = type;
 
 		Log(LogDebug, "Notification")
-		    << "Type '" << NotificationTypeToStringInternal(type)
-		    << "', TypeFilter: " << NotificationFilterToString(GetTypeFilter(), GetTypeFilterMap())
-		    << " (FType=" << ftype << ", TypeFilter=" << GetTypeFilter() << ")";
+			<< "Type '" << NotificationTypeToStringInternal(type)
+			<< "', TypeFilter: " << NotificationFilterToString(GetTypeFilter(), GetTypeFilterMap())
+			<< " (FType=" << ftype << ", TypeFilter=" << GetTypeFilter() << ")";
 
 		if (!(ftype & GetTypeFilter())) {
 			Log(LogNotice, "Notification")
-			    << "Not sending " << (reminder ? "reminder " : " ") << "notifications for notification object '" << GetName() << "': type '"
-			    << NotificationTypeToStringInternal(type) << "' does not match type filter: "
-			    << NotificationFilterToString(GetTypeFilter(), GetTypeFilterMap()) << ".";
+				<< "Not sending " << (reminder ? "reminder " : " ") << "notifications for notification object '" << GetName() << "': type '"
+				<< NotificationTypeToStringInternal(type) << "' does not match type filter: "
+				<< NotificationFilterToString(GetTypeFilter(), GetTypeFilterMap()) << ".";
 			return;
 		}
 
@@ -341,19 +341,19 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 			}
 
 			Log(LogDebug, "Notification")
-			    << "State '" << stateStr << "', StateFilter: " << NotificationFilterToString(GetStateFilter(), GetStateFilterMap())
-			    << " (FState=" << fstate << ", StateFilter=" << GetStateFilter() << ")";
+				<< "State '" << stateStr << "', StateFilter: " << NotificationFilterToString(GetStateFilter(), GetStateFilterMap())
+				<< " (FState=" << fstate << ", StateFilter=" << GetStateFilter() << ")";
 
 			if (!(fstate & GetStateFilter())) {
 				Log(LogNotice, "Notification")
-				    << "Not sending " << (reminder ? "reminder " : " ") << "notifications for notification object '" << GetName() << "': state '" << stateStr
-				    << "' does not match state filter: " << NotificationFilterToString(GetStateFilter(), GetStateFilterMap()) << ".";
+					<< "Not sending " << (reminder ? "reminder " : " ") << "notifications for notification object '" << GetName() << "': state '" << stateStr
+					<< "' does not match state filter: " << NotificationFilterToString(GetStateFilter(), GetStateFilterMap()) << ".";
 				return;
 			}
 		}
 	} else {
 		Log(LogNotice, "Notification")
-		    << "Not checking " << (reminder ? "reminder " : " ") << "notification filters for notification object '" << GetName() << "': Notification was forced.";
+			<< "Not checking " << (reminder ? "reminder " : " ") << "notification filters for notification object '" << GetName() << "': Notification was forced.";
 	}
 
 	{
@@ -393,13 +393,13 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 
 		if (!user->GetEnableNotifications()) {
 			Log(LogNotice, "Notification")
-			    << "Disabled notifications for user '" << userName << "'. Not sending notification.";
+				<< "Disabled notifications for user '" << userName << "'. Not sending notification.";
 			continue;
 		}
 
 		if (!CheckNotificationUserFilters(type, user, force, reminder)) {
 			Log(LogNotice, "Notification")
-			    << "Notification filters for user '" << userName << "' not matched. Not sending notification.";
+				<< "Notification filters for user '" << userName << "' not matched. Not sending notification.";
 			continue;
 		}
 
@@ -407,14 +407,14 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 		if (type == NotificationRecovery) {
 			if (!notifiedProblemUsers->Contains(userName)) {
 				Log(LogNotice, "Notification")
-				    << "We did not notify user '" << userName << "' for a problem before. Not sending recovery notification.";
+					<< "We did not notify user '" << userName << "' for a problem before. Not sending recovery notification.";
 				continue;
 			}
 		}
 
 		Log(LogInformation, "Notification")
-		    << "Sending " << (reminder ? "reminder " : "") << "'" << NotificationTypeToStringInternal(type) << "' notification '"
-		    << GetName() << "' for user '" << userName << "'";
+			<< "Sending " << (reminder ? "reminder " : "") << "'" << NotificationTypeToStringInternal(type) << "' notification '"
+			<< GetName() << "' for user '" << userName << "'";
 
 		Utility::QueueAsyncCallback(std::bind(&Notification::ExecuteNotificationHelper, this, type, user, cr, force, author, text));
 
@@ -441,26 +441,26 @@ bool Notification::CheckNotificationUserFilters(NotificationType type, const Use
 
 		if (tp && !tp->IsInside(Utility::GetTime())) {
 			Log(LogNotice, "Notification")
-			    << "Not sending " << (reminder ? "reminder " : " ") << "notifications for notification object '"
-			    << GetName() << " and user '" << user->GetName()
-			    << "': user period not in timeperiod '" << tp->GetName() << "'";
+				<< "Not sending " << (reminder ? "reminder " : " ") << "notifications for notification object '"
+				<< GetName() << " and user '" << user->GetName()
+				<< "': user period not in timeperiod '" << tp->GetName() << "'";
 			return false;
 		}
 
 		unsigned long ftype = type;
 
 		Log(LogDebug, "Notification")
-		    << "User notification, Type '" << NotificationTypeToStringInternal(type)
-		    << "', TypeFilter: " << NotificationFilterToString(user->GetTypeFilter(), GetTypeFilterMap())
-		    << " (FType=" << ftype << ", TypeFilter=" << GetTypeFilter() << ")";
+			<< "User notification, Type '" << NotificationTypeToStringInternal(type)
+			<< "', TypeFilter: " << NotificationFilterToString(user->GetTypeFilter(), GetTypeFilterMap())
+			<< " (FType=" << ftype << ", TypeFilter=" << GetTypeFilter() << ")";
 
 
 		if (!(ftype & user->GetTypeFilter())) {
 			Log(LogNotice, "Notification")
-			    << "Not sending " << (reminder ? "reminder " : " ") << "notifications for notification object '"
-			    << GetName() << " and user '" << user->GetName() << "': type '"
-			    << NotificationTypeToStringInternal(type) << "' does not match type filter: "
-			    << NotificationFilterToString(user->GetTypeFilter(), GetTypeFilterMap()) << ".";
+				<< "Not sending " << (reminder ? "reminder " : " ") << "notifications for notification object '"
+				<< GetName() << " and user '" << user->GetName() << "': type '"
+				<< NotificationTypeToStringInternal(type) << "' does not match type filter: "
+				<< NotificationFilterToString(user->GetTypeFilter(), GetTypeFilterMap()) << ".";
 			return false;
 		}
 
@@ -483,22 +483,22 @@ bool Notification::CheckNotificationUserFilters(NotificationType type, const Use
 			}
 
 			Log(LogDebug, "Notification")
-			    << "User notification, State '" << stateStr << "', StateFilter: "
-			    << NotificationFilterToString(user->GetStateFilter(), GetStateFilterMap())
-			    << " (FState=" << fstate << ", StateFilter=" << user->GetStateFilter() << ")";
+				<< "User notification, State '" << stateStr << "', StateFilter: "
+				<< NotificationFilterToString(user->GetStateFilter(), GetStateFilterMap())
+				<< " (FState=" << fstate << ", StateFilter=" << user->GetStateFilter() << ")";
 
 			if (!(fstate & user->GetStateFilter())) {
 				Log(LogNotice, "Notification")
-				    << "Not " << (reminder ? "reminder " : " ") << "sending notifications for notification object '"
-				    << GetName() << " and user '" << user->GetName() << "': state '" << stateStr
-				    << "' does not match state filter: " << NotificationFilterToString(user->GetStateFilter(), GetStateFilterMap()) << ".";
+					<< "Not " << (reminder ? "reminder " : " ") << "sending notifications for notification object '"
+					<< GetName() << " and user '" << user->GetName() << "': state '" << stateStr
+					<< "' does not match state filter: " << NotificationFilterToString(user->GetStateFilter(), GetStateFilterMap()) << ".";
 				return false;
 			}
 		}
 	} else {
 		Log(LogNotice, "Notification")
-		    << "Not checking " << (reminder ? "reminder " : " ") << "notification filters for notification object '"
-		    << GetName() << "' and user '" << user->GetName() << "': Notification was forced.";
+			<< "Not checking " << (reminder ? "reminder " : " ") << "notification filters for notification object '"
+			<< GetName() << "' and user '" << user->GetName() << "': Notification was forced.";
 	}
 
 	return true;
@@ -511,7 +511,7 @@ void Notification::ExecuteNotificationHelper(NotificationType type, const User::
 
 		if (!command) {
 			Log(LogDebug, "Notification")
-			    << "No command found for notification '" << GetName() << "'. Skipping execution.";
+				<< "No command found for notification '" << GetName() << "'. Skipping execution.";
 			return;
 		}
 
@@ -521,14 +521,14 @@ void Notification::ExecuteNotificationHelper(NotificationType type, const User::
 		Service::OnNotificationSentToUser(this, GetCheckable(), user, type, cr, author, text, command->GetName(), nullptr);
 
 		Log(LogInformation, "Notification")
-		    << "Completed sending '" << NotificationTypeToStringInternal(type)
-		    << "' notification '" << GetName()
-		    << "' for checkable '" << GetCheckable()->GetName()
-		    << "' and user '" << user->GetName() << "'.";
+			<< "Completed sending '" << NotificationTypeToStringInternal(type)
+			<< "' notification '" << GetName()
+			<< "' for checkable '" << GetCheckable()->GetName()
+			<< "' and user '" << user->GetName() << "'.";
 	} catch (const std::exception& ex) {
 		Log(LogWarning, "Notification")
-		    << "Exception occured during notification for checkable '"
-		    << GetCheckable()->GetName() << "': " << DiagnosticInformation(ex);
+			<< "Exception occured during notification for checkable '"
+			<< GetCheckable()->GetName() << "': " << DiagnosticInformation(ex);
 	}
 }
 
@@ -662,8 +662,8 @@ void Notification::ValidateTypes(const Array::Ptr& value, const ValidationUtils&
 	int filter = FilterArrayToInt(value, GetTypeFilterMap(), 0);
 
 	if (filter == -1 || (filter & ~(NotificationDowntimeStart | NotificationDowntimeEnd | NotificationDowntimeRemoved |
-	    NotificationCustom | NotificationAcknowledgement | NotificationProblem | NotificationRecovery |
-	    NotificationFlappingStart | NotificationFlappingEnd)) != 0)
+		NotificationCustom | NotificationAcknowledgement | NotificationProblem | NotificationRecovery |
+		NotificationFlappingStart | NotificationFlappingEnd)) != 0)
 		BOOST_THROW_EXCEPTION(ValidationError(this, { "types" }, "Type filter is invalid."));
 }
 

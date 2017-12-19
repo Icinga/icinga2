@@ -116,7 +116,7 @@ ConfigItem::Ptr ConfigItemBuilder::Compile(void)
 	templateArray->Add(m_Name);
 
 	exprs.emplace_back(new SetExpression(MakeIndexer(ScopeThis, "templates"), OpSetAdd,
-	    std::unique_ptr<LiteralExpression>(new LiteralExpression(templateArray)), m_DebugInfo));
+		std::unique_ptr<LiteralExpression>(new LiteralExpression(templateArray)), m_DebugInfo));
 
 #ifdef I2_DEBUG
 	if (!m_Abstract) {
@@ -141,6 +141,6 @@ ConfigItem::Ptr ConfigItemBuilder::Compile(void)
 	exprl->MakeInline();
 
 	return new ConfigItem(m_Type, m_Name, m_Abstract, exprl, m_Filter,
-	    m_DefaultTmpl, m_IgnoreOnError, m_DebugInfo, m_Scope, m_Zone, m_Package);
+		m_DefaultTmpl, m_IgnoreOnError, m_DebugInfo, m_Scope, m_Zone, m_Package);
 }
 

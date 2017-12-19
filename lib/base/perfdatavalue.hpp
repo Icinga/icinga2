@@ -39,15 +39,15 @@ public:
 	PerfdataValue(void);
 
 	PerfdataValue(String label, double value, bool counter = false, const String& unit = "",
-	    const Value& warn = Empty, const Value& crit = Empty,
-	    const Value& min = Empty, const Value& max = Empty);
+		const Value& warn = Empty, const Value& crit = Empty,
+		const Value& min = Empty, const Value& max = Empty);
 
 	static PerfdataValue::Ptr Parse(const String& perfdata);
 	String Format(void) const;
 
 private:
 	static Value ParseWarnCritMinMaxToken(const std::vector<String>& tokens,
-	    std::vector<String>::size_type index, const String& description);
+		std::vector<String>::size_type index, const String& description);
 };
 
 }

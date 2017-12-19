@@ -132,7 +132,7 @@ void ConsoleCommand::BreakpointHandler(ScriptFrame& frame, ScriptError *ex, cons
 		ShowCodeLocation(std::cout, di);
 
 	std::cout << "You can inspect expressions (such as variables) by entering them at the prompt.\n"
-	          << "To leave the debugger and continue the program use \"$continue\".\n";
+			<< "To leave the debugger and continue the program use \"$continue\".\n";
 
 #ifdef HAVE_EDITLINE
 	rl_completion_entry_function = ConsoleCommand::ConsoleCompleteHelper;
@@ -163,7 +163,7 @@ ImpersonationLevel ConsoleCommand::GetImpersonationLevel(void) const
 }
 
 void ConsoleCommand::InitParameters(boost::program_options::options_description& visibleDesc,
-    boost::program_options::options_description& hiddenDesc) const
+	boost::program_options::options_description& hiddenDesc) const
 {
 	visibleDesc.add_options()
 		("connect,c", po::value<std::string>(), "connect to an Icinga 2 instance")
@@ -181,7 +181,7 @@ char *ConsoleCommand::ConsoleCompleteHelper(const char *word, int state)
 
 	if (state == 0) {
 		if (!l_ApiClient)
-			matches = ConsoleHandler::GetAutocompletionSuggestions(word, *l_ScriptFrame); 
+			matches = ConsoleHandler::GetAutocompletionSuggestions(word, *l_ScriptFrame);
 		else {
 			boost::mutex mutex;
 			boost::condition_variable cv;
@@ -189,10 +189,10 @@ char *ConsoleCommand::ConsoleCompleteHelper(const char *word, int state)
 			Array::Ptr suggestions;
 
 			l_ApiClient->AutocompleteScript(l_Session, word, l_ScriptFrame->Sandboxed,
-			    std::bind(&ConsoleCommand::AutocompleteScriptCompletionHandler,
-			    std::ref(mutex), std::ref(cv), std::ref(ready),
-			    _1, _2,
-			    std::ref(suggestions)));
+				std::bind(&ConsoleCommand::AutocompleteScriptCompletionHandler,
+				std::ref(mutex), std::ref(cv), std::ref(ready),
+				_1, _2,
+				std::ref(suggestions)));
 
 			{
 				boost::mutex::scoped_lock lock(mutex);
@@ -419,10 +419,10 @@ incomplete:
 				boost::exception_ptr eptr;
 
 				l_ApiClient->ExecuteScript(l_Session, command, scriptFrame.Sandboxed,
-				    std::bind(&ConsoleCommand::ExecuteScriptCompletionHandler,
-				    std::ref(mutex), std::ref(cv), std::ref(ready),
-				    _1, _2,
-				    std::ref(result), std::ref(eptr)));
+					std::bind(&ConsoleCommand::ExecuteScriptCompletionHandler,
+					std::ref(mutex), std::ref(cv), std::ref(ready),
+					_1, _2,
+					std::ref(result), std::ref(eptr)));
 
 				{
 					boost::mutex::scoped_lock lock(mutex);
@@ -502,7 +502,7 @@ incomplete:
 }
 
 void ConsoleCommand::ExecuteScriptCompletionHandler(boost::mutex& mutex, boost::condition_variable& cv,
-    bool& ready, boost::exception_ptr eptr, const Value& result, Value& resultOut, boost::exception_ptr& eptrOut)
+	bool& ready, boost::exception_ptr eptr, const Value& result, Value& resultOut, boost::exception_ptr& eptrOut)
 {
 	if (eptr) {
 		try {
@@ -511,7 +511,7 @@ void ConsoleCommand::ExecuteScriptCompletionHandler(boost::mutex& mutex, boost::
 			eptrOut = boost::current_exception();
 		} catch (const std::exception& ex) {
 			Log(LogCritical, "ConsoleCommand")
-			    << "HTTP query failed: " << ex.what();
+				<< "HTTP query failed: " << ex.what();
 			Application::Exit(EXIT_FAILURE);
 		}
 	}
@@ -526,14 +526,14 @@ void ConsoleCommand::ExecuteScriptCompletionHandler(boost::mutex& mutex, boost::
 }
 
 void ConsoleCommand::AutocompleteScriptCompletionHandler(boost::mutex& mutex, boost::condition_variable& cv,
-    bool& ready, boost::exception_ptr eptr, const Array::Ptr& result, Array::Ptr& resultOut)
+	bool& ready, boost::exception_ptr eptr, const Array::Ptr& result, Array::Ptr& resultOut)
 {
 	if (eptr) {
 		try {
 			boost::rethrow_exception(eptr);
 		} catch (const std::exception& ex) {
 			Log(LogCritical, "ConsoleCommand")
-			    << "HTTP query failed: " << ex.what();
+				<< "HTTP query failed: " << ex.what();
 			Application::Exit(EXIT_FAILURE);
 		}
 	}

@@ -29,26 +29,26 @@ namespace icinga
 
 enum LogEntryType
 {
-    LogEntryTypeRuntimeError = 1,
-    LogEntryTypeRuntimeWarning = 2,
-    LogEntryTypeVerificationError = 4,
-    LogEntryTypeVerificationWarning = 8,
-    LogEntryTypeConfigError = 16,
-    LogEntryTypeConfigWarning = 32,
-    LogEntryTypeProcessInfo = 64,
-    LogEntryTypeEventHandler = 128,
-    LogEntryTypeExternalCommand = 512,
-    LogEntryTypeHostUp = 1024,
-    LogEntryTypeHostDown = 2048,
-    LogEntryTypeHostUnreachable = 4096,
-    LogEntryTypeServiceOk = 8192,
-    LogEntryTypeServiceUnknown = 16384,
-    LogEntryTypeServiceWarning = 32768,
-    LogEntryTypeServiceCritical = 65536,
-    LogEntryTypePassiveCheck = 1231072,
-    LogEntryTypeInfoMessage = 262144,
-    LogEntryTypeHostNotification = 524288,
-    LogEntryTypeServiceNotification = 1048576
+	LogEntryTypeRuntimeError = 1,
+	LogEntryTypeRuntimeWarning = 2,
+	LogEntryTypeVerificationError = 4,
+	LogEntryTypeVerificationWarning = 8,
+	LogEntryTypeConfigError = 16,
+	LogEntryTypeConfigWarning = 32,
+	LogEntryTypeProcessInfo = 64,
+	LogEntryTypeEventHandler = 128,
+	LogEntryTypeExternalCommand = 512,
+	LogEntryTypeHostUp = 1024,
+	LogEntryTypeHostDown = 2048,
+	LogEntryTypeHostUnreachable = 4096,
+	LogEntryTypeServiceOk = 8192,
+	LogEntryTypeServiceUnknown = 16384,
+	LogEntryTypeServiceWarning = 32768,
+	LogEntryTypeServiceCritical = 65536,
+	LogEntryTypePassiveCheck = 1231072,
+	LogEntryTypeInfoMessage = 262144,
+	LogEntryTypeHostNotification = 524288,
+	LogEntryTypeServiceNotification = 1048576
 };
 
 /**
@@ -96,12 +96,12 @@ public:
 	static void AddCommentHistory(const Comment::Ptr& comment);
 	static void AddDowntimeHistory(const Downtime::Ptr& downtime);
 	static void AddAcknowledgementHistory(const Checkable::Ptr& checkable, const String& author, const String& comment,
-	    AcknowledgementType type, bool notify, double expiry);
+		AcknowledgementType type, bool notify, double expiry);
 
 	/* notification & contactnotification history */
 	static void AddNotificationHistory(const Notification::Ptr& notification, const Checkable::Ptr& checkable,
-	    const std::set<User::Ptr>& users, NotificationType type, const CheckResult::Ptr& cr, const String& author,
-	    const String& text);
+		const std::set<User::Ptr>& users, NotificationType type, const CheckResult::Ptr& cr, const String& author,
+		const String& text);
 
 	/* statehistory */
 	static void AddStateChangeHistory(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, StateType type);
@@ -111,8 +111,8 @@ public:
 	static void AddTriggerDowntimeLogHistory(const Downtime::Ptr& downtime);
 	static void AddRemoveDowntimeLogHistory(const Downtime::Ptr& downtime);
 	static void AddNotificationSentLogHistory(const Notification::Ptr& notification, const Checkable::Ptr& checkable,
-	    const User::Ptr& user, NotificationType notification_type, const CheckResult::Ptr& cr, const String& author,
-	    const String& comment_text);
+		const User::Ptr& user, NotificationType notification_type, const CheckResult::Ptr& cr, const String& author,
+		const String& comment_text);
 
 	static void AddFlappingChangedLogHistory(const Checkable::Ptr& checkable);
 	static void AddEnableFlappingChangedLogHistory(const Checkable::Ptr& checkable);

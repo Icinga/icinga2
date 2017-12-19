@@ -194,16 +194,13 @@ namespace Icinga
 				string master_host, master_port;
 				GetMasterHostPort(out master_host, out master_port);
 
-				args += " --master_host " + master_host
-				    + "," + master_port;
+				args += " --master_host " + master_host + "," + master_port;
 
 				foreach (ListViewItem lvi in lvwEndpoints.Items) {
 					args += " --endpoint " + lvi.SubItems[0].Text.Trim();
 
-					if (lvi.SubItems.Count > 1) {
-						args += "," + lvi.SubItems[1].Text.Trim()
-						    + "," + lvi.SubItems[2].Text.Trim();
-					}
+					if (lvi.SubItems.Count > 1)
+						args += "," + lvi.SubItems[1].Text.Trim() + "," + lvi.SubItems[2].Text.Trim();
 				}
 			});
 

@@ -67,7 +67,7 @@ void LivestatusListener::Start(bool runtimeCreated)
 	ObjectImpl<LivestatusListener>::Start(runtimeCreated);
 
 	Log(LogInformation, "LivestatusListener")
-	    << "'" << GetName() << "' started.";
+		<< "'" << GetName() << "' started.";
 
 	if (GetSocketType() == "tcp") {
 		TcpSocket::Ptr socket = new TcpSocket();
@@ -76,7 +76,7 @@ void LivestatusListener::Start(bool runtimeCreated)
 			socket->Bind(GetBindHost(), GetBindPort(), AF_UNSPEC);
 		} catch (std::exception&) {
 			Log(LogCritical, "LivestatusListener")
-			    << "Cannot bind TCP socket on host '" << GetBindHost() << "' port '" << GetBindPort() << "'.";
+				<< "Cannot bind TCP socket on host '" << GetBindHost() << "' port '" << GetBindPort() << "'.";
 			return;
 		}
 
@@ -85,7 +85,7 @@ void LivestatusListener::Start(bool runtimeCreated)
 		m_Thread = std::thread(std::bind(&LivestatusListener::ServerThreadProc, this));
 
 		Log(LogInformation, "LivestatusListener")
-		    << "Created TCP socket listening on host '" << GetBindHost() << "' port '" << GetBindPort() << "'.";
+			<< "Created TCP socket listening on host '" << GetBindHost() << "' port '" << GetBindPort() << "'.";
 	}
 	else if (GetSocketType() == "unix") {
 #ifndef _WIN32
@@ -95,7 +95,7 @@ void LivestatusListener::Start(bool runtimeCreated)
 			socket->Bind(GetSocketPath());
 		} catch (std::exception&) {
 			Log(LogCritical, "LivestatusListener")
-			    << "Cannot bind UNIX socket to '" << GetSocketPath() << "'.";
+				<< "Cannot bind UNIX socket to '" << GetSocketPath() << "'.";
 			return;
 		}
 
@@ -104,7 +104,7 @@ void LivestatusListener::Start(bool runtimeCreated)
 
 		if (chmod(GetSocketPath().CStr(), mode) < 0) {
 			Log(LogCritical, "LivestatusListener")
-			    << "chmod() on unix socket '" << GetSocketPath() << "' failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+				<< "chmod() on unix socket '" << GetSocketPath() << "' failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 			return;
 		}
 
@@ -113,7 +113,7 @@ void LivestatusListener::Start(bool runtimeCreated)
 		m_Thread = std::thread(std::bind(&LivestatusListener::ServerThreadProc, this));
 
 		Log(LogInformation, "LivestatusListener")
-		    << "Created UNIX socket in '" << GetSocketPath() << "'.";
+			<< "Created UNIX socket in '" << GetSocketPath() << "'.";
 #else
 		/* no UNIX sockets on windows */
 		Log(LogCritical, "LivestatusListener", "Unix sockets are not supported on Windows.");
@@ -127,7 +127,7 @@ void LivestatusListener::Stop(bool runtimeRemoved)
 	ObjectImpl<LivestatusListener>::Stop(runtimeRemoved);
 
 	Log(LogInformation, "LivestatusListener")
-	    << "'" << GetName() << "' stopped.";
+		<< "'" << GetName() << "' stopped.";
 
 	m_Listener->Close();
 

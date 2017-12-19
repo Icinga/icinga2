@@ -179,11 +179,9 @@ protected:
 private:
 	static Application::Ptr m_Instance; /**< The application instance. */
 
-	static bool m_ShuttingDown; /**< Whether the application is in the process of
-				  shutting down. */
+	static bool m_ShuttingDown; /**< Whether the application is in the process of shutting down. */
 	static bool m_RequestRestart; /**< A restart was requested through SIGHUP */
-	static pid_t m_ReloadProcess; /**< The PID of a subprocess doing a reload, 
-									only valid when l_Restarting==true */
+	static pid_t m_ReloadProcess; /**< The PID of a subprocess doing a reload, only valid when l_Restarting==true */
 	static bool m_RequestReopenLogs; /**< Whether we should re-open log files. */
 
 	static int m_ArgC; /**< The number of command-line arguments. */

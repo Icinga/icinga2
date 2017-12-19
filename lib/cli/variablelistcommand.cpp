@@ -57,7 +57,7 @@ int VariableListCommand::Run(const boost::program_options::variables_map& vm, co
 
 	if (!Utility::PathExists(varsfile)) {
 		Log(LogCritical, "cli")
-		    << "Cannot open variables file '" << varsfile << "'.";
+			<< "Cannot open variables file '" << varsfile << "'.";
 		Log(LogCritical, "cli", "Run 'icinga2 daemon -C' to validate config and generate the cache file.");
 		return 1;
 	}

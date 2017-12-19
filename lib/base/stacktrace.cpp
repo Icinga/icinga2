@@ -75,8 +75,8 @@ StackTrace::StackTrace(PEXCEPTION_POINTERS exi)
 	m_Count = 0;
 
 	while (StackWalk64(architecture, GetCurrentProcess(), GetCurrentThread(),
-	    &frame, exi->ContextRecord, nullptr, &SymFunctionTableAccess64,
-	    &SymGetModuleBase64, nullptr) && m_Count < sizeof(m_Frames) / sizeof(m_Frames[0])) {
+		&frame, exi->ContextRecord, nullptr, &SymFunctionTableAccess64,
+		&SymGetModuleBase64, nullptr) && m_Count < sizeof(m_Frames) / sizeof(m_Frames[0])) {
 		m_Frames[m_Count] = reinterpret_cast<void *>(frame.AddrPC.Offset);
 		m_Count++;
 	}
@@ -95,7 +95,7 @@ INITIALIZE_ONCE([]() {
  *
  * @param fp The stream.
  * @param ignoreFrames The number of stackframes to ignore (in addition to
- *		       the one this function is executing in).
+ *        the one this function is executing in).
  * @returns true if the stacktrace was printed, false otherwise.
  */
 void StackTrace::Print(std::ostream& fp, int ignoreFrames) const
@@ -143,9 +143,7 @@ void StackTrace::Print(std::ostream& fp, int ignoreFrames) const
 #	endif /* HAVE_BACKTRACE_SYMBOLS */
 #else /* _WIN32 */
 	for (int i = ignoreFrames + 1; i < m_Count; i++) {
-		fp << "\t(" << i - ignoreFrames - 1 << "): "
-		   << Utility::GetSymbolName(m_Frames[i])
-		   << std::endl;
+		fp << "\t(" << i - ignoreFrames - 1 << "): " << Utility::GetSymbolName(m_Frames[i]) << std::endl;
 	}
 #endif /* _WIN32 */
 }

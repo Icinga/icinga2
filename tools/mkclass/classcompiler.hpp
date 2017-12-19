@@ -237,9 +237,9 @@ public:
 	void CodeGenValidatorSubrules(const std::string& name, const std::string& klass, const std::vector<Rule>& rules);
 
 	static void CompileFile(const std::string& inputpath, const std::string& implpath,
-	    const std::string& headerpath);
+		const std::string& headerpath);
 	static void CompileStream(const std::string& path, std::istream& input,
-	    std::ostream& oimpl, std::ostream& oheader);
+		std::ostream& oimpl, std::ostream& oheader);
 
 	static void OptimizeStructLayout(std::vector<Field>& fields);
 

@@ -373,7 +373,7 @@ Array::Ptr ScriptUtils::Range(const std::vector<Value>& arguments)
 	Array::Ptr result = new Array();
 
 	if ((start < end && increment <= 0) ||
-	    (start > end && increment >= 0))
+		(start > end && increment >= 0))
 		return result;
 
 	for (double i = start; (increment > 0 ? i < end : i > end); i += increment)

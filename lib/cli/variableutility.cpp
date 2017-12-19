@@ -89,5 +89,5 @@ void VariableUtility::PrintVariables(std::ostream& outfp)
 	fp.close();
 
 	Log(LogNotice, "cli")
-	    << "Parsed " << variables_count << " variables.";
+		<< "Parsed " << variables_count << " variables.";
 }

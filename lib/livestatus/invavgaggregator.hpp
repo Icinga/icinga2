@@ -32,7 +32,7 @@ namespace icinga
 struct InvAvgAggregatorState : public AggregatorState
 {
 	InvAvgAggregatorState(void)
-	    : InvAvg(0), InvAvgCount(0)
+		: InvAvg(0), InvAvgCount(0)
 	{ }
 
 	double InvAvg;

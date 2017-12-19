@@ -41,7 +41,7 @@ public:
 	virtual int Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const override;
 	virtual ImpersonationLevel GetImpersonationLevel(void) const override;
 	virtual void InitParameters(boost::program_options::options_description& visibleDesc,
-	    boost::program_options::options_description& hiddenDesc) const override;
+		boost::program_options::options_description& hiddenDesc) const override;
 
 private:
 	int ClientSetup(void) const;

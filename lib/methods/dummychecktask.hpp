@@ -36,7 +36,7 @@ class I2_METHODS_API DummyCheckTask
 {
 public:
 	static void ScriptFunc(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr,
-	    const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros);
+		const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros);
 
 private:
 	DummyCheckTask(void);

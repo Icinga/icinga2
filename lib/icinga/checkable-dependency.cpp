@@ -63,7 +63,7 @@ bool Checkable::IsReachable(DependencyType dt, Dependency::Ptr *failedDependency
 {
 	if (rstack > 20) {
 		Log(LogWarning, "Checkable")
-		    << "Too many nested dependencies for service '" << GetName() << "': Dependency failed.";
+			<< "Too many nested dependencies for service '" << GetName() << "': Dependency failed.";
 
 		return false;
 	}

@@ -32,7 +32,7 @@ boost::thread_specific_ptr<WorkQueue *> l_ThreadWorkQueue;
 
 WorkQueue::WorkQueue(size_t maxItems, int threadCount)
 	: m_ID(m_NextID++), m_ThreadCount(threadCount), m_Spawned(false), m_MaxItems(maxItems), m_Stopped(false),
-	  m_Processing(0), m_NextTaskID(0), m_TaskStats(15 * 60), m_PendingTasks(0), m_PendingTasksTimestamp(0)
+	m_Processing(0), m_NextTaskID(0), m_TaskStats(15 * 60), m_PendingTasks(0), m_PendingTasksTimestamp(0)
 {
 	/* Initialize logger. */
 	m_StatusTimerTimeout = Utility::GetTime();
@@ -67,7 +67,7 @@ String WorkQueue::GetName(void) const
  * immediately if it's being enqueued from within the WorkQueue thread.
  */
 void WorkQueue::Enqueue(std::function<void (void)>&& function, WorkQueuePriority priority,
-    bool allowInterleaved)
+	bool allowInterleaved)
 {
 	bool wq_thread = IsWorkerThread();
 
@@ -81,7 +81,7 @@ void WorkQueue::Enqueue(std::function<void (void)>&& function, WorkQueuePriority
 
 	if (!m_Spawned) {
 		Log(LogNotice, "WorkQueue")
-		    << "Spawning WorkQueue threads for '" << m_Name << "'";
+			<< "Spawning WorkQueue threads for '" << m_Name << "'";
 
 		for (int i = 0; i < m_ThreadCount; i++) {
 			m_Threads.create_thread(std::bind(&WorkQueue::WorkerThreadProc, this));
@@ -122,7 +122,7 @@ void WorkQueue::Join(bool stop)
 		m_Spawned = false;
 
 		Log(LogNotice, "WorkQueue")
-		    << "Stopped WorkQueue threads for '" << m_Name << "'";
+			<< "Stopped WorkQueue threads for '" << m_Name << "'";
 	}
 }
 
@@ -155,7 +155,7 @@ void WorkQueue::SetExceptionCallback(const ExceptionCallback& callback)
 bool WorkQueue::HasExceptions(void) const
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
- 
+
 	return !m_Exceptions.empty();
 }
 
@@ -166,7 +166,7 @@ bool WorkQueue::HasExceptions(void) const
 std::vector<boost::exception_ptr> WorkQueue::GetExceptions(void) const
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
- 
+
 	return m_Exceptions;
 }
 
@@ -176,11 +176,11 @@ void WorkQueue::ReportExceptions(const String& facility) const
 
 	for (const auto& eptr : exceptions) {
 		Log(LogCritical, facility)
-		    << DiagnosticInformation(eptr);
+			<< DiagnosticInformation(eptr);
 	}
 
 	Log(LogCritical, facility)
-	    << exceptions.size() << " error" << (exceptions.size() != 1 ? "s" : "");
+		<< exceptions.size() << " error" << (exceptions.size() != 1 ? "s" : "");
 }
 
 size_t WorkQueue::GetLength(void) const
@@ -218,11 +218,11 @@ void WorkQueue::StatusTimerHandler(void)
 	/* Log if there are pending items, or 5 minute timeout is reached. */
 	if (pending > 0 || m_StatusTimerTimeout < now) {
 		Log(LogInformation, "WorkQueue")
-		    << "#" << m_ID << " (" << m_Name << ") "
-		    << "items: " << pending << ", "
-		    << "rate: " << std::setw(2) << GetTaskCount(60) / 60.0 << "/s "
-		    << "(" << GetTaskCount(60) << "/min " << GetTaskCount(60 * 5) << "/5min " << GetTaskCount(60 * 15) << "/15min);"
-		    << timeInfo;
+			<< "#" << m_ID << " (" << m_Name << ") "
+			<< "items: " << pending << ", "
+			<< "rate: " << std::setw(2) << GetTaskCount(60) / 60.0 << "/s "
+			<< "(" << GetTaskCount(60) << "/min " << GetTaskCount(60 * 5) << "/5min " << GetTaskCount(60 * 15) << "/15min);"
+			<< timeInfo;
 	}
 
 	/* Reschedule next log entry in 5 minutes. */
@@ -272,8 +272,7 @@ void WorkQueue::WorkerThreadProc(void)
 				m_ExceptionCallback(boost::current_exception());
 		}
 
-		/* clear the task so whatever other resources it holds are released
-		   _before_ we re-acquire the mutex */
+		/* clear the task so whatever other resources it holds are released _before_ we re-acquire the mutex */
 		task = Task();
 
 		IncreaseTaskCount();

@@ -44,11 +44,11 @@ enum WorkQueuePriority
 struct Task
 {
 	Task(void)
-	    : Priority(PriorityNormal), ID(-1)
+		: Priority(PriorityNormal), ID(-1)
 	{ }
 
 	Task(std::function<void (void)>&& function, WorkQueuePriority priority, int id)
-	    : Function(std::move(function)), Priority(priority), ID(id)
+		: Function(std::move(function)), Priority(priority), ID(id)
 	{ }
 
 	std::function<void (void)> Function;
@@ -88,7 +88,7 @@ public:
 	String GetName(void) const;
 
 	void Enqueue(std::function<void (void)>&& function, WorkQueuePriority priority = PriorityNormal,
-	    bool allowInterleaved = false);
+		bool allowInterleaved = false);
 	void Join(bool stop = false);
 
 	bool IsWorkerThread(void) const;

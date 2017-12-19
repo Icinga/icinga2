@@ -114,7 +114,7 @@ void MainForm::OnTypeSelected(wxTreeEvent& event)
 	attrs.push_back("__name");
 
 	m_ApiClient->GetObjects(type->PluralName, std::bind(&MainForm::ObjectsCompletionHandler, this, _1, _2, true),
-	    std::vector<String>(), attrs);
+		std::vector<String>(), attrs);
 }
 
 static bool ApiObjectLessComparer(const ApiObject::Ptr& o1, const ApiObject::Ptr& o2)
@@ -173,7 +173,7 @@ void MainForm::OnObjectSelected(wxListEvent& event)
 	names.push_back(objectName);
 
 	m_ApiClient->GetObjects(type->PluralName, std::bind(&MainForm::ObjectDetailsCompletionHandler, this, _1, _2, true),
-	    names, std::vector<String>(), std::vector<String>(), true);
+		names, std::vector<String>(), std::vector<String>(), true);
 }
 
 wxPGProperty *MainForm::ValueToProperty(const String& name, const Value& value)

@@ -22,7 +22,7 @@
 using namespace icinga;
 
 InvSumAggregator::InvSumAggregator(const String& attr)
-    : m_InvSumAttr(attr)
+	: m_InvSumAttr(attr)
 { }
 
 InvSumAggregatorState *InvSumAggregator::EnsureState(AggregatorState **state)

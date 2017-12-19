@@ -36,7 +36,7 @@ using namespace icinga;
 REGISTER_SCRIPTFUNCTION_NS(Internal, ClusterCheck, &ClusterCheckTask::ScriptFunc, "checkable:cr:resolvedMacros:useResolvedMacros");
 
 void ClusterCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr,
-    const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
+	const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
 {
 	if (resolvedMacros && !useResolvedMacros)
 		return;
@@ -64,11 +64,11 @@ void ClusterCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRe
 	if (status->Get("num_not_conn_endpoints") > 0) {
 		cr->SetState(ServiceCritical);
 		cr->SetOutput("Icinga 2 Cluster Problem: " + Convert::ToString(status->Get("num_not_conn_endpoints")) +
-		    " Endpoints (" + not_connected_endpoints + ") not connected.");
+			" Endpoints (" + not_connected_endpoints + ") not connected.");
 	} else {
 		cr->SetState(ServiceOK);
 		cr->SetOutput("Icinga 2 Cluster is running: Connected Endpoints: "+ Convert::ToString(status->Get("num_conn_endpoints")) +
-		    " (" + connected_endpoints + ").");
+			" (" + connected_endpoints + ").");
 	}
 
 	checkable->ProcessCheckResult(cr);

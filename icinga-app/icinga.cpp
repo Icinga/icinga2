@@ -108,7 +108,7 @@ static int Main(void)
 			autoindex = Convert::ToLong(argv[2]);
 		} catch (const std::invalid_argument&) {
 			Log(LogCritical, "icinga-app")
-			    << "Invalid index for --autocomplete: " << argv[2];
+				<< "Invalid index for --autocomplete: " << argv[2];
 			return EXIT_FAILURE;
 		}
 
@@ -209,7 +209,7 @@ static int Main(void)
 		("library,l", po::value<std::vector<std::string> >(), "load a library")
 		("include,I", po::value<std::vector<std::string> >(), "add include search directory")
 		("log-level,x", po::value<std::string>(), "specify the log level for the console log.\n"
-		    "The valid value is either debug, notice, information (default), warning, or critical")
+			"The valid value is either debug, notice, information (default), warning, or critical")
 		("script-debugger,X", "whether to enable the script debugger");
 
 	po::options_description hiddenDesc("Hidden options");
@@ -227,10 +227,10 @@ static int Main(void)
 
 	try {
 		CLICommand::ParseCommand(argc, argv, visibleDesc, hiddenDesc, positionalDesc,
-		    vm, cmdname, command, autocomplete);
+			vm, cmdname, command, autocomplete);
 	} catch (const std::exception& ex) {
 		Log(LogCritical, "icinga-app")
-		    << "Error while parsing command-line options: " << ex.what();
+			<< "Error while parsing command-line options: " << ex.what();
 		return EXIT_FAILURE;
 	}
 
@@ -365,11 +365,11 @@ static int Main(void)
 					(void) Loader::LoadExtensionLibrary(libraryName);
 				} catch (const std::exception& ex) {
 					Log(LogCritical, "icinga-app")
-					    <<  "Could not load library \"" << libraryName << "\": " << DiagnosticInformation(ex);
+						<<  "Could not load library \"" << libraryName << "\": " << DiagnosticInformation(ex);
 					return EXIT_FAILURE;
 				}
 			}
-		} 
+		}
 
 		if (!command || vm.count("help") || vm.count("version")) {
 			String appName;
@@ -385,17 +385,17 @@ static int Main(void)
 				appName = appName.SubStr(3, appName.GetLength() - 3);
 
 			std::cout << appName << " " << "- The Icinga 2 network monitoring daemon (version: "
-			    << ConsoleColorTag(vm.count("version") ? Console_ForegroundRed : Console_Normal)
-			    << Application::GetAppVersion()
+				<< ConsoleColorTag(vm.count("version") ? Console_ForegroundRed : Console_Normal)
+				<< Application::GetAppVersion()
 #ifdef I2_DEBUG
-			    << "; debug"
+				<< "; debug"
 #endif /* I2_DEBUG */
-			    << ConsoleColorTag(Console_Normal)
-			    << ")" << std::endl << std::endl;
+				<< ConsoleColorTag(Console_Normal)
+				<< ")" << std::endl << std::endl;
 
 			if ((!command || vm.count("help")) && !vm.count("version")) {
 				std::cout << "Usage:" << std::endl
-				    << "  " << Utility::BaseName(argv[0]) << " ";
+					<< "  " << Utility::BaseName(argv[0]) << " ";
 
 				if (cmdname.IsEmpty())
 					std::cout << "<command>";
@@ -406,7 +406,7 @@ static int Main(void)
 
 				if (command) {
 					std::cout << std::endl
-						  << command->GetDescription() << std::endl;
+						<< command->GetDescription() << std::endl;
 				}
 			}
 
@@ -443,7 +443,7 @@ static int Main(void)
 
 	if (autocomplete) {
 		CLICommand::ShowCommands(argc, argv, &visibleDesc, &hiddenDesc,
-		    &GlobalArgumentCompletion, true, autoindex);
+			&GlobalArgumentCompletion, true, autoindex);
 		rc = 0;
 	} else if (command) {
 		Logger::DisableTimestamp(true);
@@ -463,11 +463,11 @@ static int Main(void)
 			if (!gr) {
 				if (errno == 0) {
 					Log(LogCritical, "cli")
-					    << "Invalid group specified: " << group;
+						<< "Invalid group specified: " << group;
 					return EXIT_FAILURE;
 				} else {
 					Log(LogCritical, "cli")
-					    << "getgrnam() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+						<< "getgrnam() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 					return EXIT_FAILURE;
 				}
 			}
@@ -475,15 +475,15 @@ static int Main(void)
 			if (getgid() != gr->gr_gid) {
 				if (!vm.count("reload-internal") && setgroups(0, nullptr) < 0) {
 					Log(LogCritical, "cli")
-					    << "setgroups() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+						<< "setgroups() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 					Log(LogCritical, "cli")
-					    << "Please re-run this command as a privileged user or using the \"" << user << "\" account.";
+						<< "Please re-run this command as a privileged user or using the \"" << user << "\" account.";
 					return EXIT_FAILURE;
 				}
 
 				if (setgid(gr->gr_gid) < 0) {
 					Log(LogCritical, "cli")
-					    << "setgid() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+						<< "setgid() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 					return EXIT_FAILURE;
 				}
 			}
@@ -494,11 +494,11 @@ static int Main(void)
 			if (!pw) {
 				if (errno == 0) {
 					Log(LogCritical, "cli")
-					    << "Invalid user specified: " << user;
+						<< "Invalid user specified: " << user;
 					return EXIT_FAILURE;
 				} else {
 					Log(LogCritical, "cli")
-					    << "getpwnam() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+						<< "getpwnam() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 					return EXIT_FAILURE;
 				}
 			}
@@ -507,17 +507,17 @@ static int Main(void)
 			if (getuid() != pw->pw_uid) {
 				if (!vm.count("reload-internal") && initgroups(user.CStr(), pw->pw_gid) < 0) {
 					Log(LogCritical, "cli")
-					    << "initgroups() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+						<< "initgroups() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 					Log(LogCritical, "cli")
-					    << "Please re-run this command as a privileged user or using the \"" << user << "\" account.";
+						<< "Please re-run this command as a privileged user or using the \"" << user << "\" account.";
 					return EXIT_FAILURE;
 				}
 
 				if (setuid(pw->pw_uid) < 0) {
 					Log(LogCritical, "cli")
-					    << "setuid() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+						<< "setuid() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 					Log(LogCritical, "cli")
-					    << "Please re-run this command as a privileged user or using the \"" << user << "\" account.";
+						<< "Please re-run this command as a privileged user or using the \"" << user << "\" account.";
 					return EXIT_FAILURE;
 				}
 			}
@@ -532,15 +532,15 @@ static int Main(void)
 
 		if (static_cast<int>(args.size()) < command->GetMinArguments()) {
 			Log(LogCritical, "cli")
-			    << "Too few arguments. Command needs at least " << command->GetMinArguments()
-			    << " argument" << (command->GetMinArguments() != 1 ? "s" : "") << ".";
+				<< "Too few arguments. Command needs at least " << command->GetMinArguments()
+				<< " argument" << (command->GetMinArguments() != 1 ? "s" : "") << ".";
 			return EXIT_FAILURE;
 		}
 
 		if (command->GetMaxArguments() >= 0 && static_cast<int>(args.size()) > command->GetMaxArguments()) {
 			Log(LogCritical, "cli")
-			    << "Too many arguments. At most " << command->GetMaxArguments()
-			    << " argument" << (command->GetMaxArguments() != 1 ? "s" : "") << " may be specified.";
+				<< "Too many arguments. At most " << command->GetMaxArguments()
+				<< " argument" << (command->GetMaxArguments() != 1 ? "s" : "") << " may be specified.";
 			return EXIT_FAILURE;
 		}
 
@@ -710,7 +710,7 @@ static VOID ReportSvcStatus(DWORD dwCurrentState,
 		l_SvcStatus.dwControlsAccepted = SERVICE_ACCEPT_STOP;
 
 	if ((dwCurrentState == SERVICE_RUNNING) ||
-	    (dwCurrentState == SERVICE_STOPPED))
+		(dwCurrentState == SERVICE_STOPPED))
 		l_SvcStatus.dwCheckPoint = 0;
 	else
 		l_SvcStatus.dwCheckPoint = dwCheckPoint++;

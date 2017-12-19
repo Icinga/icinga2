@@ -58,7 +58,7 @@ void ApiListener::ConfigUpdateObjectHandler(const ConfigObject::Ptr& object, con
 Value ApiListener::ConfigUpdateObjectAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
 {
 	Log(LogNotice, "ApiListener")
-	    << "Received update for object: " << JsonEncode(params);
+		<< "Received update for object: " << JsonEncode(params);
 
 	/* check permissions */
 	ApiListener::Ptr listener = ApiListener::GetInstance();
@@ -74,23 +74,23 @@ Value ApiListener::ConfigUpdateObjectAPIHandler(const MessageOrigin::Ptr& origin
 	/* discard messages if the client is not configured on this node */
 	if (!endpoint) {
 		Log(LogNotice, "ApiListener")
-		    << "Discarding 'config update object' message from '" << origin->FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
+			<< "Discarding 'config update object' message from '" << origin->FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
 		return Empty;
 	}
 
 	/* discard messages if the sender is in a child zone */
 	if (!Zone::GetLocalZone()->IsChildOf(endpoint->GetZone())) {
 		Log(LogNotice, "ApiListener")
-		    << "Discarding 'config update object' message from '"
-		    << origin->FromClient->GetIdentity() << "' for object '"
-		    << objName << "' of type '" << objType << "'. Sender is in a child zone.";
+			<< "Discarding 'config update object' message from '"
+			<< origin->FromClient->GetIdentity() << "' for object '"
+			<< objName << "' of type '" << objType << "'. Sender is in a child zone.";
 		return Empty;
 	}
 
 	/* ignore messages if the endpoint does not accept config */
 	if (!listener->GetAcceptConfig()) {
 		Log(LogWarning, "ApiListener")
-		    << "Ignoring config update from '" << origin->FromClient->GetIdentity() << "' for object '" << objName << "' of type '" << objType << "'. '" << listener->GetName() << "' does not accept config.";
+			<< "Ignoring config update from '" << origin->FromClient->GetIdentity() << "' for object '" << objName << "' of type '" << objType << "'. '" << listener->GetName() << "' does not accept config.";
 		return Empty;
 	}
 
@@ -102,7 +102,7 @@ Value ApiListener::ConfigUpdateObjectAPIHandler(const MessageOrigin::Ptr& origin
 
 	if (!ctype) {
 		Log(LogCritical, "ApiListener")
-		    << "Config type '" << objType << "' does not exist.";
+			<< "Config type '" << objType << "' does not exist.";
 		return Empty;
 	}
 
@@ -119,14 +119,14 @@ Value ApiListener::ConfigUpdateObjectAPIHandler(const MessageOrigin::Ptr& origin
 		Array::Ptr errors = new Array();
 
 		if (!ConfigObjectUtility::CreateObject(ptype,
-		    objName, config, errors)) {
+			objName, config, errors)) {
 			Log(LogCritical, "ApiListener")
-			    << "Could not create object '" << objName << "':";
+				<< "Could not create object '" << objName << "':";
 
-		    	ObjectLock olock(errors);
+				ObjectLock olock(errors);
 			for (const String& error : errors) {
-		    		Log(LogCritical, "ApiListener", error);
-		    	}
+					Log(LogCritical, "ApiListener", error);
+				}
 
 			return Empty;
 		}
@@ -146,17 +146,17 @@ Value ApiListener::ConfigUpdateObjectAPIHandler(const MessageOrigin::Ptr& origin
 	/* update object attributes if version was changed or if this is a new object */
 	if (newObject || objVersion <= object->GetVersion()) {
 		Log(LogNotice, "ApiListener")
-		    << "Discarding config update for object '" << object->GetName()
-		    << "': Object version " << std::fixed << object->GetVersion()
-		    << " is more recent than the received version " << std::fixed << objVersion << ".";
+			<< "Discarding config update for object '" << object->GetName()
+			<< "': Object version " << std::fixed << object->GetVersion()
+			<< " is more recent than the received version " << std::fixed << objVersion << ".";
 
 		return Empty;
 	}
 
 	Log(LogNotice, "ApiListener")
-	    << "Processing config update for object '" << object->GetName()
-	    << "': Object version " << object->GetVersion()
-	    << " is older than the received version " << objVersion << ".";
+		<< "Processing config update for object '" << object->GetName()
+		<< "': Object version " << object->GetVersion()
+		<< " is older than the received version " << objVersion << ".";
 
 	Dictionary::Ptr modified_attributes = params->Get("modified_attributes");
 
@@ -202,7 +202,7 @@ Value ApiListener::ConfigUpdateObjectAPIHandler(const MessageOrigin::Ptr& origin
 Value ApiListener::ConfigDeleteObjectAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
 {
 	Log(LogNotice, "ApiListener")
-	    << "Received update for object: " << JsonEncode(params);
+		<< "Received update for object: " << JsonEncode(params);
 
 	/* check permissions */
 	ApiListener::Ptr listener = ApiListener::GetInstance();
@@ -212,7 +212,7 @@ Value ApiListener::ConfigDeleteObjectAPIHandler(const MessageOrigin::Ptr& origin
 
 	if (!listener->GetAcceptConfig()) {
 		Log(LogWarning, "ApiListener")
-		    << "Ignoring config update. '" << listener->GetName() << "' does not accept config.";
+			<< "Ignoring config update. '" << listener->GetName() << "' does not accept config.";
 		return Empty;
 	}
 
@@ -220,15 +220,15 @@ Value ApiListener::ConfigDeleteObjectAPIHandler(const MessageOrigin::Ptr& origin
 
 	if (!endpoint) {
 		Log(LogNotice, "ApiListener")
-		    << "Discarding 'config update object' message from '" << origin->FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
+			<< "Discarding 'config update object' message from '" << origin->FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
 		return Empty;
 	}
 
 	/* discard messages if the sender is in a child zone */
 	if (!Zone::GetLocalZone()->IsChildOf(endpoint->GetZone())) {
 		Log(LogWarning, "ApiListener")
-		    << "Discarding 'config update object' message from '"
-		    << origin->FromClient->GetIdentity() << "'.";
+			<< "Discarding 'config update object' message from '"
+			<< origin->FromClient->GetIdentity() << "'.";
 		return Empty;
 	}
 
@@ -238,7 +238,7 @@ Value ApiListener::ConfigDeleteObjectAPIHandler(const MessageOrigin::Ptr& origin
 
 	if (!ctype) {
 		Log(LogCritical, "ApiListener")
-		    << "Config type '" << params->Get("type") << "' does not exist.";
+			<< "Config type '" << params->Get("type") << "' does not exist.";
 		return Empty;
 	}
 
@@ -246,13 +246,13 @@ Value ApiListener::ConfigDeleteObjectAPIHandler(const MessageOrigin::Ptr& origin
 
 	if (!object) {
 		Log(LogNotice, "ApiListener")
-		    << "Could not delete non-existent object '" << params->Get("name") << "' with type '" << params->Get("type") << "'.";
+			<< "Could not delete non-existent object '" << params->Get("name") << "' with type '" << params->Get("type") << "'.";
 		return Empty;
 	}
 
 	if (object->GetPackage() != "_api") {
 		Log(LogCritical, "ApiListener")
-		    << "Could not delete object '" << object->GetName() << "': Not created by the API.";
+			<< "Could not delete object '" << object->GetName() << "': Not created by the API.";
 		return Empty;
 	}
 
@@ -271,7 +271,7 @@ Value ApiListener::ConfigDeleteObjectAPIHandler(const MessageOrigin::Ptr& origin
 }
 
 void ApiListener::UpdateConfigObject(const ConfigObject::Ptr& object, const MessageOrigin::Ptr& origin,
-    const JsonRpcConnection::Ptr& client)
+	const JsonRpcConnection::Ptr& client)
 {
 	/* only send objects to zones which have access to the object */
 	if (client) {
@@ -279,8 +279,8 @@ void ApiListener::UpdateConfigObject(const ConfigObject::Ptr& object, const Mess
 
 		if (target_zone && !target_zone->CanAccessObject(object)) {
 			Log(LogDebug, "ApiListener")
-			    << "Not sending 'update config' message to unauthorized zone '" << target_zone->GetName() << "'"
-			    << " for object: '" << object->GetName() << "'.";
+				<< "Not sending 'update config' message to unauthorized zone '" << target_zone->GetName() << "'"
+				<< " for object: '" << object->GetName() << "'.";
 
 			return;
 		}
@@ -339,7 +339,7 @@ void ApiListener::UpdateConfigObject(const ConfigObject::Ptr& object, const Mess
 
 #ifdef I2_DEBUG
 	Log(LogDebug, "ApiListener")
-	    << "Sent update for object '" << object->GetName() << "': " << JsonEncode(params);
+		<< "Sent update for object '" << object->GetName() << "': " << JsonEncode(params);
 #endif /* I2_DEBUG */
 
 	if (client)
@@ -356,7 +356,7 @@ void ApiListener::UpdateConfigObject(const ConfigObject::Ptr& object, const Mess
 
 
 void ApiListener::DeleteConfigObject(const ConfigObject::Ptr& object, const MessageOrigin::Ptr& origin,
-    const JsonRpcConnection::Ptr& client)
+	const JsonRpcConnection::Ptr& client)
 {
 	if (object->GetPackage() != "_api")
 		return;
@@ -367,8 +367,8 @@ void ApiListener::DeleteConfigObject(const ConfigObject::Ptr& object, const Mess
 
 		if (target_zone && !target_zone->CanAccessObject(object)) {
 			Log(LogDebug, "ApiListener")
-			    << "Not sending 'delete config' message to unauthorized zone '" << target_zone->GetName() << "'"
-			    << " for object: '" << object->GetName() << "'.";
+				<< "Not sending 'delete config' message to unauthorized zone '" << target_zone->GetName() << "'"
+				<< " for object: '" << object->GetName() << "'.";
 
 			return;
 		}
@@ -387,7 +387,7 @@ void ApiListener::DeleteConfigObject(const ConfigObject::Ptr& object, const Mess
 
 #ifdef I2_DEBUG
 	Log(LogDebug, "ApiListener")
-	    << "Sent delete for object '" << object->GetName() << "': " << JsonEncode(params);
+		<< "Sent delete for object '" << object->GetName() << "': " << JsonEncode(params);
 #endif /* I2_DEBUG */
 
 	if (client)
@@ -411,7 +411,7 @@ void ApiListener::SendRuntimeConfigObjects(const JsonRpcConnection::Ptr& aclient
 	Zone::Ptr azone = endpoint->GetZone();
 
 	Log(LogInformation, "ApiListener")
-	    << "Syncing runtime objects to endpoint '" << endpoint->GetName() << "'.";
+		<< "Syncing runtime objects to endpoint '" << endpoint->GetName() << "'.";
 
 	for (const Type::Ptr& type : Type::GetAllTypes()) {
 		ConfigType *dtype = dynamic_cast<ConfigType *>(type.get());
@@ -430,5 +430,5 @@ void ApiListener::SendRuntimeConfigObjects(const JsonRpcConnection::Ptr& aclient
 	}
 
 	Log(LogInformation, "ApiListener")
-	    << "Finished syncing runtime objects to endpoint '" << endpoint->GetName() << "'.";
+		<< "Finished syncing runtime objects to endpoint '" << endpoint->GetName() << "'.";
 }

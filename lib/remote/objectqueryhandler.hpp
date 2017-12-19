@@ -31,11 +31,11 @@ public:
 	DECLARE_PTR_TYPEDEFS(ObjectQueryHandler);
 
 	virtual bool HandleRequest(const ApiUser::Ptr& user, HttpRequest& request,
-	    HttpResponse& response, const Dictionary::Ptr& params) override;
+		HttpResponse& response, const Dictionary::Ptr& params) override;
 
 private:
 	static Dictionary::Ptr SerializeObjectAttrs(const Object::Ptr& object, const String& attrPrefix,
-	    const Array::Ptr& attrs, bool isJoin, bool allAttrs);
+		const Array::Ptr& attrs, bool isJoin, bool allAttrs);
 };
 
 }

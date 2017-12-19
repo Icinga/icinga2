@@ -39,7 +39,7 @@ namespace po = boost::program_options;
 static BOOL debug = FALSE;
 static BOOL noisatap = FALSE;
 
-INT wmain(INT argc, WCHAR **argv) 
+INT wmain(INT argc, WCHAR **argv)
 {
 	std::vector<nInterface> vInterfaces;
 	std::map<std::wstring, std::wstring> mapNames;
@@ -61,7 +61,7 @@ INT wmain(INT argc, WCHAR **argv)
 	return printOutput(printInfo, vInterfaces, mapNames);
 }
 
-INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& printInfo) 
+INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& printInfo)
 {
 	WCHAR namePath[MAX_PATH];
 	GetModuleFileName(NULL, namePath, MAX_PATH);
@@ -228,7 +228,7 @@ INT printOutput(printInfoStruct& printInfo, CONST std::vector<nInterface>& vInte
 	return state;
 }
 
-INT check_network(std::vector <nInterface>& vInterfaces) 
+INT check_network(std::vector <nInterface>& vInterfaces)
 {
 	CONST WCHAR *perfIn = L"\\Network Interface(*)\\Bytes Received/sec";
 	CONST WCHAR *perfOut = L"\\Network Interface(*)\\Bytes Sent/sec";
@@ -247,11 +247,11 @@ INT check_network(std::vector <nInterface>& vInterfaces)
 		goto die;
 
 	err = PdhAddEnglishCounter(phQuery, perfIn, NULL, &phCounterIn);
-	if (!SUCCEEDED(err)) 
+	if (!SUCCEEDED(err))
 		goto die;
 
 	err = PdhAddEnglishCounter(phQuery, perfOut, NULL, &phCounterOut);
-	if (!SUCCEEDED(err)) 
+	if (!SUCCEEDED(err))
 		goto die;
 
 	if (debug)

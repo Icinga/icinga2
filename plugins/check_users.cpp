@@ -29,7 +29,7 @@ namespace po = boost::program_options;
 
 static BOOL debug = FALSE;
 
-INT wmain(INT argc, WCHAR **argv) 
+INT wmain(INT argc, WCHAR **argv)
 {
 	printInfoStruct printInfo = { };
 	po::variables_map vm;
@@ -45,7 +45,7 @@ INT wmain(INT argc, WCHAR **argv)
 	return printOutput(printInfo);
 }
 
-INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& printInfo) 
+INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& printInfo)
 {
 	WCHAR namePath[MAX_PATH];
 	GetModuleFileName(NULL, namePath, MAX_PATH);
@@ -145,7 +145,7 @@ INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& p
 	return -1;
 }
 
-INT printOutput(printInfoStruct& printInfo) 
+INT printOutput(printInfoStruct& printInfo)
 {
 	if (debug)
 		std::wcout << L"Constructing output string" << '\n';
@@ -176,14 +176,14 @@ INT printOutput(printInfoStruct& printInfo)
 	return state;
 }
 
-INT check_users(printInfoStruct& printInfo) 
+INT check_users(printInfoStruct& printInfo)
 {
 	DOUBLE users = 0;
 	WTS_SESSION_INFOW *pSessionInfo = NULL;
 	DWORD count;
 	DWORD index;
 
-	if (debug) 
+	if (debug)
 		std::wcout << L"Trying to enumerate terminal sessions" << '\n';
 
 	if (!WTSEnumerateSessions(WTS_CURRENT_SERVER_HANDLE, 0, 1, &pSessionInfo, &count)) {

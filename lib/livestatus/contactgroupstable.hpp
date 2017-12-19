@@ -38,7 +38,7 @@ public:
 	ContactGroupsTable(void);
 
 	static void AddColumns(Table *table, const String& prefix = String(),
-	    const Column::ObjectAccessor& objectAccessor = Column::ObjectAccessor());
+		const Column::ObjectAccessor& objectAccessor = Column::ObjectAccessor());
 
 	virtual String GetName(void) const override;
 	virtual String GetPrefix(void) const override;

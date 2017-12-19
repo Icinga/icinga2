@@ -41,9 +41,9 @@ public:
 
 	virtual Dictionary::Ptr Execute(const intrusive_ptr<Notification>& notification,
 		const User::Ptr& user, const CheckResult::Ptr& cr, const NotificationType& type,
-	    const String& author, const String& comment,
-	    const Dictionary::Ptr& resolvedMacros = nullptr,
-	    bool useResolvedMacros = false);
+		const String& author, const String& comment,
+		const Dictionary::Ptr& resolvedMacros = nullptr,
+		bool useResolvedMacros = false);
 };
 
 }

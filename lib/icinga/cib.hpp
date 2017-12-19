@@ -29,12 +29,12 @@ namespace icinga
 {
 
 struct CheckableCheckStatistics {
-    double min_latency;
-    double max_latency;
-    double avg_latency;
-    double min_execution_time;
-    double max_execution_time;
-    double avg_execution_time;
+	double min_latency;
+	double max_latency;
+	double avg_latency;
+	double min_execution_time;
+	double max_execution_time;
+	double avg_execution_time;
 };
 
 struct ServiceStatistics {

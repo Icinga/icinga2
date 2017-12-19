@@ -36,14 +36,14 @@ std::map<String, std::vector<ZoneFragment> > ConfigCompiler::m_ZoneDirs;
  * Constructor for the ConfigCompiler class.
  *
  * @param path The path of the configuration file (or another name that
- *	       identifies the source of the configuration text).
+ *        identifies the source of the configuration text).
  * @param input Input stream for the configuration file.
  * @param zone The zone.
  */
 ConfigCompiler::ConfigCompiler(const String& path, std::istream *input,
-    const String& zone, const String& package)
+	const String& zone, const String& package)
 	: m_Path(path), m_Input(input), m_Zone(zone), m_Package(package),
-	  m_Eof(false), m_OpenBraces(0)
+	m_Eof(false), m_OpenBraces(0)
 {
 	InitializeScanner();
 }
@@ -110,14 +110,14 @@ String ConfigCompiler::GetPackage(void) const
 }
 
 void ConfigCompiler::CollectIncludes(std::vector<std::unique_ptr<Expression> >& expressions,
-    const String& file, const String& zone, const String& package)
+	const String& file, const String& zone, const String& package)
 {
 	try {
 		expressions.emplace_back(CompileFile(file, zone, package));
 	} catch (const std::exception& ex) {
 		Log(LogWarning, "ConfigCompiler")
-		    << "Cannot compile file '"
-		    << file << "': " << DiagnosticInformation(ex);
+			<< "Cannot compile file '"
+			<< file << "': " << DiagnosticInformation(ex);
 	}
 }
 
@@ -130,7 +130,7 @@ void ConfigCompiler::CollectIncludes(std::vector<std::unique_ptr<Expression> >& 
  * @param debuginfo Debug information.
  */
 std::unique_ptr<Expression> ConfigCompiler::HandleInclude(const String& relativeBase, const String& path,
-    bool search, const String& zone, const String& package, const DebugInfo& debuginfo)
+	bool search, const String& zone, const String& package, const DebugInfo& debuginfo)
 {
 	String upath;
 
@@ -174,7 +174,7 @@ std::unique_ptr<Expression> ConfigCompiler::HandleInclude(const String& relative
  * @param debuginfo Debug information.
  */
 std::unique_ptr<Expression> ConfigCompiler::HandleIncludeRecursive(const String& relativeBase, const String& path,
-    const String& pattern, const String& zone, const String& package, const DebugInfo&)
+	const String& pattern, const String& zone, const String& package, const DebugInfo&)
 {
 	String ppath;
 
@@ -217,7 +217,7 @@ void ConfigCompiler::HandleIncludeZone(const String& relativeBase, const String&
  * @param debuginfo Debug information.
  */
 std::unique_ptr<Expression> ConfigCompiler::HandleIncludeZones(const String& relativeBase, const String& tag,
-    const String& path, const String& pattern, const String& package, const DebugInfo&)
+	const String& path, const String& pattern, const String& package, const DebugInfo&)
 {
 	String ppath;
 	String newRelativeBase = relativeBase;
@@ -242,7 +242,7 @@ std::unique_ptr<Expression> ConfigCompiler::HandleIncludeZones(const String& rel
  * @returns Configuration items.
  */
 std::unique_ptr<Expression> ConfigCompiler::CompileStream(const String& path,
-    std::istream *stream, const String& zone, const String& package)
+	std::istream *stream, const String& zone, const String& package)
 {
 	CONTEXT("Compiling configuration stream with name '" + path + "'");
 
@@ -266,7 +266,7 @@ std::unique_ptr<Expression> ConfigCompiler::CompileStream(const String& path,
  * @returns Configuration items.
  */
 std::unique_ptr<Expression> ConfigCompiler::CompileFile(const String& path, const String& zone,
-    const String& package)
+	const String& package)
 {
 	CONTEXT("Compiling configuration file '" + path + "'");
 
@@ -279,7 +279,7 @@ std::unique_ptr<Expression> ConfigCompiler::CompileFile(const String& path, cons
 			<< boost::errinfo_file_name(path));
 
 	Log(LogNotice, "ConfigCompiler")
-	    << "Compiling config file: " << path;
+		<< "Compiling config file: " << path;
 
 	return CompileStream(path, &stream, zone, package);
 }
@@ -292,7 +292,7 @@ std::unique_ptr<Expression> ConfigCompiler::CompileFile(const String& path, cons
  * @returns Configuration items.
  */
 std::unique_ptr<Expression> ConfigCompiler::CompileText(const String& path, const String& text,
-    const String& zone, const String& package)
+	const String& zone, const String& package)
 {
 	std::stringstream stream(text);
 	return CompileStream(path, &stream, zone, package);
@@ -306,7 +306,7 @@ std::unique_ptr<Expression> ConfigCompiler::CompileText(const String& path, cons
 void ConfigCompiler::AddIncludeSearchDir(const String& dir)
 {
 	Log(LogInformation, "ConfigCompiler")
-	    << "Adding include search dir: " << dir;
+		<< "Adding include search dir: " << dir;
 
 	m_IncludeSearchDirs.push_back(dir);
 }
@@ -344,7 +344,7 @@ bool ConfigCompiler::HasZoneConfigAuthority(const String& zoneName)
 		}
 
 		Log(LogNotice, "ConfigCompiler")
-		    << "Registered authoritative config directories for zone '" << zoneName << "': " << Utility::NaturalJoin(paths);
+			<< "Registered authoritative config directories for zone '" << zoneName << "': " << Utility::NaturalJoin(paths);
 	}
 
 	return !empty;

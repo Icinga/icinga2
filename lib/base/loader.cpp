@@ -41,16 +41,16 @@ void Loader::LoadExtensionLibrary(const String& library)
 #endif /* _WIN32 */
 
 	Log(LogNotice, "Loader")
-	    << "Loading library '" << path << "'";
+		<< "Loading library '" << path << "'";
 
 #ifdef _WIN32
 	HMODULE hModule = LoadLibrary(path.CStr());
 
 	if (!hModule) {
 		BOOST_THROW_EXCEPTION(win32_error()
-		    << boost::errinfo_api_function("LoadLibrary")
-		    << errinfo_win32_error(GetLastError())
-		    << boost::errinfo_file_name(path));
+			<< boost::errinfo_api_function("LoadLibrary")
+			<< errinfo_win32_error(GetLastError())
+			<< boost::errinfo_file_name(path));
 	}
 #else /* _WIN32 */
 	void *hModule = dlopen(path.CStr(), RTLD_NOW | RTLD_GLOBAL);

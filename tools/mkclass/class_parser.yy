@@ -113,9 +113,8 @@ int yylex(YYSTYPE *lvalp, YYLTYPE *llocp, void *scanner);
 
 void yyerror(YYLTYPE *locp, ClassCompiler *, const char *err)
 {
-	std::cerr << "in " << locp->path << " at " << locp->first_line << ":" << locp->first_column << "-" << locp->last_line << ":" << locp->last_column << ": "
-			  << err
-			  << std::endl;
+	std::cerr << "in " << locp->path << " at " << locp->first_line << ":" << locp->first_column << "-"
+		<< locp->last_line << ":" << locp->last_column << ": " << err << std::endl;
 	std::exit(1);
 }
 

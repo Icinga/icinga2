@@ -40,7 +40,7 @@ using namespace icinga;
 
 String ApiSetupUtility::GetConfdPath(void)
 {
-        return Application::GetSysconfDir() + "/icinga2/conf.d";
+		return Application::GetSysconfDir() + "/icinga2/conf.d";
 }
 
 bool ApiSetupUtility::SetupMaster(const String& cn, bool prompt_restart)
@@ -80,7 +80,7 @@ bool ApiSetupUtility::SetupMasterCertificates(const String& cn)
 
 	if (!Utility::SetFileOwnership(pki_path, user, group)) {
 		Log(LogWarning, "cli")
-		    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << pki_path << "'.";
+			<< "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << pki_path << "'.";
 	}
 
 	String key = pki_path + "/" + cn + ".key";
@@ -88,12 +88,12 @@ bool ApiSetupUtility::SetupMasterCertificates(const String& cn)
 
 	if (Utility::PathExists(key)) {
 		Log(LogInformation, "cli")
-		    << "Private key file '" << key << "' already exists, not generating new certificate.";
+			<< "Private key file '" << key << "' already exists, not generating new certificate.";
 		return true;
 	}
 
 	Log(LogInformation, "cli")
-	    << "Generating new CSR in '" << csr << "'.";
+		<< "Generating new CSR in '" << csr << "'.";
 
 	if (Utility::PathExists(key))
 		NodeUtility::CreateBackupFile(key, true);
@@ -109,7 +109,7 @@ bool ApiSetupUtility::SetupMasterCertificates(const String& cn)
 	String cert = pki_path + "/" + cn + ".crt";
 
 	Log(LogInformation, "cli")
-	    << "Signing CSR with CA and writing certificate to '" << cert << "'.";
+		<< "Signing CSR with CA and writing certificate to '" << cert << "'.";
 
 	if (Utility::PathExists(cert))
 		NodeUtility::CreateBackupFile(cert);
@@ -126,7 +126,7 @@ bool ApiSetupUtility::SetupMasterCertificates(const String& cn)
 	String target_ca = pki_path + "/ca.crt";
 
 	Log(LogInformation, "cli")
-	    << "Copying CA certificate to '" << target_ca << "'.";
+		<< "Copying CA certificate to '" << target_ca << "'.";
 
 	if (Utility::PathExists(target_ca))
 		NodeUtility::CreateBackupFile(target_ca);
@@ -138,7 +138,7 @@ bool ApiSetupUtility::SetupMasterCertificates(const String& cn)
 	for (const String& file : { ca_path, ca, ca_key, target_ca, key, csr, cert }) {
 		if (!Utility::SetFileOwnership(file, user, group)) {
 			Log(LogWarning, "cli")
-			    << "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << file << "'.";
+				<< "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << file << "'.";
 		}
 	}
 
@@ -153,12 +153,12 @@ bool ApiSetupUtility::SetupMasterApiUser(void)
 
 	if (Utility::PathExists(apiUsersPath)) {
 		Log(LogInformation, "cli")
-		    << "API user config file '" << apiUsersPath << "' already exists, not creating config file.";
+			<< "API user config file '" << apiUsersPath << "' already exists, not creating config file.";
 		return true;
 	}
 
 	Log(LogInformation, "cli")
-	    << "Adding new ApiUser '" << api_username << "' in '" << apiUsersPath << "'.";
+		<< "Adding new ApiUser '" << api_username << "' in '" << apiUsersPath << "'.";
 
 	NodeUtility::CreateBackupFile(apiUsersPath);
 
@@ -166,14 +166,14 @@ bool ApiSetupUtility::SetupMasterApiUser(void)
 	String tempFilename = Utility::CreateTempFile(apiUsersPath + ".XXXXXX", 0644, fp);
 
 	fp << "/**\n"
-	    << " * The APIUser objects are used for authentication against the API.\n"
-	    << " */\n"
-	    << "object ApiUser \"" << api_username << "\" {\n"
-	    << "  password = \"" << api_password << "\"\n"
-	    << "  // client_cn = \"\"\n"
-	    << "\n"
-	    << "  permissions = [ \"*\" ]\n"
-	    << "}\n";
+		<< " * The APIUser objects are used for authentication against the API.\n"
+		<< " */\n"
+		<< "object ApiUser \"" << api_username << "\" {\n"
+		<< "  password = \"" << api_password << "\"\n"
+		<< "  // client_cn = \"\"\n"
+		<< "\n"
+		<< "  permissions = [ \"*\" ]\n"
+		<< "}\n";
 
 	fp.close();
 
@@ -183,9 +183,9 @@ bool ApiSetupUtility::SetupMasterApiUser(void)
 
 	if (rename(tempFilename.CStr(), apiUsersPath.CStr()) < 0) {
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("rename")
-		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(tempFilename));
+			<< boost::errinfo_api_function("rename")
+			<< boost::errinfo_errno(errno)
+			<< boost::errinfo_file_name(tempFilename));
 	}
 
 	return true;

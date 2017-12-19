@@ -29,8 +29,8 @@ UnixSocket::UnixSocket(void)
 
 	if (fd < 0) {
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("socket")
-		    << boost::errinfo_errno(errno));
+			<< boost::errinfo_api_function("socket")
+			<< boost::errinfo_errno(errno));
 	}
 
 	SetFD(fd);
@@ -48,8 +48,8 @@ void UnixSocket::Bind(const String& path)
 
 	if (bind(GetFD(), (sockaddr *)&s_un, SUN_LEN(&s_un)) < 0) {
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("bind")
-		    << boost::errinfo_errno(errno));
+			<< boost::errinfo_api_function("bind")
+			<< boost::errinfo_errno(errno));
 	}
 }
 
@@ -63,8 +63,8 @@ void UnixSocket::Connect(const String& path)
 
 	if (connect(GetFD(), (sockaddr *)&s_un, SUN_LEN(&s_un)) < 0 && errno != EINPROGRESS) {
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("connect")
-		    << boost::errinfo_errno(errno));
+			<< boost::errinfo_api_function("connect")
+			<< boost::errinfo_errno(errno));
 	}
 }
 #endif /* _WIN32 */

@@ -27,8 +27,8 @@
 using namespace icinga;
 
 ApiClient::ApiClient(const String& host, const String& port,
-    const String& user, const String& password)
-    : m_Connection(new HttpClientConnection(host, port, true)), m_User(user), m_Password(password)
+	const String& user, const String& password)
+	: m_Connection(new HttpClientConnection(host, port, true)), m_User(user), m_Password(password)
 {
 	m_Connection->Start();
 }
@@ -54,7 +54,7 @@ void ApiClient::GetTypes(const TypesCompletionCallback& callback) const
 }
 
 void ApiClient::TypesHttpCompletionCallback(HttpRequest& request, HttpResponse& response,
-    const TypesCompletionCallback& callback)
+	const TypesCompletionCallback& callback)
 {
 	Dictionary::Ptr result;
 
@@ -93,14 +93,14 @@ void ApiClient::TypesHttpCompletionCallback(HttpRequest& request, HttpResponse& 
 		callback(boost::exception_ptr(), types);
 	} catch (const std::exception& ex) {
 		Log(LogCritical, "ApiClient")
-		    << "Error while decoding response: " << DiagnosticInformation(ex);
+			<< "Error while decoding response: " << DiagnosticInformation(ex);
 		callback(boost::current_exception(), std::vector<ApiType::Ptr>());
 	}
 
 }
 
 void ApiClient::GetObjects(const String& pluralType, const ObjectsCompletionCallback& callback,
-    const std::vector<String>& names, const std::vector<String>& attrs, const std::vector<String>& joins, bool all_joins) const
+	const std::vector<String>& names, const std::vector<String>& attrs, const std::vector<String>& joins, bool all_joins) const
 {
 	Url::Ptr url = new Url();
 	url->SetScheme("https");
@@ -139,7 +139,7 @@ void ApiClient::GetObjects(const String& pluralType, const ObjectsCompletionCall
 }
 
 void ApiClient::ObjectsHttpCompletionCallback(HttpRequest& request,
-    HttpResponse& response, const ObjectsCompletionCallback& callback)
+	HttpResponse& response, const ObjectsCompletionCallback& callback)
 {
 	Dictionary::Ptr result;
 
@@ -221,7 +221,7 @@ void ApiClient::ObjectsHttpCompletionCallback(HttpRequest& request,
 }
 
 void ApiClient::ExecuteScript(const String& session, const String& command, bool sandboxed,
-    const ExecuteScriptCompletionCallback& callback) const
+	const ExecuteScriptCompletionCallback& callback) const
 {
 	Url::Ptr url = new Url();
 	url->SetScheme("https");
@@ -248,7 +248,7 @@ void ApiClient::ExecuteScript(const String& session, const String& command, bool
 }
 
 void ApiClient::ExecuteScriptHttpCompletionCallback(HttpRequest& request,
-    HttpResponse& response, const ExecuteScriptCompletionCallback& callback)
+	HttpResponse& response, const ExecuteScriptCompletionCallback& callback)
 {
 	Dictionary::Ptr result;
 
@@ -300,7 +300,7 @@ void ApiClient::ExecuteScriptHttpCompletionCallback(HttpRequest& request,
 }
 
 void ApiClient::AutocompleteScript(const String& session, const String& command, bool sandboxed,
-    const AutocompleteScriptCompletionCallback& callback) const
+	const AutocompleteScriptCompletionCallback& callback) const
 {
 	Url::Ptr url = new Url();
 	url->SetScheme("https");
@@ -327,7 +327,7 @@ void ApiClient::AutocompleteScript(const String& session, const String& command,
 }
 
 void ApiClient::AutocompleteScriptHttpCompletionCallback(HttpRequest& request,
-    HttpResponse& response, const AutocompleteScriptCompletionCallback& callback)
+	HttpResponse& response, const AutocompleteScriptCompletionCallback& callback)
 {
 	Dictionary::Ptr result;
 

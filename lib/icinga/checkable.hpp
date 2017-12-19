@@ -131,15 +131,15 @@ public:
 	static boost::signals2::signal<void (const Checkable::Ptr&, const CheckResult::Ptr&, StateType, const MessageOrigin::Ptr&)> OnStateChange;
 	static boost::signals2::signal<void (const Checkable::Ptr&, const CheckResult::Ptr&, std::set<Checkable::Ptr>, const MessageOrigin::Ptr&)> OnReachabilityChanged;
 	static boost::signals2::signal<void (const Checkable::Ptr&, NotificationType, const CheckResult::Ptr&,
-	    const String&, const String&, const MessageOrigin::Ptr&)> OnNotificationsRequested;
+		const String&, const String&, const MessageOrigin::Ptr&)> OnNotificationsRequested;
 	static boost::signals2::signal<void (const Notification::Ptr&, const Checkable::Ptr&, const User::Ptr&,
-	    const NotificationType&, const CheckResult::Ptr&, const String&, const String&, const String&,
-	    const MessageOrigin::Ptr&)> OnNotificationSentToUser;
+		const NotificationType&, const CheckResult::Ptr&, const String&, const String&, const String&,
+		const MessageOrigin::Ptr&)> OnNotificationSentToUser;
 	static boost::signals2::signal<void (const Notification::Ptr&, const Checkable::Ptr&, const std::set<User::Ptr>&,
-	    const NotificationType&, const CheckResult::Ptr&, const String&,
-	    const String&, const MessageOrigin::Ptr&)> OnNotificationSentToAllUsers;
+		const NotificationType&, const CheckResult::Ptr&, const String&,
+		const String&, const MessageOrigin::Ptr&)> OnNotificationSentToAllUsers;
 	static boost::signals2::signal<void (const Checkable::Ptr&, const String&, const String&, AcknowledgementType,
-					     bool, bool, double, const MessageOrigin::Ptr&)> OnAcknowledgementSet;
+		bool, bool, double, const MessageOrigin::Ptr&)> OnAcknowledgementSet;
 	static boost::signals2::signal<void (const Checkable::Ptr&, const MessageOrigin::Ptr&)> OnAcknowledgementCleared;
 	static boost::signals2::signal<void (const Checkable::Ptr&)> OnNextCheckUpdated;
 	static boost::signals2::signal<void (const Checkable::Ptr&)> OnEventCommandExecuted;
@@ -175,7 +175,7 @@ public:
 
 	/* Event Handler */
 	void ExecuteEventHandler(const Dictionary::Ptr& resolvedMacros = nullptr,
-	    bool useResolvedMacros = false);
+		bool useResolvedMacros = false);
 
 	intrusive_ptr<EventCommand> GetEventCommand(void) const;
 

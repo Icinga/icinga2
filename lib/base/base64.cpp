@@ -46,7 +46,7 @@ String Base64::Encode(const String& input)
 String Base64::Decode(const String& input)
 {
 	BIO *biomem = BIO_new_mem_buf(
-	    const_cast<char*>(input.CStr()), input.GetLength());
+		const_cast<char*>(input.CStr()), input.GetLength());
 	BIO *bio64 = BIO_new(BIO_f_base64());
 	BIO_push(bio64, biomem);
 	BIO_set_flags(bio64, BIO_FLAGS_BASE64_NO_NL);

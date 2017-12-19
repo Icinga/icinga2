@@ -87,20 +87,20 @@ public:
 
 		if (sev == LogWarning) {
 			*m_Stream
-			    << '\n' << ConsoleColorTag(Console_ForegroundYellow, m_ConsoleType) << std::string(24, '#') << '\n'
-			    << ConsoleColorTag(Console_Normal, m_ConsoleType) << str
-			    << ConsoleColorTag(Console_ForegroundYellow, m_ConsoleType) << std::string(24, '#') << "\n\n"
-			    << ConsoleColorTag(Console_Normal, m_ConsoleType);
+				<< '\n' << ConsoleColorTag(Console_ForegroundYellow, m_ConsoleType) << std::string(24, '#') << '\n'
+				<< ConsoleColorTag(Console_Normal, m_ConsoleType) << str
+				<< ConsoleColorTag(Console_ForegroundYellow, m_ConsoleType) << std::string(24, '#') << "\n\n"
+				<< ConsoleColorTag(Console_Normal, m_ConsoleType);
 		} else if (sev == LogCritical) {
 			*m_Stream
-			    << '\n' << ConsoleColorTag(Console_ForegroundRed, m_ConsoleType) << std::string(24, '#') << '\n'
-			    << ConsoleColorTag(Console_Normal, m_ConsoleType) << str
-			    << ConsoleColorTag(Console_ForegroundRed, m_ConsoleType) << std::string(24, '#') << "\n\n"
-			    << ConsoleColorTag(Console_Normal, m_ConsoleType);
+				<< '\n' << ConsoleColorTag(Console_ForegroundRed, m_ConsoleType) << std::string(24, '#') << '\n'
+				<< ConsoleColorTag(Console_Normal, m_ConsoleType) << str
+				<< ConsoleColorTag(Console_ForegroundRed, m_ConsoleType) << std::string(24, '#') << "\n\n"
+				<< ConsoleColorTag(Console_Normal, m_ConsoleType);
 		} else
 			*m_Stream
-			    << ConsoleColorTag(color, m_ConsoleType) << str
-			    << ConsoleColorTag(Console_Normal, m_ConsoleType);
+				<< ConsoleColorTag(color, m_ConsoleType) << str
+				<< ConsoleColorTag(Console_Normal, m_ConsoleType);
 	}
 
 	bool GetStreamHealth(void) const
@@ -143,23 +143,23 @@ private:
 bool TroubleshootCommand::GeneralInfo(InfoLog& log, const boost::program_options::variables_map& vm)
 {
 	InfoLogLine(log, Console_ForegroundBlue)
-	    << std::string(14, '=') << " GENERAL INFORMATION " << std::string(14, '=') << "\n\n";
+		<< std::string(14, '=') << " GENERAL INFORMATION " << std::string(14, '=') << "\n\n";
 
 	//Application::DisplayInfoMessage() but formatted
 	InfoLogLine(log)
-	    << "\tApplication version: " << Application::GetAppVersion() << '\n'
-	    << "\tInstallation root: " << Application::GetPrefixDir() << '\n'
-	    << "\tSysconf directory: " << Application::GetSysconfDir() << '\n'
-	    << "\tRun directory: " << Application::GetRunDir() << '\n'
-	    << "\tLocal state directory: " << Application::GetLocalStateDir() << '\n'
-	    << "\tPackage data directory: " << Application::GetPkgDataDir() << '\n'
-	    << "\tState path: " << Application::GetStatePath() << '\n'
-	    << "\tObjects path: " << Application::GetObjectsPath() << '\n'
-	    << "\tVars path: " << Application::GetVarsPath() << '\n'
-	    << "\tPID path: " << Application::GetPidPath() << '\n';
+		<< "\tApplication version: " << Application::GetAppVersion() << '\n'
+		<< "\tInstallation root: " << Application::GetPrefixDir() << '\n'
+		<< "\tSysconf directory: " << Application::GetSysconfDir() << '\n'
+		<< "\tRun directory: " << Application::GetRunDir() << '\n'
+		<< "\tLocal state directory: " << Application::GetLocalStateDir() << '\n'
+		<< "\tPackage data directory: " << Application::GetPkgDataDir() << '\n'
+		<< "\tState path: " << Application::GetStatePath() << '\n'
+		<< "\tObjects path: " << Application::GetObjectsPath() << '\n'
+		<< "\tVars path: " << Application::GetVarsPath() << '\n'
+		<< "\tPID path: " << Application::GetPidPath() << '\n';
 
 	InfoLogLine(log)
-	    << '\n';
+		<< '\n';
 
 	return true;
 }
@@ -174,15 +174,15 @@ bool TroubleshootCommand::FeatureInfo(InfoLog& log, const boost::program_options
 bool TroubleshootCommand::ObjectInfo(InfoLog& log, const boost::program_options::variables_map& vm, Dictionary::Ptr& logs, const String& path)
 {
 	InfoLogLine(log, Console_ForegroundBlue)
-	    << std::string(14, '=') << " OBJECT INFORMATION " << std::string(14, '=') << "\n\n";
+		<< std::string(14, '=') << " OBJECT INFORMATION " << std::string(14, '=') << "\n\n";
 
 	String objectfile = Application::GetObjectsPath();
 	std::set<String> configs;
 
 	if (!Utility::PathExists(objectfile)) {
 		InfoLogLine(log, 0, LogCritical)
-		    << "Cannot open object file '" << objectfile << "'.\n"
-		    << "FAILED: This probably means you have a fault configuration.\n";
+			<< "Cannot open object file '" << objectfile << "'.\n"
+			<< "FAILED: This probably means you have a fault configuration.\n";
 		return false;
 	} else {
 		InfoLog *OFile = nullptr;
@@ -194,12 +194,12 @@ bool TroubleshootCommand::ObjectInfo(InfoLog& log, const boost::program_options:
 				OFile = new InfoLog(path+"-objects", false);
 				if (!OFile->GetStreamHealth()) {
 					InfoLogLine(log, 0, LogWarning)
-					    << "Failed to open Object-write-stream, not printing objects\n\n";
+						<< "Failed to open Object-write-stream, not printing objects\n\n";
 					delete OFile;
 					OFile = nullptr;
 				} else
 					InfoLogLine(log)
-				        << "Printing all objects to " << path+"-objects\n";
+						<< "Printing all objects to " << path+"-objects\n";
 			}
 		}
 		CheckObjectFile(objectfile, log, OFile, OConsole, logs, configs);
@@ -209,24 +209,24 @@ bool TroubleshootCommand::ObjectInfo(InfoLog& log, const boost::program_options:
 	if (vm.count("include-vars")) {
 		if (vm.count("console")) {
 			InfoLogLine(log, Console_ForegroundBlue)
-			    << "\n[begin: varsfile]\n";
+				<< "\n[begin: varsfile]\n";
 			if (!PrintVarsFile(path, true))
 				InfoLogLine(log, 0, LogWarning)
-				    << "Failed to print vars file\n";
+					<< "Failed to print vars file\n";
 			InfoLogLine(log, Console_ForegroundBlue)
-			    << "[end: varsfile]\n";
+				<< "[end: varsfile]\n";
 		} else {
 			if (PrintVarsFile(path, false))
 				InfoLogLine(log)
-				    << "Successfully printed all variables to " << path+"-vars\n";
+					<< "Successfully printed all variables to " << path+"-vars\n";
 			else
 				InfoLogLine(log, 0, LogWarning)
-				    << "Failed to print vars to " << path+"-vars\n";
+					<< "Failed to print vars to " << path+"-vars\n";
 		}
 	}
 
 	InfoLogLine(log)
-	    << '\n';
+		<< '\n';
 
 	return true;
 }
@@ -234,12 +234,12 @@ bool TroubleshootCommand::ObjectInfo(InfoLog& log, const boost::program_options:
 bool TroubleshootCommand::ReportInfo(InfoLog& log, const boost::program_options::variables_map& vm, Dictionary::Ptr& logs)
 {
 	InfoLogLine(log, Console_ForegroundBlue)
-	    << std::string(14, '=') << " LOGS AND CRASH REPORTS " << std::string(14, '=') << "\n\n";
+		<< std::string(14, '=') << " LOGS AND CRASH REPORTS " << std::string(14, '=') << "\n\n";
 	PrintLoggers(log, logs);
 	PrintCrashReports(log);
 
 	InfoLogLine(log)
-	    << '\n';
+		<< '\n';
 
 	return true;
 }
@@ -247,26 +247,26 @@ bool TroubleshootCommand::ReportInfo(InfoLog& log, const boost::program_options:
 bool TroubleshootCommand::ConfigInfo(InfoLog& log, const boost::program_options::variables_map& vm)
 {
 	InfoLogLine(log, Console_ForegroundBlue)
-	    << std::string(14, '=') << " CONFIGURATION FILES " << std::string(14, '=') << "\n\n";
+		<< std::string(14, '=') << " CONFIGURATION FILES " << std::string(14, '=') << "\n\n";
 
 	InfoLogLine(log)
-	    << "A collection of important configuration files follows, please make sure to remove any sensitive data such as credentials, internal company names, etc\n";
+		<< "A collection of important configuration files follows, please make sure to remove any sensitive data such as credentials, internal company names, etc\n";
 
 	if (!PrintFile(log, Application::GetSysconfDir() + "/icinga2/icinga2.conf")) {
 		InfoLogLine(log, 0, LogWarning)
-		    << "icinga2.conf not found, therefore skipping validation.\n"
-		    << "If you are using an icinga2.conf somewhere but the default path please validate it via 'icinga2 daemon -C -c \"path\to/icinga2.conf\"'\n"
-		    << "and provide it with your support request.\n";
+			<< "icinga2.conf not found, therefore skipping validation.\n"
+			<< "If you are using an icinga2.conf somewhere but the default path please validate it via 'icinga2 daemon -C -c \"path\to/icinga2.conf\"'\n"
+			<< "and provide it with your support request.\n";
 	}
 
 	if (!PrintFile(log, Application::GetSysconfDir() + "/icinga2/zones.conf")) {
 		InfoLogLine(log, 0, LogWarning)
-		    << "zones.conf not found.\n"
-		    << "If you are using a zones.conf somewhere but the default path please provide it with your support request\n";
+			<< "zones.conf not found.\n"
+			<< "If you are using a zones.conf somewhere but the default path please provide it with your support request\n";
 	}
 
 	InfoLogLine(log)
-	   << '\n';
+		<< '\n';
 
 	return true;
 }
@@ -292,19 +292,19 @@ int TroubleshootCommand::Tail(const String& file, int numLines, InfoLog& log)
 		numLines = lines;
 
 	InfoLogLine(log, Console_ForegroundCyan)
-	    << "[begin: '" << file << "' line: " << lines-numLines << "]\n";
+		<< "[begin: '" << file << "' line: " << lines-numLines << "]\n";
 
 	for (int k = 0; k < numLines; k++) {
 		InfoLogLine(log, Console_ForegroundCyan)
-		    <<  "#  ";
+			<<  "#  ";
 		InfoLogLine(log)
-		    << ringBuf[k] << '\n';
+			<< ringBuf[k] << '\n';
 	}
 
 	text.close();
 
 	InfoLogLine(log, Console_ForegroundCyan)
-	    << "[end: '" << file << "' line: " << lines << "]\n\n";
+		<< "[end: '" << file << "' line: " << lines << "]\n\n";
 
 	return numLines;
 }
@@ -316,11 +316,11 @@ bool TroubleshootCommand::CheckFeatures(InfoLog& log)
 	std::vector<String> enabled_features;
 
 	if (!FeatureUtility::GetFeatures(disabled_features, true) ||
-	    !FeatureUtility::GetFeatures(enabled_features, false)) {
+		!FeatureUtility::GetFeatures(enabled_features, false)) {
 		InfoLogLine(log, 0, LogCritical)
-		    << "Failed to collect enabled and/or disabled features. Check\n"
-		    << FeatureUtility::GetFeaturesAvailablePath() << '\n'
-		    << FeatureUtility::GetFeaturesEnabledPath() << '\n';
+			<< "Failed to collect enabled and/or disabled features. Check\n"
+			<< FeatureUtility::GetFeaturesAvailablePath() << '\n'
+			<< FeatureUtility::GetFeaturesEnabledPath() << '\n';
 		return false;
 	}
 
@@ -330,23 +330,23 @@ bool TroubleshootCommand::CheckFeatures(InfoLog& log)
 		features->Set(feature, true);
 
 	InfoLogLine(log)
-	    << "Enabled features:\n";
+		<< "Enabled features:\n";
 	InfoLogLine(log, Console_ForegroundGreen)
-	    << '\t' << boost::algorithm::join(enabled_features, " ") << '\n';
+		<< '\t' << boost::algorithm::join(enabled_features, " ") << '\n';
 	InfoLogLine(log)
-	    << "Disabled features:\n";
+		<< "Disabled features:\n";
 	InfoLogLine(log, Console_ForegroundRed)
-	    << '\t' << boost::algorithm::join(disabled_features, " ") << '\n';
+		<< '\t' << boost::algorithm::join(disabled_features, " ") << '\n';
 
 	if (!features->Get("checker").ToBool())
 		InfoLogLine(log, 0, LogWarning)
-		    << "checker is disabled, no checks can be run from this instance\n";
+			<< "checker is disabled, no checks can be run from this instance\n";
 	if (!features->Get("mainlog").ToBool())
 		InfoLogLine(log, 0, LogWarning)
-		    << "mainlog is disabled, please activate it and rerun icinga2\n";
+			<< "mainlog is disabled, please activate it and rerun icinga2\n";
 	if (!features->Get("debuglog").ToBool())
 		InfoLogLine(log, 0, LogWarning)
-		    << "debuglog is disabled, please activate it and rerun icinga2\n";
+			<< "debuglog is disabled, please activate it and rerun icinga2\n";
 
 	return true;
 }
@@ -376,27 +376,27 @@ bool TroubleshootCommand::PrintCrashReports(InfoLog& log)
 
 	try {
 		Utility::Glob(spath, std::bind(&GetLatestReport, _1, std::ref(bestTimestamp),
-		    std::ref(bestFilename)), GlobFile);
+			std::ref(bestFilename)), GlobFile);
 	}
 #ifdef _WIN32
 	catch (win32_error &ex) {
 		if (int const * err = boost::get_error_info<errinfo_win32_error>(ex)) {
 			if (*err != 3) {//Error code for path does not exist
 				InfoLogLine(log, 0, LogWarning)
-				    << Application::GetLocalStateDir() << "/log/icinga2/crash/ does not exist\n";
+					<< Application::GetLocalStateDir() << "/log/icinga2/crash/ does not exist\n";
 
 				return false;
 			}
 		}
 		InfoLogLine(log, 0, LogWarning)
-		    << "Error printing crash reports\n";
+			<< "Error printing crash reports\n";
 
 		return false;
 	}
 #else
 	catch (...) {
 		InfoLogLine(log, 0, LogWarning) << "Error printing crash reports.\n"
-		    << "Does " << Application::GetLocalStateDir() << "/log/icinga2/crash/ exist?\n";
+			<< "Does " << Application::GetLocalStateDir() << "/log/icinga2/crash/ exist?\n";
 
 		return false;
 	}
@@ -404,14 +404,14 @@ bool TroubleshootCommand::PrintCrashReports(InfoLog& log)
 
 	if (!bestTimestamp)
 		InfoLogLine(log, Console_ForegroundYellow)
-		    << "No crash logs found in " << Application::GetLocalStateDir().CStr() << "/log/icinga2/crash/\n\n";
+			<< "No crash logs found in " << Application::GetLocalStateDir().CStr() << "/log/icinga2/crash/\n\n";
 	else {
 		InfoLogLine(log)
-		    << "Latest crash report is from " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", Utility::GetTime()) << '\n'
-		    << "File: " << bestFilename << "\n\n";
+			<< "Latest crash report is from " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", Utility::GetTime()) << '\n'
+			<< "File: " << bestFilename << "\n\n";
 		PrintFile(log, bestFilename);
 		InfoLogLine(log)
-		    << '\n';
+			<< '\n';
 	}
 
 	return true;
@@ -427,17 +427,17 @@ bool TroubleshootCommand::PrintFile(InfoLog& log, const String& path)
 	std::string line;
 
 	InfoLogLine(log, Console_ForegroundCyan)
-	    << "[begin: '" << path << "']\n";
+		<< "[begin: '" << path << "']\n";
 
 	while (std::getline(text, line)) {
 		InfoLogLine(log, Console_ForegroundCyan)
-		    << "#  ";
+			<< "#  ";
 		InfoLogLine(log)
-		    << line << '\n';
+			<< line << '\n';
 	}
 
 	InfoLogLine(log, Console_ForegroundCyan)
-	     << "[end: '" << path << "']\n";
+		<< "[end: '" << path << "']\n";
 
 	return true;
 }
@@ -449,17 +449,17 @@ bool TroubleshootCommand::CheckConfig(void)
 
 //print is supposed allow the user to print the object file
 void TroubleshootCommand::CheckObjectFile(const String& objectfile, InfoLog& log, InfoLog *OFile, const bool objectConsole,
-     Dictionary::Ptr& logs, std::set<String>& configs)
+	Dictionary::Ptr& logs, std::set<String>& configs)
 {
 	InfoLogLine(log)
-	     << "Checking object file from " << objectfile << '\n';
+		<< "Checking object file from " << objectfile << '\n';
 
 	std::fstream fp;
 	fp.open(objectfile.CStr(), std::ios_base::in);
 
 	if (!fp.is_open()) {
 		InfoLogLine(log, 0, LogWarning)
-		     << "Could not open object file.\n";
+			<< "Could not open object file.\n";
 		return;
 	}
 
@@ -489,7 +489,7 @@ void TroubleshootCommand::CheckObjectFile(const String& objectfile, InfoLog& log
 		ObjectListUtility::PrintObject(sStream, first, message, type_count, "", "");
 			if (OFile) {
 				InfoLogLine(*OFile)
-				    << sStream.str();
+					<< sStream.str();
 				sStream.flush();
 			}
 		}
@@ -527,23 +527,23 @@ void TroubleshootCommand::CheckObjectFile(const String& objectfile, InfoLog& log
 
 	if (!countTotal) {
 		InfoLogLine(log, 0, LogCritical)
-		    << "No objects found in objectfile.\n";
+			<< "No objects found in objectfile.\n";
 		return;
 	}
 
 	//Print objects with count
 	InfoLogLine(log)
-	    << "Found the " << countTotal << " objects:\n"
-	    << "  Type" << std::string(typeL-4, ' ') << " : Count\n";
+		<< "Found the " << countTotal << " objects:\n"
+		<< "  Type" << std::string(typeL-4, ' ') << " : Count\n";
 
 	for (const Dictionary::Pair& kv : type_count) {
 		InfoLogLine(log)
-		    << "  " << kv.first << std::string(typeL - kv.first.GetLength(), ' ')
-		    << " : " << kv.second << '\n';
+			<< "  " << kv.first << std::string(typeL - kv.first.GetLength(), ' ')
+			<< " : " << kv.second << '\n';
 	}
 
 	InfoLogLine(log)
-	    << '\n';
+		<< '\n';
 
 	TroubleshootCommand::PrintObjectOrigin(log, configs);
 }
@@ -567,19 +567,19 @@ void TroubleshootCommand::PrintLoggers(InfoLog& log, Dictionary::Ptr& logs)
 {
 	if (!logs->GetLength()) {
 		InfoLogLine(log, 0, LogWarning)
-		     << "No loggers found, check whether you enabled any logging features\n";
+			<< "No loggers found, check whether you enabled any logging features\n";
 	} else {
 		InfoLogLine(log)
-		     << "Getting the last 20 lines of " << logs->GetLength() << " FileLogger objects.\n";
+			<< "Getting the last 20 lines of " << logs->GetLength() << " FileLogger objects.\n";
 
 		ObjectLock ulock(logs);
 		for (const Dictionary::Pair& kv : logs) {
 			InfoLogLine(log)
-			     << "Logger " << kv.first << " at path: " << kv.second << '\n';
+				<< "Logger " << kv.first << " at path: " << kv.second << '\n';
 
 			if (!Tail(kv.second, 20, log)) {
 				InfoLogLine(log, 0, LogWarning)
-				     << kv.second << " either does not exist or is empty\n";
+					<< kv.second << " either does not exist or is empty\n";
 			}
 		}
 	}
@@ -588,16 +588,16 @@ void TroubleshootCommand::PrintLoggers(InfoLog& log, Dictionary::Ptr& logs)
 void TroubleshootCommand::PrintObjectOrigin(InfoLog& log, const std::set<String>& configSet)
 {
 	InfoLogLine(log)
-	     << "The objects origins are:\n";
+		<< "The objects origins are:\n";
 
 	for (const String& config : configSet) {
 		InfoLogLine(log)
-		     << "  " << config << '\n';
+			<< "  " << config << '\n';
 	}
 }
 
 void TroubleshootCommand::InitParameters(boost::program_options::options_description& visibleDesc,
-     boost::program_options::options_description& hiddenDesc) const
+	boost::program_options::options_description& hiddenDesc) const
 {
 	visibleDesc.add_options()
 		("console,c", "print to console instead of file")
@@ -611,10 +611,10 @@ int TroubleshootCommand::Run(const boost::program_options::variables_map& vm, co
 {
 #ifdef _WIN32 //Dislikes ':' in filenames
 	String path = Application::GetLocalStateDir() + "/log/icinga2/troubleshooting-"
-	     + Utility::FormatDateTime("%Y-%m-%d_%H-%M-%S", Utility::GetTime()) + ".log";
+		+ Utility::FormatDateTime("%Y-%m-%d_%H-%M-%S", Utility::GetTime()) + ".log";
 #else
 	String path = Application::GetLocalStateDir() + "/log/icinga2/troubleshooting-"
-	     + Utility::FormatDateTime("%Y-%m-%d_%H:%M:%S", Utility::GetTime()) + ".log";
+		+ Utility::FormatDateTime("%Y-%m-%d_%H:%M:%S", Utility::GetTime()) + ".log";
 #endif /*_WIN32*/
 
 	InfoLog *log;
@@ -638,12 +638,12 @@ int TroubleshootCommand::Run(const boost::program_options::variables_map& vm, co
 	double goTime = Utility::GetTime();
 
 	InfoLogLine(*log)
-	    << appName << " -- Troubleshooting help:\n"
-	    << "Should you run into problems with Icinga please add this file to your help request\n"
-	    << "Started collection at " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", goTime) << "\n";
+		<< appName << " -- Troubleshooting help:\n"
+		<< "Should you run into problems with Icinga please add this file to your help request\n"
+		<< "Started collection at " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", goTime) << "\n";
 
 	InfoLogLine(*log, Console_ForegroundMagenta)
-	    << std::string(52, '=') << "\n\n";
+		<< std::string(52, '=') << "\n\n";
 
 	if (appName.GetLength() > 3 && appName.SubStr(0, 3) == "lt-")
 		appName = appName.SubStr(3, appName.GetLength() - 3);
@@ -651,12 +651,12 @@ int TroubleshootCommand::Run(const boost::program_options::variables_map& vm, co
 	Dictionary::Ptr logs = new Dictionary;
 
 	if (!GeneralInfo(*log, vm) ||
-	    !FeatureInfo(*log, vm) ||
-	    !ObjectInfo(*log, vm, logs, path) ||
-	    !ReportInfo(*log, vm, logs) ||
-	    !ConfigInfo(*log, vm)) {
+		!FeatureInfo(*log, vm) ||
+		!ObjectInfo(*log, vm, logs, path) ||
+		!ReportInfo(*log, vm, logs) ||
+		!ConfigInfo(*log, vm)) {
 		InfoLogLine(*log, 0, LogCritical)
-		    << "Could not recover from critical failure, exiting.\n";
+			<< "Could not recover from critical failure, exiting.\n";
 
 		delete log;
 		return 3;
@@ -665,15 +665,15 @@ int TroubleshootCommand::Run(const boost::program_options::variables_map& vm, co
 	double endTime = Utility::GetTime();
 
 	InfoLogLine(*log, Console_ForegroundMagenta)
-	    << std::string(52, '=') << '\n';
+		<< std::string(52, '=') << '\n';
 	InfoLogLine(*log, Console_ForegroundGreen)
-	    << "Finished collection at " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", endTime)
-	    << "\nTook " << Convert::ToString(endTime - goTime) << " seconds\n";
+		<< "Finished collection at " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", endTime)
+		<< "\nTook " << Convert::ToString(endTime - goTime) << " seconds\n";
 
 	if (!vm.count("console")) {
 		std::cout << "Started collection at " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", goTime) << "\n"
-		    << "Finished collection at " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", endTime)
-		    << "\nTook " << Convert::ToString(endTime - goTime) << " seconds\n\n";
+			<< "Finished collection at " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", endTime)
+			<< "\nTook " << Convert::ToString(endTime - goTime) << " seconds\n\n";
 
 		std::cout << "General log file: '" << path << "'\n";
 
@@ -683,7 +683,7 @@ int TroubleshootCommand::Run(const boost::program_options::variables_map& vm, co
 			std::cout << "Objects log file: '" << path << "-objects'\n";
 
 		std::cout << "\nPlease compress the files before uploading them,, for example:\n"
-	           << "  # tar czf troubleshoot.tar.gz " << path << "*\n";
+			<< "  # tar czf troubleshoot.tar.gz " << path << "*\n";
 	}
 
 	delete log;

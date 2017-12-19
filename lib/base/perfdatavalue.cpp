@@ -36,8 +36,8 @@ PerfdataValue::PerfdataValue(void)
 { }
 
 PerfdataValue::PerfdataValue(String label, double value, bool counter,
-    const String& unit, const Value& warn, const Value& crit, const Value& min,
-    const Value& max)
+	const String& unit, const Value& warn, const Value& crit, const Value& min,
+	const Value& max)
 {
 	SetLabel(label, true);
 	SetValue(value, true);
@@ -189,7 +189,7 @@ Value PerfdataValue::ParseWarnCritMinMaxToken(const std::vector<String>& tokens,
 	else {
 		if (tokens.size() > index && tokens[index] != "")
 			Log(LogDebug, "PerfdataValue")
-			    << "Ignoring unsupported perfdata " << description << " range, value: '" << tokens[index] << "'.";
+				<< "Ignoring unsupported perfdata " << description << " range, value: '" << tokens[index] << "'.";
 		return Empty;
 	}
 }

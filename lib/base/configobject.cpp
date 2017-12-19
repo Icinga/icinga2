@@ -491,7 +491,7 @@ void ConfigObject::SetAuthority(bool authority)
 void ConfigObject::DumpObjects(const String& filename, int attributeTypes)
 {
 	Log(LogInformation, "ConfigObject")
-	    << "Dumping program state to file '" << filename << "'";
+		<< "Dumping program state to file '" << filename << "'";
 
 	std::fstream fp;
 	String tempFilename = Utility::CreateTempFile(filename + ".XXXXXX", 0600, fp);
@@ -537,9 +537,9 @@ void ConfigObject::DumpObjects(const String& filename, int attributeTypes)
 
 	if (rename(tempFilename.CStr(), filename.CStr()) < 0) {
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("rename")
-		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(tempFilename));
+			<< boost::errinfo_api_function("rename")
+			<< boost::errinfo_errno(errno)
+			<< boost::errinfo_file_name(tempFilename));
 	}
 }
 
@@ -557,7 +557,7 @@ void ConfigObject::RestoreObject(const String& message, int attributeTypes)
 
 #ifdef I2_DEBUG
 	Log(LogDebug, "ConfigObject")
-	    << "Restoring object '" << name << "' of type '" << type << "'.";
+		<< "Restoring object '" << name << "' of type '" << type << "'.";
 #endif /* I2_DEBUG */
 	Dictionary::Ptr update = persistentObject->Get("update");
 	Deserialize(object, update, false, attributeTypes);
@@ -571,7 +571,7 @@ void ConfigObject::RestoreObjects(const String& filename, int attributeTypes)
 		return;
 
 	Log(LogInformation, "ConfigObject")
-	    << "Restoring program state from file '" << filename << "'";
+		<< "Restoring program state from file '" << filename << "'";
 
 	std::fstream fp;
 	fp.open(filename.CStr(), std::ios_base::in);
@@ -621,7 +621,7 @@ void ConfigObject::RestoreObjects(const String& filename, int attributeTypes)
 	}
 
 	Log(LogInformation, "ConfigObject")
-	    << "Restored " << restored << " objects. Loaded " << no_state << " new objects without state.";
+		<< "Restored " << restored << " objects. Loaded " << no_state << " new objects without state.";
 }
 
 void ConfigObject::StopObjects(void)

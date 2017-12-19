@@ -52,7 +52,7 @@ String ObjectListCommand::GetShortDescription(void) const
 }
 
 void ObjectListCommand::InitParameters(boost::program_options::options_description& visibleDesc,
-    boost::program_options::options_description& hiddenDesc) const
+	boost::program_options::options_description& hiddenDesc) const
 {
 	visibleDesc.add_options()
 		("count,c", "display object counts by types")
@@ -71,7 +71,7 @@ int ObjectListCommand::Run(const boost::program_options::variables_map& vm, cons
 
 	if (!Utility::PathExists(objectfile)) {
 		Log(LogCritical, "cli")
-		    << "Cannot open objects file '" << Application::GetObjectsPath() << "'.";
+			<< "Cannot open objects file '" << Application::GetObjectsPath() << "'.";
 		Log(LogCritical, "cli", "Run 'icinga2 daemon -C' to validate config and generate the cache file.");
 		return 1;
 	}
@@ -119,7 +119,7 @@ int ObjectListCommand::Run(const boost::program_options::variables_map& vm, cons
 	}
 
 	Log(LogNotice, "cli")
-	    << "Parsed " << objects_count << " objects.";
+		<< "Parsed " << objects_count << " objects.";
 
 	return 0;
 }

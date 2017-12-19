@@ -46,7 +46,7 @@ REGISTER_TYPE(GelfWriter);
 REGISTER_STATSFUNCTION(GelfWriter, &GelfWriter::StatsFunc);
 
 GelfWriter::GelfWriter(void)
-    : m_WorkQueue(10000000, 1)
+	: m_WorkQueue(10000000, 1)
 { }
 
 void GelfWriter::OnConfigLoaded(void)
@@ -84,7 +84,7 @@ void GelfWriter::Start(bool runtimeCreated)
 	ObjectImpl<GelfWriter>::Start(runtimeCreated);
 
 	Log(LogInformation, "GelfWriter")
-	    << "'" << GetName() << "' started.";
+		<< "'" << GetName() << "' started.";
 
 	/* Register exception handler for WQ tasks. */
 	m_WorkQueue.SetExceptionCallback(std::bind(&GelfWriter::ExceptionHandler, this, _1));
@@ -105,7 +105,7 @@ void GelfWriter::Start(bool runtimeCreated)
 void GelfWriter::Stop(bool runtimeRemoved)
 {
 	Log(LogInformation, "GelfWriter")
-	    << "'" << GetName() << "' stopped.";
+		<< "'" << GetName() << "' stopped.";
 
 	m_WorkQueue.Join();
 
@@ -122,7 +122,7 @@ void GelfWriter::ExceptionHandler(boost::exception_ptr exp)
 	Log(LogCritical, "GelfWriter", "Exception during Graylog Gelf operation: Verify that your backend is operational!");
 
 	Log(LogDebug, "GelfWriter")
-	    << "Exception during Graylog Gelf operation: " << DiagnosticInformation(exp);
+		<< "Exception during Graylog Gelf operation: " << DiagnosticInformation(exp);
 
 	if (GetConnected()) {
 		m_Stream->Close();
@@ -147,13 +147,13 @@ void GelfWriter::Reconnect(void)
 	TcpSocket::Ptr socket = new TcpSocket();
 
 	Log(LogNotice, "GelfWriter")
-	    << "Reconnecting to Graylog Gelf on host '" << GetHost() << "' port '" << GetPort() << "'.";
+		<< "Reconnecting to Graylog Gelf on host '" << GetHost() << "' port '" << GetPort() << "'.";
 
 	try {
 		socket->Connect(GetHost(), GetPort());
 	} catch (const std::exception& ex) {
 		Log(LogCritical, "GelfWriter")
-		    << "Can't connect to Graylog Gelf on host '" << GetHost() << "' port '" << GetPort() << "'.";
+			<< "Can't connect to Graylog Gelf on host '" << GetHost() << "' port '" << GetPort() << "'.";
 		throw ex;
 	}
 
@@ -162,7 +162,7 @@ void GelfWriter::Reconnect(void)
 	SetConnected(true);
 
 	Log(LogInformation, "GelfWriter")
-	    << "Finished reconnecting to Graylog Gelf in " << std::setw(2) << Utility::GetTime() - startTime << " second(s).";
+		<< "Finished reconnecting to Graylog Gelf in " << std::setw(2) << Utility::GetTime() - startTime << " second(s).";
 }
 
 void GelfWriter::ReconnectTimerHandler(void)
@@ -194,7 +194,7 @@ void GelfWriter::CheckResultHandlerInternal(const Checkable::Ptr& checkable, con
 	CONTEXT("GELF Processing check result for '" + checkable->GetName() + "'");
 
 	Log(LogDebug, "GelfWriter")
-	    << "Processing check result for '" << checkable->GetName() << "'";
+		<< "Processing check result for '" << checkable->GetName() << "'";
 
 	Host::Ptr host;
 	Service::Ptr service;
@@ -252,8 +252,8 @@ void GelfWriter::CheckResultHandlerInternal(const Checkable::Ptr& checkable, con
 						pdv = PerfdataValue::Parse(val);
 					} catch (const std::exception&) {
 						Log(LogWarning, "GelfWriter")
-						    << "Ignoring invalid perfdata value: '" << val << "' for object '"
-						    << checkable->GetName() << "'.";
+							<< "Ignoring invalid perfdata value: '" << val << "' for object '"
+							<< checkable->GetName() << "'.";
 					}
 				}
 
@@ -281,23 +281,23 @@ void GelfWriter::CheckResultHandlerInternal(const Checkable::Ptr& checkable, con
 }
 
 void GelfWriter::NotificationToUserHandler(const Notification::Ptr& notification, const Checkable::Ptr& checkable,
-    const User::Ptr& user, NotificationType notificationType, CheckResult::Ptr const& cr,
-    const String& author, const String& commentText, const String& commandName)
+	const User::Ptr& user, NotificationType notificationType, CheckResult::Ptr const& cr,
+	const String& author, const String& commentText, const String& commandName)
 {
 	m_WorkQueue.Enqueue(std::bind(&GelfWriter::NotificationToUserHandlerInternal, this,
-	    notification, checkable, user, notificationType, cr, author, commentText, commandName));
+		notification, checkable, user, notificationType, cr, author, commentText, commandName));
 }
 
 void GelfWriter::NotificationToUserHandlerInternal(const Notification::Ptr& notification, const Checkable::Ptr& checkable,
-    const User::Ptr& user, NotificationType notificationType, CheckResult::Ptr const& cr,
-    const String& author, const String& commentText, const String& commandName)
+	const User::Ptr& user, NotificationType notificationType, CheckResult::Ptr const& cr,
+	const String& author, const String& commentText, const String& commandName)
 {
 	AssertOnWorkQueue();
 
-  	CONTEXT("GELF Processing notification to all users '" + checkable->GetName() + "'");
+	CONTEXT("GELF Processing notification to all users '" + checkable->GetName() + "'");
 
 	Log(LogDebug, "GelfWriter")
-	    << "Processing notification for '" << checkable->GetName() << "'";
+		<< "Processing notification for '" << checkable->GetName() << "'";
 
 	Host::Ptr host;
 	Service::Ptr service;
@@ -359,7 +359,7 @@ void GelfWriter::StateChangeHandlerInternal(const Checkable::Ptr& checkable, con
 	CONTEXT("GELF Processing state change '" + checkable->GetName() + "'");
 
 	Log(LogDebug, "GelfWriter")
-	    << "Processing state change for '" << checkable->GetName() << "'";
+		<< "Processing state change for '" << checkable->GetName() << "'";
 
 	Host::Ptr host;
 	Service::Ptr service;
@@ -424,12 +424,12 @@ void GelfWriter::SendLogMessage(const String& gelfMessage)
 
 	try {
 		Log(LogDebug, "GelfWriter")
-		    << "Sending '" << log << "'.";
+			<< "Sending '" << log << "'.";
 
 		m_Stream->Write(log.CStr(), log.GetLength());
 	} catch (const std::exception& ex) {
 		Log(LogCritical, "GelfWriter")
-		    << "Cannot write to TCP socket on host '" << GetHost() << "' port '" << GetPort() << "'.";
+			<< "Cannot write to TCP socket on host '" << GetHost() << "' port '" << GetPort() << "'.";
 
 		throw ex;
 	}

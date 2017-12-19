@@ -29,7 +29,7 @@ namespace po = boost::program_options;
 
 static BOOL debug = FALSE;
 
-INT wmain(INT argc, WCHAR **argv) 
+INT wmain(INT argc, WCHAR **argv)
 {
 	po::variables_map vm;
 	printInfoStruct printInfo = { };
@@ -45,7 +45,7 @@ INT wmain(INT argc, WCHAR **argv)
 	return printOutput(countProcs(), printInfo);
 }
 
-INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& printInfo) 
+INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& printInfo)
 {
 	WCHAR namePath[MAX_PATH];
 	GetModuleFileName(NULL, namePath, MAX_PATH);
@@ -143,7 +143,7 @@ INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& p
 		}
 	}
 
-	if (vm.count("user")) 
+	if (vm.count("user"))
 		printInfo.user = vm["user"].as<std::wstring>();
 
 	if (vm.count("debug"))
@@ -187,7 +187,7 @@ INT printOutput(CONST INT numProcs, printInfoStruct& printInfo)
 	return state;
 }
 
-INT countProcs() 
+INT countProcs()
 {
 	if (debug)
 		std::wcout << L"Counting all processes" << '\n';
@@ -229,7 +229,7 @@ INT countProcs()
 	return numProcs;
 }
 
-INT countProcs(CONST std::wstring user) 
+INT countProcs(CONST std::wstring user)
 {
 	if (debug)
 		std::wcout << L"Counting all processes of user" << user << '\n';
@@ -268,14 +268,14 @@ INT countProcs(CONST std::wstring user)
 
 		//get ProcessToken
 		hProcess = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, pe32.th32ProcessID);
-		if (!OpenProcessToken(hProcess, TOKEN_QUERY, &hToken)) 
+		if (!OpenProcessToken(hProcess, TOKEN_QUERY, &hToken))
 			//Won't count pid 0 (system idle) and 4/8 (Sytem)
 			continue;
 
 		//Get dwReturnLength in first call
 		dwReturnLength = 1;
 		if (!GetTokenInformation(hToken, TokenUser, NULL, 0, &dwReturnLength)
-			&& GetLastError() != ERROR_INSUFFICIENT_BUFFER) 
+			&& GetLastError() != ERROR_INSUFFICIENT_BUFFER)
 			continue;
 
 		pSIDTokenUser = reinterpret_cast<PTOKEN_USER>(new BYTE[dwReturnLength]);

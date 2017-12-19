@@ -96,7 +96,7 @@ void ApiListener::CopyCertificateFile(const String& oldCertPath, const String& n
 
 	if (!oldCertPath.IsEmpty() && stat(oldCertPath.CStr(), &st1) >= 0 && (stat(newCertPath.CStr(), &st2) < 0 || st1.st_mtime > st2.st_mtime)) {
 		Log(LogWarning, "ApiListener")
-		    << "Copying '" << oldCertPath << "' certificate file to '" << newCertPath << "'";
+			<< "Copying '" << oldCertPath << "' certificate file to '" << newCertPath << "'";
 
 		Utility::MkDirP(Utility::DirName(newCertPath), 0700);
 		Utility::CopyFile(oldCertPath, newCertPath);
@@ -133,18 +133,18 @@ void ApiListener::OnConfigLoaded(void)
 		cert = GetX509Certificate(defaultCertPath);
 	} catch (const std::exception&) {
 		BOOST_THROW_EXCEPTION(ScriptError("Cannot get certificate from cert path: '"
-		    + defaultCertPath + "'.", GetDebugInfo()));
+			+ defaultCertPath + "'.", GetDebugInfo()));
 	}
 
 	try {
 		SetIdentity(GetCertificateCN(cert));
 	} catch (const std::exception&) {
 		BOOST_THROW_EXCEPTION(ScriptError("Cannot get certificate common name from cert path: '"
-		    + defaultCertPath + "'.", GetDebugInfo()));
+			+ defaultCertPath + "'.", GetDebugInfo()));
 	}
 
 	Log(LogInformation, "ApiListener")
-	    << "My API identity: " << GetIdentity();
+		<< "My API identity: " << GetIdentity();
 
 	UpdateSSLContext();
 }
@@ -157,7 +157,7 @@ void ApiListener::UpdateSSLContext(void)
 		context = MakeSSLContext(GetDefaultCertPath(), GetDefaultKeyPath(), GetDefaultCaPath());
 	} catch (const std::exception&) {
 		BOOST_THROW_EXCEPTION(ScriptError("Cannot make SSL context for cert path: '"
-		    + GetDefaultCertPath() + "' key path: '" + GetDefaultKeyPath() + "' ca path: '" + GetDefaultCaPath() + "'.", GetDebugInfo()));
+			+ GetDefaultCertPath() + "' key path: '" + GetDefaultKeyPath() + "' ca path: '" + GetDefaultCaPath() + "'.", GetDebugInfo()));
 	}
 
 	if (!GetCrlPath().IsEmpty()) {
@@ -165,7 +165,7 @@ void ApiListener::UpdateSSLContext(void)
 			AddCRLToSSLContext(context, GetCrlPath());
 		} catch (const std::exception&) {
 			BOOST_THROW_EXCEPTION(ScriptError("Cannot add certificate revocation list to SSL context for crl path: '"
-			    + GetCrlPath() + "'.", GetDebugInfo()));
+				+ GetCrlPath() + "'.", GetDebugInfo()));
 		}
 	}
 
@@ -174,7 +174,7 @@ void ApiListener::UpdateSSLContext(void)
 			SetCipherListToSSLContext(context, GetCipherList());
 		} catch (const std::exception&) {
 			BOOST_THROW_EXCEPTION(ScriptError("Cannot set cipher list to SSL context for cipher list: '"
-			    + GetCipherList() + "'.", GetDebugInfo()));
+				+ GetCipherList() + "'.", GetDebugInfo()));
 		}
 	}
 
@@ -213,7 +213,7 @@ void ApiListener::OnAllConfigLoaded(void)
 void ApiListener::Start(bool runtimeCreated)
 {
 	Log(LogInformation, "ApiListener")
-	    << "'" << GetName() << "' started.";
+		<< "'" << GetName() << "' started.";
 
 	SyncZoneDirs();
 
@@ -228,7 +228,7 @@ void ApiListener::Start(bool runtimeCreated)
 	/* create the primary JSON-RPC listener */
 	if (!AddListener(GetBindHost(), GetBindPort())) {
 		Log(LogCritical, "ApiListener")
-		     << "Cannot add listener on host '" << GetBindHost() << "' for port '" << GetBindPort() << "'.";
+			<< "Cannot add listener on host '" << GetBindHost() << "' for port '" << GetBindPort() << "'.";
 		Application::Exit(EXIT_FAILURE);
 	}
 
@@ -263,7 +263,7 @@ void ApiListener::Stop(bool runtimeDeleted)
 	ObjectImpl<ApiListener>::Stop(runtimeDeleted);
 
 	Log(LogInformation, "ApiListener")
-	    << "'" << GetName() << "' stopped.";
+		<< "'" << GetName() << "' stopped.";
 
 	boost::mutex::scoped_lock lock(m_LogLock);
 	CloseLogFile();
@@ -320,7 +320,7 @@ bool ApiListener::AddListener(const String& node, const String& service)
 	}
 
 	Log(LogInformation, "ApiListener")
-	    << "Adding new listener on port '" << service << "'";
+		<< "Adding new listener on port '" << service << "'";
 
 	TcpSocket::Ptr server = new TcpSocket();
 
@@ -328,7 +328,7 @@ bool ApiListener::AddListener(const String& node, const String& service)
 		server->Bind(node, service, AF_UNSPEC);
 	} catch (const std::exception&) {
 		Log(LogCritical, "ApiListener")
-		    << "Cannot bind TCP socket for host '" << node << "' on port '" << service << "'.";
+			<< "Cannot bind TCP socket for host '" << node << "' on port '" << service << "'.";
 		return false;
 	}
 
@@ -379,7 +379,7 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 	String port = endpoint->GetPort();
 
 	Log(LogInformation, "ApiListener")
-	    << "Reconnecting to endpoint '" << endpoint->GetName() << "' via host '" << host << "' and port '" << port << "'";
+		<< "Reconnecting to endpoint '" << endpoint->GetName() << "' via host '" << host << "' and port '" << port << "'";
 
 	TcpSocket::Ptr client = new TcpSocket();
 
@@ -396,11 +396,11 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 		info << "Cannot connect to host '" << host << "' on port '" << port << "'";
 		Log(LogCritical, "ApiListener", info.str());
 		Log(LogDebug, "ApiListener")
-		    << info.str() << "\n" << DiagnosticInformation(ex);
+			<< info.str() << "\n" << DiagnosticInformation(ex);
 	}
 
 	Log(LogInformation, "ApiListener")
-	    << "Finished reconnecting to endpoint '" << endpoint->GetName() << "' via host '" << host << "' and port '" << port << "'";
+		<< "Finished reconnecting to endpoint '" << endpoint->GetName() << "' via host '" << host << "' and port '" << port << "'";
 }
 
 void ApiListener::NewClientHandler(const Socket::Ptr& client, const String& hostname, ConnectionRole role)
@@ -409,10 +409,10 @@ void ApiListener::NewClientHandler(const Socket::Ptr& client, const String& host
 		NewClientHandlerInternal(client, hostname, role);
 	} catch (const std::exception& ex) {
 		Log(LogCritical, "ApiListener")
-		    << "Exception while handling new API client connection: " << DiagnosticInformation(ex, false);
+			<< "Exception while handling new API client connection: " << DiagnosticInformation(ex, false);
 
 		Log(LogDebug, "ApiListener")
-		    << "Exception while handling new API client connection: " << DiagnosticInformation(ex);
+			<< "Exception while handling new API client connection: " << DiagnosticInformation(ex);
 	}
 }
 
@@ -442,7 +442,7 @@ void ApiListener::NewClientHandlerInternal(const Socket::Ptr& client, const Stri
 			tlsStream = new TlsStream(client, hostname, role, m_SSLContext);
 		} catch (const std::exception&) {
 			Log(LogCritical, "ApiListener")
-			    << "Cannot create TLS stream from client connection (" << conninfo << ")";
+				<< "Cannot create TLS stream from client connection (" << conninfo << ")";
 			return;
 		}
 	}
@@ -451,7 +451,7 @@ void ApiListener::NewClientHandlerInternal(const Socket::Ptr& client, const Stri
 		tlsStream->Handshake();
 	} catch (const std::exception&) {
 		Log(LogCritical, "ApiListener")
-		    << "Client TLS handshake failed (" << conninfo << ")";
+			<< "Client TLS handshake failed (" << conninfo << ")";
 		return;
 	}
 
@@ -465,7 +465,7 @@ void ApiListener::NewClientHandlerInternal(const Socket::Ptr& client, const Stri
 			identity = GetCertificateCN(cert);
 		} catch (const std::exception&) {
 			Log(LogCritical, "ApiListener")
-			    << "Cannot get certificate common name from cert path: '" << GetDefaultCertPath() << "'.";
+				<< "Cannot get certificate common name from cert path: '" << GetDefaultCertPath() << "'.";
 			return;
 		}
 
@@ -474,7 +474,7 @@ void ApiListener::NewClientHandlerInternal(const Socket::Ptr& client, const Stri
 			if (identity != hostname) {
 				Log(LogWarning, "ApiListener")
 					<< "Unexpected certificate common name while connecting to endpoint '"
-				    << hostname << "': got '" << identity << "'";
+					<< hostname << "': got '" << identity << "'";
 				return;
 			} else if (!verify_ok) {
 				Log(LogWarning, "ApiListener")
@@ -498,7 +498,7 @@ void ApiListener::NewClientHandlerInternal(const Socket::Ptr& client, const Stri
 		}
 	} else {
 		Log(LogInformation, "ApiListener")
-		    << "New client connection " << conninfo << " (no client certificate)";
+			<< "New client connection " << conninfo << " (no client certificate)";
 	}
 
 	ClientType ctype;
@@ -515,7 +515,7 @@ void ApiListener::NewClientHandlerInternal(const Socket::Ptr& client, const Stri
 
 		if (!tlsStream->IsDataAvailable()) {
 			Log(LogWarning, "ApiListener")
-			    << "No data received on new API connection for identity '" << identity << "'. Ensure that the remote endpoints are properly configured in a cluster setup.";
+				<< "No data received on new API connection for identity '" << identity << "'. Ensure that the remote endpoints are properly configured in a cluster setup.";
 			return;
 		}
 
@@ -566,7 +566,7 @@ void ApiListener::SyncClient(const JsonRpcConnection::Ptr& aclient, const Endpoi
 
 		if (myZone->GetParent() == eZone) {
 			Log(LogInformation, "ApiListener")
-			    << "Requesting new certificate for this Icinga instance from endpoint '" << endpoint->GetName() << "'.";
+				<< "Requesting new certificate for this Icinga instance from endpoint '" << endpoint->GetName() << "'.";
 
 			JsonRpcConnection::SendCertificateRequest(aclient, nullptr, String());
 
@@ -579,19 +579,19 @@ void ApiListener::SyncClient(const JsonRpcConnection::Ptr& aclient, const Endpoi
 		 */
 
 		Log(LogInformation, "ApiListener")
-		    << "Sending config updates for endpoint '" << endpoint->GetName() << "' in zone '" << eZone->GetName() << "'.";
+			<< "Sending config updates for endpoint '" << endpoint->GetName() << "' in zone '" << eZone->GetName() << "'.";
 
 		/* sync zone file config */
 		SendConfigUpdate(aclient);
 
 		Log(LogInformation, "ApiListener")
-		    << "Finished sending config file updates for endpoint '" << endpoint->GetName() << "' in zone '" << eZone->GetName() << "'.";
+			<< "Finished sending config file updates for endpoint '" << endpoint->GetName() << "' in zone '" << eZone->GetName() << "'.";
 
 		/* sync runtime config */
 		SendRuntimeConfigObjects(aclient);
 
 		Log(LogInformation, "ApiListener")
-		    << "Finished sending runtime config updates for endpoint '" << endpoint->GetName() << "' in zone '" << eZone->GetName() << "'.";
+			<< "Finished sending runtime config updates for endpoint '" << endpoint->GetName() << "' in zone '" << eZone->GetName() << "'.";
 
 		if (!needSync) {
 			ObjectLock olock2(endpoint);
@@ -600,7 +600,7 @@ void ApiListener::SyncClient(const JsonRpcConnection::Ptr& aclient, const Endpoi
 		}
 
 		Log(LogInformation, "ApiListener")
-		    << "Sending replay log for endpoint '" << endpoint->GetName() << "' in zone '" << eZone->GetName() << "'.";
+			<< "Sending replay log for endpoint '" << endpoint->GetName() << "' in zone '" << eZone->GetName() << "'.";
 
 		ReplayLog(aclient);
 
@@ -608,7 +608,7 @@ void ApiListener::SyncClient(const JsonRpcConnection::Ptr& aclient, const Endpoi
 			UpdateObjectAuthority();
 
 		Log(LogInformation, "ApiListener")
-		    << "Finished sending replay log for endpoint '" << endpoint->GetName() << "' in zone '" << eZone->GetName() << "'.";
+			<< "Finished sending replay log for endpoint '" << endpoint->GetName() << "' in zone '" << eZone->GetName() << "'.";
 	} catch (const std::exception& ex) {
 		{
 			ObjectLock olock2(endpoint);
@@ -616,14 +616,14 @@ void ApiListener::SyncClient(const JsonRpcConnection::Ptr& aclient, const Endpoi
 		}
 
 		Log(LogCritical, "ApiListener")
-		    << "Error while syncing endpoint '" << endpoint->GetName() << "': " << DiagnosticInformation(ex, false);
+			<< "Error while syncing endpoint '" << endpoint->GetName() << "': " << DiagnosticInformation(ex, false);
 
 		Log(LogDebug, "ApiListener")
-		    << "Error while syncing endpoint '" << endpoint->GetName() << "': " << DiagnosticInformation(ex);
+			<< "Error while syncing endpoint '" << endpoint->GetName() << "': " << DiagnosticInformation(ex);
 	}
 
 	Log(LogInformation, "ApiListener")
-	    << "Finished syncing endpoint '" << endpoint->GetName() << "' in zone '" << eZone->GetName() << "'.";
+		<< "Finished syncing endpoint '" << endpoint->GetName() << "' in zone '" << eZone->GetName() << "'.";
 }
 
 void ApiListener::ApiTimerHandler(void)
@@ -653,7 +653,7 @@ void ApiListener::ApiTimerHandler(void)
 		if (!need) {
 			String path = GetApiDir() + "log/" + Convert::ToString(ts);
 			Log(LogNotice, "ApiListener")
-			    << "Removing old log file: " << path;
+				<< "Removing old log file: " << path;
 			(void)unlink(path.CStr());
 		}
 	}
@@ -690,8 +690,8 @@ void ApiListener::ApiTimerHandler(void)
 		}
 
 		Log(LogNotice, "ApiListener")
-		    << "Setting log position for identity '" << endpoint->GetName() << "': "
-		    << Utility::FormatDateTime("%Y/%m/%d %H:%M:%S", ts);
+			<< "Setting log position for identity '" << endpoint->GetName() << "': "
+			<< Utility::FormatDateTime("%Y/%m/%d %H:%M:%S", ts);
 	}
 }
 
@@ -707,8 +707,8 @@ void ApiListener::ApiReconnectTimerHandler(void)
 		/* only connect to endpoints in a) the same zone b) our parent zone c) immediate child zones */
 		if (my_zone != zone && my_zone != zone->GetParent() && zone != my_zone->GetParent()) {
 			Log(LogDebug, "ApiListener")
-			    << "Not connecting to Zone '" << zone->GetName()
-			    << "' because it's not in the same zone, a parent or a child zone.";
+				<< "Not connecting to Zone '" << zone->GetName()
+				<< "' because it's not in the same zone, a parent or a child zone.";
 			continue;
 		}
 
@@ -716,31 +716,31 @@ void ApiListener::ApiReconnectTimerHandler(void)
 			/* don't connect to ourselves */
 			if (endpoint == GetLocalEndpoint()) {
 				Log(LogDebug, "ApiListener")
-				    << "Not connecting to Endpoint '" << endpoint->GetName() << "' because that's us.";
+					<< "Not connecting to Endpoint '" << endpoint->GetName() << "' because that's us.";
 				continue;
 			}
 
 			/* don't try to connect to endpoints which don't have a host and port */
 			if (endpoint->GetHost().IsEmpty() || endpoint->GetPort().IsEmpty()) {
 				Log(LogDebug, "ApiListener")
-				    << "Not connecting to Endpoint '" << endpoint->GetName()
-				    << "' because the host/port attributes are missing.";
+					<< "Not connecting to Endpoint '" << endpoint->GetName()
+					<< "' because the host/port attributes are missing.";
 				continue;
 			}
 
 			/* don't try to connect if there's already a connection attempt */
 			if (endpoint->GetConnecting()) {
 				Log(LogDebug, "ApiListener")
-				    << "Not connecting to Endpoint '" << endpoint->GetName()
-				    << "' because we're already trying to connect to it.";
+					<< "Not connecting to Endpoint '" << endpoint->GetName()
+					<< "' because we're already trying to connect to it.";
 				continue;
 			}
 
 			/* don't try to connect if we're already connected */
 			if (endpoint->GetConnected()) {
 				Log(LogDebug, "ApiListener")
-				    << "Not connecting to Endpoint '" << endpoint->GetName()
-				    << "' because we're already connected to it.";
+					<< "Not connecting to Endpoint '" << endpoint->GetName()
+					<< "' because we're already connected to it.";
 				continue;
 			}
 
@@ -753,7 +753,7 @@ void ApiListener::ApiReconnectTimerHandler(void)
 
 	if (master)
 		Log(LogNotice, "ApiListener")
-		    << "Current zone master: " << master->GetName();
+			<< "Current zone master: " << master->GetName();
 
 	std::vector<String> names;
 	for (const Endpoint::Ptr& endpoint : ConfigType::GetObjectsByType<Endpoint>())
@@ -761,7 +761,7 @@ void ApiListener::ApiReconnectTimerHandler(void)
 			names.emplace_back(endpoint->GetName() + " (" + Convert::ToString(endpoint->GetClients().size()) + ")");
 
 	Log(LogNotice, "ApiListener")
-	    << "Connected endpoints: " << Utility::NaturalJoin(names);
+		<< "Connected endpoints: " << Utility::NaturalJoin(names);
 }
 
 static void CleanupCertificateRequest(const String& path, double expiryTime)
@@ -792,7 +792,7 @@ void ApiListener::CleanupCertificateRequestsTimerHandler(void)
 }
 
 void ApiListener::RelayMessage(const MessageOrigin::Ptr& origin,
-    const ConfigObject::Ptr& secobj, const Dictionary::Ptr& message, bool log)
+	const ConfigObject::Ptr& secobj, const Dictionary::Ptr& message, bool log)
 {
 	if (!IsActive())
 		return;
@@ -838,7 +838,7 @@ void ApiListener::SyncSendMessage(const Endpoint::Ptr& endpoint, const Dictionar
 
 	if (!endpoint->GetSyncing()) {
 		Log(LogNotice, "ApiListener")
-		    << "Sending message '" << message->Get("method") << "' to '" << endpoint->GetName() << "'";
+			<< "Sending message '" << message->Get("method") << "' to '" << endpoint->GetName() << "'";
 
 		double maxTs = 0;
 
@@ -864,9 +864,9 @@ bool ApiListener::RelayMessageOne(const Zone::Ptr& targetZone, const MessageOrig
 
 	/* only relay the message to a) the same zone, b) the parent zone and c) direct child zones. Exception is a global zone. */
 	if (!targetZone->GetGlobal() &&
-	    targetZone != myZone &&
-	    targetZone != myZone->GetParent() &&
-	    targetZone->GetParent() != myZone) {
+		targetZone != myZone &&
+		targetZone != myZone->GetParent() &&
+		targetZone->GetParent() != myZone) {
 		return true;
 	}
 
@@ -949,13 +949,13 @@ bool ApiListener::RelayMessageOne(const Zone::Ptr& targetZone, const MessageOrig
 }
 
 void ApiListener::SyncRelayMessage(const MessageOrigin::Ptr& origin,
-    const ConfigObject::Ptr& secobj, const Dictionary::Ptr& message, bool log)
+	const ConfigObject::Ptr& secobj, const Dictionary::Ptr& message, bool log)
 {
 	double ts = Utility::GetTime();
 	message->Set("ts", ts);
 
 	Log(LogNotice, "ApiListener")
-	    << "Relaying '" << message->Get("method") << "' message";
+		<< "Relaying '" << message->Get("method") << "' message";
 
 	if (origin && origin->FromZone)
 		message->Set("originZone", origin->FromZone->GetName());
@@ -996,7 +996,7 @@ void ApiListener::OpenLogFile(void)
 
 	if (!fp->good()) {
 		Log(LogWarning, "ApiListener")
-		    << "Could not open spool file: " << path;
+			<< "Could not open spool file: " << path;
 		return;
 	}
 
@@ -1100,7 +1100,7 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 				continue;
 
 			Log(LogNotice, "ApiListener")
-			    << "Replaying log: " << path;
+				<< "Replaying log: " << path;
 
 			std::fstream *fp = new std::fstream(path.CStr(), std::fstream::in | std::fstream::binary);
 			StdioStream::Ptr logStream = new StdioStream(fp, true);
@@ -1122,7 +1122,7 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 					pmessage = JsonDecode(message);
 				} catch (const std::exception&) {
 					Log(LogWarning, "ApiListener")
-					    << "Unexpected end-of-file for cluster log: " << path;
+						<< "Unexpected end-of-file for cluster log: " << path;
 
 					/* Log files may be incomplete or corrupted. This is perfectly OK. */
 					break;
@@ -1149,10 +1149,10 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 					count++;
 				} catch (const std::exception& ex) {
 					Log(LogWarning, "ApiListener")
-					    << "Error while replaying log for endpoint '" << endpoint->GetName() << "': " << DiagnosticInformation(ex, false);
+						<< "Error while replaying log for endpoint '" << endpoint->GetName() << "': " << DiagnosticInformation(ex, false);
 
 					Log(LogDebug, "ApiListener")
-					    << "Error while replaying log for endpoint '" << endpoint->GetName() << "': " << DiagnosticInformation(ex);
+						<< "Error while replaying log for endpoint '" << endpoint->GetName() << "': " << DiagnosticInformation(ex);
 
 					break;
 				}
@@ -1180,11 +1180,11 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 
 		if (count > 0) {
 			Log(LogInformation, "ApiListener")
-			   << "Replayed " << count << " messages.";
+				<< "Replayed " << count << " messages.";
 		}
 
 		Log(LogNotice, "ApiListener")
-		   << "Replayed " << count << " messages.";
+			<< "Replayed " << count << " messages.";
 
 		if (last_sync) {
 			{
@@ -1237,7 +1237,7 @@ std::pair<Dictionary::Ptr, Dictionary::Ptr> ApiListener::GetStatus(void)
 		/* only check endpoints in a) the same zone b) our parent zone c) immediate child zones */
 		if (my_zone != zone && my_zone != zone->GetParent() && zone != my_zone->GetParent()) {
 			Log(LogDebug, "ApiListener")
-			    << "Not checking connection to Zone '" << zone->GetName() << "' because it's not in the same zone, a parent or a child zone.";
+				<< "Not checking connection to Zone '" << zone->GetName() << "' because it's not in the same zone, a parent or a child zone.";
 			continue;
 		}
 
@@ -1406,10 +1406,10 @@ void ApiListener::ValidateTlsProtocolmin(const String& value, const ValidationUt
 
 	if (value != SSL_TXT_TLSV1
 #ifdef SSL_TXT_TLSV1_1
-	    && value != SSL_TXT_TLSV1_1 &&
-	    value != SSL_TXT_TLSV1_2
+		&& value != SSL_TXT_TLSV1_1 &&
+		value != SSL_TXT_TLSV1_2
 #endif /* SSL_TXT_TLSV1_1 */
-	    ) {
+		) {
 		String message = "Invalid TLS version. Must be one of '" SSL_TXT_TLSV1 "'";
 #ifdef SSL_TXT_TLSV1_1
 		message += ", '" SSL_TXT_TLSV1_1 "' or '" SSL_TXT_TLSV1_2 "'";

@@ -37,11 +37,11 @@ String PKISignCSRCommand::GetShortDescription(void) const
 }
 
 void PKISignCSRCommand::InitParameters(boost::program_options::options_description& visibleDesc,
-    boost::program_options::options_description& hiddenDesc) const
+	boost::program_options::options_description& hiddenDesc) const
 {
 	visibleDesc.add_options()
-	    ("csr", po::value<std::string>(), "CSR file path (input)")
-	    ("cert", po::value<std::string>(), "Certificate file path (output)");
+		("csr", po::value<std::string>(), "CSR file path (input)")
+		("cert", po::value<std::string>(), "Certificate file path (output)");
 }
 
 std::vector<String> PKISignCSRCommand::GetArgumentSuggestions(const String& argument, const String& word) const

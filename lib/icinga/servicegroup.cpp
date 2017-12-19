@@ -53,7 +53,7 @@ bool ServiceGroup::EvaluateObjectRule(const Service::Ptr& service, const ConfigI
 		return false;
 
 	Log(LogDebug, "ServiceGroup")
-	    << "Assigning membership for group '" << group_name << "' to service '" << service->GetName() << "'";
+		<< "Assigning membership for group '" << group_name << "' to service '" << service->GetName() << "'";
 
 	Array::Ptr groups = service->GetGroups();
 	groups->Add(group_name);
@@ -98,8 +98,8 @@ bool ServiceGroup::ResolveGroupMembership(const Service::Ptr& service, bool add,
 
 	if (add && rstack > 20) {
 		Log(LogWarning, "ServiceGroup")
-		    << "Too many nested groups for group '" << GetName() << "': Service '"
-		    << service->GetName() << "' membership assignment failed.";
+			<< "Too many nested groups for group '" << GetName() << "': Service '"
+			<< service->GetName() << "' membership assignment failed.";
 
 		return false;
 	}

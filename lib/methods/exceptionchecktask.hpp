@@ -35,7 +35,7 @@ class ExceptionCheckTask
 {
 public:
 	static void ScriptFunc(const Checkable::Ptr& service, const CheckResult::Ptr& cr,
-	    const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros);
+		const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros);
 
 private:
 	ExceptionCheckTask(void);

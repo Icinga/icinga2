@@ -290,8 +290,8 @@ String Utility::DirName(const String& path)
 		free(dir);
 
 		BOOST_THROW_EXCEPTION(win32_error()
-		    << boost::errinfo_api_function("PathRemoveFileSpec")
-		    << errinfo_win32_error(GetLastError()));
+			<< boost::errinfo_api_function("PathRemoveFileSpec")
+			<< errinfo_win32_error(GetLastError()));
 	}
 
 	result = dir;
@@ -558,9 +558,9 @@ bool Utility::Glob(const String& pathSpec, const std::function<void (const Strin
 			return false;
 
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("glob")
-		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(pathSpec));
+			<< boost::errinfo_api_function("glob")
+			<< boost::errinfo_errno(errno)
+			<< boost::errinfo_file_name(pathSpec));
 	}
 
 	if (gr.gl_pathc == 0) {
@@ -630,9 +630,9 @@ bool Utility::GlobRecursive(const String& path, const String& pattern, const std
 			return false;
 
 		BOOST_THROW_EXCEPTION(win32_error()
-		    << boost::errinfo_api_function("FindFirstFile")
+			<< boost::errinfo_api_function("FindFirstFile")
 			<< errinfo_win32_error(errorCode)
-		    << boost::errinfo_file_name(pathSpec));
+			<< boost::errinfo_file_name(pathSpec));
 	}
 
 	do {
@@ -656,8 +656,8 @@ bool Utility::GlobRecursive(const String& path, const String& pattern, const std
 
 	if (!FindClose(handle)) {
 		BOOST_THROW_EXCEPTION(win32_error()
-		    << boost::errinfo_api_function("FindClose")
-		    << errinfo_win32_error(GetLastError()));
+			<< boost::errinfo_api_function("FindClose")
+			<< errinfo_win32_error(GetLastError()));
 	}
 #else /* _WIN32 */
 	DIR *dirp;
@@ -666,9 +666,9 @@ bool Utility::GlobRecursive(const String& path, const String& pattern, const std
 
 	if (!dirp)
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("opendir")
-		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(path));
+			<< boost::errinfo_api_function("opendir")
+			<< boost::errinfo_errno(errno)
+			<< boost::errinfo_file_name(path));
 
 	while (dirp) {
 		dirent *pent;
@@ -679,9 +679,9 @@ bool Utility::GlobRecursive(const String& path, const String& pattern, const std
 			closedir(dirp);
 
 			BOOST_THROW_EXCEPTION(posix_error()
-			    << boost::errinfo_api_function("readdir")
-			    << boost::errinfo_errno(errno)
-			    << boost::errinfo_file_name(path));
+				<< boost::errinfo_api_function("readdir")
+				<< boost::errinfo_errno(errno)
+				<< boost::errinfo_file_name(path));
 		}
 
 		if (!pent)
@@ -743,9 +743,9 @@ void Utility::MkDir(const String& path, int mode)
 #endif /* _WIN32 */
 
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("mkdir")
-		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(path));
+			<< boost::errinfo_api_function("mkdir")
+			<< boost::errinfo_errno(errno)
+			<< boost::errinfo_file_name(path));
 	}
 }
 
@@ -773,15 +773,16 @@ void Utility::RemoveDirRecursive(const String& path)
 	Utility::GlobRecursive(path, "*", std::bind(&Utility::CollectPaths, _1, std::ref(paths)), GlobFile | GlobDirectory);
 
 	/* This relies on the fact that GlobRecursive lists the parent directory
-	   first before recursing into subdirectories. */
+	 * first before recursing into subdirectories.
+	 */
 	std::reverse(paths.begin(), paths.end());
 
 	for (const String& path : paths) {
 		if (remove(path.CStr()) < 0)
 			BOOST_THROW_EXCEPTION(posix_error()
-			    << boost::errinfo_api_function("remove")
-			    << boost::errinfo_errno(errno)
-			    << boost::errinfo_file_name(path));
+				<< boost::errinfo_api_function("remove")
+				<< boost::errinfo_errno(errno)
+				<< boost::errinfo_file_name(path));
 	}
 
 #ifndef _WIN32
@@ -790,9 +791,9 @@ void Utility::RemoveDirRecursive(const String& path)
 	if (_rmdir(path.CStr()) < 0)
 #endif /* _WIN32 */
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("rmdir")
-		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(path));
+			<< boost::errinfo_api_function("rmdir")
+			<< boost::errinfo_errno(errno)
+			<< boost::errinfo_file_name(path));
 }
 
 void Utility::CollectPaths(const String& path, std::vector<String>& paths)
@@ -824,11 +825,11 @@ bool Utility::SetFileOwnership(const String& file, const String& user, const Str
 	if (!pw) {
 		if (errno == 0) {
 			Log(LogCritical, "cli")
-			    << "Invalid user specified: " << user;
+				<< "Invalid user specified: " << user;
 			return false;
 		} else {
 			Log(LogCritical, "cli")
-			    << "getpwnam() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+				<< "getpwnam() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 			return false;
 		}
 	}
@@ -839,18 +840,18 @@ bool Utility::SetFileOwnership(const String& file, const String& user, const Str
 	if (!gr) {
 		if (errno == 0) {
 			Log(LogCritical, "cli")
-			    << "Invalid group specified: " << group;
+				<< "Invalid group specified: " << group;
 			return false;
 		} else {
 			Log(LogCritical, "cli")
-			    << "getgrnam() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+				<< "getgrnam() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 			return false;
 		}
 	}
 
 	if (chown(file.CStr(), pw->pw_uid, gr->gr_gid) < 0) {
 		Log(LogCritical, "cli")
-		    << "chown() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+			<< "chown() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 		return false;
 	}
 #endif /* _WIN32 */
@@ -865,8 +866,8 @@ void Utility::SetNonBlocking(int fd, bool nb)
 
 	if (flags < 0) {
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("fcntl")
-		    << boost::errinfo_errno(errno));
+			<< boost::errinfo_api_function("fcntl")
+			<< boost::errinfo_errno(errno));
 	}
 
 	if (nb)
@@ -876,8 +877,8 @@ void Utility::SetNonBlocking(int fd, bool nb)
 
 	if (fcntl(fd, F_SETFL, flags) < 0) {
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("fcntl")
-		    << boost::errinfo_errno(errno));
+			<< boost::errinfo_api_function("fcntl")
+			<< boost::errinfo_errno(errno));
 	}
 }
 
@@ -887,8 +888,8 @@ void Utility::SetCloExec(int fd, bool cloexec)
 
 	if (flags < 0) {
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("fcntl")
-		    << boost::errinfo_errno(errno));
+			<< boost::errinfo_api_function("fcntl")
+			<< boost::errinfo_errno(errno));
 	}
 
 	if (cloexec)
@@ -898,8 +899,8 @@ void Utility::SetCloExec(int fd, bool cloexec)
 
 	if (fcntl(fd, F_SETFD, flags) < 0) {
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("fcntl")
-		    << boost::errinfo_errno(errno));
+			<< boost::errinfo_api_function("fcntl")
+			<< boost::errinfo_errno(errno));
 	}
 }
 #endif /* _WIN32 */
@@ -1019,16 +1020,16 @@ String Utility::FormatDateTime(const char *format, double ts)
 
 	if (!temp) {
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("localtime")
-		    << boost::errinfo_errno(errno));
+			<< boost::errinfo_api_function("localtime")
+			<< boost::errinfo_errno(errno));
 	}
 
 	tmthen = *temp;
 #else /* _MSC_VER */
 	if (!localtime_r(&tempts, &tmthen)) {
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("localtime_r")
-		    << boost::errinfo_errno(errno));
+			<< boost::errinfo_api_function("localtime_r")
+			<< boost::errinfo_errno(errno));
 	}
 #endif /* _MSC_VER */
 
@@ -1090,10 +1091,10 @@ String Utility::EscapeShellCmd(const String& s)
 #endif /* _WIN32 */
 
 		if (ch == '#' || ch == '&' || ch == ';' || ch == '`' || ch == '|' ||
-		    ch == '*' || ch == '?' || ch == '~' || ch == '<' || ch == '>' ||
-		    ch == '^' || ch == '(' || ch == ')' || ch == '[' || ch == ']' ||
-		    ch == '{' || ch == '}' || ch == '$' || ch == '\\' || ch == '\x0A' ||
-		    ch == '\xFF')
+			ch == '*' || ch == '?' || ch == '~' || ch == '<' || ch == '>' ||
+			ch == '^' || ch == '(' || ch == ')' || ch == '[' || ch == ']' ||
+			ch == '{' || ch == '}' || ch == '$' || ch == '\\' || ch == '\x0A' ||
+			ch == '\xFF')
 			escape = true;
 
 		if (escape)
@@ -1333,8 +1334,8 @@ tm Utility::LocalTime(time_t ts)
 
 	if (!result) {
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("localtime")
-		    << boost::errinfo_errno(errno));
+			<< boost::errinfo_api_function("localtime")
+			<< boost::errinfo_errno(errno));
 	}
 
 	return *result;
@@ -1343,8 +1344,8 @@ tm Utility::LocalTime(time_t ts)
 
 	if (!localtime_r(&ts, &result)) {
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("localtime_r")
-		    << boost::errinfo_errno(errno));
+			<< boost::errinfo_api_function("localtime_r")
+			<< boost::errinfo_errno(errno));
 	}
 
 	return result;
@@ -1392,9 +1393,9 @@ void Utility::SaveJsonFile(const String& path, int mode, const Value& value)
 
 	if (rename(tempFilename.CStr(), path.CStr()) < 0) {
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("rename")
-		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(tempFilename));
+			<< boost::errinfo_api_function("rename")
+			<< boost::errinfo_errno(errno)
+			<< boost::errinfo_file_name(tempFilename));
 	}
 }
 
@@ -1735,7 +1736,7 @@ String Utility::ValidateUTF8(const String& input)
 		}
 
 		if ((input[i] & 0xE0) == 0xC0 && length > i + 1 &&
-		    (input[i + 1] & 0xC0) == 0x80) {
+			(input[i + 1] & 0xC0) == 0x80) {
 			output += input[i];
 			output += input[i + 1];
 			i++;
@@ -1743,7 +1744,7 @@ String Utility::ValidateUTF8(const String& input)
 		}
 
 		if ((input[i] & 0xF0) == 0xE0 && length > i + 2 &&
-		    (input[i + 1] & 0xC0) == 0x80 && (input[i + 2] & 0xC0) == 0x80) {
+			(input[i + 1] & 0xC0) == 0x80 && (input[i + 2] & 0xC0) == 0x80) {
 			output += input[i];
 			output += input[i + 1];
 			output += input[i + 2];
@@ -1773,9 +1774,9 @@ String Utility::CreateTempFile(const String& path, int mode, std::fstream& fp)
 
 	if (fd < 0) {
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("mkstemp")
-		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(path));
+			<< boost::errinfo_api_function("mkstemp")
+			<< boost::errinfo_errno(errno)
+			<< boost::errinfo_file_name(path));
 	}
 
 	try {
@@ -1791,9 +1792,9 @@ String Utility::CreateTempFile(const String& path, int mode, std::fstream& fp)
 
 	if (chmod(resultPath.CStr(), mode) < 0) {
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("chmod")
-		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(resultPath));
+			<< boost::errinfo_api_function("chmod")
+			<< boost::errinfo_errno(errno)
+			<< boost::errinfo_file_name(resultPath));
 	}
 
 	return resultPath;
@@ -1801,12 +1802,13 @@ String Utility::CreateTempFile(const String& path, int mode, std::fstream& fp)
 
 #ifdef _WIN32
 /* mkstemp extracted from libc/sysdeps/posix/tempname.c.  Copyright
-   (C) 1991-1999, 2000, 2001, 2006 Free Software Foundation, Inc.
-
-   The GNU C Library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
-   License as published by the Free Software Foundation; either
-   version 2.1 of the License, or (at your option) any later version.  */
+ * (C) 1991-1999, 2000, 2001, 2006 Free Software Foundation, Inc.
+ *
+ * The GNU C Library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ */
 
 #define _O_EXCL 0x0400
 #define _O_CREAT 0x0100
@@ -1818,9 +1820,10 @@ String Utility::CreateTempFile(const String& path, int mode, std::fstream& fp)
 static const char letters[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
 /* Generate a temporary file name based on TMPL.  TMPL must match the
-   rules for mk[s]temp (i.e. end in "XXXXXX").  The name constructed
-   does not exist at the time of the call to mkstemp.  TMPL is
-   overwritten with the result.  */
+ * rules for mk[s]temp (i.e. end in "XXXXXX").  The name constructed
+ * does not exist at the time of the call to mkstemp.  TMPL is
+ * overwritten with the result.
+ */
 int Utility::MksTemp(char *tmpl)
 {
 	int len;
@@ -1832,15 +1835,17 @@ int Utility::MksTemp(char *tmpl)
 	int save_errno = errno;
 
 	/* A lower bound on the number of temporary files to attempt to
-	generate.  The maximum total number of temporary file names that
-	can exist for a given template is 62**6.  It should never be
-	necessary to try all these combinations.  Instead if a reasonable
-	number of names is tried (we define reasonable as 62**3) fail to
-	give the system administrator the chance to remove the problems.  */
+	 * generate.  The maximum total number of temporary file names that
+	 * can exist for a given template is 62**6.  It should never be
+	 * necessary to try all these combinations.  Instead if a reasonable
+	 * number of names is tried (we define reasonable as 62**3) fail to
+	 * give the system administrator the chance to remove the problems.
+	 */
 #define ATTEMPTS_MIN (62 * 62 * 62)
 
-	/* The number of times to attempt to generate a temporary file.  To
-	   conform to POSIX, this must be no smaller than TMP_MAX.  */
+	/* The number of times to attempt to generate a temporary file
+	 * To conform to POSIX, this must be no smaller than TMP_MAX.
+	 */
 #if ATTEMPTS_MIN < TMP_MAX
 	unsigned int attempts = TMP_MAX;
 #else
@@ -1865,8 +1870,8 @@ int Utility::MksTemp(char *tmpl)
 		GetSystemTime(&stNow);
 		stNow.wMilliseconds = 500;
 		if (!SystemTimeToFileTime(&stNow, &ftNow)) {
-		    errno = -1;
-		    return -1;
+			errno = -1;
+			return -1;
 		}
 
 		random_time_bits = (((unsigned long long)ftNow.dwHighDateTime << 32) | (unsigned long long)ftNow.dwLowDateTime);

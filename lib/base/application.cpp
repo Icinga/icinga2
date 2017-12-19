@@ -188,7 +188,7 @@ void Application::SetResourceLimits(void)
 	if (fileLimit != 0) {
 		if (fileLimit < GetDefaultRLimitFiles()) {
 			Log(LogWarning, "Application")
-			    << "The user-specified value for RLimitFiles cannot be smaller than the default value (" << GetDefaultRLimitFiles() << "). Using the default value instead.";
+				<< "The user-specified value for RLimitFiles cannot be smaller than the default value (" << GetDefaultRLimitFiles() << "). Using the default value instead.";
 			fileLimit = GetDefaultRLimitFiles();
 		}
 
@@ -208,7 +208,7 @@ void Application::SetResourceLimits(void)
 	if (processLimit != 0) {
 		if (processLimit < GetDefaultRLimitProcesses()) {
 			Log(LogWarning, "Application")
-			    << "The user-specified value for RLimitProcesses cannot be smaller than the default value (" << GetDefaultRLimitProcesses() << "). Using the default value instead.";
+				<< "The user-specified value for RLimitProcesses cannot be smaller than the default value (" << GetDefaultRLimitProcesses() << "). Using the default value instead.";
 			processLimit = GetDefaultRLimitProcesses();
 		}
 
@@ -246,7 +246,7 @@ void Application::SetResourceLimits(void)
 	if (stackLimit != 0) {
 		if (stackLimit < GetDefaultRLimitStack()) {
 			Log(LogWarning, "Application")
-			    << "The user-specified value for RLimitStack cannot be smaller than the default value (" << GetDefaultRLimitStack() << "). Using the default value instead.";
+				<< "The user-specified value for RLimitStack cannot be smaller than the default value (" << GetDefaultRLimitStack() << "). Using the default value instead.";
 			stackLimit = GetDefaultRLimitStack();
 		}
 
@@ -334,9 +334,9 @@ mainloop:
 		if (std::fabs(timeDiff) > 15) {
 			/* We made a significant jump in time. */
 			Log(LogInformation, "Application")
-			    << "We jumped "
-			    << (timeDiff < 0 ? "forward" : "backward")
-			    << " in time: " << std::fabs(timeDiff) << " seconds";
+				<< "We jumped "
+				<< (timeDiff < 0 ? "forward" : "backward")
+				<< " in time: " << std::fabs(timeDiff) << " seconds";
 
 			Timer::AdjustTimers(-timeDiff);
 		}
@@ -467,8 +467,8 @@ String Application::GetExePath(const String& argv0)
 	char buffer[MAXPATHLEN];
 	if (!getcwd(buffer, sizeof(buffer))) {
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("getcwd")
-		    << boost::errinfo_errno(errno));
+			<< boost::errinfo_api_function("getcwd")
+			<< boost::errinfo_errno(errno));
 	}
 
 	String workingDirectory = buffer;
@@ -512,9 +512,9 @@ String Application::GetExePath(const String& argv0)
 
 	if (!realpath(executablePath.CStr(), buffer)) {
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("realpath")
-		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(executablePath));
+			<< boost::errinfo_api_function("realpath")
+			<< boost::errinfo_errno(errno)
+			<< boost::errinfo_file_name(executablePath));
 	}
 
 	return buffer;
@@ -523,8 +523,8 @@ String Application::GetExePath(const String& argv0)
 
 	if (!GetModuleFileName(nullptr, FullExePath, sizeof(FullExePath)))
 		BOOST_THROW_EXCEPTION(win32_error()
-		    << boost::errinfo_api_function("GetModuleFileName")
-		    << errinfo_win32_error(GetLastError()));
+			<< boost::errinfo_api_function("GetModuleFileName")
+			<< errinfo_win32_error(GetLastError()));
 
 	return FullExePath;
 #endif /* _WIN32 */
@@ -541,28 +541,28 @@ void Application::DisplayInfoMessage(std::ostream& os, bool skipVersion)
 		os << "  Application version: " << GetAppVersion() << "\n";
 
 	os << "  Installation root: " << GetPrefixDir() << "\n"
-	   << "  Sysconf directory: " << GetSysconfDir() << "\n"
-	   << "  Run directory: " << GetRunDir() << "\n"
-	   << "  Local state directory: " << GetLocalStateDir() << "\n"
-	   << "  Package data directory: " << GetPkgDataDir() << "\n"
-	   << "  State path: " << GetStatePath() << "\n"
-	   << "  Modified attributes path: " << GetModAttrPath() << "\n"
-	   << "  Objects path: " << GetObjectsPath() << "\n"
-	   << "  Vars path: " << GetVarsPath() << "\n"
-	   << "  PID path: " << GetPidPath() << "\n";
+		<< "  Sysconf directory: " << GetSysconfDir() << "\n"
+		<< "  Run directory: " << GetRunDir() << "\n"
+		<< "  Local state directory: " << GetLocalStateDir() << "\n"
+		<< "  Package data directory: " << GetPkgDataDir() << "\n"
+		<< "  State path: " << GetStatePath() << "\n"
+		<< "  Modified attributes path: " << GetModAttrPath() << "\n"
+		<< "  Objects path: " << GetObjectsPath() << "\n"
+		<< "  Vars path: " << GetVarsPath() << "\n"
+		<< "  PID path: " << GetPidPath() << "\n";
 
 	os << "\n"
-	   << "System information:" << "\n"
-	   << "  Platform: " << Utility::GetPlatformName() << "\n"
-	   << "  Platform version: " << Utility::GetPlatformVersion() << "\n"
-	   << "  Kernel: " << Utility::GetPlatformKernel() << "\n"
-	   << "  Kernel version: " << Utility::GetPlatformKernelVersion() << "\n"
-	   << "  Architecture: " << Utility::GetPlatformArchitecture() << "\n";
+		<< "System information:" << "\n"
+		<< "  Platform: " << Utility::GetPlatformName() << "\n"
+		<< "  Platform version: " << Utility::GetPlatformVersion() << "\n"
+		<< "  Kernel: " << Utility::GetPlatformKernel() << "\n"
+		<< "  Kernel version: " << Utility::GetPlatformKernelVersion() << "\n"
+		<< "  Architecture: " << Utility::GetPlatformArchitecture() << "\n";
 
 	os << "\n"
-	   << "Build information:" << "\n"
-	   << "  Compiler: " << ScriptGlobal::Get("BuildCompilerName") << " " << ScriptGlobal::Get("BuildCompilerVersion") << "\n"
-	   << "  Build host: " << ScriptGlobal::Get("BuildHostName") << "\n";
+		<< "Build information:" << "\n"
+		<< "  Compiler: " << ScriptGlobal::Get("BuildCompilerName") << " " << ScriptGlobal::Get("BuildCompilerVersion") << "\n"
+		<< "  Build host: " << ScriptGlobal::Get("BuildHostName") << "\n";
 }
 
 /**
@@ -571,10 +571,10 @@ void Application::DisplayInfoMessage(std::ostream& os, bool skipVersion)
 void Application::DisplayBugMessage(std::ostream& os)
 {
 	os << "***" << "\n"
-	   << "* This would indicate a runtime problem or configuration error. If you believe this is a bug in Icinga 2" << "\n"
-	   << "* please submit a bug report at https://github.com/Icinga/icinga2 and include this stack trace as well as any other" << "\n"
-	   << "* information that might be useful in order to reproduce this problem." << "\n"
-	   << "***" << "\n";
+		<< "* This would indicate a runtime problem or configuration error. If you believe this is a bug in Icinga 2" << "\n"
+		<< "* please submit a bug report at https://github.com/Icinga/icinga2 and include this stack trace as well as any other" << "\n"
+		<< "* information that might be useful in order to reproduce this problem." << "\n"
+		<< "***" << "\n";
 }
 
 String Application::GetCrashReportFilename(void)
@@ -596,8 +596,8 @@ void Application::AttachDebugger(const String& filename, bool interactive)
 
 	if (pid < 0) {
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("fork")
-		    << boost::errinfo_errno(errno));
+			<< boost::errinfo_api_function("fork")
+			<< boost::errinfo_errno(errno));
 	}
 
 	if (pid == 0) {
@@ -606,9 +606,9 @@ void Application::AttachDebugger(const String& filename, bool interactive)
 
 			if (fd < 0) {
 				BOOST_THROW_EXCEPTION(posix_error()
-				    << boost::errinfo_api_function("open")
-				    << boost::errinfo_errno(errno)
-				    << boost::errinfo_file_name(filename));
+					<< boost::errinfo_api_function("open")
+					<< boost::errinfo_errno(errno)
+					<< boost::errinfo_file_name(filename));
 			}
 
 			if (fd != 1) {
@@ -666,8 +666,8 @@ void Application::AttachDebugger(const String& filename, bool interactive)
 	int status;
 	if (waitpid(pid, &status, 0) < 0) {
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("waitpid")
-		    << boost::errinfo_errno(errno));
+			<< boost::errinfo_api_function("waitpid")
+			<< boost::errinfo_errno(errno));
 	}
 
 #ifdef __linux__
@@ -727,8 +727,8 @@ void Application::SigAbrtHandler(int)
 #endif /* _WIN32 */
 
 	std::cerr << "Caught SIGABRT." << std::endl
-		  << "Current time: " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", Utility::GetTime()) << std::endl
-		  << std::endl;
+		<< "Current time: " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", Utility::GetTime()) << std::endl
+		<< std::endl;
 
 	String fname = GetCrashReportFilename();
 	String dirName = Utility::DirName(fname);
@@ -750,7 +750,7 @@ void Application::SigAbrtHandler(int)
 		ofs.open(fname.CStr());
 
 		Log(LogCritical, "Application")
-		    << "Icinga 2 has terminated unexpectedly. Additional information can be found in '" << fname << "'" << "\n";
+			<< "Icinga 2 has terminated unexpectedly. Additional information can be found in '" << fname << "'" << "\n";
 
 		DisplayInfoMessage(ofs);
 
@@ -860,8 +860,8 @@ void Application::ExceptionHandler(void)
 		ofs.open(fname.CStr());
 
 		ofs << "Caught unhandled exception." << "\n"
-		    << "Current time: " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", Utility::GetTime()) << "\n"
-		    << "\n";
+			<< "Current time: " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", Utility::GetTime()) << "\n"
+			<< "\n";
 
 		DisplayInfoMessage(ofs);
 
@@ -869,13 +869,13 @@ void Application::ExceptionHandler(void)
 			RethrowUncaughtException();
 		} catch (const std::exception& ex) {
 			Log(LogCritical, "Application")
-			    << DiagnosticInformation(ex, false) << "\n"
-			    << "\n"
-			    << "Additional information is available in '" << fname << "'" << "\n";
+				<< DiagnosticInformation(ex, false) << "\n"
+				<< "\n"
+				<< "Additional information is available in '" << fname << "'" << "\n";
 
 			ofs << "\n"
-			    << DiagnosticInformation(ex)
-			    << "\n";
+				<< DiagnosticInformation(ex)
+				<< "\n";
 		}
 
 		DisplayBugMessage(ofs);
@@ -913,13 +913,13 @@ LONG CALLBACK Application::SEHUnhandledExceptionFilter(PEXCEPTION_POINTERS exi)
 	ofs.open(fname.CStr());
 
 	Log(LogCritical, "Application")
-	    << "Icinga 2 has terminated unexpectedly. Additional information can be found in '" << fname << "'";
+		<< "Icinga 2 has terminated unexpectedly. Additional information can be found in '" << fname << "'";
 
 	DisplayInfoMessage(ofs);
 
 	ofs << "Caught unhandled SEH exception." << "\n"
-	    << "Current time: " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", Utility::GetTime()) << "\n"
-	    << "\n";
+		<< "Current time: " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", Utility::GetTime()) << "\n"
+		<< "\n";
 
 	StackTrace trace(exi);
 	ofs << "Stacktrace:" << "\n";
@@ -972,7 +972,7 @@ int Application::Run(void)
 		UpdatePidFile(GetPidPath());
 	} catch (const std::exception&) {
 		Log(LogCritical, "Application")
-		    << "Cannot update PID file '" << GetPidPath() << "'. Aborting.";
+			<< "Cannot update PID file '" << GetPidPath() << "'. Aborting.";
 		return EXIT_FAILURE;
 	}
 
@@ -1004,7 +1004,7 @@ void Application::UpdatePidFile(const String& filename, pid_t pid)
 
 	if (!m_PidFile) {
 		Log(LogCritical, "Application")
-		    << "Could not open PID file '" << filename << "'.";
+			<< "Could not open PID file '" << filename << "'.";
 		BOOST_THROW_EXCEPTION(std::runtime_error("Could not open PID file '" + filename + "'"));
 	}
 
@@ -1028,11 +1028,11 @@ void Application::UpdatePidFile(const String& filename, pid_t pid)
 
 	if (ftruncate(fd, 0) < 0) {
 		Log(LogCritical, "Application")
-		    << "ftruncate() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+			<< "ftruncate() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("ftruncate")
-		    << boost::errinfo_errno(errno));
+			<< boost::errinfo_api_function("ftruncate")
+			<< boost::errinfo_errno(errno));
 	}
 #endif /* _WIN32 */
 
@@ -1086,8 +1086,8 @@ pid_t Application::ReadPidFile(const String& filename)
 		int error = errno;
 		fclose(pidfile);
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("fcntl")
-		    << boost::errinfo_errno(error));
+			<< boost::errinfo_api_function("fcntl")
+			<< boost::errinfo_errno(error));
 	}
 
 	if (lock.l_type == F_UNLCK) {

@@ -60,7 +60,7 @@ void CheckerComponent::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr
 }
 
 CheckerComponent::CheckerComponent(void)
-    : m_Stopped(false)
+	: m_Stopped(false)
 { }
 
 void CheckerComponent::OnConfigLoaded(void)
@@ -76,7 +76,7 @@ void CheckerComponent::Start(bool runtimeCreated)
 	ObjectImpl<CheckerComponent>::Start(runtimeCreated);
 
 	Log(LogInformation, "CheckerComponent")
-	    << "'" << GetName() << "' started.";
+		<< "'" << GetName() << "' started.";
 
 
 	m_Thread = std::thread(std::bind(&CheckerComponent::CheckThreadProc, this));
@@ -90,7 +90,7 @@ void CheckerComponent::Start(bool runtimeCreated)
 void CheckerComponent::Stop(bool runtimeRemoved)
 {
 	Log(LogInformation, "CheckerComponent")
-	    << "'" << GetName() << "' stopped.";
+		<< "'" << GetName() << "' stopped.";
 
 	{
 		boost::mutex::scoped_lock lock(m_Mutex);
@@ -145,7 +145,7 @@ void CheckerComponent::CheckThreadProc(void)
 		if (!forced) {
 			if (!checkable->IsReachable(DependencyCheckExecution)) {
 				Log(LogNotice, "CheckerComponent")
-				    << "Skipping check for object '" << checkable->GetName() << "': Dependency failed.";
+					<< "Skipping check for object '" << checkable->GetName() << "': Dependency failed.";
 				check = false;
 			}
 
@@ -155,12 +155,12 @@ void CheckerComponent::CheckThreadProc(void)
 
 			if (host && !service && (!checkable->GetEnableActiveChecks() || !IcingaApplication::GetInstance()->GetEnableHostChecks())) {
 				Log(LogNotice, "CheckerComponent")
-				    << "Skipping check for host '" << host->GetName() << "': active host checks are disabled";
+					<< "Skipping check for host '" << host->GetName() << "': active host checks are disabled";
 				check = false;
 			}
 			if (host && service && (!checkable->GetEnableActiveChecks() || !IcingaApplication::GetInstance()->GetEnableServiceChecks())) {
 				Log(LogNotice, "CheckerComponent")
-				    << "Skipping check for service '" << service->GetName() << "': active service checks are disabled";
+					<< "Skipping check for service '" << service->GetName() << "': active service checks are disabled";
 				check = false;
 			}
 
@@ -168,8 +168,8 @@ void CheckerComponent::CheckThreadProc(void)
 
 			if (tp && !tp->IsInside(Utility::GetTime())) {
 				Log(LogNotice, "CheckerComponent")
-				    << "Skipping check for object '" << checkable->GetName()
-				    << "': not in check period '" << tp->GetName() << "'";
+					<< "Skipping check for object '" << checkable->GetName()
+					<< "': not in check period '" << tp->GetName() << "'";
 				check = false;
 			}
 		}
@@ -196,7 +196,7 @@ void CheckerComponent::CheckThreadProc(void)
 		}
 
 		Log(LogDebug, "CheckerComponent")
-		    << "Executing check for '" << checkable->GetName() << "'";
+			<< "Executing check for '" << checkable->GetName() << "'";
 
 		Checkable::IncreasePendingChecks();
 
@@ -249,7 +249,7 @@ void CheckerComponent::ExecuteCheckHelper(const Checkable::Ptr& checkable)
 	}
 
 	Log(LogDebug, "CheckerComponent")
-	    << "Check finished for object '" << checkable->GetName() << "'";
+		<< "Check finished for object '" << checkable->GetName() << "'";
 }
 
 void CheckerComponent::ResultTimerHandler(void)
@@ -260,7 +260,7 @@ void CheckerComponent::ResultTimerHandler(void)
 		boost::mutex::scoped_lock lock(m_Mutex);
 
 		msgbuf << "Pending checkables: " << m_PendingCheckables.size() << "; Idle checkables: " << m_IdleCheckables.size() << "; Checks/s: "
-		    << (CIB::GetActiveHostChecksStatistics(60) + CIB::GetActiveServiceChecksStatistics(60)) / 60.0;
+			<< (CIB::GetActiveHostChecksStatistics(60) + CIB::GetActiveServiceChecksStatistics(60)) / 60.0;
 	}
 
 	Log(LogNotice, "CheckerComponent", msgbuf.str());

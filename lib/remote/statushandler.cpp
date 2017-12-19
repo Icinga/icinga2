@@ -33,7 +33,7 @@ public:
 	DECLARE_PTR_TYPEDEFS(StatusTargetProvider);
 
 	virtual void FindTargets(const String& type,
-	    const std::function<void (const Value&)>& addTarget) const override
+		const std::function<void (const Value&)>& addTarget) const override
 	{
 		Dictionary::Ptr statsFunctions = ScriptGlobal::Get("StatsFunctions", &Empty);
 
@@ -105,8 +105,8 @@ bool StatusHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request
 		objs = FilterUtility::GetFilterTargets(qd, params, user);
 	} catch (const std::exception& ex) {
 		HttpUtility::SendJsonError(response, 404,
-		    "No objects found.",
-		    HttpUtility::GetLastParameter(params, "verboseErrors") ? DiagnosticInformation(ex) : "");
+			"No objects found.",
+			HttpUtility::GetLastParameter(params, "verboseErrors") ? DiagnosticInformation(ex) : "");
 		return true;
 	}
 

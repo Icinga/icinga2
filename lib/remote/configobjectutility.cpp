@@ -35,7 +35,7 @@ using namespace icinga;
 String ConfigObjectUtility::GetConfigDir(void)
 {
 	return ConfigPackageUtility::GetPackageDir() + "/_api/" +
-	    ConfigPackageUtility::GetActiveStage("_api");
+		ConfigPackageUtility::GetActiveStage("_api");
 }
 
 String ConfigObjectUtility::GetObjectConfigPath(const Type::Ptr& type, const String& fullName)
@@ -44,7 +44,7 @@ String ConfigObjectUtility::GetObjectConfigPath(const Type::Ptr& type, const Str
 	boost::algorithm::to_lower(typeDir);
 
 	return GetConfigDir() + "/conf.d/" + typeDir +
-	    "/" + EscapeName(fullName) + ".conf";
+		"/" + EscapeName(fullName) + ".conf";
 }
 
 String ConfigObjectUtility::EscapeName(const String& name)
@@ -53,7 +53,7 @@ String ConfigObjectUtility::EscapeName(const String& name)
 }
 
 String ConfigObjectUtility::CreateObjectConfig(const Type::Ptr& type, const String& fullName,
-    bool ignoreOnError, const Array::Ptr& templates, const Dictionary::Ptr& attrs)
+	bool ignoreOnError, const Array::Ptr& templates, const Dictionary::Ptr& attrs)
 {
 	NameComposer *nc = dynamic_cast<NameComposer *>(type.get());
 	Dictionary::Ptr nameParts;
@@ -100,7 +100,7 @@ String ConfigObjectUtility::CreateObjectConfig(const Type::Ptr& type, const Stri
 }
 
 bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& fullName,
-    const String& config, const Array::Ptr& errors)
+	const String& config, const Array::Ptr& errors)
 {
 	{
 		boost::mutex::scoped_lock lock(ConfigPackageUtility::GetStaticMutex());
@@ -140,9 +140,9 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 			if (errors) {
 				if (unlink(path.CStr()) < 0 && errno != ENOENT) {
 					BOOST_THROW_EXCEPTION(posix_error()
-					    << boost::errinfo_api_function("unlink")
-					    << boost::errinfo_errno(errno)
-					    << boost::errinfo_file_name(path));
+						<< boost::errinfo_api_function("unlink")
+						<< boost::errinfo_errno(errno)
+						<< boost::errinfo_file_name(path));
 				}
 
 				for (const boost::exception_ptr& ex : upq.GetExceptions()) {
@@ -157,9 +157,9 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 	} catch (const std::exception& ex) {
 		if (unlink(path.CStr()) < 0 && errno != ENOENT) {
 			BOOST_THROW_EXCEPTION(posix_error()
-			    << boost::errinfo_api_function("unlink")
-			    << boost::errinfo_errno(errno)
-			    << boost::errinfo_file_name(path));
+				<< boost::errinfo_api_function("unlink")
+				<< boost::errinfo_errno(errno)
+				<< boost::errinfo_file_name(path));
 		}
 
 		if (errors)
@@ -180,8 +180,8 @@ bool ConfigObjectUtility::DeleteObjectHelper(const ConfigObject::Ptr& object, bo
 	if (!parents.empty() && !cascade) {
 		if (errors)
 			errors->Add("Object '" + object->GetName() + "' of type '" + type->GetName() +
-			    "' cannot be deleted because other objects depend on it. "
-			    "Use cascading delete to delete it anyway.");
+				"' cannot be deleted because other objects depend on it. "
+				"Use cascading delete to delete it anyway.");
 
 		return false;
 	}
@@ -220,9 +220,9 @@ bool ConfigObjectUtility::DeleteObjectHelper(const ConfigObject::Ptr& object, bo
 	if (Utility::PathExists(path)) {
 		if (unlink(path.CStr()) < 0 && errno != ENOENT) {
 			BOOST_THROW_EXCEPTION(posix_error()
-			    << boost::errinfo_api_function("unlink")
-			    << boost::errinfo_errno(errno)
-			    << boost::errinfo_file_name(path));
+				<< boost::errinfo_api_function("unlink")
+				<< boost::errinfo_errno(errno)
+				<< boost::errinfo_file_name(path));
 		}
 	}
 

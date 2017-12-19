@@ -116,7 +116,7 @@ void StateHistTable::UpdateLogEntries(const Dictionary::Ptr& log_entry_attrs, in
 		state_hist_service_states->Add(state_hist_bag);
 
 		Log(LogDebug, "StateHistTable")
-		    << "statehist: Adding new object '" << checkable->GetName() << "' to services cache.";
+			<< "statehist: Adding new object '" << checkable->GetName() << "' to services cache.";
 	} else {
 		state_hist_service_states = m_CheckablesCache[checkable];
 		state_hist_bag = state_hist_service_states->Get(state_hist_service_states->GetLength()-1); /* fetch latest state from history */
@@ -173,7 +173,7 @@ void StateHistTable::UpdateLogEntries(const Dictionary::Ptr& log_entry_attrs, in
 					state_hist_service_states->Add(state_hist_bag_new);
 
 					Log(LogDebug, "StateHistTable")
-					    << "statehist: State change detected for object '" << checkable->GetName() << "' in '" << log_line << "'.";
+						<< "statehist: State change detected for object '" << checkable->GetName() << "' in '" << log_line << "'.";
 				}
 				break;
 			case LogEntryTypeHostFlapping:
@@ -210,7 +210,7 @@ void StateHistTable::UpdateLogEntries(const Dictionary::Ptr& log_entry_attrs, in
 }
 
 void StateHistTable::AddColumns(Table *table, const String& prefix,
-    const Column::ObjectAccessor& objectAccessor)
+	const Column::ObjectAccessor& objectAccessor)
 {
 	table->AddColumn(prefix + "time", Column(&StateHistTable::TimeAccessor, objectAccessor));
 	table->AddColumn(prefix + "lineno", Column(&StateHistTable::LinenoAccessor, objectAccessor));
@@ -257,7 +257,7 @@ String StateHistTable::GetPrefix(void) const
 void StateHistTable::FetchRows(const AddRowFunction& addRowFn)
 {
 	Log(LogDebug, "StateHistTable")
-	    << "Pre-selecting log file from " << m_TimeFrom << " until " << m_TimeUntil;
+		<< "Pre-selecting log file from " << m_TimeFrom << " until " << m_TimeUntil;
 
 	/* create log file index */
 	LivestatusLogUtility::CreateLogIndex(m_CompatLogPath, m_LogFileIndex);

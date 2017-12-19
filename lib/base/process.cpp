@@ -325,8 +325,8 @@ static void ProcessHandler(void)
 
 		if (send(l_ProcessControlFD, jresponse.CStr(), jresponse.GetLength(), 0) < 0) {
 			BOOST_THROW_EXCEPTION(posix_error()
-			    << boost::errinfo_api_function("send")
-			    << boost::errinfo_errno(errno));
+				<< boost::errinfo_api_function("send")
+				<< boost::errinfo_errno(errno));
 		}
 	}
 
@@ -345,16 +345,16 @@ static void StartSpawnProcessHelper(void)
 	int controlFDs[2];
 	if (socketpair(AF_UNIX, SOCK_STREAM, 0, controlFDs) < 0) {
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("socketpair")
-		    << boost::errinfo_errno(errno));
+			<< boost::errinfo_api_function("socketpair")
+			<< boost::errinfo_errno(errno));
 	}
 
 	pid_t pid = fork();
 
 	if (pid < 0) {
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("fork")
-		    << boost::errinfo_errno(errno));
+			<< boost::errinfo_api_function("fork")
+			<< boost::errinfo_errno(errno));
 	}
 
 	if (pid == 0) {
@@ -516,8 +516,8 @@ static void InitializeProcess(void)
 #	endif /* HAVE_PIPE2 */
 				if (pipe(l_EventFDs[tid]) < 0) {
 					BOOST_THROW_EXCEPTION(posix_error()
-					    << boost::errinfo_api_function("pipe")
-					    << boost::errinfo_errno(errno));
+						<< boost::errinfo_api_function("pipe")
+						<< boost::errinfo_errno(errno));
 				}
 
 				Utility::SetCloExec(l_EventFDs[tid][0]);
@@ -755,7 +755,7 @@ String Process::PrettyPrintArguments(const Process::Arguments& arguments)
 
 #ifdef _WIN32
 static BOOL CreatePipeOverlapped(HANDLE *outReadPipe, HANDLE *outWritePipe,
-    SECURITY_ATTRIBUTES *securityAttributes, DWORD size, DWORD readMode, DWORD writeMode)
+	SECURITY_ATTRIBUTES *securityAttributes, DWORD size, DWORD readMode, DWORD writeMode)
 {
 	static LONG pipeIndex = 0;
 
@@ -768,7 +768,7 @@ static BOOL CreatePipeOverlapped(HANDLE *outReadPipe, HANDLE *outWritePipe,
 	sprintf(pipeName, "\\\\.\\Pipe\\OverlappedPipe.%d.%d", (int)GetCurrentProcessId(), (int)currentIndex);
 
 	*outReadPipe = CreateNamedPipe(pipeName, PIPE_ACCESS_INBOUND | readMode,
-	    PIPE_TYPE_BYTE | PIPE_WAIT, 1, size, size, 60 * 1000, securityAttributes);
+		PIPE_TYPE_BYTE | PIPE_WAIT, 1, size, size, 60 * 1000, securityAttributes);
 
 	if (*outReadPipe == INVALID_HANDLE_VALUE)
 		return FALSE;
@@ -813,7 +813,7 @@ void Process::Run(const std::function<void(const ProcessResult&)>& callback)
 
 	HANDLE outWritePipeDup;
 	if (!DuplicateHandle(GetCurrentProcess(), outWritePipe, GetCurrentProcess(),
-	    &outWritePipeDup, 0, TRUE, DUPLICATE_SAME_ACCESS))
+		&outWritePipeDup, 0, TRUE, DUPLICATE_SAME_ACCESS))
 		BOOST_THROW_EXCEPTION(win32_error()
 			<< boost::errinfo_api_function("DuplicateHandle")
 			<< errinfo_win32_error(GetLastError()));
@@ -839,7 +839,7 @@ void Process::Run(const std::function<void(const ProcessResult&)>& callback)
 	rgHandles[2] = GetStdHandle(STD_INPUT_HANDLE);
 
 	if (!UpdateProcThreadAttribute(lpAttributeList, 0, PROC_THREAD_ATTRIBUTE_HANDLE_LIST,
-	    rgHandles, sizeof(rgHandles), nullptr, nullptr))
+		rgHandles, sizeof(rgHandles), nullptr, nullptr))
 		BOOST_THROW_EXCEPTION(win32_error()
 			<< boost::errinfo_api_function("UpdateProcThreadAttribute")
 			<< errinfo_win32_error(GetLastError()));
@@ -912,7 +912,7 @@ void Process::Run(const std::function<void(const ProcessResult&)>& callback)
 	envp[offset] = '\0';
 
 	if (!CreateProcess(nullptr, args, nullptr, nullptr, TRUE,
-	    0 /*EXTENDED_STARTUPINFO_PRESENT*/, envp, nullptr, &si.StartupInfo, &pi)) {
+		0 /*EXTENDED_STARTUPINFO_PRESENT*/, envp, nullptr, &si.StartupInfo, &pi)) {
 		DWORD error = GetLastError();
 		CloseHandle(outWritePipe);
 		CloseHandle(outWritePipeDup);
@@ -947,7 +947,7 @@ void Process::Run(const std::function<void(const ProcessResult&)>& callback)
 	m_PID = pi.dwProcessId;
 
 	Log(LogNotice, "Process")
-	    << "Running command " << PrettyPrintArguments(m_Arguments) << ": PID " << m_PID;
+		<< "Running command " << PrettyPrintArguments(m_Arguments) << ": PID " << m_PID;
 
 #else /* _WIN32 */
 	int outfds[2];
@@ -958,8 +958,8 @@ void Process::Run(const std::function<void(const ProcessResult&)>& callback)
 #endif /* HAVE_PIPE2 */
 			if (pipe(outfds) < 0) {
 				BOOST_THROW_EXCEPTION(posix_error()
-				    << boost::errinfo_api_function("pipe")
-				    << boost::errinfo_errno(errno));
+					<< boost::errinfo_api_function("pipe")
+					<< boost::errinfo_errno(errno));
 			}
 
 			Utility::SetCloExec(outfds[0]);
@@ -987,7 +987,7 @@ void Process::Run(const std::function<void(const ProcessResult&)>& callback)
 	}
 
 	Log(LogNotice, "Process")
-	    << "Running command " << PrettyPrintArguments(m_Arguments) << ": PID " << m_PID;
+		<< "Running command " << PrettyPrintArguments(m_Arguments) << ": PID " << m_PID;
 
 	(void)close(outfds[1]);
 
@@ -1028,8 +1028,8 @@ bool Process::DoEvents(void)
 
 		if (timeout < Utility::GetTime()) {
 			Log(LogWarning, "Process")
-			    << "Killing process group " << m_PID << " (" << PrettyPrintArguments(m_Arguments)
-			    << ") after timeout of " << m_Timeout << " seconds";
+				<< "Killing process group " << m_PID << " (" << PrettyPrintArguments(m_Arguments)
+				<< ") after timeout of " << m_Timeout << " seconds";
 
 			m_OutputStream << "<Timeout exceeded.>";
 #ifdef _WIN32
@@ -1038,8 +1038,8 @@ bool Process::DoEvents(void)
 			int error = ProcessKill(-m_Process, SIGKILL);
 			if (error) {
 				Log(LogWarning, "Process")
-				    << "Couldn't kill the process group " << m_PID << " (" << PrettyPrintArguments(m_Arguments)
-				    << "): [errno " << error << "] " << strerror(error);
+					<< "Couldn't kill the process group " << m_PID << " (" << PrettyPrintArguments(m_Arguments)
+					<< "): [errno " << error << "] " << strerror(error);
 				could_not_kill = true;
 			}
 #endif /* _WIN32 */
@@ -1084,7 +1084,7 @@ bool Process::DoEvents(void)
 	GetExitCodeProcess(m_Process, &exitcode);
 
 	Log(LogNotice, "Process")
-	    << "PID " << m_PID << " (" << PrettyPrintArguments(m_Arguments) << ") terminated with exit code " << exitcode;
+		<< "PID " << m_PID << " (" << PrettyPrintArguments(m_Arguments) << ") terminated with exit code " << exitcode;
 #else /* _WIN32 */
 	int status, exitcode;
 	if (could_not_kill || m_PID == -1) {
@@ -1093,12 +1093,12 @@ bool Process::DoEvents(void)
 		exitcode = 128;
 
 		Log(LogWarning, "Process")
-		    << "PID " << m_PID << " (" << PrettyPrintArguments(m_Arguments) << ") died mysteriously: waitpid failed";
+			<< "PID " << m_PID << " (" << PrettyPrintArguments(m_Arguments) << ") died mysteriously: waitpid failed";
 	} else if (WIFEXITED(status)) {
 		exitcode = WEXITSTATUS(status);
 
 		Log(LogNotice, "Process")
-		    << "PID " << m_PID << " (" << PrettyPrintArguments(m_Arguments) << ") terminated with exit code " << exitcode;
+			<< "PID " << m_PID << " (" << PrettyPrintArguments(m_Arguments) << ") terminated with exit code " << exitcode;
 	} else if (WIFSIGNALED(status)) {
 		int signum = WTERMSIG(status);
 		const char *zsigname = strsignal(signum);
@@ -1112,7 +1112,7 @@ bool Process::DoEvents(void)
 		}
 
 		Log(LogWarning, "Process")
-		    << "PID " << m_PID << " was terminated by signal " << signame;
+			<< "PID " << m_PID << " was terminated by signal " << signame;
 
 		std::ostringstream outputbuf;
 		outputbuf << "<Terminated by signal " << signame << ".>";

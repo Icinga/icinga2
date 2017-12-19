@@ -54,7 +54,7 @@ void PerfdataWriter::Start(bool runtimeCreated)
 	ObjectImpl<PerfdataWriter>::Start(runtimeCreated);
 
 	Log(LogInformation, "PerfdataWriter")
-	    << "'" << GetName() << "' started.";
+		<< "'" << GetName() << "' started.";
 
 	Checkable::OnNewCheckResult.connect(std::bind(&PerfdataWriter::CheckResultHandler, this, _1, _2));
 
@@ -70,7 +70,7 @@ void PerfdataWriter::Start(bool runtimeCreated)
 void PerfdataWriter::Stop(bool runtimeRemoved)
 {
 	Log(LogInformation, "PerfdataWriter")
-	    << "'" << GetName() << "' stopped.";
+		<< "'" << GetName() << "' stopped.";
 
 	ObjectImpl<PerfdataWriter>::Stop(runtimeRemoved);
 }
@@ -138,9 +138,9 @@ void PerfdataWriter::RotateFile(std::ofstream& output, const String& temp_path, 
 			String finalFile = perfdata_path + "." + Convert::ToString((long)Utility::GetTime());
 			if (rename(temp_path.CStr(), finalFile.CStr()) < 0) {
 				BOOST_THROW_EXCEPTION(posix_error()
-				    << boost::errinfo_api_function("rename")
-				    << boost::errinfo_errno(errno)
-				    << boost::errinfo_file_name(temp_path));
+					<< boost::errinfo_api_function("rename")
+					<< boost::errinfo_errno(errno)
+					<< boost::errinfo_file_name(temp_path));
 			}
 		}
 	}
@@ -149,7 +149,7 @@ void PerfdataWriter::RotateFile(std::ofstream& output, const String& temp_path, 
 
 	if (!output.good())
 		Log(LogWarning, "PerfdataWriter")
-		    << "Could not open perfdata file '" << temp_path << "' for writing. Perfdata will be lost.";
+			<< "Could not open perfdata file '" << temp_path << "' for writing. Perfdata will be lost.";
 }
 
 void PerfdataWriter::RotationTimerHandler(void)

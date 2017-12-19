@@ -29,7 +29,7 @@ ZonesTable::ZonesTable(void)
 }
 
 void ZonesTable::AddColumns(Table *table, const String& prefix,
-    const Column::ObjectAccessor& objectAccessor)
+	const Column::ObjectAccessor& objectAccessor)
 {
 	table->AddColumn(prefix + "name", Column(&ZonesTable::NameAccessor, objectAccessor));
 	table->AddColumn(prefix + "parent", Column(&ZonesTable::ParentAccessor, objectAccessor));

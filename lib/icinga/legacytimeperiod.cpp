@@ -327,8 +327,8 @@ bool LegacyTimePeriod::IsInDayDefinition(const String& daydef, tm *reference)
 	ParseTimeRange(daydef, &begin, &end, &stride, reference);
 
 	Log(LogDebug, "LegacyTimePeriod")
-	    << "ParseTimeRange: '" << daydef << "' => " << mktime(&begin)
-	    << " -> " << mktime(&end) << ", stride: " << stride;
+		<< "ParseTimeRange: '" << daydef << "' => " << mktime(&begin)
+		<< " -> " << mktime(&end) << ", stride: " << stride;
 
 	return IsInTimeRange(&begin, &end, stride, reference);
 }
@@ -364,7 +364,7 @@ void LegacyTimePeriod::ProcessTimeRangeRaw(const String& timerange, tm *referenc
 	end->tm_hour = Convert::ToLong(hd2[0]);
 
 	if (begin->tm_hour * 3600 + begin->tm_min * 60 + begin->tm_sec >=
-	    end->tm_hour * 3600 + end->tm_min * 60 + end->tm_sec)
+		end->tm_hour * 3600 + end->tm_min * 60 + end->tm_sec)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Time period segment ends before it begins"));
 }
 
@@ -467,7 +467,7 @@ Array::Ptr LegacyTimePeriod::ScriptFunc(const TimePeriod::Ptr& tp, double begin,
 
 #ifdef I2_DEBUG
 			Log(LogDebug, "LegacyTimePeriod")
-			    << "Checking reference time " << refts;
+				<< "Checking reference time " << refts;
 #endif /* I2_DEBUG */
 
 			ObjectLock olock(ranges);
@@ -475,14 +475,14 @@ Array::Ptr LegacyTimePeriod::ScriptFunc(const TimePeriod::Ptr& tp, double begin,
 				if (!IsInDayDefinition(kv.first, &reference)) {
 #ifdef I2_DEBUG
 					Log(LogDebug, "LegacyTimePeriod")
-					    << "Not in day definition '" << kv.first << "'.";
+						<< "Not in day definition '" << kv.first << "'.";
 #endif /* I2_DEBUG */
 					continue;
 				}
 
 #ifdef I2_DEBUG
 				Log(LogDebug, "LegacyTimePeriod")
-				    << "In day definition '" << kv.first << "'.";
+					<< "In day definition '" << kv.first << "'.";
 #endif /* I2_DEBUG */
 
 				ProcessTimeRanges(kv.second, &reference, segments);
@@ -491,7 +491,7 @@ Array::Ptr LegacyTimePeriod::ScriptFunc(const TimePeriod::Ptr& tp, double begin,
 	}
 
 	Log(LogDebug, "LegacyTimePeriod")
-	    << "Legacy timeperiod update returned " << segments->GetLength() << " segments.";
+		<< "Legacy timeperiod update returned " << segments->GetLength() << " segments.";
 
 	return segments;
 }

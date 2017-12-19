@@ -22,7 +22,7 @@
 using namespace icinga;
 
 MinAggregator::MinAggregator(const String& attr)
-    : m_MinAttr(attr)
+	: m_MinAttr(attr)
 { }
 
 MinAggregatorState *MinAggregator::EnsureState(AggregatorState **state)

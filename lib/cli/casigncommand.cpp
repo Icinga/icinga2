@@ -44,7 +44,7 @@ int CASignCommand::GetMinArguments(void) const
 
 ImpersonationLevel CASignCommand::GetImpersonationLevel(void) const
 {
-        return ImpersonateIcinga;
+	return ImpersonateIcinga;
 }
 
 /**
@@ -58,7 +58,7 @@ int CASignCommand::Run(const boost::program_options::variables_map& vm, const st
 
 	if (!Utility::PathExists(requestFile)) {
 		Log(LogCritical, "cli")
-		    << "No request exists for fingerprint '" << ap[0] << "'.";
+			<< "No request exists for fingerprint '" << ap[0] << "'.";
 		return 1;
 	}
 
@@ -90,7 +90,7 @@ int CASignCommand::Run(const boost::program_options::variables_map& vm, const st
 
 	if (!certResponse) {
 		Log(LogCritical, "cli")
-		    << "Could not sign certificate for '" << subject << "'.";
+			<< "Could not sign certificate for '" << subject << "'.";
 		return 1;
 	}
 
@@ -99,7 +99,7 @@ int CASignCommand::Run(const boost::program_options::variables_map& vm, const st
 	Utility::SaveJsonFile(requestFile, 0600, request);
 
 	Log(LogInformation, "cli")
-	    << "Signed certificate for '" << subject << "'.";
+		<< "Signed certificate for '" << subject << "'.";
 
 	return 0;
 }
