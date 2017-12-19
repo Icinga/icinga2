@@ -23,6 +23,9 @@
 #include "base/i2-base.hpp"
 #include "base/value.hpp"
 #include <vector>
+#include <boost/function_types/function_type.hpp>
+#include <boost/function_types/parameter_types.hpp>
+#include <boost/function_types/result_type.hpp>
 #include <boost/function_types/function_arity.hpp>
 #include <type_traits>
 
@@ -31,7 +34,14 @@ using namespace std::placeholders;
 namespace icinga
 {
 
-inline std::function<Value (const std::vector<Value>&)> WrapFunction(const std::function<Value(const std::vector<Value>&)>& function)
+template<typename FuncType>
+typename std::enable_if<
+    std::is_class<FuncType>::value &&
+    std::is_same<typename boost::function_types::result_type<decltype(&FuncType::operator())>::type, Value>::value &&
+    std::is_same<typename boost::mpl::at_c<boost::function_types::parameter_types<decltype(&FuncType::operator())>, 1>::type, const std::vector<Value>&>::value &&
+    boost::function_types::function_arity<decltype(&FuncType::operator())>::value == 2,
+    std::function<Value (const std::vector<Value>&)>>::type
+WrapFunction(FuncType function)
 {
 	return function;
 }
@@ -43,12 +53,11 @@ inline std::function<Value (const std::vector<Value>&)> WrapFunction(void (*func
 		return Empty;
 	};
 }
+
 template<typename Return>
 std::function<Value (const std::vector<Value>&)> WrapFunction(Return (*function)(const std::vector<Value>&))
 {
-	return [function](const std::vector<Value>& arguments) {
-		return static_cast<Value>(function(arguments));
-	};
+	return std::bind(function, _1);
 }
 
 template <std::size_t... Indices>
@@ -69,52 +78,51 @@ struct build_indices<0> {
 template <std::size_t N>
 using BuildIndices = typename build_indices<N>::type;
 
-struct unpack_caller
+struct UnpackCaller
 {
 private:
 	template <typename FuncType, size_t... I>
-	auto call(FuncType f, const std::vector<Value>& args, indices<I...>) -> decltype(f(args[I]...))
+	auto Invoke(FuncType f, const std::vector<Value>& args, indices<I...>) -> decltype(f(args[I]...))
 	{
 		return f(args[I]...);
 	}
 
 public:
-	template <typename FuncType>
-	auto operator () (FuncType f, const std::vector<Value>& args)
-	    -> decltype(call(f, args, BuildIndices<boost::function_types::function_arity<typename boost::remove_pointer<FuncType>::type>::value>{}))
+	template <typename FuncType, int Arity>
+	auto operator() (FuncType f, const std::vector<Value>& args)
+	    -> decltype(Invoke(f, args, BuildIndices<Arity>{}))
 	{
-		return call(f, args, BuildIndices<boost::function_types::function_arity<typename boost::remove_pointer<FuncType>::type>::value>{});
+		return Invoke(f, args, BuildIndices<Arity>{});
 	}
 };
 
-enum class enabler_t {};
-
-template<bool T>
-using EnableIf = typename std::enable_if<T, enabler_t>::type;
-
-template<typename FuncType>
-std::function<Value (const std::vector<Value>&)> WrapFunction(FuncType function,
-    EnableIf<std::is_same<decltype(unpack_caller()(FuncType(), std::vector<Value>())), void>::value>* = 0)
+template<typename FuncType, int Arity, typename ReturnType>
+struct FunctionWrapper
 {
-	return [function](const std::vector<Value>& arguments) {
-		constexpr int arity = boost::function_types::function_arity<typename boost::remove_pointer<FuncType>::type>::value;
+	static Value Invoke(FuncType function, const std::vector<Value>& arguments)
+	{
+		return UnpackCaller().operator()<FuncType, Arity>(function, arguments);
+	}
+};
 
-		if (arguments.size() < arity)
-			BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function."));
-		else if (arguments.size() > arity)
-			BOOST_THROW_EXCEPTION(std::invalid_argument("Too many arguments for function."));
-
-		unpack_caller()(function, arguments);
+template<typename FuncType, int Arity>
+struct FunctionWrapper<FuncType, Arity, void>
+{
+	static Value Invoke(FuncType function, const std::vector<Value>& arguments)
+	{
+		UnpackCaller().operator()<FuncType, Arity>(function, arguments);
 		return Empty;
-	};
-}
+	}
+};
 
 template<typename FuncType>
-std::function<Value (const std::vector<Value>&)> WrapFunction(FuncType function,
-		EnableIf<!std::is_same<decltype(unpack_caller()(FuncType(), std::vector<Value>())), void>::value>* = 0)
+typename std::enable_if<
+    std::is_function<typename std::remove_pointer<FuncType>::type>::value && !std::is_same<FuncType, Value(*)(const std::vector<Value>&)>::value,
+    std::function<Value (const std::vector<Value>&)>>::type
+WrapFunction(FuncType function)
 {
 	return [function](const std::vector<Value>& arguments) {
-		constexpr int arity = boost::function_types::function_arity<typename boost::remove_pointer<FuncType>::type>::value;
+		constexpr size_t arity = boost::function_types::function_arity<typename std::remove_pointer<FuncType>::type>::value;
 
 		if (arity > 0) {
 			if (arguments.size() < arity)
@@ -123,7 +131,36 @@ std::function<Value (const std::vector<Value>&)> WrapFunction(FuncType function,
 				BOOST_THROW_EXCEPTION(std::invalid_argument("Too many arguments for function."));
 		}
 
-		return unpack_caller()(function, arguments);
+		using ReturnType = decltype(UnpackCaller().operator()<FuncType, arity>(*static_cast<FuncType *>(nullptr), std::vector<Value>()));
+
+		return FunctionWrapper<FuncType, arity, ReturnType>::Invoke(function, arguments);
+	};
+}
+
+template<typename FuncType>
+typename std::enable_if<
+    std::is_class<FuncType>::value &&
+    !(std::is_same<typename boost::function_types::result_type<decltype(&FuncType::operator())>::type, Value>::value &&
+    std::is_same<typename boost::mpl::at_c<boost::function_types::parameter_types<decltype(&FuncType::operator())>, 1>::type, const std::vector<Value>&>::value &&
+    boost::function_types::function_arity<decltype(&FuncType::operator())>::value == 2),
+    std::function<Value (const std::vector<Value>&)>>::type
+WrapFunction(FuncType function)
+{
+	using FuncTypeInvoker = decltype(&FuncType::operator());
+
+	return [function](const std::vector<Value>& arguments) {
+		constexpr size_t arity = boost::function_types::function_arity<FuncTypeInvoker>::value - 1;
+
+		if (arity > 0) {
+			if (arguments.size() < arity)
+				BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function."));
+			else if (arguments.size() > arity)
+				BOOST_THROW_EXCEPTION(std::invalid_argument("Too many arguments for function."));
+		}
+
+		using ReturnType = decltype(UnpackCaller().operator()<FuncType, arity>(*static_cast<FuncType *>(nullptr), std::vector<Value>()));
+
+		return FunctionWrapper<FuncType, arity, ReturnType>::Invoke(function, arguments);
 	};
 }
 
