@@ -57,8 +57,8 @@ BOOST_AUTO_TEST_CASE(get_and_set)
 	std::vector<String> v1 { "hip", "hip", "hurra" };
 	std::vector<String> v2 { "äü^ä+#ül-" };
 	std::vector<String> v3 { "1", "2" };
-	m.emplace("shout", v1);
-	m.emplace("sonderzeichen", v2);
+	m.insert(std::make_pair("shout", v1));
+	m.insert(std::make_pair("sonderzeichen", v2));
 	url->SetQuery(m);
 	url->SetQueryElements("count", v3);
 	url->AddQueryElement("count", "3");
