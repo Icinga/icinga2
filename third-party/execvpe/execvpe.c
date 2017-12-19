@@ -67,24 +67,24 @@ icinga2_execvpe (file, argv, envp)
       execve (file, argv, envp);
 
       if (errno == ENOEXEC)
-	{
-	  /* Count the arguments.  */
-	  int argc = 0;
-	  while (argv[argc++])
-	    ;
-	  size_t len = (argc + 1) * sizeof (char *);
-	  char **script_argv;
-	  void *ptr = NULL;
-	  script_argv = alloca (len);
+        {
+          /* Count the arguments.  */
+          int argc = 0;
+          while (argv[argc++])
+            ;
+          size_t len = (argc + 1) * sizeof (char *);
+          char **script_argv;
+          void *ptr = NULL;
+          script_argv = alloca (len);
 
-	  if (script_argv != NULL)
-	    {
-	      scripts_argv (file, argv, argc, script_argv);
-	      execve (script_argv[0], script_argv, envp);
+          if (script_argv != NULL)
+            {
+              scripts_argv (file, argv, argc, script_argv);
+              execve (script_argv[0], script_argv, envp);
 
-	      free (ptr);
-	    }
-	}
+              free (ptr);
+            }
+        }
     }
   else
     {
@@ -92,12 +92,12 @@ icinga2_execvpe (file, argv, envp)
       size_t alloclen = 0;
       char *path = getenv ("PATH");
       if (path == NULL)
-	{
-	  pathlen = confstr (_CS_PATH, (char *) NULL, 0);
-	  alloclen = pathlen + 1;
-	}
+        {
+          pathlen = confstr (_CS_PATH, (char *) NULL, 0);
+          alloclen = pathlen + 1;
+        }
       else
-	pathlen = strlen (path);
+        pathlen = strlen (path);
 
       size_t len = strlen (file) + 1;
       alloclen += pathlen + len + 1;
@@ -106,14 +106,14 @@ icinga2_execvpe (file, argv, envp)
       name = alloca (alloclen);
 
       if (path == NULL)
-	{
-	  /* There is no `PATH' in the environment.
-	     The default search path is the current directory
-	     followed by the path `confstr' returns for `_CS_PATH'.  */
-	  path = name + pathlen + len + 1;
-	  path[0] = ':';
-	  (void) confstr (_CS_PATH, path + 1, pathlen);
-	}
+        {
+          /* There is no `PATH' in the environment.
+             The default search path is the current directory
+             followed by the path `confstr' returns for `_CS_PATH'.  */
+          path = name + pathlen + len + 1;
+          path[0] = ':';
+          (void) confstr (_CS_PATH, path + 1, pathlen);
+        }
 
       /* Copy the file name at the top.  */
       name = (char *) memcpy (name + pathlen + 1, file, len);
@@ -124,81 +124,81 @@ icinga2_execvpe (file, argv, envp)
       bool got_eacces = false;
       char *p = path;
       do
-	{
-	  char *startp;
+        {
+          char *startp;
 
-	  path = p;
-	  p = strchr (path, ':');
-	  if (!p)
-	    p = path + strlen(path);
+          path = p;
+          p = strchr (path, ':');
+          if (!p)
+            p = path + strlen(path);
 
-	  if (p == path)
-	    /* Two adjacent colons, or a colon at the beginning or the end
-	       of `PATH' means to search the current directory.  */
-	    startp = name + 1;
-	  else
-	    startp = (char *) memcpy (name - (p - path), path, p - path);
+          if (p == path)
+            /* Two adjacent colons, or a colon at the beginning or the end
+               of `PATH' means to search the current directory.  */
+            startp = name + 1;
+          else
+            startp = (char *) memcpy (name - (p - path), path, p - path);
 
-	  /* Try to execute this name.  If it works, execve will not return. */
-	  execve (startp, argv, envp);
+          /* Try to execute this name.  If it works, execve will not return. */
+          execve (startp, argv, envp);
 
-	  if (errno == ENOEXEC)
-	    {
-	      if (script_argv == NULL)
-		{
-		  /* Count the arguments.  */
-		  int argc = 0;
-		  while (argv[argc++])
-		    ;
-		  size_t arglen = (argc + 1) * sizeof (char *);
-		  script_argv = alloca (arglen);
-		  if (script_argv == NULL)
-		    {
-		      /* A possible EACCES error is not as important as
-			 the ENOMEM.  */
-		      got_eacces = false;
-		      break;
-		    }
-		  scripts_argv (startp, argv, argc, script_argv);
-		}
+          if (errno == ENOEXEC)
+            {
+              if (script_argv == NULL)
+                {
+                  /* Count the arguments.  */
+                  int argc = 0;
+                  while (argv[argc++])
+                    ;
+                  size_t arglen = (argc + 1) * sizeof (char *);
+                  script_argv = alloca (arglen);
+                  if (script_argv == NULL)
+                    {
+                      /* A possible EACCES error is not as important as
+                         the ENOMEM.  */
+                      got_eacces = false;
+                      break;
+                    }
+                  scripts_argv (startp, argv, argc, script_argv);
+                }
 
-	      execve (script_argv[0], script_argv, envp);
-	    }
+              execve (script_argv[0], script_argv, envp);
+            }
 
-	  switch (errno)
-	    {
-	    case EACCES:
-	      /* Record the we got a `Permission denied' error.  If we end
-		 up finding no executable we can use, we want to diagnose
-		 that we did find one but were denied access.  */
-	      got_eacces = true;
-	    case ENOENT:
-	    case ESTALE:
-	    case ENOTDIR:
-	      /* Those errors indicate the file is missing or not executable
-		 by us, in which case we want to just try the next path
-		 directory.  */
-	    case ENODEV:
-	    case ETIMEDOUT:
-	      /* Some strange filesystems like AFS return even
-		 stranger error numbers.  They cannot reasonably mean
-		 anything else so ignore those, too.  */
-	      break;
+          switch (errno)
+            {
+            case EACCES:
+              /* Record the we got a `Permission denied' error.  If we end
+                 up finding no executable we can use, we want to diagnose
+                 that we did find one but were denied access.  */
+              got_eacces = true;
+            case ENOENT:
+            case ESTALE:
+            case ENOTDIR:
+              /* Those errors indicate the file is missing or not executable
+                 by us, in which case we want to just try the next path
+                 directory.  */
+            case ENODEV:
+            case ETIMEDOUT:
+              /* Some strange filesystems like AFS return even
+                 stranger error numbers.  They cannot reasonably mean
+                 anything else so ignore those, too.  */
+              break;
 
-	    default:
-	      /* Some other error means we found an executable file, but
-		 something went wrong executing it; return the error to our
-		 caller.  */
-	      return -1;
-	    }
-	}
+            default:
+              /* Some other error means we found an executable file, but
+                 something went wrong executing it; return the error to our
+                 caller.  */
+              return -1;
+            }
+        }
       while (*p++ != '\0');
 
       /* We tried every element and none of them worked.  */
       if (got_eacces)
-	/* At least one failure was due to permissions, so report that
-	   error.  */
-	errno = EACCES;
+        /* At least one failure was due to permissions, so report that
+           error.  */
+        errno = EACCES;
     }
 
   /* Return the error from the last attempt (probably ENOENT).  */
