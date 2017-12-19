@@ -103,7 +103,7 @@ void Downtime::Start(bool runtimeCreated)
 
 	static boost::once_flag once = BOOST_ONCE_INIT;
 
-	boost::call_once(once, []() {
+	boost::call_once(once, [this]() {
 		l_DowntimesStartTimer = new Timer();
 		l_DowntimesStartTimer->SetInterval(5);
 		l_DowntimesStartTimer->OnTimerExpired.connect(std::bind(&Downtime::DowntimesStartTimerHandler));

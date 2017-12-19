@@ -40,7 +40,7 @@ void TimePeriod::Start(bool runtimeCreated)
 
 	static boost::once_flag once = BOOST_ONCE_INIT;
 
-	boost::call_once(once, []() {
+	boost::call_once(once, [this]() {
 		l_UpdateTimer = new Timer();
 		l_UpdateTimer->SetInterval(300);
 		l_UpdateTimer->OnTimerExpired.connect(std::bind(&TimePeriod::UpdateTimerHandler));
