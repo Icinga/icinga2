@@ -74,11 +74,13 @@ IF (WIN32)
     $ENV{ProgramFiles}/MySQL/*/lib/${libsuffixDist}
     $ENV{SystemDrive}/MySQL/*/lib/${libsuffixDist})
 ELSE (WIN32)
-  SET(MYSQL_CLIENT_LIBS mysqlclient)
+  IF (NOT MYSQL_CLIENT_LIBS)
+    SET(MYSQL_CLIENT_LIBS mysqlclient)
+  ENDIF (NOT MYSQL_CLIENT_LIBS)
 
   FILE(GLOB _macports_lib_dirs /opt/local/lib/mysql*/mysql)
 
-  FIND_LIBRARY(MYSQL_LIB NAMES mysqlclient
+  FIND_LIBRARY(MYSQL_LIB NAMES ${MYSQL_CLIENT_LIBS}
     PATHS
     $ENV{MYSQL_DIR}/libmysql_r/.libs
     $ENV{MYSQL_DIR}/lib
