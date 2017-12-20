@@ -12,3 +12,4 @@ build32/
 build64/
 debug/
 release/
+cmake-build-debug
