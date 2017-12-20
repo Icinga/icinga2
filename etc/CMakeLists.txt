@@ -79,7 +79,7 @@ else()
   install_if_not_exists(icinga2/features-enabled/mainlog.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/features-enabled)
 endif()
 
-if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+if(${CMAKE_SYSTEM_NAME} MATCHES "(Linux|Solaris|SunOS)")
   add_subdirectory(initsystem)
 endif()
 
