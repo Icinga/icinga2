@@ -48,7 +48,7 @@ bool ConfigFilesHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 	}
 
 	if (request.Headers->Get("accept") == "application/json") {
-		HttpUtility::SendJsonError(response, 400, "Invalid Accept header. Either remove the Accept header or set it to 'application/octet-stream'.");
+		HttpUtility::SendJsonError(response, params, 400, "Invalid Accept header. Either remove the Accept header or set it to 'application/octet-stream'.");
 		return true;
 	}
 
@@ -58,26 +58,26 @@ bool ConfigFilesHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 	String stageName = HttpUtility::GetLastParameter(params, "stage");
 
 	if (!ConfigPackageUtility::ValidateName(packageName)) {
-		HttpUtility::SendJsonError(response, 400, "Invalid package name.");
+		HttpUtility::SendJsonError(response, params, 400, "Invalid package name.");
 		return true;
 	}
 
 	if (!ConfigPackageUtility::ValidateName(stageName)) {
-		HttpUtility::SendJsonError(response, 400, "Invalid stage name.");
+		HttpUtility::SendJsonError(response, params, 400, "Invalid stage name.");
 		return true;
 	}
 
 	String relativePath = HttpUtility::GetLastParameter(params, "path");
 
 	if (ConfigPackageUtility::ContainsDotDot(relativePath)) {
-		HttpUtility::SendJsonError(response, 400, "Path contains '..' (not allowed).");
+		HttpUtility::SendJsonError(response, params, 400, "Path contains '..' (not allowed).");
 		return true;
 	}
 
 	String path = ConfigPackageUtility::GetPackageDir() + "/" + packageName + "/" + stageName + "/" + relativePath;
 
 	if (!Utility::PathExists(path)) {
-		HttpUtility::SendJsonError(response, 404, "Path not found.");
+		HttpUtility::SendJsonError(response, params, 404, "Path not found.");
 		return true;
 	}
 
@@ -90,7 +90,7 @@ bool ConfigFilesHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 		response.AddHeader("Content-Type", "application/octet-stream");
 		response.WriteBody(content.CStr(), content.GetLength());
 	} catch (const std::exception& ex) {
-		HttpUtility::SendJsonError(response, 500, "Could not read file.",
+		HttpUtility::SendJsonError(response, params, 500, "Could not read file.",
 			HttpUtility::GetLastParameter(params, "verboseErrors") ? DiagnosticInformation(ex) : "");
 	}
 

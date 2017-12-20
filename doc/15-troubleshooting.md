@@ -296,7 +296,7 @@ on the name:
 
 ```
 $ curl -k -s -u root:icinga -H 'Accept: application/json' -H 'X-HTTP-Method-Override: GET' -X POST 'https://localhost:5665/v1/objects/services' \
--d '{ "filter": "regex(pattern, service.name)", "filter_vars": { "pattern": "^http" }, "attrs": [ "__name", "last_check_result" ] }' | python -m json.tool
+-d '{ "filter": "regex(pattern, service.name)", "filter_vars": { "pattern": "^http" }, "attrs": [ "__name", "last_check_result" ], "pretty": true }'
 {
     "results": [
         {
@@ -388,7 +388,7 @@ Example for retrieving the check source from all `disk` services using a
 
 ```
 $ curl -k -s -u root:icinga -H 'Accept: application/json' -H 'X-HTTP-Method-Override: GET' -X POST 'https://localhost:5665/v1/objects/services' \
--d '{ "filter": "regex(pattern, service.name)", "filter_vars": { "pattern": "^disk" }, "attrs": [ "__name", "last_check_result" ] }' | python -m json.tool
+-d '{ "filter": "regex(pattern, service.name)", "filter_vars": { "pattern": "^disk" }, "attrs": [ "__name", "last_check_result" ], "pretty": true }'
 {
     "results": [
         {
@@ -547,7 +547,7 @@ The REST API provides the [status](12-icinga2-api.md#icinga2-api-status) URL end
 on Icinga and its features.
 
 ```
-# curl -k -s -u root:icinga 'https://localhost:5665/v1/status' | python -m json.tool | less
+# curl -k -s -u root:icinga 'https://localhost:5665/v1/status?pretty=1' | less
 ```
 
 You can also calculate late check results via the REST API:

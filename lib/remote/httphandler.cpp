@@ -100,7 +100,7 @@ void HttpHandler::ProcessRequest(const ApiUser::Ptr& user, HttpRequest& request,
 	try {
 		params = HttpUtility::FetchRequestParameters(request);
 	} catch (const std::exception& ex) {
-		HttpUtility::SendJsonError(response, 400, "Invalid request body: " + DiagnosticInformation(ex, false));
+		HttpUtility::SendJsonError(response, params, 400, "Invalid request body: " + DiagnosticInformation(ex, false));
 		return;
 	}
 
@@ -114,7 +114,7 @@ void HttpHandler::ProcessRequest(const ApiUser::Ptr& user, HttpRequest& request,
 
 	if (!processed) {
 		String path = boost::algorithm::join(request.RequestUrl->GetPath(), "/");
-		HttpUtility::SendJsonError(response, 404, "The requested path '" + path +
+		HttpUtility::SendJsonError(response, params, 404, "The requested path '" + path +
 				"' could not be found or the request method is not valid for this path.");
 		return;
 	}

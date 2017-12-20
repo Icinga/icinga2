@@ -115,7 +115,7 @@ bool ObjectQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 	Type::Ptr type = FilterUtility::TypeFromPluralName(request.RequestUrl->GetPath()[2]);
 
 	if (!type) {
-		HttpUtility::SendJsonError(response, 400, "Invalid type specified.");
+		HttpUtility::SendJsonError(response, params, 400, "Invalid type specified.");
 		return true;
 	}
 
@@ -128,7 +128,7 @@ bool ObjectQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 	try {
 		uattrs = params->Get("attrs");
 	} catch (const std::exception&) {
-		HttpUtility::SendJsonError(response, 400,
+		HttpUtility::SendJsonError(response, params, 400,
 			"Invalid type for 'attrs' attribute specified. Array type is required.", Empty);
 		return true;
 	}
@@ -136,7 +136,7 @@ bool ObjectQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 	try {
 		ujoins = params->Get("joins");
 	} catch (const std::exception&) {
-		HttpUtility::SendJsonError(response, 400,
+		HttpUtility::SendJsonError(response, params, 400,
 			"Invalid type for 'joins' attribute specified. Array type is required.", Empty);
 		return true;
 	}
@@ -144,7 +144,7 @@ bool ObjectQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 	try {
 		umetas = params->Get("meta");
 	} catch (const std::exception&) {
-		HttpUtility::SendJsonError(response, 400,
+		HttpUtility::SendJsonError(response, params, 400,
 			"Invalid type for 'meta' attribute specified. Array type is required.", Empty);
 		return true;
 	}
@@ -164,7 +164,7 @@ bool ObjectQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 	try {
 		objs = FilterUtility::GetFilterTargets(qd, params, user);
 	} catch (const std::exception& ex) {
-		HttpUtility::SendJsonError(response, 404,
+		HttpUtility::SendJsonError(response, params, 404,
 			"No objects found.",
 			HttpUtility::GetLastParameter(params, "verboseErrors") ? DiagnosticInformation(ex) : "");
 		return true;
@@ -234,7 +234,7 @@ bool ObjectQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 					dinfo->Set("last_column", di.LastColumn);
 					metaAttrs->Set("location", dinfo);
 				} else {
-					HttpUtility::SendJsonError(response, 400, "Invalid field specified for meta: " + meta);
+					HttpUtility::SendJsonError(response, params, 400, "Invalid field specified for meta: " + meta);
 					return true;
 				}
 			}
@@ -243,7 +243,7 @@ bool ObjectQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 		try {
 			result1->Set("attrs", SerializeObjectAttrs(obj, String(), uattrs, false, false));
 		} catch (const ScriptError& ex) {
-			HttpUtility::SendJsonError(response, 400, ex.what());
+			HttpUtility::SendJsonError(response, params, 400, ex.what());
 			return true;
 		}
 
@@ -255,14 +255,14 @@ bool ObjectQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 			int fid = type->GetFieldId(joinAttr);
 
 			if (fid < 0) {
-				HttpUtility::SendJsonError(response, 400, "Invalid field specified for join: " + joinAttr);
+				HttpUtility::SendJsonError(response, params, 400, "Invalid field specified for join: " + joinAttr);
 				return true;
 			}
 
 			Field field = type->GetFieldInfo(fid);
 
 			if (!(field.Attributes & FANavigation)) {
-				HttpUtility::SendJsonError(response, 400, "Not a joinable field: " + joinAttr);
+				HttpUtility::SendJsonError(response, params, 400, "Not a joinable field: " + joinAttr);
 				return true;
 			}
 
@@ -276,7 +276,7 @@ bool ObjectQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 			try {
 				joins->Set(prefix, SerializeObjectAttrs(joinedObj, prefix, ujoins, true, allJoins));
 			} catch (const ScriptError& ex) {
-				HttpUtility::SendJsonError(response, 400, ex.what());
+				HttpUtility::SendJsonError(response, params, 400, ex.what());
 				return true;
 			}
 		}
@@ -286,7 +286,7 @@ bool ObjectQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 	result->Set("results", results);
 
 	response.SetStatus(200, "OK");
-	HttpUtility::SendJsonBody(response, result);
+	HttpUtility::SendJsonBody(response, params, result);
 
 	return true;
 }

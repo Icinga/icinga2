@@ -104,7 +104,7 @@ bool StatusHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request
 	try {
 		objs = FilterUtility::GetFilterTargets(qd, params, user);
 	} catch (const std::exception& ex) {
-		HttpUtility::SendJsonError(response, 404,
+		HttpUtility::SendJsonError(response, params, 404,
 			"No objects found.",
 			HttpUtility::GetLastParameter(params, "verboseErrors") ? DiagnosticInformation(ex) : "");
 		return true;
@@ -116,7 +116,7 @@ bool StatusHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request
 	result->Set("results", results);
 
 	response.SetStatus(200, "OK");
-	HttpUtility::SendJsonBody(response, result);
+	HttpUtility::SendJsonBody(response, params, result);
 
 	return true;
 }

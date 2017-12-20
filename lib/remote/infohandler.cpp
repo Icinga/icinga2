@@ -80,7 +80,7 @@ bool InfoHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, 
 		Dictionary::Ptr result = new Dictionary();
 		result->Set("results", results);
 
-		HttpUtility::SendJsonBody(response, result);
+		HttpUtility::SendJsonBody(response, params, result);
 	} else {
 		response.AddHeader("Content-Type", "text/html");
 

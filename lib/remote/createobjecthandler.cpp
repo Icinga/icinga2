@@ -43,7 +43,7 @@ bool CreateObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 	Type::Ptr type = FilterUtility::TypeFromPluralName(request.RequestUrl->GetPath()[2]);
 
 	if (!type) {
-		HttpUtility::SendJsonError(response, 400, "Invalid type specified.");
+		HttpUtility::SendJsonError(response, params, 400, "Invalid type specified.");
 		return true;
 	}
 
@@ -98,7 +98,7 @@ bool CreateObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 		result1->Set("status", "Object could not be created.");
 
 		response.SetStatus(500, "Object could not be created");
-		HttpUtility::SendJsonBody(response, result);
+		HttpUtility::SendJsonBody(response, params, result);
 
 		return true;
 	}
@@ -109,7 +109,7 @@ bool CreateObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 		result1->Set("status", "Object could not be created.");
 
 		response.SetStatus(500, "Object could not be created");
-		HttpUtility::SendJsonBody(response, result);
+		HttpUtility::SendJsonBody(response, params, result);
 
 		return true;
 	}
@@ -125,7 +125,7 @@ bool CreateObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 		result1->Set("status", "Object was not created but 'ignore_on_error' was set to true");
 
 	response.SetStatus(200, "OK");
-	HttpUtility::SendJsonBody(response, result);
+	HttpUtility::SendJsonBody(response, params, result);
 
 	return true;
 }

@@ -94,16 +94,16 @@ bool ConsoleHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& reques
 	bool sandboxed = HttpUtility::GetLastParameter(params, "sandboxed");
 
 	if (methodName == "execute-script")
-		return ExecuteScriptHelper(request, response, command, session, sandboxed);
+		return ExecuteScriptHelper(request, response, params, command, session, sandboxed);
 	else if (methodName == "auto-complete-script")
-		return AutocompleteScriptHelper(request, response, command, session, sandboxed);
+		return AutocompleteScriptHelper(request, response, params, command, session, sandboxed);
 
-	HttpUtility::SendJsonError(response, 400, "Invalid method specified: " + methodName);
+	HttpUtility::SendJsonError(response, params, 400, "Invalid method specified: " + methodName);
 	return true;
 }
 
 bool ConsoleHandler::ExecuteScriptHelper(HttpRequest& request, HttpResponse& response,
-	const String& command, const String& session, bool sandboxed)
+	const Dictionary::Ptr& params, const String& command, const String& session, bool sandboxed)
 {
 	Log(LogNotice, "Console")
 		<< "Executing expression: " << command;
@@ -168,13 +168,13 @@ bool ConsoleHandler::ExecuteScriptHelper(HttpRequest& request, HttpResponse& res
 	result->Set("results", results);
 
 	response.SetStatus(200, "OK");
-	HttpUtility::SendJsonBody(response, result);
+	HttpUtility::SendJsonBody(response, params, result);
 
 	return true;
 }
 
 bool ConsoleHandler::AutocompleteScriptHelper(HttpRequest& request, HttpResponse& response,
-	const String& command, const String& session, bool sandboxed)
+	const Dictionary::Ptr& params, const String& command, const String& session, bool sandboxed)
 {
 	Log(LogInformation, "Console")
 		<< "Auto-completing expression: " << command;
@@ -205,7 +205,7 @@ bool ConsoleHandler::AutocompleteScriptHelper(HttpRequest& request, HttpResponse
 	result->Set("results", results);
 
 	response.SetStatus(200, "OK");
-	HttpUtility::SendJsonBody(response, result);
+	HttpUtility::SendJsonBody(response, params, result);
 
 	return true;
 }
