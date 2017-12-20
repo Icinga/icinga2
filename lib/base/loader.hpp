@@ -35,12 +35,12 @@ public:
 	    : m_Callback(callback), m_Priority(priority)
 	{ }
 
-	inline bool operator<(const DeferredInitializer& other) const
+	bool operator<(const DeferredInitializer& other) const
 	{
 		return m_Priority < other.m_Priority;
 	}
 
-	inline void operator()(void)
+	void operator()(void)
 	{
 		m_Callback();
 	}

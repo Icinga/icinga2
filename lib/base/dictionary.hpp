@@ -49,10 +49,10 @@ public:
 
 	typedef std::map<String, Value>::value_type Pair;
 
-	inline Dictionary(void)
+	Dictionary(void)
 	{ }
 
-	inline ~Dictionary(void)
+	~Dictionary(void)
 	{ }
 
 	Value Get(const String& key) const;
@@ -68,7 +68,7 @@ public:
 	 *
 	 * @returns An iterator.
 	 */
-	inline Iterator Begin(void)
+	Iterator Begin(void)
 	{
 		ASSERT(OwnsLock());
 
@@ -82,7 +82,7 @@ public:
 	 *
 	 * @returns An iterator.
 	 */
-	inline Iterator End(void)
+	Iterator End(void)
 	{
 		ASSERT(OwnsLock());
 
@@ -98,7 +98,7 @@ public:
 	 *
 	 * @param it The iterator.
 	 */
-	inline void Remove(Iterator it)
+	void Remove(Iterator it)
 	{
 		ASSERT(OwnsLock());
 

@@ -47,14 +47,14 @@ public:
 
 	typedef std::vector<Value>::size_type SizeType;
 
-	inline Array(void)
+	Array(void)
 	{ }
 
-	inline Array(std::initializer_list<Value> init)
+	Array(std::initializer_list<Value> init)
 	    : m_Data(init)
 	{ }
 
-	inline ~Array(void)
+	~Array(void)
 	{ }
 
 	Value Get(SizeType index) const;
@@ -70,7 +70,7 @@ public:
 	 *
 	 * @returns An iterator.
 	 */
-	inline Iterator Begin(void)
+	Iterator Begin(void)
 	{
 		ASSERT(OwnsLock());
 
@@ -84,7 +84,7 @@ public:
 	 *
 	 * @returns An iterator.
 	 */
-	inline Iterator End(void)
+	Iterator End(void)
 	{
 		ASSERT(OwnsLock());
 

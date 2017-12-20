@@ -58,23 +58,23 @@ public:
 
 	typedef std::string::size_type SizeType;
 
-	inline String(void)
+	String(void)
 		: m_Data()
 	{ }
 
-	inline String(const char *data)
+	String(const char *data)
 		: m_Data(data)
 	{ }
 
-	inline String(const std::string& data)
+	String(const std::string& data)
 		: m_Data(data)
 	{ }
 
-	inline String(std::string&& data)
+	String(std::string&& data)
 		: m_Data(data)
 	{ }
 
-	inline String(String::SizeType n, char c)
+	String(String::SizeType n, char c)
 		: m_Data(n, c)
 	{ }
 
@@ -90,7 +90,7 @@ public:
 	String(Value&& other);
 #endif /* _MSC_VER */
 
-	inline ~String(void)
+	~String(void)
 	{ }
 
 	template<typename InputIterator>
@@ -112,35 +112,35 @@ public:
 
 	String& operator=(Value&& rhs);
 
-	inline String& operator=(const std::string& rhs)
+	String& operator=(const std::string& rhs)
 	{
 		m_Data = rhs;
 		return *this;
 	}
 
-	inline String& operator=(const char *rhs)
+	String& operator=(const char *rhs)
 	{
 		m_Data = rhs;
 		return *this;
 	}
 
-	inline const char& operator[](SizeType pos) const
+	const char& operator[](SizeType pos) const
 	{
 		return m_Data[pos];
 	}
 
-	inline char& operator[](SizeType pos)
+	char& operator[](SizeType pos)
 	{
 		return m_Data[pos];
 	}
 
-	inline String& operator+=(const String& rhs)
+	String& operator+=(const String& rhs)
 	{
 		m_Data += rhs.m_Data;
 		return *this;
 	}
 
-	inline String& operator+=(const char *rhs)
+	String& operator+=(const char *rhs)
 	{
 		m_Data += rhs;
 		return *this;
@@ -148,153 +148,153 @@ public:
 
 	String& operator+=(const Value& rhs);
 
-	inline String& operator+=(char rhs)
+	String& operator+=(char rhs)
 	{
 		m_Data += rhs;
 		return *this;
 	}
 
-	inline bool IsEmpty(void) const
+	bool IsEmpty(void) const
 	{
 		return m_Data.empty();
 	}
 
-	inline bool operator<(const String& rhs) const
+	bool operator<(const String& rhs) const
 	{
 		return m_Data < rhs.m_Data;
 	}
 
-	inline operator const std::string&(void) const
+	operator const std::string&(void) const
 	{
 		return m_Data;
 	}
 
-	inline const char *CStr(void) const
+	const char *CStr(void) const
 	{
 		return m_Data.c_str();
 	}
 
-	inline void Clear(void)
+	void Clear(void)
 	{
 		m_Data.clear();
 	}
 
-	inline SizeType GetLength(void) const
+	SizeType GetLength(void) const
 	{
 		return m_Data.size();
 	}
 
-	inline std::string& GetData(void)
+	std::string& GetData(void)
 	{
 		return m_Data;
 	}
 
-	inline const std::string& GetData(void) const
+	const std::string& GetData(void) const
 	{
 		return m_Data;
 	}
 
-	inline SizeType Find(const String& str, SizeType pos = 0) const
+	SizeType Find(const String& str, SizeType pos = 0) const
 	{
 		return m_Data.find(str, pos);
 	}
 
-	inline SizeType RFind(const String& str, SizeType pos = NPos) const
+	SizeType RFind(const String& str, SizeType pos = NPos) const
 	{
 		return m_Data.rfind(str, pos);
 	}
 
-	inline SizeType FindFirstOf(const char *s, SizeType pos = 0) const
+	SizeType FindFirstOf(const char *s, SizeType pos = 0) const
 	{
 		return m_Data.find_first_of(s, pos);
 	}
 
-	inline SizeType FindFirstOf(char ch, SizeType pos = 0) const
+	SizeType FindFirstOf(char ch, SizeType pos = 0) const
 	{
 		return m_Data.find_first_of(ch, pos);
 	}
 
-	inline SizeType FindFirstNotOf(const char *s, SizeType pos = 0) const
+	SizeType FindFirstNotOf(const char *s, SizeType pos = 0) const
 	{
 		return m_Data.find_first_not_of(s, pos);
 	}
 
-	inline SizeType FindFirstNotOf(char ch, SizeType pos = 0) const
+	SizeType FindFirstNotOf(char ch, SizeType pos = 0) const
 	{
 		return m_Data.find_first_not_of(ch, pos);
 	}
 
-	inline SizeType FindLastOf(const char *s, SizeType pos = NPos) const
+	SizeType FindLastOf(const char *s, SizeType pos = NPos) const
 	{
 		return m_Data.find_last_of(s, pos);
 	}
 
-	inline SizeType FindLastOf(char ch, SizeType pos = NPos) const
+	SizeType FindLastOf(char ch, SizeType pos = NPos) const
 	{
 		return m_Data.find_last_of(ch, pos);
 	}
 
-	inline String SubStr(SizeType first, SizeType len = NPos) const
+	String SubStr(SizeType first, SizeType len = NPos) const
 	{
 		return m_Data.substr(first, len);
 	}
 
-	inline std::vector<String> Split(const char *separators) const
+	std::vector<String> Split(const char *separators) const
 	{
 		std::vector<String> result;
 		boost::algorithm::split(result, m_Data, boost::is_any_of(separators));
 		return result;
 	}
 
-	inline void Replace(SizeType first, SizeType second, const String& str)
+	void Replace(SizeType first, SizeType second, const String& str)
 	{
 		m_Data.replace(first, second, str);
 	}
 
-	inline String Trim(void) const
+	String Trim(void) const
 	{
 		String t = m_Data;
 		boost::algorithm::trim(t);
 		return t;
 	}
 
-	inline String ToLower(void) const
+	String ToLower(void) const
 	{
 		String t = m_Data;
 		boost::algorithm::to_lower(t);
 		return t;
 	}
 
-	inline String ToUpper(void) const
+	String ToUpper(void) const
 	{
 		String t = m_Data;
 		boost::algorithm::to_upper(t);
 		return t;
 	}
 
-	inline String Reverse(void) const
+	String Reverse(void) const
 	{
 		String t = m_Data;
 		std::reverse(t.m_Data.begin(), t.m_Data.end());
 		return t;
 	}
 
-	inline void Append(int count, char ch)
+	void Append(int count, char ch)
 	{
 		m_Data.append(count, ch);
 	}
 
-	inline bool Contains(const String& str) const
+	bool Contains(const String& str) const
 	{
 		return (m_Data.find(str) != std::string::npos);
 	}
 
-	inline void swap(String& str)
+	void swap(String& str)
 	{
 		m_Data.swap(str.m_Data);
 	}
 
-	inline Iterator erase(Iterator first, Iterator last)
+	Iterator erase(Iterator first, Iterator last)
 	{
 		return m_Data.erase(first, last);
 	}
@@ -305,42 +305,42 @@ public:
 		m_Data.insert(p, first, last);
 	}
 
-	inline Iterator Begin(void)
+	Iterator Begin(void)
 	{
 		return m_Data.begin();
 	}
 
-	inline ConstIterator Begin(void) const
+	ConstIterator Begin(void) const
 	{
 		return m_Data.begin();
 	}
 
-	inline Iterator End(void)
+	Iterator End(void)
 	{
 		return m_Data.end();
 	}
 
-	inline ConstIterator End(void) const
+	ConstIterator End(void) const
 	{
 		return m_Data.end();
 	}
 
-	inline ReverseIterator RBegin(void)
+	ReverseIterator RBegin(void)
 	{
 		return m_Data.rbegin();
 	}
 
-	inline ConstReverseIterator RBegin(void) const
+	ConstReverseIterator RBegin(void) const
 	{
 		return m_Data.rbegin();
 	}
 
-	inline ReverseIterator REnd(void)
+	ReverseIterator REnd(void)
 	{
 		return m_Data.rend();
 	}
 
-	inline ConstReverseIterator REnd(void) const
+	ConstReverseIterator REnd(void) const
 	{
 		return m_Data.rend();
 	}
