@@ -198,7 +198,11 @@ private:
 class I2_CONFIG_API Expression
 {
 public:
+	Expression(void) = default;
+	Expression(const Expression&) = delete;
 	virtual ~Expression(void);
+
+	Expression& operator=(const Expression&) = delete;
 
 	ExpressionResult Evaluate(ScriptFrame& frame, DebugHint *dhint = nullptr) const;
 	virtual bool GetReference(ScriptFrame& frame, bool init_dict, Value *parent, String *index, DebugHint **dhint = nullptr) const;
