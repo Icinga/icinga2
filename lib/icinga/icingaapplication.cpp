@@ -59,6 +59,9 @@ void IcingaApplication::StaticInitialize()
 	ScriptGlobal::Set("NodeName", node_name);
 
 	ScriptGlobal::Set("ApplicationType", "IcingaApplication");
+
+	DeclarePluginDir(ICINGA_PLUGINDIR);
+	DeclarePluginPath(ICINGA_PLUGINPATH);
 }
 
 REGISTER_STATSFUNCTION(IcingaApplication, &IcingaApplication::StatsFunc);
@@ -287,6 +290,40 @@ bool IcingaApplication::ResolveMacro(const String& macro, const CheckResult::Ptr
 String IcingaApplication::GetNodeName() const
 {
 	return ScriptGlobal::Get("NodeName");
+}
+
+/*
+ * Setting up PluginDir default value as a ScriptGlobal
+ *
+ * Note: only PluginDir is used inside the C++ code directly
+ * All other globals are set for compatibility, and a reduced constants.conf
+ */
+void IcingaApplication::DeclarePluginDir(const String& pluginDir)
+{
+	for (String constant : {"PluginDir", "ManubulonPluginDir", "PluginContribDir"})
+		if (!ScriptGlobal::Exists(constant))
+			ScriptGlobal::Set(constant, pluginDir);
+}
+
+String IcingaApplication::GetPluginDir(void)
+{
+	return ScriptGlobal::Get("PluginDir");
+}
+
+void IcingaApplication::DeclarePluginPath(const String& pluginPath)
+{
+	if (!ScriptGlobal::Exists("PluginPath"))
+		ScriptGlobal::Set("PluginPath", Array::FromVector(String(pluginPath).Split(":")));
+}
+
+Value IcingaApplication::GetPluginPath(void)
+{
+	Array::Ptr path = ScriptGlobal::Get("PluginPath");
+	String dir = GetPluginDir();
+	if (!dir.IsEmpty() && !path->Contains(dir))
+		path->Add(dir);
+
+	return path;
 }
 
 void IcingaApplication::ValidateVars(const Dictionary::Ptr& value, const ValidationUtils& utils)

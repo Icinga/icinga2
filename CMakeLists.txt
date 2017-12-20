@@ -51,9 +51,20 @@ set(ICINGA2_GROUP "icinga" CACHE STRING "Icinga 2 group")
 set(ICINGA2_COMMAND_GROUP "icingacmd" CACHE STRING "Icinga 2 command group")
 set(ICINGA2_RUNDIR "${CMAKE_INSTALL_FULL_LOCALSTATEDIR}/run" CACHE STRING "/run directory")
 set(ICINGA2_PLUGINDIR "/usr/lib/nagios/plugins" CACHE STRING "Path for the check plugins")
+set(ICINGA2_PLUGINPATH "/etc/icinga2/scripts:/usr/lib/icinga/plugins:/usr/lib/nagios/plugins"
+  CACHE STRING "A list of paths that can provide check plugins")
 set(ICINGA2_GIT_VERSION_INFO ON CACHE BOOL "Whether to use git describe")
 set(ICINGA2_UNITY_BUILD ON CACHE BOOL "Whether to perform a unity build")
 set(ICINGA2_LTO_BUILD OFF CACHE BOOL "Whether to use LTO")
+
+if(NOT ICINGA2_PLUGINPATH STREQUAL "")
+  string(REPLACE ":" "\",\n  \"" ICINGA2_PLUGINPATH_ESCAPED "${ICINGA2_PLUGINPATH}")
+  set(ICINGA2_PLUGINPATH_ESCAPED "\n  \"${ICINGA2_PLUGINPATH_ESCAPED}\"\n")
+else()
+  set(ICINGA2_PLUGINPATH_ESCAPED "")
+endif()
+
+set(ICINGA2_PLUGINPATH_ESCAPED "[${ICINGA2_PLUGINPATH_ESCAPED}]")
 
 site_name(ICINGA2_BUILD_HOST_NAME)
 set(ICINGA2_BUILD_COMPILER_NAME "${CMAKE_CXX_COMPILER_ID}")

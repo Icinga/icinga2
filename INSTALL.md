@@ -139,7 +139,6 @@ In addition to `CMAKE_INSTALL_PREFIX` here are most of the supported Icinga-spec
 - `ICINGA2_SYSCONFIGFILE`: Where to put the config file the initscript/systemd pulls it's dirs from;
   defaults to `CMAKE_INSTALL_PREFIX/etc/sysconfig/icinga2`
 - `CMAKE_INSTALL_LOCALSTATEDIR`: The state directory; defaults to `CMAKE_INSTALL_PREFIX/var`
-- `ICINGA2_PLUGINDIR`: The path for the Monitoring Plugins project binaries; defaults to `/usr/lib/nagios/plugins`
 
 **Build Optimization**
 - `ICINGA2_UNITY_BUILD`: Whether to perform a unity build; defaults to `ON`
@@ -164,6 +163,15 @@ In addition to `CMAKE_INSTALL_PREFIX` here are most of the supported Icinga-spec
 - `ICINGA2_WITH_PERFDATA`: Determines whether the perfdata module is built; defaults to `ON`
 - `ICINGA2_WITH_STUDIO`: Determines whether the Icinga Studio application is built; defaults to `OFF`
 - `ICINGA2_WITH_TESTS`: Determines whether the unit tests are built; defaults to `ON`
+
+**Plugin Execution:**
+
+Variables related to plugins, most plugins for Icinga are from the Monitoring Plugins project.
+These values depend on the default paths for these plugins in the operating system.
+
+- `ICINGA2_PLUGINPATH`: A list of paths to search for plugins; defaults to `/etc/icinga2/scripts:/usr/lib/icinga/plugins:/usr/lib/nagios/plugins`
+  (handled as Array inside Icinga 2)
+- `ICINGA2_PLUGINDIR`: The default path for plugins that was used in CheckCommands; defaults to `/usr/lib/nagios/plugins`
 
 **Version detection:**
 
