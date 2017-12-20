@@ -506,23 +506,6 @@ inline String::ConstIterator range_end(const String& x)
 	return x.End();
 }
 
-struct string_iless : std::binary_function<String, String, bool>
-{
-	bool operator()(const String& s1, const String& s2) const
-	{
-		 return strcasecmp(s1.CStr(), s2.CStr()) < 0;
-
-		 /* The "right" way would be to do this - however the
-		  * overhead is _massive_ due to the repeated non-inlined
-		  * function calls:
-
-		 return lexicographical_compare(s1.Begin(), s1.End(),
-		     s2.Begin(), s2.End(), boost::algorithm::is_iless());
-
-		  */
-	}
-};
-
 }
 
 namespace boost
