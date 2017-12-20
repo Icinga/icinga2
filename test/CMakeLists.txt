@@ -24,8 +24,8 @@ set(base_test_SOURCES
   base-json.cpp base-match.cpp base-netstring.cpp base-object.cpp
   base-serialize.cpp base-shellescape.cpp base-stacktrace.cpp
   base-stream.cpp base-string.cpp base-timer.cpp base-type.cpp
-  base-value.cpp config-ops.cpp icinga-checkresult.cpp icinga-macros.cpp
-  icinga-notification.cpp
+  base-value.cpp config-ops.cpp icinga-checkresult.cpp icinga-legacytimeperiod.cpp
+  icinga-macros.cpp icinga-notification.cpp
   icinga-perfdata.cpp remote-url.cpp
 )
 
@@ -104,6 +104,7 @@ add_boost_test(base
         icinga_notification/state_filter
         icinga_notification/type_filter
         icinga_macros/simple
+        icinga_legacytimeperiod/simple
         icinga_perfdata/empty
         icinga_perfdata/simple
         icinga_perfdata/quotes
