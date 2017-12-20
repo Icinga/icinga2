@@ -113,7 +113,7 @@ public:
 	{
 		auto evaluatedClosedVars = EvaluateClosedVars(frame, closedVars);
 
-		auto wrapper = [argNames, evaluatedClosedVars, expression](const std::vector<Value>& arguments) {
+		auto wrapper = [argNames, evaluatedClosedVars, expression](const std::vector<Value>& arguments) -> Value {
 			if (arguments.size() < argNames.size())
 				BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function"));
 

@@ -91,7 +91,7 @@ void ScheduledDowntime::Start(bool runtimeCreated)
 
 	static boost::once_flag once = BOOST_ONCE_INIT;
 
-	boost::call_once(once, []() {
+	boost::call_once(once, [this]() {
 		l_Timer = new Timer();
 		l_Timer->SetInterval(60);
 		l_Timer->OnTimerExpired.connect(std::bind(&ScheduledDowntime::TimerProc));
