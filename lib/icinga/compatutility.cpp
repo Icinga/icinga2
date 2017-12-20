@@ -188,18 +188,6 @@ String CompatUtility::GetCheckableCommandArgs(const Checkable::Ptr& checkable)
 	return Empty;
 }
 
-/* Used in DB IDO, StatusDataWriter and Livestatus. */
-double CompatUtility::GetCheckableCheckInterval(const Checkable::Ptr& checkable)
-{
-	return checkable->GetCheckInterval() / 60.0;
-}
-
-/* Used in DB IDO, StatusDataWriter and Livestatus. */
-double CompatUtility::GetCheckableRetryInterval(const Checkable::Ptr& checkable)
-{
-	return checkable->GetRetryInterval() / 60.0;
-}
-
 /* Used in Livestatus. */
 int CompatUtility::GetCheckableNoMoreNotifications(const Checkable::Ptr& checkable)
 {

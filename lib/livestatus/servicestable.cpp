@@ -810,7 +810,7 @@ Value ServicesTable::CheckIntervalAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return CompatUtility::GetCheckableCheckInterval(service);
+	return service->GetCheckInterval() / 60.0;
 }
 
 Value ServicesTable::RetryIntervalAccessor(const Value& row)
@@ -820,7 +820,7 @@ Value ServicesTable::RetryIntervalAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return CompatUtility::GetCheckableRetryInterval(service);
+	return service->GetRetryInterval() / 60.0;
 }
 
 Value ServicesTable::NotificationIntervalAccessor(const Value& row)

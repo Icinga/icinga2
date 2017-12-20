@@ -68,8 +68,8 @@ Dictionary::Ptr HostDbObject::GetConfigFields() const
 	fields->Set("notification_timeperiod_object_id", Empty);
 	fields->Set("check_timeperiod_object_id", host->GetCheckPeriod());
 	fields->Set("failure_prediction_options", Empty);
-	fields->Set("check_interval", CompatUtility::GetCheckableCheckInterval(host));
-	fields->Set("retry_interval", CompatUtility::GetCheckableRetryInterval(host));
+	fields->Set("check_interval", (host->GetCheckInterval() / 60.0));
+	fields->Set("retry_interval", (host->GetRetryInterval() / 60.0));
 	fields->Set("max_check_attempts", host->GetMaxCheckAttempts());
 
 	fields->Set("first_notification_delay", Empty);
@@ -173,8 +173,8 @@ Dictionary::Ptr HostDbObject::GetStatusFields() const
 	fields->Set("failure_prediction_enabled", Empty);
 	fields->Set("process_performance_data", host->GetEnablePerfdata());
 	fields->Set("obsess_over_host", Empty);
-	fields->Set("normal_check_interval", CompatUtility::GetCheckableCheckInterval(host));
-	fields->Set("retry_check_interval", CompatUtility::GetCheckableRetryInterval(host));
+	fields->Set("normal_check_interval", (host->GetCheckInterval() / 60.0));
+	fields->Set("retry_check_interval", (host->GetRetryInterval() / 60.0));
 	fields->Set("check_timeperiod_object_id", host->GetCheckPeriod());
 	fields->Set("is_reachable", host->IsReachable());
 

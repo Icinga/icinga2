@@ -789,7 +789,7 @@ Value HostsTable::CheckIntervalAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	return CompatUtility::GetCheckableCheckInterval(host);
+	return host->GetCheckInterval() / 60.0;
 }
 
 Value HostsTable::RetryIntervalAccessor(const Value& row)
@@ -799,7 +799,7 @@ Value HostsTable::RetryIntervalAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	return CompatUtility::GetCheckableRetryInterval(host);
+	return host->GetRetryInterval() / 60.0;
 }
 
 Value HostsTable::NotificationIntervalAccessor(const Value& row)

@@ -63,8 +63,8 @@ Dictionary::Ptr ServiceDbObject::GetConfigFields() const
 	fields->Set("notification_timeperiod_object_id", Empty);
 	fields->Set("check_timeperiod_object_id", service->GetCheckPeriod());
 	fields->Set("failure_prediction_options", Empty);
-	fields->Set("check_interval", CompatUtility::GetCheckableCheckInterval(service));
-	fields->Set("retry_interval", CompatUtility::GetCheckableRetryInterval(service));
+	fields->Set("check_interval", (service->GetCheckInterval() / 60.0));
+	fields->Set("retry_interval", (service->GetRetryInterval() / 60.0));
 	fields->Set("max_check_attempts", service->GetMaxCheckAttempts());
 	fields->Set("first_notification_delay", Empty);
 	fields->Set("notification_interval", CompatUtility::GetCheckableNotificationNotificationInterval(service));
@@ -159,8 +159,8 @@ Dictionary::Ptr ServiceDbObject::GetStatusFields() const
 
 	fields->Set("scheduled_downtime_depth", service->GetDowntimeDepth());
 	fields->Set("process_performance_data", service->GetEnablePerfdata());
-	fields->Set("normal_check_interval", CompatUtility::GetCheckableCheckInterval(service));
-	fields->Set("retry_check_interval", CompatUtility::GetCheckableRetryInterval(service));
+	fields->Set("normal_check_interval", (service->GetCheckInterval() / 60.0));
+	fields->Set("retry_check_interval", (service->GetRetryInterval() / 60.0));
 	fields->Set("check_timeperiod_object_id", service->GetCheckPeriod());
 	fields->Set("is_reachable", service->IsReachable());
 

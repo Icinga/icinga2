@@ -264,8 +264,8 @@ void StatusDataWriter::DumpHostObject(std::ostream& fp, const Host::Ptr& host)
 
 	ObjectLock olock(host);
 
-	fp << "\t" "check_interval" "\t" << CompatUtility::GetCheckableCheckInterval(host) << "\n"
-		"\t" "retry_interval" "\t" << CompatUtility::GetCheckableRetryInterval(host) << "\n"
+	fp << "\t" "check_interval" "\t" << (host->GetCheckInterval() / 60.0) << "\n"
+		"\t" "retry_interval" "\t" << (host->GetRetryInterval() / 60.0) << "\n"
 		"\t" "max_check_attempts" "\t" << host->GetMaxCheckAttempts() << "\n"
 		"\t" "active_checks_enabled" "\t" << Convert::ToLong(host->GetEnableActiveChecks()) << "\n"
 		"\t" "passive_checks_enabled" "\t" << Convert::ToLong(host->GetEnablePassiveChecks()) << "\n"
@@ -338,8 +338,8 @@ void StatusDataWriter::DumpCheckableStatusAttrs(std::ostream& fp, const Checkabl
 
 	fp << "\t" << "check_command=" << CompatUtility::GetCommandName(checkcommand) << "!" << CompatUtility::GetCheckableCommandArgs(checkable) << "\n"
 		"\t" "event_handler=" << CompatUtility::GetCommandName(eventcommand) << "\n"
-		"\t" "check_interval=" << CompatUtility::GetCheckableCheckInterval(checkable) << "\n"
-		"\t" "retry_interval=" << CompatUtility::GetCheckableRetryInterval(checkable) << "\n"
+		"\t" "check_interval=" << (checkable->GetCheckInterval() / 60.0) << "\n"
+		"\t" "retry_interval=" << (checkable->GetRetryInterval() / 60.0) << "\n"
 		"\t" "has_been_checked=" << Convert::ToLong(checkable->HasBeenChecked()) << "\n"
 		"\t" "should_be_scheduled=" << checkable->GetEnableActiveChecks() << "\n"
 		"\t" "event_handler_enabled=" << Convert::ToLong(checkable->GetEnableEventHandler()) << "\n";
@@ -432,8 +432,8 @@ void StatusDataWriter::DumpServiceObject(std::ostream& fp, const Service::Ptr& s
 			"\t" "host_name" "\t" << host->GetName() << "\n"
 			"\t" "service_description" "\t" << service->GetShortName() << "\n"
 			"\t" "display_name" "\t" << service->GetDisplayName() << "\n"
-			"\t" "check_interval" "\t" << CompatUtility::GetCheckableCheckInterval(service) << "\n"
-			"\t" "retry_interval" "\t" << CompatUtility::GetCheckableRetryInterval(service) << "\n"
+			"\t" "check_interval" "\t" << (service->GetCheckInterval() / 60.0) << "\n"
+			"\t" "retry_interval" "\t" << (service->GetRetryInterval() / 60.0) << "\n"
 			"\t" "max_check_attempts" "\t" << service->GetMaxCheckAttempts() << "\n"
 			"\t" "active_checks_enabled" "\t" << Convert::ToLong(service->GetEnableActiveChecks()) << "\n"
 			"\t" "passive_checks_enabled" "\t" << Convert::ToLong(service->GetEnablePassiveChecks()) << "\n"
