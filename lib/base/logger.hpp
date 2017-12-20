@@ -109,17 +109,17 @@ I2_BASE_API void IcingaLog(LogSeverity severity, const String& facility, const S
 class Log
 {
 public:
-	inline Log(LogSeverity severity, const String& facility, const String& message)
+	Log(LogSeverity severity, const String& facility, const String& message)
 		: m_Severity(severity), m_Facility(facility)
 	{
 		m_Buffer << message;
 	}
 
-	inline Log(LogSeverity severity, const String& facility)
+	Log(LogSeverity severity, const String& facility)
 		: m_Severity(severity), m_Facility(facility)
 	{ }
 
-	inline ~Log(void)
+	~Log(void)
 	{
 		IcingaLog(m_Severity, m_Facility, m_Buffer.str());
 	}

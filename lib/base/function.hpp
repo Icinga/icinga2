@@ -51,12 +51,12 @@ public:
 	Value Invoke(const std::vector<Value>& arguments = std::vector<Value>());
 	Value InvokeThis(const Value& otherThis, const std::vector<Value>& arguments = std::vector<Value>());
 
-	inline bool IsSideEffectFree(void) const
+	bool IsSideEffectFree(void) const
 	{
 		return GetSideEffectFree();
 	}
 
-	inline bool IsDeprecated(void) const
+	bool IsDeprecated(void) const
 	{
 		return GetDeprecated();
 	}

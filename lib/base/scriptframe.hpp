@@ -52,8 +52,8 @@ private:
 	static boost::thread_specific_ptr<std::stack<ScriptFrame *> > m_ScriptFrames;
 	static Array::Ptr m_Imports;
 
-	inline static void PushFrame(ScriptFrame *frame);
-	inline static ScriptFrame *PopFrame(void);
+	static void PushFrame(ScriptFrame *frame);
+	static ScriptFrame *PopFrame(void);
 
 	void InitializeFrame(void);
 };

@@ -34,30 +34,30 @@ namespace icinga
 struct I2_BASE_API ObjectLock
 {
 public:
-	inline ObjectLock(void)
+	ObjectLock(void)
 		: m_Object(nullptr), m_Locked(false)
 	{ }
 
-	inline ~ObjectLock(void)
+	~ObjectLock(void)
 	{
 		Unlock();
 	}
 
-	inline ObjectLock(const Object::Ptr& object)
+	ObjectLock(const Object::Ptr& object)
 		: m_Object(object.get()), m_Locked(false)
 	{
 		if (m_Object)
 			Lock();
 	}
 
-	inline ObjectLock(const Object *object)
+	ObjectLock(const Object *object)
 		: m_Object(object), m_Locked(false)
 	{
 		if (m_Object)
 			Lock();
 	}
 
-	inline static void LockMutex(const Object *object)
+	static void LockMutex(const Object *object)
 	{
 		unsigned int it = 0;
 
@@ -94,7 +94,7 @@ public:
 #endif /* _WIN32 */
 	}
 
-	inline void Lock(void)
+	void Lock(void)
 	{
 		ASSERT(!m_Locked && m_Object);
 
@@ -111,7 +111,7 @@ public:
 #endif /* I2_DEBUG */
 	}
 
-	inline static void Spin(unsigned int it)
+	static void Spin(unsigned int it)
 	{
 		if (it < 8) {
 			/* Do nothing. */
@@ -130,7 +130,7 @@ public:
 		}
 	}
 
-	inline void Unlock(void)
+	void Unlock(void)
 	{
 #ifdef I2_DEBUG
 		if (m_Locked) {

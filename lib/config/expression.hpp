@@ -44,12 +44,12 @@ public:
 	    : m_Hints(std::move(hints))
 	{ }
 
-	inline void AddMessage(const String& message, const DebugInfo& di)
+	void AddMessage(const String& message, const DebugInfo& di)
 	{
 		GetMessages()->Add(new Array({ message, di.Path, di.FirstLine, di.FirstColumn, di.LastLine, di.LastColumn }));
 	}
 
-	inline DebugHint GetChild(const String& name)
+	DebugHint GetChild(const String& name)
 	{
 		const Dictionary::Ptr& children = GetChildren();
 

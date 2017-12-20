@@ -52,53 +52,53 @@ enum ValueType
 class I2_BASE_API Value
 {
 public:
-	inline Value(void)
+	Value(void)
 	{ }
 
-	inline Value(std::nullptr_t)
+	Value(std::nullptr_t)
 	{ }
 
-	inline Value(int value)
+	Value(int value)
 		: m_Value(double(value))
 	{ }
 
-	inline Value(unsigned int value)
+	Value(unsigned int value)
 		: m_Value(double(value))
 	{ }
 
-	inline Value(long value)
+	Value(long value)
 		: m_Value(double(value))
 	{ }
 
-	inline Value(unsigned long value)
+	Value(unsigned long value)
 		: m_Value(double(value))
 	{ }
 
-	inline Value(long long value)
+	Value(long long value)
 		: m_Value(double(value))
 	{ }
 
-	inline Value(unsigned long long value)
+	Value(unsigned long long value)
 		: m_Value(double(value))
 	{ }
 
-	inline Value(double value)
+	Value(double value)
 		: m_Value(value)
 	{ }
 
-	inline Value(bool value)
+	Value(bool value)
 		: m_Value(value)
 	{ }
 
-	inline Value(const String& value)
+	Value(const String& value)
 		: m_Value(value)
 	{ }
 
-	inline Value(String&& value)
+	Value(String&& value)
 		: m_Value(value)
 	{ }
 
-	inline Value(const char *value)
+	Value(const char *value)
 		: m_Value(String(value))
 	{ }
 
@@ -115,7 +115,7 @@ public:
 #endif /* BOOST_VERSION */
 	}
 
-	inline Value(Object *value)
+	Value(Object *value)
 	{
 		if (!value)
 			return;
@@ -124,7 +124,7 @@ public:
 	}
 
 	template<typename T>
-	inline Value(const intrusive_ptr<T>& value)
+	Value(const intrusive_ptr<T>& value)
 	{
 		if (!value)
 			return;
@@ -198,7 +198,7 @@ public:
 	*
 	* @returns true if the variant is empty, false otherwise.
 	*/
-	inline bool IsEmpty(void) const
+	bool IsEmpty(void) const
 	{
 		return (GetType() == ValueEmpty || (IsString() && boost::get<String>(m_Value).IsEmpty()));
 	}
@@ -208,7 +208,7 @@ public:
 	*
 	* @returns true if the variant is scalar, false otherwise.
 	*/
-	inline bool IsScalar(void) const
+	bool IsScalar(void) const
 	{
 		return !IsEmpty() && !IsObject();
 	}
@@ -218,7 +218,7 @@ public:
 	*
 	* @returns true if the variant is a number.
 	*/
-	inline bool IsNumber(void) const
+	bool IsNumber(void) const
 	{
 		return (GetType() == ValueNumber);
 	}
@@ -228,7 +228,7 @@ public:
 	 *
 	 * @returns true if the variant is a boolean.
 	 */
-	inline bool IsBoolean(void) const
+	bool IsBoolean(void) const
 	{
 		return (GetType() == ValueBoolean);
 	}
@@ -238,7 +238,7 @@ public:
 	*
 	* @returns true if the variant is a string.
 	*/
-	inline bool IsString(void) const
+	bool IsString(void) const
 	{
 		return (GetType() == ValueString);
 	}
@@ -248,7 +248,7 @@ public:
 	*
 	* @returns true if the variant is a non-null object, false otherwise.
 	*/
-	inline bool IsObject(void) const
+	bool IsObject(void) const
 	{
 		return  (GetType() == ValueObject);
 	}
@@ -267,12 +267,12 @@ public:
 	*
 	* @returns The type.
 	*/
-	inline ValueType GetType(void) const
+	ValueType GetType(void) const
 	{
 		return static_cast<ValueType>(m_Value.which());
 	}
 
-	inline void Swap(Value& other)
+	void Swap(Value& other)
 	{
 		m_Value.swap(other.m_Value);
 	}
