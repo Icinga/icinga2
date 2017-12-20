@@ -82,7 +82,7 @@ String ConfigObjectTargetProvider::GetPluralName(const String& type) const
 }
 
 bool FilterUtility::EvaluateFilter(ScriptFrame& frame, Expression *filter,
-    const Object::Ptr& target, const String& variableName)
+	const Object::Ptr& target, const String& variableName)
 {
 	if (!filter)
 		return true;
@@ -124,7 +124,7 @@ bool FilterUtility::EvaluateFilter(ScriptFrame& frame, Expression *filter,
 }
 
 static void FilteredAddTarget(ScriptFrame& permissionFrame, Expression *permissionFilter,
-    ScriptFrame& frame, Expression *ufilter, std::vector<Value>& result, const String& variableName, const Object::Ptr& target)
+	ScriptFrame& frame, Expression *ufilter, std::vector<Value>& result, const String& variableName, const Object::Ptr& target)
 {
 	if (FilterUtility::EvaluateFilter(permissionFrame, permissionFilter, target, variableName) && FilterUtility::EvaluateFilter(frame, ufilter, target, variableName))
 		result.push_back(target);
@@ -177,7 +177,7 @@ void FilterUtility::CheckPermission(const ApiUser::Ptr& user, const String& perm
 
 	if (!foundPermission) {
 		Log(LogWarning, "FilterUtility")
-		    << "Missing permission: " << requiredPermission;
+			<< "Missing permission: " << requiredPermission;
 
 		BOOST_THROW_EXCEPTION(ScriptError("Missing permission: " + requiredPermission));
 	}
@@ -269,8 +269,8 @@ std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, c
 		frame.Self = uvars;
 
 		provider->FindTargets(type, std::bind(&FilteredAddTarget,
-		    std::ref(permissionFrame), permissionFilter,
-		    std::ref(frame), &*ufilter, std::ref(result), variableName, _1));
+			std::ref(permissionFrame), permissionFilter,
+			std::ref(frame), &*ufilter, std::ref(result), variableName, _1));
 	}
 
 	return result;

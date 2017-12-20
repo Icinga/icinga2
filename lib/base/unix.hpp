@@ -50,7 +50,8 @@ typedef int SOCKET;
 
 #ifndef SUN_LEN
 /* TODO: Ideally this should take into the account how
-   long the socket path really is. */
+ * long the socket path really is.
+ */
 #	define SUN_LEN(sun) (sizeof(sockaddr_un))
 #endif /* SUN_LEN */
 

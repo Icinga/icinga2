@@ -23,7 +23,7 @@
 using namespace icinga;
 
 ApiFunction::ApiFunction(const Callback& function)
-: m_Callback(function)
+	: m_Callback(function)
 { }
 
 Value ApiFunction::Invoke(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& arguments)

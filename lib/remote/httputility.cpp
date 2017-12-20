@@ -37,7 +37,7 @@ Dictionary::Ptr HttpUtility::FetchRequestParameters(HttpRequest& request)
 	if (!body.IsEmpty()) {
 #ifdef I2_DEBUG
 		Log(LogDebug, "HttpUtility")
-		    << "Request body: '" << body << "'";
+			<< "Request body: '" << body << "'";
 #endif /* I2_DEBUG */
 		result = JsonDecode(body);
 	}
@@ -77,7 +77,7 @@ Value HttpUtility::GetLastParameter(const Dictionary::Ptr& params, const String&
 }
 
 void HttpUtility::SendJsonError(HttpResponse& response, const int code,
-    const String& info, const String& diagnosticInformation)
+	const String& info, const String& diagnosticInformation)
 {
 	Dictionary::Ptr result = new Dictionary();
 	response.SetStatus(code, HttpUtility::GetErrorNameByCode(code));

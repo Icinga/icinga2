@@ -240,7 +240,7 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 
 		/* remove acknowledgements */
 		if (GetAcknowledgement() == AcknowledgementNormal ||
-		    (GetAcknowledgement() == AcknowledgementSticky && IsStateOK(new_state))) {
+			(GetAcknowledgement() == AcknowledgementSticky && IsStateOK(new_state))) {
 			ClearAcknowledgement();
 		}
 
@@ -334,12 +334,12 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 
 #ifdef I2_DEBUG /* I2_DEBUG */
 	Log(LogDebug, "Checkable")
-	    << "Flapping: Checkable " << GetName()
-	    << " was: " << was_flapping
-	    << " is: " << is_flapping
-	    << " threshold low: " << GetFlappingThresholdLow()
-	    << " threshold high: " << GetFlappingThresholdHigh()
-	    << "% current: " << GetFlappingCurrent() << "%.";
+		<< "Flapping: Checkable " << GetName()
+		<< " was: " << was_flapping
+		<< " is: " << is_flapping
+		<< " threshold low: " << GetFlappingThresholdLow()
+		<< " threshold high: " << GetFlappingThresholdHigh()
+		<< "% current: " << GetFlappingCurrent() << "%.";
 #endif /* I2_DEBUG */
 
 	OnNewCheckResult(this, cr, origin);
@@ -354,17 +354,17 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 	if (hardChange || (is_volatile && !(IsStateOK(old_state) && IsStateOK(new_state)))) {
 		OnStateChange(this, cr, StateTypeHard, origin);
 		Log(LogNotice, "Checkable")
-		    << "State Change: Checkable '" << GetName() << "' hard state change from " << old_state_str << " to " << new_state_str << " detected." << (is_volatile ? " Checkable is volatile." : "");
+			<< "State Change: Checkable '" << GetName() << "' hard state change from " << old_state_str << " to " << new_state_str << " detected." << (is_volatile ? " Checkable is volatile." : "");
 	}
 	/* Whether a state change happened or the state type is SOFT (must be logged too). */
 	else if (stateChange || GetStateType() == StateTypeSoft) {
 		OnStateChange(this, cr, StateTypeSoft, origin);
 		Log(LogNotice, "Checkable")
-		    << "State Change: Checkable '" << GetName() << "' soft state change from " << old_state_str << " to " << new_state_str << " detected.";
+			<< "State Change: Checkable '" << GetName() << "' soft state change from " << old_state_str << " to " << new_state_str << " detected.";
 	}
 
 	if (GetStateType() == StateTypeSoft || hardChange || recovery ||
-	    (is_volatile && !(IsStateOK(old_state) && IsStateOK(new_state))))
+		(is_volatile && !(IsStateOK(old_state) && IsStateOK(new_state))))
 		ExecuteEventHandler();
 
 	/* Flapping start/end notifications */
@@ -374,8 +374,8 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 			OnNotificationsRequested(this, NotificationFlappingStart, cr, "", "", nullptr);
 
 		Log(LogNotice, "Checkable")
-		    << "Flapping Start: Checkable '" << GetName() << "' started flapping (Current flapping value "
-		    << GetFlappingCurrent() << "% > high threshold " << GetFlappingThresholdHigh() << "%).";
+			<< "Flapping Start: Checkable '" << GetName() << "' started flapping (Current flapping value "
+			<< GetFlappingCurrent() << "% > high threshold " << GetFlappingThresholdHigh() << "%).";
 
 		NotifyFlapping(origin);
 	} else if (!in_downtime && was_flapping && !is_flapping) {
@@ -384,8 +384,8 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 			OnNotificationsRequested(this, NotificationFlappingEnd, cr, "", "", nullptr);
 
 		Log(LogNotice, "Checkable")
-		    << "Flapping Stop: Checkable '" << GetName() << "' stopped flapping (Current flapping value "
-		    << GetFlappingCurrent() << "% < low threshold " << GetFlappingThresholdLow() << "%).";
+			<< "Flapping Stop: Checkable '" << GetName() << "' stopped flapping (Current flapping value "
+			<< GetFlappingCurrent() << "% < low threshold " << GetFlappingThresholdLow() << "%).";
 
 		NotifyFlapping(origin);
 	}
@@ -477,8 +477,9 @@ void Checkable::ExecuteCheck(void)
 				listener->SyncSendMessage(endpoint, message);
 
 			/* Re-schedule the check so we don't run it again until after we've received
-			   a check result from the remote instance. The check will be re-scheduled
-			   using the proper check interval once we've received a check result. */
+			 * a check result from the remote instance. The check will be re-scheduled
+			 * using the proper check interval once we've received a check result.
+			 */
 			SetNextCheck(Utility::GetTime() + GetCheckCommand()->GetTimeout() + 30);
 		} else if (!endpoint->GetSyncing() && Application::GetInstance()->GetStartTime() < Utility::GetTime() - 300) {
 			/* fail to perform check on unconnected endpoint */

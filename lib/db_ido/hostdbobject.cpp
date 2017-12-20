@@ -234,7 +234,7 @@ void HostDbObject::OnConfigUpdateHeavy(void)
 			continue;
 
 		Log(LogDebug, "HostDbObject")
-		    << "host parents: " << parent->GetName();
+			<< "host parents: " << parent->GetName();
 
 		/* parents: host_id, parent_host_object_id */
 		Dictionary::Ptr fields1 = new Dictionary();
@@ -254,7 +254,7 @@ void HostDbObject::OnConfigUpdateHeavy(void)
 
 	/* host dependencies */
 	Log(LogDebug, "HostDbObject")
-	    << "host dependencies for '" << host->GetName() << "'";
+		<< "host dependencies for '" << host->GetName() << "'";
 
 	queries.clear();
 
@@ -271,14 +271,14 @@ void HostDbObject::OnConfigUpdateHeavy(void)
 
 		if (!parent) {
 			Log(LogDebug, "HostDbObject")
-			    << "Missing parent for dependency '" << dep->GetName() << "'.";
+				<< "Missing parent for dependency '" << dep->GetName() << "'.";
 			continue;
 		}
 
 		int state_filter = dep->GetStateFilter();
 
 		Log(LogDebug, "HostDbObject")
-		    << "parent host: " << parent->GetName();
+			<< "parent host: " << parent->GetName();
 
 		Dictionary::Ptr fields2 = new Dictionary();
 		fields2->Set("host_object_id", parent);
@@ -300,7 +300,7 @@ void HostDbObject::OnConfigUpdateHeavy(void)
 	DbObject::OnMultipleQueries(queries);
 
 	Log(LogDebug, "HostDbObject")
-	    << "host contacts: " << host->GetName();
+		<< "host contacts: " << host->GetName();
 
 	queries.clear();
 
@@ -314,7 +314,7 @@ void HostDbObject::OnConfigUpdateHeavy(void)
 
 	for (const User::Ptr& user : CompatUtility::GetCheckableNotificationUsers(host)) {
 		Log(LogDebug, "HostDbObject")
-		    << "host contacts: " << user->GetName();
+			<< "host contacts: " << user->GetName();
 
 		Dictionary::Ptr fields_contact = new Dictionary();
 		fields_contact->Set("host_id", DbValue::FromObjectInsertID(host));
@@ -332,7 +332,7 @@ void HostDbObject::OnConfigUpdateHeavy(void)
 	DbObject::OnMultipleQueries(queries);
 
 	Log(LogDebug, "HostDbObject")
-	    << "host contactgroups: " << host->GetName();
+		<< "host contactgroups: " << host->GetName();
 
 	queries.clear();
 
@@ -346,7 +346,7 @@ void HostDbObject::OnConfigUpdateHeavy(void)
 
 	for (const UserGroup::Ptr& usergroup : CompatUtility::GetCheckableNotificationUserGroups(host)) {
 		Log(LogDebug, "HostDbObject")
-		    << "host contactgroups: " << usergroup->GetName();
+			<< "host contactgroups: " << usergroup->GetName();
 
 		Dictionary::Ptr fields_contact = new Dictionary();
 		fields_contact->Set("host_id", DbValue::FromObjectInsertID(host));

@@ -137,8 +137,8 @@ void ThreadPool::WorkerThread::ThreadProc(Queue& queue)
 				wi.Callback();
 		} catch (const std::exception& ex) {
 			Log(LogCritical, "ThreadPool")
-			    << "Exception thrown in event handler:\n"
-			    << DiagnosticInformation(ex);
+				<< "Exception thrown in event handler:\n"
+				<< DiagnosticInformation(ex);
 		} catch (...) {
 			Log(LogCritical, "ThreadPool", "Exception of unknown type thrown in event handler.");
 		}
@@ -159,10 +159,10 @@ void ThreadPool::WorkerThread::ThreadProc(Queue& queue)
 		(void) getrusage(RUSAGE_THREAD, &usage_end);
 
 		double duser = (usage_end.ru_utime.tv_sec - usage_start.ru_utime.tv_sec) +
-		    (usage_end.ru_utime.tv_usec - usage_start.ru_utime.tv_usec) / 1000000.0;
+			(usage_end.ru_utime.tv_usec - usage_start.ru_utime.tv_usec) / 1000000.0;
 
 		double dsys = (usage_end.ru_stime.tv_sec - usage_start.ru_stime.tv_sec) +
-		    (usage_end.ru_stime.tv_usec - usage_start.ru_stime.tv_usec) / 1000000.0;
+			(usage_end.ru_stime.tv_usec - usage_start.ru_stime.tv_usec) / 1000000.0;
 
 		double dwait = (et - st) - (duser + dsys);
 
@@ -175,9 +175,9 @@ void ThreadPool::WorkerThread::ThreadProc(Queue& queue)
 		if (et - st > 0.5) {
 			Log(LogWarning, "ThreadPool")
 #	ifdef RUSAGE_THREAD
-			    << "Event call took user:" << duser << "s, system:" << dsys << "s, wait:" << dwait << "s, minor_faults:" << dminfaults << ", major_faults:" << dmajfaults << ", voluntary_csw:" << dvctx << ", involuntary_csw:" << divctx;
+				<< "Event call took user:" << duser << "s, system:" << dsys << "s, wait:" << dwait << "s, minor_faults:" << dminfaults << ", major_faults:" << dmajfaults << ", voluntary_csw:" << dvctx << ", involuntary_csw:" << divctx;
 #	else
-			    << "Event call took " << (et - st) << "s";
+				<< "Event call took " << (et - st) << "s";
 #	endif /* RUSAGE_THREAD */
 		}
 #endif /* I2_DEBUG */
@@ -292,7 +292,7 @@ void ThreadPool::ManagerThreadProc(void)
 
 				if (tthreads != 0) {
 					Log(LogNotice, "ThreadPool")
-					    << "Thread pool; current: " << alive << "; adjustment: " << tthreads;
+						<< "Thread pool; current: " << alive << "; adjustment: " << tthreads;
 				}
 
 				for (int i = 0; i < -tthreads; i++)
@@ -318,10 +318,10 @@ void ThreadPool::ManagerThreadProc(void)
 			lastStats = now;
 
 			Log(LogNotice, "ThreadPool")
-			    << "Pool #" << m_ID << ": Pending tasks: " << total_pending << "; Average latency: "
-			    << (long)(total_avg_latency * 1000 / (sizeof(m_Queues) / sizeof(m_Queues[0]))) << "ms"
-			    << "; Threads: " << total_alive
-			    << "; Pool utilization: " << (total_utilization / (sizeof(m_Queues) / sizeof(m_Queues[0]))) << "%";
+				<< "Pool #" << m_ID << ": Pending tasks: " << total_pending << "; Average latency: "
+				<< (long)(total_avg_latency * 1000 / (sizeof(m_Queues) / sizeof(m_Queues[0]))) << "ms"
+				<< "; Threads: " << total_alive
+				<< "; Pool utilization: " << (total_utilization / (sizeof(m_Queues) / sizeof(m_Queues[0]))) << "%";
 		}
 	}
 }

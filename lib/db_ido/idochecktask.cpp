@@ -35,7 +35,7 @@ using namespace icinga;
 REGISTER_SCRIPTFUNCTION_NS(Internal, IdoCheck, &IdoCheckTask::ScriptFunc, "checkable:cr:resolvedMacros:useResolvedMacros");
 
 void IdoCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr,
-    const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
+	const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
 {
 	CheckCommand::Ptr commandObj = checkable->GetCheckCommand();
 	Value raw_command = commandObj->GetCommandLine();
@@ -52,10 +52,10 @@ void IdoCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult
 	resolvers.emplace_back("icinga", IcingaApplication::GetInstance());
 
 	String idoType = MacroProcessor::ResolveMacros("$ido_type$", resolvers, checkable->GetLastCheckResult(),
-	    nullptr, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
+		nullptr, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
 
 	String idoName = MacroProcessor::ResolveMacros("$ido_name$", resolvers, checkable->GetLastCheckResult(),
-	    nullptr, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
+		nullptr, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
 
 	if (resolvedMacros && !useResolvedMacros)
 		return;

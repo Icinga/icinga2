@@ -70,7 +70,7 @@ bool AttributeFilter::Apply(const Table::Ptr& table, const Value& row)
 				ret = boost::regex_search(operand.GetData(), what, expr);
 			} catch (boost::exception&) {
 				Log(LogWarning, "AttributeFilter")
-				    << "Regex '" << m_Operand << " " << m_Operator << " " << value << "' error.";
+					<< "Regex '" << m_Operand << " " << m_Operator << " " << value << "' error.";
 				ret = false;
 			}
 
@@ -86,7 +86,7 @@ bool AttributeFilter::Apply(const Table::Ptr& table, const Value& row)
 				ret = boost::iequals(operand, m_Operand.GetData());
 			} catch (boost::exception&) {
 				Log(LogWarning, "AttributeFilter")
-				    << "Case-insensitive equality '" << m_Operand << " " << m_Operator << " " << value << "' error.";
+					<< "Case-insensitive equality '" << m_Operand << " " << m_Operator << " " << value << "' error.";
 				ret = false;
 			}
 
@@ -100,7 +100,7 @@ bool AttributeFilter::Apply(const Table::Ptr& table, const Value& row)
 				ret = boost::regex_search(operand.GetData(), what, expr);
 			} catch (boost::exception&) {
 				Log(LogWarning, "AttributeFilter")
-				    << "Regex '" << m_Operand << " " << m_Operator << " " << value << "' error.";
+					<< "Regex '" << m_Operand << " " << m_Operator << " " << value << "' error.";
 				ret = false;
 			}
 

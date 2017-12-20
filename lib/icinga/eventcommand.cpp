@@ -25,11 +25,11 @@ using namespace icinga;
 REGISTER_TYPE(EventCommand);
 
 void EventCommand::Execute(const Checkable::Ptr& checkable,
-    const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
+	const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
 {
 	GetExecute()->Invoke({
-	    checkable,
-	    resolvedMacros,
-	    useResolvedMacros
+		checkable,
+		resolvedMacros,
+		useResolvedMacros
 	});
 }

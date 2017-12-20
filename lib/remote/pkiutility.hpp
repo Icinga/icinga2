@@ -41,8 +41,8 @@ public:
 	static int WriteCert(const std::shared_ptr<X509>& cert, const String& trustedfile);
 	static int GenTicket(const String& cn, const String& salt, std::ostream& ticketfp);
 	static int RequestCertificate(const String& host, const String& port, const String& keyfile,
-	    const String& certfile, const String& cafile, const std::shared_ptr<X509>& trustedcert,
-	    const String& ticket = String());
+		const String& certfile, const String& cafile, const std::shared_ptr<X509>& trustedcert,
+		const String& ticket = String());
 	static String GetCertificateInformation(const std::shared_ptr<X509>& certificate);
 	static Dictionary::Ptr GetCertificateRequests(void);
 

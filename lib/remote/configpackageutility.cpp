@@ -60,7 +60,7 @@ std::vector<String> ConfigPackageUtility::GetPackages(void)
 {
 	std::vector<String> packages;
 	Utility::Glob(GetPackageDir() + "/*", std::bind(&ConfigPackageUtility::CollectDirNames,
-	    _1, std::ref(packages)), GlobDirectory);
+		_1, std::ref(packages)), GlobDirectory);
 	return packages;
 }
 
@@ -103,7 +103,7 @@ String ConfigPackageUtility::CreateStage(const String& packageName, const Dictio
 			String filePath = path + "/" + kv.first;
 
 			Log(LogInformation, "ConfigPackageUtility")
-			    << "Updating configuration file: " << filePath;
+				<< "Updating configuration file: " << filePath;
 
 			// Pass the directory and generate a dir tree, if it does not already exist
 			Utility::MkDirP(Utility::DirName(filePath), 0750);
@@ -133,23 +133,23 @@ void ConfigPackageUtility::WritePackageConfig(const String& packageName)
 	String activePath = GetPackageDir() + "/" + packageName + "/active.conf";
 	std::ofstream fpActive(activePath.CStr(), std::ofstream::out | std::ostream::binary | std::ostream::trunc);
 	fpActive << "if (!globals.contains(\"ActiveStages\")) {\n"
-		 << "  globals.ActiveStages = {}\n"
-		 << "}\n"
-		 << "\n"
-		 << "if (globals.contains(\"ActiveStageOverride\")) {\n"
-		 << "  var arr = ActiveStageOverride.split(\":\")\n"
-		 << "  if (arr[0] == \"" << packageName << "\") {\n"
-		 << "    if (arr.len() < 2) {\n"
-		 << "      log(LogCritical, \"Config\", \"Invalid value for ActiveStageOverride\")\n"
-		 << "    } else {\n"
-		 << "      ActiveStages[\"" << packageName << "\"] = arr[1]\n"
-		 << "    }\n"
-		 << "  }\n"
-		 << "}\n"
-		 << "\n"
-		 << "if (!ActiveStages.contains(\"" << packageName << "\")) {\n"
-		 << "  ActiveStages[\"" << packageName << "\"] = \"" << stageName << "\"\n"
-		 << "}\n";
+		<< "  globals.ActiveStages = {}\n"
+		<< "}\n"
+		<< "\n"
+		<< "if (globals.contains(\"ActiveStageOverride\")) {\n"
+		<< "  var arr = ActiveStageOverride.split(\":\")\n"
+		<< "  if (arr[0] == \"" << packageName << "\") {\n"
+		<< "    if (arr.len() < 2) {\n"
+		<< "      log(LogCritical, \"Config\", \"Invalid value for ActiveStageOverride\")\n"
+		<< "    } else {\n"
+		<< "      ActiveStages[\"" << packageName << "\"] = arr[1]\n"
+		<< "    }\n"
+		<< "  }\n"
+		<< "}\n"
+		<< "\n"
+		<< "if (!ActiveStages.contains(\"" << packageName << "\")) {\n"
+		<< "  ActiveStages[\"" << packageName << "\"] = \"" << stageName << "\"\n"
+		<< "}\n";
 	fpActive.close();
 }
 
@@ -158,10 +158,10 @@ void ConfigPackageUtility::WriteStageConfig(const String& packageName, const Str
 	String path = GetPackageDir() + "/" + packageName + "/" + stageName + "/include.conf";
 	std::ofstream fp(path.CStr(), std::ofstream::out | std::ostream::binary | std::ostream::trunc);
 	fp << "include \"../active.conf\"\n"
-	   << "if (ActiveStages[\"" << packageName << "\"] == \"" << stageName << "\") {\n"
-	   << "  include_recursive \"conf.d\"\n"
-	   << "  include_zones \"" << packageName << "\", \"zones.d\"\n"
-	   << "}\n";
+		<< "if (ActiveStages[\"" << packageName << "\"] == \"" << stageName << "\") {\n"
+		<< "  include_recursive \"conf.d\"\n"
+		<< "  include_zones \"" << packageName << "\", \"zones.d\"\n"
+		<< "}\n";
 	fp.close();
 }
 
@@ -198,8 +198,8 @@ void ConfigPackageUtility::TryActivateStageCallback(const ProcessResult& pr, con
 			Application::RequestRestart();
 	} else {
 		Log(LogCritical, "ConfigPackageUtility")
-		    << "Config validation failed for package '"
-		    << packageName << "' and stage '" << stageName << "'.";
+			<< "Config validation failed for package '"
+			<< packageName << "' and stage '" << stageName << "'.";
 	}
 }
 
@@ -274,9 +274,9 @@ void ConfigPackageUtility::CollectPaths(const String& path, std::vector<std::pai
 	int rc = lstat(path.CStr(), &statbuf);
 	if (rc < 0)
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("lstat")
-		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(path));
+			<< boost::errinfo_api_function("lstat")
+			<< boost::errinfo_errno(errno)
+			<< boost::errinfo_file_name(path));
 
 	paths.emplace_back(path, S_ISDIR(statbuf.st_mode));
 #else /* _WIN32 */
@@ -284,9 +284,9 @@ void ConfigPackageUtility::CollectPaths(const String& path, std::vector<std::pai
 	int rc = _stat(path.CStr(), &statbuf);
 	if (rc < 0)
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("_stat")
-		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(path));
+			<< boost::errinfo_api_function("_stat")
+			<< boost::errinfo_errno(errno)
+			<< boost::errinfo_file_name(path));
 
 	paths.emplace_back(path, ((statbuf.st_mode & S_IFMT) == S_IFDIR));
 #endif /* _WIN32 */

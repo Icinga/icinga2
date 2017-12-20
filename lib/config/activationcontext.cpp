@@ -58,7 +58,7 @@ ActivationContext::Ptr ActivationContext::GetCurrentContext(void)
 }
 
 ActivationScope::ActivationScope(const ActivationContext::Ptr& context)
-    : m_Context(context)
+	: m_Context(context)
 {
 	if (!m_Context)
 		m_Context = new ActivationContext();

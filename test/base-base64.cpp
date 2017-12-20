@@ -33,22 +33,22 @@ BOOST_AUTO_TEST_CASE(base64)
 	clearText.push_back("123");
 	clearText.push_back("1234");
 	clearText.push_back(
-	    "VsowLvPqEiAeITDmo-5L_NB-k7fsT3sT2d3K9O4iC2uBk41hvCPAxrgGSxrdeX5s"
-	    "Zo0Z9b1kxDZlzf8GHQ9ARW6YLeGODMtiZo8cKkUzfSbxyZ_wlE9u6pCTTg9kODCM"
-	    "Ve-X_a3jWkOy89RoDkT5ahKBY-8S25L6wlvWt8ZyQ2bLxfplzEzuHgEknTMKKp2K"
-	    "jRlwI2p3gF4FYeQM7dx0E5O782Lh1P3IC6jPNqiZgTgWmsRYZbAN8oU2V626bQxD"
-	    "n8prQ0Xr_3aPdP7VIVgxNZMnF0NJrQvB_rzq1Dip1UM_xH_9nansbX25E64OQU-r"
-	    "q54EdO-vb_9FvyqdeVTJ3UTgXIP7OXtz4K8xlEHWdb1-hJChVvDc0KSnN5HVN2NJ"
-	    "yJrAofVyHBxXGRnGMdN8cOwvxzBFsz2Hih_lIqm1NVULm9_J9GoesY-aN8JzGocU"
-	    "U3hbhFQBiUlzliuodhwg4RXRcfmPHQRo7kWKaohpySkvqmWcXEAt2LPJ8nH70fW7"
-	    "vudgzwwWTnNcMlf0Wa-nKL4xXNNPQD0obDCfogN8uKuGqi0DltOUmFK62Zkkb0_d"
-	    "45grssnD5q89MjDGBkGMXuLY_JLOqc7Y9VV6H48vzoTNK1a2kOGV2TrAD8syuA5Z"
-	    "o8RLKjTqAYjKTUqEJjg0MflpiBnbDQvRqiSXs1cJuFNXRLpEC5GoqGqMd0zAGn4u"
-	    "5J3OurVd0SFp8_vkYUI6YwNUe00y8_Dn6DOBh_0KKADphZBgple82_8HrnQNreQn"
-	    "GkB2TpIsjwWud0yuhI-jQZEMNNlhEYMLwx7B-xTGhn0LFC1pLEXn_kZ2NOgDgUHd"
-	    "bdj906o3N2Jjo9Fb5GXkCrt-fNEYBjeXvIu73yeTGmsiAzfiICNHi_PmGkgq8fYQ"
-	    "O9lQgyRHCMic8zU7ffWuSoUPRgHsqztLHaCDbYIrNmgrn2taxcXSb57Xm_l-1xBH"
-	    "bZqdMvBziapJXaLJmhUg03lgdsIc_OuJmzt-sytDLVGIuNqpa4dETdhLsI7qis4B"
+		"VsowLvPqEiAeITDmo-5L_NB-k7fsT3sT2d3K9O4iC2uBk41hvCPAxrgGSxrdeX5s"
+		"Zo0Z9b1kxDZlzf8GHQ9ARW6YLeGODMtiZo8cKkUzfSbxyZ_wlE9u6pCTTg9kODCM"
+		"Ve-X_a3jWkOy89RoDkT5ahKBY-8S25L6wlvWt8ZyQ2bLxfplzEzuHgEknTMKKp2K"
+		"jRlwI2p3gF4FYeQM7dx0E5O782Lh1P3IC6jPNqiZgTgWmsRYZbAN8oU2V626bQxD"
+		"n8prQ0Xr_3aPdP7VIVgxNZMnF0NJrQvB_rzq1Dip1UM_xH_9nansbX25E64OQU-r"
+		"q54EdO-vb_9FvyqdeVTJ3UTgXIP7OXtz4K8xlEHWdb1-hJChVvDc0KSnN5HVN2NJ"
+		"yJrAofVyHBxXGRnGMdN8cOwvxzBFsz2Hih_lIqm1NVULm9_J9GoesY-aN8JzGocU"
+		"U3hbhFQBiUlzliuodhwg4RXRcfmPHQRo7kWKaohpySkvqmWcXEAt2LPJ8nH70fW7"
+		"vudgzwwWTnNcMlf0Wa-nKL4xXNNPQD0obDCfogN8uKuGqi0DltOUmFK62Zkkb0_d"
+		"45grssnD5q89MjDGBkGMXuLY_JLOqc7Y9VV6H48vzoTNK1a2kOGV2TrAD8syuA5Z"
+		"o8RLKjTqAYjKTUqEJjg0MflpiBnbDQvRqiSXs1cJuFNXRLpEC5GoqGqMd0zAGn4u"
+		"5J3OurVd0SFp8_vkYUI6YwNUe00y8_Dn6DOBh_0KKADphZBgple82_8HrnQNreQn"
+		"GkB2TpIsjwWud0yuhI-jQZEMNNlhEYMLwx7B-xTGhn0LFC1pLEXn_kZ2NOgDgUHd"
+		"bdj906o3N2Jjo9Fb5GXkCrt-fNEYBjeXvIu73yeTGmsiAzfiICNHi_PmGkgq8fYQ"
+		"O9lQgyRHCMic8zU7ffWuSoUPRgHsqztLHaCDbYIrNmgrn2taxcXSb57Xm_l-1xBH"
+		"bZqdMvBziapJXaLJmhUg03lgdsIc_OuJmzt-sytDLVGIuNqpa4dETdhLsI7qis4B"
 	);
 
 	// 1024 chars

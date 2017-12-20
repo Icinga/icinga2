@@ -44,7 +44,7 @@ INT wmain(INT argc, WCHAR **argv)
 	return printOutput(printInfo);
 }
 
-INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& printInfo) 
+INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& printInfo)
 {
 	WCHAR namePath[MAX_PATH];
 	GetModuleFileName(NULL, namePath, MAX_PATH);
@@ -149,7 +149,7 @@ INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& p
 		} catch (std::invalid_argument) {
 			std::wcout << L"Unknown unit type " << vm["unit"].as<std::wstring>() << '\n';
 			return 3;
-		} 
+		}
 	} else
 		printInfo.unit = TunitS;
 
@@ -159,7 +159,7 @@ INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& p
 	return -1;
 }
 
-INT printOutput(printInfoStruct& printInfo) 
+INT printOutput(printInfoStruct& printInfo)
 {
 	if (debug)
 		std::wcout << L"Constructing output string" << '\n';
@@ -192,7 +192,7 @@ INT printOutput(printInfoStruct& printInfo)
 	return state;
 }
 
-VOID getUptime(printInfoStruct& printInfo) 
+VOID getUptime(printInfoStruct& printInfo)
 {
 	if (debug)
 		std::wcout << L"Getting uptime in milliseconds" << '\n';
@@ -203,7 +203,7 @@ VOID getUptime(printInfoStruct& printInfo)
 		std::wcout << L"Converting requested unit (default: seconds)" << '\n';
 
 	switch (printInfo.unit) {
-	case TunitH: 
+	case TunitH:
 		printInfo.time = boost::chrono::duration_cast<boost::chrono::hours>(uptime).count();
 		break;
 	case TunitM:

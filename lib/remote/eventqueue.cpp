@@ -25,7 +25,7 @@
 using namespace icinga;
 
 EventQueue::EventQueue(const String& name)
-    : m_Name(name)
+	: m_Name(name)
 { }
 
 bool EventQueue::CanProcessEvent(const String& type) const
@@ -45,7 +45,7 @@ void EventQueue::ProcessEvent(const Dictionary::Ptr& event)
 			return;
 	} catch (const std::exception& ex) {
 		Log(LogWarning, "EventQueue")
-		    << "Error occurred while evaluating event filter for queue '" << m_Name << "': " << DiagnosticInformation(ex);
+			<< "Error occurred while evaluating event filter for queue '" << m_Name << "': " << DiagnosticInformation(ex);
 		return;
 	}
 

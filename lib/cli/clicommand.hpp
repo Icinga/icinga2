@@ -61,7 +61,7 @@ public:
 	virtual bool IsHidden(void) const;
 	virtual bool IsDeprecated(void) const;
 	virtual void InitParameters(boost::program_options::options_description& visibleDesc,
-	    boost::program_options::options_description& hiddenDesc) const;
+		boost::program_options::options_description& hiddenDesc) const;
 	virtual ImpersonationLevel GetImpersonationLevel(void) const;
 	virtual int Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const = 0;
 	virtual std::vector<String> GetArgumentSuggestions(const String& argument, const String& word) const;
@@ -72,16 +72,15 @@ public:
 	static void Unregister(const std::vector<String>& name);
 
 	static bool ParseCommand(int argc, char **argv, boost::program_options::options_description& visibleDesc,
-	    boost::program_options::options_description& hiddenDesc,
-	    boost::program_options::positional_options_description& positionalDesc,
-	    boost::program_options::variables_map& vm, String& cmdname,
-	   CLICommand::Ptr& command, bool autocomplete);
+		boost::program_options::options_description& hiddenDesc,
+		boost::program_options::positional_options_description& positionalDesc,
+		boost::program_options::variables_map& vm, String& cmdname, CLICommand::Ptr& command, bool autocomplete);
 
 	static void ShowCommands(int argc, char **argv,
-	    boost::program_options::options_description *visibleDesc = nullptr,
-	    boost::program_options::options_description *hiddenDesc = nullptr,
-	    ArgumentCompletionCallback globalArgCompletionCallback = nullptr,
-	    bool autocomplete = false, int autoindex = -1);
+		boost::program_options::options_description *visibleDesc = nullptr,
+		boost::program_options::options_description *hiddenDesc = nullptr,
+		ArgumentCompletionCallback globalArgCompletionCallback = nullptr,
+		bool autocomplete = false, int autoindex = -1);
 
 private:
 	static boost::mutex& GetRegistryMutex(void);

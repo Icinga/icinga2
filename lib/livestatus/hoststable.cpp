@@ -40,13 +40,13 @@
 using namespace icinga;
 
 HostsTable::HostsTable(LivestatusGroupByType type)
-    :Table(type)
+	:Table(type)
 {
 	AddColumns(this);
 }
 
 void HostsTable::AddColumns(Table *table, const String& prefix,
-    const Column::ObjectAccessor& objectAccessor)
+	const Column::ObjectAccessor& objectAccessor)
 {
 	table->AddColumn(prefix + "name", Column(&HostsTable::NameAccessor, objectAccessor));
 	table->AddColumn(prefix + "host_name", Column(&HostsTable::NameAccessor, objectAccessor)); //ugly compatibility hack
@@ -169,7 +169,7 @@ void HostsTable::AddColumns(Table *table, const String& prefix,
 	if (table->GetGroupByType() == LivestatusGroupByHostGroup) {
 		/* _1 = row, _2 = groupByType, _3 = groupByObject */
 		Log(LogDebug, "Livestatus")
-		    << "Processing hosts group by hostgroup table.";
+			<< "Processing hosts group by hostgroup table.";
 		HostGroupsTable::AddColumns(table, "hostgroup_", std::bind(&HostsTable::HostGroupAccessor, _1, _2, _3));
 	}
 }
@@ -324,8 +324,8 @@ Value HostsTable::NotesExpandedAccessor(const Value& row)
 		return Empty;
 
 	MacroProcessor::ResolverList resolvers {
-	    { "host", host },
-	    { "icinga", IcingaApplication::GetInstance() }
+		{ "host", host },
+		{ "icinga", IcingaApplication::GetInstance() }
 	};
 
 	return MacroProcessor::ResolveMacros(host->GetNotes(), resolvers);
@@ -349,8 +349,8 @@ Value HostsTable::NotesUrlExpandedAccessor(const Value& row)
 		return Empty;
 
 	MacroProcessor::ResolverList resolvers {
-	    { "host", host },
-	    { "icinga", IcingaApplication::GetInstance() }
+		{ "host", host },
+		{ "icinga", IcingaApplication::GetInstance() }
 	};
 
 	return MacroProcessor::ResolveMacros(host->GetNotesUrl(), resolvers);
@@ -374,8 +374,8 @@ Value HostsTable::ActionUrlExpandedAccessor(const Value& row)
 		return Empty;
 
 	MacroProcessor::ResolverList resolvers {
-	    { "host", host },
-	    { "icinga", IcingaApplication::GetInstance() }
+		{ "host", host },
+		{ "icinga", IcingaApplication::GetInstance() }
 	};
 
 	return MacroProcessor::ResolveMacros(host->GetActionUrl(), resolvers);
@@ -431,8 +431,8 @@ Value HostsTable::IconImageExpandedAccessor(const Value& row)
 		return Empty;
 
 	MacroProcessor::ResolverList resolvers {
-	    { "host", host },
-	    { "icinga", IcingaApplication::GetInstance() }
+		{ "host", host },
+		{ "icinga", IcingaApplication::GetInstance() }
 	};
 
 	return MacroProcessor::ResolveMacros(host->GetIconImage(), resolvers);

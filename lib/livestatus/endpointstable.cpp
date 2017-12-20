@@ -40,7 +40,7 @@ EndpointsTable::EndpointsTable(void)
 }
 
 void EndpointsTable::AddColumns(Table *table, const String& prefix,
-    const Column::ObjectAccessor& objectAccessor)
+	const Column::ObjectAccessor& objectAccessor)
 {
 	table->AddColumn(prefix + "name", Column(&EndpointsTable::NameAccessor, objectAccessor));
 	table->AddColumn(prefix + "identity", Column(&EndpointsTable::IdentityAccessor, objectAccessor));

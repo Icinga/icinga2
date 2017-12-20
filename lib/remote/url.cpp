@@ -264,7 +264,7 @@ String Url::Format(bool onlyPathAndQuery, bool printCredentials) const
 			if (kv.second.size() == 1) {
 				param += key;
 				param += kv.second[0].IsEmpty() ?
-				    String() : "=" + Utility::EscapeString(kv.second[0], ACQUERY_ENCODE, false);
+					String() : "=" + Utility::EscapeString(kv.second[0], ACQUERY_ENCODE, false);
 				continue;
 			}
 

@@ -33,7 +33,7 @@ using namespace icinga;
 REGISTER_SCRIPTFUNCTION_NS(Internal, RandomCheck, &RandomCheckTask::ScriptFunc, "checkable:cr:resolvedMacros:useResolvedMacros");
 
 void RandomCheckTask::ScriptFunc(const Checkable::Ptr& service, const CheckResult::Ptr& cr,
-    const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
+	const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
 {
 	if (resolvedMacros && !useResolvedMacros)
 		return;

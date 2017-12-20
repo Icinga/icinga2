@@ -35,8 +35,8 @@ void JsonRpcConnection::HeartbeatTimerHandler(void)
 		for (const JsonRpcConnection::Ptr& client : endpoint->GetClients()) {
 			if (client->m_NextHeartbeat != 0 && client->m_NextHeartbeat < Utility::GetTime()) {
 				Log(LogWarning, "JsonRpcConnection")
-				    << "Client for endpoint '" << endpoint->GetName() << "' has requested "
-				    << "heartbeat message but hasn't responded in time. Closing connection.";
+					<< "Client for endpoint '" << endpoint->GetName() << "' has requested "
+					<< "heartbeat message but hasn't responded in time. Closing connection.";
 
 				client->Disconnect();
 				continue;

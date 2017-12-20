@@ -32,7 +32,7 @@ namespace icinga
 struct I2_LIVESTATUS_API SumAggregatorState : public AggregatorState
 {
 	SumAggregatorState(void)
-	    : Sum(0)
+		: Sum(0)
 	{ }
 
 	double Sum;

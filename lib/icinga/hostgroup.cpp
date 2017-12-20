@@ -50,7 +50,7 @@ bool HostGroup::EvaluateObjectRule(const Host::Ptr& host, const ConfigItem::Ptr&
 		return false;
 
 	Log(LogDebug, "HostGroup")
-	    << "Assigning membership for group '" << group_name << "' to host '" << host->GetName() << "'";
+		<< "Assigning membership for group '" << group_name << "' to host '" << host->GetName() << "'";
 
 	Array::Ptr groups = host->GetGroups();
 	groups->Add(group_name);
@@ -95,8 +95,8 @@ bool HostGroup::ResolveGroupMembership(const Host::Ptr& host, bool add, int rsta
 
 	if (add && rstack > 20) {
 		Log(LogWarning, "HostGroup")
-		    << "Too many nested groups for group '" << GetName() << "': Host '"
-		    << host->GetName() << "' membership assignment failed.";
+			<< "Too many nested groups for group '" << GetName() << "': Host '"
+			<< host->GetName() << "' membership assignment failed.";
 
 		return false;
 	}

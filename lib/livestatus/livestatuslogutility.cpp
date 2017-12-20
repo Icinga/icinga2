@@ -68,13 +68,13 @@ void LivestatusLogUtility::CreateLogIndexFileHandler(const String& path, std::ma
 	stream.close();
 
 	Log(LogDebug, "LivestatusLogUtility")
-	    << "Indexing log file: '" << path << "' with timestamp start: '" << ts_start << "'.";
+		<< "Indexing log file: '" << path << "' with timestamp start: '" << ts_start << "'.";
 
 	index[ts_start] = path;
 }
 
 void LivestatusLogUtility::CreateLogCache(std::map<time_t, String> index, HistoryTable *table,
-    time_t from, time_t until, const AddRowFunction& addRowFn)
+	time_t from, time_t until, const AddRowFunction& addRowFn)
 {
 	ASSERT(table);
 
@@ -106,7 +106,7 @@ void LivestatusLogUtility::CreateLogCache(std::map<time_t, String> index, Histor
 			/* no attributes available - invalid log line */
 			if (!log_entry_attrs) {
 				Log(LogDebug, "LivestatusLogUtility")
-				    << "Skipping invalid log line: '" << line << "'.";
+					<< "Skipping invalid log line: '" << line << "'.";
 				continue;
 			}
 
@@ -130,7 +130,7 @@ Dictionary::Ptr LivestatusLogUtility::GetAttributes(const String& text)
 	unsigned long time = atoi(text.SubStr(1, 11).CStr());
 
 	Log(LogDebug, "LivestatusLogUtility")
-	    << "Processing log line: '" << text << "'.";
+		<< "Processing log line: '" << text << "'.";
 	bag->Set("time", time);
 
 	size_t colon = text.FindFirstOf(':');
@@ -153,8 +153,8 @@ Dictionary::Ptr LivestatusLogUtility::GetAttributes(const String& text)
 	bag->Set("message", text); /* used as 'message' in log table, and 'log_output' in statehist table */
 
 	if (type.Contains("INITIAL HOST STATE") ||
-	    type.Contains("CURRENT HOST STATE") ||
-	    type.Contains("HOST ALERT")) {
+		type.Contains("CURRENT HOST STATE") ||
+		type.Contains("HOST ALERT")) {
 		if (tokens.size() < 5)
 			return bag;
 
@@ -178,8 +178,7 @@ Dictionary::Ptr LivestatusLogUtility::GetAttributes(const String& text)
 		}
 
 		return bag;
-	} else if (type.Contains("HOST DOWNTIME ALERT") ||
-		 type.Contains("HOST FLAPPING ALERT")) {
+	} else if (type.Contains("HOST DOWNTIME ALERT") ||  type.Contains("HOST FLAPPING ALERT")) {
 		if (tokens.size() < 3)
 			return bag;
 
@@ -197,8 +196,8 @@ Dictionary::Ptr LivestatusLogUtility::GetAttributes(const String& text)
 
 		return bag;
 	} else if (type.Contains("INITIAL SERVICE STATE") ||
-		 type.Contains("CURRENT SERVICE STATE") ||
-		 type.Contains("SERVICE ALERT")) {
+		type.Contains("CURRENT SERVICE STATE") ||
+		type.Contains("SERVICE ALERT")) {
 		if (tokens.size() < 6)
 			return bag;
 
@@ -224,7 +223,7 @@ Dictionary::Ptr LivestatusLogUtility::GetAttributes(const String& text)
 
 		return bag;
 	} else if (type.Contains("SERVICE DOWNTIME ALERT") ||
-		 type.Contains("SERVICE FLAPPING ALERT")) {
+		type.Contains("SERVICE FLAPPING ALERT")) {
 		if (tokens.size() < 4)
 			return bag;
 
@@ -330,10 +329,10 @@ Dictionary::Ptr LivestatusLogUtility::GetAttributes(const String& text)
 	}
 	/* program */
 	else if (type.Contains("restarting...") ||
-		 type.Contains("shutting down...") ||
-		 type.Contains("Bailing out") ||
-		 type.Contains("active mode...") ||
-		 type.Contains("standby mode...")) {
+		type.Contains("shutting down...") ||
+		type.Contains("Bailing out") ||
+		type.Contains("active mode...") ||
+		type.Contains("standby mode...")) {
 		bag->Set("class", LogEntryClassProgram);
 
 		return bag;

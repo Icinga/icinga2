@@ -42,14 +42,14 @@
 using namespace icinga;
 
 ServicesTable::ServicesTable(LivestatusGroupByType type)
-    : Table(type)
+	: Table(type)
 {
 	AddColumns(this);
 }
 
 
 void ServicesTable::AddColumns(Table *table, const String& prefix,
-    const Column::ObjectAccessor& objectAccessor)
+	const Column::ObjectAccessor& objectAccessor)
 {
 	table->AddColumn(prefix + "description", Column(&ServicesTable::ShortNameAccessor, objectAccessor));
 	table->AddColumn(prefix + "service_description", Column(&ServicesTable::ShortNameAccessor, objectAccessor)); //ugly compatibility hack
@@ -144,12 +144,12 @@ void ServicesTable::AddColumns(Table *table, const String& prefix,
 	if (table->GetGroupByType() == LivestatusGroupByServiceGroup) {
 		/* _1 = row, _2 = groupByType, _3 = groupByObject */
 		Log(LogDebug, "Livestatus")
-		    << "Processing services group by servicegroup table.";
+			<< "Processing services group by servicegroup table.";
 		ServiceGroupsTable::AddColumns(table, "servicegroup_", std::bind(&ServicesTable::ServiceGroupAccessor, _1, _2, _3));
 	} else if (table->GetGroupByType() == LivestatusGroupByHostGroup) {
 		/* _1 = row, _2 = groupByType, _3 = groupByObject */
 		Log(LogDebug, "Livestatus")
-		    << "Processing services group by hostgroup table.";
+			<< "Processing services group by hostgroup table.";
 		HostGroupsTable::AddColumns(table, "hostgroup_", std::bind(&ServicesTable::HostGroupAccessor, _1, _2, _3));
 	}
 }
@@ -376,9 +376,9 @@ Value ServicesTable::NotesExpandedAccessor(const Value& row)
 		return Empty;
 
 	MacroProcessor::ResolverList resolvers {
-	    { "service", service },
-	    { "host", service->GetHost() },
-	    { "icinga", IcingaApplication::GetInstance() }
+		{ "service", service },
+		{ "host", service->GetHost() },
+		{ "icinga", IcingaApplication::GetInstance() }
 	};
 
 	return MacroProcessor::ResolveMacros(service->GetNotes(), resolvers);
@@ -402,9 +402,9 @@ Value ServicesTable::NotesUrlExpandedAccessor(const Value& row)
 		return Empty;
 
 	MacroProcessor::ResolverList resolvers {
-	    { "service", service },
-	    { "host", service->GetHost() },
-	    { "icinga", IcingaApplication::GetInstance() }
+		{ "service", service },
+		{ "host", service->GetHost() },
+		{ "icinga", IcingaApplication::GetInstance() }
 	};
 
 	return MacroProcessor::ResolveMacros(service->GetNotesUrl(), resolvers);
@@ -428,9 +428,9 @@ Value ServicesTable::ActionUrlExpandedAccessor(const Value& row)
 		return Empty;
 
 	MacroProcessor::ResolverList resolvers {
-	    { "service", service },
-	    { "host", service->GetHost() },
-	    { "icinga", IcingaApplication::GetInstance() }
+		{ "service", service },
+		{ "host", service->GetHost() },
+		{ "icinga", IcingaApplication::GetInstance() }
 	};
 
 	return MacroProcessor::ResolveMacros(service->GetActionUrl(), resolvers);
@@ -454,9 +454,9 @@ Value ServicesTable::IconImageExpandedAccessor(const Value& row)
 		return Empty;
 
 	MacroProcessor::ResolverList resolvers {
-	    { "service", service },
-	    { "host", service->GetHost() },
-	    { "icinga", IcingaApplication::GetInstance() }
+		{ "service", service },
+		{ "host", service->GetHost() },
+		{ "icinga", IcingaApplication::GetInstance() }
 	};
 
 	return MacroProcessor::ResolveMacros(service->GetIconImage(), resolvers);

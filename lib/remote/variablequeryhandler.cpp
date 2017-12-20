@@ -46,7 +46,7 @@ public:
 	}
 
 	virtual void FindTargets(const String& type,
-	    const std::function<void (const Value&)>& addTarget) const override
+		const std::function<void (const Value&)>& addTarget) const override
 	{
 		{
 			Dictionary::Ptr globals = ScriptGlobal::GetGlobals();
@@ -97,8 +97,8 @@ bool VariableQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& 
 		objs = FilterUtility::GetFilterTargets(qd, params, user, "variable");
 	} catch (const std::exception& ex) {
 		HttpUtility::SendJsonError(response, 404,
-		    "No variables found.",
-		    HttpUtility::GetLastParameter(params, "verboseErrors") ? DiagnosticInformation(ex) : "");
+			"No variables found.",
+			HttpUtility::GetLastParameter(params, "verboseErrors") ? DiagnosticInformation(ex) : "");
 		return true;
 	}
 

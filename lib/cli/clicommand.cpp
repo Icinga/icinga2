@@ -78,7 +78,7 @@ std::vector<String> icinga::GetFieldCompletionSuggestions(const Type::Ptr& type,
 			continue;
 
 		if (strcmp(field.TypeName, "int") != 0 && strcmp(field.TypeName, "double") != 0
-		    && strcmp(field.TypeName, "bool") != 0 && strcmp(field.TypeName, "String") != 0)
+			&& strcmp(field.TypeName, "bool") != 0 && strcmp(field.TypeName, "String") != 0)
 			continue;
 
 		String fname = field.Name;
@@ -159,7 +159,7 @@ std::vector<String> CLICommand::GetPositionalSuggestions(const String& word) con
 }
 
 void CLICommand::InitParameters(boost::program_options::options_description& visibleDesc,
-    boost::program_options::options_description& hiddenDesc) const
+	boost::program_options::options_description& hiddenDesc) const
 { }
 
 ImpersonationLevel CLICommand::GetImpersonationLevel(void) const
@@ -168,9 +168,9 @@ ImpersonationLevel CLICommand::GetImpersonationLevel(void) const
 }
 
 bool CLICommand::ParseCommand(int argc, char **argv, po::options_description& visibleDesc,
-    po::options_description& hiddenDesc,
-    po::positional_options_description& positionalDesc,
-    po::variables_map& vm, String& cmdname, CLICommand::Ptr& command, bool autocomplete)
+	po::options_description& hiddenDesc,
+	po::positional_options_description& positionalDesc,
+	po::variables_map& vm, String& cmdname, CLICommand::Ptr& command, bool autocomplete)
 {
 	boost::mutex::scoped_lock lock(GetRegistryMutex());
 
@@ -226,8 +226,8 @@ found_command:
 
 	if (command && command->IsDeprecated()) {
 		std::cerr << ConsoleColorTag(Console_ForegroundRed | Console_Bold)
-		    << "Warning: CLI command '" << cmdname << "' is DEPRECATED! Please read the Changelog."
-		    << ConsoleColorTag(Console_Normal) << std::endl << std::endl;
+			<< "Warning: CLI command '" << cmdname << "' is DEPRECATED! Please read the Changelog."
+			<< ConsoleColorTag(Console_Normal) << std::endl << std::endl;
 	}
 
 	po::store(po::command_line_parser(argc - arg_end, argv + arg_end).options(adesc).positional(positionalDesc).run(), vm);
@@ -237,9 +237,9 @@ found_command:
 }
 
 void CLICommand::ShowCommands(int argc, char **argv, po::options_description *visibleDesc,
-    po::options_description *hiddenDesc,
-    ArgumentCompletionCallback globalArgCompletionCallback,
-    bool autocomplete, int autoindex)
+	po::options_description *hiddenDesc,
+	ArgumentCompletionCallback globalArgCompletionCallback,
+	bool autocomplete, int autoindex)
 {
 	boost::mutex::scoped_lock lock(GetRegistryMutex());
 
@@ -320,8 +320,8 @@ void CLICommand::ShowCommands(int argc, char **argv, po::options_description *vi
 			}
 		} else {
 			std::cout << "  * " << boost::algorithm::join(vname, " ")
-			    << " (" << kv.second->GetShortDescription() << ")"
-			    << (kv.second->IsDeprecated() ? " (DEPRECATED)" : "") << std::endl;
+				<< " (" << kv.second->GetShortDescription() << ")"
+				<< (kv.second->IsDeprecated() ? " (DEPRECATED)" : "") << std::endl;
 		}
 	}
 

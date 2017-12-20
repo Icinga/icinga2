@@ -32,7 +32,7 @@ ConfigCompilerContext *ConfigCompilerContext::GetInstance(void)
 }
 
 ConfigCompilerContext::ConfigCompilerContext(void)
-    : m_ObjectsFP(nullptr)
+	: m_ObjectsFP(nullptr)
 { }
 
 void ConfigCompilerContext::OpenObjectsFile(const String& filename)
@@ -89,9 +89,9 @@ void ConfigCompilerContext::FinishObjectsFile(void)
 
 	if (rename(m_ObjectsTempFile.CStr(), m_ObjectsPath.CStr()) < 0) {
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("rename")
-		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(m_ObjectsTempFile));
+			<< boost::errinfo_api_function("rename")
+			<< boost::errinfo_errno(errno)
+			<< boost::errinfo_file_name(m_ObjectsTempFile));
 	}
 }
 

@@ -288,7 +288,7 @@ bool Host::ResolveMacro(const String& macro, const CheckResult::Ptr&, Value *res
 		*result = Utility::GetTime() - GetLastStateChange();
 		return true;
 	} else if (macro == "num_services" || macro == "num_services_ok" || macro == "num_services_warning"
-		    || macro == "num_services_unknown" || macro == "num_services_critical") {
+			|| macro == "num_services_unknown" || macro == "num_services_critical") {
 			int filter = -1;
 			int count = 0;
 

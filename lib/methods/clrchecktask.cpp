@@ -52,8 +52,8 @@ static void InitializeClr(void)
 	ICorRuntimeHost *runtimeHost;
 
 	if (FAILED(CorBindToRuntimeEx(nullptr, nullptr,
-	    STARTUP_LOADER_OPTIMIZATION_SINGLE_DOMAIN | STARTUP_CONCURRENT_GC,
-	    CLSID_CorRuntimeHost, IID_ICorRuntimeHost, (void **)&runtimeHost))) {
+		STARTUP_LOADER_OPTIMIZATION_SINGLE_DOMAIN | STARTUP_CONCURRENT_GC,
+		CLSID_CorRuntimeHost, IID_ICorRuntimeHost, (void **)&runtimeHost))) {
 		return;
 	}
 
@@ -145,7 +145,7 @@ static void FillCheckResult(const CheckResult::Ptr& cr, variant_t vtResult)
 }
 
 void ClrCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr,
-    const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
+	const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
 {
 	CheckCommand::Ptr commandObj = checkable->GetCheckCommand();
 	Value raw_command = commandObj->GetCommandLine();
@@ -171,7 +171,7 @@ void ClrCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult
 			String name = kv.second;
 
 			Value value = MacroProcessor::ResolveMacros(name, resolvers, checkable->GetLastCheckResult(),
-			    nullptr, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
+				nullptr, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
 
 			envMacros->Set(kv.first, value);
 		}
@@ -188,9 +188,9 @@ void ClrCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult
 			vtObject = it->second;
 		} else {
 			String clr_assembly = MacroProcessor::ResolveMacros("$clr_assembly$", resolvers, checkable->GetLastCheckResult(),
-			    nullptr, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
+				nullptr, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
 			String clr_type = MacroProcessor::ResolveMacros("$clr_type$", resolvers, checkable->GetLastCheckResult(),
-			    nullptr, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
+				nullptr, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
 
 			if (resolvedMacros && !useResolvedMacros)
 				return;

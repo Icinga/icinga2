@@ -201,7 +201,7 @@ Array::Ptr Array::ShallowClone(void) const
 /**
  * Makes a deep clone of an array
  * and its elements.
- * 
+ *
  * @returns a copy of the array.
  */
 Object::Ptr Array::Clone(void) const

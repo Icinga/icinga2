@@ -117,7 +117,7 @@ do {							\
 
 	while (*yptr)
 		yyextra->m_LexBuffer << *yptr++;
-		       	       }
+				}
 
 <STRING><<EOF>>			{
 	BOOST_THROW_EXCEPTION(ScriptError("End-of-file while in string literal", DebugInfoRange(yyextra->m_LocationBegin, *yylloc)));

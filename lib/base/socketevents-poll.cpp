@@ -117,8 +117,8 @@ void SocketEventEnginePoll::ThreadProc(int tid)
 				event.Descriptor.EventInterface->OnEvent(event.REvents);
 			} catch (const std::exception& ex) {
 				Log(LogCritical, "SocketEvents")
-				    << "Exception thrown in socket I/O handler:\n"
-				    << DiagnosticInformation(ex);
+					<< "Exception thrown in socket I/O handler:\n"
+					<< DiagnosticInformation(ex);
 			} catch (...) {
 				Log(LogCritical, "SocketEvents", "Exception of unknown type thrown in socket I/O handler.");
 			}

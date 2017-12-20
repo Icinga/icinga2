@@ -39,14 +39,14 @@ public:
 
 
 	static void NotificationSentToAllUsersHandler(const Notification::Ptr& notification, const Checkable::Ptr& checkable,
-	    const std::set<User::Ptr>& users, NotificationType type, const CheckResult::Ptr& cr, const String& author,
-	    const String& text, const MessageOrigin::Ptr& origin);
+		const std::set<User::Ptr>& users, NotificationType type, const CheckResult::Ptr& cr, const String& author,
+		const String& text, const MessageOrigin::Ptr& origin);
 
 	static void FlappingChangedHandler(const Checkable::Ptr& checkable, const MessageOrigin::Ptr& origin);
 
 	static void AcknowledgementSetHandler(const Checkable::Ptr& checkable,
-	    const String& author, const String& comment, AcknowledgementType type,
-	    bool notify, bool persistent, double expiry, const MessageOrigin::Ptr& origin);
+		const String& author, const String& comment, AcknowledgementType type,
+		bool notify, bool persistent, double expiry, const MessageOrigin::Ptr& origin);
 	static void AcknowledgementClearedHandler(const Checkable::Ptr& checkable, const MessageOrigin::Ptr& origin);
 
 	static void CommentAddedHandler(const Comment::Ptr& comment);

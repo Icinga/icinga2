@@ -32,7 +32,7 @@ namespace icinga
 struct I2_LIVESTATUS_API MaxAggregatorState : public AggregatorState
 {
 	MaxAggregatorState(void)
-	    : Max(0)
+		: Max(0)
 	{ }
 
 	double Max;

@@ -40,7 +40,7 @@ public:
 	static void SendJsonBody(HttpResponse& response, const Value& val);
 	static Value GetLastParameter(const Dictionary::Ptr& params, const String& key);
 	static void SendJsonError(HttpResponse& response, const int code,
-	    const String& verbose = String(), const String& diagnosticInformation = String());
+		const String& verbose = String(), const String& diagnosticInformation = String());
 
 private:
 	static String GetErrorNameByCode(int code);

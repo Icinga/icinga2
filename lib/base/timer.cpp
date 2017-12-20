@@ -90,14 +90,14 @@ Timer::~Timer(void)
 
 void Timer::Uninitialize(void)
 {
-       {
-	       boost::mutex::scoped_lock lock(l_TimerMutex);
-	       l_StopTimerThread = true;
-	       l_TimerCV.notify_all();
-       }
+	{
+		boost::mutex::scoped_lock lock(l_TimerMutex);
+		l_StopTimerThread = true;
+		l_TimerCV.notify_all();
+	}
 
-       if (l_TimerThread.joinable())
-	       l_TimerThread.join();
+	if (l_TimerThread.joinable())
+		l_TimerThread.join();
 }
 
 /**
@@ -198,7 +198,7 @@ void Timer::Reschedule(double next)
  *
  * @param completed Whether the timer has just completed its callback.
  * @param next The time when this timer should be called again. Use -1 to let
- * 	       the timer figure out a suitable time based on the interval.
+ *        the timer figure out a suitable time based on the interval.
  */
 void Timer::InternalReschedule(bool completed, double next)
 {
@@ -257,7 +257,7 @@ void Timer::AdjustTimers(double adjustment)
 
 	for (Timer *timer : idx) {
 		if (std::fabs(now - (timer->m_Next + adjustment)) <
-		    std::fabs(now - timer->m_Next)) {
+			std::fabs(now - timer->m_Next)) {
 			timer->m_Next += adjustment;
 			timers.push_back(timer);
 		}

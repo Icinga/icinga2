@@ -59,7 +59,7 @@ void CheckResultReader::Start(bool runtimeCreated)
 	ObjectImpl<CheckResultReader>::Start(runtimeCreated);
 
 	Log(LogInformation, "CheckResultReader")
-	    << "'" << GetName() << "' started.";
+		<< "'" << GetName() << "' started.";
 
 #ifndef _WIN32
 	m_ReadTimer = new Timer();
@@ -75,7 +75,7 @@ void CheckResultReader::Start(bool runtimeCreated)
 void CheckResultReader::Stop(bool runtimeRemoved)
 {
 	Log(LogInformation, "CheckResultReader")
-	    << "'" << GetName() << "' stopped.";
+		<< "'" << GetName() << "' stopped.";
 
 	ObjectImpl<CheckResultReader>::Stop(runtimeRemoved);
 }
@@ -123,15 +123,15 @@ void CheckResultReader::ProcessCheckResultFile(const String& path) const
 	/* Remove the checkresult files. */
 	if (unlink(path.CStr()) < 0)
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("unlink")
-		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(path));
+			<< boost::errinfo_api_function("unlink")
+			<< boost::errinfo_errno(errno)
+			<< boost::errinfo_file_name(path));
 
 	if (unlink(crfile.CStr()) < 0)
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("unlink")
-		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(crfile));
+			<< boost::errinfo_api_function("unlink")
+			<< boost::errinfo_errno(errno)
+			<< boost::errinfo_file_name(crfile));
 
 	Checkable::Ptr checkable;
 
@@ -139,7 +139,7 @@ void CheckResultReader::ProcessCheckResultFile(const String& path) const
 
 	if (!host) {
 		Log(LogWarning, "CheckResultReader")
-		    << "Ignoring checkresult file for host '" << attrs["host_name"] << "': Host does not exist.";
+			<< "Ignoring checkresult file for host '" << attrs["host_name"] << "': Host does not exist.";
 
 		return;
 	}
@@ -149,8 +149,8 @@ void CheckResultReader::ProcessCheckResultFile(const String& path) const
 
 		if (!service) {
 			Log(LogWarning, "CheckResultReader")
-			    << "Ignoring checkresult file for host '" << attrs["host_name"]
-			    << "', service '" << attrs["service_description"] << "': Service does not exist.";
+				<< "Ignoring checkresult file for host '" << attrs["host_name"]
+				<< "', service '" << attrs["service_description"] << "': Service does not exist.";
 
 			return;
 		}
@@ -179,7 +179,7 @@ void CheckResultReader::ProcessCheckResultFile(const String& path) const
 	checkable->ProcessCheckResult(result);
 
 	Log(LogDebug, "CheckResultReader")
-	    << "Processed checkresult file for object '" << checkable->GetName() << "'";
+		<< "Processed checkresult file for object '" << checkable->GetName() << "'";
 
 	/* Reschedule the next check. The side effect of this is that for as long
 	 * as we receive check result files for a host/service we won't execute any

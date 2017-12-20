@@ -42,7 +42,7 @@
 using namespace icinga;
 
 Table::Table(LivestatusGroupByType type)
-    : m_GroupByType(type), m_GroupByObject(Empty)
+	: m_GroupByType(type), m_GroupByObject(Empty)
 { }
 
 Table::Ptr Table::GetByName(const String& name, const String& compat_log_path, const unsigned long& from, const unsigned long& until)

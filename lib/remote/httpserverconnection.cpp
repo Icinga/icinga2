@@ -115,7 +115,7 @@ bool HttpServerConnection::ProcessMessage(void)
 
 	if (m_CurrentRequest.Complete) {
 		m_RequestQueue.Enqueue(std::bind(&HttpServerConnection::ProcessMessageAsync,
-		    HttpServerConnection::Ptr(this), m_CurrentRequest));
+			HttpServerConnection::Ptr(this), m_CurrentRequest));
 
 		m_Seen = Utility::GetTime();
 		m_PendingRequests++;
@@ -166,8 +166,8 @@ void HttpServerConnection::ProcessMessageAsync(HttpRequest& request)
 	String requestUrl = request.RequestUrl->Format();
 
 	Log(LogInformation, "HttpServerConnection")
-	    << "Request: " << request.RequestMethod << " " << requestUrl
-	    << " (from " << m_Stream->GetSocket()->GetPeerAddress() << ", user: " << (user ? user->GetName() : "<unauthenticated>") << ")";
+		<< "Request: " << request.RequestMethod << " " << requestUrl
+		<< " (from " << m_Stream->GetSocket()->GetPeerAddress() << ", user: " << (user ? user->GetName() : "<unauthenticated>") << ")";
 
 	HttpResponse response(m_Stream, request);
 
@@ -220,7 +220,7 @@ void HttpServerConnection::ProcessMessageAsync(HttpRequest& request)
 		response.WriteBody(msg.CStr(), msg.GetLength());
 	} else if (!user) {
 		Log(LogWarning, "HttpServerConnection")
-		    << "Unauthorized request: " << request.RequestMethod << " " << requestUrl;
+			<< "Unauthorized request: " << request.RequestMethod << " " << requestUrl;
 
 		response.SetStatus(401, "Unauthorized");
 		response.AddHeader("WWW-Authenticate", "Basic realm=\"Icinga 2\"");
@@ -242,7 +242,7 @@ void HttpServerConnection::ProcessMessageAsync(HttpRequest& request)
 			HttpHandler::ProcessRequest(user, request, response);
 		} catch (const std::exception& ex) {
 			Log(LogCritical, "HttpServerConnection")
-			    << "Unhandled exception while processing Http request: " << DiagnosticInformation(ex);
+				<< "Unhandled exception while processing Http request: " << DiagnosticInformation(ex);
 			response.SetStatus(503, "Unhandled exception");
 
 			String errorInfo = DiagnosticInformation(ex);
@@ -278,7 +278,7 @@ void HttpServerConnection::DataAvailableHandler(void)
 				; /* empty loop body */
 		} catch (const std::exception& ex) {
 			Log(LogWarning, "HttpServerConnection")
-			    << "Error while reading Http request: " << DiagnosticInformation(ex);
+				<< "Error while reading Http request: " << DiagnosticInformation(ex);
 
 			close = true;
 		}
@@ -293,7 +293,7 @@ void HttpServerConnection::CheckLiveness(void)
 {
 	if (m_Seen < Utility::GetTime() - 10 && m_PendingRequests == 0) {
 		Log(LogInformation, "HttpServerConnection")
-		    <<  "No messages for Http connection have been received in the last 10 seconds.";
+			<<  "No messages for Http connection have been received in the last 10 seconds.";
 		Disconnect();
 	}
 }

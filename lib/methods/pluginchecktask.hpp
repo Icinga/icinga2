@@ -36,13 +36,13 @@ class I2_METHODS_API PluginCheckTask
 {
 public:
 	static void ScriptFunc(const Checkable::Ptr& service, const CheckResult::Ptr& cr,
-	    const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros);
+		const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros);
 
 private:
 	PluginCheckTask(void);
 
 	static void ProcessFinishedHandler(const Checkable::Ptr& service,
-	    const CheckResult::Ptr& cr, const Value& commandLine, const ProcessResult& pr);
+		const CheckResult::Ptr& cr, const Value& commandLine, const ProcessResult& pr);
 };
 
 }

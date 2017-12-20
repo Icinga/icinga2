@@ -124,7 +124,7 @@ int NodeUtility::GenerateNodeIcingaConfig(const std::vector<std::string>& endpoi
 		myGlobalZone->Set("global", true);
 
 		my_config->Add(myGlobalZone);
-    }
+	}
 
 	/* store the local config */
 	my_config->Add(my_endpoint);
@@ -182,7 +182,7 @@ int NodeUtility::GenerateNodeMasterIcingaConfig(const std::vector<String>& globa
 bool NodeUtility::WriteNodeConfigObjects(const String& filename, const Array::Ptr& objects)
 {
 	Log(LogInformation, "cli")
-	    << "Dumping config items to file '" << filename << "'.";
+		<< "Dumping config items to file '" << filename << "'.";
 
 	/* create a backup first */
 	CreateBackupFile(filename);
@@ -196,11 +196,11 @@ bool NodeUtility::WriteNodeConfigObjects(const String& filename, const Array::Pt
 
 	if (!Utility::SetFileOwnership(path, user, group)) {
 		Log(LogWarning, "cli")
-		    << "Cannot set ownership for user '" << user << "' group '" << group << "' on path '" << path << "'. Verify it yourself!";
+			<< "Cannot set ownership for user '" << user << "' group '" << group << "' on path '" << path << "'. Verify it yourself!";
 	}
 	if (!Utility::SetFileOwnership(filename, user, group)) {
 		Log(LogWarning, "cli")
-		    << "Cannot set ownership for user '" << user << "' group '" << group << "' on path '" << path << "'. Verify it yourself!";
+			<< "Cannot set ownership for user '" << user << "' group '" << group << "' on path '" << path << "'. Verify it yourself!";
 	}
 
 	std::fstream fp;
@@ -225,9 +225,9 @@ bool NodeUtility::WriteNodeConfigObjects(const String& filename, const Array::Pt
 
 	if (rename(tempFilename.CStr(), filename.CStr()) < 0) {
 		BOOST_THROW_EXCEPTION(posix_error()
-		    << boost::errinfo_api_function("rename")
-		    << boost::errinfo_errno(errno)
-		    << boost::errinfo_file_name(tempFilename));
+			<< boost::errinfo_api_function("rename")
+			<< boost::errinfo_errno(errno)
+			<< boost::errinfo_file_name(tempFilename));
 	}
 
 	return true;
@@ -246,7 +246,7 @@ bool NodeUtility::CreateBackupFile(const String& target, bool is_private)
 
 	if (Utility::PathExists(backup)) {
 		Log(LogInformation, "cli")
-		    << "Backup file '" << backup << "' already exists. Skipping backup.";
+			<< "Backup file '" << backup << "' already exists. Skipping backup.";
 		return false;
 	}
 
@@ -258,7 +258,7 @@ bool NodeUtility::CreateBackupFile(const String& target, bool is_private)
 #endif /* _WIN32 */
 
 	Log(LogInformation, "cli")
-	    << "Created backup file '" << backup << "'.";
+		<< "Created backup file '" << backup << "'.";
 
 	return true;
 }
@@ -291,7 +291,7 @@ void NodeUtility::UpdateConstant(const String& name, const String& value)
 	String constantsConfPath = NodeUtility::GetConstantsConfPath();
 
 	Log(LogInformation, "cli")
-	    << "Updating '" << name << "' constant in '" << constantsConfPath << "'.";
+		<< "Updating '" << name << "' constant in '" << constantsConfPath << "'.";
 
 	NodeUtility::CreateBackupFile(constantsConfPath);
 

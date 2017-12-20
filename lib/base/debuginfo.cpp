@@ -37,9 +37,9 @@ DebugInfo::DebugInfo(void)
 std::ostream& icinga::operator<<(std::ostream& out, const DebugInfo& val)
 {
 	out << "in " << val.Path << ": "
-	    << val.FirstLine << ":" << val.FirstColumn
-	    << "-"
-	    << val.LastLine << ":" << val.LastColumn;
+		<< val.FirstLine << ":" << val.FirstColumn
+		<< "-"
+		<< val.LastLine << ":" << val.LastColumn;
 
 	return out;
 }

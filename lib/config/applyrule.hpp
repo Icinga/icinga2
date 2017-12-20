@@ -53,8 +53,8 @@ public:
 	bool EvaluateFilter(ScriptFrame& frame) const;
 
 	static void AddRule(const String& sourceType, const String& targetType, const String& name, const std::shared_ptr<Expression>& expression,
-	    const std::shared_ptr<Expression>& filter, const String& package, const String& fkvar, const String& fvvar, const std::shared_ptr<Expression>& fterm,
-	    bool ignoreOnError, const DebugInfo& di, const Dictionary::Ptr& scope);
+		const std::shared_ptr<Expression>& filter, const String& package, const String& fkvar, const String& fvvar, const std::shared_ptr<Expression>& fterm,
+		bool ignoreOnError, const DebugInfo& di, const Dictionary::Ptr& scope);
 	static std::vector<ApplyRule>& GetRules(const String& type);
 
 	static void RegisterType(const String& sourceType, const std::vector<String>& targetTypes);
@@ -82,8 +82,8 @@ private:
 	static RuleMap m_Rules;
 
 	ApplyRule(const String& targetType, const String& name, const std::shared_ptr<Expression>& expression,
-	    const std::shared_ptr<Expression>& filter, const String& package, const String& fkvar, const String& fvvar, const std::shared_ptr<Expression>& fterm,
-	    bool ignoreOnError, const DebugInfo& di, const Dictionary::Ptr& scope);
+		const std::shared_ptr<Expression>& filter, const String& package, const String& fkvar, const String& fvvar, const std::shared_ptr<Expression>& fterm,
+		bool ignoreOnError, const DebugInfo& di, const Dictionary::Ptr& scope);
 };
 
 }

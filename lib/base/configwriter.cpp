@@ -73,7 +73,7 @@ void ConfigWriter::EmitArrayItems(std::ostream& fp, int indentLevel, const Array
 }
 
 void ConfigWriter::EmitScope(std::ostream& fp, int indentLevel, const Dictionary::Ptr& val,
-    const Array::Ptr& imports, bool splitDot)
+	const Array::Ptr& imports, bool splitDot)
 {
 	fp << "{";
 
@@ -176,7 +176,7 @@ void ConfigWriter::EmitIdentifier(std::ostream& fp, const String& identifier, bo
 }
 
 void ConfigWriter::EmitConfigItem(std::ostream& fp, const String& type, const String& name, bool isTemplate,
-    bool ignoreOnError, const Array::Ptr& imports, const Dictionary::Ptr& attrs)
+	bool ignoreOnError, const Array::Ptr& imports, const Dictionary::Ptr& attrs)
 {
 	if (isTemplate)
 		fp << "template ";
@@ -270,7 +270,7 @@ const std::vector<String>& ConfigWriter::GetKeywords(void)
 }
 
 ConfigIdentifier::ConfigIdentifier(const String& identifier)
-    : m_Name(identifier)
+	: m_Name(identifier)
 { }
 
 String ConfigIdentifier::GetName(void) const

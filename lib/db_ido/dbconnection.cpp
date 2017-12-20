@@ -51,7 +51,7 @@ void DbConnection::OnConfigLoaded(void)
 
 	if (!GetEnableHa()) {
 		Log(LogDebug, "DbConnection")
-		    << "HA functionality disabled. Won't pause IDO connection: " << GetName();
+			<< "HA functionality disabled. Won't pause IDO connection: " << GetName();
 
 		SetHAMode(HARunEverywhere);
 	}
@@ -64,7 +64,7 @@ void DbConnection::Start(bool runtimeCreated)
 	ObjectImpl<DbConnection>::Start(runtimeCreated);
 
 	Log(LogInformation, "DbConnection")
-	    << "'" << GetName() << "' started.";
+		<< "'" << GetName() << "' started.";
 
 	DbObject::OnQuery.connect(std::bind(&DbConnection::ExecuteQuery, this, _1));
 	DbObject::OnMultipleQueries.connect(std::bind(&DbConnection::ExecuteMultipleQueries, this, _1));
@@ -73,7 +73,7 @@ void DbConnection::Start(bool runtimeCreated)
 void DbConnection::Stop(bool runtimeRemoved)
 {
 	Log(LogInformation, "DbConnection")
-	    << "'" << GetName() << "' stopped.";
+		<< "'" << GetName() << "' stopped.";
 
 	ObjectImpl<DbConnection>::Stop(runtimeRemoved);
 }
@@ -91,7 +91,7 @@ void DbConnection::Resume(void)
 	ConfigObject::Resume();
 
 	Log(LogInformation, "DbConnection")
-	    << "Resuming IDO connection: " << GetName();
+		<< "Resuming IDO connection: " << GetName();
 
 	m_CleanUpTimer = new Timer();
 	m_CleanUpTimer->SetInterval(60);
@@ -104,7 +104,7 @@ void DbConnection::Pause(void)
 	ConfigObject::Pause();
 
 	Log(LogInformation, "DbConnection")
-	     << "Pausing IDO connection: " << GetName();
+		<< "Pausing IDO connection: " << GetName();
 
 	m_CleanUpTimer.reset();
 
@@ -151,7 +151,7 @@ void DbConnection::InsertRuntimeVariable(const String& key, const Value& value)
 void DbConnection::UpdateProgramStatus(void)
 {
 	Log(LogNotice, "DbConnection")
-	     << "Updating programstatus table.";
+		<< "Updating programstatus table.";
 
 	std::vector<DbQuery> queries;
 
@@ -237,9 +237,9 @@ void DbConnection::CleanUpHandler(void)
 
 		CleanUpExecuteQuery(tables[i].name, tables[i].time_column, now - max_age);
 		Log(LogNotice, "DbConnection")
-		    << "Cleanup (" << tables[i].name << "): " << max_age
-		    << " now: " << now
-		    << " old: " << now - max_age;
+			<< "Cleanup (" << tables[i].name << "): " << max_age
+			<< " now: " << now
+			<< " old: " << now - max_age;
 	}
 
 }
@@ -459,9 +459,9 @@ void DbConnection::ValidateCategories(const Array::Ptr& value, const ValidationU
 	int filter = FilterArrayToInt(value, DbQuery::GetCategoryFilterMap(), 0);
 
 	if (filter != DbCatEverything && (filter & ~(DbCatInvalid | DbCatEverything | DbCatConfig | DbCatState |
-	    DbCatAcknowledgement | DbCatComment | DbCatDowntime | DbCatEventHandler | DbCatExternalCommand |
-	    DbCatFlapping | DbCatLog | DbCatNotification | DbCatProgramStatus | DbCatRetention |
-	    DbCatStateHistory)) != 0)
+		DbCatAcknowledgement | DbCatComment | DbCatDowntime | DbCatEventHandler | DbCatExternalCommand |
+		DbCatFlapping | DbCatLog | DbCatNotification | DbCatProgramStatus | DbCatRetention |
+		DbCatStateHistory)) != 0)
 		BOOST_THROW_EXCEPTION(ValidationError(this, { "categories" }, "categories filter is invalid."));
 }
 

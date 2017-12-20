@@ -35,9 +35,9 @@
 using namespace icinga;
 
 Value MacroProcessor::ResolveMacros(const Value& str, const ResolverList& resolvers,
-    const CheckResult::Ptr& cr, String *missingMacro,
-    const MacroProcessor::EscapeCallback& escapeFn, const Dictionary::Ptr& resolvedMacros,
-    bool useResolvedMacros, int recursionLevel)
+	const CheckResult::Ptr& cr, String *missingMacro,
+	const MacroProcessor::EscapeCallback& escapeFn, const Dictionary::Ptr& resolvedMacros,
+	bool useResolvedMacros, int recursionLevel)
 {
 	Value result;
 
@@ -46,7 +46,7 @@ Value MacroProcessor::ResolveMacros(const Value& str, const ResolverList& resolv
 
 	if (str.IsScalar()) {
 		result = InternalResolveMacros(str, resolvers, cr, missingMacro, escapeFn,
-		    resolvedMacros, useResolvedMacros, recursionLevel + 1);
+			resolvedMacros, useResolvedMacros, recursionLevel + 1);
 	} else if (str.IsObjectType<Array>()) {
 		Array::Ptr resultArr = new Array();
 		Array::Ptr arr = str;
@@ -56,7 +56,7 @@ Value MacroProcessor::ResolveMacros(const Value& str, const ResolverList& resolv
 		for (const Value& arg : arr) {
 			/* Note: don't escape macros here. */
 			Value value = InternalResolveMacros(arg, resolvers, cr, missingMacro,
-			    EscapeCallback(), resolvedMacros, useResolvedMacros, recursionLevel + 1);
+				EscapeCallback(), resolvedMacros, useResolvedMacros, recursionLevel + 1);
 
 			if (value.IsObjectType<Array>())
 				resultArr->Add(Utility::Join(value, ';'));
@@ -74,7 +74,7 @@ Value MacroProcessor::ResolveMacros(const Value& str, const ResolverList& resolv
 		for (const Dictionary::Pair& kv : dict) {
 			/* Note: don't escape macros here. */
 			resultDict->Set(kv.first, InternalResolveMacros(kv.second, resolvers, cr, missingMacro,
-			    EscapeCallback(), resolvedMacros, useResolvedMacros, recursionLevel + 1));
+				EscapeCallback(), resolvedMacros, useResolvedMacros, recursionLevel + 1));
 		}
 
 		result = resultDict;
@@ -88,7 +88,7 @@ Value MacroProcessor::ResolveMacros(const Value& str, const ResolverList& resolv
 }
 
 bool MacroProcessor::ResolveMacro(const String& macro, const ResolverList& resolvers,
-    const CheckResult::Ptr& cr, Value *result, bool *recursive_macro)
+	const CheckResult::Ptr& cr, Value *result, bool *recursive_macro)
 {
 	CONTEXT("Resolving macro '" + macro + "'");
 
@@ -167,9 +167,9 @@ bool MacroProcessor::ResolveMacro(const String& macro, const ResolverList& resol
 
 		if (valid) {
 			if (tokens[0] == "vars" ||
-			    tokens[0] == "action_url" ||
-			    tokens[0] == "notes_url" ||
-			    tokens[0] == "notes")
+				tokens[0] == "action_url" ||
+				tokens[0] == "notes_url" ||
+				tokens[0] == "notes")
 				*recursive_macro = true;
 
 			*result = ref;
@@ -181,8 +181,8 @@ bool MacroProcessor::ResolveMacro(const String& macro, const ResolverList& resol
 }
 
 Value MacroProcessor::EvaluateFunction(const Function::Ptr& func, const ResolverList& resolvers,
-    const CheckResult::Ptr& cr, const MacroProcessor::EscapeCallback& escapeFn,
-    const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros, int recursionLevel)
+	const CheckResult::Ptr& cr, const MacroProcessor::EscapeCallback& escapeFn,
+	const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros, int recursionLevel)
 {
 	Dictionary::Ptr resolvers_this = new Dictionary();
 
@@ -197,7 +197,7 @@ Value MacroProcessor::EvaluateFunction(const Function::Ptr& func, const Resolver
 		String missingMacro;
 
 		return MacroProcessor::InternalResolveMacros(args[0], resolvers, cr, &missingMacro, MacroProcessor::EscapeCallback(),
-		    resolvedMacros, useResolvedMacros, recursionLevel);
+			resolvedMacros, useResolvedMacros, recursionLevel);
 	};
 
 	resolvers_this->Set("macro", new Function("macro (temporary)", internalResolveMacrosShim, { "str" }));
@@ -207,7 +207,7 @@ Value MacroProcessor::EvaluateFunction(const Function::Ptr& func, const Resolver
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function"));
 
 		return MacroProcessor::ResolveArguments(args[0], args[1], resolvers, cr,
-		    resolvedMacros, useResolvedMacros, recursionLevel + 1);
+			resolvedMacros, useResolvedMacros, recursionLevel + 1);
 	};
 
 	resolvers_this->Set("resolve_arguments", new Function("resolve_arguments (temporary)", internalResolveArgumentsShim, { "command", "args" }));
@@ -216,9 +216,9 @@ Value MacroProcessor::EvaluateFunction(const Function::Ptr& func, const Resolver
 }
 
 Value MacroProcessor::InternalResolveMacros(const String& str, const ResolverList& resolvers,
-    const CheckResult::Ptr& cr, String *missingMacro,
-    const MacroProcessor::EscapeCallback& escapeFn, const Dictionary::Ptr& resolvedMacros,
-    bool useResolvedMacros, int recursionLevel)
+	const CheckResult::Ptr& cr, String *missingMacro,
+	const MacroProcessor::EscapeCallback& escapeFn, const Dictionary::Ptr& resolvedMacros,
+	bool useResolvedMacros, int recursionLevel)
 {
 	CONTEXT("Resolving macros for string '" + str + "'");
 
@@ -260,13 +260,13 @@ Value MacroProcessor::InternalResolveMacros(const String& str, const ResolverLis
 
 		if (resolved_macro.IsObjectType<Function>()) {
 			resolved_macro = EvaluateFunction(resolved_macro, resolvers, cr, escapeFn,
-			    resolvedMacros, useResolvedMacros, recursionLevel + 1);
+				resolvedMacros, useResolvedMacros, recursionLevel + 1);
 		}
 
 		if (!found) {
 			if (!missingMacro)
 				Log(LogWarning, "MacroProcessor")
-				    << "Macro '" << name << "' is not defined.";
+					<< "Macro '" << name << "' is not defined.";
 			else
 				*missingMacro = name;
 		}
@@ -391,7 +391,7 @@ void MacroProcessor::ValidateCustomVars(const ConfigObject::Ptr& object, const D
 }
 
 void MacroProcessor::AddArgumentHelper(const Array::Ptr& args, const String& key, const String& value,
-    bool add_key, bool add_value)
+	bool add_key, bool add_value)
 {
 	if (add_key)
 		args->Add(key);
@@ -440,13 +440,13 @@ struct CommandArgument
 };
 
 Value MacroProcessor::ResolveArguments(const Value& command, const Dictionary::Ptr& arguments,
-    const MacroProcessor::ResolverList& resolvers, const CheckResult::Ptr& cr,
-    const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros, int recursionLevel)
+	const MacroProcessor::ResolverList& resolvers, const CheckResult::Ptr& cr,
+	const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros, int recursionLevel)
 {
 	Value resolvedCommand;
 	if (!arguments || command.IsObjectType<Array>() || command.IsObjectType<Function>())
 		resolvedCommand = MacroProcessor::ResolveMacros(command, resolvers, cr, nullptr,
-		    EscapeMacroShellArg, resolvedMacros, useResolvedMacros, recursionLevel + 1);
+			EscapeMacroShellArg, resolvedMacros, useResolvedMacros, recursionLevel + 1);
 	else {
 		Array::Ptr arr = new Array();
 		arr->Add(command);
@@ -483,8 +483,8 @@ Value MacroProcessor::ResolveArguments(const Value& command, const Dictionary::P
 				if (!set_if.IsEmpty()) {
 					String missingMacro;
 					Value set_if_resolved = MacroProcessor::ResolveMacros(set_if, resolvers,
-					    cr, &missingMacro, MacroProcessor::EscapeCallback(), resolvedMacros,
-					    useResolvedMacros, recursionLevel + 1);
+						cr, &missingMacro, MacroProcessor::EscapeCallback(), resolvedMacros,
+						useResolvedMacros, recursionLevel + 1);
 
 					if (!missingMacro.IsEmpty())
 						continue;
@@ -501,8 +501,8 @@ Value MacroProcessor::ResolveArguments(const Value& command, const Dictionary::P
 						} catch (const std::exception& ex) {
 							/* tried to convert a string */
 							Log(LogWarning, "PluginUtility")
-							    << "Error evaluating set_if value '" << set_if_resolved
-							    << "' used in argument '" << arg.Key << "': " << ex.what();
+								<< "Error evaluating set_if value '" << set_if_resolved
+								<< "' used in argument '" << arg.Key << "': " << ex.what();
 							continue;
 						}
 					}
@@ -519,13 +519,13 @@ Value MacroProcessor::ResolveArguments(const Value& command, const Dictionary::P
 
 			String missingMacro;
 			arg.AValue = MacroProcessor::ResolveMacros(argval, resolvers,
-			    cr, &missingMacro, MacroProcessor::EscapeCallback(), resolvedMacros,
-			    useResolvedMacros, recursionLevel + 1);
+				cr, &missingMacro, MacroProcessor::EscapeCallback(), resolvedMacros,
+				useResolvedMacros, recursionLevel + 1);
 
 			if (!missingMacro.IsEmpty()) {
 				if (required) {
 					BOOST_THROW_EXCEPTION(ScriptError("Non-optional macro '" + missingMacro + "' used in argument '" +
-					    arg.Key + "' is missing."));
+						arg.Key + "' is missing."));
 				}
 
 				continue;
@@ -541,7 +541,7 @@ Value MacroProcessor::ResolveArguments(const Value& command, const Dictionary::P
 
 			if (arg.AValue.IsObjectType<Dictionary>()) {
 				Log(LogWarning, "PluginUtility")
-				    << "Tried to use dictionary in argument '" << arg.Key << "'.";
+					<< "Tried to use dictionary in argument '" << arg.Key << "'.";
 				continue;
 			} else if (arg.AValue.IsObjectType<Array>()) {
 				bool first = true;

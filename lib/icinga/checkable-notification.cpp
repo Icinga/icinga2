@@ -28,11 +28,11 @@
 using namespace icinga;
 
 boost::signals2::signal<void (const Notification::Ptr&, const Checkable::Ptr&, const std::set<User::Ptr>&,
-    const NotificationType&, const CheckResult::Ptr&, const String&, const String&,
-    const MessageOrigin::Ptr&)> Checkable::OnNotificationSentToAllUsers;
+	const NotificationType&, const CheckResult::Ptr&, const String&, const String&,
+	const MessageOrigin::Ptr&)> Checkable::OnNotificationSentToAllUsers;
 boost::signals2::signal<void (const Notification::Ptr&, const Checkable::Ptr&, const User::Ptr&,
-    const NotificationType&, const CheckResult::Ptr&, const String&, const String&, const String&,
-    const MessageOrigin::Ptr&)> Checkable::OnNotificationSentToUser;
+	const NotificationType&, const CheckResult::Ptr&, const String&, const String&, const String&,
+	const MessageOrigin::Ptr&)> Checkable::OnNotificationSentToUser;
 
 void Checkable::ResetNotificationNumbers(void)
 {
@@ -53,22 +53,22 @@ void Checkable::SendNotifications(NotificationType type, const CheckResult::Ptr&
 	if (!IcingaApplication::GetInstance()->GetEnableNotifications() || !GetEnableNotifications()) {
 		if (!force) {
 			Log(LogInformation, "Checkable")
-			    << "Notifications are disabled for service '" << GetName() << "'.";
+				<< "Notifications are disabled for service '" << GetName() << "'.";
 			return;
 		}
 	}
 
 	Log(LogInformation, "Checkable")
-	    << "Checking for configured notifications for object '" << GetName() << "'";
+		<< "Checking for configured notifications for object '" << GetName() << "'";
 
 	std::set<Notification::Ptr> notifications = GetNotifications();
 
 	if (notifications.empty())
 		Log(LogInformation, "Checkable")
-		    << "Checkable '" << GetName() << "' does not have any notifications.";
+			<< "Checkable '" << GetName() << "' does not have any notifications.";
 
 	Log(LogDebug, "Checkable")
-	    << "Checkable '" << GetName() << "' has " << notifications.size() << " notification(s).";
+		<< "Checkable '" << GetName() << "' has " << notifications.size() << " notification(s).";
 
 	for (const Notification::Ptr& notification : notifications) {
 		try {
@@ -76,8 +76,8 @@ void Checkable::SendNotifications(NotificationType type, const CheckResult::Ptr&
 				notification->BeginExecuteNotification(type, cr, force, false, author, text);
 		} catch (const std::exception& ex) {
 			Log(LogWarning, "Checkable")
-			    << "Exception occured during notification for service '"
-			    << GetName() << "': " << DiagnosticInformation(ex);
+				<< "Exception occured during notification for service '"
+				<< GetName() << "': " << DiagnosticInformation(ex);
 		}
 	}
 }

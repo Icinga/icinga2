@@ -32,7 +32,7 @@ struct DeferredInitializer
 {
 public:
 	DeferredInitializer(const std::function<void (void)>& callback, int priority)
-	    : m_Callback(callback), m_Priority(priority)
+		: m_Callback(callback), m_Priority(priority)
 	{ }
 
 	bool operator<(const DeferredInitializer& other) const

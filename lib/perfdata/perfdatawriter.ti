@@ -42,26 +42,26 @@ class PerfdataWriter : ConfigObject
 	[config] String host_format_template {
 		default {{{
 			return "DATATYPE::HOSTPERFDATA\t"
-			    "TIMET::$host.last_check$\t"
-			    "HOSTNAME::$host.name$\t"
-			    "HOSTPERFDATA::$host.perfdata$\t"
-			    "HOSTCHECKCOMMAND::$host.check_command$\t"
-			    "HOSTSTATE::$host.state$\t"
-			    "HOSTSTATETYPE::$host.state_type$";
+				"TIMET::$host.last_check$\t"
+				"HOSTNAME::$host.name$\t"
+				"HOSTPERFDATA::$host.perfdata$\t"
+				"HOSTCHECKCOMMAND::$host.check_command$\t"
+				"HOSTSTATE::$host.state$\t"
+				"HOSTSTATETYPE::$host.state_type$";
 		}}}
 	};
 	[config] String service_format_template {
 		default {{{
 			return "DATATYPE::SERVICEPERFDATA\t"
-			    "TIMET::$service.last_check$\t"
-			    "HOSTNAME::$host.name$\t"
-			    "SERVICEDESC::$service.name$\t"
-			    "SERVICEPERFDATA::$service.perfdata$\t"
-			    "SERVICECHECKCOMMAND::$service.check_command$\t"
-			    "HOSTSTATE::$host.state$\t"
-			    "HOSTSTATETYPE::$host.state_type$\t"
-			    "SERVICESTATE::$service.state$\t"
-			    "SERVICESTATETYPE::$service.state_type$";
+				"TIMET::$service.last_check$\t"
+				"HOSTNAME::$host.name$\t"
+				"SERVICEDESC::$service.name$\t"
+				"SERVICEPERFDATA::$service.perfdata$\t"
+				"SERVICECHECKCOMMAND::$service.check_command$\t"
+				"HOSTSTATE::$host.state$\t"
+				"HOSTSTATETYPE::$host.state_type$\t"
+				"SERVICESTATE::$service.state$\t"
+				"SERVICESTATETYPE::$service.state_type$";
 		}}}
 	};
 

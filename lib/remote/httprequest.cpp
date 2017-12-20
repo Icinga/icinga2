@@ -28,11 +28,11 @@
 using namespace icinga;
 
 HttpRequest::HttpRequest(const Stream::Ptr& stream)
-    : Complete(false),
-      ProtocolVersion(HttpVersion11),
-      Headers(new Dictionary()),
-      m_Stream(stream),
-      m_State(HttpRequestStart)
+	: Complete(false),
+	ProtocolVersion(HttpVersion11),
+	Headers(new Dictionary()),
+	m_Stream(stream),
+	m_State(HttpRequestStart)
 { }
 
 bool HttpRequest::Parse(StreamReadContext& src, bool may_wait)
@@ -55,7 +55,7 @@ bool HttpRequest::Parse(StreamReadContext& src, bool may_wait)
 			std::vector<String> tokens;
 			boost::algorithm::split(tokens, line, boost::is_any_of(" "));
 			Log(LogDebug, "HttpRequest")
-			    << "line: " << line << ", tokens: " << tokens.size();
+				<< "line: " << line << ", tokens: " << tokens.size();
 			if (tokens.size() != 3)
 				BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid HTTP request"));
 

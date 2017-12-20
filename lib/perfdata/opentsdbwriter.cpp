@@ -62,7 +62,7 @@ void OpenTsdbWriter::Start(bool runtimeCreated)
 	ObjectImpl<OpenTsdbWriter>::Start(runtimeCreated);
 
 	Log(LogInformation, "OpentsdbWriter")
-	    << "'" << GetName() << "' started.";
+		<< "'" << GetName() << "' started.";
 
 	m_ReconnectTimer = new Timer();
 	m_ReconnectTimer->SetInterval(10);
@@ -76,7 +76,7 @@ void OpenTsdbWriter::Start(bool runtimeCreated)
 void OpenTsdbWriter::Stop(bool runtimeRemoved)
 {
 	Log(LogInformation, "OpentsdbWriter")
-	    << "'" << GetName() << "' stopped.";
+		<< "'" << GetName() << "' stopped.";
 
 	ObjectImpl<OpenTsdbWriter>::Stop(runtimeRemoved);
 }

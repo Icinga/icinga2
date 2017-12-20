@@ -42,10 +42,9 @@ static int l_JsonRpcConnectionNextID;
 static Timer::Ptr l_HeartbeatTimer;
 
 JsonRpcConnection::JsonRpcConnection(const String& identity, bool authenticated,
-    const TlsStream::Ptr& stream, ConnectionRole role)
+	const TlsStream::Ptr& stream, ConnectionRole role)
 	: m_ID(l_JsonRpcConnectionNextID++), m_Identity(identity), m_Authenticated(authenticated), m_Stream(stream),
-	  m_Role(role), m_Timestamp(Utility::GetTime()), m_Seen(Utility::GetTime()),
-	  m_NextHeartbeat(0), m_HeartbeatTimeout(0)
+	m_Role(role), m_Timestamp(Utility::GetTime()), m_Seen(Utility::GetTime()), m_NextHeartbeat(0), m_HeartbeatTimeout(0)
 {
 	boost::call_once(l_JsonRpcConnectionOnceFlag, &JsonRpcConnection::StaticInitialize);
 
@@ -123,7 +122,7 @@ void JsonRpcConnection::SendMessage(const Dictionary::Ptr& message)
 		std::ostringstream info;
 		info << "Error while sending JSON-RPC message for identity '" << m_Identity << "'";
 		Log(LogWarning, "JsonRpcConnection")
-		    << info.str() << "\n" << DiagnosticInformation(ex);
+			<< info.str() << "\n" << DiagnosticInformation(ex);
 
 		Disconnect();
 	}
@@ -132,7 +131,7 @@ void JsonRpcConnection::SendMessage(const Dictionary::Ptr& message)
 void JsonRpcConnection::Disconnect(void)
 {
 	Log(LogWarning, "JsonRpcConnection")
-	    << "API client disconnected for identity '" << m_Identity << "'";
+		<< "API client disconnected for identity '" << m_Identity << "'";
 
 	m_Stream->Close();
 
@@ -153,8 +152,8 @@ void JsonRpcConnection::MessageHandlerWrapper(const String& jsonString)
 		MessageHandler(jsonString);
 	} catch (const std::exception& ex) {
 		Log(LogWarning, "JsonRpcConnection")
-		    << "Error while reading JSON-RPC message for identity '" << m_Identity
-		    << "': " << DiagnosticInformation(ex);
+			<< "Error while reading JSON-RPC message for identity '" << m_Identity
+			<< "': " << DiagnosticInformation(ex);
 
 		Disconnect();
 
@@ -202,7 +201,7 @@ void JsonRpcConnection::MessageHandler(const String& jsonString)
 			return;
 
 		Log(LogWarning, "JsonRpcConnection",
-		    "We received a JSON-RPC response message. This should never happen because we're only ever sending notifications.");
+			"We received a JSON-RPC response message. This should never happen because we're only ever sending notifications.");
 
 		return;
 	}
@@ -210,7 +209,7 @@ void JsonRpcConnection::MessageHandler(const String& jsonString)
 	String method = vmethod;
 
 	Log(LogNotice, "JsonRpcConnection")
-	    << "Received '" << method << "' message from '" << m_Identity << "'";
+		<< "Received '" << method << "' message from '" << m_Identity << "'";
 
 	Dictionary::Ptr resultMessage = new Dictionary();
 
@@ -219,7 +218,7 @@ void JsonRpcConnection::MessageHandler(const String& jsonString)
 
 		if (!afunc) {
 			Log(LogNotice, "JsonRpcConnection")
-			    << "Call to non-existent function '" << method << "' from endpoint '" << m_Identity << "'.";
+				<< "Call to non-existent function '" << method << "' from endpoint '" << m_Identity << "'.";
 		} else {
 			resultMessage->Set("result", afunc->Invoke(origin, message->Get("params")));
 		}
@@ -228,7 +227,7 @@ void JsonRpcConnection::MessageHandler(const String& jsonString)
 		String diagInfo = DiagnosticInformation(ex);
 		resultMessage->Set("error", diagInfo);
 		Log(LogWarning, "JsonRpcConnection")
-		    << "Error while processing message for identity '" << m_Identity << "'\n" << diagInfo;
+			<< "Error while processing message for identity '" << m_Identity << "'\n" << diagInfo;
 	}
 
 	if (message->Contains("id")) {
@@ -267,8 +266,8 @@ void JsonRpcConnection::DataAvailableHandler(void)
 				; /* empty loop body */
 		} catch (const std::exception& ex) {
 			Log(LogWarning, "JsonRpcConnection")
-			    << "Error while reading JSON-RPC message for identity '" << m_Identity
-			    << "': " << DiagnosticInformation(ex);
+				<< "Error while reading JSON-RPC message for identity '" << m_Identity
+				<< "': " << DiagnosticInformation(ex);
 
 			Disconnect();
 
@@ -302,7 +301,7 @@ void JsonRpcConnection::CheckLiveness(void)
 {
 	if (m_Seen < Utility::GetTime() - 60 && (!m_Endpoint || !m_Endpoint->GetSyncing())) {
 		Log(LogInformation, "JsonRpcConnection")
-		    <<  "No messages for identity '" << m_Identity << "' have been received in the last 60 seconds.";
+			<<  "No messages for identity '" << m_Identity << "' have been received in the last 60 seconds.";
 		Disconnect();
 	}
 }

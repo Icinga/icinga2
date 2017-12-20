@@ -31,7 +31,7 @@ using namespace icinga;
 REGISTER_URLHANDLER("/v1/objects", ObjectQueryHandler);
 
 Dictionary::Ptr ObjectQueryHandler::SerializeObjectAttrs(const Object::Ptr& object,
-    const String& attrPrefix, const Array::Ptr& attrs, bool isJoin, bool allAttrs)
+	const String& attrPrefix, const Array::Ptr& attrs, bool isJoin, bool allAttrs)
 {
 	Type::Ptr type = object->GetReflectionType();
 
@@ -129,23 +129,23 @@ bool ObjectQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 		uattrs = params->Get("attrs");
 	} catch (const std::exception&) {
 		HttpUtility::SendJsonError(response, 400,
-                    "Invalid type for 'attrs' attribute specified. Array type is required.", Empty);
-                return true;
+			"Invalid type for 'attrs' attribute specified. Array type is required.", Empty);
+		return true;
 	}
 
 	try {
 		ujoins = params->Get("joins");
 	} catch (const std::exception&) {
 		HttpUtility::SendJsonError(response, 400,
-                    "Invalid type for 'joins' attribute specified. Array type is required.", Empty);
-                return true;
+			"Invalid type for 'joins' attribute specified. Array type is required.", Empty);
+		return true;
 	}
 
 	try {
 		umetas = params->Get("meta");
 	} catch (const std::exception&) {
 		HttpUtility::SendJsonError(response, 400,
-                    "Invalid type for 'meta' attribute specified. Array type is required.", Empty);
+			"Invalid type for 'meta' attribute specified. Array type is required.", Empty);
 		return true;
 	}
 
@@ -165,8 +165,8 @@ bool ObjectQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 		objs = FilterUtility::GetFilterTargets(qd, params, user);
 	} catch (const std::exception& ex) {
 		HttpUtility::SendJsonError(response, 404,
-		    "No objects found.",
-		    HttpUtility::GetLastParameter(params, "verboseErrors") ? DiagnosticInformation(ex) : "");
+			"No objects found.",
+			HttpUtility::GetLastParameter(params, "verboseErrors") ? DiagnosticInformation(ex) : "");
 		return true;
 	}
 

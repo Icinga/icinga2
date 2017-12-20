@@ -4,7 +4,7 @@
 #include "i2tcl.hpp"
 %}
 
-%typemap(in,numinputs=0) Tcl_Interp *interp {  
+%typemap(in,numinputs=0) Tcl_Interp *interp {
 	$1 = interp;
 }
 

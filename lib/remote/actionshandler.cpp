@@ -63,8 +63,8 @@ bool ActionsHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& reques
 			objs = FilterUtility::GetFilterTargets(qd, params, user);
 		} catch (const std::exception& ex) {
 			HttpUtility::SendJsonError(response, 404,
-			    "No objects found.",
-			    HttpUtility::GetLastParameter(params, "verboseErrors") ? DiagnosticInformation(ex) : "");
+				"No objects found.",
+				HttpUtility::GetLastParameter(params, "verboseErrors") ? DiagnosticInformation(ex) : "");
 			return true;
 		}
 	} else {
@@ -75,7 +75,7 @@ bool ActionsHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& reques
 	Array::Ptr results = new Array();
 
 	Log(LogNotice, "ApiActionHandler")
-	    << "Running action " << actionName;
+		<< "Running action " << actionName;
 
 	for (const ConfigObject::Ptr& obj : objs) {
 		try {

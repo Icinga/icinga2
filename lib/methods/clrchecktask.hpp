@@ -36,7 +36,7 @@ class I2_METHODS_API ClrCheckTask
 {
 public:
 	static void ScriptFunc(const Checkable::Ptr& service, const CheckResult::Ptr& cr,
-	    const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros);
+		const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros);
 
 private:
 	ClrCheckTask(void);

@@ -38,8 +38,8 @@ public:
 	DECLARE_OBJECTNAME(EventCommand);
 
 	virtual void Execute(const Checkable::Ptr& checkable,
-	    const Dictionary::Ptr& resolvedMacros = nullptr,
-	    bool useResolvedMacros = false);
+		const Dictionary::Ptr& resolvedMacros = nullptr,
+		bool useResolvedMacros = false);
 };
 
 }

@@ -47,15 +47,16 @@ static void LogFlapping(const Checkable::Ptr& obj)
 	std::bitset<20> stateChangeBuf = obj->GetFlappingBuffer();
 	int oldestIndex = (obj->GetFlappingBuffer() & 0xFF00000) >> 20;
 
-    std::cout << "Flapping: " << obj->IsFlapping() << "\nHT: " << obj->GetFlappingThresholdHigh() << " LT: " << obj->GetFlappingThresholdLow()
-       << "\nOur value: " << obj->GetFlappingCurrent() << "\nPtr: " << oldestIndex << " Buf: " << stateChangeBuf.to_ulong() << '\n';
+	std::cout << "Flapping: " << obj->IsFlapping() << "\nHT: " << obj->GetFlappingThresholdHigh() << " LT: "
+		<< obj->GetFlappingThresholdLow() << "\nOur value: " << obj->GetFlappingCurrent() << "\nPtr: " << oldestIndex
+		<< " Buf: " << stateChangeBuf.to_ulong() << '\n';
 }
 
 
 static void LogHostStatus(const Host::Ptr &host)
 {
 	std::cout << "Current status: state: " << host->GetState() << " state_type: " << host->GetStateType()
-	    << " check attempt: " << host->GetCheckAttempt() << "/" << host->GetMaxCheckAttempts() << std::endl;
+		<< " check attempt: " << host->GetCheckAttempt() << "/" << host->GetMaxCheckAttempts() << std::endl;
 }
 #endif /* I2_DEBUG */
 
@@ -64,7 +65,7 @@ BOOST_AUTO_TEST_SUITE(icinga_checkable_flapping)
 BOOST_AUTO_TEST_CASE(host_not_flapping)
 {
 #ifndef I2_DEBUG
-    BOOST_WARN_MESSAGE(false, "This test can only be run in a debug build!");
+	BOOST_WARN_MESSAGE(false, "This test can only be run in a debug build!");
 #else /* I2_DEBUG */
 	std::cout << "Running test with a non-flapping host...\n";
 
@@ -107,7 +108,7 @@ BOOST_AUTO_TEST_CASE(host_not_flapping)
 BOOST_AUTO_TEST_CASE(host_flapping)
 {
 #ifndef I2_DEBUG
-    BOOST_WARN_MESSAGE(false, "This test can only be run in a debug build!");
+	BOOST_WARN_MESSAGE(false, "This test can only be run in a debug build!");
 #else /* I2_DEBUG */
 	std::cout << "Running test with host changing state with every check...\n";
 
@@ -141,7 +142,7 @@ BOOST_AUTO_TEST_CASE(host_flapping)
 BOOST_AUTO_TEST_CASE(host_flapping_recover)
 {
 #ifndef I2_DEBUG
-    BOOST_WARN_MESSAGE(false, "This test can only be run in a debug build!");
+	BOOST_WARN_MESSAGE(false, "This test can only be run in a debug build!");
 #else /* I2_DEBUG */
 	std::cout << "Running test with flapping recovery...\n";
 
@@ -156,7 +157,7 @@ BOOST_AUTO_TEST_CASE(host_flapping_recover)
 
 	Utility::SetTime(0);
 
-	// A few warning 
+	// A few warning
 	host->ProcessCheckResult(MakeCheckResult(ServiceWarning));
 	host->ProcessCheckResult(MakeCheckResult(ServiceWarning));
 	host->ProcessCheckResult(MakeCheckResult(ServiceWarning));
@@ -200,7 +201,7 @@ BOOST_AUTO_TEST_CASE(host_flapping_recover)
 BOOST_AUTO_TEST_CASE(host_flapping_docs_example)
 {
 #ifndef I2_DEBUG
-    BOOST_WARN_MESSAGE(false, "This test can only be run in a debug build!");
+	BOOST_WARN_MESSAGE(false, "This test can only be run in a debug build!");
 #else /* I2_DEBUG */
 	std::cout << "Simulating the documentation example...\n";
 

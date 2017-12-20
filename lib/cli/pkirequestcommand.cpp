@@ -39,16 +39,16 @@ String PKIRequestCommand::GetShortDescription(void) const
 }
 
 void PKIRequestCommand::InitParameters(boost::program_options::options_description& visibleDesc,
-    boost::program_options::options_description& hiddenDesc) const
+	boost::program_options::options_description& hiddenDesc) const
 {
 	visibleDesc.add_options()
-	    ("key", po::value<std::string>(), "Key file path (input)")
-	    ("cert", po::value<std::string>(), "Certificate file path (input + output)")
-	    ("ca", po::value<std::string>(), "CA file path (output)")
-	    ("trustedcert", po::value<std::string>(), "Trusted certificate file path (input)")
-	    ("host", po::value<std::string>(), "Icinga 2 host")
-	    ("port", po::value<std::string>(), "Icinga 2 port")
-	    ("ticket", po::value<std::string>(), "Icinga 2 PKI ticket");
+		("key", po::value<std::string>(), "Key file path (input)")
+		("cert", po::value<std::string>(), "Certificate file path (input + output)")
+		("ca", po::value<std::string>(), "CA file path (output)")
+		("trustedcert", po::value<std::string>(), "Trusted certificate file path (input)")
+		("host", po::value<std::string>(), "Icinga 2 host")
+		("port", po::value<std::string>(), "Icinga 2 port")
+		("ticket", po::value<std::string>(), "Icinga 2 PKI ticket");
 }
 
 std::vector<String> PKIRequestCommand::GetArgumentSuggestions(const String& argument, const String& word) const
@@ -105,6 +105,6 @@ int PKIRequestCommand::Run(const boost::program_options::variables_map& vm, cons
 		ticket = vm["ticket"].as<std::string>();
 
 	return PkiUtility::RequestCertificate(vm["host"].as<std::string>(), port, vm["key"].as<std::string>(),
-	    vm["cert"].as<std::string>(), vm["ca"].as<std::string>(), GetX509Certificate(vm["trustedcert"].as<std::string>()),
-	    ticket);
+		vm["cert"].as<std::string>(), vm["ca"].as<std::string>(), GetX509Certificate(vm["trustedcert"].as<std::string>()),
+		ticket);
 }

@@ -27,7 +27,7 @@ using namespace icinga;
 REGISTER_TYPE_WITH_PROTOTYPE(Function, Function::GetPrototype());
 
 Function::Function(const String& name, const Callback& function, const std::vector<String>& args,
-    bool side_effect_free, bool deprecated)
+	bool side_effect_free, bool deprecated)
 	: m_Callback(function)
 {
 	SetName(name, true);

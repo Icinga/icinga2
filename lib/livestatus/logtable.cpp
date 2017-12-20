@@ -57,7 +57,7 @@ LogTable::LogTable(const String& compat_log_path, time_t from, time_t until)
 }
 
 void LogTable::AddColumns(Table *table, const String& prefix,
-    const Column::ObjectAccessor& objectAccessor)
+	const Column::ObjectAccessor& objectAccessor)
 {
 	table->AddColumn(prefix + "time", Column(&LogTable::TimeAccessor, objectAccessor));
 	table->AddColumn(prefix + "lineno", Column(&LogTable::LinenoAccessor, objectAccessor));
@@ -94,7 +94,7 @@ String LogTable::GetPrefix(void) const
 void LogTable::FetchRows(const AddRowFunction& addRowFn)
 {
 	Log(LogDebug, "LogTable")
-	    << "Pre-selecting log file from " << m_TimeFrom << " until " << m_TimeUntil;
+		<< "Pre-selecting log file from " << m_TimeFrom << " until " << m_TimeUntil;
 
 	/* create log file index */
 	LivestatusLogUtility::CreateLogIndex(m_CompatLogPath, m_LogFileIndex);

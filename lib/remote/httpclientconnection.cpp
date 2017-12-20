@@ -59,7 +59,8 @@ void HttpClientConnection::Reconnect(void)
 	else
 		ASSERT(!"Non-TLS HTTP connections not supported.");
 		/* m_Stream = new NetworkStream(socket);
-		   -- does not currently work because the NetworkStream class doesn't support async I/O */
+		 * -- does not currently work because the NetworkStream class doesn't support async I/O
+		 */
 
 	/* the stream holds an owning reference to this object through the callback we're registering here */
 	m_Stream->RegisterDataHandler(std::bind(&HttpClientConnection::DataAvailableHandler, HttpClientConnection::Ptr(this), _1));
@@ -148,7 +149,7 @@ void HttpClientConnection::DataAvailableHandler(const Stream::Ptr& stream)
 				; /* empty loop body */
 		} catch (const std::exception& ex) {
 			Log(LogWarning, "HttpClientConnection")
-			    << "Error while reading Http response: " << DiagnosticInformation(ex);
+				<< "Error while reading Http response: " << DiagnosticInformation(ex);
 
 			close = true;
 			Disconnect();
@@ -167,7 +168,7 @@ std::shared_ptr<HttpRequest> HttpClientConnection::NewRequest(void)
 }
 
 void HttpClientConnection::SubmitRequest(const std::shared_ptr<HttpRequest>& request,
-    const HttpCompletionCallback& callback)
+	const HttpCompletionCallback& callback)
 {
 	m_Requests.emplace_back(request, callback);
 	request->Finish();

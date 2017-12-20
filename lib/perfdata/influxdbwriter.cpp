@@ -55,7 +55,7 @@ public:
 	DECLARE_PTR_TYPEDEFS(InfluxdbInteger);
 
 	InfluxdbInteger(int value)
-	    : m_Value(value)
+		: m_Value(value)
 	{ }
 
 	int GetValue(void) const
@@ -72,7 +72,7 @@ REGISTER_TYPE(InfluxdbWriter);
 REGISTER_STATSFUNCTION(InfluxdbWriter, &InfluxdbWriter::StatsFunc);
 
 InfluxdbWriter::InfluxdbWriter(void)
-    : m_WorkQueue(10000000, 1)
+	: m_WorkQueue(10000000, 1)
 { }
 
 void InfluxdbWriter::OnConfigLoaded(void)
@@ -111,7 +111,7 @@ void InfluxdbWriter::Start(bool runtimeCreated)
 	ObjectImpl<InfluxdbWriter>::Start(runtimeCreated);
 
 	Log(LogInformation, "InfluxdbWriter")
-	    << "'" << GetName() << "' started.";
+		<< "'" << GetName() << "' started.";
 
 	/* Register exception handler for WQ tasks. */
 	m_WorkQueue.SetExceptionCallback(std::bind(&InfluxdbWriter::ExceptionHandler, this, _1));
@@ -130,7 +130,7 @@ void InfluxdbWriter::Start(bool runtimeCreated)
 void InfluxdbWriter::Stop(bool runtimeRemoved)
 {
 	Log(LogInformation, "InfluxdbWriter")
-	    << "'" << GetName() << "' stopped.";
+		<< "'" << GetName() << "' stopped.";
 
 	m_WorkQueue.Join();
 
@@ -147,7 +147,7 @@ void InfluxdbWriter::ExceptionHandler(boost::exception_ptr exp)
 	Log(LogCritical, "InfluxdbWriter", "Exception during InfluxDB operation: Verify that your backend is operational!");
 
 	Log(LogDebug, "InfluxdbWriter")
-	    << "Exception during InfluxDB operation: " << DiagnosticInformation(exp);
+		<< "Exception during InfluxDB operation: " << DiagnosticInformation(exp);
 
 	//TODO: Close the connection, if we keep it open.
 }
@@ -157,13 +157,13 @@ Stream::Ptr InfluxdbWriter::Connect(void)
 	TcpSocket::Ptr socket = new TcpSocket();
 
 	Log(LogNotice, "InfluxdbWriter")
-	    << "Reconnecting to InfluxDB on host '" << GetHost() << "' port '" << GetPort() << "'.";
+		<< "Reconnecting to InfluxDB on host '" << GetHost() << "' port '" << GetPort() << "'.";
 
 	try {
 		socket->Connect(GetHost(), GetPort());
 	} catch (const std::exception& ex) {
 		Log(LogWarning, "InfluxdbWriter")
-		    << "Can't connect to InfluxDB on host '" << GetHost() << "' port '" << GetPort() << "'.";
+			<< "Can't connect to InfluxDB on host '" << GetHost() << "' port '" << GetPort() << "'.";
 		throw ex;
 	}
 
@@ -173,7 +173,7 @@ Stream::Ptr InfluxdbWriter::Connect(void)
 			sslContext = MakeSSLContext(GetSslCert(), GetSslKey(), GetSslCaCert());
 		} catch (const std::exception& ex) {
 			Log(LogWarning, "InfluxdbWriter")
-			    << "Unable to create SSL context.";
+				<< "Unable to create SSL context.";
 			throw ex;
 		}
 
@@ -182,7 +182,7 @@ Stream::Ptr InfluxdbWriter::Connect(void)
 			tlsStream->Handshake();
 		} catch (const std::exception& ex) {
 			Log(LogWarning, "InfluxdbWriter")
-			    << "TLS handshake with host '" << GetHost() << "' failed.";
+				<< "TLS handshake with host '" << GetHost() << "' failed.";
 			throw ex;
 		}
 
@@ -252,7 +252,7 @@ void InfluxdbWriter::CheckResultHandlerWQ(const Checkable::Ptr& checkable, const
 					pdv = PerfdataValue::Parse(val);
 				} catch (const std::exception&) {
 					Log(LogWarning, "InfluxdbWriter")
-					    << "Ignoring invalid perfdata value: " << val;
+						<< "Ignoring invalid perfdata value: " << val;
 					continue;
 				}
 			}
@@ -271,8 +271,8 @@ void InfluxdbWriter::CheckResultHandlerWQ(const Checkable::Ptr& checkable, const
 					fields->Set("max", pdv->GetMax());
 			}
 			if (!pdv->GetUnit().IsEmpty()) {
- 				fields->Set("unit", pdv->GetUnit());
- 			}
+				fields->Set("unit", pdv->GetUnit());
+			}
 
 			SendMetric(tmpl, pdv->GetLabel(), fields, ts);
 		}
@@ -318,8 +318,7 @@ String InfluxdbWriter::EscapeValue(const Value& value)
 {
 	if (value.IsObjectType<InfluxdbInteger>()) {
 		std::ostringstream os;
-		os << static_cast<InfluxdbInteger::Ptr>(value)->GetValue()
-		   << "i";
+		os << static_cast<InfluxdbInteger::Ptr>(value)->GetValue() << "i";
 		return os.str();
 	}
 
@@ -369,7 +368,7 @@ void InfluxdbWriter::SendMetric(const Dictionary::Ptr& tmpl, const String& label
 
 #ifdef I2_DEBUG
 	Log(LogDebug, "InfluxdbWriter")
-	    << "Add to metric list: '" << msgbuf.str() << "'.";
+		<< "Add to metric list: '" << msgbuf.str() << "'.";
 #endif /* I2_DEBUG */
 
 	// Buffer the data point
@@ -378,7 +377,7 @@ void InfluxdbWriter::SendMetric(const Dictionary::Ptr& tmpl, const String& label
 	// Flush if we've buffered too much to prevent excessive memory use
 	if (static_cast<int>(m_DataBuffer.size()) >= GetFlushThreshold()) {
 		Log(LogDebug, "InfluxdbWriter")
-		    << "Data buffer overflow writing " << m_DataBuffer.size() << " data points";
+			<< "Data buffer overflow writing " << m_DataBuffer.size() << " data points";
 
 		try {
 			Flush();
@@ -402,7 +401,7 @@ void InfluxdbWriter::FlushTimeoutWQ(void)
 		return;
 
 	Log(LogDebug, "InfluxdbWriter")
-	    << "Timer expired writing " << m_DataBuffer.size() << " data points";
+		<< "Timer expired writing " << m_DataBuffer.size() << " data points";
 
 	Flush();
 }
@@ -442,7 +441,7 @@ void InfluxdbWriter::Flush(void)
 		req.Finish();
 	} catch (const std::exception& ex) {
 		Log(LogWarning, "InfluxdbWriter")
-		    << "Cannot write to TCP socket on host '" << GetHost() << "' port '" << GetPort() << "'.";
+			<< "Cannot write to TCP socket on host '" << GetHost() << "' port '" << GetPort() << "'.";
 		throw ex;
 	}
 
@@ -454,24 +453,24 @@ void InfluxdbWriter::Flush(void)
 			; /* Do nothing */
 	} catch (const std::exception& ex) {
 		Log(LogWarning, "InfluxdbWriter")
-		    << "Failed to parse HTTP response from host '" << GetHost() << "' port '" << GetPort() << "': " << DiagnosticInformation(ex);
+			<< "Failed to parse HTTP response from host '" << GetHost() << "' port '" << GetPort() << "': " << DiagnosticInformation(ex);
 		throw ex;
 	}
 
 	if (!resp.Complete) {
 		Log(LogWarning, "InfluxdbWriter")
-		    << "Failed to read a complete HTTP response from the InfluxDB server.";
+			<< "Failed to read a complete HTTP response from the InfluxDB server.";
 		return;
 	}
 
 	if (resp.StatusCode != 204) {
 		Log(LogWarning, "InfluxdbWriter")
-		    << "Unexpected response code: " << resp.StatusCode;
+			<< "Unexpected response code: " << resp.StatusCode;
 
 		String contentType = resp.Headers->Get("content-type");
 		if (contentType != "application/json") {
 			Log(LogWarning, "InfluxdbWriter")
-			    << "Unexpected Content-Type: " << contentType;
+				<< "Unexpected Content-Type: " << contentType;
 			return;
 		}
 
@@ -485,14 +484,14 @@ void InfluxdbWriter::Flush(void)
 			jsonResponse = JsonDecode(buffer.get());
 		} catch (...) {
 			Log(LogWarning, "InfluxdbWriter")
-			    << "Unable to parse JSON response:\n" << buffer.get();
+				<< "Unable to parse JSON response:\n" << buffer.get();
 			return;
 		}
 
 		String error = jsonResponse->Get("error");
 
 		Log(LogCritical, "InfluxdbWriter")
-		    << "InfluxDB error message:\n" << error;
+			<< "InfluxDB error message:\n" << error;
 
 		return;
 	}

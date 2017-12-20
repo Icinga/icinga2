@@ -26,12 +26,12 @@ using namespace icinga;
 REGISTER_TYPE(CheckCommand);
 
 void CheckCommand::Execute(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr,
-    const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
+	const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
 {
 	GetExecute()->Invoke({
-	    checkable,
-	    cr,
-	    resolvedMacros,
-	    useResolvedMacros
+		checkable,
+		cr,
+		resolvedMacros,
+		useResolvedMacros
 	});
 }

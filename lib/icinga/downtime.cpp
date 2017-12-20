@@ -136,8 +136,8 @@ void Downtime::Start(bool runtimeCreated)
 	 */
 	if (!checkable->IsStateOK(checkable->GetStateRaw())) {
 		Log(LogNotice, "Downtime")
-		    << "Checkable '" << checkable->GetName() << "' already in a NOT-OK state."
-		    << " Triggering downtime now.";
+			<< "Checkable '" << checkable->GetName() << "' already in a NOT-OK state."
+			<< " Triggering downtime now.";
 		TriggerDowntime();
 	}
 }
@@ -217,10 +217,10 @@ int Downtime::GetNextDowntimeID(void)
 }
 
 String Downtime::AddDowntime(const Checkable::Ptr& checkable, const String& author,
-    const String& comment, double startTime, double endTime, bool fixed,
-    const String& triggeredBy, double duration,
-    const String& scheduledDowntime, const String& scheduledBy,
-    const String& id, const MessageOrigin::Ptr& origin)
+	const String& comment, double startTime, double endTime, bool fixed,
+	const String& triggeredBy, double duration,
+	const String& scheduledDowntime, const String& scheduledBy,
+	const String& id, const MessageOrigin::Ptr& origin)
 {
 	String fullName;
 
@@ -283,9 +283,9 @@ String Downtime::AddDowntime(const Checkable::Ptr& checkable, const String& auth
 		BOOST_THROW_EXCEPTION(std::runtime_error("Could not create downtime object."));
 
 	Log(LogNotice, "Downtime")
-	    << "Added downtime '" << downtime->GetName()
-	    << "' between '" << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", startTime)
-	    << "' and '" << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", endTime) << "'.";
+		<< "Added downtime '" << downtime->GetName()
+		<< "' between '" << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", startTime)
+		<< "' and '" << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", endTime) << "'.";
 
 	return fullName;
 }
@@ -301,14 +301,14 @@ void Downtime::RemoveDowntime(const String& id, bool cancelled, bool expired, co
 
 	if (!config_owner.IsEmpty() && !expired) {
 		Log(LogWarning, "Downtime")
-		    << "Cannot remove downtime '" << downtime->GetName() << "'. It is owned by scheduled downtime object '" << config_owner << "'";
+			<< "Cannot remove downtime '" << downtime->GetName() << "'. It is owned by scheduled downtime object '" << config_owner << "'";
 		return;
 	}
 
 	downtime->SetWasCancelled(cancelled);
 
 	Log(LogNotice, "Downtime")
-	    << "Removed downtime '" << downtime->GetName() << "' from object '" << downtime->GetCheckable()->GetName() << "'.";
+		<< "Removed downtime '" << downtime->GetName() << "' from object '" << downtime->GetCheckable()->GetName() << "'.";
 
 	Array::Ptr errors = new Array();
 
@@ -383,8 +383,8 @@ void Downtime::DowntimesStartTimerHandler(void)
 	/* Start fixed downtimes. Flexible downtimes will be triggered on-demand. */
 	for (const Downtime::Ptr& downtime : ConfigType::GetObjectsByType<Downtime>()) {
 		if (downtime->IsActive() &&
-		    downtime->CanBeTriggered() &&
-		    downtime->GetFixed()) {
+			downtime->CanBeTriggered() &&
+			downtime->GetFixed()) {
 			/* Send notifications. */
 			OnDowntimeStarted(downtime);
 

@@ -36,7 +36,7 @@ CommandsTable::CommandsTable(void)
 }
 
 void CommandsTable::AddColumns(Table *table, const String& prefix,
-    const Column::ObjectAccessor& objectAccessor)
+	const Column::ObjectAccessor& objectAccessor)
 {
 	table->AddColumn(prefix + "name", Column(&CommandsTable::NameAccessor, objectAccessor));
 	table->AddColumn(prefix + "line", Column(&CommandsTable::LineAccessor, objectAccessor));

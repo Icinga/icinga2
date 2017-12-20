@@ -40,14 +40,14 @@ String PKISaveCertCommand::GetShortDescription(void) const
 }
 
 void PKISaveCertCommand::InitParameters(boost::program_options::options_description& visibleDesc,
-    boost::program_options::options_description& hiddenDesc) const
+	boost::program_options::options_description& hiddenDesc) const
 {
 	visibleDesc.add_options()
-	    ("key", po::value<std::string>(), "Key file path (input), obsolete")
-	    ("cert", po::value<std::string>(), "Certificate file path (input), obsolete")
-	    ("trustedcert", po::value<std::string>(), "Trusted certificate file path (output)")
-	    ("host", po::value<std::string>(), "Icinga 2 host")
-	    ("port", po::value<std::string>()->default_value("5665"), "Icinga 2 port");
+		("key", po::value<std::string>(), "Key file path (input), obsolete")
+		("cert", po::value<std::string>(), "Certificate file path (input), obsolete")
+		("trustedcert", po::value<std::string>(), "Trusted certificate file path (output)")
+		("host", po::value<std::string>(), "Icinga 2 host")
+		("port", po::value<std::string>()->default_value("5665"), "Icinga 2 port");
 }
 
 std::vector<String> PKISaveCertCommand::GetArgumentSuggestions(const String& argument, const String& word) const
@@ -83,7 +83,7 @@ int PKISaveCertCommand::Run(const boost::program_options::variables_map& vm, con
 	String port = vm["port"].as<std::string>();
 
 	Log(LogInformation, "cli")
-	    << "Retrieving X.509 certificate for '" << host << ":" << port << "'.";
+		<< "Retrieving X.509 certificate for '" << host << ":" << port << "'.";
 
 	std::shared_ptr<X509> cert = PkiUtility::FetchCert(host, port);
 
@@ -94,11 +94,11 @@ int PKISaveCertCommand::Run(const boost::program_options::variables_map& vm, con
 
 	std::cout << PkiUtility::GetCertificateInformation(cert) << "\n";
 	std::cout << ConsoleColorTag(Console_ForegroundRed)
-	    << "***\n"
-	    << "*** You have to ensure that this certificate actually matches the parent\n"
-	    << "*** instance's certificate in order to avoid man-in-the-middle attacks.\n"
-	    << "***\n\n"
-	    << ConsoleColorTag(Console_Normal);
+		<< "***\n"
+		<< "*** You have to ensure that this certificate actually matches the parent\n"
+		<< "*** instance's certificate in order to avoid man-in-the-middle attacks.\n"
+		<< "***\n\n"
+		<< ConsoleColorTag(Console_Normal);
 
 	return PkiUtility::WriteCert(cert, vm["trustedcert"].as<std::string>());
 }

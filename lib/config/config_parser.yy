@@ -416,7 +416,8 @@ object:
 		}
 
 		$$ = new ObjectExpression(abstract, std::unique_ptr<Expression>($3), std::unique_ptr<Expression>($4),
-		    std::move(filter), context->GetZone(), context->GetPackage(), std::move(*$5), $6, $7, std::unique_ptr<Expression>($9), DebugInfoRange(@2, @7));
+			std::move(filter), context->GetZone(), context->GetPackage(), std::move(*$5), $6, $7,
+			std::unique_ptr<Expression>($9), DebugInfoRange(@2, @7));
 		delete $5;
 	}
 	;

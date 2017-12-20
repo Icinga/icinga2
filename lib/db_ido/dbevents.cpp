@@ -200,11 +200,11 @@ void DbEvents::ReachabilityChangedHandler(const Checkable::Ptr& checkable, const
 		is_reachable = 1;
 
 	Log(LogDebug, "DbEvents")
-	    << "Updating reachability for checkable '" << checkable->GetName() << "': " << (is_reachable ? "" : "not" ) << " reachable for " << children.size() << " children.";
+		<< "Updating reachability for checkable '" << checkable->GetName() << "': " << (is_reachable ? "" : "not" ) << " reachable for " << children.size() << " children.";
 
 	for (const Checkable::Ptr& child : children) {
 		Log(LogDebug, "DbEvents")
-		    << "Updating reachability for checkable '" << child->GetName() << "': " << (is_reachable ? "" : "not" ) << " reachable.";
+			<< "Updating reachability for checkable '" << child->GetName() << "': " << (is_reachable ? "" : "not" ) << " reachable.";
 
 		Host::Ptr host;
 		Service::Ptr service;
@@ -730,10 +730,10 @@ void DbEvents::TriggerDowntime(const Downtime::Ptr& downtime)
 
 /* acknowledgements */
 void DbEvents::AddAcknowledgementHistory(const Checkable::Ptr& checkable, const String& author, const String& comment,
-    AcknowledgementType type, bool notify, double expiry)
+	AcknowledgementType type, bool notify, double expiry)
 {
 	Log(LogDebug, "DbEvents")
-	    << "add acknowledgement history for '" << checkable->GetName() << "'";
+		<< "add acknowledgement history for '" << checkable->GetName() << "'";
 
 	double now = Utility::GetTime();
 	std::pair<unsigned long, unsigned long> time_bag = CompatUtility::ConvertTimestamp(now);
@@ -781,7 +781,7 @@ void DbEvents::AddAcknowledgementHistory(const Checkable::Ptr& checkable, const 
 void DbEvents::AddAcknowledgement(const Checkable::Ptr& checkable, AcknowledgementType type)
 {
 	Log(LogDebug, "DbEvents")
-	    << "add acknowledgement for '" << checkable->GetName() << "'";
+		<< "add acknowledgement for '" << checkable->GetName() << "'";
 
 	AddAcknowledgementInternal(checkable, type, true);
 }
@@ -789,7 +789,7 @@ void DbEvents::AddAcknowledgement(const Checkable::Ptr& checkable, Acknowledgeme
 void DbEvents::RemoveAcknowledgement(const Checkable::Ptr& checkable)
 {
 	Log(LogDebug, "DbEvents")
-	    << "remove acknowledgement for '" << checkable->GetName() << "'";
+		<< "remove acknowledgement for '" << checkable->GetName() << "'";
 
 	AddAcknowledgementInternal(checkable, AcknowledgementNone, false);
 }
@@ -829,10 +829,10 @@ void DbEvents::AddAcknowledgementInternal(const Checkable::Ptr& checkable, Ackno
 
 /* notifications */
 void DbEvents::AddNotificationHistory(const Notification::Ptr& notification, const Checkable::Ptr& checkable, const std::set<User::Ptr>& users, NotificationType type,
-    const CheckResult::Ptr& cr, const String& author, const String& text)
+	const CheckResult::Ptr& cr, const String& author, const String& text)
 {
 	Log(LogDebug, "DbEvents")
-	    << "add notification history for '" << checkable->GetName() << "'";
+		<< "add notification history for '" << checkable->GetName() << "'";
 
 	/* start and end happen at the same time */
 	double now = Utility::GetTime();
@@ -885,7 +885,7 @@ void DbEvents::AddNotificationHistory(const Notification::Ptr& notification, con
 
 	for (const User::Ptr& user : users) {
 		Log(LogDebug, "DbEvents")
-		    << "add contact notification history for service '" << checkable->GetName() << "' and user '" << user->GetName() << "'.";
+			<< "add contact notification history for service '" << checkable->GetName() << "' and user '" << user->GetName() << "'.";
 
 		DbQuery query2;
 		query2.Table = "contactnotifications";
@@ -913,7 +913,7 @@ void DbEvents::AddNotificationHistory(const Notification::Ptr& notification, con
 void DbEvents::AddStateChangeHistory(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, StateType type)
 {
 	Log(LogDebug, "DbEvents")
-	    << "add state change history for '" << checkable->GetName() << "'";
+		<< "add state change history for '" << checkable->GetName() << "'";
 
 	double ts = cr->GetExecutionEnd();
 	std::pair<unsigned long, unsigned long> state_time_bag = CompatUtility::ConvertTimestamp(ts);
@@ -983,7 +983,7 @@ void DbEvents::AddCheckResultLogHistory(const Checkable::Ptr& checkable, const C
 		bool reachable_before = vars_before->Get("reachable");
 
 		if (state_before == state_after && stateType_before == stateType_after &&
-		    attempt_before == attempt_after && reachable_before == reachable_after)
+			attempt_before == attempt_after && reachable_before == reachable_after)
 			return; /* Nothing changed, ignore this checkresult. */
 	}
 
@@ -1001,13 +1001,13 @@ void DbEvents::AddCheckResultLogHistory(const Checkable::Ptr& checkable, const C
 
 	if (service) {
 		msgbuf << "SERVICE ALERT: "
-		       << host->GetName() << ";"
-		       << service->GetShortName() << ";"
-		       << Service::StateToString(service->GetState()) << ";"
-		       << Service::StateTypeToString(service->GetStateType()) << ";"
-		       << attempt_after << ";"
-		       << output << ""
-		       << "";
+			<< host->GetName() << ";"
+			<< service->GetShortName() << ";"
+			<< Service::StateToString(service->GetState()) << ";"
+			<< Service::StateTypeToString(service->GetStateType()) << ";"
+			<< attempt_after << ";"
+			<< output << ""
+			<< "";
 
 		switch (service->GetState()) {
 			case ServiceOK:
@@ -1024,17 +1024,17 @@ void DbEvents::AddCheckResultLogHistory(const Checkable::Ptr& checkable, const C
 				break;
 			default:
 				Log(LogCritical, "DbEvents")
-				    << "Unknown service state: " << state_after;
+					<< "Unknown service state: " << state_after;
 				return;
 		}
 	} else {
 		msgbuf << "HOST ALERT: "
-		       << host->GetName() << ";"
-		       << CompatUtility::GetHostStateString(host) << ";"
-		       << Host::StateTypeToString(host->GetStateType()) << ";"
-		       << attempt_after << ";"
-		       << output << ""
-		       << "";
+			<< host->GetName() << ";"
+			<< CompatUtility::GetHostStateString(host) << ";"
+			<< Host::StateTypeToString(host->GetStateType()) << ";"
+			<< attempt_after << ";"
+			<< output << ""
+			<< "";
 
 		switch (host->GetState()) {
 			case HostUp:
@@ -1045,7 +1045,7 @@ void DbEvents::AddCheckResultLogHistory(const Checkable::Ptr& checkable, const C
 				break;
 			default:
 				Log(LogCritical, "DbEvents")
-				    << "Unknown host state: " << state_after;
+					<< "Unknown host state: " << state_after;
 				return;
 		}
 
@@ -1124,8 +1124,8 @@ void DbEvents::AddRemoveDowntimeLogHistory(const Downtime::Ptr& downtime)
 }
 
 void DbEvents::AddNotificationSentLogHistory(const Notification::Ptr& notification, const Checkable::Ptr& checkable, const User::Ptr& user,
-    NotificationType notification_type, const CheckResult::Ptr& cr,
-    const String& author, const String& comment_text)
+	NotificationType notification_type, const CheckResult::Ptr& cr,
+	const String& author, const String& comment_text)
 {
 	CheckCommand::Ptr commandObj = checkable->GetCheckCommand();
 
@@ -1156,23 +1156,23 @@ void DbEvents::AddNotificationSentLogHistory(const Notification::Ptr& notificati
 
 	if (service) {
 		msgbuf << "SERVICE NOTIFICATION: "
-		       << user->GetName() << ";"
-		       << host->GetName() << ";"
-		       << service->GetShortName() << ";"
-		       << notification_type_str << " "
-		       << "(" << Service::StateToString(service->GetState()) << ");"
-		       << check_command << ";"
-		       << output << author_comment
-		       << "";
+			<< user->GetName() << ";"
+			<< host->GetName() << ";"
+			<< service->GetShortName() << ";"
+			<< notification_type_str << " "
+			<< "(" << Service::StateToString(service->GetState()) << ");"
+			<< check_command << ";"
+			<< output << author_comment
+			<< "";
 	} else {
 		msgbuf << "HOST NOTIFICATION: "
-		       << user->GetName() << ";"
-		       << host->GetName() << ";"
-		       << notification_type_str << " "
-		       << "(" << Host::StateToString(host->GetState()) << ");"
-		       << check_command << ";"
-		       << output << author_comment
-		       << "";
+			<< user->GetName() << ";"
+			<< host->GetName() << ";"
+			<< notification_type_str << " "
+			<< "(" << Host::StateToString(host->GetState()) << ");"
+			<< check_command << ";"
+			<< output << author_comment
+			<< "";
 	}
 
 	AddLogHistory(checkable, msgbuf.str(), LogEntryTypeHostNotification);
@@ -1199,17 +1199,17 @@ void DbEvents::AddFlappingChangedLogHistory(const Checkable::Ptr& checkable)
 
 	if (service) {
 		msgbuf << "SERVICE FLAPPING ALERT: "
-		       << host->GetName() << ";"
-		       << service->GetShortName() << ";"
-		       << flapping_state_str << "; "
-		       << flapping_output
-		       << "";
+			<< host->GetName() << ";"
+			<< service->GetShortName() << ";"
+			<< flapping_state_str << "; "
+			<< flapping_output
+			<< "";
 	} else {
 		msgbuf << "HOST FLAPPING ALERT: "
-		       << host->GetName() << ";"
-		       << flapping_state_str << "; "
-		       << flapping_output
-		       << "";
+			<< host->GetName() << ";"
+			<< flapping_state_str << "; "
+			<< flapping_output
+			<< "";
 	}
 
 	AddLogHistory(checkable, msgbuf.str(), LogEntryTypeInfoMessage);
@@ -1231,17 +1231,17 @@ void DbEvents::AddEnableFlappingChangedLogHistory(const Checkable::Ptr& checkabl
 
 	if (service) {
 		msgbuf << "SERVICE FLAPPING ALERT: "
-		       << host->GetName() << ";"
-		       << service->GetShortName() << ";"
-		       << flapping_state_str << "; "
-		       << flapping_output
-		       << "";
+			<< host->GetName() << ";"
+			<< service->GetShortName() << ";"
+			<< flapping_state_str << "; "
+			<< flapping_output
+			<< "";
 	} else {
 		msgbuf << "HOST FLAPPING ALERT: "
-		       << host->GetName() << ";"
-		       << flapping_state_str << "; "
-		       << flapping_output
-		       << "";
+			<< host->GetName() << ";"
+			<< flapping_state_str << "; "
+			<< flapping_output
+			<< "";
 	}
 
 	AddLogHistory(checkable, msgbuf.str(), LogEntryTypeInfoMessage);
@@ -1250,7 +1250,7 @@ void DbEvents::AddEnableFlappingChangedLogHistory(const Checkable::Ptr& checkabl
 void DbEvents::AddLogHistory(const Checkable::Ptr& checkable, String buffer, LogEntryType type)
 {
 	Log(LogDebug, "DbEvents")
-	    << "add log entry history for '" << checkable->GetName() << "'";
+		<< "add log entry history for '" << checkable->GetName() << "'";
 
 	double now = Utility::GetTime();
 	std::pair<unsigned long, unsigned long> time_bag = CompatUtility::ConvertTimestamp(now);
@@ -1284,7 +1284,7 @@ void DbEvents::AddLogHistory(const Checkable::Ptr& checkable, String buffer, Log
 void DbEvents::AddFlappingChangedHistory(const Checkable::Ptr& checkable)
 {
 	Log(LogDebug, "DbEvents")
-	    << "add flapping history for '" << checkable->GetName() << "'";
+		<< "add flapping history for '" << checkable->GetName() << "'";
 
 	double now = Utility::GetTime();
 	std::pair<unsigned long, unsigned long> time_bag = CompatUtility::ConvertTimestamp(now);
@@ -1331,7 +1331,7 @@ void DbEvents::AddFlappingChangedHistory(const Checkable::Ptr& checkable)
 void DbEvents::AddEnableFlappingChangedHistory(const Checkable::Ptr& checkable)
 {
 	Log(LogDebug, "DbEvents")
-	    << "add flapping history for '" << checkable->GetName() << "'";
+		<< "add flapping history for '" << checkable->GetName() << "'";
 
 	double now = Utility::GetTime();
 	std::pair<unsigned long, unsigned long> time_bag = CompatUtility::ConvertTimestamp(now);
@@ -1381,7 +1381,7 @@ void DbEvents::AddCheckableCheckHistory(const Checkable::Ptr& checkable, const C
 		return;
 
 	Log(LogDebug, "DbEvents")
-	    << "add checkable check history for '" << checkable->GetName() << "'";
+		<< "add checkable check history for '" << checkable->GetName() << "'";
 
 	Host::Ptr host;
 	Service::Ptr service;
@@ -1446,7 +1446,7 @@ void DbEvents::AddCheckableCheckHistory(const Checkable::Ptr& checkable, const C
 void DbEvents::AddEventHandlerHistory(const Checkable::Ptr& checkable)
 {
 	Log(LogDebug, "DbEvents")
-	    << "add eventhandler history for '" << checkable->GetName() << "'";
+		<< "add eventhandler history for '" << checkable->GetName() << "'";
 
 	double now = Utility::GetTime();
 	std::pair<unsigned long, unsigned long> time_bag = CompatUtility::ConvertTimestamp(now);

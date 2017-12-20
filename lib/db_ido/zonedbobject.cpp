@@ -47,7 +47,7 @@ Dictionary::Ptr ZoneDbObject::GetStatusFields(void) const
 	Zone::Ptr zone = static_pointer_cast<Zone>(GetObject());
 
 	Log(LogDebug, "ZoneDbObject")
-	    << "update status for zone '" << zone->GetName() << "'";
+		<< "update status for zone '" << zone->GetName() << "'";
 
 	Dictionary::Ptr fields = new Dictionary();
 	fields->Set("parent_zone_object_id", zone->GetParent());

@@ -41,11 +41,11 @@ public:
 	DECLARE_PTR_TYPEDEFS(ConfigItem);
 
 	ConfigItem(const Type::Ptr& type, const String& name, bool abstract,
-	    const std::shared_ptr<Expression>& exprl,
-	    const std::shared_ptr<Expression>& filter,
-	    bool defaultTmpl, bool ignoreOnError, const DebugInfo& debuginfo,
-	    const Dictionary::Ptr& scope, const String& zone,
-	    const String& package);
+		const std::shared_ptr<Expression>& exprl,
+		const std::shared_ptr<Expression>& filter,
+		bool defaultTmpl, bool ignoreOnError, const DebugInfo& debuginfo,
+		const Dictionary::Ptr& scope, const String& zone,
+		const String& package);
 
 	Type::Ptr GetType(void) const;
 	String GetName(void) const;
@@ -67,7 +67,7 @@ public:
 	ConfigObject::Ptr GetObject(void) const;
 
 	static ConfigItem::Ptr GetByTypeAndName(const Type::Ptr& type,
-	    const String& name);
+		const String& name);
 
 	static bool CommitItems(const ActivationContext::Ptr& context, WorkQueue& upq, std::vector<ConfigItem::Ptr>& newItems, bool silent = false);
 	static bool ActivateItems(WorkQueue& upq, const std::vector<ConfigItem::Ptr>& newItems, bool runtimeCreated = false, bool silent = false, bool withModAttrs = false);
@@ -110,7 +110,7 @@ private:
 	static IgnoredItemList m_IgnoredItems;
 
 	static ConfigItem::Ptr GetObjectUnlocked(const String& type,
-	    const String& name);
+		const String& name);
 
 	ConfigObject::Ptr Commit(bool discard = true);
 

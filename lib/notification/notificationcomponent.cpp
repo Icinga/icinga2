@@ -53,10 +53,10 @@ void NotificationComponent::Start(bool runtimeCreated)
 	ObjectImpl<NotificationComponent>::Start(runtimeCreated);
 
 	Log(LogInformation, "NotificationComponent")
-	    << "'" << GetName() << "' started.";
+		<< "'" << GetName() << "' started.";
 
 	Checkable::OnNotificationsRequested.connect(std::bind(&NotificationComponent::SendNotificationsHandler, this, _1,
-	    _2, _3, _4, _5));
+		_2, _3, _4, _5));
 
 	m_NotificationTimer = new Timer();
 	m_NotificationTimer->SetInterval(5);
@@ -67,7 +67,7 @@ void NotificationComponent::Start(bool runtimeCreated)
 void NotificationComponent::Stop(bool runtimeRemoved)
 {
 	Log(LogInformation, "NotificationComponent")
-	    << "'" << GetName() << "' stopped.";
+		<< "'" << GetName() << "' stopped.";
 
 	ObjectImpl<NotificationComponent>::Stop(runtimeRemoved);
 }
@@ -125,12 +125,12 @@ void NotificationComponent::NotificationTimerHandler(void)
 
 		try {
 			Log(LogNotice, "NotificationComponent")
-			    << "Attempting to send reminder notification '" << notification->GetName() << "'";
+				<< "Attempting to send reminder notification '" << notification->GetName() << "'";
 			notification->BeginExecuteNotification(NotificationProblem, checkable->GetLastCheckResult(), false, true);
 		} catch (const std::exception& ex) {
 			Log(LogWarning, "NotificationComponent")
-			    << "Exception occured during notification for object '"
-			    << GetName() << "': " << DiagnosticInformation(ex);
+				<< "Exception occured during notification for object '"
+				<< GetName() << "': " << DiagnosticInformation(ex);
 		}
 	}
 }
@@ -139,7 +139,7 @@ void NotificationComponent::NotificationTimerHandler(void)
  * Processes icinga::SendNotifications messages.
  */
 void NotificationComponent::SendNotificationsHandler(const Checkable::Ptr& checkable, NotificationType type,
-    const CheckResult::Ptr& cr, const String& author, const String& text)
+	const CheckResult::Ptr& cr, const String& author, const String& text)
 {
 	checkable->SendNotifications(type, cr, author, text);
 }

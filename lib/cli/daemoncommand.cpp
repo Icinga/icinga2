@@ -81,7 +81,7 @@ static bool Daemonize(void)
 			_exit(EXIT_FAILURE);
 		} else if (ret == -1) {
 			Log(LogCritical, "cli")
-			    << "waitpid() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+				<< "waitpid() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 			_exit(EXIT_FAILURE);
 		}
 
@@ -180,7 +180,7 @@ String DaemonCommand::GetShortDescription(void) const
 }
 
 void DaemonCommand::InitParameters(boost::program_options::options_description& visibleDesc,
-    boost::program_options::options_description& hiddenDesc) const
+	boost::program_options::options_description& hiddenDesc) const
 {
 	visibleDesc.add_options()
 		("config,c", po::value<std::vector<std::string> >(), "parse a configuration file")
@@ -217,17 +217,17 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 		Logger::DisableTimestamp(false);
 
 	Log(LogInformation, "cli")
-	    << "Icinga application loader (version: " << Application::GetAppVersion()
+		<< "Icinga application loader (version: " << Application::GetAppVersion()
 #ifdef I2_DEBUG
-	    << "; debug"
+		<< "; debug"
 #endif /* I2_DEBUG */
-	    << ")";
+		<< ")";
 
 	if (!vm.count("validate") && !vm.count("reload-internal")) {
 		pid_t runningpid = Application::ReadPidFile(Application::GetPidPath());
 		if (runningpid > 0) {
 			Log(LogCritical, "cli")
-			    << "Another instance of Icinga already running with PID " << runningpid;
+				<< "Another instance of Icinga already running with PID " << runningpid;
 			return EXIT_FAILURE;
 		}
 	}
@@ -253,7 +253,7 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 	if (vm.count("reload-internal")) {
 		int parentpid = vm["reload-internal"].as<int>();
 		Log(LogInformation, "cli")
-		    << "Terminating previous instance of Icinga (PID " << parentpid << ")";
+			<< "Terminating previous instance of Icinga (PID " << parentpid << ")";
 		TerminateAndWaitForEnd(parentpid);
 		Log(LogInformation, "cli", "Previous instance has ended, taking over now.");
 	}
@@ -275,7 +275,7 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 		ConfigObject::RestoreObjects(Application::GetStatePath());
 	} catch (const std::exception& ex) {
 		Log(LogCritical, "cli")
-		    << "Failed to restore state file: " << DiagnosticInformation(ex);
+			<< "Failed to restore state file: " << DiagnosticInformation(ex);
 		return EXIT_FAILURE;
 	}
 

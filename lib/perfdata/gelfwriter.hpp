@@ -60,11 +60,11 @@ private:
 	void CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
 	void CheckResultHandlerInternal(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
 	void NotificationToUserHandler(const Notification::Ptr& notification, const Checkable::Ptr& checkable,
-	    const User::Ptr& user, NotificationType notificationType, const CheckResult::Ptr& cr,
-	    const String& author, const String& commentText, const String& commandName);
+		const User::Ptr& user, NotificationType notificationType, const CheckResult::Ptr& cr,
+		const String& author, const String& commentText, const String& commandName);
 	void NotificationToUserHandlerInternal(const Notification::Ptr& notification, const Checkable::Ptr& checkable,
-	    const User::Ptr& user, NotificationType notification_type, const CheckResult::Ptr& cr,
-	    const String& author, const String& comment_text, const String& command_name);
+		const User::Ptr& user, NotificationType notification_type, const CheckResult::Ptr& cr,
+		const String& author, const String& comment_text, const String& command_name);
 	void StateChangeHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, StateType type);
 	void StateChangeHandlerInternal(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, StateType type);
 

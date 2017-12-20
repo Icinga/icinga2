@@ -26,7 +26,7 @@
 using namespace icinga;
 
 static void InvokeAttributeHandlerHelper(const Function::Ptr& callback,
-    const Object::Ptr& object, const Value& cookie)
+	const Object::Ptr& object, const Value& cookie)
 {
 	callback->Invoke({ object });
 }

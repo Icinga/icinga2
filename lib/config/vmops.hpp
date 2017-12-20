@@ -109,7 +109,7 @@ public:
 	}
 
 	static inline Value NewFunction(ScriptFrame& frame, const String& name, const std::vector<String>& argNames,
-	    const std::map<String, std::unique_ptr<Expression> >& closedVars, const std::shared_ptr<Expression>& expression)
+		const std::map<String, std::unique_ptr<Expression> >& closedVars, const std::shared_ptr<Expression>& expression)
 	{
 		auto evaluatedClosedVars = EvaluateClosedVars(frame, closedVars);
 
@@ -138,7 +138,7 @@ public:
 		bool ignoreOnError, const std::shared_ptr<Expression>& expression, const DebugInfo& debugInfo = DebugInfo())
 	{
 		ApplyRule::AddRule(type, target, name, expression, filter, package, fkvar,
-		    fvvar, fterm, ignoreOnError, debugInfo, EvaluateClosedVars(frame, closedVars));
+			fvvar, fterm, ignoreOnError, debugInfo, EvaluateClosedVars(frame, closedVars));
 
 		return Empty;
 	}

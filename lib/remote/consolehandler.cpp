@@ -103,10 +103,10 @@ bool ConsoleHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& reques
 }
 
 bool ConsoleHandler::ExecuteScriptHelper(HttpRequest& request, HttpResponse& response,
-    const String& command, const String& session, bool sandboxed)
+	const String& command, const String& session, bool sandboxed)
 {
 	Log(LogNotice, "Console")
-	    << "Executing expression: " << command;
+		<< "Executing expression: " << command;
 
 	EnsureFrameCleanupTimer();
 
@@ -145,9 +145,9 @@ bool ConsoleHandler::ExecuteScriptHelper(HttpRequest& request, HttpResponse& res
 		std::ostringstream msgbuf;
 
 		msgbuf << di.Path << ": " << lsf.Lines[di.Path] << "\n"
-		    << String(di.Path.GetLength() + 2, ' ')
-		    << String(di.FirstColumn, ' ') << String(di.LastColumn - di.FirstColumn + 1, '^') << "\n"
-		    << ex.what() << "\n";
+			<< String(di.Path.GetLength() + 2, ' ')
+			<< String(di.FirstColumn, ' ') << String(di.LastColumn - di.FirstColumn + 1, '^') << "\n"
+			<< ex.what() << "\n";
 
 		resultInfo->Set("code", 500);
 		resultInfo->Set("status", String(msgbuf.str()));
@@ -174,10 +174,10 @@ bool ConsoleHandler::ExecuteScriptHelper(HttpRequest& request, HttpResponse& res
 }
 
 bool ConsoleHandler::AutocompleteScriptHelper(HttpRequest& request, HttpResponse& response,
-    const String& command, const String& session, bool sandboxed)
+	const String& command, const String& session, bool sandboxed)
 {
 	Log(LogInformation, "Console")
-	    << "Auto-completing expression: " << command;
+		<< "Auto-completing expression: " << command;
 
 	EnsureFrameCleanupTimer();
 

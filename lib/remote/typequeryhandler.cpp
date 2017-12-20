@@ -36,7 +36,7 @@ public:
 	DECLARE_PTR_TYPEDEFS(TypeTargetProvider);
 
 	virtual void FindTargets(const String& type,
-	    const std::function<void (const Value&)>& addTarget) const override
+		const std::function<void (const Value&)>& addTarget) const override
 	{
 		for (const Type::Ptr& target : Type::GetAllTypes()) {
 			addTarget(target);
@@ -91,8 +91,8 @@ bool TypeQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& requ
 		objs = FilterUtility::GetFilterTargets(qd, params, user);
 	} catch (const std::exception& ex) {
 		HttpUtility::SendJsonError(response, 404,
-		    "No objects found.",
-		    HttpUtility::GetLastParameter(params, "verboseErrors") ? DiagnosticInformation(ex) : "");
+			"No objects found.",
+			HttpUtility::GetLastParameter(params, "verboseErrors") ? DiagnosticInformation(ex) : "");
 		return true;
 	}
 

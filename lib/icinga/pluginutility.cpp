@@ -33,9 +33,9 @@
 using namespace icinga;
 
 void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkable::Ptr& checkable,
-    const CheckResult::Ptr& cr, const MacroProcessor::ResolverList& macroResolvers,
-    const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros,
-    const std::function<void(const Value& commandLine, const ProcessResult&)>& callback)
+	const CheckResult::Ptr& cr, const MacroProcessor::ResolverList& macroResolvers,
+	const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros,
+	const std::function<void(const Value& commandLine, const ProcessResult&)>& callback)
 {
 	Value raw_command = commandObj->GetCommandLine();
 	Dictionary::Ptr raw_arguments = commandObj->GetArguments();
@@ -44,7 +44,7 @@ void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkab
 
 	try {
 		command = MacroProcessor::ResolveArguments(raw_command, raw_arguments,
-		    macroResolvers, cr, resolvedMacros, useResolvedMacros);
+			macroResolvers, cr, resolvedMacros, useResolvedMacros);
 	} catch (const std::exception& ex) {
 		String message = DiagnosticInformation(ex);
 
@@ -73,8 +73,8 @@ void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkab
 			String name = kv.second;
 
 			Value value = MacroProcessor::ResolveMacros(name, macroResolvers, cr,
-			    nullptr, MacroProcessor::EscapeCallback(), resolvedMacros,
-			    useResolvedMacros);
+				nullptr, MacroProcessor::EscapeCallback(), resolvedMacros,
+				useResolvedMacros);
 
 			if (value.IsObjectType<Array>())
 				value = Utility::Join(value, ';');

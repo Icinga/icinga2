@@ -33,7 +33,7 @@ CommentsTable::CommentsTable(void)
 }
 
 void CommentsTable::AddColumns(Table *table, const String& prefix,
-    const Column::ObjectAccessor& objectAccessor)
+	const Column::ObjectAccessor& objectAccessor)
 {
 	table->AddColumn(prefix + "author", Column(&CommentsTable::AuthorAccessor, objectAccessor));
 	table->AddColumn(prefix + "comment", Column(&CommentsTable::CommentAccessor, objectAccessor));

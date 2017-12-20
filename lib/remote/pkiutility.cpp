@@ -42,7 +42,7 @@ int PkiUtility::NewCa(void)
 
 	if (Utility::PathExists(caCertFile) && Utility::PathExists(caKeyFile)) {
 		Log(LogCritical, "cli")
-		    << "CA files '" << caCertFile << "' and '" << caKeyFile << "' already exist.";
+			<< "CA files '" << caCertFile << "' and '" << caKeyFile << "' already exist.";
 		return 1;
 	}
 
@@ -75,7 +75,7 @@ int PkiUtility::SignCsr(const String& csrfile, const String& certfile)
 
 	if (!req) {
 		Log(LogCritical, "SSL")
-		    << "Could not read X509 certificate request from '" << csrfile << "': " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
+			<< "Could not read X509 certificate request from '" << csrfile << "': " << ERR_peek_error() << ", \"" << ERR_error_string(ERR_peek_error(), errbuf) << "\"";
 		return 1;
 	}
 
@@ -99,9 +99,9 @@ std::shared_ptr<X509> PkiUtility::FetchCert(const String& host, const String& po
 		client->Connect(host, port);
 	} catch (const std::exception& ex) {
 		Log(LogCritical, "pki")
-		    << "Cannot connect to host '" << host << "' on port '" << port << "'";
+			<< "Cannot connect to host '" << host << "' on port '" << port << "'";
 		Log(LogDebug, "pki")
-		    << "Cannot connect to host '" << host << "' on port '" << port << "':\n" << DiagnosticInformation(ex);
+			<< "Cannot connect to host '" << host << "' on port '" << port << "':\n" << DiagnosticInformation(ex);
 		return std::shared_ptr<X509>();
 	}
 
@@ -111,9 +111,9 @@ std::shared_ptr<X509> PkiUtility::FetchCert(const String& host, const String& po
 		sslContext = MakeSSLContext();
 	} catch (const std::exception& ex) {
 		Log(LogCritical, "pki")
-		    << "Cannot make SSL context.";
+			<< "Cannot make SSL context.";
 		Log(LogDebug, "pki")
-		    << "Cannot make SSL context:\n"  << DiagnosticInformation(ex);
+			<< "Cannot make SSL context:\n"  << DiagnosticInformation(ex);
 		return std::shared_ptr<X509>();
 	}
 
@@ -137,12 +137,12 @@ int PkiUtility::WriteCert(const std::shared_ptr<X509>& cert, const String& trust
 
 	if (fpcert.fail()) {
 		Log(LogCritical, "pki")
-		    << "Could not write certificate to file '" << trustedfile << "'.";
+			<< "Could not write certificate to file '" << trustedfile << "'.";
 		return 1;
 	}
 
 	Log(LogInformation, "pki")
-	    << "Writing certificate to file '" << trustedfile << "'.";
+		<< "Writing certificate to file '" << trustedfile << "'.";
 
 	return 0;
 }
@@ -155,7 +155,7 @@ int PkiUtility::GenTicket(const String& cn, const String& salt, std::ostream& ti
 }
 
 int PkiUtility::RequestCertificate(const String& host, const String& port, const String& keyfile,
-    const String& certfile, const String& cafile, const std::shared_ptr<X509>& trustedCert, const String& ticket)
+	const String& certfile, const String& cafile, const std::shared_ptr<X509>& trustedCert, const String& ticket)
 {
 	TcpSocket::Ptr client = new TcpSocket();
 
@@ -163,9 +163,9 @@ int PkiUtility::RequestCertificate(const String& host, const String& port, const
 		client->Connect(host, port);
 	} catch (const std::exception& ex) {
 		Log(LogCritical, "cli")
-		    << "Cannot connect to host '" << host << "' on port '" << port << "'";
+			<< "Cannot connect to host '" << host << "' on port '" << port << "'";
 		Log(LogDebug, "cli")
-		    << "Cannot connect to host '" << host << "' on port '" << port << "':\n" << DiagnosticInformation(ex);
+			<< "Cannot connect to host '" << host << "' on port '" << port << "':\n" << DiagnosticInformation(ex);
 		return 1;
 	}
 
@@ -175,9 +175,9 @@ int PkiUtility::RequestCertificate(const String& host, const String& port, const
 		sslContext = MakeSSLContext(certfile, keyfile);
 	} catch (const std::exception& ex) {
 		Log(LogCritical, "cli")
-		    << "Cannot make SSL context for cert path: '" << certfile << "' key path: '" << keyfile << "' ca path: '" << cafile << "'.";
+			<< "Cannot make SSL context for cert path: '" << certfile << "' key path: '" << keyfile << "' ca path: '" << cafile << "'.";
 		Log(LogDebug, "cli")
-		    << "Cannot make SSL context for cert path: '" << certfile << "' key path: '" << keyfile << "' ca path: '" << cafile << "':\n"  << DiagnosticInformation(ex);
+			<< "Cannot make SSL context for cert path: '" << certfile << "' key path: '" << keyfile << "' ca path: '" << cafile << "':\n"  << DiagnosticInformation(ex);
 		return 1;
 	}
 
@@ -254,12 +254,12 @@ int PkiUtility::RequestCertificate(const String& host, const String& port, const
 			StringToCertificate(result->Get("ca"));
 		} catch (const std::exception& ex) {
 			Log(LogCritical, "cli")
-			    << "Could not write CA file: " << DiagnosticInformation(ex, false);
+				<< "Could not write CA file: " << DiagnosticInformation(ex, false);
 			return 1;
 		}
 
 		Log(LogInformation, "cli")
-		    << "Writing CA certificate to file '" << cafile << "'.";
+			<< "Writing CA certificate to file '" << cafile << "'.";
 
 		std::ofstream fpca;
 		fpca.open(cafile.CStr());
@@ -268,7 +268,7 @@ int PkiUtility::RequestCertificate(const String& host, const String& port, const
 
 		if (fpca.fail()) {
 			Log(LogCritical, "cli")
-			    << "Could not open CA certificate file '" << cafile << "' for writing.";
+				<< "Could not open CA certificate file '" << cafile << "' for writing.";
 			return 1;
 		}
 	}
@@ -291,7 +291,7 @@ int PkiUtility::RequestCertificate(const String& host, const String& port, const
 		}
 
 		Log(severity, "cli")
-		    << "!!! " << result->Get("error");
+			<< "!!! " << result->Get("error");
 
 		if (status == 1)
 			return 1;
@@ -305,12 +305,12 @@ int PkiUtility::RequestCertificate(const String& host, const String& port, const
 		StringToCertificate(result->Get("cert"));
 	} catch (const std::exception& ex) {
 		Log(LogCritical, "cli")
-		    << "Could not write certificate file: " << DiagnosticInformation(ex, false);
+			<< "Could not write certificate file: " << DiagnosticInformation(ex, false);
 		return 1;
 	}
 
 	Log(LogInformation, "cli")
-	    << "Writing signed certificate to file '" << certfile << "'.";
+		<< "Writing signed certificate to file '" << certfile << "'.";
 
 	std::ofstream fpcert;
 	fpcert.open(certfile.CStr());
@@ -319,7 +319,7 @@ int PkiUtility::RequestCertificate(const String& host, const String& port, const
 
 	if (fpcert.fail()) {
 		Log(LogCritical, "cli")
-		    << "Could not write certificate to file '" << certfile << "'.";
+			<< "Could not write certificate to file '" << certfile << "'.";
 		return 1;
 	}
 
@@ -362,7 +362,7 @@ String PkiUtility::GetCertificateInformation(const std::shared_ptr<X509>& cert) 
 
 	for (unsigned int i = 0; i < diglen; i++) {
 		info << std::setfill('0') << std::setw(2) << std::uppercase
-		    << std::hex << static_cast<int>(md[i]) << ' ';
+			<< std::hex << static_cast<int>(md[i]) << ' ';
 	}
 	info << '\n';
 

@@ -32,7 +32,7 @@ struct ChunkReadContext
 	int LengthIndicator;
 
 	ChunkReadContext(StreamReadContext& scontext)
-	    : StreamContext(scontext), LengthIndicator(-1)
+		: StreamContext(scontext), LengthIndicator(-1)
 	{ }
 };
 
@@ -44,7 +44,7 @@ struct ChunkReadContext
 struct I2_REMOTE_API HttpChunkedEncoding
 {
 	static StreamReadStatus ReadChunkFromStream(const Stream::Ptr& stream,
-	    char **data, size_t *size, ChunkReadContext& ccontext, bool may_wait = false);
+		char **data, size_t *size, ChunkReadContext& ccontext, bool may_wait = false);
 	static void WriteChunkToStream(const Stream::Ptr& stream, const char *data, size_t count);
 
 };

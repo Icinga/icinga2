@@ -32,7 +32,7 @@ using namespace icinga;
 REGISTER_SCRIPTFUNCTION_NS(Internal, ClusterZoneCheck, &ClusterZoneCheckTask::ScriptFunc, "checkable:cr:resolvedMacros:useResolvedMacros");
 
 void ClusterZoneCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr,
-    const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
+	const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
 {
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 
@@ -58,16 +58,16 @@ void ClusterZoneCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const Che
 	resolvers.emplace_back("icinga", IcingaApplication::GetInstance());
 
 	String zoneName = MacroProcessor::ResolveMacros("$cluster_zone$", resolvers, checkable->GetLastCheckResult(),
-	    nullptr, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
+		nullptr, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
 
 	String missingLagWarning;
 	String missingLagCritical;
 
 	double lagWarning = MacroProcessor::ResolveMacros("$cluster_lag_warning$", resolvers, checkable->GetLastCheckResult(),
-	    &missingLagWarning, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
+		&missingLagWarning, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
 
 	double lagCritical = MacroProcessor::ResolveMacros("$cluster_lag_critical$", resolvers, checkable->GetLastCheckResult(),
-	    &missingLagCritical, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
+		&missingLagCritical, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
 
 	if (resolvedMacros && !useResolvedMacros)
 		return;
@@ -131,11 +131,11 @@ void ClusterZoneCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const Che
 	if (missingLagCritical.IsEmpty() && zoneLag > lagCritical) {
 		cr->SetState(ServiceCritical);
 		cr->SetOutput("Zone '" + zoneName + "' is connected. Log lag: " + Utility::FormatDuration(zoneLag)
-		    + " greater than critical threshold: " + Utility::FormatDuration(lagCritical));
+			+ " greater than critical threshold: " + Utility::FormatDuration(lagCritical));
 	} else if (missingLagWarning.IsEmpty() && zoneLag > lagWarning) {
 		cr->SetState(ServiceWarning);
 		cr->SetOutput("Zone '" + zoneName + "' is connected. Log lag: " + Utility::FormatDuration(zoneLag)
-		    + " greater than warning threshold: " + Utility::FormatDuration(lagWarning));
+			+ " greater than warning threshold: " + Utility::FormatDuration(lagWarning));
 	}
 
 	Array::Ptr perfdata = new Array();

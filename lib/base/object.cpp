@@ -247,7 +247,7 @@ static void TypeInfoTimerHandler(void)
 			continue;
 
 		Log(LogInformation, "TypeInfo")
-		    << kv.second << " " << kv.first << " objects";
+			<< kv.second << " " << kv.first << " objects";
 
 		kv.second = 0;
 	}

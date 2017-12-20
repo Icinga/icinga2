@@ -19,7 +19,7 @@
 
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN //else winsock will be included with windows.h and conflict with winsock2
-#endif 
+#endif
 
 #include <winsock2.h>
 #include <iphlpapi.h>
@@ -231,7 +231,7 @@ INT printOutput(printInfoStruct& printInfo, response& response)
 
 	std::wstringstream perf;
 	perf << L"rta=" << response.avg << L"ms;" << printInfo.warn.pString() << L";"
-		<< printInfo.crit.pString() << L";0;" << " pl=" << removeZero(plp) << "%;" 
+		<< printInfo.crit.pString() << L";0;" << " pl=" << removeZero(plp) << "%;"
 		<< printInfo.wpl.pString() << ";" << printInfo.cpl.pString() << ";0;100";
 
 	if (response.dropped == printInfo.num) {

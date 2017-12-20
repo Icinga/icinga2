@@ -151,9 +151,8 @@ BOOL ParseArguments(CONST INT ac, WCHAR **av, po::variables_map& vm, printInfoSt
 	return TRUE;
 }
 
-BOOL GetIntstancesAndCountersOfObject(CONST std::wstring wsObject, 
-									 std::vector<std::wstring>& vecInstances, 
-									 std::vector<std::wstring>& vecCounters)
+BOOL GetIntstancesAndCountersOfObject(CONST std::wstring wsObject,
+	std::vector<std::wstring>& vecInstances, std::vector<std::wstring>& vecCounters)
 {
 	LPWSTR szDataSource = NULL, szMachineName = NULL,
 		mszCounterList = NULL, mszInstanceList = NULL;
@@ -263,7 +262,7 @@ VOID PrintObjectInfo(CONST printInfoStruct& pI)
 
 	if (!GetIntstancesAndCountersOfObject(pI.wsFullPath, vecInstances, vecCounters)) {
 		std::wcout << "Could not enumerate instances and counters of " << pI.wsFullPath << '\n'
-		    << "Make sure it exists!\n";
+			<< "Make sure it exists!\n";
 		return;
 	}
 
@@ -272,7 +271,7 @@ VOID PrintObjectInfo(CONST printInfoStruct& pI)
 		std::wcout << "> Has no instances\n";
 	else {
 		for (std::vector<std::wstring>::iterator it = vecInstances.begin();
-			 it != vecInstances.end(); ++it) {
+			it != vecInstances.end(); ++it) {
 			std::wcout << "> " << *it << '\n';
 		}
 	}
@@ -283,7 +282,7 @@ VOID PrintObjectInfo(CONST printInfoStruct& pI)
 		std::wcout << "> Has no counters\n";
 	else {
 		for (std::vector<std::wstring>::iterator it = vecCounters.begin();
-			 it != vecCounters.end(); ++it) {
+			it != vecCounters.end(); ++it) {
 			std::wcout << "> " << *it << '\n';
 		}
 	}
@@ -314,9 +313,9 @@ BOOL QueryPerfData(printInfoStruct& pI)
 	if (FAILED(status))
 		goto die;
 
-	/* 
-	/* Most counters need two queries to provide a value.
-	/* Those which need only one will return the second.
+	/*
+	 * Most counters need two queries to provide a value.
+	 * Those which need only one will return the second.
 	 */
 	Sleep(pI.dwPerformanceWait);
 
@@ -324,14 +323,12 @@ BOOL QueryPerfData(printInfoStruct& pI)
 	if (FAILED(status))
 		goto die;
 
-	status = PdhGetFormattedCounterArray(hCounter, pI.dwRequestedType,
-										 &dwBufferSize, &dwItemCount, pDisplayValues);
+	status = PdhGetFormattedCounterArray(hCounter, pI.dwRequestedType, &dwBufferSize, &dwItemCount, pDisplayValues);
 	if (status != PDH_MORE_DATA)
 		goto die;
 
 	pDisplayValues = reinterpret_cast<PDH_FMT_COUNTERVALUE_ITEM*>(new BYTE[dwBufferSize]);
-	status = PdhGetFormattedCounterArray(hCounter, pI.dwRequestedType,
-										 &dwBufferSize, &dwItemCount, pDisplayValues);
+	status = PdhGetFormattedCounterArray(hCounter, pI.dwRequestedType, &dwBufferSize, &dwItemCount, pDisplayValues);
 
 	if (FAILED(status))
 		goto die;
@@ -373,18 +370,18 @@ INT PrintOutput(CONST po::variables_map& vm, printInfoStruct& pi)
 
 	if (pi.tCrit.rend(pi.dValue)) {
 		std::wcout << "PERFMON CRITICAL \"" << (vm.count("perf-syntax") ? vm["perf-syntax"].as<std::wstring>() : pi.wsFullPath)
-		    << "\" = " << pi.dValue << " | " << wssPerfData.str() << '\n';
+			<< "\" = " << pi.dValue << " | " << wssPerfData.str() << '\n';
 		return 2;
 	}
 
 	if (pi.tWarn.rend(pi.dValue)) {
 		std::wcout << "PERFMON WARNING \"" << (vm.count("perf-syntax") ? vm["perf-syntax"].as<std::wstring>() : pi.wsFullPath)
-		    << "\" = " << pi.dValue << " | " << wssPerfData.str() << '\n';
+			<< "\" = " << pi.dValue << " | " << wssPerfData.str() << '\n';
 		return 1;
 	}
 
 	std::wcout << "PERFMON OK \"" << (vm.count("perf-syntax") ? vm["perf-syntax"].as<std::wstring>() : pi.wsFullPath)
-	    << "\" = " << pi.dValue << " | " << wssPerfData.str() << '\n';
+		<< "\" = " << pi.dValue << " | " << wssPerfData.str() << '\n';
 	return 0;
 }
 

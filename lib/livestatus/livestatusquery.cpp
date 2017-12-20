@@ -53,7 +53,7 @@ static boost::mutex l_QueryMutex;
 
 LivestatusQuery::LivestatusQuery(const std::vector<String>& lines, const String& compat_log_path)
 	: m_KeepAlive(false), m_OutputFormat("csv"), m_ColumnHeaders(true), m_Limit(-1), m_ErrorCode(0),
-	  m_LogTimeFrom(0), m_LogTimeUntil(static_cast<long>(Utility::GetTime()))
+	m_LogTimeFrom(0), m_LogTimeUntil(static_cast<long>(Utility::GetTime()))
 {
 	if (lines.size() == 0) {
 		m_Verb = "ERROR";
@@ -210,11 +210,11 @@ LivestatusQuery::LivestatusQuery(const std::vector<String>& lines, const String&
 			if (header == "Or" || header == "StatsOr") {
 				filter = new OrFilter();
 				Log(LogDebug, "LivestatusQuery")
-				    << "Add OR filter for " << params << " column(s). " << deq.size() << " filters available.";
+					<< "Add OR filter for " << params << " column(s). " << deq.size() << " filters available.";
 			} else {
 				filter = new AndFilter();
 				Log(LogDebug, "LivestatusQuery")
-				    << "Add AND filter for " << params << " column(s). " << deq.size() << " filters available.";
+					<< "Add AND filter for " << params << " column(s). " << deq.size() << " filters available.";
 			}
 
 			if (num > deq.size()) {
@@ -227,7 +227,7 @@ LivestatusQuery::LivestatusQuery(const std::vector<String>& lines, const String&
 			while (num > 0 && num--) {
 				filter->AddSubFilter(deq.back());
 				Log(LogDebug, "LivestatusQuery")
-				    << "Add " << num << " filter.";
+					<< "Add " << num << " filter.";
 				deq.pop_back();
 				if (&deq == &stats)
 					aggregators.pop_back();
@@ -356,7 +356,7 @@ Filter::Ptr LivestatusQuery::ParseFilter(const String& params, unsigned long& fr
 	}
 
 	Log(LogDebug, "LivestatusQuery")
-	    << "Parsed filter with attr: '" << attr << "' op: '" << op << "' val: '" << val << "'.";
+		<< "Parsed filter with attr: '" << attr << "' op: '" << op << "' val: '" << val << "'.";
 
 	return filter;
 }
@@ -459,7 +459,7 @@ String LivestatusQuery::QuoteStringPython(const String& str) {
 void LivestatusQuery::ExecuteGetHelper(const Stream::Ptr& stream)
 {
 	Log(LogNotice, "LivestatusQuery")
-	    << "Table: " << m_Table;
+		<< "Table: " << m_Table;
 
 	Table::Ptr table = Table::GetByName(m_Table, m_CompatLogPath, m_LogTimeFrom, m_LogTimeUntil);
 
@@ -598,7 +598,7 @@ void LivestatusQuery::ExecuteCommandHelper(const Stream::Ptr& stream)
 	}
 
 	Log(LogNotice, "LivestatusQuery")
-	    << "Executing command: " << m_Command;
+		<< "Executing command: " << m_Command;
 	ExternalCommandProcessor::Execute(m_Command);
 	SendResponse(stream, LivestatusErrorOK, "");
 }
@@ -606,7 +606,7 @@ void LivestatusQuery::ExecuteCommandHelper(const Stream::Ptr& stream)
 void LivestatusQuery::ExecuteErrorHelper(const Stream::Ptr& stream)
 {
 	Log(LogDebug, "LivestatusQuery")
-	    << "ERROR: Code: '" << m_ErrorCode << "' Message: '" << m_ErrorMessage << "'.";
+		<< "ERROR: Code: '" << m_ErrorCode << "' Message: '" << m_ErrorMessage << "'.";
 	SendResponse(stream, m_ErrorCode, m_ErrorMessage);
 }
 
@@ -644,7 +644,7 @@ bool LivestatusQuery::Execute(const Stream::Ptr& stream)
 {
 	try {
 		Log(LogNotice, "LivestatusQuery")
-		    << "Executing livestatus query: " << m_Verb;
+			<< "Executing livestatus query: " << m_Verb;
 
 		if (m_Verb == "GET")
 			ExecuteGetHelper(stream);

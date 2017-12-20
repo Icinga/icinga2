@@ -34,7 +34,7 @@ using namespace icinga;
 REGISTER_SCRIPTFUNCTION_NS(Internal, PluginEvent, &PluginEventTask::ScriptFunc, "checkable:resolvedMacros:useResolvedMacros");
 
 void PluginEventTask::ScriptFunc(const Checkable::Ptr& checkable,
-    const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
+	const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
 {
 	EventCommand::Ptr commandObj = checkable->GetEventCommand();
 
@@ -50,8 +50,8 @@ void PluginEventTask::ScriptFunc(const Checkable::Ptr& checkable,
 	resolvers.emplace_back("icinga", IcingaApplication::GetInstance());
 
 	PluginUtility::ExecuteCommand(commandObj, checkable, checkable->GetLastCheckResult(),
-	    resolvers, resolvedMacros, useResolvedMacros,
-	    std::bind(&PluginEventTask::ProcessFinishedHandler, checkable, _1, _2));
+		resolvers, resolvedMacros, useResolvedMacros,
+		std::bind(&PluginEventTask::ProcessFinishedHandler, checkable, _1, _2));
 }
 
 void PluginEventTask::ProcessFinishedHandler(const Checkable::Ptr& checkable, const Value& commandLine, const ProcessResult& pr)
@@ -59,8 +59,8 @@ void PluginEventTask::ProcessFinishedHandler(const Checkable::Ptr& checkable, co
 	if (pr.ExitStatus != 0) {
 		Process::Arguments parguments = Process::PrepareCommand(commandLine);
 		Log(LogNotice, "PluginEventTask")
-		    << "Event command for object '" << checkable->GetName() << "' (PID: " << pr.PID
-		    << ", arguments: " << Process::PrettyPrintArguments(parguments) << ") terminated with exit code "
-		    << pr.ExitStatus << ", output: " << pr.Output;
+			<< "Event command for object '" << checkable->GetName() << "' (PID: " << pr.PID
+			<< ", arguments: " << Process::PrettyPrintArguments(parguments) << ") terminated with exit code "
+			<< pr.ExitStatus << ", output: " << pr.Output;
 	}
 }

@@ -23,7 +23,7 @@
 using namespace icinga;
 
 StreamReadStatus HttpChunkedEncoding::ReadChunkFromStream(const Stream::Ptr& stream,
-    char **data, size_t *size, ChunkReadContext& context, bool may_wait)
+	char **data, size_t *size, ChunkReadContext& context, bool may_wait)
 {
 	if (context.LengthIndicator == -1) {
 		String line;

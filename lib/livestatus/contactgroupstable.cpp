@@ -29,7 +29,7 @@ ContactGroupsTable::ContactGroupsTable(void)
 }
 
 void ContactGroupsTable::AddColumns(Table *table, const String& prefix,
-    const Column::ObjectAccessor& objectAccessor)
+	const Column::ObjectAccessor& objectAccessor)
 {
 	table->AddColumn(prefix + "name", Column(&ContactGroupsTable::NameAccessor, objectAccessor));
 	table->AddColumn(prefix + "alias", Column(&ContactGroupsTable::AliasAccessor, objectAccessor));

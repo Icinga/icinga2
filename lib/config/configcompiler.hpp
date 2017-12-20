@@ -87,17 +87,17 @@ class I2_CONFIG_API ConfigCompiler
 {
 public:
 	explicit ConfigCompiler(const String& path, std::istream *input,
-	    const String& zone = String(), const String& package = String());
+		const String& zone = String(), const String& package = String());
 	virtual ~ConfigCompiler(void);
 
 	std::unique_ptr<Expression> Compile(void);
 
 	static std::unique_ptr<Expression>CompileStream(const String& path, std::istream *stream,
-	    const String& zone = String(), const String& package = String());
+		const String& zone = String(), const String& package = String());
 	static std::unique_ptr<Expression>CompileFile(const String& path, const String& zone = String(),
-	    const String& package = String());
+		const String& package = String());
 	static std::unique_ptr<Expression>CompileText(const String& path, const String& text,
-	    const String& zone = String(), const String& package = String());
+		const String& zone = String(), const String& package = String());
 
 	static void AddIncludeSearchDir(const String& dir);
 
@@ -110,14 +110,14 @@ public:
 	String GetPackage(void) const;
 
 	static void CollectIncludes(std::vector<std::unique_ptr<Expression> >& expressions,
-	    const String& file, const String& zone, const String& package);
+		const String& file, const String& zone, const String& package);
 
 	static std::unique_ptr<Expression> HandleInclude(const String& relativeBase, const String& path, bool search,
-	    const String& zone, const String& package, const DebugInfo& debuginfo = DebugInfo());
+		const String& zone, const String& package, const DebugInfo& debuginfo = DebugInfo());
 	static std::unique_ptr<Expression> HandleIncludeRecursive(const String& relativeBase, const String& path,
-	    const String& pattern, const String& zone, const String& package, const DebugInfo& debuginfo = DebugInfo());
+		const String& pattern, const String& zone, const String& package, const DebugInfo& debuginfo = DebugInfo());
 	static std::unique_ptr<Expression> HandleIncludeZones(const String& relativeBase, const String& tag,
-	    const String& path, const String& pattern, const String& package, const DebugInfo& debuginfo = DebugInfo());
+		const String& path, const String& pattern, const String& package, const DebugInfo& debuginfo = DebugInfo());
 
 	size_t ReadInput(char *buffer, size_t max_bytes);
 	void *GetScanner(void) const;

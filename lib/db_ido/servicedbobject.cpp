@@ -212,7 +212,7 @@ void ServiceDbObject::OnConfigUpdateHeavy(void)
 
 	/* service dependencies */
 	Log(LogDebug, "ServiceDbObject")
-	    << "service dependencies for '" << service->GetName() << "'";
+		<< "service dependencies for '" << service->GetName() << "'";
 
 	queries.clear();
 
@@ -229,12 +229,12 @@ void ServiceDbObject::OnConfigUpdateHeavy(void)
 
 		if (!parent) {
 			Log(LogDebug, "ServiceDbObject")
-			    << "Missing parent for dependency '" << dep->GetName() << "'.";
+				<< "Missing parent for dependency '" << dep->GetName() << "'.";
 			continue;
 		}
 
 		Log(LogDebug, "ServiceDbObject")
-		    << "service parents: " << parent->GetName();
+			<< "service parents: " << parent->GetName();
 
 		int state_filter = dep->GetStateFilter();
 
@@ -262,7 +262,7 @@ void ServiceDbObject::OnConfigUpdateHeavy(void)
 
 	/* service contacts, contactgroups */
 	Log(LogDebug, "ServiceDbObject")
-	    << "service contacts: " << service->GetName();
+		<< "service contacts: " << service->GetName();
 
 	queries.clear();
 
@@ -276,7 +276,7 @@ void ServiceDbObject::OnConfigUpdateHeavy(void)
 
 	for (const User::Ptr& user : CompatUtility::GetCheckableNotificationUsers(service)) {
 		Log(LogDebug, "ServiceDbObject")
-		    << "service contacts: " << user->GetName();
+			<< "service contacts: " << user->GetName();
 
 		Dictionary::Ptr fields_contact = new Dictionary();
 		fields_contact->Set("service_id", DbValue::FromObjectInsertID(service));
@@ -294,7 +294,7 @@ void ServiceDbObject::OnConfigUpdateHeavy(void)
 	DbObject::OnMultipleQueries(queries);
 
 	Log(LogDebug, "ServiceDbObject")
-	    << "service contactgroups: " << service->GetName();
+		<< "service contactgroups: " << service->GetName();
 
 	queries.clear();
 
@@ -308,7 +308,7 @@ void ServiceDbObject::OnConfigUpdateHeavy(void)
 
 	for (const UserGroup::Ptr& usergroup : CompatUtility::GetCheckableNotificationUserGroups(service)) {
 		Log(LogDebug, "ServiceDbObject")
-		    << "service contactgroups: " << usergroup->GetName();
+			<< "service contactgroups: " << usergroup->GetName();
 
 		Dictionary::Ptr fields_contact = new Dictionary();
 		fields_contact->Set("service_id", DbValue::FromObjectInsertID(service));

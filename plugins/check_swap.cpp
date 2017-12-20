@@ -28,7 +28,7 @@ namespace po = boost::program_options;
 
 static BOOL debug = FALSE;
 
-INT wmain(INT argc, WCHAR **argv) 
+INT wmain(INT argc, WCHAR **argv)
 {
 	printInfoStruct printInfo = { };
 	po::variables_map vm;
@@ -44,7 +44,7 @@ INT wmain(INT argc, WCHAR **argv)
 	return printOutput(printInfo);
 }
 
-INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& printInfo) 
+INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& printInfo)
 {
 	WCHAR namePath[MAX_PATH];
 	GetModuleFileName(NULL, namePath, MAX_PATH);
@@ -157,7 +157,7 @@ INT parseArguments(INT ac, WCHAR **av, po::variables_map& vm, printInfoStruct& p
 	return -1;
 }
 
-INT printOutput(printInfoStruct& printInfo) 
+INT printOutput(printInfoStruct& printInfo)
 {
 	if (debug)
 		std::wcout << L"Constructing output string" << '\n';
@@ -173,17 +173,17 @@ INT printOutput(printInfoStruct& printInfo)
 	switch (state) {
 	case OK:
 		std::wcout << L"SWAP OK - " << printInfo.percentFree << L"% free | swap=" << printInfo.aSwap << BunitStr(printInfo.unit) << L";"
-			<< printInfo.warn.pString(printInfo.tSwap) << L";" << printInfo.crit.pString(printInfo.tSwap) 
+			<< printInfo.warn.pString(printInfo.tSwap) << L";" << printInfo.crit.pString(printInfo.tSwap)
 			<< L";0;" << printInfo.tSwap << '\n';
 		break;
 	case WARNING:
 		std::wcout << L"SWAP WARNING - " << printInfo.percentFree << L"% free | swap=" << printInfo.aSwap << BunitStr(printInfo.unit) << L";"
-			<< printInfo.warn.pString(printInfo.tSwap) << L";" << printInfo.crit.pString(printInfo.tSwap) 
+			<< printInfo.warn.pString(printInfo.tSwap) << L";" << printInfo.crit.pString(printInfo.tSwap)
 			<< L";0;" << printInfo.tSwap << '\n';
 		break;
 	case CRITICAL:
 		std::wcout << L"SWAP CRITICAL - " << printInfo.percentFree << L"% free | swap=" << printInfo.aSwap << BunitStr(printInfo.unit) << L";"
-			<< printInfo.warn.pString(printInfo.tSwap) << L";" << printInfo.crit.pString(printInfo.tSwap) 
+			<< printInfo.warn.pString(printInfo.tSwap) << L";" << printInfo.crit.pString(printInfo.tSwap)
 			<< L";0;" << printInfo.tSwap << '\n';
 		break;
 	}
@@ -191,7 +191,7 @@ INT printOutput(printInfoStruct& printInfo)
 	return state;
 }
 
-INT check_swap(printInfoStruct& printInfo) 
+INT check_swap(printInfoStruct& printInfo
 {
 	MEMORYSTATUSEX MemBuf;
 	MemBuf.dwLength = sizeof(MemBuf);

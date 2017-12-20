@@ -125,7 +125,7 @@ std::pair<double, double> ScheduledDowntime::FindNextSegment(void)
 	tm reference = Utility::LocalTime(refts);
 
 	Log(LogDebug, "ScheduledDowntime")
-	    << "Finding next scheduled downtime segment for time " << refts;
+		<< "Finding next scheduled downtime segment for time " << refts;
 
 	Dictionary::Ptr ranges = GetRanges();
 
@@ -141,7 +141,7 @@ std::pair<double, double> ScheduledDowntime::FindNextSegment(void)
 	ObjectLock olock(ranges);
 	for (const Dictionary::Pair& kv : ranges) {
 		Log(LogDebug, "ScheduledDowntime")
-		    << "Evaluating segment: " << kv.first << ": " << kv.second << " at ";
+			<< "Evaluating segment: " << kv.first << ": " << kv.second << " at ";
 
 		Dictionary::Ptr segment = LegacyTimePeriod::FindNextSegment(kv.first, kv.second, &reference);
 
@@ -149,7 +149,7 @@ std::pair<double, double> ScheduledDowntime::FindNextSegment(void)
 			continue;
 
 		Log(LogDebug, "ScheduledDowntime")
-		    << "Considering segment: " << Utility::FormatDateTime("%c", segment->Get("begin")) << " -> " << Utility::FormatDateTime("%c", segment->Get("end"));
+			<< "Considering segment: " << Utility::FormatDateTime("%c", segment->Get("begin")) << " -> " << Utility::FormatDateTime("%c", segment->Get("end"));
 
 		double begin = segment->Get("begin");
 
@@ -172,7 +172,7 @@ void ScheduledDowntime::CreateNextDowntime(void)
 {
 	for (const Downtime::Ptr& downtime : GetCheckable()->GetDowntimes()) {
 		if (downtime->GetScheduledBy() != GetName() ||
-		    downtime->GetStartTime() < Utility::GetTime())
+			downtime->GetStartTime() < Utility::GetTime())
 			continue;
 
 		/* We've found a downtime that is owned by us and that hasn't started yet - we're done. */
@@ -192,8 +192,8 @@ void ScheduledDowntime::CreateNextDowntime(void)
 	}
 
 	Downtime::AddDowntime(GetCheckable(), GetAuthor(), GetComment(),
-	    segment.first, segment.second,
-	    GetFixed(), String(), GetDuration(), GetName(), GetName());
+		segment.first, segment.second,
+		GetFixed(), String(), GetDuration(), GetName(), GetName());
 }
 
 void ScheduledDowntime::ValidateRanges(const Dictionary::Ptr& value, const ValidationUtils& utils)

@@ -42,7 +42,7 @@ bool Service::EvaluateApplyRuleInstance(const Host::Ptr& host, const String& nam
 
 #ifdef _DEBUG
 	Log(LogDebug, "Service")
-	    << "Applying service '" << name << "' to host '" << host->GetName() << "' for rule " << di;
+		<< "Applying service '" << name << "' to host '" << host->GetName() << "' for rule " << di;
 #endif /* _DEBUG */
 
 	ConfigItemBuilder::Ptr builder = new ConfigItemBuilder(di);

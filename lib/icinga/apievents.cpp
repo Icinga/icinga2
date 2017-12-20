@@ -107,8 +107,8 @@ void ApiEvents::StateChangeHandler(const Checkable::Ptr& checkable, const CheckR
 }
 
 void ApiEvents::NotificationSentToAllUsersHandler(const Notification::Ptr& notification,
-    const Checkable::Ptr& checkable, const std::set<User::Ptr>& users, NotificationType type,
-    const CheckResult::Ptr& cr, const String& author, const String& text, const MessageOrigin::Ptr& origin)
+	const Checkable::Ptr& checkable, const std::set<User::Ptr>& users, NotificationType type,
+	const CheckResult::Ptr& cr, const String& author, const String& text, const MessageOrigin::Ptr& origin)
 {
 	std::vector<EventQueue::Ptr> queues = EventQueue::GetQueuesForType("Notification");
 
@@ -180,8 +180,8 @@ void ApiEvents::FlappingChangedHandler(const Checkable::Ptr& checkable, const Me
 }
 
 void ApiEvents::AcknowledgementSetHandler(const Checkable::Ptr& checkable,
-    const String& author, const String& comment, AcknowledgementType type,
-    bool notify, bool persistent, double expiry, const MessageOrigin::Ptr& origin)
+	const String& author, const String& comment, AcknowledgementType type,
+	bool notify, bool persistent, double expiry, const MessageOrigin::Ptr& origin)
 {
 	std::vector<EventQueue::Ptr> queues = EventQueue::GetQueuesForType("AcknowledgementSet");
 

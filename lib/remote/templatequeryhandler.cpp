@@ -55,7 +55,7 @@ public:
 	}
 
 	virtual void FindTargets(const String& type,
-	    const std::function<void (const Value&)>& addTarget) const override
+		const std::function<void (const Value&)>& addTarget) const override
 	{
 		Type::Ptr ptype = Type::GetByName(type);
 
@@ -127,8 +127,8 @@ bool TemplateQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& 
 		objs = FilterUtility::GetFilterTargets(qd, params, user, "tmpl");
 	} catch (const std::exception& ex) {
 		HttpUtility::SendJsonError(response, 404,
-		    "No templates found.",
-		    HttpUtility::GetLastParameter(params, "verboseErrors") ? DiagnosticInformation(ex) : "");
+			"No templates found.",
+			HttpUtility::GetLastParameter(params, "verboseErrors") ? DiagnosticInformation(ex) : "");
 		return true;
 	}
 

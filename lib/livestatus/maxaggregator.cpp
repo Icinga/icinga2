@@ -22,7 +22,7 @@
 using namespace icinga;
 
 MaxAggregator::MaxAggregator(const String& attr)
-    : m_MaxAttr(attr)
+	: m_MaxAttr(attr)
 { }
 
 MaxAggregatorState *MaxAggregator::EnsureState(AggregatorState **state)

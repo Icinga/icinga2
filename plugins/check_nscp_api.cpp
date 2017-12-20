@@ -40,7 +40,7 @@ bool l_Debug = false;
  * decodes it to a Dictionary and then tells 'QueryEndpoint()' that it's done
  */
 static void ResultHttpCompletionCallback(const HttpRequest& request, HttpResponse& response, bool& ready,
-    boost::condition_variable& cv, boost::mutex& mtx, Dictionary::Ptr& result)
+	boost::condition_variable& cv, boost::mutex& mtx, Dictionary::Ptr& result)
 {
 	String body;
 	char buffer[1024];
@@ -51,9 +51,9 @@ static void ResultHttpCompletionCallback(const HttpRequest& request, HttpRespons
 
 	if (l_Debug) {
 		std::cout << "Received answer\n"
-		    << "\tHTTP code: " << response.StatusCode << "\n"
-		    << "\tHTTP message: '" << response.StatusMessage << "'\n"
-		    << "\tHTTP body: '" << body << "'.\n";
+			<< "\tHTTP code: " << response.StatusCode << "\n"
+			<< "\tHTTP message: '" << response.StatusMessage << "'\n"
+			<< "\tHTTP body: '" << body << "'.\n";
 	}
 
 	// Only try to decode the body if the 'HttpRequest' was successful
@@ -74,7 +74,7 @@ static void ResultHttpCompletionCallback(const HttpRequest& request, HttpRespons
  * query name and all the arguments formatted as an URL.
  */
 static Dictionary::Ptr QueryEndpoint(const String& host, const String& port, const String& password,
-    const String& endpoint)
+	const String& endpoint)
 {
 	HttpClientConnection::Ptr m_Connection = new HttpClientConnection(host, port, true);
 
@@ -303,7 +303,7 @@ int main(int argc, char **argv)
 	Application::InitializeBase();
 
 	Dictionary::Ptr result = QueryEndpoint(vm["host"].as<std::string>(), vm["port"].as<std::string>(),
-	    vm["password"].as<std::string>(), endpoint);
+		vm["password"].as<std::string>(), endpoint);
 
 	// Application::Exit() is the clean way to exit after calling InitializeBase()
 	Application::Exit(FormatOutput(result));

@@ -114,7 +114,7 @@ void User::ValidateTypes(const Array::Ptr& value, const ValidationUtils& utils)
 	int filter = FilterArrayToInt(value, Notification::GetTypeFilterMap(), 0);
 
 	if (filter == -1 || (filter & ~(NotificationDowntimeStart | NotificationDowntimeEnd | NotificationDowntimeRemoved |
-	    NotificationCustom | NotificationAcknowledgement | NotificationProblem | NotificationRecovery |
-	    NotificationFlappingStart | NotificationFlappingEnd)) != 0)
+		NotificationCustom | NotificationAcknowledgement | NotificationProblem | NotificationRecovery |
+		NotificationFlappingStart | NotificationFlappingEnd)) != 0)
 		BOOST_THROW_EXCEPTION(ValidationError(this, { "types" }, "Type filter is invalid."));
 }

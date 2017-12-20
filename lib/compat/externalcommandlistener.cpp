@@ -51,7 +51,7 @@ void ExternalCommandListener::Start(bool runtimeCreated)
 	ObjectImpl<ExternalCommandListener>::Start(runtimeCreated);
 
 	Log(LogInformation, "ExternalCommandListener")
-	    << "'" << GetName() << "' started.";
+		<< "'" << GetName() << "' started.";
 
 #ifndef _WIN32
 	m_CommandThread = std::thread(std::bind(&ExternalCommandListener::CommandPipeThread, this, GetCommandPath()));
@@ -65,7 +65,7 @@ void ExternalCommandListener::Start(bool runtimeCreated)
 void ExternalCommandListener::Stop(bool runtimeRemoved)
 {
 	Log(LogInformation, "ExternalCommandListener")
-	    << "'" << GetName() << "' stopped.";
+		<< "'" << GetName() << "' stopped.";
 
 	ObjectImpl<ExternalCommandListener>::Stop(runtimeRemoved);
 }
@@ -84,9 +84,9 @@ void ExternalCommandListener::CommandPipeThread(const String& commandPath)
 		} else {
 			if (unlink(commandPath.CStr()) < 0) {
 				BOOST_THROW_EXCEPTION(posix_error()
-				    << boost::errinfo_api_function("unlink")
-				    << boost::errinfo_errno(errno)
-				    << boost::errinfo_file_name(commandPath));
+					<< boost::errinfo_api_function("unlink")
+					<< boost::errinfo_errno(errno)
+					<< boost::errinfo_file_name(commandPath));
 			}
 		}
 	}
@@ -95,7 +95,7 @@ void ExternalCommandListener::CommandPipeThread(const String& commandPath)
 
 	if (!fifo_ok && mkfifo(commandPath.CStr(), S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP) < 0) {
 		Log(LogCritical, "ExternalCommandListener")
-		    << "mkfifo() for fifo path '" << commandPath << "' failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+			<< "mkfifo() for fifo path '" << commandPath << "' failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 		return;
 	}
 
@@ -103,7 +103,7 @@ void ExternalCommandListener::CommandPipeThread(const String& commandPath)
 	 * fifo to get the right mask. */
 	if (chmod(commandPath.CStr(), mode) < 0) {
 		Log(LogCritical, "ExternalCommandListener")
-		    << "chmod() on fifo '" << commandPath << "' failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+			<< "chmod() on fifo '" << commandPath << "' failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 		return;
 	}
 
@@ -112,7 +112,7 @@ void ExternalCommandListener::CommandPipeThread(const String& commandPath)
 
 		if (fd < 0) {
 			Log(LogCritical, "ExternalCommandListener")
-			    << "open() for fifo path '" << commandPath << "' failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+				<< "open() for fifo path '" << commandPath << "' failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 			return;
 		}
 
@@ -134,7 +134,7 @@ void ExternalCommandListener::CommandPipeThread(const String& commandPath)
 					continue;
 
 				Log(LogWarning, "ExternalCommandListener")
-				    << "Cannot read from command pipe." << DiagnosticInformation(ex);
+					<< "Cannot read from command pipe." << DiagnosticInformation(ex);
 				break;
 			}
 
@@ -153,14 +153,14 @@ void ExternalCommandListener::CommandPipeThread(const String& commandPath)
 
 				try {
 					Log(LogInformation, "ExternalCommandListener")
-					    << "Executing external command: " << command;
+						<< "Executing external command: " << command;
 
 					ExternalCommandProcessor::Execute(command);
 				} catch (const std::exception& ex) {
 					Log(LogWarning, "ExternalCommandListener")
-					    << "External command failed: " << DiagnosticInformation(ex, false);
+						<< "External command failed: " << DiagnosticInformation(ex, false);
 					Log(LogNotice, "ExternalCommandListener")
-					    << "External command failed: " << DiagnosticInformation(ex, true);
+						<< "External command failed: " << DiagnosticInformation(ex, true);
 				}
 			}
 		}

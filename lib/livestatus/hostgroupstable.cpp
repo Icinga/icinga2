@@ -31,7 +31,7 @@ HostGroupsTable::HostGroupsTable(void)
 }
 
 void HostGroupsTable::AddColumns(Table *table, const String& prefix,
-    const Column::ObjectAccessor& objectAccessor)
+	const Column::ObjectAccessor& objectAccessor)
 {
 	table->AddColumn(prefix + "name", Column(&HostGroupsTable::NameAccessor, objectAccessor));
 	table->AddColumn(prefix + "alias", Column(&HostGroupsTable::AliasAccessor, objectAccessor));

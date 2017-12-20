@@ -35,9 +35,9 @@ using namespace icinga;
 REGISTER_SCRIPTFUNCTION_NS(Internal, PluginNotification, &PluginNotificationTask::ScriptFunc, "notification:user:cr:itype:author:comment:resolvedMacros:useResolvedMacros");
 
 void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification,
-    const User::Ptr& user, const CheckResult::Ptr& cr, int itype,
-    const String& author, const String& comment, const Dictionary::Ptr& resolvedMacros,
-    bool useResolvedMacros)
+	const User::Ptr& user, const CheckResult::Ptr& cr, int itype,
+	const String& author, const String& comment, const Dictionary::Ptr& resolvedMacros,
+	bool useResolvedMacros)
 {
 	NotificationCommand::Ptr commandObj = notification->GetCommand();
 
@@ -65,8 +65,8 @@ void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification,
 	resolvers.emplace_back("icinga", IcingaApplication::GetInstance());
 
 	PluginUtility::ExecuteCommand(commandObj, checkable, cr, resolvers,
-	    resolvedMacros, useResolvedMacros,
-	    std::bind(&PluginNotificationTask::ProcessFinishedHandler, checkable, _1, _2));
+		resolvedMacros, useResolvedMacros,
+		std::bind(&PluginNotificationTask::ProcessFinishedHandler, checkable, _1, _2));
 }
 
 void PluginNotificationTask::ProcessFinishedHandler(const Checkable::Ptr& checkable, const Value& commandLine, const ProcessResult& pr)
@@ -74,8 +74,8 @@ void PluginNotificationTask::ProcessFinishedHandler(const Checkable::Ptr& checka
 	if (pr.ExitStatus != 0) {
 		Process::Arguments parguments = Process::PrepareCommand(commandLine);
 		Log(LogWarning, "PluginNotificationTask")
-		    << "Notification command for object '" << checkable->GetName() << "' (PID: " << pr.PID
-		    << ", arguments: " << Process::PrettyPrintArguments(parguments) << ") terminated with exit code "
-		    << pr.ExitStatus << ", output: " << pr.Output;
+			<< "Notification command for object '" << checkable->GetName() << "' (PID: " << pr.PID
+			<< ", arguments: " << Process::PrettyPrintArguments(parguments) << ") terminated with exit code "
+			<< pr.ExitStatus << ", output: " << pr.Output;
 	}
 }

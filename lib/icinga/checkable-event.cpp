@@ -47,7 +47,7 @@ void Checkable::ExecuteEventHandler(const Dictionary::Ptr& resolvedMacros, bool 
 		return;
 
 	Log(LogNotice, "Checkable")
-	    << "Executing event handler '" << ec->GetName() << "' for service '" << GetName() << "'";
+		<< "Executing event handler '" << ec->GetName() << "' for service '" << GetName() << "'";
 
 	Dictionary::Ptr macros;
 	Endpoint::Ptr endpoint = GetCommandEndpoint();

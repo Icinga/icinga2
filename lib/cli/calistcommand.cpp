@@ -42,7 +42,7 @@ String CAListCommand::GetShortDescription(void) const
 }
 
 void CAListCommand::InitParameters(boost::program_options::options_description& visibleDesc,
-    boost::program_options::options_description& hiddenDesc) const
+	boost::program_options::options_description& hiddenDesc) const
 {
 	visibleDesc.add_options()
 		("json", "encode output as JSON")
@@ -70,14 +70,14 @@ int CAListCommand::Run(const boost::program_options::variables_map& vm, const st
 			Dictionary::Ptr request = kv.second;
 
 			std::cout << kv.first
-			    << " | "
+				<< " | "
 /*			    << Utility::FormatDateTime("%Y/%m/%d %H:%M:%S", request->Get("timestamp")) */
-			    << request->Get("timestamp")
-			    << " | "
-			    << (request->Contains("cert_response") ? "*" : " ") << "     "
-			    << " | "
-			    << request->Get("subject")
-			    << "\n";
+				<< request->Get("timestamp")
+				<< " | "
+				<< (request->Contains("cert_response") ? "*" : " ") << "     "
+				<< " | "
+				<< request->Get("subject")
+				<< "\n";
 		}
 	}
 

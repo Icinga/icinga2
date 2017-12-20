@@ -89,8 +89,7 @@ private:
 
 public:
 	template <typename FuncType, int Arity>
-	auto operator() (FuncType f, const std::vector<Value>& args)
-	    -> decltype(Invoke(f, args, BuildIndices<Arity>{}))
+	auto operator() (FuncType f, const std::vector<Value>& args) -> decltype(Invoke(f, args, BuildIndices<Arity>{}))
 	{
 		return Invoke(f, args, BuildIndices<Arity>{});
 	}
@@ -117,8 +116,8 @@ struct FunctionWrapper<FuncType, Arity, void>
 
 template<typename FuncType>
 typename std::enable_if<
-    std::is_function<typename std::remove_pointer<FuncType>::type>::value && !std::is_same<FuncType, Value(*)(const std::vector<Value>&)>::value,
-    std::function<Value (const std::vector<Value>&)>>::type
+	std::is_function<typename std::remove_pointer<FuncType>::type>::value && !std::is_same<FuncType, Value(*)(const std::vector<Value>&)>::value,
+	std::function<Value (const std::vector<Value>&)>>::type
 WrapFunction(FuncType function)
 {
 	return [function](const std::vector<Value>& arguments) {

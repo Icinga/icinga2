@@ -33,7 +33,7 @@ namespace icinga
 struct I2_LIVESTATUS_API MinAggregatorState : public AggregatorState
 {
 	MinAggregatorState(void)
-	    : Min(DBL_MAX)
+		: Min(DBL_MAX)
 	{ }
 
 	double Min;

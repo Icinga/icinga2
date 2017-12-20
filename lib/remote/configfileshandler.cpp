@@ -91,7 +91,7 @@ bool ConfigFilesHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 		response.WriteBody(content.CStr(), content.GetLength());
 	} catch (const std::exception& ex) {
 		HttpUtility::SendJsonError(response, 500, "Could not read file.",
-		    HttpUtility::GetLastParameter(params, "verboseErrors") ? DiagnosticInformation(ex) : "");
+			HttpUtility::GetLastParameter(params, "verboseErrors") ? DiagnosticInformation(ex) : "");
 	}
 
 	return true;

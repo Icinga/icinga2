@@ -95,7 +95,7 @@ public:
 	void ResetNotificationNumber(void);
 
 	void BeginExecuteNotification(NotificationType type, const CheckResult::Ptr& cr, bool force,
-	    bool reminder = false, const String& author = "", const String& text = "");
+		bool reminder = false, const String& author = "", const String& text = "");
 
 	Endpoint::Ptr GetCommandEndpoint(void) const;
 

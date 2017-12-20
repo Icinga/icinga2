@@ -37,7 +37,7 @@ String PKINewCertCommand::GetShortDescription(void) const
 }
 
 void PKINewCertCommand::InitParameters(boost::program_options::options_description& visibleDesc,
-    boost::program_options::options_description& hiddenDesc) const
+	boost::program_options::options_description& hiddenDesc) const
 {
 	visibleDesc.add_options()
 		("cn", po::value<std::string>(), "Common Name")

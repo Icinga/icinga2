@@ -114,13 +114,13 @@ std::wstring threshold::pString(CONST DOUBLE max)
 		upperAbs = upper / 100.0 * max;
 	}
 
-	std::wstring s, lowerStr = removeZero(lowerAbs), 
+	std::wstring s, lowerStr = removeZero(lowerAbs)
 					upperStr = removeZero(upperAbs);
 
 	if (lower != upper) {
 		s.append(L"[").append(lowerStr).append(L"-")
 		.append(upperStr).append(L"]");
-	} else 
+	} else
 		s.append(lowerStr);
 
 	return s;
@@ -169,7 +169,7 @@ Bunit parseBUnit(CONST std::wstring& str)
 	throw std::invalid_argument("Unknown unit type");
 }
 
-std::wstring BunitStr(CONST Bunit& unit) 
+std::wstring BunitStr(CONST Bunit& unit)
 {
 	switch (unit) {
 	case BunitB:
@@ -201,7 +201,7 @@ Tunit parseTUnit(CONST std::wstring& str) {
 	throw std::invalid_argument("Unknown unit type");
 }
 
-std::wstring TunitStr(CONST Tunit& unit) 
+std::wstring TunitStr(CONST Tunit& unit)
 {
 	switch (unit) {
 	case TunitMS:

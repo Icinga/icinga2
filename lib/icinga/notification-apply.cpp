@@ -43,7 +43,7 @@ bool Notification::EvaluateApplyRuleInstance(const Checkable::Ptr& checkable, co
 
 #ifdef _DEBUG
 	Log(LogDebug, "Notification")
-	    << "Applying notification '" << name << "' to object '" << checkable->GetName() << "' for rule " << di;
+		<< "Applying notification '" << name << "' to object '" << checkable->GetName() << "' for rule " << di;
 #endif /* _DEBUG */
 
 	ConfigItemBuilder::Ptr builder = new ConfigItemBuilder(di);

@@ -33,7 +33,7 @@ using namespace icinga;
 REGISTER_SCRIPTFUNCTION_NS(Internal, IcingaCheck, &IcingaCheckTask::ScriptFunc, "checkable:cr:resolvedMacros:useResolvedMacros");
 
 void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& service, const CheckResult::Ptr& cr,
-    const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
+	const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
 {
 	if (resolvedMacros && !useResolvedMacros)
 		return;
@@ -131,7 +131,7 @@ void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& service, const CheckResul
 	perfdata->Add(new PerfdataValue("sum_bytes_received_per_second", bytesReceivedPerSecond));
 
 	cr->SetOutput("Icinga 2 has been running for " + Utility::FormatDuration(uptime) +
-	    ". Version: " + Application::GetAppVersion());
+		". Version: " + Application::GetAppVersion());
 	cr->SetPerformanceData(perfdata);
 
 	double lastReloadFailed = Application::GetLastReloadFailed();

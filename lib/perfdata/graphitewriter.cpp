@@ -46,7 +46,7 @@ REGISTER_TYPE(GraphiteWriter);
 REGISTER_STATSFUNCTION(GraphiteWriter, &GraphiteWriter::StatsFunc);
 
 GraphiteWriter::GraphiteWriter(void)
-    : m_WorkQueue(10000000, 1)
+	: m_WorkQueue(10000000, 1)
 { }
 
 void GraphiteWriter::OnConfigLoaded(void)
@@ -83,7 +83,7 @@ void GraphiteWriter::Start(bool runtimeCreated)
 	ObjectImpl<GraphiteWriter>::Start(runtimeCreated);
 
 	Log(LogInformation, "GraphiteWriter")
-	    << "'" << GetName() << "' started.";
+		<< "'" << GetName() << "' started.";
 
 	/* Register exception handler for WQ tasks. */
 	m_WorkQueue.SetExceptionCallback(std::bind(&GraphiteWriter::ExceptionHandler, this, _1));
@@ -102,7 +102,7 @@ void GraphiteWriter::Start(bool runtimeCreated)
 void GraphiteWriter::Stop(bool runtimeRemoved)
 {
 	Log(LogInformation, "GraphiteWriter")
-	    << "'" << GetName() << "' stopped.";
+		<< "'" << GetName() << "' stopped.";
 
 	m_WorkQueue.Join();
 
@@ -119,7 +119,7 @@ void GraphiteWriter::ExceptionHandler(boost::exception_ptr exp)
 	Log(LogCritical, "GraphiteWriter", "Exception during Graphite operation: Verify that your backend is operational!");
 
 	Log(LogDebug, "GraphiteWriter")
-	    << "Exception during Graphite operation: " << DiagnosticInformation(exp);
+		<< "Exception during Graphite operation: " << DiagnosticInformation(exp);
 
 	if (GetConnected()) {
 		m_Stream->Close();
@@ -144,13 +144,13 @@ void GraphiteWriter::Reconnect(void)
 	TcpSocket::Ptr socket = new TcpSocket();
 
 	Log(LogNotice, "GraphiteWriter")
-	    << "Reconnecting to Graphite on host '" << GetHost() << "' port '" << GetPort() << "'.";
+		<< "Reconnecting to Graphite on host '" << GetHost() << "' port '" << GetPort() << "'.";
 
 	try {
 		socket->Connect(GetHost(), GetPort());
 	} catch (const std::exception& ex) {
 		Log(LogCritical, "GraphiteWriter")
-		    << "Can't connect to Graphite on host '" << GetHost() << "' port '" << GetPort() << "'.";
+			<< "Can't connect to Graphite on host '" << GetHost() << "' port '" << GetPort() << "'.";
 		throw ex;
 	}
 
@@ -159,7 +159,7 @@ void GraphiteWriter::Reconnect(void)
 	SetConnected(true);
 
 	Log(LogInformation, "GraphiteWriter")
-	    << "Finished reconnecting to Graphite in " << std::setw(2) << Utility::GetTime() - startTime << " second(s).";
+		<< "Finished reconnecting to Graphite in " << std::setw(2) << Utility::GetTime() - startTime << " second(s).";
 }
 
 void GraphiteWriter::ReconnectTimerHandler(void)
@@ -254,7 +254,7 @@ void GraphiteWriter::SendPerfdata(const String& prefix, const CheckResult::Ptr& 
 				pdv = PerfdataValue::Parse(val);
 			} catch (const std::exception&) {
 				Log(LogWarning, "GraphiteWriter")
-				    << "Ignoring invalid perfdata value: " << val;
+					<< "Ignoring invalid perfdata value: " << val;
 				continue;
 			}
 		}
@@ -282,7 +282,7 @@ void GraphiteWriter::SendMetric(const String& prefix, const String& name, double
 	msgbuf << prefix << "." << name << " " << Convert::ToString(value) << " " << static_cast<long>(ts);
 
 	Log(LogDebug, "GraphiteWriter")
-	    << "Add to metric list:'" << msgbuf.str() << "'.";
+		<< "Add to metric list:'" << msgbuf.str() << "'.";
 
 	// do not send \n to debug log
 	msgbuf << "\n";
@@ -297,7 +297,7 @@ void GraphiteWriter::SendMetric(const String& prefix, const String& name, double
 		m_Stream->Write(metric.CStr(), metric.GetLength());
 	} catch (const std::exception& ex) {
 		Log(LogCritical, "GraphiteWriter")
-		    << "Cannot write to TCP socket on host '" << GetHost() << "' port '" << GetPort() << "'.";
+			<< "Cannot write to TCP socket on host '" << GetHost() << "' port '" << GetPort() << "'.";
 
 		throw ex;
 	}

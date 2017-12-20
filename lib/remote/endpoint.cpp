@@ -35,7 +35,7 @@ boost::signals2::signal<void(const Endpoint::Ptr&, const JsonRpcConnection::Ptr&
 boost::signals2::signal<void(const Endpoint::Ptr&, const JsonRpcConnection::Ptr&)> Endpoint::OnDisconnected;
 
 Endpoint::Endpoint(void)
-    : m_MessagesSent(60), m_MessagesReceived(60), m_BytesSent(60), m_BytesReceived(60)
+	: m_MessagesSent(60), m_MessagesReceived(60), m_BytesSent(60), m_BytesReceived(60)
 { }
 
 void Endpoint::OnAllConfigLoaded(void)
@@ -44,14 +44,14 @@ void Endpoint::OnAllConfigLoaded(void)
 
 	if (!m_Zone)
 		BOOST_THROW_EXCEPTION(ScriptError("Endpoint '" + GetName() +
-		    "' does not belong to a zone.", GetDebugInfo()));
+			"' does not belong to a zone.", GetDebugInfo()));
 }
 
 void Endpoint::SetCachedZone(const Zone::Ptr& zone)
 {
 	if (m_Zone)
 		BOOST_THROW_EXCEPTION(ScriptError("Endpoint '" + GetName()
-		    + "' is in more than one zone.", GetDebugInfo()));
+			+ "' is in more than one zone.", GetDebugInfo()));
 
 	m_Zone = zone;
 }
@@ -82,7 +82,7 @@ void Endpoint::RemoveClient(const JsonRpcConnection::Ptr& client)
 		m_Clients.erase(client);
 
 		Log(LogWarning, "ApiListener")
-		    << "Removing API client for endpoint '" << GetName() << "'. " << m_Clients.size() << " API clients left.";
+			<< "Removing API client for endpoint '" << GetName() << "'. " << m_Clients.size() << " API clients left.";
 
 		SetConnecting(false);
 	}
