@@ -2464,6 +2464,47 @@ hpasm_servertype		| **Optional.** The type of the server: proliant (default) or 
 hpasm_eval-nics			| **Optional.** Check network interfaces (and groups). Try it and report me whyt you think about it. I need to build up some know how on this subject. If you get an error and think, it is not justified for your configuration, please tell me about it. (always send the output of "snmpwalk -On .... 1.3.6.1.4.1.232" and a description how you setup your nics and why it is correct opposed to the plugins error message.
 hpasm_remote			| **Optional.** Run remote SNMP checks if enabled. Otherwise checks are executed locally using the `hpasmcli` binary. Defaults to `true`.
 
+#### openmanage <a id="plugin-contrib-command-openmanage"></a>
+
+The [check_openmanage](http://folk.uio.no/trondham/software/check_openmanage.html) plugin
+checks the hardware health of Dell PowerEdge (and some PowerVault) servers.
+It uses the Dell OpenManage Server Administrator (OMSA) software, which must be running on
+the monitored system. check_openmanage can be used remotely with SNMP or locally with icinga2 agent,
+check_by_ssh or similar, whichever suits your needs and particular taste.
+
+The plugin checks the health of the storage subsystem, power supplies, memory modules, 
+temperature probes etc., and gives an alert if any of the components are faulty or operate outside normal parameters.
+
+Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name                    	| Description
+--------------------------------|-----------------------------------------------------------------------
+openmanage_all			| **Optional.** Check everything, even log content
+openmanage_blacklist		| **Optional.** Blacklist missing and/or failed components
+openmanage_check		| **Optional.** Fine-tune which components are checked
+openmanage_community		| **Optional.** SNMP community string [default=public]
+openmanage_config		| **Optional.** Specify configuration file
+openmanage_critical		| **Optional.** Custom temperature critical limits
+openmanage_extinfo		| **Optional.** Append system info to alerts
+openmanage_fahrenheit		| **Optional.** Use Fahrenheit as temperature unit
+openmanage_hostname		| **Optional.** Hostname or IP (required for SNMP)
+openmanage_htmlinfo		| **Optional.** HTML output with clickable links
+openmanage_info			| **Optional.** Prefix any alerts with the service tag
+openmanage_ipv6			| **Optional.** Use IPv6 instead of IPv4 [default=no]
+openmanage_legacy_perfdata	| **Optional.** Legacy performance data output
+openmanage_no_storage		| **Optional.** Don't check storage
+openmanage_only			| **Optional.** Only check a certain component or alert type
+openmanage_perfdata		| **Optional.** Output performance data [default=no]
+openmanage_port			| **Optional.** SNMP port number [default=161]
+openmanage_protocol		| **Optional.** SNMP protocol version [default=2c]
+openmanage_short_state		| **Optional.** Prefix alerts with alert state abbreviated
+openmanage_show_blacklist	| **Optional.** Show blacklistings in OK output
+openmanage_state		| **Optional.** Prefix alerts with alert state
+openmanage_tcp			| **Optional.** Use TCP instead of UDP [default=no]
+openmanage_timeout		| **Optional.** Plugin timeout in seconds [default=30]
+openmanage_vdisk_critical	| **Optional.** Make any alerts on virtual disks critical
+openmanage_warning		| **Optional.** Custom temperature warning limits
+
 #### adaptec-raid <a id="plugin-contrib-command-adaptec-raid"></a>
 
 The [check_adaptec_raid](https://github.com/thomas-krenn/check_adaptec_raid) plugin
