@@ -587,7 +587,7 @@ Value ServicesTable::NoMoreNotificationsAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return CompatUtility::GetCheckableNoMoreNotifications(service);
+	return (CompatUtility::GetCheckableNotificationNotificationInterval(service) == 0 && !service->GetVolatile()) ? 1 : 0;
 }
 
 Value ServicesTable::LastTimeOkAccessor(const Value& row)

@@ -99,29 +99,6 @@ String CompatUtility::GetHostStateString(const Host::Ptr& host)
 	return Host::StateToString(host->GetState());
 }
 
-/* Used in DB IDO. */
-int CompatUtility::GetHostNotifyOnDown(const Host::Ptr& host)
-{
-	unsigned long notification_state_filter = GetCheckableNotificationStateFilter(host);
-
-	if ((notification_state_filter & ServiceCritical) ||
-		(notification_state_filter & ServiceWarning))
-		return 1;
-
-	return 0;
-}
-
-/* Used in DB IDO. */
-int CompatUtility::GetHostNotifyOnUnreachable(const Host::Ptr& host)
-{
-	unsigned long notification_state_filter = GetCheckableNotificationStateFilter(host);
-
-	if (notification_state_filter & ServiceUnknown)
-		return 1;
-
-	return 0;
-}
-
 /* Used in DB IDO, StatusDataWriter and Livestatus. */
 String CompatUtility::GetCheckableCommandArgs(const Checkable::Ptr& checkable)
 {
@@ -186,15 +163,6 @@ String CompatUtility::GetCheckableCommandArgs(const Checkable::Ptr& checkable)
 	}
 
 	return Empty;
-}
-
-/* Used in Livestatus. */
-int CompatUtility::GetCheckableNoMoreNotifications(const Checkable::Ptr& checkable)
-{
-	if (CompatUtility::GetCheckableNotificationNotificationInterval(checkable) == 0 && !checkable->GetVolatile())
-		return 1;
-
-	return 0;
 }
 
 /* Used in Livestatus. */
@@ -288,67 +256,6 @@ int CompatUtility::GetCheckableNotificationStateFilter(const Checkable::Ptr& che
 	}
 
 	return notification_state_filter;
-}
-
-/* Used in DB IDO. */
-int CompatUtility::GetCheckableNotifyOnWarning(const Checkable::Ptr& checkable)
-{
-	if (GetCheckableNotificationStateFilter(checkable) & ServiceWarning)
-		return 1;
-
-	return 0;
-}
-
-/* Used in DB IDO. */
-int CompatUtility::GetCheckableNotifyOnCritical(const Checkable::Ptr& checkable)
-{
-	if (GetCheckableNotificationStateFilter(checkable) & ServiceCritical)
-		return 1;
-
-	return 0;
-}
-
-/* Used in DB IDO. */
-int CompatUtility::GetCheckableNotifyOnUnknown(const Checkable::Ptr& checkable)
-{
-	if (GetCheckableNotificationStateFilter(checkable) & ServiceUnknown)
-		return 1;
-
-	return 0;
-}
-
-/* Used in DB IDO. */
-int CompatUtility::GetCheckableNotifyOnRecovery(const Checkable::Ptr& checkable)
-{
-	if (GetCheckableNotificationTypeFilter(checkable) & NotificationRecovery)
-		return 1;
-
-	return 0;
-}
-
-/* Used in DB IDO. */
-int CompatUtility::GetCheckableNotifyOnFlapping(const Checkable::Ptr& checkable)
-{
-	unsigned long notification_type_filter = GetCheckableNotificationTypeFilter(checkable);
-
-	if ((notification_type_filter & NotificationFlappingStart) ||
-		(notification_type_filter & NotificationFlappingEnd))
-		return 1;
-
-	return 0;
-}
-
-/* Used in DB IDO. */
-int CompatUtility::GetCheckableNotifyOnDowntime(const Checkable::Ptr& checkable)
-{
-	unsigned long notification_type_filter = GetCheckableNotificationTypeFilter(checkable);
-
-	if ((notification_type_filter & NotificationDowntimeStart) ||
-		(notification_type_filter & NotificationDowntimeEnd) ||
-		(notification_type_filter & NotificationDowntimeRemoved))
-		return 1;
-
-	return 0;
 }
 
 /* Used in DB IDO, StatusDataWriter and Livestatus. */

@@ -68,12 +68,19 @@ Dictionary::Ptr ServiceDbObject::GetConfigFields() const
 	fields->Set("max_check_attempts", service->GetMaxCheckAttempts());
 	fields->Set("first_notification_delay", Empty);
 	fields->Set("notification_interval", CompatUtility::GetCheckableNotificationNotificationInterval(service));
-	fields->Set("notify_on_warning", CompatUtility::GetCheckableNotifyOnWarning(service));
-	fields->Set("notify_on_unknown", CompatUtility::GetCheckableNotifyOnUnknown(service));
-	fields->Set("notify_on_critical", CompatUtility::GetCheckableNotifyOnCritical(service));
-	fields->Set("notify_on_recovery", CompatUtility::GetCheckableNotifyOnRecovery(service));
-	fields->Set("notify_on_flapping", CompatUtility::GetCheckableNotifyOnFlapping(service));
-	fields->Set("notify_on_downtime", CompatUtility::GetCheckableNotifyOnDowntime(service));
+
+        unsigned long notificationStateFilter = CompatUtility::GetCheckableNotificationTypeFilter(service);
+        unsigned long notificationTypeFilter = CompatUtility::GetCheckableNotificationTypeFilter(service);
+
+	fields->Set("notify_on_warning", notificationStateFilter & ServiceWarning);
+	fields->Set("notify_on_unknown", notificationStateFilter & ServiceUnknown);
+	fields->Set("notify_on_critical", notificationStateFilter & ServiceCritical);
+	fields->Set("notify_on_recovery", notificationTypeFilter & NotificationRecovery);
+	fields->Set("notify_on_flapping", (notificationTypeFilter & NotificationFlappingStart) ||
+		(notificationTypeFilter & NotificationFlappingEnd));
+	fields->Set("notify_on_downtime", (notificationTypeFilter & NotificationDowntimeStart) ||
+		(notificationTypeFilter & NotificationDowntimeEnd) || (notificationTypeFilter & NotificationDowntimeRemoved));
+
 	fields->Set("stalk_on_ok", 0);
 	fields->Set("stalk_on_warning", 0);
 	fields->Set("stalk_on_unknown", 0);

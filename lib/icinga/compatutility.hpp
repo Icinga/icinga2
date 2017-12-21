@@ -42,13 +42,10 @@ public:
 	/* host */
 	static int GetHostCurrentState(const Host::Ptr& host);
 	static String GetHostStateString(const Host::Ptr& host);
-	static int GetHostNotifyOnDown(const Host::Ptr& host);
-	static int GetHostNotifyOnUnreachable(const Host::Ptr& host);
 
 	/* service */
 	static String GetCheckableCommandArgs(const Checkable::Ptr& checkable);
 
-	static int GetCheckableNoMoreNotifications(const Checkable::Ptr& checkable);
 	static int GetCheckableInNotificationPeriod(const Checkable::Ptr& checkable);
 
 	/* notification */
@@ -59,12 +56,6 @@ public:
 	static double GetCheckableNotificationNotificationInterval(const Checkable::Ptr& checkable);
 	static int GetCheckableNotificationTypeFilter(const Checkable::Ptr& checkable);
 	static int GetCheckableNotificationStateFilter(const Checkable::Ptr& checkable);
-	static int GetCheckableNotifyOnWarning(const Checkable::Ptr& checkable);
-	static int GetCheckableNotifyOnCritical(const Checkable::Ptr& checkable);
-	static int GetCheckableNotifyOnUnknown(const Checkable::Ptr& checkable);
-	static int GetCheckableNotifyOnRecovery(const Checkable::Ptr& checkable);
-	static int GetCheckableNotifyOnFlapping(const Checkable::Ptr& checkable);
-	static int GetCheckableNotifyOnDowntime(const Checkable::Ptr& checkable);
 
 	static std::set<User::Ptr> GetCheckableNotificationUsers(const Checkable::Ptr& checkable);
 	static std::set<UserGroup::Ptr> GetCheckableNotificationUserGroups(const Checkable::Ptr& checkable);

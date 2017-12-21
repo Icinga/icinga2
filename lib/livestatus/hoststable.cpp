@@ -699,7 +699,7 @@ Value HostsTable::NoMoreNotificationsAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	return CompatUtility::GetCheckableNoMoreNotifications(host);
+	return (CompatUtility::GetCheckableNotificationNotificationInterval(host) == 0 && !host->GetVolatile()) ? 1 : 0;
 }
 
 Value HostsTable::LastCheckAccessor(const Value& row)

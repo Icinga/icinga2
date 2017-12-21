@@ -75,12 +75,17 @@ Dictionary::Ptr HostDbObject::GetConfigFields() const
 	fields->Set("first_notification_delay", Empty);
 
 	fields->Set("notification_interval", CompatUtility::GetCheckableNotificationNotificationInterval(host));
-	fields->Set("notify_on_down", CompatUtility::GetHostNotifyOnDown(host));
-	fields->Set("notify_on_unreachable", CompatUtility::GetHostNotifyOnDown(host));
 
-	fields->Set("notify_on_recovery", CompatUtility::GetCheckableNotifyOnRecovery(host));
-	fields->Set("notify_on_flapping", CompatUtility::GetCheckableNotifyOnFlapping(host));
-	fields->Set("notify_on_downtime", CompatUtility::GetCheckableNotifyOnDowntime(host));
+        unsigned long notificationStateFilter = CompatUtility::GetCheckableNotificationTypeFilter(host);
+        unsigned long notificationTypeFilter = CompatUtility::GetCheckableNotificationTypeFilter(host);
+
+	fields->Set("notify_on_down", (notificationStateFilter & ServiceWarning) || (notificationStateFilter && ServiceCritical));
+	fields->Set("notify_on_unreachable", 1); /* We don't have this filter and state, and as such we don't filter such notifications. */
+	fields->Set("notify_on_recovery", notificationTypeFilter & NotificationRecovery);
+	fields->Set("notify_on_flapping", (notificationTypeFilter & NotificationFlappingStart) ||
+		(notificationTypeFilter & NotificationFlappingEnd));
+	fields->Set("notify_on_downtime", (notificationTypeFilter & NotificationDowntimeStart) ||
+		(notificationTypeFilter & NotificationDowntimeEnd) || (notificationTypeFilter & NotificationDowntimeRemoved));
 
 	fields->Set("stalk_on_up", Empty);
 	fields->Set("stalk_on_down", Empty);
