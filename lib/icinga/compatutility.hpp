@@ -39,9 +39,6 @@ public:
 	static String GetCommandLine(const Command::Ptr& command);
 	static String GetCommandName(const Command::Ptr& command);
 
-	/* host */
-	static String GetHostStateString(const Host::Ptr& host);
-
 	/* service */
 	static String GetCheckableCommandArgs(const Checkable::Ptr& checkable);
 

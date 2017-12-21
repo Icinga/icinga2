@@ -1025,7 +1025,7 @@ void DbEvents::AddCheckResultLogHistory(const Checkable::Ptr& checkable, const C
 	} else {
 		msgbuf << "HOST ALERT: "
 			<< host->GetName() << ";"
-			<< CompatUtility::GetHostStateString(host) << ";"
+			<< GetHostStateString(host) << ";"
 			<< Host::StateTypeToString(host->GetStateType()) << ";"
 			<< attempt_after << ";"
 			<< output << ""
@@ -1520,6 +1520,14 @@ int DbEvents::GetHostState(const Host::Ptr& host)
 		currentState = 2; /* hardcoded compat state */
 
 	return currentState;
+}
+
+String DbEvents::GetHostStateString(const Host::Ptr& host)
+{
+	if (host->GetState() != HostUp && !host->IsReachable())
+		return "UNREACHABLE"; /* hardcoded compat state */
+
+	return Host::StateToString(host->GetState());
 }
 
 std::pair<unsigned long, unsigned long> DbEvents::ConvertTimestamp(double time)

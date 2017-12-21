@@ -134,6 +134,7 @@ private:
 	static void EnableChangedHandlerInternal(const Checkable::Ptr& checkable, const String& fieldName, bool enabled);
 
 	static int GetHostState(const Host::Ptr& host);
+	static String GetHostStateString(const Host::Ptr& host);
 	static std::pair<unsigned long, unsigned long> ConvertTimestamp(double time);
 	static int MapNotificationReasonType(NotificationType type);
 	static int MapExternalCommandType(const String& name);
