@@ -58,14 +58,10 @@ Dictionary::Ptr ServiceDbObject::GetConfigFields() const
 	fields->Set("display_name", service->GetDisplayName());
 	fields->Set("check_command_object_id", service->GetCheckCommand());
 	fields->Set("eventhandler_command_object_id", service->GetEventCommand());
-	fields->Set("eventhandler_command_args", Empty);
-	fields->Set("notification_timeperiod_object_id", Empty);
 	fields->Set("check_timeperiod_object_id", service->GetCheckPeriod());
-	fields->Set("failure_prediction_options", Empty);
 	fields->Set("check_interval", (service->GetCheckInterval() / 60.0));
 	fields->Set("retry_interval", (service->GetRetryInterval() / 60.0));
 	fields->Set("max_check_attempts", service->GetMaxCheckAttempts());
-	fields->Set("first_notification_delay", Empty);
 	fields->Set("notification_interval", CompatUtility::GetCheckableNotificationNotificationInterval(service));
 
         unsigned long notificationStateFilter = CompatUtility::GetCheckableNotificationTypeFilter(service);
@@ -86,10 +82,6 @@ Dictionary::Ptr ServiceDbObject::GetConfigFields() const
 	fields->Set("stalk_on_critical", 0);
 	fields->Set("is_volatile", service->GetVolatile());
 	fields->Set("flap_detection_enabled", service->GetEnableFlapping());
-	fields->Set("flap_detection_on_ok", Empty);
-	fields->Set("flap_detection_on_warning", Empty);
-	fields->Set("flap_detection_on_unknown", Empty);
-	fields->Set("flap_detection_on_critical", Empty);
 	fields->Set("low_flap_threshold", service->GetFlappingThresholdLow());
 	fields->Set("high_flap_threshold", service->GetFlappingThresholdLow());
 	fields->Set("process_performance_data", service->GetEnablePerfdata());
@@ -98,11 +90,7 @@ Dictionary::Ptr ServiceDbObject::GetConfigFields() const
 	fields->Set("event_handler_enabled", service->GetEnableEventHandler());
 	fields->Set("passive_checks_enabled", service->GetEnablePassiveChecks());
 	fields->Set("active_checks_enabled", service->GetEnableActiveChecks());
-	fields->Set("retain_status_information", Empty);
-	fields->Set("retain_nonstatus_information", Empty);
 	fields->Set("notifications_enabled", service->GetEnableNotifications());
-	fields->Set("obsess_over_service", Empty);
-	fields->Set("failure_prediction_enabled", Empty);
 	fields->Set("notes", service->GetNotes());
 	fields->Set("notes_url", service->GetNotesUrl());
 	fields->Set("action_url", service->GetActionUrl());
@@ -146,7 +134,6 @@ Dictionary::Ptr ServiceDbObject::GetStatusFields() const
 	fields->Set("state_type", service->GetStateType());
 	fields->Set("last_notification", DbValue::FromTimestamp(CompatUtility::GetCheckableNotificationLastNotification(service)));
 	fields->Set("next_notification", DbValue::FromTimestamp(CompatUtility::GetCheckableNotificationNextNotification(service)));
-	fields->Set("no_more_notifications", Empty);
 	fields->Set("notifications_enabled", service->GetEnableNotifications());
 	fields->Set("problem_has_been_acknowledged", service->GetAcknowledgement() != AcknowledgementNone);
 	fields->Set("acknowledgement_type", service->GetAcknowledgement());

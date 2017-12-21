@@ -63,15 +63,10 @@ Dictionary::Ptr HostDbObject::GetConfigFields() const
 
 	fields->Set("check_command_object_id", host->GetCheckCommand());
 	fields->Set("eventhandler_command_object_id", host->GetEventCommand());
-	fields->Set("eventhandler_command_args", Empty);
-	fields->Set("notification_timeperiod_object_id", Empty);
 	fields->Set("check_timeperiod_object_id", host->GetCheckPeriod());
-	fields->Set("failure_prediction_options", Empty);
 	fields->Set("check_interval", (host->GetCheckInterval() / 60.0));
 	fields->Set("retry_interval", (host->GetRetryInterval() / 60.0));
 	fields->Set("max_check_attempts", host->GetMaxCheckAttempts());
-
-	fields->Set("first_notification_delay", Empty);
 
 	fields->Set("notification_interval", CompatUtility::GetCheckableNotificationNotificationInterval(host));
 
@@ -86,14 +81,7 @@ Dictionary::Ptr HostDbObject::GetConfigFields() const
 	fields->Set("notify_on_downtime", (notificationTypeFilter & NotificationDowntimeStart) ||
 		(notificationTypeFilter & NotificationDowntimeEnd) || (notificationTypeFilter & NotificationDowntimeRemoved));
 
-	fields->Set("stalk_on_up", Empty);
-	fields->Set("stalk_on_down", Empty);
-	fields->Set("stalk_on_unreachable", Empty);
-
 	fields->Set("flap_detection_enabled", host->GetEnableFlapping());
-	fields->Set("flap_detection_on_up", Empty);
-	fields->Set("flap_detection_on_down", Empty);
-	fields->Set("flap_detection_on_unreachable", Empty);
 	fields->Set("low_flap_threshold", host->GetFlappingThresholdLow());
 	fields->Set("high_flap_threshold", host->GetFlappingThresholdLow());
 
@@ -161,7 +149,6 @@ Dictionary::Ptr HostDbObject::GetStatusFields() const
 	fields->Set("state_type", host->GetStateType());
 	fields->Set("last_notification", DbValue::FromTimestamp(CompatUtility::GetCheckableNotificationLastNotification(host)));
 	fields->Set("next_notification", DbValue::FromTimestamp(CompatUtility::GetCheckableNotificationNextNotification(host)));
-	fields->Set("no_more_notifications", Empty);
 	fields->Set("notifications_enabled", host->GetEnableNotifications());
 	fields->Set("problem_has_been_acknowledged", host->GetAcknowledgement() != AcknowledgementNone);
 	fields->Set("acknowledgement_type", host->GetAcknowledgement());
@@ -179,9 +166,7 @@ Dictionary::Ptr HostDbObject::GetStatusFields() const
 	}
 
 	fields->Set("scheduled_downtime_depth", host->GetDowntimeDepth());
-	fields->Set("failure_prediction_enabled", Empty);
 	fields->Set("process_performance_data", host->GetEnablePerfdata());
-	fields->Set("obsess_over_host", Empty);
 	fields->Set("normal_check_interval", (host->GetCheckInterval() / 60.0));
 	fields->Set("retry_check_interval", (host->GetRetryInterval() / 60.0));
 	fields->Set("check_timeperiod_object_id", host->GetCheckPeriod());
