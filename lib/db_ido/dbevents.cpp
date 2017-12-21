@@ -96,10 +96,15 @@ void DbEvents::NextCheckUpdatedHandler(const Checkable::Ptr& checkable)
 	tie(host, service) = GetHostService(checkable);
 
 	DbQuery query1;
-	if (service)
+	query1.WhereCriteria = new Dictionary();
+
+	if (service) {
 		query1.Table = "servicestatus";
-	else
+		query1.WhereCriteria->Set("service_object_id", service);
+	} else {
 		query1.Table = "hoststatus";
+		query1.WhereCriteria->Set("host_object_id", host);
+	}
 
 	query1.Type = DbQueryUpdate;
 	query1.Category = DbCatState;
@@ -111,12 +116,6 @@ void DbEvents::NextCheckUpdatedHandler(const Checkable::Ptr& checkable)
 
 	query1.Fields = fields1;
 
-	query1.WhereCriteria = new Dictionary();
-	if (service)
-		query1.WhereCriteria->Set("service_object_id", service);
-	else
-		query1.WhereCriteria->Set("host_object_id", host);
-
 	DbObject::OnQuery(query1);
 }
 
@@ -127,10 +126,15 @@ void DbEvents::FlappingChangedHandler(const Checkable::Ptr& checkable)
 	tie(host, service) = GetHostService(checkable);
 
 	DbQuery query1;
-	if (service)
+	query1.WhereCriteria = new Dictionary();
+
+	if (service) {
 		query1.Table = "servicestatus";
-	else
+		query1.WhereCriteria->Set("service_object_id", service);
+	} else {
 		query1.Table = "hoststatus";
+		query1.WhereCriteria->Set("host_object_id", host);
+	}
 
 	query1.Type = DbQueryUpdate;
 	query1.Category = DbCatState;
@@ -142,13 +146,6 @@ void DbEvents::FlappingChangedHandler(const Checkable::Ptr& checkable)
 	fields1->Set("percent_state_change", checkable->GetFlappingCurrent());
 
 	query1.Fields = fields1;
-
-	query1.WhereCriteria = new Dictionary();
-	if (service)
-		query1.WhereCriteria->Set("service_object_id", service);
-	else
-		query1.WhereCriteria->Set("host_object_id", host);
-
 	query1.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
 	DbObject::OnQuery(query1);
@@ -157,17 +154,22 @@ void DbEvents::FlappingChangedHandler(const Checkable::Ptr& checkable)
 void DbEvents::LastNotificationChangedHandler(const Notification::Ptr& notification, const Checkable::Ptr& checkable)
 {
 	std::pair<unsigned long, unsigned long> now_bag = ConvertTimestamp(Utility::GetTime());
-	std::pair<unsigned long, unsigned long> time_bag = ConvertTimestamp(notification->GetNextNotification());
+	std::pair<unsigned long, unsigned long> timeBag = ConvertTimestamp(notification->GetNextNotification());
 
 	Host::Ptr host;
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
 
 	DbQuery query1;
-	if (service)
+	query1.WhereCriteria = new Dictionary();
+
+	if (service) {
 		query1.Table = "servicestatus";
-	else
+		query1.WhereCriteria->Set("service_object_id", service);
+	} else {
 		query1.Table = "hoststatus";
+		query1.WhereCriteria->Set("host_object_id", host);
+	}
 
 	query1.Type = DbQueryUpdate;
 	query1.Category = DbCatState;
@@ -176,17 +178,10 @@ void DbEvents::LastNotificationChangedHandler(const Notification::Ptr& notificat
 
 	Dictionary::Ptr fields1 = new Dictionary();
 	fields1->Set("last_notification", DbValue::FromTimestamp(now_bag.first));
-	fields1->Set("next_notification", DbValue::FromTimestamp(time_bag.first));
+	fields1->Set("next_notification", DbValue::FromTimestamp(timeBag.first));
 	fields1->Set("current_notification_number", notification->GetNotificationNumber());
 
 	query1.Fields = fields1;
-
-	query1.WhereCriteria = new Dictionary();
-	if (service)
-		query1.WhereCriteria->Set("service_object_id", service);
-	else
-		query1.WhereCriteria->Set("host_object_id", host);
-
 	query1.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
 	DbObject::OnQuery(query1);
@@ -211,10 +206,15 @@ void DbEvents::ReachabilityChangedHandler(const Checkable::Ptr& checkable, const
 		tie(host, service) = GetHostService(child);
 
 		DbQuery query1;
-		if (service)
+		query1.WhereCriteria = new Dictionary();
+
+		if (service) {
 			query1.Table = "servicestatus";
-		else
+			query1.WhereCriteria->Set("service_object_id", service);
+		} else {
 			query1.Table = "hoststatus";
+			query1.WhereCriteria->Set("host_object_id", host);
+		}
 
 		query1.Type = DbQueryUpdate;
 		query1.Category = DbCatState;
@@ -225,13 +225,6 @@ void DbEvents::ReachabilityChangedHandler(const Checkable::Ptr& checkable, const
 		fields1->Set("is_reachable", is_reachable);
 
 		query1.Fields = fields1;
-
-		query1.WhereCriteria = new Dictionary();
-		if (service)
-			query1.WhereCriteria->Set("service_object_id", service);
-		else
-			query1.WhereCriteria->Set("host_object_id", host);
-
 		query1.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
 		DbObject::OnQuery(query1);
@@ -271,10 +264,15 @@ void DbEvents::EnableChangedHandlerInternal(const Checkable::Ptr& checkable, con
 	tie(host, service) = GetHostService(checkable);
 
 	DbQuery query1;
-	if (service)
+	query1.WhereCriteria = new Dictionary();
+
+	if (service) {
 		query1.Table = "servicestatus";
-	else
+		query1.WhereCriteria->Set("service_object_id", service);
+	} else {
 		query1.Table = "hoststatus";
+		query1.WhereCriteria->Set("host_object_id", host);
+	}
 
 	query1.Type = DbQueryUpdate;
 	query1.Category = DbCatState;
@@ -283,14 +281,8 @@ void DbEvents::EnableChangedHandlerInternal(const Checkable::Ptr& checkable, con
 
 	Dictionary::Ptr fields1 = new Dictionary();
 	fields1->Set(fieldName, enabled);
+
 	query1.Fields = fields1;
-
-	query1.WhereCriteria = new Dictionary();
-	if (service)
-		query1.WhereCriteria->Set("service_object_id", service);
-	else
-		query1.WhereCriteria->Set("host_object_id", host);
-
 	query1.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
 	DbObject::OnQuery(query1);
@@ -329,44 +321,44 @@ void DbEvents::AddCommentInternal(std::vector<DbQuery>& queries, const Comment::
 {
 	Checkable::Ptr checkable = comment->GetCheckable();
 
-	unsigned long entry_time = static_cast<long>(comment->GetEntryTime());
-	unsigned long entry_time_usec = (comment->GetEntryTime() - entry_time) * 1000 * 1000;
+	std::pair<unsigned long, unsigned long> timeBag = ConvertTimestamp(comment->GetEntryTime());
 
 	Dictionary::Ptr fields1 = new Dictionary();
-	fields1->Set("entry_time", DbValue::FromTimestamp(entry_time));
-	fields1->Set("entry_time_usec", entry_time_usec);
+	fields1->Set("entry_time", DbValue::FromTimestamp(timeBag.first));
+	fields1->Set("entry_time_usec", timeBag.second);
 	fields1->Set("entry_type", comment->GetEntryType());
 	fields1->Set("object_id", checkable);
 
-	if (checkable->GetReflectionType() == Host::TypeInstance) {
-		fields1->Set("comment_type", 2);
-		/* requires idoutils 1.10 schema fix */
-		fields1->Set("internal_comment_id", comment->GetLegacyId());
-	} else if (checkable->GetReflectionType() == Service::TypeInstance) {
-		fields1->Set("comment_type", 1);
-		fields1->Set("internal_comment_id", comment->GetLegacyId());
-	} else {
+	int commentType = 0;
+
+	if (checkable->GetReflectionType() == Host::TypeInstance)
+		commentType = 2;
+	else if (checkable->GetReflectionType() == Service::TypeInstance)
+		commentType = 1;
+	else {
 		Log(LogDebug, "DbEvents", "unknown object type for adding comment.");
 		return;
 	}
 
+	fields1->Set("comment_type", commentType);
+	fields1->Set("internal_comment_id", comment->GetLegacyId());
 	fields1->Set("name", comment->GetName());
-	fields1->Set("comment_time", DbValue::FromTimestamp(entry_time)); /* same as entry_time */
+	fields1->Set("comment_time", DbValue::FromTimestamp(timeBag.first)); /* same as entry_time */
 	fields1->Set("author_name", comment->GetAuthor());
 	fields1->Set("comment_data", comment->GetText());
-	fields1->Set("is_persistent", comment->GetPersistent() ? 1 : 0);
+	fields1->Set("is_persistent", comment->GetPersistent());
 	fields1->Set("comment_source", 1); /* external */
-	fields1->Set("expires", (comment->GetExpireTime() > 0) ? 1 : 0);
+	fields1->Set("expires", (comment->GetExpireTime() > 0));
 	fields1->Set("expiration_time", DbValue::FromTimestamp(comment->GetExpireTime()));
 	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
-	String node = IcingaApplication::GetInstance()->GetNodeName();
+	Endpoint::Ptr endpoint = Endpoint::GetByName(IcingaApplication::GetInstance()->GetNodeName());
 
-	Endpoint::Ptr endpoint = Endpoint::GetByName(node);
 	if (endpoint)
 		fields1->Set("endpoint_object_id", endpoint);
 
 	DbQuery query1;
+
 	if (!historical) {
 		query1.Table = "comments";
 		query1.Type = DbQueryInsert | DbQueryUpdate;
@@ -376,11 +368,12 @@ void DbEvents::AddCommentInternal(std::vector<DbQuery>& queries, const Comment::
 		query1.WhereCriteria = new Dictionary();
 		query1.WhereCriteria->Set("object_id", checkable);
 		query1.WhereCriteria->Set("name", comment->GetName());
-		query1.WhereCriteria->Set("entry_time", DbValue::FromTimestamp(entry_time));
+		query1.WhereCriteria->Set("entry_time", DbValue::FromTimestamp(timeBag.first));
 	} else {
 		query1.Table = "commenthistory";
 		query1.Type = DbQueryInsert;
 	}
+
 	query1.Category = DbCatComment;
 	query1.Fields = fields1;
 	queries.emplace_back(std::move(query1));
@@ -397,21 +390,22 @@ void DbEvents::RemoveCommentInternal(std::vector<DbQuery>& queries, const Commen
 {
 	Checkable::Ptr checkable = comment->GetCheckable();
 
-	unsigned long entry_time = static_cast<long>(comment->GetEntryTime());
+	std::pair<unsigned long, unsigned long> timeBag = ConvertTimestamp(comment->GetEntryTime());
 
 	/* Status */
 	DbQuery query1;
 	query1.Table = "comments";
 	query1.Type = DbQueryDelete;
 	query1.Category = DbCatComment;
+
 	query1.WhereCriteria = new Dictionary();
 	query1.WhereCriteria->Set("object_id", checkable);
-	query1.WhereCriteria->Set("entry_time", DbValue::FromTimestamp(entry_time));
+	query1.WhereCriteria->Set("entry_time", DbValue::FromTimestamp(timeBag.first));
 	query1.WhereCriteria->Set("name", comment->GetName());
 	queries.emplace_back(std::move(query1));
 
 	/* History - update deletion time for service/host */
-	std::pair<unsigned long, unsigned long> time_bag = ConvertTimestamp(Utility::GetTime());
+	std::pair<unsigned long, unsigned long> timeBagNow = ConvertTimestamp(Utility::GetTime());
 
 	DbQuery query2;
 	query2.Table = "commenthistory";
@@ -419,14 +413,15 @@ void DbEvents::RemoveCommentInternal(std::vector<DbQuery>& queries, const Commen
 	query2.Category = DbCatComment;
 
 	Dictionary::Ptr fields2 = new Dictionary();
-	fields2->Set("deletion_time", DbValue::FromTimestamp(time_bag.first));
-	fields2->Set("deletion_time_usec", time_bag.second);
+	fields2->Set("deletion_time", DbValue::FromTimestamp(timeBagNow.first));
+	fields2->Set("deletion_time_usec", timeBagNow.second);
 	query2.Fields = fields2;
 
 	query2.WhereCriteria = new Dictionary();
 	query2.WhereCriteria->Set("object_id", checkable);
-	query2.WhereCriteria->Set("entry_time", DbValue::FromTimestamp(entry_time));
+	query2.WhereCriteria->Set("entry_time", DbValue::FromTimestamp(timeBag.first));
 	query2.WhereCriteria->Set("name", comment->GetName());
+
 	queries.emplace_back(std::move(query2));
 }
 
@@ -466,22 +461,23 @@ void DbEvents::AddDowntimeInternal(std::vector<DbQuery>& queries, const Downtime
 	fields1->Set("entry_time", DbValue::FromTimestamp(downtime->GetEntryTime()));
 	fields1->Set("object_id", checkable);
 
-	if (checkable->GetReflectionType() == Host::TypeInstance) {
-		fields1->Set("downtime_type", 2);
-		/* requires idoutils 1.10 schema fix */
-		fields1->Set("internal_downtime_id", downtime->GetLegacyId());
-	} else if (checkable->GetReflectionType() == Service::TypeInstance) {
-		fields1->Set("downtime_type", 1);
-		fields1->Set("internal_downtime_id", downtime->GetLegacyId());
-	} else {
+	int downtimeType = 0;
+
+	if (checkable->GetReflectionType() == Host::TypeInstance)
+		downtimeType = 2;
+	else if (checkable->GetReflectionType() == Service::TypeInstance)
+		downtimeType = 1;
+	else {
 		Log(LogDebug, "DbEvents", "unknown object type for adding downtime.");
 		return;
 	}
 
+	fields1->Set("downtime_type", downtimeType);
+	fields1->Set("internal_downtime_id", downtime->GetLegacyId());
 	fields1->Set("author_name", downtime->GetAuthor());
 	fields1->Set("comment_data", downtime->GetComment());
 	fields1->Set("triggered_by_id", Downtime::GetByName(downtime->GetTriggeredBy()));
-	fields1->Set("is_fixed", downtime->GetFixed() ? 1 : 0);
+	fields1->Set("is_fixed", downtime->GetFixed());
 	fields1->Set("duration", downtime->GetDuration());
 	fields1->Set("scheduled_start_time", DbValue::FromTimestamp(downtime->GetStartTime()));
 	fields1->Set("scheduled_end_time", DbValue::FromTimestamp(downtime->GetEndTime()));
@@ -489,19 +485,19 @@ void DbEvents::AddDowntimeInternal(std::vector<DbQuery>& queries, const Downtime
 
 	/* flexible downtimes are started at trigger time */
 	if (downtime->GetFixed()) {
-		std::pair<unsigned long, unsigned long> time_bag = ConvertTimestamp(downtime->GetStartTime());
-		fields1->Set("actual_start_time", DbValue::FromTimestamp(time_bag.first));
-		fields1->Set("actual_start_time_usec", time_bag.second);
+		std::pair<unsigned long, unsigned long> timeBag = ConvertTimestamp(downtime->GetStartTime());
+
+		fields1->Set("actual_start_time", DbValue::FromTimestamp(timeBag.first));
+		fields1->Set("actual_start_time_usec", timeBag.second);
 		fields1->Set("was_started", ((downtime->GetStartTime() <= Utility::GetTime()) ? 1 : 0));
 	}
 
-	fields1->Set("is_in_effect", (downtime->IsInEffect() ? 1 : 0));
+	fields1->Set("is_in_effect", downtime->IsInEffect());
 	fields1->Set("trigger_time", DbValue::FromTimestamp(downtime->GetTriggerTime()));
 	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
-	String node = IcingaApplication::GetInstance()->GetNodeName();
+	Endpoint::Ptr endpoint = Endpoint::GetByName(IcingaApplication::GetInstance()->GetNodeName());
 
-	Endpoint::Ptr endpoint = Endpoint::GetByName(node);
 	if (endpoint)
 		fields1->Set("endpoint_object_id", endpoint);
 
@@ -533,10 +529,15 @@ void DbEvents::AddDowntimeInternal(std::vector<DbQuery>& queries, const Downtime
 		tie(host, service) = GetHostService(checkable);
 
 		DbQuery query2;
-		if (service)
+		query2.WhereCriteria = new Dictionary();
+
+		if (service) {
 			query2.Table = "servicestatus";
-		else
+			query2.WhereCriteria->Set("service_object_id", service);
+		} else {
 			query2.Table = "hoststatus";
+			query2.WhereCriteria->Set("host_object_id", host);
+		}
 
 		query2.Type = DbQueryUpdate;
 		query2.Category = DbCatState;
@@ -547,14 +548,8 @@ void DbEvents::AddDowntimeInternal(std::vector<DbQuery>& queries, const Downtime
 		fields2->Set("scheduled_downtime_depth", checkable->GetDowntimeDepth());
 
 		query2.Fields = fields2;
-
-		query2.WhereCriteria = new Dictionary();
-		if (service)
-			query2.WhereCriteria->Set("service_object_id", service);
-		else
-			query2.WhereCriteria->Set("host_object_id", host);
-
 		query2.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
+
 		queries.emplace_back(std::move(query2));
 	}
 }
@@ -586,7 +581,7 @@ void DbEvents::RemoveDowntimeInternal(std::vector<DbQuery>& queries, const Downt
 	queries.emplace_back(std::move(query1));
 
 	/* History - update actual_end_time, was_cancelled for service (and host in case) */
-	std::pair<unsigned long, unsigned long> time_bag = ConvertTimestamp(Utility::GetTime());
+	std::pair<unsigned long, unsigned long> timeBag = ConvertTimestamp(Utility::GetTime());
 
 	DbQuery query3;
 	query3.Table = "downtimehistory";
@@ -597,8 +592,8 @@ void DbEvents::RemoveDowntimeInternal(std::vector<DbQuery>& queries, const Downt
 	fields3->Set("was_cancelled", downtime->GetWasCancelled() ? 1 : 0);
 
 	if (downtime->GetFixed() || (!downtime->GetFixed() && downtime->GetTriggerTime() > 0)) {
-		fields3->Set("actual_end_time", DbValue::FromTimestamp(time_bag.first));
-		fields3->Set("actual_end_time_usec", time_bag.second);
+		fields3->Set("actual_end_time", DbValue::FromTimestamp(timeBag.first));
+		fields3->Set("actual_end_time_usec", timeBag.second);
 	}
 
 	fields3->Set("is_in_effect", 0);
@@ -619,10 +614,15 @@ void DbEvents::RemoveDowntimeInternal(std::vector<DbQuery>& queries, const Downt
 	tie(host, service) = GetHostService(checkable);
 
 	DbQuery query4;
-	if (service)
+	query4.WhereCriteria = new Dictionary();
+
+	if (service) {
 		query4.Table = "servicestatus";
-	else
+		query4.WhereCriteria->Set("service_object_id", service);
+	} else {
 		query4.Table = "hoststatus";
+		query4.WhereCriteria->Set("host_object_id", host);
+	}
 
 	query4.Type = DbQueryUpdate;
 	query4.Category = DbCatState;
@@ -633,14 +633,8 @@ void DbEvents::RemoveDowntimeInternal(std::vector<DbQuery>& queries, const Downt
 	fields4->Set("scheduled_downtime_depth", checkable->GetDowntimeDepth());
 
 	query4.Fields = fields4;
-
-	query4.WhereCriteria = new Dictionary();
-	if (service)
-		query4.WhereCriteria->Set("service_object_id", service);
-	else
-		query4.WhereCriteria->Set("host_object_id", host);
-
 	query4.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
+
 	queries.emplace_back(std::move(query4));
 }
 
@@ -648,7 +642,7 @@ void DbEvents::TriggerDowntime(const Downtime::Ptr& downtime)
 {
 	Checkable::Ptr checkable = downtime->GetCheckable();
 
-	std::pair<unsigned long, unsigned long> time_bag = ConvertTimestamp(Utility::GetTime());
+	std::pair<unsigned long, unsigned long> timeBag = ConvertTimestamp(Utility::GetTime());
 
 	/* Status */
 	DbQuery query1;
@@ -658,8 +652,8 @@ void DbEvents::TriggerDowntime(const Downtime::Ptr& downtime)
 
 	Dictionary::Ptr fields1 = new Dictionary();
 	fields1->Set("was_started", 1);
-	fields1->Set("actual_start_time", DbValue::FromTimestamp(time_bag.first));
-	fields1->Set("actual_start_time_usec", time_bag.second);
+	fields1->Set("actual_start_time", DbValue::FromTimestamp(timeBag.first));
+	fields1->Set("actual_start_time_usec", timeBag.second);
 	fields1->Set("is_in_effect", (downtime->IsInEffect() ? 1 : 0));
 	fields1->Set("trigger_time", DbValue::FromTimestamp(downtime->GetTriggerTime()));
 	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
@@ -684,8 +678,8 @@ void DbEvents::TriggerDowntime(const Downtime::Ptr& downtime)
 	Dictionary::Ptr fields3 = new Dictionary();
 	fields3->Set("was_started", 1);
 	fields3->Set("is_in_effect", 1);
-	fields3->Set("actual_start_time", DbValue::FromTimestamp(time_bag.first));
-	fields3->Set("actual_start_time_usec", time_bag.second);
+	fields3->Set("actual_start_time", DbValue::FromTimestamp(timeBag.first));
+	fields3->Set("actual_start_time_usec", timeBag.second);
 	fields3->Set("trigger_time", DbValue::FromTimestamp(downtime->GetTriggerTime()));
 	query3.Fields = fields3;
 
@@ -699,10 +693,15 @@ void DbEvents::TriggerDowntime(const Downtime::Ptr& downtime)
 	tie(host, service) = GetHostService(checkable);
 
 	DbQuery query4;
-	if (service)
+	query4.WhereCriteria = new Dictionary();
+
+	if (service) {
 		query4.Table = "servicestatus";
-	else
+		query4.WhereCriteria->Set("service_object_id", service);
+	} else {
 		query4.Table = "hoststatus";
+		query4.WhereCriteria->Set("host_object_id", host);
+	}
 
 	query4.Type = DbQueryUpdate;
 	query4.Category = DbCatState;
@@ -713,13 +712,6 @@ void DbEvents::TriggerDowntime(const Downtime::Ptr& downtime)
 	fields4->Set("scheduled_downtime_depth", checkable->GetDowntimeDepth());
 
 	query4.Fields = fields4;
-
-	query4.WhereCriteria = new Dictionary();
-	if (service)
-		query4.WhereCriteria->Set("service_object_id", service);
-	else
-		query4.WhereCriteria->Set("host_object_id", host);
-
 	query4.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
 	DbObject::OnQuery(query4);
@@ -732,9 +724,7 @@ void DbEvents::AddAcknowledgementHistory(const Checkable::Ptr& checkable, const 
 	Log(LogDebug, "DbEvents")
 		<< "add acknowledgement history for '" << checkable->GetName() << "'";
 
-	std::pair<unsigned long, unsigned long> time_bag = ConvertTimestamp(Utility::GetTime());
-
-	unsigned long end_time = static_cast<long>(expiry);
+	std::pair<unsigned long, unsigned long> timeBag = ConvertTimestamp(Utility::GetTime());
 
 	DbQuery query1;
 	query1.Table = "acknowledgements";
@@ -746,27 +736,26 @@ void DbEvents::AddAcknowledgementHistory(const Checkable::Ptr& checkable, const 
 	tie(host, service) = GetHostService(checkable);
 
 	Dictionary::Ptr fields1 = new Dictionary();
-	fields1->Set("entry_time", DbValue::FromTimestamp(time_bag.first));
-	fields1->Set("entry_time_usec", time_bag.second);
+
+	fields1->Set("entry_time", DbValue::FromTimestamp(timeBag.first));
+	fields1->Set("entry_time_usec", timeBag.second);
 	fields1->Set("acknowledgement_type", type);
 	fields1->Set("object_id", checkable);
 	fields1->Set("author_name", author);
 	fields1->Set("comment_data", comment);
-	fields1->Set("persistent_comment", 1); //always persistent
-	fields1->Set("notify_contacts", notify ? 1 : 0);
-	fields1->Set("is_sticky", type == AcknowledgementSticky ? 1 : 0);
-	fields1->Set("end_time", DbValue::FromTimestamp(end_time));
+	fields1->Set("persistent_comment", 1);
+	fields1->Set("notify_contacts", notify);
+	fields1->Set("is_sticky", type == AcknowledgementSticky);
+	fields1->Set("end_time", DbValue::FromTimestamp(expiry));
 	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
-	if (service) {
+	if (service)
 		fields1->Set("state", service->GetState());
-	} else {
+	else
 		fields1->Set("state", GetHostState(host));
-	}
 
-	String node = IcingaApplication::GetInstance()->GetNodeName();
+	Endpoint::Ptr endpoint = Endpoint::GetByName(IcingaApplication::GetInstance()->GetNodeName());
 
-	Endpoint::Ptr endpoint = Endpoint::GetByName(node);
 	if (endpoint)
 		fields1->Set("endpoint_object_id", endpoint);
 
@@ -797,10 +786,15 @@ void DbEvents::AddAcknowledgementInternal(const Checkable::Ptr& checkable, Ackno
 	tie(host, service) = GetHostService(checkable);
 
 	DbQuery query1;
-	if (service)
+	query1.WhereCriteria = new Dictionary();
+
+	if (service) {
 		query1.Table = "servicestatus";
-	else
+		query1.WhereCriteria->Set("service_object_id", service);
+	} else {
 		query1.Table = "hoststatus";
+		query1.WhereCriteria->Set("host_object_id", host);
+	}
 
 	query1.Type = DbQueryUpdate;
 	query1.Category = DbCatState;
@@ -810,14 +804,8 @@ void DbEvents::AddAcknowledgementInternal(const Checkable::Ptr& checkable, Ackno
 	Dictionary::Ptr fields1 = new Dictionary();
 	fields1->Set("acknowledgement_type", type);
 	fields1->Set("problem_has_been_acknowledged", add ? 1 : 0);
+
 	query1.Fields = fields1;
-
-	query1.WhereCriteria = new Dictionary();
-	if (service)
-		query1.WhereCriteria->Set("service_object_id", service);
-	else
-		query1.WhereCriteria->Set("host_object_id", host);
-
 	query1.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
 	DbObject::OnQuery(query1);
@@ -831,7 +819,7 @@ void DbEvents::AddNotificationHistory(const Notification::Ptr& notification, con
 		<< "add notification history for '" << checkable->GetName() << "'";
 
 	/* start and end happen at the same time */
-	std::pair<unsigned long, unsigned long> time_bag = ConvertTimestamp(Utility::GetTime());
+	std::pair<unsigned long, unsigned long> timeBag = ConvertTimestamp(Utility::GetTime());
 
 	DbQuery query1;
 	query1.Table = "notifications";
@@ -847,16 +835,15 @@ void DbEvents::AddNotificationHistory(const Notification::Ptr& notification, con
 	fields1->Set("notification_type", 1); /* service */
 	fields1->Set("notification_reason", MapNotificationReasonType(type));
 	fields1->Set("object_id", checkable);
-	fields1->Set("start_time", DbValue::FromTimestamp(time_bag.first));
-	fields1->Set("start_time_usec", time_bag.second);
-	fields1->Set("end_time", DbValue::FromTimestamp(time_bag.first));
-	fields1->Set("end_time_usec", time_bag.second);
+	fields1->Set("start_time", DbValue::FromTimestamp(timeBag.first));
+	fields1->Set("start_time_usec", timeBag.second);
+	fields1->Set("end_time", DbValue::FromTimestamp(timeBag.first));
+	fields1->Set("end_time_usec", timeBag.second);
 
-	if (service) {
+	if (service)
 		fields1->Set("state", service->GetState());
-	} else {
+	else
 		fields1->Set("state", GetHostState(host));
-	}
 
 	if (cr) {
 		fields1->Set("output", CompatUtility::GetCheckResultOutput(cr));
@@ -867,9 +854,8 @@ void DbEvents::AddNotificationHistory(const Notification::Ptr& notification, con
 	fields1->Set("contacts_notified", static_cast<long>(users.size()));
 	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
-	String node = IcingaApplication::GetInstance()->GetNodeName();
+	Endpoint::Ptr endpoint = Endpoint::GetByName(IcingaApplication::GetInstance()->GetNodeName());
 
-	Endpoint::Ptr endpoint = Endpoint::GetByName(node);
 	if (endpoint)
 		fields1->Set("endpoint_object_id", endpoint);
 
@@ -889,10 +875,10 @@ void DbEvents::AddNotificationHistory(const Notification::Ptr& notification, con
 
 		Dictionary::Ptr fields2 = new Dictionary();
 		fields2->Set("contact_object_id", user);
-		fields2->Set("start_time", DbValue::FromTimestamp(time_bag.first));
-		fields2->Set("start_time_usec", time_bag.second);
-		fields2->Set("end_time", DbValue::FromTimestamp(time_bag.first));
-		fields2->Set("end_time_usec", time_bag.second);
+		fields2->Set("start_time", DbValue::FromTimestamp(timeBag.first));
+		fields2->Set("start_time_usec", timeBag.second);
+		fields2->Set("end_time", DbValue::FromTimestamp(timeBag.first));
+		fields2->Set("end_time_usec", timeBag.second);
 
 		fields2->Set("notification_id", query1.NotificationInsertID);
 		fields2->Set("instance_id", 0); /* DbConnection class fills in real ID */
@@ -911,7 +897,7 @@ void DbEvents::AddStateChangeHistory(const Checkable::Ptr& checkable, const Chec
 		<< "add state change history for '" << checkable->GetName() << "'";
 
 	double ts = cr->GetExecutionEnd();
-	std::pair<unsigned long, unsigned long> state_time_bag = ConvertTimestamp(ts);
+	std::pair<unsigned long, unsigned long> timeBag = ConvertTimestamp(ts);
 
 	DbQuery query1;
 	query1.Table = "statehistory";
@@ -923,8 +909,8 @@ void DbEvents::AddStateChangeHistory(const Checkable::Ptr& checkable, const Chec
 	tie(host, service) = GetHostService(checkable);
 
 	Dictionary::Ptr fields1 = new Dictionary();
-	fields1->Set("state_time", DbValue::FromTimestamp(state_time_bag.first));
-	fields1->Set("state_time_usec", state_time_bag.second);
+	fields1->Set("state_time", DbValue::FromTimestamp(timeBag.first));
+	fields1->Set("state_time_usec", timeBag.second);
 	fields1->Set("object_id", checkable);
 	fields1->Set("state_change", 1); /* service */
 	fields1->Set("state_type", checkable->GetStateType());
@@ -949,9 +935,8 @@ void DbEvents::AddStateChangeHistory(const Checkable::Ptr& checkable, const Chec
 
 	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
-	String node = IcingaApplication::GetInstance()->GetNodeName();
+	Endpoint::Ptr endpoint = Endpoint::GetByName(IcingaApplication::GetInstance()->GetNodeName());
 
-	Endpoint::Ptr endpoint = Endpoint::GetByName(node);
 	if (endpoint)
 		fields1->Set("endpoint_object_id", endpoint);
 
@@ -962,31 +947,22 @@ void DbEvents::AddStateChangeHistory(const Checkable::Ptr& checkable, const Chec
 /* logentries */
 void DbEvents::AddCheckResultLogHistory(const Checkable::Ptr& checkable, const CheckResult::Ptr &cr)
 {
-	Dictionary::Ptr vars_after = cr->GetVarsAfter();
+	if (!cr)
+		return;
 
-	long state_after = vars_after->Get("state");
-	long stateType_after = vars_after->Get("state_type");
-	long attempt_after = vars_after->Get("attempt");
-	bool reachable_after = vars_after->Get("reachable");
+	Dictionary::Ptr varsBefore = cr->GetVarsBefore();
+	Dictionary::Ptr varsAfter = cr->GetVarsAfter();
 
-	Dictionary::Ptr vars_before = cr->GetVarsBefore();
-
-	if (vars_before) {
-		long state_before = vars_before->Get("state");
-		long stateType_before = vars_before->Get("state_type");
-		long attempt_before = vars_before->Get("attempt");
-		bool reachable_before = vars_before->Get("reachable");
-
-		if (state_before == state_after && stateType_before == stateType_after &&
-			attempt_before == attempt_after && reachable_before == reachable_after)
+	if (varsBefore && varsAfter) {
+		if (varsBefore->Get("state") == varsAfter->Get("state") &&
+			varsBefore->Get("state_type") == varsAfter->Get("state_type") &&
+			varsBefore->Get("attempt") == varsAfter->Get("attempt") &&
+			varsBefore->Get("reachable") == varsAfter->Get("reachable"))
 			return; /* Nothing changed, ignore this checkresult. */
 	}
 
 	LogEntryType type;
-	String output;
-
-	if (cr)
-		output = CompatUtility::GetCheckResultOutput(cr);
+	String output = CompatUtility::GetCheckResultOutput(cr);
 
 	Host::Ptr host;
 	Service::Ptr service;
@@ -1000,7 +976,7 @@ void DbEvents::AddCheckResultLogHistory(const Checkable::Ptr& checkable, const C
 			<< service->GetShortName() << ";"
 			<< Service::StateToString(service->GetState()) << ";"
 			<< Service::StateTypeToString(service->GetStateType()) << ";"
-			<< attempt_after << ";"
+			<< service->GetCheckAttempt() << ";"
 			<< output << ""
 			<< "";
 
@@ -1019,7 +995,7 @@ void DbEvents::AddCheckResultLogHistory(const Checkable::Ptr& checkable, const C
 				break;
 			default:
 				Log(LogCritical, "DbEvents")
-					<< "Unknown service state: " << state_after;
+					<< "Unknown service state: " << service->GetState();
 				return;
 		}
 	} else {
@@ -1027,7 +1003,7 @@ void DbEvents::AddCheckResultLogHistory(const Checkable::Ptr& checkable, const C
 			<< host->GetName() << ";"
 			<< GetHostStateString(host) << ";"
 			<< Host::StateTypeToString(host->GetStateType()) << ";"
-			<< attempt_after << ";"
+			<< host->GetCheckAttempt() << ";"
 			<< output << ""
 			<< "";
 
@@ -1040,11 +1016,11 @@ void DbEvents::AddCheckResultLogHistory(const Checkable::Ptr& checkable, const C
 				break;
 			default:
 				Log(LogCritical, "DbEvents")
-					<< "Unknown host state: " << state_after;
+					<< "Unknown host state: " << host->GetState();
 				return;
 		}
 
-		if (!reachable_after)
+		if (!host->IsReachable())
 			type = LogEntryTypeHostUnreachable;
 	}
 
@@ -1083,15 +1059,15 @@ void DbEvents::AddRemoveDowntimeLogHistory(const Downtime::Ptr& downtime)
 {
 	Checkable::Ptr checkable = downtime->GetCheckable();
 
-	String downtime_output;
-	String downtime_state_str;
+	String downtimeOutput;
+	String downtimeStateStr;
 
 	if (downtime->GetWasCancelled()) {
-		downtime_output = "Scheduled downtime for service has been cancelled.";
-		downtime_state_str = "CANCELLED";
+		downtimeOutput = "Scheduled downtime for service has been cancelled.";
+		downtimeStateStr = "CANCELLED";
 	} else {
-		downtime_output = "Service has exited from a period of scheduled downtime.";
-		downtime_state_str = "STOPPED";
+		downtimeOutput = "Service has exited from a period of scheduled downtime.";
+		downtimeStateStr = "STOPPED";
 	}
 
 	Host::Ptr host;
@@ -1104,14 +1080,14 @@ void DbEvents::AddRemoveDowntimeLogHistory(const Downtime::Ptr& downtime)
 		msgbuf << "SERVICE DOWNTIME ALERT: "
 			<< host->GetName() << ";"
 			<< service->GetShortName() << ";"
-			<< downtime_state_str << "; "
-			<< downtime_output
+			<< downtimeStateStr << "; "
+			<< downtimeOutput
 			<< "";
 	} else {
 		msgbuf << "HOST DOWNTIME ALERT: "
 			<< host->GetName() << ";"
-			<< downtime_state_str << "; "
-			<< downtime_output
+			<< downtimeStateStr << "; "
+			<< downtimeOutput
 			<< "";
 	}
 
@@ -1124,11 +1100,12 @@ void DbEvents::AddNotificationSentLogHistory(const Notification::Ptr& notificati
 {
 	CheckCommand::Ptr commandObj = checkable->GetCheckCommand();
 
-	String check_command = "";
-	if (commandObj)
-		check_command = commandObj->GetName();
+	String checkCommandName;
 
-	String notification_type_str = Notification::NotificationTypeToString(notification_type);
+	if (commandObj)
+		checkCommandName = commandObj->GetName();
+
+	String notificationTypeStr = Notification::NotificationTypeToString(notification_type);
 
 	String author_comment = "";
 	if (notification_type == NotificationCustom || notification_type == NotificationAcknowledgement) {
@@ -1138,10 +1115,7 @@ void DbEvents::AddNotificationSentLogHistory(const Notification::Ptr& notificati
 	if (!cr)
 		return;
 
-	String output;
-
-	if (cr)
-		output = CompatUtility::GetCheckResultOutput(cr);
+	String output = CompatUtility::GetCheckResultOutput(cr);
 
 	Host::Ptr host;
 	Service::Ptr service;
@@ -1154,18 +1128,18 @@ void DbEvents::AddNotificationSentLogHistory(const Notification::Ptr& notificati
 			<< user->GetName() << ";"
 			<< host->GetName() << ";"
 			<< service->GetShortName() << ";"
-			<< notification_type_str << " "
+			<< notificationTypeStr << " "
 			<< "(" << Service::StateToString(service->GetState()) << ");"
-			<< check_command << ";"
+			<< checkCommandName << ";"
 			<< output << author_comment
 			<< "";
 	} else {
 		msgbuf << "HOST NOTIFICATION: "
 			<< user->GetName() << ";"
 			<< host->GetName() << ";"
-			<< notification_type_str << " "
+			<< notificationTypeStr << " "
 			<< "(" << Host::StateToString(host->GetState()) << ");"
-			<< check_command << ";"
+			<< checkCommandName << ";"
 			<< output << author_comment
 			<< "";
 	}
@@ -1175,15 +1149,15 @@ void DbEvents::AddNotificationSentLogHistory(const Notification::Ptr& notificati
 
 void DbEvents::AddFlappingChangedLogHistory(const Checkable::Ptr& checkable)
 {
-	String flapping_state_str;
-	String flapping_output;
+	String flappingStateStr;
+	String flappingOutput;
 
 	if (checkable->IsFlapping()) {
-		flapping_output = "Service appears to have started flapping (" + Convert::ToString(checkable->GetFlappingCurrent()) + "% change >= " + Convert::ToString(checkable->GetFlappingThresholdHigh()) + "% threshold)";
-		flapping_state_str = "STARTED";
+		flappingOutput = "Service appears to have started flapping (" + Convert::ToString(checkable->GetFlappingCurrent()) + "% change >= " + Convert::ToString(checkable->GetFlappingThresholdHigh()) + "% threshold)";
+		flappingStateStr = "STARTED";
 	} else {
-		flapping_output = "Service appears to have stopped flapping (" + Convert::ToString(checkable->GetFlappingCurrent()) + "% change < " + Convert::ToString(checkable->GetFlappingThresholdLow()) + "% threshold)";
-		flapping_state_str = "STOPPED";
+		flappingOutput = "Service appears to have stopped flapping (" + Convert::ToString(checkable->GetFlappingCurrent()) + "% change < " + Convert::ToString(checkable->GetFlappingThresholdLow()) + "% threshold)";
+		flappingStateStr = "STOPPED";
 	}
 
 	Host::Ptr host;
@@ -1196,14 +1170,14 @@ void DbEvents::AddFlappingChangedLogHistory(const Checkable::Ptr& checkable)
 		msgbuf << "SERVICE FLAPPING ALERT: "
 			<< host->GetName() << ";"
 			<< service->GetShortName() << ";"
-			<< flapping_state_str << "; "
-			<< flapping_output
+			<< flappingStateStr << "; "
+			<< flappingOutput
 			<< "";
 	} else {
 		msgbuf << "HOST FLAPPING ALERT: "
 			<< host->GetName() << ";"
-			<< flapping_state_str << "; "
-			<< flapping_output
+			<< flappingStateStr << "; "
+			<< flappingOutput
 			<< "";
 	}
 
@@ -1215,8 +1189,8 @@ void DbEvents::AddEnableFlappingChangedLogHistory(const Checkable::Ptr& checkabl
 	if (!checkable->GetEnableFlapping())
 		return;
 
-	String flapping_output = "Flap detection has been disabled";
-	String flapping_state_str = "DISABLED";
+	String flappingOutput = "Flap detection has been disabled";
+	String flappingStateStr = "DISABLED";
 
 	Host::Ptr host;
 	Service::Ptr service;
@@ -1228,14 +1202,14 @@ void DbEvents::AddEnableFlappingChangedLogHistory(const Checkable::Ptr& checkabl
 		msgbuf << "SERVICE FLAPPING ALERT: "
 			<< host->GetName() << ";"
 			<< service->GetShortName() << ";"
-			<< flapping_state_str << "; "
-			<< flapping_output
+			<< flappingStateStr << "; "
+			<< flappingOutput
 			<< "";
 	} else {
 		msgbuf << "HOST FLAPPING ALERT: "
 			<< host->GetName() << ";"
-			<< flapping_state_str << "; "
-			<< flapping_output
+			<< flappingStateStr << "; "
+			<< flappingOutput
 			<< "";
 	}
 
@@ -1247,7 +1221,7 @@ void DbEvents::AddLogHistory(const Checkable::Ptr& checkable, const String& buff
 	Log(LogDebug, "DbEvents")
 		<< "add log entry history for '" << checkable->GetName() << "'";
 
-	std::pair<unsigned long, unsigned long> time_bag = ConvertTimestamp(Utility::GetTime());
+	std::pair<unsigned long, unsigned long> timeBag = ConvertTimestamp(Utility::GetTime());
 
 	DbQuery query1;
 	query1.Table = "logentries";
@@ -1255,18 +1229,18 @@ void DbEvents::AddLogHistory(const Checkable::Ptr& checkable, const String& buff
 	query1.Category = DbCatLog;
 
 	Dictionary::Ptr fields1 = new Dictionary();
-	fields1->Set("logentry_time", DbValue::FromTimestamp(time_bag.first));
-	fields1->Set("entry_time", DbValue::FromTimestamp(time_bag.first));
-	fields1->Set("entry_time_usec", time_bag.second);
-	fields1->Set("object_id", checkable); // added in 1.10 see #4754
+
+	fields1->Set("logentry_time", DbValue::FromTimestamp(timeBag.first));
+	fields1->Set("entry_time", DbValue::FromTimestamp(timeBag.first));
+	fields1->Set("entry_time_usec", timeBag.second);
+	fields1->Set("object_id", checkable);
 	fields1->Set("logentry_type", type);
 	fields1->Set("logentry_data", buffer);
 
 	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
-	String node = IcingaApplication::GetInstance()->GetNodeName();
+	Endpoint::Ptr endpoint = Endpoint::GetByName(IcingaApplication::GetInstance()->GetNodeName());
 
-	Endpoint::Ptr endpoint = Endpoint::GetByName(node);
 	if (endpoint)
 		fields1->Set("endpoint_object_id", endpoint);
 
@@ -1280,7 +1254,7 @@ void DbEvents::AddFlappingChangedHistory(const Checkable::Ptr& checkable)
 	Log(LogDebug, "DbEvents")
 		<< "add flapping history for '" << checkable->GetName() << "'";
 
-	std::pair<unsigned long, unsigned long> time_bag = ConvertTimestamp(Utility::GetTime());
+	std::pair<unsigned long, unsigned long> timeBag = ConvertTimestamp(Utility::GetTime());
 
 	DbQuery query1;
 	query1.Table = "flappinghistory";
@@ -1289,8 +1263,8 @@ void DbEvents::AddFlappingChangedHistory(const Checkable::Ptr& checkable)
 
 	Dictionary::Ptr fields1 = new Dictionary();
 
-	fields1->Set("event_time", DbValue::FromTimestamp(time_bag.first));
-	fields1->Set("event_time_usec", time_bag.second);
+	fields1->Set("event_time", DbValue::FromTimestamp(timeBag.first));
+	fields1->Set("event_time_usec", timeBag.second);
 
 	if (checkable->IsFlapping())
 		fields1->Set("event_type", 1000);
@@ -1311,9 +1285,8 @@ void DbEvents::AddFlappingChangedHistory(const Checkable::Ptr& checkable)
 
 	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
-	String node = IcingaApplication::GetInstance()->GetNodeName();
+	Endpoint::Ptr endpoint = Endpoint::GetByName(IcingaApplication::GetInstance()->GetNodeName());
 
-	Endpoint::Ptr endpoint = Endpoint::GetByName(node);
 	if (endpoint)
 		fields1->Set("endpoint_object_id", endpoint);
 
@@ -1323,10 +1296,13 @@ void DbEvents::AddFlappingChangedHistory(const Checkable::Ptr& checkable)
 
 void DbEvents::AddEnableFlappingChangedHistory(const Checkable::Ptr& checkable)
 {
+	if (!checkable->GetEnableFlapping())
+		return;
+
 	Log(LogDebug, "DbEvents")
 		<< "add flapping history for '" << checkable->GetName() << "'";
 
-	std::pair<unsigned long, unsigned long> time_bag = ConvertTimestamp(Utility::GetTime());
+	std::pair<unsigned long, unsigned long> timeBag = ConvertTimestamp(Utility::GetTime());
 
 	DbQuery query1;
 	query1.Table = "flappinghistory";
@@ -1335,11 +1311,8 @@ void DbEvents::AddEnableFlappingChangedHistory(const Checkable::Ptr& checkable)
 
 	Dictionary::Ptr fields1 = new Dictionary();
 
-	fields1->Set("event_time", DbValue::FromTimestamp(time_bag.first));
-	fields1->Set("event_time_usec", time_bag.second);
-
-	if (!checkable->GetEnableFlapping())
-		return;
+	fields1->Set("event_time", DbValue::FromTimestamp(timeBag.first));
+	fields1->Set("event_time_usec", timeBag.second);
 
 	fields1->Set("event_type", 1001);
 	fields1->Set("reason_type", 2);
@@ -1353,12 +1326,10 @@ void DbEvents::AddEnableFlappingChangedHistory(const Checkable::Ptr& checkable)
 	fields1->Set("percent_state_change", checkable->GetFlappingCurrent());
 	fields1->Set("low_threshold", checkable->GetFlappingThresholdLow());
 	fields1->Set("high_threshold", checkable->GetFlappingThresholdHigh());
-
 	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
-	String node = IcingaApplication::GetInstance()->GetNodeName();
+	Endpoint::Ptr endpoint = Endpoint::GetByName(IcingaApplication::GetInstance()->GetNodeName());
 
-	Endpoint::Ptr endpoint = Endpoint::GetByName(node);
 	if (endpoint)
 		fields1->Set("endpoint_object_id", endpoint);
 
@@ -1379,8 +1350,6 @@ void DbEvents::AddCheckableCheckHistory(const Checkable::Ptr& checkable, const C
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
 
-	std::ostringstream msgbuf;
-
 	DbQuery query1;
 	query1.Table = service ? "servicechecks" : "hostchecks";
 	query1.Type = DbQueryInsert;
@@ -1393,26 +1362,25 @@ void DbEvents::AddCheckableCheckHistory(const Checkable::Ptr& checkable, const C
 	fields1->Set("state_type", checkable->GetStateType());
 
 	double start = cr->GetExecutionStart();
-	std::pair<unsigned long, unsigned long> time_bag_start = ConvertTimestamp(start);
-
 	double end = cr->GetExecutionEnd();
-	std::pair<unsigned long, unsigned long> time_bag_end = ConvertTimestamp(end);
+	double executionTime = cr->CalculateExecutionTime();
 
-	double execution_time = cr->CalculateExecutionTime();
+	std::pair<unsigned long, unsigned long> timeBagStart = ConvertTimestamp(start);
+	std::pair<unsigned long, unsigned long> timeBagEnd = ConvertTimestamp(end);
 
-	fields1->Set("start_time", DbValue::FromTimestamp(time_bag_start.first));
-	fields1->Set("start_time_usec", time_bag_start.second);
-	fields1->Set("end_time", DbValue::FromTimestamp(time_bag_end.first));
-	fields1->Set("end_time_usec", time_bag_end.second);
+	fields1->Set("start_time", DbValue::FromTimestamp(timeBagStart.first));
+	fields1->Set("start_time_usec", timeBagStart.second);
+	fields1->Set("end_time", DbValue::FromTimestamp(timeBagEnd.first));
+	fields1->Set("end_time_usec", timeBagEnd.second);
 	fields1->Set("command_object_id", checkable->GetCheckCommand());
-	fields1->Set("command_line", CompatUtility::GetCommandLine(checkable->GetCheckCommand()));
-	fields1->Set("execution_time", Convert::ToString(execution_time));
-	fields1->Set("latency", Convert::ToString(cr->CalculateLatency()));
+	fields1->Set("execution_time", executionTime);
+	fields1->Set("latency", cr->CalculateLatency());
 	fields1->Set("return_code", cr->GetExitStatus());
-	fields1->Set("output", CompatUtility::GetCheckResultOutput(cr));
-	fields1->Set("long_output", CompatUtility::GetCheckResultLongOutput(cr));
 	fields1->Set("perfdata", PluginUtility::FormatPerfdata(cr->GetPerformanceData()));
 
+	fields1->Set("output", CompatUtility::GetCheckResultOutput(cr));
+	fields1->Set("long_output", CompatUtility::GetCheckResultLongOutput(cr));
+	fields1->Set("command_line", CompatUtility::GetCommandLine(checkable->GetCheckCommand()));
 	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
 	if (service) {
@@ -1423,9 +1391,8 @@ void DbEvents::AddCheckableCheckHistory(const Checkable::Ptr& checkable, const C
 		fields1->Set("state", GetHostState(host));
 	}
 
-	String node = IcingaApplication::GetInstance()->GetNodeName();
+	Endpoint::Ptr endpoint = Endpoint::GetByName(IcingaApplication::GetInstance()->GetNodeName());
 
-	Endpoint::Ptr endpoint = Endpoint::GetByName(node);
 	if (endpoint)
 		fields1->Set("endpoint_object_id", endpoint);
 
@@ -1439,8 +1406,6 @@ void DbEvents::AddEventHandlerHistory(const Checkable::Ptr& checkable)
 	Log(LogDebug, "DbEvents")
 		<< "add eventhandler history for '" << checkable->GetName() << "'";
 
-	std::pair<unsigned long, unsigned long> time_bag = ConvertTimestamp(Utility::GetTime());
-
 	DbQuery query1;
 	query1.Table = "eventhandlers";
 	query1.Type = DbQueryInsert;
@@ -1453,6 +1418,9 @@ void DbEvents::AddEventHandlerHistory(const Checkable::Ptr& checkable)
 	tie(host, service) = GetHostService(checkable);
 
 	fields1->Set("object_id", checkable);
+	fields1->Set("state_type", checkable->GetStateType());
+	fields1->Set("command_object_id", checkable->GetEventCommand());
+	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
 	if (service) {
 		fields1->Set("state", service->GetState());
@@ -1462,19 +1430,15 @@ void DbEvents::AddEventHandlerHistory(const Checkable::Ptr& checkable)
 		fields1->Set("eventhandler_type", 0);
 	}
 
-	fields1->Set("state_type", checkable->GetStateType());
+	std::pair<unsigned long, unsigned long> timeBag = ConvertTimestamp(Utility::GetTime());
 
-	fields1->Set("start_time", DbValue::FromTimestamp(time_bag.first));
-	fields1->Set("start_time_usec", time_bag.second);
-	fields1->Set("end_time", DbValue::FromTimestamp(time_bag.first));
-	fields1->Set("end_time_usec", time_bag.second);
-	fields1->Set("command_object_id", checkable->GetEventCommand());
+	fields1->Set("start_time", DbValue::FromTimestamp(timeBag.first));
+	fields1->Set("start_time_usec", timeBag.second);
+	fields1->Set("end_time", DbValue::FromTimestamp(timeBag.first));
+	fields1->Set("end_time_usec", timeBag.second);
 
-	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
+	Endpoint::Ptr endpoint = Endpoint::GetByName(IcingaApplication::GetInstance()->GetNodeName());
 
-	String node = IcingaApplication::GetInstance()->GetNodeName();
-
-	Endpoint::Ptr endpoint = Endpoint::GetByName(node);
 	if (endpoint)
 		fields1->Set("endpoint_object_id", endpoint);
 
@@ -1494,16 +1458,14 @@ void DbEvents::AddExternalCommandHistory(double time, const String& command, con
 
 	Dictionary::Ptr fields1 = new Dictionary();
 
-	fields1->Set("entry_time", DbValue::FromTimestamp(static_cast<long>(time)));
+	fields1->Set("entry_time", DbValue::FromTimestamp(time));
 	fields1->Set("command_type", MapExternalCommandType(command));
 	fields1->Set("command_name", command);
 	fields1->Set("command_args", boost::algorithm::join(arguments, ";"));
-
 	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
-	String node = IcingaApplication::GetInstance()->GetNodeName();
+	Endpoint::Ptr endpoint = Endpoint::GetByName(IcingaApplication::GetInstance()->GetNodeName());
 
-	Endpoint::Ptr endpoint = Endpoint::GetByName(node);
 	if (endpoint)
 		fields1->Set("endpoint_object_id", endpoint);
 
