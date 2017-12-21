@@ -152,6 +152,8 @@ public:
 	static void IncrementTime(double);
 #endif /* I2_DEBUG */
 
+	static bool IsAbsolutePath(const String& path);
+
 private:
 	Utility();
 	static void CollectPaths(const String& path, std::vector<String>& paths);

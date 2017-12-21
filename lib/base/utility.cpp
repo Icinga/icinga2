@@ -1939,3 +1939,12 @@ String Utility::GetIcingaDataPath()
 }
 
 #endif /* _WIN32 */
+
+bool Utility::IsAbsolutePath(const String& path)
+{
+#ifndef _WIN32
+	return (path.GetLength() > 0 && path[0] == '/');
+#else /* _WIN32 */
+	return !PathIsRelative(path.CStr());
+#endif /* _WIN32 */
+}

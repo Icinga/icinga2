@@ -146,8 +146,6 @@ private:
 
 	static void HandleIncludeZone(const String& relativeBase, const String& tag, const String& path, const String& pattern, const String& package, std::vector<std::unique_ptr<Expression> >& expressions);
 
-	static bool IsAbsolutePath(const String& path);
-
 public:
 	bool m_Eof;
 	int m_OpenBraces;

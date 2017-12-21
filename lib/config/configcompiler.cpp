@@ -134,7 +134,7 @@ std::unique_ptr<Expression> ConfigCompiler::HandleInclude(const String& relative
 {
 	String upath;
 
-	if (search || (IsAbsolutePath(path)))
+	if (search || (Utility::IsAbsolutePath(path)))
 		upath = path;
 	else
 		upath = relativeBase + "/" + path;
@@ -178,7 +178,7 @@ std::unique_ptr<Expression> ConfigCompiler::HandleIncludeRecursive(const String&
 {
 	String ppath;
 
-	if (IsAbsolutePath(path))
+	if (Utility::IsAbsolutePath(path))
 		ppath = path;
 	else
 		ppath = relativeBase + "/" + path;
@@ -197,7 +197,7 @@ void ConfigCompiler::HandleIncludeZone(const String& relativeBase, const String&
 
 	String ppath;
 
-	if (IsAbsolutePath(path))
+	if (Utility::IsAbsolutePath(path))
 		ppath = path;
 	else
 		ppath = relativeBase + "/" + path;
@@ -222,7 +222,7 @@ std::unique_ptr<Expression> ConfigCompiler::HandleIncludeZones(const String& rel
 	String ppath;
 	String newRelativeBase = relativeBase;
 
-	if (IsAbsolutePath(path))
+	if (Utility::IsAbsolutePath(path))
 		ppath = path;
 	else {
 		ppath = relativeBase + "/" + path;
@@ -350,14 +350,3 @@ for (const ZoneFragment& zf : zoneDirs) {
 
 	return !empty;
 }
-
-
-bool ConfigCompiler::IsAbsolutePath(const String& path)
-{
-#ifndef _WIN32
-	return (path.GetLength() > 0 && path[0] == '/');
-#else /* _WIN32 */
-	return !PathIsRelative(path.CStr());
-#endif /* _WIN32 */
-}
-
