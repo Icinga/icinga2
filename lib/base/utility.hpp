@@ -153,6 +153,8 @@ public:
 #endif /* I2_DEBUG */
 
 	static bool IsAbsolutePath(const String& path);
+	static String ConcatPath(std::initializer_list<std::string> components);
+	static bool PathIsExecutable(const String& path);
 
 private:
 	Utility();

@@ -33,6 +33,8 @@
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/replace.hpp>
+#include <boost/filesystem/path.hpp>
+#include <boost/filesystem/operations.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <ios>
@@ -1946,5 +1948,24 @@ bool Utility::IsAbsolutePath(const String& path)
 	return (path.GetLength() > 0 && path[0] == '/');
 #else /* _WIN32 */
 	return !PathIsRelative(path.CStr());
+#endif /* _WIN32 */
+}
+
+String Utility::ConcatPath(std::initializer_list<std::string> components)
+{
+	boost::filesystem::path result;
+	for (const auto& component : components) {
+		result /= component;
+	}
+	return result.string();
+}
+
+bool Utility::PathIsExecutable(const String& path)
+{
+	bool exists = PathExists(path);
+#ifdef _WIN32
+  return exists;
+#else /* _WIN32 */
+	return exists && access(path.CStr(), R_OK | X_OK) == 0;
 #endif /* _WIN32 */
 }
