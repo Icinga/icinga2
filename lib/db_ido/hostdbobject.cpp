@@ -51,11 +51,10 @@ Dictionary::Ptr HostDbObject::GetConfigFields() const
 	/* Compatibility fallback. */
 	String displayName = host->GetDisplayName();
 
-	if (!displayName.IsEmpty()) {
+	if (!displayName.IsEmpty())
 		fields->Set("alias", displayName);
-	} else {
+	else
 		fields->Set("alias", host->GetName());
-	}
 
 	fields->Set("display_name", displayName);
 	fields->Set("address", host->GetAddress());

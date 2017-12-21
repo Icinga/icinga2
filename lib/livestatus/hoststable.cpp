@@ -1036,12 +1036,7 @@ Value HostsTable::CustomVariableNamesAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	Dictionary::Ptr vars;
-
-	{
-		ObjectLock olock(host);
-		vars = host->GetVars();
-	}
+	Dictionary::Ptr vars = host->GetVars();
 
 	Array::Ptr cv = new Array();
 
@@ -1063,12 +1058,7 @@ Value HostsTable::CustomVariableValuesAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	Dictionary::Ptr vars;
-
-	{
-		ObjectLock olock(host);
-		vars = host->GetVars();
-	}
+	Dictionary::Ptr vars = host->GetVars();
 
 	Array::Ptr cv = new Array();
 
@@ -1093,12 +1083,7 @@ Value HostsTable::CustomVariablesAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	Dictionary::Ptr vars;
-
-	{
-		ObjectLock olock(host);
-		vars = host->GetVars();
-	}
+	Dictionary::Ptr vars = host->GetVars();
 
 	Array::Ptr cv = new Array();
 
@@ -1128,12 +1113,7 @@ Value HostsTable::CVIsJsonAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	Dictionary::Ptr vars;
-
-	{
-		ObjectLock olock(host);
-		vars = host->GetVars();
-	}
+	Dictionary::Ptr vars = host->GetVars();
 
 	if (!vars)
 		return Empty;

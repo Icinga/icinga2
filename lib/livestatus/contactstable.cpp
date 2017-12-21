@@ -203,12 +203,7 @@ Value ContactsTable::CustomVariableNamesAccessor(const Value& row)
 	if (!user)
 		return Empty;
 
-	Dictionary::Ptr vars;
-
-	{
-		ObjectLock olock(user);
-		vars = user->GetVars();
-	}
+	Dictionary::Ptr vars = user->GetVars();
 
 	Array::Ptr cv = new Array();
 
@@ -230,12 +225,7 @@ Value ContactsTable::CustomVariableValuesAccessor(const Value& row)
 	if (!user)
 		return Empty;
 
-	Dictionary::Ptr vars;
-
-	{
-		ObjectLock olock(user);
-		vars = user->GetVars();
-	}
+	Dictionary::Ptr vars = user->GetVars();
 
 	Array::Ptr cv = new Array();
 
@@ -260,12 +250,7 @@ Value ContactsTable::CustomVariablesAccessor(const Value& row)
 	if (!user)
 		return Empty;
 
-	Dictionary::Ptr vars;
-
-	{
-		ObjectLock olock(user);
-		vars = user->GetVars();
-	}
+	Dictionary::Ptr vars = user->GetVars();
 
 	Array::Ptr cv = new Array();
 
@@ -295,12 +280,7 @@ Value ContactsTable::CVIsJsonAccessor(const Value& row)
 	if (!user)
 		return Empty;
 
-	Dictionary::Ptr vars;
-
-	{
-		ObjectLock olock(user);
-		vars = user->GetVars();
-	}
+	Dictionary::Ptr vars = user->GetVars();
 
 	if (!vars)
 		return Empty;

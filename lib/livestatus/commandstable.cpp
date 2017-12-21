@@ -99,12 +99,7 @@ Value CommandsTable::CustomVariableNamesAccessor(const Value& row)
 	if (!command)
 		return Empty;
 
-	Dictionary::Ptr vars;
-
-	{
-		ObjectLock olock(command);
-		vars = command->GetVars();
-	}
+	Dictionary::Ptr vars = command->GetVars();
 
 	Array::Ptr cv = new Array();
 
@@ -128,12 +123,7 @@ Value CommandsTable::CustomVariableValuesAccessor(const Value& row)
 	if (!command)
 		return Empty;
 
-	Dictionary::Ptr vars;
-
-	{
-		ObjectLock olock(command);
-		vars = command->GetVars();
-	}
+	Dictionary::Ptr vars = command->GetVars();
 
 	Array::Ptr cv = new Array();
 
@@ -157,12 +147,7 @@ Value CommandsTable::CustomVariablesAccessor(const Value& row)
 	if (!command)
 		return Empty;
 
-	Dictionary::Ptr vars;
-
-	{
-		ObjectLock olock(command);
-		vars = command->GetVars();
-	}
+	Dictionary::Ptr vars = command->GetVars();
 
 	Array::Ptr cv = new Array();
 

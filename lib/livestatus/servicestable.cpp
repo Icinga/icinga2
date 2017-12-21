@@ -1058,12 +1058,7 @@ Value ServicesTable::CustomVariableNamesAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	Dictionary::Ptr vars;
-
-	{
-		ObjectLock olock(service);
-		vars = service->GetVars();
-	}
+	Dictionary::Ptr vars = service->GetVars();
 
 	Array::Ptr cv = new Array();
 
@@ -1085,12 +1080,7 @@ Value ServicesTable::CustomVariableValuesAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	Dictionary::Ptr vars;
-
-	{
-		ObjectLock olock(service);
-		vars = service->GetVars();
-	}
+	Dictionary::Ptr vars = service->GetVars();
 
 	Array::Ptr cv = new Array();
 
@@ -1115,12 +1105,7 @@ Value ServicesTable::CustomVariablesAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	Dictionary::Ptr vars;
-
-	{
-		ObjectLock olock(service);
-		vars = service->GetVars();
-	}
+	Dictionary::Ptr vars = service->GetVars();
 
 	Array::Ptr cv = new Array();
 
@@ -1150,12 +1135,7 @@ Value ServicesTable::CVIsJsonAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	Dictionary::Ptr vars;
-
-	{
-		ObjectLock olock(service);
-		vars = service->GetVars();
-	}
+	Dictionary::Ptr vars = service->GetVars();
 
 	if (!vars)
 		return Empty;
