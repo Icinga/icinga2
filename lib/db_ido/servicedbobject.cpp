@@ -62,24 +62,6 @@ Dictionary::Ptr ServiceDbObject::GetConfigFields() const
 	fields->Set("check_interval", (service->GetCheckInterval() / 60.0));
 	fields->Set("retry_interval", (service->GetRetryInterval() / 60.0));
 	fields->Set("max_check_attempts", service->GetMaxCheckAttempts());
-	fields->Set("notification_interval", CompatUtility::GetCheckableNotificationNotificationInterval(service));
-
-        unsigned long notificationStateFilter = CompatUtility::GetCheckableNotificationTypeFilter(service);
-        unsigned long notificationTypeFilter = CompatUtility::GetCheckableNotificationTypeFilter(service);
-
-	fields->Set("notify_on_warning", notificationStateFilter & ServiceWarning);
-	fields->Set("notify_on_unknown", notificationStateFilter & ServiceUnknown);
-	fields->Set("notify_on_critical", notificationStateFilter & ServiceCritical);
-	fields->Set("notify_on_recovery", notificationTypeFilter & NotificationRecovery);
-	fields->Set("notify_on_flapping", (notificationTypeFilter & NotificationFlappingStart) ||
-		(notificationTypeFilter & NotificationFlappingEnd));
-	fields->Set("notify_on_downtime", (notificationTypeFilter & NotificationDowntimeStart) ||
-		(notificationTypeFilter & NotificationDowntimeEnd) || (notificationTypeFilter & NotificationDowntimeRemoved));
-
-	fields->Set("stalk_on_ok", 0);
-	fields->Set("stalk_on_warning", 0);
-	fields->Set("stalk_on_unknown", 0);
-	fields->Set("stalk_on_critical", 0);
 	fields->Set("is_volatile", service->GetVolatile());
 	fields->Set("flap_detection_enabled", service->GetEnableFlapping());
 	fields->Set("low_flap_threshold", service->GetFlappingThresholdLow());
@@ -97,6 +79,20 @@ Dictionary::Ptr ServiceDbObject::GetConfigFields() const
 	fields->Set("icon_image", service->GetIconImage());
 	fields->Set("icon_image_alt", service->GetIconImageAlt());
 
+	fields->Set("notification_interval", CompatUtility::GetCheckableNotificationNotificationInterval(service));
+
+	unsigned long notificationStateFilter = CompatUtility::GetCheckableNotificationTypeFilter(service);
+	unsigned long notificationTypeFilter = CompatUtility::GetCheckableNotificationTypeFilter(service);
+
+	fields->Set("notify_on_warning", notificationStateFilter & ServiceWarning);
+	fields->Set("notify_on_unknown", notificationStateFilter & ServiceUnknown);
+	fields->Set("notify_on_critical", notificationStateFilter & ServiceCritical);
+	fields->Set("notify_on_recovery", notificationTypeFilter & NotificationRecovery);
+	fields->Set("notify_on_flapping", (notificationTypeFilter & NotificationFlappingStart) ||
+		(notificationTypeFilter & NotificationFlappingEnd));
+	fields->Set("notify_on_downtime", (notificationTypeFilter & NotificationDowntimeStart) ||
+		(notificationTypeFilter & NotificationDowntimeEnd) || (notificationTypeFilter & NotificationDowntimeRemoved));
+
 	return fields;
 }
 
@@ -111,6 +107,8 @@ Dictionary::Ptr ServiceDbObject::GetStatusFields() const
 		fields->Set("long_output", CompatUtility::GetCheckResultLongOutput(cr));
 		fields->Set("perfdata", PluginUtility::FormatPerfdata(cr->GetPerformanceData()));
 		fields->Set("check_source", cr->GetCheckSource());
+		fields->Set("latency", cr->CalculateLatency());
+		fields->Set("execution_time", cr->CalculateExecutionTime());
 	}
 
 	fields->Set("current_state", service->GetState());
@@ -118,46 +116,37 @@ Dictionary::Ptr ServiceDbObject::GetStatusFields() const
 	fields->Set("should_be_scheduled", service->GetEnableActiveChecks());
 	fields->Set("current_check_attempt", service->GetCheckAttempt());
 	fields->Set("max_check_attempts", service->GetMaxCheckAttempts());
-
-	if (cr)
-		fields->Set("last_check", DbValue::FromTimestamp(cr->GetScheduleEnd()));
-
+	fields->Set("last_check", DbValue::FromTimestamp(service->GetLastCheck()));
 	fields->Set("next_check", DbValue::FromTimestamp(service->GetNextCheck()));
 	fields->Set("check_type", !service->GetEnableActiveChecks()); /* 0 .. active, 1 .. passive */
 	fields->Set("last_state_change", DbValue::FromTimestamp(service->GetLastStateChange()));
 	fields->Set("last_hard_state_change", DbValue::FromTimestamp(service->GetLastHardStateChange()));
 	fields->Set("last_hard_state", service->GetLastHardState());
-	fields->Set("last_time_ok", DbValue::FromTimestamp(static_cast<int>(service->GetLastStateOK())));
-	fields->Set("last_time_warning", DbValue::FromTimestamp(static_cast<int>(service->GetLastStateWarning())));
-	fields->Set("last_time_critical", DbValue::FromTimestamp(static_cast<int>(service->GetLastStateCritical())));
-	fields->Set("last_time_unknown", DbValue::FromTimestamp(static_cast<int>(service->GetLastStateUnknown())));
+	fields->Set("last_time_ok", DbValue::FromTimestamp(service->GetLastStateOK()));
+	fields->Set("last_time_warning", DbValue::FromTimestamp(service->GetLastStateWarning()));
+	fields->Set("last_time_critical", DbValue::FromTimestamp(service->GetLastStateCritical()));
+	fields->Set("last_time_unknown", DbValue::FromTimestamp(service->GetLastStateUnknown()));
 	fields->Set("state_type", service->GetStateType());
-	fields->Set("last_notification", DbValue::FromTimestamp(CompatUtility::GetCheckableNotificationLastNotification(service)));
-	fields->Set("next_notification", DbValue::FromTimestamp(CompatUtility::GetCheckableNotificationNextNotification(service)));
 	fields->Set("notifications_enabled", service->GetEnableNotifications());
 	fields->Set("problem_has_been_acknowledged", service->GetAcknowledgement() != AcknowledgementNone);
 	fields->Set("acknowledgement_type", service->GetAcknowledgement());
-	fields->Set("current_notification_number", CompatUtility::GetCheckableNotificationNotificationNumber(service));
 	fields->Set("passive_checks_enabled", service->GetEnablePassiveChecks());
 	fields->Set("active_checks_enabled", service->GetEnableActiveChecks());
 	fields->Set("event_handler_enabled", service->GetEnableEventHandler());
 	fields->Set("flap_detection_enabled", service->GetEnableFlapping());
 	fields->Set("is_flapping", service->IsFlapping());
 	fields->Set("percent_state_change", service->GetFlappingCurrent());
-
-	if (cr) {
-		fields->Set("latency", Convert::ToString(cr->CalculateLatency()));
-		fields->Set("execution_time", Convert::ToString(cr->CalculateExecutionTime()));
-	}
-
 	fields->Set("scheduled_downtime_depth", service->GetDowntimeDepth());
 	fields->Set("process_performance_data", service->GetEnablePerfdata());
 	fields->Set("normal_check_interval", (service->GetCheckInterval() / 60.0));
 	fields->Set("retry_check_interval", (service->GetRetryInterval() / 60.0));
 	fields->Set("check_timeperiod_object_id", service->GetCheckPeriod());
 	fields->Set("is_reachable", service->IsReachable());
-
 	fields->Set("original_attributes", JsonEncode(service->GetOriginalAttributes()));
+
+	fields->Set("current_notification_number", CompatUtility::GetCheckableNotificationNotificationNumber(service));
+	fields->Set("last_notification", DbValue::FromTimestamp(CompatUtility::GetCheckableNotificationLastNotification(service)));
+	fields->Set("next_notification", DbValue::FromTimestamp(CompatUtility::GetCheckableNotificationNextNotification(service)));
 
 	EventCommand::Ptr eventCommand = service->GetEventCommand();
 
