@@ -57,7 +57,6 @@ Dictionary::Ptr ServiceDbObject::GetConfigFields() const
 	fields->Set("host_object_id", host);
 	fields->Set("display_name", service->GetDisplayName());
 	fields->Set("check_command_object_id", service->GetCheckCommand());
-	fields->Set("check_command_args", CompatUtility::GetCheckableCommandArgs(service));
 	fields->Set("eventhandler_command_object_id", service->GetEventCommand());
 	fields->Set("eventhandler_command_args", Empty);
 	fields->Set("notification_timeperiod_object_id", Empty);

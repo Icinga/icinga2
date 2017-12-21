@@ -62,7 +62,6 @@ Dictionary::Ptr HostDbObject::GetConfigFields() const
 	fields->Set("address6", host->GetAddress6());
 
 	fields->Set("check_command_object_id", host->GetCheckCommand());
-	fields->Set("check_command_args", CompatUtility::GetCheckableCommandArgs(host));
 	fields->Set("eventhandler_command_object_id", host->GetEventCommand());
 	fields->Set("eventhandler_command_args", Empty);
 	fields->Set("notification_timeperiod_object_id", Empty);
