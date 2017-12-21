@@ -615,12 +615,6 @@ String CompatUtility::GetCheckResultOutput(const CheckResult::Ptr& cr)
 
 	String raw_output = cr->GetOutput();
 
-	/*
-	 * replace semi-colons with colons in output
-	 * semi-colon is used as delimiter in various interfaces
-	 */
-	boost::algorithm::replace_all(raw_output, ";", ":");
-
 	size_t line_end = raw_output.Find("\n");
 
 	return raw_output.SubStr(0, line_end);
@@ -635,12 +629,6 @@ String CompatUtility::GetCheckResultLongOutput(const CheckResult::Ptr& cr)
 	String output;
 
 	String raw_output = cr->GetOutput();
-
-	/*
-	 * replace semi-colons with colons in output
-	 * semi-colon is used as delimiter in various interfaces
-	 */
-	boost::algorithm::replace_all(raw_output, ";", ":");
 
 	size_t line_end = raw_output.Find("\n");
 
