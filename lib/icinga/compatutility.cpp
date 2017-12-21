@@ -147,19 +147,6 @@ String CompatUtility::GetCheckableCommandArgs(const Checkable::Ptr& checkable)
 	return Empty;
 }
 
-/* Used in Livestatus. */
-int CompatUtility::GetCheckableInNotificationPeriod(const Checkable::Ptr& checkable)
-{
-	for (const Notification::Ptr& notification : checkable->GetNotifications()) {
-		TimePeriod::Ptr timeperiod = notification->GetPeriod();
-
-		if (!timeperiod || timeperiod->IsInside(Utility::GetTime()))
-			return 1;
-	}
-
-	return 0;
-}
-
 /* Used in DB IDO, StatusDataWriter and Livestatus. */
 int CompatUtility::GetCheckableNotificationLastNotification(const Checkable::Ptr& checkable)
 {

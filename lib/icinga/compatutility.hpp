@@ -42,8 +42,6 @@ public:
 	/* service */
 	static String GetCheckableCommandArgs(const Checkable::Ptr& checkable);
 
-	static int GetCheckableInNotificationPeriod(const Checkable::Ptr& checkable);
-
 	/* notification */
 	static int GetCheckableNotificationsEnabled(const Checkable::Ptr& checkable);
 	static int GetCheckableNotificationLastNotification(const Checkable::Ptr& checkable);

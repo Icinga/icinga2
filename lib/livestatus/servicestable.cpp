@@ -916,7 +916,14 @@ Value ServicesTable::InNotificationPeriodAccessor(const Value& row)
 	if (!service)
 		return Empty;
 
-	return CompatUtility::GetCheckableInNotificationPeriod(service);
+	for (const Notification::Ptr& notification : service->GetNotifications()) {
+		TimePeriod::Ptr timeperiod = notification->GetPeriod();
+
+		if (!timeperiod || timeperiod->IsInside(Utility::GetTime()))
+			return 1;
+	}
+
+	return 0;
 }
 
 Value ServicesTable::ContactsAccessor(const Value& row)

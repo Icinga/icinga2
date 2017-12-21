@@ -879,7 +879,14 @@ Value HostsTable::InNotificationPeriodAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	return CompatUtility::GetCheckableInNotificationPeriod(host);
+	for (const Notification::Ptr& notification : host->GetNotifications()) {
+		TimePeriod::Ptr timeperiod = notification->GetPeriod();
+
+		if (!timeperiod || timeperiod->IsInside(Utility::GetTime()))
+			return 1;
+	}
+
+	return 0;
 }
 
 Value HostsTable::InCheckPeriodAccessor(const Value& row)
