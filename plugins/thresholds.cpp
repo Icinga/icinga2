@@ -114,7 +114,7 @@ std::wstring threshold::pString(CONST DOUBLE max)
 		upperAbs = upper / 100.0 * max;
 	}
 
-	std::wstring s, lowerStr = removeZero(lowerAbs)
+	std::wstring s, lowerStr = removeZero(lowerAbs),
 					upperStr = removeZero(upperAbs);
 
 	if (lower != upper) {

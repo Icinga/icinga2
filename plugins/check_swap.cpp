@@ -191,7 +191,7 @@ INT printOutput(printInfoStruct& printInfo)
 	return state;
 }
 
-INT check_swap(printInfoStruct& printInfo
+INT check_swap(printInfoStruct& printInfo)
 {
 	MEMORYSTATUSEX MemBuf;
 	MemBuf.dwLength = sizeof(MemBuf);
