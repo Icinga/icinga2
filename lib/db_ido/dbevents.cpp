@@ -761,7 +761,7 @@ void DbEvents::AddAcknowledgementHistory(const Checkable::Ptr& checkable, const 
 	if (service) {
 		fields1->Set("state", service->GetState());
 	} else {
-		fields1->Set("state", CompatUtility::GetHostCurrentState(host));
+		fields1->Set("state", GetHostState(host));
 	}
 
 	String node = IcingaApplication::GetInstance()->GetNodeName();
@@ -855,7 +855,7 @@ void DbEvents::AddNotificationHistory(const Notification::Ptr& notification, con
 	if (service) {
 		fields1->Set("state", service->GetState());
 	} else {
-		fields1->Set("state", CompatUtility::GetHostCurrentState(host));
+		fields1->Set("state", GetHostState(host));
 	}
 
 	if (cr) {
@@ -936,7 +936,7 @@ void DbEvents::AddStateChangeHistory(const Checkable::Ptr& checkable, const Chec
 		fields1->Set("last_state", service->GetLastState());
 		fields1->Set("last_hard_state", service->GetLastHardState());
 	} else {
-		fields1->Set("state", CompatUtility::GetHostCurrentState(host));
+		fields1->Set("state", GetHostState(host));
 		fields1->Set("last_state", host->GetLastState());
 		fields1->Set("last_hard_state", host->GetLastHardState());
 	}
@@ -1421,7 +1421,7 @@ void DbEvents::AddCheckableCheckHistory(const Checkable::Ptr& checkable, const C
 		fields1->Set("state", service->GetState());
 	} else {
 		fields1->Set("host_object_id", host);
-		fields1->Set("state", CompatUtility::GetHostCurrentState(host));
+		fields1->Set("state", GetHostState(host));
 	}
 
 	String node = IcingaApplication::GetInstance()->GetNodeName();
@@ -1459,7 +1459,7 @@ void DbEvents::AddEventHandlerHistory(const Checkable::Ptr& checkable)
 		fields1->Set("state", service->GetState());
 		fields1->Set("eventhandler_type", 1);
 	} else {
-		fields1->Set("state", CompatUtility::GetHostCurrentState(host));
+		fields1->Set("state", GetHostState(host));
 		fields1->Set("eventhandler_type", 0);
 	}
 
@@ -1510,6 +1510,16 @@ void DbEvents::AddExternalCommandHistory(double time, const String& command, con
 
 	query1.Fields = fields1;
 	DbObject::OnQuery(query1);
+}
+
+int DbEvents::GetHostState(const Host::Ptr& host)
+{
+	int currentState = host->GetState();
+
+	if (currentState != HostUp && !host->IsReachable())
+		currentState = 2; /* hardcoded compat state */
+
+	return currentState;
 }
 
 std::pair<unsigned long, unsigned long> DbEvents::ConvertTimestamp(double time)

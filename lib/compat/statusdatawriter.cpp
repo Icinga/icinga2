@@ -365,7 +365,12 @@ void StatusDataWriter::DumpCheckableStatusAttrs(std::ostream& fp, const Checkabl
 			"\t" "last_time_critical=" << static_cast<int>(service->GetLastStateCritical()) << "\n"
 			"\t" "last_time_unknown=" << static_cast<int>(service->GetLastStateUnknown()) << "\n";
 	} else {
-		fp << "\t" "current_state=" << CompatUtility::GetHostCurrentState(host) << "\n"
+		int currentState = host->GetState();
+
+		if (currentState != HostUp && !host->IsReachable())
+			currentState = 2; /* hardcoded compat state */
+
+		fp << "\t" "current_state=" << currentState << "\n"
 			"\t" "last_hard_state=" << host->GetLastHardState() << "\n"
 			"\t" "last_time_up=" << static_cast<int>(host->GetLastStateUp()) << "\n"
 			"\t" "last_time_down=" << static_cast<int>(host->GetLastStateDown()) << "\n";

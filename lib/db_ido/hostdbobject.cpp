@@ -137,7 +137,12 @@ Dictionary::Ptr HostDbObject::GetStatusFields() const
 		fields->Set("check_source", cr->GetCheckSource());
 	}
 
-	fields->Set("current_state", CompatUtility::GetHostCurrentState(host));
+	int currentState = host->GetState();
+
+	if (currentState != HostUp && !host->IsReachable())
+		currentState = 2; /* hardcoded compat state */
+
+	fields->Set("current_state", currentState);
 	fields->Set("has_been_checked", host->HasBeenChecked());
 	fields->Set("should_be_scheduled", host->GetEnableActiveChecks());
 	fields->Set("current_check_attempt", host->GetCheckAttempt());

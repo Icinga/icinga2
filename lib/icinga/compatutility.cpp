@@ -82,15 +82,6 @@ String CompatUtility::GetCommandName(const Command::Ptr& command)
 }
 
 /* Used in StatusDataWriter and DB IDO. */
-int CompatUtility::GetHostCurrentState(const Host::Ptr& host)
-{
-	if (host->GetState() != HostUp && !host->IsReachable())
-		return 2; /* hardcoded compat state */
-
-	return host->GetState();
-}
-
-/* Used in StatusDataWriter and DB IDO. */
 String CompatUtility::GetHostStateString(const Host::Ptr& host)
 {
 	if (host->GetState() != HostUp && !host->IsReachable())

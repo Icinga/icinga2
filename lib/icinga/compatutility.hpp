@@ -40,7 +40,6 @@ public:
 	static String GetCommandName(const Command::Ptr& command);
 
 	/* host */
-	static int GetHostCurrentState(const Host::Ptr& host);
 	static String GetHostStateString(const Host::Ptr& host);
 
 	/* service */
