@@ -63,8 +63,8 @@ Dictionary::Ptr HostDbObject::GetConfigFields() const
 	fields->Set("check_command_object_id", host->GetCheckCommand());
 	fields->Set("eventhandler_command_object_id", host->GetEventCommand());
 	fields->Set("check_timeperiod_object_id", host->GetCheckPeriod());
-	fields->Set("check_interval", (host->GetCheckInterval() / 60.0));
-	fields->Set("retry_interval", (host->GetRetryInterval() / 60.0));
+	fields->Set("check_interval", host->GetCheckInterval() / 60.0);
+	fields->Set("retry_interval", host->GetRetryInterval() / 60.0);
 	fields->Set("max_check_attempts", host->GetMaxCheckAttempts());
 	fields->Set("flap_detection_enabled", host->GetEnableFlapping());
 	fields->Set("low_flap_threshold", host->GetFlappingThresholdLow());
@@ -145,8 +145,8 @@ Dictionary::Ptr HostDbObject::GetStatusFields() const
 	fields->Set("percent_state_change", host->GetFlappingCurrent());
 	fields->Set("scheduled_downtime_depth", host->GetDowntimeDepth());
 	fields->Set("process_performance_data", host->GetEnablePerfdata());
-	fields->Set("normal_check_interval", (host->GetCheckInterval() / 60.0));
-	fields->Set("retry_check_interval", (host->GetRetryInterval() / 60.0));
+	fields->Set("normal_check_interval", host->GetCheckInterval() / 60.0);
+	fields->Set("retry_check_interval", host->GetRetryInterval() / 60.0);
 	fields->Set("check_timeperiod_object_id", host->GetCheckPeriod());
 	fields->Set("is_reachable", host->IsReachable());
 	fields->Set("original_attributes", JsonEncode(host->GetOriginalAttributes()));
@@ -267,7 +267,7 @@ void HostDbObject::OnConfigUpdateHeavy()
 			continue;
 		}
 
-		int state_filter = dep->GetStateFilter();
+		int stateFilter = dep->GetStateFilter();
 
 		Log(LogDebug, "HostDbObject")
 			<< "parent host: " << parent->GetName();
@@ -277,8 +277,8 @@ void HostDbObject::OnConfigUpdateHeavy()
 		fields2->Set("dependent_host_object_id", host);
 		fields2->Set("inherits_parent", 1);
 		fields2->Set("timeperiod_object_id", dep->GetPeriod());
-		fields2->Set("fail_on_up", (state_filter & StateFilterUp) ? 1 : 0);
-		fields2->Set("fail_on_down", (state_filter & StateFilterDown) ? 1 : 0);
+		fields2->Set("fail_on_up", stateFilter & StateFilterUp);
+		fields2->Set("fail_on_down", stateFilter & StateFilterDown);
 		fields2->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
 		DbQuery query2;

@@ -59,8 +59,8 @@ Dictionary::Ptr ServiceDbObject::GetConfigFields() const
 	fields->Set("check_command_object_id", service->GetCheckCommand());
 	fields->Set("eventhandler_command_object_id", service->GetEventCommand());
 	fields->Set("check_timeperiod_object_id", service->GetCheckPeriod());
-	fields->Set("check_interval", (service->GetCheckInterval() / 60.0));
-	fields->Set("retry_interval", (service->GetRetryInterval() / 60.0));
+	fields->Set("check_interval", service->GetCheckInterval() / 60.0);
+	fields->Set("retry_interval", service->GetRetryInterval() / 60.0);
 	fields->Set("max_check_attempts", service->GetMaxCheckAttempts());
 	fields->Set("is_volatile", service->GetVolatile());
 	fields->Set("flap_detection_enabled", service->GetEnableFlapping());
@@ -138,8 +138,8 @@ Dictionary::Ptr ServiceDbObject::GetStatusFields() const
 	fields->Set("percent_state_change", service->GetFlappingCurrent());
 	fields->Set("scheduled_downtime_depth", service->GetDowntimeDepth());
 	fields->Set("process_performance_data", service->GetEnablePerfdata());
-	fields->Set("normal_check_interval", (service->GetCheckInterval() / 60.0));
-	fields->Set("retry_check_interval", (service->GetRetryInterval() / 60.0));
+	fields->Set("normal_check_interval", service->GetCheckInterval() / 60.0);
+	fields->Set("retry_check_interval", service->GetRetryInterval() / 60.0);
 	fields->Set("check_timeperiod_object_id", service->GetCheckPeriod());
 	fields->Set("is_reachable", service->IsReachable());
 	fields->Set("original_attributes", JsonEncode(service->GetOriginalAttributes()));
@@ -227,7 +227,7 @@ void ServiceDbObject::OnConfigUpdateHeavy()
 		Log(LogDebug, "ServiceDbObject")
 			<< "service parents: " << parent->GetName();
 
-		int state_filter = dep->GetStateFilter();
+		int stateFilter = dep->GetStateFilter();
 
 		/* service dependencies */
 		Dictionary::Ptr fields1 = new Dictionary();
@@ -235,10 +235,10 @@ void ServiceDbObject::OnConfigUpdateHeavy()
 		fields1->Set("dependent_service_object_id", service);
 		fields1->Set("inherits_parent", 1);
 		fields1->Set("timeperiod_object_id", dep->GetPeriod());
-		fields1->Set("fail_on_ok", (state_filter & StateFilterOK) ? 1 : 0);
-		fields1->Set("fail_on_warning", (state_filter & StateFilterWarning) ? 1 : 0);
-		fields1->Set("fail_on_critical", (state_filter & StateFilterCritical) ? 1 : 0);
-		fields1->Set("fail_on_unknown", (state_filter & StateFilterUnknown) ? 1 : 0);
+		fields1->Set("fail_on_ok", stateFilter & StateFilterOK);
+		fields1->Set("fail_on_warning", stateFilter & StateFilterWarning);
+		fields1->Set("fail_on_critical", stateFilter & StateFilterCritical);
+		fields1->Set("fail_on_unknown", stateFilter & StateFilterUnknown);
 		fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
 		DbQuery query1;
