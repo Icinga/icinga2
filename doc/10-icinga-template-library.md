@@ -607,7 +607,7 @@ http_invertregex                 | **Optional.** Changes behavior of http_expect
 http_warn_time                   | **Optional.** The warning threshold.
 http_critical_time               | **Optional.** The critical threshold.
 http_expect                      | **Optional.** Comma-delimited list of strings, at least one of them is expected in the first (status) line of the server response. Default: HTTP/1.
-http_certificate                 | **Optional.** Minimum number of days a certificate has to be valid. This parameter explicitly sets the port to 443 and ignores the URL if passed.
+http_certificate                 | **Optional.** Minimum number of days a certificate has to be valid. Port defaults to 443. When this option is used the URL is not checked. The first parameter defines the warning threshold (in days), the second parameter the critical threshold (in days). (Example `http_certificate = "30,20"`).
 http_clientcert                  | **Optional.** Name of file contains the client certificate (PEM format).
 http_privatekey                  | **Optional.** Name of file contains the private key (PEM format).
 http_headerstring                | **Optional.** String to expect in the response headers.
