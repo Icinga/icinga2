@@ -44,7 +44,8 @@ void ApiUserCommand::InitParameters(boost::program_options::options_description&
 	visibleDesc.add_options()
 		("user", po::value<std::string>(), "API username")
 		("passwd", po::value<std::string>(), "Password in clear text")
-		("salt", po::value<std::string>(), "Optional salt (default: 8 random chars)");
+		("salt", po::value<std::string>(), "Optional salt (default: 8 random chars)")
+		("oneline", "Print only the password hash");
 }
 
 /**
@@ -54,29 +55,40 @@ void ApiUserCommand::InitParameters(boost::program_options::options_description&
  */
 int ApiUserCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
 {
-	if (!vm.count("user")) {
+	String user, passwd, salt;
+	if (!vm.count("user") && !vm.count("oneline")) {
 		Log(LogCritical, "cli", "Username (--user) must be specified.");
 		return 1;
-	}
+	} else
+		user = vm["user"].as<std::string>();
 
 	if (!vm.count("passwd")) {
 		Log(LogCritical, "cli", "Password (--passwd) must be specified.");
 		return 1;
 	}
 
-	String user = vm["user"].as<std::string>();
-	String passwd = vm["passwd"].as<std::string>();
-	String salt = vm.count("salt") ? String(vm["salt"].as<std::string>()) : RandomString(8);
+	passwd = vm["passwd"].as<std::string>();
+	salt = vm.count("salt") ? String(vm["salt"].as<std::string>()) : RandomString(8);
+
+	std::cout << salt << '\n';
+	if (salt.FindFirstOf('$') != String::NPos) {
+		Log(LogCritical, "cli", "Salt (--salt) may not contain '$'");
+		return 1;
+	}
 
 	String hashedPassword = HashPassword(passwd, salt, true);
 
-	std::cout
-		<< "object ApiUser \"" << user << "\" {\n"
-		<< "  password_hash =\"" << hashedPassword << "\"\n"
-		<< "  // client_cn = \"\"\n"
-		<< "\n"
-		<< "  permissions = [ \"*\" ]\n"
-		<< "}\n";
+	if (vm.count("oneline"))
+		std::cout << '"' << hashedPassword << "\"\n";
+	else {
+		std::cout
+			<< "object ApiUser \"" << user << "\" {\n"
+			<< "  password_hash =\"" << hashedPassword << "\"\n"
+			<< "  // client_cn = \"\"\n"
+			<< "\n"
+			<< "  permissions = [ \"*\" ]\n"
+			<< "}\n";
+	}
 
 	return 0;
 }
