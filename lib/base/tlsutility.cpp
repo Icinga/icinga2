@@ -810,4 +810,28 @@ std::string to_string(const errinfo_openssl_error& e)
 	return "[errinfo_openssl_error]" + tmp.str() + "\n";
 }
 
+bool ComparePassword(const String hash, const String password, const String salt)
+{
+	String otherHash = HashPassword(password, salt);
+
+	const char *p1 = otherHash.CStr();
+	const char *p2 = hash.CStr();
+
+	volatile char c = 0;
+
+	for (size_t i=0; i<64; ++i)
+		c |= p1[i] ^ p2[i];
+
+	return (c == 0);
+}
+
+String HashPassword(const String& password, const String& salt, const bool shadow)
+{
+	if (shadow)
+		//Using /etc/shadow password format. The 5 means SHA256 is being used
+		return String("$5$" + salt + "$" + PBKDF2_SHA256(password, salt, 1000));
+	else
+		return PBKDF2_SHA256(password, salt, 1000);
+}
+
 }

@@ -28,6 +28,7 @@
 #include "base/objectlock.hpp"
 #include "base/utility.hpp"
 #include "base/logger.hpp"
+#include "base/tlsutility.hpp"
 #include "base/exception.hpp"
 #include "base/convert.hpp"
 #include <boost/thread/once.hpp>
@@ -157,8 +158,13 @@ void HttpServerConnection::ProcessMessageAsync(HttpRequest& request)
 		user = ApiUser::GetByName(username);
 
 		/* Deny authentication if 1) given password is empty 2) configured password does not match. */
-		if (password.IsEmpty() || !user || !user->ComparePassword(password))
+		if (!user || password.IsEmpty())
 			user.reset();
+		else {
+			Dictionary::Ptr passwordDict = user->GetPasswordDict();
+			if (!ComparePassword(passwordDict->Get("password"), password, passwordDict->Get("salt")))
+				user.reset();
+		}
 	}
 
 	String requestUrl = request.RequestUrl->Format();

@@ -68,7 +68,7 @@ int ApiUserCommand::Run(const boost::program_options::variables_map& vm, const s
 	String passwd = vm["passwd"].as<std::string>();
 	String salt = vm.count("salt") ? String(vm["salt"].as<std::string>()) : RandomString(8);
 
-	String hashedPassword = ApiUser::CreateHashedPasswordString(passwd, salt, true);
+	String hashedPassword = HashPassword(passwd, salt, true);
 
 	std::cout
 		<< "object ApiUser \"" << user << "\" {\n"

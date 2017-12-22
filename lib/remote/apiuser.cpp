@@ -31,7 +31,7 @@ void ApiUser::OnConfigLoaded(void)
 	ObjectImpl<ApiUser>::OnConfigLoaded();
 
 	if (this->GetPasswordHash().IsEmpty())
-		SetPasswordHash(CreateHashedPasswordString(GetPassword(), RandomString(8), true));
+		SetPasswordHash(HashPassword(GetPassword(), RandomString(8), true));
 }
 
 ApiUser::Ptr ApiUser::GetByClientCN(const String& cn)
@@ -42,23 +42,6 @@ ApiUser::Ptr ApiUser::GetByClientCN(const String& cn)
 	}
 
 	return nullptr;
-}
-
-bool ApiUser::ComparePassword(String password) const
-{
-	Dictionary::Ptr passwordDict = this->GetPasswordDict();
-	String thisPassword = passwordDict->Get("password");
-	String otherPassword = CreateHashedPasswordString(password, passwordDict->Get("salt"), false);
-
-	const char *p1 = otherPassword.CStr();
-	const char *p2 = thisPassword.CStr();
-
-	volatile char c = 0;
-
-	for (size_t i=0; i<64; ++i)
-		c |= p1[i] ^ p2[i];
-
-	return (c == 0);
 }
 
 Dictionary::Ptr ApiUser::GetPasswordDict(void) const
@@ -79,14 +62,4 @@ Dictionary::Ptr ApiUser::GetPasswordDict(void) const
 	passwordDict->Set("password", password.SubStr(passwordBegin + 1));
 
 	return passwordDict;
-}
-
-String ApiUser::CreateHashedPasswordString(const String& password, const String& salt, const bool shadow)
-{
-	if (shadow)
-		//Using /etc/shadow password format. The 5 means SHA256 is being used
-		return String("$5$" + salt + "$" + PBKDF2_SHA256(password, salt, 1000));
-	else
-		return PBKDF2_SHA256(password, salt, 1000);
-
 }

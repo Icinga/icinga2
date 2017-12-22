@@ -38,10 +38,8 @@ public:
 	virtual void OnConfigLoaded(void) override;
 
 	static ApiUser::Ptr GetByClientCN(const String& cn);
-	static String CreateHashedPasswordString(const String& password, const String& salt, const bool shadow = false);
 
 	Dictionary::Ptr GetPasswordDict(void) const;
-	bool ComparePassword(String password) const;
 };
 
 }
