@@ -39,10 +39,8 @@ public:
 
 	static ApiUser::Ptr GetByClientCN(const String& cn);
 	static ApiUser::Ptr GetByAuthHeader(const String& auth_header);
-	static String CreateHashedPasswordString(const String& password, const String& salt, const bool shadow = false);
 
 	Dictionary::Ptr GetPasswordDict(void) const;
-	bool ComparePassword(String password) const;
 };
 
 }

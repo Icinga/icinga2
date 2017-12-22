@@ -36,7 +36,7 @@ BOOST_AUTO_TEST_CASE(password)
 	String passwd = RandomString(16);
 	String salt = RandomString(8);
 	user->SetPassword("ThisShouldBeIgnored");
-	user->SetPasswordHash(ApiUser::CreateHashedPasswordString(passwd, salt, true));
+	user->SetPasswordHash(HashPassword(passwd, salt, true));
 
 	BOOST_CHECK(user->GetPasswordHash() != passwd);
 
@@ -44,8 +44,8 @@ BOOST_AUTO_TEST_CASE(password)
 
 	BOOST_CHECK(passwdd);
 	BOOST_CHECK(passwdd->Get("salt") == salt);
-	BOOST_CHECK(user->ComparePassword(passwd));
-	BOOST_CHECK(!user->ComparePassword("wrong password uwu!"));
+	BOOST_CHECK(ComparePassword(passwdd->Get("password"), passwd, salt));
+	BOOST_CHECK(!ComparePassword(passwdd->Get("password"), "wrong password uwu!", salt));
 #endif
 }
 

@@ -30,6 +30,7 @@
 #include "base/logger.hpp"
 #include "base/objectlock.hpp"
 #include "base/timer.hpp"
+#include "base/tlsutility.hpp"
 #include "base/utility.hpp"
 #include <boost/thread/once.hpp>
 
