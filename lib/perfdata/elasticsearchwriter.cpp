@@ -395,11 +395,6 @@ void ElasticsearchWriter::Flush(void)
 	String body = boost::algorithm::join(m_DataBuffer, "\n");
 	m_DataBuffer.clear();
 
-	/* Elasticsearch 6.x requires a new line. This is compatible to 5.x.
-	 * Tested with 6.0.0 and 5.6.4.
-	 */
-	body += "\n";
-
 	SendRequest(body);
 }
 
@@ -459,18 +454,10 @@ void ElasticsearchWriter::SendRequest(const String& body)
 
 	try {
 		resp.Parse(context, true);
-		while (resp.Parse(context, true) && !resp.Complete)
-			; /* Do nothing */
 	} catch (const std::exception& ex) {
 		Log(LogWarning, "ElasticsearchWriter")
-		    << "Failed to parse HTTP response from host '" << GetHost() << "' port '" << GetPort() << "': " << DiagnosticInformation(ex, false);
+			<< "Cannot read from HTTP API on host '" << GetHost() << "' port '" << GetPort() << "'.";
 		throw ex;
-	}
-
-	if (!resp.Complete) {
-		Log(LogWarning, "ElasticsearchWriter")
-		    << "Failed to read a complete HTTP response from the Elasticsearch server.";
-		return;
 	}
 
 	if (resp.StatusCode > 299) {
@@ -490,6 +477,10 @@ void ElasticsearchWriter::SendRequest(const String& body)
 
 		Log(LogWarning, "ElasticsearchWriter")
 		    << "Unexpected response code " << resp.StatusCode;
+
+		/* Finish parsing the headers and body. */
+		while (!resp.Complete)
+			resp.Parse(context, true);
 
 		String contentType = resp.Headers->Get("content-type");
 
@@ -517,8 +508,6 @@ void ElasticsearchWriter::SendRequest(const String& body)
 
 		Log(LogCritical, "ElasticsearchWriter")
 		    << "Elasticsearch error message:\n" << error;
-
-		return;
 	}
 }
 
