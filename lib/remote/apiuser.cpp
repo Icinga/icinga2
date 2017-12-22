@@ -69,7 +69,7 @@ ApiUser::Ptr ApiUser::GetByAuthHeader(const String& auth_header)
 		return nullptr;
 	else {
 		Dictionary::Ptr passwordDict = user->GetPasswordDict();
-		if (!ComparePassword(passwordDict->Get("password"), password, passwordDict->Get("salt")))
+		if (!passwordDict || !ComparePassword(passwordDict->Get("password"), password, passwordDict->Get("salt")))
 			return nullptr;
 	}
 
