@@ -512,7 +512,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 			else
 				m_Impl << "\t" << "if (" << argName << ".IsEmpty())" << std::endl;
 
-			m_Impl << "\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_cast<ConfigObject *>(this), boost::assign::list_of(\"" << field.Name << "\"), \"Attribute must not be empty.\"));" << std::endl << std::endl;
+			m_Impl << "\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_cast<ConfigObject *>(this), { \"" << field.Name << "\" }, \"Attribute must not be empty.\"));" << std::endl << std::endl;
 		}
 
 		if (field.Attributes & FADeprecated) {
@@ -549,13 +549,13 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 				m_Impl << "!value.IsEmpty() && ";
 
 			m_Impl << "!utils.ValidateName(\"" << field.Type.TypeName << "\", value))" << std::endl
-				<< "\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_cast<ConfigObject *>(this), boost::assign::list_of(\"" << field.Name << "\"), \"Object '\" + value + \"' of type '" << field.Type.TypeName
+				<< "\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_cast<ConfigObject *>(this), { \"" << field.Name << "\" }, \"Object '\" + value + \"' of type '" << field.Type.TypeName
 				<< "' does not exist.\"));" << std::endl;
 		} else if (field.Type.ArrayRank > 0 && (ftype == "Number" || ftype == "Boolean")) {
 			m_Impl << "\t" << "try {" << std::endl
 				<< "\t\t" << "Convert::ToDouble(value);" << std::endl
 				<< "\t" << "} catch (const std::invalid_argument&) {" << std::endl
-				<< "\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_cast<ConfigObject *>(this), boost::assign::list_of(\"" << field.Name << "\"), \"Array element '\" + value + \"' of type '\" + value.GetReflectionType()->GetName() + \"' is not valid here; expected type '" << ftype << "'.\"));" << std::endl
+				<< "\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_cast<ConfigObject *>(this), { \"" << field.Name << "\", \"Array element '\" + value + \"' of type '\" + value.GetReflectionType()->GetName() + \"' is not valid here; expected type '" << ftype << "'.\"));" << std::endl
 				<< "\t" << "}" << std::endl;
 		}
 
@@ -1465,7 +1465,6 @@ void ClassCompiler::CompileStream(const std::string& path, std::istream& input,
 		<< "#include \"base/logger.hpp\"" << std::endl
 		<< "#include \"base/function.hpp\"" << std::endl
 		<< "#include \"base/configtype.hpp\"" << std::endl
-		<< "#include <boost/assign/list_of.hpp>" << std::endl
 		<< "#ifdef _MSC_VER" << std::endl
 		<< "#pragma warning( push )" << std::endl
 		<< "#pragma warning( disable : 4244 )" << std::endl
