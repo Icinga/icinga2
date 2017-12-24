@@ -22,7 +22,6 @@
 
 #include "base/i2-base.hpp"
 #include "base/debug.hpp"
-#include <boost/thread/condition_variable.hpp>
 #include <boost/smart_ptr/intrusive_ptr.hpp>
 #include <vector>
 
@@ -58,11 +57,12 @@ extern Value Empty;
 	DECLARE_PTR_TYPEDEFS(klass); \
 	IMPL_TYPE_LOOKUP();
 
+void DefaultObjectFactoryCheckArgs(const std::vector<Value>& args);
+
 template<typename T>
 intrusive_ptr<Object> DefaultObjectFactory(const std::vector<Value>& args)
 {
-	if (!args.empty())
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Constructor does not take any arguments."));
+	DefaultObjectFactoryCheckArgs(args);
 
 	return new T();
 }
@@ -141,6 +141,10 @@ public:
 private:
 	Object(const Object& other);
 	Object& operator=(const Object& rhs);
+
+	static void *AllocateLockedMutex(void);
+	void LockMutex(void) const;
+	void UnlockMutex(void) const;
 
 	uintptr_t m_References;
 	mutable uintptr_t m_Mutex;

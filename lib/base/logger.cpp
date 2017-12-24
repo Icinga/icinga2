@@ -42,11 +42,11 @@ template Log& Log::operator<<(const double&);
 
 REGISTER_TYPE(Logger);
 
-std::set<Logger::Ptr> Logger::m_Loggers;
-boost::mutex Logger::m_Mutex;
-bool Logger::m_ConsoleLogEnabled = true;
-bool Logger::m_TimestampEnabled = true;
-LogSeverity Logger::m_ConsoleLogSeverity = LogInformation;
+static std::set<Logger::Ptr> l_Loggers;
+static boost::mutex l_LoggerMutex;
+static bool l_ConsoleLogEnabled = true;
+static bool l_TimestampEnabled = true;
+static LogSeverity l_ConsoleLogSeverity = LogInformation;
 
 INITIALIZE_ONCE([]() {
 	ScriptGlobal::Set("LogDebug", LogDebug);
@@ -63,15 +63,15 @@ void Logger::Start(bool runtimeCreated)
 {
 	ObjectImpl<Logger>::Start(runtimeCreated);
 
-	boost::mutex::scoped_lock lock(m_Mutex);
-	m_Loggers.insert(this);
+	boost::mutex::scoped_lock lock(l_LoggerMutex);
+	l_Loggers.insert(this);
 }
 
 void Logger::Stop(bool runtimeRemoved)
 {
 	{
-		boost::mutex::scoped_lock lock(m_Mutex);
-		m_Loggers.erase(this);
+		boost::mutex::scoped_lock lock(l_LoggerMutex);
+		l_Loggers.erase(this);
 	}
 
 	ObjectImpl<Logger>::Stop(runtimeRemoved);
@@ -79,8 +79,8 @@ void Logger::Stop(bool runtimeRemoved)
 
 std::set<Logger::Ptr> Logger::GetLoggers(void)
 {
-	boost::mutex::scoped_lock lock(m_Mutex);
-	return m_Loggers;
+	boost::mutex::scoped_lock lock(l_LoggerMutex);
+	return l_Loggers;
 }
 
 /**
@@ -150,37 +150,37 @@ LogSeverity Logger::StringToSeverity(const String& severity)
 
 void Logger::DisableConsoleLog(void)
 {
-	m_ConsoleLogEnabled = false;
+	l_ConsoleLogEnabled = false;
 }
 
 void Logger::EnableConsoleLog(void)
 {
-	m_ConsoleLogEnabled = true;
+	l_ConsoleLogEnabled = true;
 }
 
 bool Logger::IsConsoleLogEnabled(void)
 {
-	return m_ConsoleLogEnabled;
+	return l_ConsoleLogEnabled;
 }
 
 void Logger::SetConsoleLogSeverity(LogSeverity logSeverity)
 {
-	m_ConsoleLogSeverity = logSeverity;
+	l_ConsoleLogSeverity = logSeverity;
 }
 
 LogSeverity Logger::GetConsoleLogSeverity(void)
 {
-	return m_ConsoleLogSeverity;
+	return l_ConsoleLogSeverity;
 }
 
 void Logger::DisableTimestamp(bool disable)
 {
-	m_TimestampEnabled = !disable;
+	l_TimestampEnabled = !disable;
 }
 
 bool Logger::IsTimestampEnabled(void)
 {
-	return m_TimestampEnabled;
+	return l_TimestampEnabled;
 }
 
 void Logger::ValidateSeverity(const String& value, const ValidationUtils& utils)

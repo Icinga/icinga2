@@ -16,9 +16,9 @@
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
 add_subdirectory(base)
-add_subdirectory(cli)
 add_subdirectory(config)
 add_subdirectory(remote)
+add_subdirectory(cli)
 add_subdirectory(icinga)
 add_subdirectory(methods)
 

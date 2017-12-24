@@ -33,3 +33,7 @@ set_target_properties (
   demo PROPERTIES
   FOLDER Components
 )
+
+if(ICINGA2_PCH_BUILD)
+  target_precompiled_header(demo REUSE icinga)
+endif()

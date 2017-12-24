@@ -60,3 +60,7 @@ set_target_properties (
   config PROPERTIES
   FOLDER Lib
 )
+
+if(ICINGA2_PCH_BUILD)
+  target_precompiled_header(config pch.hpp REUSE base)
+endif()

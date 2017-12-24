@@ -19,6 +19,7 @@
 
 #include "base/objecttype.hpp"
 #include "base/initialize.hpp"
+#include <boost/throw_exception.hpp>
 
 using namespace icinga;
 

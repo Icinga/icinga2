@@ -33,3 +33,7 @@ set_target_properties (
   hello PROPERTIES
   FOLDER Lib
 )
+
+if(ICINGA2_PCH_BUILD)
+  target_precompiled_header(hello REUSE config)
+endif()

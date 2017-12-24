@@ -102,6 +102,7 @@ variables are supported:
 - `ICINGA2_GIT_VERSION_INFO`: Whether to use Git to determine the version number; defaults to `ON`
 - `ICINGA2_COMMAND_GROUP`: The command group Icinga 2 should use; defaults to `icingacmd`
 - `ICINGA2_UNITY_BUILD`: Whether to perform a unity build; defaults to `ON`
+- `ICINGA2_PCH_BUILD`: Whether to use pre-compiled headers (PCH); defaults to `ON`
 - `ICINGA2_LTO_BUILD`: Whether to use link time optimization (LTO); defaults to `OFF`
 - `ICINGA2_PLUGINDIR`: The path for the Monitoring Plugins project binaries; defaults to `/usr/lib/nagios/plugins`
 - `ICINGA2_RUNDIR`: The location of the "run" directory; defaults to `CMAKE_INSTALL_LOCALSTATEDIR/run`

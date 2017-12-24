@@ -52,3 +52,7 @@ set_target_properties (
   methods PROPERTIES
   FOLDER Lib
 )
+
+if(ICINGA2_PCH_BUILD)
+  target_precompiled_header(methods REUSE icinga)
+endif()

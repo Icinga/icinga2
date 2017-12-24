@@ -20,7 +20,7 @@
 #ifndef BASE64_H
 #define BASE64_H
 
-#include "remote/i2-remote.hpp"
+#include "base/i2-base.hpp"
 #include "base/string.hpp"
 
 namespace icinga

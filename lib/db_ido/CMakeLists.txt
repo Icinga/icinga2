@@ -54,3 +54,7 @@ set_target_properties (
   db_ido PROPERTIES
   FOLDER Lib
 )
+
+if(ICINGA2_PCH_BUILD)
+  target_precompiled_header(db_ido pch.hpp REUSE icinga)
+endif()

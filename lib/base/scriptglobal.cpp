@@ -26,7 +26,6 @@
 #include "base/convert.hpp"
 #include "base/objectlock.hpp"
 #include "base/exception.hpp"
-#include <boost/algorithm/string/split.hpp>
 #include <fstream>
 
 using namespace icinga;
@@ -49,8 +48,7 @@ Value ScriptGlobal::Get(const String& name, const Value *defaultValue)
 
 void ScriptGlobal::Set(const String& name, const Value& value)
 {
-	std::vector<String> tokens;
-	boost::algorithm::split(tokens, name, boost::is_any_of("."));
+	std::vector<String> tokens = name.Split(".");
 
 	if (tokens.empty())
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Name must not be empty"));

@@ -22,7 +22,7 @@ define_property(
   FULL_DOCS "Specified whether a source file should be excluded from unity builds and should be built separately"
 )
 
-if(ICINGA2_UNITY_BUILD)
+if(ICINGA2_UNITY_BUILD OR ICINGA2_PCH_BUILD)
     set(mkunity_SOURCES
       mkunity.c
     )
@@ -33,7 +33,9 @@ if(ICINGA2_UNITY_BUILD)
       mkunity PROPERTIES
       FOLDER Bin
     )
+endif()
 
+if(ICINGA2_UNITY_BUILD)
     function(MKUNITY_TARGET Target Prefix UnityInputRef)
         set(UnityInput ${${UnityInputRef}})
         set(UnityOutput ${CMAKE_CURRENT_BINARY_DIR}/${Target}_unity.cpp)
@@ -44,13 +46,13 @@ if(ICINGA2_UNITY_BUILD)
             if(SourceExcluded MATCHES TRUE OR NOT ${UnitySource} MATCHES "\\.(cpp|cxx|cc)\$")
                 list(APPEND RealSources ${UnitySource})
             else()
-                list(APPEND UnitySources ${UnitySource})
+                list(APPEND UnitySources ${Prefix}/${UnitySource})
             endif()
         endforeach()
         add_custom_command(
             OUTPUT ${UnityOutput}
             COMMAND mkunity
-            ARGS ${Prefix} ${UnitySources} > ${UnityOutput}.tmp
+            ARGS ${UnitySources} > ${UnityOutput}.tmp
             COMMAND ${CMAKE_COMMAND}
             ARGS -E copy ${UnityOutput}.tmp ${UnityOutput}
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}

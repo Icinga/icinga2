@@ -56,6 +56,24 @@ Object::~Object(void)
 	delete reinterpret_cast<boost::recursive_mutex *>(m_Mutex);
 }
 
+void *Object::AllocateLockedMutex(void)
+{
+	boost::recursive_mutex *mtx = new boost::recursive_mutex();
+	mtx->lock();
+	return mtx;
+}
+
+void Object::LockMutex(void) const
+{
+	boost::recursive_mutex *mtx = reinterpret_cast<boost::recursive_mutex *>(m_Mutex);
+	mtx->lock();
+}
+
+void Object::UnlockMutex(void) const
+{
+	reinterpret_cast<boost::recursive_mutex *>(m_Mutex)->unlock();
+}
+
 /**
  * Returns a string representation for the object.
  */
@@ -262,3 +280,9 @@ INITIALIZE_ONCE([]() {
 });
 #endif /* I2_LEAK_DEBUG */
 
+
+void icinga::DefaultObjectFactoryCheckArgs(const std::vector<Value>& args)
+{
+	if (!args.empty())
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Constructor does not take any arguments."));
+}
