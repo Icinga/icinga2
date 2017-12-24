@@ -24,6 +24,7 @@
 #include "base/object.hpp"
 #include "base/type.hpp"
 #include "base/dictionary.hpp"
+#include <boost/thread/mutex.hpp>
 
 namespace icinga
 {

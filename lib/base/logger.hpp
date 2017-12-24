@@ -95,13 +95,6 @@ public:
 protected:
 	void Start(bool runtimeCreated) override;
 	void Stop(bool runtimeRemoved) override;
-
-private:
-	static boost::mutex m_Mutex;
-	static std::set<Logger::Ptr> m_Loggers;
-	static bool m_ConsoleLogEnabled;
-	static bool m_TimestampEnabled;
-	static LogSeverity m_ConsoleLogSeverity;
 };
 
 class Log

@@ -70,6 +70,10 @@ set_target_properties (
   FOLDER Components
 )
 
+if(ICINGA2_PCH_BUILD)
+  target_precompiled_header(livestatus pch.hpp REUSE icinga)
+endif()
+
 install_if_not_exists(
   ${PROJECT_SOURCE_DIR}/etc/icinga2/features-available/livestatus.conf
   ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/features-available

@@ -36,6 +36,10 @@ set_target_properties (
   FOLDER Components
 )
 
+if(ICINGA2_PCH_BUILD)
+  target_precompiled_header(db_ido_pgsql REUSE db_ido)
+endif()
+
 install_if_not_exists(
   ${PROJECT_SOURCE_DIR}/etc/icinga2/features-available/ido-pgsql.conf
   ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/features-available

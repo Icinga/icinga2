@@ -144,6 +144,7 @@ In addition to `CMAKE_INSTALL_PREFIX` here are most of the supported Icinga-spec
 **Build Optimization**
 - `ICINGA2_UNITY_BUILD`: Whether to perform a unity build; defaults to `ON`
 - `ICINGA2_LTO_BUILD`: Whether to use link time optimization (LTO); defaults to `OFF`
+- `ICINGA2_PCH_BUILD`: Whether to use pre-compiled headers (PCH); defaults to `ON`
 
 **Init System**
 - `USE_SYSTEMD=ON|OFF`: Use systemd or a classic SysV initscript; defaults to `OFF`

@@ -21,7 +21,6 @@
 #include "base/objectlock.hpp"
 #include "base/debug.hpp"
 #include "base/primitivetype.hpp"
-#include "base/dictionary.hpp"
 #include "base/configwriter.hpp"
 #include "base/convert.hpp"
 #include "base/exception.hpp"

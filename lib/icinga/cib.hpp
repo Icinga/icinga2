@@ -92,7 +92,6 @@ public:
 private:
 	CIB();
 
-	static boost::mutex m_Mutex;
 	static RingBuffer m_ActiveHostChecksStatistics;
 	static RingBuffer m_PassiveHostChecksStatistics;
 	static RingBuffer m_ActiveServiceChecksStatistics;

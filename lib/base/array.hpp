@@ -26,6 +26,7 @@
 #include <boost/range/iterator.hpp>
 #include <vector>
 #include <set>
+#include <initializer_list>
 
 namespace icinga
 {

@@ -21,6 +21,9 @@
 #include "base/value.hpp"
 #include "base/primitivetype.hpp"
 #include "base/dictionary.hpp"
+#include <boost/algorithm/string/case_conv.hpp>
+#include <boost/algorithm/string/trim.hpp>
+#include <boost/algorithm/string/split.hpp>
 #include <ostream>
 
 using namespace icinga;
