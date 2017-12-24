@@ -147,8 +147,8 @@ include_directories(
 set(CMAKE_MACOSX_RPATH 1)
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Qunused-arguments -g")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Qunused-arguments -g")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Qunused-arguments -fcolor-diagnostics")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Qunused-arguments -fcolor-diagnostics")
 
   # Clang on Fedora requires -pthread, Apple Clang does not
   # AppleClang is available since CMake 3.0.0
@@ -176,14 +176,58 @@ if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -pthread")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -pthread")
   endif()
-
-  if(NOT CMAKE_SYSTEM_NAME MATCHES AIX AND NOT CMAKE_SYSTEM_NAME MATCHES OpenBSD AND NOT CMAKE_SYSTEM_NAME MATCHES SunOS)
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--gc-sections -Wl,--no-export-dynamic -Bsymbolic-functions -Wl,--dynamic-list-cpp-typeinfo -Wl,--dynamic-list-data")
-    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--gc-sections -Wl,--no-export-dynamic -Bsymbolic-functions -Wl,--dynamic-list-cpp-typeinfo -Wl,--dynamic-list-data")
-  endif()
 endif()
 
 include(CheckCXXCompilerFlag)
+
+function(check_cxx_linker_flag flag var)
+  set(CMAKE_REQUIRED_FLAGS ${flag})
+  set(result 0)
+  check_cxx_compiler_flag(${flag} result)
+  set(${var} ${result} PARENT_SCOPE)
+endfunction()
+
+check_cxx_linker_flag("-Wl,--gc-sections" LD_GC_SECTIONS)
+
+if(LD_GC_SECTIONS)
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--gc-sections")
+  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--gc-sections")
+endif()
+
+check_cxx_linker_flag("-Wl,--no-export-dynamic" LD_NO_EXPORT_DYNAMIC)
+
+if(LD_NO_EXPORT_DYNAMIC)
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--no-export-dynamic")
+  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--no-export-dynamic")
+endif()
+
+check_cxx_linker_flag("-Bsymbolic-functions" LD_SYMBOLIC_FUNCTIONS)
+
+if(LD_SYMBOLIC_FUNCTIONS)
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Bsymbolic-functions")
+  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Bsymbolic-functions")
+endif()
+
+check_cxx_linker_flag("-Wl,--dynamic-list-cpp-typeinfo" LD_DYNAMIC_LIST_CPP_TYPEINFO)
+
+if(LD_DYNAMIC_LIST_CPP_TYPEINFO)
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--dynamic-list-cpp-typeinfo")
+  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--dynamic-list-cpp-typeinfo")
+endif()
+
+check_cxx_linker_flag("-Wl,--dynamic-list-data" LD_DYNAMIC_LIST_DATA)
+
+if(LD_DYNAMIC_LIST_DATA)
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--dynamic-list-data")
+  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--dynamic-list-data")
+endif()
+
+check_cxx_compiler_flag("-Winvalid-pch" CXX_INVALID_PCH)
+
+if(CXX_INVALID_PCH)
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Winvalid-pch")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Winvalid-pch")
+endif()
 
 if(ICINGA2_LTO_BUILD)
   check_cxx_compiler_flag("-flto" CXX_FLAG_LTO)
