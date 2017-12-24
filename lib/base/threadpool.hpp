@@ -21,7 +21,6 @@
 #define THREADPOOL_H
 
 #include "base/i2-base.hpp"
-#include <boost/function.hpp>
 #include <boost/thread/thread.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition_variable.hpp>
@@ -47,7 +46,7 @@ enum SchedulerPolicy
 class I2_BASE_API ThreadPool
 {
 public:
-	typedef boost::function<void ()> WorkFunction;
+	typedef std::function<void ()> WorkFunction;
 
 	ThreadPool(size_t max_threads = UINT_MAX);
 	~ThreadPool(void);

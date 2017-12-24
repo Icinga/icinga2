@@ -85,7 +85,7 @@ public:
 	static void MkDirP(const String& path, int mode);
 	static bool SetFileOwnership(const String& file, const String& user, const String& group);
 
-	static void QueueAsyncCallback(const boost::function<void (void)>& callback, SchedulerPolicy policy = DefaultScheduler);
+	static void QueueAsyncCallback(const std::function<void (void)>& callback, SchedulerPolicy policy = DefaultScheduler);
 
 	static String NaturalJoin(const std::vector<String>& tokens);
 	static String Join(const Array::Ptr& tokens, char separator, bool escapeSeparator = true);
