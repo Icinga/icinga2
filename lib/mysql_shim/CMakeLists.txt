@@ -19,7 +19,7 @@ include_directories(${MYSQL_INCLUDE_DIR})
 
 set(mysql_shim_SOURCES
   mysql_shim.def
-  mysqlinterface.cpp
+  mysqlinterface.cpp mysqlinterface.hpp
 )
 
 if(ICINGA2_UNITY_BUILD)

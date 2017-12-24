@@ -15,7 +15,11 @@
 # along with this program; if not, write to the Free Software Foundation
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
-add_library(mmatch STATIC mmatch.c mmatch.h)
+set(mmatch_SOURCES
+  mmatch.c mmatch.h
+)
+
+add_library(mmatch STATIC ${mmatch_SOURCES})
 
 set_target_properties(
   mmatch PROPERTIES

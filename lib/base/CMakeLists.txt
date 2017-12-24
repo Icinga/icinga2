@@ -26,21 +26,69 @@ mkclass_target(streamlogger.ti streamlogger.tcpp streamlogger.thpp)
 mkclass_target(sysloglogger.ti sysloglogger.tcpp sysloglogger.thpp)
 
 set(base_SOURCES
-  application.cpp application.thpp application-version.cpp array.cpp
-  array-script.cpp boolean.cpp boolean-script.cpp base64.cpp console.cpp context.cpp
-  convert.cpp datetime.cpp datetime.thpp datetime-script.cpp debuginfo.cpp dictionary.cpp dictionary-script.cpp
-  configobject.cpp configobject.thpp configobject-script.cpp configtype.cpp configwriter.cpp dependencygraph.cpp
-  exception.cpp fifo.cpp filelogger.cpp filelogger.thpp initialize.cpp json.cpp
-  json-script.cpp library.cpp loader.cpp logger.cpp logger.thpp math-script.cpp
-  netstring.cpp networkstream.cpp number.cpp number-script.cpp object.cpp
-  object-script.cpp objectlock.cpp objecttype.cpp primitivetype.cpp process.cpp ringbuffer.cpp scriptframe.cpp
-  function.cpp function.thpp function-script.cpp
-  perfdatavalue.cpp perfdatavalue.thpp scriptglobal.cpp
-  scriptutils.cpp serializer.cpp socket.cpp socketevents.cpp socketevents-epoll.cpp socketevents-poll.cpp stacktrace.cpp
-  stdiostream.cpp stream.cpp streamlogger.cpp streamlogger.thpp string.cpp string-script.cpp
-  sysloglogger.cpp sysloglogger.thpp tcpsocket.cpp threadpool.cpp timer.cpp
-  tlsstream.cpp tlsutility.cpp type.cpp typetype-script.cpp unixsocket.cpp utility.cpp value.cpp
-  value-operators.cpp workqueue.cpp
+  i2-base.hpp
+  application.cpp application.hpp application.thpp application-version.cpp
+  array.cpp array.hpp array-script.cpp
+  base64.cpp base64.hpp
+  boolean.cpp boolean.hpp boolean-script.cpp
+  configobject.cpp configobject.hpp configobject.thpp configobject-script.cpp
+  configtype.cpp configtype.hpp
+  configwriter.cpp configwriter.hpp
+  console.cpp console.hpp
+  context.cpp context.hpp
+  convert.cpp convert.hpp
+  datetime.cpp datetime.hpp datetime.thpp datetime-script.cpp
+  debug.hpp
+  debuginfo.cpp debuginfo.hpp
+  dependencygraph.cpp dependencygraph.hpp
+  dictionary.cpp dictionary.hpp dictionary-script.cpp
+  exception.cpp exception.hpp
+  fifo.cpp fifo.hpp
+  filelogger.cpp filelogger.hpp filelogger.thpp
+  function.cpp function.hpp function.thpp function-script.cpp functionwrapper.hpp
+  initialize.cpp initialize.hpp
+  json.cpp json.hpp json-script.cpp
+  library.cpp library.hpp
+  loader.cpp loader.hpp
+  logger.cpp logger.hpp logger.thpp
+  math-script.cpp
+  netstring.cpp netstring.hpp
+  networkstream.cpp networkstream.hpp
+  number.cpp number.hpp number-script.cpp
+  object.cpp object.hpp object-script.cpp
+  objectlock.cpp objectlock.hpp
+  objecttype.cpp objecttype.hpp
+  perfdatavalue.cpp perfdatavalue.hpp perfdatavalue.thpp
+  primitivetype.cpp primitivetype.hpp
+  process.cpp process.hpp
+  registry.hpp
+  ringbuffer.cpp ringbuffer.hpp
+  scriptframe.cpp scriptframe.hpp
+  scriptglobal.cpp scriptglobal.hpp
+  scriptutils.cpp scriptutils.hpp
+  serializer.cpp serializer.hpp
+  singleton.hpp
+  socket.cpp socket.hpp
+  socketevents.cpp socketevents-epoll.cpp socketevents-poll.cpp socketevents.hpp
+  stacktrace.cpp stacktrace.hpp
+  statsfunction.hpp
+  stdiostream.cpp stdiostream.hpp
+  stream.cpp stream.hpp
+  streamlogger.cpp streamlogger.hpp streamlogger.thpp
+  string.cpp string.hpp string-script.cpp
+  sysloglogger.cpp sysloglogger.hpp sysloglogger.thpp
+  tcpsocket.cpp tcpsocket.hpp
+  threadpool.cpp threadpool.hpp
+  timer.cpp timer.hpp
+  tlsstream.cpp tlsstream.hpp
+  tlsutility.cpp tlsutility.hpp
+  type.cpp type.hpp typetype-script.cpp
+  unix.hpp
+  unixsocket.cpp unixsocket.hpp
+  utility.cpp utility.hpp
+  value.cpp value.hpp value-operators.cpp
+  win32.hpp
+  workqueue.cpp workqueue.hpp
 )
 
 set_property(SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/application-version.cpp PROPERTY EXCLUDE_UNITY_BUILD TRUE)

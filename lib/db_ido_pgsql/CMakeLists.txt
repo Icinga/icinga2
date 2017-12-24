@@ -18,7 +18,7 @@
 mkclass_target(idopgsqlconnection.ti idopgsqlconnection.tcpp idopgsqlconnection.thpp)
 
 set(db_ido_pgsql_SOURCES
-  idopgsqlconnection.cpp idopgsqlconnection.thpp
+  idopgsqlconnection.cpp idopgsqlconnection.hpp idopgsqlconnection.thpp
 )
 
 if(ICINGA2_UNITY_BUILD)

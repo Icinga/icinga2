@@ -18,17 +18,43 @@
 mkclass_target(livestatuslistener.ti livestatuslistener.tcpp livestatuslistener.thpp)
 
 set(livestatus_SOURCES
-  aggregator.cpp andfilter.cpp attributefilter.cpp
-  avgaggregator.cpp column.cpp combinerfilter.cpp commandstable.cpp
-  commentstable.cpp contactgroupstable.cpp contactstable.cpp countaggregator.cpp
-  downtimestable.cpp endpointstable.cpp filter.cpp historytable.cpp
-  hostgroupstable.cpp hoststable.cpp invavgaggregator.cpp invsumaggregator.cpp
-  livestatuslistener.cpp livestatuslistener.thpp livestatusquery.cpp
-  livestatuslogutility.cpp logtable.cpp maxaggregator.cpp
-  minaggregator.cpp negatefilter.cpp orfilter.cpp
-  servicegroupstable.cpp servicestable.cpp statehisttable.cpp
-  statustable.cpp stdaggregator.cpp sumaggregator.cpp table.cpp
-  timeperiodstable.cpp zonestable.cpp
+  i2-livestatus.hpp
+  aggregator.cpp aggregator.hpp
+  andfilter.cpp andfilter.hpp
+  attributefilter.cpp attributefilter.hpp
+  avgaggregator.cpp avgaggregator.hpp
+  column.cpp column.hpp
+  combinerfilter.cpp combinerfilter.hpp
+  commandstable.cpp commandstable.hpp
+  commentstable.cpp commentstable.hpp
+  contactgroupstable.cpp contactgroupstable.hpp
+  contactstable.cpp contactstable.hpp
+  countaggregator.cpp countaggregator.hpp
+  downtimestable.cpp downtimestable.hpp
+  endpointstable.cpp endpointstable.hpp
+  filter.cpp filter.hpp
+  historytable.cpp historytable.hpp
+  hostgroupstable.cpp hostgroupstable.hpp
+  hoststable.cpp hoststable.hpp
+  invavgaggregator.cpp invavgaggregator.hpp
+  invsumaggregator.cpp invsumaggregator.hpp
+  livestatuslistener.cpp livestatuslistener.hpp livestatuslistener.thpp
+  livestatuslogutility.cpp livestatuslogutility.hpp
+  livestatusquery.cpp livestatusquery.hpp
+  logtable.cpp logtable.hpp
+  maxaggregator.cpp maxaggregator.hpp
+  minaggregator.cpp minaggregator.hpp
+  negatefilter.cpp negatefilter.hpp
+  orfilter.cpp orfilter.hpp
+  servicegroupstable.cpp servicegroupstable.hpp
+  servicestable.cpp servicestable.hpp
+  statehisttable.cpp statehisttable.hpp
+  statustable.cpp statustable.hpp
+  stdaggregator.cpp stdaggregator.hpp
+  sumaggregator.cpp sumaggregator.hpp
+  table.cpp table.hpp
+  timeperiodstable.cpp timeperiodstable.hpp
+  zonestable.cpp zonestable.hpp
 )
 
 if(ICINGA2_UNITY_BUILD)

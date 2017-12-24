@@ -18,7 +18,7 @@
 mkclass_target(notificationcomponent.ti notificationcomponent.tcpp notificationcomponent.thpp)
 
 set(notification_SOURCES
-  notificationcomponent.cpp notificationcomponent.thpp
+  notificationcomponent.cpp notificationcomponent.hpp notificationcomponent.thpp
 )
 
 if(ICINGA2_UNITY_BUILD)

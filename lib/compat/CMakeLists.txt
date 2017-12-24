@@ -21,9 +21,10 @@ mkclass_target(externalcommandlistener.ti externalcommandlistener.tcpp externalc
 mkclass_target(statusdatawriter.ti statusdatawriter.tcpp statusdatawriter.thpp)
 
 set(compat_SOURCES
-  checkresultreader.cpp checkresultreader.thpp compatlogger.cpp
-  compatlogger.thpp externalcommandlistener.cpp externalcommandlistener.thpp
-  statusdatawriter.cpp statusdatawriter.thpp
+  checkresultreader.cpp checkresultreader.hpp checkresultreader.thpp
+  compatlogger.cpp compatlogger.hpp compatlogger.thpp
+  externalcommandlistener.cpp externalcommandlistener.hpp externalcommandlistener.thpp
+  statusdatawriter.cpp statusdatawriter.hpp statusdatawriter.thpp
 )
 
 if(ICINGA2_UNITY_BUILD)

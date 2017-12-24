@@ -15,7 +15,11 @@
 # along with this program; if not, write to the Free Software Foundation
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
-add_executable(mkembedconfig mkembedconfig.c)
+set(mkembedconfig_SOURCES
+  mkembedconfig.c
+)
+
+add_executable(mkembedconfig ${mkembedconfig_SOURCES})
 
 set_target_properties (
   mkembedconfig PROPERTIES

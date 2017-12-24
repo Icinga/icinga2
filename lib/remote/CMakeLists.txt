@@ -21,17 +21,46 @@ mkclass_target(endpoint.ti endpoint.tcpp endpoint.thpp)
 mkclass_target(zone.ti zone.tcpp zone.thpp)
 
 set(remote_SOURCES
-  actionshandler.cpp apiaction.cpp apiclient.cpp
-  apifunction.cpp apilistener.cpp apilistener.thpp apilistener-configsync.cpp
-  apilistener-filesync.cpp apiuser.cpp apiuser.thpp authority.cpp
-  consolehandler.cpp configfileshandler.cpp configpackageshandler.cpp configpackageutility.cpp configobjectutility.cpp
-  configstageshandler.cpp createobjecthandler.cpp deleteobjecthandler.cpp
-  endpoint.cpp endpoint.thpp eventshandler.cpp eventqueue.cpp filterutility.cpp
-  httpchunkedencoding.cpp httpclientconnection.cpp httpserverconnection.cpp httphandler.cpp httprequest.cpp httpresponse.cpp
-  httputility.cpp infohandler.cpp jsonrpc.cpp jsonrpcconnection.cpp jsonrpcconnection-heartbeat.cpp jsonrpcconnection-pki.cpp
-  messageorigin.cpp modifyobjecthandler.cpp statushandler.cpp objectqueryhandler.cpp templatequeryhandler.cpp
-  pkiutility.cpp
-  typequeryhandler.cpp url.cpp variablequeryhandler.cpp zone.cpp zone.thpp
+  i2-remote.hpp
+  actionshandler.cpp actionshandler.hpp
+  apiaction.cpp apiaction.hpp
+  apiclient.cpp apiclient.hpp
+  apifunction.cpp apifunction.hpp
+  apilistener.cpp apilistener.hpp apilistener.thpp apilistener-configsync.cpp apilistener-filesync.cpp
+  apiuser.cpp apiuser.hpp apiuser.thpp
+  authority.cpp
+  configfileshandler.cpp configfileshandler.hpp
+  configobjectutility.cpp configobjectutility.hpp
+  configpackageshandler.cpp configpackageshandler.hpp
+  configpackageutility.cpp configpackageutility.hpp
+  configstageshandler.cpp configstageshandler.hpp
+  consolehandler.cpp consolehandler.hpp
+  createobjecthandler.cpp createobjecthandler.hpp
+  deleteobjecthandler.cpp deleteobjecthandler.hpp
+  endpoint.cpp endpoint.hpp endpoint.thpp
+  eventqueue.cpp eventqueue.hpp
+  eventshandler.cpp eventshandler.hpp
+  filterutility.cpp filterutility.hpp
+  httpchunkedencoding.cpp httpchunkedencoding.hpp
+  httpclientconnection.cpp httpclientconnection.hpp
+  httphandler.cpp httphandler.hpp
+  httprequest.cpp httprequest.hpp
+  httpresponse.cpp httpresponse.hpp
+  httpserverconnection.cpp httpserverconnection.hpp
+  httputility.cpp httputility.hpp
+  infohandler.cpp infohandler.hpp
+  jsonrpc.cpp jsonrpc.hpp
+  jsonrpcconnection.cpp jsonrpcconnection.hpp jsonrpcconnection-heartbeat.cpp jsonrpcconnection-pki.cpp
+  messageorigin.cpp messageorigin.hpp
+  modifyobjecthandler.cpp modifyobjecthandler.hpp
+  objectqueryhandler.cpp objectqueryhandler.hpp
+  pkiutility.cpp pkiutility.hpp
+  statushandler.cpp statushandler.hpp
+  templatequeryhandler.cpp templatequeryhandler.hpp
+  typequeryhandler.cpp typequeryhandler.hpp
+  url.cpp url.hpp url-characters.hpp
+  variablequeryhandler.cpp variablequeryhandler.hpp
+  zone.cpp zone.hpp zone.thpp
 )
 
 if(ICINGA2_UNITY_BUILD)

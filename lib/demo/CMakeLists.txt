@@ -18,7 +18,7 @@
 mkclass_target(demo.ti demo.tcpp demo.thpp)
 
 set(demo_SOURCES
-  demo.cpp demo.thpp
+  demo.cpp demo.hpp demo.thpp
 )
 
 if(ICINGA2_UNITY_BUILD)

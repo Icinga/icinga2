@@ -18,7 +18,7 @@
 mkclass_target(helloapplication.ti helloapplication.tcpp helloapplication.thpp)
 
 set(hello_SOURCES
-  helloapplication.cpp helloapplication.thpp
+  helloapplication.cpp helloapplication.hpp helloapplication.thpp
 )
 
 if(ICINGA2_UNITY_BUILD)

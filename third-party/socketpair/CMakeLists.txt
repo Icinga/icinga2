@@ -15,7 +15,11 @@
 # along with this program; if not, write to the Free Software Foundation
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
-add_library(socketpair STATIC socketpair.c socketpair.h)
+set(socketpair_SOURCES
+  socketpair.c socketpair.h
+)
+
+add_library(socketpair STATIC ${socketpair_SOURCES})
 
 set_target_properties (
   socketpair PROPERTIES
