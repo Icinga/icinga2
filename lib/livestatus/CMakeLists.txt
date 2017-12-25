@@ -65,7 +65,7 @@ add_library(livestatus OBJECT ${livestatus_SOURCES})
 
 add_dependencies(livestatus base config icinga remote)
 
-set_target_properties (
+set_target_properties(
   livestatus PROPERTIES
   FOLDER Components
 )

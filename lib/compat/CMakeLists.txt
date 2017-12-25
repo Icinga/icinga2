@@ -35,7 +35,7 @@ add_library(compat OBJECT ${compat_SOURCES})
 
 add_dependencies(compat base config icinga)
 
-set_target_properties (
+set_target_properties(
   compat PROPERTIES
   FOLDER Components
 )

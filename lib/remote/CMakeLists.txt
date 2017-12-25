@@ -71,7 +71,7 @@ add_library(remote OBJECT ${remote_SOURCES})
 
 add_dependencies(remote base config)
 
-set_target_properties (
+set_target_properties(
   remote PROPERTIES
   FOLDER Lib
 )

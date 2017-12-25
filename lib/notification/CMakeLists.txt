@@ -29,7 +29,7 @@ add_library(notification OBJECT ${notification_SOURCES})
 
 add_dependencies(notification base config icinga)
 
-set_target_properties (
+set_target_properties(
   notification PROPERTIES
   FOLDER Components
 )

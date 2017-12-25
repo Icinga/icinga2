@@ -48,7 +48,7 @@ add_library(methods OBJECT ${methods_SOURCES})
 
 add_dependencies(methods base config icinga)
 
-set_target_properties (
+set_target_properties(
   methods PROPERTIES
   FOLDER Lib
 )

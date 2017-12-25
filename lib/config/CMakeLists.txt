@@ -56,7 +56,7 @@ add_library(config OBJECT ${config_SOURCES})
 
 add_dependencies(config base)
 
-set_target_properties (
+set_target_properties(
   config PROPERTIES
   FOLDER Lib
 )

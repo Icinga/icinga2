@@ -27,5 +27,5 @@ set_target_properties (
 )
 
 if(WIN32)
-  target_link_libraries(socketpair ws2_32)
+  target_link_libraries(socketpair PRIVATE ws2_32)
 endif()

@@ -55,7 +55,7 @@ add_library(cli OBJECT ${cli_SOURCES})
 
 add_dependencies(cli base config remote)
 
-set_target_properties (
+set_target_properties(
   cli PROPERTIES
   FOLDER Lib
 )

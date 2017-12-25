@@ -31,7 +31,8 @@ set(icinga_studio_SOURCES
   aboutform.cpp aboutform.hpp
   connectform.cpp connectform.hpp
   mainform.cpp mainform.hpp
-  icinga.icns ${WindowsSources}
+  icinga.icns
+  ${WindowsSources}
   ${base_OBJS}
   $<TARGET_OBJECTS:config>
   $<TARGET_OBJECTS:remote>

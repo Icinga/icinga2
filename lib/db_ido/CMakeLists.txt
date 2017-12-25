@@ -49,7 +49,7 @@ add_library(db_ido OBJECT ${db_ido_SOURCES})
 
 add_dependencies(db_ido base config icinga remote)
 
-set_target_properties (
+set_target_properties(
   db_ido PROPERTIES
   FOLDER Lib
 )

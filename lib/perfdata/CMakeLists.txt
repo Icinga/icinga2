@@ -39,7 +39,7 @@ add_library(perfdata OBJECT ${perfdata_SOURCES})
 
 add_dependencies(perfdata base config icinga)
 
-set_target_properties (
+set_target_properties(
   perfdata PROPERTIES
   FOLDER Components
 )

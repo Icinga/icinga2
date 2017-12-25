@@ -29,7 +29,7 @@ add_library(checker OBJECT ${checker_SOURCES})
 
 add_dependencies(checker base config icinga remote)
 
-set_target_properties (
+set_target_properties(
   checker PROPERTIES
   FOLDER Components
 )

@@ -84,7 +84,7 @@ add_library(icinga OBJECT ${icinga_SOURCES})
 
 add_dependencies(icinga base config remote)
 
-set_target_properties (
+set_target_properties(
   icinga PROPERTIES
   FOLDER Lib
 )
