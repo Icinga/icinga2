@@ -53,19 +53,19 @@ endif()
 
 add_library(cli STATIC ${cli_SOURCES})
 
-target_link_libraries(cli ${Boost_LIBRARIES} base config remote)
+target_link_libraries(cli PRIVATE ${Boost_PROGRAM_OPTIONS_LIBRARY} ${OPENSSL_LIBRARIES} base config remote)
 
 if(EDITLINE_FOUND)
-  target_link_libraries(cli ${EDITLINE_LIBRARIES})
+  target_link_libraries(cli PRIVATE ${EDITLINE_LIBRARIES})
   include_directories(${EDITLINE_INCLUDE_DIR})
 endif()
 
 if(TERMCAP_FOUND)
-  target_link_libraries(cli ${TERMCAP_LIBRARIES})
+  target_link_libraries(cli PRIVATE ${TERMCAP_LIBRARIES})
   include_directories(${TERMCAP_INCLUDE_DIR})
 endif()
 
-set_target_properties (
+set_target_properties(
   cli PROPERTIES
   FOLDER Lib
 )

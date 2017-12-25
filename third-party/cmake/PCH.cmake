@@ -123,12 +123,15 @@ function(_add_precompiled_header target pch_target header reuse_pch_target)
       DEPENDS ${pch_target}
     )
 
-    set_target_properties(${pch_target} PROPERTIES LINKER_LANGUAGE ${lang})
-
-    set_target_properties(${pch_target} PROPERTIES PCH_LANG ${lang})
-    set_target_properties(${pch_target} PROPERTIES PCH_OUTPUT ${pch_output})
-    set_target_properties(${pch_target} PROPERTIES PCH_SOURCE ${pch_source})
-    set_target_properties(${pch_target} PROPERTIES PCH_HEADER ${pch_header})
+    set_target_properties(
+      ${pch_target} PROPERTIES
+      LINKER_LANGUAGE ${lang}
+      FOLDER PCH
+      PCH_LANG ${lang}
+      PCH_OUTPUT ${pch_output}
+      PCH_SOURCE ${pch_source}
+      PCH_HEADER ${pch_header}
+    )
 
     if(reuse_pch_target)
         get_target_property(reuse_pch_source ${reuse_pch_target} PCH_SOURCE)

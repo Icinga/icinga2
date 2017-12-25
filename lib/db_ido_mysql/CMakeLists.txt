@@ -29,7 +29,7 @@ add_library(db_ido_mysql STATIC ${db_ido_mysql_SOURCES})
 
 include_directories(${MYSQL_INCLUDE_DIR})
 
-target_link_libraries(db_ido_mysql ${Boost_LIBRARIES} base config icinga db_ido)
+target_link_libraries(db_ido_mysql PRIVATE base remote icinga db_ido)
 
 set_target_properties (
   db_ido_mysql PROPERTIES

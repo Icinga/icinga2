@@ -27,9 +27,9 @@ endif()
 
 add_library(demo STATIC ${demo_SOURCES})
 
-target_link_libraries(demo ${Boost_LIBRARIES} base config icinga remote)
+target_link_libraries(demo PRIVATE base remote)
 
-set_target_properties (
+set_target_properties(
   demo PROPERTIES
   FOLDER Components
 )

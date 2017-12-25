@@ -69,10 +69,9 @@ endif()
 
 add_library(remote STATIC ${remote_SOURCES})
 
-include_directories(${Boost_INCLUDE_DIRS})
-target_link_libraries(remote ${Boost_LIBRARIES} base config)
+target_link_libraries(remote PRIVATE ${Boost_REGEX_LIBRARY} ${OPENSSL_LIBRARIES} base config)
 
-set_target_properties (
+set_target_properties(
   remote PROPERTIES
   FOLDER Lib
 )

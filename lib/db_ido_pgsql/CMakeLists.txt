@@ -29,7 +29,7 @@ add_library(db_ido_pgsql STATIC ${db_ido_pgsql_SOURCES})
 
 include_directories(${PostgreSQL_INCLUDE_DIRS})
 
-target_link_libraries(db_ido_pgsql ${Boost_LIBRARIES} base config icinga db_ido)
+target_link_libraries(db_ido_pgsql PRIVATE base remote icinga db_ido)
 
 set_target_properties (
   db_ido_pgsql PROPERTIES

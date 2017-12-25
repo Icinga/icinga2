@@ -27,9 +27,9 @@ endif()
 
 add_library(notification STATIC ${notification_SOURCES})
 
-target_link_libraries(notification ${Boost_LIBRARIES} base config icinga)
+target_link_libraries(notification PRIVATE base icinga)
 
-set_target_properties (
+set_target_properties(
   notification PROPERTIES
   FOLDER Components
 )

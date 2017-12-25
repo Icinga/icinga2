@@ -82,9 +82,9 @@ endif()
 
 add_library(icinga STATIC ${icinga_SOURCES})
 
-target_link_libraries(icinga ${Boost_LIBRARIES} base config remote)
+target_link_libraries(icinga PRIVATE base config remote)
 
-set_target_properties (
+set_target_properties(
   icinga PROPERTIES
   FOLDER Lib
 )

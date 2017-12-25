@@ -63,9 +63,9 @@ endif()
 
 add_library(livestatus STATIC ${livestatus_SOURCES})
 
-target_link_libraries(livestatus ${Boost_LIBRARIES} base config icinga remote)
+target_link_libraries(livestatus PRIVATE ${Boost_REGEX_LIBRARY} base remote icinga)
 
-set_target_properties (
+set_target_properties(
   livestatus PROPERTIES
   FOLDER Components
 )

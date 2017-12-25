@@ -215,7 +215,7 @@ function(add_boost_test _name)
 		list(APPEND LIBRARIES ${_boosttesttargets_libs})
 
 		if(LIBRARIES)
-			target_link_libraries(${_target_name} ${LIBRARIES})
+			target_link_libraries(${_target_name} PRIVATE ${LIBRARIES})
 		endif()
 
 		if(RESOURCES)

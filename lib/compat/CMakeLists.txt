@@ -33,9 +33,9 @@ endif()
 
 add_library(compat STATIC ${compat_SOURCES})
 
-target_link_libraries(compat ${Boost_LIBRARIES} base config icinga)
+target_link_libraries(compat PRIVATE base icinga)
 
-set_target_properties (
+set_target_properties(
   compat PROPERTIES
   FOLDER Components
 )

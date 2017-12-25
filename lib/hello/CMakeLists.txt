@@ -27,9 +27,9 @@ endif()
 
 add_library(hello STATIC ${hello_SOURCES})
 
-target_link_libraries(hello ${Boost_LIBRARIES} base config)
+target_link_libraries(hello PRIVATE base)
 
-set_target_properties (
+set_target_properties(
   hello PROPERTIES
   FOLDER Lib
 )

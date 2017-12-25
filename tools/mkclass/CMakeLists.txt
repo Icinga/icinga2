@@ -39,7 +39,7 @@ set(mkclass_SOURCES
 add_executable(mkclass ${mkclass_SOURCES})
 
 if(WIN32)
-  target_link_libraries(mkclass shlwapi)
+  target_link_libraries(mkclass PRIVATE shlwapi)
 endif()
 
 set_target_properties (

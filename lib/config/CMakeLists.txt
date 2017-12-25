@@ -54,9 +54,9 @@ endif()
 
 add_library(config STATIC ${config_SOURCES})
 
-target_link_libraries(config ${Boost_LIBRARIES} base)
+target_link_libraries(config PRIVATE base)
 
-set_target_properties (
+set_target_properties(
   config PROPERTIES
   FOLDER Lib
 )
