@@ -22,7 +22,7 @@ set(demo_SOURCES
 )
 
 if(ICINGA2_UNITY_BUILD)
-    mkunity_target(demo demo demo_SOURCES)
+    target_unity_build(demo demo demo_SOURCES)
 endif()
 
 add_library(demo STATIC ${demo_SOURCES})

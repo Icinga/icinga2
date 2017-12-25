@@ -22,7 +22,7 @@ set(hello_SOURCES
 )
 
 if(ICINGA2_UNITY_BUILD)
-    mkunity_target(hello hello hello_SOURCES)
+    target_unity_build(hello hello hello_SOURCES)
 endif()
 
 add_library(hello STATIC ${hello_SOURCES})

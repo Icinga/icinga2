@@ -47,7 +47,7 @@ set(base_test_SOURCES
 )
 
 if(ICINGA2_UNITY_BUILD)
-    mkunity_target(base test base_test_SOURCES)
+    target_unity_build(base test base_test_SOURCES)
 endif()
 
 add_boost_test(base
@@ -154,7 +154,7 @@ if(ICINGA2_WITH_LIVESTATUS)
   )
 
   if(ICINGA2_UNITY_BUILD)
-      mkunity_target(livestatus test livestatus_test_SOURCES)
+      target_unity_build(livestatus test livestatus_test_SOURCES)
   endif()
 
   add_boost_test(livestatus
@@ -181,7 +181,7 @@ set(icinga_checkable_test_SOURCES
 )
 
 if(ICINGA2_UNITY_BUILD)
-    mkunity_target(icinga_checkable test icinga_checkable_test_SOURCES)
+    target_unity_build(icinga_checkable test icinga_checkable_test_SOURCES)
 endif()
 
 add_boost_test(icinga_checkable

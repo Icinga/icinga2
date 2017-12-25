@@ -42,7 +42,7 @@ set(db_ido_SOURCES
 )
 
 if(ICINGA2_UNITY_BUILD)
-    mkunity_target(db_ido db_ido db_ido_SOURCES)
+    target_unity_build(db_ido db_ido db_ido_SOURCES)
 endif()
 
 add_library(db_ido STATIC ${db_ido_SOURCES})

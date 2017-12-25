@@ -23,20 +23,20 @@ define_property(
 )
 
 if(ICINGA2_UNITY_BUILD OR ICINGA2_PCH_BUILD)
-    set(mkunity_SOURCES
-      mkunity.c
+    set(mkheader_SOURCES
+      mkheader.c
     )
 
-    add_executable(mkunity ${mkunity_SOURCES})
+    add_executable(mkheader ${mkheader_SOURCES})
 
     set_target_properties (
-      mkunity PROPERTIES
+      mkheader PROPERTIES
       FOLDER Bin
     )
 endif()
 
 if(ICINGA2_UNITY_BUILD)
-    function(MKUNITY_TARGET Target Prefix UnityInputRef)
+    function(target_unity_build Target Prefix UnityInputRef)
         set(UnityInput ${${UnityInputRef}})
         set(UnityOutput ${CMAKE_CURRENT_BINARY_DIR}/${Target}_unity.cpp)
         set(RealSources "")
@@ -51,12 +51,12 @@ if(ICINGA2_UNITY_BUILD)
         endforeach()
         add_custom_command(
             OUTPUT ${UnityOutput}
-            COMMAND mkunity
+            COMMAND mkheader
             ARGS ${UnitySources} > ${UnityOutput}.tmp
             COMMAND ${CMAKE_COMMAND}
             ARGS -E copy ${UnityOutput}.tmp ${UnityOutput}
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-            DEPENDS mkunity ${UnityInput}
+            DEPENDS mkheader ${UnityInput}
         )
         list(APPEND RealSources ${UnityOutput})
         set(${UnityInputRef} ${RealSources} PARENT_SCOPE)

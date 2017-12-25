@@ -49,7 +49,7 @@ set(config_SOURCES
 )
 
 if(ICINGA2_UNITY_BUILD)
-    mkunity_target(config config config_SOURCES)
+    target_unity_build(config config config_SOURCES)
 endif()
 
 add_library(config STATIC ${config_SOURCES})

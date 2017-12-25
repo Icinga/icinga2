@@ -32,7 +32,7 @@ set(perfdata_SOURCES
 )
 
 if(ICINGA2_UNITY_BUILD)
-    mkunity_target(perfdata perfdata perfdata_SOURCES)
+    target_unity_build(perfdata perfdata perfdata_SOURCES)
 endif()
 
 add_library(perfdata STATIC ${perfdata_SOURCES})

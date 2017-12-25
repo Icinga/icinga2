@@ -23,7 +23,7 @@ set(mysql_shim_SOURCES
 )
 
 if(ICINGA2_UNITY_BUILD)
-    mkunity_target(mysql_shim mysql_shim mysql_shim_SOURCES)
+    target_unity_build(mysql_shim mysql_shim mysql_shim_SOURCES)
 endif()
 
 add_library(mysql_shim SHARED ${mysql_shim_SOURCES})

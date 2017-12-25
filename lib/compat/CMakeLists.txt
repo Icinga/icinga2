@@ -28,7 +28,7 @@ set(compat_SOURCES
 )
 
 if(ICINGA2_UNITY_BUILD)
-    mkunity_target(compat compat compat_SOURCES)
+    target_unity_build(compat compat compat_SOURCES)
 endif()
 
 add_library(compat STATIC ${compat_SOURCES})

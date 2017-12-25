@@ -48,7 +48,7 @@ set(cli_SOURCES
 )
 
 if(ICINGA2_UNITY_BUILD)
-    mkunity_target(cli cli cli_SOURCES)
+    target_unity_build(cli cli cli_SOURCES)
 endif()
 
 add_library(cli STATIC ${cli_SOURCES})

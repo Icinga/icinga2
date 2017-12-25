@@ -77,7 +77,7 @@ set(icinga_SOURCES
 )
 
 if(ICINGA2_UNITY_BUILD)
-    mkunity_target(icinga icinga icinga_SOURCES)
+    target_unity_build(icinga icinga icinga_SOURCES)
 endif()
 
 add_library(icinga STATIC ${icinga_SOURCES})
