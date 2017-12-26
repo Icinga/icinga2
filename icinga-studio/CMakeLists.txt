@@ -35,6 +35,10 @@ set(icinga_studio_SOURCES
   ${WindowsSources}
 )
 
+if(ICINGA2_UNITY_BUILD)
+    target_unity_build(icinga-studio icinga-studio icinga_studio_SOURCES)
+endif()
+
 add_executable(icinga-studio MACOSX_BUNDLE WIN32 ${icinga_studio_SOURCES})
 
 target_link_libraries(icinga-studio PRIVATE ${wxWidgets_LIBRARIES} base remote)

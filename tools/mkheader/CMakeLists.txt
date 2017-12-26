@@ -24,21 +24,25 @@ define_property(
 
 if(ICINGA2_UNITY_BUILD OR ICINGA2_PCH_BUILD)
     set(mkheader_SOURCES
-      mkheader.c
+      mkheader.cpp
     )
 
     add_executable(mkheader ${mkheader_SOURCES})
 
-    set_target_properties (
+    set_target_properties(
       mkheader PROPERTIES
       FOLDER Bin
     )
 endif()
 
 if(ICINGA2_UNITY_BUILD)
+    include(ProcessorCount)
+    ProcessorCount(processors)
+    set(ICINGA2_UNITY_FRAGMENTS ${processors} CACHE STRING "The number of unity fragments")
+
     function(target_unity_build Target Prefix UnityInputRef)
         set(UnityInput ${${UnityInputRef}})
-        set(UnityOutput ${CMAKE_CURRENT_BINARY_DIR}/${Target}_unity.cpp)
+        set(UnityOutputTemplate ${CMAKE_CURRENT_BINARY_DIR}/${Target}_unity_{0}.cpp)
         set(RealSources "")
         set(UnitySources "")
         foreach(UnitySource ${UnityInput})
@@ -49,16 +53,30 @@ if(ICINGA2_UNITY_BUILD)
                 list(APPEND UnitySources ${Prefix}/${UnitySource})
             endif()
         endforeach()
-        add_custom_command(
-            OUTPUT ${UnityOutput}
-            COMMAND mkheader
-            ARGS ${UnitySources} > ${UnityOutput}.tmp
-            COMMAND ${CMAKE_COMMAND}
-            ARGS -E copy ${UnityOutput}.tmp ${UnityOutput}
-            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-            DEPENDS mkheader ${UnityInput}
-        )
-        list(APPEND RealSources ${UnityOutput})
-        set(${UnityInputRef} ${RealSources} PARENT_SCOPE)
+        list(LENGTH UnitySources UnitySourceCount)
+        set(UnityFragmentMax "${ICINGA2_UNITY_FRAGMENTS}")
+        if(UnitySourceCount GREATER "${UnityFragmentMax}")
+            math(EXPR UnityFragmentCount "${UnitySourceCount} / ${UnityFragmentMax}")
+            if(UnityFragmentCount GREATER ${UnityFragmentMax})
+                set(UnityFragmentCount ${UnityFragmentMax})
+            endif()
+
+            set(UnityOutput "")
+            math(EXPR UnityFragmentMaxIndex "${UnityFragmentCount} - 1")
+            foreach(CurrentFragment RANGE ${UnityFragmentMaxIndex})
+                set(Fragment ${UnityOutputTemplate})
+                string(REPLACE "{0}" ${CurrentFragment} Fragment ${Fragment})
+                list(APPEND UnityOutput ${Fragment})
+                list(APPEND RealSources ${Fragment})
+            endforeach()
+            add_custom_command(
+                OUTPUT ${UnityOutput}
+                COMMAND mkheader
+                ARGS ${UnityFragmentCount} ${UnityOutputTemplate} ${UnitySources}
+                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+                DEPENDS mkheader
+            )
+            set(${UnityInputRef} ${RealSources} PARENT_SCOPE)
+        endif()
     endfunction()
 endif()
