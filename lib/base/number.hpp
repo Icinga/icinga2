@@ -17,6 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
+#pragma once
+
 #ifndef NUMBER_H
 #define NUMBER_H
 

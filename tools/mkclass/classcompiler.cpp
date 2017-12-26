@@ -1428,7 +1428,8 @@ void ClassCompiler::CompileStream(const std::string& path, std::istream& input,
 
 	std::string guard_name = FileNameToGuardName(BaseName(path));
 
-	oheader << "#ifndef " << guard_name << std::endl
+	oheader << "#pragma once" << std::endl << std::endl
+		<< "#ifndef " << guard_name << std::endl
 		<< "#define " << guard_name << std::endl << std::endl;
 
 	oheader << "#include \"base/object.hpp\"" << std::endl

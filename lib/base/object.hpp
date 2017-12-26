@@ -17,6 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
+#pragma once
+
 #ifndef OBJECT_H
 #define OBJECT_H
 

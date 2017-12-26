@@ -17,6 +17,8 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
+#pragma once
+
 #ifndef FIFO_H
 #define FIFO_H
 
