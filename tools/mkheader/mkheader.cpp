@@ -17,20 +17,47 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include <stdlib.h>
-#include <stdio.h>
+#include <cstdlib>
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <vector>
+#include <boost/algorithm/string/replace.hpp>
 
 int main(int argc, char **argv)
 {
-	int i;
-
-	if (argc < 2) {
-		fprintf(stderr, "Syntax: %s [<file> ...]\n", argv[0]);
+	if (argc < 4) {
+		std::cerr << "Syntax: " << argv[0] << " <output-file> <fragments> [<file> ...]\n";
 		return EXIT_FAILURE;
 	}
 
-	for (i = 1; i < argc; i++) {
-		printf("#include \"%s\"\n", argv[i]);
+	std::string tmpl = argv[2];
+	size_t fragments = atoi(argv[1]);
+
+	if (fragments <= 1)
+		fragments = 1;
+
+	std::vector<std::ofstream> fps{fragments};
+
+	for (int i = 0; i < fps.size(); i++) {
+		auto& fp = fps[i];
+
+		std::string path{tmpl};
+		boost::algorithm::replace_all(path, "{0}", std::to_string(i));
+
+		fp.open(path.c_str(), std::ofstream::out);
+
+		if (!fp) {
+			std::cerr << "Failed to open \"" << path << "\".\n";
+			return EXIT_FAILURE;
+		}
+	}
+
+	size_t current_fragment = 0;
+
+	for (int i = 3; i < argc; i++) {
+		fps[current_fragment % fragments] << "#include \"" << argv[i] << "\"\n";
+		current_fragment++;
 	}
 
 	return EXIT_SUCCESS;

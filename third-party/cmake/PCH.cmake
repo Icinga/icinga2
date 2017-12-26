@@ -145,9 +145,7 @@ function(_add_precompiled_header target pch_target header reuse_pch_target)
     add_custom_command(
       OUTPUT ${pch_source}
       COMMAND mkheader
-      ARGS ${pch_sources} > ${pch_source}.tmp
-      COMMAND ${CMAKE_COMMAND}
-      ARGS -E copy ${pch_source}.tmp ${pch_source}
+      ARGS 1 ${pch_source} ${pch_sources}
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
       DEPENDS mkheader ${pch_sources}
     )
