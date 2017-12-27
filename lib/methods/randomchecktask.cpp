@@ -17,14 +17,10 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef _WIN32
-#	include <stdlib.h>
-#endif /* _WIN32 */
 #include "methods/randomchecktask.hpp"
 #include "icinga/icingaapplication.hpp"
 #include "base/utility.hpp"
 #include "base/perfdatavalue.hpp"
-#include "base/convert.hpp"
 #include "base/function.hpp"
 #include "base/logger.hpp"
 
@@ -42,7 +38,7 @@ void RandomCheckTask::ScriptFunc(const Checkable::Ptr& service, const CheckResul
 	output += IcingaApplication::GetInstance()->GetNodeName();
 
 	Array::Ptr perfdata = new Array();
-	perfdata->Add(new PerfdataValue("time", Convert::ToDouble(Utility::GetTime())));
+	perfdata->Add(new PerfdataValue("time", Utility::GetTime()));
 
 	cr->SetOutput(output);
 	cr->SetPerformanceData(perfdata);

@@ -25,7 +25,6 @@
 #include "base/i2-base.hpp"
 #include "base/configobject.thpp"
 #include "base/object.hpp"
-#include "base/type.hpp"
 #include "base/dictionary.hpp"
 #include <boost/signals2.hpp>
 
@@ -74,7 +73,7 @@ public:
 	virtual void Resume(void);
 
 	virtual void OnConfigLoaded(void);
-	virtual void CreateChildObjects(const Type::Ptr& childType);
+	virtual void CreateChildObjects(const intrusive_ptr<Type>& childType);
 	virtual void OnAllConfigLoaded(void);
 	virtual void OnStateLoaded(void);
 

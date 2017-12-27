@@ -105,7 +105,6 @@
 #include <boost/thread/once.hpp>
 #include <boost/thread/recursive_mutex.hpp>
 #include <boost/thread/thread.hpp>
-#include <boost/thread/tss.hpp>
 #include <boost/throw_exception.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>

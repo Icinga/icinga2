@@ -19,7 +19,6 @@
 
 #include "base/ringbuffer.hpp"
 #include "base/objectlock.hpp"
-#include "base/utility.hpp"
 #include <algorithm>
 
 using namespace icinga;

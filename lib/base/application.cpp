@@ -972,6 +972,11 @@ int Application::Run(void)
 	return Main();
 }
 
+void Application::UpdatePidFile(const String& filename)
+{
+	UpdatePidFile(filename, Utility::GetPid());
+}
+
 /**
  * Grabs the PID file lock and updates the PID. Terminates the application
  * if the PID file is already locked by another instance of the application.

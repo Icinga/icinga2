@@ -52,8 +52,8 @@ void CheckerComponent::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr
 		nodes->Set(checker->GetName(), stats);
 
 		String perfdata_prefix = "checkercomponent_" + checker->GetName() + "_";
-		perfdata->Add(new PerfdataValue(perfdata_prefix + "idle", Convert::ToDouble(idle)));
-		perfdata->Add(new PerfdataValue(perfdata_prefix + "pending", Convert::ToDouble(pending)));
+		perfdata->Add(new PerfdataValue(perfdata_prefix + "idle", idle));
+		perfdata->Add(new PerfdataValue(perfdata_prefix + "pending", pending));
 	}
 
 	status->Set("checkercomponent", nodes);

@@ -28,7 +28,7 @@ BOOST_AUTO_TEST_SUITE(base_convert)
 
 BOOST_AUTO_TEST_CASE(tolong)
 {
-	BOOST_CHECK_THROW(Convert::ToLong(" 7"), boost::exception);
+	BOOST_CHECK(Convert::ToLong(" 7") == 7);
 	BOOST_CHECK(Convert::ToLong("-7") == -7);
 	BOOST_CHECK_THROW(Convert::ToLong("7a"), boost::exception);
 
@@ -37,7 +37,7 @@ BOOST_AUTO_TEST_CASE(tolong)
 
 BOOST_AUTO_TEST_CASE(todouble)
 {
-	BOOST_CHECK_THROW(Convert::ToDouble(" 7.3"), boost::exception);
+	BOOST_CHECK(Convert::ToDouble(" 7.3") == 7.3);
 	BOOST_CHECK(Convert::ToDouble("-7.3") == -7.3);
 	BOOST_CHECK_THROW(Convert::ToDouble("7.3a"), boost::exception);
 	BOOST_CHECK(Convert::ToDouble(Value(-7.3)) == -7.3);
@@ -47,10 +47,6 @@ BOOST_AUTO_TEST_CASE(tostring)
 {
 	BOOST_CHECK(Convert::ToString(7) == "7");
 	BOOST_CHECK(Convert::ToString(7.5) == "7.500000");
-	BOOST_CHECK(Convert::ToString("hello") == "hello");
-
-	String str = "hello";
-	BOOST_CHECK(Convert::ToString(str) == "hello");
 
 	BOOST_CHECK(Convert::ToString(Value(7)) == "7");
 	BOOST_CHECK(Convert::ToString(Value(7.5)) == "7.500000");

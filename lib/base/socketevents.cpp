@@ -20,7 +20,7 @@
 #include "base/socketevents.hpp"
 #include "base/exception.hpp"
 #include "base/logger.hpp"
-#include "base/application.hpp"
+#include "base/utility.hpp"
 #include "base/scriptglobal.hpp"
 #include <boost/thread/once.hpp>
 #include <map>

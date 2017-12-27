@@ -24,11 +24,12 @@
 
 #include "base/i2-base.hpp"
 #include "base/streamlogger.thpp"
-#include "base/timer.hpp"
 #include <ostream>
 
 namespace icinga
 {
+
+class Timer;
 
 /**
  * A logger that logs to an iostream.
@@ -58,7 +59,7 @@ private:
 	std::ostream *m_Stream;
 	bool m_OwnsStream;
 
-	Timer::Ptr m_FlushLogTimer;
+	intrusive_ptr<Timer> m_FlushLogTimer;
 
 	void FlushLogTimerHandler(void);
 };

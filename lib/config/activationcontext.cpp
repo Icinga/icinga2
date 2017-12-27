@@ -22,34 +22,22 @@
 
 using namespace icinga;
 
-boost::thread_specific_ptr<std::stack<ActivationContext::Ptr> > ActivationContext::m_ActivationStack;
-
-std::stack<ActivationContext::Ptr>& ActivationContext::GetActivationStack(void)
-{
-	std::stack<ActivationContext::Ptr> *actx = m_ActivationStack.get();
-
-	if (!actx) {
-		actx = new std::stack<ActivationContext::Ptr>();
-		m_ActivationStack.reset(actx);
-	}
-
-	return *actx;
-}
+thread_local std::stack<ActivationContext::Ptr> ActivationContext::m_ActivationStack;
 
 void ActivationContext::PushContext(const ActivationContext::Ptr& context)
 {
-	GetActivationStack().push(context);
+	m_ActivationStack.push(context);
 }
 
 void ActivationContext::PopContext(void)
 {
-	ASSERT(!GetActivationStack().empty());
-	GetActivationStack().pop();
+	ASSERT(!m_ActivationStack.empty());
+	m_ActivationStack.pop();
 }
 
 ActivationContext::Ptr ActivationContext::GetCurrentContext(void)
 {
-	std::stack<ActivationContext::Ptr>& astack = GetActivationStack();
+	std::stack<ActivationContext::Ptr>& astack = m_ActivationStack;
 
 	if (astack.empty())
 		BOOST_THROW_EXCEPTION(std::runtime_error("Objects may not be created outside of an activation context."));

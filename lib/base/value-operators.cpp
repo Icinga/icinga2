@@ -22,9 +22,7 @@
 #include "base/dictionary.hpp"
 #include "base/datetime.hpp"
 #include "base/convert.hpp"
-#include "base/utility.hpp"
 #include "base/objectlock.hpp"
-#include <boost/lexical_cast.hpp>
 
 using namespace icinga;
 
@@ -43,13 +41,7 @@ Value::operator double(void) const
 	if (IsEmpty())
 		return 0;
 
-	try {
-		return boost::lexical_cast<double>(m_Value);
-	} catch (const std::exception&) {
-		std::ostringstream msgbuf;
-		msgbuf << "Can't convert '" << *this << "' to a floating point number.";
-		BOOST_THROW_EXCEPTION(std::invalid_argument(msgbuf.str()));
-	}
+	return Convert::ToDouble(String(*this));
 }
 
 Value::operator String(void) const

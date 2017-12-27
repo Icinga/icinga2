@@ -19,7 +19,8 @@
 
 #include "base/serializer.hpp"
 #include "base/type.hpp"
-#include "base/application.hpp"
+#include "base/array.hpp"
+#include "base/dictionary.hpp"
 #include "base/objectlock.hpp"
 
 using namespace icinga;

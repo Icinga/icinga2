@@ -28,7 +28,6 @@
 #include "base/objectlock.hpp"
 #include <mmatch.h>
 #include <boost/lexical_cast.hpp>
-#include <boost/thread/tss.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/trim.hpp>
@@ -65,8 +64,9 @@
 
 using namespace icinga;
 
-boost::thread_specific_ptr<String> Utility::m_ThreadName;
-boost::thread_specific_ptr<unsigned int> Utility::m_RandSeed;
+thread_local String Utility::m_ThreadName;
+thread_local bool Utility::m_RandSeedInitialized = false;
+thread_local unsigned int Utility::m_RandSeed;
 
 #ifdef I2_DEBUG
 double Utility::m_DebugTime = -1;
@@ -1194,7 +1194,7 @@ static void WindowsSetThreadName(const char *name)
 
 void Utility::SetThreadName(const String& name, bool os)
 {
-	m_ThreadName.reset(new String(name));
+	m_ThreadName = name;
 
 	if (!os)
 		return;
@@ -1219,15 +1219,15 @@ void Utility::SetThreadName(const String& name, bool os)
 
 String Utility::GetThreadName(void)
 {
-	String *name = m_ThreadName.get();
+	String name = m_ThreadName;
 
-	if (!name) {
+	if (!name.IsEmpty()) {
 		std::ostringstream idbuf;
 		idbuf << std::this_thread::get_id();
 		return idbuf.str();
 	}
 
-	return *name;
+	return name;
 }
 
 unsigned long Utility::SDBM(const String& str, size_t len)
@@ -1316,14 +1316,12 @@ int Utility::Random(void)
 #ifdef _WIN32
 	return rand();
 #else /* _WIN32 */
-	unsigned int *seed = m_RandSeed.get();
-
-	if (!seed) {
-		seed = new unsigned int(Utility::GetTime());
-		m_RandSeed.reset(seed);
+	if (!m_RandSeedInitialized) {
+		m_RandSeed = Utility::GetTime();
+		m_RandSeedInitialized = true;
 	}
 
-	return rand_r(seed);
+	return rand_r(&m_RandSeed);
 #endif /* _WIN32 */
 }
 

@@ -180,12 +180,15 @@ String CompatUtility::GetCheckableCommandArgs(const Checkable::Ptr& checkable)
 			}
 		}
 
-		String arg_string;
-		ObjectLock olock(args);
-		for (const Dictionary::Pair& kv : args) {
-			arg_string += Convert::ToString(kv.first) + "=" + Convert::ToString(kv.second) + "!";
+		std::ostringstream msgbuf;
+
+		{
+			ObjectLock olock(args);
+			for (const Dictionary::Pair& kv : args)
+				msgbuf << kv.first << "=" << Convert::ToString(kv.second) << "!";
 		}
-		return arg_string;
+
+		return msgbuf.str();
 	}
 
 	return Empty;
@@ -219,7 +222,6 @@ int CompatUtility::GetCheckableHasBeenChecked(const Checkable::Ptr& checkable)
 {
 	return (checkable->GetLastCheckResult() ? 1 : 0);
 }
-
 
 int CompatUtility::GetCheckableProblemHasBeenAcknowledged(const Checkable::Ptr& checkable)
 {

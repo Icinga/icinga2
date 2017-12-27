@@ -19,14 +19,8 @@
 
 #include "base/convert.hpp"
 #include "base/datetime.hpp"
-#include <boost/lexical_cast.hpp>
 
 using namespace icinga;
-
-String Convert::ToString(const String& val)
-{
-	return val;
-}
 
 String Convert::ToString(const Value& val)
 {
@@ -39,16 +33,9 @@ String Convert::ToString(double val)
 	double fractional = std::modf(val, &integral);
 
 	if (fractional == 0)
-		return Convert::ToString(static_cast<long long>(val));
+		return std::to_string(static_cast<long long>(val));
 
-	std::ostringstream msgbuf;
-	msgbuf << std::fixed << val;
-	return msgbuf.str();
-}
-
-double Convert::ToDateTimeValue(double val)
-{
-	return val;
+	return std::to_string(val);
 }
 
 double Convert::ToDateTimeValue(const Value& val)

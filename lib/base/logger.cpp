@@ -19,7 +19,6 @@
 
 #include "base/logger.hpp"
 #include "base/logger.tcpp"
-#include "base/application.hpp"
 #include "base/streamlogger.hpp"
 #include "base/configtype.hpp"
 #include "base/utility.hpp"

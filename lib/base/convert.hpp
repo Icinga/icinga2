@@ -22,7 +22,6 @@
 
 #include "base/i2-base.hpp"
 #include "base/value.hpp"
-#include <boost/lexical_cast.hpp>
 
 namespace icinga
 {
@@ -38,8 +37,15 @@ public:
 	template<typename T>
 	static long ToLong(const T& val)
 	{
+		static_assert(!std::is_arithmetic<T>::value, "T must not be a numeric type");
+
 		try {
-			return boost::lexical_cast<long>(val);
+			std::size_t pos;
+			std::string str = val;
+			double res = std::stod(str, &pos);
+			if (pos < str.size())
+				throw std::invalid_argument("val");
+			return res;
 		} catch (const std::exception&) {
 			std::ostringstream msgbuf;
 			msgbuf << "Can't convert '" << val << "' to an integer.";
@@ -50,8 +56,15 @@ public:
 	template<typename T>
 	static double ToDouble(const T& val)
 	{
+		static_assert(!std::is_arithmetic<T>::value, "T must not be a numeric type");
+
 		try {
-			return boost::lexical_cast<double>(val);
+			std::size_t pos;
+			std::string str = val;
+			double res = std::stod(str, &pos);
+			if (pos < str.size())
+				throw std::invalid_argument("val");
+			return res;
 		} catch (const std::exception&) {
 			std::ostringstream msgbuf;
 			msgbuf << "Can't convert '" << val << "' to a floating point number.";
@@ -77,14 +90,15 @@ public:
 	template<typename T>
 	static String ToString(const T& val)
 	{
-		return boost::lexical_cast<std::string>(val);
+		static_assert(!std::is_same<T, String>::value, "T must not be icinga::String");
+		static_assert(!std::is_same<T, char *>::value, "T must not be char *");
+		static_assert(!std::is_same<T, const char *>::value, "T must not be const char *");
+		return std::to_string(val);
 	}
 
-	static String ToString(const String& val);
 	static String ToString(const Value& val);
 	static String ToString(double val);
 
-	static double ToDateTimeValue(double val);
 	static double ToDateTimeValue(const Value& val);
 
 private:

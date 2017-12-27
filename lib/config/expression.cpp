@@ -34,19 +34,23 @@
 using namespace icinga;
 
 boost::signals2::signal<void (ScriptFrame&, ScriptError *ex, const DebugInfo&)> Expression::OnBreakpoint;
-boost::thread_specific_ptr<bool> l_InBreakpointHandler;
+static thread_local bool l_InBreakpointHandler;
 
 Expression::~Expression(void)
 { }
 
 void Expression::ScriptBreakpoint(ScriptFrame& frame, ScriptError *ex, const DebugInfo& di)
 {
-	bool *inHandler = l_InBreakpointHandler.get();
-	if (!inHandler || !*inHandler) {
-		inHandler = new bool(true);
-		l_InBreakpointHandler.reset(inHandler);
-		OnBreakpoint(frame, ex, di);
-		*inHandler = false;
+	if (!l_InBreakpointHandler) {
+		try {
+			l_InBreakpointHandler = true;
+			OnBreakpoint(frame, ex, di);
+		} catch (const std::exception&) {
+			l_InBreakpointHandler = false;
+			throw;
+		}
+
+		l_InBreakpointHandler = false;
 	}
 }
 

@@ -46,8 +46,6 @@ extern Value Empty;
 #define DECLARE_PTR_TYPEDEFS(klass) \
 	typedef intrusive_ptr<klass> Ptr
 
-#define IMPL_TYPE_LOOKUP_SUPER() 					\
-
 #define IMPL_TYPE_LOOKUP() 							\
 	static intrusive_ptr<Type> TypeInstance;				\
 	virtual intrusive_ptr<Type> GetReflectionType(void) const override	\

@@ -22,7 +22,6 @@
 #include "base/debug.hpp"
 #include "base/utility.hpp"
 #include "base/exception.hpp"
-#include "base/application.hpp"
 #include <iostream>
 
 using namespace icinga;

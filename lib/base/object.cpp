@@ -22,7 +22,6 @@
 #include "base/dictionary.hpp"
 #include "base/primitivetype.hpp"
 #include "base/utility.hpp"
-#include "base/timer.hpp"
 #include "base/logger.hpp"
 #include "base/exception.hpp"
 #include <boost/lexical_cast.hpp>

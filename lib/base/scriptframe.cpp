@@ -23,7 +23,7 @@
 
 using namespace icinga;
 
-boost::thread_specific_ptr<std::stack<ScriptFrame *> > ScriptFrame::m_ScriptFrames;
+thread_local std::stack<ScriptFrame *> ScriptFrame::m_ScriptFrames;
 Array::Ptr ScriptFrame::m_Imports;
 
 INITIALIZE_ONCE_WITH_PRIORITY([]() {
@@ -54,10 +54,10 @@ ScriptFrame::ScriptFrame(bool allocLocals, const Value& self)
 
 void ScriptFrame::InitializeFrame(void)
 {
-	std::stack<ScriptFrame *> *frames = m_ScriptFrames.get();
+	std::stack<ScriptFrame *>& frames = m_ScriptFrames;
 
-	if (frames && !frames->empty()) {
-		ScriptFrame *frame = frames->top();
+	if (!frames.empty()) {
+		ScriptFrame *frame = frames.top();
 
 		Sandboxed = frame->Sandboxed;
 	}
@@ -86,39 +86,34 @@ void ScriptFrame::DecreaseStackDepth(void)
 
 ScriptFrame *ScriptFrame::GetCurrentFrame(void)
 {
-	std::stack<ScriptFrame *> *frames = m_ScriptFrames.get();
+	std::stack<ScriptFrame *>& frames = m_ScriptFrames;
 
-	ASSERT(!frames->empty());
-	return frames->top();
+	ASSERT(!frames.empty());
+	return frames.top();
 }
 
 ScriptFrame *ScriptFrame::PopFrame(void)
 {
-	std::stack<ScriptFrame *> *frames = m_ScriptFrames.get();
+	std::stack<ScriptFrame *>& frames = m_ScriptFrames;
 
-	ASSERT(!frames->empty());
+	ASSERT(!frames.empty());
 
-	ScriptFrame *frame = frames->top();
-	frames->pop();
+	ScriptFrame *frame = frames.top();
+	frames.pop();
 
 	return frame;
 }
 
 void ScriptFrame::PushFrame(ScriptFrame *frame)
 {
-	std::stack<ScriptFrame *> *frames = m_ScriptFrames.get();
+	std::stack<ScriptFrame *>& frames = m_ScriptFrames;
 
-	if (!frames) {
-		frames = new std::stack<ScriptFrame *>();
-		m_ScriptFrames.reset(frames);
-	}
-
-	if (!frames->empty()) {
-		ScriptFrame *parent = frames->top();
+	if (!frames.empty()) {
+		ScriptFrame *parent = frames.top();
 		frame->Depth += parent->Depth;
 	}
 
-	frames->push(frame);
+	frames.push(frame);
 }
 
 Array::Ptr ScriptFrame::GetImports(void)

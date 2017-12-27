@@ -24,7 +24,6 @@
 
 #include "base/i2-base.hpp"
 #include "base/string.hpp"
-#include <boost/thread/tss.hpp>
 #include <queue>
 
 namespace icinga
@@ -33,19 +32,11 @@ namespace icinga
 struct DeferredInitializer
 {
 public:
-	DeferredInitializer(const std::function<void (void)>& callback, int priority)
-		: m_Callback(callback), m_Priority(priority)
-	{ }
+	DeferredInitializer(const std::function<void (void)>& callback, int priority);
 
-	bool operator<(const DeferredInitializer& other) const
-	{
-		return m_Priority < other.m_Priority;
-	}
+	bool operator<(const DeferredInitializer& other) const;
 
-	void operator()(void)
-	{
-		m_Callback();
-	}
+	void operator()(void);
 
 private:
 	std::function<void (void)> m_Callback;
@@ -66,7 +57,7 @@ public:
 private:
 	Loader(void);
 
-	static boost::thread_specific_ptr<std::priority_queue<DeferredInitializer> >& GetDeferredInitializers(void);
+	static std::priority_queue<DeferredInitializer>& GetDeferredInitializers(void);
 };
 
 }

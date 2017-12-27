@@ -31,7 +31,6 @@
 #include "base/function.hpp"
 #include "base/initialize.hpp"
 #include "base/workqueue.hpp"
-#include "base/context.hpp"
 #include "base/application.hpp"
 #include <fstream>
 #include <boost/algorithm/string/split.hpp>

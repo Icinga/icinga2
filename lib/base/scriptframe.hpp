@@ -25,7 +25,6 @@
 #include "base/i2-base.hpp"
 #include "base/dictionary.hpp"
 #include "base/array.hpp"
-#include <boost/thread/tss.hpp>
 #include <stack>
 
 namespace icinga
@@ -51,7 +50,7 @@ struct ScriptFrame
 	static void AddImport(const Object::Ptr& import);
 
 private:
-	static boost::thread_specific_ptr<std::stack<ScriptFrame *> > m_ScriptFrames;
+	static thread_local std::stack<ScriptFrame *> m_ScriptFrames;
 	static Array::Ptr m_Imports;
 
 	static void PushFrame(ScriptFrame *frame);

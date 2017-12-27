@@ -18,7 +18,6 @@
  ******************************************************************************/
 
 #include "base/boolean.hpp"
-#include "base/convert.hpp"
 #include "base/function.hpp"
 #include "base/functionwrapper.hpp"
 #include "base/scriptframe.hpp"

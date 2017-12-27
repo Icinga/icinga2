@@ -22,6 +22,7 @@
 #include "base/utility.hpp"
 #include "base/objectlock.hpp"
 #include "base/console.hpp"
+#include "base/timer.hpp"
 #include <iostream>
 
 using namespace icinga;

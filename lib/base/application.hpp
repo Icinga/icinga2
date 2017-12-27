@@ -25,8 +25,6 @@
 #include "base/i2-base.hpp"
 #include "base/application.thpp"
 #include "base/threadpool.hpp"
-#include "base/utility.hpp"
-#include "base/logger.hpp"
 #include <ostream>
 
 namespace icinga
@@ -77,10 +75,8 @@ public:
 
 	static bool IsShuttingDown(void);
 
-	static void SetDebuggingSeverity(LogSeverity severity);
-	static LogSeverity GetDebuggingSeverity(void);
-
-	void UpdatePidFile(const String& filename, pid_t pid = Utility::GetPid());
+	void UpdatePidFile(const String& filename);
+	void UpdatePidFile(const String& filename, pid_t pid);
 	void ClosePidFile(bool unlink);
 	static pid_t ReadPidFile(const String& filename);
 
@@ -189,8 +185,6 @@ private:
 	static int m_ArgC; /**< The number of command-line arguments. */
 	static char **m_ArgV; /**< Command-line arguments. */
 	FILE *m_PidFile; /**< The PID file */
-	static bool m_Debugging; /**< Whether debugging is enabled. */
-	static LogSeverity m_DebuggingSeverity; /**< Whether debugging severity is set. */
 	static double m_StartTime;
 	static double m_MainTime;
 	static bool m_ScriptDebuggerEnabled;

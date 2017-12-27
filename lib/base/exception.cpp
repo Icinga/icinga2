@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include "base/exception.hpp"
+#include "base/utility.hpp"
 
 #ifdef HAVE_CXXABI_H
 #	include <cxxabi.h>
@@ -25,8 +26,8 @@
 
 using namespace icinga;
 
-static boost::thread_specific_ptr<StackTrace> l_LastExceptionStack;
-static boost::thread_specific_ptr<ContextTrace> l_LastExceptionContext;
+static thread_local StackTrace *l_LastExceptionStack;
+static thread_local ContextTrace *l_LastExceptionContext;
 
 #ifdef HAVE_CXXABI_H
 
@@ -81,11 +82,11 @@ inline void *cast_exception(void *obj, const std::type_info *src, const std::typ
 #	endif
 
 #	if !defined(__GLIBCXX__) && !defined(_WIN32)
-static boost::thread_specific_ptr<void *> l_LastExceptionObj;
-static boost::thread_specific_ptr<TYPEINFO_TYPE *> l_LastExceptionPvtInfo;
+static thread_local void *l_LastExceptionObj;
+static thread_local TYPEINFO_TYPE *l_LastExceptionPvtInfo;
 
 typedef void (*DestCallback)(void *);
-static boost::thread_specific_ptr<DestCallback> l_LastExceptionDest;
+static thread_local DestCallback l_LastExceptionDest;
 #	endif /* !__GLIBCXX__ && !_WIN32 */
 
 extern "C" void __cxa_throw(void *obj, TYPEINFO_TYPE *pvtinfo, void (*dest)(void *));
@@ -96,7 +97,7 @@ void icinga::RethrowUncaughtException(void)
 #if defined(__GLIBCXX__) || !defined(HAVE_CXXABI_H)
 	throw;
 #else /* __GLIBCXX__ || !HAVE_CXXABI_H */
-	__cxa_throw(*l_LastExceptionObj.get(), *l_LastExceptionPvtInfo.get(), *l_LastExceptionDest.get());
+	__cxa_throw(l_LastExceptionObj, l_LastExceptionPvtInfo, l_LastExceptionDest);
 #endif /* __GLIBCXX__ || !HAVE_CXXABI_H */
 }
 
@@ -110,9 +111,9 @@ void __cxa_throw(void *obj, TYPEINFO_TYPE *pvtinfo, void (*dest)(void *))
 	static cxa_throw_fn real_cxa_throw;
 
 #if !defined(__GLIBCXX__) && !defined(_WIN32)
-	l_LastExceptionObj.reset(new void *(obj));
-	l_LastExceptionPvtInfo.reset(new TYPEINFO_TYPE *(pvtinfo));
-	l_LastExceptionDest.reset(new DestCallback(dest));
+	l_LastExceptionObj = obj;
+	l_LastExceptionPvtInfo = pvtinfo;
+	l_LastExceptionDest = dest;
 #endif /* !defined(__GLIBCXX__) && !defined(_WIN32) */
 
 	if (real_cxa_throw == 0)
@@ -147,22 +148,24 @@ void __cxa_throw(void *obj, TYPEINFO_TYPE *pvtinfo, void (*dest)(void *))
 
 StackTrace *icinga::GetLastExceptionStack(void)
 {
-	return l_LastExceptionStack.get();
+	return l_LastExceptionStack;
 }
 
 void icinga::SetLastExceptionStack(const StackTrace& trace)
 {
-	l_LastExceptionStack.reset(new StackTrace(trace));
+	delete l_LastExceptionStack;
+	l_LastExceptionStack = new StackTrace(trace);
 }
 
 ContextTrace *icinga::GetLastExceptionContext(void)
 {
-	return l_LastExceptionContext.get();
+	return l_LastExceptionContext;
 }
 
 void icinga::SetLastExceptionContext(const ContextTrace& context)
 {
-	l_LastExceptionContext.reset(new ContextTrace(context));
+	delete l_LastExceptionContext;
+	l_LastExceptionContext = new ContextTrace(context);
 }
 
 String icinga::DiagnosticInformation(const std::exception& ex, bool verbose, StackTrace *stack, ContextTrace *context)
@@ -413,3 +416,9 @@ Dictionary::Ptr ValidationError::GetDebugHint(void) const
 	return m_DebugHint;
 }
 
+#ifdef _WIN32
+std::string icinga::to_string(const errinfo_win32_error& e)
+{
+	return "[errinfo_win32_error] = " + Utility::FormatErrorNumber(e.value()) + "\n";
+}
+#endif /* _WIN32 */

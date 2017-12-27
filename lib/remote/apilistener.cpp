@@ -1326,8 +1326,8 @@ std::pair<Dictionary::Ptr, Dictionary::Ptr> ApiListener::GetStatus(void)
 
 	/* performance data */
 	perfdata->Set("num_endpoints", allEndpoints);
-	perfdata->Set("num_conn_endpoints", Convert::ToDouble(allConnectedEndpoints->GetLength()));
-	perfdata->Set("num_not_conn_endpoints", Convert::ToDouble(allNotConnectedEndpoints->GetLength()));
+	perfdata->Set("num_conn_endpoints", allConnectedEndpoints->GetLength());
+	perfdata->Set("num_not_conn_endpoints", allNotConnectedEndpoints->GetLength());
 
 	perfdata->Set("num_json_rpc_clients", jsonRpcClients);
 	perfdata->Set("num_http_clients", httpClients);

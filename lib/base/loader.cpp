@@ -24,29 +24,38 @@
 
 using namespace icinga;
 
-boost::thread_specific_ptr<std::priority_queue<DeferredInitializer> >& Loader::GetDeferredInitializers(void)
+std::priority_queue<DeferredInitializer>& Loader::GetDeferredInitializers(void)
 {
-	static boost::thread_specific_ptr<std::priority_queue<DeferredInitializer> > initializers;
+	thread_local std::priority_queue<DeferredInitializer> initializers;
 	return initializers;
 }
 
 void Loader::ExecuteDeferredInitializers(void)
 {
-	if (!GetDeferredInitializers().get())
-		return;
+	auto& initializers = GetDeferredInitializers();
 
-	while (!GetDeferredInitializers().get()->empty()) {
-		DeferredInitializer initializer = GetDeferredInitializers().get()->top();
-		GetDeferredInitializers().get()->pop();
+	while (!initializers.empty()) {
+		DeferredInitializer initializer = initializers.top();
+		initializers.pop();
 		initializer();
 	}
 }
 
 void Loader::AddDeferredInitializer(const std::function<void(void)>& callback, int priority)
 {
-	if (!GetDeferredInitializers().get())
-		GetDeferredInitializers().reset(new std::priority_queue<DeferredInitializer>());
-
-	GetDeferredInitializers().get()->push(DeferredInitializer(callback, priority));
+	GetDeferredInitializers().emplace(callback, priority);
 }
 
+DeferredInitializer::DeferredInitializer(const std::function<void (void)>& callback, int priority)
+	: m_Callback(callback), m_Priority(priority)
+{ }
+
+bool DeferredInitializer::operator<(const DeferredInitializer& other) const
+{
+	return m_Priority < other.m_Priority;
+}
+
+void DeferredInitializer::operator()(void)
+{
+	m_Callback();
+}

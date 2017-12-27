@@ -23,7 +23,6 @@
 #define WORKQUEUE_H
 
 #include "base/i2-base.hpp"
-#include "base/timer.hpp"
 #include "base/ringbuffer.hpp"
 #include <boost/thread/thread.hpp>
 #include <boost/thread/mutex.hpp>
@@ -72,6 +71,8 @@ inline bool operator<(const Task& a, const Task& b)
 
 	return false;
 }
+
+class Timer;
 
 /**
  * A workqueue.
@@ -126,7 +127,7 @@ private:
 	int m_NextTaskID;
 	ExceptionCallback m_ExceptionCallback;
 	std::vector<boost::exception_ptr> m_Exceptions;
-	Timer::Ptr m_StatusTimer;
+	intrusive_ptr<Timer> m_StatusTimer;
 	double m_StatusTimerTimeout;
 
 	mutable boost::mutex m_StatsMutex;

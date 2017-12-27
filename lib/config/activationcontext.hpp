@@ -24,7 +24,6 @@
 
 #include "config/i2-config.hpp"
 #include "base/object.hpp"
-#include <boost/thread/tss.hpp>
 #include <stack>
 
 namespace icinga
@@ -41,9 +40,7 @@ private:
 	static void PushContext(const ActivationContext::Ptr& context);
 	static void PopContext(void);
 
-	static std::stack<ActivationContext::Ptr>& GetActivationStack(void);
-
-	static boost::thread_specific_ptr<std::stack<ActivationContext::Ptr> > m_ActivationStack;
+	static thread_local std::stack<ActivationContext::Ptr> m_ActivationStack;
 
 	friend class ActivationScope;
 };

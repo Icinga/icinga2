@@ -26,7 +26,6 @@
 #include "base/string.hpp"
 #include "base/array.hpp"
 #include "base/threadpool.hpp"
-#include <boost/thread/tss.hpp>
 #include <typeinfo>
 #include <vector>
 
@@ -166,8 +165,9 @@ private:
 	static double m_DebugTime;
 #endif /* I2_DEBUG */
 
-	static boost::thread_specific_ptr<String> m_ThreadName;
-	static boost::thread_specific_ptr<unsigned int> m_RandSeed;
+	static thread_local String m_ThreadName;
+	static thread_local bool m_RandSeedInitialized;
+	static thread_local unsigned int m_RandSeed;
 };
 
 }

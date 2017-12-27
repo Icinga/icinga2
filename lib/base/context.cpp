@@ -18,33 +18,24 @@
  ******************************************************************************/
 
 #include "base/context.hpp"
-#include <boost/thread/tss.hpp>
 #include <ostream>
 
 using namespace icinga;
 
-static boost::thread_specific_ptr<std::list<String> > l_Frames;
+thread_local std::list<String> l_ContextFrames;
 
 ContextFrame::ContextFrame(const String& message)
 {
-	GetFrames().push_front(message);
+	l_ContextFrames.push_front(message);
 }
 
 ContextFrame::~ContextFrame(void)
 {
-	GetFrames().pop_front();
-}
-
-std::list<String>& ContextFrame::GetFrames(void)
-{
-	if (!l_Frames.get())
-		l_Frames.reset(new std::list<String>());
-
-	return *l_Frames;
+	l_ContextFrames.pop_front();
 }
 
 ContextTrace::ContextTrace(void)
-	: m_Frames(ContextFrame::GetFrames())
+	: m_Frames(l_ContextFrames)
 { }
 
 void ContextTrace::Print(std::ostream& fp) const

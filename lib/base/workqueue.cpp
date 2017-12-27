@@ -20,15 +20,13 @@
 #include "base/workqueue.hpp"
 #include "base/utility.hpp"
 #include "base/logger.hpp"
-#include "base/convert.hpp"
-#include "base/application.hpp"
 #include "base/exception.hpp"
-#include <boost/thread/tss.hpp>
+#include "base/timer.hpp"
 
 using namespace icinga;
 
 std::atomic<int> WorkQueue::m_NextID(1);
-boost::thread_specific_ptr<WorkQueue *> l_ThreadWorkQueue;
+thread_local WorkQueue *l_ThreadWorkQueue;
 
 WorkQueue::WorkQueue(size_t maxItems, int threadCount)
 	: m_ID(m_NextID++), m_ThreadCount(threadCount), m_Spawned(false), m_MaxItems(maxItems), m_Stopped(false),
@@ -134,12 +132,7 @@ void WorkQueue::Join(bool stop)
  */
 bool WorkQueue::IsWorkerThread(void) const
 {
-	WorkQueue **pwq = l_ThreadWorkQueue.get();
-
-	if (!pwq)
-		return false;
-
-	return *pwq == this;
+	return l_ThreadWorkQueue == this;
 }
 
 void WorkQueue::SetExceptionCallback(const ExceptionCallback& callback)
@@ -237,7 +230,7 @@ void WorkQueue::WorkerThreadProc(void)
 	idbuf << "WQ #" << m_ID;
 	Utility::SetThreadName(idbuf.str());
 
-	l_ThreadWorkQueue.reset(new WorkQueue *(this));
+	l_ThreadWorkQueue = this;
 
 	boost::mutex::scoped_lock lock(m_Mutex);
 

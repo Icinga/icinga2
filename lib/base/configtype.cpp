@@ -53,9 +53,11 @@ void ConfigType::RegisterObject(const ConfigObject::Ptr& object)
 
 			Type *type = dynamic_cast<Type *>(this);
 
-			BOOST_THROW_EXCEPTION(ScriptError("An object with type '" + type->GetName() + "' and name '" + name + "' already exists (" +
-				Convert::ToString(it->second->GetDebugInfo()) + "), new declaration: " + Convert::ToString(object->GetDebugInfo()),
-				object->GetDebugInfo()));
+			std::ostringstream msgbuf;
+			msgbuf << "An object with type '" << type->GetName() << "' and name '" << name << "' already exists ("
+				<< it->second->GetDebugInfo() << "), new declaration: " << object->GetDebugInfo();
+
+			BOOST_THROW_EXCEPTION(ScriptError(msgbuf.str(), object->GetDebugInfo()));
 		}
 
 		m_ObjectMap[name] = object;

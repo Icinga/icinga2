@@ -26,7 +26,6 @@
 #include "base/string.hpp"
 #include "base/stacktrace.hpp"
 #include "base/context.hpp"
-#include "base/utility.hpp"
 #include "base/debuginfo.hpp"
 #include "base/dictionary.hpp"
 #include "base/configobject.hpp"
@@ -142,10 +141,7 @@ class win32_error : virtual public std::exception, virtual public boost::excepti
 struct errinfo_win32_error_;
 typedef boost::error_info<struct errinfo_win32_error_, int> errinfo_win32_error;
 
-inline std::string to_string(const errinfo_win32_error& e)
-{
-	return "[errinfo_win32_error] = " + Utility::FormatErrorNumber(e.value()) + "\n";
-}
+I2_BASE_API std::string to_string(const errinfo_win32_error& e);
 #endif /* _WIN32 */
 
 struct errinfo_getaddrinfo_error_;

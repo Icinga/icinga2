@@ -18,7 +18,6 @@
  ******************************************************************************/
 
 #include "base/scriptglobal.hpp"
-#include "base/singleton.hpp"
 #include "base/logger.hpp"
 #include "base/stdiostream.hpp"
 #include "base/netstring.hpp"
@@ -26,6 +25,7 @@
 #include "base/convert.hpp"
 #include "base/objectlock.hpp"
 #include "base/exception.hpp"
+#include "base/utility.hpp"
 #include <fstream>
 
 using namespace icinga;
