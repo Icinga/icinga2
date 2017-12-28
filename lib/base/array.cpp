@@ -22,7 +22,6 @@
 #include "base/debug.hpp"
 #include "base/primitivetype.hpp"
 #include "base/configwriter.hpp"
-#include "base/convert.hpp"
 #include "base/exception.hpp"
 
 using namespace icinga;
@@ -285,7 +284,7 @@ Value Array::GetFieldByName(const String& field, bool sandboxed, const DebugInfo
 	int index;
 
 	try {
-		index = Convert::ToLong(field);
+		index = static_cast<double>(field);
 	} catch (...) {
 		return Object::GetFieldByName(field, sandboxed, debugInfo);
 	}
@@ -293,7 +292,7 @@ Value Array::GetFieldByName(const String& field, bool sandboxed, const DebugInfo
 	ObjectLock olock(this);
 
 	if (index < 0 || static_cast<size_t>(index) >= GetLength())
-		BOOST_THROW_EXCEPTION(ScriptError("Array index '" + Convert::ToString(index) + "' is out of bounds.", debugInfo));
+		BOOST_THROW_EXCEPTION(ScriptError("Array index '" + std::to_string(index) + "' is out of bounds.", debugInfo));
 
 	return Get(index);
 }
@@ -302,10 +301,10 @@ void Array::SetFieldByName(const String& field, const Value& value, const DebugI
 {
 	ObjectLock olock(this);
 
-	int index = Convert::ToLong(field);
+	int index = static_cast<double>(field);
 
 	if (index < 0)
-		BOOST_THROW_EXCEPTION(ScriptError("Array index '" + Convert::ToString(index) + "' is out of bounds.", debugInfo));
+		BOOST_THROW_EXCEPTION(ScriptError("Array index '" + std::to_string(index) + "' is out of bounds.", debugInfo));
 
 	if (static_cast<size_t>(index) >= GetLength())
 		Resize(index + 1);

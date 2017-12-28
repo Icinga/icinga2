@@ -121,14 +121,15 @@ bool ScheduledDowntime::EvaluateApplyRule(const Checkable::Ptr& checkable, const
 
 		ObjectLock olock(arr);
 		for (const Value& instance : arr) {
-			String name = rule.GetName();
+			std::ostringstream nameBuf;
+			nameBuf << rule.GetName();
 
 			if (!rule.GetFKVar().IsEmpty()) {
 				frame.Locals->Set(rule.GetFKVar(), instance);
-				name += instance;
+				nameBuf << instance;
 			}
 
-			if (EvaluateApplyRuleInstance(checkable, name, frame, rule))
+			if (EvaluateApplyRuleInstance(checkable, nameBuf.str(), frame, rule))
 				match = true;
 		}
 	} else if (vinstances.IsObjectType<Dictionary>()) {

@@ -25,11 +25,9 @@
 #include "icinga/icingaapplication.hpp"
 #include "base/application.hpp"
 #include "base/objectlock.hpp"
-#include "base/convert.hpp"
 #include "base/utility.hpp"
 #include "base/function.hpp"
 #include "base/configtype.hpp"
-#include <boost/algorithm/string/join.hpp>
 
 using namespace icinga;
 
@@ -58,38 +56,19 @@ void ClusterCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRe
 	std::pair<Dictionary::Ptr, Array::Ptr> feature_stats = CIB::GetFeatureStats();
 	cr->SetPerformanceData(feature_stats.second);
 
-	String connected_endpoints = FormatArray(status->Get("conn_endpoints"));
-	String not_connected_endpoints = FormatArray(status->Get("not_conn_endpoints"));
+	String connected_endpoints = Utility::Join(status->Get("conn_endpoints"), ", ");
+	String not_connected_endpoints = Utility::Join(status->Get("not_conn_endpoints"), ", ");
 
 	if (status->Get("num_not_conn_endpoints") > 0) {
 		cr->SetState(ServiceCritical);
-		cr->SetOutput("Icinga 2 Cluster Problem: " + Convert::ToString(status->Get("num_not_conn_endpoints")) +
+		cr->SetOutput("Icinga 2 Cluster Problem: " + static_cast<String>(status->Get("num_not_conn_endpoints")) +
 			" Endpoints (" + not_connected_endpoints + ") not connected.");
 	} else {
 		cr->SetState(ServiceOK);
-		cr->SetOutput("Icinga 2 Cluster is running: Connected Endpoints: "+ Convert::ToString(status->Get("num_conn_endpoints")) +
+		cr->SetOutput("Icinga 2 Cluster is running: Connected Endpoints: "+ static_cast<String>(status->Get("num_conn_endpoints")) +
 			" (" + connected_endpoints + ").");
 	}
 
 	checkable->ProcessCheckResult(cr);
 }
 
-String ClusterCheckTask::FormatArray(const Array::Ptr& arr)
-{
-	bool first = true;
-	String str;
-
-	if (arr) {
-		ObjectLock olock(arr);
-		for (const Value& value : arr) {
-			if (first)
-				first = false;
-			else
-				str += ", ";
-
-			str += Convert::ToString(value);
-		}
-	}
-
-	return str;
-}

@@ -20,7 +20,6 @@
 #include "db_ido/dbevents.hpp"
 #include "db_ido/dbtype.hpp"
 #include "db_ido/dbvalue.hpp"
-#include "base/convert.hpp"
 #include "base/objectlock.hpp"
 #include "base/initialize.hpp"
 #include "base/configtype.hpp"
@@ -33,7 +32,6 @@
 #include "icinga/externalcommandprocessor.hpp"
 #include "icinga/compatutility.hpp"
 #include "icinga/icingaapplication.hpp"
-#include <boost/algorithm/string/join.hpp>
 
 using namespace icinga;
 
@@ -1184,10 +1182,10 @@ void DbEvents::AddFlappingChangedLogHistory(const Checkable::Ptr& checkable)
 	String flapping_output;
 
 	if (checkable->IsFlapping()) {
-		flapping_output = "Service appears to have started flapping (" + Convert::ToString(checkable->GetFlappingCurrent()) + "% change >= " + Convert::ToString(checkable->GetFlappingThresholdHigh()) + "% threshold)";
+		flapping_output = "Service appears to have started flapping (" + std::to_string(checkable->GetFlappingCurrent()) + "% change >= " + std::to_string(checkable->GetFlappingThresholdHigh()) + "% threshold)";
 		flapping_state_str = "STARTED";
 	} else {
-		flapping_output = "Service appears to have stopped flapping (" + Convert::ToString(checkable->GetFlappingCurrent()) + "% change < " + Convert::ToString(checkable->GetFlappingThresholdLow()) + "% threshold)";
+		flapping_output = "Service appears to have stopped flapping (" + std::to_string(checkable->GetFlappingCurrent()) + "% change < " + std::to_string(checkable->GetFlappingThresholdLow()) + "% threshold)";
 		flapping_state_str = "STOPPED";
 	}
 
@@ -1415,8 +1413,8 @@ void DbEvents::AddCheckableCheckHistory(const Checkable::Ptr& checkable, const C
 	fields1->Set("command_object_id", checkable->GetCheckCommand());
 	fields1->Set("command_args", Empty);
 	fields1->Set("command_line", CompatUtility::GetCommandLine(checkable->GetCheckCommand()));
-	fields1->Set("execution_time", Convert::ToString(execution_time));
-	fields1->Set("latency", Convert::ToString(cr->CalculateLatency()));
+	fields1->Set("execution_time", execution_time);
+	fields1->Set("latency", cr->CalculateLatency());
 	fields1->Set("return_code", cr->GetExitStatus());
 	fields1->Set("output", CompatUtility::GetCheckResultOutput(cr));
 	fields1->Set("long_output", CompatUtility::GetCheckResultLongOutput(cr));
@@ -1507,7 +1505,7 @@ void DbEvents::AddExternalCommandHistory(double time, const String& command, con
 	fields1->Set("entry_time", DbValue::FromTimestamp(static_cast<long>(time)));
 	fields1->Set("command_type", CompatUtility::MapExternalCommandType(command));
 	fields1->Set("command_name", command);
-	fields1->Set("command_args", boost::algorithm::join(arguments, ";"));
+	fields1->Set("command_args", Utility::Join(arguments, ";"));
 
 	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
 

@@ -32,7 +32,6 @@
 #include "livestatus/andfilter.hpp"
 #include "icinga/externalcommandprocessor.hpp"
 #include "base/debug.hpp"
-#include "base/convert.hpp"
 #include "base/objectlock.hpp"
 #include "base/logger.hpp"
 #include "base/exception.hpp"
@@ -41,10 +40,6 @@
 #include "base/serializer.hpp"
 #include "base/timer.hpp"
 #include "base/initialize.hpp"
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/replace.hpp>
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/join.hpp>
 
 using namespace icinga;
 
@@ -62,11 +57,7 @@ LivestatusQuery::LivestatusQuery(const std::vector<String>& lines, const String&
 		return;
 	}
 
-	String msg;
-	for (const String& line : lines) {
-		msg += line + "\n";
-	}
-	Log(LogDebug, "LivestatusQuery", msg);
+	Log(LogDebug, "LivestatusQuery", Utility::Join(lines, "\n"));
 
 	m_CompatLogPath = compat_log_path;
 
@@ -122,24 +113,23 @@ LivestatusQuery::LivestatusQuery(const std::vector<String>& lines, const String&
 			m_KeepAlive = (params == "on");
 		else if (header == "Columns") {
 			m_ColumnHeaders = false; // Might be explicitly re-enabled later on
-			boost::algorithm::split(m_Columns, params, boost::is_any_of(" "));
+			m_Columns = params.Split(" ");
 		} else if (header == "Separators") {
-			std::vector<String> separators;
+			std::vector<String> separators = params.Split(" ");
 
-			boost::algorithm::split(separators, params, boost::is_any_of(" "));
 			/* ugly ascii long to char conversion, but works */
 			if (separators.size() > 0)
-				m_Separators[0] = String(1, static_cast<char>(Convert::ToLong(separators[0])));
+				m_Separators[0] = String(1, static_cast<char>(static_cast<int>(separators[0])));
 			if (separators.size() > 1)
-				m_Separators[1] = String(1, static_cast<char>(Convert::ToLong(separators[1])));
+				m_Separators[1] = String(1, static_cast<char>(static_cast<int>(separators[1])));
 			if (separators.size() > 2)
-				m_Separators[2] = String(1, static_cast<char>(Convert::ToLong(separators[2])));
+				m_Separators[2] = String(1, static_cast<char>(static_cast<int>(separators[2])));
 			if (separators.size() > 3)
-				m_Separators[3] = String(1, static_cast<char>(Convert::ToLong(separators[3])));
+				m_Separators[3] = String(1, static_cast<char>(static_cast<int>(separators[3])));
 		} else if (header == "ColumnHeaders")
 			m_ColumnHeaders = (params == "on");
 		else if (header == "Limit")
-			m_Limit = Convert::ToLong(params);
+			m_Limit = static_cast<int>(params);
 		else if (header == "Filter") {
 			Filter::Ptr filter = ParseFilter(params, m_LogTimeFrom, m_LogTimeUntil);
 
@@ -154,8 +144,7 @@ LivestatusQuery::LivestatusQuery(const std::vector<String>& lines, const String&
 		} else if (header == "Stats") {
 			m_ColumnHeaders = false; // Might be explicitly re-enabled later on
 
-			std::vector<String> tokens;
-			boost::algorithm::split(tokens, params, boost::is_any_of(" "));
+			std::vector<String> tokens = params.Split(" ");
 
 			if (tokens.size() < 2) {
 				m_Verb = "ERROR";
@@ -204,7 +193,7 @@ LivestatusQuery::LivestatusQuery(const std::vector<String>& lines, const String&
 		} else if (header == "Or" || header == "And" || header == "StatsOr" || header == "StatsAnd") {
 			std::deque<Filter::Ptr>& deq = (header == "Or" || header == "And") ? filters : stats;
 
-			unsigned int num = Convert::ToLong(params);
+			unsigned int num = static_cast<int>(params);
 			CombinerFilter::Ptr filter;
 
 			if (header == "Or" || header == "StatsOr") {
@@ -220,7 +209,7 @@ LivestatusQuery::LivestatusQuery(const std::vector<String>& lines, const String&
 			if (num > deq.size()) {
 				m_Verb = "ERROR";
 				m_ErrorCode = 451;
-				m_ErrorMessage = "Or/StatsOr is referencing " + Convert::ToString(num) + " filters; stack only contains " + Convert::ToString(static_cast<long>(deq.size())) + " filters";
+				m_ErrorMessage = "Or/StatsOr is referencing " + std::to_string(num) + " filters; stack only contains " + std::to_string(deq.size()) + " filters";
 				return;
 			}
 
@@ -349,9 +338,9 @@ Filter::Ptr LivestatusQuery::ParseFilter(const String& params, unsigned long& fr
 	/* pre-filter log time duration */
 	if (attr == "time") {
 		if (op == "<" || op == "<=") {
-			until = Convert::ToLong(val);
+			until = static_cast<int>(val);
 		} else if (op == ">" || op == ">=") {
-			from = Convert::ToLong(val);
+			from = static_cast<int>(val);
 		}
 	}
 
@@ -421,7 +410,7 @@ void LivestatusQuery::PrintCsvArray(std::ostream& fp, const Array::Ptr& array, i
 		if (value.IsObjectType<Array>())
 			PrintCsvArray(fp, value, level + 1);
 		else if (value.IsBoolean())
-			fp << Convert::ToLong(value);
+			fp << (value.ToBool() ? "1" : "0");
 		else
 			fp << value;
 	}
@@ -451,9 +440,7 @@ void LivestatusQuery::PrintPythonArray(std::ostream& fp, const Array::Ptr& rs) c
 }
 
 String LivestatusQuery::QuoteStringPython(const String& str) {
-	String result = str;
-	boost::algorithm::replace_all(result, "\"", "\\\"");
-	return "r\"" + result + "\"";
+	return "r\"" + str.ReplaceAll("\"", "\\\"") + "\"";
 }
 
 void LivestatusQuery::ExecuteGetHelper(const Stream::Ptr& stream)
@@ -549,7 +536,7 @@ void LivestatusQuery::ExecuteGetHelper(const Stream::Ptr& stream)
 			}
 
 			for (size_t i = 1; i <= m_Aggregators.size(); i++) {
-				header->Add("stats_" + Convert::ToString(i));
+				header->Add("stats_" + std::to_string(i));
 			}
 
 			AppendResultRow(result, header, first_row);
@@ -628,8 +615,8 @@ void LivestatusQuery::PrintFixed16(const Stream::Ptr& stream, int code, const St
 {
 	ASSERT(code >= 100 && code <= 999);
 
-	String sCode = Convert::ToString(code);
-	String sLength = Convert::ToString(static_cast<long>(data.GetLength()));
+	String sCode = std::to_string(code);
+	String sLength = std::to_string(data.GetLength());
 
 	String header = sCode + String(16 - 3 - sLength.GetLength() - 1, ' ') + sLength + m_Separators[0];
 

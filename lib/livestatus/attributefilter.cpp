@@ -18,12 +18,10 @@
  ******************************************************************************/
 
 #include "livestatus/attributefilter.hpp"
-#include "base/convert.hpp"
 #include "base/array.hpp"
 #include "base/objectlock.hpp"
 #include "base/logger.hpp"
 #include <boost/regex.hpp>
-#include <boost/algorithm/string/predicate.hpp>
 
 using namespace icinga;
 
@@ -58,7 +56,7 @@ bool AttributeFilter::Apply(const Table::Ptr& table, const Value& row)
 	} else {
 		if (m_Operator == "=") {
 			if (value.GetType() == ValueNumber || value.GetType() == ValueBoolean)
-				return (static_cast<double>(value) == Convert::ToDouble(m_Operand));
+				return (static_cast<double>(value) == static_cast<double>(m_Operand));
 			else
 				return (static_cast<String>(value) == m_Operand);
 		} else if (m_Operator == "~") {
@@ -83,7 +81,7 @@ bool AttributeFilter::Apply(const Table::Ptr& table, const Value& row)
 			bool ret;
 			try {
 				String operand = value;
-				ret = boost::iequals(operand, m_Operand.GetData());
+				ret = (operand.ToLower() == m_Operand.ToLower());
 			} catch (boost::exception&) {
 				Log(LogWarning, "AttributeFilter")
 					<< "Case-insensitive equality '" << m_Operand << " " << m_Operator << " " << value << "' error.";
@@ -111,22 +109,22 @@ bool AttributeFilter::Apply(const Table::Ptr& table, const Value& row)
 			return ret;
 		} else if (m_Operator == "<") {
 			if (value.GetType() == ValueNumber)
-				return (static_cast<double>(value) < Convert::ToDouble(m_Operand));
+				return (static_cast<double>(value) < static_cast<double>(m_Operand));
 			else
 				return (static_cast<String>(value) < m_Operand);
 		} else if (m_Operator == ">") {
 			if (value.GetType() == ValueNumber)
-				return (static_cast<double>(value) > Convert::ToDouble(m_Operand));
+				return (static_cast<double>(value) > static_cast<double>(m_Operand));
 			else
 				return (static_cast<String>(value) > m_Operand);
 		} else if (m_Operator == "<=") {
 			if (value.GetType() == ValueNumber)
-				return (static_cast<double>(value) <= Convert::ToDouble(m_Operand));
+				return (static_cast<double>(value) <= static_cast<double>(m_Operand));
 			else
 				return (static_cast<String>(value) <= m_Operand);
 		} else if (m_Operator == ">=") {
 			if (value.GetType() == ValueNumber)
-				return (static_cast<double>(value) >= Convert::ToDouble(m_Operand));
+				return (static_cast<double>(value) >= static_cast<double>(m_Operand));
 			else
 				return (static_cast<String>(value) >= m_Operand);
 		} else {

@@ -22,13 +22,9 @@
 #include "base/logger.hpp"
 #include "base/utility.hpp"
 #include "base/perfdatavalue.hpp"
-#include "base/convert.hpp"
 #include "base/process.hpp"
 #include "base/objectlock.hpp"
 #include "base/exception.hpp"
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/trim.hpp>
 
 using namespace icinga;
 
@@ -77,7 +73,7 @@ void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkab
 				useResolvedMacros);
 
 			if (value.IsObjectType<Array>())
-				value = Utility::Join(value, ';');
+				value = Utility::Join(value, ";", true);
 
 			envMacros->Set(kv.first, value);
 		}
@@ -114,33 +110,37 @@ ServiceState PluginUtility::ExitStatusToState(int exitStatus)
 
 std::pair<String, String> PluginUtility::ParseCheckOutput(const String& output)
 {
-	String text;
-	String perfdata;
+	std::ostringstream textBuf, perfdataBuf;
+	bool firstText = true;
+	bool firstPerfdata = true;
 
-	std::vector<String> lines;
-	boost::algorithm::split(lines, output, boost::is_any_of("\r\n"));
+	std::vector<String> lines = output.Split("\r\n");
 
 	for (const String& line : lines) {
 		size_t delim = line.FindFirstOf("|");
 
-		if (!text.IsEmpty())
-			text += "\n";
+		if (!firstText)
+			textBuf << "\n";
+		else
+			firstText = false;
 
 		if (delim != String::NPos) {
-			text += line.SubStr(0, delim);
+			textBuf << line.SubStr(0, delim);
 
-			if (!perfdata.IsEmpty())
-				perfdata += " ";
+			if (!firstPerfdata)
+				perfdataBuf << " ";
+			else
+				firstPerfdata = false;
 
-			perfdata += line.SubStr(delim + 1, line.GetLength());
+			perfdataBuf << line.SubStr(delim + 1, line.GetLength());
 		} else {
-			text += line;
+			textBuf << line;
 		}
 	}
 
-	boost::algorithm::trim(perfdata);
+	String perfdata = perfdataBuf.str();
 
-	return std::make_pair(text, perfdata);
+	return std::make_pair(textBuf.str(), perfdata.Trim());
 }
 
 Array::Ptr PluginUtility::SplitPerfdata(const String& perfdata)

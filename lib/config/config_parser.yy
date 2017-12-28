@@ -1163,20 +1163,20 @@ apply:
 		if (!ApplyRule::IsValidTargetType(type, target)) {
 			if (target == "") {
 				std::vector<String> types = ApplyRule::GetTargetTypes(type);
-				String typeNames;
+				std::ostringstream typeNamesBuf;
 
 				for (std::vector<String>::size_type i = 0; i < types.size(); i++) {
-					if (typeNames != "") {
+					if (i != 0) {
 						if (i == types.size() - 1)
-							typeNames += " or ";
+							typeNamesBuf << " or ";
 						else
-							typeNames += ", ";
+							typeNamesBuf << ", ";
 					}
 
-					typeNames += "'" + types[i] + "'";
+					typeNamesBuf << "'" << types[i] << "'";
 				}
 
-				BOOST_THROW_EXCEPTION(ScriptError("'apply' target type is ambiguous (can be one of " + typeNames + "): use 'to' to specify a type", DebugInfoRange(@2, @3)));
+				BOOST_THROW_EXCEPTION(ScriptError("'apply' target type is ambiguous (can be one of " + typeNamesBuf.str() + "): use 'to' to specify a type", DebugInfoRange(@2, @3)));
 			} else
 				BOOST_THROW_EXCEPTION(ScriptError("'apply' target type '" + target + "' is invalid", DebugInfoRange(@2, @5)));
 		}

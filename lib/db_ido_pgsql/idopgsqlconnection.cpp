@@ -23,7 +23,6 @@
 #include "db_ido/dbvalue.hpp"
 #include "base/logger.hpp"
 #include "base/objectlock.hpp"
-#include "base/convert.hpp"
 #include "base/utility.hpp"
 #include "base/perfdatavalue.hpp"
 #include "base/application.hpp"
@@ -299,7 +298,7 @@ void IdoPgsqlConnection::Reconnect(void)
 	if (my_endpoint && GetHAMode() == HARunOnce) {
 		/* get the current endpoint writing to programstatus table */
 		result = Query("SELECT UNIX_TIMESTAMP(status_update_time) AS status_update_time, endpoint_name FROM " +
-			GetTablePrefix() + "programstatus WHERE instance_id = " + Convert::ToString(m_InstanceID));
+			GetTablePrefix() + "programstatus WHERE instance_id = " + std::to_string(m_InstanceID));
 		row = FetchRow(result, 0);
 
 		String endpoint_name;
@@ -357,7 +356,7 @@ void IdoPgsqlConnection::Reconnect(void)
 	/* record connection */
 	Query("INSERT INTO " + GetTablePrefix() + "conninfo " +
 		"(instance_id, connect_time, last_checkin_time, agent_name, agent_version, connect_type, data_start_time) VALUES ("
-		+ Convert::ToString(static_cast<long>(m_InstanceID)) + ", NOW(), NOW(), E'icinga2 db_ido_pgsql', E'" + Escape(Application::GetAppVersion())
+		+ std::to_string(m_InstanceID) + ", NOW(), NOW(), E'icinga2 db_ido_pgsql', E'" + Escape(Application::GetAppVersion())
 		+ "', E'" + (reconnect ? "RECONNECT" : "INITIAL") + "', NOW())");
 
 	/* clear config tables for the initial config dump */
@@ -432,8 +431,8 @@ void IdoPgsqlConnection::ClearTablesBySession(void)
 void IdoPgsqlConnection::ClearTableBySession(const String& table)
 {
 	Query("DELETE FROM " + GetTablePrefix() + table + " WHERE instance_id = " +
-		Convert::ToString(static_cast<long>(m_InstanceID)) + " AND session_token <> " +
-		Convert::ToString(GetSessionToken()));
+		std::to_string(m_InstanceID) + " AND session_token <> " +
+		std::to_string(GetSessionToken()));
 }
 
 IdoPgsqlResult IdoPgsqlConnection::Query(const String& query)
@@ -497,7 +496,7 @@ DbReference IdoPgsqlConnection::GetSequenceValue(const String& table, const Stri
 	Log(LogDebug, "IdoPgsqlConnection")
 		<< "Sequence Value: " << row->Get("id");
 
-	return DbReference(Convert::ToLong(row->Get("id")));
+	return DbReference(static_cast<int>(row->Get("id")));
 }
 
 int IdoPgsqlConnection::GetAffectedRows(void)
@@ -670,7 +669,7 @@ bool IdoPgsqlConnection::FieldToEscapedString(const String& key, const Value& va
 		Value fvalue;
 
 		if (rawvalue.IsBoolean())
-			fvalue = Convert::ToLong(rawvalue);
+			fvalue = rawvalue.ToBool() ? "1" : "0";
 		else
 			fvalue = rawvalue;
 
@@ -927,8 +926,8 @@ void IdoPgsqlConnection::InternalCleanUpExecuteQuery(const String& table, const 
 		return;
 
 	Query("DELETE FROM " + GetTablePrefix() + table + " WHERE instance_id = " +
-		Convert::ToString(static_cast<long>(m_InstanceID)) + " AND " + time_column +
-		" < TO_TIMESTAMP(" + Convert::ToString(static_cast<long>(max_age)) + ")");
+		std::to_string(static_cast<long>(m_InstanceID)) + " AND " + time_column +
+		" < TO_TIMESTAMP(" + std::to_string(static_cast<long>(max_age)) + ")");
 }
 
 void IdoPgsqlConnection::FillIDCache(const DbType::Ptr& type)

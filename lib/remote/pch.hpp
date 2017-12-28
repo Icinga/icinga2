@@ -7,7 +7,6 @@
 #include "base/configwriter.hpp"
 #include "base/console.hpp"
 #include "base/context.hpp"
-#include "base/convert.hpp"
 #include "base/dependencygraph.hpp"
 #include "base/dictionary.hpp"
 #include "base/exception.hpp"
@@ -45,12 +44,6 @@
 #include "config/expression.hpp"
 #include "config/vmops.hpp"
 #include <algorithm>
-#include <boost/algorithm/string.hpp>
-#include <boost/algorithm/string/case_conv.hpp>
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/join.hpp>
-#include <boost/algorithm/string/replace.hpp>
-#include <boost/algorithm/string/split.hpp>
 #include <boost/regex.hpp>
 #include <boost/thread/condition_variable.hpp>
 #include <boost/thread/mutex.hpp>

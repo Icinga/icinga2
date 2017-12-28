@@ -26,7 +26,6 @@
 #include "base/configtype.hpp"
 #include "base/logger.hpp"
 #include "base/objectlock.hpp"
-#include "base/convert.hpp"
 #include "base/debug.hpp"
 #include "base/utility.hpp"
 #include "base/timer.hpp"

@@ -97,12 +97,14 @@ DbObject::Ptr DbType::GetOrCreateObjectByName(const String& name1, const String&
 	DbObject::Ptr dbobj = m_ObjectFactory(this, name1, name2);
 	m_Objects[std::make_pair(name1, name2)] = dbobj;
 
-	String objName = name1;
+	std::ostringstream objNameBuf;
+	objNameBuf << name1;
 
 	if (!name2.IsEmpty())
-		objName += "!" + name2;
+		objNameBuf << "!" << name2;
 
 	String objType = m_Name;
+	String objName = objNameBuf.str();
 
 	if (m_TypeID == DbObjectTypeCommand) {
 		if (objName.SubStr(0, 6) == "check_") {

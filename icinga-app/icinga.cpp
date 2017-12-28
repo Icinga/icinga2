@@ -105,7 +105,8 @@ static int Main(void)
 		autocomplete = true;
 
 		try {
-			autoindex = Convert::ToLong(argv[2]);
+			String arg = argv[2];
+			autoindex = static_cast<int>(arg);
 		} catch (const std::invalid_argument&) {
 			Log(LogCritical, "icinga-app")
 				<< "Invalid index for --autocomplete: " << argv[2];

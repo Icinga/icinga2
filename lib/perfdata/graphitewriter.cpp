@@ -26,7 +26,6 @@
 #include "base/configtype.hpp"
 #include "base/objectlock.hpp"
 #include "base/logger.hpp"
-#include "base/convert.hpp"
 #include "base/utility.hpp"
 #include "base/perfdatavalue.hpp"
 #include "base/application.hpp"
@@ -34,10 +33,6 @@
 #include "base/networkstream.hpp"
 #include "base/exception.hpp"
 #include "base/statsfunction.hpp"
-#include <boost/algorithm/string.hpp>
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/replace.hpp>
 
 using namespace icinga;
 
@@ -279,7 +274,7 @@ void GraphiteWriter::SendPerfdata(const String& prefix, const CheckResult::Ptr& 
 void GraphiteWriter::SendMetric(const String& prefix, const String& name, double value, double ts)
 {
 	std::ostringstream msgbuf;
-	msgbuf << prefix << "." << name << " " << Convert::ToString(value) << " " << static_cast<long>(ts);
+	msgbuf << prefix << "." << name << " " << value << " " << static_cast<long>(ts);
 
 	Log(LogDebug, "GraphiteWriter")
 		<< "Add to metric list:'" << msgbuf.str() << "'.";
@@ -305,28 +300,18 @@ void GraphiteWriter::SendMetric(const String& prefix, const String& name, double
 
 String GraphiteWriter::EscapeMetric(const String& str)
 {
-	String result = str;
-
-	//don't allow '.' in metric prefixes
-	boost::replace_all(result, " ", "_");
-	boost::replace_all(result, ".", "_");
-	boost::replace_all(result, "\\", "_");
-	boost::replace_all(result, "/", "_");
-
-	return result;
+	return str.ReplaceAll(
+		{ " ", ".", "\\", "/" },
+		{ "_", "_", "_", "_" }
+	);
 }
 
 String GraphiteWriter::EscapeMetricLabel(const String& str)
 {
-	String result = str;
-
-	//allow to pass '.' in perfdata labels
-	boost::replace_all(result, " ", "_");
-	boost::replace_all(result, "\\", "_");
-	boost::replace_all(result, "/", "_");
-	boost::replace_all(result, "::", ".");
-
-	return result;
+	return str.ReplaceAll(
+		{ " ", "\\", "/", "::" },
+		{ "_", "_", "_", "." }
+	);
 }
 
 Value GraphiteWriter::EscapeMacroMetric(const Value& value)
@@ -335,12 +320,13 @@ Value GraphiteWriter::EscapeMacroMetric(const Value& value)
 		Array::Ptr arr = value;
 		Array::Ptr result = new Array();
 
-		ObjectLock olock(arr);
-		for (const Value& arg : arr) {
-			result->Add(EscapeMetric(arg));
+		{
+			ObjectLock olock(arr);
+			for (const Value& arg : arr)
+				result->Add(EscapeMetric(arg));
 		}
 
-		return Utility::Join(result, '.');
+		return Utility::Join(result, ".", true);
 	} else
 		return EscapeMetric(value);
 }

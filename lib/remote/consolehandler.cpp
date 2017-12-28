@@ -28,7 +28,6 @@
 #include "base/serializer.hpp"
 #include "base/timer.hpp"
 #include "base/initialize.hpp"
-#include <boost/algorithm/string.hpp>
 #include <boost/thread/once.hpp>
 #include <set>
 
@@ -116,7 +115,7 @@ bool ConsoleHandler::ExecuteScriptHelper(HttpRequest& request, HttpResponse& res
 	if (!lsf.Locals)
 		lsf.Locals = new Dictionary();
 
-	String fileName = "<" + Convert::ToString(lsf.NextLine) + ">";
+	String fileName = "<" + std::to_string(lsf.NextLine) + ">";
 	lsf.NextLine++;
 
 	lsf.Lines[fileName] = command;

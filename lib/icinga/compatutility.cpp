@@ -26,9 +26,6 @@
 #include "base/utility.hpp"
 #include "base/configtype.hpp"
 #include "base/objectlock.hpp"
-#include "base/convert.hpp"
-#include <boost/algorithm/string/replace.hpp>
-#include <boost/algorithm/string/join.hpp>
 
 using namespace icinga;
 
@@ -37,22 +34,29 @@ String CompatUtility::GetCommandLine(const Command::Ptr& command)
 {
 	Value commandLine = command->GetCommandLine();
 
-	String result;
+	std::ostringstream resultBuf;
 	if (commandLine.IsObjectType<Array>()) {
 		Array::Ptr args = commandLine;
 
+		bool first = true;
+
 		ObjectLock olock(args);
 		for (const String& arg : args) {
+			if (!first)
+				resultBuf << " ";
+			else
+				first = false;
+
 			// This is obviously incorrect for non-trivial cases.
-			result += " \"" + EscapeString(arg) + "\"";
+			resultBuf << "\"" << EscapeString(arg) << "\"";
 		}
 	} else if (!commandLine.IsEmpty()) {
-		result = EscapeString(Convert::ToString(commandLine));
+		resultBuf << EscapeString(commandLine);
 	} else {
-		result = "<internal>";
+		resultBuf << "<internal>";
 	}
 
-	return result;
+	return resultBuf.str();
 }
 
 String CompatUtility::GetCommandNamePrefix(const Command::Ptr command)
@@ -185,7 +189,7 @@ String CompatUtility::GetCheckableCommandArgs(const Checkable::Ptr& checkable)
 		{
 			ObjectLock olock(args);
 			for (const Dictionary::Pair& kv : args)
-				msgbuf << kv.first << "=" << Convert::ToString(kv.second) << "!";
+				msgbuf << kv.first << "=" << static_cast<String>(kv.second) << "!";
 		}
 
 		return msgbuf.str();
@@ -487,7 +491,7 @@ String CompatUtility::GetCheckableNotificationNotificationOptions(const Checkabl
 		notification_options.push_back("s");
 	}
 
-	return boost::algorithm::join(notification_options, ",");
+	return Utility::Join(notification_options, ",");
 }
 
 int CompatUtility::GetCheckableNotificationTypeFilter(const Checkable::Ptr& checkable)
@@ -652,16 +656,12 @@ String CompatUtility::GetCheckResultPerfdata(const CheckResult::Ptr& cr)
 
 String CompatUtility::EscapeString(const String& str)
 {
-	String result = str;
-	boost::algorithm::replace_all(result, "\n", "\\n");
-	return result;
+	return str.ReplaceAll("\n", "\\n");
 }
 
 String CompatUtility::UnEscapeString(const String& str)
 {
-	String result = str;
-	boost::algorithm::replace_all(result, "\\n", "\n");
-	return result;
+	return str.ReplaceAll("\\n", "\n");
 }
 
 std::pair<unsigned long, unsigned long> CompatUtility::ConvertTimestamp(double time)

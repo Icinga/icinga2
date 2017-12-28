@@ -22,7 +22,6 @@
 #include "config/configcompiler.hpp"
 #include "base/configtype.hpp"
 #include "base/logger.hpp"
-#include "base/convert.hpp"
 #include "base/exception.hpp"
 #include <fstream>
 #include <iomanip>

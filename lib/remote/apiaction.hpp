@@ -28,9 +28,6 @@
 #include "base/dictionary.hpp"
 #include "base/configobject.hpp"
 #include <vector>
-#include <boost/algorithm/string/replace.hpp>
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/split.hpp>
 
 namespace icinga
 {
@@ -76,11 +73,8 @@ public:
 #define REGISTER_APIACTION(name, types, callback) \
 	INITIALIZE_ONCE([]() { \
 		String registerName = #name; \
-		boost::algorithm::replace_all(registerName, "_", "-"); \
-		std::vector<String> registerTypes; \
-		String typeNames = types; \
-		if (!typeNames.IsEmpty()) \
-			boost::algorithm::split(registerTypes, typeNames, boost::is_any_of(";")); \
+		registerName = registerName.ReplaceAll("_", "-"); \
+		std::vector<String> registerTypes = String(types).Split(";"); \
 		ApiAction::Ptr action = new ApiAction(registerTypes, callback); \
 		ApiActionRegistry::GetInstance()->Register(registerName, action); \
 	})

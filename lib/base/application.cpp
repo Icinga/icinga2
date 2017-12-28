@@ -27,7 +27,6 @@
 #include "base/utility.hpp"
 #include "base/loader.hpp"
 #include "base/debug.hpp"
-#include "base/convert.hpp"
 #include "base/scriptglobal.hpp"
 #include "base/process.hpp"
 #include <iostream>
@@ -404,7 +403,7 @@ pid_t Application::StartReloadProcess(void)
 
 #ifndef _WIN32
 	args->Add("--reload-internal");
-	args->Add(Convert::ToString(Utility::GetPid()));
+	args->Add(std::to_string(Utility::GetPid()));
 #else /* _WIN32 */
 	args->Add("--validate");
 #endif /* _WIN32 */
@@ -494,10 +493,8 @@ String Application::GetExePath(const String& argv0)
 				}
 			}
 
-			if (!foundPath) {
-				executablePath.Clear();
+			if (!foundPath)
 				BOOST_THROW_EXCEPTION(std::runtime_error("Could not determine executable path."));
-			}
 		}
 	}
 
@@ -570,7 +567,9 @@ void Application::DisplayBugMessage(std::ostream& os)
 
 String Application::GetCrashReportFilename(void)
 {
-	return GetLocalStateDir() + "/log/icinga2/crash/report." + Convert::ToString(Utility::GetTime());
+	std::ostringstream msgbuf;
+	msgbuf << GetLocalStateDir() << "/log/icinga2/crash/report." << static_cast<long>(Utility::GetTime());
+	return msgbuf.str();
 }
 
 
@@ -581,7 +580,7 @@ void Application::AttachDebugger(const String& filename, bool interactive)
 	prctl(PR_SET_DUMPABLE, 1);
 #endif /* __linux __ */
 
-	String my_pid = Convert::ToString(Utility::GetPid());
+	String my_pid = std::to_string(Utility::GetPid());
 
 	pid_t pid = fork();
 
@@ -734,7 +733,7 @@ void Application::SigAbrtHandler(int)
 		}
 	}
 
-	bool interactive_debugger = Convert::ToBool(ScriptGlobal::Get("AttachDebugger"));
+	bool interactive_debugger = ScriptGlobal::Get("AttachDebugger").ToBool();
 
 	if (!interactive_debugger) {
 		std::ofstream ofs;
@@ -844,7 +843,7 @@ void Application::ExceptionHandler(void)
 		}
 	}
 
-	bool interactive_debugger = Convert::ToBool(ScriptGlobal::Get("AttachDebugger"));
+	bool interactive_debugger = ScriptGlobal::Get("AttachDebugger").ToBool();
 
 	if (!interactive_debugger) {
 		std::ofstream ofs;

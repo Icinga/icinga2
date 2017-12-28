@@ -32,7 +32,6 @@
 #include "base/json.hpp"
 #include "base/serializer.hpp"
 #include "base/json.hpp"
-#include "base/convert.hpp"
 #include "base/objectlock.hpp"
 #include "base/utility.hpp"
 #include "base/initialize.hpp"

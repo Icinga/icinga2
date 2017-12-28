@@ -29,9 +29,6 @@
 #include "base/tlsutility.hpp"
 #include "base/scriptglobal.hpp"
 #include "base/exception.hpp"
-#include <boost/algorithm/string/join.hpp>
-#include <boost/algorithm/string/replace.hpp>
-#include <boost/algorithm/string/case_conv.hpp>
 #include <iostream>
 #include <string>
 #include <fstream>
@@ -113,11 +110,9 @@ int NodeWizardCommand::Run(const boost::program_options::variables_map& vm,
 		<< "Please specify if this is a satellite/client setup "
 		<< "('n' installs a master setup)" << ConsoleColorTag(Console_Normal)
 		<< " [Y/n]: ";
-	std::getline (std::cin, answer);
+	std::getline(std::cin, answer);
 
-	boost::algorithm::to_lower(answer);
-
-	String choice = answer;
+	String choice = String(answer).ToLower();
 
 	std::cout << "\n";
 
@@ -194,9 +189,8 @@ wizard_endpoint_loop_start:
 		<< ConsoleColorTag(Console_Bold) << "from this node?"
 		<< ConsoleColorTag(Console_Normal) << " [Y/n]: ";
 
-	std::getline (std::cin, answer);
-	boost::algorithm::to_lower(answer);
-	choice = answer;
+	std::getline(std::cin, answer);
+	choice = String(answer).ToLower();
 
 	String parentEndpointPort = "5665";
 
@@ -226,7 +220,7 @@ wizard_endpoint_loop_start:
 		String tmp = answer;
 		tmp = tmp.Trim();
 
-		endpointBuffer += "," + tmp;
+		endpointBuffer = endpointBuffer + "," + tmp;
 		parentEndpointName = tmp;
 
 		std::cout << ConsoleColorTag(Console_Bold)
@@ -238,7 +232,7 @@ wizard_endpoint_loop_start:
 		if (!answer.empty())
 			parentEndpointPort = answer;
 
-		endpointBuffer += "," + parentEndpointPort.Trim();
+		endpointBuffer = endpointBuffer + "," + parentEndpointPort.Trim();
 	}
 
 	endpoints.push_back(endpointBuffer);
@@ -247,9 +241,7 @@ wizard_endpoint_loop_start:
 		<< ConsoleColorTag(Console_Normal) << " [y/N]: ";
 	std::getline (std::cin, answer);
 
-	boost::algorithm::to_lower(answer);
-
-	choice = answer;
+	choice = String(answer).ToLower();
 
 	if (choice.Contains("y"))
 		goto wizard_endpoint_loop_start;
@@ -323,9 +315,9 @@ wizard_endpoint_loop_start:
 			<< ConsoleColorTag(Console_Bold) << "\nIs this information correct?"
 			<< ConsoleColorTag(Console_Normal) << " [y/N]: ";
 
-		std::getline (std::cin, answer);
-		boost::algorithm::to_lower(answer);
-		if (answer != "y") {
+		std::getline(std::cin, answer);
+		choice = String(answer).ToLower();
+		if (choice != "y") {
 			Log(LogWarning, "cli", "Process aborted.");
 			return 1;
 		}
@@ -434,8 +426,7 @@ wizard_ticket:
 		<< "Accept config from parent node?" << ConsoleColorTag(Console_Normal)
 		<< " [y/N]: ";
 	std::getline(std::cin, answer);
-	boost::algorithm::to_lower(answer);
-	choice = answer;
+	choice = String(answer).ToLower();
 
 	String acceptConfig = choice.Contains("y") ? "true" : "false";
 
@@ -443,8 +434,7 @@ wizard_ticket:
 		<< "Accept commands from parent node?" << ConsoleColorTag(Console_Normal)
 		<< " [y/N]: ";
 	std::getline(std::cin, answer);
-	boost::algorithm::to_lower(answer);
-	choice = answer;
+	choice = String(answer).ToLower();
 
 	String acceptCommands = choice.Contains("y") ? "true" : "false";
 

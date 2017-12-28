@@ -29,10 +29,6 @@
 #include "base/tlsutility.hpp"
 #include "base/scriptglobal.hpp"
 #include "base/exception.hpp"
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/join.hpp>
-#include <boost/algorithm/string/replace.hpp>
-#include <boost/algorithm/string/split.hpp>
 
 #include <iostream>
 #include <fstream>
@@ -98,7 +94,7 @@ int NodeSetupCommand::Run(const boost::program_options::variables_map& vm, const
 {
 	if (!ap.empty()) {
 		Log(LogWarning, "cli")
-			<< "Ignoring parameters: " << boost::algorithm::join(ap, " ");
+			<< "Ignoring parameters: " << Utility::Join(ap, " ");
 	}
 
 	if (vm.count("master"))
@@ -176,8 +172,8 @@ int NodeSetupCommand::SetupMaster(const boost::program_options::variables_map& v
 		<< "object ApiListener \"api\" {\n";
 
 	if (vm.count("listen")) {
-		std::vector<String> tokens;
-		boost::algorithm::split(tokens, vm["listen"].as<std::string>(), boost::is_any_of(","));
+		String listenArg = vm["listen"].as<std::string>();
+		std::vector<String> tokens = listenArg.Split(",");
 
 		if (tokens.size() > 0)
 			fp << "  bind_host = \"" << tokens[0] << "\"\n";
@@ -259,8 +255,8 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 		return 1;
 	}
 
-	std::vector<String> tokens;
-	boost::algorithm::split(tokens, vm["master_host"].as<std::string>(), boost::is_any_of(","));
+	String masterHostArg = vm["master_host"].as<std::string>();
+	std::vector<String> tokens = masterHostArg.Split(",");
 	String master_host;
 	String master_port = "5665";
 
@@ -373,8 +369,8 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 		<< "object ApiListener \"api\" {\n";
 
 	if (vm.count("listen")) {
-		std::vector<String> tokens;
-		boost::algorithm::split(tokens, vm["listen"].as<std::string>(), boost::is_any_of(","));
+		String listenArg = vm["listen"].as<std::string>();
+		std::vector<String> tokens = listenArg.Split(",");
 
 		if (tokens.size() > 0)
 			fp << "  bind_host = \"" << tokens[0] << "\"\n";

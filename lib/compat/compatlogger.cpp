@@ -30,11 +30,9 @@
 #include "base/objectlock.hpp"
 #include "base/logger.hpp"
 #include "base/exception.hpp"
-#include "base/convert.hpp"
 #include "base/application.hpp"
 #include "base/utility.hpp"
 #include "base/statsfunction.hpp"
-#include <boost/algorithm/string.hpp>
 
 using namespace icinga;
 
@@ -317,10 +315,10 @@ void CompatLogger::FlappingChangedHandler(const Checkable::Ptr& checkable)
 	String flapping_output;
 
 	if (checkable->IsFlapping()) {
-		flapping_output = "Checkable appears to have started flapping (" + Convert::ToString(checkable->GetFlappingCurrent()) + "% change >= " + Convert::ToString(checkable->GetFlappingThresholdHigh()) + "% threshold)";
+		flapping_output = "Checkable appears to have started flapping (" + std::to_string(checkable->GetFlappingCurrent()) + "% change >= " + std::to_string(checkable->GetFlappingThresholdHigh()) + "% threshold)";
 		flapping_state_str = "STARTED";
 	} else {
-		flapping_output = "Checkable appears to have stopped flapping (" + Convert::ToString(checkable->GetFlappingCurrent()) + "% change < " + Convert::ToString(checkable->GetFlappingThresholdLow()) + "% threshold)";
+		flapping_output = "Checkable appears to have stopped flapping (" + std::to_string(checkable->GetFlappingCurrent()) + "% change < " + std::to_string(checkable->GetFlappingThresholdLow()) + "% threshold)";
 		flapping_state_str = "STOPPED";
 	}
 
@@ -389,7 +387,7 @@ void CompatLogger::ExternalCommandHandler(const String& command, const std::vect
 	std::ostringstream msgbuf;
 	msgbuf << "EXTERNAL COMMAND: "
 		<< command << ";"
-		<< boost::algorithm::join(arguments, ";")
+		<< Utility::Join(arguments, ";")
 		<< "";
 
 	{

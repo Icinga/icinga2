@@ -22,8 +22,6 @@
 #include "icinga/service.hpp"
 #include "base/logger.hpp"
 #include "base/exception.hpp"
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/classification.hpp>
 
 using namespace icinga;
 
@@ -36,20 +34,20 @@ String DependencyNameComposer::MakeName(const String& shortName, const Object::P
 	if (!dependency)
 		return "";
 
-	String name = dependency->GetChildHostName();
+	std::ostringstream nameBuf;
+	nameBuf << dependency->GetChildHostName();
 
 	if (!dependency->GetChildServiceName().IsEmpty())
-		name += "!" + dependency->GetChildServiceName();
+		nameBuf << "!" << dependency->GetChildServiceName();
 
-	name += "!" + shortName;
+	nameBuf << "!" << shortName;
 
-	return name;
+	return nameBuf.str();
 }
 
 Dictionary::Ptr DependencyNameComposer::ParseName(const String& name) const
 {
-	std::vector<String> tokens;
-	boost::algorithm::split(tokens, name, boost::is_any_of("!"));
+	std::vector<String> tokens = name.Split("!");
 
 	if (tokens.size() < 2)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid Dependency name."));

@@ -26,11 +26,7 @@
 #include "base/context.hpp"
 #include "base/configobject.hpp"
 #include "base/scriptframe.hpp"
-#include "base/convert.hpp"
 #include "base/exception.hpp"
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/join.hpp>
-#include <boost/algorithm/string/classification.hpp>
 
 using namespace icinga;
 
@@ -59,7 +55,7 @@ Value MacroProcessor::ResolveMacros(const Value& str, const ResolverList& resolv
 				EscapeCallback(), resolvedMacros, useResolvedMacros, recursionLevel + 1);
 
 			if (value.IsObjectType<Array>())
-				resultArr->Add(Utility::Join(value, ';'));
+				resultArr->Add(Utility::Join(value, ";", true));
 			else
 				resultArr->Add(value);
 		}
@@ -94,8 +90,7 @@ bool MacroProcessor::ResolveMacro(const String& macro, const ResolverList& resol
 
 	*recursive_macro = false;
 
-	std::vector<String> tokens;
-	boost::algorithm::split(tokens, macro, boost::is_any_of("."));
+	std::vector<String> tokens = macro.Split(".");
 
 	String objName;
 	if (tokens.size() > 1) {
@@ -123,7 +118,7 @@ bool MacroProcessor::ResolveMacro(const String& macro, const ResolverList& resol
 
 		MacroResolver *mresolver = dynamic_cast<MacroResolver *>(resolver.second.get());
 
-		if (mresolver && mresolver->ResolveMacro(boost::algorithm::join(tokens, "."), cr, result))
+		if (mresolver && mresolver->ResolveMacro(Utility::Join(tokens, "."), cr, result))
 			return true;
 
 		Value ref = resolver.second;
@@ -317,7 +312,14 @@ Value MacroProcessor::InternalResolveMacros(const String& str, const ResolverLis
 
 		String resolved_macro_str = resolved_macro;
 
-		result.Replace(pos_first, pos_second - pos_first + 1, resolved_macro_str);
+		std::ostringstream resultBuf;
+
+		if (pos_first > 0)
+			resultBuf.write(result.CStr(), pos_first);
+		resultBuf << resolved_macro_str;
+		resultBuf.write(result.CStr() + pos_second + 1, result.GetLength() - pos_second - 1);
+		result = resultBuf.str();
+
 		offset = pos_first + resolved_macro_str.GetLength();
 	}
 
@@ -402,22 +404,25 @@ void MacroProcessor::AddArgumentHelper(const Array::Ptr& args, const String& key
 
 Value MacroProcessor::EscapeMacroShellArg(const Value& value)
 {
-	String result;
+	std::ostringstream resultBuf;
 
 	if (value.IsObjectType<Array>()) {
+		bool first = true;
 		Array::Ptr arr = value;
 
 		ObjectLock olock(arr);
 		for (const Value& arg : arr) {
-			if (result.GetLength() > 0)
-				result += " ";
+			if (!first)
+				resultBuf << " ";
+			else
+				first = false;
 
-			result += Utility::EscapeShellArg(arg);
+			resultBuf << Utility::EscapeShellArg(arg);
 		}
 	} else
-		result = Utility::EscapeShellArg(value);
+		resultBuf << Utility::EscapeShellArg(value);
 
-	return result;
+	return resultBuf.str();
 }
 
 struct CommandArgument
@@ -497,7 +502,7 @@ Value MacroProcessor::ResolveArguments(const Value& command, const Dictionary::P
 						value = 0;
 					else {
 						try {
-							value = Convert::ToLong(set_if_resolved);
+							value = set_if_resolved;
 						} catch (const std::exception& ex) {
 							/* tried to convert a string */
 							Log(LogWarning, "PluginUtility")

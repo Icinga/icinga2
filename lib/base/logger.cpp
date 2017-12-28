@@ -212,17 +212,15 @@ Log::~Log(void)
 	entry.Timestamp = Utility::GetTime();
 	entry.Severity = m_Severity;
 	entry.Facility = m_Facility;
-	entry.Message = m_Buffer.str();
 
 	if (m_Severity >= LogWarning) {
 		ContextTrace context;
 
-		if (context.GetLength() > 0) {
-			std::ostringstream trace;
-			trace << context;
-			entry.Message += "\nContext:" + trace.str();
-		}
+		if (context.GetLength() > 0)
+			m_Buffer << "\nContext:" << context;
 	}
+
+	entry.Message = m_Buffer.str();
 
 	for (const Logger::Ptr& logger : Logger::GetLoggers()) {
 		ObjectLock llock(logger);

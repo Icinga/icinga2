@@ -100,20 +100,20 @@ String Url::GetAuthority(void) const
 	if (m_Host.IsEmpty())
 		return "";
 
-	String auth;
+	std::ostringstream authBuf;
 	if (!m_Username.IsEmpty()) {
-		auth = m_Username;
+		authBuf << m_Username;
 		if (!m_Password.IsEmpty())
-			auth += ":" + m_Password;
-		auth += "@";
+			authBuf << ":" << m_Password;
+		authBuf << "@";
 	}
 
-	auth += m_Host;
+	authBuf << m_Host;
 
 	if (!m_Port.IsEmpty())
-		auth += ":" + m_Port;
+		authBuf << ":" << m_Port;
 
-	return auth;
+	return authBuf.str();
 }
 
 String Url::GetUsername(void) const
@@ -228,69 +228,74 @@ void Url::SetFragment(const String& fragment) {
 
 String Url::Format(bool onlyPathAndQuery, bool printCredentials) const
 {
-	String url;
+	std::ostringstream urlBuf;
 
 	if (!onlyPathAndQuery) {
 		if (!m_Scheme.IsEmpty())
-			url += m_Scheme + ":";
+			urlBuf << m_Scheme << ":";
 
 		if (printCredentials && !GetAuthority().IsEmpty())
-			url += "//" + GetAuthority();
-		else if (!GetHost().IsEmpty())
-			url += "//" + GetHost() + (!GetPort().IsEmpty() ? ":" + GetPort() : "");
-	}
+			urlBuf << "//" << GetAuthority();
+		else if (!GetHost().IsEmpty()) {
+			urlBuf << "//" << GetHost();
 
-	if (m_Path.empty())
-		url += "/";
-	else {
-		for (const String& segment : m_Path) {
-			url += "/";
-			url += Utility::EscapeString(segment, ACPATHSEGMENT_ENCODE, false);
+			if (!GetPort().IsEmpty())
+				urlBuf << ":" << GetPort() << "";
 		}
 	}
 
-	String param;
-	if (!m_Query.empty()) {
-		typedef std::pair<String, std::vector<String> > kv_pair;
+	if (m_Path.empty())
+		urlBuf << "/";
+	else {
+		for (const String& segment : m_Path) {
+			urlBuf << "/";
+			urlBuf << Utility::EscapeString(segment, ACPATHSEGMENT_ENCODE, false);
+		}
+	}
 
-		for (const kv_pair& kv : m_Query) {
+	if (!m_Query.empty()) {
+		bool first = true;
+
+		for (const auto& kv : m_Query) {
 			String key = Utility::EscapeString(kv.first, ACQUERY_ENCODE, false);
-			if (param.IsEmpty())
-				param = "?";
-			else
-				param += "&";
+			if (first) {
+				urlBuf << "?";
+				first = false;
+			} else
+				urlBuf << "&";
 
 			// Just one (or one empty) value
 			if (kv.second.size() == 1) {
-				param += key;
-				param += kv.second[0].IsEmpty() ?
-					String() : "=" + Utility::EscapeString(kv.second[0], ACQUERY_ENCODE, false);
+				urlBuf << key;
+
+				if (!kv.second[0].IsEmpty())
+					urlBuf << "=" << Utility::EscapeString(kv.second[0], ACQUERY_ENCODE, false);
+
 				continue;
 			}
 
 			// Array
-			String temp;
+			bool tempFirst = false;
 			for (const String s : kv.second) {
-				if (!temp.IsEmpty())
-					temp += "&";
+				if (!tempFirst)
+					urlBuf << "&";
+				else
+					tempFirst = false;
 
-				temp += key;
+				urlBuf << key;
 				if (kv.second.size() > 1)
-					temp += "[]";
+					urlBuf << "[]";
 
 				if (!s.IsEmpty())
-					temp += "=" + Utility::EscapeString(s, ACQUERY_ENCODE, false);
+					urlBuf << "=" << Utility::EscapeString(s, ACQUERY_ENCODE, false);
 			}
-			param += temp;
 		}
 	}
 
-	url += param;
-
 	if (!m_Fragment.IsEmpty())
-		url += "#" + Utility::EscapeString(m_Fragment, ACFRAGMENT_ENCODE, false);
+		urlBuf << "#" << Utility::EscapeString(m_Fragment, ACFRAGMENT_ENCODE, false);
 
-	return url;
+	return urlBuf.str();
 }
 
 bool Url::ParseScheme(const String& scheme)

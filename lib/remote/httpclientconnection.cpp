@@ -24,7 +24,6 @@
 #include "base/utility.hpp"
 #include "base/logger.hpp"
 #include "base/exception.hpp"
-#include "base/convert.hpp"
 #include "base/tcpsocket.hpp"
 #include "base/tlsstream.hpp"
 #include "base/networkstream.hpp"

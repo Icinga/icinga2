@@ -24,7 +24,6 @@
 #include "base/scriptglobal.hpp"
 #include "base/logger.hpp"
 #include "base/serializer.hpp"
-#include <boost/algorithm/string.hpp>
 #include <set>
 
 using namespace icinga;

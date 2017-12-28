@@ -30,7 +30,6 @@
 #include "remote/pkiutility.hpp"
 #include "remote/httputility.hpp"
 #include "base/utility.hpp"
-#include "base/convert.hpp"
 #include <fstream>
 
 using namespace icinga;
@@ -130,7 +129,7 @@ Dictionary::Ptr ApiActions::RescheduleCheck(const ConfigObject::Ptr& object,
 	if (!checkable)
 		return ApiActions::CreateResult(404, "Cannot reschedule check for non-existent object.");
 
-	if (Convert::ToBool(HttpUtility::GetLastParameter(params, "force")))
+	if (HttpUtility::GetLastParameter(params, "force").ToBool())
 		checkable->SetForceNextCheck(true);
 
 	double nextCheck;
@@ -161,7 +160,7 @@ Dictionary::Ptr ApiActions::SendCustomNotification(const ConfigObject::Ptr& obje
 	if (!params->Contains("comment"))
 		return ApiActions::CreateResult(400, "Parameter 'comment' is required.");
 
-	if (Convert::ToBool(HttpUtility::GetLastParameter(params, "force")))
+	if (HttpUtility::GetLastParameter(params, "force").ToBool())
 		checkable->SetForceNextNotification(true);
 
 	Checkable::OnNotificationsRequested(checkable, NotificationCustom, checkable->GetLastCheckResult(),

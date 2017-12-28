@@ -37,8 +37,7 @@ void NullCheckTask::ScriptFunc(const Checkable::Ptr& service, const CheckResult:
 	if (resolvedMacros && !useResolvedMacros)
 		return;
 
-	String output = "Hello from ";
-	output += IcingaApplication::GetInstance()->GetNodeName();
+	String output = "Hello from " + IcingaApplication::GetInstance()->GetNodeName();
 
 	Array::Ptr perfdata = new Array();
 	perfdata->Add(new PerfdataValue("time", Utility::GetTime()));

@@ -18,7 +18,6 @@
  ******************************************************************************/
 
 #include "base/configobject.hpp"
-#include "base/convert.hpp"
 #include "base/exception.hpp"
 
 using namespace icinga;

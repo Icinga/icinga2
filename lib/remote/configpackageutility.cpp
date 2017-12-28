@@ -22,7 +22,6 @@
 #include "base/exception.hpp"
 #include "base/scriptglobal.hpp"
 #include "base/utility.hpp"
-#include <boost/algorithm/string.hpp>
 #include <boost/regex.hpp>
 #include <algorithm>
 #include <fstream>
@@ -78,12 +77,15 @@ String ConfigPackageUtility::CreateStage(const String& packageName, const Dictio
 {
 	String stageName = Utility::NewUniqueID();
 
-	String path = GetPackageDir() + "/" + packageName;
+	std::ostringstream pathBuf;
+	pathBuf << GetPackageDir() << "/" << packageName;
 
-	if (!Utility::PathExists(path))
+	if (!Utility::PathExists(pathBuf.str()))
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Package does not exist."));
 
-	path += "/" + stageName;
+	pathBuf << "/" << stageName;
+
+	String path = pathBuf.str();
 
 	Utility::MkDirP(path, 0700);
 	Utility::MkDirP(path + "/conf.d", 0700);
@@ -247,15 +249,15 @@ String ConfigPackageUtility::GetActiveStage(const String& packageName)
 	std::ifstream fp;
 	fp.open(path.CStr());
 
-	String stage;
-	std::getline(fp, stage.GetData());
+	std::string stage;
+	std::getline(fp, stage);
 
 	fp.close();
 
 	if (fp.fail())
 		return "";
 
-	return stage.Trim();
+	return String(stage).Trim();
 }
 
 
@@ -294,8 +296,7 @@ void ConfigPackageUtility::CollectPaths(const String& path, std::vector<std::pai
 
 bool ConfigPackageUtility::ContainsDotDot(const String& path)
 {
-	std::vector<String> tokens;
-	boost::algorithm::split(tokens, path, boost::is_any_of("/\\"));
+	std::vector<String> tokens = path.Split("\\/");
 
 	for (const String& part : tokens) {
 		if (part == "..")

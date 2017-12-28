@@ -22,7 +22,6 @@
 #include "base/json.hpp"
 #include "base/console.hpp"
 #include "base/scriptglobal.hpp"
-#include "base/convert.hpp"
 #include <iostream>
 
 using namespace icinga;
@@ -47,7 +46,7 @@ static bool GetDebugJsonRpcCached(void)
 	if (!internal->Get("DebugJsonRpc", &vdebug))
 		return false;
 
-	debugJsonRpc = Convert::ToLong(vdebug);
+	debugJsonRpc = vdebug;
 
 	return debugJsonRpc;
 }

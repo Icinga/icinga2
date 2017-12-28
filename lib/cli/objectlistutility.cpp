@@ -22,7 +22,6 @@
 #include "base/utility.hpp"
 #include "base/console.hpp"
 #include "base/objectlock.hpp"
-#include "base/convert.hpp"
 #include <iostream>
 #include <iomanip>
 
@@ -134,7 +133,7 @@ void ObjectListUtility::PrintValue(std::ostream& fp, const Value& val)
 	}
 
 	if (val.IsString()) {
-		fp << "\"" << Convert::ToString(val) << "\"";
+		fp << "\"" << val << "\"";
 		return;
 	}
 
@@ -143,7 +142,7 @@ void ObjectListUtility::PrintValue(std::ostream& fp, const Value& val)
 		return;
 	}
 
-	fp << Convert::ToString(val);
+	fp << static_cast<String>(val);
 }
 
 void ObjectListUtility::PrintArray(std::ostream& fp, const Array::Ptr& arr)

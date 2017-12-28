@@ -89,7 +89,10 @@ public:
 	static void QueueAsyncCallback(const std::function<void (void)>& callback, SchedulerPolicy policy = DefaultScheduler);
 
 	static String NaturalJoin(const std::vector<String>& tokens);
-	static String Join(const Array::Ptr& tokens, char separator, bool escapeSeparator = true);
+	static String Join(const Array::Ptr& tokens, const char *separator, bool escapeSeparator = false);
+	static String Join(const std::vector<Value>& tokens, const char *separator, bool escapeSeparator = false);
+	static String Join(const std::vector<String>& tokens, const char *separator, bool escapeSeparator = false);
+	static String Join(const std::vector<std::string>& tokens, const char *separator, bool escapeSeparator = false);
 
 	static String FormatDuration(double duration);
 	static String FormatDateTime(const char *format, double ts);

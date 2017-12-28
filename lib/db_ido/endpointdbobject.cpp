@@ -25,7 +25,6 @@
 #include "base/initialize.hpp"
 #include "base/configtype.hpp"
 #include "base/utility.hpp"
-#include "base/convert.hpp"
 #include "base/logger.hpp"
 
 using namespace icinga;

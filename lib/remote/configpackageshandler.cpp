@@ -22,7 +22,6 @@
 #include "remote/httputility.hpp"
 #include "remote/filterutility.hpp"
 #include "base/exception.hpp"
-#include <boost/algorithm/string/join.hpp>
 
 using namespace icinga;
 

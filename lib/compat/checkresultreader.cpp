@@ -26,7 +26,6 @@
 #include "base/configtype.hpp"
 #include "base/objectlock.hpp"
 #include "base/logger.hpp"
-#include "base/convert.hpp"
 #include "base/application.hpp"
 #include "base/utility.hpp"
 #include "base/exception.hpp"
@@ -164,15 +163,15 @@ void CheckResultReader::ProcessCheckResultFile(const String& path) const
 	std::pair<String, Value> co = PluginUtility::ParseCheckOutput(output);
 	result->SetOutput(co.first);
 	result->SetPerformanceData(PluginUtility::SplitPerfdata(co.second));
-	result->SetState(PluginUtility::ExitStatusToState(Convert::ToLong(attrs["return_code"])));
+	result->SetState(PluginUtility::ExitStatusToState(static_cast<int>(attrs["return_code"])));
 
 	if (attrs.find("start_time") != attrs.end())
-		result->SetExecutionStart(Convert::ToDouble(attrs["start_time"]));
+		result->SetExecutionStart(static_cast<double>(attrs["start_time"]));
 	else
 		result->SetExecutionStart(Utility::GetTime());
 
 	if (attrs.find("finish_time") != attrs.end())
-		result->SetExecutionEnd(Convert::ToDouble(attrs["finish_time"]));
+		result->SetExecutionEnd(static_cast<double>(attrs["finish_time"]));
 	else
 		result->SetExecutionEnd(result->GetExecutionStart());
 

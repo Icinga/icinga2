@@ -20,10 +20,6 @@
 #include "remote/httprequest.hpp"
 #include "base/logger.hpp"
 #include "base/application.hpp"
-#include "base/convert.hpp"
-#include <boost/algorithm/string.hpp>
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/classification.hpp>
 
 using namespace icinga;
 
@@ -52,8 +48,7 @@ bool HttpRequest::Parse(StreamReadContext& src, bool may_wait)
 			if (line == "")
 				return true;
 
-			std::vector<String> tokens;
-			boost::algorithm::split(tokens, line, boost::is_any_of(" "));
+			std::vector<String> tokens = line.Split(" ");
 			Log(LogDebug, "HttpRequest")
 				<< "line: " << line << ", tokens: " << tokens.size();
 			if (tokens.size() != 3)
@@ -130,7 +125,7 @@ bool HttpRequest::Parse(StreamReadContext& src, bool may_wait)
 				src.MustRead = false;
 			}
 
-			size_t length_indicator = Convert::ToLong(Headers->Get("content-length"));
+			size_t length_indicator = Headers->Get("content-length");
 
 			if (src.Size < length_indicator) {
 				src.MustRead = true;
@@ -213,7 +208,7 @@ void HttpRequest::Finish(void)
 
 	if (ProtocolVersion == HttpVersion10) {
 		if (m_Body)
-			AddHeader("Content-Length", Convert::ToString(m_Body->GetAvailableBytes()));
+			AddHeader("Content-Length", std::to_string(m_Body->GetAvailableBytes()));
 
 		FinishHeaders();
 

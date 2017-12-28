@@ -28,7 +28,6 @@
 #include "base/perfdatavalue.hpp"
 #include "base/logger.hpp"
 #include "base/exception.hpp"
-#include "base/convert.hpp"
 #include "base/statsfunction.hpp"
 
 using namespace icinga;

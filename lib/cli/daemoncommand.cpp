@@ -29,7 +29,6 @@
 #include "base/timer.hpp"
 #include "base/utility.hpp"
 #include "base/exception.hpp"
-#include "base/convert.hpp"
 #include "base/scriptglobal.hpp"
 #include "base/context.hpp"
 #include "config.h"

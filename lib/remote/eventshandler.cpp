@@ -24,7 +24,6 @@
 #include "config/expression.hpp"
 #include "base/objectlock.hpp"
 #include "base/json.hpp"
-#include <boost/algorithm/string/replace.hpp>
 
 using namespace icinga;
 
@@ -99,9 +98,7 @@ bool EventsHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request
 		if (!result)
 			continue;
 
-		String body = JsonEncode(result);
-
-		boost::algorithm::replace_all(body, "\n", "");
+		String body = JsonEncode(result).ReplaceAll("\n", "");
 
 		try {
 			response.WriteBody(body.CStr(), body.GetLength());

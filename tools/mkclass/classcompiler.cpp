@@ -534,7 +534,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 				<< "' does not exist.\"));" << std::endl;
 		} else if (field.Type.ArrayRank > 0 && (ftype == "Number" || ftype == "Boolean")) {
 			m_Impl << "\t" << "try {" << std::endl
-				<< "\t\t" << "Convert::ToDouble(value);" << std::endl
+				<< "\t\t" << "static_cast<double>(value);" << std::endl
 				<< "\t" << "} catch (const std::invalid_argument&) {" << std::endl
 				<< "\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_cast<ConfigObject *>(this), { \"" << field.Name << "\", \"Array element '\" + value + \"' of type '\" + value.GetReflectionType()->GetName() + \"' is not valid here; expected type '" << ftype << "'.\"));" << std::endl
 				<< "\t" << "}" << std::endl;
@@ -1153,7 +1153,7 @@ void ClassCompiler::CodeGenValidator(const std::string& name, const std::string&
 					<< "\t\t\t" << "return;" << std::endl;
 			else if (rule.Type == "Number") {
 				m_Impl << "\t\t" << "try {" << std::endl
-					<< "\t\t\t" << "Convert::ToDouble(value);" << std::endl
+					<< "\t\t\t" << "static_cast<double>(value);" << std::endl
 					<< "\t\t\t" << "return;" << std::endl
 					<< "\t\t" << "} catch (...) { }" << std::endl;
 			}
@@ -1193,7 +1193,7 @@ void ClassCompiler::CodeGenValidator(const std::string& name, const std::string&
 						<< (type_check ? "\t" : "") << "\t\t" << "{" << std::endl
 						<< (type_check ? "\t" : "") << "\t\t\t" << "ObjectLock olock(arr);" << std::endl
 						<< (type_check ? "\t" : "") << "\t\t\t" << "for (const Value& avalue : arr) {" << std::endl
-						<< (type_check ? "\t" : "") << "\t\t\t\t" << "String akey = Convert::ToString(anum);" << std::endl;
+						<< (type_check ? "\t" : "") << "\t\t\t\t" << "String akey = std::to_string(anum);" << std::endl;
 					indent = true;
 				} else {
 					m_Impl << (type_check ? "\t" : "") << "\t\t" << "String akey = \"\";" << std::endl
@@ -1442,7 +1442,6 @@ void ClassCompiler::CompileStream(const std::string& path, std::istream& input,
 	oimpl << "#include \"base/exception.hpp\"" << std::endl
 		<< "#include \"base/objectlock.hpp\"" << std::endl
 		<< "#include \"base/utility.hpp\"" << std::endl
-		<< "#include \"base/convert.hpp\"" << std::endl
 		<< "#include \"base/dependencygraph.hpp\"" << std::endl
 		<< "#include \"base/logger.hpp\"" << std::endl
 		<< "#include \"base/function.hpp\"" << std::endl

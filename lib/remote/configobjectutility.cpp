@@ -26,9 +26,6 @@
 #include "base/exception.hpp"
 #include "base/serializer.hpp"
 #include "base/dependencygraph.hpp"
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/case_conv.hpp>
 
 using namespace icinga;
 
@@ -40,8 +37,7 @@ String ConfigObjectUtility::GetConfigDir(void)
 
 String ConfigObjectUtility::GetObjectConfigPath(const Type::Ptr& type, const String& fullName)
 {
-	String typeDir = type->GetPluralName();
-	boost::algorithm::to_lower(typeDir);
+	String typeDir = type->GetPluralName().ToLower();
 
 	return GetConfigDir() + "/conf.d/" + typeDir +
 		"/" + EscapeName(fullName) + ".conf";

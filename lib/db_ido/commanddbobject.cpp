@@ -23,7 +23,6 @@
 #include "icinga/command.hpp"
 #include "icinga/compatutility.hpp"
 #include "base/objectlock.hpp"
-#include "base/convert.hpp"
 
 using namespace icinga;
 

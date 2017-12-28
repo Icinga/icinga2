@@ -25,7 +25,6 @@
 #include "icinga/pluginutility.hpp"
 #include "base/utility.hpp"
 #include "base/perfdatavalue.hpp"
-#include "base/convert.hpp"
 #include "base/function.hpp"
 #include "base/logger.hpp"
 

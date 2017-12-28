@@ -24,7 +24,6 @@
 #include "base/utility.hpp"
 #include "base/logger.hpp"
 #include "base/exception.hpp"
-#include <boost/lexical_cast.hpp>
 #include <boost/thread/recursive_mutex.hpp>
 
 using namespace icinga;
@@ -177,17 +176,7 @@ void Object::SetFieldByName(const String& field, const Value& value, const Debug
 	if (fid == -1)
 		BOOST_THROW_EXCEPTION(ScriptError("Attribute '" + field + "' does not exist.", debugInfo));
 
-	try {
-		SetField(fid, value);
-	} catch (const boost::bad_lexical_cast&) {
-		Field fieldInfo = type->GetFieldInfo(fid);
-		Type::Ptr ftype = Type::GetByName(fieldInfo.TypeName);
-		BOOST_THROW_EXCEPTION(ScriptError("Attribute '" + field + "' cannot be set to value of type '" + value.GetTypeName() + "', expected '" + ftype->GetName() + "'", debugInfo));
-	} catch (const std::bad_cast&) {
-		Field fieldInfo = type->GetFieldInfo(fid);
-		Type::Ptr ftype = Type::GetByName(fieldInfo.TypeName);
-		BOOST_THROW_EXCEPTION(ScriptError("Attribute '" + field + "' cannot be set to value of type '" + value.GetTypeName() + "', expected '" + ftype->GetName() + "'", debugInfo));
-	}
+	SetField(fid, value);
 }
 
 void Object::Validate(int types, const ValidationUtils& utils)

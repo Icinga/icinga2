@@ -22,7 +22,6 @@
 #include "base/scriptframe.hpp"
 #include "base/exception.hpp"
 #include "base/utility.hpp"
-#include "base/convert.hpp"
 #include "base/json.hpp"
 #include "base/logger.hpp"
 #include "base/objectlock.hpp"
@@ -246,7 +245,7 @@ double ScriptUtils::Len(const Value& value)
 		Array::Ptr array = value;
 		return array->GetLength();
 	} else if (value.IsString()) {
-		return Convert::ToString(value).GetLength();
+		return value.Get<String>().GetLength();
 	} else {
 		return 0;
 	}

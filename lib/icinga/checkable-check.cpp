@@ -28,7 +28,6 @@
 #include "remote/apilistener.hpp"
 #include "base/objectlock.hpp"
 #include "base/logger.hpp"
-#include "base/convert.hpp"
 #include "base/utility.hpp"
 #include "base/context.hpp"
 
@@ -485,16 +484,17 @@ void Checkable::ExecuteCheck(void)
 			/* fail to perform check on unconnected endpoint */
 			cr->SetState(ServiceUnknown);
 
-			String output = "Remote Icinga instance '" + endpoint->GetName() + "' is not connected to ";
+			std::ostringstream outputBuf;
+			outputBuf << "Remote Icinga instance '" << endpoint->GetName() << "' is not connected to ";
 
 			Endpoint::Ptr localEndpoint = Endpoint::GetLocalEndpoint();
 
 			if (localEndpoint)
-				output += "'" + localEndpoint->GetName() + "'";
+				outputBuf << "'" << localEndpoint->GetName() << "'";
 			else
-				output += "this instance";
+				outputBuf << "this instance";
 
-			cr->SetOutput(output);
+			cr->SetOutput(outputBuf.str());
 
 			ProcessCheckResult(cr);
 		}

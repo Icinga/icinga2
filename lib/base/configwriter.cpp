@@ -20,9 +20,6 @@
 #include "base/configwriter.hpp"
 #include "base/exception.hpp"
 #include <boost/regex.hpp>
-#include <boost/algorithm/string/replace.hpp>
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/classification.hpp>
 #include <set>
 #include <iterator>
 
@@ -95,8 +92,7 @@ void ConfigWriter::EmitScope(std::ostream& fp, int indentLevel, const Dictionary
 			EmitIndent(fp, indentLevel);
 
 			if (splitDot) {
-				std::vector<String> tokens;
-				boost::algorithm::split(tokens, kv.first, boost::is_any_of("."));
+				std::vector<String> tokens = kv.first.Split(".");
 
 				EmitIdentifier(fp, tokens[0], true);
 
@@ -209,15 +205,10 @@ void ConfigWriter::EmitFunctionCall(std::ostream& fp, const String& name, const 
 
 String ConfigWriter::EscapeIcingaString(const String& str)
 {
-	String result = str;
-	boost::algorithm::replace_all(result, "\\", "\\\\");
-	boost::algorithm::replace_all(result, "\n", "\\n");
-	boost::algorithm::replace_all(result, "\t", "\\t");
-	boost::algorithm::replace_all(result, "\r", "\\r");
-	boost::algorithm::replace_all(result, "\b", "\\b");
-	boost::algorithm::replace_all(result, "\f", "\\f");
-	boost::algorithm::replace_all(result, "\"", "\\\"");
-	return result;
+	return str.ReplaceAll(
+		{ "\\", "\n", "\t", "\r", "\b", "\f", "\"" },
+		{ "\\\\", "\\n", "\\t", "\\r", "\\b", "\\f", "\\\"" }
+	);
 }
 
 const std::vector<String>& ConfigWriter::GetKeywords(void)

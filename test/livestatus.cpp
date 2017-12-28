@@ -34,7 +34,7 @@ String LivestatusQueryHelper(const std::vector<String>& lines)
 
 	query->Execute(sstream);
 
-	String output;
+	std::ostringstream outputBuf;
 	String result;
 
 	StreamReadContext src;
@@ -48,10 +48,12 @@ String LivestatusQueryHelper(const std::vector<String>& lines)
 			continue;
 
 		if (result.GetLength() > 0)
-			output += result + "\n";
+			outputBuf << result << "\n";
 		else
 			break;
 	}
+
+	String output = outputBuf.str();
 
 	BOOST_TEST_MESSAGE("Query Result: " + output);
 

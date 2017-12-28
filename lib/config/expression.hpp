@@ -29,7 +29,6 @@
 #include "base/function.hpp"
 #include "base/exception.hpp"
 #include "base/scriptframe.hpp"
-#include "base/convert.hpp"
 #include <map>
 
 namespace icinga

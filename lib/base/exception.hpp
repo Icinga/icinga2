@@ -36,10 +36,6 @@
 #include <boost/exception/diagnostic_information.hpp>
 #include <boost/exception_ptr.hpp>
 
-#ifdef _WIN32
-#	include <boost/algorithm/string/trim.hpp>
-#endif /* _WIN32 */
-
 namespace icinga
 {
 

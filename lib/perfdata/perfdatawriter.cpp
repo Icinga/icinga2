@@ -25,7 +25,6 @@
 #include "base/configtype.hpp"
 #include "base/objectlock.hpp"
 #include "base/logger.hpp"
-#include "base/convert.hpp"
 #include "base/utility.hpp"
 #include "base/context.hpp"
 #include "base/exception.hpp"
@@ -78,7 +77,7 @@ void PerfdataWriter::Stop(bool runtimeRemoved)
 Value PerfdataWriter::EscapeMacroMetric(const Value& value)
 {
 	if (value.IsObjectType<Array>())
-		return Utility::Join(value, ';');
+		return Utility::Join(value, ";", true);
 	else
 		return value;
 }
@@ -135,7 +134,7 @@ void PerfdataWriter::RotateFile(std::ofstream& output, const String& temp_path, 
 		output.close();
 
 		if (Utility::PathExists(temp_path)) {
-			String finalFile = perfdata_path + "." + Convert::ToString((long)Utility::GetTime());
+			String finalFile = perfdata_path + "." + std::to_string((long)Utility::GetTime());
 			if (rename(temp_path.CStr(), finalFile.CStr()) < 0) {
 				BOOST_THROW_EXCEPTION(posix_error()
 					<< boost::errinfo_api_function("rename")

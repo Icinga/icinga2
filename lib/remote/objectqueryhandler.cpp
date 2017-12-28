@@ -23,7 +23,6 @@
 #include "base/serializer.hpp"
 #include "base/dependencygraph.hpp"
 #include "base/configtype.hpp"
-#include <boost/algorithm/string.hpp>
 #include <set>
 
 using namespace icinga;
@@ -154,8 +153,7 @@ bool ObjectQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 	params->Set("type", type->GetName());
 
 	if (request.RequestUrl->GetPath().size() >= 4) {
-		String attr = type->GetName();
-		boost::algorithm::to_lower(attr);
+		String attr = type->GetName().ToLower();
 		params->Set(attr, request.RequestUrl->GetPath()[3]);
 	}
 

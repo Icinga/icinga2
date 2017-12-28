@@ -100,7 +100,7 @@ void SyslogLogger::OnConfigLoaded(void)
 	if (it != m_FacilityMap.end())
 		m_Facility = it->second;
 	else
-		m_Facility = Convert::ToLong(facilityString);
+		m_Facility = static_cast<double>(facilityString);
 }
 
 void SyslogLogger::ValidateFacility(const String& value, const ValidationUtils& utils)
@@ -109,7 +109,7 @@ void SyslogLogger::ValidateFacility(const String& value, const ValidationUtils& 
 
 	if (m_FacilityMap.find(value) == m_FacilityMap.end()) {
 		try {
-			Convert::ToLong(value);
+			static_cast<double>(value);
 		} catch (const std::exception&) {
 			BOOST_THROW_EXCEPTION(ValidationError(this, { "facility" }, "Invalid facility specified."));
 		}

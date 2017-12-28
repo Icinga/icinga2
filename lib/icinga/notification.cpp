@@ -25,12 +25,9 @@
 #include "base/objectlock.hpp"
 #include "base/logger.hpp"
 #include "base/utility.hpp"
-#include "base/convert.hpp"
 #include "base/exception.hpp"
 #include "base/initialize.hpp"
 #include "base/scriptglobal.hpp"
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/classification.hpp>
 
 using namespace icinga;
 
@@ -49,20 +46,20 @@ String NotificationNameComposer::MakeName(const String& shortName, const Object:
 	if (!notification)
 		return "";
 
-	String name = notification->GetHostName();
+	std::ostringstream nameBuf;
+	nameBuf << notification->GetHostName();
 
 	if (!notification->GetServiceName().IsEmpty())
-		name += "!" + notification->GetServiceName();
+		nameBuf << "!" << notification->GetServiceName();
 
-	name += "!" + shortName;
+	nameBuf << "!" << shortName;
 
-	return name;
+	return nameBuf.str();
 }
 
 Dictionary::Ptr NotificationNameComposer::ParseName(const String& name) const
 {
-	std::vector<String> tokens;
-	boost::algorithm::split(tokens, name, boost::is_any_of("!"));
+	std::vector<String> tokens = name.Split("!");
 
 	if (tokens.size() < 2)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid Notification name."));

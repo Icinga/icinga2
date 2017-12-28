@@ -19,14 +19,11 @@
 
 #include "icinga/legacytimeperiod.hpp"
 #include "base/function.hpp"
-#include "base/convert.hpp"
 #include "base/exception.hpp"
 #include "base/objectlock.hpp"
 #include "base/logger.hpp"
 #include "base/debug.hpp"
 #include "base/utility.hpp"
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/classification.hpp>
 
 using namespace icinga;
 
@@ -139,9 +136,9 @@ void LegacyTimePeriod::ParseTimeSpec(const String& timespec, tm *begin, tm *end,
 
 	/* YYYY-MM-DD */
 	if (timespec.GetLength() == 10 && timespec[4] == '-' && timespec[7] == '-') {
-		int year = Convert::ToLong(timespec.SubStr(0, 4));
-		int month = Convert::ToLong(timespec.SubStr(5, 2));
-		int day = Convert::ToLong(timespec.SubStr(8, 2));
+		int year = static_cast<int>(timespec.SubStr(0, 4));
+		int month = static_cast<int>(timespec.SubStr(5, 2));
+		int day = static_cast<int>(timespec.SubStr(8, 2));
 
 		if (month < 1 || month > 12)
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid month in time specification: " + timespec));
@@ -171,8 +168,7 @@ void LegacyTimePeriod::ParseTimeSpec(const String& timespec, tm *begin, tm *end,
 		return;
 	}
 
-	std::vector<String> tokens;
-	boost::algorithm::split(tokens, timespec, boost::is_any_of(" "));
+	std::vector<String> tokens = timespec.Split(" ");
 
 	int mon = -1;
 
@@ -180,7 +176,7 @@ void LegacyTimePeriod::ParseTimeSpec(const String& timespec, tm *begin, tm *end,
 		if (mon == -1)
 			mon = reference->tm_mon;
 
-		int mday = Convert::ToLong(tokens[1]);
+		int mday = static_cast<int>(tokens[1]);
 
 		if (begin) {
 			*begin = *reference;
@@ -232,7 +228,7 @@ void LegacyTimePeriod::ParseTimeSpec(const String& timespec, tm *begin, tm *end,
 		int n = 0;
 
 		if (tokens.size() > 1)
-			n = Convert::ToLong(tokens[1]);
+			n = static_cast<int>(tokens[1]);
 
 		if (begin) {
 			*begin = myref;
@@ -276,7 +272,7 @@ void LegacyTimePeriod::ParseTimeRange(const String& timerange, tm *begin, tm *en
 
 	if (pos != String::NPos) {
 		String strStride = def.SubStr(pos + 1).Trim();
-		*stride = Convert::ToLong(strStride);
+		*stride = static_cast<int>(strStride);
 
 		/* Remove the stride parameter from the definition. */
 		def = def.SubStr(0, pos);
@@ -302,7 +298,7 @@ void LegacyTimePeriod::ParseTimeRange(const String& timerange, tm *begin, tm *en
 		String fword = second.SubStr(0, xpos);
 
 		try {
-			Convert::ToLong(fword);
+			static_cast<double>(fword);
 		} catch (...) {
 			is_number = false;
 		}
@@ -335,33 +331,30 @@ bool LegacyTimePeriod::IsInDayDefinition(const String& daydef, tm *reference)
 
 void LegacyTimePeriod::ProcessTimeRangeRaw(const String& timerange, tm *reference, tm *begin, tm *end)
 {
-	std::vector<String> times;
-
-	boost::algorithm::split(times, timerange, boost::is_any_of("-"));
+	std::vector<String> times = timerange.Split("-");
 
 	if (times.size() != 2)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid timerange: " + timerange));
 
-	std::vector<String> hd1, hd2;
-	boost::algorithm::split(hd1, times[0], boost::is_any_of(":"));
+	std::vector<String> hd1 = times[0].Split(":");
 
 	if (hd1.size() != 2)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid time specification: " + times[0]));
 
-	boost::algorithm::split(hd2, times[1], boost::is_any_of(":"));
+	std::vector<String> hd2 = times[1].Split(":");
 
 	if (hd2.size() != 2)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid time specification: " + times[1]));
 
 	*begin = *reference;
 	begin->tm_sec = 0;
-	begin->tm_min = Convert::ToLong(hd1[1]);
-	begin->tm_hour = Convert::ToLong(hd1[0]);
+	begin->tm_min = static_cast<int>(hd1[1]);
+	begin->tm_hour = static_cast<int>(hd1[0]);
 
 	*end = *reference;
 	end->tm_sec = 0;
-	end->tm_min = Convert::ToLong(hd2[1]);
-	end->tm_hour = Convert::ToLong(hd2[0]);
+	end->tm_min = static_cast<int>(hd2[1]);
+	end->tm_hour = static_cast<int>(hd2[0]);
 
 	if (begin->tm_hour * 3600 + begin->tm_min * 60 + begin->tm_sec >=
 		end->tm_hour * 3600 + end->tm_min * 60 + end->tm_sec)
@@ -382,9 +375,7 @@ Dictionary::Ptr LegacyTimePeriod::ProcessTimeRange(const String& timestamp, tm *
 
 void LegacyTimePeriod::ProcessTimeRanges(const String& timeranges, tm *reference, const Array::Ptr& result)
 {
-	std::vector<String> ranges;
-
-	boost::algorithm::split(ranges, timeranges, boost::is_any_of(","));
+	std::vector<String> ranges = timeranges.Split(",");
 
 	for (const String& range : ranges) {
 		Dictionary::Ptr segment = ProcessTimeRange(range, reference);

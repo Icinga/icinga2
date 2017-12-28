@@ -32,15 +32,12 @@
 #include "base/configtype.hpp"
 #include "base/objectlock.hpp"
 #include "base/json.hpp"
-#include "base/convert.hpp"
 #include "base/logger.hpp"
 #include "base/exception.hpp"
 #include "base/application.hpp"
 #include "base/context.hpp"
 #include "base/statsfunction.hpp"
 #include <boost/tuple/tuple.hpp>
-#include <boost/algorithm/string.hpp>
-#include <boost/algorithm/string/replace.hpp>
 #include <fstream>
 
 using namespace icinga;
@@ -343,8 +340,8 @@ void StatusDataWriter::DumpCheckableStatusAttrs(std::ostream& fp, const Checkabl
 		"\t" "event_handler_enabled=" << CompatUtility::GetCheckableEventHandlerEnabled(checkable) << "\n";
 
 	if (cr) {
-		fp << "\t" << "check_execution_time=" << Convert::ToString(cr->CalculateExecutionTime()) << "\n"
-			"\t" "check_latency=" << Convert::ToString(cr->CalculateLatency()) << "\n";
+		fp << "\t" << "check_execution_time=" << cr->CalculateExecutionTime() << "\n"
+			"\t" "check_latency=" << cr->CalculateLatency() << "\n";
 	}
 
 	Host::Ptr host;
@@ -735,7 +732,7 @@ void StatusDataWriter::UpdateObjectsCache(void)
 		if (state_filter & StateFilterDown)
 			failure_criteria.emplace_back("d");
 
-		String criteria = boost::algorithm::join(failure_criteria, ",");
+		String criteria = Utility::Join(failure_criteria, ",");
 
 		/* Icinga 1.x only allows host->host, service->service dependencies */
 		if (!child_service && !parent_service) {

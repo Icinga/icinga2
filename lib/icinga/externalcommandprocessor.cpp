@@ -30,15 +30,12 @@
 #include "icinga/notificationcommand.hpp"
 #include "icinga/compatutility.hpp"
 #include "remote/apifunction.hpp"
-#include "base/convert.hpp"
 #include "base/logger.hpp"
 #include "base/objectlock.hpp"
 #include "base/application.hpp"
 #include "base/utility.hpp"
 #include "base/exception.hpp"
 #include <fstream>
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/split.hpp>
 #include <boost/thread/once.hpp>
 
 using namespace icinga;
@@ -61,13 +58,12 @@ void ExternalCommandProcessor::Execute(const String& line)
 	String timestamp = line.SubStr(1, pos - 1);
 	String args = line.SubStr(pos + 2, String::NPos);
 
-	double ts = Convert::ToDouble(timestamp);
+	double ts = static_cast<double>(timestamp);
 
 	if (ts == 0)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid timestamp in command: " + line));
 
-	std::vector<String> argv;
-	boost::algorithm::split(argv, args, boost::is_any_of(";"));
+	std::vector<String> argv = args.Split(";");
 
 	if (argv.empty())
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Missing arguments in command: " + line));
@@ -98,7 +94,7 @@ void ExternalCommandProcessor::Execute(double time, const String& command, const
 	}
 
 	if (arguments.size() < eci.MinArgs)
-		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected " + Convert::ToString(eci.MinArgs) + " arguments"));
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Expected " + std::to_string(eci.MinArgs) + " arguments"));
 
 	size_t argnum = std::min(arguments.size(), eci.MaxArgs);
 
@@ -108,15 +104,18 @@ void ExternalCommandProcessor::Execute(double time, const String& command, const
 	if (argnum > 0) {
 		std::copy(arguments.begin(), arguments.begin() + argnum - 1, realArguments.begin());
 
-		String last_argument;
+		std::ostringstream lastArgumentBuf;
+		bool first = true;
 		for (std::vector<String>::size_type i = argnum - 1; i < arguments.size(); i++) {
-			if (!last_argument.IsEmpty())
-				last_argument += ";";
+			if (!first)
+				lastArgumentBuf << ";";
+			else
+				first = true;
 
-			last_argument += arguments[i];
+			lastArgumentBuf << arguments[i];
 		}
 
-		realArguments[argnum - 1] = last_argument;
+		realArguments[argnum - 1] = lastArgumentBuf.str();
 	}
 
 	OnNewExternalCommand(time, command, realArguments);
@@ -272,13 +271,12 @@ void ExternalCommandProcessor::ExecuteFromFile(const String& line, std::deque< s
 	String timestamp = line.SubStr(1, pos - 1);
 	String args = line.SubStr(pos + 2, String::NPos);
 
-	double ts = Convert::ToDouble(timestamp);
+	double ts = static_cast<double>(timestamp);
 
 	if (ts == 0)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid timestamp in command: " + line));
 
-	std::vector<String> argv;
-	boost::algorithm::split(argv, args, boost::is_any_of(";"));
+	std::vector<String> argv = args.Split(";");
 
 	if (argv.empty())
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Missing arguments in command: " + line));
@@ -304,7 +302,7 @@ void ExternalCommandProcessor::ProcessHostCheckResult(double time, const std::ve
 	if (!host->GetEnablePassiveChecks())
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Got passive check result for host '" + arguments[0] + "' which has passive checks disabled."));
 
-	int exitStatus = Convert::ToDouble(arguments[1]);
+	int exitStatus = static_cast<int>(arguments[1]);
 	CheckResult::Ptr result = new CheckResult();
 	std::pair<String, String> co = PluginUtility::ParseCheckOutput(arguments[2]);
 	result->SetOutput(co.first);
@@ -345,7 +343,7 @@ void ExternalCommandProcessor::ProcessServiceCheckResult(double time, const std:
 	if (!service->GetEnablePassiveChecks())
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Got passive check result for service '" + arguments[1] + "' which has passive checks disabled."));
 
-	int exitStatus = Convert::ToDouble(arguments[2]);
+	int exitStatus = static_cast<int>(arguments[2]);
 	CheckResult::Ptr result = new CheckResult();
 	String output = CompatUtility::UnEscapeString(arguments[3]);
 	std::pair<String, String> co = PluginUtility::ParseCheckOutput(output);
@@ -374,7 +372,7 @@ void ExternalCommandProcessor::ScheduleHostCheck(double, const std::vector<Strin
 	if (!host)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot reschedule host check for non-existent host '" + arguments[0] + "'"));
 
-	double planned_check = Convert::ToDouble(arguments[1]);
+	double planned_check = static_cast<double>(arguments[1]);
 
 	if (planned_check > host->GetNextCheck()) {
 		Log(LogNotice, "ExternalCommandProcessor")
@@ -406,7 +404,7 @@ void ExternalCommandProcessor::ScheduleForcedHostCheck(double, const std::vector
 		<< "Rescheduling next check for host '" << arguments[0] << "'";
 
 	host->SetForceNextCheck(true);
-	host->SetNextCheck(Convert::ToDouble(arguments[1]));
+	host->SetNextCheck(static_cast<double>(arguments[1]));
 
 	/* trigger update event for DB IDO */
 	Checkable::OnNextCheckUpdated(host);
@@ -419,7 +417,7 @@ void ExternalCommandProcessor::ScheduleSvcCheck(double, const std::vector<String
 	if (!service)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot reschedule service check for non-existent service '" + arguments[1] + "' on host '" + arguments[0] + "'"));
 
-	double planned_check = Convert::ToDouble(arguments[2]);
+	double planned_check = static_cast<double>(arguments[2]);
 
 	if (planned_check > service->GetNextCheck()) {
 		Log(LogNotice, "ExternalCommandProcessor")
@@ -451,7 +449,7 @@ void ExternalCommandProcessor::ScheduleForcedSvcCheck(double, const std::vector<
 		<< "Rescheduling next check for service '" << arguments[1] << "'";
 
 	service->SetForceNextCheck(true);
-	service->SetNextCheck(Convert::ToDouble(arguments[2]));
+	service->SetNextCheck(static_cast<double>(arguments[2]));
 
 	/* trigger update event for DB IDO */
 	Checkable::OnNextCheckUpdated(service);
@@ -523,7 +521,7 @@ void ExternalCommandProcessor::RestartProcess(double, const std::vector<String>&
 
 void ExternalCommandProcessor::ScheduleForcedHostSvcChecks(double, const std::vector<String>& arguments)
 {
-	double planned_check = Convert::ToDouble(arguments[1]);
+	double planned_check = static_cast<double>(arguments[1]);
 
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
@@ -544,7 +542,7 @@ void ExternalCommandProcessor::ScheduleForcedHostSvcChecks(double, const std::ve
 
 void ExternalCommandProcessor::ScheduleHostSvcChecks(double, const std::vector<String>& arguments)
 {
-	double planned_check = Convert::ToDouble(arguments[1]);
+	double planned_check = static_cast<double>(arguments[1]);
 
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
@@ -604,9 +602,9 @@ void ExternalCommandProcessor::DisableHostSvcChecks(double, const std::vector<St
 
 void ExternalCommandProcessor::AcknowledgeSvcProblem(double, const std::vector<String>& arguments)
 {
-	bool sticky = (Convert::ToLong(arguments[2]) == 2 ? true : false);
-	bool notify = (Convert::ToLong(arguments[3]) > 0 ? true : false);
-	bool persistent = (Convert::ToLong(arguments[4]) > 0 ? true : false);
+	bool sticky = (static_cast<int>(arguments[2]) == 2);
+	bool notify = (static_cast<int>(arguments[3]) > 0);
+	bool persistent = (static_cast<int>(arguments[4]) > 0);
 
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
@@ -625,10 +623,10 @@ void ExternalCommandProcessor::AcknowledgeSvcProblem(double, const std::vector<S
 
 void ExternalCommandProcessor::AcknowledgeSvcProblemExpire(double, const std::vector<String>& arguments)
 {
-	bool sticky = (Convert::ToLong(arguments[2]) == 2 ? true : false);
-	bool notify = (Convert::ToLong(arguments[3]) > 0 ? true : false);
-	bool persistent = (Convert::ToLong(arguments[4]) > 0 ? true : false);
-	double timestamp = Convert::ToDouble(arguments[5]);
+	bool sticky = (static_cast<int>(arguments[2]) == 2);
+	bool notify = (static_cast<int>(arguments[3]) > 0);
+	bool persistent = (static_cast<int>(arguments[4]) > 0);
+	double timestamp = static_cast<double>(arguments[5]);
 
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
@@ -668,9 +666,9 @@ void ExternalCommandProcessor::RemoveSvcAcknowledgement(double, const std::vecto
 
 void ExternalCommandProcessor::AcknowledgeHostProblem(double, const std::vector<String>& arguments)
 {
-	bool sticky = (Convert::ToLong(arguments[1]) == 2 ? true : false);
-	bool notify = (Convert::ToLong(arguments[2]) > 0 ? true : false);
-	bool persistent = (Convert::ToLong(arguments[3]) > 0 ? true : false);
+	bool sticky = (static_cast<int>(arguments[1]) == 2);
+	bool notify = (static_cast<int>(arguments[2]) > 0);
+	bool persistent = (static_cast<int>(arguments[3]) > 0);
 
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
@@ -689,10 +687,10 @@ void ExternalCommandProcessor::AcknowledgeHostProblem(double, const std::vector<
 
 void ExternalCommandProcessor::AcknowledgeHostProblemExpire(double, const std::vector<String>& arguments)
 {
-	bool sticky = (Convert::ToLong(arguments[1]) == 2 ? true : false);
-	bool notify = (Convert::ToLong(arguments[2]) > 0 ? true : false);
-	bool persistent = (Convert::ToLong(arguments[3]) > 0 ? true : false);
-	double timestamp = Convert::ToDouble(arguments[4]);
+	bool sticky = (static_cast<int>(arguments[1]) == 2);
+	bool notify = (static_cast<int>(arguments[2]) > 0);
+	bool persistent = (static_cast<int>(arguments[3]) > 0);
+	double timestamp = static_cast<double>(arguments[4]);
 
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
@@ -918,8 +916,8 @@ void ExternalCommandProcessor::ProcessFile(double, const std::vector<String>& ar
 		std::vector<String> argument = file_queue.front();
 		file_queue.pop_front();
 
-		String file = argument[0];
-		int to_delete = Convert::ToLong(argument[1]);
+		const String& file = argument[0];
+		int to_delete = static_cast<int>(argument[1]);
 
 		std::ifstream ifp;
 		ifp.exceptions(std::ifstream::badbit);
@@ -956,21 +954,21 @@ void ExternalCommandProcessor::ScheduleSvcDowntime(double, const std::vector<Str
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot schedule service downtime for non-existent service '" + arguments[1] + "' on host '" + arguments[0] + "'"));
 
 	String triggeredBy;
-	int triggeredByLegacy = Convert::ToLong(arguments[5]);
-	int is_fixed = Convert::ToLong(arguments[4]);
+	int triggeredByLegacy = static_cast<int>(arguments[5]);
+	int is_fixed = static_cast<int>(arguments[4]);
 	if (triggeredByLegacy != 0)
 		triggeredBy = Downtime::GetDowntimeIDFromLegacyID(triggeredByLegacy);
 
 	Log(LogNotice, "ExternalCommandProcessor")
 		<< "Creating downtime for service " << service->GetName();
 	(void) Downtime::AddDowntime(service, arguments[7], arguments[8],
-		Convert::ToDouble(arguments[2]), Convert::ToDouble(arguments[3]),
-		Convert::ToBool(is_fixed), triggeredBy, Convert::ToDouble(arguments[6]));
+		static_cast<double>(arguments[2]), static_cast<double>(arguments[3]),
+		is_fixed, triggeredBy, static_cast<double>(arguments[6]));
 }
 
 void ExternalCommandProcessor::DelSvcDowntime(double, const std::vector<String>& arguments)
 {
-	int id = Convert::ToLong(arguments[0]);
+	int id = static_cast<int>(arguments[0]);
 	Log(LogNotice, "ExternalCommandProcessor")
 		<< "Removing downtime ID " << arguments[0];
 	String rid = Downtime::GetDowntimeIDFromLegacyID(id);
@@ -985,8 +983,8 @@ void ExternalCommandProcessor::ScheduleHostDowntime(double, const std::vector<St
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot schedule host downtime for non-existent host '" + arguments[0] + "'"));
 
 	String triggeredBy;
-	int triggeredByLegacy = Convert::ToLong(arguments[4]);
-	int is_fixed = Convert::ToLong(arguments[3]);
+	int triggeredByLegacy = static_cast<int>(arguments[4]);
+	int is_fixed = static_cast<int>(arguments[3]);
 	if (triggeredByLegacy != 0)
 		triggeredBy = Downtime::GetDowntimeIDFromLegacyID(triggeredByLegacy);
 
@@ -994,8 +992,8 @@ void ExternalCommandProcessor::ScheduleHostDowntime(double, const std::vector<St
 		<< "Creating downtime for host " << host->GetName();
 
 	(void) Downtime::AddDowntime(host, arguments[6], arguments[7],
-		Convert::ToDouble(arguments[1]), Convert::ToDouble(arguments[2]),
-		Convert::ToBool(is_fixed), triggeredBy, Convert::ToDouble(arguments[5]));
+		static_cast<double>(arguments[1]), static_cast<double>(arguments[2]),
+		is_fixed, triggeredBy, static_cast<double>(arguments[5]));
 }
 
 void ExternalCommandProcessor::ScheduleAndPropagateHostDowntime(double, const std::vector<String>& arguments)
@@ -1006,8 +1004,8 @@ void ExternalCommandProcessor::ScheduleAndPropagateHostDowntime(double, const st
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot schedule and propagate host downtime for non-existent host '" + arguments[0] + "'"));
 
 	String triggeredBy;
-	int triggeredByLegacy = Convert::ToLong(arguments[4]);
-	int is_fixed = Convert::ToLong(arguments[3]);
+	int triggeredByLegacy = static_cast<int>(arguments[4]);
+	int is_fixed = static_cast<int>(arguments[3]);
 	if (triggeredByLegacy != 0)
 		triggeredBy = Downtime::GetDowntimeIDFromLegacyID(triggeredByLegacy);
 
@@ -1015,8 +1013,8 @@ void ExternalCommandProcessor::ScheduleAndPropagateHostDowntime(double, const st
 		<< "Creating downtime for host " << host->GetName();
 
 	(void) Downtime::AddDowntime(host, arguments[6], arguments[7],
-		Convert::ToDouble(arguments[1]), Convert::ToDouble(arguments[2]),
-		Convert::ToBool(is_fixed), triggeredBy, Convert::ToDouble(arguments[5]));
+		static_cast<double>(arguments[1]), static_cast<double>(arguments[2]),
+		is_fixed, triggeredBy, static_cast<double>(arguments[5]));
 
 	/* Schedule downtime for all child hosts */
 	for (const Checkable::Ptr& child : host->GetAllChildren()) {
@@ -1029,8 +1027,8 @@ void ExternalCommandProcessor::ScheduleAndPropagateHostDowntime(double, const st
 			continue;
 
 		(void) Downtime::AddDowntime(child, arguments[6], arguments[7],
-			Convert::ToDouble(arguments[1]), Convert::ToDouble(arguments[2]),
-			Convert::ToBool(is_fixed), triggeredBy, Convert::ToDouble(arguments[5]));
+			static_cast<double>(arguments[1]), static_cast<double>(arguments[2]),
+			is_fixed, triggeredBy, static_cast<double>(arguments[5]));
 	}
 }
 
@@ -1042,8 +1040,8 @@ void ExternalCommandProcessor::ScheduleAndPropagateTriggeredHostDowntime(double,
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot schedule and propagate triggered host downtime for non-existent host '" + arguments[0] + "'"));
 
 	String triggeredBy;
-	int triggeredByLegacy = Convert::ToLong(arguments[4]);
-	int is_fixed = Convert::ToLong(arguments[3]);
+	int triggeredByLegacy = static_cast<int>(arguments[4]);
+	int is_fixed = static_cast<int>(arguments[3]);
 	if (triggeredByLegacy != 0)
 		triggeredBy = Downtime::GetDowntimeIDFromLegacyID(triggeredByLegacy);
 
@@ -1051,8 +1049,8 @@ void ExternalCommandProcessor::ScheduleAndPropagateTriggeredHostDowntime(double,
 		<< "Creating downtime for host " << host->GetName();
 
 	String parentDowntime = Downtime::AddDowntime(host, arguments[6], arguments[7],
-		Convert::ToDouble(arguments[1]), Convert::ToDouble(arguments[2]),
-		Convert::ToBool(is_fixed), triggeredBy, Convert::ToDouble(arguments[5]));
+		static_cast<double>(arguments[1]), static_cast<double>(arguments[2]),
+		is_fixed, triggeredBy, static_cast<double>(arguments[5]));
 
 	/* Schedule downtime for all child hosts and explicitely trigger them through the parent host's downtime */
 	for (const Checkable::Ptr& child : host->GetAllChildren()) {
@@ -1065,14 +1063,14 @@ void ExternalCommandProcessor::ScheduleAndPropagateTriggeredHostDowntime(double,
 			continue;
 
 		(void) Downtime::AddDowntime(child, arguments[6], arguments[7],
-			Convert::ToDouble(arguments[1]), Convert::ToDouble(arguments[2]),
-			Convert::ToBool(is_fixed), parentDowntime, Convert::ToDouble(arguments[5]));
+			static_cast<double>(arguments[1]), static_cast<double>(arguments[2]),
+			is_fixed, parentDowntime, static_cast<double>(arguments[5]));
 	}
 }
 
 void ExternalCommandProcessor::DelHostDowntime(double, const std::vector<String>& arguments)
 {
-	int id = Convert::ToLong(arguments[0]);
+	int id = static_cast<int>(arguments[0]);
 	Log(LogNotice, "ExternalCommandProcessor")
 		<< "Removing downtime ID " << arguments[0];
 	String rid = Downtime::GetDowntimeIDFromLegacyID(id);
@@ -1114,7 +1112,7 @@ void ExternalCommandProcessor::DelDowntimeByHostName(double, const std::vector<S
 			continue;
 
 		for (const Downtime::Ptr& downtime : service->GetDowntimes()) {
-			if (!startTime.IsEmpty() && downtime->GetStartTime() != Convert::ToDouble(startTime))
+			if (!startTime.IsEmpty() && downtime->GetStartTime() != static_cast<double>(startTime))
 				continue;
 
 			if (!commentString.IsEmpty() && downtime->GetComment() != commentString)
@@ -1136,8 +1134,8 @@ void ExternalCommandProcessor::ScheduleHostSvcDowntime(double, const std::vector
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot schedule host services downtime for non-existent host '" + arguments[0] + "'"));
 
 	String triggeredBy;
-	int triggeredByLegacy = Convert::ToLong(arguments[4]);
-	int is_fixed = Convert::ToLong(arguments[3]);
+	int triggeredByLegacy = static_cast<int>(arguments[4]);
+	int is_fixed = static_cast<int>(arguments[3]);
 	if (triggeredByLegacy != 0)
 		triggeredBy = Downtime::GetDowntimeIDFromLegacyID(triggeredByLegacy);
 
@@ -1145,15 +1143,15 @@ void ExternalCommandProcessor::ScheduleHostSvcDowntime(double, const std::vector
 		<< "Creating downtime for host " << host->GetName();
 
 	(void) Downtime::AddDowntime(host, arguments[6], arguments[7],
-		Convert::ToDouble(arguments[1]), Convert::ToDouble(arguments[2]),
-		Convert::ToBool(is_fixed), triggeredBy, Convert::ToDouble(arguments[5]));
+		static_cast<double>(arguments[1]), static_cast<double>(arguments[2]),
+		is_fixed, triggeredBy, static_cast<double>(arguments[5]));
 
 	for (const Service::Ptr& service : host->GetServices()) {
 		Log(LogNotice, "ExternalCommandProcessor")
 			<< "Creating downtime for service " << service->GetName();
 		(void) Downtime::AddDowntime(service, arguments[6], arguments[7],
-			Convert::ToDouble(arguments[1]), Convert::ToDouble(arguments[2]),
-			Convert::ToBool(is_fixed), triggeredBy, Convert::ToDouble(arguments[5]));
+			static_cast<double>(arguments[1]), static_cast<double>(arguments[2]),
+			is_fixed, triggeredBy, static_cast<double>(arguments[5]));
 	}
 }
 
@@ -1165,8 +1163,8 @@ void ExternalCommandProcessor::ScheduleHostgroupHostDowntime(double, const std::
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot schedule hostgroup host downtime for non-existent hostgroup '" + arguments[0] + "'"));
 
 	String triggeredBy;
-	int triggeredByLegacy = Convert::ToLong(arguments[4]);
-	int is_fixed = Convert::ToLong(arguments[3]);
+	int triggeredByLegacy = static_cast<int>(arguments[4]);
+	int is_fixed = static_cast<int>(arguments[3]);
 	if (triggeredByLegacy != 0)
 		triggeredBy = Downtime::GetDowntimeIDFromLegacyID(triggeredByLegacy);
 
@@ -1175,8 +1173,8 @@ void ExternalCommandProcessor::ScheduleHostgroupHostDowntime(double, const std::
 			<<  "Creating downtime for host " << host->GetName();
 
 		(void) Downtime::AddDowntime(host, arguments[6], arguments[7],
-			Convert::ToDouble(arguments[1]), Convert::ToDouble(arguments[2]),
-			Convert::ToBool(is_fixed), triggeredBy, Convert::ToDouble(arguments[5]));
+			static_cast<double>(arguments[1]), static_cast<double>(arguments[2]),
+			is_fixed, triggeredBy, static_cast<double>(arguments[5]));
 	}
 }
 
@@ -1188,8 +1186,8 @@ void ExternalCommandProcessor::ScheduleHostgroupSvcDowntime(double, const std::v
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot schedule hostgroup service downtime for non-existent hostgroup '" + arguments[0] + "'"));
 
 	String triggeredBy;
-	int triggeredByLegacy = Convert::ToLong(arguments[4]);
-	int is_fixed = Convert::ToLong(arguments[3]);
+	int triggeredByLegacy = static_cast<int>(arguments[4]);
+	int is_fixed = static_cast<int>(arguments[3]);
 	if (triggeredByLegacy != 0)
 		triggeredBy = Downtime::GetDowntimeIDFromLegacyID(triggeredByLegacy);
 
@@ -1209,8 +1207,8 @@ void ExternalCommandProcessor::ScheduleHostgroupSvcDowntime(double, const std::v
 		Log(LogNotice, "ExternalCommandProcessor")
 			<< "Creating downtime for service " << service->GetName();
 		(void) Downtime::AddDowntime(service, arguments[6], arguments[7],
-			Convert::ToDouble(arguments[1]), Convert::ToDouble(arguments[2]),
-			Convert::ToBool(is_fixed), triggeredBy, Convert::ToDouble(arguments[5]));
+			static_cast<double>(arguments[1]), static_cast<double>(arguments[2]),
+			is_fixed, triggeredBy, static_cast<double>(arguments[5]));
 	}
 }
 
@@ -1222,8 +1220,8 @@ void ExternalCommandProcessor::ScheduleServicegroupHostDowntime(double, const st
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot schedule servicegroup host downtime for non-existent servicegroup '" + arguments[0] + "'"));
 
 	String triggeredBy;
-	int triggeredByLegacy = Convert::ToLong(arguments[4]);
-	int is_fixed = Convert::ToLong(arguments[3]);
+	int triggeredByLegacy = static_cast<int>(arguments[4]);
+	int is_fixed = static_cast<int>(arguments[3]);
 	if (triggeredByLegacy != 0)
 		triggeredBy = Downtime::GetDowntimeIDFromLegacyID(triggeredByLegacy);
 
@@ -1242,8 +1240,8 @@ void ExternalCommandProcessor::ScheduleServicegroupHostDowntime(double, const st
 		Log(LogNotice, "ExternalCommandProcessor")
 			<< "Creating downtime for host " << host->GetName();
 		(void) Downtime::AddDowntime(host, arguments[6], arguments[7],
-			Convert::ToDouble(arguments[1]), Convert::ToDouble(arguments[2]),
-			Convert::ToBool(is_fixed), triggeredBy, Convert::ToDouble(arguments[5]));
+			static_cast<double>(arguments[1]), static_cast<double>(arguments[2]),
+			is_fixed, triggeredBy, static_cast<double>(arguments[5]));
 	}
 }
 
@@ -1255,8 +1253,8 @@ void ExternalCommandProcessor::ScheduleServicegroupSvcDowntime(double, const std
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot schedule servicegroup service downtime for non-existent servicegroup '" + arguments[0] + "'"));
 
 	String triggeredBy;
-	int triggeredByLegacy = Convert::ToLong(arguments[4]);
-	int is_fixed = Convert::ToLong(arguments[3]);
+	int triggeredByLegacy = static_cast<int>(arguments[4]);
+	int is_fixed = static_cast<int>(arguments[3]);
 	if (triggeredByLegacy != 0)
 		triggeredBy = Downtime::GetDowntimeIDFromLegacyID(triggeredByLegacy);
 
@@ -1264,8 +1262,8 @@ void ExternalCommandProcessor::ScheduleServicegroupSvcDowntime(double, const std
 		Log(LogNotice, "ExternalCommandProcessor")
 			<< "Creating downtime for service " << service->GetName();
 		(void) Downtime::AddDowntime(service, arguments[6], arguments[7],
-			Convert::ToDouble(arguments[1]), Convert::ToDouble(arguments[2]),
-			Convert::ToBool(is_fixed), triggeredBy, Convert::ToDouble(arguments[5]));
+			static_cast<double>(arguments[1]), static_cast<double>(arguments[2]),
+			is_fixed, triggeredBy, static_cast<double>(arguments[5]));
 	}
 }
 
@@ -1286,7 +1284,7 @@ void ExternalCommandProcessor::AddHostComment(double, const std::vector<String>&
 
 void ExternalCommandProcessor::DelHostComment(double, const std::vector<String>& arguments)
 {
-	int id = Convert::ToLong(arguments[0]);
+	int id = static_cast<int>(arguments[0]);
 	Log(LogNotice, "ExternalCommandProcessor")
 		<< "Removing comment ID " << arguments[0];
 	String rid = Comment::GetCommentIDFromLegacyID(id);
@@ -1310,7 +1308,7 @@ void ExternalCommandProcessor::AddSvcComment(double, const std::vector<String>& 
 
 void ExternalCommandProcessor::DelSvcComment(double, const std::vector<String>& arguments)
 {
-	int id = Convert::ToLong(arguments[0]);
+	int id = static_cast<int>(arguments[0]);
 	Log(LogNotice, "ExternalCommandProcessor")
 		<< "Removing comment ID " << arguments[0];
 
@@ -1349,7 +1347,7 @@ void ExternalCommandProcessor::SendCustomHostNotification(double, const std::vec
 	if (!host)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot send custom host notification for non-existent host '" + arguments[0] + "'"));
 
-	int options = Convert::ToLong(arguments[1]);
+	int options = static_cast<int>(arguments[1]);
 
 	Log(LogNotice, "ExternalCommandProcessor")
 		<< "Sending custom notification for host " << host->GetName();
@@ -1368,7 +1366,7 @@ void ExternalCommandProcessor::SendCustomSvcNotification(double, const std::vect
 	if (!service)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot send custom service notification for non-existent service '" + arguments[1] + "' on host '" + arguments[0] + "'"));
 
-	int options = Convert::ToLong(arguments[2]);
+	int options = static_cast<int>(arguments[2]);
 
 	Log(LogNotice, "ExternalCommandProcessor")
 		<< "Sending custom notification for service " << service->GetName();
@@ -1391,8 +1389,10 @@ void ExternalCommandProcessor::DelayHostNotification(double, const std::vector<S
 	Log(LogNotice, "ExternalCommandProcessor")
 		<< "Delaying notifications for host '" << host->GetName() << "'";
 
+  double nextNotification = static_cast<double>(arguments[1]);
+
 	for (const Notification::Ptr& notification : host->GetNotifications()) {
-		notification->SetNextNotification(Convert::ToDouble(arguments[1]));
+		notification->SetNextNotification(nextNotification);
 	}
 }
 
@@ -1406,8 +1406,10 @@ void ExternalCommandProcessor::DelaySvcNotification(double, const std::vector<St
 	Log(LogNotice, "ExternalCommandProcessor")
 		<< "Delaying notifications for service " << service->GetName();
 
+	double nextNotification = static_cast<double>(arguments[2]);
+
 	for (const Notification::Ptr& notification : service->GetNotifications()) {
-		notification->SetNextNotification(Convert::ToDouble(arguments[2]));
+		notification->SetNextNotification(nextNotification);
 	}
 }
 
@@ -1770,7 +1772,7 @@ void ExternalCommandProcessor::ChangeNormalSvcCheckInterval(double, const std::v
 	if (!service)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot update check interval for non-existent service '" + arguments[1] + "' on host '" + arguments[0] + "'"));
 
-	double interval = Convert::ToDouble(arguments[2]);
+	double interval = static_cast<double>(arguments[2]);
 
 	Log(LogNotice, "ExternalCommandProcessor")
 		<< "Updating check interval for service '" << arguments[1] << "'";
@@ -1788,7 +1790,7 @@ void ExternalCommandProcessor::ChangeNormalHostCheckInterval(double, const std::
 	Log(LogNotice, "ExternalCommandProcessor")
 		<< "Updating check interval for host '" << arguments[0] << "'";
 
-	double interval = Convert::ToDouble(arguments[1]);
+	double interval = static_cast<double>(arguments[1]);
 
 	host->ModifyAttribute("check_interval", interval * 60);
 }
@@ -1800,7 +1802,7 @@ void ExternalCommandProcessor::ChangeRetrySvcCheckInterval(double, const std::ve
 	if (!service)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot update retry interval for non-existent service '" + arguments[1] + "' on host '" + arguments[0] + "'"));
 
-	double interval = Convert::ToDouble(arguments[2]);
+	double interval = static_cast<double>(arguments[2]);
 
 	Log(LogNotice, "ExternalCommandProcessor")
 		<< "Updating retry interval for service '" << arguments[1] << "'";
@@ -1818,7 +1820,7 @@ void ExternalCommandProcessor::ChangeRetryHostCheckInterval(double, const std::v
 	Log(LogNotice, "ExternalCommandProcessor")
 		<< "Updating retry interval for host '" << arguments[0] << "'";
 
-	double interval = Convert::ToDouble(arguments[1]);
+	double interval = static_cast<double>(arguments[1]);
 
 	host->ModifyAttribute("retry_interval", interval * 60);
 }
@@ -1968,7 +1970,7 @@ void ExternalCommandProcessor::ChangeMaxHostCheckAttempts(double, const std::vec
 	if (!host)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot change max check attempts for non-existent host '" + arguments[0] + "'"));
 
-	int attempts = Convert::ToLong(arguments[1]);
+	int attempts = static_cast<int>(arguments[1]);
 
 	Log(LogNotice, "ExternalCommandProcessor")
 		<< "Changing max check attempts for host '" << arguments[0] << "' to '" << arguments[1] << "'";
@@ -1983,7 +1985,7 @@ void ExternalCommandProcessor::ChangeMaxSvcCheckAttempts(double, const std::vect
 	if (!service)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot change max check attempts for non-existent service '" + arguments[1] + "' on host '" + arguments[0] + "'"));
 
-	int attempts = Convert::ToLong(arguments[2]);
+	int attempts = static_cast<int>(arguments[2]);
 
 	Log(LogNotice, "ExternalCommandProcessor")
 		<< "Changing max check attempts for service '" << arguments[1] << "' to '" << arguments[2] << "'";
@@ -2244,4 +2246,3 @@ std::map<String, ExternalCommandInfo>& ExternalCommandProcessor::GetCommands(voi
 	static std::map<String, ExternalCommandInfo> commands;
 	return commands;
 }
-

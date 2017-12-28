@@ -31,7 +31,6 @@
 #include "base/application.hpp"
 #include "base/function.hpp"
 #include "base/statsfunction.hpp"
-#include "base/convert.hpp"
 
 using namespace icinga;
 

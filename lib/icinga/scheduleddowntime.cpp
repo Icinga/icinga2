@@ -26,11 +26,8 @@
 #include "base/configtype.hpp"
 #include "base/utility.hpp"
 #include "base/objectlock.hpp"
-#include "base/convert.hpp"
 #include "base/logger.hpp"
 #include "base/exception.hpp"
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/classification.hpp>
 #include <boost/thread/once.hpp>
 
 using namespace icinga;
@@ -46,20 +43,20 @@ String ScheduledDowntimeNameComposer::MakeName(const String& shortName, const Ob
 	if (!downtime)
 		return "";
 
-	String name = downtime->GetHostName();
+	std::ostringstream nameBuf;
+	nameBuf << downtime->GetHostName();
 
 	if (!downtime->GetServiceName().IsEmpty())
-		name += "!" + downtime->GetServiceName();
+		nameBuf << "!" << downtime->GetServiceName();
 
-	name += "!" + shortName;
+	nameBuf << "!" << shortName;
 
-	return name;
+	return nameBuf.str();
 }
 
 Dictionary::Ptr ScheduledDowntimeNameComposer::ParseName(const String& name) const
 {
-	std::vector<String> tokens;
-	boost::algorithm::split(tokens, name, boost::is_any_of("!"));
+	std::vector<String> tokens = name.Split("!");
 
 	if (tokens.size() < 2)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid ScheduledDowntime name."));

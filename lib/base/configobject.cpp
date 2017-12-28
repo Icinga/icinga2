@@ -33,8 +33,6 @@
 #include "base/workqueue.hpp"
 #include "base/application.hpp"
 #include <fstream>
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/classification.hpp>
 #include <boost/exception/errinfo_api_function.hpp>
 #include <boost/exception/errinfo_errno.hpp>
 #include <boost/exception/errinfo_file_name.hpp>
@@ -115,8 +113,7 @@ void ConfigObject::ModifyAttribute(const String& attr, const Value& value, bool 
 
 	Type::Ptr type = GetReflectionType();
 
-	std::vector<String> tokens;
-	boost::algorithm::split(tokens, attr, boost::is_any_of("."));
+	std::vector<String> tokens = attr.Split(".");
 
 	String fieldName = tokens[0];
 
@@ -145,7 +142,8 @@ void ConfigObject::ModifyAttribute(const String& attr, const Value& value, bool 
 			newValue = current;
 		}
 
-		String prefix = tokens[0];
+		std::ostringstream prefixBuf;
+		prefixBuf << tokens[0];
 
 		for (std::vector<String>::size_type i = 1; i < tokens.size() - 1; i++) {
 			if (!current.IsObjectType<Dictionary>())
@@ -154,7 +152,7 @@ void ConfigObject::ModifyAttribute(const String& attr, const Value& value, bool 
 			Dictionary::Ptr dict = current;
 
 			const String& key = tokens[i];
-			prefix += "." + key;
+			prefixBuf << "." << key;
 
 			if (!dict->Get(key, &current)) {
 				current = new Dictionary();
@@ -168,7 +166,7 @@ void ConfigObject::ModifyAttribute(const String& attr, const Value& value, bool 
 		Dictionary::Ptr dict = current;
 
 		const String& key = tokens[tokens.size() - 1];
-		prefix += "." + key;
+		prefixBuf << "." << key;
 
 		/* clone it for original attributes */
 		oldValue = dict->Get(key).Clone();
@@ -180,7 +178,7 @@ void ConfigObject::ModifyAttribute(const String& attr, const Value& value, bool 
 				Dictionary::Ptr oldDict = oldValue;
 				ObjectLock olock(oldDict);
 				for (const auto& kv : oldDict) {
-					String key = prefix + "." + kv.first;
+					String key = prefixBuf.str() + "." + kv.first;
 					if (!original_attributes->Contains(key))
 						original_attributes->Set(key, kv.second);
 				}
@@ -227,8 +225,7 @@ void ConfigObject::RestoreAttribute(const String& attr, bool updateVersion)
 {
 	Type::Ptr type = GetReflectionType();
 
-	std::vector<String> tokens;
-	boost::algorithm::split(tokens, attr, boost::is_any_of("."));
+	std::vector<String> tokens = attr.Split(".");
 
 	String fieldName = tokens[0];
 
@@ -251,7 +248,8 @@ void ConfigObject::RestoreAttribute(const String& attr, bool updateVersion)
 		if (current.IsEmpty())
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot restore non-existent object attribute"));
 
-		String prefix = tokens[0];
+		std::ostringstream prefixBuf;
+		prefixBuf << tokens[0];
 
 		for (std::vector<String>::size_type i = 1; i < tokens.size() - 1; i++) {
 			if (!current.IsObjectType<Dictionary>())
@@ -260,7 +258,7 @@ void ConfigObject::RestoreAttribute(const String& attr, bool updateVersion)
 			Dictionary::Ptr dict = current;
 
 			const String& key = tokens[i];
-			prefix += "." + key;
+			prefixBuf << "." << key;
 
 			if (!dict->Contains(key))
 				BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot restore non-existent object attribute"));
@@ -274,15 +272,14 @@ void ConfigObject::RestoreAttribute(const String& attr, bool updateVersion)
 		Dictionary::Ptr dict = current;
 
 		const String& key = tokens[tokens.size() - 1];
-		prefix += "." + key;
+		prefixBuf << "." << key;
 
 		std::vector<String> restoredAttrs;
 
 		{
 			ObjectLock olock(original_attributes);
 			for (const auto& kv : original_attributes) {
-				std::vector<String> originalTokens;
-				boost::algorithm::split(originalTokens, kv.first, boost::is_any_of("."));
+				std::vector<String> originalTokens = kv.first.Split(".");
 
 				if (tokens.size() > originalTokens.size())
 					continue;
@@ -657,8 +654,7 @@ void ConfigObject::DumpModifiedAttributes(const std::function<void(const ConfigO
 
 				Type::Ptr type = object->GetReflectionType();
 
-				std::vector<String> tokens;
-				boost::algorithm::split(tokens, key, boost::is_any_of("."));
+				std::vector<String> tokens = key.Split(".");
 
 				String fieldName = tokens[0];
 				int fid = type->GetFieldId(fieldName);

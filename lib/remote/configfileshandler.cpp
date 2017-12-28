@@ -22,7 +22,6 @@
 #include "remote/httputility.hpp"
 #include "remote/filterutility.hpp"
 #include "base/exception.hpp"
-#include <boost/algorithm/string/join.hpp>
 #include <fstream>
 
 using namespace icinga;
@@ -44,7 +43,7 @@ bool ConfigFilesHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 
 	if (urlPath.size() >= 6) {
 		std::vector<String> tmpPath(urlPath.begin() + 5, urlPath.end());
-		params->Set("path", boost::algorithm::join(tmpPath, "/"));
+		params->Set("path", Utility::Join(tmpPath, "/"));
 	}
 
 	if (request.Headers->Get("accept") == "application/json") {

@@ -29,7 +29,6 @@
 #include "icinga/checkcommand.hpp"
 #include "icinga/eventcommand.hpp"
 #include "icinga/compatutility.hpp"
-#include "base/convert.hpp"
 #include "base/objectlock.hpp"
 #include "base/logger.hpp"
 #include "base/json.hpp"
@@ -156,8 +155,8 @@ Dictionary::Ptr HostDbObject::GetStatusFields(void) const
 	fields->Set("percent_state_change", CompatUtility::GetCheckablePercentStateChange(host));
 
 	if (cr) {
-		fields->Set("latency", Convert::ToString(cr->CalculateLatency()));
-		fields->Set("execution_time", Convert::ToString(cr->CalculateExecutionTime()));
+		fields->Set("latency", cr->CalculateLatency());
+		fields->Set("execution_time", cr->CalculateExecutionTime());
 	}
 
 	fields->Set("scheduled_downtime_depth", host->GetDowntimeDepth());
@@ -382,14 +381,15 @@ void HostDbObject::DoCommonConfigUpdate(void)
 
 String HostDbObject::CalculateConfigHash(const Dictionary::Ptr& configFields) const
 {
-	String hashData = DbObject::CalculateConfigHash(configFields);
+	std::ostringstream hashDataBuf;
+	hashDataBuf << DbObject::CalculateConfigHash(configFields);
 
 	Host::Ptr host = static_pointer_cast<Host>(GetObject());
 
 	Array::Ptr groups = host->GetGroups();
 
 	if (groups)
-		hashData += DbObject::HashValue(groups);
+		hashDataBuf << DbObject::HashValue(groups);
 
 	Array::Ptr parents = new Array();
 
@@ -405,7 +405,7 @@ String HostDbObject::CalculateConfigHash(const Dictionary::Ptr& configFields) co
 
 	parents->Sort();
 
-	hashData += DbObject::HashValue(parents);
+	hashDataBuf << DbObject::HashValue(parents);
 
 	Array::Ptr dependencies = new Array();
 
@@ -426,7 +426,7 @@ String HostDbObject::CalculateConfigHash(const Dictionary::Ptr& configFields) co
 
 	dependencies->Sort();
 
-	hashData += DbObject::HashValue(dependencies);
+	hashDataBuf << DbObject::HashValue(dependencies);
 
 	Array::Ptr users = new Array();
 
@@ -436,7 +436,7 @@ String HostDbObject::CalculateConfigHash(const Dictionary::Ptr& configFields) co
 
 	users->Sort();
 
-	hashData += DbObject::HashValue(users);
+	hashDataBuf << DbObject::HashValue(users);
 
 	Array::Ptr userGroups = new Array();
 
@@ -446,7 +446,7 @@ String HostDbObject::CalculateConfigHash(const Dictionary::Ptr& configFields) co
 
 	userGroups->Sort();
 
-	hashData += DbObject::HashValue(userGroups);
+	hashDataBuf << DbObject::HashValue(userGroups);
 
-	return SHA256(hashData);
+	return SHA256(hashDataBuf.str());
 }

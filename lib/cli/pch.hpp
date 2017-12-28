@@ -6,7 +6,6 @@
 #include "base/configwriter.hpp"
 #include "base/console.hpp"
 #include "base/context.hpp"
-#include "base/convert.hpp"
 #include "base/debug.hpp"
 #include "base/dictionary.hpp"
 #include "base/exception.hpp"

@@ -43,12 +43,14 @@ bool l_Debug = false;
 static void ResultHttpCompletionCallback(const HttpRequest& request, HttpResponse& response, bool& ready,
 	boost::condition_variable& cv, boost::mutex& mtx, Dictionary::Ptr& result)
 {
-	String body;
+	std::ostringstream bodyBuf;
 	char buffer[1024];
 	size_t count;
 
 	while ((count = response.ReadBody(buffer, sizeof(buffer))) > 0)
-		body += String(buffer, buffer + count);
+		bodyBuf.write(buffer, count);
+
+	String body = bodyBuf.str();
 
 	if (l_Debug) {
 		std::cout << "Received answer\n"
@@ -282,21 +284,22 @@ int main(int argc, char **argv)
 	}
 
 	// Create the URL string and escape certain characters since Url() follows RFC 3986
-	String endpoint = "/query/" + vm["query"].as<std::string>();
+	std::ostringstream endpointBuf;
+	endpointBuf << "/query/" << vm["query"].as<std::string>();
 	if (!vm.count("arguments"))
-		endpoint += '/';
+		endpointBuf << '/';
 	else {
-		endpoint += '?';
+		endpointBuf << '?';
 		for (const String& argument : vm["arguments"].as<std::vector<std::string>>()) {
 			String::SizeType pos = argument.FindFirstOf("=");
 			if (pos == String::NPos)
-				endpoint += Utility::EscapeString(argument, ACQUERY_ENCODE, false);
+				endpointBuf << Utility::EscapeString(argument, ACQUERY_ENCODE, false);
 			else {
 				String key = argument.SubStr(0, pos);
 				String val = argument.SubStr(pos + 1);
-				endpoint += Utility::EscapeString(key, ACQUERY_ENCODE, false) + "=" + Utility::EscapeString(val, ACQUERY_ENCODE, false);
+				endpointBuf << Utility::EscapeString(key, ACQUERY_ENCODE, false) << "=" << Utility::EscapeString(val, ACQUERY_ENCODE, false);
 			}
-			endpoint += '&';
+			endpointBuf << '&';
 		}
 	}
 
@@ -304,9 +307,8 @@ int main(int argc, char **argv)
 	Application::InitializeBase();
 
 	Dictionary::Ptr result = QueryEndpoint(vm["host"].as<std::string>(), vm["port"].as<std::string>(),
-		vm["password"].as<std::string>(), endpoint);
+		vm["password"].as<std::string>(), endpointBuf.str());
 
 	// Application::Exit() is the clean way to exit after calling InitializeBase()
 	Application::Exit(FormatOutput(result));
-	return 255;
 }

@@ -22,7 +22,6 @@ include(BoostTestTargets)
 set(base_test_SOURCES
   base-array.cpp
   base-base64.cpp
-  base-convert.cpp
   base-dictionary.cpp
   base-fifo.cpp
   base-json.cpp
@@ -62,10 +61,6 @@ add_boost_test(base
         base_array/clone
         base_array/json
         base_base64/base64
-        base_convert/tolong
-        base_convert/todouble
-        base_convert/tostring
-        base_convert/tobool
         base_dictionary/construct
         base_dictionary/get1
         base_dictionary/get2
@@ -90,11 +85,8 @@ add_boost_test(base
         base_stream/readline_stdio
         base_string/construct
         base_string/equal
-        base_string/clear
-        base_string/append
         base_string/trim
         base_string/contains
-        base_string/replace
         base_string/index
         base_string/find
         base_timer/construct

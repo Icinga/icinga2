@@ -24,18 +24,15 @@
 #include "base/json.hpp"
 #include "base/configtype.hpp"
 #include "base/logger.hpp"
-#include <boost/algorithm/string.hpp>
 
 using namespace icinga;
 
 Type::Ptr FilterUtility::TypeFromPluralName(const String& pluralName)
 {
-	String uname = pluralName;
-	boost::algorithm::to_lower(uname);
+	String uname = pluralName.ToLower();
 
 	for (const Type::Ptr& type : Type::GetAllTypes()) {
-		String pname = type->GetPluralName();
-		boost::algorithm::to_lower(pname);
+		String pname = type->GetPluralName().ToLower();
 
 		if (uname == pname)
 			return type;
@@ -120,7 +117,8 @@ bool FilterUtility::EvaluateFilter(ScriptFrame& frame, Expression *filter,
 			vars->Set(field.Name, joinedObj);
 	}
 
-	return Convert::ToBool(filter->Evaluate(frame));
+	Value res = filter->Evaluate(frame);
+	return res.ToBool();
 }
 
 static void FilteredAddTarget(ScriptFrame& permissionFrame, Expression *permissionFilter,
@@ -200,8 +198,7 @@ std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, c
 	ScriptFrame permissionFrame(true);
 
 	for (const String& type : qd.Types) {
-		String attr = type;
-		boost::algorithm::to_lower(attr);
+		String attr = type.ToLower();
 
 		if (attr == "type")
 			attr = "name";
@@ -216,8 +213,7 @@ std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, c
 			result.emplace_back(std::move(target));
 		}
 
-		attr = provider->GetPluralName(type);
-		boost::algorithm::to_lower(attr);
+		attr = provider->GetPluralName(type).ToLower();
 
 		if (query->Contains(attr)) {
 			Array::Ptr names = query->Get(attr);

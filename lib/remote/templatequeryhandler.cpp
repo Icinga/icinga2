@@ -24,7 +24,6 @@
 #include "base/configtype.hpp"
 #include "base/scriptglobal.hpp"
 #include "base/logger.hpp"
-#include <boost/algorithm/string.hpp>
 #include <set>
 
 using namespace icinga;
@@ -116,8 +115,7 @@ bool TemplateQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& 
 	params->Set("type", type->GetName());
 
 	if (request.RequestUrl->GetPath().size() >= 4) {
-		String attr = type->GetName();
-		boost::algorithm::to_lower(attr);
+		String attr = type->GetName().ToLower();
 		params->Set(attr, request.RequestUrl->GetPath()[3]);
 	}
 

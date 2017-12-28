@@ -31,17 +31,11 @@
 #include "icinga/checkcommand.hpp"
 #include "icinga/eventcommand.hpp"
 #include "icinga/notificationcommand.hpp"
-#include "base/convert.hpp"
 #include "base/utility.hpp"
 #include "base/logger.hpp"
 #include "base/application.hpp"
 #include "base/objectlock.hpp"
 #include <boost/tuple/tuple.hpp>
-#include <boost/algorithm/string.hpp>
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/replace.hpp>
-#include <boost/algorithm/string/predicate.hpp>
 #include <fstream>
 
 using namespace icinga;

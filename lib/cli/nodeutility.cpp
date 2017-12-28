@@ -23,7 +23,6 @@
 #include "base/logger.hpp"
 #include "base/application.hpp"
 #include "base/tlsutility.hpp"
-#include "base/convert.hpp"
 #include "base/utility.hpp"
 #include "base/scriptglobal.hpp"
 #include "base/json.hpp"
@@ -34,10 +33,6 @@
 #include "base/console.hpp"
 #include "base/exception.hpp"
 #include "base/configwriter.hpp"
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/join.hpp>
-#include <boost/algorithm/string/replace.hpp>
-#include <boost/algorithm/string/split.hpp>
 #include <fstream>
 #include <iostream>
 
@@ -61,11 +56,9 @@ int NodeUtility::GenerateNodeIcingaConfig(const std::vector<std::string>& endpoi
 
 	String master_zone_name = "master"; //TODO: Find a better name.
 
-	for (const std::string& endpoint : endpoints) {
-
+	for (const String& endpoint : endpoints) {
 		/* extract all --endpoint arguments and store host,port info */
-		std::vector<String> tokens;
-		boost::algorithm::split(tokens, endpoint, boost::is_any_of(","));
+		std::vector<String> tokens = endpoint.Split(",");
 
 		Dictionary::Ptr my_master_endpoint = new Dictionary();
 

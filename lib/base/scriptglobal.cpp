@@ -22,7 +22,6 @@
 #include "base/stdiostream.hpp"
 #include "base/netstring.hpp"
 #include "base/json.hpp"
-#include "base/convert.hpp"
 #include "base/objectlock.hpp"
 #include "base/exception.hpp"
 #include "base/utility.hpp"
@@ -110,7 +109,7 @@ void ScriptGlobal::WriteToFile(const String& filename)
 		Value value = kv.second;
 
 		if (value.IsObject())
-			value = Convert::ToString(value);
+			value = static_cast<String>(value);
 
 		persistentVariable->Set("value", value);
 

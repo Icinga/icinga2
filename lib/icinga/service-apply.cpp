@@ -110,14 +110,15 @@ bool Service::EvaluateApplyRule(const Host::Ptr& host, const ApplyRule& rule)
 
 		ObjectLock olock(arr);
 		for (const Value& instance : arr) {
-			String name = rule.GetName();
+			std::ostringstream nameBuf;
+			nameBuf << rule.GetName();
 
 			if (!rule.GetFKVar().IsEmpty()) {
 				frame.Locals->Set(rule.GetFKVar(), instance);
-				name += instance;
+				nameBuf << instance;
 			}
 
-			if (EvaluateApplyRuleInstance(host, name, frame, rule))
+			if (EvaluateApplyRuleInstance(host, nameBuf.str(), frame, rule))
 				match = true;
 		}
 	} else if (vinstances.IsObjectType<Dictionary>()) {

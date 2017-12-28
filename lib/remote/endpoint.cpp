@@ -25,7 +25,6 @@
 #include "base/configtype.hpp"
 #include "base/utility.hpp"
 #include "base/exception.hpp"
-#include "base/convert.hpp"
 
 using namespace icinga;
 

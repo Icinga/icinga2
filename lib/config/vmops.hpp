@@ -33,7 +33,6 @@
 #include "base/function.hpp"
 #include "base/scriptglobal.hpp"
 #include "base/exception.hpp"
-#include "base/convert.hpp"
 #include "base/objectlock.hpp"
 #include <map>
 #include <vector>
@@ -78,21 +77,21 @@ public:
 			if (args.empty())
 				return "";
 			else if (args.size() == 1)
-				return Convert::ToString(args[0]);
+				return static_cast<String>(args[0]);
 			else
 				BOOST_THROW_EXCEPTION(ScriptError("Too many arguments for constructor."));
 		} else if (type->GetName() == "Number") {
 			if (args.empty())
 				return 0;
 			else if (args.size() == 1)
-				return Convert::ToDouble(args[0]);
+				return static_cast<double>(args[0]);
 			else
 				BOOST_THROW_EXCEPTION(ScriptError("Too many arguments for constructor."));
 		} else if (type->GetName() == "Boolean") {
 			if (args.empty())
 				return 0;
 			else if (args.size() == 1)
-				return Convert::ToBool(args[0]);
+				return args[0].ToBool();
 			else
 				BOOST_THROW_EXCEPTION(ScriptError("Too many arguments for constructor."));
 		} else if (args.size() == 1 && type->IsAssignableFrom(args[0].GetReflectionType()))

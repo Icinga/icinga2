@@ -45,8 +45,8 @@ BOOST_AUTO_TEST_CASE(simple)
 	resolvers.push_back(std::make_pair("macrosB", macrosB));
 
 	BOOST_CHECK(MacroProcessor::ResolveMacros("$macrosA.testB$ $macrosB.testC$", resolvers) == "hello world");
-	BOOST_CHECK(MacroProcessor::ResolveMacros("$testA$", resolvers) == "7");
-	BOOST_CHECK(MacroProcessor::ResolveMacros("$testA$$testB$", resolvers) == "7hello");
+	BOOST_CHECK(MacroProcessor::ResolveMacros("$testA$", resolvers) == "7.000000");
+	BOOST_CHECK(MacroProcessor::ResolveMacros("$testA$$testB$", resolvers) == "7.000000hello");
 
 	Array::Ptr result = MacroProcessor::ResolveMacros("$testD$", resolvers);
 	BOOST_CHECK(result->GetLength() == 2);

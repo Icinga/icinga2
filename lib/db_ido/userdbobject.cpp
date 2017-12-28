@@ -23,7 +23,6 @@
 #include "db_ido/dbvalue.hpp"
 #include "icinga/user.hpp"
 #include "icinga/notification.hpp"
-#include "base/convert.hpp"
 #include "base/objectlock.hpp"
 #include "base/logger.hpp"
 
@@ -135,7 +134,7 @@ void UserDbObject::OnConfigUpdateHeavy(void)
 		for (int i = 1; i <= 6; i++) {
 			Dictionary::Ptr fields = new Dictionary();
 
-			String key = "address" + Convert::ToString(i);
+			String key = "address" + std::to_string(i);
 
 			if (!vars->Contains(key))
 				continue;
@@ -161,14 +160,15 @@ void UserDbObject::OnConfigUpdateHeavy(void)
 
 String UserDbObject::CalculateConfigHash(const Dictionary::Ptr& configFields) const
 {
-	String hashData = DbObject::CalculateConfigHash(configFields);
+	std::ostringstream hashDataBuf;
+	hashDataBuf << DbObject::CalculateConfigHash(configFields);
 
 	User::Ptr user = static_pointer_cast<User>(GetObject());
 
 	Array::Ptr groups = user->GetGroups();
 
 	if (groups)
-		hashData += DbObject::HashValue(groups);
+		hashDataBuf << DbObject::HashValue(groups);
 
-	return SHA256(hashData);
+	return SHA256(hashDataBuf.str());
 }

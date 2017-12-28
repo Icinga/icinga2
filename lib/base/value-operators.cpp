@@ -26,6 +26,12 @@
 
 using namespace icinga;
 
+Value& Value::operator=(const Value& other)
+{
+	m_Value = other.m_Value;
+	return *this;
+}
+
 Value::operator double(void) const
 {
 	const double *value = boost::get<double>(&m_Value);
@@ -41,7 +47,13 @@ Value::operator double(void) const
 	if (IsEmpty())
 		return 0;
 
-	return Convert::ToDouble(String(*this));
+	const String *svalue = boost::get<String>(&m_Value);
+
+	if (svalue)
+		return static_cast<double>(*svalue);
+
+	Type::Ptr type = GetReflectionType();
+	BOOST_THROW_EXCEPTION(std::invalid_argument("Object of type '" + type->GetName() + "' cannot be converted to a number."));
 }
 
 Value::operator String(void) const
@@ -52,7 +64,7 @@ Value::operator String(void) const
 		case ValueEmpty:
 			return String();
 		case ValueNumber:
-			return Convert::ToString(boost::get<double>(m_Value));
+			return std::to_string(boost::get<double>(m_Value));
 		case ValueBoolean:
 			if (boost::get<bool>(m_Value))
 				return "true";
@@ -73,7 +85,7 @@ std::ostream& icinga::operator<<(std::ostream& stream, const Value& value)
 	if (value.IsBoolean())
 		stream << static_cast<int>(value);
 	else
-		stream << static_cast<String>(value);
+		stream << value.m_Value;
 
 	return stream;
 }

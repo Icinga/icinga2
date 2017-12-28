@@ -22,7 +22,6 @@
 #include "base/objectlock.hpp"
 #include "base/logger.hpp"
 #include "base/utility.hpp"
-#include "base/convert.hpp"
 
 using namespace icinga;
 

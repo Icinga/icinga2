@@ -23,7 +23,6 @@
 #include "remote/filterutility.hpp"
 #include "base/application.hpp"
 #include "base/exception.hpp"
-#include <boost/algorithm/string/join.hpp>
 
 using namespace icinga;
 
@@ -123,13 +122,18 @@ void ConfigStagesHandler::HandlePost(const ApiUser::Ptr& user, HttpRequest& requ
 
 	Dictionary::Ptr result1 = new Dictionary();
 
-	String responseStatus = "Created stage. ";
-	responseStatus += (reload ? " Icinga2 will reload." : " Icinga2 reload skipped.");
+	std::ostringstream responseStatusBuf;
+	responseStatusBuf <<"Created stage. ";
+
+	if (reload)
+		responseStatusBuf << " Icinga2 will reload.";
+	else
+		responseStatusBuf << " Icinga2 reload skipped.";
 
 	result1->Set("package", packageName);
 	result1->Set("stage", stageName);
 	result1->Set("code", 200);
-	result1->Set("status", responseStatus);
+	result1->Set("status", responseStatusBuf.str());
 
 	Array::Ptr results = new Array();
 	results->Add(result1);

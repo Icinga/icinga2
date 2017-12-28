@@ -18,7 +18,6 @@
  ******************************************************************************/
 
 #include "base/utility.hpp"
-#include "base/convert.hpp"
 #include "base/application.hpp"
 #include "base/logger.hpp"
 #include "base/exception.hpp"
@@ -28,10 +27,7 @@
 #include "base/objectlock.hpp"
 #include <mmatch.h>
 #include <boost/lexical_cast.hpp>
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/trim.hpp>
-#include <boost/algorithm/string/replace.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <ios>
@@ -137,9 +133,9 @@ String Utility::GetSymbolName(const void *addr)
 	if (SymFromAddr(GetCurrentProcess(), dwAddress, &dwDisplacement, pSymbol)) {
 		char output[256];
 		if (UnDecorateSymbolName(pSymbol->Name, output, sizeof(output), UNDNAME_COMPLETE))
-			return String(output) + "+" + Convert::ToString(dwDisplacement);
+			return String(output) + "+" + std::to_string(dwDisplacement);
 		else
-			return String(pSymbol->Name) + "+" + Convert::ToString(dwDisplacement);
+			return String(pSymbol->Name) + "+" + std::to_string(dwDisplacement);
 	}
 #endif /* _WIN32 */
 
@@ -188,7 +184,7 @@ static void ParseIpMask(const String& ip, char mask[16], int *bits)
 		*bits = 0;
 	} else {
 		uip = ip.SubStr(0, slashp);
-		*bits = Convert::ToLong(ip.SubStr(slashp + 1));
+		*bits = static_cast<double>(ip.SubStr(slashp + 1));
 	}
 
 	int proto;
@@ -509,8 +505,7 @@ bool Utility::Glob(const String& pathSpec, const std::function<void (const Strin
 	std::vector<String> files, dirs;
 
 #ifdef _WIN32
-	std::vector<String> tokens;
-	boost::algorithm::split(tokens, pathSpec, boost::is_any_of("\\/"));
+	std::vector<String> tokens = pathSpec.Split("\\/");
 
 	String part1;
 
@@ -922,52 +917,73 @@ void Utility::QueueAsyncCallback(const std::function<void (void)>& callback, Sch
 
 String Utility::NaturalJoin(const std::vector<String>& tokens)
 {
-	String result;
+	std::ostringstream msgbuf;
 
 	for (std::vector<String>::size_type i = 0; i < tokens.size(); i++) {
-		result += tokens[i];
+		msgbuf << tokens[i];
 
 		if (tokens.size() > i + 1) {
 			if (i < tokens.size() - 2)
-				result += ", ";
+				msgbuf << ", ";
 			else if (i == tokens.size() - 2)
-				result += " and ";
+				msgbuf << " and ";
 		}
 	}
 
-	return result;
+	return msgbuf.str();
 }
 
-String Utility::Join(const Array::Ptr& tokens, char separator, bool escapeSeparator)
+template<typename T>
+String JoinHelper(const std::vector<T>& tokens, const char *separator, bool escapeSeparator)
 {
-	String result;
+	std::ostringstream msgbuf;
 	bool first = true;
 
-	ObjectLock olock(tokens);
-	for (const Value& vtoken : tokens) {
-		String token = Convert::ToString(vtoken);
+	ASSERT(strlen(separator) == 1 || !escapeSeparator);
+
+	char sep_before[2] = { separator[0], '\0' };
+	char sep_after[3] = { '\\', separator[0], '\0' };
+
+	for (const T& vtoken : tokens) {
+		String token = vtoken;
 
 		if (escapeSeparator) {
-			boost::algorithm::replace_all(token, "\\", "\\\\");
-
-			char sep_before[2], sep_after[3];
-			sep_before[0] = separator;
-			sep_before[1] = '\0';
-			sep_after[0] = '\\';
-			sep_after[1] = separator;
-			sep_after[2] = '\0';
-			boost::algorithm::replace_all(token, sep_before, sep_after);
+			token = token.ReplaceAll(
+				{ "\\", sep_before },
+				{ "\\\\", sep_after }
+			);
 		}
 
 		if (first)
 			first = false;
 		else
-			result += String(1, separator);
+			msgbuf << separator;
 
-		result += token;
+		msgbuf << token;
 	}
 
-	return result;
+	return msgbuf.str();
+}
+
+String Utility::Join(const Array::Ptr& tokens, const char *separator, bool escapeSeparator)
+{
+	ObjectLock olock(tokens);
+	return JoinHelper(tokens->GetData(), separator, escapeSeparator);
+}
+
+String Utility::Join(const std::vector<Value>& tokens, const char *separator, bool escapeSeparator)
+{
+	return JoinHelper(tokens, separator, escapeSeparator);
+}
+
+String Utility::Join(const std::vector<String>& tokens, const char *separator, bool escapeSeparator)
+{
+	return JoinHelper(tokens, separator, escapeSeparator);
+}
+
+String Utility::Join(const std::vector<std::string>& tokens, const char *separator, bool escapeSeparator)
+{
+	return JoinHelper(tokens, separator, escapeSeparator);
 }
 
 String Utility::FormatDuration(double duration)
@@ -977,31 +993,31 @@ String Utility::FormatDuration(double duration)
 
 	if (duration >= 86400) {
 		int days = duration / 86400;
-		tokens.emplace_back(Convert::ToString(days) + (days != 1 ? " days" : " day"));
+		tokens.emplace_back(std::to_string(days) + (days != 1 ? " days" : " day"));
 		duration = static_cast<int>(duration) % 86400;
 	}
 
 	if (duration >= 3600) {
 		int hours = duration / 3600;
-		tokens.emplace_back(Convert::ToString(hours) + (hours != 1 ? " hours" : " hour"));
+		tokens.emplace_back(std::to_string(hours) + (hours != 1 ? " hours" : " hour"));
 		duration = static_cast<int>(duration) % 3600;
 	}
 
 	if (duration >= 60) {
 		int minutes = duration / 60;
-		tokens.emplace_back(Convert::ToString(minutes) + (minutes != 1 ? " minutes" : " minute"));
+		tokens.emplace_back(std::to_string(minutes) + (minutes != 1 ? " minutes" : " minute"));
 		duration = static_cast<int>(duration) % 60;
 	}
 
 	if (duration >= 1) {
 		int seconds = duration;
-		tokens.emplace_back(Convert::ToString(seconds) + (seconds != 1 ? " seconds" : " second"));
+		tokens.emplace_back(std::to_string(seconds) + (seconds != 1 ? " seconds" : " second"));
 	}
 
 	if (tokens.size() == 0) {
 		int milliseconds = std::floor(duration * 1000);
 		if (milliseconds >= 1)
-			tokens.emplace_back(Convert::ToString(milliseconds) + (milliseconds != 1 ? " milliseconds" : " millisecond"));
+			tokens.emplace_back(std::to_string(milliseconds) + (milliseconds != 1 ? " milliseconds" : " millisecond"));
 		else
 			tokens.push_back("less than 1 millisecond");
 	}
@@ -1066,7 +1082,7 @@ String Utility::FormatErrorNumber(int code) {
 
 String Utility::EscapeShellCmd(const String& s)
 {
-	String result;
+	std::ostringstream msgbuf;
 	size_t prev_quote = String::NPos;
 	int index = -1;
 
@@ -1099,46 +1115,46 @@ String Utility::EscapeShellCmd(const String& s)
 
 		if (escape)
 #ifdef _WIN32
-			result += '^';
+			msgbuf << '^';
 #else /* _WIN32 */
-			result += '\\';
+			msgbuf << '\\';
 #endif /* _WIN32 */
 
-		result += ch;
+		msgbuf << ch;
 	}
 
-	return result;
+	return msgbuf.str();
 }
 
 String Utility::EscapeShellArg(const String& s)
 {
-	String result;
+	std::ostringstream msgbuf;
 
 #ifdef _WIN32
-	result = "\"";
+	msgbuf << "\"";
 #else /* _WIN32 */
-	result = "'";
+	msgbuf << "'";
 #endif /* _WIN32 */
 
 	for (char ch : s) {
 #ifdef _WIN32
 		if (ch == '"' || ch == '%') {
-			result += ' ';
+			msgbuf << ' ';
 		}
 #else /* _WIN32 */
 		if (ch == '\'')
-			result += "'\\'";
+			msgbuf << "'\\'";
 #endif
-		result += ch;
+		msgbuf << ch;
 	}
 
 #ifdef _WIN32
-	result += '"';
+	msgbuf << '"';
 #else /* _WIN32 */
-	result += '\'';
+	msgbuf << '\'';
 #endif /* _WIN32 */
 
-	return result;
+	return msgbuf.str();
 }
 
 #ifdef _WIN32
@@ -1147,7 +1163,7 @@ String Utility::EscapeCreateProcessArg(const String& arg)
 	if (arg.FindFirstOf(" \t\n\v\"") == String::NPos)
 		return arg;
 
-	String result = "\"";
+	std::ostringstream msgbuf;
 
 	for (String::ConstIterator it = arg.Begin(); ; it++) {
 		int numBackslashes = 0;
@@ -1158,20 +1174,18 @@ String Utility::EscapeCreateProcessArg(const String& arg)
 		}
 
 		if (it == arg.End()) {
-			result.Append(numBackslashes * 2, '\\');
+			msgbuf << String(numBackslashes * 2, '\\');
 			break;
 		} else if (*it == '"') {
-			result.Append(numBackslashes * 2, '\\');
-			result.Append(1, *it);
+			msgbuf << String(numBackslashes * 2, '\\') << *it;
 		} else {
-			result.Append(numBackslashes, '\\');
-			result.Append(1, *it);
+			msgbuf << String(numBackslashes, '\\') << *it;
 		}
 	}
 
-	result += "\"";
+	msgbuf << "\"";
 
-	return result;
+	return msgbuf.str();
 }
 #endif /* _WIN32 */
 
@@ -1249,9 +1263,8 @@ unsigned long Utility::SDBM(const String& str, size_t len)
 
 int Utility::CompareVersion(const String& v1, const String& v2)
 {
-	std::vector<String> tokensv1, tokensv2;
-	boost::algorithm::split(tokensv1, v1, boost::is_any_of("."));
-	boost::algorithm::split(tokensv2, v2, boost::is_any_of("."));
+	std::vector<String> tokensv1 = v1.Split(".");
+	std::vector<String> tokensv2 = v2.Split(".");
 
 	for (std::vector<String>::size_type i = 0; i < tokensv2.size() - tokensv1.size(); i++)
 		tokensv1.push_back("0");
@@ -1260,9 +1273,9 @@ int Utility::CompareVersion(const String& v1, const String& v2)
 		tokensv2.push_back("0");
 
 	for (std::vector<String>::size_type i = 0; i < tokensv1.size(); i++) {
-		if (Convert::ToLong(tokensv2[i]) > Convert::ToLong(tokensv1[i]))
+		if (static_cast<double>(tokensv2[i]) > static_cast<double>(tokensv1[i]))
 			return 1;
-		else if (Convert::ToLong(tokensv2[i]) < Convert::ToLong(tokensv1[i]))
+		else if (static_cast<double>(tokensv2[i]) < static_cast<double>(tokensv1[i]))
 			return -1;
 	}
 
@@ -1724,38 +1737,37 @@ String Utility::GetPlatformArchitecture(void)
 
 String Utility::ValidateUTF8(const String& input)
 {
+	std::ostringstream msgbuf;
 	String output;
 	size_t length = input.GetLength();
 
 	for (size_t i = 0; i < length; i++) {
 		if ((input[i] & 0x80) == 0) {
-			output += input[i];
+			msgbuf << input[i];
 			continue;
 		}
 
 		if ((input[i] & 0xE0) == 0xC0 && length > i + 1 &&
 			(input[i + 1] & 0xC0) == 0x80) {
-			output += input[i];
-			output += input[i + 1];
+			msgbuf << input[i];
+			msgbuf << input[i + 1];
 			i++;
 			continue;
 		}
 
 		if ((input[i] & 0xF0) == 0xE0 && length > i + 2 &&
 			(input[i + 1] & 0xC0) == 0x80 && (input[i + 2] & 0xC0) == 0x80) {
-			output += input[i];
-			output += input[i + 1];
-			output += input[i + 2];
+			msgbuf << input[i];
+			msgbuf << input[i + 1];
+			msgbuf << input[i + 2];
 			i += 2;
 			continue;
 		}
 
-		output += '\xEF';
-		output += '\xBF';
-		output += '\xBD';
+		msgbuf << "\xEF\xBF\xBD";
 	}
 
-	return output;
+	return msgbuf.str();
 }
 
 String Utility::CreateTempFile(const String& path, int mode, std::fstream& fp)

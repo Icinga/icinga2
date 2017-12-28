@@ -28,6 +28,13 @@
 #include <boost/variant/get.hpp>
 #include <boost/throw_exception.hpp>
 
+namespace boost
+{
+
+extern template class variant<boost::blank, double, bool, icinga::String, icinga::Object::Ptr>;
+
+}
+
 namespace icinga
 {
 
@@ -66,7 +73,6 @@ public:
 	Value(double value);
 	Value(bool value);
 	Value(const String& value);
-	Value(String&& value);
 	Value(const char *value);
 	Value(const Value& other);
 	Value(Value&& other);
@@ -163,6 +169,8 @@ public:
 
 private:
 	boost::variant<boost::blank, double, bool, String, Object::Ptr> m_Value;
+
+	friend std::ostream& operator<<(std::ostream& stream, const Value& value);
 };
 
 extern template const double& Value::Get<double>(void) const;

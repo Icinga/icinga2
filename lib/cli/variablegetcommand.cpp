@@ -21,7 +21,6 @@
 #include "cli/variableutility.hpp"
 #include "base/logger.hpp"
 #include "base/application.hpp"
-#include "base/convert.hpp"
 #include "base/configobject.hpp"
 #include "base/configtype.hpp"
 #include "base/json.hpp"
@@ -31,8 +30,6 @@
 #include "base/objectlock.hpp"
 #include "base/console.hpp"
 #include "base/scriptglobal.hpp"
-#include <boost/algorithm/string/join.hpp>
-#include <boost/algorithm/string/replace.hpp>
 #include <fstream>
 #include <iostream>
 

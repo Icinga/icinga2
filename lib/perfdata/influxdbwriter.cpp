@@ -30,7 +30,6 @@
 #include "base/configtype.hpp"
 #include "base/objectlock.hpp"
 #include "base/logger.hpp"
-#include "base/convert.hpp"
 #include "base/utility.hpp"
 #include "base/perfdatavalue.hpp"
 #include "base/stream.hpp"
@@ -39,11 +38,6 @@
 #include "base/exception.hpp"
 #include "base/statsfunction.hpp"
 #include "base/tlsutility.hpp"
-#include <boost/algorithm/string.hpp>
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/replace.hpp>
-#include <boost/math/special_functions/fpclassify.hpp>
 #include <boost/regex.hpp>
 #include <boost/scoped_array.hpp>
 
@@ -305,13 +299,10 @@ void InfluxdbWriter::CheckResultHandlerWQ(const Checkable::Ptr& checkable, const
 
 String InfluxdbWriter::EscapeKeyOrTagValue(const String& str)
 {
-	// Iterate over the key name and escape commas and spaces with a backslash
-	String result = str;
-	boost::algorithm::replace_all(result, "\"", "\\\"");
-	boost::algorithm::replace_all(result, "=", "\\=");
-	boost::algorithm::replace_all(result, ",", "\\,");
-	boost::algorithm::replace_all(result, " ", "\\ ");
-	return result;
+	return str.ReplaceAll(
+		{ "\"", "=", ",", " " },
+		{ "\\\"", "\\=", "\\,", "\\ " }
+	);
 }
 
 String InfluxdbWriter::EscapeValue(const Value& value)
@@ -408,7 +399,7 @@ void InfluxdbWriter::FlushTimeoutWQ(void)
 
 void InfluxdbWriter::Flush(void)
 {
-	String body = boost::algorithm::join(m_DataBuffer, "\n");
+	String body = Utility::Join(m_DataBuffer, "\n");
 	m_DataBuffer.clear();
 
 	Stream::Ptr stream = Connect();

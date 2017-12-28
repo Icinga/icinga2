@@ -21,8 +21,6 @@
 #include "base/logger.hpp"
 #include "base/console.hpp"
 #include "base/application.hpp"
-#include <boost/algorithm/string/join.hpp>
-#include <boost/algorithm/string/replace.hpp>
 #include <fstream>
 #include <iostream>
 
@@ -122,8 +120,7 @@ int FeatureUtility::EnableFeatures(const std::vector<std::string>& features)
 
 	if (!errors.empty()) {
 		Log(LogCritical, "cli")
-			<< "Cannot enable feature(s): " << boost::algorithm::join(errors, " ");
-		errors.clear();
+			<< "Cannot enable feature(s): " << Utility::Join(errors, " ");
 		return 1;
 	}
 
@@ -165,8 +162,7 @@ int FeatureUtility::DisableFeatures(const std::vector<std::string>& features)
 
 	if (!errors.empty()) {
 		Log(LogCritical, "cli")
-			<< "Cannot disable feature(s): " << boost::algorithm::join(errors, " ");
-		errors.clear();
+			<< "Cannot disable feature(s): " << Utility::Join(errors, " ");
 		return 1;
 	}
 
@@ -182,13 +178,13 @@ int FeatureUtility::ListFeatures(std::ostream& os)
 		return 1;
 
 	os << ConsoleColorTag(Console_ForegroundRed | Console_Bold) << "Disabled features: " << ConsoleColorTag(Console_Normal)
-		<< boost::algorithm::join(disabled_features, " ") << "\n";
+		<< Utility::Join(disabled_features, " ") << "\n";
 
 	if (!FeatureUtility::GetFeatures(enabled_features, false))
 		return 1;
 
 	os << ConsoleColorTag(Console_ForegroundGreen | Console_Bold) << "Enabled features: " << ConsoleColorTag(Console_Normal)
-		<< boost::algorithm::join(enabled_features, " ") << "\n";
+		<< Utility::Join(enabled_features, " ") << "\n";
 
 	return 0;
 }
@@ -250,8 +246,7 @@ bool FeatureUtility::CheckFeatureInternal(const String& feature, bool check_disa
 
 void FeatureUtility::CollectFeatures(const String& feature_file, std::vector<String>& features)
 {
-	String feature = Utility::BaseName(feature_file);
-	boost::algorithm::replace_all(feature, ".conf", "");
+	String feature = Utility::BaseName(feature_file).ReplaceAll(".conf", "");
 
 	Log(LogDebug, "cli")
 		<< "Adding feature: " << feature;

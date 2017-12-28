@@ -290,9 +290,9 @@ int ConsoleCommand::RunScriptConsole(ScriptFrame& scriptFrame, const String& add
 	std::fstream historyfp;
 	historyfp.open(historyPath.CStr(), std::fstream::in);
 
-	String line;
-	while (std::getline(historyfp, line.GetData()))
-		add_history(line.CStr());
+	std::string line;
+	while (std::getline(historyfp, line))
+		add_history(line.c_str());
 
 	historyfp.close();
 #endif /* HAVE_EDITLINE */
@@ -328,7 +328,7 @@ int ConsoleCommand::RunScriptConsole(ScriptFrame& scriptFrame, const String& add
 		String fileName;
 
 		if (commandOnceFileName.IsEmpty())
-			fileName = "<" + Convert::ToString(next_line) + ">";
+			fileName = "<" + std::to_string(next_line) + ">";
 		else
 			fileName = commandOnceFileName;
 
@@ -453,8 +453,7 @@ incomplete:
 			if (commandOnceFileName.IsEmpty() && lines.find(di.Path) != lines.end()) {
 				String text = lines[di.Path];
 
-				std::vector<String> ulines;
-				boost::algorithm::split(ulines, text, boost::is_any_of("\n"));
+				std::vector<String> ulines = text.Split("\n");
 
 				for (int i = 1; i <= ulines.size(); i++) {
 					int start, len;

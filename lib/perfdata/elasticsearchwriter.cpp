@@ -34,7 +34,6 @@
 #include "base/perfdatavalue.hpp"
 #include "base/exception.hpp"
 #include "base/statsfunction.hpp"
-#include <boost/algorithm/string.hpp>
 #include <boost/scoped_array.hpp>
 
 using namespace icinga;
@@ -152,11 +151,10 @@ void ElasticsearchWriter::AddCheckResult(const Dictionary::Ptr& fields, const Ch
 				}
 			}
 
-			String escapedKey = pdv->GetLabel();
-			boost::replace_all(escapedKey, " ", "_");
-			boost::replace_all(escapedKey, ".", "_");
-			boost::replace_all(escapedKey, "\\", "_");
-			boost::algorithm::replace_all(escapedKey, "::", ".");
+			String escapedKey = pdv->GetLabel().ReplaceAll(
+				{ " ", ".", "\\", "::" },
+				{ "_", "_", "_", "." }
+			);
 
 			String perfdataPrefix = prefix + "perfdata." + escapedKey;
 
@@ -388,18 +386,16 @@ void ElasticsearchWriter::FlushTimeout(void)
 	}
 }
 
+/* Ensure you hold a lock against m_DataBuffer so that things
+ * don't go missing after creating the body and clearing the buffer.
+ */
 void ElasticsearchWriter::Flush(void)
 {
-	/* Ensure you hold a lock against m_DataBuffer so that things
-	 * don't go missing after creating the body and clearing the buffer.
-	 */
-	String body = boost::algorithm::join(m_DataBuffer, "\n");
-	m_DataBuffer.clear();
-
 	/* Elasticsearch 6.x requires a new line. This is compatible to 5.x.
 	 * Tested with 6.0.0 and 5.6.4.
 	 */
-	body += "\n";
+	String body = Utility::Join(m_DataBuffer, "\n") + "\n";
+	m_DataBuffer.clear();
 
 	SendRequest(body);
 }
@@ -593,5 +589,5 @@ String ElasticsearchWriter::FormatTimestamp(double ts)
 	 */
 	int milliSeconds = static_cast<int>((ts - static_cast<int>(ts)) * 1000);
 
-	return Utility::FormatDateTime("%Y-%m-%dT%H:%M:%S", ts) + "." + Convert::ToString(milliSeconds) + Utility::FormatDateTime("%z", ts);
+	return Utility::FormatDateTime("%Y-%m-%dT%H:%M:%S", ts) + "." + std::to_string(milliSeconds) + Utility::FormatDateTime("%z", ts);
 }

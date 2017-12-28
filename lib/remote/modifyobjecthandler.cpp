@@ -23,7 +23,6 @@
 #include "remote/apiaction.hpp"
 #include "base/exception.hpp"
 #include "base/serializer.hpp"
-#include <boost/algorithm/string.hpp>
 #include <set>
 
 using namespace icinga;
@@ -52,8 +51,7 @@ bool ModifyObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 	params->Set("type", type->GetName());
 
 	if (request.RequestUrl->GetPath().size() >= 4) {
-		String attr = type->GetName();
-		boost::algorithm::to_lower(attr);
+		String attr = type->GetName().ToLower();
 		params->Set(attr, request.RequestUrl->GetPath()[3]);
 	}
 

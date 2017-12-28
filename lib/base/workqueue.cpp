@@ -195,14 +195,14 @@ void WorkQueue::StatusTimerHandler(void)
 	double gradient = (pending - m_PendingTasks) / (now - m_PendingTasksTimestamp);
 	double timeToZero = pending / gradient;
 
-	String timeInfo;
+	std::ostringstream msgbuf;
 
 	if (pending > GetTaskCount(5)) {
-		timeInfo = " empty in ";
+		msgbuf << " empty in ";
 		if (timeToZero < 0)
-			timeInfo += "infinite time, your task handler isn't able to keep up";
+			msgbuf << "infinite time, your task handler isn't able to keep up";
 		else
-			timeInfo += Utility::FormatDuration(timeToZero);
+			msgbuf << Utility::FormatDuration(timeToZero);
 	}
 
 	m_PendingTasks = pending;
@@ -215,7 +215,7 @@ void WorkQueue::StatusTimerHandler(void)
 			<< "items: " << pending << ", "
 			<< "rate: " << std::setw(2) << GetTaskCount(60) / 60.0 << "/s "
 			<< "(" << GetTaskCount(60) << "/min " << GetTaskCount(60 * 5) << "/5min " << GetTaskCount(60 * 15) << "/15min);"
-			<< timeInfo;
+			<< msgbuf.str();
 	}
 
 	/* Reschedule next log entry in 5 minutes. */

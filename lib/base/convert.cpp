@@ -22,22 +22,6 @@
 
 using namespace icinga;
 
-String Convert::ToString(const Value& val)
-{
-	return val;
-}
-
-String Convert::ToString(double val)
-{
-	double integral;
-	double fractional = std::modf(val, &integral);
-
-	if (fractional == 0)
-		return std::to_string(static_cast<long long>(val));
-
-	return std::to_string(val);
-}
-
 double Convert::ToDateTimeValue(const Value& val)
 {
 	if (val.IsNumber())

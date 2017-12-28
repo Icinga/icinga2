@@ -21,7 +21,6 @@
 
 #include "base/application.hpp"
 #include "base/console.hpp"
-#include "base/convert.hpp"
 #include "base/json.hpp"
 #include "base/netstring.hpp"
 #include "base/objectlock.hpp"
@@ -32,8 +31,6 @@
 #include "cli/troubleshootcommand.hpp"
 #include "cli/variableutility.hpp"
 #include "config/configitembuilder.hpp"
-
-#include <boost/algorithm/string/join.hpp>
 #include <boost/circular_buffer.hpp>
 #include <boost/filesystem.hpp>
 
@@ -334,11 +331,11 @@ bool TroubleshootCommand::CheckFeatures(InfoLog& log)
 	InfoLogLine(log)
 		<< "Enabled features:\n";
 	InfoLogLine(log, Console_ForegroundGreen)
-		<< '\t' << boost::algorithm::join(enabled_features, " ") << '\n';
+		<< '\t' << Utility::Join(enabled_features, " ") << '\n';
 	InfoLogLine(log)
 		<< "Disabled features:\n";
 	InfoLogLine(log, Console_ForegroundRed)
-		<< '\t' << boost::algorithm::join(disabled_features, " ") << '\n';
+		<< '\t' << Utility::Join(disabled_features, " ") << '\n';
 
 	if (!features->Get("checker").ToBool())
 		InfoLogLine(log, 0, LogWarning)
@@ -670,12 +667,12 @@ int TroubleshootCommand::Run(const boost::program_options::variables_map& vm, co
 		<< std::string(52, '=') << '\n';
 	InfoLogLine(*log, Console_ForegroundGreen)
 		<< "Finished collection at " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", endTime)
-		<< "\nTook " << Convert::ToString(endTime - goTime) << " seconds\n";
+		<< "\nTook " << std::to_string(endTime - goTime) << " seconds\n";
 
 	if (!vm.count("console")) {
 		std::cout << "Started collection at " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", goTime) << "\n"
 			<< "Finished collection at " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", endTime)
-			<< "\nTook " << Convert::ToString(endTime - goTime) << " seconds\n\n";
+			<< "\nTook " << std::to_string(endTime - goTime) << " seconds\n\n";
 
 		std::cout << "General log file: '" << path << "'\n";
 

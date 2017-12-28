@@ -365,22 +365,31 @@ const char *posix_error::what(void) const throw()
 ValidationError::ValidationError(const ConfigObject::Ptr& object, const std::vector<String>& attributePath, const String& message)
 	: m_Object(object), m_AttributePath(attributePath), m_Message(message)
 {
-	String path;
+	bool first = true;
+	std::ostringstream pathBuf;
 
 	for (const String& attribute : attributePath) {
-		if (!path.IsEmpty())
-			path += " -> ";
+		if (!first)
+			pathBuf << " -> ";
+		else
+			first = false;
 
-		path += "'" + attribute + "'";
+		pathBuf << "'" << attribute << "'";
 	}
 
+	std::ostringstream whatBuf;
+
 	Type::Ptr type = object->GetReflectionType();
-	m_What = "Validation failed for object '" + object->GetName() + "' of type '" + type->GetName() + "'";
+	whatBuf << "Validation failed for object '" << object->GetName() << "' of type '" << type->GetName() << "'";
+
+	String path = pathBuf.str();
 
 	if (!path.IsEmpty())
-		m_What += "; Attribute " + path;
+		whatBuf << "; Attribute " << path;
 
-	m_What += ": " + message;
+	whatBuf << ": " << message;
+
+	m_What = whatBuf.str();
 }
 
 ValidationError::~ValidationError(void) throw()

@@ -21,7 +21,6 @@
 #include "remote/httputility.hpp"
 #include "base/singleton.hpp"
 #include "base/exception.hpp"
-#include <boost/algorithm/string/join.hpp>
 
 using namespace icinga;
 
@@ -113,8 +112,17 @@ void HttpHandler::ProcessRequest(const ApiUser::Ptr& user, HttpRequest& request,
 	}
 
 	if (!processed) {
-		String path = boost::algorithm::join(request.RequestUrl->GetPath(), "/");
-		HttpUtility::SendJsonError(response, 404, "The requested path '" + path +
+		std::ostringstream pathBuf;
+		bool first = true;
+		for (const auto& segment : request.RequestUrl->GetPath()) {
+			if (!first)
+				pathBuf << '/';
+			else
+				first = false;
+
+			pathBuf << segment;
+		}
+		HttpUtility::SendJsonError(response, 404, "The requested path '" + pathBuf.str() +
 				"' could not be found or the request method is not valid for this path.");
 		return;
 	}

@@ -28,7 +28,6 @@
 #include "base/utility.hpp"
 #include "base/perfdatavalue.hpp"
 #include "base/configtype.hpp"
-#include "base/convert.hpp"
 
 using namespace icinga;
 

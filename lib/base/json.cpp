@@ -22,7 +22,6 @@
 #include "base/dictionary.hpp"
 #include "base/array.hpp"
 #include "base/objectlock.hpp"
-#include "base/convert.hpp"
 #include <boost/exception_ptr.hpp>
 #include <yajl/yajl_version.h>
 #include <yajl/yajl_gen.h>
@@ -237,7 +236,7 @@ static int DecodeNumber(void *ctx, const char *str, yajl_size len)
 
 	try {
 		String jstr = String(str, str + len);
-		context->AddValue(Convert::ToDouble(jstr));
+		context->AddValue(static_cast<double>(jstr));
 	} catch (...) {
 		context->SaveException();
 		return 0;

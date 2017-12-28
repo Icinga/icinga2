@@ -23,7 +23,6 @@
 #include "base/functionwrapper.hpp"
 #include "base/scriptframe.hpp"
 #include "base/exception.hpp"
-#include <boost/algorithm/string.hpp>
 
 using namespace icinga;
 
@@ -61,28 +60,21 @@ static String StringUpper(void)
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	String self = vframe->Self;
-	return boost::to_upper_copy(self);
+	return self.ToUpper();
 }
 
 static String StringLower(void)
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	String self = vframe->Self;
-	return boost::to_lower_copy(self);
+	return self.ToLower();
 }
 
 static Array::Ptr StringSplit(const String& delims)
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	String self = vframe->Self;
-	std::vector<String> tokens;
-	boost::algorithm::split(tokens, self, boost::is_any_of(delims));
-
-	Array::Ptr result = new Array();
-	for (const String& token : tokens) {
-		result->Add(token);
-	}
-	return result;
+	return Array::FromVector(self.Split(delims.CStr()));
 }
 
 static int StringFind(const std::vector<Value>& args)
@@ -121,7 +113,7 @@ static Value StringReplace(const String& search, const String& replacement)
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	String self = vframe->Self;
 
-	boost::algorithm::replace_all(self, search, replacement);
+	return self.ReplaceAll(search, replacement);
 	return self;
 }
 

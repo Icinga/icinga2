@@ -27,12 +27,14 @@ Dictionary::Ptr HttpUtility::FetchRequestParameters(HttpRequest& request)
 {
 	Dictionary::Ptr result;
 
-	String body;
+	std::ostringstream bodyBuf;
 	char buffer[1024];
 	size_t count;
 
 	while ((count = request.ReadBody(buffer, sizeof(buffer))) > 0)
-		body += String(buffer, buffer + count);
+		bodyBuf.write(buffer, count);
+
+	String body = bodyBuf.str();
 
 	if (!body.IsEmpty()) {
 #ifdef I2_DEBUG

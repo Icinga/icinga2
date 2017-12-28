@@ -22,7 +22,6 @@
 #include "base/json.hpp"
 #include "base/logger.hpp"
 #include "base/exception.hpp"
-#include "base/convert.hpp"
 
 using namespace icinga;
 
@@ -58,16 +57,18 @@ void ApiClient::TypesHttpCompletionCallback(HttpRequest& request, HttpResponse& 
 {
 	Dictionary::Ptr result;
 
-	String body;
+	std::ostringstream bodyBuf;
 	char buffer[1024];
 	size_t count;
 
 	while ((count = response.ReadBody(buffer, sizeof(buffer))) > 0)
-		body += String(buffer, buffer + count);
+		bodyBuf.write(buffer, count);
+
+	String body = bodyBuf.str();
 
 	try {
 		if (response.StatusCode < 200 || response.StatusCode > 299) {
-			std::string message = "HTTP request failed; Code: " + Convert::ToString(response.StatusCode) + "; Body: " + body;
+			std::string message = "HTTP request failed; Code: " + std::to_string(response.StatusCode) + "; Body: " + body;
 
 			BOOST_THROW_EXCEPTION(ScriptError(message));
 		}
@@ -143,16 +144,18 @@ void ApiClient::ObjectsHttpCompletionCallback(HttpRequest& request,
 {
 	Dictionary::Ptr result;
 
-	String body;
+	std::ostringstream bodyBuf;
 	char buffer[1024];
 	size_t count;
 
 	while ((count = response.ReadBody(buffer, sizeof(buffer))) > 0)
-		body += String(buffer, buffer + count);
+		bodyBuf.write(buffer, count);
+
+	String body = bodyBuf.str();
 
 	try {
 		if (response.StatusCode < 200 || response.StatusCode > 299) {
-			std::string message = "HTTP request failed; Code: " + Convert::ToString(response.StatusCode) + "; Body: " + body;
+			std::string message = "HTTP request failed; Code: " + std::to_string(response.StatusCode) + "; Body: " + body;
 
 			BOOST_THROW_EXCEPTION(ScriptError(message));
 		}
@@ -252,16 +255,18 @@ void ApiClient::ExecuteScriptHttpCompletionCallback(HttpRequest& request,
 {
 	Dictionary::Ptr result;
 
-	String body;
+	std::ostringstream bodyBuf;
 	char buffer[1024];
 	size_t count;
 
 	while ((count = response.ReadBody(buffer, sizeof(buffer))) > 0)
-		body += String(buffer, buffer + count);
+		bodyBuf.write(buffer, count);
+
+	String body = bodyBuf.str();
 
 	try {
 		if (response.StatusCode < 200 || response.StatusCode > 299) {
-			std::string message = "HTTP request failed; Code: " + Convert::ToString(response.StatusCode) + "; Body: " + body;
+			std::string message = "HTTP request failed; Code: " + std::to_string(response.StatusCode) + "; Body: " + body;
 
 			BOOST_THROW_EXCEPTION(ScriptError(message));
 		}
@@ -331,16 +336,18 @@ void ApiClient::AutocompleteScriptHttpCompletionCallback(HttpRequest& request,
 {
 	Dictionary::Ptr result;
 
-	String body;
+	std::ostringstream bodyBuf;
 	char buffer[1024];
 	size_t count;
 
 	while ((count = response.ReadBody(buffer, sizeof(buffer))) > 0)
-		body += String(buffer, buffer + count);
+		bodyBuf.write(buffer, count);
+
+	String body = bodyBuf.str();
 
 	try {
 		if (response.StatusCode < 200 || response.StatusCode > 299) {
-			std::string message = "HTTP request failed; Code: " + Convert::ToString(response.StatusCode) + "; Body: " + body;
+			std::string message = "HTTP request failed; Code: " + std::to_string(response.StatusCode) + "; Body: " + body;
 
 			BOOST_THROW_EXCEPTION(ScriptError(message));
 		}

@@ -19,7 +19,6 @@
 
 #include "base/process.hpp"
 #include "base/exception.hpp"
-#include "base/convert.hpp"
 #include "base/array.hpp"
 #include "base/objectlock.hpp"
 #include "base/utility.hpp"
@@ -28,7 +27,6 @@
 #include "base/utility.hpp"
 #include "base/scriptglobal.hpp"
 #include "base/json.hpp"
-#include <boost/algorithm/string/join.hpp>
 #include <boost/thread/once.hpp>
 #include <thread>
 #include <iostream>
@@ -126,7 +124,7 @@ static Value ProcessSpawnImpl(struct msghdr *msgh, const Dictionary::Ptr& reques
 
 		int index = envc;
 		for (const Dictionary::Pair& kv : extraEnvironment) {
-			String skv = kv.first + "=" + Convert::ToString(kv.second);
+			String skv = kv.first + "=" + kv.second;
 			envp[index] = strdup(skv.CStr());
 			index++;
 		}
@@ -749,7 +747,17 @@ String Process::PrettyPrintArguments(const Process::Arguments& arguments)
 #ifdef _WIN32
 	return "'" + arguments + "'";
 #else /* _WIN32 */
-	return "'" + boost::algorithm::join(arguments, "' '") + "'";
+	bool first = true;
+	std::ostringstream argBuf;
+	for (const auto& argument : arguments) {
+		if (!first)
+			argBuf << ' ';
+		else
+			first = false;
+
+		argBuf << '\'' << argument << '\'';
+	}
+	return argBuf.str();
 #endif /* _WIN32 */
 }
 
@@ -892,7 +900,7 @@ void Process::Run(const std::function<void(const ProcessResult&)>& callback)
 		ObjectLock olock(m_ExtraEnvironment);
 
 		for (const Dictionary::Pair& kv : m_ExtraEnvironment) {
-			String skv = kv.first + "=" + Convert::ToString(kv.second);
+			String skv = kv.first + "=" + kv.second;
 
 			envp = static_cast<char *>(realloc(envp, offset + skv.GetLength() + 1));
 
@@ -1103,13 +1111,13 @@ bool Process::DoEvents(void)
 		int signum = WTERMSIG(status);
 		const char *zsigname = strsignal(signum);
 
-		String signame = Convert::ToString(signum);
+		std::ostringstream signameBuf;
+		signameBuf << signum;
 
-		if (zsigname) {
-			signame += " (";
-			signame += zsigname;
-			signame += ")";
-		}
+		if (zsigname)
+			signameBuf << " (" << zsigname << ")";
+
+		String signame = signameBuf.str();
 
 		Log(LogWarning, "Process")
 			<< "PID " << m_PID << " was terminated by signal " << signame;

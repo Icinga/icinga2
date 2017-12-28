@@ -37,7 +37,6 @@
 #include "base/exception.hpp"
 #include "base/json.hpp"
 #include "base/statsfunction.hpp"
-#include <boost/algorithm/string/replace.hpp>
 
 using namespace icinga;
 
@@ -257,11 +256,10 @@ void GelfWriter::CheckResultHandlerInternal(const Checkable::Ptr& checkable, con
 					}
 				}
 
-				String escaped_key = pdv->GetLabel();
-				boost::replace_all(escaped_key, " ", "_");
-				boost::replace_all(escaped_key, ".", "_");
-				boost::replace_all(escaped_key, "\\", "_");
-				boost::algorithm::replace_all(escaped_key, "::", ".");
+				String escaped_key = pdv->GetLabel().ReplaceAll(
+					{ " ", ".", "\\", "::" },
+					{ "_", "_", "_", "." }
+				);
 
 				fields->Set("_" + escaped_key, pdv->GetValue());
 

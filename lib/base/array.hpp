@@ -64,6 +64,13 @@ public:
 	Iterator Begin(void);
 	Iterator End(void);
 
+	const std::vector<Value>& GetData(void) const
+	{
+		ASSERT(OwnsLock());
+
+		return m_Data;
+	}
+
 	size_t GetLength(void) const;
 	bool Contains(const Value& value) const;
 

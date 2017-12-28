@@ -20,10 +20,7 @@
 #include "remote/httpresponse.hpp"
 #include "remote/httpchunkedencoding.hpp"
 #include "base/logger.hpp"
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/classification.hpp>
 #include "base/application.hpp"
-#include "base/convert.hpp"
 
 using namespace icinga;
 
@@ -41,15 +38,17 @@ void HttpResponse::SetStatus(int code, const String& message)
 		return;
 	}
 
-	String status = "HTTP/";
+	std::ostringstream msgbuf;
+	msgbuf << "HTTP/";
 
 	if (m_Request.ProtocolVersion == HttpVersion10)
-		status += "1.0";
+		msgbuf << "1.0";
 	else
-		status += "1.1";
+		msgbuf << "1.1";
 
-	status += " " + Convert::ToString(code) + " " + message + "\r\n";
+	msgbuf << " " << code << " " << message << "\r\n";
 
+	String status = msgbuf.str();
 	m_Stream->Write(status.CStr(), status.GetLength());
 
 	m_State = HttpResponseHeaders;
@@ -98,7 +97,7 @@ void HttpResponse::Finish(void)
 
 	if (m_Request.ProtocolVersion == HttpVersion10) {
 		if (m_Body)
-			AddHeader("Content-Length", Convert::ToString(m_Body->GetAvailableBytes()));
+			AddHeader("Content-Length", std::to_string(m_Body->GetAvailableBytes()));
 
 		FinishHeaders();
 
@@ -132,8 +131,7 @@ bool HttpResponse::Parse(StreamReadContext& src, bool may_wait)
 			if (line == "")
 				return true;
 
-			std::vector<String> tokens;
-			boost::algorithm::split(tokens, line, boost::is_any_of(" "));
+			std::vector<String> tokens = line.Split(" ");
 			Log(LogDebug, "HttpRequest")
 				<< "line: " << line << ", tokens: " << tokens.size();
 			if (tokens.size() < 2)
@@ -146,7 +144,7 @@ bool HttpResponse::Parse(StreamReadContext& src, bool may_wait)
 			} else
 				BOOST_THROW_EXCEPTION(std::invalid_argument("Unsupported HTTP version"));
 
-			StatusCode = Convert::ToLong(tokens[1]);
+			StatusCode = static_cast<double>(tokens[1]);
 
 			if (tokens.size() >= 3)
 				StatusMessage = tokens[2]; // TODO: Join tokens[2..end]
@@ -204,7 +202,7 @@ bool HttpResponse::Parse(StreamReadContext& src, bool may_wait)
 
 			if (Headers->Get("content-length", &contentLengthHeader)) {
 				hasLengthIndicator = true;
-				lengthIndicator = Convert::ToLong(contentLengthHeader);
+				lengthIndicator = contentLengthHeader;
 			}
 
 			if (hasLengthIndicator && src.Eof)

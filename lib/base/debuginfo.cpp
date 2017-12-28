@@ -18,7 +18,6 @@
  ******************************************************************************/
 
 #include "base/debuginfo.hpp"
-#include "base/convert.hpp"
 #include <fstream>
 
 using namespace icinga;
@@ -87,7 +86,7 @@ void icinga::ShowCodeLocation(std::ostream& out, const DebugInfo& di, bool verbo
 		if (lineno < di.FirstLine - extra_lines || lineno > di.LastLine + extra_lines)
 			continue;
 
-		String pathInfo = di.Path + "(" + Convert::ToString(lineno) + "): ";
+		String pathInfo = di.Path + "(" + std::to_string(lineno) + "): ";
 		out << pathInfo;
 		out << line << "\n";
 

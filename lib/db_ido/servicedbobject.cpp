@@ -30,14 +30,12 @@
 #include "icinga/compatutility.hpp"
 #include "icinga/icingaapplication.hpp"
 #include "remote/endpoint.hpp"
-#include "base/convert.hpp"
 #include "base/objectlock.hpp"
 #include "base/initialize.hpp"
 #include "base/configtype.hpp"
 #include "base/utility.hpp"
 #include "base/logger.hpp"
 #include "base/json.hpp"
-#include <boost/algorithm/string/join.hpp>
 
 using namespace icinga;
 
@@ -152,8 +150,8 @@ Dictionary::Ptr ServiceDbObject::GetStatusFields(void) const
 	fields->Set("percent_state_change", CompatUtility::GetCheckablePercentStateChange(service));
 
 	if (cr) {
-		fields->Set("latency", Convert::ToString(cr->CalculateLatency()));
-		fields->Set("execution_time", Convert::ToString(cr->CalculateExecutionTime()));
+		fields->Set("latency", cr->CalculateLatency());
+		fields->Set("execution_time", cr->CalculateExecutionTime());
 	}
 
 	fields->Set("scheduled_downtime_depth", service->GetDowntimeDepth());
@@ -344,14 +342,15 @@ void ServiceDbObject::DoCommonConfigUpdate(void)
 
 String ServiceDbObject::CalculateConfigHash(const Dictionary::Ptr& configFields) const
 {
-	String hashData = DbObject::CalculateConfigHash(configFields);
+	std::ostringstream hashDataBuf;
+	hashDataBuf << DbObject::CalculateConfigHash(configFields);
 
 	Service::Ptr service = static_pointer_cast<Service>(GetObject());
 
 	Array::Ptr groups = service->GetGroups();
 
 	if (groups)
-		hashData += DbObject::HashValue(groups);
+		hashDataBuf << DbObject::HashValue(groups);
 
 	Array::Ptr dependencies = new Array();
 
@@ -372,7 +371,7 @@ String ServiceDbObject::CalculateConfigHash(const Dictionary::Ptr& configFields)
 
 	dependencies->Sort();
 
-	hashData += DbObject::HashValue(dependencies);
+	hashDataBuf << DbObject::HashValue(dependencies);
 
 	Array::Ptr users = new Array();
 
@@ -382,7 +381,7 @@ String ServiceDbObject::CalculateConfigHash(const Dictionary::Ptr& configFields)
 
 	users->Sort();
 
-	hashData += DbObject::HashValue(users);
+	hashDataBuf << DbObject::HashValue(users);
 
 	Array::Ptr userGroups = new Array();
 
@@ -392,7 +391,7 @@ String ServiceDbObject::CalculateConfigHash(const Dictionary::Ptr& configFields)
 
 	userGroups->Sort();
 
-	hashData += DbObject::HashValue(userGroups);
+	hashDataBuf << DbObject::HashValue(userGroups);
 
-	return SHA256(hashData);
+	return SHA256(hashDataBuf.str());
 }

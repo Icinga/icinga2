@@ -22,8 +22,6 @@
 #include "base/console.hpp"
 #include "base/type.hpp"
 #include "base/serializer.hpp"
-#include <boost/algorithm/string/join.hpp>
-#include <boost/algorithm/string/trim.hpp>
 #include <boost/program_options.hpp>
 #include <algorithm>
 #include <iostream>
@@ -44,8 +42,7 @@ std::vector<String> icinga::GetBashCompletionSuggestions(const String& type, con
 	char line[4096];
 	while (fgets(line, sizeof(line), fp)) {
 		String wline = line;
-		boost::algorithm::trim_right_if(wline, boost::is_any_of("\r\n"));
-		result.push_back(wline);
+		result.push_back(wline.ReplaceAll({ "\r", "\n" }, { "", "" }));
 	}
 
 	pclose(fp);
@@ -200,7 +197,7 @@ bool CLICommand::ParseCommand(int argc, char **argv, po::options_description& vi
 				best_match.push_back(vname[i]);
 
 			if (i == vname.size() - 1) {
-				cmdname = boost::algorithm::join(vname, " ");
+				cmdname = Utility::Join(vname, " ");
 				command = kv.second;
 				arg_end = k;
 				goto found_command;
@@ -319,7 +316,7 @@ void CLICommand::ShowCommands(int argc, char **argv, po::options_description *vi
 					std::cout << cname << "\n";
 			}
 		} else {
-			std::cout << "  * " << boost::algorithm::join(vname, " ")
+			std::cout << "  * " << Utility::Join(vname, " ")
 				<< " (" << kv.second->GetShortDescription() << ")"
 				<< (kv.second->IsDeprecated() ? " (DEPRECATED)" : "") << std::endl;
 		}

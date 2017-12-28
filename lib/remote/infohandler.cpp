@@ -50,19 +50,19 @@ bool InfoHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, 
 	if (permissions) {
 		ObjectLock olock(permissions);
 		for (const Value& permission : permissions) {
-			String name;
+			std::ostringstream nameBuf;
 			bool hasFilter = false;
 			if (permission.IsObjectType<Dictionary>()) {
 				Dictionary::Ptr dpermission = permission;
-				name = dpermission->Get("permission");
+				nameBuf << dpermission->Get("permission");
 				hasFilter = dpermission->Contains("filter");
 			} else
-				name = permission;
+				nameBuf << permission;
 
 			if (hasFilter)
-				name += " (filtered)";
+				nameBuf << " (filtered)";
 
-			permInfo.emplace_back(std::move(name));
+			permInfo.emplace_back(nameBuf.str());
 		}
 	}
 
@@ -84,21 +84,23 @@ bool InfoHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, 
 	} else {
 		response.AddHeader("Content-Type", "text/html");
 
-		String body = "<html><head><title>Icinga 2</title></head><h1>Hello from Icinga 2 (Version: " + Application::GetAppVersion() + ")!</h1>";
-		body += "<p>You are authenticated as <b>" + user->GetName() + "</b>. ";
+		std::ostringstream bodyBuf;
+		bodyBuf << "<html><head><title>Icinga 2</title></head><h1>Hello from Icinga 2 (Version: " << Application::GetAppVersion() << ")!</h1>";
+		bodyBuf << "<p>You are authenticated as <b>" << user->GetName() << "</b>. ";
 
 		if (!permInfo.empty()) {
-			body += "Your user has the following permissions:</p> <ul>";
+			bodyBuf << "Your user has the following permissions:</p> <ul>";
 
-			for (const String& perm : permInfo) {
-				body += "<li>" + perm + "</li>";
-			}
+			for (const String& perm : permInfo)
+				bodyBuf << "<li>" << perm << "</li>";
 
-			body += "</ul>";
+			bodyBuf << "</ul>";
 		} else
-			body += "Your user does not have any permissions.</p>";
+			bodyBuf << "Your user does not have any permissions.</p>";
 
-		body += "<p>More information about API requests is available in the <a href=\"https://docs.icinga.com/icinga2/latest\" target=\"_blank\">documentation</a>.</p></html>";
+		bodyBuf << "<p>More information about API requests is available in the <a href=\"https://docs.icinga.com/icinga2/latest\" target=\"_blank\">documentation</a>.</p></html>";
+
+		String body = bodyBuf.str();
 		response.WriteBody(body.CStr(), body.GetLength());
 	}
 

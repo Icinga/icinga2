@@ -74,8 +74,8 @@ Value::Value(const String& value)
 	: m_Value(value)
 { }
 
-Value::Value(String&& value)
-	: m_Value(value)
+Value::Value(const std::string& value)
+	: m_Value(String(value))
 { }
 
 Value::Value(const char *value)
@@ -99,7 +99,7 @@ Value::Value(Object *value)
 	: Value(Object::Ptr(value))
 { }
 
-Value::Value(const intrusive_ptr<Object>& value)
+Value::Value(const Object::Ptr& value)
 {
 	if (value)
 		m_Value = value;
@@ -284,4 +284,14 @@ Value Value::Clone(void) const
 		return static_cast<Object::Ptr>(*this)->Clone();
 	else
 		return *this;
+}
+
+ValueType Value::GetType(void) const
+{
+	return static_cast<ValueType>(m_Value.which());
+}
+
+void Value::Swap(Value& other)
+{
+	m_Value.swap(other.m_Value);
 }

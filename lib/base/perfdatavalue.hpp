@@ -49,7 +49,7 @@ public:
 
 private:
 	static Value ParseWarnCritMinMaxToken(const std::vector<String>& tokens,
-		std::vector<String>::size_type index, const String& description);
+		std::vector<String>::size_type index, const char *description);
 };
 
 }

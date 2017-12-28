@@ -34,8 +34,7 @@ void RandomCheckTask::ScriptFunc(const Checkable::Ptr& service, const CheckResul
 	if (resolvedMacros && !useResolvedMacros)
 		return;
 
-	String output = "Hello from ";
-	output += IcingaApplication::GetInstance()->GetNodeName();
+	String output = "Hello from " + IcingaApplication::GetInstance()->GetNodeName();
 
 	Array::Ptr perfdata = new Array();
 	perfdata->Add(new PerfdataValue("time", Utility::GetTime()));

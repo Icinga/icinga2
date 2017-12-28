@@ -19,13 +19,9 @@
 
 #include "base/perfdatavalue.hpp"
 #include "base/perfdatavalue.tcpp"
-#include "base/convert.hpp"
 #include "base/exception.hpp"
 #include "base/logger.hpp"
 #include "base/function.hpp"
-#include <boost/algorithm/string/case_conv.hpp>
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/classification.hpp>
 
 using namespace icinga;
 
@@ -70,10 +66,9 @@ PerfdataValue::Ptr PerfdataValue::Parse(const String& perfdata)
 
 	size_t pos = valueStr.FindFirstNotOf("+-0123456789.e");
 
-	double value = Convert::ToDouble(valueStr.SubStr(0, pos));
+	double value = static_cast<double>(valueStr.SubStr(0, pos));
 
-	std::vector<String> tokens;
-	boost::algorithm::split(tokens, valueStr, boost::is_any_of(";"));
+	std::vector<String> tokens = valueStr.Split(";");
 
 	bool counter = false;
 	String unit;
@@ -82,7 +77,7 @@ PerfdataValue::Ptr PerfdataValue::Parse(const String& perfdata)
 	if (pos != String::NPos)
 		unit = valueStr.SubStr(pos, tokens[0].GetLength() - pos);
 
-	boost::algorithm::to_lower(unit);
+	unit = unit.ToLower();
 
 	double base = 1.0;
 
@@ -148,7 +143,7 @@ String PerfdataValue::Format(void) const
 	else
 		result << GetLabel();
 
-	result << "=" << Convert::ToString(GetValue());
+	result << "=" << GetValue();
 
 	String unit;
 
@@ -164,16 +159,16 @@ String PerfdataValue::Format(void) const
 	result << unit;
 
 	if (!GetWarn().IsEmpty()) {
-		result << ";" << Convert::ToString(GetWarn());
+		result << ";" << GetWarn();
 
 		if (!GetCrit().IsEmpty()) {
-			result << ";" << Convert::ToString(GetCrit());
+			result << ";" << GetCrit();
 
 			if (!GetMin().IsEmpty()) {
-				result << ";" << Convert::ToString(GetMin());
+				result << ";" << GetMin();
 
 				if (!GetMax().IsEmpty()) {
-					result << ";" << Convert::ToString(GetMax());
+					result << ";" << GetMax();
 				}
 			}
 		}
@@ -182,10 +177,10 @@ String PerfdataValue::Format(void) const
 	return result.str();
 }
 
-Value PerfdataValue::ParseWarnCritMinMaxToken(const std::vector<String>& tokens, std::vector<String>::size_type index, const String& description)
+Value PerfdataValue::ParseWarnCritMinMaxToken(const std::vector<String>& tokens, std::vector<String>::size_type index, const char *description)
 {
 	if (tokens.size() > index && tokens[index] != "U" && tokens[index] != "" && tokens[index].FindFirstNotOf("+-0123456789.e") == String::NPos)
-		return Convert::ToDouble(tokens[index]);
+		return static_cast<double>(tokens[index]);
 	else {
 		if (tokens.size() > index && tokens[index] != "")
 			Log(LogDebug, "PerfdataValue")

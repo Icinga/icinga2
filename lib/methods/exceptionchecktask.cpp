@@ -22,7 +22,6 @@
 #endif /* _WIN32 */
 #include "methods/exceptionchecktask.hpp"
 #include "base/utility.hpp"
-#include "base/convert.hpp"
 #include "base/function.hpp"
 #include "base/logger.hpp"
 #include "base/exception.hpp"

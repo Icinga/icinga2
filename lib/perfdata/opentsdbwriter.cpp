@@ -27,7 +27,6 @@
 #include "base/configtype.hpp"
 #include "base/objectlock.hpp"
 #include "base/logger.hpp"
-#include "base/convert.hpp"
 #include "base/utility.hpp"
 #include "base/perfdatavalue.hpp"
 #include "base/application.hpp"
@@ -35,10 +34,6 @@
 #include "base/networkstream.hpp"
 #include "base/exception.hpp"
 #include "base/statsfunction.hpp"
-#include <boost/algorithm/string.hpp>
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/replace.hpp>
 
 using namespace icinga;
 
@@ -183,8 +178,7 @@ void OpenTsdbWriter::SendPerfdata(const String& metric, const std::map<String, S
 			}
 		}
 
-		String escaped_key = EscapeMetric(pdv->GetLabel());
-		boost::algorithm::replace_all(escaped_key, "::", ".");
+		String escaped_key = EscapeMetric(pdv->GetLabel()).ReplaceAll("::", ".");
 
 		SendMetric(metric + "." + escaped_key, tags, pdv->GetValue(), ts);
 
@@ -201,18 +195,16 @@ void OpenTsdbWriter::SendPerfdata(const String& metric, const std::map<String, S
 
 void OpenTsdbWriter::SendMetric(const String& metric, const std::map<String, String>& tags, double value, double ts)
 {
-	String tags_string = "";
-	for (const Dictionary::Pair& tag : tags) {
-		tags_string += " " + tag.first + "=" + Convert::ToString(tag.second);
-	}
-
 	std::ostringstream msgbuf;
 	/*
 	 * must be (http://opentsdb.net/docs/build/html/user_guide/writing.html)
 	 * put <metric> <timestamp> <value> <tagk1=tagv1[ tagk2=tagv2 ...tagkN=tagvN]>
 	 * "tags" must include at least one tag, we use "host=HOSTNAME"
 	 */
-	msgbuf << "put " << metric << " " << static_cast<long>(ts) << " " << Convert::ToString(value) << " " << tags_string;
+	msgbuf << "put " << metric << " " << static_cast<long>(ts) << " " << value;
+
+	for (const auto& tag : tags)
+		msgbuf << " " << tag.first << "=" << tag.second;
 
 	Log(LogDebug, "OpenTsdbWriter")
 		<< "Add to metric list:'" << msgbuf.str() << "'.";
@@ -241,21 +233,16 @@ void OpenTsdbWriter::SendMetric(const String& metric, const std::map<String, Str
  */
 String OpenTsdbWriter::EscapeTag(const String& str)
 {
-	String result = str;
-
-	boost::replace_all(result, " ", "_");
-	boost::replace_all(result, "\\", "_");
-
-	return result;
+	return str.ReplaceAll(
+		{ " ", "\\" },
+		{ "_", "_" }
+	);
 }
 
 String OpenTsdbWriter::EscapeMetric(const String& str)
 {
-	String result = str;
-
-	boost::replace_all(result, " ", "_");
-	boost::replace_all(result, ".", "_");
-	boost::replace_all(result, "\\", "_");
-
-	return result;
+	return str.ReplaceAll(
+		{ " ", ".", "\\" },
+		{ "_", "_", "_" }
+	);
 }

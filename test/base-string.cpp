@@ -41,24 +41,6 @@ BOOST_AUTO_TEST_CASE(equal)
 	BOOST_CHECK(String("hello") != "helloworld");
 }
 
-BOOST_AUTO_TEST_CASE(clear)
-{
-	String s = "hello";
-	s.Clear();
-	BOOST_CHECK(s == "");
-	BOOST_CHECK(s.IsEmpty());
-}
-
-BOOST_AUTO_TEST_CASE(append)
-{
-	String s;
-	s += "he";
-	s += String("ll");
-	s += 'o';
-
-	BOOST_CHECK(s == "hello");
-}
-
 BOOST_AUTO_TEST_CASE(trim)
 {
 	String s1 = "hello";
@@ -89,26 +71,10 @@ BOOST_AUTO_TEST_CASE(contains)
 	BOOST_CHECK(s5.Contains(s6));
 }
 
-BOOST_AUTO_TEST_CASE(replace)
-{
-	String s = "hello";
-
-	s.Replace(0, 2, "x");
-	BOOST_CHECK(s == "xllo");
-}
-
 BOOST_AUTO_TEST_CASE(index)
 {
 	String s = "hello";
 	BOOST_CHECK(s[0] == 'h');
-
-	s[0] = 'x';
-	BOOST_CHECK(s == "xello");
-
-	for (char& ch : s) {
-		ch = 'y';
-	}
-	BOOST_CHECK(s == "yyyyy");
 }
 
 BOOST_AUTO_TEST_CASE(find)

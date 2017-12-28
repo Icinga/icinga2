@@ -23,7 +23,6 @@
 #include "base/logger.hpp"
 #include "base/exception.hpp"
 #include "base/context.hpp"
-#include "base/convert.hpp"
 
 using namespace icinga;
 

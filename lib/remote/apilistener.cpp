@@ -23,7 +23,6 @@
 #include "remote/endpoint.hpp"
 #include "remote/jsonrpc.hpp"
 #include "remote/apifunction.hpp"
-#include "base/convert.hpp"
 #include "base/netstring.hpp"
 #include "base/json.hpp"
 #include "base/configtype.hpp"
@@ -425,14 +424,14 @@ void ApiListener::NewClientHandlerInternal(const Socket::Ptr& client, const Stri
 {
 	CONTEXT("Handling new API client connection");
 
-	String conninfo;
+	std::ostringstream conninfoBuf;
 
 	if (role == RoleClient)
-		conninfo = "to";
+		conninfoBuf << "to";
 	else
-		conninfo = "from";
+		conninfoBuf << "from";
 
-	conninfo += " " + client->GetPeerAddress();
+	conninfoBuf << " " << client->GetPeerAddress();
 
 	TlsStream::Ptr tlsStream;
 
@@ -442,7 +441,7 @@ void ApiListener::NewClientHandlerInternal(const Socket::Ptr& client, const Stri
 			tlsStream = new TlsStream(client, hostname, role, m_SSLContext);
 		} catch (const std::exception&) {
 			Log(LogCritical, "ApiListener")
-				<< "Cannot create TLS stream from client connection (" << conninfo << ")";
+				<< "Cannot create TLS stream from client connection (" << conninfoBuf.str() << ")";
 			return;
 		}
 	}
@@ -451,7 +450,7 @@ void ApiListener::NewClientHandlerInternal(const Socket::Ptr& client, const Stri
 		tlsStream->Handshake();
 	} catch (const std::exception&) {
 		Log(LogCritical, "ApiListener")
-			<< "Client TLS handshake failed (" << conninfo << ")";
+			<< "Client TLS handshake failed (" << conninfoBuf.str() << ")";
 		return;
 	}
 
@@ -489,7 +488,7 @@ void ApiListener::NewClientHandlerInternal(const Socket::Ptr& client, const Stri
 		{
 			Log log(LogInformation, "ApiListener");
 
-			log << "New client connection for identity '" << identity << "' " << conninfo;
+			log << "New client connection for identity '" << identity << "' " << conninfoBuf.str();
 
 			if (!verify_ok)
 				log << " (certificate validation failed: " << tlsStream->GetVerifyError() << ")";
@@ -498,7 +497,7 @@ void ApiListener::NewClientHandlerInternal(const Socket::Ptr& client, const Stri
 		}
 	} else {
 		Log(LogInformation, "ApiListener")
-			<< "New client connection " << conninfo << " (no client certificate)";
+			<< "New client connection " << conninfoBuf.str() << " (no client certificate)";
 	}
 
 	ClientType ctype;
@@ -651,7 +650,7 @@ void ApiListener::ApiTimerHandler(void)
 		}
 
 		if (!need) {
-			String path = GetApiDir() + "log/" + Convert::ToString(ts);
+			String path = GetApiDir() + "log/" + std::to_string(ts);
 			Log(LogNotice, "ApiListener")
 				<< "Removing old log file: " << path;
 			(void)unlink(path.CStr());
@@ -758,7 +757,7 @@ void ApiListener::ApiReconnectTimerHandler(void)
 	std::vector<String> names;
 	for (const Endpoint::Ptr& endpoint : ConfigType::GetObjectsByType<Endpoint>())
 		if (endpoint->GetConnected())
-			names.emplace_back(endpoint->GetName() + " (" + Convert::ToString(endpoint->GetClients().size()) + ")");
+			names.emplace_back(endpoint->GetName() + " (" + std::to_string(endpoint->GetClients().size()) + ")");
 
 	Log(LogNotice, "ApiListener")
 		<< "Connected endpoints: " << Utility::NaturalJoin(names);
@@ -1018,13 +1017,13 @@ void ApiListener::CloseLogFile(void)
 /* must hold m_LogLock */
 void ApiListener::RotateLogFile(void)
 {
-	double ts = GetLogMessageTimestamp();
+	int ts = GetLogMessageTimestamp();
 
 	if (ts == 0)
 		ts = Utility::GetTime();
 
 	String oldpath = GetApiDir() + "log/current";
-	String newpath = GetApiDir() + "log/" + Convert::ToString(static_cast<int>(ts)+1);
+	String newpath = GetApiDir() + "log/" + std::to_string(ts + 1);
 	(void) rename(oldpath.CStr(), newpath.CStr());
 }
 
@@ -1038,7 +1037,7 @@ void ApiListener::LogGlobHandler(std::vector<int>& files, const String& file)
 	int ts;
 
 	try {
-		ts = Convert::ToLong(name);
+		ts = static_cast<double>(name);
 	} catch (const std::exception&) {
 		return;
 	}
@@ -1094,7 +1093,7 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 		std::sort(files.begin(), files.end());
 
 		for (int ts : files) {
-			String path = GetApiDir() + "log/" + Convert::ToString(ts);
+			String path = GetApiDir() + "log/" + std::to_string(ts);
 
 			if (ts < peer_ts)
 				continue;
@@ -1410,12 +1409,13 @@ void ApiListener::ValidateTlsProtocolmin(const String& value, const ValidationUt
 		value != SSL_TXT_TLSV1_2
 #endif /* SSL_TXT_TLSV1_1 */
 		) {
-		String message = "Invalid TLS version. Must be one of '" SSL_TXT_TLSV1 "'";
+		std::ostringstream msgbuf;
+		msgbuf << "Invalid TLS version. Must be one of '" SSL_TXT_TLSV1 "'";
 #ifdef SSL_TXT_TLSV1_1
-		message += ", '" SSL_TXT_TLSV1_1 "' or '" SSL_TXT_TLSV1_2 "'";
+		msgbuf << ", '" SSL_TXT_TLSV1_1 "' or '" SSL_TXT_TLSV1_2 "'";
 #endif /* SSL_TXT_TLSV1_1 */
 
-		BOOST_THROW_EXCEPTION(ValidationError(this, { "tls_protocolmin" }, message));
+		BOOST_THROW_EXCEPTION(ValidationError(this, { "tls_protocolmin" }, msgbuf.str()));
 	}
 }
 
