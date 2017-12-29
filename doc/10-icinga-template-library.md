@@ -2820,7 +2820,7 @@ or the guest system.
 
 The [check_mem.pl](https://github.com/justintime/nagios-plugins) plugin checks the
 memory usage on linux and unix hosts. It is able to count cache memory as free when
-compared to thresholds. More details can be found on [this blog entry]((http://sysadminsjourney.com/content/2009/06/04/new-and-improved-checkmempl-nagios-plugin).
+compared to thresholds. More details can be found on [this blog entry](http://sysadminsjourney.com/content/2009/06/04/new-and-improved-checkmempl-nagios-plugin).
 
 Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
 
