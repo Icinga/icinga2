@@ -220,7 +220,7 @@ void ApiListener::Start(bool runtimeCreated)
 	ObjectImpl<ApiListener>::Start(runtimeCreated);
 
 	{
-		boost::mutex::scoped_lock(m_LogLock);
+		boost::mutex::scoped_lock lock(m_LogLock);
 		RotateLogFile();
 		OpenLogFile();
 	}
