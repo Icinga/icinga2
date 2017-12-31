@@ -99,9 +99,9 @@ protected:
 private:
 	static boost::mutex m_Mutex;
 	static std::set<Logger::Ptr> m_Loggers;
-	static bool m_ConsoleLogEnabled;
-	static bool m_TimestampEnabled;
-	static LogSeverity m_ConsoleLogSeverity;
+	static std::atomic<bool> m_ConsoleLogEnabled;
+	static std::atomic<bool> m_TimestampEnabled;
+	static std::atomic<LogSeverity> m_ConsoleLogSeverity;
 };
 
 I2_BASE_API void IcingaLog(LogSeverity severity, const String& facility, const String& message);

@@ -34,9 +34,9 @@ REGISTER_TYPE(Logger);
 
 std::set<Logger::Ptr> Logger::m_Loggers;
 boost::mutex Logger::m_Mutex;
-bool Logger::m_ConsoleLogEnabled = true;
-bool Logger::m_TimestampEnabled = true;
-LogSeverity Logger::m_ConsoleLogSeverity = LogInformation;
+std::atomic<bool> Logger::m_ConsoleLogEnabled(true);
+std::atomic<bool> Logger::m_TimestampEnabled(true);
+std::atomic<LogSeverity> Logger::m_ConsoleLogSeverity(LogInformation);
 
 INITIALIZE_ONCE([]() {
 	ScriptGlobal::Set("LogDebug", LogDebug);

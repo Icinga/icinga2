@@ -52,7 +52,8 @@ Object::Object(void)
  */
 Object::~Object(void)
 {
-	delete reinterpret_cast<boost::recursive_mutex *>(m_Mutex);
+	uintptr_t mtx = m_Mutex.load();
+	delete reinterpret_cast<boost::recursive_mutex *>(mtx);
 }
 
 /**

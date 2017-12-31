@@ -143,8 +143,8 @@ private:
 	Object(const Object& other);
 	Object& operator=(const Object& rhs);
 
-	uintptr_t m_References;
-	mutable uintptr_t m_Mutex;
+	std::atomic<uintptr_t> m_References;
+	mutable std::atomic<uintptr_t> m_Mutex;
 
 #ifdef I2_DEBUG
 #	ifndef _WIN32
@@ -167,29 +167,21 @@ I2_BASE_API void TypeRemoveObject(Object *object);
 
 inline void intrusive_ptr_add_ref(Object *object)
 {
+	uintptr_t refs = object->m_References.fetch_add(std::memory_order_relaxed);
+
 #ifdef I2_LEAK_DEBUG
-	if (object->m_References == 0)
+	if (refs == 1)
 		TypeAddObject(object);
 #endif /* I2_LEAK_DEBUG */
-
-#ifdef _WIN32
-	InterlockedIncrement(&object->m_References);
-#else /* _WIN32 */
-	__sync_add_and_fetch(&object->m_References, 1);
-#endif /* _WIN32 */
 }
 
 inline void intrusive_ptr_release(Object *object)
 {
-	uintptr_t refs;
+	uintptr_t refs = object->m_References.fetch_sub(1, std::memory_order_release);
 
-#ifdef _WIN32
-	refs = InterlockedDecrement(&object->m_References);
-#else /* _WIN32 */
-	refs = __sync_sub_and_fetch(&object->m_References, 1);
-#endif /* _WIN32 */
+	if (unlikely(refs == 1)) {
+		std::atomic_thread_fence(std::memory_order_acquire);
 
-	if (unlikely(refs == 0)) {
 #ifdef I2_LEAK_DEBUG
 		TypeRemoveObject(object);
 #endif /* I2_LEAK_DEBUG */
