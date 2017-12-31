@@ -36,7 +36,7 @@ struct ProcessResult;
  *
  * @ingroup icinga
  */
-class I2_ICINGA_API PluginUtility
+class PluginUtility
 {
 public:
 	static void ExecuteCommand(const Command::Ptr& commandObj, const Checkable::Ptr& checkable,

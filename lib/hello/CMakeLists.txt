@@ -25,21 +25,11 @@ if(ICINGA2_UNITY_BUILD)
     mkunity_target(hello hello hello_SOURCES)
 endif()
 
-add_library(hello SHARED ${hello_SOURCES})
+add_library(hello STATIC ${hello_SOURCES})
 
 target_link_libraries(hello ${Boost_LIBRARIES} base config)
 
 set_target_properties (
   hello PROPERTIES
-  INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR}/icinga2
-  DEFINE_SYMBOL I2_HELLO_BUILD
   FOLDER Lib
-  VERSION ${SPEC_VERSION}
 )
-
-install(
-  TARGETS hello
-  RUNTIME DESTINATION ${CMAKE_INSTALL_SBINDIR}
-  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/icinga2
-)
-

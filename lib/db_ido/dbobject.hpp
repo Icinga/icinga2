@@ -59,7 +59,7 @@ enum DbObjectType
  *
  * @ingroup ido
  */
-class I2_DB_IDO_API DbObject : public Object
+class DbObject : public Object
 {
 public:
 	DECLARE_PTR_TYPEDEFS(DbObject);

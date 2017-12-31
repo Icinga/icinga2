@@ -30,7 +30,7 @@ namespace icinga
 /**
  * @ingroup config
  */
-class I2_CONFIG_API ApplyRule
+class ApplyRule
 {
 public:
 	typedef std::map<String, std::vector<String> > TypeMap;

@@ -34,7 +34,7 @@ namespace icinga
 /**
  * @ingroup cli
  */
-class I2_CLI_API ApiSetupUtility
+class ApiSetupUtility
 {
 public:
 	static bool SetupMaster(const String& cn, bool prompt_restart = false);

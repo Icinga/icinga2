@@ -26,7 +26,7 @@
 namespace icinga
 {
 
-class I2_REMOTE_API EventsHandler : public HttpHandler
+class EventsHandler : public HttpHandler
 {
 public:
 	DECLARE_PTR_TYPEDEFS(EventsHandler);

@@ -78,7 +78,7 @@ class Dependency;
  *
  * @ingroup icinga
  */
-class I2_ICINGA_API Checkable : public ObjectImpl<Checkable>
+class Checkable : public ObjectImpl<Checkable>
 {
 public:
 	DECLARE_OBJECT(Checkable);

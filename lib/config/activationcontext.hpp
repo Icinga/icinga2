@@ -28,7 +28,7 @@
 namespace icinga
 {
 
-class I2_CONFIG_API ActivationContext : public Object
+class ActivationContext : public Object
 {
 public:
 	DECLARE_PTR_TYPEDEFS(ActivationContext);
@@ -46,7 +46,7 @@ private:
 	friend class ActivationScope;
 };
 
-class I2_CONFIG_API ActivationScope
+class ActivationScope
 {
 public:
 	ActivationScope(const ActivationContext::Ptr& context = nullptr);

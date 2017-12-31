@@ -30,16 +30,13 @@ if(ICINGA2_UNITY_BUILD)
     mkunity_target(compat compat compat_SOURCES)
 endif()
 
-add_library(compat SHARED ${compat_SOURCES})
+add_library(compat STATIC ${compat_SOURCES})
 
 target_link_libraries(compat ${Boost_LIBRARIES} base config icinga)
 
 set_target_properties (
   compat PROPERTIES
-  INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR}/icinga2
-  DEFINE_SYMBOL I2_COMPAT_BUILD
   FOLDER Components
-  VERSION ${SPEC_VERSION}
 )
 
 install_if_not_exists(
@@ -56,8 +53,6 @@ install_if_not_exists(
   ${PROJECT_SOURCE_DIR}/etc/icinga2/features-available/statusdata.conf
   ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/features-available
 )
-
-install(TARGETS compat RUNTIME DESTINATION ${CMAKE_INSTALL_SBINDIR} LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/icinga2)
 
 install(CODE "file(MAKE_DIRECTORY \"\$ENV{DESTDIR}${CMAKE_INSTALL_FULL_LOCALSTATEDIR}/log/icinga2/compat/archives\")")
 install(CODE "file(MAKE_DIRECTORY \"\$ENV{DESTDIR}${CMAKE_INSTALL_FULL_LOCALSTATEDIR}/spool/icinga2\")")

@@ -32,7 +32,7 @@ namespace icinga
 /**
  * @ingroup icinga
  */
-class I2_ICINGA_API ClusterEvents
+class ClusterEvents
 {
 public:
 	static void StaticInitialize(void);

@@ -31,7 +31,7 @@ namespace icinga
 /*
  * @ingroup config
  */
-class I2_CONFIG_API ConfigCompilerContext
+class ConfigCompilerContext
 {
 public:
 	ConfigCompilerContext(void);

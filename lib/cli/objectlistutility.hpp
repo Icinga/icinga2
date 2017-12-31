@@ -33,7 +33,7 @@ namespace icinga
 /**
  * @ingroup cli
  */
-class I2_CLI_API ObjectListUtility
+class ObjectListUtility
 {
 public:
 	static bool PrintObject(std::ostream& fp, bool& first, const String& message, std::map<String, int>& type_count, const String& name_filter, const String& type_filter);

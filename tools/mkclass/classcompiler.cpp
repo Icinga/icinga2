@@ -109,20 +109,6 @@ void ClassCompiler::HandleCode(const std::string& code, const ClassDebugInfo&)
 void ClassCompiler::HandleLibrary(const std::string& library, const ClassDebugInfo&)
 {
 	m_Library = library;
-
-	std::string libName = m_Library;
-	std::locale locale;
-
-	for (auto& ch : libName)
-		ch = std::toupper(ch, locale);
-
-	m_Header << "#ifndef I2_" << libName << "_API" << std::endl
-		<< "#	ifdef I2_" << libName << "_BUILD" << std::endl
-		<< "#		define I2_" << libName << "_API I2_EXPORT" << std::endl
-		<< "#	else /* I2_" << libName << "_BUILD */" << std::endl
-		<< "#		define I2_" << libName << "_API I2_IMPORT" << std::endl
-		<< "#	endif /* I2_" << libName << "_BUILD */" << std::endl
-		<< "#endif /* I2_" << libName << "_API */" << std::endl << std::endl;
 }
 
 unsigned long ClassCompiler::SDBM(const std::string& str, size_t len = std::string::npos)
@@ -203,18 +189,6 @@ void ClassCompiler::OptimizeStructLayout(std::vector<Field>& fields)
 
 void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 {
-	std::string apiMacro;
-
-	if (!m_Library.empty()) {
-		std::string libName = m_Library;
-		std::locale locale;
-
-		for (auto& ch : libName)
-			ch = std::toupper(ch, locale);
-
-		apiMacro = "I2_" + libName + "_API ";
-	}
-
 	/* forward declaration */
 	if (klass.Name.find_first_of(':') == std::string::npos)
 		m_Header << "class " << klass.Name << ";" << std::endl << std::endl;
@@ -233,7 +207,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 
 	/* TypeImpl */
 	m_Header << "template<>" << std::endl
-		<< "class " << apiMacro << "TypeImpl<" << klass.Name << ">"
+		<< "class TypeImpl<" << klass.Name << ">"
 		<< " : public Type";
 
 	if (!klass.Parent.empty())
@@ -471,7 +445,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 
 	/* ObjectImpl */
 	m_Header << "template<>" << std::endl
-			<< "class " << apiMacro << "ObjectImpl<" << klass.Name << ">"
+			<< "class ObjectImpl<" << klass.Name << ">"
 			<< " : public " << (klass.Parent.empty() ? "Object" : klass.Parent) << std::endl
 			<< "{" << std::endl
 			<< "public:" << std::endl

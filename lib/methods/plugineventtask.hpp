@@ -32,7 +32,7 @@ namespace icinga
  *
  * @ingroup methods
  */
-class I2_METHODS_API PluginEventTask
+class PluginEventTask
 {
 public:
 	static void ScriptFunc(const Checkable::Ptr& service,

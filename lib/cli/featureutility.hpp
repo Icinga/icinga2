@@ -32,7 +32,7 @@ namespace icinga
 /**
  * @ingroup cli
  */
-class I2_CLI_API FeatureUtility
+class FeatureUtility
 {
 public:
 	static String GetFeaturesAvailablePath(void);

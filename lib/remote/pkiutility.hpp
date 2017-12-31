@@ -31,7 +31,7 @@ namespace icinga
 /**
  * @ingroup remote
  */
-class I2_REMOTE_API PkiUtility
+class PkiUtility
 {
 public:
 	static int NewCa(void);

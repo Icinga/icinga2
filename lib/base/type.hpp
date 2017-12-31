@@ -70,7 +70,7 @@ public:
 	virtual bool ValidateName(const String& type, const String& name) const = 0;
 };
 
-class I2_BASE_API Type : public Object
+class Type : public Object
 {
 public:
 	DECLARE_OBJECT(Type);
@@ -114,7 +114,7 @@ private:
 	Object::Ptr m_Prototype;
 };
 
-class I2_BASE_API TypeType : public Type
+class TypeType : public Type
 {
 public:
 	DECLARE_PTR_TYPEDEFS(Type);
@@ -133,7 +133,7 @@ protected:
 };
 
 template<typename T>
-class I2_BASE_API TypeImpl
+class TypeImpl
 {
 };
 

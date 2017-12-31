@@ -30,7 +30,7 @@ namespace icinga
 
 class ConfigObject;
 
-class I2_BASE_API ConfigType
+class ConfigType
 {
 public:
 	virtual ~ConfigType(void);

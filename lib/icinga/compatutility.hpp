@@ -36,7 +36,7 @@ namespace icinga
  *
  * @ingroup icinga
  */
-class I2_ICINGA_API CompatUtility
+class CompatUtility
 {
 public:
 	/* command */

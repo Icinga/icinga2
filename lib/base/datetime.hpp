@@ -33,7 +33,7 @@ namespace icinga
  *
  * @ingroup base
  */
-class I2_BASE_API DateTime : public ObjectImpl<DateTime>
+class DateTime : public ObjectImpl<DateTime>
 {
 public:
 	DECLARE_OBJECT(DateTime);

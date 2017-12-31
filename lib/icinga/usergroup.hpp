@@ -34,7 +34,7 @@ class ConfigItem;
  *
  * @ingroup icinga
  */
-class I2_ICINGA_API UserGroup : public ObjectImpl<UserGroup>
+class UserGroup : public ObjectImpl<UserGroup>
 {
 public:
 	DECLARE_OBJECT(UserGroup);

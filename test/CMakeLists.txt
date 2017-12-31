@@ -35,7 +35,6 @@ endif()
 
 add_boost_test(base
   SOURCES test-runner.cpp ${base_test_SOURCES}
-  LIBRARIES base config icinga
   TESTS base_array/construct
         base_array/getset
         base_array/resize
@@ -121,6 +120,10 @@ add_boost_test(base
         remote_url/illegal_legal_strings
 )
 
+add_whole_static_library(${base_TARGET_NAME} base)
+add_whole_static_library(${base_TARGET_NAME} config)
+add_whole_static_library(${base_TARGET_NAME} icinga)
+
 if(ICINGA2_WITH_LIVESTATUS)
   set(livestatus_test_SOURCES
     livestatus.cpp
@@ -132,10 +135,14 @@ if(ICINGA2_WITH_LIVESTATUS)
 
   add_boost_test(livestatus
     SOURCES test-runner.cpp livestatus-fixture.cpp ${livestatus_test_SOURCES}
-    LIBRARIES base config icinga livestatus
-    DEPENDENCIES methods
     TESTS livestatus/hosts livestatus/services
   )
+
+  add_whole_static_library(${livestatus_TARGET_NAME} base)
+  add_whole_static_library(${livestatus_TARGET_NAME} config)
+  add_whole_static_library(${livestatus_TARGET_NAME} icinga)
+  add_whole_static_library(${livestatus_TARGET_NAME} livestatus)
+  add_whole_static_library(${livestatus_TARGET_NAME} methods)
 endif()
 
 set(icinga_checkable_test_SOURCES
@@ -148,10 +155,13 @@ endif()
 
 add_boost_test(icinga_checkable
   SOURCES test-runner.cpp icinga-checkable-test.cpp ${icinga_checkable_test_SOURCES}
-  LIBRARIES base config icinga cli
   TESTS icinga_checkable_flapping/host_not_flapping
         icinga_checkable_flapping/host_flapping
         icinga_checkable_flapping/host_flapping_recover
         icinga_checkable_flapping/host_flapping_docs_example
 )
 
+add_whole_static_library(${icinga_checkable_TARGET_NAME} base)
+add_whole_static_library(${icinga_checkable_TARGET_NAME} config)
+add_whole_static_library(${icinga_checkable_TARGET_NAME} icinga)
+add_whole_static_library(${icinga_checkable_TARGET_NAME} cli)

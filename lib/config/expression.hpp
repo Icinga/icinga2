@@ -195,7 +195,7 @@ private:
 /**
  * @ingroup config
  */
-class I2_CONFIG_API Expression
+class Expression
 {
 public:
 	Expression(void) = default;
@@ -215,9 +215,9 @@ public:
 	static void ScriptBreakpoint(ScriptFrame& frame, ScriptError *ex, const DebugInfo& di);
 };
 
-I2_CONFIG_API std::unique_ptr<Expression> MakeIndexer(ScopeSpecifier scopeSpec, const String& index);
+std::unique_ptr<Expression> MakeIndexer(ScopeSpecifier scopeSpec, const String& index);
 
-class I2_CONFIG_API OwnedExpression : public Expression
+class OwnedExpression : public Expression
 {
 public:
 	OwnedExpression(const std::shared_ptr<Expression>& expression)
@@ -239,7 +239,7 @@ private:
 	std::shared_ptr<Expression> m_Expression;
 };
 
-class I2_CONFIG_API LiteralExpression : public Expression
+class LiteralExpression : public Expression
 {
 public:
 	LiteralExpression(const Value& value = Value());
@@ -266,7 +266,7 @@ inline std::unique_ptr<LiteralExpression> MakeLiteral(const Value& literal = Val
 	return std::unique_ptr<LiteralExpression>(MakeLiteralRaw(literal));
 }
 
-class I2_CONFIG_API DebuggableExpression : public Expression
+class DebuggableExpression : public Expression
 {
 public:
 	DebuggableExpression(const DebugInfo& debugInfo = DebugInfo())
@@ -279,7 +279,7 @@ protected:
 	DebugInfo m_DebugInfo;
 };
 
-class I2_CONFIG_API UnaryExpression : public DebuggableExpression
+class UnaryExpression : public DebuggableExpression
 {
 public:
 	UnaryExpression(std::unique_ptr<Expression> operand, const DebugInfo& debugInfo = DebugInfo())
@@ -290,7 +290,7 @@ protected:
 	std::unique_ptr<Expression> m_Operand;
 };
 
-class I2_CONFIG_API BinaryExpression : public DebuggableExpression
+class BinaryExpression : public DebuggableExpression
 {
 public:
 	BinaryExpression(std::unique_ptr<Expression> operand1, std::unique_ptr<Expression> operand2, const DebugInfo& debugInfo = DebugInfo())
@@ -302,7 +302,7 @@ protected:
 	std::unique_ptr<Expression> m_Operand2;
 };
 
-class I2_CONFIG_API VariableExpression : public DebuggableExpression
+class VariableExpression : public DebuggableExpression
 {
 public:
 	VariableExpression(const String& variable, const DebugInfo& debugInfo = DebugInfo())
@@ -321,10 +321,10 @@ protected:
 private:
 	String m_Variable;
 
-	friend I2_CONFIG_API void BindToScope(std::unique_ptr<Expression>& expr, ScopeSpecifier scopeSpec);
+	friend void BindToScope(std::unique_ptr<Expression>& expr, ScopeSpecifier scopeSpec);
 };
 
-class I2_CONFIG_API NegateExpression : public UnaryExpression
+class NegateExpression : public UnaryExpression
 {
 public:
 	NegateExpression(std::unique_ptr<Expression> operand, const DebugInfo& debugInfo = DebugInfo())
@@ -335,7 +335,7 @@ protected:
 	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
-class I2_CONFIG_API LogicalNegateExpression : public UnaryExpression
+class LogicalNegateExpression : public UnaryExpression
 {
 public:
 	LogicalNegateExpression(std::unique_ptr<Expression> operand, const DebugInfo& debugInfo = DebugInfo())
@@ -346,7 +346,7 @@ protected:
 	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
-class I2_CONFIG_API AddExpression : public BinaryExpression
+class AddExpression : public BinaryExpression
 {
 public:
 	AddExpression(std::unique_ptr<Expression> operand1, std::unique_ptr<Expression> operand2, const DebugInfo& debugInfo = DebugInfo())
@@ -357,7 +357,7 @@ protected:
 	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
-class I2_CONFIG_API SubtractExpression : public BinaryExpression
+class SubtractExpression : public BinaryExpression
 {
 public:
 	SubtractExpression(std::unique_ptr<Expression> operand1, std::unique_ptr<Expression> operand2, const DebugInfo& debugInfo = DebugInfo())
@@ -368,7 +368,7 @@ protected:
 	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
-class I2_CONFIG_API MultiplyExpression : public BinaryExpression
+class MultiplyExpression : public BinaryExpression
 {
 public:
 	MultiplyExpression(std::unique_ptr<Expression> operand1, std::unique_ptr<Expression> operand2, const DebugInfo& debugInfo = DebugInfo())
@@ -379,7 +379,7 @@ protected:
 	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
-class I2_CONFIG_API DivideExpression : public BinaryExpression
+class DivideExpression : public BinaryExpression
 {
 public:
 	DivideExpression(std::unique_ptr<Expression> operand1, std::unique_ptr<Expression> operand2, const DebugInfo& debugInfo = DebugInfo())
@@ -390,7 +390,7 @@ protected:
 	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
-class I2_CONFIG_API ModuloExpression : public BinaryExpression
+class ModuloExpression : public BinaryExpression
 {
 public:
 	ModuloExpression(std::unique_ptr<Expression> operand1, std::unique_ptr<Expression> operand2, const DebugInfo& debugInfo = DebugInfo())
@@ -401,7 +401,7 @@ protected:
 	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
-class I2_CONFIG_API XorExpression : public BinaryExpression
+class XorExpression : public BinaryExpression
 {
 public:
 	XorExpression(std::unique_ptr<Expression> operand1, std::unique_ptr<Expression> operand2, const DebugInfo& debugInfo = DebugInfo())
@@ -412,7 +412,7 @@ protected:
 	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
-class I2_CONFIG_API BinaryAndExpression : public BinaryExpression
+class BinaryAndExpression : public BinaryExpression
 {
 public:
 	BinaryAndExpression(std::unique_ptr<Expression> operand1, std::unique_ptr<Expression> operand2, const DebugInfo& debugInfo = DebugInfo())
@@ -423,7 +423,7 @@ protected:
 	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
-class I2_CONFIG_API BinaryOrExpression : public BinaryExpression
+class BinaryOrExpression : public BinaryExpression
 {
 public:
 	BinaryOrExpression(std::unique_ptr<Expression> operand1, std::unique_ptr<Expression> operand2, const DebugInfo& debugInfo = DebugInfo())
@@ -434,7 +434,7 @@ protected:
 	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
-class I2_CONFIG_API ShiftLeftExpression : public BinaryExpression
+class ShiftLeftExpression : public BinaryExpression
 {
 public:
 	ShiftLeftExpression(std::unique_ptr<Expression> operand1, std::unique_ptr<Expression> operand2, const DebugInfo& debugInfo = DebugInfo())
@@ -445,7 +445,7 @@ protected:
 	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
-class I2_CONFIG_API ShiftRightExpression : public BinaryExpression
+class ShiftRightExpression : public BinaryExpression
 {
 public:
 	ShiftRightExpression(std::unique_ptr<Expression> operand1, std::unique_ptr<Expression> operand2, const DebugInfo& debugInfo = DebugInfo())
@@ -456,7 +456,7 @@ protected:
 	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
-class I2_CONFIG_API EqualExpression : public BinaryExpression
+class EqualExpression : public BinaryExpression
 {
 public:
 	EqualExpression(std::unique_ptr<Expression> operand1, std::unique_ptr<Expression> operand2, const DebugInfo& debugInfo = DebugInfo())
@@ -467,7 +467,7 @@ protected:
 	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
-class I2_CONFIG_API NotEqualExpression : public BinaryExpression
+class NotEqualExpression : public BinaryExpression
 {
 public:
 	NotEqualExpression(std::unique_ptr<Expression> operand1, std::unique_ptr<Expression> operand2, const DebugInfo& debugInfo = DebugInfo())
@@ -478,7 +478,7 @@ protected:
 	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
-class I2_CONFIG_API LessThanExpression : public BinaryExpression
+class LessThanExpression : public BinaryExpression
 {
 public:
 	LessThanExpression(std::unique_ptr<Expression> operand1, std::unique_ptr<Expression> operand2, const DebugInfo& debugInfo = DebugInfo())
@@ -489,7 +489,7 @@ protected:
 	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
-class I2_CONFIG_API GreaterThanExpression : public BinaryExpression
+class GreaterThanExpression : public BinaryExpression
 {
 public:
 	GreaterThanExpression(std::unique_ptr<Expression> operand1, std::unique_ptr<Expression> operand2, const DebugInfo& debugInfo = DebugInfo())
@@ -500,7 +500,7 @@ protected:
 	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
-class I2_CONFIG_API LessThanOrEqualExpression : public BinaryExpression
+class LessThanOrEqualExpression : public BinaryExpression
 {
 public:
 	LessThanOrEqualExpression(std::unique_ptr<Expression> operand1, std::unique_ptr<Expression> operand2, const DebugInfo& debugInfo = DebugInfo())
@@ -511,7 +511,7 @@ protected:
 	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
-class I2_CONFIG_API GreaterThanOrEqualExpression : public BinaryExpression
+class GreaterThanOrEqualExpression : public BinaryExpression
 {
 public:
 	GreaterThanOrEqualExpression(std::unique_ptr<Expression> operand1, std::unique_ptr<Expression> operand2, const DebugInfo& debugInfo = DebugInfo())
@@ -522,7 +522,7 @@ protected:
 	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
-class I2_CONFIG_API InExpression : public BinaryExpression
+class InExpression : public BinaryExpression
 {
 public:
 	InExpression(std::unique_ptr<Expression> operand1, std::unique_ptr<Expression> operand2, const DebugInfo& debugInfo = DebugInfo())
@@ -533,7 +533,7 @@ protected:
 	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
-class I2_CONFIG_API NotInExpression : public BinaryExpression
+class NotInExpression : public BinaryExpression
 {
 public:
 	NotInExpression(std::unique_ptr<Expression> operand1, std::unique_ptr<Expression> operand2, const DebugInfo& debugInfo = DebugInfo())
@@ -544,7 +544,7 @@ protected:
 	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
-class I2_CONFIG_API LogicalAndExpression : public BinaryExpression
+class LogicalAndExpression : public BinaryExpression
 {
 public:
 	LogicalAndExpression(std::unique_ptr<Expression> operand1, std::unique_ptr<Expression> operand2, const DebugInfo& debugInfo = DebugInfo())
@@ -555,7 +555,7 @@ protected:
 	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
-class I2_CONFIG_API LogicalOrExpression : public BinaryExpression
+class LogicalOrExpression : public BinaryExpression
 {
 public:
 	LogicalOrExpression(std::unique_ptr<Expression> operand1, std::unique_ptr<Expression> operand2, const DebugInfo& debugInfo = DebugInfo())
@@ -566,7 +566,7 @@ protected:
 	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
-class I2_CONFIG_API FunctionCallExpression : public DebuggableExpression
+class FunctionCallExpression : public DebuggableExpression
 {
 public:
 	FunctionCallExpression(std::unique_ptr<Expression> fname, std::vector<std::unique_ptr<Expression> >&& args, const DebugInfo& debugInfo = DebugInfo())
@@ -581,7 +581,7 @@ public:
 	std::vector<std::unique_ptr<Expression> > m_Args;
 };
 
-class I2_CONFIG_API ArrayExpression : public DebuggableExpression
+class ArrayExpression : public DebuggableExpression
 {
 public:
 	ArrayExpression(std::vector<std::unique_ptr<Expression > >&& expressions, const DebugInfo& debugInfo = DebugInfo())
@@ -595,7 +595,7 @@ private:
 	std::vector<std::unique_ptr<Expression> > m_Expressions;
 };
 
-class I2_CONFIG_API DictExpression : public DebuggableExpression
+class DictExpression : public DebuggableExpression
 {
 public:
 	DictExpression(std::vector<std::unique_ptr<Expression> >&& expressions = {}, const DebugInfo& debugInfo = DebugInfo())
@@ -611,10 +611,10 @@ private:
 	std::vector<std::unique_ptr<Expression> > m_Expressions;
 	bool m_Inline;
 
-	friend I2_CONFIG_API void BindToScope(std::unique_ptr<Expression>& expr, ScopeSpecifier scopeSpec);
+	friend void BindToScope(std::unique_ptr<Expression>& expr, ScopeSpecifier scopeSpec);
 };
 
-class I2_CONFIG_API SetExpression : public BinaryExpression
+class SetExpression : public BinaryExpression
 {
 public:
 	SetExpression(std::unique_ptr<Expression> operand1, CombinedSetOp op, std::unique_ptr<Expression> operand2, const DebugInfo& debugInfo = DebugInfo())
@@ -627,10 +627,10 @@ protected:
 private:
 	CombinedSetOp m_Op;
 
-	friend I2_CONFIG_API void BindToScope(std::unique_ptr<Expression>& expr, ScopeSpecifier scopeSpec);
+	friend void BindToScope(std::unique_ptr<Expression>& expr, ScopeSpecifier scopeSpec);
 };
 
-class I2_CONFIG_API ConditionalExpression : public DebuggableExpression
+class ConditionalExpression : public DebuggableExpression
 {
 public:
 	ConditionalExpression(std::unique_ptr<Expression> condition, std::unique_ptr<Expression> true_branch, std::unique_ptr<Expression> false_branch, const DebugInfo& debugInfo = DebugInfo())
@@ -646,7 +646,7 @@ private:
 	std::unique_ptr<Expression> m_FalseBranch;
 };
 
-class I2_CONFIG_API WhileExpression : public DebuggableExpression
+class WhileExpression : public DebuggableExpression
 {
 public:
 	WhileExpression(std::unique_ptr<Expression> condition, std::unique_ptr<Expression> loop_body, const DebugInfo& debugInfo = DebugInfo())
@@ -662,7 +662,7 @@ private:
 };
 
 
-class I2_CONFIG_API ReturnExpression : public UnaryExpression
+class ReturnExpression : public UnaryExpression
 {
 public:
 	ReturnExpression(std::unique_ptr<Expression> expression, const DebugInfo& debugInfo = DebugInfo())
@@ -673,7 +673,7 @@ protected:
 	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
-class I2_CONFIG_API BreakExpression : public DebuggableExpression
+class BreakExpression : public DebuggableExpression
 {
 public:
 	BreakExpression(const DebugInfo& debugInfo = DebugInfo())
@@ -684,7 +684,7 @@ protected:
 	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
-class I2_CONFIG_API ContinueExpression : public DebuggableExpression
+class ContinueExpression : public DebuggableExpression
 {
 public:
 	ContinueExpression(const DebugInfo& debugInfo = DebugInfo())
@@ -695,7 +695,7 @@ protected:
 	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
-class I2_CONFIG_API GetScopeExpression : public Expression
+class GetScopeExpression : public Expression
 {
 public:
 	GetScopeExpression(ScopeSpecifier scopeSpec)
@@ -709,7 +709,7 @@ private:
 	ScopeSpecifier m_ScopeSpec;
 };
 
-class I2_CONFIG_API IndexerExpression : public BinaryExpression
+class IndexerExpression : public BinaryExpression
 {
 public:
 	IndexerExpression(std::unique_ptr<Expression> operand1, std::unique_ptr<Expression> operand2, const DebugInfo& debugInfo = DebugInfo())
@@ -720,12 +720,12 @@ protected:
 	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 	virtual bool GetReference(ScriptFrame& frame, bool init_dict, Value *parent, String *index, DebugHint **dhint) const override;
 
-	friend I2_CONFIG_API void BindToScope(std::unique_ptr<Expression>& expr, ScopeSpecifier scopeSpec);
+	friend void BindToScope(std::unique_ptr<Expression>& expr, ScopeSpecifier scopeSpec);
 };
 
-I2_CONFIG_API void BindToScope(std::unique_ptr<Expression>& expr, ScopeSpecifier scopeSpec);
+void BindToScope(std::unique_ptr<Expression>& expr, ScopeSpecifier scopeSpec);
 
-class I2_CONFIG_API ThrowExpression : public DebuggableExpression
+class ThrowExpression : public DebuggableExpression
 {
 public:
 	ThrowExpression(std::unique_ptr<Expression> message, bool incompleteExpr, const DebugInfo& debugInfo = DebugInfo())
@@ -740,7 +740,7 @@ private:
 	bool m_IncompleteExpr;
 };
 
-class I2_CONFIG_API ImportExpression : public DebuggableExpression
+class ImportExpression : public DebuggableExpression
 {
 public:
 	ImportExpression(std::unique_ptr<Expression> name, const DebugInfo& debugInfo = DebugInfo())
@@ -754,7 +754,7 @@ private:
 	std::unique_ptr<Expression> m_Name;
 };
 
-class I2_CONFIG_API ImportDefaultTemplatesExpression : public DebuggableExpression
+class ImportDefaultTemplatesExpression : public DebuggableExpression
 {
 public:
 	ImportDefaultTemplatesExpression(const DebugInfo& debugInfo = DebugInfo())
@@ -765,7 +765,7 @@ protected:
 	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
-class I2_CONFIG_API FunctionExpression : public DebuggableExpression
+class FunctionExpression : public DebuggableExpression
 {
 public:
 	FunctionExpression(const String& name, const std::vector<String>& args,
@@ -783,7 +783,7 @@ private:
 	std::shared_ptr<Expression> m_Expression;
 };
 
-class I2_CONFIG_API ApplyExpression : public DebuggableExpression
+class ApplyExpression : public DebuggableExpression
 {
 public:
 	ApplyExpression(const String& type, const String& target, std::unique_ptr<Expression> name,
@@ -813,7 +813,7 @@ private:
 	std::shared_ptr<Expression> m_Expression;
 };
 
-class I2_CONFIG_API ObjectExpression : public DebuggableExpression
+class ObjectExpression : public DebuggableExpression
 {
 public:
 	ObjectExpression(bool abstract, std::unique_ptr<Expression> type, std::unique_ptr<Expression> name, std::unique_ptr<Expression> filter,
@@ -840,7 +840,7 @@ private:
 	std::shared_ptr<Expression> m_Expression;
 };
 
-class I2_CONFIG_API ForExpression : public DebuggableExpression
+class ForExpression : public DebuggableExpression
 {
 public:
 	ForExpression(const String& fkvar, const String& fvvar, std::unique_ptr<Expression> value, std::unique_ptr<Expression> expression, const DebugInfo& debugInfo = DebugInfo())
@@ -857,7 +857,7 @@ private:
 	std::unique_ptr<Expression> m_Expression;
 };
 
-class I2_CONFIG_API LibraryExpression : public UnaryExpression
+class LibraryExpression : public UnaryExpression
 {
 public:
 	LibraryExpression(std::unique_ptr<Expression> expression, const DebugInfo& debugInfo = DebugInfo())
@@ -875,7 +875,7 @@ enum IncludeType
 	IncludeZones
 };
 
-class I2_CONFIG_API IncludeExpression : public DebuggableExpression
+class IncludeExpression : public DebuggableExpression
 {
 public:
 	IncludeExpression(const String& relativeBase, std::unique_ptr<Expression> path, std::unique_ptr<Expression> pattern, std::unique_ptr<Expression> name,
@@ -898,7 +898,7 @@ private:
 	String m_Package;
 };
 
-class I2_CONFIG_API BreakpointExpression : public DebuggableExpression
+class BreakpointExpression : public DebuggableExpression
 {
 public:
 	BreakpointExpression(const DebugInfo& debugInfo = DebugInfo())
@@ -909,7 +909,7 @@ protected:
 	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
-class I2_CONFIG_API UsingExpression : public DebuggableExpression
+class UsingExpression : public DebuggableExpression
 {
 public:
 	UsingExpression(std::unique_ptr<Expression> name, const DebugInfo& debugInfo = DebugInfo())
@@ -923,7 +923,7 @@ private:
 	std::unique_ptr<Expression> m_Name;
 };
 
-class I2_CONFIG_API TryExceptExpression : public DebuggableExpression
+class TryExceptExpression : public DebuggableExpression
 {
 public:
 	TryExceptExpression(std::unique_ptr<Expression> tryBody, std::unique_ptr<Expression> exceptBody, const DebugInfo& debugInfo = DebugInfo())

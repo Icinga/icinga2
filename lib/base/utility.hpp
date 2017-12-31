@@ -56,7 +56,7 @@ enum GlobType
  *
  * @ingroup base
  */
-class I2_BASE_API Utility
+class Utility
 {
 public:
 	static String DemangleSymbolName(const String& sym);

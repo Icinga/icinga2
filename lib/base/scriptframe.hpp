@@ -29,7 +29,7 @@
 namespace icinga
 {
 
-struct I2_BASE_API ScriptFrame
+struct ScriptFrame
 {
 	Dictionary::Ptr Locals;
 	Value Self;

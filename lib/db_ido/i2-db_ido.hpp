@@ -28,10 +28,4 @@
 
 #include "base/i2-base.hpp"
 
-#ifdef I2_DB_IDO_BUILD
-#	define I2_DB_IDO_API I2_EXPORT
-#else /* I2_DB_IDO_BUILD */
-#	define I2_DB_IDO_API I2_IMPORT
-#endif /* I2_DB_IDO_BUILD */
-
 #endif /* I2DB_IDO_H */

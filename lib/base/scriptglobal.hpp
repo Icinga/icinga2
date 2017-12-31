@@ -31,7 +31,7 @@ namespace icinga
  *
  * @ingroup base
  */
-class I2_BASE_API ScriptGlobal
+class ScriptGlobal
 {
 public:
 	static Value Get(const String& name, const Value *defaultValue = nullptr);

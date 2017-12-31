@@ -30,7 +30,7 @@ class Value;
 /**
  * Number class.
  */
-class I2_BASE_API Number
+class Number
 {
 public:
 	static Object::Ptr GetPrototype(void);

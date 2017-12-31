@@ -41,7 +41,7 @@ struct CountAggregatorState : public AggregatorState
 /**
  * @ingroup livestatus
  */
-class I2_LIVESTATUS_API CountAggregator : public Aggregator
+class CountAggregator : public Aggregator
 {
 public:
 	DECLARE_PTR_TYPEDEFS(CountAggregator);

@@ -32,7 +32,7 @@ namespace icinga
  *
  * @ingroup methods
  */
-class I2_METHODS_API DummyCheckTask
+class DummyCheckTask
 {
 public:
 	static void ScriptFunc(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr,

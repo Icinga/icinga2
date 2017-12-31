@@ -35,7 +35,7 @@ namespace icinga
  *
  * @ingroup base
  */
-class I2_BASE_API Function : public ObjectImpl<Function>
+class Function : public ObjectImpl<Function>
 {
 public:
 	DECLARE_OBJECT(Function);

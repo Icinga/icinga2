@@ -28,28 +28,19 @@ if(MYSQL_FOUND)
       mkunity_target(db_ido_mysql db_ido_mysql db_ido_mysql_SOURCES)
   endif()
 
-  add_library(db_ido_mysql SHARED ${db_ido_mysql_SOURCES})
+  add_library(db_ido_mysql STATIC ${db_ido_mysql_SOURCES})
 
   include_directories(${MYSQL_INCLUDE_DIR})
-  target_link_libraries(db_ido_mysql ${Boost_LIBRARIES} ${MYSQL_CLIENT_LIBS} base config icinga db_ido)
+  target_link_libraries(db_ido_mysql ${Boost_LIBRARIES} ${MYSQL_LIB} base config icinga db_ido)
 
   set_target_properties (
     db_ido_mysql PROPERTIES
-    INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR}/icinga2
-    DEFINE_SYMBOL I2_DB_IDO_MYSQL_BUILD
     FOLDER Components
-    VERSION ${SPEC_VERSION}
   )
 
   install_if_not_exists(
     ${PROJECT_SOURCE_DIR}/etc/icinga2/features-available/ido-mysql.conf
     ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/features-available
-  )
-
-  install(
-    TARGETS db_ido_mysql
-    RUNTIME DESTINATION ${CMAKE_INSTALL_SBINDIR}
-    LIBRARY DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR}/icinga2
   )
 
   install(

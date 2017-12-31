@@ -31,7 +31,7 @@ namespace icinga
  *
  * @ingroup config
  */
-struct I2_BASE_API DebugInfo
+struct DebugInfo
 {
 	String Path;
 
@@ -44,11 +44,11 @@ struct I2_BASE_API DebugInfo
 	DebugInfo(void);
 };
 
-I2_BASE_API std::ostream& operator<<(std::ostream& out, const DebugInfo& val);
+std::ostream& operator<<(std::ostream& out, const DebugInfo& val);
 
-I2_BASE_API DebugInfo DebugInfoRange(const DebugInfo& start, const DebugInfo& end);
+DebugInfo DebugInfoRange(const DebugInfo& start, const DebugInfo& end);
 
-I2_BASE_API void ShowCodeLocation(std::ostream& out, const DebugInfo& di, bool verbose = true);
+void ShowCodeLocation(std::ostream& out, const DebugInfo& di, bool verbose = true);
 
 }
 

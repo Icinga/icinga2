@@ -34,7 +34,7 @@ class ConfigItem;
  *
  * @ingroup icinga
  */
-class I2_ICINGA_API HostGroup : public ObjectImpl<HostGroup>
+class HostGroup : public ObjectImpl<HostGroup>
 {
 public:
 	DECLARE_OBJECT(HostGroup);

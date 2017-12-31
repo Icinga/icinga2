@@ -36,7 +36,7 @@ namespace icinga
  *
  * @ingroup base
  */
-class I2_BASE_API SocketEvents
+class SocketEvents
 {
 public:
 	~SocketEvents(void);
@@ -93,7 +93,7 @@ struct EventDescription
 	Object::Ptr LifesupportReference;
 };
 
-class I2_BASE_API SocketEventEngine
+class SocketEventEngine
 {
 public:
 	void Start(void);
@@ -119,7 +119,7 @@ protected:
 	friend class SocketEvents;
 };
 
-class I2_BASE_API SocketEventEnginePoll : public SocketEventEngine
+class SocketEventEnginePoll : public SocketEventEngine
 {
 public:
 	virtual void Register(SocketEvents *se, Object *lifesupportObject);
@@ -132,7 +132,7 @@ protected:
 };
 
 #ifdef __linux__
-class I2_BASE_API SocketEventEngineEpoll : public SocketEventEngine
+class SocketEventEngineEpoll : public SocketEventEngine
 {
 public:
 	virtual void Register(SocketEvents *se, Object *lifesupportObject);

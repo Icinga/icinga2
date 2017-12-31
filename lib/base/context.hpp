@@ -27,7 +27,7 @@
 namespace icinga
 {
 
-class I2_BASE_API ContextTrace
+class ContextTrace
 {
 public:
 	ContextTrace(void);
@@ -40,14 +40,14 @@ private:
 	std::list<String> m_Frames;
 };
 
-I2_BASE_API std::ostream& operator<<(std::ostream& stream, const ContextTrace& trace);
+std::ostream& operator<<(std::ostream& stream, const ContextTrace& trace);
 
 /**
  * A context frame.
  *
  * @ingroup base
  */
-class I2_BASE_API ContextFrame
+class ContextFrame
 {
 public:
 	ContextFrame(const String& message);

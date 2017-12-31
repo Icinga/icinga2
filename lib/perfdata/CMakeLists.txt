@@ -30,16 +30,13 @@ if(ICINGA2_UNITY_BUILD)
     mkunity_target(perfdata perfdata perfdata_SOURCES)
 endif()
 
-add_library(perfdata SHARED ${perfdata_SOURCES})
+add_library(perfdata STATIC ${perfdata_SOURCES})
 
 target_link_libraries(perfdata ${Boost_LIBRARIES} base config icinga)
 
 set_target_properties (
   perfdata PROPERTIES
-  INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR}/icinga2
-  DEFINE_SYMBOL I2_PERFDATA_BUILD
   FOLDER Components
-  VERSION ${SPEC_VERSION}
 )
 
 install_if_not_exists(
@@ -70,12 +67,6 @@ install_if_not_exists(
 install_if_not_exists(
   ${PROJECT_SOURCE_DIR}/etc/icinga2/features-available/perfdata.conf
   ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/features-available
-)
-
-install(
-  TARGETS perfdata
-  RUNTIME DESTINATION ${CMAKE_INSTALL_SBINDIR}
-  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/icinga2
 )
 
 install(CODE "file(MAKE_DIRECTORY \"\$ENV{DESTDIR}${CMAKE_INSTALL_FULL_LOCALSTATEDIR}/spool/icinga2/perfdata\")")

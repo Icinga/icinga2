@@ -25,7 +25,7 @@
 namespace icinga
 {
 
-class I2_REMOTE_API StatusHandler : public HttpHandler
+class StatusHandler : public HttpHandler
 {
 public:
 	DECLARE_PTR_TYPEDEFS(StatusHandler);

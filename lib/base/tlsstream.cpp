@@ -29,8 +29,8 @@
 
 using namespace icinga;
 
-int I2_EXPORT TlsStream::m_SSLIndex;
-bool I2_EXPORT TlsStream::m_SSLIndexInitialized = false;
+int TlsStream::m_SSLIndex;
+bool TlsStream::m_SSLIndexInitialized = false;
 
 /**
  * Constructor for the TlsStream class.

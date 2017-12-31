@@ -15,13 +15,8 @@
 # along with this program; if not, write to the Free Software Foundation
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
-find_package(PostgreSQL)
-
 if(PostgreSQL_FOUND)
   mkclass_target(idopgsqlconnection.ti idopgsqlconnection.tcpp idopgsqlconnection.thpp)
-
-  link_directories(${PostgreSQL_LIBRARY_DIRS})
-  include_directories(${PostgreSQL_INCLUDE_DIRS})
 
   set(db_ido_pgsql_SOURCES
     idopgsqlconnection.cpp idopgsqlconnection.thpp
@@ -31,27 +26,18 @@ if(PostgreSQL_FOUND)
       mkunity_target(db_ido_pgsql db_ido_pgsql db_ido_pgsql_SOURCES)
   endif()
 
-  add_library(db_ido_pgsql SHARED ${db_ido_pgsql_SOURCES})
+  add_library(db_ido_pgsql STATIC ${db_ido_pgsql_SOURCES})
 
   target_link_libraries(db_ido_pgsql ${Boost_LIBRARIES} ${PostgreSQL_LIBRARIES} base config icinga db_ido)
 
   set_target_properties (
     db_ido_pgsql PROPERTIES
-    INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR}/icinga2
-    DEFINE_SYMBOL I2_DB_IDO_PGSQL_BUILD
     FOLDER Components
-    VERSION ${SPEC_VERSION}
   )
 
   install_if_not_exists(
     ${PROJECT_SOURCE_DIR}/etc/icinga2/features-available/ido-pgsql.conf
     ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/features-available
-  )
-
-  install(
-    TARGETS db_ido_pgsql
-    RUNTIME DESTINATION ${CMAKE_INSTALL_SBINDIR}
-    LIBRARY DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR}/icinga2
   )
 
   install(

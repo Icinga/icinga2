@@ -34,7 +34,7 @@ namespace icinga
 /**
  * @ingroup livestatus
  */
-class I2_LIVESTATUS_API LivestatusListener : public ObjectImpl<LivestatusListener>
+class LivestatusListener : public ObjectImpl<LivestatusListener>
 {
 public:
 	DECLARE_OBJECT(LivestatusListener);

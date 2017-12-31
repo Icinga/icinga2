@@ -49,7 +49,7 @@ struct ConfigDirInformation
 /**
 * @ingroup remote
 */
-class I2_REMOTE_API ApiListener : public ObjectImpl<ApiListener>
+class ApiListener : public ObjectImpl<ApiListener>
 {
 public:
 	DECLARE_OBJECT(ApiListener);

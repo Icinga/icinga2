@@ -35,7 +35,7 @@ namespace icinga
  *
  * @ingroup base
  */
-class I2_BASE_API Dictionary : public Object
+class Dictionary : public Object
 {
 public:
 	DECLARE_OBJECT(Dictionary);

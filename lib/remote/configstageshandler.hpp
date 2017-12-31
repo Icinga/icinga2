@@ -25,7 +25,7 @@
 namespace icinga
 {
 
-class I2_REMOTE_API ConfigStagesHandler : public HttpHandler
+class ConfigStagesHandler : public HttpHandler
 {
 public:
 	DECLARE_PTR_TYPEDEFS(ConfigStagesHandler);

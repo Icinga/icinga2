@@ -60,7 +60,7 @@ enum DbQueryCategory
 
 class DbObject;
 
-struct I2_DB_IDO_API DbQuery
+struct DbQuery
 {
 	int Type;
 	DbQueryCategory Category;

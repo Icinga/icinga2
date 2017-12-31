@@ -44,8 +44,6 @@ INITIALIZE_ONCE(&IcingaApplication::StaticInitialize);
 
 void IcingaApplication::StaticInitialize(void)
 {
-	Loader::LoadExtensionLibrary("methods");
-
 	String node_name = Utility::GetFQDN();
 
 	if (node_name.IsEmpty()) {

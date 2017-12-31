@@ -36,7 +36,7 @@ enum ConnectionRole
 	RoleServer
 };
 
-struct I2_BASE_API StreamReadContext
+struct StreamReadContext
 {
 	StreamReadContext(void)
 		: Buffer(nullptr), Size(0), MustRead(true), Eof(false)
@@ -68,7 +68,7 @@ enum StreamReadStatus
  *
  * @ingroup base
  */
-class I2_BASE_API Stream : public Object
+class Stream : public Object
 {
 public:
 	DECLARE_PTR_TYPEDEFS(Stream);

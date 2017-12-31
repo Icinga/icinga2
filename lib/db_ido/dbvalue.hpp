@@ -39,7 +39,7 @@ enum DbValueType
  *
  * @ingroup ido
  */
-struct I2_DB_IDO_API DbValue : public Object
+struct DbValue : public Object
 {
 public:
 	DECLARE_PTR_TYPEDEFS(DbValue);

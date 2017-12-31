@@ -30,7 +30,7 @@ class Value;
 /**
  * Boolean class.
  */
-class I2_BASE_API Boolean
+class Boolean
 {
 public:
 	static Object::Ptr GetPrototype(void);

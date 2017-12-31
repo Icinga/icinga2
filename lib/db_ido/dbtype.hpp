@@ -36,7 +36,7 @@ class DbObject;
  *
  * @ingroup ido
  */
-class I2_DB_IDO_API DbType : public Object
+class DbType : public Object
 {
 public:
 	DECLARE_PTR_TYPEDEFS(DbType);
@@ -79,7 +79,7 @@ private:
  *
  * @ingroup ido
  */
-class I2_DB_IDO_API DbTypeRegistry : public Registry<DbTypeRegistry, DbType::Ptr>
+class DbTypeRegistry : public Registry<DbTypeRegistry, DbType::Ptr>
 {
 public:
 	static DbTypeRegistry *GetInstance(void);

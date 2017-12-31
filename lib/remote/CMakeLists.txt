@@ -38,31 +38,15 @@ if(ICINGA2_UNITY_BUILD)
     mkunity_target(remote remote remote_SOURCES)
 endif()
 
-add_library(remote SHARED ${remote_SOURCES})
+add_library(remote STATIC ${remote_SOURCES})
 
 include_directories(${Boost_INCLUDE_DIRS})
 target_link_libraries(remote ${Boost_LIBRARIES} base config)
 
 set_target_properties (
   remote PROPERTIES
-  INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR}/icinga2
-  DEFINE_SYMBOL I2_REMOTE_BUILD
   FOLDER Lib
-  VERSION ${SPEC_VERSION}
 )
-
-install(
-  TARGETS remote
-  RUNTIME DESTINATION ${CMAKE_INSTALL_SBINDIR}
-  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/icinga2
-)
-
-if(APPLE)
-  install(
-    TARGETS remote
-    LIBRARY DESTINATION ${CMAKE_INSTALL_BINDIR}/icinga-studio.app/Contents
-  )
-endif()
 
 #install(CODE "file(MAKE_DIRECTORY \"\$ENV{DESTDIR}${CMAKE_INSTALL_FULL_LOCALSTATEDIR}/lib/icinga2/api\")")
 install(CODE "file(MAKE_DIRECTORY \"\$ENV{DESTDIR}${CMAKE_INSTALL_FULL_LOCALSTATEDIR}/lib/icinga2/api/log\")")

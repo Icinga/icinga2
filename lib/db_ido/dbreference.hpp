@@ -30,7 +30,7 @@ namespace icinga
  *
  * @ingroup ido
  */
-struct I2_DB_IDO_API DbReference
+struct DbReference
 {
 public:
 	DbReference(void);

@@ -28,10 +28,4 @@
 
 #include "base/i2-base.hpp"
 
-#ifdef I2_CLI_BUILD
-#	define I2_CLI_API I2_EXPORT
-#else /* I2_REMOTE_BUILD */
-#	define I2_CLI_API I2_IMPORT
-#endif /* I2_REMOTE_BUILD */
-
 #endif /* I2CLI_H */

@@ -25,7 +25,7 @@
 namespace icinga
 {
 
-class I2_REMOTE_API TypeQueryHandler : public HttpHandler
+class TypeQueryHandler : public HttpHandler
 {
 public:
 	DECLARE_PTR_TYPEDEFS(TypeQueryHandler);

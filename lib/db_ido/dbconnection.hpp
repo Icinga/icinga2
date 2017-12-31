@@ -40,7 +40,7 @@ namespace icinga
  *
  * @ingroup db_ido
  */
-class I2_DB_IDO_API DbConnection : public ObjectImpl<DbConnection>
+class DbConnection : public ObjectImpl<DbConnection>
 {
 public:
 	DECLARE_OBJECT(DbConnection);

@@ -32,7 +32,7 @@
 namespace icinga
 {
 
-class I2_REMOTE_API EventQueue : public Object
+class EventQueue : public Object
 {
 public:
 	DECLARE_PTR_TYPEDEFS(EventQueue);
@@ -73,7 +73,7 @@ private:
  *
  * @ingroup base
  */
-class I2_REMOTE_API EventQueueRegistry : public Registry<EventQueueRegistry, EventQueue::Ptr>
+class EventQueueRegistry : public Registry<EventQueueRegistry, EventQueue::Ptr>
 {
 public:
 	static EventQueueRegistry *GetInstance(void);

@@ -31,7 +31,7 @@ namespace icinga
 /**
  * A scoped lock for Objects.
  */
-struct I2_BASE_API ObjectLock
+struct ObjectLock
 {
 public:
 	ObjectLock(void)

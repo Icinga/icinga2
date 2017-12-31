@@ -25,16 +25,13 @@ if(ICINGA2_UNITY_BUILD)
     mkunity_target(checker checker checker_SOURCES)
 endif()
 
-add_library(checker SHARED ${checker_SOURCES})
+add_library(checker STATIC ${checker_SOURCES})
 
 target_link_libraries(checker ${Boost_LIBRARIES} base config icinga remote)
 
 set_target_properties (
   checker PROPERTIES
-  INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR}/icinga2
-  DEFINE_SYMBOL I2_CHECKER_BUILD
   FOLDER Components
-  VERSION ${SPEC_VERSION}
 )
 
 install_if_not_exists(
@@ -48,11 +45,5 @@ if(NOT WIN32)
 else()
   install_if_not_exists(${PROJECT_SOURCE_DIR}/etc/icinga2/features-enabled/checker.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/features-enabled)
 endif()
-
-install(
-  TARGETS checker
-  RUNTIME DESTINATION ${CMAKE_INSTALL_SBINDIR}
-  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/icinga2
-)
 
 set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "${CPACK_NSIS_EXTRA_INSTALL_COMMANDS}" PARENT_SCOPE)

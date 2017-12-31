@@ -27,7 +27,7 @@ namespace icinga
 {
 
 code {{{
-class I2_ICINGA_API DependencyNameComposer : public NameComposer
+class DependencyNameComposer : public NameComposer
 {
 public:
 	virtual String MakeName(const String& shortName, const Object::Ptr& context) const;

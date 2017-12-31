@@ -21,10 +21,54 @@ else()
   set(WindowsSources "")
 endif()
 
-add_executable(icinga-app icinga.cpp ${WindowsSources})
+set(icingaloader_SOURCES
+  icinga.cpp
+  ${WindowsSources}
+)
+
+add_library(icingaloader OBJECT ${icingaloader_SOURCES})
+add_dependencies(icingaloader base config cli)
 
 include_directories(${Boost_INCLUDE_DIRS})
-target_link_libraries(icinga-app ${Boost_LIBRARIES} base config cli)
+
+add_executable(icinga-app $<TARGET_OBJECTS:icingaloader>)
+
+add_whole_static_library(icinga-app base)
+add_whole_static_library(icinga-app config)
+add_whole_static_library(icinga-app remote)
+add_whole_static_library(icinga-app cli)
+
+if(ICINGA2_WITH_CHECKER)
+  add_whole_static_library(icinga-app checker)
+endif()
+
+if(ICINGA2_WITH_COMPAT)
+  add_whole_static_library(icinga-app compat)
+endif()
+
+if(ICINGA2_WITH_MYSQL)
+  add_whole_static_library(icinga-app db_ido_mysql)
+endif()
+
+if(ICINGA2_WITH_PGSQL)
+  add_whole_static_library(icinga-app db_ido_pgsql)
+endif()
+
+add_whole_static_library(icinga-app icinga)
+
+if(ICINGA2_WITH_LIVESTATUS)
+  add_whole_static_library(icinga-app livestatus)
+endif()
+
+add_whole_static_library(icinga-app methods)
+
+if(ICINGA2_WITH_NOTIFICATION)
+  add_whole_static_library(icinga-app notification)
+endif()
+
+if(ICINGA2_WITH_PERFDATA)
+  add_whole_static_library(icinga-app perfdata)
+endif()
 
 set_target_properties (
   icinga-app PROPERTIES
@@ -51,6 +95,27 @@ install(
   TARGETS icinga-app
   RUNTIME DESTINATION ${InstallPath}
 )
+
+if(ICINGA2_WITH_HELLO)
+  add_executable(hello-app $<TARGET_OBJECTS:icingaloader>)
+  add_whole_static_library(hello-app base)
+  add_whole_static_library(hello-app config)
+  add_whole_static_library(hello-app remote)
+  add_whole_static_library(hello-app cli)
+  add_whole_static_library(hello-app hello)
+
+  set_target_properties (
+    hello-app PROPERTIES
+    INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR}/icinga2
+    FOLDER Bin
+    OUTPUT_NAME hello
+  )
+
+  install(
+    TARGETS hello-app
+    RUNTIME DESTINATION ${InstallPath}
+  )
+endif()
 
 install(CODE "file(MAKE_DIRECTORY \"\$ENV{DESTDIR}${CMAKE_INSTALL_FULL_LOCALSTATEDIR}/log/icinga2\")")
 install(CODE "file(MAKE_DIRECTORY \"\$ENV{DESTDIR}${CMAKE_INSTALL_FULL_LOCALSTATEDIR}/lib/icinga2\")")

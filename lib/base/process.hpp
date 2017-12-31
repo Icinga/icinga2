@@ -49,7 +49,7 @@ struct ProcessResult
  *
  * @ingroup base
  */
-class I2_BASE_API Process : public Object
+class Process : public Object
 {
 public:
 	DECLARE_PTR_TYPEDEFS(Process);

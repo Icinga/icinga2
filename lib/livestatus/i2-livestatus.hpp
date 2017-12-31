@@ -28,10 +28,4 @@
 
 #include "base/i2-base.hpp"
 
-#ifdef I2_LIVESTATUS_BUILD
-#	define I2_LIVESTATUS_API I2_EXPORT
-#else /* I2_LIVESTATUS_BUILD */
-#	define I2_LIVESTATUS_API I2_IMPORT
-#endif /* I2_LIVESTATUS_BUILD */
-
 #endif /* I2LIVESTATUS_H */

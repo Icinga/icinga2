@@ -25,7 +25,7 @@
 namespace icinga
 {
 
-class I2_REMOTE_API TemplateQueryHandler : public HttpHandler
+class TemplateQueryHandler : public HttpHandler
 {
 public:
 	DECLARE_PTR_TYPEDEFS(TemplateQueryHandler);

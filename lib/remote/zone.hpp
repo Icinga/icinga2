@@ -30,7 +30,7 @@ namespace icinga
 /**
  * @ingroup remote
  */
-class I2_REMOTE_API Zone : public ObjectImpl<Zone>
+class Zone : public ObjectImpl<Zone>
 {
 public:
 	DECLARE_OBJECT(Zone);

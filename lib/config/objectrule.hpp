@@ -31,7 +31,7 @@ namespace icinga
 /**
  * @ingroup config
  */
-class I2_CONFIG_API ObjectRule
+class ObjectRule
 {
 public:
 	typedef std::set<String> TypeSet;

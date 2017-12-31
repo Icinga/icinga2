@@ -43,7 +43,7 @@ enum SchedulerPolicy
  *
  * @ingroup base
  */
-class I2_BASE_API ThreadPool
+class ThreadPool
 {
 public:
 	typedef std::function<void ()> WorkFunction;

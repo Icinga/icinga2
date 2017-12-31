@@ -33,7 +33,7 @@ class TimerHolder;
  *
  * @ingroup base
  */
-class I2_BASE_API Timer : public Object
+class Timer : public Object
 {
 public:
 	DECLARE_PTR_TYPEDEFS(Timer);

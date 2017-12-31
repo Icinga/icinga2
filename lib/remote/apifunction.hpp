@@ -35,7 +35,7 @@ namespace icinga
  *
  * @ingroup base
  */
-class I2_REMOTE_API ApiFunction : public Object
+class ApiFunction : public Object
 {
 public:
 	DECLARE_PTR_TYPEDEFS(ApiFunction);
@@ -59,7 +59,7 @@ private:
  *
  * @ingroup base
  */
-class I2_REMOTE_API ApiFunctionRegistry : public Registry<ApiFunctionRegistry, ApiFunction::Ptr>
+class ApiFunctionRegistry : public Registry<ApiFunctionRegistry, ApiFunction::Ptr>
 {
 public:
 	static ApiFunctionRegistry *GetInstance(void);

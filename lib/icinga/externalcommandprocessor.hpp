@@ -38,7 +38,7 @@ struct ExternalCommandInfo
 	size_t MaxArgs;
 };
 
-class I2_ICINGA_API ExternalCommandProcessor {
+class ExternalCommandProcessor {
 public:
 	static void Execute(const String& line);
 	static void Execute(double time, const String& command, const std::vector<String>& arguments);

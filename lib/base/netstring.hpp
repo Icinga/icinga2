@@ -35,7 +35,7 @@ class String;
  *
  * @ingroup base
  */
-class I2_BASE_API NetString
+class NetString
 {
 public:
 	static StreamReadStatus ReadStringFromStream(const Stream::Ptr& stream, String *message, StreamReadContext& context, bool may_wait = false);

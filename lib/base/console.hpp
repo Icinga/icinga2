@@ -66,26 +66,26 @@ enum ConsoleType
 #endif /* _WIN32 */
 };
 
-class I2_BASE_API ConsoleColorTag
+class ConsoleColorTag
 {
 public:
 	ConsoleColorTag(int color, ConsoleType consoleType = Console_Autodetect);
 
-	friend I2_BASE_API std::ostream& operator<<(std::ostream& fp, const ConsoleColorTag& cct);
+	friend std::ostream& operator<<(std::ostream& fp, const ConsoleColorTag& cct);
 
 private:
 	int m_Color;
 	int m_ConsoleType;
 };
 
-I2_BASE_API std::ostream& operator<<(std::ostream& fp, const ConsoleColorTag& cct);
+std::ostream& operator<<(std::ostream& fp, const ConsoleColorTag& cct);
 
 /**
  * Console utilities.
  *
  * @ingroup base
  */
-class I2_BASE_API Console
+class Console
 {
 public:
 	static void DetectType(void);

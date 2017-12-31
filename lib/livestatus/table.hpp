@@ -42,7 +42,7 @@ class Filter;
 /**
  * @ingroup livestatus
  */
-class I2_LIVESTATUS_API Table : public Object
+class Table : public Object
 {
 public:
 	DECLARE_PTR_TYPEDEFS(Table);

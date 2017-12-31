@@ -29,7 +29,7 @@ namespace icinga
 {
 
 code {{{
-class I2_ICINGA_API ServiceNameComposer : public NameComposer
+class ServiceNameComposer : public NameComposer
 {
 public:
 	virtual String MakeName(const String& shortName, const Object::Ptr& context) const;

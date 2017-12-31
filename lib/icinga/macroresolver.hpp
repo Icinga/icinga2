@@ -33,7 +33,7 @@ namespace icinga
  *
  * @ingroup icinga
  */
-class I2_ICINGA_API MacroResolver
+class MacroResolver
 {
 public:
 	DECLARE_PTR_TYPEDEFS(MacroResolver);

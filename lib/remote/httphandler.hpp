@@ -34,7 +34,7 @@ namespace icinga
  *
  * @ingroup remote
  */
-class I2_REMOTE_API HttpHandler : public Object
+class HttpHandler : public Object
 {
 public:
 	DECLARE_PTR_TYPEDEFS(HttpHandler);
@@ -53,7 +53,7 @@ private:
  *
  * @ingroup remote
  */
-class I2_REMOTE_API RegisterHttpHandler
+class RegisterHttpHandler
 {
 public:
 	RegisterHttpHandler(const String& url, const HttpHandler& function);

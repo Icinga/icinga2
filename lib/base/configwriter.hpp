@@ -33,7 +33,7 @@ namespace icinga
  *
  * @ingroup base
  */
-class I2_BASE_API ConfigIdentifier : public Object
+class ConfigIdentifier : public Object
 {
 public:
 	DECLARE_PTR_TYPEDEFS(ConfigIdentifier);
@@ -51,7 +51,7 @@ private:
  *
  * @ingroup base
  */
-class I2_BASE_API ConfigWriter
+class ConfigWriter
 {
 public:
 	static void EmitBoolean(std::ostream& fp, bool val);

@@ -32,7 +32,7 @@ namespace icinga
 /**
  * @ingroup livestatus
  */
-class I2_LIVESTATUS_API StateHistTable : public HistoryTable
+class StateHistTable : public HistoryTable
 {
 public:
 	DECLARE_PTR_TYPEDEFS(StateHistTable);

@@ -31,7 +31,7 @@ namespace icinga
  *
  * @ingroup base
  */
-class I2_BASE_API FileLogger : public ObjectImpl<FileLogger>
+class FileLogger : public ObjectImpl<FileLogger>
 {
 public:
 	DECLARE_OBJECT(FileLogger);

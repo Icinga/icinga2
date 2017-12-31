@@ -25,7 +25,7 @@
 namespace icinga
 {
 
-class I2_REMOTE_API ConfigFilesHandler : public HttpHandler
+class ConfigFilesHandler : public HttpHandler
 {
 public:
 	DECLARE_PTR_TYPEDEFS(ConfigFilesHandler);

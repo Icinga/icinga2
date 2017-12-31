@@ -29,7 +29,7 @@ namespace icinga
 /**
  * @ingroup livestatus
  */
-class I2_LIVESTATUS_API Filter : public Object
+class Filter : public Object
 {
 public:
 	DECLARE_PTR_TYPEDEFS(Filter);

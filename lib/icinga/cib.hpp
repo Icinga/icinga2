@@ -65,7 +65,7 @@ struct HostStatistics {
  *
  * @ingroup icinga
  */
-class I2_ICINGA_API CIB
+class CIB
 {
 public:
 	static void UpdateActiveHostChecksStatistics(long tv, int num);

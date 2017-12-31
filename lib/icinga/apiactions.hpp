@@ -30,7 +30,7 @@ namespace icinga
 /**
  * @ingroup icinga
  */
-class I2_ICINGA_API ApiActions
+class ApiActions
 {
 public:
 	static Dictionary::Ptr ProcessCheckResult(const ConfigObject::Ptr& object, const Dictionary::Ptr& params);

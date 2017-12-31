@@ -38,7 +38,7 @@ namespace icinga
  *
  * @ingroup remote
  */
-class I2_REMOTE_API ApiAction : public Object
+class ApiAction : public Object
 {
 public:
 	DECLARE_PTR_TYPEDEFS(ApiAction);
@@ -65,7 +65,7 @@ private:
  *
  * @ingroup remote
  */
-class I2_REMOTE_API ApiActionRegistry : public Registry<ApiActionRegistry, ApiAction::Ptr>
+class ApiActionRegistry : public Registry<ApiActionRegistry, ApiAction::Ptr>
 {
 public:
 	static ApiActionRegistry *GetInstance(void);
