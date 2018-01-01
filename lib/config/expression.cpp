@@ -842,7 +842,6 @@ ExpressionResult LibraryExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dh
 
 	Log(LogNotice, "config")
 		<< "Ignoring explicit load request for library \"" << libres << "\".";
-	//Loader::LoadExtensionLibrary(libres.GetValue());
 
 	return Empty;
 }

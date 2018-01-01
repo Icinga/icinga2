@@ -31,7 +31,7 @@ set(base_SOURCES
   convert.cpp datetime.cpp datetime.thpp datetime-script.cpp debuginfo.cpp dictionary.cpp dictionary-script.cpp
   configobject.cpp configobject.thpp configobject-script.cpp configtype.cpp configwriter.cpp dependencygraph.cpp
   exception.cpp fifo.cpp filelogger.cpp filelogger.thpp initialize.cpp json.cpp
-  json-script.cpp loader.cpp logger.cpp logger.thpp math-script.cpp
+  json-script.cpp library.cpp loader.cpp logger.cpp logger.thpp math-script.cpp
   netstring.cpp networkstream.cpp number.cpp number-script.cpp object.cpp
   object-script.cpp objecttype.cpp primitivetype.cpp process.cpp ringbuffer.cpp scriptframe.cpp
   function.cpp function.thpp function-script.cpp

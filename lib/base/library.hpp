@@ -1,6 +1,6 @@
 /******************************************************************************
  * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
+ * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
  *                                                                            *
  * This program is free software; you can redistribute it and/or              *
  * modify it under the terms of the GNU General Public License                *
@@ -17,36 +17,42 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#include "base/loader.hpp"
-#include "base/logger.hpp"
-#include "base/exception.hpp"
-#include "base/application.hpp"
+#ifndef LIBRARY_H
+#define LIBRARY_H
 
-using namespace icinga;
+#include "base/i2-base.hpp"
+#include "base/string.hpp"
+#include <memory>
 
-boost::thread_specific_ptr<std::priority_queue<DeferredInitializer> >& Loader::GetDeferredInitializers(void)
+namespace icinga
 {
-	static boost::thread_specific_ptr<std::priority_queue<DeferredInitializer> > initializers;
-	return initializers;
-}
 
-void Loader::ExecuteDeferredInitializers(void)
+#ifndef _WIN32
+typedef void *LibraryHandle;
+#else /* _WIN32 */
+typedef HMODULE LibraryHandle;
+#endif /* _WIN32 */
+
+class Library
 {
-	if (!GetDeferredInitializers().get())
-		return;
+public:
+	Library(void) = default;
+	Library(const String& name);
 
-	while (!GetDeferredInitializers().get()->empty()) {
-		DeferredInitializer initializer = GetDeferredInitializers().get()->top();
-		GetDeferredInitializers().get()->pop();
-		initializer();
+	void *GetSymbolAddress(const String& name) const;
+
+	template<typename T>
+	T GetSymbolAddress(const String& name) const
+	{
+		static_assert(!std::is_same<T, void *>::value, "T must not be void *");
+
+		return reinterpret_cast<T>(GetSymbolAddress(name));
 	}
+
+private:
+	std::shared_ptr<LibraryHandle> m_Handle;
+};
+
 }
 
-void Loader::AddDeferredInitializer(const std::function<void(void)>& callback, int priority)
-{
-	if (!GetDeferredInitializers().get())
-		GetDeferredInitializers().reset(new std::priority_queue<DeferredInitializer>());
-
-	GetDeferredInitializers().get()->push(DeferredInitializer(callback, priority));
-}
-
+#endif /* LIBRARY_H */

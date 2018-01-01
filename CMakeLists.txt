@@ -139,13 +139,6 @@ set(HAVE_EDITLINE "${EDITLINE_FOUND}")
 find_package(Termcap)
 set(HAVE_TERMCAP "${TERMCAP_FOUND}")
 
-find_package(PostgreSQL)
-
-if(PostgreSQL_FOUND)
-  link_directories(${PostgreSQL_LIBRARY_DIRS})
-  include_directories(${PostgreSQL_INCLUDE_DIRS})
-endif()
-
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/lib
   ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_BINARY_DIR}/lib

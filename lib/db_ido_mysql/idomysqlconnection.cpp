@@ -46,6 +46,14 @@ void IdoMysqlConnection::OnConfigLoaded(void)
 	ObjectImpl<IdoMysqlConnection>::OnConfigLoaded();
 
 	m_QueryQueue.SetName("IdoMysqlConnection, " + GetName());
+
+	Library shimLibrary{"mysql_shim"};
+
+	auto create_mysql_shim = shimLibrary.GetSymbolAddress<create_mysql_shim_ptr>("create_mysql_shim");
+
+	m_Mysql.reset(create_mysql_shim());
+
+	std::swap(m_Library, shimLibrary);
 }
 
 void IdoMysqlConnection::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
@@ -98,7 +106,7 @@ void IdoMysqlConnection::Resume(void)
 	m_ReconnectTimer->Start();
 	m_ReconnectTimer->Reschedule(0);
 
-	ASSERT(mysql_thread_safe());
+	ASSERT(m_Mysql->thread_safe());
 }
 
 void IdoMysqlConnection::Pause(void)
@@ -127,7 +135,7 @@ void IdoMysqlConnection::ExceptionHandler(boost::exception_ptr exp)
 		<< "Exception during database operation: " << DiagnosticInformation(exp);
 
 	if (GetConnected()) {
-		mysql_close(&m_Connection);
+		m_Mysql->close(&m_Connection);
 
 		SetConnected(false);
 	}
@@ -146,7 +154,7 @@ void IdoMysqlConnection::Disconnect(void)
 		return;
 
 	Query("COMMIT");
-	mysql_close(&m_Connection);
+	m_Mysql->close(&m_Connection);
 
 	SetConnected(false);
 }
@@ -205,10 +213,10 @@ void IdoMysqlConnection::Reconnect(void)
 
 	if (GetConnected()) {
 		/* Check if we're really still connected */
-		if (mysql_ping(&m_Connection) == 0)
+		if (m_Mysql->ping(&m_Connection) == 0)
 			return;
 
-		mysql_close(&m_Connection);
+		m_Mysql->close(&m_Connection);
 		SetConnected(false);
 		reconnect = true;
 	}
@@ -249,7 +257,7 @@ void IdoMysqlConnection::Reconnect(void)
 	sslCipher = (!isslCipher.IsEmpty()) ? isslCipher.CStr() : nullptr;
 
 	/* connection */
-	if (!mysql_init(&m_Connection)) {
+	if (!m_Mysql->init(&m_Connection)) {
 		Log(LogCritical, "IdoMysqlConnection")
 			<< "mysql_init() failed: out of memory";
 
@@ -257,14 +265,14 @@ void IdoMysqlConnection::Reconnect(void)
 	}
 
 	if (enableSsl)
-		mysql_ssl_set(&m_Connection, sslKey, sslCert, sslCa, sslCaPath, sslCipher);
+		m_Mysql->ssl_set(&m_Connection, sslKey, sslCert, sslCa, sslCaPath, sslCipher);
 
-	if (!mysql_real_connect(&m_Connection, host, user, passwd, db, port, socket_path, CLIENT_FOUND_ROWS | CLIENT_MULTI_STATEMENTS)) {
+	if (!m_Mysql->real_connect(&m_Connection, host, user, passwd, db, port, socket_path, CLIENT_FOUND_ROWS | CLIENT_MULTI_STATEMENTS)) {
 		Log(LogCritical, "IdoMysqlConnection")
 			<< "Connection to database '" << db << "' with user '" << user << "' on '" << host << ":" << port
-			<< "' " << (enableSsl ? "(SSL enabled) " : "") << "failed: \"" << mysql_error(&m_Connection) << "\"";
+			<< "' " << (enableSsl ? "(SSL enabled) " : "") << "failed: \"" << m_Mysql->error(&m_Connection) << "\"";
 
-		BOOST_THROW_EXCEPTION(std::runtime_error(mysql_error(&m_Connection)));
+		BOOST_THROW_EXCEPTION(std::runtime_error(m_Mysql->error(&m_Connection)));
 	}
 
 	SetConnected(true);
@@ -286,7 +294,7 @@ void IdoMysqlConnection::Reconnect(void)
 	row = FetchRow(result);
 
 	if (!row) {
-		mysql_close(&m_Connection);
+		m_Mysql->close(&m_Connection);
 		SetConnected(false);
 
 		Log(LogCritical, "IdoMysqlConnection", "Schema does not provide any valid version! Verify your schema installation.");
@@ -301,7 +309,7 @@ void IdoMysqlConnection::Reconnect(void)
 	SetSchemaVersion(version);
 
 	if (Utility::CompareVersion(IDO_COMPAT_SCHEMA_VERSION, version) < 0) {
-		mysql_close(&m_Connection);
+		m_Mysql->close(&m_Connection);
 		SetConnected(false);
 
 		Log(LogCritical, "IdoMysqlConnection")
@@ -358,7 +366,7 @@ void IdoMysqlConnection::Reconnect(void)
 				<< "Last update by '" << endpoint_name << "' was " << status_update_age << "s ago.";
 
 			if (status_update_age < GetFailoverTimeout()) {
-				mysql_close(&m_Connection);
+				m_Mysql->close(&m_Connection);
 				SetConnected(false);
 				SetShouldConnect(false);
 
@@ -370,7 +378,7 @@ void IdoMysqlConnection::Reconnect(void)
 				Log(LogNotice, "IdoMysqlConnection")
 					<< "Local endpoint '" << my_endpoint->GetName() << "' is not authoritative, bailing out.";
 
-				mysql_close(&m_Connection);
+				m_Mysql->close(&m_Connection);
 				SetConnected(false);
 
 				return;
@@ -533,15 +541,15 @@ void IdoMysqlConnection::FinishAsyncQueries(void)
 
 		String query = querybuf.str();
 
-		if (mysql_query(&m_Connection, query.CStr()) != 0) {
+		if (m_Mysql->query(&m_Connection, query.CStr()) != 0) {
 			std::ostringstream msgbuf;
-			String message = mysql_error(&m_Connection);
+			String message = m_Mysql->error(&m_Connection);
 			msgbuf << "Error \"" << message << "\" when executing query \"" << query << "\"";
 			Log(LogCritical, "IdoMysqlConnection", msgbuf.str());
 
 			BOOST_THROW_EXCEPTION(
 				database_error()
-				<< errinfo_message(mysql_error(&m_Connection))
+				<< errinfo_message(m_Mysql->error(&m_Connection))
 				<< errinfo_database_query(query)
 			);
 		}
@@ -549,40 +557,40 @@ void IdoMysqlConnection::FinishAsyncQueries(void)
 		for (std::vector<IdoAsyncQuery>::size_type i = offset; i < offset + count; i++) {
 			const IdoAsyncQuery& aq = queries[i];
 
-			MYSQL_RES *result = mysql_store_result(&m_Connection);
+			MYSQL_RES *result = m_Mysql->store_result(&m_Connection);
 
-			m_AffectedRows = mysql_affected_rows(&m_Connection);
+			m_AffectedRows = m_Mysql->affected_rows(&m_Connection);
 
 			IdoMysqlResult iresult;
 
 			if (!result) {
-				if (mysql_field_count(&m_Connection) > 0) {
+				if (m_Mysql->field_count(&m_Connection) > 0) {
 					std::ostringstream msgbuf;
-					String message = mysql_error(&m_Connection);
+					String message = m_Mysql->error(&m_Connection);
 					msgbuf << "Error \"" << message << "\" when executing query \"" << aq.Query << "\"";
 					Log(LogCritical, "IdoMysqlConnection", msgbuf.str());
 
 					BOOST_THROW_EXCEPTION(
 						database_error()
-						<< errinfo_message(mysql_error(&m_Connection))
+						<< errinfo_message(m_Mysql->error(&m_Connection))
 						<< errinfo_database_query(query)
 					);
 				}
 			} else
-				iresult = IdoMysqlResult(result, std::ptr_fun(mysql_free_result));
+				iresult = IdoMysqlResult(result, std::bind(&MysqlInterface::free_result, std::cref(m_Mysql), _1));
 
 			if (aq.Callback)
 				aq.Callback(iresult);
 
-			if (mysql_next_result(&m_Connection) > 0) {
+			if (m_Mysql->next_result(&m_Connection) > 0) {
 				std::ostringstream msgbuf;
-				String message = mysql_error(&m_Connection);
+				String message = m_Mysql->error(&m_Connection);
 				msgbuf << "Error \"" << message << "\" when executing query \"" << query << "\"";
 				Log(LogCritical, "IdoMysqlConnection", msgbuf.str());
 
 				BOOST_THROW_EXCEPTION(
 					database_error()
-					<< errinfo_message(mysql_error(&m_Connection))
+					<< errinfo_message(m_Mysql->error(&m_Connection))
 					<< errinfo_database_query(query)
 				);
 			}
@@ -604,33 +612,33 @@ IdoMysqlResult IdoMysqlConnection::Query(const String& query)
 
 	IncreaseQueryCount();
 
-	if (mysql_query(&m_Connection, query.CStr()) != 0) {
+	if (m_Mysql->query(&m_Connection, query.CStr()) != 0) {
 		std::ostringstream msgbuf;
-		String message = mysql_error(&m_Connection);
+		String message = m_Mysql->error(&m_Connection);
 		msgbuf << "Error \"" << message << "\" when executing query \"" << query << "\"";
 		Log(LogCritical, "IdoMysqlConnection", msgbuf.str());
 
 		BOOST_THROW_EXCEPTION(
 			database_error()
-			<< errinfo_message(mysql_error(&m_Connection))
+			<< errinfo_message(m_Mysql->error(&m_Connection))
 			<< errinfo_database_query(query)
 		);
 	}
 
-	MYSQL_RES *result = mysql_store_result(&m_Connection);
+	MYSQL_RES *result = m_Mysql->store_result(&m_Connection);
 
-	m_AffectedRows = mysql_affected_rows(&m_Connection);
+	m_AffectedRows = m_Mysql->affected_rows(&m_Connection);
 
 	if (!result) {
-		if (mysql_field_count(&m_Connection) > 0) {
+		if (m_Mysql->field_count(&m_Connection) > 0) {
 			std::ostringstream msgbuf;
-			String message = mysql_error(&m_Connection);
+			String message = m_Mysql->error(&m_Connection);
 			msgbuf << "Error \"" << message << "\" when executing query \"" << query << "\"";
 			Log(LogCritical, "IdoMysqlConnection", msgbuf.str());
 
 			BOOST_THROW_EXCEPTION(
 				database_error()
-				<< errinfo_message(mysql_error(&m_Connection))
+				<< errinfo_message(m_Mysql->error(&m_Connection))
 				<< errinfo_database_query(query)
 			);
 		}
@@ -638,14 +646,14 @@ IdoMysqlResult IdoMysqlConnection::Query(const String& query)
 		return IdoMysqlResult();
 	}
 
-	return IdoMysqlResult(result, std::ptr_fun(mysql_free_result));
+	return IdoMysqlResult(result, std::bind(&MysqlInterface::free_result, std::cref(m_Mysql), _1));
 }
 
 DbReference IdoMysqlConnection::GetLastInsertID(void)
 {
 	AssertOnWorkQueue();
 
-	return DbReference(mysql_insert_id(&m_Connection));
+	return DbReference(m_Mysql->insert_id(&m_Connection));
 }
 
 int IdoMysqlConnection::GetAffectedRows(void)
@@ -664,7 +672,7 @@ String IdoMysqlConnection::Escape(const String& s)
 	size_t length = utf8s.GetLength();
 	char *to = new char[utf8s.GetLength() * 2 + 1];
 
-	mysql_real_escape_string(&m_Connection, to, utf8s.CStr(), length);
+	m_Mysql->real_escape_string(&m_Connection, to, utf8s.CStr(), length);
 
 	String result = String(to);
 
@@ -681,20 +689,20 @@ Dictionary::Ptr IdoMysqlConnection::FetchRow(const IdoMysqlResult& result)
 	MYSQL_FIELD *field;
 	unsigned long *lengths, i;
 
-	row = mysql_fetch_row(result.get());
+	row = m_Mysql->fetch_row(result.get());
 
 	if (!row)
 		return nullptr;
 
-	lengths = mysql_fetch_lengths(result.get());
+	lengths = m_Mysql->fetch_lengths(result.get());
 
 	if (!lengths)
 		return nullptr;
 
 	Dictionary::Ptr dict = new Dictionary();
 
-	mysql_field_seek(result.get(), 0);
-	for (field = mysql_fetch_field(result.get()), i = 0; field; field = mysql_fetch_field(result.get()), i++)
+	m_Mysql->field_seek(result.get(), 0);
+	for (field = m_Mysql->fetch_field(result.get()), i = 0; field; field = m_Mysql->fetch_field(result.get()), i++)
 		dict->Set(field->name, String(row[i], row[i] + lengths[i]));
 
 	return dict;

@@ -21,10 +21,11 @@
 #define IDOPGSQLCONNECTION_H
 
 #include "db_ido_pgsql/idopgsqlconnection.thpp"
+#include "pgsql_shim/pgsqlinterface.hpp"
 #include "base/array.hpp"
 #include "base/timer.hpp"
 #include "base/workqueue.hpp"
-#include <libpq-fe.h>
+#include "base/library.hpp"
 
 namespace icinga
 {
@@ -65,6 +66,9 @@ private:
 	DbReference m_InstanceID;
 
 	WorkQueue m_QueryQueue;
+
+	Library m_Library;
+	std::unique_ptr<PgsqlInterface, PgsqlInterfaceDeleter> m_Pgsql;
 
 	PGconn *m_Connection;
 	int m_AffectedRows;

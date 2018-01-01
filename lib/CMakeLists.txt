@@ -39,11 +39,25 @@ if(ICINGA2_WITH_MYSQL OR ICINGA2_WITH_PGSQL)
 endif()
 
 if(ICINGA2_WITH_MYSQL)
-  add_subdirectory(db_ido_mysql)
+  find_package(MySQL)
+
+  if(MYSQL_FOUND)
+    add_subdirectory(db_ido_mysql)
+    add_subdirectory(mysql_shim)
+  else()
+    message(FATAL_ERROR "You have selected MySQL support, but MySQL could not be found. You can disable the MySQL IDO module using -DICINGA2_WITH_MYSQL=OFF.")
+  endif()
 endif()
 
 if(ICINGA2_WITH_PGSQL)
-  add_subdirectory(db_ido_pgsql)
+  find_package(PostgreSQL)
+
+  if(PostgreSQL_FOUND)
+    add_subdirectory(db_ido_pgsql)
+    add_subdirectory(pgsql_shim)
+  else()
+    message(FATAL_ERROR "You have selected PostgreSQL support, but PostgreSQL could not be found. You can disable the PostgreSQL IDO module using -DICINGA2_WITH_PGSQL=OFF.")
+  endif()
 endif()
 
 if(ICINGA2_WITH_DEMO)
