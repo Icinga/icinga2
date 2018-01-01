@@ -38,11 +38,11 @@ template<typename FuncType>
 typename std::enable_if<
     std::is_class<FuncType>::value &&
     std::is_same<typename boost::function_types::result_type<decltype(&FuncType::operator())>::type, Value>::value &&
-    std::is_same<typename boost::mpl::at_c<boost::function_types::parameter_types<decltype(&FuncType::operator())>, 1>::type, const std::vector<Value>&>::value &&
-    boost::function_types::function_arity<decltype(&FuncType::operator())>::value == 2,
+	boost::function_types::function_arity<decltype(&FuncType::operator())>::value == 2,
     std::function<Value (const std::vector<Value>&)>>::type
 WrapFunction(FuncType function)
 {
+	static_assert(std::is_same<typename boost::mpl::at_c<typename boost::function_types::parameter_types<decltype(&FuncType::operator())>, 1>::type, const std::vector<Value>&>::value, "Argument type must be const std::vector<Value>");
 	return function;
 }
 
@@ -140,11 +140,12 @@ template<typename FuncType>
 typename std::enable_if<
     std::is_class<FuncType>::value &&
     !(std::is_same<typename boost::function_types::result_type<decltype(&FuncType::operator())>::type, Value>::value &&
-    std::is_same<typename boost::mpl::at_c<boost::function_types::parameter_types<decltype(&FuncType::operator())>, 1>::type, const std::vector<Value>&>::value &&
-    boost::function_types::function_arity<decltype(&FuncType::operator())>::value == 2),
+	boost::function_types::function_arity<decltype(&FuncType::operator())>::value == 2),
     std::function<Value (const std::vector<Value>&)>>::type
 WrapFunction(FuncType function)
 {
+	static_assert(!std::is_same<typename boost::mpl::at_c<typename boost::function_types::parameter_types<decltype(&FuncType::operator())>, 1>::type, const std::vector<Value>&>::value, "Argument type must be const std::vector<Value>");
+
 	using FuncTypeInvoker = decltype(&FuncType::operator());
 
 	return [function](const std::vector<Value>& arguments) {
