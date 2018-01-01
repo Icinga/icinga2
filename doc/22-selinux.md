@@ -104,7 +104,7 @@ SELinux is based on the least level of access required for a service to run. Usi
 
 **icinga2_can_connect_all** 
 
-Having this boolean enabled allows icinga2 to connect to all ports. This can be neccesary if you use features which connect to unconfined services.
+Having this boolean enabled allows icinga2 to connect to all ports. This can be necessary if you use features which connect to unconfined services.
 
 **httpd_can_write_icinga2_command** 
 
