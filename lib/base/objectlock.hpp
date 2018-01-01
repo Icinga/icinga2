@@ -61,21 +61,17 @@ public:
 	{
 		unsigned int it = 0;
 
-#ifdef _WIN32
-#	ifdef _WIN64
-		while (likely(InterlockedCompareExchange64((LONGLONG *)&object->m_Mutex, I2MUTEX_LOCKED, I2MUTEX_UNLOCKED) != I2MUTEX_UNLOCKED)) {
-#	else /* _WIN64 */
-		while (likely(InterlockedCompareExchange(&object->m_Mutex, I2MUTEX_LOCKED, I2MUTEX_UNLOCKED) != I2MUTEX_UNLOCKED)) {
-#	endif /* _WIN64 */
-#else /* _WIN32 */
-		while (likely(!__sync_bool_compare_and_swap(&object->m_Mutex, I2MUTEX_UNLOCKED, I2MUTEX_LOCKED))) {
-#endif /* _WIN32 */
-			if (likely(object->m_Mutex > I2MUTEX_LOCKED)) {
-				boost::recursive_mutex *mtx = reinterpret_cast<boost::recursive_mutex *>(object->m_Mutex);
+		uintptr_t tmp = I2MUTEX_UNLOCKED;
+
+		while (!object->m_Mutex.compare_exchange_weak(tmp, I2MUTEX_LOCKED)) {
+			if (likely(tmp > I2MUTEX_LOCKED)) {
+				boost::recursive_mutex *mtx = reinterpret_cast<boost::recursive_mutex *>(tmp);
 				mtx->lock();
 
 				return;
 			}
+
+			tmp = I2MUTEX_UNLOCKED;
 
 			Spin(it);
 			it++;
@@ -83,15 +79,8 @@ public:
 
 		boost::recursive_mutex *mtx = new boost::recursive_mutex();
 		mtx->lock();
-#ifdef _WIN32
-#	ifdef _WIN64
-		InterlockedCompareExchange64((LONGLONG *)&object->m_Mutex, reinterpret_cast<LONGLONG>(mtx), I2MUTEX_LOCKED);
-#	else /* _WIN64 */
-		InterlockedCompareExchange(&object->m_Mutex, reinterpret_cast<LONG>(mtx), I2MUTEX_LOCKED);
-#	endif /* _WIN64 */
-#else /* _WIN32 */
-		__sync_bool_compare_and_swap(&object->m_Mutex, I2MUTEX_LOCKED, reinterpret_cast<uintptr_t>(mtx));
-#endif /* _WIN32 */
+
+		object->m_Mutex.store(reinterpret_cast<uintptr_t>(mtx));
 	}
 
 	void Lock(void)
@@ -104,9 +93,9 @@ public:
 
 #ifdef I2_DEBUG
 #	ifdef _WIN32
-		InterlockedExchange(&m_Object->m_LockOwner, GetCurrentThreadId());
+		m_Object->m_LockOwner = GetCurrentThreadId();
 #	else /* _WIN32 */
-		__sync_lock_test_and_set(&m_Object->m_LockOwner, pthread_self());
+		m_Object->m_LockOwner = pthread_self();
 #	endif /* _WIN32 */
 #endif /* I2_DEBUG */
 	}
@@ -132,18 +121,15 @@ public:
 
 	void Unlock(void)
 	{
-#ifdef I2_DEBUG
 		if (m_Locked) {
-#	ifdef _WIN32
-			InterlockedExchange(&m_Object->m_LockOwner, 0);
-#	else /* _WIN32 */
-			__sync_lock_release(&m_Object->m_LockOwner);
-#	endif /* _WIN32 */
-		}
+#ifdef I2_DEBUG
+			memset(&m_Object->m_LockOwner, 0, sizeof(m_Object->m_LockOwner));
 #endif /* I2_DEBUG */
 
-		if (m_Locked) {
-			reinterpret_cast<boost::recursive_mutex *>(m_Object->m_Mutex)->unlock();
+			uintptr_t mtx = m_Object->m_Mutex.load();
+
+			reinterpret_cast<boost::recursive_mutex *>(mtx)->unlock();
+
 			m_Locked = false;
 		}
 	}

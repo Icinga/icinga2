@@ -30,7 +30,7 @@ ApplyRule::ApplyRule(const String& targetType, const String& name, const std::sh
 	const std::shared_ptr<Expression>& filter, const String& package, const String& fkvar, const String& fvvar, const std::shared_ptr<Expression>& fterm,
 	bool ignoreOnError, const DebugInfo& di, const Dictionary::Ptr& scope)
 	: m_TargetType(targetType), m_Name(name), m_Expression(expression), m_Filter(filter), m_Package(package), m_FKVar(fkvar),
-	m_FVVar(fvvar), m_FTerm(fterm), m_IgnoreOnError(ignoreOnError), m_DebugInfo(di), m_Scope(scope), m_HasMatches(false)
+	m_FVVar(fvvar), m_FTerm(fterm), m_IgnoreOnError(ignoreOnError), m_DebugInfo(di), m_Scope(scope)
 { }
 
 String ApplyRule::GetTargetType(void) const
@@ -92,7 +92,7 @@ void ApplyRule::AddRule(const String& sourceType, const String& targetType, cons
 	const std::shared_ptr<Expression>& expression, const std::shared_ptr<Expression>& filter, const String& package, const String& fkvar,
 	const String& fvvar, const std::shared_ptr<Expression>& fterm, bool ignoreOnError, const DebugInfo& di, const Dictionary::Ptr& scope)
 {
-	m_Rules[sourceType].push_back(ApplyRule(targetType, name, expression, filter, package, fkvar, fvvar, fterm, ignoreOnError, di, scope));
+	m_Rules[sourceType].emplace_back(new ApplyRule(targetType, name, expression, filter, package, fkvar, fvvar, fterm, ignoreOnError, di, scope));
 }
 
 bool ApplyRule::EvaluateFilter(ScriptFrame& frame) const
@@ -148,11 +148,11 @@ bool ApplyRule::HasMatches(void) const
 	return m_HasMatches;
 }
 
-std::vector<ApplyRule>& ApplyRule::GetRules(const String& type)
+std::vector<std::unique_ptr<ApplyRule> >& ApplyRule::GetRules(const String& type)
 {
 	auto it = m_Rules.find(type);
 	if (it == m_Rules.end()) {
-		static std::vector<ApplyRule> emptyList;
+		static std::vector<std::unique_ptr<ApplyRule> > emptyList;
 		return emptyList;
 	}
 	return it->second;
@@ -161,10 +161,10 @@ std::vector<ApplyRule>& ApplyRule::GetRules(const String& type)
 void ApplyRule::CheckMatches(void)
 {
 	for (const RuleMap::value_type& kv : m_Rules) {
-		for (const ApplyRule& rule : kv.second) {
-			if (!rule.HasMatches())
+		for (const auto& rule : kv.second) {
+			if (!rule->HasMatches())
 				Log(LogWarning, "ApplyRule")
-					<< "Apply rule '" << rule.GetName() << "' (" << rule.GetDebugInfo() << ") for type '" << kv.first << "' does not match anywhere!";
+					<< "Apply rule '" << rule->GetName() << "' (" << rule->GetDebugInfo() << ") for type '" << kv.first << "' does not match anywhere!";
 		}
 	}
 }

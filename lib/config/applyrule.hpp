@@ -34,7 +34,7 @@ class I2_CONFIG_API ApplyRule
 {
 public:
 	typedef std::map<String, std::vector<String> > TypeMap;
-	typedef std::map<String, std::vector<ApplyRule> > RuleMap;
+	typedef std::map<String, std::vector<std::unique_ptr<ApplyRule> > > RuleMap;
 
 	String GetTargetType(void) const;
 	String GetName(void) const;
@@ -55,7 +55,7 @@ public:
 	static void AddRule(const String& sourceType, const String& targetType, const String& name, const std::shared_ptr<Expression>& expression,
 		const std::shared_ptr<Expression>& filter, const String& package, const String& fkvar, const String& fvvar, const std::shared_ptr<Expression>& fterm,
 		bool ignoreOnError, const DebugInfo& di, const Dictionary::Ptr& scope);
-	static std::vector<ApplyRule>& GetRules(const String& type);
+	static std::vector<std::unique_ptr<ApplyRule> >& GetRules(const String& type);
 
 	static void RegisterType(const String& sourceType, const std::vector<String>& targetTypes);
 	static bool IsValidSourceType(const String& sourceType);
@@ -76,7 +76,7 @@ private:
 	bool m_IgnoreOnError;
 	DebugInfo m_DebugInfo;
 	Dictionary::Ptr m_Scope;
-	bool m_HasMatches;
+	std::atomic<bool> m_HasMatches;
 
 	static TypeMap m_Types;
 	static RuleMap m_Rules;

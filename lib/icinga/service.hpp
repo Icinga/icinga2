@@ -68,8 +68,8 @@ protected:
 private:
 	Host::Ptr m_Host;
 
-	static bool EvaluateApplyRuleInstance(const Host::Ptr& host, const String& name, ScriptFrame& frame, const ApplyRule& rule);
-	static bool EvaluateApplyRule(const Host::Ptr& host, const ApplyRule& rule);
+	static bool EvaluateApplyRuleInstance(const Host::Ptr& host, const String& name, ScriptFrame& frame, const std::unique_ptr<ApplyRule>& rule);
+	static bool EvaluateApplyRule(const Host::Ptr& host, const std::unique_ptr<ApplyRule>& rule);
 };
 
 I2_ICINGA_API std::pair<Host::Ptr, Service::Ptr> GetHostService(const Checkable::Ptr& checkable);
