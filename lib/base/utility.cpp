@@ -915,7 +915,7 @@ void Utility::SetNonBlockingSocket(SOCKET s, bool nb)
 #endif /* _WIN32 */
 }
 
-void Utility::QueueAsyncCallback(const boost::function<void (void)>& callback, SchedulerPolicy policy)
+void Utility::QueueAsyncCallback(const std::function<void (void)>& callback, SchedulerPolicy policy)
 {
 	Application::GetTP().Post(callback, policy);
 }
