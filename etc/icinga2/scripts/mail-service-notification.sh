@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)
+# Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)
 
 PROG="`basename $0`"
 ICINGA2HOST="`hostname`"
