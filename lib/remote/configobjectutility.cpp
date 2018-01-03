@@ -129,7 +129,7 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 	try {
 		ActivationScope ascope;
 
-		ScriptFrame frame;
+		ScriptFrame frame(true);
 		expr->Evaluate(frame);
 		expr.reset();
 

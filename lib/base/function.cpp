@@ -44,7 +44,7 @@ Value Function::Invoke(const std::vector<Value>& arguments)
 
 Value Function::InvokeThis(const Value& otherThis, const std::vector<Value>& arguments)
 {
-	ScriptFrame frame(otherThis, false);
+	ScriptFrame frame(false, otherThis);
 	return m_Callback(arguments);
 }
 

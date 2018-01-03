@@ -41,7 +41,7 @@ bool HostGroup::EvaluateObjectRule(const Host::Ptr& host, const ConfigItem::Ptr&
 
 	CONTEXT("Evaluating rule for group '" + group_name + "'");
 
-	ScriptFrame frame;
+	ScriptFrame frame(true);
 	if (group->GetScope())
 		group->GetScope()->CopyTo(frame.Locals);
 	frame.Locals->Set("host", host);

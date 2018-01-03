@@ -80,7 +80,7 @@ bool Service::EvaluateApplyRule(const Host::Ptr& host, const ApplyRule& rule)
 	msgbuf << "Evaluating 'apply' rule (" << di << ")";
 	CONTEXT(msgbuf.str());
 
-	ScriptFrame frame;
+	ScriptFrame frame(true);
 	if (rule.GetScope())
 		rule.GetScope()->CopyTo(frame.Locals);
 	frame.Locals->Set("host", host);

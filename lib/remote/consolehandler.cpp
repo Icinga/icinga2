@@ -129,7 +129,7 @@ bool ConsoleHandler::ExecuteScriptHelper(HttpRequest& request, HttpResponse& res
 	try {
 		expr = ConfigCompiler::CompileText(fileName, command);
 
-		ScriptFrame frame;
+		ScriptFrame frame(true);
 		frame.Locals = lsf.Locals;
 		frame.Self = lsf.Locals;
 		frame.Sandboxed = sandboxed;
@@ -190,7 +190,7 @@ bool ConsoleHandler::AutocompleteScriptHelper(HttpRequest& request, HttpResponse
 	Array::Ptr results = new Array();
 	Dictionary::Ptr resultInfo = new Dictionary();
 
-	ScriptFrame frame;
+	ScriptFrame frame(true);
 	frame.Locals = lsf.Locals;
 	frame.Self = lsf.Locals;
 	frame.Sandboxed = sandboxed;

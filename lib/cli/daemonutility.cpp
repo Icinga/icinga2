@@ -34,7 +34,7 @@ static bool ExecuteExpression(Expression *expression)
 		return false;
 
 	try {
-		ScriptFrame frame;
+		ScriptFrame frame(true);
 		expression->Evaluate(frame);
 	} catch (const std::exception& ex) {
 		Log(LogCritical, "config", DiagnosticInformation(ex));

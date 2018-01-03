@@ -50,7 +50,7 @@ INITIALIZE_ONCE(&ConsoleCommand::StaticInitialize);
 
 extern "C" void dbg_spawn_console(void)
 {
-	ScriptFrame frame;
+	ScriptFrame frame(true);
 	ConsoleCommand::RunScriptConsole(frame);
 }
 
@@ -71,7 +71,7 @@ extern "C" void dbg_eval(const char *text)
 	std::unique_ptr<Expression> expr;
 
 	try {
-		ScriptFrame frame;
+		ScriptFrame frame(true);
 		expr = ConfigCompiler::CompileText("<dbg>", text);
 		Value result = Serialize(expr->Evaluate(frame), 0);
 		dbg_inspect_value(result);
@@ -85,7 +85,7 @@ extern "C" void dbg_eval_with_value(const Value& value, const char *text)
 	std::unique_ptr<Expression> expr;
 
 	try {
-		ScriptFrame frame;
+		ScriptFrame frame(true);
 		frame.Locals = new Dictionary();
 		frame.Locals->Set("arg", value);
 		expr = ConfigCompiler::CompileText("<dbg>", text);
@@ -101,7 +101,7 @@ extern "C" void dbg_eval_with_object(Object *object, const char *text)
 	std::unique_ptr<Expression> expr;
 
 	try {
-		ScriptFrame frame;
+		ScriptFrame frame(true);
 		frame.Locals = new Dictionary();
 		frame.Locals->Set("arg", object);
 		expr = ConfigCompiler::CompileText("<dbg>", text);
@@ -227,7 +227,7 @@ int ConsoleCommand::Run(const po::variables_map& vm, const std::vector<std::stri
 #endif /* HAVE_EDITLINE */
 
 	String addr, session;
-	ScriptFrame scriptFrame;
+	ScriptFrame scriptFrame(true);
 
 	session = Utility::NewUniqueID();
 

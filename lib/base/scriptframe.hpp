@@ -36,8 +36,8 @@ struct I2_BASE_API ScriptFrame
 	bool Sandboxed;
 	int Depth;
 
-	ScriptFrame(bool allocLocals = true);
-	ScriptFrame(const Value& self, bool allocLocals = true);
+	ScriptFrame(bool allocLocals);
+	ScriptFrame(bool allocLocals, const Value& self);
 	~ScriptFrame(void);
 
 	void IncreaseStackDepth(void);

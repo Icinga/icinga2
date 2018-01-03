@@ -31,7 +31,7 @@
 		std::unique_ptr<icinga::Expression> expression = icinga::ConfigCompiler::CompileText(name, fragment); \
 		VERIFY(expression); \
 		try { \
-			icinga::ScriptFrame frame; \
+			icinga::ScriptFrame frame(true); \
 			expression->Evaluate(frame); \
 		} catch (const std::exception& ex) { \
 			std::cerr << icinga::DiagnosticInformation(ex) << std::endl; \

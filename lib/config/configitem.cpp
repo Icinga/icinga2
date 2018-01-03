@@ -196,7 +196,7 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 
 	DebugHint debugHints;
 
-	ScriptFrame frame(dobj);
+	ScriptFrame frame(true, dobj);
 	if (m_Scope)
 		m_Scope->CopyTo(frame.Locals);
 	try {
@@ -584,7 +584,7 @@ bool ConfigItem::ActivateItems(WorkQueue& upq, const std::vector<ConfigItem::Ptr
 
 			if (expression) {
 				try {
-					ScriptFrame frame;
+					ScriptFrame frame(true);
 					expression->Evaluate(frame);
 				} catch (const std::exception& ex) {
 					Log(LogCritical, "config", DiagnosticInformation(ex));

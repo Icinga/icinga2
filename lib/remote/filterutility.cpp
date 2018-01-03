@@ -197,7 +197,7 @@ std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, c
 	Expression *permissionFilter;
 	CheckPermission(user, qd.Permission, &permissionFilter);
 
-	ScriptFrame permissionFrame;
+	ScriptFrame permissionFrame(true);
 
 	for (const String& type : qd.Types) {
 		String attr = type;
@@ -247,7 +247,7 @@ std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, c
 		if (qd.Types.find(type) == qd.Types.end())
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid type specified for this query."));
 
-		ScriptFrame frame;
+		ScriptFrame frame(true);
 		frame.Sandboxed = true;
 		Dictionary::Ptr uvars = new Dictionary();
 
