@@ -153,8 +153,6 @@ In addition to `CMAKE_INSTALL_PREFIX` here are most of the supported Icinga-spec
   Defaults to `OFF`.
 
 **Features:**
-- `ICINGA2_WITH_MYSQL`: Determines whether the MySQL IDO module is built; defaults to `ON`
-- `ICINGA2_WITH_PGSQL`: Determines whether the PostgreSQL IDO module is built; defaults to `ON`
 - `ICINGA2_WITH_CHECKER`: Determines whether the checker module is built; defaults to `ON`
 - `ICINGA2_WITH_COMPAT`: Determines whether the compat module is built; defaults to `ON`
 - `ICINGA2_WITH_DEMO`: Determines whether the demo module is built; defaults to `OFF`
@@ -164,6 +162,27 @@ In addition to `CMAKE_INSTALL_PREFIX` here are most of the supported Icinga-spec
 - `ICINGA2_WITH_PERFDATA`: Determines whether the perfdata module is built; defaults to `ON`
 - `ICINGA2_WITH_STUDIO`: Determines whether the Icinga Studio application is built; defaults to `OFF`
 - `ICINGA2_WITH_TESTS`: Determines whether the unit tests are built; defaults to `ON`
+
+**MySQL or MariaDB:**
+
+The following settings can be tuned for the MySQL / MariaDB IDO feature.
+
+- `ICINGA2_WITH_MYSQL`: Determines whether the MySQL IDO module is built; defaults to `ON`
+- `MYSQL_CLIENT_LIBS`: Client implementation used (mysqlclient / mariadbclient); defaults searches for `mysqlclient`
+- `MYSQL_INCLUDE_DIR`: Directory containing include files for the mysqlclient; default empty -
+  checking multiple paths like `/usr/include/mysql`
+
+See [FindMySQL.cmake](third-party/cmake/FindMySQL.cmake) for the implementation.
+
+**PostgreSQL:**
+
+The following settings can be tuned for the PostgreSQL IDO feature.
+
+- `ICINGA2_WITH_PGSQL`: Determines whether the PostgreSQL IDO module is built; defaults to `ON`
+- `PostgreSQL_INCLUDE_DIR`: Top-level directory containing the PostgreSQL include directories
+- `PostgreSQL_LIBRARY_DIR`: Top-level directory containing the PostgreSQL libraries
+
+See [FindMySQL.cmake](third-party/cmake/FindPostgreSQL.cmake) for the implementation.
 
 **Version detection:**
 
