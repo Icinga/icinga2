@@ -32,7 +32,7 @@ namespace icinga
  *
  * @ingroup methods
  */
-class I2_METHODS_API NullCheckTask
+class NullCheckTask
 {
 public:
 	static void ScriptFunc(const Checkable::Ptr& service, const CheckResult::Ptr& cr,

@@ -35,7 +35,7 @@ namespace icinga
  *
  * @ingroup base
  */
-class I2_BASE_API Array : public Object
+class Array : public Object
 {
 public:
 	DECLARE_OBJECT(Array);

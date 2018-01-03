@@ -31,7 +31,7 @@ namespace icinga
  *
  * @ingroup base
  */
-class I2_BASE_API FIFO : public Stream
+class FIFO : public Stream
 {
 public:
 	DECLARE_PTR_TYPEDEFS(FIFO);

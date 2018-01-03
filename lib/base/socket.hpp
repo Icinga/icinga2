@@ -31,7 +31,7 @@ namespace icinga
  *
  * @ingroup base
  */
-class I2_BASE_API Socket : public Object
+class Socket : public Object
 {
 public:
 	DECLARE_PTR_TYPEDEFS(Socket);

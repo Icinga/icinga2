@@ -32,8 +32,8 @@
 namespace icinga
 {
 
-std::vector<String> I2_CLI_API GetBashCompletionSuggestions(const String& type, const String& word);
-std::vector<String> I2_CLI_API GetFieldCompletionSuggestions(const Type::Ptr& type, const String& word);
+std::vector<String> GetBashCompletionSuggestions(const String& type, const String& word);
+std::vector<String> GetFieldCompletionSuggestions(const Type::Ptr& type, const String& word);
 
 enum ImpersonationLevel
 {
@@ -47,7 +47,7 @@ enum ImpersonationLevel
  *
  * @ingroup base
  */
-class I2_CLI_API CLICommand : public Object
+class CLICommand : public Object
 {
 public:
 	DECLARE_PTR_TYPEDEFS(CLICommand);

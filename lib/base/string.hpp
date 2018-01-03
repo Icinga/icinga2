@@ -41,7 +41,7 @@ class Value;
  * Rationale for having this: The std::string class has an ambiguous assignment
  * operator when used in conjunction with the Value class.
  */
-class I2_BASE_API String
+class String
 {
 public:
 	typedef std::string::iterator Iterator;

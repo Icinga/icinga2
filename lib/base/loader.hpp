@@ -55,11 +55,9 @@ private:
  *
  * @ingroup base
  */
-class I2_BASE_API Loader
+class Loader
 {
 public:
-	static void LoadExtensionLibrary(const String& library);
-
 	static void AddDeferredInitializer(const std::function<void(void)>& callback, int priority = 0);
 	static void ExecuteDeferredInitializers(void);
 

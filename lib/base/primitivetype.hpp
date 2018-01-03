@@ -27,7 +27,7 @@
 namespace icinga
 {
 
-class I2_BASE_API PrimitiveType : public Type
+class PrimitiveType : public Type
 {
 public:
 	PrimitiveType(const String& name, const String& base, const ObjectFactory& factory = ObjectFactory());

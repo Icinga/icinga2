@@ -48,7 +48,7 @@ class MessageOrigin;
  *
  * @ingroup remote
  */
-class I2_REMOTE_API JsonRpcConnection : public Object
+class JsonRpcConnection : public Object
 {
 public:
 	DECLARE_PTR_TYPEDEFS(JsonRpcConnection);

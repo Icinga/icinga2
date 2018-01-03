@@ -41,7 +41,7 @@ enum HttpResponseState
  *
  * @ingroup remote
  */
-struct I2_REMOTE_API HttpResponse
+struct HttpResponse
 {
 public:
 	bool Complete;

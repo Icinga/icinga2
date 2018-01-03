@@ -30,7 +30,9 @@ add_executable(icinga-studio MACOSX_BUNDLE WIN32 icinga-studio.cpp
   icinga.icns ${WindowsSources})
 
 include_directories(${Boost_INCLUDE_DIRS})
-target_link_libraries(icinga-studio ${Boost_LIBRARIES} ${wxWidgets_LIBRARIES} base remote)
+target_link_libraries(icinga-studio ${Boost_LIBRARIES} ${wxWidgets_LIBRARIES})
+add_whole_static_library(icinga-studio base)
+add_whole_static_library(icinga-studio remote)
 
 if(APPLE)
   set_source_files_properties(icinga.icns PROPERTIES MACOSX_PACKAGE_LOCATION Resources)

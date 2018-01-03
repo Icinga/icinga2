@@ -31,7 +31,7 @@ namespace icinga {
  *
  * @ingroup base
  */
-class I2_BASE_API DependencyGraph
+class DependencyGraph
 {
 public:
 	static void AddDependency(Object *parent, Object *child);

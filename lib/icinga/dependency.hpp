@@ -36,7 +36,7 @@ class Service;
  *
  * @ingroup icinga
  */
-class I2_ICINGA_API Dependency : public ObjectImpl<Dependency>
+class Dependency : public ObjectImpl<Dependency>
 {
 public:
 	DECLARE_OBJECT(Dependency);

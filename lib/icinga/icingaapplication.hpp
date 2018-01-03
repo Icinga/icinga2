@@ -32,7 +32,7 @@ namespace icinga
  *
  * @ingroup icinga
  */
-class I2_ICINGA_API IcingaApplication : public ObjectImpl<IcingaApplication>, public MacroResolver
+class IcingaApplication : public ObjectImpl<IcingaApplication>, public MacroResolver
 {
 public:
 	DECLARE_OBJECT(IcingaApplication);

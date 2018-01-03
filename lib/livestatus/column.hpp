@@ -34,7 +34,7 @@ enum LivestatusGroupByType {
 	LivestatusGroupByServiceGroup
 };
 
-class I2_LIVESTATUS_API Column
+class Column
 {
 public:
 	typedef std::function<Value (const Value&)> ValueAccessor;

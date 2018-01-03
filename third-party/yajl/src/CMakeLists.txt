@@ -30,15 +30,13 @@ ADD_DEFINITIONS(-DYAJL_BUILD)
 # set up some paths
 SET (incDir ${CMAKE_CURRENT_BINARY_DIR}/../include/yajl)
 
-ADD_LIBRARY(yajl SHARED ${SRCS} ${HDRS} ${PUB_HDRS})
+ADD_LIBRARY(yajl STATIC ${SRCS} ${HDRS} ${PUB_HDRS})
 
 #### setup shared library version number
-SET_TARGET_PROPERTIES(yajl PROPERTIES
-                      INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR}/icinga2
-                      DEFINE_SYMBOL YAJL_SHARED
-                      SOVERSION ${YAJL_MAJOR}
-                      VERSION ${YAJL_MAJOR}.${YAJL_MINOR}.${YAJL_MICRO}
-					  FOLDER Lib)
+SET_TARGET_PROPERTIES(yajl
+    PROPERTIES
+    FOLDER Lib
+)
 
 #### build up an sdk as a post build step
 
@@ -56,14 +54,3 @@ FOREACH (header ${PUB_HDRS})
 ENDFOREACH (header ${PUB_HDRS})
 
 INCLUDE_DIRECTORIES(${incDir}/..)
-
-INSTALL(TARGETS yajl
-  RUNTIME DESTINATION ${CMAKE_INSTALL_SBINDIR}
-  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/icinga2)
-
-if(APPLE)
-  install(
-    TARGETS yajl
-    LIBRARY DESTINATION ${CMAKE_INSTALL_BINDIR}/icinga-studio.app/Contents
-  )
-endif()

@@ -76,7 +76,7 @@ inline bool operator<(const Task& a, const Task& b)
  *
  * @ingroup base
  */
-class I2_BASE_API WorkQueue
+class WorkQueue
 {
 public:
 	typedef std::function<void (boost::exception_ptr)> ExceptionCallback;

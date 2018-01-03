@@ -25,21 +25,11 @@ if(ICINGA2_UNITY_BUILD)
     mkunity_target(demo demo demo_SOURCES)
 endif()
 
-add_library(demo SHARED ${demo_SOURCES})
+add_library(demo STATIC ${demo_SOURCES})
 
 target_link_libraries(demo ${Boost_LIBRARIES} base config icinga remote)
 
 set_target_properties (
   demo PROPERTIES
-  INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR}/icinga2
-  DEFINE_SYMBOL I2_DEMO_BUILD
   FOLDER Components
-  VERSION ${SPEC_VERSION}
 )
-
-install(
-  TARGETS demo
-  RUNTIME DESTINATION ${CMAKE_INSTALL_SBINDIR}
-  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/icinga2
-)
-

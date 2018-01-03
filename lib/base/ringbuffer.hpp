@@ -32,7 +32,7 @@ namespace icinga
  *
  * @ingroup base
  */
-class I2_BASE_API RingBuffer : public Object
+class RingBuffer : public Object
 {
 public:
 	DECLARE_PTR_TYPEDEFS(RingBuffer);

@@ -27,7 +27,7 @@
 namespace icinga
 {
 
-class I2_BASE_API ObjectType : public Type
+class ObjectType : public Type
 {
 public:
 	ObjectType(void);

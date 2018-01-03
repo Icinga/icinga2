@@ -88,7 +88,7 @@ typedef void (*DestCallback)(void *);
 static boost::thread_specific_ptr<DestCallback> l_LastExceptionDest;
 #	endif /* !__GLIBCXX__ && !_WIN32 */
 
-extern "C" I2_EXPORT void __cxa_throw(void *obj, TYPEINFO_TYPE *pvtinfo, void (*dest)(void *));
+extern "C" void __cxa_throw(void *obj, TYPEINFO_TYPE *pvtinfo, void (*dest)(void *));
 #endif /* HAVE_CXXABI_H */
 
 void icinga::RethrowUncaughtException(void)

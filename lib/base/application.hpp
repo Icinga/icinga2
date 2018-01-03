@@ -35,7 +35,7 @@ namespace icinga
  *
  * @ingroup base
  */
-class I2_BASE_API Application : public ObjectImpl<Application> {
+class Application : public ObjectImpl<Application> {
 public:
 	DECLARE_OBJECT(Application);
 

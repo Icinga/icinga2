@@ -21,10 +21,11 @@
 #define IDOMYSQLCONNECTION_H
 
 #include "db_ido_mysql/idomysqlconnection.thpp"
+#include "mysql_shim/mysqlinterface.hpp"
 #include "base/array.hpp"
 #include "base/timer.hpp"
 #include "base/workqueue.hpp"
-#include <mysql.h>
+#include "base/library.hpp"
 
 namespace icinga
 {
@@ -73,6 +74,9 @@ private:
 	DbReference m_InstanceID;
 
 	WorkQueue m_QueryQueue;
+
+	Library m_Library;
+	std::unique_ptr<MysqlInterface, MysqlInterfaceDeleter> m_Mysql;
 
 	MYSQL m_Connection;
 	int m_AffectedRows;

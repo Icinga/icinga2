@@ -59,7 +59,7 @@ struct LogEntry {
  *
  * @ingroup base
  */
-class I2_BASE_API Logger : public ObjectImpl<Logger>
+class Logger : public ObjectImpl<Logger>
 {
 public:
 	DECLARE_OBJECT(Logger);
@@ -104,7 +104,7 @@ private:
 	static LogSeverity m_ConsoleLogSeverity;
 };
 
-I2_BASE_API void IcingaLog(LogSeverity severity, const String& facility, const String& message);
+void IcingaLog(LogSeverity severity, const String& facility, const String& message);
 
 class Log
 {

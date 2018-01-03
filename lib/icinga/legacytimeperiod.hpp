@@ -32,7 +32,7 @@ namespace icinga
  *
  * @ingroup icinga
  */
-class I2_ICINGA_API LegacyTimePeriod
+class LegacyTimePeriod
 {
 public:
 	static Array::Ptr ScriptFunc(const TimePeriod::Ptr& tp, double start, double end);

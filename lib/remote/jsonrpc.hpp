@@ -32,7 +32,7 @@ namespace icinga
  *
  * @ingroup remote
  */
-class I2_REMOTE_API JsonRpc
+class JsonRpc
 {
 public:
 	static size_t SendMessage(const Stream::Ptr& stream, const Dictionary::Ptr& message);

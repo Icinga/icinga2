@@ -56,22 +56,11 @@ if(ICINGA2_UNITY_BUILD)
     mkunity_target(icinga icinga icinga_SOURCES)
 endif()
 
-add_library(icinga SHARED ${icinga_SOURCES})
+add_library(icinga STATIC ${icinga_SOURCES})
 
 target_link_libraries(icinga ${Boost_LIBRARIES} base config remote)
 
 set_target_properties (
   icinga PROPERTIES
-  INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR}/icinga2
-  DEFINE_SYMBOL I2_ICINGA_BUILD
   FOLDER Lib
-  VERSION ${SPEC_VERSION}
 )
-
-install(
-  TARGETS icinga
-  RUNTIME DESTINATION ${CMAKE_INSTALL_SBINDIR}
-  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/icinga2
-)
-
-

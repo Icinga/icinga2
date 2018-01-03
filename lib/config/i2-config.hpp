@@ -30,10 +30,4 @@
 
 #include "base/i2-base.hpp"
 
-#ifdef I2_CONFIG_BUILD
-#	define I2_CONFIG_API I2_EXPORT
-#else /* I2_CONFIG_BUILD */
-#	define I2_CONFIG_API I2_IMPORT
-#endif /* I2_CONFIG_BUILD */
-
 #endif /* I2CONFIG_H */

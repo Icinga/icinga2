@@ -32,21 +32,12 @@ if(ICINGA2_UNITY_BUILD)
     mkunity_target(db_ido db_ido db_ido_SOURCES)
 endif()
 
-add_library(db_ido SHARED ${db_ido_SOURCES})
+add_library(db_ido STATIC ${db_ido_SOURCES})
 
 include_directories(${Boost_INCLUDE_DIRS})
 target_link_libraries(db_ido ${Boost_LIBRARIES} base config icinga remote)
 
 set_target_properties (
   db_ido PROPERTIES
-  INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR}/icinga2
-  DEFINE_SYMBOL I2_DB_IDO_BUILD
   FOLDER Lib
-  VERSION ${SPEC_VERSION}
-)
-
-install(
-  TARGETS db_ido
-  RUNTIME DESTINATION ${CMAKE_INSTALL_SBINDIR}
-  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/icinga2
 )

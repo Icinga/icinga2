@@ -25,7 +25,7 @@
 namespace icinga
 {
 
-class I2_REMOTE_API InfoHandler : public HttpHandler
+class InfoHandler : public HttpHandler
 {
 public:
 	DECLARE_PTR_TYPEDEFS(InfoHandler);

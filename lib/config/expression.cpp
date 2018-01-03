@@ -840,7 +840,8 @@ ExpressionResult LibraryExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dh
 	ExpressionResult libres = m_Operand->Evaluate(frame, dhint);
 	CHECK_RESULT(libres);
 
-	Loader::LoadExtensionLibrary(libres.GetValue());
+	Log(LogNotice, "config")
+		<< "Ignoring explicit load request for library \"" << libres << "\".";
 
 	return Empty;
 }

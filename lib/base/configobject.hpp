@@ -37,7 +37,7 @@ class ConfigType;
  *
  * @ingroup base
  */
-class I2_BASE_API ConfigObject : public ObjectImpl<ConfigObject>
+class ConfigObject : public ObjectImpl<ConfigObject>
 {
 public:
 	DECLARE_OBJECT(ConfigObject);

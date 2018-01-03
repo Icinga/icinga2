@@ -33,7 +33,7 @@ namespace icinga
  *
  * @ingroup methods
  */
-class I2_METHODS_API PluginNotificationTask
+class PluginNotificationTask
 {
 public:
 	static void ScriptFunc(const Notification::Ptr& notification,

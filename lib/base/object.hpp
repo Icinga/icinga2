@@ -41,7 +41,7 @@ class String;
 struct DebugInfo;
 class ValidationUtils;
 
-extern I2_BASE_API Value Empty;
+extern Value Empty;
 
 #define DECLARE_PTR_TYPEDEFS(klass) \
 	typedef intrusive_ptr<klass> Ptr
@@ -105,7 +105,7 @@ struct TypeHelper<T, true>
  *
  * @ingroup base
  */
-class I2_BASE_API Object
+class Object
 {
 public:
 	DECLARE_PTR_TYPEDEFS(Object);
@@ -160,10 +160,10 @@ private:
 	friend void intrusive_ptr_release(Object *object);
 };
 
-I2_BASE_API Value GetPrototypeField(const Value& context, const String& field, bool not_found_error, const DebugInfo& debugInfo);
+Value GetPrototypeField(const Value& context, const String& field, bool not_found_error, const DebugInfo& debugInfo);
 
-I2_BASE_API void TypeAddObject(Object *object);
-I2_BASE_API void TypeRemoveObject(Object *object);
+void TypeAddObject(Object *object);
+void TypeRemoveObject(Object *object);
 
 inline void intrusive_ptr_add_ref(Object *object)
 {

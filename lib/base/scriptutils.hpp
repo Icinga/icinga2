@@ -33,7 +33,7 @@ namespace icinga
 /**
  * @ingroup base
  */
-class I2_BASE_API ScriptUtils
+class ScriptUtils
 {
 public:
 	static void StaticInitialize(void);

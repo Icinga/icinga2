@@ -49,7 +49,7 @@ enum ValueType
  *
  * @ingroup base
  */
-class I2_BASE_API Value
+class Value
 {
 public:
 	Value(void)
@@ -293,100 +293,100 @@ private:
 	boost::variant<boost::blank, double, bool, String, Object::Ptr> m_Value;
 };
 
-extern I2_BASE_API Value Empty;
+extern Value Empty;
 
-I2_BASE_API Value operator+(const Value& lhs, const char *rhs);
-I2_BASE_API Value operator+(const char *lhs, const Value& rhs);
+Value operator+(const Value& lhs, const char *rhs);
+Value operator+(const char *lhs, const Value& rhs);
 
-I2_BASE_API Value operator+(const Value& lhs, const String& rhs);
-I2_BASE_API Value operator+(const String& lhs, const Value& rhs);
+Value operator+(const Value& lhs, const String& rhs);
+Value operator+(const String& lhs, const Value& rhs);
 
-I2_BASE_API Value operator+(const Value& lhs, const Value& rhs);
-I2_BASE_API Value operator+(const Value& lhs, double rhs);
-I2_BASE_API Value operator+(double lhs, const Value& rhs);
-I2_BASE_API Value operator+(const Value& lhs, int rhs);
-I2_BASE_API Value operator+(int lhs, const Value& rhs);
+Value operator+(const Value& lhs, const Value& rhs);
+Value operator+(const Value& lhs, double rhs);
+Value operator+(double lhs, const Value& rhs);
+Value operator+(const Value& lhs, int rhs);
+Value operator+(int lhs, const Value& rhs);
 
-I2_BASE_API Value operator-(const Value& lhs, const Value& rhs);
-I2_BASE_API Value operator-(const Value& lhs, double rhs);
-I2_BASE_API Value operator-(double lhs, const Value& rhs);
-I2_BASE_API Value operator-(const Value& lhs, int rhs);
-I2_BASE_API Value operator-(int lhs, const Value& rhs);
+Value operator-(const Value& lhs, const Value& rhs);
+Value operator-(const Value& lhs, double rhs);
+Value operator-(double lhs, const Value& rhs);
+Value operator-(const Value& lhs, int rhs);
+Value operator-(int lhs, const Value& rhs);
 
-I2_BASE_API Value operator*(const Value& lhs, const Value& rhs);
-I2_BASE_API Value operator*(const Value& lhs, double rhs);
-I2_BASE_API Value operator*(double lhs, const Value& rhs);
-I2_BASE_API Value operator*(const Value& lhs, int rhs);
-I2_BASE_API Value operator*(int lhs, const Value& rhs);
+Value operator*(const Value& lhs, const Value& rhs);
+Value operator*(const Value& lhs, double rhs);
+Value operator*(double lhs, const Value& rhs);
+Value operator*(const Value& lhs, int rhs);
+Value operator*(int lhs, const Value& rhs);
 
-I2_BASE_API Value operator/(const Value& lhs, const Value& rhs);
-I2_BASE_API Value operator/(const Value& lhs, double rhs);
-I2_BASE_API Value operator/(double lhs, const Value& rhs);
-I2_BASE_API Value operator/(const Value& lhs, int rhs);
-I2_BASE_API Value operator/(int lhs, const Value& rhs);
+Value operator/(const Value& lhs, const Value& rhs);
+Value operator/(const Value& lhs, double rhs);
+Value operator/(double lhs, const Value& rhs);
+Value operator/(const Value& lhs, int rhs);
+Value operator/(int lhs, const Value& rhs);
 
-I2_BASE_API Value operator%(const Value& lhs, const Value& rhs);
-I2_BASE_API Value operator%(const Value& lhs, double rhs);
-I2_BASE_API Value operator%(double lhs, const Value& rhs);
-I2_BASE_API Value operator%(const Value& lhs, int rhs);
-I2_BASE_API Value operator%(int lhs, const Value& rhs);
+Value operator%(const Value& lhs, const Value& rhs);
+Value operator%(const Value& lhs, double rhs);
+Value operator%(double lhs, const Value& rhs);
+Value operator%(const Value& lhs, int rhs);
+Value operator%(int lhs, const Value& rhs);
 
-I2_BASE_API Value operator^(const Value& lhs, const Value& rhs);
-I2_BASE_API Value operator^(const Value& lhs, double rhs);
-I2_BASE_API Value operator^(double lhs, const Value& rhs);
-I2_BASE_API Value operator^(const Value& lhs, int rhs);
-I2_BASE_API Value operator^(int lhs, const Value& rhs);
+Value operator^(const Value& lhs, const Value& rhs);
+Value operator^(const Value& lhs, double rhs);
+Value operator^(double lhs, const Value& rhs);
+Value operator^(const Value& lhs, int rhs);
+Value operator^(int lhs, const Value& rhs);
 
-I2_BASE_API Value operator&(const Value& lhs, const Value& rhs);
-I2_BASE_API Value operator&(const Value& lhs, double rhs);
-I2_BASE_API Value operator&(double lhs, const Value& rhs);
-I2_BASE_API Value operator&(const Value& lhs, int rhs);
-I2_BASE_API Value operator&(int lhs, const Value& rhs);
+Value operator&(const Value& lhs, const Value& rhs);
+Value operator&(const Value& lhs, double rhs);
+Value operator&(double lhs, const Value& rhs);
+Value operator&(const Value& lhs, int rhs);
+Value operator&(int lhs, const Value& rhs);
 
-I2_BASE_API Value operator|(const Value& lhs, const Value& rhs);
-I2_BASE_API Value operator|(const Value& lhs, double rhs);
-I2_BASE_API Value operator|(double lhs, const Value& rhs);
-I2_BASE_API Value operator|(const Value& lhs, int rhs);
-I2_BASE_API Value operator|(int lhs, const Value& rhs);
+Value operator|(const Value& lhs, const Value& rhs);
+Value operator|(const Value& lhs, double rhs);
+Value operator|(double lhs, const Value& rhs);
+Value operator|(const Value& lhs, int rhs);
+Value operator|(int lhs, const Value& rhs);
 
-I2_BASE_API Value operator<<(const Value& lhs, const Value& rhs);
-I2_BASE_API Value operator<<(const Value& lhs, double rhs);
-I2_BASE_API Value operator<<(double lhs, const Value& rhs);
-I2_BASE_API Value operator<<(const Value& lhs, int rhs);
-I2_BASE_API Value operator<<(int lhs, const Value& rhs);
+Value operator<<(const Value& lhs, const Value& rhs);
+Value operator<<(const Value& lhs, double rhs);
+Value operator<<(double lhs, const Value& rhs);
+Value operator<<(const Value& lhs, int rhs);
+Value operator<<(int lhs, const Value& rhs);
 
-I2_BASE_API Value operator>>(const Value& lhs, const Value& rhs);
-I2_BASE_API Value operator>>(const Value& lhs, double rhs);
-I2_BASE_API Value operator>>(double lhs, const Value& rhs);
-I2_BASE_API Value operator>>(const Value& lhs, int rhs);
-I2_BASE_API Value operator>>(int lhs, const Value& rhs);
+Value operator>>(const Value& lhs, const Value& rhs);
+Value operator>>(const Value& lhs, double rhs);
+Value operator>>(double lhs, const Value& rhs);
+Value operator>>(const Value& lhs, int rhs);
+Value operator>>(int lhs, const Value& rhs);
 
-I2_BASE_API bool operator<(const Value& lhs, const Value& rhs);
-I2_BASE_API bool operator<(const Value& lhs, double rhs);
-I2_BASE_API bool operator<(double lhs, const Value& rhs);
-I2_BASE_API bool operator<(const Value& lhs, int rhs);
-I2_BASE_API bool operator<(int lhs, const Value& rhs);
+bool operator<(const Value& lhs, const Value& rhs);
+bool operator<(const Value& lhs, double rhs);
+bool operator<(double lhs, const Value& rhs);
+bool operator<(const Value& lhs, int rhs);
+bool operator<(int lhs, const Value& rhs);
 
-I2_BASE_API bool operator>(const Value& lhs, const Value& rhs);
-I2_BASE_API bool operator>(const Value& lhs, double rhs);
-I2_BASE_API bool operator>(double lhs, const Value& rhs);
-I2_BASE_API bool operator>(const Value& lhs, int rhs);
-I2_BASE_API bool operator>(int lhs, const Value& rhs);
+bool operator>(const Value& lhs, const Value& rhs);
+bool operator>(const Value& lhs, double rhs);
+bool operator>(double lhs, const Value& rhs);
+bool operator>(const Value& lhs, int rhs);
+bool operator>(int lhs, const Value& rhs);
 
-I2_BASE_API bool operator<=(const Value& lhs, const Value& rhs);
-I2_BASE_API bool operator<=(const Value& lhs, double rhs);
-I2_BASE_API bool operator<=(double lhs, const Value& rhs);
-I2_BASE_API bool operator<=(const Value& lhs, int rhs);
-I2_BASE_API bool operator<=(int lhs, const Value& rhs);
+bool operator<=(const Value& lhs, const Value& rhs);
+bool operator<=(const Value& lhs, double rhs);
+bool operator<=(double lhs, const Value& rhs);
+bool operator<=(const Value& lhs, int rhs);
+bool operator<=(int lhs, const Value& rhs);
 
-I2_BASE_API bool operator>=(const Value& lhs, const Value& rhs);
-I2_BASE_API bool operator>=(const Value& lhs, double rhs);
-I2_BASE_API bool operator>=(double lhs, const Value& rhs);
-I2_BASE_API bool operator>=(const Value& lhs, int rhs);
-I2_BASE_API bool operator>=(int lhs, const Value& rhs);
+bool operator>=(const Value& lhs, const Value& rhs);
+bool operator>=(const Value& lhs, double rhs);
+bool operator>=(double lhs, const Value& rhs);
+bool operator>=(const Value& lhs, int rhs);
+bool operator>=(int lhs, const Value& rhs);
 
-I2_BASE_API std::ostream& operator<<(std::ostream& stream, const Value& value);
-I2_BASE_API std::istream& operator>>(std::istream& stream, Value& value);
+std::ostream& operator<<(std::ostream& stream, const Value& value);
+std::istream& operator>>(std::istream& stream, Value& value);
 
 }
 

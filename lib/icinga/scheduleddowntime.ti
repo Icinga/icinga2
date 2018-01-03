@@ -26,7 +26,7 @@ namespace icinga
 {
 
 code {{{
-class I2_ICINGA_API ScheduledDowntimeNameComposer : public NameComposer
+class ScheduledDowntimeNameComposer : public NameComposer
 {
 public:
 	virtual String MakeName(const String& shortName, const Object::Ptr& context) const;

@@ -32,7 +32,7 @@ namespace icinga
 /**
  * @ingroup cli
  */
-class I2_CLI_API VariableUtility
+class VariableUtility
 {
 public:
 	static Value GetVariable(const String& name);

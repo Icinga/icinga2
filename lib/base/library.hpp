@@ -1,6 +1,6 @@
 /******************************************************************************
  * Icinga 2                                                                   *
- * Copyright (C) 2012-2018 Icinga Development Team (https://www.icinga.com/)  *
+ * Copyright (C) 2012-2017 Icinga Development Team (https://www.icinga.com/)  *
  *                                                                            *
  * This program is free software; you can redistribute it and/or              *
  * modify it under the terms of the GNU General Public License                *
@@ -17,16 +17,42 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
-#ifndef VISIBILITY_H
-#define VISIBILITY_H
+#ifndef LIBRARY_H
+#define LIBRARY_H
+
+#include "base/i2-base.hpp"
+#include "base/string.hpp"
+#include <memory>
+
+namespace icinga
+{
 
 #ifndef _WIN32
-#	define I2_EXPORT __attribute__ ((visibility("default")))
-#	define I2_IMPORT __attribute__ ((visibility("default")))
+typedef void *LibraryHandle;
 #else /* _WIN32 */
-#	define I2_EXPORT __declspec(dllexport)
-#	define I2_IMPORT __declspec(dllimport)
-#	define I2_HIDDEN
+typedef HMODULE LibraryHandle;
 #endif /* _WIN32 */
 
-#endif /* VISIBILITY_H */
+class Library
+{
+public:
+	Library(void) = default;
+	Library(const String& name);
+
+	void *GetSymbolAddress(const String& name) const;
+
+	template<typename T>
+	T GetSymbolAddress(const String& name) const
+	{
+		static_assert(!std::is_same<T, void *>::value, "T must not be void *");
+
+		return reinterpret_cast<T>(GetSymbolAddress(name));
+	}
+
+private:
+	std::shared_ptr<LibraryHandle> m_Handle;
+};
+
+}
+
+#endif /* LIBRARY_H */

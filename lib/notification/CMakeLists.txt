@@ -25,16 +25,13 @@ if(ICINGA2_UNITY_BUILD)
     mkunity_target(notification notification notification_SOURCES)
 endif()
 
-add_library(notification SHARED ${notification_SOURCES})
+add_library(notification STATIC ${notification_SOURCES})
 
 target_link_libraries(notification ${Boost_LIBRARIES} base config icinga)
 
 set_target_properties (
   notification PROPERTIES
-  INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR}/icinga2
-  DEFINE_SYMBOL I2_NOTIFICATION_BUILD
   FOLDER Components
-  VERSION ${SPEC_VERSION}
 )
 
 install_if_not_exists(
@@ -48,7 +45,5 @@ if(NOT WIN32)
 else()
   install_if_not_exists(${PROJECT_SOURCE_DIR}/etc/icinga2/features-enabled/notification.conf ${CMAKE_INSTALL_SYSCONFDIR}/icinga2/features-enabled)
 endif()
-
-install(TARGETS notification RUNTIME DESTINATION ${CMAKE_INSTALL_SBINDIR} LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/icinga2)
 
 set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "${CPACK_NSIS_EXTRA_INSTALL_COMMANDS}" PARENT_SCOPE)

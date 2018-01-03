@@ -26,7 +26,7 @@
 namespace icinga
 {
 
-struct I2_REMOTE_API ApiScriptFrame
+struct ApiScriptFrame
 {
 	double Seen;
 	int NextLine;
@@ -38,7 +38,7 @@ struct I2_REMOTE_API ApiScriptFrame
 	{ }
 };
 
-class I2_REMOTE_API ConsoleHandler : public HttpHandler
+class ConsoleHandler : public HttpHandler
 {
 public:
 	DECLARE_PTR_TYPEDEFS(ConsoleHandler);

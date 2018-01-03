@@ -32,7 +32,7 @@ namespace icinga
  *
  * @ingroup remote
  */
-class I2_REMOTE_API HttpUtility
+class HttpUtility
 {
 
 public:

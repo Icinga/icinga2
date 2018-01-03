@@ -42,7 +42,7 @@ struct InvAvgAggregatorState : public AggregatorState
 /**
  * @ingroup livestatus
  */
-class I2_LIVESTATUS_API InvAvgAggregator : public Aggregator
+class InvAvgAggregator : public Aggregator
 {
 public:
 	DECLARE_PTR_TYPEDEFS(InvAvgAggregator);

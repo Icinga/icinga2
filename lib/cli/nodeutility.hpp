@@ -34,7 +34,7 @@ namespace icinga
 /**
  * @ingroup cli
  */
-class I2_CLI_API NodeUtility
+class NodeUtility
 {
 public:
 	static String GetConstantsConfPath(void);

@@ -38,7 +38,7 @@ class Service;
  *
  * @ingroup icinga
  */
-class I2_ICINGA_API ScheduledDowntime : public ObjectImpl<ScheduledDowntime>
+class ScheduledDowntime : public ObjectImpl<ScheduledDowntime>
 {
 public:
 	DECLARE_OBJECT(ScheduledDowntime);

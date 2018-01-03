@@ -29,10 +29,4 @@
 
 #include "base/i2-base.hpp"
 
-#ifdef I2_ICINGA_BUILD
-#	define I2_ICINGA_API I2_EXPORT
-#else /* I2_ICINGA_BUILD */
-#	define I2_ICINGA_API I2_IMPORT
-#endif /* I2_ICINGA_BUILD */
-
 #endif /* I2ICINGA_H */

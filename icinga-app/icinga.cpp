@@ -194,8 +194,6 @@ static int Main(void)
 	LogSeverity logLevel = Logger::GetConsoleLogSeverity();
 	Logger::SetConsoleLogSeverity(LogWarning);
 
-	Loader::LoadExtensionLibrary("cli");
-
 	po::options_description visibleDesc("Global options");
 
 	visibleDesc.add_options()
@@ -205,8 +203,6 @@ static int Main(void)
 		("color", "use VT100 color codes even when stdout is not a terminal")
 #endif /* _WIN32 */
 		("define,D", po::value<std::vector<std::string> >(), "define a constant")
-		("app,a", po::value<std::string>(), "application library name (default: icinga)")
-		("library,l", po::value<std::vector<std::string> >(), "load a library")
 		("include,I", po::value<std::vector<std::string> >(), "add include search directory")
 		("log-level,x", po::value<std::string>(), "specify the log level for the console log.\n"
 			"The valid value is either debug, notice, information (default), warning, or critical")
@@ -357,18 +353,6 @@ static int Main(void)
 			}
 
 			Logger::SetConsoleLogSeverity(logLevel);
-		}
-
-		if (vm.count("library")) {
-			for (const String& libraryName : vm["library"].as<std::vector<std::string> >()) {
-				try {
-					(void) Loader::LoadExtensionLibrary(libraryName);
-				} catch (const std::exception& ex) {
-					Log(LogCritical, "icinga-app")
-						<<  "Could not load library \"" << libraryName << "\": " << DiagnosticInformation(ex);
-					return EXIT_FAILURE;
-				}
-			}
 		}
 
 		if (!command || vm.count("help") || vm.count("version")) {
@@ -543,16 +527,6 @@ static int Main(void)
 				<< " argument" << (command->GetMaxArguments() != 1 ? "s" : "") << " may be specified.";
 			return EXIT_FAILURE;
 		}
-
-		LogSeverity logLevel = Logger::GetConsoleLogSeverity();
-		Logger::SetConsoleLogSeverity(LogWarning);
-
-		if (vm.count("app"))
-			Loader::LoadExtensionLibrary(vm["app"].as<std::string>());
-		else
-			Loader::LoadExtensionLibrary("icinga");
-
-		Logger::SetConsoleLogSeverity(logLevel);
 
 		rc = command->Run(vm, args);
 	}

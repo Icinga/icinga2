@@ -29,7 +29,7 @@ namespace icinga
 /**
  * @ingroup livestatus
  */
-struct I2_LIVESTATUS_API InvSumAggregatorState : public AggregatorState
+struct InvSumAggregatorState : public AggregatorState
 {
 	InvSumAggregatorState(void)
 		: InvSum(0)
@@ -41,7 +41,7 @@ struct I2_LIVESTATUS_API InvSumAggregatorState : public AggregatorState
 /**
  * @ingroup livestatus
  */
-class I2_LIVESTATUS_API InvSumAggregator : public Aggregator
+class InvSumAggregator : public Aggregator
 {
 public:
 	DECLARE_PTR_TYPEDEFS(InvSumAggregator);

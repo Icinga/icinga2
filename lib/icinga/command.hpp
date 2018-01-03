@@ -32,7 +32,7 @@ namespace icinga
  *
  * @ingroup icinga
  */
-class I2_ICINGA_API Command : public ObjectImpl<Command>
+class Command : public ObjectImpl<Command>
 {
 public:
 	DECLARE_OBJECT(Command);

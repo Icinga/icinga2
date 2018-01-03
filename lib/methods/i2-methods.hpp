@@ -29,10 +29,4 @@
 
 #include "base/i2-base.hpp"
 
-#ifdef I2_METHODS_BUILD
-#	define I2_METHODS_API I2_EXPORT
-#else /* I2_METHODS_BUILD */
-#	define I2_METHODS_API I2_IMPORT
-#endif /* I2_METHODS_BUILD */
-
 #endif /* I2METHODS_H */

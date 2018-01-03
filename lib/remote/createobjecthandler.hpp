@@ -25,7 +25,7 @@
 namespace icinga
 {
 
-class I2_REMOTE_API CreateObjectHandler : public HttpHandler
+class CreateObjectHandler : public HttpHandler
 {
 public:
 	DECLARE_PTR_TYPEDEFS(CreateObjectHandler);

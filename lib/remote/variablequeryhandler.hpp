@@ -25,7 +25,7 @@
 namespace icinga
 {
 
-class I2_REMOTE_API VariableQueryHandler : public HttpHandler
+class VariableQueryHandler : public HttpHandler
 {
 public:
 	DECLARE_PTR_TYPEDEFS(VariableQueryHandler);

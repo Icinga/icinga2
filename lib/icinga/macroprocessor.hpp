@@ -33,7 +33,7 @@ namespace icinga
  *
  * @ingroup icinga
  */
-class I2_ICINGA_API MacroProcessor
+class MacroProcessor
 {
 public:
 	typedef std::function<Value (const Value&)> EscapeCallback;

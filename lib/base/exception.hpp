@@ -42,13 +42,13 @@
 namespace icinga
 {
 
-class I2_BASE_API user_error : virtual public std::exception, virtual public boost::exception
+class user_error : virtual public std::exception, virtual public boost::exception
 { };
 
 /*
  * @ingroup base
  */
-class I2_BASE_API ScriptError : virtual public user_error
+class ScriptError : virtual public user_error
 {
 public:
 	ScriptError(const String& message);
@@ -73,7 +73,7 @@ private:
 /*
  * @ingroup base
  */
-class I2_BASE_API ValidationError : virtual public user_error
+class ValidationError : virtual public user_error
 {
 public:
 	ValidationError(const ConfigObject::Ptr& object, const std::vector<String>& attributePath, const String& message);
@@ -96,13 +96,13 @@ private:
 	Dictionary::Ptr m_DebugHint;
 };
 
-I2_BASE_API StackTrace *GetLastExceptionStack(void);
-I2_BASE_API void SetLastExceptionStack(const StackTrace& trace);
+StackTrace *GetLastExceptionStack(void);
+void SetLastExceptionStack(const StackTrace& trace);
 
-I2_BASE_API ContextTrace *GetLastExceptionContext(void);
-I2_BASE_API void SetLastExceptionContext(const ContextTrace& context);
+ContextTrace *GetLastExceptionContext(void);
+void SetLastExceptionContext(const ContextTrace& context);
 
-I2_BASE_API void RethrowUncaughtException(void);
+void RethrowUncaughtException(void);
 
 typedef boost::error_info<StackTrace, StackTrace> StackTraceErrorInfo;
 
@@ -120,10 +120,10 @@ inline std::string to_string(const ContextTraceErrorInfo& e)
 	return msgbuf.str();
 }
 
-I2_BASE_API String DiagnosticInformation(const std::exception& ex, bool verbose = true, StackTrace *stack = nullptr, ContextTrace *context = nullptr);
-I2_BASE_API String DiagnosticInformation(boost::exception_ptr eptr, bool verbose = true);
+String DiagnosticInformation(const std::exception& ex, bool verbose = true, StackTrace *stack = nullptr, ContextTrace *context = nullptr);
+String DiagnosticInformation(boost::exception_ptr eptr, bool verbose = true);
 
-class I2_BASE_API posix_error : virtual public std::exception, virtual public boost::exception {
+class posix_error : virtual public std::exception, virtual public boost::exception {
 public:
 	posix_error(void);
 	virtual ~posix_error(void) throw();
@@ -135,7 +135,7 @@ private:
 };
 
 #ifdef _WIN32
-class I2_BASE_API win32_error : virtual public std::exception, virtual public boost::exception { };
+class win32_error : virtual public std::exception, virtual public boost::exception { };
 
 struct errinfo_win32_error_;
 typedef boost::error_info<struct errinfo_win32_error_, int> errinfo_win32_error;

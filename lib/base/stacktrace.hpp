@@ -31,7 +31,7 @@ namespace icinga
  *
  * @ingroup base
  */
-class I2_BASE_API StackTrace
+class StackTrace
 {
 public:
 	StackTrace(void);
@@ -48,7 +48,7 @@ private:
 	int m_Count;
 };
 
-I2_BASE_API std::ostream& operator<<(std::ostream& stream, const StackTrace& trace);
+std::ostream& operator<<(std::ostream& stream, const StackTrace& trace);
 
 }
 

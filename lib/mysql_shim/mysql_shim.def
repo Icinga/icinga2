@@ -1,0 +1,3 @@
+LIBRARY mysql_shim
+EXPORTS
+	create_mysql_shim

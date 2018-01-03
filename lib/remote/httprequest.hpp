@@ -49,7 +49,7 @@ enum HttpRequestState
  *
  * @ingroup remote
  */
-struct I2_REMOTE_API HttpRequest
+struct HttpRequest
 {
 public:
 	bool Complete;

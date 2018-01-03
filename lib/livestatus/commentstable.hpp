@@ -30,7 +30,7 @@ namespace icinga
 /**
  * @ingroup livestatus
  */
-class I2_LIVESTATUS_API CommentsTable : public Table
+class CommentsTable : public Table
 {
 public:
 	DECLARE_PTR_TYPEDEFS(CommentsTable);

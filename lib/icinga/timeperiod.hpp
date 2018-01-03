@@ -31,7 +31,7 @@ namespace icinga
  *
  * @ingroup icinga
  */
-class I2_ICINGA_API TimePeriod : public ObjectImpl<TimePeriod>
+class TimePeriod : public ObjectImpl<TimePeriod>
 {
 public:
 	DECLARE_OBJECT(TimePeriod);

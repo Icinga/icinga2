@@ -29,7 +29,7 @@ namespace icinga
 /**
  * @ingroup icinga
  */
-class I2_ICINGA_API ApiEvents
+class ApiEvents
 {
 public:
 	static void StaticInitialize(void);

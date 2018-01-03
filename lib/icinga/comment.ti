@@ -40,7 +40,7 @@ enum CommentType
 	CommentAcknowledgement = 4
 };
 
-class I2_ICINGA_API CommentNameComposer : public NameComposer
+class CommentNameComposer : public NameComposer
 {
 public:
 	virtual String MakeName(const String& shortName, const Object::Ptr& context) const;

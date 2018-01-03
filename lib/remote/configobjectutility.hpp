@@ -34,7 +34,7 @@ namespace icinga
  *
  * @ingroup remote
  */
-class I2_REMOTE_API ConfigObjectUtility
+class ConfigObjectUtility
 {
 
 public:

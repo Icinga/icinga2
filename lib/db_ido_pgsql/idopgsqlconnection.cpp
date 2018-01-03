@@ -50,6 +50,14 @@ void IdoPgsqlConnection::OnConfigLoaded(void)
 	ObjectImpl<IdoPgsqlConnection>::OnConfigLoaded();
 
 	m_QueryQueue.SetName("IdoPgsqlConnection, " + GetName());
+
+	Library shimLibrary{"pgsql_shim"};
+
+	auto create_pgsql_shim = shimLibrary.GetSymbolAddress<create_pgsql_shim_ptr>("create_pgsql_shim");
+
+	m_Pgsql.reset(create_pgsql_shim());
+
+	std::swap(m_Library, shimLibrary);
 }
 
 void IdoPgsqlConnection::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
@@ -102,7 +110,7 @@ void IdoPgsqlConnection::Resume(void)
 	m_ReconnectTimer->Start();
 	m_ReconnectTimer->Reschedule(0);
 
-	ASSERT(PQisthreadsafe());
+	ASSERT(m_Pgsql->isthreadsafe());
 }
 
 void IdoPgsqlConnection::Pause(void)
@@ -126,7 +134,7 @@ void IdoPgsqlConnection::ExceptionHandler(boost::exception_ptr exp)
 		<< "Exception during database operation: " << DiagnosticInformation(exp);
 
 	if (GetConnected()) {
-		PQfinish(m_Connection);
+		m_Pgsql->finish(m_Connection);
 		SetConnected(false);
 	}
 }
@@ -145,7 +153,7 @@ void IdoPgsqlConnection::Disconnect(void)
 
 	Query("COMMIT");
 
-	PQfinish(m_Connection);
+	m_Pgsql->finish(m_Connection);
 	SetConnected(false);
 }
 
@@ -193,7 +201,7 @@ void IdoPgsqlConnection::Reconnect(void)
 			Query("SELECT 1");
 			return;
 		} catch (const std::exception&) {
-			PQfinish(m_Connection);
+			m_Pgsql->finish(m_Connection);
 			SetConnected(false);
 			reconnect = true;
 		}
@@ -216,14 +224,14 @@ void IdoPgsqlConnection::Reconnect(void)
 	passwd = (!ipasswd.IsEmpty()) ? ipasswd.CStr() : nullptr;
 	db = (!idb.IsEmpty()) ? idb.CStr() : nullptr;
 
-	m_Connection = PQsetdbLogin(host, port, nullptr, nullptr, db, user, passwd);
+	m_Connection = m_Pgsql->setdbLogin(host, port, nullptr, nullptr, db, user, passwd);
 
 	if (!m_Connection)
 		return;
 
-	if (PQstatus(m_Connection) != CONNECTION_OK) {
-		String message = PQerrorMessage(m_Connection);
-		PQfinish(m_Connection);
+	if (m_Pgsql->status(m_Connection) != CONNECTION_OK) {
+		String message = m_Pgsql->errorMessage(m_Connection);
+		m_Pgsql->finish(m_Connection);
 		SetConnected(false);
 
 		Log(LogCritical, "IdoPgsqlConnection")
@@ -240,7 +248,7 @@ void IdoPgsqlConnection::Reconnect(void)
 	/* explicitely require legacy mode for string escaping in PostgreSQL >= 9.1
 	 * changing standard_conforming_strings to on by default
 	 */
-	if (PQserverVersion(m_Connection) >= 90100)
+	if (m_Pgsql->serverVersion(m_Connection) >= 90100)
 		result = Query("SET standard_conforming_strings TO off");
 
 	String dbVersionName = "idoutils";
@@ -249,7 +257,7 @@ void IdoPgsqlConnection::Reconnect(void)
 	Dictionary::Ptr row = FetchRow(result, 0);
 
 	if (!row) {
-		PQfinish(m_Connection);
+		m_Pgsql->finish(m_Connection);
 		SetConnected(false);
 
 		Log(LogCritical, "IdoPgsqlConnection", "Schema does not provide any valid version! Verify your schema installation.");
@@ -262,7 +270,7 @@ void IdoPgsqlConnection::Reconnect(void)
 	SetSchemaVersion(version);
 
 	if (Utility::CompareVersion(IDO_COMPAT_SCHEMA_VERSION, version) < 0) {
-		PQfinish(m_Connection);
+		m_Pgsql->finish(m_Connection);
 		SetConnected(false);
 
 		Log(LogCritical, "IdoPgsqlConnection")
@@ -316,7 +324,7 @@ void IdoPgsqlConnection::Reconnect(void)
 				<< "Last update by '" << endpoint_name << "' was " << status_update_age << "s ago.";
 
 			if (status_update_age < GetFailoverTimeout()) {
-				PQfinish(m_Connection);
+				m_Pgsql->finish(m_Connection);
 				SetConnected(false);
 				SetShouldConnect(false);
 
@@ -328,7 +336,7 @@ void IdoPgsqlConnection::Reconnect(void)
 				Log(LogNotice, "IdoPgsqlConnection")
 					<< "Local endpoint '" << my_endpoint->GetName() << "' is not authoritative, bailing out.";
 
-				PQfinish(m_Connection);
+				m_Pgsql->finish(m_Connection);
 				SetConnected(false);
 
 				return;
@@ -437,10 +445,10 @@ IdoPgsqlResult IdoPgsqlConnection::Query(const String& query)
 
 	IncreaseQueryCount();
 
-	PGresult *result = PQexec(m_Connection, query.CStr());
+	PGresult *result = m_Pgsql->exec(m_Connection, query.CStr());
 
 	if (!result) {
-		String message = PQerrorMessage(m_Connection);
+		String message = m_Pgsql->errorMessage(m_Connection);
 		Log(LogCritical, "IdoPgsqlConnection")
 			<< "Error \"" << message << "\" when executing query \"" << query << "\"";
 
@@ -451,17 +459,17 @@ IdoPgsqlResult IdoPgsqlConnection::Query(const String& query)
 		);
 	}
 
-	char *rowCount = PQcmdTuples(result);
+	char *rowCount = m_Pgsql->cmdTuples(result);
 	m_AffectedRows = atoi(rowCount);
 
-	if (PQresultStatus(result) == PGRES_COMMAND_OK) {
-		PQclear(result);
+	if (m_Pgsql->resultStatus(result) == PGRES_COMMAND_OK) {
+		m_Pgsql->clear(result);
 		return IdoPgsqlResult();
 	}
 
-	if (PQresultStatus(result) != PGRES_TUPLES_OK) {
-		String message = PQresultErrorMessage(result);
-		PQclear(result);
+	if (m_Pgsql->resultStatus(result) != PGRES_TUPLES_OK) {
+		String message = m_Pgsql->resultErrorMessage(result);
+		m_Pgsql->clear(result);
 
 		Log(LogCritical, "IdoPgsqlConnection")
 			<< "Error \"" << message << "\" when executing query \"" << query << "\"";
@@ -473,7 +481,7 @@ IdoPgsqlResult IdoPgsqlConnection::Query(const String& query)
 		);
 	}
 
-	return IdoPgsqlResult(result, std::ptr_fun(PQclear));
+	return IdoPgsqlResult(result, std::bind(&PgsqlInterface::clear, std::cref(m_Pgsql), _1));
 }
 
 DbReference IdoPgsqlConnection::GetSequenceValue(const String& table, const String& column)
@@ -508,7 +516,7 @@ String IdoPgsqlConnection::Escape(const String& s)
 	size_t length = utf8s.GetLength();
 	char *to = new char[utf8s.GetLength() * 2 + 1];
 
-	PQescapeStringConn(m_Connection, to, utf8s.CStr(), length, nullptr);
+	m_Pgsql->escapeStringConn(m_Connection, to, utf8s.CStr(), length, nullptr);
 
 	String result = String(to);
 
@@ -521,20 +529,20 @@ Dictionary::Ptr IdoPgsqlConnection::FetchRow(const IdoPgsqlResult& result, int r
 {
 	AssertOnWorkQueue();
 
-	if (row >= PQntuples(result.get()))
+	if (row >= m_Pgsql->ntuples(result.get()))
 		return nullptr;
 
-	int columns = PQnfields(result.get());
+	int columns = m_Pgsql->nfields(result.get());
 
 	Dictionary::Ptr dict = new Dictionary();
 
 	for (int column = 0; column < columns; column++) {
 		Value value;
 
-		if (!PQgetisnull(result.get(), row, column))
-			value = PQgetvalue(result.get(), row, column);
+		if (!m_Pgsql->getisnull(result.get(), row, column))
+			value = m_Pgsql->getvalue(result.get(), row, column);
 
-		dict->Set(PQfname(result.get(), column), value);
+		dict->Set(m_Pgsql->fname(result.get(), column), value);
 	}
 
 	return dict;

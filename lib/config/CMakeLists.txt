@@ -44,27 +44,11 @@ if(ICINGA2_UNITY_BUILD)
     mkunity_target(config config config_SOURCES)
 endif()
 
-add_library(config SHARED ${config_SOURCES})
+add_library(config STATIC ${config_SOURCES})
 
-target_link_libraries(config ${Boost_LIBRARIES} base) 
+target_link_libraries(config ${Boost_LIBRARIES} base)
 
 set_target_properties (
   config PROPERTIES
-  INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR}/icinga2
-  DEFINE_SYMBOL I2_CONFIG_BUILD
   FOLDER Lib
-  VERSION ${SPEC_VERSION}
 )
-
-install(
-  TARGETS config
-  RUNTIME DESTINATION ${CMAKE_INSTALL_SBINDIR}
-  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/icinga2
-)
-
-if(APPLE)
-  install(
-    TARGETS config
-    LIBRARY DESTINATION ${CMAKE_INSTALL_BINDIR}/icinga-studio.app/Contents
-  )
-endif()

@@ -15,7 +15,7 @@
 # along with this program; if not, write to the Free Software Foundation
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8.8)
 set(BOOST_MIN_VERSION "1.48.0")
 
 project(icinga2)
@@ -172,10 +172,26 @@ if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -pthread")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lpthread")
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -lpthread")
+    set(CMAKE_STATIC_LINKER_FLAGS "${CMAKE_STATIC_LINKER_FLAGS} -lpthread")
   else()
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -pthread")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -pthread")
   endif()
+endif()
+
+if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
+  function(add_whole_static_library target library)
+    target_link_libraries(${target} -force_load ${library})
+  endfunction()
+elseif(MSVC)
+  function(add_whole_static_library target library)
+    target_link_libraries(${target} ${library})
+    set_property(TARGET ${target} APPEND_STRING PROPERTY LINK_FLAGS "/wholearchive:${library} ")
+  endfunction()
+else()
+  function(add_whole_static_library target library)
+    target_link_libraries(${target} -Wl,--whole-archive ${library} -Wl,--no-whole-archive)
+  endfunction()
 endif()
 
 include(CheckCXXCompilerFlag)
@@ -238,24 +254,8 @@ if(ICINGA2_LTO_BUILD)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -flto")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -flto")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -flto")
-    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -flto")
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -flto")
   endif()
-endif()
-
-include(CheckCCompilerFlag)
-
-check_c_compiler_flag(-fvisibility-inlines-hidden HAVE_VISIBILITY_INLINES_HIDDEN)
-
-if(HAVE_VISIBILITY_INLINES_HIDDEN)
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fvisibility-inlines-hidden")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility-inlines-hidden")
-endif()
-
-check_c_compiler_flag(-fvisibility=hidden HAVE_VISIBILITY_HIDDEN)
-
-if(HAVE_VISIBILITY_HIDDEN)
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fvisibility=hidden")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden")
 endif()
 
 if(MSVC)

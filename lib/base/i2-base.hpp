@@ -89,14 +89,6 @@
 #	pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif
 
-#include "base/visibility.hpp"
-
-#ifdef I2_BASE_BUILD
-#	define I2_BASE_API I2_EXPORT
-#else /* I2_BASE_BUILD */
-#	define I2_BASE_API I2_IMPORT
-#endif /* I2_BASE_BUILD */
-
 #if defined(__GNUC__)
 #	define likely(x) __builtin_expect(!!(x), 1)
 #	define unlikely(x) __builtin_expect(!!(x), 0)

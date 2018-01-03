@@ -41,7 +41,7 @@ struct ChunkReadContext
  *
  * @ingroup remote
  */
-struct I2_REMOTE_API HttpChunkedEncoding
+struct HttpChunkedEncoding
 {
 	static StreamReadStatus ReadChunkFromStream(const Stream::Ptr& stream,
 		char **data, size_t *size, ChunkReadContext& ccontext, bool may_wait = false);

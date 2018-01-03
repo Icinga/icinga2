@@ -32,7 +32,7 @@ enum HAMode
 	HARunEverywhere
 };
 
-class I2_BASE_API NameComposer
+class NameComposer
 {
 public:
 	virtual ~NameComposer(void);
@@ -46,7 +46,7 @@ abstract class ConfigObjectBase
 { };
 
 code {{{
-class I2_BASE_API ConfigObjectBase : public ObjectImpl<ConfigObjectBase>
+class ConfigObjectBase : public ObjectImpl<ConfigObjectBase>
 {
 public:
 	inline DebugInfo GetDebugInfo(void) const

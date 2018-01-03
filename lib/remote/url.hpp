@@ -36,7 +36,7 @@ namespace icinga
  *
  * @ingroup base
  */
-class I2_REMOTE_API Url : public Object
+class Url : public Object
 {
 public:
 	DECLARE_PTR_TYPEDEFS(Url);

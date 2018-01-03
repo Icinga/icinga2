@@ -27,9 +27,9 @@
 namespace icinga
 {
 
-I2_BASE_API Value Serialize(const Value& value, int attributeTypes = FAState);
-I2_BASE_API Value Deserialize(const Value& value, bool safe_mode = false, int attributeTypes = FAState);
-I2_BASE_API Value Deserialize(const Object::Ptr& object, const Value& value, bool safe_mode = false, int attributeTypes = FAState);
+Value Serialize(const Value& value, int attributeTypes = FAState);
+Value Deserialize(const Value& value, bool safe_mode = false, int attributeTypes = FAState);
+Value Deserialize(const Object::Ptr& object, const Value& value, bool safe_mode = false, int attributeTypes = FAState);
 
 }
 

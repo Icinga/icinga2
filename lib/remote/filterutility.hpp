@@ -64,7 +64,7 @@ struct QueryDescription
  *
  * @ingroup remote
  */
-class I2_REMOTE_API FilterUtility
+class FilterUtility
 {
 public:
 	static Type::Ptr TypeFromPluralName(const String& pluralName);

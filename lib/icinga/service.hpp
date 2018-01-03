@@ -37,7 +37,7 @@ namespace icinga
  *
  * @ingroup icinga
  */
-class I2_ICINGA_API Service : public ObjectImpl<Service>, public MacroResolver
+class Service : public ObjectImpl<Service>, public MacroResolver
 {
 public:
 	DECLARE_OBJECT(Service);
@@ -72,7 +72,7 @@ private:
 	static bool EvaluateApplyRule(const Host::Ptr& host, const ApplyRule& rule);
 };
 
-I2_ICINGA_API std::pair<Host::Ptr, Service::Ptr> GetHostService(const Checkable::Ptr& checkable);
+std::pair<Host::Ptr, Service::Ptr> GetHostService(const Checkable::Ptr& checkable);
 
 }
 

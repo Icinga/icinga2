@@ -33,7 +33,7 @@ namespace icinga
  *
  * @ingroup base
  */
-class I2_BASE_API StreamLogger : public ObjectImpl<StreamLogger>
+class StreamLogger : public ObjectImpl<StreamLogger>
 {
 public:
 	DECLARE_OBJECT(StreamLogger);

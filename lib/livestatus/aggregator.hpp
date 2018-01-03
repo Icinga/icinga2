@@ -30,7 +30,7 @@ namespace icinga
 /**
  * @ingroup livestatus
  */
-struct I2_LIVESTATUS_API AggregatorState
+struct AggregatorState
 {
 	virtual ~AggregatorState(void);
 };
@@ -38,7 +38,7 @@ struct I2_LIVESTATUS_API AggregatorState
 /**
  * @ingroup livestatus
  */
-class I2_LIVESTATUS_API Aggregator : public Object
+class Aggregator : public Object
 {
 public:
 	DECLARE_PTR_TYPEDEFS(Aggregator);

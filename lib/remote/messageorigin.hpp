@@ -29,7 +29,7 @@ namespace icinga
 /**
  * @ingroup remote
  */
-class I2_REMOTE_API MessageOrigin : public Object
+class MessageOrigin : public Object
 {
 public:
 	DECLARE_PTR_TYPEDEFS(MessageOrigin);

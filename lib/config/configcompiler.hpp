@@ -83,7 +83,7 @@ struct ZoneFragment
  *
  * @ingroup config
  */
-class I2_CONFIG_API ConfigCompiler
+class ConfigCompiler
 {
 public:
 	explicit ConfigCompiler(const String& path, std::istream *input,

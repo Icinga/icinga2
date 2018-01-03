@@ -77,7 +77,7 @@ class Service;
  *
  * @ingroup icinga
  */
-class I2_ICINGA_API Notification : public ObjectImpl<Notification>
+class Notification : public ObjectImpl<Notification>
 {
 public:
 	DECLARE_OBJECT(Notification);
@@ -139,8 +139,8 @@ private:
 	static std::map<String, int> m_TypeFilterMap;
 };
 
-I2_ICINGA_API int ServiceStateToFilter(ServiceState state);
-I2_ICINGA_API int HostStateToFilter(HostState state);
+int ServiceStateToFilter(ServiceState state);
+int HostStateToFilter(HostState state);
 
 }
 
