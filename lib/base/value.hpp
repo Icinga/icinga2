@@ -24,6 +24,7 @@
 #include "base/string.hpp"
 #include <boost/variant/variant.hpp>
 #include <boost/variant/get.hpp>
+#include <boost/throw_exception.hpp>
 
 namespace icinga
 {

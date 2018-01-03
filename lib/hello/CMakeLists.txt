@@ -22,14 +22,18 @@ set(hello_SOURCES
 )
 
 if(ICINGA2_UNITY_BUILD)
-    mkunity_target(hello hello hello_SOURCES)
+    target_unity_build(hello hello hello_SOURCES)
 endif()
 
 add_library(hello STATIC ${hello_SOURCES})
 
-target_link_libraries(hello ${Boost_LIBRARIES} base config)
+target_link_libraries(hello PRIVATE base)
 
-set_target_properties (
+set_target_properties(
   hello PROPERTIES
   FOLDER Lib
 )
+
+if(ICINGA2_PCH_BUILD)
+  target_precompiled_header(hello REUSE config)
+endif()

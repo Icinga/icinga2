@@ -77,14 +77,18 @@ set(icinga_SOURCES
 )
 
 if(ICINGA2_UNITY_BUILD)
-    mkunity_target(icinga icinga icinga_SOURCES)
+    target_unity_build(icinga icinga icinga_SOURCES)
 endif()
 
 add_library(icinga STATIC ${icinga_SOURCES})
 
-target_link_libraries(icinga ${Boost_LIBRARIES} base config remote)
+target_link_libraries(icinga PRIVATE base config remote)
 
-set_target_properties (
+set_target_properties(
   icinga PROPERTIES
   FOLDER Lib
 )
+
+if(ICINGA2_PCH_BUILD)
+  target_precompiled_header(icinga pch.hpp REUSE remote)
+endif()

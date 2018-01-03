@@ -22,6 +22,7 @@
 #include "base/debug.hpp"
 #include "base/primitivetype.hpp"
 #include "base/configwriter.hpp"
+#include <sstream>
 
 using namespace icinga;
 

@@ -42,15 +42,19 @@ set(db_ido_SOURCES
 )
 
 if(ICINGA2_UNITY_BUILD)
-    mkunity_target(db_ido db_ido db_ido_SOURCES)
+    target_unity_build(db_ido db_ido db_ido_SOURCES)
 endif()
 
 add_library(db_ido STATIC ${db_ido_SOURCES})
 
 include_directories(${Boost_INCLUDE_DIRS})
-target_link_libraries(db_ido ${Boost_LIBRARIES} base config icinga remote)
+target_link_libraries(db_ido PRIVATE base config remote icinga)
 
-set_target_properties (
+set_target_properties(
   db_ido PROPERTIES
   FOLDER Lib
 )
+
+if(ICINGA2_PCH_BUILD)
+  target_precompiled_header(db_ido pch.hpp REUSE icinga)
+endif()

@@ -49,14 +49,18 @@ set(config_SOURCES
 )
 
 if(ICINGA2_UNITY_BUILD)
-    mkunity_target(config config config_SOURCES)
+    target_unity_build(config config config_SOURCES)
 endif()
 
 add_library(config STATIC ${config_SOURCES})
 
-target_link_libraries(config ${Boost_LIBRARIES} base)
+target_link_libraries(config PRIVATE base)
 
-set_target_properties (
+set_target_properties(
   config PROPERTIES
   FOLDER Lib
 )
+
+if(ICINGA2_PCH_BUILD)
+  target_precompiled_header(config pch.hpp REUSE base)
+endif()

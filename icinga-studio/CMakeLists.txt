@@ -31,13 +31,17 @@ set(icinga_studio_SOURCES
   aboutform.cpp aboutform.hpp
   connectform.cpp connectform.hpp
   mainform.cpp mainform.hpp
-  icinga.icns ${WindowsSources}
+  icinga.icns
+  ${WindowsSources}
 )
+
+if(ICINGA2_UNITY_BUILD)
+    target_unity_build(icinga-studio icinga-studio icinga_studio_SOURCES)
+endif()
 
 add_executable(icinga-studio MACOSX_BUNDLE WIN32 ${icinga_studio_SOURCES})
 
-include_directories(${Boost_INCLUDE_DIRS})
-target_link_libraries(icinga-studio ${Boost_LIBRARIES} ${wxWidgets_LIBRARIES})
+target_link_libraries(icinga-studio PRIVATE ${wxWidgets_LIBRARIES} base remote)
 add_whole_static_library(icinga-studio base)
 add_whole_static_library(icinga-studio remote)
 

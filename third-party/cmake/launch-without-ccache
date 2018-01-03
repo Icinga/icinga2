@@ -1,0 +1,3 @@
+#!/bin/sh
+export CCACHE_DISABLE=1
+exec "$@"

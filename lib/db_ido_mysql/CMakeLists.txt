@@ -22,19 +22,23 @@ set(db_ido_mysql_SOURCES
 )
 
 if(ICINGA2_UNITY_BUILD)
-    mkunity_target(db_ido_mysql db_ido_mysql db_ido_mysql_SOURCES)
+    target_unity_build(db_ido_mysql db_ido_mysql db_ido_mysql_SOURCES)
 endif()
 
 add_library(db_ido_mysql STATIC ${db_ido_mysql_SOURCES})
 
 include_directories(${MYSQL_INCLUDE_DIR})
 
-target_link_libraries(db_ido_mysql ${Boost_LIBRARIES} base config icinga db_ido)
+target_link_libraries(db_ido_mysql PRIVATE base remote icinga db_ido)
 
 set_target_properties (
   db_ido_mysql PROPERTIES
   FOLDER Components
 )
+
+if(ICINGA2_PCH_BUILD)
+  target_precompiled_header(db_ido_mysql REUSE db_ido)
+endif()
 
 install_if_not_exists(
   ${PROJECT_SOURCE_DIR}/etc/icinga2/features-available/ido-mysql.conf

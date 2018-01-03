@@ -94,15 +94,16 @@ set(base_SOURCES
 set_property(SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/application-version.cpp PROPERTY EXCLUDE_UNITY_BUILD TRUE)
 
 if(ICINGA2_UNITY_BUILD)
-    mkunity_target(base base base_SOURCES)
+    target_unity_build(base base base_SOURCES)
 endif()
 
 add_library(base STATIC ${base_SOURCES})
 
-target_link_libraries(base ${CMAKE_DL_LIBS} ${Boost_LIBRARIES} ${OPENSSL_LIBRARIES} ${YAJL_LIBRARIES} mmatch socketpair)
+target_link_libraries(base PUBLIC ${Boost_SYSTEM_LIBRARY} ${Boost_THREAD_LIBRARY})
+target_link_libraries(base PRIVATE ${Boost_REGEX_LIBRARY} ${CMAKE_DL_LIBS} ${OPENSSL_LIBRARIES} ${YAJL_LIBRARIES} mmatch socketpair)
 
 if(HAVE_LIBEXECINFO)
-    target_link_libraries(base execinfo)
+    target_link_libraries(base PRIVATE execinfo)
 endif()
 
 include_directories(${icinga2_SOURCE_DIR}/third-party/execvpe)
@@ -115,17 +116,21 @@ include_directories(${icinga2_SOURCE_DIR}/third-party/socketpair)
 link_directories(${icinga2_BINARY_DIR}/third-party/socketpair)
 
 if(UNIX OR CYGWIN)
-  target_link_libraries(base execvpe)
+  target_link_libraries(base PRIVATE execvpe)
 endif()
 
 if(WIN32)
-  target_link_libraries(base ws2_32 dbghelp shlwapi msi)
+  target_link_libraries(base PRIVATE ws2_32 dbghelp shlwapi msi)
 endif()
 
-set_target_properties (
+set_target_properties(
   base PROPERTIES
   FOLDER Lib
 )
+
+if(ICINGA2_PCH_BUILD)
+  target_precompiled_header(base pch.hpp)
+endif()
 
 install(CODE "file(MAKE_DIRECTORY \"\$ENV{DESTDIR}${CMAKE_INSTALL_FULL_LOCALSTATEDIR}/cache/icinga2\")")
 install(CODE "file(MAKE_DIRECTORY \"\$ENV{DESTDIR}${CMAKE_INSTALL_FULL_LOCALSTATEDIR}/log/icinga2/crash\")")

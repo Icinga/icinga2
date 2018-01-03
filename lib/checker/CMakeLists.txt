@@ -22,17 +22,21 @@ set(checker_SOURCES
 )
 
 if(ICINGA2_UNITY_BUILD)
-    mkunity_target(checker checker checker_SOURCES)
+    target_unity_build(checker checker checker_SOURCES)
 endif()
 
 add_library(checker STATIC ${checker_SOURCES})
 
-target_link_libraries(checker ${Boost_LIBRARIES} base config icinga remote)
+target_link_libraries(checker PRIVATE base remote icinga)
 
-set_target_properties (
+set_target_properties(
   checker PROPERTIES
   FOLDER Components
 )
+
+if(ICINGA2_PCH_BUILD)
+  target_precompiled_header(checker REUSE icinga)
+endif()
 
 install_if_not_exists(
   ${PROJECT_SOURCE_DIR}/etc/icinga2/features-available/checker.conf

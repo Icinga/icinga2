@@ -41,14 +41,18 @@ set(methods_SOURCES
 )
 
 if(ICINGA2_UNITY_BUILD)
-    mkunity_target(methods methods methods_SOURCES)
+    target_unity_build(methods methods methods_SOURCES)
 endif()
 
 add_library(methods STATIC ${methods_SOURCES})
 
-target_link_libraries(methods ${Boost_LIBRARIES} base config icinga)
+target_link_libraries(methods PRIVATE base config remote icinga)
 
-set_target_properties (
+set_target_properties(
   methods PROPERTIES
   FOLDER Lib
 )
+
+if(ICINGA2_PCH_BUILD)
+  target_precompiled_header(methods REUSE icinga)
+endif()

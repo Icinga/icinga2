@@ -36,7 +36,7 @@ set_target_properties(
   LINK_FLAGS "/SUBSYSTEM:WINDOWS"
 )
 
-target_link_libraries(icinga-installer shlwapi)
+target_link_libraries(icinga-installer PRIVATE shlwapi)
 
 install(CODE "
   execute_process(COMMAND \${CMAKE_COMMAND} -E copy \"${CMAKE_CURRENT_BINARY_DIR}/icinga2.wixpatch.\${BUILD_TYPE}\"

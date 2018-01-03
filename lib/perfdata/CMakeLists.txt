@@ -32,17 +32,21 @@ set(perfdata_SOURCES
 )
 
 if(ICINGA2_UNITY_BUILD)
-    mkunity_target(perfdata perfdata perfdata_SOURCES)
+    target_unity_build(perfdata perfdata perfdata_SOURCES)
 endif()
 
 add_library(perfdata STATIC ${perfdata_SOURCES})
 
-target_link_libraries(perfdata ${Boost_LIBRARIES} base config icinga)
+target_link_libraries(perfdata PRIVATE base remote icinga)
 
-set_target_properties (
+set_target_properties(
   perfdata PROPERTIES
   FOLDER Components
 )
+
+if(ICINGA2_PCH_BUILD)
+  target_precompiled_header(perfdata REUSE icinga)
+endif()
 
 install_if_not_exists(
   ${PROJECT_SOURCE_DIR}/etc/icinga2/features-available/gelf.conf

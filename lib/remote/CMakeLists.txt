@@ -64,23 +64,24 @@ set(remote_SOURCES
 )
 
 if(ICINGA2_UNITY_BUILD)
-    mkunity_target(remote remote remote_SOURCES)
+    target_unity_build(remote remote remote_SOURCES)
 endif()
 
 add_library(remote STATIC ${remote_SOURCES})
 
-include_directories(${Boost_INCLUDE_DIRS})
-target_link_libraries(remote ${Boost_LIBRARIES} base config)
+target_link_libraries(remote PRIVATE ${Boost_REGEX_LIBRARY} ${OPENSSL_LIBRARIES} base config)
 
-set_target_properties (
+set_target_properties(
   remote PROPERTIES
   FOLDER Lib
 )
+
+if(ICINGA2_PCH_BUILD)
+  target_precompiled_header(remote pch.hpp REUSE config)
+endif()
 
 #install(CODE "file(MAKE_DIRECTORY \"\$ENV{DESTDIR}${CMAKE_INSTALL_FULL_LOCALSTATEDIR}/lib/icinga2/api\")")
 install(CODE "file(MAKE_DIRECTORY \"\$ENV{DESTDIR}${CMAKE_INSTALL_FULL_LOCALSTATEDIR}/lib/icinga2/api/log\")")
 install(CODE "file(MAKE_DIRECTORY \"\$ENV{DESTDIR}${CMAKE_INSTALL_FULL_LOCALSTATEDIR}/lib/icinga2/api/zones\")")
 install(CODE "file(MAKE_DIRECTORY \"\$ENV{DESTDIR}${CMAKE_INSTALL_FULL_LOCALSTATEDIR}/lib/icinga2/certs\")")
 install(CODE "file(MAKE_DIRECTORY \"\$ENV{DESTDIR}${CMAKE_INSTALL_FULL_LOCALSTATEDIR}/lib/icinga2/certificate-requests\")")
-
-

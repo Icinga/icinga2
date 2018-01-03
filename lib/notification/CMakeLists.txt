@@ -22,17 +22,21 @@ set(notification_SOURCES
 )
 
 if(ICINGA2_UNITY_BUILD)
-    mkunity_target(notification notification notification_SOURCES)
+    target_unity_build(notification notification notification_SOURCES)
 endif()
 
 add_library(notification STATIC ${notification_SOURCES})
 
-target_link_libraries(notification ${Boost_LIBRARIES} base config icinga)
+target_link_libraries(notification PRIVATE base icinga)
 
-set_target_properties (
+set_target_properties(
   notification PROPERTIES
   FOLDER Components
 )
+
+if(ICINGA2_PCH_BUILD)
+  target_precompiled_header(notification REUSE icinga)
+endif()
 
 install_if_not_exists(
   ${PROJECT_SOURCE_DIR}/etc/icinga2/features-available/notification.conf

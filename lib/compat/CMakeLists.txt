@@ -28,17 +28,21 @@ set(compat_SOURCES
 )
 
 if(ICINGA2_UNITY_BUILD)
-    mkunity_target(compat compat compat_SOURCES)
+    target_unity_build(compat compat compat_SOURCES)
 endif()
 
 add_library(compat STATIC ${compat_SOURCES})
 
-target_link_libraries(compat ${Boost_LIBRARIES} base config icinga)
+target_link_libraries(compat PRIVATE base icinga)
 
-set_target_properties (
+set_target_properties(
   compat PROPERTIES
   FOLDER Components
 )
+
+if(ICINGA2_PCH_BUILD)
+  target_precompiled_header(compat REUSE icinga)
+endif()
 
 install_if_not_exists(
   ${PROJECT_SOURCE_DIR}/etc/icinga2/features-available/command.conf

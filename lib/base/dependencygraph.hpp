@@ -22,6 +22,7 @@
 
 #include "base/i2-base.hpp"
 #include "base/object.hpp"
+#include <boost/thread/mutex.hpp>
 #include <map>
 
 namespace icinga {

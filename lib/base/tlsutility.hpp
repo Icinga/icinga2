@@ -32,6 +32,7 @@
 #include <openssl/evp.h>
 #include <openssl/rand.h>
 #include <boost/exception/info.hpp>
+#include <memory>
 
 namespace icinga
 {

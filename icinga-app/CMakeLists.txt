@@ -32,7 +32,7 @@ add_dependencies(icingaloader base config cli)
 include_directories(${Boost_INCLUDE_DIRS})
 
 add_executable(icinga-app $<TARGET_OBJECTS:icingaloader>)
-
+target_link_libraries(icinga-app PRIVATE ${Boost_PROGRAM_OPTIONS_LIBRARY})
 add_whole_static_library(icinga-app base)
 add_whole_static_library(icinga-app config)
 add_whole_static_library(icinga-app remote)
@@ -98,6 +98,7 @@ install(
 
 if(ICINGA2_WITH_HELLO)
   add_executable(hello-app $<TARGET_OBJECTS:icingaloader>)
+  target_link_libraries(hello-app PRIVATE ${Boost_PROGRAM_OPTIONS_LIBRARY})
   add_whole_static_library(hello-app base)
   add_whole_static_library(hello-app config)
   add_whole_static_library(hello-app remote)

@@ -58,17 +58,21 @@ set(livestatus_SOURCES
 )
 
 if(ICINGA2_UNITY_BUILD)
-    mkunity_target(livestatus livestatus livestatus_SOURCES)
+    target_unity_build(livestatus livestatus livestatus_SOURCES)
 endif()
 
 add_library(livestatus STATIC ${livestatus_SOURCES})
 
-target_link_libraries(livestatus ${Boost_LIBRARIES} base config icinga remote)
+target_link_libraries(livestatus PRIVATE ${Boost_REGEX_LIBRARY} base remote icinga)
 
-set_target_properties (
+set_target_properties(
   livestatus PROPERTIES
   FOLDER Components
 )
+
+if(ICINGA2_PCH_BUILD)
+  target_precompiled_header(livestatus pch.hpp REUSE icinga)
+endif()
 
 install_if_not_exists(
   ${PROJECT_SOURCE_DIR}/etc/icinga2/features-available/livestatus.conf
