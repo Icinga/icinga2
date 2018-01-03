@@ -262,6 +262,64 @@ That way only one active DB IDO feature writes to the database, even if they
 are not currently connected in a cluster zone. This prevents data duplication
 in historical tables.
 
+### Health Checks <a id="technical-concepts-cluster-health-checks"></a>
+
+#### cluster-zone <a id="technical-concepts-cluster-health-checks-cluster-zone"></a>
+
+This built-in check provides the possibility to check for connectivity between
+zones.
+
+If you for example need to know whether the `master` zone is connected and processing
+messages with the child zone called `satellite` in this example, you can configure
+the [cluster-zone](10-icinga-template-library.md#itl-icinga-cluster-zone) check as new service on all `master` zone hosts.
+
+```
+vim /etc/zones.d/master/host1.conf
+
+object Service "cluster-zone-satellite" {
+  check_command = "cluster-zone"
+  host_name = "host1"
+
+  vars.cluster_zone = "satellite"
+}
+```
+
+The check itself changes to NOT-OK if one or more child endpoints in the child zone
+are not connected to parent zone endpoints.
+
+In addition to the overall connectivity check, the log lag is calculated based
+on the to-be-sent replay log. Each instance stores that for its configured endpoint
+objects.
+
+This health check iterates over the target zone (`cluster_zone`) and their endpoints.
+
+The log lag is greater than zero if
+
+* the replay log synchronization is in progress and not yet finished or
+* the endpoint is not connected, and no replay log sync happened (obviously).
+
+The final log lag value is the worst value detected. If satellite1 has a log lag of
+`1.5` and satellite2 only has `0.5`, the computed value will be `1.5.`.
+
+You can control the check state by using optional warning and critical thresholds
+for the log lag value.
+
+If this service exists multiple times, e.g. for each master host object, the log lag
+may differ based on the execution time. This happens for example on restart of
+an instance when the log replay is in progress and a health check is executed at different
+times.
+If the endpoint is not connected, both master instances may have saved a different log replay
+position from the last synchronisation.
+
+The lag value is returned as performance metric key `slave_lag`.
+
+Icinga 2 v2.9+ adds more performance metrics for these values:
+
+* `last_messages_sent` and `last_messages_received` as UNIX timestamp
+* `sum_messages_sent_per_second` and `sum_messages_received_per_second`
+* `sum_bytes_sent_per_second` and `sum_bytes_received_per_second`
+
+
 <!--
 ## REST API <a id="technical-concepts-rest-api"></a>
 
