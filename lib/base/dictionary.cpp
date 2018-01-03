@@ -25,7 +25,15 @@
 
 using namespace icinga;
 
+template class std::map<String, Value>;
+
 REGISTER_PRIMITIVE_TYPE(Dictionary, Object, Dictionary::GetPrototype());
+
+Dictionary::Dictionary(void)
+{ }
+
+Dictionary::~Dictionary(void)
+{ }
 
 /**
  * Retrieves a value from a dictionary.
@@ -114,6 +122,46 @@ bool Dictionary::Contains(const String& key) const
 	ObjectLock olock(this);
 
 	return (m_Data.find(key) != m_Data.end());
+}
+
+/**
+ * Returns an iterator to the beginning of the dictionary.
+ *
+ * Note: Caller must hold the object lock while using the iterator.
+ *
+ * @returns An iterator.
+ */
+Dictionary::Iterator Dictionary::Begin(void)
+{
+	ASSERT(OwnsLock());
+
+	return m_Data.begin();
+}
+
+/**
+ * Returns an iterator to the end of the dictionary.
+ *
+ * Note: Caller must hold the object lock while using the iterator.
+ *
+ * @returns An iterator.
+ */
+Dictionary::Iterator Dictionary::End(void)
+{
+	ASSERT(OwnsLock());
+
+	return m_Data.end();
+}
+
+/**
+ * Removes the item specified by the iterator from the dictionary.
+ *
+ * @param it The iterator.
+ */
+void Dictionary::Remove(Dictionary::Iterator it)
+{
+	ASSERT(OwnsLock());
+
+	m_Data.erase(it);
 }
 
 /**
@@ -233,3 +281,14 @@ bool Dictionary::GetOwnField(const String& field, Value *result) const
 {
 	return Get(field, result);
 }
+
+Dictionary::Iterator icinga::begin(Dictionary::Ptr x)
+{
+	return x->Begin();
+}
+
+Dictionary::Iterator icinga::end(Dictionary::Ptr x)
+{
+	return x->End();
+}
+

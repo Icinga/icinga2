@@ -26,6 +26,7 @@
 #include "base/logger.hpp"
 #include "base/exception.hpp"
 #include <boost/lexical_cast.hpp>
+#include <boost/thread/recursive_mutex.hpp>
 
 using namespace icinga;
 

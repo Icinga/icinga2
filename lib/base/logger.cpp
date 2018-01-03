@@ -30,6 +30,16 @@
 
 using namespace icinga;
 
+template Log& Log::operator<<(const Value&);
+template Log& Log::operator<<(const String&);
+template Log& Log::operator<<(const std::string&);
+template Log& Log::operator<<(const bool&);
+template Log& Log::operator<<(const unsigned int&);
+template Log& Log::operator<<(const int&);
+template Log& Log::operator<<(const unsigned long&);
+template Log& Log::operator<<(const long&);
+template Log& Log::operator<<(const double&);
+
 REGISTER_TYPE(Logger);
 
 std::set<Logger::Ptr> Logger::m_Loggers;
@@ -71,46 +81,6 @@ std::set<Logger::Ptr> Logger::GetLoggers(void)
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
 	return m_Loggers;
-}
-
-/**
- * Writes a message to the application's log.
- *
- * @param severity The message severity.
- * @param facility The log facility.
- * @param message The message.
- */
-void icinga::IcingaLog(LogSeverity severity, const String& facility,
-	const String& message)
-{
-	LogEntry entry;
-	entry.Timestamp = Utility::GetTime();
-	entry.Severity = severity;
-	entry.Facility = facility;
-	entry.Message = message;
-
-	if (severity >= LogWarning) {
-		ContextTrace context;
-
-		if (context.GetLength() > 0) {
-			std::ostringstream trace;
-			trace << context;
-			entry.Message += "\nContext:" + trace.str();
-		}
-	}
-
-	for (const Logger::Ptr& logger : Logger::GetLoggers()) {
-		ObjectLock llock(logger);
-
-		if (!logger->IsActive())
-			continue;
-
-		if (entry.Severity >= logger->GetMinSeverity())
-			logger->ProcessLogEntry(entry);
-	}
-
-	if (Logger::IsConsoleLogEnabled() && entry.Severity >= Logger::GetConsoleLogSeverity())
-		StreamLogger::ProcessLogEntry(std::cout, entry);
 }
 
 /**
@@ -222,4 +192,55 @@ void Logger::ValidateSeverity(const String& value, const ValidationUtils& utils)
 	} catch (...) {
 		BOOST_THROW_EXCEPTION(ValidationError(this, { "severity" }, "Invalid severity specified: " + value));
 	}
+}
+
+Log::Log(LogSeverity severity, const String& facility, const String& message)
+	: m_Severity(severity), m_Facility(facility)
+{
+	m_Buffer << message;
+}
+
+Log::Log(LogSeverity severity, const String& facility)
+	: m_Severity(severity), m_Facility(facility)
+{ }
+
+/**
+ * Writes the message to the application's log.
+ */
+Log::~Log(void)
+{
+	LogEntry entry;
+	entry.Timestamp = Utility::GetTime();
+	entry.Severity = m_Severity;
+	entry.Facility = m_Facility;
+	entry.Message = m_Buffer.str();
+
+	if (m_Severity >= LogWarning) {
+		ContextTrace context;
+
+		if (context.GetLength() > 0) {
+			std::ostringstream trace;
+			trace << context;
+			entry.Message += "\nContext:" + trace.str();
+		}
+	}
+
+	for (const Logger::Ptr& logger : Logger::GetLoggers()) {
+		ObjectLock llock(logger);
+
+		if (!logger->IsActive())
+			continue;
+
+		if (entry.Severity >= logger->GetMinSeverity())
+			logger->ProcessLogEntry(entry);
+	}
+
+	if (Logger::IsConsoleLogEnabled() && entry.Severity >= Logger::GetConsoleLogSeverity())
+		StreamLogger::ProcessLogEntry(std::cout, entry);
+}
+
+Log& Log::operator<<(const char *val)
+{
+	m_Buffer << val;
+	return *this;
 }

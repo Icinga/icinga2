@@ -22,7 +22,6 @@
 
 #include "base/i2-base.hpp"
 #include "base/debug.hpp"
-#include <boost/thread/recursive_mutex.hpp>
 #include <boost/thread/condition_variable.hpp>
 #include <boost/smart_ptr/intrusive_ptr.hpp>
 #include <vector>

@@ -32,6 +32,12 @@ INITIALIZE_ONCE_WITH_PRIORITY([]() {
 	Type::Register(type);
 }, 20);
 
+Type::Type(void)
+{ }
+
+Type::~Type(void)
+{ }
+
 String Type::ToString(void) const
 {
 	return "type '" + GetName() + "'";

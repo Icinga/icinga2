@@ -52,107 +52,40 @@ enum ValueType
 class Value
 {
 public:
-	Value(void)
-	{ }
-
-	Value(std::nullptr_t)
-	{ }
-
-	Value(int value)
-		: m_Value(double(value))
-	{ }
-
-	Value(unsigned int value)
-		: m_Value(double(value))
-	{ }
-
-	Value(long value)
-		: m_Value(double(value))
-	{ }
-
-	Value(unsigned long value)
-		: m_Value(double(value))
-	{ }
-
-	Value(long long value)
-		: m_Value(double(value))
-	{ }
-
-	Value(unsigned long long value)
-		: m_Value(double(value))
-	{ }
-
-	Value(double value)
-		: m_Value(value)
-	{ }
-
-	Value(bool value)
-		: m_Value(value)
-	{ }
-
-	Value(const String& value)
-		: m_Value(value)
-	{ }
-
-	Value(String&& value)
-		: m_Value(value)
-	{ }
-
-	Value(const char *value)
-		: m_Value(String(value))
-	{ }
-
-	Value(const Value& other)
-		: m_Value(other.m_Value)
-	{ }
-
-	Value(Value&& other)
-	{
-#if BOOST_VERSION >= 105400
-		m_Value = std::move(other.m_Value);
-#else /* BOOST_VERSION */
-		m_Value.swap(other.m_Value);
-#endif /* BOOST_VERSION */
-	}
-
-	Value(Object *value)
-	{
-		if (!value)
-			return;
-
-		m_Value = Object::Ptr(value);
-	}
+	Value(void);
+	Value(std::nullptr_t);
+	Value(int value);
+	Value(unsigned int value);
+	Value(long value);
+	Value(unsigned long value);
+	Value(long long value);
+	Value(unsigned long long value);
+	Value(double value);
+	Value(bool value);
+	Value(const String& value);
+	Value(String&& value);
+	Value(const char *value);
+	Value(const Value& other);
+	Value(Value&& other);
+	Value(Object *value);
+	Value(const intrusive_ptr<Object>& value);
 
 	template<typename T>
 	Value(const intrusive_ptr<T>& value)
+		: Value(static_pointer_cast<Object>(value))
 	{
-		if (!value)
-			return;
-
-		m_Value = static_pointer_cast<Object>(value);
+		static_assert(!std::is_same<T, Object>::value, "T must not be Object");
 	}
+
+	~Value(void);
 
 	bool ToBool(void) const;
 
 	operator double(void) const;
 	operator String(void) const;
 
-	Value& operator=(const Value& other)
-	{
-		m_Value = other.m_Value;
-		return *this;
-	}
-
-	Value& operator=(Value&& other)
-	{
-#if BOOST_VERSION >= 105400
-		m_Value = std::move(other.m_Value);
-#else /* BOOST_VERSION */
-		m_Value.swap(other.m_Value);
-#endif /* BOOST_VERSION */
-
-		return *this;
-	}
+	Value& operator=(const Value& other);
+	Value& operator=(Value&& other);
 
 	bool operator==(bool rhs) const;
 	bool operator!=(bool rhs) const;
@@ -181,7 +114,7 @@ public:
 		if (!IsObject())
 			BOOST_THROW_EXCEPTION(std::runtime_error("Cannot convert value of type '" + GetTypeName() + "' to an object."));
 
-		const Object::Ptr& object = boost::get<Object::Ptr>(m_Value);
+		const Object::Ptr& object = Get<Object::Ptr>();
 
 		ASSERT(object);
 
@@ -193,65 +126,12 @@ public:
 		return tobject;
 	}
 
-	/**
-	* Checks whether the variant is empty.
-	*
-	* @returns true if the variant is empty, false otherwise.
-	*/
-	bool IsEmpty(void) const
-	{
-		return (GetType() == ValueEmpty || (IsString() && boost::get<String>(m_Value).IsEmpty()));
-	}
-
-	/**
-	* Checks whether the variant is scalar (i.e. not an object and not empty).
-	*
-	* @returns true if the variant is scalar, false otherwise.
-	*/
-	bool IsScalar(void) const
-	{
-		return !IsEmpty() && !IsObject();
-	}
-
-	/**
-	* Checks whether the variant is a number.
-	*
-	* @returns true if the variant is a number.
-	*/
-	bool IsNumber(void) const
-	{
-		return (GetType() == ValueNumber);
-	}
-
-	/**
-	 * Checks whether the variant is a boolean.
-	 *
-	 * @returns true if the variant is a boolean.
-	 */
-	bool IsBoolean(void) const
-	{
-		return (GetType() == ValueBoolean);
-	}
-
-	/**
-	* Checks whether the variant is a string.
-	*
-	* @returns true if the variant is a string.
-	*/
-	bool IsString(void) const
-	{
-		return (GetType() == ValueString);
-	}
-
-	/**
-	* Checks whether the variant is a non-null object.
-	*
-	* @returns true if the variant is a non-null object, false otherwise.
-	*/
-	bool IsObject(void) const
-	{
-		return  (GetType() == ValueObject);
-	}
+	bool IsEmpty(void) const;
+	bool IsScalar(void) const;
+	bool IsNumber(void) const;
+	bool IsBoolean(void) const;
+	bool IsString(void) const;
+	bool IsObject(void) const;
 
 	template<typename T>
 	bool IsObjectType(void) const
@@ -259,23 +139,12 @@ public:
 		if (!IsObject())
 			return false;
 
-		return dynamic_cast<T *>(boost::get<Object::Ptr>(m_Value).get());
+		return dynamic_cast<T *>(Get<Object::Ptr>().get());
 	}
 
-	/**
-	* Returns the type of the value.
-	*
-	* @returns The type.
-	*/
-	ValueType GetType(void) const
-	{
-		return static_cast<ValueType>(m_Value.which());
-	}
+	ValueType GetType(void) const;
 
-	void Swap(Value& other)
-	{
-		m_Value.swap(other.m_Value);
-	}
+	void Swap(Value& other);
 
 	String GetTypeName(void) const;
 
@@ -292,6 +161,11 @@ public:
 private:
 	boost::variant<boost::blank, double, bool, String, Object::Ptr> m_Value;
 };
+
+extern template const double& Value::Get<double>(void) const;
+extern template const bool& Value::Get<bool>(void) const;
+extern template const String& Value::Get<String>(void) const;
+extern template const Object::Ptr& Value::Get<Object::Ptr>(void) const;
 
 extern Value Empty;
 
@@ -389,5 +263,7 @@ std::ostream& operator<<(std::ostream& stream, const Value& value);
 std::istream& operator>>(std::istream& stream, Value& value);
 
 }
+
+extern template class boost::variant<boost::blank, double, bool, icinga::String, icinga::Object::Ptr>;
 
 #endif /* VALUE_H */
