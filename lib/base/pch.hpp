@@ -1,37 +1,6 @@
 #define BOOST_BIND_NO_PLACEHOLDERS
 
-#include <arpa/inet.h>
-#include <pthread.h>
-#include <sched.h>
-#include <signal.h>
-#include <string.h>
-#include <strings.h>
-#include <sys/file.h>
-#include <sys/ioctl.h>
-#include <sys/resource.h>
-#include <sys/socket.h>
-#include <sys/stat.h>
-#include <sys/time.h>
-#include <sys/types.h>
-#include <sys/un.h>
-#include <sys/wait.h>
-#include <syslog.h>
-#include <dirent.h>
-#include <dlfcn.h>
-#include <glob.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <libgen.h>
-#include <limits.h>
-#include <netdb.h>
-#include <netinet/in.h>
-
-#include <cerrno>
-#include <cmath>
-#include <cstdarg>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
+#include "base/i2-base.hpp"
 
 #include <openssl/bio.h>
 #include <openssl/buffer.h>
@@ -52,7 +21,6 @@
 #include <deque>
 #include <exception>
 #include <fstream>
-#include <functional>
 #include <future>
 #include <initializer_list>
 #include <ios>

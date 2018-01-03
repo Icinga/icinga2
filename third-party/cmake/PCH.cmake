@@ -101,8 +101,9 @@ function(_add_precompiled_header target pch_target header reuse_pch_target)
             pdb_dir
         )
         # /Yc - create precompiled header
+		# /Fp - specify output filename
         # /Fd - specify directory for pdb output
-        set(flags "/Yc /Fd${pdb_dir}\\")
+        set(flags "/Yc${header_path} /Fp${pch_output} /Fd${pdb_dir}\\")
     else()
         set(flags "-x ${header_type} -fpch-preprocess")
     endif()
@@ -116,12 +117,14 @@ function(_add_precompiled_header target pch_target header reuse_pch_target)
 
     add_library(${pch_target} OBJECT ${pch_source})
 
-    set_property(TARGET ${pch_target} PROPERTY RULE_LAUNCH_COMPILE ${PCH_CMAKE_DIR}/launch-without-ccache)
+	if(NOT MSVC)
+        set_property(TARGET ${pch_target} PROPERTY RULE_LAUNCH_COMPILE ${PCH_CMAKE_DIR}/launch-without-ccache)
 
-    add_custom_command(OUTPUT ${pch_output}
-      COMMAND ${CMAKE_COMMAND} -E create_symlink ${pch_temporary} ${pch_output}
-      DEPENDS ${pch_target}
-    )
+        add_custom_command(OUTPUT ${pch_output}
+          COMMAND ${CMAKE_COMMAND} -E create_symlink ${pch_temporary} ${pch_output}
+          DEPENDS ${pch_target}
+        )
+	endif()
 
     set_target_properties(
       ${pch_target} PROPERTIES
@@ -190,6 +193,8 @@ function(_use_pch_for_target target pch_target)
 
     get_target_property(flags ${target} COMPILE_FLAGS)
     if(MSVC)
+	    add_dependencies(${target} ${pch_target})
+
         #get_filename_component(win_header "${header}" NAME)
         #file(TO_NATIVE_PATH "${target_dir}/${header}.pch" win_pch)
         # /Yu - use given include as precompiled header
