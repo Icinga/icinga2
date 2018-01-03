@@ -28,6 +28,8 @@
 ##########################################################################
 
 
+FILE(GLOB _macports_include_dirs /opt/local/include/mysql*/mysql)
+
 #-------------- FIND MYSQL_INCLUDE_DIR ------------------
 FIND_PATH(MYSQL_INCLUDE_DIR mysql.h
   $ENV{MYSQL_INCLUDE_DIR}
@@ -40,8 +42,11 @@ FIND_PATH(MYSQL_INCLUDE_DIR mysql.h
   /opt/local/include/mysql5
   /usr/local/mysql/include
   /usr/local/mysql/include/mysql
+  ${_macports_include_dirs}
   $ENV{ProgramFiles}/MySQL/*/include
   $ENV{SystemDrive}/MySQL/*/include)
+
+UNSET(_macports_include_dirs)
 
 #----------------- FIND MYSQL_LIB_DIR -------------------
 IF (WIN32)
@@ -70,6 +75,9 @@ IF (WIN32)
     $ENV{SystemDrive}/MySQL/*/lib/${libsuffixDist})
 ELSE (WIN32)
   SET(MYSQL_CLIENT_LIBS mysqlclient)
+
+  FILE(GLOB _macports_lib_dirs /opt/local/lib/mysql*/mysql)
+
   FIND_LIBRARY(MYSQL_LIB NAMES mysqlclient
     PATHS
     $ENV{MYSQL_DIR}/libmysql_r/.libs
@@ -82,7 +90,10 @@ ELSE (WIN32)
     /opt/local/mysql5/lib
     /opt/local/lib/mysql5/mysql
     /opt/mysql/mysql/lib/mysql
-    /opt/mysql/lib/mysql)
+    /opt/mysql/lib/mysql
+    ${_macports_lib_dirs})
+
+  UNSET(_macports_lib_dirs)
 ENDIF (WIN32)
 
 IF(MYSQL_LIB)
