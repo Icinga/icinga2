@@ -23,7 +23,11 @@ foreach(flag_var
    endif(${flag_var} MATCHES "/MD")
 endforeach(flag_var)
 
-add_executable(icinga-installer icinga-installer.cpp)
+set(icinga_installer_SOURCES
+  icinga-installer.cpp
+)
+
+add_executable(icinga-installer ${icinga_installer_SOURCES})
 
 set_target_properties(
   icinga-installer PROPERTIES

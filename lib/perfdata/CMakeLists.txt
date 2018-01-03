@@ -23,7 +23,12 @@ mkclass_target(opentsdbwriter.ti opentsdbwriter.tcpp opentsdbwriter.thpp)
 mkclass_target(perfdatawriter.ti perfdatawriter.tcpp perfdatawriter.thpp)
 
 set(perfdata_SOURCES
-  gelfwriter.cpp gelfwriter.thpp graphitewriter.cpp graphitewriter.thpp influxdbwriter.cpp influxdbwriter.thpp elasticsearchwriter.cpp elasticsearchwriter.thpp opentsdbwriter.cpp opentsdbwriter.thpp perfdatawriter.cpp perfdatawriter.thpp
+  elasticsearchwriter.cpp elasticsearchwriter.hpp elasticsearchwriter.thpp
+  gelfwriter.cpp gelfwriter.hpp gelfwriter.thpp
+  graphitewriter.cpp graphitewriter.hpp graphitewriter.thpp
+  influxdbwriter.cpp influxdbwriter.hpp influxdbwriter.thpp
+  opentsdbwriter.cpp opentsdbwriter.hpp opentsdbwriter.thpp
+  perfdatawriter.cpp perfdatawriter.hpp perfdatawriter.thpp
 )
 
 if(ICINGA2_UNITY_BUILD)

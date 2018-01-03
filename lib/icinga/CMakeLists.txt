@@ -39,17 +39,41 @@ mkclass_target(user.ti user.tcpp user.thpp)
 mkembedconfig_target(icinga-itl.conf icinga-itl.cpp)
 
 set(icinga_SOURCES
-  apiactions.cpp apievents.cpp checkable.cpp checkable.thpp checkable-dependency.cpp checkable-downtime.cpp checkable-event.cpp
-  checkable-flapping.cpp checkable-script.cpp checkcommand.cpp checkcommand.thpp checkresult.cpp checkresult.thpp
-  cib.cpp clusterevents.cpp command.cpp command.thpp comment.cpp comment.thpp compatutility.cpp dependency.cpp dependency.thpp
-  dependency-apply.cpp downtime.cpp downtime.thpp eventcommand.cpp eventcommand.thpp
-  externalcommandprocessor.cpp host.cpp host.thpp hostgroup.cpp hostgroup.thpp icingaapplication.cpp icingaapplication.thpp
-  icinga-itl.cpp customvarobject.cpp customvarobject.thpp
-  legacytimeperiod.cpp macroprocessor.cpp notificationcommand.cpp notificationcommand.thpp notification.cpp notification.thpp
-  notification-apply.cpp objectutils.cpp pluginutility.cpp scheduleddowntime.cpp scheduleddowntime.thpp
-  scheduleddowntime-apply.cpp service-apply.cpp checkable-check.cpp checkable-comment.cpp
-  service.cpp service.thpp servicegroup.cpp servicegroup.thpp checkable-notification.cpp timeperiod.cpp timeperiod.thpp
-  user.cpp user.thpp usergroup.cpp usergroup.thpp
+  i2-icinga.hpp icinga-itl.cpp
+  apiactions.cpp apiactions.hpp
+  apievents.cpp apievents.hpp
+  checkable.cpp checkable.hpp checkable.thpp
+  checkable-check.cpp checkable-comment.cpp checkable-dependency.cpp
+  checkable-downtime.cpp checkable-event.cpp checkable-flapping.cpp
+  checkable-notification.cpp checkable-script.cpp
+  checkcommand.cpp checkcommand.hpp checkcommand.thpp
+  checkresult.cpp checkresult.hpp checkresult.thpp
+  cib.cpp cib.hpp
+  clusterevents.cpp clusterevents.hpp
+  command.cpp command.hpp command.thpp
+  comment.cpp comment.hpp comment.thpp
+  compatutility.cpp compatutility.hpp
+  customvarobject.cpp customvarobject.hpp customvarobject.thpp
+  dependency.cpp dependency.hpp dependency.thpp dependency-apply.cpp
+  downtime.cpp downtime.hpp downtime.thpp
+  eventcommand.cpp eventcommand.hpp eventcommand.thpp
+  externalcommandprocessor.cpp externalcommandprocessor.hpp
+  host.cpp host.hpp host.thpp
+  hostgroup.cpp hostgroup.hpp hostgroup.thpp
+  icingaapplication.cpp icingaapplication.hpp icingaapplication.thpp
+  legacytimeperiod.cpp legacytimeperiod.hpp
+  macroprocessor.cpp macroprocessor.hpp
+  macroresolver.hpp
+  notification.cpp notification.hpp notification.thpp notification-apply.cpp
+  notificationcommand.cpp notificationcommand.hpp notificationcommand.thpp
+  objectutils.cpp objectutils.hpp
+  pluginutility.cpp pluginutility.hpp
+  scheduleddowntime.cpp scheduleddowntime.hpp scheduleddowntime.thpp scheduleddowntime-apply.cpp
+  service.cpp service.hpp service.thpp service-apply.cpp
+  servicegroup.cpp servicegroup.hpp servicegroup.thpp
+  timeperiod.cpp timeperiod.hpp timeperiod.thpp
+  user.cpp user.hpp user.thpp
+  usergroup.cpp usergroup.hpp usergroup.thpp
 )
 
 if(ICINGA2_UNITY_BUILD)

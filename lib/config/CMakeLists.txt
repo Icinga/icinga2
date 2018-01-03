@@ -34,10 +34,18 @@ add_flex_bison_dependency(config_lexer config_parser)
 include_directories(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
 
 set(config_SOURCES
-  activationcontext.cpp applyrule.cpp
-  configcompilercontext.cpp configcompiler.cpp configitembuilder.cpp
-  configitem.cpp ${FLEX_config_lexer_OUTPUTS} ${BISON_config_parser_OUTPUTS}
-  expression.cpp objectrule.cpp
+  i2-config.hpp
+  activationcontext.cpp activationcontext.hpp
+  applyrule.cpp applyrule.hpp
+  configcompiler.cpp configcompiler.hpp
+  configcompilercontext.cpp configcompilercontext.hpp
+  configfragment.hpp
+  configitem.cpp configitem.hpp
+  configitembuilder.cpp configitembuilder.hpp
+  expression.cpp expression.hpp
+  objectrule.cpp objectrule.hpp
+  vmops.hpp
+  ${FLEX_config_lexer_OUTPUTS} ${BISON_config_parser_OUTPUTS}
 )
 
 if(ICINGA2_UNITY_BUILD)

@@ -23,7 +23,11 @@ define_property(
 )
 
 if(ICINGA2_UNITY_BUILD)
-    add_executable(mkunity mkunity.c)
+    set(mkunity_SOURCES
+      mkunity.c
+    )
+
+    add_executable(mkunity ${mkunity_SOURCES})
 
     set_target_properties (
       mkunity PROPERTIES

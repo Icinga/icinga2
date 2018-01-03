@@ -25,9 +25,16 @@ else()
   set(WindowsSources "")
 endif()
 
-add_executable(icinga-studio MACOSX_BUNDLE WIN32 icinga-studio.cpp
-  forms.cpp aboutform.cpp connectform.cpp mainform.cpp
-  icinga.icns ${WindowsSources})
+set(icinga_studio_SOURCES
+  icinga-studio.cpp
+  forms.cpp
+  aboutform.cpp aboutform.hpp
+  connectform.cpp connectform.hpp
+  mainform.cpp mainform.hpp
+  icinga.icns ${WindowsSources}
+)
+
+add_executable(icinga-studio MACOSX_BUNDLE WIN32 ${icinga_studio_SOURCES})
 
 include_directories(${Boost_INCLUDE_DIRS})
 target_link_libraries(icinga-studio ${Boost_LIBRARIES} ${wxWidgets_LIBRARIES})

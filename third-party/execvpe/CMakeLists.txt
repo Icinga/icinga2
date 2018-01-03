@@ -15,7 +15,11 @@
 # along with this program; if not, write to the Free Software Foundation
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
-add_library(execvpe STATIC execvpe.c execvpe.h)
+set(execvpe_SOURCES
+  execvpe.c execvpe.h
+)
+
+add_library(execvpe STATIC ${execvpe_SOURCES})
 
 set_target_properties (
   execvpe PROPERTIES

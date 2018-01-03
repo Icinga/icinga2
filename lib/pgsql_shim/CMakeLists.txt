@@ -20,7 +20,7 @@ include_directories(${PostgreSQL_INCLUDE_DIRS})
 
 set(pgsql_shim_SOURCES
   pgsql_shim.def
-  pgsqlinterface.cpp
+  pgsqlinterface.cpp pgsqlinterface.hpp
 )
 
 if(ICINGA2_UNITY_BUILD)

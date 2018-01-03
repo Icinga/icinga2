@@ -18,17 +18,26 @@
 mkembedconfig_target(methods-itl.conf methods-itl.cpp)
 
 if(MSVC)
-  set(WindowsSources clrchecktask.cpp)
+  set(WindowsSources clrchecktask.cpp clrchecktask.hpp)
 else()
   set(WindowsSources "")
 endif()
 
 set(methods_SOURCES
-  clusterchecktask.cpp clusterzonechecktask.cpp dummychecktask.cpp
-  exceptionchecktask.cpp icingachecktask.cpp methods-itl.cpp
-  nullchecktask.cpp nulleventtask.cpp
-  pluginchecktask.cpp plugineventtask.cpp pluginnotificationtask.cpp
-  randomchecktask.cpp timeperiodtask.cpp ${WindowsSources}
+  i2-methods.hpp methods-itl.cpp
+  clusterchecktask.cpp clusterchecktask.hpp
+  clusterzonechecktask.cpp clusterzonechecktask.hpp
+  dummychecktask.cpp dummychecktask.hpp
+  exceptionchecktask.cpp exceptionchecktask.hpp
+  icingachecktask.cpp icingachecktask.hpp
+  nullchecktask.cpp nullchecktask.hpp
+  nulleventtask.cpp nulleventtask.hpp
+  pluginchecktask.cpp pluginchecktask.hpp
+  plugineventtask.cpp plugineventtask.hpp
+  pluginnotificationtask.cpp pluginnotificationtask.hpp
+  randomchecktask.cpp randomchecktask.hpp
+  timeperiodtask.cpp timeperiodtask.hpp
+  ${WindowsSources}
 )
 
 if(ICINGA2_UNITY_BUILD)

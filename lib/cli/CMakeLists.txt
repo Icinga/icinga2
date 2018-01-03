@@ -16,17 +16,35 @@
 # Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
 set(cli_SOURCES
-  apisetupcommand.cpp apisetuputility.cpp
-  calistcommand.cpp casigncommand.cpp
-  nodesetupcommand.cpp nodewizardcommand.cpp nodeutility.cpp
-  clicommand.cpp
-  consolecommand.cpp
-  daemoncommand.cpp daemonutility.cpp
-  featureenablecommand.cpp featuredisablecommand.cpp featurelistcommand.cpp featureutility.cpp
-  objectlistcommand.cpp objectlistutility.cpp
-  pkinewcacommand.cpp pkinewcertcommand.cpp pkisigncsrcommand.cpp pkirequestcommand.cpp pkisavecertcommand.cpp pkiticketcommand.cpp
-  variablegetcommand.cpp variablelistcommand.cpp variableutility.cpp
-  troubleshootcommand.cpp
+  i2-cli.hpp
+  apisetupcommand.cpp apisetupcommand.hpp
+  apisetuputility.cpp apisetuputility.hpp
+  calistcommand.cpp calistcommand.hpp
+  casigncommand.cpp casigncommand.hpp
+  clicommand.cpp clicommand.hpp
+  consolecommand.cpp consolecommand.hpp
+  daemoncommand.cpp daemoncommand.hpp
+  daemonutility.cpp daemonutility.hpp
+  editline.hpp
+  featuredisablecommand.cpp featuredisablecommand.hpp
+  featureenablecommand.cpp featureenablecommand.hpp
+  featurelistcommand.cpp featurelistcommand.hpp
+  featureutility.cpp featureutility.hpp
+  nodesetupcommand.cpp nodesetupcommand.hpp
+  nodeutility.cpp nodeutility.hpp
+  nodewizardcommand.cpp nodewizardcommand.hpp
+  objectlistcommand.cpp objectlistcommand.hpp
+  objectlistutility.cpp objectlistutility.hpp
+  pkinewcacommand.cpp pkinewcacommand.hpp
+  pkinewcertcommand.cpp pkinewcertcommand.hpp
+  pkirequestcommand.cpp pkirequestcommand.hpp
+  pkisavecertcommand.cpp pkisavecertcommand.hpp
+  pkisigncsrcommand.cpp pkisigncsrcommand.hpp
+  pkiticketcommand.cpp pkiticketcommand.hpp
+  troubleshootcommand.cpp troubleshootcommand.hpp
+  variablegetcommand.cpp variablegetcommand.hpp
+  variablelistcommand.cpp variablelistcommand.hpp
+  variableutility.cpp variableutility.hpp
 )
 
 if(ICINGA2_UNITY_BUILD)

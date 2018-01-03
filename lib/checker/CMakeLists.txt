@@ -18,7 +18,7 @@
 mkclass_target(checkercomponent.ti checkercomponent.tcpp checkercomponent.thpp)
 
 set(checker_SOURCES
-  checkercomponent.cpp checkercomponent.thpp
+  checkercomponent.cpp checkercomponent.hpp checkercomponent.thpp
 )
 
 if(ICINGA2_UNITY_BUILD)

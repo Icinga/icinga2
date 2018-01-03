@@ -20,12 +20,25 @@ mkclass_target(dbconnection.ti dbconnection.tcpp dbconnection.thpp)
 mkembedconfig_target(db_ido-itl.conf db_ido-itl.cpp)
 
 set(db_ido_SOURCES
-  commanddbobject.cpp dbconnection.cpp dbconnection.thpp
-  db_ido-itl.cpp dbevents.cpp dbobject.cpp dbquery.cpp
-  dbreference.cpp dbtype.cpp dbvalue.cpp endpointdbobject.cpp hostdbobject.cpp
-  hostgroupdbobject.cpp idochecktask.cpp servicedbobject.cpp
-  servicegroupdbobject.cpp timeperioddbobject.cpp userdbobject.cpp
-  usergroupdbobject.cpp zonedbobject.cpp
+  i2-db_ido.hpp db_ido-itl.cpp
+  commanddbobject.cpp commanddbobject.hpp
+  dbconnection.cpp dbconnection.hpp dbconnection.thpp
+  dbevents.cpp dbevents.hpp
+  dbobject.cpp dbobject.hpp
+  dbquery.cpp dbquery.hpp
+  dbreference.cpp dbreference.hpp
+  dbtype.cpp dbtype.hpp
+  dbvalue.cpp dbvalue.hpp
+  endpointdbobject.cpp endpointdbobject.hpp
+  hostdbobject.cpp hostdbobject.hpp
+  hostgroupdbobject.cpp hostgroupdbobject.hpp
+  idochecktask.cpp idochecktask.hpp
+  servicedbobject.cpp servicedbobject.hpp
+  servicegroupdbobject.cpp servicegroupdbobject.hpp
+  timeperioddbobject.cpp timeperioddbobject.hpp
+  userdbobject.cpp userdbobject.hpp
+  usergroupdbobject.cpp usergroupdbobject.hpp
+  zonedbobject.cpp zonedbobject.hpp
 )
 
 if(ICINGA2_UNITY_BUILD)
