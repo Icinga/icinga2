@@ -180,7 +180,7 @@ static int Main(void)
 		try {
 			expression = ConfigCompiler::CompileFile(initconfig);
 
-			ScriptFrame frame;
+			ScriptFrame frame(true);
 			expression->Evaluate(frame);
 		} catch (const std::exception& ex) {
 			Log(LogCritical, "config", DiagnosticInformation(ex));

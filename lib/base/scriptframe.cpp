@@ -46,7 +46,7 @@ ScriptFrame::ScriptFrame(bool allocLocals)
 	InitializeFrame();
 }
 
-ScriptFrame::ScriptFrame(const Value& self, bool allocLocals)
+ScriptFrame::ScriptFrame(bool allocLocals, const Value& self)
 	: Locals(allocLocals ? new Dictionary() : nullptr), Self(self), Sandboxed(false), Depth(0)
 {
 	InitializeFrame();

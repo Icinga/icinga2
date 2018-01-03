@@ -27,7 +27,7 @@ BOOST_AUTO_TEST_SUITE(config_ops)
 
 BOOST_AUTO_TEST_CASE(simple)
 {
-	ScriptFrame frame;
+	ScriptFrame frame(true);
 	std::unique_ptr<Expression> expr;
 	Dictionary::Ptr dict;
 
@@ -168,7 +168,7 @@ BOOST_AUTO_TEST_CASE(simple)
 
 BOOST_AUTO_TEST_CASE(advanced)
 {
-	ScriptFrame frame;
+	ScriptFrame frame(true);
 	std::unique_ptr<Expression> expr;
 	Function::Ptr func;
 
@@ -179,7 +179,7 @@ BOOST_AUTO_TEST_CASE(advanced)
 	BOOST_CHECK_THROW(expr->Evaluate(frame).GetValue(), ScriptError);
 
 	Object::Ptr self = new Object();
-	ScriptFrame frame2(self);
+	ScriptFrame frame2(true, self);
 	expr = ConfigCompiler::CompileText("<test>", "this");
 	BOOST_CHECK(expr->Evaluate(frame2).GetValue() == Value(self));
 

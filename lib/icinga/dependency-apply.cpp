@@ -91,7 +91,7 @@ bool Dependency::EvaluateApplyRule(const Checkable::Ptr& checkable, const ApplyR
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
 
-	ScriptFrame frame;
+	ScriptFrame frame(true);
 	if (rule.GetScope())
 		rule.GetScope()->CopyTo(frame.Locals);
 	frame.Locals->Set("host", host);
