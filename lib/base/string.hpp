@@ -58,246 +58,84 @@ public:
 
 	typedef std::string::size_type SizeType;
 
-	String(void)
-		: m_Data()
-	{ }
-
-	String(const char *data)
-		: m_Data(data)
-	{ }
-
-	String(const std::string& data)
-		: m_Data(data)
-	{ }
-
-	String(std::string&& data)
-		: m_Data(data)
-	{ }
-
-	String(String::SizeType n, char c)
-		: m_Data(n, c)
-	{ }
-
-	String(const String& other)
-		: m_Data(other)
-	{ }
-
-	String(String&& other)
-		: m_Data(std::move(other.m_Data))
-	{ }
+	String(void);
+	String(const char *data);
+	String(const std::string& data);
+	String(std::string&& data);
+	String(String::SizeType n, char c);
+	String(const String& other);
+	String(String&& other);
 
 #ifndef _MSC_VER
 	String(Value&& other);
 #endif /* _MSC_VER */
 
-	~String(void)
-	{ }
+	~String(void);
 
 	template<typename InputIterator>
 	String(InputIterator begin, InputIterator end)
 		: m_Data(begin, end)
 	{ }
 
-	String& operator=(const String& rhs)
-	{
-		m_Data = rhs.m_Data;
-		return *this;
-	}
-
-	String& operator=(String&& rhs)
-	{
-		m_Data = std::move(rhs.m_Data);
-		return *this;
-	}
-
+	String& operator=(const String& rhs);
+	String& operator=(String&& rhs);
 	String& operator=(Value&& rhs);
+	String& operator=(const std::string& rhs);
+	String& operator=(const char *rhs);
 
-	String& operator=(const std::string& rhs)
-	{
-		m_Data = rhs;
-		return *this;
-	}
+	const char& operator[](SizeType pos) const;
+	char& operator[](SizeType pos);
 
-	String& operator=(const char *rhs)
-	{
-		m_Data = rhs;
-		return *this;
-	}
-
-	const char& operator[](SizeType pos) const
-	{
-		return m_Data[pos];
-	}
-
-	char& operator[](SizeType pos)
-	{
-		return m_Data[pos];
-	}
-
-	String& operator+=(const String& rhs)
-	{
-		m_Data += rhs.m_Data;
-		return *this;
-	}
-
-	String& operator+=(const char *rhs)
-	{
-		m_Data += rhs;
-		return *this;
-	}
-
+	String& operator+=(const String& rhs);
+	String& operator+=(const char *rhs);
 	String& operator+=(const Value& rhs);
+	String& operator+=(char rhs);
 
-	String& operator+=(char rhs)
-	{
-		m_Data += rhs;
-		return *this;
-	}
+	bool IsEmpty(void) const;
 
-	bool IsEmpty(void) const
-	{
-		return m_Data.empty();
-	}
+	bool operator<(const String& rhs) const;
 
-	bool operator<(const String& rhs) const
-	{
-		return m_Data < rhs.m_Data;
-	}
+	operator const std::string&(void) const;
 
-	operator const std::string&(void) const
-	{
-		return m_Data;
-	}
+	const char *CStr(void) const;
 
-	const char *CStr(void) const
-	{
-		return m_Data.c_str();
-	}
+	void Clear(void);
 
-	void Clear(void)
-	{
-		m_Data.clear();
-	}
+	SizeType GetLength(void) const;
 
-	SizeType GetLength(void) const
-	{
-		return m_Data.size();
-	}
+	std::string& GetData(void);
+	const std::string& GetData(void) const;
 
-	std::string& GetData(void)
-	{
-		return m_Data;
-	}
+	SizeType Find(const String& str, SizeType pos = 0) const;
+	SizeType RFind(const String& str, SizeType pos = NPos) const;
+	SizeType FindFirstOf(const char *s, SizeType pos = 0) const;
+	SizeType FindFirstOf(char ch, SizeType pos = 0) const;
+	SizeType FindFirstNotOf(const char *s, SizeType pos = 0) const;
+	SizeType FindFirstNotOf(char ch, SizeType pos = 0) const;
+	SizeType FindLastOf(const char *s, SizeType pos = NPos) const;
+	SizeType FindLastOf(char ch, SizeType pos = NPos) const;
 
-	const std::string& GetData(void) const
-	{
-		return m_Data;
-	}
+	String SubStr(SizeType first, SizeType len = NPos) const;
 
-	SizeType Find(const String& str, SizeType pos = 0) const
-	{
-		return m_Data.find(str, pos);
-	}
+	std::vector<String> Split(const char *separators) const;
 
-	SizeType RFind(const String& str, SizeType pos = NPos) const
-	{
-		return m_Data.rfind(str, pos);
-	}
+	void Replace(SizeType first, SizeType second, const String& str);
 
-	SizeType FindFirstOf(const char *s, SizeType pos = 0) const
-	{
-		return m_Data.find_first_of(s, pos);
-	}
+	String Trim(void) const;
 
-	SizeType FindFirstOf(char ch, SizeType pos = 0) const
-	{
-		return m_Data.find_first_of(ch, pos);
-	}
+	String ToLower(void) const;
 
-	SizeType FindFirstNotOf(const char *s, SizeType pos = 0) const
-	{
-		return m_Data.find_first_not_of(s, pos);
-	}
+	String ToUpper(void) const;
 
-	SizeType FindFirstNotOf(char ch, SizeType pos = 0) const
-	{
-		return m_Data.find_first_not_of(ch, pos);
-	}
+	String Reverse(void) const;
 
-	SizeType FindLastOf(const char *s, SizeType pos = NPos) const
-	{
-		return m_Data.find_last_of(s, pos);
-	}
+	void Append(int count, char ch);
 
-	SizeType FindLastOf(char ch, SizeType pos = NPos) const
-	{
-		return m_Data.find_last_of(ch, pos);
-	}
+	bool Contains(const String& str) const;
 
-	String SubStr(SizeType first, SizeType len = NPos) const
-	{
-		return m_Data.substr(first, len);
-	}
+	void swap(String& str);
 
-	std::vector<String> Split(const char *separators) const
-	{
-		std::vector<String> result;
-		boost::algorithm::split(result, m_Data, boost::is_any_of(separators));
-		return result;
-	}
-
-	void Replace(SizeType first, SizeType second, const String& str)
-	{
-		m_Data.replace(first, second, str);
-	}
-
-	String Trim(void) const
-	{
-		String t = m_Data;
-		boost::algorithm::trim(t);
-		return t;
-	}
-
-	String ToLower(void) const
-	{
-		String t = m_Data;
-		boost::algorithm::to_lower(t);
-		return t;
-	}
-
-	String ToUpper(void) const
-	{
-		String t = m_Data;
-		boost::algorithm::to_upper(t);
-		return t;
-	}
-
-	String Reverse(void) const
-	{
-		String t = m_Data;
-		std::reverse(t.m_Data.begin(), t.m_Data.end());
-		return t;
-	}
-
-	void Append(int count, char ch)
-	{
-		m_Data.append(count, ch);
-	}
-
-	bool Contains(const String& str) const
-	{
-		return (m_Data.find(str) != std::string::npos);
-	}
-
-	void swap(String& str)
-	{
-		m_Data.swap(str.m_Data);
-	}
-
-	Iterator erase(Iterator first, Iterator last)
-	{
-		return m_Data.erase(first, last);
-	}
+	Iterator erase(Iterator first, Iterator last);
 
 	template<typename InputIterator>
 	void insert(Iterator p, InputIterator first, InputIterator last)
@@ -305,45 +143,14 @@ public:
 		m_Data.insert(p, first, last);
 	}
 
-	Iterator Begin(void)
-	{
-		return m_Data.begin();
-	}
-
-	ConstIterator Begin(void) const
-	{
-		return m_Data.begin();
-	}
-
-	Iterator End(void)
-	{
-		return m_Data.end();
-	}
-
-	ConstIterator End(void) const
-	{
-		return m_Data.end();
-	}
-
-	ReverseIterator RBegin(void)
-	{
-		return m_Data.rbegin();
-	}
-
-	ConstReverseIterator RBegin(void) const
-	{
-		return m_Data.rbegin();
-	}
-
-	ReverseIterator REnd(void)
-	{
-		return m_Data.rend();
-	}
-
-	ConstReverseIterator REnd(void) const
-	{
-		return m_Data.rend();
-	}
+	Iterator Begin(void);
+	ConstIterator Begin(void) const;
+	Iterator End(void);
+	ConstIterator End(void) const;
+	ReverseIterator RBegin(void);
+	ConstReverseIterator RBegin(void) const;
+	ReverseIterator REnd(void);
+	ConstReverseIterator REnd(void) const;
 
 	static const SizeType NPos;
 
@@ -353,160 +160,48 @@ private:
 	std::string m_Data;
 };
 
-inline std::ostream& operator<<(std::ostream& stream, const String& str)
-{
-	stream << str.GetData();
-	return stream;
-}
+std::ostream& operator<<(std::ostream& stream, const String& str);
+std::istream& operator>>(std::istream& stream, String& str);
 
-inline std::istream& operator>>(std::istream& stream, String& str)
-{
-	std::string tstr;
-	stream >> tstr;
-	str = tstr;
-	return stream;
-}
+String operator+(const String& lhs, const String& rhs);
+String operator+(const String& lhs, const char *rhs);
+String operator+(const char *lhs, const String& rhs);
 
-inline String operator+(const String& lhs, const String& rhs)
-{
-	return lhs.GetData() + rhs.GetData();
-}
+bool operator==(const String& lhs, const String& rhs);
+bool operator==(const String& lhs, const char *rhs);
+bool operator==(const char *lhs, const String& rhs);
 
-inline String operator+(const String& lhs, const char *rhs)
-{
-	return lhs.GetData() + rhs;
-}
+bool operator<(const String& lhs, const char *rhs);
+bool operator<(const char *lhs, const String& rhs);
 
-inline String operator+(const char *lhs, const String& rhs)
-{
-	return lhs + rhs.GetData();
-}
+bool operator>(const String& lhs, const String& rhs);
+bool operator>(const String& lhs, const char *rhs);
+bool operator>(const char *lhs, const String& rhs);
 
-inline bool operator==(const String& lhs, const String& rhs)
-{
-	return lhs.GetData() == rhs.GetData();
-}
+bool operator<=(const String& lhs, const String& rhs);
+bool operator<=(const String& lhs, const char *rhs);
+bool operator<=(const char *lhs, const String& rhs);
 
-inline bool operator==(const String& lhs, const char *rhs)
-{
-	return lhs.GetData() == rhs;
-}
+bool operator>=(const String& lhs, const String& rhs);
+bool operator>=(const String& lhs, const char *rhs);
+bool operator>=(const char *lhs, const String& rhs);
 
-inline bool operator==(const char *lhs, const String& rhs)
-{
-	return lhs == rhs.GetData();
-}
+bool operator!=(const String& lhs, const String& rhs);
+bool operator!=(const String& lhs, const char *rhs);
+bool operator!=(const char *lhs, const String& rhs);
 
-inline bool operator<(const String& lhs, const char *rhs)
-{
-	return lhs.GetData() < rhs;
-}
-
-inline bool operator<(const char *lhs, const String& rhs)
-{
-	return lhs < rhs.GetData();
-}
-
-inline bool operator>(const String& lhs, const String& rhs)
-{
-	return lhs.GetData() > rhs.GetData();
-}
-
-inline bool operator>(const String& lhs, const char *rhs)
-{
-	return lhs.GetData() > rhs;
-}
-
-inline bool operator>(const char *lhs, const String& rhs)
-{
-	return lhs > rhs.GetData();
-}
-
-inline bool operator<=(const String& lhs, const String& rhs)
-{
-	return lhs.GetData() <= rhs.GetData();
-}
-
-inline bool operator<=(const String& lhs, const char *rhs)
-{
-	return lhs.GetData() <= rhs;
-}
-
-inline bool operator<=(const char *lhs, const String& rhs)
-{
-	return lhs <= rhs.GetData();
-}
-
-inline bool operator>=(const String& lhs, const String& rhs)
-{
-	return lhs.GetData() >= rhs.GetData();
-}
-
-inline bool operator>=(const String& lhs, const char *rhs)
-{
-	return lhs.GetData() >= rhs;
-}
-
-inline bool operator>=(const char *lhs, const String& rhs)
-{
-	return lhs >= rhs.GetData();
-}
-
-inline bool operator!=(const String& lhs, const String& rhs)
-{
-	return lhs.GetData() != rhs.GetData();
-}
-
-inline bool operator!=(const String& lhs, const char *rhs)
-{
-	return lhs.GetData() != rhs;
-}
-
-inline bool operator!=(const char *lhs, const String& rhs)
-{
-	return lhs != rhs.GetData();
-}
-
-inline String::Iterator begin(String& x)
-{
-	return x.Begin();
-}
-
-inline String::ConstIterator begin(const String& x)
-{
-	return x.Begin();
-}
-
-inline String::Iterator end(String& x)
-{
-	return x.End();
-}
-
-inline String::ConstIterator end(const String& x)
-{
-	return x.End();
-}
-inline String::Iterator range_begin(String& x)
-{
-	return x.Begin();
-}
-
-inline String::ConstIterator range_begin(const String& x)
-{
-	return x.Begin();
-}
-
-inline String::Iterator range_end(String& x)
-{
-	return x.End();
-}
-
-inline String::ConstIterator range_end(const String& x)
-{
-	return x.End();
-}
+String::Iterator begin(String& x);
+String::ConstIterator begin(const String& x);
+String::Iterator end(String& x);
+String::ConstIterator end(const String& x);
+String::Iterator range_begin(String& x);
+String::ConstIterator range_begin(const String& x);
+String::Iterator range_end(String& x);
+String::ConstIterator range_end(const String& x);
 
 }
+
+extern template class std::vector<icinga::String>;
 
 namespace boost
 {

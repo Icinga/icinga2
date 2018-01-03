@@ -47,15 +47,10 @@ public:
 
 	typedef std::vector<Value>::size_type SizeType;
 
-	Array(void)
-	{ }
+	Array(void);
+	Array(std::initializer_list<Value> init);
 
-	Array(std::initializer_list<Value> init)
-		: m_Data(init)
-	{ }
-
-	~Array(void)
-	{ }
+	~Array(void);
 
 	Value Get(SizeType index) const;
 	void Set(SizeType index, const Value& value);
@@ -63,33 +58,8 @@ public:
 	void Add(const Value& value);
 	void Add(Value&& value);
 
-	/**
-	 * Returns an iterator to the beginning of the array.
-	 *
-	 * Note: Caller must hold the object lock while using the iterator.
-	 *
-	 * @returns An iterator.
-	 */
-	Iterator Begin(void)
-	{
-		ASSERT(OwnsLock());
-
-		return m_Data.begin();
-	}
-
-	/**
-	 * Returns an iterator to the end of the array.
-	 *
-	 * Note: Caller must hold the object lock while using the iterator.
-	 *
-	 * @returns An iterator.
-	 */
-	Iterator End(void)
-	{
-		ASSERT(OwnsLock());
-
-		return m_Data.end();
-	}
+	Iterator Begin(void);
+	Iterator End(void);
 
 	size_t GetLength(void) const;
 	bool Contains(const Value& value) const;
@@ -148,16 +118,11 @@ private:
 	std::vector<Value> m_Data; /**< The data for the array. */
 };
 
-inline Array::Iterator begin(Array::Ptr x)
-{
-	return x->Begin();
-}
-
-inline Array::Iterator end(Array::Ptr x)
-{
-	return x->End();
-}
+Array::Iterator begin(Array::Ptr x);
+Array::Iterator end(Array::Ptr x);
 
 }
+
+extern template class std::vector<icinga::Value>;
 
 #endif /* ARRAY_H */

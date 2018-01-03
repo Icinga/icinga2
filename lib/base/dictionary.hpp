@@ -49,11 +49,9 @@ public:
 
 	typedef std::map<String, Value>::value_type Pair;
 
-	Dictionary(void)
-	{ }
+	Dictionary(void);
 
-	~Dictionary(void)
-	{ }
+	~Dictionary(void);
 
 	Value Get(const String& key) const;
 	bool Get(const String& key, Value *result) const;
@@ -61,49 +59,14 @@ public:
 	void Set(const String& key, Value&& value);
 	bool Contains(const String& key) const;
 
-	/**
-	 * Returns an iterator to the beginning of the dictionary.
-	 *
-	 * Note: Caller must hold the object lock while using the iterator.
-	 *
-	 * @returns An iterator.
-	 */
-	Iterator Begin(void)
-	{
-		ASSERT(OwnsLock());
-
-		return m_Data.begin();
-	}
-
-	/**
-	 * Returns an iterator to the end of the dictionary.
-	 *
-	 * Note: Caller must hold the object lock while using the iterator.
-	 *
-	 * @returns An iterator.
-	 */
-	Iterator End(void)
-	{
-		ASSERT(OwnsLock());
-
-		return m_Data.end();
-	}
+	Iterator Begin(void);
+	Iterator End(void);
 
 	size_t GetLength(void) const;
 
 	void Remove(const String& key);
 
-	/**
-	 * Removes the item specified by the iterator from the dictionary.
-	 *
-	 * @param it The iterator.
-	 */
-	void Remove(Iterator it)
-	{
-		ASSERT(OwnsLock());
-
-		m_Data.erase(it);
-	}
+	void Remove(Iterator it);
 
 	void Clear(void);
 
@@ -127,16 +90,11 @@ private:
 	std::map<String, Value> m_Data; /**< The data for the dictionary. */
 };
 
-inline Dictionary::Iterator begin(Dictionary::Ptr x)
-{
-	return x->Begin();
-}
-
-inline Dictionary::Iterator end(Dictionary::Ptr x)
-{
-	return x->End();
-}
+Dictionary::Iterator begin(Dictionary::Ptr x);
+Dictionary::Iterator end(Dictionary::Ptr x);
 
 }
+
+extern template class std::map<icinga::String, icinga::Value>;
 
 #endif /* DICTIONARY_H */

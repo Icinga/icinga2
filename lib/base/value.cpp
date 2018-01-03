@@ -24,7 +24,181 @@
 
 using namespace icinga;
 
+template class boost::variant<boost::blank, double, bool, String, Object::Ptr>;
+template const double& Value::Get<double>(void) const;
+template const bool& Value::Get<bool>(void) const;
+template const String& Value::Get<String>(void) const;
+template const Object::Ptr& Value::Get<Object::Ptr>(void) const;
+
 Value icinga::Empty;
+
+Value::Value(void)
+{ }
+
+Value::Value(std::nullptr_t)
+{ }
+
+Value::Value(int value)
+	: m_Value(double(value))
+{ }
+
+Value::Value(unsigned int value)
+	: m_Value(double(value))
+{ }
+
+Value::Value(long value)
+	: m_Value(double(value))
+{ }
+
+Value::Value(unsigned long value)
+	: m_Value(double(value))
+{ }
+
+Value::Value(long long value)
+	: m_Value(double(value))
+{ }
+
+Value::Value(unsigned long long value)
+	: m_Value(double(value))
+{ }
+
+Value::Value(double value)
+	: m_Value(value)
+{ }
+
+Value::Value(bool value)
+	: m_Value(value)
+{ }
+
+Value::Value(const String& value)
+	: m_Value(value)
+{ }
+
+Value::Value(String&& value)
+	: m_Value(value)
+{ }
+
+Value::Value(const char *value)
+	: m_Value(String(value))
+{ }
+
+Value::Value(const Value& other)
+	: m_Value(other.m_Value)
+{ }
+
+Value::Value(Value&& other)
+{
+#if BOOST_VERSION >= 105400
+	m_Value = std::move(other.m_Value);
+#else /* BOOST_VERSION */
+	m_Value.swap(other.m_Value);
+#endif /* BOOST_VERSION */
+}
+
+Value::Value(Object *value)
+	: Value(Object::Ptr(value))
+{ }
+
+Value::Value(const intrusive_ptr<Object>& value)
+{
+	if (value)
+		m_Value = value;
+}
+
+Value::~Value(void)
+{ }
+
+Value& Value::operator=(const Value& other)
+{
+	m_Value = other.m_Value;
+	return *this;
+}
+
+Value& Value::operator=(Value&& other)
+{
+#if BOOST_VERSION >= 105400
+	m_Value = std::move(other.m_Value);
+#else /* BOOST_VERSION */
+	m_Value.swap(other.m_Value);
+#endif /* BOOST_VERSION */
+
+	return *this;
+}
+
+/**
+ * Checks whether the variant is empty.
+ *
+ * @returns true if the variant is empty, false otherwise.
+ */
+bool Value::IsEmpty(void) const
+{
+	return (GetType() == ValueEmpty || (IsString() && boost::get<String>(m_Value).IsEmpty()));
+}
+
+/**
+ * Checks whether the variant is scalar (i.e. not an object and not empty).
+ *
+ * @returns true if the variant is scalar, false otherwise.
+ */
+bool Value::IsScalar(void) const
+{
+	return !IsEmpty() && !IsObject();
+}
+
+/**
+* Checks whether the variant is a number.
+*
+* @returns true if the variant is a number.
+*/
+bool Value::IsNumber(void) const
+{
+	return (GetType() == ValueNumber);
+}
+
+/**
+ * Checks whether the variant is a boolean.
+ *
+ * @returns true if the variant is a boolean.
+ */
+bool Value::IsBoolean(void) const
+{
+	return (GetType() == ValueBoolean);
+}
+
+/**
+ * Checks whether the variant is a string.
+ *
+ * @returns true if the variant is a string.
+ */
+bool Value::IsString(void) const
+{
+	return (GetType() == ValueString);
+}
+
+/**
+ * Checks whether the variant is a non-null object.
+ *
+ * @returns true if the variant is a non-null object, false otherwise.
+ */
+bool Value::IsObject(void) const
+{
+	return  (GetType() == ValueObject);
+}
+
+/**
+ * Returns the type of the value.
+ *
+ * @returns The type.
+ */
+ValueType Value::GetType(void) const
+{
+	return static_cast<ValueType>(m_Value.which());
+}
+
+void Value::Swap(Value& other)
+{
+	m_Value.swap(other.m_Value);
+}
 
 bool Value::ToBool(void) const
 {
@@ -111,4 +285,3 @@ Value Value::Clone(void) const
 	else
 		return *this;
 }
-

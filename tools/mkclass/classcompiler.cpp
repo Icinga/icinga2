@@ -219,7 +219,14 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 	m_Header << std::endl
 			<< "{" << std::endl
 			<< "public:" << std::endl
-			<< "\t" << "DECLARE_PTR_TYPEDEFS(TypeImpl<" << klass.Name << ">);" << std::endl << std::endl;
+			<< "\t" << "DECLARE_PTR_TYPEDEFS(TypeImpl<" << klass.Name << ">);" << std::endl << std::endl
+			<< "\t" << "TypeImpl(void);" << std::endl
+			<< "\t" << "~TypeImpl(void);" << std::endl << std::endl;
+
+	m_Impl << "TypeImpl<" << klass.Name << ">::TypeImpl(void)" << std::endl
+		<< "{ }" << std::endl << std::endl
+		<< "TypeImpl<" << klass.Name << ">::~TypeImpl(void)" << std::endl
+		<< "{ }" << std::endl << std::endl;
 
 	/* GetName */
 	m_Header << "\t" << "virtual String GetName(void) const;" << std::endl;
@@ -445,11 +452,11 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 
 	/* ObjectImpl */
 	m_Header << "template<>" << std::endl
-			<< "class ObjectImpl<" << klass.Name << ">"
-			<< " : public " << (klass.Parent.empty() ? "Object" : klass.Parent) << std::endl
-			<< "{" << std::endl
-			<< "public:" << std::endl
-			<< "\t" << "DECLARE_PTR_TYPEDEFS(ObjectImpl<" << klass.Name << ">);" << std::endl << std::endl;
+		<< "class ObjectImpl<" << klass.Name << ">"
+		<< " : public " << (klass.Parent.empty() ? "Object" : klass.Parent) << std::endl
+		<< "{" << std::endl
+		<< "public:" << std::endl
+		<< "\t" << "DECLARE_PTR_TYPEDEFS(ObjectImpl<" << klass.Name << ">);" << std::endl << std::endl;
 
 	/* Validate */
 	m_Header << "\t" << "virtual void Validate(int types, const ValidationUtils& utils) override;" << std::endl;
@@ -541,27 +548,27 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		m_Impl << "}" << std::endl << std::endl;
 	}
 
+	/* constructor */
+	m_Header << "public:" << std::endl
+			<< "\t" << "ObjectImpl<" << klass.Name << ">(void);" << std::endl;
+
+	m_Impl << "ObjectImpl<" << klass.Name << ">::ObjectImpl(void)" << std::endl
+		<< "{" << std::endl;
+
+	for (const Field& field : klass.Fields) {
+		m_Impl << "\t" << "Set" << field.GetFriendlyName() << "(" << "GetDefault" << field.GetFriendlyName() << "(), true);" << std::endl;
+	}
+
+	m_Impl << "}" << std::endl << std::endl;
+
+	/* destructor */
+	m_Header << "public:" << std::endl
+			<< "\t" << "~ObjectImpl<" << klass.Name << ">(void);" << std::endl;
+
+	m_Impl << "ObjectImpl<" << klass.Name << ">::~ObjectImpl(void)" << std::endl
+		<< "{ }" << std::endl << std::endl;
+
 	if (!klass.Fields.empty()) {
-		/* constructor */
-		m_Header << "public:" << std::endl
-				<< "\t" << "ObjectImpl<" << klass.Name << ">(void);" << std::endl;
-
-		m_Impl << "ObjectImpl<" << klass.Name << ">::ObjectImpl(void)" << std::endl
-			<< "{" << std::endl;
-
-		for (const Field& field : klass.Fields) {
-			m_Impl << "\t" << "Set" << field.GetFriendlyName() << "(" << "GetDefault" << field.GetFriendlyName() << "(), true);" << std::endl;
-		}
-
-		m_Impl << "}" << std::endl << std::endl;
-
-		/* destructor */
-		m_Header << "public:" << std::endl
-				<< "\t" << "~ObjectImpl<" << klass.Name << ">(void);" << std::endl;
-
-		m_Impl << "ObjectImpl<" << klass.Name << ">::~ObjectImpl(void)" << std::endl
-			<< "{ }" << std::endl << std::endl;
-
 		/* SetField */
 		m_Header << "public:" << std::endl
 				<< "\t" << "virtual void SetField(int id, const Value& value, bool suppress_events = false, const Value& cookie = Empty) override;" << std::endl;

@@ -28,7 +28,19 @@
 
 using namespace icinga;
 
+template class std::vector<Value>;
+
 REGISTER_PRIMITIVE_TYPE(Array, Object, Array::GetPrototype());
+
+Array::Array(void)
+{ }
+
+Array::Array(std::initializer_list<Value> init)
+	: m_Data(init)
+{ }
+
+Array::~Array(void)
+{ }
 
 /**
  * Restrieves a value from an array.
@@ -91,6 +103,34 @@ void Array::Add(Value&& value)
 	ObjectLock olock(this);
 
 	m_Data.emplace_back(std::move(value));
+}
+
+/**
+ * Returns an iterator to the beginning of the array.
+ *
+ * Note: Caller must hold the object lock while using the iterator.
+ *
+ * @returns An iterator.
+ */
+Array::Iterator Array::Begin(void)
+{
+	ASSERT(OwnsLock());
+
+	return m_Data.begin();
+}
+
+/**
+ * Returns an iterator to the end of the array.
+ *
+ * Note: Caller must hold the object lock while using the iterator.
+ *
+ * @returns An iterator.
+ */
+Array::Iterator Array::End(void)
+{
+	ASSERT(OwnsLock());
+
+	return m_Data.end();
 }
 
 /**
@@ -273,3 +313,14 @@ void Array::SetFieldByName(const String& field, const Value& value, const DebugI
 
 	Set(index, value);
 }
+
+Array::Iterator icinga::begin(Array::Ptr x)
+{
+	return x->Begin();
+}
+
+Array::Iterator icinga::end(Array::Ptr x)
+{
+	return x->End();
+}
+

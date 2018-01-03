@@ -104,25 +104,17 @@ private:
 	static LogSeverity m_ConsoleLogSeverity;
 };
 
-void IcingaLog(LogSeverity severity, const String& facility, const String& message);
-
 class Log
 {
 public:
-	Log(LogSeverity severity, const String& facility, const String& message)
-		: m_Severity(severity), m_Facility(facility)
-	{
-		m_Buffer << message;
-	}
+	Log(void) = delete;
+	Log(const Log& other) = delete;
+	Log& operator=(const Log& rhs) = delete;
 
-	Log(LogSeverity severity, const String& facility)
-		: m_Severity(severity), m_Facility(facility)
-	{ }
+	Log(LogSeverity severity, const String& facility, const String& message);
+	Log(LogSeverity severity, const String& facility);
 
-	~Log(void)
-	{
-		IcingaLog(m_Severity, m_Facility, m_Buffer.str());
-	}
+	~Log(void);
 
 	template<typename T>
 	Log& operator<<(const T& val)
@@ -131,15 +123,23 @@ public:
 		return *this;
 	}
 
+	Log& operator<<(const char *val);
+
 private:
 	LogSeverity m_Severity;
 	String m_Facility;
 	std::ostringstream m_Buffer;
-
-	Log(void);
-	Log(const Log& other);
-	Log& operator=(const Log& rhs);
 };
+
+extern template Log& Log::operator<<(const Value&);
+extern template Log& Log::operator<<(const String&);
+extern template Log& Log::operator<<(const std::string&);
+extern template Log& Log::operator<<(const bool&);
+extern template Log& Log::operator<<(const unsigned int&);
+extern template Log& Log::operator<<(const int&);
+extern template Log& Log::operator<<(const unsigned long&);
+extern template Log& Log::operator<<(const long&);
+extern template Log& Log::operator<<(const double&);
 
 }
 
