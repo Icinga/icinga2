@@ -45,7 +45,7 @@ public:
 	typedef std::map<String, DbType::Ptr> TypeMap;
 	typedef std::map<std::pair<String, String>, intrusive_ptr<DbObject> > ObjectMap;
 
-	DbType(const String& name, const String& table, long tid, const String& idcolumn, const ObjectFactory& factory);
+	DbType(String name, String table, long tid, String idcolumn, ObjectFactory factory);
 
 	String GetName() const;
 	String GetTable() const;

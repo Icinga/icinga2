@@ -23,7 +23,6 @@
 #include "icinga/i2-icinga.hpp"
 #include "icinga/scheduleddowntime.thpp"
 #include "icinga/checkable.hpp"
-#include <utility>
 
 namespace icinga
 {

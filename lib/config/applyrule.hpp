@@ -81,9 +81,9 @@ private:
 	static TypeMap m_Types;
 	static RuleMap m_Rules;
 
-	ApplyRule(const String& targetType, const String& name, const std::shared_ptr<Expression>& expression,
-		const std::shared_ptr<Expression>& filter, const String& package, const String& fkvar, const String& fvvar, const std::shared_ptr<Expression>& fterm,
-		bool ignoreOnError, const DebugInfo& di, const Dictionary::Ptr& scope);
+	ApplyRule(String targetType, String name, std::shared_ptr<Expression> expression,
+		std::shared_ptr<Expression> filter, String package, String fkvar, String fvvar, std::shared_ptr<Expression> fterm,
+		bool ignoreOnError, DebugInfo di, Dictionary::Ptr scope);
 };
 
 }

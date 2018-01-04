@@ -42,8 +42,8 @@ static int l_JsonRpcConnectionNextID;
 static Timer::Ptr l_HeartbeatTimer;
 
 JsonRpcConnection::JsonRpcConnection(const String& identity, bool authenticated,
-	const TlsStream::Ptr& stream, ConnectionRole role)
-	: m_ID(l_JsonRpcConnectionNextID++), m_Identity(identity), m_Authenticated(authenticated), m_Stream(stream),
+	TlsStream::Ptr stream, ConnectionRole role)
+	: m_ID(l_JsonRpcConnectionNextID++), m_Identity(identity), m_Authenticated(authenticated), m_Stream(std::move(stream)),
 	m_Role(role), m_Timestamp(Utility::GetTime()), m_Seen(Utility::GetTime()), m_NextHeartbeat(0), m_HeartbeatTimeout(0)
 {
 	boost::call_once(l_JsonRpcConnectionOnceFlag, &JsonRpcConnection::StaticInitialize);

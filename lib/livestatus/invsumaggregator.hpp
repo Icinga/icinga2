@@ -46,7 +46,7 @@ class InvSumAggregator final : public Aggregator
 public:
 	DECLARE_PTR_TYPEDEFS(InvSumAggregator);
 
-	InvSumAggregator(const String& attr);
+	InvSumAggregator(String attr);
 
 	void Apply(const Table::Ptr& table, const Value& row, AggregatorState **state) override;
 	double GetResultAndFreeState(AggregatorState *state) const override;

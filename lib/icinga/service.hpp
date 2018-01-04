@@ -24,7 +24,6 @@
 #include "icinga/service.thpp"
 #include "icinga/macroresolver.hpp"
 #include "icinga/host.hpp"
-#include <utility>
 #include <tuple>
 
 using std::tie;

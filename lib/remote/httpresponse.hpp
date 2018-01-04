@@ -52,7 +52,7 @@ public:
 
 	Dictionary::Ptr Headers;
 
-	HttpResponse(const Stream::Ptr& stream, const HttpRequest& request);
+	HttpResponse(Stream::Ptr stream, const HttpRequest& request);
 
 	bool Parse(StreamReadContext& src, bool may_wait);
 	size_t ReadBody(char *data, size_t count);

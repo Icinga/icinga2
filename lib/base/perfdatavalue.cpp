@@ -35,7 +35,7 @@ REGISTER_SCRIPTFUNCTION_NS(System, parse_performance_data, PerfdataValue::Parse,
 PerfdataValue::PerfdataValue()
 { }
 
-PerfdataValue::PerfdataValue(String label, double value, bool counter,
+PerfdataValue::PerfdataValue(const String& label, double value, bool counter,
 	const String& unit, const Value& warn, const Value& crit, const Value& min,
 	const Value& max)
 {

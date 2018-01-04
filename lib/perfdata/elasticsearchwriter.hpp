@@ -66,7 +66,7 @@ private:
 		const Checkable::Ptr& checkable, const std::set<User::Ptr>& users, NotificationType type,
 		const CheckResult::Ptr& cr, const String& author, const String& text);
 
-	void Enqueue(String type, const Dictionary::Ptr& fields, double ts);
+	void Enqueue(const String& type, const Dictionary::Ptr& fields, double ts);
 
 	Stream::Ptr Connect();
 	void AssertOnWorkQueue();

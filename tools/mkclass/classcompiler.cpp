@@ -24,6 +24,7 @@
 #include <stdexcept>
 #include <map>
 #include <set>
+#include <utility>
 #include <vector>
 #include <cstring>
 #include <locale>
@@ -35,9 +36,9 @@
 
 using namespace icinga;
 
-ClassCompiler::ClassCompiler(const std::string& path, std::istream& input,
+ClassCompiler::ClassCompiler(std::string path, std::istream& input,
 	std::ostream& oimpl, std::ostream& oheader)
-	: m_Path(path), m_Input(input), m_Impl(oimpl), m_Header(oheader)
+	: m_Path(std::move(path)), m_Input(input), m_Impl(oimpl), m_Header(oheader)
 {
 	InitializeScanner();
 }

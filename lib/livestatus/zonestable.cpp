@@ -91,7 +91,7 @@ Value ZonesTable::EndpointsAccessor(const Value& row)
 
 	Array::Ptr endpoint_names = new Array();
 
-	for (const Endpoint::Ptr endpoint : endpoints) {
+	for (const Endpoint::Ptr& endpoint : endpoints) {
 		endpoint_names->Add(endpoint->GetName());
 	}
 

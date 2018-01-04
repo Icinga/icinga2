@@ -109,7 +109,7 @@ void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& service, const CheckResul
 	double bytesSentPerSecond = 0;
 	double bytesReceivedPerSecond = 0;
 
-	for (Endpoint::Ptr endpoint : endpoints)
+	for (const Endpoint::Ptr& endpoint : endpoints)
 	{
 		if (endpoint->GetLastMessageSent() > lastMessageSent)
 			lastMessageSent = endpoint->GetLastMessageSent();

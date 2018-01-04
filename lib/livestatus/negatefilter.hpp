@@ -35,7 +35,7 @@ class NegateFilter final : public Filter
 public:
 	DECLARE_PTR_TYPEDEFS(NegateFilter);
 
-	NegateFilter(const Filter::Ptr& inner);
+	NegateFilter(Filter::Ptr inner);
 
 	bool Apply(const Table::Ptr& table, const Value& row) override;
 

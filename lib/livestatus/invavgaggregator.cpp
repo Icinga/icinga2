@@ -21,8 +21,8 @@
 
 using namespace icinga;
 
-InvAvgAggregator::InvAvgAggregator(const String& attr)
-	: m_InvAvgAttr(attr)
+InvAvgAggregator::InvAvgAggregator(String attr)
+	: m_InvAvgAttr(std::move(attr))
 { }
 
 InvAvgAggregatorState *InvAvgAggregator::EnsureState(AggregatorState **state)

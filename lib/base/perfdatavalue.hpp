@@ -38,7 +38,7 @@ public:
 
 	PerfdataValue();
 
-	PerfdataValue(String label, double value, bool counter = false, const String& unit = "",
+	PerfdataValue(const String& label, double value, bool counter = false, const String& unit = "",
 		const Value& warn = Empty, const Value& crit = Empty,
 		const Value& min = Empty, const Value& max = Empty);
 

@@ -79,20 +79,7 @@ bool Dictionary::Get(const String& key, Value *result) const
  * @param key The key.
  * @param value The value.
  */
-void Dictionary::Set(const String& key, const Value& value)
-{
-	ObjectLock olock(this);
-
-	m_Data[key] = value;
-}
-
-/**
- * Sets a value in the dictionary.
- *
- * @param key The key.
- * @param value The value.
- */
-void Dictionary::Set(const String& key, Value&& value)
+void Dictionary::Set(const String& key, Value value)
 {
 	ObjectLock olock(this);
 
@@ -282,12 +269,12 @@ bool Dictionary::GetOwnField(const String& field, Value *result) const
 	return Get(field, result);
 }
 
-Dictionary::Iterator icinga::begin(Dictionary::Ptr x)
+Dictionary::Iterator icinga::begin(const Dictionary::Ptr& x)
 {
 	return x->Begin();
 }
 
-Dictionary::Iterator icinga::end(Dictionary::Ptr x)
+Dictionary::Iterator icinga::end(const Dictionary::Ptr& x)
 {
 	return x->End();
 }

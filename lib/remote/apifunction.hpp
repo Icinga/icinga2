@@ -42,7 +42,7 @@ public:
 
 	typedef std::function<Value(const MessageOrigin::Ptr& origin, const Dictionary::Ptr&)> Callback;
 
-	ApiFunction(const Callback& function);
+	ApiFunction(Callback function);
 
 	Value Invoke(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& arguments);
 

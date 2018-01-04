@@ -35,7 +35,7 @@ class AttributeFilter final : public Filter
 public:
 	DECLARE_PTR_TYPEDEFS(AttributeFilter);
 
-	AttributeFilter(const String& column, const String& op, const String& operand);
+	AttributeFilter(String column, String op, String operand);
 
 	bool Apply(const Table::Ptr& table, const Value& row) override;
 

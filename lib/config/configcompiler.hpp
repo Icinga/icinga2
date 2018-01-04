@@ -86,8 +86,8 @@ struct ZoneFragment
 class ConfigCompiler
 {
 public:
-	explicit ConfigCompiler(const String& path, std::istream *input,
-		const String& zone = String(), const String& package = String());
+	explicit ConfigCompiler(String path, std::istream *input,
+		String zone = String(), String package = String());
 	virtual ~ConfigCompiler();
 
 	std::unique_ptr<Expression> Compile();

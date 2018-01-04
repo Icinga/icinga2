@@ -65,8 +65,8 @@ static pid_t l_ProcessControlPID;
 static boost::once_flag l_ProcessOnceFlag = BOOST_ONCE_INIT;
 static boost::once_flag l_SpawnHelperOnceFlag = BOOST_ONCE_INIT;
 
-Process::Process(const Process::Arguments& arguments, const Dictionary::Ptr& extraEnvironment)
-	: m_Arguments(arguments), m_ExtraEnvironment(extraEnvironment), m_Timeout(600), m_AdjustPriority(false)
+Process::Process(Process::Arguments arguments, Dictionary::Ptr extraEnvironment)
+	: m_Arguments(std::move(arguments)), m_ExtraEnvironment(std::move(extraEnvironment)), m_Timeout(600), m_AdjustPriority(false)
 #ifdef _WIN32
 	, m_ReadPending(false), m_ReadFailed(false), m_Overlapped()
 #endif /* _WIN32 */

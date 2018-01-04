@@ -269,8 +269,8 @@ const std::vector<String>& ConfigWriter::GetKeywords()
 	return keywords;
 }
 
-ConfigIdentifier::ConfigIdentifier(const String& identifier)
-	: m_Name(identifier)
+ConfigIdentifier::ConfigIdentifier(String identifier)
+	: m_Name(std::move(identifier))
 { }
 
 String ConfigIdentifier::GetName() const

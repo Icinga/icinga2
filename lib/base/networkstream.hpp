@@ -37,7 +37,7 @@ class NetworkStream final : public Stream
 public:
 	DECLARE_PTR_TYPEDEFS(NetworkStream);
 
-	NetworkStream(const Socket::Ptr& socket);
+	NetworkStream(Socket::Ptr socket);
 
 	size_t Read(void *buffer, size_t count, bool allow_partial = false) override;
 	void Write(const void *buffer, size_t count) override;

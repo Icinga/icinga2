@@ -194,14 +194,14 @@ void Logger::ValidateSeverity(const String& value, const ValidationUtils& utils)
 	}
 }
 
-Log::Log(LogSeverity severity, const String& facility, const String& message)
-	: m_Severity(severity), m_Facility(facility)
+Log::Log(LogSeverity severity, String facility, const String& message)
+	: m_Severity(severity), m_Facility(std::move(facility))
 {
 	m_Buffer << message;
 }
 
-Log::Log(LogSeverity severity, const String& facility)
-	: m_Severity(severity), m_Facility(facility)
+Log::Log(LogSeverity severity, String facility)
+	: m_Severity(severity), m_Facility(std::move(facility))
 { }
 
 /**

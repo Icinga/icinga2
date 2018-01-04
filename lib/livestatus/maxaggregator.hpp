@@ -46,7 +46,7 @@ class MaxAggregator final : public Aggregator
 public:
 	DECLARE_PTR_TYPEDEFS(MaxAggregator);
 
-	MaxAggregator(const String& attr);
+	MaxAggregator(String attr);
 
 	void Apply(const Table::Ptr& table, const Value& row, AggregatorState **state) override;
 	double GetResultAndFreeState(AggregatorState *state) const override;

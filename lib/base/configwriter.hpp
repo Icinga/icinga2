@@ -38,7 +38,7 @@ class ConfigIdentifier final : public Object
 public:
 	DECLARE_PTR_TYPEDEFS(ConfigIdentifier);
 
-	ConfigIdentifier(const String& name);
+	ConfigIdentifier(String name);
 
 	String GetName() const;
 

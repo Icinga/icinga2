@@ -36,6 +36,7 @@
 #include "base/statsfunction.hpp"
 #include <boost/algorithm/string.hpp>
 #include <boost/scoped_array.hpp>
+#include <utility>
 
 using namespace icinga;
 
@@ -341,7 +342,7 @@ void ElasticsearchWriter::NotificationSentToAllUsersHandlerInternal(const Notifi
 	Enqueue("notification", fields, ts);
 }
 
-void ElasticsearchWriter::Enqueue(String type, const Dictionary::Ptr& fields, double ts)
+void ElasticsearchWriter::Enqueue(const String& type, const Dictionary::Ptr& fields, double ts)
 {
 	/* Atomically buffer the data point. */
 	boost::mutex::scoped_lock lock(m_DataBufferMutex);
@@ -575,7 +576,7 @@ void ElasticsearchWriter::ExceptionHandler(boost::exception_ptr exp)
 	Log(LogCritical, "ElasticsearchWriter", "Exception during Elastic operation: Verify that your backend is operational!");
 
 	Log(LogDebug, "ElasticsearchWriter")
-		<< "Exception during Elasticsearch operation: " << DiagnosticInformation(exp);
+		<< "Exception during Elasticsearch operation: " << DiagnosticInformation(std::move(exp));
 }
 
 String ElasticsearchWriter::FormatTimestamp(double ts)

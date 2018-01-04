@@ -21,8 +21,8 @@
 
 using namespace icinga;
 
-NetworkStream::NetworkStream(const Socket::Ptr& socket)
-	: m_Socket(socket), m_Eof(false)
+NetworkStream::NetworkStream(Socket::Ptr socket)
+	: m_Socket(std::move(socket)), m_Eof(false)
 { }
 
 void NetworkStream::Close()

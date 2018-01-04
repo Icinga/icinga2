@@ -39,7 +39,7 @@ class HttpClientConnection final : public Object
 public:
 	DECLARE_PTR_TYPEDEFS(HttpClientConnection);
 
-	HttpClientConnection(const String& host, const String& port, bool tls = true);
+	HttpClientConnection(String host, String port, bool tls = true);
 
 	void Start();
 

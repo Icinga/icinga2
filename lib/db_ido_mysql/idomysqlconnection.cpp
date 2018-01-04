@@ -31,6 +31,7 @@
 #include "base/exception.hpp"
 #include "base/statsfunction.hpp"
 #include <boost/tuple/tuple.hpp>
+#include <utility>
 
 using namespace icinga;
 
@@ -132,7 +133,7 @@ void IdoMysqlConnection::ExceptionHandler(boost::exception_ptr exp)
 	Log(LogCritical, "IdoMysqlConnection", "Exception during database operation: Verify that your database is operational!");
 
 	Log(LogDebug, "IdoMysqlConnection")
-		<< "Exception during database operation: " << DiagnosticInformation(exp);
+		<< "Exception during database operation: " << DiagnosticInformation(std::move(exp));
 
 	if (GetConnected()) {
 		m_Mysql->close(&m_Connection);

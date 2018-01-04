@@ -55,8 +55,7 @@ public:
 
 	Value Get(const String& key) const;
 	bool Get(const String& key, Value *result) const;
-	void Set(const String& key, const Value& value);
-	void Set(const String& key, Value&& value);
+	void Set(const String& key, Value value);
 	bool Contains(const String& key) const;
 
 	Iterator Begin();
@@ -90,8 +89,8 @@ private:
 	std::map<String, Value> m_Data; /**< The data for the dictionary. */
 };
 
-Dictionary::Iterator begin(Dictionary::Ptr x);
-Dictionary::Iterator end(Dictionary::Ptr x);
+Dictionary::Iterator begin(const Dictionary::Ptr& x);
+Dictionary::Iterator end(const Dictionary::Ptr& x);
 
 }
 

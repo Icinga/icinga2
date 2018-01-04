@@ -1247,7 +1247,7 @@ void DbEvents::AddEnableFlappingChangedLogHistory(const Checkable::Ptr& checkabl
 	AddLogHistory(checkable, msgbuf.str(), LogEntryTypeInfoMessage);
 }
 
-void DbEvents::AddLogHistory(const Checkable::Ptr& checkable, String buffer, LogEntryType type)
+void DbEvents::AddLogHistory(const Checkable::Ptr& checkable, const String& buffer, LogEntryType type)
 {
 	Log(LogDebug, "DbEvents")
 		<< "add log entry history for '" << checkable->GetName() << "'";

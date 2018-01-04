@@ -534,7 +534,7 @@ void LivestatusQuery::ExecuteGetHelper(const Stream::Ptr& stream)
 
 			int index = 0;
 
-			for (const Aggregator::Ptr aggregator : m_Aggregators) {
+			for (const Aggregator::Ptr& aggregator : m_Aggregators) {
 				aggregator->Apply(table, object.Row, &stats[index]);
 				index++;
 			}

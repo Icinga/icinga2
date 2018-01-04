@@ -46,7 +46,7 @@ class SumAggregator final : public Aggregator
 public:
 	DECLARE_PTR_TYPEDEFS(SumAggregator);
 
-	SumAggregator(const String& attr);
+	SumAggregator(String attr);
 
 	void Apply(const Table::Ptr& table, const Value& row, AggregatorState **state) override;
 	double GetResultAndFreeState(AggregatorState *state) const override;

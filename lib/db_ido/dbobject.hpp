@@ -93,7 +93,7 @@ public:
 	virtual String CalculateConfigHash(const Dictionary::Ptr& configFields) const;
 
 protected:
-	DbObject(const intrusive_ptr<DbType>& type, const String& name1, const String& name2);
+	DbObject(intrusive_ptr<DbType> type, String name1, String name2);
 
 	virtual void OnConfigUpdateHeavy();
 	virtual void OnConfigUpdateLight();

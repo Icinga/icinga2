@@ -30,7 +30,7 @@ namespace icinga
 class PrimitiveType final : public Type
 {
 public:
-	PrimitiveType(const String& name, const String& base, const ObjectFactory& factory = ObjectFactory());
+	PrimitiveType(String name, String base, const ObjectFactory& factory = ObjectFactory());
 
 	String GetName() const override;
 	Type::Ptr GetBaseType() const override;

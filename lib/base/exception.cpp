@@ -260,7 +260,7 @@ String icinga::DiagnosticInformation(const std::exception& ex, bool verbose, Sta
 	return result.str();
 }
 
-String icinga::DiagnosticInformation(boost::exception_ptr eptr, bool verbose)
+String icinga::DiagnosticInformation(const boost::exception_ptr& eptr, bool verbose)
 {
 	StackTrace *pt = GetLastExceptionStack();
 	StackTrace stack;
@@ -283,12 +283,12 @@ String icinga::DiagnosticInformation(boost::exception_ptr eptr, bool verbose)
 	return boost::diagnostic_information(eptr);
 }
 
-ScriptError::ScriptError(const String& message)
-	: m_Message(message), m_IncompleteExpr(false)
+ScriptError::ScriptError(String message)
+	: m_Message(std::move(message)), m_IncompleteExpr(false)
 { }
 
-ScriptError::ScriptError(const String& message, const DebugInfo& di, bool incompleteExpr)
-	: m_Message(message), m_DebugInfo(di), m_IncompleteExpr(incompleteExpr), m_HandledByDebugger(false)
+ScriptError::ScriptError(String message, DebugInfo di, bool incompleteExpr)
+	: m_Message(std::move(message)), m_DebugInfo(std::move(di)), m_IncompleteExpr(incompleteExpr), m_HandledByDebugger(false)
 { }
 
 ScriptError::~ScriptError() throw()

@@ -25,8 +25,8 @@
 
 using namespace icinga;
 
-DbType::DbType(const String& name, const String& table, long tid, const String& idcolumn, const DbType::ObjectFactory& factory)
-	: m_Name(name), m_Table(table), m_TypeID(tid), m_IDColumn(idcolumn), m_ObjectFactory(factory)
+DbType::DbType(String name, String table, long tid, String idcolumn, DbType::ObjectFactory factory)
+	: m_Name(std::move(name)), m_Table(std::move(table)), m_TypeID(tid), m_IDColumn(std::move(idcolumn)), m_ObjectFactory(std::move(factory))
 { }
 
 String DbType::GetName() const

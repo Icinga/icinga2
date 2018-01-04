@@ -40,10 +40,10 @@ std::map<String, std::vector<ZoneFragment> > ConfigCompiler::m_ZoneDirs;
  * @param input Input stream for the configuration file.
  * @param zone The zone.
  */
-ConfigCompiler::ConfigCompiler(const String& path, std::istream *input,
-	const String& zone, const String& package)
-	: m_Path(path), m_Input(input), m_Zone(zone), m_Package(package),
-	m_Eof(false), m_OpenBraces(0)
+ConfigCompiler::ConfigCompiler(String path, std::istream *input,
+	String zone, String package)
+	: m_Path(std::move(path)), m_Input(input), m_Zone(std::move(zone)),
+	m_Package(std::move(package)), m_Eof(false), m_OpenBraces(0)
 {
 	InitializeScanner();
 }
@@ -339,7 +339,8 @@ bool ConfigCompiler::HasZoneConfigAuthority(const String& zoneName)
 
 	if (!empty) {
 		std::vector<String> paths;
-		for (const ZoneFragment& zf : zoneDirs) {
+		paths.reserve(zoneDirs.size());
+for (const ZoneFragment& zf : zoneDirs) {
 			paths.push_back(zf.Path);
 		}
 

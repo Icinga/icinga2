@@ -22,8 +22,8 @@
 
 using namespace icinga;
 
-PrimitiveType::PrimitiveType(const String& name, const String& base, const ObjectFactory& factory)
-	: m_Name(name), m_Base(base), m_Factory(factory)
+PrimitiveType::PrimitiveType(String name, String base, const ObjectFactory& factory)
+	: m_Name(std::move(name)), m_Base(std::move(base)), m_Factory(factory)
 { }
 
 String PrimitiveType::GetName() const

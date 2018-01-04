@@ -27,8 +27,8 @@
 
 using namespace icinga;
 
-AttributeFilter::AttributeFilter(const String& column, const String& op, const String& operand)
-	: m_Column(column), m_Operator(op), m_Operand(operand)
+AttributeFilter::AttributeFilter(String column, String op, String operand)
+	: m_Column(std::move(column)), m_Operator(std::move(op)), m_Operand(std::move(operand))
 { }
 
 bool AttributeFilter::Apply(const Table::Ptr& table, const Value& row)

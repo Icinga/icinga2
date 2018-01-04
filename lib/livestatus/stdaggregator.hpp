@@ -48,7 +48,7 @@ class StdAggregator final : public Aggregator
 public:
 	DECLARE_PTR_TYPEDEFS(StdAggregator);
 
-	StdAggregator(const String& attr);
+	StdAggregator(String attr);
 
 	void Apply(const Table::Ptr& table, const Value& row, AggregatorState **state) override;
 	double GetResultAndFreeState(AggregatorState *state) const override;

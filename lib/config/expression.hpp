@@ -36,8 +36,8 @@ namespace icinga
 struct DebugHint
 {
 public:
-	DebugHint(const Dictionary::Ptr& hints = nullptr)
-		: m_Hints(hints)
+	DebugHint(Dictionary::Ptr hints = nullptr)
+		: m_Hints(std::move(hints))
 	{ }
 
 	DebugHint(Dictionary::Ptr&& hints)
@@ -154,8 +154,8 @@ struct ExpressionResult
 {
 public:
 	template<typename T>
-	ExpressionResult(const T& value, ExpressionResultCode code = ResultOK)
-		: m_Value(value), m_Code(code)
+	ExpressionResult(T value, ExpressionResultCode code = ResultOK)
+		: m_Value(std::move(value)), m_Code(code)
 	{ }
 
 	operator const Value&() const
@@ -220,8 +220,8 @@ std::unique_ptr<Expression> MakeIndexer(ScopeSpecifier scopeSpec, const String& 
 class OwnedExpression final : public Expression
 {
 public:
-	OwnedExpression(const std::shared_ptr<Expression>& expression)
-		: m_Expression(expression)
+	OwnedExpression(std::shared_ptr<Expression> expression)
+		: m_Expression(std::move(expression))
 	{ }
 
 protected:
@@ -242,7 +242,7 @@ private:
 class LiteralExpression final : public Expression
 {
 public:
-	LiteralExpression(const Value& value = Value());
+	LiteralExpression(Value value = Value());
 
 	const Value& GetValue() const
 	{
@@ -269,8 +269,8 @@ inline std::unique_ptr<LiteralExpression> MakeLiteral(const Value& literal = Val
 class DebuggableExpression : public Expression
 {
 public:
-	DebuggableExpression(const DebugInfo& debugInfo = DebugInfo())
-		: m_DebugInfo(debugInfo)
+	DebuggableExpression(DebugInfo debugInfo = DebugInfo())
+		: m_DebugInfo(std::move(debugInfo))
 	{ }
 
 protected:
@@ -305,8 +305,8 @@ protected:
 class VariableExpression final : public DebuggableExpression
 {
 public:
-	VariableExpression(const String& variable, const DebugInfo& debugInfo = DebugInfo())
-		: DebuggableExpression(debugInfo), m_Variable(variable)
+	VariableExpression(String variable, const DebugInfo& debugInfo = DebugInfo())
+		: DebuggableExpression(debugInfo), m_Variable(std::move(variable))
 	{ }
 
 	String GetVariable() const
@@ -768,9 +768,9 @@ protected:
 class FunctionExpression final : public DebuggableExpression
 {
 public:
-	FunctionExpression(const String& name, const std::vector<String>& args,
+	FunctionExpression(String name, std::vector<String> args,
 		std::map<String, std::unique_ptr<Expression> >&& closedVars, std::unique_ptr<Expression> expression, const DebugInfo& debugInfo = DebugInfo())
-		: DebuggableExpression(debugInfo), m_Name(name), m_Args(args), m_ClosedVars(std::move(closedVars)), m_Expression(std::move(expression))
+		: DebuggableExpression(debugInfo), m_Name(std::move(name)), m_Args(std::move(args)), m_ClosedVars(std::move(closedVars)), m_Expression(std::move(expression))
 	{ }
 
 protected:
@@ -786,12 +786,12 @@ private:
 class ApplyExpression final : public DebuggableExpression
 {
 public:
-	ApplyExpression(const String& type, const String& target, std::unique_ptr<Expression> name,
-		std::unique_ptr<Expression> filter, const String& package, const String& fkvar, const String& fvvar,
+	ApplyExpression(String type, String target, std::unique_ptr<Expression> name,
+		std::unique_ptr<Expression> filter, String package, String fkvar, String fvvar,
 		std::unique_ptr<Expression> fterm, std::map<String, std::unique_ptr<Expression> >&& closedVars, bool ignoreOnError,
 		std::unique_ptr<Expression> expression, const DebugInfo& debugInfo = DebugInfo())
-		: DebuggableExpression(debugInfo), m_Type(type), m_Target(target),
-			m_Name(std::move(name)), m_Filter(std::move(filter)), m_Package(package), m_FKVar(fkvar), m_FVVar(fvvar),
+		: DebuggableExpression(debugInfo), m_Type(std::move(type)), m_Target(std::move(target)),
+			m_Name(std::move(name)), m_Filter(std::move(filter)), m_Package(std::move(package)), m_FKVar(std::move(fkvar)), m_FVVar(std::move(fvvar)),
 			m_FTerm(std::move(fterm)), m_IgnoreOnError(ignoreOnError), m_ClosedVars(std::move(closedVars)),
 			m_Expression(std::move(expression))
 	{ }
@@ -817,10 +817,10 @@ class ObjectExpression final : public DebuggableExpression
 {
 public:
 	ObjectExpression(bool abstract, std::unique_ptr<Expression> type, std::unique_ptr<Expression> name, std::unique_ptr<Expression> filter,
-		const String& zone, const String& package, std::map<String, std::unique_ptr<Expression> >&& closedVars,
+		String zone, String package, std::map<String, std::unique_ptr<Expression> >&& closedVars,
 		bool defaultTmpl, bool ignoreOnError, std::unique_ptr<Expression> expression, const DebugInfo& debugInfo = DebugInfo())
 		: DebuggableExpression(debugInfo), m_Abstract(abstract), m_Type(std::move(type)),
-		m_Name(std::move(name)), m_Filter(std::move(filter)), m_Zone(zone), m_Package(package), m_DefaultTmpl(defaultTmpl),
+		m_Name(std::move(name)), m_Filter(std::move(filter)), m_Zone(std::move(zone)), m_Package(std::move(package)), m_DefaultTmpl(defaultTmpl),
 		m_IgnoreOnError(ignoreOnError), m_ClosedVars(std::move(closedVars)), m_Expression(std::move(expression))
 	{ }
 
@@ -843,8 +843,8 @@ private:
 class ForExpression final : public DebuggableExpression
 {
 public:
-	ForExpression(const String& fkvar, const String& fvvar, std::unique_ptr<Expression> value, std::unique_ptr<Expression> expression, const DebugInfo& debugInfo = DebugInfo())
-		: DebuggableExpression(debugInfo), m_FKVar(fkvar), m_FVVar(fvvar), m_Value(std::move(value)), m_Expression(std::move(expression))
+	ForExpression(String fkvar, String fvvar, std::unique_ptr<Expression> value, std::unique_ptr<Expression> expression, const DebugInfo& debugInfo = DebugInfo())
+		: DebuggableExpression(debugInfo), m_FKVar(std::move(fkvar)), m_FVVar(std::move(fvvar)), m_Value(std::move(value)), m_Expression(std::move(expression))
 	{ }
 
 protected:
@@ -878,10 +878,10 @@ enum IncludeType
 class IncludeExpression final : public DebuggableExpression
 {
 public:
-	IncludeExpression(const String& relativeBase, std::unique_ptr<Expression> path, std::unique_ptr<Expression> pattern, std::unique_ptr<Expression> name,
-		IncludeType type, bool searchIncludes, const String& zone, const String& package, const DebugInfo& debugInfo = DebugInfo())
-		: DebuggableExpression(debugInfo), m_RelativeBase(relativeBase), m_Path(std::move(path)), m_Pattern(std::move(pattern)),
-		m_Name(std::move(name)), m_Type(type), m_SearchIncludes(searchIncludes), m_Zone(zone), m_Package(package)
+	IncludeExpression(String relativeBase, std::unique_ptr<Expression> path, std::unique_ptr<Expression> pattern, std::unique_ptr<Expression> name,
+		IncludeType type, bool searchIncludes, String zone, String package, const DebugInfo& debugInfo = DebugInfo())
+		: DebuggableExpression(debugInfo), m_RelativeBase(std::move(relativeBase)), m_Path(std::move(path)), m_Pattern(std::move(pattern)),
+		m_Name(std::move(name)), m_Type(type), m_SearchIncludes(searchIncludes), m_Zone(std::move(zone)), m_Package(std::move(package))
 	{ }
 
 protected:

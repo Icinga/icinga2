@@ -68,7 +68,7 @@ public:
 private:
 	Callback m_Callback;
 
-	Function(const String& name, const Callback& function, const std::vector<String>& args,
+	Function(const String& name, Callback function, const std::vector<String>& args,
 		bool side_effect_free, bool deprecated);
 };
 

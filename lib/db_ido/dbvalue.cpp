@@ -21,8 +21,8 @@
 
 using namespace icinga;
 
-DbValue::DbValue(DbValueType type, const Value& value)
-	: m_Type(type), m_Value(value)
+DbValue::DbValue(DbValueType type, Value value)
+	: m_Type(type), m_Value(std::move(value))
 { }
 
 Value DbValue::FromTimestamp(const Value& ts)

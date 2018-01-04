@@ -32,6 +32,7 @@
 #include "base/context.hpp"
 #include "base/statsfunction.hpp"
 #include <boost/tuple/tuple.hpp>
+#include <utility>
 
 using namespace icinga;
 
@@ -131,7 +132,7 @@ void IdoPgsqlConnection::ExceptionHandler(boost::exception_ptr exp)
 	Log(LogWarning, "IdoPgsqlConnection", "Exception during database operation: Verify that your database is operational!");
 
 	Log(LogDebug, "IdoPgsqlConnection")
-		<< "Exception during database operation: " << DiagnosticInformation(exp);
+		<< "Exception during database operation: " << DiagnosticInformation(std::move(exp));
 
 	if (GetConnected()) {
 		m_Pgsql->finish(m_Connection);

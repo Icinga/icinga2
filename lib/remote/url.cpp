@@ -270,7 +270,7 @@ String Url::Format(bool onlyPathAndQuery, bool printCredentials) const
 
 			// Array
 			String temp;
-			for (const String s : kv.second) {
+			for (const String& s : kv.second) {
 				if (!temp.IsEmpty())
 					temp += "&";
 
@@ -351,7 +351,7 @@ bool Url::ParsePort(const String& port)
 
 bool Url::ParsePath(const String& path)
 {
-	std::string pathStr = path;
+	const std::string& pathStr = path;
 	boost::char_separator<char> sep("/");
 	boost::tokenizer<boost::char_separator<char> > tokens(pathStr, sep);
 
@@ -371,7 +371,7 @@ bool Url::ParsePath(const String& path)
 bool Url::ParseQuery(const String& query)
 {
 	/* Tokenizer does not like String AT ALL */
-	std::string queryStr = query;
+	const std::string& queryStr = query;
 	boost::char_separator<char> sep("&");
 	boost::tokenizer<boost::char_separator<char> > tokens(queryStr, sep);
 

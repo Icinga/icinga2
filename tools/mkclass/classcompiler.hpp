@@ -22,6 +22,7 @@
 
 #include <string>
 #include <istream>
+#include <utility>
 #include <vector>
 #include <algorithm>
 #include <map>
@@ -53,8 +54,8 @@ struct FieldAccessor
 	std::string Accessor;
 	bool Pure;
 
-	FieldAccessor(FieldAccessorType type, const std::string& accessor, bool pure)
-		: Type(type), Accessor(accessor), Pure(pure)
+	FieldAccessor(FieldAccessorType type, std::string accessor, bool pure)
+		: Type(type), Accessor(std::move(accessor)), Pure(pure)
 	{ }
 };
 
@@ -207,7 +208,7 @@ struct Validator
 class ClassCompiler
 {
 public:
-	ClassCompiler(const std::string& path, std::istream& input, std::ostream& oimpl, std::ostream& oheader);
+	ClassCompiler(std::string path, std::istream& input, std::ostream& oimpl, std::ostream& oheader);
 	~ClassCompiler();
 
 	void Compile();

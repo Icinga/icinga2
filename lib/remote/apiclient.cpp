@@ -27,8 +27,8 @@
 using namespace icinga;
 
 ApiClient::ApiClient(const String& host, const String& port,
-	const String& user, const String& password)
-	: m_Connection(new HttpClientConnection(host, port, true)), m_User(user), m_Password(password)
+	String user, String password)
+	: m_Connection(new HttpClientConnection(host, port, true)), m_User(std::move(user)), m_Password(std::move(password))
 {
 	m_Connection->Start();
 }

@@ -502,7 +502,7 @@ incomplete:
 }
 
 void ConsoleCommand::ExecuteScriptCompletionHandler(boost::mutex& mutex, boost::condition_variable& cv,
-	bool& ready, boost::exception_ptr eptr, const Value& result, Value& resultOut, boost::exception_ptr& eptrOut)
+	bool& ready, const boost::exception_ptr& eptr, const Value& result, Value& resultOut, boost::exception_ptr& eptrOut)
 {
 	if (eptr) {
 		try {
@@ -526,7 +526,7 @@ void ConsoleCommand::ExecuteScriptCompletionHandler(boost::mutex& mutex, boost::
 }
 
 void ConsoleCommand::AutocompleteScriptCompletionHandler(boost::mutex& mutex, boost::condition_variable& cv,
-	bool& ready, boost::exception_ptr eptr, const Array::Ptr& result, Array::Ptr& resultOut)
+	bool& ready, const boost::exception_ptr& eptr, const Array::Ptr& result, Array::Ptr& resultOut)
 {
 	if (eptr) {
 		try {

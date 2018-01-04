@@ -26,9 +26,9 @@ using namespace icinga;
 
 REGISTER_TYPE_WITH_PROTOTYPE(Function, Function::GetPrototype());
 
-Function::Function(const String& name, const Callback& function, const std::vector<String>& args,
+Function::Function(const String& name, Callback function, const std::vector<String>& args,
 	bool side_effect_free, bool deprecated)
-	: m_Callback(function)
+	: m_Callback(std::move(function))
 {
 	SetName(name, true);
 	SetSideEffectFree(side_effect_free, true);

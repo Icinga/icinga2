@@ -47,7 +47,7 @@ class MinAggregator final : public Aggregator
 public:
 	DECLARE_PTR_TYPEDEFS(MinAggregator);
 
-	MinAggregator(const String& attr);
+	MinAggregator(String attr);
 
 	void Apply(const Table::Ptr& table, const Value& row, AggregatorState **state) override;
 	double GetResultAndFreeState(AggregatorState *state) const override;

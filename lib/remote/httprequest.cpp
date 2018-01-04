@@ -27,11 +27,11 @@
 
 using namespace icinga;
 
-HttpRequest::HttpRequest(const Stream::Ptr& stream)
+HttpRequest::HttpRequest(Stream::Ptr stream)
 	: Complete(false),
 	ProtocolVersion(HttpVersion11),
 	Headers(new Dictionary()),
-	m_Stream(stream),
+	m_Stream(std::move(stream)),
 	m_State(HttpRequestStart)
 { }
 

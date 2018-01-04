@@ -31,8 +31,8 @@
 
 using namespace icinga;
 
-HttpClientConnection::HttpClientConnection(const String& host, const String& port, bool tls)
-	: m_Host(host), m_Port(port), m_Tls(tls)
+HttpClientConnection::HttpClientConnection(String host, String port, bool tls)
+	: m_Host(std::move(host)), m_Port(std::move(port)), m_Tls(tls)
 { }
 
 void HttpClientConnection::Start()

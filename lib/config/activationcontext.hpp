@@ -49,7 +49,7 @@ private:
 class ActivationScope
 {
 public:
-	ActivationScope(const ActivationContext::Ptr& context = nullptr);
+	ActivationScope(ActivationContext::Ptr context = nullptr);
 	~ActivationScope();
 
 	ActivationContext::Ptr GetContext() const;

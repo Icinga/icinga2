@@ -38,6 +38,7 @@
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/replace.hpp>
+#include <utility>
 
 using namespace icinga;
 
@@ -119,7 +120,7 @@ void GraphiteWriter::ExceptionHandler(boost::exception_ptr exp)
 	Log(LogCritical, "GraphiteWriter", "Exception during Graphite operation: Verify that your backend is operational!");
 
 	Log(LogDebug, "GraphiteWriter")
-		<< "Exception during Graphite operation: " << DiagnosticInformation(exp);
+		<< "Exception during Graphite operation: " << DiagnosticInformation(std::move(exp));
 
 	if (GetConnected()) {
 		m_Stream->Close();

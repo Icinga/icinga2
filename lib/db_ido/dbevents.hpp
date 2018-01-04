@@ -66,7 +66,7 @@ public:
 	static void AddDowntimes(const Checkable::Ptr& checkable);
 	static void RemoveDowntimes(const Checkable::Ptr& checkable);
 
-	static void AddLogHistory(const Checkable::Ptr& checkable, String buffer, LogEntryType type);
+	static void AddLogHistory(const Checkable::Ptr& checkable, const String& buffer, LogEntryType type);
 
 	/* Status */
 	static void NextCheckUpdatedHandler(const Checkable::Ptr& checkable);

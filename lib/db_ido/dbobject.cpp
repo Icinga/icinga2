@@ -45,8 +45,8 @@ boost::signals2::signal<void (const std::vector<DbQuery>&)> DbObject::OnMultiple
 
 INITIALIZE_ONCE(&DbObject::StaticInitialize);
 
-DbObject::DbObject(const intrusive_ptr<DbType>& type, const String& name1, const String& name2)
-	: m_Name1(name1), m_Name2(name2), m_Type(type), m_LastConfigUpdate(0), m_LastStatusUpdate(0)
+DbObject::DbObject(intrusive_ptr<DbType> type, String name1, String name2)
+	: m_Name1(std::move(name1)), m_Name2(std::move(name2)), m_Type(std::move(type)), m_LastConfigUpdate(0), m_LastStatusUpdate(0)
 { }
 
 void DbObject::StaticInitialize()

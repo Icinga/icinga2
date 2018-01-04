@@ -44,7 +44,7 @@ struct DbValue final : public Object
 public:
 	DECLARE_PTR_TYPEDEFS(DbValue);
 
-	DbValue(DbValueType type, const Value& value);
+	DbValue(DbValueType type, Value value);
 
 	static Value FromTimestamp(const Value& ts);
 	static Value FromTimestampNow();

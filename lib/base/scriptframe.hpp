@@ -37,7 +37,7 @@ struct ScriptFrame
 	int Depth;
 
 	ScriptFrame(bool allocLocals);
-	ScriptFrame(bool allocLocals, const Value& self);
+	ScriptFrame(bool allocLocals, Value self);
 	~ScriptFrame();
 
 	void IncreaseStackDepth();

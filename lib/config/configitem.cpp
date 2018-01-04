@@ -59,16 +59,16 @@ REGISTER_SCRIPTFUNCTION_NS(Internal, run_with_activation_context, &ConfigItem::R
  * @param exprl Expression list for the item.
  * @param debuginfo Debug information.
  */
-ConfigItem::ConfigItem(const Type::Ptr& type, const String& name,
-	bool abstract, const std::shared_ptr<Expression>& exprl,
-	const std::shared_ptr<Expression>& filter, bool defaultTmpl, bool ignoreOnError,
-	const DebugInfo& debuginfo, const Dictionary::Ptr& scope,
-	const String& zone, const String& package)
-	: m_Type(type), m_Name(name), m_Abstract(abstract),
-	m_Expression(exprl), m_Filter(filter),
+ConfigItem::ConfigItem(Type::Ptr type, String name,
+	bool abstract, std::shared_ptr<Expression> exprl,
+	std::shared_ptr<Expression> filter, bool defaultTmpl, bool ignoreOnError,
+	DebugInfo debuginfo, Dictionary::Ptr scope,
+	String zone, String package)
+	: m_Type(std::move(type)), m_Name(std::move(name)), m_Abstract(abstract),
+	m_Expression(std::move(exprl)), m_Filter(std::move(filter)),
 	m_DefaultTmpl(defaultTmpl), m_IgnoreOnError(ignoreOnError),
-	m_DebugInfo(debuginfo), m_Scope(scope), m_Zone(zone),
-	m_Package(package)
+	m_DebugInfo(std::move(debuginfo)), m_Scope(std::move(scope)), m_Zone(std::move(zone)),
+	m_Package(std::move(package))
 {
 }
 

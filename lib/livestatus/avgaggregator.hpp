@@ -47,7 +47,7 @@ class AvgAggregator final : public Aggregator
 public:
 	DECLARE_PTR_TYPEDEFS(AvgAggregator);
 
-	AvgAggregator(const String& attr);
+	AvgAggregator(String attr);
 
 	void Apply(const Table::Ptr& table, const Value& row, AggregatorState **state) override;
 	double GetResultAndFreeState(AggregatorState *state) const override;

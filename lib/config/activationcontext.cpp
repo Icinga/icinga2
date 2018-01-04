@@ -57,8 +57,8 @@ ActivationContext::Ptr ActivationContext::GetCurrentContext()
 	return astack.top();
 }
 
-ActivationScope::ActivationScope(const ActivationContext::Ptr& context)
-	: m_Context(context)
+ActivationScope::ActivationScope(ActivationContext::Ptr context)
+	: m_Context(std::move(context))
 {
 	if (!m_Context)
 		m_Context = new ActivationContext();

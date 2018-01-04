@@ -45,7 +45,7 @@ public:
 
 	typedef std::function<Value(const ConfigObject::Ptr& target, const Dictionary::Ptr& params)> Callback;
 
-	ApiAction(const std::vector<String>& registerTypes, const Callback& function);
+	ApiAction(std::vector<String> registerTypes, Callback function);
 
 	Value Invoke(const ConfigObject::Ptr& target, const Dictionary::Ptr& params);
 

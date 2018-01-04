@@ -22,8 +22,8 @@
 
 using namespace icinga;
 
-ApiFunction::ApiFunction(const Callback& function)
-	: m_Callback(function)
+ApiFunction::ApiFunction(Callback function)
+	: m_Callback(std::move(function))
 { }
 
 Value ApiFunction::Invoke(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& arguments)

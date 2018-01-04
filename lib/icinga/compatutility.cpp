@@ -55,7 +55,7 @@ String CompatUtility::GetCommandLine(const Command::Ptr& command)
 	return result;
 }
 
-String CompatUtility::GetCommandNamePrefix(const Command::Ptr command)
+String CompatUtility::GetCommandNamePrefix(const Command::Ptr& command)
 {
 	if (!command)
 		return Empty;
@@ -71,7 +71,7 @@ String CompatUtility::GetCommandNamePrefix(const Command::Ptr command)
 	return prefix;
 }
 
-String CompatUtility::GetCommandName(const Command::Ptr command)
+String CompatUtility::GetCommandName(const Command::Ptr& command)
 {
 	if (!command)
 		return Empty;

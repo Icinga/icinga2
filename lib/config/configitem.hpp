@@ -40,12 +40,12 @@ class ConfigItem final : public Object {
 public:
 	DECLARE_PTR_TYPEDEFS(ConfigItem);
 
-	ConfigItem(const Type::Ptr& type, const String& name, bool abstract,
-		const std::shared_ptr<Expression>& exprl,
-		const std::shared_ptr<Expression>& filter,
-		bool defaultTmpl, bool ignoreOnError, const DebugInfo& debuginfo,
-		const Dictionary::Ptr& scope, const String& zone,
-		const String& package);
+	ConfigItem(Type::Ptr type, String name, bool abstract,
+		std::shared_ptr<Expression> exprl,
+		std::shared_ptr<Expression> filter,
+		bool defaultTmpl, bool ignoreOnError, DebugInfo debuginfo,
+		Dictionary::Ptr scope, String zone,
+		String package);
 
 	Type::Ptr GetType() const;
 	String GetName() const;

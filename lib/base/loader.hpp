@@ -31,8 +31,8 @@ namespace icinga
 struct DeferredInitializer
 {
 public:
-	DeferredInitializer(const std::function<void ()>& callback, int priority)
-		: m_Callback(callback), m_Priority(priority)
+	DeferredInitializer(std::function<void ()> callback, int priority)
+		: m_Callback(std::move(callback)), m_Priority(priority)
 	{ }
 
 	bool operator<(const DeferredInitializer& other) const

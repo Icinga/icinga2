@@ -101,8 +101,8 @@ void DictExpression::MakeInline()
 	m_Inline = true;
 }
 
-LiteralExpression::LiteralExpression(const Value& value)
-	: m_Value(value)
+LiteralExpression::LiteralExpression(Value value)
+	: m_Value(std::move(value))
 { }
 
 ExpressionResult LiteralExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const

@@ -38,6 +38,7 @@
 #include "base/json.hpp"
 #include "base/statsfunction.hpp"
 #include <boost/algorithm/string/replace.hpp>
+#include <utility>
 
 using namespace icinga;
 
@@ -122,7 +123,7 @@ void GelfWriter::ExceptionHandler(boost::exception_ptr exp)
 	Log(LogCritical, "GelfWriter", "Exception during Graylog Gelf operation: Verify that your backend is operational!");
 
 	Log(LogDebug, "GelfWriter")
-		<< "Exception during Graylog Gelf operation: " << DiagnosticInformation(exp);
+		<< "Exception during Graylog Gelf operation: " << DiagnosticInformation(std::move(exp));
 
 	if (GetConnected()) {
 		m_Stream->Close();

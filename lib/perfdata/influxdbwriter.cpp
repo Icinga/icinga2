@@ -46,6 +46,7 @@
 #include <boost/math/special_functions/fpclassify.hpp>
 #include <boost/regex.hpp>
 #include <boost/scoped_array.hpp>
+#include <utility>
 
 using namespace icinga;
 
@@ -147,7 +148,7 @@ void InfluxdbWriter::ExceptionHandler(boost::exception_ptr exp)
 	Log(LogCritical, "InfluxdbWriter", "Exception during InfluxDB operation: Verify that your backend is operational!");
 
 	Log(LogDebug, "InfluxdbWriter")
-		<< "Exception during InfluxDB operation: " << DiagnosticInformation(exp);
+		<< "Exception during InfluxDB operation: " << DiagnosticInformation(std::move(exp));
 
 	//TODO: Close the connection, if we keep it open.
 }

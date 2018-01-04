@@ -55,10 +55,10 @@ private:
 	mutable boost::condition_variable m_CV;
 
 	static void ExecuteScriptCompletionHandler(boost::mutex& mutex, boost::condition_variable& cv,
-		bool& ready, boost::exception_ptr eptr, const Value& result, Value& resultOut,
+		bool& ready, const boost::exception_ptr& eptr, const Value& result, Value& resultOut,
 		boost::exception_ptr& eptrOut);
 	static void AutocompleteScriptCompletionHandler(boost::mutex& mutex, boost::condition_variable& cv,
-		bool& ready, boost::exception_ptr eptr, const Array::Ptr& result, Array::Ptr& resultOut);
+		bool& ready, const boost::exception_ptr& eptr, const Array::Ptr& result, Array::Ptr& resultOut);
 
 #ifdef HAVE_EDITLINE
 	static char *ConsoleCompleteHelper(const char *word, int state);

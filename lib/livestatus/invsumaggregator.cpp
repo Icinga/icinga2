@@ -21,8 +21,8 @@
 
 using namespace icinga;
 
-InvSumAggregator::InvSumAggregator(const String& attr)
-	: m_InvSumAttr(attr)
+InvSumAggregator::InvSumAggregator(String attr)
+	: m_InvSumAttr(std::move(attr))
 { }
 
 InvSumAggregatorState *InvSumAggregator::EnsureState(AggregatorState **state)

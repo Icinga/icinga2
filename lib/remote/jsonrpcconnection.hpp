@@ -53,7 +53,7 @@ class JsonRpcConnection final : public Object
 public:
 	DECLARE_PTR_TYPEDEFS(JsonRpcConnection);
 
-	JsonRpcConnection(const String& identity, bool authenticated, const TlsStream::Ptr& stream, ConnectionRole role);
+	JsonRpcConnection(const String& identity, bool authenticated, TlsStream::Ptr stream, ConnectionRole role);
 
 	void Start();
 

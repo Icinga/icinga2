@@ -37,7 +37,7 @@ public:
 	virtual bool Apply(const Table::Ptr& table, const Value& row) = 0;
 
 protected:
-	Filter();
+	Filter() = default;
 };
 
 }

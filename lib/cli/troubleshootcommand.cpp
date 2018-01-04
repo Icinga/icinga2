@@ -324,9 +324,9 @@ bool TroubleshootCommand::CheckFeatures(InfoLog& log)
 		return false;
 	}
 
-	for (const String feature : disabled_features)
+	for (const String& feature : disabled_features)
 		features->Set(feature, false);
-	for (const String feature : enabled_features)
+	for (const String& feature : enabled_features)
 		features->Set(feature, true);
 
 	InfoLogLine(log)

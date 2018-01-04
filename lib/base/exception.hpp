@@ -51,8 +51,8 @@ class user_error : virtual public std::exception, virtual public boost::exceptio
 class ScriptError : virtual public user_error
 {
 public:
-	ScriptError(const String& message);
-	ScriptError(const String& message, const DebugInfo& di, bool incompleteExpr = false);
+	ScriptError(String message);
+	ScriptError(String message, DebugInfo di, bool incompleteExpr = false);
 	~ScriptError() throw() override;
 
 	const char *what(void) const throw() final;
@@ -121,7 +121,7 @@ inline std::string to_string(const ContextTraceErrorInfo& e)
 }
 
 String DiagnosticInformation(const std::exception& ex, bool verbose = true, StackTrace *stack = nullptr, ContextTrace *context = nullptr);
-String DiagnosticInformation(boost::exception_ptr eptr, bool verbose = true);
+String DiagnosticInformation(const boost::exception_ptr& eptr, bool verbose = true);
 
 class posix_error : virtual public std::exception, virtual public boost::exception {
 public:

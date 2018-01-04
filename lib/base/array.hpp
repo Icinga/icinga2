@@ -55,8 +55,7 @@ public:
 	Value Get(SizeType index) const;
 	void Set(SizeType index, const Value& value);
 	void Set(SizeType index, Value&& value);
-	void Add(const Value& value);
-	void Add(Value&& value);
+	void Add(Value value);
 
 	Iterator Begin();
 	Iterator End();
@@ -64,7 +63,7 @@ public:
 	size_t GetLength() const;
 	bool Contains(const Value& value) const;
 
-	void Insert(SizeType index, const Value& value);
+	void Insert(SizeType index, Value value);
 	void Remove(SizeType index);
 	void Remove(Iterator it);
 
@@ -118,8 +117,8 @@ private:
 	std::vector<Value> m_Data; /**< The data for the array. */
 };
 
-Array::Iterator begin(Array::Ptr x);
-Array::Iterator end(Array::Ptr x);
+Array::Iterator begin(const Array::Ptr& x);
+Array::Iterator end(const Array::Ptr& x);
 
 }
 

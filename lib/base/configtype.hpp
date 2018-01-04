@@ -54,7 +54,8 @@ public:
 	{
 		std::vector<intrusive_ptr<ConfigObject> > objects = GetObjectsHelper(T::TypeInstance.get());
 		std::vector<intrusive_ptr<T> > result;
-		for (const auto& object : objects) {
+		result.reserve(objects.size());
+for (const auto& object : objects) {
 			result.push_back(static_pointer_cast<T>(object));
 		}
 		return result;
