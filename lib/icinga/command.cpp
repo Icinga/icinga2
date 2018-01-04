@@ -37,7 +37,10 @@ void Command::Validate(int types, const ValidationUtils& utils)
 		return;
 
 	if (arguments) {
-		if (!GetCommandLine().IsObjectType<Array>())
+		if (GetPlugin().IsEmpty() && GetCommandLine().IsEmpty())
+			BOOST_THROW_EXCEPTION(ValidationError(this, { "plugin" }, "Attribute 'plugin' or 'command' must be used if the 'arguments' attribute is set."));
+
+		if (!GetCommandLine().IsEmpty() && !GetCommandLine().IsObjectType<Array>())
 			BOOST_THROW_EXCEPTION(ValidationError(this, { "command" }, "Attribute 'command' must be an array if the 'arguments' attribute is set."));
 
 		ObjectLock olock(arguments);
@@ -82,4 +85,15 @@ void Command::Validate(int types, const ValidationUtils& utils)
 				BOOST_THROW_EXCEPTION(ValidationError(this, { "env", kv.first }, "Closing $ not found in macro format string '" + envval + "'."));
 		}
 	}
+}
+
+void Command::CommandChangeHandler(void)
+{
+	SetCommandLineResolved(Empty);
+}
+
+void Command::OnConfigLoaded(void)
+{
+	Command::OnCommandLineChanged.connect(std::bind(&Command::CommandChangeHandler, this));
+	Command::OnPluginChanged.connect(std::bind(&Command::CommandChangeHandler, this));
 }

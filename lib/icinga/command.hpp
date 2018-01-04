@@ -40,6 +40,11 @@ public:
 	//virtual Dictionary::Ptr Execute(const Object::Ptr& context) = 0;
 
 	void Validate(int types, const ValidationUtils& utils) override;
+
+protected:
+	void CommandChangeHandler(void);
+
+	virtual void OnConfigLoaded(void) override;
 };
 
 }

@@ -28,6 +28,8 @@ namespace icinga
 abstract class Command : CustomVarObject
 {
 	[config] Value command (CommandLine);
+	[config] Value plugin;
+	Value command_resolved (CommandLineResolved);
 	[config] Value arguments;
 	[config] int timeout {
 		default {{{ return 60; }}}
@@ -43,6 +45,8 @@ validator Command {
 		String "*";
 		Function "*";
 	};
+
+	String plugin;
 
 	Dictionary arguments {
 		String "*";

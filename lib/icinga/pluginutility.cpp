@@ -17,6 +17,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.             *
  ******************************************************************************/
 
+#include "icinga/icingaapplication.hpp"
 #include "icinga/pluginutility.hpp"
 #include "icinga/macroprocessor.hpp"
 #include "base/logger.hpp"
@@ -38,11 +39,29 @@ void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkab
 	const std::function<void(const Value& commandLine, const ProcessResult&)>& callback)
 {
 	Value raw_command = commandObj->GetCommandLine();
-	Dictionary::Ptr raw_arguments = commandObj->GetArguments();
+	Value raw_plugin = commandObj->GetPlugin();
 
 	Value command;
+	Dictionary::Ptr raw_arguments = commandObj->GetArguments();
 
 	try {
+		if (!raw_plugin.IsEmpty()) {
+			Value plugin = LookupPlugin(raw_plugin);
+
+			if (!plugin.IsEmpty()) {
+				if (raw_command.IsEmpty())
+					raw_command = plugin;
+				else if (raw_command.IsObjectType<Array>())
+					raw_command << plugin;
+				else if (raw_command.IsObjectType<String>())
+					raw_command << " " << plugin;
+				// TODO: functions return?
+
+				if (!raw_command.IsEmpty())
+					commandObj->SetCommandLineResolved(raw_command);
+			}
+		}
+
 		command = MacroProcessor::ResolveArguments(raw_command, raw_arguments,
 			macroResolvers, cr, resolvedMacros, useResolvedMacros);
 	} catch (const std::exception& ex) {
@@ -216,4 +235,33 @@ String PluginUtility::FormatPerfdata(const Array::Ptr& perfdata)
 	}
 
 	return result.str();
+}
+
+Value PluginUtility::LookupPlugin(const String& executable)
+{
+	Value pluginPath = IcingaApplication::GetPluginPath();
+	if (pluginPath.IsEmpty() || !pluginPath.IsObjectType<Array>())
+		BOOST_THROW_EXCEPTION(std::runtime_error("Can not lookup command path, PluginPath is not set or not an Array!"));
+
+	Array::Ptr pathList = pluginPath;
+	if (pathList->GetLength() == 0)
+		BOOST_THROW_EXCEPTION(std::runtime_error("Can not lookup command path, PluginPath is empty!"));
+
+	ObjectLock olock(pathList);
+	String script;
+
+	for (const String& path : pathList) {
+		if (!Utility::PathIsExecutable(path))
+			continue;
+
+		script = Utility::ConcatPath({ path, executable });
+		Log(LogDebug, "PluginUtility") << "Looking for plugin at: " << script;
+
+		if (Utility::PathIsExecutable(script)) {
+			Log(LogDebug, "PluginUtility") << "Executable plugin found at: " << script;
+			return script;
+		}
+	}
+
+	BOOST_THROW_EXCEPTION(std::runtime_error("No executable plugin found for: " + executable));
 }

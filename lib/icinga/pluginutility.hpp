@@ -50,6 +50,8 @@ public:
 	static Array::Ptr SplitPerfdata(const String& perfdata);
 	static String FormatPerfdata(const Array::Ptr& perfdata);
 
+	static Value LookupPlugin(const String& executable);
+
 private:
 	PluginUtility();
 };
