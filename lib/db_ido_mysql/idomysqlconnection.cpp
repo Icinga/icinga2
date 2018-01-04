@@ -654,7 +654,7 @@ DbReference IdoMysqlConnection::GetLastInsertID()
 {
 	AssertOnWorkQueue();
 
-	return DbReference(m_Mysql->insert_id(&m_Connection));
+	return {m_Mysql->insert_id(&m_Connection)};
 }
 
 int IdoMysqlConnection::GetAffectedRows()

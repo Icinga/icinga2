@@ -201,7 +201,7 @@ Field TypeType::GetFieldInfo(int id) const
 		return GetBaseType()->GetFieldInfo(id);
 
 	if (real_id == 0)
-		return Field(0, "String", "name", "", nullptr, 0, 0);
+		return {0, "String", "name", "", nullptr, 0, 0};
 	else if (real_id == 1)
 		return Field(1, "Object", "prototype", "", nullptr, 0, 0);
 	else if (real_id == 2)

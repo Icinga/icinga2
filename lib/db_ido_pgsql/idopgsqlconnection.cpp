@@ -498,7 +498,7 @@ DbReference IdoPgsqlConnection::GetSequenceValue(const String& table, const Stri
 	Log(LogDebug, "IdoPgsqlConnection")
 		<< "Sequence Value: " << row->Get("id");
 
-	return DbReference(Convert::ToLong(row->Get("id")));
+	return {Convert::ToLong(row->Get("id"))};
 }
 
 int IdoPgsqlConnection::GetAffectedRows()

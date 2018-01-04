@@ -359,7 +359,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 				nameref = "nullptr";
 
 			m_Impl << "\t\t" << "case " << num << ":" << std::endl
-					<< "\t\t\t" << "return Field(" << num << ", \"" << ftype << "\", \"" << field.Name << "\", \"" << (field.NavigationName.empty() ? field.Name : field.NavigationName) << "\", "  << nameref << ", " << field.Attributes << ", " << field.Type.ArrayRank << ");" << std::endl;
+					<< "\t\t\t" << "return {" << num << ", \"" << ftype << "\", \"" << field.Name << "\", \"" << (field.NavigationName.empty() ? field.Name : field.NavigationName) << "\", "  << nameref << ", " << field.Attributes << ", " << field.Type.ArrayRank << "};" << std::endl;
 			num++;
 		}
 

@@ -296,7 +296,7 @@ DbReference DbConnection::GetObjectID(const DbObject::Ptr& dbobj) const
 	auto it = m_ObjectIDs.find(dbobj);
 
 	if (it == m_ObjectIDs.end())
-		return DbReference();
+		return {};
 
 	return it->second;
 }
@@ -325,7 +325,7 @@ DbReference DbConnection::GetInsertID(const DbObject::Ptr& dbobj) const
 DbReference DbConnection::GetInsertID(const DbType::Ptr& type, const DbReference& objid) const
 {
 	if (!objid.IsValid())
-		return DbReference();
+		return {};
 
 	auto it = m_InsertIDs.find(std::make_pair(type, objid));
 
