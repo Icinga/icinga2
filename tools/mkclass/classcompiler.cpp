@@ -494,7 +494,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 			else
 				m_Impl << "\t" << "if (" << argName << ".IsEmpty())" << std::endl;
 
-			m_Impl << "\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_cast<ConfigObject *>(this), { \"" << field.Name << "\" }, \"Attribute must not be empty.\"));" << std::endl << std::endl;
+			m_Impl << "\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_cast<ConfigObject *>(this), { \"" << field.Name << R"(" }, "Attribute must not be empty."));)" << std::endl << std::endl;
 		}
 
 		if (field.Attributes & FADeprecated) {
@@ -503,7 +503,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 			else
 				m_Impl << "\t" << "if (" << argName << " != GetDefault" << field.GetFriendlyName() << "())" << std::endl;
 
-			m_Impl << "\t\t" << "Log(LogWarning, \"" << klass.Name << "\") << \"Attribute '" << field.Name << "' for object '\" << dynamic_cast<ConfigObject *>(this)->GetName() << \"' of type '\" << dynamic_cast<ConfigObject *>(this)->GetReflectionType()->GetName() << \"' is deprecated and should not be used.\";" << std::endl;
+			m_Impl << "\t\t" << "Log(LogWarning, \"" << klass.Name << "\") << \"Attribute '" << field.Name << R"(' for object '" << dynamic_cast<ConfigObject *>(this)->GetName() << "' of type '" << dynamic_cast<ConfigObject *>(this)->GetReflectionType()->GetName() << "' is deprecated and should not be used.";)" << std::endl;
 		}
 
 		if (field.Type.ArrayRank > 0) {
@@ -518,7 +518,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 			m_Impl << "\t" << "if (value.IsObjectType<Function>()) {" << std::endl
 				<< "\t\t" << "Function::Ptr func = value;" << std::endl
 				<< "\t\t" << "if (func->IsDeprecated())" << std::endl
-				<< "\t\t\t" << "Log(LogWarning, \"" << klass.Name << "\") << \"Attribute '" << field.Name << "' for object '\" << dynamic_cast<ConfigObject *>(this)->GetName() << \"' of type '\" << dynamic_cast<ConfigObject *>(this)->GetReflectionType()->GetName() << \"' is set to a deprecated function: \" << func->GetName();" << std::endl
+				<< "\t\t\t" << "Log(LogWarning, \"" << klass.Name << "\") << \"Attribute '" << field.Name << R"(' for object '" << dynamic_cast<ConfigObject *>(this)->GetName() << "' of type '" << dynamic_cast<ConfigObject *>(this)->GetReflectionType()->GetName() << "' is set to a deprecated function: " << func->GetName();)" << std::endl
 				<< "\t" << "}" << std::endl << std::endl;
 		}
 
@@ -531,13 +531,13 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 				m_Impl << "!value.IsEmpty() && ";
 
 			m_Impl << "!utils.ValidateName(\"" << field.Type.TypeName << "\", value))" << std::endl
-				<< "\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_cast<ConfigObject *>(this), { \"" << field.Name << "\" }, \"Object '\" + value + \"' of type '" << field.Type.TypeName
+				<< "\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_cast<ConfigObject *>(this), { \"" << field.Name << R"(" }, "Object '" + value + "' of type ')" << field.Type.TypeName
 				<< "' does not exist.\"));" << std::endl;
 		} else if (field.Type.ArrayRank > 0 && (ftype == "Number" || ftype == "Boolean")) {
 			m_Impl << "\t" << "try {" << std::endl
 				<< "\t\t" << "Convert::ToDouble(value);" << std::endl
 				<< "\t" << "} catch (const std::invalid_argument&) {" << std::endl
-				<< "\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_cast<ConfigObject *>(this), { \"" << field.Name << "\", \"Array element '\" + value + \"' of type '\" + value.GetReflectionType()->GetName() + \"' is not valid here; expected type '" << ftype << "'.\"));" << std::endl
+				<< "\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_cast<ConfigObject *>(this), { \"" << field.Name << R"(", "Array element '" + value + "' of type '" + value.GetReflectionType()->GetName() + "' is not valid here; expected type ')" << ftype << "'.\"));" << std::endl
 				<< "\t" << "}" << std::endl;
 		}
 
@@ -1144,7 +1144,7 @@ void ClassCompiler::CodeGenValidator(const std::string& name, const std::string&
 				<< "\t\t\t" << "if (utils.ValidateName(\"" << rule.Type << "\", value))" << std::endl
 				<< "\t\t\t\t" << "return;" << std::endl
 				<< "\t\t\t" << "else" << std::endl
-				<< "\t\t\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_pointer_cast<ConfigObject>(object), location, \"Object '\" + value + \"' of type '" << rule.Type << "' does not exist.\"));" << std::endl
+				<< "\t\t\t\t" << R"(BOOST_THROW_EXCEPTION(ValidationError(dynamic_pointer_cast<ConfigObject>(object), location, "Object '" + value + "' of type ')" << rule.Type << "' does not exist.\"));" << std::endl
 				<< "\t\t" << "}" << std::endl;
 		}
 

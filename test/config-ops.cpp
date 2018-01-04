@@ -109,34 +109,34 @@ BOOST_AUTO_TEST_CASE(simple)
 	expr = ConfigCompiler::CompileText("<test>", "256 >> 4 >> 3");
 	BOOST_CHECK(expr->Evaluate(frame).GetValue() == 2);
 
-	expr = ConfigCompiler::CompileText("<test>", "\"hello\" == \"hello\"");
+	expr = ConfigCompiler::CompileText("<test>", R"("hello" == "hello")");
 	BOOST_CHECK(expr->Evaluate(frame).GetValue());
 
-	expr = ConfigCompiler::CompileText("<test>", "\"hello\" != \"hello\"");
+	expr = ConfigCompiler::CompileText("<test>", R"("hello" != "hello")");
 	BOOST_CHECK(!expr->Evaluate(frame).GetValue());
 
-	expr = ConfigCompiler::CompileText("<test>", "\"foo\" in [ \"foo\", \"bar\" ]");
+	expr = ConfigCompiler::CompileText("<test>", R"("foo" in [ "foo", "bar" ])");
 	BOOST_CHECK(expr->Evaluate(frame).GetValue());
 
-	expr = ConfigCompiler::CompileText("<test>", "\"foo\" in [ \"bar\", \"baz\" ]");
+	expr = ConfigCompiler::CompileText("<test>", R"("foo" in [ "bar", "baz" ])");
 	BOOST_CHECK(!expr->Evaluate(frame).GetValue());
 
 	expr = ConfigCompiler::CompileText("<test>", "\"foo\" in null");
 	BOOST_CHECK(!expr->Evaluate(frame).GetValue());
 
-	expr = ConfigCompiler::CompileText("<test>", "\"foo\" in \"bar\"");
+	expr = ConfigCompiler::CompileText("<test>", R"("foo" in "bar")");
 	BOOST_CHECK_THROW(expr->Evaluate(frame).GetValue(), ScriptError);
 
-	expr = ConfigCompiler::CompileText("<test>", "\"foo\" !in [ \"bar\", \"baz\" ]");
+	expr = ConfigCompiler::CompileText("<test>", R"("foo" !in [ "bar", "baz" ])");
 	BOOST_CHECK(expr->Evaluate(frame).GetValue());
 
-	expr = ConfigCompiler::CompileText("<test>", "\"foo\" !in [ \"foo\", \"bar\" ]");
+	expr = ConfigCompiler::CompileText("<test>", R"("foo" !in [ "foo", "bar" ])");
 	BOOST_CHECK(!expr->Evaluate(frame).GetValue());
 
 	expr = ConfigCompiler::CompileText("<test>", "\"foo\" !in null");
 	BOOST_CHECK(expr->Evaluate(frame).GetValue());
 
-	expr = ConfigCompiler::CompileText("<test>", "\"foo\" !in \"bar\"");
+	expr = ConfigCompiler::CompileText("<test>", R"("foo" !in "bar")");
 	BOOST_CHECK_THROW(expr->Evaluate(frame).GetValue(), ScriptError);
 
 	expr = ConfigCompiler::CompileText("<test>", "{ a += 3 }");
@@ -156,10 +156,10 @@ BOOST_AUTO_TEST_CASE(simple)
 	expr = ConfigCompiler::CompileText("<test>", "\"test\" + 3");
 	BOOST_CHECK(expr->Evaluate(frame).GetValue() == "test3");
 
-	expr = ConfigCompiler::CompileText("<test>", "\"\\\"te\\\\st\"");
+	expr = ConfigCompiler::CompileText("<test>", R"("\"te\\st")");
 	BOOST_CHECK(expr->Evaluate(frame).GetValue() == "\"te\\st");
 
-	expr = ConfigCompiler::CompileText("<test>", "\"\\'test\"");
+	expr = ConfigCompiler::CompileText("<test>", R"("\'test")");
 	BOOST_CHECK_THROW(expr->Evaluate(frame).GetValue(), ScriptError);
 
 	expr = ConfigCompiler::CompileText("<test>", "({ a = 3\nb = 3 })");
@@ -172,7 +172,7 @@ BOOST_AUTO_TEST_CASE(advanced)
 	std::unique_ptr<Expression> expr;
 	Function::Ptr func;
 
-	expr = ConfigCompiler::CompileText("<test>", "regex(\"^Hello\", \"Hello World\")");
+	expr = ConfigCompiler::CompileText("<test>", R"(regex("^Hello", "Hello World"))");
 	BOOST_CHECK(expr->Evaluate(frame).GetValue());
 
 	expr = ConfigCompiler::CompileText("<test>", "__boost_test()");
