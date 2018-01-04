@@ -75,7 +75,7 @@ IF (WIN32)
     $ENV{SystemDrive}/MySQL/*/lib/${libsuffixDist})
 ELSE (WIN32)
   IF (NOT MYSQL_CLIENT_LIBS)
-    SET(MYSQL_CLIENT_LIBS mysqlclient)
+    SET(MYSQL_CLIENT_LIBS mysqlclient mariadbclient)
   ENDIF (NOT MYSQL_CLIENT_LIBS)
 
   FILE(GLOB _macports_lib_dirs /opt/local/lib/mysql*/mysql)

@@ -168,7 +168,7 @@ In addition to `CMAKE_INSTALL_PREFIX` here are most of the supported Icinga-spec
 The following settings can be tuned for the MySQL / MariaDB IDO feature.
 
 - `ICINGA2_WITH_MYSQL`: Determines whether the MySQL IDO module is built; defaults to `ON`
-- `MYSQL_CLIENT_LIBS`: Client implementation used (mysqlclient / mariadbclient); defaults searches for `mysqlclient`
+- `MYSQL_CLIENT_LIBS`: Client implementation used (mysqlclient / mariadbclient); defaults searches for `mysqlclient` and `mariadbclient`
 - `MYSQL_INCLUDE_DIR`: Directory containing include files for the mysqlclient; default empty -
   checking multiple paths like `/usr/include/mysql`
 
