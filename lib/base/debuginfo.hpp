@@ -41,7 +41,7 @@ struct DebugInfo
 	int LastLine;
 	int LastColumn;
 
-	DebugInfo(void);
+	DebugInfo();
 };
 
 std::ostream& operator<<(std::ostream& out, const DebugInfo& val);

@@ -21,7 +21,7 @@
 
 using namespace icinga;
 
-OrFilter::OrFilter(void)
+OrFilter::OrFilter()
 { }
 
 bool OrFilter::Apply(const Table::Ptr& table, const Value& row)

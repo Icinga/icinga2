@@ -35,7 +35,7 @@ class OrFilter final : public CombinerFilter
 public:
 	DECLARE_PTR_TYPEDEFS(OrFilter);
 
-	OrFilter(void);
+	OrFilter();
 
 	virtual bool Apply(const Table::Ptr& table, const Value& row) override;
 };

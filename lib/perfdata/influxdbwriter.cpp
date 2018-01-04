@@ -58,7 +58,7 @@ public:
 		: m_Value(value)
 	{ }
 
-	int GetValue(void) const
+	int GetValue() const
 	{
 		return m_Value;
 	}
@@ -71,11 +71,11 @@ REGISTER_TYPE(InfluxdbWriter);
 
 REGISTER_STATSFUNCTION(InfluxdbWriter, &InfluxdbWriter::StatsFunc);
 
-InfluxdbWriter::InfluxdbWriter(void)
+InfluxdbWriter::InfluxdbWriter()
 	: m_WorkQueue(10000000, 1)
 { }
 
-void InfluxdbWriter::OnConfigLoaded(void)
+void InfluxdbWriter::OnConfigLoaded()
 {
 	ObjectImpl<InfluxdbWriter>::OnConfigLoaded();
 
@@ -137,7 +137,7 @@ void InfluxdbWriter::Stop(bool runtimeRemoved)
 	ObjectImpl<InfluxdbWriter>::Stop(runtimeRemoved);
 }
 
-void InfluxdbWriter::AssertOnWorkQueue(void)
+void InfluxdbWriter::AssertOnWorkQueue()
 {
 	ASSERT(m_WorkQueue.IsWorkerThread());
 }
@@ -152,7 +152,7 @@ void InfluxdbWriter::ExceptionHandler(boost::exception_ptr exp)
 	//TODO: Close the connection, if we keep it open.
 }
 
-Stream::Ptr InfluxdbWriter::Connect(void)
+Stream::Ptr InfluxdbWriter::Connect()
 {
 	TcpSocket::Ptr socket = new TcpSocket();
 
@@ -387,12 +387,12 @@ void InfluxdbWriter::SendMetric(const Dictionary::Ptr& tmpl, const String& label
 	}
 }
 
-void InfluxdbWriter::FlushTimeout(void)
+void InfluxdbWriter::FlushTimeout()
 {
 	m_WorkQueue.Enqueue(boost::bind(&InfluxdbWriter::FlushTimeoutWQ, this), PriorityHigh);
 }
 
-void InfluxdbWriter::FlushTimeoutWQ(void)
+void InfluxdbWriter::FlushTimeoutWQ()
 {
 	AssertOnWorkQueue();
 
@@ -406,7 +406,7 @@ void InfluxdbWriter::FlushTimeoutWQ(void)
 	Flush();
 }
 
-void InfluxdbWriter::Flush(void)
+void InfluxdbWriter::Flush()
 {
 	String body = boost::algorithm::join(m_DataBuffer, "\n");
 	m_DataBuffer.clear();

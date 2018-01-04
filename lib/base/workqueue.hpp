@@ -43,7 +43,7 @@ enum WorkQueuePriority
 
 struct Task
 {
-	Task(void)
+	Task()
 		: Priority(PriorityNormal), ID(-1)
 	{ }
 
@@ -82,28 +82,28 @@ public:
 	typedef std::function<void (boost::exception_ptr)> ExceptionCallback;
 
 	WorkQueue(size_t maxItems = 0, int threadCount = 1);
-	~WorkQueue(void);
+	~WorkQueue();
 
 	void SetName(const String& name);
-	String GetName(void) const;
+	String GetName() const;
 
 	void Enqueue(std::function<void (void)>&& function, WorkQueuePriority priority = PriorityNormal,
 		bool allowInterleaved = false);
 	void Join(bool stop = false);
 
-	bool IsWorkerThread(void) const;
+	bool IsWorkerThread() const;
 
-	size_t GetLength(void) const;
+	size_t GetLength() const;
 	size_t GetTaskCount(RingBuffer::SizeType span);
 
 	void SetExceptionCallback(const ExceptionCallback& callback);
 
-	bool HasExceptions(void) const;
-	std::vector<boost::exception_ptr> GetExceptions(void) const;
+	bool HasExceptions() const;
+	std::vector<boost::exception_ptr> GetExceptions() const;
 	void ReportExceptions(const String& facility) const;
 
 protected:
-	void IncreaseTaskCount(void);
+	void IncreaseTaskCount();
 
 private:
 	int m_ID;
@@ -132,8 +132,8 @@ private:
 	size_t m_PendingTasks;
 	double m_PendingTasksTimestamp;
 
-	void WorkerThreadProc(void);
-	void StatusTimerHandler(void);
+	void WorkerThreadProc();
+	void StatusTimerHandler();
 };
 
 }

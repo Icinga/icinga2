@@ -28,7 +28,7 @@ RingBuffer::RingBuffer(RingBuffer::SizeType slots)
 	: Object(), m_Slots(slots, 0), m_TimeValue(0), m_InsertedValues(0)
 { }
 
-RingBuffer::SizeType RingBuffer::GetLength(void) const
+RingBuffer::SizeType RingBuffer::GetLength() const
 {
 	ObjectLock olock(this);
 

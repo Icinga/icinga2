@@ -30,17 +30,17 @@ namespace icinga
 class ObjectType final : public Type
 {
 public:
-	ObjectType(void);
+	ObjectType();
 
-	virtual String GetName(void) const override;
-	virtual Type::Ptr GetBaseType(void) const override;
-	virtual int GetAttributes(void) const override;
+	virtual String GetName() const override;
+	virtual Type::Ptr GetBaseType() const override;
+	virtual int GetAttributes() const override;
 	virtual int GetFieldId(const String& name) const override;
 	virtual Field GetFieldInfo(int id) const override;
-	virtual int GetFieldCount(void) const override;
+	virtual int GetFieldCount() const override;
 
 protected:
-	virtual ObjectFactory GetFactory(void) const override;
+	virtual ObjectFactory GetFactory() const override;
 };
 
 }

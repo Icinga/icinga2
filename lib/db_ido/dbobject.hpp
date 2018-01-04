@@ -64,17 +64,17 @@ class DbObject : public Object
 public:
 	DECLARE_PTR_TYPEDEFS(DbObject);
 
-	static void StaticInitialize(void);
+	static void StaticInitialize();
 
 	void SetObject(const ConfigObject::Ptr& object);
-	ConfigObject::Ptr GetObject(void) const;
+	ConfigObject::Ptr GetObject() const;
 
-	String GetName1(void) const;
-	String GetName2(void) const;
-	intrusive_ptr<DbType> GetType(void) const;
+	String GetName1() const;
+	String GetName2() const;
+	intrusive_ptr<DbType> GetType() const;
 
-	virtual Dictionary::Ptr GetConfigFields(void) const = 0;
-	virtual Dictionary::Ptr GetStatusFields(void) const = 0;
+	virtual Dictionary::Ptr GetConfigFields() const = 0;
+	virtual Dictionary::Ptr GetStatusFields() const = 0;
 
 	static DbObject::Ptr GetOrCreateByObject(const ConfigObject::Ptr& object);
 
@@ -82,22 +82,22 @@ public:
 	static boost::signals2::signal<void (const std::vector<DbQuery>&)> OnMultipleQueries;
 
 	void SendConfigUpdateHeavy(const Dictionary::Ptr& configFields);
-	void SendConfigUpdateLight(void);
-	void SendStatusUpdate(void);
-	void SendVarsConfigUpdateHeavy(void);
-	void SendVarsStatusUpdate(void);
+	void SendConfigUpdateLight();
+	void SendStatusUpdate();
+	void SendVarsConfigUpdateHeavy();
+	void SendVarsStatusUpdate();
 
-	double GetLastConfigUpdate(void) const;
-	double GetLastStatusUpdate(void) const;
+	double GetLastConfigUpdate() const;
+	double GetLastStatusUpdate() const;
 
 	virtual String CalculateConfigHash(const Dictionary::Ptr& configFields) const;
 
 protected:
 	DbObject(const intrusive_ptr<DbType>& type, const String& name1, const String& name2);
 
-	virtual void OnConfigUpdateHeavy(void);
-	virtual void OnConfigUpdateLight(void);
-	virtual void OnStatusUpdate(void);
+	virtual void OnConfigUpdateHeavy();
+	virtual void OnConfigUpdateLight();
+	virtual void OnStatusUpdate();
 
 	static String HashValue(const Value& value);
 
@@ -113,7 +113,7 @@ private:
 	static void VarsChangedHandler(const CustomVarObject::Ptr& object);
 	static void VersionChangedHandler(const ConfigObject::Ptr& object);
 
-	static boost::mutex& GetStaticMutex(void);
+	static boost::mutex& GetStaticMutex();
 
 	friend class DbType;
 };

@@ -267,7 +267,7 @@ static void UseFlowControl(ConfigCompiler *compiler, FlowControlType type, const
 		BOOST_THROW_EXCEPTION(ScriptError("Invalid flow control statement.", location));
 }
 
-std::unique_ptr<Expression> ConfigCompiler::Compile(void)
+std::unique_ptr<Expression> ConfigCompiler::Compile()
 {
 	std::vector<std::pair<std::unique_ptr<Expression>, EItemInfo> > llist;
 

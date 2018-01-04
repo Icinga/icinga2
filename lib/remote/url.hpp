@@ -46,17 +46,17 @@ public:
 
 	String Format(bool onlyPathAndQuery = false, bool printCredentials = false) const;
 
-	String GetScheme(void) const;
-	String GetAuthority(void) const;
-	String GetUsername(void) const;
-	String GetPassword(void) const;
-	String GetHost(void) const;
-	String GetPort(void) const;
-	const std::vector<String>& GetPath(void) const;
-	const std::map<String, std::vector<String> >& GetQuery(void) const;
+	String GetScheme() const;
+	String GetAuthority() const;
+	String GetUsername() const;
+	String GetPassword() const;
+	String GetHost() const;
+	String GetPort() const;
+	const std::vector<String>& GetPath() const;
+	const std::map<String, std::vector<String> >& GetQuery() const;
 	String GetQueryElement(const String& name) const;
 	const std::vector<String>& GetQueryElements(const String& name) const;
-	String GetFragment(void) const;
+	String GetFragment() const;
 
 	void SetScheme(const String& scheme);
 	void SetUsername(const String& username);

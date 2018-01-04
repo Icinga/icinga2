@@ -27,7 +27,7 @@ using namespace icinga;
 
 REGISTER_TYPE(Zone);
 
-void Zone::OnAllConfigLoaded(void)
+void Zone::OnAllConfigLoaded()
 {
 	ObjectImpl<Zone>::OnAllConfigLoaded();
 
@@ -59,12 +59,12 @@ void Zone::OnAllConfigLoaded(void)
 	}
 }
 
-Zone::Ptr Zone::GetParent(void) const
+Zone::Ptr Zone::GetParent() const
 {
 	return m_Parent;
 }
 
-std::set<Endpoint::Ptr> Zone::GetEndpoints(void) const
+std::set<Endpoint::Ptr> Zone::GetEndpoints() const
 {
 	std::set<Endpoint::Ptr> result;
 
@@ -86,7 +86,7 @@ std::set<Endpoint::Ptr> Zone::GetEndpoints(void) const
 	return result;
 }
 
-std::vector<Zone::Ptr> Zone::GetAllParents(void) const
+std::vector<Zone::Ptr> Zone::GetAllParents() const
 {
 	return m_AllParents;
 }
@@ -123,18 +123,18 @@ bool Zone::IsChildOf(const Zone::Ptr& zone)
 	return false;
 }
 
-bool Zone::IsGlobal(void) const
+bool Zone::IsGlobal() const
 {
 	return GetGlobal();
 }
 
-bool Zone::IsSingleInstance(void) const
+bool Zone::IsSingleInstance() const
 {
 	Array::Ptr endpoints = GetEndpointsRaw();
 	return !endpoints || endpoints->GetLength() < 2;
 }
 
-Zone::Ptr Zone::GetLocalZone(void)
+Zone::Ptr Zone::GetLocalZone()
 {
 	Endpoint::Ptr local = Endpoint::GetLocalEndpoint();
 

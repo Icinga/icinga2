@@ -54,7 +54,7 @@ private:
 	static Value EscapeMacroMetric(const Value& value);
 
 	Timer::Ptr m_RotationTimer;
-	void RotationTimerHandler(void);
+	void RotationTimerHandler();
 
 	std::ofstream m_ServiceOutputFile;
 	std::ofstream m_HostOutputFile;

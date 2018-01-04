@@ -374,7 +374,7 @@ class_field: field_attribute_list field_type identifier alternative_name_specifi
 	}
 	| T_LOAD_AFTER identifier ';'
 	{
-		Field *field = new Field();
+		auto *field = new Field();
 		field->Attributes = FALoadDependency;
 		field->Name = $2;
 		std::free($2);

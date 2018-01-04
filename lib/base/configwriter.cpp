@@ -220,7 +220,7 @@ String ConfigWriter::EscapeIcingaString(const String& str)
 	return result;
 }
 
-const std::vector<String>& ConfigWriter::GetKeywords(void)
+const std::vector<String>& ConfigWriter::GetKeywords()
 {
 	static std::vector<String> keywords;
 	static boost::mutex mutex;
@@ -273,7 +273,7 @@ ConfigIdentifier::ConfigIdentifier(const String& identifier)
 	: m_Name(identifier)
 { }
 
-String ConfigIdentifier::GetName(void) const
+String ConfigIdentifier::GetName() const
 {
 	return m_Name;
 }

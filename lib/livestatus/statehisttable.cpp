@@ -244,12 +244,12 @@ void StateHistTable::AddColumns(Table *table, const String& prefix,
 	ServicesTable::AddColumns(table, "current_service_", std::bind(&StateHistTable::ServiceAccessor, _1, objectAccessor));
 }
 
-String StateHistTable::GetName(void) const
+String StateHistTable::GetName() const
 {
 	return "log";
 }
 
-String StateHistTable::GetPrefix(void) const
+String StateHistTable::GetPrefix() const
 {
 	return "log";
 }

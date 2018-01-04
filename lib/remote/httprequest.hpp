@@ -67,7 +67,7 @@ public:
 
 	void AddHeader(const String& key, const String& value);
 	void WriteBody(const char *data, size_t count);
-	void Finish(void);
+	void Finish();
 
 private:
 	Stream::Ptr m_Stream;
@@ -75,7 +75,7 @@ private:
 	HttpRequestState m_State;
 	FIFO::Ptr m_Body;
 
-	void FinishHeaders(void);
+	void FinishHeaders();
 };
 
 }

@@ -42,9 +42,9 @@ public:
 	virtual size_t Read(void *buffer, size_t count, bool allow_partial = false) override;
 	virtual void Write(const void *buffer, size_t count) override;
 
-	virtual void Close(void) override;
+	virtual void Close() override;
 
-	virtual bool IsEof(void) const override;
+	virtual bool IsEof() const override;
 
 private:
 	Socket::Ptr m_Socket;

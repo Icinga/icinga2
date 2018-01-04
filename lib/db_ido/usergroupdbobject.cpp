@@ -32,7 +32,7 @@ UserGroupDbObject::UserGroupDbObject(const DbType::Ptr& type, const String& name
 	: DbObject(type, name1, name2)
 { }
 
-Dictionary::Ptr UserGroupDbObject::GetConfigFields(void) const
+Dictionary::Ptr UserGroupDbObject::GetConfigFields() const
 {
 	Dictionary::Ptr fields = new Dictionary();
 	UserGroup::Ptr group = static_pointer_cast<UserGroup>(GetObject());
@@ -42,7 +42,7 @@ Dictionary::Ptr UserGroupDbObject::GetConfigFields(void) const
 	return fields;
 }
 
-Dictionary::Ptr UserGroupDbObject::GetStatusFields(void) const
+Dictionary::Ptr UserGroupDbObject::GetStatusFields() const
 {
 	return nullptr;
 }

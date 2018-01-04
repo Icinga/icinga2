@@ -32,7 +32,7 @@ namespace icinga
  */
 struct AggregatorState
 {
-	virtual ~AggregatorState(void);
+	virtual ~AggregatorState();
 };
 
 /**
@@ -48,9 +48,9 @@ public:
 	void SetFilter(const Filter::Ptr& filter);
 
 protected:
-	Aggregator(void);
+	Aggregator();
 
-	Filter::Ptr GetFilter(void) const;
+	Filter::Ptr GetFilter() const;
 
 private:
 	Filter::Ptr m_Filter;

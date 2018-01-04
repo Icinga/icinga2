@@ -40,7 +40,7 @@ public:
 
 	static void WriteToFile(const String& filename);
 
-	static Dictionary::Ptr GetGlobals(void);
+	static Dictionary::Ptr GetGlobals();
 
 private:
 	static Dictionary::Ptr m_Globals;

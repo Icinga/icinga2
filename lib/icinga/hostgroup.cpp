@@ -71,7 +71,7 @@ void HostGroup::EvaluateObjectRules(const Host::Ptr& host)
 	}
 }
 
-std::set<Host::Ptr> HostGroup::GetMembers(void) const
+std::set<Host::Ptr> HostGroup::GetMembers() const
 {
 	boost::mutex::scoped_lock lock(m_HostGroupMutex);
 	return m_Members;

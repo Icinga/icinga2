@@ -56,7 +56,7 @@ ConnectForm::ConnectForm(wxWindow *parent, const Url::Ptr& url)
 	SetDefaultItem(m_ButtonsOK);
 }
 
-Url::Ptr ConnectForm::GetUrl(void) const
+Url::Ptr ConnectForm::GetUrl() const
 {
 	wxString url = "https://" + m_UserText->GetValue() + ":" + m_PasswordText->GetValue()
 		+ "@" + m_HostText->GetValue() + ":" + m_PortText->GetValue() + "/";

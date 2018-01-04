@@ -41,13 +41,13 @@ public:
 
 	HttpServerConnection(const String& identity, bool authenticated, const TlsStream::Ptr& stream);
 
-	void Start(void);
+	void Start();
 
-	ApiUser::Ptr GetApiUser(void) const;
-	bool IsAuthenticated(void) const;
-	TlsStream::Ptr GetStream(void) const;
+	ApiUser::Ptr GetApiUser() const;
+	bool IsAuthenticated() const;
+	TlsStream::Ptr GetStream() const;
 
-	void Disconnect(void);
+	void Disconnect();
 
 private:
 	ApiUser::Ptr m_ApiUser;
@@ -60,12 +60,12 @@ private:
 
 	StreamReadContext m_Context;
 
-	bool ProcessMessage(void);
-	void DataAvailableHandler(void);
+	bool ProcessMessage();
+	void DataAvailableHandler();
 
-	static void StaticInitialize(void);
-	static void TimeoutTimerHandler(void);
-	void CheckLiveness(void);
+	static void StaticInitialize();
+	static void TimeoutTimerHandler();
+	void CheckLiveness();
 
 	void ProcessMessageAsync(HttpRequest& request);
 };

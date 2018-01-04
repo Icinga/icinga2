@@ -67,26 +67,26 @@ public:
 	static const std::deque<Process::Ptr>::size_type MaxTasksPerThread = 512;
 
 	Process(const Arguments& arguments, const Dictionary::Ptr& extraEnvironment = nullptr);
-	~Process(void);
+	~Process();
 
 	void SetTimeout(double timeout);
-	double GetTimeout(void) const;
+	double GetTimeout() const;
 
 	void SetAdjustPriority(bool adjust);
-	bool GetAdjustPriority(void) const;
+	bool GetAdjustPriority() const;
 
 	void Run(const std::function<void (const ProcessResult&)>& callback = std::function<void (const ProcessResult&)>());
 
-	pid_t GetPID(void) const;
+	pid_t GetPID() const;
 
 	static Arguments PrepareCommand(const Value& command);
 
-	static void ThreadInitialize(void);
+	static void ThreadInitialize();
 
 	static String PrettyPrintArguments(const Arguments& arguments);
 
 #ifndef _WIN32
-	static void InitializeSpawnHelper(void);
+	static void InitializeSpawnHelper();
 #endif /* _WIN32 */
 
 private:
@@ -112,8 +112,8 @@ private:
 	ProcessResult m_Result;
 
 	static void IOThreadProc(int tid);
-	bool DoEvents(void);
-	int GetTID(void) const;
+	bool DoEvents();
+	int GetTID() const;
 };
 
 }

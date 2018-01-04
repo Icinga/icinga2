@@ -29,7 +29,7 @@
 
 using namespace icinga;
 
-StatusTable::StatusTable(void)
+StatusTable::StatusTable()
 {
 	AddColumns(this);
 }
@@ -102,12 +102,12 @@ void StatusTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "custom_variables", Column(&StatusTable::CustomVariablesAccessor, objectAccessor));
 }
 
-String StatusTable::GetName(void) const
+String StatusTable::GetName() const
 {
 	return "status";
 }
 
-String StatusTable::GetPrefix(void) const
+String StatusTable::GetPrefix() const
 {
 	return "status";
 }

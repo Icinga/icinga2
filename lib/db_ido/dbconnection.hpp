@@ -45,9 +45,9 @@ class DbConnection : public ObjectImpl<DbConnection>
 public:
 	DECLARE_OBJECT(DbConnection);
 
-	DbConnection(void);
+	DbConnection();
 
-	static void InitializeDbTimer(void);
+	static void InitializeDbTimer();
 
 	void SetConfigHash(const DbObject::Ptr& dbobj, const String& hash);
 	void SetConfigHash(const DbType::Ptr& type, const DbReference& objid, const String& hash);
@@ -65,7 +65,7 @@ public:
 	void SetObjectActive(const DbObject::Ptr& dbobj, bool active);
 	bool GetObjectActive(const DbObject::Ptr& dbobj) const;
 
-	void ClearIDCache(void);
+	void ClearIDCache();
 
 	void SetConfigUpdate(const DbObject::Ptr& dbobj, bool hasupdate);
 	bool GetConfigUpdate(const DbObject::Ptr& dbobj) const;
@@ -74,17 +74,17 @@ public:
 	bool GetStatusUpdate(const DbObject::Ptr& dbobj) const;
 
 	int GetQueryCount(RingBuffer::SizeType span);
-	virtual int GetPendingQueryCount(void) const = 0;
+	virtual int GetPendingQueryCount() const = 0;
 
 	virtual void ValidateFailoverTimeout(double value, const ValidationUtils& utils) override final;
 	virtual void ValidateCategories(const Array::Ptr& value, const ValidationUtils& utils) override final;
 
 protected:
-	virtual void OnConfigLoaded(void) override;
+	virtual void OnConfigLoaded() override;
 	virtual void Start(bool runtimeCreated) override;
 	virtual void Stop(bool runtimeRemoved) override;
-	virtual void Resume(void) override;
-	virtual void Pause(void) override;
+	virtual void Resume() override;
+	virtual void Pause() override;
 
 	virtual void ExecuteQuery(const DbQuery& query) = 0;
 	virtual void ExecuteMultipleQueries(const std::vector<DbQuery>&) = 0;
@@ -93,23 +93,23 @@ protected:
 
 	virtual void CleanUpExecuteQuery(const String& table, const String& time_column, double max_age);
 	virtual void FillIDCache(const DbType::Ptr& type) = 0;
-	virtual void NewTransaction(void) = 0;
+	virtual void NewTransaction() = 0;
 
 	void UpdateObject(const ConfigObject::Ptr& object);
-	void UpdateAllObjects(void);
+	void UpdateAllObjects();
 
-	void PrepareDatabase(void);
+	void PrepareDatabase();
 
-	void IncreaseQueryCount(void);
+	void IncreaseQueryCount();
 
-	bool IsIDCacheValid(void) const;
+	bool IsIDCacheValid() const;
 	void SetIDCacheValid(bool valid);
 
-	void EnableActiveChangedHandler(void);
+	void EnableActiveChangedHandler();
 
-	static void UpdateProgramStatus(void);
+	static void UpdateProgramStatus();
 
-	static int GetSessionToken(void);
+	static int GetSessionToken();
 
 private:
 	bool m_IDCacheValid;
@@ -121,7 +121,7 @@ private:
 	std::set<DbObject::Ptr> m_StatusUpdates;
 	Timer::Ptr m_CleanUpTimer;
 
-	void CleanUpHandler(void);
+	void CleanUpHandler();
 
 	static Timer::Ptr m_ProgramStatusTimer;
 	static boost::once_flag m_OnceFlag;

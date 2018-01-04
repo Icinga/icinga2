@@ -31,12 +31,12 @@ namespace po = boost::program_options;
 
 REGISTER_CLICOMMAND("ca/list", CAListCommand);
 
-String CAListCommand::GetDescription(void) const
+String CAListCommand::GetDescription() const
 {
 	return "Lists all certificate signing requests.";
 }
 
-String CAListCommand::GetShortDescription(void) const
+String CAListCommand::GetShortDescription() const
 {
 	return "lists all certificate signing requests";
 }

@@ -29,22 +29,22 @@ namespace po = boost::program_options;
 
 REGISTER_CLICOMMAND("api/setup", ApiSetupCommand);
 
-String ApiSetupCommand::GetDescription(void) const
+String ApiSetupCommand::GetDescription() const
 {
 	return "Setup for Icinga 2 API.";
 }
 
-String ApiSetupCommand::GetShortDescription(void) const
+String ApiSetupCommand::GetShortDescription() const
 {
 	return "setup for api";
 }
 
-ImpersonationLevel ApiSetupCommand::GetImpersonationLevel(void) const
+ImpersonationLevel ApiSetupCommand::GetImpersonationLevel() const
 {
 	return ImpersonateRoot;
 }
 
-int ApiSetupCommand::GetMaxArguments(void) const
+int ApiSetupCommand::GetMaxArguments() const
 {
 	return -1;
 }

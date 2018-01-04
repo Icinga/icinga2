@@ -30,11 +30,11 @@ namespace icinga
 class ContextTrace
 {
 public:
-	ContextTrace(void);
+	ContextTrace();
 
 	void Print(std::ostream& fp) const;
 
-	size_t GetLength(void) const;
+	size_t GetLength() const;
 
 private:
 	std::list<String> m_Frames;
@@ -51,10 +51,10 @@ class ContextFrame
 {
 public:
 	ContextFrame(const String& message);
-	~ContextFrame(void);
+	~ContextFrame();
 
 private:
-	static std::list<String>& GetFrames(void);
+	static std::list<String>& GetFrames();
 
 	friend class ContextTrace;
 };

@@ -28,7 +28,7 @@
 using namespace icinga;
 
 
-void Checkable::RemoveAllComments(void)
+void Checkable::RemoveAllComments()
 {
 	for (const Comment::Ptr& comment : GetComments()) {
 		Comment::RemoveComment(comment->GetName());
@@ -47,7 +47,7 @@ void Checkable::RemoveCommentsByType(int type)
 	}
 }
 
-std::set<Comment::Ptr> Checkable::GetComments(void) const
+std::set<Comment::Ptr> Checkable::GetComments() const
 {
 	boost::mutex::scoped_lock lock(m_CommentMutex);
 	return m_Comments;

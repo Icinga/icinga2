@@ -94,9 +94,9 @@ private:
 
 	void DumpCustomAttributes(std::ostream& fp, const CustomVarObject::Ptr& object);
 
-	void UpdateObjectsCache(void);
-	void StatusTimerHandler(void);
-	void ObjectHandler(void);
+	void UpdateObjectsCache();
+	void StatusTimerHandler();
+	void ObjectHandler();
 };
 
 }

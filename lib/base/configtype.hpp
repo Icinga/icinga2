@@ -33,24 +33,24 @@ class ConfigObject;
 class ConfigType
 {
 public:
-	virtual ~ConfigType(void);
+	virtual ~ConfigType();
 
 	intrusive_ptr<ConfigObject> GetObject(const String& name) const;
 
 	void RegisterObject(const intrusive_ptr<ConfigObject>& object);
 	void UnregisterObject(const intrusive_ptr<ConfigObject>& object);
 
-	std::vector<intrusive_ptr<ConfigObject> > GetObjects(void) const;
+	std::vector<intrusive_ptr<ConfigObject> > GetObjects() const;
 
 	template<typename T>
-	static TypeImpl<T> *Get(void)
+	static TypeImpl<T> *Get()
 	{
 		typedef TypeImpl<T> ObjType;
 		return static_cast<ObjType *>(T::TypeInstance.get());
 	}
 
 	template<typename T>
-	static std::vector<intrusive_ptr<T> > GetObjectsByType(void)
+	static std::vector<intrusive_ptr<T> > GetObjectsByType()
 	{
 		std::vector<intrusive_ptr<ConfigObject> > objects = GetObjectsHelper(T::TypeInstance.get());
 		std::vector<intrusive_ptr<T> > result;
@@ -60,7 +60,7 @@ public:
 		return result;
 	}
 
-	int GetObjectCount(void) const;
+	int GetObjectCount() const;
 
 private:
 	typedef std::map<String, intrusive_ptr<ConfigObject> > ObjectMap;

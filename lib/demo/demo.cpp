@@ -46,7 +46,7 @@ void Demo::Start(bool runtimeCreated)
 /**
  * Periodically broadcasts an API message.
  */
-void Demo::DemoTimerHandler(void)
+void Demo::DemoTimerHandler()
 {
 	Dictionary::Ptr message = new Dictionary();
 	message->Set("method", "demo::HelloWorld");

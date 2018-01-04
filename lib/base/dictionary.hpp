@@ -49,9 +49,9 @@ public:
 
 	typedef std::map<String, Value>::value_type Pair;
 
-	Dictionary(void);
+	Dictionary();
 
-	~Dictionary(void);
+	~Dictionary();
 
 	Value Get(const String& key) const;
 	bool Get(const String& key, Value *result) const;
@@ -59,27 +59,27 @@ public:
 	void Set(const String& key, Value&& value);
 	bool Contains(const String& key) const;
 
-	Iterator Begin(void);
-	Iterator End(void);
+	Iterator Begin();
+	Iterator End();
 
-	size_t GetLength(void) const;
+	size_t GetLength() const;
 
 	void Remove(const String& key);
 
 	void Remove(Iterator it);
 
-	void Clear(void);
+	void Clear();
 
 	void CopyTo(const Dictionary::Ptr& dest) const;
-	Dictionary::Ptr ShallowClone(void) const;
+	Dictionary::Ptr ShallowClone() const;
 
-	std::vector<String> GetKeys(void) const;
+	std::vector<String> GetKeys() const;
 
-	static Object::Ptr GetPrototype(void);
+	static Object::Ptr GetPrototype();
 
-	virtual Object::Ptr Clone(void) const override;
+	virtual Object::Ptr Clone() const override;
 
-	virtual String ToString(void) const override;
+	virtual String ToString() const override;
 
 	virtual Value GetFieldByName(const String& field, bool sandboxed, const DebugInfo& debugInfo) const override;
 	virtual void SetFieldByName(const String& field, const Value& value, const DebugInfo& debugInfo) override;

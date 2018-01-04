@@ -51,7 +51,7 @@ ConfigCompiler::ConfigCompiler(const String& path, std::istream *input,
 /**
  * Destructor for the ConfigCompiler class.
  */
-ConfigCompiler::~ConfigCompiler(void)
+ConfigCompiler::~ConfigCompiler()
 {
 	DestroyScanner();
 }
@@ -74,7 +74,7 @@ size_t ConfigCompiler::ReadInput(char *buffer, size_t max_size)
  *
  * @returns The scanner object.
  */
-void *ConfigCompiler::GetScanner(void) const
+void *ConfigCompiler::GetScanner() const
 {
 	return m_Scanner;
 }
@@ -84,7 +84,7 @@ void *ConfigCompiler::GetScanner(void) const
  *
  * @returns The path.
  */
-const char *ConfigCompiler::GetPath(void) const
+const char *ConfigCompiler::GetPath() const
 {
 	return m_Path.CStr();
 }
@@ -94,7 +94,7 @@ void ConfigCompiler::SetZone(const String& zone)
 	m_Zone = zone;
 }
 
-String ConfigCompiler::GetZone(void) const
+String ConfigCompiler::GetZone() const
 {
 	return m_Zone;
 }
@@ -104,7 +104,7 @@ void ConfigCompiler::SetPackage(const String& package)
 	m_Package = package;
 }
 
-String ConfigCompiler::GetPackage(void) const
+String ConfigCompiler::GetPackage() const
 {
 	return m_Package;
 }

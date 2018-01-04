@@ -56,14 +56,14 @@ public:
 
 	bool Parse(StreamReadContext& src, bool may_wait);
 	size_t ReadBody(char *data, size_t count);
-	size_t GetBodySize(void) const;
+	size_t GetBodySize() const;
 
 	void SetStatus(int code, const String& message);
 	void AddHeader(const String& key, const String& value);
 	void WriteBody(const char *data, size_t count);
-	void Finish(void);
+	void Finish();
 
-	bool IsPeerConnected(void) const;
+	bool IsPeerConnected() const;
 
 private:
 	HttpResponseState m_State;
@@ -73,7 +73,7 @@ private:
 	FIFO::Ptr m_Body;
 	std::vector<String> m_Headers;
 
-	void FinishHeaders(void);
+	void FinishHeaders();
 };
 
 }

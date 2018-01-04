@@ -41,7 +41,7 @@ static Timer::Ptr l_ObjectCountTimer;
 /**
  * Default constructor for the Object class.
  */
-Object::Object(void)
+Object::Object()
 	: m_References(0), m_Mutex(0)
 #ifdef I2_DEBUG
 	, m_LockOwner(0)
@@ -51,7 +51,7 @@ Object::Object(void)
 /**
  * Destructor for the Object class.
  */
-Object::~Object(void)
+Object::~Object()
 {
 	delete reinterpret_cast<boost::recursive_mutex *>(m_Mutex);
 }
@@ -59,7 +59,7 @@ Object::~Object(void)
 /**
  * Returns a string representation for the object.
  */
-String Object::ToString(void) const
+String Object::ToString() const
 {
 	return "Object of type '" + GetReflectionType()->GetName() + "'";
 }
@@ -70,7 +70,7 @@ String Object::ToString(void) const
  *
  * @returns True if the calling thread owns the lock, false otherwise.
  */
-bool Object::OwnsLock(void) const
+bool Object::OwnsLock() const
 {
 #ifdef _WIN32
 	DWORD tid = InterlockedExchangeAdd(&m_LockOwner, 0);
@@ -193,12 +193,12 @@ Object::Ptr Object::NavigateField(int id) const
 	BOOST_THROW_EXCEPTION(std::runtime_error("Invalid field ID."));
 }
 
-Object::Ptr Object::Clone(void) const
+Object::Ptr Object::Clone() const
 {
 	BOOST_THROW_EXCEPTION(std::runtime_error("Object cannot be cloned."));
 }
 
-Type::Ptr Object::GetReflectionType(void) const
+Type::Ptr Object::GetReflectionType() const
 {
 	return Object::TypeInstance;
 }
@@ -238,7 +238,7 @@ void icinga::TypeRemoveObject(Object *object)
 	l_ObjectCounts[typeName]--;
 }
 
-static void TypeInfoTimerHandler(void)
+static void TypeInfoTimerHandler()
 {
 	boost::mutex::scoped_lock lock(l_ObjectCountLock);
 

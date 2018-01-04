@@ -51,7 +51,7 @@ REGISTER_APIFUNCTION(SendNotifications, event, &ClusterEvents::SendNotifications
 REGISTER_APIFUNCTION(NotificationSentUser, event, &ClusterEvents::NotificationSentUserAPIHandler);
 REGISTER_APIFUNCTION(NotificationSentToAllUsers, event, &ClusterEvents::NotificationSentToAllUsersAPIHandler);
 
-void ClusterEvents::StaticInitialize(void)
+void ClusterEvents::StaticInitialize()
 {
 	Checkable::OnNewCheckResult.connect(&ClusterEvents::CheckResultHandler);
 	Checkable::OnNextCheckChanged.connect(&ClusterEvents::NextCheckChangedHandler);

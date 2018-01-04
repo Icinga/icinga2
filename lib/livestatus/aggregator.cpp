@@ -21,7 +21,7 @@
 
 using namespace icinga;
 
-Aggregator::Aggregator(void)
+Aggregator::Aggregator()
 { }
 
 void Aggregator::SetFilter(const Filter::Ptr& filter)
@@ -29,10 +29,10 @@ void Aggregator::SetFilter(const Filter::Ptr& filter)
 	m_Filter = filter;
 }
 
-Filter::Ptr Aggregator::GetFilter(void) const
+Filter::Ptr Aggregator::GetFilter() const
 {
 	return m_Filter;
 }
 
-AggregatorState::~AggregatorState(void)
+AggregatorState::~AggregatorState()
 { }

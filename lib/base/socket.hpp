@@ -36,33 +36,33 @@ class Socket : public Object
 public:
 	DECLARE_PTR_TYPEDEFS(Socket);
 
-	Socket(void);
+	Socket();
 	Socket(SOCKET fd);
-	~Socket(void);
+	~Socket();
 
-	SOCKET GetFD(void) const;
+	SOCKET GetFD() const;
 
-	void Close(void);
+	void Close();
 
-	String GetClientAddress(void);
-	String GetPeerAddress(void);
+	String GetClientAddress();
+	String GetPeerAddress();
 
 	size_t Read(void *buffer, size_t size);
 	size_t Write(const void *buffer, size_t size);
 
-	void Listen(void);
-	Socket::Ptr Accept(void);
+	void Listen();
+	Socket::Ptr Accept();
 
 	bool Poll(bool read, bool write, struct timeval *timeout = nullptr);
 
-	void MakeNonBlocking(void);
+	void MakeNonBlocking();
 
 	static void SocketPair(SOCKET s[2]);
 
 protected:
 	void SetFD(SOCKET fd);
 
-	int GetError(void) const;
+	int GetError() const;
 
 	mutable boost::mutex m_SocketMutex;
 

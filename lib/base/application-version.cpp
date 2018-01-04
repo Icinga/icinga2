@@ -23,12 +23,12 @@
 
 using namespace icinga;
 
-String Application::GetAppVersion(void)
+String Application::GetAppVersion()
 {
 	return VERSION;
 }
 
-String Application::GetAppSpecVersion(void)
+String Application::GetAppSpecVersion()
 {
 	return SPEC_VERSION;
 }

@@ -38,10 +38,10 @@ public:
 	DECLARE_OBJECT(SyslogLogger);
 	DECLARE_OBJECTNAME(SyslogLogger);
 
-	static void StaticInitialize(void);
+	static void StaticInitialize();
 	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
-	virtual void OnConfigLoaded(void) override;
+	virtual void OnConfigLoaded() override;
 	virtual void ValidateFacility(const String& value, const ValidationUtils& utils) override;
 
 protected:
@@ -49,7 +49,7 @@ protected:
 	int m_Facility;
 
 	virtual void ProcessLogEntry(const LogEntry& entry) override;
-	virtual void Flush(void) override;
+	virtual void Flush() override;
 };
 
 }

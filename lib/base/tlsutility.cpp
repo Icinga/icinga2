@@ -41,7 +41,7 @@ static void OpenSSLLockingCallback(int mode, int type, const char *, int)
 		l_Mutexes[type].unlock();
 }
 
-static unsigned long OpenSSLIDCallback(void)
+static unsigned long OpenSSLIDCallback()
 {
 #ifdef _WIN32
 	return (unsigned long)GetCurrentThreadId();
@@ -54,7 +54,7 @@ static unsigned long OpenSSLIDCallback(void)
 /**
  * Initializes the OpenSSL library.
  */
-void InitializeOpenSSL(void)
+void InitializeOpenSSL()
 {
 	if (l_SSLInitialized)
 		return;
@@ -571,7 +571,7 @@ std::shared_ptr<X509> CreateCert(EVP_PKEY *pubkey, X509_NAME *subject, X509_NAME
 	return std::shared_ptr<X509>(cert, X509_free);
 }
 
-String GetIcingaCADir(void)
+String GetIcingaCADir()
 {
 	return Application::GetLocalStateDir() + "/lib/icinga2/ca";
 }

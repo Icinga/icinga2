@@ -27,14 +27,14 @@ using namespace icinga;
 
 struct IcingaCheckableFixture
 {
-	IcingaCheckableFixture(void)
+	IcingaCheckableFixture()
 	{
 		BOOST_TEST_MESSAGE("setup running Icinga 2 core");
 
 		Application::InitializeBase();
 	}
 
-	~IcingaCheckableFixture(void)
+	~IcingaCheckableFixture()
 	{
 		BOOST_TEST_MESSAGE("cleanup Icinga 2 core");
 		Application::UninitializeBase();

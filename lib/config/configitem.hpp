@@ -47,24 +47,24 @@ public:
 		const Dictionary::Ptr& scope, const String& zone,
 		const String& package);
 
-	Type::Ptr GetType(void) const;
-	String GetName(void) const;
-	bool IsAbstract(void) const;
-	bool IsDefaultTemplate(void) const;
-	bool IsIgnoreOnError(void) const;
+	Type::Ptr GetType() const;
+	String GetName() const;
+	bool IsAbstract() const;
+	bool IsDefaultTemplate() const;
+	bool IsIgnoreOnError() const;
 
-	std::vector<ConfigItem::Ptr> GetParents(void) const;
+	std::vector<ConfigItem::Ptr> GetParents() const;
 
-	std::shared_ptr<Expression> GetExpression(void) const;
-	std::shared_ptr<Expression> GetFilter(void) const;
+	std::shared_ptr<Expression> GetExpression() const;
+	std::shared_ptr<Expression> GetFilter() const;
 
-	void Register(void);
-	void Unregister(void);
+	void Register();
+	void Unregister();
 
-	DebugInfo GetDebugInfo(void) const;
-	Dictionary::Ptr GetScope(void) const;
+	DebugInfo GetDebugInfo() const;
+	Dictionary::Ptr GetScope() const;
 
-	ConfigObject::Ptr GetObject(void) const;
+	ConfigObject::Ptr GetObject() const;
 
 	static ConfigItem::Ptr GetByTypeAndName(const Type::Ptr& type,
 		const String& name);

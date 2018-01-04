@@ -40,7 +40,7 @@ public:
 protected:
 	std::vector<Filter::Ptr> m_Filters;
 
-	CombinerFilter(void);
+	CombinerFilter();
 };
 
 }

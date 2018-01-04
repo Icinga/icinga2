@@ -154,12 +154,12 @@ void ServicesTable::AddColumns(Table *table, const String& prefix,
 	}
 }
 
-String ServicesTable::GetName(void) const
+String ServicesTable::GetName() const
 {
 	return "services";
 }
 
-String ServicesTable::GetPrefix(void) const
+String ServicesTable::GetPrefix() const
 {
 	return "service";
 }

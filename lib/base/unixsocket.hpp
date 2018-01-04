@@ -31,7 +31,7 @@ class UnixSocket final : public Socket
 public:
 	DECLARE_PTR_TYPEDEFS(UnixSocket);
 
-	UnixSocket(void);
+	UnixSocket();
 
 	void Bind(const String& path);
 

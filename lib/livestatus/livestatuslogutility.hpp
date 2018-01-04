@@ -69,7 +69,7 @@ public:
 	static Dictionary::Ptr GetAttributes(const String& text);
 
 private:
-	LivestatusLogUtility(void);
+	LivestatusLogUtility();
 };
 
 }

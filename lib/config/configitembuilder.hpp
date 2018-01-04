@@ -39,7 +39,7 @@ class ConfigItemBuilder final : public Object
 public:
 	DECLARE_PTR_TYPEDEFS(ConfigItemBuilder);
 
-	ConfigItemBuilder(void);
+	ConfigItemBuilder();
 	explicit ConfigItemBuilder(const DebugInfo& debugInfo);
 
 	void SetType(const Type::Ptr& type);
@@ -54,7 +54,7 @@ public:
 	void AddExpression(Expression *expr);
 	void SetFilter(const std::shared_ptr<Expression>& filter);
 
-	ConfigItem::Ptr Compile(void);
+	ConfigItem::Ptr Compile();
 
 private:
 	Type::Ptr m_Type; /**< The object type. */

@@ -55,25 +55,25 @@ public:
 
 	JsonRpcConnection(const String& identity, bool authenticated, const TlsStream::Ptr& stream, ConnectionRole role);
 
-	void Start(void);
+	void Start();
 
-	double GetTimestamp(void) const;
-	String GetIdentity(void) const;
-	bool IsAuthenticated(void) const;
-	Endpoint::Ptr GetEndpoint(void) const;
-	TlsStream::Ptr GetStream(void) const;
-	ConnectionRole GetRole(void) const;
+	double GetTimestamp() const;
+	String GetIdentity() const;
+	bool IsAuthenticated() const;
+	Endpoint::Ptr GetEndpoint() const;
+	TlsStream::Ptr GetStream() const;
+	ConnectionRole GetRole() const;
 
-	void Disconnect(void);
+	void Disconnect();
 
 	void SendMessage(const Dictionary::Ptr& request);
 
-	static void HeartbeatTimerHandler(void);
+	static void HeartbeatTimerHandler();
 	static Value HeartbeatAPIHandler(const intrusive_ptr<MessageOrigin>& origin, const Dictionary::Ptr& params);
 
-	static size_t GetWorkQueueCount(void);
-	static size_t GetWorkQueueLength(void);
-	static double GetWorkQueueRate(void);
+	static size_t GetWorkQueueCount();
+	static size_t GetWorkQueueLength();
+	static double GetWorkQueueRate();
 
 	static void SendCertificateRequest(const JsonRpcConnection::Ptr& aclient, const intrusive_ptr<MessageOrigin>& origin, const String& path);
 
@@ -92,14 +92,14 @@ private:
 
 	StreamReadContext m_Context;
 
-	bool ProcessMessage(void);
+	bool ProcessMessage();
 	void MessageHandlerWrapper(const String& jsonString);
 	void MessageHandler(const String& jsonString);
-	void DataAvailableHandler(void);
+	void DataAvailableHandler();
 
-	static void StaticInitialize(void);
-	static void TimeoutTimerHandler(void);
-	void CheckLiveness(void);
+	static void StaticInitialize();
+	static void TimeoutTimerHandler();
+	void CheckLiveness();
 
 	void CertificateRequestResponseHandler(const Dictionary::Ptr& message);
 };

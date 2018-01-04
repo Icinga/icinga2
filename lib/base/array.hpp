@@ -47,10 +47,10 @@ public:
 
 	typedef std::vector<Value>::size_type SizeType;
 
-	Array(void);
+	Array();
 	Array(std::initializer_list<Value> init);
 
-	~Array(void);
+	~Array();
 
 	Value Get(SizeType index) const;
 	void Set(SizeType index, const Value& value);
@@ -58,10 +58,10 @@ public:
 	void Add(const Value& value);
 	void Add(Value&& value);
 
-	Iterator Begin(void);
-	Iterator End(void);
+	Iterator Begin();
+	Iterator End();
 
-	size_t GetLength(void) const;
+	size_t GetLength() const;
 	bool Contains(const Value& value) const;
 
 	void Insert(SizeType index, const Value& value);
@@ -69,14 +69,14 @@ public:
 	void Remove(Iterator it);
 
 	void Resize(SizeType newSize);
-	void Clear(void);
+	void Clear();
 
 	void Reserve(SizeType newSize);
 
 	void CopyTo(const Array::Ptr& dest) const;
-	Array::Ptr ShallowClone(void) const;
+	Array::Ptr ShallowClone() const;
 
-	static Object::Ptr GetPrototype(void);
+	static Object::Ptr GetPrototype();
 
 	template<typename T>
 	static Array::Ptr FromVector(const std::vector<T>& v)
@@ -88,7 +88,7 @@ public:
 	}
 
 	template<typename T>
-	std::set<T> ToSet(void)
+	std::set<T> ToSet()
 	{
 		ObjectLock olock(this);
 		return std::set<T>(Begin(), End());
@@ -103,13 +103,13 @@ public:
 		return result;
 	}
 
-	virtual Object::Ptr Clone(void) const override;
+	virtual Object::Ptr Clone() const override;
 
-	Array::Ptr Reverse(void) const;
+	Array::Ptr Reverse() const;
 
-	void Sort(void);
+	void Sort();
 
-	virtual String ToString(void) const override;
+	virtual String ToString() const override;
 
 	virtual Value GetFieldByName(const String& field, bool sandboxed, const DebugInfo& debugInfo) const override;
 	virtual void SetFieldByName(const String& field, const Value& value, const DebugInfo& debugInfo) override;

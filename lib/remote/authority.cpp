@@ -24,7 +24,7 @@
 
 using namespace icinga;
 
-void ApiListener::UpdateObjectAuthority(void)
+void ApiListener::UpdateObjectAuthority()
 {
 	Zone::Ptr my_zone = Zone::GetLocalZone();
 

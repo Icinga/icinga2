@@ -49,7 +49,7 @@ public:
 
 	Value Invoke(const ConfigObject::Ptr& target, const Dictionary::Ptr& params);
 
-	const std::vector<String>& GetTypes(void) const;
+	const std::vector<String>& GetTypes() const;
 
 	static ApiAction::Ptr GetByName(const String& name);
 	static void Register(const String& name, const ApiAction::Ptr& action);
@@ -68,7 +68,7 @@ private:
 class ApiActionRegistry : public Registry<ApiActionRegistry, ApiAction::Ptr>
 {
 public:
-	static ApiActionRegistry *GetInstance(void);
+	static ApiActionRegistry *GetInstance();
 };
 
 #define REGISTER_APIACTION(name, types, callback) \

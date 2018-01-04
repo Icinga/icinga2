@@ -23,7 +23,7 @@
 
 using namespace icinga;
 
-ConfigItemBuilder::ConfigItemBuilder(void)
+ConfigItemBuilder::ConfigItemBuilder()
 	: m_Abstract(false), m_DefaultTmpl(false), m_IgnoreOnError(false)
 {
 	m_DebugInfo.FirstLine = 0;
@@ -88,7 +88,7 @@ void ConfigItemBuilder::SetIgnoreOnError(bool ignoreOnError)
 	m_IgnoreOnError = ignoreOnError;
 }
 
-ConfigItem::Ptr ConfigItemBuilder::Compile(void)
+ConfigItem::Ptr ConfigItemBuilder::Compile()
 {
 	if (!m_Type) {
 		std::ostringstream msgbuf;

@@ -44,7 +44,7 @@ public:
 private:
 	Timer::Ptr m_DemoTimer;
 
-	void DemoTimerHandler(void);
+	void DemoTimerHandler();
 };
 
 }

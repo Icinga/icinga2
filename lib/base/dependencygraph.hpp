@@ -39,7 +39,7 @@ public:
 	static std::vector<Object::Ptr> GetParents(const Object::Ptr& child);
 
 private:
-	DependencyGraph(void);
+	DependencyGraph();
 
 	static boost::mutex m_Mutex;
 	static std::map<Object *, std::map<Object *, int> > m_Dependencies;

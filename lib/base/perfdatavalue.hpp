@@ -36,14 +36,14 @@ class PerfdataValue final : public ObjectImpl<PerfdataValue>
 public:
 	DECLARE_OBJECT(PerfdataValue);
 
-	PerfdataValue(void);
+	PerfdataValue();
 
 	PerfdataValue(String label, double value, bool counter = false, const String& unit = "",
 		const Value& warn = Empty, const Value& crit = Empty,
 		const Value& min = Empty, const Value& max = Empty);
 
 	static PerfdataValue::Ptr Parse(const String& perfdata);
-	String Format(void) const;
+	String Format() const;
 
 private:
 	static Value ParseWarnCritMinMaxToken(const std::vector<String>& tokens,

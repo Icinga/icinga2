@@ -48,44 +48,44 @@ REGISTER_STATSFUNCTION(ApiListener, &ApiListener::StatsFunc);
 
 REGISTER_APIFUNCTION(Hello, icinga, &ApiListener::HelloAPIHandler);
 
-ApiListener::ApiListener(void)
+ApiListener::ApiListener()
 	: m_SyncQueue(0, 4), m_LogMessageCount(0)
 {
 	m_RelayQueue.SetName("ApiListener, RelayQueue");
 	m_SyncQueue.SetName("ApiListener, SyncQueue");
 }
 
-String ApiListener::GetApiDir(void)
+String ApiListener::GetApiDir()
 {
 	return Application::GetLocalStateDir() + "/lib/icinga2/api/";
 }
 
-String ApiListener::GetCertsDir(void)
+String ApiListener::GetCertsDir()
 {
 	return Application::GetLocalStateDir() + "/lib/icinga2/certs/";
 }
 
-String ApiListener::GetCaDir(void)
+String ApiListener::GetCaDir()
 {
 	return Application::GetLocalStateDir() + "/lib/icinga2/ca/";
 }
 
-String ApiListener::GetCertificateRequestsDir(void)
+String ApiListener::GetCertificateRequestsDir()
 {
 	return Application::GetLocalStateDir() + "/lib/icinga2/certificate-requests/";
 }
 
-String ApiListener::GetDefaultCertPath(void)
+String ApiListener::GetDefaultCertPath()
 {
 	return GetCertsDir() + "/" + ScriptGlobal::Get("NodeName") + ".crt";
 }
 
-String ApiListener::GetDefaultKeyPath(void)
+String ApiListener::GetDefaultKeyPath()
 {
 	return GetCertsDir() + "/" + ScriptGlobal::Get("NodeName") + ".key";
 }
 
-String ApiListener::GetDefaultCaPath(void)
+String ApiListener::GetDefaultCaPath()
 {
 	return GetCertsDir() + "/ca.crt";
 }
@@ -103,7 +103,7 @@ void ApiListener::CopyCertificateFile(const String& oldCertPath, const String& n
 	}
 }
 
-void ApiListener::OnConfigLoaded(void)
+void ApiListener::OnConfigLoaded()
 {
 	if (m_Instance)
 		BOOST_THROW_EXCEPTION(ScriptError("Only one ApiListener object is allowed.", GetDebugInfo()));
@@ -149,7 +149,7 @@ void ApiListener::OnConfigLoaded(void)
 	UpdateSSLContext();
 }
 
-void ApiListener::UpdateSSLContext(void)
+void ApiListener::UpdateSSLContext()
 {
 	std::shared_ptr<SSL_CTX> context;
 
@@ -199,7 +199,7 @@ void ApiListener::UpdateSSLContext(void)
 	}
 }
 
-void ApiListener::OnAllConfigLoaded(void)
+void ApiListener::OnAllConfigLoaded()
 {
 	m_LocalEndpoint = Endpoint::GetByName(GetIdentity());
 
@@ -269,12 +269,12 @@ void ApiListener::Stop(bool runtimeDeleted)
 	CloseLogFile();
 }
 
-ApiListener::Ptr ApiListener::GetInstance(void)
+ApiListener::Ptr ApiListener::GetInstance()
 {
 	return m_Instance;
 }
 
-Endpoint::Ptr ApiListener::GetMaster(void) const
+Endpoint::Ptr ApiListener::GetMaster() const
 {
 	Zone::Ptr zone = Zone::GetLocalZone();
 
@@ -292,7 +292,7 @@ Endpoint::Ptr ApiListener::GetMaster(void) const
 	return Endpoint::GetByName(*names.begin());
 }
 
-bool ApiListener::IsMaster(void) const
+bool ApiListener::IsMaster() const
 {
 	Endpoint::Ptr master = GetMaster();
 
@@ -626,7 +626,7 @@ void ApiListener::SyncClient(const JsonRpcConnection::Ptr& aclient, const Endpoi
 		<< "Finished syncing endpoint '" << endpoint->GetName() << "' in zone '" << eZone->GetName() << "'.";
 }
 
-void ApiListener::ApiTimerHandler(void)
+void ApiListener::ApiTimerHandler()
 {
 	double now = Utility::GetTime();
 
@@ -695,7 +695,7 @@ void ApiListener::ApiTimerHandler(void)
 	}
 }
 
-void ApiListener::ApiReconnectTimerHandler(void)
+void ApiListener::ApiReconnectTimerHandler()
 {
 	Zone::Ptr my_zone = Zone::GetLocalZone();
 
@@ -780,7 +780,7 @@ static void CleanupCertificateRequest(const String& path, double expiryTime)
 		(void) unlink(path.CStr());
 }
 
-void ApiListener::CleanupCertificateRequestsTimerHandler(void)
+void ApiListener::CleanupCertificateRequestsTimerHandler()
 {
 	String requestsDir = GetCertificateRequestsDir();
 
@@ -986,7 +986,7 @@ void ApiListener::SyncRelayMessage(const MessageOrigin::Ptr& origin,
 }
 
 /* must hold m_LogLock */
-void ApiListener::OpenLogFile(void)
+void ApiListener::OpenLogFile()
 {
 	String path = GetApiDir() + "log/current";
 
@@ -1006,7 +1006,7 @@ void ApiListener::OpenLogFile(void)
 }
 
 /* must hold m_LogLock */
-void ApiListener::CloseLogFile(void)
+void ApiListener::CloseLogFile()
 {
 	if (!m_LogFile)
 		return;
@@ -1016,7 +1016,7 @@ void ApiListener::CloseLogFile(void)
 }
 
 /* must hold m_LogLock */
-void ApiListener::RotateLogFile(void)
+void ApiListener::RotateLogFile()
 {
 	double ts = GetLogMessageTimestamp();
 
@@ -1217,7 +1217,7 @@ void ApiListener::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& per
 	status->Set("api", stats.first);
 }
 
-std::pair<Dictionary::Ptr, Dictionary::Ptr> ApiListener::GetStatus(void)
+std::pair<Dictionary::Ptr, Dictionary::Ptr> ApiListener::GetStatus()
 {
 	Dictionary::Ptr status = new Dictionary();
 	Dictionary::Ptr perfdata = new Dictionary();
@@ -1366,7 +1366,7 @@ void ApiListener::RemoveAnonymousClient(const JsonRpcConnection::Ptr& aclient)
 	m_AnonymousClients.erase(aclient);
 }
 
-std::set<JsonRpcConnection::Ptr> ApiListener::GetAnonymousClients(void) const
+std::set<JsonRpcConnection::Ptr> ApiListener::GetAnonymousClients() const
 {
 	boost::mutex::scoped_lock lock(m_AnonymousClientsLock);
 	return m_AnonymousClients;
@@ -1384,7 +1384,7 @@ void ApiListener::RemoveHttpClient(const HttpServerConnection::Ptr& aclient)
 	m_HttpClients.erase(aclient);
 }
 
-std::set<HttpServerConnection::Ptr> ApiListener::GetHttpClients(void) const
+std::set<HttpServerConnection::Ptr> ApiListener::GetHttpClients() const
 {
 	boost::mutex::scoped_lock lock(m_HttpClientsLock);
 	return m_HttpClients;
@@ -1395,7 +1395,7 @@ Value ApiListener::HelloAPIHandler(const MessageOrigin::Ptr& origin, const Dicti
 	return Empty;
 }
 
-Endpoint::Ptr ApiListener::GetLocalEndpoint(void) const
+Endpoint::Ptr ApiListener::GetLocalEndpoint() const
 {
 	return m_LocalEndpoint;
 }
@@ -1419,7 +1419,7 @@ void ApiListener::ValidateTlsProtocolmin(const String& value, const ValidationUt
 	}
 }
 
-bool ApiListener::IsHACluster(void)
+bool ApiListener::IsHACluster()
 {
 	Zone::Ptr zone = Zone::GetLocalZone();
 

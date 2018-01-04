@@ -36,7 +36,7 @@ typedef HMODULE LibraryHandle;
 class Library
 {
 public:
-	Library(void) = default;
+	Library() = default;
 	Library(const String& name);
 
 	void *GetSymbolAddress(const String& name) const;

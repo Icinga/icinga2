@@ -52,7 +52,7 @@ enum ValueType
 class Value
 {
 public:
-	Value(void);
+	Value();
 	Value(std::nullptr_t);
 	Value(int value);
 	Value(unsigned int value);
@@ -77,12 +77,12 @@ public:
 		static_assert(!std::is_same<T, Object>::value, "T must not be Object");
 	}
 
-	~Value(void);
+	~Value();
 
-	bool ToBool(void) const;
+	bool ToBool() const;
 
-	operator double(void) const;
-	operator String(void) const;
+	operator double() const;
+	operator String() const;
 
 	Value& operator=(const Value& other);
 	Value& operator=(Value&& other);
@@ -106,7 +106,7 @@ public:
 	bool operator!=(const Value& rhs) const;
 
 	template<typename T>
-	operator intrusive_ptr<T>(void) const
+	operator intrusive_ptr<T>() const
 	{
 		if (IsEmpty() && !IsString())
 			return intrusive_ptr<T>();
@@ -126,15 +126,15 @@ public:
 		return tobject;
 	}
 
-	bool IsEmpty(void) const;
-	bool IsScalar(void) const;
-	bool IsNumber(void) const;
-	bool IsBoolean(void) const;
-	bool IsString(void) const;
-	bool IsObject(void) const;
+	bool IsEmpty() const;
+	bool IsScalar() const;
+	bool IsNumber() const;
+	bool IsBoolean() const;
+	bool IsString() const;
+	bool IsObject() const;
 
 	template<typename T>
-	bool IsObjectType(void) const
+	bool IsObjectType() const
 	{
 		if (!IsObject())
 			return false;
@@ -142,18 +142,18 @@ public:
 		return dynamic_cast<T *>(Get<Object::Ptr>().get());
 	}
 
-	ValueType GetType(void) const;
+	ValueType GetType() const;
 
 	void Swap(Value& other);
 
-	String GetTypeName(void) const;
+	String GetTypeName() const;
 
-	Type::Ptr GetReflectionType(void) const;
+	Type::Ptr GetReflectionType() const;
 
-	Value Clone(void) const;
+	Value Clone() const;
 
 	template<typename T>
-	const T& Get(void) const
+	const T& Get() const
 	{
 		return boost::get<T>(m_Value);
 	}
@@ -162,10 +162,10 @@ private:
 	boost::variant<boost::blank, double, bool, String, Object::Ptr> m_Value;
 };
 
-extern template const double& Value::Get<double>(void) const;
-extern template const bool& Value::Get<bool>(void) const;
-extern template const String& Value::Get<String>(void) const;
-extern template const Object::Ptr& Value::Get<Object::Ptr>(void) const;
+extern template const double& Value::Get<double>() const;
+extern template const bool& Value::Get<bool>() const;
+extern template const String& Value::Get<String>() const;
+extern template const Object::Ptr& Value::Get<Object::Ptr>() const;
 
 extern Value Empty;
 

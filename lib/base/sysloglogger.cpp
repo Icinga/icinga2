@@ -33,7 +33,7 @@ INITIALIZE_ONCE(&SyslogLogger::StaticInitialize);
 
 std::map<String, int> SyslogLogger::m_FacilityMap;
 
-void SyslogLogger::StaticInitialize(void)
+void SyslogLogger::StaticInitialize()
 {
 	ScriptGlobal::Set("FacilityAuth", "LOG_AUTH");
 	ScriptGlobal::Set("FacilityAuthPriv", "LOG_AUTHPRIV");
@@ -89,7 +89,7 @@ void SyslogLogger::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 	status->Set("sysloglogger", nodes);
 }
 
-void SyslogLogger::OnConfigLoaded(void)
+void SyslogLogger::OnConfigLoaded()
 {
 	ObjectImpl<SyslogLogger>::OnConfigLoaded();
 
@@ -146,7 +146,7 @@ void SyslogLogger::ProcessLogEntry(const LogEntry& entry)
 	syslog(severity | m_Facility, "%s", entry.Message.CStr());
 }
 
-void SyslogLogger::Flush(void)
+void SyslogLogger::Flush()
 {
 	/* Nothing to do here. */
 }

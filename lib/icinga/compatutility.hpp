@@ -120,7 +120,7 @@ public:
 	static String UnEscapeString(const String& str);
 
 private:
-	CompatUtility(void);
+	CompatUtility();
 
 	static String GetCommandNamePrefix(const Command::Ptr command);
 };

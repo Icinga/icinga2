@@ -59,7 +59,7 @@ DateTime::DateTime(const std::vector<Value>& args)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid number of arguments for the DateTime constructor."));
 }
 
-double DateTime::GetValue(void) const
+double DateTime::GetValue() const
 {
 	return m_Value;
 }
@@ -69,7 +69,7 @@ String DateTime::Format(const String& format) const
 	return Utility::FormatDateTime(format.CStr(), m_Value);
 }
 
-String DateTime::ToString(void) const
+String DateTime::ToString() const
 {
 	return Format("%Y-%m-%d %H:%M:%S %z");
 }

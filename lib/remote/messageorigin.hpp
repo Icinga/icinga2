@@ -37,7 +37,7 @@ public:
 	Zone::Ptr FromZone;
 	JsonRpcConnection::Ptr FromClient;
 
-	bool IsLocal(void) const;
+	bool IsLocal() const;
 };
 
 }

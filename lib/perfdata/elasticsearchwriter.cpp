@@ -43,11 +43,11 @@ REGISTER_TYPE(ElasticsearchWriter);
 
 REGISTER_STATSFUNCTION(ElasticsearchWriter, &ElasticsearchWriter::StatsFunc);
 
-ElasticsearchWriter::ElasticsearchWriter(void)
+ElasticsearchWriter::ElasticsearchWriter()
 	: m_WorkQueue(10000000, 1)
 { }
 
-void ElasticsearchWriter::OnConfigLoaded(void)
+void ElasticsearchWriter::OnConfigLoaded()
 {
 	ObjectImpl<ElasticsearchWriter>::OnConfigLoaded();
 
@@ -373,7 +373,7 @@ void ElasticsearchWriter::Enqueue(String type, const Dictionary::Ptr& fields, do
 	}
 }
 
-void ElasticsearchWriter::FlushTimeout(void)
+void ElasticsearchWriter::FlushTimeout()
 {
 	/* Prevent new data points from being added to the array, there is a
 	 * race condition where they could disappear.
@@ -388,7 +388,7 @@ void ElasticsearchWriter::FlushTimeout(void)
 	}
 }
 
-void ElasticsearchWriter::Flush(void)
+void ElasticsearchWriter::Flush()
 {
 	/* Ensure you hold a lock against m_DataBuffer so that things
 	 * don't go missing after creating the body and clearing the buffer.
@@ -523,7 +523,7 @@ void ElasticsearchWriter::SendRequest(const String& body)
 	}
 }
 
-Stream::Ptr ElasticsearchWriter::Connect(void)
+Stream::Ptr ElasticsearchWriter::Connect()
 {
 	TcpSocket::Ptr socket = new TcpSocket();
 
@@ -565,7 +565,7 @@ Stream::Ptr ElasticsearchWriter::Connect(void)
 	}
 }
 
-void ElasticsearchWriter::AssertOnWorkQueue(void)
+void ElasticsearchWriter::AssertOnWorkQueue()
 {
 	ASSERT(m_WorkQueue.IsWorkerThread());
 }

@@ -38,21 +38,21 @@ class Timer final : public Object
 public:
 	DECLARE_PTR_TYPEDEFS(Timer);
 
-	Timer(void);
-	~Timer(void);
+	Timer();
+	~Timer();
 
-	static void Uninitialize(void);
+	static void Uninitialize();
 
 	void SetInterval(double interval);
-	double GetInterval(void) const;
+	double GetInterval() const;
 
 	static void AdjustTimers(double adjustment);
 
-	void Start(void);
+	void Start();
 	void Stop(bool wait = false);
 
 	void Reschedule(double next = -1);
-	double GetNext(void) const;
+	double GetNext() const;
 
 	boost::signals2::signal<void(const Timer::Ptr&)> OnTimerExpired;
 
@@ -65,7 +65,7 @@ private:
 	void Call();
 	void InternalReschedule(bool completed, double next = -1);
 
-	static void TimerThreadProc(void);
+	static void TimerThreadProc();
 
 	friend class TimerHolder;
 };

@@ -30,17 +30,17 @@ void Stream::RegisterDataHandler(const std::function<void(const Stream::Ptr&)>& 
 		BOOST_THROW_EXCEPTION(std::runtime_error("Stream does not support waiting."));
 }
 
-bool Stream::SupportsWaiting(void) const
+bool Stream::SupportsWaiting() const
 {
 	return false;
 }
 
-bool Stream::IsDataAvailable(void) const
+bool Stream::IsDataAvailable() const
 {
 	return false;
 }
 
-void Stream::Shutdown(void)
+void Stream::Shutdown()
 {
 	BOOST_THROW_EXCEPTION(std::runtime_error("Stream does not support Shutdown()."));
 }
@@ -50,7 +50,7 @@ size_t Stream::Peek(void *buffer, size_t count, bool allow_partial)
 	BOOST_THROW_EXCEPTION(std::runtime_error("Stream does not support Peek()."));
 }
 
-void Stream::SignalDataAvailable(void)
+void Stream::SignalDataAvailable()
 {
 	OnDataAvailable(this);
 
@@ -76,10 +76,10 @@ bool Stream::WaitForData(int timeout)
 	return IsDataAvailable() || IsEof();
 }
 
-static void StreamDummyCallback(void)
+static void StreamDummyCallback()
 { }
 
-void Stream::Close(void)
+void Stream::Close()
 {
 	OnDataAvailable.disconnect_all_slots();
 

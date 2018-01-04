@@ -38,7 +38,7 @@ public:
 		const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros);
 
 private:
-	ExceptionCheckTask(void);
+	ExceptionCheckTask();
 };
 
 }

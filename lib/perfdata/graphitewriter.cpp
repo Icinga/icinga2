@@ -45,11 +45,11 @@ REGISTER_TYPE(GraphiteWriter);
 
 REGISTER_STATSFUNCTION(GraphiteWriter, &GraphiteWriter::StatsFunc);
 
-GraphiteWriter::GraphiteWriter(void)
+GraphiteWriter::GraphiteWriter()
 	: m_WorkQueue(10000000, 1)
 { }
 
-void GraphiteWriter::OnConfigLoaded(void)
+void GraphiteWriter::OnConfigLoaded()
 {
 	ObjectImpl<GraphiteWriter>::OnConfigLoaded();
 
@@ -109,7 +109,7 @@ void GraphiteWriter::Stop(bool runtimeRemoved)
 	ObjectImpl<GraphiteWriter>::Stop(runtimeRemoved);
 }
 
-void GraphiteWriter::AssertOnWorkQueue(void)
+void GraphiteWriter::AssertOnWorkQueue()
 {
 	ASSERT(m_WorkQueue.IsWorkerThread());
 }
@@ -128,7 +128,7 @@ void GraphiteWriter::ExceptionHandler(boost::exception_ptr exp)
 	}
 }
 
-void GraphiteWriter::Reconnect(void)
+void GraphiteWriter::Reconnect()
 {
 	AssertOnWorkQueue();
 
@@ -162,12 +162,12 @@ void GraphiteWriter::Reconnect(void)
 		<< "Finished reconnecting to Graphite in " << std::setw(2) << Utility::GetTime() - startTime << " second(s).";
 }
 
-void GraphiteWriter::ReconnectTimerHandler(void)
+void GraphiteWriter::ReconnectTimerHandler()
 {
 	m_WorkQueue.Enqueue(std::bind(&GraphiteWriter::Reconnect, this), PriorityNormal);
 }
 
-void GraphiteWriter::Disconnect(void)
+void GraphiteWriter::Disconnect()
 {
 	AssertOnWorkQueue();
 

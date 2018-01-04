@@ -33,57 +33,57 @@ ApplyRule::ApplyRule(const String& targetType, const String& name, const std::sh
 	m_FVVar(fvvar), m_FTerm(fterm), m_IgnoreOnError(ignoreOnError), m_DebugInfo(di), m_Scope(scope), m_HasMatches(false)
 { }
 
-String ApplyRule::GetTargetType(void) const
+String ApplyRule::GetTargetType() const
 {
 	return m_TargetType;
 }
 
-String ApplyRule::GetName(void) const
+String ApplyRule::GetName() const
 {
 	return m_Name;
 }
 
-std::shared_ptr<Expression> ApplyRule::GetExpression(void) const
+std::shared_ptr<Expression> ApplyRule::GetExpression() const
 {
 	return m_Expression;
 }
 
-std::shared_ptr<Expression> ApplyRule::GetFilter(void) const
+std::shared_ptr<Expression> ApplyRule::GetFilter() const
 {
 	return m_Filter;
 }
 
-String ApplyRule::GetPackage(void) const
+String ApplyRule::GetPackage() const
 {
 	return m_Package;
 }
 
-String ApplyRule::GetFKVar(void) const
+String ApplyRule::GetFKVar() const
 {
 	return m_FKVar;
 }
 
-String ApplyRule::GetFVVar(void) const
+String ApplyRule::GetFVVar() const
 {
 	return m_FVVar;
 }
 
-std::shared_ptr<Expression> ApplyRule::GetFTerm(void) const
+std::shared_ptr<Expression> ApplyRule::GetFTerm() const
 {
 	return m_FTerm;
 }
 
-bool ApplyRule::GetIgnoreOnError(void) const
+bool ApplyRule::GetIgnoreOnError() const
 {
 	return m_IgnoreOnError;
 }
 
-DebugInfo ApplyRule::GetDebugInfo(void) const
+DebugInfo ApplyRule::GetDebugInfo() const
 {
 	return m_DebugInfo;
 }
 
-Dictionary::Ptr ApplyRule::GetScope(void) const
+Dictionary::Ptr ApplyRule::GetScope() const
 {
 	return m_Scope;
 }
@@ -138,12 +138,12 @@ std::vector<String> ApplyRule::GetTargetTypes(const String& sourceType)
 	return it->second;
 }
 
-void ApplyRule::AddMatch(void)
+void ApplyRule::AddMatch()
 {
 	m_HasMatches = true;
 }
 
-bool ApplyRule::HasMatches(void) const
+bool ApplyRule::HasMatches() const
 {
 	return m_HasMatches;
 }
@@ -158,7 +158,7 @@ std::vector<ApplyRule>& ApplyRule::GetRules(const String& type)
 	return it->second;
 }
 
-void ApplyRule::CheckMatches(void)
+void ApplyRule::CheckMatches()
 {
 	for (const RuleMap::value_type& kv : m_Rules) {
 		for (const ApplyRule& rule : kv.second) {

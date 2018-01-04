@@ -42,7 +42,7 @@ public:
 	virtual void Start(bool runtimeCreated) override;
 
 private:
-	void ReopenLogFile(void);
+	void ReopenLogFile();
 };
 
 }

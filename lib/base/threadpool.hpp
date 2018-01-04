@@ -49,10 +49,10 @@ public:
 	typedef std::function<void ()> WorkFunction;
 
 	ThreadPool(size_t max_threads = UINT_MAX);
-	~ThreadPool(void);
+	~ThreadPool();
 
-	void Start(void);
-	void Stop(void);
+	void Start();
+	void Stop();
 
 	bool Post(const WorkFunction& callback, SchedulerPolicy policy = DefaultScheduler);
 
@@ -106,7 +106,7 @@ private:
 
 		WorkerThread Threads[16];
 
-		Queue(void)
+		Queue()
 			: WaitTime(0), ServiceTime(0), TaskCount(0), Stopped(false)
 		{ }
 
@@ -128,7 +128,7 @@ private:
 
 	Queue m_Queues[QUEUECOUNT];
 
-	void ManagerThreadProc(void);
+	void ManagerThreadProc();
 };
 
 }

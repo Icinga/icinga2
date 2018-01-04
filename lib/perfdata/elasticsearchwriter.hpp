@@ -35,14 +35,14 @@ public:
 	DECLARE_OBJECT(ElasticsearchWriter);
 	DECLARE_OBJECTNAME(ElasticsearchWriter);
 
-	ElasticsearchWriter(void);
+	ElasticsearchWriter();
 
 	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
 	static String FormatTimestamp(double ts);
 
 protected:
-	virtual void OnConfigLoaded(void) override;
+	virtual void OnConfigLoaded() override;
 	virtual void Start(bool runtimeCreated) override;
 	virtual void Stop(bool runtimeRemoved) override;
 
@@ -68,11 +68,11 @@ private:
 
 	void Enqueue(String type, const Dictionary::Ptr& fields, double ts);
 
-	Stream::Ptr Connect(void);
-	void AssertOnWorkQueue(void);
+	Stream::Ptr Connect();
+	void AssertOnWorkQueue();
 	void ExceptionHandler(boost::exception_ptr exp);
-	void FlushTimeout(void);
-	void Flush(void);
+	void FlushTimeout();
+	void Flush();
 	void SendRequest(const String& body);
 };
 

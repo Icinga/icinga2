@@ -39,13 +39,13 @@ REGISTER_TYPE(IdoPgsqlConnection);
 
 REGISTER_STATSFUNCTION(IdoPgsqlConnection, &IdoPgsqlConnection::StatsFunc);
 
-IdoPgsqlConnection::IdoPgsqlConnection(void)
+IdoPgsqlConnection::IdoPgsqlConnection()
 	: m_QueryQueue(1000000)
 {
 	m_QueryQueue.SetName("IdoPgsqlConnection, " + GetName());
 }
 
-void IdoPgsqlConnection::OnConfigLoaded(void)
+void IdoPgsqlConnection::OnConfigLoaded()
 {
 	ObjectImpl<IdoPgsqlConnection>::OnConfigLoaded();
 
@@ -88,7 +88,7 @@ void IdoPgsqlConnection::StatsFunc(const Dictionary::Ptr& status, const Array::P
 	status->Set("idopgsqlconnection", nodes);
 }
 
-void IdoPgsqlConnection::Resume(void)
+void IdoPgsqlConnection::Resume()
 {
 	DbConnection::Resume();
 
@@ -113,7 +113,7 @@ void IdoPgsqlConnection::Resume(void)
 	ASSERT(m_Pgsql->isthreadsafe());
 }
 
-void IdoPgsqlConnection::Pause(void)
+void IdoPgsqlConnection::Pause()
 {
 	Log(LogInformation, "IdoPgsqlConnection")
 		<< "'" << GetName() << "' paused.";
@@ -139,12 +139,12 @@ void IdoPgsqlConnection::ExceptionHandler(boost::exception_ptr exp)
 	}
 }
 
-void IdoPgsqlConnection::AssertOnWorkQueue(void)
+void IdoPgsqlConnection::AssertOnWorkQueue()
 {
 	ASSERT(m_QueryQueue.IsWorkerThread());
 }
 
-void IdoPgsqlConnection::Disconnect(void)
+void IdoPgsqlConnection::Disconnect()
 {
 	AssertOnWorkQueue();
 
@@ -157,17 +157,17 @@ void IdoPgsqlConnection::Disconnect(void)
 	SetConnected(false);
 }
 
-void IdoPgsqlConnection::TxTimerHandler(void)
+void IdoPgsqlConnection::TxTimerHandler()
 {
 	NewTransaction();
 }
 
-void IdoPgsqlConnection::NewTransaction(void)
+void IdoPgsqlConnection::NewTransaction()
 {
 	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::InternalNewTransaction, this), PriorityHigh, true);
 }
 
-void IdoPgsqlConnection::InternalNewTransaction(void)
+void IdoPgsqlConnection::InternalNewTransaction()
 {
 	AssertOnWorkQueue();
 
@@ -178,12 +178,12 @@ void IdoPgsqlConnection::InternalNewTransaction(void)
 	Query("BEGIN");
 }
 
-void IdoPgsqlConnection::ReconnectTimerHandler(void)
+void IdoPgsqlConnection::ReconnectTimerHandler()
 {
 	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::Reconnect, this), PriorityLow);
 }
 
-void IdoPgsqlConnection::Reconnect(void)
+void IdoPgsqlConnection::Reconnect()
 {
 	AssertOnWorkQueue();
 
@@ -422,7 +422,7 @@ void IdoPgsqlConnection::FinishConnect(double startTime)
 	Query("BEGIN");
 }
 
-void IdoPgsqlConnection::ClearTablesBySession(void)
+void IdoPgsqlConnection::ClearTablesBySession()
 {
 	/* delete all comments and downtimes without current session token */
 	ClearTableBySession("comments");
@@ -500,7 +500,7 @@ DbReference IdoPgsqlConnection::GetSequenceValue(const String& table, const Stri
 	return DbReference(Convert::ToLong(row->Get("id")));
 }
 
-int IdoPgsqlConnection::GetAffectedRows(void)
+int IdoPgsqlConnection::GetAffectedRows()
 {
 	AssertOnWorkQueue();
 
@@ -947,7 +947,7 @@ void IdoPgsqlConnection::FillIDCache(const DbType::Ptr& type)
 	}
 }
 
-int IdoPgsqlConnection::GetPendingQueryCount(void) const
+int IdoPgsqlConnection::GetPendingQueryCount() const
 {
 	return m_QueryQueue.GetLength();
 }

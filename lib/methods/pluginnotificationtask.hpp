@@ -42,7 +42,7 @@ public:
 		const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros);
 
 private:
-	PluginNotificationTask(void);
+	PluginNotificationTask();
 
 	static void ProcessFinishedHandler(const Checkable::Ptr& checkable,
 		const Value& commandLine, const ProcessResult& pr);

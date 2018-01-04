@@ -36,12 +36,12 @@ namespace po = boost::program_options;
 
 REGISTER_CLICOMMAND("variable/list", VariableListCommand);
 
-String VariableListCommand::GetDescription(void) const
+String VariableListCommand::GetDescription() const
 {
 	return "Lists all Icinga 2 variables.";
 }
 
-String VariableListCommand::GetShortDescription(void) const
+String VariableListCommand::GetShortDescription() const
 {
 	return "lists all variables";
 }

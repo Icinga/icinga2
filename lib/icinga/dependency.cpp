@@ -67,7 +67,7 @@ Dictionary::Ptr DependencyNameComposer::ParseName(const String& name) const
 	return result;
 }
 
-void Dependency::OnConfigLoaded(void)
+void Dependency::OnConfigLoaded()
 {
 	Value defaultFilter;
 
@@ -79,7 +79,7 @@ void Dependency::OnConfigLoaded(void)
 	SetStateFilter(FilterArrayToInt(GetStates(), Notification::GetStateFilterMap(), defaultFilter));
 }
 
-void Dependency::OnAllConfigLoaded(void)
+void Dependency::OnAllConfigLoaded()
 {
 	ObjectImpl<Dependency>::OnAllConfigLoaded();
 
@@ -194,17 +194,17 @@ bool Dependency::IsAvailable(DependencyType dt) const
 	return false;
 }
 
-Checkable::Ptr Dependency::GetChild(void) const
+Checkable::Ptr Dependency::GetChild() const
 {
 	return m_Child;
 }
 
-Checkable::Ptr Dependency::GetParent(void) const
+Checkable::Ptr Dependency::GetParent() const
 {
 	return m_Parent;
 }
 
-TimePeriod::Ptr Dependency::GetPeriod(void) const
+TimePeriod::Ptr Dependency::GetPeriod() const
 {
 	return TimePeriod::GetByName(GetPeriodRaw());
 }

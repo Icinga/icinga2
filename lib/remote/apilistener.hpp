@@ -57,35 +57,35 @@ public:
 
 	static boost::signals2::signal<void(bool)> OnMasterChanged;
 
-	ApiListener(void);
+	ApiListener();
 
-	static String GetApiDir(void);
-	static String GetCertsDir(void);
-	static String GetCaDir(void);
-	static String GetCertificateRequestsDir(void);
+	static String GetApiDir();
+	static String GetCertsDir();
+	static String GetCaDir();
+	static String GetCertificateRequestsDir();
 
-	void UpdateSSLContext(void);
+	void UpdateSSLContext();
 
-	static ApiListener::Ptr GetInstance(void);
+	static ApiListener::Ptr GetInstance();
 
-	Endpoint::Ptr GetMaster(void) const;
-	bool IsMaster(void) const;
+	Endpoint::Ptr GetMaster() const;
+	bool IsMaster() const;
 
-	Endpoint::Ptr GetLocalEndpoint(void) const;
+	Endpoint::Ptr GetLocalEndpoint() const;
 
 	void SyncSendMessage(const Endpoint::Ptr& endpoint, const Dictionary::Ptr& message);
 	void RelayMessage(const MessageOrigin::Ptr& origin, const ConfigObject::Ptr& secobj, const Dictionary::Ptr& message, bool log);
 
 	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
-	std::pair<Dictionary::Ptr, Dictionary::Ptr> GetStatus(void);
+	std::pair<Dictionary::Ptr, Dictionary::Ptr> GetStatus();
 
 	void AddAnonymousClient(const JsonRpcConnection::Ptr& aclient);
 	void RemoveAnonymousClient(const JsonRpcConnection::Ptr& aclient);
-	std::set<JsonRpcConnection::Ptr> GetAnonymousClients(void) const;
+	std::set<JsonRpcConnection::Ptr> GetAnonymousClients() const;
 
 	void AddHttpClient(const HttpServerConnection::Ptr& aclient);
 	void RemoveHttpClient(const HttpServerConnection::Ptr& aclient);
-	std::set<HttpServerConnection::Ptr> GetHttpClients(void) const;
+	std::set<HttpServerConnection::Ptr> GetHttpClients() const;
 
 	static double CalculateZoneLag(const Endpoint::Ptr& endpoint);
 
@@ -99,18 +99,18 @@ public:
 
 	static Value HelloAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
 
-	static void UpdateObjectAuthority(void);
+	static void UpdateObjectAuthority();
 
-	static bool IsHACluster(void);
+	static bool IsHACluster();
 	static String GetFromZoneName(const Zone::Ptr& fromZone);
 
-	static String GetDefaultCertPath(void);
-	static String GetDefaultKeyPath(void);
-	static String GetDefaultCaPath(void);
+	static String GetDefaultCertPath();
+	static String GetDefaultKeyPath();
+	static String GetDefaultCaPath();
 
 protected:
-	virtual void OnConfigLoaded(void) override;
-	virtual void OnAllConfigLoaded(void) override;
+	virtual void OnConfigLoaded() override;
+	virtual void OnAllConfigLoaded() override;
 	virtual void Start(bool runtimeCreated) override;
 	virtual void Stop(bool runtimeDeleted) override;
 
@@ -133,9 +133,9 @@ private:
 
 	static ApiListener::Ptr m_Instance;
 
-	void ApiTimerHandler(void);
-	void ApiReconnectTimerHandler(void);
-	void CleanupCertificateRequestsTimerHandler(void);
+	void ApiTimerHandler();
+	void ApiReconnectTimerHandler();
+	void CleanupCertificateRequestsTimerHandler();
 
 	bool AddListener(const String& node, const String& service);
 	void AddConnection(const Endpoint::Ptr& endpoint);
@@ -155,9 +155,9 @@ private:
 	void SyncRelayMessage(const MessageOrigin::Ptr& origin, const ConfigObject::Ptr& secobj, const Dictionary::Ptr& message, bool log);
 	void PersistMessage(const Dictionary::Ptr& message, const ConfigObject::Ptr& secobj);
 
-	void OpenLogFile(void);
-	void RotateLogFile(void);
-	void CloseLogFile(void);
+	void OpenLogFile();
+	void RotateLogFile();
+	void CloseLogFile();
 	static void LogGlobHandler(std::vector<int>& files, const String& file);
 	void ReplayLog(const JsonRpcConnection::Ptr& client);
 
@@ -168,7 +168,7 @@ private:
 	static Dictionary::Ptr MergeConfigUpdate(const ConfigDirInformation& config);
 	static bool UpdateConfigDir(const ConfigDirInformation& oldConfig, const ConfigDirInformation& newConfig, const String& configDir, bool authoritative);
 
-	void SyncZoneDirs(void) const;
+	void SyncZoneDirs() const;
 	void SyncZoneDir(const Zone::Ptr& zone) const;
 
 	static void ConfigGlobHandler(ConfigDirInformation& config, const String& path, const String& file);

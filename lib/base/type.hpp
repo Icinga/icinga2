@@ -75,43 +75,43 @@ class Type : public Object
 public:
 	DECLARE_OBJECT(Type);
 
-	Type(void);
-	~Type(void);
+	Type();
+	~Type();
 
-	virtual String ToString(void) const override;
+	virtual String ToString() const override;
 
-	virtual String GetName(void) const = 0;
-	virtual Type::Ptr GetBaseType(void) const = 0;
-	virtual int GetAttributes(void) const = 0;
+	virtual String GetName() const = 0;
+	virtual Type::Ptr GetBaseType() const = 0;
+	virtual int GetAttributes() const = 0;
 	virtual int GetFieldId(const String& name) const = 0;
 	virtual Field GetFieldInfo(int id) const = 0;
-	virtual int GetFieldCount(void) const = 0;
+	virtual int GetFieldCount() const = 0;
 
-	String GetPluralName(void) const;
+	String GetPluralName() const;
 
 	Object::Ptr Instantiate(const std::vector<Value>& args) const;
 
 	bool IsAssignableFrom(const Type::Ptr& other) const;
 
-	bool IsAbstract(void) const;
+	bool IsAbstract() const;
 
-	Object::Ptr GetPrototype(void) const;
+	Object::Ptr GetPrototype() const;
 	void SetPrototype(const Object::Ptr& object);
 
 	static void Register(const Type::Ptr& type);
 	static Type::Ptr GetByName(const String& name);
-	static std::vector<Type::Ptr> GetAllTypes(void);
+	static std::vector<Type::Ptr> GetAllTypes();
 
 	virtual void SetField(int id, const Value& value, bool suppress_events = false, const Value& cookie = Empty) override;
 	virtual Value GetField(int id) const override;
 
-	virtual std::vector<String> GetLoadDependencies(void) const;
+	virtual std::vector<String> GetLoadDependencies() const;
 
 	typedef std::function<void (const Object::Ptr&, const Value&)> AttributeHandler;
 	virtual void RegisterAttributeHandler(int fieldId, const AttributeHandler& callback);
 
 protected:
-	virtual ObjectFactory GetFactory(void) const = 0;
+	virtual ObjectFactory GetFactory() const = 0;
 
 private:
 	Object::Ptr m_Prototype;
@@ -122,17 +122,17 @@ class TypeType final : public Type
 public:
 	DECLARE_PTR_TYPEDEFS(Type);
 
-	virtual String GetName(void) const override;
-	virtual Type::Ptr GetBaseType(void) const override;
-	virtual int GetAttributes(void) const override;
+	virtual String GetName() const override;
+	virtual Type::Ptr GetBaseType() const override;
+	virtual int GetAttributes() const override;
 	virtual int GetFieldId(const String& name) const override;
 	virtual Field GetFieldInfo(int id) const override;
-	virtual int GetFieldCount(void) const override;
+	virtual int GetFieldCount() const override;
 
-	static Object::Ptr GetPrototype(void);
+	static Object::Ptr GetPrototype();
 
 protected:
-	virtual ObjectFactory GetFactory(void) const override;
+	virtual ObjectFactory GetFactory() const override;
 };
 
 template<typename T>

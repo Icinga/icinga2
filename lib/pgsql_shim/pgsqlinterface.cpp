@@ -23,7 +23,7 @@ using namespace icinga;
 
 struct PgsqlInterfaceImpl final : public PgsqlInterface
 {
-	void Destroy(void) override
+	void Destroy() override
 	{
 		delete this;
 	}
@@ -73,7 +73,7 @@ struct PgsqlInterfaceImpl final : public PgsqlInterface
 		return PQgetvalue(res, tup_num, field_num);
 	}
 
-	int isthreadsafe(void) const override
+	int isthreadsafe() const override
 	{
 		return PQisthreadsafe();
 	}
@@ -114,7 +114,7 @@ struct PgsqlInterfaceImpl final : public PgsqlInterface
 	}
 };
 
-PgsqlInterface *create_pgsql_shim(void)
+PgsqlInterface *create_pgsql_shim()
 {
 	return new PgsqlInterfaceImpl();
 }

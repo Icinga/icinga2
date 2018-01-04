@@ -39,7 +39,7 @@ static void ConfigObjectRestoreAttribute(const String& attr)
 	return self->RestoreAttribute(attr);
 }
 
-Object::Ptr ConfigObject::GetPrototype(void)
+Object::Ptr ConfigObject::GetPrototype()
 {
 	static Dictionary::Ptr prototype;
 

@@ -39,17 +39,17 @@ namespace icinga
 class SocketEvents
 {
 public:
-	~SocketEvents(void);
+	~SocketEvents();
 
 	virtual void OnEvent(int revents);
 
-	void Unregister(void);
+	void Unregister();
 
 	void ChangeEvents(int events);
 
-	bool IsHandlingEvents(void) const;
+	bool IsHandlingEvents() const;
 
-	void *GetEnginePrivate(void) const;
+	void *GetEnginePrivate() const;
 	void SetEnginePrivate(void *priv);
 
 protected:
@@ -63,7 +63,7 @@ private:
 
 	static int m_NextID;
 
-	static void InitializeEngine(void);
+	static void InitializeEngine();
 
 	void WakeUpThread(bool wait = false);
 
@@ -81,7 +81,7 @@ struct SocketEventDescriptor
 	SocketEvents *EventInterface;
 	Object *LifesupportObject;
 
-	SocketEventDescriptor(void)
+	SocketEventDescriptor()
 		: Events(POLLIN), EventInterface(nullptr), LifesupportObject(nullptr)
 	{ }
 };
@@ -96,7 +96,7 @@ struct EventDescription
 class SocketEventEngine
 {
 public:
-	void Start(void);
+	void Start();
 
 	void WakeUpThread(int sid, bool wait);
 

@@ -45,8 +45,8 @@ public:
 
 	static Service::Ptr GetByNamePair(const String& hostName, const String& serviceName);
 
-	virtual Host::Ptr GetHost(void) const override;
-	virtual int GetSeverity(void) const override;
+	virtual Host::Ptr GetHost() const override;
+	virtual int GetSeverity() const override;
 
 	virtual bool ResolveMacro(const String& macro, const CheckResult::Ptr& cr, Value *result) const override;
 
@@ -62,7 +62,7 @@ public:
 	static void EvaluateApplyRules(const Host::Ptr& host);
 
 protected:
-	virtual void OnAllConfigLoaded(void) override;
+	virtual void OnAllConfigLoaded() override;
 	virtual void CreateChildObjects(const Type::Ptr& childType) override;
 
 private:

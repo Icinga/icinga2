@@ -44,14 +44,14 @@ public:
 	static boost::signals2::signal<void (const Downtime::Ptr&)> OnDowntimeStarted;
 	static boost::signals2::signal<void (const Downtime::Ptr&)> OnDowntimeTriggered;
 
-	intrusive_ptr<Checkable> GetCheckable(void) const;
+	intrusive_ptr<Checkable> GetCheckable() const;
 
-	bool IsInEffect(void) const;
-	bool IsTriggered(void) const;
-	bool IsExpired(void) const;
-	bool HasValidConfigOwner(void) const;
+	bool IsInEffect() const;
+	bool IsTriggered() const;
+	bool IsExpired() const;
+	bool HasValidConfigOwner() const;
 
-	static int GetNextDowntimeID(void);
+	static int GetNextDowntimeID();
 
 	static String AddDowntime(const intrusive_ptr<Checkable>& checkable, const String& author,
 		const String& comment, double startTime, double endTime, bool fixed,
@@ -61,12 +61,12 @@ public:
 
 	static void RemoveDowntime(const String& id, bool cancelled, bool expired = false, const MessageOrigin::Ptr& origin = nullptr);
 
-	void TriggerDowntime(void);
+	void TriggerDowntime();
 
 	static String GetDowntimeIDFromLegacyID(int id);
 
 protected:
-	virtual void OnAllConfigLoaded(void) override;
+	virtual void OnAllConfigLoaded() override;
 	virtual void Start(bool runtimeCreated) override;
 	virtual void Stop(bool runtimeRemoved) override;
 
@@ -76,10 +76,10 @@ protected:
 private:
 	ObjectImpl<Checkable>::Ptr m_Checkable;
 
-	bool CanBeTriggered(void);
+	bool CanBeTriggered();
 
-	static void DowntimesStartTimerHandler(void);
-	static void DowntimesExpireTimerHandler(void);
+	static void DowntimesStartTimerHandler();
+	static void DowntimesExpireTimerHandler();
 };
 
 }

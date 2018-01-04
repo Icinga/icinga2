@@ -52,7 +52,7 @@ static void SigHupHandler(int)
 }
 #endif /* _WIN32 */
 
-static bool Daemonize(void)
+static bool Daemonize()
 {
 #ifndef _WIN32
 	Application::UninitializeBase();
@@ -169,12 +169,12 @@ static void TerminateAndWaitForEnd(pid_t target)
 #endif /* _WIN32 */
 }
 
-String DaemonCommand::GetDescription(void) const
+String DaemonCommand::GetDescription() const
 {
 	return "Starts Icinga 2.";
 }
 
-String DaemonCommand::GetShortDescription(void) const
+String DaemonCommand::GetShortDescription() const
 {
 	return "starts Icinga 2";
 }

@@ -42,7 +42,7 @@ public:
 	DECLARE_OBJECT(InfluxdbWriter);
 	DECLARE_OBJECTNAME(InfluxdbWriter);
 
-	InfluxdbWriter(void);
+	InfluxdbWriter();
 
 	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
@@ -50,7 +50,7 @@ public:
 	virtual void ValidateServiceTemplate(const Dictionary::Ptr& value, const ValidationUtils& utils) override;
 
 protected:
-	virtual void OnConfigLoaded(void) override;
+	virtual void OnConfigLoaded() override;
 	virtual void Start(bool runtimeCreated) override;
 	virtual void Stop(bool runtimeRemoved) override;
 
@@ -62,16 +62,16 @@ private:
 	void CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
 	void CheckResultHandlerWQ(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
 	void SendMetric(const Dictionary::Ptr& tmpl, const String& label, const Dictionary::Ptr& fields, double ts);
-	void FlushTimeout(void);
-	void FlushTimeoutWQ(void);
-	void Flush(void);
+	void FlushTimeout();
+	void FlushTimeoutWQ();
+	void Flush();
 
 	static String EscapeKeyOrTagValue(const String& str);
 	static String EscapeValue(const Value& value);
 
 	Stream::Ptr Connect();
 
-	void AssertOnWorkQueue(void);
+	void AssertOnWorkQueue();
 
 	void ExceptionHandler(boost::exception_ptr exp);
 };

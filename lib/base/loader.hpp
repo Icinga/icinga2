@@ -31,7 +31,7 @@ namespace icinga
 struct DeferredInitializer
 {
 public:
-	DeferredInitializer(const std::function<void (void)>& callback, int priority)
+	DeferredInitializer(const std::function<void ()>& callback, int priority)
 		: m_Callback(callback), m_Priority(priority)
 	{ }
 
@@ -40,13 +40,13 @@ public:
 		return m_Priority < other.m_Priority;
 	}
 
-	void operator()(void)
+	void operator()()
 	{
 		m_Callback();
 	}
 
 private:
-	std::function<void (void)> m_Callback;
+	std::function<void ()> m_Callback;
 	int m_Priority;
 };
 
@@ -58,13 +58,13 @@ private:
 class Loader
 {
 public:
-	static void AddDeferredInitializer(const std::function<void(void)>& callback, int priority = 0);
-	static void ExecuteDeferredInitializers(void);
+	static void AddDeferredInitializer(const std::function<void ()>& callback, int priority = 0);
+	static void ExecuteDeferredInitializers();
 
 private:
-	Loader(void);
+	Loader();
 
-	static boost::thread_specific_ptr<std::priority_queue<DeferredInitializer> >& GetDeferredInitializers(void);
+	static boost::thread_specific_ptr<std::priority_queue<DeferredInitializer> >& GetDeferredInitializers();
 };
 
 }

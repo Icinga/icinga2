@@ -112,7 +112,7 @@ static double MathPow(double x, double y)
 	return std::pow(x, y);
 }
 
-static double MathRandom(void)
+static double MathRandom()
 {
 	return (double)std::rand() / RAND_MAX;
 }

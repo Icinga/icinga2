@@ -279,7 +279,7 @@ LivestatusQuery::LivestatusQuery(const std::vector<String>& lines, const String&
 	m_Aggregators.swap(aggregators);
 }
 
-int LivestatusQuery::GetExternalCommands(void)
+int LivestatusQuery::GetExternalCommands()
 {
 	boost::mutex::scoped_lock lock(l_QueryMutex);
 

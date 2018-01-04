@@ -52,7 +52,7 @@ ScriptFrame::ScriptFrame(bool allocLocals, const Value& self)
 	InitializeFrame();
 }
 
-void ScriptFrame::InitializeFrame(void)
+void ScriptFrame::InitializeFrame()
 {
 	std::stack<ScriptFrame *> *frames = m_ScriptFrames.get();
 
@@ -65,13 +65,13 @@ void ScriptFrame::InitializeFrame(void)
 	PushFrame(this);
 }
 
-ScriptFrame::~ScriptFrame(void)
+ScriptFrame::~ScriptFrame()
 {
 	ScriptFrame *frame = PopFrame();
 	ASSERT(frame == this);
 }
 
-void ScriptFrame::IncreaseStackDepth(void)
+void ScriptFrame::IncreaseStackDepth()
 {
 	if (Depth + 1 > 300)
 		BOOST_THROW_EXCEPTION(ScriptError("Stack overflow while evaluating expression: Recursion level too deep."));
@@ -79,12 +79,12 @@ void ScriptFrame::IncreaseStackDepth(void)
 	Depth++;
 }
 
-void ScriptFrame::DecreaseStackDepth(void)
+void ScriptFrame::DecreaseStackDepth()
 {
 	Depth--;
 }
 
-ScriptFrame *ScriptFrame::GetCurrentFrame(void)
+ScriptFrame *ScriptFrame::GetCurrentFrame()
 {
 	std::stack<ScriptFrame *> *frames = m_ScriptFrames.get();
 
@@ -92,7 +92,7 @@ ScriptFrame *ScriptFrame::GetCurrentFrame(void)
 	return frames->top();
 }
 
-ScriptFrame *ScriptFrame::PopFrame(void)
+ScriptFrame *ScriptFrame::PopFrame()
 {
 	std::stack<ScriptFrame *> *frames = m_ScriptFrames.get();
 
@@ -121,7 +121,7 @@ void ScriptFrame::PushFrame(ScriptFrame *frame)
 	frames->push(frame);
 }
 
-Array::Ptr ScriptFrame::GetImports(void)
+Array::Ptr ScriptFrame::GetImports()
 {
 	return m_Imports;
 }

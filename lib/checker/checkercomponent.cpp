@@ -59,11 +59,11 @@ void CheckerComponent::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr
 	status->Set("checkercomponent", nodes);
 }
 
-CheckerComponent::CheckerComponent(void)
+CheckerComponent::CheckerComponent()
 	: m_Stopped(false)
 { }
 
-void CheckerComponent::OnConfigLoaded(void)
+void CheckerComponent::OnConfigLoaded()
 {
 	ConfigObject::OnActiveChanged.connect(std::bind(&CheckerComponent::ObjectHandler, this, _1));
 	ConfigObject::OnPausedChanged.connect(std::bind(&CheckerComponent::ObjectHandler, this, _1));
@@ -104,7 +104,7 @@ void CheckerComponent::Stop(bool runtimeRemoved)
 	ObjectImpl<CheckerComponent>::Stop(runtimeRemoved);
 }
 
-void CheckerComponent::CheckThreadProc(void)
+void CheckerComponent::CheckThreadProc()
 {
 	Utility::SetThreadName("Check Scheduler");
 
@@ -252,7 +252,7 @@ void CheckerComponent::ExecuteCheckHelper(const Checkable::Ptr& checkable)
 		<< "Check finished for object '" << checkable->GetName() << "'";
 }
 
-void CheckerComponent::ResultTimerHandler(void)
+void CheckerComponent::ResultTimerHandler()
 {
 	std::ostringstream msgbuf;
 
@@ -322,14 +322,14 @@ void CheckerComponent::NextCheckChangedHandler(const Checkable::Ptr& checkable)
 	m_CV.notify_all();
 }
 
-unsigned long CheckerComponent::GetIdleCheckables(void)
+unsigned long CheckerComponent::GetIdleCheckables()
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
 
 	return m_IdleCheckables.size();
 }
 
-unsigned long CheckerComponent::GetPendingCheckables(void)
+unsigned long CheckerComponent::GetPendingCheckables()
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
 

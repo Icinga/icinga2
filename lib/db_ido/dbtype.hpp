@@ -47,10 +47,10 @@ public:
 
 	DbType(const String& name, const String& table, long tid, const String& idcolumn, const ObjectFactory& factory);
 
-	String GetName(void) const;
-	String GetTable(void) const;
-	long GetTypeID(void) const;
-	String GetIDColumn(void) const;
+	String GetName() const;
+	String GetTable() const;
+	long GetTypeID() const;
+	String GetIDColumn() const;
 
 	static void RegisterType(const DbType::Ptr& type);
 
@@ -59,7 +59,7 @@ public:
 
 	intrusive_ptr<DbObject> GetOrCreateObjectByName(const String& name1, const String& name2);
 
-	static std::set<DbType::Ptr> GetAllTypes(void);
+	static std::set<DbType::Ptr> GetAllTypes();
 
 private:
 	String m_Name;
@@ -68,8 +68,8 @@ private:
 	String m_IDColumn;
 	ObjectFactory m_ObjectFactory;
 
-	static boost::mutex& GetStaticMutex(void);
-	static TypeMap& GetTypes(void);
+	static boost::mutex& GetStaticMutex();
+	static TypeMap& GetTypes();
 
 	ObjectMap m_Objects;
 };
@@ -82,7 +82,7 @@ private:
 class DbTypeRegistry : public Registry<DbTypeRegistry, DbType::Ptr>
 {
 public:
-	static DbTypeRegistry *GetInstance(void);
+	static DbTypeRegistry *GetInstance();
 };
 
 /**

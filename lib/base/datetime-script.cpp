@@ -33,7 +33,7 @@ static String DateTimeFormat(const String& format)
 	return self->Format(format);
 }
 
-Object::Ptr DateTime::GetPrototype(void)
+Object::Ptr DateTime::GetPrototype()
 {
 	static Dictionary::Ptr prototype;
 

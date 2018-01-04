@@ -43,12 +43,12 @@ namespace po = boost::program_options;
 
 REGISTER_CLICOMMAND("node/setup", NodeSetupCommand);
 
-String NodeSetupCommand::GetDescription(void) const
+String NodeSetupCommand::GetDescription() const
 {
 	return "Sets up an Icinga 2 node.";
 }
 
-String NodeSetupCommand::GetShortDescription(void) const
+String NodeSetupCommand::GetShortDescription() const
 {
 	return "set up node";
 }
@@ -84,7 +84,7 @@ std::vector<String> NodeSetupCommand::GetArgumentSuggestions(const String& argum
 		return CLICommand::GetArgumentSuggestions(argument, word);
 }
 
-ImpersonationLevel NodeSetupCommand::GetImpersonationLevel(void) const
+ImpersonationLevel NodeSetupCommand::GetImpersonationLevel() const
 {
 	return ImpersonateRoot;
 }

@@ -36,7 +36,7 @@ INITIALIZE_ONCE([]() {
  *
  * @returns An exit status.
  */
-int HelloApplication::Main(void)
+int HelloApplication::Main()
 {
 	Log(LogInformation, "HelloApplication", "Hello World!");
 

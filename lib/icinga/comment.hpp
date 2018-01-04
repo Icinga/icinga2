@@ -42,11 +42,11 @@ public:
 	static boost::signals2::signal<void (const Comment::Ptr&)> OnCommentAdded;
 	static boost::signals2::signal<void (const Comment::Ptr&)> OnCommentRemoved;
 
-	intrusive_ptr<Checkable> GetCheckable(void) const;
+	intrusive_ptr<Checkable> GetCheckable() const;
 
-	bool IsExpired(void) const;
+	bool IsExpired() const;
 
-	static int GetNextCommentID(void);
+	static int GetNextCommentID();
 
 	static String AddComment(const intrusive_ptr<Checkable>& checkable, CommentType entryType,
 		const String& author, const String& text, bool persistent, double expireTime,
@@ -57,14 +57,14 @@ public:
 	static String GetCommentIDFromLegacyID(int id);
 
 protected:
-	virtual void OnAllConfigLoaded(void) override;
+	virtual void OnAllConfigLoaded() override;
 	virtual void Start(bool runtimeCreated) override;
 	virtual void Stop(bool runtimeRemoved) override;
 
 private:
 	ObjectImpl<Checkable>::Ptr m_Checkable;
 
-	static void CommentsExpireTimerHandler(void);
+	static void CommentsExpireTimerHandler();
 };
 
 }

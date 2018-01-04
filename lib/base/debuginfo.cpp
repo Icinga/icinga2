@@ -23,7 +23,7 @@
 
 using namespace icinga;
 
-DebugInfo::DebugInfo(void)
+DebugInfo::DebugInfo()
 	: FirstLine(0), FirstColumn(0), LastLine(0), LastColumn(0)
 { }
 

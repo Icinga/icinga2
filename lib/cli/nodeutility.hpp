@@ -37,7 +37,7 @@ namespace icinga
 class NodeUtility
 {
 public:
-	static String GetConstantsConfPath(void);
+	static String GetConstantsConfPath();
 
 	static bool CreateBackupFile(const String& target, bool is_private = false);
 
@@ -50,7 +50,7 @@ public:
 	static int GenerateNodeMasterIcingaConfig(const std::vector<String>& globalZones);
 
 private:
-	NodeUtility(void);
+	NodeUtility();
 
 	static void SerializeObject(std::ostream& fp, const Dictionary::Ptr& object);
 };

@@ -91,7 +91,7 @@ static boost::thread_specific_ptr<DestCallback> l_LastExceptionDest;
 extern "C" void __cxa_throw(void *obj, TYPEINFO_TYPE *pvtinfo, void (*dest)(void *));
 #endif /* HAVE_CXXABI_H */
 
-void icinga::RethrowUncaughtException(void)
+void icinga::RethrowUncaughtException()
 {
 #if defined(__GLIBCXX__) || !defined(HAVE_CXXABI_H)
 	throw;
@@ -145,7 +145,7 @@ void __cxa_throw(void *obj, TYPEINFO_TYPE *pvtinfo, void (*dest)(void *))
 }
 #endif /* HAVE_CXXABI_H */
 
-StackTrace *icinga::GetLastExceptionStack(void)
+StackTrace *icinga::GetLastExceptionStack()
 {
 	return l_LastExceptionStack.get();
 }
@@ -155,7 +155,7 @@ void icinga::SetLastExceptionStack(const StackTrace& trace)
 	l_LastExceptionStack.reset(new StackTrace(trace));
 }
 
-ContextTrace *icinga::GetLastExceptionContext(void)
+ContextTrace *icinga::GetLastExceptionContext()
 {
 	return l_LastExceptionContext.get();
 }
@@ -291,25 +291,25 @@ ScriptError::ScriptError(const String& message, const DebugInfo& di, bool incomp
 	: m_Message(message), m_DebugInfo(di), m_IncompleteExpr(incompleteExpr), m_HandledByDebugger(false)
 { }
 
-ScriptError::~ScriptError(void) throw()
+ScriptError::~ScriptError() throw()
 { }
 
-const char *ScriptError::what(void) const throw()
+const char *ScriptError::what() const throw()
 {
 	return m_Message.CStr();
 }
 
-DebugInfo ScriptError::GetDebugInfo(void) const
+DebugInfo ScriptError::GetDebugInfo() const
 {
 	return m_DebugInfo;
 }
 
-bool ScriptError::IsIncompleteExpression(void) const
+bool ScriptError::IsIncompleteExpression() const
 {
 	return m_IncompleteExpr;;
 }
 
-bool ScriptError::IsHandledByDebugger(void) const
+bool ScriptError::IsHandledByDebugger() const
 {
 	return m_HandledByDebugger;
 }
@@ -319,16 +319,16 @@ void ScriptError::SetHandledByDebugger(bool handled)
 	m_HandledByDebugger = handled;
 }
 
-posix_error::posix_error(void)
+posix_error::posix_error()
 	: m_Message(nullptr)
 { }
 
-posix_error::~posix_error(void) throw()
+posix_error::~posix_error() throw()
 {
 	free(m_Message);
 }
 
-const char *posix_error::what(void) const throw()
+const char *posix_error::what() const throw()
 {
 	if (!m_Message) {
 		std::ostringstream msgbuf;
@@ -380,25 +380,25 @@ ValidationError::ValidationError(const ConfigObject::Ptr& object, const std::vec
 	m_What += ": " + message;
 }
 
-ValidationError::~ValidationError(void) throw()
+ValidationError::~ValidationError() throw()
 { }
 
-const char *ValidationError::what(void) const throw()
+const char *ValidationError::what() const throw()
 {
 	return m_What.CStr();
 }
 
-ConfigObject::Ptr ValidationError::GetObject(void) const
+ConfigObject::Ptr ValidationError::GetObject() const
 {
 	return m_Object;
 }
 
-std::vector<String> ValidationError::GetAttributePath(void) const
+std::vector<String> ValidationError::GetAttributePath() const
 {
 	return m_AttributePath;
 }
 
-String ValidationError::GetMessage(void) const
+String ValidationError::GetMessage() const
 {
 	return m_Message;
 }
@@ -408,7 +408,7 @@ void ValidationError::SetDebugHint(const Dictionary::Ptr& dhint)
 	m_DebugHint = dhint;
 }
 
-Dictionary::Ptr ValidationError::GetDebugHint(void) const
+Dictionary::Ptr ValidationError::GetDebugHint() const
 {
 	return m_DebugHint;
 }

@@ -35,12 +35,12 @@ HttpClientConnection::HttpClientConnection(const String& host, const String& por
 	: m_Host(host), m_Port(port), m_Tls(tls)
 { }
 
-void HttpClientConnection::Start(void)
+void HttpClientConnection::Start()
 {
 	/* Nothing to do here atm. */
 }
 
-void HttpClientConnection::Reconnect(void)
+void HttpClientConnection::Reconnect()
 {
 	if (m_Stream)
 		m_Stream->Close();
@@ -68,34 +68,34 @@ void HttpClientConnection::Reconnect(void)
 		DataAvailableHandler(m_Stream);
 }
 
-Stream::Ptr HttpClientConnection::GetStream(void) const
+Stream::Ptr HttpClientConnection::GetStream() const
 {
 	return m_Stream;
 }
 
-String HttpClientConnection::GetHost(void) const
+String HttpClientConnection::GetHost() const
 {
 	return m_Host;
 }
 
-String HttpClientConnection::GetPort(void) const
+String HttpClientConnection::GetPort() const
 {
 	return m_Port;
 }
 
-bool HttpClientConnection::GetTls(void) const
+bool HttpClientConnection::GetTls() const
 {
 	return m_Tls;
 }
 
-void HttpClientConnection::Disconnect(void)
+void HttpClientConnection::Disconnect()
 {
 	Log(LogDebug, "HttpClientConnection", "Http client disconnected");
 
 	m_Stream->Shutdown();
 }
 
-bool HttpClientConnection::ProcessMessage(void)
+bool HttpClientConnection::ProcessMessage()
 {
 	bool res;
 
@@ -161,7 +161,7 @@ void HttpClientConnection::DataAvailableHandler(const Stream::Ptr& stream)
 		m_Stream->Close();
 }
 
-std::shared_ptr<HttpRequest> HttpClientConnection::NewRequest(void)
+std::shared_ptr<HttpRequest> HttpClientConnection::NewRequest()
 {
 	Reconnect();
 	return std::make_shared<HttpRequest>(m_Stream);

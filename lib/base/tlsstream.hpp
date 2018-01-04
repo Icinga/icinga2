@@ -49,29 +49,29 @@ public:
 	DECLARE_PTR_TYPEDEFS(TlsStream);
 
 	TlsStream(const Socket::Ptr& socket, const String& hostname, ConnectionRole role, const std::shared_ptr<SSL_CTX>& sslContext = MakeSSLContext());
-	~TlsStream(void);
+	~TlsStream();
 
-	Socket::Ptr GetSocket(void) const;
+	Socket::Ptr GetSocket() const;
 
-	std::shared_ptr<X509> GetClientCertificate(void) const;
-	std::shared_ptr<X509> GetPeerCertificate(void) const;
+	std::shared_ptr<X509> GetClientCertificate() const;
+	std::shared_ptr<X509> GetPeerCertificate() const;
 
-	void Handshake(void);
+	void Handshake();
 
-	virtual void Close(void) override;
-	virtual void Shutdown(void) override;
+	virtual void Close() override;
+	virtual void Shutdown() override;
 
 	virtual size_t Peek(void *buffer, size_t count, bool allow_partial = false) override;
 	virtual size_t Read(void *buffer, size_t count, bool allow_partial = false) override;
 	virtual void Write(const void *buffer, size_t count) override;
 
-	virtual bool IsEof(void) const override;
+	virtual bool IsEof() const override;
 
-	virtual bool SupportsWaiting(void) const override;
-	virtual bool IsDataAvailable(void) const override;
+	virtual bool SupportsWaiting() const override;
+	virtual bool IsDataAvailable() const override;
 
-	bool IsVerifyOK(void) const;
-	String GetVerifyError(void) const;
+	bool IsVerifyOK() const;
+	String GetVerifyError() const;
 
 private:
 	std::shared_ptr<SSL> m_SSL;
@@ -99,7 +99,7 @@ private:
 
 	virtual void OnEvent(int revents) override;
 
-	void HandleError(void) const;
+	void HandleError() const;
 
 	static int ValidateCertificate(int preverify_ok, X509_STORE_CTX *ctx);
 	static void NullCertificateDeleter(X509 *certificate);

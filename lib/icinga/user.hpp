@@ -42,7 +42,7 @@ public:
 	void AddGroup(const String& name);
 
 	/* Notifications */
-	TimePeriod::Ptr GetPeriod(void) const;
+	TimePeriod::Ptr GetPeriod() const;
 
 	virtual void ValidateStates(const Array::Ptr& value, const ValidationUtils& utils) override;
 	virtual void ValidateTypes(const Array::Ptr& value, const ValidationUtils& utils) override;
@@ -50,8 +50,8 @@ public:
 protected:
 	virtual void Stop(bool runtimeRemoved) override;
 
-	virtual void OnConfigLoaded(void) override;
-	virtual void OnAllConfigLoaded(void) override;
+	virtual void OnConfigLoaded() override;
+	virtual void OnAllConfigLoaded() override;
 private:
 	mutable boost::mutex m_UserMutex;
 };

@@ -40,7 +40,7 @@ public:
 	static Dictionary::Ptr DecodeMessage(const String& message);
 
 private:
-	JsonRpc(void);
+	JsonRpc();
 };
 
 }

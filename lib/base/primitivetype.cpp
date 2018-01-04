@@ -26,12 +26,12 @@ PrimitiveType::PrimitiveType(const String& name, const String& base, const Objec
 	: m_Name(name), m_Base(base), m_Factory(factory)
 { }
 
-String PrimitiveType::GetName(void) const
+String PrimitiveType::GetName() const
 {
 	return m_Name;
 }
 
-Type::Ptr PrimitiveType::GetBaseType(void) const
+Type::Ptr PrimitiveType::GetBaseType() const
 {
 	if (m_Base == "None")
 		return nullptr;
@@ -39,7 +39,7 @@ Type::Ptr PrimitiveType::GetBaseType(void) const
 		return Type::GetByName(m_Base);
 }
 
-int PrimitiveType::GetAttributes(void) const
+int PrimitiveType::GetAttributes() const
 {
 	return 0;
 }
@@ -64,7 +64,7 @@ Field PrimitiveType::GetFieldInfo(int id) const
 		throw std::runtime_error("Invalid field ID.");
 }
 
-int PrimitiveType::GetFieldCount(void) const
+int PrimitiveType::GetFieldCount() const
 {
 	Type::Ptr base = GetBaseType();
 
@@ -74,7 +74,7 @@ int PrimitiveType::GetFieldCount(void) const
 		return 0;
 }
 
-ObjectFactory PrimitiveType::GetFactory(void) const
+ObjectFactory PrimitiveType::GetFactory() const
 {
 	return m_Factory;
 }

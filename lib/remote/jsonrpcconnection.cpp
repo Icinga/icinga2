@@ -52,7 +52,7 @@ JsonRpcConnection::JsonRpcConnection(const String& identity, bool authenticated,
 		m_Endpoint = Endpoint::GetByName(identity);
 }
 
-void JsonRpcConnection::StaticInitialize(void)
+void JsonRpcConnection::StaticInitialize()
 {
 	l_JsonRpcConnectionTimeoutTimer = new Timer();
 	l_JsonRpcConnectionTimeoutTimer->OnTimerExpired.connect(std::bind(&JsonRpcConnection::TimeoutTimerHandler));
@@ -72,7 +72,7 @@ void JsonRpcConnection::StaticInitialize(void)
 	l_HeartbeatTimer->Start();
 }
 
-void JsonRpcConnection::Start(void)
+void JsonRpcConnection::Start()
 {
 	/* the stream holds an owning reference to this object through the callback we're registering here */
 	m_Stream->RegisterDataHandler(std::bind(&JsonRpcConnection::DataAvailableHandler, JsonRpcConnection::Ptr(this)));
@@ -80,32 +80,32 @@ void JsonRpcConnection::Start(void)
 		DataAvailableHandler();
 }
 
-double JsonRpcConnection::GetTimestamp(void) const
+double JsonRpcConnection::GetTimestamp() const
 {
 	return m_Timestamp;
 }
 
-String JsonRpcConnection::GetIdentity(void) const
+String JsonRpcConnection::GetIdentity() const
 {
 	return m_Identity;
 }
 
-bool JsonRpcConnection::IsAuthenticated(void) const
+bool JsonRpcConnection::IsAuthenticated() const
 {
 	return m_Authenticated;
 }
 
-Endpoint::Ptr JsonRpcConnection::GetEndpoint(void) const
+Endpoint::Ptr JsonRpcConnection::GetEndpoint() const
 {
 	return m_Endpoint;
 }
 
-TlsStream::Ptr JsonRpcConnection::GetStream(void) const
+TlsStream::Ptr JsonRpcConnection::GetStream() const
 {
 	return m_Stream;
 }
 
-ConnectionRole JsonRpcConnection::GetRole(void) const
+ConnectionRole JsonRpcConnection::GetRole() const
 {
 	return m_Role;
 }
@@ -128,7 +128,7 @@ void JsonRpcConnection::SendMessage(const Dictionary::Ptr& message)
 	}
 }
 
-void JsonRpcConnection::Disconnect(void)
+void JsonRpcConnection::Disconnect()
 {
 	Log(LogWarning, "JsonRpcConnection")
 		<< "API client disconnected for identity '" << m_Identity << "'";
@@ -237,7 +237,7 @@ void JsonRpcConnection::MessageHandler(const String& jsonString)
 	}
 }
 
-bool JsonRpcConnection::ProcessMessage(void)
+bool JsonRpcConnection::ProcessMessage()
 {
 	String message;
 
@@ -251,7 +251,7 @@ bool JsonRpcConnection::ProcessMessage(void)
 	return true;
 }
 
-void JsonRpcConnection::DataAvailableHandler(void)
+void JsonRpcConnection::DataAvailableHandler()
 {
 	bool close = false;
 
@@ -297,7 +297,7 @@ Value SetLogPositionHandler(const MessageOrigin::Ptr& origin, const Dictionary::
 	return Empty;
 }
 
-void JsonRpcConnection::CheckLiveness(void)
+void JsonRpcConnection::CheckLiveness()
 {
 	if (m_Seen < Utility::GetTime() - 60 && (!m_Endpoint || !m_Endpoint->GetSyncing())) {
 		Log(LogInformation, "JsonRpcConnection")
@@ -306,7 +306,7 @@ void JsonRpcConnection::CheckLiveness(void)
 	}
 }
 
-void JsonRpcConnection::TimeoutTimerHandler(void)
+void JsonRpcConnection::TimeoutTimerHandler()
 {
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 
@@ -321,12 +321,12 @@ void JsonRpcConnection::TimeoutTimerHandler(void)
 	}
 }
 
-size_t JsonRpcConnection::GetWorkQueueCount(void)
+size_t JsonRpcConnection::GetWorkQueueCount()
 {
 	return l_JsonRpcConnectionWorkQueueCount;
 }
 
-size_t JsonRpcConnection::GetWorkQueueLength(void)
+size_t JsonRpcConnection::GetWorkQueueLength()
 {
 	size_t itemCount = 0;
 
@@ -336,7 +336,7 @@ size_t JsonRpcConnection::GetWorkQueueLength(void)
 	return itemCount;
 }
 
-double JsonRpcConnection::GetWorkQueueRate(void)
+double JsonRpcConnection::GetWorkQueueRate()
 {
 	double rate = 0.0;
 	size_t count = GetWorkQueueCount();

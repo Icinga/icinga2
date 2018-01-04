@@ -39,7 +39,7 @@ public:
 		const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros);
 
 private:
-	PluginCheckTask(void);
+	PluginCheckTask();
 
 	static void ProcessFinishedHandler(const Checkable::Ptr& service,
 		const CheckResult::Ptr& cr, const Value& commandLine, const ProcessResult& pr);

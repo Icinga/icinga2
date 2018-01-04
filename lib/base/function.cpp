@@ -48,7 +48,7 @@ Value Function::InvokeThis(const Value& otherThis, const std::vector<Value>& arg
 	return m_Callback(arguments);
 }
 
-Object::Ptr Function::Clone(void) const
+Object::Ptr Function::Clone() const
 {
 	return const_cast<Function *>(this);
 }

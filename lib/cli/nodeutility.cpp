@@ -43,7 +43,7 @@
 
 using namespace icinga;
 
-String NodeUtility::GetConstantsConfPath(void)
+String NodeUtility::GetConstantsConfPath()
 {
 	return Application::GetSysconfDir() + "/icinga2/constants.conf";
 }

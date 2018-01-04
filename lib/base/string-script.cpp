@@ -27,14 +27,14 @@
 
 using namespace icinga;
 
-static int StringLen(void)
+static int StringLen()
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	String self = vframe->Self;
 	return self.GetLength();
 }
 
-static String StringToString(void)
+static String StringToString()
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	return vframe->Self;
@@ -57,14 +57,14 @@ static String StringSubstr(const std::vector<Value>& args)
 		return self.SubStr(args[0]);
 }
 
-static String StringUpper(void)
+static String StringUpper()
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	String self = vframe->Self;
 	return boost::to_upper_copy(self);
 }
 
-static String StringLower(void)
+static String StringLower()
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	String self = vframe->Self;
@@ -125,21 +125,21 @@ static Value StringReplace(const String& search, const String& replacement)
 	return self;
 }
 
-static String StringReverse(void)
+static String StringReverse()
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	String self = vframe->Self;
 	return self.Reverse();
 }
 
-static String StringTrim(void)
+static String StringTrim()
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	String self = vframe->Self;
 	return self.Trim();
 }
 
-Object::Ptr String::GetPrototype(void)
+Object::Ptr String::GetPrototype()
 {
 	static Dictionary::Ptr prototype;
 

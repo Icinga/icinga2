@@ -29,7 +29,7 @@ using namespace icinga;
 
 REGISTER_TYPE(User);
 
-void User::OnConfigLoaded(void)
+void User::OnConfigLoaded()
 {
 	ObjectImpl<User>::OnConfigLoaded();
 
@@ -37,7 +37,7 @@ void User::OnConfigLoaded(void)
 	SetStateFilter(FilterArrayToInt(GetStates(), Notification::GetStateFilterMap(), ~0));
 }
 
-void User::OnAllConfigLoaded(void)
+void User::OnAllConfigLoaded()
 {
 	ObjectImpl<User>::OnAllConfigLoaded();
 
@@ -92,7 +92,7 @@ void User::AddGroup(const String& name)
 	groups->Add(name);
 }
 
-TimePeriod::Ptr User::GetPeriod(void) const
+TimePeriod::Ptr User::GetPeriod() const
 {
 	return TimePeriod::GetByName(GetPeriodRaw());
 }

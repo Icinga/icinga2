@@ -38,27 +38,27 @@ public:
 	DECLARE_OBJECT(IcingaApplication);
 	DECLARE_OBJECTNAME(IcingaApplication);
 
-	static void StaticInitialize(void);
+	static void StaticInitialize();
 
-	virtual int Main(void) override;
+	virtual int Main() override;
 
 	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
-	static IcingaApplication::Ptr GetInstance(void);
+	static IcingaApplication::Ptr GetInstance();
 
-	String GetPidPath(void) const;
+	String GetPidPath() const;
 
 	virtual bool ResolveMacro(const String& macro, const CheckResult::Ptr& cr, Value *result) const override;
 
-	String GetNodeName(void) const;
+	String GetNodeName() const;
 
 	virtual void ValidateVars(const Dictionary::Ptr& value, const ValidationUtils& utils) override;
 
 private:
-	void DumpProgramState(void);
-	void DumpModifiedAttributes(void);
+	void DumpProgramState();
+	void DumpModifiedAttributes();
 
-	virtual void OnShutdown(void) override;
+	virtual void OnShutdown() override;
 };
 
 }

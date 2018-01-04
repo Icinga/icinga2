@@ -40,14 +40,14 @@ public:
 	static bool SetupMaster(const String& cn, bool prompt_restart = false);
 
 	static bool SetupMasterCertificates(const String& cn);
-	static bool SetupMasterApiUser(void);
-	static bool SetupMasterEnableApi(void);
+	static bool SetupMasterApiUser();
+	static bool SetupMasterEnableApi();
 	static bool SetupMasterUpdateConstants(const String& cn);
 
-	static String GetConfdPath(void);
+	static String GetConfdPath();
 
 private:
-	ApiSetupUtility(void);
+	ApiSetupUtility();
 };
 
 }

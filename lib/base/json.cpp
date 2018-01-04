@@ -129,7 +129,7 @@ struct JsonElement
 	bool KeySet;
 	Value EValue;
 
-	JsonElement(void)
+	JsonElement()
 		: KeySet(false)
 	{ }
 };
@@ -145,7 +145,7 @@ public:
 		m_Stack.push(element);
 	}
 
-	JsonElement Pop(void)
+	JsonElement Pop()
 	{
 		JsonElement value = m_Stack.top();
 		m_Stack.pop();
@@ -180,18 +180,18 @@ public:
 		}
 	}
 
-	Value GetValue(void) const
+	Value GetValue() const
 	{
 		ASSERT(m_Stack.size() == 1);
 		return m_Stack.top().EValue;
 	}
 
-	void SaveException(void)
+	void SaveException()
 	{
 		m_Exception = boost::current_exception();
 	}
 
-	void ThrowException(void) const
+	void ThrowException() const
 	{
 		if (m_Exception)
 			boost::rethrow_exception(m_Exception);

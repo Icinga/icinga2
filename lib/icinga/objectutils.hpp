@@ -38,7 +38,7 @@ public:
 	static Array::Ptr GetServices(const Value& host);
 
 private:
-	ObjectUtils(void);
+	ObjectUtils();
 };
 
 }

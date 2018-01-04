@@ -25,14 +25,14 @@
 using namespace icinga;
 
 template class boost::variant<boost::blank, double, bool, String, Object::Ptr>;
-template const double& Value::Get<double>(void) const;
-template const bool& Value::Get<bool>(void) const;
-template const String& Value::Get<String>(void) const;
-template const Object::Ptr& Value::Get<Object::Ptr>(void) const;
+template const double& Value::Get<double>() const;
+template const bool& Value::Get<bool>() const;
+template const String& Value::Get<String>() const;
+template const Object::Ptr& Value::Get<Object::Ptr>() const;
 
 Value icinga::Empty;
 
-Value::Value(void)
+Value::Value()
 { }
 
 Value::Value(std::nullptr_t)
@@ -105,7 +105,7 @@ Value::Value(const intrusive_ptr<Object>& value)
 		m_Value = value;
 }
 
-Value::~Value(void)
+Value::~Value()
 { }
 
 Value& Value::operator=(const Value& other)
@@ -130,7 +130,7 @@ Value& Value::operator=(Value&& other)
  *
  * @returns true if the variant is empty, false otherwise.
  */
-bool Value::IsEmpty(void) const
+bool Value::IsEmpty() const
 {
 	return (GetType() == ValueEmpty || (IsString() && boost::get<String>(m_Value).IsEmpty()));
 }
@@ -140,7 +140,7 @@ bool Value::IsEmpty(void) const
  *
  * @returns true if the variant is scalar, false otherwise.
  */
-bool Value::IsScalar(void) const
+bool Value::IsScalar() const
 {
 	return !IsEmpty() && !IsObject();
 }
@@ -150,7 +150,7 @@ bool Value::IsScalar(void) const
 *
 * @returns true if the variant is a number.
 */
-bool Value::IsNumber(void) const
+bool Value::IsNumber() const
 {
 	return (GetType() == ValueNumber);
 }
@@ -160,7 +160,7 @@ bool Value::IsNumber(void) const
  *
  * @returns true if the variant is a boolean.
  */
-bool Value::IsBoolean(void) const
+bool Value::IsBoolean() const
 {
 	return (GetType() == ValueBoolean);
 }
@@ -170,7 +170,7 @@ bool Value::IsBoolean(void) const
  *
  * @returns true if the variant is a string.
  */
-bool Value::IsString(void) const
+bool Value::IsString() const
 {
 	return (GetType() == ValueString);
 }
@@ -180,7 +180,7 @@ bool Value::IsString(void) const
  *
  * @returns true if the variant is a non-null object, false otherwise.
  */
-bool Value::IsObject(void) const
+bool Value::IsObject() const
 {
 	return  (GetType() == ValueObject);
 }
@@ -190,7 +190,7 @@ bool Value::IsObject(void) const
  *
  * @returns The type.
  */
-ValueType Value::GetType(void) const
+ValueType Value::GetType() const
 {
 	return static_cast<ValueType>(m_Value.which());
 }
@@ -200,7 +200,7 @@ void Value::Swap(Value& other)
 	m_Value.swap(other.m_Value);
 }
 
-bool Value::ToBool(void) const
+bool Value::ToBool() const
 {
 	switch (GetType()) {
 		case ValueNumber:
@@ -231,7 +231,7 @@ bool Value::ToBool(void) const
 	}
 }
 
-String Value::GetTypeName(void) const
+String Value::GetTypeName() const
 {
 	Type::Ptr t;
 
@@ -260,7 +260,7 @@ String Value::GetTypeName(void) const
 	}
 }
 
-Type::Ptr Value::GetReflectionType(void) const
+Type::Ptr Value::GetReflectionType() const
 {
 	switch (GetType()) {
 		case ValueEmpty:
@@ -278,7 +278,7 @@ Type::Ptr Value::GetReflectionType(void) const
 	}
 }
 
-Value Value::Clone(void) const
+Value Value::Clone() const
 {
 	if (IsObject())
 		return static_cast<Object::Ptr>(*this)->Clone();

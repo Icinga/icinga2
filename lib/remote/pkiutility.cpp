@@ -34,7 +34,7 @@
 
 using namespace icinga;
 
-int PkiUtility::NewCa(void)
+int PkiUtility::NewCa()
 {
 	String caDir = ApiListener::GetCaDir();
 	String caCertFile = caDir + "/ca.crt";
@@ -424,7 +424,7 @@ static void CollectRequestHandler(const Dictionary::Ptr& requests, const String&
 	requests->Set(fingerprint, result);
 }
 
-Dictionary::Ptr PkiUtility::GetCertificateRequests(void)
+Dictionary::Ptr PkiUtility::GetCertificateRequests()
 {
 	Dictionary::Ptr requests = new Dictionary();
 

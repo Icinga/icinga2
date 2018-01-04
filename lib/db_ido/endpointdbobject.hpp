@@ -39,10 +39,10 @@ public:
 
 	EndpointDbObject(const intrusive_ptr<DbType>& type, const String& name1, const String& name2);
 
-	static void StaticInitialize(void);
+	static void StaticInitialize();
 
-	virtual Dictionary::Ptr GetConfigFields(void) const override;
-	virtual Dictionary::Ptr GetStatusFields(void) const override;
+	virtual Dictionary::Ptr GetConfigFields() const override;
+	virtual Dictionary::Ptr GetStatusFields() const override;
 
 private:
 	static void UpdateConnectedStatus(const Endpoint::Ptr& endpoint);

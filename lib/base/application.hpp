@@ -39,44 +39,44 @@ class Application : public ObjectImpl<Application> {
 public:
 	DECLARE_OBJECT(Application);
 
-	static boost::signals2::signal<void (void)> OnReopenLogs;
+	static boost::signals2::signal<void ()> OnReopenLogs;
 
-	~Application(void);
+	~Application();
 
-	static void InitializeBase(void);
-	static void UninitializeBase(void);
+	static void InitializeBase();
+	static void UninitializeBase();
 
-	static Application::Ptr GetInstance(void);
+	static Application::Ptr GetInstance();
 
 	static void Exit(int rc);
 
-	int Run(void);
+	int Run();
 
 	/**
 	 * Starts the application.
 	 *
 	 * @returns The exit code of the application.
 	 */
-	virtual int Main(void) = 0;
+	virtual int Main() = 0;
 
-	static void SetResourceLimits(void);
+	static void SetResourceLimits();
 
-	static int GetArgC(void);
+	static int GetArgC();
 	static void SetArgC(int argc);
 
-	static char **GetArgV(void);
+	static char **GetArgV();
 	static void SetArgV(char **argv);
 
-	static void InstallExceptionHandlers(void);
+	static void InstallExceptionHandlers();
 
-	static void RequestShutdown(void);
-	static void RequestRestart(void);
-	static void RequestReopenLogs(void);
+	static void RequestShutdown();
+	static void RequestRestart();
+	static void RequestReopenLogs();
 
-	static bool IsShuttingDown(void);
+	static bool IsShuttingDown();
 
 	static void SetDebuggingSeverity(LogSeverity severity);
-	static LogSeverity GetDebuggingSeverity(void);
+	static LogSeverity GetDebuggingSeverity();
 
 	void UpdatePidFile(const String& filename, pid_t pid = Utility::GetPid());
 	void ClosePidFile(bool unlink);
@@ -84,95 +84,95 @@ public:
 
 	static String GetExePath(const String& argv0);
 
-	static String GetPrefixDir(void);
+	static String GetPrefixDir();
 	static void DeclarePrefixDir(const String& path);
 
-	static String GetSysconfDir(void);
+	static String GetSysconfDir();
 	static void DeclareSysconfDir(const String& path);
 
-	static String GetZonesDir(void);
+	static String GetZonesDir();
 	static void DeclareZonesDir(const String& path);
 
-	static String GetRunDir(void);
+	static String GetRunDir();
 	static void DeclareRunDir(const String& path);
 
-	static String GetLocalStateDir(void);
+	static String GetLocalStateDir();
 	static void DeclareLocalStateDir(const String& path);
 
-	static String GetPkgDataDir(void);
+	static String GetPkgDataDir();
 	static void DeclarePkgDataDir(const String& path);
 
-	static String GetIncludeConfDir(void);
+	static String GetIncludeConfDir();
 	static void DeclareIncludeConfDir(const String& path);
 
-	static String GetStatePath(void);
+	static String GetStatePath();
 	static void DeclareStatePath(const String& path);
 
-	static String GetModAttrPath(void);
+	static String GetModAttrPath();
 	static void DeclareModAttrPath(const String& path);
 
-	static String GetObjectsPath(void);
+	static String GetObjectsPath();
 	static void DeclareObjectsPath(const String& path);
 
-	static String GetVarsPath(void);
+	static String GetVarsPath();
 	static void DeclareVarsPath(const String& path);
 
-	static String GetPidPath(void);
+	static String GetPidPath();
 	static void DeclarePidPath(const String& path);
 
-	static String GetRunAsUser(void);
+	static String GetRunAsUser();
 	static void DeclareRunAsUser(const String& user);
 
-	static String GetRunAsGroup(void);
+	static String GetRunAsGroup();
 	static void DeclareRunAsGroup(const String& group);
 
 #ifdef _WIN32
-	static bool IsProcessElevated(void);
+	static bool IsProcessElevated();
 #endif /* _WIN32 */
 
-	static int GetRLimitFiles(void);
-	static int GetDefaultRLimitFiles(void);
+	static int GetRLimitFiles();
+	static int GetDefaultRLimitFiles();
 	static void DeclareRLimitFiles(int limit);
 
-	static int GetRLimitProcesses(void);
-	static int GetDefaultRLimitProcesses(void);
+	static int GetRLimitProcesses();
+	static int GetDefaultRLimitProcesses();
 	static void DeclareRLimitProcesses(int limit);
 
-	static int GetRLimitStack(void);
-	static int GetDefaultRLimitStack(void);
+	static int GetRLimitStack();
+	static int GetDefaultRLimitStack();
 	static void DeclareRLimitStack(int limit);
 
-	static int GetConcurrency(void);
+	static int GetConcurrency();
 	static void DeclareConcurrency(int ncpus);
 
-	static ThreadPool& GetTP(void);
+	static ThreadPool& GetTP();
 
-	static String GetAppVersion(void);
-	static String GetAppSpecVersion(void);
+	static String GetAppVersion();
+	static String GetAppSpecVersion();
 
-	static double GetStartTime(void);
+	static double GetStartTime();
 	static void SetStartTime(double ts);
 
-	static double GetMainTime(void);
+	static double GetMainTime();
 	static void SetMainTime(double ts);
 
-	static bool GetScriptDebuggerEnabled(void);
+	static bool GetScriptDebuggerEnabled();
 	static void SetScriptDebuggerEnabled(bool enabled);
 
-	static double GetLastReloadFailed(void);
+	static double GetLastReloadFailed();
 	static void SetLastReloadFailed(double ts);
 
 	static void DisplayInfoMessage(std::ostream& os, bool skipVersion = false);
 
 protected:
-	virtual void OnConfigLoaded(void) override;
+	virtual void OnConfigLoaded() override;
 	virtual void Stop(bool runtimeRemoved) override;
 
-	void RunEventLoop(void);
+	void RunEventLoop();
 
-	pid_t StartReloadProcess(void);
+	pid_t StartReloadProcess();
 
-	virtual void OnShutdown(void);
+	virtual void OnShutdown();
 
 	virtual void ValidateName(const String& value, const ValidationUtils& utils) override final;
 
@@ -205,9 +205,9 @@ private:
 
 	static void SigAbrtHandler(int signum);
 	static void SigUsr1Handler(int signum);
-	static void ExceptionHandler(void);
+	static void ExceptionHandler();
 
-	static String GetCrashReportFilename(void);
+	static String GetCrashReportFilename();
 
 	static void AttachDebugger(const String& filename, bool interactive);
 };

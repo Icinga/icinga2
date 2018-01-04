@@ -40,7 +40,7 @@ static void TypeRegisterAttributeHandler(const String& fieldName, const Function
 	self->RegisterAttributeHandler(fid, std::bind(&InvokeAttributeHandlerHelper, callback, _1, _2));
 }
 
-Object::Ptr TypeType::GetPrototype(void)
+Object::Ptr TypeType::GetPrototype()
 {
 	static Dictionary::Ptr prototype;
 

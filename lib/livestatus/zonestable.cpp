@@ -23,7 +23,7 @@
 
 using namespace icinga;
 
-ZonesTable::ZonesTable(void)
+ZonesTable::ZonesTable()
 {
 	AddColumns(this);
 }
@@ -37,12 +37,12 @@ void ZonesTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "global", Column(&ZonesTable::GlobalAccessor, objectAccessor));
 }
 
-String ZonesTable::GetName(void) const
+String ZonesTable::GetName() const
 {
 	return "zones";
 }
 
-String ZonesTable::GetPrefix(void) const
+String ZonesTable::GetPrefix() const
 {
 	return "zone";
 }

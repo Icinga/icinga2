@@ -53,7 +53,7 @@ using namespace icinga;
 
 REGISTER_TYPE(Application);
 
-boost::signals2::signal<void (void)> Application::OnReopenLogs;
+boost::signals2::signal<void ()> Application::OnReopenLogs;
 Application::Ptr Application::m_Instance = nullptr;
 bool Application::m_ShuttingDown = false;
 bool Application::m_RequestRestart = false;
@@ -71,7 +71,7 @@ double Application::m_LastReloadFailed;
 /**
  * Constructor for the Application class.
  */
-void Application::OnConfigLoaded(void)
+void Application::OnConfigLoaded()
 {
 	m_PidFile = nullptr;
 
@@ -113,7 +113,7 @@ void Application::Stop(bool runtimeRemoved)
 	ObjectImpl<Application>::Stop(runtimeRemoved);
 }
 
-Application::~Application(void)
+Application::~Application()
 {
 	m_Instance = nullptr;
 }
@@ -135,7 +135,7 @@ void Application::Exit(int rc)
 #endif /* I2_DEBUG */
 }
 
-void Application::InitializeBase(void)
+void Application::InitializeBase()
 {
 #ifdef _WIN32
 	/* disable GUI-based error messages for LoadLibrary() */
@@ -160,7 +160,7 @@ void Application::InitializeBase(void)
 	GetTP().Start();
 }
 
-void Application::UninitializeBase(void)
+void Application::UninitializeBase()
 {
 	Timer::Uninitialize();
 
@@ -172,12 +172,12 @@ void Application::UninitializeBase(void)
  *
  * @returns The application object.
  */
-Application::Ptr Application::GetInstance(void)
+Application::Ptr Application::GetInstance()
 {
 	return m_Instance;
 }
 
-void Application::SetResourceLimits(void)
+void Application::SetResourceLimits()
 {
 #ifdef __linux__
 	rlimit rl;
@@ -289,7 +289,7 @@ void Application::SetResourceLimits(void)
 #endif /* __linux__ */
 }
 
-int Application::GetArgC(void)
+int Application::GetArgC()
 {
 	return m_ArgC;
 }
@@ -299,7 +299,7 @@ void Application::SetArgC(int argc)
 	m_ArgC = argc;
 }
 
-char **Application::GetArgV(void)
+char **Application::GetArgV()
 {
 	return m_ArgV;
 }
@@ -313,7 +313,7 @@ void Application::SetArgV(char **argv)
  * Processes events for registered sockets and timers and calls whatever
  * handlers have been set up for these events.
  */
-void Application::RunEventLoop(void)
+void Application::RunEventLoop()
 {
 	double lastLoop = Utility::GetTime();
 
@@ -365,12 +365,12 @@ mainloop:
 	UninitializeBase();
 }
 
-bool Application::IsShuttingDown(void)
+bool Application::IsShuttingDown()
 {
 	return m_ShuttingDown;
 }
 
-void Application::OnShutdown(void)
+void Application::OnShutdown()
 {
 	/* Nothing to do here. */
 }
@@ -395,7 +395,7 @@ static void ReloadProcessCallback(const ProcessResult& pr)
 	t.detach();
 }
 
-pid_t Application::StartReloadProcess(void)
+pid_t Application::StartReloadProcess()
 {
 	Log(LogInformation, "Application", "Got reload command: Starting new instance.");
 
@@ -428,7 +428,7 @@ pid_t Application::StartReloadProcess(void)
  * Signals the application to shut down during the next
  * execution of the event loop.
  */
-void Application::RequestShutdown(void)
+void Application::RequestShutdown()
 {
 	Log(LogInformation, "Application", "Received request to shut down.");
 
@@ -439,7 +439,7 @@ void Application::RequestShutdown(void)
  * Signals the application to restart during the next
  * execution of the event loop.
  */
-void Application::RequestRestart(void)
+void Application::RequestRestart()
 {
 	m_RequestRestart = true;
 }
@@ -448,7 +448,7 @@ void Application::RequestRestart(void)
  * Signals the application to reopen log files during the
  * next execution of the event loop.
  */
-void Application::RequestReopenLogs(void)
+void Application::RequestReopenLogs()
 {
 	m_RequestReopenLogs = true;
 }
@@ -577,7 +577,7 @@ void Application::DisplayBugMessage(std::ostream& os)
 		<< "***" << "\n";
 }
 
-String Application::GetCrashReportFilename(void)
+String Application::GetCrashReportFilename()
 {
 	return GetLocalStateDir() + "/log/icinga2/crash/report." + Convert::ToString(Utility::GetTime());
 }
@@ -787,7 +787,7 @@ BOOL WINAPI Application::CtrlHandler(DWORD type)
 	return TRUE;
 }
 
-bool Application::IsProcessElevated(void) {
+bool Application::IsProcessElevated() {
 	BOOL fIsElevated = FALSE;
 	DWORD dwError = ERROR_SUCCESS;
 	HANDLE hToken = nullptr;
@@ -825,7 +825,7 @@ bool Application::IsProcessElevated(void) {
 /**
  * Handler for unhandled exceptions.
  */
-void Application::ExceptionHandler(void)
+void Application::ExceptionHandler()
 {
 	if (l_InExceptionHandler)
 		for (;;)
@@ -934,7 +934,7 @@ LONG CALLBACK Application::SEHUnhandledExceptionFilter(PEXCEPTION_POINTERS exi)
 /**
  * Installs the exception handlers.
  */
-void Application::InstallExceptionHandlers(void)
+void Application::InstallExceptionHandlers()
 {
 	std::set_terminate(&Application::ExceptionHandler);
 
@@ -953,7 +953,7 @@ void Application::InstallExceptionHandlers(void)
  *
  * @returns The application's exit code.
  */
-int Application::Run(void)
+int Application::Run()
 {
 #ifndef _WIN32
 	struct sigaction sa;
@@ -1123,7 +1123,7 @@ pid_t Application::ReadPidFile(const String& filename)
  *
  * @returns The path.
  */
-String Application::GetPrefixDir(void)
+String Application::GetPrefixDir()
 {
 	return ScriptGlobal::Get("PrefixDir");
 }
@@ -1144,7 +1144,7 @@ void Application::DeclarePrefixDir(const String& path)
  *
  * @returns The path.
  */
-String Application::GetSysconfDir(void)
+String Application::GetSysconfDir()
 {
 	return ScriptGlobal::Get("SysconfDir");
 }
@@ -1165,7 +1165,7 @@ void Application::DeclareSysconfDir(const String& path)
  *
  * @returns The path.
  */
-String Application::GetRunDir(void)
+String Application::GetRunDir()
 {
 	return ScriptGlobal::Get("RunDir");
 }
@@ -1186,7 +1186,7 @@ void Application::DeclareRunDir(const String& path)
  *
  * @returns The path.
  */
-String Application::GetLocalStateDir(void)
+String Application::GetLocalStateDir()
 {
 	return ScriptGlobal::Get("LocalStateDir");
 }
@@ -1207,7 +1207,7 @@ void Application::DeclareLocalStateDir(const String& path)
  *
  * @returns The path.
  */
-String Application::GetZonesDir(void)
+String Application::GetZonesDir()
 {
 	return ScriptGlobal::Get("ZonesDir", &Empty);
 }
@@ -1228,7 +1228,7 @@ void Application::DeclareZonesDir(const String& path)
  *
  * @returns The path.
  */
-String Application::GetPkgDataDir(void)
+String Application::GetPkgDataDir()
 {
 	String defaultValue = "";
 	return ScriptGlobal::Get("PkgDataDir", &Empty);
@@ -1250,7 +1250,7 @@ void Application::DeclarePkgDataDir(const String& path)
  *
  * @returns The path.
  */
-String Application::GetIncludeConfDir(void)
+String Application::GetIncludeConfDir()
 {
 	return ScriptGlobal::Get("IncludeConfDir", &Empty);
 }
@@ -1271,7 +1271,7 @@ void Application::DeclareIncludeConfDir(const String& path)
  *
  * @returns The path.
  */
-String Application::GetStatePath(void)
+String Application::GetStatePath()
 {
 	return ScriptGlobal::Get("StatePath", &Empty);
 }
@@ -1292,7 +1292,7 @@ void Application::DeclareStatePath(const String& path)
  *
  * @returns The path.
  */
-String Application::GetModAttrPath(void)
+String Application::GetModAttrPath()
 {
 	return ScriptGlobal::Get("ModAttrPath", &Empty);
 }
@@ -1313,7 +1313,7 @@ void Application::DeclareModAttrPath(const String& path)
  *
  * @returns The path.
  */
-String Application::GetObjectsPath(void)
+String Application::GetObjectsPath()
 {
 	return ScriptGlobal::Get("ObjectsPath", &Empty);
 }
@@ -1334,7 +1334,7 @@ void Application::DeclareObjectsPath(const String& path)
 *
 * @returns The path.
 */
-String Application::GetVarsPath(void)
+String Application::GetVarsPath()
 {
 	return ScriptGlobal::Get("VarsPath", &Empty);
 }
@@ -1355,7 +1355,7 @@ void Application::DeclareVarsPath(const String& path)
  *
  * @returns The path.
  */
-String Application::GetPidPath(void)
+String Application::GetPidPath()
 {
 	return ScriptGlobal::Get("PidPath", &Empty);
 }
@@ -1376,7 +1376,7 @@ void Application::DeclarePidPath(const String& path)
  *
  * @returns The name.
  */
-String Application::GetRunAsUser(void)
+String Application::GetRunAsUser()
 {
 	return ScriptGlobal::Get("RunAsUser");
 }
@@ -1397,7 +1397,7 @@ void Application::DeclareRunAsUser(const String& user)
  *
  * @returns The name.
  */
-String Application::GetRunAsGroup(void)
+String Application::GetRunAsGroup()
 {
 	return ScriptGlobal::Get("RunAsGroup");
 }
@@ -1418,12 +1418,12 @@ void Application::DeclareRunAsGroup(const String& group)
  *
  * @returns The limit.
  */
-int Application::GetRLimitFiles(void)
+int Application::GetRLimitFiles()
 {
 	return ScriptGlobal::Get("RLimitFiles");
 }
 
-int Application::GetDefaultRLimitFiles(void)
+int Application::GetDefaultRLimitFiles()
 {
 	return 16 * 1024;
 }
@@ -1444,12 +1444,12 @@ void Application::DeclareRLimitFiles(int limit)
  *
  * @returns The limit.
  */
-int Application::GetRLimitProcesses(void)
+int Application::GetRLimitProcesses()
 {
 	return ScriptGlobal::Get("RLimitProcesses");
 }
 
-int Application::GetDefaultRLimitProcesses(void)
+int Application::GetDefaultRLimitProcesses()
 {
 	return 16 * 1024;
 }
@@ -1470,12 +1470,12 @@ void Application::DeclareRLimitProcesses(int limit)
  *
  * @returns The limit.
  */
-int Application::GetRLimitStack(void)
+int Application::GetRLimitStack()
 {
 	return ScriptGlobal::Get("RLimitStack");
 }
 
-int Application::GetDefaultRLimitStack(void)
+int Application::GetDefaultRLimitStack()
 {
 	return 256 * 1024;
 }
@@ -1507,7 +1507,7 @@ void Application::DeclareConcurrency(int ncpus)
  *
  * @returns The concurrency level.
  */
-int Application::GetConcurrency(void)
+int Application::GetConcurrency()
 {
 	Value defaultConcurrency = std::thread::hardware_concurrency();
 	return ScriptGlobal::Get("Concurrency", &defaultConcurrency);
@@ -1518,13 +1518,13 @@ int Application::GetConcurrency(void)
  *
  * @returns The global thread pool.
  */
-ThreadPool& Application::GetTP(void)
+ThreadPool& Application::GetTP()
 {
 	static ThreadPool tp;
 	return tp;
 }
 
-double Application::GetStartTime(void)
+double Application::GetStartTime()
 {
 	return m_StartTime;
 }
@@ -1534,7 +1534,7 @@ void Application::SetStartTime(double ts)
 	m_StartTime = ts;
 }
 
-double Application::GetMainTime(void)
+double Application::GetMainTime()
 {
 	return m_MainTime;
 }
@@ -1544,7 +1544,7 @@ void Application::SetMainTime(double ts)
 	m_MainTime = ts;
 }
 
-bool Application::GetScriptDebuggerEnabled(void)
+bool Application::GetScriptDebuggerEnabled()
 {
 	return m_ScriptDebuggerEnabled;
 }
@@ -1554,7 +1554,7 @@ void Application::SetScriptDebuggerEnabled(bool enabled)
 	m_ScriptDebuggerEnabled = enabled;
 }
 
-double Application::GetLastReloadFailed(void)
+double Application::GetLastReloadFailed()
 {
 	return m_LastReloadFailed;
 }

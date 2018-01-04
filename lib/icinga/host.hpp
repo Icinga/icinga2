@@ -43,18 +43,18 @@ public:
 
 	intrusive_ptr<Service> GetServiceByShortName(const Value& name);
 
-	std::vector<intrusive_ptr<Service> > GetServices(void) const;
+	std::vector<intrusive_ptr<Service> > GetServices() const;
 	void AddService(const intrusive_ptr<Service>& service);
 	void RemoveService(const intrusive_ptr<Service>& service);
 
-	int GetTotalServices(void) const;
+	int GetTotalServices() const;
 
 	static HostState CalculateState(ServiceState state);
 
-	virtual HostState GetState(void) const override;
-	virtual HostState GetLastState(void) const override;
-	virtual HostState GetLastHardState(void) const override;
-	virtual int GetSeverity(void) const override;
+	virtual HostState GetState() const override;
+	virtual HostState GetLastState() const override;
+	virtual HostState GetLastHardState() const override;
+	virtual int GetSeverity() const override;
 
 	virtual bool IsStateOK(ServiceState state) override;
 	virtual void SaveLastState(ServiceState state, double timestamp) override;
@@ -70,14 +70,14 @@ public:
 protected:
 	virtual void Stop(bool runtimeRemoved) override;
 
-	virtual void OnAllConfigLoaded(void) override;
+	virtual void OnAllConfigLoaded() override;
 	virtual void CreateChildObjects(const Type::Ptr& childType) override;
 
 private:
 	mutable boost::mutex m_ServicesMutex;
 	std::map<String, intrusive_ptr<Service> > m_Services;
 
-	static void RefreshServicesCache(void);
+	static void RefreshServicesCache();
 };
 
 }

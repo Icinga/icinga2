@@ -80,17 +80,17 @@ public:
 	static void UpdatePassiveServiceChecksStatistics(long tv, int num);
 	static int GetPassiveServiceChecksStatistics(long timespan);
 
-	static CheckableCheckStatistics CalculateHostCheckStats(void);
-	static CheckableCheckStatistics CalculateServiceCheckStats(void);
-	static HostStatistics CalculateHostStats(void);
-	static ServiceStatistics CalculateServiceStats(void);
+	static CheckableCheckStatistics CalculateHostCheckStats();
+	static CheckableCheckStatistics CalculateServiceCheckStats();
+	static HostStatistics CalculateHostStats();
+	static ServiceStatistics CalculateServiceStats();
 
-	static std::pair<Dictionary::Ptr, Array::Ptr> GetFeatureStats(void);
+	static std::pair<Dictionary::Ptr, Array::Ptr> GetFeatureStats();
 
 	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
 private:
-	CIB(void);
+	CIB();
 
 	static boost::mutex m_Mutex;
 	static RingBuffer m_ActiveHostChecksStatistics;

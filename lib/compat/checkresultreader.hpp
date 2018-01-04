@@ -46,7 +46,7 @@ protected:
 
 private:
 	Timer::Ptr m_ReadTimer;
-	void ReadTimerHandler(void) const;
+	void ReadTimerHandler() const;
 	void ProcessCheckResultFile(const String& path) const;
 };
 

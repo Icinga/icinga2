@@ -39,8 +39,8 @@ public:
 
 	HostGroupDbObject(const DbType::Ptr& type, const String& name1, const String& name2);
 
-	virtual Dictionary::Ptr GetConfigFields(void) const override;
-	virtual Dictionary::Ptr GetStatusFields(void) const override;
+	virtual Dictionary::Ptr GetConfigFields() const override;
+	virtual Dictionary::Ptr GetStatusFields() const override;
 
 private:
 	static void MembersChangedHandler(const HostGroup::Ptr& hgfilter);

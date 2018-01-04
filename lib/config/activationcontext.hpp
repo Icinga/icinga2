@@ -33,13 +33,13 @@ class ActivationContext final : public Object
 public:
 	DECLARE_PTR_TYPEDEFS(ActivationContext);
 
-	static ActivationContext::Ptr GetCurrentContext(void);
+	static ActivationContext::Ptr GetCurrentContext();
 
 private:
 	static void PushContext(const ActivationContext::Ptr& context);
-	static void PopContext(void);
+	static void PopContext();
 
-	static std::stack<ActivationContext::Ptr>& GetActivationStack(void);
+	static std::stack<ActivationContext::Ptr>& GetActivationStack();
 
 	static boost::thread_specific_ptr<std::stack<ActivationContext::Ptr> > m_ActivationStack;
 
@@ -50,9 +50,9 @@ class ActivationScope
 {
 public:
 	ActivationScope(const ActivationContext::Ptr& context = nullptr);
-	~ActivationScope(void);
+	~ActivationScope();
 
-	ActivationContext::Ptr GetContext(void) const;
+	ActivationContext::Ptr GetContext() const;
 
 private:
 	ActivationContext::Ptr m_Context;

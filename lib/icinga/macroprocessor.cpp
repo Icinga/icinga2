@@ -429,7 +429,7 @@ struct CommandArgument
 	String Key;
 	Value AValue;
 
-	CommandArgument(void)
+	CommandArgument()
 		: Order(0), SkipKey(false), RepeatKey(true), SkipValue(false)
 	{ }
 

@@ -67,7 +67,7 @@ public:
 	static String SeverityToString(LogSeverity severity);
 	static LogSeverity StringToSeverity(const String& severity);
 
-	LogSeverity GetMinSeverity(void) const;
+	LogSeverity GetMinSeverity() const;
 
 	/**
 	 * Processes the log entry and writes it to the log that is
@@ -77,18 +77,18 @@ public:
 	 */
 	virtual void ProcessLogEntry(const LogEntry& entry) = 0;
 
-	virtual void Flush(void) = 0;
+	virtual void Flush() = 0;
 
-	static std::set<Logger::Ptr> GetLoggers(void);
+	static std::set<Logger::Ptr> GetLoggers();
 
-	static void DisableConsoleLog(void);
-	static void EnableConsoleLog(void);
-	static bool IsConsoleLogEnabled(void);
+	static void DisableConsoleLog();
+	static void EnableConsoleLog();
+	static bool IsConsoleLogEnabled();
 	static void DisableTimestamp(bool);
-	static bool IsTimestampEnabled(void);
+	static bool IsTimestampEnabled();
 
 	static void SetConsoleLogSeverity(LogSeverity logSeverity);
-	static LogSeverity GetConsoleLogSeverity(void);
+	static LogSeverity GetConsoleLogSeverity();
 
 	virtual void ValidateSeverity(const String& value, const ValidationUtils& utils) override final;
 
@@ -107,14 +107,14 @@ private:
 class Log
 {
 public:
-	Log(void) = delete;
+	Log() = delete;
 	Log(const Log& other) = delete;
 	Log& operator=(const Log& rhs) = delete;
 
 	Log(LogSeverity severity, const String& facility, const String& message);
 	Log(LogSeverity severity, const String& facility);
 
-	~Log(void);
+	~Log();
 
 	template<typename T>
 	Log& operator<<(const T& val)

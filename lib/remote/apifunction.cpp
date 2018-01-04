@@ -46,7 +46,7 @@ void ApiFunction::Unregister(const String& name)
 	ApiFunctionRegistry::GetInstance()->Unregister(name);
 }
 
-ApiFunctionRegistry *ApiFunctionRegistry::GetInstance(void)
+ApiFunctionRegistry *ApiFunctionRegistry::GetInstance()
 {
 	return Singleton<ApiFunctionRegistry>::GetInstance();
 }

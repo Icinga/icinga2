@@ -42,10 +42,10 @@ public:
 	DECLARE_OBJECT(Dependency);
 	DECLARE_OBJECTNAME(Dependency);
 
-	intrusive_ptr<Checkable> GetParent(void) const;
-	intrusive_ptr<Checkable> GetChild(void) const;
+	intrusive_ptr<Checkable> GetParent() const;
+	intrusive_ptr<Checkable> GetChild() const;
 
-	TimePeriod::Ptr GetPeriod(void) const;
+	TimePeriod::Ptr GetPeriod() const;
 
 	bool IsAvailable(DependencyType dt) const;
 
@@ -55,8 +55,8 @@ public:
 	static void EvaluateApplyRules(const intrusive_ptr<Service>& service);
 
 protected:
-	virtual void OnConfigLoaded(void) override;
-	virtual void OnAllConfigLoaded(void) override;
+	virtual void OnConfigLoaded() override;
+	virtual void OnAllConfigLoaded() override;
 	virtual void Stop(bool runtimeRemoved) override;
 
 private:

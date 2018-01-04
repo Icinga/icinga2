@@ -33,7 +33,7 @@ struct ApiScriptFrame
 	std::map<String, String> Lines;
 	Dictionary::Ptr Locals;
 
-	ApiScriptFrame(void)
+	ApiScriptFrame()
 		: Seen(0), NextLine(1)
 	{ }
 };

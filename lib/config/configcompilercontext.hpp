@@ -34,14 +34,14 @@ namespace icinga
 class ConfigCompilerContext
 {
 public:
-	ConfigCompilerContext(void);
+	ConfigCompilerContext();
 
 	void OpenObjectsFile(const String& filename);
 	void WriteObject(const Dictionary::Ptr& object);
-	void CancelObjectsFile(void);
-	void FinishObjectsFile(void);
+	void CancelObjectsFile();
+	void FinishObjectsFile();
 
-	static ConfigCompilerContext *GetInstance(void);
+	static ConfigCompilerContext *GetInstance();
 
 private:
 	String m_ObjectsPath;

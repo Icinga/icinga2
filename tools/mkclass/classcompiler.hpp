@@ -84,11 +84,11 @@ struct FieldType
 	std::string TypeName;
 	int ArrayRank;
 
-	FieldType(void)
+	FieldType()
 		: IsName(false), ArrayRank(0)
 	{ }
 
-	inline std::string GetRealType(void) const
+	inline std::string GetRealType() const
 	{
 		if (ArrayRank > 0)
 			return "Array::Ptr";
@@ -99,7 +99,7 @@ struct FieldType
 		return TypeName;
 	}
 
-	inline std::string GetArgumentType(void) const
+	inline std::string GetArgumentType() const
 	{
 		std::string realType = GetRealType();
 
@@ -126,11 +126,11 @@ struct Field
 	std::string NavigateAccessor;
 	bool PureNavigateAccessor;
 
-	Field(void)
+	Field()
 		: Attributes(0), PureGetAccessor(false), PureSetAccessor(false), PureNavigateAccessor(false)
 	{ }
 
-	inline std::string GetFriendlyName(void) const
+	inline std::string GetFriendlyName() const
 	{
 		if (!AlternativeName.empty())
 			return AlternativeName;
@@ -208,16 +208,16 @@ class ClassCompiler
 {
 public:
 	ClassCompiler(const std::string& path, std::istream& input, std::ostream& oimpl, std::ostream& oheader);
-	~ClassCompiler(void);
+	~ClassCompiler();
 
-	void Compile(void);
+	void Compile();
 
-	std::string GetPath(void) const;
+	std::string GetPath() const;
 
-	void InitializeScanner(void);
-	void DestroyScanner(void);
+	void InitializeScanner();
+	void DestroyScanner();
 
-	void *GetScanner(void);
+	void *GetScanner();
 
 	size_t ReadInput(char *buffer, size_t max_size);
 
@@ -231,7 +231,7 @@ public:
 	void HandleNamespaceEnd(const ClassDebugInfo& locp);
 	void HandleCode(const std::string& code, const ClassDebugInfo& locp);
 	void HandleLibrary(const std::string& library, const ClassDebugInfo& locp);
-	void HandleMissingValidators(void);
+	void HandleMissingValidators();
 
 	void CodeGenValidator(const std::string& name, const std::string& klass, const std::vector<Rule>& rules, const std::string& field, const FieldType& fieldType, ValidatorType validatorType);
 	void CodeGenValidatorSubrules(const std::string& name, const std::string& klass, const std::vector<Rule>& rules);

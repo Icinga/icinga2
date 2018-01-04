@@ -34,7 +34,7 @@ boost::signals2::signal<void (const Notification::Ptr&, const Checkable::Ptr&, c
 	const NotificationType&, const CheckResult::Ptr&, const String&, const String&, const String&,
 	const MessageOrigin::Ptr&)> Checkable::OnNotificationSentToUser;
 
-void Checkable::ResetNotificationNumbers(void)
+void Checkable::ResetNotificationNumbers()
 {
 	for (const Notification::Ptr& notification : GetNotifications()) {
 		ObjectLock olock(notification);
@@ -82,7 +82,7 @@ void Checkable::SendNotifications(NotificationType type, const CheckResult::Ptr&
 	}
 }
 
-std::set<Notification::Ptr> Checkable::GetNotifications(void) const
+std::set<Notification::Ptr> Checkable::GetNotifications() const
 {
 	boost::mutex::scoped_lock lock(m_NotificationMutex);
 	return m_Notifications;

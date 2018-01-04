@@ -31,7 +31,7 @@ REGISTER_BUILTIN_TYPE(String, String::GetPrototype());
 
 const String::SizeType String::NPos = std::string::npos;
 
-String::String(void)
+String::String()
 	: m_Data()
 { }
 
@@ -66,7 +66,7 @@ String::String(Value&& other)
 }
 #endif /* _MSC_VER */
 
-String::~String(void)
+String::~String()
 { }
 
 String& String::operator=(Value&& other)
@@ -137,7 +137,7 @@ String& String::operator+=(char rhs)
 	return *this;
 }
 
-bool String::IsEmpty(void) const
+bool String::IsEmpty() const
 {
 	return m_Data.empty();
 }
@@ -147,32 +147,32 @@ bool String::operator<(const String& rhs) const
 	return m_Data < rhs.m_Data;
 }
 
-String::operator const std::string&(void) const
+String::operator const std::string&() const
 {
 	return m_Data;
 }
 
-const char *String::CStr(void) const
+const char *String::CStr() const
 {
 	return m_Data.c_str();
 }
 
-void String::Clear(void)
+void String::Clear()
 {
 	m_Data.clear();
 }
 
-String::SizeType String::GetLength(void) const
+String::SizeType String::GetLength() const
 {
 	return m_Data.size();
 }
 
-std::string& String::GetData(void)
+std::string& String::GetData()
 {
 	return m_Data;
 }
 
-const std::string& String::GetData(void) const
+const std::string& String::GetData() const
 {
 	return m_Data;
 }
@@ -234,28 +234,28 @@ void String::Replace(String::SizeType first, String::SizeType second, const Stri
 	m_Data.replace(first, second, str);
 }
 
-String String::Trim(void) const
+String String::Trim() const
 {
 	String t = m_Data;
 	boost::algorithm::trim(t);
 	return t;
 }
 
-String String::ToLower(void) const
+String String::ToLower() const
 {
 	String t = m_Data;
 	boost::algorithm::to_lower(t);
 	return t;
 }
 
-String String::ToUpper(void) const
+String String::ToUpper() const
 {
 	String t = m_Data;
 	boost::algorithm::to_upper(t);
 	return t;
 }
 
-String String::Reverse(void) const
+String String::Reverse() const
 {
 	String t = m_Data;
 	std::reverse(t.m_Data.begin(), t.m_Data.end());
@@ -282,42 +282,42 @@ String::Iterator String::erase(String::Iterator first, String::Iterator last)
 	return m_Data.erase(first, last);
 }
 
-String::Iterator String::Begin(void)
+String::Iterator String::Begin()
 {
 	return m_Data.begin();
 }
 
-String::ConstIterator String::Begin(void) const
+String::ConstIterator String::Begin() const
 {
 	return m_Data.begin();
 }
 
-String::Iterator String::End(void)
+String::Iterator String::End()
 {
 	return m_Data.end();
 }
 
-String::ConstIterator String::End(void) const
+String::ConstIterator String::End() const
 {
 	return m_Data.end();
 }
 
-String::ReverseIterator String::RBegin(void)
+String::ReverseIterator String::RBegin()
 {
 	return m_Data.rbegin();
 }
 
-String::ConstReverseIterator String::RBegin(void) const
+String::ConstReverseIterator String::RBegin() const
 {
 	return m_Data.rbegin();
 }
 
-String::ReverseIterator String::REnd(void)
+String::ReverseIterator String::REnd()
 {
 	return m_Data.rend();
 }
 
-String::ConstReverseIterator String::REnd(void) const
+String::ConstReverseIterator String::REnd() const
 {
 	return m_Data.rend();
 }

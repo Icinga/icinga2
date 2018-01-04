@@ -37,11 +37,11 @@ using namespace icinga;
 REGISTER_TYPE(IdoMysqlConnection);
 REGISTER_STATSFUNCTION(IdoMysqlConnection, &IdoMysqlConnection::StatsFunc);
 
-IdoMysqlConnection::IdoMysqlConnection(void)
+IdoMysqlConnection::IdoMysqlConnection()
 	: m_QueryQueue(10000000)
 { }
 
-void IdoMysqlConnection::OnConfigLoaded(void)
+void IdoMysqlConnection::OnConfigLoaded()
 {
 	ObjectImpl<IdoMysqlConnection>::OnConfigLoaded();
 
@@ -84,7 +84,7 @@ void IdoMysqlConnection::StatsFunc(const Dictionary::Ptr& status, const Array::P
 	status->Set("idomysqlconnection", nodes);
 }
 
-void IdoMysqlConnection::Resume(void)
+void IdoMysqlConnection::Resume()
 {
 	DbConnection::Resume();
 
@@ -109,7 +109,7 @@ void IdoMysqlConnection::Resume(void)
 	ASSERT(m_Mysql->thread_safe());
 }
 
-void IdoMysqlConnection::Pause(void)
+void IdoMysqlConnection::Pause()
 {
 	Log(LogInformation, "IdoMysqlConnection")
 		<< "'" << GetName() << "' paused.";
@@ -141,12 +141,12 @@ void IdoMysqlConnection::ExceptionHandler(boost::exception_ptr exp)
 	}
 }
 
-void IdoMysqlConnection::AssertOnWorkQueue(void)
+void IdoMysqlConnection::AssertOnWorkQueue()
 {
 	ASSERT(m_QueryQueue.IsWorkerThread());
 }
 
-void IdoMysqlConnection::Disconnect(void)
+void IdoMysqlConnection::Disconnect()
 {
 	AssertOnWorkQueue();
 
@@ -159,12 +159,12 @@ void IdoMysqlConnection::Disconnect(void)
 	SetConnected(false);
 }
 
-void IdoMysqlConnection::TxTimerHandler(void)
+void IdoMysqlConnection::TxTimerHandler()
 {
 	NewTransaction();
 }
 
-void IdoMysqlConnection::NewTransaction(void)
+void IdoMysqlConnection::NewTransaction()
 {
 #ifdef I2_DEBUG /* I2_DEBUG */
 	Log(LogDebug, "IdoMysqlConnection")
@@ -175,7 +175,7 @@ void IdoMysqlConnection::NewTransaction(void)
 	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::FinishAsyncQueries, this), PriorityHigh);
 }
 
-void IdoMysqlConnection::InternalNewTransaction(void)
+void IdoMysqlConnection::InternalNewTransaction()
 {
 	AssertOnWorkQueue();
 
@@ -186,7 +186,7 @@ void IdoMysqlConnection::InternalNewTransaction(void)
 	AsyncQuery("BEGIN");
 }
 
-void IdoMysqlConnection::ReconnectTimerHandler(void)
+void IdoMysqlConnection::ReconnectTimerHandler()
 {
 #ifdef I2_DEBUG /* I2_DEBUG */
 	Log(LogDebug, "IdoMysqlConnection")
@@ -196,7 +196,7 @@ void IdoMysqlConnection::ReconnectTimerHandler(void)
 	m_QueryQueue.Enqueue(std::bind(&IdoMysqlConnection::Reconnect, this), PriorityLow);
 }
 
-void IdoMysqlConnection::Reconnect(void)
+void IdoMysqlConnection::Reconnect()
 {
 	AssertOnWorkQueue();
 
@@ -473,7 +473,7 @@ void IdoMysqlConnection::FinishConnect(double startTime)
 	Query("BEGIN");
 }
 
-void IdoMysqlConnection::ClearTablesBySession(void)
+void IdoMysqlConnection::ClearTablesBySession()
 {
 	/* delete all comments and downtimes without current session token */
 	ClearTableBySession("comments");
@@ -505,7 +505,7 @@ void IdoMysqlConnection::AsyncQuery(const String& query, const std::function<voi
 	}
 }
 
-void IdoMysqlConnection::FinishAsyncQueries(void)
+void IdoMysqlConnection::FinishAsyncQueries()
 {
 	std::vector<IdoAsyncQuery> queries;
 	m_AsyncQueries.swap(queries);
@@ -649,14 +649,14 @@ IdoMysqlResult IdoMysqlConnection::Query(const String& query)
 	return IdoMysqlResult(result, std::bind(&MysqlInterface::free_result, std::cref(m_Mysql), _1));
 }
 
-DbReference IdoMysqlConnection::GetLastInsertID(void)
+DbReference IdoMysqlConnection::GetLastInsertID()
 {
 	AssertOnWorkQueue();
 
 	return DbReference(m_Mysql->insert_id(&m_Connection));
 }
 
-int IdoMysqlConnection::GetAffectedRows(void)
+int IdoMysqlConnection::GetAffectedRows()
 {
 	AssertOnWorkQueue();
 
@@ -1169,7 +1169,7 @@ void IdoMysqlConnection::FillIDCache(const DbType::Ptr& type)
 	}
 }
 
-int IdoMysqlConnection::GetPendingQueryCount(void) const
+int IdoMysqlConnection::GetPendingQueryCount() const
 {
 	return m_QueryQueue.GetLength();
 }

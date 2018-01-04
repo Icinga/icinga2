@@ -43,12 +43,12 @@ namespace po = boost::program_options;
 
 REGISTER_CLICOMMAND("troubleshoot", TroubleshootCommand);
 
-String TroubleshootCommand::GetDescription(void) const
+String TroubleshootCommand::GetDescription() const
 {
 	return "Collect logs and other relevant information for troubleshooting purposes.";
 }
 
-String TroubleshootCommand::GetShortDescription(void) const
+String TroubleshootCommand::GetShortDescription() const
 {
 	return "collect information for troubleshooting";
 }
@@ -75,7 +75,7 @@ public:
 		}
 	}
 
-	~InfoLog(void)
+	~InfoLog()
 	{
 		delete m_Stream;
 	}
@@ -103,7 +103,7 @@ public:
 				<< ConsoleColorTag(Console_Normal, m_ConsoleType);
 	}
 
-	bool GetStreamHealth(void) const
+	bool GetStreamHealth() const
 	{
 		return m_Stream->good();
 	}
@@ -120,7 +120,7 @@ public:
 	InfoLogLine(InfoLog& log, int col = Console_Normal, LogSeverity sev = LogInformation)
 		: m_Log(log), m_Color(col), m_Sev(sev) {}
 
-	~InfoLogLine(void)
+	~InfoLogLine()
 	{
 		m_Log.WriteLine(m_Sev, m_Color, m_String.str());
 	}
@@ -442,7 +442,7 @@ bool TroubleshootCommand::PrintFile(InfoLog& log, const String& path)
 	return true;
 }
 
-bool TroubleshootCommand::CheckConfig(void)
+bool TroubleshootCommand::CheckConfig()
 {
 	return DaemonUtility::ValidateConfigFiles({ Application::GetSysconfDir() + "/icinga2/icinga2.conf" }, Application::GetObjectsPath());
 }

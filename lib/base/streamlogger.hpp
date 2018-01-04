@@ -38,18 +38,18 @@ class StreamLogger : public ObjectImpl<StreamLogger>
 public:
 	DECLARE_OBJECT(StreamLogger);
 
-	StreamLogger(void);
+	StreamLogger();
 
 	virtual void Stop(bool runtimeRemoved) override;
-	~StreamLogger(void);
+	~StreamLogger();
 
 	void BindStream(std::ostream *stream, bool ownsStream);
 
 	static void ProcessLogEntry(std::ostream& stream, const LogEntry& entry);
 
 protected:
-	virtual void ProcessLogEntry(const LogEntry& entry) override final;
-	virtual void Flush(void) override final;
+	void ProcessLogEntry(const LogEntry& entry) final;
+	void Flush(void) final;
 
 private:
 	static boost::mutex m_Mutex;
@@ -58,7 +58,7 @@ private:
 
 	Timer::Ptr m_FlushLogTimer;
 
-	void FlushLogTimerHandler(void);
+	void FlushLogTimerHandler();
 };
 
 }

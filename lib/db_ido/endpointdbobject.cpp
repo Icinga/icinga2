@@ -34,7 +34,7 @@ REGISTER_DBTYPE(Endpoint, "endpoint", DbObjectTypeEndpoint, "endpoint_object_id"
 
 INITIALIZE_ONCE(&EndpointDbObject::StaticInitialize);
 
-void EndpointDbObject::StaticInitialize(void)
+void EndpointDbObject::StaticInitialize()
 {
 	Endpoint::OnConnected.connect(std::bind(&EndpointDbObject::UpdateConnectedStatus, _1));
 	Endpoint::OnDisconnected.connect(std::bind(&EndpointDbObject::UpdateConnectedStatus, _1));
@@ -44,7 +44,7 @@ EndpointDbObject::EndpointDbObject(const DbType::Ptr& type, const String& name1,
 	: DbObject(type, name1, name2)
 { }
 
-Dictionary::Ptr EndpointDbObject::GetConfigFields(void) const
+Dictionary::Ptr EndpointDbObject::GetConfigFields() const
 {
 	Dictionary::Ptr fields = new Dictionary();
 	Endpoint::Ptr endpoint = static_pointer_cast<Endpoint>(GetObject());
@@ -56,7 +56,7 @@ Dictionary::Ptr EndpointDbObject::GetConfigFields(void) const
 	return fields;
 }
 
-Dictionary::Ptr EndpointDbObject::GetStatusFields(void) const
+Dictionary::Ptr EndpointDbObject::GetStatusFields() const
 {
 	Dictionary::Ptr fields = new Dictionary();
 	Endpoint::Ptr endpoint = static_pointer_cast<Endpoint>(GetObject());

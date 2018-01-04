@@ -81,7 +81,7 @@ void OpenTsdbWriter::Stop(bool runtimeRemoved)
 	ObjectImpl<OpenTsdbWriter>::Stop(runtimeRemoved);
 }
 
-void OpenTsdbWriter::ReconnectTimerHandler(void)
+void OpenTsdbWriter::ReconnectTimerHandler()
 {
 	if (m_Stream)
 		return;

@@ -41,7 +41,7 @@ public:
 
 	RingBuffer(SizeType slots);
 
-	SizeType GetLength(void) const;
+	SizeType GetLength() const;
 	void InsertValue(SizeType tv, int num);
 	int UpdateAndGetValues(SizeType tv, SizeType span);
 	double CalculateRate(SizeType tv, SizeType span);

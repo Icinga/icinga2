@@ -49,7 +49,7 @@ protected:
 
 private:
 	void WriteLine(const String& line);
-	void Flush(void);
+	void Flush();
 
 	void CheckResultHandler(const Checkable::Ptr& service, const CheckResult::Ptr& cr);
 	void NotificationSentHandler(const Notification::Ptr& notification, const Checkable::Ptr& service,
@@ -63,8 +63,8 @@ private:
 	void EventCommandHandler(const Checkable::Ptr& service);
 
 	Timer::Ptr m_RotationTimer;
-	void RotationTimerHandler(void);
-	void ScheduleNextRotation(void);
+	void RotationTimerHandler();
+	void ScheduleNextRotation();
 
 	std::ofstream m_OutputFile;
 	void ReopenFile(bool rotate);

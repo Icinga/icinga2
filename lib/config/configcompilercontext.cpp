@@ -26,12 +26,12 @@
 
 using namespace icinga;
 
-ConfigCompilerContext *ConfigCompilerContext::GetInstance(void)
+ConfigCompilerContext *ConfigCompilerContext::GetInstance()
 {
 	return Singleton<ConfigCompilerContext>::GetInstance();
 }
 
-ConfigCompilerContext::ConfigCompilerContext(void)
+ConfigCompilerContext::ConfigCompilerContext()
 	: m_ObjectsFP(nullptr)
 { }
 
@@ -66,7 +66,7 @@ void ConfigCompilerContext::WriteObject(const Dictionary::Ptr& object)
 	}
 }
 
-void ConfigCompilerContext::CancelObjectsFile(void)
+void ConfigCompilerContext::CancelObjectsFile()
 {
 	delete m_ObjectsFP;
 	m_ObjectsFP = nullptr;
@@ -78,7 +78,7 @@ void ConfigCompilerContext::CancelObjectsFile(void)
 #endif /* _WIN32 */
 }
 
-void ConfigCompilerContext::FinishObjectsFile(void)
+void ConfigCompilerContext::FinishObjectsFile()
 {
 	delete m_ObjectsFP;
 	m_ObjectsFP = nullptr;

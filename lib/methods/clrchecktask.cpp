@@ -47,7 +47,7 @@ static std::map<Checkable::Ptr, variant_t> l_Objects;
 
 static mscorlib::_AppDomainPtr l_AppDomain;
 
-static void InitializeClr(void)
+static void InitializeClr()
 {
 	ICorRuntimeHost *runtimeHost;
 

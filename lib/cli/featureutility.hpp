@@ -35,8 +35,8 @@ namespace icinga
 class FeatureUtility
 {
 public:
-	static String GetFeaturesAvailablePath(void);
-	static String GetFeaturesEnabledPath(void);
+	static String GetFeaturesAvailablePath();
+	static String GetFeaturesEnabledPath();
 
 	static std::vector<String> GetFieldCompletionSuggestions(const String& word, bool enable);
 
@@ -49,7 +49,7 @@ public:
 	static bool CheckFeatureDisabled(const String& feature);
 
 private:
-	FeatureUtility(void);
+	FeatureUtility();
 	static void CollectFeatures(const String& feature_file, std::vector<String>& features);
 	static bool CheckFeatureInternal(const String& feature, bool check_disabled);
 };

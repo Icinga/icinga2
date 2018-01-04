@@ -31,7 +31,7 @@ using namespace icinga;
 #	pragma optimize("", off)
 #endif /* _MSC_VER */
 
-StackTrace::StackTrace(void)
+StackTrace::StackTrace()
 {
 #ifdef HAVE_BACKTRACE_SYMBOLS
 	m_Count = backtrace(m_Frames, sizeof(m_Frames) / sizeof(m_Frames[0]));

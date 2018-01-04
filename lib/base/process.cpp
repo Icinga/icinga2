@@ -76,7 +76,7 @@ Process::Process(const Process::Arguments& arguments, const Dictionary::Ptr& ext
 #endif /* _WIN32 */
 }
 
-Process::~Process(void)
+Process::~Process()
 {
 #ifdef _WIN32
 	CloseHandle(m_Overlapped.hEvent);
@@ -237,7 +237,7 @@ static Value ProcessWaitPIDImpl(struct msghdr *msgh, const Dictionary::Ptr& requ
 	return response;
 }
 
-static void ProcessHandler(void)
+static void ProcessHandler()
 {
 	sigset_t mask;
 	sigfillset(&mask);
@@ -333,7 +333,7 @@ static void ProcessHandler(void)
 	_exit(0);
 }
 
-static void StartSpawnProcessHelper(void)
+static void StartSpawnProcessHelper()
 {
 	if (l_ProcessControlFD != -1) {
 		(void)close(l_ProcessControlFD);
@@ -497,14 +497,14 @@ send_message:
 	return response->Get("rc");
 }
 
-void Process::InitializeSpawnHelper(void)
+void Process::InitializeSpawnHelper()
 {
 	if (l_ProcessControlFD == -1)
 		StartSpawnProcessHelper();
 }
 #endif /* _WIN32 */
 
-static void InitializeProcess(void)
+static void InitializeProcess()
 {
 	for (int tid = 0; tid < IOTHREADS; tid++) {
 #ifdef _WIN32
@@ -536,7 +536,7 @@ static void InitializeProcess(void)
 
 INITIALIZE_ONCE(InitializeProcess);
 
-void Process::ThreadInitialize(void)
+void Process::ThreadInitialize()
 {
 	/* Note to self: Make sure this runs _after_ we've daemonized. */
 	for (int tid = 0; tid < IOTHREADS; tid++) {
@@ -583,7 +583,7 @@ void Process::SetTimeout(double timeout)
 	m_Timeout = timeout;
 }
 
-double Process::GetTimeout(void) const
+double Process::GetTimeout() const
 {
 	return m_Timeout;
 }
@@ -593,7 +593,7 @@ void Process::SetAdjustPriority(bool adjust)
 	m_AdjustPriority = adjust;
 }
 
-bool Process::GetAdjustPriority(void) const
+bool Process::GetAdjustPriority() const
 {
 	return m_AdjustPriority;
 }
@@ -1016,7 +1016,7 @@ void Process::Run(const std::function<void(const ProcessResult&)>& callback)
 #endif /* _WIN32 */
 }
 
-bool Process::DoEvents(void)
+bool Process::DoEvents()
 {
 	bool is_timeout = false;
 #ifndef _WIN32
@@ -1134,13 +1134,13 @@ bool Process::DoEvents(void)
 	return false;
 }
 
-pid_t Process::GetPID(void) const
+pid_t Process::GetPID() const
 {
 	return m_PID;
 }
 
 
-int Process::GetTID(void) const
+int Process::GetTID() const
 {
 	return (reinterpret_cast<uintptr_t>(this) / sizeof(void *)) % IOTHREADS;
 }

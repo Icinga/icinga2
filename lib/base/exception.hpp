@@ -53,14 +53,14 @@ class ScriptError : virtual public user_error
 public:
 	ScriptError(const String& message);
 	ScriptError(const String& message, const DebugInfo& di, bool incompleteExpr = false);
-	~ScriptError(void) throw();
+	~ScriptError() throw();
 
 	virtual const char *what(void) const throw() override final;
 
-	DebugInfo GetDebugInfo(void) const;
-	bool IsIncompleteExpression(void) const;
+	DebugInfo GetDebugInfo() const;
+	bool IsIncompleteExpression() const;
 
-	bool IsHandledByDebugger(void) const;
+	bool IsHandledByDebugger() const;
 	void SetHandledByDebugger(bool handled);
 
 private:
@@ -77,16 +77,16 @@ class ValidationError : virtual public user_error
 {
 public:
 	ValidationError(const ConfigObject::Ptr& object, const std::vector<String>& attributePath, const String& message);
-	~ValidationError(void) throw();
+	~ValidationError() throw();
 
 	virtual const char *what(void) const throw() override final;
 
-	ConfigObject::Ptr GetObject(void) const;
-	std::vector<String> GetAttributePath(void) const;
-	String GetMessage(void) const;
+	ConfigObject::Ptr GetObject() const;
+	std::vector<String> GetAttributePath() const;
+	String GetMessage() const;
 
 	void SetDebugHint(const Dictionary::Ptr& dhint);
-	Dictionary::Ptr GetDebugHint(void) const;
+	Dictionary::Ptr GetDebugHint() const;
 
 private:
 	ConfigObject::Ptr m_Object;
@@ -96,13 +96,13 @@ private:
 	Dictionary::Ptr m_DebugHint;
 };
 
-StackTrace *GetLastExceptionStack(void);
+StackTrace *GetLastExceptionStack();
 void SetLastExceptionStack(const StackTrace& trace);
 
-ContextTrace *GetLastExceptionContext(void);
+ContextTrace *GetLastExceptionContext();
 void SetLastExceptionContext(const ContextTrace& context);
 
-void RethrowUncaughtException(void);
+void RethrowUncaughtException();
 
 typedef boost::error_info<StackTrace, StackTrace> StackTraceErrorInfo;
 
@@ -125,8 +125,8 @@ String DiagnosticInformation(boost::exception_ptr eptr, bool verbose = true);
 
 class posix_error : virtual public std::exception, virtual public boost::exception {
 public:
-	posix_error(void);
-	virtual ~posix_error(void) throw();
+	posix_error();
+	virtual ~posix_error() throw();
 
 	virtual const char *what(void) const throw() override final;
 

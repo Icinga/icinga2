@@ -33,7 +33,7 @@ INITIALIZE_ONCE(&Checkable::StaticInitialize);
 boost::signals2::signal<void (const Checkable::Ptr&, const String&, const String&, AcknowledgementType, bool, bool, double, const MessageOrigin::Ptr&)> Checkable::OnAcknowledgementSet;
 boost::signals2::signal<void (const Checkable::Ptr&, const MessageOrigin::Ptr&)> Checkable::OnAcknowledgementCleared;
 
-void Checkable::StaticInitialize(void)
+void Checkable::StaticInitialize()
 {
 	/* fixed downtime start */
 	Downtime::OnDowntimeStarted.connect(std::bind(&Checkable::NotifyFixedDowntimeStart, _1));
@@ -43,13 +43,13 @@ void Checkable::StaticInitialize(void)
 	Downtime::OnDowntimeRemoved.connect(std::bind(&Checkable::NotifyDowntimeEnd, _1));
 }
 
-Checkable::Checkable(void)
+Checkable::Checkable()
 	: m_CheckRunning(false)
 {
 	SetSchedulingOffset(Utility::Random());
 }
 
-void Checkable::OnAllConfigLoaded(void)
+void Checkable::OnAllConfigLoaded()
 {
 	ObjectImpl<Checkable>::OnAllConfigLoaded();
 
@@ -101,7 +101,7 @@ void Checkable::AddGroup(const String& name)
 	groups->Add(name);
 }
 
-AcknowledgementType Checkable::GetAcknowledgement(void)
+AcknowledgementType Checkable::GetAcknowledgement()
 {
 	AcknowledgementType avalue = static_cast<AcknowledgementType>(GetAcknowledgementRaw());
 
@@ -117,7 +117,7 @@ AcknowledgementType Checkable::GetAcknowledgement(void)
 	return avalue;
 }
 
-bool Checkable::IsAcknowledged(void) const
+bool Checkable::IsAcknowledged() const
 {
 	return const_cast<Checkable *>(this)->GetAcknowledgement() != AcknowledgementNone;
 }
@@ -141,12 +141,12 @@ void Checkable::ClearAcknowledgement(const MessageOrigin::Ptr& origin)
 	OnAcknowledgementCleared(this, origin);
 }
 
-Endpoint::Ptr Checkable::GetCommandEndpoint(void) const
+Endpoint::Ptr Checkable::GetCommandEndpoint() const
 {
 	return Endpoint::GetByName(GetCommandEndpointRaw());
 }
 
-int Checkable::GetSeverity(void) const
+int Checkable::GetSeverity() const
 {
 	/* overridden in Host/Service class. */
 	return 0;

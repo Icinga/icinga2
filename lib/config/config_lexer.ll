@@ -254,13 +254,13 @@ in				return T_IN;
 
 %%
 
-void ConfigCompiler::InitializeScanner(void)
+void ConfigCompiler::InitializeScanner()
 {
 	yylex_init(&m_Scanner);
 	yyset_extra(this, m_Scanner);
 }
 
-void ConfigCompiler::DestroyScanner(void)
+void ConfigCompiler::DestroyScanner()
 {
 	yylex_destroy(m_Scanner);
 }

@@ -27,7 +27,7 @@
 
 using namespace icinga;
 
-CommentsTable::CommentsTable(void)
+CommentsTable::CommentsTable()
 {
 	AddColumns(this);
 }
@@ -52,12 +52,12 @@ void CommentsTable::AddColumns(Table *table, const String& prefix,
 	HostsTable::AddColumns(table, "host_", std::bind(&CommentsTable::HostAccessor, _1, objectAccessor));
 }
 
-String CommentsTable::GetName(void) const
+String CommentsTable::GetName() const
 {
 	return "comments";
 }
 
-String CommentsTable::GetPrefix(void) const
+String CommentsTable::GetPrefix() const
 {
 	return "comment";
 }

@@ -49,7 +49,7 @@ extern Value Empty;
 
 #define IMPL_TYPE_LOOKUP() 							\
 	static intrusive_ptr<Type> TypeInstance;				\
-	virtual intrusive_ptr<Type> GetReflectionType(void) const override	\
+	virtual intrusive_ptr<Type> GetReflectionType() const override		\
 	{									\
 		return TypeInstance;						\
 	}
@@ -83,7 +83,7 @@ struct TypeHelper
 template<typename T>
 struct TypeHelper<T, false>
 {
-	static ObjectFactory GetFactory(void)
+	static ObjectFactory GetFactory()
 	{
 		return DefaultObjectFactory<T>;
 	}
@@ -92,7 +92,7 @@ struct TypeHelper<T, false>
 template<typename T>
 struct TypeHelper<T, true>
 {
-	static ObjectFactory GetFactory(void)
+	static ObjectFactory GetFactory()
 	{
 		return DefaultObjectFactoryVA<T>;
 	}
@@ -109,12 +109,12 @@ class Object
 public:
 	DECLARE_PTR_TYPEDEFS(Object);
 
-	Object(void);
-	virtual ~Object(void);
+	Object();
+	virtual ~Object();
 
-	virtual String ToString(void) const;
+	virtual String ToString() const;
 
-	virtual intrusive_ptr<Type> GetReflectionType(void) const;
+	virtual intrusive_ptr<Type> GetReflectionType() const;
 
 	virtual void Validate(int types, const ValidationUtils& utils);
 
@@ -129,12 +129,12 @@ public:
 	virtual Object::Ptr NavigateField(int id) const;
 
 #ifdef I2_DEBUG
-	bool OwnsLock(void) const;
+	bool OwnsLock() const;
 #endif /* I2_DEBUG */
 
-	static Object::Ptr GetPrototype(void);
+	static Object::Ptr GetPrototype();
 
-	virtual Object::Ptr Clone(void) const;
+	virtual Object::Ptr Clone() const;
 
 	static intrusive_ptr<Type> TypeInstance;
 

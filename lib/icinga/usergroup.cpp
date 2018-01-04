@@ -71,7 +71,7 @@ void UserGroup::EvaluateObjectRules(const User::Ptr& user)
 	}
 }
 
-std::set<User::Ptr> UserGroup::GetMembers(void) const
+std::set<User::Ptr> UserGroup::GetMembers() const
 {
 	boost::mutex::scoped_lock lock(m_UserGroupMutex);
 	return m_Members;

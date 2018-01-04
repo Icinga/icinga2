@@ -42,12 +42,12 @@ public:
 	DECLARE_OBJECT(GelfWriter);
 	DECLARE_OBJECTNAME(GelfWriter);
 
-	GelfWriter(void);
+	GelfWriter();
 
 	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
 protected:
-	virtual void OnConfigLoaded(void) override;
+	virtual void OnConfigLoaded() override;
 	virtual void Start(bool runtimeCreated) override;
 	virtual void Stop(bool runtimeRemoved) override;
 
@@ -71,12 +71,12 @@ private:
 	String ComposeGelfMessage(const Dictionary::Ptr& fields, const String& source, double ts);
 	void SendLogMessage(const String& gelfMessage);
 
-	void ReconnectTimerHandler(void);
+	void ReconnectTimerHandler();
 
-	void Disconnect(void);
-	void Reconnect(void);
+	void Disconnect();
+	void Reconnect();
 
-	void AssertOnWorkQueue(void);
+	void AssertOnWorkQueue();
 
 	void ExceptionHandler(boost::exception_ptr exp);
 };

@@ -77,7 +77,7 @@ void Logger::Stop(bool runtimeRemoved)
 	ObjectImpl<Logger>::Stop(runtimeRemoved);
 }
 
-std::set<Logger::Ptr> Logger::GetLoggers(void)
+std::set<Logger::Ptr> Logger::GetLoggers()
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
 	return m_Loggers;
@@ -88,7 +88,7 @@ std::set<Logger::Ptr> Logger::GetLoggers(void)
  *
  * @returns The minimum severity.
  */
-LogSeverity Logger::GetMinSeverity(void) const
+LogSeverity Logger::GetMinSeverity() const
 {
 	String severity = GetSeverity();
 	if (severity.IsEmpty())
@@ -148,17 +148,17 @@ LogSeverity Logger::StringToSeverity(const String& severity)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid severity: " + severity));
 }
 
-void Logger::DisableConsoleLog(void)
+void Logger::DisableConsoleLog()
 {
 	m_ConsoleLogEnabled = false;
 }
 
-void Logger::EnableConsoleLog(void)
+void Logger::EnableConsoleLog()
 {
 	m_ConsoleLogEnabled = true;
 }
 
-bool Logger::IsConsoleLogEnabled(void)
+bool Logger::IsConsoleLogEnabled()
 {
 	return m_ConsoleLogEnabled;
 }
@@ -168,7 +168,7 @@ void Logger::SetConsoleLogSeverity(LogSeverity logSeverity)
 	m_ConsoleLogSeverity = logSeverity;
 }
 
-LogSeverity Logger::GetConsoleLogSeverity(void)
+LogSeverity Logger::GetConsoleLogSeverity()
 {
 	return m_ConsoleLogSeverity;
 }
@@ -178,7 +178,7 @@ void Logger::DisableTimestamp(bool disable)
 	m_TimestampEnabled = !disable;
 }
 
-bool Logger::IsTimestampEnabled(void)
+bool Logger::IsTimestampEnabled()
 {
 	return m_TimestampEnabled;
 }
@@ -207,7 +207,7 @@ Log::Log(LogSeverity severity, const String& facility)
 /**
  * Writes the message to the application's log.
  */
-Log::~Log(void)
+Log::~Log()
 {
 	LogEntry entry;
 	entry.Timestamp = Utility::GetTime();

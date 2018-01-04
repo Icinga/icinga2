@@ -41,12 +41,12 @@ namespace po = boost::program_options;
 
 REGISTER_CLICOMMAND("object/list", ObjectListCommand);
 
-String ObjectListCommand::GetDescription(void) const
+String ObjectListCommand::GetDescription() const
 {
 	return "Lists all Icinga 2 objects.";
 }
 
-String ObjectListCommand::GetShortDescription(void) const
+String ObjectListCommand::GetShortDescription() const
 {
 	return "lists all objects";
 }

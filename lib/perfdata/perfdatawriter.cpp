@@ -152,7 +152,7 @@ void PerfdataWriter::RotateFile(std::ofstream& output, const String& temp_path, 
 			<< "Could not open perfdata file '" << temp_path << "' for writing. Perfdata will be lost.";
 }
 
-void PerfdataWriter::RotationTimerHandler(void)
+void PerfdataWriter::RotationTimerHandler()
 {
 	RotateFile(m_ServiceOutputFile, GetServiceTempPath(), GetServicePerfdataPath());
 	RotateFile(m_HostOutputFile, GetHostTempPath(), GetHostPerfdataPath());

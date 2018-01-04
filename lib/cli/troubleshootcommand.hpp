@@ -37,8 +37,8 @@ class TroubleshootCommand final : public CLICommand
 public:
 	DECLARE_PTR_TYPEDEFS(TroubleshootCommand);
 
-	virtual String GetDescription(void) const override;
-	virtual String GetShortDescription(void) const override;
+	virtual String GetDescription() const override;
+	virtual String GetShortDescription() const override;
 	virtual int Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const override;
 	virtual void InitParameters(boost::program_options::options_description& visibleDesc,
 		boost::program_options::options_description& hiddenDesc) const override;
@@ -59,7 +59,7 @@ private:
 	static void GetLatestReport(const String& filename, time_t& bestTimestamp, String& bestFilename);
 	static bool PrintCrashReports(InfoLog& log);
 	static bool PrintFile(InfoLog& log, const String& path);
-	static bool CheckConfig(void);
+	static bool CheckConfig();
 	static void CheckObjectFile(const String& objectfile, InfoLog& log, InfoLog *OFile, const bool objectConsole,
 		Dictionary::Ptr& logs, std::set<String>& configs);
 	static bool PrintVarsFile(const String& path, const bool console);

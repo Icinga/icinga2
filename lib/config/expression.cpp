@@ -36,7 +36,7 @@ using namespace icinga;
 boost::signals2::signal<void (ScriptFrame&, ScriptError *ex, const DebugInfo&)> Expression::OnBreakpoint;
 boost::thread_specific_ptr<bool> l_InBreakpointHandler;
 
-Expression::~Expression(void)
+Expression::~Expression()
 { }
 
 void Expression::ScriptBreakpoint(ScriptFrame& frame, ScriptError *ex, const DebugInfo& di)
@@ -84,7 +84,7 @@ bool Expression::GetReference(ScriptFrame& frame, bool init_dict, Value *parent,
 	return false;
 }
 
-const DebugInfo& Expression::GetDebugInfo(void) const
+const DebugInfo& Expression::GetDebugInfo() const
 {
 	static DebugInfo debugInfo;
 	return debugInfo;
@@ -96,7 +96,7 @@ std::unique_ptr<Expression> icinga::MakeIndexer(ScopeSpecifier scopeSpec, const 
 	return std::unique_ptr<Expression>(new IndexerExpression(std::move(scope), MakeLiteral(index)));
 }
 
-void DictExpression::MakeInline(void)
+void DictExpression::MakeInline()
 {
 	m_Inline = true;
 }
@@ -110,7 +110,7 @@ ExpressionResult LiteralExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dh
 	return m_Value;
 }
 
-const DebugInfo& DebuggableExpression::GetDebugInfo(void) const
+const DebugInfo& DebuggableExpression::GetDebugInfo() const
 {
 	return m_DebugInfo;
 }

@@ -45,7 +45,7 @@ public:
 private:
 	Timer::Ptr m_NotificationTimer;
 
-	void NotificationTimerHandler(void);
+	void NotificationTimerHandler();
 	void SendNotificationsHandler(const Checkable::Ptr& checkable, NotificationType type,
 		const CheckResult::Ptr& cr, const String& author, const String& text);
 };

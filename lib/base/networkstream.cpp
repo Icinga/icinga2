@@ -25,7 +25,7 @@ NetworkStream::NetworkStream(const Socket::Ptr& socket)
 	: m_Socket(socket), m_Eof(false)
 { }
 
-void NetworkStream::Close(void)
+void NetworkStream::Close()
 {
 	Stream::Close();
 
@@ -92,7 +92,7 @@ void NetworkStream::Write(const void *buffer, size_t count)
 	}
 }
 
-bool NetworkStream::IsEof(void) const
+bool NetworkStream::IsEof() const
 {
 	return m_Eof;
 }

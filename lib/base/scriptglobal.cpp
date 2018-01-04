@@ -85,7 +85,7 @@ bool ScriptGlobal::Exists(const String& name)
 	return m_Globals->Contains(name);
 }
 
-Dictionary::Ptr ScriptGlobal::GetGlobals(void)
+Dictionary::Ptr ScriptGlobal::GetGlobals()
 {
 	return m_Globals;
 }

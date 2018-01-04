@@ -74,7 +74,7 @@ void ServiceGroup::EvaluateObjectRules(const Service::Ptr& service)
 	}
 }
 
-std::set<Service::Ptr> ServiceGroup::GetMembers(void) const
+std::set<Service::Ptr> ServiceGroup::GetMembers() const
 {
 	boost::mutex::scoped_lock lock(m_ServiceGroupMutex);
 	return m_Members;

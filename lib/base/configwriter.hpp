@@ -40,7 +40,7 @@ public:
 
 	ConfigIdentifier(const String& name);
 
-	String GetName(void) const;
+	String GetName() const;
 
 private:
 	String m_Name;
@@ -73,10 +73,10 @@ public:
 	static void EmitComment(std::ostream& fp, const String& text);
 	static void EmitFunctionCall(std::ostream& fp, const String& name, const Array::Ptr& arguments);
 
-	static const std::vector<String>& GetKeywords(void);
+	static const std::vector<String>& GetKeywords();
 private:
 	static String EscapeIcingaString(const String& str);
-	ConfigWriter(void);
+	ConfigWriter();
 };
 
 }

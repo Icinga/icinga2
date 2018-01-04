@@ -33,10 +33,10 @@ class Value;
 class Boolean
 {
 public:
-	static Object::Ptr GetPrototype(void);
+	static Object::Ptr GetPrototype();
 
 private:
-	Boolean(void);
+	Boolean();
 };
 
 }

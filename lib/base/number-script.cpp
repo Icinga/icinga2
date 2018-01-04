@@ -25,13 +25,13 @@
 
 using namespace icinga;
 
-static String NumberToString(void)
+static String NumberToString()
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	return vframe->Self;
 }
 
-Object::Ptr Number::GetPrototype(void)
+Object::Ptr Number::GetPrototype()
 {
 	static Dictionary::Ptr prototype;
 

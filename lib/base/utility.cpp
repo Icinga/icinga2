@@ -368,7 +368,7 @@ void Utility::IncrementTime(double diff)
  *
  * @returns The current time.
  */
-double Utility::GetTime(void)
+double Utility::GetTime()
 {
 #ifdef I2_DEBUG
 	if (m_DebugTime >= 0) {
@@ -408,7 +408,7 @@ double Utility::GetTime(void)
  *
  * @returns The PID.
  */
-pid_t Utility::GetPid(void)
+pid_t Utility::GetPid()
 {
 #ifndef _WIN32
 	return getpid();
@@ -440,7 +440,7 @@ void Utility::Sleep(double timeout)
  *
  * @returns The new unique ID.
  */
-String Utility::NewUniqueID(void)
+String Utility::NewUniqueID()
 {
 	return boost::lexical_cast<std::string>(boost::uuids::random_generator()());
 }
@@ -915,7 +915,7 @@ void Utility::SetNonBlockingSocket(SOCKET s, bool nb)
 #endif /* _WIN32 */
 }
 
-void Utility::QueueAsyncCallback(const std::function<void (void)>& callback, SchedulerPolicy policy)
+void Utility::QueueAsyncCallback(const std::function<void ()>& callback, SchedulerPolicy policy)
 {
 	Application::GetTP().Post(callback, policy);
 }
@@ -1217,7 +1217,7 @@ void Utility::SetThreadName(const String& name, bool os)
 #endif /* HAVE_PTHREAD_SETNAME_NP */
 }
 
-String Utility::GetThreadName(void)
+String Utility::GetThreadName()
 {
 	String *name = m_ThreadName.get();
 
@@ -1269,7 +1269,7 @@ int Utility::CompareVersion(const String& v1, const String& v2)
 	return 0;
 }
 
-String Utility::GetHostName(void)
+String Utility::GetHostName()
 {
 	char name[255];
 
@@ -1285,7 +1285,7 @@ String Utility::GetHostName(void)
  *
  * @returns The FQDN.
  */
-String Utility::GetFQDN(void)
+String Utility::GetFQDN()
 {
 	String hostname = GetHostName();
 
@@ -1311,7 +1311,7 @@ String Utility::GetFQDN(void)
 	return hostname;
 }
 
-int Utility::Random(void)
+int Utility::Random()
 {
 #ifdef _WIN32
 	return rand();
@@ -1663,7 +1663,7 @@ static bool ReleaseHelper(String *platformName, String *platformVersion)
 #endif /* _WIN32 */
 }
 
-String Utility::GetPlatformKernel(void)
+String Utility::GetPlatformKernel()
 {
 #ifdef _WIN32
 	return "Windows";
@@ -1672,7 +1672,7 @@ String Utility::GetPlatformKernel(void)
 #endif /* _WIN32 */
 }
 
-String Utility::GetPlatformKernelVersion(void)
+String Utility::GetPlatformKernelVersion()
 {
 #ifdef _WIN32
 	OSVERSIONINFO info;
@@ -1688,7 +1688,7 @@ String Utility::GetPlatformKernelVersion(void)
 #endif /* _WIN32 */
 }
 
-String Utility::GetPlatformName(void)
+String Utility::GetPlatformName()
 {
 	String platformName;
 	if (!ReleaseHelper(&platformName, nullptr))
@@ -1696,7 +1696,7 @@ String Utility::GetPlatformName(void)
 	return platformName;
 }
 
-String Utility::GetPlatformVersion(void)
+String Utility::GetPlatformVersion()
 {
 	String platformVersion;
 	if (!ReleaseHelper(nullptr, &platformVersion))
@@ -1704,7 +1704,7 @@ String Utility::GetPlatformVersion(void)
 	return platformVersion;
 }
 
-String Utility::GetPlatformArchitecture(void)
+String Utility::GetPlatformArchitecture()
 {
 #ifdef _WIN32
 	SYSTEM_INFO info;
@@ -1908,7 +1908,7 @@ int Utility::MksTemp(char *tmpl)
 	return -1;
 }
 
-String Utility::GetIcingaInstallPath(void)
+String Utility::GetIcingaInstallPath()
 {
 	char szProduct[39];
 
@@ -1930,7 +1930,7 @@ String Utility::GetIcingaInstallPath(void)
 	return "";
 }
 
-String Utility::GetIcingaDataPath(void)
+String Utility::GetIcingaDataPath()
 {
 	char path[MAX_PATH];
 	if (!SUCCEEDED(SHGetFolderPath(nullptr, CSIDL_COMMON_APPDATA, nullptr, 0, path)))

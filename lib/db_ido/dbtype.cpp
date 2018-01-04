@@ -29,22 +29,22 @@ DbType::DbType(const String& name, const String& table, long tid, const String& 
 	: m_Name(name), m_Table(table), m_TypeID(tid), m_IDColumn(idcolumn), m_ObjectFactory(factory)
 { }
 
-String DbType::GetName(void) const
+String DbType::GetName() const
 {
 	return m_Name;
 }
 
-String DbType::GetTable(void) const
+String DbType::GetTable() const
 {
 	return m_Table;
 }
 
-long DbType::GetTypeID(void) const
+long DbType::GetTypeID() const
 {
 	return m_TypeID;
 }
 
-String DbType::GetIDColumn(void) const
+String DbType::GetIDColumn() const
 {
 	return m_IDColumn;
 }
@@ -122,7 +122,7 @@ DbObject::Ptr DbType::GetOrCreateObjectByName(const String& name1, const String&
 	return dbobj;
 }
 
-boost::mutex& DbType::GetStaticMutex(void)
+boost::mutex& DbType::GetStaticMutex()
 {
 	static boost::mutex mutex;
 	return mutex;
@@ -131,13 +131,13 @@ boost::mutex& DbType::GetStaticMutex(void)
 /**
  * Caller must hold static mutex.
  */
-DbType::TypeMap& DbType::GetTypes(void)
+DbType::TypeMap& DbType::GetTypes()
 {
 	static DbType::TypeMap tm;
 	return tm;
 }
 
-std::set<DbType::Ptr> DbType::GetAllTypes(void)
+std::set<DbType::Ptr> DbType::GetAllTypes()
 {
 	std::set<DbType::Ptr> result;
 
@@ -151,7 +151,7 @@ std::set<DbType::Ptr> DbType::GetAllTypes(void)
 	return result;
 }
 
-DbTypeRegistry *DbTypeRegistry::GetInstance(void)
+DbTypeRegistry *DbTypeRegistry::GetInstance()
 {
 	return Singleton<DbTypeRegistry>::GetInstance();
 }

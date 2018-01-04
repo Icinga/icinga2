@@ -37,7 +37,7 @@ public:
 	static Array::Ptr EvenMinutesTimePeriodUpdate(const TimePeriod::Ptr& tp, double begin, double end);
 
 private:
-	TimePeriodTask(void);
+	TimePeriodTask();
 };
 
 }

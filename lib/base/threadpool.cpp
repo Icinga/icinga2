@@ -38,12 +38,12 @@ ThreadPool::ThreadPool(size_t max_threads)
 	Start();
 }
 
-ThreadPool::~ThreadPool(void)
+ThreadPool::~ThreadPool()
 {
 	Stop();
 }
 
-void ThreadPool::Start(void)
+void ThreadPool::Start()
 {
 	if (!m_Stopped)
 		return;
@@ -56,7 +56,7 @@ void ThreadPool::Start(void)
 	m_MgmtThread = std::thread(std::bind(&ThreadPool::ManagerThreadProc, this));
 }
 
-void ThreadPool::Stop(void)
+void ThreadPool::Stop()
 {
 	if (m_Stopped)
 		return;
@@ -219,7 +219,7 @@ bool ThreadPool::Post(const ThreadPool::WorkFunction& callback, SchedulerPolicy 
 	return true;
 }
 
-void ThreadPool::ManagerThreadProc(void)
+void ThreadPool::ManagerThreadProc()
 {
 	std::ostringstream idbuf;
 	idbuf << "TP #" << m_ID << " Manager";

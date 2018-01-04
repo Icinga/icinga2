@@ -29,20 +29,20 @@ INITIALIZE_ONCE_WITH_PRIORITY([]() {
 	Object::TypeInstance = type;
 }, 20);
 
-ObjectType::ObjectType(void)
+ObjectType::ObjectType()
 { }
 
-String ObjectType::GetName(void) const
+String ObjectType::GetName() const
 {
 	return "Object";
 }
 
-Type::Ptr ObjectType::GetBaseType(void) const
+Type::Ptr ObjectType::GetBaseType() const
 {
 	return nullptr;
 }
 
-int ObjectType::GetAttributes(void) const
+int ObjectType::GetAttributes() const
 {
 	return 0;
 }
@@ -63,12 +63,12 @@ Field ObjectType::GetFieldInfo(int id) const
 		BOOST_THROW_EXCEPTION(std::runtime_error("Invalid field ID."));
 }
 
-int ObjectType::GetFieldCount(void) const
+int ObjectType::GetFieldCount() const
 {
 	return 1;
 }
 
-ObjectFactory ObjectType::GetFactory(void) const
+ObjectFactory ObjectType::GetFactory() const
 {
 	return DefaultObjectFactory<Object>;
 }

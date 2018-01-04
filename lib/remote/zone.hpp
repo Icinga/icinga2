@@ -36,18 +36,18 @@ public:
 	DECLARE_OBJECT(Zone);
 	DECLARE_OBJECTNAME(Zone);
 
-	virtual void OnAllConfigLoaded(void) override;
+	virtual void OnAllConfigLoaded() override;
 
-	Zone::Ptr GetParent(void) const;
-	std::set<Endpoint::Ptr> GetEndpoints(void) const;
-	std::vector<Zone::Ptr> GetAllParents(void) const;
+	Zone::Ptr GetParent() const;
+	std::set<Endpoint::Ptr> GetEndpoints() const;
+	std::vector<Zone::Ptr> GetAllParents() const;
 
 	bool CanAccessObject(const ConfigObject::Ptr& object);
 	bool IsChildOf(const Zone::Ptr& zone);
-	bool IsGlobal(void) const;
-	bool IsSingleInstance(void) const;
+	bool IsGlobal() const;
+	bool IsSingleInstance() const;
 
-	static Zone::Ptr GetLocalZone(void);
+	static Zone::Ptr GetLocalZone();
 
 protected:
 	virtual void ValidateEndpointsRaw(const Array::Ptr& value, const ValidationUtils& utils) override;

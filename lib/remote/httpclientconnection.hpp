@@ -41,16 +41,16 @@ public:
 
 	HttpClientConnection(const String& host, const String& port, bool tls = true);
 
-	void Start(void);
+	void Start();
 
-	Stream::Ptr GetStream(void) const;
-	String GetHost(void) const;
-	String GetPort(void) const;
-	bool GetTls(void) const;
+	Stream::Ptr GetStream() const;
+	String GetHost() const;
+	String GetPort() const;
+	bool GetTls() const;
 
-	void Disconnect(void);
+	void Disconnect();
 
-	std::shared_ptr<HttpRequest> NewRequest(void);
+	std::shared_ptr<HttpRequest> NewRequest();
 
 	typedef std::function<void(HttpRequest&, HttpResponse&)> HttpCompletionCallback;
 	void SubmitRequest(const std::shared_ptr<HttpRequest>& request, const HttpCompletionCallback& callback);
@@ -66,8 +66,8 @@ private:
 
 	StreamReadContext m_Context;
 
-	void Reconnect(void);
-	bool ProcessMessage(void);
+	void Reconnect();
+	bool ProcessMessage();
 	void DataAvailableHandler(const Stream::Ptr& stream);
 
 	void ProcessMessageAsync(HttpRequest& request);

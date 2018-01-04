@@ -43,10 +43,10 @@ public:
 
 	String Format(const String& format) const;
 
-	virtual double GetValue(void) const override;
-	virtual String ToString(void) const override;
+	virtual double GetValue() const override;
+	virtual String ToString() const override;
 
-	static Object::Ptr GetPrototype(void);
+	static Object::Ptr GetPrototype();
 
 private:
 	double m_Value;

@@ -59,7 +59,7 @@ enum LogEntryType
 class DbEvents
 {
 public:
-	static void StaticInitialize(void);
+	static void StaticInitialize();
 
 	static void AddComments(const Checkable::Ptr& checkable);
 
@@ -125,7 +125,7 @@ public:
 	static void AddExternalCommandHistory(double time, const String& command, const std::vector<String>& arguments);
 
 private:
-	DbEvents(void);
+	DbEvents();
 
 	static void AddCommentInternal(std::vector<DbQuery>& queries, const Comment::Ptr& comment, bool historical);
 	static void RemoveCommentInternal(std::vector<DbQuery>& queries, const Comment::Ptr& comment);

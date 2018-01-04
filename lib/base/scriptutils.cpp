@@ -81,7 +81,7 @@ enum MatchType
 	MatchAny
 };
 
-void ScriptUtils::StaticInitialize(void)
+void ScriptUtils::StaticInitialize()
 {
 	ScriptGlobal::Set("MatchAll", MatchAll);
 	ScriptGlobal::Set("MatchAny", MatchAny);

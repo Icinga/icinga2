@@ -90,12 +90,12 @@ Url::Url(const String& base_url)
 	}
 }
 
-String Url::GetScheme(void) const
+String Url::GetScheme() const
 {
 	return m_Scheme;
 }
 
-String Url::GetAuthority(void) const
+String Url::GetAuthority() const
 {
 	if (m_Host.IsEmpty())
 		return "";
@@ -116,32 +116,32 @@ String Url::GetAuthority(void) const
 	return auth;
 }
 
-String Url::GetUsername(void) const
+String Url::GetUsername() const
 {
 	return m_Username;
 }
 
-String Url::GetPassword(void) const
+String Url::GetPassword() const
 {
 	return m_Password;
 }
 
-String Url::GetHost(void) const
+String Url::GetHost() const
 {
 	return m_Host;
 }
 
-String Url::GetPort(void) const
+String Url::GetPort() const
 {
 	return m_Port;
 }
 
-const std::vector<String>& Url::GetPath(void) const
+const std::vector<String>& Url::GetPath() const
 {
 	return m_Path;
 }
 
-const std::map<String, std::vector<String> >& Url::GetQuery(void) const
+const std::map<String, std::vector<String> >& Url::GetQuery() const
 {
 	return m_Query;
 }
@@ -168,7 +168,7 @@ const std::vector<String>& Url::GetQueryElements(const String& name) const
 	return it->second;
 }
 
-String Url::GetFragment(void) const
+String Url::GetFragment() const
 {
 	return m_Fragment;
 }

@@ -83,21 +83,21 @@ public:
 	DECLARE_OBJECT(Notification);
 	DECLARE_OBJECTNAME(Notification);
 
-	static void StaticInitialize(void);
+	static void StaticInitialize();
 
-	intrusive_ptr<Checkable> GetCheckable(void) const;
-	intrusive_ptr<NotificationCommand> GetCommand(void) const;
-	TimePeriod::Ptr GetPeriod(void) const;
-	std::set<User::Ptr> GetUsers(void) const;
-	std::set<UserGroup::Ptr> GetUserGroups(void) const;
+	intrusive_ptr<Checkable> GetCheckable() const;
+	intrusive_ptr<NotificationCommand> GetCommand() const;
+	TimePeriod::Ptr GetPeriod() const;
+	std::set<User::Ptr> GetUsers() const;
+	std::set<UserGroup::Ptr> GetUserGroups() const;
 
-	void UpdateNotificationNumber(void);
-	void ResetNotificationNumber(void);
+	void UpdateNotificationNumber();
+	void ResetNotificationNumber();
 
 	void BeginExecuteNotification(NotificationType type, const CheckResult::Ptr& cr, bool force,
 		bool reminder = false, const String& author = "", const String& text = "");
 
-	Endpoint::Ptr GetCommandEndpoint(void) const;
+	Endpoint::Ptr GetCommandEndpoint() const;
 
 	static String NotificationTypeToString(NotificationType type);
 	static String NotificationFilterToString(int filter, const std::map<String, int>& filterMap);
@@ -112,12 +112,12 @@ public:
 	static void EvaluateApplyRules(const intrusive_ptr<Host>& host);
 	static void EvaluateApplyRules(const intrusive_ptr<Service>& service);
 
-	static const std::map<String, int>& GetStateFilterMap(void);
-	static const std::map<String, int>& GetTypeFilterMap(void);
+	static const std::map<String, int>& GetStateFilterMap();
+	static const std::map<String, int>& GetTypeFilterMap();
 
 protected:
-	virtual void OnConfigLoaded(void) override;
-	virtual void OnAllConfigLoaded(void) override;
+	virtual void OnConfigLoaded() override;
+	virtual void OnAllConfigLoaded() override;
 	virtual void Start(bool runtimeCreated) override;
 	virtual void Stop(bool runtimeRemoved) override;
 

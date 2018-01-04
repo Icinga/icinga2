@@ -43,16 +43,16 @@ public:
 	DECLARE_OBJECT(IdoPgsqlConnection);
 	DECLARE_OBJECTNAME(IdoPgsqlConnection);
 
-	IdoPgsqlConnection(void);
+	IdoPgsqlConnection();
 
 	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
-	virtual int GetPendingQueryCount(void) const override;
+	virtual int GetPendingQueryCount() const override;
 
 protected:
-	virtual void OnConfigLoaded(void) override;
-	virtual void Resume(void) override;
-	virtual void Pause(void) override;
+	virtual void OnConfigLoaded() override;
+	virtual void Resume() override;
+	virtual void Pause() override;
 
 	virtual void ActivateObject(const DbObject::Ptr& dbobj) override;
 	virtual void DeactivateObject(const DbObject::Ptr& dbobj) override;
@@ -60,7 +60,7 @@ protected:
 	virtual void ExecuteMultipleQueries(const std::vector<DbQuery>& queries) override;
 	virtual void CleanUpExecuteQuery(const String& table, const String& time_key, double time_value) override;
 	virtual void FillIDCache(const DbType::Ptr& type) override;
-	virtual void NewTransaction(void) override;
+	virtual void NewTransaction() override;
 
 private:
 	DbReference m_InstanceID;
@@ -78,7 +78,7 @@ private:
 
 	IdoPgsqlResult Query(const String& query);
 	DbReference GetSequenceValue(const String& table, const String& column);
-	int GetAffectedRows(void);
+	int GetAffectedRows();
 	String Escape(const String& s);
 	Dictionary::Ptr FetchRow(const IdoPgsqlResult& result, int row);
 
@@ -86,16 +86,16 @@ private:
 	void InternalActivateObject(const DbObject::Ptr& dbobj);
 	void InternalDeactivateObject(const DbObject::Ptr& dbobj);
 
-	void Disconnect(void);
-	void InternalNewTransaction(void);
-	void Reconnect(void);
+	void Disconnect();
+	void InternalNewTransaction();
+	void Reconnect();
 
-	void AssertOnWorkQueue(void);
+	void AssertOnWorkQueue();
 
-	void TxTimerHandler(void);
-	void ReconnectTimerHandler(void);
+	void TxTimerHandler();
+	void ReconnectTimerHandler();
 
-	void StatsLoggerTimerHandler(void);
+	void StatsLoggerTimerHandler();
 
 	bool CanExecuteQuery(const DbQuery& query);
 
@@ -104,7 +104,7 @@ private:
 	void InternalCleanUpExecuteQuery(const String& table, const String& time_key, double time_value);
 
 	void ClearTableBySession(const String& table);
-	void ClearTablesBySession(void);
+	void ClearTablesBySession();
 
 	void ExceptionHandler(boost::exception_ptr exp);
 

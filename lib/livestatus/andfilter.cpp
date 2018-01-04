@@ -21,7 +21,7 @@
 
 using namespace icinga;
 
-AndFilter::AndFilter(void)
+AndFilter::AndFilter()
 { }
 
 bool AndFilter::Apply(const Table::Ptr& table, const Value& row)

@@ -39,7 +39,7 @@ public:
 		const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros);
 
 private:
-	NullCheckTask(void);
+	NullCheckTask();
 };
 
 }

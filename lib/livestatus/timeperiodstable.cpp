@@ -28,7 +28,7 @@
 
 using namespace icinga;
 
-TimePeriodsTable::TimePeriodsTable(void)
+TimePeriodsTable::TimePeriodsTable()
 {
 	AddColumns(this);
 }
@@ -41,12 +41,12 @@ void TimePeriodsTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "in", Column(&TimePeriodsTable::InAccessor, objectAccessor));
 }
 
-String TimePeriodsTable::GetName(void) const
+String TimePeriodsTable::GetName() const
 {
 	return "timeperiod";
 }
 
-String TimePeriodsTable::GetPrefix(void) const
+String TimePeriodsTable::GetPrefix() const
 {
 	return "timeperiod";
 }

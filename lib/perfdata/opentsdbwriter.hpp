@@ -58,7 +58,7 @@ private:
 	static String EscapeTag(const String& str);
 	static String EscapeMetric(const String& str);
 
-	void ReconnectTimerHandler(void);
+	void ReconnectTimerHandler();
 };
 
 }

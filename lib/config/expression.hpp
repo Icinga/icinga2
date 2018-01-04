@@ -65,7 +65,7 @@ public:
 		return DebugHint(child);
 	}
 
-	Dictionary::Ptr ToDictionary(void) const
+	Dictionary::Ptr ToDictionary() const
 	{
 		return m_Hints;
 	}
@@ -75,7 +75,7 @@ private:
 	Array::Ptr m_Messages;
 	Dictionary::Ptr m_Children;
 
-	const Array::Ptr& GetMessages(void)
+	const Array::Ptr& GetMessages()
 	{
 		if (m_Messages)
 			return m_Messages;
@@ -94,7 +94,7 @@ private:
 		return m_Messages;
 	}
 
-	const Dictionary::Ptr& GetChildren(void)
+	const Dictionary::Ptr& GetChildren()
 	{
 		if (m_Children)
 			return m_Children;
@@ -158,17 +158,17 @@ public:
 		: m_Value(value), m_Code(code)
 	{ }
 
-	operator const Value&(void) const
+	operator const Value&() const
 	{
 		return m_Value;
 	}
 
-	const Value& GetValue(void) const
+	const Value& GetValue() const
 	{
 		return m_Value;
 	}
 
-	ExpressionResultCode GetCode(void) const
+	ExpressionResultCode GetCode() const
 	{
 		return m_Code;
 	}
@@ -198,15 +198,15 @@ private:
 class Expression
 {
 public:
-	Expression(void) = default;
+	Expression() = default;
 	Expression(const Expression&) = delete;
-	virtual ~Expression(void);
+	virtual ~Expression();
 
 	Expression& operator=(const Expression&) = delete;
 
 	ExpressionResult Evaluate(ScriptFrame& frame, DebugHint *dhint = nullptr) const;
 	virtual bool GetReference(ScriptFrame& frame, bool init_dict, Value *parent, String *index, DebugHint **dhint = nullptr) const;
-	virtual const DebugInfo& GetDebugInfo(void) const;
+	virtual const DebugInfo& GetDebugInfo() const;
 
 	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const = 0;
 
@@ -230,7 +230,7 @@ protected:
 		return m_Expression->DoEvaluate(frame, dhint);
 	}
 
-	virtual const DebugInfo& GetDebugInfo(void) const override
+	virtual const DebugInfo& GetDebugInfo() const override
 	{
 		return m_Expression->GetDebugInfo();
 	}
@@ -244,7 +244,7 @@ class LiteralExpression final : public Expression
 public:
 	LiteralExpression(const Value& value = Value());
 
-	const Value& GetValue(void) const
+	const Value& GetValue() const
 	{
 		return m_Value;
 	}
@@ -274,7 +274,7 @@ public:
 	{ }
 
 protected:
-	virtual const DebugInfo& GetDebugInfo(void) const override final;
+	const DebugInfo& GetDebugInfo(void) const final;
 
 	DebugInfo m_DebugInfo;
 };
@@ -309,7 +309,7 @@ public:
 		: DebuggableExpression(debugInfo), m_Variable(variable)
 	{ }
 
-	String GetVariable(void) const
+	String GetVariable() const
 	{
 		return m_Variable;
 	}
@@ -602,7 +602,7 @@ public:
 		: DebuggableExpression(debugInfo), m_Expressions(std::move(expressions)), m_Inline(false)
 	{ }
 
-	void MakeInline(void);
+	void MakeInline();
 
 protected:
 	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;

@@ -49,7 +49,7 @@ DbObject::DbObject(const intrusive_ptr<DbType>& type, const String& name1, const
 	: m_Name1(name1), m_Name2(name2), m_Type(type), m_LastConfigUpdate(0), m_LastStatusUpdate(0)
 { }
 
-void DbObject::StaticInitialize(void)
+void DbObject::StaticInitialize()
 {
 	/* triggered in ProcessCheckResult(), requires UpdateNextCheck() to be called before */
 	ConfigObject::OnStateChanged.connect(std::bind(&DbObject::StateChangedHandler, _1));
@@ -64,22 +64,22 @@ void DbObject::SetObject(const ConfigObject::Ptr& object)
 	m_Object = object;
 }
 
-ConfigObject::Ptr DbObject::GetObject(void) const
+ConfigObject::Ptr DbObject::GetObject() const
 {
 	return m_Object;
 }
 
-String DbObject::GetName1(void) const
+String DbObject::GetName1() const
 {
 	return m_Name1;
 }
 
-String DbObject::GetName2(void) const
+String DbObject::GetName2() const
 {
 	return m_Name2;
 }
 
-DbType::Ptr DbObject::GetType(void) const
+DbType::Ptr DbObject::GetType() const
 {
 	return m_Type;
 }
@@ -157,12 +157,12 @@ void DbObject::SendConfigUpdateHeavy(const Dictionary::Ptr& configFields)
 	OnConfigUpdateHeavy();
 }
 
-void DbObject::SendConfigUpdateLight(void)
+void DbObject::SendConfigUpdateLight()
 {
 	OnConfigUpdateLight();
 }
 
-void DbObject::SendStatusUpdate(void)
+void DbObject::SendStatusUpdate()
 {
 	/* status attributes */
 	Dictionary::Ptr fields = GetStatusFields();
@@ -200,7 +200,7 @@ void DbObject::SendStatusUpdate(void)
 	OnStatusUpdate();
 }
 
-void DbObject::SendVarsConfigUpdateHeavy(void)
+void DbObject::SendVarsConfigUpdateHeavy()
 {
 	ConfigObject::Ptr obj = GetObject();
 
@@ -265,7 +265,7 @@ void DbObject::SendVarsConfigUpdateHeavy(void)
 	OnMultipleQueries(queries);
 }
 
-void DbObject::SendVarsStatusUpdate(void)
+void DbObject::SendVarsStatusUpdate()
 {
 	ConfigObject::Ptr obj = GetObject();
 
@@ -317,27 +317,27 @@ void DbObject::SendVarsStatusUpdate(void)
 	}
 }
 
-double DbObject::GetLastConfigUpdate(void) const
+double DbObject::GetLastConfigUpdate() const
 {
 	return m_LastConfigUpdate;
 }
 
-double DbObject::GetLastStatusUpdate(void) const
+double DbObject::GetLastStatusUpdate() const
 {
 	return m_LastStatusUpdate;
 }
 
-void DbObject::OnConfigUpdateHeavy(void)
+void DbObject::OnConfigUpdateHeavy()
 {
 	/* Default handler does nothing. */
 }
 
-void DbObject::OnConfigUpdateLight(void)
+void DbObject::OnConfigUpdateLight()
 {
 	/* Default handler does nothing. */
 }
 
-void DbObject::OnStatusUpdate(void)
+void DbObject::OnStatusUpdate()
 {
 	/* Default handler does nothing. */
 }
@@ -419,7 +419,7 @@ void DbObject::VersionChangedHandler(const ConfigObject::Ptr& object)
 	}
 }
 
-boost::mutex& DbObject::GetStaticMutex(void)
+boost::mutex& DbObject::GetStaticMutex()
 {
 	static boost::mutex mutex;
 	return mutex;

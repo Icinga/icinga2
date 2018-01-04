@@ -34,11 +34,11 @@ REGISTER_TYPE(Endpoint);
 boost::signals2::signal<void(const Endpoint::Ptr&, const JsonRpcConnection::Ptr&)> Endpoint::OnConnected;
 boost::signals2::signal<void(const Endpoint::Ptr&, const JsonRpcConnection::Ptr&)> Endpoint::OnDisconnected;
 
-Endpoint::Endpoint(void)
+Endpoint::Endpoint()
 	: m_MessagesSent(60), m_MessagesReceived(60), m_BytesSent(60), m_BytesReceived(60)
 { }
 
-void Endpoint::OnAllConfigLoaded(void)
+void Endpoint::OnAllConfigLoaded()
 {
 	ObjectImpl<Endpoint>::OnAllConfigLoaded();
 
@@ -95,24 +95,24 @@ void Endpoint::RemoveClient(const JsonRpcConnection::Ptr& client)
 	OnDisconnected(this, client);
 }
 
-std::set<JsonRpcConnection::Ptr> Endpoint::GetClients(void) const
+std::set<JsonRpcConnection::Ptr> Endpoint::GetClients() const
 {
 	boost::mutex::scoped_lock lock(m_ClientsLock);
 	return m_Clients;
 }
 
-Zone::Ptr Endpoint::GetZone(void) const
+Zone::Ptr Endpoint::GetZone() const
 {
 	return m_Zone;
 }
 
-bool Endpoint::GetConnected(void) const
+bool Endpoint::GetConnected() const
 {
 	boost::mutex::scoped_lock lock(m_ClientsLock);
 	return !m_Clients.empty();
 }
 
-Endpoint::Ptr Endpoint::GetLocalEndpoint(void)
+Endpoint::Ptr Endpoint::GetLocalEndpoint()
 {
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 
@@ -138,22 +138,22 @@ void Endpoint::AddMessageReceived(int bytes)
 	SetLastMessageReceived(time);
 }
 
-double Endpoint::GetMessagesSentPerSecond(void) const
+double Endpoint::GetMessagesSentPerSecond() const
 {
 	return m_MessagesSent.CalculateRate(Utility::GetTime(), 60);
 }
 
-double Endpoint::GetMessagesReceivedPerSecond(void) const
+double Endpoint::GetMessagesReceivedPerSecond() const
 {
 	return m_MessagesReceived.CalculateRate(Utility::GetTime(), 60);
 }
 
-double Endpoint::GetBytesSentPerSecond(void) const
+double Endpoint::GetBytesSentPerSecond() const
 {
 	return m_BytesSent.CalculateRate(Utility::GetTime(), 60);
 }
 
-double Endpoint::GetBytesReceivedPerSecond(void) const
+double Endpoint::GetBytesReceivedPerSecond() const
 {
 	return m_BytesReceived.CalculateRate(Utility::GetTime(), 60);
 }

@@ -29,7 +29,7 @@
 
 using namespace icinga;
 
-String ConfigPackageUtility::GetPackageDir(void)
+String ConfigPackageUtility::GetPackageDir()
 {
 	return Application::GetLocalStateDir() + "/lib/icinga2/api/packages";
 }
@@ -56,7 +56,7 @@ void ConfigPackageUtility::DeletePackage(const String& name)
 	Application::RequestRestart();
 }
 
-std::vector<String> ConfigPackageUtility::GetPackages(void)
+std::vector<String> ConfigPackageUtility::GetPackages()
 {
 	std::vector<String> packages;
 	Utility::Glob(GetPackageDir() + "/*", std::bind(&ConfigPackageUtility::CollectDirNames,
@@ -319,7 +319,7 @@ bool ConfigPackageUtility::ValidateName(const String& name)
 	return (!boost::regex_search(name.GetData(), what, expr));
 }
 
-boost::mutex& ConfigPackageUtility::GetStaticMutex(void)
+boost::mutex& ConfigPackageUtility::GetStaticMutex()
 {
 	static boost::mutex mutex;
 	return mutex;

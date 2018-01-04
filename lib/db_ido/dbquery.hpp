@@ -74,13 +74,13 @@ struct DbQuery
 	bool StatusUpdate;
 	WorkQueuePriority Priority;
 
-	static void StaticInitialize(void);
+	static void StaticInitialize();
 
-	DbQuery(void)
+	DbQuery()
 		: Type(0), Category(DbCatInvalid), ConfigUpdate(false), StatusUpdate(false), Priority(PriorityNormal)
 	{ }
 
-	static const std::map<String, int>& GetCategoryFilterMap(void);
+	static const std::map<String, int>& GetCategoryFilterMap();
 
 private:
 	static std::map<String, int> m_CategoryFilterMap;

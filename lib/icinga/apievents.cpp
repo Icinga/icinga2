@@ -28,7 +28,7 @@ using namespace icinga;
 
 INITIALIZE_ONCE(&ApiEvents::StaticInitialize);
 
-void ApiEvents::StaticInitialize(void)
+void ApiEvents::StaticInitialize()
 {
 	Checkable::OnNewCheckResult.connect(&ApiEvents::CheckResultHandler);
 	Checkable::OnStateChange.connect(&ApiEvents::StateChangeHandler);

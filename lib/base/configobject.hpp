@@ -44,23 +44,23 @@ public:
 
 	static boost::signals2::signal<void (const ConfigObject::Ptr&)> OnStateChanged;
 
-	bool IsActive(void) const;
-	bool IsPaused(void) const;
+	bool IsActive() const;
+	bool IsPaused() const;
 
 	void SetExtension(const String& key, const Value& value);
 	Value GetExtension(const String& key);
 	void ClearExtension(const String& key);
 
-	ConfigObject::Ptr GetZone(void) const;
+	ConfigObject::Ptr GetZone() const;
 
 	void ModifyAttribute(const String& attr, const Value& value, bool updateVersion = true);
 	void RestoreAttribute(const String& attr, bool updateVersion = true);
 	bool IsAttributeModified(const String& attr) const;
 
-	void Register(void);
-	void Unregister(void);
+	void Register();
+	void Unregister();
 
-	void PreActivate(void);
+	void PreActivate();
 	void Activate(bool runtimeCreated = false);
 	void Deactivate(bool runtimeRemoved = false);
 	void SetAuthority(bool authority);
@@ -68,15 +68,15 @@ public:
 	virtual void Start(bool runtimeCreated = false) override;
 	virtual void Stop(bool runtimeRemoved = false) override;
 
-	virtual void Pause(void);
-	virtual void Resume(void);
+	virtual void Pause();
+	virtual void Resume();
 
-	virtual void OnConfigLoaded(void);
+	virtual void OnConfigLoaded();
 	virtual void CreateChildObjects(const Type::Ptr& childType);
-	virtual void OnAllConfigLoaded(void);
-	virtual void OnStateLoaded(void);
+	virtual void OnAllConfigLoaded();
+	virtual void OnStateLoaded();
 
-	virtual Dictionary::Ptr GetSourceLocation(void) const override;
+	virtual Dictionary::Ptr GetSourceLocation() const override;
 
 	template<typename T>
 	static intrusive_ptr<T> GetObject(const String& name)
@@ -90,14 +90,14 @@ public:
 
 	static void DumpObjects(const String& filename, int attributeTypes = FAState);
 	static void RestoreObjects(const String& filename, int attributeTypes = FAState);
-	static void StopObjects(void);
+	static void StopObjects();
 
 	static void DumpModifiedAttributes(const std::function<void(const ConfigObject::Ptr&, const String&, const Value&)>& callback);
 
-	static Object::Ptr GetPrototype(void);
+	static Object::Ptr GetPrototype();
 
 protected:
-	explicit ConfigObject(void);
+	explicit ConfigObject();
 
 private:
 	ConfigObject::Ptr m_Zone;
@@ -106,7 +106,7 @@ private:
 };
 
 #define DECLARE_OBJECTNAME(klass)						\
-	inline static String GetTypeName(void)					\
+	inline static String GetTypeName()					\
 	{									\
 		return #klass;							\
 	}									\

@@ -38,14 +38,14 @@ struct ScriptFrame
 
 	ScriptFrame(bool allocLocals);
 	ScriptFrame(bool allocLocals, const Value& self);
-	~ScriptFrame(void);
+	~ScriptFrame();
 
-	void IncreaseStackDepth(void);
-	void DecreaseStackDepth(void);
+	void IncreaseStackDepth();
+	void DecreaseStackDepth();
 
-	static ScriptFrame *GetCurrentFrame(void);
+	static ScriptFrame *GetCurrentFrame();
 
-	static Array::Ptr GetImports(void);
+	static Array::Ptr GetImports();
 	static void AddImport(const Object::Ptr& import);
 
 private:
@@ -53,9 +53,9 @@ private:
 	static Array::Ptr m_Imports;
 
 	static void PushFrame(ScriptFrame *frame);
-	static ScriptFrame *PopFrame(void);
+	static ScriptFrame *PopFrame();
 
-	void InitializeFrame(void);
+	void InitializeFrame();
 };
 
 }

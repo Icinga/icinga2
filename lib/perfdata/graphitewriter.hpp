@@ -42,7 +42,7 @@ public:
 	DECLARE_OBJECT(GraphiteWriter);
 	DECLARE_OBJECTNAME(GraphiteWriter);
 
-	GraphiteWriter(void);
+	GraphiteWriter();
 
 	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
@@ -50,7 +50,7 @@ public:
 	virtual void ValidateServiceNameTemplate(const String& value, const ValidationUtils& utils) override;
 
 protected:
-	virtual void OnConfigLoaded(void) override;
+	virtual void OnConfigLoaded() override;
 	virtual void Start(bool runtimeCreated) override;
 	virtual void Stop(bool runtimeRemoved) override;
 
@@ -68,12 +68,12 @@ private:
 	static String EscapeMetricLabel(const String& str);
 	static Value EscapeMacroMetric(const Value& value);
 
-	void ReconnectTimerHandler(void);
+	void ReconnectTimerHandler();
 
-	void Disconnect(void);
-	void Reconnect(void);
+	void Disconnect();
+	void Reconnect();
 
-	void AssertOnWorkQueue(void);
+	void AssertOnWorkQueue();
 
 	void ExceptionHandler(boost::exception_ptr exp);
 };

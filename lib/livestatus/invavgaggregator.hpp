@@ -31,7 +31,7 @@ namespace icinga
  */
 struct InvAvgAggregatorState final : public AggregatorState
 {
-	InvAvgAggregatorState(void)
+	InvAvgAggregatorState()
 		: InvAvg(0), InvAvgCount(0)
 	{ }
 

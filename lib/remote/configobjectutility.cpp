@@ -32,7 +32,7 @@
 
 using namespace icinga;
 
-String ConfigObjectUtility::GetConfigDir(void)
+String ConfigObjectUtility::GetConfigDir()
 {
 	return ConfigPackageUtility::GetPackageDir() + "/_api/" +
 		ConfigPackageUtility::GetActiveStage("_api");

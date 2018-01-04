@@ -41,7 +41,7 @@ public:
 
 	void UpdateRegion(double begin, double end, bool clearExisting);
 
-	virtual bool GetIsInside(void) const override;
+	virtual bool GetIsInside() const override;
 
 	bool IsInside(double ts) const;
 	double FindNextTransition(double begin);
@@ -57,9 +57,9 @@ private:
 
 	void Merge(const TimePeriod::Ptr& timeperiod, bool include = true);
 
-	void Dump(void);
+	void Dump();
 
-	static void UpdateTimerHandler(void);
+	static void UpdateTimerHandler();
 };
 
 }

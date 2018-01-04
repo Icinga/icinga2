@@ -29,10 +29,10 @@ template class std::map<String, Value>;
 
 REGISTER_PRIMITIVE_TYPE(Dictionary, Object, Dictionary::GetPrototype());
 
-Dictionary::Dictionary(void)
+Dictionary::Dictionary()
 { }
 
-Dictionary::~Dictionary(void)
+Dictionary::~Dictionary()
 { }
 
 /**
@@ -104,7 +104,7 @@ void Dictionary::Set(const String& key, Value&& value)
  *
  * @returns Number of elements.
  */
-size_t Dictionary::GetLength(void) const
+size_t Dictionary::GetLength() const
 {
 	ObjectLock olock(this);
 
@@ -131,7 +131,7 @@ bool Dictionary::Contains(const String& key) const
  *
  * @returns An iterator.
  */
-Dictionary::Iterator Dictionary::Begin(void)
+Dictionary::Iterator Dictionary::Begin()
 {
 	ASSERT(OwnsLock());
 
@@ -145,7 +145,7 @@ Dictionary::Iterator Dictionary::Begin(void)
  *
  * @returns An iterator.
  */
-Dictionary::Iterator Dictionary::End(void)
+Dictionary::Iterator Dictionary::End()
 {
 	ASSERT(OwnsLock());
 
@@ -185,7 +185,7 @@ void Dictionary::Remove(const String& key)
 /**
  * Removes all dictionary items.
  */
-void Dictionary::Clear(void)
+void Dictionary::Clear()
 {
 	ObjectLock olock(this);
 
@@ -206,7 +206,7 @@ void Dictionary::CopyTo(const Dictionary::Ptr& dest) const
  *
  * @returns a copy of the dictionary.
  */
-Dictionary::Ptr Dictionary::ShallowClone(void) const
+Dictionary::Ptr Dictionary::ShallowClone() const
 {
 	Dictionary::Ptr clone = new Dictionary();
 	CopyTo(clone);
@@ -219,7 +219,7 @@ Dictionary::Ptr Dictionary::ShallowClone(void) const
  *
  * @returns a copy of the dictionary.
  */
-Object::Ptr Dictionary::Clone(void) const
+Object::Ptr Dictionary::Clone() const
 {
 	Dictionary::Ptr dict = new Dictionary();
 
@@ -237,7 +237,7 @@ Object::Ptr Dictionary::Clone(void) const
  *
  * @returns an array of key names
  */
-std::vector<String> Dictionary::GetKeys(void) const
+std::vector<String> Dictionary::GetKeys() const
 {
 	ObjectLock olock(this);
 
@@ -250,7 +250,7 @@ std::vector<String> Dictionary::GetKeys(void) const
 	return keys;
 }
 
-String Dictionary::ToString(void) const
+String Dictionary::ToString() const
 {
 	std::ostringstream msgbuf;
 	ConfigWriter::EmitScope(msgbuf, 1, const_cast<Dictionary *>(this));

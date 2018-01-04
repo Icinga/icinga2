@@ -26,12 +26,12 @@ namespace po = boost::program_options;
 
 REGISTER_CLICOMMAND("feature/disable", FeatureDisableCommand);
 
-String FeatureDisableCommand::GetDescription(void) const
+String FeatureDisableCommand::GetDescription() const
 {
 	return "Disables specified Icinga 2 feature.";
 }
 
-String FeatureDisableCommand::GetShortDescription(void) const
+String FeatureDisableCommand::GetShortDescription() const
 {
 	return "disables specified feature";
 }
@@ -41,17 +41,17 @@ std::vector<String> FeatureDisableCommand::GetPositionalSuggestions(const String
 	return FeatureUtility::GetFieldCompletionSuggestions(word, false);
 }
 
-int FeatureDisableCommand::GetMinArguments(void) const
+int FeatureDisableCommand::GetMinArguments() const
 {
 	return 1;
 }
 
-int FeatureDisableCommand::GetMaxArguments(void) const
+int FeatureDisableCommand::GetMaxArguments() const
 {
 	return -1;
 }
 
-ImpersonationLevel FeatureDisableCommand::GetImpersonationLevel(void) const
+ImpersonationLevel FeatureDisableCommand::GetImpersonationLevel() const
 {
 	return ImpersonateRoot;
 }

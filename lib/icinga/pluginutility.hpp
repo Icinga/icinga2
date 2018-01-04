@@ -51,7 +51,7 @@ public:
 	static String FormatPerfdata(const Array::Ptr& perfdata);
 
 private:
-	PluginUtility(void);
+	PluginUtility();
 };
 
 }

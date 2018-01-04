@@ -39,7 +39,7 @@ using namespace icinga;
 
 INITIALIZE_ONCE(&DbEvents::StaticInitialize);
 
-void DbEvents::StaticInitialize(void)
+void DbEvents::StaticInitialize()
 {
 	/* Status */
 	Comment::OnCommentAdded.connect(std::bind(&DbEvents::AddComment, _1));

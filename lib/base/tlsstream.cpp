@@ -82,7 +82,7 @@ TlsStream::TlsStream(const Socket::Ptr& socket, const String& hostname, Connecti
 	}
 }
 
-TlsStream::~TlsStream(void)
+TlsStream::~TlsStream()
 {
 	CloseInternal(true);
 }
@@ -104,12 +104,12 @@ int TlsStream::ValidateCertificate(int preverify_ok, X509_STORE_CTX *ctx)
 	return 1;
 }
 
-bool TlsStream::IsVerifyOK(void) const
+bool TlsStream::IsVerifyOK() const
 {
 	return m_VerifyOK;
 }
 
-String TlsStream::GetVerifyError(void) const
+String TlsStream::GetVerifyError() const
 {
 	return m_VerifyError;
 }
@@ -119,7 +119,7 @@ String TlsStream::GetVerifyError(void) const
  *
  * @returns The X509 certificate.
  */
-std::shared_ptr<X509> TlsStream::GetClientCertificate(void) const
+std::shared_ptr<X509> TlsStream::GetClientCertificate() const
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
 	return std::shared_ptr<X509>(SSL_get_certificate(m_SSL.get()), &Utility::NullDeleter);
@@ -130,7 +130,7 @@ std::shared_ptr<X509> TlsStream::GetClientCertificate(void) const
  *
  * @returns The X509 certificate.
  */
-std::shared_ptr<X509> TlsStream::GetPeerCertificate(void) const
+std::shared_ptr<X509> TlsStream::GetPeerCertificate() const
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
 	return std::shared_ptr<X509>(SSL_get_peer_certificate(m_SSL.get()), X509_free);
@@ -269,7 +269,7 @@ void TlsStream::OnEvent(int revents)
 	}
 }
 
-void TlsStream::HandleError(void) const
+void TlsStream::HandleError() const
 {
 	if (m_ErrorOccurred) {
 		BOOST_THROW_EXCEPTION(openssl_error()
@@ -278,7 +278,7 @@ void TlsStream::HandleError(void) const
 	}
 }
 
-void TlsStream::Handshake(void)
+void TlsStream::Handshake()
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
 
@@ -332,7 +332,7 @@ void TlsStream::Write(const void *buffer, size_t count)
 	ChangeEvents(POLLIN|POLLOUT);
 }
 
-void TlsStream::Shutdown(void)
+void TlsStream::Shutdown()
 {
 	m_Shutdown = true;
 	ChangeEvents(POLLOUT);
@@ -341,7 +341,7 @@ void TlsStream::Shutdown(void)
 /**
  * Closes the stream.
  */
-void TlsStream::Close(void)
+void TlsStream::Close()
 {
 	CloseInternal(false);
 }
@@ -374,24 +374,24 @@ void TlsStream::CloseInternal(bool inDestructor)
 	m_CV.notify_all();
 }
 
-bool TlsStream::IsEof(void) const
+bool TlsStream::IsEof() const
 {
 	return m_Eof;
 }
 
-bool TlsStream::SupportsWaiting(void) const
+bool TlsStream::SupportsWaiting() const
 {
 	return true;
 }
 
-bool TlsStream::IsDataAvailable(void) const
+bool TlsStream::IsDataAvailable() const
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
 
 	return m_RecvQ->GetAvailableBytes() > 0;
 }
 
-Socket::Ptr TlsStream::GetSocket(void) const
+Socket::Ptr TlsStream::GetSocket() const
 {
 	return m_Socket;
 }

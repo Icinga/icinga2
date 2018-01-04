@@ -27,7 +27,7 @@ INITIALIZE_ONCE(&DbQuery::StaticInitialize);
 
 std::map<String, int> DbQuery::m_CategoryFilterMap;
 
-void DbQuery::StaticInitialize(void)
+void DbQuery::StaticInitialize()
 {
 	ScriptGlobal::Set("DbCatConfig", DbCatConfig);
 	ScriptGlobal::Set("DbCatState", DbCatState);
@@ -63,7 +63,7 @@ void DbQuery::StaticInitialize(void)
 	m_CategoryFilterMap["DbCatEverything"] = DbCatEverything;
 }
 
-const std::map<String, int>& DbQuery::GetCategoryFilterMap(void)
+const std::map<String, int>& DbQuery::GetCategoryFilterMap()
 {
 	return m_CategoryFilterMap;
 }

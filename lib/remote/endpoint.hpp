@@ -42,34 +42,34 @@ public:
 	DECLARE_OBJECT(Endpoint);
 	DECLARE_OBJECTNAME(Endpoint);
 
-	Endpoint(void);
+	Endpoint();
 
 	static boost::signals2::signal<void(const Endpoint::Ptr&, const intrusive_ptr<JsonRpcConnection>&)> OnConnected;
 	static boost::signals2::signal<void(const Endpoint::Ptr&, const intrusive_ptr<JsonRpcConnection>&)> OnDisconnected;
 
 	void AddClient(const intrusive_ptr<JsonRpcConnection>& client);
 	void RemoveClient(const intrusive_ptr<JsonRpcConnection>& client);
-	std::set<intrusive_ptr<JsonRpcConnection> > GetClients(void) const;
+	std::set<intrusive_ptr<JsonRpcConnection> > GetClients() const;
 
-	intrusive_ptr<Zone> GetZone(void) const;
+	intrusive_ptr<Zone> GetZone() const;
 
-	virtual bool GetConnected(void) const override;
+	virtual bool GetConnected() const override;
 
-	static Endpoint::Ptr GetLocalEndpoint(void);
+	static Endpoint::Ptr GetLocalEndpoint();
 
 	void SetCachedZone(const intrusive_ptr<Zone>& zone);
 
 	void AddMessageSent(int bytes);
 	void AddMessageReceived(int bytes);
 
-	double GetMessagesSentPerSecond(void) const override;
-	double GetMessagesReceivedPerSecond(void) const override;
+	double GetMessagesSentPerSecond() const override;
+	double GetMessagesReceivedPerSecond() const override;
 
-	double GetBytesSentPerSecond(void) const override;
-	double GetBytesReceivedPerSecond(void) const override;
+	double GetBytesSentPerSecond() const override;
+	double GetBytesReceivedPerSecond() const override;
 
 protected:
-	virtual void OnAllConfigLoaded(void) override;
+	virtual void OnAllConfigLoaded() override;
 
 private:
 	mutable boost::mutex m_ClientsLock;

@@ -47,7 +47,7 @@ public:
 	DbValue(DbValueType type, const Value& value);
 
 	static Value FromTimestamp(const Value& ts);
-	static Value FromTimestampNow(void);
+	static Value FromTimestampNow();
 	static Value FromValue(const Value& value);
 	static Value FromObjectInsertID(const Value& value);
 
@@ -57,9 +57,9 @@ public:
 
 	static Value ExtractValue(const Value& value);
 
-	DbValueType GetType(void) const;
+	DbValueType GetType() const;
 
-	Value GetValue(void) const;
+	Value GetValue() const;
 	void SetValue(const Value& value);
 
 private:

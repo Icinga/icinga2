@@ -35,8 +35,8 @@ class PKISignCSRCommand final : public CLICommand
 public:
 	DECLARE_PTR_TYPEDEFS(PKISignCSRCommand);
 
-	virtual String GetDescription(void) const override;
-	virtual String GetShortDescription(void) const override;
+	virtual String GetDescription() const override;
+	virtual String GetShortDescription() const override;
 	virtual void InitParameters(boost::program_options::options_description& visibleDesc,
 		boost::program_options::options_description& hiddenDesc) const override;
 	virtual std::vector<String> GetArgumentSuggestions(const String& argument, const String& word) const override;

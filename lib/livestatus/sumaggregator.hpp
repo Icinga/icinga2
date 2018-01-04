@@ -31,7 +31,7 @@ namespace icinga
  */
 struct SumAggregatorState final : public AggregatorState
 {
-	SumAggregatorState(void)
+	SumAggregatorState()
 		: Sum(0)
 	{ }
 

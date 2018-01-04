@@ -83,7 +83,7 @@ void CheckResultReader::Stop(bool runtimeRemoved)
 /**
  * @threadsafety Always.
  */
-void CheckResultReader::ReadTimerHandler(void) const
+void CheckResultReader::ReadTimerHandler() const
 {
 	CONTEXT("Processing check result files in '" + GetSpoolDir() + "'");
 

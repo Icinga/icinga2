@@ -76,7 +76,7 @@ private:
 class EventQueueRegistry : public Registry<EventQueueRegistry, EventQueue::Ptr>
 {
 public:
-	static EventQueueRegistry *GetInstance(void);
+	static EventQueueRegistry *GetInstance();
 };
 
 }

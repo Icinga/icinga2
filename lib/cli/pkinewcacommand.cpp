@@ -25,12 +25,12 @@ using namespace icinga;
 
 REGISTER_CLICOMMAND("pki/new-ca", PKINewCACommand);
 
-String PKINewCACommand::GetDescription(void) const
+String PKINewCACommand::GetDescription() const
 {
 	return "Sets up a new Certificate Authority.";
 }
 
-String PKINewCACommand::GetShortDescription(void) const
+String PKINewCACommand::GetShortDescription() const
 {
 	return "sets up a new CA";
 }

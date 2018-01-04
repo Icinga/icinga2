@@ -35,13 +35,13 @@ class ZonesTable final : public Table
 public:
 	DECLARE_PTR_TYPEDEFS(ZonesTable);
 
-	ZonesTable(void);
+	ZonesTable();
 
 	static void AddColumns(Table *table, const String& prefix = String(),
 		const Column::ObjectAccessor& objectAccessor = Column::ObjectAccessor());
 
-	virtual String GetName(void) const override;
-	virtual String GetPrefix(void) const override;
+	virtual String GetName() const override;
+	virtual String GetPrefix() const override;
 
 protected:
 	virtual void FetchRows(const AddRowFunction& addRowFn) override;

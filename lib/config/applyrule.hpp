@@ -36,19 +36,19 @@ public:
 	typedef std::map<String, std::vector<String> > TypeMap;
 	typedef std::map<String, std::vector<ApplyRule> > RuleMap;
 
-	String GetTargetType(void) const;
-	String GetName(void) const;
-	std::shared_ptr<Expression> GetExpression(void) const;
-	std::shared_ptr<Expression> GetFilter(void) const;
-	String GetPackage(void) const;
-	String GetFKVar(void) const;
-	String GetFVVar(void) const;
-	std::shared_ptr<Expression> GetFTerm(void) const;
-	bool GetIgnoreOnError(void) const;
-	DebugInfo GetDebugInfo(void) const;
-	Dictionary::Ptr GetScope(void) const;
-	void AddMatch(void);
-	bool HasMatches(void) const;
+	String GetTargetType() const;
+	String GetName() const;
+	std::shared_ptr<Expression> GetExpression() const;
+	std::shared_ptr<Expression> GetFilter() const;
+	String GetPackage() const;
+	String GetFKVar() const;
+	String GetFVVar() const;
+	std::shared_ptr<Expression> GetFTerm() const;
+	bool GetIgnoreOnError() const;
+	DebugInfo GetDebugInfo() const;
+	Dictionary::Ptr GetScope() const;
+	void AddMatch();
+	bool HasMatches() const;
 
 	bool EvaluateFilter(ScriptFrame& frame) const;
 
@@ -62,7 +62,7 @@ public:
 	static bool IsValidTargetType(const String& sourceType, const String& targetType);
 	static std::vector<String> GetTargetTypes(const String& sourceType);
 
-	static void CheckMatches(void);
+	static void CheckMatches();
 
 private:
 	String m_TargetType;

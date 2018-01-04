@@ -32,7 +32,7 @@ namespace icinga
 class ApiEvents
 {
 public:
-	static void StaticInitialize(void);
+	static void StaticInitialize();
 
 	static void CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, const MessageOrigin::Ptr& origin);
 	static void StateChangeHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, StateType type, const MessageOrigin::Ptr& origin);

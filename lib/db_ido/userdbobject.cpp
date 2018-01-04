@@ -35,7 +35,7 @@ UserDbObject::UserDbObject(const DbType::Ptr& type, const String& name1, const S
 	: DbObject(type, name1, name2)
 { }
 
-Dictionary::Ptr UserDbObject::GetConfigFields(void) const
+Dictionary::Ptr UserDbObject::GetConfigFields() const
 {
 	Dictionary::Ptr fields = new Dictionary();
 	User::Ptr user = static_pointer_cast<User>(GetObject());
@@ -66,7 +66,7 @@ Dictionary::Ptr UserDbObject::GetConfigFields(void) const
 	return fields;
 }
 
-Dictionary::Ptr UserDbObject::GetStatusFields(void) const
+Dictionary::Ptr UserDbObject::GetStatusFields() const
 {
 	Dictionary::Ptr fields = new Dictionary();
 	User::Ptr user = static_pointer_cast<User>(GetObject());
@@ -79,7 +79,7 @@ Dictionary::Ptr UserDbObject::GetStatusFields(void) const
 	return fields;
 }
 
-void UserDbObject::OnConfigUpdateHeavy(void)
+void UserDbObject::OnConfigUpdateHeavy()
 {
 	User::Ptr user = static_pointer_cast<User>(GetObject());
 

@@ -81,12 +81,12 @@ void LogTable::AddColumns(Table *table, const String& prefix,
 	CommandsTable::AddColumns(table, "current_command_", std::bind(&LogTable::CommandAccessor, _1, objectAccessor));
 }
 
-String LogTable::GetName(void) const
+String LogTable::GetName() const
 {
 	return "log";
 }
 
-String LogTable::GetPrefix(void) const
+String LogTable::GetPrefix() const
 {
 	return "log";
 }

@@ -41,7 +41,7 @@ static std::map<String, ApiScriptFrame> l_ApiScriptFrames;
 static Timer::Ptr l_FrameCleanupTimer;
 static boost::mutex l_ApiScriptMutex;
 
-static void ScriptFrameCleanupHandler(void)
+static void ScriptFrameCleanupHandler()
 {
 	boost::mutex::scoped_lock lock(l_ApiScriptMutex);
 
@@ -58,7 +58,7 @@ static void ScriptFrameCleanupHandler(void)
 		l_ApiScriptFrames.erase(key);
 }
 
-static void EnsureFrameCleanupTimer(void)
+static void EnsureFrameCleanupTimer()
 {
 	static boost::once_flag once = BOOST_ONCE_INIT;
 

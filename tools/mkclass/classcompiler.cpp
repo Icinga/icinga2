@@ -42,17 +42,17 @@ ClassCompiler::ClassCompiler(const std::string& path, std::istream& input,
 	InitializeScanner();
 }
 
-ClassCompiler::~ClassCompiler(void)
+ClassCompiler::~ClassCompiler()
 {
 	DestroyScanner();
 }
 
-std::string ClassCompiler::GetPath(void) const
+std::string ClassCompiler::GetPath() const
 {
 	return m_Path;
 }
 
-void *ClassCompiler::GetScanner(void)
+void *ClassCompiler::GetScanner()
 {
 	return m_Scanner;
 }
@@ -198,7 +198,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		m_Header << "template<>" << std::endl
 			<< "struct TypeHelper<" << klass.Name << ", " << ((klass.Attributes & TAVarArgConstructor) ? "true" : "false") << ">" << std::endl
 			<< "{" << std::endl
-			<< "\t" << "static ObjectFactory GetFactory(void)" << std::endl
+			<< "\t" << "static ObjectFactory GetFactory()" << std::endl
 			<< "\t" << "{" << std::endl
 			<< "\t\t" << "return nullptr;" << std::endl
 			<< "\t" << "}" << std::endl
@@ -220,34 +220,34 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 			<< "{" << std::endl
 			<< "public:" << std::endl
 			<< "\t" << "DECLARE_PTR_TYPEDEFS(TypeImpl<" << klass.Name << ">);" << std::endl << std::endl
-			<< "\t" << "TypeImpl(void);" << std::endl
-			<< "\t" << "~TypeImpl(void);" << std::endl << std::endl;
+			<< "\t" << "TypeImpl();" << std::endl
+			<< "\t" << "~TypeImpl();" << std::endl << std::endl;
 
-	m_Impl << "TypeImpl<" << klass.Name << ">::TypeImpl(void)" << std::endl
+	m_Impl << "TypeImpl<" << klass.Name << ">::TypeImpl()" << std::endl
 		<< "{ }" << std::endl << std::endl
-		<< "TypeImpl<" << klass.Name << ">::~TypeImpl(void)" << std::endl
+		<< "TypeImpl<" << klass.Name << ">::~TypeImpl()" << std::endl
 		<< "{ }" << std::endl << std::endl;
 
 	/* GetName */
-	m_Header << "\t" << "virtual String GetName(void) const;" << std::endl;
+	m_Header << "\t" << "virtual String GetName() const;" << std::endl;
 
-	m_Impl << "String TypeImpl<" << klass.Name << ">::GetName(void) const" << std::endl
+	m_Impl << "String TypeImpl<" << klass.Name << ">::GetName() const" << std::endl
 		<< "{" << std::endl
 		<< "\t" << "return \"" << klass.Name << "\";" << std::endl
 		<< "}" << std::endl << std::endl;
 
 	/* GetAttributes */
-	m_Header << "\t" << "virtual int GetAttributes(void) const;" << std::endl;
+	m_Header << "\t" << "virtual int GetAttributes() const;" << std::endl;
 
-	m_Impl << "int TypeImpl<" << klass.Name << ">::GetAttributes(void) const" << std::endl
+	m_Impl << "int TypeImpl<" << klass.Name << ">::GetAttributes() const" << std::endl
 		<< "{" << std::endl
 		<< "\t" << "return " << klass.Attributes << ";" << std::endl
 		<< "}" << std::endl << std::endl;
 
 	/* GetBaseType */
-	m_Header << "\t" << "virtual Type::Ptr GetBaseType(void) const;" << std::endl;
+	m_Header << "\t" << "virtual Type::Ptr GetBaseType() const;" << std::endl;
 
-	m_Impl << "Type::Ptr TypeImpl<" << klass.Name << ">::GetBaseType(void) const" << std::endl
+	m_Impl << "Type::Ptr TypeImpl<" << klass.Name << ">::GetBaseType() const" << std::endl
 		<< "{" << std::endl
 		<< "\t" << "return ";
 
@@ -374,9 +374,9 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 	m_Impl << "}" << std::endl << std::endl;
 
 	/* GetFieldCount */
-	m_Header << "\t" << "virtual int GetFieldCount(void) const;" << std::endl;
+	m_Header << "\t" << "virtual int GetFieldCount() const;" << std::endl;
 
-	m_Impl << "int TypeImpl<" << klass.Name << ">::GetFieldCount(void) const" << std::endl
+	m_Impl << "int TypeImpl<" << klass.Name << ">::GetFieldCount() const" << std::endl
 		<< "{" << std::endl
 		<< "\t" << "return " << klass.Fields.size();
 
@@ -387,17 +387,17 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		<< "}" << std::endl << std::endl;
 
 	/* GetFactory */
-	m_Header << "\t" << "virtual ObjectFactory GetFactory(void) const;" << std::endl;
+	m_Header << "\t" << "virtual ObjectFactory GetFactory() const;" << std::endl;
 
-	m_Impl << "ObjectFactory TypeImpl<" << klass.Name << ">::GetFactory(void) const" << std::endl
+	m_Impl << "ObjectFactory TypeImpl<" << klass.Name << ">::GetFactory() const" << std::endl
 		<< "{" << std::endl
 		<< "\t" << "return TypeHelper<" << klass.Name << ", " << ((klass.Attributes & TAVarArgConstructor) ? "true" : "false") << ">::GetFactory();" << std::endl
 		<< "}" << std::endl << std::endl;
 
 	/* GetLoadDependencies */
-	m_Header << "\t" << "virtual std::vector<String> GetLoadDependencies(void) const;" << std::endl;
+	m_Header << "\t" << "virtual std::vector<String> GetLoadDependencies() const;" << std::endl;
 
-	m_Impl << "std::vector<String> TypeImpl<" << klass.Name << ">::GetLoadDependencies(void) const" << std::endl
+	m_Impl << "std::vector<String> TypeImpl<" << klass.Name << ">::GetLoadDependencies() const" << std::endl
 		<< "{" << std::endl
 		<< "\t" << "std::vector<String> deps;" << std::endl;
 
@@ -550,9 +550,9 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 
 	/* constructor */
 	m_Header << "public:" << std::endl
-			<< "\t" << "ObjectImpl<" << klass.Name << ">(void);" << std::endl;
+			<< "\t" << "ObjectImpl<" << klass.Name << ">();" << std::endl;
 
-	m_Impl << "ObjectImpl<" << klass.Name << ">::ObjectImpl(void)" << std::endl
+	m_Impl << "ObjectImpl<" << klass.Name << ">::ObjectImpl()" << std::endl
 		<< "{" << std::endl;
 
 	for (const Field& field : klass.Fields) {
@@ -563,9 +563,9 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 
 	/* destructor */
 	m_Header << "public:" << std::endl
-			<< "\t" << "~ObjectImpl<" << klass.Name << ">(void);" << std::endl;
+			<< "\t" << "~ObjectImpl<" << klass.Name << ">();" << std::endl;
 
-	m_Impl << "ObjectImpl<" << klass.Name << ">::~ObjectImpl(void)" << std::endl
+	m_Impl << "ObjectImpl<" << klass.Name << ">::~ObjectImpl()" << std::endl
 		<< "{ }" << std::endl << std::endl;
 
 	if (!klass.Fields.empty()) {
@@ -790,14 +790,14 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 			if (field.Attributes & FAGetVirtual || field.PureGetAccessor)
 				m_Header << "virtual ";
 
-			m_Header << field.Type.GetRealType() << " Get" << field.GetFriendlyName() << "(void) const";
+			m_Header << field.Type.GetRealType() << " Get" << field.GetFriendlyName() << "() const";
 
 			if (field.PureGetAccessor) {
 				m_Header << " = 0;" << std::endl;
 			} else {
 				m_Header << ";" << std::endl;
 
-				m_Impl << field.Type.GetRealType() << " ObjectImpl<" << klass.Name << ">::Get" << field.GetFriendlyName() << "(void) const" << std::endl
+				m_Impl << field.Type.GetRealType() << " ObjectImpl<" << klass.Name << ">::Get" << field.GetFriendlyName() << "() const" << std::endl
 					<< "{" << std::endl;
 
 				if (field.GetAccessor.empty() && !(field.Attributes & FANoStorage))
@@ -941,14 +941,14 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 				continue;
 
 			m_Header << "public:" << std::endl
-					<< "\t" << "Object::Ptr Navigate" << field.GetFriendlyName() << "(void) const";
+					<< "\t" << "Object::Ptr Navigate" << field.GetFriendlyName() << "() const";
 
 			if (field.PureNavigateAccessor) {
 				m_Header << " = 0;" << std::endl;
 			} else {
 				m_Header << ";" << std::endl;
 
-				m_Impl << "Object::Ptr ObjectImpl<" << klass.Name << ">::Navigate" << field.GetFriendlyName() << "(void) const" << std::endl
+				m_Impl << "Object::Ptr ObjectImpl<" << klass.Name << ">::Navigate" << field.GetFriendlyName() << "() const" << std::endl
 					<< "{" << std::endl;
 
 				if (field.NavigateAccessor.empty())
@@ -1022,9 +1022,9 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 			std::string realType = field.Type.GetRealType();
 
 			m_Header << "private:" << std::endl
-					<< "\t" << "inline " << realType << " GetDefault" << field.GetFriendlyName() << "(void) const;" << std::endl;
+					<< "\t" << "inline " << realType << " GetDefault" << field.GetFriendlyName() << "() const;" << std::endl;
 
-			m_Impl << realType << " ObjectImpl<" << klass.Name << ">::GetDefault" << field.GetFriendlyName() << "(void) const" << std::endl
+			m_Impl << realType << " ObjectImpl<" << klass.Name << ">::GetDefault" << field.GetFriendlyName() << "() const" << std::endl
 				<< "{" << std::endl;
 
 			if (field.DefaultAccessor.empty())
@@ -1321,7 +1321,7 @@ void ClassCompiler::HandleValidator(const Validator& validator, const ClassDebug
 	m_MissingValidators.clear();
 }
 
-void ClassCompiler::HandleMissingValidators(void)
+void ClassCompiler::HandleMissingValidators()
 {
 	for (const auto& it : m_MissingValidators) {
 		m_Impl << "void ObjectImpl<" << it.first.first << ">::Validate" << it.first.second << "(" << it.second.Type.GetArgumentType() << " value, const ValidationUtils& utils)" << std::endl

@@ -143,7 +143,7 @@ void EventQueue::Unregister(const String& name)
 	EventQueueRegistry::GetInstance()->Unregister(name);
 }
 
-EventQueueRegistry *EventQueueRegistry::GetInstance(void)
+EventQueueRegistry *EventQueueRegistry::GetInstance()
 {
 	return Singleton<EventQueueRegistry>::GetInstance();
 }

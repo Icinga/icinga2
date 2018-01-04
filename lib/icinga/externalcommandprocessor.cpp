@@ -134,7 +134,7 @@ void ExternalCommandProcessor::RegisterCommand(const String& command, const Exte
 	GetCommands()[command] = eci;
 }
 
-void ExternalCommandProcessor::RegisterCommands(void)
+void ExternalCommandProcessor::RegisterCommands()
 {
 	RegisterCommand("PROCESS_HOST_CHECK_RESULT", &ExternalCommandProcessor::ProcessHostCheckResult, 3);
 	RegisterCommand("PROCESS_SERVICE_CHECK_RESULT", &ExternalCommandProcessor::ProcessServiceCheckResult, 4);
@@ -2233,13 +2233,13 @@ void ExternalCommandProcessor::DisableServicegroupSvcNotifications(double, const
 	}
 }
 
-boost::mutex& ExternalCommandProcessor::GetMutex(void)
+boost::mutex& ExternalCommandProcessor::GetMutex()
 {
 	static boost::mutex mtx;
 	return mtx;
 }
 
-std::map<String, ExternalCommandInfo>& ExternalCommandProcessor::GetCommands(void)
+std::map<String, ExternalCommandInfo>& ExternalCommandProcessor::GetCommands()
 {
 	static std::map<String, ExternalCommandInfo> commands;
 	return commands;

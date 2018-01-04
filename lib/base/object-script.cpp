@@ -25,7 +25,7 @@
 
 using namespace icinga;
 
-static String ObjectToString(void)
+static String ObjectToString()
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Object::Ptr self = static_cast<Object::Ptr>(vframe->Self);
@@ -39,14 +39,14 @@ static void ObjectNotifyAttribute(const String& attribute)
 	self->NotifyField(self->GetReflectionType()->GetFieldId(attribute));
 }
 
-static Object::Ptr ObjectClone(void)
+static Object::Ptr ObjectClone()
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Object::Ptr self = static_cast<Object::Ptr>(vframe->Self);
 	return self->Clone();
 }
 
-Object::Ptr Object::GetPrototype(void)
+Object::Ptr Object::GetPrototype()
 {
 	static Dictionary::Ptr prototype;
 

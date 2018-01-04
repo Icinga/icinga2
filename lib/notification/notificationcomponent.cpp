@@ -77,7 +77,7 @@ void NotificationComponent::Stop(bool runtimeRemoved)
  *
  * @param - Event arguments for the timer.
  */
-void NotificationComponent::NotificationTimerHandler(void)
+void NotificationComponent::NotificationTimerHandler()
 {
 	double now = Utility::GetTime();
 

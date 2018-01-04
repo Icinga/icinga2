@@ -51,16 +51,16 @@ public:
 	DECLARE_OBJECT(IdoMysqlConnection);
 	DECLARE_OBJECTNAME(IdoMysqlConnection);
 
-	IdoMysqlConnection(void);
+	IdoMysqlConnection();
 
 	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
-	virtual int GetPendingQueryCount(void) const override;
+	virtual int GetPendingQueryCount() const override;
 
 protected:
-	virtual void OnConfigLoaded(void) override;
-	virtual void Resume(void) override;
-	virtual void Pause(void) override;
+	virtual void OnConfigLoaded() override;
+	virtual void Resume() override;
+	virtual void Pause() override;
 
 	virtual void ActivateObject(const DbObject::Ptr& dbobj) override;
 	virtual void DeactivateObject(const DbObject::Ptr& dbobj) override;
@@ -68,7 +68,7 @@ protected:
 	virtual void ExecuteMultipleQueries(const std::vector<DbQuery>& queries) override;
 	virtual void CleanUpExecuteQuery(const String& table, const String& time_key, double time_value) override;
 	virtual void FillIDCache(const DbType::Ptr& type) override;
-	virtual void NewTransaction(void) override;
+	virtual void NewTransaction() override;
 
 private:
 	DbReference m_InstanceID;
@@ -88,26 +88,26 @@ private:
 	Timer::Ptr m_TxTimer;
 
 	IdoMysqlResult Query(const String& query);
-	DbReference GetLastInsertID(void);
-	int GetAffectedRows(void);
+	DbReference GetLastInsertID();
+	int GetAffectedRows();
 	String Escape(const String& s);
 	Dictionary::Ptr FetchRow(const IdoMysqlResult& result);
 	void DiscardRows(const IdoMysqlResult& result);
 
 	void AsyncQuery(const String& query, const IdoAsyncCallback& callback = IdoAsyncCallback());
-	void FinishAsyncQueries(void);
+	void FinishAsyncQueries();
 
 	bool FieldToEscapedString(const String& key, const Value& value, Value *result);
 	void InternalActivateObject(const DbObject::Ptr& dbobj);
 	void InternalDeactivateObject(const DbObject::Ptr& dbobj);
 
-	void Disconnect(void);
-	void Reconnect(void);
+	void Disconnect();
+	void Reconnect();
 
-	void AssertOnWorkQueue(void);
+	void AssertOnWorkQueue();
 
-	void TxTimerHandler(void);
-	void ReconnectTimerHandler(void);
+	void TxTimerHandler();
+	void ReconnectTimerHandler();
 
 	bool CanExecuteQuery(const DbQuery& query);
 
@@ -116,10 +116,10 @@ private:
 
 	void FinishExecuteQuery(const DbQuery& query, int type, bool upsert);
 	void InternalCleanUpExecuteQuery(const String& table, const String& time_key, double time_value);
-	void InternalNewTransaction(void);
+	void InternalNewTransaction();
 
 	void ClearTableBySession(const String& table);
-	void ClearTablesBySession(void);
+	void ClearTablesBySession();
 
 	void ExceptionHandler(boost::exception_ptr exp);
 

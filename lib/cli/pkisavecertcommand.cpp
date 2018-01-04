@@ -29,12 +29,12 @@ namespace po = boost::program_options;
 
 REGISTER_CLICOMMAND("pki/save-cert", PKISaveCertCommand);
 
-String PKISaveCertCommand::GetDescription(void) const
+String PKISaveCertCommand::GetDescription() const
 {
 	return "Saves another Icinga 2 instance's certificate.";
 }
 
-String PKISaveCertCommand::GetShortDescription(void) const
+String PKISaveCertCommand::GetShortDescription() const
 {
 	return "saves another Icinga 2 instance's certificate";
 }

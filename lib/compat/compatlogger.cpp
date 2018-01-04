@@ -445,7 +445,7 @@ void CompatLogger::WriteLine(const String& line)
 	m_OutputFile << "[" << (long)Utility::GetTime() << "] " << line << "\n";
 }
 
-void CompatLogger::Flush(void)
+void CompatLogger::Flush()
 {
 	ASSERT(OwnsLock());
 
@@ -531,7 +531,7 @@ void CompatLogger::ReopenFile(bool rotate)
 	Flush();
 }
 
-void CompatLogger::ScheduleNextRotation(void)
+void CompatLogger::ScheduleNextRotation()
 {
 	time_t now = (time_t)Utility::GetTime();
 	String method = GetRotationMethod();
@@ -585,7 +585,7 @@ void CompatLogger::ScheduleNextRotation(void)
 /**
  * @threadsafety Always.
  */
-void CompatLogger::RotationTimerHandler(void)
+void CompatLogger::RotationTimerHandler()
 {
 	try {
 		ReopenFile(true);

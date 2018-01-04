@@ -46,15 +46,15 @@ REGISTER_TYPE_WITH_PROTOTYPE(ConfigObject, ConfigObject::GetPrototype());
 
 boost::signals2::signal<void (const ConfigObject::Ptr&)> ConfigObject::OnStateChanged;
 
-ConfigObject::ConfigObject(void)
+ConfigObject::ConfigObject()
 { }
 
-bool ConfigObject::IsActive(void) const
+bool ConfigObject::IsActive() const
 {
 	return GetActive();
 }
 
-bool ConfigObject::IsPaused(void) const
+bool ConfigObject::IsPaused() const
 {
 	return GetPaused();
 }
@@ -349,7 +349,7 @@ bool ConfigObject::IsAttributeModified(const String& attr) const
 	return original_attributes->Contains(attr);
 }
 
-void ConfigObject::Register(void)
+void ConfigObject::Register()
 {
 	ASSERT(!OwnsLock());
 
@@ -357,7 +357,7 @@ void ConfigObject::Register(void)
 	type->RegisterObject(this);
 }
 
-void ConfigObject::Unregister(void)
+void ConfigObject::Unregister()
 {
 	ASSERT(!OwnsLock());
 
@@ -374,7 +374,7 @@ void ConfigObject::Start(bool runtimeCreated)
 	SetStartCalled(true);
 }
 
-void ConfigObject::PreActivate(void)
+void ConfigObject::PreActivate()
 {
 	CONTEXT("Setting 'active' to true for object '" + GetName() + "' of type '" + GetReflectionType()->GetName() + "'");
 
@@ -431,12 +431,12 @@ void ConfigObject::Deactivate(bool runtimeRemoved)
 	NotifyActive();
 }
 
-void ConfigObject::OnConfigLoaded(void)
+void ConfigObject::OnConfigLoaded()
 {
 	/* Nothing to do here. */
 }
 
-void ConfigObject::OnAllConfigLoaded(void)
+void ConfigObject::OnAllConfigLoaded()
 {
 	static ConfigType *ctype;
 
@@ -456,17 +456,17 @@ void ConfigObject::CreateChildObjects(const Type::Ptr& childType)
 	/* Nothing to do here. */
 }
 
-void ConfigObject::OnStateLoaded(void)
+void ConfigObject::OnStateLoaded()
 {
 	/* Nothing to do here. */
 }
 
-void ConfigObject::Pause(void)
+void ConfigObject::Pause()
 {
 	SetPauseCalled(true);
 }
 
-void ConfigObject::Resume(void)
+void ConfigObject::Resume()
 {
 	SetResumeCalled(true);
 }
@@ -624,7 +624,7 @@ void ConfigObject::RestoreObjects(const String& filename, int attributeTypes)
 		<< "Restored " << restored << " objects. Loaded " << no_state << " new objects without state.";
 }
 
-void ConfigObject::StopObjects(void)
+void ConfigObject::StopObjects()
 {
 	for (const Type::Ptr& type : Type::GetAllTypes()) {
 		ConfigType *dtype = dynamic_cast<ConfigType *>(type.get());
@@ -711,12 +711,12 @@ ConfigObject::Ptr ConfigObject::GetObject(const String& type, const String& name
 	return ctype->GetObject(name);
 }
 
-ConfigObject::Ptr ConfigObject::GetZone(void) const
+ConfigObject::Ptr ConfigObject::GetZone() const
 {
 	return m_Zone;
 }
 
-Dictionary::Ptr ConfigObject::GetSourceLocation(void) const
+Dictionary::Ptr ConfigObject::GetSourceLocation() const
 {
 	DebugInfo di = GetDebugInfo();
 
@@ -729,5 +729,5 @@ Dictionary::Ptr ConfigObject::GetSourceLocation(void) const
 	return result;
 }
 
-NameComposer::~NameComposer(void)
+NameComposer::~NameComposer()
 { }

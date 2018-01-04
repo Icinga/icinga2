@@ -77,7 +77,7 @@ ConfigItem::ConfigItem(const Type::Ptr& type, const String& name,
  *
  * @returns The type.
  */
-Type::Ptr ConfigItem::GetType(void) const
+Type::Ptr ConfigItem::GetType() const
 {
 	return m_Type;
 }
@@ -87,7 +87,7 @@ Type::Ptr ConfigItem::GetType(void) const
  *
  * @returns The name.
  */
-String ConfigItem::GetName(void) const
+String ConfigItem::GetName() const
 {
 	return m_Name;
 }
@@ -97,17 +97,17 @@ String ConfigItem::GetName(void) const
  *
  * @returns true if the item is abstract, false otherwise.
  */
-bool ConfigItem::IsAbstract(void) const
+bool ConfigItem::IsAbstract() const
 {
 	return m_Abstract;
 }
 
-bool ConfigItem::IsDefaultTemplate(void) const
+bool ConfigItem::IsDefaultTemplate() const
 {
 	return m_DefaultTmpl;
 }
 
-bool ConfigItem::IsIgnoreOnError(void) const
+bool ConfigItem::IsIgnoreOnError() const
 {
 	return m_IgnoreOnError;
 }
@@ -117,17 +117,17 @@ bool ConfigItem::IsIgnoreOnError(void) const
  *
  * @returns The debug information.
  */
-DebugInfo ConfigItem::GetDebugInfo(void) const
+DebugInfo ConfigItem::GetDebugInfo() const
 {
 	return m_DebugInfo;
 }
 
-Dictionary::Ptr ConfigItem::GetScope(void) const
+Dictionary::Ptr ConfigItem::GetScope() const
 {
 	return m_Scope;
 }
 
-ConfigObject::Ptr ConfigItem::GetObject(void) const
+ConfigObject::Ptr ConfigItem::GetObject() const
 {
 	return m_Object;
 }
@@ -137,7 +137,7 @@ ConfigObject::Ptr ConfigItem::GetObject(void) const
  *
  * @returns The expression list.
  */
-std::shared_ptr<Expression> ConfigItem::GetExpression(void) const
+std::shared_ptr<Expression> ConfigItem::GetExpression() const
 {
 	return m_Expression;
 }
@@ -147,7 +147,7 @@ std::shared_ptr<Expression> ConfigItem::GetExpression(void) const
 *
 * @returns The filter expression.
 */
-std::shared_ptr<Expression> ConfigItem::GetFilter(void) const
+std::shared_ptr<Expression> ConfigItem::GetFilter() const
 {
 	return m_Filter;
 }
@@ -318,7 +318,7 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 /**
  * Registers the configuration item.
  */
-void ConfigItem::Register(void)
+void ConfigItem::Register()
 {
 	m_ActivationContext = ActivationContext::GetCurrentContext();
 
@@ -351,7 +351,7 @@ void ConfigItem::Register(void)
 /**
  * Unregisters the configuration item.
  */
-void ConfigItem::Unregister(void)
+void ConfigItem::Unregister()
 {
 	if (m_Object) {
 		m_Object->Unregister();
