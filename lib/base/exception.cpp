@@ -406,3 +406,34 @@ Dictionary::Ptr ValidationError::GetDebugHint() const
 	return m_DebugHint;
 }
 
+std::string icinga::to_string(const StackTraceErrorInfo&)
+{
+	return "";
+}
+
+#ifdef _WIN32
+std::string icinga::to_string(const errinfo_win32_error& e)
+{
+	return "[errinfo_win32_error] = " + Utility::FormatErrorNumber(e.value()) + "\n";
+}
+#endif /* _WIN32 */
+
+std::string icinga::to_string(const errinfo_getaddrinfo_error& e)
+{
+	String msg;
+
+#ifdef _WIN32
+	msg = gai_strerrorA(e.value());
+#else /* _WIN32 */
+	msg = gai_strerror(e.value());
+#endif /* _WIN32 */
+
+	return "[errinfo_getaddrinfo_error] = " + String(msg) + "\n";
+}
+
+std::string icinga::to_string(const ContextTraceErrorInfo& e)
+{
+	std::ostringstream msgbuf;
+	msgbuf << "[Context] = " << e.value();
+	return msgbuf.str();
+}

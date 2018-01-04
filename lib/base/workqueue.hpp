@@ -54,20 +54,7 @@ struct Task
 	int ID{-1};
 };
 
-inline bool operator<(const Task& a, const Task& b)
-{
-	if (a.Priority < b.Priority)
-		return true;
-
-	if (a.Priority == b.Priority) {
-		if (a.ID > b.ID)
-			return true;
-		else
-			return false;
-	}
-
-	return false;
-}
+bool operator<(const Task& a, const Task& b);
 
 /**
  * A workqueue.

@@ -299,3 +299,18 @@ size_t WorkQueue::GetTaskCount(RingBuffer::SizeType span)
 	boost::mutex::scoped_lock lock(m_StatsMutex);
 	return m_TaskStats.UpdateAndGetValues(Utility::GetTime(), span);
 }
+
+bool icinga::operator<(const Task& a, const Task& b)
+{
+	if (a.Priority < b.Priority)
+		return true;
+
+	if (a.Priority == b.Priority) {
+		if (a.ID > b.ID)
+			return true;
+		else
+			return false;
+	}
+
+	return false;
+}

@@ -782,4 +782,19 @@ bool VerifyCertificate(const std::shared_ptr<X509>& caCertificate, const std::sh
 	return rc == 1;
 }
 
+std::string to_string(const errinfo_openssl_error& e)
+{
+	std::ostringstream tmp;
+	int code = e.value();
+	char errbuf[120];
+
+	const char *message = ERR_error_string(code, errbuf);
+
+	if (!message)
+		message = "Unknown error.";
+
+	tmp << code << ", \"" << message << "\"";
+	return "[errinfo_openssl_error]" + tmp.str() + "\n";
+}
+
 }

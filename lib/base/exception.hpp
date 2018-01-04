@@ -106,19 +106,11 @@ void RethrowUncaughtException();
 
 typedef boost::error_info<StackTrace, StackTrace> StackTraceErrorInfo;
 
-inline std::string to_string(const StackTraceErrorInfo&)
-{
-	return "";
-}
+std::string to_string(const StackTraceErrorInfo&);
 
 typedef boost::error_info<ContextTrace, ContextTrace> ContextTraceErrorInfo;
 
-inline std::string to_string(const ContextTraceErrorInfo& e)
-{
-	std::ostringstream msgbuf;
-	msgbuf << "[Context] = " << e.value();
-	return msgbuf.str();
-}
+std::string to_string(const ContextTraceErrorInfo& e);
 
 String DiagnosticInformation(const std::exception& ex, bool verbose = true, StackTrace *stack = nullptr, ContextTrace *context = nullptr);
 String DiagnosticInformation(const boost::exception_ptr& eptr, bool verbose = true);
@@ -139,27 +131,13 @@ class win32_error : virtual public std::exception, virtual public boost::excepti
 struct errinfo_win32_error_;
 typedef boost::error_info<struct errinfo_win32_error_, int> errinfo_win32_error;
 
-inline std::string to_string(const errinfo_win32_error& e)
-{
-	return "[errinfo_win32_error] = " + Utility::FormatErrorNumber(e.value()) + "\n";
-}
+std::string to_string(const errinfo_win32_error& e);
 #endif /* _WIN32 */
 
 struct errinfo_getaddrinfo_error_;
 typedef boost::error_info<struct errinfo_getaddrinfo_error_, int> errinfo_getaddrinfo_error;
 
-inline std::string to_string(const errinfo_getaddrinfo_error& e)
-{
-	String msg;
-
-#ifdef _WIN32
-	msg = gai_strerrorA(e.value());
-#else /* _WIN32 */
-	msg = gai_strerror(e.value());
-#endif /* _WIN32 */
-
-	return "[errinfo_getaddrinfo_error] = " + String(msg) + "\n";
-}
+std::string to_string(const errinfo_getaddrinfo_error& e);
 
 struct errinfo_message_;
 typedef boost::error_info<struct errinfo_message_, std::string> errinfo_message;

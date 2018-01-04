@@ -61,20 +61,7 @@ class openssl_error : virtual public std::exception, virtual public boost::excep
 struct errinfo_openssl_error_;
 typedef boost::error_info<struct errinfo_openssl_error_, unsigned long> errinfo_openssl_error;
 
-inline std::string to_string(const errinfo_openssl_error& e)
-{
-	std::ostringstream tmp;
-	int code = e.value();
-	char errbuf[120];
-
-	const char *message = ERR_error_string(code, errbuf);
-
-	if (!message)
-		message = "Unknown error.";
-
-	tmp << code << ", \"" << message << "\"";
-	return "[errinfo_openssl_error]" + tmp.str() + "\n";
-}
+std::string to_string(const errinfo_openssl_error& e);
 
 }
 
