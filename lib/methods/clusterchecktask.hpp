@@ -37,7 +37,7 @@ public:
 		const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros);
 
 private:
-	ClusterCheckTask(void);
+	ClusterCheckTask();
 	static String FormatArray(const Array::Ptr& arr);
 };
 

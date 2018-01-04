@@ -41,7 +41,7 @@ class CompatUtility
 public:
 	/* command */
 	static String GetCommandLine(const Command::Ptr& command);
-	static String GetCommandName(const Command::Ptr command);
+	static String GetCommandName(const Command::Ptr& command);
 
 	/* host */
 	static int GetHostCurrentState(const Host::Ptr& host);
@@ -120,9 +120,9 @@ public:
 	static String UnEscapeString(const String& str);
 
 private:
-	CompatUtility(void);
+	CompatUtility();
 
-	static String GetCommandNamePrefix(const Command::Ptr command);
+	static String GetCommandNamePrefix(const Command::Ptr& command);
 };
 
 }

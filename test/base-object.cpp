@@ -28,7 +28,7 @@ class TestObject : public Object
 public:
 	DECLARE_PTR_TYPEDEFS(TestObject);
 
-	TestObject::Ptr GetTestRef(void)
+	TestObject::Ptr GetTestRef()
 	{
 		return this;
 	}

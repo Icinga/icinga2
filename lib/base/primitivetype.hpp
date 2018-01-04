@@ -30,17 +30,17 @@ namespace icinga
 class PrimitiveType final : public Type
 {
 public:
-	PrimitiveType(const String& name, const String& base, const ObjectFactory& factory = ObjectFactory());
+	PrimitiveType(String name, String base, const ObjectFactory& factory = ObjectFactory());
 
-	virtual String GetName(void) const override;
-	virtual Type::Ptr GetBaseType(void) const override;
-	virtual int GetAttributes(void) const override;
-	virtual int GetFieldId(const String& name) const override;
-	virtual Field GetFieldInfo(int id) const override;
-	virtual int GetFieldCount(void) const override;
+	String GetName() const override;
+	Type::Ptr GetBaseType() const override;
+	int GetAttributes() const override;
+	int GetFieldId(const String& name) const override;
+	Field GetFieldInfo(int id) const override;
+	int GetFieldCount() const override;
 
 protected:
-	virtual ObjectFactory GetFactory(void) const override;
+	ObjectFactory GetFactory() const override;
 
 private:
 	String m_Name;

@@ -38,16 +38,16 @@ public:
 
 	HostDbObject(const DbType::Ptr& type, const String& name1, const String& name2);
 
-	virtual Dictionary::Ptr GetConfigFields(void) const override;
-	virtual Dictionary::Ptr GetStatusFields(void) const override;
+	Dictionary::Ptr GetConfigFields() const override;
+	Dictionary::Ptr GetStatusFields() const override;
 
-	virtual void OnConfigUpdateHeavy(void) override;
-	virtual void OnConfigUpdateLight(void) override;
+	void OnConfigUpdateHeavy() override;
+	void OnConfigUpdateLight() override;
 
-	virtual String CalculateConfigHash(const Dictionary::Ptr& configFields) const override;
+	String CalculateConfigHash(const Dictionary::Ptr& configFields) const override;
 
 private:
-	void DoCommonConfigUpdate(void);
+	void DoCommonConfigUpdate();
 };
 
 }

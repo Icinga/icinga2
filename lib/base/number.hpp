@@ -33,10 +33,10 @@ class Value;
 class Number
 {
 public:
-	static Object::Ptr GetPrototype(void);
+	static Object::Ptr GetPrototype();
 
 private:
-	Number(void);
+	Number();
 };
 
 }

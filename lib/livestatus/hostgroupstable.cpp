@@ -25,7 +25,7 @@
 
 using namespace icinga;
 
-HostGroupsTable::HostGroupsTable(void)
+HostGroupsTable::HostGroupsTable()
 {
 	AddColumns(this);
 }
@@ -60,12 +60,12 @@ void HostGroupsTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "num_services_hard_unknown", Column(&HostGroupsTable::NumServicesHardUnknownAccessor, objectAccessor));
 }
 
-String HostGroupsTable::GetName(void) const
+String HostGroupsTable::GetName() const
 {
 	return "hostgroups";
 }
 
-String HostGroupsTable::GetPrefix(void) const
+String HostGroupsTable::GetPrefix() const
 {
 	return "hostgroup";
 }

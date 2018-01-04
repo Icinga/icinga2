@@ -34,7 +34,7 @@ static boost::thread_specific_ptr<ContextTrace> l_LastExceptionContext;
 class libcxx_type_info : public std::type_info
 {
 public:
-	virtual ~libcxx_type_info();
+	~libcxx_type_info() override;
 
 	virtual void noop1() const;
 	virtual void noop2() const;
@@ -58,8 +58,8 @@ inline void *cast_exception(void *obj, const std::type_info *src, const std::typ
 	else
 		return nullptr;
 #else /* __GLIBCXX__ */
-	const libcxx_type_info *srcInfo = static_cast<const libcxx_type_info *>(src);
-	const libcxx_type_info *dstInfo = static_cast<const libcxx_type_info *>(dst);
+	const auto *srcInfo = static_cast<const libcxx_type_info *>(src);
+	const auto *dstInfo = static_cast<const libcxx_type_info *>(dst);
 
 	void *adj = obj;
 
@@ -91,7 +91,7 @@ static boost::thread_specific_ptr<DestCallback> l_LastExceptionDest;
 extern "C" void __cxa_throw(void *obj, TYPEINFO_TYPE *pvtinfo, void (*dest)(void *));
 #endif /* HAVE_CXXABI_H */
 
-void icinga::RethrowUncaughtException(void)
+void icinga::RethrowUncaughtException()
 {
 #if defined(__GLIBCXX__) || !defined(HAVE_CXXABI_H)
 	throw;
@@ -104,7 +104,7 @@ void icinga::RethrowUncaughtException(void)
 extern "C"
 void __cxa_throw(void *obj, TYPEINFO_TYPE *pvtinfo, void (*dest)(void *))
 {
-	std::type_info *tinfo = static_cast<std::type_info *>(pvtinfo);
+	auto *tinfo = static_cast<std::type_info *>(pvtinfo);
 
 	typedef void (*cxa_throw_fn)(void *, std::type_info *, void (*)(void *)) __attribute__((noreturn));
 	static cxa_throw_fn real_cxa_throw;
@@ -115,12 +115,12 @@ void __cxa_throw(void *obj, TYPEINFO_TYPE *pvtinfo, void (*dest)(void *))
 	l_LastExceptionDest.reset(new DestCallback(dest));
 #endif /* !defined(__GLIBCXX__) && !defined(_WIN32) */
 
-	if (real_cxa_throw == 0)
+	if (real_cxa_throw == nullptr)
 		real_cxa_throw = (cxa_throw_fn)dlsym(RTLD_NEXT, "__cxa_throw");
 
 #ifndef NO_CAST_EXCEPTION
 	void *uex = cast_exception(obj, tinfo, &typeid(user_error));
-	boost::exception *ex = reinterpret_cast<boost::exception *>(cast_exception(obj, tinfo, &typeid(boost::exception)));
+	auto *ex = reinterpret_cast<boost::exception *>(cast_exception(obj, tinfo, &typeid(boost::exception)));
 
 	if (!uex) {
 #endif /* NO_CAST_EXCEPTION */
@@ -145,7 +145,7 @@ void __cxa_throw(void *obj, TYPEINFO_TYPE *pvtinfo, void (*dest)(void *))
 }
 #endif /* HAVE_CXXABI_H */
 
-StackTrace *icinga::GetLastExceptionStack(void)
+StackTrace *icinga::GetLastExceptionStack()
 {
 	return l_LastExceptionStack.get();
 }
@@ -155,7 +155,7 @@ void icinga::SetLastExceptionStack(const StackTrace& trace)
 	l_LastExceptionStack.reset(new StackTrace(trace));
 }
 
-ContextTrace *icinga::GetLastExceptionContext(void)
+ContextTrace *icinga::GetLastExceptionContext()
 {
 	return l_LastExceptionContext.get();
 }
@@ -171,14 +171,14 @@ String icinga::DiagnosticInformation(const std::exception& ex, bool verbose, Sta
 
 	String message = ex.what();
 
-	const ValidationError *vex = dynamic_cast<const ValidationError *>(&ex);
+	const auto *vex = dynamic_cast<const ValidationError *>(&ex);
 
 	if (message.IsEmpty())
 		result << boost::diagnostic_information(ex) << "\n";
 	else
 		result << "Error: " << message << "\n";
 
-	const ScriptError *dex = dynamic_cast<const ScriptError *>(&ex);
+	const auto *dex = dynamic_cast<const ScriptError *>(&ex);
 
 	if (dex && !dex->GetDebugInfo().Path.IsEmpty())
 		ShowCodeLocation(result, dex->GetDebugInfo());
@@ -223,8 +223,8 @@ String icinga::DiagnosticInformation(const std::exception& ex, bool verbose, Sta
 			ShowCodeLocation(result, di);
 	}
 
-	const user_error *uex = dynamic_cast<const user_error *>(&ex);
-	const posix_error *pex = dynamic_cast<const posix_error *>(&ex);
+	const auto *uex = dynamic_cast<const user_error *>(&ex);
+	const auto *pex = dynamic_cast<const posix_error *>(&ex);
 
 	if (!uex && !pex && verbose) {
 		const StackTrace *st = boost::get_error_info<StackTraceErrorInfo>(ex);
@@ -260,7 +260,7 @@ String icinga::DiagnosticInformation(const std::exception& ex, bool verbose, Sta
 	return result.str();
 }
 
-String icinga::DiagnosticInformation(boost::exception_ptr eptr, bool verbose)
+String icinga::DiagnosticInformation(const boost::exception_ptr& eptr, bool verbose)
 {
 	StackTrace *pt = GetLastExceptionStack();
 	StackTrace stack;
@@ -283,33 +283,30 @@ String icinga::DiagnosticInformation(boost::exception_ptr eptr, bool verbose)
 	return boost::diagnostic_information(eptr);
 }
 
-ScriptError::ScriptError(const String& message)
-	: m_Message(message), m_IncompleteExpr(false)
+ScriptError::ScriptError(String message)
+	: m_Message(std::move(message)), m_IncompleteExpr(false)
 { }
 
-ScriptError::ScriptError(const String& message, const DebugInfo& di, bool incompleteExpr)
-	: m_Message(message), m_DebugInfo(di), m_IncompleteExpr(incompleteExpr), m_HandledByDebugger(false)
+ScriptError::ScriptError(String message, DebugInfo di, bool incompleteExpr)
+	: m_Message(std::move(message)), m_DebugInfo(std::move(di)), m_IncompleteExpr(incompleteExpr), m_HandledByDebugger(false)
 { }
 
-ScriptError::~ScriptError(void) throw()
-{ }
-
-const char *ScriptError::what(void) const throw()
+const char *ScriptError::what() const throw()
 {
 	return m_Message.CStr();
 }
 
-DebugInfo ScriptError::GetDebugInfo(void) const
+DebugInfo ScriptError::GetDebugInfo() const
 {
 	return m_DebugInfo;
 }
 
-bool ScriptError::IsIncompleteExpression(void) const
+bool ScriptError::IsIncompleteExpression() const
 {
 	return m_IncompleteExpr;;
 }
 
-bool ScriptError::IsHandledByDebugger(void) const
+bool ScriptError::IsHandledByDebugger() const
 {
 	return m_HandledByDebugger;
 }
@@ -319,16 +316,12 @@ void ScriptError::SetHandledByDebugger(bool handled)
 	m_HandledByDebugger = handled;
 }
 
-posix_error::posix_error(void)
-	: m_Message(nullptr)
-{ }
-
-posix_error::~posix_error(void) throw()
+posix_error::~posix_error() throw()
 {
 	free(m_Message);
 }
 
-const char *posix_error::what(void) const throw()
+const char *posix_error::what() const throw()
 {
 	if (!m_Message) {
 		std::ostringstream msgbuf;
@@ -380,25 +373,25 @@ ValidationError::ValidationError(const ConfigObject::Ptr& object, const std::vec
 	m_What += ": " + message;
 }
 
-ValidationError::~ValidationError(void) throw()
+ValidationError::~ValidationError() throw()
 { }
 
-const char *ValidationError::what(void) const throw()
+const char *ValidationError::what() const throw()
 {
 	return m_What.CStr();
 }
 
-ConfigObject::Ptr ValidationError::GetObject(void) const
+ConfigObject::Ptr ValidationError::GetObject() const
 {
 	return m_Object;
 }
 
-std::vector<String> ValidationError::GetAttributePath(void) const
+std::vector<String> ValidationError::GetAttributePath() const
 {
 	return m_AttributePath;
 }
 
-String ValidationError::GetMessage(void) const
+String ValidationError::GetMessage() const
 {
 	return m_Message;
 }
@@ -408,8 +401,39 @@ void ValidationError::SetDebugHint(const Dictionary::Ptr& dhint)
 	m_DebugHint = dhint;
 }
 
-Dictionary::Ptr ValidationError::GetDebugHint(void) const
+Dictionary::Ptr ValidationError::GetDebugHint() const
 {
 	return m_DebugHint;
 }
 
+std::string icinga::to_string(const StackTraceErrorInfo&)
+{
+	return "";
+}
+
+#ifdef _WIN32
+std::string icinga::to_string(const errinfo_win32_error& e)
+{
+	return "[errinfo_win32_error] = " + Utility::FormatErrorNumber(e.value()) + "\n";
+}
+#endif /* _WIN32 */
+
+std::string icinga::to_string(const errinfo_getaddrinfo_error& e)
+{
+	String msg;
+
+#ifdef _WIN32
+	msg = gai_strerrorA(e.value());
+#else /* _WIN32 */
+	msg = gai_strerror(e.value());
+#endif /* _WIN32 */
+
+	return "[errinfo_getaddrinfo_error] = " + String(msg) + "\n";
+}
+
+std::string icinga::to_string(const ContextTraceErrorInfo& e)
+{
+	std::ostringstream msgbuf;
+	msgbuf << "[Context] = " << e.value();
+	return msgbuf.str();
+}

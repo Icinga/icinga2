@@ -27,11 +27,11 @@
 
 using namespace icinga;
 
-HttpRequest::HttpRequest(const Stream::Ptr& stream)
+HttpRequest::HttpRequest(Stream::Ptr stream)
 	: Complete(false),
 	ProtocolVersion(HttpVersion11),
 	Headers(new Dictionary()),
-	m_Stream(stream),
+	m_Stream(std::move(stream)),
 	m_State(HttpRequestStart)
 { }
 
@@ -161,7 +161,7 @@ void HttpRequest::AddHeader(const String& key, const String& value)
 	Headers->Set(key.ToLower(), value);
 }
 
-void HttpRequest::FinishHeaders(void)
+void HttpRequest::FinishHeaders()
 {
 	if (m_State == HttpRequestStart) {
 		String rqline = RequestMethod + " " + RequestUrl->Format(true) + " HTTP/1." + (ProtocolVersion == HttpVersion10 ? "0" : "1") + "\n";
@@ -207,7 +207,7 @@ void HttpRequest::WriteBody(const char *data, size_t count)
 	}
 }
 
-void HttpRequest::Finish(void)
+void HttpRequest::Finish()
 {
 	ASSERT(m_State != HttpRequestEnd);
 

@@ -31,23 +31,22 @@ namespace icinga
 struct ObjectLock
 {
 public:
-	ObjectLock(void);
 	ObjectLock(const Object::Ptr& object);
 	ObjectLock(const Object *object);
 
-	~ObjectLock(void);
+	~ObjectLock();
 
 	static void LockMutex(const Object *object);
 
-	void Lock(void);
+	void Lock();
 
 	static void Spin(unsigned int it);
 
-	void Unlock(void);
+	void Unlock();
 
 private:
-	const Object *m_Object;
-	bool m_Locked;
+	const Object *m_Object{nullptr};
+	bool m_Locked{false};
 };
 
 }

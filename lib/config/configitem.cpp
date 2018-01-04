@@ -59,16 +59,16 @@ REGISTER_SCRIPTFUNCTION_NS(Internal, run_with_activation_context, &ConfigItem::R
  * @param exprl Expression list for the item.
  * @param debuginfo Debug information.
  */
-ConfigItem::ConfigItem(const Type::Ptr& type, const String& name,
-	bool abstract, const std::shared_ptr<Expression>& exprl,
-	const std::shared_ptr<Expression>& filter, bool defaultTmpl, bool ignoreOnError,
-	const DebugInfo& debuginfo, const Dictionary::Ptr& scope,
-	const String& zone, const String& package)
-	: m_Type(type), m_Name(name), m_Abstract(abstract),
-	m_Expression(exprl), m_Filter(filter),
+ConfigItem::ConfigItem(Type::Ptr type, String name,
+	bool abstract, std::shared_ptr<Expression> exprl,
+	std::shared_ptr<Expression> filter, bool defaultTmpl, bool ignoreOnError,
+	DebugInfo debuginfo, Dictionary::Ptr scope,
+	String zone, String package)
+	: m_Type(std::move(type)), m_Name(std::move(name)), m_Abstract(abstract),
+	m_Expression(std::move(exprl)), m_Filter(std::move(filter)),
 	m_DefaultTmpl(defaultTmpl), m_IgnoreOnError(ignoreOnError),
-	m_DebugInfo(debuginfo), m_Scope(scope), m_Zone(zone),
-	m_Package(package)
+	m_DebugInfo(std::move(debuginfo)), m_Scope(std::move(scope)), m_Zone(std::move(zone)),
+	m_Package(std::move(package))
 {
 }
 
@@ -77,7 +77,7 @@ ConfigItem::ConfigItem(const Type::Ptr& type, const String& name,
  *
  * @returns The type.
  */
-Type::Ptr ConfigItem::GetType(void) const
+Type::Ptr ConfigItem::GetType() const
 {
 	return m_Type;
 }
@@ -87,7 +87,7 @@ Type::Ptr ConfigItem::GetType(void) const
  *
  * @returns The name.
  */
-String ConfigItem::GetName(void) const
+String ConfigItem::GetName() const
 {
 	return m_Name;
 }
@@ -97,17 +97,17 @@ String ConfigItem::GetName(void) const
  *
  * @returns true if the item is abstract, false otherwise.
  */
-bool ConfigItem::IsAbstract(void) const
+bool ConfigItem::IsAbstract() const
 {
 	return m_Abstract;
 }
 
-bool ConfigItem::IsDefaultTemplate(void) const
+bool ConfigItem::IsDefaultTemplate() const
 {
 	return m_DefaultTmpl;
 }
 
-bool ConfigItem::IsIgnoreOnError(void) const
+bool ConfigItem::IsIgnoreOnError() const
 {
 	return m_IgnoreOnError;
 }
@@ -117,17 +117,17 @@ bool ConfigItem::IsIgnoreOnError(void) const
  *
  * @returns The debug information.
  */
-DebugInfo ConfigItem::GetDebugInfo(void) const
+DebugInfo ConfigItem::GetDebugInfo() const
 {
 	return m_DebugInfo;
 }
 
-Dictionary::Ptr ConfigItem::GetScope(void) const
+Dictionary::Ptr ConfigItem::GetScope() const
 {
 	return m_Scope;
 }
 
-ConfigObject::Ptr ConfigItem::GetObject(void) const
+ConfigObject::Ptr ConfigItem::GetObject() const
 {
 	return m_Object;
 }
@@ -137,7 +137,7 @@ ConfigObject::Ptr ConfigItem::GetObject(void) const
  *
  * @returns The expression list.
  */
-std::shared_ptr<Expression> ConfigItem::GetExpression(void) const
+std::shared_ptr<Expression> ConfigItem::GetExpression() const
 {
 	return m_Expression;
 }
@@ -147,7 +147,7 @@ std::shared_ptr<Expression> ConfigItem::GetExpression(void) const
 *
 * @returns The filter expression.
 */
-std::shared_ptr<Expression> ConfigItem::GetFilter(void) const
+std::shared_ptr<Expression> ConfigItem::GetFilter() const
 {
 	return m_Filter;
 }
@@ -155,7 +155,7 @@ std::shared_ptr<Expression> ConfigItem::GetFilter(void) const
 class DefaultValidationUtils final : public ValidationUtils
 {
 public:
-	virtual bool ValidateName(const String& type, const String& name) const override
+	bool ValidateName(const String& type, const String& name) const override
 	{
 		ConfigItem::Ptr item = ConfigItem::GetByTypeAndName(Type::GetByName(type), name);
 
@@ -231,7 +231,7 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 
 	String name = item_name;
 
-	NameComposer *nc = dynamic_cast<NameComposer *>(type.get());
+	auto *nc = dynamic_cast<NameComposer *>(type.get());
 
 	if (nc) {
 		if (name.IsEmpty())
@@ -318,7 +318,7 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 /**
  * Registers the configuration item.
  */
-void ConfigItem::Register(void)
+void ConfigItem::Register()
 {
 	m_ActivationContext = ActivationContext::GetCurrentContext();
 
@@ -327,7 +327,7 @@ void ConfigItem::Register(void)
 	/* If this is a non-abstract object with a composite name
 	 * we register it in m_UnnamedItems instead of m_Items. */
 	if (!m_Abstract && dynamic_cast<NameComposer *>(m_Type.get()))
-		m_UnnamedItems.push_back(this);
+		m_UnnamedItems.emplace_back(this);
 	else {
 		auto& items = m_Items[m_Type];
 
@@ -351,7 +351,7 @@ void ConfigItem::Register(void)
 /**
  * Unregisters the configuration item.
  */
-void ConfigItem::Unregister(void)
+void ConfigItem::Unregister()
 {
 	if (m_Object) {
 		m_Object->Unregister();

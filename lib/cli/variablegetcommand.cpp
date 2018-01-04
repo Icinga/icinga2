@@ -41,12 +41,12 @@ namespace po = boost::program_options;
 
 REGISTER_CLICOMMAND("variable/get", VariableGetCommand);
 
-String VariableGetCommand::GetDescription(void) const
+String VariableGetCommand::GetDescription() const
 {
 	return "Prints the value of an Icinga 2 variable.";
 }
 
-String VariableGetCommand::GetShortDescription(void) const
+String VariableGetCommand::GetShortDescription() const
 {
 	return "gets a variable";
 }
@@ -58,7 +58,7 @@ void VariableGetCommand::InitParameters(boost::program_options::options_descript
 		("current", "Uses the current value (i.e. from the running process, rather than from the vars file)");
 }
 
-int VariableGetCommand::GetMinArguments(void) const
+int VariableGetCommand::GetMinArguments() const
 {
 	return 1;
 }

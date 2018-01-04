@@ -43,21 +43,21 @@ public:
 
 	intrusive_ptr<Service> GetServiceByShortName(const Value& name);
 
-	std::vector<intrusive_ptr<Service> > GetServices(void) const;
+	std::vector<intrusive_ptr<Service> > GetServices() const;
 	void AddService(const intrusive_ptr<Service>& service);
 	void RemoveService(const intrusive_ptr<Service>& service);
 
-	int GetTotalServices(void) const;
+	int GetTotalServices() const;
 
 	static HostState CalculateState(ServiceState state);
 
-	virtual HostState GetState(void) const override;
-	virtual HostState GetLastState(void) const override;
-	virtual HostState GetLastHardState(void) const override;
-	virtual int GetSeverity(void) const override;
+	HostState GetState() const override;
+	HostState GetLastState() const override;
+	HostState GetLastHardState() const override;
+	int GetSeverity() const override;
 
-	virtual bool IsStateOK(ServiceState state) override;
-	virtual void SaveLastState(ServiceState state, double timestamp) override;
+	bool IsStateOK(ServiceState state) override;
+	void SaveLastState(ServiceState state, double timestamp) override;
 
 	static HostState StateFromString(const String& state);
 	static String StateToString(HostState state);
@@ -65,19 +65,19 @@ public:
 	static StateType StateTypeFromString(const String& state);
 	static String StateTypeToString(StateType state);
 
-	virtual bool ResolveMacro(const String& macro, const CheckResult::Ptr& cr, Value *result) const override;
+	bool ResolveMacro(const String& macro, const CheckResult::Ptr& cr, Value *result) const override;
 
 protected:
-	virtual void Stop(bool runtimeRemoved) override;
+	void Stop(bool runtimeRemoved) override;
 
-	virtual void OnAllConfigLoaded(void) override;
-	virtual void CreateChildObjects(const Type::Ptr& childType) override;
+	void OnAllConfigLoaded() override;
+	void CreateChildObjects(const Type::Ptr& childType) override;
 
 private:
 	mutable boost::mutex m_ServicesMutex;
 	std::map<String, intrusive_ptr<Service> > m_Services;
 
-	static void RefreshServicesCache(void);
+	static void RefreshServicesCache();
 };
 
 }

@@ -26,21 +26,21 @@
 
 using namespace icinga;
 
-void Checkable::RemoveAllDowntimes(void)
+void Checkable::RemoveAllDowntimes()
 {
 	for (const Downtime::Ptr& downtime : GetDowntimes()) {
 		Downtime::RemoveDowntime(downtime->GetName(), true, true);
 	}
 }
 
-void Checkable::TriggerDowntimes(void)
+void Checkable::TriggerDowntimes()
 {
 	for (const Downtime::Ptr& downtime : GetDowntimes()) {
 		downtime->TriggerDowntime();
 	}
 }
 
-bool Checkable::IsInDowntime(void) const
+bool Checkable::IsInDowntime() const
 {
 	for (const Downtime::Ptr& downtime : GetDowntimes()) {
 		if (downtime->IsInEffect())
@@ -50,7 +50,7 @@ bool Checkable::IsInDowntime(void) const
 	return false;
 }
 
-int Checkable::GetDowntimeDepth(void) const
+int Checkable::GetDowntimeDepth() const
 {
 	int downtime_depth = 0;
 
@@ -62,7 +62,7 @@ int Checkable::GetDowntimeDepth(void) const
 	return downtime_depth;
 }
 
-std::set<Downtime::Ptr> Checkable::GetDowntimes(void) const
+std::set<Downtime::Ptr> Checkable::GetDowntimes() const
 {
 	boost::mutex::scoped_lock lock(m_DowntimeMutex);
 	return m_Downtimes;

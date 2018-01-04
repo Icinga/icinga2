@@ -38,6 +38,7 @@
 #include "base/json.hpp"
 #include "base/statsfunction.hpp"
 #include <boost/algorithm/string/replace.hpp>
+#include <utility>
 
 using namespace icinga;
 
@@ -45,11 +46,7 @@ REGISTER_TYPE(GelfWriter);
 
 REGISTER_STATSFUNCTION(GelfWriter, &GelfWriter::StatsFunc);
 
-GelfWriter::GelfWriter(void)
-	: m_WorkQueue(10000000, 1)
-{ }
-
-void GelfWriter::OnConfigLoaded(void)
+void GelfWriter::OnConfigLoaded()
 {
 	ObjectImpl<GelfWriter>::OnConfigLoaded();
 
@@ -112,7 +109,7 @@ void GelfWriter::Stop(bool runtimeRemoved)
 	ObjectImpl<GelfWriter>::Stop(runtimeRemoved);
 }
 
-void GelfWriter::AssertOnWorkQueue(void)
+void GelfWriter::AssertOnWorkQueue()
 {
 	ASSERT(m_WorkQueue.IsWorkerThread());
 }
@@ -122,7 +119,7 @@ void GelfWriter::ExceptionHandler(boost::exception_ptr exp)
 	Log(LogCritical, "GelfWriter", "Exception during Graylog Gelf operation: Verify that your backend is operational!");
 
 	Log(LogDebug, "GelfWriter")
-		<< "Exception during Graylog Gelf operation: " << DiagnosticInformation(exp);
+		<< "Exception during Graylog Gelf operation: " << DiagnosticInformation(std::move(exp));
 
 	if (GetConnected()) {
 		m_Stream->Close();
@@ -131,7 +128,7 @@ void GelfWriter::ExceptionHandler(boost::exception_ptr exp)
 	}
 }
 
-void GelfWriter::Reconnect(void)
+void GelfWriter::Reconnect()
 {
 	AssertOnWorkQueue();
 
@@ -165,12 +162,12 @@ void GelfWriter::Reconnect(void)
 		<< "Finished reconnecting to Graylog Gelf in " << std::setw(2) << Utility::GetTime() - startTime << " second(s).";
 }
 
-void GelfWriter::ReconnectTimerHandler(void)
+void GelfWriter::ReconnectTimerHandler()
 {
 	m_WorkQueue.Enqueue(std::bind(&GelfWriter::Reconnect, this), PriorityNormal);
 }
 
-void GelfWriter::Disconnect(void)
+void GelfWriter::Disconnect()
 {
 	AssertOnWorkQueue();
 

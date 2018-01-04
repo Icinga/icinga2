@@ -21,8 +21,8 @@
 
 using namespace icinga;
 
-AvgAggregator::AvgAggregator(const String& attr)
-	: m_AvgAttr(attr)
+AvgAggregator::AvgAggregator(String attr)
+	: m_AvgAttr(std::move(attr))
 { }
 
 AvgAggregatorState *AvgAggregator::EnsureState(AggregatorState **state)

@@ -30,7 +30,7 @@ namespace icinga
 
 #define I2_UNIQUE_NAME(prefix) I2_TOKENPASTE2(prefix, __COUNTER__)
 
-bool InitializeOnceHelper(void (*func)(void), int priority = 0);
+bool InitializeOnceHelper(void (*func)(), int priority = 0);
 
 #define INITIALIZE_ONCE(func)									\
 	namespace { namespace I2_UNIQUE_NAME(io) {							\

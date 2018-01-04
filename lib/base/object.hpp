@@ -49,7 +49,7 @@ extern Value Empty;
 
 #define IMPL_TYPE_LOOKUP() 							\
 	static intrusive_ptr<Type> TypeInstance;				\
-	virtual intrusive_ptr<Type> GetReflectionType(void) const override	\
+	virtual intrusive_ptr<Type> GetReflectionType() const override		\
 	{									\
 		return TypeInstance;						\
 	}
@@ -83,7 +83,7 @@ struct TypeHelper
 template<typename T>
 struct TypeHelper<T, false>
 {
-	static ObjectFactory GetFactory(void)
+	static ObjectFactory GetFactory()
 	{
 		return DefaultObjectFactory<T>;
 	}
@@ -92,7 +92,7 @@ struct TypeHelper<T, false>
 template<typename T>
 struct TypeHelper<T, true>
 {
-	static ObjectFactory GetFactory(void)
+	static ObjectFactory GetFactory()
 	{
 		return DefaultObjectFactoryVA<T>;
 	}
@@ -109,12 +109,12 @@ class Object
 public:
 	DECLARE_PTR_TYPEDEFS(Object);
 
-	Object(void);
-	virtual ~Object(void);
+	Object() = default;
+	virtual ~Object();
 
-	virtual String ToString(void) const;
+	virtual String ToString() const;
 
-	virtual intrusive_ptr<Type> GetReflectionType(void) const;
+	virtual intrusive_ptr<Type> GetReflectionType() const;
 
 	virtual void Validate(int types, const ValidationUtils& utils);
 
@@ -129,21 +129,21 @@ public:
 	virtual Object::Ptr NavigateField(int id) const;
 
 #ifdef I2_DEBUG
-	bool OwnsLock(void) const;
+	bool OwnsLock() const;
 #endif /* I2_DEBUG */
 
-	static Object::Ptr GetPrototype(void);
+	static Object::Ptr GetPrototype();
 
-	virtual Object::Ptr Clone(void) const;
+	virtual Object::Ptr Clone() const;
 
 	static intrusive_ptr<Type> TypeInstance;
 
 private:
-	Object(const Object& other);
-	Object& operator=(const Object& rhs);
+	Object(const Object& other) = delete;
+	Object& operator=(const Object& rhs) = delete;
 
-	uintptr_t m_References;
-	mutable uintptr_t m_Mutex;
+	uintptr_t m_References{0};
+	mutable uintptr_t m_Mutex{0};
 
 #ifdef I2_DEBUG
 #	ifndef _WIN32
@@ -164,38 +164,8 @@ Value GetPrototypeField(const Value& context, const String& field, bool not_foun
 void TypeAddObject(Object *object);
 void TypeRemoveObject(Object *object);
 
-inline void intrusive_ptr_add_ref(Object *object)
-{
-#ifdef I2_LEAK_DEBUG
-	if (object->m_References == 0)
-		TypeAddObject(object);
-#endif /* I2_LEAK_DEBUG */
-
-#ifdef _WIN32
-	InterlockedIncrement(&object->m_References);
-#else /* _WIN32 */
-	__sync_add_and_fetch(&object->m_References, 1);
-#endif /* _WIN32 */
-}
-
-inline void intrusive_ptr_release(Object *object)
-{
-	uintptr_t refs;
-
-#ifdef _WIN32
-	refs = InterlockedDecrement(&object->m_References);
-#else /* _WIN32 */
-	refs = __sync_sub_and_fetch(&object->m_References, 1);
-#endif /* _WIN32 */
-
-	if (unlikely(refs == 0)) {
-#ifdef I2_LEAK_DEBUG
-		TypeRemoveObject(object);
-#endif /* I2_LEAK_DEBUG */
-
-		delete object;
-	}
-}
+void intrusive_ptr_add_ref(Object *object);
+void intrusive_ptr_release(Object *object);
 
 template<typename T>
 class ObjectImpl

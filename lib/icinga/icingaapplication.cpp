@@ -42,7 +42,7 @@ static Timer::Ptr l_RetentionTimer;
 REGISTER_TYPE(IcingaApplication);
 INITIALIZE_ONCE(&IcingaApplication::StaticInitialize);
 
-void IcingaApplication::StaticInitialize(void)
+void IcingaApplication::StaticInitialize()
 {
 	String node_name = Utility::GetFQDN();
 
@@ -91,7 +91,7 @@ void IcingaApplication::StatsFunc(const Dictionary::Ptr& status, const Array::Pt
  *
  * @returns An exit status.
  */
-int IcingaApplication::Main(void)
+int IcingaApplication::Main()
 {
 	Log(LogDebug, "IcingaApplication", "In IcingaApplication::Main()");
 
@@ -108,7 +108,7 @@ int IcingaApplication::Main(void)
 	return EXIT_SUCCESS;
 }
 
-void IcingaApplication::OnShutdown(void)
+void IcingaApplication::OnShutdown()
 {
 	{
 		ObjectLock olock(this);
@@ -149,13 +149,13 @@ static void PersistModAttrHelper(std::fstream& fp, ConfigObject::Ptr& previousOb
 	previousObject = object;
 }
 
-void IcingaApplication::DumpProgramState(void)
+void IcingaApplication::DumpProgramState()
 {
 	ConfigObject::DumpObjects(GetStatePath());
 	DumpModifiedAttributes();
 }
 
-void IcingaApplication::DumpModifiedAttributes(void)
+void IcingaApplication::DumpModifiedAttributes()
 {
 	String path = GetModAttrPath();
 
@@ -186,7 +186,7 @@ void IcingaApplication::DumpModifiedAttributes(void)
 	}
 }
 
-IcingaApplication::Ptr IcingaApplication::GetInstance(void)
+IcingaApplication::Ptr IcingaApplication::GetInstance()
 {
 	return static_pointer_cast<IcingaApplication>(Application::GetInstance());
 }
@@ -284,7 +284,7 @@ bool IcingaApplication::ResolveMacro(const String& macro, const CheckResult::Ptr
 	return false;
 }
 
-String IcingaApplication::GetNodeName(void) const
+String IcingaApplication::GetNodeName() const
 {
 	return ScriptGlobal::Get("NodeName");
 }

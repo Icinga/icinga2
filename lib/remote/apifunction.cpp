@@ -22,8 +22,8 @@
 
 using namespace icinga;
 
-ApiFunction::ApiFunction(const Callback& function)
-	: m_Callback(function)
+ApiFunction::ApiFunction(Callback function)
+	: m_Callback(std::move(function))
 { }
 
 Value ApiFunction::Invoke(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& arguments)
@@ -46,7 +46,7 @@ void ApiFunction::Unregister(const String& name)
 	ApiFunctionRegistry::GetInstance()->Unregister(name);
 }
 
-ApiFunctionRegistry *ApiFunctionRegistry::GetInstance(void)
+ApiFunctionRegistry *ApiFunctionRegistry::GetInstance()
 {
 	return Singleton<ApiFunctionRegistry>::GetInstance();
 }

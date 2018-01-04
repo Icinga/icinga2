@@ -24,7 +24,7 @@
 
 using namespace icinga;
 
-void ApiListener::UpdateObjectAuthority(void)
+void ApiListener::UpdateObjectAuthority()
 {
 	Zone::Ptr my_zone = Zone::GetLocalZone();
 
@@ -58,7 +58,7 @@ void ApiListener::UpdateObjectAuthority(void)
 	}
 
 	for (const Type::Ptr& type : Type::GetAllTypes()) {
-		ConfigType *dtype = dynamic_cast<ConfigType *>(type.get());
+		auto *dtype = dynamic_cast<ConfigType *>(type.get());
 
 		if (!dtype)
 			continue;

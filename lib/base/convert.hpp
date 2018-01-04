@@ -88,7 +88,7 @@ public:
 	static double ToDateTimeValue(const Value& val);
 
 private:
-	Convert(void);
+	Convert();
 };
 
 }

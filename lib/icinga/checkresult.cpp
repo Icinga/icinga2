@@ -35,12 +35,12 @@ INITIALIZE_ONCE([]() {
 	ScriptGlobal::Set("HostDown", HostDown);
 })
 
-double CheckResult::CalculateExecutionTime(void) const
+double CheckResult::CalculateExecutionTime() const
 {
 	return GetExecutionEnd() - GetExecutionStart();
 }
 
-double CheckResult::CalculateLatency(void) const
+double CheckResult::CalculateLatency() const
 {
 	double latency = (GetScheduleEnd() - GetScheduleStart()) - CalculateExecutionTime();
 

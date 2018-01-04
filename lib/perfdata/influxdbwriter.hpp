@@ -42,36 +42,34 @@ public:
 	DECLARE_OBJECT(InfluxdbWriter);
 	DECLARE_OBJECTNAME(InfluxdbWriter);
 
-	InfluxdbWriter(void);
-
 	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
-	virtual void ValidateHostTemplate(const Dictionary::Ptr& value, const ValidationUtils& utils) override;
-	virtual void ValidateServiceTemplate(const Dictionary::Ptr& value, const ValidationUtils& utils) override;
+	void ValidateHostTemplate(const Dictionary::Ptr& value, const ValidationUtils& utils) override;
+	void ValidateServiceTemplate(const Dictionary::Ptr& value, const ValidationUtils& utils) override;
 
 protected:
-	virtual void OnConfigLoaded(void) override;
-	virtual void Start(bool runtimeCreated) override;
-	virtual void Stop(bool runtimeRemoved) override;
+	void OnConfigLoaded() override;
+	void Start(bool runtimeCreated) override;
+	void Stop(bool runtimeRemoved) override;
 
 private:
-	WorkQueue m_WorkQueue;
+	WorkQueue m_WorkQueue{10000000, 1};
 	Timer::Ptr m_FlushTimer;
 	std::vector<String> m_DataBuffer;
 
 	void CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
 	void CheckResultHandlerWQ(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
 	void SendMetric(const Dictionary::Ptr& tmpl, const String& label, const Dictionary::Ptr& fields, double ts);
-	void FlushTimeout(void);
-	void FlushTimeoutWQ(void);
-	void Flush(void);
+	void FlushTimeout();
+	void FlushTimeoutWQ();
+	void Flush();
 
 	static String EscapeKeyOrTagValue(const String& str);
 	static String EscapeValue(const Value& value);
 
 	Stream::Ptr Connect();
 
-	void AssertOnWorkQueue(void);
+	void AssertOnWorkQueue();
 
 	void ExceptionHandler(boost::exception_ptr exp);
 };

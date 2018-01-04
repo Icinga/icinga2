@@ -32,13 +32,7 @@ INITIALIZE_ONCE_WITH_PRIORITY([]() {
 	Type::Register(type);
 }, 20);
 
-Type::Type(void)
-{ }
-
-Type::~Type(void)
-{ }
-
-String Type::ToString(void) const
+String Type::ToString() const
 {
 	return "type '" + GetName() + "'";
 }
@@ -65,7 +59,7 @@ Type::Ptr Type::GetByName(const String& name)
 	return ptype;
 }
 
-std::vector<Type::Ptr> Type::GetAllTypes(void)
+std::vector<Type::Ptr> Type::GetAllTypes()
 {
 	std::vector<Type::Ptr> types;
 
@@ -83,7 +77,7 @@ std::vector<Type::Ptr> Type::GetAllTypes(void)
 	return types;
 }
 
-String Type::GetPluralName(void) const
+String Type::GetPluralName() const
 {
 	String name = GetName();
 
@@ -104,7 +98,7 @@ Object::Ptr Type::Instantiate(const std::vector<Value>& args) const
 	return factory(args);
 }
 
-bool Type::IsAbstract(void) const
+bool Type::IsAbstract() const
 {
 	return ((GetAttributes() & TAAbstract) != 0);
 }
@@ -119,7 +113,7 @@ bool Type::IsAssignableFrom(const Type::Ptr& other) const
 	return false;
 }
 
-Object::Ptr Type::GetPrototype(void) const
+Object::Ptr Type::GetPrototype() const
 {
 	return m_Prototype;
 }
@@ -155,7 +149,7 @@ Value Type::GetField(int id) const
 	BOOST_THROW_EXCEPTION(std::runtime_error("Invalid field ID."));
 }
 
-std::vector<String> Type::GetLoadDependencies(void) const
+std::vector<String> Type::GetLoadDependencies() const
 {
 	return std::vector<String>();
 }
@@ -165,17 +159,17 @@ void Type::RegisterAttributeHandler(int fieldId, const AttributeHandler& callbac
 	throw std::runtime_error("Invalid field ID.");
 }
 
-String TypeType::GetName(void) const
+String TypeType::GetName() const
 {
 	return "Type";
 }
 
-Type::Ptr TypeType::GetBaseType(void) const
+Type::Ptr TypeType::GetBaseType() const
 {
 	return Object::TypeInstance;
 }
 
-int TypeType::GetAttributes(void) const
+int TypeType::GetAttributes() const
 {
 	return 0;
 }
@@ -201,7 +195,7 @@ Field TypeType::GetFieldInfo(int id) const
 		return GetBaseType()->GetFieldInfo(id);
 
 	if (real_id == 0)
-		return Field(0, "String", "name", "", nullptr, 0, 0);
+		return {0, "String", "name", "", nullptr, 0, 0};
 	else if (real_id == 1)
 		return Field(1, "Object", "prototype", "", nullptr, 0, 0);
 	else if (real_id == 2)
@@ -210,12 +204,12 @@ Field TypeType::GetFieldInfo(int id) const
 	throw std::runtime_error("Invalid field ID.");
 }
 
-int TypeType::GetFieldCount(void) const
+int TypeType::GetFieldCount() const
 {
 	return GetBaseType()->GetFieldCount() + 3;
 }
 
-ObjectFactory TypeType::GetFactory(void) const
+ObjectFactory TypeType::GetFactory() const
 {
 	return nullptr;
 }

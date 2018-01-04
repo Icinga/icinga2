@@ -31,12 +31,8 @@ namespace icinga
  */
 struct InvAvgAggregatorState final : public AggregatorState
 {
-	InvAvgAggregatorState(void)
-		: InvAvg(0), InvAvgCount(0)
-	{ }
-
-	double InvAvg;
-	double InvAvgCount;
+	double InvAvg{0};
+	double InvAvgCount{0};
 };
 
 /**
@@ -47,10 +43,10 @@ class InvAvgAggregator final : public Aggregator
 public:
 	DECLARE_PTR_TYPEDEFS(InvAvgAggregator);
 
-	InvAvgAggregator(const String& attr);
+	InvAvgAggregator(String attr);
 
-	virtual void Apply(const Table::Ptr& table, const Value& row, AggregatorState **state) override;
-	virtual double GetResultAndFreeState(AggregatorState *state) const override;
+	void Apply(const Table::Ptr& table, const Value& row, AggregatorState **state) override;
+	double GetResultAndFreeState(AggregatorState *state) const override;
 
 private:
 	String m_InvAvgAttr;

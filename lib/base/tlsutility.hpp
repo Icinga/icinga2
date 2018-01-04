@@ -36,7 +36,7 @@
 namespace icinga
 {
 
-void InitializeOpenSSL(void);
+void InitializeOpenSSL();
 std::shared_ptr<SSL_CTX> MakeSSLContext(const String& pubkey = String(), const String& privkey = String(), const String& cakey = String());
 void AddCRLToSSLContext(const std::shared_ptr<SSL_CTX>& context, const String& crlPath);
 void SetCipherListToSSLContext(const std::shared_ptr<SSL_CTX>& context, const String& cipherList);
@@ -45,7 +45,7 @@ String GetCertificateCN(const std::shared_ptr<X509>& certificate);
 std::shared_ptr<X509> GetX509Certificate(const String& pemfile);
 int MakeX509CSR(const String& cn, const String& keyfile, const String& csrfile = String(), const String& certfile = String(), bool ca = false);
 std::shared_ptr<X509> CreateCert(EVP_PKEY *pubkey, X509_NAME *subject, X509_NAME *issuer, EVP_PKEY *cakey, bool ca);
-String GetIcingaCADir(void);
+String GetIcingaCADir();
 String CertificateToString(const std::shared_ptr<X509>& cert);
 std::shared_ptr<X509> StringToCertificate(const String& cert);
 std::shared_ptr<X509> CreateCertIcingaCA(EVP_PKEY *pubkey, X509_NAME *subject);
@@ -61,20 +61,7 @@ class openssl_error : virtual public std::exception, virtual public boost::excep
 struct errinfo_openssl_error_;
 typedef boost::error_info<struct errinfo_openssl_error_, unsigned long> errinfo_openssl_error;
 
-inline std::string to_string(const errinfo_openssl_error& e)
-{
-	std::ostringstream tmp;
-	int code = e.value();
-	char errbuf[120];
-
-	const char *message = ERR_error_string(code, errbuf);
-
-	if (!message)
-		message = "Unknown error.";
-
-	tmp << code << ", \"" << message << "\"";
-	return "[errinfo_openssl_error]" + tmp.str() + "\n";
-}
+std::string to_string(const errinfo_openssl_error& e);
 
 }
 

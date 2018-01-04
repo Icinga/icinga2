@@ -35,20 +35,18 @@ public:
 	DECLARE_OBJECT(ElasticsearchWriter);
 	DECLARE_OBJECTNAME(ElasticsearchWriter);
 
-	ElasticsearchWriter(void);
-
 	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
 	static String FormatTimestamp(double ts);
 
 protected:
-	virtual void OnConfigLoaded(void) override;
-	virtual void Start(bool runtimeCreated) override;
-	virtual void Stop(bool runtimeRemoved) override;
+	void OnConfigLoaded() override;
+	void Start(bool runtimeCreated) override;
+	void Stop(bool runtimeRemoved) override;
 
 private:
 	String m_EventPrefix;
-	WorkQueue m_WorkQueue;
+	WorkQueue m_WorkQueue{10000000, 1};
 	Timer::Ptr m_FlushTimer;
 	std::vector<String> m_DataBuffer;
 	boost::mutex m_DataBufferMutex;
@@ -66,13 +64,13 @@ private:
 		const Checkable::Ptr& checkable, const std::set<User::Ptr>& users, NotificationType type,
 		const CheckResult::Ptr& cr, const String& author, const String& text);
 
-	void Enqueue(String type, const Dictionary::Ptr& fields, double ts);
+	void Enqueue(const String& type, const Dictionary::Ptr& fields, double ts);
 
-	Stream::Ptr Connect(void);
-	void AssertOnWorkQueue(void);
+	Stream::Ptr Connect();
+	void AssertOnWorkQueue();
 	void ExceptionHandler(boost::exception_ptr exp);
-	void FlushTimeout(void);
-	void Flush(void);
+	void FlushTimeout();
+	void Flush();
 	void SendRequest(const String& body);
 };
 

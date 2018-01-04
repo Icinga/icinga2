@@ -23,7 +23,7 @@
 #ifndef _WIN32
 using namespace icinga;
 
-UnixSocket::UnixSocket(void)
+UnixSocket::UnixSocket()
 {
 	int fd = socket(AF_UNIX, SOCK_STREAM, 0);
 

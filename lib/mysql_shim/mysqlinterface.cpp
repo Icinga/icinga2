@@ -23,7 +23,7 @@ using namespace icinga;
 
 struct MysqlInterfaceImpl final : public MysqlInterface
 {
-	void Destroy(void) override
+	void Destroy() override
 	{
 		delete this;
 	}
@@ -119,13 +119,13 @@ struct MysqlInterfaceImpl final : public MysqlInterface
 		return mysql_store_result(mysql);
 	}
 
-	unsigned int thread_safe(void) const override
+	unsigned int thread_safe() const override
 	{
 		return mysql_thread_safe();
 	}
 };
 
-MysqlInterface *create_mysql_shim(void)
+MysqlInterface *create_mysql_shim()
 {
 	return new MysqlInterfaceImpl();
 }

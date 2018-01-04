@@ -28,14 +28,10 @@ namespace icinga
 
 struct ApiScriptFrame
 {
-	double Seen;
-	int NextLine;
+	double Seen{0};
+	int NextLine{1};
 	std::map<String, String> Lines;
 	Dictionary::Ptr Locals;
-
-	ApiScriptFrame(void)
-		: Seen(0), NextLine(1)
-	{ }
 };
 
 class ConsoleHandler final : public HttpHandler
@@ -43,7 +39,7 @@ class ConsoleHandler final : public HttpHandler
 public:
 	DECLARE_PTR_TYPEDEFS(ConsoleHandler);
 
-	virtual bool HandleRequest(const ApiUser::Ptr& user, HttpRequest& request,
+	bool HandleRequest(const ApiUser::Ptr& user, HttpRequest& request,
 		HttpResponse& response, const Dictionary::Ptr& params) override;
 
 	static std::vector<String> GetAutocompletionSuggestions(const String& word, ScriptFrame& frame);

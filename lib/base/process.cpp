@@ -65,8 +65,8 @@ static pid_t l_ProcessControlPID;
 static boost::once_flag l_ProcessOnceFlag = BOOST_ONCE_INIT;
 static boost::once_flag l_SpawnHelperOnceFlag = BOOST_ONCE_INIT;
 
-Process::Process(const Process::Arguments& arguments, const Dictionary::Ptr& extraEnvironment)
-	: m_Arguments(arguments), m_ExtraEnvironment(extraEnvironment), m_Timeout(600), m_AdjustPriority(false)
+Process::Process(Process::Arguments arguments, Dictionary::Ptr extraEnvironment)
+	: m_Arguments(std::move(arguments)), m_ExtraEnvironment(std::move(extraEnvironment)), m_Timeout(600), m_AdjustPriority(false)
 #ifdef _WIN32
 	, m_ReadPending(false), m_ReadFailed(false), m_Overlapped()
 #endif /* _WIN32 */
@@ -76,7 +76,7 @@ Process::Process(const Process::Arguments& arguments, const Dictionary::Ptr& ext
 #endif /* _WIN32 */
 }
 
-Process::~Process(void)
+Process::~Process()
 {
 #ifdef _WIN32
 	CloseHandle(m_Overlapped.hEvent);
@@ -93,14 +93,14 @@ static Value ProcessSpawnImpl(struct msghdr *msgh, const Dictionary::Ptr& reques
 		return Empty;
 	}
 
-	int *fds = (int *)CMSG_DATA(cmsg);
+	auto *fds = (int *)CMSG_DATA(cmsg);
 
 	Array::Ptr arguments = request->Get("arguments");
 	Dictionary::Ptr extraEnvironment = request->Get("extraEnvironment");
 	bool adjustPriority = request->Get("adjustPriority");
 
 	// build argv
-	char **argv = new char *[arguments->GetLength() + 1];
+	auto **argv = new char *[arguments->GetLength() + 1];
 
 	for (unsigned int i = 0; i < arguments->GetLength(); i++) {
 		String arg = arguments->Get(i);
@@ -116,7 +116,7 @@ static Value ProcessSpawnImpl(struct msghdr *msgh, const Dictionary::Ptr& reques
 	while (environ[envc])
 		envc++;
 
-	char **envp = new char *[envc + (extraEnvironment ? extraEnvironment->GetLength() : 0) + 2];
+	auto **envp = new char *[envc + (extraEnvironment ? extraEnvironment->GetLength() : 0) + 2];
 
 	for (int i = 0; i < envc; i++)
 		envp[i] = strdup(environ[i]);
@@ -237,7 +237,7 @@ static Value ProcessWaitPIDImpl(struct msghdr *msgh, const Dictionary::Ptr& requ
 	return response;
 }
 
-static void ProcessHandler(void)
+static void ProcessHandler()
 {
 	sigset_t mask;
 	sigfillset(&mask);
@@ -281,7 +281,7 @@ static void ProcessHandler(void)
 			break;
 		}
 
-		char *mbuf = new char[length];
+		auto *mbuf = new char[length];
 
 		size_t count = 0;
 		while (count < length) {
@@ -333,7 +333,7 @@ static void ProcessHandler(void)
 	_exit(0);
 }
 
-static void StartSpawnProcessHelper(void)
+static void StartSpawnProcessHelper()
 {
 	if (l_ProcessControlFD != -1) {
 		(void)close(l_ProcessControlFD);
@@ -497,31 +497,33 @@ send_message:
 	return response->Get("rc");
 }
 
-void Process::InitializeSpawnHelper(void)
+void Process::InitializeSpawnHelper()
 {
 	if (l_ProcessControlFD == -1)
 		StartSpawnProcessHelper();
 }
 #endif /* _WIN32 */
 
-static void InitializeProcess(void)
+static void InitializeProcess()
 {
-	for (int tid = 0; tid < IOTHREADS; tid++) {
 #ifdef _WIN32
-		l_Events[tid] = CreateEvent(nullptr, TRUE, FALSE, nullptr);
+	for (auto& event : l_Events) {
+		event = CreateEvent(nullptr, TRUE, FALSE, nullptr);
+	}
 #else /* _WIN32 */
+	for (auto& eventFD : l_EventFDs) {
 #	ifdef HAVE_PIPE2
-		if (pipe2(l_EventFDs[tid], O_CLOEXEC) < 0) {
+		if (pipe2(eventFD, O_CLOEXEC) < 0) {
 			if (errno == ENOSYS) {
 #	endif /* HAVE_PIPE2 */
-				if (pipe(l_EventFDs[tid]) < 0) {
+				if (pipe(eventFD) < 0) {
 					BOOST_THROW_EXCEPTION(posix_error()
 						<< boost::errinfo_api_function("pipe")
 						<< boost::errinfo_errno(errno));
 				}
 
-				Utility::SetCloExec(l_EventFDs[tid][0]);
-				Utility::SetCloExec(l_EventFDs[tid][1]);
+				Utility::SetCloExec(eventFD[0]);
+				Utility::SetCloExec(eventFD[1]);
 #	ifdef HAVE_PIPE2
 			} else {
 				BOOST_THROW_EXCEPTION(posix_error()
@@ -530,13 +532,13 @@ static void InitializeProcess(void)
 			}
 		}
 #	endif /* HAVE_PIPE2 */
-#endif /* _WIN32 */
 	}
+#endif /* _WIN32 */
 }
 
 INITIALIZE_ONCE(InitializeProcess);
 
-void Process::ThreadInitialize(void)
+void Process::ThreadInitialize()
 {
 	/* Note to self: Make sure this runs _after_ we've daemonized. */
 	for (int tid = 0; tid < IOTHREADS; tid++) {
@@ -583,7 +585,7 @@ void Process::SetTimeout(double timeout)
 	m_Timeout = timeout;
 }
 
-double Process::GetTimeout(void) const
+double Process::GetTimeout() const
 {
 	return m_Timeout;
 }
@@ -593,7 +595,7 @@ void Process::SetAdjustPriority(bool adjust)
 	m_AdjustPriority = adjust;
 }
 
-bool Process::GetAdjustPriority(void) const
+bool Process::GetAdjustPriority() const
 {
 	return m_AdjustPriority;
 }
@@ -1016,7 +1018,7 @@ void Process::Run(const std::function<void(const ProcessResult&)>& callback)
 #endif /* _WIN32 */
 }
 
-bool Process::DoEvents(void)
+bool Process::DoEvents()
 {
 	bool is_timeout = false;
 #ifndef _WIN32
@@ -1134,13 +1136,13 @@ bool Process::DoEvents(void)
 	return false;
 }
 
-pid_t Process::GetPID(void) const
+pid_t Process::GetPID() const
 {
 	return m_PID;
 }
 
 
-int Process::GetTID(void) const
+int Process::GetTID() const
 {
 	return (reinterpret_cast<uintptr_t>(this) / sizeof(void *)) % IOTHREADS;
 }

@@ -29,12 +29,12 @@ ContextFrame::ContextFrame(const String& message)
 	GetFrames().push_front(message);
 }
 
-ContextFrame::~ContextFrame(void)
+ContextFrame::~ContextFrame()
 {
 	GetFrames().pop_front();
 }
 
-std::list<String>& ContextFrame::GetFrames(void)
+std::list<String>& ContextFrame::GetFrames()
 {
 	if (!l_Frames.get())
 		l_Frames.reset(new std::list<String>());
@@ -42,7 +42,7 @@ std::list<String>& ContextFrame::GetFrames(void)
 	return *l_Frames;
 }
 
-ContextTrace::ContextTrace(void)
+ContextTrace::ContextTrace()
 	: m_Frames(ContextFrame::GetFrames())
 { }
 
@@ -60,7 +60,7 @@ void ContextTrace::Print(std::ostream& fp) const
 	}
 }
 
-size_t ContextTrace::GetLength(void) const
+size_t ContextTrace::GetLength() const
 {
 	return m_Frames.size();
 }

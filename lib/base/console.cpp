@@ -25,7 +25,7 @@ using namespace icinga;
 
 static ConsoleType l_ConsoleType = Console_Dumb;
 
-static void InitializeConsole(void)
+static void InitializeConsole()
 {
 	l_ConsoleType = Console_Dumb;
 

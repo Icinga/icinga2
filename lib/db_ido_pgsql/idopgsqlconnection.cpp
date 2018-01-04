@@ -32,6 +32,7 @@
 #include "base/context.hpp"
 #include "base/statsfunction.hpp"
 #include <boost/tuple/tuple.hpp>
+#include <utility>
 
 using namespace icinga;
 
@@ -39,13 +40,12 @@ REGISTER_TYPE(IdoPgsqlConnection);
 
 REGISTER_STATSFUNCTION(IdoPgsqlConnection, &IdoPgsqlConnection::StatsFunc);
 
-IdoPgsqlConnection::IdoPgsqlConnection(void)
-	: m_QueryQueue(1000000)
+IdoPgsqlConnection::IdoPgsqlConnection()
 {
 	m_QueryQueue.SetName("IdoPgsqlConnection, " + GetName());
 }
 
-void IdoPgsqlConnection::OnConfigLoaded(void)
+void IdoPgsqlConnection::OnConfigLoaded()
 {
 	ObjectImpl<IdoPgsqlConnection>::OnConfigLoaded();
 
@@ -88,7 +88,7 @@ void IdoPgsqlConnection::StatsFunc(const Dictionary::Ptr& status, const Array::P
 	status->Set("idopgsqlconnection", nodes);
 }
 
-void IdoPgsqlConnection::Resume(void)
+void IdoPgsqlConnection::Resume()
 {
 	DbConnection::Resume();
 
@@ -113,7 +113,7 @@ void IdoPgsqlConnection::Resume(void)
 	ASSERT(m_Pgsql->isthreadsafe());
 }
 
-void IdoPgsqlConnection::Pause(void)
+void IdoPgsqlConnection::Pause()
 {
 	Log(LogInformation, "IdoPgsqlConnection")
 		<< "'" << GetName() << "' paused.";
@@ -131,7 +131,7 @@ void IdoPgsqlConnection::ExceptionHandler(boost::exception_ptr exp)
 	Log(LogWarning, "IdoPgsqlConnection", "Exception during database operation: Verify that your database is operational!");
 
 	Log(LogDebug, "IdoPgsqlConnection")
-		<< "Exception during database operation: " << DiagnosticInformation(exp);
+		<< "Exception during database operation: " << DiagnosticInformation(std::move(exp));
 
 	if (GetConnected()) {
 		m_Pgsql->finish(m_Connection);
@@ -139,12 +139,12 @@ void IdoPgsqlConnection::ExceptionHandler(boost::exception_ptr exp)
 	}
 }
 
-void IdoPgsqlConnection::AssertOnWorkQueue(void)
+void IdoPgsqlConnection::AssertOnWorkQueue()
 {
 	ASSERT(m_QueryQueue.IsWorkerThread());
 }
 
-void IdoPgsqlConnection::Disconnect(void)
+void IdoPgsqlConnection::Disconnect()
 {
 	AssertOnWorkQueue();
 
@@ -157,17 +157,17 @@ void IdoPgsqlConnection::Disconnect(void)
 	SetConnected(false);
 }
 
-void IdoPgsqlConnection::TxTimerHandler(void)
+void IdoPgsqlConnection::TxTimerHandler()
 {
 	NewTransaction();
 }
 
-void IdoPgsqlConnection::NewTransaction(void)
+void IdoPgsqlConnection::NewTransaction()
 {
 	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::InternalNewTransaction, this), PriorityHigh, true);
 }
 
-void IdoPgsqlConnection::InternalNewTransaction(void)
+void IdoPgsqlConnection::InternalNewTransaction()
 {
 	AssertOnWorkQueue();
 
@@ -178,12 +178,12 @@ void IdoPgsqlConnection::InternalNewTransaction(void)
 	Query("BEGIN");
 }
 
-void IdoPgsqlConnection::ReconnectTimerHandler(void)
+void IdoPgsqlConnection::ReconnectTimerHandler()
 {
 	m_QueryQueue.Enqueue(std::bind(&IdoPgsqlConnection::Reconnect, this), PriorityLow);
 }
 
-void IdoPgsqlConnection::Reconnect(void)
+void IdoPgsqlConnection::Reconnect()
 {
 	AssertOnWorkQueue();
 
@@ -422,7 +422,7 @@ void IdoPgsqlConnection::FinishConnect(double startTime)
 	Query("BEGIN");
 }
 
-void IdoPgsqlConnection::ClearTablesBySession(void)
+void IdoPgsqlConnection::ClearTablesBySession()
 {
 	/* delete all comments and downtimes without current session token */
 	ClearTableBySession("comments");
@@ -497,10 +497,10 @@ DbReference IdoPgsqlConnection::GetSequenceValue(const String& table, const Stri
 	Log(LogDebug, "IdoPgsqlConnection")
 		<< "Sequence Value: " << row->Get("id");
 
-	return DbReference(Convert::ToLong(row->Get("id")));
+	return {Convert::ToLong(row->Get("id"))};
 }
 
-int IdoPgsqlConnection::GetAffectedRows(void)
+int IdoPgsqlConnection::GetAffectedRows()
 {
 	AssertOnWorkQueue();
 
@@ -514,7 +514,7 @@ String IdoPgsqlConnection::Escape(const String& s)
 	String utf8s = Utility::ValidateUTF8(s);
 
 	size_t length = utf8s.GetLength();
-	char *to = new char[utf8s.GetLength() * 2 + 1];
+	auto *to = new char[utf8s.GetLength() * 2 + 1];
 
 	m_Pgsql->escapeStringConn(m_Connection, to, utf8s.CStr(), length, nullptr);
 
@@ -659,7 +659,7 @@ bool IdoPgsqlConnection::FieldToEscapedString(const String& key, const Value& va
 	} else if (DbValue::IsTimestampNow(value)) {
 		*result = "NOW()";
 	} else if (DbValue::IsObjectInsertID(value)) {
-		long id = static_cast<long>(rawvalue);
+		auto id = static_cast<long>(rawvalue);
 
 		if (id <= 0)
 			return false;
@@ -947,7 +947,7 @@ void IdoPgsqlConnection::FillIDCache(const DbType::Ptr& type)
 	}
 }
 
-int IdoPgsqlConnection::GetPendingQueryCount(void) const
+int IdoPgsqlConnection::GetPendingQueryCount() const
 {
 	return m_QueryQueue.GetLength();
 }

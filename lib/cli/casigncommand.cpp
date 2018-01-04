@@ -27,22 +27,22 @@ using namespace icinga;
 
 REGISTER_CLICOMMAND("ca/sign", CASignCommand);
 
-String CASignCommand::GetDescription(void) const
+String CASignCommand::GetDescription() const
 {
 	return "Signs an outstanding certificate request.";
 }
 
-String CASignCommand::GetShortDescription(void) const
+String CASignCommand::GetShortDescription() const
 {
 	return "signs an outstanding certificate request";
 }
 
-int CASignCommand::GetMinArguments(void) const
+int CASignCommand::GetMinArguments() const
 {
 	return 1;
 }
 
-ImpersonationLevel CASignCommand::GetImpersonationLevel(void) const
+ImpersonationLevel CASignCommand::GetImpersonationLevel() const
 {
 	return ImpersonateIcinga;
 }

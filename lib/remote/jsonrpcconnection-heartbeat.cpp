@@ -29,7 +29,7 @@ using namespace icinga;
 
 REGISTER_APIFUNCTION(Heartbeat, event, &JsonRpcConnection::HeartbeatAPIHandler);
 
-void JsonRpcConnection::HeartbeatTimerHandler(void)
+void JsonRpcConnection::HeartbeatTimerHandler()
 {
 	for (const Endpoint::Ptr& endpoint : ConfigType::GetObjectsByType<Endpoint>()) {
 		for (const JsonRpcConnection::Ptr& client : endpoint->GetClients()) {

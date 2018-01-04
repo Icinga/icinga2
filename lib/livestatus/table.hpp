@@ -49,16 +49,16 @@ public:
 
 	static Table::Ptr GetByName(const String& name, const String& compat_log_path = "", const unsigned long& from = 0, const unsigned long& until = 0);
 
-	virtual String GetName(void) const = 0;
-	virtual String GetPrefix(void) const = 0;
+	virtual String GetName() const = 0;
+	virtual String GetPrefix() const = 0;
 
 	std::vector<LivestatusRowValue> FilterRows(const intrusive_ptr<Filter>& filter, int limit = -1);
 
 	void AddColumn(const String& name, const Column& column);
 	Column GetColumn(const String& name) const;
-	std::vector<String> GetColumnNames(void) const;
+	std::vector<String> GetColumnNames() const;
 
-	LivestatusGroupByType GetGroupByType(void) const;
+	LivestatusGroupByType GetGroupByType() const;
 
 protected:
 	Table(LivestatusGroupByType type = LivestatusGroupByNone);

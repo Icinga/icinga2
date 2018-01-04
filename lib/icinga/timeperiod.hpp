@@ -37,16 +37,16 @@ public:
 	DECLARE_OBJECT(TimePeriod);
 	DECLARE_OBJECTNAME(TimePeriod);
 
-	virtual void Start(bool runtimeCreated) override;
+	void Start(bool runtimeCreated) override;
 
 	void UpdateRegion(double begin, double end, bool clearExisting);
 
-	virtual bool GetIsInside(void) const override;
+	bool GetIsInside() const override;
 
 	bool IsInside(double ts) const;
 	double FindNextTransition(double begin);
 
-	virtual void ValidateRanges(const Dictionary::Ptr& value, const ValidationUtils& utils) override;
+	void ValidateRanges(const Dictionary::Ptr& value, const ValidationUtils& utils) override;
 
 private:
 	void AddSegment(double s, double end);
@@ -57,9 +57,9 @@ private:
 
 	void Merge(const TimePeriod::Ptr& timeperiod, bool include = true);
 
-	void Dump(void);
+	void Dump();
 
-	static void UpdateTimerHandler(void);
+	static void UpdateTimerHandler();
 };
 
 }

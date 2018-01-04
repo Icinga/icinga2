@@ -31,11 +31,7 @@ namespace icinga
  */
 struct MaxAggregatorState final : public AggregatorState
 {
-	MaxAggregatorState(void)
-		: Max(0)
-	{ }
-
-	double Max;
+	double Max{0};
 };
 
 /**
@@ -46,10 +42,10 @@ class MaxAggregator final : public Aggregator
 public:
 	DECLARE_PTR_TYPEDEFS(MaxAggregator);
 
-	MaxAggregator(const String& attr);
+	MaxAggregator(String attr);
 
-	virtual void Apply(const Table::Ptr& table, const Value& row, AggregatorState **state) override;
-	virtual double GetResultAndFreeState(AggregatorState *state) const override;
+	void Apply(const Table::Ptr& table, const Value& row, AggregatorState **state) override;
+	double GetResultAndFreeState(AggregatorState *state) const override;
 
 private:
 	String m_MaxAttr;

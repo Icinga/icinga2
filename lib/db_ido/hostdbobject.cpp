@@ -42,7 +42,7 @@ HostDbObject::HostDbObject(const DbType::Ptr& type, const String& name1, const S
 	: DbObject(type, name1, name2)
 { }
 
-Dictionary::Ptr HostDbObject::GetConfigFields(void) const
+Dictionary::Ptr HostDbObject::GetConfigFields() const
 {
 	Dictionary::Ptr fields = new Dictionary();
 	Host::Ptr host = static_pointer_cast<Host>(GetObject());
@@ -109,7 +109,7 @@ Dictionary::Ptr HostDbObject::GetConfigFields(void) const
 	return fields;
 }
 
-Dictionary::Ptr HostDbObject::GetStatusFields(void) const
+Dictionary::Ptr HostDbObject::GetStatusFields() const
 {
 	Dictionary::Ptr fields = new Dictionary();
 	Host::Ptr host = static_pointer_cast<Host>(GetObject());
@@ -176,7 +176,7 @@ Dictionary::Ptr HostDbObject::GetStatusFields(void) const
 	return fields;
 }
 
-void HostDbObject::OnConfigUpdateHeavy(void)
+void HostDbObject::OnConfigUpdateHeavy()
 {
 	Host::Ptr host = static_pointer_cast<Host>(GetObject());
 
@@ -366,12 +366,12 @@ void HostDbObject::OnConfigUpdateHeavy(void)
 	DoCommonConfigUpdate();
 }
 
-void HostDbObject::OnConfigUpdateLight(void)
+void HostDbObject::OnConfigUpdateLight()
 {
 	DoCommonConfigUpdate();
 }
 
-void HostDbObject::DoCommonConfigUpdate(void)
+void HostDbObject::DoCommonConfigUpdate()
 {
 	Host::Ptr host = static_pointer_cast<Host>(GetObject());
 

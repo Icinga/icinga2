@@ -93,7 +93,7 @@ static std::vector<String> GlobalArgumentCompletion(const String& argument, cons
 		return std::vector<String>();
 }
 
-static int Main(void)
+static int Main()
 {
 	int argc = Application::GetArgC();
 	char **argv = Application::GetArgV();

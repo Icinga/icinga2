@@ -38,27 +38,26 @@ public:
 
 	static const size_t BlockSize = 512;
 
-	FIFO(void);
-	~FIFO(void);
+	~FIFO() override;
 
-	virtual size_t Peek(void *buffer, size_t count, bool allow_partial = false) override;
-	virtual size_t Read(void *buffer, size_t count, bool allow_partial = false) override;
-	virtual void Write(const void *buffer, size_t count) override;
-	virtual void Close(void) override;
-	virtual bool IsEof(void) const override;
-	virtual bool SupportsWaiting(void) const override;
-	virtual bool IsDataAvailable(void) const override;
+	size_t Peek(void *buffer, size_t count, bool allow_partial = false) override;
+	size_t Read(void *buffer, size_t count, bool allow_partial = false) override;
+	void Write(const void *buffer, size_t count) override;
+	void Close() override;
+	bool IsEof() const override;
+	bool SupportsWaiting() const override;
+	bool IsDataAvailable() const override;
 
-	size_t GetAvailableBytes(void) const;
+	size_t GetAvailableBytes() const;
 
 private:
-	char *m_Buffer;
-	size_t m_DataSize;
-	size_t m_AllocSize;
-	size_t m_Offset;
+	char *m_Buffer{nullptr};
+	size_t m_DataSize{0};
+	size_t m_AllocSize{0};
+	size_t m_Offset{0};
 
 	void ResizeBuffer(size_t newSize, bool decrease);
-	void Optimize(void);
+	void Optimize();
 };
 
 }

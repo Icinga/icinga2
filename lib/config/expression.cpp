@@ -36,7 +36,7 @@ using namespace icinga;
 boost::signals2::signal<void (ScriptFrame&, ScriptError *ex, const DebugInfo&)> Expression::OnBreakpoint;
 boost::thread_specific_ptr<bool> l_InBreakpointHandler;
 
-Expression::~Expression(void)
+Expression::~Expression()
 { }
 
 void Expression::ScriptBreakpoint(ScriptFrame& frame, ScriptError *ex, const DebugInfo& di)
@@ -84,7 +84,7 @@ bool Expression::GetReference(ScriptFrame& frame, bool init_dict, Value *parent,
 	return false;
 }
 
-const DebugInfo& Expression::GetDebugInfo(void) const
+const DebugInfo& Expression::GetDebugInfo() const
 {
 	static DebugInfo debugInfo;
 	return debugInfo;
@@ -96,13 +96,13 @@ std::unique_ptr<Expression> icinga::MakeIndexer(ScopeSpecifier scopeSpec, const 
 	return std::unique_ptr<Expression>(new IndexerExpression(std::move(scope), MakeLiteral(index)));
 }
 
-void DictExpression::MakeInline(void)
+void DictExpression::MakeInline()
 {
 	m_Inline = true;
 }
 
-LiteralExpression::LiteralExpression(const Value& value)
-	: m_Value(value)
+LiteralExpression::LiteralExpression(Value value)
+	: m_Value(std::move(value))
 { }
 
 ExpressionResult LiteralExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
@@ -110,7 +110,7 @@ ExpressionResult LiteralExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dh
 	return m_Value;
 }
 
-const DebugInfo& DebuggableExpression::GetDebugInfo(void) const
+const DebugInfo& DebuggableExpression::GetDebugInfo() const
 {
 	return m_DebugInfo;
 }
@@ -685,7 +685,7 @@ bool IndexerExpression::GetReference(ScriptFrame& frame, bool init_dict, Value *
 
 void icinga::BindToScope(std::unique_ptr<Expression>& expr, ScopeSpecifier scopeSpec)
 {
-	DictExpression *dexpr = dynamic_cast<DictExpression *>(expr.get());
+	auto *dexpr = dynamic_cast<DictExpression *>(expr.get());
 
 	if (dexpr) {
 		for (auto& expr : dexpr->m_Expressions)
@@ -694,7 +694,7 @@ void icinga::BindToScope(std::unique_ptr<Expression>& expr, ScopeSpecifier scope
 		return;
 	}
 
-	SetExpression *aexpr = dynamic_cast<SetExpression *>(expr.get());
+	auto *aexpr = dynamic_cast<SetExpression *>(expr.get());
 
 	if (aexpr) {
 		BindToScope(aexpr->m_Operand1, scopeSpec);
@@ -702,21 +702,21 @@ void icinga::BindToScope(std::unique_ptr<Expression>& expr, ScopeSpecifier scope
 		return;
 	}
 
-	IndexerExpression *iexpr = dynamic_cast<IndexerExpression *>(expr.get());
+	auto *iexpr = dynamic_cast<IndexerExpression *>(expr.get());
 
 	if (iexpr) {
 		BindToScope(iexpr->m_Operand1, scopeSpec);
 		return;
 	}
 
-	LiteralExpression *lexpr = dynamic_cast<LiteralExpression *>(expr.get());
+	auto *lexpr = dynamic_cast<LiteralExpression *>(expr.get());
 
 	if (lexpr && lexpr->GetValue().IsString()) {
 		std::unique_ptr<Expression> scope{new GetScopeExpression(scopeSpec)};
 		expr.reset(new IndexerExpression(std::move(scope), std::move(expr), lexpr->GetDebugInfo()));
 	}
 
-	VariableExpression *vexpr = dynamic_cast<VariableExpression *>(expr.get());
+	auto *vexpr = dynamic_cast<VariableExpression *>(expr.get());
 
 	if (vexpr) {
 		std::unique_ptr<Expression> scope{new GetScopeExpression(scopeSpec)};

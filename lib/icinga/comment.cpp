@@ -78,7 +78,7 @@ Dictionary::Ptr CommentNameComposer::ParseName(const String& name) const
 	return result;
 }
 
-void Comment::OnAllConfigLoaded(void)
+void Comment::OnAllConfigLoaded()
 {
 	ConfigObject::OnAllConfigLoaded();
 
@@ -130,19 +130,19 @@ void Comment::Stop(bool runtimeRemoved)
 	ObjectImpl<Comment>::Stop(runtimeRemoved);
 }
 
-Checkable::Ptr Comment::GetCheckable(void) const
+Checkable::Ptr Comment::GetCheckable() const
 {
 	return static_pointer_cast<Checkable>(m_Checkable);
 }
 
-bool Comment::IsExpired(void) const
+bool Comment::IsExpired() const
 {
 	double expire_time = GetExpireTime();
 
 	return (expire_time != 0 && expire_time < Utility::GetTime());
 }
 
-int Comment::GetNextCommentID(void)
+int Comment::GetNextCommentID()
 {
 	boost::mutex::scoped_lock lock(l_CommentMutex);
 
@@ -239,7 +239,7 @@ String Comment::GetCommentIDFromLegacyID(int id)
 	return it->second;
 }
 
-void Comment::CommentsExpireTimerHandler(void)
+void Comment::CommentsExpireTimerHandler()
 {
 	std::vector<Comment::Ptr> comments;
 

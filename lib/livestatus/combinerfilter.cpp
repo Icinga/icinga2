@@ -21,9 +21,6 @@
 
 using namespace icinga;
 
-CombinerFilter::CombinerFilter(void)
-{ }
-
 void CombinerFilter::AddSubFilter(const Filter::Ptr& filter)
 {
 	m_Filters.push_back(filter);

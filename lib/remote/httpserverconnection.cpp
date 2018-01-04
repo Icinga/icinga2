@@ -48,7 +48,7 @@ HttpServerConnection::HttpServerConnection(const String& identity, bool authenti
 		m_ApiUser = ApiUser::GetByClientCN(identity);
 }
 
-void HttpServerConnection::StaticInitialize(void)
+void HttpServerConnection::StaticInitialize()
 {
 	l_HttpServerConnectionTimeoutTimer = new Timer();
 	l_HttpServerConnectionTimeoutTimer->OnTimerExpired.connect(std::bind(&HttpServerConnection::TimeoutTimerHandler));
@@ -56,7 +56,7 @@ void HttpServerConnection::StaticInitialize(void)
 	l_HttpServerConnectionTimeoutTimer->Start();
 }
 
-void HttpServerConnection::Start(void)
+void HttpServerConnection::Start()
 {
 	/* the stream holds an owning reference to this object through the callback we're registering here */
 	m_Stream->RegisterDataHandler(std::bind(&HttpServerConnection::DataAvailableHandler, HttpServerConnection::Ptr(this)));
@@ -64,17 +64,17 @@ void HttpServerConnection::Start(void)
 		DataAvailableHandler();
 }
 
-ApiUser::Ptr HttpServerConnection::GetApiUser(void) const
+ApiUser::Ptr HttpServerConnection::GetApiUser() const
 {
 	return m_ApiUser;
 }
 
-TlsStream::Ptr HttpServerConnection::GetStream(void) const
+TlsStream::Ptr HttpServerConnection::GetStream() const
 {
 	return m_Stream;
 }
 
-void HttpServerConnection::Disconnect(void)
+void HttpServerConnection::Disconnect()
 {
 	Log(LogDebug, "HttpServerConnection", "Http client disconnected");
 
@@ -87,7 +87,7 @@ void HttpServerConnection::Disconnect(void)
 	m_Stream->Close();
 }
 
-bool HttpServerConnection::ProcessMessage(void)
+bool HttpServerConnection::ProcessMessage()
 {
 	bool res;
 
@@ -266,7 +266,7 @@ void HttpServerConnection::ProcessMessageAsync(HttpRequest& request)
 	m_PendingRequests--;
 }
 
-void HttpServerConnection::DataAvailableHandler(void)
+void HttpServerConnection::DataAvailableHandler()
 {
 	bool close = false;
 
@@ -289,7 +289,7 @@ void HttpServerConnection::DataAvailableHandler(void)
 		Disconnect();
 }
 
-void HttpServerConnection::CheckLiveness(void)
+void HttpServerConnection::CheckLiveness()
 {
 	if (m_Seen < Utility::GetTime() - 10 && m_PendingRequests == 0) {
 		Log(LogInformation, "HttpServerConnection")
@@ -298,7 +298,7 @@ void HttpServerConnection::CheckLiveness(void)
 	}
 }
 
-void HttpServerConnection::TimeoutTimerHandler(void)
+void HttpServerConnection::TimeoutTimerHandler()
 {
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 

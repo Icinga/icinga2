@@ -21,20 +21,16 @@
 
 using namespace icinga;
 
-DbReference::DbReference(void)
-	: m_Id(-1)
-{ }
-
 DbReference::DbReference(long id)
 	: m_Id(id)
 { }
 
-bool DbReference::IsValid(void) const
+bool DbReference::IsValid() const
 {
 	return (m_Id != -1);
 }
 
-DbReference::operator long(void) const
+DbReference::operator long() const
 {
 	return m_Id;
 }

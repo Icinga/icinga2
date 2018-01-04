@@ -60,14 +60,14 @@ public:
 
 	Dictionary::Ptr Headers;
 
-	HttpRequest(const Stream::Ptr& stream);
+	HttpRequest(Stream::Ptr stream);
 
 	bool Parse(StreamReadContext& src, bool may_wait);
 	size_t ReadBody(char *data, size_t count);
 
 	void AddHeader(const String& key, const String& value);
 	void WriteBody(const char *data, size_t count);
-	void Finish(void);
+	void Finish();
 
 private:
 	Stream::Ptr m_Stream;
@@ -75,7 +75,7 @@ private:
 	HttpRequestState m_State;
 	FIFO::Ptr m_Body;
 
-	void FinishHeaders(void);
+	void FinishHeaders();
 };
 
 }

@@ -58,10 +58,9 @@ public:
 
 	typedef std::string::size_type SizeType;
 
-	String(void);
+	String() = default;
 	String(const char *data);
-	String(const std::string& data);
-	String(std::string&& data);
+	String(std::string data);
 	String(String::SizeType n, char c);
 	String(const String& other);
 	String(String&& other);
@@ -69,8 +68,6 @@ public:
 #ifndef _MSC_VER
 	String(Value&& other);
 #endif /* _MSC_VER */
-
-	~String(void);
 
 	template<typename InputIterator>
 	String(InputIterator begin, InputIterator end)
@@ -91,20 +88,20 @@ public:
 	String& operator+=(const Value& rhs);
 	String& operator+=(char rhs);
 
-	bool IsEmpty(void) const;
+	bool IsEmpty() const;
 
 	bool operator<(const String& rhs) const;
 
-	operator const std::string&(void) const;
+	operator const std::string&() const;
 
-	const char *CStr(void) const;
+	const char *CStr() const;
 
-	void Clear(void);
+	void Clear();
 
-	SizeType GetLength(void) const;
+	SizeType GetLength() const;
 
-	std::string& GetData(void);
-	const std::string& GetData(void) const;
+	std::string& GetData();
+	const std::string& GetData() const;
 
 	SizeType Find(const String& str, SizeType pos = 0) const;
 	SizeType RFind(const String& str, SizeType pos = NPos) const;
@@ -121,13 +118,13 @@ public:
 
 	void Replace(SizeType first, SizeType second, const String& str);
 
-	String Trim(void) const;
+	String Trim() const;
 
-	String ToLower(void) const;
+	String ToLower() const;
 
-	String ToUpper(void) const;
+	String ToUpper() const;
 
-	String Reverse(void) const;
+	String Reverse() const;
 
 	void Append(int count, char ch);
 
@@ -143,18 +140,18 @@ public:
 		m_Data.insert(p, first, last);
 	}
 
-	Iterator Begin(void);
-	ConstIterator Begin(void) const;
-	Iterator End(void);
-	ConstIterator End(void) const;
-	ReverseIterator RBegin(void);
-	ConstReverseIterator RBegin(void) const;
-	ReverseIterator REnd(void);
-	ConstReverseIterator REnd(void) const;
+	Iterator Begin();
+	ConstIterator Begin() const;
+	Iterator End();
+	ConstIterator End() const;
+	ReverseIterator RBegin();
+	ConstReverseIterator RBegin() const;
+	ReverseIterator REnd();
+	ConstReverseIterator REnd() const;
 
 	static const SizeType NPos;
 
-	static Object::Ptr GetPrototype(void);
+	static Object::Ptr GetPrototype();
 
 private:
 	std::string m_Data;

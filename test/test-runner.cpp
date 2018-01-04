@@ -23,7 +23,7 @@
 
 using namespace icinga;
 
-static bool init_unit_test(void)
+static bool init_unit_test()
 {
 	return true;
 }

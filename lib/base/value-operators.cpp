@@ -28,7 +28,7 @@
 
 using namespace icinga;
 
-Value::operator double(void) const
+Value::operator double() const
 {
 	const double *value = boost::get<double>(&m_Value);
 
@@ -52,7 +52,7 @@ Value::operator double(void) const
 	}
 }
 
-Value::operator String(void) const
+Value::operator String() const
 {
 	Object *object;
 

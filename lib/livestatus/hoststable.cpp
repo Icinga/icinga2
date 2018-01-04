@@ -174,12 +174,12 @@ void HostsTable::AddColumns(Table *table, const String& prefix,
 	}
 }
 
-String HostsTable::GetName(void) const
+String HostsTable::GetName() const
 {
 	return "hosts";
 }
 
-String HostsTable::GetPrefix(void) const
+String HostsTable::GetPrefix() const
 {
 	return "host";
 }

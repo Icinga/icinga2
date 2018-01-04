@@ -151,7 +151,7 @@ public:
 		String checkName = name;
 
 		if (!abstract) {
-			NameComposer *nc = dynamic_cast<NameComposer *>(type.get());
+			auto *nc = dynamic_cast<NameComposer *>(type.get());
 
 			if (nc)
 				checkName = nc->MakeName(name, nullptr);

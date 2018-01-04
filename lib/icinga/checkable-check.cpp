@@ -43,12 +43,12 @@ boost::signals2::signal<void (const Checkable::Ptr&)> Checkable::OnNextCheckUpda
 boost::mutex Checkable::m_StatsMutex;
 int Checkable::m_PendingChecks = 0;
 
-CheckCommand::Ptr Checkable::GetCheckCommand(void) const
+CheckCommand::Ptr Checkable::GetCheckCommand() const
 {
 	return dynamic_pointer_cast<CheckCommand>(NavigateCheckCommandRaw());
 }
 
-TimePeriod::Ptr Checkable::GetCheckPeriod(void) const
+TimePeriod::Ptr Checkable::GetCheckPeriod() const
 {
 	return TimePeriod::GetByName(GetCheckPeriodRaw());
 }
@@ -58,7 +58,7 @@ void Checkable::SetSchedulingOffset(long offset)
 	m_SchedulingOffset = offset;
 }
 
-long Checkable::GetSchedulingOffset(void)
+long Checkable::GetSchedulingOffset()
 {
 	return m_SchedulingOffset;
 }
@@ -83,12 +83,12 @@ void Checkable::UpdateNextCheck(const MessageOrigin::Ptr& origin)
 	SetNextCheck(now - adj + interval, false, origin);
 }
 
-bool Checkable::HasBeenChecked(void) const
+bool Checkable::HasBeenChecked() const
 {
 	return GetLastCheckResult() != nullptr;
 }
 
-double Checkable::GetLastCheck(void) const
+double Checkable::GetLastCheck() const
 {
 	CheckResult::Ptr cr = GetLastCheckResult();
 	double schedule_end = -1;
@@ -410,7 +410,7 @@ void Checkable::ExecuteRemoteCheck(const Dictionary::Ptr& resolvedMacros)
 	GetCheckCommand()->Execute(this, cr, resolvedMacros, true);
 }
 
-void Checkable::ExecuteCheck(void)
+void Checkable::ExecuteCheck()
 {
 	CONTEXT("Executing check for object '" + GetName() + "'");
 
@@ -525,19 +525,19 @@ void Checkable::UpdateStatistics(const CheckResult::Ptr& cr, CheckableType type)
 	}
 }
 
-void Checkable::IncreasePendingChecks(void)
+void Checkable::IncreasePendingChecks()
 {
 	boost::mutex::scoped_lock lock(m_StatsMutex);
 	m_PendingChecks++;
 }
 
-void Checkable::DecreasePendingChecks(void)
+void Checkable::DecreasePendingChecks()
 {
 	boost::mutex::scoped_lock lock(m_StatsMutex);
 	m_PendingChecks--;
 }
 
-int Checkable::GetPendingChecks(void)
+int Checkable::GetPendingChecks()
 {
 	boost::mutex::scoped_lock lock(m_StatsMutex);
 	return m_PendingChecks;

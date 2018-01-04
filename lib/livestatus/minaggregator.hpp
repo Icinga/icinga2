@@ -32,11 +32,7 @@ namespace icinga
  */
 struct MinAggregatorState final : public AggregatorState
 {
-	MinAggregatorState(void)
-		: Min(DBL_MAX)
-	{ }
-
-	double Min;
+	double Min{DBL_MAX};
 };
 
 /**
@@ -47,10 +43,10 @@ class MinAggregator final : public Aggregator
 public:
 	DECLARE_PTR_TYPEDEFS(MinAggregator);
 
-	MinAggregator(const String& attr);
+	MinAggregator(String attr);
 
-	virtual void Apply(const Table::Ptr& table, const Value& row, AggregatorState **state) override;
-	virtual double GetResultAndFreeState(AggregatorState *state) const override;
+	void Apply(const Table::Ptr& table, const Value& row, AggregatorState **state) override;
+	double GetResultAndFreeState(AggregatorState *state) const override;
 
 private:
 	String m_MinAttr;

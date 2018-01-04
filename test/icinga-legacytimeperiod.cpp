@@ -28,7 +28,7 @@ struct GlobalTimezoneFixture
 {
 	char *tz;
 
-	GlobalTimezoneFixture(void)
+	GlobalTimezoneFixture()
 	{
 		tz = getenv("TZ");
 #ifdef _WIN32
@@ -39,7 +39,7 @@ struct GlobalTimezoneFixture
 		tzset();
 	}
 
-	~GlobalTimezoneFixture(void)
+	~GlobalTimezoneFixture()
 	{
 #ifdef _WIN32
 		if (tz)

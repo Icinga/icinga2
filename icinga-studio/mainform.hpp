@@ -33,10 +33,10 @@ class MainForm final : public MainFormBase
 public:
 	MainForm(wxWindow *parent, const Url::Ptr& url);
 
-	virtual void OnQuitClicked(wxCommandEvent& event) override;
-	virtual void OnAboutClicked(wxCommandEvent& event) override;
-	virtual void OnTypeSelected(wxTreeEvent& event) override;
-	virtual void OnObjectSelected(wxListEvent& event) override;
+	void OnQuitClicked(wxCommandEvent& event) override;
+	void OnAboutClicked(wxCommandEvent& event) override;
+	void OnTypeSelected(wxTreeEvent& event) override;
+	void OnObjectSelected(wxListEvent& event) override;
 
 private:
 	ApiClient::Ptr m_ApiClient;

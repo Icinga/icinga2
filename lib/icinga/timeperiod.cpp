@@ -287,7 +287,7 @@ void TimePeriod::UpdateRegion(double begin, double end, bool clearExisting)
 	}
 }
 
-bool TimePeriod::GetIsInside(void) const
+bool TimePeriod::GetIsInside() const
 {
 	return IsInside(Utility::GetTime());
 }
@@ -334,7 +334,7 @@ double TimePeriod::FindNextTransition(double begin)
 	return closestTransition;
 }
 
-void TimePeriod::UpdateTimerHandler(void)
+void TimePeriod::UpdateTimerHandler()
 {
 	double now = Utility::GetTime();
 
@@ -358,7 +358,7 @@ void TimePeriod::UpdateTimerHandler(void)
 	}
 }
 
-void TimePeriod::Dump(void)
+void TimePeriod::Dump()
 {
 	Array::Ptr segments = GetSegments();
 

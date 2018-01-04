@@ -70,7 +70,7 @@ public:
 			OnUnregistered(name);
 	}
 
-	void Clear(void)
+	void Clear()
 	{
 		typename Registry<U, T>::ItemMap items;
 
@@ -101,7 +101,7 @@ public:
 		return it->second;
 	}
 
-	ItemMap GetItems(void) const
+	ItemMap GetItems() const
 	{
 		boost::mutex::scoped_lock lock(m_Mutex);
 

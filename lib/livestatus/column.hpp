@@ -40,7 +40,7 @@ public:
 	typedef std::function<Value (const Value&)> ValueAccessor;
 	typedef std::function<Value (const Value&, LivestatusGroupByType, const Object::Ptr&)> ObjectAccessor;
 
-	Column(const ValueAccessor& valueAccessor, const ObjectAccessor& objectAccessor);
+	Column(ValueAccessor valueAccessor, ObjectAccessor objectAccessor);
 
 	Value ExtractValue(const Value& urow, LivestatusGroupByType groupByType = LivestatusGroupByNone, const Object::Ptr& groupByObject = Empty) const;
 

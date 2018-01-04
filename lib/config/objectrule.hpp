@@ -40,7 +40,7 @@ public:
 	static bool IsValidSourceType(const String& sourceType);
 
 private:
-	ObjectRule(void);
+	ObjectRule();
 
 	static TypeSet m_Types;
 };

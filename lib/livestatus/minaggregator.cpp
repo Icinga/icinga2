@@ -21,8 +21,8 @@
 
 using namespace icinga;
 
-MinAggregator::MinAggregator(const String& attr)
-	: m_MinAttr(attr)
+MinAggregator::MinAggregator(String attr)
+	: m_MinAttr(std::move(attr))
 { }
 
 MinAggregatorState *MinAggregator::EnsureState(AggregatorState **state)

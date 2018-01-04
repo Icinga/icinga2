@@ -35,16 +35,16 @@ class DowntimesTable final : public Table
 public:
 	DECLARE_PTR_TYPEDEFS(DowntimesTable);
 
-	DowntimesTable(void);
+	DowntimesTable();
 
 	static void AddColumns(Table *table, const String& prefix = String(),
 		const Column::ObjectAccessor& objectAccessor = Column::ObjectAccessor());
 
-	virtual String GetName(void) const override;
-	virtual String GetPrefix(void) const override;
+	String GetName() const override;
+	String GetPrefix() const override;
 
 protected:
-	virtual void FetchRows(const AddRowFunction& addRowFn) override;
+	void FetchRows(const AddRowFunction& addRowFn) override;
 
 private:
 	static Object::Ptr HostAccessor(const Value& row, const Column::ObjectAccessor& parentObjectAccessor);

@@ -80,7 +80,7 @@ Dictionary::Ptr NotificationNameComposer::ParseName(const String& name) const
 	return result;
 }
 
-void Notification::StaticInitialize(void)
+void Notification::StaticInitialize()
 {
 	ScriptGlobal::Set("OK", "OK");
 	ScriptGlobal::Set("Warning", "Warning");
@@ -117,7 +117,7 @@ void Notification::StaticInitialize(void)
 	m_TypeFilterMap["FlappingEnd"] = NotificationFlappingEnd;
 }
 
-void Notification::OnConfigLoaded(void)
+void Notification::OnConfigLoaded()
 {
 	ObjectImpl<Notification>::OnConfigLoaded();
 
@@ -125,7 +125,7 @@ void Notification::OnConfigLoaded(void)
 	SetStateFilter(FilterArrayToInt(GetStates(), GetStateFilterMap(), ~0));
 }
 
-void Notification::OnAllConfigLoaded(void)
+void Notification::OnAllConfigLoaded()
 {
 	ObjectImpl<Notification>::OnAllConfigLoaded();
 
@@ -165,17 +165,17 @@ void Notification::Stop(bool runtimeRemoved)
 		obj->UnregisterNotification(this);
 }
 
-Checkable::Ptr Notification::GetCheckable(void) const
+Checkable::Ptr Notification::GetCheckable() const
 {
 	return static_pointer_cast<Checkable>(m_Checkable);
 }
 
-NotificationCommand::Ptr Notification::GetCommand(void) const
+NotificationCommand::Ptr Notification::GetCommand() const
 {
 	return NotificationCommand::GetByName(GetCommandRaw());
 }
 
-std::set<User::Ptr> Notification::GetUsers(void) const
+std::set<User::Ptr> Notification::GetUsers() const
 {
 	std::set<User::Ptr> result;
 
@@ -197,7 +197,7 @@ std::set<User::Ptr> Notification::GetUsers(void) const
 	return result;
 }
 
-std::set<UserGroup::Ptr> Notification::GetUserGroups(void) const
+std::set<UserGroup::Ptr> Notification::GetUserGroups() const
 {
 	std::set<UserGroup::Ptr> result;
 
@@ -219,17 +219,17 @@ std::set<UserGroup::Ptr> Notification::GetUserGroups(void) const
 	return result;
 }
 
-TimePeriod::Ptr Notification::GetPeriod(void) const
+TimePeriod::Ptr Notification::GetPeriod() const
 {
 	return TimePeriod::GetByName(GetPeriodRaw());
 }
 
-void Notification::UpdateNotificationNumber(void)
+void Notification::UpdateNotificationNumber()
 {
 	SetNotificationNumber(GetNotificationNumber() + 1);
 }
 
-void Notification::ResetNotificationNumber(void)
+void Notification::ResetNotificationNumber()
 {
 	SetNotificationNumber(0);
 }
@@ -667,17 +667,17 @@ void Notification::ValidateTypes(const Array::Ptr& value, const ValidationUtils&
 		BOOST_THROW_EXCEPTION(ValidationError(this, { "types" }, "Type filter is invalid."));
 }
 
-Endpoint::Ptr Notification::GetCommandEndpoint(void) const
+Endpoint::Ptr Notification::GetCommandEndpoint() const
 {
 	return Endpoint::GetByName(GetCommandEndpointRaw());
 }
 
-const std::map<String, int>& Notification::GetStateFilterMap(void)
+const std::map<String, int>& Notification::GetStateFilterMap()
 {
 	return m_StateFilterMap;
 }
 
-const std::map<String, int>& Notification::GetTypeFilterMap(void)
+const std::map<String, int>& Notification::GetTypeFilterMap()
 {
 	return m_TypeFilterMap;
 }

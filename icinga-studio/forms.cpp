@@ -68,8 +68,8 @@ MainFormBase::MainFormBase( wxWindow* parent, wxWindowID id, const wxString& tit
 	// Connect Events
 	this->Connect( m_QuitMenuItem->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( MainFormBase::OnQuitClicked ) );
 	this->Connect( m_AboutMenuItem->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( MainFormBase::OnAboutClicked ) );
-	m_TypesTree->Connect( wxEVT_COMMAND_TREE_SEL_CHANGED, wxTreeEventHandler( MainFormBase::OnTypeSelected ), NULL, this );
-	m_ObjectsList->Connect( wxEVT_COMMAND_LIST_ITEM_SELECTED, wxListEventHandler( MainFormBase::OnObjectSelected ), NULL, this );
+	m_TypesTree->Connect( wxEVT_COMMAND_TREE_SEL_CHANGED, wxTreeEventHandler( MainFormBase::OnTypeSelected ), nullptr, this );
+	m_ObjectsList->Connect( wxEVT_COMMAND_LIST_ITEM_SELECTED, wxListEventHandler( MainFormBase::OnObjectSelected ), nullptr, this );
 }
 
 MainFormBase::~MainFormBase()
@@ -77,8 +77,8 @@ MainFormBase::~MainFormBase()
 	// Disconnect Events
 	this->Disconnect( wxID_EXIT, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( MainFormBase::OnQuitClicked ) );
 	this->Disconnect( wxID_ABOUT, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( MainFormBase::OnAboutClicked ) );
-	m_TypesTree->Disconnect( wxEVT_COMMAND_TREE_SEL_CHANGED, wxTreeEventHandler( MainFormBase::OnTypeSelected ), NULL, this );
-	m_ObjectsList->Disconnect( wxEVT_COMMAND_LIST_ITEM_SELECTED, wxListEventHandler( MainFormBase::OnObjectSelected ), NULL, this );
+	m_TypesTree->Disconnect( wxEVT_COMMAND_TREE_SEL_CHANGED, wxTreeEventHandler( MainFormBase::OnTypeSelected ), nullptr, this );
+	m_ObjectsList->Disconnect( wxEVT_COMMAND_LIST_ITEM_SELECTED, wxListEventHandler( MainFormBase::OnObjectSelected ), nullptr, this );
 
 }
 

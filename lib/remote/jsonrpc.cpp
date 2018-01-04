@@ -28,7 +28,7 @@
 using namespace icinga;
 
 #ifdef I2_DEBUG
-static bool GetDebugJsonRpcCached(void)
+static bool GetDebugJsonRpcCached()
 {
 	static int debugJsonRpc = -1;
 

@@ -26,12 +26,12 @@ namespace po = boost::program_options;
 
 REGISTER_CLICOMMAND("pki/sign-csr", PKISignCSRCommand);
 
-String PKISignCSRCommand::GetDescription(void) const
+String PKISignCSRCommand::GetDescription() const
 {
 	return "Reads a Certificate Signing Request from stdin and prints a signed certificate on stdout.";
 }
 
-String PKISignCSRCommand::GetShortDescription(void) const
+String PKISignCSRCommand::GetShortDescription() const
 {
 	return "signs a CSR";
 }

@@ -31,7 +31,7 @@ class ConnectForm final : public ConnectFormBase
 public:
 	ConnectForm(wxWindow *parent, const Url::Ptr& url);
 
-	Url::Ptr GetUrl(void) const;
+	Url::Ptr GetUrl() const;
 };
 
 }

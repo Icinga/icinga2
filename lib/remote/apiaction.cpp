@@ -22,8 +22,8 @@
 
 using namespace icinga;
 
-ApiAction::ApiAction(const std::vector<String>& types, const Callback& action)
-	: m_Types(types), m_Callback(action)
+ApiAction::ApiAction(std::vector<String> types, Callback action)
+	: m_Types(std::move(types)), m_Callback(std::move(action))
 { }
 
 Value ApiAction::Invoke(const ConfigObject::Ptr& target, const Dictionary::Ptr& params)
@@ -31,7 +31,7 @@ Value ApiAction::Invoke(const ConfigObject::Ptr& target, const Dictionary::Ptr& 
 	return m_Callback(target, params);
 }
 
-const std::vector<String>& ApiAction::GetTypes(void) const
+const std::vector<String>& ApiAction::GetTypes() const
 {
 	return m_Types;
 }
@@ -51,7 +51,7 @@ void ApiAction::Unregister(const String& name)
 	ApiActionRegistry::GetInstance()->Unregister(name);
 }
 
-ApiActionRegistry *ApiActionRegistry::GetInstance(void)
+ApiActionRegistry *ApiActionRegistry::GetInstance()
 {
 	return Singleton<ApiActionRegistry>::GetInstance();
 }

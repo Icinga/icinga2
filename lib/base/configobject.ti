@@ -35,7 +35,7 @@ enum HAMode
 class NameComposer
 {
 public:
-	virtual ~NameComposer(void);
+	virtual ~NameComposer();
 
 	virtual String MakeName(const String& shortName, const Object::Ptr& context) const = 0;
 	virtual Dictionary::Ptr ParseName(const String& name) const = 0;
@@ -49,7 +49,7 @@ code {{{
 class ConfigObjectBase : public ObjectImpl<ConfigObjectBase>
 {
 public:
-	inline DebugInfo GetDebugInfo(void) const
+	inline DebugInfo GetDebugInfo() const
 	{
 		return m_DebugInfo;
 	}

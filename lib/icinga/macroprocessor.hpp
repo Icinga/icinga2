@@ -54,7 +54,7 @@ public:
 	static void ValidateCustomVars(const ConfigObject::Ptr& object, const Dictionary::Ptr& value);
 
 private:
-	MacroProcessor(void);
+	MacroProcessor();
 
 	static bool ResolveMacro(const String& macro, const ResolverList& resolvers,
 		const CheckResult::Ptr& cr, Value *result, bool *recursive_macro);

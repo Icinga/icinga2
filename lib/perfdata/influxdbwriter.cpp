@@ -46,6 +46,7 @@
 #include <boost/math/special_functions/fpclassify.hpp>
 #include <boost/regex.hpp>
 #include <boost/scoped_array.hpp>
+#include <utility>
 
 using namespace icinga;
 
@@ -58,7 +59,7 @@ public:
 		: m_Value(value)
 	{ }
 
-	int GetValue(void) const
+	int GetValue() const
 	{
 		return m_Value;
 	}
@@ -71,11 +72,7 @@ REGISTER_TYPE(InfluxdbWriter);
 
 REGISTER_STATSFUNCTION(InfluxdbWriter, &InfluxdbWriter::StatsFunc);
 
-InfluxdbWriter::InfluxdbWriter(void)
-	: m_WorkQueue(10000000, 1)
-{ }
-
-void InfluxdbWriter::OnConfigLoaded(void)
+void InfluxdbWriter::OnConfigLoaded()
 {
 	ObjectImpl<InfluxdbWriter>::OnConfigLoaded();
 
@@ -137,7 +134,7 @@ void InfluxdbWriter::Stop(bool runtimeRemoved)
 	ObjectImpl<InfluxdbWriter>::Stop(runtimeRemoved);
 }
 
-void InfluxdbWriter::AssertOnWorkQueue(void)
+void InfluxdbWriter::AssertOnWorkQueue()
 {
 	ASSERT(m_WorkQueue.IsWorkerThread());
 }
@@ -147,12 +144,12 @@ void InfluxdbWriter::ExceptionHandler(boost::exception_ptr exp)
 	Log(LogCritical, "InfluxdbWriter", "Exception during InfluxDB operation: Verify that your backend is operational!");
 
 	Log(LogDebug, "InfluxdbWriter")
-		<< "Exception during InfluxDB operation: " << DiagnosticInformation(exp);
+		<< "Exception during InfluxDB operation: " << DiagnosticInformation(std::move(exp));
 
 	//TODO: Close the connection, if we keep it open.
 }
 
-Stream::Ptr InfluxdbWriter::Connect(void)
+Stream::Ptr InfluxdbWriter::Connect()
 {
 	TcpSocket::Ptr socket = new TcpSocket();
 
@@ -372,7 +369,7 @@ void InfluxdbWriter::SendMetric(const Dictionary::Ptr& tmpl, const String& label
 #endif /* I2_DEBUG */
 
 	// Buffer the data point
-	m_DataBuffer.push_back(msgbuf.str());
+	m_DataBuffer.emplace_back(msgbuf.str());
 
 	// Flush if we've buffered too much to prevent excessive memory use
 	if (static_cast<int>(m_DataBuffer.size()) >= GetFlushThreshold()) {
@@ -387,12 +384,12 @@ void InfluxdbWriter::SendMetric(const Dictionary::Ptr& tmpl, const String& label
 	}
 }
 
-void InfluxdbWriter::FlushTimeout(void)
+void InfluxdbWriter::FlushTimeout()
 {
 	m_WorkQueue.Enqueue(boost::bind(&InfluxdbWriter::FlushTimeoutWQ, this), PriorityHigh);
 }
 
-void InfluxdbWriter::FlushTimeoutWQ(void)
+void InfluxdbWriter::FlushTimeoutWQ()
 {
 	AssertOnWorkQueue();
 
@@ -406,7 +403,7 @@ void InfluxdbWriter::FlushTimeoutWQ(void)
 	Flush();
 }
 
-void InfluxdbWriter::Flush(void)
+void InfluxdbWriter::Flush()
 {
 	String body = boost::algorithm::join(m_DataBuffer, "\n");
 	m_DataBuffer.clear();
@@ -422,7 +419,7 @@ void InfluxdbWriter::Flush(void)
 	url->SetPort(GetPort());
 
 	std::vector<String> path;
-	path.push_back("write");
+	path.emplace_back("write");
 	url->SetPath(path);
 
 	url->AddQueryElement("db", GetDatabase());

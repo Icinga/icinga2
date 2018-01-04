@@ -28,12 +28,12 @@
 
 using namespace icinga;
 
-String FeatureUtility::GetFeaturesAvailablePath(void)
+String FeatureUtility::GetFeaturesAvailablePath()
 {
 	return Application::GetSysconfDir() + "/icinga2/features-available";
 }
 
-String FeatureUtility::GetFeaturesEnabledPath(void)
+String FeatureUtility::GetFeaturesEnabledPath()
 {
 	return Application::GetSysconfDir() + "/icinga2/features-enabled";
 }

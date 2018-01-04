@@ -46,10 +46,10 @@ class ConfigObjectTargetProvider final : public TargetProvider
 public:
 	DECLARE_PTR_TYPEDEFS(ConfigObjectTargetProvider);
 
-	virtual void FindTargets(const String& type, const std::function<void (const Value&)>& addTarget) const override;
-	virtual Value GetTargetByName(const String& type, const String& name) const override;
-	virtual bool IsValidType(const String& type) const override;
-	virtual String GetPluralName(const String& type) const override;
+	void FindTargets(const String& type, const std::function<void (const Value&)>& addTarget) const override;
+	Value GetTargetByName(const String& type, const String& name) const override;
+	bool IsValidType(const String& type) const override;
+	String GetPluralName(const String& type) const override;
 };
 
 struct QueryDescription

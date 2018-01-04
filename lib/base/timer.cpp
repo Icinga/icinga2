@@ -37,17 +37,17 @@ public:
 		: m_Timer(timer)
 	{ }
 
-	inline Timer *GetObject(void) const
+	inline Timer *GetObject() const
 	{
 		return m_Timer;
 	}
 
-	inline double GetNextUnlocked(void) const
+	inline double GetNextUnlocked() const
 	{
 		return m_Timer->m_Next;
 	}
 
-	operator Timer *(void) const
+	operator Timer *() const
 	{
 		return m_Timer;
 	}
@@ -74,21 +74,14 @@ static TimerSet l_Timers;
 static int l_AliveTimers;
 
 /**
- * Constructor for the Timer class.
- */
-Timer::Timer(void)
-	: m_Interval(0), m_Next(0), m_Started(false), m_Running(false)
-{ }
-
-/**
  * Destructor for the Timer class.
  */
-Timer::~Timer(void)
+Timer::~Timer()
 {
 	Stop(true);
 }
 
-void Timer::Uninitialize(void)
+void Timer::Uninitialize()
 {
 	{
 		boost::mutex::scoped_lock lock(l_TimerMutex);
@@ -103,7 +96,7 @@ void Timer::Uninitialize(void)
 /**
  * Calls this timer.
  */
-void Timer::Call(void)
+void Timer::Call()
 {
 	try {
 		OnTimerExpired(Timer::Ptr(this));
@@ -132,7 +125,7 @@ void Timer::SetInterval(double interval)
  *
  * @returns The interval.
  */
-double Timer::GetInterval(void) const
+double Timer::GetInterval() const
 {
 	boost::mutex::scoped_lock lock(l_TimerMutex);
 	return m_Interval;
@@ -141,7 +134,7 @@ double Timer::GetInterval(void) const
 /**
  * Registers the timer and starts processing events for it.
  */
-void Timer::Start(void)
+void Timer::Start()
 {
 	{
 		boost::mutex::scoped_lock lock(l_TimerMutex);
@@ -232,7 +225,7 @@ void Timer::InternalReschedule(bool completed, double next)
  *
  * @returns The timestamp.
  */
-double Timer::GetNext(void) const
+double Timer::GetNext() const
 {
 	boost::mutex::scoped_lock lock(l_TimerMutex);
 	return m_Next;
@@ -275,7 +268,7 @@ void Timer::AdjustTimers(double adjustment)
 /**
  * Worker thread proc for Timer objects.
  */
-void Timer::TimerThreadProc(void)
+void Timer::TimerThreadProc()
 {
 	Utility::SetThreadName("Timer Thread");
 

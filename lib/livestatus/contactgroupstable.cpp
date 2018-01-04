@@ -23,7 +23,7 @@
 
 using namespace icinga;
 
-ContactGroupsTable::ContactGroupsTable(void)
+ContactGroupsTable::ContactGroupsTable()
 {
 	AddColumns(this);
 }
@@ -36,12 +36,12 @@ void ContactGroupsTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "members", Column(&ContactGroupsTable::MembersAccessor, objectAccessor));
 }
 
-String ContactGroupsTable::GetName(void) const
+String ContactGroupsTable::GetName() const
 {
 	return "contactgroups";
 }
 
-String ContactGroupsTable::GetPrefix(void) const
+String ContactGroupsTable::GetPrefix() const
 {
 	return "contactgroup";
 }

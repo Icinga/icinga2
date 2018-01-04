@@ -38,11 +38,7 @@ enum ConnectionRole
 
 struct StreamReadContext
 {
-	StreamReadContext(void)
-		: Buffer(nullptr), Size(0), MustRead(true), Eof(false)
-	{ }
-
-	~StreamReadContext(void)
+	~StreamReadContext()
 	{
 		free(Buffer);
 	}
@@ -50,10 +46,10 @@ struct StreamReadContext
 	bool FillFromStream(const intrusive_ptr<Stream>& stream, bool may_wait);
 	void DropData(size_t count);
 
-	char *Buffer;
-	size_t Size;
-	bool MustRead;
-	bool Eof;
+	char *Buffer{nullptr};
+	size_t Size{0};
+	bool MustRead{true};
+	bool Eof{false};
 };
 
 enum StreamReadStatus
@@ -108,35 +104,35 @@ public:
 	 * Causes the stream to be closed (via Close()) once all pending data has been
 	 * written.
 	 */
-	virtual void Shutdown(void);
+	virtual void Shutdown();
 
 	/**
 	 * Closes the stream and releases resources.
 	 */
-	virtual void Close(void);
+	virtual void Close();
 
 	/**
 	 * Checks whether we've reached the end-of-file condition.
 	 *
 	 * @returns true if EOF.
 	 */
-	virtual bool IsEof(void) const = 0;
+	virtual bool IsEof() const = 0;
 
 	/**
 	 * Waits until data can be read from the stream.
 	 */
 	bool WaitForData(int timeout = -1);
 
-	virtual bool SupportsWaiting(void) const;
+	virtual bool SupportsWaiting() const;
 
-	virtual bool IsDataAvailable(void) const;
+	virtual bool IsDataAvailable() const;
 
 	void RegisterDataHandler(const std::function<void(const Stream::Ptr&)>& handler);
 
 	StreamReadStatus ReadLine(String *line, StreamReadContext& context, bool may_wait = false);
 
 protected:
-	void SignalDataAvailable(void);
+	void SignalDataAvailable();
 
 private:
 	boost::signals2::signal<void(const Stream::Ptr&)> OnDataAvailable;

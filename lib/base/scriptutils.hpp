@@ -36,7 +36,7 @@ namespace icinga
 class ScriptUtils
 {
 public:
-	static void StaticInitialize(void);
+	static void StaticInitialize();
 	static String CastString(const Value& value);
 	static double CastNumber(const Value& value);
 	static bool CastBool(const Value& value);
@@ -60,7 +60,7 @@ public:
 	static Value GlobRecursive(const std::vector<Value>& args);
 
 private:
-	ScriptUtils(void);
+	ScriptUtils();
 };
 
 }

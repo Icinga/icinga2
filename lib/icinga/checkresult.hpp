@@ -36,8 +36,8 @@ class CheckResult final : public ObjectImpl<CheckResult>
 public:
 	DECLARE_OBJECT(CheckResult);
 
-	double CalculateExecutionTime(void) const;
-	double CalculateLatency(void) const;
+	double CalculateExecutionTime() const;
+	double CalculateLatency() const;
 };
 
 }

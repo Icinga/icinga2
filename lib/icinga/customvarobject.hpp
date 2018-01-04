@@ -38,7 +38,7 @@ class CustomVarObject : public ObjectImpl<CustomVarObject>
 public:
 	DECLARE_OBJECT(CustomVarObject);
 
-	virtual void ValidateVars(const Dictionary::Ptr& value, const ValidationUtils& utils) override final;
+	void ValidateVars(const Dictionary::Ptr& value, const ValidationUtils& utils) final;
 };
 
 int FilterArrayToInt(const Array::Ptr& typeFilters, const std::map<String, int>& filterMap, int defaultValue);

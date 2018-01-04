@@ -34,7 +34,7 @@ namespace icinga
 class PkiUtility
 {
 public:
-	static int NewCa(void);
+	static int NewCa();
 	static int NewCert(const String& cn, const String& keyfile, const String& csrfile, const String& certfile);
 	static int SignCsr(const String& csrfile, const String& certfile);
 	static std::shared_ptr<X509> FetchCert(const String& host, const String& port);
@@ -44,10 +44,10 @@ public:
 		const String& certfile, const String& cafile, const std::shared_ptr<X509>& trustedcert,
 		const String& ticket = String());
 	static String GetCertificateInformation(const std::shared_ptr<X509>& certificate);
-	static Dictionary::Ptr GetCertificateRequests(void);
+	static Dictionary::Ptr GetCertificateRequests();
 
 private:
-	PkiUtility(void);
+	PkiUtility();
 
 };
 

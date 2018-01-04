@@ -34,14 +34,14 @@ namespace icinga
 class StackTrace
 {
 public:
-	StackTrace(void);
+	StackTrace();
 #ifdef _WIN32
 	explicit StackTrace(PEXCEPTION_POINTERS exi);
 #endif /* _WIN32 */
 
 	void Print(std::ostream& fp, int ignoreFrames = 0) const;
 
-	static void StaticInitialize(void);
+	static void StaticInitialize();
 
 private:
 	void *m_Frames[64];

@@ -37,14 +37,14 @@ class ConsoleCommand final : public CLICommand
 public:
 	DECLARE_PTR_TYPEDEFS(ConsoleCommand);
 
-	static void StaticInitialize(void);
+	static void StaticInitialize();
 
-	virtual String GetDescription(void) const override;
-	virtual String GetShortDescription(void) const override;
-	virtual ImpersonationLevel GetImpersonationLevel(void) const override;
-	virtual void InitParameters(boost::program_options::options_description& visibleDesc,
+	String GetDescription() const override;
+	String GetShortDescription() const override;
+	ImpersonationLevel GetImpersonationLevel() const override;
+	void InitParameters(boost::program_options::options_description& visibleDesc,
 		boost::program_options::options_description& hiddenDesc) const override;
-	virtual int Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const override;
+	int Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const override;
 
 	static int RunScriptConsole(ScriptFrame& scriptFrame, const String& addr = String(),
 		const String& session = String(), const String& commandOnce = String(), const String& commandOnceFileName = String(),
@@ -55,10 +55,10 @@ private:
 	mutable boost::condition_variable m_CV;
 
 	static void ExecuteScriptCompletionHandler(boost::mutex& mutex, boost::condition_variable& cv,
-		bool& ready, boost::exception_ptr eptr, const Value& result, Value& resultOut,
+		bool& ready, const boost::exception_ptr& eptr, const Value& result, Value& resultOut,
 		boost::exception_ptr& eptrOut);
 	static void AutocompleteScriptCompletionHandler(boost::mutex& mutex, boost::condition_variable& cv,
-		bool& ready, boost::exception_ptr eptr, const Array::Ptr& result, Array::Ptr& resultOut);
+		bool& ready, const boost::exception_ptr& eptr, const Array::Ptr& result, Array::Ptr& resultOut);
 
 #ifdef HAVE_EDITLINE
 	static char *ConsoleCompleteHelper(const char *word, int state);

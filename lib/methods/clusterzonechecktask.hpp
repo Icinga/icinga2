@@ -37,7 +37,7 @@ public:
 		const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros);
 
 private:
-	ClusterZoneCheckTask(void);
+	ClusterZoneCheckTask();
 };
 
 }

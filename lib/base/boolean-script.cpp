@@ -25,14 +25,14 @@
 
 using namespace icinga;
 
-static String BooleanToString(void)
+static String BooleanToString()
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	bool self = vframe->Self;
 	return self ? "true" : "false";
 }
 
-Object::Ptr Boolean::GetPrototype(void)
+Object::Ptr Boolean::GetPrototype()
 {
 	static Dictionary::Ptr prototype;
 

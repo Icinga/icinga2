@@ -27,8 +27,8 @@
 
 using namespace icinga;
 
-HttpResponse::HttpResponse(const Stream::Ptr& stream, const HttpRequest& request)
-	: Complete(false), m_State(HttpResponseStart), m_Request(request), m_Stream(stream)
+HttpResponse::HttpResponse(Stream::Ptr stream, const HttpRequest& request)
+	: Complete(false), m_State(HttpResponseStart), m_Request(request), m_Stream(std::move(stream))
 { }
 
 void HttpResponse::SetStatus(int code, const String& message)
@@ -60,7 +60,7 @@ void HttpResponse::AddHeader(const String& key, const String& value)
 	m_Headers.emplace_back(key + ": " + value + "\r\n");
 }
 
-void HttpResponse::FinishHeaders(void)
+void HttpResponse::FinishHeaders()
 {
 	if (m_State == HttpResponseHeaders) {
 		if (m_Request.ProtocolVersion == HttpVersion11)
@@ -92,7 +92,7 @@ void HttpResponse::WriteBody(const char *data, size_t count)
 	}
 }
 
-void HttpResponse::Finish(void)
+void HttpResponse::Finish()
 {
 	ASSERT(m_State != HttpResponseEnd);
 
@@ -249,7 +249,7 @@ size_t HttpResponse::ReadBody(char *data, size_t count)
 		return m_Body->Read(data, count, true);
 }
 
-size_t HttpResponse::GetBodySize(void) const
+size_t HttpResponse::GetBodySize() const
 {
 	if (!m_Body)
 		return 0;
@@ -257,7 +257,7 @@ size_t HttpResponse::GetBodySize(void) const
 		return m_Body->GetAvailableBytes();
 }
 
-bool HttpResponse::IsPeerConnected(void) const
+bool HttpResponse::IsPeerConnected() const
 {
 	return !m_Stream->IsEof();
 }

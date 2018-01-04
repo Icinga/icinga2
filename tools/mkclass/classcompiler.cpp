@@ -24,6 +24,7 @@
 #include <stdexcept>
 #include <map>
 #include <set>
+#include <utility>
 #include <vector>
 #include <cstring>
 #include <locale>
@@ -35,24 +36,24 @@
 
 using namespace icinga;
 
-ClassCompiler::ClassCompiler(const std::string& path, std::istream& input,
+ClassCompiler::ClassCompiler(std::string path, std::istream& input,
 	std::ostream& oimpl, std::ostream& oheader)
-	: m_Path(path), m_Input(input), m_Impl(oimpl), m_Header(oheader)
+	: m_Path(std::move(path)), m_Input(input), m_Impl(oimpl), m_Header(oheader)
 {
 	InitializeScanner();
 }
 
-ClassCompiler::~ClassCompiler(void)
+ClassCompiler::~ClassCompiler()
 {
 	DestroyScanner();
 }
 
-std::string ClassCompiler::GetPath(void) const
+std::string ClassCompiler::GetPath() const
 {
 	return m_Path;
 }
 
-void *ClassCompiler::GetScanner(void)
+void *ClassCompiler::GetScanner()
 {
 	return m_Scanner;
 }
@@ -198,7 +199,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		m_Header << "template<>" << std::endl
 			<< "struct TypeHelper<" << klass.Name << ", " << ((klass.Attributes & TAVarArgConstructor) ? "true" : "false") << ">" << std::endl
 			<< "{" << std::endl
-			<< "\t" << "static ObjectFactory GetFactory(void)" << std::endl
+			<< "\t" << "static ObjectFactory GetFactory()" << std::endl
 			<< "\t" << "{" << std::endl
 			<< "\t\t" << "return nullptr;" << std::endl
 			<< "\t" << "}" << std::endl
@@ -220,34 +221,34 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 			<< "{" << std::endl
 			<< "public:" << std::endl
 			<< "\t" << "DECLARE_PTR_TYPEDEFS(TypeImpl<" << klass.Name << ">);" << std::endl << std::endl
-			<< "\t" << "TypeImpl(void);" << std::endl
-			<< "\t" << "~TypeImpl(void);" << std::endl << std::endl;
+			<< "\t" << "TypeImpl();" << std::endl
+			<< "\t" << "~TypeImpl() override;" << std::endl << std::endl;
 
-	m_Impl << "TypeImpl<" << klass.Name << ">::TypeImpl(void)" << std::endl
+	m_Impl << "TypeImpl<" << klass.Name << ">::TypeImpl()" << std::endl
 		<< "{ }" << std::endl << std::endl
-		<< "TypeImpl<" << klass.Name << ">::~TypeImpl(void)" << std::endl
+		<< "TypeImpl<" << klass.Name << ">::~TypeImpl()" << std::endl
 		<< "{ }" << std::endl << std::endl;
 
 	/* GetName */
-	m_Header << "\t" << "virtual String GetName(void) const;" << std::endl;
+	m_Header << "\t" << "String GetName() const override;" << std::endl;
 
-	m_Impl << "String TypeImpl<" << klass.Name << ">::GetName(void) const" << std::endl
+	m_Impl << "String TypeImpl<" << klass.Name << ">::GetName() const" << std::endl
 		<< "{" << std::endl
 		<< "\t" << "return \"" << klass.Name << "\";" << std::endl
 		<< "}" << std::endl << std::endl;
 
 	/* GetAttributes */
-	m_Header << "\t" << "virtual int GetAttributes(void) const;" << std::endl;
+	m_Header << "\t" << "int GetAttributes() const override;" << std::endl;
 
-	m_Impl << "int TypeImpl<" << klass.Name << ">::GetAttributes(void) const" << std::endl
+	m_Impl << "int TypeImpl<" << klass.Name << ">::GetAttributes() const" << std::endl
 		<< "{" << std::endl
 		<< "\t" << "return " << klass.Attributes << ";" << std::endl
 		<< "}" << std::endl << std::endl;
 
 	/* GetBaseType */
-	m_Header << "\t" << "virtual Type::Ptr GetBaseType(void) const;" << std::endl;
+	m_Header << "\t" << "Type::Ptr GetBaseType() const override;" << std::endl;
 
-	m_Impl << "Type::Ptr TypeImpl<" << klass.Name << ">::GetBaseType(void) const" << std::endl
+	m_Impl << "Type::Ptr TypeImpl<" << klass.Name << ">::GetBaseType() const" << std::endl
 		<< "{" << std::endl
 		<< "\t" << "return ";
 
@@ -260,7 +261,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		<< "}" << std::endl << std::endl;
 
 	/* GetFieldId */
-	m_Header << "\t" << "virtual int GetFieldId(const String& name) const;" << std::endl;
+	m_Header << "\t" << "int GetFieldId(const String& name) const override;" << std::endl;
 
 	m_Impl << "int TypeImpl<" << klass.Name << ">::GetFieldId(const String& name) const" << std::endl
 		<< "{" << std::endl;
@@ -288,8 +289,8 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		collisions = 0;
 
 		for (const Field& field : klass.Fields) {
-			int hash = static_cast<int>(SDBM(field.Name, hlen));
-			jumptable[hash].push_back(std::make_pair(num, field.Name));
+			auto hash = static_cast<int>(SDBM(field.Name, hlen));
+			jumptable[hash].emplace_back(num, field.Name);
 			num++;
 
 			if (jumptable[hash].size() > 1)
@@ -327,7 +328,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		<< "}" << std::endl << std::endl;
 
 	/* GetFieldInfo */
-	m_Header << "\t" << "virtual Field GetFieldInfo(int id) const;" << std::endl;
+	m_Header << "\t" << "Field GetFieldInfo(int id) const override;" << std::endl;
 
 	m_Impl << "Field TypeImpl<" << klass.Name << ">::GetFieldInfo(int id) const" << std::endl
 		<< "{" << std::endl;
@@ -358,7 +359,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 				nameref = "nullptr";
 
 			m_Impl << "\t\t" << "case " << num << ":" << std::endl
-					<< "\t\t\t" << "return Field(" << num << ", \"" << ftype << "\", \"" << field.Name << "\", \"" << (field.NavigationName.empty() ? field.Name : field.NavigationName) << "\", "  << nameref << ", " << field.Attributes << ", " << field.Type.ArrayRank << ");" << std::endl;
+					<< "\t\t\t" << "return {" << num << ", \"" << ftype << "\", \"" << field.Name << "\", \"" << (field.NavigationName.empty() ? field.Name : field.NavigationName) << "\", "  << nameref << ", " << field.Attributes << ", " << field.Type.ArrayRank << "};" << std::endl;
 			num++;
 		}
 
@@ -374,9 +375,9 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 	m_Impl << "}" << std::endl << std::endl;
 
 	/* GetFieldCount */
-	m_Header << "\t" << "virtual int GetFieldCount(void) const;" << std::endl;
+	m_Header << "\t" << "int GetFieldCount() const override;" << std::endl;
 
-	m_Impl << "int TypeImpl<" << klass.Name << ">::GetFieldCount(void) const" << std::endl
+	m_Impl << "int TypeImpl<" << klass.Name << ">::GetFieldCount() const" << std::endl
 		<< "{" << std::endl
 		<< "\t" << "return " << klass.Fields.size();
 
@@ -387,29 +388,29 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		<< "}" << std::endl << std::endl;
 
 	/* GetFactory */
-	m_Header << "\t" << "virtual ObjectFactory GetFactory(void) const;" << std::endl;
+	m_Header << "\t" << "ObjectFactory GetFactory() const override;" << std::endl;
 
-	m_Impl << "ObjectFactory TypeImpl<" << klass.Name << ">::GetFactory(void) const" << std::endl
+	m_Impl << "ObjectFactory TypeImpl<" << klass.Name << ">::GetFactory() const" << std::endl
 		<< "{" << std::endl
 		<< "\t" << "return TypeHelper<" << klass.Name << ", " << ((klass.Attributes & TAVarArgConstructor) ? "true" : "false") << ">::GetFactory();" << std::endl
 		<< "}" << std::endl << std::endl;
 
 	/* GetLoadDependencies */
-	m_Header << "\t" << "virtual std::vector<String> GetLoadDependencies(void) const;" << std::endl;
+	m_Header << "\t" << "std::vector<String> GetLoadDependencies() const override;" << std::endl;
 
-	m_Impl << "std::vector<String> TypeImpl<" << klass.Name << ">::GetLoadDependencies(void) const" << std::endl
+	m_Impl << "std::vector<String> TypeImpl<" << klass.Name << ">::GetLoadDependencies() const" << std::endl
 		<< "{" << std::endl
 		<< "\t" << "std::vector<String> deps;" << std::endl;
 
 	for (const std::string& dep : klass.LoadDependencies)
-		m_Impl << "\t" << "deps.push_back(\"" << dep << "\");" << std::endl;
+		m_Impl << "\t" << "deps.emplace_back(\"" << dep << "\");" << std::endl;
 
 	m_Impl << "\t" << "return deps;" << std::endl
 		<< "}" << std::endl << std::endl;
 
 	/* RegisterAttributeHandler */
 	m_Header << "public:" << std::endl
-			<< "\t" << "virtual void RegisterAttributeHandler(int fieldId, const Type::AttributeHandler& callback);" << std::endl;
+			<< "\t" << "void RegisterAttributeHandler(int fieldId, const Type::AttributeHandler& callback) override;" << std::endl;
 
 	m_Impl << "void TypeImpl<" << klass.Name << ">::RegisterAttributeHandler(int fieldId, const Type::AttributeHandler& callback)" << std::endl
 		<< "{" << std::endl;
@@ -459,7 +460,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		<< "\t" << "DECLARE_PTR_TYPEDEFS(ObjectImpl<" << klass.Name << ">);" << std::endl << std::endl;
 
 	/* Validate */
-	m_Header << "\t" << "virtual void Validate(int types, const ValidationUtils& utils) override;" << std::endl;
+	m_Header << "\t" << "void Validate(int types, const ValidationUtils& utils) override;" << std::endl;
 
 	m_Impl << "void ObjectImpl<" << klass.Name << ">::Validate(int types, const ValidationUtils& utils)" << std::endl
 		<< "{" << std::endl;
@@ -493,7 +494,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 			else
 				m_Impl << "\t" << "if (" << argName << ".IsEmpty())" << std::endl;
 
-			m_Impl << "\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_cast<ConfigObject *>(this), { \"" << field.Name << "\" }, \"Attribute must not be empty.\"));" << std::endl << std::endl;
+			m_Impl << "\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_cast<ConfigObject *>(this), { \"" << field.Name << R"(" }, "Attribute must not be empty."));)" << std::endl << std::endl;
 		}
 
 		if (field.Attributes & FADeprecated) {
@@ -502,7 +503,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 			else
 				m_Impl << "\t" << "if (" << argName << " != GetDefault" << field.GetFriendlyName() << "())" << std::endl;
 
-			m_Impl << "\t\t" << "Log(LogWarning, \"" << klass.Name << "\") << \"Attribute '" << field.Name << "' for object '\" << dynamic_cast<ConfigObject *>(this)->GetName() << \"' of type '\" << dynamic_cast<ConfigObject *>(this)->GetReflectionType()->GetName() << \"' is deprecated and should not be used.\";" << std::endl;
+			m_Impl << "\t\t" << "Log(LogWarning, \"" << klass.Name << "\") << \"Attribute '" << field.Name << R"(' for object '" << dynamic_cast<ConfigObject *>(this)->GetName() << "' of type '" << dynamic_cast<ConfigObject *>(this)->GetReflectionType()->GetName() << "' is deprecated and should not be used.";)" << std::endl;
 		}
 
 		if (field.Type.ArrayRank > 0) {
@@ -517,7 +518,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 			m_Impl << "\t" << "if (value.IsObjectType<Function>()) {" << std::endl
 				<< "\t\t" << "Function::Ptr func = value;" << std::endl
 				<< "\t\t" << "if (func->IsDeprecated())" << std::endl
-				<< "\t\t\t" << "Log(LogWarning, \"" << klass.Name << "\") << \"Attribute '" << field.Name << "' for object '\" << dynamic_cast<ConfigObject *>(this)->GetName() << \"' of type '\" << dynamic_cast<ConfigObject *>(this)->GetReflectionType()->GetName() << \"' is set to a deprecated function: \" << func->GetName();" << std::endl
+				<< "\t\t\t" << "Log(LogWarning, \"" << klass.Name << "\") << \"Attribute '" << field.Name << R"(' for object '" << dynamic_cast<ConfigObject *>(this)->GetName() << "' of type '" << dynamic_cast<ConfigObject *>(this)->GetReflectionType()->GetName() << "' is set to a deprecated function: " << func->GetName();)" << std::endl
 				<< "\t" << "}" << std::endl << std::endl;
 		}
 
@@ -530,13 +531,13 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 				m_Impl << "!value.IsEmpty() && ";
 
 			m_Impl << "!utils.ValidateName(\"" << field.Type.TypeName << "\", value))" << std::endl
-				<< "\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_cast<ConfigObject *>(this), { \"" << field.Name << "\" }, \"Object '\" + value + \"' of type '" << field.Type.TypeName
+				<< "\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_cast<ConfigObject *>(this), { \"" << field.Name << R"(" }, "Object '" + value + "' of type ')" << field.Type.TypeName
 				<< "' does not exist.\"));" << std::endl;
 		} else if (field.Type.ArrayRank > 0 && (ftype == "Number" || ftype == "Boolean")) {
 			m_Impl << "\t" << "try {" << std::endl
 				<< "\t\t" << "Convert::ToDouble(value);" << std::endl
 				<< "\t" << "} catch (const std::invalid_argument&) {" << std::endl
-				<< "\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_cast<ConfigObject *>(this), { \"" << field.Name << "\", \"Array element '\" + value + \"' of type '\" + value.GetReflectionType()->GetName() + \"' is not valid here; expected type '" << ftype << "'.\"));" << std::endl
+				<< "\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_cast<ConfigObject *>(this), { \"" << field.Name << R"(", "Array element '" + value + "' of type '" + value.GetReflectionType()->GetName() + "' is not valid here; expected type ')" << ftype << "'.\"));" << std::endl
 				<< "\t" << "}" << std::endl;
 		}
 
@@ -550,9 +551,9 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 
 	/* constructor */
 	m_Header << "public:" << std::endl
-			<< "\t" << "ObjectImpl<" << klass.Name << ">(void);" << std::endl;
+			<< "\t" << "ObjectImpl<" << klass.Name << ">();" << std::endl;
 
-	m_Impl << "ObjectImpl<" << klass.Name << ">::ObjectImpl(void)" << std::endl
+	m_Impl << "ObjectImpl<" << klass.Name << ">::ObjectImpl()" << std::endl
 		<< "{" << std::endl;
 
 	for (const Field& field : klass.Fields) {
@@ -563,15 +564,15 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 
 	/* destructor */
 	m_Header << "public:" << std::endl
-			<< "\t" << "~ObjectImpl<" << klass.Name << ">(void);" << std::endl;
+			<< "\t" << "~ObjectImpl<" << klass.Name << ">() override;" << std::endl;
 
-	m_Impl << "ObjectImpl<" << klass.Name << ">::~ObjectImpl(void)" << std::endl
+	m_Impl << "ObjectImpl<" << klass.Name << ">::~ObjectImpl()" << std::endl
 		<< "{ }" << std::endl << std::endl;
 
 	if (!klass.Fields.empty()) {
 		/* SetField */
 		m_Header << "public:" << std::endl
-				<< "\t" << "virtual void SetField(int id, const Value& value, bool suppress_events = false, const Value& cookie = Empty) override;" << std::endl;
+				<< "\t" << "void SetField(int id, const Value& value, bool suppress_events = false, const Value& cookie = Empty) override;" << std::endl;
 
 		m_Impl << "void ObjectImpl<" << klass.Name << ">::SetField(int id, const Value& value, bool suppress_events, const Value& cookie)" << std::endl
 			<< "{" << std::endl;
@@ -615,7 +616,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 
 		/* GetField */
 		m_Header << "public:" << std::endl
-				<< "\t" << "virtual Value GetField(int id) const override;" << std::endl;
+				<< "\t" << "Value GetField(int id) const override;" << std::endl;
 
 		m_Impl << "Value ObjectImpl<" << klass.Name << ">::GetField(int id) const" << std::endl
 			<< "{" << std::endl;
@@ -648,7 +649,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		
 		/* ValidateField */
 		m_Header << "public:" << std::endl
-				<< "\t" << "virtual void ValidateField(int id, const Value& value, const ValidationUtils& utils) override;" << std::endl;
+				<< "\t" << "void ValidateField(int id, const Value& value, const ValidationUtils& utils) override;" << std::endl;
 
 		m_Impl << "void ObjectImpl<" << klass.Name << ">::ValidateField(int id, const Value& value, const ValidationUtils& utils)" << std::endl
 			<< "{" << std::endl;
@@ -726,7 +727,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 
 		/* NavigateField */
 		m_Header << "public:" << std::endl
-				<< "\t" << "virtual Object::Ptr NavigateField(int id) const override;" << std::endl;
+				<< "\t" << "Object::Ptr NavigateField(int id) const override;" << std::endl;
 
 		m_Impl << "Object::Ptr ObjectImpl<" << klass.Name << ">::NavigateField(int id) const" << std::endl
 			<< "{" << std::endl;
@@ -790,14 +791,14 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 			if (field.Attributes & FAGetVirtual || field.PureGetAccessor)
 				m_Header << "virtual ";
 
-			m_Header << field.Type.GetRealType() << " Get" << field.GetFriendlyName() << "(void) const";
+			m_Header << field.Type.GetRealType() << " Get" << field.GetFriendlyName() << "() const";
 
 			if (field.PureGetAccessor) {
 				m_Header << " = 0;" << std::endl;
 			} else {
 				m_Header << ";" << std::endl;
 
-				m_Impl << field.Type.GetRealType() << " ObjectImpl<" << klass.Name << ">::Get" << field.GetFriendlyName() << "(void) const" << std::endl
+				m_Impl << field.Type.GetRealType() << " ObjectImpl<" << klass.Name << ">::Get" << field.GetFriendlyName() << "() const" << std::endl
 					<< "{" << std::endl;
 
 				if (field.GetAccessor.empty() && !(field.Attributes & FANoStorage))
@@ -845,7 +846,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 
 				if (field.Type.IsName || !field.TrackAccessor.empty()) {
 					if (field.Name != "active") {
-						m_Impl << "\t" << "ConfigObject *dobj = dynamic_cast<ConfigObject *>(this);" << std::endl
+						m_Impl << "\t" << "auto *dobj = dynamic_cast<ConfigObject *>(this);" << std::endl
 							<< "\t" << "if (!dobj || dobj->IsActive())" << std::endl
 							<< "\t";
 					}
@@ -941,14 +942,14 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 				continue;
 
 			m_Header << "public:" << std::endl
-					<< "\t" << "Object::Ptr Navigate" << field.GetFriendlyName() << "(void) const";
+					<< "\t" << "Object::Ptr Navigate" << field.GetFriendlyName() << "() const";
 
 			if (field.PureNavigateAccessor) {
 				m_Header << " = 0;" << std::endl;
 			} else {
 				m_Header << ";" << std::endl;
 
-				m_Impl << "Object::Ptr ObjectImpl<" << klass.Name << ">::Navigate" << field.GetFriendlyName() << "(void) const" << std::endl
+				m_Impl << "Object::Ptr ObjectImpl<" << klass.Name << ">::Navigate" << field.GetFriendlyName() << "() const" << std::endl
 					<< "{" << std::endl;
 
 				if (field.NavigateAccessor.empty())
@@ -963,8 +964,8 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		/* start/stop */
 		if (needs_tracking) {
 			m_Header << "protected:" << std::endl
-					<< "\tvirtual void Start(bool runtimeCreated = false) override;" << std::endl
-					<< "\tvirtual void Stop(bool runtimeRemoved = false) override;" << std::endl;
+					<< "\tvoid Start(bool runtimeCreated = false) override;" << std::endl
+					<< "\tvoid Stop(bool runtimeRemoved = false) override;" << std::endl;
 
 			m_Impl << "void ObjectImpl<" << klass.Name << ">::Start(bool runtimeCreated)" << std::endl
 				<< "{" << std::endl
@@ -1008,7 +1009,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 				<< "{" << std::endl;
 
 			if (field.Name != "active") {
-				m_Impl << "\t" << "ConfigObject *dobj = dynamic_cast<ConfigObject *>(this);" << std::endl
+				m_Impl << "\t" << "auto *dobj = dynamic_cast<ConfigObject *>(this);" << std::endl
 					<< "\t" << "if (!dobj || dobj->IsActive())" << std::endl
 					<< "\t";
 			}
@@ -1022,9 +1023,9 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 			std::string realType = field.Type.GetRealType();
 
 			m_Header << "private:" << std::endl
-					<< "\t" << "inline " << realType << " GetDefault" << field.GetFriendlyName() << "(void) const;" << std::endl;
+					<< "\t" << "inline " << realType << " GetDefault" << field.GetFriendlyName() << "() const;" << std::endl;
 
-			m_Impl << realType << " ObjectImpl<" << klass.Name << ">::GetDefault" << field.GetFriendlyName() << "(void) const" << std::endl
+			m_Impl << realType << " ObjectImpl<" << klass.Name << ">::GetDefault" << field.GetFriendlyName() << "() const" << std::endl
 				<< "{" << std::endl;
 
 			if (field.DefaultAccessor.empty())
@@ -1143,7 +1144,7 @@ void ClassCompiler::CodeGenValidator(const std::string& name, const std::string&
 				<< "\t\t\t" << "if (utils.ValidateName(\"" << rule.Type << "\", value))" << std::endl
 				<< "\t\t\t\t" << "return;" << std::endl
 				<< "\t\t\t" << "else" << std::endl
-				<< "\t\t\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_pointer_cast<ConfigObject>(object), location, \"Object '\" + value + \"' of type '" << rule.Type << "' does not exist.\"));" << std::endl
+				<< "\t\t\t\t" << R"(BOOST_THROW_EXCEPTION(ValidationError(dynamic_pointer_cast<ConfigObject>(object), location, "Object '" + value + "' of type ')" << rule.Type << "' does not exist.\"));" << std::endl
 				<< "\t\t" << "}" << std::endl;
 		}
 
@@ -1207,7 +1208,7 @@ void ClassCompiler::CodeGenValidator(const std::string& name, const std::string&
 				else
 					subvalidator_prefix = name;
 
-				m_Impl << (type_check ? "\t" : "") << (indent ? "\t\t" : "") << "\t\t" << "location.push_back(akey);" << std::endl
+				m_Impl << (type_check ? "\t" : "") << (indent ? "\t\t" : "") << "\t\t" << "location.emplace_back(akey);" << std::endl
 					<< (type_check ? "\t" : "") << (indent ? "\t\t" : "") << "\t\t" << "TIValidate" << subvalidator_prefix << "_" << i << "(object, akey, avalue, location, utils);" << std::endl
 					<< (type_check ? "\t" : "") << (indent ? "\t\t" : "") << "\t\t" << "location.pop_back();" << std::endl;
 
@@ -1312,7 +1313,7 @@ void ClassCompiler::HandleValidator(const Validator& validator, const ClassDebug
 			<< "{" << std::endl
 			<< "\t" << "SimpleValidate" << it.first.second << "(value, utils);" << std::endl
 			<< "\t" << "std::vector<String> location;" << std::endl
-			<< "\t" << "location.push_back(\"" << it.second.Name << "\");" << std::endl
+			<< "\t" << "location.emplace_back(\"" << it.second.Name << "\");" << std::endl
 			<< "\t" << "TIValidate" << it.first.first << it.first.second << "(this, value, location, utils);" << std::endl
 			<< "\t" << "location.pop_back();" << std::endl
 			<< "}" << std::endl << std::endl;
@@ -1321,7 +1322,7 @@ void ClassCompiler::HandleValidator(const Validator& validator, const ClassDebug
 	m_MissingValidators.clear();
 }
 
-void ClassCompiler::HandleMissingValidators(void)
+void ClassCompiler::HandleMissingValidators()
 {
 	for (const auto& it : m_MissingValidators) {
 		m_Impl << "void ObjectImpl<" << it.first.first << ">::Validate" << it.first.second << "(" << it.second.Type.GetArgumentType() << " value, const ValidationUtils& utils)" << std::endl

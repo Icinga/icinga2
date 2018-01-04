@@ -35,7 +35,7 @@ template<typename T>
 class Singleton
 {
 public:
-	static T *GetInstance(void)
+	static T *GetInstance()
 	{
 		/* FIXME: This relies on static initializers being atomic. */
 		static boost::mutex mutex;

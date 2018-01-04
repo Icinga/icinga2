@@ -26,12 +26,12 @@ namespace po = boost::program_options;
 
 REGISTER_CLICOMMAND("pki/new-cert", PKINewCertCommand);
 
-String PKINewCertCommand::GetDescription(void) const
+String PKINewCertCommand::GetDescription() const
 {
 	return "Creates a new Certificate Signing Request, a self-signed X509 certificate or both.";
 }
 
-String PKINewCertCommand::GetShortDescription(void) const
+String PKINewCertCommand::GetShortDescription() const
 {
 	return "creates a new CSR";
 }

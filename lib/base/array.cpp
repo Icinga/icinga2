@@ -32,14 +32,8 @@ template class std::vector<Value>;
 
 REGISTER_PRIMITIVE_TYPE(Array, Object, Array::GetPrototype());
 
-Array::Array(void)
-{ }
-
 Array::Array(std::initializer_list<Value> init)
 	: m_Data(init)
-{ }
-
-Array::~Array(void)
 { }
 
 /**
@@ -86,23 +80,11 @@ void Array::Set(SizeType index, Value&& value)
  *
  * @param value The value.
  */
-void Array::Add(const Value& value)
+void Array::Add(Value value)
 {
 	ObjectLock olock(this);
 
-	m_Data.push_back(value);
-}
-
-/**
- * Adds a value to the array.
- *
- * @param value The value.
- */
-void Array::Add(Value&& value)
-{
-	ObjectLock olock(this);
-
-	m_Data.emplace_back(std::move(value));
+	m_Data.push_back(std::move(value));
 }
 
 /**
@@ -112,7 +94,7 @@ void Array::Add(Value&& value)
  *
  * @returns An iterator.
  */
-Array::Iterator Array::Begin(void)
+Array::Iterator Array::Begin()
 {
 	ASSERT(OwnsLock());
 
@@ -126,7 +108,7 @@ Array::Iterator Array::Begin(void)
  *
  * @returns An iterator.
  */
-Array::Iterator Array::End(void)
+Array::Iterator Array::End()
 {
 	ASSERT(OwnsLock());
 
@@ -138,7 +120,7 @@ Array::Iterator Array::End(void)
  *
  * @returns Number of elements.
  */
-size_t Array::GetLength(void) const
+size_t Array::GetLength() const
 {
 	ObjectLock olock(this);
 
@@ -164,13 +146,13 @@ bool Array::Contains(const Value& value) const
  * @param index The index
  * @param value The value to add
  */
-void Array::Insert(SizeType index, const Value& value)
+void Array::Insert(SizeType index, Value value)
 {
 	ObjectLock olock(this);
 
 	ASSERT(index <= m_Data.size());
 
-	m_Data.insert(m_Data.begin() + index, value);
+	m_Data.insert(m_Data.begin() + index, std::move(value));
 }
 
 /**
@@ -204,7 +186,7 @@ void Array::Resize(SizeType newSize)
 	m_Data.resize(newSize);
 }
 
-void Array::Clear(void)
+void Array::Clear()
 {
 	ObjectLock olock(this);
 
@@ -231,7 +213,7 @@ void Array::CopyTo(const Array::Ptr& dest) const
  *
  * @returns a copy of the array.
  */
-Array::Ptr Array::ShallowClone(void) const
+Array::Ptr Array::ShallowClone() const
 {
 	Array::Ptr clone = new Array();
 	CopyTo(clone);
@@ -244,7 +226,7 @@ Array::Ptr Array::ShallowClone(void) const
  *
  * @returns a copy of the array.
  */
-Object::Ptr Array::Clone(void) const
+Object::Ptr Array::Clone() const
 {
 	Array::Ptr arr = new Array();
 
@@ -256,7 +238,7 @@ Object::Ptr Array::Clone(void) const
 	return arr;
 }
 
-Array::Ptr Array::Reverse(void) const
+Array::Ptr Array::Reverse() const
 {
 	Array::Ptr result = new Array();
 
@@ -268,13 +250,13 @@ Array::Ptr Array::Reverse(void) const
 	return result;
 }
 
-void Array::Sort(void)
+void Array::Sort()
 {
 	ObjectLock olock(this);
 	std::sort(m_Data.begin(), m_Data.end());
 }
 
-String Array::ToString(void) const
+String Array::ToString() const
 {
 	std::ostringstream msgbuf;
 	ConfigWriter::EmitArray(msgbuf, 1, const_cast<Array *>(this));
@@ -314,12 +296,12 @@ void Array::SetFieldByName(const String& field, const Value& value, const DebugI
 	Set(index, value);
 }
 
-Array::Iterator icinga::begin(Array::Ptr x)
+Array::Iterator icinga::begin(const Array::Ptr& x)
 {
 	return x->Begin();
 }
 
-Array::Iterator icinga::end(Array::Ptr x)
+Array::Iterator icinga::end(const Array::Ptr& x)
 {
 	return x->End();
 }

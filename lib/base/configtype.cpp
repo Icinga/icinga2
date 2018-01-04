@@ -23,7 +23,7 @@
 
 using namespace icinga;
 
-ConfigType::~ConfigType(void)
+ConfigType::~ConfigType()
 { }
 
 ConfigObject::Ptr ConfigType::GetObject(const String& name) const
@@ -51,7 +51,7 @@ void ConfigType::RegisterObject(const ConfigObject::Ptr& object)
 			if (it->second == object)
 				return;
 
-			Type *type = dynamic_cast<Type *>(this);
+			auto *type = dynamic_cast<Type *>(this);
 
 			BOOST_THROW_EXCEPTION(ScriptError("An object with type '" + type->GetName() + "' and name '" + name + "' already exists (" +
 				Convert::ToString(it->second->GetDebugInfo()) + "), new declaration: " + Convert::ToString(object->GetDebugInfo()),
@@ -75,7 +75,7 @@ void ConfigType::UnregisterObject(const ConfigObject::Ptr& object)
 	}
 }
 
-std::vector<ConfigObject::Ptr> ConfigType::GetObjects(void) const
+std::vector<ConfigObject::Ptr> ConfigType::GetObjects() const
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
 	return m_ObjectVector;
@@ -86,7 +86,7 @@ std::vector<ConfigObject::Ptr> ConfigType::GetObjectsHelper(Type *type)
 	return static_cast<TypeImpl<ConfigObject> *>(type)->GetObjects();
 }
 
-int ConfigType::GetObjectCount(void) const
+int ConfigType::GetObjectCount() const
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
 	return m_ObjectVector.size();

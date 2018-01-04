@@ -92,33 +92,33 @@ std::vector<String> icinga::GetFieldCompletionSuggestions(const Type::Ptr& type,
 	return result;
 }
 
-int CLICommand::GetMinArguments(void) const
+int CLICommand::GetMinArguments() const
 {
 	return 0;
 }
 
-int CLICommand::GetMaxArguments(void) const
+int CLICommand::GetMaxArguments() const
 {
 	return GetMinArguments();
 }
 
-bool CLICommand::IsHidden(void) const
+bool CLICommand::IsHidden() const
 {
 	return false;
 }
 
-bool CLICommand::IsDeprecated(void) const
+bool CLICommand::IsDeprecated() const
 {
 	return false;
 }
 
-boost::mutex& CLICommand::GetRegistryMutex(void)
+boost::mutex& CLICommand::GetRegistryMutex()
 {
 	static boost::mutex mtx;
 	return mtx;
 }
 
-std::map<std::vector<String>, CLICommand::Ptr>& CLICommand::GetRegistry(void)
+std::map<std::vector<String>, CLICommand::Ptr>& CLICommand::GetRegistry()
 {
 	static std::map<std::vector<String>, CLICommand::Ptr> registry;
 	return registry;
@@ -162,7 +162,7 @@ void CLICommand::InitParameters(boost::program_options::options_description& vis
 	boost::program_options::options_description& hiddenDesc) const
 { }
 
-ImpersonationLevel CLICommand::GetImpersonationLevel(void) const
+ImpersonationLevel CLICommand::GetImpersonationLevel() const
 {
 	return ImpersonateIcinga;
 }

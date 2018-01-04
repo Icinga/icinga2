@@ -33,7 +33,7 @@ CommandDbObject::CommandDbObject(const DbType::Ptr& type, const String& name1, c
 	: DbObject(type, name1, name2)
 { }
 
-Dictionary::Ptr CommandDbObject::GetConfigFields(void) const
+Dictionary::Ptr CommandDbObject::GetConfigFields() const
 {
 	Dictionary::Ptr fields = new Dictionary();
 	Command::Ptr command = static_pointer_cast<Command>(GetObject());
@@ -43,7 +43,7 @@ Dictionary::Ptr CommandDbObject::GetConfigFields(void) const
 	return fields;
 }
 
-Dictionary::Ptr CommandDbObject::GetStatusFields(void) const
+Dictionary::Ptr CommandDbObject::GetStatusFields() const
 {
 	return nullptr;
 }

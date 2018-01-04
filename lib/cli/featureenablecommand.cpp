@@ -26,12 +26,12 @@ namespace po = boost::program_options;
 
 REGISTER_CLICOMMAND("feature/enable", FeatureEnableCommand);
 
-String FeatureEnableCommand::GetDescription(void) const
+String FeatureEnableCommand::GetDescription() const
 {
 	return "Enables specified Icinga 2 feature.";
 }
 
-String FeatureEnableCommand::GetShortDescription(void) const
+String FeatureEnableCommand::GetShortDescription() const
 {
 	return "enables specified feature";
 }
@@ -41,17 +41,17 @@ std::vector<String> FeatureEnableCommand::GetPositionalSuggestions(const String&
 	return FeatureUtility::GetFieldCompletionSuggestions(word, true);
 }
 
-int FeatureEnableCommand::GetMinArguments(void) const
+int FeatureEnableCommand::GetMinArguments() const
 {
 	return 1;
 }
 
-int FeatureEnableCommand::GetMaxArguments(void) const
+int FeatureEnableCommand::GetMaxArguments() const
 {
 	return -1;
 }
 
-ImpersonationLevel FeatureEnableCommand::GetImpersonationLevel(void) const
+ImpersonationLevel FeatureEnableCommand::GetImpersonationLevel() const
 {
 	return ImpersonateRoot;
 }

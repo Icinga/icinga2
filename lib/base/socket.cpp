@@ -37,15 +37,7 @@ using namespace icinga;
 /**
  * Constructor for the Socket class.
  */
-Socket::Socket(void)
-	: m_FD(INVALID_SOCKET)
-{ }
-
-/**
- * Constructor for the Socket class.
- */
 Socket::Socket(SOCKET fd)
-	: m_FD(INVALID_SOCKET)
 {
 	SetFD(fd);
 }
@@ -53,7 +45,7 @@ Socket::Socket(SOCKET fd)
 /**
  * Destructor for the Socket class.
  */
-Socket::~Socket(void)
+Socket::~Socket()
 {
 	Close();
 }
@@ -81,7 +73,7 @@ void Socket::SetFD(SOCKET fd)
  *
  * @returns The file descriptor.
  */
-SOCKET Socket::GetFD(void) const
+SOCKET Socket::GetFD() const
 {
 	ObjectLock olock(this);
 
@@ -91,7 +83,7 @@ SOCKET Socket::GetFD(void) const
 /**
  * Closes the socket.
  */
-void Socket::Close(void)
+void Socket::Close()
 {
 	ObjectLock olock(this);
 
@@ -106,7 +98,7 @@ void Socket::Close(void)
  *
  * @returns An error code.
  */
-int Socket::GetError(void) const
+int Socket::GetError() const
 {
 	int opt;
 	socklen_t optlen = sizeof(opt);
@@ -158,7 +150,7 @@ String Socket::GetAddressFromSockaddr(sockaddr *address, socklen_t len)
  *
  * @returns A String describing the local address.
  */
-String Socket::GetClientAddress(void)
+String Socket::GetClientAddress()
 {
 	boost::mutex::scoped_lock lock(m_SocketMutex);
 
@@ -198,7 +190,7 @@ String Socket::GetClientAddress(void)
  *
  * @returns A String describing the peer address.
  */
-String Socket::GetPeerAddress(void)
+String Socket::GetPeerAddress()
 {
 	boost::mutex::scoped_lock lock(m_SocketMutex);
 
@@ -236,7 +228,7 @@ String Socket::GetPeerAddress(void)
 /**
  * Starts listening for incoming client connections.
  */
-void Socket::Listen(void)
+void Socket::Listen()
 {
 	if (listen(GetFD(), SOMAXCONN) < 0) {
 #ifndef _WIN32
@@ -328,7 +320,7 @@ size_t Socket::Read(void *buffer, size_t count)
 /**
  * Accepts a new client and creates a new client object for it.
  */
-Socket::Ptr Socket::Accept(void)
+Socket::Ptr Socket::Accept()
 {
 	sockaddr_storage addr;
 	socklen_t addrlen = sizeof(addr);
@@ -407,7 +399,7 @@ bool Socket::Poll(bool read, bool write, struct timeval *timeout)
 	return (rc != 0);
 }
 
-void Socket::MakeNonBlocking(void)
+void Socket::MakeNonBlocking()
 {
 #ifdef _WIN32
 	Utility::SetNonBlockingSocket(GetFD());

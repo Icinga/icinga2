@@ -40,7 +40,7 @@ public:
 	DECLARE_OBJECT(ServiceGroup);
 	DECLARE_OBJECTNAME(ServiceGroup);
 
-	std::set<Service::Ptr> GetMembers(void) const;
+	std::set<Service::Ptr> GetMembers() const;
 	void AddMember(const Service::Ptr& service);
 	void RemoveMember(const Service::Ptr& service);
 

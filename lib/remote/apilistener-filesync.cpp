@@ -214,7 +214,7 @@ void ApiListener::SyncZoneDir(const Zone::Ptr& zone) const
 	UpdateConfigDir(oldConfigInfo, newConfigInfo, oldDir, true);
 }
 
-void ApiListener::SyncZoneDirs(void) const
+void ApiListener::SyncZoneDirs() const
 {
 	for (const Zone::Ptr& zone : ConfigType::GetObjectsByType<Zone>()) {
 		try {

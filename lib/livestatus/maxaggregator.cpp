@@ -21,8 +21,8 @@
 
 using namespace icinga;
 
-MaxAggregator::MaxAggregator(const String& attr)
-	: m_MaxAttr(attr)
+MaxAggregator::MaxAggregator(String attr)
+	: m_MaxAttr(std::move(attr))
 { }
 
 MaxAggregatorState *MaxAggregator::EnsureState(AggregatorState **state)

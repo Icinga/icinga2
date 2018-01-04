@@ -48,7 +48,7 @@ REGISTER_CLICOMMAND("console", ConsoleCommand);
 
 INITIALIZE_ONCE(&ConsoleCommand::StaticInitialize);
 
-extern "C" void dbg_spawn_console(void)
+extern "C" void dbg_spawn_console()
 {
 	ScriptFrame frame(true);
 	ConsoleCommand::RunScriptConsole(frame);
@@ -142,22 +142,22 @@ void ConsoleCommand::BreakpointHandler(ScriptFrame& frame, ScriptError *ex, cons
 	ConsoleCommand::RunScriptConsole(frame);
 }
 
-void ConsoleCommand::StaticInitialize(void)
+void ConsoleCommand::StaticInitialize()
 {
 	Expression::OnBreakpoint.connect(&ConsoleCommand::BreakpointHandler);
 }
 
-String ConsoleCommand::GetDescription(void) const
+String ConsoleCommand::GetDescription() const
 {
 	return "Interprets Icinga script expressions.";
 }
 
-String ConsoleCommand::GetShortDescription(void) const
+String ConsoleCommand::GetShortDescription() const
 {
 	return "Icinga console";
 }
 
-ImpersonationLevel ConsoleCommand::GetImpersonationLevel(void) const
+ImpersonationLevel ConsoleCommand::GetImpersonationLevel() const
 {
 	return ImpersonateNone;
 }
@@ -502,7 +502,7 @@ incomplete:
 }
 
 void ConsoleCommand::ExecuteScriptCompletionHandler(boost::mutex& mutex, boost::condition_variable& cv,
-	bool& ready, boost::exception_ptr eptr, const Value& result, Value& resultOut, boost::exception_ptr& eptrOut)
+	bool& ready, const boost::exception_ptr& eptr, const Value& result, Value& resultOut, boost::exception_ptr& eptrOut)
 {
 	if (eptr) {
 		try {
@@ -526,7 +526,7 @@ void ConsoleCommand::ExecuteScriptCompletionHandler(boost::mutex& mutex, boost::
 }
 
 void ConsoleCommand::AutocompleteScriptCompletionHandler(boost::mutex& mutex, boost::condition_variable& cv,
-	bool& ready, boost::exception_ptr eptr, const Array::Ptr& result, Array::Ptr& resultOut)
+	bool& ready, const boost::exception_ptr& eptr, const Array::Ptr& result, Array::Ptr& resultOut)
 {
 	if (eptr) {
 		try {

@@ -42,17 +42,17 @@ public:
 
 	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
-	static int GetClientsConnected(void);
-	static int GetConnections(void);
+	static int GetClientsConnected();
+	static int GetConnections();
 
-	virtual void ValidateSocketType(const String& value, const ValidationUtils& utils) override;
+	void ValidateSocketType(const String& value, const ValidationUtils& utils) override;
 
 protected:
-	virtual void Start(bool runtimeCreated) override;
-	virtual void Stop(bool runtimeRemoved) override;
+	void Start(bool runtimeCreated) override;
+	void Stop(bool runtimeRemoved) override;
 
 private:
-	void ServerThreadProc(void);
+	void ServerThreadProc();
 	void ClientHandler(const Socket::Ptr& client);
 
 	Socket::Ptr m_Listener;

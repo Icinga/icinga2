@@ -62,7 +62,7 @@ void Checkable::UpdateFlappingStatus(bool stateChange)
 #endif /* _WIN32 */
 }
 
-bool Checkable::IsFlapping(void) const
+bool Checkable::IsFlapping() const
 {
 	if (!GetEnableFlapping() || !IcingaApplication::GetInstance()->GetEnableFlapping())
 		return false;

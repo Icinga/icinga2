@@ -90,7 +90,7 @@ public:
 	DECLARE_PTR_TYPEDEFS(ApiClient);
 
 	ApiClient(const String& host, const String& port,
-		const String& user, const String& password);
+		String user, String password);
 
 	typedef std::function<void(boost::exception_ptr, const std::vector<ApiType::Ptr>&)> TypesCompletionCallback;
 	void GetTypes(const TypesCompletionCallback& callback) const;

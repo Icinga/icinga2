@@ -42,19 +42,19 @@ public:
 
 	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
-	virtual void ValidateHostFormatTemplate(const String& value, const ValidationUtils& utils) override;
-	virtual void ValidateServiceFormatTemplate(const String& value, const ValidationUtils& utils) override;
+	void ValidateHostFormatTemplate(const String& value, const ValidationUtils& utils) override;
+	void ValidateServiceFormatTemplate(const String& value, const ValidationUtils& utils) override;
 
 protected:
-	virtual void Start(bool runtimeCreated) override;
-	virtual void Stop(bool runtimeRemoved) override;
+	void Start(bool runtimeCreated) override;
+	void Stop(bool runtimeRemoved) override;
 
 private:
 	void CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
 	static Value EscapeMacroMetric(const Value& value);
 
 	Timer::Ptr m_RotationTimer;
-	void RotationTimerHandler(void);
+	void RotationTimerHandler();
 
 	std::ofstream m_ServiceOutputFile;
 	std::ofstream m_HostOutputFile;

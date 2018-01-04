@@ -21,8 +21,8 @@
 
 using namespace icinga;
 
-Column::Column(const ValueAccessor& valueAccessor, const ObjectAccessor& objectAccessor)
-	: m_ValueAccessor(valueAccessor), m_ObjectAccessor(objectAccessor)
+Column::Column(ValueAccessor valueAccessor, ObjectAccessor objectAccessor)
+	: m_ValueAccessor(std::move(valueAccessor)), m_ObjectAccessor(std::move(objectAccessor))
 { }
 
 Value Column::ExtractValue(const Value& urow, LivestatusGroupByType groupByType, const Object::Ptr& groupByObject) const

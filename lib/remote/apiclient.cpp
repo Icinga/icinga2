@@ -27,8 +27,8 @@
 using namespace icinga;
 
 ApiClient::ApiClient(const String& host, const String& port,
-	const String& user, const String& password)
-	: m_Connection(new HttpClientConnection(host, port, true)), m_User(user), m_Password(password)
+	String user, String password)
+	: m_Connection(new HttpClientConnection(host, port, true)), m_User(std::move(user)), m_Password(std::move(password))
 {
 	m_Connection->Start();
 }
@@ -122,7 +122,7 @@ void ApiClient::GetObjects(const String& pluralType, const ObjectsCompletionCall
 		params["joins"].push_back(join);
 	}
 
-	params["all_joins"].push_back(all_joins ? "1" : "0");
+	params["all_joins"].emplace_back(all_joins ? "1" : "0");
 
 	url->SetQuery(params);
 
@@ -232,7 +232,7 @@ void ApiClient::ExecuteScript(const String& session, const String& command, bool
 	std::map<String, std::vector<String> > params;
 	params["session"].push_back(session);
 	params["command"].push_back(command);
-	params["sandboxed"].push_back(sandboxed ? "1" : "0");
+	params["sandboxed"].emplace_back(sandboxed ? "1" : "0");
 	url->SetQuery(params);
 
 	try {
@@ -311,7 +311,7 @@ void ApiClient::AutocompleteScript(const String& session, const String& command,
 	std::map<String, std::vector<String> > params;
 	params["session"].push_back(session);
 	params["command"].push_back(command);
-	params["sandboxed"].push_back(sandboxed ? "1" : "0");
+	params["sandboxed"].emplace_back(sandboxed ? "1" : "0");
 	url->SetQuery(params);
 
 	try {

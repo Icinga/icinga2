@@ -111,7 +111,7 @@ void MainForm::OnTypeSelected(wxTreeEvent& event)
 	ApiType::Ptr type = m_Types[typeName.ToStdString()];
 
 	std::vector<String> attrs;
-	attrs.push_back("__name");
+	attrs.emplace_back("__name");
 
 	m_ApiClient->GetObjects(type->PluralName, std::bind(&MainForm::ObjectsCompletionHandler, this, _1, _2, true),
 		std::vector<String>(), attrs);
@@ -170,7 +170,7 @@ void MainForm::OnObjectSelected(wxListEvent& event)
 		return;
 
 	std::vector<String> names;
-	names.push_back(objectName);
+	names.emplace_back(objectName);
 
 	m_ApiClient->GetObjects(type->PluralName, std::bind(&MainForm::ObjectDetailsCompletionHandler, this, _1, _2, true),
 		names, std::vector<String>(), std::vector<String>(), true);

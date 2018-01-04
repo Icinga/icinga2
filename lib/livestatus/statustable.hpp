@@ -35,16 +35,16 @@ class StatusTable final : public Table
 public:
 	DECLARE_PTR_TYPEDEFS(StatusTable);
 
-	StatusTable(void);
+	StatusTable();
 
 	static void AddColumns(Table *table, const String& prefix = String(),
 		const Column::ObjectAccessor& objectAccessor = Column::ObjectAccessor());
 
-	virtual String GetName(void) const override;
-	virtual String GetPrefix(void) const override;
+	String GetName() const override;
+	String GetPrefix() const override;
 
 protected:
-	virtual void FetchRows(const AddRowFunction& addRowFn) override;
+	void FetchRows(const AddRowFunction& addRowFn) override;
 
 	static Value ConnectionsAccessor(const Value& row);
 	static Value ConnectionsRateAccessor(const Value& row);

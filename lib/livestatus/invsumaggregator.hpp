@@ -31,11 +31,7 @@ namespace icinga
  */
 struct InvSumAggregatorState final : public AggregatorState
 {
-	InvSumAggregatorState(void)
-		: InvSum(0)
-	{ }
-
-	double InvSum;
+	double InvSum{0};
 };
 
 /**
@@ -46,10 +42,10 @@ class InvSumAggregator final : public Aggregator
 public:
 	DECLARE_PTR_TYPEDEFS(InvSumAggregator);
 
-	InvSumAggregator(const String& attr);
+	InvSumAggregator(String attr);
 
-	virtual void Apply(const Table::Ptr& table, const Value& row, AggregatorState **state) override;
-	virtual double GetResultAndFreeState(AggregatorState *state) const override;
+	void Apply(const Table::Ptr& table, const Value& row, AggregatorState **state) override;
+	double GetResultAndFreeState(AggregatorState *state) const override;
 
 private:
 	String m_InvSumAttr;

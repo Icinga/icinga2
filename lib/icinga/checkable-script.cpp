@@ -33,7 +33,7 @@ static void CheckableProcessCheckResult(const CheckResult::Ptr& cr)
 	self->ProcessCheckResult(cr);
 }
 
-Object::Ptr Checkable::GetPrototype(void)
+Object::Ptr Checkable::GetPrototype()
 {
 	static Dictionary::Ptr prototype;
 

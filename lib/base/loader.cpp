@@ -24,13 +24,13 @@
 
 using namespace icinga;
 
-boost::thread_specific_ptr<std::priority_queue<DeferredInitializer> >& Loader::GetDeferredInitializers(void)
+boost::thread_specific_ptr<std::priority_queue<DeferredInitializer> >& Loader::GetDeferredInitializers()
 {
 	static boost::thread_specific_ptr<std::priority_queue<DeferredInitializer> > initializers;
 	return initializers;
 }
 
-void Loader::ExecuteDeferredInitializers(void)
+void Loader::ExecuteDeferredInitializers()
 {
 	if (!GetDeferredInitializers().get())
 		return;
@@ -42,7 +42,7 @@ void Loader::ExecuteDeferredInitializers(void)
 	}
 }
 
-void Loader::AddDeferredInitializer(const std::function<void(void)>& callback, int priority)
+void Loader::AddDeferredInitializer(const std::function<void()>& callback, int priority)
 {
 	if (!GetDeferredInitializers().get())
 		GetDeferredInitializers().reset(new std::priority_queue<DeferredInitializer>());

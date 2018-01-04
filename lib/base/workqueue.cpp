@@ -31,8 +31,8 @@ std::atomic<int> WorkQueue::m_NextID(1);
 boost::thread_specific_ptr<WorkQueue *> l_ThreadWorkQueue;
 
 WorkQueue::WorkQueue(size_t maxItems, int threadCount)
-	: m_ID(m_NextID++), m_ThreadCount(threadCount), m_Spawned(false), m_MaxItems(maxItems), m_Stopped(false),
-	m_Processing(0), m_NextTaskID(0), m_TaskStats(15 * 60), m_PendingTasks(0), m_PendingTasksTimestamp(0)
+	: m_ID(m_NextID++), m_ThreadCount(threadCount), m_MaxItems(maxItems),
+	m_TaskStats(15 * 60)
 {
 	/* Initialize logger. */
 	m_StatusTimerTimeout = Utility::GetTime();
@@ -43,7 +43,7 @@ WorkQueue::WorkQueue(size_t maxItems, int threadCount)
 	m_StatusTimer->Start();
 }
 
-WorkQueue::~WorkQueue(void)
+WorkQueue::~WorkQueue()
 {
 	m_StatusTimer->Stop(true);
 
@@ -55,7 +55,7 @@ void WorkQueue::SetName(const String& name)
 	m_Name = name;
 }
 
-String WorkQueue::GetName(void) const
+String WorkQueue::GetName() const
 {
 	return m_Name;
 }
@@ -66,7 +66,7 @@ String WorkQueue::GetName(void) const
  * allowInterleaved is true in which case the new task might be run
  * immediately if it's being enqueued from within the WorkQueue thread.
  */
-void WorkQueue::Enqueue(std::function<void (void)>&& function, WorkQueuePriority priority,
+void WorkQueue::Enqueue(std::function<void ()>&& function, WorkQueuePriority priority,
 	bool allowInterleaved)
 {
 	bool wq_thread = IsWorkerThread();
@@ -132,7 +132,7 @@ void WorkQueue::Join(bool stop)
  *
  * @returns true if called from one of the worker threads, false otherwise
  */
-bool WorkQueue::IsWorkerThread(void) const
+bool WorkQueue::IsWorkerThread() const
 {
 	WorkQueue **pwq = l_ThreadWorkQueue.get();
 
@@ -152,7 +152,7 @@ void WorkQueue::SetExceptionCallback(const ExceptionCallback& callback)
  * work queue. When a custom exception callback is set this method will always
  * return false.
  */
-bool WorkQueue::HasExceptions(void) const
+bool WorkQueue::HasExceptions() const
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
 
@@ -163,7 +163,7 @@ bool WorkQueue::HasExceptions(void) const
  * Returns all exceptions which have occurred for tasks in this work queue. When a
  * custom exception callback is set this method will always return an empty list.
  */
-std::vector<boost::exception_ptr> WorkQueue::GetExceptions(void) const
+std::vector<boost::exception_ptr> WorkQueue::GetExceptions() const
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
 
@@ -183,14 +183,14 @@ void WorkQueue::ReportExceptions(const String& facility) const
 		<< exceptions.size() << " error" << (exceptions.size() != 1 ? "s" : "");
 }
 
-size_t WorkQueue::GetLength(void) const
+size_t WorkQueue::GetLength() const
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
 
 	return m_Tasks.size();
 }
 
-void WorkQueue::StatusTimerHandler(void)
+void WorkQueue::StatusTimerHandler()
 {
 	boost::mutex::scoped_lock lock(m_Mutex);
 
@@ -231,7 +231,7 @@ void WorkQueue::StatusTimerHandler(void)
 	}
 }
 
-void WorkQueue::WorkerThreadProc(void)
+void WorkQueue::WorkerThreadProc()
 {
 	std::ostringstream idbuf;
 	idbuf << "WQ #" << m_ID;
@@ -286,7 +286,7 @@ void WorkQueue::WorkerThreadProc(void)
 	}
 }
 
-void WorkQueue::IncreaseTaskCount(void)
+void WorkQueue::IncreaseTaskCount()
 {
 	double now = Utility::GetTime();
 
@@ -298,4 +298,19 @@ size_t WorkQueue::GetTaskCount(RingBuffer::SizeType span)
 {
 	boost::mutex::scoped_lock lock(m_StatsMutex);
 	return m_TaskStats.UpdateAndGetValues(Utility::GetTime(), span);
+}
+
+bool icinga::operator<(const Task& a, const Task& b)
+{
+	if (a.Priority < b.Priority)
+		return true;
+
+	if (a.Priority == b.Priority) {
+		if (a.ID > b.ID)
+			return true;
+		else
+			return false;
+	}
+
+	return false;
 }

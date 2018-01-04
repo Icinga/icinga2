@@ -538,7 +538,7 @@ void StatusDataWriter::DumpCustomAttributes(std::ostream& fp, const CustomVarObj
 		fp << "\t" "_is_json" "\t" "1" "\n";
 }
 
-void StatusDataWriter::UpdateObjectsCache(void)
+void StatusDataWriter::UpdateObjectsCache()
 {
 	CONTEXT("Writing objects.cache file");
 
@@ -777,7 +777,7 @@ void StatusDataWriter::UpdateObjectsCache(void)
 /**
  * Periodically writes the status.dat and objects.cache files.
  */
-void StatusDataWriter::StatusTimerHandler(void)
+void StatusDataWriter::StatusTimerHandler()
 {
 	if (m_ObjectsCacheOutdated) {
 		UpdateObjectsCache();
@@ -859,7 +859,7 @@ void StatusDataWriter::StatusTimerHandler(void)
 		<< "Writing status.dat file took " << Utility::FormatDuration(Utility::GetTime() - start);
 }
 
-void StatusDataWriter::ObjectHandler(void)
+void StatusDataWriter::ObjectHandler()
 {
 	m_ObjectsCacheOutdated = true;
 }

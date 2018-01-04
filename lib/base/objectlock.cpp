@@ -25,11 +25,7 @@ using namespace icinga;
 #define I2MUTEX_UNLOCKED 0
 #define I2MUTEX_LOCKED 1
 
-ObjectLock::ObjectLock(void)
-	: m_Object(nullptr), m_Locked(false)
-{ }
-
-ObjectLock::~ObjectLock(void)
+ObjectLock::~ObjectLock()
 {
 	Unlock();
 }
@@ -62,7 +58,7 @@ void ObjectLock::LockMutex(const Object *object)
 	while (likely(!__sync_bool_compare_and_swap(&object->m_Mutex, I2MUTEX_UNLOCKED, I2MUTEX_LOCKED))) {
 #endif /* _WIN32 */
 		if (likely(object->m_Mutex > I2MUTEX_LOCKED)) {
-			boost::recursive_mutex *mtx = reinterpret_cast<boost::recursive_mutex *>(object->m_Mutex);
+			auto *mtx = reinterpret_cast<boost::recursive_mutex *>(object->m_Mutex);
 			mtx->lock();
 
 			return;
@@ -72,7 +68,7 @@ void ObjectLock::LockMutex(const Object *object)
 		it++;
 	}
 
-	boost::recursive_mutex *mtx = new boost::recursive_mutex();
+	auto *mtx = new boost::recursive_mutex();
 	mtx->lock();
 #ifdef _WIN32
 #	ifdef _WIN64
@@ -85,7 +81,7 @@ void ObjectLock::LockMutex(const Object *object)
 #endif /* _WIN32 */
 }
 
-void ObjectLock::Lock(void)
+void ObjectLock::Lock()
 {
 	ASSERT(!m_Locked && m_Object);
 
@@ -121,7 +117,7 @@ void ObjectLock::Spin(unsigned int it)
 	}
 }
 
-void ObjectLock::Unlock(void)
+void ObjectLock::Unlock()
 {
 #ifdef I2_DEBUG
 	if (m_Locked) {

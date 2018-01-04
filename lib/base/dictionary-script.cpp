@@ -25,7 +25,7 @@
 
 using namespace icinga;
 
-static double DictionaryLen(void)
+static double DictionaryLen()
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Dictionary::Ptr self = static_cast<Dictionary::Ptr>(vframe->Self);
@@ -60,14 +60,14 @@ static bool DictionaryContains(const String& key)
 	return self->Contains(key);
 }
 
-static Dictionary::Ptr DictionaryShallowClone(void)
+static Dictionary::Ptr DictionaryShallowClone()
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Dictionary::Ptr self = static_cast<Dictionary::Ptr>(vframe->Self);
 	return self->ShallowClone();
 }
 
-static Array::Ptr DictionaryKeys(void)
+static Array::Ptr DictionaryKeys()
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Dictionary::Ptr self = static_cast<Dictionary::Ptr>(vframe->Self);
@@ -79,7 +79,7 @@ static Array::Ptr DictionaryKeys(void)
 	return keys;
 }
 
-static Array::Ptr DictionaryValues(void)
+static Array::Ptr DictionaryValues()
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Dictionary::Ptr self = static_cast<Dictionary::Ptr>(vframe->Self);
@@ -91,7 +91,7 @@ static Array::Ptr DictionaryValues(void)
 	return keys;
 }
 
-Object::Ptr Dictionary::GetPrototype(void)
+Object::Ptr Dictionary::GetPrototype()
 {
 	static Dictionary::Ptr prototype;
 

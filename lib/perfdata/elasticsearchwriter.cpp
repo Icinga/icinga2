@@ -36,6 +36,7 @@
 #include "base/statsfunction.hpp"
 #include <boost/algorithm/string.hpp>
 #include <boost/scoped_array.hpp>
+#include <utility>
 
 using namespace icinga;
 
@@ -43,11 +44,7 @@ REGISTER_TYPE(ElasticsearchWriter);
 
 REGISTER_STATSFUNCTION(ElasticsearchWriter, &ElasticsearchWriter::StatsFunc);
 
-ElasticsearchWriter::ElasticsearchWriter(void)
-	: m_WorkQueue(10000000, 1)
-{ }
-
-void ElasticsearchWriter::OnConfigLoaded(void)
+void ElasticsearchWriter::OnConfigLoaded()
 {
 	ObjectImpl<ElasticsearchWriter>::OnConfigLoaded();
 
@@ -341,7 +338,7 @@ void ElasticsearchWriter::NotificationSentToAllUsersHandlerInternal(const Notifi
 	Enqueue("notification", fields, ts);
 }
 
-void ElasticsearchWriter::Enqueue(String type, const Dictionary::Ptr& fields, double ts)
+void ElasticsearchWriter::Enqueue(const String& type, const Dictionary::Ptr& fields, double ts)
 {
 	/* Atomically buffer the data point. */
 	boost::mutex::scoped_lock lock(m_DataBufferMutex);
@@ -357,7 +354,7 @@ void ElasticsearchWriter::Enqueue(String type, const Dictionary::Ptr& fields, do
 	 * We do it this way to avoid problems with a near full queue.
 	 */
 
-	String indexBody = "{ \"index\" : { \"_type\" : \"" + eventType + "\" } }\n";
+	String indexBody = R"({ "index" : { "_type" : ")" + eventType + "\" } }\n";
 	String fieldsBody = JsonEncode(fields);
 
 	Log(LogDebug, "ElasticsearchWriter")
@@ -373,7 +370,7 @@ void ElasticsearchWriter::Enqueue(String type, const Dictionary::Ptr& fields, do
 	}
 }
 
-void ElasticsearchWriter::FlushTimeout(void)
+void ElasticsearchWriter::FlushTimeout()
 {
 	/* Prevent new data points from being added to the array, there is a
 	 * race condition where they could disappear.
@@ -388,7 +385,7 @@ void ElasticsearchWriter::FlushTimeout(void)
 	}
 }
 
-void ElasticsearchWriter::Flush(void)
+void ElasticsearchWriter::Flush()
 {
 	/* Ensure you hold a lock against m_DataBuffer so that things
 	 * don't go missing after creating the body and clearing the buffer.
@@ -523,7 +520,7 @@ void ElasticsearchWriter::SendRequest(const String& body)
 	}
 }
 
-Stream::Ptr ElasticsearchWriter::Connect(void)
+Stream::Ptr ElasticsearchWriter::Connect()
 {
 	TcpSocket::Ptr socket = new TcpSocket();
 
@@ -565,7 +562,7 @@ Stream::Ptr ElasticsearchWriter::Connect(void)
 	}
 }
 
-void ElasticsearchWriter::AssertOnWorkQueue(void)
+void ElasticsearchWriter::AssertOnWorkQueue()
 {
 	ASSERT(m_WorkQueue.IsWorkerThread());
 }
@@ -575,7 +572,7 @@ void ElasticsearchWriter::ExceptionHandler(boost::exception_ptr exp)
 	Log(LogCritical, "ElasticsearchWriter", "Exception during Elastic operation: Verify that your backend is operational!");
 
 	Log(LogDebug, "ElasticsearchWriter")
-		<< "Exception during Elasticsearch operation: " << DiagnosticInformation(exp);
+		<< "Exception during Elasticsearch operation: " << DiagnosticInformation(std::move(exp));
 }
 
 String ElasticsearchWriter::FormatTimestamp(double ts)
@@ -591,7 +588,7 @@ String ElasticsearchWriter::FormatTimestamp(double ts)
 	 * https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping-date-format.html
 	 * https://www.elastic.co/guide/en/elasticsearch/reference/current/date.html
 	 */
-	int milliSeconds = static_cast<int>((ts - static_cast<int>(ts)) * 1000);
+	auto milliSeconds = static_cast<int>((ts - static_cast<int>(ts)) * 1000);
 
 	return Utility::FormatDateTime("%Y-%m-%dT%H:%M:%S", ts) + "." + Convert::ToString(milliSeconds) + Utility::FormatDateTime("%z", ts);
 }

@@ -26,9 +26,6 @@
 
 using namespace icinga;
 
-Url::Url()
-{ }
-
 Url::Url(const String& base_url)
 {
 	String url = base_url;
@@ -90,12 +87,12 @@ Url::Url(const String& base_url)
 	}
 }
 
-String Url::GetScheme(void) const
+String Url::GetScheme() const
 {
 	return m_Scheme;
 }
 
-String Url::GetAuthority(void) const
+String Url::GetAuthority() const
 {
 	if (m_Host.IsEmpty())
 		return "";
@@ -116,32 +113,32 @@ String Url::GetAuthority(void) const
 	return auth;
 }
 
-String Url::GetUsername(void) const
+String Url::GetUsername() const
 {
 	return m_Username;
 }
 
-String Url::GetPassword(void) const
+String Url::GetPassword() const
 {
 	return m_Password;
 }
 
-String Url::GetHost(void) const
+String Url::GetHost() const
 {
 	return m_Host;
 }
 
-String Url::GetPort(void) const
+String Url::GetPort() const
 {
 	return m_Port;
 }
 
-const std::vector<String>& Url::GetPath(void) const
+const std::vector<String>& Url::GetPath() const
 {
 	return m_Path;
 }
 
-const std::map<String, std::vector<String> >& Url::GetQuery(void) const
+const std::map<String, std::vector<String> >& Url::GetQuery() const
 {
 	return m_Query;
 }
@@ -168,7 +165,7 @@ const std::vector<String>& Url::GetQueryElements(const String& name) const
 	return it->second;
 }
 
-String Url::GetFragment(void) const
+String Url::GetFragment() const
 {
 	return m_Fragment;
 }
@@ -270,7 +267,7 @@ String Url::Format(bool onlyPathAndQuery, bool printCredentials) const
 
 			// Array
 			String temp;
-			for (const String s : kv.second) {
+			for (const String& s : kv.second) {
 				if (!temp.IsEmpty())
 					temp += "&";
 
@@ -351,7 +348,7 @@ bool Url::ParsePort(const String& port)
 
 bool Url::ParsePath(const String& path)
 {
-	std::string pathStr = path;
+	const std::string& pathStr = path;
 	boost::char_separator<char> sep("/");
 	boost::tokenizer<boost::char_separator<char> > tokens(pathStr, sep);
 
@@ -371,7 +368,7 @@ bool Url::ParsePath(const String& path)
 bool Url::ParseQuery(const String& query)
 {
 	/* Tokenizer does not like String AT ALL */
-	std::string queryStr = query;
+	const std::string& queryStr = query;
 	boost::char_separator<char> sep("&");
 	boost::tokenizer<boost::char_separator<char> > tokens(queryStr, sep);
 

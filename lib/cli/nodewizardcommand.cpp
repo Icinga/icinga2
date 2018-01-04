@@ -42,22 +42,22 @@ namespace po = boost::program_options;
 
 REGISTER_CLICOMMAND("node/wizard", NodeWizardCommand);
 
-String NodeWizardCommand::GetDescription(void) const
+String NodeWizardCommand::GetDescription() const
 {
 	return "Wizard for Icinga 2 node setup.";
 }
 
-String NodeWizardCommand::GetShortDescription(void) const
+String NodeWizardCommand::GetShortDescription() const
 {
 	return "wizard for node setup";
 }
 
-ImpersonationLevel NodeWizardCommand::GetImpersonationLevel(void) const
+ImpersonationLevel NodeWizardCommand::GetImpersonationLevel() const
 {
 	return ImpersonateRoot;
 }
 
-int NodeWizardCommand::GetMaxArguments(void) const
+int NodeWizardCommand::GetMaxArguments() const
 {
 	return -1;
 }
@@ -143,7 +143,7 @@ int NodeWizardCommand::Run(const boost::program_options::variables_map& vm,
 	return 0;
 }
 
-int NodeWizardCommand::ClientSetup(void) const
+int NodeWizardCommand::ClientSetup() const
 {
 	std::string answer;
 	String choice;
@@ -541,7 +541,7 @@ wizard_ticket:
 	return 0;
 }
 
-int NodeWizardCommand::MasterSetup(void) const
+int NodeWizardCommand::MasterSetup() const
 {
 	std::string answer;
 	String choice;

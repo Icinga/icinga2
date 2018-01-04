@@ -47,7 +47,7 @@ ServiceDbObject::ServiceDbObject(const DbType::Ptr& type, const String& name1, c
 	: DbObject(type, name1, name2)
 { }
 
-Dictionary::Ptr ServiceDbObject::GetConfigFields(void) const
+Dictionary::Ptr ServiceDbObject::GetConfigFields() const
 {
 	Dictionary::Ptr fields = new Dictionary();
 	Service::Ptr service = static_pointer_cast<Service>(GetObject());
@@ -105,7 +105,7 @@ Dictionary::Ptr ServiceDbObject::GetConfigFields(void) const
 	return fields;
 }
 
-Dictionary::Ptr ServiceDbObject::GetStatusFields(void) const
+Dictionary::Ptr ServiceDbObject::GetStatusFields() const
 {
 	Dictionary::Ptr fields = new Dictionary();
 	Service::Ptr service = static_pointer_cast<Service>(GetObject());
@@ -170,7 +170,7 @@ Dictionary::Ptr ServiceDbObject::GetStatusFields(void) const
 	return fields;
 }
 
-void ServiceDbObject::OnConfigUpdateHeavy(void)
+void ServiceDbObject::OnConfigUpdateHeavy()
 {
 	Service::Ptr service = static_pointer_cast<Service>(GetObject());
 
@@ -328,12 +328,12 @@ void ServiceDbObject::OnConfigUpdateHeavy(void)
 	DoCommonConfigUpdate();
 }
 
-void ServiceDbObject::OnConfigUpdateLight(void)
+void ServiceDbObject::OnConfigUpdateLight()
 {
 	DoCommonConfigUpdate();
 }
 
-void ServiceDbObject::DoCommonConfigUpdate(void)
+void ServiceDbObject::DoCommonConfigUpdate()
 {
 	Service::Ptr service = static_pointer_cast<Service>(GetObject());
 

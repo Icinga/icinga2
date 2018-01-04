@@ -31,7 +31,7 @@ ZoneDbObject::ZoneDbObject(const DbType::Ptr& type, const String& name1, const S
 	: DbObject(type, name1, name2)
 { }
 
-Dictionary::Ptr ZoneDbObject::GetConfigFields(void) const
+Dictionary::Ptr ZoneDbObject::GetConfigFields() const
 {
 	Dictionary::Ptr fields = new Dictionary();
 	Zone::Ptr zone = static_pointer_cast<Zone>(GetObject());
@@ -42,7 +42,7 @@ Dictionary::Ptr ZoneDbObject::GetConfigFields(void) const
 	return fields;
 }
 
-Dictionary::Ptr ZoneDbObject::GetStatusFields(void) const
+Dictionary::Ptr ZoneDbObject::GetStatusFields() const
 {
 	Zone::Ptr zone = static_pointer_cast<Zone>(GetObject());
 

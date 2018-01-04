@@ -46,7 +46,7 @@ public:
 	static boost::signals2::signal<void(double, const String&, const std::vector<String>&)> OnNewExternalCommand;
 
 private:
-	ExternalCommandProcessor(void);
+	ExternalCommandProcessor();
 
 	static void ExecuteFromFile(const String& line, std::deque< std::vector<String> >& file_queue);
 
@@ -174,10 +174,10 @@ private:
 	static void ChangeCustomCommandVarInternal(const Command::Ptr& command, const String& name, const Value& value);
 
 	static void RegisterCommand(const String& command, const ExternalCommandCallback& callback, size_t minArgs = 0, size_t maxArgs = UINT_MAX);
-	static void RegisterCommands(void);
+	static void RegisterCommands();
 
-	static boost::mutex& GetMutex(void);
-	static std::map<String, ExternalCommandInfo>& GetCommands(void);
+	static boost::mutex& GetMutex();
+	static std::map<String, ExternalCommandInfo>& GetCommands();
 
 };
 

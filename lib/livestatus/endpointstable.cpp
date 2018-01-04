@@ -34,7 +34,7 @@
 
 using namespace icinga;
 
-EndpointsTable::EndpointsTable(void)
+EndpointsTable::EndpointsTable()
 {
 	AddColumns(this);
 }
@@ -49,12 +49,12 @@ void EndpointsTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "zone", Column(&EndpointsTable::ZoneAccessor, objectAccessor));
 }
 
-String EndpointsTable::GetName(void) const
+String EndpointsTable::GetName() const
 {
 	return "endpoints";
 }
 
-String EndpointsTable::GetPrefix(void) const
+String EndpointsTable::GetPrefix() const
 {
 	return "endpoint";
 }

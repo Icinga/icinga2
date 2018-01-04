@@ -61,7 +61,7 @@ class MainFormBase : public wxFrame
 
 		MainFormBase( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Icinga Studio"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 800,569 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
 
-		~MainFormBase();
+		~MainFormBase() override;
 
 };
 
@@ -84,7 +84,7 @@ class ConnectFormBase : public wxDialog
 	public:
 
 		ConnectFormBase( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Icinga Studio - Connect"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( -1,-1 ), long style = wxDEFAULT_DIALOG_STYLE ); 
-		~ConnectFormBase();
+		~ConnectFormBase() override;
 
 };
 
@@ -101,7 +101,7 @@ class AboutFormBase : public wxDialog
 	public:
 
 		AboutFormBase( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("About Icinga Studio"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( -1,-1 ), long style = wxDEFAULT_DIALOG_STYLE ); 
-		~AboutFormBase();
+		~AboutFormBase() override;
 
 };
 

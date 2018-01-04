@@ -44,8 +44,8 @@ public:
 	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
 protected:
-	virtual void Start(bool runtimeCreated) override;
-	virtual void Stop(bool runtimeRemoved) override;
+	void Start(bool runtimeCreated) override;
+	void Stop(bool runtimeRemoved) override;
 
 private:
 	Stream::Ptr m_Stream;
@@ -58,7 +58,7 @@ private:
 	static String EscapeTag(const String& str);
 	static String EscapeMetric(const String& str);
 
-	void ReconnectTimerHandler(void);
+	void ReconnectTimerHandler();
 };
 
 }

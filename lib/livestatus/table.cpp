@@ -113,7 +113,7 @@ Column Table::GetColumn(const String& name) const
 	return it->second;
 }
 
-std::vector<String> Table::GetColumnNames(void) const
+std::vector<String> Table::GetColumnNames() const
 {
 	std::vector<String> names;
 
@@ -175,7 +175,7 @@ Value Table::EmptyDictionaryAccessor(const Value&)
 	return new Dictionary();
 }
 
-LivestatusGroupByType Table::GetGroupByType(void) const
+LivestatusGroupByType Table::GetGroupByType() const
 {
 	return m_GroupByType;
 }

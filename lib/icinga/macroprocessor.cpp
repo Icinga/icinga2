@@ -121,7 +121,7 @@ bool MacroProcessor::ResolveMacro(const String& macro, const ResolverList& resol
 			}
 		}
 
-		MacroResolver *mresolver = dynamic_cast<MacroResolver *>(resolver.second.get());
+		auto *mresolver = dynamic_cast<MacroResolver *>(resolver.second.get());
 
 		if (mresolver && mresolver->ResolveMacro(boost::algorithm::join(tokens, "."), cr, result))
 			return true;
@@ -422,16 +422,12 @@ Value MacroProcessor::EscapeMacroShellArg(const Value& value)
 
 struct CommandArgument
 {
-	int Order;
-	bool SkipKey;
-	bool RepeatKey;
-	bool SkipValue;
+	int Order{0};
+	bool SkipKey{false};
+	bool RepeatKey{true};
+	bool SkipValue{false};
 	String Key;
 	Value AValue;
-
-	CommandArgument(void)
-		: Order(0), SkipKey(false), RepeatKey(true), SkipValue(false)
-	{ }
 
 	bool operator<(const CommandArgument& rhs) const
 	{

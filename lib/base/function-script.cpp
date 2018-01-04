@@ -53,7 +53,7 @@ static Value FunctionCallV(const Value& thisArg, const Array::Ptr& args)
 }
 
 
-Object::Ptr Function::GetPrototype(void)
+Object::Ptr Function::GetPrototype()
 {
 	static Dictionary::Ptr prototype;
 

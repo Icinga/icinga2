@@ -38,18 +38,18 @@ public:
 	DECLARE_OBJECT(SyslogLogger);
 	DECLARE_OBJECTNAME(SyslogLogger);
 
-	static void StaticInitialize(void);
+	static void StaticInitialize();
 	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
-	virtual void OnConfigLoaded(void) override;
-	virtual void ValidateFacility(const String& value, const ValidationUtils& utils) override;
+	void OnConfigLoaded() override;
+	void ValidateFacility(const String& value, const ValidationUtils& utils) override;
 
 protected:
 	static std::map<String, int> m_FacilityMap;
 	int m_Facility;
 
-	virtual void ProcessLogEntry(const LogEntry& entry) override;
-	virtual void Flush(void) override;
+	void ProcessLogEntry(const LogEntry& entry) override;
+	void Flush() override;
 };
 
 }

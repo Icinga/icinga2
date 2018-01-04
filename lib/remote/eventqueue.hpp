@@ -37,7 +37,7 @@ class EventQueue final : public Object
 public:
 	DECLARE_PTR_TYPEDEFS(EventQueue);
 
-	EventQueue(const String& name);
+	EventQueue(String name);
 
 	bool CanProcessEvent(const String& type) const;
 	void ProcessEvent(const Dictionary::Ptr& event);
@@ -76,7 +76,7 @@ private:
 class EventQueueRegistry : public Registry<EventQueueRegistry, EventQueue::Ptr>
 {
 public:
-	static EventQueueRegistry *GetInstance(void);
+	static EventQueueRegistry *GetInstance();
 };
 
 }

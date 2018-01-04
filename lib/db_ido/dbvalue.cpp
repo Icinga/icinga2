@@ -21,8 +21,8 @@
 
 using namespace icinga;
 
-DbValue::DbValue(DbValueType type, const Value& value)
-	: m_Type(type), m_Value(value)
+DbValue::DbValue(DbValueType type, Value value)
+	: m_Type(type), m_Value(std::move(value))
 { }
 
 Value DbValue::FromTimestamp(const Value& ts)
@@ -33,7 +33,7 @@ Value DbValue::FromTimestamp(const Value& ts)
 	return new DbValue(DbValueTimestamp, ts);
 }
 
-Value DbValue::FromTimestampNow(void)
+Value DbValue::FromTimestampNow()
 {
 	return new DbValue(DbValueTimestampNow, Empty);
 }
@@ -84,12 +84,12 @@ Value DbValue::ExtractValue(const Value& value)
 	return dbv->GetValue();
 }
 
-DbValueType DbValue::GetType(void) const
+DbValueType DbValue::GetType() const
 {
 	return m_Type;
 }
 
-Value DbValue::GetValue(void) const
+Value DbValue::GetValue() const
 {
 	return m_Value;
 }

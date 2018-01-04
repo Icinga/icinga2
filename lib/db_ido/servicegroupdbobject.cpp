@@ -31,7 +31,7 @@ ServiceGroupDbObject::ServiceGroupDbObject(const DbType::Ptr& type, const String
 	: DbObject(type, name1, name2)
 { }
 
-Dictionary::Ptr ServiceGroupDbObject::GetConfigFields(void) const
+Dictionary::Ptr ServiceGroupDbObject::GetConfigFields() const
 {
 	Dictionary::Ptr fields = new Dictionary();
 	ServiceGroup::Ptr group = static_pointer_cast<ServiceGroup>(GetObject());
@@ -44,7 +44,7 @@ Dictionary::Ptr ServiceGroupDbObject::GetConfigFields(void) const
 	return fields;
 }
 
-Dictionary::Ptr ServiceGroupDbObject::GetStatusFields(void) const
+Dictionary::Ptr ServiceGroupDbObject::GetStatusFields() const
 {
 	return nullptr;
 }

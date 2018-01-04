@@ -23,15 +23,6 @@
 
 using namespace icinga;
 
-ConfigItemBuilder::ConfigItemBuilder(void)
-	: m_Abstract(false), m_DefaultTmpl(false), m_IgnoreOnError(false)
-{
-	m_DebugInfo.FirstLine = 0;
-	m_DebugInfo.FirstColumn = 0;
-	m_DebugInfo.LastLine = 0;
-	m_DebugInfo.LastColumn = 0;
-}
-
 ConfigItemBuilder::ConfigItemBuilder(const DebugInfo& debugInfo)
 	: m_Abstract(false), m_DefaultTmpl(false), m_IgnoreOnError(false)
 {
@@ -88,7 +79,7 @@ void ConfigItemBuilder::SetIgnoreOnError(bool ignoreOnError)
 	m_IgnoreOnError = ignoreOnError;
 }
 
-ConfigItem::Ptr ConfigItemBuilder::Compile(void)
+ConfigItem::Ptr ConfigItemBuilder::Compile()
 {
 	if (!m_Type) {
 		std::ostringstream msgbuf;
@@ -96,7 +87,7 @@ ConfigItem::Ptr ConfigItemBuilder::Compile(void)
 		BOOST_THROW_EXCEPTION(ScriptError(msgbuf.str(), m_DebugInfo));
 	}
 
-	ConfigType *ctype = dynamic_cast<ConfigType *>(m_Type.get());
+	auto *ctype = dynamic_cast<ConfigType *>(m_Type.get());
 
 	if (!ctype) {
 		std::ostringstream msgbuf;
@@ -133,7 +124,7 @@ ConfigItem::Ptr ConfigItemBuilder::Compile(void)
 	}
 #endif /* I2_DEBUG */
 
-	DictExpression *dexpr = new DictExpression(std::move(m_Expressions), m_DebugInfo);
+	auto *dexpr = new DictExpression(std::move(m_Expressions), m_DebugInfo);
 	dexpr->MakeInline();
 	exprs.emplace_back(dexpr);
 

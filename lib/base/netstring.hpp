@@ -43,7 +43,7 @@ public:
 	static void WriteStringToStream(std::ostream& stream, const String& message);
 
 private:
-	NetString(void);
+	NetString();
 };
 
 }

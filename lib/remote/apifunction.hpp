@@ -42,7 +42,7 @@ public:
 
 	typedef std::function<Value(const MessageOrigin::Ptr& origin, const Dictionary::Ptr&)> Callback;
 
-	ApiFunction(const Callback& function);
+	ApiFunction(Callback function);
 
 	Value Invoke(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& arguments);
 
@@ -62,7 +62,7 @@ private:
 class ApiFunctionRegistry : public Registry<ApiFunctionRegistry, ApiFunction::Ptr>
 {
 public:
-	static ApiFunctionRegistry *GetInstance(void);
+	static ApiFunctionRegistry *GetInstance();
 };
 
 #define REGISTER_APIFUNCTION(name, ns, callback) \

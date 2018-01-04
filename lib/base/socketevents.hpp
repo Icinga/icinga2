@@ -39,17 +39,17 @@ namespace icinga
 class SocketEvents
 {
 public:
-	~SocketEvents(void);
+	~SocketEvents();
 
 	virtual void OnEvent(int revents);
 
-	void Unregister(void);
+	void Unregister();
 
 	void ChangeEvents(int events);
 
-	bool IsHandlingEvents(void) const;
+	bool IsHandlingEvents() const;
 
-	void *GetEnginePrivate(void) const;
+	void *GetEnginePrivate() const;
 	void SetEnginePrivate(void *priv);
 
 protected:
@@ -63,7 +63,7 @@ private:
 
 	static int m_NextID;
 
-	static void InitializeEngine(void);
+	static void InitializeEngine();
 
 	void WakeUpThread(bool wait = false);
 
@@ -77,13 +77,9 @@ private:
 
 struct SocketEventDescriptor
 {
-	int Events;
-	SocketEvents *EventInterface;
-	Object *LifesupportObject;
-
-	SocketEventDescriptor(void)
-		: Events(POLLIN), EventInterface(nullptr), LifesupportObject(nullptr)
-	{ }
+	int Events{POLLIN};
+	SocketEvents *EventInterface{nullptr};
+	Object *LifesupportObject{nullptr};
 };
 
 struct EventDescription
@@ -96,7 +92,7 @@ struct EventDescription
 class SocketEventEngine
 {
 public:
-	void Start(void);
+	void Start();
 
 	void WakeUpThread(int sid, bool wait);
 
@@ -122,13 +118,13 @@ protected:
 class SocketEventEnginePoll final : public SocketEventEngine
 {
 public:
-	virtual void Register(SocketEvents *se, Object *lifesupportObject);
-	virtual void Unregister(SocketEvents *se);
-	virtual void ChangeEvents(SocketEvents *se, int events);
+	void Register(SocketEvents *se, Object *lifesupportObject) override;
+	void Unregister(SocketEvents *se) override;
+	void ChangeEvents(SocketEvents *se, int events) override;
 
 protected:
-	virtual void InitializeThread(int tid);
-	virtual void ThreadProc(int tid);
+	void InitializeThread(int tid) override;
+	void ThreadProc(int tid) override;
 };
 
 #ifdef __linux__

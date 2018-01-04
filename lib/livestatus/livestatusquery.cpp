@@ -71,10 +71,10 @@ LivestatusQuery::LivestatusQuery(const std::vector<String>& lines, const String&
 	m_CompatLogPath = compat_log_path;
 
 	/* default separators */
-	m_Separators.push_back("\n");
-	m_Separators.push_back(";");
-	m_Separators.push_back(",");
-	m_Separators.push_back("|");
+	m_Separators.emplace_back("\n");
+	m_Separators.emplace_back(";");
+	m_Separators.emplace_back(",");
+	m_Separators.emplace_back("|");
 
 	String line = lines[0];
 
@@ -233,7 +233,7 @@ LivestatusQuery::LivestatusQuery(const std::vector<String>& lines, const String&
 					aggregators.pop_back();
 			}
 
-			deq.push_back(filter);
+			deq.emplace_back(filter);
 			if (&deq == &stats) {
 				Aggregator::Ptr aggregator = new CountAggregator();
 				aggregator->SetFilter(filter);
@@ -279,7 +279,7 @@ LivestatusQuery::LivestatusQuery(const std::vector<String>& lines, const String&
 	m_Aggregators.swap(aggregators);
 }
 
-int LivestatusQuery::GetExternalCommands(void)
+int LivestatusQuery::GetExternalCommands()
 {
 	boost::mutex::scoped_lock lock(l_QueryMutex);
 
@@ -317,7 +317,7 @@ Filter::Ptr LivestatusQuery::ParseFilter(const String& params, unsigned long& fr
 	tokens.emplace_back(std::move(temp_buffer));
 
 	if (tokens.size() == 2)
-		tokens.push_back("");
+		tokens.emplace_back("");
 
 	if (tokens.size() < 3)
 		return nullptr;
@@ -534,7 +534,7 @@ void LivestatusQuery::ExecuteGetHelper(const Stream::Ptr& stream)
 
 			int index = 0;
 
-			for (const Aggregator::Ptr aggregator : m_Aggregators) {
+			for (const Aggregator::Ptr& aggregator : m_Aggregators) {
 				aggregator->Apply(table, object.Row, &stats[index]);
 				index++;
 			}

@@ -40,10 +40,10 @@ std::map<String, std::vector<ZoneFragment> > ConfigCompiler::m_ZoneDirs;
  * @param input Input stream for the configuration file.
  * @param zone The zone.
  */
-ConfigCompiler::ConfigCompiler(const String& path, std::istream *input,
-	const String& zone, const String& package)
-	: m_Path(path), m_Input(input), m_Zone(zone), m_Package(package),
-	m_Eof(false), m_OpenBraces(0)
+ConfigCompiler::ConfigCompiler(String path, std::istream *input,
+	String zone, String package)
+	: m_Path(std::move(path)), m_Input(input), m_Zone(std::move(zone)),
+	m_Package(std::move(package)), m_Eof(false), m_OpenBraces(0)
 {
 	InitializeScanner();
 }
@@ -51,7 +51,7 @@ ConfigCompiler::ConfigCompiler(const String& path, std::istream *input,
 /**
  * Destructor for the ConfigCompiler class.
  */
-ConfigCompiler::~ConfigCompiler(void)
+ConfigCompiler::~ConfigCompiler()
 {
 	DestroyScanner();
 }
@@ -74,7 +74,7 @@ size_t ConfigCompiler::ReadInput(char *buffer, size_t max_size)
  *
  * @returns The scanner object.
  */
-void *ConfigCompiler::GetScanner(void) const
+void *ConfigCompiler::GetScanner() const
 {
 	return m_Scanner;
 }
@@ -84,7 +84,7 @@ void *ConfigCompiler::GetScanner(void) const
  *
  * @returns The path.
  */
-const char *ConfigCompiler::GetPath(void) const
+const char *ConfigCompiler::GetPath() const
 {
 	return m_Path.CStr();
 }
@@ -94,7 +94,7 @@ void ConfigCompiler::SetZone(const String& zone)
 	m_Zone = zone;
 }
 
-String ConfigCompiler::GetZone(void) const
+String ConfigCompiler::GetZone() const
 {
 	return m_Zone;
 }
@@ -104,7 +104,7 @@ void ConfigCompiler::SetPackage(const String& package)
 	m_Package = package;
 }
 
-String ConfigCompiler::GetPackage(void) const
+String ConfigCompiler::GetPackage() const
 {
 	return m_Package;
 }
@@ -339,7 +339,8 @@ bool ConfigCompiler::HasZoneConfigAuthority(const String& zoneName)
 
 	if (!empty) {
 		std::vector<String> paths;
-		for (const ZoneFragment& zf : zoneDirs) {
+		paths.reserve(zoneDirs.size());
+for (const ZoneFragment& zf : zoneDirs) {
 			paths.push_back(zf.Path);
 		}
 

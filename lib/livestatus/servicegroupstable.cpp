@@ -23,7 +23,7 @@
 
 using namespace icinga;
 
-ServiceGroupsTable::ServiceGroupsTable(void)
+ServiceGroupsTable::ServiceGroupsTable()
 {
 	AddColumns(this);
 }
@@ -51,12 +51,12 @@ void ServiceGroupsTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "num_services_hard_unknown", Column(&ServiceGroupsTable::NumServicesHardUnknownAccessor, objectAccessor));
 }
 
-String ServiceGroupsTable::GetName(void) const
+String ServiceGroupsTable::GetName() const
 {
 	return "servicegroups";
 }
 
-String ServiceGroupsTable::GetPrefix(void) const
+String ServiceGroupsTable::GetPrefix() const
 {
 	return "servicegroup";
 }

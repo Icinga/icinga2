@@ -135,21 +135,21 @@ void LivestatusListener::Stop(bool runtimeRemoved)
 		m_Thread.join();
 }
 
-int LivestatusListener::GetClientsConnected(void)
+int LivestatusListener::GetClientsConnected()
 {
 	boost::mutex::scoped_lock lock(l_ComponentMutex);
 
 	return l_ClientsConnected;
 }
 
-int LivestatusListener::GetConnections(void)
+int LivestatusListener::GetConnections()
 {
 	boost::mutex::scoped_lock lock(l_ComponentMutex);
 
 	return l_Connections;
 }
 
-void LivestatusListener::ServerThreadProc(void)
+void LivestatusListener::ServerThreadProc()
 {
 	m_Listener->Listen();
 

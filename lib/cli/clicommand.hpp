@@ -54,15 +54,15 @@ public:
 
 	typedef std::vector<String>(*ArgumentCompletionCallback)(const String&, const String&);
 
-	virtual String GetDescription(void) const = 0;
-	virtual String GetShortDescription(void) const = 0;
-	virtual int GetMinArguments(void) const;
-	virtual int GetMaxArguments(void) const;
-	virtual bool IsHidden(void) const;
-	virtual bool IsDeprecated(void) const;
+	virtual String GetDescription() const = 0;
+	virtual String GetShortDescription() const = 0;
+	virtual int GetMinArguments() const;
+	virtual int GetMaxArguments() const;
+	virtual bool IsHidden() const;
+	virtual bool IsDeprecated() const;
 	virtual void InitParameters(boost::program_options::options_description& visibleDesc,
 		boost::program_options::options_description& hiddenDesc) const;
-	virtual ImpersonationLevel GetImpersonationLevel(void) const;
+	virtual ImpersonationLevel GetImpersonationLevel() const;
 	virtual int Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const = 0;
 	virtual std::vector<String> GetArgumentSuggestions(const String& argument, const String& word) const;
 	virtual std::vector<String> GetPositionalSuggestions(const String& word) const;
@@ -83,8 +83,8 @@ public:
 		bool autocomplete = false, int autoindex = -1);
 
 private:
-	static boost::mutex& GetRegistryMutex(void);
-	static std::map<std::vector<String>, CLICommand::Ptr>& GetRegistry(void);
+	static boost::mutex& GetRegistryMutex();
+	static std::map<std::vector<String>, CLICommand::Ptr>& GetRegistry();
 };
 
 #define REGISTER_CLICOMMAND(name, klass) \

@@ -35,7 +35,7 @@ namespace icinga
 class ClusterEvents
 {
 public:
-	static void StaticInitialize(void);
+	static void StaticInitialize();
 
 	static void CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, const MessageOrigin::Ptr& origin);
 	static Value CheckResultAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);

@@ -30,13 +30,6 @@ REGISTER_TYPE(StreamLogger);
 
 boost::mutex StreamLogger::m_Mutex;
 
-/**
- * Constructor for the StreamLogger class.
- */
-StreamLogger::StreamLogger(void)
-	: m_Stream(nullptr), m_OwnsStream(false)
-{ }
-
 void StreamLogger::Stop(bool runtimeRemoved)
 {
 	ObjectImpl<StreamLogger>::Stop(runtimeRemoved);
@@ -49,7 +42,7 @@ void StreamLogger::Stop(bool runtimeRemoved)
 /**
  * Destructor for the StreamLogger class.
  */
-StreamLogger::~StreamLogger(void)
+StreamLogger::~StreamLogger()
 {
 	if (m_FlushLogTimer)
 		m_FlushLogTimer->Stop();
@@ -58,12 +51,12 @@ StreamLogger::~StreamLogger(void)
 		delete m_Stream;
 }
 
-void StreamLogger::FlushLogTimerHandler(void)
+void StreamLogger::FlushLogTimerHandler()
 {
 	Flush();
 }
 
-void StreamLogger::Flush(void)
+void StreamLogger::Flush()
 {
 	if (m_Stream)
 		m_Stream->flush();

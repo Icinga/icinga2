@@ -21,8 +21,8 @@
 
 using namespace icinga;
 
-NegateFilter::NegateFilter(const Filter::Ptr& inner)
-	: m_Inner(inner)
+NegateFilter::NegateFilter(Filter::Ptr inner)
+	: m_Inner(std::move(inner))
 { }
 
 bool NegateFilter::Apply(const Table::Ptr& table, const Value& row)

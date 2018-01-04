@@ -47,7 +47,7 @@ Type::Ptr FilterUtility::TypeFromPluralName(const String& pluralName)
 void ConfigObjectTargetProvider::FindTargets(const String& type, const std::function<void (const Value&)>& addTarget) const
 {
 	Type::Ptr ptype = Type::GetByName(type);
-	ConfigType *ctype = dynamic_cast<ConfigType *>(ptype.get());
+	auto *ctype = dynamic_cast<ConfigType *>(ptype.get());
 
 	if (ctype) {
 		for (const ConfigObject::Ptr& object : ctype->GetObjects()) {
@@ -127,7 +127,7 @@ static void FilteredAddTarget(ScriptFrame& permissionFrame, Expression *permissi
 	ScriptFrame& frame, Expression *ufilter, std::vector<Value>& result, const String& variableName, const Object::Ptr& target)
 {
 	if (FilterUtility::EvaluateFilter(permissionFrame, permissionFilter, target, variableName) && FilterUtility::EvaluateFilter(frame, ufilter, target, variableName))
-		result.push_back(target);
+		result.emplace_back(target);
 }
 
 void FilterUtility::CheckPermission(const ApiUser::Ptr& user, const String& permission, Expression **permissionFilter)

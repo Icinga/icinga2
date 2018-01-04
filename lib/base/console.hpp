@@ -88,7 +88,7 @@ std::ostream& operator<<(std::ostream& fp, const ConsoleColorTag& cct);
 class Console
 {
 public:
-	static void DetectType(void);
+	static void DetectType();
 
 	static void SetType(std::ostream& fp, ConsoleType type);
 	static ConsoleType GetType(std::ostream& fp);
@@ -100,7 +100,7 @@ public:
 #endif /* _WIN32 */
 
 private:
-	Console(void);
+	Console();
 };
 
 }

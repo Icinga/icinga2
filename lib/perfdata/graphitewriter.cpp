@@ -38,6 +38,7 @@
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/replace.hpp>
+#include <utility>
 
 using namespace icinga;
 
@@ -45,11 +46,7 @@ REGISTER_TYPE(GraphiteWriter);
 
 REGISTER_STATSFUNCTION(GraphiteWriter, &GraphiteWriter::StatsFunc);
 
-GraphiteWriter::GraphiteWriter(void)
-	: m_WorkQueue(10000000, 1)
-{ }
-
-void GraphiteWriter::OnConfigLoaded(void)
+void GraphiteWriter::OnConfigLoaded()
 {
 	ObjectImpl<GraphiteWriter>::OnConfigLoaded();
 
@@ -109,7 +106,7 @@ void GraphiteWriter::Stop(bool runtimeRemoved)
 	ObjectImpl<GraphiteWriter>::Stop(runtimeRemoved);
 }
 
-void GraphiteWriter::AssertOnWorkQueue(void)
+void GraphiteWriter::AssertOnWorkQueue()
 {
 	ASSERT(m_WorkQueue.IsWorkerThread());
 }
@@ -119,7 +116,7 @@ void GraphiteWriter::ExceptionHandler(boost::exception_ptr exp)
 	Log(LogCritical, "GraphiteWriter", "Exception during Graphite operation: Verify that your backend is operational!");
 
 	Log(LogDebug, "GraphiteWriter")
-		<< "Exception during Graphite operation: " << DiagnosticInformation(exp);
+		<< "Exception during Graphite operation: " << DiagnosticInformation(std::move(exp));
 
 	if (GetConnected()) {
 		m_Stream->Close();
@@ -128,7 +125,7 @@ void GraphiteWriter::ExceptionHandler(boost::exception_ptr exp)
 	}
 }
 
-void GraphiteWriter::Reconnect(void)
+void GraphiteWriter::Reconnect()
 {
 	AssertOnWorkQueue();
 
@@ -162,12 +159,12 @@ void GraphiteWriter::Reconnect(void)
 		<< "Finished reconnecting to Graphite in " << std::setw(2) << Utility::GetTime() - startTime << " second(s).";
 }
 
-void GraphiteWriter::ReconnectTimerHandler(void)
+void GraphiteWriter::ReconnectTimerHandler()
 {
 	m_WorkQueue.Enqueue(std::bind(&GraphiteWriter::Reconnect, this), PriorityNormal);
 }
 
-void GraphiteWriter::Disconnect(void)
+void GraphiteWriter::Disconnect()
 {
 	AssertOnWorkQueue();
 

@@ -30,7 +30,7 @@
 
 using namespace icinga;
 
-CommandsTable::CommandsTable(void)
+CommandsTable::CommandsTable()
 {
 	AddColumns(this);
 }
@@ -47,12 +47,12 @@ void CommandsTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "modified_attributes_list", Column(&Table::ZeroAccessor, objectAccessor));
 }
 
-String CommandsTable::GetName(void) const
+String CommandsTable::GetName() const
 {
 	return "commands";
 }
 
-String CommandsTable::GetPrefix(void) const
+String CommandsTable::GetPrefix() const
 {
 	return "command";
 }

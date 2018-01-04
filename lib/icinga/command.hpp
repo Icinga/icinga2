@@ -39,7 +39,7 @@ public:
 
 	//virtual Dictionary::Ptr Execute(const Object::Ptr& context) = 0;
 
-	virtual void Validate(int types, const ValidationUtils& utils) override;
+	void Validate(int types, const ValidationUtils& utils) override;
 };
 
 }

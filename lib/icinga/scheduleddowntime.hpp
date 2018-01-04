@@ -23,7 +23,6 @@
 #include "icinga/i2-icinga.hpp"
 #include "icinga/scheduleddowntime.thpp"
 #include "icinga/checkable.hpp"
-#include <utility>
 
 namespace icinga
 {
@@ -44,22 +43,22 @@ public:
 	DECLARE_OBJECT(ScheduledDowntime);
 	DECLARE_OBJECTNAME(ScheduledDowntime);
 
-	Checkable::Ptr GetCheckable(void) const;
+	Checkable::Ptr GetCheckable() const;
 
 	static void EvaluateApplyRules(const intrusive_ptr<Host>& host);
 	static void EvaluateApplyRules(const intrusive_ptr<Service>& service);
 
-	virtual void ValidateRanges(const Dictionary::Ptr& value, const ValidationUtils& utils) override;
+	void ValidateRanges(const Dictionary::Ptr& value, const ValidationUtils& utils) override;
 
 protected:
-	virtual void OnAllConfigLoaded(void) override;
-	virtual void Start(bool runtimeCreated) override;
+	void OnAllConfigLoaded() override;
+	void Start(bool runtimeCreated) override;
 
 private:
-	static void TimerProc(void);
+	static void TimerProc();
 
-	std::pair<double, double> FindNextSegment(void);
-	void CreateNextDowntime(void);
+	std::pair<double, double> FindNextSegment();
+	void CreateNextDowntime();
 
 	static bool EvaluateApplyRuleInstance(const Checkable::Ptr& checkable, const String& name, ScriptFrame& frame, const ApplyRule& rule);
 	static bool EvaluateApplyRule(const Checkable::Ptr& checkable, const ApplyRule& rule);

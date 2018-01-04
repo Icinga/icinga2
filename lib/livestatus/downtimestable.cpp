@@ -27,7 +27,7 @@
 
 using namespace icinga;
 
-DowntimesTable::DowntimesTable(void)
+DowntimesTable::DowntimesTable()
 {
 	AddColumns(this);
 }
@@ -52,12 +52,12 @@ void DowntimesTable::AddColumns(Table *table, const String& prefix,
 	HostsTable::AddColumns(table, "host_", std::bind(&DowntimesTable::HostAccessor, _1, objectAccessor));
 }
 
-String DowntimesTable::GetName(void) const
+String DowntimesTable::GetName() const
 {
 	return "downtimes";
 }
 
-String DowntimesTable::GetPrefix(void) const
+String DowntimesTable::GetPrefix() const
 {
 	return "downtime";
 }

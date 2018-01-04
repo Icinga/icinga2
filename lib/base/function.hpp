@@ -51,24 +51,24 @@ public:
 	Value Invoke(const std::vector<Value>& arguments = std::vector<Value>());
 	Value InvokeThis(const Value& otherThis, const std::vector<Value>& arguments = std::vector<Value>());
 
-	bool IsSideEffectFree(void) const
+	bool IsSideEffectFree() const
 	{
 		return GetSideEffectFree();
 	}
 
-	bool IsDeprecated(void) const
+	bool IsDeprecated() const
 	{
 		return GetDeprecated();
 	}
 
-	static Object::Ptr GetPrototype(void);
+	static Object::Ptr GetPrototype();
 
-	virtual Object::Ptr Clone(void) const override;
+	Object::Ptr Clone() const override;
 
 private:
 	Callback m_Callback;
 
-	Function(const String& name, const Callback& function, const std::vector<String>& args,
+	Function(const String& name, Callback function, const std::vector<String>& args,
 		bool side_effect_free, bool deprecated);
 };
 

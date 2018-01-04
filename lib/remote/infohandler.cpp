@@ -98,7 +98,7 @@ bool InfoHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, 
 		} else
 			body += "Your user does not have any permissions.</p>";
 
-		body += "<p>More information about API requests is available in the <a href=\"https://docs.icinga.com/icinga2/latest\" target=\"_blank\">documentation</a>.</p></html>";
+		body += R"(<p>More information about API requests is available in the <a href="https://docs.icinga.com/icinga2/latest" target="_blank">documentation</a>.</p></html>)";
 		response.WriteBody(body.CStr(), body.GetLength());
 	}
 

@@ -32,10 +32,7 @@ using namespace icinga;
 REGISTER_TYPE(PerfdataValue);
 REGISTER_SCRIPTFUNCTION_NS(System, parse_performance_data, PerfdataValue::Parse, "perfdata");
 
-PerfdataValue::PerfdataValue(void)
-{ }
-
-PerfdataValue::PerfdataValue(String label, double value, bool counter,
+PerfdataValue::PerfdataValue(const String& label, double value, bool counter,
 	const String& unit, const Value& warn, const Value& crit, const Value& min,
 	const Value& max)
 {
@@ -139,7 +136,7 @@ PerfdataValue::Ptr PerfdataValue::Parse(const String& perfdata)
 	return new PerfdataValue(label, value, counter, unit, warn, crit, min, max);
 }
 
-String PerfdataValue::Format(void) const
+String PerfdataValue::Format() const
 {
 	std::ostringstream result;
 

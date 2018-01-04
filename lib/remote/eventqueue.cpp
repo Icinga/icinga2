@@ -24,8 +24,8 @@
 
 using namespace icinga;
 
-EventQueue::EventQueue(const String& name)
-	: m_Name(name)
+EventQueue::EventQueue(String name)
+	: m_Name(std::move(name))
 { }
 
 bool EventQueue::CanProcessEvent(const String& type) const
@@ -143,7 +143,7 @@ void EventQueue::Unregister(const String& name)
 	EventQueueRegistry::GetInstance()->Unregister(name);
 }
 
-EventQueueRegistry *EventQueueRegistry::GetInstance(void)
+EventQueueRegistry *EventQueueRegistry::GetInstance()
 {
 	return Singleton<EventQueueRegistry>::GetInstance();
 }

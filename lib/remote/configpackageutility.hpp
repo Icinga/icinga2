@@ -39,11 +39,11 @@ class ConfigPackageUtility
 {
 
 public:
-	static String GetPackageDir(void);
+	static String GetPackageDir();
 
 	static void CreatePackage(const String& name);
 	static void DeletePackage(const String& name);
-	static std::vector<String> GetPackages(void);
+	static std::vector<String> GetPackages();
 	static bool PackageExists(const String& name);
 
 	static String CreateStage(const String& packageName, const Dictionary::Ptr& files = nullptr);
@@ -58,7 +58,7 @@ public:
 	static bool ContainsDotDot(const String& path);
 	static bool ValidateName(const String& name);
 
-	static boost::mutex& GetStaticMutex(void);
+	static boost::mutex& GetStaticMutex();
 
 private:
 	static void CollectDirNames(const String& path, std::vector<String>& dirs);

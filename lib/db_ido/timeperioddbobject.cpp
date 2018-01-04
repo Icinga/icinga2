@@ -34,7 +34,7 @@ TimePeriodDbObject::TimePeriodDbObject(const DbType::Ptr& type, const String& na
 	: DbObject(type, name1, name2)
 { }
 
-Dictionary::Ptr TimePeriodDbObject::GetConfigFields(void) const
+Dictionary::Ptr TimePeriodDbObject::GetConfigFields() const
 {
 	Dictionary::Ptr fields = new Dictionary();
 	TimePeriod::Ptr tp = static_pointer_cast<TimePeriod>(GetObject());
@@ -44,12 +44,12 @@ Dictionary::Ptr TimePeriodDbObject::GetConfigFields(void) const
 	return fields;
 }
 
-Dictionary::Ptr TimePeriodDbObject::GetStatusFields(void) const
+Dictionary::Ptr TimePeriodDbObject::GetStatusFields() const
 {
 	return Empty;
 }
 
-void TimePeriodDbObject::OnConfigUpdateHeavy(void)
+void TimePeriodDbObject::OnConfigUpdateHeavy()
 {
 	TimePeriod::Ptr tp = static_pointer_cast<TimePeriod>(GetObject());
 

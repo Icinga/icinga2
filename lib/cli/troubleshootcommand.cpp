@@ -43,12 +43,12 @@ namespace po = boost::program_options;
 
 REGISTER_CLICOMMAND("troubleshoot", TroubleshootCommand);
 
-String TroubleshootCommand::GetDescription(void) const
+String TroubleshootCommand::GetDescription() const
 {
 	return "Collect logs and other relevant information for troubleshooting purposes.";
 }
 
-String TroubleshootCommand::GetShortDescription(void) const
+String TroubleshootCommand::GetShortDescription() const
 {
 	return "collect information for troubleshooting";
 }
@@ -69,13 +69,13 @@ public:
 #endif /*_WIN32*/
 		}
 		else {
-			std::ofstream *ofs = new std::ofstream();
+			auto *ofs = new std::ofstream();
 			ofs->open(path.CStr(), std::ios::out | std::ios::trunc);
 			m_Stream = ofs;
 		}
 	}
 
-	~InfoLog(void)
+	~InfoLog()
 	{
 		delete m_Stream;
 	}
@@ -103,7 +103,7 @@ public:
 				<< ConsoleColorTag(Console_Normal, m_ConsoleType);
 	}
 
-	bool GetStreamHealth(void) const
+	bool GetStreamHealth() const
 	{
 		return m_Stream->good();
 	}
@@ -120,7 +120,7 @@ public:
 	InfoLogLine(InfoLog& log, int col = Console_Normal, LogSeverity sev = LogInformation)
 		: m_Log(log), m_Color(col), m_Sev(sev) {}
 
-	~InfoLogLine(void)
+	~InfoLogLine()
 	{
 		m_Log.WriteLine(m_Sev, m_Color, m_String.str());
 	}
@@ -324,9 +324,9 @@ bool TroubleshootCommand::CheckFeatures(InfoLog& log)
 		return false;
 	}
 
-	for (const String feature : disabled_features)
+	for (const String& feature : disabled_features)
 		features->Set(feature, false);
-	for (const String feature : enabled_features)
+	for (const String& feature : enabled_features)
 		features->Set(feature, true);
 
 	InfoLogLine(log)
@@ -442,7 +442,7 @@ bool TroubleshootCommand::PrintFile(InfoLog& log, const String& path)
 	return true;
 }
 
-bool TroubleshootCommand::CheckConfig(void)
+bool TroubleshootCommand::CheckConfig()
 {
 	return DaemonUtility::ValidateConfigFiles({ Application::GetSysconfDir() + "/icinga2/icinga2.conf" }, Application::GetObjectsPath());
 }
@@ -550,7 +550,7 @@ void TroubleshootCommand::CheckObjectFile(const String& objectfile, InfoLog& log
 
 bool TroubleshootCommand::PrintVarsFile(const String& path, const bool console) {
 	if (!console) {
-		std::ofstream *ofs = new std::ofstream();
+		auto *ofs = new std::ofstream();
 		ofs->open((path+"-vars").CStr(), std::ios::out | std::ios::trunc);
 		if (!ofs->is_open())
 			return false;

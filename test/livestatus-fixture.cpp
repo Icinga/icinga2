@@ -27,14 +27,14 @@ using namespace icinga;
 
 struct LivestatusFixture
 {
-	LivestatusFixture(void)
+	LivestatusFixture()
 	{
 		BOOST_TEST_MESSAGE("Preparing config objects...");
 
 		ConfigItem::RunWithActivationContext(new Function("CreateTestObjects", CreateTestObjects));
 	}
 
-	static void CreateTestObjects(void)
+	static void CreateTestObjects()
 	{
 		String config = R"CONFIG(
 object CheckCommand "dummy" {

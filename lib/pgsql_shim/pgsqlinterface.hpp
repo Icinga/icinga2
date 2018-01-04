@@ -32,7 +32,7 @@ struct PgsqlInterface
 	PgsqlInterface(const PgsqlInterface&) = delete;
 	PgsqlInterface& operator=(PgsqlInterface&) = delete;
 
-	virtual void Destroy(void) = 0;
+	virtual void Destroy() = 0;
 
 	virtual void clear(PGresult *res) const = 0;
 	virtual char *cmdTuples(PGresult *res) const = 0;
@@ -43,7 +43,7 @@ struct PgsqlInterface
 	virtual char *fname(const PGresult *res, int field_num) const = 0;
 	virtual int getisnull(const PGresult *res, int tup_num, int field_num) const = 0;
 	virtual char *getvalue(const PGresult *res, int tup_num, int field_num) const = 0;
-	virtual int isthreadsafe(void) const = 0;
+	virtual int isthreadsafe() const = 0;
 	virtual int nfields(const PGresult *res) const = 0;
 	virtual int ntuples(const PGresult *res) const = 0;
 	virtual char *resultErrorMessage(const PGresult *res) const = 0;
@@ -53,8 +53,8 @@ struct PgsqlInterface
 	virtual ConnStatusType status(const PGconn *conn) const = 0;
 
 protected:
-	PgsqlInterface(void) = default;
-	~PgsqlInterface(void) = default;
+	PgsqlInterface() = default;
+	~PgsqlInterface() = default;
 };
 
 struct PgsqlInterfaceDeleter
@@ -69,9 +69,9 @@ struct PgsqlInterfaceDeleter
 
 extern "C"
 {
-	PGSQL_SHIM_EXPORT icinga::PgsqlInterface *create_pgsql_shim(void);
+	PGSQL_SHIM_EXPORT icinga::PgsqlInterface *create_pgsql_shim();
 }
 
-typedef icinga::PgsqlInterface *(*create_pgsql_shim_ptr)(void);
+typedef icinga::PgsqlInterface *(*create_pgsql_shim_ptr)();
 
 #endif /* PGSQLINTERFACE_H */

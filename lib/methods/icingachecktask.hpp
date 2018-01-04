@@ -38,7 +38,7 @@ public:
 		const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros);
 
 private:
-	IcingaCheckTask(void);
+	IcingaCheckTask();
 };
 
 }

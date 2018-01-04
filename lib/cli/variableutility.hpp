@@ -39,7 +39,7 @@ public:
 	static void PrintVariables(std::ostream& outfp);
 
 private:
-	VariableUtility(void);
+	VariableUtility();
 
 };
 

@@ -35,7 +35,7 @@ static SocketEventEngine *l_SocketIOEngine;
 
 int SocketEvents::m_NextID = 0;
 
-void SocketEventEngine::Start(void)
+void SocketEventEngine::Start()
 {
 	for (int tid = 0; tid < SOCKET_IOTHREADS; tid++) {
 		Socket::SocketPair(m_EventFDs[tid]);
@@ -77,7 +77,7 @@ void SocketEventEngine::WakeUpThread(int sid, bool wait)
 	}
 }
 
-void SocketEvents::InitializeEngine(void)
+void SocketEvents::InitializeEngine()
 {
 	String eventEngine = ScriptGlobal::Get("EventEngine", &Empty);
 
@@ -119,7 +119,7 @@ SocketEvents::SocketEvents(const Socket::Ptr& socket, Object *lifesupportObject)
 	Register(lifesupportObject);
 }
 
-SocketEvents::~SocketEvents(void)
+SocketEvents::~SocketEvents()
 {
 	VERIFY(m_FD == INVALID_SOCKET);
 }
@@ -129,7 +129,7 @@ void SocketEvents::Register(Object *lifesupportObject)
 	l_SocketIOEngine->Register(this, lifesupportObject);
 }
 
-void SocketEvents::Unregister(void)
+void SocketEvents::Unregister()
 {
 	l_SocketIOEngine->Unregister(this);
 }
@@ -144,7 +144,7 @@ boost::mutex& SocketEventEngine::GetMutex(int tid)
 	return m_EventMutex[tid];
 }
 
-bool SocketEvents::IsHandlingEvents(void) const
+bool SocketEvents::IsHandlingEvents() const
 {
 	int tid = m_ID % SOCKET_IOTHREADS;
 	boost::mutex::scoped_lock lock(l_SocketIOEngine->GetMutex(tid));

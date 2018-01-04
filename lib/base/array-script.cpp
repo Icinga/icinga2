@@ -26,7 +26,7 @@
 
 using namespace icinga;
 
-static double ArrayLen(void)
+static double ArrayLen()
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
@@ -68,7 +68,7 @@ static bool ArrayContains(const Value& value)
 	return self->Contains(value);
 }
 
-static void ArrayClear(void)
+static void ArrayClear()
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
@@ -103,7 +103,7 @@ static Array::Ptr ArraySort(const std::vector<Value>& args)
 	return arr;
 }
 
-static Array::Ptr ArrayShallowClone(void)
+static Array::Ptr ArrayShallowClone()
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
@@ -132,7 +132,7 @@ static Value ArrayJoin(const Value& separator)
 	return result;
 }
 
-static Array::Ptr ArrayReverse(void)
+static Array::Ptr ArrayReverse()
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
@@ -230,7 +230,7 @@ static bool ArrayAll(const Function::Ptr& function)
 
 	return true;
 }
-static Array::Ptr ArrayUnique(void)
+static Array::Ptr ArrayUnique()
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
@@ -245,7 +245,7 @@ static Array::Ptr ArrayUnique(void)
 	return Array::FromSet(result);
 }
 
-Object::Ptr Array::GetPrototype(void)
+Object::Ptr Array::GetPrototype()
 {
 	static Dictionary::Ptr prototype;
 

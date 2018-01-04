@@ -53,9 +53,9 @@ void FileLogger::Start(bool runtimeCreated)
 	ObjectImpl<FileLogger>::Start(runtimeCreated);
 }
 
-void FileLogger::ReopenLogFile(void)
+void FileLogger::ReopenLogFile()
 {
-	std::ofstream *stream = new std::ofstream();
+	auto *stream = new std::ofstream();
 
 	String path = GetPath();
 

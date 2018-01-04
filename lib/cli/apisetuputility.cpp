@@ -38,7 +38,7 @@
 
 using namespace icinga;
 
-String ApiSetupUtility::GetConfdPath(void)
+String ApiSetupUtility::GetConfdPath()
 {
 		return Application::GetSysconfDir() + "/icinga2/conf.d";
 }
@@ -145,7 +145,7 @@ bool ApiSetupUtility::SetupMasterCertificates(const String& cn)
 	return true;
 }
 
-bool ApiSetupUtility::SetupMasterApiUser(void)
+bool ApiSetupUtility::SetupMasterApiUser()
 {
 	String api_username = "root"; // TODO make this available as cli parameter?
 	String api_password = RandomString(8);
@@ -191,7 +191,7 @@ bool ApiSetupUtility::SetupMasterApiUser(void)
 	return true;
 }
 
-bool ApiSetupUtility::SetupMasterEnableApi(void)
+bool ApiSetupUtility::SetupMasterEnableApi()
 {
 	Log(LogInformation, "cli", "Enabling the 'api' feature.");
 

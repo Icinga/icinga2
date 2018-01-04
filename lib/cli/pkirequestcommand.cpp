@@ -28,12 +28,12 @@ namespace po = boost::program_options;
 
 REGISTER_CLICOMMAND("pki/request", PKIRequestCommand);
 
-String PKIRequestCommand::GetDescription(void) const
+String PKIRequestCommand::GetDescription() const
 {
 	return "Sends a PKI request to Icinga 2.";
 }
 
-String PKIRequestCommand::GetShortDescription(void) const
+String PKIRequestCommand::GetShortDescription() const
 {
 	return "requests a certificate";
 }

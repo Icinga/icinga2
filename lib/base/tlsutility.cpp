@@ -41,7 +41,7 @@ static void OpenSSLLockingCallback(int mode, int type, const char *, int)
 		l_Mutexes[type].unlock();
 }
 
-static unsigned long OpenSSLIDCallback(void)
+static unsigned long OpenSSLIDCallback()
 {
 #ifdef _WIN32
 	return (unsigned long)GetCurrentThreadId();
@@ -54,7 +54,7 @@ static unsigned long OpenSSLIDCallback(void)
 /**
  * Initializes the OpenSSL library.
  */
-void InitializeOpenSSL(void)
+void InitializeOpenSSL()
 {
 	if (l_SSLInitialized)
 		return;
@@ -379,7 +379,7 @@ int MakeX509CSR(const String& cn, const String& keyfile, const String& csrfile, 
 			<< boost::errinfo_file_name(keyfile));
 	}
 
-	if (!PEM_write_bio_PrivateKey(bio, key, nullptr, nullptr, 0, 0, nullptr)) {
+	if (!PEM_write_bio_PrivateKey(bio, key, nullptr, nullptr, 0, nullptr, nullptr)) {
 		EVP_PKEY_free(key);
 		EC_KEY_free(eckey);
 		BIO_free(bio);
@@ -571,7 +571,7 @@ std::shared_ptr<X509> CreateCert(EVP_PKEY *pubkey, X509_NAME *subject, X509_NAME
 	return std::shared_ptr<X509>(cert, X509_free);
 }
 
-String GetIcingaCADir(void)
+String GetIcingaCADir()
 {
 	return Application::GetLocalStateDir() + "/lib/icinga2/ca";
 }
@@ -737,7 +737,7 @@ String SHA256(const String& s)
 
 String RandomString(int length)
 {
-	unsigned char *bytes = new unsigned char[length];
+	auto *bytes = new unsigned char[length];
 
 	if (!RAND_bytes(bytes, length)) {
 		delete [] bytes;
@@ -751,7 +751,7 @@ String RandomString(int length)
 			<< errinfo_openssl_error(ERR_peek_error()));
 	}
 
-	char *output = new char[length * 2 + 1];
+	auto *output = new char[length * 2 + 1];
 	for (int i = 0; i < length; i++)
 		sprintf(output + 2 * i, "%02x", bytes[i]);
 
@@ -780,6 +780,21 @@ bool VerifyCertificate(const std::shared_ptr<X509>& caCertificate, const std::sh
 	X509_STORE_free(store);
 
 	return rc == 1;
+}
+
+std::string to_string(const errinfo_openssl_error& e)
+{
+	std::ostringstream tmp;
+	int code = e.value();
+	char errbuf[120];
+
+	const char *message = ERR_error_string(code, errbuf);
+
+	if (!message)
+		message = "Unknown error.";
+
+	tmp << code << ", \"" << message << "\"";
+	return "[errinfo_openssl_error]" + tmp.str() + "\n";
 }
 
 }

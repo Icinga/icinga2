@@ -50,7 +50,7 @@ public:
 	static Dictionary::Ptr FindNextSegment(const String& daydef, const String& timeranges, tm *reference);
 
 private:
-	LegacyTimePeriod(void);
+	LegacyTimePeriod();
 };
 
 }

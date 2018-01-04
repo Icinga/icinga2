@@ -43,33 +43,18 @@ enum WorkQueuePriority
 
 struct Task
 {
-	Task(void)
-		: Priority(PriorityNormal), ID(-1)
-	{ }
+	Task() = default;
 
-	Task(std::function<void (void)>&& function, WorkQueuePriority priority, int id)
+	Task(std::function<void (void)> function, WorkQueuePriority priority, int id)
 		: Function(std::move(function)), Priority(priority), ID(id)
 	{ }
 
 	std::function<void (void)> Function;
-	WorkQueuePriority Priority;
-	int ID;
+	WorkQueuePriority Priority{PriorityNormal};
+	int ID{-1};
 };
 
-inline bool operator<(const Task& a, const Task& b)
-{
-	if (a.Priority < b.Priority)
-		return true;
-
-	if (a.Priority == b.Priority) {
-		if (a.ID > b.ID)
-			return true;
-		else
-			return false;
-	}
-
-	return false;
-}
+bool operator<(const Task& a, const Task& b);
 
 /**
  * A workqueue.
@@ -82,35 +67,35 @@ public:
 	typedef std::function<void (boost::exception_ptr)> ExceptionCallback;
 
 	WorkQueue(size_t maxItems = 0, int threadCount = 1);
-	~WorkQueue(void);
+	~WorkQueue();
 
 	void SetName(const String& name);
-	String GetName(void) const;
+	String GetName() const;
 
 	void Enqueue(std::function<void (void)>&& function, WorkQueuePriority priority = PriorityNormal,
 		bool allowInterleaved = false);
 	void Join(bool stop = false);
 
-	bool IsWorkerThread(void) const;
+	bool IsWorkerThread() const;
 
-	size_t GetLength(void) const;
+	size_t GetLength() const;
 	size_t GetTaskCount(RingBuffer::SizeType span);
 
 	void SetExceptionCallback(const ExceptionCallback& callback);
 
-	bool HasExceptions(void) const;
-	std::vector<boost::exception_ptr> GetExceptions(void) const;
+	bool HasExceptions() const;
+	std::vector<boost::exception_ptr> GetExceptions() const;
 	void ReportExceptions(const String& facility) const;
 
 protected:
-	void IncreaseTaskCount(void);
+	void IncreaseTaskCount();
 
 private:
 	int m_ID;
 	String m_Name;
 	static std::atomic<int> m_NextID;
 	int m_ThreadCount;
-	bool m_Spawned;
+	bool m_Spawned{false};
 
 	mutable boost::mutex m_Mutex;
 	boost::condition_variable m_CVEmpty;
@@ -118,10 +103,10 @@ private:
 	boost::condition_variable m_CVStarved;
 	boost::thread_group m_Threads;
 	size_t m_MaxItems;
-	bool m_Stopped;
-	int m_Processing;
+	bool m_Stopped{false};
+	int m_Processing{0};
 	std::priority_queue<Task, std::deque<Task> > m_Tasks;
-	int m_NextTaskID;
+	int m_NextTaskID{0};
 	ExceptionCallback m_ExceptionCallback;
 	std::vector<boost::exception_ptr> m_Exceptions;
 	Timer::Ptr m_StatusTimer;
@@ -129,11 +114,11 @@ private:
 
 	mutable boost::mutex m_StatsMutex;
 	RingBuffer m_TaskStats;
-	size_t m_PendingTasks;
-	double m_PendingTasksTimestamp;
+	size_t m_PendingTasks{0};
+	double m_PendingTasksTimestamp{0};
 
-	void WorkerThreadProc(void);
-	void StatusTimerHandler(void);
+	void WorkerThreadProc();
+	void StatusTimerHandler();
 };
 
 }

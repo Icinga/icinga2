@@ -32,7 +32,7 @@ struct MysqlInterface
 	MysqlInterface(const MysqlInterface&) = delete;
 	MysqlInterface& operator=(MysqlInterface&) = delete;
 
-	virtual void Destroy(void) = 0;
+	virtual void Destroy() = 0;
 
 	virtual my_ulonglong affected_rows(MYSQL *mysql) const = 0;
 	virtual void close(MYSQL *sock) const = 0;
@@ -54,11 +54,11 @@ struct MysqlInterface
 	virtual unsigned long real_escape_string(MYSQL *mysql, char *to, const char *from, unsigned long length) const = 0;
 	virtual my_bool ssl_set(MYSQL *mysql, const char *key, const char *cert, const char *ca, const char *capath, const char *cipher) const = 0;
 	virtual MYSQL_RES *store_result(MYSQL *mysql) const = 0;
-	virtual unsigned int thread_safe(void) const = 0;
+	virtual unsigned int thread_safe() const = 0;
 
 protected:
-	MysqlInterface(void) = default;
-	~MysqlInterface(void) = default;
+	MysqlInterface() = default;
+	~MysqlInterface() = default;
 };
 
 struct MysqlInterfaceDeleter
@@ -73,9 +73,9 @@ struct MysqlInterfaceDeleter
 
 extern "C"
 {
-	MYSQL_SHIM_EXPORT icinga::MysqlInterface *create_mysql_shim(void);
+	MYSQL_SHIM_EXPORT icinga::MysqlInterface *create_mysql_shim();
 }
 
-typedef icinga::MysqlInterface *(*create_mysql_shim_ptr)(void);
+typedef icinga::MysqlInterface *(*create_mysql_shim_ptr)();
 
 #endif /* MYSQLINTERFACE_H */

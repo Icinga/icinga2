@@ -35,9 +35,7 @@ class AndFilter final : public CombinerFilter
 public:
 	DECLARE_PTR_TYPEDEFS(AndFilter);
 
-	AndFilter(void);
-
-	virtual bool Apply(const Table::Ptr& table, const Value& row) override;
+	bool Apply(const Table::Ptr& table, const Value& row) override;
 };
 
 }

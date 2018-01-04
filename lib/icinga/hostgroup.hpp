@@ -40,7 +40,7 @@ public:
 	DECLARE_OBJECT(HostGroup);
 	DECLARE_OBJECTNAME(HostGroup);
 
-	std::set<Host::Ptr> GetMembers(void) const;
+	std::set<Host::Ptr> GetMembers() const;
 	void AddMember(const Host::Ptr& host);
 	void RemoveMember(const Host::Ptr& host);
 

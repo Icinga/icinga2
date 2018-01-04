@@ -29,7 +29,7 @@
 
 using namespace icinga;
 
-ContactsTable::ContactsTable(void)
+ContactsTable::ContactsTable()
 {
 	AddColumns(this);
 }
@@ -57,12 +57,12 @@ void ContactsTable::AddColumns(Table *table, const String& prefix,
 
 }
 
-String ContactsTable::GetName(void) const
+String ContactsTable::GetName() const
 {
 	return "contacts";
 }
 
-String ContactsTable::GetPrefix(void) const
+String ContactsTable::GetPrefix() const
 {
 	return "contact";
 }

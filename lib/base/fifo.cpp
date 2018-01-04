@@ -22,16 +22,9 @@
 using namespace icinga;
 
 /**
- * Constructor for the FIFO class.
- */
-FIFO::FIFO(void)
-	: m_Buffer(nullptr), m_DataSize(0), m_AllocSize(0), m_Offset(0)
-{ }
-
-/**
  * Destructor for the FIFO class.
  */
-FIFO::~FIFO(void)
+FIFO::~FIFO()
 {
 	free(m_Buffer);
 }
@@ -51,7 +44,7 @@ void FIFO::ResizeBuffer(size_t newSize, bool decrease)
 	if (newSize == m_AllocSize)
 		return;
 
-	char *newBuffer = static_cast<char *>(realloc(m_Buffer, newSize));
+	auto *newBuffer = static_cast<char *>(realloc(m_Buffer, newSize));
 
 	if (!newBuffer)
 		BOOST_THROW_EXCEPTION(std::bad_alloc());
@@ -65,7 +58,7 @@ void FIFO::ResizeBuffer(size_t newSize, bool decrease)
  * Optimizes memory usage of the FIFO buffer by reallocating
  * and moving the buffer.
  */
-void FIFO::Optimize(void)
+void FIFO::Optimize()
 {
 	if (m_Offset > m_DataSize / 10 && m_Offset - m_DataSize > 1024) {
 		std::memmove(m_Buffer, m_Buffer + m_Offset, m_DataSize);
@@ -124,25 +117,25 @@ void FIFO::Write(const void *buffer, size_t count)
 	SignalDataAvailable();
 }
 
-void FIFO::Close(void)
+void FIFO::Close()
 { }
 
-bool FIFO::IsEof(void) const
+bool FIFO::IsEof() const
 {
 	return false;
 }
 
-size_t FIFO::GetAvailableBytes(void) const
+size_t FIFO::GetAvailableBytes() const
 {
 	return m_DataSize;
 }
 
-bool FIFO::SupportsWaiting(void) const
+bool FIFO::SupportsWaiting() const
 {
 	return true;
 }
 
-bool FIFO::IsDataAvailable(void) const
+bool FIFO::IsDataAvailable() const
 {
 	return m_DataSize > 0;
 }

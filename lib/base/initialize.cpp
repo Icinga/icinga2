@@ -22,7 +22,7 @@
 
 using namespace icinga;
 
-bool icinga::InitializeOnceHelper(void (*func)(void), int priority)
+bool icinga::InitializeOnceHelper(void (*func)(), int priority)
 {
 	Loader::AddDeferredInitializer(func, priority);
 	return true;

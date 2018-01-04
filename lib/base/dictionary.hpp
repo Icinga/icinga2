@@ -49,49 +49,44 @@ public:
 
 	typedef std::map<String, Value>::value_type Pair;
 
-	Dictionary(void);
-
-	~Dictionary(void);
-
 	Value Get(const String& key) const;
 	bool Get(const String& key, Value *result) const;
-	void Set(const String& key, const Value& value);
-	void Set(const String& key, Value&& value);
+	void Set(const String& key, Value value);
 	bool Contains(const String& key) const;
 
-	Iterator Begin(void);
-	Iterator End(void);
+	Iterator Begin();
+	Iterator End();
 
-	size_t GetLength(void) const;
+	size_t GetLength() const;
 
 	void Remove(const String& key);
 
 	void Remove(Iterator it);
 
-	void Clear(void);
+	void Clear();
 
 	void CopyTo(const Dictionary::Ptr& dest) const;
-	Dictionary::Ptr ShallowClone(void) const;
+	Dictionary::Ptr ShallowClone() const;
 
-	std::vector<String> GetKeys(void) const;
+	std::vector<String> GetKeys() const;
 
-	static Object::Ptr GetPrototype(void);
+	static Object::Ptr GetPrototype();
 
-	virtual Object::Ptr Clone(void) const override;
+	Object::Ptr Clone() const override;
 
-	virtual String ToString(void) const override;
+	String ToString() const override;
 
-	virtual Value GetFieldByName(const String& field, bool sandboxed, const DebugInfo& debugInfo) const override;
-	virtual void SetFieldByName(const String& field, const Value& value, const DebugInfo& debugInfo) override;
-	virtual bool HasOwnField(const String& field) const override;
-	virtual bool GetOwnField(const String& field, Value *result) const override;
+	Value GetFieldByName(const String& field, bool sandboxed, const DebugInfo& debugInfo) const override;
+	void SetFieldByName(const String& field, const Value& value, const DebugInfo& debugInfo) override;
+	bool HasOwnField(const String& field) const override;
+	bool GetOwnField(const String& field, Value *result) const override;
 
 private:
 	std::map<String, Value> m_Data; /**< The data for the dictionary. */
 };
 
-Dictionary::Iterator begin(Dictionary::Ptr x);
-Dictionary::Iterator end(Dictionary::Ptr x);
+Dictionary::Iterator begin(const Dictionary::Ptr& x);
+Dictionary::Iterator end(const Dictionary::Ptr& x);
 
 }
 

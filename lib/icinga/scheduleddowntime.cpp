@@ -77,7 +77,7 @@ Dictionary::Ptr ScheduledDowntimeNameComposer::ParseName(const String& name) con
 	return result;
 }
 
-void ScheduledDowntime::OnAllConfigLoaded(void)
+void ScheduledDowntime::OnAllConfigLoaded()
 {
 	ObjectImpl<ScheduledDowntime>::OnAllConfigLoaded();
 
@@ -101,7 +101,7 @@ void ScheduledDowntime::Start(bool runtimeCreated)
 	Utility::QueueAsyncCallback(std::bind(&ScheduledDowntime::CreateNextDowntime, this));
 }
 
-void ScheduledDowntime::TimerProc(void)
+void ScheduledDowntime::TimerProc()
 {
 	for (const ScheduledDowntime::Ptr& sd : ConfigType::GetObjectsByType<ScheduledDowntime>()) {
 		if (sd->IsActive())
@@ -109,7 +109,7 @@ void ScheduledDowntime::TimerProc(void)
 	}
 }
 
-Checkable::Ptr ScheduledDowntime::GetCheckable(void) const
+Checkable::Ptr ScheduledDowntime::GetCheckable() const
 {
 	Host::Ptr host = Host::GetByName(GetHostName());
 
@@ -119,7 +119,7 @@ Checkable::Ptr ScheduledDowntime::GetCheckable(void) const
 		return host->GetServiceByShortName(GetServiceName());
 }
 
-std::pair<double, double> ScheduledDowntime::FindNextSegment(void)
+std::pair<double, double> ScheduledDowntime::FindNextSegment()
 {
 	time_t refts = Utility::GetTime();
 	tm reference = Utility::LocalTime(refts);
@@ -168,7 +168,7 @@ std::pair<double, double> ScheduledDowntime::FindNextSegment(void)
 		return std::make_pair(0, 0);
 }
 
-void ScheduledDowntime::CreateNextDowntime(void)
+void ScheduledDowntime::CreateNextDowntime()
 {
 	for (const Downtime::Ptr& downtime : GetCheckable()->GetDowntimes()) {
 		if (downtime->GetScheduledBy() != GetName() ||

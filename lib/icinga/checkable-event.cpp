@@ -29,7 +29,7 @@ using namespace icinga;
 
 boost::signals2::signal<void (const Checkable::Ptr&)> Checkable::OnEventCommandExecuted;
 
-EventCommand::Ptr Checkable::GetEventCommand(void) const
+EventCommand::Ptr Checkable::GetEventCommand() const
 {
 	return EventCommand::GetByName(GetEventCommandRaw());
 }

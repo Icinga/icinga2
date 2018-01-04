@@ -35,11 +35,11 @@ class ApiSetupCommand final : public CLICommand
 public:
 	DECLARE_PTR_TYPEDEFS(ApiSetupCommand);
 
-	virtual String GetDescription(void) const override;
-	virtual String GetShortDescription(void) const override;
-	virtual int GetMaxArguments(void) const override;
-	virtual int Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const override;
-	virtual ImpersonationLevel GetImpersonationLevel(void) const override;
+	String GetDescription() const override;
+	String GetShortDescription() const override;
+	int GetMaxArguments() const override;
+	int Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const override;
+	ImpersonationLevel GetImpersonationLevel() const override;
 };
 
 }

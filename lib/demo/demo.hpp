@@ -36,7 +36,7 @@ public:
 	DECLARE_OBJECT(Demo);
 	DECLARE_OBJECTNAME(Demo);
 
-	virtual void Start(bool runtimeCreated) override;
+	void Start(bool runtimeCreated) override;
 
 	static Value DemoMessageHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
 
@@ -44,7 +44,7 @@ public:
 private:
 	Timer::Ptr m_DemoTimer;
 
-	void DemoTimerHandler(void);
+	void DemoTimerHandler();
 };
 
 }

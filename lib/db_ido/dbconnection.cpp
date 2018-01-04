@@ -37,11 +37,7 @@ REGISTER_TYPE(DbConnection);
 Timer::Ptr DbConnection::m_ProgramStatusTimer;
 boost::once_flag DbConnection::m_OnceFlag = BOOST_ONCE_INIT;
 
-DbConnection::DbConnection(void)
-	: m_IDCacheValid(false), m_QueryStats(15 * 60), m_ActiveChangedHandler(false)
-{ }
-
-void DbConnection::OnConfigLoaded(void)
+void DbConnection::OnConfigLoaded()
 {
 	ConfigObject::OnConfigLoaded();
 
@@ -78,7 +74,7 @@ void DbConnection::Stop(bool runtimeRemoved)
 	ObjectImpl<DbConnection>::Stop(runtimeRemoved);
 }
 
-void DbConnection::EnableActiveChangedHandler(void)
+void DbConnection::EnableActiveChangedHandler()
 {
 	if (!m_ActiveChangedHandler) {
 		ConfigObject::OnActiveChanged.connect(std::bind(&DbConnection::UpdateObject, this, _1));
@@ -86,7 +82,7 @@ void DbConnection::EnableActiveChangedHandler(void)
 	}
 }
 
-void DbConnection::Resume(void)
+void DbConnection::Resume()
 {
 	ConfigObject::Resume();
 
@@ -99,7 +95,7 @@ void DbConnection::Resume(void)
 	m_CleanUpTimer->Start();
 }
 
-void DbConnection::Pause(void)
+void DbConnection::Pause()
 {
 	ConfigObject::Pause();
 
@@ -127,7 +123,7 @@ void DbConnection::Pause(void)
 	NewTransaction();
 }
 
-void DbConnection::InitializeDbTimer(void)
+void DbConnection::InitializeDbTimer()
 {
 	m_ProgramStatusTimer = new Timer();
 	m_ProgramStatusTimer->SetInterval(10);
@@ -148,7 +144,7 @@ void DbConnection::InsertRuntimeVariable(const String& key, const Value& value)
 	DbObject::OnQuery(query);
 }
 
-void DbConnection::UpdateProgramStatus(void)
+void DbConnection::UpdateProgramStatus()
 {
 	Log(LogNotice, "DbConnection")
 		<< "Updating programstatus table.";
@@ -204,9 +200,9 @@ void DbConnection::UpdateProgramStatus(void)
 	InsertRuntimeVariable("total_scheduled_hosts", ConfigType::Get<Host>()->GetObjectCount());
 }
 
-void DbConnection::CleanUpHandler(void)
+void DbConnection::CleanUpHandler()
 {
-	long now = static_cast<long>(Utility::GetTime());
+	auto now = static_cast<long>(Utility::GetTime());
 
 	struct {
 		String name;
@@ -229,15 +225,15 @@ void DbConnection::CleanUpHandler(void)
 		{ "systemcommands", "start_time" }
 	};
 
-	for (size_t i = 0; i < sizeof(tables) / sizeof(tables[0]); i++) {
-		double max_age = GetCleanup()->Get(tables[i].name + "_age");
+	for (auto& table : tables) {
+		double max_age = GetCleanup()->Get(table.name + "_age");
 
 		if (max_age == 0)
 			continue;
 
-		CleanUpExecuteQuery(tables[i].name, tables[i].time_column, now - max_age);
+		CleanUpExecuteQuery(table.name, table.time_column, now - max_age);
 		Log(LogNotice, "DbConnection")
-			<< "Cleanup (" << tables[i].name << "): " << max_age
+			<< "Cleanup (" << table.name << "): " << max_age
 			<< " now: " << now
 			<< " old: " << now - max_age;
 	}
@@ -296,7 +292,7 @@ DbReference DbConnection::GetObjectID(const DbObject::Ptr& dbobj) const
 	auto it = m_ObjectIDs.find(dbobj);
 
 	if (it == m_ObjectIDs.end())
-		return DbReference();
+		return {};
 
 	return it->second;
 }
@@ -325,7 +321,7 @@ DbReference DbConnection::GetInsertID(const DbObject::Ptr& dbobj) const
 DbReference DbConnection::GetInsertID(const DbType::Ptr& type, const DbReference& objid) const
 {
 	if (!objid.IsValid())
-		return DbReference();
+		return {};
 
 	auto it = m_InsertIDs.find(std::make_pair(type, objid));
 
@@ -348,7 +344,7 @@ bool DbConnection::GetObjectActive(const DbObject::Ptr& dbobj) const
 	return (m_ActiveObjects.find(dbobj) != m_ActiveObjects.end());
 }
 
-void DbConnection::ClearIDCache(void)
+void DbConnection::ClearIDCache()
 {
 	SetIDCacheValid(false);
 
@@ -423,10 +419,10 @@ void DbConnection::UpdateObject(const ConfigObject::Ptr& object)
 	}
 }
 
-void DbConnection::UpdateAllObjects(void)
+void DbConnection::UpdateAllObjects()
 {
 	for (const Type::Ptr& type : Type::GetAllTypes()) {
-		ConfigType *dtype = dynamic_cast<ConfigType *>(type.get());
+		auto *dtype = dynamic_cast<ConfigType *>(type.get());
 
 		if (!dtype)
 			continue;
@@ -437,7 +433,7 @@ void DbConnection::UpdateAllObjects(void)
 	}
 }
 
-void DbConnection::PrepareDatabase(void)
+void DbConnection::PrepareDatabase()
 {
 	for (const DbType::Ptr& type : DbType::GetAllTypes()) {
 		FillIDCache(type);
@@ -465,7 +461,7 @@ void DbConnection::ValidateCategories(const Array::Ptr& value, const ValidationU
 		BOOST_THROW_EXCEPTION(ValidationError(this, { "categories" }, "categories filter is invalid."));
 }
 
-void DbConnection::IncreaseQueryCount(void)
+void DbConnection::IncreaseQueryCount()
 {
 	double now = Utility::GetTime();
 
@@ -479,7 +475,7 @@ int DbConnection::GetQueryCount(RingBuffer::SizeType span)
 	return m_QueryStats.UpdateAndGetValues(Utility::GetTime(), span);
 }
 
-bool DbConnection::IsIDCacheValid(void) const
+bool DbConnection::IsIDCacheValid() const
 {
 	return m_IDCacheValid;
 }
@@ -489,7 +485,7 @@ void DbConnection::SetIDCacheValid(bool valid)
 	m_IDCacheValid = valid;
 }
 
-int DbConnection::GetSessionToken(void)
+int DbConnection::GetSessionToken()
 {
 	return Application::GetStartTime();
 }

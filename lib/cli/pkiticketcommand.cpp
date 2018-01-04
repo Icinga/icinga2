@@ -28,12 +28,12 @@ namespace po = boost::program_options;
 
 REGISTER_CLICOMMAND("pki/ticket", PKITicketCommand);
 
-String PKITicketCommand::GetDescription(void) const
+String PKITicketCommand::GetDescription() const
 {
 	return "Generates an Icinga 2 ticket";
 }
 
-String PKITicketCommand::GetShortDescription(void) const
+String PKITicketCommand::GetShortDescription() const
 {
 	return "generates a ticket";
 }

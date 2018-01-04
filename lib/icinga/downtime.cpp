@@ -82,7 +82,7 @@ Dictionary::Ptr DowntimeNameComposer::ParseName(const String& name) const
 	return result;
 }
 
-void Downtime::OnAllConfigLoaded(void)
+void Downtime::OnAllConfigLoaded()
 {
 	ObjectImpl<Downtime>::OnAllConfigLoaded();
 
@@ -152,12 +152,12 @@ void Downtime::Stop(bool runtimeRemoved)
 	ObjectImpl<Downtime>::Stop(runtimeRemoved);
 }
 
-Checkable::Ptr Downtime::GetCheckable(void) const
+Checkable::Ptr Downtime::GetCheckable() const
 {
 	return static_pointer_cast<Checkable>(m_Checkable);
 }
 
-bool Downtime::IsInEffect(void) const
+bool Downtime::IsInEffect() const
 {
 	double now = Utility::GetTime();
 
@@ -176,7 +176,7 @@ bool Downtime::IsInEffect(void) const
 	return (now < triggerTime + GetDuration());
 }
 
-bool Downtime::IsTriggered(void) const
+bool Downtime::IsTriggered() const
 {
 	double now = Utility::GetTime();
 
@@ -185,7 +185,7 @@ bool Downtime::IsTriggered(void) const
 	return (triggerTime > 0 && triggerTime <= now);
 }
 
-bool Downtime::IsExpired(void) const
+bool Downtime::IsExpired() const
 {
 	double now = Utility::GetTime();
 
@@ -203,13 +203,13 @@ bool Downtime::IsExpired(void) const
 	}
 }
 
-bool Downtime::HasValidConfigOwner(void) const
+bool Downtime::HasValidConfigOwner() const
 {
 	String configOwner = GetConfigOwner();
 	return configOwner.IsEmpty() || GetObject<ScheduledDowntime>(configOwner);
 }
 
-int Downtime::GetNextDowntimeID(void)
+int Downtime::GetNextDowntimeID()
 {
 	boost::mutex::scoped_lock lock(l_DowntimeMutex);
 
@@ -322,7 +322,7 @@ void Downtime::RemoveDowntime(const String& id, bool cancelled, bool expired, co
 	}
 }
 
-bool Downtime::CanBeTriggered(void)
+bool Downtime::CanBeTriggered()
 {
 	if (IsInEffect() && IsTriggered())
 		return false;
@@ -338,7 +338,7 @@ bool Downtime::CanBeTriggered(void)
 	return true;
 }
 
-void Downtime::TriggerDowntime(void)
+void Downtime::TriggerDowntime()
 {
 	if (!CanBeTriggered())
 		return;
@@ -378,7 +378,7 @@ String Downtime::GetDowntimeIDFromLegacyID(int id)
 	return it->second;
 }
 
-void Downtime::DowntimesStartTimerHandler(void)
+void Downtime::DowntimesStartTimerHandler()
 {
 	/* Start fixed downtimes. Flexible downtimes will be triggered on-demand. */
 	for (const Downtime::Ptr& downtime : ConfigType::GetObjectsByType<Downtime>()) {
@@ -394,7 +394,7 @@ void Downtime::DowntimesStartTimerHandler(void)
 	}
 }
 
-void Downtime::DowntimesExpireTimerHandler(void)
+void Downtime::DowntimesExpireTimerHandler()
 {
 	std::vector<Downtime::Ptr> downtimes;
 

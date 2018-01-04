@@ -40,7 +40,7 @@ public:
 	DECLARE_OBJECT(UserGroup);
 	DECLARE_OBJECTNAME(UserGroup);
 
-	std::set<User::Ptr> GetMembers(void) const;
+	std::set<User::Ptr> GetMembers() const;
 	void AddMember(const User::Ptr& user);
 	void RemoveMember(const User::Ptr& user);
 

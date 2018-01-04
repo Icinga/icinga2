@@ -33,7 +33,7 @@ using namespace icinga;
 
 REGISTER_TYPE(Host);
 
-void Host::OnAllConfigLoaded(void)
+void Host::OnAllConfigLoaded()
 {
 	ObjectImpl<Host>::OnAllConfigLoaded();
 
@@ -99,7 +99,7 @@ void Host::Stop(bool runtimeRemoved)
 	// TODO: unregister slave services/notifications?
 }
 
-std::vector<Service::Ptr> Host::GetServices(void) const
+std::vector<Service::Ptr> Host::GetServices() const
 {
 	boost::mutex::scoped_lock lock(m_ServicesMutex);
 
@@ -127,7 +127,7 @@ void Host::RemoveService(const Service::Ptr& service)
 	m_Services.erase(service->GetShortName());
 }
 
-int Host::GetTotalServices(void) const
+int Host::GetTotalServices() const
 {
 	return GetServices().size();
 }
@@ -166,23 +166,23 @@ HostState Host::CalculateState(ServiceState state)
 	}
 }
 
-HostState Host::GetState(void) const
+HostState Host::GetState() const
 {
 	return CalculateState(GetStateRaw());
 }
 
-HostState Host::GetLastState(void) const
+HostState Host::GetLastState() const
 {
 	return CalculateState(GetLastStateRaw());
 }
 
-HostState Host::GetLastHardState(void) const
+HostState Host::GetLastHardState() const
 {
 	return CalculateState(GetLastHardStateRaw());
 }
 
 /* keep in sync with Service::GetSeverity() */
-int Host::GetSeverity(void) const
+int Host::GetSeverity() const
 {
 	int severity = 0;
 

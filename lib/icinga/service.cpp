@@ -57,7 +57,7 @@ Dictionary::Ptr ServiceNameComposer::ParseName(const String& name) const
 	return result;
 }
 
-void Service::OnAllConfigLoaded(void)
+void Service::OnAllConfigLoaded()
 {
 	ObjectImpl<Service>::OnAllConfigLoaded();
 
@@ -119,13 +119,13 @@ Service::Ptr Service::GetByNamePair(const String& hostName, const String& servic
 	}
 }
 
-Host::Ptr Service::GetHost(void) const
+Host::Ptr Service::GetHost() const
 {
 	return m_Host;
 }
 
 /* keep in sync with Host::GetSeverity() */
-int Service::GetSeverity(void) const
+int Service::GetSeverity() const
 {
 	int severity = 0;
 

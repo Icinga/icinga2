@@ -73,7 +73,7 @@ int CIB::GetPassiveServiceChecksStatistics(long timespan)
 	return m_PassiveServiceChecksStatistics.UpdateAndGetValues(Utility::GetTime(), timespan);
 }
 
-CheckableCheckStatistics CIB::CalculateHostCheckStats(void)
+CheckableCheckStatistics CIB::CalculateHostCheckStats()
 {
 	double min_latency = -1, max_latency = 0, sum_latency = 0;
 	int count_latency = 0;
@@ -134,7 +134,7 @@ CheckableCheckStatistics CIB::CalculateHostCheckStats(void)
 	return ccs;
 }
 
-CheckableCheckStatistics CIB::CalculateServiceCheckStats(void)
+CheckableCheckStatistics CIB::CalculateServiceCheckStats()
 {
 	double min_latency = -1, max_latency = 0, sum_latency = 0;
 	int count_latency = 0;
@@ -195,7 +195,7 @@ CheckableCheckStatistics CIB::CalculateServiceCheckStats(void)
 	return ccs;
 }
 
-ServiceStatistics CIB::CalculateServiceStats(void)
+ServiceStatistics CIB::CalculateServiceStats()
 {
 	ServiceStatistics ss = {};
 
@@ -229,7 +229,7 @@ ServiceStatistics CIB::CalculateServiceStats(void)
 	return ss;
 }
 
-HostStatistics CIB::CalculateHostStats(void)
+HostStatistics CIB::CalculateHostStats()
 {
 	HostStatistics hs = {};
 
@@ -262,7 +262,7 @@ HostStatistics CIB::CalculateHostStats(void)
  * 'perfdata' must be a flat dictionary with double values
  * 'status' dictionary can contain multiple levels of dictionaries
  */
-std::pair<Dictionary::Ptr, Array::Ptr> CIB::GetFeatureStats(void)
+std::pair<Dictionary::Ptr, Array::Ptr> CIB::GetFeatureStats()
 {
 	Dictionary::Ptr status = new Dictionary();
 	Array::Ptr perfdata = new Array();

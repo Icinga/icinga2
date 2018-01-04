@@ -33,7 +33,7 @@ StdioStream::StdioStream(std::iostream *innerStream, bool ownsStream)
 	: m_InnerStream(innerStream), m_OwnsStream(ownsStream)
 { }
 
-StdioStream::~StdioStream(void)
+StdioStream::~StdioStream()
 {
 	Close();
 }
@@ -53,7 +53,7 @@ void StdioStream::Write(const void *buffer, size_t size)
 	m_InnerStream->write(static_cast<const char *>(buffer), size);
 }
 
-void StdioStream::Close(void)
+void StdioStream::Close()
 {
 	Stream::Close();
 
@@ -63,12 +63,12 @@ void StdioStream::Close(void)
 	}
 }
 
-bool StdioStream::IsDataAvailable(void) const
+bool StdioStream::IsDataAvailable() const
 {
 	return !IsEof();
 }
 
-bool StdioStream::IsEof(void) const
+bool StdioStream::IsEof() const
 {
 	return !m_InnerStream->good();
 }

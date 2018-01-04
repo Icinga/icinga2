@@ -24,7 +24,7 @@ using namespace icinga;
 
 boost::thread_specific_ptr<std::stack<ActivationContext::Ptr> > ActivationContext::m_ActivationStack;
 
-std::stack<ActivationContext::Ptr>& ActivationContext::GetActivationStack(void)
+std::stack<ActivationContext::Ptr>& ActivationContext::GetActivationStack()
 {
 	std::stack<ActivationContext::Ptr> *actx = m_ActivationStack.get();
 
@@ -41,13 +41,13 @@ void ActivationContext::PushContext(const ActivationContext::Ptr& context)
 	GetActivationStack().push(context);
 }
 
-void ActivationContext::PopContext(void)
+void ActivationContext::PopContext()
 {
 	ASSERT(!GetActivationStack().empty());
 	GetActivationStack().pop();
 }
 
-ActivationContext::Ptr ActivationContext::GetCurrentContext(void)
+ActivationContext::Ptr ActivationContext::GetCurrentContext()
 {
 	std::stack<ActivationContext::Ptr>& astack = GetActivationStack();
 
@@ -57,8 +57,8 @@ ActivationContext::Ptr ActivationContext::GetCurrentContext(void)
 	return astack.top();
 }
 
-ActivationScope::ActivationScope(const ActivationContext::Ptr& context)
-	: m_Context(context)
+ActivationScope::ActivationScope(ActivationContext::Ptr context)
+	: m_Context(std::move(context))
 {
 	if (!m_Context)
 		m_Context = new ActivationContext();
@@ -66,12 +66,12 @@ ActivationScope::ActivationScope(const ActivationContext::Ptr& context)
 	ActivationContext::PushContext(m_Context);
 }
 
-ActivationScope::~ActivationScope(void)
+ActivationScope::~ActivationScope()
 {
 	ActivationContext::PopContext();
 }
 
-ActivationContext::Ptr ActivationScope::GetContext(void) const
+ActivationContext::Ptr ActivationScope::GetContext() const
 {
 	return m_Context;
 }

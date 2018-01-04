@@ -31,11 +31,7 @@ namespace icinga
  */
 struct CountAggregatorState final : public AggregatorState
 {
-	CountAggregatorState(void)
-		: Count(0)
-	{ }
-
-	int Count;
+	int Count{0};
 };
 
 /**
@@ -46,8 +42,8 @@ class CountAggregator final : public Aggregator
 public:
 	DECLARE_PTR_TYPEDEFS(CountAggregator);
 
-	virtual void Apply(const Table::Ptr& table, const Value& row, AggregatorState **) override;
-	virtual double GetResultAndFreeState(AggregatorState *state) const override;
+	void Apply(const Table::Ptr& table, const Value& row, AggregatorState **) override;
+	double GetResultAndFreeState(AggregatorState *state) const override;
 
 private:
 	static CountAggregatorState *EnsureState(AggregatorState **state);

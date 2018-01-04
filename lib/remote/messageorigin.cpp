@@ -21,7 +21,7 @@
 
 using namespace icinga;
 
-bool MessageOrigin::IsLocal(void) const
+bool MessageOrigin::IsLocal() const
 {
 	return !FromClient;
 }

@@ -38,7 +38,7 @@ class ConfigObjectUtility
 {
 
 public:
-	static String GetConfigDir(void);
+	static String GetConfigDir();
 	static String GetObjectConfigPath(const Type::Ptr& type, const String& fullName);
 
 	static String CreateObjectConfig(const Type::Ptr& type, const String& fullName,

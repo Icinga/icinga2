@@ -39,12 +39,12 @@ public:
 	UserDbObject(const DbType::Ptr& type, const String& name1, const String& name2);
 
 protected:
-	virtual Dictionary::Ptr GetConfigFields(void) const override;
-	virtual Dictionary::Ptr GetStatusFields(void) const override;
+	Dictionary::Ptr GetConfigFields() const override;
+	Dictionary::Ptr GetStatusFields() const override;
 
-	virtual void OnConfigUpdateHeavy(void) override;
+	void OnConfigUpdateHeavy() override;
 
-	virtual String CalculateConfigHash(const Dictionary::Ptr& configFields) const override;
+	String CalculateConfigHash(const Dictionary::Ptr& configFields) const override;
 };
 
 }
