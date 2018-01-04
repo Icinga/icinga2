@@ -310,7 +310,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 			}
 
 			m_Impl << std::endl
-					<< "\t\t\t\tbreak;" << std::endl;
+					<< "\t\t\tbreak;" << std::endl;
 		}
 
 		m_Impl << "\t}" << std::endl;
