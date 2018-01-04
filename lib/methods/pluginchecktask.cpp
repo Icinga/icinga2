@@ -28,8 +28,6 @@
 #include "base/utility.hpp"
 #include "base/process.hpp"
 #include "base/convert.hpp"
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/split.hpp>
 
 using namespace icinga;
 

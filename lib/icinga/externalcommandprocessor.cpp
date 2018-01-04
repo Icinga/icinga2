@@ -37,8 +37,6 @@
 #include "base/utility.hpp"
 #include "base/exception.hpp"
 #include <fstream>
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/split.hpp>
 #include <boost/thread/once.hpp>
 
 using namespace icinga;
@@ -66,8 +64,7 @@ void ExternalCommandProcessor::Execute(const String& line)
 	if (ts == 0)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid timestamp in command: " + line));
 
-	std::vector<String> argv;
-	boost::algorithm::split(argv, args, boost::is_any_of(";"));
+	std::vector<String> argv = args.Split(";");
 
 	if (argv.empty())
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Missing arguments in command: " + line));
@@ -277,8 +274,7 @@ void ExternalCommandProcessor::ExecuteFromFile(const String& line, std::deque< s
 	if (ts == 0)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid timestamp in command: " + line));
 
-	std::vector<String> argv;
-	boost::algorithm::split(argv, args, boost::is_any_of(";"));
+	std::vector<String> argv = args.Split(";");
 
 	if (argv.empty())
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Missing arguments in command: " + line));

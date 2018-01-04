@@ -27,8 +27,6 @@
 #include "base/configobject.hpp"
 #include <vector>
 #include <boost/algorithm/string/replace.hpp>
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/split.hpp>
 
 namespace icinga
 {
@@ -78,7 +76,7 @@ public:
 		std::vector<String> registerTypes; \
 		String typeNames = types; \
 		if (!typeNames.IsEmpty()) \
-			boost::algorithm::split(registerTypes, typeNames, boost::is_any_of(";")); \
+			registerTypes = typeNames.Split(";"); \
 		ApiAction::Ptr action = new ApiAction(registerTypes, callback); \
 		ApiActionRegistry::GetInstance()->Register(registerName, action); \
 	})

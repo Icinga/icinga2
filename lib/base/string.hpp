@@ -22,12 +22,7 @@
 
 #include "base/i2-base.hpp"
 #include "base/object.hpp"
-#include <boost/algorithm/string/case_conv.hpp>
-#include <boost/algorithm/string/trim.hpp>
-#include <boost/algorithm/string/split.hpp>
 #include <boost/range/iterator.hpp>
-#include <string.h>
-#include <functional>
 #include <string>
 #include <iosfwd>
 

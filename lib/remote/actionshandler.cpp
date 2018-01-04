@@ -22,9 +22,7 @@
 #include "remote/filterutility.hpp"
 #include "remote/apiaction.hpp"
 #include "base/exception.hpp"
-#include "base/serializer.hpp"
 #include "base/logger.hpp"
-#include <boost/algorithm/string.hpp>
 #include <set>
 
 using namespace icinga;

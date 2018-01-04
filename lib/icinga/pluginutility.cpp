@@ -26,8 +26,6 @@
 #include "base/process.hpp"
 #include "base/objectlock.hpp"
 #include "base/exception.hpp"
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/trim.hpp>
 
 using namespace icinga;
@@ -117,8 +115,7 @@ std::pair<String, String> PluginUtility::ParseCheckOutput(const String& output)
 	String text;
 	String perfdata;
 
-	std::vector<String> lines;
-	boost::algorithm::split(lines, output, boost::is_any_of("\r\n"));
+	std::vector<String> lines = output.Split("\r\n");
 
 	for (const String& line : lines) {
 		size_t delim = line.FindFirstOf("|");

@@ -22,13 +22,13 @@
 
 #include "base/i2-base.hpp"
 #include "base/application-ti.hpp"
-#include "base/threadpool.hpp"
-#include "base/utility.hpp"
 #include "base/logger.hpp"
-#include <ostream>
+#include <iosfwd>
 
 namespace icinga
 {
+
+class ThreadPool;
 
 /**
  * Abstract base class for applications.
@@ -78,7 +78,8 @@ public:
 	static void SetDebuggingSeverity(LogSeverity severity);
 	static LogSeverity GetDebuggingSeverity();
 
-	void UpdatePidFile(const String& filename, pid_t pid = Utility::GetPid());
+	void UpdatePidFile(const String& filename);
+	void UpdatePidFile(const String& filename, pid_t pid);
 	void ClosePidFile(bool unlink);
 	static pid_t ReadPidFile(const String& filename);
 

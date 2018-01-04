@@ -20,11 +20,11 @@
 #ifndef JSONRPCCONNECTION_H
 #define JSONRPCCONNECTION_H
 
+#include "remote/i2-remote.hpp"
 #include "remote/endpoint.hpp"
 #include "base/tlsstream.hpp"
 #include "base/timer.hpp"
 #include "base/workqueue.hpp"
-#include "remote/i2-remote.hpp"
 
 namespace icinga
 {

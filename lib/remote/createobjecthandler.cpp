@@ -25,7 +25,6 @@
 #include "remote/apiaction.hpp"
 #include "remote/zone.hpp"
 #include "base/configtype.hpp"
-#include <boost/algorithm/string.hpp>
 #include <set>
 
 using namespace icinga;

@@ -25,8 +25,6 @@
 #include "base/configtype.hpp"
 #include "base/utility.hpp"
 #include "base/timer.hpp"
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/classification.hpp>
 #include <boost/thread/once.hpp>
 
 using namespace icinga;
@@ -63,8 +61,7 @@ String DowntimeNameComposer::MakeName(const String& shortName, const Object::Ptr
 
 Dictionary::Ptr DowntimeNameComposer::ParseName(const String& name) const
 {
-	std::vector<String> tokens;
-	boost::algorithm::split(tokens, name, boost::is_any_of("!"));
+	std::vector<String> tokens = name.Split("!");
 
 	if (tokens.size() < 2)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid Downtime name."));

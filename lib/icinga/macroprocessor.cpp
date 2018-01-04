@@ -28,9 +28,7 @@
 #include "base/scriptframe.hpp"
 #include "base/convert.hpp"
 #include "base/exception.hpp"
-#include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/join.hpp>
-#include <boost/algorithm/string/classification.hpp>
 
 using namespace icinga;
 
@@ -94,8 +92,7 @@ bool MacroProcessor::ResolveMacro(const String& macro, const ResolverList& resol
 
 	*recursive_macro = false;
 
-	std::vector<String> tokens;
-	boost::algorithm::split(tokens, macro, boost::is_any_of("."));
+	std::vector<String> tokens = macro.Split(".");
 
 	String objName;
 	if (tokens.size() > 1) {

@@ -27,8 +27,6 @@
 #include "base/function.hpp"
 #include "base/utility.hpp"
 #include "base/process.hpp"
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/split.hpp>
 #include <boost/thread/once.hpp>
 #include <objbase.h>
 #include <mscoree.h>

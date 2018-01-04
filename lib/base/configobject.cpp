@@ -34,8 +34,6 @@
 #include "base/context.hpp"
 #include "base/application.hpp"
 #include <fstream>
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/classification.hpp>
 #include <boost/exception/errinfo_api_function.hpp>
 #include <boost/exception/errinfo_errno.hpp>
 #include <boost/exception/errinfo_file_name.hpp>
@@ -113,8 +111,7 @@ void ConfigObject::ModifyAttribute(const String& attr, const Value& value, bool 
 
 	Type::Ptr type = GetReflectionType();
 
-	std::vector<String> tokens;
-	boost::algorithm::split(tokens, attr, boost::is_any_of("."));
+	std::vector<String> tokens = attr.Split(".");
 
 	String fieldName = tokens[0];
 
@@ -225,8 +222,7 @@ void ConfigObject::RestoreAttribute(const String& attr, bool updateVersion)
 {
 	Type::Ptr type = GetReflectionType();
 
-	std::vector<String> tokens;
-	boost::algorithm::split(tokens, attr, boost::is_any_of("."));
+	std::vector<String> tokens = attr.Split(".");
 
 	String fieldName = tokens[0];
 
@@ -279,8 +275,7 @@ void ConfigObject::RestoreAttribute(const String& attr, bool updateVersion)
 		{
 			ObjectLock olock(original_attributes);
 			for (const auto& kv : original_attributes) {
-				std::vector<String> originalTokens;
-				boost::algorithm::split(originalTokens, kv.first, boost::is_any_of("."));
+				std::vector<String> originalTokens = String(kv.first).Split(".");
 
 				if (tokens.size() > originalTokens.size())
 					continue;
@@ -654,8 +649,7 @@ void ConfigObject::DumpModifiedAttributes(const std::function<void(const ConfigO
 
 				Type::Ptr type = object->GetReflectionType();
 
-				std::vector<String> tokens;
-				boost::algorithm::split(tokens, key, boost::is_any_of("."));
+				std::vector<String> tokens = key.Split(".");
 
 				String fieldName = tokens[0];
 				int fid = type->GetFieldId(fieldName);

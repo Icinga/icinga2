@@ -23,9 +23,6 @@
 #include "base/exception.hpp"
 #include "base/logger.hpp"
 #include "base/function.hpp"
-#include <boost/algorithm/string/case_conv.hpp>
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/classification.hpp>
 
 using namespace icinga;
 
@@ -69,8 +66,7 @@ PerfdataValue::Ptr PerfdataValue::Parse(const String& perfdata)
 
 	double value = Convert::ToDouble(valueStr.SubStr(0, pos));
 
-	std::vector<String> tokens;
-	boost::algorithm::split(tokens, valueStr, boost::is_any_of(";"));
+	std::vector<String> tokens = valueStr.Split(";");
 
 	bool counter = false;
 	String unit;
@@ -79,7 +75,7 @@ PerfdataValue::Ptr PerfdataValue::Parse(const String& perfdata)
 	if (pos != String::NPos)
 		unit = valueStr.SubStr(pos, tokens[0].GetLength() - pos);
 
-	boost::algorithm::to_lower(unit);
+	unit = unit.ToLower();
 
 	double base = 1.0;
 

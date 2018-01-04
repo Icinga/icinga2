@@ -33,6 +33,7 @@
 #include "base/networkstream.hpp"
 #include "base/exception.hpp"
 #include <iostream>
+#include <fstream>
 #ifdef HAVE_EDITLINE
 #include "cli/editline.hpp"
 #endif /* HAVE_EDITLINE */
@@ -455,8 +456,7 @@ incomplete:
 			if (commandOnceFileName.IsEmpty() && lines.find(di.Path) != lines.end()) {
 				String text = lines[di.Path];
 
-				std::vector<String> ulines;
-				boost::algorithm::split(ulines, text, boost::is_any_of("\n"));
+				std::vector<String> ulines = text.Split("\n");
 
 				for (int i = 1; i <= ulines.size(); i++) {
 					int start, len;

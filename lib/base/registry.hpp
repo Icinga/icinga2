@@ -22,9 +22,9 @@
 
 #include "base/i2-base.hpp"
 #include "base/string.hpp"
-#include <map>
 #include <boost/thread/mutex.hpp>
 #include <boost/signals2.hpp>
+#include <map>
 
 namespace icinga
 {

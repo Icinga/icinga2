@@ -23,7 +23,7 @@
 #include "base/object.hpp"
 #include "base/array.hpp"
 #include "base/dictionary.hpp"
-#include <fstream>
+#include <iosfwd>
 
 namespace icinga
 {

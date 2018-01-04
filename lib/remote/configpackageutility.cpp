@@ -20,7 +20,6 @@
 #include "remote/configpackageutility.hpp"
 #include "base/application.hpp"
 #include "base/exception.hpp"
-#include "base/scriptglobal.hpp"
 #include "base/utility.hpp"
 #include <boost/algorithm/string.hpp>
 #include <boost/regex.hpp>
@@ -295,8 +294,7 @@ void ConfigPackageUtility::CollectPaths(const String& path, std::vector<std::pai
 
 bool ConfigPackageUtility::ContainsDotDot(const String& path)
 {
-	std::vector<String> tokens;
-	boost::algorithm::split(tokens, path, boost::is_any_of("/\\"));
+	std::vector<String> tokens = path.Split("/\\");
 
 	for (const String& part : tokens) {
 		if (part == "..")

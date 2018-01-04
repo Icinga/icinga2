@@ -24,7 +24,7 @@
 #include "base/json.hpp"
 #include "base/configtype.hpp"
 #include "base/logger.hpp"
-#include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/case_conv.hpp>
 
 using namespace icinga;
 

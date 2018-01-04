@@ -23,7 +23,6 @@
 #include "remote/filterutility.hpp"
 #include "base/application.hpp"
 #include "base/exception.hpp"
-#include <boost/algorithm/string/join.hpp>
 
 using namespace icinga;
 

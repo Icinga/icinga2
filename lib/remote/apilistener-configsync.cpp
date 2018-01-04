@@ -25,8 +25,6 @@
 #include "base/json.hpp"
 #include "base/convert.hpp"
 #include "config/vmops.hpp"
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/classification.hpp>
 #include <fstream>
 
 using namespace icinga;
@@ -319,8 +317,7 @@ void ApiListener::UpdateConfigObject(const ConfigObject::Ptr& object, const Mess
 	if (original_attributes) {
 		ObjectLock olock(original_attributes);
 		for (const Dictionary::Pair& kv : original_attributes) {
-			std::vector<String> tokens;
-			boost::algorithm::split(tokens, kv.first, boost::is_any_of("."));
+			std::vector<String> tokens = kv.first.Split(".");
 
 			Value value = object;
 			for (const String& token : tokens) {

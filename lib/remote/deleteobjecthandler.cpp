@@ -24,8 +24,7 @@
 #include "remote/apiaction.hpp"
 #include "config/configitem.hpp"
 #include "base/exception.hpp"
-#include "base/serializer.hpp"
-#include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/case_conv.hpp>
 #include <set>
 
 using namespace icinga;
