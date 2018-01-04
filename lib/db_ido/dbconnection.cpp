@@ -229,15 +229,15 @@ void DbConnection::CleanUpHandler()
 		{ "systemcommands", "start_time" }
 	};
 
-	for (size_t i = 0; i < sizeof(tables) / sizeof(tables[0]); i++) {
-		double max_age = GetCleanup()->Get(tables[i].name + "_age");
+	for (auto& table : tables) {
+		double max_age = GetCleanup()->Get(table.name + "_age");
 
 		if (max_age == 0)
 			continue;
 
-		CleanUpExecuteQuery(tables[i].name, tables[i].time_column, now - max_age);
+		CleanUpExecuteQuery(table.name, table.time_column, now - max_age);
 		Log(LogNotice, "DbConnection")
-			<< "Cleanup (" << tables[i].name << "): " << max_age
+			<< "Cleanup (" << table.name << "): " << max_age
 			<< " now: " << now
 			<< " old: " << now - max_age;
 	}

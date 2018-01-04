@@ -138,14 +138,14 @@ struct Field
 		bool cap = true;
 		std::string name = Name;
 
-		for (size_t i = 0; i < name.size(); i++) {
-			if (name[i] == '_') {
+		for (char& ch : name) {
+			if (ch == '_') {
 				cap = true;
 				continue;
 			}
 
 			if (cap) {
-				name[i] = toupper(name[i]);
+				ch = toupper(ch);
 				cap = false;
 			}
 		}

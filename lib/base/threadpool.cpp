@@ -50,8 +50,8 @@ void ThreadPool::Start()
 
 	m_Stopped = false;
 
-	for (size_t i = 0; i < sizeof(m_Queues) / sizeof(m_Queues[0]); i++)
-		m_Queues[i].SpawnWorker(m_ThreadGroup);
+	for (auto& queue : m_Queues)
+		queue.SpawnWorker(m_ThreadGroup);
 
 	m_MgmtThread = std::thread(std::bind(&ThreadPool::ManagerThreadProc, this));
 }
@@ -70,18 +70,18 @@ void ThreadPool::Stop()
 	if (m_MgmtThread.joinable())
 		m_MgmtThread.join();
 
-	for (size_t i = 0; i < sizeof(m_Queues) / sizeof(m_Queues[0]); i++) {
-		boost::mutex::scoped_lock lock(m_Queues[i].Mutex);
-		m_Queues[i].Stopped = true;
-		m_Queues[i].CV.notify_all();
+	for (auto& queue : m_Queues) {
+		boost::mutex::scoped_lock lock(queue.Mutex);
+		queue.Stopped = true;
+		queue.CV.notify_all();
 	}
 
 	m_ThreadGroup.join_all();
 	m_ThreadGroup.~thread_group();
 	new (&m_ThreadGroup) boost::thread_group();
 
-	for (size_t i = 0; i < sizeof(m_Queues) / sizeof(m_Queues[0]); i++)
-		m_Queues[i].Stopped = false;
+	for (auto& queue : m_Queues)
+		queue.Stopped = false;
 
 	m_Stopped = true;
 }
@@ -242,24 +242,22 @@ void ThreadPool::ManagerThreadProc()
 				break;
 		}
 
-		for (size_t i = 0; i < sizeof(m_Queues) / sizeof(m_Queues[0]); i++) {
+		for (auto& queue : m_Queues) {
 			size_t pending, alive = 0;
 			double avg_latency;
 			double utilization = 0;
 
-			Queue& queue = m_Queues[i];
+				boost::mutex::scoped_lock lock(queue.Mutex);
 
-			boost::mutex::scoped_lock lock(queue.Mutex);
-
-			for (size_t i = 0; i < sizeof(queue.Threads) / sizeof(queue.Threads[0]); i++)
-				queue.Threads[i].UpdateUtilization();
+			for (auto& thread : queue.Threads)
+				thread.UpdateUtilization();
 
 			pending = queue.Items.size();
 
-			for (size_t i = 0; i < sizeof(queue.Threads) / sizeof(queue.Threads[0]); i++) {
-				if (queue.Threads[i].State != ThreadDead && !queue.Threads[i].Zombie) {
+			for (auto& thread : queue.Threads) {
+				if (thread.State != ThreadDead && !thread.Zombie) {
 					alive++;
-					utilization += queue.Threads[i].Utilization * 100;
+					utilization += thread.Utilization * 100;
 				}
 			}
 
@@ -331,12 +329,12 @@ void ThreadPool::ManagerThreadProc()
  */
 void ThreadPool::Queue::SpawnWorker(boost::thread_group& group)
 {
-	for (size_t i = 0; i < sizeof(Threads) / sizeof(Threads[0]); i++) {
-		if (Threads[i].State == ThreadDead) {
+	for (auto& thread : Threads) {
+		if (thread.State == ThreadDead) {
 			Log(LogDebug, "ThreadPool", "Spawning worker thread.");
 
-			Threads[i] = WorkerThread(ThreadIdle);
-			Threads[i].Thread = group.create_thread(std::bind(&ThreadPool::WorkerThread::ThreadProc, std::ref(Threads[i]), std::ref(*this)));
+			thread = WorkerThread(ThreadIdle);
+			thread.Thread = group.create_thread(std::bind(&ThreadPool::WorkerThread::ThreadProc, std::ref(thread), std::ref(*this)));
 
 			break;
 		}
@@ -348,15 +346,15 @@ void ThreadPool::Queue::SpawnWorker(boost::thread_group& group)
  */
 void ThreadPool::Queue::KillWorker(boost::thread_group& group)
 {
-	for (size_t i = 0; i < sizeof(Threads) / sizeof(Threads[0]); i++) {
-		if (Threads[i].State == ThreadIdle && !Threads[i].Zombie) {
+	for (auto& thread : Threads) {
+		if (thread.State == ThreadIdle && !thread.Zombie) {
 			Log(LogDebug, "ThreadPool", "Killing worker thread.");
 
-			group.remove_thread(Threads[i].Thread);
-			Threads[i].Thread->detach();
-			delete Threads[i].Thread;
+			group.remove_thread(thread.Thread);
+			thread.Thread->detach();
+			delete thread.Thread;
 
-			Threads[i].Zombie = true;
+			thread.Zombie = true;
 			CV.notify_all();
 
 			break;
