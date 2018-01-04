@@ -115,7 +115,7 @@ public:
 	bool HasBeenChecked(void) const;
 	virtual bool IsStateOK(ServiceState state) = 0;
 
-	virtual double GetLastCheck(void) const override;
+	virtual double GetLastCheck(void) const override final;
 
 	virtual void SaveLastState(ServiceState state, double timestamp) = 0;
 
@@ -145,7 +145,7 @@ public:
 	static boost::signals2::signal<void (const Checkable::Ptr&)> OnEventCommandExecuted;
 
 	/* Downtimes */
-	virtual int GetDowntimeDepth(void) const override;
+	virtual int GetDowntimeDepth(void) const override final;
 
 	void RemoveAllDowntimes(void);
 	void TriggerDowntimes(void);
@@ -191,8 +191,8 @@ public:
 	void RemoveReverseDependency(const intrusive_ptr<Dependency>& dep);
 	std::vector<intrusive_ptr<Dependency> > GetReverseDependencies(void) const;
 
-	virtual void ValidateCheckInterval(double value, const ValidationUtils& utils) override;
-	virtual void ValidateMaxCheckAttempts(int value, const ValidationUtils& utils) override;
+	virtual void ValidateCheckInterval(double value, const ValidationUtils& utils) override final;
+	virtual void ValidateMaxCheckAttempts(int value, const ValidationUtils& utils) override final;
 
 	static void IncreasePendingChecks(void);
 	static void DecreasePendingChecks(void);

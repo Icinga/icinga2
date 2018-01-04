@@ -58,7 +58,7 @@ public:
 	Column GetColumn(const String& name) const;
 	std::vector<String> GetColumnNames(void) const;
 
-	virtual LivestatusGroupByType GetGroupByType(void) const;
+	LivestatusGroupByType GetGroupByType(void) const;
 
 protected:
 	Table(LivestatusGroupByType type = LivestatusGroupByNone);

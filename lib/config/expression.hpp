@@ -274,7 +274,7 @@ public:
 	{ }
 
 protected:
-	virtual const DebugInfo& GetDebugInfo(void) const override;
+	virtual const DebugInfo& GetDebugInfo(void) const override final;
 
 	DebugInfo m_DebugInfo;
 };
