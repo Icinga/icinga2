@@ -25,7 +25,7 @@
 namespace icinga
 {
 
-class CreateObjectHandler : public HttpHandler
+class CreateObjectHandler final : public HttpHandler
 {
 public:
 	DECLARE_PTR_TYPEDEFS(CreateObjectHandler);

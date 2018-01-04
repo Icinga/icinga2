@@ -49,7 +49,7 @@
 
 using namespace icinga;
 
-class InfluxdbInteger : public Object
+class InfluxdbInteger final : public Object
 {
 public:
 	DECLARE_PTR_TYPEDEFS(InfluxdbInteger);

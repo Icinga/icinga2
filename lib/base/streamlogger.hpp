@@ -48,8 +48,8 @@ public:
 	static void ProcessLogEntry(std::ostream& stream, const LogEntry& entry);
 
 protected:
-	virtual void ProcessLogEntry(const LogEntry& entry) override;
-	virtual void Flush(void) override;
+	virtual void ProcessLogEntry(const LogEntry& entry) override final;
+	virtual void Flush(void) override final;
 
 private:
 	static boost::mutex m_Mutex;

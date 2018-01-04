@@ -38,7 +38,7 @@ namespace icinga
  *
  * @ingroup remote
  */
-class ApiAction : public Object
+class ApiAction final : public Object
 {
 public:
 	DECLARE_PTR_TYPEDEFS(ApiAction);

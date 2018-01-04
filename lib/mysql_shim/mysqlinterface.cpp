@@ -21,7 +21,7 @@
 
 using namespace icinga;
 
-struct MysqlInterfaceImpl : public MysqlInterface
+struct MysqlInterfaceImpl final : public MysqlInterface
 {
 	void Destroy(void) override
 	{

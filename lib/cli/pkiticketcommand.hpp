@@ -30,7 +30,7 @@ namespace icinga
  *
  * @ingroup cli
  */
-class PKITicketCommand : public CLICommand
+class PKITicketCommand final : public CLICommand
 {
 public:
 	DECLARE_PTR_TYPEDEFS(PKITicketCommand);

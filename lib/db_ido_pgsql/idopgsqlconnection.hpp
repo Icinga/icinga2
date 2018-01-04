@@ -37,7 +37,7 @@ typedef std::shared_ptr<PGresult> IdoPgsqlResult;
  *
  * @ingroup ido
  */
-class IdoPgsqlConnection : public ObjectImpl<IdoPgsqlConnection>
+class IdoPgsqlConnection final : public ObjectImpl<IdoPgsqlConnection>
 {
 public:
 	DECLARE_OBJECT(IdoPgsqlConnection);

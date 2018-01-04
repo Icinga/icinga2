@@ -48,7 +48,7 @@ class MessageOrigin;
  *
  * @ingroup remote
  */
-class JsonRpcConnection : public Object
+class JsonRpcConnection final : public Object
 {
 public:
 	DECLARE_PTR_TYPEDEFS(JsonRpcConnection);

@@ -31,7 +31,7 @@ using namespace icinga;
 
 REGISTER_URLHANDLER("/v1/variables", VariableQueryHandler);
 
-class VariableTargetProvider : public TargetProvider
+class VariableTargetProvider final : public TargetProvider
 {
 public:
 	DECLARE_PTR_TYPEDEFS(VariableTargetProvider);

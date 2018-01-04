@@ -31,7 +31,7 @@ namespace icinga
  *
  * @ingroup ido
  */
-class TimePeriodDbObject : public DbObject
+class TimePeriodDbObject final : public DbObject
 {
 public:
 	DECLARE_PTR_TYPEDEFS(TimePeriodDbObject);

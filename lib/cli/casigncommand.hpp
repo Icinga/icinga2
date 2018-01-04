@@ -30,7 +30,7 @@ namespace icinga
  *
  * @ingroup cli
  */
-class CASignCommand : public CLICommand
+class CASignCommand final : public CLICommand
 {
 public:
 	DECLARE_PTR_TYPEDEFS(CASignCommand);

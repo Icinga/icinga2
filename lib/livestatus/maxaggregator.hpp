@@ -29,7 +29,7 @@ namespace icinga
 /**
  * @ingroup livestatus
  */
-struct MaxAggregatorState : public AggregatorState
+struct MaxAggregatorState final : public AggregatorState
 {
 	MaxAggregatorState(void)
 		: Max(0)
@@ -41,7 +41,7 @@ struct MaxAggregatorState : public AggregatorState
 /**
  * @ingroup livestatus
  */
-class MaxAggregator : public Aggregator
+class MaxAggregator final : public Aggregator
 {
 public:
 	DECLARE_PTR_TYPEDEFS(MaxAggregator);

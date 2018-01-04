@@ -119,7 +119,7 @@ protected:
 	friend class SocketEvents;
 };
 
-class SocketEventEnginePoll : public SocketEventEngine
+class SocketEventEnginePoll final : public SocketEventEngine
 {
 public:
 	virtual void Register(SocketEvents *se, Object *lifesupportObject);

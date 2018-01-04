@@ -35,7 +35,7 @@ namespace icinga
  *
  * @ingroup base
  */
-class Function : public ObjectImpl<Function>
+class Function final : public ObjectImpl<Function>
 {
 public:
 	DECLARE_OBJECT(Function);

@@ -21,7 +21,7 @@
 
 using namespace icinga;
 
-struct PgsqlInterfaceImpl : public PgsqlInterface
+struct PgsqlInterfaceImpl final : public PgsqlInterface
 {
 	void Destroy(void) override
 	{

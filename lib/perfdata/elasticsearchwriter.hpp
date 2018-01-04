@@ -29,7 +29,7 @@
 namespace icinga
 {
 
-class ElasticsearchWriter : public ObjectImpl<ElasticsearchWriter>
+class ElasticsearchWriter final : public ObjectImpl<ElasticsearchWriter>
 {
 public:
 	DECLARE_OBJECT(ElasticsearchWriter);

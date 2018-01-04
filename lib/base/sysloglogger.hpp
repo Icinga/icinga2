@@ -32,7 +32,7 @@ namespace icinga
  *
  * @ingroup base
  */
-class SyslogLogger : public ObjectImpl<SyslogLogger>
+class SyslogLogger final : public ObjectImpl<SyslogLogger>
 {
 public:
 	DECLARE_OBJECT(SyslogLogger);

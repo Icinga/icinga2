@@ -32,8 +32,8 @@ set(livestatus_SOURCES
   countaggregator.cpp countaggregator.hpp
   downtimestable.cpp downtimestable.hpp
   endpointstable.cpp endpointstable.hpp
-  filter.cpp filter.hpp
-  historytable.cpp historytable.hpp
+  filter.hpp
+  historytable.hpp
   hostgroupstable.cpp hostgroupstable.hpp
   hoststable.cpp hoststable.hpp
   invavgaggregator.cpp invavgaggregator.hpp

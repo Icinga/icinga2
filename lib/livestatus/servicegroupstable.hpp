@@ -30,7 +30,7 @@ namespace icinga
 /**
  * @ingroup livestatus
  */
-class ServiceGroupsTable : public Table
+class ServiceGroupsTable final : public Table
 {
 public:
 	DECLARE_PTR_TYPEDEFS(ServiceGroupsTable);

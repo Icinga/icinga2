@@ -33,7 +33,7 @@ class TimerHolder;
  *
  * @ingroup base
  */
-class Timer : public Object
+class Timer final : public Object
 {
 public:
 	DECLARE_PTR_TYPEDEFS(Timer);

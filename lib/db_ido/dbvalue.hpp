@@ -39,7 +39,7 @@ enum DbValueType
  *
  * @ingroup ido
  */
-struct DbValue : public Object
+struct DbValue final : public Object
 {
 public:
 	DECLARE_PTR_TYPEDEFS(DbValue);

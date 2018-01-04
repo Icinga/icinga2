@@ -36,7 +36,7 @@ namespace icinga
  *
  * @ingroup perfdata
  */
-class InfluxdbWriter : public ObjectImpl<InfluxdbWriter>
+class InfluxdbWriter final : public ObjectImpl<InfluxdbWriter>
 {
 public:
 	DECLARE_OBJECT(InfluxdbWriter);

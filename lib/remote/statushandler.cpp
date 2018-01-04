@@ -27,7 +27,7 @@ using namespace icinga;
 
 REGISTER_URLHANDLER("/v1/status", StatusHandler);
 
-class StatusTargetProvider : public TargetProvider
+class StatusTargetProvider final : public TargetProvider
 {
 public:
 	DECLARE_PTR_TYPEDEFS(StatusTargetProvider);

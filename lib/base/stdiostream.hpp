@@ -26,7 +26,7 @@
 
 namespace icinga {
 
-class StdioStream : public Stream
+class StdioStream final : public Stream
 {
 public:
 	DECLARE_PTR_TYPEDEFS(StdioStream);

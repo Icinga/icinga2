@@ -32,7 +32,7 @@
 namespace icinga
 {
 
-class EventQueue : public Object
+class EventQueue final : public Object
 {
 public:
 	DECLARE_PTR_TYPEDEFS(EventQueue);

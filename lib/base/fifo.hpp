@@ -31,7 +31,7 @@ namespace icinga
  *
  * @ingroup base
  */
-class FIFO : public Stream
+class FIFO final : public Stream
 {
 public:
 	DECLARE_PTR_TYPEDEFS(FIFO);

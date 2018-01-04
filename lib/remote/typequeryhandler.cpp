@@ -30,7 +30,7 @@ using namespace icinga;
 
 REGISTER_URLHANDLER("/v1/types", TypeQueryHandler);
 
-class TypeTargetProvider : public TargetProvider
+class TypeTargetProvider final : public TargetProvider
 {
 public:
 	DECLARE_PTR_TYPEDEFS(TypeTargetProvider);

@@ -30,7 +30,7 @@ namespace icinga
 /**
  * @ingroup livestatus
  */
-class ZonesTable : public Table
+class ZonesTable final : public Table
 {
 public:
 	DECLARE_PTR_TYPEDEFS(ZonesTable);

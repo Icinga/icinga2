@@ -28,7 +28,7 @@
 namespace icinga
 {
 
-class ActivationContext : public Object
+class ActivationContext final : public Object
 {
 public:
 	DECLARE_PTR_TYPEDEFS(ActivationContext);

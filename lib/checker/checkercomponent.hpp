@@ -63,7 +63,7 @@ struct CheckableNextCheckExtractor
 /**
  * @ingroup checker
  */
-class CheckerComponent : public ObjectImpl<CheckerComponent>
+class CheckerComponent final : public ObjectImpl<CheckerComponent>
 {
 public:
 	DECLARE_OBJECT(CheckerComponent);

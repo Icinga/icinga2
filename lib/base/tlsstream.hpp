@@ -43,7 +43,7 @@ enum TlsAction
  *
  * @ingroup base
  */
-class TlsStream : public Stream, private SocketEvents
+class TlsStream final : public Stream, private SocketEvents
 {
 public:
 	DECLARE_PTR_TYPEDEFS(TlsStream);

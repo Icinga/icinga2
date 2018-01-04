@@ -32,7 +32,7 @@ namespace icinga
  *
  * @ingroup ido
  */
-class HostGroupDbObject : public DbObject
+class HostGroupDbObject final : public DbObject
 {
 public:
 	DECLARE_PTR_TYPEDEFS(HostGroupDbObject);

@@ -35,7 +35,7 @@ namespace icinga
  *
  * @ingroup perfdata
  */
-class OpenTsdbWriter : public ObjectImpl<OpenTsdbWriter>
+class OpenTsdbWriter final : public ObjectImpl<OpenTsdbWriter>
 {
 public:
 	DECLARE_OBJECT(OpenTsdbWriter);

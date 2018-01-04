@@ -33,7 +33,7 @@ namespace icinga
  *
  * @ingroup cli
  */
-class VariableListCommand : public CLICommand
+class VariableListCommand final : public CLICommand
 {
 public:
 	DECLARE_PTR_TYPEDEFS(VariableListCommand);

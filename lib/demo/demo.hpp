@@ -30,7 +30,7 @@ namespace icinga
 /**
  * @ingroup demo
  */
-class Demo : public ObjectImpl<Demo>
+class Demo final : public ObjectImpl<Demo>
 {
 public:
 	DECLARE_OBJECT(Demo);

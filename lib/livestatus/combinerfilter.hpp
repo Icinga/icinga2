@@ -35,12 +35,12 @@ class CombinerFilter : public Filter
 public:
 	DECLARE_PTR_TYPEDEFS(CombinerFilter);
 
-	CombinerFilter(void);
-
 	void AddSubFilter(const Filter::Ptr& filter);
 
 protected:
 	std::vector<Filter::Ptr> m_Filters;
+
+	CombinerFilter(void);
 };
 
 }

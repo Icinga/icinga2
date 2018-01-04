@@ -25,7 +25,7 @@
 namespace icinga
 {
 
-class ConfigPackagesHandler : public HttpHandler
+class ConfigPackagesHandler final : public HttpHandler
 {
 public:
 	DECLARE_PTR_TYPEDEFS(ConfigPackagesHandler);

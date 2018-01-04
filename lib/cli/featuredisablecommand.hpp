@@ -30,7 +30,7 @@ namespace icinga
  *
  * @ingroup cli
  */
-class FeatureDisableCommand : public CLICommand
+class FeatureDisableCommand final : public CLICommand
 {
 public:
 	DECLARE_PTR_TYPEDEFS(FeatureDisableCommand);

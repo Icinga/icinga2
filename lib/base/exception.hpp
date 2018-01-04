@@ -55,7 +55,7 @@ public:
 	ScriptError(const String& message, const DebugInfo& di, bool incompleteExpr = false);
 	~ScriptError(void) throw();
 
-	virtual const char *what(void) const throw() override;
+	virtual const char *what(void) const throw() override final;
 
 	DebugInfo GetDebugInfo(void) const;
 	bool IsIncompleteExpression(void) const;
@@ -79,7 +79,7 @@ public:
 	ValidationError(const ConfigObject::Ptr& object, const std::vector<String>& attributePath, const String& message);
 	~ValidationError(void) throw();
 
-	virtual const char *what(void) const throw() override;
+	virtual const char *what(void) const throw() override final;
 
 	ConfigObject::Ptr GetObject(void) const;
 	std::vector<String> GetAttributePath(void) const;
@@ -128,7 +128,7 @@ public:
 	posix_error(void);
 	virtual ~posix_error(void) throw();
 
-	virtual const char *what(void) const throw() override;
+	virtual const char *what(void) const throw() override final;
 
 private:
 	mutable char *m_Message;

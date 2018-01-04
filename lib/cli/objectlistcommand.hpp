@@ -33,7 +33,7 @@ namespace icinga
  *
  * @ingroup cli
  */
-class ObjectListCommand : public CLICommand
+class ObjectListCommand final : public CLICommand
 {
 public:
 	DECLARE_PTR_TYPEDEFS(ObjectListCommand);

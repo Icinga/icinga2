@@ -31,7 +31,7 @@ namespace icinga
  *
  * @ingroup icinga
  */
-class CheckCommand : public ObjectImpl<CheckCommand>
+class CheckCommand final : public ObjectImpl<CheckCommand>
 {
 public:
 	DECLARE_OBJECT(CheckCommand);

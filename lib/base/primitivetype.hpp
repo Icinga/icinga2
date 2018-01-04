@@ -27,7 +27,7 @@
 namespace icinga
 {
 
-class PrimitiveType : public Type
+class PrimitiveType final : public Type
 {
 public:
 	PrimitiveType(const String& name, const String& base, const ObjectFactory& factory = ObjectFactory());

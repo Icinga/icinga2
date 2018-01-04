@@ -36,7 +36,7 @@ class Service;
  *
  * @ingroup icinga
  */
-class Dependency : public ObjectImpl<Dependency>
+class Dependency final : public ObjectImpl<Dependency>
 {
 public:
 	DECLARE_OBJECT(Dependency);

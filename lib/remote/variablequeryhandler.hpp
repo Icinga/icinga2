@@ -25,7 +25,7 @@
 namespace icinga
 {
 
-class VariableQueryHandler : public HttpHandler
+class VariableQueryHandler final : public HttpHandler
 {
 public:
 	DECLARE_PTR_TYPEDEFS(VariableQueryHandler);

@@ -30,7 +30,7 @@ namespace icinga
  *
  * @ingroup cli
  */
-class PKISaveCertCommand : public CLICommand
+class PKISaveCertCommand final : public CLICommand
 {
 public:
 	DECLARE_PTR_TYPEDEFS(PKISaveCertCommand);

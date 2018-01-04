@@ -33,7 +33,7 @@ namespace icinga
 /**
  * @ingroup compat
  */
-class ExternalCommandListener : public ObjectImpl<ExternalCommandListener>
+class ExternalCommandListener final : public ObjectImpl<ExternalCommandListener>
 {
 public:
 	DECLARE_OBJECT(ExternalCommandListener);

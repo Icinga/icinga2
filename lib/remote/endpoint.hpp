@@ -36,7 +36,7 @@ class Zone;
  *
  * @ingroup remote
  */
-class Endpoint : public ObjectImpl<Endpoint>
+class Endpoint final : public ObjectImpl<Endpoint>
 {
 public:
 	DECLARE_OBJECT(Endpoint);

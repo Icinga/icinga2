@@ -30,7 +30,7 @@ namespace icinga
  *
  * @ingroup cli
  */
-class FeatureListCommand : public CLICommand
+class FeatureListCommand final : public CLICommand
 {
 public:
 	DECLARE_PTR_TYPEDEFS(FeatureListCommand);

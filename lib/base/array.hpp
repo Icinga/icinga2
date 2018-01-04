@@ -35,7 +35,7 @@ namespace icinga
  *
  * @ingroup base
  */
-class Array : public Object
+class Array final : public Object
 {
 public:
 	DECLARE_OBJECT(Array);

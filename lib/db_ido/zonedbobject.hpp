@@ -32,7 +32,7 @@ namespace icinga
  *
  * @ingroup ido
  */
-class ZoneDbObject : public DbObject
+class ZoneDbObject final : public DbObject
 {
 public:
 	DECLARE_PTR_TYPEDEFS(ZoneDbObject);

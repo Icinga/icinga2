@@ -35,7 +35,7 @@ namespace icinga
  *
  * @ingroup base
  */
-class ApiFunction : public Object
+class ApiFunction final : public Object
 {
 public:
 	DECLARE_PTR_TYPEDEFS(ApiFunction);

@@ -30,7 +30,7 @@ namespace icinga
  *
  * @ingroup cli
  */
-class PKIRequestCommand : public CLICommand
+class PKIRequestCommand final : public CLICommand
 {
 public:
 	DECLARE_PTR_TYPEDEFS(PKIRequestCommand);

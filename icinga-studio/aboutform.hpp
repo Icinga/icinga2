@@ -25,7 +25,7 @@
 namespace icinga
 {
 
-class AboutForm : public AboutFormBase
+class AboutForm final : public AboutFormBase
 {
 public:
 	AboutForm(wxWindow *parent);

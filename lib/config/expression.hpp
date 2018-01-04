@@ -217,7 +217,7 @@ public:
 
 std::unique_ptr<Expression> MakeIndexer(ScopeSpecifier scopeSpec, const String& index);
 
-class OwnedExpression : public Expression
+class OwnedExpression final : public Expression
 {
 public:
 	OwnedExpression(const std::shared_ptr<Expression>& expression)
@@ -239,7 +239,7 @@ private:
 	std::shared_ptr<Expression> m_Expression;
 };
 
-class LiteralExpression : public Expression
+class LiteralExpression final : public Expression
 {
 public:
 	LiteralExpression(const Value& value = Value());
@@ -274,7 +274,7 @@ public:
 	{ }
 
 protected:
-	virtual const DebugInfo& GetDebugInfo(void) const override;
+	virtual const DebugInfo& GetDebugInfo(void) const override final;
 
 	DebugInfo m_DebugInfo;
 };
@@ -302,7 +302,7 @@ protected:
 	std::unique_ptr<Expression> m_Operand2;
 };
 
-class VariableExpression : public DebuggableExpression
+class VariableExpression final : public DebuggableExpression
 {
 public:
 	VariableExpression(const String& variable, const DebugInfo& debugInfo = DebugInfo())
@@ -324,7 +324,7 @@ private:
 	friend void BindToScope(std::unique_ptr<Expression>& expr, ScopeSpecifier scopeSpec);
 };
 
-class NegateExpression : public UnaryExpression
+class NegateExpression final : public UnaryExpression
 {
 public:
 	NegateExpression(std::unique_ptr<Expression> operand, const DebugInfo& debugInfo = DebugInfo())
@@ -335,7 +335,7 @@ protected:
 	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
-class LogicalNegateExpression : public UnaryExpression
+class LogicalNegateExpression final : public UnaryExpression
 {
 public:
 	LogicalNegateExpression(std::unique_ptr<Expression> operand, const DebugInfo& debugInfo = DebugInfo())
@@ -346,7 +346,7 @@ protected:
 	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
-class AddExpression : public BinaryExpression
+class AddExpression final : public BinaryExpression
 {
 public:
 	AddExpression(std::unique_ptr<Expression> operand1, std::unique_ptr<Expression> operand2, const DebugInfo& debugInfo = DebugInfo())
@@ -357,7 +357,7 @@ protected:
 	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
-class SubtractExpression : public BinaryExpression
+class SubtractExpression final : public BinaryExpression
 {
 public:
 	SubtractExpression(std::unique_ptr<Expression> operand1, std::unique_ptr<Expression> operand2, const DebugInfo& debugInfo = DebugInfo())
@@ -368,7 +368,7 @@ protected:
 	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
-class MultiplyExpression : public BinaryExpression
+class MultiplyExpression final : public BinaryExpression
 {
 public:
 	MultiplyExpression(std::unique_ptr<Expression> operand1, std::unique_ptr<Expression> operand2, const DebugInfo& debugInfo = DebugInfo())
@@ -379,7 +379,7 @@ protected:
 	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
-class DivideExpression : public BinaryExpression
+class DivideExpression final : public BinaryExpression
 {
 public:
 	DivideExpression(std::unique_ptr<Expression> operand1, std::unique_ptr<Expression> operand2, const DebugInfo& debugInfo = DebugInfo())
@@ -390,7 +390,7 @@ protected:
 	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
-class ModuloExpression : public BinaryExpression
+class ModuloExpression final : public BinaryExpression
 {
 public:
 	ModuloExpression(std::unique_ptr<Expression> operand1, std::unique_ptr<Expression> operand2, const DebugInfo& debugInfo = DebugInfo())
@@ -401,7 +401,7 @@ protected:
 	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
-class XorExpression : public BinaryExpression
+class XorExpression final : public BinaryExpression
 {
 public:
 	XorExpression(std::unique_ptr<Expression> operand1, std::unique_ptr<Expression> operand2, const DebugInfo& debugInfo = DebugInfo())
@@ -412,7 +412,7 @@ protected:
 	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
-class BinaryAndExpression : public BinaryExpression
+class BinaryAndExpression final : public BinaryExpression
 {
 public:
 	BinaryAndExpression(std::unique_ptr<Expression> operand1, std::unique_ptr<Expression> operand2, const DebugInfo& debugInfo = DebugInfo())
@@ -423,7 +423,7 @@ protected:
 	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
-class BinaryOrExpression : public BinaryExpression
+class BinaryOrExpression final : public BinaryExpression
 {
 public:
 	BinaryOrExpression(std::unique_ptr<Expression> operand1, std::unique_ptr<Expression> operand2, const DebugInfo& debugInfo = DebugInfo())
@@ -434,7 +434,7 @@ protected:
 	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
-class ShiftLeftExpression : public BinaryExpression
+class ShiftLeftExpression final : public BinaryExpression
 {
 public:
 	ShiftLeftExpression(std::unique_ptr<Expression> operand1, std::unique_ptr<Expression> operand2, const DebugInfo& debugInfo = DebugInfo())
@@ -445,7 +445,7 @@ protected:
 	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
-class ShiftRightExpression : public BinaryExpression
+class ShiftRightExpression final : public BinaryExpression
 {
 public:
 	ShiftRightExpression(std::unique_ptr<Expression> operand1, std::unique_ptr<Expression> operand2, const DebugInfo& debugInfo = DebugInfo())
@@ -456,7 +456,7 @@ protected:
 	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
-class EqualExpression : public BinaryExpression
+class EqualExpression final : public BinaryExpression
 {
 public:
 	EqualExpression(std::unique_ptr<Expression> operand1, std::unique_ptr<Expression> operand2, const DebugInfo& debugInfo = DebugInfo())
@@ -467,7 +467,7 @@ protected:
 	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
-class NotEqualExpression : public BinaryExpression
+class NotEqualExpression final : public BinaryExpression
 {
 public:
 	NotEqualExpression(std::unique_ptr<Expression> operand1, std::unique_ptr<Expression> operand2, const DebugInfo& debugInfo = DebugInfo())
@@ -478,7 +478,7 @@ protected:
 	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
-class LessThanExpression : public BinaryExpression
+class LessThanExpression final : public BinaryExpression
 {
 public:
 	LessThanExpression(std::unique_ptr<Expression> operand1, std::unique_ptr<Expression> operand2, const DebugInfo& debugInfo = DebugInfo())
@@ -489,7 +489,7 @@ protected:
 	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
-class GreaterThanExpression : public BinaryExpression
+class GreaterThanExpression final : public BinaryExpression
 {
 public:
 	GreaterThanExpression(std::unique_ptr<Expression> operand1, std::unique_ptr<Expression> operand2, const DebugInfo& debugInfo = DebugInfo())
@@ -500,7 +500,7 @@ protected:
 	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
-class LessThanOrEqualExpression : public BinaryExpression
+class LessThanOrEqualExpression final : public BinaryExpression
 {
 public:
 	LessThanOrEqualExpression(std::unique_ptr<Expression> operand1, std::unique_ptr<Expression> operand2, const DebugInfo& debugInfo = DebugInfo())
@@ -511,7 +511,7 @@ protected:
 	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
-class GreaterThanOrEqualExpression : public BinaryExpression
+class GreaterThanOrEqualExpression final : public BinaryExpression
 {
 public:
 	GreaterThanOrEqualExpression(std::unique_ptr<Expression> operand1, std::unique_ptr<Expression> operand2, const DebugInfo& debugInfo = DebugInfo())
@@ -522,7 +522,7 @@ protected:
 	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
-class InExpression : public BinaryExpression
+class InExpression final : public BinaryExpression
 {
 public:
 	InExpression(std::unique_ptr<Expression> operand1, std::unique_ptr<Expression> operand2, const DebugInfo& debugInfo = DebugInfo())
@@ -533,7 +533,7 @@ protected:
 	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
-class NotInExpression : public BinaryExpression
+class NotInExpression final : public BinaryExpression
 {
 public:
 	NotInExpression(std::unique_ptr<Expression> operand1, std::unique_ptr<Expression> operand2, const DebugInfo& debugInfo = DebugInfo())
@@ -544,7 +544,7 @@ protected:
 	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
-class LogicalAndExpression : public BinaryExpression
+class LogicalAndExpression final : public BinaryExpression
 {
 public:
 	LogicalAndExpression(std::unique_ptr<Expression> operand1, std::unique_ptr<Expression> operand2, const DebugInfo& debugInfo = DebugInfo())
@@ -555,7 +555,7 @@ protected:
 	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
-class LogicalOrExpression : public BinaryExpression
+class LogicalOrExpression final : public BinaryExpression
 {
 public:
 	LogicalOrExpression(std::unique_ptr<Expression> operand1, std::unique_ptr<Expression> operand2, const DebugInfo& debugInfo = DebugInfo())
@@ -566,7 +566,7 @@ protected:
 	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
-class FunctionCallExpression : public DebuggableExpression
+class FunctionCallExpression final : public DebuggableExpression
 {
 public:
 	FunctionCallExpression(std::unique_ptr<Expression> fname, std::vector<std::unique_ptr<Expression> >&& args, const DebugInfo& debugInfo = DebugInfo())
@@ -581,7 +581,7 @@ public:
 	std::vector<std::unique_ptr<Expression> > m_Args;
 };
 
-class ArrayExpression : public DebuggableExpression
+class ArrayExpression final : public DebuggableExpression
 {
 public:
 	ArrayExpression(std::vector<std::unique_ptr<Expression > >&& expressions, const DebugInfo& debugInfo = DebugInfo())
@@ -595,7 +595,7 @@ private:
 	std::vector<std::unique_ptr<Expression> > m_Expressions;
 };
 
-class DictExpression : public DebuggableExpression
+class DictExpression final : public DebuggableExpression
 {
 public:
 	DictExpression(std::vector<std::unique_ptr<Expression> >&& expressions = {}, const DebugInfo& debugInfo = DebugInfo())
@@ -614,7 +614,7 @@ private:
 	friend void BindToScope(std::unique_ptr<Expression>& expr, ScopeSpecifier scopeSpec);
 };
 
-class SetExpression : public BinaryExpression
+class SetExpression final : public BinaryExpression
 {
 public:
 	SetExpression(std::unique_ptr<Expression> operand1, CombinedSetOp op, std::unique_ptr<Expression> operand2, const DebugInfo& debugInfo = DebugInfo())
@@ -630,7 +630,7 @@ private:
 	friend void BindToScope(std::unique_ptr<Expression>& expr, ScopeSpecifier scopeSpec);
 };
 
-class ConditionalExpression : public DebuggableExpression
+class ConditionalExpression final : public DebuggableExpression
 {
 public:
 	ConditionalExpression(std::unique_ptr<Expression> condition, std::unique_ptr<Expression> true_branch, std::unique_ptr<Expression> false_branch, const DebugInfo& debugInfo = DebugInfo())
@@ -646,7 +646,7 @@ private:
 	std::unique_ptr<Expression> m_FalseBranch;
 };
 
-class WhileExpression : public DebuggableExpression
+class WhileExpression final : public DebuggableExpression
 {
 public:
 	WhileExpression(std::unique_ptr<Expression> condition, std::unique_ptr<Expression> loop_body, const DebugInfo& debugInfo = DebugInfo())
@@ -662,7 +662,7 @@ private:
 };
 
 
-class ReturnExpression : public UnaryExpression
+class ReturnExpression final : public UnaryExpression
 {
 public:
 	ReturnExpression(std::unique_ptr<Expression> expression, const DebugInfo& debugInfo = DebugInfo())
@@ -673,7 +673,7 @@ protected:
 	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
-class BreakExpression : public DebuggableExpression
+class BreakExpression final : public DebuggableExpression
 {
 public:
 	BreakExpression(const DebugInfo& debugInfo = DebugInfo())
@@ -684,7 +684,7 @@ protected:
 	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
-class ContinueExpression : public DebuggableExpression
+class ContinueExpression final : public DebuggableExpression
 {
 public:
 	ContinueExpression(const DebugInfo& debugInfo = DebugInfo())
@@ -695,7 +695,7 @@ protected:
 	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
-class GetScopeExpression : public Expression
+class GetScopeExpression final : public Expression
 {
 public:
 	GetScopeExpression(ScopeSpecifier scopeSpec)
@@ -709,7 +709,7 @@ private:
 	ScopeSpecifier m_ScopeSpec;
 };
 
-class IndexerExpression : public BinaryExpression
+class IndexerExpression final : public BinaryExpression
 {
 public:
 	IndexerExpression(std::unique_ptr<Expression> operand1, std::unique_ptr<Expression> operand2, const DebugInfo& debugInfo = DebugInfo())
@@ -725,7 +725,7 @@ protected:
 
 void BindToScope(std::unique_ptr<Expression>& expr, ScopeSpecifier scopeSpec);
 
-class ThrowExpression : public DebuggableExpression
+class ThrowExpression final : public DebuggableExpression
 {
 public:
 	ThrowExpression(std::unique_ptr<Expression> message, bool incompleteExpr, const DebugInfo& debugInfo = DebugInfo())
@@ -740,7 +740,7 @@ private:
 	bool m_IncompleteExpr;
 };
 
-class ImportExpression : public DebuggableExpression
+class ImportExpression final : public DebuggableExpression
 {
 public:
 	ImportExpression(std::unique_ptr<Expression> name, const DebugInfo& debugInfo = DebugInfo())
@@ -754,7 +754,7 @@ private:
 	std::unique_ptr<Expression> m_Name;
 };
 
-class ImportDefaultTemplatesExpression : public DebuggableExpression
+class ImportDefaultTemplatesExpression final : public DebuggableExpression
 {
 public:
 	ImportDefaultTemplatesExpression(const DebugInfo& debugInfo = DebugInfo())
@@ -765,7 +765,7 @@ protected:
 	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
-class FunctionExpression : public DebuggableExpression
+class FunctionExpression final : public DebuggableExpression
 {
 public:
 	FunctionExpression(const String& name, const std::vector<String>& args,
@@ -783,7 +783,7 @@ private:
 	std::shared_ptr<Expression> m_Expression;
 };
 
-class ApplyExpression : public DebuggableExpression
+class ApplyExpression final : public DebuggableExpression
 {
 public:
 	ApplyExpression(const String& type, const String& target, std::unique_ptr<Expression> name,
@@ -813,7 +813,7 @@ private:
 	std::shared_ptr<Expression> m_Expression;
 };
 
-class ObjectExpression : public DebuggableExpression
+class ObjectExpression final : public DebuggableExpression
 {
 public:
 	ObjectExpression(bool abstract, std::unique_ptr<Expression> type, std::unique_ptr<Expression> name, std::unique_ptr<Expression> filter,
@@ -840,7 +840,7 @@ private:
 	std::shared_ptr<Expression> m_Expression;
 };
 
-class ForExpression : public DebuggableExpression
+class ForExpression final : public DebuggableExpression
 {
 public:
 	ForExpression(const String& fkvar, const String& fvvar, std::unique_ptr<Expression> value, std::unique_ptr<Expression> expression, const DebugInfo& debugInfo = DebugInfo())
@@ -857,7 +857,7 @@ private:
 	std::unique_ptr<Expression> m_Expression;
 };
 
-class LibraryExpression : public UnaryExpression
+class LibraryExpression final : public UnaryExpression
 {
 public:
 	LibraryExpression(std::unique_ptr<Expression> expression, const DebugInfo& debugInfo = DebugInfo())
@@ -875,7 +875,7 @@ enum IncludeType
 	IncludeZones
 };
 
-class IncludeExpression : public DebuggableExpression
+class IncludeExpression final : public DebuggableExpression
 {
 public:
 	IncludeExpression(const String& relativeBase, std::unique_ptr<Expression> path, std::unique_ptr<Expression> pattern, std::unique_ptr<Expression> name,
@@ -898,7 +898,7 @@ private:
 	String m_Package;
 };
 
-class BreakpointExpression : public DebuggableExpression
+class BreakpointExpression final : public DebuggableExpression
 {
 public:
 	BreakpointExpression(const DebugInfo& debugInfo = DebugInfo())
@@ -909,7 +909,7 @@ protected:
 	virtual ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
-class UsingExpression : public DebuggableExpression
+class UsingExpression final : public DebuggableExpression
 {
 public:
 	UsingExpression(std::unique_ptr<Expression> name, const DebugInfo& debugInfo = DebugInfo())
@@ -923,7 +923,7 @@ private:
 	std::unique_ptr<Expression> m_Name;
 };
 
-class TryExceptExpression : public DebuggableExpression
+class TryExceptExpression final : public DebuggableExpression
 {
 public:
 	TryExceptExpression(std::unique_ptr<Expression> tryBody, std::unique_ptr<Expression> exceptBody, const DebugInfo& debugInfo = DebugInfo())

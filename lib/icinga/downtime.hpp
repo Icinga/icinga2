@@ -33,7 +33,7 @@ namespace icinga
  *
  * @ingroup icinga
  */
-class Downtime : public ObjectImpl<Downtime>
+class Downtime final : public ObjectImpl<Downtime>
 {
 public:
 	DECLARE_OBJECT(Downtime);

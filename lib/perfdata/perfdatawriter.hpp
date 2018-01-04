@@ -34,7 +34,7 @@ namespace icinga
  *
  * @ingroup icinga
  */
-class PerfdataWriter : public ObjectImpl<PerfdataWriter>
+class PerfdataWriter final : public ObjectImpl<PerfdataWriter>
 {
 public:
 	DECLARE_OBJECT(PerfdataWriter);

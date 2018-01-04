@@ -30,7 +30,7 @@ namespace icinga
  *
  * @ingroup cli
  */
-class NodeWizardCommand : public CLICommand
+class NodeWizardCommand final : public CLICommand
 {
 public:
 	DECLARE_PTR_TYPEDEFS(NodeWizardCommand);

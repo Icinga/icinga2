@@ -28,7 +28,7 @@
 namespace icinga
 {
 
-class MainForm : public MainFormBase
+class MainForm final : public MainFormBase
 {
 public:
 	MainForm(wxWindow *parent, const Url::Ptr& url);
