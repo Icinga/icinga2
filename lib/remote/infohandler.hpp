@@ -25,7 +25,7 @@
 namespace icinga
 {
 
-class InfoHandler : public HttpHandler
+class InfoHandler final : public HttpHandler
 {
 public:
 	DECLARE_PTR_TYPEDEFS(InfoHandler);

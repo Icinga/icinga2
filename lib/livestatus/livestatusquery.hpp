@@ -43,7 +43,7 @@ enum LivestatusError
 /**
  * @ingroup livestatus
  */
-class LivestatusQuery : public Object
+class LivestatusQuery final : public Object
 {
 public:
 	DECLARE_PTR_TYPEDEFS(LivestatusQuery);

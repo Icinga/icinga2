@@ -45,7 +45,7 @@ struct IdoAsyncQuery
  *
  * @ingroup ido
  */
-class IdoMysqlConnection : public ObjectImpl<IdoMysqlConnection>
+class IdoMysqlConnection final : public ObjectImpl<IdoMysqlConnection>
 {
 public:
 	DECLARE_OBJECT(IdoMysqlConnection);

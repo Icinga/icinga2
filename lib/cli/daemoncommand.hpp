@@ -30,7 +30,7 @@ namespace icinga
  *
  * @ingroup cli
  */
-class DaemonCommand : public CLICommand
+class DaemonCommand final : public CLICommand
 {
 public:
 	DECLARE_PTR_TYPEDEFS(DaemonCommand);

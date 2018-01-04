@@ -30,7 +30,7 @@ namespace icinga
 /**
  * @ingroup livestatus
  */
-class TimePeriodsTable : public Table
+class TimePeriodsTable final : public Table
 {
 public:
 	DECLARE_PTR_TYPEDEFS(TimePeriodsTable);

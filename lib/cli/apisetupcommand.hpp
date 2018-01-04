@@ -30,7 +30,7 @@ namespace icinga
  *
  * @ingroup cli
  */
-class ApiSetupCommand : public CLICommand
+class ApiSetupCommand final : public CLICommand
 {
 public:
 	DECLARE_PTR_TYPEDEFS(ApiSetupCommand);

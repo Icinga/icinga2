@@ -32,7 +32,7 @@ namespace icinga
  *
  * @ingroup compat
  */
-class CheckResultReader : public ObjectImpl<CheckResultReader>
+class CheckResultReader final : public ObjectImpl<CheckResultReader>
 {
 public:
 	DECLARE_OBJECT(CheckResultReader);

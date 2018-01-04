@@ -49,7 +49,7 @@ struct ProcessResult
  *
  * @ingroup base
  */
-class Process : public Object
+class Process final : public Object
 {
 public:
 	DECLARE_PTR_TYPEDEFS(Process);

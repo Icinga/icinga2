@@ -25,7 +25,7 @@
 namespace icinga
 {
 
-class TypeQueryHandler : public HttpHandler
+class TypeQueryHandler final : public HttpHandler
 {
 public:
 	DECLARE_PTR_TYPEDEFS(TypeQueryHandler);

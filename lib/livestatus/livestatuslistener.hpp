@@ -34,7 +34,7 @@ namespace icinga
 /**
  * @ingroup livestatus
  */
-class LivestatusListener : public ObjectImpl<LivestatusListener>
+class LivestatusListener final : public ObjectImpl<LivestatusListener>
 {
 public:
 	DECLARE_OBJECT(LivestatusListener);

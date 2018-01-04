@@ -91,7 +91,7 @@ void ConfigObject::ClearExtension(const String& key)
 	extensions->Remove(key);
 }
 
-class ModAttrValidationUtils : public ValidationUtils
+class ModAttrValidationUtils final : public ValidationUtils
 {
 public:
 	virtual bool ValidateName(const String& type, const String& name) const override

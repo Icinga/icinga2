@@ -33,7 +33,7 @@ namespace icinga
  *
  * @ingroup icinga
  */
-class User : public ObjectImpl<User>
+class User final : public ObjectImpl<User>
 {
 public:
 	DECLARE_OBJECT(User);

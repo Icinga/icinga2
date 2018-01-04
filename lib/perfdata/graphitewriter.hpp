@@ -36,7 +36,7 @@ namespace icinga
  *
  * @ingroup perfdata
  */
-class GraphiteWriter : public ObjectImpl<GraphiteWriter>
+class GraphiteWriter final : public ObjectImpl<GraphiteWriter>
 {
 public:
 	DECLARE_OBJECT(GraphiteWriter);

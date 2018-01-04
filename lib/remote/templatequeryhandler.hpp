@@ -25,7 +25,7 @@
 namespace icinga
 {
 
-class TemplateQueryHandler : public HttpHandler
+class TemplateQueryHandler final : public HttpHandler
 {
 public:
 	DECLARE_PTR_TYPEDEFS(TemplateQueryHandler);

@@ -36,7 +36,7 @@ class DbObject;
  *
  * @ingroup ido
  */
-class DbType : public Object
+class DbType final : public Object
 {
 public:
 	DECLARE_PTR_TYPEDEFS(DbType);

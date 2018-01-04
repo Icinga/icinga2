@@ -36,7 +36,7 @@ namespace icinga
 /**
  * @ingroup compat
  */
-class StatusDataWriter : public ObjectImpl<StatusDataWriter>
+class StatusDataWriter final : public ObjectImpl<StatusDataWriter>
 {
 public:
 	DECLARE_OBJECT(StatusDataWriter);

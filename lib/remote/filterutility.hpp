@@ -41,7 +41,7 @@ public:
 	virtual String GetPluralName(const String& type) const = 0;
 };
 
-class ConfigObjectTargetProvider : public TargetProvider
+class ConfigObjectTargetProvider final : public TargetProvider
 {
 public:
 	DECLARE_PTR_TYPEDEFS(ConfigObjectTargetProvider);

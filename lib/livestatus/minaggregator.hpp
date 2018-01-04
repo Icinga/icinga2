@@ -30,7 +30,7 @@ namespace icinga
 /**
  * @ingroup livestatus
  */
-struct MinAggregatorState : public AggregatorState
+struct MinAggregatorState final : public AggregatorState
 {
 	MinAggregatorState(void)
 		: Min(DBL_MAX)
@@ -42,7 +42,7 @@ struct MinAggregatorState : public AggregatorState
 /**
  * @ingroup livestatus
  */
-class MinAggregator : public Aggregator
+class MinAggregator final : public Aggregator
 {
 public:
 	DECLARE_PTR_TYPEDEFS(MinAggregator);

@@ -38,7 +38,7 @@ struct ApiScriptFrame
 	{ }
 };
 
-class ConsoleHandler : public HttpHandler
+class ConsoleHandler final : public HttpHandler
 {
 public:
 	DECLARE_PTR_TYPEDEFS(ConsoleHandler);

@@ -33,7 +33,7 @@ namespace icinga
  *
  * @ingroup base
  */
-class DateTime : public ObjectImpl<DateTime>
+class DateTime final : public ObjectImpl<DateTime>
 {
 public:
 	DECLARE_OBJECT(DateTime);

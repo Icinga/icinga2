@@ -32,7 +32,7 @@ namespace icinga
  *
  * @ingroup ido
  */
-class UserGroupDbObject : public DbObject
+class UserGroupDbObject final : public DbObject
 {
 public:
 	DECLARE_PTR_TYPEDEFS(UserGroupDbObject);

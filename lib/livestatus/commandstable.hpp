@@ -30,7 +30,7 @@ namespace icinga
 /**
  * @ingroup livestatus
  */
-class CommandsTable : public Table
+class CommandsTable final : public Table
 {
 public:
 	DECLARE_PTR_TYPEDEFS(CommandsTable);

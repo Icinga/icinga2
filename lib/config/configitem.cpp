@@ -152,7 +152,7 @@ std::shared_ptr<Expression> ConfigItem::GetFilter(void) const
 	return m_Filter;
 }
 
-class DefaultValidationUtils : public ValidationUtils
+class DefaultValidationUtils final : public ValidationUtils
 {
 public:
 	virtual bool ValidateName(const String& type, const String& name) const override

@@ -31,7 +31,7 @@ namespace icinga
  *
  * @ingroup icinga
  */
-class CheckResult : public ObjectImpl<CheckResult>
+class CheckResult final : public ObjectImpl<CheckResult>
 {
 public:
 	DECLARE_OBJECT(CheckResult);

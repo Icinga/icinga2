@@ -25,7 +25,7 @@
 namespace icinga
 {
 
-class ActionsHandler : public HttpHandler
+class ActionsHandler final : public HttpHandler
 {
 public:
 	DECLARE_PTR_TYPEDEFS(ActionsHandler);

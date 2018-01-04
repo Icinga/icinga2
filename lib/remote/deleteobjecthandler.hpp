@@ -25,7 +25,7 @@
 namespace icinga
 {
 
-class DeleteObjectHandler : public HttpHandler
+class DeleteObjectHandler final : public HttpHandler
 {
 public:
 	DECLARE_PTR_TYPEDEFS(DeleteObjectHandler);

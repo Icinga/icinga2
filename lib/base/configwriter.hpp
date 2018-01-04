@@ -33,7 +33,7 @@ namespace icinga
  *
  * @ingroup base
  */
-class ConfigIdentifier : public Object
+class ConfigIdentifier final : public Object
 {
 public:
 	DECLARE_PTR_TYPEDEFS(ConfigIdentifier);

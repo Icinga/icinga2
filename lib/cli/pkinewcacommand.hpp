@@ -30,7 +30,7 @@ namespace icinga
  *
  * @ingroup cli
  */
-class PKINewCACommand : public CLICommand
+class PKINewCACommand final : public CLICommand
 {
 public:
 	DECLARE_PTR_TYPEDEFS(PKINewCACommand);

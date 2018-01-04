@@ -30,7 +30,7 @@ namespace icinga
 /**
  * @ingroup livestatus
  */
-class OrFilter : public CombinerFilter
+class OrFilter final : public CombinerFilter
 {
 public:
 	DECLARE_PTR_TYPEDEFS(OrFilter);

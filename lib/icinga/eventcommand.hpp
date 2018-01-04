@@ -31,7 +31,7 @@ namespace icinga
  *
  * @ingroup icinga
  */
-class EventCommand : public ObjectImpl<EventCommand>
+class EventCommand final : public ObjectImpl<EventCommand>
 {
 public:
 	DECLARE_OBJECT(EventCommand);

@@ -32,7 +32,7 @@ namespace icinga
  *
  * @ingroup cli
  */
-class ConsoleCommand : public CLICommand
+class ConsoleCommand final : public CLICommand
 {
 public:
 	DECLARE_PTR_TYPEDEFS(ConsoleCommand);

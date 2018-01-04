@@ -30,7 +30,7 @@ namespace icinga
  *
  * @ingroup cli
  */
-class CAListCommand : public CLICommand
+class CAListCommand final : public CLICommand
 {
 public:
 	DECLARE_PTR_TYPEDEFS(CAListCommand);

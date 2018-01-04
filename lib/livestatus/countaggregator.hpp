@@ -29,7 +29,7 @@ namespace icinga
 /**
  * @ingroup livestatus
  */
-struct CountAggregatorState : public AggregatorState
+struct CountAggregatorState final : public AggregatorState
 {
 	CountAggregatorState(void)
 		: Count(0)
@@ -41,7 +41,7 @@ struct CountAggregatorState : public AggregatorState
 /**
  * @ingroup livestatus
  */
-class CountAggregator : public Aggregator
+class CountAggregator final : public Aggregator
 {
 public:
 	DECLARE_PTR_TYPEDEFS(CountAggregator);

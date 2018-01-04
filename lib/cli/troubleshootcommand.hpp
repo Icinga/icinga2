@@ -32,7 +32,7 @@ namespace icinga
  *
  * @ingroup cli
  */
-class TroubleshootCommand : public CLICommand
+class TroubleshootCommand final : public CLICommand
 {
 public:
 	DECLARE_PTR_TYPEDEFS(TroubleshootCommand);

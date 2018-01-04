@@ -35,7 +35,7 @@ namespace icinga
  *
  * @ingroup base
  */
-class Dictionary : public Object
+class Dictionary final : public Object
 {
 public:
 	DECLARE_OBJECT(Dictionary);

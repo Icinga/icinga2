@@ -32,7 +32,7 @@ namespace icinga
  *
  * @ingroup ido
  */
-class EndpointDbObject : public DbObject
+class EndpointDbObject final : public DbObject
 {
 public:
 	DECLARE_PTR_TYPEDEFS(EndpointDbObject);

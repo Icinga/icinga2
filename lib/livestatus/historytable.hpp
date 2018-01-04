@@ -33,7 +33,7 @@ namespace icinga
 class HistoryTable : public Table
 {
 public:
-	virtual void UpdateLogEntries(const Dictionary::Ptr& bag, int line_count, int lineno, const AddRowFunction& addRowFn);
+	virtual void UpdateLogEntries(const Dictionary::Ptr& bag, int line_count, int lineno, const AddRowFunction& addRowFn) = 0;
 };
 
 }

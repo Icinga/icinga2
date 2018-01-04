@@ -77,7 +77,7 @@ class Service;
  *
  * @ingroup icinga
  */
-class Notification : public ObjectImpl<Notification>
+class Notification final : public ObjectImpl<Notification>
 {
 public:
 	DECLARE_OBJECT(Notification);

@@ -30,7 +30,7 @@ namespace icinga
  *
  * @ingroup hello
  */
-class HelloApplication : public ObjectImpl<HelloApplication>
+class HelloApplication final : public ObjectImpl<HelloApplication>
 {
 public:
 	DECLARE_OBJECT(HelloApplication);

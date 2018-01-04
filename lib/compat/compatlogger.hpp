@@ -33,7 +33,7 @@ namespace icinga
  *
  * @ingroup compat
  */
-class CompatLogger : public ObjectImpl<CompatLogger>
+class CompatLogger final : public ObjectImpl<CompatLogger>
 {
 public:
 	DECLARE_OBJECT(CompatLogger);

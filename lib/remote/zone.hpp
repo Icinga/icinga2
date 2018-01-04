@@ -30,7 +30,7 @@ namespace icinga
 /**
  * @ingroup remote
  */
-class Zone : public ObjectImpl<Zone>
+class Zone final : public ObjectImpl<Zone>
 {
 public:
 	DECLARE_OBJECT(Zone);

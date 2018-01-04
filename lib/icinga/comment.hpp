@@ -33,7 +33,7 @@ namespace icinga
  *
  * @ingroup icinga
  */
-class Comment : public ObjectImpl<Comment>
+class Comment final : public ObjectImpl<Comment>
 {
 public:
 	DECLARE_OBJECT(Comment);

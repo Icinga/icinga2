@@ -117,7 +117,7 @@ private:
 	Object::Ptr m_Prototype;
 };
 
-class TypeType : public Type
+class TypeType final : public Type
 {
 public:
 	DECLARE_PTR_TYPEDEFS(Type);

@@ -36,7 +36,7 @@ namespace icinga
  *
  * @ingroup perfdata
  */
-class GelfWriter : public ObjectImpl<GelfWriter>
+class GelfWriter final : public ObjectImpl<GelfWriter>
 {
 public:
 	DECLARE_OBJECT(GelfWriter);

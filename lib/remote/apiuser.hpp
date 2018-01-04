@@ -29,7 +29,7 @@ namespace icinga
 /**
  * @ingroup remote
  */
-class ApiUser : public ObjectImpl<ApiUser>
+class ApiUser final : public ObjectImpl<ApiUser>
 {
 public:
 	DECLARE_OBJECT(ApiUser);

@@ -29,7 +29,7 @@ namespace icinga
 /**
  * @ingroup livestatus
  */
-struct AvgAggregatorState : public AggregatorState
+struct AvgAggregatorState final : public AggregatorState
 {
 	AvgAggregatorState(void)
 		: Avg(0), AvgCount(0)
@@ -42,7 +42,7 @@ struct AvgAggregatorState : public AggregatorState
 /**
  * @ingroup livestatus
  */
-class AvgAggregator : public Aggregator
+class AvgAggregator final : public Aggregator
 {
 public:
 	DECLARE_PTR_TYPEDEFS(AvgAggregator);

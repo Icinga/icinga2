@@ -35,7 +35,7 @@ class Service;
  *
  * @ingroup icinga
  */
-class Host : public ObjectImpl<Host>, public MacroResolver
+class Host final : public ObjectImpl<Host>, public MacroResolver
 {
 public:
 	DECLARE_OBJECT(Host);

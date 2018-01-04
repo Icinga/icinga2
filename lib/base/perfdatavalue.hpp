@@ -31,7 +31,7 @@ namespace icinga
  *
  * @ingroup base
  */
-class PerfdataValue : public ObjectImpl<PerfdataValue>
+class PerfdataValue final : public ObjectImpl<PerfdataValue>
 {
 public:
 	DECLARE_OBJECT(PerfdataValue);

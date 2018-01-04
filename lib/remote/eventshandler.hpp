@@ -26,7 +26,7 @@
 namespace icinga
 {
 
-class EventsHandler : public HttpHandler
+class EventsHandler final : public HttpHandler
 {
 public:
 	DECLARE_PTR_TYPEDEFS(EventsHandler);

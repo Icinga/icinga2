@@ -26,7 +26,7 @@
 namespace icinga
 {
 
-class UnixSocket : public Socket
+class UnixSocket final : public Socket
 {
 public:
 	DECLARE_PTR_TYPEDEFS(UnixSocket);

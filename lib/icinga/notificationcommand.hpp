@@ -33,7 +33,7 @@ class Notification;
  *
  * @ingroup icinga
  */
-class NotificationCommand : public ObjectImpl<NotificationCommand>
+class NotificationCommand final : public ObjectImpl<NotificationCommand>
 {
 public:
 	DECLARE_OBJECT(NotificationCommand);

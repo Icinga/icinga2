@@ -26,7 +26,7 @@
 namespace icinga
 {
 
-class ConnectForm : public ConnectFormBase
+class ConnectForm final : public ConnectFormBase
 {
 public:
 	ConnectForm(wxWindow *parent, const Url::Ptr& url);

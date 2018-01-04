@@ -36,7 +36,7 @@ namespace icinga
  *
  * @ingroup base
  */
-class Url : public Object
+class Url final : public Object
 {
 public:
 	DECLARE_PTR_TYPEDEFS(Url);

@@ -31,7 +31,7 @@ using namespace icinga;
 
 REGISTER_URLHANDLER("/v1/templates", TemplateQueryHandler);
 
-class TemplateTargetProvider : public TargetProvider
+class TemplateTargetProvider final : public TargetProvider
 {
 public:
 	DECLARE_PTR_TYPEDEFS(TemplateTargetProvider);

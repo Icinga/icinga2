@@ -26,7 +26,7 @@
 
 using namespace icinga;
 
-class IcingaStudio : public wxApp
+class IcingaStudio final : public wxApp
 {
 public:
 	virtual bool OnInit(void) override

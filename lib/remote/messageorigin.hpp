@@ -29,7 +29,7 @@ namespace icinga
 /**
  * @ingroup remote
  */
-class MessageOrigin : public Object
+class MessageOrigin final : public Object
 {
 public:
 	DECLARE_PTR_TYPEDEFS(MessageOrigin);

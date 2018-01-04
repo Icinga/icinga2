@@ -30,7 +30,7 @@ namespace icinga
  *
  * @ingroup cli
  */
-class PKISignCSRCommand : public CLICommand
+class PKISignCSRCommand final : public CLICommand
 {
 public:
 	DECLARE_PTR_TYPEDEFS(PKISignCSRCommand);

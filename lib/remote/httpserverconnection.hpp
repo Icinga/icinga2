@@ -34,7 +34,7 @@ namespace icinga
  *
  * @ingroup remote
  */
-class HttpServerConnection : public Object
+class HttpServerConnection final : public Object
 {
 public:
 	DECLARE_PTR_TYPEDEFS(HttpServerConnection);

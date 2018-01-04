@@ -27,7 +27,7 @@
 namespace icinga
 {
 
-class ObjectType : public Type
+class ObjectType final : public Type
 {
 public:
 	ObjectType(void);

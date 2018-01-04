@@ -37,7 +37,7 @@ namespace icinga
  *
  * @ingroup icinga
  */
-class Service : public ObjectImpl<Service>, public MacroResolver
+class Service final : public ObjectImpl<Service>, public MacroResolver
 {
 public:
 	DECLARE_OBJECT(Service);

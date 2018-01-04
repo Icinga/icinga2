@@ -31,7 +31,7 @@ namespace icinga
 /**
  * @ingroup notification
  */
-class NotificationComponent : public ObjectImpl<NotificationComponent>
+class NotificationComponent final : public ObjectImpl<NotificationComponent>
 {
 public:
 	DECLARE_OBJECT(NotificationComponent);

@@ -32,7 +32,7 @@ namespace icinga
  *
  * @ingroup base
  */
-class NetworkStream : public Stream
+class NetworkStream final : public Stream
 {
 public:
 	DECLARE_PTR_TYPEDEFS(NetworkStream);

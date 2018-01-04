@@ -52,7 +52,7 @@ public:
 	intrusive_ptr<ApiType> Type;
 };
 
-class ApiType : public Object
+class ApiType final : public Object
 {
 public:
 	DECLARE_PTR_TYPEDEFS(ApiType);
