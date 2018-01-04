@@ -62,7 +62,7 @@ void ObjectLock::LockMutex(const Object *object)
 	while (likely(!__sync_bool_compare_and_swap(&object->m_Mutex, I2MUTEX_UNLOCKED, I2MUTEX_LOCKED))) {
 #endif /* _WIN32 */
 		if (likely(object->m_Mutex > I2MUTEX_LOCKED)) {
-			boost::recursive_mutex *mtx = reinterpret_cast<boost::recursive_mutex *>(object->m_Mutex);
+			auto *mtx = reinterpret_cast<boost::recursive_mutex *>(object->m_Mutex);
 			mtx->lock();
 
 			return;
@@ -72,7 +72,7 @@ void ObjectLock::LockMutex(const Object *object)
 		it++;
 	}
 
-	boost::recursive_mutex *mtx = new boost::recursive_mutex();
+	auto *mtx = new boost::recursive_mutex();
 	mtx->lock();
 #ifdef _WIN32
 #	ifdef _WIN64

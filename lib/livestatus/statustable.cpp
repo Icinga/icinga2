@@ -132,25 +132,25 @@ Value StatusTable::ConnectionsRateAccessor(const Value&)
 
 Value StatusTable::HostChecksAccessor(const Value&)
 {
-	long timespan = static_cast<long>(Utility::GetTime() - Application::GetStartTime());
+	auto timespan = static_cast<long>(Utility::GetTime() - Application::GetStartTime());
 	return CIB::GetActiveHostChecksStatistics(timespan);
 }
 
 Value StatusTable::HostChecksRateAccessor(const Value&)
 {
-	long timespan = static_cast<long>(Utility::GetTime() - Application::GetStartTime());
+	auto timespan = static_cast<long>(Utility::GetTime() - Application::GetStartTime());
 	return (CIB::GetActiveHostChecksStatistics(timespan) / (Utility::GetTime() - Application::GetStartTime()));
 }
 
 Value StatusTable::ServiceChecksAccessor(const Value&)
 {
-	long timespan = static_cast<long>(Utility::GetTime() - Application::GetStartTime());
+	auto timespan = static_cast<long>(Utility::GetTime() - Application::GetStartTime());
 	return CIB::GetActiveServiceChecksStatistics(timespan);
 }
 
 Value StatusTable::ServiceChecksRateAccessor(const Value&)
 {
-	long timespan = static_cast<long>(Utility::GetTime() - Application::GetStartTime());
+	auto timespan = static_cast<long>(Utility::GetTime() - Application::GetStartTime());
 	return (CIB::GetActiveServiceChecksStatistics(timespan) / (Utility::GetTime() - Application::GetStartTime()));
 }
 

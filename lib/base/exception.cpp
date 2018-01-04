@@ -58,8 +58,8 @@ inline void *cast_exception(void *obj, const std::type_info *src, const std::typ
 	else
 		return nullptr;
 #else /* __GLIBCXX__ */
-	const libcxx_type_info *srcInfo = static_cast<const libcxx_type_info *>(src);
-	const libcxx_type_info *dstInfo = static_cast<const libcxx_type_info *>(dst);
+	const auto *srcInfo = static_cast<const libcxx_type_info *>(src);
+	const auto *dstInfo = static_cast<const libcxx_type_info *>(dst);
 
 	void *adj = obj;
 
@@ -104,7 +104,7 @@ void icinga::RethrowUncaughtException()
 extern "C"
 void __cxa_throw(void *obj, TYPEINFO_TYPE *pvtinfo, void (*dest)(void *))
 {
-	std::type_info *tinfo = static_cast<std::type_info *>(pvtinfo);
+	auto *tinfo = static_cast<std::type_info *>(pvtinfo);
 
 	typedef void (*cxa_throw_fn)(void *, std::type_info *, void (*)(void *)) __attribute__((noreturn));
 	static cxa_throw_fn real_cxa_throw;
@@ -120,7 +120,7 @@ void __cxa_throw(void *obj, TYPEINFO_TYPE *pvtinfo, void (*dest)(void *))
 
 #ifndef NO_CAST_EXCEPTION
 	void *uex = cast_exception(obj, tinfo, &typeid(user_error));
-	boost::exception *ex = reinterpret_cast<boost::exception *>(cast_exception(obj, tinfo, &typeid(boost::exception)));
+	auto *ex = reinterpret_cast<boost::exception *>(cast_exception(obj, tinfo, &typeid(boost::exception)));
 
 	if (!uex) {
 #endif /* NO_CAST_EXCEPTION */
@@ -171,14 +171,14 @@ String icinga::DiagnosticInformation(const std::exception& ex, bool verbose, Sta
 
 	String message = ex.what();
 
-	const ValidationError *vex = dynamic_cast<const ValidationError *>(&ex);
+	const auto *vex = dynamic_cast<const ValidationError *>(&ex);
 
 	if (message.IsEmpty())
 		result << boost::diagnostic_information(ex) << "\n";
 	else
 		result << "Error: " << message << "\n";
 
-	const ScriptError *dex = dynamic_cast<const ScriptError *>(&ex);
+	const auto *dex = dynamic_cast<const ScriptError *>(&ex);
 
 	if (dex && !dex->GetDebugInfo().Path.IsEmpty())
 		ShowCodeLocation(result, dex->GetDebugInfo());
@@ -223,8 +223,8 @@ String icinga::DiagnosticInformation(const std::exception& ex, bool verbose, Sta
 			ShowCodeLocation(result, di);
 	}
 
-	const user_error *uex = dynamic_cast<const user_error *>(&ex);
-	const posix_error *pex = dynamic_cast<const posix_error *>(&ex);
+	const auto *uex = dynamic_cast<const user_error *>(&ex);
+	const auto *pex = dynamic_cast<const posix_error *>(&ex);
 
 	if (!uex && !pex && verbose) {
 		const StackTrace *st = boost::get_error_info<StackTraceErrorInfo>(ex);

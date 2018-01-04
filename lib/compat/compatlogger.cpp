@@ -533,7 +533,7 @@ void CompatLogger::ReopenFile(bool rotate)
 
 void CompatLogger::ScheduleNextRotation()
 {
-	time_t now = (time_t)Utility::GetTime();
+	auto now = (time_t)Utility::GetTime();
 	String method = GetRotationMethod();
 
 	tm tmthen;

@@ -114,7 +114,7 @@ public:
 		if (!IsObject())
 			BOOST_THROW_EXCEPTION(std::runtime_error("Cannot convert value of type '" + GetTypeName() + "' to an object."));
 
-		const Object::Ptr& object = Get<Object::Ptr>();
+		const auto& object = Get<Object::Ptr>();
 
 		ASSERT(object);
 

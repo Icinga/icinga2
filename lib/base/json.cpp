@@ -205,7 +205,7 @@ private:
 
 static int DecodeNull(void *ctx)
 {
-	JsonContext *context = static_cast<JsonContext *>(ctx);
+	auto *context = static_cast<JsonContext *>(ctx);
 
 	try {
 		context->AddValue(Empty);
@@ -219,7 +219,7 @@ static int DecodeNull(void *ctx)
 
 static int DecodeBoolean(void *ctx, int value)
 {
-	JsonContext *context = static_cast<JsonContext *>(ctx);
+	auto *context = static_cast<JsonContext *>(ctx);
 
 	try {
 		context->AddValue(static_cast<bool>(value));
@@ -233,7 +233,7 @@ static int DecodeBoolean(void *ctx, int value)
 
 static int DecodeNumber(void *ctx, const char *str, yajl_size len)
 {
-	JsonContext *context = static_cast<JsonContext *>(ctx);
+	auto *context = static_cast<JsonContext *>(ctx);
 
 	try {
 		String jstr = String(str, str + len);
@@ -248,7 +248,7 @@ static int DecodeNumber(void *ctx, const char *str, yajl_size len)
 
 static int DecodeString(void *ctx, const unsigned char *str, yajl_size len)
 {
-	JsonContext *context = static_cast<JsonContext *>(ctx);
+	auto *context = static_cast<JsonContext *>(ctx);
 
 	try {
 		context->AddValue(String(str, str + len));
@@ -262,7 +262,7 @@ static int DecodeString(void *ctx, const unsigned char *str, yajl_size len)
 
 static int DecodeStartMap(void *ctx)
 {
-	JsonContext *context = static_cast<JsonContext *>(ctx);
+	auto *context = static_cast<JsonContext *>(ctx);
 
 	try {
 		context->Push(new Dictionary());
@@ -276,7 +276,7 @@ static int DecodeStartMap(void *ctx)
 
 static int DecodeEndMapOrArray(void *ctx)
 {
-	JsonContext *context = static_cast<JsonContext *>(ctx);
+	auto *context = static_cast<JsonContext *>(ctx);
 
 	try {
 		context->AddValue(context->Pop().EValue);
@@ -290,7 +290,7 @@ static int DecodeEndMapOrArray(void *ctx)
 
 static int DecodeStartArray(void *ctx)
 {
-	JsonContext *context = static_cast<JsonContext *>(ctx);
+	auto *context = static_cast<JsonContext *>(ctx);
 
 	try {
 		context->Push(new Array());

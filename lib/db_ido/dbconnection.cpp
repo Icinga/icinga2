@@ -206,7 +206,7 @@ void DbConnection::UpdateProgramStatus()
 
 void DbConnection::CleanUpHandler()
 {
-	long now = static_cast<long>(Utility::GetTime());
+	auto now = static_cast<long>(Utility::GetTime());
 
 	struct {
 		String name;
@@ -426,7 +426,7 @@ void DbConnection::UpdateObject(const ConfigObject::Ptr& object)
 void DbConnection::UpdateAllObjects()
 {
 	for (const Type::Ptr& type : Type::GetAllTypes()) {
-		ConfigType *dtype = dynamic_cast<ConfigType *>(type.get());
+		auto *dtype = dynamic_cast<ConfigType *>(type.get());
 
 		if (!dtype)
 			continue;

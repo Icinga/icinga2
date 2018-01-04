@@ -133,7 +133,7 @@ BOOST_AUTO_TEST_CASE(remove)
 	{
 		ObjectLock olock(dictionary);
 
-		Dictionary::Iterator it = dictionary->Begin();
+		auto it = dictionary->Begin();
 		dictionary->Remove(it);
 	}
 

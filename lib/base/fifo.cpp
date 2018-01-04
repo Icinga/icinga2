@@ -51,7 +51,7 @@ void FIFO::ResizeBuffer(size_t newSize, bool decrease)
 	if (newSize == m_AllocSize)
 		return;
 
-	char *newBuffer = static_cast<char *>(realloc(m_Buffer, newSize));
+	auto *newBuffer = static_cast<char *>(realloc(m_Buffer, newSize));
 
 	if (!newBuffer)
 		BOOST_THROW_EXCEPTION(std::bad_alloc());

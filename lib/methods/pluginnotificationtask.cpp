@@ -41,7 +41,7 @@ void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification,
 {
 	NotificationCommand::Ptr commandObj = notification->GetCommand();
 
-	NotificationType type = static_cast<NotificationType>(itype);
+	auto type = static_cast<NotificationType>(itype);
 
 	Checkable::Ptr checkable = notification->GetCheckable();
 

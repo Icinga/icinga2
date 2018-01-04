@@ -85,7 +85,7 @@ void Checkable::AddGroup(const String& name)
 	boost::mutex::scoped_lock lock(m_CheckableMutex);
 
 	Array::Ptr groups;
-	Host *host = dynamic_cast<Host *>(this);
+	auto *host = dynamic_cast<Host *>(this);
 
 	if (host)
 		groups = host->GetGroups();
@@ -103,7 +103,7 @@ void Checkable::AddGroup(const String& name)
 
 AcknowledgementType Checkable::GetAcknowledgement()
 {
-	AcknowledgementType avalue = static_cast<AcknowledgementType>(GetAcknowledgementRaw());
+	auto avalue = static_cast<AcknowledgementType>(GetAcknowledgementRaw());
 
 	if (avalue != AcknowledgementNone) {
 		double expiry = GetAcknowledgementExpiry();

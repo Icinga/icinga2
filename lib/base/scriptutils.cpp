@@ -310,7 +310,7 @@ Array::Ptr ScriptUtils::Intersection(const std::vector<Value>& arguments)
 		Array::SizeType len;
 		{
 			ObjectLock olock(arr1), xlock(arr2), ylock(result);
-			Array::Iterator it = std::set_intersection(arr1->Begin(), arr1->End(), arr2->Begin(), arr2->End(), result->Begin());
+			auto it = std::set_intersection(arr1->Begin(), arr1->End(), arr2->Begin(), arr2->End(), result->Begin());
 			len = it - result->Begin();
 		}
 		result->Resize(len);
@@ -334,7 +334,7 @@ void ScriptUtils::Log(const std::vector<Value>& arguments)
 		facility = "config";
 		message = arguments[0];
 	} else {
-		int sval = static_cast<int>(arguments[0]);
+		auto sval = static_cast<int>(arguments[0]);
 		severity = static_cast<LogSeverity>(sval);
 		facility = arguments[1];
 		message = arguments[2];
@@ -410,7 +410,7 @@ ConfigObject::Ptr ScriptUtils::GetObject(const Value& vtype, const String& name)
 	else
 		ptype = Type::GetByName(vtype);
 
-	ConfigType *ctype = dynamic_cast<ConfigType *>(ptype.get());
+	auto *ctype = dynamic_cast<ConfigType *>(ptype.get());
 
 	if (!ctype)
 		return nullptr;
@@ -423,7 +423,7 @@ Array::Ptr ScriptUtils::GetObjects(const Type::Ptr& type)
 	if (!type)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid type: Must not be null"));
 
-	ConfigType *ctype = dynamic_cast<ConfigType *>(type.get());
+	auto *ctype = dynamic_cast<ConfigType *>(type.get());
 
 	if (!ctype)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid type: Type must inherit from 'ConfigObject'"));

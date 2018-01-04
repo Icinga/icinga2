@@ -121,7 +121,7 @@ bool MacroProcessor::ResolveMacro(const String& macro, const ResolverList& resol
 			}
 		}
 
-		MacroResolver *mresolver = dynamic_cast<MacroResolver *>(resolver.second.get());
+		auto *mresolver = dynamic_cast<MacroResolver *>(resolver.second.get());
 
 		if (mresolver && mresolver->ResolveMacro(boost::algorithm::join(tokens, "."), cr, result))
 			return true;

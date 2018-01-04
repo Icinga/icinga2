@@ -56,7 +56,7 @@ public:
 			pUrl = new Url(argv[1].ToStdString());
 		}
 
-		MainForm *m = new MainForm(nullptr, pUrl);
+		auto *m = new MainForm(nullptr, pUrl);
 		m->Show();
 
 		return true;

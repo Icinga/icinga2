@@ -737,7 +737,7 @@ String SHA256(const String& s)
 
 String RandomString(int length)
 {
-	unsigned char *bytes = new unsigned char[length];
+	auto *bytes = new unsigned char[length];
 
 	if (!RAND_bytes(bytes, length)) {
 		delete [] bytes;
@@ -751,7 +751,7 @@ String RandomString(int length)
 			<< errinfo_openssl_error(ERR_peek_error()));
 	}
 
-	char *output = new char[length * 2 + 1];
+	auto *output = new char[length * 2 + 1];
 	for (int i = 0; i < length; i++)
 		sprintf(output + 2 * i, "%02x", bytes[i]);
 

@@ -93,14 +93,14 @@ static Value ProcessSpawnImpl(struct msghdr *msgh, const Dictionary::Ptr& reques
 		return Empty;
 	}
 
-	int *fds = (int *)CMSG_DATA(cmsg);
+	auto *fds = (int *)CMSG_DATA(cmsg);
 
 	Array::Ptr arguments = request->Get("arguments");
 	Dictionary::Ptr extraEnvironment = request->Get("extraEnvironment");
 	bool adjustPriority = request->Get("adjustPriority");
 
 	// build argv
-	char **argv = new char *[arguments->GetLength() + 1];
+	auto **argv = new char *[arguments->GetLength() + 1];
 
 	for (unsigned int i = 0; i < arguments->GetLength(); i++) {
 		String arg = arguments->Get(i);
@@ -116,7 +116,7 @@ static Value ProcessSpawnImpl(struct msghdr *msgh, const Dictionary::Ptr& reques
 	while (environ[envc])
 		envc++;
 
-	char **envp = new char *[envc + (extraEnvironment ? extraEnvironment->GetLength() : 0) + 2];
+	auto **envp = new char *[envc + (extraEnvironment ? extraEnvironment->GetLength() : 0) + 2];
 
 	for (int i = 0; i < envc; i++)
 		envp[i] = strdup(environ[i]);
@@ -281,7 +281,7 @@ static void ProcessHandler()
 			break;
 		}
 
-		char *mbuf = new char[length];
+		auto *mbuf = new char[length];
 
 		size_t count = 0;
 		while (count < length) {

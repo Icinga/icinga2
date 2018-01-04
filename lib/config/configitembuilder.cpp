@@ -96,7 +96,7 @@ ConfigItem::Ptr ConfigItemBuilder::Compile()
 		BOOST_THROW_EXCEPTION(ScriptError(msgbuf.str(), m_DebugInfo));
 	}
 
-	ConfigType *ctype = dynamic_cast<ConfigType *>(m_Type.get());
+	auto *ctype = dynamic_cast<ConfigType *>(m_Type.get());
 
 	if (!ctype) {
 		std::ostringstream msgbuf;
@@ -133,7 +133,7 @@ ConfigItem::Ptr ConfigItemBuilder::Compile()
 	}
 #endif /* I2_DEBUG */
 
-	DictExpression *dexpr = new DictExpression(std::move(m_Expressions), m_DebugInfo);
+	auto *dexpr = new DictExpression(std::move(m_Expressions), m_DebugInfo);
 	dexpr->MakeInline();
 	exprs.emplace_back(dexpr);
 

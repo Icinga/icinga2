@@ -51,7 +51,7 @@ String Base64::Decode(const String& input)
 	BIO_push(bio64, biomem);
 	BIO_set_flags(bio64, BIO_FLAGS_BASE64_NO_NL);
 
-	char *outbuf = new char[input.GetLength()];
+	auto *outbuf = new char[input.GetLength()];
 
 	size_t len = 0;
 	int rc;

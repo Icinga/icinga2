@@ -74,7 +74,7 @@ bool Checkable::IsReachable(DependencyType dt, Dependency::Ptr *failedDependency
 	}
 
 	/* implicit dependency on host if this is a service */
-	const Service *service = dynamic_cast<const Service *>(this);
+	const auto *service = dynamic_cast<const Service *>(this);
 	if (service && (dt == DependencyState || dt == DependencyNotification)) {
 		Host::Ptr host = service->GetHost();
 

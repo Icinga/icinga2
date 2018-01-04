@@ -39,7 +39,7 @@ void ConfigCompilerContext::OpenObjectsFile(const String& filename)
 {
 	m_ObjectsPath = filename;
 
-	std::fstream *fp = new std::fstream();
+	auto *fp = new std::fstream();
 	try {
 		m_ObjectsTempFile = Utility::CreateTempFile(filename + ".XXXXXX", 0600, *fp);
 	} catch (const std::exception& ex) {

@@ -82,7 +82,7 @@ public:
 	static intrusive_ptr<T> GetObject(const String& name)
 	{
 		typedef TypeImpl<T> ObjType;
-		ObjType *ptype = static_cast<ObjType *>(T::TypeInstance.get());
+		auto *ptype = static_cast<ObjType *>(T::TypeInstance.get());
 		return static_pointer_cast<T>(ptype->GetObject(name));
 	}
 

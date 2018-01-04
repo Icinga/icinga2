@@ -47,7 +47,7 @@ Type::Ptr FilterUtility::TypeFromPluralName(const String& pluralName)
 void ConfigObjectTargetProvider::FindTargets(const String& type, const std::function<void (const Value&)>& addTarget) const
 {
 	Type::Ptr ptype = Type::GetByName(type);
-	ConfigType *ctype = dynamic_cast<ConfigType *>(ptype.get());
+	auto *ctype = dynamic_cast<ConfigType *>(ptype.get());
 
 	if (ctype) {
 		for (const ConfigObject::Ptr& object : ctype->GetObjects()) {

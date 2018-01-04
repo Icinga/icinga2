@@ -98,7 +98,7 @@ Value ApiListener::ConfigUpdateObjectAPIHandler(const MessageOrigin::Ptr& origin
 	double objVersion = params->Get("version");
 
 	Type::Ptr ptype = Type::GetByName(objType);
-	ConfigType *ctype = dynamic_cast<ConfigType *>(ptype.get());
+	auto *ctype = dynamic_cast<ConfigType *>(ptype.get());
 
 	if (!ctype) {
 		Log(LogCritical, "ApiListener")
@@ -234,7 +234,7 @@ Value ApiListener::ConfigDeleteObjectAPIHandler(const MessageOrigin::Ptr& origin
 
 	/* delete the object */
 	Type::Ptr ptype = Type::GetByName(params->Get("type"));
-	ConfigType *ctype = dynamic_cast<ConfigType *>(ptype.get());
+	auto *ctype = dynamic_cast<ConfigType *>(ptype.get());
 
 	if (!ctype) {
 		Log(LogCritical, "ApiListener")
@@ -414,7 +414,7 @@ void ApiListener::SendRuntimeConfigObjects(const JsonRpcConnection::Ptr& aclient
 		<< "Syncing runtime objects to endpoint '" << endpoint->GetName() << "'.";
 
 	for (const Type::Ptr& type : Type::GetAllTypes()) {
-		ConfigType *dtype = dynamic_cast<ConfigType *>(type.get());
+		auto *dtype = dynamic_cast<ConfigType *>(type.get());
 
 		if (!dtype)
 			continue;

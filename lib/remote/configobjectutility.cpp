@@ -55,7 +55,7 @@ String ConfigObjectUtility::EscapeName(const String& name)
 String ConfigObjectUtility::CreateObjectConfig(const Type::Ptr& type, const String& fullName,
 	bool ignoreOnError, const Array::Ptr& templates, const Dictionary::Ptr& attrs)
 {
-	NameComposer *nc = dynamic_cast<NameComposer *>(type.get());
+	auto *nc = dynamic_cast<NameComposer *>(type.get());
 	Dictionary::Ptr nameParts;
 	String name;
 

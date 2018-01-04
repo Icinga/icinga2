@@ -289,7 +289,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		collisions = 0;
 
 		for (const Field& field : klass.Fields) {
-			int hash = static_cast<int>(SDBM(field.Name, hlen));
+			auto hash = static_cast<int>(SDBM(field.Name, hlen));
 			jumptable[hash].push_back(std::make_pair(num, field.Name));
 			num++;
 
@@ -846,7 +846,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 
 				if (field.Type.IsName || !field.TrackAccessor.empty()) {
 					if (field.Name != "active") {
-						m_Impl << "\t" << "ConfigObject *dobj = dynamic_cast<ConfigObject *>(this);" << std::endl
+						m_Impl << "\t" << "auto *dobj = dynamic_cast<ConfigObject *>(this);" << std::endl
 							<< "\t" << "if (!dobj || dobj->IsActive())" << std::endl
 							<< "\t";
 					}
@@ -1009,7 +1009,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 				<< "{" << std::endl;
 
 			if (field.Name != "active") {
-				m_Impl << "\t" << "ConfigObject *dobj = dynamic_cast<ConfigObject *>(this);" << std::endl
+				m_Impl << "\t" << "auto *dobj = dynamic_cast<ConfigObject *>(this);" << std::endl
 					<< "\t" << "if (!dobj || dobj->IsActive())" << std::endl
 					<< "\t";
 			}

@@ -231,7 +231,7 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 
 	String name = item_name;
 
-	NameComposer *nc = dynamic_cast<NameComposer *>(type.get());
+	auto *nc = dynamic_cast<NameComposer *>(type.get());
 
 	if (nc) {
 		if (name.IsEmpty())

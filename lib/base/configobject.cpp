@@ -97,7 +97,7 @@ public:
 	bool ValidateName(const String& type, const String& name) const override
 	{
 		Type::Ptr ptype = Type::GetByName(type);
-		ConfigType *dtype = dynamic_cast<ConfigType *>(ptype.get());
+		auto *dtype = dynamic_cast<ConfigType *>(ptype.get());
 
 		if (!dtype)
 			return false;
@@ -503,7 +503,7 @@ void ConfigObject::DumpObjects(const String& filename, int attributeTypes)
 	StdioStream::Ptr sfp = new StdioStream(&fp, false);
 
 	for (const Type::Ptr& type : Type::GetAllTypes()) {
-		ConfigType *dtype = dynamic_cast<ConfigType *>(type.get());
+		auto *dtype = dynamic_cast<ConfigType *>(type.get());
 
 		if (!dtype)
 			continue;
@@ -605,7 +605,7 @@ void ConfigObject::RestoreObjects(const String& filename, int attributeTypes)
 	unsigned long no_state = 0;
 
 	for (const Type::Ptr& type : Type::GetAllTypes()) {
-		ConfigType *dtype = dynamic_cast<ConfigType *>(type.get());
+		auto *dtype = dynamic_cast<ConfigType *>(type.get());
 
 		if (!dtype)
 			continue;
@@ -627,7 +627,7 @@ void ConfigObject::RestoreObjects(const String& filename, int attributeTypes)
 void ConfigObject::StopObjects()
 {
 	for (const Type::Ptr& type : Type::GetAllTypes()) {
-		ConfigType *dtype = dynamic_cast<ConfigType *>(type.get());
+		auto *dtype = dynamic_cast<ConfigType *>(type.get());
 
 		if (!dtype)
 			continue;
@@ -641,7 +641,7 @@ void ConfigObject::StopObjects()
 void ConfigObject::DumpModifiedAttributes(const std::function<void(const ConfigObject::Ptr&, const String&, const Value&)>& callback)
 {
 	for (const Type::Ptr& type : Type::GetAllTypes()) {
-		ConfigType *dtype = dynamic_cast<ConfigType *>(type.get());
+		auto *dtype = dynamic_cast<ConfigType *>(type.get());
 
 		if (!dtype)
 			continue;
@@ -703,7 +703,7 @@ void ConfigObject::DumpModifiedAttributes(const std::function<void(const ConfigO
 ConfigObject::Ptr ConfigObject::GetObject(const String& type, const String& name)
 {
 	Type::Ptr ptype = Type::GetByName(type);
-	ConfigType *ctype = dynamic_cast<ConfigType *>(ptype.get());
+	auto *ctype = dynamic_cast<ConfigType *>(ptype.get());
 
 	if (!ctype)
 		return nullptr;

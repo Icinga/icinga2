@@ -515,7 +515,7 @@ String IdoPgsqlConnection::Escape(const String& s)
 	String utf8s = Utility::ValidateUTF8(s);
 
 	size_t length = utf8s.GetLength();
-	char *to = new char[utf8s.GetLength() * 2 + 1];
+	auto *to = new char[utf8s.GetLength() * 2 + 1];
 
 	m_Pgsql->escapeStringConn(m_Connection, to, utf8s.CStr(), length, nullptr);
 
@@ -660,7 +660,7 @@ bool IdoPgsqlConnection::FieldToEscapedString(const String& key, const Value& va
 	} else if (DbValue::IsTimestampNow(value)) {
 		*result = "NOW()";
 	} else if (DbValue::IsObjectInsertID(value)) {
-		long id = static_cast<long>(rawvalue);
+		auto id = static_cast<long>(rawvalue);
 
 		if (id <= 0)
 			return false;

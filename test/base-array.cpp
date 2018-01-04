@@ -91,7 +91,7 @@ BOOST_AUTO_TEST_CASE(remove)
 
 	{
 		ObjectLock olock(array);
-		Array::Iterator it = array->Begin();
+		auto it = array->Begin();
 		array->Remove(it);
 	}
 

@@ -58,7 +58,7 @@ void ApiListener::UpdateObjectAuthority()
 	}
 
 	for (const Type::Ptr& type : Type::GetAllTypes()) {
-		ConfigType *dtype = dynamic_cast<ConfigType *>(type.get());
+		auto *dtype = dynamic_cast<ConfigType *>(type.get());
 
 		if (!dtype)
 			continue;

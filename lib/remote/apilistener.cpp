@@ -992,7 +992,7 @@ void ApiListener::OpenLogFile()
 
 	Utility::MkDirP(Utility::DirName(path), 0750);
 
-	std::fstream *fp = new std::fstream(path.CStr(), std::fstream::out | std::ofstream::app);
+	auto *fp = new std::fstream(path.CStr(), std::fstream::out | std::ofstream::app);
 
 	if (!fp->good()) {
 		Log(LogWarning, "ApiListener")
@@ -1102,7 +1102,7 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 			Log(LogNotice, "ApiListener")
 				<< "Replaying log: " << path;
 
-			std::fstream *fp = new std::fstream(path.CStr(), std::fstream::in | std::fstream::binary);
+			auto *fp = new std::fstream(path.CStr(), std::fstream::in | std::fstream::binary);
 			StdioStream::Ptr logStream = new StdioStream(fp, true);
 
 			String message;

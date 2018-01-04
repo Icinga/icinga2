@@ -55,7 +55,7 @@ void FileLogger::Start(bool runtimeCreated)
 
 void FileLogger::ReopenLogFile()
 {
-	std::ofstream *stream = new std::ofstream();
+	auto *stream = new std::ofstream();
 
 	String path = GetPath();
 

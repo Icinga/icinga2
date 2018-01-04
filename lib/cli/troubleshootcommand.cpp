@@ -69,7 +69,7 @@ public:
 #endif /*_WIN32*/
 		}
 		else {
-			std::ofstream *ofs = new std::ofstream();
+			auto *ofs = new std::ofstream();
 			ofs->open(path.CStr(), std::ios::out | std::ios::trunc);
 			m_Stream = ofs;
 		}
@@ -550,7 +550,7 @@ void TroubleshootCommand::CheckObjectFile(const String& objectfile, InfoLog& log
 
 bool TroubleshootCommand::PrintVarsFile(const String& path, const bool console) {
 	if (!console) {
-		std::ofstream *ofs = new std::ofstream();
+		auto *ofs = new std::ofstream();
 		ofs->open((path+"-vars").CStr(), std::ios::out | std::ios::trunc);
 		if (!ofs->is_open())
 			return false;
