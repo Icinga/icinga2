@@ -21,9 +21,6 @@
 
 using namespace icinga;
 
-AndFilter::AndFilter()
-{ }
-
 bool AndFilter::Apply(const Table::Ptr& table, const Value& row)
 {
 	for (const Filter::Ptr& filter : m_Filters) {

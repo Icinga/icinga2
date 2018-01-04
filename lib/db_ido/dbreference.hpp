@@ -33,13 +33,13 @@ namespace icinga
 struct DbReference
 {
 public:
-	DbReference();
+	DbReference() = default;
 	DbReference(long id);
 
 	bool IsValid() const;
 	operator long() const;
 private:
-	long m_Id;
+	long m_Id{-1};
 };
 
 }

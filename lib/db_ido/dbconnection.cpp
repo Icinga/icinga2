@@ -37,10 +37,6 @@ REGISTER_TYPE(DbConnection);
 Timer::Ptr DbConnection::m_ProgramStatusTimer;
 boost::once_flag DbConnection::m_OnceFlag = BOOST_ONCE_INIT;
 
-DbConnection::DbConnection()
-	: m_IDCacheValid(false), m_QueryStats(15 * 60), m_ActiveChangedHandler(false)
-{ }
-
 void DbConnection::OnConfigLoaded()
 {
 	ConfigObject::OnConfigLoaded();

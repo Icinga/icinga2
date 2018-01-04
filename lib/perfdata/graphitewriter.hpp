@@ -42,8 +42,6 @@ public:
 	DECLARE_OBJECT(GraphiteWriter);
 	DECLARE_OBJECTNAME(GraphiteWriter);
 
-	GraphiteWriter();
-
 	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
 	void ValidateHostNameTemplate(const String& value, const ValidationUtils& utils) override;
@@ -56,7 +54,7 @@ protected:
 
 private:
 	Stream::Ptr m_Stream;
-	WorkQueue m_WorkQueue;
+	WorkQueue m_WorkQueue{10000000, 1};
 
 	Timer::Ptr m_ReconnectTimer;
 

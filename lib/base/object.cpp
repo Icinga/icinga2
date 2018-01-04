@@ -39,13 +39,6 @@ static Timer::Ptr l_ObjectCountTimer;
 #endif /* I2_LEAK_DEBUG */
 
 /**
- * Default constructor for the Object class.
- */
-Object::Object()
-	: m_References(0), m_Mutex(0)
-{ }
-
-/**
  * Destructor for the Object class.
  */
 Object::~Object()

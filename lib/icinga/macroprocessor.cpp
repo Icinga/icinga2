@@ -422,16 +422,12 @@ Value MacroProcessor::EscapeMacroShellArg(const Value& value)
 
 struct CommandArgument
 {
-	int Order;
-	bool SkipKey;
-	bool RepeatKey;
-	bool SkipValue;
+	int Order{0};
+	bool SkipKey{false};
+	bool RepeatKey{true};
+	bool SkipValue{false};
 	String Key;
 	Value AValue;
-
-	CommandArgument()
-		: Order(0), SkipKey(false), RepeatKey(true), SkipValue(false)
-	{ }
 
 	bool operator<(const CommandArgument& rhs) const
 	{

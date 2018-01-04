@@ -96,9 +96,6 @@ public:
 
 	static Object::Ptr GetPrototype();
 
-protected:
-	explicit ConfigObject();
-
 private:
 	ConfigObject::Ptr m_Zone;
 

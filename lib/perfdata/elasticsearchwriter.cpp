@@ -44,10 +44,6 @@ REGISTER_TYPE(ElasticsearchWriter);
 
 REGISTER_STATSFUNCTION(ElasticsearchWriter, &ElasticsearchWriter::StatsFunc);
 
-ElasticsearchWriter::ElasticsearchWriter()
-	: m_WorkQueue(10000000, 1)
-{ }
-
 void ElasticsearchWriter::OnConfigLoaded()
 {
 	ObjectImpl<ElasticsearchWriter>::OnConfigLoaded();

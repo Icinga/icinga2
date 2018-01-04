@@ -52,7 +52,7 @@ enum ValueType
 class Value
 {
 public:
-	Value();
+	Value() = default;
 	Value(std::nullptr_t);
 	Value(int value);
 	Value(unsigned int value);
@@ -76,8 +76,6 @@ public:
 	{
 		static_assert(!std::is_same<T, Object>::value, "T must not be Object");
 	}
-
-	~Value();
 
 	bool ToBool() const;
 

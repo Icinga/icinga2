@@ -49,10 +49,6 @@ public:
 
 	typedef std::map<String, Value>::value_type Pair;
 
-	Dictionary();
-
-	~Dictionary() override;
-
 	Value Get(const String& key) const;
 	bool Get(const String& key, Value *result) const;
 	void Set(const String& key, Value value);

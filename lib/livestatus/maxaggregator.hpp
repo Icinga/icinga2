@@ -31,11 +31,7 @@ namespace icinga
  */
 struct MaxAggregatorState final : public AggregatorState
 {
-	MaxAggregatorState()
-		: Max(0)
-	{ }
-
-	double Max;
+	double Max{0};
 };
 
 /**

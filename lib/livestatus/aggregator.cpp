@@ -21,9 +21,6 @@
 
 using namespace icinga;
 
-Aggregator::Aggregator()
-{ }
-
 void Aggregator::SetFilter(const Filter::Ptr& filter)
 {
 	m_Filter = filter;

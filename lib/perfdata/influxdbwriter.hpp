@@ -42,8 +42,6 @@ public:
 	DECLARE_OBJECT(InfluxdbWriter);
 	DECLARE_OBJECTNAME(InfluxdbWriter);
 
-	InfluxdbWriter();
-
 	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
 	void ValidateHostTemplate(const Dictionary::Ptr& value, const ValidationUtils& utils) override;
@@ -55,7 +53,7 @@ protected:
 	void Stop(bool runtimeRemoved) override;
 
 private:
-	WorkQueue m_WorkQueue;
+	WorkQueue m_WorkQueue{10000000, 1};
 	Timer::Ptr m_FlushTimer;
 	std::vector<String> m_DataBuffer;
 

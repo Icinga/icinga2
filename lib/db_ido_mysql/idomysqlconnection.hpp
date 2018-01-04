@@ -51,8 +51,6 @@ public:
 	DECLARE_OBJECT(IdoMysqlConnection);
 	DECLARE_OBJECTNAME(IdoMysqlConnection);
 
-	IdoMysqlConnection();
-
 	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
 	int GetPendingQueryCount() const override;
@@ -73,7 +71,7 @@ protected:
 private:
 	DbReference m_InstanceID;
 
-	WorkQueue m_QueryQueue;
+	WorkQueue m_QueryQueue{10000000};
 
 	Library m_Library;
 	std::unique_ptr<MysqlInterface, MysqlInterfaceDeleter> m_Mysql;

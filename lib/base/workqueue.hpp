@@ -43,17 +43,15 @@ enum WorkQueuePriority
 
 struct Task
 {
-	Task()
-		: Priority(PriorityNormal), ID(-1)
-	{ }
+	Task() = default;
 
-	Task(std::function<void (void)>&& function, WorkQueuePriority priority, int id)
+	Task(std::function<void (void)> function, WorkQueuePriority priority, int id)
 		: Function(std::move(function)), Priority(priority), ID(id)
 	{ }
 
 	std::function<void (void)> Function;
-	WorkQueuePriority Priority;
-	int ID;
+	WorkQueuePriority Priority{PriorityNormal};
+	int ID{-1};
 };
 
 inline bool operator<(const Task& a, const Task& b)
@@ -110,7 +108,7 @@ private:
 	String m_Name;
 	static std::atomic<int> m_NextID;
 	int m_ThreadCount;
-	bool m_Spawned;
+	bool m_Spawned{false};
 
 	mutable boost::mutex m_Mutex;
 	boost::condition_variable m_CVEmpty;
@@ -118,10 +116,10 @@ private:
 	boost::condition_variable m_CVStarved;
 	boost::thread_group m_Threads;
 	size_t m_MaxItems;
-	bool m_Stopped;
-	int m_Processing;
+	bool m_Stopped{false};
+	int m_Processing{0};
 	std::priority_queue<Task, std::deque<Task> > m_Tasks;
-	int m_NextTaskID;
+	int m_NextTaskID{0};
 	ExceptionCallback m_ExceptionCallback;
 	std::vector<boost::exception_ptr> m_Exceptions;
 	Timer::Ptr m_StatusTimer;
@@ -129,8 +127,8 @@ private:
 
 	mutable boost::mutex m_StatsMutex;
 	RingBuffer m_TaskStats;
-	size_t m_PendingTasks;
-	double m_PendingTasksTimestamp;
+	size_t m_PendingTasks{0};
+	double m_PendingTasksTimestamp{0};
 
 	void WorkerThreadProc();
 	void StatusTimerHandler();

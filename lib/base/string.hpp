@@ -58,7 +58,7 @@ public:
 
 	typedef std::string::size_type SizeType;
 
-	String();
+	String() = default;
 	String(const char *data);
 	String(std::string data);
 	String(String::SizeType n, char c);
@@ -68,8 +68,6 @@ public:
 #ifndef _MSC_VER
 	String(Value&& other);
 #endif /* _MSC_VER */
-
-	~String();
 
 	template<typename InputIterator>
 	String(InputIterator begin, InputIterator end)

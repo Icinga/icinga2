@@ -31,7 +31,6 @@ namespace icinga
 struct ObjectLock
 {
 public:
-	ObjectLock();
 	ObjectLock(const Object::Ptr& object);
 	ObjectLock(const Object *object);
 
@@ -46,8 +45,8 @@ public:
 	void Unlock();
 
 private:
-	const Object *m_Object;
-	bool m_Locked;
+	const Object *m_Object{nullptr};
+	bool m_Locked{false};
 };
 
 }

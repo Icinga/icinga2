@@ -31,10 +31,6 @@ ConfigCompilerContext *ConfigCompilerContext::GetInstance()
 	return Singleton<ConfigCompilerContext>::GetInstance();
 }
 
-ConfigCompilerContext::ConfigCompilerContext()
-	: m_ObjectsFP(nullptr)
-{ }
-
 void ConfigCompilerContext::OpenObjectsFile(const String& filename)
 {
 	m_ObjectsPath = filename;

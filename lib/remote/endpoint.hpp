@@ -42,8 +42,6 @@ public:
 	DECLARE_OBJECT(Endpoint);
 	DECLARE_OBJECTNAME(Endpoint);
 
-	Endpoint();
-
 	static boost::signals2::signal<void(const Endpoint::Ptr&, const intrusive_ptr<JsonRpcConnection>&)> OnConnected;
 	static boost::signals2::signal<void(const Endpoint::Ptr&, const intrusive_ptr<JsonRpcConnection>&)> OnDisconnected;
 
@@ -76,10 +74,10 @@ private:
 	std::set<intrusive_ptr<JsonRpcConnection> > m_Clients;
 	intrusive_ptr<Zone> m_Zone;
 
-	mutable RingBuffer m_MessagesSent;
-	mutable RingBuffer m_MessagesReceived;
-	mutable RingBuffer m_BytesSent;
-	mutable RingBuffer m_BytesReceived;
+	mutable RingBuffer m_MessagesSent{60};
+	mutable RingBuffer m_MessagesReceived{60};
+	mutable RingBuffer m_BytesSent{60};
+	mutable RingBuffer m_BytesReceived{60};
 };
 
 }

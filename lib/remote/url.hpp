@@ -41,7 +41,7 @@ class Url final : public Object
 public:
 	DECLARE_PTR_TYPEDEFS(Url);
 
-	Url();
+	Url() = default;
 	Url(const String& url);
 
 	String Format(bool onlyPathAndQuery = false, bool printCredentials = false) const;

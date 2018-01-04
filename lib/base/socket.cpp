@@ -37,15 +37,7 @@ using namespace icinga;
 /**
  * Constructor for the Socket class.
  */
-Socket::Socket()
-	: m_FD(INVALID_SOCKET)
-{ }
-
-/**
- * Constructor for the Socket class.
- */
 Socket::Socket(SOCKET fd)
-	: m_FD(INVALID_SOCKET)
 {
 	SetFD(fd);
 }

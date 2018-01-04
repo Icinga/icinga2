@@ -35,8 +35,6 @@ public:
 	DECLARE_OBJECT(ElasticsearchWriter);
 	DECLARE_OBJECTNAME(ElasticsearchWriter);
 
-	ElasticsearchWriter();
-
 	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
 	static String FormatTimestamp(double ts);
@@ -48,7 +46,7 @@ protected:
 
 private:
 	String m_EventPrefix;
-	WorkQueue m_WorkQueue;
+	WorkQueue m_WorkQueue{10000000, 1};
 	Timer::Ptr m_FlushTimer;
 	std::vector<String> m_DataBuffer;
 	boost::mutex m_DataBufferMutex;

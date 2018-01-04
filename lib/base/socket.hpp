@@ -36,7 +36,7 @@ class Socket : public Object
 public:
 	DECLARE_PTR_TYPEDEFS(Socket);
 
-	Socket();
+	Socket() = default;
 	Socket(SOCKET fd);
 	~Socket() override;
 
@@ -67,7 +67,7 @@ protected:
 	mutable boost::mutex m_SocketMutex;
 
 private:
-	SOCKET m_FD; /**< The socket descriptor. */
+	SOCKET m_FD{INVALID_SOCKET}; /**< The socket descriptor. */
 
 	static String GetAddressFromSockaddr(sockaddr *address, socklen_t len);
 };

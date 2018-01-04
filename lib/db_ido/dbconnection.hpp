@@ -45,8 +45,6 @@ class DbConnection : public ObjectImpl<DbConnection>
 public:
 	DECLARE_OBJECT(DbConnection);
 
-	DbConnection();
-
 	static void InitializeDbTimer();
 
 	void SetConfigHash(const DbObject::Ptr& dbobj, const String& hash);
@@ -112,7 +110,7 @@ protected:
 	static int GetSessionToken();
 
 private:
-	bool m_IDCacheValid;
+	bool m_IDCacheValid{false};
 	std::map<std::pair<DbType::Ptr, DbReference>, String> m_ConfigHashes;
 	std::map<DbObject::Ptr, DbReference> m_ObjectIDs;
 	std::map<std::pair<DbType::Ptr, DbReference>, DbReference> m_InsertIDs;
@@ -129,8 +127,8 @@ private:
 	static void InsertRuntimeVariable(const String& key, const Value& value);
 
 	mutable boost::mutex m_StatsMutex;
-	RingBuffer m_QueryStats;
-	bool m_ActiveChangedHandler;
+	RingBuffer m_QueryStats{15 * 60};
+	bool m_ActiveChangedHandler{false};
 };
 
 struct database_error : virtual std::exception, virtual boost::exception { };

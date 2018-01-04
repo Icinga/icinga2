@@ -31,10 +31,6 @@ REGISTER_BUILTIN_TYPE(String, String::GetPrototype());
 
 const String::SizeType String::NPos = std::string::npos;
 
-String::String()
-	: m_Data()
-{ }
-
 String::String(const char *data)
 	: m_Data(data)
 { }
@@ -61,9 +57,6 @@ String::String(Value&& other)
 	*this = std::move(other);
 }
 #endif /* _MSC_VER */
-
-String::~String()
-{ }
 
 String& String::operator=(Value&& other)
 {

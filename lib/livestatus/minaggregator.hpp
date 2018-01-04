@@ -32,11 +32,7 @@ namespace icinga
  */
 struct MinAggregatorState final : public AggregatorState
 {
-	MinAggregatorState()
-		: Min(DBL_MAX)
-	{ }
-
-	double Min;
+	double Min{DBL_MAX};
 };
 
 /**

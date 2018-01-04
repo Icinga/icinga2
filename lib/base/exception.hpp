@@ -53,7 +53,7 @@ class ScriptError : virtual public user_error
 public:
 	ScriptError(String message);
 	ScriptError(String message, DebugInfo di, bool incompleteExpr = false);
-	~ScriptError() throw() override;
+	~ScriptError() throw() = default;
 
 	const char *what(void) const throw() final;
 
@@ -125,13 +125,12 @@ String DiagnosticInformation(const boost::exception_ptr& eptr, bool verbose = tr
 
 class posix_error : virtual public std::exception, virtual public boost::exception {
 public:
-	posix_error();
 	~posix_error() throw() override;
 
 	const char *what(void) const throw() final;
 
 private:
-	mutable char *m_Message;
+	mutable char *m_Message{nullptr};
 };
 
 #ifdef _WIN32

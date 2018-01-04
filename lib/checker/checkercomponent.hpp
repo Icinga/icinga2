@@ -77,8 +77,6 @@ public:
 		>
 	> CheckableSet;
 
-	CheckerComponent();
-
 	void OnConfigLoaded() override;
 	void Start(bool runtimeCreated) override;
 	void Stop(bool runtimeRemoved) override;
@@ -90,7 +88,7 @@ public:
 private:
 	boost::mutex m_Mutex;
 	boost::condition_variable m_CV;
-	bool m_Stopped;
+	bool m_Stopped{false};
 	std::thread m_Thread;
 
 	CheckableSet m_IdleCheckables;

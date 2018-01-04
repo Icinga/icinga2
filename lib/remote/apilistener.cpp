@@ -49,7 +49,6 @@ REGISTER_STATSFUNCTION(ApiListener, &ApiListener::StatsFunc);
 REGISTER_APIFUNCTION(Hello, icinga, &ApiListener::HelloAPIHandler);
 
 ApiListener::ApiListener()
-	: m_SyncQueue(0, 4), m_LogMessageCount(0)
 {
 	m_RelayQueue.SetName("ApiListener, RelayQueue");
 	m_SyncQueue.SetName("ApiListener, SyncQueue");

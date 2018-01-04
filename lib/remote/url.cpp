@@ -26,9 +26,6 @@
 
 using namespace icinga;
 
-Url::Url()
-{ }
-
 Url::Url(const String& base_url)
 {
 	String url = base_url;

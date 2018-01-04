@@ -126,12 +126,8 @@ String icinga::JsonEncode(const Value& value, bool pretty_print)
 struct JsonElement
 {
 	String Key;
-	bool KeySet;
+	bool KeySet{false};
 	Value EValue;
-
-	JsonElement()
-		: KeySet(false)
-	{ }
 };
 
 struct JsonContext

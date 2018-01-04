@@ -77,13 +77,9 @@ private:
 
 struct SocketEventDescriptor
 {
-	int Events;
-	SocketEvents *EventInterface;
-	Object *LifesupportObject;
-
-	SocketEventDescriptor()
-		: Events(POLLIN), EventInterface(nullptr), LifesupportObject(nullptr)
-	{ }
+	int Events{POLLIN};
+	SocketEvents *EventInterface{nullptr};
+	Object *LifesupportObject{nullptr};
 };
 
 struct EventDescription

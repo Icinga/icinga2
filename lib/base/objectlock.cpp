@@ -25,10 +25,6 @@ using namespace icinga;
 #define I2MUTEX_UNLOCKED 0
 #define I2MUTEX_LOCKED 1
 
-ObjectLock::ObjectLock()
-	: m_Object(nullptr), m_Locked(false)
-{ }
-
 ObjectLock::~ObjectLock()
 {
 	Unlock();

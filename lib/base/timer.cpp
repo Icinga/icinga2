@@ -74,13 +74,6 @@ static TimerSet l_Timers;
 static int l_AliveTimers;
 
 /**
- * Constructor for the Timer class.
- */
-Timer::Timer()
-	: m_Interval(0), m_Next(0), m_Started(false), m_Running(false)
-{ }
-
-/**
  * Destructor for the Timer class.
  */
 Timer::~Timer()

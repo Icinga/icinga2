@@ -75,9 +75,6 @@ class Type : public Object
 public:
 	DECLARE_OBJECT(Type);
 
-	Type();
-	~Type() override;
-
 	String ToString() const override;
 
 	virtual String GetName() const = 0;

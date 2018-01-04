@@ -47,10 +47,8 @@ public:
 
 	typedef std::vector<Value>::size_type SizeType;
 
-	Array();
+	Array() = default;
 	Array(std::initializer_list<Value> init);
-
-	~Array() override;
 
 	Value Get(SizeType index) const;
 	void Set(SizeType index, const Value& value);

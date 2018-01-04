@@ -42,8 +42,6 @@ public:
 	DECLARE_OBJECT(GelfWriter);
 	DECLARE_OBJECTNAME(GelfWriter);
 
-	GelfWriter();
-
 	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
 protected:
@@ -53,7 +51,7 @@ protected:
 
 private:
 	Stream::Ptr m_Stream;
-	WorkQueue m_WorkQueue;
+	WorkQueue m_WorkQueue{10000000, 1};
 
 	Timer::Ptr m_ReconnectTimer;
 

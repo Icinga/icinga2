@@ -46,10 +46,6 @@ REGISTER_TYPE(GelfWriter);
 
 REGISTER_STATSFUNCTION(GelfWriter, &GelfWriter::StatsFunc);
 
-GelfWriter::GelfWriter()
-	: m_WorkQueue(10000000, 1)
-{ }
-
 void GelfWriter::OnConfigLoaded()
 {
 	ObjectImpl<GelfWriter>::OnConfigLoaded();

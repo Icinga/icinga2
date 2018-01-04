@@ -31,11 +31,7 @@ namespace icinga
  */
 struct CountAggregatorState final : public AggregatorState
 {
-	CountAggregatorState()
-		: Count(0)
-	{ }
-
-	int Count;
+	int Count{0};
 };
 
 /**

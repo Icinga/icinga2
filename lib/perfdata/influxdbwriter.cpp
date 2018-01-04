@@ -72,10 +72,6 @@ REGISTER_TYPE(InfluxdbWriter);
 
 REGISTER_STATSFUNCTION(InfluxdbWriter, &InfluxdbWriter::StatsFunc);
 
-InfluxdbWriter::InfluxdbWriter()
-	: m_WorkQueue(10000000, 1)
-{ }
-
 void InfluxdbWriter::OnConfigLoaded()
 {
 	ObjectImpl<InfluxdbWriter>::OnConfigLoaded();

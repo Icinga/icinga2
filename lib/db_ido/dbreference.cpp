@@ -21,10 +21,6 @@
 
 using namespace icinga;
 
-DbReference::DbReference()
-	: m_Id(-1)
-{ }
-
 DbReference::DbReference(long id)
 	: m_Id(id)
 { }

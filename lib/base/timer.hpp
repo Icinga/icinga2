@@ -38,7 +38,6 @@ class Timer final : public Object
 public:
 	DECLARE_PTR_TYPEDEFS(Timer);
 
-	Timer();
 	~Timer() override;
 
 	static void Uninitialize();
@@ -57,10 +56,10 @@ public:
 	boost::signals2::signal<void(const Timer::Ptr&)> OnTimerExpired;
 
 private:
-	double m_Interval; /**< The interval of the timer. */
-	double m_Next; /**< When the next event should happen. */
-	bool m_Started; /**< Whether the timer is enabled. */
-	bool m_Running; /**< Whether the timer proc is currently running. */
+	double m_Interval{0}; /**< The interval of the timer. */
+	double m_Next{0}; /**< When the next event should happen. */
+	bool m_Started{false}; /**< Whether the timer is enabled. */
+	bool m_Running{false}; /**< Whether the timer proc is currently running. */
 
 	void Call();
 	void InternalReschedule(bool completed, double next = -1);

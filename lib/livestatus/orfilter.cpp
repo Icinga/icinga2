@@ -21,9 +21,6 @@
 
 using namespace icinga;
 
-OrFilter::OrFilter()
-{ }
-
 bool OrFilter::Apply(const Table::Ptr& table, const Value& row)
 {
 	if (m_Filters.empty())

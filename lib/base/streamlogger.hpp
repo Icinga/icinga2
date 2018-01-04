@@ -38,8 +38,6 @@ class StreamLogger : public ObjectImpl<StreamLogger>
 public:
 	DECLARE_OBJECT(StreamLogger);
 
-	StreamLogger();
-
 	void Stop(bool runtimeRemoved) override;
 	~StreamLogger() override;
 
@@ -53,8 +51,8 @@ protected:
 
 private:
 	static boost::mutex m_Mutex;
-	std::ostream *m_Stream;
-	bool m_OwnsStream;
+	std::ostream *m_Stream{nullptr};
+	bool m_OwnsStream{false};
 
 	Timer::Ptr m_FlushLogTimer;
 

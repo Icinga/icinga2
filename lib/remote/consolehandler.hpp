@@ -28,14 +28,10 @@ namespace icinga
 
 struct ApiScriptFrame
 {
-	double Seen;
-	int NextLine;
+	double Seen{0};
+	int NextLine{1};
 	std::map<String, String> Lines;
 	Dictionary::Ptr Locals;
-
-	ApiScriptFrame()
-		: Seen(0), NextLine(1)
-	{ }
 };
 
 class ConsoleHandler final : public HttpHandler

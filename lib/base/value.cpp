@@ -32,9 +32,6 @@ template const Object::Ptr& Value::Get<Object::Ptr>() const;
 
 Value icinga::Empty;
 
-Value::Value()
-{ }
-
 Value::Value(std::nullptr_t)
 { }
 
@@ -104,9 +101,6 @@ Value::Value(const intrusive_ptr<Object>& value)
 	if (value)
 		m_Value = value;
 }
-
-Value::~Value()
-{ }
 
 Value& Value::operator=(const Value& other)
 {

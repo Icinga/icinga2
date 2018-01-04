@@ -38,10 +38,6 @@ enum ConnectionRole
 
 struct StreamReadContext
 {
-	StreamReadContext()
-		: Buffer(nullptr), Size(0), MustRead(true), Eof(false)
-	{ }
-
 	~StreamReadContext()
 	{
 		free(Buffer);
@@ -50,10 +46,10 @@ struct StreamReadContext
 	bool FillFromStream(const intrusive_ptr<Stream>& stream, bool may_wait);
 	void DropData(size_t count);
 
-	char *Buffer;
-	size_t Size;
-	bool MustRead;
-	bool Eof;
+	char *Buffer{nullptr};
+	size_t Size{0};
+	bool MustRead{true};
+	bool Eof{false};
 };
 
 enum StreamReadStatus

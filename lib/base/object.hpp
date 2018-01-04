@@ -109,7 +109,7 @@ class Object
 public:
 	DECLARE_PTR_TYPEDEFS(Object);
 
-	Object();
+	Object() = default;
 	virtual ~Object();
 
 	virtual String ToString() const;
@@ -139,11 +139,11 @@ public:
 	static intrusive_ptr<Type> TypeInstance;
 
 private:
-	Object(const Object& other);
-	Object& operator=(const Object& rhs);
+	Object(const Object& other) = delete;
+	Object& operator=(const Object& rhs) = delete;
 
-	uintptr_t m_References;
-	mutable uintptr_t m_Mutex;
+	uintptr_t m_References{0};
+	mutable uintptr_t m_Mutex{0};
 
 #ifdef I2_DEBUG
 #	ifndef _WIN32

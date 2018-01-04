@@ -206,7 +206,7 @@ protected:
 
 private:
 	mutable boost::mutex m_CheckableMutex;
-	bool m_CheckRunning;
+	bool m_CheckRunning{false};
 	long m_SchedulingOffset;
 
 	static boost::mutex m_StatsMutex;

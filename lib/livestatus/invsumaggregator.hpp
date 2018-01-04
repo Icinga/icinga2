@@ -31,11 +31,7 @@ namespace icinga
  */
 struct InvSumAggregatorState final : public AggregatorState
 {
-	InvSumAggregatorState()
-		: InvSum(0)
-	{ }
-
-	double InvSum;
+	double InvSum{0};
 };
 
 /**

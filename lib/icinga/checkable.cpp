@@ -44,7 +44,6 @@ void Checkable::StaticInitialize()
 }
 
 Checkable::Checkable()
-	: m_CheckRunning(false)
 {
 	SetSchedulingOffset(Utility::Random());
 }

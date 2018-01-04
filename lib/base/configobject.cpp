@@ -46,9 +46,6 @@ REGISTER_TYPE_WITH_PROTOTYPE(ConfigObject, ConfigObject::GetPrototype());
 
 boost::signals2::signal<void (const ConfigObject::Ptr&)> ConfigObject::OnStateChanged;
 
-ConfigObject::ConfigObject()
-{ }
-
 bool ConfigObject::IsActive() const
 {
 	return GetActive();

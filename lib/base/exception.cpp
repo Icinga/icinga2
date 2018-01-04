@@ -291,9 +291,6 @@ ScriptError::ScriptError(String message, DebugInfo di, bool incompleteExpr)
 	: m_Message(std::move(message)), m_DebugInfo(std::move(di)), m_IncompleteExpr(incompleteExpr), m_HandledByDebugger(false)
 { }
 
-ScriptError::~ScriptError() throw()
-{ }
-
 const char *ScriptError::what() const throw()
 {
 	return m_Message.CStr();
@@ -318,10 +315,6 @@ void ScriptError::SetHandledByDebugger(bool handled)
 {
 	m_HandledByDebugger = handled;
 }
-
-posix_error::posix_error()
-	: m_Message(nullptr)
-{ }
 
 posix_error::~posix_error() throw()
 {

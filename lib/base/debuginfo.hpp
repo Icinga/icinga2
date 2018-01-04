@@ -35,13 +35,11 @@ struct DebugInfo
 {
 	String Path;
 
-	int FirstLine;
-	int FirstColumn;
+	int FirstLine{0};
+	int FirstColumn{0};
 
-	int LastLine;
-	int LastColumn;
-
-	DebugInfo();
+	int LastLine{0};
+	int LastColumn{0};
 };
 
 std::ostream& operator<<(std::ostream& out, const DebugInfo& val);

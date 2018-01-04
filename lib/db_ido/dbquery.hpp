@@ -62,23 +62,19 @@ class DbObject;
 
 struct DbQuery
 {
-	int Type;
-	DbQueryCategory Category;
+	int Type{0};
+	DbQueryCategory Category{DbCatInvalid};
 	String Table;
 	String IdColumn;
 	Dictionary::Ptr Fields;
 	Dictionary::Ptr WhereCriteria;
 	intrusive_ptr<DbObject> Object;
 	DbValue::Ptr NotificationInsertID;
-	bool ConfigUpdate;
-	bool StatusUpdate;
-	WorkQueuePriority Priority;
+	bool ConfigUpdate{false};
+	bool StatusUpdate{false};
+	WorkQueuePriority Priority{PriorityNormal};
 
 	static void StaticInitialize();
-
-	DbQuery()
-		: Type(0), Category(DbCatInvalid), ConfigUpdate(false), StatusUpdate(false), Priority(PriorityNormal)
-	{ }
 
 	static const std::map<String, int>& GetCategoryFilterMap();
 

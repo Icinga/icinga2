@@ -31,12 +31,8 @@ namespace icinga
  */
 struct AvgAggregatorState final : public AggregatorState
 {
-	AvgAggregatorState()
-		: Avg(0), AvgCount(0)
-	{ }
-
-	double Avg;
-	double AvgCount;
+	double Avg{0};
+	double AvgCount{0};
 };
 
 /**

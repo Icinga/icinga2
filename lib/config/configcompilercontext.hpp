@@ -34,8 +34,6 @@ namespace icinga
 class ConfigCompilerContext
 {
 public:
-	ConfigCompilerContext();
-
 	void OpenObjectsFile(const String& filename);
 	void WriteObject(const Dictionary::Ptr& object);
 	void CancelObjectsFile();
@@ -46,7 +44,7 @@ public:
 private:
 	String m_ObjectsPath;
 	String m_ObjectsTempFile;
-	std::fstream *m_ObjectsFP;
+	std::fstream *m_ObjectsFP{nullptr};
 
 	mutable boost::mutex m_Mutex;
 };

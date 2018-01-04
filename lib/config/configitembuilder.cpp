@@ -23,15 +23,6 @@
 
 using namespace icinga;
 
-ConfigItemBuilder::ConfigItemBuilder()
-	: m_Abstract(false), m_DefaultTmpl(false), m_IgnoreOnError(false)
-{
-	m_DebugInfo.FirstLine = 0;
-	m_DebugInfo.FirstColumn = 0;
-	m_DebugInfo.LastLine = 0;
-	m_DebugInfo.LastColumn = 0;
-}
-
 ConfigItemBuilder::ConfigItemBuilder(const DebugInfo& debugInfo)
 	: m_Abstract(false), m_DefaultTmpl(false), m_IgnoreOnError(false)
 {

@@ -32,14 +32,8 @@ template class std::vector<Value>;
 
 REGISTER_PRIMITIVE_TYPE(Array, Object, Array::GetPrototype());
 
-Array::Array()
-{ }
-
 Array::Array(std::initializer_list<Value> init)
 	: m_Data(init)
-{ }
-
-Array::~Array()
 { }
 
 /**

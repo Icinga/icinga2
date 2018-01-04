@@ -38,7 +38,6 @@ public:
 
 	static const size_t BlockSize = 512;
 
-	FIFO();
 	~FIFO() override;
 
 	size_t Peek(void *buffer, size_t count, bool allow_partial = false) override;
@@ -52,10 +51,10 @@ public:
 	size_t GetAvailableBytes() const;
 
 private:
-	char *m_Buffer;
-	size_t m_DataSize;
-	size_t m_AllocSize;
-	size_t m_Offset;
+	char *m_Buffer{nullptr};
+	size_t m_DataSize{0};
+	size_t m_AllocSize{0};
+	size_t m_Offset{0};
 
 	void ResizeBuffer(size_t newSize, bool decrease);
 	void Optimize();

@@ -31,13 +31,9 @@ namespace icinga
  */
 struct StdAggregatorState final : public AggregatorState
 {
-	StdAggregatorState()
-		: StdSum(0), StdQSum(0), StdCount(0)
-	{ }
-
-	double StdSum;
-	double StdQSum;
-	double StdCount;
+	double StdSum{0};
+	double StdQSum{0};
+	double StdCount{0};
 };
 
 /**

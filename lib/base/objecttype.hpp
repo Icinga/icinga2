@@ -30,8 +30,6 @@ namespace icinga
 class ObjectType final : public Type
 {
 public:
-	ObjectType();
-
 	String GetName() const override;
 	Type::Ptr GetBaseType() const override;
 	int GetAttributes() const override;

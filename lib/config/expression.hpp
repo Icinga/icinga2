@@ -599,7 +599,7 @@ class DictExpression final : public DebuggableExpression
 {
 public:
 	DictExpression(std::vector<std::unique_ptr<Expression> >&& expressions = {}, const DebugInfo& debugInfo = DebugInfo())
-		: DebuggableExpression(debugInfo), m_Expressions(std::move(expressions)), m_Inline(false)
+		: DebuggableExpression(debugInfo), m_Expressions(std::move(expressions))
 	{ }
 
 	void MakeInline();
@@ -609,7 +609,7 @@ protected:
 
 private:
 	std::vector<std::unique_ptr<Expression> > m_Expressions;
-	bool m_Inline;
+	bool m_Inline{false};
 
 	friend void BindToScope(std::unique_ptr<Expression>& expr, ScopeSpecifier scopeSpec);
 };

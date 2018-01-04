@@ -30,7 +30,7 @@ using namespace icinga;
 int ThreadPool::m_NextID = 1;
 
 ThreadPool::ThreadPool(size_t max_threads)
-	: m_ID(m_NextID++), m_MaxThreads(max_threads), m_Stopped(true)
+	: m_ID(m_NextID++), m_MaxThreads(max_threads)
 {
 	if (m_MaxThreads != UINT_MAX && m_MaxThreads < sizeof(m_Queues) / sizeof(m_Queues[0]))
 		m_MaxThreads = sizeof(m_Queues) / sizeof(m_Queues[0]);

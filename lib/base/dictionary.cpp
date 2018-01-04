@@ -29,12 +29,6 @@ template class std::map<String, Value>;
 
 REGISTER_PRIMITIVE_TYPE(Dictionary, Object, Dictionary::GetPrototype());
 
-Dictionary::Dictionary()
-{ }
-
-Dictionary::~Dictionary()
-{ }
-
 /**
  * Retrieves a value from a dictionary.
  *

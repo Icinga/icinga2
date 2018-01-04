@@ -81,13 +81,9 @@ enum FieldAttribute
 
 struct FieldType
 {
-	bool IsName;
+	bool IsName{false};
 	std::string TypeName;
-	int ArrayRank;
-
-	FieldType()
-		: IsName(false), ArrayRank(0)
-	{ }
+	int ArrayRank{0};
 
 	inline std::string GetRealType() const
 	{
@@ -113,23 +109,19 @@ struct FieldType
 
 struct Field
 {
-	int Attributes;
+	int Attributes{0};
 	FieldType Type;
 	std::string Name;
 	std::string AlternativeName;
 	std::string GetAccessor;
-	bool PureGetAccessor;
+	bool PureGetAccessor{false};
 	std::string SetAccessor;
-	bool PureSetAccessor;
+	bool PureSetAccessor{false};
 	std::string DefaultAccessor;
 	std::string TrackAccessor;
 	std::string NavigationName;
 	std::string NavigateAccessor;
-	bool PureNavigateAccessor;
-
-	Field()
-		: Attributes(0), PureGetAccessor(false), PureSetAccessor(false), PureNavigateAccessor(false)
-	{ }
+	bool PureNavigateAccessor{false};
 
 	inline std::string GetFriendlyName() const
 	{

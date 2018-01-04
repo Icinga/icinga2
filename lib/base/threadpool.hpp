@@ -75,14 +75,14 @@ private:
 
 	struct WorkerThread
 	{
-		ThreadState State;
-		bool Zombie;
-		double Utilization;
-		double LastUpdate;
-		boost::thread *Thread;
+		ThreadState State{ThreadDead};
+		bool Zombie{false};
+		double Utilization{0};
+		double LastUpdate{0};
+		boost::thread *Thread{nullptr};
 
 		WorkerThread(ThreadState state = ThreadDead)
-			: State(state), Zombie(false), Utilization(0), LastUpdate(0), Thread(nullptr)
+			: State(state)
 		{ }
 
 		void UpdateUtilization(ThreadState state = ThreadUnspecified);
@@ -98,17 +98,13 @@ private:
 
 		std::deque<WorkItem> Items;
 
-		double WaitTime;
-		double ServiceTime;
-		int TaskCount;
+		double WaitTime{0};
+		double ServiceTime{0};
+		int TaskCount{0};
 
-		bool Stopped;
+		bool Stopped{false};
 
 		WorkerThread Threads[16];
-
-		Queue()
-			: WaitTime(0), ServiceTime(0), TaskCount(0), Stopped(false)
-		{ }
 
 		void SpawnWorker(boost::thread_group& group);
 		void KillWorker(boost::thread_group& group);
@@ -124,7 +120,7 @@ private:
 	std::thread m_MgmtThread;
 	boost::mutex m_MgmtMutex;
 	boost::condition_variable m_MgmtCV;
-	bool m_Stopped;
+	bool m_Stopped{true};
 
 	Queue m_Queues[QUEUECOUNT];
 

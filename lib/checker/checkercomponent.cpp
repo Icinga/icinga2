@@ -59,10 +59,6 @@ void CheckerComponent::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr
 	status->Set("checkercomponent", nodes);
 }
 
-CheckerComponent::CheckerComponent()
-	: m_Stopped(false)
-{ }
-
 void CheckerComponent::OnConfigLoaded()
 {
 	ConfigObject::OnActiveChanged.connect(std::bind(&CheckerComponent::ObjectHandler, this, _1));

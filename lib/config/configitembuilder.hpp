@@ -39,7 +39,7 @@ class ConfigItemBuilder final : public Object
 public:
 	DECLARE_PTR_TYPEDEFS(ConfigItemBuilder);
 
-	ConfigItemBuilder();
+	ConfigItemBuilder() = default;
 	explicit ConfigItemBuilder(const DebugInfo& debugInfo);
 
 	void SetType(const Type::Ptr& type);
@@ -59,15 +59,15 @@ public:
 private:
 	Type::Ptr m_Type; /**< The object type. */
 	String m_Name; /**< The name. */
-	bool m_Abstract; /**< Whether the item is abstract. */
+	bool m_Abstract{false}; /**< Whether the item is abstract. */
 	std::vector<std::unique_ptr<Expression> > m_Expressions; /**< Expressions for this item. */
 	std::shared_ptr<Expression> m_Filter; /**< Filter expression. */
 	DebugInfo m_DebugInfo; /**< Debug information. */
 	Dictionary::Ptr m_Scope; /**< variable scope. */
 	String m_Zone; /**< The zone. */
 	String m_Package; /**< The package name. */
-	bool m_DefaultTmpl;
-	bool m_IgnoreOnError; /**< Whether the object should be ignored when an error occurs in one of the expressions. */
+	bool m_DefaultTmpl{false};
+	bool m_IgnoreOnError{false}; /**< Whether the object should be ignored when an error occurs in one of the expressions. */
 };
 
 }

@@ -46,10 +46,6 @@ REGISTER_TYPE(GraphiteWriter);
 
 REGISTER_STATSFUNCTION(GraphiteWriter, &GraphiteWriter::StatsFunc);
 
-GraphiteWriter::GraphiteWriter()
-	: m_WorkQueue(10000000, 1)
-{ }
-
 void GraphiteWriter::OnConfigLoaded()
 {
 	ObjectImpl<GraphiteWriter>::OnConfigLoaded();

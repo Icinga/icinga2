@@ -48,7 +48,7 @@ public:
 	void SetFilter(const Filter::Ptr& filter);
 
 protected:
-	Aggregator();
+	Aggregator() = default;
 
 	Filter::Ptr GetFilter() const;
 

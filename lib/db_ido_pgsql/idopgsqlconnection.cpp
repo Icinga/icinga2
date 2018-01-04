@@ -41,7 +41,6 @@ REGISTER_TYPE(IdoPgsqlConnection);
 REGISTER_STATSFUNCTION(IdoPgsqlConnection, &IdoPgsqlConnection::StatsFunc);
 
 IdoPgsqlConnection::IdoPgsqlConnection()
-	: m_QueryQueue(1000000)
 {
 	m_QueryQueue.SetName("IdoPgsqlConnection, " + GetName());
 }

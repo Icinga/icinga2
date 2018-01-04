@@ -29,9 +29,6 @@ INITIALIZE_ONCE_WITH_PRIORITY([]() {
 	Object::TypeInstance = type;
 }, 20);
 
-ObjectType::ObjectType()
-{ }
-
 String ObjectType::GetName() const
 {
 	return "Object";
