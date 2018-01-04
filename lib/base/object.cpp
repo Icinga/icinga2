@@ -43,9 +43,6 @@ static Timer::Ptr l_ObjectCountTimer;
  */
 Object::Object()
 	: m_References(0), m_Mutex(0)
-#ifdef I2_DEBUG
-	, m_LockOwner(0)
-#endif /* I2_DEBUG */
 { }
 
 /**
@@ -77,7 +74,7 @@ bool Object::OwnsLock() const
 
 	return (tid == GetCurrentThreadId());
 #else /* _WIN32 */
-	pthread_t tid = __sync_fetch_and_add(&m_LockOwner, 0);
+	pthread_t tid = __sync_fetch_and_add(&m_LockOwner, nullptr);
 
 	return (tid == pthread_self());
 #endif /* _WIN32 */

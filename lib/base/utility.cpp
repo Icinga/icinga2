@@ -84,7 +84,7 @@ String Utility::DemangleSymbolName(const String& sym)
 
 #ifdef HAVE_CXXABI_H
 	int status;
-	char *realname = abi::__cxa_demangle(sym.CStr(), 0, 0, &status);
+	char *realname = abi::__cxa_demangle(sym.CStr(), nullptr, nullptr, &status);
 
 	if (realname) {
 		result = String(realname);

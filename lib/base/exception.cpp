@@ -115,7 +115,7 @@ void __cxa_throw(void *obj, TYPEINFO_TYPE *pvtinfo, void (*dest)(void *))
 	l_LastExceptionDest.reset(new DestCallback(dest));
 #endif /* !defined(__GLIBCXX__) && !defined(_WIN32) */
 
-	if (real_cxa_throw == 0)
+	if (real_cxa_throw == nullptr)
 		real_cxa_throw = (cxa_throw_fn)dlsym(RTLD_NEXT, "__cxa_throw");
 
 #ifndef NO_CAST_EXCEPTION

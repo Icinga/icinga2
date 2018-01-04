@@ -379,7 +379,7 @@ int MakeX509CSR(const String& cn, const String& keyfile, const String& csrfile, 
 			<< boost::errinfo_file_name(keyfile));
 	}
 
-	if (!PEM_write_bio_PrivateKey(bio, key, nullptr, nullptr, 0, 0, nullptr)) {
+	if (!PEM_write_bio_PrivateKey(bio, key, nullptr, nullptr, 0, nullptr, nullptr)) {
 		EVP_PKEY_free(key);
 		EC_KEY_free(eckey);
 		BIO_free(bio);
