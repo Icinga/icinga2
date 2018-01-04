@@ -457,32 +457,32 @@ String CompatUtility::GetCheckableNotificationNotificationOptions(const Checkabl
 	/* notification state filters */
 	if (service) {
 		if (notification_state_filter & ServiceWarning) {
-			notification_options.push_back("w");
+			notification_options.emplace_back("w");
 		}
 		if (notification_state_filter & ServiceUnknown) {
-			notification_options.push_back("u");
+			notification_options.emplace_back("u");
 		}
 		if (notification_state_filter & ServiceCritical) {
-			notification_options.push_back("c");
+			notification_options.emplace_back("c");
 		}
 	} else {
 		if (notification_state_filter & HostDown) {
-			notification_options.push_back("d");
+			notification_options.emplace_back("d");
 		}
 	}
 
 	/* notification type filters */
 	if (notification_type_filter & NotificationRecovery) {
-		notification_options.push_back("r");
+		notification_options.emplace_back("r");
 	}
 	if ((notification_type_filter & NotificationFlappingStart) ||
 		(notification_type_filter & NotificationFlappingEnd)) {
-		notification_options.push_back("f");
+		notification_options.emplace_back("f");
 	}
 	if ((notification_type_filter & NotificationDowntimeStart) ||
 		(notification_type_filter & NotificationDowntimeEnd) ||
 		(notification_type_filter & NotificationDowntimeRemoved)) {
-		notification_options.push_back("s");
+		notification_options.emplace_back("s");
 	}
 
 	return boost::algorithm::join(notification_options, ",");

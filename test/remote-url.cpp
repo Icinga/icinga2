@@ -34,9 +34,9 @@ BOOST_AUTO_TEST_CASE(id_and_path)
 	BOOST_CHECK(url->GetAuthority() == "icinga.com");
 
 	std::vector<String> PathCorrect;
-	PathCorrect.push_back("foo");
-	PathCorrect.push_back("bar");
-	PathCorrect.push_back("baz");
+	PathCorrect.emplace_back("foo");
+	PathCorrect.emplace_back("bar");
+	PathCorrect.emplace_back("baz");
 
 	BOOST_CHECK(url->GetPath() == PathCorrect);
 }

@@ -290,7 +290,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 
 		for (const Field& field : klass.Fields) {
 			auto hash = static_cast<int>(SDBM(field.Name, hlen));
-			jumptable[hash].push_back(std::make_pair(num, field.Name));
+			jumptable[hash].emplace_back(num, field.Name);
 			num++;
 
 			if (jumptable[hash].size() > 1)
@@ -403,7 +403,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		<< "\t" << "std::vector<String> deps;" << std::endl;
 
 	for (const std::string& dep : klass.LoadDependencies)
-		m_Impl << "\t" << "deps.push_back(\"" << dep << "\");" << std::endl;
+		m_Impl << "\t" << "deps.emplace_back(\"" << dep << "\");" << std::endl;
 
 	m_Impl << "\t" << "return deps;" << std::endl
 		<< "}" << std::endl << std::endl;
@@ -1208,7 +1208,7 @@ void ClassCompiler::CodeGenValidator(const std::string& name, const std::string&
 				else
 					subvalidator_prefix = name;
 
-				m_Impl << (type_check ? "\t" : "") << (indent ? "\t\t" : "") << "\t\t" << "location.push_back(akey);" << std::endl
+				m_Impl << (type_check ? "\t" : "") << (indent ? "\t\t" : "") << "\t\t" << "location.emplace_back(akey);" << std::endl
 					<< (type_check ? "\t" : "") << (indent ? "\t\t" : "") << "\t\t" << "TIValidate" << subvalidator_prefix << "_" << i << "(object, akey, avalue, location, utils);" << std::endl
 					<< (type_check ? "\t" : "") << (indent ? "\t\t" : "") << "\t\t" << "location.pop_back();" << std::endl;
 
@@ -1313,7 +1313,7 @@ void ClassCompiler::HandleValidator(const Validator& validator, const ClassDebug
 			<< "{" << std::endl
 			<< "\t" << "SimpleValidate" << it.first.second << "(value, utils);" << std::endl
 			<< "\t" << "std::vector<String> location;" << std::endl
-			<< "\t" << "location.push_back(\"" << it.second.Name << "\");" << std::endl
+			<< "\t" << "location.emplace_back(\"" << it.second.Name << "\");" << std::endl
 			<< "\t" << "TIValidate" << it.first.first << it.first.second << "(this, value, location, utils);" << std::endl
 			<< "\t" << "location.pop_back();" << std::endl
 			<< "}" << std::endl << std::endl;

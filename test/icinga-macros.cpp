@@ -41,8 +41,8 @@ BOOST_AUTO_TEST_CASE(simple)
 	macrosB->Set("testD", testD);
 
 	MacroProcessor::ResolverList resolvers;
-	resolvers.push_back(std::make_pair("macrosA", macrosA));
-	resolvers.push_back(std::make_pair("macrosB", macrosB));
+	resolvers.emplace_back("macrosA", macrosA);
+	resolvers.emplace_back("macrosB", macrosB);
 
 	BOOST_CHECK(MacroProcessor::ResolveMacros("$macrosA.testB$ $macrosB.testC$", resolvers) == "hello world");
 	BOOST_CHECK(MacroProcessor::ResolveMacros("$testA$", resolvers) == "7");

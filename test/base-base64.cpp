@@ -27,13 +27,12 @@ BOOST_AUTO_TEST_SUITE(base_base64)
 BOOST_AUTO_TEST_CASE(base64)
 {
 	std::vector<String> clearText;
-	clearText.push_back("");
-	clearText.push_back("1");
-	clearText.push_back("12");
-	clearText.push_back("123");
-	clearText.push_back("1234");
-	clearText.push_back(
-		"VsowLvPqEiAeITDmo-5L_NB-k7fsT3sT2d3K9O4iC2uBk41hvCPAxrgGSxrdeX5s"
+	clearText.emplace_back("");
+	clearText.emplace_back("1");
+	clearText.emplace_back("12");
+	clearText.emplace_back("123");
+	clearText.emplace_back("1234");
+	clearText.emplace_back("VsowLvPqEiAeITDmo-5L_NB-k7fsT3sT2d3K9O4iC2uBk41hvCPAxrgGSxrdeX5s"
 		"Zo0Z9b1kxDZlzf8GHQ9ARW6YLeGODMtiZo8cKkUzfSbxyZ_wlE9u6pCTTg9kODCM"
 		"Ve-X_a3jWkOy89RoDkT5ahKBY-8S25L6wlvWt8ZyQ2bLxfplzEzuHgEknTMKKp2K"
 		"jRlwI2p3gF4FYeQM7dx0E5O782Lh1P3IC6jPNqiZgTgWmsRYZbAN8oU2V626bQxD"

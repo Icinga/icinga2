@@ -580,9 +580,9 @@ bool Utility::Glob(const String& pathSpec, const std::function<void (const Strin
 			continue;
 
 		if (S_ISDIR(statbuf.st_mode) && (type & GlobDirectory))
-			dirs.push_back(*gp);
+			dirs.emplace_back(*gp);
 		else if (!S_ISDIR(statbuf.st_mode) && (type & GlobFile))
-			files.push_back(*gp);
+			files.emplace_back(*gp);
 	}
 
 	globfree(&gr);
@@ -1003,7 +1003,7 @@ String Utility::FormatDuration(double duration)
 		if (milliseconds >= 1)
 			tokens.emplace_back(Convert::ToString(milliseconds) + (milliseconds != 1 ? " milliseconds" : " millisecond"));
 		else
-			tokens.push_back("less than 1 millisecond");
+			tokens.emplace_back("less than 1 millisecond");
 	}
 
 	return NaturalJoin(tokens);
@@ -1254,10 +1254,10 @@ int Utility::CompareVersion(const String& v1, const String& v2)
 	boost::algorithm::split(tokensv2, v2, boost::is_any_of("."));
 
 	for (std::vector<String>::size_type i = 0; i < tokensv2.size() - tokensv1.size(); i++)
-		tokensv1.push_back("0");
+		tokensv1.emplace_back("0");
 
 	for (std::vector<String>::size_type i = 0; i < tokensv1.size() - tokensv2.size(); i++)
-		tokensv2.push_back("0");
+		tokensv2.emplace_back("0");
 
 	for (std::vector<String>::size_type i = 0; i < tokensv1.size(); i++) {
 		if (Convert::ToLong(tokensv2[i]) > Convert::ToLong(tokensv1[i]))

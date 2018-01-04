@@ -327,7 +327,7 @@ void ConfigItem::Register()
 	/* If this is a non-abstract object with a composite name
 	 * we register it in m_UnnamedItems instead of m_Items. */
 	if (!m_Abstract && dynamic_cast<NameComposer *>(m_Type.get()))
-		m_UnnamedItems.push_back(this);
+		m_UnnamedItems.emplace_back(this);
 	else {
 		auto& items = m_Items[m_Type];
 
