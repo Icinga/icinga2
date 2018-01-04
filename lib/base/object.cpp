@@ -67,7 +67,7 @@ bool Object::OwnsLock() const
 
 	return (tid == GetCurrentThreadId());
 #else /* _WIN32 */
-	pthread_t tid = __sync_fetch_and_add(&m_LockOwner, nullptr);
+	pthread_t tid = __sync_fetch_and_add(&m_LockOwner, 0);
 
 	return (tid == pthread_self());
 #endif /* _WIN32 */
