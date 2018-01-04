@@ -221,7 +221,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 			<< "public:" << std::endl
 			<< "\t" << "DECLARE_PTR_TYPEDEFS(TypeImpl<" << klass.Name << ">);" << std::endl << std::endl
 			<< "\t" << "TypeImpl();" << std::endl
-			<< "\t" << "~TypeImpl();" << std::endl << std::endl;
+			<< "\t" << "~TypeImpl() override;" << std::endl << std::endl;
 
 	m_Impl << "TypeImpl<" << klass.Name << ">::TypeImpl()" << std::endl
 		<< "{ }" << std::endl << std::endl
@@ -229,7 +229,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		<< "{ }" << std::endl << std::endl;
 
 	/* GetName */
-	m_Header << "\t" << "virtual String GetName() const;" << std::endl;
+	m_Header << "\t" << "String GetName() const override;" << std::endl;
 
 	m_Impl << "String TypeImpl<" << klass.Name << ">::GetName() const" << std::endl
 		<< "{" << std::endl
@@ -237,7 +237,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		<< "}" << std::endl << std::endl;
 
 	/* GetAttributes */
-	m_Header << "\t" << "virtual int GetAttributes() const;" << std::endl;
+	m_Header << "\t" << "int GetAttributes() const override;" << std::endl;
 
 	m_Impl << "int TypeImpl<" << klass.Name << ">::GetAttributes() const" << std::endl
 		<< "{" << std::endl
@@ -245,7 +245,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		<< "}" << std::endl << std::endl;
 
 	/* GetBaseType */
-	m_Header << "\t" << "virtual Type::Ptr GetBaseType() const;" << std::endl;
+	m_Header << "\t" << "Type::Ptr GetBaseType() const override;" << std::endl;
 
 	m_Impl << "Type::Ptr TypeImpl<" << klass.Name << ">::GetBaseType() const" << std::endl
 		<< "{" << std::endl
@@ -260,7 +260,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		<< "}" << std::endl << std::endl;
 
 	/* GetFieldId */
-	m_Header << "\t" << "virtual int GetFieldId(const String& name) const;" << std::endl;
+	m_Header << "\t" << "int GetFieldId(const String& name) const override;" << std::endl;
 
 	m_Impl << "int TypeImpl<" << klass.Name << ">::GetFieldId(const String& name) const" << std::endl
 		<< "{" << std::endl;
@@ -327,7 +327,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		<< "}" << std::endl << std::endl;
 
 	/* GetFieldInfo */
-	m_Header << "\t" << "virtual Field GetFieldInfo(int id) const;" << std::endl;
+	m_Header << "\t" << "Field GetFieldInfo(int id) const override;" << std::endl;
 
 	m_Impl << "Field TypeImpl<" << klass.Name << ">::GetFieldInfo(int id) const" << std::endl
 		<< "{" << std::endl;
@@ -374,7 +374,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 	m_Impl << "}" << std::endl << std::endl;
 
 	/* GetFieldCount */
-	m_Header << "\t" << "virtual int GetFieldCount() const;" << std::endl;
+	m_Header << "\t" << "int GetFieldCount() const override;" << std::endl;
 
 	m_Impl << "int TypeImpl<" << klass.Name << ">::GetFieldCount() const" << std::endl
 		<< "{" << std::endl
@@ -387,7 +387,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		<< "}" << std::endl << std::endl;
 
 	/* GetFactory */
-	m_Header << "\t" << "virtual ObjectFactory GetFactory() const;" << std::endl;
+	m_Header << "\t" << "ObjectFactory GetFactory() const override;" << std::endl;
 
 	m_Impl << "ObjectFactory TypeImpl<" << klass.Name << ">::GetFactory() const" << std::endl
 		<< "{" << std::endl
@@ -395,7 +395,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		<< "}" << std::endl << std::endl;
 
 	/* GetLoadDependencies */
-	m_Header << "\t" << "virtual std::vector<String> GetLoadDependencies() const;" << std::endl;
+	m_Header << "\t" << "std::vector<String> GetLoadDependencies() const override;" << std::endl;
 
 	m_Impl << "std::vector<String> TypeImpl<" << klass.Name << ">::GetLoadDependencies() const" << std::endl
 		<< "{" << std::endl
@@ -409,7 +409,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 
 	/* RegisterAttributeHandler */
 	m_Header << "public:" << std::endl
-			<< "\t" << "virtual void RegisterAttributeHandler(int fieldId, const Type::AttributeHandler& callback);" << std::endl;
+			<< "\t" << "void RegisterAttributeHandler(int fieldId, const Type::AttributeHandler& callback) override;" << std::endl;
 
 	m_Impl << "void TypeImpl<" << klass.Name << ">::RegisterAttributeHandler(int fieldId, const Type::AttributeHandler& callback)" << std::endl
 		<< "{" << std::endl;
@@ -459,7 +459,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		<< "\t" << "DECLARE_PTR_TYPEDEFS(ObjectImpl<" << klass.Name << ">);" << std::endl << std::endl;
 
 	/* Validate */
-	m_Header << "\t" << "virtual void Validate(int types, const ValidationUtils& utils) override;" << std::endl;
+	m_Header << "\t" << "void Validate(int types, const ValidationUtils& utils) override;" << std::endl;
 
 	m_Impl << "void ObjectImpl<" << klass.Name << ">::Validate(int types, const ValidationUtils& utils)" << std::endl
 		<< "{" << std::endl;
@@ -563,7 +563,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 
 	/* destructor */
 	m_Header << "public:" << std::endl
-			<< "\t" << "~ObjectImpl<" << klass.Name << ">();" << std::endl;
+			<< "\t" << "~ObjectImpl<" << klass.Name << ">() override;" << std::endl;
 
 	m_Impl << "ObjectImpl<" << klass.Name << ">::~ObjectImpl()" << std::endl
 		<< "{ }" << std::endl << std::endl;
@@ -571,7 +571,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 	if (!klass.Fields.empty()) {
 		/* SetField */
 		m_Header << "public:" << std::endl
-				<< "\t" << "virtual void SetField(int id, const Value& value, bool suppress_events = false, const Value& cookie = Empty) override;" << std::endl;
+				<< "\t" << "void SetField(int id, const Value& value, bool suppress_events = false, const Value& cookie = Empty) override;" << std::endl;
 
 		m_Impl << "void ObjectImpl<" << klass.Name << ">::SetField(int id, const Value& value, bool suppress_events, const Value& cookie)" << std::endl
 			<< "{" << std::endl;
@@ -615,7 +615,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 
 		/* GetField */
 		m_Header << "public:" << std::endl
-				<< "\t" << "virtual Value GetField(int id) const override;" << std::endl;
+				<< "\t" << "Value GetField(int id) const override;" << std::endl;
 
 		m_Impl << "Value ObjectImpl<" << klass.Name << ">::GetField(int id) const" << std::endl
 			<< "{" << std::endl;
@@ -648,7 +648,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		
 		/* ValidateField */
 		m_Header << "public:" << std::endl
-				<< "\t" << "virtual void ValidateField(int id, const Value& value, const ValidationUtils& utils) override;" << std::endl;
+				<< "\t" << "void ValidateField(int id, const Value& value, const ValidationUtils& utils) override;" << std::endl;
 
 		m_Impl << "void ObjectImpl<" << klass.Name << ">::ValidateField(int id, const Value& value, const ValidationUtils& utils)" << std::endl
 			<< "{" << std::endl;
@@ -726,7 +726,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 
 		/* NavigateField */
 		m_Header << "public:" << std::endl
-				<< "\t" << "virtual Object::Ptr NavigateField(int id) const override;" << std::endl;
+				<< "\t" << "Object::Ptr NavigateField(int id) const override;" << std::endl;
 
 		m_Impl << "Object::Ptr ObjectImpl<" << klass.Name << ">::NavigateField(int id) const" << std::endl
 			<< "{" << std::endl;
@@ -963,8 +963,8 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		/* start/stop */
 		if (needs_tracking) {
 			m_Header << "protected:" << std::endl
-					<< "\tvirtual void Start(bool runtimeCreated = false) override;" << std::endl
-					<< "\tvirtual void Stop(bool runtimeRemoved = false) override;" << std::endl;
+					<< "\tvoid Start(bool runtimeCreated = false) override;" << std::endl
+					<< "\tvoid Stop(bool runtimeRemoved = false) override;" << std::endl;
 
 			m_Impl << "void ObjectImpl<" << klass.Name << ">::Start(bool runtimeCreated)" << std::endl
 				<< "{" << std::endl

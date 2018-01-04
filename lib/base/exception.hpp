@@ -53,9 +53,9 @@ class ScriptError : virtual public user_error
 public:
 	ScriptError(const String& message);
 	ScriptError(const String& message, const DebugInfo& di, bool incompleteExpr = false);
-	~ScriptError() throw();
+	~ScriptError() throw() override;
 
-	virtual const char *what(void) const throw() override final;
+	const char *what(void) const throw() final;
 
 	DebugInfo GetDebugInfo() const;
 	bool IsIncompleteExpression() const;
@@ -77,9 +77,9 @@ class ValidationError : virtual public user_error
 {
 public:
 	ValidationError(const ConfigObject::Ptr& object, const std::vector<String>& attributePath, const String& message);
-	~ValidationError() throw();
+	~ValidationError() throw() override;
 
-	virtual const char *what(void) const throw() override final;
+	const char *what() const throw() override;
 
 	ConfigObject::Ptr GetObject() const;
 	std::vector<String> GetAttributePath() const;
@@ -126,9 +126,9 @@ String DiagnosticInformation(boost::exception_ptr eptr, bool verbose = true);
 class posix_error : virtual public std::exception, virtual public boost::exception {
 public:
 	posix_error();
-	virtual ~posix_error() throw();
+	~posix_error() throw() override;
 
-	virtual const char *what(void) const throw() override final;
+	const char *what(void) const throw() final;
 
 private:
 	mutable char *m_Message;

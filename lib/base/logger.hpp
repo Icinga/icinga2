@@ -90,11 +90,11 @@ public:
 	static void SetConsoleLogSeverity(LogSeverity logSeverity);
 	static LogSeverity GetConsoleLogSeverity();
 
-	virtual void ValidateSeverity(const String& value, const ValidationUtils& utils) override final;
+	void ValidateSeverity(const String& value, const ValidationUtils& utils) final;
 
 protected:
-	virtual void Start(bool runtimeCreated) override;
-	virtual void Stop(bool runtimeRemoved) override;
+	void Start(bool runtimeCreated) override;
+	void Stop(bool runtimeRemoved) override;
 
 private:
 	static boost::mutex m_Mutex;

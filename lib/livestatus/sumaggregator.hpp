@@ -48,8 +48,8 @@ public:
 
 	SumAggregator(const String& attr);
 
-	virtual void Apply(const Table::Ptr& table, const Value& row, AggregatorState **state) override;
-	virtual double GetResultAndFreeState(AggregatorState *state) const override;
+	void Apply(const Table::Ptr& table, const Value& row, AggregatorState **state) override;
+	double GetResultAndFreeState(AggregatorState *state) const override;
 
 private:
 	String m_SumAttr;

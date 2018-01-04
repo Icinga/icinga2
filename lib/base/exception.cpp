@@ -34,7 +34,7 @@ static boost::thread_specific_ptr<ContextTrace> l_LastExceptionContext;
 class libcxx_type_info : public std::type_info
 {
 public:
-	virtual ~libcxx_type_info();
+	~libcxx_type_info() override;
 
 	virtual void noop1() const;
 	virtual void noop2() const;

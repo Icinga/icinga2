@@ -41,11 +41,11 @@ public:
 
 	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
-	virtual void ValidateRotationMethod(const String& value, const ValidationUtils& utils) override;
+	void ValidateRotationMethod(const String& value, const ValidationUtils& utils) override;
 
 protected:
-	virtual void Start(bool runtimeCreated) override;
-	virtual void Stop(bool runtimeRemoved) override;
+	void Start(bool runtimeCreated) override;
+	void Stop(bool runtimeRemoved) override;
 
 private:
 	void WriteLine(const String& line);

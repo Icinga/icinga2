@@ -29,7 +29,7 @@ using namespace icinga;
 class IcingaStudio final : public wxApp
 {
 public:
-	virtual bool OnInit() override
+	bool OnInit() override
 	{
 		Application::InitializeBase();
 

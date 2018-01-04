@@ -104,10 +104,10 @@ public:
 
 	static boost::signals2::signal<void (const Notification::Ptr&, const MessageOrigin::Ptr&)> OnNextNotificationChanged;
 
-	virtual void Validate(int types, const ValidationUtils& utils) override;
+	void Validate(int types, const ValidationUtils& utils) override;
 
-	virtual void ValidateStates(const Array::Ptr& value, const ValidationUtils& utils) override;
-	virtual void ValidateTypes(const Array::Ptr& value, const ValidationUtils& utils) override;
+	void ValidateStates(const Array::Ptr& value, const ValidationUtils& utils) override;
+	void ValidateTypes(const Array::Ptr& value, const ValidationUtils& utils) override;
 
 	static void EvaluateApplyRules(const intrusive_ptr<Host>& host);
 	static void EvaluateApplyRules(const intrusive_ptr<Service>& service);
@@ -116,10 +116,10 @@ public:
 	static const std::map<String, int>& GetTypeFilterMap();
 
 protected:
-	virtual void OnConfigLoaded() override;
-	virtual void OnAllConfigLoaded() override;
-	virtual void Start(bool runtimeCreated) override;
-	virtual void Stop(bool runtimeRemoved) override;
+	void OnConfigLoaded() override;
+	void OnAllConfigLoaded() override;
+	void Start(bool runtimeCreated) override;
+	void Stop(bool runtimeRemoved) override;
 
 private:
 	ObjectImpl<Checkable>::Ptr m_Checkable;

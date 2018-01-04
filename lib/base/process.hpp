@@ -67,7 +67,7 @@ public:
 	static const std::deque<Process::Ptr>::size_type MaxTasksPerThread = 512;
 
 	Process(const Arguments& arguments, const Dictionary::Ptr& extraEnvironment = nullptr);
-	~Process();
+	~Process() override;
 
 	void SetTimeout(double timeout);
 	double GetTimeout() const;

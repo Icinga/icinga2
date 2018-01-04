@@ -35,7 +35,7 @@ class TypeTargetProvider final : public TargetProvider
 public:
 	DECLARE_PTR_TYPEDEFS(TypeTargetProvider);
 
-	virtual void FindTargets(const String& type,
+	void FindTargets(const String& type,
 		const std::function<void (const Value&)>& addTarget) const override
 	{
 		for (const Type::Ptr& target : Type::GetAllTypes()) {
@@ -43,7 +43,7 @@ public:
 		}
 	}
 
-	virtual Value GetTargetByName(const String& type, const String& name) const override
+	Value GetTargetByName(const String& type, const String& name) const override
 	{
 		Type::Ptr ptype = Type::GetByName(name);
 
@@ -53,12 +53,12 @@ public:
 		return ptype;
 	}
 
-	virtual bool IsValidType(const String& type) const override
+	bool IsValidType(const String& type) const override
 	{
 		return type == "Type";
 	}
 
-	virtual String GetPluralName(const String& type) const override
+	String GetPluralName(const String& type) const override
 	{
 		return "types";
 	}

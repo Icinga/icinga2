@@ -49,11 +49,11 @@ public:
 	static void EvaluateApplyRules(const intrusive_ptr<Host>& host);
 	static void EvaluateApplyRules(const intrusive_ptr<Service>& service);
 
-	virtual void ValidateRanges(const Dictionary::Ptr& value, const ValidationUtils& utils) override;
+	void ValidateRanges(const Dictionary::Ptr& value, const ValidationUtils& utils) override;
 
 protected:
-	virtual void OnAllConfigLoaded() override;
-	virtual void Start(bool runtimeCreated) override;
+	void OnAllConfigLoaded() override;
+	void Start(bool runtimeCreated) override;
 
 private:
 	static void TimerProc();

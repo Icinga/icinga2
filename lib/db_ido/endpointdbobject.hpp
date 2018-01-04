@@ -41,8 +41,8 @@ public:
 
 	static void StaticInitialize();
 
-	virtual Dictionary::Ptr GetConfigFields() const override;
-	virtual Dictionary::Ptr GetStatusFields() const override;
+	Dictionary::Ptr GetConfigFields() const override;
+	Dictionary::Ptr GetStatusFields() const override;
 
 private:
 	static void UpdateConnectedStatus(const Endpoint::Ptr& endpoint);

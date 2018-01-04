@@ -65,8 +65,8 @@ public:
 	void Deactivate(bool runtimeRemoved = false);
 	void SetAuthority(bool authority);
 
-	virtual void Start(bool runtimeCreated = false) override;
-	virtual void Stop(bool runtimeRemoved = false) override;
+	void Start(bool runtimeCreated = false) override;
+	void Stop(bool runtimeRemoved = false) override;
 
 	virtual void Pause();
 	virtual void Resume();
@@ -76,7 +76,7 @@ public:
 	virtual void OnAllConfigLoaded();
 	virtual void OnStateLoaded();
 
-	virtual Dictionary::Ptr GetSourceLocation() const override;
+	Dictionary::Ptr GetSourceLocation() const override;
 
 	template<typename T>
 	static intrusive_ptr<T> GetObject(const String& name)

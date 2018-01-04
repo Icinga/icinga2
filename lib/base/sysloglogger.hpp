@@ -41,15 +41,15 @@ public:
 	static void StaticInitialize();
 	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
-	virtual void OnConfigLoaded() override;
-	virtual void ValidateFacility(const String& value, const ValidationUtils& utils) override;
+	void OnConfigLoaded() override;
+	void ValidateFacility(const String& value, const ValidationUtils& utils) override;
 
 protected:
 	static std::map<String, int> m_FacilityMap;
 	int m_Facility;
 
-	virtual void ProcessLogEntry(const LogEntry& entry) override;
-	virtual void Flush() override;
+	void ProcessLogEntry(const LogEntry& entry) override;
+	void Flush() override;
 };
 
 }

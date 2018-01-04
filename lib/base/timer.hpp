@@ -39,7 +39,7 @@ public:
 	DECLARE_PTR_TYPEDEFS(Timer);
 
 	Timer();
-	~Timer();
+	~Timer() override;
 
 	static void Uninitialize();
 

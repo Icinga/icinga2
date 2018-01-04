@@ -44,14 +44,14 @@ public:
 	/* Notifications */
 	TimePeriod::Ptr GetPeriod() const;
 
-	virtual void ValidateStates(const Array::Ptr& value, const ValidationUtils& utils) override;
-	virtual void ValidateTypes(const Array::Ptr& value, const ValidationUtils& utils) override;
+	void ValidateStates(const Array::Ptr& value, const ValidationUtils& utils) override;
+	void ValidateTypes(const Array::Ptr& value, const ValidationUtils& utils) override;
 
 protected:
-	virtual void Stop(bool runtimeRemoved) override;
+	void Stop(bool runtimeRemoved) override;
 
-	virtual void OnConfigLoaded() override;
-	virtual void OnAllConfigLoaded() override;
+	void OnConfigLoaded() override;
+	void OnAllConfigLoaded() override;
 private:
 	mutable boost::mutex m_UserMutex;
 };

@@ -51,7 +51,7 @@ public:
 
 	Dictionary();
 
-	~Dictionary();
+	~Dictionary() override;
 
 	Value Get(const String& key) const;
 	bool Get(const String& key, Value *result) const;
@@ -77,14 +77,14 @@ public:
 
 	static Object::Ptr GetPrototype();
 
-	virtual Object::Ptr Clone() const override;
+	Object::Ptr Clone() const override;
 
-	virtual String ToString() const override;
+	String ToString() const override;
 
-	virtual Value GetFieldByName(const String& field, bool sandboxed, const DebugInfo& debugInfo) const override;
-	virtual void SetFieldByName(const String& field, const Value& value, const DebugInfo& debugInfo) override;
-	virtual bool HasOwnField(const String& field) const override;
-	virtual bool GetOwnField(const String& field, Value *result) const override;
+	Value GetFieldByName(const String& field, bool sandboxed, const DebugInfo& debugInfo) const override;
+	void SetFieldByName(const String& field, const Value& value, const DebugInfo& debugInfo) override;
+	bool HasOwnField(const String& field) const override;
+	bool GetOwnField(const String& field, Value *result) const override;
 
 private:
 	std::map<String, Value> m_Data; /**< The data for the dictionary. */

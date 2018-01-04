@@ -46,13 +46,13 @@ public:
 
 	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
-	virtual void ValidateHostNameTemplate(const String& value, const ValidationUtils& utils) override;
-	virtual void ValidateServiceNameTemplate(const String& value, const ValidationUtils& utils) override;
+	void ValidateHostNameTemplate(const String& value, const ValidationUtils& utils) override;
+	void ValidateServiceNameTemplate(const String& value, const ValidationUtils& utils) override;
 
 protected:
-	virtual void OnConfigLoaded() override;
-	virtual void Start(bool runtimeCreated) override;
-	virtual void Stop(bool runtimeRemoved) override;
+	void OnConfigLoaded() override;
+	void Start(bool runtimeCreated) override;
+	void Stop(bool runtimeRemoved) override;
 
 private:
 	Stream::Ptr m_Stream;

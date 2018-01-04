@@ -41,13 +41,13 @@ public:
 	static void AddColumns(Table *table, const String& prefix = String(),
 		const Column::ObjectAccessor& objectAccessor = Column::ObjectAccessor());
 
-	virtual String GetName() const override;
-	virtual String GetPrefix() const override;
+	String GetName() const override;
+	String GetPrefix() const override;
 
 	void UpdateLogEntries(const Dictionary::Ptr& log_entry_attrs, int line_count, int lineno, const AddRowFunction& addRowFn) override;
 
 protected:
-	virtual void FetchRows(const AddRowFunction& addRowFn) override;
+	void FetchRows(const AddRowFunction& addRowFn) override;
 
 	static Object::Ptr HostAccessor(const Value& row, const Column::ObjectAccessor& parentObjectAccessor);
 	static Object::Ptr ServiceAccessor(const Value& row, const Column::ObjectAccessor& parentObjectAccessor);

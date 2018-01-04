@@ -40,11 +40,11 @@ public:
 	static void AddColumns(Table *table, const String& prefix = String(),
 		const Column::ObjectAccessor& objectAccessor = Column::ObjectAccessor());
 
-	virtual String GetName() const override;
-	virtual String GetPrefix() const override;
+	String GetName() const override;
+	String GetPrefix() const override;
 
 protected:
-	virtual void FetchRows(const AddRowFunction& addRowFn) override;
+	void FetchRows(const AddRowFunction& addRowFn) override;
 
 	static Object::Ptr HostGroupAccessor(const Value& row, LivestatusGroupByType groupByType, const Object::Ptr& groupByObject);
 

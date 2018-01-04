@@ -39,12 +39,12 @@ public:
 
 	NetworkStream(const Socket::Ptr& socket);
 
-	virtual size_t Read(void *buffer, size_t count, bool allow_partial = false) override;
-	virtual void Write(const void *buffer, size_t count) override;
+	size_t Read(void *buffer, size_t count, bool allow_partial = false) override;
+	void Write(const void *buffer, size_t count) override;
 
-	virtual void Close() override;
+	void Close() override;
 
-	virtual bool IsEof() const override;
+	bool IsEof() const override;
 
 private:
 	Socket::Ptr m_Socket;

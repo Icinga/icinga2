@@ -47,20 +47,20 @@ public:
 
 	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
-	virtual int GetPendingQueryCount() const override;
+	int GetPendingQueryCount() const override;
 
 protected:
-	virtual void OnConfigLoaded() override;
-	virtual void Resume() override;
-	virtual void Pause() override;
+	void OnConfigLoaded() override;
+	void Resume() override;
+	void Pause() override;
 
-	virtual void ActivateObject(const DbObject::Ptr& dbobj) override;
-	virtual void DeactivateObject(const DbObject::Ptr& dbobj) override;
-	virtual void ExecuteQuery(const DbQuery& query) override;
-	virtual void ExecuteMultipleQueries(const std::vector<DbQuery>& queries) override;
-	virtual void CleanUpExecuteQuery(const String& table, const String& time_key, double time_value) override;
-	virtual void FillIDCache(const DbType::Ptr& type) override;
-	virtual void NewTransaction() override;
+	void ActivateObject(const DbObject::Ptr& dbobj) override;
+	void DeactivateObject(const DbObject::Ptr& dbobj) override;
+	void ExecuteQuery(const DbQuery& query) override;
+	void ExecuteMultipleQueries(const std::vector<DbQuery>& queries) override;
+	void CleanUpExecuteQuery(const String& table, const String& time_key, double time_value) override;
+	void FillIDCache(const DbType::Ptr& type) override;
+	void NewTransaction() override;
 
 private:
 	DbReference m_InstanceID;

@@ -42,9 +42,9 @@ public:
 	static String FormatTimestamp(double ts);
 
 protected:
-	virtual void OnConfigLoaded() override;
-	virtual void Start(bool runtimeCreated) override;
-	virtual void Stop(bool runtimeRemoved) override;
+	void OnConfigLoaded() override;
+	void Start(bool runtimeCreated) override;
+	void Stop(bool runtimeRemoved) override;
 
 private:
 	String m_EventPrefix;

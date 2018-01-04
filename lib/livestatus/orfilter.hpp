@@ -37,7 +37,7 @@ public:
 
 	OrFilter();
 
-	virtual bool Apply(const Table::Ptr& table, const Value& row) override;
+	bool Apply(const Table::Ptr& table, const Value& row) override;
 };
 
 }

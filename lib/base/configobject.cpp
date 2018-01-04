@@ -94,7 +94,7 @@ void ConfigObject::ClearExtension(const String& key)
 class ModAttrValidationUtils final : public ValidationUtils
 {
 public:
-	virtual bool ValidateName(const String& type, const String& name) const override
+	bool ValidateName(const String& type, const String& name) const override
 	{
 		Type::Ptr ptype = Type::GetByName(type);
 		ConfigType *dtype = dynamic_cast<ConfigType *>(ptype.get());

@@ -57,9 +57,9 @@ public:
 	static String GetCommentIDFromLegacyID(int id);
 
 protected:
-	virtual void OnAllConfigLoaded() override;
-	virtual void Start(bool runtimeCreated) override;
-	virtual void Stop(bool runtimeRemoved) override;
+	void OnAllConfigLoaded() override;
+	void Start(bool runtimeCreated) override;
+	void Stop(bool runtimeRemoved) override;
 
 private:
 	ObjectImpl<Checkable>::Ptr m_Checkable;

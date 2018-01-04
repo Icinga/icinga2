@@ -41,7 +41,7 @@ public:
 
 	static boost::signals2::signal<void ()> OnReopenLogs;
 
-	~Application();
+	~Application() override;
 
 	static void InitializeBase();
 	static void UninitializeBase();
@@ -165,8 +165,8 @@ public:
 	static void DisplayInfoMessage(std::ostream& os, bool skipVersion = false);
 
 protected:
-	virtual void OnConfigLoaded() override;
-	virtual void Stop(bool runtimeRemoved) override;
+	void OnConfigLoaded() override;
+	void Stop(bool runtimeRemoved) override;
 
 	void RunEventLoop();
 
@@ -174,7 +174,7 @@ protected:
 
 	virtual void OnShutdown();
 
-	virtual void ValidateName(const String& value, const ValidationUtils& utils) override final;
+	void ValidateName(const String& value, const ValidationUtils& utils) final;
 
 private:
 	static Application::Ptr m_Instance; /**< The application instance. */

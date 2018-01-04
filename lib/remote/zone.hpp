@@ -36,7 +36,7 @@ public:
 	DECLARE_OBJECT(Zone);
 	DECLARE_OBJECTNAME(Zone);
 
-	virtual void OnAllConfigLoaded() override;
+	void OnAllConfigLoaded() override;
 
 	Zone::Ptr GetParent() const;
 	std::set<Endpoint::Ptr> GetEndpoints() const;
@@ -50,7 +50,7 @@ public:
 	static Zone::Ptr GetLocalZone();
 
 protected:
-	virtual void ValidateEndpointsRaw(const Array::Ptr& value, const ValidationUtils& utils) override;
+	void ValidateEndpointsRaw(const Array::Ptr& value, const ValidationUtils& utils) override;
 
 private:
 	Zone::Ptr m_Parent;

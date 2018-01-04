@@ -76,9 +76,9 @@ public:
 	DECLARE_OBJECT(Type);
 
 	Type();
-	~Type();
+	~Type() override;
 
-	virtual String ToString() const override;
+	String ToString() const override;
 
 	virtual String GetName() const = 0;
 	virtual Type::Ptr GetBaseType() const = 0;
@@ -102,8 +102,8 @@ public:
 	static Type::Ptr GetByName(const String& name);
 	static std::vector<Type::Ptr> GetAllTypes();
 
-	virtual void SetField(int id, const Value& value, bool suppress_events = false, const Value& cookie = Empty) override;
-	virtual Value GetField(int id) const override;
+	void SetField(int id, const Value& value, bool suppress_events = false, const Value& cookie = Empty) override;
+	Value GetField(int id) const override;
 
 	virtual std::vector<String> GetLoadDependencies() const;
 
@@ -122,17 +122,17 @@ class TypeType final : public Type
 public:
 	DECLARE_PTR_TYPEDEFS(Type);
 
-	virtual String GetName() const override;
-	virtual Type::Ptr GetBaseType() const override;
-	virtual int GetAttributes() const override;
-	virtual int GetFieldId(const String& name) const override;
-	virtual Field GetFieldInfo(int id) const override;
-	virtual int GetFieldCount() const override;
+	String GetName() const override;
+	Type::Ptr GetBaseType() const override;
+	int GetAttributes() const override;
+	int GetFieldId(const String& name) const override;
+	Field GetFieldInfo(int id) const override;
+	int GetFieldCount() const override;
 
 	static Object::Ptr GetPrototype();
 
 protected:
-	virtual ObjectFactory GetFactory() const override;
+	ObjectFactory GetFactory() const override;
 };
 
 template<typename T>

@@ -122,13 +122,13 @@ protected:
 class SocketEventEnginePoll final : public SocketEventEngine
 {
 public:
-	virtual void Register(SocketEvents *se, Object *lifesupportObject);
-	virtual void Unregister(SocketEvents *se);
-	virtual void ChangeEvents(SocketEvents *se, int events);
+	void Register(SocketEvents *se, Object *lifesupportObject) override;
+	void Unregister(SocketEvents *se) override;
+	void ChangeEvents(SocketEvents *se, int events) override;
 
 protected:
-	virtual void InitializeThread(int tid);
-	virtual void ThreadProc(int tid);
+	void InitializeThread(int tid) override;
+	void ThreadProc(int tid) override;
 };
 
 #ifdef __linux__

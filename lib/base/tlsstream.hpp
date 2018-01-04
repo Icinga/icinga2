@@ -49,7 +49,7 @@ public:
 	DECLARE_PTR_TYPEDEFS(TlsStream);
 
 	TlsStream(const Socket::Ptr& socket, const String& hostname, ConnectionRole role, const std::shared_ptr<SSL_CTX>& sslContext = MakeSSLContext());
-	~TlsStream();
+	~TlsStream() override;
 
 	Socket::Ptr GetSocket() const;
 
@@ -58,17 +58,17 @@ public:
 
 	void Handshake();
 
-	virtual void Close() override;
-	virtual void Shutdown() override;
+	void Close() override;
+	void Shutdown() override;
 
-	virtual size_t Peek(void *buffer, size_t count, bool allow_partial = false) override;
-	virtual size_t Read(void *buffer, size_t count, bool allow_partial = false) override;
-	virtual void Write(const void *buffer, size_t count) override;
+	size_t Peek(void *buffer, size_t count, bool allow_partial = false) override;
+	size_t Read(void *buffer, size_t count, bool allow_partial = false) override;
+	void Write(const void *buffer, size_t count) override;
 
-	virtual bool IsEof() const override;
+	bool IsEof() const override;
 
-	virtual bool SupportsWaiting() const override;
-	virtual bool IsDataAvailable() const override;
+	bool SupportsWaiting() const override;
+	bool IsDataAvailable() const override;
 
 	bool IsVerifyOK() const;
 	String GetVerifyError() const;
@@ -97,7 +97,7 @@ private:
 	static int m_SSLIndex;
 	static bool m_SSLIndexInitialized;
 
-	virtual void OnEvent(int revents) override;
+	void OnEvent(int revents) override;
 
 	void HandleError() const;
 

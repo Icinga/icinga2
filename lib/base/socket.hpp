@@ -38,7 +38,7 @@ public:
 
 	Socket();
 	Socket(SOCKET fd);
-	~Socket();
+	~Socket() override;
 
 	SOCKET GetFD() const;
 

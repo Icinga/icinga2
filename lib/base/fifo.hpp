@@ -39,15 +39,15 @@ public:
 	static const size_t BlockSize = 512;
 
 	FIFO();
-	~FIFO();
+	~FIFO() override;
 
-	virtual size_t Peek(void *buffer, size_t count, bool allow_partial = false) override;
-	virtual size_t Read(void *buffer, size_t count, bool allow_partial = false) override;
-	virtual void Write(const void *buffer, size_t count) override;
-	virtual void Close() override;
-	virtual bool IsEof() const override;
-	virtual bool SupportsWaiting() const override;
-	virtual bool IsDataAvailable() const override;
+	size_t Peek(void *buffer, size_t count, bool allow_partial = false) override;
+	size_t Read(void *buffer, size_t count, bool allow_partial = false) override;
+	void Write(const void *buffer, size_t count) override;
+	void Close() override;
+	bool IsEof() const override;
+	bool SupportsWaiting() const override;
+	bool IsDataAvailable() const override;
 
 	size_t GetAvailableBytes() const;
 

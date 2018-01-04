@@ -37,7 +37,7 @@ public:
 
 	NegateFilter(const Filter::Ptr& inner);
 
-	virtual bool Apply(const Table::Ptr& table, const Value& row) override;
+	bool Apply(const Table::Ptr& table, const Value& row) override;
 
 private:
 	Filter::Ptr m_Inner;

@@ -45,13 +45,13 @@ public:
 
 	static Service::Ptr GetByNamePair(const String& hostName, const String& serviceName);
 
-	virtual Host::Ptr GetHost() const override;
-	virtual int GetSeverity() const override;
+	Host::Ptr GetHost() const override;
+	int GetSeverity() const override;
 
-	virtual bool ResolveMacro(const String& macro, const CheckResult::Ptr& cr, Value *result) const override;
+	bool ResolveMacro(const String& macro, const CheckResult::Ptr& cr, Value *result) const override;
 
-	virtual bool IsStateOK(ServiceState state) override;
-	virtual void SaveLastState(ServiceState state, double timestamp) override;
+	bool IsStateOK(ServiceState state) override;
+	void SaveLastState(ServiceState state, double timestamp) override;
 
 	static ServiceState StateFromString(const String& state);
 	static String StateToString(ServiceState state);
@@ -62,8 +62,8 @@ public:
 	static void EvaluateApplyRules(const Host::Ptr& host);
 
 protected:
-	virtual void OnAllConfigLoaded() override;
-	virtual void CreateChildObjects(const Type::Ptr& childType) override;
+	void OnAllConfigLoaded() override;
+	void CreateChildObjects(const Type::Ptr& childType) override;
 
 private:
 	Host::Ptr m_Host;

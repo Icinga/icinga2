@@ -155,7 +155,7 @@ std::shared_ptr<Expression> ConfigItem::GetFilter() const
 class DefaultValidationUtils final : public ValidationUtils
 {
 public:
-	virtual bool ValidateName(const String& type, const String& name) const override
+	bool ValidateName(const String& type, const String& name) const override
 	{
 		ConfigItem::Ptr item = ConfigItem::GetByTypeAndName(Type::GetByName(type), name);
 

@@ -63,7 +63,7 @@ public:
 
 	static Object::Ptr GetPrototype();
 
-	virtual Object::Ptr Clone() const override;
+	Object::Ptr Clone() const override;
 
 private:
 	Callback m_Callback;

@@ -66,12 +66,12 @@ public:
 	static String GetDowntimeIDFromLegacyID(int id);
 
 protected:
-	virtual void OnAllConfigLoaded() override;
-	virtual void Start(bool runtimeCreated) override;
-	virtual void Stop(bool runtimeRemoved) override;
+	void OnAllConfigLoaded() override;
+	void Start(bool runtimeCreated) override;
+	void Stop(bool runtimeRemoved) override;
 
-	virtual void ValidateStartTime(const Timestamp& value, const ValidationUtils& utils) override;
-	virtual void ValidateEndTime(const Timestamp& value, const ValidationUtils& utils) override;
+	void ValidateStartTime(const Timestamp& value, const ValidationUtils& utils) override;
+	void ValidateEndTime(const Timestamp& value, const ValidationUtils& utils) override;
 
 private:
 	ObjectImpl<Checkable>::Ptr m_Checkable;

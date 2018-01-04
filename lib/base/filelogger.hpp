@@ -39,7 +39,7 @@ public:
 
 	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
-	virtual void Start(bool runtimeCreated) override;
+	void Start(bool runtimeCreated) override;
 
 private:
 	void ReopenLogFile();

@@ -37,7 +37,7 @@ public:
 
 	AttributeFilter(const String& column, const String& op, const String& operand);
 
-	virtual bool Apply(const Table::Ptr& table, const Value& row) override;
+	bool Apply(const Table::Ptr& table, const Value& row) override;
 
 protected:
 	String m_Column;

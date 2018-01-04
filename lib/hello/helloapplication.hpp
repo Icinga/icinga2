@@ -36,7 +36,7 @@ public:
 	DECLARE_OBJECT(HelloApplication);
 	DECLARE_OBJECTNAME(HelloApplication);
 
-	virtual int Main() override;
+	int Main() override;
 };
 
 }

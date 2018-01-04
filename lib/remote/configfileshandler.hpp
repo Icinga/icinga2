@@ -30,7 +30,7 @@ class ConfigFilesHandler final : public HttpHandler
 public:
 	DECLARE_PTR_TYPEDEFS(ConfigFilesHandler);
 
-	virtual bool HandleRequest(const ApiUser::Ptr& user, HttpRequest& request,
+	bool HandleRequest(const ApiUser::Ptr& user, HttpRequest& request,
 		HttpResponse& response, const Dictionary::Ptr& params) override;
 };
 

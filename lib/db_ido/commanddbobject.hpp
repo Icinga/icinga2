@@ -38,8 +38,8 @@ public:
 
 	CommandDbObject(const DbType::Ptr& type, const String& name1, const String& name2);
 
-	virtual Dictionary::Ptr GetConfigFields() const override;
-	virtual Dictionary::Ptr GetStatusFields() const override;
+	Dictionary::Ptr GetConfigFields() const override;
+	Dictionary::Ptr GetStatusFields() const override;
 };
 
 }

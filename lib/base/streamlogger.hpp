@@ -40,8 +40,8 @@ public:
 
 	StreamLogger();
 
-	virtual void Stop(bool runtimeRemoved) override;
-	~StreamLogger();
+	void Stop(bool runtimeRemoved) override;
+	~StreamLogger() override;
 
 	void BindStream(std::ostream *stream, bool ownsStream);
 
@@ -49,7 +49,7 @@ public:
 
 protected:
 	void ProcessLogEntry(const LogEntry& entry) final;
-	void Flush(void) final;
+	void Flush() final;
 
 private:
 	static boost::mutex m_Mutex;

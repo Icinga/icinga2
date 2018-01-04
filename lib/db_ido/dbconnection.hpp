@@ -76,15 +76,15 @@ public:
 	int GetQueryCount(RingBuffer::SizeType span);
 	virtual int GetPendingQueryCount() const = 0;
 
-	virtual void ValidateFailoverTimeout(double value, const ValidationUtils& utils) override final;
-	virtual void ValidateCategories(const Array::Ptr& value, const ValidationUtils& utils) override final;
+	void ValidateFailoverTimeout(double value, const ValidationUtils& utils) final;
+	void ValidateCategories(const Array::Ptr& value, const ValidationUtils& utils) final;
 
 protected:
-	virtual void OnConfigLoaded() override;
-	virtual void Start(bool runtimeCreated) override;
-	virtual void Stop(bool runtimeRemoved) override;
-	virtual void Resume() override;
-	virtual void Pause() override;
+	void OnConfigLoaded() override;
+	void Start(bool runtimeCreated) override;
+	void Stop(bool runtimeRemoved) override;
+	void Resume() override;
+	void Pause() override;
 
 	virtual void ExecuteQuery(const DbQuery& query) = 0;
 	virtual void ExecuteMultipleQueries(const std::vector<DbQuery>&) = 0;

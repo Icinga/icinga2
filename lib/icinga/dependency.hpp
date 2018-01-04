@@ -49,15 +49,15 @@ public:
 
 	bool IsAvailable(DependencyType dt) const;
 
-	virtual void ValidateStates(const Array::Ptr& value, const ValidationUtils& utils) override;
+	void ValidateStates(const Array::Ptr& value, const ValidationUtils& utils) override;
 
 	static void EvaluateApplyRules(const intrusive_ptr<Host>& host);
 	static void EvaluateApplyRules(const intrusive_ptr<Service>& service);
 
 protected:
-	virtual void OnConfigLoaded() override;
-	virtual void OnAllConfigLoaded() override;
-	virtual void Stop(bool runtimeRemoved) override;
+	void OnConfigLoaded() override;
+	void OnAllConfigLoaded() override;
+	void Stop(bool runtimeRemoved) override;
 
 private:
 	Checkable::Ptr m_Parent;

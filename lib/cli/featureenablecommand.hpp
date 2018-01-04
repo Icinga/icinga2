@@ -35,13 +35,13 @@ class FeatureEnableCommand final : public CLICommand
 public:
 	DECLARE_PTR_TYPEDEFS(FeatureEnableCommand);
 
-	virtual String GetDescription() const override;
-	virtual String GetShortDescription() const override;
-	virtual int GetMinArguments() const override;
-	virtual int GetMaxArguments() const override;
-	virtual std::vector<String> GetPositionalSuggestions(const String& word) const override;
-	virtual ImpersonationLevel GetImpersonationLevel() const override;
-	virtual int Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const override;
+	String GetDescription() const override;
+	String GetShortDescription() const override;
+	int GetMinArguments() const override;
+	int GetMaxArguments() const override;
+	std::vector<String> GetPositionalSuggestions(const String& word) const override;
+	ImpersonationLevel GetImpersonationLevel() const override;
+	int Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const override;
 };
 
 }

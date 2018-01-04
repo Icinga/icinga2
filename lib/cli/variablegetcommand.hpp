@@ -38,12 +38,12 @@ class VariableGetCommand final : public CLICommand
 public:
 	DECLARE_PTR_TYPEDEFS(VariableGetCommand);
 
-	virtual String GetDescription() const override;
-	virtual String GetShortDescription() const override;
-	virtual int GetMinArguments() const override;
+	String GetDescription() const override;
+	String GetShortDescription() const override;
+	int GetMinArguments() const override;
 	void InitParameters(boost::program_options::options_description& visibleDesc,
 		boost::program_options::options_description& hiddenDesc) const override;
-	virtual int Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const override;
+	int Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const override;
 };
 
 }

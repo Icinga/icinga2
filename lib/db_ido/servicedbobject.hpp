@@ -41,13 +41,13 @@ public:
 
 	static void StaticInitialize();
 
-	virtual Dictionary::Ptr GetConfigFields() const override;
-	virtual Dictionary::Ptr GetStatusFields() const override;
+	Dictionary::Ptr GetConfigFields() const override;
+	Dictionary::Ptr GetStatusFields() const override;
 
-	virtual void OnConfigUpdateHeavy() override;
-	virtual void OnConfigUpdateLight() override;
+	void OnConfigUpdateHeavy() override;
+	void OnConfigUpdateLight() override;
 
-	virtual String CalculateConfigHash(const Dictionary::Ptr& configFields) const override;
+	String CalculateConfigHash(const Dictionary::Ptr& configFields) const override;
 
 private:
 	void DoCommonConfigUpdate();

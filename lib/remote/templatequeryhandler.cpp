@@ -54,7 +54,7 @@ public:
 		return target;
 	}
 
-	virtual void FindTargets(const String& type,
+	void FindTargets(const String& type,
 		const std::function<void (const Value&)>& addTarget) const override
 	{
 		Type::Ptr ptype = Type::GetByName(type);
@@ -65,7 +65,7 @@ public:
 		}
 	}
 
-	virtual Value GetTargetByName(const String& type, const String& name) const override
+	Value GetTargetByName(const String& type, const String& name) const override
 	{
 		Type::Ptr ptype = Type::GetByName(type);
 
@@ -77,7 +77,7 @@ public:
 		return GetTargetForTemplate(item);
 	}
 
-	virtual bool IsValidType(const String& type) const override
+	bool IsValidType(const String& type) const override
 	{
 		Type::Ptr ptype = Type::GetByName(type);
 
@@ -87,7 +87,7 @@ public:
 		return ConfigObject::TypeInstance->IsAssignableFrom(ptype);
 	}
 
-	virtual String GetPluralName(const String& type) const override
+	String GetPluralName(const String& type) const override
 	{
 		return Type::GetByName(type)->GetPluralName();
 	}

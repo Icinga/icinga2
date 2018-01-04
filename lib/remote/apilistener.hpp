@@ -109,12 +109,12 @@ public:
 	static String GetDefaultCaPath();
 
 protected:
-	virtual void OnConfigLoaded() override;
-	virtual void OnAllConfigLoaded() override;
-	virtual void Start(bool runtimeCreated) override;
-	virtual void Stop(bool runtimeDeleted) override;
+	void OnConfigLoaded() override;
+	void OnAllConfigLoaded() override;
+	void Start(bool runtimeCreated) override;
+	void Stop(bool runtimeDeleted) override;
 
-	virtual void ValidateTlsProtocolmin(const String& value, const ValidationUtils& utils) override;
+	void ValidateTlsProtocolmin(const String& value, const ValidationUtils& utils) override;
 
 private:
 	std::shared_ptr<SSL_CTX> m_SSLContext;

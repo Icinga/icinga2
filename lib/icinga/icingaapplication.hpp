@@ -40,7 +40,7 @@ public:
 
 	static void StaticInitialize();
 
-	virtual int Main() override;
+	int Main() override;
 
 	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
@@ -48,17 +48,17 @@ public:
 
 	String GetPidPath() const;
 
-	virtual bool ResolveMacro(const String& macro, const CheckResult::Ptr& cr, Value *result) const override;
+	bool ResolveMacro(const String& macro, const CheckResult::Ptr& cr, Value *result) const override;
 
 	String GetNodeName() const;
 
-	virtual void ValidateVars(const Dictionary::Ptr& value, const ValidationUtils& utils) override;
+	void ValidateVars(const Dictionary::Ptr& value, const ValidationUtils& utils) override;
 
 private:
 	void DumpProgramState();
 	void DumpModifiedAttributes();
 
-	virtual void OnShutdown() override;
+	void OnShutdown() override;
 };
 
 }

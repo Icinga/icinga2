@@ -53,7 +53,7 @@ public:
 
 	intrusive_ptr<Zone> GetZone() const;
 
-	virtual bool GetConnected() const override;
+	bool GetConnected() const override;
 
 	static Endpoint::Ptr GetLocalEndpoint();
 
@@ -69,7 +69,7 @@ public:
 	double GetBytesReceivedPerSecond() const override;
 
 protected:
-	virtual void OnAllConfigLoaded() override;
+	void OnAllConfigLoaded() override;
 
 private:
 	mutable boost::mutex m_ClientsLock;

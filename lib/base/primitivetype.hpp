@@ -32,15 +32,15 @@ class PrimitiveType final : public Type
 public:
 	PrimitiveType(const String& name, const String& base, const ObjectFactory& factory = ObjectFactory());
 
-	virtual String GetName() const override;
-	virtual Type::Ptr GetBaseType() const override;
-	virtual int GetAttributes() const override;
-	virtual int GetFieldId(const String& name) const override;
-	virtual Field GetFieldInfo(int id) const override;
-	virtual int GetFieldCount() const override;
+	String GetName() const override;
+	Type::Ptr GetBaseType() const override;
+	int GetAttributes() const override;
+	int GetFieldId(const String& name) const override;
+	Field GetFieldInfo(int id) const override;
+	int GetFieldCount() const override;
 
 protected:
-	virtual ObjectFactory GetFactory() const override;
+	ObjectFactory GetFactory() const override;
 
 private:
 	String m_Name;

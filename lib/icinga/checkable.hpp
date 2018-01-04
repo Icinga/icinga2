@@ -101,7 +101,7 @@ public:
 	void AcknowledgeProblem(const String& author, const String& comment, AcknowledgementType type, bool notify = true, bool persistent = false, double expiry = 0, const MessageOrigin::Ptr& origin = nullptr);
 	void ClearAcknowledgement(const MessageOrigin::Ptr& origin = nullptr);
 
-	virtual int GetSeverity() const override;
+	int GetSeverity() const override;
 
 	/* Checks */
 	intrusive_ptr<CheckCommand> GetCheckCommand() const;
@@ -115,7 +115,7 @@ public:
 	bool HasBeenChecked() const;
 	virtual bool IsStateOK(ServiceState state) = 0;
 
-	double GetLastCheck(void) const final;
+	double GetLastCheck() const final;
 
 	virtual void SaveLastState(ServiceState state, double timestamp) = 0;
 
@@ -145,7 +145,7 @@ public:
 	static boost::signals2::signal<void (const Checkable::Ptr&)> OnEventCommandExecuted;
 
 	/* Downtimes */
-	int GetDowntimeDepth(void) const final;
+	int GetDowntimeDepth() const final;
 
 	void RemoveAllDowntimes();
 	void TriggerDowntimes();
@@ -191,8 +191,8 @@ public:
 	void RemoveReverseDependency(const intrusive_ptr<Dependency>& dep);
 	std::vector<intrusive_ptr<Dependency> > GetReverseDependencies() const;
 
-	virtual void ValidateCheckInterval(double value, const ValidationUtils& utils) override final;
-	virtual void ValidateMaxCheckAttempts(int value, const ValidationUtils& utils) override final;
+	void ValidateCheckInterval(double value, const ValidationUtils& utils) final;
+	void ValidateMaxCheckAttempts(int value, const ValidationUtils& utils) final;
 
 	static void IncreasePendingChecks();
 	static void DecreasePendingChecks();
@@ -201,8 +201,8 @@ public:
 	static Object::Ptr GetPrototype();
 
 protected:
-	virtual void Start(bool runtimeCreated) override;
-	virtual void OnAllConfigLoaded() override;
+	void Start(bool runtimeCreated) override;
+	void OnAllConfigLoaded() override;
 
 private:
 	mutable boost::mutex m_CheckableMutex;

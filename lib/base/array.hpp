@@ -50,7 +50,7 @@ public:
 	Array();
 	Array(std::initializer_list<Value> init);
 
-	~Array();
+	~Array() override;
 
 	Value Get(SizeType index) const;
 	void Set(SizeType index, const Value& value);
@@ -103,16 +103,16 @@ public:
 		return result;
 	}
 
-	virtual Object::Ptr Clone() const override;
+	Object::Ptr Clone() const override;
 
 	Array::Ptr Reverse() const;
 
 	void Sort();
 
-	virtual String ToString() const override;
+	String ToString() const override;
 
-	virtual Value GetFieldByName(const String& field, bool sandboxed, const DebugInfo& debugInfo) const override;
-	virtual void SetFieldByName(const String& field, const Value& value, const DebugInfo& debugInfo) override;
+	Value GetFieldByName(const String& field, bool sandboxed, const DebugInfo& debugInfo) const override;
+	void SetFieldByName(const String& field, const Value& value, const DebugInfo& debugInfo) override;
 
 private:
 	std::vector<Value> m_Data; /**< The data for the array. */
