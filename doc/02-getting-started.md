@@ -265,15 +265,17 @@ Alpine Linux:
 Note: For Alpine you don't need to explicitly add the `monitoring-plugins` package since it is a dependency of
 `icinga2` and is pulled automatically.
 
-Depending on which directory your plugins are installed into you may need to
-update the global `PluginDir` constant in your [Icinga 2 configuration](04-configuring-icinga-2.md#constants-conf).
-This constant is used by the check command definitions contained in the Icinga Template Library
-to determine where to find the plugin binaries.
+Depending on which directory your plugins are installed into you may need to update and extend the default `PluginPath`
+constant in your [Icinga 2 configuration](04-configuring-icinga-2.md#constants-conf). This constant is used by Icinga
+to find the plugin script that actually executed.
+
+In earlier versions of Icinga (< 2.9) there were also constants like `*PluginDir` that were directly used for
+`CheckCommand`, to specify the default plugin path of the operating system.
 
 > **Note**
 >
-> Please refer to the [service monitoring](05-service-monitoring.md#service-monitoring-plugins) chapter for details about how to integrate
-> additional check plugins into your Icinga 2 setup.
+> Please refer to the [service monitoring](05-service-monitoring.md#service-monitoring-plugins) chapter for details
+> about how to integrate additional check plugins into your Icinga 2 setup.
 
 ## Running Icinga 2 <a id="running-icinga2"></a>
 

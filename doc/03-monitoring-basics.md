@@ -363,7 +363,20 @@ the function and uses whatever value the function returns:
 
 ```
 object CheckCommand "random-value" {
-  command = [ PluginDir + "/check_dummy", "0", "$text$" ]
+  plugin = "check_dummy"
+
+  arguments = {
+    "state" = {
+      value = "0"
+      order = 0
+      skip_key = true
+    }
+    "text" = {
+      value = "$text$"
+      order = 10
+      skip_key = true
+    }
+  }
 
   vars.text = {{ Math.random() * 100 }}
 }
@@ -436,9 +449,10 @@ run against:
 
 ```
 object CheckCommand "my-ping" {
-  command = [ PluginDir + "/check_ping", "-H", "$ping_address$" ]
+  plugin = "check_ping"
 
   arguments = {
+    "-H" = "$ping_address$"
     "-w" = "$ping_wrta$,$ping_wpl$%"
     "-c" = "$ping_crta$,$ping_cpl$%"
     "-p" = "$ping_packets$"
@@ -1723,7 +1737,7 @@ Define an additional [NotificationCommand](03-monitoring-basics.md#notification-
 ```
 object NotificationCommand "sms-notification" {
    command = [
-     PluginDir + "/send_sms_notification",
+     "/etc/icinga2/scripts/send_sms_notification",
      "$mobile$",
      "..."
 }
@@ -1865,8 +1879,8 @@ using the `check_command` attribute.
 
 #### Integrate the Plugin with a CheckCommand Definition <a id="command-plugin-integration"></a>
 
-Unless you have done so already, download your check plugin and put it
-into the [PluginDir](04-configuring-icinga-2.md#constants-conf) directory. The following example uses the
+Unless you have done so already, download your check plugin and put it into one of the
+[PluginPath](04-configuring-icinga-2.md#constants-conf) directories. The following example uses the
 `check_mysql` plugin contained in the Monitoring Plugins package.
 
 The plugin path and all command arguments are made a list of
@@ -1926,7 +1940,14 @@ can also be inherited from a parent template using additive inheritance (`+=`).
 # vim /etc/icinga2/conf.d/commands.conf
 
 object CheckCommand "my-mysql" {
-  command = [ PluginDir + "/check_mysql" ] //constants.conf -> const PluginDir
+  // if the plugin is in one of the directories specified by PluginPath (see constants.conf)
+  plugin = "check_mysql"
+
+  // if it is somewhere else, specify the full path via command
+  command = [ "/opt/myplugins/check_mysql" ]
+
+  // Warning: plugin and command can be combined.
+  // Make sure to avoid specifing both, unless you know how it works.
 
   arguments = {
     "-H" = "$mysql_host$"
@@ -2061,7 +2082,7 @@ macro value can be resolved by Icinga 2.
 
 ```
 object CheckCommand "http" {
-  command = [ PluginDir + "/check_http" ]
+  plugin = "check_http"
 
   arguments = {
     "-H" = "$http_vhost$"
@@ -2169,9 +2190,7 @@ when passing credentials to database checks:
 
 ```
 object CheckCommand "mysql-health" {
-  command = [
-    PluginDir + "/check_mysql"
-  ]
+  plugin = "check_mysql"
 
   arguments = {
     "-H" = "$mysql_address$"
@@ -2713,7 +2732,7 @@ to sync its configuration to all clients.
 [root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.d/global-templates/eventcommands.conf
 
 object EventCommand "restart_service" {
-  command = [ PluginDir + "/restart_service" ]
+  plugin = "restart_service"
 
   arguments = {
     "-s" = "$service.state$"
@@ -2819,10 +2838,10 @@ to sync its configuration to all clients.
 [root@icinga2-master1.localdomain /]# vim /etc/icinga2/zones.d/global-templates/eventcommands.conf
 
 object EventCommand "restart_service-windows" {
-  command = [
-    "C:\\Windows\\SysWOW64\\WindowsPowerShell\\v1.0\\powershell.exe",
-    PluginDir + "/restart_service.ps1"
-  ]
+  // both values are combined to execute the correct plugin
+  // check documentation of EventCommand
+  command = [ "C:\\Windows\\SysWOW64\\WindowsPowerShell\\v1.0\\powershell.exe" ]
+  plugin = "restart_service.ps1"
 
   arguments = {
     "-ServiceState" = "$service.state$"
@@ -2925,7 +2944,7 @@ which can be used for all event commands triggered using SSH:
 
 /* pass event commands through ssh */
 object EventCommand "event_by_ssh" {
-  command = [ PluginDir + "/check_by_ssh" ]
+  plugin = "check_by_ssh"
 
   arguments = {
     "-H" = "$event_by_ssh_address$"

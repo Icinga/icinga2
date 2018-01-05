@@ -151,37 +151,39 @@ are referenced as `$ARGn$` where `n` is the argument counter.
     }
 
 While you could manually migrate this like (please note the new generic command arguments and default argument values!):
+```
+object CheckCommand "my-ping-check" {
+  plugin = "check_ping"
 
-    object CheckCommand "my-ping-check" {
-      command = [
-        PluginDir + "/check_ping", "-4"
-      ]
-
-      arguments = {
-        "-H" = "$ping_address$"
-        "-w" = "$ping_wrta$,$ping_wpl$%"
-        "-c" = "$ping_crta$,$ping_cpl$%"
-        "-p" = "$ping_packets$"
-        "-t" = "$ping_timeout$"
-      }
-
-      vars.ping_address = "$address$"
-      vars.ping_wrta = 100
-      vars.ping_wpl = 5
-      vars.ping_crta = 200
-      vars.ping_cpl = 15
+  arguments = {
+    "-4" = {
+      set_if = true
     }
+    "-H" = "$ping_address$"
+    "-w" = "$ping_wrta$,$ping_wpl$%"
+    "-c" = "$ping_crta$,$ping_cpl$%"
+    "-p" = "$ping_packets$"
+    "-t" = "$ping_timeout$"
+  }
 
-    object Service "my-ping" {
-      import "generic-service"
-      host_name = "my-server"
-      check_command = "my-ping-check"
+  vars.ping_address = "$address$"
+  vars.ping_wrta = 100
+  vars.ping_wpl = 5
+  vars.ping_crta = 200
+  vars.ping_cpl = 15
+}
 
-      vars.ping_wrta = 100
-      vars.ping_wpl = 20
-      vars.ping_crta = 500
-      vars.ping_cpl = 60
-    }
+object Service "my-ping" {
+  import "generic-service"
+  host_name = "my-server"
+  check_command = "my-ping-check"
+
+  vars.ping_wrta = 100
+  vars.ping_wpl = 20
+  vars.ping_crta = 500
+  vars.ping_cpl = 60
+}
+```
 
 #### Manual Config Migration Hints for Runtime Macros <a id="manual-config-migration-hints-runtime-macros"></a>
 
@@ -715,7 +717,7 @@ objects.cfg:
        notifications_enabled    0
     }
 
-Icinga 2 supports objects and (global) variables, but does not make a difference 
+Icinga 2 supports objects and (global) variables, but does not make a difference
 between the main configuration file or any other included file.
 
 icinga2.conf:
@@ -794,15 +796,20 @@ set in the `resource.cfg` configuration file in Icinga 1.x. By convention the
 `USER1` macro is used to define the directory for the plugins.
 
 Icinga 2 uses global constants instead. In the default config these are
-set in the `constants.conf` configuration file:
+set in the `constants.conf` configuration file.
 
-    /**
-     * This file defines global constants which can be used in
-     * the other configuration files. At a minimum the
-     * PluginDir constant should be defined.
-     */
+```
+const PluginDir = "/usr/lib/nagios/plugins"
 
-    const PluginDir = "/usr/lib/nagios/plugins"
+const PluginPath = [
+  "/etc/icinga2/scripts",
+  "/usr/lib/nagios/plugins",
+  "/usr/lib/icinga/plugins"
+]
+```
+
+The closest resemblance to `USER1` would be `PluginDir`, while it's still available, we recommend using `PluginPath`.
+See the object type [CheckCommand](09-object-types.md#objecttype-checkcommand) on how to use this.
 
 [Global macros](17-language-reference.md#constants) can only be defined once. Trying to modify a
 global constant will result in an error.

@@ -124,10 +124,9 @@ defined here.
 > Icinga 2 versions < 2.6.0 require the import of the [plugin-check-command](10-icinga-template-library.md#itl-plugin-check-command) template.
 
 Example:
-
 ```
 object CheckCommand "http" {
-  command = [ PluginDir + "/check_http" ]
+  plugin = "check_http"
 
   arguments = {
     "-H" = "$http_vhost$"
@@ -163,12 +162,60 @@ Configuration Attributes:
 
   Name                      | Type                  | Description
   --------------------------|-----------------------|----------------------------------
-  command                   | Array                 | **Required.** The command. This can either be an array of individual command arguments. Alternatively a string can be specified in which case the shell interpreter (usually /bin/sh) takes care of parsing the command. When using the "arguments" attribute this must be an array. Can be specified as function for advanced implementations.
+  plugin                    | String                | **Recommended.** The plugin to execute for this check, see below.
+  command                   | Array                 | **Optional.** The system command to execute. This can be an Array or a simple String. See below for details.
   env                       | Dictionary            | **Optional.** A dictionary of macros which should be exported as environment variables prior to executing the command.
   vars                      | Dictionary            | **Optional.** A dictionary containing custom attributes that are specific to this command.
   timeout                   | Duration              | **Optional.** The command timeout in seconds. Defaults to `1m`.
   arguments                 | Dictionary            | **Optional.** A dictionary of command arguments.
 
+### Command Plugin and Command <a id="objecttype-command-plugin-and-command"></a>
+
+**Finding a `plugin`**
+
+Usually plugins should be installed via packages and into common directories. With `plugin` you just have to specify the
+script name to run, e.g. `check_http`.
+
+Icinga then tries to find the script in a list of directories specified with `PluginPath` in [constants.conf](04-configuring-icinga-2.md#constants-conf). If the script is present and executable, we can use it.
+
+If you have no special path or execution requirements that's all you need to set.
+
+**Using `command`**
+
+> Before Icinga 2.9 this was the default way to specify which plugin to execute.
+
+The command is an array of individual command arguments. Alternatively a string can be specified in which case the shell interpreter (usually /bin/sh) takes care of parsing the command. When using the "arguments" attribute this must be an array. Can be specified as function for advanced implementations.
+
+Simple examples:
+```
+command = [ "/bin/echo", "Hello world, I'm $host.name$" ]
+command = [ "/opt/monitoring/plugins/check_http" ]
+// or the previous default way (still possible)
+command = [ PluginDir + "/check_http" ]
+```
+
+We recommend you to use `plugin` wherever possible, because it is simple and maybe easier to understand for the user.
+
+**Combining `plugin` and `command`**
+
+These options are not exclusive, they can be combined in certain ways.
+
+Running a plugin via sudo:
+```
+command = [ "sudo" ]
+plugin = "check_running_kernel"
+// actually run: [ "sudo", "/usr/lib/icinga/plugins/check_running_kernel", ... ]
+```
+
+You want to call a wrapper script or binary to run the plugin:
+```
+command = [ "python2.7" ]
+plugin = "check_my_nas.py"
+// actually run: [ "python2.7", "/etc/icinga2/scripts/check_my_nas.py", ... ]
+```
+
+In any way you choose, when both attributes are set, the found `plugin` is appended to the list of `command`. And any
+arguments are added afterwards.
 
 ### CheckCommand Arguments <a id="objecttype-checkcommand-arguments"></a>
 
@@ -577,6 +624,8 @@ Example:
 ```
 object EventCommand "restart-httpd-event" {
   command = "/opt/bin/restart-httpd.sh"
+  // or you can use this when the script is in PluginPath
+  //plugin = "restart-httpd.sh"
 }
 ```
 
@@ -585,13 +634,14 @@ Configuration Attributes:
 
   Name                      | Type                  | Description
   --------------------------|-----------------------|----------------------------------
-  command                   | Array                 | **Required.** The command. This can either be an array of individual command arguments. Alternatively a string can be specified in which case the shell interpreter (usually /bin/sh) takes care of parsing the command. When using the "arguments" attribute this must be an array. Can be specified as function for advanced implementations.
+  plugin                    | String                | **Recommended.** The plugin to execute.
+  command                   | Array                 | **Optional.** The system command to execute. This can be an Array or a simple String.
   env                       | Dictionary            | **Optional.** A dictionary of macros which should be exported as environment variables prior to executing the command.
   vars                      | Dictionary            | **Optional.** A dictionary containing custom attributes that are specific to this command.
   timeout                   | Duration              | **Optional.** The command timeout in seconds. Defaults to `1m`.
   arguments                 | Dictionary            | **Optional.** A dictionary of command arguments.
 
-Command arguments can be used the same way as for [CheckCommand objects](09-object-types.md#objecttype-checkcommand-arguments).
+See [Command Plugin and Command](09-object-types.md#objecttype-command-plugin-and-command) for details on `plugin` and `command`. Command arguments can be used the same way as for [CheckCommand objects](09-object-types.md#objecttype-checkcommand-arguments).
 
 More advanced examples for event command usage can be found [here](03-monitoring-basics.md#event-commands).
 
@@ -1207,6 +1257,8 @@ Example:
 ```
 object NotificationCommand "mail-service-notification" {
   command = [ SysconfDir + "/icinga2/scripts/mail-service-notification.sh" ]
+  // or you can use this when the script is in PluginPath
+  //plugin = "mail-service-notification.sh"
 
   arguments += {
     "-4" = {
@@ -1282,13 +1334,14 @@ Configuration Attributes:
 
   Name                      | Type                  | Description
   --------------------------|-----------------------|----------------------------------
-  command                   | Array                 | **Required.** The command. This can either be an array of individual command arguments. Alternatively a string can be specified in which case the shell interpreter (usually /bin/sh) takes care of parsing the command. When using the "arguments" attribute this must be an array. Can be specified as function for advanced implementations.
+  plugin                    | String                | **Recommended.** The plugin to execute.
+  command                   | Array                 | **Optional.** The system command to execute. This can be an Array or a simple String.
   env                       | Dictionary            | **Optional.** A dictionary of macros which should be exported as environment variables prior to executing the command.
   vars                      | Dictionary            | **Optional.** A dictionary containing custom attributes that are specific to this command.
   timeout                   | Duration              | **Optional.** The command timeout in seconds. Defaults to `1m`.
   arguments                 | Dictionary            | **Optional.** A dictionary of command arguments.
 
-Command arguments can be used the same way as for [CheckCommand objects](09-object-types.md#objecttype-checkcommand-arguments).
+See [Command Plugin and Command](09-object-types.md#objecttype-command-plugin-and-command) for details on `plugin` and `command`. Command arguments can be used the same way as for [CheckCommand objects](09-object-types.md#objecttype-checkcommand-arguments).
 
 More details on specific attributes can be found in [this chapter](03-monitoring-basics.md#notification-commands).
 

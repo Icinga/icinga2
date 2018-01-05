@@ -11,22 +11,23 @@ the [Monitoring Plugins project](https://www.monitoring-plugins.org).
 All existing Nagios or Icinga 1.x plugins work with Icinga 2. Community
 plugins can be found for example on [Icinga Exchange](https://exchange.icinga.com).
 
-The recommended way of setting up these plugins is to copy them to a common directory
-and create a new global constant, e.g. `CustomPluginDir` in your [constants.conf](04-configuring-icinga-2.md#constants-conf)
-configuration file:
+The recommended way of setting up these plugins is to copy them to one of the common directories. Check `PluginPath` in
+[constants.conf](04-configuring-icinga-2.md#constants-conf). You can also add another path to this list.
 
-    # cp check_snmp_int.pl /opt/monitoring/plugins
-    # chmod +x /opt/plugins/check_snmp_int.pl
+```
+# cp check_snmp_int.pl /opt/monitoring/plugins
+# chmod +x /opt/plugins/check_snmp_int.pl
 
-    # cat /etc/icinga2/constants.conf
-    /**
-     * This file defines global constants which can be used in
-     * the other configuration files. At a minimum the
-     * PluginDir constant should be defined.
-     */
-
-    const PluginDir = "/usr/lib/nagios/plugins"
-    const CustomPluginDir = "/opt/monitoring/plugins"
+# cat /etc/icinga2/constants.conf
+...
+const PluginPath = [
+  "/opt/monitoring/plugins",
+  "/etc/icinga2/scripts",
+  "/usr/lib/nagios/plugins",
+  "/usr/lib/icinga/plugins"
+]
+...
+```
 
 Prior to using the check plugin with Icinga 2 you should ensure that it is working properly
 by trying to run it on the console using whichever user Icinga 2 is running as:
@@ -65,7 +66,8 @@ set them on host/service level and you'll always know which command they control
 This is an example for a custom `my-snmp-int` check command:
 
     object CheckCommand "my-snmp-int" {
-      command = [ CustomPluginDir + "/check_snmp_int.pl" ]
+      // automatically found via the PluginPath directories
+      plugin = "check_snmp_int.pl"
 
       arguments = {
         "-H" = "$snmp_address$"

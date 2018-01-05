@@ -155,8 +155,7 @@ file:
 
     include <plugins>
 
-The plugin check commands assume that there's a global constant named `PluginDir`
-which contains the path of the plugins from the Monitoring Plugins project.
+Most plugins in the ITL use `plugin` to specify the name of the plugin found  in `PluginPath`.
 
 **Note**: If there are command parameters missing for the provided CheckCommand
 definitions please kindly send a patch upstream. This should include an update
@@ -1464,14 +1463,14 @@ users_cgreater  | **Optional.** The user count critical threshold. Defaults to 5
 
 ## Windows Plugins for Icinga 2 <a id="windows-plugins"></a>
 
-To allow a basic monitoring of Windows clients Icinga 2 comes with a set of Windows only plugins. While trying to mirror the functionalities of their linux cousins from the monitoring-plugins package, the differences between Windows and Linux are too big to be able use the same CheckCommands for both systems.
+To allow a basic monitoring of Windows clients Icinga 2 comes with a set of Windows only plugins. While trying to mirror the functionalities of their Linux cousins from the monitoring-plugins package, the differences between Windows and Linux are too big to be able use the same CheckCommands for both systems.
 
-A check-commands-windows.conf comes with Icinga 2, it assumes that the Windows Plugins are installed in the PluginDir set in your constants.conf. To enable them the following include directive is needed in you icinga2.conf:
+A `commands-plugins-windows.conf` comes with Icinga 2, it assumes that the Windows Plugins are installed in one of the `PluginPath` directories set in your `constants.conf`.  They are enabled by default in `icinga2.conf`:
+```
+include <windows-plugins>
+```
 
-	include <windows-plugins>
-
-One of the differences between the Windows plugins and their linux counterparts is that they consistently do not require thresholds to run, functioning like dummies without.
-
+One of the differences between the Windows plugins and their Linux counterparts is that they consistently do not require thresholds to run, functioning like dummies without.
 
 ### Threshold syntax <a id="windows-plugins-thresholds"></a>
 
@@ -1885,8 +1884,7 @@ commands provided by the [SNMP Manubulon project](http://nagios.manubulon.com/in
 **Note:** Some plugin parameters are only available in Debian packages or in a
 [forked repository](https://github.com/dnsmichi/manubulon-snmp) with patches applied.
 
-The SNMP manubulon plugin check commands assume that the global constant named `ManubulonPluginDir`
-is set to the path where the Manubublon SNMP plugins are installed.
+All plugins are expected to be installed in one of the `PluginPath` directories.
 
 You can enable these plugin check commands by adding the following the include directive in your
 [icinga2.conf](04-configuring-icinga-2.md#icinga2-conf) configuration file:

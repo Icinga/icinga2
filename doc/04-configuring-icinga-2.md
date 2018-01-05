@@ -158,13 +158,14 @@ and [CheckCommand](03-monitoring-basics.md#check-commands) definitions.
 This `include` directive takes care of including the configuration files for all
 the features which have been enabled with `icinga2 feature enable`. See
 [Enabling/Disabling Features](11-cli-commands.md#enable-features) for more details.
-
-    /**
-     * Although in theory you could define all your objects in this file
-     * the preferred way is to create separate directories and files in the conf.d
-     * directory. Each of these files must have the file extension ".conf".
-     */
-    include_recursive "conf.d"
+```
+/**
+ * Although in theory you could define all your objects in this file
+ * the preferred way is to create separate directories and files in the conf.d
+ * directory. Each of these files must have the file extension ".conf".
+ */
+include_recursive "conf.d"
+```
 
 You can put your own configuration files in the [conf.d](04-configuring-icinga-2.md#conf-d) directory. This
 directive makes sure that all of your own configuration files are included.
@@ -173,35 +174,70 @@ directive makes sure that all of your own configuration files are included.
 
 The `constants.conf` configuration file can be used to define global constants.
 
-By default, you need to make sure to set these constants:
+By default, you need to make sure to check these constants:
 
-* The `PluginDir` constant must be set to the path where the [Monitoring Project plugins](02-getting-started.md#setting-up-check-plugins) are installed.
-This constant is used by a number of
-[built-in check command definitions](10-icinga-template-library.md#icinga-template-library).
-* The `NodeName` constant defines your local node name. Should be set to FQDN which is the default
-if not set. This constant is required for local host configuration, monitoring remote clients and
-cluster setup.
+* `PluginPath` is an Array of directories where plugins may be installed for execution with commands
+* `PluginDir` was used before the introduction of `PluginPath` and defines the one default directory where operating
+  system packages ship the plugins. This was used by lots of `CheckCommand` and the [built-in check command definitions](10-icinga-template-library.md#icinga-template-library).
+* `NodeName` defines your local node name used for identication in the cluster. Should be set to FQDN which is the
+  default if not set. This constant is required for local host configuration, monitoring remote clients and
+  cluster setup.
+
+**Warning:** Most of these variables are commented out in `constants.conf` and the internal defaults are used. Remove
+the comments on modification.
+
+Also see the getting started guide on [how to set up check plugins](02-getting-started.md#setting-up-check-plugins).
 
 Example:
+```
+/* Array of directories which can contain plugins from the Monitoring Plugins
+ * project or other sources.
+ */
+/*
+const PluginPath = [
+  "/etc/icinga2/scripts",
+  "/usr/lib/nagios/plugins",
+  "/usr/lib/icinga/plugins"
+]
+*/
 
-    /* The directory which contains the plugins from the Monitoring Plugins project. */
-    const PluginDir = "/usr/lib64/nagios/plugins"
+/* Default path to find plugins from the Monitoring Plugins project.
+ *
+ * This value is no longer used by the ITL in Icinga >= 2.9.0!
+ */
+/*
+const PluginDir = "/usr/lib/nagios/plugins"
+*/
 
-    /* The directory which contains the Manubulon plugins.
-     * Check the documentation, chapter "SNMP Manubulon Plugin Check Commands", for details.
-     */
-    const ManubulonPluginDir = "/usr/lib64/nagios/plugins"
+/* The directory which contains the Manubulon plugins.
+ * Check the documentation, chapter "SNMP Manubulon Plugin Check Commands", for details.
+ *
+ * This value is no longer used by the ITL in Icinga >= 2.9.0!
+ */
+/*
+const ManubulonPluginDir = "/usr/lib/nagios/plugins"
+*/
 
-    /* Our local instance name. By default this is the server's hostname as returned by `hostname --fqdn`.
-     * This should be the common name from the API certificate.
-     */
-    //const NodeName = "localhost"
+/* The directory which you use to store additional plugins which ITL provides user contributed command definitions for.
+ * Check the documentation, chapter "Plugins Contribution", for details.
+ *
+ * This value is no longer used by the ITL in Icinga >= 2.9.0!
+ */
+/*
+const PluginContribDir = "/usr/lib/nagios/plugins"
+*/
 
-    /* Our local zone name. */
-    const ZoneName = NodeName
+/* Our local instance name. By default this is the server's hostname as returned by `hostname --fqdn`.
+ * This should be the common name from the API certificate.
+ */
+//const NodeName = "localhost"
 
-    /* Secret key for remote node tickets */
-    const TicketSalt = ""
+/* Our local zone name. */
+const ZoneName = NodeName
+
+/* Secret key for remote node tickets */
+const TicketSalt = ""
+```
 
 The `ZoneName` and `TicketSalt` constants are required for remote client
 and distributed setups only.
