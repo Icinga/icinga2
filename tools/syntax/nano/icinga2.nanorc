@@ -1,5 +1,5 @@
 ### Nano synteax file
-### Icinga2 object configuration file 
+### Icinga2 object configuration file
 
 syntax 	"icinga2" "/etc/icinga2/.*\.conf$" "/usr/share/icinga2/include/(plugin|itl|.*\.conf$)"
 
@@ -125,7 +125,7 @@ icolor green		"\s(/=)\s"
 ## Global constats
 icolor yellow 	"(PrefixDir|SysconfDir|ZonesDir|LocalStateDir|RunDir|PkgDataDir|StatePath|ObjectsPath)"
 icolor yellow 	"(PidPath|NodeName|ApplicationType|EnableNotifications|EnableEventHandlers|EnableFlapping)"
-icolor yellow 	"(EnableHostChecks|EnableServiceChecks|EnablePerfdata|UseVfork|RunAsUser|RunAsGroup|PluginDir)"
+icolor yellow 	"(EnableHostChecks|EnableServiceChecks|EnablePerfdata|UseVfork|RunAsUser|RunAsGroup|PluginDir|PluginPath)"
 icolor yellow 	"(Vars\s+)"
 
 ## Boolean

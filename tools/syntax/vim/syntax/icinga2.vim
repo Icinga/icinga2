@@ -176,8 +176,8 @@ syn  match         icinga2Operators "[ \t]\+\(/=\)\+"
 
 " global constats
 syn keyword 	icinga2Gconst		PrefixDir SysconfDir ZonesDir LocalStateDir RunDir PkgDataDir StatePath ObjectsPath
-syn keyword 	icinga2Gconst		PidPath NodeName ApplicationType UseVfork RunAsUser RunAsGroup PluginDir
-" global types 
+syn keyword 	icinga2Gconst		PidPath NodeName ApplicationType UseVfork RunAsUser RunAsGroup PluginDir PluginPath
+" global types
 syn keyword 	icinga2Gconst		Number String Boolean Array Dictionary Value Object ConfigObject Command CheckResult
 syn keyword     icinga2Gconst           Checkable CustomVarObject DbConnection Type PerfdataValue Comment Downtime Logger Application
 
