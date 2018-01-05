@@ -2023,6 +2023,7 @@ snmp_crit               | **Optional.** The critical threshold.
 snmp_storage_name       | **Optional.** Storage name. Default to regex "^/$$". More options available in the [snmp storage](http://nagios.manubulon.com/snmp_storage.html) documentation.
 snmp_perf               | **Optional.** Enable perfdata values. Defaults to true.
 snmp_timeout            | **Optional.** The command timeout in seconds. Defaults to 5 seconds.
+snmp_storage_olength	| **Optional.** Max-size of the SNMP message, usefull in case of Too Long responses.
 
 ### snmp-interface <a id="plugin-check-command-snmp-interface"></a>
 
