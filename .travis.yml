@@ -30,7 +30,13 @@ addons:
     project:
       name: "Icinga/icinga2"
     notification_email: icinga2@icinga.com
-    build_command_prepend: "cmake . -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX=/tmp/icinga2 -DICINGA2_PLUGINDIR=/tmp/icinga2/sbin -DICINGA2_UNITY_BUILD=ON"
+    build_command_prepend: >
+      cmake .
+      -DCMAKE_BUILD_TYPE=RelWithDebInfo
+      -DCMAKE_INSTALL_PREFIX=/tmp/icinga2
+      -DICINGA2_PLUGINDIR=/tmp/icinga2/sbin
+      -DICINGA2_PLUGINPATH=/tmp/icinga2/sbin:/usr/lib/icinga/plugins:/usr/lib/nagios/plugins
+      -DICINGA2_UNITY_BUILD=ON
     build_command: "make -j 2"
     branch_pattern: coverity_scan
 
@@ -38,7 +44,11 @@ before_script:
   - if [ "$COVERITY_SCAN_BRANCH" != 1 ]; then
       mkdir build;
       cd build;
-      cmake .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=/tmp/icinga2 -DICINGA2_PLUGINDIR=/tmp/icinga2/sbin;
+      cmake ..
+        -DCMAKE_BUILD_TYPE=Debug
+        -DCMAKE_INSTALL_PREFIX=/tmp/icinga2
+        -DICINGA2_PLUGINDIR=/tmp/icinga2/sbin
+        -DICINGA2_PLUGINPATH=/tmp/icinga2/sbin:/usr/lib/icinga/plugins:/usr/lib/nagios/plugins;
     fi
 
 script:
