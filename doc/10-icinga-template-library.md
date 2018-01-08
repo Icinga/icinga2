@@ -2358,6 +2358,7 @@ mongodb_host                     | **Required.** Specifies the hostname or addre
 mongodb_port                     | **Required.** The port mongodb is running on.
 mongodb_user                     | **Optional.** The username you want to login as.
 mongodb_passwd                   | **Optional.** The password you want to use for that user.
+mongodb_authdb                   | **Optional.** The database you want to authenticate against.
 mongodb_warning                  | **Optional.** The warning threshold we want to set.
 mongodb_critical                 | **Optional.** The critical threshold we want to set.
 mongodb_action                   | **Required.** The action you want to take.
