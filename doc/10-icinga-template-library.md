@@ -74,9 +74,13 @@ plugin scripts.
 ### icinga <a id="itl-icinga"></a>
 
 Check command for the built-in `icinga` check. This check returns performance
-data for the current Icinga instance.
+data for the current Icinga instance and optionally allows for minimum version checks.
 
-The `icinga` check command does not support any vars.
+Custom attributes passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name                   | Description
+-----------------------|---------------
+icinga\_min\_version   | **Optional.** Required minimum Icinga 2 version, e.g. `2.8.0`. If not satisfied, the state changes to `Critical`. Release packages only.
 
 ### cluster <a id="itl-icinga-cluster"></a>
 
