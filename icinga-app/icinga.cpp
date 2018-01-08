@@ -395,7 +395,7 @@ static int Main()
 			}
 
 			if (vm.count("version")) {
-				std::cout << "Copyright (c) 2012-2017 Icinga Development Team (https://www.icinga.com/)" << std::endl
+				std::cout << "Copyright (c) 2012-2018 Icinga Development Team (https://www.icinga.com/)" << std::endl
 					<< "License GPLv2+: GNU GPL version 2 or later <http://gnu.org/licenses/gpl2.html>" << std::endl
 					<< "This is free software: you are free to change and redistribute it." << std::endl
 					<< "There is NO WARRANTY, to the extent permitted by law.";
