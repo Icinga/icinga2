@@ -60,6 +60,40 @@ String WorkQueue::GetName() const
 	return m_Name;
 }
 
+boost::mutex::scoped_lock WorkQueue::AcquireLock()
+{
+	return boost::mutex::scoped_lock(m_Mutex);
+}
+
+/**
+ * Enqueues a task. Tasks are guaranteed to be executed in the order
+ * they were enqueued in except if there is more than one worker thread.
+ */
+void WorkQueue::EnqueueUnlocked(boost::mutex::scoped_lock& lock, std::function<void ()>&& function, WorkQueuePriority priority)
+{
+	if (!m_Spawned) {
+		Log(LogNotice, "WorkQueue")
+			<< "Spawning WorkQueue threads for '" << m_Name << "'";
+
+		for (int i = 0; i < m_ThreadCount; i++) {
+			m_Threads.create_thread(std::bind(&WorkQueue::WorkerThreadProc, this));
+		}
+
+		m_Spawned = true;
+	}
+
+	bool wq_thread = IsWorkerThread();
+
+	if (!wq_thread) {
+		while (m_Tasks.size() >= m_MaxItems && m_MaxItems != 0)
+			m_CVFull.wait(lock);
+	}
+
+	m_Tasks.emplace(std::move(function), priority, ++m_NextTaskID);
+
+	m_CVEmpty.notify_one();
+}
+
 /**
  * Enqueues a task. Tasks are guaranteed to be executed in the order
  * they were enqueued in except if there is more than one worker thread or when
@@ -77,27 +111,8 @@ void WorkQueue::Enqueue(std::function<void ()>&& function, WorkQueuePriority pri
 		return;
 	}
 
-	boost::mutex::scoped_lock lock(m_Mutex);
-
-	if (!m_Spawned) {
-		Log(LogNotice, "WorkQueue")
-			<< "Spawning WorkQueue threads for '" << m_Name << "'";
-
-		for (int i = 0; i < m_ThreadCount; i++) {
-			m_Threads.create_thread(std::bind(&WorkQueue::WorkerThreadProc, this));
-		}
-
-		m_Spawned = true;
-	}
-
-	if (!wq_thread) {
-		while (m_Tasks.size() >= m_MaxItems && m_MaxItems != 0)
-			m_CVFull.wait(lock);
-	}
-
-	m_Tasks.emplace(std::move(function), priority, ++m_NextTaskID);
-
-	m_CVEmpty.notify_one();
+	auto lock = AcquireLock();
+	EnqueueUnlocked(lock, std::move(function), priority);
 }
 
 /**
@@ -231,6 +246,25 @@ void WorkQueue::StatusTimerHandler()
 	}
 }
 
+void WorkQueue::RunTaskFunction(const TaskFunction& func)
+{
+	try {
+		func();
+	} catch (const std::exception&) {
+		boost::exception_ptr eptr = boost::current_exception();
+
+		{
+			boost::mutex::scoped_lock mutex(m_Mutex);
+
+			if (!m_ExceptionCallback)
+				m_Exceptions.push_back(eptr);
+		}
+
+		if (m_ExceptionCallback)
+			m_ExceptionCallback(eptr);
+	}
+}
+
 void WorkQueue::WorkerThreadProc()
 {
 	std::ostringstream idbuf;
@@ -258,19 +292,7 @@ void WorkQueue::WorkerThreadProc()
 
 		lock.unlock();
 
-		try {
-			task.Function();
-		} catch (const std::exception&) {
-			lock.lock();
-
-			if (!m_ExceptionCallback)
-				m_Exceptions.push_back(boost::current_exception());
-
-			lock.unlock();
-
-			if (m_ExceptionCallback)
-				m_ExceptionCallback(boost::current_exception());
-		}
+		RunTaskFunction(task.Function);
 
 		/* clear the task so whatever other resources it holds are released _before_ we re-acquire the mutex */
 		task = Task();

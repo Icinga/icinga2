@@ -41,15 +41,17 @@ enum WorkQueuePriority
 	PriorityHigh
 };
 
+using TaskFunction = std::function<void ()>;
+
 struct Task
 {
 	Task() = default;
 
-	Task(std::function<void (void)> function, WorkQueuePriority priority, int id)
+	Task(TaskFunction function, WorkQueuePriority priority, int id)
 		: Function(std::move(function)), Priority(priority), ID(id)
 	{ }
 
-	std::function<void (void)> Function;
+	TaskFunction Function;
 	WorkQueuePriority Priority{PriorityNormal};
 	int ID{-1};
 };
@@ -72,9 +74,41 @@ public:
 	void SetName(const String& name);
 	String GetName() const;
 
-	void Enqueue(std::function<void (void)>&& function, WorkQueuePriority priority = PriorityNormal,
+	boost::mutex::scoped_lock AcquireLock();
+	void EnqueueUnlocked(boost::mutex::scoped_lock& lock, TaskFunction&& function, WorkQueuePriority priority = PriorityNormal);
+	void Enqueue(TaskFunction&& function, WorkQueuePriority priority = PriorityNormal,
 		bool allowInterleaved = false);
 	void Join(bool stop = false);
+
+	template<typename VectorType, typename FuncType>
+	void ParallelFor(const VectorType& items, const FuncType& func)
+	{
+		using SizeType = decltype(items.size());
+
+		SizeType totalCount = items.size();
+
+		auto lock = AcquireLock();
+
+		SizeType offset = 0;
+
+		for (int i = 0; i < m_ThreadCount; i++) {
+			SizeType count = totalCount / static_cast<SizeType>(m_ThreadCount);
+			if (static_cast<SizeType>(i) < totalCount % static_cast<SizeType>(m_ThreadCount))
+				count++;
+
+			EnqueueUnlocked(lock, [&items, func, offset, count, this]() {
+				for (SizeType j = offset; j < offset + count; j++) {
+					RunTaskFunction([&func, &items, j]() {
+						func(items[j]);
+					});
+				}
+			});
+
+			offset += count;
+		}
+
+		ASSERT(offset == items.size());
+	}
 
 	bool IsWorkerThread() const;
 
@@ -119,6 +153,8 @@ private:
 
 	void WorkerThreadProc();
 	void StatusTimerHandler();
+
+	void RunTaskFunction(const TaskFunction& func);
 };
 
 }

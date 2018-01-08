@@ -428,12 +428,12 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 	if (items.empty())
 		return true;
 
-	for (const ItemPair& ip : items) {
+	for (const auto& ip : items)
 		newItems.push_back(ip.first);
-		upq.Enqueue([&]() {
-			ip.first->Commit(ip.second);
-		});
-	}
+
+	upq.ParallelFor(items, [](const ItemPair& ip) {
+		ip.first->Commit(ip.second);
+	});
 
 	upq.Join();
 
@@ -468,36 +468,29 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 			if (unresolved_dep)
 				continue;
 
-			for (const ItemPair& ip : items) {
+			upq.ParallelFor(items, [&type](const ItemPair& ip) {
 				const ConfigItem::Ptr& item = ip.first;
 
-				if (!item->m_Object)
-					continue;
+				if (!item->m_Object || item->m_Type != type)
+					return;
 
-				if (item->m_Type == type) {
-					upq.Enqueue([&]() {
-						try {
-							item->m_Object->OnAllConfigLoaded();
-						} catch (const std::exception& ex) {
-							if (item->m_IgnoreOnError) {
-								Log(LogNotice, "ConfigObject")
-									<< "Ignoring config object '" << item->m_Name << "' of type '" << item->m_Type->GetName() << "' due to errors: " << DiagnosticInformation(ex);
+				try {
+					item->m_Object->OnAllConfigLoaded();
+				} catch (const std::exception& ex) {
+					if (!item->m_IgnoreOnError)
+						throw;
 
-								item->Unregister();
+					Log(LogNotice, "ConfigObject")
+						<< "Ignoring config object '" << item->m_Name << "' of type '" << item->m_Type->GetName() << "' due to errors: " << DiagnosticInformation(ex);
 
-								{
-									boost::mutex::scoped_lock lock(item->m_Mutex);
-									item->m_IgnoredItems.push_back(item->m_DebugInfo.Path);
-								}
+					item->Unregister();
 
-								return;
-							}
-
-							throw;
-						}
-					});
+					{
+						boost::mutex::scoped_lock lock(item->m_Mutex);
+						item->m_IgnoredItems.push_back(item->m_DebugInfo.Path);
+					}
 				}
-			}
+			});
 
 			completed_types.insert(type);
 
@@ -507,19 +500,15 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 				return false;
 
 			for (const String& loadDep : type->GetLoadDependencies()) {
-				for (const ItemPair& ip : items) {
+				upq.ParallelFor(items, [loadDep, &type](const ItemPair& ip) {
 					const ConfigItem::Ptr& item = ip.first;
 
-					if (!item->m_Object)
-						continue;
+					if (!item->m_Object || item->m_Type->GetName() != loadDep)
+						return;
 
-					if (item->m_Type->GetName() == loadDep) {
-						upq.Enqueue([&]() {
-							ActivationScope ascope(item->m_ActivationContext);
-							item->m_Object->CreateChildObjects(type);
-						});
-					}
-				}
+					ActivationScope ascope(item->m_ActivationContext);
+					item->m_Object->CreateChildObjects(type);
+				});
 			}
 
 			upq.Join();
@@ -606,14 +595,8 @@ bool ConfigItem::ActivateItems(WorkQueue& upq, const std::vector<ConfigItem::Ptr
 		Log(LogDebug, "ConfigItem")
 			<< "Setting 'active' to true for object '" << object->GetName() << "' of type '" << object->GetReflectionType()->GetName() << "'";
 #endif /* I2_DEBUG */
-		upq.Enqueue(std::bind(&ConfigObject::PreActivate, object));
-	}
 
-	upq.Join();
-
-	if (upq.HasExceptions()) {
-		upq.ReportExceptions("ConfigItem");
-		return false;
+		object->PreActivate();
 	}
 
 	if (!silent)
@@ -629,7 +612,8 @@ bool ConfigItem::ActivateItems(WorkQueue& upq, const std::vector<ConfigItem::Ptr
 		Log(LogDebug, "ConfigItem")
 			<< "Activating object '" << object->GetName() << "' of type '" << object->GetReflectionType()->GetName() << "'";
 #endif /* I2_DEBUG */
-		upq.Enqueue(std::bind(&ConfigObject::Activate, object, runtimeCreated));
+
+		object->Activate(runtimeCreated);
 	}
 
 	upq.Join();
