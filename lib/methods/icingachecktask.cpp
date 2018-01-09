@@ -32,9 +32,25 @@ using namespace icinga;
 
 REGISTER_SCRIPTFUNCTION_NS(Internal, IcingaCheck, &IcingaCheckTask::ScriptFunc, "checkable:cr:resolvedMacros:useResolvedMacros");
 
-void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& service, const CheckResult::Ptr& cr,
+void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr,
 	const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
 {
+	CheckCommand::Ptr commandObj = checkable->GetCheckCommand();
+
+	Host::Ptr host;
+	Service::Ptr service;
+	tie(host, service) = GetHostService(checkable);
+
+	MacroProcessor::ResolverList resolvers;
+	if (service)
+		resolvers.emplace_back("service", service);
+	resolvers.emplace_back("host", host);
+	resolvers.emplace_back("command", commandObj);
+	resolvers.emplace_back("icinga", IcingaApplication::GetInstance());
+
+	String icingaMinVersion = MacroProcessor::ResolveMacros("$icinga_min_version$", resolvers, checkable->GetLastCheckResult(),
+		nullptr, MacroProcessor::EscapeCallback(), resolvedMacros, useResolvedMacros);
+
 	if (resolvedMacros && !useResolvedMacros)
 		return;
 
@@ -130,17 +146,31 @@ void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& service, const CheckResul
 	perfdata->Add(new PerfdataValue("sum_bytes_sent_per_second", bytesSentPerSecond));
 	perfdata->Add(new PerfdataValue("sum_bytes_received_per_second", bytesReceivedPerSecond));
 
-	cr->SetOutput("Icinga 2 has been running for " + Utility::FormatDuration(uptime) +
-		". Version: " + Application::GetAppVersion());
 	cr->SetPerformanceData(perfdata);
+	cr->SetState(ServiceOK);
 
+	String appVersion = Application::GetAppVersion();
+
+	String output = "Icinga 2 has been running for " + Utility::FormatDuration(uptime) +
+		". Version: " + appVersion;
+
+	/* Indicate a warning if the last reload failed. */
 	double lastReloadFailed = Application::GetLastReloadFailed();
 
 	if (lastReloadFailed > 0) {
-		cr->SetOutput(cr->GetOutput() + "; Last reload attempt failed at " + Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", lastReloadFailed));
+		output += "; Last reload attempt failed at " + Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", lastReloadFailed);
 		cr->SetState(ServiceWarning);
-	} else
-		cr->SetState(ServiceOK);
+	}
 
-	service->ProcessCheckResult(cr);
+	/* Return an error if the version is less than specified (optional). */
+	String parsedAppVersion = appVersion.SubStr(1,5);
+
+	if (!icingaMinVersion.IsEmpty() && Utility::CompareVersion(icingaMinVersion, parsedAppVersion) < 0) {
+		output += "; Minimum version " + icingaMinVersion + " is not installed.";
+		cr->SetState(ServiceCritical);
+	}
+
+	cr->SetOutput(output);
+
+	checkable->ProcessCheckResult(cr);
 }

@@ -34,7 +34,7 @@ namespace icinga
 class IcingaCheckTask
 {
 public:
-	static void ScriptFunc(const Checkable::Ptr& service, const CheckResult::Ptr& cr,
+	static void ScriptFunc(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr,
 		const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros);
 
 private:
