@@ -231,7 +231,7 @@ void HttpServerConnection::ProcessMessageAsync(HttpRequest& request)
 			result->Set("error", 401);
 			result->Set("status", "Unauthorized. Please check your user credentials.");
 
-			HttpUtility::SendJsonBody(response, result);
+			HttpUtility::SendJsonBody(response, nullptr, result);
 		} else {
 			response.AddHeader("Content-Type", "text/html");
 			String msg = "<h1>Unauthorized. Please check your user credentials.</h1>";
@@ -253,7 +253,7 @@ void HttpServerConnection::ProcessMessageAsync(HttpRequest& request)
 				result->Set("error", 503);
 				result->Set("status", errorInfo);
 
-				HttpUtility::SendJsonBody(response, result);
+				HttpUtility::SendJsonBody(response, nullptr, result);
 			} else {
 				response.AddHeader("Content-Type", "text/plain");
 				response.WriteBody(errorInfo.CStr(), errorInfo.GetLength());

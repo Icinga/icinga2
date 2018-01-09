@@ -96,7 +96,7 @@ bool VariableQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& 
 	try {
 		objs = FilterUtility::GetFilterTargets(qd, params, user, "variable");
 	} catch (const std::exception& ex) {
-		HttpUtility::SendJsonError(response, 404,
+		HttpUtility::SendJsonError(response, params, 404,
 			"No variables found.",
 			HttpUtility::GetLastParameter(params, "verboseErrors") ? DiagnosticInformation(ex) : "");
 		return true;
@@ -118,7 +118,7 @@ bool VariableQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& 
 	result->Set("results", results);
 
 	response.SetStatus(200, "OK");
-	HttpUtility::SendJsonBody(response, result);
+	HttpUtility::SendJsonBody(response, params, result);
 
 	return true;
 }

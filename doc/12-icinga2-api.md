@@ -82,9 +82,16 @@ The output will be sent back as a JSON object:
         ]
     }
 
-Tip: If you are working on the CLI with curl you can also use [jq](https://stedolan.github.io/jq/)
-to format the returned JSON output in a readable manner. The documentation
-prefers `python -m json.tool` as Python is available nearly everywhere.
+> **Tip**
+>
+> You can use the `pretty` parameter to beautify the JSON response with Icinga v2.9+.
+
+You can also use [jq](https://stedolan.github.io/jq/) or `python -m json.tool`
+in combination with curl on the CLI.
+
+```
+curl ... | python -m json.tool
+```
 
 > **Note**
 >
@@ -332,7 +339,7 @@ action which can be used for both hosts and services. When using advanced filter
 type using the `type` parameter:
 
     $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/reschedule-check' \
-    -d '{ "type": "Service", "filter": "service.name==\"ping6\"" }' | python -m json.tool
+    -d '{ "type": "Service", "filter": "service.name==\"ping6\"", "pretty": true }'
 
 When building filters you have to ensure that values such as
 `"linux-servers"` are escaped properly according to the rules of the Icinga 2 configuration
@@ -343,7 +350,7 @@ variables which should be made available to your filter expression. This way you
 to worry about escaping values:
 
     $ curl -k -s -u 'root:icinga' -H 'Accept: application/json' -H 'X-HTTP-Method-Override: GET' -X POST 'https://localhost:5665/v1/objects/hosts' \
-    -d '{ "filter": "host.vars.os == os", "filter_vars": { "os": "Linux" } }'
+    -d '{ "filter": "host.vars.os == os", "filter_vars": { "os": "Linux" }, "pretty": true }'
 
 We're using [X-HTTP-Method-Override](12-icinga2-api.md#icinga2-api-requests-method-override) here because
 the HTTP specification does not allow message bodies for GET requests.
@@ -409,7 +416,7 @@ URL path when querying a single object. For objects with composite names
 
 You can limit the output to specific attributes using the `attrs` URL parameter:
 
-    $ curl -k -s -u root:icinga 'https://localhost:5665/v1/objects/hosts/example.localdomain?attrs=name&attrs=address' | python -m json.tool
+    $ curl -k -s -u root:icinga 'https://localhost:5665/v1/objects/hosts/example.localdomain?attrs=name&attrs=address&pretty=1'
     {
         "results": [
             {
@@ -477,7 +484,7 @@ custom attribute set to `Linux`. The result set contains the `display_name` and 
 attributes for the service. The query also returns the host's `name` and `address` attribute
 via a join:
 
-    $ curl -k -s -u root:icinga 'https://localhost:5665/v1/objects/services?attrs=display_name&attrs=check_command&joins=host.name&joins=host.address&filter=host.vars.os==%22Linux%22' | python -m json.tool
+    $ curl -k -s -u root:icinga 'https://localhost:5665/v1/objects/services?attrs=display_name&attrs=check_command&joins=host.name&joins=host.address&filter=host.vars.os==%22Linux%22&pretty=1'
 
     {
         "results": [
@@ -525,7 +532,7 @@ and no downtime or acknowledgement set). We're using [X-HTTP-Method-Override](12
 here because we want to pass all query attributes in the request body.
 
     $ curl -k -s -u root:icinga -H 'Accept: application/json' -H 'X-HTTP-Method-Override: GET' -X POST 'https://127.0.0.1:5665/v1/objects/services' \
-    -d '{ "joins": [ "host.name", "host.address" ], "attrs": [ "name", "state", "downtime_depth", "acknowledgement" ], "filter": "service.state != ServiceOK && service.downtime_depth == 0.0 && service.acknowledgement == 0.0" }' | python -m json.tool
+    -d '{ "joins": [ "host.name", "host.address" ], "attrs": [ "name", "state", "downtime_depth", "acknowledgement" ], "filter": "service.state != ServiceOK && service.downtime_depth == 0.0 && service.acknowledgement == 0.0", "pretty": true }'
 
     {
         "results": [
@@ -554,7 +561,7 @@ URL endpoint with `joins` and `filter` request parameters using the [X-HTTP-Meth
 method:
 
     $ curl -k -s -u root:icinga -H 'Accept: application/json' -H 'X-HTTP-Method-Override: GET' -X POST 'https://localhost:5665/v1/objects/comments' \
-    -d '{ "joins": [ "service.name", "service.acknowledgement", "service.acknowledgement_expiry" ], "attrs": [ "author", "text" ], "filter": "service.acknowledgement!=0 && service.acknowledgement_expiry==0" }' | python -m json.tool
+    -d '{ "joins": [ "service.name", "service.acknowledgement", "service.acknowledgement_expiry" ], "attrs": [ "author", "text" ], "filter": "service.acknowledgement!=0 && service.acknowledgement_expiry==0", "pretty": true }'
 
     {
         "results": [
@@ -597,8 +604,7 @@ If attributes are of the Dictionary type, you can also use the indexer format. T
 Example for creating the new host object `example.localdomain`:
 
     $ curl -k -s -u root:icinga -H 'Accept: application/json' -X PUT 'https://localhost:5665/v1/objects/hosts/example.localdomain' \
-    -d '{ "templates": [ "generic-host" ], "attrs": { "address": "192.168.1.1", "check_command": "hostalive", "vars.os" : "Linux" } }' \
-    | python -m json.tool
+    -d '{ "templates": [ "generic-host" ], "attrs": { "address": "192.168.1.1", "check_command": "hostalive", "vars.os" : "Linux" }, "pretty": true }'
     {
         "results": [
             {
@@ -613,8 +619,7 @@ contains a detailed error message. The following example is missing the `check_c
 which is required for host objects:
 
     $ curl -k -s -u root:icinga -H 'Accept: application/json' -X PUT 'https://localhost:5665/v1/objects/hosts/example.localdomain' \
-    -d '{ "attrs": { "address": "192.168.1.1", "vars.os" : "Linux" } }' \
-    | python -m json.tool
+    -d '{ "attrs": { "address": "192.168.1.1", "vars.os" : "Linux" }, "pretty": true }'
     {
         "results": [
             {
@@ -668,8 +673,7 @@ If attributes are of the Dictionary type, you can also use the indexer format:
 The following example updates the `address` attribute and the custom attribute `os` for the `example.localdomain` host:
 
     $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/objects/hosts/example.localdomain' \
-    -d '{ "attrs": { "address": "192.168.1.2", "vars.os" : "Windows" } }' \
-    | python -m json.tool
+    -d '{ "attrs": { "address": "192.168.1.2", "vars.os" : "Windows" }, "pretty": true }'
     {
         "results": [
             {
@@ -695,7 +699,7 @@ In addition to these parameters a [filter](12-icinga2-api.md#icinga2-api-filters
 
 Example for deleting the host object `example.localdomain`:
 
-    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X DELETE 'https://localhost:5665/v1/objects/hosts/example.localdomain?cascade=1' | python -m json.tool
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X DELETE 'https://localhost:5665/v1/objects/hosts/example.localdomain?cascade=1&pretty=1'
     {
         "results": [
             {
@@ -813,7 +817,7 @@ In addition to these parameters a [filter](12-icinga2-api.md#icinga2-api-filters
 Example for the service `passive-ping6`:
 
     $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/process-check-result?service=example.localdomain!passive-ping6' \
-    -d '{ "exit_status": 2, "plugin_output": "PING CRITICAL - Packet loss = 100%", "performance_data": [ "rta=5000.000000ms;3000.000000;5000.000000;0.000000", "pl=100%;80;100;0" ], "check_source": "example.localdomain" }' | python -m json.tool
+    -d '{ "exit_status": 2, "plugin_output": "PING CRITICAL - Packet loss = 100%", "performance_data": [ "rta=5000.000000ms;3000.000000;5000.000000;0.000000", "pl=100%;80;100;0" ], "check_source": "example.localdomain", "pretty": true }'
 
     {
         "results": [
@@ -855,7 +859,7 @@ The example reschedules all services with the name "ping6" to immediately perfor
 allowed for the service (`force_check=true`).
 
     $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/reschedule-check' \
-    -d '{ "type": "Service", "filter": "service.name==\"ping6\"", "force_check": true }' | python -m json.tool
+    -d '{ "type": "Service", "filter": "service.name==\"ping6\"", "force_check": true, "pretty": true }'
 
     {
         "results": [
@@ -886,7 +890,7 @@ Example for a custom host notification announcing a global maintenance to
 host owners:
 
     $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/send-custom-notification' \
-    -d '{ "type": "Host", "author": "icingaadmin", "comment": "System is going down for maintenance", "force": true }' | python -m json.tool
+    -d '{ "type": "Host", "author": "icingaadmin", "comment": "System is going down for maintenance", "force": true, "pretty": true }'
 
     {
         "results": [
@@ -918,7 +922,7 @@ In addition to these parameters a [filter](12-icinga2-api.md#icinga2-api-filters
 Example:
 
     $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/delay-notification' \
-    -d '{ "type": "Service", "timestamp": 1446389894 }' | python -m json.tool
+    -d '{ "type": "Service", "timestamp": 1446389894, "pretty": true }'
 
     {
         "results": [
@@ -955,7 +959,7 @@ The following example acknowledges all services which are in a hard critical sta
 a notification for them:
 
     $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/acknowledge-problem?type=Service&filter=service.state==2&service.state_type=1' \
-    -d '{ "author": "icingaadmin", "comment": "Global outage. Working on it.", "notify": true }' | python -m json.tool
+    -d '{ "author": "icingaadmin", "comment": "Global outage. Working on it.", "notify": true, "pretty": true }'
 
     {
         "results": [
@@ -981,7 +985,7 @@ A [filter](12-icinga2-api.md#icinga2-api-filters) must be provided. The valid ty
 
 The example removes all service acknowledgements:
 
-    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/remove-acknowledgement?type=Service' | python -m json.tool
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/remove-acknowledgement?type=Service&pretty=1'
 
     {
         "results": [
@@ -1010,7 +1014,7 @@ In addition to these parameters a [filter](12-icinga2-api.md#icinga2-api-filters
 
 The following example adds a comment for all `ping4` services:
 
-    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/add-comment?type=Service&filter=service.name==%22ping4%22' -d '{ "author": "icingaadmin", "comment": "Troubleticket #123456789 opened." }' | python -m json.tool
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/add-comment?type=Service&filter=service.name==%22ping4%22' -d '{ "author": "icingaadmin", "comment": "Troubleticket #123456789 opened.", "pretty": true }'
     {
         "results": [
             {
@@ -1041,7 +1045,7 @@ A [filter](12-icinga2-api.md#icinga2-api-filters) must be provided. The valid ty
 
 Example for a simple filter using the `comment` URL parameter:
 
-    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/remove-comment?comment=example2.localdomain!ping4!mbmif.local-1446986367-0' | python -m json.tool
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/remove-comment?comment=example2.localdomain!ping4!mbmif.local-1446986367-0&pretty=1'
     {
         "results": [
             {
@@ -1053,7 +1057,7 @@ Example for a simple filter using the `comment` URL parameter:
 
 Example for removing all service comments using a service name filter for `ping4`:
 
-    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/remove-comment?filter=service.name==%22ping4%22&type=Service' | python -m json.tool
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/remove-comment?filter=service.name==%22ping4%22&type=Service&pretty=1'
     {
         "results": [
             {
@@ -1089,7 +1093,7 @@ In addition to these parameters a [filter](12-icinga2-api.md#icinga2-api-filters
 
 Example:
 
-    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/schedule-downtime?type=Service&filter=service.name==%22ping4%22' -d '{ "start_time": 1446388806, "end_time": 1446389806, "duration": 1000, "author": "icingaadmin", "comment": "IPv4 network maintenance" }' | python -m json.tool
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/schedule-downtime?type=Service&filter=service.name==%22ping4%22' -d '{ "start_time": 1446388806, "end_time": 1446389806, "duration": 1000, "author": "icingaadmin", "comment": "IPv4 network maintenance", "pretty": true }'
     {
         "results": [
             {
@@ -1120,7 +1124,7 @@ A [filter](12-icinga2-api.md#icinga2-api-filters) must be provided. The valid ty
 
 Example for a simple filter using the `downtime` URL parameter:
 
-    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/remove-downtime?downtime=example.localdomain!ping4!mbmif.local-1446979168-6' | python -m json.tool
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/remove-downtime?downtime=example.localdomain!ping4!mbmif.local-1446979168-6&pretty=1'
     {
         "results": [
             {
@@ -1132,7 +1136,7 @@ Example for a simple filter using the `downtime` URL parameter:
 
 Example for removing all host downtimes using a host name filter for `example.localdomain`:
 
-    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/remove-downtime?filter=host.name==%22example.localdomain%22&type=Host' | python -m json.tool
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/remove-downtime?filter=host.name==%22example.localdomain%22&type=Host&pretty=1'
     {
         "results": [
             {
@@ -1152,8 +1156,9 @@ filter variables explained in the [advanced filters](12-icinga2-api.md#icinga2-a
       "filter_vars": {
         "filterHost": "example.localdomain",
         "filterAuthor": "icingaadmin"
-      }
-    }' | python -m json.tool
+      },
+      "pretty": true
+    }'
 
     {
         "results": [
@@ -1174,7 +1179,7 @@ This action does not support a target type or filter.
 
 Example:
 
-    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/shutdown-process' | python -m json.tool
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/shutdown-process?pretty=1'
 
     {
         "results": [
@@ -1195,7 +1200,7 @@ This action does not support a target type or filter.
 
 Example:
 
-    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/restart-process' | python -m json.tool
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/restart-process?pretty=1'
 
     {
         "results": [
@@ -1220,7 +1225,7 @@ Send a `POST` request to the URL endpoint `/v1/actions/generate-ticket`.
 Example:
 
     $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/actions/generate-ticket' \
-    -d '{ "cn": "icinga2-client1.localdomain" }' | python -m json.tool
+    -d '{ "cn": "icinga2-client1.localdomain", "pretty": true }'
     {
         "results": [
             {
@@ -1431,7 +1436,7 @@ Send a `GET` request to the URL endpoint `/v1/status` to retrieve status informa
 
 Example:
 
-    $ curl -k -s -u root:icinga 'https://localhost:5665/v1/status' | python -m json.tool
+    $ curl -k -s -u root:icinga 'https://localhost:5665/v1/status?pretty=1'
     {
         "results": [
             {
@@ -1451,7 +1456,7 @@ Example:
 
 You can limit the output by specifying a status type in the URL, e.g. `IcingaApplication`:
 
-    $ curl -k -s -u root:icinga 'https://localhost:5665/v1/status/IcingaApplication' | python -m json.tool
+    $ curl -k -s -u root:icinga 'https://localhost:5665/v1/status/IcingaApplication?pretty=1'
     {
         "results": [
             {
@@ -1494,7 +1499,7 @@ Send a `POST` request to a new config package called `example-cmdb` in this exam
 will create a new empty configuration package.
 
     $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST \
-    'https://localhost:5665/v1/config/packages/example-cmdb' | python -m json.tool
+    'https://localhost:5665/v1/config/packages/example-cmdb?pretty=1'
     {
         "results": [
             {
@@ -1539,8 +1544,8 @@ directory. Note: This example contains an error (`chec_command`). This is
 intentional.
 
     $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST \
-    -d '{ "files": { "conf.d/test.conf": "object Host \"cmdb-host\" { chec_command = \"dummy\" }" } }' \
-    'https://localhost:5665/v1/config/stages/example-cmdb' | python -m json.tool
+    -d '{ "files": { "conf.d/test.conf": "object Host \"cmdb-host\" { chec_command = \"dummy\" }" }, "pretty": true }' \
+    'https://localhost:5665/v1/config/stages/example-cmdb'
     {
         "results": [
             {
@@ -1583,7 +1588,7 @@ A list of packages and their stages can be retrieved by sending a `GET` request 
 The following example contains one configuration package `example-cmdb`. The package does not currently
 have an active stage.
 
-    $ curl -k -s -u root:icinga 'https://localhost:5665/v1/config/packages' | python -m json.tool
+    $ curl -k -s -u root:icinga 'https://localhost:5665/v1/config/packages?pretty=1'
     {
         "results": [
             {
@@ -1603,7 +1608,7 @@ In order to retrieve a list of files for a stage you can send a `GET` request to
 the URL endpoint `/v1/config/stages`. You need to include
 the package name (`example-cmdb`) and stage name (`example.localdomain-1441625839-0`) in the URL:
 
-    $ curl -k -s -u root:icinga 'https://localhost:5665/v1/config/stages/example-cmdb/example.localdomain-1441625839-0' | python -m json.tool
+    $ curl -k -s -u root:icinga 'https://localhost:5665/v1/config/stages/example-cmdb/example.localdomain-1441625839-0?pretty=1'
     {
         "results": [
     ...
@@ -1684,7 +1689,7 @@ The following example removes the failed configuration stage `example.localdomai
 in the `example-cmdb` configuration package:
 
     $ curl -k -s -u root:icinga -H 'Accept: application/json' -X DELETE \
-    'https://localhost:5665/v1/config/stages/example-cmdb/example.localdomain-1441133065-1' | python -m json.tool
+    'https://localhost:5665/v1/config/stages/example-cmdb/example.localdomain-1441133065-1?pretty=1'
     {
         "results": [
             {
@@ -1704,7 +1709,7 @@ with the package name in the URL path.
 This example entirely deletes the configuration package `example-cmdb`:
 
     $ curl -k -s -u root:icinga -H 'Accept: application/json' -X DELETE \
-    'https://localhost:5665/v1/config/packages/example-cmdb' | python -m json.tool
+    'https://localhost:5665/v1/config/packages/example-cmdb?pretty=1'
     {
         "results": [
             {
@@ -1734,7 +1739,7 @@ Each response entry in the results array contains the following attributes:
 
 In order to view a specific configuration object type specify its name inside the URL path:
 
-    $ curl -k -s -u root:icinga 'https://localhost:5665/v1/types/Object' | python -m json.tool
+    $ curl -k -s -u root:icinga 'https://localhost:5665/v1/types/Object?pretty=1'
     {
         "results": [
             {
@@ -1791,7 +1796,7 @@ If you specify a session identifier, the same script context can be reused for m
 
 Example for fetching the command line from the local host's last check result:
 
-    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/console/execute-script?command=get_host(NodeName).last_check_result.command&sandboxed=0&session=bb75fd7c-c686-407d-9688-582c04227756' | python -m json.tool
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/console/execute-script?command=get_host(NodeName).last_check_result.command&sandboxed=0&session=bb75fd7c-c686-407d-9688-582c04227756&pretty=1'
     {
         "results": [
             {
@@ -1813,7 +1818,7 @@ Example for fetching the command line from the local host's last check result:
 Example for fetching auto-completion suggestions for the `Host.` type. This works in a
 similar fashion when pressing TAB inside the [console CLI command](11-cli-commands.md#cli-command-console):
 
-    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/console/auto-complete-script?command=Host.&sandboxed=0&session=bb75fd7c-c686-407d-9688-582c04227756' | python -m json.tool
+    $ curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/console/auto-complete-script?command=Host.&sandboxed=0&session=bb75fd7c-c686-407d-9688-582c04227756&pretty=1'
     {
         "results": [
             {

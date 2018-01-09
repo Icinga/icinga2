@@ -39,14 +39,14 @@ bool EventsHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request
 		return false;
 
 	if (request.ProtocolVersion == HttpVersion10) {
-		HttpUtility::SendJsonError(response, 400, "HTTP/1.0 not supported for event streams.");
+		HttpUtility::SendJsonError(response, params, 400, "HTTP/1.0 not supported for event streams.");
 		return true;
 	}
 
 	Array::Ptr types = params->Get("types");
 
 	if (!types) {
-		HttpUtility::SendJsonError(response, 400, "'types' query parameter is required.");
+		HttpUtility::SendJsonError(response, params, 400, "'types' query parameter is required.");
 		return true;
 	}
 
@@ -60,7 +60,7 @@ bool EventsHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request
 	String queueName = HttpUtility::GetLastParameter(params, "queue");
 
 	if (queueName.IsEmpty()) {
-		HttpUtility::SendJsonError(response, 400, "'queue' query parameter is required.");
+		HttpUtility::SendJsonError(response, params, 400, "'queue' query parameter is required.");
 		return true;
 	}
 

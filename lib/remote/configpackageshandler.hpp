@@ -35,7 +35,7 @@ public:
 
 private:
 	void HandleGet(const ApiUser::Ptr& user, HttpRequest& request,
-		HttpResponse& response);
+		HttpResponse& response, const Dictionary::Ptr& params);
 	void HandlePost(const ApiUser::Ptr& user, HttpRequest& request,
 		HttpResponse& response, const Dictionary::Ptr& params);
 	void HandleDelete(const ApiUser::Ptr& user, HttpRequest& request,

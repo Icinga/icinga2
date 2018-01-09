@@ -60,10 +60,10 @@ void ConfigStagesHandler::HandleGet(const ApiUser::Ptr& user, HttpRequest& reque
 	String stageName = HttpUtility::GetLastParameter(params, "stage");
 
 	if (!ConfigPackageUtility::ValidateName(packageName))
-		return HttpUtility::SendJsonError(response, 400, "Invalid package name.");
+		return HttpUtility::SendJsonError(response, params, 400, "Invalid package name.");
 
 	if (!ConfigPackageUtility::ValidateName(stageName))
-		return HttpUtility::SendJsonError(response, 400, "Invalid stage name.");
+		return HttpUtility::SendJsonError(response, params, 400, "Invalid stage name.");
 
 	Array::Ptr results = new Array();
 
@@ -83,7 +83,7 @@ void ConfigStagesHandler::HandleGet(const ApiUser::Ptr& user, HttpRequest& reque
 	result->Set("results", results);
 
 	response.SetStatus(200, "OK");
-	HttpUtility::SendJsonBody(response, result);
+	HttpUtility::SendJsonBody(response, params, result);
 }
 
 void ConfigStagesHandler::HandlePost(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response, const Dictionary::Ptr& params)
@@ -96,7 +96,7 @@ void ConfigStagesHandler::HandlePost(const ApiUser::Ptr& user, HttpRequest& requ
 	String packageName = HttpUtility::GetLastParameter(params, "package");
 
 	if (!ConfigPackageUtility::ValidateName(packageName))
-		return HttpUtility::SendJsonError(response, 400, "Invalid package name.");
+		return HttpUtility::SendJsonError(response, params, 400, "Invalid package name.");
 
 	bool reload = true;
 	if (params->Contains("reload"))
@@ -116,7 +116,7 @@ void ConfigStagesHandler::HandlePost(const ApiUser::Ptr& user, HttpRequest& requ
 		/* validate the config. on success, activate stage and reload */
 		ConfigPackageUtility::AsyncTryActivateStage(packageName, stageName, reload);
 	} catch (const std::exception& ex) {
-		return HttpUtility::SendJsonError(response, 500,
+		return HttpUtility::SendJsonError(response, params, 500,
 				"Stage creation failed.",
 				HttpUtility::GetLastParameter(params, "verboseErrors") ? DiagnosticInformation(ex) : "");
 	}
@@ -138,7 +138,7 @@ void ConfigStagesHandler::HandlePost(const ApiUser::Ptr& user, HttpRequest& requ
 	result->Set("results", results);
 
 	response.SetStatus(200, "OK");
-	HttpUtility::SendJsonBody(response, result);
+	HttpUtility::SendJsonBody(response, params, result);
 }
 
 void ConfigStagesHandler::HandleDelete(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response, const Dictionary::Ptr& params)
@@ -155,15 +155,15 @@ void ConfigStagesHandler::HandleDelete(const ApiUser::Ptr& user, HttpRequest& re
 	String stageName = HttpUtility::GetLastParameter(params, "stage");
 
 	if (!ConfigPackageUtility::ValidateName(packageName))
-		return HttpUtility::SendJsonError(response, 400, "Invalid package name.");
+		return HttpUtility::SendJsonError(response, params, 400, "Invalid package name.");
 
 	if (!ConfigPackageUtility::ValidateName(stageName))
-		return HttpUtility::SendJsonError(response, 400, "Invalid stage name.");
+		return HttpUtility::SendJsonError(response, params, 400, "Invalid stage name.");
 
 	try {
 		ConfigPackageUtility::DeleteStage(packageName, stageName);
 	} catch (const std::exception& ex) {
-		return HttpUtility::SendJsonError(response, 500,
+		return HttpUtility::SendJsonError(response, params, 500,
 			"Failed to delete stage.",
 			HttpUtility::GetLastParameter(params, "verboseErrors") ? DiagnosticInformation(ex) : "");
 	}
@@ -180,6 +180,6 @@ void ConfigStagesHandler::HandleDelete(const ApiUser::Ptr& user, HttpRequest& re
 	result->Set("results", results);
 
 	response.SetStatus(200, "OK");
-	HttpUtility::SendJsonBody(response, result);
+	HttpUtility::SendJsonBody(response, params, result);
 }
 

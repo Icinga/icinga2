@@ -46,9 +46,9 @@ public:
 
 private:
 	static bool ExecuteScriptHelper(HttpRequest& request, HttpResponse& response,
-		const String& command, const String& session, bool sandboxed);
+		const Dictionary::Ptr& params, const String& command, const String& session, bool sandboxed);
 	static bool AutocompleteScriptHelper(HttpRequest& request, HttpResponse& response,
-		const String& command, const String& session, bool sandboxed);
+		const Dictionary::Ptr& params, const String& command, const String& session, bool sandboxed);
 
 };
 

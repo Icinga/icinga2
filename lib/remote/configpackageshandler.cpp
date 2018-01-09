@@ -34,7 +34,7 @@ bool ConfigPackagesHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest&
 		return false;
 
 	if (request.RequestMethod == "GET")
-		HandleGet(user, request, response);
+		HandleGet(user, request, response, params);
 	else if (request.RequestMethod == "POST")
 		HandlePost(user, request, response, params);
 	else if (request.RequestMethod == "DELETE")
@@ -45,7 +45,7 @@ bool ConfigPackagesHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest&
 	return true;
 }
 
-void ConfigPackagesHandler::HandleGet(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response)
+void ConfigPackagesHandler::HandleGet(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response, const Dictionary::Ptr& params)
 {
 	FilterUtility::CheckPermission(user, "config/query");
 
@@ -68,7 +68,7 @@ void ConfigPackagesHandler::HandleGet(const ApiUser::Ptr& user, HttpRequest& req
 	result->Set("results", results);
 
 	response.SetStatus(200, "OK");
-	HttpUtility::SendJsonBody(response, result);
+	HttpUtility::SendJsonBody(response, params, result);
 }
 
 void ConfigPackagesHandler::HandlePost(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response, const Dictionary::Ptr& params)
@@ -81,7 +81,7 @@ void ConfigPackagesHandler::HandlePost(const ApiUser::Ptr& user, HttpRequest& re
 	String packageName = HttpUtility::GetLastParameter(params, "package");
 
 	if (!ConfigPackageUtility::ValidateName(packageName)) {
-		HttpUtility::SendJsonError(response, 400, "Invalid package name.");
+		HttpUtility::SendJsonError(response, params, 400, "Invalid package name.");
 		return;
 	}
 
@@ -91,7 +91,7 @@ void ConfigPackagesHandler::HandlePost(const ApiUser::Ptr& user, HttpRequest& re
 		boost::mutex::scoped_lock lock(ConfigPackageUtility::GetStaticMutex());
 		ConfigPackageUtility::CreatePackage(packageName);
 	} catch (const std::exception& ex) {
-		HttpUtility::SendJsonError(response, 500, "Could not create package.",
+		HttpUtility::SendJsonError(response, params, 500, "Could not create package.",
 			HttpUtility::GetLastParameter(params, "verboseErrors") ? DiagnosticInformation(ex) : "");
 		return;
 	}
@@ -106,7 +106,7 @@ void ConfigPackagesHandler::HandlePost(const ApiUser::Ptr& user, HttpRequest& re
 	result->Set("results", results);
 
 	response.SetStatus(200, "OK");
-	HttpUtility::SendJsonBody(response, result);
+	HttpUtility::SendJsonBody(response, params, result);
 }
 
 void ConfigPackagesHandler::HandleDelete(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response, const Dictionary::Ptr& params)
@@ -119,7 +119,7 @@ void ConfigPackagesHandler::HandleDelete(const ApiUser::Ptr& user, HttpRequest& 
 	String packageName = HttpUtility::GetLastParameter(params, "package");
 
 	if (!ConfigPackageUtility::ValidateName(packageName)) {
-		HttpUtility::SendJsonError(response, 400, "Invalid package name.");
+		HttpUtility::SendJsonError(response, params, 400, "Invalid package name.");
 		return;
 	}
 
@@ -148,6 +148,6 @@ void ConfigPackagesHandler::HandleDelete(const ApiUser::Ptr& user, HttpRequest& 
 	result->Set("results", results);
 
 	response.SetStatus(code, (code == 200) ? "OK" : "Internal Server Error");
-	HttpUtility::SendJsonBody(response, result);
+	HttpUtility::SendJsonBody(response, params, result);
 }
 
