@@ -146,7 +146,7 @@ public:
 	static inline Value NewObject(ScriptFrame& frame, bool abstract, const Type::Ptr& type, const String& name, const std::shared_ptr<Expression>& filter,
 		const String& zone, const String& package, bool defaultTmpl, bool ignoreOnError, const std::map<String, std::unique_ptr<Expression> >& closedVars, const std::shared_ptr<Expression>& expression, const DebugInfo& debugInfo = DebugInfo())
 	{
-		ConfigItemBuilder::Ptr item = new ConfigItemBuilder(debugInfo);
+		ConfigItemBuilder item{debugInfo};
 
 		String checkName = name;
 
@@ -173,21 +173,21 @@ public:
 			BOOST_THROW_EXCEPTION(ScriptError(msgbuf.str(), debugInfo));
 		}
 
-		item->SetType(type);
-		item->SetName(name);
+		item.SetType(type);
+		item.SetName(name);
 
 		if (!abstract)
-			item->AddExpression(new ImportDefaultTemplatesExpression());
+			item.AddExpression(new ImportDefaultTemplatesExpression());
 
-		item->AddExpression(new OwnedExpression(expression));
-		item->SetAbstract(abstract);
-		item->SetScope(EvaluateClosedVars(frame, closedVars));
-		item->SetZone(zone);
-		item->SetPackage(package);
-		item->SetFilter(filter);
-		item->SetDefaultTemplate(defaultTmpl);
-		item->SetIgnoreOnError(ignoreOnError);
-		item->Compile()->Register();
+		item.AddExpression(new OwnedExpression(expression));
+		item.SetAbstract(abstract);
+		item.SetScope(EvaluateClosedVars(frame, closedVars));
+		item.SetZone(zone);
+		item.SetPackage(package);
+		item.SetFilter(filter);
+		item.SetDefaultTemplate(defaultTmpl);
+		item.SetIgnoreOnError(ignoreOnError);
+		item.Compile()->Register();
 
 		return Empty;
 	}

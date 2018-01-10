@@ -148,11 +148,11 @@ bool DaemonUtility::ValidateConfigFiles(const std::vector<std::string>& configs,
 	Type::Ptr appType = Type::GetByName(ScriptGlobal::Get("ApplicationType", &Empty));
 
 	if (ConfigItem::GetItems(appType).empty()) {
-		ConfigItemBuilder::Ptr builder = new ConfigItemBuilder();
-		builder->SetType(appType);
-		builder->SetName("app");
-		builder->AddExpression(new ImportDefaultTemplatesExpression());
-		ConfigItem::Ptr item = builder->Compile();
+		ConfigItemBuilder builder;
+		builder.SetType(appType);
+		builder.SetName("app");
+		builder.AddExpression(new ImportDefaultTemplatesExpression());
+		ConfigItem::Ptr item = builder.Compile();
 		item->Register();
 	}
 
