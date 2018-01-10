@@ -120,7 +120,7 @@ void OpenTsdbWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 	String metric;
 	std::map<String, String> tags;
 
-	String escaped_hostName = EscapeMetric(host->GetName());
+	String escaped_hostName = EscapeTag(host->GetName());
 	tags["host"] = escaped_hostName;
 
 	double ts = cr->GetExecutionEnd();
