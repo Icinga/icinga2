@@ -301,11 +301,12 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 	if (remove_acknowledgement_comments)
 		RemoveCommentsByType(CommentAcknowledgement);
 
-	Dictionary::Ptr vars_after = new Dictionary();
-	vars_after->Set("state", new_state);
-	vars_after->Set("state_type", GetStateType());
-	vars_after->Set("attempt", GetCheckAttempt());
-	vars_after->Set("reachable", reachable);
+	Dictionary::Ptr vars_after = new Dictionary({
+		{ "state", new_state },
+		{ "state_type", GetStateType() },
+		{ "attempt", GetCheckAttempt() },
+		{ "reachable", reachable }
+	});
 
 	if (old_cr)
 		cr->SetVarsBefore(old_cr->GetVarsAfter());

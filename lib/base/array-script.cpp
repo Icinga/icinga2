@@ -147,14 +147,14 @@ static Array::Ptr ArrayMap(const Function::Ptr& function)
 	if (vframe->Sandboxed && !function->IsSideEffectFree())
 		BOOST_THROW_EXCEPTION(ScriptError("Map function must be side-effect free."));
 
-	Array::Ptr result = new Array();
+	ArrayData result;
 
 	ObjectLock olock(self);
 	for (const Value& item : self) {
-		result->Add(function->Invoke({ item }));
+		result.push_back(function->Invoke({ item }));
 	}
 
-	return result;
+	return new Array(std::move(result));
 }
 
 static Value ArrayReduce(const Function::Ptr& function)
@@ -186,15 +186,15 @@ static Array::Ptr ArrayFilter(const Function::Ptr& function)
 	if (vframe->Sandboxed && !function->IsSideEffectFree())
 		BOOST_THROW_EXCEPTION(ScriptError("Filter function must be side-effect free."));
 
-	Array::Ptr result = new Array();
+	ArrayData result;
 
 	ObjectLock olock(self);
 	for (const Value& item : self) {
 		if (function->Invoke({ item }))
-			result->Add(item);
+			result.push_back(item);
 	}
 
-	return result;
+	return new Array(std::move(result));
 }
 
 static bool ArrayAny(const Function::Ptr& function)
@@ -247,28 +247,25 @@ static Array::Ptr ArrayUnique()
 
 Object::Ptr Array::GetPrototype()
 {
-	static Dictionary::Ptr prototype;
-
-	if (!prototype) {
-		prototype = new Dictionary();
-		prototype->Set("len", new Function("Array#len", ArrayLen, {}, true));
-		prototype->Set("set", new Function("Array#set", ArraySet, { "index", "value" }));
-		prototype->Set("get", new Function("Array#get", ArrayGet, { "index" }));
-		prototype->Set("add", new Function("Array#add", ArrayAdd, { "value" }));
-		prototype->Set("remove", new Function("Array#remove", ArrayRemove, { "index" }));
-		prototype->Set("contains", new Function("Array#contains", ArrayContains, { "value" }, true));
-		prototype->Set("clear", new Function("Array#clear", ArrayClear));
-		prototype->Set("sort", new Function("Array#sort", ArraySort, { "less_cmp" }, true));
-		prototype->Set("shallow_clone", new Function("Array#shallow_clone", ArrayShallowClone, {}, true));
-		prototype->Set("join", new Function("Array#join", ArrayJoin, { "separator" }, true));
-		prototype->Set("reverse", new Function("Array#reverse", ArrayReverse, {}, true));
-		prototype->Set("map", new Function("Array#map", ArrayMap, { "func" }, true));
-		prototype->Set("reduce", new Function("Array#reduce", ArrayReduce, { "reduce" }, true));
-		prototype->Set("filter", new Function("Array#filter", ArrayFilter, { "func" }, true));
-		prototype->Set("any", new Function("Array#any", ArrayAny, { "func" }, true));
-		prototype->Set("all", new Function("Array#all", ArrayAll, { "func" }, true));
-		prototype->Set("unique", new Function("Array#unique", ArrayUnique, {}, true));
-	}
+	static Dictionary::Ptr prototype = new Dictionary({
+		{ "len", new Function("Array#len", ArrayLen, {}, true) },
+		{ "set", new Function("Array#set", ArraySet, { "index", "value" }) },
+		{ "get", new Function("Array#get", ArrayGet, { "index" }) },
+		{ "add", new Function("Array#add", ArrayAdd, { "value" }) },
+		{ "remove", new Function("Array#remove", ArrayRemove, { "index" }) },
+		{ "contains", new Function("Array#contains", ArrayContains, { "value" }, true) },
+		{ "clear", new Function("Array#clear", ArrayClear) },
+		{ "sort", new Function("Array#sort", ArraySort, { "less_cmp" }, true) },
+		{ "shallow_clone", new Function("Array#shallow_clone", ArrayShallowClone, {}, true) },
+		{ "join", new Function("Array#join", ArrayJoin, { "separator" }, true) },
+		{ "reverse", new Function("Array#reverse", ArrayReverse, {}, true) },
+		{ "map", new Function("Array#map", ArrayMap, { "func" }, true) },
+		{ "reduce", new Function("Array#reduce", ArrayReduce, { "reduce" }, true) },
+		{ "filter", new Function("Array#filter", ArrayFilter, { "func" }, true) },
+		{ "any", new Function("Array#any", ArrayAny, { "func" }, true) },
+		{ "all", new Function("Array#all", ArrayAll, { "func" }, true) },
+		{ "unique", new Function("Array#unique", ArrayUnique, {}, true) }
+	});
 
 	return prototype;
 }

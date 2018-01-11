@@ -55,24 +55,23 @@ void GraphiteWriter::OnConfigLoaded()
 
 void GraphiteWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
 {
-	Dictionary::Ptr nodes = new Dictionary();
+	DictionaryData nodes;
 
 	for (const GraphiteWriter::Ptr& graphitewriter : ConfigType::GetObjectsByType<GraphiteWriter>()) {
 		size_t workQueueItems = graphitewriter->m_WorkQueue.GetLength();
 		double workQueueItemRate = graphitewriter->m_WorkQueue.GetTaskCount(60) / 60.0;
 
-		Dictionary::Ptr stats = new Dictionary();
-		stats->Set("work_queue_items", workQueueItems);
-		stats->Set("work_queue_item_rate", workQueueItemRate);
-		stats->Set("connected", graphitewriter->GetConnected());
-
-		nodes->Set(graphitewriter->GetName(), stats);
+		nodes.emplace_back(graphitewriter->GetName(), new Dictionary({
+			{ "work_queue_items", workQueueItems },
+			{ "work_queue_item_rate", workQueueItemRate },
+			{ "connected", graphitewriter->GetConnected() }
+		}));
 
 		perfdata->Add(new PerfdataValue("graphitewriter_" + graphitewriter->GetName() + "_work_queue_items", workQueueItems));
 		perfdata->Add(new PerfdataValue("graphitewriter_" + graphitewriter->GetName() + "_work_queue_item_rate", workQueueItemRate));
 	}
 
-	status->Set("graphitewriter", nodes);
+	status->Set("graphitewriter", new Dictionary(std::move(nodes)));
 }
 
 void GraphiteWriter::Start(bool runtimeCreated)
@@ -330,14 +329,14 @@ Value GraphiteWriter::EscapeMacroMetric(const Value& value)
 {
 	if (value.IsObjectType<Array>()) {
 		Array::Ptr arr = value;
-		Array::Ptr result = new Array();
+		ArrayData result;
 
 		ObjectLock olock(arr);
 		for (const Value& arg : arr) {
-			result->Add(EscapeMetric(arg));
+			result.push_back(EscapeMetric(arg));
 		}
 
-		return Utility::Join(result, '.');
+		return Utility::Join(new Array(std::move(result)), '.');
 	} else
 		return EscapeMetric(value);
 }

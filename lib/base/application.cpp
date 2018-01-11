@@ -400,24 +400,24 @@ pid_t Application::StartReloadProcess()
 	Log(LogInformation, "Application", "Got reload command: Starting new instance.");
 
 	// prepare arguments
-	Array::Ptr args = new Array();
-	args->Add(GetExePath(m_ArgV[0]));
+	ArrayData args;
+	args.push_back(GetExePath(m_ArgV[0]));
 
 	for (int i=1; i < Application::GetArgC(); i++) {
 		if (std::string(Application::GetArgV()[i]) != "--reload-internal")
-			args->Add(Application::GetArgV()[i]);
+			args.push_back(Application::GetArgV()[i]);
 		else
 			i++;     // the next parameter after --reload-internal is the pid, remove that too
 	}
 
 #ifndef _WIN32
-	args->Add("--reload-internal");
-	args->Add(Convert::ToString(Utility::GetPid()));
+	args.push_back("--reload-internal");
+	args.push_back(Convert::ToString(Utility::GetPid()));
 #else /* _WIN32 */
-	args->Add("--validate");
+	args.push_back("--validate");
 #endif /* _WIN32 */
 
-	Process::Ptr process = new Process(Process::PrepareCommand(args));
+	Process::Ptr process = new Process(Process::PrepareCommand(new Array(std::move(args))));
 	process->SetTimeout(300);
 	process->Run(&ReloadProcessCallback);
 

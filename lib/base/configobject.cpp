@@ -506,17 +506,16 @@ void ConfigObject::DumpObjects(const String& filename, int attributeTypes)
 			continue;
 
 		for (const ConfigObject::Ptr& object : dtype->GetObjects()) {
-			Dictionary::Ptr persistentObject = new Dictionary();
-
-			persistentObject->Set("type", type->GetName());
-			persistentObject->Set("name", object->GetName());
-
 			Dictionary::Ptr update = Serialize(object, attributeTypes);
 
 			if (!update)
 				continue;
 
-			persistentObject->Set("update", update);
+			Dictionary::Ptr persistentObject = new Dictionary({
+				{ "type", type->GetName() },
+				{ "name", object->GetName() },
+				{ "update", update }
+			});
 
 			String json = JsonEncode(persistentObject);
 
@@ -717,13 +716,13 @@ Dictionary::Ptr ConfigObject::GetSourceLocation() const
 {
 	DebugInfo di = GetDebugInfo();
 
-	Dictionary::Ptr result = new Dictionary();
-	result->Set("path", di.Path);
-	result->Set("first_line", di.FirstLine);
-	result->Set("first_column", di.FirstColumn);
-	result->Set("last_line", di.LastLine);
-	result->Set("last_column", di.LastColumn);
-	return result;
+	return new Dictionary({
+		{ "path", di.Path },
+		{ "first_line", di.FirstLine },
+		{ "first_column", di.FirstColumn },
+		{ "last_line", di.LastLine },
+		{ "last_column", di.LastColumn }
+	});
 }
 
 NameComposer::~NameComposer()

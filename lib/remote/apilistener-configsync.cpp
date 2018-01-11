@@ -289,11 +289,14 @@ void ApiListener::UpdateConfigObject(const ConfigObject::Ptr& object, const Mess
 	if (object->GetPackage() != "_api" && object->GetVersion() == 0)
 		return;
 
-	Dictionary::Ptr message = new Dictionary();
-	message->Set("jsonrpc", "2.0");
-	message->Set("method", "config::UpdateObject");
-
 	Dictionary::Ptr params = new Dictionary();
+
+	Dictionary::Ptr message = new Dictionary({
+		{ "jsonrpc", "2.0" },
+		{ "method", "config::UpdateObject" },
+		{ "params", params }
+	});
+
 	params->Set("name", object->GetName());
 	params->Set("type", object->GetReflectionType()->GetName());
 	params->Set("version", object->GetVersion());
@@ -311,7 +314,7 @@ void ApiListener::UpdateConfigObject(const ConfigObject::Ptr& object, const Mess
 
 	Dictionary::Ptr original_attributes = object->GetOriginalAttributes();
 	Dictionary::Ptr modified_attributes = new Dictionary();
-	Array::Ptr newOriginalAttributes = new Array();
+	ArrayData newOriginalAttributes;
 
 	if (original_attributes) {
 		ObjectLock olock(original_attributes);
@@ -326,16 +329,14 @@ void ApiListener::UpdateConfigObject(const ConfigObject::Ptr& object, const Mess
 
 			modified_attributes->Set(kv.first, value);
 
-			newOriginalAttributes->Add(kv.first);
+			newOriginalAttributes.push_back(kv.first);
 		}
 	}
 
 	params->Set("modified_attributes", modified_attributes);
 
 	/* only send the original attribute keys */
-	params->Set("original_attributes", newOriginalAttributes);
-
-	message->Set("params", params);
+	params->Set("original_attributes", new Array(std::move(newOriginalAttributes)));
 
 #ifdef I2_DEBUG
 	Log(LogDebug, "ApiListener")
@@ -374,16 +375,18 @@ void ApiListener::DeleteConfigObject(const ConfigObject::Ptr& object, const Mess
 		}
 	}
 
-	Dictionary::Ptr message = new Dictionary();
-	message->Set("jsonrpc", "2.0");
-	message->Set("method", "config::DeleteObject");
-
 	Dictionary::Ptr params = new Dictionary();
+
+	Dictionary::Ptr message = new Dictionary({
+		{ "jsonrpc", "2.0" },
+		{ "method", "config::DeleteObject" },
+		{ "params", params }
+	});
+
 	params->Set("name", object->GetName());
 	params->Set("type", object->GetReflectionType()->GetName());
 	params->Set("version", object->GetVersion());
 
-	message->Set("params", params);
 
 #ifdef I2_DEBUG
 	Log(LogDebug, "ApiListener")

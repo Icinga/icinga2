@@ -34,12 +34,11 @@ UserGroupDbObject::UserGroupDbObject(const DbType::Ptr& type, const String& name
 
 Dictionary::Ptr UserGroupDbObject::GetConfigFields() const
 {
-	Dictionary::Ptr fields = new Dictionary();
 	UserGroup::Ptr group = static_pointer_cast<UserGroup>(GetObject());
 
-	fields->Set("alias", group->GetDisplayName());
-
-	return fields;
+	return new Dictionary({
+		{ "alias", group->GetDisplayName() }
+	});
 }
 
 Dictionary::Ptr UserGroupDbObject::GetStatusFields() const

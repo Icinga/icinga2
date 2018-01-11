@@ -40,13 +40,13 @@ REGISTER_STATSFUNCTION(PerfdataWriter, &PerfdataWriter::StatsFunc);
 
 void PerfdataWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 {
-	Dictionary::Ptr nodes = new Dictionary();
+	DictionaryData nodes;
 
 	for (const PerfdataWriter::Ptr& perfdatawriter : ConfigType::GetObjectsByType<PerfdataWriter>()) {
-		nodes->Set(perfdatawriter->GetName(), 1); //add more stats
+		nodes.emplace_back(perfdatawriter->GetName(), 1); //add more stats
 	}
 
-	status->Set("perfdatawriter", nodes);
+	status->Set("perfdatawriter", new Dictionary(std::move(nodes)));
 }
 
 void PerfdataWriter::Start(bool runtimeCreated)

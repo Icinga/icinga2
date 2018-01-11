@@ -374,10 +374,10 @@ Dictionary::Ptr LegacyTimePeriod::ProcessTimeRange(const String& timestamp, tm *
 
 	ProcessTimeRangeRaw(timestamp, reference, &begin, &end);
 
-	Dictionary::Ptr segment = new Dictionary();
-	segment->Set("begin", (long)mktime(&begin));
-	segment->Set("end", (long)mktime(&end));
-	return segment;
+	return new Dictionary({
+		{ "begin", (long)mktime(&begin) },
+		{ "end", (long)mktime(&end) }
+	});
 }
 
 void LegacyTimePeriod::ProcessTimeRanges(const String& timeranges, tm *reference, const Array::Ptr& result)

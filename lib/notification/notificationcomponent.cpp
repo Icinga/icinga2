@@ -36,13 +36,13 @@ REGISTER_STATSFUNCTION(NotificationComponent, &NotificationComponent::StatsFunc)
 
 void NotificationComponent::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 {
-	Dictionary::Ptr nodes = new Dictionary();
+	DictionaryData nodes;
 
 	for (const NotificationComponent::Ptr& notification_component : ConfigType::GetObjectsByType<NotificationComponent>()) {
-		nodes->Set(notification_component->GetName(), 1); //add more stats
+		nodes.emplace_back(notification_component->GetName(), 1); //add more stats
 	}
 
-	status->Set("notificationcomponent", nodes);
+	status->Set("notificationcomponent", new Dictionary(std::move(nodes)));
 }
 
 /**

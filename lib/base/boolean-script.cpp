@@ -34,12 +34,9 @@ static String BooleanToString()
 
 Object::Ptr Boolean::GetPrototype()
 {
-	static Dictionary::Ptr prototype;
-
-	if (!prototype) {
-		prototype = new Dictionary();
-		prototype->Set("to_string", new Function("Boolean#to_string", BooleanToString, {}, true));
-	}
+	static Dictionary::Ptr prototype = new Dictionary({
+		{ "to_string", new Function("Boolean#to_string", BooleanToString, {}, true) }
+	});
 
 	return prototype;
 }

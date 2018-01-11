@@ -72,31 +72,36 @@ bool DeleteObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 
 	bool cascade = HttpUtility::GetLastParameter(params, "cascade");
 
-	Array::Ptr results = new Array();
+	ArrayData results;
 
 	bool success = true;
 
 	for (const ConfigObject::Ptr& obj : objs) {
-		Dictionary::Ptr result1 = new Dictionary();
-		result1->Set("type", type->GetName());
-		result1->Set("name", obj->GetName());
-		results->Add(result1);
-
+		int code;
+		String status;
 		Array::Ptr errors = new Array();
 
 		if (!ConfigObjectUtility::DeleteObject(obj, cascade, errors)) {
-			result1->Set("code", 500);
-			result1->Set("status", "Object could not be deleted.");
-			result1->Set("errors", errors);
+			code = 500;
+			status = "Object could not be deleted.";
 			success = false;
 		} else {
-			result1->Set("code", 200);
-			result1->Set("status", "Object was deleted.");
+			code = 200;
+			status = "Object was deleted.";
 		}
+
+		results.push_back(new Dictionary({
+			{ "type", type->GetName() },
+			{ "name", obj->GetName() },
+			{ "code", code },
+			{ "status", status },
+			{ "errors", errors }
+		}));
 	}
 
-	Dictionary::Ptr result = new Dictionary();
-	result->Set("results", results);
+	Dictionary::Ptr result = new Dictionary({
+		{ "results", new Array(std::move(results)) }
+	});
 
 	if (!success)
 		response.SetStatus(500, "One or more objects could not be deleted");

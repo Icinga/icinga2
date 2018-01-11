@@ -105,16 +105,15 @@ void ScriptGlobal::WriteToFile(const String& filename)
 
 	ObjectLock olock(m_Globals);
 	for (const Dictionary::Pair& kv : m_Globals) {
-		Dictionary::Ptr persistentVariable = new Dictionary();
-
-		persistentVariable->Set("name", kv.first);
-
 		Value value = kv.second;
 
 		if (value.IsObject())
 			value = Convert::ToString(value);
 
-		persistentVariable->Set("value", value);
+		Dictionary::Ptr persistentVariable = new Dictionary({
+			{ "name", kv.first },
+			{ "value", value }
+		});
 
 		String json = JsonEncode(persistentVariable);
 

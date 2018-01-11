@@ -72,30 +72,33 @@ bool ActionsHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& reques
 		objs.emplace_back(nullptr);
 	}
 
-	Array::Ptr results = new Array();
+	ArrayData results;
 
 	Log(LogNotice, "ApiActionHandler")
 		<< "Running action " << actionName;
 
 	for (const ConfigObject::Ptr& obj : objs) {
 		try {
-			results->Add(action->Invoke(obj, params));
+			results.emplace_back(action->Invoke(obj, params));
 		} catch (const std::exception& ex) {
-			Dictionary::Ptr fail = new Dictionary();
-			fail->Set("code", 500);
-			fail->Set("status", "Action execution failed: '" + DiagnosticInformation(ex, false) + "'.");
+			Dictionary::Ptr fail = new Dictionary({
+				{ "code", 500 },
+				{ "status", "Action execution failed: '" + DiagnosticInformation(ex, false) + "'." }
+			});
+
 			if (HttpUtility::GetLastParameter(params, "verboseErrors"))
 				fail->Set("diagnostic information", DiagnosticInformation(ex));
-			results->Add(fail);
+
+			results.emplace_back(std::move(fail));
 		}
 	}
 
-	Dictionary::Ptr result = new Dictionary();
-	result->Set("results", results);
+	Dictionary::Ptr result = new Dictionary({
+		{ "results", new Array(std::move(results)) }
+	});
 
 	response.SetStatus(200, "OK");
 	HttpUtility::SendJsonBody(response, params, result);
 
 	return true;
 }
-

@@ -107,9 +107,7 @@ bool Notification::EvaluateApplyRule(const Checkable::Ptr& checkable, const Appl
 			return false;
 		}
 	} else {
-		Array::Ptr instances = new Array();
-		instances->Add("");
-		vinstances = instances;
+		vinstances = new Array({ "" });
 	}
 
 	bool match = false;

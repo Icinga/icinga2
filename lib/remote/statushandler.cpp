@@ -57,17 +57,15 @@ public:
 		if (!func)
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid status function name."));
 
-		Dictionary::Ptr result = new Dictionary();
-
 		Dictionary::Ptr status = new Dictionary();
 		Array::Ptr perfdata = new Array();
 		func->Invoke({ status, perfdata });
 
-		result->Set("name", name);
-		result->Set("status", status);
-		result->Set("perfdata", Serialize(perfdata, FAState));
-
-		return result;
+		return new Dictionary({
+			{ "name", name },
+			{ "status", status },
+			{ "perfdata", Serialize(perfdata, FAState) }
+		});
 	}
 
 	bool IsValidType(const String& type) const override
@@ -110,10 +108,9 @@ bool StatusHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request
 		return true;
 	}
 
-	Array::Ptr results = Array::FromVector(objs);
-
-	Dictionary::Ptr result = new Dictionary();
-	result->Set("results", results);
+	Dictionary::Ptr result = new Dictionary({
+		{ "results", new Array(std::move(objs)) }
+	});
 
 	response.SetStatus(200, "OK");
 	HttpUtility::SendJsonBody(response, params, result);

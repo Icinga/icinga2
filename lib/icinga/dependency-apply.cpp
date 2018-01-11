@@ -108,9 +108,7 @@ bool Dependency::EvaluateApplyRule(const Checkable::Ptr& checkable, const ApplyR
 			return false;
 		}
 	} else {
-		Array::Ptr instances = new Array();
-		instances->Add("");
-		vinstances = instances;
+		vinstances = new Array({ "" });
 	}
 
 	bool match = false;

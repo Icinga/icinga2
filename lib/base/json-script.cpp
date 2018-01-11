@@ -32,11 +32,11 @@ static String JsonEncodeShim(const Value& value)
 }
 
 INITIALIZE_ONCE([]() {
-	Dictionary::Ptr jsonObj = new Dictionary();
-
-	/* Methods */
-	jsonObj->Set("encode", new Function("Json#encode", JsonEncodeShim, { "value" }, true));
-	jsonObj->Set("decode", new Function("Json#decode", JsonDecode, { "value" }, true));
+	Dictionary::Ptr jsonObj = new Dictionary({
+		/* Methods */
+		{ "encode", new Function("Json#encode", JsonEncodeShim, { "value" }, true) },
+		{ "decode", new Function("Json#decode", JsonDecode, { "value" }, true) }
+	});
 
 	ScriptGlobal::Set("Json", jsonObj);
 });

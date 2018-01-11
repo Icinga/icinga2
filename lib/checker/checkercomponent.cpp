@@ -39,24 +39,23 @@ REGISTER_STATSFUNCTION(CheckerComponent, &CheckerComponent::StatsFunc);
 
 void CheckerComponent::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
 {
-	Dictionary::Ptr nodes = new Dictionary();
+	DictionaryData nodes;
 
 	for (const CheckerComponent::Ptr& checker : ConfigType::GetObjectsByType<CheckerComponent>()) {
 		unsigned long idle = checker->GetIdleCheckables();
 		unsigned long pending = checker->GetPendingCheckables();
 
-		Dictionary::Ptr stats = new Dictionary();
-		stats->Set("idle", idle);
-		stats->Set("pending", pending);
-
-		nodes->Set(checker->GetName(), stats);
+		nodes.emplace_back(checker->GetName(), new Dictionary({
+			{ "idle", idle },
+			{ "pending", pending }
+		}));
 
 		String perfdata_prefix = "checkercomponent_" + checker->GetName() + "_";
 		perfdata->Add(new PerfdataValue(perfdata_prefix + "idle", Convert::ToDouble(idle)));
 		perfdata->Add(new PerfdataValue(perfdata_prefix + "pending", Convert::ToDouble(pending)));
 	}
 
-	status->Set("checkercomponent", nodes);
+	status->Set("checkercomponent", new Dictionary(std::move(nodes)));
 }
 
 void CheckerComponent::OnConfigLoaded()

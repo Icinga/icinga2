@@ -33,17 +33,16 @@ Array::Ptr TimePeriodTask::EmptyTimePeriodUpdate(const TimePeriod::Ptr&, double,
 
 Array::Ptr TimePeriodTask::EvenMinutesTimePeriodUpdate(const TimePeriod::Ptr&, double begin, double end)
 {
-	Array::Ptr segments = new Array();
+	ArrayData segments;
 
 	for (long t = begin / 60 - 1; t * 60 < end; t++) {
 		if ((t % 2) == 0) {
-			Dictionary::Ptr segment = new Dictionary();
-			segment->Set("begin", t * 60);
-			segment->Set("end", (t + 1) * 60);
-
-			segments->Add(segment);
+			segments.push_back(new Dictionary({
+				{ "begin", t * 60 },
+				{ "end", (t + 1) * 60 }
+			}));
 		}
 	}
 
-	return segments;
+	return new Array(std::move(segments));
 }

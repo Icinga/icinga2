@@ -50,11 +50,10 @@ Dictionary::Ptr ServiceNameComposer::ParseName(const String& name) const
 	if (tokens.size() < 2)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid Service name."));
 
-	Dictionary::Ptr result = new Dictionary();
-	result->Set("host_name", tokens[0]);
-	result->Set("name", tokens[1]);
-
-	return result;
+	return new Dictionary({
+		{ "host_name", tokens[0] },
+		{ "name", tokens[1] }
+	});
 }
 
 void Service::OnAllConfigLoaded()

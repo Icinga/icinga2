@@ -89,16 +89,13 @@ Value ZonesTable::EndpointsAccessor(const Value& row)
 
 	std::set<Endpoint::Ptr> endpoints = zone->GetEndpoints();
 
-	Array::Ptr endpoint_names = new Array();
+	ArrayData result;
 
 	for (const Endpoint::Ptr& endpoint : endpoints) {
-		endpoint_names->Add(endpoint->GetName());
+		result.push_back(endpoint->GetName());
 	}
 
-	if (!endpoint_names)
-		return Empty;
-
-	return endpoint_names;
+	return new Array(std::move(result));
 }
 
 Value ZonesTable::GlobalAccessor(const Value& row)

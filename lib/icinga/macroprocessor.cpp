@@ -48,7 +48,7 @@ Value MacroProcessor::ResolveMacros(const Value& str, const ResolverList& resolv
 		result = InternalResolveMacros(str, resolvers, cr, missingMacro, escapeFn,
 			resolvedMacros, useResolvedMacros, recursionLevel + 1);
 	} else if (str.IsObjectType<Array>()) {
-		Array::Ptr resultArr = new Array();
+		ArrayData resultArr;;
 		Array::Ptr arr = str;
 
 		ObjectLock olock(arr);
@@ -59,12 +59,12 @@ Value MacroProcessor::ResolveMacros(const Value& str, const ResolverList& resolv
 				EscapeCallback(), resolvedMacros, useResolvedMacros, recursionLevel + 1);
 
 			if (value.IsObjectType<Array>())
-				resultArr->Add(Utility::Join(value, ';'));
+				resultArr.push_back(Utility::Join(value, ';'));
 			else
-				resultArr->Add(value);
+				resultArr.push_back(value);
 		}
 
-		result = resultArr;
+		result = new Array(std::move(resultArr));
 	} else if (str.IsObjectType<Dictionary>()) {
 		Dictionary::Ptr resultDict = new Dictionary();
 		Dictionary::Ptr dict = str;
@@ -275,19 +275,19 @@ Value MacroProcessor::InternalResolveMacros(const String& str, const ResolverLis
 		if (recursive_macro) {
 			if (resolved_macro.IsObjectType<Array>()) {
 				Array::Ptr arr = resolved_macro;
-				Array::Ptr resolved_arr = new Array();
+				ArrayData resolved_arr;
 
 				ObjectLock olock(arr);
 				for (const Value& value : arr) {
 					if (value.IsScalar()) {
-						resolved_arr->Add(InternalResolveMacros(value,
+						resolved_arr.push_back(InternalResolveMacros(value,
 							resolvers, cr, missingMacro, EscapeCallback(), nullptr,
 							false, recursionLevel + 1));
 					} else
-						resolved_arr->Add(value);
+						resolved_arr.push_back(value);
 				}
 
-				resolved_macro = resolved_arr;
+				resolved_macro = new Array(std::move(resolved_arr));
 			} else if (resolved_macro.IsString()) {
 				resolved_macro = InternalResolveMacros(resolved_macro,
 					resolvers, cr, missingMacro, EscapeCallback(), nullptr,
@@ -444,9 +444,7 @@ Value MacroProcessor::ResolveArguments(const Value& command, const Dictionary::P
 		resolvedCommand = MacroProcessor::ResolveMacros(command, resolvers, cr, nullptr,
 			EscapeMacroShellArg, resolvedMacros, useResolvedMacros, recursionLevel + 1);
 	else {
-		Array::Ptr arr = new Array();
-		arr->Add(command);
-		resolvedCommand = arr;
+		resolvedCommand = new Array({ command });
 	}
 
 	if (arguments) {
@@ -562,4 +560,3 @@ Value MacroProcessor::ResolveArguments(const Value& command, const Dictionary::P
 
 	return resolvedCommand;
 }
-

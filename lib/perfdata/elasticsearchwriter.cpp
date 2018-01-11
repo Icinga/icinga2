@@ -53,23 +53,22 @@ void ElasticsearchWriter::OnConfigLoaded()
 
 void ElasticsearchWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
 {
-	Dictionary::Ptr nodes = new Dictionary();
+	DictionaryData nodes;
 
 	for (const ElasticsearchWriter::Ptr& elasticsearchwriter : ConfigType::GetObjectsByType<ElasticsearchWriter>()) {
 		size_t workQueueItems = elasticsearchwriter->m_WorkQueue.GetLength();
 		double workQueueItemRate = elasticsearchwriter->m_WorkQueue.GetTaskCount(60) / 60.0;
 
-		Dictionary::Ptr stats = new Dictionary();
-		stats->Set("work_queue_items", workQueueItems);
-		stats->Set("work_queue_item_rate", workQueueItemRate);
-
-		nodes->Set(elasticsearchwriter->GetName(), stats);
+		nodes.emplace_back(elasticsearchwriter->GetName(), new Dictionary({
+			{ "work_queue_items", workQueueItems },
+			{ "work_queue_item_rate", workQueueItemRate }
+		}));
 
 		perfdata->Add(new PerfdataValue("elasticsearchwriter_" + elasticsearchwriter->GetName() + "_work_queue_items", workQueueItems));
 		perfdata->Add(new PerfdataValue("elasticsearchwriter_" + elasticsearchwriter->GetName() + "_work_queue_item_rate", workQueueItemRate));
 	}
 
-	status->Set("elasticsearchwriter", nodes);
+	status->Set("elasticsearchwriter", new Dictionary(std::move(nodes)));
 }
 
 void ElasticsearchWriter::Start(bool runtimeCreated)
@@ -312,13 +311,13 @@ void ElasticsearchWriter::NotificationSentToAllUsersHandlerInternal(const Notifi
 
 	fields->Set("host", host->GetName());
 
-	Array::Ptr userNames = new Array();
+	ArrayData userNames;
 
 	for (const User::Ptr& user : users) {
-		userNames->Add(user->GetName());
+		userNames.push_back(user->GetName());
 	}
 
-	fields->Set("users", userNames);
+	fields->Set("users", new Array(std::move(userNames)));
 	fields->Set("notification_type", notificationTypeString);
 	fields->Set("author", author);
 	fields->Set("text", text);

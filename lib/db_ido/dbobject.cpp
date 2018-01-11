@@ -146,8 +146,9 @@ void DbObject::SendConfigUpdateHeavy(const Dictionary::Ptr& configFields)
 	query.Fields->Set(GetType()->GetIDColumn(), object);
 	query.Fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
 	query.Fields->Set("config_type", 1);
-	query.WhereCriteria = new Dictionary();
-	query.WhereCriteria->Set(GetType()->GetIDColumn(), object);
+	query.WhereCriteria = new Dictionary({
+		{ GetType()->GetIDColumn(), object }
+	});
 	query.Object = this;
 	query.ConfigUpdate = true;
 	OnQuery(query);
@@ -189,8 +190,9 @@ void DbObject::SendStatusUpdate()
 	query.Fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
 	query.Fields->Set("status_update_time", DbValue::FromTimestamp(Utility::GetTime()));
-	query.WhereCriteria = new Dictionary();
-	query.WhereCriteria->Set(GetType()->GetIDColumn(), GetObject());
+	query.WhereCriteria = new Dictionary({
+		{ GetType()->GetIDColumn(), GetObject() }
+	});
 	query.Object = this;
 	query.StatusUpdate = true;
 	OnQuery(query);
@@ -215,16 +217,18 @@ void DbObject::SendVarsConfigUpdateHeavy()
 	query1.Table = "customvariables";
 	query1.Type = DbQueryDelete;
 	query1.Category = DbCatConfig;
-	query1.WhereCriteria = new Dictionary();
-	query1.WhereCriteria->Set("object_id", obj);
+	query1.WhereCriteria = new Dictionary({
+		{ "object_id", obj }
+	});
 	queries.emplace_back(std::move(query1));
 
 	DbQuery query2;
 	query2.Table = "customvariablestatus";
 	query2.Type = DbQueryDelete;
 	query2.Category = DbCatConfig;
-	query2.WhereCriteria = new Dictionary();
-	query2.WhereCriteria->Set("object_id", obj);
+	query2.WhereCriteria = new Dictionary({
+		{ "object_id", obj }
+	});
 	queries.emplace_back(std::move(query2));
 
 	Dictionary::Ptr vars = custom_var_object->GetVars();
@@ -245,19 +249,18 @@ void DbObject::SendVarsConfigUpdateHeavy()
 			} else
 				value = kv.second;
 
-			Dictionary::Ptr fields = new Dictionary();
-			fields->Set("varname", kv.first);
-			fields->Set("varvalue", value);
-			fields->Set("is_json", is_json);
-			fields->Set("config_type", 1);
-			fields->Set("object_id", obj);
-			fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
-
 			DbQuery query3;
 			query3.Table = "customvariables";
 			query3.Type = DbQueryInsert;
 			query3.Category = DbCatConfig;
-			query3.Fields = fields;
+			query3.Fields = new Dictionary({
+				{ "varname", kv.first },
+				{ "varvalue", value },
+				{ "is_json", is_json },
+				{ "config_type", 1 },
+				{ "object_id", obj },
+				{ "instance_id", 0 } /* DbConnection class fills in real ID */
+			});
 			queries.emplace_back(std::move(query3));
 		}
 	}
@@ -293,23 +296,25 @@ void DbObject::SendVarsStatusUpdate()
 			} else
 				value = kv.second;
 
-			Dictionary::Ptr fields = new Dictionary();
-			fields->Set("varname", kv.first);
-			fields->Set("varvalue", value);
-			fields->Set("is_json", is_json);
-			fields->Set("status_update_time", DbValue::FromTimestamp(Utility::GetTime()));
-			fields->Set("object_id", obj);
-			fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
-
 			DbQuery query;
 			query.Table = "customvariablestatus";
 			query.Type = DbQueryInsert | DbQueryUpdate;
 			query.Category = DbCatState;
-			query.Fields = fields;
 
-			query.WhereCriteria = new Dictionary();
-			query.WhereCriteria->Set("object_id", obj);
-			query.WhereCriteria->Set("varname", kv.first);
+			query.Fields = new Dictionary({
+				{ "varname", kv.first },
+				{ "varvalue", value },
+				{ "is_json", is_json },
+				{ "status_update_time", DbValue::FromTimestamp(Utility::GetTime()) },
+				{ "object_id", obj },
+				{ "instance_id", 0 } /* DbConnection class fills in real ID */
+			});
+
+			query.WhereCriteria = new Dictionary({
+				{ "object_id", obj },
+				{ "varname", kv.first }
+			});
+
 			queries.emplace_back(std::move(query));
 		}
 

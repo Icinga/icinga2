@@ -98,9 +98,10 @@ void TimePeriod::AddSegment(double begin, double end)
 	}
 
 	/* Create new segment if we weren't able to merge this into an existing segment. */
-	Dictionary::Ptr segment = new Dictionary();
-	segment->Set("begin", begin);
-	segment->Set("end", end);
+	Dictionary::Ptr segment = new Dictionary({
+		{ "begin", begin },
+		{ "end", end }
+	});
 
 	if (!segments) {
 		segments = new Array();
@@ -152,17 +153,15 @@ void TimePeriod::RemoveSegment(double begin, double end)
 
 		/* Cut between */
 		if (segment->Get("begin") < begin && segment->Get("end") > end) {
-			Dictionary::Ptr firstsegment = new Dictionary();
-			firstsegment->Set("begin", segment->Get("begin"));
-			firstsegment->Set("end", begin);
+			newSegments->Add(new Dictionary({
+				{ "begin", segment->Get("begin") },
+				{ "end", begin }
+			}));
 
-			Dictionary::Ptr secondsegment = new Dictionary();
-			secondsegment->Set("begin", end);
-			secondsegment->Set("end", segment->Get("end"));
-
-			newSegments->Add(firstsegment);
-			newSegments->Add(secondsegment);
-			continue;
+			newSegments->Add(new Dictionary({
+				{ "begin", end },
+				{ "end", segment->Get("end") }
+			}));
 		}
 
 		/* Adjust the begin/end timestamps so as to not overlap with the specified range. */

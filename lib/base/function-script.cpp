@@ -55,13 +55,10 @@ static Value FunctionCallV(const Value& thisArg, const Array::Ptr& args)
 
 Object::Ptr Function::GetPrototype()
 {
-	static Dictionary::Ptr prototype;
-
-	if (!prototype) {
-		prototype = new Dictionary();
-		prototype->Set("call", new Function("Function#call", FunctionCall));
-		prototype->Set("callv", new Function("Function#callv", FunctionCallV));
-	}
+	static Dictionary::Ptr prototype = new Dictionary({
+		{ "call", new Function("Function#call", FunctionCall) },
+		{ "callv", new Function("Function#callv", FunctionCallV) }
+	});
 
 	return prototype;
 }

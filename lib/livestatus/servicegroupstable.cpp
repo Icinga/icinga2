@@ -126,16 +126,16 @@ Value ServiceGroupsTable::MembersAccessor(const Value& row)
 	if (!sg)
 		return Empty;
 
-	Array::Ptr members = new Array();
+	ArrayData result;
 
 	for (const Service::Ptr& service : sg->GetMembers()) {
-		Array::Ptr host_svc = new Array();
-		host_svc->Add(service->GetHost()->GetName());
-		host_svc->Add(service->GetShortName());
-		members->Add(host_svc);
+		result.push_back(new Array({
+			service->GetHost()->GetName(),
+			service->GetShortName()
+		}));
 	}
 
-	return members;
+	return new Array(std::move(result));
 }
 
 Value ServiceGroupsTable::MembersWithStateAccessor(const Value& row)
@@ -145,18 +145,18 @@ Value ServiceGroupsTable::MembersWithStateAccessor(const Value& row)
 	if (!sg)
 		return Empty;
 
-	Array::Ptr members = new Array();
+	ArrayData result;
 
 	for (const Service::Ptr& service : sg->GetMembers()) {
-		Array::Ptr host_svc = new Array();
-		host_svc->Add(service->GetHost()->GetName());
-		host_svc->Add(service->GetShortName());
-		host_svc->Add(service->GetHost()->GetState());
-		host_svc->Add(service->GetState());
-		members->Add(host_svc);
+		result.push_back(new Array({
+			service->GetHost()->GetName(),
+			service->GetShortName(),
+			service->GetHost()->GetState(),
+			service->GetState()
+		}));
 	}
 
-	return members;
+	return new Array(std::move(result));
 }
 
 Value ServiceGroupsTable::WorstServiceStateAccessor(const Value& row)

@@ -41,13 +41,10 @@ static void ConfigObjectRestoreAttribute(const String& attr)
 
 Object::Ptr ConfigObject::GetPrototype()
 {
-	static Dictionary::Ptr prototype;
-
-	if (!prototype) {
-		prototype = new Dictionary();
-		prototype->Set("modify_attribute", new Function("ConfigObject#modify_attribute", ConfigObjectModifyAttribute, { "attr", "value" }, false));
-		prototype->Set("restore_attribute", new Function("ConfigObject#restore_attribute", ConfigObjectRestoreAttribute, { "attr", "value" }, false));
-	}
+	static Dictionary::Ptr prototype = new Dictionary({
+		{ "modify_attribute", new Function("ConfigObject#modify_attribute", ConfigObjectModifyAttribute, { "attr", "value" }, false) },
+		{ "restore_attribute", new Function("ConfigObject#restore_attribute", ConfigObjectRestoreAttribute, { "attr", "value" }, false) }
+	});
 
 	return prototype;
 }

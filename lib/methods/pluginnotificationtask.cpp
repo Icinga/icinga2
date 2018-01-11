@@ -45,10 +45,11 @@ void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification,
 
 	Checkable::Ptr checkable = notification->GetCheckable();
 
-	Dictionary::Ptr notificationExtra = new Dictionary();
-	notificationExtra->Set("type", Notification::NotificationTypeToString(type));
-	notificationExtra->Set("author", author);
-	notificationExtra->Set("comment", comment);
+	Dictionary::Ptr notificationExtra = new Dictionary({
+		{ "type", Notification::NotificationTypeToString(type) },
+		{ "author", author },
+		{ "comment", comment }
+	});
 
 	Host::Ptr host;
 	Service::Ptr service;

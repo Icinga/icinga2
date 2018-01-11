@@ -32,6 +32,14 @@ template class std::vector<Value>;
 
 REGISTER_PRIMITIVE_TYPE(Array, Object, Array::GetPrototype());
 
+Array::Array(const ArrayData& other)
+	: m_Data(other)
+{ }
+
+Array::Array(ArrayData&& other)
+	: m_Data(std::move(other))
+{ }
+
 Array::Array(std::initializer_list<Value> init)
 	: m_Data(init)
 { }
@@ -228,14 +236,14 @@ Array::Ptr Array::ShallowClone() const
  */
 Object::Ptr Array::Clone() const
 {
-	Array::Ptr arr = new Array();
+	ArrayData arr;
 
 	ObjectLock olock(this);
 	for (const Value& val : m_Data) {
-		arr->Add(val.Clone());
+		arr.push_back(val.Clone());
 	}
 
-	return arr;
+	return new Array(std::move(arr));
 }
 
 Array::Ptr Array::Reverse() const
@@ -305,4 +313,3 @@ Array::Iterator icinga::end(const Array::Ptr& x)
 {
 	return x->End();
 }
-

@@ -51,21 +51,22 @@ void ConfigPackagesHandler::HandleGet(const ApiUser::Ptr& user, HttpRequest& req
 
 	std::vector<String> packages = ConfigPackageUtility::GetPackages();
 
-	Array::Ptr results = new Array();
+	ArrayData results;
 
 	{
 		boost::mutex::scoped_lock lock(ConfigPackageUtility::GetStaticMutex());
 		for (const String& package : packages) {
-			Dictionary::Ptr packageInfo = new Dictionary();
-			packageInfo->Set("name", package);
-			packageInfo->Set("stages", Array::FromVector(ConfigPackageUtility::GetStages(package)));
-			packageInfo->Set("active-stage", ConfigPackageUtility::GetActiveStage(package));
-			results->Add(packageInfo);
+			results.emplace_back(new Dictionary({
+				{ "name", package },
+				{ "stages", Array::FromVector(ConfigPackageUtility::GetStages(package)) },
+				{ "active-stage", ConfigPackageUtility::GetActiveStage(package) }
+			}));
 		}
 	}
 
-	Dictionary::Ptr result = new Dictionary();
-	result->Set("results", results);
+	Dictionary::Ptr result = new Dictionary({
+		{ "results", new Array(std::move(results)) }
+	});
 
 	response.SetStatus(200, "OK");
 	HttpUtility::SendJsonBody(response, params, result);
@@ -85,8 +86,6 @@ void ConfigPackagesHandler::HandlePost(const ApiUser::Ptr& user, HttpRequest& re
 		return;
 	}
 
-	Dictionary::Ptr result1 = new Dictionary();
-
 	try {
 		boost::mutex::scoped_lock lock(ConfigPackageUtility::GetStaticMutex());
 		ConfigPackageUtility::CreatePackage(packageName);
@@ -96,14 +95,14 @@ void ConfigPackagesHandler::HandlePost(const ApiUser::Ptr& user, HttpRequest& re
 		return;
 	}
 
-	result1->Set("code", 200);
-	result1->Set("status", "Created package.");
+	Dictionary::Ptr result1 = new Dictionary({
+		{ "code", 200 },
+		{ "status", "Created package." }
+	});
 
-	Array::Ptr results = new Array();
-	results->Add(result1);
-
-	Dictionary::Ptr result = new Dictionary();
-	result->Set("results", results);
+	Dictionary::Ptr result = new Dictionary({
+		{ "results", new Array({ result1 }) }
+	});
 
 	response.SetStatus(200, "OK");
 	HttpUtility::SendJsonBody(response, params, result);
@@ -125,7 +124,7 @@ void ConfigPackagesHandler::HandleDelete(const ApiUser::Ptr& user, HttpRequest& 
 
 	int code = 200;
 	String status = "Deleted package.";
-	Dictionary::Ptr result1 = new Dictionary();
+	DictionaryData result1;
 
 	try {
 		ConfigPackageUtility::DeletePackage(packageName);
@@ -133,21 +132,17 @@ void ConfigPackagesHandler::HandleDelete(const ApiUser::Ptr& user, HttpRequest& 
 		code = 500;
 		status = "Failed to delete package.";
 		if (HttpUtility::GetLastParameter(params, "verboseErrors"))
-			result1->Set("diagnostic information", DiagnosticInformation(ex));
+			result1.emplace_back("diagnostic information", DiagnosticInformation(ex));
 	}
 
+	result1.emplace_back("package", packageName);
+	result1.emplace_back("code", code);
+	result1.emplace_back("status", status);
 
-	result1->Set("package", packageName);
-	result1->Set("code", code);
-	result1->Set("status", status);
-
-	Array::Ptr results = new Array();
-	results->Add(result1);
-
-	Dictionary::Ptr result = new Dictionary();
-	result->Set("results", results);
+	Dictionary::Ptr result = new Dictionary({
+		{ "results", new Array({ new Dictionary(std::move(result1)) }) }
+	});
 
 	response.SetStatus(code, (code == 200) ? "OK" : "Internal Server Error");
 	HttpUtility::SendJsonBody(response, params, result);
 }
-

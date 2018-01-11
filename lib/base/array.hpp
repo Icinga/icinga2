@@ -30,6 +30,8 @@
 namespace icinga
 {
 
+typedef std::vector<Value> ArrayData;
+
 /**
  * An array of Value items.
  *
@@ -48,6 +50,8 @@ public:
 	typedef std::vector<Value>::size_type SizeType;
 
 	Array() = default;
+	Array(const ArrayData& other);
+	Array(ArrayData&& other);
 	Array(std::initializer_list<Value> init);
 
 	Value Get(SizeType index) const;

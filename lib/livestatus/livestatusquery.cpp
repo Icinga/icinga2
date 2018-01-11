@@ -482,8 +482,6 @@ void LivestatusQuery::ExecuteGetHelper(const Stream::Ptr& stream)
 	BeginResultSet(result);
 
 	if (m_Aggregators.empty()) {
-		Array::Ptr header = new Array();
-
 		typedef std::pair<String, Column> ColumnPair;
 
 		std::vector<ColumnPair> column_objs;
@@ -492,24 +490,26 @@ void LivestatusQuery::ExecuteGetHelper(const Stream::Ptr& stream)
 		for (const String& columnName : columns)
 			column_objs.emplace_back(columnName, table->GetColumn(columnName));
 
-		for (const LivestatusRowValue& object : objects) {
-			Array::Ptr row = new Array();
+		ArrayData header;
 
-			row->Reserve(column_objs.size());
+		for (const LivestatusRowValue& object : objects) {
+			ArrayData row;
+
+			row.reserve(column_objs.size());
 
 			for (const ColumnPair& cv : column_objs) {
 				if (m_ColumnHeaders)
-					header->Add(cv.first);
+					header.push_back(cv.first);
 
-				row->Add(cv.second.ExtractValue(object.Row, object.GroupByType, object.GroupByObject));
+				row.push_back(cv.second.ExtractValue(object.Row, object.GroupByType, object.GroupByObject));
 			}
 
 			if (m_ColumnHeaders) {
-				AppendResultRow(result, header, first_row);
+				AppendResultRow(result, new Array(std::move(header)), first_row);
 				m_ColumnHeaders = false;
 			}
 
-			AppendResultRow(result, row, first_row);
+			AppendResultRow(result, new Array(std::move(row)), first_row);
 		}
 	} else {
 		std::map<std::vector<Value>, std::vector<AggregatorState *> > allStats;
@@ -542,45 +542,47 @@ void LivestatusQuery::ExecuteGetHelper(const Stream::Ptr& stream)
 
 		/* add column headers both for raw and aggregated data */
 		if (m_ColumnHeaders) {
-			Array::Ptr header = new Array();
+			ArrayData header;
 
 			for (const String& columnName : m_Columns) {
-				header->Add(columnName);
+				header.push_back(columnName);
 			}
 
 			for (size_t i = 1; i <= m_Aggregators.size(); i++) {
-				header->Add("stats_" + Convert::ToString(i));
+				header.push_back("stats_" + Convert::ToString(i));
 			}
 
-			AppendResultRow(result, header, first_row);
+			AppendResultRow(result, new Array(std::move(header)), first_row);
 		}
 
 		for (const auto& kv : allStats) {
-			Array::Ptr row = new Array();
+			ArrayData row;
 
-			row->Reserve(m_Columns.size() + m_Aggregators.size());
+			row.reserve(m_Columns.size() + m_Aggregators.size());
 
 			for (const Value& keyPart : kv.first) {
-				row->Add(keyPart);
+				row.push_back(keyPart);
 			}
 
 			auto& stats = kv.second;
 
 			for (size_t i = 0; i < m_Aggregators.size(); i++)
-				row->Add(m_Aggregators[i]->GetResultAndFreeState(stats[i]));
+				row.push_back(m_Aggregators[i]->GetResultAndFreeState(stats[i]));
 
-			AppendResultRow(result, row, first_row);
+			AppendResultRow(result, new Array(std::move(row)), first_row);
 		}
 
 		/* add a bogus zero value if aggregated is empty*/
 		if (allStats.empty()) {
-			Array::Ptr row = new Array();
+			ArrayData row;
+
+			row.reserve(m_Aggregators.size());
 
 			for (size_t i = 1; i <= m_Aggregators.size(); i++) {
-				row->Add(0);
+				row.push_back(0);
 			}
 
-			AppendResultRow(result, row, first_row);
+			AppendResultRow(result, new Array(std::move(row)), first_row);
 		}
 	}
 

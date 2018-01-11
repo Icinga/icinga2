@@ -109,12 +109,14 @@ void DbConnection::Pause()
 	query1.IdColumn = "programstatus_id";
 	query1.Type = DbQueryUpdate;
 	query1.Category = DbCatProgramStatus;
-	query1.WhereCriteria = new Dictionary();
-	query1.WhereCriteria->Set("instance_id", 0);  /* DbConnection class fills in real ID */
+	query1.WhereCriteria = new Dictionary({
+		{ "instance_id", 0 }  /* DbConnection class fills in real ID */
+	});
 
-	query1.Fields = new Dictionary();
-	query1.Fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
-	query1.Fields->Set("program_end_time", DbValue::FromTimestamp(Utility::GetTime()));
+	query1.Fields = new Dictionary({
+		{ "instance_id", 0 }, /* DbConnection class fills in real ID */
+		{ "program_end_time", DbValue::FromTimestamp(Utility::GetTime()) }
+	});
 
 	query1.Priority = PriorityHigh;
 
@@ -137,10 +139,11 @@ void DbConnection::InsertRuntimeVariable(const String& key, const Value& value)
 	query.Table = "runtimevariables";
 	query.Type = DbQueryInsert;
 	query.Category = DbCatProgramStatus;
-	query.Fields = new Dictionary();
-	query.Fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
-	query.Fields->Set("varname", key);
-	query.Fields->Set("varvalue", value);
+	query.Fields = new Dictionary({
+		{ "instance_id", 0 }, /* DbConnection class fills in real ID */
+		{ "varname", key },
+		{ "varvalue", value }
+	});
 	DbObject::OnQuery(query);
 }
 
@@ -157,26 +160,30 @@ void DbConnection::UpdateProgramStatus()
 	query1.Type = DbQueryInsert | DbQueryUpdate;
 	query1.Category = DbCatProgramStatus;
 
-	query1.Fields = new Dictionary();
-	query1.Fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
-	query1.Fields->Set("program_version", Application::GetAppVersion());
-	query1.Fields->Set("status_update_time", DbValue::FromTimestamp(Utility::GetTime()));
-	query1.Fields->Set("program_start_time", DbValue::FromTimestamp(Application::GetStartTime()));
-	query1.Fields->Set("is_currently_running", 1);
-	query1.Fields->Set("endpoint_name", IcingaApplication::GetInstance()->GetNodeName());
-	query1.Fields->Set("process_id", Utility::GetPid());
-	query1.Fields->Set("daemon_mode", 1);
-	query1.Fields->Set("last_command_check", DbValue::FromTimestamp(Utility::GetTime()));
-	query1.Fields->Set("notifications_enabled", (IcingaApplication::GetInstance()->GetEnableNotifications() ? 1 : 0));
-	query1.Fields->Set("active_host_checks_enabled", (IcingaApplication::GetInstance()->GetEnableHostChecks() ? 1 : 0));
-	query1.Fields->Set("passive_host_checks_enabled", 1);
-	query1.Fields->Set("active_service_checks_enabled", (IcingaApplication::GetInstance()->GetEnableServiceChecks() ? 1 : 0));
-	query1.Fields->Set("passive_service_checks_enabled", 1);
-	query1.Fields->Set("event_handlers_enabled", (IcingaApplication::GetInstance()->GetEnableEventHandlers() ? 1 : 0));
-	query1.Fields->Set("flap_detection_enabled", (IcingaApplication::GetInstance()->GetEnableFlapping() ? 1 : 0));
-	query1.Fields->Set("process_performance_data", (IcingaApplication::GetInstance()->GetEnablePerfdata() ? 1 : 0));
-	query1.WhereCriteria = new Dictionary();
-	query1.WhereCriteria->Set("instance_id", 0);  /* DbConnection class fills in real ID */
+	query1.Fields = new Dictionary({
+		{ "instance_id", 0 }, /* DbConnection class fills in real ID */
+		{ "program_version", Application::GetAppVersion() },
+		{ "status_update_time", DbValue::FromTimestamp(Utility::GetTime()) },
+		{ "program_start_time", DbValue::FromTimestamp(Application::GetStartTime()) },
+		{ "is_currently_running", 1 },
+		{ "endpoint_name", IcingaApplication::GetInstance()->GetNodeName() },
+		{ "process_id", Utility::GetPid() },
+		{ "daemon_mode", 1 },
+		{ "last_command_check", DbValue::FromTimestamp(Utility::GetTime()) },
+		{ "notifications_enabled", (IcingaApplication::GetInstance()->GetEnableNotifications() ? 1 : 0) },
+		{ "active_host_checks_enabled", (IcingaApplication::GetInstance()->GetEnableHostChecks() ? 1 : 0) },
+		{ "passive_host_checks_enabled", 1 },
+		{ "active_service_checks_enabled", (IcingaApplication::GetInstance()->GetEnableServiceChecks() ? 1 : 0) },
+		{ "passive_service_checks_enabled", 1 },
+		{ "event_handlers_enabled", (IcingaApplication::GetInstance()->GetEnableEventHandlers() ? 1 : 0) },
+		{ "flap_detection_enabled", (IcingaApplication::GetInstance()->GetEnableFlapping() ? 1 : 0) },
+		{ "process_performance_data", (IcingaApplication::GetInstance()->GetEnablePerfdata() ? 1 : 0) }
+	});
+
+	query1.WhereCriteria = new Dictionary({
+		{ "instance_id", 0 }  /* DbConnection class fills in real ID */
+	});
+
 	query1.Priority = PriorityHigh;
 	queries.emplace_back(std::move(query1));
 
@@ -190,8 +197,9 @@ void DbConnection::UpdateProgramStatus()
 	query3.Table = "runtimevariables";
 	query3.Type = DbQueryDelete;
 	query3.Category = DbCatProgramStatus;
-	query3.WhereCriteria = new Dictionary();
-	query3.WhereCriteria->Set("instance_id", 0);  /* DbConnection class fills in real ID */
+	query3.WhereCriteria = new Dictionary({
+		{ "instance_id", 0 } /* DbConnection class fills in real ID */
+	});
 	DbObject::OnQuery(query3);
 
 	InsertRuntimeVariable("total_services", ConfigType::Get<Service>()->GetObjectCount());

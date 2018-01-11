@@ -111,10 +111,9 @@ void DbEvents::NextCheckUpdatedHandler(const Checkable::Ptr& checkable)
 	query1.StatusUpdate = true;
 	query1.Object = DbObject::GetOrCreateByObject(checkable);
 
-	Dictionary::Ptr fields1 = new Dictionary();
-	fields1->Set("next_check", DbValue::FromTimestamp(checkable->GetNextCheck()));
-
-	query1.Fields = fields1;
+	query1.Fields = new Dictionary({
+		{ "next_check", DbValue::FromTimestamp(checkable->GetNextCheck()) }
+	});
 
 	DbObject::OnQuery(query1);
 }
@@ -145,7 +144,11 @@ void DbEvents::FlappingChangedHandler(const Checkable::Ptr& checkable)
 	fields1->Set("is_flapping", checkable->IsFlapping());
 	fields1->Set("percent_state_change", checkable->GetFlappingCurrent());
 
-	query1.Fields = fields1;
+	query1.Fields = new Dictionary({
+		{ "is_flapping", checkable->IsFlapping() },
+		{ "percent_state_change", checkable->GetFlappingCurrent() }
+	});
+
 	query1.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
 	DbObject::OnQuery(query1);
@@ -176,12 +179,12 @@ void DbEvents::LastNotificationChangedHandler(const Notification::Ptr& notificat
 	query1.StatusUpdate = true;
 	query1.Object = DbObject::GetOrCreateByObject(checkable);
 
-	Dictionary::Ptr fields1 = new Dictionary();
-	fields1->Set("last_notification", DbValue::FromTimestamp(now_bag.first));
-	fields1->Set("next_notification", DbValue::FromTimestamp(timeBag.first));
-	fields1->Set("current_notification_number", notification->GetNotificationNumber());
+	query1.Fields = new Dictionary({
+		{ "last_notification", DbValue::FromTimestamp(now_bag.first) },
+		{ "next_notification", DbValue::FromTimestamp(timeBag.first) },
+		{ "current_notification_number", notification->GetNotificationNumber() }
+	});
 
-	query1.Fields = fields1;
 	query1.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
 	DbObject::OnQuery(query1);
@@ -221,10 +224,10 @@ void DbEvents::ReachabilityChangedHandler(const Checkable::Ptr& checkable, const
 		query1.StatusUpdate = true;
 		query1.Object = DbObject::GetOrCreateByObject(child);
 
-		Dictionary::Ptr fields1 = new Dictionary();
-		fields1->Set("is_reachable", is_reachable);
+		query1.Fields = new Dictionary({
+			{ "is_reachable", is_reachable }
+		});
 
-		query1.Fields = fields1;
 		query1.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
 		DbObject::OnQuery(query1);
@@ -279,10 +282,10 @@ void DbEvents::EnableChangedHandlerInternal(const Checkable::Ptr& checkable, con
 	query1.StatusUpdate = true;
 	query1.Object = DbObject::GetOrCreateByObject(checkable);
 
-	Dictionary::Ptr fields1 = new Dictionary();
-	fields1->Set(fieldName, enabled);
+	query1.Fields = new Dictionary({
+		{ fieldName, enabled }
+	});
 
-	query1.Fields = fields1;
 	query1.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
 	DbObject::OnQuery(query1);
@@ -365,10 +368,11 @@ void DbEvents::AddCommentInternal(std::vector<DbQuery>& queries, const Comment::
 
 		fields1->Set("session_token", 0); /* DbConnection class fills in real ID */
 
-		query1.WhereCriteria = new Dictionary();
-		query1.WhereCriteria->Set("object_id", checkable);
-		query1.WhereCriteria->Set("name", comment->GetName());
-		query1.WhereCriteria->Set("entry_time", DbValue::FromTimestamp(timeBag.first));
+		query1.WhereCriteria = new Dictionary({
+			{ "object_id", checkable },
+			{ "name", comment->GetName() },
+			{ "entry_time", DbValue::FromTimestamp(timeBag.first) }
+		});
 	} else {
 		query1.Table = "commenthistory";
 		query1.Type = DbQueryInsert;
@@ -398,10 +402,12 @@ void DbEvents::RemoveCommentInternal(std::vector<DbQuery>& queries, const Commen
 	query1.Type = DbQueryDelete;
 	query1.Category = DbCatComment;
 
-	query1.WhereCriteria = new Dictionary();
-	query1.WhereCriteria->Set("object_id", checkable);
-	query1.WhereCriteria->Set("entry_time", DbValue::FromTimestamp(timeBag.first));
-	query1.WhereCriteria->Set("name", comment->GetName());
+	query1.WhereCriteria = new Dictionary({
+		{ "object_id", checkable },
+		{ "entry_time", DbValue::FromTimestamp(timeBag.first) },
+		{ "name", comment->GetName() }
+	});
+
 	queries.emplace_back(std::move(query1));
 
 	/* History - update deletion time for service/host */
@@ -412,15 +418,16 @@ void DbEvents::RemoveCommentInternal(std::vector<DbQuery>& queries, const Commen
 	query2.Type = DbQueryUpdate;
 	query2.Category = DbCatComment;
 
-	Dictionary::Ptr fields2 = new Dictionary();
-	fields2->Set("deletion_time", DbValue::FromTimestamp(timeBagNow.first));
-	fields2->Set("deletion_time_usec", timeBagNow.second);
-	query2.Fields = fields2;
+	query2.Fields = new Dictionary({
+		{ "deletion_time", DbValue::FromTimestamp(timeBagNow.first) },
+		{ "deletion_time_usec", timeBagNow.second }
+	});
 
-	query2.WhereCriteria = new Dictionary();
-	query2.WhereCriteria->Set("object_id", checkable);
-	query2.WhereCriteria->Set("entry_time", DbValue::FromTimestamp(timeBag.first));
-	query2.WhereCriteria->Set("name", comment->GetName());
+	query2.WhereCriteria = new Dictionary({
+		{ "object_id", checkable },
+		{ "entry_time", DbValue::FromTimestamp(timeBag.first) },
+		{ "name", comment->GetName() }
+	});
 
 	queries.emplace_back(std::move(query2));
 }
@@ -509,10 +516,11 @@ void DbEvents::AddDowntimeInternal(std::vector<DbQuery>& queries, const Downtime
 
 		fields1->Set("session_token", 0); /* DbConnection class fills in real ID */
 
-		query1.WhereCriteria = new Dictionary();
-		query1.WhereCriteria->Set("object_id", checkable);
-		query1.WhereCriteria->Set("name", downtime->GetName());
-		query1.WhereCriteria->Set("entry_time", DbValue::FromTimestamp(downtime->GetEntryTime()));
+		query1.WhereCriteria = new Dictionary({
+			{ "object_id", checkable },
+			{ "name", downtime->GetName() },
+			{ "entry_time", DbValue::FromTimestamp(downtime->GetEntryTime()) }
+		});
 	} else {
 		query1.Table = "downtimehistory";
 		query1.Type = DbQueryInsert;
@@ -599,13 +607,15 @@ void DbEvents::RemoveDowntimeInternal(std::vector<DbQuery>& queries, const Downt
 	fields3->Set("is_in_effect", 0);
 	query3.Fields = fields3;
 
-	query3.WhereCriteria = new Dictionary();
-	query3.WhereCriteria->Set("object_id", checkable);
-	query3.WhereCriteria->Set("entry_time", DbValue::FromTimestamp(downtime->GetEntryTime()));
-	query3.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
-	query3.WhereCriteria->Set("scheduled_start_time", DbValue::FromTimestamp(downtime->GetStartTime()));
-	query3.WhereCriteria->Set("scheduled_end_time", DbValue::FromTimestamp(downtime->GetEndTime()));
-	query3.WhereCriteria->Set("name", downtime->GetName());
+	query3.WhereCriteria = new Dictionary({
+		{ "object_id", checkable },
+		{ "entry_time", DbValue::FromTimestamp(downtime->GetEntryTime()) },
+		{ "instance_id", 0 }, /* DbConnection class fills in real ID */
+		{ "scheduled_start_time", DbValue::FromTimestamp(downtime->GetStartTime()) },
+		{ "scheduled_end_time", DbValue::FromTimestamp(downtime->GetEndTime()) },
+		{ "name", downtime->GetName() }
+	});
+
 	queries.emplace_back(std::move(query3));
 
 	/* host/service status */
@@ -650,23 +660,24 @@ void DbEvents::TriggerDowntime(const Downtime::Ptr& downtime)
 	query1.Type = DbQueryUpdate;
 	query1.Category = DbCatDowntime;
 
-	Dictionary::Ptr fields1 = new Dictionary();
-	fields1->Set("was_started", 1);
-	fields1->Set("actual_start_time", DbValue::FromTimestamp(timeBag.first));
-	fields1->Set("actual_start_time_usec", timeBag.second);
-	fields1->Set("is_in_effect", (downtime->IsInEffect() ? 1 : 0));
-	fields1->Set("trigger_time", DbValue::FromTimestamp(downtime->GetTriggerTime()));
-	fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
+	query1.Fields = new Dictionary({
+		{ "was_started", 1 },
+		{ "actual_start_time", DbValue::FromTimestamp(timeBag.first) },
+		{ "actual_start_time_usec", timeBag.second },
+		{ "is_in_effect", (downtime->IsInEffect() ? 1 : 0) },
+		{ "trigger_time", DbValue::FromTimestamp(downtime->GetTriggerTime()) },
+		{ "instance_id", 0 } /* DbConnection class fills in real ID */
+	});
 
-	query1.WhereCriteria = new Dictionary();
-	query1.WhereCriteria->Set("object_id", checkable);
-	query1.WhereCriteria->Set("entry_time", DbValue::FromTimestamp(downtime->GetEntryTime()));
-	query1.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
-	query1.WhereCriteria->Set("scheduled_start_time", DbValue::FromTimestamp(downtime->GetStartTime()));
-	query1.WhereCriteria->Set("scheduled_end_time", DbValue::FromTimestamp(downtime->GetEndTime()));
-	query1.WhereCriteria->Set("name", downtime->GetName());
+	query1.WhereCriteria = new Dictionary({
+		{ "object_id", checkable },
+		{ "entry_time", DbValue::FromTimestamp(downtime->GetEntryTime()) },
+		{ "instance_id", 0 }, /* DbConnection class fills in real ID */
+		{ "scheduled_start_time", DbValue::FromTimestamp(downtime->GetStartTime()) },
+		{ "scheduled_end_time", DbValue::FromTimestamp(downtime->GetEndTime()) },
+		{ "name", downtime->GetName() }
+	});
 
-	query1.Fields = fields1;
 	DbObject::OnQuery(query1);
 
 	/* History - downtime was started for service (and host in case) */
@@ -675,13 +686,13 @@ void DbEvents::TriggerDowntime(const Downtime::Ptr& downtime)
 	query3.Type = DbQueryUpdate;
 	query3.Category = DbCatDowntime;
 
-	Dictionary::Ptr fields3 = new Dictionary();
-	fields3->Set("was_started", 1);
-	fields3->Set("is_in_effect", 1);
-	fields3->Set("actual_start_time", DbValue::FromTimestamp(timeBag.first));
-	fields3->Set("actual_start_time_usec", timeBag.second);
-	fields3->Set("trigger_time", DbValue::FromTimestamp(downtime->GetTriggerTime()));
-	query3.Fields = fields3;
+	query3.Fields = new Dictionary({
+		{ "was_started", 1 },
+		{ "is_in_effect", 1 },
+		{ "actual_start_time", DbValue::FromTimestamp(timeBag.first) },
+		{ "actual_start_time_usec", timeBag.second },
+		{ "trigger_time", DbValue::FromTimestamp(downtime->GetTriggerTime()) }
+	});
 
 	query3.WhereCriteria = query1.WhereCriteria;
 
@@ -708,10 +719,9 @@ void DbEvents::TriggerDowntime(const Downtime::Ptr& downtime)
 	query4.StatusUpdate = true;
 	query4.Object = DbObject::GetOrCreateByObject(checkable);
 
-	Dictionary::Ptr fields4 = new Dictionary();
-	fields4->Set("scheduled_downtime_depth", checkable->GetDowntimeDepth());
-
-	query4.Fields = fields4;
+	query4.Fields = new Dictionary({
+		{ "scheduled_downtime_depth", checkable->GetDowntimeDepth() }
+	});
 	query4.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
 	DbObject::OnQuery(query4);
@@ -801,11 +811,11 @@ void DbEvents::AddAcknowledgementInternal(const Checkable::Ptr& checkable, Ackno
 	query1.StatusUpdate = true;
 	query1.Object = DbObject::GetOrCreateByObject(checkable);
 
-	Dictionary::Ptr fields1 = new Dictionary();
-	fields1->Set("acknowledgement_type", type);
-	fields1->Set("problem_has_been_acknowledged", add ? 1 : 0);
+	query1.Fields = new Dictionary({
+		{ "acknowledgement_type", type },
+		{ "problem_has_been_acknowledged", add ? 1 : 0 }
+	});
 
-	query1.Fields = fields1;
 	query1.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
 	DbObject::OnQuery(query1);
@@ -873,17 +883,16 @@ void DbEvents::AddNotificationHistory(const Notification::Ptr& notification, con
 		query2.Type = DbQueryInsert;
 		query2.Category = DbCatNotification;
 
-		Dictionary::Ptr fields2 = new Dictionary();
-		fields2->Set("contact_object_id", user);
-		fields2->Set("start_time", DbValue::FromTimestamp(timeBag.first));
-		fields2->Set("start_time_usec", timeBag.second);
-		fields2->Set("end_time", DbValue::FromTimestamp(timeBag.first));
-		fields2->Set("end_time_usec", timeBag.second);
+		query2.Fields = new Dictionary({
+			{ "contact_object_id", user },
+			{ "start_time", DbValue::FromTimestamp(timeBag.first) },
+			{ "start_time_usec", timeBag.second },
+			{ "end_time", DbValue::FromTimestamp(timeBag.first) },
+			{ "end_time_usec", timeBag.second },
+			{ "notification_id", query1.NotificationInsertID },
+			{ "instance_id", 0 } /* DbConnection class fills in real ID */
+		});
 
-		fields2->Set("notification_id", query1.NotificationInsertID);
-		fields2->Set("instance_id", 0); /* DbConnection class fills in real ID */
-
-		query2.Fields = fields2;
 		queries.emplace_back(std::move(query2));
 	}
 

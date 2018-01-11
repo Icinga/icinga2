@@ -35,12 +35,9 @@ static void CheckableProcessCheckResult(const CheckResult::Ptr& cr)
 
 Object::Ptr Checkable::GetPrototype()
 {
-	static Dictionary::Ptr prototype;
-
-	if (!prototype) {
-		prototype = new Dictionary();
-		prototype->Set("process_check_result", new Function("Checkable#process_check_result", CheckableProcessCheckResult, { "cr" }, false));
-	}
+	static Dictionary::Ptr prototype = new Dictionary({
+		{ "process_check_result", new Function("Checkable#process_check_result", CheckableProcessCheckResult, { "cr" }, false) }
+	});
 
 	return prototype;
 }

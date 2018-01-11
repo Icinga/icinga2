@@ -78,11 +78,7 @@ static Array::Ptr StringSplit(const String& delims)
 	std::vector<String> tokens;
 	boost::algorithm::split(tokens, self, boost::is_any_of(delims));
 
-	Array::Ptr result = new Array();
-	for (const String& token : tokens) {
-		result->Add(token);
-	}
-	return result;
+	return Array::FromVector(tokens);
 }
 
 static int StringFind(const std::vector<Value>& args)
@@ -141,22 +137,19 @@ static String StringTrim()
 
 Object::Ptr String::GetPrototype()
 {
-	static Dictionary::Ptr prototype;
-
-	if (!prototype) {
-		prototype = new Dictionary();
-		prototype->Set("len", new Function("String#len", StringLen, {}, true));
-		prototype->Set("to_string", new Function("String#to_string", StringToString, {}, true));
-		prototype->Set("substr", new Function("String#substr", StringSubstr, { "start", "len" }, true));
-		prototype->Set("upper", new Function("String#upper", StringUpper, {}, true));
-		prototype->Set("lower", new Function("String#lower", StringLower, {}, true));
-		prototype->Set("split", new Function("String#split", StringSplit, { "delims" }, true));
-		prototype->Set("find", new Function("String#find", StringFind, { "str", "start" }, true));
-		prototype->Set("contains", new Function("String#contains", StringContains, { "str" }, true));
-		prototype->Set("replace", new Function("String#replace", StringReplace, { "search", "replacement" }, true));
-		prototype->Set("reverse", new Function("String#reverse", StringReverse, {}, true));
-		prototype->Set("trim", new Function("String#trim", StringTrim, {}, true));
-	}
+	static Dictionary::Ptr prototype = new Dictionary({
+		{ "len", new Function("String#len", StringLen, {}, true) },
+		{ "to_string", new Function("String#to_string", StringToString, {}, true) },
+		{ "substr", new Function("String#substr", StringSubstr, { "start", "len" }, true) },
+		{ "upper", new Function("String#upper", StringUpper, {}, true) },
+		{ "lower", new Function("String#lower", StringLower, {}, true) },
+		{ "split", new Function("String#split", StringSplit, { "delims" }, true) },
+		{ "find", new Function("String#find", StringFind, { "str", "start" }, true) },
+		{ "contains", new Function("String#contains", StringContains, { "str" }, true) },
+		{ "replace", new Function("String#replace", StringReplace, { "search", "replacement" }, true) },
+		{ "reverse", new Function("String#reverse", StringReverse, {}, true) },
+		{ "trim", new Function("String#trim", StringTrim, {}, true) }
+	});
 
 	return prototype;
 }

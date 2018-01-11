@@ -29,6 +29,22 @@ template class std::map<String, Value>;
 
 REGISTER_PRIMITIVE_TYPE(Dictionary, Object, Dictionary::GetPrototype());
 
+Dictionary::Dictionary(const DictionaryData& other)
+{
+	for (const auto& kv : other)
+		m_Data.emplace(kv);
+}
+
+Dictionary::Dictionary(DictionaryData&& other)
+{
+	for (auto& kv : other)
+		m_Data.emplace(std::move(kv));
+}
+
+Dictionary::Dictionary(std::initializer_list<Dictionary::Pair> init)
+	: m_Data(init)
+{ }
+
 /**
  * Retrieves a value from a dictionary.
  *
@@ -202,14 +218,19 @@ Dictionary::Ptr Dictionary::ShallowClone() const
  */
 Object::Ptr Dictionary::Clone() const
 {
-	Dictionary::Ptr dict = new Dictionary();
+	DictionaryData dict;
 
-	ObjectLock olock(this);
-	for (const Dictionary::Pair& kv : m_Data) {
-		dict->Set(kv.first, kv.second.Clone());
+	{
+		ObjectLock olock(this);
+
+		dict.reserve(GetLength());
+
+		for (const Dictionary::Pair& kv : m_Data) {
+			dict.emplace_back(kv.first, kv.second.Clone());
+		}
 	}
 
-	return dict;
+	return new Dictionary(std::move(dict));
 }
 
 /**

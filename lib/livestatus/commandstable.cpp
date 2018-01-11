@@ -101,19 +101,16 @@ Value CommandsTable::CustomVariableNamesAccessor(const Value& row)
 
 	Dictionary::Ptr vars = command->GetVars();
 
-	Array::Ptr cv = new Array();
+	ArrayData keys;
 
-	if (!vars)
-		return cv;
-
-	{
+	if (vars) {
 		ObjectLock xlock(vars);
 		for (const auto& kv : vars) {
-			cv->Add(kv.first);
+			keys.push_back(kv.first);
 		}
 	}
 
-	return cv;
+	return new Array(std::move(keys));
 }
 
 Value CommandsTable::CustomVariableValuesAccessor(const Value& row)
@@ -125,19 +122,16 @@ Value CommandsTable::CustomVariableValuesAccessor(const Value& row)
 
 	Dictionary::Ptr vars = command->GetVars();
 
-	Array::Ptr cv = new Array();
+	ArrayData keys;
 
-	if (!vars)
-		return cv;
-
-	{
+	if (vars) {
 		ObjectLock xlock(vars);
 		for (const auto& kv : vars) {
-			cv->Add(kv.second);
+			keys.push_back(kv.second);
 		}
 	}
 
-	return cv;
+	return new Array(std::move(keys));
 }
 
 Value CommandsTable::CustomVariablesAccessor(const Value& row)
@@ -149,20 +143,17 @@ Value CommandsTable::CustomVariablesAccessor(const Value& row)
 
 	Dictionary::Ptr vars = command->GetVars();
 
-	Array::Ptr cv = new Array();
+	ArrayData result;
 
-	if (!vars)
-		return cv;
-
-	{
+	if (vars) {
 		ObjectLock xlock(vars);
 		for (const auto& kv : vars) {
-			Array::Ptr key_val = new Array();
-			key_val->Add(kv.first);
-			key_val->Add(kv.second);
-			cv->Add(key_val);
+			result.push_back(new Array({
+				kv.first,
+				kv.second
+			}));
 		}
 	}
 
-	return cv;
+	return new Array(std::move(result));
 }

@@ -48,13 +48,13 @@ REGISTER_STATSFUNCTION(OpenTsdbWriter, &OpenTsdbWriter::StatsFunc);
 
 void OpenTsdbWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 {
-	Dictionary::Ptr nodes = new Dictionary();
+	DictionaryData nodes;
 
 	for (const OpenTsdbWriter::Ptr& opentsdbwriter : ConfigType::GetObjectsByType<OpenTsdbWriter>()) {
-		nodes->Set(opentsdbwriter->GetName(), 1); //add more stats
+		nodes.emplace_back(opentsdbwriter->GetName(), 1); //add more stats
 	}
 
-	status->Set("opentsdbwriter", nodes);
+	status->Set("opentsdbwriter", new Dictionary(std::move(nodes)));
 }
 
 void OpenTsdbWriter::Start(bool runtimeCreated)

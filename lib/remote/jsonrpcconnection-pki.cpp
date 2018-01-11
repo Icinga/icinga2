@@ -127,10 +127,11 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 			result->Set("cert", certResponse);
 			result->Set("status_code", 0);
 
-			Dictionary::Ptr message = new Dictionary();
-			message->Set("jsonrpc", "2.0");
-			message->Set("method", "pki::UpdateCertificate");
-			message->Set("params", result);
+			Dictionary::Ptr message = new Dictionary({
+				{ "jsonrpc", "2.0" },
+				{ "method", "pki::UpdateCertificate" },
+				{ "params", result }
+			});
 			JsonRpc::SendMessage(client->GetStream(), message);
 
 			return result;
@@ -197,10 +198,11 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 
 	result->Set("status_code", 0);
 
-	message = new Dictionary();
-	message->Set("jsonrpc", "2.0");
-	message->Set("method", "pki::UpdateCertificate");
-	message->Set("params", result);
+	message = new Dictionary({
+		{ "jsonrpc", "2.0" },
+		{ "method", "pki::UpdateCertificate" },
+		{ "params", result }
+	});
 	JsonRpc::SendMessage(client->GetStream(), message);
 
 	return result;
@@ -209,9 +211,10 @@ delayed_request:
 	/* Send a delayed certificate signing request. */
 	Utility::MkDirP(requestDir, 0700);
 
-	Dictionary::Ptr request = new Dictionary();
-	request->Set("cert_request", CertificateToString(cert));
-	request->Set("ticket", params->Get("ticket"));
+	Dictionary::Ptr request = new Dictionary({
+		{ "cert_request", CertificateToString(cert) },
+		{ "ticket", params->Get("ticket") }
+	});
 
 	Utility::SaveJsonFile(requestPath, 0600, request);
 

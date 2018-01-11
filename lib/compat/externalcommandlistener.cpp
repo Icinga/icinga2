@@ -34,13 +34,13 @@ REGISTER_STATSFUNCTION(ExternalCommandListener, &ExternalCommandListener::StatsF
 
 void ExternalCommandListener::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 {
-	Dictionary::Ptr nodes = new Dictionary();
+	DictionaryData nodes;
 
 	for (const ExternalCommandListener::Ptr& externalcommandlistener : ConfigType::GetObjectsByType<ExternalCommandListener>()) {
-		nodes->Set(externalcommandlistener->GetName(), 1); //add more stats
+		nodes.emplace_back(externalcommandlistener->GetName(), 1); //add more stats
 	}
 
-	status->Set("externalcommandlistener", nodes);
+	status->Set("externalcommandlistener", new Dictionary(std::move(nodes)));
 }
 
 /**

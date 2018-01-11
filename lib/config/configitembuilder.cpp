@@ -103,8 +103,7 @@ ConfigItem::Ptr ConfigItemBuilder::Compile()
 
 	std::vector<std::unique_ptr<Expression> > exprs;
 
-	Array::Ptr templateArray = new Array();
-	templateArray->Add(m_Name);
+	Array::Ptr templateArray = new Array({ m_Name });
 
 	exprs.emplace_back(new SetExpression(MakeIndexer(ScopeThis, "templates"), OpSetAdd,
 		std::unique_ptr<LiteralExpression>(new LiteralExpression(templateArray)), m_DebugInfo));

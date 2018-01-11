@@ -42,14 +42,13 @@ void JsonRpcConnection::HeartbeatTimerHandler()
 				continue;
 			}
 
-			Dictionary::Ptr request = new Dictionary();
-			request->Set("jsonrpc", "2.0");
-			request->Set("method", "event::Heartbeat");
-
-			Dictionary::Ptr params = new Dictionary();
-			params->Set("timeout", 120);
-
-			request->Set("params", params);
+			Dictionary::Ptr request = new Dictionary({
+				{ "jsonrpc", "2.0" },
+				{ "method", "event::Heartbeat" },
+				{ "params", new Dictionary({
+					{ "timeout", 120 }
+				}) }
+			});
 
 			client->SendMessage(request);
 		}

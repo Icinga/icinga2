@@ -197,18 +197,18 @@ int PkiUtility::RequestCertificate(const String& host, const String& port, const
 		return 1;
 	}
 
-	Dictionary::Ptr request = new Dictionary();
+	Dictionary::Ptr params = new Dictionary({
+		{ "ticket", String(ticket) }
+	});
 
 	String msgid = Utility::NewUniqueID();
 
-	request->Set("jsonrpc", "2.0");
-	request->Set("id", msgid);
-	request->Set("method", "pki::RequestCertificate");
-
-	Dictionary::Ptr params = new Dictionary();
-	params->Set("ticket", String(ticket));
-
-	request->Set("params", params);
+	Dictionary::Ptr request = new Dictionary({
+		{ "jsonrpc", "2.0" },
+		{ "id", msgid },
+		{ "method", "pki::RequestCertificate" },
+		{ "params", params }
+	});
 
 	JsonRpc::SendMessage(stream, request);
 

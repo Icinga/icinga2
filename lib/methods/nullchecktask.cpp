@@ -41,11 +41,10 @@ void NullCheckTask::ScriptFunc(const Checkable::Ptr& service, const CheckResult:
 	String output = "Hello from ";
 	output += IcingaApplication::GetInstance()->GetNodeName();
 
-	Array::Ptr perfdata = new Array();
-	perfdata->Add(new PerfdataValue("time", Convert::ToDouble(Utility::GetTime())));
-
 	cr->SetOutput(output);
-	cr->SetPerformanceData(perfdata);
+	cr->SetPerformanceData(new Array({
+		new PerfdataValue("time", Convert::ToDouble(Utility::GetTime()))
+	}));
 	cr->SetState(ServiceOK);
 
 	service->ProcessCheckResult(cr);
