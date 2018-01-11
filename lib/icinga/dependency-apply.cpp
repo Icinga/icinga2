@@ -46,34 +46,34 @@ bool Dependency::EvaluateApplyRuleInstance(const Checkable::Ptr& checkable, cons
 		<< "Applying dependency '" << name << "' to object '" << checkable->GetName() << "' for rule " << di;
 #endif /* _DEBUG */
 
-	ConfigItemBuilder::Ptr builder = new ConfigItemBuilder(di);
-	builder->SetType(Dependency::TypeInstance);
-	builder->SetName(name);
-	builder->SetScope(frame.Locals->ShallowClone());
-	builder->SetIgnoreOnError(rule.GetIgnoreOnError());
+	ConfigItemBuilder builder{di};
+	builder.SetType(Dependency::TypeInstance);
+	builder.SetName(name);
+	builder.SetScope(frame.Locals->ShallowClone());
+	builder.SetIgnoreOnError(rule.GetIgnoreOnError());
 
 	Host::Ptr host;
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
 
-	builder->AddExpression(new SetExpression(MakeIndexer(ScopeThis, "parent_host_name"), OpSetLiteral, MakeLiteral(host->GetName()), di));
-	builder->AddExpression(new SetExpression(MakeIndexer(ScopeThis, "child_host_name"), OpSetLiteral, MakeLiteral(host->GetName()), di));
+	builder.AddExpression(new SetExpression(MakeIndexer(ScopeThis, "parent_host_name"), OpSetLiteral, MakeLiteral(host->GetName()), di));
+	builder.AddExpression(new SetExpression(MakeIndexer(ScopeThis, "child_host_name"), OpSetLiteral, MakeLiteral(host->GetName()), di));
 
 	if (service)
-		builder->AddExpression(new SetExpression(MakeIndexer(ScopeThis, "child_service_name"), OpSetLiteral, MakeLiteral(service->GetShortName()), di));
+		builder.AddExpression(new SetExpression(MakeIndexer(ScopeThis, "child_service_name"), OpSetLiteral, MakeLiteral(service->GetShortName()), di));
 
 	String zone = checkable->GetZoneName();
 
 	if (!zone.IsEmpty())
-		builder->AddExpression(new SetExpression(MakeIndexer(ScopeThis, "zone"), OpSetLiteral, MakeLiteral(zone), di));
+		builder.AddExpression(new SetExpression(MakeIndexer(ScopeThis, "zone"), OpSetLiteral, MakeLiteral(zone), di));
 
-	builder->AddExpression(new SetExpression(MakeIndexer(ScopeThis, "package"), OpSetLiteral, MakeLiteral(rule.GetPackage()), di));
+	builder.AddExpression(new SetExpression(MakeIndexer(ScopeThis, "package"), OpSetLiteral, MakeLiteral(rule.GetPackage()), di));
 
-	builder->AddExpression(new ImportDefaultTemplatesExpression());
+	builder.AddExpression(new ImportDefaultTemplatesExpression());
 
-	builder->AddExpression(new OwnedExpression(rule.GetExpression()));
+	builder.AddExpression(new OwnedExpression(rule.GetExpression()));
 
-	ConfigItem::Ptr dependencyItem = builder->Compile();
+	ConfigItem::Ptr dependencyItem = builder.Compile();
 	dependencyItem->Register();
 
 	return true;

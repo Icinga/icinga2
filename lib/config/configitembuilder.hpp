@@ -34,7 +34,7 @@ namespace icinga
  *
  * @ingroup config
  */
-class ConfigItemBuilder final : public Object
+class ConfigItemBuilder final
 {
 public:
 	DECLARE_PTR_TYPEDEFS(ConfigItemBuilder);
