@@ -403,7 +403,7 @@ apply Service "external-check" {
 }
 ```
 
-References: [get_service](18-library-reference.md#objref-get_service), [nacro](18-library-reference.md#scoped-functions-macro), [DateTime](18-library-reference.md#datetime-type).
+References: [get_service](18-library-reference.md#objref-get_service), [macro](18-library-reference.md#scoped-functions-macro), [DateTime](18-library-reference.md#datetime-type).
 
 Example output in Icinga Web 2:
 
