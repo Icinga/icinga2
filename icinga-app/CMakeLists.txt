@@ -96,27 +96,6 @@ install(
   RUNTIME DESTINATION ${InstallPath}
 )
 
-if(ICINGA2_WITH_HELLO)
-  add_executable(hello-app $<TARGET_OBJECTS:icingaloader>)
-  add_whole_static_library(hello-app base)
-  add_whole_static_library(hello-app config)
-  add_whole_static_library(hello-app remote)
-  add_whole_static_library(hello-app cli)
-  add_whole_static_library(hello-app hello)
-
-  set_target_properties (
-    hello-app PROPERTIES
-    INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR}/icinga2
-    FOLDER Bin
-    OUTPUT_NAME hello
-  )
-
-  install(
-    TARGETS hello-app
-    RUNTIME DESTINATION ${InstallPath}
-  )
-endif()
-
 install(CODE "file(MAKE_DIRECTORY \"\$ENV{DESTDIR}${CMAKE_INSTALL_FULL_LOCALSTATEDIR}/log/icinga2\")")
 install(CODE "file(MAKE_DIRECTORY \"\$ENV{DESTDIR}${CMAKE_INSTALL_FULL_LOCALSTATEDIR}/lib/icinga2\")")
 install(CODE "file(MAKE_DIRECTORY \"\$ENV{DESTDIR}${ICINGA2_RUNDIR}/icinga2\")")
