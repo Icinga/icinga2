@@ -81,12 +81,24 @@ static void Encode(yajl_gen handle, const Value& value)
 
 			break;
 		case ValueObject:
-			if (value.IsObjectType<Dictionary>())
-				EncodeDictionary(handle, value);
-			else if (value.IsObjectType<Array>())
-				EncodeArray(handle, value);
-			else
-				yajl_gen_null(handle);
+			{
+				const Object::Ptr& obj = value.Get<Object::Ptr>();
+				Dictionary::Ptr dict = dynamic_pointer_cast<Dictionary>(obj);
+
+				if (dict) {
+					EncodeDictionary(handle, dict);
+					break;
+				}
+
+				Array::Ptr arr = dynamic_pointer_cast<Array>(obj);
+
+				if (arr) {
+					EncodeArray(handle, arr);
+					break;
+				}
+			}
+
+			yajl_gen_null(handle);
 
 			break;
 		case ValueEmpty:
