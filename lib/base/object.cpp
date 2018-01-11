@@ -168,7 +168,7 @@ void Object::Validate(int types, const ValidationUtils& utils)
 	/* Nothing to do here. */
 }
 
-void Object::ValidateField(int id, const Value& value, const ValidationUtils& utils)
+void Object::ValidateField(int id, const Lazy<Value>& lvalue, const ValidationUtils& utils)
 {
 	/* Nothing to do here. */
 }

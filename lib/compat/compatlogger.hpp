@@ -41,7 +41,7 @@ public:
 
 	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
-	void ValidateRotationMethod(const String& value, const ValidationUtils& utils) override;
+	void ValidateRotationMethod(const Lazy<String>& lvalue, const ValidationUtils& utils) override;
 
 protected:
 	void Start(bool runtimeCreated) override;

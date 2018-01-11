@@ -220,10 +220,10 @@ void LivestatusListener::ClientHandler(const Socket::Ptr& client)
 }
 
 
-void LivestatusListener::ValidateSocketType(const String& value, const ValidationUtils& utils)
+void LivestatusListener::ValidateSocketType(const Lazy<String>& lvalue, const ValidationUtils& utils)
 {
-	ObjectImpl<LivestatusListener>::ValidateSocketType(value, utils);
+	ObjectImpl<LivestatusListener>::ValidateSocketType(lvalue, utils);
 
-	if (value != "unix" && value != "tcp")
-		BOOST_THROW_EXCEPTION(ValidationError(this, { "socket_type" }, "Socket type '" + value + "' is invalid."));
+	if (lvalue() != "unix" && lvalue() != "tcp")
+		BOOST_THROW_EXCEPTION(ValidationError(this, { "socket_type" }, "Socket type '" + lvalue() + "' is invalid."));
 }

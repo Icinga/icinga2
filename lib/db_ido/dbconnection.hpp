@@ -74,8 +74,8 @@ public:
 	int GetQueryCount(RingBuffer::SizeType span);
 	virtual int GetPendingQueryCount() const = 0;
 
-	void ValidateFailoverTimeout(double value, const ValidationUtils& utils) final;
-	void ValidateCategories(const Array::Ptr& value, const ValidationUtils& utils) final;
+	void ValidateFailoverTimeout(const Lazy<double>& lvalue, const ValidationUtils& utils) final;
+	void ValidateCategories(const Lazy<Array::Ptr>& lvalue, const ValidationUtils& utils) final;
 
 protected:
 	void OnConfigLoaded() override;

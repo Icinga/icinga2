@@ -44,8 +44,8 @@ public:
 
 	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
-	void ValidateHostNameTemplate(const String& value, const ValidationUtils& utils) override;
-	void ValidateServiceNameTemplate(const String& value, const ValidationUtils& utils) override;
+	void ValidateHostNameTemplate(const Lazy<String>& lvalue, const ValidationUtils& utils) override;
+	void ValidateServiceNameTemplate(const Lazy<String>& lvalue, const ValidationUtils& utils) override;
 
 protected:
 	void OnConfigLoaded() override;

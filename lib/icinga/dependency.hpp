@@ -49,7 +49,7 @@ public:
 
 	bool IsAvailable(DependencyType dt) const;
 
-	void ValidateStates(const Array::Ptr& value, const ValidationUtils& utils) override;
+	void ValidateStates(const Lazy<Array::Ptr>& lvalue, const ValidationUtils& utils) override;
 
 	static void EvaluateApplyRules(const intrusive_ptr<Host>& host);
 	static void EvaluateApplyRules(const intrusive_ptr<Service>& service);

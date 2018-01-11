@@ -187,18 +187,18 @@ void Checkable::NotifyDowntimeEnd(const Downtime::Ptr& downtime)
 		OnNotificationsRequested(checkable, NotificationDowntimeEnd, checkable->GetLastCheckResult(), downtime->GetAuthor(), downtime->GetComment(), nullptr);
 }
 
-void Checkable::ValidateCheckInterval(double value, const ValidationUtils& utils)
+void Checkable::ValidateCheckInterval(const Lazy<double>& lvalue, const ValidationUtils& utils)
 {
-	ObjectImpl<Checkable>::ValidateCheckInterval(value, utils);
+	ObjectImpl<Checkable>::ValidateCheckInterval(lvalue, utils);
 
-	if (value <= 0)
+	if (lvalue() <= 0)
 		BOOST_THROW_EXCEPTION(ValidationError(this, { "check_interval" }, "Interval must be greater than 0."));
 }
 
-void Checkable::ValidateMaxCheckAttempts(int value, const ValidationUtils& utils)
+void Checkable::ValidateMaxCheckAttempts(const Lazy<int>& lvalue, const ValidationUtils& utils)
 {
-	ObjectImpl<Checkable>::ValidateMaxCheckAttempts(value, utils);
+	ObjectImpl<Checkable>::ValidateMaxCheckAttempts(lvalue, utils);
 
-	if (value <= 0)
+	if (lvalue() <= 0)
 		BOOST_THROW_EXCEPTION(ValidationError(this, { "max_check_attempts" }, "Value must be greater than 0."));
 }

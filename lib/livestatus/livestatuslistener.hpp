@@ -45,7 +45,7 @@ public:
 	static int GetClientsConnected();
 	static int GetConnections();
 
-	void ValidateSocketType(const String& value, const ValidationUtils& utils) override;
+	void ValidateSocketType(const Lazy<String>& lvalue, const ValidationUtils& utils) override;
 
 protected:
 	void Start(bool runtimeCreated) override;

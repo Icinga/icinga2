@@ -103,13 +103,13 @@ void SyslogLogger::OnConfigLoaded()
 		m_Facility = Convert::ToLong(facilityString);
 }
 
-void SyslogLogger::ValidateFacility(const String& value, const ValidationUtils& utils)
+void SyslogLogger::ValidateFacility(const Lazy<String>& lvalue, const ValidationUtils& utils)
 {
-	ObjectImpl<SyslogLogger>::ValidateFacility(value, utils);
+	ObjectImpl<SyslogLogger>::ValidateFacility(lvalue, utils);
 
-	if (m_FacilityMap.find(value) == m_FacilityMap.end()) {
+	if (m_FacilityMap.find(lvalue()) == m_FacilityMap.end()) {
 		try {
-			Convert::ToLong(value);
+			Convert::ToLong(lvalue());
 		} catch (const std::exception&) {
 			BOOST_THROW_EXCEPTION(ValidationError(this, { "facility" }, "Invalid facility specified."));
 		}

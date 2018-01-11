@@ -70,8 +70,8 @@ protected:
 	void Start(bool runtimeCreated) override;
 	void Stop(bool runtimeRemoved) override;
 
-	void ValidateStartTime(const Timestamp& value, const ValidationUtils& utils) override;
-	void ValidateEndTime(const Timestamp& value, const ValidationUtils& utils) override;
+	void ValidateStartTime(const Lazy<Timestamp>& lvalue, const ValidationUtils& utils) override;
+	void ValidateEndTime(const Lazy<Timestamp>& lvalue, const ValidationUtils& utils) override;
 
 private:
 	ObjectImpl<Checkable>::Ptr m_Checkable;

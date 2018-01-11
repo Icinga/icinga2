@@ -409,18 +409,18 @@ void Downtime::DowntimesExpireTimerHandler()
 	}
 }
 
-void Downtime::ValidateStartTime(const Timestamp& value, const ValidationUtils& utils)
+void Downtime::ValidateStartTime(const Lazy<Timestamp>& lvalue, const ValidationUtils& utils)
 {
-	ObjectImpl<Downtime>::ValidateStartTime(value, utils);
+	ObjectImpl<Downtime>::ValidateStartTime(lvalue, utils);
 
-	if (value <= 0)
+	if (lvalue() <= 0)
 		BOOST_THROW_EXCEPTION(ValidationError(this, { "start_time" }, "Start time must be greater than 0."));
 }
 
-void Downtime::ValidateEndTime(const Timestamp& value, const ValidationUtils& utils)
+void Downtime::ValidateEndTime(const Lazy<Timestamp>& lvalue, const ValidationUtils& utils)
 {
-	ObjectImpl<Downtime>::ValidateEndTime(value, utils);
+	ObjectImpl<Downtime>::ValidateEndTime(lvalue, utils);
 
-	if (value <= 0)
+	if (lvalue() <= 0)
 		BOOST_THROW_EXCEPTION(ValidationError(this, { "end_time" }, "End time must be greater than 0."));
 }

@@ -42,7 +42,7 @@ public:
 	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
 	void OnConfigLoaded() override;
-	void ValidateFacility(const String& value, const ValidationUtils& utils) override;
+	void ValidateFacility(const Lazy<String>& lvalue, const ValidationUtils& utils) override;
 
 protected:
 	static std::map<String, int> m_FacilityMap;

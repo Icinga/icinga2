@@ -46,7 +46,7 @@ public:
 	bool IsInside(double ts) const;
 	double FindNextTransition(double begin);
 
-	void ValidateRanges(const Dictionary::Ptr& value, const ValidationUtils& utils) override;
+	void ValidateRanges(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils) override;
 
 private:
 	void AddSegment(double s, double end);

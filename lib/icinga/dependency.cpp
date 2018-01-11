@@ -209,11 +209,11 @@ TimePeriod::Ptr Dependency::GetPeriod() const
 	return TimePeriod::GetByName(GetPeriodRaw());
 }
 
-void Dependency::ValidateStates(const Array::Ptr& value, const ValidationUtils& utils)
+void Dependency::ValidateStates(const Lazy<Array::Ptr>& lvalue, const ValidationUtils& utils)
 {
-	ObjectImpl<Dependency>::ValidateStates(value, utils);
+	ObjectImpl<Dependency>::ValidateStates(lvalue, utils);
 
-	int sfilter = FilterArrayToInt(value, Notification::GetStateFilterMap(), 0);
+	int sfilter = FilterArrayToInt(lvalue(), Notification::GetStateFilterMap(), 0);
 
 	if (GetParentServiceName().IsEmpty() && (sfilter & ~(StateFilterUp | StateFilterDown)) != 0)
 		BOOST_THROW_EXCEPTION(ValidationError(this, { "states" }, "State filter is invalid for host dependency."));

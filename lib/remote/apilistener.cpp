@@ -1399,14 +1399,14 @@ Endpoint::Ptr ApiListener::GetLocalEndpoint() const
 	return m_LocalEndpoint;
 }
 
-void ApiListener::ValidateTlsProtocolmin(const String& value, const ValidationUtils& utils)
+void ApiListener::ValidateTlsProtocolmin(const Lazy<String>& lvalue, const ValidationUtils& utils)
 {
-	ObjectImpl<ApiListener>::ValidateTlsProtocolmin(value, utils);
+	ObjectImpl<ApiListener>::ValidateTlsProtocolmin(lvalue, utils);
 
-	if (value != SSL_TXT_TLSV1
+	if (lvalue() != SSL_TXT_TLSV1
 #ifdef SSL_TXT_TLSV1_1
-		&& value != SSL_TXT_TLSV1_1 &&
-		value != SSL_TXT_TLSV1_2
+		&& lvalue() != SSL_TXT_TLSV1_1 &&
+		lvalue() != SSL_TXT_TLSV1_2
 #endif /* SSL_TXT_TLSV1_1 */
 		) {
 		String message = "Invalid TLS version. Must be one of '" SSL_TXT_TLSV1 "'";

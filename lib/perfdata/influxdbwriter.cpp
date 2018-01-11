@@ -494,15 +494,15 @@ void InfluxdbWriter::Flush()
 	}
 }
 
-void InfluxdbWriter::ValidateHostTemplate(const Dictionary::Ptr& value, const ValidationUtils& utils)
+void InfluxdbWriter::ValidateHostTemplate(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils)
 {
-	ObjectImpl<InfluxdbWriter>::ValidateHostTemplate(value, utils);
+	ObjectImpl<InfluxdbWriter>::ValidateHostTemplate(lvalue, utils);
 
-	String measurement = value->Get("measurement");
+	String measurement = lvalue()->Get("measurement");
 	if (!MacroProcessor::ValidateMacroString(measurement))
 		BOOST_THROW_EXCEPTION(ValidationError(this, { "host_template", "measurement" }, "Closing $ not found in macro format string '" + measurement + "'."));
 
-	Dictionary::Ptr tags = value->Get("tags");
+	Dictionary::Ptr tags = lvalue()->Get("tags");
 	if (tags) {
 		ObjectLock olock(tags);
 		for (const Dictionary::Pair& pair : tags) {
@@ -512,15 +512,15 @@ void InfluxdbWriter::ValidateHostTemplate(const Dictionary::Ptr& value, const Va
 	}
 }
 
-void InfluxdbWriter::ValidateServiceTemplate(const Dictionary::Ptr& value, const ValidationUtils& utils)
+void InfluxdbWriter::ValidateServiceTemplate(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils)
 {
-	ObjectImpl<InfluxdbWriter>::ValidateServiceTemplate(value, utils);
+	ObjectImpl<InfluxdbWriter>::ValidateServiceTemplate(lvalue, utils);
 
-	String measurement = value->Get("measurement");
+	String measurement = lvalue()->Get("measurement");
 	if (!MacroProcessor::ValidateMacroString(measurement))
 		BOOST_THROW_EXCEPTION(ValidationError(this, { "service_template", "measurement" }, "Closing $ not found in macro format string '" + measurement + "'."));
 
-	Dictionary::Ptr tags = value->Get("tags");
+	Dictionary::Ptr tags = lvalue()->Get("tags");
 	if (tags) {
 		ObjectLock olock(tags);
 		for (const Dictionary::Pair& pair : tags) {

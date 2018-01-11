@@ -191,8 +191,8 @@ public:
 	void RemoveReverseDependency(const intrusive_ptr<Dependency>& dep);
 	std::vector<intrusive_ptr<Dependency> > GetReverseDependencies() const;
 
-	void ValidateCheckInterval(double value, const ValidationUtils& utils) final;
-	void ValidateMaxCheckAttempts(int value, const ValidationUtils& utils) final;
+	void ValidateCheckInterval(const Lazy<double>& lvalue, const ValidationUtils& value) final;
+	void ValidateMaxCheckAttempts(const Lazy<int>& lvalue, const ValidationUtils& value) final;
 
 	static void IncreasePendingChecks();
 	static void DecreasePendingChecks();
