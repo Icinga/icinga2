@@ -1564,10 +1564,10 @@ void Application::SetLastReloadFailed(double ts)
 	m_LastReloadFailed = ts;
 }
 
-void Application::ValidateName(const String& value, const ValidationUtils& utils)
+void Application::ValidateName(const Lazy<String>& lvalue, const ValidationUtils& utils)
 {
-	ObjectImpl<Application>::ValidateName(value, utils);
+	ObjectImpl<Application>::ValidateName(lvalue, utils);
 
-	if (value != "app")
+	if (lvalue() != "app")
 		BOOST_THROW_EXCEPTION(ValidationError(this, { "name" }, "Application object must be named 'app'."));
 }

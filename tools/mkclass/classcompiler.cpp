@@ -470,53 +470,56 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 
 	for (const Field& field : klass.Fields) {
 		m_Impl << "\t" << "if (" << (field.Attributes & (FAEphemeral|FAConfig|FAState)) << " & types)" << std::endl
-				<< "\t\t" << "Validate" << field.GetFriendlyName() << "(Get" << field.GetFriendlyName() << "(), utils);" << std::endl;
+				<< "\t\t" << "Validate" << field.GetFriendlyName() << "(Lazy<" << field.Type.GetRealType() << ">([this]() { return Get" << field.GetFriendlyName() << "(); }), utils);" << std::endl;
 	}
 
 	m_Impl << "}" << std::endl << std::endl;
 
 	for (const Field& field : klass.Fields) {
-		std::string argName;
+		std::string argName, valName;
 
-		if (field.Type.ArrayRank > 0)
+		if (field.Type.ArrayRank > 0) {
 			argName = "avalue";
-		else
+			valName = "value";
+		} else {
 			argName = "value";
+			valName = "value()";
+		}
 
-		m_Header << "\t" << "void SimpleValidate" << field.GetFriendlyName() << "(" << field.Type.GetArgumentType() << " " << argName << ", const ValidationUtils& utils);" << std::endl;
+		m_Header << "\t" << "void SimpleValidate" << field.GetFriendlyName() << "(const Lazy<" << field.Type.GetRealType() << ">& " << argName << ", const ValidationUtils& utils);" << std::endl;
 
-		m_Impl << "void ObjectImpl<" << klass.Name << ">::SimpleValidate" << field.GetFriendlyName() << "(" << field.Type.GetArgumentType() << " " << argName << ", const ValidationUtils& utils)" << std::endl
+		m_Impl << "void ObjectImpl<" << klass.Name << ">::SimpleValidate" << field.GetFriendlyName() << "(const Lazy<" << field.Type.GetRealType() << ">& " << argName << ", const ValidationUtils& utils)" << std::endl
 			<< "{" << std::endl;
 
 		if (field.Attributes & FARequired) {
 			if (field.Type.GetRealType().find("::Ptr") != std::string::npos)
-				m_Impl << "\t" << "if (!" << argName << ")" << std::endl;
+				m_Impl << "\t" << "if (!" << argName << "())" << std::endl;
 			else
-				m_Impl << "\t" << "if (" << argName << ".IsEmpty())" << std::endl;
+				m_Impl << "\t" << "if (" << argName << "().IsEmpty())" << std::endl;
 
 			m_Impl << "\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_cast<ConfigObject *>(this), { \"" << field.Name << R"(" }, "Attribute must not be empty."));)" << std::endl << std::endl;
 		}
 
 		if (field.Attributes & FADeprecated) {
 			if (field.Type.GetRealType().find("::Ptr") != std::string::npos)
-				m_Impl << "\t" << "if (" << argName << ")" << std::endl;
+				m_Impl << "\t" << "if (" << argName << "())" << std::endl;
 			else
-				m_Impl << "\t" << "if (" << argName << " != GetDefault" << field.GetFriendlyName() << "())" << std::endl;
+				m_Impl << "\t" << "if (" << argName << "() != GetDefault" << field.GetFriendlyName() << "())" << std::endl;
 
 			m_Impl << "\t\t" << "Log(LogWarning, \"" << klass.Name << "\") << \"Attribute '" << field.Name << R"(' for object '" << dynamic_cast<ConfigObject *>(this)->GetName() << "' of type '" << dynamic_cast<ConfigObject *>(this)->GetReflectionType()->GetName() << "' is deprecated and should not be used.";)" << std::endl;
 		}
 
 		if (field.Type.ArrayRank > 0) {
-			m_Impl << "\t" << "if (avalue) {" << std::endl
-				<< "\t\t" << "ObjectLock olock(avalue);" << std::endl
-				<< "\t\t" << "for (const Value& value : avalue) {" << std::endl;
+			m_Impl << "\t" << "if (avalue()) {" << std::endl
+				<< "\t\t" << "ObjectLock olock(avalue());" << std::endl
+				<< "\t\t" << "for (const Value& value : avalue()) {" << std::endl;
 		}
 
 		std::string ftype = FieldTypeToIcingaName(field, true);
 
 		if (ftype == "Value") {
-			m_Impl << "\t" << "if (value.IsObjectType<Function>()) {" << std::endl
-				<< "\t\t" << "Function::Ptr func = value;" << std::endl
+			m_Impl << "\t" << "if (" << valName << ".IsObjectType<Function>()) {" << std::endl
+				<< "\t\t" << "Function::Ptr func = " << valName << ";" << std::endl
 				<< "\t\t" << "if (func->IsDeprecated())" << std::endl
 				<< "\t\t\t" << "Log(LogWarning, \"" << klass.Name << "\") << \"Attribute '" << field.Name << R"(' for object '" << dynamic_cast<ConfigObject *>(this)->GetName() << "' of type '" << dynamic_cast<ConfigObject *>(this)->GetReflectionType()->GetName() << "' is set to a deprecated function: " << func->GetName();)" << std::endl
 				<< "\t" << "}" << std::endl << std::endl;
@@ -526,18 +529,18 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 			m_Impl << "\t" << "if (";
 
 			if (field.Type.ArrayRank > 0)
-				m_Impl << "value.IsEmpty() || ";
+				m_Impl << valName << ".IsEmpty() || ";
 			else
-				m_Impl << "!value.IsEmpty() && ";
+				m_Impl << "!" << valName << ".IsEmpty() && ";
 
-			m_Impl << "!utils.ValidateName(\"" << field.Type.TypeName << "\", value))" << std::endl
-				<< "\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_cast<ConfigObject *>(this), { \"" << field.Name << R"(" }, "Object '" + value + "' of type ')" << field.Type.TypeName
+			m_Impl << "!utils.ValidateName(\"" << field.Type.TypeName << "\", " << valName << "))" << std::endl
+				<< "\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_cast<ConfigObject *>(this), { \"" << field.Name << R"(" }, "Object '" + )" << valName << R"( + "' of type ')" << field.Type.TypeName
 				<< "' does not exist.\"));" << std::endl;
 		} else if (field.Type.ArrayRank > 0 && (ftype == "Number" || ftype == "Boolean")) {
 			m_Impl << "\t" << "try {" << std::endl
-				<< "\t\t" << "Convert::ToDouble(value);" << std::endl
+				<< "\t\t" << "Convert::ToDouble(" << valName << ");" << std::endl
 				<< "\t" << "} catch (const std::invalid_argument&) {" << std::endl
-				<< "\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_cast<ConfigObject *>(this), { \"" << field.Name << R"(", "Array element '" + value + "' of type '" + value.GetReflectionType()->GetName() + "' is not valid here; expected type ')" << ftype << "'.\"));" << std::endl
+				<< "\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_cast<ConfigObject *>(this), { \"" << field.Name << R"(", "Array element '" + " << valName << " + "' of type '" + " << valName << ".GetReflectionType()->GetName() + "' is not valid here; expected type ')" << ftype << "'.\"));" << std::endl
 				<< "\t" << "}" << std::endl;
 		}
 
@@ -649,14 +652,14 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		
 		/* ValidateField */
 		m_Header << "public:" << std::endl
-				<< "\t" << "void ValidateField(int id, const Value& value, const ValidationUtils& utils) override;" << std::endl;
+				<< "\t" << "void ValidateField(int id, const Lazy<Value>& lvalue, const ValidationUtils& utils) override;" << std::endl;
 
-		m_Impl << "void ObjectImpl<" << klass.Name << ">::ValidateField(int id, const Value& value, const ValidationUtils& utils)" << std::endl
+		m_Impl << "void ObjectImpl<" << klass.Name << ">::ValidateField(int id, const Lazy<Value>& lvalue, const ValidationUtils& utils)" << std::endl
 			<< "{" << std::endl;
 
 		if (!klass.Parent.empty())
 			m_Impl << "\t" << "int real_id = id - " << klass.Parent << "::TypeInstance->GetFieldCount(); " << std::endl
-				<< "\t" << "if (real_id < 0) { " << klass.Parent << "::ValidateField(id, value, utils); return; }" << std::endl;
+				<< "\t" << "if (real_id < 0) { " << klass.Parent << "::ValidateField(id, lvalue, utils); return; }" << std::endl;
 
 		m_Impl << "\t" << "switch (";
 
@@ -673,9 +676,9 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 				<< "\t\t\t" << "Validate" << field.GetFriendlyName() << "(";
 			
 			if (field.Attributes & FAEnum)
-				m_Impl << "static_cast<" << field.Type.GetRealType() << ">(static_cast<int>(";
+				m_Impl << "static_cast<Lazy<" << field.Type.GetRealType() << "> >(static_cast<Lazy<int> >(";
 
-			m_Impl << "value";
+			m_Impl << "lvalue";
 			
 			if (field.Attributes & FAEnum)
 				m_Impl << "))";
@@ -1039,7 +1042,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		/* validators */
 		for (const Field& field : klass.Fields) {
 			m_Header << "protected:" << std::endl
-					<< "\t" << "virtual void Validate" << field.GetFriendlyName() << "(" << field.Type.GetArgumentType() << " value, const ValidationUtils& utils);" << std::endl;
+					<< "\t" << "virtual void Validate" << field.GetFriendlyName() << "(const Lazy<" << field.Type.GetRealType() << ">& lvalue, const ValidationUtils& utils);" << std::endl;
 		}
 
 		/* instance variables */
@@ -1144,7 +1147,7 @@ void ClassCompiler::CodeGenValidator(const std::string& name, const std::string&
 				<< "\t\t\t" << "if (utils.ValidateName(\"" << rule.Type << "\", value))" << std::endl
 				<< "\t\t\t\t" << "return;" << std::endl
 				<< "\t\t\t" << "else" << std::endl
-				<< "\t\t\t\t" << R"(BOOST_THROW_EXCEPTION(ValidationError(dynamic_pointer_cast<ConfigObject>(object), location, "Object '" + value + "' of type ')" << rule.Type << "' does not exist.\"));" << std::endl
+				<< "\t\t\t\t" << R"(BOOST_THROW_EXCEPTION(ValidationError(dynamic_pointer_cast<ConfigObject>(object), location, "Object '" + ")" << "xxx" << R"( + "' of type ')" << rule.Type << "' does not exist.\"));" << std::endl
 				<< "\t\t" << "}" << std::endl;
 		}
 
@@ -1309,12 +1312,12 @@ void ClassCompiler::HandleValidator(const Validator& validator, const ClassDebug
 		CodeGenValidator(it.first.first + it.first.second, it.first.first, validator.Rules, it.second.Name, it.second.Type, ValidatorField);
 
 	for (const auto& it : m_MissingValidators) {
-		m_Impl << "void ObjectImpl<" << it.first.first << ">::Validate" << it.first.second << "(" << it.second.Type.GetArgumentType() << " value, const ValidationUtils& utils)" << std::endl
+		m_Impl << "void ObjectImpl<" << it.first.first << ">::Validate" << it.first.second << "(const Lazy<" << it.second.Type.GetRealType() << ">& lvalue, const ValidationUtils& utils)" << std::endl
 			<< "{" << std::endl
-			<< "\t" << "SimpleValidate" << it.first.second << "(value, utils);" << std::endl
+			<< "\t" << "SimpleValidate" << it.first.second << "(lvalue, utils);" << std::endl
 			<< "\t" << "std::vector<String> location;" << std::endl
 			<< "\t" << "location.emplace_back(\"" << it.second.Name << "\");" << std::endl
-			<< "\t" << "TIValidate" << it.first.first << it.first.second << "(this, value, location, utils);" << std::endl
+			<< "\t" << "TIValidate" << it.first.first << it.first.second << "(this, lvalue(), location, utils);" << std::endl
 			<< "\t" << "location.pop_back();" << std::endl
 			<< "}" << std::endl << std::endl;
 	}
@@ -1325,9 +1328,9 @@ void ClassCompiler::HandleValidator(const Validator& validator, const ClassDebug
 void ClassCompiler::HandleMissingValidators()
 {
 	for (const auto& it : m_MissingValidators) {
-		m_Impl << "void ObjectImpl<" << it.first.first << ">::Validate" << it.first.second << "(" << it.second.Type.GetArgumentType() << " value, const ValidationUtils& utils)" << std::endl
+		m_Impl << "void ObjectImpl<" << it.first.first << ">::Validate" << it.first.second << "(const Lazy<" << it.second.Type.GetRealType() << ">& lvalue, const ValidationUtils& utils)" << std::endl
 			<< "{" << std::endl
-			<< "\t" << "SimpleValidate" << it.first.second << "(value, utils);" << std::endl
+			<< "\t" << "SimpleValidate" << it.first.second << "(lvalue, utils);" << std::endl
 			<< "}" << std::endl << std::endl;
 	}
 

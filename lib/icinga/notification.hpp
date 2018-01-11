@@ -106,8 +106,8 @@ public:
 
 	void Validate(int types, const ValidationUtils& utils) override;
 
-	void ValidateStates(const Array::Ptr& value, const ValidationUtils& utils) override;
-	void ValidateTypes(const Array::Ptr& value, const ValidationUtils& utils) override;
+	void ValidateStates(const Lazy<Array::Ptr>& lvalue, const ValidationUtils& utils) override;
+	void ValidateTypes(const Lazy<Array::Ptr>& lvalue, const ValidationUtils& utils) override;
 
 	static void EvaluateApplyRules(const intrusive_ptr<Host>& host);
 	static void EvaluateApplyRules(const intrusive_ptr<Service>& service);

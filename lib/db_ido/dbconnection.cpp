@@ -440,19 +440,19 @@ void DbConnection::PrepareDatabase()
 	}
 }
 
-void DbConnection::ValidateFailoverTimeout(double value, const ValidationUtils& utils)
+void DbConnection::ValidateFailoverTimeout(const Lazy<double>& lvalue, const ValidationUtils& utils)
 {
-	ObjectImpl<DbConnection>::ValidateFailoverTimeout(value, utils);
+	ObjectImpl<DbConnection>::ValidateFailoverTimeout(lvalue, utils);
 
-	if (value < 60)
+	if (lvalue() < 60)
 		BOOST_THROW_EXCEPTION(ValidationError(this, { "failover_timeout" }, "Failover timeout minimum is 60s."));
 }
 
-void DbConnection::ValidateCategories(const Array::Ptr& value, const ValidationUtils& utils)
+void DbConnection::ValidateCategories(const Lazy<Array::Ptr>& lvalue, const ValidationUtils& utils)
 {
-	ObjectImpl<DbConnection>::ValidateCategories(value, utils);
+	ObjectImpl<DbConnection>::ValidateCategories(lvalue, utils);
 
-	int filter = FilterArrayToInt(value, DbQuery::GetCategoryFilterMap(), 0);
+	int filter = FilterArrayToInt(lvalue(), DbQuery::GetCategoryFilterMap(), 0);
 
 	if (filter != DbCatEverything && (filter & ~(DbCatInvalid | DbCatEverything | DbCatConfig | DbCatState |
 		DbCatAcknowledgement | DbCatComment | DbCatDowntime | DbCatEventHandler | DbCatExternalCommand |

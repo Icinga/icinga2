@@ -196,11 +196,11 @@ void ScheduledDowntime::CreateNextDowntime()
 		GetFixed(), String(), GetDuration(), GetName(), GetName());
 }
 
-void ScheduledDowntime::ValidateRanges(const Dictionary::Ptr& value, const ValidationUtils& utils)
+void ScheduledDowntime::ValidateRanges(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils)
 {
-	ObjectImpl<ScheduledDowntime>::ValidateRanges(value, utils);
+	ObjectImpl<ScheduledDowntime>::ValidateRanges(lvalue, utils);
 
-	if (!value)
+	if (!lvalue())
 		return;
 
 	/* create a fake time environment to validate the definitions */
@@ -208,8 +208,8 @@ void ScheduledDowntime::ValidateRanges(const Dictionary::Ptr& value, const Valid
 	tm reference = Utility::LocalTime(refts);
 	Array::Ptr segments = new Array();
 
-	ObjectLock olock(value);
-	for (const Dictionary::Pair& kv : value) {
+	ObjectLock olock(lvalue());
+	for (const Dictionary::Pair& kv : lvalue()) {
 		try {
 			tm begin_tm, end_tm;
 			int stride;

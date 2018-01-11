@@ -210,7 +210,7 @@ void ConfigObject::ModifyAttribute(const String& attr, const Value& value, bool 
 	}
 
 	ModAttrValidationUtils utils;
-	ValidateField(fid, newValue, utils);
+	ValidateField(fid, Lazy<Value>{newValue}, utils);
 
 	SetField(fid, newValue);
 

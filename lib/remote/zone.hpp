@@ -50,7 +50,7 @@ public:
 	static Zone::Ptr GetLocalZone();
 
 protected:
-	void ValidateEndpointsRaw(const Array::Ptr& value, const ValidationUtils& utils) override;
+	void ValidateEndpointsRaw(const Lazy<Array::Ptr>& lvalue, const ValidationUtils& utils) override;
 
 private:
 	Zone::Ptr m_Parent;

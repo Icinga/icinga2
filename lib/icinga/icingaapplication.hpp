@@ -52,7 +52,7 @@ public:
 
 	String GetNodeName() const;
 
-	void ValidateVars(const Dictionary::Ptr& value, const ValidationUtils& utils) override;
+	void ValidateVars(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils) override;
 
 private:
 	void DumpProgramState();

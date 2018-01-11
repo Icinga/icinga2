@@ -144,11 +144,11 @@ Zone::Ptr Zone::GetLocalZone()
 	return local->GetZone();
 }
 
-void Zone::ValidateEndpointsRaw(const Array::Ptr& value, const ValidationUtils& utils)
+void Zone::ValidateEndpointsRaw(const Lazy<Array::Ptr>& lvalue, const ValidationUtils& utils)
 {
-	ObjectImpl<Zone>::ValidateEndpointsRaw(value, utils);
+	ObjectImpl<Zone>::ValidateEndpointsRaw(lvalue, utils);
 
-	if (value && value->GetLength() > 2) {
+	if (lvalue() && lvalue()->GetLength() > 2) {
 		Log(LogWarning, "Zone")
 			<< "The Zone object '" << GetName() << "' has more than two endpoints."
 			<< " Due to a known issue this type of configuration is strongly"

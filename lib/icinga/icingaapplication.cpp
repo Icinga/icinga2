@@ -289,7 +289,7 @@ String IcingaApplication::GetNodeName() const
 	return ScriptGlobal::Get("NodeName");
 }
 
-void IcingaApplication::ValidateVars(const Dictionary::Ptr& value, const ValidationUtils& utils)
+void IcingaApplication::ValidateVars(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils)
 {
-	MacroProcessor::ValidateCustomVars(this, value);
+	MacroProcessor::ValidateCustomVars(this, lvalue());
 }

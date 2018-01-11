@@ -183,14 +183,14 @@ bool Logger::IsTimestampEnabled()
 	return m_TimestampEnabled;
 }
 
-void Logger::ValidateSeverity(const String& value, const ValidationUtils& utils)
+void Logger::ValidateSeverity(const Lazy<String>& lvalue, const ValidationUtils& utils)
 {
-	ObjectImpl<Logger>::ValidateSeverity(value, utils);
+	ObjectImpl<Logger>::ValidateSeverity(lvalue, utils);
 
 	try {
-		StringToSeverity(value);
+		StringToSeverity(lvalue());
 	} catch (...) {
-		BOOST_THROW_EXCEPTION(ValidationError(this, { "severity" }, "Invalid severity specified: " + value));
+		BOOST_THROW_EXCEPTION(ValidationError(this, { "severity" }, "Invalid severity specified: " + lvalue()));
 	}
 }
 

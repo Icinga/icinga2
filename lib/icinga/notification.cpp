@@ -642,11 +642,11 @@ void Notification::Validate(int types, const ValidationUtils& utils)
 		BOOST_THROW_EXCEPTION(ValidationError(this, std::vector<String>(), "Validation failed: No users/user_groups specified."));
 }
 
-void Notification::ValidateStates(const Array::Ptr& value, const ValidationUtils& utils)
+void Notification::ValidateStates(const Lazy<Array::Ptr>& lvalue, const ValidationUtils& utils)
 {
-	ObjectImpl<Notification>::ValidateStates(value, utils);
+	ObjectImpl<Notification>::ValidateStates(lvalue, utils);
 
-	int filter = FilterArrayToInt(value, GetStateFilterMap(), 0);
+	int filter = FilterArrayToInt(lvalue(), GetStateFilterMap(), 0);
 
 	if (GetServiceName().IsEmpty() && (filter == -1 || (filter & ~(StateFilterUp | StateFilterDown)) != 0))
 		BOOST_THROW_EXCEPTION(ValidationError(this, { "states" }, "State filter is invalid."));
@@ -655,11 +655,11 @@ void Notification::ValidateStates(const Array::Ptr& value, const ValidationUtils
 		BOOST_THROW_EXCEPTION(ValidationError(this, { "states" }, "State filter is invalid."));
 }
 
-void Notification::ValidateTypes(const Array::Ptr& value, const ValidationUtils& utils)
+void Notification::ValidateTypes(const Lazy<Array::Ptr>& lvalue, const ValidationUtils& utils)
 {
-	ObjectImpl<Notification>::ValidateTypes(value, utils);
+	ObjectImpl<Notification>::ValidateTypes(lvalue, utils);
 
-	int filter = FilterArrayToInt(value, GetTypeFilterMap(), 0);
+	int filter = FilterArrayToInt(lvalue(), GetTypeFilterMap(), 0);
 
 	if (filter == -1 || (filter & ~(NotificationDowntimeStart | NotificationDowntimeEnd | NotificationDowntimeRemoved |
 		NotificationCustom | NotificationAcknowledgement | NotificationProblem | NotificationRecovery |

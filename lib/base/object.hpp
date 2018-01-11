@@ -98,6 +98,63 @@ struct TypeHelper<T, true>
 	}
 };
 
+template<typename T>
+struct Lazy
+{
+	using Accessor = std::function<T ()>;
+
+	explicit Lazy(T value)
+		: m_Cached(true), m_Value(value)
+ 	{ }
+
+	explicit Lazy(Accessor accessor)
+		: m_Accessor(accessor)
+	{ }
+
+	template<typename U>
+	explicit Lazy(const Lazy<U>& other)
+	{
+		if (other.m_Cached) {
+			m_Accessor = Accessor();
+			m_Value = static_cast<T>(other.m_Value);
+			m_Cached = true;
+		} else {
+			auto accessor = other.m_Accessor;
+			m_Accessor = [accessor]() { return static_cast<T>(accessor()); };
+			m_Cached = false;
+		}
+	}
+
+	template<typename U>
+	operator Lazy<U>() const
+	{
+		if (m_Cached)
+			return Lazy<U>(m_Value);
+		else {
+			Accessor accessor = m_Accessor;
+			return Lazy<U>([accessor]() { return static_cast<U>(accessor()); });
+		}
+	}
+
+	const T& operator()() const
+	{
+		if (!m_Cached) {
+			m_Value = m_Accessor();
+			m_Cached = true;
+		}
+
+		return m_Value;
+	}
+
+private:
+	Accessor m_Accessor;
+	mutable bool m_Cached{false};
+	mutable T m_Value;
+
+	template<typename U>
+	friend struct Lazy;
+};
+
 /**
  * Base class for all heap-allocated objects. At least one of its methods
  * has to be virtual for RTTI to work.
@@ -124,7 +181,7 @@ public:
 	virtual void SetFieldByName(const String& field, const Value& value, const DebugInfo& debugInfo);
 	virtual bool HasOwnField(const String& field) const;
 	virtual bool GetOwnField(const String& field, Value *result) const;
-	virtual void ValidateField(int id, const Value& value, const ValidationUtils& utils);
+	virtual void ValidateField(int id, const Lazy<Value>& lvalue, const ValidationUtils& utils);
 	virtual void NotifyField(int id, const Value& cookie = Empty);
 	virtual Object::Ptr NavigateField(int id) const;
 

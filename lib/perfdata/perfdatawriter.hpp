@@ -42,8 +42,8 @@ public:
 
 	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
-	void ValidateHostFormatTemplate(const String& value, const ValidationUtils& utils) override;
-	void ValidateServiceFormatTemplate(const String& value, const ValidationUtils& utils) override;
+	void ValidateHostFormatTemplate(const Lazy<String>& lvalue, const ValidationUtils& utils) override;
+	void ValidateServiceFormatTemplate(const Lazy<String>& lvalue, const ValidationUtils& utils) override;
 
 protected:
 	void Start(bool runtimeCreated) override;

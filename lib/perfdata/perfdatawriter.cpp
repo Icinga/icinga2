@@ -158,18 +158,18 @@ void PerfdataWriter::RotationTimerHandler()
 	RotateFile(m_HostOutputFile, GetHostTempPath(), GetHostPerfdataPath());
 }
 
-void PerfdataWriter::ValidateHostFormatTemplate(const String& value, const ValidationUtils& utils)
+void PerfdataWriter::ValidateHostFormatTemplate(const Lazy<String>& lvalue, const ValidationUtils& utils)
 {
-	ObjectImpl<PerfdataWriter>::ValidateHostFormatTemplate(value, utils);
+	ObjectImpl<PerfdataWriter>::ValidateHostFormatTemplate(lvalue, utils);
 
-	if (!MacroProcessor::ValidateMacroString(value))
-		BOOST_THROW_EXCEPTION(ValidationError(this, { "host_format_template" }, "Closing $ not found in macro format string '" + value + "'."));
+	if (!MacroProcessor::ValidateMacroString(lvalue()))
+		BOOST_THROW_EXCEPTION(ValidationError(this, { "host_format_template" }, "Closing $ not found in macro format string '" + lvalue() + "'."));
 }
 
-void PerfdataWriter::ValidateServiceFormatTemplate(const String& value, const ValidationUtils& utils)
+void PerfdataWriter::ValidateServiceFormatTemplate(const Lazy<String>& lvalue, const ValidationUtils& utils)
 {
-	ObjectImpl<PerfdataWriter>::ValidateServiceFormatTemplate(value, utils);
+	ObjectImpl<PerfdataWriter>::ValidateServiceFormatTemplate(lvalue, utils);
 
-	if (!MacroProcessor::ValidateMacroString(value))
-		BOOST_THROW_EXCEPTION(ValidationError(this, { "service_format_template" }, "Closing $ not found in macro format string '" + value + "'."));
+	if (!MacroProcessor::ValidateMacroString(lvalue()))
+		BOOST_THROW_EXCEPTION(ValidationError(this, { "service_format_template" }, "Closing $ not found in macro format string '" + lvalue() + "'."));
 }

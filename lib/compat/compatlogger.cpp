@@ -598,12 +598,12 @@ void CompatLogger::RotationTimerHandler()
 	ScheduleNextRotation();
 }
 
-void CompatLogger::ValidateRotationMethod(const String& value, const ValidationUtils& utils)
+void CompatLogger::ValidateRotationMethod(const Lazy<String>& lvalue, const ValidationUtils& utils)
 {
-	ObjectImpl<CompatLogger>::ValidateRotationMethod(value, utils);
+	ObjectImpl<CompatLogger>::ValidateRotationMethod(lvalue, utils);
 
-	if (value != "HOURLY" && value != "DAILY" &&
-		value != "WEEKLY" && value != "MONTHLY" && value != "NONE") {
-		BOOST_THROW_EXCEPTION(ValidationError(this, { "rotation_method" }, "Rotation method '" + value + "' is invalid."));
+	if (lvalue() != "HOURLY" && lvalue() != "DAILY" &&
+		lvalue() != "WEEKLY" && lvalue() != "MONTHLY" && lvalue() != "NONE") {
+		BOOST_THROW_EXCEPTION(ValidationError(this, { "rotation_method" }, "Rotation method '" + lvalue() + "' is invalid."));
 	}
 }

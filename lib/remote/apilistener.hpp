@@ -114,7 +114,7 @@ protected:
 	void Start(bool runtimeCreated) override;
 	void Stop(bool runtimeDeleted) override;
 
-	void ValidateTlsProtocolmin(const String& value, const ValidationUtils& utils) override;
+	void ValidateTlsProtocolmin(const Lazy<String>& lvalue, const ValidationUtils& utils) override;
 
 private:
 	std::shared_ptr<SSL_CTX> m_SSLContext;
