@@ -22,6 +22,7 @@
 
 #include "base/i2-base.hpp"
 #include "base/object.hpp"
+#include <boost/thread/mutex.hpp>
 #include <vector>
 
 namespace icinga
@@ -32,7 +33,7 @@ namespace icinga
  *
  * @ingroup base
  */
-class RingBuffer final : public Object
+class RingBuffer final
 {
 public:
 	DECLARE_PTR_TYPEDEFS(RingBuffer);
@@ -47,9 +48,13 @@ public:
 	double CalculateRate(SizeType tv, SizeType span);
 
 private:
+	mutable boost::mutex m_Mutex;
 	std::vector<int> m_Slots;
 	SizeType m_TimeValue;
 	SizeType m_InsertedValues;
+
+	void InsertValueUnlocked(SizeType tv, int num);
+	int UpdateAndGetValuesUnlocked(SizeType tv, SizeType span);
 };
 
 }

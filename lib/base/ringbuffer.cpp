@@ -25,20 +25,24 @@
 using namespace icinga;
 
 RingBuffer::RingBuffer(RingBuffer::SizeType slots)
-	: Object(), m_Slots(slots, 0), m_TimeValue(0), m_InsertedValues(0)
+	: m_Slots(slots, 0), m_TimeValue(0), m_InsertedValues(0)
 { }
 
 RingBuffer::SizeType RingBuffer::GetLength() const
 {
-	ObjectLock olock(this);
-
+	boost::mutex::scoped_lock lock(m_Mutex);
 	return m_Slots.size();
 }
 
 void RingBuffer::InsertValue(RingBuffer::SizeType tv, int num)
 {
-	ObjectLock olock(this);
+	boost::mutex::scoped_lock lock(m_Mutex);
 
+	InsertValueUnlocked(tv, num);
+}
+
+void RingBuffer::InsertValueUnlocked(RingBuffer::SizeType tv, int num)
+{
 	RingBuffer::SizeType offsetTarget = tv % m_Slots.size();
 
 	if (m_TimeValue == 0)
@@ -68,9 +72,14 @@ void RingBuffer::InsertValue(RingBuffer::SizeType tv, int num)
 
 int RingBuffer::UpdateAndGetValues(RingBuffer::SizeType tv, RingBuffer::SizeType span)
 {
-	ObjectLock olock(this);
+	boost::mutex::scoped_lock lock(m_Mutex);
 
-	InsertValue(tv, 0);
+	return UpdateAndGetValuesUnlocked(tv, span);
+}
+
+int RingBuffer::UpdateAndGetValuesUnlocked(RingBuffer::SizeType tv, RingBuffer::SizeType span)
+{
+	InsertValueUnlocked(tv, 0);
 
 	if (span > m_Slots.size())
 		span = m_Slots.size();
@@ -92,7 +101,8 @@ int RingBuffer::UpdateAndGetValues(RingBuffer::SizeType tv, RingBuffer::SizeType
 
 double RingBuffer::CalculateRate(RingBuffer::SizeType tv, RingBuffer::SizeType span)
 {
-	ObjectLock olock(this);
-	int sum = UpdateAndGetValues(tv, span);
+	boost::mutex::scoped_lock lock(m_Mutex);
+
+	int sum = UpdateAndGetValuesUnlocked(tv, span);
 	return sum / static_cast<double>(std::min(span, m_InsertedValues));
 }
