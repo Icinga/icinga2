@@ -146,7 +146,6 @@ private:
 	Timer::Ptr m_StatusTimer;
 	double m_StatusTimerTimeout;
 
-	mutable boost::mutex m_StatsMutex;
 	RingBuffer m_TaskStats;
 	size_t m_PendingTasks{0};
 	double m_PendingTasksTimestamp{0};
