@@ -324,10 +324,18 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 	if (cr->GetActive()) {
 		UpdateNextCheck(origin);
 	} else {
-		/* Reschedule the next check for passive check results. The side effect of
-		 * this is that for as long as we receive passive results for a service we
+		/* Reschedule the next check for external passive check results. The side effect of
+		 * this is that for as long as we receive results for a service we
 		 * won't execute any active checks. */
-		SetNextCheck(Utility::GetTime() + GetCheckInterval(), false, origin);
+		double offset;
+		double ttl = cr->GetTtl();
+
+		if (ttl > 0)
+			offset = ttl;
+		else
+			offset = GetCheckInterval();
+
+		SetNextCheck(Utility::GetTime() + offset, false, origin);
 	}
 
 	olock.Unlock();
