@@ -22,10 +22,6 @@ add_subdirectory(remote)
 add_subdirectory(icinga)
 add_subdirectory(methods)
 
-if(ICINGA2_WITH_HELLO)
-  add_subdirectory(hello)
-endif()
-
 if(ICINGA2_WITH_CHECKER)
   add_subdirectory(checker)
 endif()
@@ -58,10 +54,6 @@ if(ICINGA2_WITH_PGSQL)
   else()
     message(FATAL_ERROR "You have selected PostgreSQL support, but PostgreSQL could not be found. You can disable the PostgreSQL IDO module using -DICINGA2_WITH_PGSQL=OFF.")
   endif()
-endif()
-
-if(ICINGA2_WITH_DEMO)
-  add_subdirectory(demo)
 endif()
 
 if(ICINGA2_WITH_LIVESTATUS)
