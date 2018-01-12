@@ -20,6 +20,8 @@
 #include "methods/icingachecktask.hpp"
 #include "icinga/cib.hpp"
 #include "icinga/service.hpp"
+#include "icinga/checkcommand.hpp"
+#include "icinga/macroprocessor.hpp"
 #include "icinga/icingaapplication.hpp"
 #include "base/application.hpp"
 #include "base/objectlock.hpp"
