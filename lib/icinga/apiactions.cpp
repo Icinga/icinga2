@@ -117,6 +117,10 @@ Dictionary::Ptr ApiActions::ProcessCheckResult(const ConfigObject::Ptr& object,
 	/* Mark this check result as passive. */
 	cr->SetActive(false);
 
+	/* Result TTL allows to overrule the next expected freshness check. */
+	if (params->Contains("ttl"))
+		cr->SetTtl(HttpUtility::GetLastParameter(params, "ttl"));
+
 	checkable->ProcessCheckResult(cr);
 
 	return ApiActions::CreateResult(200, "Successfully processed check result for object '" + checkable->GetName() + "'.");

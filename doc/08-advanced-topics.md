@@ -378,6 +378,11 @@ the threshold is based on the last time a check result was received:
 
     (last check result time + check interval) > current time
 
+> **Tip**
+>
+> The [process-check-result](12-icinga2-api.md#icinga2-api-actions-process-check-result) REST API
+> action allows to overrule the pre-defined check interval with a specified TTL in Icinga 2 v2.9+.
+
 If the freshness checks fail, Icinga 2 will execute the defined check command.
 
 Best practice is to define a [dummy](10-icinga-template-library.md#itl-dummy) `check_command` which gets
@@ -1026,6 +1031,7 @@ to represent its internal state. The following types are exposed via the [API](1
   active                    | Boolean               | Whether the result is from an active or passive check.
   vars\_before              | Dictionary            | Internal attribute used for calculations.
   vars\_after               | Dictionary            | Internal attribute used for calculations.
+  ttl                       | Number                | Time-to-live duration in seconds for this check result. The next expected check result is `now + ttl` where freshness checks are executed.
 
 ### PerfdataValue <a id="advanced-value-types-perfdatavalue"></a>
 

@@ -78,6 +78,7 @@ class CheckResult
 	};
 
 	[state] String check_source;
+	[state] double ttl;
 
 	[state] Dictionary::Ptr vars_before;
 	[state] Dictionary::Ptr vars_after;

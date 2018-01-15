@@ -811,6 +811,7 @@ Send a `POST` request to the URL endpoint `/v1/actions/process-check-result`.
   check\_source     | String       | **Optional.** Usually the name of the `command_endpoint`
   execution\_start  | Timestamp    | **Optional.** The timestamp where a script/process started its execution.
   execution\_end    | Timestamp    | **Optional.** The timestamp where a script/process ended its execution. This timestamp is used in features to determine e.g. the metric timestamp.
+  ttl               | Number       | **Optional.** Time-to-live duration in seconds for this check result. The next expected check result is `now + ttl` where freshness checks are executed.
 
 In addition to these parameters a [filter](12-icinga2-api.md#icinga2-api-filters) must be provided. The valid types for this action are `Host` and `Service`.
 
