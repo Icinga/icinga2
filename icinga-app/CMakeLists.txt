@@ -46,6 +46,10 @@ if(ICINGA2_WITH_COMPAT)
   add_whole_static_library(icinga-app compat)
 endif()
 
+if(ICINGA2_WITH_MYSQL OR ICINGA2_WITH_PGSQL)
+  add_whole_static_library(icinga-app db_ido)
+endif()
+
 if(ICINGA2_WITH_MYSQL)
   add_whole_static_library(icinga-app db_ido_mysql)
 endif()
