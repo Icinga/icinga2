@@ -1,4 +1,4 @@
-policy_module(icinga2, 0.1.4)
+policy_module(icinga2, 0.1.5)
 
 ########################################
 #
