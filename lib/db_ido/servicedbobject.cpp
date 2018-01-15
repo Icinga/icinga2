@@ -82,12 +82,12 @@ Dictionary::Ptr ServiceDbObject::GetConfigFields() const
 		{ "icon_image", service->GetIconImage() },
 		{ "icon_image_alt", service->GetIconImageAlt() },
 		{ "notification_interval", CompatUtility::GetCheckableNotificationNotificationInterval(service) },
-		{ "notify_on_warning", notificationStateFilter & ServiceWarning },
-		{ "notify_on_unknown", notificationStateFilter & ServiceUnknown },
-		{ "notify_on_critical", notificationStateFilter & ServiceCritical },
-		{ "notify_on_recovery", notificationTypeFilter & NotificationRecovery },
-		{ "notify_on_flapping", (notificationTypeFilter & NotificationFlappingStart) || (notificationTypeFilter & NotificationFlappingEnd) },
-		{ "notify_on_downtime", (notificationTypeFilter & NotificationDowntimeStart) || (notificationTypeFilter & NotificationDowntimeEnd) || (notificationTypeFilter & NotificationDowntimeRemoved) }
+		{ "notify_on_warning", (notificationStateFilter & ServiceWarning) ? 1 : 0 },
+		{ "notify_on_unknown", (notificationStateFilter & ServiceUnknown) ? 1 : 0 },
+		{ "notify_on_critical", (notificationStateFilter & ServiceCritical) ? 1 : 0 },
+		{ "notify_on_recovery", (notificationTypeFilter & NotificationRecovery) ? 1 : 0 },
+		{ "notify_on_flapping", (notificationTypeFilter & (NotificationFlappingStart | NotificationFlappingEnd)) ? 1 : 0 },
+		{ "notify_on_downtime", (notificationTypeFilter & (NotificationDowntimeStart | NotificationDowntimeEnd | NotificationDowntimeRemoved)) ? 1 : 0 }
 	});
 }
 
@@ -238,10 +238,10 @@ void ServiceDbObject::OnConfigUpdateHeavy()
 			{ "dependent_service_object_id", service },
 			{ "inherits_parent", 1 },
 			{ "timeperiod_object_id", dep->GetPeriod() },
-			{ "fail_on_ok", stateFilter & StateFilterOK },
-			{ "fail_on_warning", stateFilter & StateFilterWarning },
-			{ "fail_on_critical", stateFilter & StateFilterCritical },
-			{ "fail_on_unknown", stateFilter & StateFilterUnknown },
+			{ "fail_on_ok", (stateFilter & StateFilterOK) ? 1 : 0 },
+			{ "fail_on_warning", (stateFilter & StateFilterWarning) ? 1 : 0 },
+			{ "fail_on_critical", (stateFilter & StateFilterCritical) ? 1 : 0 },
+			{ "fail_on_unknown", (stateFilter & StateFilterUnknown) ? 1 : 0 },
 			{ "instance_id", 0 } /* DbConnection class fills in real ID */
 		});
 		queries.emplace_back(std::move(query1));
