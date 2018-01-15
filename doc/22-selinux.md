@@ -104,15 +104,15 @@ SELinux is based on the least level of access required for a service to run. Usi
 
 **icinga2_can_connect_all** 
 
-Having this boolean enabled allows icinga2 to connect to all ports. This can be necessary if you use features which connect to unconfined services.
+Having this boolean enabled allows icinga2 to connect to all ports. This can be necessary if you use features which connect to unconfined services, for example the [influxdb writer](14-features.md#influxdb-writer).
 
 **httpd_can_write_icinga2_command** 
 
-Having this boolean enabled allows httpd to write to the command pipe of icinga2. This is enabled by default, if not needed you can disable it for more security.
+To allow httpd to write to the command pipe of icinga2 this boolean has to be enabled. This is enabled by default, if not needed you can disable it for more security.
 
 **httpd_can_connect_icinga2_api** 
 
-Having this boolean enabled allows httpd to connect to the API of icinga2 (Ports labeled icinga2_port_t). This is enabled by default, if not needed you can disable it for more security.
+Enabling this boolean allows httpd to connect to the API of icinga2 (Ports labeled `icinga2_port_t`). This is enabled by default, if not needed you can disable it for more security.
 
 ### Configuration Examples <a id="selinux-policy-examples"></a>
 
