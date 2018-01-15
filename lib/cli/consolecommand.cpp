@@ -388,7 +388,7 @@ incomplete:
 			if (line == "$continue" || line == "$quit" || line == "$exit")
 				break;
 			else if (line == "$help")
-				std::cout << "Welcome to the Icinga 2 console/script debugger.\n"
+				std::cout << "Welcome to the Icinga 2 debug console.\n"
 					"Usable commands:\n"
 					"  $continue, $quit, $exit   Quit the console\n"
 					"  $help                     Print this help\n\n"
