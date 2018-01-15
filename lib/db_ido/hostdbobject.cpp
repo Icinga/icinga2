@@ -29,6 +29,7 @@
 #include "icinga/checkcommand.hpp"
 #include "icinga/eventcommand.hpp"
 #include "icinga/compatutility.hpp"
+#include "icinga/pluginutility.hpp"
 #include "base/convert.hpp"
 #include "base/objectlock.hpp"
 #include "base/logger.hpp"
@@ -47,64 +48,51 @@ Dictionary::Ptr HostDbObject::GetConfigFields() const
 	Dictionary::Ptr fields = new Dictionary();
 	Host::Ptr host = static_pointer_cast<Host>(GetObject());
 
-	fields->Set("alias", CompatUtility::GetHostAlias(host));
-	fields->Set("display_name", host->GetDisplayName());
+	/* Compatibility fallback. */
+	String displayName = host->GetDisplayName();
+
+	if (!displayName.IsEmpty())
+		fields->Set("alias", displayName);
+	else
+		fields->Set("alias", host->GetName());
+
+	fields->Set("display_name", displayName);
 	fields->Set("address", host->GetAddress());
 	fields->Set("address6", host->GetAddress6());
-
 	fields->Set("check_command_object_id", host->GetCheckCommand());
-	fields->Set("check_command_args", CompatUtility::GetCheckableCommandArgs(host));
 	fields->Set("eventhandler_command_object_id", host->GetEventCommand());
-	fields->Set("eventhandler_command_args", Empty);
-	fields->Set("notification_timeperiod_object_id", Empty);
 	fields->Set("check_timeperiod_object_id", host->GetCheckPeriod());
-	fields->Set("failure_prediction_options", Empty);
-	fields->Set("check_interval", CompatUtility::GetCheckableCheckInterval(host));
-	fields->Set("retry_interval", CompatUtility::GetCheckableRetryInterval(host));
+	fields->Set("check_interval", host->GetCheckInterval() / 60.0);
+	fields->Set("retry_interval", host->GetRetryInterval() / 60.0);
 	fields->Set("max_check_attempts", host->GetMaxCheckAttempts());
-
-	fields->Set("first_notification_delay", Empty);
-
-	fields->Set("notification_interval", CompatUtility::GetCheckableNotificationNotificationInterval(host));
-	fields->Set("notify_on_down", CompatUtility::GetHostNotifyOnDown(host));
-	fields->Set("notify_on_unreachable", CompatUtility::GetHostNotifyOnDown(host));
-
-	fields->Set("notify_on_recovery", CompatUtility::GetCheckableNotifyOnRecovery(host));
-	fields->Set("notify_on_flapping", CompatUtility::GetCheckableNotifyOnFlapping(host));
-	fields->Set("notify_on_downtime", CompatUtility::GetCheckableNotifyOnDowntime(host));
-
-	fields->Set("stalk_on_up", Empty);
-	fields->Set("stalk_on_down", Empty);
-	fields->Set("stalk_on_unreachable", Empty);
-
-	fields->Set("flap_detection_enabled", CompatUtility::GetCheckableFlapDetectionEnabled(host));
-	fields->Set("flap_detection_on_up", Empty);
-	fields->Set("flap_detection_on_down", Empty);
-	fields->Set("flap_detection_on_unreachable", Empty);
-	fields->Set("low_flap_threshold", CompatUtility::GetCheckableLowFlapThreshold(host));
-	fields->Set("high_flap_threshold", CompatUtility::GetCheckableHighFlapThreshold(host));
-
-	fields->Set("process_performance_data", CompatUtility::GetCheckableProcessPerformanceData(host));
-
-	fields->Set("freshness_checks_enabled", CompatUtility::GetCheckableFreshnessChecksEnabled(host));
-	fields->Set("freshness_threshold", CompatUtility::GetCheckableFreshnessThreshold(host));
-	fields->Set("passive_checks_enabled", CompatUtility::GetCheckablePassiveChecksEnabled(host));
-	fields->Set("event_handler_enabled", CompatUtility::GetCheckableEventHandlerEnabled(host));
-	fields->Set("active_checks_enabled", CompatUtility::GetCheckableActiveChecksEnabled(host));
-
-	fields->Set("retain_status_information", 1);
-	fields->Set("retain_nonstatus_information", 1);
-
-	fields->Set("notifications_enabled", CompatUtility::GetCheckableNotificationsEnabled(host));
-
-	fields->Set("obsess_over_host", 0);
-	fields->Set("failure_prediction_enabled", 0);
-
+	fields->Set("flap_detection_enabled", host->GetEnableFlapping());
+	fields->Set("low_flap_threshold", host->GetFlappingThresholdLow());
+	fields->Set("high_flap_threshold", host->GetFlappingThresholdLow());
+	fields->Set("process_performance_data", host->GetEnablePerfdata());
+	fields->Set("freshness_checks_enabled", 1);
+	fields->Set("freshness_threshold", Convert::ToLong(host->GetCheckInterval()));
+	fields->Set("event_handler_enabled", host->GetEnableEventHandler());
+	fields->Set("passive_checks_enabled", host->GetEnablePassiveChecks());
+	fields->Set("active_checks_enabled", host->GetEnableActiveChecks());
+	fields->Set("notifications_enabled", host->GetEnableNotifications());
 	fields->Set("notes", host->GetNotes());
 	fields->Set("notes_url", host->GetNotesUrl());
 	fields->Set("action_url", host->GetActionUrl());
 	fields->Set("icon_image", host->GetIconImage());
 	fields->Set("icon_image_alt", host->GetIconImageAlt());
+
+	fields->Set("notification_interval", CompatUtility::GetCheckableNotificationNotificationInterval(host));
+
+	unsigned long notificationStateFilter = CompatUtility::GetCheckableNotificationTypeFilter(host);
+	unsigned long notificationTypeFilter = CompatUtility::GetCheckableNotificationTypeFilter(host);
+
+	fields->Set("notify_on_down", (notificationStateFilter & ServiceWarning) || (notificationStateFilter && ServiceCritical));
+	fields->Set("notify_on_unreachable", 1); /* We don't have this filter and state, and as such we don't filter such notifications. */
+	fields->Set("notify_on_recovery", notificationTypeFilter & NotificationRecovery);
+	fields->Set("notify_on_flapping", (notificationTypeFilter & NotificationFlappingStart) ||
+		(notificationTypeFilter & NotificationFlappingEnd));
+	fields->Set("notify_on_downtime", (notificationTypeFilter & NotificationDowntimeStart) ||
+		(notificationTypeFilter & NotificationDowntimeEnd) || (notificationTypeFilter & NotificationDowntimeRemoved));
 
 	return fields;
 }
@@ -119,59 +107,62 @@ Dictionary::Ptr HostDbObject::GetStatusFields() const
 	if (cr) {
 		fields->Set("output", CompatUtility::GetCheckResultOutput(cr));
 		fields->Set("long_output", CompatUtility::GetCheckResultLongOutput(cr));
-		fields->Set("perfdata", CompatUtility::GetCheckResultPerfdata(cr));
+		fields->Set("perfdata", PluginUtility::FormatPerfdata(cr->GetPerformanceData()));
 		fields->Set("check_source", cr->GetCheckSource());
+		fields->Set("latency", cr->CalculateLatency());
+		fields->Set("execution_time", cr->CalculateExecutionTime());
 	}
 
-	fields->Set("current_state", CompatUtility::GetHostCurrentState(host));
-	fields->Set("has_been_checked", CompatUtility::GetCheckableHasBeenChecked(host));
+	int currentState = host->GetState();
+
+	if (currentState != HostUp && !host->IsReachable())
+		currentState = 2; /* hardcoded compat state */
+
+	fields->Set("current_state", currentState);
+	fields->Set("has_been_checked", host->HasBeenChecked());
 	fields->Set("should_be_scheduled", host->GetEnableActiveChecks());
 	fields->Set("current_check_attempt", host->GetCheckAttempt());
 	fields->Set("max_check_attempts", host->GetMaxCheckAttempts());
-
-	if (cr)
-		fields->Set("last_check", DbValue::FromTimestamp(cr->GetScheduleEnd()));
-
+	fields->Set("last_check", DbValue::FromTimestamp(host->GetLastCheck()));
 	fields->Set("next_check", DbValue::FromTimestamp(host->GetNextCheck()));
-	fields->Set("check_type", CompatUtility::GetCheckableCheckType(host));
+	fields->Set("check_type", !host->GetEnableActiveChecks()); /* 0 .. active, 1 .. passive */
 	fields->Set("last_state_change", DbValue::FromTimestamp(host->GetLastStateChange()));
 	fields->Set("last_hard_state_change", DbValue::FromTimestamp(host->GetLastHardStateChange()));
 	fields->Set("last_hard_state", host->GetLastHardState());
-	fields->Set("last_time_up", DbValue::FromTimestamp(static_cast<int>(host->GetLastStateUp())));
-	fields->Set("last_time_down", DbValue::FromTimestamp(static_cast<int>(host->GetLastStateDown())));
-	fields->Set("last_time_unreachable", DbValue::FromTimestamp(static_cast<int>(host->GetLastStateUnreachable())));
+	fields->Set("last_time_up", DbValue::FromTimestamp(host->GetLastStateUp()));
+	fields->Set("last_time_down", DbValue::FromTimestamp(host->GetLastStateDown()));
+	fields->Set("last_time_unreachable", DbValue::FromTimestamp(host->GetLastStateUnreachable()));
 	fields->Set("state_type", host->GetStateType());
+	fields->Set("notifications_enabled", host->GetEnableNotifications());
+	fields->Set("problem_has_been_acknowledged", host->GetAcknowledgement() != AcknowledgementNone);
+	fields->Set("acknowledgement_type", host->GetAcknowledgement());
+	fields->Set("passive_checks_enabled", host->GetEnablePassiveChecks());
+	fields->Set("active_checks_enabled", host->GetEnableActiveChecks());
+	fields->Set("event_handler_enabled", host->GetEnableEventHandler());
+	fields->Set("flap_detection_enabled", host->GetEnableFlapping());
+	fields->Set("is_flapping", host->IsFlapping());
+	fields->Set("percent_state_change", host->GetFlappingCurrent());
+	fields->Set("scheduled_downtime_depth", host->GetDowntimeDepth());
+	fields->Set("process_performance_data", host->GetEnablePerfdata());
+	fields->Set("normal_check_interval", host->GetCheckInterval() / 60.0);
+	fields->Set("retry_check_interval", host->GetRetryInterval() / 60.0);
+	fields->Set("check_timeperiod_object_id", host->GetCheckPeriod());
+	fields->Set("is_reachable", host->IsReachable());
+	fields->Set("original_attributes", JsonEncode(host->GetOriginalAttributes()));
+
+	fields->Set("current_notification_number", CompatUtility::GetCheckableNotificationNotificationNumber(host));
 	fields->Set("last_notification", DbValue::FromTimestamp(CompatUtility::GetCheckableNotificationLastNotification(host)));
 	fields->Set("next_notification", DbValue::FromTimestamp(CompatUtility::GetCheckableNotificationNextNotification(host)));
-	fields->Set("no_more_notifications", Empty);
-	fields->Set("notifications_enabled", CompatUtility::GetCheckableNotificationsEnabled(host));
-	fields->Set("problem_has_been_acknowledged", CompatUtility::GetCheckableProblemHasBeenAcknowledged(host));
-	fields->Set("acknowledgement_type", CompatUtility::GetCheckableAcknowledgementType(host));
-	fields->Set("current_notification_number", CompatUtility::GetCheckableNotificationNotificationNumber(host));
-	fields->Set("passive_checks_enabled", CompatUtility::GetCheckablePassiveChecksEnabled(host));
-	fields->Set("active_checks_enabled", CompatUtility::GetCheckableActiveChecksEnabled(host));
-	fields->Set("event_handler_enabled", CompatUtility::GetCheckableEventHandlerEnabled(host));
-	fields->Set("flap_detection_enabled", CompatUtility::GetCheckableFlapDetectionEnabled(host));
-	fields->Set("is_flapping", CompatUtility::GetCheckableIsFlapping(host));
-	fields->Set("percent_state_change", CompatUtility::GetCheckablePercentStateChange(host));
 
-	if (cr) {
-		fields->Set("latency", Convert::ToString(cr->CalculateLatency()));
-		fields->Set("execution_time", Convert::ToString(cr->CalculateExecutionTime()));
-	}
+	EventCommand::Ptr eventCommand = host->GetEventCommand();
 
-	fields->Set("scheduled_downtime_depth", host->GetDowntimeDepth());
-	fields->Set("failure_prediction_enabled", Empty);
-	fields->Set("process_performance_data", CompatUtility::GetCheckableProcessPerformanceData(host));
-	fields->Set("obsess_over_host", Empty);
-	fields->Set("event_handler", CompatUtility::GetCheckableEventHandler(host));
-	fields->Set("check_command", CompatUtility::GetCheckableCheckCommand(host));
-	fields->Set("normal_check_interval", CompatUtility::GetCheckableCheckInterval(host));
-	fields->Set("retry_check_interval", CompatUtility::GetCheckableRetryInterval(host));
-	fields->Set("check_timeperiod_object_id", host->GetCheckPeriod());
-	fields->Set("is_reachable", CompatUtility::GetCheckableIsReachable(host));
+	if (eventCommand)
+		fields->Set("event_handler", eventCommand->GetName());
 
-	fields->Set("original_attributes", JsonEncode(host->GetOriginalAttributes()));
+	CheckCommand::Ptr checkCommand = host->GetCheckCommand();
+
+	if (checkCommand)
+		fields->Set("check_command", checkCommand->GetName());
 
 	return fields;
 }
@@ -275,7 +266,7 @@ void HostDbObject::OnConfigUpdateHeavy()
 			continue;
 		}
 
-		int state_filter = dep->GetStateFilter();
+		int stateFilter = dep->GetStateFilter();
 
 		Log(LogDebug, "HostDbObject")
 			<< "parent host: " << parent->GetName();
@@ -285,8 +276,8 @@ void HostDbObject::OnConfigUpdateHeavy()
 		fields2->Set("dependent_host_object_id", host);
 		fields2->Set("inherits_parent", 1);
 		fields2->Set("timeperiod_object_id", dep->GetPeriod());
-		fields2->Set("fail_on_up", (state_filter & StateFilterUp) ? 1 : 0);
-		fields2->Set("fail_on_down", (state_filter & StateFilterDown) ? 1 : 0);
+		fields2->Set("fail_on_up", stateFilter & StateFilterUp);
+		fields2->Set("fail_on_down", stateFilter & StateFilterDown);
 		fields2->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
 		DbQuery query2;

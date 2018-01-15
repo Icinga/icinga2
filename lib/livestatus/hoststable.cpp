@@ -29,6 +29,7 @@
 #include "icinga/macroprocessor.hpp"
 #include "icinga/icingaapplication.hpp"
 #include "icinga/compatutility.hpp"
+#include "icinga/pluginutility.hpp"
 #include "base/configtype.hpp"
 #include "base/objectlock.hpp"
 #include "base/json.hpp"
@@ -76,7 +77,7 @@ void HostsTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "max_check_attempts", Column(&HostsTable::MaxCheckAttemptsAccessor, objectAccessor));
 	table->AddColumn(prefix + "flap_detection_enabled", Column(&HostsTable::FlapDetectionEnabledAccessor, objectAccessor));
 	table->AddColumn(prefix + "check_freshness", Column(&Table::OneAccessor, objectAccessor));
-	table->AddColumn(prefix + "process_performance_data", Column(&Table::ZeroAccessor, objectAccessor));
+	table->AddColumn(prefix + "process_performance_data", Column(&HostsTable::ProcessPerformanceDataAccessor, objectAccessor));
 	table->AddColumn(prefix + "accept_passive_checks", Column(&HostsTable::AcceptPassiveChecksAccessor, objectAccessor));
 	table->AddColumn(prefix + "event_handler_enabled", Column(&HostsTable::EventHandlerEnabledAccessor, objectAccessor));
 	table->AddColumn(prefix + "acknowledgement_type", Column(&HostsTable::AcknowledgementTypeAccessor, objectAccessor));
@@ -108,7 +109,7 @@ void HostsTable::AddColumns(Table *table, const String& prefix,
 	table->AddColumn(prefix + "scheduled_downtime_depth", Column(&HostsTable::ScheduledDowntimeDepthAccessor, objectAccessor));
 	table->AddColumn(prefix + "is_executing", Column(&Table::ZeroAccessor, objectAccessor));
 	table->AddColumn(prefix + "active_checks_enabled", Column(&HostsTable::ActiveChecksEnabledAccessor, objectAccessor));
-	table->AddColumn(prefix + "check_options", Column(&HostsTable::CheckOptionsAccessor, objectAccessor));
+	table->AddColumn(prefix + "check_options", Column(&Table::EmptyStringAccessor, objectAccessor));
 	table->AddColumn(prefix + "obsess_over_host", Column(&Table::ZeroAccessor, objectAccessor));
 	table->AddColumn(prefix + "modified_attributes", Column(&Table::ZeroAccessor, objectAccessor));
 	table->AddColumn(prefix + "modified_attributes_list", Column(&Table::ZeroAccessor, objectAccessor));
@@ -303,7 +304,12 @@ Value HostsTable::CheckPeriodAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	return CompatUtility::GetCheckableCheckPeriod(host);
+	TimePeriod::Ptr checkPeriod = host->GetCheckPeriod();
+
+	if (!checkPeriod)
+		return Empty;
+
+	return checkPeriod->GetName();
 }
 
 Value HostsTable::NotesAccessor(const Value& row)
@@ -407,10 +413,10 @@ Value HostsTable::PerfDataAccessor(const Value& row)
 	String perfdata;
 	CheckResult::Ptr cr = host->GetLastCheckResult();
 
-	if (cr)
-		perfdata = CompatUtility::GetCheckResultPerfdata(cr);
+	if (!cr)
+		return Empty;
 
-	return perfdata;
+	return PluginUtility::FormatPerfdata(cr->GetPerformanceData());
 }
 
 Value HostsTable::IconImageAccessor(const Value& row)
@@ -481,7 +487,7 @@ Value HostsTable::FlapDetectionEnabledAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	return CompatUtility::GetCheckableFlapDetectionEnabled(host);
+	return Convert::ToLong(host->GetEnableFlapping());
 }
 
 Value HostsTable::AcceptPassiveChecksAccessor(const Value& row)
@@ -491,7 +497,7 @@ Value HostsTable::AcceptPassiveChecksAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	return CompatUtility::GetCheckablePassiveChecksEnabled(host);
+	return Convert::ToLong(host->GetEnablePassiveChecks());
 }
 
 Value HostsTable::EventHandlerEnabledAccessor(const Value& row)
@@ -501,7 +507,7 @@ Value HostsTable::EventHandlerEnabledAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	return CompatUtility::GetCheckableEventHandlerEnabled(host);
+	return Convert::ToLong(host->GetEnableEventHandler());
 }
 
 Value HostsTable::AcknowledgementTypeAccessor(const Value& row)
@@ -512,7 +518,7 @@ Value HostsTable::AcknowledgementTypeAccessor(const Value& row)
 		return Empty;
 
 	ObjectLock olock(host);
-	return CompatUtility::GetCheckableAcknowledgementType(host);
+	return host->GetAcknowledgement();
 }
 
 Value HostsTable::CheckTypeAccessor(const Value& row)
@@ -522,7 +528,7 @@ Value HostsTable::CheckTypeAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	return CompatUtility::GetCheckableCheckType(host);
+	return (host->GetEnableActiveChecks() ? 0 : 1); /* 0 .. active, 1 .. passive */
 }
 
 Value HostsTable::LastStateAccessor(const Value& row)
@@ -602,7 +608,7 @@ Value HostsTable::HasBeenCheckedAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	return CompatUtility::GetCheckableHasBeenChecked(host);
+	return Convert::ToLong(host->HasBeenChecked());
 }
 
 Value HostsTable::CurrentNotificationNumberAccessor(const Value& row)
@@ -632,7 +638,7 @@ Value HostsTable::ChecksEnabledAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	return CompatUtility::GetCheckableActiveChecksEnabled(host);
+	return Convert::ToLong(host->GetEnableActiveChecks());
 }
 
 Value HostsTable::NotificationsEnabledAccessor(const Value& row)
@@ -642,7 +648,17 @@ Value HostsTable::NotificationsEnabledAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	return CompatUtility::GetCheckableNotificationsEnabled(host);
+	return Convert::ToLong(host->GetEnableNotifications());
+}
+
+Value HostsTable::ProcessPerformanceDataAccessor(const Value& row)
+{
+	Host::Ptr host = static_cast<Host::Ptr>(row);
+
+	if (!host)
+		return Empty;
+
+	return Convert::ToLong(host->GetEnablePerfdata());
 }
 
 Value HostsTable::AcknowledgedAccessor(const Value& row)
@@ -653,7 +669,7 @@ Value HostsTable::AcknowledgedAccessor(const Value& row)
 		return Empty;
 
 	ObjectLock olock(host);
-	return CompatUtility::GetCheckableIsAcknowledged(host);
+	return host->IsAcknowledged();
 }
 
 Value HostsTable::StateAccessor(const Value& row)
@@ -683,7 +699,7 @@ Value HostsTable::NoMoreNotificationsAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	return CompatUtility::GetCheckableNoMoreNotifications(host);
+	return (CompatUtility::GetCheckableNotificationNotificationInterval(host) == 0 && !host->GetVolatile()) ? 1 : 0;
 }
 
 Value HostsTable::LastCheckAccessor(const Value& row)
@@ -763,13 +779,7 @@ Value HostsTable::ActiveChecksEnabledAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	return CompatUtility::GetCheckableActiveChecksEnabled(host);
-}
-
-Value HostsTable::CheckOptionsAccessor(const Value&)
-{
-	/* TODO - forcexec, freshness, orphan, none */
-	return Empty;
+	return Convert::ToLong(host->GetEnableActiveChecks());
 }
 
 Value HostsTable::CheckIntervalAccessor(const Value& row)
@@ -779,7 +789,7 @@ Value HostsTable::CheckIntervalAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	return CompatUtility::GetCheckableCheckInterval(host);
+	return host->GetCheckInterval() / 60.0;
 }
 
 Value HostsTable::RetryIntervalAccessor(const Value& row)
@@ -789,7 +799,7 @@ Value HostsTable::RetryIntervalAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	return CompatUtility::GetCheckableRetryInterval(host);
+	return host->GetRetryInterval() / 60.0;
 }
 
 Value HostsTable::NotificationIntervalAccessor(const Value& row)
@@ -809,7 +819,7 @@ Value HostsTable::LowFlapThresholdAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	return CompatUtility::GetCheckableLowFlapThreshold(host);
+	return host->GetFlappingThresholdLow();
 }
 
 Value HostsTable::HighFlapThresholdAccessor(const Value& row)
@@ -819,7 +829,7 @@ Value HostsTable::HighFlapThresholdAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	return CompatUtility::GetCheckableHighFlapThreshold(host);
+	return host->GetFlappingThresholdHigh();
 }
 
 Value HostsTable::LatencyAccessor(const Value& row)
@@ -859,7 +869,7 @@ Value HostsTable::PercentStateChangeAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	return CompatUtility::GetCheckablePercentStateChange(host);
+	return host->GetFlappingCurrent();
 }
 
 Value HostsTable::InNotificationPeriodAccessor(const Value& row)
@@ -869,7 +879,14 @@ Value HostsTable::InNotificationPeriodAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	return CompatUtility::GetCheckableInNotificationPeriod(host);
+	for (const Notification::Ptr& notification : host->GetNotifications()) {
+		TimePeriod::Ptr timeperiod = notification->GetPeriod();
+
+		if (!timeperiod || timeperiod->IsInside(Utility::GetTime()))
+			return 1;
+	}
+
+	return 0;
 }
 
 Value HostsTable::InCheckPeriodAccessor(const Value& row)
@@ -879,7 +896,13 @@ Value HostsTable::InCheckPeriodAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	return CompatUtility::GetCheckableInCheckPeriod(host);
+	TimePeriod::Ptr timeperiod = host->GetCheckPeriod();
+
+	/* none set means always checked */
+	if (!timeperiod)
+		return 1;
+
+	return Convert::ToLong(timeperiod->IsInside(Utility::GetTime()));
 }
 
 Value HostsTable::ContactsAccessor(const Value& row)
@@ -1013,12 +1036,7 @@ Value HostsTable::CustomVariableNamesAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	Dictionary::Ptr vars;
-
-	{
-		ObjectLock olock(host);
-		vars = CompatUtility::GetCustomAttributeConfig(host);
-	}
+	Dictionary::Ptr vars = host->GetVars();
 
 	Array::Ptr cv = new Array();
 
@@ -1040,12 +1058,7 @@ Value HostsTable::CustomVariableValuesAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	Dictionary::Ptr vars;
-
-	{
-		ObjectLock olock(host);
-		vars = CompatUtility::GetCustomAttributeConfig(host);
-	}
+	Dictionary::Ptr vars = host->GetVars();
 
 	Array::Ptr cv = new Array();
 
@@ -1070,12 +1083,7 @@ Value HostsTable::CustomVariablesAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	Dictionary::Ptr vars;
-
-	{
-		ObjectLock olock(host);
-		vars = CompatUtility::GetCustomAttributeConfig(host);
-	}
+	Dictionary::Ptr vars = host->GetVars();
 
 	Array::Ptr cv = new Array();
 
@@ -1105,12 +1113,7 @@ Value HostsTable::CVIsJsonAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	Dictionary::Ptr vars;
-
-	{
-		ObjectLock olock(host);
-		vars = CompatUtility::GetCustomAttributeConfig(host);
-	}
+	Dictionary::Ptr vars = host->GetVars();
 
 	if (!vars)
 		return Empty;
@@ -1390,7 +1393,10 @@ Value HostsTable::StalenessAccessor(const Value& row)
 	if (!host)
 		return Empty;
 
-	return CompatUtility::GetCheckableStaleness(host);
+	if (host->HasBeenChecked() && host->GetLastCheck() > 0)
+		return (Utility::GetTime() - host->GetLastCheck()) / (host->GetCheckInterval() * 3600);
+
+	return 0.0;
 }
 
 Value HostsTable::GroupsAccessor(const Value& row)

@@ -62,6 +62,8 @@ private:
 	void ExternalCommandHandler(const String& command, const std::vector<String>& arguments);
 	void EventCommandHandler(const Checkable::Ptr& service);
 
+	static String GetHostStateString(const Host::Ptr& host);
+
 	Timer::Ptr m_RotationTimer;
 	void RotationTimerHandler();
 	void ScheduleNextRotation();

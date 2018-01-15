@@ -227,7 +227,7 @@ void DbObject::SendVarsConfigUpdateHeavy()
 	query2.WhereCriteria->Set("object_id", obj);
 	queries.emplace_back(std::move(query2));
 
-	Dictionary::Ptr vars = CompatUtility::GetCustomAttributeConfig(custom_var_object);
+	Dictionary::Ptr vars = custom_var_object->GetVars();
 
 	if (vars) {
 		ObjectLock olock (vars);
@@ -274,7 +274,7 @@ void DbObject::SendVarsStatusUpdate()
 	if (!custom_var_object)
 		return;
 
-	Dictionary::Ptr vars = CompatUtility::GetCustomAttributeConfig(custom_var_object);
+	Dictionary::Ptr vars = custom_var_object->GetVars();
 
 	if (vars) {
 		std::vector<DbQuery> queries;

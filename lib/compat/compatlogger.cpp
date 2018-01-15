@@ -142,7 +142,7 @@ void CompatLogger::CheckResultHandler(const Checkable::Ptr& checkable, const Che
 
 		msgbuf << "HOST ALERT: "
 			<< host->GetName() << ";"
-			<< CompatUtility::GetHostStateString(host) << ";"
+			<< GetHostStateString(host) << ";"
 			<< Host::StateTypeToString(host->GetStateType()) << ";"
 			<< attempt_after << ";"
 			<< output << ""
@@ -258,7 +258,7 @@ void CompatLogger::NotificationSentHandler(const Notification::Ptr& notification
 		if (service)
 			notification_type_str = Service::StateToString(service->GetState());
 		else
-			notification_type_str = CompatUtility::GetHostStateString(host);
+			notification_type_str = GetHostStateString(host);
 	}
 
 	String author_comment = "";
@@ -290,7 +290,7 @@ void CompatLogger::NotificationSentHandler(const Notification::Ptr& notification
 			<< user->GetName() << ";"
 			<< host->GetName() << ";"
 			<< notification_type_str << " "
-			<< "(" << CompatUtility::GetHostStateString(host) << ");"
+			<< "(" << GetHostStateString(host) << ");"
 			<< command_name << ";"
 			<< output << ";"
 			<< author_comment
@@ -422,7 +422,7 @@ void CompatLogger::EventCommandHandler(const Checkable::Ptr& checkable)
 	} else {
 		msgbuf << "HOST EVENT HANDLER: "
 			<< host->GetName() << ";"
-			<< CompatUtility::GetHostStateString(host) << ";"
+			<< GetHostStateString(host) << ";"
 			<< Host::StateTypeToString(host->GetStateType()) << ";"
 			<< current_attempt << ";"
 			<< event_command_name;
@@ -433,6 +433,14 @@ void CompatLogger::EventCommandHandler(const Checkable::Ptr& checkable)
 		WriteLine(msgbuf.str());
 		Flush();
 	}
+}
+
+String CompatLogger::GetHostStateString(const Host::Ptr& host)
+{
+	if (host->GetState() != HostUp && !host->IsReachable())
+		return "UNREACHABLE"; /* hardcoded compat state */
+
+	return Host::StateToString(host->GetState());
 }
 
 void CompatLogger::WriteLine(const String& line)
@@ -499,7 +507,7 @@ void CompatLogger::ReopenFile(bool rotate)
 		std::ostringstream msgbuf;
 		msgbuf << "CURRENT HOST STATE: "
 			<< host->GetName() << ";"
-			<< CompatUtility::GetHostStateString(host) << ";"
+			<< GetHostStateString(host) << ";"
 			<< Host::StateTypeToString(host->GetStateType()) << ";"
 			<< host->GetCheckAttempt() << ";"
 			<< output << "";

@@ -325,8 +325,7 @@ void GelfWriter::NotificationToUserHandlerInternal(const Notification::Ptr& noti
 		fields->Set("short_message", output);
 	} else {
 		fields->Set("_type", "HOST NOTIFICATION");
-		//TODO: why?
-		fields->Set("short_message", "(" + CompatUtility::GetHostStateString(host) + ")");
+		fields->Set("short_message", output);
 	}
 
 	fields->Set("_state", service ? Service::StateToString(service->GetState()) : Host::StateToString(host->GetState()));

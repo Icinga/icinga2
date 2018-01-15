@@ -28,6 +28,7 @@
 #include "icinga/eventcommand.hpp"
 #include "icinga/externalcommandprocessor.hpp"
 #include "icinga/compatutility.hpp"
+#include "icinga/pluginutility.hpp"
 #include "icinga/icingaapplication.hpp"
 #include "remote/endpoint.hpp"
 #include "base/convert.hpp"
@@ -56,51 +57,41 @@ Dictionary::Ptr ServiceDbObject::GetConfigFields() const
 	fields->Set("host_object_id", host);
 	fields->Set("display_name", service->GetDisplayName());
 	fields->Set("check_command_object_id", service->GetCheckCommand());
-	fields->Set("check_command_args", CompatUtility::GetCheckableCommandArgs(service));
 	fields->Set("eventhandler_command_object_id", service->GetEventCommand());
-	fields->Set("eventhandler_command_args", Empty);
-	fields->Set("notification_timeperiod_object_id", Empty);
 	fields->Set("check_timeperiod_object_id", service->GetCheckPeriod());
-	fields->Set("failure_prediction_options", Empty);
-	fields->Set("check_interval", CompatUtility::GetCheckableCheckInterval(service));
-	fields->Set("retry_interval", CompatUtility::GetCheckableRetryInterval(service));
+	fields->Set("check_interval", service->GetCheckInterval() / 60.0);
+	fields->Set("retry_interval", service->GetRetryInterval() / 60.0);
 	fields->Set("max_check_attempts", service->GetMaxCheckAttempts());
-	fields->Set("first_notification_delay", Empty);
-	fields->Set("notification_interval", CompatUtility::GetCheckableNotificationNotificationInterval(service));
-	fields->Set("notify_on_warning", CompatUtility::GetCheckableNotifyOnWarning(service));
-	fields->Set("notify_on_unknown", CompatUtility::GetCheckableNotifyOnUnknown(service));
-	fields->Set("notify_on_critical", CompatUtility::GetCheckableNotifyOnCritical(service));
-	fields->Set("notify_on_recovery", CompatUtility::GetCheckableNotifyOnRecovery(service));
-	fields->Set("notify_on_flapping", CompatUtility::GetCheckableNotifyOnFlapping(service));
-	fields->Set("notify_on_downtime", CompatUtility::GetCheckableNotifyOnDowntime(service));
-	fields->Set("stalk_on_ok", 0);
-	fields->Set("stalk_on_warning", 0);
-	fields->Set("stalk_on_unknown", 0);
-	fields->Set("stalk_on_critical", 0);
-	fields->Set("is_volatile", CompatUtility::GetCheckableIsVolatile(service));
-	fields->Set("flap_detection_enabled", CompatUtility::GetCheckableFlapDetectionEnabled(service));
-	fields->Set("flap_detection_on_ok", Empty);
-	fields->Set("flap_detection_on_warning", Empty);
-	fields->Set("flap_detection_on_unknown", Empty);
-	fields->Set("flap_detection_on_critical", Empty);
-	fields->Set("low_flap_threshold", CompatUtility::GetCheckableLowFlapThreshold(service));
-	fields->Set("high_flap_threshold", CompatUtility::GetCheckableHighFlapThreshold(service));
-	fields->Set("process_performance_data", CompatUtility::GetCheckableProcessPerformanceData(service));
-	fields->Set("freshness_checks_enabled", CompatUtility::GetCheckableFreshnessChecksEnabled(service));
-	fields->Set("freshness_threshold", CompatUtility::GetCheckableFreshnessThreshold(service));
-	fields->Set("passive_checks_enabled", CompatUtility::GetCheckablePassiveChecksEnabled(service));
-	fields->Set("event_handler_enabled", CompatUtility::GetCheckableEventHandlerEnabled(service));
-	fields->Set("active_checks_enabled", CompatUtility::GetCheckableActiveChecksEnabled(service));
-	fields->Set("retain_status_information", Empty);
-	fields->Set("retain_nonstatus_information", Empty);
-	fields->Set("notifications_enabled", CompatUtility::GetCheckableNotificationsEnabled(service));
-	fields->Set("obsess_over_service", Empty);
-	fields->Set("failure_prediction_enabled", Empty);
+	fields->Set("is_volatile", service->GetVolatile());
+	fields->Set("flap_detection_enabled", service->GetEnableFlapping());
+	fields->Set("low_flap_threshold", service->GetFlappingThresholdLow());
+	fields->Set("high_flap_threshold", service->GetFlappingThresholdLow());
+	fields->Set("process_performance_data", service->GetEnablePerfdata());
+	fields->Set("freshness_checks_enabled", 1);
+	fields->Set("freshness_threshold", Convert::ToLong(service->GetCheckInterval()));
+	fields->Set("event_handler_enabled", service->GetEnableEventHandler());
+	fields->Set("passive_checks_enabled", service->GetEnablePassiveChecks());
+	fields->Set("active_checks_enabled", service->GetEnableActiveChecks());
+	fields->Set("notifications_enabled", service->GetEnableNotifications());
 	fields->Set("notes", service->GetNotes());
 	fields->Set("notes_url", service->GetNotesUrl());
 	fields->Set("action_url", service->GetActionUrl());
 	fields->Set("icon_image", service->GetIconImage());
 	fields->Set("icon_image_alt", service->GetIconImageAlt());
+
+	fields->Set("notification_interval", CompatUtility::GetCheckableNotificationNotificationInterval(service));
+
+	unsigned long notificationStateFilter = CompatUtility::GetCheckableNotificationTypeFilter(service);
+	unsigned long notificationTypeFilter = CompatUtility::GetCheckableNotificationTypeFilter(service);
+
+	fields->Set("notify_on_warning", notificationStateFilter & ServiceWarning);
+	fields->Set("notify_on_unknown", notificationStateFilter & ServiceUnknown);
+	fields->Set("notify_on_critical", notificationStateFilter & ServiceCritical);
+	fields->Set("notify_on_recovery", notificationTypeFilter & NotificationRecovery);
+	fields->Set("notify_on_flapping", (notificationTypeFilter & NotificationFlappingStart) ||
+		(notificationTypeFilter & NotificationFlappingEnd));
+	fields->Set("notify_on_downtime", (notificationTypeFilter & NotificationDowntimeStart) ||
+		(notificationTypeFilter & NotificationDowntimeEnd) || (notificationTypeFilter & NotificationDowntimeRemoved));
 
 	return fields;
 }
@@ -114,58 +105,58 @@ Dictionary::Ptr ServiceDbObject::GetStatusFields() const
 	if (cr) {
 		fields->Set("output", CompatUtility::GetCheckResultOutput(cr));
 		fields->Set("long_output", CompatUtility::GetCheckResultLongOutput(cr));
-		fields->Set("perfdata", CompatUtility::GetCheckResultPerfdata(cr));
+		fields->Set("perfdata", PluginUtility::FormatPerfdata(cr->GetPerformanceData()));
 		fields->Set("check_source", cr->GetCheckSource());
+		fields->Set("latency", cr->CalculateLatency());
+		fields->Set("execution_time", cr->CalculateExecutionTime());
 	}
 
 	fields->Set("current_state", service->GetState());
-	fields->Set("has_been_checked", CompatUtility::GetCheckableHasBeenChecked(service));
+	fields->Set("has_been_checked", service->HasBeenChecked());
 	fields->Set("should_be_scheduled", service->GetEnableActiveChecks());
 	fields->Set("current_check_attempt", service->GetCheckAttempt());
 	fields->Set("max_check_attempts", service->GetMaxCheckAttempts());
-
-	if (cr)
-		fields->Set("last_check", DbValue::FromTimestamp(cr->GetScheduleEnd()));
-
+	fields->Set("last_check", DbValue::FromTimestamp(service->GetLastCheck()));
 	fields->Set("next_check", DbValue::FromTimestamp(service->GetNextCheck()));
-	fields->Set("check_type", CompatUtility::GetCheckableCheckType(service));
+	fields->Set("check_type", !service->GetEnableActiveChecks()); /* 0 .. active, 1 .. passive */
 	fields->Set("last_state_change", DbValue::FromTimestamp(service->GetLastStateChange()));
 	fields->Set("last_hard_state_change", DbValue::FromTimestamp(service->GetLastHardStateChange()));
 	fields->Set("last_hard_state", service->GetLastHardState());
-	fields->Set("last_time_ok", DbValue::FromTimestamp(static_cast<int>(service->GetLastStateOK())));
-	fields->Set("last_time_warning", DbValue::FromTimestamp(static_cast<int>(service->GetLastStateWarning())));
-	fields->Set("last_time_critical", DbValue::FromTimestamp(static_cast<int>(service->GetLastStateCritical())));
-	fields->Set("last_time_unknown", DbValue::FromTimestamp(static_cast<int>(service->GetLastStateUnknown())));
+	fields->Set("last_time_ok", DbValue::FromTimestamp(service->GetLastStateOK()));
+	fields->Set("last_time_warning", DbValue::FromTimestamp(service->GetLastStateWarning()));
+	fields->Set("last_time_critical", DbValue::FromTimestamp(service->GetLastStateCritical()));
+	fields->Set("last_time_unknown", DbValue::FromTimestamp(service->GetLastStateUnknown()));
 	fields->Set("state_type", service->GetStateType());
+	fields->Set("notifications_enabled", service->GetEnableNotifications());
+	fields->Set("problem_has_been_acknowledged", service->GetAcknowledgement() != AcknowledgementNone);
+	fields->Set("acknowledgement_type", service->GetAcknowledgement());
+	fields->Set("passive_checks_enabled", service->GetEnablePassiveChecks());
+	fields->Set("active_checks_enabled", service->GetEnableActiveChecks());
+	fields->Set("event_handler_enabled", service->GetEnableEventHandler());
+	fields->Set("flap_detection_enabled", service->GetEnableFlapping());
+	fields->Set("is_flapping", service->IsFlapping());
+	fields->Set("percent_state_change", service->GetFlappingCurrent());
+	fields->Set("scheduled_downtime_depth", service->GetDowntimeDepth());
+	fields->Set("process_performance_data", service->GetEnablePerfdata());
+	fields->Set("normal_check_interval", service->GetCheckInterval() / 60.0);
+	fields->Set("retry_check_interval", service->GetRetryInterval() / 60.0);
+	fields->Set("check_timeperiod_object_id", service->GetCheckPeriod());
+	fields->Set("is_reachable", service->IsReachable());
+	fields->Set("original_attributes", JsonEncode(service->GetOriginalAttributes()));
+
+	fields->Set("current_notification_number", CompatUtility::GetCheckableNotificationNotificationNumber(service));
 	fields->Set("last_notification", DbValue::FromTimestamp(CompatUtility::GetCheckableNotificationLastNotification(service)));
 	fields->Set("next_notification", DbValue::FromTimestamp(CompatUtility::GetCheckableNotificationNextNotification(service)));
-	fields->Set("no_more_notifications", Empty);
-	fields->Set("notifications_enabled", CompatUtility::GetCheckableNotificationsEnabled(service));
-	fields->Set("problem_has_been_acknowledged", CompatUtility::GetCheckableProblemHasBeenAcknowledged(service));
-	fields->Set("acknowledgement_type", CompatUtility::GetCheckableAcknowledgementType(service));
-	fields->Set("current_notification_number", CompatUtility::GetCheckableNotificationNotificationNumber(service));
-	fields->Set("passive_checks_enabled", CompatUtility::GetCheckablePassiveChecksEnabled(service));
-	fields->Set("active_checks_enabled", CompatUtility::GetCheckableActiveChecksEnabled(service));
-	fields->Set("event_handler_enabled", CompatUtility::GetCheckableEventHandlerEnabled(service));
-	fields->Set("flap_detection_enabled", CompatUtility::GetCheckableFlapDetectionEnabled(service));
-	fields->Set("is_flapping", CompatUtility::GetCheckableIsFlapping(service));
-	fields->Set("percent_state_change", CompatUtility::GetCheckablePercentStateChange(service));
 
-	if (cr) {
-		fields->Set("latency", Convert::ToString(cr->CalculateLatency()));
-		fields->Set("execution_time", Convert::ToString(cr->CalculateExecutionTime()));
-	}
+	EventCommand::Ptr eventCommand = service->GetEventCommand();
 
-	fields->Set("scheduled_downtime_depth", service->GetDowntimeDepth());
-	fields->Set("process_performance_data", CompatUtility::GetCheckableProcessPerformanceData(service));
-	fields->Set("event_handler", CompatUtility::GetCheckableEventHandler(service));
-	fields->Set("check_command", CompatUtility::GetCheckableCheckCommand(service));
-	fields->Set("normal_check_interval", CompatUtility::GetCheckableCheckInterval(service));
-	fields->Set("retry_check_interval", CompatUtility::GetCheckableRetryInterval(service));
-	fields->Set("check_timeperiod_object_id", service->GetCheckPeriod());
-	fields->Set("is_reachable", CompatUtility::GetCheckableIsReachable(service));
+	if (eventCommand)
+		fields->Set("event_handler", eventCommand->GetName());
 
-	fields->Set("original_attributes", JsonEncode(service->GetOriginalAttributes()));
+	CheckCommand::Ptr checkCommand = service->GetCheckCommand();
+
+	if (checkCommand)
+		fields->Set("check_command", checkCommand->GetName());
 
 	return fields;
 }
@@ -236,7 +227,7 @@ void ServiceDbObject::OnConfigUpdateHeavy()
 		Log(LogDebug, "ServiceDbObject")
 			<< "service parents: " << parent->GetName();
 
-		int state_filter = dep->GetStateFilter();
+		int stateFilter = dep->GetStateFilter();
 
 		/* service dependencies */
 		Dictionary::Ptr fields1 = new Dictionary();
@@ -244,10 +235,10 @@ void ServiceDbObject::OnConfigUpdateHeavy()
 		fields1->Set("dependent_service_object_id", service);
 		fields1->Set("inherits_parent", 1);
 		fields1->Set("timeperiod_object_id", dep->GetPeriod());
-		fields1->Set("fail_on_ok", (state_filter & StateFilterOK) ? 1 : 0);
-		fields1->Set("fail_on_warning", (state_filter & StateFilterWarning) ? 1 : 0);
-		fields1->Set("fail_on_critical", (state_filter & StateFilterCritical) ? 1 : 0);
-		fields1->Set("fail_on_unknown", (state_filter & StateFilterUnknown) ? 1 : 0);
+		fields1->Set("fail_on_ok", stateFilter & StateFilterOK);
+		fields1->Set("fail_on_warning", stateFilter & StateFilterWarning);
+		fields1->Set("fail_on_critical", stateFilter & StateFilterCritical);
+		fields1->Set("fail_on_unknown", stateFilter & StateFilterUnknown);
 		fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
 		DbQuery query1;
