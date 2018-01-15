@@ -132,7 +132,8 @@ void ConsoleCommand::BreakpointHandler(ScriptFrame& frame, ScriptError *ex, cons
 		ShowCodeLocation(std::cout, di);
 
 	std::cout << "You can inspect expressions (such as variables) by entering them at the prompt.\n"
-			<< "To leave the debugger and continue the program use \"$continue\".\n";
+		<< "To leave the debugger and continue the program use \"$continue\".\n"
+		<< "For further commands see \"$help\".\n";
 
 #ifdef HAVE_EDITLINE
 	rl_completion_entry_function = ConsoleCommand::ConsoleCompleteHelper;
@@ -237,7 +238,9 @@ int ConsoleCommand::Run(const po::variables_map& vm, const std::vector<std::stri
 	scriptFrame.Self = scriptFrame.Locals;
 
 	if (!vm.count("eval") && !vm.count("file"))
-		std::cout << "Icinga 2 (version: " << Application::GetAppVersion() << ")\n";
+		std::cout << "Icinga 2 (version: " << Application::GetAppVersion() << ")\n"
+			<< "Type $help to view available commands.\n";
+
 
 	const char *addrEnv = getenv("ICINGA2_API_URL");
 	if (addrEnv)
@@ -382,10 +385,17 @@ incomplete:
 			line = commandOnce;
 
 		if (!line.empty() && line[0] == '$') {
-			if (line == "$continue")
+			if (line == "$continue" || line == "$quit" || line == "$exit")
 				break;
+			else if (line == "$help")
+				std::cout << "Welcome to the Icinga 2 console/script debugger.\n"
+					"Usable commands:\n"
+					"  $continue, $quit, $exit   Quit the console\n"
+					"  $help                     Print this help\n\n"
+					"For more information on how to use this console, please consult the documentation at https://icinga.com/docs\n";
+			else
+				std::cout << "Unknown debugger command: " << line << "\n";
 
-			std::cout << "Unknown debugger command: " << line << "\n";
 			continue;
 		}
 
