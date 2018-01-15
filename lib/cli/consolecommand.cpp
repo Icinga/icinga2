@@ -390,8 +390,9 @@ incomplete:
 			else if (line == "$help")
 				std::cout << "Welcome to the Icinga 2 debug console.\n"
 					"Usable commands:\n"
-					"  $continue, $quit, $exit   Quit the console\n"
-					"  $help                     Print this help\n\n"
+					"  $continue      Continue running Icinga 2 (script debugger).\n"
+					"  $quit, $exit   Stop debugging and quit the console.\n"
+					"  $help          Print this help.\n\n"
 					"For more information on how to use this console, please consult the documentation at https://icinga.com/docs\n";
 			else
 				std::cout << "Unknown debugger command: " << line << "\n";
