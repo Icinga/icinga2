@@ -280,6 +280,9 @@ predominantly affects Windows paths e.g. `C:\` becomes `C:_`.
 
 The database is assumed to exist so this object will make no attempt to create it currently.
 
+If [SELinux](22-selinux.md#selinux) is enabled, it will not allow access for Icinga 2 to InfluxDB until the [boolean](22-selinux.md#booleans)
+`icinga2_can_connect_all` is set to true as InfluxDB is not providing its own policy.
+
 More configuration details can be found [here](09-object-types.md#objecttype-influxdbwriter).
 
 #### Instance Tagging <a id="influxdb-writer-instance-tags"></a>
