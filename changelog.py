@@ -8,6 +8,10 @@ import sys
 import os
 from datetime import datetime
 from collections import defaultdict
+from collections import OrderedDict
+
+#################################
+## Env Config
 
 try:
     github_auth_username = os.environ['ICINGA_GITHUB_AUTH_USERNAME']
@@ -27,10 +31,34 @@ except:
     print "ERROR: Environment variable 'ICINGA_GITHUB_PROJECT' is not set."
     sys.exit(1)
 
+#################################
+## Config
+
 changelog_file = "CHANGELOG.md" # TODO: config param
 debug = 1
 
-ignored_labels = ["high", "low", "bug", "enhancement", "feedback", "question", "backported"]
+# Keep this in sync with GitHub labels.
+ignored_labels = [
+    "high-priority", "low-priority",
+    "bug", "enhancement",
+    "needs-feedback", "question", "duplicate", "invalid", "wontfix",
+    "backported", "build-fix"
+]
+
+# Selectively show and collect specific categories
+#
+# (category, list of case sensitive matching labels)
+# The order is important!
+# Keep this in sync with GitHub labels.
+categories = OrderedDict(
+[
+    ("Enhancement", ["enhancement"]),
+    ("Bug", ["bug", "crash"]),
+    ("ITL", ["ITL"]),
+    ("Documentation", ["Documentation"]),
+    ("Support", ["code-quality", "Tests", "Packages", "Installation"])
+]
+)
 
 #################################
 ## Helpers
@@ -74,12 +102,17 @@ def fetch_github_resources(uri, params = {}):
     return resources
 
 def issue_type(issue):
-    if "bug" in [label["name"] for label in issue["labels"]]:
-        return "Bug"
-    elif "enhancement" in [label["name"] for label in issue["labels"]]:
-        return "Enhancement"
-    else:
-        return "Support"
+    issue_labels = [label["name"] for label in issue["labels"]]
+
+    # start with the least important first (e.g. "Support", "Documentation", "Bug", "Enhancement" as order)
+    for category in reversed(categories):
+        labels = categories[category]
+
+        for label in labels:
+            if label in issue_labels:
+                return category
+
+    return "Support"
 
 def escape_markdown(text):
     #tmp = text.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
@@ -90,6 +123,10 @@ def escape_markdown(text):
 
 def format_labels(issue):
     labels = filter(lambda label: label not in ignored_labels, [label["name"] for label in issue["labels"]])
+
+    # Mark PRs as custom label
+    if "pull_request" in issue:
+        labels.append("PR")
 
     if len(labels):
         return " (" + ", ".join(labels) + ")"
@@ -175,7 +212,7 @@ for milestone in sorted(milestones.values(), key=lambda ms: (ms["due_on"], ms["t
     if len(ms_description) > 0:
         write_changelog("### Notes\n\n" + ms_description + "\n") # Don't escape anything, we take care on Github for valid Markdown
 
-    for category in ["Enhancement", "Bug", "Support"]:
+    for category, labels in categories.iteritems():
         try:
             ms_issues = issues[milestone["title"]][category]
         except KeyError:
