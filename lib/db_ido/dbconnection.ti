@@ -37,20 +37,19 @@ abstract class DbConnection : ConfigObject
 
 	[config] Array::Ptr categories {
 		default {{{
-			Array::Ptr cat = new Array();
-			cat->Add("DbCatConfig");
-			cat->Add("DbCatState");
-			cat->Add("DbCatAcknowledgement");
-			cat->Add("DbCatComment");
-			cat->Add("DbCatDowntime");
-			cat->Add("DbCatEventHandler");
-			cat->Add("DbCatFlapping");
-			cat->Add("DbCatNotification");
-			cat->Add("DbCatProgramStatus");
-			cat->Add("DbCatRetention");
-			cat->Add("DbCatStateHistory");
-
-			return cat;
+			return new Array({
+				"DbCatConfig",
+				"DbCatState",
+				"DbCatAcknowledgement",
+				"DbCatComment",
+				"DbCatDowntime",
+				"DbCatEventHandler",
+				"DbCatFlapping",
+				"DbCatNotification",
+				"DbCatProgramStatus",
+				"DbCatRetention",
+				"DbCatStateHistory"
+			});
 		}}}
 	};
 	[no_user_view, no_user_modify] int categories_filter_real (CategoryFilter);

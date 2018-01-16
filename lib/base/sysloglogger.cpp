@@ -80,13 +80,13 @@ void SyslogLogger::StaticInitialize()
 
 void SyslogLogger::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 {
-	Dictionary::Ptr nodes = new Dictionary();
+	DictionaryData nodes;
 
 	for (const SyslogLogger::Ptr& sysloglogger : ConfigType::GetObjectsByType<SyslogLogger>()) {
-		nodes->Set(sysloglogger->GetName(), 1); //add more stats
+		nodes.emplace_back(sysloglogger->GetName(), 1); //add more stats
 	}
 
-	status->Set("sysloglogger", nodes);
+	status->Set("sysloglogger", new Dictionary(std::move(nodes)));
 }
 
 void SyslogLogger::OnConfigLoaded()

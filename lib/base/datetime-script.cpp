@@ -35,12 +35,9 @@ static String DateTimeFormat(const String& format)
 
 Object::Ptr DateTime::GetPrototype()
 {
-	static Dictionary::Ptr prototype;
-
-	if (!prototype) {
-		prototype = new Dictionary();
-		prototype->Set("format", new Function("DateTime#format", DateTimeFormat, { "format" }));
-	}
+	static Dictionary::Ptr prototype = new Dictionary({
+		{ "format", new Function("DateTime#format", DateTimeFormat, { "format" }) }
+	});
 
 	return prototype;
 }

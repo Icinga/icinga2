@@ -33,12 +33,9 @@ static String NumberToString()
 
 Object::Ptr Number::GetPrototype()
 {
-	static Dictionary::Ptr prototype;
-
-	if (!prototype) {
-		prototype = new Dictionary();
-		prototype->Set("to_string", new Function("Number#to_string", NumberToString, {}, true));
-	}
+	static Dictionary::Ptr prototype = new Dictionary({
+		{ "to_string", new Function("Number#to_string", NumberToString, {}, true) }
+	});
 
 	return prototype;
 }

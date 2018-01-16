@@ -95,9 +95,7 @@ bool Service::EvaluateApplyRule(const Host::Ptr& host, const ApplyRule& rule)
 			return false;
 		}
 	} else {
-		Array::Ptr instances = new Array();
-		instances->Add("");
-		vinstances = instances;
+		vinstances = new Array({ "" });
 	}
 
 	bool match = false;

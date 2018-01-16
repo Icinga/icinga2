@@ -71,41 +71,38 @@ static Array::Ptr DictionaryKeys()
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Dictionary::Ptr self = static_cast<Dictionary::Ptr>(vframe->Self);
-	Array::Ptr keys = new Array();
+	ArrayData keys;
 	ObjectLock olock(self);
 	for (const Dictionary::Pair& kv : self) {
-		keys->Add(kv.first);
+		keys.push_back(kv.first);
 	}
-	return keys;
+	return new Array(std::move(keys));
 }
 
 static Array::Ptr DictionaryValues()
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Dictionary::Ptr self = static_cast<Dictionary::Ptr>(vframe->Self);
-	Array::Ptr keys = new Array();
+	ArrayData values;
 	ObjectLock olock(self);
 	for (const Dictionary::Pair& kv : self) {
-		keys->Add(kv.second);
+		values.push_back(kv.second);
 	}
-	return keys;
+	return new Array(std::move(values));
 }
 
 Object::Ptr Dictionary::GetPrototype()
 {
-	static Dictionary::Ptr prototype;
-
-	if (!prototype) {
-		prototype = new Dictionary();
-		prototype->Set("len", new Function("Dictionary#len", DictionaryLen, {}, true));
-		prototype->Set("set", new Function("Dictionary#set", DictionarySet, { "key", "value" }));
-		prototype->Set("get", new Function("Dictionary#get", DictionaryGet, { "key" }));
-		prototype->Set("remove", new Function("Dictionary#remove", DictionaryRemove, { "key" }));
-		prototype->Set("contains", new Function("Dictionary#contains", DictionaryContains, { "key" }, true));
-		prototype->Set("shallow_clone", new Function("Dictionary#shallow_clone", DictionaryShallowClone, {}, true));
-		prototype->Set("keys", new Function("Dictionary#keys", DictionaryKeys, {}, true));
-		prototype->Set("values", new Function("Dictionary#values", DictionaryValues, {}, true));
-	}
+	static Dictionary::Ptr prototype = new Dictionary({
+		{ "len", new Function("Dictionary#len", DictionaryLen, {}, true) },
+		{ "set", new Function("Dictionary#set", DictionarySet, { "key", "value" }) },
+		{ "get", new Function("Dictionary#get", DictionaryGet, { "key" }) },
+		{ "remove", new Function("Dictionary#remove", DictionaryRemove, { "key" }) },
+		{ "contains", new Function("Dictionary#contains", DictionaryContains, { "key" }, true) },
+		{ "shallow_clone", new Function("Dictionary#shallow_clone", DictionaryShallowClone, {}, true) },
+		{ "keys", new Function("Dictionary#keys", DictionaryKeys, {}, true) },
+		{ "values", new Function("Dictionary#values", DictionaryValues, {}, true) }
+	});
 
 	return prototype;
 }

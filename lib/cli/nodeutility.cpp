@@ -56,13 +56,11 @@ int NodeUtility::GenerateNodeIcingaConfig(const std::vector<std::string>& endpoi
 {
 	Array::Ptr my_config = new Array();
 
-	Dictionary::Ptr my_master_zone = new Dictionary();
 	Array::Ptr my_master_zone_members = new Array();
 
 	String master_zone_name = "master"; //TODO: Find a better name.
 
 	for (const std::string& endpoint : endpoints) {
-
 		/* extract all --endpoint arguments and store host,port info */
 		std::vector<String> tokens;
 		boost::algorithm::split(tokens, endpoint, boost::is_any_of(","));
@@ -94,41 +92,32 @@ int NodeUtility::GenerateNodeIcingaConfig(const std::vector<std::string>& endpoi
 	}
 
 	/* add the master zone to the config */
-	my_master_zone->Set("__name", master_zone_name);
-	my_master_zone->Set("__type", "Zone");
-	my_master_zone->Set("endpoints", my_master_zone_members);
-
-	my_config->Add(my_master_zone);
+	my_config->Add(new Dictionary({
+		{ "__name", master_zone_name },
+		{ "__type", "Zone" },
+		{ "endpoints", my_master_zone_members }
+	}));
 
 	/* store the local generated node configuration */
-	Dictionary::Ptr my_endpoint = new Dictionary();
-	Dictionary::Ptr my_zone = new Dictionary();
+	my_config->Add(new Dictionary({
+		{ "__name", new ConfigIdentifier("NodeName") },
+		{ "__type", "Endpoint" }
+	}));
 
-	my_endpoint->Set("__name", new ConfigIdentifier("NodeName"));
-	my_endpoint->Set("__type", "Endpoint");
-
-	Array::Ptr my_zone_members = new Array();
-	my_zone_members->Add(new ConfigIdentifier("NodeName"));
-
-	my_zone->Set("__name", new ConfigIdentifier("ZoneName"));
-	my_zone->Set("__type", "Zone");
-	my_zone->Set("parent", master_zone_name); //set the master zone as parent
-
-	my_zone->Set("endpoints", my_zone_members);
+	my_config->Add(new Dictionary({
+		{ "__name", new ConfigIdentifier("ZoneName") },
+		{ "__type", "Zone" },
+		{ "parent", master_zone_name }, //set the master zone as parent
+		{ "endpoints", new Array({ new ConfigIdentifier("ZoneName") }) }
+	}));
 
 	for (const String& globalzone : globalZones) {
-		Dictionary::Ptr myGlobalZone = new Dictionary();
-
-		myGlobalZone->Set("__name", globalzone);
-		myGlobalZone->Set("__type", "Zone");
-		myGlobalZone->Set("global", true);
-
-		my_config->Add(myGlobalZone);
+		my_config->Add(new Dictionary({
+			{ "__name", globalzone },
+			{ "__type", "Zone" },
+			{ "global", true }
+		}));
 	}
-
-	/* store the local config */
-	my_config->Add(my_endpoint);
-	my_config->Add(my_zone);
 
 	/* write the newly generated configuration */
 	String zones_path = Application::GetSysconfDir() + "/icinga2/zones.conf";
@@ -143,32 +132,23 @@ int NodeUtility::GenerateNodeMasterIcingaConfig(const std::vector<String>& globa
 	Array::Ptr my_config = new Array();
 
 	/* store the local generated node master configuration */
-	Dictionary::Ptr my_master_endpoint = new Dictionary();
-	Dictionary::Ptr my_master_zone = new Dictionary();
+	my_config->Add(new Dictionary({
+		{ "__name", new ConfigIdentifier("NodeName") },
+		{ "__type", "Endpoint" }
+	}));
 
-	Array::Ptr my_master_zone_members = new Array();
-
-	my_master_endpoint->Set("__name", new ConfigIdentifier("NodeName"));
-	my_master_endpoint->Set("__type", "Endpoint");
-
-	my_master_zone_members->Add(new ConfigIdentifier("NodeName"));
-
-	my_master_zone->Set("__name", new ConfigIdentifier("ZoneName"));
-	my_master_zone->Set("__type", "Zone");
-	my_master_zone->Set("endpoints", my_master_zone_members);
-
-	/* store the local config */
-	my_config->Add(my_master_endpoint);
-	my_config->Add(my_master_zone);
+	my_config->Add(new Dictionary({
+		{ "__name", new ConfigIdentifier("ZoneName") },
+		{ "__type", "Zone" },
+		{ "endpoints", new Array({ new ConfigIdentifier("NodeName") }) }
+	}));
 
 	for (const String& globalzone : globalZones) {
-		Dictionary::Ptr myGlobalZone = new Dictionary();
-
-		myGlobalZone->Set("__name", globalzone);
-		myGlobalZone->Set("__type", "Zone");
-		myGlobalZone->Set("global", true);
-
-		my_config->Add(myGlobalZone);
+		my_config->Add(new Dictionary({
+			{ "__name", globalzone },
+			{ "__type", "Zone" },
+			{ "global", true }
+		}));
 	}
 
 	/* write the newly generated configuration */

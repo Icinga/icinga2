@@ -51,50 +51,42 @@ Dictionary::Ptr HostDbObject::GetConfigFields() const
 	/* Compatibility fallback. */
 	String displayName = host->GetDisplayName();
 
-	if (!displayName.IsEmpty())
-		fields->Set("alias", displayName);
-	else
-		fields->Set("alias", host->GetName());
-
-	fields->Set("display_name", displayName);
-	fields->Set("address", host->GetAddress());
-	fields->Set("address6", host->GetAddress6());
-	fields->Set("check_command_object_id", host->GetCheckCommand());
-	fields->Set("eventhandler_command_object_id", host->GetEventCommand());
-	fields->Set("check_timeperiod_object_id", host->GetCheckPeriod());
-	fields->Set("check_interval", host->GetCheckInterval() / 60.0);
-	fields->Set("retry_interval", host->GetRetryInterval() / 60.0);
-	fields->Set("max_check_attempts", host->GetMaxCheckAttempts());
-	fields->Set("flap_detection_enabled", host->GetEnableFlapping());
-	fields->Set("low_flap_threshold", host->GetFlappingThresholdLow());
-	fields->Set("high_flap_threshold", host->GetFlappingThresholdLow());
-	fields->Set("process_performance_data", host->GetEnablePerfdata());
-	fields->Set("freshness_checks_enabled", 1);
-	fields->Set("freshness_threshold", Convert::ToLong(host->GetCheckInterval()));
-	fields->Set("event_handler_enabled", host->GetEnableEventHandler());
-	fields->Set("passive_checks_enabled", host->GetEnablePassiveChecks());
-	fields->Set("active_checks_enabled", host->GetEnableActiveChecks());
-	fields->Set("notifications_enabled", host->GetEnableNotifications());
-	fields->Set("notes", host->GetNotes());
-	fields->Set("notes_url", host->GetNotesUrl());
-	fields->Set("action_url", host->GetActionUrl());
-	fields->Set("icon_image", host->GetIconImage());
-	fields->Set("icon_image_alt", host->GetIconImageAlt());
-
-	fields->Set("notification_interval", CompatUtility::GetCheckableNotificationNotificationInterval(host));
-
 	unsigned long notificationStateFilter = CompatUtility::GetCheckableNotificationTypeFilter(host);
 	unsigned long notificationTypeFilter = CompatUtility::GetCheckableNotificationTypeFilter(host);
 
-	fields->Set("notify_on_down", (notificationStateFilter & ServiceWarning) || (notificationStateFilter && ServiceCritical));
-	fields->Set("notify_on_unreachable", 1); /* We don't have this filter and state, and as such we don't filter such notifications. */
-	fields->Set("notify_on_recovery", notificationTypeFilter & NotificationRecovery);
-	fields->Set("notify_on_flapping", (notificationTypeFilter & NotificationFlappingStart) ||
-		(notificationTypeFilter & NotificationFlappingEnd));
-	fields->Set("notify_on_downtime", (notificationTypeFilter & NotificationDowntimeStart) ||
-		(notificationTypeFilter & NotificationDowntimeEnd) || (notificationTypeFilter & NotificationDowntimeRemoved));
-
-	return fields;
+	return new Dictionary({
+		{ "alias", !displayName.IsEmpty() ? displayName : host->GetName() },
+		{ "display_name", displayName },
+		{ "address", host->GetAddress() },
+		{ "address6", host->GetAddress6() },
+		{ "check_command_object_id", host->GetCheckCommand() },
+		{ "eventhandler_command_object_id", host->GetEventCommand() },
+		{ "check_timeperiod_object_id", host->GetCheckPeriod() },
+		{ "check_interval", host->GetCheckInterval() / 60.0 },
+		{ "retry_interval", host->GetRetryInterval() / 60.0 },
+		{ "max_check_attempts", host->GetMaxCheckAttempts() },
+		{ "flap_detection_enabled", host->GetEnableFlapping() },
+		{ "low_flap_threshold", host->GetFlappingThresholdLow() },
+		{ "high_flap_threshold", host->GetFlappingThresholdLow() },
+		{ "process_performance_data", host->GetEnablePerfdata() },
+		{ "freshness_checks_enabled", 1 },
+		{ "freshness_threshold", Convert::ToLong(host->GetCheckInterval()) },
+		{ "event_handler_enabled", host->GetEnableEventHandler() },
+		{ "passive_checks_enabled", host->GetEnablePassiveChecks() },
+		{ "active_checks_enabled", host->GetEnableActiveChecks() },
+		{ "notifications_enabled", host->GetEnableNotifications() },
+		{ "notes", host->GetNotes() },
+		{ "notes_url", host->GetNotesUrl() },
+		{ "action_url", host->GetActionUrl() },
+		{ "icon_image", host->GetIconImage() },
+		{ "icon_image_alt", host->GetIconImageAlt() },
+		{ "notification_interval", CompatUtility::GetCheckableNotificationNotificationInterval(host) },
+		{ "notify_on_down", (notificationStateFilter & ServiceWarning) || (notificationStateFilter && ServiceCritical) },
+		{ "notify_on_unreachable", 1 }, /* We don't have this filter and state, and as such we don't filter such notifications. */
+		{ "notify_on_recovery", notificationTypeFilter & NotificationRecovery },
+		{ "notify_on_flapping", (notificationTypeFilter & NotificationFlappingStart) || (notificationTypeFilter & NotificationFlappingEnd) },
+		{ "notify_on_downtime", (notificationTypeFilter & NotificationDowntimeStart) || (notificationTypeFilter & NotificationDowntimeEnd) || (notificationTypeFilter & NotificationDowntimeRemoved) }
+	});
 }
 
 Dictionary::Ptr HostDbObject::GetStatusFields() const
@@ -193,14 +185,16 @@ void HostDbObject::OnConfigUpdateHeavy()
 			query2.Table = DbType::GetByName("HostGroup")->GetTable() + "_members";
 			query2.Type = DbQueryInsert;
 			query2.Category = DbCatConfig;
-			query2.Fields = new Dictionary();
-			query2.Fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
-			query2.Fields->Set("hostgroup_id", DbValue::FromObjectInsertID(group));
-			query2.Fields->Set("host_object_id", host);
-			query2.WhereCriteria = new Dictionary();
-			query2.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
-			query2.WhereCriteria->Set("hostgroup_id", DbValue::FromObjectInsertID(group));
-			query2.WhereCriteria->Set("host_object_id", host);
+			query2.Fields = new Dictionary({
+				{ "instance_id", 0 }, /* DbConnection class fills in real ID */
+				{ "hostgroup_id", DbValue::FromObjectInsertID(group) },
+				{ "host_object_id", host }
+			});
+			query2.WhereCriteria = new Dictionary({
+				{ "instance_id", 0 }, /* DbConnection class fills in real ID */
+				{ "hostgroup_id", DbValue::FromObjectInsertID(group) },
+				{ "host_object_id", host }
+			});
 			queries.emplace_back(std::move(query2));
 		}
 	}
@@ -213,8 +207,9 @@ void HostDbObject::OnConfigUpdateHeavy()
 	query2.Table = GetType()->GetTable() + "_parenthosts";
 	query2.Type = DbQueryDelete;
 	query2.Category = DbCatConfig;
-	query2.WhereCriteria = new Dictionary();
-	query2.WhereCriteria->Set(GetType()->GetTable() + "_id", DbValue::FromObjectInsertID(GetObject()));
+	query2.WhereCriteria = new Dictionary({
+		{ GetType()->GetTable() + "_id", DbValue::FromObjectInsertID(GetObject()) }
+	});
 	queries.emplace_back(std::move(query2));
 
 	/* parents */
@@ -228,16 +223,15 @@ void HostDbObject::OnConfigUpdateHeavy()
 			<< "host parents: " << parent->GetName();
 
 		/* parents: host_id, parent_host_object_id */
-		Dictionary::Ptr fields1 = new Dictionary();
-		fields1->Set(GetType()->GetTable() + "_id", DbValue::FromObjectInsertID(GetObject()));
-		fields1->Set("parent_host_object_id", parent);
-		fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
-
 		DbQuery query1;
 		query1.Table = GetType()->GetTable() + "_parenthosts";
 		query1.Type = DbQueryInsert;
 		query1.Category = DbCatConfig;
-		query1.Fields = fields1;
+		query1.Fields = new Dictionary({
+			{ GetType()->GetTable() + "_id", DbValue::FromObjectInsertID(GetObject()) },
+			{ "parent_host_object_id", parent },
+			{ "instance_id", 0 } /* DbConnection class fills in real ID */
+		});
 		queries.emplace_back(std::move(query1));
 	}
 
@@ -253,8 +247,9 @@ void HostDbObject::OnConfigUpdateHeavy()
 	query3.Table = GetType()->GetTable() + "dependencies";
 	query3.Type = DbQueryDelete;
 	query3.Category = DbCatConfig;
-	query3.WhereCriteria = new Dictionary();
-	query3.WhereCriteria->Set("dependent_host_object_id", host);
+	query3.WhereCriteria = new Dictionary({
+		{ "dependent_host_object_id", host }
+	});
 	queries.emplace_back(std::move(query3));
 
 	for (const Dependency::Ptr& dep : host->GetDependencies()) {
@@ -271,20 +266,19 @@ void HostDbObject::OnConfigUpdateHeavy()
 		Log(LogDebug, "HostDbObject")
 			<< "parent host: " << parent->GetName();
 
-		Dictionary::Ptr fields2 = new Dictionary();
-		fields2->Set("host_object_id", parent);
-		fields2->Set("dependent_host_object_id", host);
-		fields2->Set("inherits_parent", 1);
-		fields2->Set("timeperiod_object_id", dep->GetPeriod());
-		fields2->Set("fail_on_up", stateFilter & StateFilterUp);
-		fields2->Set("fail_on_down", stateFilter & StateFilterDown);
-		fields2->Set("instance_id", 0); /* DbConnection class fills in real ID */
-
 		DbQuery query2;
 		query2.Table = GetType()->GetTable() + "dependencies";
 		query2.Type = DbQueryInsert;
 		query2.Category = DbCatConfig;
-		query2.Fields = fields2;
+		query2.Fields = new Dictionary({
+			{ "host_object_id", parent },
+			{ "dependent_host_object_id", host },
+			{ "inherits_parent", 1 },
+			{ "timeperiod_object_id", dep->GetPeriod() },
+			{ "fail_on_up", stateFilter & StateFilterUp },
+			{ "fail_on_down", stateFilter & StateFilterDown },
+			{ "instance_id", 0 } /* DbConnection class fills in real ID */
+		});
 		queries.emplace_back(std::move(query2));
 	}
 
@@ -299,24 +293,24 @@ void HostDbObject::OnConfigUpdateHeavy()
 	query4.Table = GetType()->GetTable() + "_contacts";
 	query4.Type = DbQueryDelete;
 	query4.Category = DbCatConfig;
-	query4.WhereCriteria = new Dictionary();
-	query4.WhereCriteria->Set("host_id", DbValue::FromObjectInsertID(host));
+	query4.WhereCriteria = new Dictionary({
+		{ "host_id", DbValue::FromObjectInsertID(host) }
+	});
 	queries.emplace_back(std::move(query4));
 
 	for (const User::Ptr& user : CompatUtility::GetCheckableNotificationUsers(host)) {
 		Log(LogDebug, "HostDbObject")
 			<< "host contacts: " << user->GetName();
 
-		Dictionary::Ptr fields_contact = new Dictionary();
-		fields_contact->Set("host_id", DbValue::FromObjectInsertID(host));
-		fields_contact->Set("contact_object_id", user);
-		fields_contact->Set("instance_id", 0); /* DbConnection class fills in real ID */
-
 		DbQuery query_contact;
 		query_contact.Table = GetType()->GetTable() + "_contacts";
 		query_contact.Type = DbQueryInsert;
 		query_contact.Category = DbCatConfig;
-		query_contact.Fields = fields_contact;
+		query_contact.Fields = new Dictionary({
+			{ "host_id", DbValue::FromObjectInsertID(host) },
+			{ "contact_object_id", user },
+			{ "instance_id", 0 } /* DbConnection class fills in real ID */
+		});
 		queries.emplace_back(std::move(query_contact));
 	}
 
@@ -331,24 +325,24 @@ void HostDbObject::OnConfigUpdateHeavy()
 	query5.Table = GetType()->GetTable() + "_contactgroups";
 	query5.Type = DbQueryDelete;
 	query5.Category = DbCatConfig;
-	query5.WhereCriteria = new Dictionary();
-	query5.WhereCriteria->Set("host_id", DbValue::FromObjectInsertID(host));
+	query5.WhereCriteria = new Dictionary({
+		{ "host_id", DbValue::FromObjectInsertID(host) }
+	});
 	queries.emplace_back(std::move(query5));
 
 	for (const UserGroup::Ptr& usergroup : CompatUtility::GetCheckableNotificationUserGroups(host)) {
 		Log(LogDebug, "HostDbObject")
 			<< "host contactgroups: " << usergroup->GetName();
 
-		Dictionary::Ptr fields_contact = new Dictionary();
-		fields_contact->Set("host_id", DbValue::FromObjectInsertID(host));
-		fields_contact->Set("contactgroup_object_id", usergroup);
-		fields_contact->Set("instance_id", 0); /* DbConnection class fills in real ID */
-
 		DbQuery query_contact;
 		query_contact.Table = GetType()->GetTable() + "_contactgroups";
 		query_contact.Type = DbQueryInsert;
 		query_contact.Category = DbCatConfig;
-		query_contact.Fields = fields_contact;
+		query_contact.Fields = new Dictionary({
+			{ "host_id", DbValue::FromObjectInsertID(host) },
+			{ "contactgroup_object_id", usergroup },
+			{ "instance_id", 0 } /* DbConnection class fills in real ID */
+		});
 		queries.emplace_back(std::move(query_contact));
 	}
 
@@ -382,7 +376,7 @@ String HostDbObject::CalculateConfigHash(const Dictionary::Ptr& configFields) co
 	if (groups)
 		hashData += DbObject::HashValue(groups);
 
-	Array::Ptr parents = new Array();
+	ArrayData parents;
 
 	/* parents */
 	for (const Checkable::Ptr& checkable : host->GetParents()) {
@@ -391,14 +385,14 @@ String HostDbObject::CalculateConfigHash(const Dictionary::Ptr& configFields) co
 		if (!parent)
 			continue;
 
-		parents->Add(parent->GetName());
+		parents.push_back(parent->GetName());
 	}
 
-	parents->Sort();
+	std::sort(parents.begin(), parents.end());
 
-	hashData += DbObject::HashValue(parents);
+	hashData += DbObject::HashValue(new Array(std::move(parents)));
 
-	Array::Ptr dependencies = new Array();
+	ArrayData dependencies;
 
 	/* dependencies */
 	for (const Dependency::Ptr& dep : host->GetDependencies()) {
@@ -407,37 +401,36 @@ String HostDbObject::CalculateConfigHash(const Dictionary::Ptr& configFields) co
 		if (!parent)
 			continue;
 
-		Array::Ptr depInfo = new Array();
-		depInfo->Add(parent->GetName());
-		depInfo->Add(dep->GetStateFilter());
-		depInfo->Add(dep->GetPeriodRaw());
-
-		dependencies->Add(depInfo);
+		dependencies.push_back(new Array({
+			parent->GetName(),
+			dep->GetStateFilter(),
+			dep->GetPeriodRaw()
+		}));
 	}
 
-	dependencies->Sort();
+	std::sort(dependencies.begin(), dependencies.end());
 
-	hashData += DbObject::HashValue(dependencies);
+	hashData += DbObject::HashValue(new Array(std::move(dependencies)));
 
-	Array::Ptr users = new Array();
+	ArrayData users;
 
 	for (const User::Ptr& user : CompatUtility::GetCheckableNotificationUsers(host)) {
-		users->Add(user->GetName());
+		users.push_back(user->GetName());
 	}
 
-	users->Sort();
+	std::sort(users.begin(), users.end());
 
-	hashData += DbObject::HashValue(users);
+	hashData += DbObject::HashValue(new Array(std::move(users)));
 
-	Array::Ptr userGroups = new Array();
+	ArrayData userGroups;
 
 	for (const UserGroup::Ptr& usergroup : CompatUtility::GetCheckableNotificationUserGroups(host)) {
-		userGroups->Add(usergroup->GetName());
+		userGroups.push_back(usergroup->GetName());
 	}
 
-	userGroups->Sort();
+	std::sort(userGroups.begin(), userGroups.end());
 
-	hashData += DbObject::HashValue(userGroups);
+	hashData += DbObject::HashValue(new Array(std::move(userGroups)));
 
 	return SHA256(hashData);
 }

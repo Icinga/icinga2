@@ -30,6 +30,8 @@
 namespace icinga
 {
 
+typedef std::vector<std::pair<String, Value> > DictionaryData;
+
 /**
  * A container that holds key-value pairs.
  *
@@ -48,6 +50,11 @@ public:
 	typedef std::map<String, Value>::size_type SizeType;
 
 	typedef std::map<String, Value>::value_type Pair;
+
+	Dictionary() = default;
+	Dictionary(const DictionaryData& other);
+	Dictionary(DictionaryData&& other);
+	Dictionary(std::initializer_list<Pair> init);
 
 	Value Get(const String& key) const;
 	bool Get(const String& key, Value *result) const;

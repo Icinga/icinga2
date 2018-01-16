@@ -86,8 +86,9 @@ extern "C" void dbg_eval_with_value(const Value& value, const char *text)
 
 	try {
 		ScriptFrame frame(true);
-		frame.Locals = new Dictionary();
-		frame.Locals->Set("arg", value);
+		frame.Locals = new Dictionary({
+			{ "arg", value }
+		});
 		expr = ConfigCompiler::CompileText("<dbg>", text);
 		Value result = Serialize(expr->Evaluate(frame), 0);
 		dbg_inspect_value(result);
@@ -102,8 +103,9 @@ extern "C" void dbg_eval_with_object(Object *object, const char *text)
 
 	try {
 		ScriptFrame frame(true);
-		frame.Locals = new Dictionary();
-		frame.Locals->Set("arg", object);
+		frame.Locals = new Dictionary({
+			{ "arg", object }
+		});
 		expr = ConfigCompiler::CompileText("<dbg>", text);
 		Value result = Serialize(expr->Evaluate(frame), 0);
 		dbg_inspect_value(result);

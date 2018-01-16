@@ -138,15 +138,15 @@ void ClusterZoneCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const Che
 			+ " greater than warning threshold: " + Utility::FormatDuration(lagWarning));
 	}
 
-	Array::Ptr perfdata = new Array();
-	perfdata->Add(new PerfdataValue("slave_lag", zoneLag, false, "s", lagWarning, lagCritical));
-	perfdata->Add(new PerfdataValue("last_messages_sent", lastMessageSent));
-	perfdata->Add(new PerfdataValue("last_messages_received", lastMessageReceived));
-	perfdata->Add(new PerfdataValue("sum_messages_sent_per_second", messagesSentPerSecond));
-	perfdata->Add(new PerfdataValue("sum_messages_received_per_second", messagesReceivedPerSecond));
-	perfdata->Add(new PerfdataValue("sum_bytes_sent_per_second", bytesSentPerSecond));
-	perfdata->Add(new PerfdataValue("sum_bytes_received_per_second", bytesReceivedPerSecond));
-	cr->SetPerformanceData(perfdata);
+	cr->SetPerformanceData(new Array({
+		new PerfdataValue("slave_lag", zoneLag, false, "s", lagWarning, lagCritical),
+		new PerfdataValue("last_messages_sent", lastMessageSent),
+		new PerfdataValue("last_messages_received", lastMessageReceived),
+		new PerfdataValue("sum_messages_sent_per_second", messagesSentPerSecond),
+		new PerfdataValue("sum_messages_received_per_second", messagesReceivedPerSecond),
+		new PerfdataValue("sum_bytes_sent_per_second", bytesSentPerSecond),
+		new PerfdataValue("sum_bytes_received_per_second", bytesReceivedPerSecond)
+	}));
 
 	checkable->ProcessCheckResult(cr);
 }

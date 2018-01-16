@@ -106,9 +106,7 @@ bool ScheduledDowntime::EvaluateApplyRule(const Checkable::Ptr& checkable, const
 			return false;
 		}
 	} else {
-		Array::Ptr instances = new Array();
-		instances->Add("");
-		vinstances = instances;
+		vinstances = new Array({ "" });
 	}
 
 	bool match = false;

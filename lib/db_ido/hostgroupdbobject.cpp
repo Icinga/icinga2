@@ -34,15 +34,14 @@ HostGroupDbObject::HostGroupDbObject(const DbType::Ptr& type, const String& name
 
 Dictionary::Ptr HostGroupDbObject::GetConfigFields() const
 {
-	Dictionary::Ptr fields = new Dictionary();
 	HostGroup::Ptr group = static_pointer_cast<HostGroup>(GetObject());
 
-	fields->Set("alias", group->GetDisplayName());
-	fields->Set("notes", group->GetNotes());
-	fields->Set("notes_url", group->GetNotesUrl());
-	fields->Set("action_url", group->GetActionUrl());
-
-	return fields;
+	return new Dictionary({
+		{ "alias", group->GetDisplayName() },
+		{ "notes", group->GetNotes() },
+		{ "notes_url", group->GetNotesUrl() },
+		{ "action_url", group->GetActionUrl() }
+	});
 }
 
 Dictionary::Ptr HostGroupDbObject::GetStatusFields() const

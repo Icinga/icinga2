@@ -137,7 +137,7 @@ Value ClusterEvents::CheckResultAPIHandler(const MessageOrigin::Ptr& origin, con
 	if (!cr)
 		return Empty;
 
-	Array::Ptr rperf = new Array();
+	ArrayData rperf;
 
 	if (vperf) {
 		ObjectLock olock(vperf);
@@ -147,13 +147,13 @@ Value ClusterEvents::CheckResultAPIHandler(const MessageOrigin::Ptr& origin, con
 			if (vp.IsObjectType<Dictionary>()) {
 				PerfdataValue::Ptr val = new PerfdataValue();
 				Deserialize(val, vp, true);
-				rperf->Add(val);
+				rperf.push_back(val);
 			} else
-				rperf->Add(vp);
+				rperf.push_back(vp);
 		}
 	}
 
-	cr->SetPerformanceData(rperf);
+	cr->SetPerformanceData(new Array(std::move(rperf)));
 
 	Host::Ptr host = Host::GetByName(params->Get("host"));
 
@@ -892,11 +892,11 @@ void ClusterEvents::NotificationSentToAllUsersHandler(const Notification::Ptr& n
 		params->Set("service", service->GetShortName());
 	params->Set("notification", notification->GetName());
 
-	Array::Ptr ausers = new Array();
+	ArrayData ausers;
 	for (const User::Ptr& user : users) {
-		ausers->Add(user->GetName());
+		ausers.push_back(user->GetName());
 	}
-	params->Set("users", ausers);
+	params->Set("users", new Array(std::move(ausers)));
 
 	params->Set("type", notificationType);
 	params->Set("cr", Serialize(cr));
@@ -1003,12 +1003,12 @@ Value ClusterEvents::NotificationSentToAllUsersAPIHandler(const MessageOrigin::P
 	notification->SetLastProblemNotification(params->Get("last_problem_notification"));
 	notification->SetNoMoreNotifications(params->Get("no_more_notifications"));
 
-	Array::Ptr notifiedProblemUsers = new Array();
+	ArrayData notifiedProblemUsers;
 	for (const User::Ptr& user : users) {
-		notifiedProblemUsers->Add(user->GetName());
+		notifiedProblemUsers.push_back(user->GetName());
 	}
 
-	notification->SetNotifiedProblemUsers(notifiedProblemUsers);
+	notification->SetNotifiedProblemUsers(new Array(std::move(notifiedProblemUsers)));
 
 	Checkable::OnNotificationSentToAllUsers(notification, checkable, users, type, cr, author, text, origin);
 

@@ -503,10 +503,12 @@ void ApiListener::NewClientHandlerInternal(const Socket::Ptr& client, const Stri
 	ClientType ctype;
 
 	if (role == RoleClient) {
-		Dictionary::Ptr message = new Dictionary();
-		message->Set("jsonrpc", "2.0");
-		message->Set("method", "icinga::Hello");
-		message->Set("params", new Dictionary());
+		Dictionary::Ptr message = new Dictionary({
+			{ "jsonrpc", "2.0" },
+			{ "method", "icinga::Hello" },
+			{ "params", new Dictionary() }
+		});
+
 		JsonRpc::SendMessage(tlsStream, message);
 		ctype = ClientJsonRpc;
 	} else {
@@ -666,13 +668,13 @@ void ApiListener::ApiTimerHandler()
 		if (ts == 0)
 			continue;
 
-		Dictionary::Ptr lparams = new Dictionary();
-		lparams->Set("log_position", ts);
-
-		Dictionary::Ptr lmessage = new Dictionary();
-		lmessage->Set("jsonrpc", "2.0");
-		lmessage->Set("method", "log::SetLogPosition");
-		lmessage->Set("params", lparams);
+		Dictionary::Ptr lmessage = new Dictionary({
+			{ "jsonrpc", "2.0" },
+			{ "method", "log::SetLogPosition" },
+			{ "params", new Dictionary({
+				{ "log_position", ts }
+			}) }
+		});
 
 		double maxTs = 0;
 
@@ -1161,13 +1163,13 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 				if (ts > logpos_ts + 10) {
 					logpos_ts = ts;
 
-					Dictionary::Ptr lparams = new Dictionary();
-					lparams->Set("log_position", logpos_ts);
-
-					Dictionary::Ptr lmessage = new Dictionary();
-					lmessage->Set("jsonrpc", "2.0");
-					lmessage->Set("method", "log::SetLogPosition");
-					lmessage->Set("params", lparams);
+					Dictionary::Ptr lmessage = new Dictionary({
+						{ "jsonrpc", "2.0" },
+						{ "method", "log::SetLogPosition" },
+						{ "params", new Dictionary({
+							{ "log_position", logpos_ts }
+						}) }
+					});
 
 					size_t bytesSent = JsonRpc::SendMessage(client->GetStream(), lmessage);
 					endpoint->AddMessageSent(bytesSent);
@@ -1218,11 +1220,9 @@ void ApiListener::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& per
 
 std::pair<Dictionary::Ptr, Dictionary::Ptr> ApiListener::GetStatus()
 {
-	Dictionary::Ptr status = new Dictionary();
 	Dictionary::Ptr perfdata = new Dictionary();
 
 	/* cluster stats */
-	status->Set("identity", GetIdentity());
 
 	double allEndpoints = 0;
 	Array::Ptr allNotConnectedEndpoints = new Array();
@@ -1244,10 +1244,10 @@ std::pair<Dictionary::Ptr, Dictionary::Ptr> ApiListener::GetStatus()
 		int countZoneEndpoints = 0;
 		double zoneLag = 0;
 
-		Array::Ptr zoneEndpoints = new Array();
+		ArrayData zoneEndpoints;
 
 		for (const Endpoint::Ptr& endpoint : zone->GetEndpoints()) {
-			zoneEndpoints->Add(endpoint->GetName());
+			zoneEndpoints.emplace_back(endpoint->GetName());
 
 			if (endpoint->GetName() == GetIdentity())
 				continue;
@@ -1272,28 +1272,20 @@ std::pair<Dictionary::Ptr, Dictionary::Ptr> ApiListener::GetStatus()
 		if (zone->GetEndpoints().size() == 1 && countZoneEndpoints == 0)
 			zoneConnected = true;
 
-		Dictionary::Ptr zoneStats = new Dictionary();
-		zoneStats->Set("connected", zoneConnected);
-		zoneStats->Set("client_log_lag", zoneLag);
-		zoneStats->Set("endpoints", zoneEndpoints);
-
 		String parentZoneName;
 		Zone::Ptr parentZone = zone->GetParent();
 		if (parentZone)
 			parentZoneName = parentZone->GetName();
 
-		zoneStats->Set("parent_zone", parentZoneName);
+		Dictionary::Ptr zoneStats = new Dictionary({
+			{ "connected", zoneConnected },
+			{ "client_log_lag", zoneLag },
+			{ "endpoints", new Array(std::move(zoneEndpoints)) },
+			{ "parent_zone", parentZoneName }
+		});
 
 		connectedZones->Set(zone->GetName(), zoneStats);
 	}
-
-	status->Set("num_endpoints", allEndpoints);
-	status->Set("num_conn_endpoints", allConnectedEndpoints->GetLength());
-	status->Set("num_not_conn_endpoints", allNotConnectedEndpoints->GetLength());
-	status->Set("conn_endpoints", allConnectedEndpoints);
-	status->Set("not_conn_endpoints", allNotConnectedEndpoints);
-
-	status->Set("zones", connectedZones);
 
 	/* connection stats */
 	size_t jsonRpcClients = GetAnonymousClients().size();
@@ -1306,22 +1298,31 @@ std::pair<Dictionary::Ptr, Dictionary::Ptr> ApiListener::GetStatus()
 	double syncQueueItemRate = m_SyncQueue.GetTaskCount(60) / 60.0;
 	double relayQueueItemRate = m_RelayQueue.GetTaskCount(60) / 60.0;
 
-	Dictionary::Ptr jsonRpc = new Dictionary();
-	jsonRpc->Set("clients", jsonRpcClients);
-	jsonRpc->Set("work_queue_items", workQueueItems);
-	jsonRpc->Set("work_queue_count", workQueueCount);
-	jsonRpc->Set("sync_queue_items", syncQueueItems);
-	jsonRpc->Set("relay_queue_items", relayQueueItems);
+	Dictionary::Ptr status = new Dictionary({
+		{ "identity", GetIdentity() },
+		{ "num_endpoints", allEndpoints },
+		{ "num_conn_endpoints", allConnectedEndpoints->GetLength() },
+		{ "num_not_conn_endpoints", allNotConnectedEndpoints->GetLength() },
+		{ "conn_endpoints", allConnectedEndpoints },
+		{ "not_conn_endpoints", allNotConnectedEndpoints },
 
-	jsonRpc->Set("work_queue_item_rate", workQueueItemRate);
-	jsonRpc->Set("sync_queue_item_rate", syncQueueItemRate);
-	jsonRpc->Set("relay_queue_item_rate", relayQueueItemRate);
+		{ "zones", connectedZones },
 
-	Dictionary::Ptr http = new Dictionary();
-	http->Set("clients", httpClients);
+		{ "json_rpc", new Dictionary({
+			{ "clients", jsonRpcClients },
+			{ "work_queue_items", workQueueItems },
+			{ "work_queue_count", workQueueCount },
+			{ "sync_queue_items", syncQueueItems },
+			{ "relay_queue_items", relayQueueItems },
+			{ "work_queue_item_rate", workQueueItemRate },
+			{ "sync_queue_item_rate", syncQueueItemRate },
+			{ "relay_queue_item_rate", relayQueueItemRate }
+		}) },
 
-	status->Set("json_rpc", jsonRpc);
-	status->Set("http", http);
+		{ "http", new Dictionary({
+			{ "clients", httpClients }
+		}) }
+	});
 
 	/* performance data */
 	perfdata->Set("num_endpoints", allEndpoints);

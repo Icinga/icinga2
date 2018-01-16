@@ -145,7 +145,7 @@ std::pair<String, String> PluginUtility::ParseCheckOutput(const String& output)
 
 Array::Ptr PluginUtility::SplitPerfdata(const String& perfdata)
 {
-	Array::Ptr result = new Array();
+	ArrayData result;
 
 	size_t begin = 0;
 	String multi_prefix;
@@ -182,7 +182,7 @@ Array::Ptr PluginUtility::SplitPerfdata(const String& perfdata)
 		else
 			pdv = label + "=" + value;
 
-		result->Add(pdv);
+		result.emplace_back(std::move(pdv));
 
 		if (multi_index != String::NPos)
 			multi_prefix = label.SubStr(0, multi_index);
@@ -190,7 +190,7 @@ Array::Ptr PluginUtility::SplitPerfdata(const String& perfdata)
 		begin = spq + 1;
 	}
 
-	return result;
+	return new Array(std::move(result));
 }
 
 String PluginUtility::FormatPerfdata(const Array::Ptr& perfdata)

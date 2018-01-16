@@ -461,17 +461,17 @@ ExpressionResult FunctionCallExpression::DoEvaluate(ScriptFrame& frame, DebugHin
 
 ExpressionResult ArrayExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
-	Array::Ptr result = new Array();
-	result->Reserve(m_Expressions.size());
+	ArrayData result;
+	result.reserve(m_Expressions.size());
 
 	for (const auto& aexpr : m_Expressions) {
 		ExpressionResult element = aexpr->Evaluate(frame);
 		CHECK_RESULT(element);
 
-		result->Add(element.GetValue());
+		result.push_back(element.GetValue());
 	}
 
-	return result;
+	return new Array(std::move(result));
 }
 
 ExpressionResult DictExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const

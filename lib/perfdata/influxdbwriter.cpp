@@ -81,26 +81,25 @@ void InfluxdbWriter::OnConfigLoaded()
 
 void InfluxdbWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
 {
-	Dictionary::Ptr nodes = new Dictionary();
+	DictionaryData nodes;
 
 	for (const InfluxdbWriter::Ptr& influxdbwriter : ConfigType::GetObjectsByType<InfluxdbWriter>()) {
 		size_t workQueueItems = influxdbwriter->m_WorkQueue.GetLength();
 		double workQueueItemRate = influxdbwriter->m_WorkQueue.GetTaskCount(60) / 60.0;
 		size_t dataBufferItems = influxdbwriter->m_DataBuffer.size();
 
-		Dictionary::Ptr stats = new Dictionary();
-		stats->Set("work_queue_items", workQueueItems);
-		stats->Set("work_queue_item_rate", workQueueItemRate);
-		stats->Set("data_buffer_items", dataBufferItems);
-
-		nodes->Set(influxdbwriter->GetName(), stats);
+		nodes.emplace_back(influxdbwriter->GetName(), new Dictionary({
+			{ "work_queue_items", workQueueItems },
+			{ "work_queue_item_rate", workQueueItemRate },
+			{ "data_buffer_items", dataBufferItems }
+		}));
 
 		perfdata->Add(new PerfdataValue("influxdbwriter_" + influxdbwriter->GetName() + "_work_queue_items", workQueueItems));
 		perfdata->Add(new PerfdataValue("influxdbwriter_" + influxdbwriter->GetName() + "_work_queue_item_rate", workQueueItemRate));
 		perfdata->Add(new PerfdataValue("influxdbwriter_" + influxdbwriter->GetName() + "_data_queue_items", dataBufferItems));
 	}
 
-	status->Set("influxdbwriter", nodes);
+	status->Set("influxdbwriter", new Dictionary(std::move(nodes)));
 }
 
 void InfluxdbWriter::Start(bool runtimeCreated)

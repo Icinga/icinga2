@@ -33,13 +33,13 @@ ZoneDbObject::ZoneDbObject(const DbType::Ptr& type, const String& name1, const S
 
 Dictionary::Ptr ZoneDbObject::GetConfigFields() const
 {
-	Dictionary::Ptr fields = new Dictionary();
 	Zone::Ptr zone = static_pointer_cast<Zone>(GetObject());
 
-	fields->Set("is_global", zone->IsGlobal() ? 1 : 0);
-	fields->Set("parent_zone_object_id", zone->GetParent());
+	return new Dictionary({
+		{ "is_global", zone->IsGlobal() ? 1 : 0 },
+		{ "parent_zone_object_id", zone->GetParent() }
 
-	return fields;
+	});
 }
 
 Dictionary::Ptr ZoneDbObject::GetStatusFields() const
@@ -49,8 +49,7 @@ Dictionary::Ptr ZoneDbObject::GetStatusFields() const
 	Log(LogDebug, "ZoneDbObject")
 		<< "update status for zone '" << zone->GetName() << "'";
 
-	Dictionary::Ptr fields = new Dictionary();
-	fields->Set("parent_zone_object_id", zone->GetParent());
-
-	return fields;
+	return new Dictionary({
+		{ "parent_zone_object_id", zone->GetParent() }
+	});
 }

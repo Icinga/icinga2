@@ -78,7 +78,7 @@ bool ModifyObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 
 	Dictionary::Ptr attrs = attrsVal;
 
-	Array::Ptr results = new Array();
+	ArrayData results;
 
 	for (const ConfigObject::Ptr& obj : objs) {
 		Dictionary::Ptr result1 = new Dictionary();
@@ -104,11 +104,12 @@ bool ModifyObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 			result1->Set("status", "Attribute '" + key + "' could not be set: " + DiagnosticInformation(ex));
 		}
 
-		results->Add(result1);
+		results.push_back(std::move(result1));
 	}
 
-	Dictionary::Ptr result = new Dictionary();
-	result->Set("results", results);
+	Dictionary::Ptr result = new Dictionary({
+		{ "results", new Array(std::move(results)) }
+	});
 
 	response.SetStatus(200, "OK");
 	HttpUtility::SendJsonBody(response, params, result);

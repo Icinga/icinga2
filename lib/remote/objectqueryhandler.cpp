@@ -81,10 +81,10 @@ Dictionary::Ptr ObjectQueryHandler::SerializeObjectAttrs(const Object::Ptr& obje
 		}
 	}
 
-	Dictionary::Ptr resultAttrs = new Dictionary();
+	DictionaryData resultAttrs;
+	resultAttrs.reserve(fids.size());
 
-	for (int fid : fids)
-	{
+	for (int fid : fids) {
 		Field field = type->GetFieldInfo(fid);
 
 		Value val = object->GetField(fid);
@@ -98,10 +98,10 @@ Dictionary::Ptr ObjectQueryHandler::SerializeObjectAttrs(const Object::Ptr& obje
 			continue;
 
 		Value sval = Serialize(val, FAConfig | FAState);
-		resultAttrs->Set(field.Name, sval);
+		resultAttrs.emplace_back(field.Name, sval);
 	}
 
-	return resultAttrs;
+	return new Dictionary(std::move(resultAttrs));
 }
 
 bool ObjectQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, HttpResponse& response, const Dictionary::Ptr& params)
@@ -170,8 +170,8 @@ bool ObjectQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 		return true;
 	}
 
-	Array::Ptr results = new Array();
-	results->Reserve(objs.size());
+	ArrayData results;
+	results.reserve(objs.size());
 
 	std::set<String> joinAttrs;
 	std::set<String> userJoinAttrs;
@@ -196,21 +196,19 @@ bool ObjectQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 	}
 
 	for (const ConfigObject::Ptr& obj : objs) {
-		Dictionary::Ptr result1 = new Dictionary();
-		results->Add(result1);
+		DictionaryData result1{
+			{ "name", obj->GetName() },
+			{ "type", obj->GetReflectionType()->GetName() }
+		};
 
-		result1->Set("name", obj->GetName());
-		result1->Set("type", obj->GetReflectionType()->GetName());
-
-		Dictionary::Ptr metaAttrs = new Dictionary();
-		result1->Set("meta", metaAttrs);
+		DictionaryData metaAttrs;
 
 		if (umetas) {
 			ObjectLock olock(umetas);
 			for (const String& meta : umetas) {
 				if (meta == "used_by") {
 					Array::Ptr used_by = new Array();
-					metaAttrs->Set("used_by", used_by);
+					metaAttrs.emplace_back("used_by", used_by);
 
 					for (const Object::Ptr& pobj : DependencyGraph::GetParents((obj)))
 					{
@@ -219,20 +217,13 @@ bool ObjectQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 						if (!configObj)
 							continue;
 
-						Dictionary::Ptr refInfo = new Dictionary();
-						refInfo->Set("type", configObj->GetReflectionType()->GetName());
-						refInfo->Set("name", configObj->GetName());
-						used_by->Add(refInfo);
+						used_by->Add(new Dictionary({
+							{ "type", configObj->GetReflectionType()->GetName() },
+							{ "name", configObj->GetName() }
+						}));
 					}
 				} else if (meta == "location") {
-					DebugInfo di = obj->GetDebugInfo();
-					Dictionary::Ptr dinfo = new Dictionary();
-					dinfo->Set("path", di.Path);
-					dinfo->Set("first_line", di.FirstLine);
-					dinfo->Set("first_column", di.FirstColumn);
-					dinfo->Set("last_line", di.LastLine);
-					dinfo->Set("last_column", di.LastColumn);
-					metaAttrs->Set("location", dinfo);
+					metaAttrs.emplace_back("location", obj->GetSourceLocation());
 				} else {
 					HttpUtility::SendJsonError(response, params, 400, "Invalid field specified for meta: " + meta);
 					return true;
@@ -240,15 +231,16 @@ bool ObjectQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 			}
 		}
 
+		result1.emplace_back("meta", new Dictionary(std::move(metaAttrs)));
+
 		try {
-			result1->Set("attrs", SerializeObjectAttrs(obj, String(), uattrs, false, false));
+			result1.emplace_back("attrs", SerializeObjectAttrs(obj, String(), uattrs, false, false));
 		} catch (const ScriptError& ex) {
 			HttpUtility::SendJsonError(response, params, 400, ex.what());
 			return true;
 		}
 
-		Dictionary::Ptr joins = new Dictionary();
-		result1->Set("joins", joins);
+		DictionaryData joins;
 
 		for (const String& joinAttr : joinAttrs) {
 			Object::Ptr joinedObj;
@@ -274,16 +266,21 @@ bool ObjectQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& re
 			String prefix = field.NavigationName;
 
 			try {
-				joins->Set(prefix, SerializeObjectAttrs(joinedObj, prefix, ujoins, true, allJoins));
+				joins.emplace_back(prefix, SerializeObjectAttrs(joinedObj, prefix, ujoins, true, allJoins));
 			} catch (const ScriptError& ex) {
 				HttpUtility::SendJsonError(response, params, 400, ex.what());
 				return true;
 			}
 		}
+
+		result1.emplace_back("joins", new Dictionary(std::move(joins)));
+
+		results.push_back(new Dictionary(std::move(result1)));
 	}
 
-	Dictionary::Ptr result = new Dictionary();
-	result->Set("results", results);
+	Dictionary::Ptr result = new Dictionary({
+		{ "results", new Array(std::move(results)) }
+	});
 
 	response.SetStatus(200, "OK");
 	HttpUtility::SendJsonBody(response, params, result);

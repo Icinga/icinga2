@@ -46,30 +46,29 @@ EndpointDbObject::EndpointDbObject(const DbType::Ptr& type, const String& name1,
 
 Dictionary::Ptr EndpointDbObject::GetConfigFields() const
 {
-	Dictionary::Ptr fields = new Dictionary();
 	Endpoint::Ptr endpoint = static_pointer_cast<Endpoint>(GetObject());
 
-	fields->Set("identity", endpoint->GetName());
-	fields->Set("node", IcingaApplication::GetInstance()->GetNodeName());
-	fields->Set("zone_object_id", endpoint->GetZone());
-
-	return fields;
+	return new Dictionary({
+		{ "identity", endpoint->GetName() },
+		{ "node", IcingaApplication::GetInstance()->GetNodeName() },
+		{ "zone_object_id", endpoint->GetZone() }
+	});
 }
 
 Dictionary::Ptr EndpointDbObject::GetStatusFields() const
 {
-	Dictionary::Ptr fields = new Dictionary();
 	Endpoint::Ptr endpoint = static_pointer_cast<Endpoint>(GetObject());
+
 
 	Log(LogDebug, "EndpointDbObject")
 		<< "update status for endpoint '" << endpoint->GetName() << "'";
 
-	fields->Set("identity", endpoint->GetName());
-	fields->Set("node", IcingaApplication::GetInstance()->GetNodeName());
-	fields->Set("zone_object_id", endpoint->GetZone());
-	fields->Set("is_connected", EndpointIsConnected(endpoint));
-
-	return fields;
+	return new Dictionary({
+		{ "identity", endpoint->GetName() },
+		{ "node", IcingaApplication::GetInstance()->GetNodeName() },
+		{ "zone_object_id", endpoint->GetZone() },
+		{ "is_connected", EndpointIsConnected(endpoint) }
+	});
 }
 
 void EndpointDbObject::UpdateConnectedStatus(const Endpoint::Ptr& endpoint)
@@ -84,14 +83,15 @@ void EndpointDbObject::UpdateConnectedStatus(const Endpoint::Ptr& endpoint)
 	query1.Type = DbQueryUpdate;
 	query1.Category = DbCatState;
 
-	Dictionary::Ptr fields1 = new Dictionary();
-	fields1->Set("is_connected", (connected ? 1 : 0));
-	fields1->Set("status_update_time", DbValue::FromTimestamp(Utility::GetTime()));
-	query1.Fields = fields1;
+	query1.Fields = new Dictionary({
+		{ "is_connected", (connected ? 1 : 0) },
+		{ "status_update_time", DbValue::FromTimestamp(Utility::GetTime()) }
+	});
 
-	query1.WhereCriteria = new Dictionary();
-	query1.WhereCriteria->Set("endpoint_object_id", endpoint);
-	query1.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
+	query1.WhereCriteria = new Dictionary({
+		{ "endpoint_object_id", endpoint },
+		{ "instance_id", 0 } /* DbConnection class fills in real ID */
+	});
 
 	OnQuery(query1);
 }

@@ -38,20 +38,19 @@ public:
 
 	static Dictionary::Ptr GetTargetForTemplate(const ConfigItem::Ptr& item)
 	{
-		Dictionary::Ptr target = new Dictionary();
-		target->Set("name", item->GetName());
-		target->Set("type", item->GetType()->GetName());
-
 		DebugInfo di = item->GetDebugInfo();
-		Dictionary::Ptr dinfo = new Dictionary();
-		dinfo->Set("path", di.Path);
-		dinfo->Set("first_line", di.FirstLine);
-		dinfo->Set("first_column", di.FirstColumn);
-		dinfo->Set("last_line", di.LastLine);
-		dinfo->Set("last_column", di.LastColumn);
-		target->Set("location", dinfo);
 
-		return target;
+		return new Dictionary({
+			{ "name", item->GetName() },
+			{ "type", item->GetType()->GetName() },
+			{ "location", new Dictionary({
+				{ "path", di.Path },
+				{ "first_line", di.FirstLine },
+				{ "first_column", di.FirstColumn },
+				{ "last_line", di.LastLine },
+				{ "last_column", di.LastColumn }
+			}) }
+		});
 	}
 
 	void FindTargets(const String& type,
@@ -132,18 +131,12 @@ bool TemplateQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& 
 		return true;
 	}
 
-	Array::Ptr results = new Array();
-
-	for (const Dictionary::Ptr& obj : objs) {
-		results->Add(obj);
-	}
-
-	Dictionary::Ptr result = new Dictionary();
-	result->Set("results", results);
+	Dictionary::Ptr result = new Dictionary({
+		{ "results", new Array(std::move(objs)) }
+	});
 
 	response.SetStatus(200, "OK");
 	HttpUtility::SendJsonBody(response, params, result);
 
 	return true;
 }
-

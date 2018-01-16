@@ -67,18 +67,16 @@ bool InfoHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& request, 
 	}
 
 	if (request.Headers->Get("accept") == "application/json") {
-		Dictionary::Ptr result1 = new Dictionary();
+		Dictionary::Ptr result1 = new Dictionary({
+			{ "user", user->GetName() },
+			{ "permissions", Array::FromVector(permInfo) },
+			{ "version", Application::GetAppVersion() },
+			{ "info", "More information about API requests is available in the documentation at https://docs.icinga.com/icinga2/latest." }
+		});
 
-		result1->Set("user", user->GetName());
-		result1->Set("permissions", Array::FromVector(permInfo));
-		result1->Set("version", Application::GetAppVersion());
-		result1->Set("info", "More information about API requests is available in the documentation at https://docs.icinga.com/icinga2/latest.");
-
-		Array::Ptr results = new Array();
-		results->Add(result1);
-
-		Dictionary::Ptr result = new Dictionary();
-		result->Set("results", results);
+		Dictionary::Ptr result = new Dictionary({
+			{ "results", new Array({ result1 }) }
+		});
 
 		HttpUtility::SendJsonBody(response, params, result);
 	} else {

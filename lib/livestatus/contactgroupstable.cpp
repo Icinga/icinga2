@@ -81,11 +81,11 @@ Value ContactGroupsTable::MembersAccessor(const Value& row)
 	if (!user_group)
 		return Empty;
 
-	Array::Ptr members = new Array();
+	ArrayData result;
 
 	for (const User::Ptr& user : user_group->GetMembers()) {
-		members->Add(user->GetName());
+		result.push_back(user->GetName());
 	}
 
-	return members;
+	return new Array(std::move(result));
 }

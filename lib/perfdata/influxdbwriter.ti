@@ -55,27 +55,23 @@ class InfluxdbWriter : ConfigObject
 	};
 	[config, required] Dictionary::Ptr host_template {
 		default {{{
-			Dictionary::Ptr tags = new Dictionary();
-			tags->Set("hostname", "$host.name$");
-
-			Dictionary::Ptr tmpl = new Dictionary();
-			tmpl->Set("measurement", "$host.check_command$");
-			tmpl->Set("tags", tags);
-
-			return tmpl;
+			return new Dictionary({
+				{ "measurement", "$host.check_command$" },
+				{ "tags", new Dictionary({
+					{ "hostname", "$host.name$" }
+				}) }
+			});
 		}}}
 	};
 	[config, required] Dictionary::Ptr service_template {
 		default {{{
-			Dictionary::Ptr tags = new Dictionary();
-			tags->Set("hostname", "$host.name$");
-			tags->Set("service", "$service.name$");
-
-			Dictionary::Ptr tmpl = new Dictionary();
-			tmpl->Set("measurement", "$service.check_command$");
-			tmpl->Set("tags", tags);
-
-			return tmpl;
+			return new Dictionary({
+				{ "measurement", "$service.check_command$" },
+				{ "tags", new Dictionary({
+					{ "hostname", "$host.name" },
+					{ "service", "$service.name$" }
+				}) }
+			});
 		}}}
 	};
 	[config] bool enable_send_thresholds {

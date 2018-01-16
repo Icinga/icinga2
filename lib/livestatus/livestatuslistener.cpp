@@ -45,18 +45,17 @@ REGISTER_STATSFUNCTION(LivestatusListener, &LivestatusListener::StatsFunc);
 
 void LivestatusListener::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
 {
-	Dictionary::Ptr nodes = new Dictionary();
+	DictionaryData nodes;
 
 	for (const LivestatusListener::Ptr& livestatuslistener : ConfigType::GetObjectsByType<LivestatusListener>()) {
-		Dictionary::Ptr stats = new Dictionary();
-		stats->Set("connections", l_Connections);
-
-		nodes->Set(livestatuslistener->GetName(), stats);
+		nodes.emplace_back(livestatuslistener->GetName(), new Dictionary({
+			{ "connections", l_Connections }
+		}));
 
 		perfdata->Add(new PerfdataValue("livestatuslistener_" + livestatuslistener->GetName() + "_connections", l_Connections));
 	}
 
-	status->Set("livestatuslistener", nodes);
+	status->Set("livestatuslistener", new Dictionary(std::move(nodes)));
 }
 
 /**

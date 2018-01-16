@@ -62,20 +62,19 @@ void IdoPgsqlConnection::OnConfigLoaded()
 
 void IdoPgsqlConnection::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
 {
-	Dictionary::Ptr nodes = new Dictionary();
+	DictionaryData nodes;
 
 	for (const IdoPgsqlConnection::Ptr& idopgsqlconnection : ConfigType::GetObjectsByType<IdoPgsqlConnection>()) {
 		size_t queryQueueItems = idopgsqlconnection->m_QueryQueue.GetLength();
 		double queryQueueItemRate = idopgsqlconnection->m_QueryQueue.GetTaskCount(60) / 60.0;
 
-		Dictionary::Ptr stats = new Dictionary();
-		stats->Set("version", idopgsqlconnection->GetSchemaVersion());
-		stats->Set("instance_name", idopgsqlconnection->GetInstanceName());
-		stats->Set("connected", idopgsqlconnection->GetConnected());
-		stats->Set("query_queue_items", queryQueueItems);
-		stats->Set("query_queue_item_rate", queryQueueItemRate);
-
-		nodes->Set(idopgsqlconnection->GetName(), stats);
+		nodes.emplace_back(idopgsqlconnection->GetName(), new Dictionary({
+			{ "version", idopgsqlconnection->GetSchemaVersion() },
+			{ "instance_name", idopgsqlconnection->GetInstanceName() },
+			{ "connected", idopgsqlconnection->GetConnected() },
+			{ "query_queue_items", queryQueueItems },
+			{ "query_queue_item_rate", queryQueueItemRate }
+		}));
 
 		perfdata->Add(new PerfdataValue("idopgsqlconnection_" + idopgsqlconnection->GetName() + "_queries_rate", idopgsqlconnection->GetQueryCount(60) / 60.0));
 		perfdata->Add(new PerfdataValue("idopgsqlconnection_" + idopgsqlconnection->GetName() + "_queries_1min", idopgsqlconnection->GetQueryCount(60)));
@@ -85,7 +84,7 @@ void IdoPgsqlConnection::StatsFunc(const Dictionary::Ptr& status, const Array::P
 		perfdata->Add(new PerfdataValue("idopgsqlconnection_" + idopgsqlconnection->GetName() + "_query_queue_item_rate", queryQueueItemRate));
 	}
 
-	status->Set("idopgsqlconnection", nodes);
+	status->Set("idopgsqlconnection", new Dictionary(std::move(nodes)));
 }
 
 void IdoPgsqlConnection::Resume()
@@ -534,7 +533,7 @@ Dictionary::Ptr IdoPgsqlConnection::FetchRow(const IdoPgsqlResult& result, int r
 
 	int columns = m_Pgsql->nfields(result.get());
 
-	Dictionary::Ptr dict = new Dictionary();
+	DictionaryData dict;
 
 	for (int column = 0; column < columns; column++) {
 		Value value;
@@ -542,10 +541,10 @@ Dictionary::Ptr IdoPgsqlConnection::FetchRow(const IdoPgsqlResult& result, int r
 		if (!m_Pgsql->getisnull(result.get(), row, column))
 			value = m_Pgsql->getvalue(result.get(), row, column);
 
-		dict->Set(m_Pgsql->fname(result.get(), column), value);
+		dict.emplace_back(m_Pgsql->fname(result.get(), column), value);
 	}
 
-	return dict;
+	return new Dictionary(std::move(dict));
 }
 
 void IdoPgsqlConnection::ActivateObject(const DbObject::Ptr& dbobj)

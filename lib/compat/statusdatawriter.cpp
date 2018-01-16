@@ -52,13 +52,13 @@ REGISTER_STATSFUNCTION(StatusDataWriter, &StatusDataWriter::StatsFunc);
 
 void StatusDataWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 {
-	Dictionary::Ptr nodes = new Dictionary();
+	DictionaryData nodes;
 
 	for (const StatusDataWriter::Ptr& statusdatawriter : ConfigType::GetObjectsByType<StatusDataWriter>()) {
-		nodes->Set(statusdatawriter->GetName(), 1); //add more stats
+		nodes.emplace_back(statusdatawriter->GetName(), 1); //add more stats
 	}
 
-	status->Set("statusdatawriter", nodes);
+	status->Set("statusdatawriter", new Dictionary(std::move(nodes)));
 }
 
 /**

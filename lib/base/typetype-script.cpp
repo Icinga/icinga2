@@ -42,12 +42,9 @@ static void TypeRegisterAttributeHandler(const String& fieldName, const Function
 
 Object::Ptr TypeType::GetPrototype()
 {
-	static Dictionary::Ptr prototype;
-
-	if (!prototype) {
-		prototype = new Dictionary();
-		prototype->Set("register_attribute_handler", new Function("Type#register_attribute_handler", TypeRegisterAttributeHandler, { "field", "callback" }, false));
-	}
+	static Dictionary::Ptr prototype = new Dictionary({
+		{ "register_attribute_handler", new Function("Type#register_attribute_handler", TypeRegisterAttributeHandler, { "field", "callback" }, false) }
+	});
 
 	return prototype;
 }

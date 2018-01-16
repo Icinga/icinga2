@@ -48,14 +48,11 @@ static Object::Ptr ObjectClone()
 
 Object::Ptr Object::GetPrototype()
 {
-	static Dictionary::Ptr prototype;
-
-	if (!prototype) {
-		prototype = new Dictionary();
-		prototype->Set("to_string", new Function("Object#to_string", ObjectToString, {}, true));
-		prototype->Set("notify_attribute", new Function("Object#notify_attribute", ObjectNotifyAttribute, { "attribute" }, false));
-		prototype->Set("clone", new Function("Object#clone", ObjectClone, {}, true));
-	}
+	static Dictionary::Ptr prototype = new Dictionary({
+			{ "to_string", new Function("Object#to_string", ObjectToString, {}, true) },
+			{ "notify_attribute", new Function("Object#notify_attribute", ObjectNotifyAttribute, { "attribute" }, false) },
+			{ "clone", new Function("Object#clone", ObjectClone, {}, true) }
+	});
 
 	return prototype;
 }

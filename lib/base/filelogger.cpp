@@ -32,13 +32,13 @@ REGISTER_STATSFUNCTION(FileLogger, &FileLogger::StatsFunc);
 
 void FileLogger::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 {
-	Dictionary::Ptr nodes = new Dictionary();
+	DictionaryData nodes;
 
 	for (const FileLogger::Ptr& filelogger : ConfigType::GetObjectsByType<FileLogger>()) {
-		nodes->Set(filelogger->GetName(), 1); //add more stats
+		nodes.emplace_back(filelogger->GetName(), 1); //add more stats
 	}
 
-	status->Set("filelogger", nodes);
+	status->Set("filelogger", new Dictionary(std::move(nodes)));
 }
 
 /**

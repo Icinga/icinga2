@@ -285,7 +285,7 @@ Value icinga::operator-(const Value& lhs, const Value& rhs)
 		if (lhs.IsEmpty())
 			return new Array();
 
-		Array::Ptr result = new Array();
+		ArrayData result;
 		Array::Ptr left = lhs;
 		Array::Ptr right = rhs;
 
@@ -303,10 +303,10 @@ Value icinga::operator-(const Value& lhs, const Value& rhs)
 			if (found)
 				continue;
 
-			result->Add(lv);
+			result.push_back(lv);
 		}
 
-		return result;
+		return new Array(std::move(result));
 	} else
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Operator - cannot be applied to values of type '" + lhs.GetTypeName() + "' and '" + rhs.GetTypeName() + "'"));
 }

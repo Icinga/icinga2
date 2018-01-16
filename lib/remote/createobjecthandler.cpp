@@ -64,8 +64,9 @@ bool CreateObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 		localZoneName = localZone->GetName();
 
 		if (!attrs) {
-			attrs = new Dictionary();
-			attrs->Set("zone", localZoneName);
+			attrs = new Dictionary({
+				{ "zone", localZoneName }
+			});
 		} else if (!attrs->Contains("zone")) {
 			attrs->Set("zone", localZoneName);
 		}
@@ -80,11 +81,9 @@ bool CreateObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 	if (params->Contains("ignore_on_error"))
 		ignoreOnError = HttpUtility::GetLastParameter(params, "ignore_on_error");
 
-	Array::Ptr results = new Array();
-	results->Add(result1);
-
-	Dictionary::Ptr result = new Dictionary();
-	result->Set("results", results);
+	Dictionary::Ptr result = new Dictionary({
+		{ "results", new Array({ result1 }) }
+	});
 
 	String config;
 
@@ -129,4 +128,3 @@ bool CreateObjectHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& r
 
 	return true;
 }
-

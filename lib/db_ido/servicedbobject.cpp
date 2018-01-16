@@ -50,50 +50,45 @@ ServiceDbObject::ServiceDbObject(const DbType::Ptr& type, const String& name1, c
 
 Dictionary::Ptr ServiceDbObject::GetConfigFields() const
 {
-	Dictionary::Ptr fields = new Dictionary();
 	Service::Ptr service = static_pointer_cast<Service>(GetObject());
 	Host::Ptr host = service->GetHost();
-
-	fields->Set("host_object_id", host);
-	fields->Set("display_name", service->GetDisplayName());
-	fields->Set("check_command_object_id", service->GetCheckCommand());
-	fields->Set("eventhandler_command_object_id", service->GetEventCommand());
-	fields->Set("check_timeperiod_object_id", service->GetCheckPeriod());
-	fields->Set("check_interval", service->GetCheckInterval() / 60.0);
-	fields->Set("retry_interval", service->GetRetryInterval() / 60.0);
-	fields->Set("max_check_attempts", service->GetMaxCheckAttempts());
-	fields->Set("is_volatile", service->GetVolatile());
-	fields->Set("flap_detection_enabled", service->GetEnableFlapping());
-	fields->Set("low_flap_threshold", service->GetFlappingThresholdLow());
-	fields->Set("high_flap_threshold", service->GetFlappingThresholdLow());
-	fields->Set("process_performance_data", service->GetEnablePerfdata());
-	fields->Set("freshness_checks_enabled", 1);
-	fields->Set("freshness_threshold", Convert::ToLong(service->GetCheckInterval()));
-	fields->Set("event_handler_enabled", service->GetEnableEventHandler());
-	fields->Set("passive_checks_enabled", service->GetEnablePassiveChecks());
-	fields->Set("active_checks_enabled", service->GetEnableActiveChecks());
-	fields->Set("notifications_enabled", service->GetEnableNotifications());
-	fields->Set("notes", service->GetNotes());
-	fields->Set("notes_url", service->GetNotesUrl());
-	fields->Set("action_url", service->GetActionUrl());
-	fields->Set("icon_image", service->GetIconImage());
-	fields->Set("icon_image_alt", service->GetIconImageAlt());
-
-	fields->Set("notification_interval", CompatUtility::GetCheckableNotificationNotificationInterval(service));
 
 	unsigned long notificationStateFilter = CompatUtility::GetCheckableNotificationTypeFilter(service);
 	unsigned long notificationTypeFilter = CompatUtility::GetCheckableNotificationTypeFilter(service);
 
-	fields->Set("notify_on_warning", notificationStateFilter & ServiceWarning);
-	fields->Set("notify_on_unknown", notificationStateFilter & ServiceUnknown);
-	fields->Set("notify_on_critical", notificationStateFilter & ServiceCritical);
-	fields->Set("notify_on_recovery", notificationTypeFilter & NotificationRecovery);
-	fields->Set("notify_on_flapping", (notificationTypeFilter & NotificationFlappingStart) ||
-		(notificationTypeFilter & NotificationFlappingEnd));
-	fields->Set("notify_on_downtime", (notificationTypeFilter & NotificationDowntimeStart) ||
-		(notificationTypeFilter & NotificationDowntimeEnd) || (notificationTypeFilter & NotificationDowntimeRemoved));
-
-	return fields;
+	return new Dictionary({
+		{ "host_object_id", host },
+		{ "display_name", service->GetDisplayName() },
+		{ "check_command_object_id", service->GetCheckCommand() },
+		{ "eventhandler_command_object_id", service->GetEventCommand() },
+		{ "check_timeperiod_object_id", service->GetCheckPeriod() },
+		{ "check_interval", service->GetCheckInterval() / 60.0 },
+		{ "retry_interval", service->GetRetryInterval() / 60.0 },
+		{ "max_check_attempts", service->GetMaxCheckAttempts() },
+		{ "is_volatile", service->GetVolatile() },
+		{ "flap_detection_enabled", service->GetEnableFlapping() },
+		{ "low_flap_threshold", service->GetFlappingThresholdLow() },
+		{ "high_flap_threshold", service->GetFlappingThresholdLow() },
+		{ "process_performance_data", service->GetEnablePerfdata() },
+		{ "freshness_checks_enabled", 1 },
+		{ "freshness_threshold", Convert::ToLong(service->GetCheckInterval()) },
+		{ "event_handler_enabled", service->GetEnableEventHandler() },
+		{ "passive_checks_enabled", service->GetEnablePassiveChecks() },
+		{ "active_checks_enabled", service->GetEnableActiveChecks() },
+		{ "notifications_enabled", service->GetEnableNotifications() },
+		{ "notes", service->GetNotes() },
+		{ "notes_url", service->GetNotesUrl() },
+		{ "action_url", service->GetActionUrl() },
+		{ "icon_image", service->GetIconImage() },
+		{ "icon_image_alt", service->GetIconImageAlt() },
+		{ "notification_interval", CompatUtility::GetCheckableNotificationNotificationInterval(service) },
+		{ "notify_on_warning", notificationStateFilter & ServiceWarning },
+		{ "notify_on_unknown", notificationStateFilter & ServiceUnknown },
+		{ "notify_on_critical", notificationStateFilter & ServiceCritical },
+		{ "notify_on_recovery", notificationTypeFilter & NotificationRecovery },
+		{ "notify_on_flapping", (notificationTypeFilter & NotificationFlappingStart) || (notificationTypeFilter & NotificationFlappingEnd) },
+		{ "notify_on_downtime", (notificationTypeFilter & NotificationDowntimeStart) || (notificationTypeFilter & NotificationDowntimeEnd) || (notificationTypeFilter & NotificationDowntimeRemoved) }
+	});
 }
 
 Dictionary::Ptr ServiceDbObject::GetStatusFields() const
@@ -174,8 +169,9 @@ void ServiceDbObject::OnConfigUpdateHeavy()
 	query1.Table = DbType::GetByName("ServiceGroup")->GetTable() + "_members";
 	query1.Type = DbQueryDelete;
 	query1.Category = DbCatConfig;
-	query1.WhereCriteria = new Dictionary();
-	query1.WhereCriteria->Set("service_object_id", service);
+	query1.WhereCriteria = new Dictionary({
+		{ "service_object_id", service }
+	});
 	queries.emplace_back(std::move(query1));
 
 	if (groups) {
@@ -187,14 +183,16 @@ void ServiceDbObject::OnConfigUpdateHeavy()
 			query2.Table = DbType::GetByName("ServiceGroup")->GetTable() + "_members";
 			query2.Type = DbQueryInsert;
 			query2.Category = DbCatConfig;
-			query2.Fields = new Dictionary();
-			query2.Fields->Set("instance_id", 0); /* DbConnection class fills in real ID */
-			query2.Fields->Set("servicegroup_id", DbValue::FromObjectInsertID(group));
-			query2.Fields->Set("service_object_id", service);
-			query2.WhereCriteria = new Dictionary();
-			query2.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
-			query2.WhereCriteria->Set("servicegroup_id", DbValue::FromObjectInsertID(group));
-			query2.WhereCriteria->Set("service_object_id", service);
+			query2.Fields = new Dictionary({
+				{ "instance_id", 0 }, /* DbConnection class fills in real ID */
+				{ "servicegroup_id", DbValue::FromObjectInsertID(group) },
+				{ "service_object_id", service }
+			});
+			query2.WhereCriteria = new Dictionary({
+				{ "instance_id", 0 }, /* DbConnection class fills in real ID */
+				{ "servicegroup_id", DbValue::FromObjectInsertID(group) },
+				{ "service_object_id", service }
+			});
 			queries.emplace_back(std::move(query2));
 		}
 	}
@@ -211,8 +209,9 @@ void ServiceDbObject::OnConfigUpdateHeavy()
 	query2.Table = GetType()->GetTable() + "dependencies";
 	query2.Type = DbQueryDelete;
 	query2.Category = DbCatConfig;
-	query2.WhereCriteria = new Dictionary();
-	query2.WhereCriteria->Set("dependent_service_object_id", service);
+	query2.WhereCriteria = new Dictionary({
+		{ "dependent_service_object_id", service }
+	});
 	queries.emplace_back(std::move(query2));
 
 	for (const Dependency::Ptr& dep : service->GetDependencies()) {
@@ -230,22 +229,21 @@ void ServiceDbObject::OnConfigUpdateHeavy()
 		int stateFilter = dep->GetStateFilter();
 
 		/* service dependencies */
-		Dictionary::Ptr fields1 = new Dictionary();
-		fields1->Set("service_object_id", parent);
-		fields1->Set("dependent_service_object_id", service);
-		fields1->Set("inherits_parent", 1);
-		fields1->Set("timeperiod_object_id", dep->GetPeriod());
-		fields1->Set("fail_on_ok", stateFilter & StateFilterOK);
-		fields1->Set("fail_on_warning", stateFilter & StateFilterWarning);
-		fields1->Set("fail_on_critical", stateFilter & StateFilterCritical);
-		fields1->Set("fail_on_unknown", stateFilter & StateFilterUnknown);
-		fields1->Set("instance_id", 0); /* DbConnection class fills in real ID */
-
 		DbQuery query1;
 		query1.Table = GetType()->GetTable() + "dependencies";
 		query1.Type = DbQueryInsert;
 		query1.Category = DbCatConfig;
-		query1.Fields = fields1;
+		query1.Fields = new Dictionary({
+			{ "service_object_id", parent },
+			{ "dependent_service_object_id", service },
+			{ "inherits_parent", 1 },
+			{ "timeperiod_object_id", dep->GetPeriod() },
+			{ "fail_on_ok", stateFilter & StateFilterOK },
+			{ "fail_on_warning", stateFilter & StateFilterWarning },
+			{ "fail_on_critical", stateFilter & StateFilterCritical },
+			{ "fail_on_unknown", stateFilter & StateFilterUnknown },
+			{ "instance_id", 0 } /* DbConnection class fills in real ID */
+		});
 		queries.emplace_back(std::move(query1));
 	}
 
@@ -261,24 +259,25 @@ void ServiceDbObject::OnConfigUpdateHeavy()
 	query3.Table = GetType()->GetTable() + "_contacts";
 	query3.Type = DbQueryDelete;
 	query3.Category = DbCatConfig;
-	query3.WhereCriteria = new Dictionary();
-	query3.WhereCriteria->Set("service_id", DbValue::FromObjectInsertID(service));
+	query3.WhereCriteria = new Dictionary({
+		{ "service_id", DbValue::FromObjectInsertID(service) }
+	});
 	queries.emplace_back(std::move(query3));
 
 	for (const User::Ptr& user : CompatUtility::GetCheckableNotificationUsers(service)) {
 		Log(LogDebug, "ServiceDbObject")
 			<< "service contacts: " << user->GetName();
 
-		Dictionary::Ptr fields_contact = new Dictionary();
-		fields_contact->Set("service_id", DbValue::FromObjectInsertID(service));
-		fields_contact->Set("contact_object_id", user);
-		fields_contact->Set("instance_id", 0); /* DbConnection class fills in real ID */
-
 		DbQuery query_contact;
 		query_contact.Table = GetType()->GetTable() + "_contacts";
 		query_contact.Type = DbQueryInsert;
 		query_contact.Category = DbCatConfig;
-		query_contact.Fields = fields_contact;
+		query_contact.Fields = new Dictionary({
+			{ "service_id", DbValue::FromObjectInsertID(service) },
+			{ "contact_object_id", user },
+			{ "instance_id", 0 } /* DbConnection class fills in real ID */
+
+		});
 		queries.emplace_back(std::move(query_contact));
 	}
 
@@ -293,24 +292,24 @@ void ServiceDbObject::OnConfigUpdateHeavy()
 	query4.Table = GetType()->GetTable() + "_contactgroups";
 	query4.Type = DbQueryDelete;
 	query4.Category = DbCatConfig;
-	query4.WhereCriteria = new Dictionary();
-	query4.WhereCriteria->Set("service_id", DbValue::FromObjectInsertID(service));
+	query4.WhereCriteria = new Dictionary({
+		{ "service_id", DbValue::FromObjectInsertID(service) }
+	});
 	queries.emplace_back(std::move(query4));
 
 	for (const UserGroup::Ptr& usergroup : CompatUtility::GetCheckableNotificationUserGroups(service)) {
 		Log(LogDebug, "ServiceDbObject")
 			<< "service contactgroups: " << usergroup->GetName();
 
-		Dictionary::Ptr fields_contact = new Dictionary();
-		fields_contact->Set("service_id", DbValue::FromObjectInsertID(service));
-		fields_contact->Set("contactgroup_object_id", usergroup);
-		fields_contact->Set("instance_id", 0); /* DbConnection class fills in real ID */
-
 		DbQuery query_contact;
 		query_contact.Table = GetType()->GetTable() + "_contactgroups";
 		query_contact.Type = DbQueryInsert;
 		query_contact.Category = DbCatConfig;
-		query_contact.Fields = fields_contact;
+		query_contact.Fields = new Dictionary({
+			{ "service_id", DbValue::FromObjectInsertID(service) },
+			{ "contactgroup_object_id", usergroup },
+			{ "instance_id", 0 } /* DbConnection class fills in real ID */
+		});
 		queries.emplace_back(std::move(query_contact));
 	}
 
@@ -344,7 +343,7 @@ String ServiceDbObject::CalculateConfigHash(const Dictionary::Ptr& configFields)
 	if (groups)
 		hashData += DbObject::HashValue(groups);
 
-	Array::Ptr dependencies = new Array();
+	ArrayData dependencies;
 
 	/* dependencies */
 	for (const Dependency::Ptr& dep : service->GetDependencies()) {
@@ -353,37 +352,36 @@ String ServiceDbObject::CalculateConfigHash(const Dictionary::Ptr& configFields)
 		if (!parent)
 			continue;
 
-		Array::Ptr depInfo = new Array();
-		depInfo->Add(parent->GetName());
-		depInfo->Add(dep->GetStateFilter());
-		depInfo->Add(dep->GetPeriodRaw());
-
-		dependencies->Add(depInfo);
+		dependencies.push_back(new Array({
+			parent->GetName(),
+			dep->GetStateFilter(),
+			dep->GetPeriodRaw()
+		}));
 	}
 
-	dependencies->Sort();
+	std::sort(dependencies.begin(), dependencies.end());
 
-	hashData += DbObject::HashValue(dependencies);
+	hashData += DbObject::HashValue(new Array(std::move(dependencies)));
 
-	Array::Ptr users = new Array();
+	ArrayData users;
 
 	for (const User::Ptr& user : CompatUtility::GetCheckableNotificationUsers(service)) {
-		users->Add(user->GetName());
+		users.push_back(user->GetName());
 	}
 
-	users->Sort();
+	std::sort(users.begin(), users.end());
 
-	hashData += DbObject::HashValue(users);
+	hashData += DbObject::HashValue(new Array(std::move(users)));
 
-	Array::Ptr userGroups = new Array();
+	ArrayData userGroups;
 
 	for (const UserGroup::Ptr& usergroup : CompatUtility::GetCheckableNotificationUserGroups(service)) {
-		userGroups->Add(usergroup->GetName());
+		userGroups.push_back(usergroup->GetName());
 	}
 
-	userGroups->Sort();
+	std::sort(userGroups.begin(), userGroups.end());
 
-	hashData += DbObject::HashValue(userGroups);
+	hashData += DbObject::HashValue(new Array(std::move(userGroups)));
 
 	return SHA256(hashData);
 }

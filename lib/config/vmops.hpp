@@ -255,17 +255,15 @@ public:
 private:
 	static inline Dictionary::Ptr EvaluateClosedVars(ScriptFrame& frame, const std::map<String, std::unique_ptr<Expression> >& closedVars)
 	{
-		Dictionary::Ptr locals;
+		if (closedVars.empty())
+			return nullptr;
 
-		if (!closedVars.empty()) {
-			locals = new Dictionary();
+		DictionaryData locals;
 
-			for (const auto& cvar : closedVars) {
-				locals->Set(cvar.first, cvar.second->Evaluate(frame));
-			}
-		}
+		for (const auto& cvar : closedVars)
+			locals.emplace_back(cvar.first, cvar.second->Evaluate(frame));
 
-		return locals;
+		return new Dictionary(std::move(locals));
 	}
 };
 

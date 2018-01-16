@@ -96,11 +96,11 @@ bool TypeQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& requ
 		return true;
 	}
 
-	Array::Ptr results = new Array();
+	ArrayData results;
 
 	for (const Type::Ptr& obj : objs) {
 		Dictionary::Ptr result1 = new Dictionary();
-		results->Add(result1);
+		results.push_back(result1);
 
 		Dictionary::Ptr resultAttrs = new Dictionary();
 		result1->Set("name", obj->GetName());
@@ -140,25 +140,24 @@ bool TypeQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& requ
 				fieldInfo->Set("navigation_name", field.NavigationName);
 			fieldInfo->Set("array_rank", field.ArrayRank);
 
-			Dictionary::Ptr attributeInfo = new Dictionary();
-			fieldInfo->Set("attributes", attributeInfo);
-
-			attributeInfo->Set("config", static_cast<bool>(field.Attributes & FAConfig));
-			attributeInfo->Set("state", static_cast<bool>(field.Attributes & FAState));
-			attributeInfo->Set("required", static_cast<bool>(field.Attributes & FARequired));
-			attributeInfo->Set("navigation", static_cast<bool>(field.Attributes & FANavigation));
-			attributeInfo->Set("no_user_modify", static_cast<bool>(field.Attributes & FANoUserModify));
-			attributeInfo->Set("no_user_view", static_cast<bool>(field.Attributes & FANoUserView));
-			attributeInfo->Set("deprecated", static_cast<bool>(field.Attributes & FADeprecated));
+			fieldInfo->Set("attributes", new Dictionary({
+				{ "config", static_cast<bool>(field.Attributes & FAConfig) },
+				{ "state", static_cast<bool>(field.Attributes & FAState) },
+				{ "required", static_cast<bool>(field.Attributes & FARequired) },
+				{ "navigation", static_cast<bool>(field.Attributes & FANavigation) },
+				{ "no_user_modify", static_cast<bool>(field.Attributes & FANoUserModify) },
+				{ "no_user_view", static_cast<bool>(field.Attributes & FANoUserView) },
+				{ "deprecated", static_cast<bool>(field.Attributes & FADeprecated) }
+			}));
 		}
 	}
 
-	Dictionary::Ptr result = new Dictionary();
-	result->Set("results", results);
+	Dictionary::Ptr result = new Dictionary({
+		{ "results", new Array(std::move(results)) }
+	});
 
 	response.SetStatus(200, "OK");
 	HttpUtility::SendJsonBody(response, params, result);
 
 	return true;
 }
-

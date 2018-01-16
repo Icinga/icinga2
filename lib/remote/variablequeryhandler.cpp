@@ -38,11 +38,11 @@ public:
 
 	static Dictionary::Ptr GetTargetForVar(const String& name, const Value& value)
 	{
-		Dictionary::Ptr target = new Dictionary();
-		target->Set("name", name);
-		target->Set("type", value.GetReflectionType()->GetName());
-		target->Set("value", value);
-		return target;
+		return new Dictionary({
+			{ "name", name },
+			{ "type", value.GetReflectionType()->GetName() },
+			{ "value", value }
+		});
 	}
 
 	void FindTargets(const String& type,
@@ -102,20 +102,19 @@ bool VariableQueryHandler::HandleRequest(const ApiUser::Ptr& user, HttpRequest& 
 		return true;
 	}
 
-	Array::Ptr results = new Array();
+	ArrayData results;
 
 	for (const Dictionary::Ptr& var : objs) {
-		Dictionary::Ptr result1 = new Dictionary();
-		results->Add(result1);
-
-		Dictionary::Ptr resultAttrs = new Dictionary();
-		result1->Set("name", var->Get("name"));
-		result1->Set("type", var->Get("type"));
-		result1->Set("value", Serialize(var->Get("value"), 0));
+		results.emplace_back(new Dictionary({
+			{ "name", var->Get("name") },
+			{ "type", var->Get("type") },
+			{ "value", Serialize(var->Get("value"), 0) }
+		}));
 	}
 
-	Dictionary::Ptr result = new Dictionary();
-	result->Set("results", results);
+	Dictionary::Ptr result = new Dictionary({
+		{ "results", new Array(std::move(results)) }
+	});
 
 	response.SetStatus(200, "OK");
 	HttpUtility::SendJsonBody(response, params, result);

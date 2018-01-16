@@ -35,12 +35,11 @@ CommandDbObject::CommandDbObject(const DbType::Ptr& type, const String& name1, c
 
 Dictionary::Ptr CommandDbObject::GetConfigFields() const
 {
-	Dictionary::Ptr fields = new Dictionary();
 	Command::Ptr command = static_pointer_cast<Command>(GetObject());
 
-	fields->Set("command_line", CompatUtility::GetCommandLine(command));
-
-	return fields;
+	return new Dictionary({
+		{ "command_line", CompatUtility::GetCommandLine(command) }
+	});
 }
 
 Dictionary::Ptr CommandDbObject::GetStatusFields() const

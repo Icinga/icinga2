@@ -129,13 +129,13 @@ void ApiEvents::NotificationSentToAllUsersHandler(const Notification::Ptr& notif
 	if (service)
 		result->Set("service", service->GetShortName());
 
-	Array::Ptr userNames = new Array();
+	ArrayData userNames;
 
 	for (const User::Ptr& user : users) {
-		userNames->Add(user->GetName());
+		userNames.push_back(user->GetName());
 	}
 
-	result->Set("users", userNames);
+	result->Set("users", new Array(std::move(userNames)));
 	result->Set("notification_type", Notification::NotificationTypeToString(type));
 	result->Set("author", author);
 	result->Set("text", text);
@@ -257,11 +257,11 @@ void ApiEvents::CommentAddedHandler(const Comment::Ptr& comment)
 
 	Log(LogDebug, "ApiEvents", "Processing event type 'CommentAdded'.");
 
-	Dictionary::Ptr result = new Dictionary();
-	result->Set("type", "CommentAdded");
-	result->Set("timestamp", Utility::GetTime());
-
-	result->Set("comment", Serialize(comment, FAConfig | FAState));
+	Dictionary::Ptr result = new Dictionary({
+		{ "type", "CommentAdded" },
+		{ "timestamp", Utility::GetTime() },
+		{ "comment", Serialize(comment, FAConfig | FAState) }
+	});
 
 	for (const EventQueue::Ptr& queue : queues) {
 		queue->ProcessEvent(result);
@@ -277,11 +277,11 @@ void ApiEvents::CommentRemovedHandler(const Comment::Ptr& comment)
 
 	Log(LogDebug, "ApiEvents", "Processing event type 'CommentRemoved'.");
 
-	Dictionary::Ptr result = new Dictionary();
-	result->Set("type", "CommentRemoved");
-	result->Set("timestamp", Utility::GetTime());
-
-	result->Set("comment", Serialize(comment, FAConfig | FAState));
+	Dictionary::Ptr result = new Dictionary({
+		{ "type", "CommentRemoved" },
+		{ "timestamp", Utility::GetTime() },
+		{ "comment", Serialize(comment, FAConfig | FAState) }
+	});
 
 	for (const EventQueue::Ptr& queue : queues) {
 		queue->ProcessEvent(result);
@@ -297,11 +297,11 @@ void ApiEvents::DowntimeAddedHandler(const Downtime::Ptr& downtime)
 
 	Log(LogDebug, "ApiEvents", "Processing event type 'DowntimeAdded'.");
 
-	Dictionary::Ptr result = new Dictionary();
-	result->Set("type", "DowntimeAdded");
-	result->Set("timestamp", Utility::GetTime());
-
-	result->Set("downtime", Serialize(downtime, FAConfig | FAState));
+	Dictionary::Ptr result = new Dictionary({
+		{ "type", "DowntimeAdded" },
+		{ "timestamp", Utility::GetTime() },
+		{ "downtime", Serialize(downtime, FAConfig | FAState) }
+	});
 
 	for (const EventQueue::Ptr& queue : queues) {
 		queue->ProcessEvent(result);
@@ -317,11 +317,11 @@ void ApiEvents::DowntimeRemovedHandler(const Downtime::Ptr& downtime)
 
 	Log(LogDebug, "ApiEvents", "Processing event type 'DowntimeRemoved'.");
 
-	Dictionary::Ptr result = new Dictionary();
-	result->Set("type", "DowntimeRemoved");
-	result->Set("timestamp", Utility::GetTime());
-
-	result->Set("downtime", Serialize(downtime, FAConfig | FAState));
+	Dictionary::Ptr result = new Dictionary({
+		{ "type", "DowntimeRemoved" },
+		{ "timestamp", Utility::GetTime() },
+		{ "downtime", Serialize(downtime, FAConfig | FAState) }
+	});
 
 	for (const EventQueue::Ptr& queue : queues) {
 		queue->ProcessEvent(result);
@@ -337,11 +337,11 @@ void ApiEvents::DowntimeStartedHandler(const Downtime::Ptr& downtime)
 
 	Log(LogDebug, "ApiEvents", "Processing event type 'DowntimeStarted'.");
 
-	Dictionary::Ptr result = new Dictionary();
-	result->Set("type", "DowntimeStarted");
-	result->Set("timestamp", Utility::GetTime());
-
-	result->Set("downtime", Serialize(downtime, FAConfig | FAState));
+	Dictionary::Ptr result = new Dictionary({
+		{ "type", "DowntimeStarted" },
+		{ "timestamp", Utility::GetTime() },
+		{ "downtime", Serialize(downtime, FAConfig | FAState) }
+	});
 
 	for (const EventQueue::Ptr& queue : queues) {
 		queue->ProcessEvent(result);
@@ -357,11 +357,11 @@ void ApiEvents::DowntimeTriggeredHandler(const Downtime::Ptr& downtime)
 
 	Log(LogDebug, "ApiEvents", "Processing event type 'DowntimeTriggered'.");
 
-	Dictionary::Ptr result = new Dictionary();
-	result->Set("type", "DowntimeTriggered");
-	result->Set("timestamp", Utility::GetTime());
-
-	result->Set("downtime", Serialize(downtime, FAConfig | FAState));
+	Dictionary::Ptr result = new Dictionary({
+		{ "type", "DowntimeTriggered" },
+		{ "timestamp", Utility::GetTime() },
+		{ "downtime", Serialize(downtime, FAConfig | FAState) }
+	});
 
 	for (const EventQueue::Ptr& queue : queues) {
 		queue->ProcessEvent(result);

@@ -42,13 +42,13 @@ REGISTER_STATSFUNCTION(CheckResultReader, &CheckResultReader::StatsFunc);
 
 void CheckResultReader::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 {
-	Dictionary::Ptr nodes = new Dictionary();
+	DictionaryData nodes;
 
 	for (const CheckResultReader::Ptr& checkresultreader : ConfigType::GetObjectsByType<CheckResultReader>()) {
-		nodes->Set(checkresultreader->GetName(), 1); //add more stats
+		nodes.emplace_back(checkresultreader->GetName(), 1); //add more stats
 	}
 
-	status->Set("checkresultreader", nodes);
+	status->Set("checkresultreader", new Dictionary(std::move(nodes)));
 }
 
 /**

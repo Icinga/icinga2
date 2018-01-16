@@ -260,14 +260,14 @@ void ApiListener::SendConfigUpdate(const JsonRpcConnection::Ptr& aclient)
 		configUpdateV2->Set(zone->GetName(), config.UpdateV2);
 	}
 
-	Dictionary::Ptr params = new Dictionary();
-	params->Set("update", configUpdateV1);
-	params->Set("update_v2", configUpdateV2);
-
-	Dictionary::Ptr message = new Dictionary();
-	message->Set("jsonrpc", "2.0");
-	message->Set("method", "config::Update");
-	message->Set("params", params);
+	Dictionary::Ptr message = new Dictionary({
+		{ "jsonrpc", "2.0" },
+		{ "method", "config::Update" },
+		{ "params", new Dictionary({
+			{ "update", configUpdateV1 },
+			{ "update_v2", configUpdateV2 }
+		}) }
+	});
 
 	aclient->SendMessage(message);
 }

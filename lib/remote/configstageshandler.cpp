@@ -65,22 +65,22 @@ void ConfigStagesHandler::HandleGet(const ApiUser::Ptr& user, HttpRequest& reque
 	if (!ConfigPackageUtility::ValidateName(stageName))
 		return HttpUtility::SendJsonError(response, params, 400, "Invalid stage name.");
 
-	Array::Ptr results = new Array();
+	ArrayData results;
 
 	std::vector<std::pair<String, bool> > paths = ConfigPackageUtility::GetFiles(packageName, stageName);
 
 	String prefixPath = ConfigPackageUtility::GetPackageDir() + "/" + packageName + "/" + stageName + "/";
 
-	typedef std::pair<String, bool> kv_pair;
-	for (const kv_pair& kv : paths) {
-		Dictionary::Ptr stageInfo = new Dictionary();
-		stageInfo->Set("type", (kv.second ? "directory" : "file"));
-		stageInfo->Set("name", kv.first.SubStr(prefixPath.GetLength()));
-		results->Add(stageInfo);
+	for (const auto& kv : paths) {
+		results.push_back(new Dictionary({
+			{ "type", kv.second ? "directory" : "file" },
+			{ "name", kv.first.SubStr(prefixPath.GetLength()) }
+		}));
 	}
 
-	Dictionary::Ptr result = new Dictionary();
-	result->Set("results", results);
+	Dictionary::Ptr result = new Dictionary({
+		{ "results", new Array(std::move(results)) }
+	});
 
 	response.SetStatus(200, "OK");
 	HttpUtility::SendJsonBody(response, params, result);
@@ -121,21 +121,20 @@ void ConfigStagesHandler::HandlePost(const ApiUser::Ptr& user, HttpRequest& requ
 				HttpUtility::GetLastParameter(params, "verboseErrors") ? DiagnosticInformation(ex) : "");
 	}
 
-	Dictionary::Ptr result1 = new Dictionary();
 
 	String responseStatus = "Created stage. ";
 	responseStatus += (reload ? " Icinga2 will reload." : " Icinga2 reload skipped.");
 
-	result1->Set("package", packageName);
-	result1->Set("stage", stageName);
-	result1->Set("code", 200);
-	result1->Set("status", responseStatus);
+	Dictionary::Ptr result1 = new Dictionary({
+		{ "package", packageName },
+		{ "stage", stageName },
+		{ "code", 200 },
+		{ "status", responseStatus }
+	});
 
-	Array::Ptr results = new Array();
-	results->Add(result1);
-
-	Dictionary::Ptr result = new Dictionary();
-	result->Set("results", results);
+	Dictionary::Ptr result = new Dictionary({
+		{ "results", new Array({ result1 }) }
+	});
 
 	response.SetStatus(200, "OK");
 	HttpUtility::SendJsonBody(response, params, result);
@@ -168,16 +167,14 @@ void ConfigStagesHandler::HandleDelete(const ApiUser::Ptr& user, HttpRequest& re
 			HttpUtility::GetLastParameter(params, "verboseErrors") ? DiagnosticInformation(ex) : "");
 	}
 
-	Dictionary::Ptr result1 = new Dictionary();
+	Dictionary::Ptr result1 = new Dictionary({
+		{ "code", 200 },
+		{ "status", "Stage deleted." }
+	});
 
-	result1->Set("code", 200);
-	result1->Set("status", "Stage deleted.");
-
-	Array::Ptr results = new Array();
-	results->Add(result1);
-
-	Dictionary::Ptr result = new Dictionary();
-	result->Set("results", results);
+	Dictionary::Ptr result = new Dictionary({
+		{ "results", new Array({ result1 }) }
+	});
 
 	response.SetStatus(200, "OK");
 	HttpUtility::SendJsonBody(response, params, result);

@@ -55,25 +55,24 @@ void GelfWriter::OnConfigLoaded()
 
 void GelfWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
 {
-	Dictionary::Ptr nodes = new Dictionary();
+	DictionaryData nodes;
 
 	for (const GelfWriter::Ptr& gelfwriter : ConfigType::GetObjectsByType<GelfWriter>()) {
 		size_t workQueueItems = gelfwriter->m_WorkQueue.GetLength();
 		double workQueueItemRate = gelfwriter->m_WorkQueue.GetTaskCount(60) / 60.0;
 
-		Dictionary::Ptr stats = new Dictionary();
-		stats->Set("work_queue_items", workQueueItems);
-		stats->Set("work_queue_item_rate", workQueueItemRate);
-		stats->Set("connected", gelfwriter->GetConnected());
-		stats->Set("source", gelfwriter->GetSource());
-
-		nodes->Set(gelfwriter->GetName(), stats);
+		nodes.emplace_back(gelfwriter->GetName(), new Dictionary({
+			{ "work_queue_items", workQueueItems },
+			{ "work_queue_item_rate", workQueueItemRate },
+			{ "connected", gelfwriter->GetConnected() },
+			{ "source", gelfwriter->GetSource() }
+		}));
 
 		perfdata->Add(new PerfdataValue("gelfwriter_" + gelfwriter->GetName() + "_work_queue_items", workQueueItems));
 		perfdata->Add(new PerfdataValue("gelfwriter_" + gelfwriter->GetName() + "_work_queue_item_rate", workQueueItemRate));
 	}
 
-	status->Set("gelfwriter", nodes);
+	status->Set("gelfwriter", new Dictionary(std::move(nodes)));
 }
 
 void GelfWriter::Start(bool runtimeCreated)

@@ -65,25 +65,24 @@ REGISTER_STATSFUNCTION(IcingaApplication, &IcingaApplication::StatsFunc);
 
 void IcingaApplication::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
 {
-	Dictionary::Ptr nodes = new Dictionary();
+	DictionaryData nodes;
 
 	for (const IcingaApplication::Ptr& icingaapplication : ConfigType::GetObjectsByType<IcingaApplication>()) {
-		Dictionary::Ptr stats = new Dictionary();
-		stats->Set("node_name", icingaapplication->GetNodeName());
-		stats->Set("enable_notifications", icingaapplication->GetEnableNotifications());
-		stats->Set("enable_event_handlers", icingaapplication->GetEnableEventHandlers());
-		stats->Set("enable_flapping", icingaapplication->GetEnableFlapping());
-		stats->Set("enable_host_checks", icingaapplication->GetEnableHostChecks());
-		stats->Set("enable_service_checks", icingaapplication->GetEnableServiceChecks());
-		stats->Set("enable_perfdata", icingaapplication->GetEnablePerfdata());
-		stats->Set("pid", Utility::GetPid());
-		stats->Set("program_start", Application::GetStartTime());
-		stats->Set("version", Application::GetAppVersion());
-
-		nodes->Set(icingaapplication->GetName(), stats);
+		nodes.emplace_back(icingaapplication->GetName(), new Dictionary({
+			{ "node_name", icingaapplication->GetNodeName() },
+			{ "enable_notifications", icingaapplication->GetEnableNotifications() },
+			{ "enable_event_handlers", icingaapplication->GetEnableEventHandlers() },
+			{ "enable_flapping", icingaapplication->GetEnableFlapping() },
+			{ "enable_host_checks", icingaapplication->GetEnableHostChecks() },
+			{ "enable_service_checks", icingaapplication->GetEnableServiceChecks() },
+			{ "enable_perfdata", icingaapplication->GetEnablePerfdata() },
+			{ "pid", Utility::GetPid() },
+			{ "program_start", Application::GetStartTime() },
+			{ "version", Application::GetAppVersion() }
+		}));
 	}
 
-	status->Set("icingaapplication", nodes);
+	status->Set("icingaapplication", new Dictionary(std::move(nodes)));
 }
 
 /**
@@ -129,9 +128,10 @@ static void PersistModAttrHelper(std::fstream& fp, ConfigObject::Ptr& previousOb
 
 		ConfigWriter::EmitRaw(fp, "var obj = ");
 
-		Array::Ptr args1 = new Array();
-		args1->Add(object->GetReflectionType()->GetName());
-		args1->Add(object->GetName());
+		Array::Ptr args1 = new Array({
+			object->GetReflectionType()->GetName(),
+			object->GetName()
+		});
 		ConfigWriter::EmitFunctionCall(fp, "get_object", args1);
 
 		ConfigWriter::EmitRaw(fp, "\nif (obj) {\n");
@@ -139,9 +139,10 @@ static void PersistModAttrHelper(std::fstream& fp, ConfigObject::Ptr& previousOb
 
 	ConfigWriter::EmitRaw(fp, "\tobj.");
 
-	Array::Ptr args2 = new Array();
-	args2->Add(attr);
-	args2->Add(value);
+	Array::Ptr args2 = new Array({
+		attr,
+		value
+	});
 	ConfigWriter::EmitFunctionCall(fp, "modify_attribute", args2);
 
 	ConfigWriter::EmitRaw(fp, "\n");

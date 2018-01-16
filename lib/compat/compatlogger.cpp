@@ -44,13 +44,13 @@ REGISTER_STATSFUNCTION(CompatLogger, &CompatLogger::StatsFunc);
 
 void CompatLogger::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 {
-	Dictionary::Ptr nodes = new Dictionary();
+	DictionaryData nodes;
 
 	for (const CompatLogger::Ptr& compat_logger : ConfigType::GetObjectsByType<CompatLogger>()) {
-		nodes->Set(compat_logger->GetName(), 1); //add more stats
+		nodes.emplace_back(compat_logger->GetName(), 1); // add more stats
 	}
 
-	status->Set("compatlogger", nodes);
+	status->Set("compatlogger", new Dictionary(std::move(nodes)));
 }
 
 /**

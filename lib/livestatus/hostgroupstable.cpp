@@ -135,13 +135,13 @@ Value HostGroupsTable::MembersAccessor(const Value& row)
 	if (!hg)
 		return Empty;
 
-	Array::Ptr members = new Array();
+	ArrayData members;
 
 	for (const Host::Ptr& host : hg->GetMembers()) {
-		members->Add(host->GetName());
+		members.push_back(host->GetName());
 	}
 
-	return members;
+	return new Array(std::move(members));
 }
 
 Value HostGroupsTable::MembersWithStateAccessor(const Value& row)
@@ -151,16 +151,16 @@ Value HostGroupsTable::MembersWithStateAccessor(const Value& row)
 	if (!hg)
 		return Empty;
 
-	Array::Ptr members = new Array();
+	ArrayData members;
 
 	for (const Host::Ptr& host : hg->GetMembers()) {
-		Array::Ptr member_state = new Array();
-		member_state->Add(host->GetName());
-		member_state->Add(host->GetState());
-		members->Add(member_state);
+		members.push_back(new Array({
+			host->GetName(),
+			host->GetState()
+		}));
 	}
 
-	return members;
+	return new Array(std::move(members));
 }
 
 Value HostGroupsTable::WorstHostStateAccessor(const Value& row)

@@ -52,9 +52,10 @@ REGISTER_APIACTION(generate_ticket, "", &ApiActions::GenerateTicket);
 Dictionary::Ptr ApiActions::CreateResult(int code, const String& status,
 	const Dictionary::Ptr& additional)
 {
-	Dictionary::Ptr result = new Dictionary();
-	result->Set("code", code);
-	result->Set("status", status);
+	Dictionary::Ptr result = new Dictionary({
+		{ "code", code },
+		{ "status", status }
+	});
 
 	if (additional)
 		additional->CopyTo(result);
@@ -275,9 +276,10 @@ Dictionary::Ptr ApiActions::AddComment(const ConfigObject::Ptr& object,
 
 	Comment::Ptr comment = Comment::GetByName(commentName);
 
-	Dictionary::Ptr additional = new Dictionary();
-	additional->Set("name", commentName);
-	additional->Set("legacy_id", comment->GetLegacyId());
+	Dictionary::Ptr additional = new Dictionary({
+		{ "name", commentName },
+		{ "legacy_id", comment->GetLegacyId() }
+	});
 
 	return ApiActions::CreateResult(200, "Successfully added comment '"
 		+ commentName + "' for object '" + checkable->GetName()
@@ -350,9 +352,10 @@ Dictionary::Ptr ApiActions::ScheduleDowntime(const ConfigObject::Ptr& object,
 
 	Downtime::Ptr downtime = Downtime::GetByName(downtimeName);
 
-	Dictionary::Ptr additional = new Dictionary();
-	additional->Set("name", downtimeName);
-	additional->Set("legacy_id", downtime->GetLegacyId());
+	Dictionary::Ptr additional = new Dictionary({
+		{ "name", downtimeName },
+		{ "legacy_id", downtime->GetLegacyId() }
+	});
 
 	/* Schedule downtime for all child objects. */
 	int childOptions = 0;
@@ -366,10 +369,10 @@ Dictionary::Ptr ApiActions::ScheduleDowntime(const ConfigObject::Ptr& object,
 		if (childOptions == 1)
 			triggerName = downtimeName;
 
-		Array::Ptr childDowntimes = new Array();
-
 		Log(LogCritical, "ApiActions")
 			<< "Processing child options " << childOptions << " for downtime " << downtimeName;
+
+		ArrayData childDowntimes;
 
 		for (const Checkable::Ptr& child : checkable->GetAllChildren()) {
 			Log(LogCritical, "ApiActions")
@@ -383,13 +386,13 @@ Dictionary::Ptr ApiActions::ScheduleDowntime(const ConfigObject::Ptr& object,
 
 			Downtime::Ptr childDowntime = Downtime::GetByName(childDowntimeName);
 
-			Dictionary::Ptr additionalChild = new Dictionary();
-			additionalChild->Set("name", childDowntimeName);
-			additionalChild->Set("legacy_id", childDowntime->GetLegacyId());
-			childDowntimes->Add(additionalChild);
+			childDowntimes.push_back(new Dictionary({
+				{ "name", childDowntimeName },
+				{ "legacy_id", childDowntime->GetLegacyId() }
+			}));
 		}
 
-		additional->Set("child_downtimes", childDowntimes);
+		additional->Set("child_downtimes", new Array(std::move(childDowntimes)));
 	}
 
 	return ApiActions::CreateResult(200, "Successfully scheduled downtime '" +
@@ -455,8 +458,9 @@ Dictionary::Ptr ApiActions::GenerateTicket(const ConfigObject::Ptr&,
 
 	String ticket = PBKDF2_SHA1(cn, salt, 50000);
 
-	Dictionary::Ptr additional = new Dictionary();
-	additional->Set("ticket", ticket);
+	Dictionary::Ptr additional = new Dictionary({
+		{ "ticket", ticket }
+	});
 
 	return ApiActions::CreateResult(200, "Generated PKI ticket '" + ticket + "' for common name '"
 		+ cn + "'.", additional);
