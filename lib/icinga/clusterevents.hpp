@@ -74,6 +74,15 @@ public:
 	static void NotificationSentToAllUsersHandler(const Notification::Ptr& notification, const Checkable::Ptr& checkable, const std::set<User::Ptr>& users,
 		NotificationType notificationType, const CheckResult::Ptr& cr, const String& author, const String& commentText, const MessageOrigin::Ptr& origin);
 	static Value NotificationSentToAllUsersAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
+
+private:
+	static boost::mutex m_Mutex;
+	static std::deque<std::function<void ()>> m_CheckRequestQueue;
+	static bool m_CheckSchedulerRunning;
+
+	static void RemoteCheckThreadProc();
+	static void EnqueueCheck(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
+	static void ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
 };
 
 }
