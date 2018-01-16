@@ -706,7 +706,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 
 		/* NotifyField */
 		m_Header << "public:" << std::endl
-			 << "\t" << "void NotifyField(int id, const Value& cookie = Empty) override;" << std::endl;
+			 << "\t" << "virtual void NotifyField(int id, const Value& cookie = Empty) override;" << std::endl;
 
 		m_Impl << "void ObjectImpl<" << klass.Name << ">::NotifyField(int id, const Value& cookie)" << std::endl
 		       << "{" << std::endl;
@@ -784,12 +784,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 				prot = "public";
 
 			m_Header << prot << ":" << std::endl
-				 << "\t";
-
-			if (field.Attributes & FAGetVirtual || field.PureGetAccessor)
-				m_Header << "virtual ";
-
-			m_Header << field.Type.GetRealType() << " Get" << field.GetFriendlyName() << "(void) const";
+			 	 << "\t" << "virtual " << field.Type.GetRealType() << " Get" << field.GetFriendlyName() << "(void) const";
 
 			if (field.PureGetAccessor) {
 				m_Header << " = 0;" << std::endl;
@@ -818,12 +813,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 				prot = "public";
 
 			m_Header << prot << ":" << std::endl
-				 << "\t";
-
-			if (field.Attributes & FASetVirtual || field.PureSetAccessor)
-				m_Header << "virtual ";
-
-			m_Header << "void Set" << field.GetFriendlyName() << "(" << field.Type.GetArgumentType() << " value, bool suppress_events = false, const Value& cookie = Empty)";
+				 << "\t" << "virtual void Set" << field.GetFriendlyName() << "(" << field.Type.GetArgumentType() << " value, bool suppress_events = false, const Value& cookie = Empty)";
 
 			if (field.PureSetAccessor) {
 				m_Header << " = 0;" << std::endl;
@@ -869,7 +859,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 
 			needs_tracking = true;
 
-			m_Header << "\t" << "void Track" << field.GetFriendlyName() << "(" << field.Type.GetArgumentType() << " oldValue, " << field.Type.GetArgumentType() << " newValue);" << std::endl;
+			m_Header << "\t" << "virtual void Track" << field.GetFriendlyName() << "(" << field.Type.GetArgumentType() << " oldValue, " << field.Type.GetArgumentType() << " newValue);";
 
 			m_Impl << "void ObjectImpl<" << klass.Name << ">::Track" << field.GetFriendlyName() << "(" << field.Type.GetArgumentType() << " oldValue, " << field.Type.GetArgumentType() << " newValue)" << std::endl
 			       << "{" << std::endl;
@@ -940,7 +930,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 				continue;
 
 			m_Header << "public:" << std::endl
-				 << "\t" << "Object::Ptr Navigate" << field.GetFriendlyName() << "(void) const";
+				 << "\t" << "virtual Object::Ptr Navigate" << field.GetFriendlyName() << "(void) const";
 
 			if (field.PureNavigateAccessor) {
 				m_Header << " = 0;" << std::endl;
@@ -961,9 +951,8 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 
 		/* start/stop */
 		if (needs_tracking) {
-			m_Header << "protected:" << std::endl
-				 << "\tvirtual void Start(bool runtimeCreated = false) override;" << std::endl
-				 << "\tvirtual void Stop(bool runtimeRemoved = false) override;" << std::endl;
+			m_Header << "virtual void Start(bool runtimeCreated = false) override;" << std::endl
+				 << "virtual void Stop(bool runtimeRemoved = false) override;" << std::endl;
 
 			m_Impl << "void ObjectImpl<" << klass.Name << ">::Start(bool runtimeCreated)" << std::endl
 			       << "{" << std::endl

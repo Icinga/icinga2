@@ -148,9 +148,6 @@ no_storage			{ yylval->num = FANoStorage; return T_FIELD_ATTRIBUTE; }
 no_user_modify			{ yylval->num = FANoUserModify; return T_FIELD_ATTRIBUTE; }
 no_user_view			{ yylval->num = FANoUserView; return T_FIELD_ATTRIBUTE; }
 deprecated			{ yylval->num = FADeprecated; return T_FIELD_ATTRIBUTE; }
-get_virtual			{ yylval->num = FAGetVirtual; return T_FIELD_ATTRIBUTE; }
-set_virtual			{ yylval->num = FASetVirtual; return T_FIELD_ATTRIBUTE; }
-virtual				{ yylval->num = FAGetVirtual | FASetVirtual; return T_FIELD_ATTRIBUTE; }
 navigation			{ return T_NAVIGATION; }
 validator			{ return T_VALIDATOR; }
 required			{ return T_REQUIRED; }
