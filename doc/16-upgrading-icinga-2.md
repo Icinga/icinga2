@@ -15,6 +15,11 @@ There are additional indexes and schema fixes which require an update.
 
 Please proceed here for [MySQL](16-upgrading-icinga-2.md#upgrading-mysql-db) or [PostgreSQL](16-upgrading-icinga-2.md#upgrading-postgresql-db).
 
+> **Note**
+>
+> `2.8.1.sql` fixes a unique constraint problem with fresh 2.8.0 installations.
+> You don't need this update if you are upgrading from an older version.
+
 ### Changed Certificate Paths <a id="upgrading-to-2-8-certificate-paths"></a>
 
 The default certificate path was changed from `/etc/icinga2/pki` to
