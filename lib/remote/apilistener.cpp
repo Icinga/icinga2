@@ -230,6 +230,9 @@ void ApiListener::OnAllConfigLoaded()
 
 	if (!m_LocalEndpoint)
 		BOOST_THROW_EXCEPTION(ScriptError("Endpoint object for '" + GetIdentity() + "' is missing.", GetDebugInfo()));
+
+	m_LocalEndpoint->SetAppVersion(Application::GetAppVersion());
+
 }
 
 /**
@@ -550,7 +553,7 @@ void ApiListener::NewClientHandlerInternal(const Socket::Ptr& client, const Stri
 		Dictionary::Ptr message = new Dictionary({
 			{ "jsonrpc", "2.0" },
 			{ "method", "icinga::Hello" },
-			{ "params", new Dictionary() }
+			{ "params", new Dictionary({ { "app_version", Application::GetAppVersion() } }) }
 		});
 
 		JsonRpc::SendMessage(tlsStream, message);
@@ -1464,6 +1467,21 @@ std::set<HttpServerConnection::Ptr> ApiListener::GetHttpClients() const
 
 Value ApiListener::HelloAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
 {
+	Endpoint::Ptr endpoint = origin->FromClient->GetEndpoint();
+
+	if (!endpoint) {
+		Log(LogNotice, "ApiListener")
+			<< "Discarding 'hello' message from '" << origin->FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
+		return Empty;
+	}
+
+	if (!params)
+		return Empty;
+
+	if (params->Contains("app_version")) {
+		endpoint->SetAppVersion(params->Get("app_version"));
+	}
+
 	return Empty;
 }
 
