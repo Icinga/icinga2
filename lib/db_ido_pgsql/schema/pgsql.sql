@@ -112,8 +112,7 @@ CREATE TABLE  icinga_commenthistory (
   deletion_time timestamp,
   deletion_time_usec INTEGER  default 0,
   name TEXT default NULL,
-  CONSTRAINT PK_commenthistory_id PRIMARY KEY (commenthistory_id) ,
-  CONSTRAINT UQ_commenthistory UNIQUE (instance_id,object_id,comment_time,internal_comment_id)
+  CONSTRAINT PK_commenthistory_id PRIMARY KEY (commenthistory_id)
 );
 
 -- --------------------------------------------------------
@@ -140,8 +139,7 @@ CREATE TABLE  icinga_comments (
   expiration_time timestamp,
   name TEXT default NULL,
   session_token INTEGER default NULL,
-  CONSTRAINT PK_comment_id PRIMARY KEY (comment_id) ,
-  CONSTRAINT UQ_comments UNIQUE (instance_id,object_id,comment_time,internal_comment_id)
+  CONSTRAINT PK_comment_id PRIMARY KEY (comment_id)
 )  ;
 
 -- --------------------------------------------------------
@@ -448,8 +446,7 @@ CREATE TABLE  icinga_downtimehistory (
   is_in_effect INTEGER  default 0,
   trigger_time timestamp,
   name TEXT default NULL,
-  CONSTRAINT PK_downtimehistory_id PRIMARY KEY (downtimehistory_id) ,
-  CONSTRAINT UQ_downtimehistory UNIQUE (instance_id,object_id,entry_time,internal_downtime_id)
+  CONSTRAINT PK_downtimehistory_id PRIMARY KEY (downtimehistory_id)
 ) ;
 
 -- --------------------------------------------------------
@@ -1014,8 +1011,7 @@ CREATE TABLE  icinga_scheduleddowntime (
   trigger_time timestamp,
   name TEXT default NULL,
   session_token INTEGER default NULL,
-  CONSTRAINT PK_scheduleddowntime_id PRIMARY KEY (scheduleddowntime_id) ,
-  CONSTRAINT UQ_scheduleddowntime UNIQUE (instance_id,object_id,entry_time,internal_downtime_id)
+  CONSTRAINT PK_scheduleddowntime_id PRIMARY KEY (scheduleddowntime_id)
 ) ;
 
 -- --------------------------------------------------------

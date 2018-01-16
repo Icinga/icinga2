@@ -80,8 +80,7 @@ CREATE TABLE IF NOT EXISTS icinga_commenthistory (
   deletion_time timestamp NULL,
   deletion_time_usec  int default 0,
   name TEXT character set latin1 default NULL,
-  PRIMARY KEY  (commenthistory_id),
-  UNIQUE KEY instance_id (instance_id,object_id,comment_time,internal_comment_id)
+  PRIMARY KEY  (commenthistory_id)
 ) ENGINE=InnoDB  COMMENT='Historical host and service comments';
 
 -- --------------------------------------------------------
@@ -108,8 +107,7 @@ CREATE TABLE IF NOT EXISTS icinga_comments (
   expiration_time timestamp NULL,
   name TEXT character set latin1 default NULL,
   session_token int default NULL,
-  PRIMARY KEY  (comment_id),
-  UNIQUE KEY instance_id (instance_id,object_id,comment_time,internal_comment_id)
+  PRIMARY KEY  (comment_id)
 ) ENGINE=InnoDB  COMMENT='Usercomments on Icinga objects';
 
 -- --------------------------------------------------------
@@ -412,8 +410,7 @@ CREATE TABLE IF NOT EXISTS icinga_downtimehistory (
   is_in_effect smallint default 0,
   trigger_time timestamp NULL,
   name TEXT character set latin1 default NULL,
-  PRIMARY KEY  (downtimehistory_id),
-  UNIQUE KEY instance_id (instance_id,object_id,entry_time,internal_downtime_id)
+  PRIMARY KEY  (downtimehistory_id)
 ) ENGINE=InnoDB  COMMENT='Historical scheduled host and service downtime';
 
 -- --------------------------------------------------------
@@ -977,8 +974,7 @@ CREATE TABLE IF NOT EXISTS icinga_scheduleddowntime (
   trigger_time timestamp NULL,
   name TEXT character set latin1 default NULL,
   session_token int default NULL,
-  PRIMARY KEY  (scheduleddowntime_id),
-  UNIQUE KEY instance_id (instance_id,object_id,entry_time,internal_downtime_id)
+  PRIMARY KEY  (scheduleddowntime_id)
 ) ENGINE=InnoDB COMMENT='Current scheduled host and service downtime';
 
 -- --------------------------------------------------------
