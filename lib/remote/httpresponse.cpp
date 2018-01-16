@@ -159,7 +159,12 @@ bool HttpResponse::Parse(StreamReadContext& src, bool may_wait)
 
 			if (line == "") {
 				m_State = HttpResponseBody;
-				m_Body = new FIFO();
+
+				/* we're done if the request doesn't contain a message body */
+				if (!Headers->Contains("content-length") && !Headers->Contains("transfer-encoding"))
+					Complete = true;
+				else
+					m_Body = new FIFO();
 
 				return true;
 
@@ -199,41 +204,27 @@ bool HttpResponse::Parse(StreamReadContext& src, bool may_wait)
 				return true;
 			}
 		} else {
-			bool hasLengthIndicator = false;
-			size_t lengthIndicator = 0;
-			Value contentLengthHeader;
-
-			if (Headers->Get("content-length", &contentLengthHeader)) {
-				hasLengthIndicator = true;
-				lengthIndicator = Convert::ToLong(contentLengthHeader);
-			}
-
-			if (hasLengthIndicator && src.Eof)
+			if (src.Eof)
 				BOOST_THROW_EXCEPTION(std::invalid_argument("Unexpected EOF in HTTP body"));
 
 			if (src.MustRead) {
-				if (!src.FillFromStream(m_Stream, may_wait))
+				if (!src.FillFromStream(m_Stream, false)) {
 					src.Eof = true;
+					BOOST_THROW_EXCEPTION(std::invalid_argument("Unexpected EOF in HTTP body"));
+				}
 
 				src.MustRead = false;
 			}
 
-			if (!hasLengthIndicator)
-				lengthIndicator = src.Size;
+			size_t length_indicator = Convert::ToLong(Headers->Get("content-length"));
 
-			if (src.Size < lengthIndicator) {
+			if (src.Size < length_indicator) {
 				src.MustRead = true;
-				return may_wait;
+				return false;
 			}
 
-			m_Body->Write(src.Buffer, lengthIndicator);
-			src.DropData(lengthIndicator);
-
-			if (!hasLengthIndicator && !src.Eof) {
-				src.MustRead = true;
-				return may_wait;
-			}
-
+			m_Body->Write(src.Buffer, length_indicator);
+			src.DropData(length_indicator);
 			Complete = true;
 			return true;
 		}

@@ -145,9 +145,6 @@ bool StreamReadContext::FillFromStream(const Stream::Ptr& stream, bool may_wait)
 		if (!Buffer)
 			throw std::bad_alloc();
 
-		if (stream->IsEof())
-			break;
-
 		size_t rc = stream->Read(Buffer + Size, 4096, true);
 
 		Size += rc;
