@@ -161,6 +161,7 @@ static int Main()
 	Application::DeclareRLimitStack(Application::GetDefaultRLimitStack());
 #endif /* __linux__ */
 	Application::DeclareConcurrency(std::thread::hardware_concurrency());
+	Application::DeclareMaxConcurrentChecks(Application::GetDefaultMaxConcurrentChecks());
 
 	ScriptGlobal::Set("AttachDebugger", false);
 

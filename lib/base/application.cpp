@@ -1553,6 +1553,48 @@ int Application::GetConcurrency()
 }
 
 /**
+ * Sets the max concurrent checks.
+ *
+ * @param maxChecks The new limit.
+ */
+void Application::SetMaxConcurrentChecks(int maxChecks)
+{
+	ScriptGlobal::Set("MaxConcurrentChecks", maxChecks);
+}
+
+/**
+ * Sets the max concurrent checks.
+ *
+ * @param maxChecks The new limit.
+ */
+void Application::DeclareMaxConcurrentChecks(int maxChecks)
+{
+	if (!ScriptGlobal::Exists("MaxConcurrentChecks"))
+		ScriptGlobal::Set("MaxConcurrentChecks", maxChecks);
+}
+
+/**
+ * Retrieves the max concurrent checks.
+ *
+ * @returns The max number of concurrent checks.
+ */
+int Application::GetMaxConcurrentChecks()
+{
+	Value defaultMaxConcurrentChecks = GetDefaultMaxConcurrentChecks();
+	return ScriptGlobal::Get("MaxConcurrentChecks", &defaultMaxConcurrentChecks);
+}
+
+/**
+ * Retrieves the default value for max concurrent checks.
+ *
+ * @returns The default max number of concurrent checks.
+ */
+int Application::GetDefaultMaxConcurrentChecks()
+{
+	return 512;
+}
+
+/**
  * Returns the global thread pool.
  *
  * @returns The global thread pool.

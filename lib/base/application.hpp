@@ -146,6 +146,11 @@ public:
 	static int GetConcurrency();
 	static void DeclareConcurrency(int ncpus);
 
+	static int GetMaxConcurrentChecks();
+	static int GetDefaultMaxConcurrentChecks();
+	static void DeclareMaxConcurrentChecks(int maxChecks);
+	static void SetMaxConcurrentChecks(int maxChecks);
+
 	static ThreadPool& GetTP();
 
 	static String GetAppVersion();

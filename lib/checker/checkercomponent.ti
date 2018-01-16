@@ -27,8 +27,14 @@ namespace icinga
 class CheckerComponent : ConfigObject
 {
 	[config] int concurrent_checks {
+		get {{{
+			return Application::GetMaxConcurrentChecks();
+		}}}
+		set {{{
+			Application::SetMaxConcurrentChecks(value);
+		}}}
 		default {{{
-			return 512;
+			return Application::GetDefaultMaxConcurrentChecks();
 		}}}
 	};
 };
