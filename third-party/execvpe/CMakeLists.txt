@@ -19,7 +19,7 @@ set(execvpe_SOURCES
   execvpe.c execvpe.h
 )
 
-add_library(execvpe STATIC ${execvpe_SOURCES})
+add_library(execvpe OBJECT ${execvpe_SOURCES})
 
 set_target_properties (
   execvpe PROPERTIES

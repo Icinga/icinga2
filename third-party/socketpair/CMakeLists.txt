@@ -19,7 +19,7 @@ set(socketpair_SOURCES
   socketpair.c socketpair.h
 )
 
-add_library(socketpair STATIC ${socketpair_SOURCES})
+add_library(socketpair OBJECT ${socketpair_SOURCES})
 
 set_target_properties (
   socketpair PROPERTIES

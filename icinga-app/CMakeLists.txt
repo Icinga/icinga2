@@ -65,6 +65,8 @@ endif()
 
 add_executable(icinga-app
   $<TARGET_OBJECTS:icingaloader>
+  $<TARGET_OBJECTS:mmatch>
+  $<TARGET_OBJECTS:socketpair>
   $<TARGET_OBJECTS:base>
   $<TARGET_OBJECTS:config>
   $<TARGET_OBJECTS:remote>

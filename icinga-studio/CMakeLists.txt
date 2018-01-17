@@ -32,7 +32,7 @@ set(icinga_studio_SOURCES
   connectform.cpp connectform.hpp
   mainform.cpp mainform.hpp
   icinga.icns ${WindowsSources}
-  $<TARGET_OBJECTS:base>
+  ${base_OBJS}
   $<TARGET_OBJECTS:config>
   $<TARGET_OBJECTS:remote>
 )
